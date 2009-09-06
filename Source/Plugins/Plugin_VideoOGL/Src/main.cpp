@@ -22,14 +22,14 @@
 
 1.1 Display settings
 
-
 Internal and fullscreen resolution: Since the only internal resolutions allowed are also
 fullscreen resolution allowed by the system there is only need for one resolution setting
 that applies to both the internal resolution and the fullscreen resolution.
+- Apparently no, someone else doesn't agree
 
 Todo: Make the internal resolution option apply instantly, currently only the native and 2x option
-applies instantly. To do this we need to enumerate all avaliable display resolutions before
-Renderer:Init().
+applies instantly. To do this we need to be able to change the reinitialize FramebufferManager:Init()
+while a game is running.
 
 1.2 Screenshots
 

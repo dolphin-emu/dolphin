@@ -39,24 +39,32 @@ extern int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
 class Renderer
 {
 public:
-    static bool Init();
-    static void Shutdown();
+	static bool Init();
+	static void Shutdown();
 
 	// What's the real difference between these? Too similar names.
-    static void ResetAPIState();
-    static void RestoreAPIState();
+	static void ResetAPIState();
+	static void RestoreAPIState();
 
-    static void ReinitView();
+	static void ReinitView();
 
 	static void SwapBuffers();
 
-    static void SetColorMask();
+	static void SetColorMask();
 	static void SetBlendMode(bool forceUpdate);
 	static bool SetScissorRect();
 
+	// Live resolution change
+	static bool Allow2x();
+	static bool AllowCustom();
+
 	// Render target management
-    static int GetTargetWidth();
-    static int GetTargetHeight();
+	static int GetFrameBufferWidth();
+	static int GetFrameBufferHeight();
+	static int GetCustomWidth();
+	static int GetCustomHeight();
+	static int GetTargetWidth();
+	static int GetTargetHeight();
 
 	// Multiply any 2D EFB coordinates by these when rendering.
 	static float GetTargetScaleX();

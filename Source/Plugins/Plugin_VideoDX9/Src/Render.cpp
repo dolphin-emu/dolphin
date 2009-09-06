@@ -103,7 +103,6 @@ float Renderer::GetTargetScaleX()
 {
 	return xScale;
 }
-
 float Renderer::GetTargetScaleY()
 {
 	return yScale;

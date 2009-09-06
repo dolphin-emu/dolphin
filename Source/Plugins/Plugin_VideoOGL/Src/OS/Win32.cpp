@@ -29,6 +29,7 @@
 #include "Win32.h"
 #include "OnScreenDisplay.h"
 #include "VertexShaderManager.h"
+#include "Render.h"
 
 #include "StringUtil.h"
 
@@ -101,9 +102,9 @@ void OSDMenu(WPARAM wParam)
 		// Toggle native resolution
 		if (!(g_Config.bNativeResolution || g_Config.b2xResolution))
 			g_Config.bNativeResolution = true;
-		else if (g_Config.bNativeResolution)
-			{ g_Config.bNativeResolution = false; if (g_Config.bAllow2xResolution) {g_Config.b2xResolution = true;} }
-		else
+		else if (g_Config.bNativeResolution && Renderer::AllowCustom())
+			{ g_Config.bNativeResolution = false; if (Renderer::Allow2x()) {g_Config.b2xResolution = true;} }
+		else if (Renderer::AllowCustom())
 			g_Config.b2xResolution = false;
 		break;
 	case '4':

@@ -108,10 +108,13 @@ static std::string s_sScreenshotName;
 int frameCount;
 static int s_fps = 0;
 
-// These STAY CONSTANT during execution, no matter how much you resize the game window.
+// The custom resolution
 // TODO: Add functionality to reinit all the render targets when the window is resized.
-static int s_targetwidth;   // Size of render buffer FBO.
-static int s_targetheight;
+static int m_CustomWidth;
+static int m_CustomHeight;
+// The framebuffer size
+static int m_FrameBufferWidth;
+static int m_FrameBufferHeight;
 
 static GLuint s_tempScreenshotFramebuffer = 0;
 
@@ -290,42 +293,42 @@ bool Renderer::Init()
 	int W = (int)OpenGL_GetBackbufferWidth(), H = (int)OpenGL_GetBackbufferHeight();
 	if (g_Config.bNativeResolution)
 	{
-		s_targetwidth = EFB_WIDTH;
-		s_targetheight = EFB_HEIGHT;
+		m_FrameBufferWidth = EFB_WIDTH;
+		m_FrameBufferHeight = EFB_HEIGHT;
 	}
 	else if (g_Config.b2xResolution)
 	{
-		s_targetwidth = 2 * EFB_WIDTH;
-		s_targetheight = 2 * EFB_HEIGHT;
+		m_FrameBufferWidth = 2 * EFB_WIDTH;
+		m_FrameBufferHeight = 2 * EFB_HEIGHT;
 	}
 	else
 	{
 		// The size of the framebuffer targets should really NOT be the size of the OpenGL viewport.
 		// The EFB is larger than 640x480 - in fact, it's 640x528, give or take a couple of lines.
-		s_targetwidth = (EFB_WIDTH >= W) ? EFB_WIDTH : W;
-		s_targetheight = (480 >= H) ? 480 : H;
+		m_FrameBufferWidth = (EFB_WIDTH >= W) ? EFB_WIDTH : W;
+		m_FrameBufferHeight = (480 >= H) ? 480 : H;
 
 		// Adjust all heights with this ratio, the resulting height will be the same as H or EFB_HEIGHT. I.e.
 		// 768 (-1) for 1024x768 etc.
-		s_targetheight *= 528.0 / 480.0;
+		m_FrameBufferHeight *= 528.0 / 480.0;
 
 		// Ensure a minimum target size so that the native res target always fits
-		if (s_targetwidth < EFB_WIDTH) s_targetwidth = EFB_WIDTH;
-		if (s_targetheight < EFB_HEIGHT) s_targetheight = EFB_HEIGHT;
+		if (m_FrameBufferWidth < EFB_WIDTH) m_FrameBufferWidth = EFB_WIDTH;
+		if (m_FrameBufferHeight < EFB_HEIGHT) m_FrameBufferHeight = EFB_HEIGHT;
 	}
 
-	// Disable the 2x option
-	if (!g_Config.b2xResolution && (W < 1280 || H < 960)) g_Config.bAllow2xResolution = false;
+	// Save the custom resolution
+	m_CustomWidth = (int)OpenGL_GetBackbufferWidth();
+	m_CustomHeight = (int)OpenGL_GetBackbufferHeight();
+
+	// Because of the fixed framebuffer size we need to disable the resolution options while running
+	g_Config.bRunning = true;
 
     if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
 
 	// Initialize the FramebufferManager
-	g_framebufferManager.Init(s_targetwidth, s_targetheight, s_MSAASamples, s_MSAACoverageSamples);
-
-	// Save the custom resolution
-	s_targetwidth = (int)OpenGL_GetBackbufferWidth();
-	s_targetheight = (int)OpenGL_GetBackbufferHeight();
+	g_framebufferManager.Init(m_FrameBufferWidth, m_FrameBufferHeight, s_MSAASamples, s_MSAACoverageSamples);
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
@@ -407,7 +410,7 @@ bool Renderer::Init()
 
 void Renderer::Shutdown(void)
 {    
-	g_Config.bAllow2xResolution = true;
+	g_Config.bRunning = false;
     delete s_pfont;
 	s_pfont = 0;
 
@@ -432,19 +435,51 @@ void Renderer::Shutdown(void)
 #endif
 }
 
-// Return the rendering window width and height
+// For the OSD menu's live resolution change
+bool Renderer::Allow2x()
+{
+	if (GetFrameBufferWidth() >= 1280 && GetFrameBufferHeight() >= 960)
+		return true;
+	else
+		return false;
+}
+bool Renderer::AllowCustom()
+{
+	if (GetCustomWidth() <= GetFrameBufferWidth() && GetCustomHeight() <= GetFrameBufferHeight())
+		return true;
+	else
+		return false;
+}
+
+// Return the framebuffer size
+int Renderer::GetFrameBufferWidth()
+{
+	return m_FrameBufferWidth;
+}
+int Renderer::GetFrameBufferHeight()
+{
+	return m_FrameBufferHeight;
+}
+// Return the custom resolution
+int Renderer::GetCustomWidth()
+{
+	return m_CustomWidth;
+}
+int Renderer::GetCustomHeight()
+{
+	return m_CustomHeight;
+}
+// Return the rendering target width and height
 int Renderer::GetTargetWidth()
 {
 	return (g_Config.bNativeResolution || g_Config.b2xResolution) ?
-		(g_Config.bNativeResolution ? EFB_WIDTH : EFB_WIDTH * 2) : s_targetwidth;
+		(g_Config.bNativeResolution ? EFB_WIDTH : EFB_WIDTH * 2) : m_CustomWidth;
 }
-
 int Renderer::GetTargetHeight()
 {
 	return (g_Config.bNativeResolution || g_Config.b2xResolution) ?
-		(g_Config.bNativeResolution ? EFB_HEIGHT : EFB_HEIGHT * 2) : s_targetheight;
+		(g_Config.bNativeResolution ? EFB_HEIGHT : EFB_HEIGHT * 2) : m_CustomHeight;
 }
-
 float Renderer::GetTargetScaleX()
 {
     return (float)GetTargetWidth() / (float)EFB_WIDTH;

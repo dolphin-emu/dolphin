@@ -25,7 +25,7 @@ Config g_Config;
 
 Config::Config()
 {
-	bAllow2xResolution = true;
+	bRunning = false;
 }
 
 void Config::Load()
