@@ -229,7 +229,17 @@ void DlgSettings_Show(HINSTANCE hInstance, HWND _hParent)
 	sheet.Add(new TabDirect3D,(LPCTSTR)IDD_SETTINGS,_T("Direct3D"));
 	sheet.Add(new TabEnhancements,(LPCTSTR)IDD_ENHANCEMENTS,_T("Enhancements"));
 	sheet.Add(new TabAdvanced,(LPCTSTR)IDD_ADVANCED,_T("Advanced"));
-	sheet.Show(hInstance,_hParent,_T("Graphics Plugin"));
+
+#ifdef DEBUGFAST
+	sheet.Show(hInstance,_hParent,_T("DX9 Graphics Plugin (DEBUGFAST)"));
+#else
+#ifndef _DEBUG
+	sheet.Show(hInstance,_hParent,_T("DX9 Graphics Plugin"));
+#else
+	sheet.Show(hInstance,_hParent,_T("DX9 Graphics Plugin (DEBUG)"));
+#endif
+#endif
+
 	g_Config.Save();
 
 	if(( tfoe != g_Config.bTexFmtOverlayEnable) ||

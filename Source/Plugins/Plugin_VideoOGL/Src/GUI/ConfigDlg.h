@@ -49,7 +49,15 @@ class GFXConfigDialogOGL : public wxDialog
 {
 	public:
 		GFXConfigDialogOGL(wxWindow *parent, wxWindowID id = 1,
+#ifdef DEBUGFAST
+			const wxString &title = wxT("OpenGL (DEBUGFAST) Plugin Configuration"),
+#else
+#ifndef _DEBUG
 			const wxString &title = wxT("OpenGL Plugin Configuration"),
+#else
+			const wxString &title = wxT("OpenGL (DEBUG) Plugin Configuration"),
+#endif
+#endif
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE);

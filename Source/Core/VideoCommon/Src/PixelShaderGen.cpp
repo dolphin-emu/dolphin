@@ -529,7 +529,8 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
 	{
         // alpha test will always fail, so restart the shader and just make it an empty function
         p = pmainstart;
-		WRITE(p, "discard;\n");
+        WRITE(p, HLSL ? "clip(-1);" : "discard;\n");
+		//WRITE(p, "discard;\n");
         WRITE(p, "ocol0 = 0;\n");
     }
     else
@@ -959,32 +960,31 @@ static void WriteFog(char *&p)
 
         //WRITE (p, "  float fog = clamp(ze - "I_FOG"[1].z, 0.0f, 1.0f);\n");
 		WRITE (p, "  float fog = saturate(ze - "I_FOG"[1].z);\n");
-    }
 
-    switch (bpmem.fog.c_proj_fsel.fsel) 
-	{
+		switch (bpmem.fog.c_proj_fsel.fsel) 
+		{
 		case 0: // TODO - No fog?
 			break;
-        case 2: // linear
-            // empty
-            break;
-        case 4: // exp
-            WRITE(p, "  fog = 1.0f - pow(2, -8.0f * fog);\n");
-            break;
-        case 5: // exp2
-            WRITE(p, "  fog = 1.0f - pow(2, -8.0f * fog * fog);\n");
-            break;
-        case 6: // backward exp
-            WRITE(p, "  fog = 1.0f - fog;\n");
-            WRITE(p, "  fog = pow(2, -8.0f * fog);\n");
-            break;
-        case 7: // backward exp2
-            WRITE(p, "  fog = 1.0f - fog;\n");
-            WRITE(p, "  fog = pow(2, -8.0f * fog * fog);\n");
-            break;
+		case 2: // linear
+			// empty
+			break;
+		case 4: // exp
+			WRITE(p, "  fog = 1.0f - pow(2, -8.0f * fog);\n");
+			break;
+		case 5: // exp2
+			WRITE(p, "  fog = 1.0f - pow(2, -8.0f * fog * fog);\n");
+			break;
+		case 6: // backward exp
+			WRITE(p, "  fog = 1.0f - fog;\n");
+			WRITE(p, "  fog = pow(2, -8.0f * fog);\n");
+			break;
+		case 7: // backward exp2
+			WRITE(p, "  fog = 1.0f - fog;\n");
+			WRITE(p, "  fog = pow(2, -8.0f * fog * fog);\n");
+			break;
 		default: WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
-    }
+		}
 
-    if (enabled)
         WRITE(p, "  prev.rgb = (1.0f - fog) * prev.rgb + (fog * "I_FOG"[0].rgb);\n");
+    }
 }

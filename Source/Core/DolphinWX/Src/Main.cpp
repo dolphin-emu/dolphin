@@ -93,7 +93,17 @@ bool DolphinApp::OnInit()
 	bool UseDebugger = false;
 	bool UseLogger = false;
 	bool LoadElf = false;
+	bool selectVideoPlugin = false;
+	bool selectAudioPlugin = false;
+	bool selectPadPlugin = false;
+	bool selectWiimotePlugin = false;
+
 	wxString ElfFile;
+	wxString videoPluginFilename;
+	wxString audioPluginFilename;
+	wxString padPluginFilename;
+	wxString wiimotePluginFilename;
+
 
 	// Detect CPU info and write it to the cpu_info struct
 	cpu_info.Detect();
@@ -208,6 +218,22 @@ bool DolphinApp::OnInit()
 				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 			},
 			{
+				wxCMD_LINE_OPTION, _T("V"), _T("video_plugin"),_T("Specify a video plugin"),
+				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+			},
+			{
+				wxCMD_LINE_OPTION, _T("A"), _T("audio_plugin"),_T("Specify an audio plugin"),
+				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+			},
+			{
+				wxCMD_LINE_OPTION, _T("P"), _T("pad_plugin"),_T("Specify a pad plugin"),
+				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+			},
+			{
+				wxCMD_LINE_OPTION, _T("W"), _T("wiimote_plugin"),_T("Specify a wiimote plugin"),
+				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+			},
+			{
 				wxCMD_LINE_NONE
 			}
 		};
@@ -270,12 +296,35 @@ bool DolphinApp::OnInit()
 		if( LoadElf && ElfFile == wxEmptyString )
 			PanicAlert("You did not specify a file name");
 
+		selectVideoPlugin = parser.Found(_T("video_plugin"), &videoPluginFilename);
+		selectAudioPlugin = parser.Found(_T("audio_plugin"), &audioPluginFilename);
+		selectPadPlugin = parser.Found(_T("pad_plugin"), &padPluginFilename);
+		selectWiimotePlugin = parser.Found(_T("wiimote_plugin"), &wiimotePluginFilename);
+
 		// ============
 	#endif
 
 		// Load CONFIG_FILE settings
 		SConfig::GetInstance().LoadSettings();
-		
+
+		if (selectVideoPlugin && videoPluginFilename != wxEmptyString)
+		{
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin = std::string(videoPluginFilename.mb_str());
+		}
+		if (selectAudioPlugin && audioPluginFilename != wxEmptyString)
+		{
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin = std::string(audioPluginFilename.mb_str());
+		}
+		if (selectPadPlugin && padPluginFilename != wxEmptyString)
+		{
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[0] = std::string(padPluginFilename.mb_str());
+		}
+		if (selectWiimotePlugin && wiimotePluginFilename != wxEmptyString)
+		{
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin[0] = std::string(wiimotePluginFilename.mb_str());
+		}
+
+	
 		// Enable the PNG image handler
 		wxInitAllImageHandlers(); 
 
