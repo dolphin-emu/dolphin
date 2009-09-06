@@ -289,7 +289,6 @@ bool Renderer::Init()
 	}
 
 	// Decide frambuffer size
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 	int W = (int)OpenGL_GetBackbufferWidth(), H = (int)OpenGL_GetBackbufferHeight();
 	if (g_Config.bNativeResolution)
 	{
@@ -321,7 +320,6 @@ bool Renderer::Init()
 
 	// Disable the 2x option
 	if (!g_Config.b2xResolution && (W < 1280 || H < 960)) g_Config.bAllow2xResolution = false;
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
     if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;

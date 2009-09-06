@@ -42,9 +42,9 @@
 #include "BootManager.h"
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ------------
 //  Main window
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 IMPLEMENT_APP(DolphinApp)
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -308,9 +308,9 @@ bool DolphinApp::OnInit()
 				wxPoint(100, 100), wxSize(800, 600), false, UseLogger);
 	}
 
-	// ---------------------------------------------------
+	// ------------
 	// Check the autoboot options. 
-	// ---------------------
+
 	// First check if we have a elf command line. Todo: Should we place this under #if wxUSE_CMDLINE_PARSER?
 	if (LoadElf && ElfFile != wxEmptyString)
 	{
@@ -348,12 +348,11 @@ void DolphinApp::OnEndSession()
 {
 	SConfig::GetInstance().SaveSettings();
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ------------
 // Talk to GUI
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 
 // g_VideoInitialize.pSysMessage() goes here
 void Host_SysMessage(const char *fmt, ...) 
@@ -452,7 +451,7 @@ void Host_UpdateBreakPointView()
 
 
 // Update Wiimote status bar
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+
 void Host_UpdateLeds(int led_bits)
 {
 	// Convert it to a simpler byte format
@@ -552,4 +551,3 @@ void Host_SetWiiMoteConnectionState(int _State)
 	wxPostEvent(main_frame, event);
 }
 #endif // HAVE_WX
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

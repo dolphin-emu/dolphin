@@ -381,9 +381,12 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 				buffer = ">> "+m_nick+" is now Unready !\n";
 
 			m_ready = !m_ready;
+			m_Disconnect->Enable(!(m_ready));
 
 			if (m_isHosting == 1)
 			{
+				m_ChangeGame->Enable(!(m_ready));
+
 				if (m_numClients > 0)
 				{
 					int buffer_size = (int)buffer.size();
@@ -460,8 +463,7 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 			// TODO : there seems to be a random bug here that i can't reproduce... looked like a loop bug :/
 			wxString chat_str = wxString::Format(wxT("> %s : %s\n"), wxString(m_nick.c_str(), wxConvUTF8).c_str() , m_Chat->GetValue().c_str() );
 			int chat_size = (int)chat_str.size(); 
-			int nick_size = m_nick.size();
-			if(chat_size-nick_size-6 > 0)
+			if(chat_size-m_nick.size()-6 > 0)
 			{
 				m_Chat->Clear();
 				
