@@ -146,8 +146,7 @@ namespace EmuWindow
 {
 
 HWND m_hWnd = NULL; // The new window that is created here
-HWND m_hParent = NULL; // The main wxFrame
-HWND m_hMain = NULL; // The main CPanel
+HWND m_hParent = NULL; // The main CPanel or the main wxFrame
 
 HINSTANCE m_hInstance = NULL;
 WNDCLASSEX wndClass;
@@ -175,10 +174,6 @@ HWND GetWnd()
 HWND GetParentWnd()
 {
     return m_hParent;
-}
-HWND GetChildParentWnd()
-{
-    return m_hMain;
 }
 
 void FreeLookInput( UINT iMsg, WPARAM wParam )
@@ -257,7 +252,7 @@ void OnKeyDown(WPARAM wParam)
 		else if (!g_Config.RenderToMainframe)
 		{
 			// And stops the emulation when already in Windowed mode
-			PostMessage(m_hMain, WM_USER, OPENGL_WM_USER_STOP, 0);
+			PostMessage(m_hParent, WM_USER, OPENGL_WM_USER_STOP, 0);
 		}
 		break;
 	case '3': // OSD keys
@@ -279,7 +274,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	switch( iMsg )
 	{
 	case WM_CREATE:
-		PostMessage(m_hMain, WM_USER, OPENGL_WM_USER_CREATE, (int)m_hParent);
+		PostMessage(m_hParent, WM_USER, OPENGL_WM_USER_CREATE, (int)m_hParent);
 		break;
 
 	case WM_PAINT:
@@ -311,7 +306,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONUP:
 	case WM_LBUTTONDBLCLK:
-		PostMessage(GetChildParentWnd(), iMsg, wParam, lParam);
+		PostMessage(GetParentWnd(), iMsg, wParam, lParam);
 	break;
 
 	/* The reason we pick up the WM_MOUSEMOVE is to be able to change this option
@@ -324,7 +319,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		   it's nessesary for both the chil dwindow and separate rendering window because
 		   moves over the rendering window do not reach the main program then. */
 		if (GetParentWnd() == NULL) // Separate rendering window
-			PostMessage(m_hMain, iMsg, wParam, -1);			
+			PostMessage(m_hParent, iMsg, wParam, -1);			
 		else
 			PostMessage(GetParentWnd(), iMsg, wParam, lParam);
 		break;
@@ -401,7 +396,7 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	// Create child window
     if (parent)
     {
-		m_hParent = m_hMain = parent;
+		m_hParent = parent;
 
         m_hWnd = CreateWindow(m_szClassName, title,
             WS_CHILD,
@@ -426,9 +421,6 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
         rc.right = rc.left + w;
         rc.top = (1024 - h)/2;
         rc.bottom = rc.top + h;
-
-		// I save this to m_hMain instead of m_hParent because it casused problems otherwise
-		m_hMain = (HWND)g_VideoInitialize.pWindowHandle;
 
         m_hWnd = CreateWindow(m_szClassName, title,
             style,

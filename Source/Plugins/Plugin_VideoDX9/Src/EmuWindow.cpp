@@ -20,7 +20,6 @@ HWND GetWnd()
 {
 	return m_hWnd;
 }
-
 HWND GetParentWnd()
 {
 	return m_hParent;
@@ -105,6 +104,14 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 		break;
 
+	/* Post thes mouse events to the main window, it's nessesary because in difference to the
+	   keyboard inputs these events only appear here, not in the parent window or any other WndProc()*/
+	case WM_LBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_LBUTTONDBLCLK:
+		PostMessage(GetParentWnd(), iMsg, wParam, lParam);
+	break;
+
 	case WM_CLOSE:
 		Fifo_ExitLoopNonBlocking();
 		Shutdown();
@@ -139,7 +146,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const TCHAR *title)
 {
 	wndClass.cbSize = sizeof( wndClass );
-	wndClass.style  = CS_HREDRAW | CS_VREDRAW;
+	wndClass.style  = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
 	wndClass.lpfnWndProc = WndProc;
 	wndClass.cbClsExtra = 0;
 	wndClass.cbWndExtra = 0;
@@ -179,7 +186,6 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 		rc.right = rc.left + w;
 		rc.top = (1024 - h)/2;
 		rc.bottom = rc.top + h;
-
 
 		m_hWnd = CreateWindow(m_szClassName, title,
 			style,

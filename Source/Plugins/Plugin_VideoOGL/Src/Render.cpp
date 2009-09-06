@@ -978,7 +978,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		{
 			if (!s_bLastFrameDumped) 
 			{
-				s_bAVIDumping = AVIDump::Start(EmuWindow::GetChildParentWnd(), w, h);
+				s_bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
 				if (!s_bAVIDumping) 
 					OSD::AddMessage("AVIDump Start failed", 2000);
 				else 
