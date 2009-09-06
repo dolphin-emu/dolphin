@@ -255,8 +255,11 @@ void GFXConfigDialogOGL::CreateGUIControls()
 		wxT("\n\nApplies instanty during gameplay: <Yes>"));
 	m_2xResolution->SetToolTip(wxT(
 		"Applies instanty during gameplay: <Yes, if allowed>"));
-	m_WidescreenHack->SetToolTip(wxT(
-		"Applies instanty during gameplay: <Yes>"));
+	m_WidescreenHack->SetToolTip(
+		wxT("This multiplys a perpective projection value to increase the amount being")
+		wxT("\nshown instead of stretching the screen, this may cause graphical problems")
+		wxT("\nin some games")
+		wxT("\n\nApplies instanty during gameplay: <Yes>"));
 	m_Crop->SetToolTip(
 		wxT("Crop the picture instead of creating a letterbox. It will assume that your screen")
 		wxT("\nis of the 5:4 format if you have selected the 4:3 aspect ratio. It will assume")

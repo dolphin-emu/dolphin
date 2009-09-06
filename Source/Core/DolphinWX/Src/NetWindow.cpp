@@ -460,39 +460,43 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 			// TODO : there seems to be a random bug here that i can't reproduce... looked like a loop bug :/
 			wxString chat_str = wxString::Format(wxT("> %s : %s\n"), wxString(m_nick.c_str(), wxConvUTF8).c_str() , m_Chat->GetValue().c_str() );
 			int chat_size = (int)chat_str.size(); 
-			m_Chat->Clear();
-			
-			// If there's no distant connection, we write but we don't send
-			if (m_numClients == 0) {
-				m_Logging->AppendText(chat_str);
-				return;
-			}
-			// Max size that we handle is 1024, there's no need for more
-			if ((chat_str.size()+1) * sizeof(char) > 1024) {
-				m_Logging->AppendText(wxT("ERROR : Packet too large !\n"));
-				return;
-			}
-
-			// Send to all
-			if (m_isHosting == 1)
+			int nick_size = m_nick.size();
+			if(chat_size-nick_size-6 > 0)
 			{
-				for (int i=0; i < m_numClients ; i++) {
-					// Send Chat command
-					m_sock_server->Write(i, (const char*)&value, 1); // 0x30 -> Chat
-
-					// Send Chat string
-					m_sock_server->Write(i, (const char*)&chat_size, 4);
-					m_sock_server->Write(i, chat_str.mb_str(), chat_size + 1);
+				m_Chat->Clear();
+				
+				// If there's no distant connection, we write but we don't send
+				if (m_numClients == 0) {
+					m_Logging->AppendText(chat_str);
+					return;
 				}
-			}
-			else {
-				m_sock_client->Write((const char*)&value, 1);
-				m_sock_client->Write((const char*)&chat_size, 4);
-				m_sock_client->Write(chat_str.mb_str(), chat_size + 1);
-			}
+				// Max size that we handle is 1024, there's no need for more
+				if ((chat_str.size()+1) * sizeof(char) > 1024) {
+					m_Logging->AppendText(wxT("ERROR : Packet too large !\n"));
+					return;
+				}
 
-			// Do not wait for the server, just write as soon as sent
-			m_Logging->AppendText(chat_str);
+				// Send to all
+				if (m_isHosting == 1)
+				{
+					for (int i=0; i < m_numClients ; i++) {
+						// Send Chat command
+						m_sock_server->Write(i, (const char*)&value, 1); // 0x30 -> Chat
+
+						// Send Chat string
+						m_sock_server->Write(i, (const char*)&chat_size, 4);
+						m_sock_server->Write(i, chat_str.mb_str(), chat_size + 1);
+					}
+				}
+				else {
+					m_sock_client->Write((const char*)&value, 1);
+					m_sock_client->Write((const char*)&chat_size, 4);
+					m_sock_client->Write(chat_str.mb_str(), chat_size + 1);
+				}
+
+				// Do not wait for the server, just write as soon as sent
+				m_Logging->AppendText(chat_str);
+			}
 
 			break;
 		}
