@@ -184,7 +184,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_WidescreenHack = new wxCheckBox(m_PageGeneral, ID_WIDESCREEN_HACK, wxT("Wide screen hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxStaticText *IRText = new wxStaticText(m_PageGeneral, ID_IRTEXT, wxT("Native resolution:"), wxDefaultPosition, wxDefaultSize, 0);
 	wxStaticText *RText = new wxStaticText(m_PageGeneral, ID_RTEXT, wxT("Custom resolution:"), wxDefaultPosition, wxDefaultSize, 0);
-	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Window mode:"), wxDefaultPosition, wxDefaultSize , 0 );
+	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Child window:"), wxDefaultPosition, wxDefaultSize , 0 );
 	wxStaticText *WM2Text = new wxStaticText(m_PageGeneral, ID_WM2TEXT, wxT("Window mode:"), wxDefaultPosition, wxDefaultSize , 0 );
 	wxStaticText *FMText = new wxStaticText(m_PageGeneral, ID_FMTEXT, wxT("Separate window:"), wxDefaultPosition, wxDefaultSize , 0 );
 	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
