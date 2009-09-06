@@ -245,7 +245,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_Fullscreen->SetToolTip(
 		wxT("Start the separate window in fullscreen mode.")
 		wxT(" Press Alt+Enter to switch between Fullscreen and Windowed mode.")
-		wxT("\n\nApplies instanty during gameplay: <No>"));
+		wxT("\n\nApplies instanty during gameplay: <Yes>"));
 	m_NativeResolution->SetToolTip(
 		wxT("This will use the game's native resolution and stretch it to fill the")
 		wxT("\nwindow instead of changing the internal display resolution. It")
