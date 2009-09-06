@@ -30,6 +30,7 @@
 #include "IniFile.h"
 #include "LogManager.h"
 
+#include "../../Core/Src/Core.h"
 #include "../../Core/Src/ConfigManager.h"
 #include "FileSystemGCWii.h"
 #include "VolumeCreator.h"
@@ -114,10 +115,11 @@ void CheckFile(std::string File, int Size)
 
 // -----------
 // Find the GC filename
-
 void FindFilename(u64 offset)
 {
-	// Don't do anything if the log is unselected
+	// Don't do anything if a game is not running
+	if (Core::GetState() != Core::CORE_RUN) return;
+	// Or if the log is unselected
 	if (!LogManager::GetInstance()->isEnable(LogTypes::FILEMON)) return;
 	if (!FileAccess) return;
 
