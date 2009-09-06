@@ -127,8 +127,13 @@ void OSDMenu(WPARAM wParam)
 		g_Config.bEFBCopyDisable = !g_Config.bEFBCopyDisable;
 		break;
 	case '6':
-		//OSDChoice = 4;
+		OSDChoice = 4;
+		g_Config.bDisableFog = !g_Config.bDisableFog;
 		break;
+	case '7':
+		OSDChoice = 5;
+		g_Config.bDisableLighting = !g_Config.bDisableLighting;
+		break;		
 	}
 }
 // ---------------------------------------------------------------------
@@ -259,6 +264,7 @@ void OnKeyDown(WPARAM wParam)
 	case '4':
 	case '5':
 	case '6':
+	case '7':
 		OSDMenu(wParam);
 		break;
 	}

@@ -1266,8 +1266,8 @@ void Renderer::DrawDebugText()
 	}
 	if ((u32)OSDTime > timeGetTime() && g_Config.bEFBCopyDisableHotKey)
 	{
-		std::string T1 = "";
-		std::string T2 = "";
+		std::string T1 = "", T2 = "";
+		std::vector<std::string> T0;
 
 		int W, H;
 		sscanf(g_Config.iInternalRes, "%dx%d", &W, &H);
@@ -1291,15 +1291,26 @@ void Renderer::DrawDebugText()
 		if (g_Config.bShowFPS)
 			{ T1 += "\n\n"; T2 += "\n\n"; }
 
+		// The rows
+		T0.push_back(StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()));
+		T0.push_back(StringFromFormat("4: Lock Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()));
+		T0.push_back(StringFromFormat("5: Copy Embedded Framebuffer to %s: %s\n", OSDM31.c_str(), OSDM32.c_str()));
+		T0.push_back(StringFromFormat("6: Fog: %s\n", g_Config.bDisableFog ? "Disabled" : "Enabled"));
+		T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_Config.bDisableLighting ? "Disabled" : "Enabled"));	
+
 		// The latest changed setting in yellow
-		T1 += (OSDChoice == -1) ? StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()) : "\n";
-		T1 += (OSDChoice == -2) ? StringFromFormat("4: Lock Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()) : "\n";
-		T1 += (OSDChoice == -3) ? StringFromFormat("5: Copy Embedded Framebuffer to %s: %s\n", OSDM31.c_str(), OSDM32.c_str()) : "\n";
-			
+		T1 += (OSDChoice == -1) ? T0.at(0) : "\n";
+		T1 += (OSDChoice == -2) ? T0.at(1) : "\n";
+		T1 += (OSDChoice == -3) ? T0.at(2) : "\n";
+		T1 += (OSDChoice == -4) ? T0.at(3) : "\n";
+		T1 += (OSDChoice == -5) ? T0.at(4) : "\n";		
+
 		// The other settings in cyan
-		T2 += !(OSDChoice == -1) ? StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()) : "\n";
-		T2 += !(OSDChoice == -2) ? StringFromFormat("4: Lock Aspect Ratio: %s\n", OSDM21.c_str(), OSDM22.c_str()) : "\n";
-		T2 += !(OSDChoice == -3) ? StringFromFormat("5: Copy Embedded Framebuffer to %s: %s\n", OSDM31.c_str(), OSDM32.c_str()) : "\n";
+		T2 += !(OSDChoice == -1) ? T0.at(0) : "\n";
+		T2 += !(OSDChoice == -2) ? T0.at(1) : "\n";
+		T2 += !(OSDChoice == -3) ? T0.at(2) : "\n";
+		T2 += !(OSDChoice == -4) ? T0.at(3) : "\n";
+		T2 += !(OSDChoice == -5) ? T0.at(4) : "\n";		
 
 		// Render a shadow, and then the text
 		Renderer::RenderText(T1.c_str(), 21, 21, 0xDD000000);

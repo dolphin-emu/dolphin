@@ -315,7 +315,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbVideoOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
 	ForceFiltering = new wxCheckBox(m_GameConfig, ID_FORCEFILTERING, _("Force Filtering"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EFBCopyDisable = new wxCheckBox(m_GameConfig, ID_EFBCOPYDISABLE, _("Disable Copy to EFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	EFBCopyDisableHotKey = new wxCheckBox(m_GameConfig, ID_EFBCOPYDISABLEHOTKEY, _("With Hotkey E"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	EFBToTextureEnable = new wxCheckBox(m_GameConfig, ID_EFBTOTEXTUREENABLE, _("Enable EFB To RAM"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SafeTextureCache = new wxCheckBox(m_GameConfig, ID_SAFETEXTURECACHE, _("Safe Texture Cache"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	DstAlphaPass = new wxCheckBox(m_GameConfig, ID_DSTALPHAPASS, _("Distance Alpha Pass"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -361,7 +360,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(EFBCopyDisable, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->Add(EFBCopyDisableHotKey, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(EFBToTextureEnable, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(SafeTextureCache, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(DstAlphaPass, 0, wxEXPAND|wxLEFT, 5);
@@ -671,11 +669,6 @@ void CISOProperties::LoadGameConfig()
 	else
 		EFBCopyDisable->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Video", "EFBCopyDisableHotKey", &bTemp))
-		EFBCopyDisableHotKey->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		EFBCopyDisableHotKey->Set3StateValue(wxCHK_UNDETERMINED);
-
 	if (GameIni.Get("Video", "EFBToTextureEnable", &bTemp))
 		EFBToTextureEnable->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -760,11 +753,6 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Video", "EFBCopyDisable");
 	else
 		GameIni.Set("Video", "EFBCopyDisable", EFBCopyDisable->Get3StateValue());
-
-	if (EFBCopyDisableHotKey->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "EFBCopyDisableHotKey");
-	else
-		GameIni.Set("Video", "EFBCopyDisableHotKey", EFBCopyDisableHotKey->Get3StateValue());
 
 	if (EFBToTextureEnable->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "EFBToTextureEnable");

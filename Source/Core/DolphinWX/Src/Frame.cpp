@@ -658,7 +658,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		DoFullscreen(!IsFullScreen());
 	}
 #ifdef _WIN32
-	if(event.GetKeyCode() == 'M', '3', '4', '5', '6') // Send this to the video plugin WndProc
+	if(event.GetKeyCode() == 'M', '3', '4', '5', '6', '7') // Send this to the video plugin WndProc
 	{
 		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, OPENGL_WM_USER_KEYDOWN, event.GetKeyCode());
 	}
