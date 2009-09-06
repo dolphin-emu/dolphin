@@ -317,11 +317,15 @@ bool DolphinApp::OnInit()
 		}
 		if (selectPadPlugin && padPluginFilename != wxEmptyString)
 		{
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[0] = std::string(padPluginFilename.mb_str());
+			int k;
+			for(k=0;k<4;k++)
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[k] = std::string(padPluginFilename.mb_str());
 		}
 		if (selectWiimotePlugin && wiimotePluginFilename != wxEmptyString)
 		{
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin[0] = std::string(wiimotePluginFilename.mb_str());
+			int k;
+			for(k=0;k<4;k++)
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin[k] = std::string(wiimotePluginFilename.mb_str());
 		}
 
 	
