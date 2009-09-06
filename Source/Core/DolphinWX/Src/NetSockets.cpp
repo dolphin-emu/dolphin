@@ -25,13 +25,10 @@
 void NetEvent::AppendText(const wxString text)
 {
 	// I have the feeling SendEvent may be a bit safer/better...
-#if 1
-	SendEvent(ADD_TEXT, std::string(text.mb_str()));
-#else
+	//SendEvent(ADD_TEXT, std::string(text.mb_str())); //Problem NETPLAY
 	wxMutexGuiEnter();
 		m_netptr->AppendText(text);
 	wxMutexGuiLeave();
-#endif
 }
 
 void NetEvent::SendEvent(int EventType, const std::string text, int integer)
