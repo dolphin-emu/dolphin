@@ -109,13 +109,12 @@ namespace D3D
 		pp->MultiSampleType = adapters[adapter].aa_levels[aa_mode].ms_setting;
 		pp->MultiSampleQuality = adapters[adapter].aa_levels[aa_mode].qual_setting;
 		
-		//pp->Flags = D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL; 
+		pp->Flags = D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL; 
 		if (fullScreen)
 		{
 			xres = pp->BackBufferWidth = FSResX;
 			yres = pp->BackBufferHeight = FSResY;	
-			//pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
-			pp->SwapEffect = D3DSWAPEFFECT_COPY;
+			pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
 			pp->Windowed = FALSE;
 		}
 		else
@@ -123,8 +122,7 @@ namespace D3D
 			GetClientRect(hWnd, &client);
 			xres = pp->BackBufferWidth  = client.right - client.left;
 			yres = pp->BackBufferHeight = client.bottom - client.top;
-			//pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
-			pp->SwapEffect = D3DSWAPEFFECT_COPY;
+			pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
 			pp->PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
 			pp->Windowed = TRUE;
 		}
@@ -397,16 +395,7 @@ namespace D3D
 		if (dev)
 		{
 			dev->EndScene();
-
-			// copying the content from the backbuffer to the front buffer
-			// and adjust the aspect ratio
-			// The buffers are created with D3DSWAPEFFECT_COPY, otherwise the rescaling won't work
-
-			int Width  = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * Renderer::GetTargetScaleX());
-			int Height = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * Renderer::GetTargetScaleY());
-
-			RECT src={0,0,Width,Height};
-			dev->Present( &src, NULL, NULL, NULL );
+			dev->Present( NULL, NULL, NULL, NULL );
 		}
 
 		if (fullScreen != nextFullScreen)
