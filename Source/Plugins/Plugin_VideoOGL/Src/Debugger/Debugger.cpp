@@ -46,15 +46,20 @@ GFXDebuggerOGL::GFXDebuggerOGL(wxWindow *parent, wxWindowID id, const wxString &
 GFXDebuggerOGL::~GFXDebuggerOGL()
 {
 	SaveSettings();
+	m_DebuggerFrame = NULL;
 	NOTICE_LOG(CONSOLE, "Stop [Video Thread]:   Closing OpenGL debugging window");
 }
 
 void GFXDebuggerOGL::OnClose(wxCloseEvent& event)
 {
-	// save the window position when we hide the window
+	// This means wxDialog's Destroy is used
+	//event.Skip();
+
+	// Save the window position
 	SaveSettings();
 
-	event.Skip(); // This means wxDialog's Destroy is used
+	// Destroy
+	delete this;
 }
 
 void GFXDebuggerOGL::SaveSettings() const

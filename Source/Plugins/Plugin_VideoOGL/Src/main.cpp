@@ -154,13 +154,17 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 #if defined(HAVE_WX) && HAVE_WX
 void DllDebugger(HWND _hParent, bool Show)
 {
-	if (!m_DebuggerFrame)
-		m_DebuggerFrame = new GFXDebuggerOGL(GetParentedWxWindow(_hParent));
-
 	if (Show)
+	{
+		if (!m_DebuggerFrame)
+			m_DebuggerFrame = new GFXDebuggerOGL(NULL);
+			//m_DebuggerFrame = new GFXDebuggerOGL(GetParentedWxWindow(_hParent));
 		m_DebuggerFrame->Show();
+	}
 	else
-		m_DebuggerFrame->Hide();
+	{
+		if (m_DebuggerFrame) m_DebuggerFrame->Hide();
+	}
 }
 #else
 void DllDebugger(HWND _hParent, bool Show) { }

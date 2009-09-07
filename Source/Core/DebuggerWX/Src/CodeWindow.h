@@ -102,8 +102,7 @@ class CCodeWindow
 		void OnToggleBreakPointWindow(bool,int);
 		void OnToggleMemoryWindow(bool,int);
 		void OnToggleJitWindow(bool,int);
-		void OnToggleSoundWindow(bool,int);
-		void OnToggleVideoWindow(bool,int);
+		void OnToggleDLLWindow(int,bool,int);
 		void OnChangeFont(wxCommandEvent& event);
 
 		void OnCodeStep(wxCommandEvent& event);

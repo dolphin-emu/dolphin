@@ -648,7 +648,7 @@ void CFrame::OnCustomHostMessage(int Id)
 				);
 
 			//Win->Reparent(NULL);
-			//g_pCodeWindow->OnToggleSoundWindow(false, 0);
+			//g_pCodeWindow->OnToggleDLLWindow(false, 0);
 			GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(false);
 			NOTICE_LOG(CONSOLE, "%s", Core::StopMessage(true, "Sound debugging window closed").c_str());
 		}

@@ -552,54 +552,62 @@ Notice: This windows docking for plugin windows will produce several wx debuggin
 */
 
 
-//Toggle Sound Debugging Window
-void CCodeWindow::OnToggleSoundWindow(bool _Show, int i)
+// Toggle Sound Debugging Window
+void CCodeWindow::OnToggleDLLWindow(int Id, bool _Show, int i)
 {
 #ifdef _WIN32		
 	// ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+
+	std::string DLLName;
+	wxString Title;
+	int PLUGINTYPE;
+
+	switch(Id)
+	{
+		case IDM_SOUNDWINDOW:
+			DLLName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str();
+			PLUGINTYPE = PLUGIN_TYPE_DSP;
+			Title = wxT("Sound");
+			break;
+		case IDM_VIDEOWINDOW:
+			DLLName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str();
+			PLUGINTYPE = PLUGIN_TYPE_VIDEO;
+			Title = wxT("Video");
+			break;
+	}
 
 	if (_Show)
 	{
 		if (Parent->GetNotebookCount() == 0) return;
 		if (i < 0 || i > Parent->GetNotebookCount()-1) i = 0;
-		wxWindow *Win = Parent->GetWxWindow(wxT("Sound"));
+		wxWindow *Win = Parent->GetWxWindow(Title);
 		if (Win && Parent->GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
 
-		CPluginManager::GetInstance().OpenDebug(
-			Parent->GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-			PLUGIN_TYPE_DSP, true // DSP, show
-			);
+		// Show window
+		CPluginManager::GetInstance().OpenDebug(Parent->GetHandle(), DLLName.c_str(), (PLUGIN_TYPE)PLUGINTYPE, _Show);
 			
-		Win = Parent->GetWxWindow(wxT("Sound"));
+		Win = Parent->GetWxWindow(Title);
 		if (Win)
 		{		
-			Win->SetName(wxT("Sound"));
+			Win->SetName(Title);
 			Win->Reparent(Parent);
 			Win->SetId(IDM_SOUNDWINDOW);
-			Parent->GetNotebookFromId(i)->AddPage(Win, wxT("Sound"), true, Parent->aNormalFile);
+			Parent->GetNotebookFromId(i)->AddPage(Win, Title, true, Parent->aNormalFile);
 		}
 		else
 		{
 			//Console->Log(LogTypes::LNOTICE, StringFromFormat("OpenDebug: Win not found\n").c_str());
-		}
-		
+		}		
 	}
 	else
 	{	
-		wxWindow *Win = Parent->GetWxWindow(wxT("Sound"));
+		wxWindow *Win = Parent->GetWxWindow(Title);
 		if (Win)
 		{			
 			Parent->DoRemovePage(Win, false);
 			//Win->Reparent(NULL);
-
 			// Destroy
-			CPluginManager::GetInstance().OpenDebug(
-				GetHandle(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-				PLUGIN_TYPE_DSP, false
-				);
-
+			CPluginManager::GetInstance().OpenDebug(Parent->GetHandle(), DLLName.c_str(), (PLUGIN_TYPE)PLUGINTYPE, _Show);
 			//WARN_LOG(CONSOLE, "Sound removed from NB");
 		}
 		else
@@ -609,83 +617,6 @@ void CCodeWindow::OnToggleSoundWindow(bool _Show, int i)
 	}
 	
 #else
-	if (_Show)
-	{
-		CPluginManager::GetInstance().OpenDebug(
-			Parent->GetHandle(),
-			//GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-			PLUGIN_TYPE_DSP, true // DSP, show
-			);
-	}
-	else
-	{
-		CPluginManager::GetInstance().OpenDebug(
-			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-			PLUGIN_TYPE_DSP, false // DSP, hide
-			);
-	}
+	CPluginManager::GetInstance().OpenDebug(Parent->GetHandle(), DLLName.c_str(), (PLUGIN_TYPE)PLUGINTYPE, _Show);
 #endif
 }
-
-// Toggle Video Debugging Window
-void CCodeWindow::OnToggleVideoWindow(bool _Show, int i)
-{
-#ifdef _WIN32
-	//GetMenuBar()->Check(event.GetId(), false); // Turn off
-
-	if (_Show)
-	{
-		if (Parent->GetNotebookCount() == 0) return;
-		if (i < 0 || i > Parent->GetNotebookCount()-1) i = 0;
-
-		wxWindow *Win = Parent->GetWxWindow(wxT("Video"));
-		Win->SetId(IDM_VIDEOWINDOW);
-		if (Win && Parent->GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
-
-		// Show and/or create the window
-		CPluginManager::GetInstance().OpenDebug(
-		Parent->GetHandle(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-		PLUGIN_TYPE_VIDEO, true // Video, show
-		);
-
-		Win = Parent->GetWxWindow(wxT("Video"));
-		if (Win) Parent->GetNotebookFromId(i)->AddPage(Win, wxT("Video"), true, Parent->aNormalFile );
-	}
-	else // hide
-	{
-		wxWindow *Win = Parent->GetWxWindow(wxT("Video"));
-		if (Win)
-		{
-			Parent->DoRemovePage (Win, false);
-			Win->Reparent(NULL);
-			CPluginManager::GetInstance().OpenDebug(
-				GetHandle(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-				PLUGIN_TYPE_VIDEO, false // Video, hide
-				);
-		}
-	}
-#else
-	if (_Show)
-	{
-		CPluginManager::GetInstance().OpenDebug(
-		Parent->GetHandle(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-		PLUGIN_TYPE_VIDEO, true // Video, show
-		);
-	}
-	else
-	{
-	CPluginManager::GetInstance().OpenDebug(
-		GetHandle(),
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-		PLUGIN_TYPE_VIDEO, false // Video, hide
-		);
-	}
-#endif
-}
-
-

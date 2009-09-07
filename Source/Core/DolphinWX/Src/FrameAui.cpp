@@ -215,8 +215,8 @@ void CFrame::DoToggleWindow(int Id, bool bShow)
 		case IDM_BREAKPOINTWINDOW: g_pCodeWindow->OnToggleBreakPointWindow(bShow, g_pCodeWindow->iBreakpointWindow); break;
 		case IDM_MEMORYWINDOW: g_pCodeWindow->OnToggleMemoryWindow(bShow, g_pCodeWindow->iMemoryWindow); break;
 		case IDM_JITWINDOW: g_pCodeWindow->OnToggleJitWindow(bShow, g_pCodeWindow->iJitWindow); break;
-		case IDM_SOUNDWINDOW: g_pCodeWindow->OnToggleSoundWindow(bShow, g_pCodeWindow->iSoundWindow); break;
-		case IDM_VIDEOWINDOW: g_pCodeWindow->OnToggleVideoWindow(bShow, g_pCodeWindow->iVideoWindow); break;
+		case IDM_SOUNDWINDOW: g_pCodeWindow->OnToggleDLLWindow(IDM_SOUNDWINDOW, bShow, g_pCodeWindow->iSoundWindow); break;
+		case IDM_VIDEOWINDOW: g_pCodeWindow->OnToggleDLLWindow(IDM_VIDEOWINDOW, bShow, g_pCodeWindow->iVideoWindow); break;
 	}
 }
 void CFrame::OnNotebookPageChanged(wxAuiNotebookEvent& event)

@@ -24,6 +24,12 @@
 #include "VideoCommon.h"
 #include "pluginspecs_video.h"
 
+#if defined(HAVE_WX) && HAVE_WX
+	#include "Debugger/Debugger.h"
+	class GFXDebuggerOGL;
+	extern GFXDebuggerOGL *m_DebuggerFrame;
+#endif
+
 // A global plugin specification
 extern PLUGIN_GLOBALS* globals;
 
