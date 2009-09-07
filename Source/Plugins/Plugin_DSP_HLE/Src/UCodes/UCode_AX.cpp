@@ -157,6 +157,7 @@ if(m_DebuggerFrame->ScanMails)
 void CUCode_AX::SaveMail(bool Wii, u32 _uMail)
 {
 #if defined(HAVE_WX) && HAVE_WX
+if (!m_DebuggerFrame) return;
 if(m_DebuggerFrame->ScanMails)
 {
 	int i = 0;

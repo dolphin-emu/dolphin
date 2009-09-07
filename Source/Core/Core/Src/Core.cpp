@@ -26,6 +26,7 @@
 #include "Common.h"
 #include "StringUtil.h"
 #include "MathUtil.h"
+#include "MemoryUtil.h"
 
 #include "Console.h"
 #include "Core.h"
@@ -92,6 +93,7 @@ THREAD_RETURN EmuThread(void *pArg);
 
 void Stop();
  
+bool g_bStopping = false;
 bool g_bHwInit = false;
 bool g_bRealWiimote = false;
 HWND g_pWindowHandle = NULL;
@@ -106,6 +108,14 @@ Common::Event gpuShutdownCall;
  
 
 // Display messages and return values
+
+// Formatted stop message
+std::string StopMessage(bool bMainThread, std::string Message)
+{
+	return StringFromFormat("Stop [%s %i]\t%s\t%s",
+		bMainThread ? "Main Thread" : "Video Thread", Common::Thread::CurrentId(), MemUsage().c_str(), Message.c_str());
+}
+
 // 
 bool PanicAlertToVideo(const char* text, bool yes_no)
 {
@@ -207,10 +217,19 @@ bool Init()
 void Stop()  // - Hammertime!
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	g_bStopping = true;
+
+	WARN_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");	
+
+	// This must be done a while before freeing the dll to not crash wx around MSWWindowProc and DefWindowProc, will investigate further
+	Host_Message(AUDIO_DESTROY);
+	Host_Message(VIDEO_DESTROY);
 
 	Host_SetWaitCursor(true);  // hourglass!
 	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 		return;
+
+	WARN_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
 
 	// Stop the CPU
 	PowerPC::Stop();
@@ -226,7 +245,7 @@ void Stop()  // - Hammertime!
  
 	// If dual core mode, the CPU thread should immediately exit here.
 	if (_CoreParameter.bUseDualCore) {
-		INFO_LOG(CONSOLE, "Stop [Main Thread]:    Wait for Video Loop to exit...\n");
+		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Wait for Video Loop to exit ...").c_str());
 		CPluginManager::GetInstance().GetVideo()->Video_ExitLoop();
 	}
 
@@ -235,13 +254,29 @@ void Stop()  // - Hammertime!
 
 	// Close the trace file
 	Core::StopTrace();
-	NOTICE_LOG(BOOT, "Shutting down core");
+	WARN_LOG(CONSOLE, "%s", StopMessage(true, "Shutting down core").c_str());
 
 	// Update mouse pointer
 	Host_SetWaitCursor(false);
 
+	WARN_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
 #ifdef _WIN32
-	g_EmuThread->WaitForDeath(5000);
+	DWORD Wait = g_EmuThread->WaitForDeath(5000);
+	switch(Wait)
+	{
+		case WAIT_ABANDONED:
+			ERROR_LOG(CONSOLE, "%s", StopMessage(true, "Emu wait returned: WAIT_ABANDONED").c_str());
+			break;
+		case WAIT_OBJECT_0:
+			NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Emu wait returned: WAIT_OBJECT_0").c_str());
+			break;
+		case WAIT_TIMEOUT:
+			ERROR_LOG(CONSOLE, "%s", StopMessage(true, "Emu wait returned: WAIT_TIMEOUT").c_str());
+			break;				
+		case WAIT_FAILED:
+			ERROR_LOG(CONSOLE, "%s", StopMessage(true, "Emu wait returned: WAIT_FAILED").c_str());
+			break;
+	}
 #else
 	g_EmuThread->WaitForDeath();
 #endif
@@ -469,17 +504,20 @@ THREAD_RETURN EmuThread(void *pArg)
 #endif
 	}
 
-	INFO_LOG(CONSOLE, "Stop [Video Thread]:   Stop() and Video Loop Ended\n");
-	INFO_LOG(CONSOLE, "Stop [Video Thread]:   Shutting down HW and Plugins\n");
+	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Stop() and Video Loop Ended").c_str());
+	WARN_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
 
 	// We have now exited the Video Loop and will shut down
 
 	// Write message
-	if (g_pUpdateFPSDisplay != NULL)
-		g_pUpdateFPSDisplay("Stopping...");
+	if (g_pUpdateFPSDisplay != NULL) g_pUpdateFPSDisplay("Stopping...");
 
 	HW::Shutdown();
+
+	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
+	WARN_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down plugins").c_str());
 	Plugins.ShutdownPlugins();
+	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Plugins shutdown").c_str());
 
 #ifdef _WIN32
 	gpuShutdownCall.Set();
@@ -495,9 +533,25 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	if (cpuThread)
 	{
+		WARN_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU thread ...").c_str());
 		// There is a CPU thread - join it.
-#ifdef _WIN32
-		cpuThread->WaitForDeath(3000);
+#ifdef _WIN32		
+		DWORD Wait = cpuThread->WaitForDeath(3000);
+		switch(Wait)
+		{
+			case WAIT_ABANDONED:
+				ERROR_LOG(CONSOLE, "%s", StopMessage(true, "CPU wait returned: WAIT_ABANDONED").c_str());
+				break;
+			case WAIT_OBJECT_0:
+				NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "CPU wait returned: WAIT_OBJECT_0").c_str());
+				break;
+			case WAIT_TIMEOUT:
+				ERROR_LOG(CONSOLE, "%s", StopMessage(true, "CPU wait returned: WAIT_TIMEOUT").c_str());
+				break;				
+			case WAIT_FAILED:
+				ERROR_LOG(CONSOLE, "%s", StopMessage(true, "CPU wait returned: WAIT_FAILED").c_str());
+				break;
+		}
 #else
 		cpuThread->WaitForDeath();
 #endif
@@ -508,8 +562,10 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	// The hardware is uninitialized
 	g_bHwInit = false;
-
- 	INFO_LOG(MASTER_LOG, "EmuThread exited");
+	g_bStopping = false;
+	
+	NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Main thread stopped").c_str());
+	NOTICE_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
 
 	Host_UpdateMainFrame();
 
@@ -545,6 +601,8 @@ EState GetState()
 	{
 		if (CCPU::IsStepping())
 			return CORE_PAUSE;
+		else if (g_bStopping)
+			return CORE_STOPPING;
 		else
 			return CORE_RUN;
 	}
@@ -752,7 +810,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
 
 
 // Callback_DSPLog
-// WARNING - THIS MAY EXECUTED FROM DSP THREAD
+// WARNING - THIS MAY BE EXECUTED FROM DSP THREAD
 	void Callback_DSPLog(const TCHAR* _szMessage, int _v)
 {
 	GENERIC_LOG(LogTypes::AUDIO, (LogTypes::LOG_LEVELS)_v, _szMessage);
@@ -760,7 +818,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
  
 
 // Callback_DSPInterrupt
-// WARNING - THIS MAY EXECUTED FROM DSP THREAD
+// WARNING - THIS MAY BE EXECUTED FROM DSP THREAD
 void Callback_DSPInterrupt()
 {
 	DSP::GenerateDSPInterruptFromPlugin(DSP::INT_DSP);
@@ -831,4 +889,4 @@ const SCoreStartupParameter& GetStartupParameter() {
     return SConfig::GetInstance().m_LocalCoreStartupParameter;
 }
 
-} // end of namespace Core
+} // Core

@@ -38,11 +38,14 @@ namespace Core
         CORE_UNINITIALIZED,
         CORE_PAUSE,
         CORE_RUN,
+		CORE_STOPPING
     };
 
     // Init core
     bool Init();
     void Stop();
+
+	std::string StopMessage(bool, std::string);
 
 	bool isRunning();
     

@@ -139,13 +139,17 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 void DllDebugger(HWND _hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	if (!m_DebuggerFrame)
-		m_DebuggerFrame = new DSPDebuggerHLE(GetParentedWxWindow(_hParent));
-
 	if (Show)
+	{
+		if (!m_DebuggerFrame)
+			m_DebuggerFrame = new DSPDebuggerHLE(NULL);	
+			//m_DebuggerFrame = new DSPDebuggerHLE(GetParentedWxWindow(_hParent));
 		m_DebuggerFrame->Show();
+	}
 	else
-		m_DebuggerFrame->Hide();
+	{
+		if (m_DebuggerFrame) m_DebuggerFrame->Close();
+	}
 #endif
 }
 
@@ -229,6 +233,7 @@ void Shutdown()
 
 #if defined(HAVE_WX) && HAVE_WX
 	// Reset mails
+	/*
 	if (m_DebuggerFrame)
 	{
 		sMailLog.clear();
@@ -236,8 +241,8 @@ void Shutdown()
 		m_DebuggerFrame->sMail.clear();
 		m_DebuggerFrame->sMailEnd.clear();
 	}
-#endif
-	
+	*/
+#endif	
 }
 
 void DoState(unsigned char **ptr, int mode)

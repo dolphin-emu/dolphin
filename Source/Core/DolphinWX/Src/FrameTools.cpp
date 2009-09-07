@@ -119,7 +119,7 @@ void CFrame::CreateMenu()
 	fileMenu->AppendSeparator();
 	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
 	fileMenu->AppendSeparator();
-	fileMenu->Append(IDM_RESTART, UseDebugger ? _T("Restart in regular mode") : _T("Restart in debugging mode"));
+	fileMenu->Append(IDM_RESTART, g_pCodeWindow ? _T("Restart in regular mode") : _T("Restart in debugging mode"));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_EXIT, _T("E&xit\tAlt+F4"));
 	m_MenuBar->Append(fileMenu, _T("&File"));
@@ -174,7 +174,7 @@ void CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _T("&Wiimote Settings"));
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));	
-	if (UseDebugger)
+	if (g_pCodeWindow)
 	{
 		pOptionsMenu->AppendSeparator();
 		g_pCodeWindow->CreateMenuOptions(NULL, pOptionsMenu);	
@@ -210,7 +210,7 @@ void CFrame::CreateMenu()
 	viewMenu->Check(IDM_CONSOLEWINDOW, SConfig::GetInstance().m_InterfaceConsole);
 	viewMenu->AppendSeparator();
 
-	if (UseDebugger)
+	if (g_pCodeWindow)
 	{
 		g_pCodeWindow->CreateMenuView(NULL, viewMenu);
 		viewMenu->AppendSeparator();
@@ -234,7 +234,7 @@ void CFrame::CreateMenu()
 	viewMenu->Append(IDM_PURGECACHE, _T("Purge Cache"));
 	m_MenuBar->Append(viewMenu, _T("&View"));	
 
-	if (UseDebugger) g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, m_MenuBar);
+	if (g_pCodeWindow) g_pCodeWindow->CreateMenu(SConfig::GetInstance().m_LocalCoreStartupParameter, m_MenuBar);
 
 	// Help menu
 	wxMenu* helpMenu = new wxMenu;
@@ -276,7 +276,7 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 	ToolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
 	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("Pad"),  m_Bitmaps[Toolbar_PluginPAD], _T("Pad settings"));
 	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _T("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _T("Wiimote settings"));
-	if (!UseDebugger)
+	if (!g_pCodeWindow)
 	{
 		ToolBar->AddSeparator();
 		ToolBar->AddTool(IDM_HELPABOUT, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
@@ -313,7 +313,7 @@ void CFrame::RecreateToolbar()
 				ToolbarPane().Top().
 				LeftDockable(false).RightDockable(false).Floatable(false));
 
-	if (UseDebugger)
+	if (g_pCodeWindow)
 	{
 		m_ToolBarDebug = new wxAuiToolBar(this, ID_TOOLBAR_DEBUG, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
 		g_pCodeWindow->PopulateToolbar(m_ToolBarDebug);
@@ -859,45 +859,45 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 void CFrame::UpdateGUI()
 {
 	// Save status
-	bool initialized = Core::isRunning();
-	bool running = Core::GetState() == Core::CORE_RUN;
-	bool paused = Core::GetState() == Core::CORE_PAUSE;
+	bool Initialized = Core::isRunning();
+	bool Running = Core::GetState() == Core::CORE_RUN;
+	bool Paused = Core::GetState() == Core::CORE_PAUSE;
 
 	// Make sure that we have a toolbar
 	if (m_ToolBar != NULL)
 	{
 		// Enable/disable the Config and Stop buttons
 		//GetToolBar()->EnableTool(IDM_CONFIG_MAIN, !initialized);
-		m_ToolBar->EnableTool(wxID_OPEN, !initialized);
-		m_ToolBar->EnableTool(wxID_REFRESH, !initialized); // Don't allow refresh when we don't show the list
-		m_ToolBar->EnableTool(IDM_STOP, running || paused);
-		m_ToolBar->EnableTool(IDM_SCREENSHOT, running || paused);
+		m_ToolBar->EnableTool(wxID_OPEN, !Initialized);
+		m_ToolBar->EnableTool(wxID_REFRESH, !Initialized); // Don't allow refresh when we don't show the list
+		m_ToolBar->EnableTool(IDM_STOP, Running || Paused);
+		m_ToolBar->EnableTool(IDM_SCREENSHOT, Running || Paused);
 	}
 
 	// File
-	GetMenuBar()->FindItem(wxID_OPEN)->Enable(!initialized);
-	m_pSubMenuDrive->Enable(!initialized);
-	GetMenuBar()->FindItem(wxID_REFRESH)->Enable(!initialized);
-	GetMenuBar()->FindItem(IDM_BROWSE)->Enable(!initialized);
+	GetMenuBar()->FindItem(wxID_OPEN)->Enable(!Initialized);
+	m_pSubMenuDrive->Enable(!Initialized);
+	GetMenuBar()->FindItem(wxID_REFRESH)->Enable(!Initialized);
+	GetMenuBar()->FindItem(IDM_BROWSE)->Enable(!Initialized);
 
 	// Emulation
-	GetMenuBar()->FindItem(IDM_STOP)->Enable(running || paused);
-	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!initialized);
-	GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(!initialized);
-	GetMenuBar()->FindItem(IDM_FRAMESTEP)->Enable(running || paused);
-	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(running || paused);
-	m_pSubMenuLoad->Enable(initialized);
-	m_pSubMenuSave->Enable(initialized);
+	GetMenuBar()->FindItem(IDM_STOP)->Enable(Running || Paused);
+	GetMenuBar()->FindItem(IDM_RECORD)->Enable(!Initialized);
+	GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(!Initialized);
+	GetMenuBar()->FindItem(IDM_FRAMESTEP)->Enable(Running || Paused);
+	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(Running || Paused);
+	m_pSubMenuLoad->Enable(Initialized);
+	m_pSubMenuSave->Enable(Initialized);
 
 	// Let's enable it by default.
 	//m_pSubMenuFrameSkipping->Enable(initialized);
 
 	// Misc
-	GetMenuBar()->FindItem(IDM_CHANGEDISC)->Enable(initialized);
+	GetMenuBar()->FindItem(IDM_CHANGEDISC)->Enable(Initialized);
 	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
-		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!initialized);
+		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
 
-	if (running)
+	if (Running)
 	{
 		if (m_ToolBar != NULL)
 		{
@@ -919,12 +919,13 @@ void CFrame::UpdateGUI()
 		
 	}
 
-	if (!initialized)
+	if (!Initialized)
 	{
 		if (m_GameListCtrl)
 		{
 			if (!m_GameListCtrl->IsShown())
 			{
+				m_GameListCtrl->Reparent(m_Panel);
 				m_GameListCtrl->Enable();
 				m_GameListCtrl->Show();
 				sizerPanel->FitInside(m_Panel);
@@ -945,7 +946,7 @@ void CFrame::UpdateGUI()
 
 	// Commit changes to toolbar
 	if (m_ToolBar != NULL) m_ToolBar->Realize();
-	if (UseDebugger) g_pCodeWindow->Update();
+	if (g_pCodeWindow) g_pCodeWindow->Update();
 	// Commit changes to manager
 	m_Mgr->Update();
 }
@@ -1005,13 +1006,13 @@ void CFrame::DoToggleToolbar(bool _show)
 	if (_show)
 	{
 		m_Mgr->GetPane(wxT("TBMain")).Show();
-		if (UseDebugger) { m_Mgr->GetPane(wxT("TBDebug")).Show(); m_Mgr->GetPane(wxT("TBAui")).Show(); }
+		if (g_pCodeWindow) { m_Mgr->GetPane(wxT("TBDebug")).Show(); m_Mgr->GetPane(wxT("TBAui")).Show(); }
 		m_Mgr->Update();
 	}
 	else
 	{
 		m_Mgr->GetPane(wxT("TBMain")).Hide();
-		if (UseDebugger) { m_Mgr->GetPane(wxT("TBDebug")).Hide(); m_Mgr->GetPane(wxT("TBAui")).Hide(); }
+		if (g_pCodeWindow) { m_Mgr->GetPane(wxT("TBDebug")).Hide(); m_Mgr->GetPane(wxT("TBAui")).Hide(); }
 		m_Mgr->Update();
 	}
 }

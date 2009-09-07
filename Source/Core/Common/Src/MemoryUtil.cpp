@@ -17,9 +17,11 @@
 
 #include "Common.h"
 #include "MemoryUtil.h"
+#include "StringUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
+#include <psapi.h>
 #elif __GNUC__
 #include <sys/mman.h>
 #include <errno.h>
@@ -131,4 +133,29 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
 #else
 	mprotect(ptr, size, allowExecute ? (PROT_READ | PROT_WRITE | PROT_EXEC) : PROT_WRITE | PROT_READ);
 #endif
+}
+
+
+std::string MemUsage()
+{
+	#ifdef _WIN32
+	DWORD processID = GetCurrentProcessId();
+    HANDLE hProcess;
+    PROCESS_MEMORY_COUNTERS pmc;
+	std::string Ret;
+
+    // Print information about the memory usage of the process.
+
+    hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
+    if (NULL == hProcess) return "MemUsage Error";
+
+    if (GetProcessMemoryInfo(hProcess, &pmc, sizeof(pmc)))
+		Ret = StringFromFormat("%s K", ThS(pmc.WorkingSetSize / 1024, true, 7).c_str());
+
+    CloseHandle(hProcess);
+	return Ret;
+
+	#else
+	return "";
+	#endif
 }

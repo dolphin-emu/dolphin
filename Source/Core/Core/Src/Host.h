@@ -36,6 +36,7 @@
 // The host can be just a command line app that opens a window, or a full blown debugger
 // interface.
 
+void Host_Message(int Id);
 void Host_UpdateMainFrame();
 void Host_UpdateDisasmDialog();
 void Host_UpdateLogDisplay();

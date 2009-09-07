@@ -69,7 +69,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="wsock32.lib"
+				AdditionalDependencies="wsock32.lib psapi.lib"
 				OutputFile="$(OutDir)/Common.lib"
 			/>
 			<Tool
@@ -142,7 +142,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="wsock32.lib winmm.lib"
+				AdditionalDependencies="wsock32.lib winmm.lib psapi.lib"
 				OutputFile="$(OutDir)/Common.lib"
 			/>
 			<Tool
@@ -215,7 +215,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="wsock32.lib"
+				AdditionalDependencies="wsock32.lib psapi.lib"
 				OutputFile="$(OutDir)/Common.lib"
 			/>
 			<Tool
@@ -289,7 +289,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="winmm.lib"
+				AdditionalDependencies="winmm.lib psapi.lib"
 				OutputFile="$(OutDir)/Common.lib"
 			/>
 			<Tool
@@ -359,7 +359,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="wsock32.lib"
+				AdditionalDependencies="wsock32.lib psapi.lib"
 				OutputFile="$(OutDir)/Common.lib"
 			/>
 			<Tool
@@ -429,7 +429,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="wsock32.lib"
+				AdditionalDependencies="wsock32.lib psapi.lib"
 				OutputFile="$(OutDir)/Common.lib"
 			/>
 			<Tool

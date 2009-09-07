@@ -460,6 +460,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 			dc.SetTextForeground(_T("#000000"));
 		}
 
+		// If running
 		if (debugger->isAlive())
 		{
 			char dis[256];

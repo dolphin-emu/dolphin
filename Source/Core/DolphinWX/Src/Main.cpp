@@ -371,7 +371,7 @@ bool DolphinApp::OnInit()
 	}
 	/* If we have selected Automatic Start, start the default ISO, or if no default
 	   ISO exists, start the last loaded ISO */
-	else if (UseDebugger)
+	else if (main_frame->g_pCodeWindow)
 	{
 		if (main_frame->g_pCodeWindow->AutomaticStart())
 		{
@@ -434,6 +434,11 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
 CFrame* DolphinApp::GetCFrame()
 {
 	return main_frame;
+}
+
+void Host_Message(int Id)
+{
+	main_frame->OnCustomHostMessage(Id);
 }
 
 // OK, this thread boundary is DANGEROUS on linux

@@ -46,6 +46,7 @@ GFXDebuggerOGL::GFXDebuggerOGL(wxWindow *parent, wxWindowID id, const wxString &
 GFXDebuggerOGL::~GFXDebuggerOGL()
 {
 	SaveSettings();
+	NOTICE_LOG(CONSOLE, "Stop [Video Thread]:   Closing OpenGL debugging window");
 }
 
 void GFXDebuggerOGL::OnClose(wxCloseEvent& event)

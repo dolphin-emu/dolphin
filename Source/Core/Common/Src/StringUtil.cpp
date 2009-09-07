@@ -452,7 +452,7 @@ std::string ThS(int Integer, bool Unsigned, int Spaces)
 
 	// Spaces
 	std::string Spc = "";
-	for (int i = 0; i < (Spaces - Sbuf.length()); i++) Spc += " ";
+	for (int i = 0; i < (int)(Spaces - Sbuf.length()); i++) Spc += " ";
 	return Spc + Sbuf;
 }
 

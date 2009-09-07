@@ -26,6 +26,15 @@
 namespace Common
 {
 
+int Thread::CurrentId()
+{
+	#ifdef _WIN32
+		return GetCurrentThreadId();
+	#else
+		return 0;
+	#endif
+}
+
 #ifdef _WIN32
 
 void InitThreading()
@@ -81,14 +90,16 @@ Thread::~Thread()
 	WaitForDeath();
 }
 
-void Thread::WaitForDeath(const int _Wait)
+DWORD Thread::WaitForDeath(const int iWait)
 {
 	if (m_hThread)
 	{
-		WaitForSingleObject(m_hThread, _Wait);
+		DWORD Wait = WaitForSingleObject(m_hThread, iWait);
 		CloseHandle(m_hThread);
 		m_hThread = NULL;
+		return Wait;
 	}
+	return NULL;
 }
 
 void Thread::SetAffinity(int mask)

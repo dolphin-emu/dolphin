@@ -64,13 +64,6 @@ void CFrame::OnManagerResize(wxAuiManagerEvent& event)
 	event.Skip();
 	ResizeConsole();
 }
-void CFrame::OnResize(wxSizeEvent& event)
-{
-	event.Skip();
-	// fit frame content, not needed right now
-	//FitInside();
-	DoMoveIcons();  // In FrameWiimote.cpp
-}
 
 void CFrame::OnPaneClose(wxAuiManagerEvent& event)
 {
@@ -127,7 +120,7 @@ void CFrame::ToggleLogWindow(bool bShow, int i)
 	}
 
 	// Hide pane
-	if (!UseDebugger) HidePane();
+	if (!g_pCodeWindow) HidePane();
 
 	// Make sure the check is updated (if wxw isn't calling this func)
 	//GetMenuBar()->FindItem(IDM_LOGWINDOW)->Check(Show);
@@ -181,7 +174,7 @@ void CFrame::ToggleConsole(bool bShow, int i)
 	}
 
 	// Hide pane
-	if (!UseDebugger) HidePane();
+	if (!g_pCodeWindow) HidePane();
 
 	// Make sure the check is updated (if wxw isn't calling this func)
 	//GetMenuBar()->FindItem(IDM_CONSOLEWINDOW)->Check(Show);
@@ -209,11 +202,11 @@ void CFrame::DoToggleWindow(int Id, bool bShow)
 {		
 	switch (Id)
 	{
-		case IDM_LOGWINDOW: ToggleLogWindow(bShow, UseDebugger ? g_pCodeWindow->iLogWindow : 0); break;
-		case IDM_CONSOLEWINDOW: ToggleConsole(bShow, UseDebugger ? g_pCodeWindow->iConsoleWindow : 0); break;
+		case IDM_LOGWINDOW: ToggleLogWindow(bShow, g_pCodeWindow ? g_pCodeWindow->iLogWindow : 0); break;
+		case IDM_CONSOLEWINDOW: ToggleConsole(bShow, g_pCodeWindow ? g_pCodeWindow->iConsoleWindow : 0); break;
 	}
 
-	if (!UseDebugger) return;
+	if (!g_pCodeWindow) return;
 
 	switch (Id)
 	{
@@ -229,7 +222,7 @@ void CFrame::DoToggleWindow(int Id, bool bShow)
 void CFrame::OnNotebookPageChanged(wxAuiNotebookEvent& event)
 {
 	event.Skip();
-	if (!UseDebugger) return;
+	if (!g_pCodeWindow) return;
 
 	// Remove the blank page if any
 	AddRemoveBlankPage();
@@ -270,11 +263,11 @@ void CFrame::OnFloatWindow(wxCommandEvent& event)
 	}
 	switch(event.GetId())
 	{
-		case IDM_FLOAT_LOGWINDOW: if (FindWindowById(IDM_LOGWINDOW)) DoUnfloatPage(IDM_LOGWINDOW); break;
-		case IDM_FLOAT_CONSOLEWINDOW: if (FindWindowById(IDM_CONSOLEWINDOW)) DoUnfloatPage(IDM_CONSOLEWINDOW); break;
+		case IDM_FLOAT_LOGWINDOW: if (FindWindowById(IDM_LOGWINDOW)) DoUnfloatPage(IDM_LOGWINDOW_PARENT); break;
+		case IDM_FLOAT_CONSOLEWINDOW: if (FindWindowById(IDM_CONSOLEWINDOW)) DoUnfloatPage(IDM_CONSOLEWINDOW_PARENT); break;
 	}
 
-	if (!UseDebugger) return;
+	if (!g_pCodeWindow) return;
 
 	switch(event.GetId())
 	{
@@ -286,17 +279,17 @@ void CFrame::OnFloatWindow(wxCommandEvent& event)
 	}
 	switch(event.GetId())
 	{
-		case IDM_FLOAT_CODEWINDOW: if (FindWindowById(IDM_CODEWINDOW)) DoUnfloatPage(IDM_LOGWINDOW); break;
-		case IDM_FLOAT_REGISTERWINDOW: if (FindWindowById(IDM_REGISTERWINDOW)) DoUnfloatPage(IDM_REGISTERWINDOW); break;
-		case IDM_FLOAT_BREAKPOINTWINDOW: if (FindWindowById(IDM_BREAKPOINTWINDOW)) DoUnfloatPage(IDM_BREAKPOINTWINDOW); break;
-		case IDM_FLOAT_MEMORYWINDOW: if (FindWindowById(IDM_MEMORYWINDOW)) DoUnfloatPage(IDM_MEMORYWINDOW); break;
-		case IDM_FLOAT_JITWINDOW: if (FindWindowById(IDM_JITWINDOW)) DoUnfloatPage(IDM_JITWINDOW); break;
+		case IDM_FLOAT_CODEWINDOW: if (FindWindowById(IDM_CODEWINDOW)) DoUnfloatPage(IDM_LOGWINDOW_PARENT); break;
+		case IDM_FLOAT_REGISTERWINDOW: if (FindWindowById(IDM_REGISTERWINDOW)) DoUnfloatPage(IDM_REGISTERWINDOW_PARENT); break;
+		case IDM_FLOAT_BREAKPOINTWINDOW: if (FindWindowById(IDM_BREAKPOINTWINDOW)) DoUnfloatPage(IDM_BREAKPOINTWINDOW_PARENT); break;
+		case IDM_FLOAT_MEMORYWINDOW: if (FindWindowById(IDM_MEMORYWINDOW)) DoUnfloatPage(IDM_MEMORYWINDOW_PARENT); break;
+		case IDM_FLOAT_JITWINDOW: if (FindWindowById(IDM_JITWINDOW)) DoUnfloatPage(IDM_JITWINDOW_PARENT); break;
 	}
 }
 void CFrame::OnTab(wxAuiNotebookEvent& event)
 {
 	event.Skip();
-	if (!UseDebugger) return;
+	if (!g_pCodeWindow) return;
 
 	// Create the popup menu
 	wxMenu MenuPopup;
@@ -416,11 +409,12 @@ void CFrame::DoRemovePage(wxWindow * Win, bool _Hide)
 	//wxASSERT(Win != NULL);
 	if (!Win) return;
 
-	if (FindWindowById(WindowParentIdFromChildId(Win->GetId())))
+	if (Win->GetId() > 0 && FindWindowById(WindowParentIdFromChildId(Win->GetId())))
 	{
 		Win->Reparent(this);
 		Win->Hide();
 		FindWindowById(WindowParentIdFromChildId(Win->GetId()))->Destroy();
+		WARN_LOG(CONSOLE, "Floating window %i closed", Win->GetId());
 	}
 	else
 	{
@@ -916,10 +910,10 @@ void CFrame::ReloadPanes()
 	// Restore settings
 	SConfig::GetInstance().m_InterfaceConsole = bConsole;
 	// Load GUI settings
-	g_pCodeWindow->Load();
+	if (g_pCodeWindow) g_pCodeWindow->Load();
 	// Open notebook pages
 	AddRemoveBlankPage();
-	g_pCodeWindow->OpenPages();
+	if (g_pCodeWindow) g_pCodeWindow->OpenPages();
 	if (SConfig::GetInstance().m_InterfaceLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
 	if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);	
 
@@ -1274,13 +1268,13 @@ wxAuiNotebook * CFrame::GetNotebookFromId(u32 NBId)
 	}
 	return NULL;	
 }
-void CFrame::ShowAllNotebooks(bool Window)
+void CFrame::ShowAllNotebooks(bool bShow)
 {
 	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
 	{
 		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
 		{
-			if (Window)
+			if (bShow)
 				m_Mgr->GetAllPanes().Item(i).Show();
 			else
 				m_Mgr->GetAllPanes().Item(i).window->Hide();

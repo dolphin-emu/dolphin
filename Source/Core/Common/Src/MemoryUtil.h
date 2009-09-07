@@ -18,11 +18,14 @@
 #ifndef _MEMORYUTIL_H
 #define _MEMORYUTIL_H
 
+#include <iostream>
+
 void* AllocateExecutableMemory(size_t size, bool low = true);
 void* AllocateMemoryPages(size_t size);
 void FreeMemoryPages(void* ptr, size_t size);
 void WriteProtectMemory(void* ptr, size_t size, bool executable = false);
 void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute = false);
+std::string MemUsage();
 
 inline int GetPageSize() { return 4096; }
 

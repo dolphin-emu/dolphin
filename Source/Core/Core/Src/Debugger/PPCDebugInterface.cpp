@@ -30,6 +30,9 @@
 
 void PPCDebugInterface::disasm(unsigned int address, char *dest, int max_size) 
 {
+	// Memory::ReadUnchecked_U32 seemed to crash on shutdown
+	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN) return;
+
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		if (Memory::IsRAMAddress(address, true))

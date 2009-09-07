@@ -44,8 +44,8 @@ class CCodeWindow
 {
 	public:
 
-		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *,
-			wxWindow* parent,
+		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter,
+			CFrame * parent,
 			wxWindowID id = wxID_ANY,
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,

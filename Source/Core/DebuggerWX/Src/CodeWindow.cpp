@@ -123,8 +123,8 @@ EVT_MENU(IDM_WRITEPROFILE,      CCodeWindow::OnProfilerMenu)
 
 // Menu tooltips
 //EVT_MENU_HIGHLIGHT_ALL(	CCodeWindow::OnStatusBar)
-/* Do this to to avoid that the ToolTips get stuck when only the wxMenu is changed
-   and not any wxMenuItem that is required by EVT_MENU_HIGHLIGHT_ALL */
+// Do this to to avoid that the ToolTips get stuck when only the wxMenu is changed
+// and not any wxMenuItem that is required by EVT_MENU_HIGHLIGHT_ALL
 //EVT_UPDATE_UI(wxID_ANY, CCodeWindow::OnStatusBar_)
 
 // Toolbar
@@ -136,25 +136,25 @@ EVT_MENU(IDM_SETPC,				CCodeWindow::OnCodeStep)
 EVT_MENU(IDM_GOTOPC,			CCodeWindow::OnCodeStep)
 EVT_TEXT(IDM_ADDRBOX,           CCodeWindow::OnAddrBoxChange)
 
-
 // Other
 EVT_LISTBOX(ID_SYMBOLLIST,     CCodeWindow::OnSymbolListChange)
 EVT_LISTBOX(ID_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
 EVT_LISTBOX(ID_CALLERSLIST,    CCodeWindow::OnCallersListChange)
 EVT_LISTBOX(ID_CALLSLIST,      CCodeWindow::OnCallsListChange)
 
-EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)	
+//EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)	
 
-EVT_COMMAND(ID_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
+//EVT_COMMAND(ID_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
 
 END_EVENT_TABLE()
 
 
 // Class
-CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *ParentObject, wxWindow* parent,
+CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, CFrame *parent,
 	wxWindowID id, const wxPoint& position, const wxSize& size, long style, const wxString& name)
-	: wxPanel(parent, id, position, size, style, name)
-	, Parent(ParentObject)
+	: wxPanel((wxWindow*)parent, id, position, size, style, name)
+	, Parent(parent)
+	, codeview(NULL)
 	, m_RegisterWindow(NULL)
 	, m_BreakpointWindow(NULL)
 	, m_MemoryWindow(NULL)
@@ -163,10 +163,6 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	InitBitmaps();
 
 	CreateGUIControls(_LocalCoreStartupParameter);
-	// Create the toolbar
-	//RecreateToolbar();
-	// Update bitmap buttons
-	//UpdateButtonStates();
 
 	// Connect keyboard
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN,
@@ -201,6 +197,8 @@ void CCodeWindow::OnKeyDown(wxKeyEvent& event)
 
 void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 {
+	return;
+
 	switch (event.GetId())
 	{
 	    case IDM_NOTIFYMAPLOADED:
@@ -295,7 +293,6 @@ void CCodeWindow::JumpToAddress(u32 _Address)
 
 void CCodeWindow::OnCodeViewChange(wxCommandEvent &event)
 {
-	//PanicAlert("boo");
 	UpdateLists();
 }
 
@@ -391,6 +388,10 @@ void CCodeWindow::UpdateLists()
 
 void CCodeWindow::UpdateCallstack()
 {
+	return;
+	//if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN) return;
+	//if (Core::GetState() == Core::CORE_STOPPING) return;
+
 	callstack->Clear();
 
 	std::vector<Dolphin_Debugger::CallstackEntry> stack;
@@ -410,9 +411,7 @@ void CCodeWindow::UpdateCallstack()
 }
 
 void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter)
-{
-	//CreateMenu(_LocalCoreStartupParameter);
-	
+{	
 	// Configure the code window
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
@@ -679,13 +678,17 @@ void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
 
 void CCodeWindow::Update()
 {
+	return;
+
+	if (!codeview) return;
+
 	codeview->Refresh();
 	UpdateCallstack();
 	UpdateButtonStates();
 
 	/* DO NOT Automatically show the current PC position when a breakpoint is hit or
 	   when we pause SINCE THIS CAN BE CALLED AT OTHER TIMES TOO */
-	// codeview->Center(PC);
+	//codeview->Center(PC);
 }
 
 void CCodeWindow::UpdateButtonStates()

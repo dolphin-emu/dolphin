@@ -159,7 +159,7 @@ int abc = 0;
 			// Stop
 			case OPENGL_WM_USER_STOP:
 				main_frame->DoStop();
-				return 0; // Don't bother letting wxWidgets process this at all
+				return 0;
 			
 			case OPENGL_WM_USER_CREATE:
 				// We don't have a local setting for bRenderToMain but we can detect it this way instead
@@ -349,10 +349,10 @@ CFrame::CFrame(wxFrame* parent,
 	// Debugger class
 	if (UseDebugger)
 	{
-		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, this, IDM_CODEWINDOW);
+		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, IDM_CODEWINDOW);
 		g_pCodeWindow->Hide();
 		g_pCodeWindow->Load();
-	}
+	}	
 
 	// Create timer
 	#if wxUSE_TIMER
@@ -396,7 +396,7 @@ CFrame::CFrame(wxFrame* parent,
 	TOOLBAR_STYLE = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT | wxAUI_TB_OVERFLOW /*overflow visible*/;
 	wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 
-	if (UseDebugger)
+	if (g_pCodeWindow)
 	{
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane 0")).Caption(wxT("Pane 0")).Show());
 	}
@@ -407,7 +407,7 @@ CFrame::CFrame(wxFrame* parent,
 	}
 
 	// Setup perspectives
-	if (UseDebugger)
+	if (g_pCodeWindow)
 	{		
 		m_Mgr->GetPane(wxT("Pane 0")).CenterPane().PaneBorder(false);
 		AuiFullscreen = m_Mgr->SavePerspective();
@@ -427,7 +427,7 @@ CFrame::CFrame(wxFrame* parent,
 	CPluginManager::GetInstance().ScanForPlugins();
 
 	// Setup perspectives
-	if (UseDebugger)
+	if (g_pCodeWindow)
 	{		
 		// Load perspective
 		SaveLocal();
@@ -441,7 +441,7 @@ CFrame::CFrame(wxFrame* parent,
 	// Show window
 	Show();
 
-	if (!UseDebugger)
+	if (!g_pCodeWindow)
 	{
 		SetSimplePaneSize();
 		if (SConfig::GetInstance().m_InterfaceLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
@@ -460,6 +460,10 @@ CFrame::CFrame(wxFrame* parent,
 
 	// -------------------------
 	// Connect event handlers
+
+	wxTheApp->Connect(wxID_ANY, wxEVT_SIZE, // Keyboard
+		wxSizeEventHandler(CFrame::OnResizeAll),
+		(wxObject*)0, this);
 
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
 		wxKeyEventHandler(CFrame::OnKeyDown),
@@ -524,7 +528,7 @@ void CFrame::OnRestart(wxCommandEvent& WXUNUSED (event))
 		char Str[MAX_PATH + 1];
 		DWORD Size = sizeof(Str)/sizeof(char);
 		DWORD n = GetModuleFileNameA(NULL, Str, Size);
-		ShellExecuteA(NULL, "open", PathToFilename(*new std::string(Str)).c_str(), UseDebugger ? "" : "-d", NULL, SW_SHOW);
+		ShellExecuteA(NULL, "open", PathToFilename(*new std::string(Str)).c_str(), g_pCodeWindow ? "" : "-d", NULL, SW_SHOW);
 	#endif
 
 	Close(true);
@@ -538,8 +542,8 @@ void CFrame::OnClose(wxCloseEvent& event)
 	// Don't forget the skip or the window won't be destroyed
 	event.Skip();
 	// Save GUI settings
-	if (UseDebugger) g_pCodeWindow->Save();
-	if (UseDebugger) Save();
+	if (g_pCodeWindow) g_pCodeWindow->Save();
+	if (g_pCodeWindow) Save();
 	// Uninit
 	m_Mgr->UnInit();
 
@@ -575,6 +579,18 @@ void CFrame::PostUpdateUIEvent(wxUpdateUIEvent& event)
 	if (g_pCodeWindow) wxPostEvent(g_pCodeWindow, event);
 }
 
+void CFrame::OnResize(wxSizeEvent& event)
+{
+	event.Skip();
+
+	DoMoveIcons();  // In FrameWiimote.cpp
+}
+void CFrame::OnResizeAll(wxSizeEvent& event)
+{
+	event.Skip();
+	//wxWindow * Win = (wxWindow*)event.GetEventObject();
+	//NOTICE_LOG(CONSOLE, "OnResizeAll: %i", (HWND)Win->GetHWND());
+}
 
 // Host messages
 
@@ -590,10 +606,8 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 		case SC_MONITORPOWER:
 			return 0;
 		}
-	default:
-		// Let wxWidgets process it as normal
-		return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
 	}
+	return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
 }
 #endif
 
@@ -610,6 +624,37 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		{
 			m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
 		}
+		break;
+	}
+}
+
+void CFrame::OnCustomHostMessage(int Id)
+{
+	wxWindow *Win;
+
+	switch(Id)
+	{
+	// Destroy windows
+	case AUDIO_DESTROY:		
+		Win = GetWxWindow(wxT("Sound"));
+		if (Win)
+		{
+			DoRemovePage(Win, false);
+
+			CPluginManager::GetInstance().OpenDebug(
+				GetHandle(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
+				PLUGIN_TYPE_DSP, false
+				);
+
+			//Win->Reparent(NULL);
+			//g_pCodeWindow->OnToggleSoundWindow(false, 0);
+			GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(false);
+			NOTICE_LOG(CONSOLE, "%s", Core::StopMessage(true, "Sound debugging window closed").c_str());
+		}
+		break;
+
+	case VIDEO_DESTROY:
 		break;
 	}
 }
@@ -790,9 +835,7 @@ void CFrame::Update()
 
 wxFrame * CFrame::CreateParentFrame(wxWindowID Id, const wxString& Title, wxWindow * Child)
 {
-	//NOTICE_LOG(CONSOLE, "CreateParentFrame: %i %s %i", Id, Title.mb_str(), Child->GetId())
-
-	wxFrame * Frame = new wxFrame(this, Id, Title);
+	wxFrame * Frame = new wxFrame(this, Id, Title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
 	
 	Child->Reparent(Frame);
 	Child->Show();
@@ -921,4 +964,26 @@ void CFrame::ListChildren()
 	}
 
 	Console->Log(LogTypes::LNOTICE, "--------------------------------------------------------------------\n");
+}
+
+void CFrame::ListTopWindows()
+{
+    wxWindowList::const_iterator i;
+	int j = 0;
+    const wxWindowList::const_iterator end = wxTopLevelWindows.end();
+
+    for (i = wxTopLevelWindows.begin(); i != end; ++i)
+    {
+        wxTopLevelWindow * const Win = wx_static_cast(wxTopLevelWindow *, *i);
+		NOTICE_LOG(CONSOLE, "%i: %i %s", j, Win, Win->GetTitle().mb_str());
+		/*
+        if ( win->ShouldPreventAppExit() )
+        {
+            // there remains at least one important TLW, don't exit
+            return false;
+        }
+		*/
+		j++;
+    }
+	NOTICE_LOG(CONSOLE, "\n");
 }

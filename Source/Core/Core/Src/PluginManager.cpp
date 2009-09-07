@@ -36,10 +36,12 @@
 #include "ConfigManager.h"
 #include "LogManager.h"
 #include "Core.h"
+#include "Host.h"
 
 #include "FileSearch.h" // Common
 #include "FileUtil.h"
 #include "StringUtil.h"
+#include "MemoryUtil.h"
 #include "Setup.h"
 
 // Create the plugin manager class
@@ -182,9 +184,8 @@ void CPluginManager::ShutdownPlugins()
 	if (m_dsp)
 	{
 		m_dsp->Shutdown();
-		// With this option, this is done on boot instead
-		delete m_dsp;
-		m_dsp = NULL;
+		FreeDSP();
+		NOTICE_LOG(CONSOLE, "%s", Core::StopMessage(false, "Audio shutdown").c_str());
 	}
 }
 
@@ -193,9 +194,8 @@ void CPluginManager::ShutdownVideoPlugin()
 	if (m_video)
 	{
 		m_video->Shutdown();
-		// With this option, this is done on boot instead
-		delete m_video;
-		m_video = NULL;
+		FreeVideo();
+		NOTICE_LOG(CONSOLE, "%s", Core::StopMessage(false, "Video shutdown").c_str());
 	}
 }
 
@@ -443,12 +443,16 @@ Common::PluginVideo *CPluginManager::GetVideo()
 // the plugins in turn
 void CPluginManager::FreeVideo()
 {
+	//Host_Message(VIDEO_DESTROY);
+	WARN_LOG(CONSOLE, "%s", Core::StopMessage(false, "Will unload video DLL").c_str());
 	delete m_video;
 	m_video = NULL;
 }
 
 void CPluginManager::FreeDSP()
 {
+	//Host_Message(AUDIO_DESTROY);
+	WARN_LOG(CONSOLE, "%s", Core::StopMessage(false, "Will unload audio DLL").c_str());
 	delete m_dsp;
 	m_dsp = NULL;
 }

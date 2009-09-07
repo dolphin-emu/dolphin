@@ -105,9 +105,10 @@ public:
 
 	void SetAffinity(int mask);
 	static void SetCurrentThreadAffinity(int mask);
-#ifdef _WIN32
+	static int CurrentId();
+#ifdef _WIN32	
 	void SetPriority(int priority);
-	void WaitForDeath(const int _Wait = INFINITE);
+	DWORD WaitForDeath(const int iWait = INFINITE);
 #else
 	void WaitForDeath();
 #endif

@@ -81,6 +81,7 @@ class CFrame : public wxFrame
 		void PostUpdateUIEvent(wxUpdateUIEvent& event);
 		void StatusBarMessage(char * Text, ...);
 		void ClearStatusBar();
+		void OnCustomHostMessage(int Id);
 
 		// ---------------------------------------
 		// Wiimote leds
@@ -122,6 +123,8 @@ class CFrame : public wxFrame
 		int Limit(int,int,int);
 		int PercentageToPixels(int,int);
 		int PixelsToPercentage(int,int);
+		void ListChildren();
+		void ListTopWindows();
 
 		// Perspectives
 		void AddRemoveBlankPage();
@@ -131,7 +134,6 @@ class CFrame : public wxFrame
 		void OnFloatWindow(wxCommandEvent& event);
 		void OnTab(wxAuiNotebookEvent& event);
 		int GetNootebookAffiliation(wxString Name);
-		void ListChildren();
 		void ClosePages();
 		void DoToggleWindow(int,bool);
 		void ShowAllNotebooks(bool Window = false);
@@ -285,6 +287,7 @@ class CFrame : public wxFrame
 		void OnToggleThrottle(wxCommandEvent& event);
 		void OnManagerResize(wxAuiManagerEvent& event);
 		void OnResize(wxSizeEvent& event);
+		void OnResizeAll(wxSizeEvent& event);
 		void OnToggleToolbar(wxCommandEvent& event);
 		void DoToggleToolbar(bool);
 		void OnToggleStatusbar(wxCommandEvent& event);

@@ -386,6 +386,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 
 void CCodeWindow::NotifyMapLoaded()
 {
+	if (!codeview) return;
+
 	g_symbolDB.FillInCallers();
 	//symbols->Show(false); // hide it for faster filling
 	symbols->Freeze();	// HyperIris: wx style fast filling
@@ -455,6 +457,7 @@ void CCodeWindow::OpenPages()
 }
 void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
 {
+	event.Skip();
 	Parent->DoToggleWindow(event.GetId(), GetMenuBar()->IsChecked(event.GetId()));
 }
 void CCodeWindow::OnToggleCodeWindow(bool _Show, int i)
@@ -552,108 +555,137 @@ Notice: This windows docking for plugin windows will produce several wx debuggin
 //Toggle Sound Debugging Window
 void CCodeWindow::OnToggleSoundWindow(bool _Show, int i)
 {
-	//	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+#ifdef _WIN32		
+	// ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 
 	if (_Show)
 	{
 		if (Parent->GetNotebookCount() == 0) return;
 		if (i < 0 || i > Parent->GetNotebookCount()-1) i = 0;
-		#ifdef _WIN32
 		wxWindow *Win = Parent->GetWxWindow(wxT("Sound"));
 		if (Win && Parent->GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
 
-		{
-		#endif				
-			//Console->Log(LogTypes::LNOTICE, StringFromFormat("OpenDebug\n").c_str());
-			CPluginManager::GetInstance().OpenDebug(
-				Parent->GetHandle(),
-				//GetHandle(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-				PLUGIN_TYPE_DSP, true // DSP, show
-				);
-		#ifdef _WIN32
-		}
-
+		CPluginManager::GetInstance().OpenDebug(
+			Parent->GetHandle(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
+			PLUGIN_TYPE_DSP, true // DSP, show
+			);
+			
 		Win = Parent->GetWxWindow(wxT("Sound"));
 		if (Win)
 		{		
 			Win->SetName(wxT("Sound"));
 			Win->Reparent(Parent);
-			Parent->GetNotebookFromId(i)->AddPage(Win, wxT("Sound"), true, Parent->aNormalFile );
-			//Console->Log(LogTypes::LNOTICE, StringFromFormat("AddPage\n").c_str());
-			//Parent->ListChildren();			
-			//Console->Log(LogTypes::LNOTICE, StringFromFormat("OpenDebug: Win %i\n", FindWindowByName(wxT("Sound"))).c_str());
+			Win->SetId(IDM_SOUNDWINDOW);
+			Parent->GetNotebookFromId(i)->AddPage(Win, wxT("Sound"), true, Parent->aNormalFile);
 		}
 		else
 		{
 			//Console->Log(LogTypes::LNOTICE, StringFromFormat("OpenDebug: Win not found\n").c_str());
 		}
-		#endif
+		
 	}
-	else // hide
-	{
-		#ifdef _WIN32
+	else
+	{	
 		wxWindow *Win = Parent->GetWxWindow(wxT("Sound"));
 		if (Win)
-		{
+		{			
 			Parent->DoRemovePage(Win, false);
-			//Console->Log(LogTypes::LNOTICE, StringFromFormat("Sound removed from NB (Win %i)\n", FindWindowByName(wxT("Sound"))).c_str());
+			//Win->Reparent(NULL);
+
+			// Destroy
+			CPluginManager::GetInstance().OpenDebug(
+				GetHandle(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
+				PLUGIN_TYPE_DSP, false
+				);
+
+			//WARN_LOG(CONSOLE, "Sound removed from NB");
 		}
 		else
 		{
-			//Console->Log(LogTypes::LNOTICE, StringFromFormat("Sound not found (Win %i)\n", FindWindowByName(wxT("Sound"))).c_str());
+			//WARN_LOG(CONSOLE, "Sound not found (Win %i)", FindWindowByName(wxT("Sound")));
 		}
-		#endif
-		// Close the sound dll that has an open debugger
+	}
+	
+#else
+	if (_Show)
+	{
+		CPluginManager::GetInstance().OpenDebug(
+			Parent->GetHandle(),
+			//GetHandle(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
+			PLUGIN_TYPE_DSP, true // DSP, show
+			);
+	}
+	else
+	{
 		CPluginManager::GetInstance().OpenDebug(
 			GetHandle(),
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
 			PLUGIN_TYPE_DSP, false // DSP, hide
 			);
 	}
+#endif
 }
 
 // Toggle Video Debugging Window
 void CCodeWindow::OnToggleVideoWindow(bool _Show, int i)
 {
+#ifdef _WIN32
 	//GetMenuBar()->Check(event.GetId(), false); // Turn off
 
 	if (_Show)
 	{
 		if (Parent->GetNotebookCount() == 0) return;
 		if (i < 0 || i > Parent->GetNotebookCount()-1) i = 0;
-		#ifdef _WIN32
+
 		wxWindow *Win = Parent->GetWxWindow(wxT("Video"));
+		Win->SetId(IDM_VIDEOWINDOW);
 		if (Win && Parent->GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
 
-		{
-		#endif	
-			// Show and/or create the window
-			CPluginManager::GetInstance().OpenDebug(
-			Parent->GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-			PLUGIN_TYPE_VIDEO, true // Video, show
-			);
-		#ifdef _WIN32
-		}
+		// Show and/or create the window
+		CPluginManager::GetInstance().OpenDebug(
+		Parent->GetHandle(),
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
+		PLUGIN_TYPE_VIDEO, true // Video, show
+		);
 
 		Win = Parent->GetWxWindow(wxT("Video"));
 		if (Win) Parent->GetNotebookFromId(i)->AddPage(Win, wxT("Video"), true, Parent->aNormalFile );
-		#endif
 	}
 	else // hide
 	{
-		#ifdef _WIN32
 		wxWindow *Win = Parent->GetWxWindow(wxT("Video"));
-		Parent->DoRemovePage (Win, false);
-		#endif
-		// Close the video dll that has an open debugger
-		CPluginManager::GetInstance().OpenDebug(
-			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
-			PLUGIN_TYPE_VIDEO, false // Video, hide
-			);
+		if (Win)
+		{
+			Parent->DoRemovePage (Win, false);
+			Win->Reparent(NULL);
+			CPluginManager::GetInstance().OpenDebug(
+				GetHandle(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
+				PLUGIN_TYPE_VIDEO, false // Video, hide
+				);
+		}
 	}
+#else
+	if (_Show)
+	{
+		CPluginManager::GetInstance().OpenDebug(
+		Parent->GetHandle(),
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
+		PLUGIN_TYPE_VIDEO, true // Video, show
+		);
+	}
+	else
+	{
+	CPluginManager::GetInstance().OpenDebug(
+		GetHandle(),
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str(),
+		PLUGIN_TYPE_VIDEO, false // Video, hide
+		);
+	}
+#endif
 }
 
 

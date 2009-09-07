@@ -146,7 +146,7 @@ namespace EmuWindow
 {
 
 HWND m_hWnd = NULL; // The new window that is created here
-HWND m_hParent = NULL; // The main CPanel or the main wxFrame
+HWND m_hParent = NULL; // The main CPanel
 
 HINSTANCE m_hInstance = NULL;
 WNDCLASSEX wndClass;

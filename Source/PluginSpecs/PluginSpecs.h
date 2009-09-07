@@ -18,8 +18,7 @@
 
 
 
-/* Plugin communication. I place this here rather in Common.h since these messages are only received
-   at one place, by the CPanel in Frame.cpp. That way I don't have to rebuild if any of this is changed */
+/* Plugin communication. I place this here rather in Common.h to rebuild less if any of this is changed */
 // -----------------
 enum PLUGIN_COMM
 {
@@ -27,10 +26,12 @@ enum PLUGIN_COMM
 	OPENGL_WM_USER_STOP = 10,
 	OPENGL_WM_USER_CREATE,
 	OPENGL_WM_USER_KEYDOWN,
+	OPENGL_VIDEO_STOP,
+	VIDEO_DESTROY, // The video debugging window was destroyed
+	AUDIO_DESTROY, // The audio debugging window was destroyed
 	NJOY_RELOAD, // Reload nJoy if DirectInput has failed
 	WIIMOTE_RECONNECT, // Reconnect the Wiimote if it has disconnected
-	INPUT_FRAME_COUNTER, // Wind back the frame counter for rerecording
-	OPENGL_VIDEO_STOP
+	INPUT_FRAME_COUNTER // Wind back the frame counter for rerecording
 };
 
 

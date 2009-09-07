@@ -89,6 +89,9 @@ DSPDebuggerHLE::DSPDebuggerHLE(wxWindow *parent, wxWindowID id, const wxString &
 	, upd93(false)
 	, upd92(false)
 {
+	// Confirm parenting
+	//this->Reparent(parent);
+
 	CreateGUIControls();
 
 	// load ini...
@@ -144,17 +147,18 @@ DSPDebuggerHLE::DSPDebuggerHLE(wxWindow *parent, wxWindowID id, const wxString &
 
 DSPDebuggerHLE::~DSPDebuggerHLE()
 {
+	/*
 	// empty
 	IniFile file;
 	file.Load(DEBUGGER_CONFIG_FILE);
 	this->Save(file);
 	file.Save(DEBUGGER_CONFIG_FILE);
+	*/
 
 	// Reset
 	m_DebuggerFrame = NULL;
 	// Talk
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	Console->Log(LogTypes::LNOTICE, StringFromFormat("Sound closed\n").c_str());
+	NOTICE_LOG(CONSOLE, "Stop [Sound]\t\tDSPDebuggerHLE destroyed");
 } 
 // ====================
 
@@ -162,15 +166,21 @@ DSPDebuggerHLE::~DSPDebuggerHLE()
 // ========================================================================
 // System functions
 // --------------
-void DSPDebuggerHLE::OnClose(wxCloseEvent& /*event*/)
+void DSPDebuggerHLE::OnClose(wxCloseEvent& event)
 {	
-	// Save the window position when we hide the window to
+	//PanicAlert("OnClose");
+	//event.Skip();
+
+	// Save the window position
 	IniFile file;
 	file.Load(DEBUGGER_CONFIG_FILE);
 	this->Save(file);
 	file.Save(DEBUGGER_CONFIG_FILE);
 
-	EndModal(0);
+	//EndModal(0);
+	//Close(true);
+	//Destroy();
+	delete this;
 }
 
 void DSPDebuggerHLE::OnUpdate(wxCommandEvent& /*event*/)

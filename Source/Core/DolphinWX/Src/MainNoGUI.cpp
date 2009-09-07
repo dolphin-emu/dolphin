@@ -56,6 +56,7 @@ void Host_NotifyMapLoaded(){}
 
 void Host_ShowJitResults(unsigned int address){}
 
+void Host_Message(int Id){}
 
 void Host_UpdateLogDisplay(){}
 
