@@ -975,7 +975,7 @@ void CFrame::ListTopWindows()
     for (i = wxTopLevelWindows.begin(); i != end; ++i)
     {
         wxTopLevelWindow * const Win = wx_static_cast(wxTopLevelWindow *, *i);
-		NOTICE_LOG(CONSOLE, "%i: %i %s", j, Win, Win->GetTitle().mb_str());
+		NOTICE_LOG(CONSOLE, "%i: %i %s", j, Win, (const char *)Win->GetTitle().mb_str());
 		/*
         if ( win->ShouldPreventAppExit() )
         {

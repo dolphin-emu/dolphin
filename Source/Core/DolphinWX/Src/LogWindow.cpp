@@ -29,7 +29,7 @@
 // Milliseconds between msgQueue flushes to wxTextCtrl
 #define UPDATETIME 200
 
-BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
+BEGIN_EVENT_TABLE(CLogWindow, wxPanel)
 	EVT_CLOSE(CLogWindow::OnClose)
 	EVT_TEXT_ENTER(IDM_SUBMITCMD, CLogWindow::OnSubmit)
 	EVT_BUTTON(IDM_CLEARLOG, CLogWindow::OnClear)
@@ -45,7 +45,7 @@ BEGIN_EVENT_TABLE(CLogWindow, wxDialog)
 END_EVENT_TABLE()
 
 CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
-	: wxDialog(parent, id, title, position, size, style)
+	: wxPanel(parent, id, position, size, style)
     , Parent(parent), m_LogSection(1), m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
 	, m_LogAccess(true)
 {
@@ -80,9 +80,9 @@ void CLogWindow::CreateGUIControls()
 	m_FontChoice->Append(wxT("Monospaced font"));
 	m_FontChoice->Append(wxT("Selected font"));
 	m_FontChoice->SetSelection(0);
-	wxTextCtrl *Tmp = CreateTextCtrl(this);
-	DefaultFont = Tmp->GetFont();
-	Tmp->Destroy();
+	//	wxTextCtrl *Tmp = CreateTextCtrl(this);
+	//	DefaultFont = Tmp->GetFont();
+	//	Tmp->Destroy();
 	MonoSpaceFont.SetNativeFontInfoUserDesc(wxString::FromAscii("lucida console windows-1252"));
 	Font.push_back(DefaultFont);
 	Font.push_back(MonoSpaceFont);
@@ -132,7 +132,7 @@ void CLogWindow::CreateGUIControls()
 	this->SetSizer(sUber);
 
 	// Settings
-	SetAffirmativeId(IDM_SUBMITCMD);
+	//	SetAffirmativeId(IDM_SUBMITCMD);
 	UpdateChecks();
 	m_cmdline->SetFocus();
 
@@ -302,7 +302,7 @@ void CLogWindow::PopulateRight()
 	this->Layout();
 }
 
-wxTextCtrl* CLogWindow::CreateTextCtrl(wxDialog* parent, wxWindowID id, long Style)
+wxTextCtrl* CLogWindow::CreateTextCtrl(wxPanel* parent, wxWindowID id, long Style)
 {
 	wxTextCtrl* TC = new wxTextCtrl(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, Style);	
 	TC->SetBackgroundColour(*wxBLACK);

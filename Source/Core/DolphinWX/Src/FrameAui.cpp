@@ -104,19 +104,11 @@ void CFrame::ToggleLogWindow(bool bShow, int i)
 	if (bShow)
 	{
 		if (!m_LogWindow) m_LogWindow = new CLogWindow(this, IDM_LOGWINDOW);
-		#ifdef _WIN32
 		DoAddPage(m_LogWindow, i, wxT("Log"), bFloatLogWindow);
-		#else
-		m_LogWindow->Show();
-		#endif
 	}
 	else
 	{
-		#ifdef _WIN32
 		DoRemovePage(m_LogWindow);
-		#else
-		if (m_LogWindow) m_LogWindow->Show();
-		#endif
 	}
 
 	// Hide pane
