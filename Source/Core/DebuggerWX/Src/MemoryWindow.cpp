@@ -50,7 +50,7 @@ enum
 	IDM_VALBOX,
 };
 
-BEGIN_EVENT_TABLE(CMemoryWindow, wxFrame)
+BEGIN_EVENT_TABLE(CMemoryWindow, wxPanel)
     EVT_TEXT(IDM_MEM_ADDRBOX,           CMemoryWindow::OnAddrBoxChange)
     EVT_LISTBOX(IDM_SYMBOLLIST,     CMemoryWindow::OnSymbolListChange)
     EVT_HOST_COMMAND(wxID_ANY,      CMemoryWindow::OnHostMessage)
@@ -60,7 +60,7 @@ END_EVENT_TABLE()
 
 CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
-	: wxFrame(parent, id, title, pos, size, style)
+: wxPanel(parent, id, pos, size, style)
 {    
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizerRight = new wxBoxSizer(wxVERTICAL);

@@ -63,7 +63,7 @@ enum
 	IDM_BLOCKLIST,
 };
 
-BEGIN_EVENT_TABLE(CJitWindow, wxFrame)
+BEGIN_EVENT_TABLE(CJitWindow, wxPanel)
 //    EVT_TEXT(IDM_ADDRBOX,           CJitWindow::OnAddrBoxChange)
   //  EVT_LISTBOX(IDM_SYMBOLLIST,     CJitWindow::OnSymbolListChange)
     //EVT_HOST_COMMAND(wxID_ANY,      CJitWindow::OnHostMessage)
@@ -73,7 +73,7 @@ END_EVENT_TABLE()
 
 CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id,
 		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
-	: wxFrame(parent, id, title, pos, size, style)
+: wxPanel(parent, id, pos, size, style)
 {    
 	the_jit_window = this;
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxVERTICAL);

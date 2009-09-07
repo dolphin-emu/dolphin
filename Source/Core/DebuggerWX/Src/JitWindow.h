@@ -41,7 +41,7 @@ public:
 };
 
 
-class CJitWindow : public wxFrame
+class CJitWindow : public wxPanel
 {
 public:
 	CJitWindow(wxWindow* parent,
@@ -49,12 +49,7 @@ public:
 		const wxString& title = _T("JIT block viewer"),
 		const wxPoint& pos = wxPoint(950, 100),
 		const wxSize& size = wxSize(400, 500),
-		#ifdef _WIN32
 		long style = wxNO_BORDER);
-		#else
-		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
-		#endif
-
     ~CJitWindow();
 
 	void Save(IniFile& _IniFile) const;

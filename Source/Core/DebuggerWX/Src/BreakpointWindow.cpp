@@ -33,7 +33,7 @@ extern "C" {
 #include "../resources/toolbar_delete.c"
 }
 
-BEGIN_EVENT_TABLE(CBreakPointWindow, wxFrame)
+BEGIN_EVENT_TABLE(CBreakPointWindow, wxPanel)
 	EVT_CLOSE(CBreakPointWindow::OnClose)
 	EVT_MENU(IDM_DELETE, CBreakPointWindow::OnDelete)
 	EVT_MENU(IDM_CLEAR, CBreakPointWindow::OnClear)
@@ -45,7 +45,7 @@ BEGIN_EVENT_TABLE(CBreakPointWindow, wxFrame)
 END_EVENT_TABLE()
 
 CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
-	: wxFrame(parent, id, title, position, size, style)
+: wxPanel(parent, id, position, size, style, title)
 	, m_BreakPointListView(NULL)
     , m_pCodeWindow(_pCodeWindow)
 {
@@ -78,8 +78,8 @@ void CBreakPointWindow::Load(IniFile& _IniFile)
 
 void CBreakPointWindow::CreateGUIControls()
 {
-	SetTitle(wxT("Breakpoints"));
-	SetIcon(wxNullIcon);
+	//	SetTitle(wxT("Breakpoints"));
+	//	SetIcon(wxNullIcon);
 	SetSize(8, 8, 400, 370);
 	Center();
 
@@ -117,18 +117,19 @@ void CBreakPointWindow::PopulateToolbar(wxToolBar* toolBar)
 
 void CBreakPointWindow::RecreateToolbar()
 {
+	// FIXME: what do we do with this?
 	// delete and recreate the toolbar
-	wxToolBarBase* toolBar = GetToolBar();
-	long style = toolBar ? toolBar->GetWindowStyle() : wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
+	//	wxToolBarBase* toolBar = GetToolBar();
+	//	long style = toolBar ? toolBar->GetWindowStyle() : wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
 
-	delete toolBar;
-	SetToolBar(NULL);
+	//	delete toolBar;
+	//	SetToolBar(NULL);
 
-	style &= ~(wxTB_HORIZONTAL | wxTB_VERTICAL | wxTB_BOTTOM | wxTB_RIGHT | wxTB_HORZ_LAYOUT | wxTB_TOP);
-	wxToolBar* theToolBar = CreateToolBar(style, ID_TOOLBAR);
+	//	style &= ~(wxTB_HORIZONTAL | wxTB_VERTICAL | wxTB_BOTTOM | wxTB_RIGHT | wxTB_HORZ_LAYOUT | wxTB_TOP);
+	//	wxToolBar* theToolBar = CreateToolBar(style, ID_TOOLBAR);
 
-	PopulateToolbar(theToolBar);
-	SetToolBar(theToolBar);
+	//	PopulateToolbar(theToolBar);
+	//	SetToolBar(theToolBar);
 }
 
 void CBreakPointWindow::InitBitmaps()

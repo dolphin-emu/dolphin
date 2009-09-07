@@ -412,7 +412,7 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 		{
 			if(pSymbol->type == Symbol::SYMBOL_DATA)
 			{
-				if(m_MemoryWindow && m_MemoryWindow->IsVisible())
+				if(m_MemoryWindow)// && m_MemoryWindow->IsVisible())
 					m_MemoryWindow->JumpToAddress(pSymbol->address);
 			}
 			else
@@ -485,18 +485,10 @@ void CCodeWindow::OnToggleBreakPointWindow(bool _Show, int i)
 	if (_Show)
 	{
 		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINTWINDOW);
-		#ifdef _WIN32
 		Parent->DoAddPage(m_BreakpointWindow, i, wxT("Breakpoints"), bFloatBreakpointWindow);
-		#else
-		m_BreakpointWindow->Show();
-		#endif
 	}
 	else // hide
-		#ifdef _WIN32
 		Parent->DoRemovePage(m_BreakpointWindow);
-		#else
-		if (m_BreakpointWindow) m_BreakpointWindow->Hide();
-		#endif
 }
 
 
@@ -505,18 +497,10 @@ void CCodeWindow::OnToggleMemoryWindow(bool _Show, int i)
 	if (_Show)
 	{
 		if (!m_MemoryWindow) m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORYWINDOW);
-		#ifdef _WIN32
 		Parent->DoAddPage(m_MemoryWindow, i, wxT("Memory"), bFloatMemoryWindow);
-		#else
-		m_MemoryWindow->Show();
-		#endif
 	}
 	else // hide
-		#ifdef _WIN32
 		Parent->DoRemovePage(m_MemoryWindow);
-		#else
-		if (m_MemoryWindow) m_MemoryWindow->Hide();
-		#endif
 }
 
 
@@ -525,18 +509,10 @@ void CCodeWindow::OnToggleJitWindow(bool _Show, int i)
 	if (_Show)
 	{
 		if (!m_JitWindow) m_JitWindow = new CJitWindow(Parent, IDM_JITWINDOW);
-		#ifdef _WIN32
 		Parent->DoAddPage(m_JitWindow, i, wxT("JIT"), bFloatJitWindow);
-		#else
-		m_JitWindow->Show();
-		#endif
 	}
 	else // hide
-		#ifdef _WIN32
 		Parent->DoRemovePage(m_JitWindow);
-			#else
-		if (m_JitWindow) m_JitWindow->Hide();
-		#endif
 }
 
 
@@ -555,9 +531,6 @@ Notice: This windows docking for plugin windows will produce several wx debuggin
 // Toggle Sound Debugging Window
 void CCodeWindow::OnToggleDLLWindow(int Id, bool _Show, int i)
 {
-#ifdef _WIN32		
-	// ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-
 	std::string DLLName;
 	wxString Title;
 	int PLUGINTYPE;
@@ -616,7 +589,4 @@ void CCodeWindow::OnToggleDLLWindow(int Id, bool _Show, int i)
 		}
 	}
 	
-#else
-	CPluginManager::GetInstance().OpenDebug(Parent->GetHandle(), DLLName.c_str(), (PLUGIN_TYPE)PLUGINTYPE, _Show);
-#endif
 }
