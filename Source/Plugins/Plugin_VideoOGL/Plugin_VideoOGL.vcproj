@@ -298,11 +298,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib glew32s.lib libjpeg.lib glu32.lib rpcrt4.lib vfw32.lib  wxbase28ud.lib wxmsw28ud_core.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib glew32s.lib libjpeg.lib SOIL.lib zlib.lib glu32.lib rpcrt4.lib vfw32.lib wxbase28ud.lib wxmsw28ud_core.lib"
 				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_VideoOGLD.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)\$(ConfigurationName)\$(PlatformName)&quot;;..\..\..\Externals\Cg;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
@@ -396,11 +396,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib libjpeg64.lib glu32.lib glew64s.lib rpcrt4.lib vfw32.lib wxbase28ud.lib wxmsw28ud_core.lib"
+				AdditionalDependencies="comctl32.lib winmm.lib cg.lib cgGL.lib opengl32.lib libjpeg64.lib glu32.lib glew64s.lib SOIL.lib zlib.lib rpcrt4.lib vfw32.lib wxbase28ud.lib wxmsw28ud_core.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoOGLD.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)"
+				AdditionalLibraryDirectories="&quot;$(SolutionDir)\$(ConfigurationName)\$(PlatformName)&quot;;..\..\..\Externals\Cg64;..\..\..\Externals\GLew;..\..\..\Externals\libjpeg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
