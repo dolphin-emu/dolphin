@@ -26,7 +26,7 @@
 
 namespace DSPInterpreter {
 
-void Update_SR_Register64(s64 _Value)
+void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
 {
 	// TODO: Should also set 0x10 and 0x01 (also 0x02?)
 	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
@@ -41,6 +41,16 @@ void Update_SR_Register64(s64 _Value)
 		g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
 	}
 
+	if (carry)
+	{
+		g_dsp.r[DSP_REG_SR] |= SR_CARRY;
+	}
+
+	if (overflow)
+	{
+		g_dsp.r[DSP_REG_SR] |= SR_OVERFLOW;
+	}
+		
 	// Checks if top bits are equal, what is it good for?
 	if (((_Value >> 62) == 0) || (_Value >> 62 == 3))
 	{	
@@ -49,11 +59,10 @@ void Update_SR_Register64(s64 _Value)
 }
 
 
-void Update_SR_Register16(s16 _Value)
+void Update_SR_Register16(s16 _Value, bool carry, bool overflow)
 {
 	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
 
-	// Only sets those 3 bits
 
 	if (_Value < 0)
 	{
@@ -63,6 +72,16 @@ void Update_SR_Register16(s16 _Value)
 	if (_Value == 0)
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
+	}
+
+	if (carry)
+	{
+		g_dsp.r[DSP_REG_SR] |= SR_CARRY;
+	}
+
+	if (overflow)
+	{
+		g_dsp.r[DSP_REG_SR] |= SR_OVERFLOW;
 	}
 
 	// Checks if top bits are equal, what is it good for?
