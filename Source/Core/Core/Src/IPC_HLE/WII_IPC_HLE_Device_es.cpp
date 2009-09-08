@@ -707,19 +707,19 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         break;
 
     case IOCTL_ES_GETCONSUMPTION: // (Input: 8 bytes, Output: 0 bytes, 4 bytes)
-        _dbg_assert_msg_(WII_IPC_ES, 0, "IOCTL_ES_GETCONSUMPTION: this looks really wrong...");
+        WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETCONSUMPTION: this looks really wrong...");
         break;
 
     case IOCTL_ES_DIGETTICKETVIEW: // (Input: none, Output: 216 bytes)
-        _dbg_assert_msg_(WII_IPC_ES, 0, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
+        WARN_LOG(WII_IPC_ES, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
         break;
 
     case IOCTL_ES_GETDEVICECERT: // (Input: none, Output: 384 bytes)
-        _dbg_assert_msg_(WII_IPC_ES, 0, "IOCTL_ES_GETDEVICECERT: this looks really wrong...");
+        WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT: this looks really wrong...");
         break;
 
     default:
-        _dbg_assert_msg_(WII_IPC_ES, 0, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
+        WARN_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
 
 		DumpCommands(_CommandAddress, 8, LogTypes::WII_IPC_ES);
         INFO_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es command.Parameter: 0x%08x", Buffer.Parameter);
