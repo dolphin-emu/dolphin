@@ -32,7 +32,7 @@
 // Externals
 extern u32 m_addressPBs;
 static float ratioFactor;
-static u32 gLastBlock;
+u32 gLastBlock;
 
 
 // Vectors and other things
