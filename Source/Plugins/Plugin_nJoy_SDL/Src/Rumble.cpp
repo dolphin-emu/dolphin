@@ -1,6 +1,6 @@
 
 // Project description
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 // Name: nJoy 
 // Description: A Dolphin Compatible Input Plugin
 //
@@ -32,13 +32,13 @@
 
 
 // Include
-// ¯¯¯¯¯¯¯¯¯
+// ---------
 #include "nJoy.h"
 
 
 
 // Enable or disable rumble. 
-// ¯¯¯¯¯¯¯¯¯
+// ---------
 
 // Rumble in windows
 #ifdef _WIN32
@@ -74,7 +74,7 @@
 
 
 // Use PAD rumble
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// --------------
 
 void Pad_Use_Rumble(u8 _numPAD)
 {
@@ -130,7 +130,7 @@ void Pad_Use_Rumble(u8 _numPAD)
 
 
 // Set PAD rumble. Explanation: Stop = 0, Rumble = 1
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// --------------
 
 void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
@@ -189,7 +189,7 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 #ifdef _WIN32
 
 // Rumble stuff :D!
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 //
 
 HRESULT InitRumble(HWND hWnd)

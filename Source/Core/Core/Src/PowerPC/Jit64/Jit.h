@@ -30,14 +30,14 @@
 
 
 // Settings
-// ¯¯¯¯¯¯¯¯¯¯
+// ----------
 #define JIT_OFF_OPTIONS // Compile with JIT off options
 
 
 
 
 // Include
-// ¯¯¯¯¯¯¯¯¯¯
+// ----------
 #if JITTEST
 	#include "../Jit64IL/Jit.h"
 #else
@@ -59,7 +59,7 @@
 
 
 // Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯
+// ----------
 
 void Jit(u32 em_address);
 

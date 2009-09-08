@@ -978,7 +978,7 @@ void InterruptDebugging(bool Emu, const void* _pData)
 /* Returns a timestamp with three decimals for precise time comparisons. The return format is
    of the form seconds.milleseconds for example 1234.123. The leding seconds have no particular meaning
    but are just there to enable use to tell if we have entered a new second or now. */
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -----------------
 
 /* Calculate the current update frequency. Calculate the time between ten updates, and average
    five such rates. If we assume there are 60 updates per second if the game is running at full

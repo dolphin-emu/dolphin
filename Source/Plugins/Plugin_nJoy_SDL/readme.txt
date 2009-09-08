@@ -78,7 +78,7 @@ Where can I download the latest releases???
 Can I mirror this file???
    Sure, just don't forget to add a link to:
    www.multigesture.net OR www.dolphin-emu.com
-   ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯    ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+   --------------------    -------------------
 Why should I use nJoy instead of the default input plugin???
   At this moment the default plugin only supports keyboard input.
   nJoy supports Joysticks. And besides that, if you have an GC-adapter

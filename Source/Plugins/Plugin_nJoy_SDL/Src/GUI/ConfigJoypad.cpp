@@ -1,6 +1,6 @@
 
 // Project description
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 // Name: nJoy 
 // Description: A Dolphin Compatible Input Plugin
 //
@@ -32,7 +32,7 @@
 
 
 // Include
-// ¯¯¯¯¯¯¯¯¯
+// ---------
 #include "math.h" // System
 
 #include "ConfigBox.h" // Local
@@ -44,7 +44,7 @@ extern bool g_EmulatorRunning;
 
 
 // Set dialog items from saved values
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 void PADConfigDialognJoy::UpdateGUIButtonMapping(int controller)
 {	
 	// http://wiki.wxwidgets.org/Converting_everything_to_and_from_wxString
@@ -177,7 +177,7 @@ void PADConfigDialognJoy::SaveButtonMapping(int controller, bool DontChangeId, i
 }
 
 // Update the textbox for the buttons
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 void PADConfigDialognJoy::SetButtonText(int id, const char *text, int Page)
 {
 	// Set controller value
@@ -212,7 +212,7 @@ void PADConfigDialognJoy::SetButtonText(int id, const char *text, int Page)
 }
 
 // Get the text in the textbox for the buttons
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 wxString PADConfigDialognJoy::GetButtonText(int id, int Page)
 {
 	// Set controller value
@@ -253,11 +253,11 @@ wxString PADConfigDialognJoy::GetButtonText(int id, int Page)
 
 
 // Configure button mapping
-// ¯¯¯¯¯¯¯¯¯¯
+// ----------
 
 
 // Wait for button press
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 /* Loop or timer: There are basically two ways to do this. With a while() or for() loop, or with a
    timer. The downside with the while() or for() loop is that there is no way to stop it if the user
    should select to configure another button while we are still in an old loop. What will happen then

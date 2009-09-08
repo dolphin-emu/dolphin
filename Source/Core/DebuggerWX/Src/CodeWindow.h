@@ -92,7 +92,7 @@ class CCodeWindow
 		void UpdateManager();
 		
 		// Menu bar
-		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+		// -------------------
 		void OnCPUMode(wxCommandEvent& event); // CPU Mode menu	
 		void OnJITOff(wxCommandEvent& event);
 

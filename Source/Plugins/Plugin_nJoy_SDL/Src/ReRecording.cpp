@@ -1,6 +1,6 @@
 
 // Project description
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 // Name: nJoy
 // Description: A Dolphin Compatible Input Plugin
 //
@@ -32,7 +32,7 @@
 
 
 // File description
-/* ¯¯¯¯¯¯¯¯¯
+/* ---------
 
 Rerecording options
 
@@ -41,7 +41,7 @@ Rerecording options
  
 
 // Include
-// ¯¯¯¯¯¯¯¯¯
+// ---------
 #include "nJoy.h"
 #include "FileUtil.h"
 #include "ChunkFile.h"
@@ -57,7 +57,7 @@ namespace Recording
 
 
 // Definitions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------
 // Pre defined maxium storage limit
 #define RECORD_SIZE (1024 * 128)
 SPADStatus RecordBuffer[RECORD_SIZE];
@@ -68,7 +68,7 @@ int count = 0;
 
 
 // Recording functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------
 void RecordInput(const SPADStatus& _rPADStatus)
 {
 	if (count >= RECORD_SIZE) return;

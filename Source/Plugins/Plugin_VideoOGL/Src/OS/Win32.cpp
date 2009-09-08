@@ -90,9 +90,9 @@ int OSDChoice = 0, OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
 
 // ---------------------------------------------------------------------
 // OSD Menu
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------
 // Let's begin with 3 since 1 and 2 are default Wii keys
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------
 void OSDMenu(WPARAM wParam)
 {
 	switch( LOWORD( wParam ))
@@ -237,7 +237,7 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
 
 // ---------------------------------------------------------------------
 // KeyDown events
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------
 void OnKeyDown(WPARAM wParam)
 {
 	switch (LOWORD( wParam ))

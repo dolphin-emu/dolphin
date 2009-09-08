@@ -1,6 +1,6 @@
 
 // Project description
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 // Name: nJoy
 // Description: A Dolphin Compatible Input Plugin
 //
@@ -33,7 +33,7 @@
 
 
 // Issues
-/* ¯¯¯¯¯¯¯¯¯
+/* ---------
 
    The StrangeHack in ConfigAdvanced.cpp doesn't work in Linux, it still wont resize the
    window correctly. So currently in Linux you have to have advanced controls enabled when
@@ -46,7 +46,7 @@
 
 
 // Variables guide
-/* ¯¯¯¯¯¯¯¯¯
+/* ---------
 
    Joyinfo[1, 2, 3, 4, ..., number of attached devices]: Gamepad info that is populate by Search_Devices()
    PadMapping[1, 2, 3 and 4]: The button mapping
@@ -67,7 +67,7 @@
 
 
 // Include
-// ¯¯¯¯¯¯¯¯¯
+// ---------
 #include "nJoy.h"
 #include "LogManager.h"
 
@@ -80,7 +80,7 @@
  
 
 // Variables
-// ¯¯¯¯¯¯¯¯¯
+// ---------
 
 #define _EXCLUDE_MAIN_ // Avoid certain declarations in nJoy.h
 FILE *pFile;
@@ -167,10 +167,10 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 
 
 // Input Plugin Functions (from spec's)
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ------------------------------------
 
 // Get properties of plugin
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ------------------------
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
@@ -195,7 +195,7 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 
 
 // Call config dialog
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ------------------
 void DllConfig(HWND _hParent)
 {
 #ifdef _WIN32
@@ -239,7 +239,7 @@ void DllDebugger(HWND _hParent, bool Show) {}
 
  
 // Init PAD (start emulation)
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// --------------------------
 /* Information: This function can not be run twice without a Shutdown in between. If
    it's run twice the SDL_Init() will cause a crash. One solution to this is to keep a
    global function that remembers the SDL_Init() and SDL_Quit() (g_EmulatorRunning does
@@ -279,7 +279,7 @@ void Initialize(void *init)
 }
 
 // Shutdown PAD (stop emulation)
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -----------------------------
 /* Information: This function can not be run twice without an Initialize in between. If
    it's run twice the SDL_...() functions below will cause a crash.
    Called from: The Dolphin Core, PADConfigDialognJoy::OnClose() */
@@ -343,7 +343,7 @@ void Shutdown()
 
 
 // Set buttons status from keyboard input. Currently this is done from wxWidgets in the main application.
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// --------------
 void PAD_Input(u16 _Key, u8 _UpDown)
 {
 	// Check that Dolphin is in focus, otherwise don't update the pad status
@@ -371,7 +371,7 @@ void PAD_Input(u16 _Key, u8 _UpDown)
 
 
 // Save state
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// --------------
 void DoState(unsigned char **ptr, int mode)
 {
 #ifdef RERECORDING
@@ -381,7 +381,7 @@ void DoState(unsigned char **ptr, int mode)
 
 
 // Set PAD status
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// --------------
 // Called from: SI_DeviceGCController.cpp
 // Function: Gives the current pad status to the Core
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
@@ -595,7 +595,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 
 // Search for SDL devices
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
 {
 	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
@@ -625,7 +625,7 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 
 /* Check if any of the pads failed to open. In Windows there is a strange "IDirectInputDevice2::
    SetDataFormat() DirectX error -2147024809" after exactly four SDL_Init() and SDL_Quit() */
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 bool ReloadDLL()
 {
 	if (   (PadState[0].joy == NULL)
@@ -654,7 +654,7 @@ bool ReloadDLL()
 
 
 // Check if Dolphin is in focus
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 bool IsFocus()
 {
 return true;

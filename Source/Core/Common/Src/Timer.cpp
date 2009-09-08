@@ -201,7 +201,7 @@ std::string Timer::GetTimeFormatted()
 
 
 // Returns a timestamp with decimals for precise time comparisons
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 double Timer::GetDoubleTime()
 {
 	struct timeb tp;

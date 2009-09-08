@@ -1,6 +1,6 @@
 
 // Project description
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 // Name: Input Configuration and Calibration
 // Description: Common SDL Input Functions
 //
@@ -32,7 +32,7 @@
 
 
 // Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 #if defined HAVE_WX && HAVE_WX
 	#include <wx/wx.h>
 #endif
@@ -52,7 +52,7 @@ namespace InputCommon
 
 
 // Degree to radian and back
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------
 float Deg2Rad(float Deg)
 {
 	return Deg * ((float)M_PI / 180.0f);
@@ -66,7 +66,7 @@ float Rad2Deg(float Rad)
 
 
 // Check if the pad is within the dead zone, we assume the range is 0x8000
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 float CoordinatesToRadius(int x, int y)
 {
 	return sqrt(pow((float)x, 2) +  pow((float)y, 2));
@@ -90,13 +90,13 @@ bool IsDeadZone(float DeadZone, int x, int y)
 
 
 // Scale down stick values from 0x8000 to 0x80
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* ----------------
    The value returned by SDL_JoystickGetAxis is a signed integer s16
    (-32768 to 32767). The value used for the gamecube controller is an unsigned
    char u8 (0 to 255) with neutral at 0x80 (128), so that it's equivalent to a signed
    -128 to 127.
 */
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 int Pad_Convert(int _val)
 {
 	/* If the limits on PadState[].axis[] actually is a u16 then we don't need this
@@ -119,7 +119,7 @@ int Pad_Convert(int _val)
 
 
 // Adjust the radius
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 void RadiusAdjustment(int &_x, int &_y, int _pad, std::string SRadius)
 {
 	// Get the radius setting
@@ -157,7 +157,7 @@ void RadiusAdjustment(int &_x, int &_y, int _pad, std::string SRadius)
 	   XBox 360 Wireless: 85%
 	   GameCube Controller (Third Party) with EMS Trio Linker Plus II: 60%
 */
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 
 /* Calculate the distance from the outer edges of the box to the outer edges of the circle inside the box
    at any angle from 0° to 360°. The returned value is 1 + Distance, for example at most sqrt(2) in the
@@ -233,7 +233,7 @@ void Square2Circle(int &_x, int &_y, int _pad, std::string SDiagonal, bool Circl
 
 
 // Windows Virtual Key Codes Names
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 #ifdef _WIN32
 std::string VKToString(int keycode)
 {

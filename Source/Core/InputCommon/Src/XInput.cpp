@@ -22,7 +22,7 @@
 
 
 // File description
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* -------------------
    Function: This file will get the status of the analog triggers of any connected XInput device.
    This code was made with the help of SimpleController.cpp in the June 2008 Microsoft DirectX SDK
    Samples.
@@ -33,7 +33,7 @@
 
 
 // Includes
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 #include <windows.h>
 #include <XInput.h> // XInput API
 
@@ -47,7 +47,7 @@ namespace XInput
 
 
 // Declarations
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 
 #define MAX_CONTROLLERS 4  // XInput handles up to 4 controllers 
 
@@ -62,7 +62,7 @@ CONTROLER_STATE g_Controllers[MAX_CONTROLLERS];
 
 
 // Init
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 /* Function: Calculate the number of connected XInput devices
    Todo: Implement this to figure out if there are multiple XInput controllers connected,
    we currently only try to connect to XInput device 0 */
@@ -92,7 +92,7 @@ void Init()
 
 
 // Get the trigger status
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 int GetXI(int Controller, int Button)
 {
 	// Update the internal status
@@ -118,7 +118,7 @@ int GetXI(int Controller, int Button)
 
 
 // Check if a certain controller is connected
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 bool IsConnected(int Controller)
 {
 	DWORD dwResult = XInputGetState( Controller, &g_Controllers[Controller].state );

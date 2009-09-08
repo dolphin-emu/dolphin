@@ -179,7 +179,7 @@ void CBreakPointWindow::OnActivated(wxListEvent& event)
 
 
 // Breakpoint actions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 
 // Clear all breakpoints
 void CBreakPointWindow::OnClear(wxCommandEvent& event)
@@ -233,7 +233,7 @@ void CBreakPointWindow::OnAddBreakPointMany(wxCommandEvent& event)
 
 
 // Memory check actions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 void 
 CBreakPointWindow::OnAddMemoryCheck(wxCommandEvent& event)
 {

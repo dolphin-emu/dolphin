@@ -700,7 +700,7 @@ void CCodeWindow::UpdateButtonStates()
 	wxAuiToolBar* ToolBar = GetToolBar();
 
 	// Toolbar
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// ------------------
 	if (!ToolBar) return;
 
 	if (!Initialized)
@@ -736,7 +736,7 @@ void CCodeWindow::UpdateButtonStates()
 	if (ToolBar) ToolBar->Realize();
 
 	// Menu bar
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// ------------------
 	GetMenuBar()->Enable(IDM_INTERPRETER, Pause); // CPU Mode
 
 	GetMenuBar()->Enable(IDM_JITUNLIMITED, !Initialized);

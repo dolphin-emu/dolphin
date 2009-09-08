@@ -21,7 +21,7 @@
 
 
 // Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 #include <windows.h> // System
 #include <stdio.h>
 

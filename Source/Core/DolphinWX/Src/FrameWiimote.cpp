@@ -18,7 +18,7 @@
 
 
 // Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------
 #include "Globals.h"
 #include "Frame.h"
 #include "FileUtil.h"

@@ -76,7 +76,7 @@
 
 
 // Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------------------
 CGcontext g_cgcontext;
 CGprofile g_cgvProf;
 CGprofile g_cgfProf;
@@ -668,10 +668,10 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 }
 
 // Function: This function handles the OpenGL glScissor() function
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------------------
 // Call browser: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg()
 //		case 0x52 > SetScissorRect()
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------------------
 // bpmem.scissorTL.x, y = 342x342
 // bpmem.scissorBR.x, y = 981x821
 // Renderer::GetTargetHeight() = the fixed ini file setting
@@ -1068,12 +1068,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 
 // We can now draw whatever we want on top of the picture. Then we copy the final picture to the output.
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------------------
 void Renderer::SwapBuffers()
 {
 	// ---------------------------------------------------------------------
 	// Count FPS.
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// -------------
 	static int fpscount = 0;
     static unsigned long lasttime;
     ++fpscount;

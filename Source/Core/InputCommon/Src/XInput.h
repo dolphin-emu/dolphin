@@ -23,7 +23,7 @@
 
 
 // Includes
-// ¯¯¯¯¯¯¯¯¯¯
+// ----------
 #include <iostream>
 
 
@@ -34,7 +34,7 @@ namespace XInput
 
 
 // Declarations
-// ¯¯¯¯¯¯¯¯¯¯
+// ----------
 void Init();
 int GetXI(int Controller, int Button);
 bool IsConnected(int Controller);

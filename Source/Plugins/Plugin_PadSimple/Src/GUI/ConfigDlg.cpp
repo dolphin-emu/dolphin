@@ -89,7 +89,7 @@ PADConfigDialogSimple::~PADConfigDialogSimple()
 
 
 // Create input button controls
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 					   const char *name, int ctl, int controller)
 {
@@ -222,7 +222,7 @@ void PADConfigDialogSimple::CreateGUIControls()
 
 		
 		// Rerecording
-		// ¯¯¯¯¯¯¯¯¯
+		// ---------
 		#ifdef RERECORDING
 		// Create controls
 		m_SizeRecording[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Input Recording"));

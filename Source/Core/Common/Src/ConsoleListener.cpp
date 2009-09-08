@@ -185,7 +185,7 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 
 	// ---------------------------------------------------------------------
 	//  Save the current text
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// ------------------------
 	DWORD cCharsRead = 0;
 	COORD coordScreen = { 0, 0 };
 

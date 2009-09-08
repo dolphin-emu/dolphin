@@ -172,7 +172,7 @@ bool BootCore(const std::string& _rFilename)
 
 	// =================================================================
 	// Run the game
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// --------------
 #if defined(HAVE_WX) && HAVE_WX
 	if(main_frame)
 	{

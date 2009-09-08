@@ -1,6 +1,6 @@
 
 // Project description
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 // Name: nJoy 
 // Description: A Dolphin Compatible Input Plugin
 //
@@ -96,7 +96,7 @@ class PADConfigDialognJoy : public wxDialog
 
 		
 		// Settings
-		// ¯¯¯¯¯¯¯¯¯
+		// ---------
 
 		wxComboBox *m_Joyname[4];
 		wxComboBox *m_ControlType[4], *m_TriggerType[4];
@@ -133,7 +133,7 @@ class PADConfigDialognJoy : public wxDialog
 
 		
 		// Keys
-		// ¯¯¯¯¯¯¯¯¯
+		// ---------
 		int g_Pressed; // Keyboard input
 
 		wxTextCtrl *m_JoyShoulderL[4];

@@ -697,7 +697,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
 		no_framelimit--;
 
 	// Custom frame limiter
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// --------------------
 	u32 targetfps = SConfig::GetInstance().m_Framelimit * 5;
 
 	if (targetfps > 5)

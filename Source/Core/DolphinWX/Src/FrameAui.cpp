@@ -177,7 +177,7 @@ void CFrame::ToggleConsole(bool bShow, int i)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Notebooks
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 void CFrame::ClosePages()
 {
 	DoToggleWindow(IDM_LOGWINDOW, false);
@@ -665,7 +665,7 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 void CFrame::ResetToolbarStyle()
 {
     wxAuiPaneInfoArray& AllPanes = m_Mgr->GetAllPanes();
@@ -750,7 +750,7 @@ void CFrame::ResizeConsole()
 
 	// ----------------------------------------------------------
 	// Get OS version
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// ------------------
 	int wxBorder, Border, LowerBorder, MenuBar, ScrollBar, WidthReduction;
 	OSVERSIONINFO osvi;
 	ZeroMemory(&osvi, sizeof(OSVERSIONINFO));
@@ -1066,7 +1066,7 @@ void CFrame::AddPane()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utility
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 
 int CFrame::Limit(int i, int Low, int High)
 {	

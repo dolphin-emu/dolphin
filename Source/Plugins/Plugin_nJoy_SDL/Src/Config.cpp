@@ -1,6 +1,6 @@
 
 // Project description
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 // Name: nJoy 
 // Description: A Dolphin Compatible Input Plugin
 //
@@ -32,7 +32,7 @@
 
 
 // Include
-// ¯¯¯¯¯¯¯¯¯
+// ---------
 #include "nJoy.h"
 #include "Common.h"
 
@@ -44,7 +44,7 @@ extern PADConfigDialognJoy* m_ConfigFrame;
 
 
 // Run when created
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -----------------
 Config::Config()
 {
 	// Clear the memory
@@ -53,7 +53,7 @@ Config::Config()
 
 
 // Enable output log
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -----------------
 void DEBUG_INIT()
 {
 	if (pFile)
@@ -71,11 +71,11 @@ void DEBUG_INIT()
 	#ifdef _WIN32
 	fprintf(pFile, "Date: %s\nTime: %s\n", dateStr, timeStr);
 	#endif
-	fprintf(pFile, "¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯\n");
+	fprintf(pFile, "---------------\n");
 }
 
 // Disable output log
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ------------------
 void DEBUG_QUIT()
 {
 	if (!pFile)
@@ -94,7 +94,7 @@ void DEBUG_QUIT()
 
 
 // Save settings to file
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 void Config::Save(int Slot)
 {
 	// If there are no good pads don't save
@@ -106,7 +106,7 @@ void Config::Save(int Slot)
 
 	// ==================================================================
 	// Global settings
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// -----------------
 	file.Set("General", "ShowAdvanced", g_Config.bShowAdvanced);
 	file.Set("General", "SaveByID", g_Config.bSaveByID);
 	file.Set("General", "CheckForFocus", g_Config.bCheckFocus);
@@ -125,7 +125,7 @@ void Config::Save(int Slot)
 
 		// ==================================================================
 		// Slot specific settings only
-		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+		// -----------------
 		std::string SectionName = StringFromFormat("PAD%i", i+1);
 
 		// Save the physical device ID
@@ -134,7 +134,7 @@ void Config::Save(int Slot)
 		
 		// ==================================================================
 		// Joypad or slot specific settings
-		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+		// -----------------
 			// Current joypad device ID: PadMapping[i].ID
 			// Current joypad name: joyinfo[PadMapping[i].ID].Name		
 		if(g_Config.bSaveByID)
@@ -193,7 +193,7 @@ void Config::Save(int Slot)
 }
 
 // Load settings from file
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -----------------------
 void Config::Load(bool ChangePad, bool ChangeSaveByID)
 {
 	// If there are no good pads don't load
@@ -206,7 +206,7 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 
 	// ==================================================================
 	// Global settings
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// -----------------
 	file.Get("General", "ShowAdvanced", &g_Config.bShowAdvanced, false);
 	file.Get("General", "CheckForFocus", &g_Config.bCheckFocus, false);
 	file.Get("General", "NoTriggerFilter", &g_Config.bNoTriggerFilter, false);
@@ -234,7 +234,7 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 
 		// ==================================================================
 		// Joypad or slot specific settings
-		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+		// -----------------
 			// Current joypad device ID: PadMapping[i].ID
 			// Current joypad name: joyinfo[PadMapping[i].ID].Name
 		if(g_Config.bSaveByID)

@@ -95,7 +95,7 @@ wxInfoWindow* InfoWindow;
 
 
 // Create menu items
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 void CFrame::CreateMenu()
 {
 	if (GetMenuBar()) GetMenuBar()->Destroy();
@@ -254,7 +254,7 @@ void CFrame::CreateMenu()
 
 
 // Create toolbar items
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
@@ -434,7 +434,7 @@ void CFrame::InitBitmaps()
 
 
 // Menu items
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 
 // Start the game or change the disc
 void CFrame::BootGame()
@@ -722,7 +722,7 @@ void CFrame::StatusBarMessage(char * Text, ...)
 
 
 // Miscellaneous menus
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 // NetPlay stuff
 void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 {
@@ -849,7 +849,7 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 
 
 // GUI
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 
 // Update the enabled/disabled status
 void CFrame::UpdateGUI()

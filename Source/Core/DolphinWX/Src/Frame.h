@@ -85,7 +85,7 @@ class CFrame : public wxFrame
 
 		// ---------------------------------------
 		// Wiimote leds
-		// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+		// --------------------
 		void ModifyStatusBar();
 		void CreateDestroy(int Case);
 		void CreateLeds(); void CreateSpeakers();

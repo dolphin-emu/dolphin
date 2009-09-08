@@ -18,7 +18,7 @@
 
 
 // File description
-/* ¯¯¯¯¯¯¯¯¯¯¯¯
+/* ------------
 
    This file controls when plugins are loaded and unloaded from memory. Its functions scan for valid
    plugins when Dolphin is booted, and open the debugging and config windows. The PluginManager is
@@ -27,7 +27,7 @@
 */
 
 // Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯
+// ------------
 #include <string> // System
 #include <vector>
 
@@ -51,7 +51,7 @@ CPluginManager CPluginManager::m_Instance;
 
 
 // The Plugin Manager Class
-// ¯¯¯¯¯¯¯¯¯¯¯¯
+// ------------
 
 // The plugin manager is some sort of singleton that runs during Dolphin's entire lifespan.
 CPluginManager::CPluginManager()
@@ -103,7 +103,7 @@ CPluginManager::~CPluginManager()
 
 
 // Init and Shutdown Plugins 
-// ¯¯¯¯¯¯¯¯¯¯¯¯
+// ------------
 // Function: Point the m_pad[] and other variables to a certain plugin
 bool CPluginManager::InitPlugins()
 {
@@ -202,7 +202,7 @@ void CPluginManager::ShutdownVideoPlugin()
 
 
 // The PluginInfo class: Find Valid Plugins
-// ¯¯¯¯¯¯¯¯¯¯¯¯
+// ------------
 /* Function: This info is used in ScanForPlugins() to check for valid plugins and and in LoadPlugin() to
    check that the filename we want to use is a good DLL. */
 CPluginInfo::CPluginInfo(const char *_rFilename)
@@ -234,7 +234,7 @@ CPluginInfo::CPluginInfo(const char *_rFilename)
 
 
 // Supporting functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯
+// ------------
 
 /* Return the plugin info we saved when Dolphin was started. We don't even add a function to try load a
    plugin name that was not found because in that case it must have been deleted while Dolphin was running.
@@ -380,7 +380,7 @@ void CPluginManager::ScanForPlugins()
    We don't need to check if [Plugin]->IsValid() here because it will not be set by LoadPlugin()
    if it's not valid.
    */
-// ¯¯¯¯¯¯¯¯¯¯¯¯
+// ------------
 Common::PluginPAD *CPluginManager::GetPad(int controller)
 {
 	if (m_pad[controller] != NULL)
@@ -478,7 +478,7 @@ void CPluginManager::FreeWiimote(u32 Wiimote)
 
 
 // Call DLL functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯
+// ------------
 
 // Open config window. Input: _rFilename = Plugin filename , Type = Plugin type
 void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type)

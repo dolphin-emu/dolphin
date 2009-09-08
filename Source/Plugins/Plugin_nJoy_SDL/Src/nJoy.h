@@ -1,6 +1,6 @@
 
 // Project description
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 // Name: nJoy 
 // Description: A Dolphin Compatible Input Plugin
 //
@@ -35,7 +35,7 @@
 
 
 // Includes
-// ¯¯¯¯¯¯¯¯¯¯
+// ----------
 #include <vector> // System
 #include <cstdio>
 #include <ctime>
@@ -80,7 +80,7 @@
 
 
 // Define
-// ¯¯¯¯¯¯¯¯¯¯
+// ----------
 
 #define INPUT_VERSION	"0.3"
 #define INPUT_STATE		wxT("PUBLIC RELEASE")
@@ -92,7 +92,7 @@
 
 
 // Input vector. Todo: Save the configured keys here instead of in joystick
-// ¯¯¯¯¯¯¯¯¯
+// ---------
 /*
 #ifndef _CONTROLLER_STATE_H
 extern std::vector<u8> Keys;
@@ -103,7 +103,7 @@ extern std::vector<u8> Keys;
 
 
 // Variables
-// ¯¯¯¯¯¯¯¯¯
+// ---------
 #ifndef _EXCLUDE_MAIN_
 	extern SPADInitialize *g_PADInitialize;
 	extern FILE *pFile;
@@ -120,7 +120,7 @@ extern std::vector<u8> Keys;
 
 
 // Custom Functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads);
 void DEBUG_INIT();
 void DEBUG_QUIT();
@@ -135,7 +135,7 @@ HRESULT InitRumble(HWND hWnd);
 
 
 // ReRecording
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 #ifdef RERECORDING
 namespace Recording
 {

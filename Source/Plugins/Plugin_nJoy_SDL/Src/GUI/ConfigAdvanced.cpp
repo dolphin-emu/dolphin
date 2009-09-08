@@ -1,6 +1,6 @@
 
 // Project description
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 // Name: nJoy 
 // Description: A Dolphin Compatible Input Plugin
 //
@@ -32,7 +32,7 @@
 
 
 // Include
-// ¯¯¯¯¯¯¯¯¯
+// ---------
 #include "ConfigBox.h"
 #include "../nJoy.h"
 #include "Images/controller.xpm"
@@ -45,7 +45,7 @@ extern bool g_EmulatorRunning;
 bool StrangeHack = true;
 
 // Set PAD status
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// --------------
 void PADConfigDialognJoy::PadGetStatus()
 {
 	/* Return if it's not detected. The ID should never be less than zero here, it can only be that
@@ -64,7 +64,7 @@ void PADConfigDialognJoy::PadGetStatus()
 
 	
 	// Analog stick
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// -----------------
 	// Set Deadzones perhaps out of function
 	//int deadzone = (int)(((float)(128.00/100.00)) * (float)(PadMapping[_numPAD].deadzone+1));
 	//int deadzone2 = (int)(((float)(-128.00/100.00)) * (float)(PadMapping[_numPAD].deadzone+1));
@@ -123,7 +123,7 @@ void PADConfigDialognJoy::PadGetStatus()
 
 	
 	// Triggers
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// -----------------
 	int TriggerValue = 255;
 	if (PadState[notebookpage].halfpress) TriggerValue = 100;
 
@@ -159,7 +159,7 @@ void PADConfigDialognJoy::PadGetStatus()
 }
 
 // Show the current pad status
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -----------------
 std::string ShowStatus(int VirtualController)
 {
 	// Save the physical device
@@ -237,7 +237,7 @@ std::string ShowStatus(int VirtualController)
 }
 
 // Populate the advanced tab
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -----------------
 void PADConfigDialognJoy::Update()
 {
 	// Check that Dolphin is in focus, otherwise don't update the pad status
@@ -265,7 +265,7 @@ void PADConfigDialognJoy::Update()
 
 
 // Populate the advanced tab
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -----------------
 void PADConfigDialognJoy::CreateAdvancedControls(int i)
 {
 	// Main-stick
@@ -320,7 +320,7 @@ void PADConfigDialognJoy::CreateAdvancedControls(int i)
 
 	
 	// Rerecording
-	// ¯¯¯¯¯¯¯¯¯
+	// ---------
 	#ifdef RERECORDING
 	// Create controls
 	m_SizeRecording[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Input Recording"));

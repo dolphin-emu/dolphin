@@ -1,6 +1,6 @@
 
 // Project description
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 // Name: SDL Input 
 // Description: Common SDL Input Functions
 //
@@ -31,7 +31,7 @@
 
 
 // Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 #define _SDL_MAIN_ // Avoid certain declarations in SDL.h
 #include "SDL.h" // Local
 #include "XInput.h"
@@ -40,7 +40,7 @@
 
 
 // Definitions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 int g_LastPad = 0;
 
 
@@ -50,14 +50,14 @@ namespace InputCommon
 
 
 // Definitions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 
 
 
 
 
 // Search attached devices. Populate joyinfo for all attached physical devices.
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -----------------------
 bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
 {
 	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimedia API, and with this we need 
@@ -113,16 +113,16 @@ bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_
 
 
 // Supporting functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 
 // Read current joystick status
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* ----------------
 	The value PadMapping[].buttons[] is the number of the assigned joypad button,
 	PadState[].buttons[] is the status of the button, it becomes 0 (no pressed) or 1 (pressed) */
 
 
 // Read buttons status. Called from GetJoyState().
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------------
 void ReadButton(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int button, int NumButtons)
 {
 	int ctl_button = _PadMapping.buttons[button];
@@ -133,7 +133,7 @@ void ReadButton(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int
 }
 
 // Request joystick state.
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------------
 /* Called from: PAD_GetStatus()
    Input: The virtual device 0, 1, 2 or 3
    Function: Updates the PadState struct with the current pad status. The input value "controller" is
@@ -242,10 +242,10 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 
 
 // Configure button mapping
-// ¯¯¯¯¯¯¯¯¯¯
+// ----------
 
 // Avoid extreme axis values
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 /* Function: We have to avoid very big values to becuse some triggers are -0x8000 in the
    unpressed state (and then go from -0x8000 to 0x8000 as they are fully pressed) */
 bool AvoidValues(int value, bool NoTriggerFilter)
@@ -260,7 +260,7 @@ bool AvoidValues(int value, bool NoTriggerFilter)
 
 
 // Detect a pressed button
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------------
 void GetButton(SDL_Joystick *joy, int ControllerID, int buttons, int axes, int hats,
 				int &KeyboardKey, int &value, int &type, int &pressed, bool &Succeed, bool &Stop,
 				bool LeftRight, bool Axis, bool XInput, bool Button, bool Hat, bool NoTriggerFilter)

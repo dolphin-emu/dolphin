@@ -106,7 +106,7 @@ inline float Memory_Read_Float(u32 _uAddress)
 
 
 // Logging
-// ¯¯¯¯¯¯¯¯¯¯
+// ----------
 void HandleGLError();
 
 

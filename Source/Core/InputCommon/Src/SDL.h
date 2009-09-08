@@ -1,6 +1,6 @@
 
 // Project description
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 // Name: SDL Input 
 // Description: Common SDL Input Functions
 //
@@ -33,7 +33,7 @@
 
 
 // Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -------------------
 #include <iostream> // System
 #include <vector>
 #include <cmath>
@@ -53,14 +53,14 @@ namespace InputCommon
 
 
 // Settings
-// ¯¯¯¯¯¯¯¯¯¯
+// ----------
 // Show a status window with the detected axes, buttons and so on
 //#define SHOW_PAD_STATUS
 
 
 
 // Structures
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* -------------------
 	CONTROLLER_STATE buttons (PadState) = 0 or 1
 	CONTROLLER_MAPPING buttons (joystick) = 0 or 1, 2, 3, 4, a certain joypad button
 
@@ -225,7 +225,7 @@ struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 
 
 // Declarations
-// ¯¯¯¯¯¯¯¯¯
+// ---------
 
 // General functions
 bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &NumPads, int &NumGoodPads);

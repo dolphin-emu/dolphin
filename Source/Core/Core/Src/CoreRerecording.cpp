@@ -22,7 +22,7 @@
 
 
 // Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// --------------
 #ifdef _WIN32
 	#include <windows.h>
 #endif
@@ -66,7 +66,7 @@
 
 
 // File description: Rerecording Functions
-/* ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+/* ---------------
 
 How the timer works: We measure the time between drawn frames, not when the game is paused. So time
 should be a fairly comparable measure of the time it took to play the game. However the time it takes
@@ -85,7 +85,7 @@ namespace Core
 
 
 // Declarations and definitions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------
 int g_FrameCounter = 0;
 bool g_FrameStep = false;
 Common::Timer ReRecTimer;
@@ -94,7 +94,7 @@ Common::Timer ReRecTimer;
 
 
 // Control Run, Pause, Stop and the Timer.
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------
 
 // Subtract the paused time when we run again
 void Run()
@@ -165,7 +165,7 @@ void WindBack(int Counter)
 
 
 // Frame advance
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------
 void FrameAdvance()
 {
 	// Update status bar
@@ -207,7 +207,7 @@ void FrameStepOnOff()
 
 
 // General functions
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ---------------
 
 // Write to the status bar
 void WriteStatus()

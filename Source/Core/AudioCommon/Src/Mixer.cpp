@@ -96,7 +96,7 @@ void CMixer::PushSamples(short *samples, int num_stereo_samples, int core_sample
 	
 	// -----------------------------------------------------------------------	
 	// The auto throttle function. This loop will put a ceiling on the CPU MHz.
-	// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+	// ----------------------------
 	/* This is only needed for non-AX sound, currently directly
 	   streamed and DTK sound. For AX we call SoundStream::Update in
 	   AXTask() for example. */

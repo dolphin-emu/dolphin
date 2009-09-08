@@ -19,7 +19,7 @@
 
 
 // Include
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// --------------
 #include "Common.h"
 
 #include <wx/button.h>
@@ -80,7 +80,7 @@ extern "C"  // Bitmaps
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Save and load settings
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// -----------------------------
 void CCodeWindow::Load()
 {
 	IniFile ini;
@@ -194,7 +194,7 @@ void CCodeWindow::Save()
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Symbols, JIT, Profiler
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 void CCodeWindow::CreateMenuSymbols()
 {
 	wxMenu *pSymbolsMenu = new wxMenu;
@@ -443,7 +443,7 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 
 
 // Toogle windows
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯¯
+// ----------------
 
 void CCodeWindow::OpenPages()
 {	
