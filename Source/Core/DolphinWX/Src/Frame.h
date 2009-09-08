@@ -45,7 +45,6 @@ class CLogWindow;
 class CFrame : public wxFrame
 {
 	public:
-
 		CFrame(wxFrame* parent,
 			wxWindowID id = wxID_ANY,
 			const wxString& title = wxT("Dolphin"),
@@ -156,7 +155,7 @@ class CFrame : public wxFrame
 		void OnFloatingPageSize(wxSizeEvent& event);
 		void DoFloatNotebookPage(wxWindowID Id);
 		wxFrame * CreateParentFrame(wxWindowID Id = wxID_ANY, const wxString& title = wxT(""), wxWindow * = NULL);
-		// User perspectives
+		// User perspectives. Should find a way to make these private.
 		struct SPerspectives
 		{
 			std::string Name;
@@ -180,7 +179,6 @@ class CFrame : public wxFrame
 		void OnSelectPerspective(wxCommandEvent& event);		
 
 	private:
-		
 		wxStatusBar* m_pStatusBar;
 		wxBoxSizer* sizerPanel;
 		wxBoxSizer* sizerFrame;

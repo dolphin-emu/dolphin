@@ -93,6 +93,8 @@ void CCodeWindow::Load()
 		DebuggerFont.SetNativeFontInfoUserDesc(wxString::FromAscii(fontDesc.c_str()));
 
 	// Decide what windows to use
+	// This stuff really doesn't belong in CodeWindow anymore, does it? It should be
+	// in Frame.cpp somewhere, even though it's debugger stuff.
 	ini.Get("ShowOnStart", "Code", &bCodeWindow, true);
 	ini.Get("ShowOnStart", "Registers", &bRegisterWindow, false);
 	ini.Get("ShowOnStart", "Breakpoints", &bBreakpointWindow, false);

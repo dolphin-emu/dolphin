@@ -325,8 +325,11 @@ CFrame::CFrame(wxFrame* parent,
 		bool _UseDebugger,
 		bool ShowLogWindow,
 		long style)
-	: wxFrame(parent, id, title, pos, size, style), g_pCodeWindow(NULL)		
-	, m_LogWindow(NULL), m_MenuBar(NULL), m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
+	: wxFrame(parent, id, title, pos, size, style)
+	, g_pCodeWindow(NULL)		
+	, m_MenuBar(NULL)
+	, m_LogWindow(NULL)
+	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
 	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
 	, bRenderToMain(true), bFloatLogWindow(false), bFloatConsoleWindow(false)
@@ -391,7 +394,12 @@ CFrame::CFrame(wxFrame* parent,
 	// ---------------
 
 	// Manager
+#ifdef _WIN32
 	m_Mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
+#else
+	// wxAUI_MGR_LIVE_RESIZE does not exist in the wxWidgets 2.8 that comes with the latest ubuntu.
+	m_Mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT);
+#endif
 	NOTEBOOK_STYLE = wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_EXTERNAL_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_WINDOWLIST_BUTTON | wxNO_BORDER;
 	TOOLBAR_STYLE = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT   /*wxAUI_TB_OVERFLOW overflow visible*/;
 	wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));

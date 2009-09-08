@@ -33,6 +33,7 @@
 #include "EmuMain.h"
 #include "Encryption.h" // for extension encryption
 #include "Config.h" // for g_Config
+
 extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu
@@ -372,11 +373,6 @@ void ExtensionChecksum(u8 * Calibration)
 // Set initial valuesm this done both in Init and Shutdown
 void ResetVariables()
 {
-	u8 g_Leds = 0x0; // 4 bits
-	u8 g_Speaker = 0x0; // 1 = on
-	u8 g_SpeakerVoice = 0x0; // 1 = on
-	u8 g_IR = 0x0; // 1 = on
-
 	g_ReportingMode = 0;
 	g_ReportingChannel = 0;
 	g_Encryption = false;
@@ -744,15 +740,14 @@ void readKeyboard()
 		{
 			key = XLookupKeysym((XKeyEvent*)&E, 0);
 			
-			if((key >= XK_F1 && key <= XK_F9) ||
+			if ((key >= XK_F1 && key <= XK_F9) ||
 			   key == XK_Shift_L || key == XK_Shift_R ||
 			   key == XK_Control_L || key == XK_Control_R) {
 				XPutBackEvent(WMdisplay, &E);
 				break;
 			}
 
-			int i;
-			for (i = g_Wiimote_kbd.A; i < g_Wiimote_kbd.LAST_CONSTANT; i++)
+			for (int i = g_Wiimote_kbd.A; i < g_Wiimote_kbd.LAST_CONSTANT; i++)
 			{
 				if (key == PadMapping[0].Wm.keyForControls[i - g_Wiimote_kbd.A])
 					KeyStatus[i] = true;
@@ -760,21 +755,21 @@ void readKeyboard()
 			switch (g_Config.iExtensionConnected)
 			{
 			case EXT_NUNCHUCK:
-				for (i = g_NunchuckExt.Z; i < g_NunchuckExt.LAST_CONSTANT; i++)
+				for (int i = g_NunchuckExt.Z; i < g_NunchuckExt.LAST_CONSTANT; i++)
 				{
 					if (key == PadMapping[0].Nc.keyForControls[i - g_NunchuckExt.Z])
 						 KeyStatus[i] = true;
 				}
 				break;
 			case EXT_CLASSIC_CONTROLLER:
-				for (i = g_ClassicContExt.A; i < g_ClassicContExt.LAST_CONSTANT; i++)
+				for (int i = g_ClassicContExt.A; i < g_ClassicContExt.LAST_CONSTANT; i++)
 				{
 					if (key == PadMapping[0].Cc.keyForControls[i - g_ClassicContExt.A])
 						 KeyStatus[i] = true;
 				}
 				break;
 			case EXT_GUITARHERO3_CONTROLLER:
-				for (i = g_GH3Ext.Green; i < g_GH3Ext.LAST_CONSTANT; i++)
+				for (int i = g_GH3Ext.Green; i < g_GH3Ext.LAST_CONSTANT; i++)
 				{
 					if (key == PadMapping[0].GH3c.keyForControls[i - g_GH3Ext.Green])
 						 KeyStatus[i] = true;
@@ -789,15 +784,14 @@ void readKeyboard()
 		{
 			key = XLookupKeysym((XKeyEvent*)&E, 0);
 			
-			if((key >= XK_F1 && key <= XK_F9) ||
+			if ((key >= XK_F1 && key <= XK_F9) ||
 			   key == XK_Shift_L || key == XK_Shift_R ||
 			   key == XK_Control_L || key == XK_Control_R) {
 				XPutBackEvent(WMdisplay, &E);
 				break;
 			}
 
-			 int i;
-			for (i = g_Wiimote_kbd.A; i < g_Wiimote_kbd.LAST_CONSTANT; i++)
+			for (int i = g_Wiimote_kbd.A; i < g_Wiimote_kbd.LAST_CONSTANT; i++)
 			{
 				if (key == PadMapping[0].Wm.keyForControls[i - g_Wiimote_kbd.A])
 					KeyStatus[i] = false;
@@ -805,21 +799,21 @@ void readKeyboard()
 			switch (g_Config.iExtensionConnected)
 			{
 			case EXT_NUNCHUCK:
-				for (i = g_NunchuckExt.Z; i < g_NunchuckExt.LAST_CONSTANT; i++)
+				for (int i = g_NunchuckExt.Z; i < g_NunchuckExt.LAST_CONSTANT; i++)
 				{
 					if (key == PadMapping[0].Nc.keyForControls[i - g_NunchuckExt.Z])
 						 KeyStatus[i] = false;
 				}
 				break;
 			case EXT_CLASSIC_CONTROLLER:
-				for (i = g_ClassicContExt.A; i < g_ClassicContExt.LAST_CONSTANT; i++)
+				for (int i = g_ClassicContExt.A; i < g_ClassicContExt.LAST_CONSTANT; i++)
 				{
 					if (key == PadMapping[0].Cc.keyForControls[i - g_ClassicContExt.A])
 						 KeyStatus[i] = false;
 				}
 				break;
 			case EXT_GUITARHERO3_CONTROLLER:
-				for (i = g_GH3Ext.Green; i < g_GH3Ext.LAST_CONSTANT; i++)
+				for (int i = g_GH3Ext.Green; i < g_GH3Ext.LAST_CONSTANT; i++)
 				{
 					if (key == PadMapping[0].GH3c.keyForControls[i - g_GH3Ext.Green])
 						 KeyStatus[i] = false;
