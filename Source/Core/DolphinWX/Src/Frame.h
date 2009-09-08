@@ -78,7 +78,7 @@ class CFrame : public wxFrame
 		void PostEvent(wxCommandEvent& event);
 		void PostMenuEvent(wxMenuEvent& event);
 		void PostUpdateUIEvent(wxUpdateUIEvent& event);
-		void StatusBarMessage(char * Text, ...);
+		void StatusBarMessage(const char * Text, ...);
 		void ClearStatusBar();
 		void OnCustomHostMessage(int Id);
 

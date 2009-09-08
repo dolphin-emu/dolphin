@@ -276,7 +276,7 @@ void IRData2Dots(u8 *Data)
 void ReorderIRDots()
 {
 	// Create a shortcut
-	struct SDot* Dot = g_Wiimote_kbd.IR.Dot;
+	SDot* Dot = g_Wiimote_kbd.IR.Dot;
 
 	// Variables
 	int i, j, order;
@@ -285,6 +285,7 @@ void ReorderIRDots()
 	for (i = 0; i < 4; ++i)
 		Dot[i].Order = 0;
 
+	// is this just a weird filter+sort?
 	for (order = 1; order < 5; ++order)
 	{
 		i = 0;

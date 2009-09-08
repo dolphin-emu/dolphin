@@ -184,7 +184,7 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 		if (i % (numClusters / 1000) == 0)
 		{
 			char temp[512];
-			sprintf(temp, "DiscScrubber: %lu/%lu (%s)", i, numClusters, m_FreeTable[i] ? "Free" : "Used");
+			sprintf(temp, "DiscScrubber: %u/%u (%s)", i, numClusters, m_FreeTable[i] ? "Free" : "Used");
 			callback(temp, (float)i / (float)numClusters, arg);
 		}
 	}

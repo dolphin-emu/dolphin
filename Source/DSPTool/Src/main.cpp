@@ -395,7 +395,7 @@ int main(int argc, const char *argv[])
 				
 				codes = new std::vector<u16>[lines];
 
-				for(int i = 0; i < lines; i++) 
+				for (int i = 0; i < lines; i++) 
 				{
 					if (!File::ReadFileToString(true, files[i].c_str(), currentSource))
 					{
@@ -404,14 +404,15 @@ int main(int argc, const char *argv[])
 					}
 					else 
 					{
-						if(!Assemble(currentSource.c_str(), codes[i], force)) 
+						if (!Assemble(currentSource.c_str(), codes[i], force)) 
 						{
 							printf("Assemble: Assembly of %s failed due to errors\n", 
 									files[i].c_str());
 							lines--;
 						}
-						if(outputSize)
-							printf("%s: %d\n", files[i].c_str(), codes[i].size());
+						if (outputSize) {
+							printf("%s: %d\n", files[i].c_str(), (int)codes[i].size());
+						}
 					}
 				}
 				
@@ -425,13 +426,14 @@ int main(int argc, const char *argv[])
 			{
 				std::vector<u16> code;
 
-				if(!Assemble(source.c_str(), code, force)) {
+				if (!Assemble(source.c_str(), code, force)) {
 					printf("Assemble: Assembly failed due to errors\n");
 					return 1;
 				}
 
-				if(outputSize)
-					printf("%s: %d\n", input_name.c_str(), code.size());
+				if (outputSize) {
+					printf("%s: %d\n", input_name.c_str(), (int)code.size());
+				}
 				
 				if (!output_name.empty())
 				{

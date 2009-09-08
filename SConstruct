@@ -25,6 +25,7 @@ warnings = [
     'pointer-arith',
     'packed',
     'no-conversion',
+#	'no-unused-result',  (need a newer gcc for this?)
     ]
 compileFlags = [
     '-fno-exceptions',
@@ -175,7 +176,7 @@ if not env['verbose']:
     env['SHLINKCOMSTR'] = "Linking shared $TARGET"
     env['RANLIBCOMSTR'] = "Indexing $TARGET"
 
-# build falvuor
+# build flavor
 flavour = ARGUMENTS.get('flavor')
 if (flavour == 'debug'):
     compileFlags.append('-g')
@@ -200,7 +201,7 @@ if env['lint']:
     warnings.append('float-equal')
 
 # add the warnings to the compile flags
-compileFlags += [ '-W' + warning for warning in warnings ]
+compileFlags += [ ('-W' + warning) for warning in warnings ]
 
 env['CCFLAGS'] = compileFlags
 if sys.platform == 'win32':

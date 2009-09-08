@@ -315,7 +315,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 		buffer = new u8[sz];
 
 		int x;
-		if ((x = (int)fread(buffer, 1, sz, f)) != sz)
+		if ((x = (int)fread(buffer, 1, sz, f)) != (int)sz)
 			PanicAlert("wtf? %d %d", x, sz);
 	}
 

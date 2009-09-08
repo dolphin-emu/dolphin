@@ -433,7 +433,7 @@ void STACKALIGN Jit64::Jit(u32 em_address)
 }
 
 
-const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b)
+const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
 {
 	if (em_address == 0)
 		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
@@ -449,8 +449,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitB
 
 	//Analyze the block, collect all instructions it is made of (including inlining,
 	//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, code_buffer);
-	PPCAnalyst::CodeOp *ops = code_buffer->codebuffer;
+	PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, code_buf);
+	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
 	const u8 *start = AlignCode4(); //TODO: Test if this or AlignCode16 make a difference from GetCodePtr
 	b->checkedEntry = start;

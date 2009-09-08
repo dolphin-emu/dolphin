@@ -127,7 +127,7 @@ FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
 
 		if (!PixelShaderCache::CompilePixelShader(s_encodingPrograms[format], shader)) {
 			const char* error = cgGetLastListing(g_cgcontext);
-			ERROR_LOG(VIDEO, "Failed to create encoding fragment program");
+			ERROR_LOG(VIDEO, "Failed to create encoding fragment program:\n%s", error);
 		}
     }
 

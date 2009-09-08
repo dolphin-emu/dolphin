@@ -79,7 +79,6 @@ DSPDisassembler::~DSPDisassembler()
 bool DSPDisassembler::Disassemble(int start_pc, const std::vector<u16> &code, int base_addr, std::string &text)
 {
 	const char *tmp1 = "tmp1.bin";
-	const char *tmp2 = "tmp.txt";
 
 	// First we have to dump the code to a bin file.
 	FILE *f = fopen(tmp1, "wb");

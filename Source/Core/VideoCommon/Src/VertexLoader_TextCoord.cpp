@@ -24,8 +24,8 @@
 #include "VertexLoader_Position.h"
 #include "NativeVertexWriter.h"
 
-#define LOG_TEX1() PRIM_LOG("tex: %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0]);
-#define LOG_TEX2() PRIM_LOG("tex: %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1]);
+#define LOG_TEX1() // PRIM_LOG("tex: %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0]);
+#define LOG_TEX2() // PRIM_LOG("tex: %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1]);
 
 extern int tcIndex;
 extern float tcScale[8];

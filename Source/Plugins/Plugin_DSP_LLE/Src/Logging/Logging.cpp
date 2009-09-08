@@ -31,68 +31,65 @@
 
 // Externals
 extern u32 m_addressPBs;
-float ratioFactor;
-int globaliSize;
-short globalpBuffer;
-u32 gLastBlock;
+static float ratioFactor;
+static u32 gLastBlock;
 
 
 // Vectors and other things
-std::vector<u32> gloopPos(64);
-std::vector<u32> gsampleEnd(64);
-std::vector<u32> gsamplePos(64);
-std::vector<u32> gratio(64);
-std::vector<u32> gratiohi(64);
-std::vector<u32> gratiolo(64);
-std::vector<u32> gfrac(64);
-std::vector<u32> gcoef(64);
+static std::vector<u32> gloopPos(64);
+static std::vector<u32> gsampleEnd(64);
+static std::vector<u32> gsamplePos(64);
+static std::vector<u32> gratio(64);
+static std::vector<u32> gratiohi(64);
+static std::vector<u32> gratiolo(64);
+static std::vector<u32> gfrac(64);
+static std::vector<u32> gcoef(64);
 
 // PBSampleRateConverter mixer
-std::vector<u16> gvolume_left(64);
-std::vector<u16> gvolume_right(64);
-std::vector<u16> gmixer_control(64);
-std::vector<u16> gcur_volume(64);
-std::vector<u16> gcur_volume_delta(64);
+static std::vector<u16> gvolume_left(64);
+static std::vector<u16> gvolume_right(64);
+static std::vector<u16> gmixer_control(64);
+static std::vector<u16> gcur_volume(64);
+static std::vector<u16> gcur_volume_delta(64);
 
 
-std::vector<u16> gaudioFormat(64);
-std::vector<u16> glooping(64);
-std::vector<u16> gsrc_type(64);
-std::vector<u16> gis_stream(64);
+static std::vector<u16> gaudioFormat(64);
+static std::vector<u16> glooping(64);
+static std::vector<u16> gsrc_type(64);
+static std::vector<u16> gis_stream(64);
 
 // loop
-	std::vector<u16> gloop1(64);
-std::vector<u16> gloop2(64);
-std::vector<u16> gloop3(64);
-std::vector<u16> gadloop1(64);
-std::vector<u16> gadloop2(64);
-std::vector<u16> gadloop3(64);
+static std::vector<u16> gloop1(64);
+static std::vector<u16> gloop2(64);
+static std::vector<u16> gloop3(64);
+static std::vector<u16> gadloop1(64);
+static std::vector<u16> gadloop2(64);
+static std::vector<u16> gadloop3(64);
 
 // updates
-std::vector<u16> gupdates1(64);
-std::vector<u16> gupdates2(64);
-std::vector<u16> gupdates3(64);
-std::vector<u16> gupdates4(64);
-std::vector<u16> gupdates5(64);
-std::vector<u32> gupdates_addr(64);
+static std::vector<u16> gupdates1(64);
+static std::vector<u16> gupdates2(64);
+static std::vector<u16> gupdates3(64);
+static std::vector<u16> gupdates4(64);
+static std::vector<u16> gupdates5(64);
+static std::vector<u32> gupdates_addr(64);
 
 // Other things
-std::vector<u16> Jump(64); // this is 1 or 0
-std::vector<int> musicLength(64);
-std::vector< std::vector<int> > vector1(64, std::vector<int>(100,0)); 
-std::vector<int> numberRunning(64);
+static std::vector<u16> Jump(64); // this is 1 or 0
+static std::vector<int> musicLength(64);
+static std::vector< std::vector<int> > vector1(64, std::vector<int>(100,0)); 
+static std::vector<int> numberRunning(64);
 
-int j = 0;
-int k = 0;
-s64 l = 0;
-int iupd = 0;
-bool iupdonce = false;
-std::vector<u16> viupd(15); // the length of the update frequency bar
-int vectorLength = 15; // the length of the playback history bar and how long
+static int j = 0;
+static int k = 0;
+static s64 l = 0;
+static bool iupdonce = false;
+static std::vector<u16> viupd(15); // the length of the update frequency bar
+static int vectorLength = 15; // the length of the playback history bar and how long
 // old blocks are shown
 
-std::vector<u16> vector62(vectorLength);
-std::vector<u16> vector63(vectorLength);
+static std::vector<u16> vector62(vectorLength);
+static std::vector<u16> vector63(vectorLength);
 
 int ReadOutPBs(AXParamBlock * _pPBs, int _num);
 

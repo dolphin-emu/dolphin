@@ -194,6 +194,7 @@ struct SDot
 	int Size; 				// Size of the IR dot (0-15)
 	int Order;				// Increasing order from low to higher x-axis values
 };
+
 struct SIR
 {
 	SDot Dot[4];

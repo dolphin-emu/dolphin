@@ -119,8 +119,8 @@ namespace DiscIO
 
 	bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *out_ptr)
 	{
-		u32 NotUsed;
 #ifdef _WIN32
+		u32 NotUsed;
 		u64 offset = m_blocksize * block_num;
 		LONG off_low = (LONG)offset & 0xFFFFFFFF;
 		LONG off_high = (LONG)(offset >> 32);

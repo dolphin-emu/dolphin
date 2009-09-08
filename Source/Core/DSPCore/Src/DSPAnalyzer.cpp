@@ -73,8 +73,7 @@ void AnalyzeRange(int start_addr, int end_addr)
 
 	// This may not be 100% accurate in case of jump tables!
 	// It could get desynced, which would be bad. We'll see if that's an issue.
-	int addr = start_addr;
-	while (addr < end_addr)
+	for (int addr = start_addr; addr < end_addr;)
 	{
 		UDSPInstruction inst = dsp_imem_read(addr);
 		const DSPOPCTemplate *opcode = GetOpTemplate(inst);

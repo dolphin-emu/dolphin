@@ -212,10 +212,10 @@ private:
     u16 m_channelID;  
     CEventQueue m_EventReadQueue; // Read from Wiimote
     CEventQueue m_EventWriteQueue; // Write to Wiimote
-    Common::CriticalSection* m_pCriticalSection;
     bool m_LastReportValid;
     SEvent m_LastReport;
 	wiimote_t* m_pWiiMote; // This is g_WiiMotesFromWiiUse[]
+    Common::CriticalSection* m_pCriticalSection;
 
 // Send queued data to the core
 void SendEvent(SEvent& _rEvent)

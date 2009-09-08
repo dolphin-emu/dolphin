@@ -60,10 +60,10 @@ public:
 
 private:
 	u32 m_CachedRegs[32];
-	u32 m_CachedSpecialRegs[6];
+	u32 m_CachedSpecialRegs[NUM_SPECIALS];
 	double m_CachedFRegs[32][2];
 	bool m_CachedRegHasChanged[32];
-	bool m_CachedSpecialRegHasChanged[6];
+	bool m_CachedSpecialRegHasChanged[NUM_SPECIALS];
 	bool m_CachedFRegHasChanged[32][2];
 
 	DECLARE_NO_COPY_CLASS(CRegTable);

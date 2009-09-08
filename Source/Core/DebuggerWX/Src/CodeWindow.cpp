@@ -154,11 +154,11 @@ CCodeWindow::CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter
 	wxWindowID id, const wxPoint& position, const wxSize& size, long style, const wxString& name)
 	: wxPanel((wxWindow*)parent, id, position, size, style, name)
 	, Parent(parent)
-	, codeview(NULL)
 	, m_RegisterWindow(NULL)
 	, m_BreakpointWindow(NULL)
 	, m_MemoryWindow(NULL)
 	, m_JitWindow(NULL)
+	, codeview(NULL)
 {
 	InitBitmaps();
 
@@ -536,7 +536,7 @@ void CCodeWindow::CreateMenuOptions(wxMenuBar * _pMenuBar, wxMenu* _pMenu)
 		, wxITEM_CHECK);
 	automaticstart->Check(bAutomaticStart);	
 
-	wxMenuItem* pFontPicker = _pMenu->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
+	_pMenu->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
 }
 
 // CPU Mode and JIT Menu

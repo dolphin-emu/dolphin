@@ -47,9 +47,6 @@
 // Create the plugin manager class
 CPluginManager CPluginManager::m_Instance;
 
-
-
-
 // The Plugin Manager Class
 // ------------
 

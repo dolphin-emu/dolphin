@@ -91,20 +91,18 @@ u32 CWII_IPC_HLE_Device_usb_kbd::Update()
 	u8 Modifiers = 0x00;
 	u8 PressedKeys[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 	bool GotEvent = false;
-	int i, j;
-
-	j = 0;
-	for (i = 0; i < 256; i++)
+	int num_pressed_keys = 0;
+	for (int i = 0; i < 256; i++)
 	{
 		bool KeyPressedNow = IsKeyPressed(i);
 		bool KeyPressedBefore = m_OldKeyBuffer[i];
-		u8 KeyCode;
+		u8 KeyCode = 0;
 
 		if (KeyPressedNow ^ KeyPressedBefore)
 		{
 			if (KeyPressedNow)
 			{
-				switch(m_KeyboardLayout)
+				switch (m_KeyboardLayout)
 				{
 				case KBD_LAYOUT_QWERTY:
 					KeyCode = m_KeyCodesQWERTY[i];
@@ -115,13 +113,14 @@ u32 CWII_IPC_HLE_Device_usb_kbd::Update()
 					break;
 				}
 
-				if(KeyCode == 0x00)
+				if (KeyCode == 0x00)
 					continue; 
 
-				PressedKeys[j] = KeyCode;
+				PressedKeys[num_pressed_keys] = KeyCode;
 
-				j++;
-				if(j == 6) break;
+				num_pressed_keys++;
+				if (num_pressed_keys == 6)
+					break;
 			}
 
 			GotEvent = true;
@@ -151,7 +150,7 @@ u32 CWII_IPC_HLE_Device_usb_kbd::Update()
 	// TODO: modifiers for non-Windows platforms
 #endif
 
-	if(Modifiers ^ m_OldModifiers)
+	if (Modifiers ^ m_OldModifiers)
 	{
 		GotEvent = true;
 		m_OldModifiers = Modifiers;

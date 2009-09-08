@@ -707,7 +707,8 @@ void CFrame::ClearStatusBar()
 {
 	if (this->GetStatusBar()->IsEnabled()) this->GetStatusBar()->SetStatusText(wxT(""),0);
 }
-void CFrame::StatusBarMessage(char * Text, ...)
+
+void CFrame::StatusBarMessage(const char * Text, ...)
 {
 	const int MAX_BYTES = 1024*10;
 	char Str[MAX_BYTES];

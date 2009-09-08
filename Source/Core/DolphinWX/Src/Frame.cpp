@@ -630,7 +630,10 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	case IDM_UPDATESTATUSBAR:
 		if (m_pStatusBar != NULL)
 		{
+		// Linux doesn't like it since the message isn't coming from the GUI thread. We need to change this to post a message to the Frame.
+#ifdef _WIN32
 			m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
+#endif
 		}
 		break;
 	}

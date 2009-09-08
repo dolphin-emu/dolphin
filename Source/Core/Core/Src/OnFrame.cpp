@@ -228,11 +228,10 @@ void EndRecordingInput()
     // TODO
     header.uniqueID = 0; 
     header.numRerecords = 0;
-    header.author;
-    header.videoPlugin; 
-    header.audioPlugin;
-    header.padPlugin;
-    
+    // header.author;
+    // header.videoPlugin; 
+    // header.audioPlugin;
+    // header.padPlugin;
 
 	fwrite(&header, sizeof(DTMHeader), 1, g_recordfd);
 

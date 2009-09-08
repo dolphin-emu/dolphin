@@ -58,7 +58,6 @@ void StopTrace()
 }
 
 static int stateSize = 32*4;// + 32*16 + 6*4;
-static u64 tb;
 
 int SyncTrace()
 {

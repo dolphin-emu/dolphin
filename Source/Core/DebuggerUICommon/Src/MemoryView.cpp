@@ -220,8 +220,6 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 		int src, dst, srcAddr;
 	};
 
-	// branch branches[256]; // TODO: This is not being used
-	int numBranches = 0;
 	// TODO: Add any drawing code here...
 	int width   = rc.width;
 	int numRows = (rc.height / rowHeight) / 2 + 2;
@@ -292,8 +290,8 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 		if (debugger->isAlive())
 		{
 			char dis[256] = {0};
-			u32 mem = debugger->readExtraMemory(memory, address);
-			float flt = *(float *)(&mem);
+			u32 mem_data = debugger->readExtraMemory(memory, address);
+			float flt = *(float *)(&mem_data);
 			sprintf(dis, "f: %f", flt);
 			char desc[256] = "";
 

@@ -30,10 +30,10 @@ struct ProjectionHack
 	{
 	}
 
-	ProjectionHack(bool enabled, float value)
+	ProjectionHack(bool new_enabled, float new_value)
 	{
-		ProjectionHack::enabled = enabled;
-		ProjectionHack::value = value;
+		enabled = new_enabled;
+		value = new_value;
 	}
 };
 

@@ -129,7 +129,9 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 #define PRIM_LOG(...) {DEBUG_LOG(VIDEO, ##__VA_ARGS__)}
 #endif
 
-#define LOG_VTX() DEBUG_LOG(VIDEO, "vtx: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1], ((float*)VertexManager::s_pCurBufferPointer)[2]);
 
+// #define LOG_VTX() DEBUG_LOG(VIDEO, "vtx: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0], ((float*)VertexManager::s_pCurBufferPointer)[1], ((float*)VertexManager::s_pCurBufferPointer)[2]);
+
+#define LOG_VTX()
 
 #endif  // _VIDEOCOMMON_H

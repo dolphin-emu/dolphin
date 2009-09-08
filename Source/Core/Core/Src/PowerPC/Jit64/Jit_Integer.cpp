@@ -136,7 +136,6 @@
 		int a = inst.RA;
 		int b = inst.RB;
 		int crf = inst.CRFD;
-		int shift = crf * 4;
 	
 		bool merge_branch = false;
 		int test_crf = js.next_inst.BI >> 2;
