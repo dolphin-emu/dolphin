@@ -118,8 +118,8 @@ void CFrame::CreateMenu()
 	fileMenu->Append(wxID_REFRESH, _T("&Refresh List"));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
-	fileMenu->AppendSeparator();
-	fileMenu->Append(IDM_RESTART, g_pCodeWindow ? _T("Restart in regular mode") : _T("Restart in debugging mode"));
+	//	fileMenu->AppendSeparator();
+	//	fileMenu->Append(IDM_RESTART, g_pCodeWindow ? _T("Restart in regular mode") : _T("Restart in debugging mode"));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(wxID_EXIT, _T("E&xit\tAlt+F4"));
 	m_MenuBar->Append(fileMenu, _T("&File"));
@@ -259,29 +259,25 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
 	    h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
-	ToolBar->SetToolBitmapSize(wxSize(w, h));
-
+		ToolBar->SetToolBitmapSize(wxSize(w, h));
+		
 
 	ToolBar->AddTool(wxID_OPEN,    _T("Open"),    m_Bitmaps[Toolbar_FileOpen], _T("Open file..."));
 	ToolBar->AddTool(wxID_REFRESH, _T("Refresh"), m_Bitmaps[Toolbar_Refresh], _T("Refresh"));
 	ToolBar->AddTool(IDM_BROWSE, _T("Browse"),   m_Bitmaps[Toolbar_Browse], _T("Browse for an ISO directory..."));
 	ToolBar->AddSeparator();
-	ToolBar->AddTool(IDM_PLAY, wxT(""),   m_Bitmaps[Toolbar_Play], _T("Play"));
+	ToolBar->AddTool(IDM_PLAY, wxT("Play"),   m_Bitmaps[Toolbar_Play], _T("Play"));
 	ToolBar->AddTool(IDM_STOP, _T("Stop"),   m_Bitmaps[Toolbar_Stop], _T("Stop"));
 	ToolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _T("Fullscr."),  m_Bitmaps[Toolbar_FullScreen], _T("Toggle Fullscreen"));
 	ToolBar->AddTool(IDM_SCREENSHOT, _T("Scr.Shot"),   m_Bitmaps[Toolbar_FullScreen], _T("Take Screenshot"));
 	ToolBar->AddSeparator();
 	ToolBar->AddTool(IDM_CONFIG_MAIN, _T("Config"), m_Bitmaps[Toolbar_PluginOptions], _T("Configure..."));
-	ToolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("Gfx"),  m_Bitmaps[Toolbar_PluginGFX], _T("Graphics settings"));
+	ToolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("Graphics"),  m_Bitmaps[Toolbar_PluginGFX], _T("Graphics settings"));
 	ToolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
 	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("Pad"),  m_Bitmaps[Toolbar_PluginPAD], _T("Pad settings"));
 	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _T("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _T("Wiimote settings"));
-	if (!g_pCodeWindow)
-	{
-		ToolBar->AddSeparator();
-		ToolBar->AddTool(IDM_HELPABOUT, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
-	}
-
+	// FIXME: UGLY HACK!!! why doesn't get the right size without this line?!?!?
+	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _T("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _T("Wiimote settings"));
 	// after adding the buttons to the toolbar, must call Realize() to reflect
 	// the changes
 	ToolBar->Realize();
