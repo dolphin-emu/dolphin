@@ -37,7 +37,6 @@
 #include <GL/glew.h>
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
-#undef HAVE_X11
 #elif defined(HAVE_X11) && HAVE_X11
 #define I_NEED_OS2_H // HAXXOR
 #include <GL/glxew.h>

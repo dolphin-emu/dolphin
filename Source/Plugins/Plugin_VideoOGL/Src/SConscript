@@ -109,10 +109,6 @@ if gfxenv['USE_WX'] and not gfxenv['HAVE_WX']:
     print "Must have wx to use wxgl"
     Return()
 
-if gfxenv['USE_SDL'] and not gfxenv['HAVE_SDL']:
-    print "Must have sdl to use SDL gl"
-    Return()
-
 gfxenv.Append(
 	CXXFLAGS = compileFlags,
 	LINKFLAGS = linkFlags,

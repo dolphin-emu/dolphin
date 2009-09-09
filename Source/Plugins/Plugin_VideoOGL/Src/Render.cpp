@@ -260,7 +260,9 @@ bool Renderer::Init()
         return false;
 
 	// Handle VSync on/off
-#ifdef _WIN32
+#if defined USE_WX && USE_WX
+	// TODO: FILL IN
+#elif defined _WIN32
 	if (WGLEW_EXT_swap_control)
 		wglSwapIntervalEXT(g_Config.bVSync ? 1 : 0);
 	else

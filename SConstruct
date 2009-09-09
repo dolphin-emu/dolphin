@@ -107,7 +107,6 @@ vars.AddVariables(
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
     BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
     BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
-    BoolVariable('sdlgl', 'Set For Building with SDL GL libs (WIP)', False),
     BoolVariable('jittest', 'temp don\'t use (WIP)', False),
 	BoolVariable('nojit', 'Remove entire jit cores', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
@@ -280,8 +279,6 @@ env['USE_WX'] = 0
 if env['wxgl']:
     wxmods.append('gl')
     env['USE_WX'] = 1
-    env['HAVE_X11'] = 0
-    env['HAVE_COCOA'] = 0
 
 if sys.platform == 'win32':
     env['HAVE_WX'] = 1
@@ -292,15 +289,6 @@ if env['nowx']:
     env['HAVE_WX'] = 0;
 else:
     env['HAVE_WX'] = conf.CheckWXConfig('2.8', wxmods, 0) 
-
-# SDL backend
-env['USE_SDL'] = 0
-
-if env['sdlgl']:
-    env['USE_SDL'] = 1
-    env['HAVE_X11'] = 0
-    env['HAVE_COCOA'] = 0
-    env['USE_WX'] = 0
 
 env['JITTEST'] = 0
 if env['jittest']:
@@ -315,7 +303,6 @@ conf.Define('NOJIT', env['NOJIT'])
 
 # Creating config.h defines
 conf.Define('HAVE_SDL', env['HAVE_SDL'])
-conf.Define('USE_SDL', env['USE_SDL'])
 conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
 conf.Define('HAVE_AO', env['HAVE_AO'])
 conf.Define('HAVE_OPENAL', env['HAVE_OPENAL'])
