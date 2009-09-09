@@ -19,6 +19,7 @@
 #include "Mixer.h"
 #include "DSoundStream.h"
 #include "AOSoundStream.h"
+#include "AlsaSoundStream.h"
 #include "NullSoundStream.h"
 #include "OpenALStream.h"
 
@@ -26,18 +27,22 @@ namespace AudioCommon
 {	
 	SoundStream *InitSoundStream(CMixer *mixer) 
 	{
+		// This looks evil.
 		if (!mixer)
 			mixer = new CMixer();
 
 		std::string backend = ac_Config.sBackend;
-		if (backend == BACKEND_DIRECTSOUND && DSound::isValid())       soundStream = new DSound(mixer, g_dspInitialize.hWnd);
-		if (backend == BACKEND_AOSOUND     && AOSound::isValid())      soundStream = new AOSound(mixer);
-		if (backend == BACKEND_OPENAL      && OpenALStream::isValid()) soundStream = new OpenALStream(mixer);
-		if (backend == BACKEND_NULL        && NullSound::isValid())    soundStream = new NullSound(mixer);
-		
-		if (soundStream != NULL) {
+		if (backend == BACKEND_DIRECTSOUND && DSound::isValid())          soundStream = new DSound(mixer, g_dspInitialize.hWnd);
+		if (backend == BACKEND_AOSOUND     && AOSound::isValid())         soundStream = new AOSound(mixer);
+		if (backend == BACKEND_OPENAL      && OpenALStream::isValid())    soundStream = new OpenALStream(mixer);
+		if (backend == BACKEND_ALSA        && AlsaSound::isValid()) soundStream = new AlsaSound(mixer);
+		if (backend == BACKEND_NULL        && NullSound::isValid())       soundStream = new NullSound(mixer);
+
+		if (soundStream != NULL)
+		{
 			ac_Config.Update();
-			if (soundStream->Start()) {
+			if (soundStream->Start())
+			{
 				// Start the sound recording
 				/*
 				  if (ac_Config.record) {
@@ -81,6 +86,7 @@ namespace AudioCommon
 		if (DSound::isValid())       backends.push_back(BACKEND_DIRECTSOUND);
 		if (AOSound::isValid())      backends.push_back(BACKEND_AOSOUND);
 		if (OpenALStream::isValid()) backends.push_back(BACKEND_OPENAL);
+		if (AlsaSound::isValid())    backends.push_back(BACKEND_ALSA);
 		if (NullSound::isValid())    backends.push_back(BACKEND_NULL);
 	   
 		return backends;

@@ -17,5 +17,8 @@ if acenv['HAVE_OPENAL']:
     
 if acenv['HAVE_AO']:
     files += [ 'AOSoundStream.cpp' ]
+
+# TODO: make conditional?
+files += [ 'AlsaSoundStream.cpp' ]
     
 acenv.StaticLibrary(env['local_libs'] + 'audiocommon', files)

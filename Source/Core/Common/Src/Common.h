@@ -84,6 +84,7 @@
 	#define HAVE_WX 1
 	#define HAVE_SFML 1
 	#define HAVE_OPENAL 1
+	#define HAVE_ALSA 1
 
 // it is VERY DANGEROUS to mix _SECURE_SCL=0 and _SECURE_SCL=1 compiled libraries.
 // You will get bizarre crash bugs whenever you use STL.
@@ -110,6 +111,11 @@
 	#define POSIX 1
 	#define MAX_PATH 260
 
+#ifdef __APPLE__
+	#define HAVE_ALSA 0
+#else
+	#define HAVE_ALSA 1
+#endif
 // Windows compatibility
 	#define __forceinline inline __attribute__((always_inline))
 

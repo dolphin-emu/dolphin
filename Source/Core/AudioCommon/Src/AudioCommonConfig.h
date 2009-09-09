@@ -25,7 +25,9 @@
 #define BACKEND_DIRECTSOUND "DSound"
 #define BACKEND_AOSOUND     "AOSound"
 #define BACKEND_OPENAL      "OpenAL"
+#define BACKEND_ALSA        "ALSA"
 #define BACKEND_NULL        "NullSound"
+
 struct AudioCommonConfig 
 {
 	bool m_EnableDTKMusic;

@@ -75,6 +75,8 @@ struct CachedDisplayList
 		frame_count = frameCount;
 	}
 
+	bool uncachable;  // if set, this DL will always be interpreted. This gets set if hash ever changes.
+
 	int pass;
 	u32 dl_hash;
 
@@ -86,8 +88,6 @@ struct CachedDisplayList
 	std::vector<VDataHashRegion> hash_regions;
 
 	int frame_count;
-
-	bool uncachable;  // if set, this DL will always be interpreted. This gets set if hash ever changes.
 
 	// ... Something containing cached vertex buffers here ...
 
@@ -159,12 +159,12 @@ bool AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 				// Execute
 				u32 Cmd2 = DataReadU32();
 				int transfer_size = ((Cmd2 >> 16) & 15) + 1;
-				u32 address = Cmd2 & 0xFFFF;
+				u32 xf_address = Cmd2 & 0xFFFF;
 				// TODO - speed this up. pshufb?
 				u32 data_buffer[16];
 				for (int i = 0; i < transfer_size; i++)
 					data_buffer[i] = DataReadU32();
-				LoadXFReg(transfer_size, address, data_buffer);
+				LoadXFReg(transfer_size, xf_address, data_buffer);
 				INCSTAT(stats.thisFrame.numXFLoads);
 
 				// Analyze
@@ -311,13 +311,13 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 				// Execute
 				u32 Cmd2 = DataReadU32();
 				int transfer_size = ((Cmd2 >> 16) & 15) + 1;
-				u32 address = Cmd2 & 0xFFFF;
+				u32 xf_address = Cmd2 & 0xFFFF;
 				// TODO - speed this up. pshufb?
 				u8 *real_data_buffer = AllocStaticData(4 * transfer_size);
 				u32 *data_buffer = (u32 *)real_data_buffer;
 				for (int i = 0; i < transfer_size; i++)
 					data_buffer[i] = DataReadU32();
-				LoadXFReg(transfer_size, address, data_buffer);
+				LoadXFReg(transfer_size, xf_address, data_buffer);
 				INCSTAT(stats.thisFrame.numXFLoads);
 
 				// Compile

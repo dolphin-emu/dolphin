@@ -15,57 +15,55 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _AOSOUNDSTREAM_H_
-#define _AOSOUNDSTREAM_H_
+#ifndef _ALSA_SOUND_STREAM_H
+#define _ALSA_SOUND_STREAM_H
 
+#include <alsa/asoundlib.h>
+
+#include "Common.h"
 #include "SoundStream.h"
-
-#if defined(HAVE_AO) && HAVE_AO
-#include <ao/ao.h>
-#endif
 
 #include "Thread.h"
 
-class AOSound : public SoundStream
+#define HAVE_ALSA 1
+
+class AlsaSound : public SoundStream
 {
-#if defined(HAVE_AO) && HAVE_AO
-	Common::Thread *thread;
-	Common::CriticalSection soundCriticalSection;
-	Common::Event soundSyncEvent;
-
-	int buf_size;
-
-	ao_device *device;
-	ao_sample_format format;
-	int default_driver;
-
-	short realtimeBuffer[1024 * 1024];
-
+#if defined(HAVE_ALSA) && HAVE_ALSA
 public:
-	AOSound(CMixer *mixer) : SoundStream(mixer) {}
+	AlsaSound(CMixer *mixer);
+	virtual ~AlsaSound();
 
-	virtual ~AOSound();
-	
 	virtual bool Start();
-	
 	virtual void SoundLoop();
-	
-	virtual void Stop();
-	
+	virtual void Stop(); 
+
 	static bool isValid() {
 		return true;
 	}
-	
 	virtual bool usesMixer() const { 
 		return true; 
 	}
-	
+
 	virtual void Update();
 
+private:
+	bool AlsaInit();
+	void AlsaShutdown();
+
+	u8 *mix_buffer;
+	Common::Thread *thread;
+	// 0 = continue
+	// 1 = shutdown
+	// 2 = done shutting down.
+	volatile int thread_data;
+
+	snd_pcm_t *handle;
 #else
 public:
-	AOSound(CMixer *mixer) : SoundStream(mixer) {}
+	AlsaSound(CMixer *mixer) : SoundStream(mixer) {}
 #endif
 };
 
-#endif //_AOSOUNDSTREAM_H_
+#endif
+
