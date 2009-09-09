@@ -18,14 +18,14 @@
 #ifndef _ALSA_SOUND_STREAM_H
 #define _ALSA_SOUND_STREAM_H
 
+#if defined(HAVE_ALSA) && HAVE_ALSA
 #include <alsa/asoundlib.h>
+#endif
 
 #include "Common.h"
 #include "SoundStream.h"
 
 #include "Thread.h"
-
-#define HAVE_ALSA 1
 
 class AlsaSound : public SoundStream
 {
