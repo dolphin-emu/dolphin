@@ -69,12 +69,6 @@
 #include <wx/image.h>
 #endif
 
-#ifdef _WIN32
-	#include "Win32Window.h" // warning: crapcode
-#else
-#endif
-
-
 // Declarations and definitions
 // ----------------------------
 CGcontext g_cgcontext;
