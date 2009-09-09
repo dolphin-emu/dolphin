@@ -32,21 +32,47 @@
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
+VERTEXSHADERUID  VertexShaderCache::last_entry_uid;
+
+static float lastVSconstants[C_FOGPARAMS+8][4];
 
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
-	const float f[4] = {f1, f2, f3, f4};
-	D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
+	if( lastVSconstants[const_number][0] != f1 || 
+		lastVSconstants[const_number][1] != f2 ||
+		lastVSconstants[const_number][2] != f3 ||
+		lastVSconstants[const_number][3] != f4)
+	{
+		const float f[4] = {f1, f2, f3, f4};
+		D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
+		lastVSconstants[const_number][0] = f1;
+		lastVSconstants[const_number][1] = f2;
+		lastVSconstants[const_number][2] = f3;
+		lastVSconstants[const_number][3] = f4;
+	}
 }
 
 void SetVSConstant4fv(int const_number, const float *f)
 {
-	D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
+	if( lastVSconstants[const_number][0] != f[0] || 
+		lastVSconstants[const_number][1] != f[1] ||
+		lastVSconstants[const_number][2] != f[2] ||
+		lastVSconstants[const_number][3] != f[3])
+	{
+		D3D::dev->SetVertexShaderConstantF(const_number, f, 1);
+		lastVSconstants[const_number][0] = f[0];
+		lastVSconstants[const_number][1] = f[1];
+		lastVSconstants[const_number][2] = f[2];
+		lastVSconstants[const_number][3] = f[3];
+	}
 }
 
 void VertexShaderCache::Init()
 {
+	for( int i=0; i<C_FOGPARAMS+8*4; i++)
+		lastVSconstants[i/4][i%4]=-1;
 
+	memset(last_entry_uid.values,0xFF,sizeof(last_entry_uid.values));
 }
 
 void VertexShaderCache::Shutdown()
@@ -63,6 +89,14 @@ bool VertexShaderCache::SetShader(u32 components)
 
 	VERTEXSHADERUID uid;
 	GetVertexShaderId(uid, components);
+	if (uid == last_entry_uid)
+	{
+		if (vshaders[uid].shader)
+			return true;
+		else
+			return false;
+	}
+	memcpy(&last_entry_uid, &uid, sizeof(VERTEXSHADERUID));
 
 	VSCache::iterator iter;
 	iter = vshaders.find(uid);

@@ -48,6 +48,7 @@ private:
 
 	static VSCache vshaders;
 	static const VSCacheEntry *last_entry;
+	static VERTEXSHADERUID last_entry_uid;
 
 public:
 	static void Init();

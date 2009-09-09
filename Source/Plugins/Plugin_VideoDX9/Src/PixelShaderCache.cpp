@@ -32,21 +32,43 @@
 
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry *PixelShaderCache::last_entry;
+PIXELSHADERUID PixelShaderCache::last_entry_uid;
+static float lastPSConstants[C_COLORMATRIX+16][4];
 
 void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
-	const float f[4] = {f1, f2, f3, f4};
-	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
+	if( lastPSConstants[const_number][0] != f1 || lastPSConstants[const_number][1] != f2 ||
+		lastPSConstants[const_number][2] != f3 || lastPSConstants[const_number][3] != f4 )
+	{
+		const float f[4] = {f1, f2, f3, f4};
+		D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
+		lastPSConstants[const_number][0] = f1;
+		lastPSConstants[const_number][1] = f2;
+		lastPSConstants[const_number][2] = f3;
+		lastPSConstants[const_number][3] = f4;
+	}
 }
 
 void SetPSConstant4fv(int const_number, const float *f)
 {
-	D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
+	if( lastPSConstants[const_number][0] != f[0] || lastPSConstants[const_number][1] != f[1] ||
+		lastPSConstants[const_number][2] != f[2] || lastPSConstants[const_number][3] != f[3] )
+	{
+		D3D::dev->SetPixelShaderConstantF(const_number, f, 1);
+		lastPSConstants[const_number][0] = f[0];
+		lastPSConstants[const_number][1] = f[1];
+		lastPSConstants[const_number][2] = f[2];
+		lastPSConstants[const_number][3] = f[3];
+	}
 }
 
 void PixelShaderCache::Init()
 {
+	int i;
+	for (i=0;i<(C_COLORMATRIX+16)*4;i++)
+		lastPSConstants[i/4][i%4]= -1;
 
+	memset(&last_entry_uid,0xFF,sizeof(last_entry_uid));
 }
 
 void PixelShaderCache::Shutdown()
@@ -63,7 +85,16 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 
 	PIXELSHADERUID uid;
 	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), dstAlpha);
+	if (uid == last_entry_uid)
+	{
+		if (PixelShaders[uid].shader)
+			return true;
+		else
+			return false;
+	}
 
+	memcpy(&last_entry_uid, &uid, sizeof(PIXELSHADERUID));
+	
 	PSCache::iterator iter;
 	iter = PixelShaders.find(uid);
 	if (iter != PixelShaders.end())
@@ -71,6 +102,8 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 		iter->second.frameCount = frameCount;
 		const PSCacheEntry &entry = iter->second;
 		last_entry = &entry;
+		
+
 		DEBUGGER_PAUSE_COUNT_N(NEXT_PIXEL_SHADER_CHANGE);
 
 		if (entry.shader)
