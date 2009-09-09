@@ -81,7 +81,6 @@ dirs = [
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',
     'Source/Plugins/Plugin_PadSimple/Src',
-    'Source/Plugins/Plugin_PadSimpleEvnt/Src',
     'Source/Plugins/Plugin_nJoy_SDL/Src',
     'Source/Plugins/Plugin_Wiimote/Src',
     'Source/Core/DolphinWX/Src',
@@ -109,7 +108,6 @@ vars.AddVariables(
     BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
     BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
     BoolVariable('sdlgl', 'Set For Building with SDL GL libs (WIP)', False),
-    BoolVariable('gltest', 'temp don\'t use (WIP)', False),
     BoolVariable('jittest', 'temp don\'t use (WIP)', False),
 	BoolVariable('nojit', 'Remove entire jit cores', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
@@ -303,12 +301,6 @@ if env['sdlgl']:
     env['HAVE_X11'] = 0
     env['HAVE_COCOA'] = 0
     env['USE_WX'] = 0
-
-env['GLTEST'] = 0
-if env['gltest']:
-    env['GLTEST'] = 1
-
-conf.Define('GLTEST', env['GLTEST'])
 
 env['JITTEST'] = 0
 if env['jittest']:

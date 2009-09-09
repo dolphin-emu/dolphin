@@ -124,18 +124,13 @@ void UpdateFPSDisplay(const char *text)
     sprintf(temp, "SVN R%s: GL: %s", SVN_REV_STR, text);
     OpenGL_SetWindowText(temp);
 }
-// =========================
 
 
-// =======================================================================================
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-// ------------------
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight)
 {
-	// --------------------------------------------
 	// Check for fullscreen mode
-	// ---------------
     int _twidth,  _theight;
     if (g_Config.bFullscreen)
     {
@@ -165,20 +160,13 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	#if defined(_WIN32)
 		EmuWindow::SetSize(_twidth, _theight);
 	#endif
-	// ----------------------------
 
-	// ---------------------------------------------------------------------------------------
 	// Control window size and picture scaling
-	// ------------------
     s_backbuffer_width = _twidth;
     s_backbuffer_height = _theight;
 
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
-
-	//char buff[100];
-	//sprintf(buff, "%i %i %d %d %d", s_backbuffer_width, s_backbuffer_height, Max, MValueX, MValueY);
-	//MessageBox(0, buff, "", 0);
 
 #if USE_SDL
 	//init sdl video
@@ -223,15 +211,11 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     GLWin.glCanvas->SetCurrent();
 #else
     GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
-    //    GLWin.glCtxt->SetCurrent(*GLWin.glCanvas);
 #endif
 
 
 #elif defined(_WIN32)
-	// ---------------------------------------------------------------------------------------
 	// Create rendering window in Windows
-	// ----------------------
-
     // Create a separate window
     if (!g_Config.RenderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
 		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, _T("Please wait..."));
@@ -783,3 +767,4 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line)
 	}
 	return true;
 }
+

@@ -22,28 +22,28 @@
 
 1.1 Display settings
 
-Internal and fullscreen resolution: Since the only internal resolutions allowed are also
-fullscreen resolution allowed by the system there is only need for one resolution setting
-that applies to both the internal resolution and the fullscreen resolution.
-- Apparently no, someone else doesn't agree
+Internal and fullscreen resolution: Since the only internal resolutions allowed
+are also fullscreen resolution allowed by the system there is only need for one
+resolution setting that applies to both the internal resolution and the
+fullscreen resolution.  - Apparently no, someone else doesn't agree
 
-Todo: Make the internal resolution option apply instantly, currently only the native and 2x option
-applies instantly. To do this we need to be able to change the reinitialize FramebufferManager:Init()
-while a game is running.
+Todo: Make the internal resolution option apply instantly, currently only the
+native and 2x option applies instantly. To do this we need to be able to change
+the reinitialize FramebufferManager:Init() while a game is running.
 
 1.2 Screenshots
 
 
-The screenshots should be taken from the internal representation of the picture regardless of
-what the current window size is. Since AA and wireframe is applied together with the picture resizing
-this rule is not currently applied to AA or wireframe pictures, they are instead taken from whatever
-the window size is.
+The screenshots should be taken from the internal representation of the picture
+regardless of what the current window size is. Since AA and wireframe is
+applied together with the picture resizing this rule is not currently applied
+to AA or wireframe pictures, they are instead taken from whatever the window
+size is.
 
-Todo: Render AA and wireframe to a separate picture used for the screenshot in addition to the one
-for display.
+Todo: Render AA and wireframe to a separate picture used for the screenshot in
+addition to the one for display.
 
 1.3 AA
-
 
 Make AA apply instantly during gameplay if possible
 
@@ -115,12 +115,10 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
     _PluginInfo->Type = PLUGIN_TYPE_VIDEO;
 #ifdef DEBUGFAST
     sprintf(_PluginInfo->Name, "Dolphin OpenGL (DebugFast)");
-#else
-#ifndef _DEBUG
-    sprintf(_PluginInfo->Name, "Dolphin OpenGL");
-#else
+#elif defined _DEBUG
     sprintf(_PluginInfo->Name, "Dolphin OpenGL (Debug)");
-#endif
+#else
+    sprintf(_PluginInfo->Name, "Dolphin OpenGL");
 #endif
 }
 
@@ -151,39 +149,21 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 }
 #endif
 
-#if defined(HAVE_WX) && HAVE_WX
 void DllDebugger(HWND _hParent, bool Show)
 {
-	if (Show)
-	{
+#if defined(HAVE_WX) && HAVE_WX
+	if (Show) {
 		if (!m_DebuggerFrame)
 			m_DebuggerFrame = new GFXDebuggerOGL(NULL);
-			//m_DebuggerFrame = new GFXDebuggerOGL(GetParentedWxWindow(_hParent));
 		m_DebuggerFrame->Show();
-	}
-	else
-	{
+	} else {
 		if (m_DebuggerFrame) m_DebuggerFrame->Hide();
 	}
-}
-#else
-void DllDebugger(HWND _hParent, bool Show) { }
 #endif
+}
 
-void DllConfig(HWND _hParent)
-{
-#if defined(HAVE_WX) && HAVE_WX
-	//if (!m_ConfigFrame)
-if (allowConfigShow) // Prevent user to show more than 1 config window at same time
-{
-	m_ConfigFrame = new GFXConfigDialogOGL(GetParentedWxWindow(_hParent));
-
-	//else if (!m_ConfigFrame->GetParent()->IsShown())
-	//	m_ConfigFrame->Close(true);
-
-#if defined(_WIN32)
-
-
+#ifdef _WIN32
+void Win32AddResolutions() {
 	// Search for avaliable resolutions
 	
 	DWORD iModeNum = 0;
@@ -199,7 +179,8 @@ if (allowConfigShow) // Prevent user to show more than 1 config window at same t
 		char szBuffer[100];
 		sprintf(szBuffer, "%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
 		std::string strBuffer(szBuffer);
-		// Create a check loop to check every pointer of resolutions to see if the res is added or not
+		// Create a check loop to check every pointer of resolutions to see if
+		// the res is added or not
 		int b = 0;
 		bool resFound = false;
 		while (b < i && !resFound)
@@ -209,7 +190,8 @@ if (allowConfigShow) // Prevent user to show more than 1 config window at same t
 			b++;
 		}
 		// Add the resolution
-		if (!resFound && i < 100)  // don't want to overflow resos array. not likely to happen, but you never know.
+		if (!resFound && i < 100)  // don't want to overflow resos array. not
+								   // likely to happen, but you never know.
 		{
 			resos.push_back(strBuffer);
 			i++;
@@ -218,11 +200,11 @@ if (allowConfigShow) // Prevent user to show more than 1 config window at same t
 		}
         ZeroMemory(&dmi, sizeof(dmi));
 	}
-
-#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) && HAVE_XXF86VM
-
-    int glxMajorVersion, glxMinorVersion;
-    int vidModeMajorVersion, vidModeMinorVersion;
+}	
+#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) && HAVE_XXF86VM 
+void X11AddResolutions() {
+	int glxMajorVersion, glxMinorVersion;
+	int vidModeMajorVersion, vidModeMinorVersion;
     GLWin.dpy = XOpenDisplay(0);
     glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
     XF86VidModeQueryVersion(GLWin.dpy, &vidModeMajorVersion, &vidModeMinorVersion);
@@ -244,45 +226,47 @@ if (allowConfigShow) // Prevent user to show more than 1 config window at same t
 				char temp[32];
 				sprintf(temp,"%dx%d", modes[i]->hdisplay, modes[i]->vdisplay);
 				m_ConfigFrame->AddFSReso(temp);
-				m_ConfigFrame->AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
-				px = modes[i]->hdisplay;//Used to remove repeating from different screen depths
+				m_ConfigFrame->AddWindowReso(temp);//Add same to Window ones,
+												   //since they should be
+												   //nearly all that's needed
+				px = modes[i]->hdisplay;//Used to remove repeating from
+										//different screen depths
 				py = modes[i]->vdisplay;
 			}
 		}
 	}    
 	XFree(modes);
-
+}
 #elif defined(HAVE_COCOA) && HAVE_COCOA
-	
+void CocaAddResolutions() {
+
 	CFArrayRef modes;
 	CFRange range;
 	CFDictionaryRef modesDict;
 	CFNumberRef modeValue;
-
+	
 	int modeWidth;
 	int modeHeight;
 	int modeBpp;
 	int modeIndex;
 	int px = 0, py = 0;
-
-
+	
+	
 	modes = CGDisplayAvailableModes(CGMainDisplayID());
-
+	
 	range.location = 0;
 	range.length = CFArrayGetCount(modes);
-
-	for (modeIndex=0; modeIndex<range.length; modeIndex++)
-	{
+	
+	for (modeIndex=0; modeIndex<range.length; modeIndex++) {
 		modesDict = (CFDictionaryRef)CFArrayGetValueAtIndex(modes, modeIndex);
 		modeValue = (CFNumberRef) CFDictionaryGetValue(modesDict, kCGDisplayWidth);
-    		CFNumberGetValue(modeValue, kCFNumberLongType, &modeWidth);
+		CFNumberGetValue(modeValue, kCFNumberLongType, &modeWidth);
 		modeValue = (CFNumberRef) CFDictionaryGetValue(modesDict, kCGDisplayHeight);
-    		CFNumberGetValue(modeValue, kCFNumberLongType, &modeHeight);
+		CFNumberGetValue(modeValue, kCFNumberLongType, &modeHeight);
 		modeValue = (CFNumberRef) CFDictionaryGetValue(modesDict, kCGDisplayBitsPerPixel);
-    		CFNumberGetValue(modeValue, kCFNumberLongType, &modeBpp);
-
-		if (px != modeWidth && py != modeHeight)
-		{
+		CFNumberGetValue(modeValue, kCFNumberLongType, &modeBpp);
+		
+		if (px != modeWidth && py != modeHeight) {
 			char temp[32];
 			sprintf(temp,"%dx%d", modeWidth, modeHeight);
 			m_ConfigFrame->AddFSReso(temp);
@@ -291,27 +275,34 @@ if (allowConfigShow) // Prevent user to show more than 1 config window at same t
 			py = modeHeight;
 		}
 	}
+}
 #endif
 
-	// Check if at least one resolution was found. If we don't and the resolution array is empty
+void DllConfig(HWND _hParent)
+{
+#if defined(HAVE_WX) && HAVE_WX
+// Prevent user to show more than 1 config window at same time
+	if (allowConfigShow) {
+		m_ConfigFrame = new GFXConfigDialogOGL(GetParentedWxWindow(_hParent));
+
+#if defined(_WIN32)
+		Win32AddResolutions();
+#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) && HAVE_XXF86VM 
+		X11AddResolutions();
+#elif defined(HAVE_COCOA) && HAVE_COCOA
+		CocaAddResolutions();
+#endif
+
 	// CreateGUIControls() will crash because the array is empty.
-	if (m_ConfigFrame->arrayStringFor_FullscreenCB.size() == 0)
-	{
+	if (m_ConfigFrame->arrayStringFor_FullscreenCB.size() == 0) {
 		m_ConfigFrame->AddFSReso("<No resolutions found>");
 		m_ConfigFrame->AddWindowReso("<No resolutions found>");
 	}
-
-	// Only allow one open at a time
-	//if (!m_ConfigFrame->IsShown())
-	//{
-
-		allowConfigShow = false;
-		m_ConfigFrame->CreateGUIControls();
-		allowConfigShow = m_ConfigFrame->ShowModal() == 1 ? true : false;
-}
-	//}
-	//else
-	//	m_ConfigFrame->Hide();
+	
+	allowConfigShow = false;
+	m_ConfigFrame->CreateGUIControls();
+	allowConfigShow = m_ConfigFrame->ShowModal() == 1 ? true : false;
+	}
 #endif
 }
 
@@ -319,10 +310,11 @@ void Initialize(void *init)
 {
     frameCount = 0;
     SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
-    g_VideoInitialize = *(_pVideoInitialize); // Create a shortcut to _pVideoInitialize that can also update it
+	// Create a shortcut to _pVideoInitialize that can also update it
+    g_VideoInitialize = *(_pVideoInitialize); 
 	InitXFBConvTables();
+
     g_Config.Load();
-    
 	g_Config.GameIniLoad();
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -331,8 +323,7 @@ void Initialize(void *init)
 	wxImage::AddHandler( new wxPNGHandler );
 #endif
 
-    if (!OpenGL_Create(g_VideoInitialize, 640, 480)) // 640x480 will be the default if all else fails
-	{
+    if (!OpenGL_Create(g_VideoInitialize, 640, 480)) {
         g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
         return;
     }

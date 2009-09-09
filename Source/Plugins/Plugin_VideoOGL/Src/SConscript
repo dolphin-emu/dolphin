@@ -37,17 +37,11 @@ libs = [
 
 gfxenv = env.Clone()
 
-if gfxenv['GLTEST']:
-	files += [
-		'nmain.cpp',
-		'nGLUtil.cpp',
-		]
-	libs += [ 'inputcommon' ]
-else:
-	files += [
-		'main.cpp',
-		'GLUtil.cpp',
-		]
+files += [
+	'main.cpp',
+	'GLUtil.cpp',
+	]
+
 if gfxenv['HAVE_WX']:
 	files += [
                 'GUI/ConfigDlg.cpp',
@@ -109,21 +103,6 @@ gfxenv['HAVE_XXF86VM'] = gfxenv['HAVE_X11'] and conf.CheckPKG('xxf86vm')
 conf.Define('HAVE_XXF86VM', gfxenv['HAVE_XXF86VM'])
 
 conf.Finish()
-
-if gfxenv['GLTEST']:
-	if gfxenv['HAVE_XXF86VM']:
-		files += [
-			'X11Window.cpp',
-			]
-		
-	if gfxenv['HAVE_SDL']:
-		files += [
-			'SDLWindow.cpp',
-			]
-	if gfxenv['USE_WX']:
-		files += [
-			'WXGLWindow.cpp',
-			]
 
 # Sanity check
 if gfxenv['USE_WX'] and not gfxenv['HAVE_WX']:

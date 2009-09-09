@@ -18,9 +18,6 @@
 #ifndef _GLINIT_H_
 #define _GLINIT_H_
 
-#if defined GLTEST && GLTEST
-#include "nGLUtil.h"
-#else
 #include "Config.h"
 #include "MathUtil.h"
 #include "pluginspecs_video.h"
@@ -147,8 +144,6 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 #else
 #define GL_REPORT_ERRORD()
 #endif
-
-#endif  // GLTEST ??
 
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
