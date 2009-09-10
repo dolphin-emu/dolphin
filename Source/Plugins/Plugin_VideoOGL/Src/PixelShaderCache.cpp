@@ -42,20 +42,43 @@ PIXELSHADERUID PixelShaderCache::s_curuid;
 bool PixelShaderCache::s_displayCompileAlert;
 
 static FRAGMENTSHADER* pShaderLast = NULL;
+static float lastPSconstants[C_COLORMATRIX+16][4];
+
 
 void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
-	glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f1, f2, f3, f4);
+	if( lastPSconstants[const_number][0] != f1 || lastPSconstants[const_number][1] != f2 ||
+		lastPSconstants[const_number][2] != f3 || lastPSconstants[const_number][3] != f4 )
+	{
+		const float f[4] = {f1, f2, f3, f4};
+		glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f1, f2, f3, f4);
+		lastPSconstants[const_number][0] = f1;
+		lastPSconstants[const_number][1] = f2;
+		lastPSconstants[const_number][2] = f3;
+		lastPSconstants[const_number][3] = f4;
+	}
 }
 
 void SetPSConstant4fv(int const_number, const float *f)
 {
-	glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f);
+	if( lastPSconstants[const_number][0] != f[0] || lastPSconstants[const_number][1] != f[1] ||
+		lastPSconstants[const_number][2] != f[2] || lastPSconstants[const_number][3] != f[3] )
+	{
+		glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f);
+		lastPSconstants[const_number][0] = f[0];
+		lastPSconstants[const_number][1] = f[1];
+		lastPSconstants[const_number][2] = f[2];
+		lastPSconstants[const_number][3] = f[3];
+	}
 }
 
 void PixelShaderCache::Init()
 {
 	GL_REPORT_ERRORD();
+
+	for( int i=0;i<(C_COLORMATRIX+16)*4;i++)
+		lastPSconstants[i/4][i%4] = -100000000.0f;
+	memset(&last_pixel_shader_uid,0xFF,sizeof(last_pixel_shader_uid));
 
     s_displayCompileAlert = true;
 
@@ -146,6 +169,12 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 	PIXELSHADERUID uid;
     u32 dstAlpha = dstAlphaEnable ? 1 : 0;
 	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), dstAlpha);
+	if (uid == last_pixel_shader_uid)
+	{
+		return pShaderLast;
+	}
+
+	memcpy(&last_pixel_shader_uid, &uid, sizeof(PIXELSHADERUID));
 
 	PSCache::iterator iter = pshaders.find(uid);
 
@@ -156,10 +185,16 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 		{
 			pShaderLast = &entry.shader;
 		}
+
 		return pShaderLast;
 	}
 
+
+	//Make an entry in the table
 	PSCacheEntry& newentry = pshaders[uid];
+	newentry.frameCount = frameCount;
+	pShaderLast = &newentry.shader;
+
 	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(),
                                            dstAlphaEnable);
 
@@ -179,10 +214,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 		return NULL;
 	}
 
-	//Make an entry in the table
-	newentry.frameCount = frameCount;
 	
-	pShaderLast = &newentry.shader;
 	INCSTAT(stats.numPixelShadersCreated);
 	SETSTAT(stats.numPixelShadersAlive, pshaders.size());
 	return pShaderLast;

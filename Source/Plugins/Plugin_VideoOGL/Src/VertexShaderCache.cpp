@@ -41,19 +41,46 @@ bool VertexShaderCache::s_displayCompileAlert;
 
 static VERTEXSHADER *pShaderLast = NULL;
 static int s_nMaxVertexInstructions;
+static float lastVSconstants[C_FOGPARAMS+8][4];
+
 
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
-	glProgramEnvParameter4fARB(GL_VERTEX_PROGRAM_ARB, const_number, f1, f2, f3, f4);
+	if( lastVSconstants[const_number][0] != f1 || 
+		lastVSconstants[const_number][1] != f2 ||
+		lastVSconstants[const_number][2] != f3 ||
+		lastVSconstants[const_number][3] != f4)
+	{
+		const float f[4] = {f1, f2, f3, f4};
+		glProgramEnvParameter4fARB(GL_VERTEX_PROGRAM_ARB, const_number, f1, f2, f3, f4);
+		lastVSconstants[const_number][0] = f1;
+		lastVSconstants[const_number][1] = f2;
+		lastVSconstants[const_number][2] = f3;
+		lastVSconstants[const_number][3] = f4;
+	}
 }
 
 void SetVSConstant4fv(int const_number, const float *f)
 {
-	glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number, f);
+	if( lastVSconstants[const_number][0] != f[0] || 
+		lastVSconstants[const_number][1] != f[1] ||
+		lastVSconstants[const_number][2] != f[2] ||
+		lastVSconstants[const_number][3] != f[3])
+	{
+		glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number, f);
+		lastVSconstants[const_number][0] = f[0];
+		lastVSconstants[const_number][1] = f[1];
+		lastVSconstants[const_number][2] = f[2];
+		lastVSconstants[const_number][3] = f[3];
+	}
 }
 
 void VertexShaderCache::Init()
 {
+	for( int i=0;i<(C_FOGPARAMS+8)*4;i++)
+		lastVSconstants[i/4][i%4] = -100000000.0f;
+	memset(&last_vertex_shader_uid,0xFF,sizeof(last_vertex_shader_uid));
+
 	s_displayCompileAlert = true;
 
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);
@@ -73,6 +100,13 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 	VERTEXSHADERUID uid;
 	GetVertexShaderId(uid, components);
 
+	if (uid == last_vertex_shader_uid)
+	{
+		return pShaderLast;
+	}
+	memcpy(&last_vertex_shader_uid, &uid, sizeof(VERTEXSHADERUID));
+
+
 	VSCache::iterator iter = vshaders.find(uid);
 
 	if (iter != vshaders.end()) {
@@ -81,10 +115,14 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 		if (&entry.shader != pShaderLast) {
 			pShaderLast = &entry.shader;
 		}
+
 		return pShaderLast;
 	}
 
+	//Make an entry in the table
 	VSCacheEntry& entry = vshaders[uid];
+	entry.frameCount = frameCount;
+	pShaderLast = &entry.shader;
 	const char *code = GenerateVertexShader(components, false);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -102,9 +140,6 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 		return NULL;
 	}
 
-	//Make an entry in the table
-	entry.frameCount = frameCount;
-	pShaderLast = &entry.shader;
 	INCSTAT(stats.numVertexShadersCreated);
 	SETSTAT(stats.numVertexShadersAlive, vshaders.size());
 	return pShaderLast;
