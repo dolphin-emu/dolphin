@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_PadSimple"
 	ProjectGUID="{9A183B48-ECC2-4121-876A-9B3793686073}"
 	RootNamespace="Plugin_PadSimple"
@@ -86,7 +86,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
+				AdditionalDependencies="dxguid.lib dxerr.lib dinput8.lib xinput.lib comctl32.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\Win32\plugins\Plugin_PadSimple.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -189,7 +189,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
+				AdditionalDependencies="dxguid.lib dxerr.lib dinput8.lib xinput.lib comctl32.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimple.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -286,7 +286,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib winmm.lib rpcrt4.lib  wxbase28ud.lib wxmsw28ud_core.lib"
+				AdditionalDependencies="dxguid.lib dxerr.lib dinput8.lib xinput.lib comctl32.lib winmm.lib rpcrt4.lib  wxbase28ud.lib wxmsw28ud_core.lib"
 				OutputFile="..\..\..\Binary\Win32/plugins\Plugin_PadSimpleD.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -384,7 +384,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib winmm.lib rpcrt4.lib wxbase28ud.lib wxmsw28ud_core.lib"
+				AdditionalDependencies="dxguid.lib dxerr.lib dinput8.lib xinput.lib comctl32.lib winmm.lib rpcrt4.lib wxbase28ud.lib wxmsw28ud_core.lib"
 				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleD.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -487,7 +487,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
+				AdditionalDependencies="dxguid.lib dxerr.lib dinput8.lib xinput.lib comctl32.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\Win32\plugins\Plugin_PadSimpleDF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -589,7 +589,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dxguid.lib dxerr9.lib dinput8.lib xinput.lib comctl32.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
+				AdditionalDependencies="dxguid.lib dxerr.lib dinput8.lib xinput.lib comctl32.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\x64\plugins\Plugin_PadSimpleDF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
