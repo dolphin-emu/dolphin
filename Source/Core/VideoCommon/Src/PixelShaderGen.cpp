@@ -24,6 +24,8 @@
 #include "XFMemory.h"  // for texture projection mode
 #include "BPMemory.h"
 
+PIXELSHADERUID last_pixel_shader_uid;
+
 // Mash together all the inputs that contribute to the code of a generated pixel shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
 // It would likely be a lot more efficient to build this incrementally as the attributes

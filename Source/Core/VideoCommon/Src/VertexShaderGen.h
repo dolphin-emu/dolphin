@@ -101,5 +101,6 @@ public:
 
 const char *GenerateVertexShader(u32 components, bool D3D);
 void GetVertexShaderId(VERTEXSHADERUID& vid, u32 components);
+extern VERTEXSHADERUID  last_vertex_shader_uid;
 
 #endif // GCOGL_VERTEXSHADER_H

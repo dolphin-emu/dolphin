@@ -23,6 +23,8 @@
 #include "BPMemory.h"
 #include "VertexShaderGen.h"
 
+VERTEXSHADERUID  last_vertex_shader_uid;
+
 // Mash together all the inputs that contribute to the code of a generated vertex shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
 void GetVertexShaderId(VERTEXSHADERUID& vid, u32 components)

@@ -51,7 +51,6 @@ private:
 
 	static PSCache PixelShaders;
 	static const PSCacheEntry *last_entry;
-	static PIXELSHADERUID last_entry_uid;
 
 public:
 	static void Init();

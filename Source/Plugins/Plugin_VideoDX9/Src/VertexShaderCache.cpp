@@ -32,7 +32,6 @@
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
-VERTEXSHADERUID  VertexShaderCache::last_entry_uid;
 
 static float lastVSconstants[C_FOGPARAMS+8][4];
 
@@ -69,10 +68,11 @@ void SetVSConstant4fv(int const_number, const float *f)
 
 void VertexShaderCache::Init()
 {
-	for( int i=0; i<C_FOGPARAMS+8*4; i++)
-		lastVSconstants[i/4][i%4]=-1;
-
-	memset(last_entry_uid.values,0xFF,sizeof(last_entry_uid.values));
+	//memset(lastVSconstants,0xFF,(C_FOGPARAMS+8)*4*sizeof(float)); // why does this not work
+	//memset(lastVSconstants,0xFF,sizeof(lastVSconstants));
+	for( int i=0;i<(C_FOGPARAMS+8)*4;i++)
+		lastVSconstants[i/4][i%4] = -100000000.0f;
+	memset(&last_vertex_shader_uid,0xFF,sizeof(last_vertex_shader_uid));
 }
 
 void VertexShaderCache::Shutdown()
@@ -89,14 +89,14 @@ bool VertexShaderCache::SetShader(u32 components)
 
 	VERTEXSHADERUID uid;
 	GetVertexShaderId(uid, components);
-	if (uid == last_entry_uid)
+	if (uid == last_vertex_shader_uid)
 	{
 		if (vshaders[uid].shader)
 			return true;
 		else
 			return false;
 	}
-	memcpy(&last_entry_uid, &uid, sizeof(VERTEXSHADERUID));
+	memcpy(&last_vertex_shader_uid, &uid, sizeof(VERTEXSHADERUID));
 
 	VSCache::iterator iter;
 	iter = vshaders.find(uid);
