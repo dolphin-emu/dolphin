@@ -108,7 +108,6 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	if (address == 0)
 		return NULL;
 	
-	TexCache::iterator iter = textures.find(address);
 	
 	u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 
@@ -137,17 +136,21 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	int expandedWidth = (width+bs) & (~bs);
 	u32 hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, 0);
 	u32 tex_hash = 0;
+    u32 texID = address;
 	
-	if (g_Config.bDumpTextures)
+	if (g_Config.bDumpTextures || g_Config.bSafeTextureCache)
 	{
 		tex_hash = hash_value;
 		if ((format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2))
 		{
 			u32 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], (format == GX_TF_C4) ? 32 : 128);
 			tex_hash ^= tlutHash;
+			if (g_Config.bSafeTextureCache)
+				texID ^= tlutHash;
 		}
 	}
 
+	TexCache::iterator iter = textures.find(texID);
 	if (iter != textures.end())
 	{
 		TCacheEntry &entry = iter->second;
@@ -210,7 +213,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	}
 
 	//Make an entry in the table
-	TCacheEntry& entry = textures[address];
+	TCacheEntry& entry = textures[texID];
 
 	entry.hashoffset = 0; 
 	entry.hash = hash_value;
