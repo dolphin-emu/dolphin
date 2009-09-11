@@ -182,6 +182,7 @@ void UpdateFPSDisplay(const char *text)
 bool Init()
 {
 	g_Config.Load();
+	g_Config.GameIniLoad();
 
 	if (initCount == 0)
 	{

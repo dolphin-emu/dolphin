@@ -17,6 +17,7 @@
 
 #include "Config.h"
 #include "IniFile.h"
+#include "globals.h"
 #include "../../../Core/Core/Src/ConfigManager.h" // FIXME
 
 Config g_Config;
@@ -81,4 +82,42 @@ void Config::Save()
 	iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
 	iniFile.Set("Enhancements", "ForceMaxAniso", bForceMaxAniso);
 	iniFile.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
+}
+
+void Config::GameIniLoad()
+{
+	// This function is copied from OGL plugin, slightly modified.
+	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
+	if (! iniFile) 
+		return;
+	
+	if (iniFile->Exists("Video", "ForceFiltering"))
+		iniFile->Get("Video", "ForceFiltering", &bForceFiltering, 0);
+
+	//if (iniFile->Exists("Video", "MaxAnisotropy"))
+	//	iniFile->Get("Video", "MaxAnisotropy", &iMaxAnisotropy, 3);  // NOTE - this is x in (1 << x)
+    
+	if (iniFile->Exists("Video", "EFBCopyDisable"))
+		iniFile->Get("Video", "EFBCopyDisable", &bEFBCopyDisable, 0);
+
+	//if (iniFile->Exists("Video", "EFBCopyDisableHotKey"))
+	//	iniFile->Get("Video", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);
+
+	if (iniFile->Exists("Video", "EFBToRAMEnable"))
+		iniFile->Get("Video", "EFBToRAMEnable", &bCopyEFBToRAM, 0);
+
+	if (iniFile->Exists("Video", "SafeTextureCache"))
+		iniFile->Get("Video", "SafeTextureCache", &bSafeTextureCache, bSafeTextureCache); 
+
+	//if (iniFile->Exists("Video", "MSAA"))
+	//	iniFile->Get("Video", "MSAA", &iMultisampleMode, 0);
+
+	if (iniFile->Exists("Video", "DstAlphaPass"))
+		iniFile->Get("Video", "DstAlphaPass", &bDstAlphaPass, bDstAlphaPass);
+	
+	if (iniFile->Exists("Video", "UseXFB"))
+		iniFile->Get("Video", "UseXFB", &bUseXFB, 0);
+
+	if (iniFile->Exists("Video", "ProjectionHack"))
+		iniFile->Get("Video", "ProjectionHack", &iPhackvalue, 0);
 }

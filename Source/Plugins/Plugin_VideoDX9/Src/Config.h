@@ -25,6 +25,7 @@ struct Config
 	Config();
 	void Load();
 	void Save();
+	void GameIniLoad();
 
 	int iAdapter;
 	int iFSResolution;
@@ -59,6 +60,14 @@ struct Config
 
 	bool bTexFmtOverlayEnable;
 	bool bTexFmtOverlayCenter;
+
+	// from game INI file, import from OGL plugin
+	bool bSafeTextureCache;
+	bool bEFBCopyDisable;
+	bool bCopyEFBToRAM;
+	bool bDstAlphaPass;
+	bool bUseXFB;
+	int iPhackvalue;
 
 	std::string texDumpPath;
 };
