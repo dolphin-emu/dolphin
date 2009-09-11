@@ -80,7 +80,7 @@ void ReadGC(std::string FileName)
 	GCFiles.clear();
 	OpenISO = DiscIO::CreateVolumeFromFilename(FileName);
 	if (!OpenISO) return;
-	if (!DiscIO::IsVolumeWiiDisc(OpenISO))
+	if (!DiscIO::IsVolumeWiiDisc(OpenISO) && !DiscIO::IsVolumeWadFile(OpenISO))
 	{
 		pFileSystem = DiscIO::CreateFileSystem(OpenISO);
 		pFileSystem->GetFileList(GCFiles);
