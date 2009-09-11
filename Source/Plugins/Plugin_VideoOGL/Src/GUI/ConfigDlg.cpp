@@ -789,66 +789,67 @@ void GFXConfigDialogOGL::UpdateGUI()
 
 void Config::UpdateProjectionHack()
 {
-	switch(g_Config.iPhackvalue)
-	{
-	case OGL_HACK_NONE:
-		g_Config.bProjHack1 = 0;
-		g_Config.bPhackvalue1 = 0;
-		g_Config.bPhackvalue2 = 0;
-		break;
-	case OGL_HACK_ZELDA_TP_BLOOM_HACK:
-		g_Config.bPhackvalue1 = 1;
-		g_Config.bProjHack1 = 1;
-		break;
-	case OGL_HACK_SONIC_AND_THE_BLACK_KNIGHT:
-		g_Config.bPhackvalue1 = 1;
-		g_Config.fhackvalue1 = 0.00002f;
-		g_Config.bPhackvalue2 = 1;
-		g_Config.fhackvalue2 = 1.999980f;
-		break;
-	case OGL_HACK_BLEACH_VERSUS_CRUSADE:
-		g_Config.bPhackvalue2 = 1;
-		g_Config.fhackvalue2 = 0.5f;
-		g_Config.bPhackvalue1 = 0;
-		g_Config.bProjHack1 = 0;
-		break;
-	case OGL_HACK_FINAL_FANTASY_CC_ECHO_OF_TIME:
-		g_Config.bPhackvalue1 = 1;
-		g_Config.fhackvalue1 = 0.8f;
-		g_Config.bPhackvalue2 = 1;
-		g_Config.fhackvalue2 = 1.2f;
-		g_Config.bProjHack1 = 0;
-		break;
-	case OGL_HACK_HARVESTMOON_MM:
-		g_Config.bPhackvalue1 = 1;
-		g_Config.fhackvalue1 = 0.0075f;
-		g_Config.bPhackvalue2 = 0;
-		g_Config.bProjHack1 = 0;
-	case OGL_HACK_BATEN_KAITOS:
-		g_Config.bPhackvalue1 = 1;
-		g_Config.fhackvalue1 = 0.0026f;
-		g_Config.bPhackvalue2 = 1;
-		g_Config.fhackvalue2 = 1.9974f;
-		g_Config.bProjHack1 = 1;
-		break;
-	case OGL_HACK_BATEN_KAITOS_ORIGIN:
-		g_Config.bPhackvalue1 = 1;
-		g_Config.fhackvalue1 = 0.0012f;
-		g_Config.bPhackvalue2 = 1;
-		g_Config.fhackvalue2 = 1.9988f;
-		g_Config.bProjHack1 = 1;
-		break;
-	case OGL_HACK_SKIES_OF_ARCADIA:
-		g_Config.bPhackvalue1 = 1;
-		g_Config.fhackvalue1 = 0.04f;
-		g_Config.bPhackvalue2 = 0;
-		g_Config.bProjHack1 = 0;
-		break;
-	}
+	::UpdateProjectionHack(g_Config.iPhackvalue);
+	//switch(g_Config.iPhackvalue)
+	//{
+	//case OGL_HACK_NONE:
+	//	g_Config.bProjHack1 = 0;
+	//	g_Config.bPhackvalue1 = 0;
+	//	g_Config.bPhackvalue2 = 0;
+	//	break;
+	//case OGL_HACK_ZELDA_TP_BLOOM_HACK:
+	//	g_Config.bPhackvalue1 = 1;
+	//	g_Config.bProjHack1 = 1;
+	//	break;
+	//case OGL_HACK_SONIC_AND_THE_BLACK_KNIGHT:
+	//	g_Config.bPhackvalue1 = 1;
+	//	g_Config.fhackvalue1 = 0.00002f;
+	//	g_Config.bPhackvalue2 = 1;
+	//	g_Config.fhackvalue2 = 1.999980f;
+	//	break;
+	//case OGL_HACK_BLEACH_VERSUS_CRUSADE:
+	//	g_Config.bPhackvalue2 = 1;
+	//	g_Config.fhackvalue2 = 0.5f;
+	//	g_Config.bPhackvalue1 = 0;
+	//	g_Config.bProjHack1 = 0;
+	//	break;
+	//case OGL_HACK_FINAL_FANTASY_CC_ECHO_OF_TIME:
+	//	g_Config.bPhackvalue1 = 1;
+	//	g_Config.fhackvalue1 = 0.8f;
+	//	g_Config.bPhackvalue2 = 1;
+	//	g_Config.fhackvalue2 = 1.2f;
+	//	g_Config.bProjHack1 = 0;
+	//	break;
+	//case OGL_HACK_HARVESTMOON_MM:
+	//	g_Config.bPhackvalue1 = 1;
+	//	g_Config.fhackvalue1 = 0.0075f;
+	//	g_Config.bPhackvalue2 = 0;
+	//	g_Config.bProjHack1 = 0;
+	//case OGL_HACK_BATEN_KAITOS:
+	//	g_Config.bPhackvalue1 = 1;
+	//	g_Config.fhackvalue1 = 0.0026f;
+	//	g_Config.bPhackvalue2 = 1;
+	//	g_Config.fhackvalue2 = 1.9974f;
+	//	g_Config.bProjHack1 = 1;
+	//	break;
+	//case OGL_HACK_BATEN_KAITOS_ORIGIN:
+	//	g_Config.bPhackvalue1 = 1;
+	//	g_Config.fhackvalue1 = 0.0012f;
+	//	g_Config.bPhackvalue2 = 1;
+	//	g_Config.fhackvalue2 = 1.9988f;
+	//	g_Config.bProjHack1 = 1;
+	//	break;
+	//case OGL_HACK_SKIES_OF_ARCADIA:
+	//	g_Config.bPhackvalue1 = 1;
+	//	g_Config.fhackvalue1 = 0.04f;
+	//	g_Config.bPhackvalue2 = 0;
+	//	g_Config.bProjHack1 = 0;
+	//	break;
+	//}
 
-	// Set the projections hacks
-	Projection_SetHack0(g_Config.bProjHack1);
-	Projection_SetHack1(ProjectionHack(g_Config.bPhackvalue1 == 0 ? false : true, g_Config.fhackvalue1));
-	Projection_SetHack2(ProjectionHack(g_Config.bPhackvalue2 == 0 ? false : true, g_Config.fhackvalue2));
+	//// Set the projections hacks
+	//Projection_SetHack0(g_Config.bProjHack1);
+	//Projection_SetHack1(ProjectionHack(g_Config.bPhackvalue1 == 0 ? false : true, g_Config.fhackvalue1));
+	//Projection_SetHack2(ProjectionHack(g_Config.bPhackvalue2 == 0 ? false : true, g_Config.fhackvalue2));
 }
 

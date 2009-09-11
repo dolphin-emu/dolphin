@@ -23,6 +23,7 @@
 #include "Atomic.h"
 #include "Thread.h"
 #include "LogManager.h"
+#include "GlobalControl.h"
 
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -183,6 +184,7 @@ bool Init()
 {
 	g_Config.Load();
 	g_Config.GameIniLoad();
+	UpdateProjectionHack(g_Config.iPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
 
 	if (initCount == 0)
 	{
