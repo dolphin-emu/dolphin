@@ -58,6 +58,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_TREE_ITEM_RIGHT_CLICK(ID_TREECTRL, CISOProperties::OnRightClickOnTree)
 	EVT_MENU(IDM_EXTRACTFILE, CISOProperties::OnExtractFile)
 	EVT_MENU(IDM_EXTRACTDIR, CISOProperties::OnExtractDir)
+	EVT_MENU(IDM_EXTRACTALL, CISOProperties::OnExtractAll)
 	EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
 END_EVENT_TABLE()
 
@@ -565,6 +566,9 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 		;//popupMenu.Append(IDM_EXTRACTDIR, _("Extract Directory..."));
 	else
 		popupMenu.Append(IDM_EXTRACTFILE, _("Extract File..."));
+
+	if (!DiscIO::IsVolumeWiiDisc(OpenISO)) //disabled on wii until it dumps more than partition 0
+		popupMenu.Append(IDM_EXTRACTALL, _("Extract All Files (!!Experimental!!)"));
 	PopupMenu(&popupMenu);
 
 	event.Skip();
@@ -613,6 +617,22 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 
 void CISOProperties::OnExtractDir(wxCommandEvent& WXUNUSED (event))
 {
+}
+
+void CISOProperties::OnExtractAll(wxCommandEvent& WXUNUSED (event))
+{
+	if(!AskYesNo("%s", "Warning! this process does not yet have a progress bar.\nDolphin will appear unresponsive until the extraction is complete\nContinue?"))
+		return;
+	wxString dirHome;
+	wxGetHomeDir(&dirHome);
+
+	wxDirDialog dialog(this, _("Browse for a directory to add"), dirHome, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+
+	if (dialog.ShowModal() == wxID_OK)
+	{
+		std::string sPath(dialog.GetPath().mb_str());
+		pFileSystem->ExportAllFiles(sPath.c_str());
+	}
 }
 
 void CISOProperties::SetRefresh(wxCommandEvent& event)

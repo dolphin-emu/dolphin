@@ -212,6 +212,7 @@ class CISOProperties : public wxDialog
 			ID_MAKER,
 			ID_COMMENT,
 			ID_BANNER,
+			IDM_EXTRACTALL,
 			IDM_EXTRACTDIR,
 			IDM_EXTRACTFILE,
 			IDM_BNRSAVEAS
@@ -229,6 +230,7 @@ class CISOProperties : public wxDialog
 		void OnRightClickOnTree(wxTreeEvent& event);
 		void OnExtractFile(wxCommandEvent& event);
 		void OnExtractDir(wxCommandEvent& event);
+		void OnExtractAll(wxCommandEvent& event);
 		void SetRefresh(wxCommandEvent& event);
 		void OnChangeBannerLang(wxCommandEvent& event);
 

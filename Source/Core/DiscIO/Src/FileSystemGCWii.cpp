@@ -17,6 +17,7 @@
 
 #include "stdafx.h"
 #include "Common.h"
+#include "FileUtil.h"
 
 #include <string>
 
@@ -117,6 +118,52 @@ bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFi
 
 bool CFileSystemGCWii::ExportAllFiles(const char* _rFullPath) const
 {
+	std::vector<const SFileInfo *> fst;
+	char exportName[512];
+	GetFileList(fst);
+
+	for (u64 i = 1; i < fst.size(); i++)
+	{
+		if (fst[i]->IsDirectory())
+		{
+			sprintf(exportName, "%s/%s/", _rFullPath, fst[i]->m_FullPath);
+			DEBUG_LOG(DISCIO, "%s", exportName);		
+
+			if (!File::Exists(exportName))
+			{
+
+				if (!File::CreateFullPath(exportName))
+				{
+					ERROR_LOG(DISCIO, "Could not create the path %s", exportName);
+					return false;
+				}
+			}
+			else
+			{
+				if (!File::IsDirectory(exportName))
+				{
+					ERROR_LOG(DISCIO, "%s already exists and is not a directory", exportName);
+					return false;
+				}
+				DEBUG_LOG(DISCIO, "folder %s already exists", exportName);
+			
+			}
+		}
+		else
+		{
+			sprintf(exportName, "%s/%s", _rFullPath, fst[i]->m_FullPath);
+			DEBUG_LOG(DISCIO, "%s", exportName);
+			if (!File::Exists(exportName))
+			{
+				if (!ExportFile(fst[i]->m_FullPath, exportName))
+					ERROR_LOG(DISCIO, "Could not export %s", exportName);
+			}
+			else
+			{
+				DEBUG_LOG(DISCIO, "%s already exists", exportName);
+			}			
+		}
+	}
 	return false;
 }
 
