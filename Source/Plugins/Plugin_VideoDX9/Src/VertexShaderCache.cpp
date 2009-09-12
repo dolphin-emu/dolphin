@@ -37,7 +37,7 @@ static float lastVSconstants[C_FOGPARAMS+8][4];
 
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
-	if( lastVSconstants[const_number][0] != f1 || 
+	if (lastVSconstants[const_number][0] != f1 || 
 		lastVSconstants[const_number][1] != f2 ||
 		lastVSconstants[const_number][2] != f3 ||
 		lastVSconstants[const_number][3] != f4)
@@ -53,7 +53,7 @@ void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 
 void SetVSConstant4fv(int const_number, const float *f)
 {
-	if( lastVSconstants[const_number][0] != f[0] || 
+	if (lastVSconstants[const_number][0] != f[0] || 
 		lastVSconstants[const_number][1] != f[1] ||
 		lastVSconstants[const_number][2] != f[2] ||
 		lastVSconstants[const_number][3] != f[3])
@@ -63,6 +63,32 @@ void SetVSConstant4fv(int const_number, const float *f)
 		lastVSconstants[const_number][1] = f[1];
 		lastVSconstants[const_number][2] = f[2];
 		lastVSconstants[const_number][3] = f[3];
+	}
+}
+
+void SetMultiVSConstant4fv(int const_number, int count, const float *f)
+{
+	bool change = false;
+	for (int i = 0; i < count; i++)
+	{
+		if (lastVSconstants[const_number + i][0] != f[0 + i*4] || 
+			lastVSconstants[const_number + i][1] != f[1 + i*4] ||
+			lastVSconstants[const_number + i][2] != f[2 + i*4] ||
+			lastVSconstants[const_number + i][3] != f[3 + i*4])
+		{
+			change = true;
+			break;
+		}
+	}
+	if (change)
+	{
+		D3D::dev->SetVertexShaderConstantF(const_number, f, count);
+		for (int i = 0; i < count; i++) {
+			lastVSconstants[const_number + i][0] = f[0 + i*4];
+			lastVSconstants[const_number + i][1] = f[1 + i*4];
+			lastVSconstants[const_number + i][2] = f[2 + i*4];
+			lastVSconstants[const_number + i][3] = f[3 + i*4];
+		}
 	}
 }
 

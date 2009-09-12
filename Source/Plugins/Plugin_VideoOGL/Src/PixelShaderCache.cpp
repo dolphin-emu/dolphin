@@ -47,8 +47,8 @@ static float lastPSconstants[C_COLORMATRIX+16][4];
 
 void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
-	if( lastPSconstants[const_number][0] != f1 || lastPSconstants[const_number][1] != f2 ||
-		lastPSconstants[const_number][2] != f3 || lastPSconstants[const_number][3] != f4 )
+	if (lastPSconstants[const_number][0] != f1 || lastPSconstants[const_number][1] != f2 ||
+		lastPSconstants[const_number][2] != f3 || lastPSconstants[const_number][3] != f4)
 	{
 		const float f[4] = {f1, f2, f3, f4};
 		glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f1, f2, f3, f4);
@@ -61,8 +61,8 @@ void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 
 void SetPSConstant4fv(int const_number, const float *f)
 {
-	if( lastPSconstants[const_number][0] != f[0] || lastPSconstants[const_number][1] != f[1] ||
-		lastPSconstants[const_number][2] != f[2] || lastPSconstants[const_number][3] != f[3] )
+	if (lastPSconstants[const_number][0] != f[0] || lastPSconstants[const_number][1] != f[1] ||
+		lastPSconstants[const_number][2] != f[2] || lastPSconstants[const_number][3] != f[3])
 	{
 		glProgramEnvParameter4fvARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f);
 		lastPSconstants[const_number][0] = f[0];

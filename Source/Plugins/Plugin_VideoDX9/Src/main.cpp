@@ -93,8 +93,6 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 #if defined(HAVE_WX) && HAVE_WX
 void DllDebugger(HWND _hParent, bool Show)
 {
-    //SetWindowTextA(EmuWindow::GetWnd(), "Hello");
-
 	if (!m_DebuggerFrame)
 		m_DebuggerFrame = new GFXDebuggerDX9(GetParentedWxWindow(_hParent));
 
@@ -106,8 +104,6 @@ void DllDebugger(HWND _hParent, bool Show)
 #else
 void DllDebugger(HWND _hParent, bool Show) { }
 #endif
-
-
 
 #if defined(HAVE_WX) && HAVE_WX
 	class wxDLLApp : public wxApp
@@ -121,11 +117,7 @@ void DllDebugger(HWND _hParent, bool Show) { }
 	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
 
-
-
-BOOL APIENTRY DllMain(	HINSTANCE hinstDLL,	// DLL module handle
-						DWORD dwReason,		// reason called
-						LPVOID lpvReserved)	// reserved
+BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvReserved)
 {
 	switch (dwReason)
 	{
@@ -257,16 +249,20 @@ void DllAbout(HWND _hParent)
 
 void DllConfig(HWND _hParent)
 {
-	if (Init())
+	// If not initialized, only init D3D so we can enumerate resolutions.
+	if (initCount == 0) 
 	{
-		DlgSettings_Show(g_hInstance,_hParent);
-		DeInit();
+		D3D::Init();
+	}
+	DlgSettings_Show(g_hInstance, _hParent);
+	if (initCount == 0)
+	{
+		D3D::Shutdown();
 	}
 }
 
 void Initialize(void *init)
 {
-
     SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
 	frameCount = 0;
 	g_VideoInitialize = *_pVideoInitialize;
@@ -275,38 +271,13 @@ void Initialize(void *init)
     _pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
     _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 
-	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.",5000);
-}
-
-void DoState(unsigned char **ptr, int mode) {
-	// Clear all caches
-	TextureCache::Invalidate(false);
-
-	PointerWrap p(ptr, mode);
-	VideoCommon_DoState(p);
-	//PanicAlert("Saving/Loading state from DirectX9");
-}
-
-void Video_EnterLoop()
-{
-	Fifo_EnterLoop(g_VideoInitialize);
-}
-
-void Video_ExitLoop()
-{
-	Fifo_ExitLoop();
-}
-
-void Video_SetRendering(bool bEnabled) {
-	Fifo_SetRendering(bEnabled);
+	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.", 5000);
 }
 
 void Video_Prepare(void)
 {
 	Renderer::Init();
-
 	TextureCache::Init();
-
 	BPInit();
 	VertexManager::Init();
 	Fifo_Init();
@@ -331,6 +302,28 @@ void Shutdown(void)
 	TextureCache::Shutdown();
 	Renderer::Shutdown();
 	DeInit();
+}
+
+void DoState(unsigned char **ptr, int mode) {
+	// Clear texture cache because it might have written to RAM
+	TextureCache::Invalidate(false);
+
+	PointerWrap p(ptr, mode);
+	VideoCommon_DoState(p);
+}
+
+void Video_EnterLoop()
+{
+	Fifo_EnterLoop(g_VideoInitialize);
+}
+
+void Video_ExitLoop()
+{
+	Fifo_ExitLoop();
+}
+
+void Video_SetRendering(bool bEnabled) {
+	Fifo_SetRendering(bEnabled);
 }
 
 void Video_SendFifoData(u8* _uData, u32 len)

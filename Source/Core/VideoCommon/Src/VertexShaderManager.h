@@ -45,5 +45,6 @@ public:
 
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4);
 void SetVSConstant4fv(int const_number, const float *f);
+void SetMultiVSConstant4fv(int const_number, int count, const float *f);
 
 #endif // _VERTEXSHADERMANAGER_H

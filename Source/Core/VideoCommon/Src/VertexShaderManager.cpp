@@ -95,19 +95,16 @@ void VertexShaderManager::SetConstants()
         int startn = nTransformMatricesChanged[0] / 4;
         int endn = (nTransformMatricesChanged[1] + 3) / 4;
         const float* pstart = (const float*)&xfmem[startn * 4];
-        for(int i = startn; i < endn; ++i, pstart += 4)
-            SetVSConstant4fv(C_TRANSFORMMATRICES + i, pstart);
+		SetMultiVSConstant4fv(C_TRANSFORMMATRICES + startn, endn - startn, pstart);
         nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
     }
     if (nNormalMatricesChanged[0] >= 0) 
 	{
         int startn = nNormalMatricesChanged[0] / 3;
         int endn = (nNormalMatricesChanged[1] + 2) / 3;
-        const float* pnstart = (const float*)&xfmem[XFMEM_NORMALMATRICES+3*startn];
-
-        for(int i = startn; i < endn; ++i, pnstart += 3)
-            SetVSConstant4fv(C_NORMALMATRICES + i, pnstart);
-
+        const float *pnstart = (const float*)&xfmem[XFMEM_NORMALMATRICES+3*startn];
+        for (int i = startn; i < endn; ++i, pnstart += 3)
+            SetVSConstant4fv(C_NORMALMATRICES + i, pnstart);  // looks like we're reading one too much..
         nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
     }
 
@@ -116,8 +113,7 @@ void VertexShaderManager::SetConstants()
         int startn = nPostTransformMatricesChanged[0] / 4;
         int endn = (nPostTransformMatricesChanged[1] + 3 ) / 4;
         const float* pstart = (const float*)&xfmem[XFMEM_POSTMATRICES + startn * 4];
-        for(int i = startn; i < endn; ++i, pstart += 4)
-            SetVSConstant4fv(C_POSTTRANSFORMMATRICES + i, pstart);
+        SetMultiVSConstant4fv(C_POSTTRANSFORMMATRICES + startn, endn - startn, pstart);
     }
 
     if (nLightsChanged[0] >= 0) 
@@ -168,47 +164,41 @@ void VertexShaderManager::SetConstants()
 	{
         bPosNormalMatrixChanged = false;
 
-        float* pos = (float*)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
-        float* norm = (float*)xfmem + XFMEM_NORMALMATRICES + 3 * (MatrixIndexA.PosNormalMtxIdx & 31);
+        const float *pos = (const float *)xfmem + MatrixIndexA.PosNormalMtxIdx * 4;
+        const float *norm = (const float *)xfmem + XFMEM_NORMALMATRICES + 3 * (MatrixIndexA.PosNormalMtxIdx & 31);
 
-        SetVSConstant4fv(C_POSNORMALMATRIX, pos);
-        SetVSConstant4fv(C_POSNORMALMATRIX+1, pos + 4);
-        SetVSConstant4fv(C_POSNORMALMATRIX+2, pos + 8);
+        SetMultiVSConstant4fv(C_POSNORMALMATRIX, 3, pos);
         SetVSConstant4fv(C_POSNORMALMATRIX+3, norm);
         SetVSConstant4fv(C_POSNORMALMATRIX+4, norm + 3);
         SetVSConstant4fv(C_POSNORMALMATRIX+5, norm + 6);
-    }
+	}
 
     if (bTexMatricesChanged[0])
 	{
         bTexMatricesChanged[0] = false;
-
-        float* fptrs[] = 
+        const float *fptrs[] = 
 		{
-			(float*)xfmem + MatrixIndexA.Tex0MtxIdx * 4, (float*)xfmem + MatrixIndexA.Tex1MtxIdx * 4,
-            (float*)xfmem + MatrixIndexA.Tex2MtxIdx * 4, (float*)xfmem + MatrixIndexA.Tex3MtxIdx * 4
+			(const float *)xfmem + MatrixIndexA.Tex0MtxIdx * 4, (const float *)xfmem + MatrixIndexA.Tex1MtxIdx * 4,
+            (const float *)xfmem + MatrixIndexA.Tex2MtxIdx * 4, (const float *)xfmem + MatrixIndexA.Tex3MtxIdx * 4
 		};
 
         for (int i = 0; i < 4; ++i) 
 		{
-            SetVSConstant4fv(C_TEXMATRICES+3 * i, fptrs[i]);
-            SetVSConstant4fv(C_TEXMATRICES+3 * i + 1, fptrs[i] + 4);
-            SetVSConstant4fv(C_TEXMATRICES+3 * i + 2, fptrs[i] + 8);
+            SetMultiVSConstant4fv(C_TEXMATRICES + 3 * i, 3, fptrs[i]);
         }
     }
 
     if (bTexMatricesChanged[1])
 	{
         bTexMatricesChanged[1] = false;
-
-        float* fptrs[] = {(float*)xfmem + MatrixIndexB.Tex4MtxIdx * 4, (float*)xfmem + MatrixIndexB.Tex5MtxIdx * 4,
-            (float*)xfmem + MatrixIndexB.Tex6MtxIdx * 4, (float*)xfmem + MatrixIndexB.Tex7MtxIdx * 4 };
+        const float *fptrs[] = {
+			(const float *)xfmem + MatrixIndexB.Tex4MtxIdx * 4, (const float *)xfmem + MatrixIndexB.Tex5MtxIdx * 4,
+            (const float *)xfmem + MatrixIndexB.Tex6MtxIdx * 4, (const float *)xfmem + MatrixIndexB.Tex7MtxIdx * 4
+		};
 
         for (int i = 0; i < 4; ++i) 
 		{
-            SetVSConstant4fv(C_TEXMATRICES+3 * i + 12, fptrs[i]);
-            SetVSConstant4fv(C_TEXMATRICES+3 * i + 12 + 1, fptrs[i] + 4);
-            SetVSConstant4fv(C_TEXMATRICES+3 * i + 12 + 2, fptrs[i] + 8);
+            SetMultiVSConstant4fv(C_TEXMATRICES+3 * i + 12, 3, fptrs[i]);
         }
     }
 
@@ -335,17 +325,11 @@ void VertexShaderManager::SetConstants()
             Matrix44::Set(mtxB, g_fProjectionMatrix);
             Matrix44::Multiply(mtxB, viewMtx, mtxA); // mtxA = projection x view
 
-            SetVSConstant4fv(C_PROJECTION,   &mtxA.data[0]);
-            SetVSConstant4fv(C_PROJECTION+1, &mtxA.data[4]);
-            SetVSConstant4fv(C_PROJECTION+2, &mtxA.data[8]);
-            SetVSConstant4fv(C_PROJECTION+3, &mtxA.data[12]);
+            SetMultiVSConstant4fv(C_PROJECTION, 4, &mtxA.data[0]);
         }
         else
 		{
-		    SetVSConstant4fv(C_PROJECTION,   &g_fProjectionMatrix[0]);
-            SetVSConstant4fv(C_PROJECTION+1, &g_fProjectionMatrix[4]);
-            SetVSConstant4fv(C_PROJECTION+2, &g_fProjectionMatrix[8]);
-            SetVSConstant4fv(C_PROJECTION+3, &g_fProjectionMatrix[12]);
+		    SetMultiVSConstant4fv(C_PROJECTION, 4, &g_fProjectionMatrix[0]);
         }
     }
 }
