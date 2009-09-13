@@ -31,10 +31,6 @@ END_EVENT_TABLE()
 DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-	// Load config settings
-	g_Config.Load();
-	g_Config.GameIniLoad();
-
 	// Center window
 	CenterOnParent();
 

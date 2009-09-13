@@ -44,8 +44,8 @@ namespace VideoInterface
     void Update();
 
 	// urgh, ugly externs.
-	extern double ActualRefreshRate;
-	extern double TargetRefreshRate;
+	extern float ActualRefreshRate;
+	extern float TargetRefreshRate;
 	extern s64 SyncTicksProgress;
 
 	// UpdateInterrupts: check if we have to generate a new VI Interrupt

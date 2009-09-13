@@ -705,7 +705,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
 		double wait_frametime = (1000.0 / targetfps);
 
 		if (Timer.GetTimeDifference() >= wait_frametime * frames)
-			no_framelimit=Timer.GetTimeDifference();
+			no_framelimit = (u32)Timer.GetTimeDifference();
 
 		while (Timer.GetTimeDifference() < wait_frametime * frames)
 		{
@@ -756,7 +756,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
 
 		int TargetVPS = (int)(VideoInterface::TargetRefreshRate + 0.5);
 
-		float Speed = ((VPS > 0 ? VPS : VideoInterface::ActualRefreshRate) / TargetVPS) * 100.0f;
+		float Speed = ((VPS > 0.0f ? VPS : VideoInterface::ActualRefreshRate) / TargetVPS) * 100.0f;
 		
 		// Settings are shown the same for both extended and summary info
 		std::string SSettings = StringFromFormat(" | Core: %s %s",

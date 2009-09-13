@@ -37,9 +37,6 @@ struct SCoreStartupParameter
 	// Windows/GUI related
 	void* hMainWindow;
 
-	// game ini
-	IniFile *gameIni;
-
 	// Settings
 	bool bEnableDebugging; bool bAutomaticStart; bool bBootToPause;
 	bool bUseJIT;
@@ -116,6 +113,7 @@ struct SCoreStartupParameter
 	std::string m_strDVDRoot;
 	std::string m_strUniqueID;
 	std::string m_strName;
+	std::string m_strGameIni;
 
 	// Constructor just calls LoadDefaults
 	SCoreStartupParameter();

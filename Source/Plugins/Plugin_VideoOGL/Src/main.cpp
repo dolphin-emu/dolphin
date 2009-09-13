@@ -70,11 +70,6 @@ GFXDebuggerOGL *m_DebuggerFrame = NULL;
 #endif // HAVE_WX
 
 #include "Config.h"
-
-// Having to include this is TERRIBLY ugly. FIXME x100
-#include "Globals.h"
-#include "../../../Core/Core/Src/ConfigManager.h" // FIXME
-
 #include "LookUpTables.h"
 #include "ImageWrite.h"
 #include "Render.h"
@@ -286,9 +281,7 @@ void CocaAddResolutions() {
 void DllConfig(HWND _hParent)
 {
 	g_Config.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
-	// UGLY
-	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
-	g_Config.GameIniLoad(iniFile);
+	g_Config.GameIniLoad(globals->game_ini);
 	g_Config.UpdateProjectionHack();
 	UpdateActiveConfig();
 #if defined(HAVE_WX) && HAVE_WX
@@ -326,9 +319,7 @@ void Initialize(void *init)
 	InitXFBConvTables();
 
     g_Config.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
-	// UGLY
-	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
-	g_Config.GameIniLoad(iniFile);
+	g_Config.GameIniLoad(globals->game_ini);
 
 #if defined(HAVE_WX) && HAVE_WX
 	g_Config.UpdateProjectionHack();

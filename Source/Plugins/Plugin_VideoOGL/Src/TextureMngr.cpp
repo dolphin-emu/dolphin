@@ -52,8 +52,6 @@
 #include "FileUtil.h"
 #include "HiresTextures.h"
 
-#include "../../../Core/Core/Src/ConfigManager.h" // FIXME
-
 u8 *TextureMngr::temp = NULL;
 TextureMngr::TexCache TextureMngr::textures;
 
@@ -161,7 +159,7 @@ void TextureMngr::Init()
 {
     temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
-	HiresTextures::Init(((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str());
+	HiresTextures::Init(globals->unique_id);
 }
 
 void TextureMngr::Invalidate(bool shutdown)
@@ -342,7 +340,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		int oldWidth = width;
 		int oldHeight = height;
 
-		sprintf(texPathTemp, "%s_%08x_%i", ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str(), texHash, tex_format);
+		sprintf(texPathTemp, "%s_%08x_%i", globals->unique_id, texHash, tex_format);
 		dfmt = HiresTextures::GetHiresTex(texPathTemp, &width, &height, tex_format, temp);
 
 		if (dfmt != PC_TEX_FMT_NONE)
@@ -467,7 +465,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
         char szTemp[MAX_PATH];
 		char szDir[MAX_PATH];
-		const char* uniqueId = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str();
+		const char* uniqueId = globals->unique_id;
 		bool bCheckedDumpDir = false;
 
 		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,uniqueId);

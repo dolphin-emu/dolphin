@@ -338,8 +338,8 @@ static u32 s_lineCount = 0;
 static u32 s_upperFieldBegin = 0;
 static u32 s_lowerFieldBegin = 0;
 
-double TargetRefreshRate = 0.0;
-double ActualRefreshRate = 0.0;
+float TargetRefreshRate = 0.0;
+float ActualRefreshRate = 0.0;
 s64 SyncTicksProgress = 0;
 
 void DoState(PointerWrap &p)

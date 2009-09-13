@@ -71,11 +71,7 @@ namespace BootManager
 	extern "C" HINSTANCE wxGetInstance();
 #endif
 
-
-
-
 // Boot the ISO or file
-// ----------------
 bool BootCore(const std::string& _rFilename)
 {
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
@@ -117,40 +113,28 @@ bool BootCore(const std::string& _rFilename)
 
 	// ====================================================
 	// Load game specific settings
-	// ----------------
-	// Released when you LoadDefaults
-	IniFile *ini = new IniFile();
+	IniFile game_ini;
 	std::string unique_id = StartUp.GetUniqueID();
-	if (unique_id.size() == 6 && ini->Load((FULL_GAMECONFIG_DIR + unique_id + ".ini").c_str()))
+	StartUp.m_strGameIni = FULL_GAMECONFIG_DIR + unique_id + ".ini";
+	if (unique_id.size() == 6 && game_ini.Load(StartUp.m_strGameIni.c_str()))
 	{
-		StartUp.gameIni = ini;
-		// ------------------------------------------------
 		// General settings
-		// ----------------
-		ini->Get("Core", "UseDualCore", &StartUp.bUseDualCore, StartUp.bUseDualCore);
-		ini->Get("Core", "SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
-		ini->Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
-		ini->Get("Core", "EnableFPRF", &StartUp.bEnableFPRF, StartUp.bEnableFPRF);
-		ini->Get("Core", "TLBHack", &StartUp.iTLBHack, StartUp.iTLBHack);
-
-		// ------------------------------------------------
+		game_ini.Get("Core", "UseDualCore", &StartUp.bUseDualCore, StartUp.bUseDualCore);
+		game_ini.Get("Core", "SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
+		game_ini.Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
+		game_ini.Get("Core", "EnableFPRF", &StartUp.bEnableFPRF, StartUp.bEnableFPRF);
+		game_ini.Get("Core", "TLBHack", &StartUp.iTLBHack, StartUp.iTLBHack);
 		// Wii settings
-		// ----------------
 		if (StartUp.bWii)
 		{
-			//bRefreshList = false;
-			FILE* pStream; // file handle
-			u16 IPL_PGS = 0x17CC; // progressive scan
-			u16 IPL_AR = 0x04D9; // widescreen
-
-			ini->Get("Wii", "ProgressiveScan", &StartUp.bProgressiveScan, StartUp.bProgressiveScan);
-			ini->Get("Wii", "Widescreen", &StartUp.bWidescreen, StartUp.bWidescreen);
-
+			game_ini.Get("Wii", "ProgressiveScan", &StartUp.bProgressiveScan, StartUp.bProgressiveScan);
+			game_ini.Get("Wii", "Widescreen", &StartUp.bWidescreen, StartUp.bWidescreen);
 			// Save the update Wii SYSCONF settings
-			pStream = NULL;
-			pStream = fopen(WII_SYSCONF_FILE, "r+b");
-			if (pStream != NULL)
+			FILE* pStream = fopen(WII_SYSCONF_FILE, "r+b");
+			if (pStream)
 			{
+				const int IPL_PGS = 0x17CC; // progressive scan
+				const int IPL_AR = 0x04D9; // widescreen
 				fseek(pStream, IPL_PGS, 0);
 				fputc(StartUp.bProgressiveScan ? 1 : 0, pStream);
 				fseek(pStream, IPL_AR, 0);
@@ -162,15 +146,8 @@ bool BootCore(const std::string& _rFilename)
 				PanicAlert("Could not write to %s", WII_SYSCONF_FILE);
 			}
 		}
-		// ---------------
-	} else {
-		delete ini;
-		ini = NULL;
-	}
-	// =====================
+	} 
 
-
-	// =================================================================
 	// Run the game
 	// --------------
 #if defined(HAVE_WX) && HAVE_WX

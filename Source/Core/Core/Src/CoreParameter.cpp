@@ -47,8 +47,6 @@ void SCoreStartupParameter::LoadDefaults()
 	bWii = false;
 	SelectedLanguage = 0;
 	iTLBHack = 0;
-	delete gameIni;
-	gameIni = NULL;
 
 	bJITOff = false; // debugger only settings
 	bJITLoadStoreOff = false;

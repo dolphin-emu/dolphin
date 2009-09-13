@@ -28,7 +28,7 @@ struct CConfig
     CConfig();
     
     void Load();
-    void GameIniLoad();
+    void GameIniLoad(const char *game_ini);
     void Save();
 };
 

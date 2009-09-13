@@ -33,8 +33,6 @@
 #include "TextureDecoder.h"
 #include "TextureCache.h"
 
-#include "../../../Core/Core/Src/ConfigManager.h" // FIXME
-
 u8 *TextureCache::temp = NULL;
 TextureCache::TexCache TextureCache::textures;
 
@@ -235,7 +233,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 		char szTemp[MAX_PATH];
 		char szDir[MAX_PATH];
-		const char* uniqueId = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str();
+		const char* uniqueId = globals->unique_id;
 		bool bCheckedDumpDir = false;
 
 		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,uniqueId);

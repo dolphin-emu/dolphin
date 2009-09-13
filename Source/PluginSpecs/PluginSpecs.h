@@ -84,9 +84,6 @@ enum PLUGIN_TYPE {
 #define STATE_MODE_MEASURE 3
 
 
-
-
-
 // Export structs
 // ------------
 typedef struct 
@@ -96,15 +93,15 @@ typedef struct
 	char Name[100];		// Name of the DLL
 } PLUGIN_INFO;
 
+// TODO: Remove, or at least remove the void pointers and replace with data.
+// This design is just wrong and ugly - the plugins shouldn't have this much access.
 typedef struct 
 {
     void *eventHandler;
-    void *config;
     void *logManager;
+	char game_ini[MAX_PATH];
+	char unique_id[16];
 } PLUGIN_GLOBALS;
-
-
-
 
 // GLOBAL I N T E R F A C E 
 // ____________________________________________________________________________

@@ -49,12 +49,13 @@ void CConfig::Save()
 	file.Save(FULL_CONFIG_DIR "DSP.ini");
 }
 
-void CConfig::GameIniLoad() {
-	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
-	if (! iniFile) 
-		return;
-
-	if (iniFile->Exists("HLEaudio", "UseRE0Fix"))
-		iniFile->Get("HLEaudio", "UseRE0Fix", &m_EnableRE0Fix, 0);
+void CConfig::GameIniLoad(const char *game_ini)
+{
+	if (game_ini && strlen(game_ini))
+	{
+		IniFile iniFile;
+		iniFile.Load(game_ini);
+		iniFile.Get("HLEaudio", "UseRE0Fix", &m_EnableRE0Fix, 0);
+	}
 }
 

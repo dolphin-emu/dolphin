@@ -55,7 +55,7 @@ struct Config
 {
     Config();
     void Load(const char *ini_file);
-	void GameIniLoad(IniFile *iniFile);
+	void GameIniLoad(const char *ini_file);
     void Save(const char *ini_file);
 	void UpdateProjectionHack();
 

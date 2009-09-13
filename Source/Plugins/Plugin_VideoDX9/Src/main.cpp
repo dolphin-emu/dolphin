@@ -177,8 +177,7 @@ void UpdateFPSDisplay(const char *text)
 bool Init()
 {
 	g_Config.Load(FULL_CONFIG_DIR "gfx_dx9.ini");
-	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
-	g_Config.GameIniLoad(iniFile);
+	g_Config.GameIniLoad(globals->game_ini);
 	UpdateProjectionHack(g_Config.iPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
 
 	if (initCount == 0)

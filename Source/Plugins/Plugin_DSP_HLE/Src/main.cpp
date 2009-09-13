@@ -179,6 +179,10 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 void DllConfig(HWND _hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
+	// Load config settings
+	g_Config.Load();
+	g_Config.GameIniLoad(globals->game_ini);
+
 	if (!m_ConfigFrame)
 		m_ConfigFrame = new DSPConfigDialogHLE(GetParentedWxWindow(_hParent));
 	else if (!m_ConfigFrame->GetParent()->IsShown())

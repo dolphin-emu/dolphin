@@ -15,15 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-
 // File description
 /* ------------
-
    This file controls when plugins are loaded and unloaded from memory. Its functions scan for valid
    plugins when Dolphin is booted, and open the debugging and config windows. The PluginManager is
    created once when Dolphin starts and is closed when Dolphin is closed.
-
 */
 
 // Include
@@ -58,7 +54,6 @@ CPluginManager::CPluginManager()
 	// Start LogManager
 	m_PluginGlobals->logManager = LogManager::GetInstance();
 	m_PluginGlobals->eventHandler = EventHandler::GetInstance();
-	m_PluginGlobals->config = (void *)&SConfig::GetInstance();
 
 	m_params = &(SConfig::GetInstance().m_LocalCoreStartupParameter);
 
@@ -104,6 +99,13 @@ CPluginManager::~CPluginManager()
 // Function: Point the m_pad[] and other variables to a certain plugin
 bool CPluginManager::InitPlugins()
 {
+	// Update pluginglobals.
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.size() == 0)
+	{
+		PanicAlert("Bad gameini filename");
+	}
+	strcpy(m_PluginGlobals->game_ini, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
+	strcpy(m_PluginGlobals->unique_id, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str());
 	if (!GetDSP()) {
 		PanicAlert("Can't init DSP Plugin");
 		return false;

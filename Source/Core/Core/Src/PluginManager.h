@@ -71,7 +71,7 @@ private:
 	bool m_Initialized;
 
 	CPluginInfos m_PluginInfos;
-	PLUGIN_GLOBALS* m_PluginGlobals;
+	PLUGIN_GLOBALS *m_PluginGlobals;
 	Common::PluginPAD *m_pad[4];
 	Common::PluginVideo *m_video;
 	Common::PluginWiimote *m_wiimote[4];

@@ -78,7 +78,7 @@ void CUCode_AX::SaveLogFile(std::string f, int resizeTo, bool type, bool Wii)
 	ci << (resizeTo - 1); // write ci
 	cType << type; // write cType
 	
-	std::string FileName = FULL_MAIL_LOGS_DIR + ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID();
+	std::string FileName = FULL_MAIL_LOGS_DIR + std::string(globals->unique_id);
 	FileName += "_sep"; FileName += ci.str(); FileName += "_sep"; FileName += cType.str();
 	FileName += Wii ? "_sepWii_sep" : "_sepGC_sep"; FileName += ".log";
 	
@@ -98,25 +98,24 @@ void CUCode_AX::SaveLog_(bool Wii, const char* _fmt, va_list ap)
     vsprintf(Msg, _fmt, ap);
 
 #if defined(HAVE_WX) && HAVE_WX
-if(m_DebuggerFrame->ScanMails)
+if (m_DebuggerFrame->ScanMails)
 {	
 
-	if(strcmp(Msg, "Begin") == 0)
+	if (strcmp(Msg, "Begin") == 0)
 	{
 		TmpMailLog = "";
 	}
-	else if(strcmp(Msg, "End") == 0)
+	else if (strcmp(Msg, "End") == 0)
 	{
-		if(saveNext && saveNext < 100) // limit because saveNext is not initialized
+		if (saveNext && saveNext < 100) // limit because saveNext is not initialized
 		{		
-
 			// Save the timestamps and comment
-                        std::ostringstream ci;
-                        ci << (saveNext - 1);
+            std::ostringstream ci;
+            ci << (saveNext - 1);
 			TmpMailLog += "\n\n";
 			TmpMailLog += "-----------------------------------------------------------------------\n";
-			TmpMailLog += "Current mail: " + ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID() + " mail " + ci.str() + "\n";
-			if(Wii)
+//			TmpMailLog += "Current mail: " + std::string(globals->unique_id) + " mail " + ci + "\n";
+			if (Wii)
 				TmpMailLog += "Current CRC: " + StringFromFormat("0x%08x \n\n", _CRC);			
 
 			for (u32 i = 0; i < sMailTime.size(); i++)
@@ -128,7 +127,7 @@ if(m_DebuggerFrame->ScanMails)
 
 			sMailLog.push_back(TmpMailLog);
 			// Save file to disc
-			if(m_DebuggerFrame->StoreMails)
+			if (m_DebuggerFrame->StoreMails)
 			{
 				SaveLogFile(TmpMailLog, saveNext, 1, Wii);
 			}
@@ -158,7 +157,7 @@ void CUCode_AX::SaveMail(bool Wii, u32 _uMail)
 {
 #if defined(HAVE_WX) && HAVE_WX
 if (!m_DebuggerFrame) return;
-if(m_DebuggerFrame->ScanMails)
+if (m_DebuggerFrame->ScanMails)
 {
 	int i = 0;
 	std::string sTemp;
@@ -171,7 +170,7 @@ if(m_DebuggerFrame->ScanMails)
 	{
 		// Make a new row for each AX-Command
 		u16 axcomm = Memory_Read_U16(_uMail + i);
-		if(axcomm < 15 && axcomm != 0) // we can at most write 8 messages per log
+		if (axcomm < 15 && axcomm != 0) // we can at most write 8 messages per log
 		{	
 			*sAct += "\n";
 		}
@@ -195,7 +194,7 @@ if(m_DebuggerFrame->ScanMails)
 	u32 addnew = 0;
 	for (u32 j = 0; j < m_DebuggerFrame->sMail.size(); j++)
 	{
-		if(m_DebuggerFrame->sMail.at(j).length() != sTemp.length())
+		if (m_DebuggerFrame->sMail.at(j).length() != sTemp.length())
 		{
 			//wxMessageBox( wxString::Format("%s  \n\n%s", m_DebuggerFrame->sMail.at(i).c_str(),
 			//	sTemp.c_str()) );
@@ -205,7 +204,7 @@ if(m_DebuggerFrame->ScanMails)
 
 
 	// In case the mail didn't match any saved mail, save it
-	if(addnew == m_DebuggerFrame->sMail.size())
+	if (addnew == m_DebuggerFrame->sMail.size())
 	{		
 		//Console::Print("%i  |  %i\n", addnew, m_DebuggerFrame->sMail.size());
 		u32 resizeTo = (u32)(m_DebuggerFrame->sMail.size() + 1);		
@@ -225,7 +224,7 @@ if(m_DebuggerFrame->ScanMails)
 		m_DebuggerFrame->sFullMail.push_back(lMail);
 
 		// enable the radio button and update view
-		if(resizeTo <= m_DebuggerFrame->m_RadioBox[3]->GetCount())
+		if (resizeTo <= m_DebuggerFrame->m_RadioBox[3]->GetCount())
 		{
 			m_DebuggerFrame->m_RadioBox[3]->Enable(resizeTo - 1, true);
 			m_DebuggerFrame->m_RadioBox[3]->Select(resizeTo - 1);
@@ -236,7 +235,7 @@ if(m_DebuggerFrame->ScanMails)
 
 		// ------------------------------------
 		// Save as file
-		if(m_DebuggerFrame->StoreMails)
+		if (m_DebuggerFrame->StoreMails)
 		{
 			//Console::Print("m_DebuggerFrame->sMail.size(): %i  |  resizeTo:%i\n", m_DebuggerFrame->sMail.size(), resizeTo);
 			SaveLogFile(lMail, resizeTo, 0, Wii);
@@ -294,7 +293,7 @@ static void ProcessUpdates(AXParamBlock &PB)
 		const u16 updpar   = Memory_Read_U16(updaddr + k);
 		const u16 upddata   = Memory_Read_U16(updaddr + k + 2);
 		// some safety checks, I hope it's enough
-		if(updaddr > 0x80000000 && updaddr < 0x817fffff
+		if (updaddr > 0x80000000 && updaddr < 0x817fffff
 			&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
 			// 0-3, those are important
 			//&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
@@ -408,7 +407,7 @@ void CUCode_AX::SaveLog(const char* _fmt, ...)
 {
 #if defined(HAVE_WX) && HAVE_WX
 	va_list ap; va_start(ap, _fmt); 
-	if(m_DebuggerFrame) SaveLog_(false, _fmt, ap); 
+	if (m_DebuggerFrame) SaveLog_(false, _fmt, ap); 
 	va_end(ap);
 #endif
 }
@@ -443,7 +442,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	bool bExecuteList = true;
 
 #if defined(HAVE_WX) && HAVE_WX
-	if(m_DebuggerFrame) SaveMail(false, _uMail); // Save mail for debugging
+	if (m_DebuggerFrame) SaveMail(false, _uMail); // Save mail for debugging
 #endif
 	while (bExecuteList)
 	{
