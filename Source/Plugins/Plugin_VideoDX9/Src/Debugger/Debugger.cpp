@@ -298,7 +298,7 @@ void DX9Debugger_Pause_Count_N(PauseEvent event,bool update)
 			if (update)
 			{
 				D3D::EndFrame();
-				D3D::BeginFrame(false);
+				D3D::BeginFrame(false, 0x00000000, 1.0f);
 			}
 			DX9DebuggerCheckAndPause();
 		}
