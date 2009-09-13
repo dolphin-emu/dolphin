@@ -37,13 +37,16 @@ void Shutdown();
 extern IDirect3DDevice9 *dev;
 
 void Reset();
-bool BeginFrame(bool clear, u32 color, float z);
+bool BeginFrame();
 void EndFrame();
 void SwitchFullscreen(bool fullscreen);
 bool IsFullscreen();
-int GetDisplayWidth();
-int GetDisplayHeight();
+
+int GetBackBufferWidth();
+int GetBackBufferHeight();
 LPDIRECT3DSURFACE9 GetBackBufferSurface();
+LPDIRECT3DSURFACE9 GetBackBufferDepthSurface();
+
 const D3DCAPS9 &GetCaps();
 const char *PixelShaderVersionString();
 const char *VertexShaderVersionString();

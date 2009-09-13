@@ -94,19 +94,24 @@ void SetMultiVSConstant4fv(int const_number, int count, const float *f)
 
 void VertexShaderCache::Init()
 {
-	//memset(lastVSconstants,0xFF,(C_FOGPARAMS+8)*4*sizeof(float)); // why does this not work
-	//memset(lastVSconstants,0xFF,sizeof(lastVSconstants));
-	for( int i=0;i<(C_FOGPARAMS+8)*4;i++)
-		lastVSconstants[i/4][i%4] = -100000000.0f;
-	memset(&last_vertex_shader_uid,0xFF,sizeof(last_vertex_shader_uid));
+	Clear();
+}
+
+void VertexShaderCache::Clear()
+{
+	VSCache::iterator iter = vshaders.begin();
+	for (; iter != vshaders.end(); ++iter)
+		iter->second.Destroy();
+	vshaders.clear();
+
+	for (int i = 0; i < (C_FOGPARAMS + 8) * 4; i++)
+		lastVSconstants[i / 4][i % 4] = -100000000.0f;
+	memset(&last_vertex_shader_uid, 0xFF, sizeof(last_vertex_shader_uid));
 }
 
 void VertexShaderCache::Shutdown()
 {
-	VSCache::iterator iter = vshaders.begin();
-	for (; iter != vshaders.end(); iter++)
-		iter->second.Destroy();
-	vshaders.clear();
+	Clear();
 }
 
 bool VertexShaderCache::SetShader(u32 components)

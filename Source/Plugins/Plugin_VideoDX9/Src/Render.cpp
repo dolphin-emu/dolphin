@@ -33,17 +33,19 @@
 #include "PixelShaderManager.h"
 #include "VertexShaderCache.h"
 #include "PixelShaderCache.h"
+#include "VertexLoaderManager.h"
 #include "TextureCache.h"
 #include "Utils.h"
 #include "EmuWindow.h"
 #include "AVIDump.h"
 #include "OnScreenDisplay.h"
+#include "FramebufferManager.h"
 #include "Fifo.h"
 
 #include "debugger/debugger.h"
 
-static int s_targetWidth;
-static int s_targetHeight;
+static int s_target_width;
+static int s_target_height;
 
 static int s_backbuffer_width;
 static int s_backbuffer_height;
@@ -60,23 +62,46 @@ static bool s_AVIDumping;
 #define NUMWNDRES 6
 extern int g_Res[NUMWNDRES][2];
 
+void SetupDeviceObjects()
+{
+	D3D::font.Init();
+	VertexLoaderManager::Init();
+	FBManager::Create();
+}
+
+// Kill off all POOL_DEFAULT device objects.
+void TeardownDeviceObjects()
+{
+	FBManager::Destroy();
+	D3D::font.Shutdown();
+	TextureCache::Invalidate(false);
+	VertexManager::DestroyDeviceObjects();
+	VertexLoaderManager::Shutdown();
+	VertexShaderCache::Clear();
+	PixelShaderCache::Clear();
+
+	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
+	D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
+}
+
 bool Renderer::Init() 
 {
 	UpdateActiveConfig();
     EmuWindow::SetSize(g_Res[g_ActiveConfig.iWindowedRes][0], g_Res[g_ActiveConfig.iWindowedRes][1]);
 
-	int backbuffer_ms_mode = g_ActiveConfig.iMultisampleMode;
+	int backbuffer_ms_mode = 0;  // g_ActiveConfig.iMultisampleMode;
     D3D::Create(g_ActiveConfig.iAdapter, EmuWindow::GetWnd(), g_ActiveConfig.bFullscreen,
 		        g_ActiveConfig.iFSResolution, backbuffer_ms_mode);
 
-	s_targetWidth  = D3D::GetDisplayWidth();
-	s_targetHeight = D3D::GetDisplayHeight();
+	s_backbuffer_width = D3D::GetBackBufferWidth();
+	s_backbuffer_height = D3D::GetBackBufferHeight();
 
-	s_backbuffer_width = s_targetWidth;
-	s_backbuffer_height = s_targetHeight;
+	// TODO: Grab target width from configured resolution?
+	s_target_width  = s_backbuffer_width * EFB_WIDTH / 640;
+	s_target_height = s_backbuffer_height * EFB_HEIGHT / 480;
 
-	xScale = (float)s_targetWidth / (float)EFB_WIDTH;
-	yScale = (float)s_targetHeight / (float)EFB_HEIGHT;
+	xScale = (float)s_target_width / (float)EFB_WIDTH;
+	yScale = (float)s_target_height / (float)EFB_HEIGHT;
 
 	s_LastFrameDumped = false;
 	s_AVIDumping = false;
@@ -87,18 +112,26 @@ bool Renderer::Init()
 	D3DXMatrixIdentity(&mtx);
 	D3D::dev->SetTransform(D3DTS_VIEW, &mtx);
 	D3D::dev->SetTransform(D3DTS_WORLD, &mtx);
-	D3D::font.Init();
+
+	SetupDeviceObjects();
 
 	for (int i = 0; i < 8; i++)
 		D3D::dev->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, 16);
 
-	D3D::BeginFrame(true, 0, 1.0f);
+	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 0, 0);
+
+	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+
+	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL, 0x0, 1.0f, 0);
+
+	D3D::BeginFrame();
 	return true;
 }
 
 void Renderer::Shutdown()
 {
-	D3D::font.Shutdown();
+	TeardownDeviceObjects();
 	D3D::EndFrame();
 	D3D::Close();
 
@@ -108,14 +141,10 @@ void Renderer::Shutdown()
 	}
 }
 
-float Renderer::GetTargetScaleX()
-{
-	return xScale;
-}
-float Renderer::GetTargetScaleY()
-{
-	return yScale;
-}
+int Renderer::GetTargetWidth() { return s_target_width; }
+int Renderer::GetTargetHeight() { return s_target_height; }
+float Renderer::GetTargetScaleX() { return xScale; }
+float Renderer::GetTargetScaleY() { return yScale; }
 
 void Renderer::RenderText(const char *text, int left, int top, u32 color)
 {
@@ -135,10 +164,10 @@ void dumpMatrix(D3DXMATRIX &mtx)
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
 	TargetRectangle result;
-	result.left   = (rc.left   * s_targetWidth)  / EFB_WIDTH;
-	result.top    = (rc.top    * s_targetHeight) / EFB_HEIGHT;
-	result.right  = (rc.right  * s_targetWidth)  / EFB_WIDTH;
-	result.bottom = (rc.bottom * s_targetHeight) / EFB_HEIGHT;
+	result.left   = (rc.left   * s_target_width)  / EFB_WIDTH;
+	result.top    = (rc.top    * s_target_height) / EFB_HEIGHT;
+	result.right  = (rc.right  * s_target_width)  / EFB_WIDTH;
+	result.bottom = (rc.bottom * s_target_height) / EFB_HEIGHT;
 	return result;
 }
 
@@ -156,14 +185,14 @@ void formatBufferDump(const char *in, char *out, int w, int h, int p)
 	}
 }
 
-void Renderer::SwapBuffers()
+void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
 	if (g_bSkipCurrentFrame)
 		return;
 
-	// Center window again.
 	if (EmuWindow::GetParentWnd())
 	{
+		// Re-stretch window to parent window size again, if it has a parent window.
 		RECT rcWindow;
 		GetWindowRect(EmuWindow::GetParentWnd(), &rcWindow);
 
@@ -173,7 +202,7 @@ void Renderer::SwapBuffers()
 		::MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
 	}
 
-	// Frame dumping routine
+	// Frame dumping routine - seems buggy and wrong, esp. regarding buffer sizes
 	if (g_ActiveConfig.bDumpFrames) {
 		D3DDISPLAYMODE DisplayMode;
 		if (SUCCEEDED(D3D::dev->GetDisplayMode(0, &DisplayMode))) {
@@ -214,13 +243,25 @@ void Renderer::SwapBuffers()
 	} 
 	else 
 	{
-		if(s_LastFrameDumped && s_AVIDumping) {
+		if (s_LastFrameDumped && s_AVIDumping) {
 			AVIDump::Stop();
 			s_AVIDumping = false;
 		}
 
 		s_LastFrameDumped = false;
 	}
+
+	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
+	D3D::dev->SetDepthStencilSurface(NULL);
+
+	// Blit our render target onto the backbuffer.
+	// TODO: Change to a quad so we can do post processing.
+	TargetRectangle src_rect, dst_rect;
+	src_rect = ConvertEFBRectangle(sourceRc);
+	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
+	D3D::dev->StretchRect(FBManager::GetEFBColorRTSurface(), src_rect.AsRECT(),
+		                  D3D::GetBackBufferSurface(), dst_rect.AsRECT(),
+						  D3DTEXF_LINEAR);
 
 	char st[8192];
 	// Finish up the current frame, print some stats
@@ -237,20 +278,6 @@ void Renderer::SwapBuffers()
 	}
 
 	OSD::DrawMessages();
-
-#if defined(DVPROFILE)
-    if (g_bWriteProfile) {
-        //g_bWriteProfile = 0;
-        static int framenum = 0;
-        const int UPDATE_FRAMES = 8;
-        if (++framenum >= UPDATE_FRAMES) {
-            DVProfWrite("prof.txt", UPDATE_FRAMES);
-            DVProfClear();
-            framenum = 0;
-        }
-    }
-#endif
-
 	D3D::EndFrame();
 
 	DEBUGGER_PAUSE_COUNT_N_WITHOUT_UPDATE(NEXT_FRAME);
@@ -265,53 +292,57 @@ void Renderer::SwapBuffers()
 	// Make any new configuration settings active.
 	UpdateActiveConfig();
 
-	/*
-	TODO: Resize backbuffer if window size has changed. This code crashes, debug it.
+	// TODO: Resize backbuffer if window size has changed. This code crashes, debug it.
+
+	while (EmuWindow::IsSizing())
+	{
+		Sleep(10);
+	}
 
 	RECT rcWindow;
 	GetClientRect(EmuWindow::GetWnd(), &rcWindow);
 	if (rcWindow.right - rcWindow.left != s_backbuffer_width ||
 		rcWindow.bottom - rcWindow.top != s_backbuffer_height)
 	{
-		D3D::Reset();
-		s_backbuffer_width = D3D::GetDisplayWidth();
-		s_backbuffer_height = D3D::GetDisplayHeight();
-	}
-	*/
+		TeardownDeviceObjects();
 
-	//Begin new frame
-	//Set default viewport and scissor, for the clear to work correctly
+		D3D::Reset();
+
+		SetupDeviceObjects();
+		s_backbuffer_width = D3D::GetBackBufferWidth();
+		s_backbuffer_height = D3D::GetBackBufferHeight();
+	}
+
+	g_VideoInitialize.pCopiedToXFB(false);
+
+	// Begin new frame
+	// Set default viewport and scissor, for the clear to work correctly
 	stats.ResetFrame();
+	// u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
+	D3D::BeginFrame();
+	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 1.0f, 0);
+
+	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+
 	D3DVIEWPORT9 vp;
 	vp.X = 0;
 	vp.Y = 0;
-	vp.Width  = (DWORD)s_targetWidth;
-	vp.Height = (DWORD)s_targetHeight;
+	vp.Width  = (DWORD)s_target_width;
+	vp.Height = (DWORD)s_target_height;
 	vp.MinZ = 0;
 	vp.MaxZ = 1.0f;
 	D3D::dev->SetViewport(&vp);
+
 	RECT rc;
 	rc.left   = 0; 
 	rc.top    = 0;
-	rc.right  = (LONG)s_targetWidth;
-	rc.bottom = (LONG)s_targetHeight;
+	rc.right  = (LONG)s_target_width;
+	rc.bottom = (LONG)s_target_height;
 	D3D::dev->SetScissorRect(&rc);
 	D3D::dev->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
 
-	// We probably shouldn't clear here.
-	// D3D::dev->Clear(0, 0, D3DCLEAR_TARGET, 0x00000000, 0, 0);
-
-	u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
-	D3D::BeginFrame(false, clearColor, 1.0f);
-	
-	// This probably causes problems, and the visual difference is tiny anyway.
-	// So let's keep it commented out.
-	// D3D::EnableAlphaToCoverage();
-
 	UpdateViewport();
-
-	if (g_ActiveConfig.bOldCard)
-		D3D::font.SetRenderStates(); //compatibility with low end cards
 }
 
 bool Renderer::SetScissorRect()
@@ -328,6 +359,12 @@ bool Renderer::SetScissorRect()
 	rc.top    = (int)(rc.top    * yScale);
 	rc.right  = (int)(rc.right  * xScale);
 	rc.bottom = (int)(rc.bottom * yScale);
+
+	if (rc.left < 0) rc.left = 0;
+	if (rc.right > s_target_width) rc.right = s_target_width;
+	if (rc.top < 0) rc.top = 0;
+	if (rc.bottom > s_target_height) rc.bottom = s_target_height;
+
 	if (rc.right >= rc.left && rc.bottom >= rc.top)
 	{
 		D3D::dev->SetScissorRect(&rc);
@@ -422,14 +459,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		// and perhaps blending.
 		// WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
 		break;
-
 	}
 
 	return 0;
 }
 
-//		mtx.m[0][3] = pMatrix[1]; // -0.5f/s_targetWidth;  <-- fix d3d pixel center?
-//		mtx.m[1][3] = pMatrix[3]; // +0.5f/s_targetHeight; <-- fix d3d pixel center?
+//		mtx.m[0][3] = pMatrix[1]; // -0.5f/s_target_width;  <-- fix d3d pixel center?
+//		mtx.m[1][3] = pMatrix[3]; // +0.5f/s_target_height; <-- fix d3d pixel center?
 
 // Called from VertexShaderManager
 void UpdateViewport()
@@ -451,6 +487,10 @@ void UpdateViewport()
 	
 	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777215.0f;
 	vp.MaxZ = xfregs.rawViewport[5] / 16777215.0f;
+	
+	// This seems to happen a lot - the above calc is probably wrong.
+	if (vp.MinZ < 0.0f) vp.MinZ = 0.0f;
+	if (vp.MaxZ > 1.0f) vp.MaxZ = 1.0f;
 	
 	D3D::dev->SetViewport(&vp);
 }

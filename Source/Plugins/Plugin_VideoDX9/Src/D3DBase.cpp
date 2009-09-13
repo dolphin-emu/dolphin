@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "D3DBase.h"
+#include "VideoConfig.h"
 #include "Render.h"
 #include "XFStructs.h"
 
@@ -24,7 +25,8 @@ namespace D3D
 
 LPDIRECT3D9        D3D = NULL; // Used to create the D3DDevice
 LPDIRECT3DDEVICE9  dev = NULL; // Our rendering device
-LPDIRECT3DSURFACE9 backBuffer;
+LPDIRECT3DSURFACE9 back_buffer;
+LPDIRECT3DSURFACE9 back_buffer_z;
 D3DCAPS9 caps;
 HWND hWnd;
 
@@ -117,7 +119,7 @@ void EnableAlphaToCoverage()
 			xres = pp->BackBufferWidth  = client.right - client.left;
 			yres = pp->BackBufferHeight = client.bottom - client.top;
 			pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
-			pp->PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
+			pp->PresentationInterval = g_Config.bVSync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
 			pp->Windowed = TRUE;
 		}
 	}
@@ -251,7 +253,8 @@ void EnableAlphaToCoverage()
 			}
 		}
 		dev->GetDeviceCaps(&caps);
-		dev->GetRenderTarget(0, &backBuffer);
+		dev->GetRenderTarget(0, &back_buffer);
+		dev->GetDepthStencilSurface(&back_buffer_z);
 
 		// Device state would normally be set here
 		return S_OK;
@@ -284,7 +287,12 @@ const char *PixelShaderVersionString()
 
 LPDIRECT3DSURFACE9 GetBackBufferSurface()
 {
-	return backBuffer;
+	return back_buffer;
+}
+
+LPDIRECT3DSURFACE9 GetBackBufferDepthSurface()
+{
+	return back_buffer_z;
 }
 
 void ShowD3DError(HRESULT err)
@@ -305,10 +313,17 @@ void ShowD3DError(HRESULT err)
 	{
 		if (dev)
 		{
+			// Can't keep a pointer around to the backbuffer surface when resetting.
+			back_buffer_z->Release();
+			back_buffer->Release();
 			D3DPRESENT_PARAMETERS d3dpp; 
 			InitPP(cur_adapter, resolution, multisample, &d3dpp);
+
 			HRESULT hr = dev->Reset(&d3dpp);
+			
 			ShowD3DError(hr);
+			dev->GetRenderTarget(0, &back_buffer);
+			dev->GetDepthStencilSurface(&back_buffer_z);
 		}
 	}
 
@@ -317,12 +332,12 @@ void ShowD3DError(HRESULT err)
 		return fullScreen;
 	}
 
-	int GetDisplayWidth()
+	int GetBackBufferWidth()
 	{
 		return xres;
 	}
 
-	int GetDisplayHeight()
+	int GetBackBufferHeight()
 	{
 		return yres;
 	}
@@ -332,7 +347,7 @@ void ShowD3DError(HRESULT err)
 		nextFullScreen = fullscreen;
 	}
 
-	bool BeginFrame(bool clear, u32 color, float z)
+	bool BeginFrame()
 	{
 		if (bFrameInProgress)
 		{
@@ -342,8 +357,6 @@ void ShowD3DError(HRESULT err)
 		bFrameInProgress = true;
 		if (dev)
 		{
-			if (clear)
-				dev->Clear(0, NULL, D3DCLEAR_TARGET|D3DCLEAR_ZBUFFER|D3DCLEAR_STENCIL, (DWORD)color, z, 0 );
 			dev->BeginScene();
 			return true;
 		}

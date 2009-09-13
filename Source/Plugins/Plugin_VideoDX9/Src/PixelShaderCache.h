@@ -44,6 +44,7 @@ private:
 		{
 			if (shader)
 				shader->Release();
+			shader = NULL;
 		}
 	};
 
@@ -55,6 +56,7 @@ private:
 public:
 	static void Init();
 	static void Cleanup();
+	static void Clear();
 	static void Shutdown();
 	static bool SetShader(bool dstAlpha);
 #if defined(_DEBUG) || defined(DEBUGFAST)

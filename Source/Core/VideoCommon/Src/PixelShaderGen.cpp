@@ -67,8 +67,8 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 texturemask, u32 dstAlphaEnable)
 		TevStageCombiner::ColorCombiner &cc = bpmem.combiners[i].colorC;
 		TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[i].alphaC;
 
-		u32 val0 = cc.hex&0xffffff;
-		u32 val1 = ac.hex&0xffffff;
+		u32 val0 = cc.hex & 0xffffff;
+		u32 val1 = ac.hex & 0xffffff;
 		val0 |= bpmem.tevksel[i / 2].getKC(i & 1) << 24;
 		val1 |= bpmem.tevksel[i / 2].getKA(i & 1) << 24;
 		pcurvalue[0] = val0;

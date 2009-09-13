@@ -1191,6 +1191,14 @@
 			Name="Render"
 			>
 			<File
+				RelativePath=".\Src\FramebufferManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\FramebufferManager.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\NativeVertexFormat.cpp"
 				>
 			</File>

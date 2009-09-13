@@ -86,17 +86,34 @@ struct TabDirect3D : public W32Util::Tab
 		CheckDlgButton(hDlg, IDC_FULLSCREENENABLE, g_Config.bFullscreen ? TRUE : FALSE);
 		CheckDlgButton(hDlg, IDC_VSYNC, g_Config.bVsync ? TRUE : FALSE);
 		CheckDlgButton(hDlg, IDC_RENDER_TO_MAINWINDOW, g_Config.RenderToMainframe ? TRUE : FALSE);		
+		CheckDlgButton(hDlg, IDC_ASPECT_16_9, g_Config.bKeepAR169 ? TRUE : FALSE);
+		CheckDlgButton(hDlg, IDC_ASPECT_4_3, g_Config.bKeepAR43 ? TRUE : FALSE);
+		CheckDlgButton(hDlg, IDC_WIDESCREEN_HACK, g_Config.bWidescreenHack ? TRUE : FALSE);
 	}
 
 	void Command(HWND hDlg,WPARAM wParam)
 	{
-		/*
 		switch (LOWORD(wParam))
 		{
+		case IDC_ASPECT_4_3:
+			Button_SetCheck(GetDlgItem(hDlg, IDC_ASPECT_16_9), FALSE);
+			g_Config.bKeepAR43 = Button_GetCheck(GetDlgItem(hDlg, IDC_ASPECT_4_3)) ? true : false;
+			g_Config.bKeepAR169 = false;
+			break;
+		case IDC_ASPECT_16_9:
+			Button_SetCheck(GetDlgItem(hDlg, IDC_ASPECT_4_3), FALSE);
+			g_Config.bKeepAR169 = Button_GetCheck(GetDlgItem(hDlg, IDC_ASPECT_16_9)) ? true : false;
+			g_Config.bKeepAR43 = false;
+			break;
+		case IDC_WIDESCREEN_HACK:
+			g_Config.bWidescreenHack = Button_GetCheck(GetDlgItem(hDlg, IDC_WIDESCREEN_HACK)) ? true : false;
+			break;
+		case IDC_WIREFRAME:
+			g_Config.bWireFrame = Button_GetCheck(GetDlgItem(hDlg,IDC_WIREFRAME)) ? true : false;
+			break;
 		default:
 			break;
 		}
-		*/
 	}
 
 	void Apply(HWND hDlg)
@@ -133,9 +150,6 @@ struct TabAdvanced : public W32Util::Tab
 		Button_SetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY), g_Config.bTexFmtOverlayEnable);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_TEXFMT_CENTER),  g_Config.bTexFmtOverlayCenter);
 		Button_GetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY)) ? Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), true) : Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), false);
-
-		//SetWindowText(GetDlgItem(hDlg,IDC_TEXDUMPPATH),g_Config.texDumpPath.c_str()); <-- Old method
-		//Edit_LimitText(GetDlgItem(hDlg,IDC_TEXDUMPPATH),255); <-- Old method
 	}
 	void Command(HWND hDlg,WPARAM wParam)
 	{
@@ -149,7 +163,7 @@ struct TabAdvanced : public W32Util::Tab
 	//		break;
 		case IDC_TEXFMT_OVERLAY:
 			{
-				Button_GetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY)) ? Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), true) : Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), false);
+				Button_GetCheck(GetDlgItem(hDlg, IDC_TEXFMT_OVERLAY)) ? Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), true) : Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), false);
 			}
 			break;
 		default:
@@ -163,7 +177,6 @@ struct TabAdvanced : public W32Util::Tab
 
 		g_Config.bOverlayStats = Button_GetCheck(GetDlgItem(hDlg,IDC_OVERLAYSTATS)) ? true : false;
 		g_Config.bOverlayProjStats = Button_GetCheck(GetDlgItem(hDlg,IDC_OVERLAYPROJSTATS)) ? true : false;
-		g_Config.bWireFrame    = Button_GetCheck(GetDlgItem(hDlg,IDC_WIREFRAME)) ? true : false;
 		g_Config.bDumpTextures = Button_GetCheck(GetDlgItem(hDlg,IDC_TEXDUMP)) ? true : false;
 		g_Config.bDumpFrames   = Button_GetCheck(GetDlgItem(hDlg,IDC_DUMPFRAMES)) ? true : false;
 		g_Config.bShowShaderErrors = Button_GetCheck(GetDlgItem(hDlg,IDC_SHOWSHADERERRORS)) ? true : false;
@@ -240,7 +253,7 @@ void DlgSettings_Show(HINSTANCE hInstance, HWND _hParent)
 #endif
 #endif
 
-	if(( tfoe != g_Config.bTexFmtOverlayEnable) ||
+	if ((tfoe != g_Config.bTexFmtOverlayEnable) ||
 		((g_Config.bTexFmtOverlayEnable) && ( tfoc != g_Config.bTexFmtOverlayCenter)))
 	{
 		TextureCache::Invalidate(false);

@@ -217,13 +217,6 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 	}
 }
 
-void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight)
-{
-    Renderer::SwapBuffers();
-	PRIM_LOG("Renderer::SwapBuffers()");
-	g_VideoInitialize.pCopiedToXFB(false);
-}
-
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 {
 	// TODO: Scale EFBRectangle correctly
@@ -306,7 +299,7 @@ void SetSamplerState(const BPCmd &bp)
 	
 	if (g_ActiveConfig.iMaxAnisotropy > 1)
 	{
-		mag = D3DTEXF_ANISOTROPIC;
+		mag = D3DTEXF_LINEAR;
 		min = D3DTEXF_ANISOTROPIC;
 		mip = D3DTEXF_LINEAR;
 	}

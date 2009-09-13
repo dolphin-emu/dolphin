@@ -63,19 +63,24 @@ void SetPSConstant4fv(int const_number, const float *f)
 
 void PixelShaderCache::Init()
 {
-	//memset(lastPSconstants,0xFF,(C_COLORMATRIX+16)*4*sizeof(float));	// why does this not work
-	//memset(lastPSconstants,0xFF,sizeof(lastPSconstants));
-	for( int i=0;i<(C_COLORMATRIX+16)*4;i++)
-		lastPSconstants[i/4][i%4] = -100000000.0f;
-	memset(&last_pixel_shader_uid,0xFF,sizeof(last_pixel_shader_uid));
+	Clear();
 }
 
-void PixelShaderCache::Shutdown()
+void PixelShaderCache::Clear()
 {
 	PSCache::iterator iter = PixelShaders.begin();
 	for (; iter != PixelShaders.end(); iter++)
 		iter->second.Destroy();
 	PixelShaders.clear(); 
+
+	for (int i = 0; i < (C_COLORMATRIX + 16) * 4; i++)
+		lastPSconstants[i/4][i%4] = -100000000.0f;
+	memset(&last_pixel_shader_uid, 0xFF, sizeof(last_pixel_shader_uid));
+}
+
+void PixelShaderCache::Shutdown()
+{
+	Clear();
 }
 
 bool PixelShaderCache::SetShader(bool dstAlpha)
@@ -86,7 +91,8 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), dstAlpha);
 	if (uid == last_pixel_shader_uid)
 	{
-		if (PixelShaders[uid].shader)
+		PSCache::const_iterator iter = PixelShaders.find(uid);
+		if (iter != PixelShaders.end() && iter->second.shader)
 			return true;
 		else
 			return false;
@@ -129,7 +135,6 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 
 	INCSTAT(stats.numPixelShadersCreated);
 	SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
-
 	if (shader)
 	{
 		D3D::dev->SetPixelShader(shader);

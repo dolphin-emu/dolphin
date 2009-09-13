@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
 // ---------------------------------------------------------------------------------------------
 // GC graphics pipeline
 // ---------------------------------------------------------------------------------------------
@@ -33,9 +32,13 @@
 #include "MathUtil.h"
 #include "pluginspecs_video.h"
 
+// TODO: Move these out of here.
 extern int frameCount;
 extern int OSDChoice, OSDTime, OSDInternalW, OSDInternalH;
 
+// Renderer really isn't a very good name for this class - it's more like "Misc".
+// The long term goal is to get rid of this class and replace it with others that make
+// more sense.
 class Renderer
 {
 public:
@@ -47,8 +50,6 @@ public:
 	static void RestoreAPIState();
 
 	static void ReinitView();
-
-	static void SwapBuffers();
 
 	static void SetColorMask();
 	static void SetBlendMode(bool forceUpdate);

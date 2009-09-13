@@ -2,6 +2,24 @@
 //
 #include "resource.h"
 #include <windows.h>
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
@@ -18,23 +36,27 @@ BEGIN
     LTEXT           "Will not work correctly on older GPU:s.",IDC_STATIC,7,47,170,8
 END
 
-IDD_SETTINGS DIALOGEX 0, 0, 231, 141
+IDD_SETTINGS DIALOGEX 0, 0, 231, 174
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "&Graphics card:",IDC_STATIC,7,9,61,8
     COMBOBOX        IDC_ADAPTER,68,7,156,84,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "&Fullscreen",IDC_FULLSCREENENABLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,25,141,8
+    CONTROL         "&Fullscreen",IDC_FULLSCREENENABLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,25,56,8
     CONTROL         "&V-Sync",IDC_VSYNC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,38,141,8
     CONTROL         "&Render to main window",IDC_RENDER_TO_MAINWINDOW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,50,141,8
-    LTEXT           "Full&screen resolution:",IDC_STATIC,7,63,69,8
-    COMBOBOX        IDC_RESOLUTION,87,62,137,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Windowed resolution:",IDC_STATIC,7,82,74,8
-    COMBOBOX        IDC_RESOLUTIONWINDOWED,87,81,137,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Full&screen resolution:",IDC_STATIC,7,98,69,8
+    COMBOBOX        IDC_RESOLUTION,87,98,137,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Windowed resolution:",IDC_STATIC,7,117,74,8
+    COMBOBOX        IDC_RESOLUTIONWINDOWED,87,116,137,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Rotate windowed mode 90 degrees (for &Ikaruga)",IDC_CHECK1,
-                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_DISABLED | WS_TABSTOP,87,97,137,17
-    LTEXT           "&Anti-alias mode:",IDC_STATIC,7,122,61,8
-    COMBOBOX        IDC_ANTIALIASMODE,68,121,156,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_DISABLED | WS_TABSTOP,87,132,137,17
+    LTEXT           "&Anti-alias mode:",IDC_STATIC,7,157,61,8
+    COMBOBOX        IDC_ANTIALIASMODE,68,155,156,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Aspect Ratio:",IDC_STATIC,7,66,52,8
+    CONTROL         "4:3",IDC_ASPECT_4_3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,66,59,11
+    CONTROL         "16:9",IDC_ASPECT_16_9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,80,49,11
+    CONTROL         "&Widescreen Hack",IDC_WIDESCREEN_HACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,128,81,73,10
 END
 
 IDD_DEBUGGER DIALOGEX 0, 0, 234, 254
@@ -57,36 +79,27 @@ BEGIN
     GROUPBOX        "&Settings",IDC_STATIC,7,7,192,81
     CONTROL         "&Wireframe",IDC_WIREFRAME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,19,79,9
     CONTROL         "&Overlay some statistics",IDC_OVERLAYSTATS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,31,88,9
-	CONTROL         "Overlay &Projection Statistics",IDC_OVERLAYPROJSTATS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,42,118,9
+    CONTROL         "Overlay &Projection Statistics",IDC_OVERLAYPROJSTATS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,42,118,9
     CONTROL         "Show s&hader compilation errors",IDC_SHOWSHADERERRORS,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,53,127,9
     GROUPBOX        "&Data dumping",IDC_STATIC,7,91,192,42
     CONTROL         "Dump &textures",IDC_TEXDUMP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,104,70,9
-   // EDITTEXT        IDC_TEXDUMPPATH,25,116,148,12,ES_AUTOHSCROLL
-   // PUSHBUTTON      "...",IDC_BROWSETEXDUMPPATH,176,116,14,13
     CONTROL         "Dump Frames to User/Dump/Frames",IDC_DUMPFRAMES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,116,138,9
     GROUPBOX        "Texture Format Overlay",IDC_STATIC,7,136,192,30
     CONTROL         "Enable Overlay",IDC_TEXFMT_OVERLAY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,148,74,10
     CONTROL         "Centered",IDC_TEXFMT_CENTER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,110,148,82,10
 END
 
-IDD_ENHANCEMENTS DIALOGEX 0, 0, 207, 175
+IDD_ENHANCEMENTS DIALOGEX 0, 0, 224, 175
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX        "Texture &filtering",IDC_STATIC,7,7,193,50
+    GROUPBOX        "Texture &filtering",IDC_STATIC,7,7,210,50
     CONTROL         "Force &bi/trilinear (breaks video in several Wii games)",IDC_FORCEFILTERING,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,170,9
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,192,9
     CONTROL         "Enable 16x &anisotropy filtering",IDC_FORCEANISOTROPY,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,35,110,10
-    GROUPBOX        "Texture &enhancements",IDC_STATIC,7,61,193,34
-    CONTROL         "Pre-&upscale:",IDC_PREUPSCALE,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,16,76,54,10
-    COMBOBOX        IDC_PREUPSCALETYPE,74,74,117,49,CBS_DROPDOWNLIST | CBS_SORT | WS_DISABLED | WS_VSCROLL | WS_TABSTOP
-    GROUPBOX        "&Postprocess image",IDC_STATIC,7,102,192,59
-    LTEXT           "Effe&ct:",IDC_STATIC,14,118,36,8
-    COMBOBOX        IDC_POSTPROCESSEFFECT,74,117,117,71,CBS_DROPDOWNLIST | WS_DISABLED | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Pa&ram 1",IDC_PPPARAM1LABEL2,14,141,35,8
-    CONTROL         "",IDC_PPPARAM1,"msctls_trackbar32",TBS_BOTH | TBS_NOTICKS | WS_DISABLED | WS_TABSTOP,68,137,127,15
 END
 
 
@@ -115,7 +128,7 @@ BEGIN
         VERTGUIDE, 81
         VERTGUIDE, 87
         TOPMARGIN, 7
-        BOTTOMMARGIN, 134
+        BOTTOMMARGIN, 167
     END
 
     IDD_DEBUGGER, DIALOG
@@ -140,7 +153,7 @@ BEGIN
     IDD_ENHANCEMENTS, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 200
+        RIGHTMARGIN, 217
         VERTGUIDE, 16
         VERTGUIDE, 74
         TOPMARGIN, 7
@@ -148,3 +161,44 @@ BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+À
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

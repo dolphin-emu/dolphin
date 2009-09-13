@@ -128,11 +128,6 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 	}
 }
 
-void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, const float &yScale, const float &xfbLines, u32 xfbAddr, const u32 &dstWidth, const u32 &dstHeight)
-{
-	Renderer::RenderToXFB(xfbAddr, dstWidth, dstHeight, rc);
-}
-
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 {
 	bool colorEnable = bpmem.blendmode.colorupdate;

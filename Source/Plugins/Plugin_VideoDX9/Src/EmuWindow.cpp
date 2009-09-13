@@ -15,11 +15,18 @@ HINSTANCE m_hInstance = NULL;
 WNDCLASSEX wndClass;
 const TCHAR m_szClassName[] = _T("DolphinEmuWnd");
 int g_winstyle;
+static volatile bool s_sizing;
+
+bool IsSizing()
+{
+	return s_sizing;
+}
 
 HWND GetWnd()
 {
 	return m_hWnd;
 }
+
 HWND GetParentWnd()
 {
 	return m_hParent;
@@ -37,6 +44,14 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			EndPaint(hWnd, &ps);
 		}
 		return 0;
+
+	case WM_ENTERSIZEMOVE:
+		s_sizing = true;
+		break;
+
+	case WM_EXITSIZEMOVE:
+		s_sizing = false;
+		break;
 
 	case WM_KEYDOWN:
 		switch( LOWORD( wParam ))

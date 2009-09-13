@@ -307,7 +307,7 @@ bool Renderer::Init()
 
 		// Adjust all heights with this ratio, the resulting height will be the same as H or EFB_HEIGHT. I.e.
 		// 768 (-1) for 1024x768 etc.
-		m_FrameBufferHeight *= 528.0 / 480.0;
+		m_FrameBufferHeight *= (float)EFB_HEIGHT / 480.0;
 
 		// Ensure a minimum target size so that the native res target always fits
 		if (m_FrameBufferWidth < EFB_WIDTH) m_FrameBufferWidth = EFB_WIDTH;
@@ -989,29 +989,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 #endif
 
 	// Place messages on the picture, then copy it to the screen
-    SwapBuffers();
-
-    RestoreAPIState();
-
-	GL_REPORT_ERRORD();
-    g_Config.iSaveTargetId = 0;
-
-	bool last_copy_efb_to_ram = g_ActiveConfig.bCopyEFBToRAM;
-	UpdateActiveConfig();
-	if (last_copy_efb_to_ram != g_ActiveConfig.bCopyEFBToRAM)
-		TextureMngr::ClearRenderTargets();
-
-	// For testing zbuffer targets.
-    // Renderer::SetZBufferRender();
-    // SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
-}
-
-
-
-// We can now draw whatever we want on top of the picture. Then we copy the final picture to the output.
-// ----------------------------
-void Renderer::SwapBuffers()
-{
 	// ---------------------------------------------------------------------
 	// Count FPS.
 	// -------------
@@ -1084,8 +1061,21 @@ void Renderer::SwapBuffers()
 	g_framebufferManager.SetFramebuffer(0);
 
 	GL_REPORT_ERRORD();
-}
 
+    RestoreAPIState();
+
+	GL_REPORT_ERRORD();
+    g_Config.iSaveTargetId = 0;
+
+	bool last_copy_efb_to_ram = g_ActiveConfig.bCopyEFBToRAM;
+	UpdateActiveConfig();
+	if (last_copy_efb_to_ram != g_ActiveConfig.bCopyEFBToRAM)
+		TextureMngr::ClearRenderTargets();
+
+	// For testing zbuffer targets.
+    // Renderer::SetZBufferRender();
+    // SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
+}
 
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()

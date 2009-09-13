@@ -61,7 +61,7 @@ GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 HINSTANCE g_hInstance = NULL;
 SVideoInitialize g_VideoInitialize;
 PLUGIN_GLOBALS* globals = NULL;
-int initCount = 0;
+bool s_initialized;
 
 static u32 s_efbAccessRequested = FALSE;
 
@@ -173,57 +173,6 @@ void UpdateFPSDisplay(const char *text)
     SetWindowTextA(EmuWindow::GetWnd(), temp);
 }
 
-
-bool Init()
-{
-	g_Config.Load(FULL_CONFIG_DIR "gfx_dx9.ini");
-	g_Config.GameIniLoad(globals->game_ini);
-	UpdateProjectionHack(g_Config.iPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
-
-	if (initCount == 0)
-	{
-        // create the window
-        if (!g_Config.RenderToMainframe || g_VideoInitialize.pWindowHandle == NULL) // ignore parent for this plugin
-        {
-            g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, _T("Loading - Please wait."));
-        }
-		else
-		{
-			g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Loading - Please wait."));
-		}
-
-		if (g_VideoInitialize.pWindowHandle == NULL)
-		{
-			MessageBox(GetActiveWindow(), _T("An error has occurred while trying to create the window."), _T("Fatal Error"), MB_OK);
-			return false;
-		}
-
-		EmuWindow::Show();
-		g_VideoInitialize.pPeekMessages = Callback_PeekMessages;
-		g_VideoInitialize.pUpdateFPSDisplay = UpdateFPSDisplay;
-
-		if (FAILED(D3D::Init()))
-		{
-			MessageBox(GetActiveWindow(), _T("Unable to initialize Direct3D. Please make sure that you have DirectX 9.0c correctly installed."), _T("Fatal Error"), MB_OK);
-			return false;
-		}
-		InitXFBConvTables();
-	}
-	initCount++;
-
-	return true;
-}
-
-void DeInit()
-{
-	initCount--;
-	if (initCount == 0)
-	{
-		D3D::Shutdown();
-        EmuWindow::Close();
-	}
-}
-
 void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
@@ -252,15 +201,9 @@ void DllAbout(HWND _hParent)
 void DllConfig(HWND _hParent)
 {
 	// If not initialized, only init D3D so we can enumerate resolutions.
-	if (initCount == 0) 
-	{
-		D3D::Init();
-	}
+	if (!s_initialized) D3D::Init();
 	DlgSettings_Show(g_hInstance, _hParent);
-	if (initCount == 0)
-	{
-		D3D::Shutdown();
-	}
+	if (!s_initialized)	D3D::Shutdown();
 }
 
 void Initialize(void *init)
@@ -268,15 +211,38 @@ void Initialize(void *init)
     SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
 	frameCount = 0;
 	g_VideoInitialize = *_pVideoInitialize;
-	Init();
+
+	g_Config.Load(FULL_CONFIG_DIR "gfx_dx9.ini");
+	g_Config.GameIniLoad(globals->game_ini);
+	UpdateProjectionHack(g_Config.iPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
+
+    // create the window
+	if (!g_Config.RenderToMainframe || g_VideoInitialize.pWindowHandle == NULL) // ignore parent for this plugin
+		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, _T("Loading - Please wait."));
+	else
+		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Loading - Please wait."));
+	if (g_VideoInitialize.pWindowHandle == NULL)
+	{
+		ERROR_LOG(VIDEO, "An error has occurred while trying to create the window.");
+		return;
+	}
+	EmuWindow::Show();
+	g_VideoInitialize.pPeekMessages = Callback_PeekMessages;
+	g_VideoInitialize.pUpdateFPSDisplay = UpdateFPSDisplay;
+	if (FAILED(D3D::Init()))
+	{
+		MessageBox(GetActiveWindow(), _T("Unable to initialize Direct3D. Please make sure that you have the latest version of DirectX 9.0c correctly installed."), _T("Fatal Error"), MB_OK);
+		return;
+	}
+	InitXFBConvTables();
+	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.", 5000);
     _pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
     _pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
     _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
-
-	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.", 5000);
+	s_initialized = true;
 }
 
-void Video_Prepare(void)
+void Video_Prepare()
 {
 	Renderer::Init();
 	TextureCache::Init();
@@ -291,19 +257,23 @@ void Video_Prepare(void)
 	PixelShaderManager::Init();
 }
 
-void Shutdown(void)
+void Shutdown()
 {
+	s_efbAccessRequested = FALSE;
+
 	Fifo_Shutdown();
-	OpcodeDecoder_Shutdown();
 	VertexManager::Shutdown();
-	VertexShaderManager::Shutdown();
 	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Shutdown();
+	VertexShaderManager::Shutdown();
 	PixelShaderCache::Shutdown();
 	PixelShaderManager::Shutdown();
 	TextureCache::Shutdown();
+	OpcodeDecoder_Shutdown();
 	Renderer::Shutdown();
-	DeInit();
+	D3D::Shutdown();
+	EmuWindow::Close();
+	s_initialized = false;
 }
 
 void DoState(unsigned char **ptr, int mode) {

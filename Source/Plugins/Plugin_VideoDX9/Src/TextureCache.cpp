@@ -27,6 +27,7 @@
 
 #include "D3DBase.h"
 #include "D3DTexture.h"
+#include "FramebufferManager.h"
 
 #include "Render.h"
 
@@ -104,8 +105,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 {
 	if (address == 0)
 		return NULL;
-	
-	
+
 	u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 
 	int palSize = TexDecoder_GetPaletteSize(format);
@@ -323,7 +323,7 @@ have_texture:
 
 	LPDIRECT3DSURFACE9 srcSurface, destSurface;
 	tex->GetSurfaceLevel(0, &destSurface);
-	srcSurface = D3D::GetBackBufferSurface();
+	srcSurface = FBManager::GetEFBColorRTSurface();
 	D3D::dev->StretchRect(srcSurface, &source_rc, destSurface, &dest_rc, D3DTEXF_LINEAR);
 	destSurface->Release();
 }

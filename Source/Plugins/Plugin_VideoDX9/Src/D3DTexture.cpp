@@ -36,21 +36,19 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 	}
 
 	HRESULT hr;
-	// TODO(ector): allow mipmaps for non-pow textures on newer cards?
+	// TODO(ector): Allow mipmaps for non-pow textures on newer cards?
+	// TODO(ector): Use the game-specified mipmaps?
 	if (!isPow2)
 		hr = dev->CreateTexture(width, height, 1, 0, fmt, D3DPOOL_MANAGED, &pTexture, NULL);
 	else
 		hr = dev->CreateTexture(width, height, 0, D3DUSAGE_AUTOGENMIPMAP, fmt, D3DPOOL_MANAGED, &pTexture, NULL);
 
-	if(FAILED(hr))
+	if (FAILED(hr))
 		return 0;
-
 	int level = 0;
-
 	D3DLOCKED_RECT Lock;
-	pTexture->LockRect(level, &Lock, NULL, 0 );
-
-	switch(fmt) 
+	pTexture->LockRect(level, &Lock, NULL, 0);
+	switch (fmt) 
 	{
 	case D3DFMT_L8:
 	case D3DFMT_A8:
@@ -148,28 +146,6 @@ void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int w
 		break;
 	}
 	pTexture->UnlockRect(level); 
-}
-
-LPDIRECT3DTEXTURE9 CreateRenderTarget(const int width, const int height)
-{
-	LPDIRECT3DTEXTURE9 tex;
-	HRESULT hr = dev->CreateTexture(width,height,0,D3DUSAGE_RENDERTARGET | D3DUSAGE_AUTOGENMIPMAP,D3DFMT_A8R8G8B8,D3DPOOL_DEFAULT,&tex,NULL);
-
-	if (FAILED(hr))
-		return 0;
-	else
-		return tex;
-}
-
-LPDIRECT3DSURFACE9 CreateDepthStencilSurface(const int width, const int height)
-{
-	LPDIRECT3DSURFACE9 surf;
-	HRESULT hr = dev->CreateDepthStencilSurface(width,height,D3DFMT_D24S8,D3DMULTISAMPLE_NONE,0,0,&surf,0);
-
-	if (FAILED(hr))
-		return 0;
-	else
-		return surf;
 }
 
 }  // namespace

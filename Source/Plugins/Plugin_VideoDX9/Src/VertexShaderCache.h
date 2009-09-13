@@ -41,6 +41,7 @@ private:
 		{
 			if (shader)
 				shader->Release();
+			shader = NULL;
 		}
 	};
 
@@ -51,6 +52,7 @@ private:
 
 public:
 	static void Init();
+	static void Clear();
 	static void Cleanup();
 	static void Shutdown();
 	static bool SetShader(u32 components);

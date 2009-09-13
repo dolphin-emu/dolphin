@@ -97,6 +97,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Hardware", "WindowedRes", &iWindowedRes, 0);
 	iniFile.Get("Hardware", "VSync", &bVsync, 0);
 	iniFile.Get("Hardware", "FullscreenRes", &iFSResolution, 0);
+	iniFile.Get("Hardware", "SimpleFB", &bSimpleFB, false);
 
 	// Load common settings
 	iniFile.Load(CONFIG_FILE);
@@ -175,11 +176,10 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Hardware", "WindowedRes", iWindowedRes);
 	iniFile.Set("Hardware", "VSync", bVsync);
 	iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
+	iniFile.Set("Hardware", "SimpleFB", bSimpleFB);
 
     iniFile.Save(ini_file);
 }
-
-
 
 // TODO: Figure out a better place for this function.
 void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip, TargetRectangle *rc)
@@ -198,8 +198,8 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 	{
 		// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
 		float Ratio = (WinWidth / WinHeight) / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
-		// Check if height or width is the limiting factor. If ratio > 1 the picture is to wide and have to limit the width.
-		if (Ratio > 1)
+		// Check if height or width is the limiting factor. If ratio > 1 the picture is too wide and have to limit the width.
+		if (Ratio > 1.0f)
 		{
 			// Scale down and center in the X direction.
 			FloatGLWidth /= Ratio;
@@ -230,12 +230,8 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 		// Adjust the X and Y offset
 		FloatXOffset = FloatXOffset - (IncreasedWidth * 0.5f);
 		FloatYOffset = FloatYOffset - (IncreasedHeight * 0.5f);
-		//NOTICE_LOG(OSREPORT, "Crop       Ratio:%1.2f IncreasedHeight:%3.0f YOffset:%3.0f", Ratio, IncreasedHeight, FloatYOffset);
-		//NOTICE_LOG(OSREPORT, "Crop       FloatGLWidth:%1.2f FloatGLHeight:%3.0f", (float)FloatGLWidth, (float)FloatGLHeight);
-		//NOTICE_LOG(OSREPORT, "");
 	}
 
-	// round(float) = floor(float + 0.5)
 	int XOffset = (int)(FloatXOffset + 0.5f);
 	int YOffset = (int)(FloatYOffset + 0.5f);
 	rc->left = XOffset;

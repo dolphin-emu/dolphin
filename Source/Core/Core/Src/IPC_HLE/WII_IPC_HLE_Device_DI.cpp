@@ -218,7 +218,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 				PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
 			}
 
-			FileMon::CheckFile(std::string(pFilename), m_pFileSystem->GetFileSize(pFilename));
+			FileMon::CheckFile(std::string(pFilename), (int)m_pFileSystem->GetFileSize(pFilename));
 		}
 		break;
 

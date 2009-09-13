@@ -19,6 +19,7 @@
 
 #include "Profiler.h"
 #include "Statistics.h"
+#include "Render.h"
 #include "VideoCommon.h"
 #include "PixelShaderManager.h"
 #include "BPFunctions.h"
@@ -38,6 +39,12 @@ void BPInit()
 {
     memset(&bpmem, 0, sizeof(bpmem));
     bpmem.bpMask = 0xFFFFFF;
+}
+
+
+void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xfbLines, u32 xfbAddr, const u32 dstWidth, const u32 dstHeight)
+{
+	Renderer::RenderToXFB(xfbAddr, dstWidth, dstHeight, rc);
 }
 
 void BPWritten(const BPCmd& bp)
