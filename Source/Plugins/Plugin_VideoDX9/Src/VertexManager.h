@@ -27,8 +27,6 @@ namespace VertexManager
 bool Init();
 void Shutdown();
 
-void BeginFrame();
-
 void AddVertices(int _primitive, int _numVertices);
 void Flush();
 

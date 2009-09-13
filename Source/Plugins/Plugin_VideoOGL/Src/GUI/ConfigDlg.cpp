@@ -595,7 +595,6 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_WIDESCREEN_HACK:
 		g_Config.bWidescreenHack = m_WidescreenHack->IsChecked();
-		Projection_SetWidescreen(g_Config.bWidescreenHack);
 		break;
 	case ID_VSYNC:
 		g_Config.bVSync = m_VSync->IsChecked();
@@ -713,7 +712,6 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
     case ID_FREELOOK:
 		g_Config.bFreeLook = m_FreeLook->IsChecked();
-		Projection_SetFreeLook(g_Config.bFreeLook);
 		break;
 	case ID_TEXTUREPATH:
 		break;
@@ -731,11 +729,9 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 		g_Config.bHack = m_Hack->IsChecked();
 		break;
 	case ID_RADIO_COPYEFBTORAM:
-		TextureMngr::ClearRenderTargets();
 		g_Config.bCopyEFBToRAM = true;
 		break;
 	case ID_RADIO_COPYEFBTOGL:
-		TextureMngr::ClearRenderTargets();
 		g_Config.bCopyEFBToRAM = false;
 		break;
 	case ID_PROJSTATS:
@@ -784,7 +780,7 @@ void GFXConfigDialogOGL::UpdateGUI()
 }
 
 
-void Config::UpdateProjectionHack()
+void VideoConfig::UpdateProjectionHack()
 {
 	::UpdateProjectionHack(g_Config.iPhackvalue);
 	//switch(g_Config.iPhackvalue)

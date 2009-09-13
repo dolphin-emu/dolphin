@@ -979,7 +979,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		free(data);
 		s_criticalScreenshot.Leave();
 	} else {
-		if(s_bLastFrameDumped && f_pFrameDump != NULL) {
+		if (s_bLastFrameDumped && f_pFrameDump != NULL) {
 			fclose(f_pFrameDump);
 			f_pFrameDump = NULL;
 		}
@@ -996,7 +996,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	GL_REPORT_ERRORD();
     g_Config.iSaveTargetId = 0;
 
+	bool last_copy_efb_to_ram = g_ActiveConfig.bCopyEFBToRAM;
 	UpdateActiveConfig();
+	if (last_copy_efb_to_ram != g_ActiveConfig.bCopyEFBToRAM)
+		TextureMngr::ClearRenderTargets();
 
 	// For testing zbuffer targets.
     // Renderer::SetZBufferRender();

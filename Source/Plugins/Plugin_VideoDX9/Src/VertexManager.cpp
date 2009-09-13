@@ -101,10 +101,6 @@ void CreateDeviceObjects()
 {
 }
 
-void BeginFrame()
-{
-}
-
 void DestroyDeviceObjects()
 {
 }

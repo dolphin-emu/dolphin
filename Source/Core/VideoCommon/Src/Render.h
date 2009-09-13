@@ -88,4 +88,6 @@ public:
     static void Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight);
 };
 
+void UpdateViewport();
+
 #endif // _COMMON_RENDER_H_

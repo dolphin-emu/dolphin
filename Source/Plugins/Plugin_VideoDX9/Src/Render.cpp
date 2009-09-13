@@ -65,8 +65,9 @@ bool Renderer::Init()
 	UpdateActiveConfig();
     EmuWindow::SetSize(g_Res[g_ActiveConfig.iWindowedRes][0], g_Res[g_ActiveConfig.iWindowedRes][1]);
 
+	int backbuffer_ms_mode = g_ActiveConfig.iMultisampleMode;
     D3D::Create(g_ActiveConfig.iAdapter, EmuWindow::GetWnd(), g_ActiveConfig.bFullscreen,
-		        g_ActiveConfig.iFSResolution, g_ActiveConfig.iMultisampleMode);
+		        g_ActiveConfig.iFSResolution, backbuffer_ms_mode);
 
 	s_targetWidth  = D3D::GetDisplayWidth();
 	s_targetHeight = D3D::GetDisplayHeight();
@@ -92,7 +93,6 @@ bool Renderer::Init()
 		D3D::dev->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, 16);
 
 	D3D::BeginFrame(true, 0, 1.0f);
-	VertexManager::BeginFrame();
 	return true;
 }
 
@@ -308,7 +308,7 @@ void Renderer::SwapBuffers()
 	// So let's keep it commented out.
 	// D3D::EnableAlphaToCoverage();
 
-	VertexManager::BeginFrame();
+	UpdateViewport();
 
 	if (g_ActiveConfig.bOldCard)
 		D3D::font.SetRenderStates(); //compatibility with low end cards

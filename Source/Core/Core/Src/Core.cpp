@@ -348,7 +348,7 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	CPluginManager &Plugins = CPluginManager::GetInstance();
 	if (_CoreParameter.bLockThreads)
-		Common::Thread::SetCurrentThreadAffinity(2); // Force to second core
+		Common::Thread::SetCurrentThreadAffinity(2);  // Force to second core
  
 	INFO_LOG(OSREPORT, "Starting core = %s mode", _CoreParameter.bWii ? "Wii" : "Gamecube");
 	INFO_LOG(OSREPORT, "Dualcore = %s", _CoreParameter.bUseDualCore ? "Yes" : "No");
@@ -485,6 +485,8 @@ THREAD_RETURN EmuThread(void *pArg)
 #ifdef _WIN32
 		// the spawned CPU Thread is the... CPU thread but it also does the graphics.
 		// the EmuThread is thus an idle thread, which sleeps and wait for the emu to terminate.
+		// Without this extra thread, the video plugin window hangs in single core mode since
+		// noone is pumping messages.
 
 		cpuThread = new Common::Thread(CpuThread, pArg);
 		Common::SetCurrentThreadName("Emuthread - Idle");

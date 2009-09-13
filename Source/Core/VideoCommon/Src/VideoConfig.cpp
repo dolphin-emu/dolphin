@@ -22,20 +22,20 @@
 #include "VideoConfig.h"
 #include "VideoCommon.h"
 
-Config g_Config;
-Config g_ActiveConfig;
+VideoConfig g_Config;
+VideoConfig g_ActiveConfig;
 
 void UpdateActiveConfig() 
 {
 	g_ActiveConfig = g_Config;
 }
 
-Config::Config()
+VideoConfig::VideoConfig()
 {
 	bRunning = false;
 }
 
-void Config::Load(const char *ini_file)
+void VideoConfig::Load(const char *ini_file)
 {
     std::string temp;
     IniFile iniFile;
@@ -105,7 +105,7 @@ void Config::Load(const char *ini_file)
 	SetEnableAlert(bTmp);
 }
 
-void Config::GameIniLoad(const char *ini_file)
+void VideoConfig::GameIniLoad(const char *ini_file)
 {
     IniFile iniFile;
     iniFile.Load(ini_file);
@@ -121,7 +121,7 @@ void Config::GameIniLoad(const char *ini_file)
 	iniFile.Get("Video", "ProjectionHack", &iPhackvalue, 0);
 }
 
-void Config::Save(const char *ini_file)
+void VideoConfig::Save(const char *ini_file)
 {
     IniFile iniFile;
     iniFile.Load(ini_file);

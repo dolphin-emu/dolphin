@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "VideoConfig.h"
 #include "MathUtil.h"
 #include "Profiler.h"
 
@@ -216,9 +217,8 @@ void VertexShaderManager::SetConstants()
 
         if (xfregs.rawProjection[6] == 0) 
 		{   
-			bool bWidescreenHack = Projection_GetWidescreen();
 			// Perspective
-			g_fProjectionMatrix[0] = (bWidescreenHack ? xfregs.rawProjection[0]*0.75f : xfregs.rawProjection[0]);
+			g_fProjectionMatrix[0] = (g_ActiveConfig.bWidescreenHack ? xfregs.rawProjection[0]*0.75f : xfregs.rawProjection[0]);
             g_fProjectionMatrix[1] = 0.0f;
             g_fProjectionMatrix[2] = xfregs.rawProjection[1];
             g_fProjectionMatrix[3] = 0.0f;
@@ -313,7 +313,7 @@ void VertexShaderManager::SetConstants()
 
         PRIM_LOG("Projection: %f %f %f %f %f %f\n", xfregs.rawProjection[0], xfregs.rawProjection[1], xfregs.rawProjection[2], xfregs.rawProjection[3], xfregs.rawProjection[4], xfregs.rawProjection[5]);
 
-        if (Projection_GetFreeLook()) 
+        if (g_ActiveConfig.bFreeLook) 
 		{
             Matrix44 mtxA;
             Matrix44 mtxB;

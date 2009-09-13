@@ -51,9 +51,9 @@ enum MultisampleMode {
 class IniFile;
 
 // NEVER inherit from this class.
-struct Config
+struct VideoConfig
 {
-    Config();
+    VideoConfig();
     void Load(const char *ini_file);
 	void GameIniLoad(const char *ini_file);
     void Save(const char *ini_file);
@@ -128,12 +128,16 @@ struct Config
 
 	bool bVsync;
 
+	// With this enabled, the plugin renders directly to the backbuffer. Many features are
+	// disabled but it might be faster on really old GPUs.
+	bool bSimpleFB;
+
 	// Runtime detection config
 	bool bOldCard;
 };
 
-extern Config g_Config;
-extern Config g_ActiveConfig;
+extern VideoConfig g_Config;
+extern VideoConfig g_ActiveConfig;
 
 // Called every frame.
 void UpdateActiveConfig();
