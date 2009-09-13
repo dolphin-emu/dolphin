@@ -32,10 +32,11 @@ public:
 	virtual ~CFileSystemGCWii();
 	virtual bool IsInitialized() const;
 	virtual u64 GetFileSize(const char* _rFullPath) const;
+	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) const;
 	virtual const char* GetFileName(u64 _Address) const;
 	virtual u64 ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const;
 	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) const;
-	virtual bool ExportDir(const char* _rFullPath, const char* _rExportFilename) const;
+	virtual void ExportApploader(const char* _rExportFolder) const;
 
 private:
 
@@ -43,7 +44,6 @@ private:
 	u32 m_OffsetShift; // WII offsets are all shifted
 	std::vector <SFileInfo> m_FileInfoVector;
 	u32 Read32(u64 _Offset) const;
-	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) const;
 	void GetStringFromOffset(u64 _Offset, char* Filename) const;
 	const SFileInfo* FindFileInfo(const char* _rFullPath) const;
 	bool InitFileSystem();

@@ -51,7 +51,7 @@ u64 CFileSystemGCWii::GetFileSize(const char* _rFullPath) const
 
 	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
 
-	if (pFileInfo != NULL)
+	if (pFileInfo != NULL && !pFileInfo->IsDirectory())
 		return pFileInfo->m_FileSize;
 
 	return 0;
@@ -68,7 +68,7 @@ const char* CFileSystemGCWii::GetFileName(u64 _Address) const
 		}
 	}
 
-	return NULL;
+	return 0;
 }
 
 u64 CFileSystemGCWii::ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const
@@ -115,82 +115,73 @@ bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFi
 	delete[] buffer;
 	return false;
 }
-bool CFileSystemGCWii::ExportDir(const char* _rFullPath, const char* _rExportFolder) const
+
+void CFileSystemGCWii::ExportApploader(const char* _rExportFolder) const
 {
-	std::vector<const SFileInfo *> fst;
-	GetFileList(fst);
 	char exportName[512];
-	//look for the dir we are going to extract
-	u32 index[2];
-	if (!_rFullPath)
-	{
-		//extract all
-		index[0] = 0;
-		index[1] = fst.size();
-	}
-	else
-	{
-		for(index[0] = 0; index[0] < fst.size();index[0]++)
-		{
-			// Note By DacoTaco : i wonder why it doesn't work with just the _rFullPath
-			if (fst.at(index[0])->m_FullPath == FindFileInfo(_rFullPath)->m_FullPath )
-			{
-				DEBUG_LOG(DISCIO,"Found the Dir at %u",index[0]);
-				break;
-			}
-		}
-		//now to get the index of last file
-		index[1] = index[0];
-		while(index[1] < fst.at(index[0])->m_FileSize)
-		{
-			index[1]++;
-		}
-		DEBUG_LOG(DISCIO,"Dir found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
-	}
-	//extraction
-	for (int i = index[0]; i < index[1];i++)
-	{
-		if (fst[i]->IsDirectory())
-		{
-			sprintf(exportName, "%s/%s/", _rExportFolder, fst[i]->m_FullPath);
-			DEBUG_LOG(DISCIO, "%s", exportName);		
 
-			if (!File::Exists(exportName))
-			{
+	// Extract Apploader
+	// ------------------
+	// Apploader code size
+	u32 AppSize = Read32(0x2440 + 0x14) << m_OffsetShift; 
+	AppSize += Read32(0x2440 + 0x18) << m_OffsetShift; // + apptrailer size
+	AppSize += 0x20; // + the header = Apploader size! :')
+	DEBUG_LOG(DISCIO,"AppSize -> %x",AppSize);
 
-				if (!File::CreateFullPath(exportName))
-				{
-					ERROR_LOG(DISCIO, "Could not create the path %s", exportName);
-					return false;
-				}
-			}
-			else
-			{
-				if (!File::IsDirectory(exportName))
-				{
-					ERROR_LOG(DISCIO, "%s already exists and is not a directory", exportName);
-					return false;
-				}
-				DEBUG_LOG(DISCIO, "folder %s already exists", exportName);
-			
-			}
-		}
-		else
-		{
-			sprintf(exportName, "%s/%s", _rExportFolder, fst[i]->m_FullPath);
-			DEBUG_LOG(DISCIO, "%s", exportName);
-			if (!File::Exists(exportName))
-			{
-				if (!ExportFile(fst[i]->m_FullPath, exportName))
-					ERROR_LOG(DISCIO, "Could not export %s", exportName);
-			}
-			else
-			{
-				DEBUG_LOG(DISCIO, "%s already exists", exportName);
-			}			
-		}
+	char* buffer = new char[AppSize];
+	m_rVolume->Read(0x2440, AppSize, (u8*)buffer);
+	sprintf(exportName, "%s/apploader.ldr", _rExportFolder);
+	FILE* AppFile = fopen(exportName,"w");
+	if (!AppFile)
+	{
+		PanicAlert("Failed to create %s! canceling further extraction",exportName);
+		return;
 	}
-	return false;
+	fwrite(buffer, 1, AppSize, AppFile);
+	fclose(AppFile);
+	//delete[] buffer; buffer = 0;
+
+	/* TODO : This part crashes with Wii games :/
+	// Extract dol(bootfile)
+	// ---------------------
+	u32 DolOffset = Read32(0x420) << m_OffsetShift;
+	u32 DolSize = 0, offset = 0, size = 0, max = 0;
+	// note DacoTaco : thank you shuffle and discscrubber :P . find it kinda of pointless to include
+	// the discscrubber just for the GetDolSize function so its copy pasta time ...
+	// TODO: fix boot.dol size. or gc-tool is again silly with size or we are wrong (more likely :/)
+
+	// Iterate through the 7 code segments
+	for (u8 i = 0; i < 7; i++)
+	{
+		m_rVolume->Read(DolOffset + 0x00 + i * 4, 4, (u8*)&offset);
+		m_rVolume->Read(DolOffset + 0x90 + i * 4, 4, (u8*)&size);
+		if (offset + size > DolSize)
+			DolSize = offset + size;
+	}
+
+	// Iterate through the 11 data segments
+	for (u8 i = 0; i < 11; i++)
+	{
+		m_rVolume->Read(DolOffset + 0x1c + i * 4, 4, (u8*)&offset);
+		m_rVolume->Read(DolOffset + 0xac + i * 4, 4, (u8*)&size);
+		if (offset + size > DolSize)
+			DolSize = offset + size;
+	}
+	// Add header to size
+	DolSize += 0x40;
+	buffer = new char[DolSize];
+	m_rVolume->Read(DolOffset, DolSize, (u8*)&buffer);
+	sprintf(exportName, "%s/boot.dol", _rExportFolder);
+	FILE* DolFile = fopen(exportName, "w");
+	if (!DolFile)
+	{
+		PanicAlert("Failed to create %s! canceling further extraction",exportName);
+		return;
+	}
+	fwrite(buffer, 1, DolSize, DolFile);
+	fclose(DolFile);
+	delete[] buffer;
+	*/
 }
 
 u32 CFileSystemGCWii::Read32(u64 _Offset) const

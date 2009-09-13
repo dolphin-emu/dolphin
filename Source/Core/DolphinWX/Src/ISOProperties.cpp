@@ -25,6 +25,12 @@
 #include "ConfigManager.h"
 #include "StringUtil.h"
 
+#if USE_XPM_BITMAPS
+	#include "../resources/isoprop_file.xpm"
+	#include "../resources/isoprop_folder.xpm"
+	#include "../resources/isoprop_disc.xpm"
+#endif // USE_XPM_BITMAPS
+
 struct WiiPartition
 {
 	DiscIO::IVolume *Partition;
@@ -58,7 +64,7 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_TREE_ITEM_RIGHT_CLICK(ID_TREECTRL, CISOProperties::OnRightClickOnTree)
 	EVT_MENU(IDM_EXTRACTFILE, CISOProperties::OnExtractFile)
 	EVT_MENU(IDM_EXTRACTDIR, CISOProperties::OnExtractDir)
-	EVT_MENU(IDM_EXTRACTALL, CISOProperties::OnExtractAll)
+	EVT_MENU(IDM_EXTRACTALL, CISOProperties::OnExtractDir)
 	EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
 END_EVENT_TABLE()
 
@@ -168,10 +174,10 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	{
 		for (u32 i = 0; i < WiiDisc.size(); i++)
 		{
-			fileIter beginning = WiiDisc.at(i).Files.begin(), end = WiiDisc.at(i).Files.end(), pos = WiiDisc.at(i).Files.begin();
-			wxTreeItemId PartitionRoot = m_Treectrl->AppendItem(RootId, wxString::Format(wxT("Partition %i"), i), -1, -1, 0);
-			CreateDirectoryTree(PartitionRoot, beginning, end, pos, (char *)"/");	
-			if (i == 0)
+			WiiPartition partition = WiiDisc.at(i);
+			wxTreeItemId PartitionRoot = m_Treectrl->AppendItem(RootId, wxString::Format(wxT("Partition %i"), i), 0, 0, 0);
+			CreateDirectoryTree(PartitionRoot, partition.Files, 1, partition.Files.at(0)->m_FileSize);	
+			if (i == 1)
 				m_Treectrl->Expand(PartitionRoot);
 		}
 	}
@@ -180,8 +186,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		// TODO : Should we add a way to browse the wad file ?
 		if (!DiscIO::IsVolumeWadFile(OpenISO))
 		{
-			fileIter beginning = GCFiles.begin(), end = GCFiles.end(), pos = GCFiles.begin();
-			CreateDirectoryTree(RootId, beginning, end, pos, (char *)"/");	
+			CreateDirectoryTree(RootId, GCFiles, 1, GCFiles.at(0)->m_FileSize);	
 		}
 	}
 	m_Treectrl->Expand(RootId);
@@ -216,54 +221,40 @@ CISOProperties::~CISOProperties()
 	delete OpenISO;
 }
 
-void CISOProperties::CreateDirectoryTree(wxTreeItemId& parent, 
-											fileIter& begin,
-											fileIter& end,
-											fileIter& iterPos,
-											char *directory)
+size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
+										 std::vector<const DiscIO::SFileInfo*> fileInfos,
+										 const size_t _FirstIndex, 
+										 const size_t _LastIndex)
 {
-	bool bRoot = true;
+	size_t CurrentIndex = _FirstIndex;
 
-	if(iterPos == begin)
-	 	++iterPos;
-	else
-		bRoot = false;
-
-	char *name = (char *)((*iterPos)->m_FullPath);
-
-	if(iterPos == end)
-		return;
-
-	do
+	while (CurrentIndex < _LastIndex)
 	{
-		if((*iterPos)->IsDirectory()) {
-			char *dirName;
-			name[strlen(name) - 1] = '\0';
-			dirName = strrchr(name, DIR_SEP_CHR);
-			if(!dirName)
-				dirName = name;
-			else
-				dirName++;
+		const DiscIO::SFileInfo *rFileInfo = fileInfos[CurrentIndex];
+		char *name = (char*)rFileInfo->m_FullPath;
 
-			wxTreeItemId item = m_Treectrl->AppendItem(parent, wxString::FromAscii(dirName));
-			CreateDirectoryTree(item, begin, end, ++iterPos, name);
-		} else {
-			char *fileName = strrchr(name, DIR_SEP_CHR);
-			if(!fileName)
-				fileName = name;
-			else
-				fileName++;
+		if (rFileInfo->IsDirectory()) name[strlen(name) - 1] = '\0';
+		char *itemName = strrchr(name, DIR_SEP_CHR);
 
-			m_Treectrl->AppendItem(parent, wxString::FromAscii(fileName));
-			++iterPos;
+		if(!itemName)
+			itemName = name;
+		else
+			itemName++;
+
+		// check next index
+		if (rFileInfo->IsDirectory())
+		{
+			wxTreeItemId item = m_Treectrl->AppendItem(parent, wxString::FromAscii(itemName), 1, 1);
+			CurrentIndex = CreateDirectoryTree(item, fileInfos, CurrentIndex + 1, (size_t)rFileInfo->m_FileSize);
 		}
+		else
+		{
+			m_Treectrl->AppendItem(parent, wxString::FromAscii(itemName), 2, 2);
+			CurrentIndex++;
+		}
+	}
 
-		if(iterPos == end)
-			break;
-		
-		name = (char *)((*iterPos)->m_FullPath);
-
-	} while(bRoot || strstr(name, directory));
+	return CurrentIndex;
 }
 
 void CISOProperties::CreateGUIControls(bool IsWad)
@@ -498,10 +489,18 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_Information->SetSizer(sInfoPage);
 	sInfoPage->Layout();
 
-	
+	// Filesystem icons
+	wxIcon iconTemp;
+	m_iconList = new wxImageList(16, 16);
+
+	iconTemp.CopyFromBitmap(wxBitmap(disc_xpm));   m_iconList->Add(iconTemp); // 0
+	iconTemp.CopyFromBitmap(wxBitmap(folder_xpm)); m_iconList->Add(iconTemp); // 1
+	iconTemp.CopyFromBitmap(wxBitmap(file_xpm));   m_iconList->Add(iconTemp); // 2
+
 	// Filesystem tree
 	m_Treectrl = new wxTreeCtrl(m_Filesystem, ID_TREECTRL, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator);
-	RootId = m_Treectrl->AddRoot(wxT("Disc"), -1, -1, 0);
+	m_Treectrl->AssignImageList(m_iconList);
+	RootId = m_Treectrl->AddRoot(wxT("Disc"), 0, 0, 0);
 
 	wxBoxSizer* sTreePage;
 	sTreePage = new wxBoxSizer(wxVERTICAL);
@@ -562,13 +561,17 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 	m_Treectrl->SelectItem(event.GetItem());
 
 	wxMenu popupMenu;
-	if (m_Treectrl->ItemHasChildren(m_Treectrl->GetSelection()))
-		popupMenu.Append(IDM_EXTRACTDIR, _("Extract Directory...!experimental!"));
-	else
+
+	if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 0
+		&& m_Treectrl->GetFirstVisibleItem() != m_Treectrl->GetSelection())
+		popupMenu.Append(IDM_EXTRACTDIR, _("Extract Partition..."));
+	else if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 1)
+		popupMenu.Append(IDM_EXTRACTDIR, _("Extract Directory..."));
+	else if (m_Treectrl->GetItemImage(m_Treectrl->GetSelection()) == 2)
 		popupMenu.Append(IDM_EXTRACTFILE, _("Extract File..."));
 
-	if (!DiscIO::IsVolumeWiiDisc(OpenISO)) //disabled on wii until it dumps more than partition 0
-		popupMenu.Append(IDM_EXTRACTALL, _("Extract All Files (!!Experimental!!)"));
+	popupMenu.Append(IDM_EXTRACTALL, _("Extract All Files..."));
+
 	PopupMenu(&popupMenu);
 
 	event.Skip();
@@ -615,18 +618,113 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 		pFileSystem->ExportFile(File.mb_str(), Path.mb_str());
 }
 
-void CISOProperties::OnExtractDir(wxCommandEvent& WXUNUSED (event))
+void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolder, const int partitionNum)
 {
-	if(!AskYesNo("%s", "Warning! this process does not yet have a progress bar.\nDolphin might appear unresponsive(depends on how big the folder is) until the extraction is complete\nContinue?"))
-		return;
-	wxString Path;
-	wxString Directory;
+	char exportName[512];
+	u32 index[2], offsetShift = 0;
+	std::vector<const DiscIO::SFileInfo *> fst;
+	DiscIO::IFileSystem *FS = 0;
 
-	Directory = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
-	Path = wxDirSelector(wxT("Choose the folder where to extract to"));
+	if (DiscIO::IsVolumeWiiDisc(OpenISO))
+	{
+		FS = WiiDisc.at(partitionNum).FileSystem;
+		offsetShift = 2;
+	}
+	else
+		FS = pFileSystem;
+
+	FS->GetFileList(fst);
+
+	if (!_rFullPath) // Extract all
+	{
+		index[0] = 0;
+		index[1] = fst.size();
+
+		FS->ExportApploader(_rExportFolder);
+	}
+	else // Look for the dir we are going to extract
+	{
+		for(index[0] = 0; index[0] < fst.size(); index[0]++)
+		{
+			if (!strcmp(fst.at(index[0])->m_FullPath, _rFullPath))
+			{
+				DEBUG_LOG(DISCIO, "Found the Dir at %u", index[0]);
+				index[1] = (u32)fst.at(index[0])->m_FileSize;
+				break;
+			}
+		}
+
+		DEBUG_LOG(DISCIO,"Dir found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
+	}
+
+	wxProgressDialog dialog(index[0] ? _T("Extracting Directory") : _T("Extracting All Files"),
+					_T("Extracting..."),
+					index[1], // range
+					this, // parent
+					wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_ELAPSED_TIME |
+					wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
+					wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+					);
+	dialog.CenterOnParent();
+
+	// Extraction
+	for (u32 i = index[0]; i < index[1]; i++)
+	{
+		if (!dialog.Update(i, wxString::Format(_T("Extracting %s"), wxString::FromAscii(fst[i]->m_FullPath))))
+			break;
+
+		if (fst[i]->IsDirectory())
+		{
+			sprintf(exportName, "%s/%s/", _rExportFolder, fst[i]->m_FullPath);
+			DEBUG_LOG(DISCIO, "%s", exportName);		
+
+			if (!File::Exists(exportName) && !File::CreateFullPath(exportName))
+			{
+				ERROR_LOG(DISCIO, "Could not create the path %s", exportName);
+			}
+			else
+			{
+				if (!File::IsDirectory(exportName))
+					ERROR_LOG(DISCIO, "%s already exists and is not a directory", exportName);
+
+				DEBUG_LOG(DISCIO, "folder %s already exists", exportName);
+			}
+		}
+		else
+		{
+			sprintf(exportName, "%s/%s", _rExportFolder, fst[i]->m_FullPath);
+			DEBUG_LOG(DISCIO, "%s", exportName);
+
+			if (!File::Exists(exportName) && !FS->ExportFile(fst[i]->m_FullPath, exportName))
+			{
+				ERROR_LOG(DISCIO, "Could not export %s", exportName);
+			}
+			else
+			{
+				DEBUG_LOG(DISCIO, "%s already exists", exportName);
+			}
+		}
+	}
+}
+
+void CISOProperties::OnExtractDir(wxCommandEvent& event)
+{
+	wxString Directory = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
+	wxString Path = wxDirSelector(wxT("Choose the folder where to extract to"));
 
 	if (!Path || !Directory)
 		return;
+
+	if (event.GetId() == IDM_EXTRACTALL)
+	{
+		if (DiscIO::IsVolumeWiiDisc(OpenISO))
+			for (u32 i = 0; i < WiiDisc.size(); i++)
+				ExportDir(NULL, Path.mb_str(), i);
+		else
+			ExportDir(NULL, Path.mb_str());
+
+		return;
+	}
 
 	while (m_Treectrl->GetItemParent(m_Treectrl->GetSelection()) != m_Treectrl->GetRootItem())
 	{
@@ -641,26 +739,10 @@ void CISOProperties::OnExtractDir(wxCommandEvent& WXUNUSED (event))
 	{
 		int partitionNum = wxAtoi(Directory.SubString(10, 11));
 		Directory.Remove(0, 12); // Remove "Partition x/"
-		WiiDisc.at(partitionNum).FileSystem->ExportDir(Directory.mb_str(), Path.mb_str());
+		ExportDir(Directory.mb_str(), Path.mb_str(), partitionNum);
 	}
 	else
-		pFileSystem->ExportDir(Directory.mb_str(), Path.mb_str());
-}
-
-void CISOProperties::OnExtractAll(wxCommandEvent& WXUNUSED (event))
-{
-	if(!AskYesNo("%s", "Warning! this process does not yet have a progress bar.\nDolphin will appear unresponsive until the extraction is complete\nContinue?"))
-		return;
-	wxString dirHome;
-	wxGetHomeDir(&dirHome);
-
-	wxDirDialog dialog(this, _("Browse for a directory to add"), dirHome, wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
-
-	if (dialog.ShowModal() == wxID_OK)
-	{
-		std::string sPath(dialog.GetPath().mb_str());
-		pFileSystem->ExportDir(NULL,sPath.c_str());
-	}
+		ExportDir(Directory.mb_str(), Path.mb_str());
 }
 
 void CISOProperties::SetRefresh(wxCommandEvent& event)

@@ -141,6 +141,7 @@ class CISOProperties : public wxDialog
 
 		wxTreeCtrl *m_Treectrl;
 		wxTreeItemId RootId;
+		wxImageList *m_iconList;
 
 		enum
 		{
@@ -212,8 +213,8 @@ class CISOProperties : public wxDialog
 			ID_MAKER,
 			ID_COMMENT,
 			ID_BANNER,
-			IDM_EXTRACTALL,
 			IDM_EXTRACTDIR,
+			IDM_EXTRACTALL,
 			IDM_EXTRACTFILE,
 			IDM_BNRSAVEAS
 		};
@@ -230,7 +231,6 @@ class CISOProperties : public wxDialog
 		void OnRightClickOnTree(wxTreeEvent& event);
 		void OnExtractFile(wxCommandEvent& event);
 		void OnExtractDir(wxCommandEvent& event);
-		void OnExtractAll(wxCommandEvent& event);
 		void SetRefresh(wxCommandEvent& event);
 		void OnChangeBannerLang(wxCommandEvent& event);
 
@@ -239,9 +239,12 @@ class CISOProperties : public wxDialog
 		std::vector<const DiscIO::SFileInfo *> GCFiles;
 		typedef std::vector<const DiscIO::SFileInfo *>::iterator fileIter;
 
-		void CreateDirectoryTree(wxTreeItemId& parent,fileIter& begin,
-								 fileIter& end,
-								 fileIter& iterPos, char *directory);
+		size_t CreateDirectoryTree(wxTreeItemId& parent,
+								 std::vector<const DiscIO::SFileInfo*> fileInfos,
+								 const size_t _FirstIndex, 
+								 const size_t _LastIndex);
+		void ExportDir(const char* _rFullPath, const char* _rExportFilename,
+								 const int partitionNum = 0);
 
 		IniFile GameIni;
 		std::string GameIniFile;
