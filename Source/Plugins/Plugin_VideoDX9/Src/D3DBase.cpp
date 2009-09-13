@@ -19,81 +19,74 @@
 #include "Render.h"
 #include "XFStructs.h"
 
-
 namespace D3D
 {
-	bool fullScreen = false;
-	bool nextFullScreen = false;
-	LPDIRECT3D9        D3D = NULL; // Used to create the D3DDevice
-	LPDIRECT3DDEVICE9  dev = NULL; // Our rendering device
-	LPDIRECT3DSURFACE9 backBuffer;
-	D3DCAPS9 caps;
-	int multisample;
-	int resolution;
-	const int MaxTextureStages = 9;
-	const int MaxRenderStates = 210;
-	const DWORD MaxTextureTypes = 33;
-	const DWORD MaxSamplerSize = 13;
-	const DWORD MaxSamplerTypes = 15;
-	
-	static DWORD m_RenderStates[MaxRenderStates+46];
-	static DWORD m_TextureStageStates[MaxTextureStages][MaxTextureTypes];
-	static DWORD m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
 
-	LPDIRECT3DBASETEXTURE9 m_Textures[16];
+LPDIRECT3D9        D3D = NULL; // Used to create the D3DDevice
+LPDIRECT3DDEVICE9  dev = NULL; // Our rendering device
+LPDIRECT3DSURFACE9 backBuffer;
+D3DCAPS9 caps;
+HWND hWnd;
+
+static bool fullScreen = false;
+static bool nextFullScreen = false;
+static int multisample;
+static int resolution;
+static int xres, yres;
 
 #define VENDOR_NVIDIA 4318
 #define VENDOR_ATI    4098
 
-	RECT client;
-	HWND hWnd;
-	int xres, yres;
-	int cur_adapter;
-	Shader Ps;
-	Shader Vs;
+static bool bFrameInProgress = false;
 
-	bool bFrameInProgress = false;
+#define MAX_ADAPTERS 4
+static Adapter adapters[MAX_ADAPTERS];
+static int numAdapters;
+static int cur_adapter;
 
-	//enum shit
-	Adapter adapters[4];
-	int numAdapters;
+// Value caches for state filtering
+const int MaxTextureStages = 9;
+const int MaxRenderStates = 210;
+const DWORD MaxTextureTypes = 33;
+const DWORD MaxSamplerSize = 13;
+const DWORD MaxSamplerTypes = 15;
+static DWORD m_RenderStates[MaxRenderStates+46];
+static DWORD m_TextureStageStates[MaxTextureStages][MaxTextureTypes];
+static DWORD m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
+LPDIRECT3DBASETEXTURE9 m_Textures[16];
 
-	void Enumerate();
+void Enumerate();
 
-	int GetNumAdapters()
-	{
-		return numAdapters;
-	}
+int GetNumAdapters() { return numAdapters; }
+const Adapter &GetAdapter(int i) { return adapters[i]; }
+const Adapter &GetCurAdapter() { return adapters[cur_adapter]; }
 
-	const Adapter &GetAdapter(int i)
-	{
-		return adapters[i];
-	}
+HRESULT Init()
+{
+	// Create the D3D object, which is needed to create the D3DDevice.
+	D3D = Direct3DCreate9(D3D_SDK_VERSION);
+	if (!D3D)
+		return E_FAIL;
+	Enumerate();
+	return S_OK;
+}
 
-	const Adapter &GetCurAdapter()
-	{
-		return adapters[cur_adapter];
-	}
+void Shutdown()
+{
+	D3D->Release();
+	D3D = 0;
+}
 
-	HRESULT Init()
-	{
-        // Create the D3D object, which is needed to create the D3DDevice.
-		if( NULL == ( D3D = Direct3DCreate9( D3D_SDK_VERSION ) ) )
-			return E_FAIL;
+void EnableAlphaToCoverage()
+{
+	// Each vendor has their own specific little hack.
+	if (GetCurAdapter().ident.VendorId == VENDOR_ATI)
+		D3D::SetRenderState(D3DRS_POINTSIZE, (D3DFORMAT)MAKEFOURCC('A', '2', 'M', '1'));
+	else
+		D3D::SetRenderState(D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C'));			
+}
 
-		Enumerate();
-		return S_OK;
-	}
-
-	void EnableAlphaToCoverage()
-	{
-		if (GetCurAdapter().ident.VendorId == VENDOR_ATI)
-			D3D::SetRenderState(D3DRS_POINTSIZE, (D3DFORMAT)MAKEFOURCC('A', '2', 'M', '1'));
-		else
-			D3D::SetRenderState(D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C'));			
-	}
-
-	void InitPP(int adapter, int resolution, int aa_mode, D3DPRESENT_PARAMETERS *pp)
+	void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
 	{
 		int FSResX = adapters[adapter].resolutions[resolution].xres; 
 		int FSResY = adapters[adapter].resolutions[resolution].yres;
@@ -119,6 +112,7 @@ namespace D3D
 		}
 		else
 		{
+			RECT client;
 			GetClientRect(hWnd, &client);
 			xres = pp->BackBufferWidth  = client.right - client.left;
 			yres = pp->BackBufferHeight = client.bottom - client.top;
@@ -131,12 +125,10 @@ namespace D3D
 	void Enumerate()
 	{
 		numAdapters = D3D::D3D->GetAdapterCount();
-		
-		for (int i=0; i<numAdapters; i++)
+		for (int i = 0; i < std::min(MAX_ADAPTERS, numAdapters); i++)
 		{
 			Adapter &a = adapters[i];
 			D3D::D3D->GetAdapterIdentifier(i, 0, &a.ident);
-
 			bool isNvidia = a.ident.VendorId == VENDOR_NVIDIA;
 
 			// Add multisample modes
@@ -184,14 +176,11 @@ namespace D3D
 					}
 				}
 			}
-
 			if (a.aa_levels.size() == 1)
 			{
 				strcpy(a.aa_levels[0].name, "(Not supported on this device)");
 			}
-
 			int numModes = D3D::D3D->GetAdapterModeCount(i, D3DFMT_X8R8G8B8);
-
 			for (int m = 0; m < numModes; m++)
 			{	
 				D3DDISPLAYMODE mode;
@@ -234,26 +223,26 @@ namespace D3D
 		D3DPRESENT_PARAMETERS d3dpp; 
 		InitPP(adapter, resolution, aa_mode, &d3dpp);
 
-		if( FAILED( D3D->CreateDevice( 
+		if (FAILED(D3D->CreateDevice( 
 			adapter, 
 			D3DDEVTYPE_HAL, 
 			wnd,
 			D3DCREATE_HARDWARE_VERTEXPROCESSING,
-			&d3dpp, &dev ) ) )
+			&d3dpp, &dev)))
 		{
 			MessageBoxA(wnd,
 				"Sorry, but it looks like your 3D accelerator is too old,\n"
 				"or doesn't support features that Dolphin requires.\n"
 				"Falling back to software vertex processing.\n", 
 				"Dolphin Direct3D plugin", MB_OK | MB_ICONERROR);
-			if( FAILED( D3D->CreateDevice( 
+			if (FAILED(D3D->CreateDevice( 
 				adapter, 
 				D3DDEVTYPE_HAL, 
 				wnd,
 				D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
 				// |D3DCREATE_MULTITHREADED /* | D3DCREATE_PUREDEVICE*/,
 				//D3DCREATE_SOFTWARE_VERTEXPROCESSING ,
-				&d3dpp, &dev ) ) )
+				&d3dpp, &dev)))
 			{
 				MessageBoxA(wnd,
 					"Software VP failed too. Upgrade your graphics card.", 
@@ -264,30 +253,8 @@ namespace D3D
 		dev->GetDeviceCaps(&caps);
 		dev->GetRenderTarget(0, &backBuffer);
 
-		Ps.Major = (D3D::caps.PixelShaderVersion >> 8) & 0xFF;
-		Ps.Minor = (D3D::caps.PixelShaderVersion) & 0xFF;
-		Vs.Major = (D3D::caps.VertexShaderVersion >>8) & 0xFF;
-		Vs.Minor = (D3D::caps.VertexShaderVersion) & 0xFF;
-
-		if (caps.NumSimultaneousRTs < 2)
-		{
-			MessageBoxA(0, "Warning - your graphics card does not support multiple render targets.", 0, 0);
-		}
-
 		// Device state would normally be set here
 		return S_OK;
-	}
-
-	ShaderVersion GetShaderVersion()
-	{
-		if (Ps.Major < 2)
-		{
-			return PSNONE;
-		}
-		
-		//good enough estimate - we really only 
-		//care about zero shader vs ps20
-		return (ShaderVersion)Ps.Major;
 	}
 
 	void Close()
@@ -296,43 +263,43 @@ namespace D3D
 		dev = 0;
 	}
 
-	void Shutdown()
-	{
-		D3D->Release();
-		D3D = 0;
-	}
+const D3DCAPS9 &GetCaps()
+{
+	return caps;
+}
 
-	const D3DCAPS9 &GetCaps()
-	{
-		return caps;
-	}
+const char *VertexShaderVersionString()
+{
+	static const char *versions[5] = {"ERROR", "vs_1_4", "vs_2_0", "vs_3_0", "vs_4_0"};
+	int version = ((D3D::caps.VertexShaderVersion >> 8) & 0xFF);
+	return versions[std::min(4, version)];
+}
 
-	LPDIRECT3DSURFACE9 GetBackBufferSurface()
-	{
-		return backBuffer;
-	}
+const char *PixelShaderVersionString()
+{
+	static const char *versions[5] = {"ERROR", "ps_1_4", "ps_2_0", "ps_3_0", "ps_4_0"};
+	int version = ((D3D::caps.PixelShaderVersion >> 8) & 0xFF);
+	return versions[std::min(4, version)];
+}
 
-	void ShowD3DError(HRESULT err)
+LPDIRECT3DSURFACE9 GetBackBufferSurface()
+{
+	return backBuffer;
+}
+
+void ShowD3DError(HRESULT err)
+{
+	switch (err) 
 	{
-		switch (err) 
-		{
-		case D3DERR_DEVICELOST:
-			MessageBoxA(0, "Device Lost", "D3D ERROR", 0);
-			break;
-		case D3DERR_INVALIDCALL:
-			MessageBoxA(0, "Invalid Call", "D3D ERROR", 0);
-			break;
-		case D3DERR_DRIVERINTERNALERROR:
-			MessageBoxA(0, "Driver Internal Error", "D3D ERROR", 0);
-			break;
-		case D3DERR_OUTOFVIDEOMEMORY:
-			MessageBoxA(0, "Out of vid mem", "D3D ERROR", 0);
-			break;
-		default:
-			// MessageBoxA(0,"Other error or success","ERROR",0);
-			break;
-		}
+	case D3DERR_DEVICELOST: PanicAlert("Device Lost"); break;
+	case D3DERR_INVALIDCALL: PanicAlert("Invalid Call"); break;
+	case D3DERR_DRIVERINTERNALERROR: PanicAlert("Driver Internal Error"); break;
+	case D3DERR_OUTOFVIDEOMEMORY: PanicAlert("Out of vid mem"); break;
+	default:
+		// MessageBoxA(0,"Other error or success","ERROR",0);
+		break;
 	}
+}
 
 	void Reset()
 	{
@@ -350,7 +317,7 @@ namespace D3D
 		return fullScreen;
 	}
 
-	int GetDisplayWidth()	
+	int GetDisplayWidth()
 	{
 		return xres;
 	}
@@ -369,11 +336,10 @@ namespace D3D
 	{
 		if (bFrameInProgress)
 		{
+			PanicAlert("BeginFrame WTF");
 			return false;
 		}
-
 		bFrameInProgress = true;
-
 		if (dev)
 		{
 			if (clear)
@@ -388,14 +354,16 @@ namespace D3D
 	void EndFrame()
 	{
 		if (!bFrameInProgress)
+		{
+			PanicAlert("EndFrame WTF");
 			return;
-
+		}
 		bFrameInProgress = false;
 
 		if (dev)
 		{
 			dev->EndScene();
-			dev->Present( NULL, NULL, NULL, NULL );
+			dev->Present(NULL, NULL, NULL, NULL);
 		}
 
 		if (fullScreen != nextFullScreen)

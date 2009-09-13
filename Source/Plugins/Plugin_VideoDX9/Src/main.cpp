@@ -25,7 +25,6 @@
 #include "LogManager.h"
 #include "GlobalControl.h"
 
-
 #if defined(HAVE_WX) && HAVE_WX
 #include "Debugger/Debugger.h"
 GFXDebuggerDX9 *m_DebuggerFrame = NULL;
@@ -53,6 +52,9 @@ GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 #include "EmuWindow.h"
 #include "VideoState.h"
 #include "XFBConvert.h"
+
+// Having to include this is TERRIBLY ugly. FIXME x100
+#include "../../../Core/Core/Src/ConfigManager.h" // FIXME
 
 #include "Utils.h"
 
@@ -174,14 +176,15 @@ void UpdateFPSDisplay(const char *text)
 
 bool Init()
 {
-	g_Config.Load();
-	g_Config.GameIniLoad();
+	g_Config.Load(FULL_CONFIG_DIR "gfx_dx9.ini");
+	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
+	g_Config.GameIniLoad(iniFile);
 	UpdateProjectionHack(g_Config.iPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
 
 	if (initCount == 0)
 	{
         // create the window
-        if (!g_Config.renderToMainframe || g_VideoInitialize.pWindowHandle == NULL) // ignore parent for this plugin
+        if (!g_Config.RenderToMainframe || g_VideoInitialize.pWindowHandle == NULL) // ignore parent for this plugin
         {
             g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, _T("Loading - Please wait."));
         }

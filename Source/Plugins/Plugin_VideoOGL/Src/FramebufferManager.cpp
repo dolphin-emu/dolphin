@@ -188,7 +188,7 @@ void FramebufferManager::Shutdown()
 
 void FramebufferManager::CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
-	if (g_Config.bUseXFB)
+	if (g_ActiveConfig.bUseXFB)
 		copyToRealXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 	else
 		copyToVirtualXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
@@ -196,7 +196,7 @@ void FramebufferManager::CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const
 
 const XFBSource* FramebufferManager::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-	if (g_Config.bUseXFB)
+	if (g_ActiveConfig.bUseXFB)
 		return getRealXFBSource(xfbAddr, fbWidth, fbHeight);
 	else
 		return getVirtualXFBSource(xfbAddr, fbWidth, fbHeight);

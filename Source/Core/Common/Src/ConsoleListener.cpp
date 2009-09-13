@@ -104,25 +104,24 @@ bool ConsoleListener::IsOpen()
 void ConsoleListener::BufferWidthHeight(int BufferWidth, int BufferHeight, int ScreenWidth, int ScreenHeight, bool BufferFirst)
 {
 #ifdef _WIN32
-	bool SB, SW;
-
+	BOOL SB, SW;
 	if (BufferFirst)
 	{
 		// Change screen buffer size
 		COORD Co = {BufferWidth, BufferHeight};
-		SB = (bool)SetConsoleScreenBufferSize(hConsole, Co);
+		SB = SetConsoleScreenBufferSize(hConsole, Co);
 		// Change the screen buffer window size
 		SMALL_RECT coo = {0,0,ScreenWidth, ScreenHeight}; // top, left, right, bottom
-		SW = (bool)SetConsoleWindowInfo(hConsole, TRUE, &coo);
+		SW = SetConsoleWindowInfo(hConsole, TRUE, &coo);
 	}
 	else
 	{
 		// Change the screen buffer window size
 		SMALL_RECT coo = {0,0, ScreenWidth, ScreenHeight}; // top, left, right, bottom
-		SW = (bool)SetConsoleWindowInfo(hConsole, TRUE, &coo);
+		SW = SetConsoleWindowInfo(hConsole, TRUE, &coo);
 		// Change screen buffer size
 		COORD Co = {BufferWidth, BufferHeight};
-		SB = (bool)SetConsoleScreenBufferSize(hConsole, Co);
+		SB = SetConsoleScreenBufferSize(hConsole, Co);
 	}
 #endif
 }
@@ -158,7 +157,7 @@ COORD ConsoleListener::GetCoordinates(int BytesRead, int BufferWidth)
 {
 	COORD Ret = {0, 0};
 	// Full rows
-	int Step = floor((float)BytesRead / (float)BufferWidth);
+	int Step = (int)floor((float)BytesRead / (float)BufferWidth);
 	Ret.Y += Step;
 	// Partial row
 	Ret.X = BytesRead - (BufferWidth * Step);
@@ -195,7 +194,7 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 	const int MAX_BYTES = 1024 * 16;
 	int ReadBufferSize = MAX_BYTES - 32;
 	DWORD cAttrRead = ReadBufferSize;
-	int BytesRead = 0;
+	DWORD BytesRead = 0;
 	int i = 0;
 	int LastAttrRead = 0;
 	while (BytesRead < BufferSize)
@@ -215,10 +214,10 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 		LastAttrRead = cAttrRead;
 	}
 	// Letter space
-	int LWidth = (int)floor((float)Width / 8.0) - 1.0;
-	int LHeight = (int)floor((float)Height / 12.0) - 1.0;	
+	int LWidth = (int)(floor((float)Width / 8.0f) - 1.0f);
+	int LHeight = (int)(floor((float)Height / 12.0f) - 1.0f);
 	int LBufWidth = LWidth + 1;
-	int LBufHeight = floor((float)BufferSize / (float)LBufWidth);
+	int LBufHeight = (int)floor((float)BufferSize / (float)LBufWidth);
 	// Change screen buffer size
 	LetterSpace(LBufWidth, LBufHeight);
 

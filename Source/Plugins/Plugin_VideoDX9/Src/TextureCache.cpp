@@ -48,7 +48,8 @@ void TextureCache::TCacheEntry::Destroy(bool shutdown)
 	if (texture)
 		texture->Release();
 	texture = 0;
-	if (!isRenderTarget && !shutdown) {
+	if (!isRenderTarget && !shutdown)
+	{
 		u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset*4);
 		if (ptr && *ptr == hash)
 			*ptr = oldpixel;
@@ -58,7 +59,7 @@ void TextureCache::TCacheEntry::Destroy(bool shutdown)
 void TextureCache::Init()
 {
 	temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
-	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable, g_Config.bTexFmtOverlayCenter);
+	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 }
 
 void TextureCache::Invalidate(bool shutdown)
@@ -71,16 +72,14 @@ void TextureCache::Invalidate(bool shutdown)
 void TextureCache::Shutdown()
 {
 	Invalidate(true);
-
 	FreeMemoryPages(temp, TEMP_SIZE);	
 	temp = NULL;
 }
 
 void TextureCache::Cleanup()
 {
-	TexCache::iterator iter=textures.begin();
-
-	while(iter != textures.end())
+	TexCache::iterator iter = textures.begin();
+	while (iter != textures.end())
 	{
 		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
 		{
@@ -138,14 +137,14 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	u32 tex_hash = 0;
     u32 texID = address;
 	
-	if (g_Config.bDumpTextures || g_Config.bSafeTextureCache)
+	if (g_ActiveConfig.bDumpTextures || g_ActiveConfig.bSafeTextureCache)
 	{
 		tex_hash = hash_value;
 		if ((format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2))
 		{
 			u32 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], (format == GX_TF_C4) ? 32 : 128);
 			tex_hash ^= tlutHash;
-			if (g_Config.bSafeTextureCache)
+			if (g_ActiveConfig.bSafeTextureCache)
 				texID ^= tlutHash;
 		}
 	}
@@ -154,7 +153,6 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	if (iter != textures.end())
 	{
 		TCacheEntry &entry = iter->second;
-
 		if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash)))
 		{
 			entry.frameCount = frameCount;
@@ -163,7 +161,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 				return &entry;
 			}
 			lastTexture[stage] = entry.texture;
-			D3D::SetTexture( stage, entry.texture );
+			D3D::SetTexture(stage, entry.texture);
 			return &entry;
 		}
 		else
@@ -232,7 +230,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	entry.fmt = format;
 	entry.mode = bpmem.tex[stage > 3].texMode0[stage & 3];
 	
-	if (g_Config.bDumpTextures)
+	if (g_ActiveConfig.bDumpTextures)
 	{ // dump texture to file
 
 		char szTemp[MAX_PATH];
@@ -262,7 +260,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	SETSTAT(stats.numTexturesAlive, (int)textures.size());
 
 	//Set the texture!
-	D3D::SetTexture( stage, entry.texture );
+	D3D::SetTexture(stage, entry.texture);
 
 	lastTexture[stage] = entry.texture;
 

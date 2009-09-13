@@ -15,30 +15,37 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
+#include <cmath>
+
 #include "Common.h"
 #include "IniFile.h"
 #include "Config.h"
-#include "../../../Core/Core/Src/ConfigManager.h" // FIXME
+#include "VideoCommon.h"
 
 Config g_Config;
+Config g_ActiveConfig;
+
+void UpdateActiveConfig() 
+{
+	g_ActiveConfig = g_Config;
+}
 
 Config::Config()
 {
 	bRunning = false;
 }
 
-void Config::Load()
+void Config::Load(const char *ini_file)
 {
     std::string temp;
     IniFile iniFile;
-    iniFile.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
+    iniFile.Load(ini_file);
 
 	// get resolution
     iniFile.Get("Hardware", "WindowedRes", &temp, "640x480");
-    strncpy(iInternalRes, temp.c_str(), 16);
+    strncpy(cInternalRes, temp.c_str(), 16);
 	iniFile.Get("Hardware", "FullscreenRes", &temp, "640x480");
-    strncpy(iFSResolution, temp.c_str(), 16);
+    strncpy(cFSResolution, temp.c_str(), 16);
     
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
     iniFile.Get("Hardware", "VSync", &bVSync, 0); // Hardware
@@ -84,6 +91,13 @@ void Config::Load()
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
 	iniFile.Get("Hacks", "ProjectionHack", &iPhackvalue, 0);
 
+	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
+	if (iAdapter == -1) 
+		iAdapter = 0;
+	iniFile.Get("Hardware", "WindowedRes", &iWindowedRes, 0);
+	iniFile.Get("Hardware", "VSync", &bVsync, 0);
+	iniFile.Get("Hardware", "FullscreenRes", &iFSResolution, 0);
+
 	// Load common settings
 	iniFile.Load(CONFIG_FILE);
 	bool bTmp;
@@ -91,9 +105,8 @@ void Config::Load()
 	SetEnableAlert(bTmp);
 }
 
-void Config::GameIniLoad()
+void Config::GameIniLoad(IniFile *iniFile)
 {
-	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
 	if (! iniFile) 
 		return;
 	
@@ -128,12 +141,12 @@ void Config::GameIniLoad()
 		iniFile->Get("Video", "ProjectionHack", &iPhackvalue, 0);
 }
 
-void Config::Save()
+void Config::Save(const char *ini_file)
 {
     IniFile iniFile;
-    iniFile.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
-    iniFile.Set("Hardware", "WindowedRes", iInternalRes);
-    iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
+    iniFile.Load(ini_file);
+    iniFile.Set("Hardware", "WindowedRes", cInternalRes);
+    iniFile.Set("Hardware", "FullscreenRes", cFSResolution);
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
     iniFile.Set("Hardware", "VSync", bVSync);
     iniFile.Set("Hardware", "RenderToMainframe", RenderToMainframe);
@@ -178,5 +191,75 @@ void Config::Save()
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToRAM);
 	iniFile.Set("Hacks", "ProjectionHack", iPhackvalue);
 
-    iniFile.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
+	iniFile.Set("Hardware", "Adapter", iAdapter);
+	iniFile.Set("Hardware", "WindowedRes", iWindowedRes);
+	iniFile.Set("Hardware", "VSync", bVsync);
+	iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
+
+    iniFile.Save(ini_file);
+}
+
+
+
+// TODO: Figure out a better place for this function.
+void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip, TargetRectangle *rc)
+{
+	float FloatGLWidth = (float)backbuffer_width;
+	float FloatGLHeight = (float)backbuffer_height;
+	float FloatXOffset = 0;
+	float FloatYOffset = 0;
+
+	// The rendering window size
+	const float WinWidth = FloatGLWidth;
+	const float WinHeight = FloatGLHeight;
+
+	// Handle aspect ratio.
+	if (g_ActiveConfig.bKeepAR43 || g_ActiveConfig.bKeepAR169)
+	{
+		// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
+		float Ratio = (WinWidth / WinHeight) / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
+		// Check if height or width is the limiting factor. If ratio > 1 the picture is to wide and have to limit the width.
+		if (Ratio > 1)
+		{
+			// Scale down and center in the X direction.
+			FloatGLWidth /= Ratio;
+			FloatXOffset = (WinWidth - FloatGLWidth) / 2.0f;
+		}
+		// The window is too high, we have to limit the height
+		else
+		{
+			// Scale down and center in the Y direction.
+			FloatGLHeight *= Ratio;
+			FloatYOffset = FloatYOffset + (WinHeight - FloatGLHeight) / 2.0f;
+		}
+	}
+
+	// -----------------------------------------------------------------------
+	// Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.
+	//		Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
+	// ------------------
+	if ((g_ActiveConfig.bKeepAR43 || g_ActiveConfig.bKeepAR169) && g_ActiveConfig.bCrop)
+	{
+		float Ratio = g_Config.bKeepAR43 ? ((4.0f / 3.0f) / (5.0f / 4.0f)) : (((16.0f / 9.0f) / (16.0f / 10.0f)));
+		// The width and height we will add (calculate this before FloatGLWidth and FloatGLHeight is adjusted)
+		float IncreasedWidth = (Ratio - 1.0f) * FloatGLWidth;
+		float IncreasedHeight = (Ratio - 1.0f) * FloatGLHeight;
+		// The new width and height
+		FloatGLWidth = FloatGLWidth * Ratio;
+		FloatGLHeight = FloatGLHeight * Ratio;
+		// Adjust the X and Y offset
+		FloatXOffset = FloatXOffset - (IncreasedWidth * 0.5f);
+		FloatYOffset = FloatYOffset - (IncreasedHeight * 0.5f);
+		//NOTICE_LOG(OSREPORT, "Crop       Ratio:%1.2f IncreasedHeight:%3.0f YOffset:%3.0f", Ratio, IncreasedHeight, FloatYOffset);
+		//NOTICE_LOG(OSREPORT, "Crop       FloatGLWidth:%1.2f FloatGLHeight:%3.0f", (float)FloatGLWidth, (float)FloatGLHeight);
+		//NOTICE_LOG(OSREPORT, "");
+	}
+
+	// round(float) = floor(float + 0.5)
+	int XOffset = (int)(FloatXOffset + 0.5f);
+	int YOffset = (int)(FloatYOffset + 0.5f);
+	rc->left = XOffset;
+	rc->top = flip ? (int)(YOffset + ceil(FloatGLHeight)) : YOffset;
+	rc->right = XOffset + (int)ceil(FloatGLWidth);
+	rc->bottom = flip ? YOffset : (int)(YOffset + ceil(FloatGLHeight));
 }

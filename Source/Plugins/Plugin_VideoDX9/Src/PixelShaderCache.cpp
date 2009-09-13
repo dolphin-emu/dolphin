@@ -136,7 +136,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 		return true;
 	}
 	
-	if (g_Config.bShowShaderErrors)
+	if (g_ActiveConfig.bShowShaderErrors)
 	{
 		PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
 	}

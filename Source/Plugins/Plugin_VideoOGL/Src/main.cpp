@@ -70,6 +70,11 @@ GFXDebuggerOGL *m_DebuggerFrame = NULL;
 #endif // HAVE_WX
 
 #include "Config.h"
+
+// Having to include this is TERRIBLY ugly. FIXME x100
+#include "Globals.h"
+#include "../../../Core/Core/Src/ConfigManager.h" // FIXME
+
 #include "LookUpTables.h"
 #include "ImageWrite.h"
 #include "Render.h"
@@ -280,6 +285,12 @@ void CocaAddResolutions() {
 
 void DllConfig(HWND _hParent)
 {
+	g_Config.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
+	// UGLY
+	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
+	g_Config.GameIniLoad(iniFile);
+	g_Config.UpdateProjectionHack();
+	UpdateActiveConfig();
 #if defined(HAVE_WX) && HAVE_WX
 // Prevent user to show more than 1 config window at same time
 	if (allowConfigShow) {
@@ -314,14 +325,17 @@ void Initialize(void *init)
     g_VideoInitialize = *(_pVideoInitialize); 
 	InitXFBConvTables();
 
-    g_Config.Load();
-	g_Config.GameIniLoad();
+    g_Config.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
+	// UGLY
+	IniFile *iniFile = ((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.gameIni;
+	g_Config.GameIniLoad(iniFile);
 
 #if defined(HAVE_WX) && HAVE_WX
 	g_Config.UpdateProjectionHack();
 	//Enable support for PNG screenshots.
 	wxImage::AddHandler( new wxPNGHandler );
 #endif
+	UpdateActiveConfig();
 
     if (!OpenGL_Create(g_VideoInitialize, 640, 480)) {
         g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
@@ -460,7 +474,7 @@ void VideoFifo_CheckSwapRequest()
 {
 	if (Common::AtomicLoadAcquire(s_swapRequested))
 	{
-		if (ForceSwap || g_Config.bUseXFB)
+		if (ForceSwap || g_ActiveConfig.bUseXFB)
 		{
 			Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 			g_VideoInitialize.pCopiedToXFB(false);
@@ -481,7 +495,7 @@ inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 // Run from the graphics thread (from Fifo.cpp)
 void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-	if (Common::AtomicLoadAcquire(s_swapRequested) && g_Config.bUseXFB)
+	if (Common::AtomicLoadAcquire(s_swapRequested) && g_ActiveConfig.bUseXFB)
 	{
 		u32 aLower = xfbAddr;
 		u32 aUpper = xfbAddr + 2 * fbWidth * fbHeight;

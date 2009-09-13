@@ -78,8 +78,8 @@ struct Statistics
 
 	// Yeah, this is unsafe, but we really don't wanna faff around allocating
 	// buffers here.
-	static void ToString(char *ptr);
-	static void ToStringProj(char *ptr);
+	static char *ToString(char *ptr);
+	static char *ToStringProj(char *ptr);
 };
 
 extern Statistics stats;

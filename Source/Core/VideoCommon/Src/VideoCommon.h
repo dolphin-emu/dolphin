@@ -121,7 +121,15 @@ struct EFBRectangle : public MathUtil::Rectangle<int>
 // depend on the resolution settings. Use Renderer::ConvertEFBRectangle to
 // convert an EFBRectangle to a TargetRectangle.
 struct TargetRectangle : public MathUtil::Rectangle<int>
-{};
+{
+#ifdef _WIN32
+	// Only used by D3D plugin.
+	const RECT *AsRECT() {
+		// The types are binary compatible so this works.
+		return (const RECT *)this;
+	}
+#endif
+};
 
 #ifdef _WIN32
 #define PRIM_LOG(...) {DEBUG_LOG(VIDEO, __VA_ARGS__)}

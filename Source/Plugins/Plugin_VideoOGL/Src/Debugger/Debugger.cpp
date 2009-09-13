@@ -19,7 +19,7 @@
 #include "IniFile.h"
 #include "Debugger.h"
 
-#include "../Config.h"
+#include "Config.h"
 #include "../Globals.h"
 
 extern int g_Preset;

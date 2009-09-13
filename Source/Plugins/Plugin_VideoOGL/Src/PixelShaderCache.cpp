@@ -199,7 +199,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
                                            dstAlphaEnable);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	if (g_Config.iLog & CONF_SAVESHADERS && code) {	
+	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
 		static int counter = 0;
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%s/ps_%04i.txt", FULL_DUMP_DIR, counter++);

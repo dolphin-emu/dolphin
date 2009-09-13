@@ -15,10 +15,18 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+
+// IMPORTANT: UI etc should modify g_Config. Graphics code should read g_ActiveConfig.
+// The reason for this is to get rid of race conditions etc when the configuration
+// changes in the middle of a frame. This is done by copying g_Config to g_ActiveConfig
+// at the start of every frame. Noone should ever change members of g_ActiveConfig 
+// directly.
+
 #ifndef _PLUGIN_VIDEOOGL_CONFIG_H_
 #define _PLUGIN_VIDEOOGL_CONFIG_H_
 
 #include "Common.h"
+#include "VideoCommon.h"
 
 #include <string>
 
@@ -40,13 +48,15 @@ enum MultisampleMode {
 	MULTISAMPLE_CSAA_16XQ,
 };
 
+class IniFile;
+
 // NEVER inherit from this class.
 struct Config
 {
     Config();
-    void Load();
-	void GameIniLoad();
-    void Save();
+    void Load(const char *ini_file);
+	void GameIniLoad(IniFile *iniFile);
+    void Save(const char *ini_file);
 	void UpdateProjectionHack();
 
     // General
@@ -56,8 +66,8 @@ struct Config
 	bool bVSync;
 
 	// Resolution control
-	char iFSResolution[16];
-    char iInternalRes[16];
+	char cFSResolution[16];
+    char cInternalRes[16];
 
     bool bNativeResolution, b2xResolution, bRunning;  // Should possibly be augmented with 2x, 4x native.
 	bool bWidescreenHack;
@@ -111,10 +121,23 @@ struct Config
     int iCompileDLsLevel;
     bool bShowShaderErrors;
 
-private:
-	DISALLOW_COPY_AND_ASSIGN(Config);
+	// D3D only config, mostly to be merged into the above
+	int iAdapter;
+	int iWindowedRes;
+	int iFSResolution;
+
+	bool bVsync;
+
+	// Runtime detection config
+	bool bOldCard;
 };
 
 extern Config g_Config;
+extern Config g_ActiveConfig;
+
+// Called every frame.
+void UpdateActiveConfig();
+
+void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip, TargetRectangle *rc);
 
 #endif  // _PLUGIN_VIDEOOGL_CONFIG_H_

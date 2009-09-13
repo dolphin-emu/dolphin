@@ -156,7 +156,7 @@ void Flush()
 	_assert_(s_pCurBufferPointer != s_pBaseBufferPointer);
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
-	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_Config.iSaveTargetId, xfregs.numTexGens,
+	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfregs.numTexGens,
 		xfregs.nNumChans, (int)xfregs.bEnableDualTexTransform, bpmem.ztex2.op,
 		bpmem.blendmode.colorupdate, bpmem.blendmode.alphaupdate, bpmem.zmode.updateenable);
 
@@ -242,7 +242,7 @@ void Flush()
 				// texture is hires - pass the scaling size
 				if (tentry->scaleX != 1.0f || tentry->scaleY != 1.0f)
 					PixelShaderManager::SetCustomTexScale(i, tentry->scaleX, tentry->scaleY);
-				if (g_Config.iLog & CONF_SAVETEXTURES) 
+				if (g_ActiveConfig.iLog & CONF_SAVETEXTURES) 
 				{
 					// save the textures
 					char strfile[255];
@@ -287,7 +287,7 @@ void Flush()
 	}
 
     // run through vertex groups again to set alpha
-    if (!g_Config.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
+    if (!g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
 	{
         ps = PixelShaderCache::GetShader(true);
 
@@ -317,22 +317,22 @@ void Flush()
     }
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
-	if (g_Config.iLog & CONF_SAVESHADERS) 
+	if (g_ActiveConfig.iLog & CONF_SAVESHADERS) 
 	{
 		// save the shaders
 		char strfile[255];
-		sprintf(strfile, "%sframes/ps%.3d.txt", FULL_DUMP_DIR, g_Config.iSaveTargetId);
+		sprintf(strfile, "%sframes/ps%.3d.txt", FULL_DUMP_DIR, g_ActiveConfig.iSaveTargetId);
 		std::ofstream fps(strfile);
 		fps << ps->strprog.c_str();
-		sprintf(strfile, "%sframes/vs%.3d.txt", FULL_DUMP_DIR, g_Config.iSaveTargetId);
+		sprintf(strfile, "%sframes/vs%.3d.txt", FULL_DUMP_DIR, g_ActiveConfig.iSaveTargetId);
 		std::ofstream fvs(strfile);
 		fvs << vs->strprog.c_str();
 	}
 
-	if (g_Config.iLog & CONF_SAVETARGETS) 
+	if (g_ActiveConfig.iLog & CONF_SAVETARGETS) 
 	{
 		char str[128];
-		sprintf(str, "%sframes/targ%.3d.tga", FULL_DUMP_DIR, g_Config.iSaveTargetId);
+		sprintf(str, "%sframes/targ%.3d.tga", FULL_DUMP_DIR, g_ActiveConfig.iSaveTargetId);
 		Renderer::SaveRenderTarget(str, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
 	}
 #endif

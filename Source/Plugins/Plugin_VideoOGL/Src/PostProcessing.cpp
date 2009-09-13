@@ -45,11 +45,11 @@ void ReloadShader()
 
 bool ApplyShader()
 {
-	if (s_currentShader != "User/Shaders/" + g_Config.sPostProcessingShader + ".txt")
+	if (s_currentShader != "User/Shaders/" + g_ActiveConfig.sPostProcessingShader + ".txt")
 	{
 		// Set immediately to prevent endless recompiles on failure.
-		if (!g_Config.sPostProcessingShader.empty())
-			s_currentShader = "User/Shaders/" + g_Config.sPostProcessingShader + ".txt";
+		if (!g_ActiveConfig.sPostProcessingShader.empty())
+			s_currentShader = "User/Shaders/" + g_ActiveConfig.sPostProcessingShader + ".txt";
 		else
 			s_currentShader.clear();
 

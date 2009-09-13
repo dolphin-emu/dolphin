@@ -24,7 +24,7 @@
 #include <wx/aboutdlg.h>
 
 #include "../Globals.h"
-#include "../Config.h"
+#include "Config.h"
 #include "main.h"
 #include "Win32.h"
 #include "OnScreenDisplay.h"
@@ -269,21 +269,23 @@ void OnKeyDown(WPARAM wParam)
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {		
-	HDC         hdc;
-	PAINTSTRUCT ps;
-	switch( iMsg )
+	switch (iMsg)
 	{
 	case WM_CREATE:
 		PostMessage(m_hParent, WM_USER, OPENGL_WM_USER_CREATE, (int)m_hParent);
 		break;
 
 	case WM_PAINT:
-		hdc = BeginPaint( hWnd, &ps );
-		EndPaint( hWnd, &ps );
+		{
+			HDC hdc;
+			PAINTSTRUCT ps;
+			hdc = BeginPaint(hWnd, &ps);
+			EndPaint(hWnd, &ps);
+		}
 		return 0;
 
 	case WM_SYSKEYDOWN:
-		switch( LOWORD( wParam ))
+		switch (LOWORD(wParam))
 		{
 		case VK_RETURN:
 			// Pressing Alt+Enter switch FullScreen/Windowed
@@ -298,7 +300,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 	case WM_KEYDOWN:
 		// Don't process this as a child window to avoid double events
-		if (!g_Config.RenderToMainframe) OnKeyDown(wParam);
+		if (!g_Config.RenderToMainframe)
+			OnKeyDown(wParam);
 		break;
 
 	/* Post thes mouse events to the main window, it's nessesary becase in difference to the
@@ -307,7 +310,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	case WM_LBUTTONUP:
 	case WM_LBUTTONDBLCLK:
 		PostMessage(GetParentWnd(), iMsg, wParam, lParam);
-	break;
+		break;
 
 	/* The reason we pick up the WM_MOUSEMOVE is to be able to change this option
 	   during gameplay. The alternative is to load one of the cursors when the plugin
@@ -335,7 +338,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			else
 				SetCursor(hCursorBlank);
 		}
-		if (wParam == OPENGL_WM_USER_KEYDOWN) OnKeyDown(lParam);
+		if (wParam == OPENGL_WM_USER_KEYDOWN)
+			OnKeyDown(lParam);
 		break;
 
 	// This is called when we close the window when we render to a separate window
@@ -445,8 +449,8 @@ void ToggleFullscreen(HWND hParent)
 			g_Config.bFullscreen = false;
 			RECT rc = {0, 0, w_fs, h_fs};
 
-			if (strlen(g_Config.iInternalRes) > 1)
-				sscanf(g_Config.iInternalRes, "%dx%d", &w_fs, &h_fs);
+			if (strlen(g_Config.cInternalRes) > 1)
+				sscanf(g_Config.cInternalRes, "%dx%d", &w_fs, &h_fs);
 			// FullScreen -> Desktop
 			ChangeDisplaySettings(NULL, 0);
 
@@ -456,8 +460,8 @@ void ToggleFullscreen(HWND hParent)
 			ShowCursor(TRUE);
 
 			// SetWindowPos to the center of the screen
-			int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
-			int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
+			int X = (rcdesktop.right - rcdesktop.left)/2 - (rc.right - rc.left)/2;
+			int Y = (rcdesktop.bottom - rcdesktop.top)/2 - (rc.bottom - rc.top)/2;
 
 			// Note: we now use the same res for fullscreen and windowed, so we need to check if the window
 			// is not too big here
@@ -478,8 +482,8 @@ void ToggleFullscreen(HWND hParent)
 			DEVMODE dmScreenSettings;
 			memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
 
-			if (strlen(g_Config.iFSResolution) > 1)
-				sscanf(g_Config.iFSResolution, "%dx%d", &w_fs, &h_fs);
+			if (strlen(g_Config.cFSResolution) > 1)
+				sscanf(g_Config.cFSResolution, "%dx%d", &w_fs, &h_fs);
 
 			// Desktop -> FullScreen
 			dmScreenSettings.dmSize			= sizeof(dmScreenSettings);

@@ -27,20 +27,22 @@ HWND GetParentWnd()
 
 LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 {
-	HDC         hdc;
-	PAINTSTRUCT ps;
 	switch( iMsg )
 	{
 	case WM_PAINT:
-		hdc = BeginPaint( hWnd, &ps );
-		EndPaint( hWnd, &ps );
+		{
+			HDC hdc;
+			PAINTSTRUCT ps;
+			hdc = BeginPaint(hWnd, &ps);
+			EndPaint(hWnd, &ps);
+		}
 		return 0;
 
 	case WM_KEYDOWN:
 		switch( LOWORD( wParam ))
 		{
 			case VK_ESCAPE:   // Pressing Esc switch FullScreen/Windowed
-				if (g_Config.bFullscreen)
+				if (g_ActiveConfig.bFullscreen)
 				{
 					DestroyWindow(hWnd);
 					PostQuitMessage(0);
@@ -127,6 +129,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	case WM_SIZE:
 		// Reset the D3D Device here
 		// Also make damn sure that this is not called from inside rendering a frame :P
+		// Renderer::ReinitView();
 		break;
 
 	case WM_SYSCOMMAND:
@@ -218,7 +221,6 @@ void Close()
 	UnregisterClass(m_szClassName, m_hInstance);
 }
 
-
 void SetSize(int width, int height)
 {
 	RECT rc = {0, 0, width, height};
@@ -233,4 +235,5 @@ void SetSize(int width, int height)
 	rc.bottom = rc.top + h;
 	::MoveWindow(m_hWnd, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top, TRUE);
 }
+
 }

@@ -33,7 +33,7 @@
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 
-static float lastVSconstants[C_FOGPARAMS+8][4];
+static float GC_ALIGNED16(lastVSconstants[C_FOGPARAMS+8][4]);
 
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
@@ -162,7 +162,7 @@ bool VertexShaderCache::SetShader(u32 components)
 		return true;
 	}
 	
-	if (g_Config.bShowShaderErrors)
+	if (g_ActiveConfig.bShowShaderErrors)
 	{
 		PanicAlert("Failed to compile Vertex Shader:\n\n%s", code);
 	}

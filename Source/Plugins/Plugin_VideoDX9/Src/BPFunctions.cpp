@@ -207,9 +207,9 @@ void SetColorMask(const BPCmd &bp)
 
 void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const int &scaleByHalf)
 {
-	if (!g_Config.bEFBCopyDisable)
+	if (!g_ActiveConfig.bEFBCopyDisable)
 	{
-		//if (g_Config.bCopyEFBToRAM)
+		//if (g_ActiveConfig.bCopyEFBToRAM)
 			// To RAM, not implemented yet
 			//TextureConverter::EncodeToRam(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
 		//else // To D3D Texture
@@ -286,12 +286,12 @@ u8 *GetPointer(const u32 &address)
 
 void SetSamplerState(const BPCmd &bp)
 {
-	FourTexUnits &tex = bpmem.tex[(bp.address & 0xE0) == 0xA0];
+	const FourTexUnits &tex = bpmem.tex[(bp.address & 0xE0) == 0xA0];
 	int stage = (bp.address & 3);//(addr>>4)&2;
-	TexMode0 &tm0 = tex.texMode0[stage];
+	const TexMode0 &tm0 = tex.texMode0[stage];
 	
 	D3DTEXTUREFILTERTYPE min, mag, mip;
-	if (g_Config.bForceFiltering)
+	if (g_ActiveConfig.bForceFiltering)
 	{
 		min = mag = mip = D3DTEXF_LINEAR;
 	}
@@ -304,7 +304,7 @@ void SetSamplerState(const BPCmd &bp)
 	if ((bp.address & 0xE0) == 0xA0)
 		stage += 4;	
 	
-	if (g_Config.bForceMaxAniso)
+	if (g_ActiveConfig.iMaxAnisotropy > 1)
 	{
 		mag = D3DTEXF_ANISOTROPIC;
 		min = D3DTEXF_ANISOTROPIC;
@@ -314,7 +314,7 @@ void SetSamplerState(const BPCmd &bp)
 	dev->SetSamplerState(stage, D3DSAMP_MAGFILTER, mag);
 	dev->SetSamplerState(stage, D3DSAMP_MIPFILTER, mip);
 	
-	dev->SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, 16);
+	dev->SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, g_ActiveConfig.iMaxAnisotropy);
 	dev->SetSamplerState(stage, D3DSAMP_ADDRESSU, d3dClamps[tm0.wrap_s]);
 	dev->SetSamplerState(stage, D3DSAMP_ADDRESSV, d3dClamps[tm0.wrap_t]);
 	//wip
@@ -323,8 +323,10 @@ void SetSamplerState(const BPCmd &bp)
 	//sprintf(temp,"lod %f",tm0.lod_bias/4.0f);
 	//g_VideoInitialize.pLog(temp);
 }
+
 void SetInterlacingMode(const BPCmd &bp)
 {
 	// TODO
 }
+
 };

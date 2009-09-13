@@ -75,9 +75,9 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     GROUPBOX        "Texture &filtering",IDC_STATIC,7,7,193,50
-    CONTROL         "Force &bi/trilinear (may cause very small glitches)",IDC_FORCEFILTERING,
+    CONTROL         "Force &bi/trilinear (breaks video in several Wii games)",IDC_FORCEFILTERING,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,170,9
-    CONTROL         "Force 16x &anisotropy filtering",IDC_FORCEANISOTROPY,
+    CONTROL         "Enable 16x &anisotropy filtering",IDC_FORCEANISOTROPY,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,35,110,10
     GROUPBOX        "Texture &enhancements",IDC_STATIC,7,61,193,34
     CONTROL         "Pre-&upscale:",IDC_PREUPSCALE,"Button",BS_AUTOCHECKBOX | WS_DISABLED | WS_TABSTOP,16,76,54,10

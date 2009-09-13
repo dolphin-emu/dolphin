@@ -119,9 +119,9 @@ void SetColorMask(const BPCmd &bp)
 void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const bool &fromZBuffer, const bool &isIntensityFmt, const u32 &copyfmt, const int &scaleByHalf)
 {
 	// bpmem.zcontrol.pixel_format to PIXELFMT_Z24 is when the game wants to copy from ZBuffer (Zbuffer uses 24-bit Format)
-	if (!g_Config.bEFBCopyDisable)
+	if (!g_ActiveConfig.bEFBCopyDisable)
 	{
-		if (g_Config.bCopyEFBToRAM) // To RAM
+		if (g_ActiveConfig.bCopyEFBToRAM) // To RAM
 			TextureConverter::EncodeToRam(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
 		else // To OGL Texture
 			TextureMngr::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
@@ -160,9 +160,9 @@ bool GetConfig(const int &type)
 	case CONFIG_ISWII:
 		return g_VideoInitialize.bWii;
 	case CONFIG_DISABLEFOG:
-		return g_Config.bDisableFog;
+		return g_ActiveConfig.bDisableFog;
 	case CONFIG_SHOWEFBREGIONS:
-		return g_Config.bShowEFBCopyRegions;
+		return g_ActiveConfig.bShowEFBCopyRegions;
 	default:
 		PanicAlert("GetConfig Error: Unknown Config Type!");
 		return false;

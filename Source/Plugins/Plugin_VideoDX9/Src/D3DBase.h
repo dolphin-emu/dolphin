@@ -18,87 +18,75 @@
 #ifndef _D3DBASE_H
 #define _D3DBASE_H
 
-#include <d3d9.h>
-
 #include <vector>
 #include <set>
 
-#ifndef SAFE_RELEASE
-#define SAFE_RELEASE(p)      { if(p) { (p)->Release(); (p)=NULL; } }
-#endif
+#include <d3d9.h>
 
 #include "Common.h"
 
 namespace D3D
 {
-	enum ShaderVersion
-	{
-		PSNONE = 0,
-		PS20 = 2,
-		PS30 = 3,
-		PS40 = 4,
-	};
 
-	HRESULT Init();
-	HRESULT Create(int adapter, HWND wnd, bool fullscreen, int resolution, int aa_mode);
-	void Close();
-	void Shutdown();
+HRESULT Init();
+HRESULT Create(int adapter, HWND wnd, bool fullscreen, int resolution, int aa_mode);
+void Close();
+void Shutdown();
 
-	void Reset();
-	bool BeginFrame(bool clear=true, u32 color=0, float z=1.0f);
-	void EndFrame();
-	void SwitchFullscreen(bool fullscreen);
-	bool IsFullscreen();
-	int GetDisplayWidth();
-	int GetDisplayHeight();
-	ShaderVersion GetShaderVersion();
-	LPDIRECT3DSURFACE9 GetBackBufferSurface();
-	const D3DCAPS9 &GetCaps();
-	void ShowD3DError(HRESULT err);
-	void EnableAlphaToCoverage();
+// Direct access to the device.
+extern IDirect3DDevice9 *dev;
 
-	extern IDirect3DDevice9 *dev;
+void Reset();
+bool BeginFrame(bool clear, u32 color, float z);
+void EndFrame();
+void SwitchFullscreen(bool fullscreen);
+bool IsFullscreen();
+int GetDisplayWidth();
+int GetDisplayHeight();
+LPDIRECT3DSURFACE9 GetBackBufferSurface();
+const D3DCAPS9 &GetCaps();
+const char *PixelShaderVersionString();
+const char *VertexShaderVersionString();
+void ShowD3DError(HRESULT err);
 
-	// The following are "filtered" versions of the corresponding D3Ddev-> functions.
-	void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
-	void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);
-	void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
-	void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
+// The following are "filtered" versions of the corresponding D3Ddev-> functions.
+void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
+void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);
+void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
+void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
 
-	struct Resolution
-	{
-		char name[32];
-		int xres;
-		int yres;
-		std::set<D3DFORMAT> bitdepths;
-		std::set<int> refreshes;
-	};
+// Utility functions for vendor specific hacks. So far, just the one.
+void EnableAlphaToCoverage();
 
-	struct AALevel
-	{
-		AALevel(const char *n, D3DMULTISAMPLE_TYPE m, int q) {strcpy(name, n); ms_setting=m; qual_setting=q;}
-	    char name[32];
-		D3DMULTISAMPLE_TYPE ms_setting;
-		int qual_setting;
-	};
+struct Resolution
+{
+	char name[32];
+	int xres;
+	int yres;
+	std::set<D3DFORMAT> bitdepths;
+	std::set<int> refreshes;
+};
 
-	struct Adapter
-	{
-		D3DADAPTER_IDENTIFIER9 ident;
-		std::vector<Resolution> resolutions;
-		std::vector<AALevel> aa_levels;
-		bool supports_alpha_to_coverage;
-	};
+struct AALevel
+{
+	AALevel(const char *n, D3DMULTISAMPLE_TYPE m, int q) {strcpy(name, n); ms_setting=m; qual_setting=q;}
+    char name[32];
+	D3DMULTISAMPLE_TYPE ms_setting;
+	int qual_setting;
+};
 
-	struct Shader
-	{
-		int Minor;
-		int Major;
-	};
-	
-	const Adapter &GetAdapter(int i);
-	const Adapter &GetCurAdapter();
-	int GetNumAdapters();
-}
+struct Adapter
+{
+	D3DADAPTER_IDENTIFIER9 ident;
+	std::vector<Resolution> resolutions;
+	std::vector<AALevel> aa_levels;
+	bool supports_alpha_to_coverage;
+};
+
+const Adapter &GetAdapter(int i);
+const Adapter &GetCurAdapter();
+int GetNumAdapters();
+
+}  // namespace
 
 #endif

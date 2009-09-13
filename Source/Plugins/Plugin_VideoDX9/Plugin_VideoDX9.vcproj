@@ -1292,14 +1292,6 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\Src\Config.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\Config.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\Globals.h"
 			>
 		</File>

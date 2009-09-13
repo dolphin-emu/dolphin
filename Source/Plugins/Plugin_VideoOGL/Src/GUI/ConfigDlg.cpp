@@ -24,7 +24,7 @@
 
 #include "ConfigDlg.h"
 #include "../Globals.h"
-#include "../Config.h"
+#include "Config.h"
 #include "../TextureMngr.h"
 #include "VertexShaderManager.h"
 #include "../PostProcessing.h"
@@ -89,9 +89,6 @@ END_EVENT_TABLE()
 GFXConfigDialogOGL::GFXConfigDialogOGL(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-	g_Config.Load();
-	g_Config.GameIniLoad();
-	g_Config.UpdateProjectionHack();
 }
 
 
@@ -188,9 +185,9 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	wxStaticText *WM2Text = new wxStaticText(m_PageGeneral, ID_WM2TEXT, wxT("Window mode:"), wxDefaultPosition, wxDefaultSize , 0 );
 	wxStaticText *FMText = new wxStaticText(m_PageGeneral, ID_FMTEXT, wxT("Separate window:"), wxDefaultPosition, wxDefaultSize , 0 );
 	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
-	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.iInternalRes));
+	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.cInternalRes));
 	m_WindowFSResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWFSRESOLUTIONCB, arrayStringFor_FullscreenCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, wxCB_READONLY, wxDefaultValidator);
-	m_WindowFSResolutionCB->SetValue(wxString::FromAscii(g_Config.iFSResolution));
+	m_WindowFSResolutionCB->SetValue(wxString::FromAscii(g_Config.cFSResolution));
 
 	// Aspect ratio / positioning controls
 	wxStaticText *KeepARText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Keep aspect ratio:"), wxDefaultPosition, wxDefaultSize, 0);
@@ -285,7 +282,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_MaxAnisotropyCB->Append(wxT("8x"));
 	m_MaxAnisotropyCB->Append(wxT("16x"));
 	m_MaxAnisotropyCB->SetSelection(g_Config.iMaxAnisotropy - 1);
-	m_ForceFiltering = new wxCheckBox(m_PageGeneral, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ForceFiltering = new wxCheckBox(m_PageGeneral, ID_FORCEFILTERING, wxT("Force bi/trilinear filter. (Breaks FMV in many Wii games)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
 
 	wxStaticText *PostShaderText = new wxStaticText(m_PageGeneral, ID_POSTSHADERTEXT, wxT("Post-processing shader:"), wxDefaultPosition, wxDefaultSize, 0);
@@ -633,10 +630,10 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 		break; 
 	#endif
 	case ID_WINDOWRESOLUTIONCB:
-		strcpy(g_Config.iInternalRes, m_WindowResolutionCB->GetValue().mb_str() );
+		strcpy(g_Config.cInternalRes, m_WindowResolutionCB->GetValue().mb_str() );
 		break;
 	case ID_WINDOWFSRESOLUTIONCB:
-		strcpy(g_Config.iFSResolution, m_WindowFSResolutionCB->GetValue().mb_str() );
+		strcpy(g_Config.cFSResolution, m_WindowFSResolutionCB->GetValue().mb_str() );
 		break;
 	case ID_MAXANISOTROPY:
 		g_Config.iMaxAnisotropy = m_MaxAnisotropyCB->GetSelection() + 1;
@@ -755,7 +752,7 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 void GFXConfigDialogOGL::CloseWindow()
 {
 	// Save the config to INI
-	g_Config.Save();
+	g_Config.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
 
 	EndModal(1);
 }

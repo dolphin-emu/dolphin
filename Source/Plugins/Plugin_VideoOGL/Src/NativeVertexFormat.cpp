@@ -263,7 +263,7 @@ void GLVertexFormat::EnableComponents(u32 components)
 		// tex
 		for (int i = 0; i < 8; ++i) 
 		{
-			if (!g_Config.bDisableTexturing)
+			if (!g_ActiveConfig.bDisableTexturing)
 			{
 				if ((components & (VB_HAS_UV0 << i)) != (s_prevcomponents & (VB_HAS_UV0 << i))) 
 				{
@@ -283,7 +283,7 @@ void GLVertexFormat::EnableComponents(u32 components)
 
 		// Disable Lighting	
 		// TODO - Is this a good spot for this code?
-		if (g_Config.bDisableLighting) 
+		if (g_ActiveConfig.bDisableLighting) 
 		{
 			for (int i = 0; i < xfregs.nNumChans; i++)
 			{

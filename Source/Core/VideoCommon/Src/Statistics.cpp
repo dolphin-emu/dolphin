@@ -43,7 +43,7 @@ void Statistics::SwapDL()
 	Xchg(stats.thisFrame.numBPLoadsInDL, stats.thisFrame.numBPLoads);
 }
 
-void Statistics::ToString(char *ptr)
+char *Statistics::ToString(char *ptr)
 {
 	char *p = ptr;
 	p+=sprintf(p,"textures created: %i\n",stats.numTexturesCreated);
@@ -72,10 +72,11 @@ void Statistics::ToString(char *ptr)
 	VertexLoaderManager::AppendListToString(&text1);
 	// TODO: Check for buffer overflow
 	p+=sprintf(p,"%s",text1.c_str());
+	return p;
 }
 
 // Is this really needed?
-void Statistics::ToStringProj(char *ptr) {
+char *Statistics::ToStringProj(char *ptr) {
 	char *p = ptr;
 	p+=sprintf(p,"Projection #: X for Raw 6=0 (X for Raw 6!=0)\n\n");
 	p+=sprintf(p,"Projection 0: %f (%f) Raw 0: %f\n", stats.gproj_0, stats.g2proj_0, stats.proj_0);
@@ -94,4 +95,5 @@ void Statistics::ToStringProj(char *ptr) {
 	p+=sprintf(p,"Projection 13: %f (%f)\n", stats.gproj_13, stats.g2proj_13);
 	p+=sprintf(p,"Projection 14: %f (%f)\n", stats.gproj_14, stats.g2proj_14);
 	p+=sprintf(p,"Projection 15: %f (%f)\n", stats.gproj_15, stats.g2proj_15);
+	return p;
 }

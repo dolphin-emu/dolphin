@@ -116,7 +116,7 @@ FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
 		const char* shader = TextureConversionShader::GenerateEncodingShader(format);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-		if (g_Config.iLog & CONF_SAVESHADERS && shader) {
+		if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader) {
 			static int counter = 0;
 			char szTemp[MAX_PATH];
 			sprintf(szTemp, "%s/enc_%04i.txt", FULL_DUMP_DIR, counter++);

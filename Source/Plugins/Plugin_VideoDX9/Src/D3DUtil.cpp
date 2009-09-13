@@ -161,21 +161,22 @@ namespace D3D
 
 	int CD3DFont::Shutdown()
 	{
-		SAFE_RELEASE(m_pVB);
-		SAFE_RELEASE(m_pTexture);
-
+		m_pVB->Release();
+		m_pVB = NULL;
+		m_pTexture->Release();
+		m_pTexture = NULL;
 		return S_OK;
 	}
 
 
 	const int RS[6][2] =
 	{
-		{ D3DRS_ALPHABLENDENABLE,         TRUE },
-		{ D3DRS_SRCBLEND,                 D3DBLEND_SRCALPHA },
-		{ D3DRS_DESTBLEND,                D3DBLEND_INVSRCALPHA },
-		{ D3DRS_CULLMODE,                 D3DCULL_NONE },
-		{ D3DRS_ZENABLE,                  FALSE },
-		{ D3DRS_FOGENABLE,                FALSE },
+		{D3DRS_ALPHABLENDENABLE, TRUE},
+		{D3DRS_SRCBLEND,         D3DBLEND_SRCALPHA},
+		{D3DRS_DESTBLEND,        D3DBLEND_INVSRCALPHA},
+		{D3DRS_CULLMODE,         D3DCULL_NONE},
+		{D3DRS_ZENABLE,          FALSE},
+		{D3DRS_FOGENABLE,        FALSE},
 	};
 	const int TS[6][2] = 
 	{
@@ -250,8 +251,8 @@ namespace D3D
 		float vpWidth = 1;
 		float vpHeight = 1;
 
-		float sx  = x*vpWidth-0.5f; 
-		float sy  = y*vpHeight-0.5f;
+		float sx = x*vpWidth-0.5f; 
+		float sy = y*vpHeight-0.5f;
 
 		float fStartX = sx;
 
@@ -267,12 +268,12 @@ namespace D3D
 		float mx=0;
 		float maxx=0;
 
-		while(*strText)
+		while (*strText)
 		{
 			char c = *strText++;
 
 			if (c == ('\n'))
-				mx=0;
+				mx = 0;
 			if (c < (' '))
 				continue;
 

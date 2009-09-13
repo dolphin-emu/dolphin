@@ -41,8 +41,7 @@ bool VertexShaderCache::s_displayCompileAlert;
 
 static VERTEXSHADER *pShaderLast = NULL;
 static int s_nMaxVertexInstructions;
-static float lastVSconstants[C_FOGPARAMS+8][4];
-
+static float GC_ALIGNED16(lastVSconstants[C_FOGPARAMS+8][4]);
 
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
@@ -144,7 +143,7 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 	const char *code = GenerateVertexShader(components, false);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	if (g_Config.iLog & CONF_SAVESHADERS && code) {
+	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {
 		static int counter = 0;
 		char szTemp[MAX_PATH];
 		sprintf(szTemp, "%s/vs_%04i.txt", FULL_DUMP_DIR, counter++);

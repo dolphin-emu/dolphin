@@ -44,7 +44,7 @@ struct TabDirect3D : public W32Util::Tab
 	{
 		WCHAR tempwstr[2000];
 
-		for (int i=0; i<D3D::GetNumAdapters(); i++)
+		for (int i = 0; i < D3D::GetNumAdapters(); i++)
 		{
 			const D3D::Adapter &adapter = D3D::GetAdapter(i);
 			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, adapter.ident.Description, -1, tempwstr, 2000);
@@ -52,8 +52,7 @@ struct TabDirect3D : public W32Util::Tab
 		}
 
 		const D3D::Adapter &adapter = D3D::GetAdapter(g_Config.iAdapter);
-
-		ComboBox_SetCurSel(GetDlgItem(hDlg, IDC_ADAPTER),g_Config.iAdapter);
+		ComboBox_SetCurSel(GetDlgItem(hDlg, IDC_ADAPTER), g_Config.iAdapter);
 
 		for (int i = 0; i < (int)adapter.aa_levels.size(); i++)
 		{
@@ -86,7 +85,7 @@ struct TabDirect3D : public W32Util::Tab
 
 		CheckDlgButton(hDlg, IDC_FULLSCREENENABLE, g_Config.bFullscreen ? TRUE : FALSE);
 		CheckDlgButton(hDlg, IDC_VSYNC, g_Config.bVsync ? TRUE : FALSE);
-		CheckDlgButton(hDlg, IDC_RENDER_TO_MAINWINDOW, g_Config.renderToMainframe ? TRUE : FALSE);		
+		CheckDlgButton(hDlg, IDC_RENDER_TO_MAINWINDOW, g_Config.RenderToMainframe ? TRUE : FALSE);		
 	}
 
 	void Command(HWND hDlg,WPARAM wParam)
@@ -108,8 +107,8 @@ struct TabDirect3D : public W32Util::Tab
 		g_Config.iFSResolution = ComboBox_GetCurSel(GetDlgItem(hDlg,IDC_RESOLUTION));
 		g_Config.bFullscreen = Button_GetCheck(GetDlgItem(hDlg, IDC_FULLSCREENENABLE)) ? true : false;
 		g_Config.bVsync = Button_GetCheck(GetDlgItem(hDlg, IDC_VSYNC)) ? true : false;
-		g_Config.renderToMainframe = Button_GetCheck(GetDlgItem(hDlg, IDC_RENDER_TO_MAINWINDOW)) ? true : false;
-		g_Config.Save();
+		g_Config.RenderToMainframe = Button_GetCheck(GetDlgItem(hDlg, IDC_RENDER_TO_MAINWINDOW)) ? true : false;
+		g_Config.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
 	}
 };
 
@@ -171,6 +170,7 @@ struct TabAdvanced : public W32Util::Tab
 		//char temp[MAX_PATH];
 		//GetWindowText(GetDlgItem(hDlg,IDC_TEXDUMPPATH), temp, MAX_PATH);  <-- Old method
 		//g_Config.texDumpPath = temp;
+		g_Config.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
 	}
 };
 
@@ -179,7 +179,7 @@ struct TabEnhancements : public W32Util::Tab
 	void Init(HWND hDlg)
 	{
 		Button_SetCheck(GetDlgItem(hDlg,IDC_FORCEFILTERING),g_Config.bForceFiltering);
-		Button_SetCheck(GetDlgItem(hDlg,IDC_FORCEANISOTROPY),g_Config.bForceMaxAniso);
+		Button_SetCheck(GetDlgItem(hDlg,IDC_FORCEANISOTROPY),g_Config.iMaxAnisotropy > 1);
 		/*
 		Temporarily disabled the old postprocessing code since it wasn't working anyway.
 		New postprocessing code will come sooner or later, sharing shaders and framework with
@@ -212,9 +212,9 @@ struct TabEnhancements : public W32Util::Tab
 	}
 	void Apply(HWND hDlg)
 	{
-		g_Config.bForceMaxAniso = Button_GetCheck(GetDlgItem(hDlg, IDC_FORCEANISOTROPY)) ? true : false;
-		g_Config.bForceFiltering = Button_GetCheck(GetDlgItem(hDlg,IDC_FORCEFILTERING)) ? true : false;
-		g_Config.iPostprocessEffect = ComboBox_GetCurSel(GetDlgItem(hDlg,IDC_POSTPROCESSEFFECT));
+		g_Config.iMaxAnisotropy = Button_GetCheck(GetDlgItem(hDlg, IDC_FORCEANISOTROPY)) ? 8 : 1;
+		g_Config.bForceFiltering = Button_GetCheck(GetDlgItem(hDlg, IDC_FORCEFILTERING)) ? true : false;
+		g_Config.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
 	}
 };
 
@@ -224,11 +224,11 @@ void DlgSettings_Show(HINSTANCE hInstance, HWND _hParent)
 	bool tfoe = g_Config.bTexFmtOverlayEnable;
 	bool tfoc = g_Config.bTexFmtOverlayCenter;
 
-	g_Config.Load();
+	g_Config.Load(FULL_CONFIG_DIR "gfx_dx9.ini");
 	W32Util::PropSheet sheet;
-	sheet.Add(new TabDirect3D,(LPCTSTR)IDD_SETTINGS,_T("Direct3D"));
-	sheet.Add(new TabEnhancements,(LPCTSTR)IDD_ENHANCEMENTS,_T("Enhancements"));
-	sheet.Add(new TabAdvanced,(LPCTSTR)IDD_ADVANCED,_T("Advanced"));
+	sheet.Add(new TabDirect3D, (LPCTSTR)IDD_SETTINGS,_T("Direct3D"));
+	sheet.Add(new TabEnhancements, (LPCTSTR)IDD_ENHANCEMENTS,_T("Enhancements"));
+	sheet.Add(new TabAdvanced, (LPCTSTR)IDD_ADVANCED,_T("Advanced"));
 
 #ifdef DEBUGFAST
 	sheet.Show(hInstance,_hParent,_T("DX9 Graphics Plugin (DEBUGFAST)"));
@@ -239,8 +239,6 @@ void DlgSettings_Show(HINSTANCE hInstance, HWND _hParent)
 	sheet.Show(hInstance,_hParent,_T("DX9 Graphics Plugin (DEBUG)"));
 #endif
 #endif
-
-	g_Config.Save();
 
 	if(( tfoe != g_Config.bTexFmtOverlayEnable) ||
 		((g_Config.bTexFmtOverlayEnable) && ( tfoc != g_Config.bTexFmtOverlayCenter)))

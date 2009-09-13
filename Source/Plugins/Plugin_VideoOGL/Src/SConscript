@@ -11,7 +11,6 @@ name = "Plugin_VideoOGL"
 
 files = [
 	'BPFunctions.cpp',
-	'Config.cpp',
 	'DLCache.cpp',
 	'rasterfont.cpp',
 	'Render.cpp',

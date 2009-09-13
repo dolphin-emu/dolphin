@@ -176,10 +176,11 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 // Init functions
 bool Renderer::Init()
 {
+	UpdateActiveConfig();
     bool bSuccess = true;
 	s_blendMode = 0;
 	s_MSAACoverageSamples = 0;
-	switch (g_Config.iMultisampleMode)
+	switch (g_ActiveConfig.iMultisampleMode)
 	{
 	case MULTISAMPLE_OFF: s_MSAASamples = 1; break;
 	case MULTISAMPLE_2X:  s_MSAASamples = 2; break;
@@ -217,7 +218,7 @@ bool Renderer::Init()
 															 (const char*)glGetString(GL_RENDERER), 
 															 (const char*)glGetString(GL_VERSION)).c_str(), 5000);
 
-    s_bFullscreen = g_Config.bFullscreen;
+    s_bFullscreen = g_ActiveConfig.bFullscreen;
 
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
     if (numvertexattribs < 11) {
@@ -258,12 +259,12 @@ bool Renderer::Init()
 	// TODO: FILL IN
 #elif defined _WIN32
 	if (WGLEW_EXT_swap_control)
-		wglSwapIntervalEXT(g_Config.bVSync ? 1 : 0);
+		wglSwapIntervalEXT(g_ActiveConfig.bVSync ? 1 : 0);
 	else
 		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)Does your video card support OpenGL 2.x?");
 #elif defined(HAVE_X11) && HAVE_X11
 	if (glXSwapIntervalSGI)
-		glXSwapIntervalSGI(g_Config.bVSync ? 1 : 0);
+		glXSwapIntervalSGI(g_ActiveConfig.bVSync ? 1 : 0);
 	else
 		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)");
 #endif
@@ -287,12 +288,12 @@ bool Renderer::Init()
 
 	// Decide frambuffer size
 	int W = (int)OpenGL_GetBackbufferWidth(), H = (int)OpenGL_GetBackbufferHeight();
-	if (g_Config.bNativeResolution)
+	if (g_ActiveConfig.bNativeResolution)
 	{
 		m_FrameBufferWidth = EFB_WIDTH;
 		m_FrameBufferHeight = EFB_HEIGHT;
 	}
-	else if (g_Config.b2xResolution)
+	else if (g_ActiveConfig.b2xResolution)
 	{
 		m_FrameBufferWidth = 2 * EFB_WIDTH;
 		m_FrameBufferHeight = 2 * EFB_HEIGHT;
@@ -318,7 +319,7 @@ bool Renderer::Init()
 	m_CustomHeight = (int)OpenGL_GetBackbufferHeight();
 
 	// Because of the fixed framebuffer size we need to disable the resolution options while running
-	g_Config.bRunning = true;
+	g_ActiveConfig.bRunning = true;
 
     if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
@@ -401,12 +402,14 @@ bool Renderer::Init()
     glClientActiveTexture(GL_TEXTURE0);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
+	UpdateActiveConfig();
     return glGetError() == GL_NO_ERROR && bSuccess;
 }
 
 void Renderer::Shutdown(void)
 {    
 	g_Config.bRunning = false;
+	UpdateActiveConfig();
     delete s_pfont;
 	s_pfont = 0;
 
@@ -468,13 +471,13 @@ int Renderer::GetCustomHeight()
 // Return the rendering target width and height
 int Renderer::GetTargetWidth()
 {
-	return (g_Config.bNativeResolution || g_Config.b2xResolution) ?
-		(g_Config.bNativeResolution ? EFB_WIDTH : EFB_WIDTH * 2) : m_CustomWidth;
+	return (g_ActiveConfig.bNativeResolution || g_ActiveConfig.b2xResolution) ?
+		(g_ActiveConfig.bNativeResolution ? EFB_WIDTH : EFB_WIDTH * 2) : m_CustomWidth;
 }
 int Renderer::GetTargetHeight()
 {
-	return (g_Config.bNativeResolution || g_Config.b2xResolution) ?
-		(g_Config.bNativeResolution ? EFB_HEIGHT : EFB_HEIGHT * 2) : m_CustomHeight;
+	return (g_ActiveConfig.bNativeResolution || g_ActiveConfig.b2xResolution) ?
+		(g_ActiveConfig.bNativeResolution ? EFB_HEIGHT : EFB_HEIGHT * 2) : m_CustomHeight;
 }
 float Renderer::GetTargetScaleX()
 {
@@ -716,69 +719,6 @@ bool Renderer::SetScissorRect()
     return false;
 }
 
-// Aspect ratio functions
-static void ComputeBackbufferRectangle(TargetRectangle *rc)
-{
-	float FloatGLWidth = (float)OpenGL_GetBackbufferWidth();
-	float FloatGLHeight = (float)OpenGL_GetBackbufferHeight();
-	float FloatXOffset = 0;
-	float FloatYOffset = 0;
-
-	// The rendering window size
-	const float WinWidth = FloatGLWidth;
-	const float WinHeight = FloatGLHeight;
-
-	// Handle aspect ratio.
-	if (g_Config.bKeepAR43 || g_Config.bKeepAR169)
-	{
-		// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
-		float Ratio = (WinWidth / WinHeight) / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
-		// Check if height or width is the limiting factor. If ratio > 1 the picture is to wide and have to limit the width.
-		if (Ratio > 1)
-		{
-			// Scale down and center in the X direction.
-			FloatGLWidth /= Ratio;
-			FloatXOffset = (WinWidth - FloatGLWidth) / 2.0f;
-		}
-		// The window is too high, we have to limit the height
-		else
-		{
-			// Scale down and center in the Y direction.
-			FloatGLHeight *= Ratio;
-			FloatYOffset = FloatYOffset + (WinHeight - FloatGLHeight) / 2.0f;
-		}
-	}
-
-	// -----------------------------------------------------------------------
-	// Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.
-	//		Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
-	// ------------------
-	if ((g_Config.bKeepAR43 || g_Config.bKeepAR169) && g_Config.bCrop)
-	{
-		float Ratio = g_Config.bKeepAR43 ? ((4.0 / 3.0) / (5.0 / 4.0)) : (((16.0 / 9.0) / (16.0 / 10.0)));
-		// The width and height we will add (calculate this before FloatGLWidth and FloatGLHeight is adjusted)
-		float IncreasedWidth = (Ratio - 1.0) * FloatGLWidth;
-		float IncreasedHeight = (Ratio - 1.0) * FloatGLHeight;
-		// The new width and height
-		FloatGLWidth = FloatGLWidth * Ratio;
-		FloatGLHeight = FloatGLHeight * Ratio;
-		// Adjust the X and Y offset
-		FloatXOffset = FloatXOffset - (IncreasedWidth / 2.0);
-		FloatYOffset = FloatYOffset - (IncreasedHeight / 2.0);
-		//NOTICE_LOG(OSREPORT, "Crop       Ratio:%1.2f IncreasedHeight:%3.0f YOffset:%3.0f", Ratio, IncreasedHeight, FloatYOffset);
-		//NOTICE_LOG(OSREPORT, "Crop       FloatGLWidth:%1.2f FloatGLHeight:%3.0f", (float)FloatGLWidth, (float)FloatGLHeight);
-		//NOTICE_LOG(OSREPORT, "");
-	}
-
-	// round(float) = floor(float + 0.5)
-	int XOffset = floor(FloatXOffset + 0.5);
-	int YOffset = floor(FloatYOffset + 0.5);
-	rc->left = XOffset;
-	rc->top = YOffset + ceil(FloatGLHeight);
-	rc->right = XOffset + ceil(FloatGLWidth);
-	rc->bottom = YOffset;
-}
-
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
 	// Update the view port for clearing the picture
@@ -823,7 +763,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 
 	// XXX: Without the VI, how would we know what kind of field this is? So
 	// just use progressive.
-	if (!g_Config.bUseXFB)
+	if (!g_ActiveConfig.bUseXFB)
 	{
 		// TODO: Find better name for this because I don't know if it means what it says.
 		g_VideoInitialize.pCopiedToXFB(false);
@@ -835,7 +775,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
-	if(s_skipSwap)
+	if (s_skipSwap)
 		return;
 
 	const XFBSource* xfbSource = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight);
@@ -851,11 +791,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
     ResetAPIState();
 
 	TargetRectangle back_rc;
-	ComputeBackbufferRectangle(&back_rc);
+	ComputeDrawRectangle(OpenGL_GetBackbufferWidth(), OpenGL_GetBackbufferHeight(), true, &back_rc);
 
 	TargetRectangle sourceRc;
 
-	if (g_Config.bAutoScale || g_Config.bUseXFB)
+	if (g_ActiveConfig.bAutoScale || g_ActiveConfig.bUseXFB)
 	{
 		sourceRc = xfbSource->sourceRc;
 	}
@@ -867,7 +807,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		sourceRc.bottom = 0;
 	}
 
-	int yOffset = (g_Config.bUseXFB && field == FIELD_LOWER) ? -1 : 0;
+	int yOffset = (g_ActiveConfig.bUseXFB && field == FIELD_LOWER) ? -1 : 0;
 	sourceRc.top -= yOffset;
 	sourceRc.bottom -= yOffset;
 
@@ -929,7 +869,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	TextureMngr::DisableStage(0);
 
 	// Wireframe
-	if (g_Config.bWireFrame)
+	if (g_ActiveConfig.bWireFrame)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	// Save screenshot
@@ -955,7 +895,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	// Frame dumps are handled a little differently in Windows
 #ifdef _WIN32
-	if (g_Config.bDumpFrames)
+	if (g_ActiveConfig.bDumpFrames)
 	{
 		if (!s_tempScreenshotFramebuffer)
 			glGenFramebuffersEXT(1, &s_tempScreenshotFramebuffer);
@@ -1009,7 +949,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		s_bLastFrameDumped = false;
 	}
 #else
-	if (g_Config.bDumpFrames) {
+	if (g_ActiveConfig.bDumpFrames) {
 		s_criticalScreenshot.Enter();
 		char movie_file_name[255];
 		int w = OpenGL_GetBackbufferWidth();
@@ -1055,6 +995,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	GL_REPORT_ERRORD();
     g_Config.iSaveTargetId = 0;
+
+	UpdateActiveConfig();
 
 	// For testing zbuffer targets.
     // Renderer::SetZBufferRender();
@@ -1152,10 +1094,10 @@ void Renderer::DrawDebugText()
 	char *p = debugtext_buffer;
 	p[0] = 0;
 
-	if (g_Config.bShowFPS)
+	if (g_ActiveConfig.bShowFPS)
 		p+=sprintf(p, "FPS: %d\n", s_fps);
 
-	if (g_Config.bShowEFBCopyRegions)
+	if (g_ActiveConfig.bShowEFBCopyRegions)
 	{
 		// Store Line Size
         GLfloat lSize;
@@ -1200,99 +1142,62 @@ void Renderer::DrawDebugText()
 		stats.efb_regions.clear();
 	}
 
-    if (g_Config.bOverlayStats) 
+    if (g_ActiveConfig.bOverlayStats) 
 	{
-        p+=sprintf(p,"textures created: %i\n",stats.numTexturesCreated);
-        p+=sprintf(p,"textures alive:   %i\n",stats.numTexturesAlive);
-        p+=sprintf(p,"pshaders created: %i\n",stats.numPixelShadersCreated);
-        p+=sprintf(p,"pshaders alive:   %i\n",stats.numPixelShadersAlive);
-        p+=sprintf(p,"vshaders created: %i\n",stats.numVertexShadersCreated);
-        p+=sprintf(p,"vshaders alive:   %i\n",stats.numVertexShadersAlive);
-        p+=sprintf(p,"dlists called:    %i\n",stats.numDListsCalled);
-        p+=sprintf(p,"dlists called(f): %i\n",stats.thisFrame.numDListsCalled);
-		p+=sprintf(p,"dlists alive:     %i\n",stats.numDListsAlive);
-		// not used.
-        //p+=sprintf(p,"dlists created:  %i\n",stats.numDListsCreated);
-        //p+=sprintf(p,"dlists alive:    %i\n",stats.numDListsAlive);
-        //p+=sprintf(p,"strip joins:     %i\n",stats.numJoins);
-        p+=sprintf(p,"primitives:       %i\n",stats.thisFrame.numPrims);
-		p+=sprintf(p,"primitive joins:  %i\n",stats.thisFrame.numPrimitiveJoins);
-		p+=sprintf(p,"buffer splits:    %i\n",stats.thisFrame.numBufferSplits);
-        p+=sprintf(p,"primitives (DL):  %i\n",stats.thisFrame.numDLPrims);
-        p+=sprintf(p,"XF loads:         %i\n",stats.thisFrame.numXFLoads);
-        p+=sprintf(p,"XF loads (DL):    %i\n",stats.thisFrame.numXFLoadsInDL);
-        p+=sprintf(p,"CP loads:         %i\n",stats.thisFrame.numCPLoads);
-        p+=sprintf(p,"CP loads (DL):    %i\n",stats.thisFrame.numCPLoadsInDL);
-        p+=sprintf(p,"BP loads:         %i\n",stats.thisFrame.numBPLoads);
-        p+=sprintf(p,"BP loads (DL):    %i\n",stats.thisFrame.numBPLoadsInDL);
-        p+=sprintf(p,"vertex loaders:   %i\n",stats.numVertexLoaders);
-
+		p = Statistics::ToString(p);
     }
 
-	if (g_Config.bOverlayProjStats)
+	if (g_ActiveConfig.bOverlayProjStats)
 	{
-		p+=sprintf(p,"Projection #: X for Raw 6=0 (X for Raw 6!=0)\n\n");
-		p+=sprintf(p,"Projection 0: %f (%f) Raw 0: %f\n", stats.gproj_0, stats.g2proj_0, stats.proj_0);
-		p+=sprintf(p,"Projection 1: %f (%f)\n", stats.gproj_1, stats.g2proj_1);
-		p+=sprintf(p,"Projection 2: %f (%f) Raw 1: %f\n", stats.gproj_2, stats.g2proj_2, stats.proj_1);
-		p+=sprintf(p,"Projection 3: %f (%f)\n\n", stats.gproj_3, stats.g2proj_3);
-		p+=sprintf(p,"Projection 4: %f (%f)\n", stats.gproj_4, stats.g2proj_4);
-		p+=sprintf(p,"Projection 5: %f (%f) Raw 2: %f\n", stats.gproj_5, stats.g2proj_5, stats.proj_2);
-		p+=sprintf(p,"Projection 6: %f (%f) Raw 3: %f\n", stats.gproj_6, stats.g2proj_6, stats.proj_3);
-		p+=sprintf(p,"Projection 7: %f (%f)\n\n", stats.gproj_7, stats.g2proj_7);
-		p+=sprintf(p,"Projection 8: %f (%f)\n", stats.gproj_8, stats.g2proj_8);
-		p+=sprintf(p,"Projection 9: %f (%f)\n", stats.gproj_9, stats.g2proj_9);
-		p+=sprintf(p,"Projection 10: %f (%f) Raw 4: %f\n\n", stats.gproj_10, stats.g2proj_10, stats.proj_4);
-		p+=sprintf(p,"Projection 11: %f (%f) Raw 5: %f\n\n", stats.gproj_11, stats.g2proj_11, stats.proj_5);
-		p+=sprintf(p,"Projection 12: %f (%f)\n", stats.gproj_12, stats.g2proj_12);
-		p+=sprintf(p,"Projection 13: %f (%f)\n", stats.gproj_13, stats.g2proj_13);
-		p+=sprintf(p,"Projection 14: %f (%f)\n", stats.gproj_14, stats.g2proj_14);
-		p+=sprintf(p,"Projection 15: %f (%f)\n", stats.gproj_15, stats.g2proj_15);
+		p = Statistics::ToStringProj(p);
 	}
 
 	// Render a shadow, and then the text.
-	Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
-	Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
+	if (p != debugtext_buffer)
+	{
+		Renderer::RenderText(debugtext_buffer, 21, 21, 0xDD000000);
+		Renderer::RenderText(debugtext_buffer, 20, 20, 0xFF00FFFF);
+	}
 
 	// OSD Menu messages
-	if (OSDChoice > 0 && g_Config.bEFBCopyDisableHotKey)
+	if (OSDChoice > 0 && g_ActiveConfig.bEFBCopyDisableHotKey)
 	{
 		OSDTime = timeGetTime() + 3000;
 		OSDChoice = -OSDChoice;
 	}
-	if ((u32)OSDTime > timeGetTime() && g_Config.bEFBCopyDisableHotKey)
+	if ((u32)OSDTime > timeGetTime() && g_ActiveConfig.bEFBCopyDisableHotKey)
 	{
 		std::string T1 = "", T2 = "";
 		std::vector<std::string> T0;
 
 		int W, H;
-		sscanf(g_Config.iInternalRes, "%dx%d", &W, &H);
+		sscanf(g_ActiveConfig.cInternalRes, "%dx%d", &W, &H);
 
 		std::string OSDM1 =
-			g_Config.bNativeResolution || g_Config.b2xResolution ?
-			(g_Config.bNativeResolution ? 
+			g_ActiveConfig.bNativeResolution || g_ActiveConfig.b2xResolution ?
+			(g_ActiveConfig.bNativeResolution ? 
 			StringFromFormat("%i x %i (native)", OSDInternalW, OSDInternalH)
 			: StringFromFormat("%i x %i (2x)", OSDInternalW, OSDInternalH))
 			: StringFromFormat("%i x %i (custom)", W, H);
 		std::string OSDM21 =
-			!(g_Config.bKeepAR43 || g_Config.bKeepAR169) ? "-": (g_Config.bKeepAR43 ? "4:3" : "16:9");
+			!(g_ActiveConfig.bKeepAR43 || g_ActiveConfig.bKeepAR169) ? "-": (g_ActiveConfig.bKeepAR43 ? "4:3" : "16:9");
 		std::string OSDM22 =
-			g_Config.bCrop ? " (crop)" : "";			
+			g_ActiveConfig.bCrop ? " (crop)" : "";			
 		std::string OSDM31 =
-			g_Config.bCopyEFBToRAM ? "RAM" : "Texture";
+			g_ActiveConfig.bCopyEFBToRAM ? "RAM" : "Texture";
 		std::string OSDM32 =
-			g_Config.bEFBCopyDisable ? "No" : "Yes";
+			g_ActiveConfig.bEFBCopyDisable ? "No" : "Yes";
 
 		// If there is more text than this we will have a collission
-		if (g_Config.bShowFPS)
+		if (g_ActiveConfig.bShowFPS)
 			{ T1 += "\n\n"; T2 += "\n\n"; }
 
 		// The rows
 		T0.push_back(StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()));
 		T0.push_back(StringFromFormat("4: Lock Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()));
 		T0.push_back(StringFromFormat("5: Copy Embedded Framebuffer to %s: %s\n", OSDM31.c_str(), OSDM32.c_str()));
-		T0.push_back(StringFromFormat("6: Fog: %s\n", g_Config.bDisableFog ? "Disabled" : "Enabled"));
-		T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_Config.bDisableLighting ? "Disabled" : "Enabled"));	
+		T0.push_back(StringFromFormat("6: Fog: %s\n", g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"));
+		T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"));	
 
 		// The latest changed setting in yellow
 		T1 += (OSDChoice == -1) ? T0.at(0) : "\n";
@@ -1347,9 +1252,9 @@ THREAD_RETURN TakeScreenshot(void *pArgs)
 	float FloatH = (float)threadStruct->H;
 
 	// Handle aspect ratio for the final ScrStrct to look exactly like what's on screen.
-	if (g_Config.bKeepAR43 || g_Config.bKeepAR169)
+	if (g_ActiveConfig.bKeepAR43 || g_ActiveConfig.bKeepAR169)
 	{
-		float Ratio = (FloatW / FloatH) / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
+		float Ratio = (FloatW / FloatH) / (g_ActiveConfig.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
 		
 		// If ratio > 1 the picture is too wide and we have to limit the width.
 		if (Ratio > 1)
@@ -1438,30 +1343,11 @@ void Renderer::FlipImageData(u8 *data, int w, int h)
 	}
 }
 
-// This function does not have the final picture. Use Renderer::Swap() to adjust the final picture.
-// Call schedule: Called from VertexShaderManager
+// Called from VertexShaderManager
 void UpdateViewport()
 {
-	// ---------
-	// Logging
-	// ---------
-    // reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
-    // [0] = width/2
-    // [1] = height/2
-    // [2] = 16777215 * (farz - nearz)
-    // [3] = xorig + width/2 + 342
-    // [4] = yorig + height/2 + 342
-    // [5] = 16777215 * farz
-
-	/*INFO_LOG(VIDEO, "view: topleft=(%f,%f), wh=(%f,%f), z=(%f,%f)",
-		rawViewport[3]-rawViewport[0]-342, rawViewport[4]+rawViewport[1]-342,
-		2 * rawViewport[0], 2 * rawViewport[1],
-		(rawViewport[5] - rawViewport[2]) / 16777215.0f, rawViewport[5] / 16777215.0f);*/
-	// --------
-
 	int scissorXOff = bpmem.scissorOffset.x * 2;   // 342
 	int scissorYOff = bpmem.scissorOffset.y * 2;   // 342
-	// -------------------------------------
 
 	float MValueX = Renderer::GetTargetScaleX();
 	float MValueY = Renderer::GetTargetScaleY();
@@ -1477,30 +1363,4 @@ void UpdateViewport()
 	// Update the view port
 	glViewport(GLx, GLy, GLWidth, GLHeight);
 	glDepthRange(GLNear, GLFar);
-
-	// -------------------------------------
-	
-	// Logging
-	/*
-	RECT RcTop, RcParent, RcChild;
-	HWND Child = EmuWindow::GetWnd();
-	HWND Parent = GetParent(Child);
-	HWND Top = GetParent(Parent);
-	GetWindowRect(Top, &RcTop);
-	GetWindowRect(Parent, &RcParent);
-	GetWindowRect(Child, &RcChild);
-	
-	//Console::ClearScreen();	
-	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------");
-	DEBUG_LOG(CONSOLE, "Top window:     X:%03i Y:%03i Width:%03i Height:%03i", RcTop.left, RcTop.top, RcTop.right - RcTop.left, RcTop.bottom - RcTop.top);
-	DEBUG_LOG(CONSOLE, "Parent window:  X:%03i Y:%03i Width:%03i Height:%03i", RcParent.left, RcParent.top, RcParent.right - RcParent.left, RcParent.bottom - RcParent.top);
-	DEBUG_LOG(CONSOLE, "Child window:   X:%03i Y:%03i Width:%03i Height:%03i", RcChild.left, RcChild.top, RcChild.right - RcChild.left, RcChild.bottom - RcChild.top);
-	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------");
-	DEBUG_LOG(CONSOLE, "Res. MValue:    X:%f Y:%f XOffs:%f YOffs:%f", OpenGL_GetXmax(), OpenGL_GetYmax(), OpenGL_GetXoff(), OpenGL_GetYoff());
-	DEBUG_LOG(CONSOLE, "GLViewPort:     X:%03i Y:%03i Width:%03i Height:%03i", GLx, GLy, GLWidth, GLHeight);
-	DEBUG_LOG(CONSOLE, "GLDepthRange:   Near:%f Far:%f", GLNear, GLFar);
-	DEBUG_LOG(CONSOLE, "GLScissor:      X:%03i Y:%03i Width:%03i Height:%03i", GLScissorX, GLScissorY, GLScissorW, GLScissorH);
-	DEBUG_LOG(CONSOLE, "----------------------------------------------------------------");
-	*/
 }
-

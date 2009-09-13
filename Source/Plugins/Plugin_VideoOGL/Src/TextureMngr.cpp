@@ -112,9 +112,9 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
 	{
         // very limited!
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER,
-			            (newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
+			            (newmode.mag_filter || g_ActiveConfig.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER,
-			            (g_Config.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+			            (g_ActiveConfig.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
 
 		if (newmode.wrap_s == 2 || newmode.wrap_t == 2) 
             DEBUG_LOG(VIDEO, "cannot support mirrorred repeat mode");
@@ -129,19 +129,19 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode)
 
         if (bHaveMipMaps) {
             int filt = newmode.min_filter;
-            if (g_Config.bForceFiltering && newmode.min_filter < 4)
+            if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
                 newmode.min_filter += 4; // take equivalent forced linear
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt]);
         }
         else
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-			                (g_Config.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
+			                (g_ActiveConfig.bForceFiltering || newmode.min_filter >= 4) ? GL_LINEAR : GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, c_WrapSettings[newmode.wrap_s]);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, c_WrapSettings[newmode.wrap_t]);
     }
     
     if (g_Config.iMaxAnisotropy >= 1)
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)(1 << g_Config.iMaxAnisotropy));
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, (float)(1 << g_ActiveConfig.iMaxAnisotropy));
 }
 
 void TextureMngr::TCacheEntry::Destroy(bool shutdown)
@@ -149,7 +149,7 @@ void TextureMngr::TCacheEntry::Destroy(bool shutdown)
     if (!texture)
         return;
     glDeleteTextures(1, &texture);
-    if (!isRenderTarget && !shutdown && !g_Config.bSafeTextureCache) {
+    if (!isRenderTarget && !shutdown && !g_ActiveConfig.bSafeTextureCache) {
         u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset * 4);
         if (ptr && *ptr == hash)
             *ptr = oldpixel;
@@ -160,7 +160,7 @@ void TextureMngr::TCacheEntry::Destroy(bool shutdown)
 void TextureMngr::Init()
 {
     temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
-	TexDecoder_SetTexFmtOverlayOptions(g_Config.bTexFmtOverlayEnable, g_Config.bTexFmtOverlayCenter);
+	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 	HiresTextures::Init(((struct SConfig *)globals->config)->m_LocalCoreStartupParameter.GetUniqueID().c_str());
 }
 
@@ -268,10 +268,10 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     u32 texID = address;
 	u32 texHash;
 
-	if (g_Config.bSafeTextureCache || g_Config.bHiresTextures || g_Config.bDumpTextures)
+	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
 	{
 		texHash = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, expandedHeight, tex_format, 0); // remove last arg
-		if (g_Config.bSafeTextureCache)
+		if (g_ActiveConfig.bSafeTextureCache)
 			hash_value = texHash;
 		if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
 		{
@@ -284,7 +284,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			// we must make sure that texture with different tluts get different IDs.
  			u32 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], (tex_format == GX_TF_C4) ? 32 : 128);
 			texHash ^= tlutHash;
-			if (g_Config.bSafeTextureCache)
+			if (g_ActiveConfig.bSafeTextureCache)
 				texID ^= tlutHash;
 			//DebugLog("addr: %08x | texID: %08x | texHash: %08x", address, texID, hash_value);
 		}
@@ -296,7 +296,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	if (iter != textures.end()) {
         TCacheEntry &entry = iter->second;
 
-		if (!g_Config.bSafeTextureCache)
+		if (!g_ActiveConfig.bSafeTextureCache)
 			hash_value = ((u32 *)ptr)[entry.hashoffset];
 
         if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash)))
@@ -307,7 +307,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
             glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
             if (entry.mode.hex != tm0.hex)
                 entry.SetTextureParameters(tm0);
-			//DebugLog("%cC addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_Config.bSafeTextureCache ? 'S' : 'U'
+			//DebugLog("%cC addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_ActiveConfig.bSafeTextureCache ? 'S' : 'U'
  			//		, address, tex_format, entry.hash, width, height);
 			return &entry;
         }
@@ -335,7 +335,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	TCacheEntry& entry = textures[texID];
 	PC_TexFormat dfmt = PC_TEX_FMT_NONE;
 
-	if (g_Config.bHiresTextures)
+	if (g_ActiveConfig.bHiresTextures)
 	{
 		//Load Custom textures
 		char texPathTemp[MAX_PATH];
@@ -361,14 +361,14 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     //entry.paletteHash = hashseed;
     entry.oldpixel = ((u32 *)ptr)[entry.hashoffset];
 
-	if (g_Config.bSafeTextureCache)
+	if (g_ActiveConfig.bSafeTextureCache)
 		entry.hash = hash_value;
 	else 
 	{
 		entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
 	    ((u32 *)ptr)[entry.hashoffset] = entry.hash;
 	}
-	//DebugLog("%c  addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_Config.bSafeTextureCache ? 'S' : 'U'
+	//DebugLog("%c  addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_ActiveConfig.bSafeTextureCache ? 'S' : 'U'
  	//		, address, tex_format, entry.hash, width, height);
 	
 
@@ -462,7 +462,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     entry.fmt = tex_format;
     entry.SetTextureParameters(tm0);
 
-    if (g_Config.bDumpTextures) // dump texture to file
+    if (g_ActiveConfig.bDumpTextures) // dump texture to file
 	{ 
 
         char szTemp[MAX_PATH];
@@ -731,7 +731,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     GL_REPORT_ERRORD();
 
-	if (g_Config.bDumpEFBTarget)
+	if (g_ActiveConfig.bDumpEFBTarget)
 	{
 		static int count = 0;
 		SaveTexture(StringFromFormat("%s/efb_frame_%i.tga", FULL_DUMP_TEXTURES_DIR, count++).c_str(), GL_TEXTURE_RECTANGLE_ARB, entry.texture, entry.w, entry.h);

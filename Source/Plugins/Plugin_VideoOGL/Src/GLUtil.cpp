@@ -129,9 +129,9 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     int _twidth,  _theight;
     if (g_Config.bFullscreen)
     {
-        if (strlen(g_Config.iFSResolution) > 1)
+        if (strlen(g_Config.cFSResolution) > 1)
         {
-            sscanf(g_Config.iFSResolution, "%dx%d", &_twidth, &_theight);
+            sscanf(g_Config.cFSResolution, "%dx%d", &_twidth, &_theight);
         }
         else // No full screen reso set, fall back to default reso
         {
@@ -141,9 +141,9 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     }
     else // Going Windowed
     {
-        if (strlen(g_Config.iInternalRes) > 1)
+        if (strlen(g_Config.cInternalRes) > 1)
         {
-            sscanf(g_Config.iInternalRes, "%dx%d", &_twidth, &_theight);
+            sscanf(g_Config.cInternalRes, "%dx%d", &_twidth, &_theight);
         }
         else // No Window resolution set, fall back to default
         {

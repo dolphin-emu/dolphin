@@ -23,9 +23,6 @@
 
 namespace D3D
 {
-	
-extern Shader Ps;
-extern Shader Vs;
 
 LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len)
 {
@@ -33,15 +30,12 @@ LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len)
 	LPD3DXBUFFER shaderBuffer = 0;
 	LPD3DXBUFFER errorBuffer = 0;
 	LPDIRECT3DVERTEXSHADER9 vShader = 0;
- 	HRESULT hr;
-	static char *versions[5] = {"ERROR", "vs_1_4", "vs_2_0", "vs_3_0", "vs_4_0"};
-	
-	hr = D3DXCompileShader(code, len, 0, 0, "main", versions[Vs.Major], 0, &shaderBuffer, &errorBuffer, 0);
-
+ 	HRESULT hr = D3DXCompileShader(code, len, 0, 0, "main", D3D::VertexShaderVersionString(),
+						           0, &shaderBuffer, &errorBuffer, 0);
 	if (FAILED(hr))
 	{
 		//compilation error
-		if(g_Config.bShowShaderErrors) {
+		if (g_ActiveConfig.bShowShaderErrors) {
 			std::string hello = (char*)errorBuffer->GetBufferPointer();
 			hello += "\n\n";
 			hello += code;
@@ -55,9 +49,9 @@ LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len)
 		HRESULT hr = E_FAIL;
 		if (shaderBuffer)
 			hr = D3D::dev->CreateVertexShader((DWORD *)shaderBuffer->GetBufferPointer(), &vShader);
-		if ((FAILED(hr) || vShader == 0) && g_Config.bShowShaderErrors)
+		if ((FAILED(hr) || vShader == 0) && g_ActiveConfig.bShowShaderErrors)
 		{
-			MessageBoxA(0, code, (char*)errorBuffer->GetBufferPointer(),MB_ICONERROR);
+			MessageBoxA(0, code, (char*)errorBuffer->GetBufferPointer(), MB_ICONERROR);
 		}
 	}
 
@@ -66,7 +60,6 @@ LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len)
 		shaderBuffer->Release();
 	if (errorBuffer)
 		errorBuffer->Release();
-
 	return vShader;
 }
 
@@ -75,17 +68,16 @@ LPDIRECT3DPIXELSHADER9 CompilePixelShader(const char *code, int len)
 	LPD3DXBUFFER shaderBuffer = 0;
 	LPD3DXBUFFER errorBuffer = 0;
 	LPDIRECT3DPIXELSHADER9 pShader = 0;
-	static char *versions[5] = {"ERROR", "ps_1_4", "ps_2_0", "ps_3_0", "ps_4_0"};
 
-	HRESULT hr; 
-	// For some reasons, i had this kind of errors : "Shader uses texture addressing operations
+	// Someone:
+	// For some reason, I had this kind of errors : "Shader uses texture addressing operations
 	// in a dependency chain that is too complex for the target shader model (ps_2_0) to handle."
-	hr = D3DXCompileShader(code, len, 0, 0, "main", versions[Ps.Major], 
-							   0, &shaderBuffer, &errorBuffer, 0);
+	HRESULT hr = D3DXCompileShader(code, len, 0, 0, "main", D3D::PixelShaderVersionString(), 
+				 		           0, &shaderBuffer, &errorBuffer, 0);
 
 	if (FAILED(hr))
 	{
-		if(g_Config.bShowShaderErrors) {
+		if (g_ActiveConfig.bShowShaderErrors) {
 			std::string hello = (char*)errorBuffer->GetBufferPointer();
 			hello += "\n\n";
 			hello += code;
@@ -97,7 +89,7 @@ LPDIRECT3DPIXELSHADER9 CompilePixelShader(const char *code, int len)
 	{
 		//create it
 		HRESULT hr = D3D::dev->CreatePixelShader((DWORD *)shaderBuffer->GetBufferPointer(), &pShader);
-		if ((FAILED(hr) || pShader == 0) && g_Config.bShowShaderErrors)
+		if ((FAILED(hr) || pShader == 0) && g_ActiveConfig.bShowShaderErrors)
 		{
 			MessageBoxA(0, "damn", "error creating pixelshader", MB_ICONERROR);
 		}
@@ -108,7 +100,6 @@ LPDIRECT3DPIXELSHADER9 CompilePixelShader(const char *code, int len)
 		shaderBuffer->Release();
 	if (errorBuffer)
 		errorBuffer->Release();
-
 	return pShader;
 }
 
