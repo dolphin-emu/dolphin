@@ -45,6 +45,11 @@ inline u8 DataReadU8()
 	return *g_pVideoData++;
 }
 
+inline s8 DataReadS8()
+{
+	return (s8)(*g_pVideoData++);
+}
+
 inline u16 DataReadU16()
 {
     u16 tmp = Common::swap16(*(u16*)g_pVideoData);

@@ -33,6 +33,7 @@ void UpdateActiveConfig()
 VideoConfig::VideoConfig()
 {
 	bRunning = false;
+	bAllowSignedBytes = !IsD3D();
 }
 
 void VideoConfig::Load(const char *ini_file)

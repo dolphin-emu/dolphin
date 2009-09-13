@@ -61,6 +61,7 @@ static bool s_AVIDumping;
 
 #define NUMWNDRES 6
 extern int g_Res[NUMWNDRES][2];
+char st[32768];
 
 void SetupDeviceObjects()
 {
@@ -266,15 +267,13 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 		                  D3D::GetBackBufferSurface(), dst_rect.AsRECT(),
 						  D3DTEXF_LINEAR);
 
-	char st[8192];
 	// Finish up the current frame, print some stats
 	if (g_ActiveConfig.bOverlayStats)
 	{
 		Statistics::ToString(st);
 		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
 	}
-
-	if (g_ActiveConfig.bOverlayProjStats)
+	else if (g_ActiveConfig.bOverlayProjStats)
 	{
 		Statistics::ToStringProj(st);
 		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);

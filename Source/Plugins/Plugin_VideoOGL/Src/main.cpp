@@ -107,6 +107,11 @@ static u32 s_swapRequested = FALSE;
 static u32 s_efbAccessRequested = FALSE;
 static bool ForceSwap = true;
 
+bool IsD3D()
+{
+	return false;
+}
+
 void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 {
     _PluginInfo->Version = 0x0100;

@@ -142,4 +142,6 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 
 #define LOG_VTX()
 
+bool IsD3D();
+
 #endif  // _VIDEOCOMMON_H

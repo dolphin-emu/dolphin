@@ -57,7 +57,8 @@ enum {
 #define LOADERDECL __cdecl
 typedef void (LOADERDECL *TPipelineFunction)();
 
-enum VarType {
+enum VarType
+{
 	VAR_BYTE,
 	VAR_UNSIGNED_BYTE,
 	VAR_SHORT,

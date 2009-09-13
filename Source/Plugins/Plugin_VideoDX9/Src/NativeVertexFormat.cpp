@@ -68,8 +68,9 @@ D3DDECLTYPE VarToD3D(VarType t, int size)
 	static const D3DDECLTYPE lookup3[5] = {
 		D3DDECLTYPE_UNUSED, D3DDECLTYPE_UNUSED, D3DDECLTYPE_UNUSED, D3DDECLTYPE_UNUSED, D3DDECLTYPE_FLOAT3,
 	};
+	// Sadly, D3D9 has no SBYTE4N. D3D10 does, though.
 	static const D3DDECLTYPE lookup4[5] = {
-		D3DDECLTYPE_UBYTE4N, D3DDECLTYPE_UBYTE4N, D3DDECLTYPE_SHORT4N, D3DDECLTYPE_USHORT4N, D3DDECLTYPE_FLOAT4,
+		D3DDECLTYPE_UNUSED, D3DDECLTYPE_UBYTE4N, D3DDECLTYPE_SHORT4N, D3DDECLTYPE_USHORT4N, D3DDECLTYPE_FLOAT4,
 	};
 	D3DDECLTYPE retval = D3DDECLTYPE_UNUSED;
 	switch (size) {
@@ -84,9 +85,6 @@ D3DDECLTYPE VarToD3D(VarType t, int size)
 	return retval;
 }
 
-// TODO: Ban signed bytes as normals - not likely that ATI supports them natively.
-// We probably won't see much of a speed loss, and any speed loss will be regained anyway
-// when we finally compile display lists.
 void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 {
 	vertex_stride = _vtx_decl.stride;

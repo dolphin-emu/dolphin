@@ -32,15 +32,11 @@
 
 using namespace BPFunctions;
 
-// FIXME: Hangs load-state, but should fix graphic-heavy games state loading
-//Common::CriticalSection s_bpCritical;
-
 void BPInit()
 {
     memset(&bpmem, 0, sizeof(bpmem));
     bpmem.bpMask = 0xFFFFFF;
 }
-
 
 void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xfbLines, u32 xfbAddr, const u32 dstWidth, const u32 dstHeight)
 {
@@ -241,9 +237,11 @@ void BPWritten(const BPCmd& bp)
 									 (u32)xfbLines);
 			}
 
-			// Clear the picture after it's done and submitted, to prepare for the next picture
+			// Clear the rectangular region after copying it.
 			if (PE_copy.clear)
+			{
 				ClearScreen(bp, rc);
+			}
 
 			RestoreRenderState(bp);
 		        

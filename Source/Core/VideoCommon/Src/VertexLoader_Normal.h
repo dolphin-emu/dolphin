@@ -31,7 +31,7 @@ public:
     static unsigned int GetSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _index3);
 
     // GetFunction
-    static TPipelineFunction GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _index3);
+    static TPipelineFunction GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _index3, bool allow_signed_bytes);
 
 private:
     enum ENormalType
@@ -77,33 +77,44 @@ private:
 
 	static Set m_Table[NUM_NRM_TYPE][NUM_NRM_INDICES][NUM_NRM_ELEMENTS][NUM_NRM_FORMAT];
 
+	// You can't pass signed bytes to D3D9 so we special case them to expand to signed shorts
+	static Set m_TableExpand16[NUM_NRM_TYPE][NUM_NRM_INDICES][NUM_NRM_ELEMENTS][NUM_NRM_FORMAT];
+
     // direct
     static void LOADERDECL Normal_DirectByte();
+    static void LOADERDECL Normal_DirectByte_Expand16();
     static void LOADERDECL Normal_DirectShort();
     static void LOADERDECL Normal_DirectFloat();
     static void LOADERDECL Normal_DirectByte3();
+    static void LOADERDECL Normal_DirectByte3_Expand16();
     static void LOADERDECL Normal_DirectShort3();
     static void LOADERDECL Normal_DirectFloat3();
 
     // index8
     static void LOADERDECL Normal_Index8_Byte();
+    static void LOADERDECL Normal_Index8_Byte_Expand16();
     static void LOADERDECL Normal_Index8_Short();
     static void LOADERDECL Normal_Index8_Float();
     static void LOADERDECL Normal_Index8_Byte3_Indices1();
+    static void LOADERDECL Normal_Index8_Byte3_Indices1_Expand16();
     static void LOADERDECL Normal_Index8_Short3_Indices1();
     static void LOADERDECL Normal_Index8_Float3_Indices1();
 	static void LOADERDECL Normal_Index8_Byte3_Indices3();
+	static void LOADERDECL Normal_Index8_Byte3_Indices3_Expand16();
     static void LOADERDECL Normal_Index8_Short3_Indices3();
     static void LOADERDECL Normal_Index8_Float3_Indices3();
 
     // index16
     static void LOADERDECL Normal_Index16_Byte();
+    static void LOADERDECL Normal_Index16_Byte_Expand16();
     static void LOADERDECL Normal_Index16_Short();
     static void LOADERDECL Normal_Index16_Float();
     static void LOADERDECL Normal_Index16_Byte3_Indices1();
+    static void LOADERDECL Normal_Index16_Byte3_Indices1_Expand16();
     static void LOADERDECL Normal_Index16_Short3_Indices1();
     static void LOADERDECL Normal_Index16_Float3_Indices1();
 	static void LOADERDECL Normal_Index16_Byte3_Indices3();
+    static void LOADERDECL Normal_Index16_Byte3_Indices3_Expand16();
     static void LOADERDECL Normal_Index16_Short3_Indices3();
     static void LOADERDECL Normal_Index16_Float3_Indices3();
 };

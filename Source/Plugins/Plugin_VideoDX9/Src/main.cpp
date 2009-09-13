@@ -72,6 +72,11 @@ bool HandleDisplayList(u32 address, u32 size)
 	return false;
 }
 
+bool IsD3D()
+{
+	return true;
+}
+
 // This is used for the functions right below here which use wxwidgets
 #if defined(HAVE_WX) && HAVE_WX
 #ifdef _WIN32

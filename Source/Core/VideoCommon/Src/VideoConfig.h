@@ -131,6 +131,9 @@ struct VideoConfig
 	// With this enabled, the plugin renders directly to the backbuffer. Many features are
 	// disabled but it might be faster on really old GPUs.
 	bool bSimpleFB;
+
+	// Static config per API
+	bool bAllowSignedBytes;
 };
 
 extern VideoConfig g_Config;

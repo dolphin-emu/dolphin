@@ -19,6 +19,7 @@
 
 #include "Common.h"
 #include "VideoCommon.h"
+#include "VideoConfig.h"
 #include "Profiler.h"
 #include "MemoryUtil.h"
 #include "StringUtil.h"
@@ -310,7 +311,7 @@ void VertexLoader::CompileVertexTranslator()
 	vtx_decl.num_normals = 0;
 	if (m_VtxDesc.Normal != NOT_PRESENT) {
 		m_VertexSize += VertexLoader_Normal::GetSize(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
-		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3);
+		TPipelineFunction pFunc = VertexLoader_Normal::GetFunction(m_VtxDesc.Normal, m_VtxAttr.NormalFormat, m_VtxAttr.NormalElements, m_VtxAttr.NormalIndex3, g_Config.bAllowSignedBytes);
 		if (pFunc == 0)
 		{
 			char temp[256];
@@ -326,17 +327,25 @@ void VertexLoader::CompileVertexTranslator()
 		switch (vtx_attr.NormalFormat) {
 		case FORMAT_UBYTE:	
 		case FORMAT_BYTE:
+			{
 			vtx_decl.normal_gl_type = VAR_BYTE;
+			int native_size = 4;
+			if (vtx_attr.NormalFormat == FORMAT_BYTE && !g_Config.bAllowSignedBytes)
+			{
+				vtx_decl.normal_gl_type = VAR_SHORT;
+				native_size = 8;
+			}
 			vtx_decl.normal_gl_size = 4;
 			vtx_decl.normal_offset[0] = nat_offset;
-			nat_offset += 4;
+			nat_offset += native_size;
 			if (vtx_attr.NormalElements) {
 				vtx_decl.normal_offset[1] = nat_offset;
-				nat_offset += 4;
+				nat_offset += native_size;
 				vtx_decl.normal_offset[2] = nat_offset;
-				nat_offset += 4;
+				nat_offset += native_size;
 			}
 			break;
+			}
 		case FORMAT_USHORT:
 		case FORMAT_SHORT:
 			vtx_decl.normal_gl_type = VAR_SHORT;
