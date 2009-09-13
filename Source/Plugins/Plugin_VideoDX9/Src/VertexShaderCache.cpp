@@ -22,7 +22,7 @@
 #include "Statistics.h"
 #include "Utils.h"
 #include "Profiler.h"
-#include "Config.h"
+#include "VideoConfig.h"
 #include "VertexShaderCache.h"
 #include "VertexLoader.h"
 #include "BPMemory.h"

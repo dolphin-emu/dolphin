@@ -23,7 +23,7 @@
 
 #include "D3DBase.h"
 
-#include "Config.h"
+#include "VideoConfig.h"
 
 #include "TextureCache.h"
 

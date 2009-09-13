@@ -49,8 +49,6 @@ Make AA apply instantly during gameplay if possible
 
 */
 
-
-
 #include "Globals.h"
 #include "LogManager.h"
 #include "Thread.h"
@@ -69,7 +67,7 @@ GFXConfigDialogOGL *m_ConfigFrame = NULL;
 GFXDebuggerOGL *m_DebuggerFrame = NULL;
 #endif // HAVE_WX
 
-#include "Config.h"
+#include "VideoConfig.h"
 #include "LookUpTables.h"
 #include "ImageWrite.h"
 #include "Render.h"

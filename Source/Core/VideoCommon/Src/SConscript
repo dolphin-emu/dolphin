@@ -3,7 +3,7 @@
 Import('env')
 
 files = [
-	'Config.cpp',
+	'VideoConfig.cpp',
 	'GlobalControl.cpp',
 	'BPMemory.cpp',
 	'CPMemory.cpp',

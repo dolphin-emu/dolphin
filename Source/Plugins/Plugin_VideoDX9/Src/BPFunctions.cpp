@@ -17,7 +17,7 @@
 
 #include "BPFunctions.h"
 #include "D3DBase.h"
-#include "Config.h"
+#include "VideoConfig.h"
 #include "Common.h"
 #include "TextureCache.h"
 #include "VertexManager.h"

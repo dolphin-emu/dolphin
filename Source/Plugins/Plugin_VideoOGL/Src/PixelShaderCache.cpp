@@ -26,7 +26,7 @@
 #include <cmath>
 
 #include "Statistics.h"
-#include "Config.h"
+#include "VideoConfig.h"
 #include "ImageWrite.h"
 #include "Common.h"
 #include "Render.h"

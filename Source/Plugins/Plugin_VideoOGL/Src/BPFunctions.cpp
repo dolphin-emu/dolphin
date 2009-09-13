@@ -18,7 +18,7 @@
 #include "BPFunctions.h"
 #include "Globals.h"
 #include "Profiler.h"
-#include "Config.h"
+#include "VideoConfig.h"
 #include "VertexManager.h"
 #include "Render.h"
 #include "TextureMngr.h"

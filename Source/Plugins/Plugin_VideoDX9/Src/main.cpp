@@ -33,7 +33,7 @@ GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 #include "svnrev.h"
 #include "resource.h"
 #include "main.h"
-#include "Config.h"
+#include "VideoConfig.h"
 #include "Fifo.h"
 #include "OpcodeDecoding.h"
 #include "TextureCache.h"

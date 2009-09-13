@@ -717,10 +717,6 @@
 			Name="Decoder"
 			>
 			<File
-				RelativePath=".\Src\BPFunctions.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\DLCache.cpp"
 				>
 			</File>
@@ -744,6 +740,10 @@
 		<Filter
 			Name="Render"
 			>
+			<File
+				RelativePath=".\Src\BPFunctions.cpp"
+				>
+			</File>
 			<File
 				RelativePath=".\Src\FramebufferManager.cpp"
 				>

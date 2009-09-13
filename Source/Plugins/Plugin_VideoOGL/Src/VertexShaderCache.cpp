@@ -19,7 +19,7 @@
 
 #include "Globals.h"
 #include "Profiler.h"
-#include "Config.h"
+#include "VideoConfig.h"
 #include "Statistics.h"
 
 #include "GLUtil.h"

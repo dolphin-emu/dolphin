@@ -33,7 +33,7 @@
 #undef _interlockedbittestandreset64
 #endif
 
-#include "Config.h"
+#include "VideoConfig.h"
 #include "Hash.h"
 #include "Statistics.h"
 #include "Profiler.h"

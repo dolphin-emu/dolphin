@@ -22,7 +22,7 @@
 
 #include "Fifo.h"
 
-#include "Config.h"
+#include "VideoConfig.h"
 #include "Statistics.h"
 #include "MemoryUtil.h"
 #include "Profiler.h"

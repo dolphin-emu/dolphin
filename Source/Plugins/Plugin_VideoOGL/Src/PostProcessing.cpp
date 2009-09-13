@@ -15,9 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "VideoCommon.h"
 #include "FileUtil.h"
-#include "Config.h"
+#include "VideoCommon.h"
+#include "VideoConfig.h"
 #include "GLUtil.h"
 #include "PostProcessing.h"
 #include "PixelShaderCache.h"

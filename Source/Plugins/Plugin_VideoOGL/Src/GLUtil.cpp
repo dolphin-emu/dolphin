@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Globals.h"
-#include "Config.h"
+#include "VideoConfig.h"
 #include "IniFile.h"
 #include "svnrev.h"
 #include "Setup.h"

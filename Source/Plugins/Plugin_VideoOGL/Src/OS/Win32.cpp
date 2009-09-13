@@ -24,7 +24,7 @@
 #include <wx/aboutdlg.h>
 
 #include "../Globals.h"
-#include "Config.h"
+#include "VideoConfig.h"
 #include "main.h"
 #include "Win32.h"
 #include "OnScreenDisplay.h"

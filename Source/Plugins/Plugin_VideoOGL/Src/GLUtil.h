@@ -18,7 +18,7 @@
 #ifndef _GLINIT_H_
 #define _GLINIT_H_
 
-#include "Config.h"
+#include "VideoConfig.h"
 #include "MathUtil.h"
 #include "pluginspecs_video.h"
 

@@ -21,7 +21,7 @@
 #include "Common.h"
 #include "Statistics.h"
 
-#include "Config.h"
+#include "VideoConfig.h"
 #include "main.h"
 #include "VertexManager.h"
 #include "Render.h"

@@ -19,7 +19,7 @@
 
 #include "Common.h"
 #include "IniFile.h"
-#include "Config.h"
+#include "VideoConfig.h"
 #include "VideoCommon.h"
 
 Config g_Config;

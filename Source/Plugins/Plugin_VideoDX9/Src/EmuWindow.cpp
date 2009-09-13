@@ -2,7 +2,7 @@
 #include <windows.h>
 
 #include "../../Core/Src/Core.h"
-#include "Config.h"
+#include "VideoConfig.h"
 #include "main.h"
 #include "EmuWindow.h"
 #include "Fifo.h"

@@ -19,7 +19,7 @@
 #define _GLOBALS_H_
 
 #include "Common.h"
-#include "Config.h"
+#include "VideoConfig.h"
 
 #include "VideoCommon.h"
 #include "pluginspecs_video.h"

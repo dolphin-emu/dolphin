@@ -24,7 +24,7 @@
 
 #include "ConfigDlg.h"
 #include "../Globals.h"
-#include "Config.h"
+#include "VideoConfig.h"
 #include "../TextureMngr.h"
 #include "VertexShaderManager.h"
 #include "../PostProcessing.h"

@@ -690,14 +690,6 @@
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\Src\Config.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\Config.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\GlobalControl.cpp"
 			>
 		</File>
@@ -723,6 +715,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\VideoCommon.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\VideoConfig.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\VideoConfig.h"
 			>
 		</File>
 	</Files>

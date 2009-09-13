@@ -25,7 +25,7 @@
 #include "VertexShaderManager.h"
 #include "FramebufferManager.h"
 #include "Globals.h"
-#include "Config.h"
+#include "VideoConfig.h"
 #include "ImageWrite.h"
 #include "Render.h"
 

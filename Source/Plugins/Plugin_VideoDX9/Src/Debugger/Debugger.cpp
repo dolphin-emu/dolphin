@@ -19,7 +19,7 @@
 #include "IniFile.h"
 #include "Debugger.h"
 
-#include "Config.h"
+#include "VideoConfig.h"
 #include "../Globals.h"
 #include "../D3DBase.h"
 

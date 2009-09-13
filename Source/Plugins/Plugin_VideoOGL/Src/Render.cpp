@@ -33,7 +33,7 @@
 #endif
 
 #include "CommonPaths.h"
-#include "Config.h"
+#include "VideoConfig.h"
 #include "Profiler.h"
 #include "Statistics.h"
 #include "ImageWrite.h"

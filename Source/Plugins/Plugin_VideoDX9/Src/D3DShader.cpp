@@ -18,7 +18,7 @@
 #include <d3dx9.h>
 #include <string>
 
-#include "Config.h"
+#include "VideoConfig.h"
 #include "D3DShader.h"
 
 namespace D3D
