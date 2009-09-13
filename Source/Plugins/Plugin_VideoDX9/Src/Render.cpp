@@ -188,7 +188,10 @@ void formatBufferDump(const char *in, char *out, int w, int h, int p)
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
 	if (g_bSkipCurrentFrame)
+	{
+		g_VideoInitialize.pCopiedToXFB(false);
 		return;
+	}
 
 	if (EmuWindow::GetParentWnd())
 	{
