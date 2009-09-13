@@ -35,7 +35,7 @@ public:
 	virtual const char* GetFileName(u64 _Address) const;
 	virtual u64 ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const;
 	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) const;
-	virtual bool ExportAllFiles(const char* _rFullPath) const;
+	virtual bool ExportDir(const char* _rFullPath, const char* _rExportFilename) const;
 
 private:
 

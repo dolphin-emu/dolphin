@@ -332,7 +332,7 @@ u64 GetSize(const char *filename)
 	// on windows it's actually _stat64 defined in commonFuncs
 	struct stat64 buf;
 	if (stat64(filename, &buf) == 0) {
-		DEBUG_LOG(COMMON, "GetSize: %s: %d", filename, buf.st_size);
+		DEBUG_LOG(COMMON, "GetSize: %s: %ld", filename, buf.st_size);
 		return buf.st_size;
 	}
 

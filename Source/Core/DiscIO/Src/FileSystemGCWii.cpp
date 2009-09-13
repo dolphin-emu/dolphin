@@ -115,18 +115,44 @@ bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFi
 	delete[] buffer;
 	return false;
 }
-
-bool CFileSystemGCWii::ExportAllFiles(const char* _rFullPath) const
+bool CFileSystemGCWii::ExportDir(const char* _rFullPath, const char* _rExportFolder) const
 {
 	std::vector<const SFileInfo *> fst;
-	char exportName[512];
 	GetFileList(fst);
-
-	for (u64 i = 1; i < fst.size(); i++)
+	char exportName[512];
+	//look for the dir we are going to extract
+	u32 index[2];
+	if (!_rFullPath)
+	{
+		//extract all
+		index[0] = 0;
+		index[1] = fst.size();
+	}
+	else
+	{
+		for(index[0] = 0; index[0] < fst.size();index[0]++)
+		{
+			// Note By DacoTaco : i wonder why it doesn't work with just the _rFullPath
+			if (fst.at(index[0])->m_FullPath == FindFileInfo(_rFullPath)->m_FullPath )
+			{
+				DEBUG_LOG(DISCIO,"Found the Dir at %u",index[0]);
+				break;
+			}
+		}
+		//now to get the index of last file
+		index[1] = index[0];
+		while(index[1] < fst.at(index[0])->m_FileSize)
+		{
+			index[1]++;
+		}
+		DEBUG_LOG(DISCIO,"Dir found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
+	}
+	//extraction
+	for (int i = index[0]; i < index[1];i++)
 	{
 		if (fst[i]->IsDirectory())
 		{
-			sprintf(exportName, "%s/%s/", _rFullPath, fst[i]->m_FullPath);
+			sprintf(exportName, "%s/%s/", _rExportFolder, fst[i]->m_FullPath);
 			DEBUG_LOG(DISCIO, "%s", exportName);		
 
 			if (!File::Exists(exportName))
@@ -151,7 +177,7 @@ bool CFileSystemGCWii::ExportAllFiles(const char* _rFullPath) const
 		}
 		else
 		{
-			sprintf(exportName, "%s/%s", _rFullPath, fst[i]->m_FullPath);
+			sprintf(exportName, "%s/%s", _rExportFolder, fst[i]->m_FullPath);
 			DEBUG_LOG(DISCIO, "%s", exportName);
 			if (!File::Exists(exportName))
 			{

@@ -563,7 +563,7 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 
 	wxMenu popupMenu;
 	if (m_Treectrl->ItemHasChildren(m_Treectrl->GetSelection()))
-		;//popupMenu.Append(IDM_EXTRACTDIR, _("Extract Directory..."));
+		popupMenu.Append(IDM_EXTRACTDIR, _("Extract Directory...!experimental!"));
 	else
 		popupMenu.Append(IDM_EXTRACTFILE, _("Extract File..."));
 
@@ -617,6 +617,34 @@ void CISOProperties::OnExtractFile(wxCommandEvent& WXUNUSED (event))
 
 void CISOProperties::OnExtractDir(wxCommandEvent& WXUNUSED (event))
 {
+	if(!AskYesNo("%s", "Warning! this process does not yet have a progress bar.\nDolphin might appear unresponsive(depends on how big the folder is) until the extraction is complete\nContinue?"))
+		return;
+	wxString Path;
+	wxString Directory;
+
+	Directory = m_Treectrl->GetItemText(m_Treectrl->GetSelection());
+	Path = wxDirSelector(wxT("Choose the folder where to extract to"));
+
+	if (!Path || !Directory)
+		return;
+
+	while (m_Treectrl->GetItemParent(m_Treectrl->GetSelection()) != m_Treectrl->GetRootItem())
+	{
+		wxString temp;
+		temp = m_Treectrl->GetItemText(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
+		Directory = temp + wxT(DIR_SEP_CHR) + Directory;
+
+		m_Treectrl->SelectItem(m_Treectrl->GetItemParent(m_Treectrl->GetSelection()));
+	}
+
+	if (DiscIO::IsVolumeWiiDisc(OpenISO))
+	{
+		int partitionNum = wxAtoi(Directory.SubString(10, 11));
+		Directory.Remove(0, 12); // Remove "Partition x/"
+		WiiDisc.at(partitionNum).FileSystem->ExportDir(Directory.mb_str(), Path.mb_str());
+	}
+	else
+		pFileSystem->ExportDir(Directory.mb_str(), Path.mb_str());
 }
 
 void CISOProperties::OnExtractAll(wxCommandEvent& WXUNUSED (event))
@@ -631,7 +659,7 @@ void CISOProperties::OnExtractAll(wxCommandEvent& WXUNUSED (event))
 	if (dialog.ShowModal() == wxID_OK)
 	{
 		std::string sPath(dialog.GetPath().mb_str());
-		pFileSystem->ExportAllFiles(sPath.c_str());
+		pFileSystem->ExportDir(NULL,sPath.c_str());
 	}
 }
 
