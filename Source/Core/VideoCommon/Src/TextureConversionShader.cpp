@@ -627,15 +627,15 @@ void WriteZ24Encoder(char* p)
     WRITE(p, "  if(cl > 0.5f) {\n");
     // upper 16
     WRITE(p, "     ocol0.b = frac(depth0 * 256.0f);\n");
-    WRITE(p, "     ocol0.g = depth0\n");
+    WRITE(p, "     ocol0.g = depth0;\n");
     WRITE(p, "     ocol0.r = frac(depth1 * 256.0f);\n");
-    WRITE(p, "     ocol0.a = depth1\n");
+    WRITE(p, "     ocol0.a = depth1;\n");
     WRITE(p, "  } else {\n");
     // lower 8
     WRITE(p, "     ocol0.b = 1.0f;\n");
-    WRITE(p, "     ocol0.g = frac(depth0 * 65536.0f)\n");
-    WRITE(p, "     ocol0.r = 1.0f);\n");
-    WRITE(p, "     ocol0.a = frac(depth0 * 65536.0f)\n");
+    WRITE(p, "     ocol0.g = frac(depth0 * 65536.0f);\n");
+    WRITE(p, "     ocol0.r = 1.0f;\n");
+    WRITE(p, "     ocol0.a = frac(depth0 * 65536.0f);\n");
     WRITE(p, "  }\n"
              "}\n");
 }

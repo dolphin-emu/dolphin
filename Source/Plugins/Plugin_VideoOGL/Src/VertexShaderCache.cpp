@@ -196,7 +196,7 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	sprintf(stropt, "MaxLocalParams=256,MaxInstructions=%d", s_nMaxVertexInstructions);
 	const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
 	CGprogram tempprog = cgCreateProgram(g_cgcontext, CG_SOURCE, pstrprogram, g_cgvProf, "main", opts);
-	if (!cgIsProgram(tempprog) || cgGetError() != CG_NO_ERROR) {
+	if (!cgIsProgram(tempprog)) {
         if (s_displayCompileAlert) {
             PanicAlert("Failed to create vertex shader");
             s_displayCompileAlert = false;
@@ -205,6 +205,12 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 		ERROR_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
 		ERROR_LOG(VIDEO, pstrprogram);
 		return false;
+	}
+
+	if(cgGetError() != CG_NO_ERROR)
+	{
+		WARN_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
+		WARN_LOG(VIDEO, pstrprogram);
 	}
 
 	// This looks evil - we modify the program through the const char * we got from cgGetProgramString!
