@@ -38,6 +38,7 @@ SConfig::SConfig()
 SConfig::~SConfig()
 {
 	SaveSettings();
+	delete m_SYSCONF;
 }
 
 
@@ -122,10 +123,6 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
 		ini.Set("Core", "FrameLimit",	m_Framelimit);
 
-		// Wii
-		ini.Set("Wii", "Widescreen", m_LocalCoreStartupParameter.bWidescreen);
-		ini.Set("Wii", "ProgressiveScan", m_LocalCoreStartupParameter.bProgressiveScan);
-
 		// Plugins
 		ini.Set("Core", "GFXPlugin",  m_LocalCoreStartupParameter.m_strVideoPlugin);
 		ini.Set("Core", "DSPPlugin",  m_LocalCoreStartupParameter.m_strDSPPlugin);
@@ -141,12 +138,13 @@ void SConfig::SaveSettings()
 #else
 	ini.Save(CONFIG_FILE);
 #endif
+
+	m_SYSCONF->Save();
 }
 
 
 void SConfig::LoadSettings()
-{	
-
+{
 	NOTICE_LOG(BOOT, "Loading Settings from %s", CONFIG_FILE);
 	IniFile ini;
 #if defined(__APPLE__)
@@ -239,10 +237,6 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "TLBHack", &m_LocalCoreStartupParameter.iTLBHack, 0);
 		ini.Get("Core", "FrameLimit",	&m_Framelimit, 1);
 
-		// Wii
-		ini.Get("Wii", "Widescreen", &m_LocalCoreStartupParameter.bWidescreen, false);
-		ini.Get("Wii", "ProgressiveScan", &m_LocalCoreStartupParameter.bProgressiveScan, false);
-
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin, m_DefaultGFXPlugin.c_str());
 		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin, m_DefaultDSPPlugin.c_str());
@@ -253,14 +247,12 @@ void SConfig::LoadSettings()
 		}
 		ini.Get("Core", "WiiMote1Plugin",  &m_LocalCoreStartupParameter.m_strWiimotePlugin[0], m_DefaultWiiMotePlugin.c_str());
 	}
+
+	m_SYSCONF = new SysConf();
 }
 void SConfig::LoadSettingsHLE()
 {
 	IniFile ini;
-	//
 	ini.Load(FULL_CONFIG_DIR "DSP.ini");
 	ini.Get("Config", "EnableRE0AudioFix", &m_EnableRE0Fix, false); // RE0 Hack
 }
-
-
-

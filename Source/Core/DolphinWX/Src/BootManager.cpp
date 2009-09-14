@@ -52,6 +52,7 @@
 #include "Volume.h"
 #include "VolumeCreator.h"
 #include "ConfigManager.h"
+#include "SysConf.h"
 #include "Core.h"
 #if defined(HAVE_WX) && HAVE_WX
 	#include "ConfigMain.h"
@@ -127,24 +128,8 @@ bool BootCore(const std::string& _rFilename)
 		// Wii settings
 		if (StartUp.bWii)
 		{
-			game_ini.Get("Wii", "ProgressiveScan", &StartUp.bProgressiveScan, StartUp.bProgressiveScan);
-			game_ini.Get("Wii", "Widescreen", &StartUp.bWidescreen, StartUp.bWidescreen);
-			// Save the update Wii SYSCONF settings
-			FILE* pStream = fopen(WII_SYSCONF_FILE, "r+b");
-			if (pStream)
-			{
-				const int IPL_PGS = 0x17CC; // progressive scan
-				const int IPL_AR = 0x04D9; // widescreen
-				fseek(pStream, IPL_PGS, 0);
-				fputc(StartUp.bProgressiveScan ? 1 : 0, pStream);
-				fseek(pStream, IPL_AR, 0);
-				fputc(StartUp.bWidescreen ? 1 : 0, pStream);
-				fclose(pStream);
-			}	
-			else
-			{
-				PanicAlert("Could not write to %s", WII_SYSCONF_FILE);
-			}
+			// Flush possible changes to SYSCONF to file
+			SConfig::GetInstance().m_SYSCONF->Save();
 		}
 	} 
 

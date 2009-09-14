@@ -95,8 +95,8 @@ std::string Summarize_Settings()
 		Core::GetStartupParameter().bRunCompareClient?"True":"False",
 		Core::GetStartupParameter().iTLBHack?"True":"False",
 		SConfig::GetInstance().m_Framelimit*5,
-		Core::GetStartupParameter().bWidescreen?"True":"False",
-		Core::GetStartupParameter().bProgressiveScan?"True":"False"
+		SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR")?"True":"False",
+		SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.PGS")?"True":"False"
 		);
 }
 

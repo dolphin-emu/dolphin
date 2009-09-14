@@ -24,6 +24,7 @@
 #include "Boot/Boot.h"
 #include "HW/EXI_Device.h"
 #include "HW/SI_Device.h"
+#include "SysConf.h"
 
 // HyperIris: not sure but a temporary implement
 enum INTERFACE_LANGUAGE
@@ -79,6 +80,8 @@ struct SConfig
 	bool m_ListPal;
 	bool m_ListUsa;
 	bool m_ListJap;
+
+	SysConf* m_SYSCONF;
 
 	// save settings
 	void SaveSettings();
