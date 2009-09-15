@@ -29,7 +29,7 @@ namespace D3D
 {
 
 HRESULT Init();
-HRESULT Create(int adapter, HWND wnd, bool fullscreen, int resolution, int aa_mode);
+HRESULT Create(int adapter, HWND wnd, bool fullscreen, int resolution, int aa_mode, bool auto_depth);
 void Close();
 void Shutdown();
 

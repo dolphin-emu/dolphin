@@ -68,11 +68,14 @@ void SetupDeviceObjects()
 	D3D::font.Init();
 	VertexLoaderManager::Init();
 	FBManager::Create();
+	// Tex and shader caches will recreate themselves over time.
 }
 
 // Kill off all POOL_DEFAULT device objects.
 void TeardownDeviceObjects()
 {
+	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
+	D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
 	FBManager::Destroy();
 	D3D::font.Shutdown();
 	TextureCache::Invalidate(false);
@@ -80,9 +83,8 @@ void TeardownDeviceObjects()
 	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Clear();
 	PixelShaderCache::Clear();
-
-	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
-	D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
+	
+	// This really should be all but Zelda for example still fails...
 }
 
 bool Renderer::Init() 
@@ -90,7 +92,8 @@ bool Renderer::Init()
 	UpdateActiveConfig();
 	int fullScreenRes, w_temp, h_temp;
 	sscanf(g_Config.cInternalRes, "%dx%d", &w_temp, &h_temp);
-	if (w_temp <= 0 || h_temp <= 0) {
+	if (w_temp <= 0 || h_temp <= 0)
+	{
 		w_temp = 640;
 		h_temp = 480;
 	}
@@ -107,7 +110,7 @@ bool Renderer::Init()
 			break;
 	}
 	D3D::Create(g_ActiveConfig.iAdapter, EmuWindow::GetWnd(), g_ActiveConfig.bFullscreen,
-				fullScreenRes, backbuffer_ms_mode);
+				fullScreenRes, backbuffer_ms_mode, false);
 
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
@@ -200,6 +203,35 @@ void formatBufferDump(const char *in, char *out, int w, int h, int p)
 		}
 	}
 }
+
+// With D3D, we have to resize the backbuffer if the window changed
+// size.
+void CheckForResize()
+{
+	while (EmuWindow::IsSizing())
+	{
+		Sleep(10);
+	}
+
+	RECT rcWindow;
+	GetClientRect(EmuWindow::GetWnd(), &rcWindow);
+	int client_width = rcWindow.right - rcWindow.left;
+	int client_height = rcWindow.bottom - rcWindow.top;
+	// Sanity check.
+	if ((client_width != s_backbuffer_width ||
+		client_height != s_backbuffer_height) && 
+		client_width >= 4 && client_height >= 4)
+	{
+		TeardownDeviceObjects();
+
+		D3D::Reset();
+
+		SetupDeviceObjects();
+		s_backbuffer_width = D3D::GetBackBufferWidth();
+		s_backbuffer_height = D3D::GetBackBufferHeight();
+	}
+}
+
 
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
@@ -310,49 +342,23 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	UpdateActiveConfig();
 
 	// TODO: Resize backbuffer if window size has changed. This code crashes, debug it.
-
-	while (EmuWindow::IsSizing())
-	{
-		Sleep(10);
-	}
-
-	RECT rcWindow;
-	GetClientRect(EmuWindow::GetWnd(), &rcWindow);
-	int client_width = rcWindow.right - rcWindow.left;
-	int client_height = rcWindow.bottom - rcWindow.top;
-	if ((client_width != s_backbuffer_width ||
-		client_height != s_backbuffer_height) && 
-		client_width >= 4 && client_height >= 4)
-	{
-		TeardownDeviceObjects();
-
-		D3D::Reset();
-
-		SetupDeviceObjects();
-		s_backbuffer_width = D3D::GetBackBufferWidth();
-		s_backbuffer_height = D3D::GetBackBufferHeight();
-	}
-
 	g_VideoInitialize.pCopiedToXFB(false);
+
+	CheckForResize();
+
 
 	// Begin new frame
 	// Set default viewport and scissor, for the clear to work correctly
 	stats.ResetFrame();
 	// u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 	D3D::BeginFrame();
+
+	// Clear backbuffer. We probably don't need to do this every frame.
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 1.0f, 0);
 
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
-
-	D3DVIEWPORT9 vp;
-	vp.X = 0;
-	vp.Y = 0;
-	vp.Width  = (DWORD)s_target_width;
-	vp.Height = (DWORD)s_target_height;
-	vp.MinZ = 0;
-	vp.MaxZ = 1.0f;
-	D3D::dev->SetViewport(&vp);
+	D3D::dev->SetRenderState(D3DRS_ZENABLE, TRUE);
 
 	RECT rc;
 	rc.left   = 0; 

@@ -35,6 +35,7 @@ static bool nextFullScreen = false;
 static int multisample;
 static int resolution;
 static int xres, yres;
+static bool auto_depth_stencil = false;
 
 #define VENDOR_NVIDIA 4318
 #define VENDOR_ATI    4098
@@ -95,8 +96,14 @@ void EnableAlphaToCoverage()
 
 		ZeroMemory(pp, sizeof(D3DPRESENT_PARAMETERS));
 		pp->hDeviceWindow = hWnd;
-		pp->EnableAutoDepthStencil = TRUE;
-		pp->AutoDepthStencilFormat = D3DFMT_D24S8;
+		if (auto_depth_stencil)
+		{
+			pp->EnableAutoDepthStencil = TRUE;
+			pp->AutoDepthStencilFormat = D3DFMT_D24S8;
+		} else {
+			pp->EnableAutoDepthStencil = FALSE;
+			pp->AutoDepthStencilFormat = D3DFMT_UNKNOWN;
+		}
 		pp->BackBufferFormat = D3DFMT_A8R8G8B8;
 		if (aa_mode >= (int)adapters[adapter].aa_levels.size())
 			aa_mode = 0;
@@ -104,7 +111,7 @@ void EnableAlphaToCoverage()
 		pp->MultiSampleType = adapters[adapter].aa_levels[aa_mode].ms_setting;
 		pp->MultiSampleQuality = adapters[adapter].aa_levels[aa_mode].qual_setting;
 		
-		pp->Flags = D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL; 
+		pp->Flags = auto_depth_stencil ? D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL : 0;
 		if (fullScreen)
 		{
 			xres = pp->BackBufferWidth = FSResX;
@@ -214,13 +221,14 @@ void EnableAlphaToCoverage()
 		}
 	}
 
-	HRESULT Create(int adapter, HWND wnd, bool _fullscreen, int _resolution, int aa_mode)
+	HRESULT Create(int adapter, HWND wnd, bool _fullscreen, int _resolution, int aa_mode, bool auto_depth)
 	{
 		hWnd = wnd;
 		fullScreen = _fullscreen;
 		nextFullScreen = _fullscreen;
 		multisample = aa_mode;
 		resolution = _resolution;
+		auto_depth_stencil = auto_depth;
 		cur_adapter = adapter;
 		D3DPRESENT_PARAMETERS d3dpp; 
 		InitPP(adapter, resolution, aa_mode, &d3dpp);
@@ -254,7 +262,8 @@ void EnableAlphaToCoverage()
 		}
 		dev->GetDeviceCaps(&caps);
 		dev->GetRenderTarget(0, &back_buffer);
-		dev->GetDepthStencilSurface(&back_buffer_z);
+		if (dev->GetDepthStencilSurface(&back_buffer_z) == D3DERR_NOTFOUND)
+			back_buffer_z = NULL;
 
 		// Device state would normally be set here
 		return S_OK;
@@ -314,16 +323,20 @@ void ShowD3DError(HRESULT err)
 		if (dev)
 		{
 			// Can't keep a pointer around to the backbuffer surface when resetting.
-			back_buffer_z->Release();
+			if (back_buffer_z)
+				back_buffer_z->Release();
+			back_buffer_z = NULL;
 			back_buffer->Release();
+			back_buffer = NULL;
+
 			D3DPRESENT_PARAMETERS d3dpp; 
 			InitPP(cur_adapter, resolution, multisample, &d3dpp);
-
 			HRESULT hr = dev->Reset(&d3dpp);
-			
 			ShowD3DError(hr);
+
 			dev->GetRenderTarget(0, &back_buffer);
-			dev->GetDepthStencilSurface(&back_buffer_z);
+			if (dev->GetDepthStencilSurface(&back_buffer_z) == D3DERR_NOTFOUND)
+				back_buffer_z = NULL;
 		}
 	}
 

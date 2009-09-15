@@ -284,7 +284,7 @@ void Shutdown()
 void DoState(unsigned char **ptr, int mode) {
 	// Clear texture cache because it might have written to RAM
 	TextureCache::Invalidate(false);
-
+	// No need to clear shader caches.
 	PointerWrap p(ptr, mode);
 	VideoCommon_DoState(p);
 }

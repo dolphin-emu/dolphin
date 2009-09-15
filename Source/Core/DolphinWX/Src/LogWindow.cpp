@@ -289,6 +289,7 @@ void CLogWindow::UpdateChecks()
 
 void CLogWindow::UnPopulateRight()
 {
+	// Use ->Detach instead, as per sizer.h?
 	sRight->Remove(m_Log);
 	sRight->Remove(sRightBottom);
 	// Remove() destroys sizers

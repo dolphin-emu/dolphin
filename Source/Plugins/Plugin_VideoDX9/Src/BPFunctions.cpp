@@ -146,13 +146,10 @@ void SetDepthMode(const BPCmd &bp)
 	else
 	{
 		D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
-		D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+		D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);  // ??
 	}			
-
-	//if (!bpmem.zmode.updateenable)
-	//    Renderer::SetRenderMode(Renderer::RM_Normal);
-	
 }
+
 void SetBlendMode(const BPCmd &bp)
 {
 	if (bp.changes & 1)
@@ -164,7 +161,8 @@ void SetBlendMode(const BPCmd &bp)
 	if (bp.changes & 0x700)
 		D3D::SetRenderState(D3DRS_SRCBLEND, src);
 
-	if (bp.changes & 0xE0) {
+	if (bp.changes & 0xE0)
+	{
 		if (!bpmem.blendmode.subtract)
 		{
 			D3D::SetRenderState(D3DRS_DESTBLEND, dst);
