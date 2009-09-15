@@ -232,11 +232,11 @@ void EnableAlphaToCoverage()
 			D3DCREATE_HARDWARE_VERTEXPROCESSING,
 			&d3dpp, &dev)))
 		{
-			MessageBoxA(wnd,
-				"Sorry, but it looks like your 3D accelerator is too old,\n"
-				"or doesn't support features that Dolphin requires.\n"
-				"Falling back to software vertex processing.\n", 
-				"Dolphin Direct3D plugin", MB_OK | MB_ICONERROR);
+			MessageBox(wnd,
+				_T("Sorry, but it looks like your 3D accelerator is too old,\n")
+				_T("or doesn't support features that Dolphin requires.\n")
+				_T("Falling back to software vertex processing.\n"),
+				_T("Dolphin Direct3D plugin"), MB_OK | MB_ICONERROR);
 			if (FAILED(D3D->CreateDevice( 
 				adapter, 
 				D3DDEVTYPE_HAL, 
@@ -246,9 +246,9 @@ void EnableAlphaToCoverage()
 				//D3DCREATE_SOFTWARE_VERTEXPROCESSING ,
 				&d3dpp, &dev)))
 			{
-				MessageBoxA(wnd,
-					"Software VP failed too. Upgrade your graphics card.", 
-					"Dolphin Direct3D plugin", MB_OK | MB_ICONERROR);
+				MessageBox(wnd,
+					_T("Software VP failed too. Upgrade your graphics card."),
+					_T("Dolphin Direct3D plugin"), MB_OK | MB_ICONERROR);
 				return E_FAIL;
 			}
 		}

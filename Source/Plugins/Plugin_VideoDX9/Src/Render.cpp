@@ -88,11 +88,24 @@ void TeardownDeviceObjects()
 bool Renderer::Init() 
 {
 	UpdateActiveConfig();
-    EmuWindow::SetSize(g_Res[g_ActiveConfig.iWindowedRes][0], g_Res[g_ActiveConfig.iWindowedRes][1]);
+	int fullScreenRes,
+		w_temp,
+		h_temp;
+	sscanf(g_Config.cInternalRes, "%dx%d", &w_temp, &h_temp);
+	EmuWindow::SetSize(w_temp, h_temp);
 
 	int backbuffer_ms_mode = 0;  // g_ActiveConfig.iMultisampleMode;
-    D3D::Create(g_ActiveConfig.iAdapter, EmuWindow::GetWnd(), g_ActiveConfig.bFullscreen,
-		        g_ActiveConfig.iFSResolution, backbuffer_ms_mode);
+
+	sscanf(g_Config.cFSResolution, "%dx%d", &w_temp, &h_temp);
+
+	for (fullScreenRes = 0; fullScreenRes < D3D::GetNumAdapters(); fullScreenRes++)
+	{
+		if ((D3D::GetAdapter(fullScreenRes).resolutions[fullScreenRes].xres == w_temp) && 
+			(D3D::GetAdapter(fullScreenRes).resolutions[fullScreenRes].yres == h_temp))
+			break;
+	}
+	D3D::Create(g_ActiveConfig.iAdapter, EmuWindow::GetWnd(), g_ActiveConfig.bFullscreen,
+				fullScreenRes, backbuffer_ms_mode);
 
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();

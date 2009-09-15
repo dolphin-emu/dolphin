@@ -26,7 +26,8 @@
 #include "VideoConfig.h"
 
 #include "TextureCache.h"
-
+// TODO: remove if/when ini files use unicode
+#define ComboBox_GetTextA(hwndCtl, lpch, cchMax) GetWindowTextA((hwndCtl), (lpch), (cchMax))
 #define NUMWNDRES 6
 int g_Res[NUMWNDRES][2] = 
 {
@@ -72,8 +73,9 @@ struct TabDirect3D : public W32Util::Tab
 			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, r.name, -1, tempwstr, 2000);
 			ComboBox_AddString(GetDlgItem(hDlg,IDC_RESOLUTION), tempwstr);
 		}
-		ComboBox_SetCurSel(GetDlgItem(hDlg,IDC_RESOLUTION), g_Config.iFSResolution);
-
+		
+		for (int i = 0; i <16; i++) tempwstr[i] = g_Config.cFSResolution[i];
+		ComboBox_SelectString(GetDlgItem(hDlg,IDC_RESOLUTION), -1, tempwstr);
 		for (int i = 0; i < NUMWNDRES; i++)
 		{
 			char temp[256];
@@ -81,10 +83,11 @@ struct TabDirect3D : public W32Util::Tab
 			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, temp, -1, tempwstr, 2000);
 			ComboBox_AddString(GetDlgItem(hDlg,IDC_RESOLUTIONWINDOWED),tempwstr);
 		}
-		ComboBox_SetCurSel(GetDlgItem(hDlg,IDC_RESOLUTIONWINDOWED),g_Config.iWindowedRes);
+		for (int i = 0; i < 16; i++) tempwstr[i] = g_Config.cInternalRes[i];		
+		ComboBox_SelectString(GetDlgItem(hDlg,IDC_RESOLUTIONWINDOWED), -1, tempwstr);
 
 		CheckDlgButton(hDlg, IDC_FULLSCREENENABLE, g_Config.bFullscreen ? TRUE : FALSE);
-		CheckDlgButton(hDlg, IDC_VSYNC, g_Config.bVsync ? TRUE : FALSE);
+		CheckDlgButton(hDlg, IDC_VSYNC, g_Config.bVSync ? TRUE : FALSE);
 		CheckDlgButton(hDlg, IDC_RENDER_TO_MAINWINDOW, g_Config.RenderToMainframe ? TRUE : FALSE);		
 		CheckDlgButton(hDlg, IDC_ASPECT_16_9, g_Config.bKeepAR169 ? TRUE : FALSE);
 		CheckDlgButton(hDlg, IDC_ASPECT_4_3, g_Config.bKeepAR43 ? TRUE : FALSE);
@@ -118,12 +121,13 @@ struct TabDirect3D : public W32Util::Tab
 
 	void Apply(HWND hDlg)
 	{
+		ComboBox_GetTextA(GetDlgItem(hDlg, IDC_RESOLUTIONWINDOWED), g_Config.cInternalRes, 16);
+		ComboBox_GetTextA(GetDlgItem(hDlg, IDC_RESOLUTION), g_Config.cFSResolution, 16);
+
 		g_Config.iAdapter = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_ADAPTER));
-		g_Config.iWindowedRes = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_RESOLUTIONWINDOWED));
 		g_Config.iMultisampleMode = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_ANTIALIASMODE));
-		g_Config.iFSResolution = ComboBox_GetCurSel(GetDlgItem(hDlg,IDC_RESOLUTION));
 		g_Config.bFullscreen = Button_GetCheck(GetDlgItem(hDlg, IDC_FULLSCREENENABLE)) ? true : false;
-		g_Config.bVsync = Button_GetCheck(GetDlgItem(hDlg, IDC_VSYNC)) ? true : false;
+		g_Config.bVSync = Button_GetCheck(GetDlgItem(hDlg, IDC_VSYNC)) ? true : false;
 		g_Config.RenderToMainframe = Button_GetCheck(GetDlgItem(hDlg, IDC_RENDER_TO_MAINWINDOW)) ? true : false;
 		g_Config.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
 	}

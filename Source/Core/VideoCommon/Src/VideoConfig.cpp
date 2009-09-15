@@ -95,9 +95,6 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
 	if (iAdapter == -1) 
 		iAdapter = 0;
-	//	iniFile.Get("Hardware", "WindowedRes", &iWindowedRes, 0);
-	iniFile.Get("Hardware", "VSync", &bVsync, 0);
-	//	iniFile.Get("Hardware", "FullscreenRes", &iFSResolution, 0);
 	iniFile.Get("Hardware", "SimpleFB", &bSimpleFB, false);
 
 	// Load common settings
@@ -111,16 +108,27 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 {
     IniFile iniFile;
     iniFile.Load(ini_file);
-	iniFile.Get("Video", "ForceFiltering", &bForceFiltering, 0);
-	iniFile.Get("Video", "MaxAnisotropy", &iMaxAnisotropy, 3);  // NOTE - this is x in (1 << x)
-	iniFile.Get("Video", "EFBCopyDisable", &bEFBCopyDisable, 0);
-	iniFile.Get("Video", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);
-	iniFile.Get("Video", "EFBToRAMEnable", &bCopyEFBToRAM, 0);
-	iniFile.Get("Video", "SafeTextureCache", &bSafeTextureCache, false); 
-	iniFile.Get("Video", "MSAA", &iMultisampleMode, 0);
-	iniFile.Get("Video", "DstAlphaPass", &bDstAlphaPass, false);
-	iniFile.Get("Video", "UseXFB", &bUseXFB, 0);
-	iniFile.Get("Video", "ProjectionHack", &iPhackvalue, 0);
+
+	if (iniFile.Exists("Video", "ForceFiltering"))
+		iniFile.Get("Video", "ForceFiltering", &bForceFiltering, 0);
+	if (iniFile.Exists("Video", "MaxAnisotropy"))
+		iniFile.Get("Video", "MaxAnisotropy", &iMaxAnisotropy, 3);  // NOTE - this is x in (1 << x)
+	if (iniFile.Exists("Video", "EFBCopyDisable"))
+		iniFile.Get("Video", "EFBCopyDisable", &bEFBCopyDisable, 0);
+	if (iniFile.Exists("Video", "EFBCopyDisableHotKey"))
+		iniFile.Get("Video", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);
+	if (iniFile.Exists("Video", "EFBToRAMEnable"))
+		iniFile.Get("Video", "EFBToRAMEnable", &bCopyEFBToRAM, 0);
+	if (iniFile.Exists("Video", "SafeTextureCache"))
+		iniFile.Get("Video", "SafeTextureCache", &bSafeTextureCache, false);	
+	if (iniFile.Exists("Video", "MSAA"))
+		iniFile.Get("Video", "MSAA", &iMultisampleMode, 0);
+	if (iniFile.Exists("Video", "DstAlphaPass"))
+		iniFile.Get("Video", "DstAlphaPass", &bDstAlphaPass, false);
+	if (iniFile.Exists("Video", "UseXFB"))
+		iniFile.Get("Video", "UseXFB", &bUseXFB, 0);
+	if (iniFile.Exists("Video", "ProjectionHack"))
+		iniFile.Get("Video", "ProjectionHack", &iPhackvalue, 0);
 }
 
 void VideoConfig::Save(const char *ini_file)
@@ -174,9 +182,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Hacks", "ProjectionHack", iPhackvalue);
 
 	iniFile.Set("Hardware", "Adapter", iAdapter);
-	//	iniFile.Set("Hardware", "WindowedRes", iWindowedRes);
-	iniFile.Set("Hardware", "VSync", bVsync);
-	//	iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
 	iniFile.Set("Hardware", "SimpleFB", bSimpleFB);
 
     iniFile.Save(ini_file);

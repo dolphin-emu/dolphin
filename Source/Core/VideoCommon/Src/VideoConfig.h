@@ -123,10 +123,6 @@ struct VideoConfig
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;
-	int iWindowedRes;
-	int iFSResolution;
-
-	bool bVsync;
 
 	// With this enabled, the plugin renders directly to the backbuffer. Many features are
 	// disabled but it might be faster on really old GPUs.
