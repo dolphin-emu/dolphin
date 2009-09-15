@@ -89,191 +89,191 @@ void EnableAlphaToCoverage()
 		D3D::SetRenderState(D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C'));			
 }
 
-	void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
+void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
+{
+	int FSResX = adapters[adapter].resolutions[resolution].xres; 
+	int FSResY = adapters[adapter].resolutions[resolution].yres;
+
+	ZeroMemory(pp, sizeof(D3DPRESENT_PARAMETERS));
+	pp->hDeviceWindow = hWnd;
+	if (auto_depth_stencil)
 	{
-		int FSResX = adapters[adapter].resolutions[resolution].xres; 
-		int FSResY = adapters[adapter].resolutions[resolution].yres;
+		pp->EnableAutoDepthStencil = TRUE;
+		pp->AutoDepthStencilFormat = D3DFMT_D24S8;
+	} else {
+		pp->EnableAutoDepthStencil = FALSE;
+		pp->AutoDepthStencilFormat = D3DFMT_UNKNOWN;
+	}
+	pp->BackBufferFormat = D3DFMT_A8R8G8B8;
+	if (aa_mode >= (int)adapters[adapter].aa_levels.size())
+		aa_mode = 0;
 
-		ZeroMemory(pp, sizeof(D3DPRESENT_PARAMETERS));
-		pp->hDeviceWindow = hWnd;
-		if (auto_depth_stencil)
-		{
-			pp->EnableAutoDepthStencil = TRUE;
-			pp->AutoDepthStencilFormat = D3DFMT_D24S8;
-		} else {
-			pp->EnableAutoDepthStencil = FALSE;
-			pp->AutoDepthStencilFormat = D3DFMT_UNKNOWN;
-		}
-		pp->BackBufferFormat = D3DFMT_A8R8G8B8;
-		if (aa_mode >= (int)adapters[adapter].aa_levels.size())
-			aa_mode = 0;
+	pp->MultiSampleType = adapters[adapter].aa_levels[aa_mode].ms_setting;
+	pp->MultiSampleQuality = adapters[adapter].aa_levels[aa_mode].qual_setting;
+	
+	pp->Flags = auto_depth_stencil ? D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL : 0;
+	if (fullScreen)
+	{
+		xres = pp->BackBufferWidth = FSResX;
+		yres = pp->BackBufferHeight = FSResY;	
+		pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
+		pp->Windowed = FALSE;
+	}
+	else
+	{
+		RECT client;
+		GetClientRect(hWnd, &client);
+		xres = pp->BackBufferWidth  = client.right - client.left;
+		yres = pp->BackBufferHeight = client.bottom - client.top;
+		pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
+		pp->PresentationInterval = g_Config.bVSync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
+		pp->Windowed = TRUE;
+	}
+}
 
-		pp->MultiSampleType = adapters[adapter].aa_levels[aa_mode].ms_setting;
-		pp->MultiSampleQuality = adapters[adapter].aa_levels[aa_mode].qual_setting;
+void Enumerate()
+{
+	numAdapters = D3D::D3D->GetAdapterCount();
+	for (int i = 0; i < std::min(MAX_ADAPTERS, numAdapters); i++)
+	{
+		Adapter &a = adapters[i];
+		D3D::D3D->GetAdapterIdentifier(i, 0, &a.ident);
+		bool isNvidia = a.ident.VendorId == VENDOR_NVIDIA;
+
+		// Add multisample modes
+		a.aa_levels.push_back(AALevel("None", D3DMULTISAMPLE_NONE, 0));
+
+		DWORD qlevels = 0;
+		if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
+			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_2_SAMPLES, &qlevels))
+			if (qlevels > 0)
+				a.aa_levels.push_back(AALevel("2x MSAA", D3DMULTISAMPLE_2_SAMPLES, 0));
 		
-		pp->Flags = auto_depth_stencil ? D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL : 0;
-		if (fullScreen)
-		{
-			xres = pp->BackBufferWidth = FSResX;
-			yres = pp->BackBufferHeight = FSResY;	
-			pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
-			pp->Windowed = FALSE;
-		}
-		else
-		{
-			RECT client;
-			GetClientRect(hWnd, &client);
-			xres = pp->BackBufferWidth  = client.right - client.left;
-			yres = pp->BackBufferHeight = client.bottom - client.top;
-			pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
-			pp->PresentationInterval = g_Config.bVSync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
-			pp->Windowed = TRUE;
-		}
-	}
+		if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
+			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_2_SAMPLES, &qlevels))
+			if (qlevels > 0)
+				a.aa_levels.push_back(AALevel("4x MSAA", D3DMULTISAMPLE_4_SAMPLES, 0));
 
-	void Enumerate()
-	{
-		numAdapters = D3D::D3D->GetAdapterCount();
-		for (int i = 0; i < std::min(MAX_ADAPTERS, numAdapters); i++)
+		if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
+			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_8_SAMPLES, &qlevels))
+			if (qlevels > 0)
+				a.aa_levels.push_back(AALevel("8x MSAA", D3DMULTISAMPLE_8_SAMPLES, 0));
+
+		if (isNvidia)
 		{
-			Adapter &a = adapters[i];
-			D3D::D3D->GetAdapterIdentifier(i, 0, &a.ident);
-			bool isNvidia = a.ident.VendorId == VENDOR_NVIDIA;
-
-			// Add multisample modes
-			a.aa_levels.push_back(AALevel("None", D3DMULTISAMPLE_NONE, 0));
-
-			DWORD qlevels = 0;
+			// CSAA support
 			if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
-				i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_2_SAMPLES, &qlevels))
-				if (qlevels > 0)
-					a.aa_levels.push_back(AALevel("2x MSAA", D3DMULTISAMPLE_2_SAMPLES, 0));
+				i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_4_SAMPLES, &qlevels))
+			{
+				if (qlevels > 2)
+				{
+					// 8x, 8xQ are available
+					// See http://developer.nvidia.com/object/coverage-sampled-aa.html
+					a.aa_levels.push_back(AALevel("8x CSAA", D3DMULTISAMPLE_4_SAMPLES, 2));
+					a.aa_levels.push_back(AALevel("8xQ CSAA", D3DMULTISAMPLE_8_SAMPLES, 0));
+				}
+			}
+			if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
+				i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_8_SAMPLES, &qlevels)) 
+			{
+				if (qlevels > 2)
+				{
+					// 16x, 16xQ are available
+					// See http://developer.nvidia.com/object/coverage-sampled-aa.html
+					a.aa_levels.push_back(AALevel("16x CSAA", D3DMULTISAMPLE_4_SAMPLES, 4));
+					a.aa_levels.push_back(AALevel("16xQ CSAA", D3DMULTISAMPLE_8_SAMPLES, 2));
+				}
+			}
+		}
+		if (a.aa_levels.size() == 1)
+		{
+			strcpy(a.aa_levels[0].name, "(Not supported on this device)");
+		}
+		int numModes = D3D::D3D->GetAdapterModeCount(i, D3DFMT_X8R8G8B8);
+		for (int m = 0; m < numModes; m++)
+		{	
+			D3DDISPLAYMODE mode;
+			D3D::D3D->EnumAdapterModes(i, D3DFMT_X8R8G8B8, m, &mode);
 			
-			if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
-				i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_2_SAMPLES, &qlevels))
-				if (qlevels > 0)
-					a.aa_levels.push_back(AALevel("4x MSAA", D3DMULTISAMPLE_4_SAMPLES, 0));
-
-			if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
-				i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_8_SAMPLES, &qlevels))
-				if (qlevels > 0)
-					a.aa_levels.push_back(AALevel("8x MSAA", D3DMULTISAMPLE_8_SAMPLES, 0));
-
-			if (isNvidia)
+			int found = -1;
+			for (int x = 0; x < (int)a.resolutions.size(); x++)
 			{
-				// CSAA support
-				if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
-					i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_4_SAMPLES, &qlevels))
+				if (a.resolutions[x].xres == mode.Width && a.resolutions[x].yres == mode.Height)
 				{
-					if (qlevels > 2)
-					{
-						// 8x, 8xQ are available
-						// See http://developer.nvidia.com/object/coverage-sampled-aa.html
-						a.aa_levels.push_back(AALevel("8x CSAA", D3DMULTISAMPLE_4_SAMPLES, 2));
-						a.aa_levels.push_back(AALevel("8xQ CSAA", D3DMULTISAMPLE_8_SAMPLES, 0));
-					}
-				}
-				if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
-					i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_8_SAMPLES, &qlevels)) 
-				{
-					if (qlevels > 2)
-					{
-						// 16x, 16xQ are available
-						// See http://developer.nvidia.com/object/coverage-sampled-aa.html
-						a.aa_levels.push_back(AALevel("16x CSAA", D3DMULTISAMPLE_4_SAMPLES, 4));
-						a.aa_levels.push_back(AALevel("16xQ CSAA", D3DMULTISAMPLE_8_SAMPLES, 2));
-					}
+					found = x;
+					break;
 				}
 			}
-			if (a.aa_levels.size() == 1)
-			{
-				strcpy(a.aa_levels[0].name, "(Not supported on this device)");
-			}
-			int numModes = D3D::D3D->GetAdapterModeCount(i, D3DFMT_X8R8G8B8);
-			for (int m = 0; m < numModes; m++)
-			{	
-				D3DDISPLAYMODE mode;
-				D3D::D3D->EnumAdapterModes(i, D3DFMT_X8R8G8B8, m, &mode);
-				
-				int found = -1;
-				for (int x = 0; x < (int)a.resolutions.size(); x++)
-				{
-					if (a.resolutions[x].xres == mode.Width && a.resolutions[x].yres == mode.Height)
-					{
-						found = x;
-						break;
-					}
-				}
 
-				Resolution temp;
-				Resolution &r = found==-1 ? temp : a.resolutions[found];
-				
-				sprintf(r.name, "%ix%i", mode.Width, mode.Height);
-				r.bitdepths.insert(mode.Format);
-				r.refreshes.insert(mode.RefreshRate);
-				if (found == -1 && mode.Width >= 640 && mode.Height >= 480)
-				{
-					r.xres = mode.Width;
-					r.yres = mode.Height;
-					a.resolutions.push_back(r);
-				}
+			Resolution temp;
+			Resolution &r = found==-1 ? temp : a.resolutions[found];
+			
+			sprintf(r.name, "%ix%i", mode.Width, mode.Height);
+			r.bitdepths.insert(mode.Format);
+			r.refreshes.insert(mode.RefreshRate);
+			if (found == -1 && mode.Width >= 640 && mode.Height >= 480)
+			{
+				r.xres = mode.Width;
+				r.yres = mode.Height;
+				a.resolutions.push_back(r);
 			}
 		}
 	}
+}
 
-	HRESULT Create(int adapter, HWND wnd, bool _fullscreen, int _resolution, int aa_mode, bool auto_depth)
+HRESULT Create(int adapter, HWND wnd, bool _fullscreen, int _resolution, int aa_mode, bool auto_depth)
+{
+	hWnd = wnd;
+	fullScreen = _fullscreen;
+	nextFullScreen = _fullscreen;
+	multisample = aa_mode;
+	resolution = _resolution;
+	auto_depth_stencil = auto_depth;
+	cur_adapter = adapter;
+	D3DPRESENT_PARAMETERS d3dpp; 
+	InitPP(adapter, resolution, aa_mode, &d3dpp);
+
+	if (FAILED(D3D->CreateDevice( 
+		adapter, 
+		D3DDEVTYPE_HAL, 
+		wnd,
+		D3DCREATE_HARDWARE_VERTEXPROCESSING,
+		&d3dpp, &dev)))
 	{
-		hWnd = wnd;
-		fullScreen = _fullscreen;
-		nextFullScreen = _fullscreen;
-		multisample = aa_mode;
-		resolution = _resolution;
-		auto_depth_stencil = auto_depth;
-		cur_adapter = adapter;
-		D3DPRESENT_PARAMETERS d3dpp; 
-		InitPP(adapter, resolution, aa_mode, &d3dpp);
-
+		MessageBox(wnd,
+			_T("Sorry, but it looks like your 3D accelerator is too old,\n")
+			_T("or doesn't support features that Dolphin requires.\n")
+			_T("Falling back to software vertex processing.\n"),
+			_T("Dolphin Direct3D plugin"), MB_OK | MB_ICONERROR);
 		if (FAILED(D3D->CreateDevice( 
 			adapter, 
 			D3DDEVTYPE_HAL, 
 			wnd,
-			D3DCREATE_HARDWARE_VERTEXPROCESSING,
+			D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
+			// |D3DCREATE_MULTITHREADED /* | D3DCREATE_PUREDEVICE*/,
+			//D3DCREATE_SOFTWARE_VERTEXPROCESSING ,
 			&d3dpp, &dev)))
 		{
 			MessageBox(wnd,
-				_T("Sorry, but it looks like your 3D accelerator is too old,\n")
-				_T("or doesn't support features that Dolphin requires.\n")
-				_T("Falling back to software vertex processing.\n"),
+				_T("Software VP failed too. Upgrade your graphics card."),
 				_T("Dolphin Direct3D plugin"), MB_OK | MB_ICONERROR);
-			if (FAILED(D3D->CreateDevice( 
-				adapter, 
-				D3DDEVTYPE_HAL, 
-				wnd,
-				D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
-				// |D3DCREATE_MULTITHREADED /* | D3DCREATE_PUREDEVICE*/,
-				//D3DCREATE_SOFTWARE_VERTEXPROCESSING ,
-				&d3dpp, &dev)))
-			{
-				MessageBox(wnd,
-					_T("Software VP failed too. Upgrade your graphics card."),
-					_T("Dolphin Direct3D plugin"), MB_OK | MB_ICONERROR);
-				return E_FAIL;
-			}
+			return E_FAIL;
 		}
-		dev->GetDeviceCaps(&caps);
-		dev->GetRenderTarget(0, &back_buffer);
-		if (dev->GetDepthStencilSurface(&back_buffer_z) == D3DERR_NOTFOUND)
-			back_buffer_z = NULL;
-
-		// Device state would normally be set here
-		return S_OK;
 	}
+	dev->GetDeviceCaps(&caps);
+	dev->GetRenderTarget(0, &back_buffer);
+	if (dev->GetDepthStencilSurface(&back_buffer_z) == D3DERR_NOTFOUND)
+		back_buffer_z = NULL;
 
-	void Close()
-	{
-		dev->Release(); 
-		dev = 0;
-	}
+	// Device state would normally be set here
+	return S_OK;
+}
+
+void Close()
+{
+	dev->Release(); 
+	dev = 0;
+}
 
 const D3DCAPS9 &GetCaps()
 {
@@ -318,86 +318,96 @@ void ShowD3DError(HRESULT err)
 	}
 }
 
-	void Reset()
+void Reset()
+{
+	if (dev)
 	{
-		if (dev)
-		{
-			// Can't keep a pointer around to the backbuffer surface when resetting.
-			if (back_buffer_z)
-				back_buffer_z->Release();
+		ForgetCachedState();
+
+		// Can't keep a pointer around to the backbuffer surface when resetting.
+		if (back_buffer_z)
+			back_buffer_z->Release();
+		back_buffer_z = NULL;
+		back_buffer->Release();
+		back_buffer = NULL;
+
+		D3DPRESENT_PARAMETERS d3dpp; 
+		InitPP(cur_adapter, resolution, multisample, &d3dpp);
+		HRESULT hr = dev->Reset(&d3dpp);
+		ShowD3DError(hr);
+
+		dev->GetRenderTarget(0, &back_buffer);
+		if (dev->GetDepthStencilSurface(&back_buffer_z) == D3DERR_NOTFOUND)
 			back_buffer_z = NULL;
-			back_buffer->Release();
-			back_buffer = NULL;
-
-			D3DPRESENT_PARAMETERS d3dpp; 
-			InitPP(cur_adapter, resolution, multisample, &d3dpp);
-			HRESULT hr = dev->Reset(&d3dpp);
-			ShowD3DError(hr);
-
-			dev->GetRenderTarget(0, &back_buffer);
-			if (dev->GetDepthStencilSurface(&back_buffer_z) == D3DERR_NOTFOUND)
-				back_buffer_z = NULL;
-		}
 	}
+}
 
-	bool IsFullscreen()
+bool IsFullscreen()
+{
+	return fullScreen;
+}
+
+int GetBackBufferWidth()
+{
+	return xres;
+}
+
+int GetBackBufferHeight()
+{
+	return yres;
+}
+
+void SwitchFullscreen(bool fullscreen)
+{
+	nextFullScreen = fullscreen;
+}
+
+bool BeginFrame()
+{
+	if (bFrameInProgress)
 	{
-		return fullScreen;
+		PanicAlert("BeginFrame WTF");
+		return false;
 	}
-
-	int GetBackBufferWidth()
+	bFrameInProgress = true;
+	if (dev)
 	{
-		return xres;
+		dev->BeginScene();
+		return true;
 	}
+	else 
+		return false;
+}
 
-	int GetBackBufferHeight()
+void EndFrame()
+{
+	if (!bFrameInProgress)
 	{
-		return yres;
+		PanicAlert("EndFrame WTF");
+		return;
 	}
+	bFrameInProgress = false;
 
-	void SwitchFullscreen(bool fullscreen)
+	if (dev)
 	{
-		nextFullScreen = fullscreen;
+		dev->EndScene();
+		dev->Present(NULL, NULL, NULL, NULL);
 	}
 
-	bool BeginFrame()
+	if (fullScreen != nextFullScreen)
 	{
-		if (bFrameInProgress)
-		{
-			PanicAlert("BeginFrame WTF");
-			return false;
-		}
-		bFrameInProgress = true;
-		if (dev)
-		{
-			dev->BeginScene();
-			return true;
-		}
-		else 
-			return false;
+		fullScreen = nextFullScreen;
+		Reset();
 	}
+}
 
-	void EndFrame()
-	{
-		if (!bFrameInProgress)
-		{
-			PanicAlert("EndFrame WTF");
-			return;
-		}
-		bFrameInProgress = false;
-
-		if (dev)
-		{
-			dev->EndScene();
-			dev->Present(NULL, NULL, NULL, NULL);
-		}
-
-		if (fullScreen != nextFullScreen)
-		{
-			fullScreen = nextFullScreen;
-			Reset();
-		}
-	}
+void ForgetCachedState()
+{
+	memset(m_Textures, 0, sizeof(m_Textures));
+	memset(m_RenderStates, 0xFF, sizeof(m_RenderStates));
+	memset(m_TextureStageStates, 0xFF, sizeof(m_TextureStageStates));
+	memset(m_SamplerStates, 0xFF, sizeof(m_SamplerStates));
+}
 
 void SetTexture(DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture)
 {
