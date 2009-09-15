@@ -47,19 +47,24 @@ static u32 s_texturemask = 0;
 
 void PixelShaderManager::Init()
 {
-    s_nColorsChanged[0] = s_nColorsChanged[1] = 15;
-    s_nTexDimsChanged = true;
-    s_nIndTexScaleChanged = true;
-    s_nIndTexMtxChanged = 15;
-    s_bAlphaChanged = s_bZBiasChanged = s_bZTextureTypeChanged = s_bDepthRangeChanged = true;
-    s_bFogColorChanged = s_bFogParamChanged = true;
-    memset(lastRGBAfull, 0, sizeof(lastRGBAfull));
-    for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 8; i++)
 		lastCustomTexScale[i][0] = lastCustomTexScale[i][1] = 1.0f;
 	lastAlpha = 0;
 	memset(lastTexDims, 0, sizeof(lastTexDims));
 	lastZBias = 0;
 	s_texturemask = 0;
+	memset(lastRGBAfull, 0, sizeof(lastRGBAfull));
+	Dirty();
+}
+
+void PixelShaderManager::Dirty()
+{
+	s_nColorsChanged[0] = s_nColorsChanged[1] = 15;
+	s_nTexDimsChanged = true;
+	s_nIndTexScaleChanged = true;
+	s_nIndTexMtxChanged = 15;
+	s_bAlphaChanged = s_bZBiasChanged = s_bZTextureTypeChanged = s_bDepthRangeChanged = true;
+	s_bFogColorChanged = s_bFogParamChanged = true;
 }
 
 void PixelShaderManager::Shutdown()

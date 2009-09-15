@@ -69,8 +69,8 @@ void SetupDeviceObjects()
 	VertexLoaderManager::Init();
 	FBManager::Create();
 
-	VertexShaderManager::Init();
-	PixelShaderManager::Init();
+	VertexShaderManager::Dirty();
+	PixelShaderManager::Dirty();
 
 	// Tex and shader caches will recreate themselves over time.
 }
@@ -78,9 +78,6 @@ void SetupDeviceObjects()
 // Kill off all POOL_DEFAULT device objects.
 void TeardownDeviceObjects()
 {
-	VertexShaderManager::Shutdown();
-	PixelShaderManager::Shutdown();
-
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 	D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
 	FBManager::Destroy();

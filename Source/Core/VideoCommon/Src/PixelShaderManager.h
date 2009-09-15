@@ -31,6 +31,7 @@ class PixelShaderManager
 	static void SetPSTextureDims(int texid);
 public:
 	static void Init();
+	static void Dirty();
 	static void Shutdown();
 
 	static void SetConstants(); // sets pixel shader constants
@@ -49,8 +50,8 @@ public:
 	static void SetIndTexScaleChanged(u8 stagemask);
 	static void SetTexturesUsed(u32 nonpow2tex);
 	static void SetTexCoordChanged(u8 texmapid);
-    static void SetFogColorChanged();
-    static void SetFogParamChanged();
+	static void SetFogColorChanged();
+	static void SetFogParamChanged();
 	static void SetColorMatrix(const float* pmatrix, const float* pfConstAdd);
 	static u32 GetTextureMask();
 };

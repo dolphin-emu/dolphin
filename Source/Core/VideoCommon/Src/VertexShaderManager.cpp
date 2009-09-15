@@ -58,39 +58,35 @@ void UpdateViewport();
 
 void VertexShaderManager::Init()
 {
-    nTransformMatricesChanged[0] = nTransformMatricesChanged[1] = -1;
-    nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
-    nPostTransformMatricesChanged[0] = nPostTransformMatricesChanged[1] = -1;
-    nLightsChanged[0] = nLightsChanged[1] = -1;
-    bTexMatricesChanged[0] = bTexMatricesChanged[1] = false;
-    bPosNormalMatrixChanged = bProjectionChanged = bViewportChanged = false;
-    nMaterialsChanged = 0;
+	Dirty();
 
-    memset(&xfregs, 0, sizeof(xfregs));
-    memset(xfmem, 0, sizeof(xfmem));
+	memset(&xfregs, 0, sizeof(xfregs));
+	memset(xfmem, 0, sizeof(xfmem));
 
-    ResetView();    
+	ResetView();    
 }
 
 void VertexShaderManager::Shutdown()
 {
 }
+
+void VertexShaderManager::Dirty()
+{
+	nTransformMatricesChanged[0] = 0; nTransformMatricesChanged[1] = 256;
+	nNormalMatricesChanged[0] = 0; nNormalMatricesChanged[1] = 96;
+	nPostTransformMatricesChanged[0] = 0; nPostTransformMatricesChanged[1] = 256;
+	nLightsChanged[0] = 0; nLightsChanged[1] = 0x80;
+	bPosNormalMatrixChanged = true;
+	bTexMatricesChanged[0] = bTexMatricesChanged[1] = true;
+	bProjectionChanged = true;
+	bPosNormalMatrixChanged = bTexMatricesChanged[0] = bTexMatricesChanged[1] = true;
+	nMaterialsChanged = 15;
+}
+
 // Syncs the shader constant buffers with xfmem
 // TODO: A cleaner way to control the matricies without making a mess in the parameters field
 void VertexShaderManager::SetConstants()
 {
-
-	// TODO: Is this still needed?
-    //nTransformMatricesChanged[0] = 0; nTransformMatricesChanged[1] = 256;
-    //nNormalMatricesChanged[0] = 0; nNormalMatricesChanged[1] = 96;
-    //nPostTransformMatricesChanged[0] = 0; nPostTransformMatricesChanged[1] = 256;
-    //nLightsChanged[0] = 0; nLightsChanged[1] = 0x80;
-    //bPosNormalMatrixChanged = true;
-    //bTexMatricesChanged[0] = bTexMatricesChanged[1] = true;
-    //bProjectionChanged = true;
-    //bPosNormalMatrixChanged = bTexMatricesChanged[0] = bTexMatricesChanged[1] = true;
-    //nMaterialsChanged = 15;
-
     if (nTransformMatricesChanged[0] >= 0) 
 	{
         int startn = nTransformMatricesChanged[0] / 4;
@@ -487,7 +483,7 @@ void VertexShaderManager::TranslateView(float x, float y)
 
     Matrix33::Multiply(s_viewInvRotationMatrix, vector, result);
 
-    for(int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++)
         s_fViewTranslationVector[i] += result[i];
 
     bProjectionChanged = true;

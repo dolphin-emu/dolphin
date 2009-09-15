@@ -24,23 +24,24 @@
 class VertexShaderManager
 {
 public:
-    static void Init();
-    static void Shutdown();
+	static void Init();
+	static void Dirty();
+	static void Shutdown();
 
-    // constant management
+	// constant management
 	static void SetConstants();
 
-    static void SetViewport(float* _Viewport);
-    static void SetViewportChanged();
-    static void SetProjection(float* _pProjection, int constantIndex = -1);
-    static void InvalidateXFRange(int start, int end);
-    static void SetTexMatrixChangedA(u32 Value);
-    static void SetTexMatrixChangedB(u32 Value);
+	static void SetViewport(float* _Viewport);
+	static void SetViewportChanged();
+	static void SetProjection(float* _pProjection, int constantIndex = -1);
+	static void InvalidateXFRange(int start, int end);
+	static void SetTexMatrixChangedA(u32 Value);
+	static void SetTexMatrixChangedB(u32 Value);
 	static void SetMaterialColor(int index, u32 data);
 
-    static void TranslateView(float x, float y);
-    static void RotateView(float x, float y);
-    static void ResetView();
+	static void TranslateView(float x, float y);
+	static void RotateView(float x, float y);
+	static void ResetView();
 };
 
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4);
