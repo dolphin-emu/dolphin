@@ -111,11 +111,6 @@
 	#define POSIX 1
 	#define MAX_PATH 260
 
-#ifdef __APPLE__
-	#define HAVE_ALSA 0
-#else
-	#define HAVE_ALSA 1
-#endif
 // Windows compatibility
 	#define __forceinline inline __attribute__((always_inline))
 
