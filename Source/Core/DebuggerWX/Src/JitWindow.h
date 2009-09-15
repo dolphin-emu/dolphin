@@ -52,9 +52,6 @@ public:
 		long style = wxNO_BORDER);
     ~CJitWindow();
 
-	void Save(IniFile& _IniFile) const;
-	void Load(IniFile& _IniFile);
-
 	static void ViewAddr(u32 em_address);
 	void Update();
 

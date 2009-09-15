@@ -489,9 +489,6 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		jitsroff = pCoreMenu->Append(IDM_JITSROFF, _T("&JIT SystemRegisters off"), wxEmptyString, wxITEM_CHECK);
 	#endif
 
-//		wxMenuItem* dualcore = pDebugMenu->Append(IDM_DUALCORE, _T("&DualCore"), wxEmptyString, wxITEM_CHECK);
-//		dualcore->Check(_LocalCoreStartupParameter.bUseDualCore);
-
 	pMenuBar->Append(pCoreMenu, _T("&JIT"));
 
 	CreateMenuSymbols();

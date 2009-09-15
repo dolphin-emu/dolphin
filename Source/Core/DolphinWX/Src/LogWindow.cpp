@@ -161,10 +161,9 @@ void CLogWindow::OnClose(wxCloseEvent& event)
 void CLogWindow::SaveSettings()
 {
 	IniFile ini;
-	ini.Set("LogWindow", "x", GetPosition().x);
-	ini.Set("LogWindow", "y", GetPosition().y);
-	ini.Set("LogWindow", "w", GetSize().GetWidth());
-	ini.Set("LogWindow", "h", GetSize().GetHeight());
+	ini.Set("LogWindow", "x", Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth());
+	ini.Set("LogWindow", "y", Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight());
+	ini.Set("LogWindow", "pos", Parent->m_Mgr->GetPane(wxT("Pane 1")).dock_direction);
 	ini.Set("Options", "Verbosity", m_verbosity->GetSelection() + 1);
 	ini.Set("Options", "Font", m_FontChoice->GetSelection());
 	ini.Set("Options", "WriteToFile", m_writeFile);
@@ -179,12 +178,7 @@ void CLogWindow::LoadSettings()
 {
 	IniFile ini;
 	ini.Load(LOGGER_CONFIG_FILE);
-	int x,y,w,h,verbosity,font;
-	ini.Get("LogWindow", "x", &x, GetPosition().x);
-	ini.Get("LogWindow", "y", &y, GetPosition().y);
-	ini.Get("LogWindow", "w", &w, GetSize().GetWidth());
-	ini.Get("LogWindow", "h", &h, GetSize().GetHeight());
-	SetSize(x, y, w, h);
+	int verbosity,font;
 	ini.Get("Options", "Verbosity", &verbosity, 0);
 	if (verbosity < 1) verbosity = 1;
 	if (verbosity > MAX_LOGLEVEL) verbosity = MAX_LOGLEVEL;

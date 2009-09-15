@@ -36,13 +36,7 @@ class CBreakPointWindow
 						  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(400, 250), 
 						  long style = wxNO_BORDER);
 
-		virtual ~CBreakPointWindow();
-
 		void NotifyUpdate();
-		
-		void Save(IniFile& _IniFile) const;
-		void Load(IniFile& _IniFile);
-
 
 	private:
 

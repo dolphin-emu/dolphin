@@ -162,32 +162,21 @@ void CCodeWindow::Save()
 	ini.Set(_Section.c_str(), "Sound", iSoundWindow);
 	ini.Set(_Section.c_str(), "Video", iVideoWindow);
 	// Save floating setting
-	ini.Set("Float", "Log", (bool)FindWindowById(IDM_LOGWINDOW_PARENT));
-	ini.Set("Float", "Console", (bool)FindWindowById(IDM_CONSOLEWINDOW_PARENT));
-	ini.Set("Float", "Code", (bool)FindWindowById(IDM_CODEWINDOW_PARENT));
-	ini.Set("Float", "Registers", (bool)FindWindowById(IDM_REGISTERWINDOW_PARENT));
-	ini.Set("Float", "Breakpoints", (bool)FindWindowById(IDM_BREAKPOINTWINDOW_PARENT));
-	ini.Set("Float", "Memory", (bool)FindWindowById(IDM_MEMORYWINDOW_PARENT));
-	ini.Set("Float", "JIT", (bool)FindWindowById(IDM_JITWINDOW_PARENT));
-	ini.Set("Float", "Sound", (bool)FindWindowById(IDM_SOUNDWINDOW_PARENT));
-	ini.Set("Float", "Video", (bool)FindWindowById(IDM_VIDEOWINDOW_PARENT));	
+	ini.Set("Float", "Log", !!FindWindowById(IDM_LOGWINDOW_PARENT));
+	ini.Set("Float", "Console", !!FindWindowById(IDM_CONSOLEWINDOW_PARENT));
+	ini.Set("Float", "Code", !!FindWindowById(IDM_CODEWINDOW_PARENT));
+	ini.Set("Float", "Registers", !!FindWindowById(IDM_REGISTERWINDOW_PARENT));
+	ini.Set("Float", "Breakpoints", !!FindWindowById(IDM_BREAKPOINTWINDOW_PARENT));
+	ini.Set("Float", "Memory", !!FindWindowById(IDM_MEMORYWINDOW_PARENT));
+	ini.Set("Float", "JIT", !!FindWindowById(IDM_JITWINDOW_PARENT));
+	ini.Set("Float", "Sound", !!FindWindowById(IDM_SOUNDWINDOW_PARENT));
+	ini.Set("Float", "Video", !!FindWindowById(IDM_VIDEOWINDOW_PARENT));	
 
 	// Save window settings
-	/*
-	ini.Set("CodeWindow", "x", GetPosition().x);
-	ini.Set("CodeWindow", "y", GetPosition().y);
-	ini.Set("CodeWindow", "w", GetSize().GetWidth());
-	ini.Set("CodeWindow", "h", GetSize().GetHeight());
-	ini.Set("MainWindow", "x", GetParent()->GetPosition().x);
-	ini.Set("MainWindow", "y", GetParent()->GetPosition().y);
-	ini.Set("MainWindow", "w", GetParent()->GetSize().GetWidth());
-	ini.Set("MainWindow", "h", GetParent()->GetSize().GetHeight());
-
-	if (m_BreakpointWindow) m_BreakpointWindow->Save(file);
-	if (m_RegisterWindow) m_RegisterWindow->Save(file);
-	if (m_MemoryWindow) m_MemoryWindow->Save(file);
-	if (m_JitWindow) m_JitWindow->Save(file);
-	*/
+	ini.Set("MainWindow", "x", Parent->GetPosition().x);
+	ini.Set("MainWindow", "y", Parent->GetPosition().y);
+	ini.Set("MainWindow", "w", Parent->GetSize().GetWidth());
+	ini.Set("MainWindow", "h", Parent->GetSize().GetHeight());
 
 	ini.Save(DEBUGGER_CONFIG_FILE);
 }

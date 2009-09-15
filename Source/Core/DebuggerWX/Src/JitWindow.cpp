@@ -104,25 +104,6 @@ CJitWindow::~CJitWindow()
 }
 
 
-void CJitWindow::Save(IniFile& _IniFile) const
-{
-	_IniFile.Set("JitWindow", "x", GetPosition().x);
-	_IniFile.Set("JitWindow", "y", GetPosition().y);
-	_IniFile.Set("JitWindow", "w", GetSize().GetWidth());
-	_IniFile.Set("JitWindow", "h", GetSize().GetHeight());
-}
-
-
-void CJitWindow::Load(IniFile& _IniFile)
-{
-	int x,y,w,h;
-	_IniFile.Get("JitWindow", "x", &x, GetPosition().x);
-	_IniFile.Get("JitWindow", "y", &y, GetPosition().y);
-	_IniFile.Get("JitWindow", "w", &w, GetSize().GetWidth());
-	_IniFile.Get("JitWindow", "h", &h, GetSize().GetHeight());
-	SetSize(x, y, w, h);
-}
-
 void CJitWindow::OnRefresh(wxCommandEvent& /*event*/) {
 	block_list->Update();
 }

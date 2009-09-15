@@ -118,9 +118,8 @@ void CFrame::CreateMenu()
 	fileMenu->Append(wxID_REFRESH, _T("&Refresh List"));
 	fileMenu->AppendSeparator();
 	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
-	//	fileMenu->AppendSeparator();
-	//	fileMenu->Append(IDM_RESTART, g_pCodeWindow ? _T("Restart in regular mode") : _T("Restart in debugging mode"));
 	fileMenu->AppendSeparator();
+	//	fileMenu->Append(IDM_RESTART, g_pCodeWindow ? _T("Restart in regular &mode") : _T("&Restart in debugging &mode"));
 	fileMenu->Append(wxID_EXIT, _T("E&xit\tAlt+F4"));
 	m_MenuBar->Append(fileMenu, _T("&File"));
 
@@ -216,18 +215,24 @@ void CFrame::CreateMenu()
 		viewMenu->AppendSeparator();
 	}
 
-	viewMenu->AppendCheckItem(IDM_LISTWII, _T("Show Wii"));
-	viewMenu->Check(IDM_LISTWII, SConfig::GetInstance().m_ListWii);
-	viewMenu->AppendCheckItem(IDM_LISTGC, _T("Show GameCube"));
-	viewMenu->Check(IDM_LISTGC, SConfig::GetInstance().m_ListGC);
-	viewMenu->AppendCheckItem(IDM_LISTWAD, _T("Show Wad"));
-	viewMenu->Check(IDM_LISTWAD, SConfig::GetInstance().m_ListWad);
-	viewMenu->AppendCheckItem(IDM_LISTJAP, _T("Show JAP"));
-	viewMenu->Check(IDM_LISTJAP, SConfig::GetInstance().m_ListJap);
-	viewMenu->AppendCheckItem(IDM_LISTPAL, _T("Show PAL"));
-	viewMenu->Check(IDM_LISTPAL, SConfig::GetInstance().m_ListPal);
-	viewMenu->AppendCheckItem(IDM_LISTUSA, _T("Show USA"));
-	viewMenu->Check(IDM_LISTUSA, SConfig::GetInstance().m_ListUsa);
+	wxMenu *platformMenu = new wxMenu;
+	viewMenu->AppendSubMenu(platformMenu, _T("Show Platforms"));
+	platformMenu->AppendCheckItem(IDM_LISTWII, _T("Show Wii"));
+	platformMenu->Check(IDM_LISTWII, SConfig::GetInstance().m_ListWii);
+	platformMenu->AppendCheckItem(IDM_LISTGC, _T("Show GameCube"));
+	platformMenu->Check(IDM_LISTGC, SConfig::GetInstance().m_ListGC);
+	platformMenu->AppendCheckItem(IDM_LISTWAD, _T("Show Wad"));
+	platformMenu->Check(IDM_LISTWAD, SConfig::GetInstance().m_ListWad);
+
+	wxMenu *regionMenu = new wxMenu;
+	viewMenu->AppendSubMenu(regionMenu, _T("Show Regions"));
+	regionMenu->AppendCheckItem(IDM_LISTJAP, _T("Show JAP"));
+	regionMenu->Check(IDM_LISTJAP, SConfig::GetInstance().m_ListJap);
+	regionMenu->AppendCheckItem(IDM_LISTPAL, _T("Show PAL"));
+	regionMenu->Check(IDM_LISTPAL, SConfig::GetInstance().m_ListPal);
+	regionMenu->AppendCheckItem(IDM_LISTUSA, _T("Show USA"));
+	regionMenu->Check(IDM_LISTUSA, SConfig::GetInstance().m_ListUsa);
+
 	viewMenu->AppendCheckItem(IDM_LISTDRIVES, _T("Show Drives"));
 	viewMenu->Check(IDM_LISTDRIVES, SConfig::GetInstance().m_ListDrives);
 	viewMenu->AppendSeparator();
@@ -276,8 +281,7 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 	ToolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
 	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("Pad"),  m_Bitmaps[Toolbar_PluginPAD], _T("Pad settings"));
 	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _T("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _T("Wiimote settings"));
-	// FIXME: UGLY HACK!!! why doesn't get the right size without this line?!?!?
-	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _T("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _T("Wiimote settings"));
+
 	// after adding the buttons to the toolbar, must call Realize() to reflect
 	// the changes
 	ToolBar->Realize();
@@ -301,6 +305,12 @@ void CFrame::PopulateToolbarAui(wxAuiToolBar* ToolBar)
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
 {
+	if (m_ToolBar)
+	{
+		m_Mgr->DetachPane(m_ToolBar);
+		m_ToolBar->Destroy();
+	}
+
 	m_ToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
 	PopulateToolbar(m_ToolBar);
 	
@@ -309,7 +319,7 @@ void CFrame::RecreateToolbar()
 				ToolbarPane().Top().
 				LeftDockable(false).RightDockable(false).Floatable(false));
 
-	if (g_pCodeWindow)
+	if (g_pCodeWindow && !m_ToolBarDebug)
 	{
 		m_ToolBarDebug = new wxAuiToolBar(this, ID_TOOLBAR_DEBUG, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
 		g_pCodeWindow->PopulateToolbar(m_ToolBarDebug);
@@ -326,6 +336,8 @@ void CFrame::RecreateToolbar()
 				ToolbarPane().Top().
 				LeftDockable(false).RightDockable(false).Floatable(false));
 	}
+
+	UpdateGUI();
 }
 
 void CFrame::InitBitmaps()
@@ -425,7 +437,7 @@ void CFrame::InitBitmaps()
 	}
 
 	// Update in case the bitmap has been updated
-	//if (GetToolBar() != NULL) RecreateToolbar();
+	if (m_ToolBar != NULL) RecreateToolbar();
 
 	aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 }
@@ -865,10 +877,9 @@ void CFrame::UpdateGUI()
 	bool Paused = Core::GetState() == Core::CORE_PAUSE;
 
 	// Make sure that we have a toolbar
-	if (m_ToolBar != NULL)
+	if (m_ToolBar)
 	{
 		// Enable/disable the Config and Stop buttons
-		//GetToolBar()->EnableTool(IDM_CONFIG_MAIN, !initialized);
 		m_ToolBar->EnableTool(wxID_OPEN, !Initialized);
 		m_ToolBar->EnableTool(wxID_REFRESH, !Initialized); // Don't allow refresh when we don't show the list
 		m_ToolBar->EnableTool(IDM_STOP, Running || Paused);
@@ -890,9 +901,6 @@ void CFrame::UpdateGUI()
 	m_pSubMenuLoad->Enable(Initialized);
 	m_pSubMenuSave->Enable(Initialized);
 
-	// Let's enable it by default.
-	//m_pSubMenuFrameSkipping->Enable(initialized);
-
 	// Misc
 	GetMenuBar()->FindItem(IDM_CHANGEDISC)->Enable(Initialized);
 	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
@@ -900,7 +908,7 @@ void CFrame::UpdateGUI()
 
 	if (Running)
 	{
-		if (m_ToolBar != NULL)
+		if (m_ToolBar)
 		{
 			m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Pause]);
 			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Pause"));
@@ -910,7 +918,7 @@ void CFrame::UpdateGUI()
 	}
 	else
 	{
-		if (m_ToolBar != NULL)
+		if (m_ToolBar)
 		{
 			m_ToolBar->SetToolBitmap(IDM_PLAY, m_Bitmaps[Toolbar_Play]);
 			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Play"));
@@ -945,10 +953,11 @@ void CFrame::UpdateGUI()
 		}
 	}
 
-	// Commit changes to toolbar
-	if (m_ToolBar != NULL) m_ToolBar->Realize();
 	if (g_pCodeWindow) g_pCodeWindow->Update();
+
 	// Commit changes to manager
+	if (m_ToolBar)
+		m_ToolBar->Refresh();
 	m_Mgr->Update();
 }
 

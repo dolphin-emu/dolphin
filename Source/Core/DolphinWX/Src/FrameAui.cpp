@@ -92,13 +92,13 @@ void CFrame::OnPaneClose(wxAuiManagerEvent& event)
 	m_Mgr->Update();
 }
 
-
 // Enable and disable the log window
 void CFrame::OnToggleLogWindow(wxCommandEvent& event)
 {
 	SConfig::GetInstance().m_InterfaceLogWindow = event.IsChecked();
 	DoToggleWindow(event.GetId(), event.IsChecked());
 }
+
 void CFrame::ToggleLogWindow(bool bShow, int i)
 {	
 	if (bShow)
@@ -113,16 +113,15 @@ void CFrame::ToggleLogWindow(bool bShow, int i)
 
 	// Hide pane
 	if (!g_pCodeWindow) HidePane();
-
-	// Make sure the check is updated (if wxw isn't calling this func)
-	//GetMenuBar()->FindItem(IDM_LOGWINDOW)->Check(Show);
 }
+
 // Enable and disable the console
 void CFrame::OnToggleConsole(wxCommandEvent& event)
 {
 	SConfig::GetInstance().m_InterfaceConsole = event.IsChecked();
 	DoToggleWindow(event.GetId(), event.IsChecked());
 }
+
 void CFrame::ToggleConsole(bool bShow, int i)
 {
 #ifdef _WIN32
@@ -167,13 +166,8 @@ void CFrame::ToggleConsole(bool bShow, int i)
 
 	// Hide pane
 	if (!g_pCodeWindow) HidePane();
-
-	// Make sure the check is updated (if wxw isn't calling this func)
-	//GetMenuBar()->FindItem(IDM_CONSOLEWINDOW)->Check(Show);
 #endif
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Notebooks
@@ -332,10 +326,6 @@ void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
 	event.Skip();
 	event.Allow();
 	ResizeConsole();
-
-	//	wxAuiNotebook* Ctrl = (wxAuiNotebook*)event.GetEventObject();
-	// If we drag away the last one the tab bar goes away and we can't add any panes to it
-	//if (Ctrl->GetPageCount() == 1) Ctrl->AddPage(CreateEmptyPanel(), wxT("<>"), true);
 }
 void CFrame::HidePane()
 {
@@ -353,6 +343,7 @@ void CFrame::HidePane()
 			m_Mgr->GetPane(wxT("Pane 1")).Show();
 		m_Mgr->Update();
 	}
+
 	SetSimplePaneSize();
 }
 
@@ -795,27 +786,24 @@ void CFrame::ResizeConsole()
 
 void CFrame::SetSimplePaneSize()
 {
-	wxArrayInt Pane, Size;
-	Pane.Add(0); Size.Add(50);
-	Pane.Add(1); Size.Add(50);
+	int x = 0, y = 0;
 
-	int iClientSize = this->GetSize().GetX();
-	// Fix the pane sizes
-	for (u32 i = 0; i < Pane.size(); i++)
-	{
-		// Check limits
-		Size[i] = Limit(Size[i], 5, 95);
-		// Produce pixel width from percentage width
-		Size[i] = PercentageToPixels(Size[i], iClientSize);
-		// Update size
-		m_Mgr->GetPane(wxString::Format(wxT("Pane %i"), Pane[i])).BestSize(Size[i], -1).MinSize(Size[i], -1).MaxSize(Size[i], -1);
-	}
+	// Produce pixel width from percentage width
+	int Size = PercentageToPixels(50, this->GetSize().GetX());
+
+	IniFile ini;
+	ini.Load(LOGGER_CONFIG_FILE);
+	ini.Get("LogWindow", "x", &x, Size);
+	ini.Get("LogWindow", "y", &y, Size);
+
+	// Update size
+	m_Mgr->GetPane(wxT("Pane 0")).BestSize(x, y).MinSize(x, y).MaxSize(x, y);
+	m_Mgr->GetPane(wxT("Pane 1")).BestSize(x, y).MinSize(x, y).MaxSize(x, y);
 	m_Mgr->Update();
-	for (u32 i = 0; i < Pane.size(); i++)
-	{
-		// Remove the size limits
-		m_Mgr->GetPane(wxString::Format(wxT("Pane %i"), Pane[i])).MinSize(-1, -1).MaxSize(-1, -1);
-	}
+
+	// Set the position of the Pane
+	m_Mgr->GetPane(wxT("Pane 1")).MinSize(-1, -1).MaxSize(-1, -1);
+	m_Mgr->GetPane(wxT("Pane 0")).MinSize(-1, -1).MaxSize(-1, -1);
 }
 
 void CFrame::SetPaneSize()
@@ -942,7 +930,6 @@ void CFrame::SaveLocal()
 	ini.Get("Perspectives", "Active", &ActivePerspective, 5);
 	SplitString(_Perspectives, ",", VPerspectives);
 
-	//
 	for (u32 i = 0; i < VPerspectives.size(); i++)
 	{
 		SPerspectives Tmp;		

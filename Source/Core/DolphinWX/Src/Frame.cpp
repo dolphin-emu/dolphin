@@ -411,7 +411,7 @@ CFrame::CFrame(wxFrame* parent,
 	else
 	{
 		m_Mgr->AddPane(m_Panel, wxAuiPaneInfo().Name(wxT("Pane 0")).Caption(wxT("Pane 0")).Hide());
-		m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo().Name(wxT("Pane 1")).Caption(wxT("Pane 1")).Hide());
+		m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo().Name(wxT("Pane 1")).Caption(wxT("Logging")).Hide());
 	}
 
 	// Setup perspectives
@@ -423,7 +423,13 @@ CFrame::CFrame(wxFrame* parent,
 	}
 	else
 	{
+		IniFile ini; int pos;
+		ini.Load(LOGGER_CONFIG_FILE);
+		ini.Get("LogWindow", "pos", &pos, 2);
+
 		m_Mgr->GetPane(wxT("Pane 0")).Show().PaneBorder(false).CaptionVisible(false).Layer(0).Center();
+		m_Mgr->GetPane(wxT("Pane 1")).Hide().PaneBorder(false).CaptionVisible(true).Layer(0)
+			.FloatingSize(wxSize(600, 350)).CloseButton(false).Direction(pos);
 		AuiFullscreen = m_Mgr->SavePerspective();
 	}
 
@@ -443,20 +449,13 @@ CFrame::CFrame(wxFrame* parent,
 	}
 	else
 	{
-		m_Mgr->GetPane(wxT("Pane 1")).Hide().PaneBorder(false).CaptionVisible(false).Layer(0).Right();
-	}
-
-	// Show window
-	Show();
-
-	if (!g_pCodeWindow)
-	{
 		SetSimplePaneSize();
 		if (SConfig::GetInstance().m_InterfaceLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
 		if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);
 	}
 
-	//sizerPanel->SetSizeHints(m_Panel);
+	// Show window
+	Show();
 
 	// Commit 
 	m_Mgr->Update();
@@ -829,11 +828,9 @@ void CFrame::Update()
 		double TmpSeconds = Common::Timer::GetDoubleTime(); // Get timestamp
 		double CompareTime = TmpSeconds - HideDelay; // Compare it
 
-		if(m_iLastMotionTime < CompareTime) // Update cursor
 		#ifdef _WIN32
-			MSWSetCursor(false);
-		#else
-			{}
+			if(m_iLastMotionTime < CompareTime) // Update cursor
+				MSWSetCursor(false);
 		#endif
 	}
 }

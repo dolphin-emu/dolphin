@@ -657,12 +657,13 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		DEBUG_LOG(DISCIO,"Dir found from %u to %u\nextracting to:\n%s",index[0],index[1],_rExportFolder);
 	}
 
-	wxProgressDialog dialog(index[0] ? _T("Extracting Directory") : _T("Extracting All Files"),
+	wxString dialogTitle = index[0] ? _T("Extracting Directory") : _T("Extracting All Files");
+	wxProgressDialog dialog(dialogTitle,
 					_T("Extracting..."),
 					index[1], // range
 					this, // parent
-					wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_ELAPSED_TIME |
-					wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
+					wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
+					wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME |
 					wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 					);
 	dialog.CenterOnParent();
@@ -670,6 +671,8 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	// Extraction
 	for (u32 i = index[0]; i < index[1]; i++)
 	{
+		dialog.SetTitle(wxString::Format(_T("%s : %d%%"), dialogTitle,
+			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
 		if (!dialog.Update(i, wxString::Format(_T("Extracting %s"), wxString::FromAscii(fst[i]->m_FullPath))))
 			break;
 

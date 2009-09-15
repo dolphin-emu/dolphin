@@ -35,9 +35,6 @@ public:
 
 	virtual ~CRegisterWindow();
 
-	void Save(IniFile& _IniFile) const;
-	void Load(IniFile& _IniFile);
-
 	void NotifyUpdate();
 
 
