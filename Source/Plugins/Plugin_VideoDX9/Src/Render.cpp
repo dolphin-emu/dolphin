@@ -88,10 +88,12 @@ void TeardownDeviceObjects()
 bool Renderer::Init() 
 {
 	UpdateActiveConfig();
-	int fullScreenRes,
-		w_temp,
-		h_temp;
+	int fullScreenRes, w_temp, h_temp;
 	sscanf(g_Config.cInternalRes, "%dx%d", &w_temp, &h_temp);
+	if (w_temp <= 0 || h_temp <= 0) {
+		w_temp = 640;
+		h_temp = 480;
+	}
 	EmuWindow::SetSize(w_temp, h_temp);
 
 	int backbuffer_ms_mode = 0;  // g_ActiveConfig.iMultisampleMode;
@@ -316,8 +318,11 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 
 	RECT rcWindow;
 	GetClientRect(EmuWindow::GetWnd(), &rcWindow);
-	if (rcWindow.right - rcWindow.left != s_backbuffer_width ||
-		rcWindow.bottom - rcWindow.top != s_backbuffer_height)
+	int client_width = rcWindow.right - rcWindow.left;
+	int client_height = rcWindow.bottom - rcWindow.top;
+	if ((client_width != s_backbuffer_width ||
+		client_height != s_backbuffer_height) && 
+		client_width >= 4 && client_height >= 4)
 	{
 		TeardownDeviceObjects();
 
