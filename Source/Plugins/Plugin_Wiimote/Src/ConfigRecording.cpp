@@ -29,7 +29,7 @@
 
 void WiimoteRecordingConfigDialog::LoadFile()
 {
-	INFO_LOG(CONSOLE, "LoadFile()\n");
+	DEBUG_LOG(WIIMOTE, "LoadFile()");
 
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
@@ -72,7 +72,7 @@ void WiimoteRecordingConfigDialog::LoadFile()
 
 void WiimoteRecordingConfigDialog::SaveFile()
 {
-	INFO_LOG(CONSOLE, "SaveFile\n");
+	DEBUG_LOG(WIIMOTE, "SaveFile");
 
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
@@ -108,7 +108,7 @@ void WiimoteRecordingConfigDialog::SaveFile()
 	}
 
 	file.Save(FULL_CONFIG_DIR "WiimoteMovement.ini");
-	INFO_LOG(CONSOLE, "SaveFile()\n");
+	DEBUG_LOG(WIIMOTE, "SaveFile()");
 }
 
 void WiimoteRecordingConfigDialog::CreateGUIControlsRecording()
@@ -346,7 +346,7 @@ void WiimoteRecordingConfigDialog::ConvertToString()
 		TmpStr += StringFromFormat("%s", m_vRecording.at(i).z >= 0 ? StringFromFormat("+%03i", m_vRecording.at(i).z).c_str() : StringFromFormat("%04i", m_vRecording.at(i).z).c_str());
 		if (i < ((int)m_vRecording.size() - 1)) TmpStr += ",";
 
-		//INFO_LOG(CONSOLE, "%s\n", TmpStr.c_str());
+		//DEBUG_LOG(WIIMOTE, "%s", TmpStr.c_str());
 
 		// Write the IR data
 		TmpIR += ArrayToString(m_vRecording.at(i).IR, IRBytes, 0, 30, false);
@@ -368,7 +368,7 @@ void WiimoteRecordingConfigDialog::ConvertToString()
 		}
 
 		// Debug
-		INFO_LOG(CONSOLE, "Saved: [%i / %i] %03i %03i %03i\n", i, m_vRecording.size(), m_vRecording.at(i).x, m_vRecording.at(i).y, m_vRecording.at(i).z);
+		DEBUG_LOG(WIIMOTE, "Saved: [%i / %i] %03i %03i %03i", i, m_vRecording.size(), m_vRecording.at(i).x, m_vRecording.at(i).y, m_vRecording.at(i).z);
 	}
 	
 	// Recordings per second
@@ -401,7 +401,7 @@ void WiimoteRecordingConfigDialog::ConvertToString()
 
 	file.Save(FULL_CONFIG_DIR "WiimoteMovement.ini");
 
-	INFO_LOG(CONSOLE, "Save recording to WiimoteMovement.ini\n");
+	DEBUG_LOG(WIIMOTE, "Save recording to WiimoteMovement.ini");
 }
 
 // Timeout the recording
@@ -471,7 +471,7 @@ void WiimoteRecordingConfigDialog::DoRecordA(bool Pressed)
 	else
 	{
 		m_RecordButton[m_iRecordTo]->SetLabel(wxT("Done"));
-		INFO_LOG(CONSOLE, "Done: %i %i\n", m_bWaitForRecording, m_bRecording);
+		DEBUG_LOG(WIIMOTE, "Done: %i %i", m_bWaitForRecording, m_bRecording);
 		//m_bAllowA = true;
 		ConvertToString();
 	}
@@ -482,11 +482,11 @@ void WiimoteRecordingConfigDialog::DoRecordA(bool Pressed)
 void WiimoteRecordingConfigDialog::DoRecordMovement(int _x, int _y, int _z, const u8 *_IR, int _IRBytes)
 {
 	//std::string Tmp1 = ArrayToString(_IR, 20, 0, 30);
-	//INFO_LOG(CONSOLE, "DoRecordMovement: %s\n", Tmp1.c_str());
+	//DEBUG_LOG(WIIMOTE, "DoRecordMovement: %s", Tmp1.c_str());
 
 	if (!m_bRecording) return;
 
-	//INFO_LOG(CONSOLE, "DoRecordMovement: %03i %03i %03i\n", _x, _y, _z);
+	//DEBUG_LOG(WIIMOTE, "DoRecordMovement: %03i %03i %03i", _x, _y, _z);
 
 	SRecording Tmp;
 	Tmp.x = _x;

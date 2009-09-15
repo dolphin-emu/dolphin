@@ -125,7 +125,7 @@ void WiimoteRecordingConfigDialog::RecordingChanged(wxCommandEvent& event)
 			if (m_RecordHotKeyNunchuck[i]->GetSelection() == m_RecordHotKeyNunchuck[CurrentChoiceBox]->GetSelection()) m_RecordHotKeyNunchuck[i]->SetSelection(10);
 			if (m_RecordHotKeyIR[i]->GetSelection() == m_RecordHotKeyIR[CurrentChoiceBox]->GetSelection()) m_RecordHotKeyIR[i]->SetSelection(10);
 			
-			//INFO_LOG(CONSOLE, "HotKey: %i %i\n",
+			//DEBUG_LOG(WIIMOTE, "HotKey: %i %i",
 			//	m_RecordHotKey[i]->GetSelection(), m_RecordHotKey[CurrentChoiceBox]->GetSelection());
 		}
 		break;

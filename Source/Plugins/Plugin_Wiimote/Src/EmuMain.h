@@ -49,7 +49,7 @@ void LoadRecordedMovements();
 // Registers and calibration values
 void ResetVariables();
 void UpdateEeprom();
-void SetDefaultExtensionRegistry();
+void UpdateExtRegisterBlocks();
 
 // Gamepad
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads);

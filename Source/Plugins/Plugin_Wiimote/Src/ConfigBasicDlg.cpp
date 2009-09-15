@@ -34,7 +34,7 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_CONNECT_REAL, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USE_REAL, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_SIDEWAYSDPAD, WiimoteBasicConfigDialog::GeneralSettingsChanged)
-	//EVT_CHECKBOX(ID_MOTIONPLUSCONNECTED, WiimoteConfigDialog::GeneralSettingsChanged)	
+	EVT_CHECKBOX(ID_MOTIONPLUSCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)	
 	EVT_CHOICE(ID_EXTCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	// IR cursor
 	EVT_COMMAND_SCROLL(IDS_WIDTH, WiimoteBasicConfigDialog::IRCursorChanged)
@@ -171,8 +171,9 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_SizeReal[i]->Add(m_ConnectRealWiimote[i], 0, wxEXPAND | wxALL, 5);
 		m_SizeReal[i]->Add(m_UseRealWiimote[i], 0, wxEXPAND | wxALL, 5);
 
-		m_WiiMotionPlusConnected[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Wii Motion Plus Connected"));
-		m_WiiMotionPlusConnected[0]->Enable(false);
+		m_WiiMotionPlusConnected[i] = new wxCheckBox(m_Controller[i], ID_MOTIONPLUSCONNECTED, wxT("Wii Motion Plus Connected"));
+		m_WiiMotionPlusConnected[i]->SetValue(g_Config.bMotionPlusConnected);
+		m_WiiMotionPlusConnected[i]->Enable(false);
 
 		wxArrayString arrayStringFor_extension;
 		arrayStringFor_extension.Add(wxT("None"));
@@ -186,7 +187,7 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		extensionChoice[i] = new wxChoice(m_Controller[i], ID_EXTCONNECTED, wxDefaultPosition, wxDefaultSize, arrayStringFor_extension, 0, wxDefaultValidator);
 		extensionChoice[i]->SetSelection(0);
 
-		m_SizeExtensions[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Extension"));
+		m_SizeExtensions[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Extension(s)"));
 		m_SizeExtensions[i]->Add(m_WiiMotionPlusConnected[i], 0, wxEXPAND | wxALL, 5);
 		m_SizeExtensions[i]->Add(extensionChoice[i], 0, wxEXPAND | wxALL, 5);
 
@@ -320,7 +321,7 @@ void WiimoteBasicConfigDialog::DoConnectReal()
 	}
 	else
 	{
-		INFO_LOG(CONSOLE, "Post Message: %i\n", g_RealWiiMoteInitialized);
+		DEBUG_LOG(WIIMOTE, "Post Message: %i", g_RealWiiMoteInitialized);
 		if (g_RealWiiMoteInitialized)
 		{
 			WiiMoteReal::Shutdown();
@@ -338,11 +339,11 @@ void WiimoteBasicConfigDialog::DoUseReal()
 	if (g_Config.iExtensionConnected != EXT_NONE)
 		UsingExtension = true;
 
-	INFO_LOG(CONSOLE, "\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
+	DEBUG_LOG(WIIMOTE, "DoUseReal()  Connect extension: %i", !UsingExtension);
 	DoExtensionConnectedDisconnected(UsingExtension ? 0 : 1);
 
 	UsingExtension = !UsingExtension;
-	INFO_LOG(CONSOLE, "\nDoUseReal()  Connect extension: %i\n", !UsingExtension);
+	DEBUG_LOG(WIIMOTE, "DoUseReal()  Connect extension: %i", !UsingExtension);
 	DoExtensionConnectedDisconnected(UsingExtension ? 1 : 0);
 
 	if(g_EmulatorRunning)
@@ -385,7 +386,7 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_USE_REAL:
 		// Enable the Wiimote thread
 		g_Config.bUseRealWiimote = m_UseRealWiimote[Page]->IsChecked();
-		if(g_Config.bUseRealWiimote) DoUseReal();		
+		if (g_Config.bUseRealWiimote) DoUseReal();		
 		break;
 
 	case ID_SIDEWAYSDPAD:
@@ -393,6 +394,7 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 
 	case ID_MOTIONPLUSCONNECTED:
+		g_Config.bMotionPlusConnected = m_WiiMotionPlusConnected[Page]->IsChecked();
 		break;
 	case ID_EXTCONNECTED:
 		g_Config.iExtensionConnected = EXT_NONE;
@@ -406,7 +408,7 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.iExtensionConnected = extensionChoice[Page]->GetSelection();
 
 		// Copy the calibration data
-		WiiMoteEmu::SetDefaultExtensionRegistry();
+		WiiMoteEmu::UpdateExtRegisterBlocks();
 
 		// Generate connect/disconnect status event
 		DoExtensionConnectedDisconnected();

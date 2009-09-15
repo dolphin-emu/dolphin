@@ -232,7 +232,7 @@ void Initialize(void *init)
 
 	DoInitialize();	
 
-	INFO_LOG(CONSOLE, "ISOId: %08x %s\n", g_WiimoteInitialize.ISOId, Hex2Ascii(g_WiimoteInitialize.ISOId).c_str());
+	DEBUG_LOG(WIIMOTE, "ISOId: %08x %s", g_WiimoteInitialize.ISOId, Hex2Ascii(g_WiimoteInitialize.ISOId).c_str());
 }
 
 // If a game is not running this is called by the Configuration window when it's closed
@@ -305,10 +305,10 @@ void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 
 	// Debugging
 	{
-		DEBUG_LOG(WII_IPC_WIIMOTE, "Wiimote_Input");
-		DEBUG_LOG(WII_IPC_WIIMOTE, "   Channel ID: %04x", _channelID);
+		DEBUG_LOG(WIIMOTE, "Wiimote_Input");
+		DEBUG_LOG(WIIMOTE, "   Channel ID: %04x", _channelID);
 		std::string Temp = ArrayToString(data, _Size);
-		DEBUG_LOG(WII_IPC_WIIMOTE, "   Data: %s", Temp.c_str());
+		DEBUG_LOG(WIIMOTE, "   Data: %s", Temp.c_str());
 	}
 
 	// Decice where to send the message
@@ -330,7 +330,7 @@ void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 	// Check for custom communication
 	if(_channelID == 99 && data[0] == WIIMOTE_RECONNECT)
 	{
-		INFO_LOG(CONSOLE, "\n\nWiimote Disconnected\n\n");
+		DEBUG_LOG(WIIMOTE, "Wiimote Disconnected");
 		g_EmulatorRunning = false;
 		g_WiimoteUnexpectedDisconnect = true;
 #if defined(HAVE_WX) && HAVE_WX
@@ -341,9 +341,9 @@ void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 
 	// Debugging
 	{
-		DEBUG_LOG(WII_IPC_WIIMOTE, "Wiimote_ControlChannel");
+		DEBUG_LOG(WIIMOTE, "Wiimote_ControlChannel");
 		std::string Temp = ArrayToString(data, _Size);
-		DEBUG_LOG(WII_IPC_WIIMOTE, "    Data: %s", Temp.c_str());
+		DEBUG_LOG(WIIMOTE, "    Data: %s", Temp.c_str());
 		//PanicAlert("Wiimote_ControlChannel");
 	}
 
@@ -395,8 +395,8 @@ void Wiimote_Update()
 	if( GetAsyncKeyState(VK_NEXT) && g_DebugAccelerometer ) g_DebugAccelerometer = false; // Home
 		else if (GetAsyncKeyState(VK_NEXT) && !g_DebugAccelerometer ) g_DebugAccelerometer = true;
 
-	if( GetAsyncKeyState(VK_END) && g_DebugCustom ) { g_DebugCustom = false; INFO_LOG(CONSOLE, "Custom Debug: Off\n");} // End
-		else if (GetAsyncKeyState(VK_END) && !g_DebugCustom ) {g_DebugCustom = true; INFO_LOG(CONSOLE, "Custom Debug: Off\n");}
+	if( GetAsyncKeyState(VK_END) && g_DebugCustom ) { g_DebugCustom = false; DEBUG_LOG(WIIMOTE, "Custom Debug: Off");} // End
+		else if (GetAsyncKeyState(VK_END) && !g_DebugCustom ) {g_DebugCustom = true; DEBUG_LOG(WIIMOTE, "Custom Debug: Off");}
 #endif
 }
 
@@ -460,15 +460,15 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		Name = "WM_STATUS_REPORT";
 		{
 			wm_status_report* pStatus = (wm_status_report*)(data + 2);
-			INFO_LOG(CONSOLE, "\n"
-				"Extension Controller: %i\n"
-				//"Speaker enabled: %i\n"
-				//"IR camera enabled: %i\n"
-				//"LED 1: %i\n"
-				//"LED 2: %i\n"
-				//"LED 3: %i\n"
-				//"LED 4: %i\n"
-				"Battery low: %i\n\n",
+			DEBUG_LOG(WIIMOTE, ""
+				"Extension Controller: %i "
+				//"Speaker enabled: %i "
+				//"IR camera enabled: %i "
+				//"LED 1: %i "
+				//"LED 2: %i "
+				//"LED 3: %i "
+				//"LED 4: %i "
+				"Battery low: %i",
 				pStatus->extension,
 				//pStatus->speaker,
 				//pStatus->ir,
@@ -499,9 +499,9 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		if ((data[4] == 0x10 || data[4] == 0x20 || data[4] == 0x50) && data[5] == 0x00 && (data[6] == 0xfa || data[6] == 0xfe)) 
 		{
 			if(data[4] == 0x10)
-				TmpData.append(StringFromFormat("Game got the encrypted extension ID: %02x%02x\n", data[7], data[8]));
+				TmpData.append(StringFromFormat("Game got the encrypted extension ID: %02x%02x", data[7], data[8]));
 			else if(data[4] == 0x50)
-				TmpData.append(StringFromFormat("Game got the encrypted extension ID: %02x%02x%02x%02x%02x%02x\n", data[7], data[8], data[9], data[10], data[11], data[12]));
+				TmpData.append(StringFromFormat("Game got the encrypted extension ID: %02x%02x%02x%02x%02x%02x", data[7], data[8], data[9], data[10], data[11], data[12]));
 
 			// We have already sent the data report so we can safely decrypt it now
 			if(WiiMoteEmu::g_Encryption)
@@ -526,8 +526,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 #if defined(HAVE_WX) && HAVE_WX
 				if (m_BasicConfigFrame) m_BasicConfigFrame->UpdateGUI();
 #endif
-				INFO_LOG(CONSOLE, "%s", TmpData.c_str());
-				INFO_LOG(CONSOLE, "Game got the decrypted extension ID: %02x%02x\n\n", data[7], data[8]);
+				DEBUG_LOG(WIIMOTE, "%s", TmpData.c_str());
+				DEBUG_LOG(WIIMOTE, "Game got the decrypted extension ID: %02x%02x", data[7], data[8]);
 			}
 			else if(data[4] == 0x50)
 			{
@@ -541,8 +541,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 #if defined(HAVE_WX) && HAVE_WX
 				if (m_BasicConfigFrame) m_BasicConfigFrame->UpdateGUI();
 #endif
-				INFO_LOG(CONSOLE, "%s", TmpData.c_str());
-				INFO_LOG(CONSOLE, "Game got the decrypted extension ID: %02x%02x%02x%02x%02x%02x\n\n", data[7], data[8], data[9], data[10], data[11], data[12]);
+				DEBUG_LOG(WIIMOTE, "%s", TmpData.c_str());
+				DEBUG_LOG(WIIMOTE, "Game got the decrypted extension ID: %02x%02x%02x%02x%02x%02x", data[7], data[8], data[9], data[10], data[11], data[12]);
 			}
 		}
 
@@ -554,13 +554,13 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		{
 			if(data[6] == 0x10)
 			{
-				INFO_LOG(CONSOLE, "\nGame got the Wiimote calibration:\n");
-				INFO_LOG(CONSOLE, "Cal_zero.x: %i\n", data[7 + 6]);
-				INFO_LOG(CONSOLE, "Cal_zero.y: %i\n", data[7 + 7]);
-				INFO_LOG(CONSOLE, "Cal_zero.z: %i\n",  data[7 + 8]);
-				INFO_LOG(CONSOLE, "Cal_g.x: %i\n", data[7 + 10]);
-				INFO_LOG(CONSOLE, "Cal_g.y: %i\n",  data[7 + 11]);
-				INFO_LOG(CONSOLE, "Cal_g.z: %i\n",  data[7 +12]);
+				DEBUG_LOG(WIIMOTE, "Game got the Wiimote calibration:");
+				DEBUG_LOG(WIIMOTE, "Cal_zero.x: %i", data[7 + 6]);
+				DEBUG_LOG(WIIMOTE, "Cal_zero.y: %i", data[7 + 7]);
+				DEBUG_LOG(WIIMOTE, "Cal_zero.z: %i",  data[7 + 8]);
+				DEBUG_LOG(WIIMOTE, "Cal_g.x: %i", data[7 + 10]);
+				DEBUG_LOG(WIIMOTE, "Cal_g.y: %i",  data[7 + 11]);
+				DEBUG_LOG(WIIMOTE, "Cal_g.z: %i",  data[7 +12]);
 			}
 		}
 
@@ -568,7 +568,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		if(data[4] == 0xf0 && data[5] == 0x00 && (data[6] == 0x20 || data[6] == 0x30))
 		{
 			// Save the encrypted data
-			TmpData = StringFromFormat("Read[%s] (enc): %s\n", (Emu ? "Emu" : "Real"), ArrayToString(data, size + 2, 0, 30).c_str()); 
+			TmpData = StringFromFormat("Read[%s] (enc): %s", (Emu ? "Emu" : "Real"), ArrayToString(data, size + 2, 0, 30).c_str()); 
 
 			// We have already sent the data report so we can safely decrypt it now
 			if(WiiMoteEmu::g_Encryption)
@@ -576,37 +576,37 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 
 			if (g_Config.iExtensionConnected == EXT_NUNCHUCK)
 			{
-				INFO_LOG(CONSOLE, "\nGame got the Nunchuck calibration:\n");
-				INFO_LOG(CONSOLE, "Cal_zero.x: %i\n", data[7 + 0]);
-				INFO_LOG(CONSOLE, "Cal_zero.y: %i\n", data[7 + 1]);
-				INFO_LOG(CONSOLE, "Cal_zero.z: %i\n",  data[7 + 2]);
-				INFO_LOG(CONSOLE, "Cal_g.x: %i\n", data[7 + 4]);
-				INFO_LOG(CONSOLE, "Cal_g.y: %i\n",  data[7 + 5]);
-				INFO_LOG(CONSOLE, "Cal_g.z: %i\n",  data[7 + 6]);
-				INFO_LOG(CONSOLE, "Js.Max.x: %i\n",  data[7 + 8]);
-				INFO_LOG(CONSOLE, "Js.Min.x: %i\n",  data[7 + 9]);
-				INFO_LOG(CONSOLE, "Js.Center.x: %i\n", data[7 + 10]);
-				INFO_LOG(CONSOLE, "Js.Max.y: %i\n",  data[7 + 11]);
-				INFO_LOG(CONSOLE, "Js.Min.y: %i\n",  data[7 + 12]);
-				INFO_LOG(CONSOLE, "JS.Center.y: %i\n\n", data[7 + 13]);
+				DEBUG_LOG(WIIMOTE, "Game got the Nunchuck calibration:");
+				DEBUG_LOG(WIIMOTE, "Cal_zero.x: %i", data[7 + 0]);
+				DEBUG_LOG(WIIMOTE, "Cal_zero.y: %i", data[7 + 1]);
+				DEBUG_LOG(WIIMOTE, "Cal_zero.z: %i",  data[7 + 2]);
+				DEBUG_LOG(WIIMOTE, "Cal_g.x: %i", data[7 + 4]);
+				DEBUG_LOG(WIIMOTE, "Cal_g.y: %i",  data[7 + 5]);
+				DEBUG_LOG(WIIMOTE, "Cal_g.z: %i",  data[7 + 6]);
+				DEBUG_LOG(WIIMOTE, "Js.Max.x: %i",  data[7 + 8]);
+				DEBUG_LOG(WIIMOTE, "Js.Min.x: %i",  data[7 + 9]);
+				DEBUG_LOG(WIIMOTE, "Js.Center.x: %i", data[7 + 10]);
+				DEBUG_LOG(WIIMOTE, "Js.Max.y: %i",  data[7 + 11]);
+				DEBUG_LOG(WIIMOTE, "Js.Min.y: %i",  data[7 + 12]);
+				DEBUG_LOG(WIIMOTE, "JS.Center.y: %i", data[7 + 13]);
 			}
 			else // g_Config.bClassicControllerConnected
 			{
-				INFO_LOG(CONSOLE, "\nGame got the Classic Controller calibration:\n");
-				INFO_LOG(CONSOLE, "Lx.Max: %i\n", data[7 + 0]);
-				INFO_LOG(CONSOLE, "Lx.Min: %i\n", data[7 + 1]);
-				INFO_LOG(CONSOLE, "Lx.Center: %i\n",  data[7 + 2]);
-				INFO_LOG(CONSOLE, "Ly.Max: %i\n", data[7 + 3]);
-				INFO_LOG(CONSOLE, "Ly.Min: %i\n",  data[7 + 4]);
-				INFO_LOG(CONSOLE, "Ly.Center: %i\n",  data[7 + 5]);
-				INFO_LOG(CONSOLE, "Rx.Max.x: %i\n",  data[7 + 6]);
-				INFO_LOG(CONSOLE, "Rx.Min.x: %i\n",  data[7 + 7]);
-				INFO_LOG(CONSOLE, "Rx.Center.x: %i\n", data[7 + 8]);
-				INFO_LOG(CONSOLE, "Ry.Max.y: %i\n",  data[7 + 9]);
-				INFO_LOG(CONSOLE, "Ry.Min: %i\n",  data[7 + 10]);
-				INFO_LOG(CONSOLE, "Ry.Center: %i\n\n", data[7 + 11]);
-				INFO_LOG(CONSOLE, "Lt.Neutral: %i\n",  data[7 + 12]);
-				INFO_LOG(CONSOLE, "Rt.Neutral %i\n\n", data[7 + 13]);
+				DEBUG_LOG(WIIMOTE, "Game got the Classic Controller calibration:");
+				DEBUG_LOG(WIIMOTE, "Lx.Max: %i", data[7 + 0]);
+				DEBUG_LOG(WIIMOTE, "Lx.Min: %i", data[7 + 1]);
+				DEBUG_LOG(WIIMOTE, "Lx.Center: %i",  data[7 + 2]);
+				DEBUG_LOG(WIIMOTE, "Ly.Max: %i", data[7 + 3]);
+				DEBUG_LOG(WIIMOTE, "Ly.Min: %i",  data[7 + 4]);
+				DEBUG_LOG(WIIMOTE, "Ly.Center: %i",  data[7 + 5]);
+				DEBUG_LOG(WIIMOTE, "Rx.Max.x: %i",  data[7 + 6]);
+				DEBUG_LOG(WIIMOTE, "Rx.Min.x: %i",  data[7 + 7]);
+				DEBUG_LOG(WIIMOTE, "Rx.Center.x: %i", data[7 + 8]);
+				DEBUG_LOG(WIIMOTE, "Ry.Max.y: %i",  data[7 + 9]);
+				DEBUG_LOG(WIIMOTE, "Ry.Min: %i",  data[7 + 10]);
+				DEBUG_LOG(WIIMOTE, "Ry.Center: %i", data[7 + 11]);
+				DEBUG_LOG(WIIMOTE, "Lt.Neutral: %i",  data[7 + 12]);
+				DEBUG_LOG(WIIMOTE, "Rt.Neutral %i", data[7 + 13]);
 			}
 
 			// Save the values if they come from the real Wiimote
@@ -622,7 +622,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				// Save the default values that should work with Wireless Nunchucks
 				else
 				{
-					WiiMoteEmu::SetDefaultExtensionRegistry();
+					WiiMoteEmu::UpdateExtRegisterBlocks();
 				}
 				WiiMoteEmu::UpdateEeprom();
 			}
@@ -634,7 +634,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 			}
 
 			// Show the encrypted data
-			INFO_LOG(CONSOLE, "%s", TmpData.c_str());
+			DEBUG_LOG(WIIMOTE, "%s", TmpData.c_str());
 		}
 		
 		break;
@@ -676,16 +676,16 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		break;
 	default:
 		//PanicAlert("%s ReadDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
-		INFO_LOG(CONSOLE, "%s ReadDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
+		DEBUG_LOG(WIIMOTE, "%s ReadDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
 		return;
 	}
 
 	if (!DataReport && g_DebugComm)
 	{
 		std::string tmpData = ArrayToString(data, size + 2, 0, 30);
-		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		INFO_LOG(CONSOLE, "Read[%s] %s: %s\n", (Emu ? "Emu" : "Real"), Name.c_str(), tmpData.c_str()); // No timestamp
-		//INFO_LOG(CONSOLE, " (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
+		//LOGV(WIIMOTE, 3, "   Data: %s", Temp.c_str());
+		DEBUG_LOG(WIIMOTE, "Read[%s] %s: %s", (Emu ? "Emu" : "Real"), Name.c_str(), tmpData.c_str()); // No timestamp
+		//DEBUG_LOG(WIIMOTE, " (%s): %s", Tm(true).c_str(), Temp.c_str()); // Timestamp
 	}
 
 	if (DataReport && g_DebugData)
@@ -698,7 +698,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 
 		// Produce string
 		//std::string TmpData = ArrayToString(data, size + 2, 0, 30);
-		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
+		//LOGV(WIIMOTE, 3, "   Data: %s", Temp.c_str());
 		std::string TmpCore = "", TmpAccel = "", TmpIR = "", TmpExt = "", CCData = "";
 		TmpCore = StringFromFormat(
 				"%02x %02x %02x %02x",
@@ -796,24 +796,24 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		// -------------------------
 
 		// Classic Controller data
-		INFO_LOG(CONSOLE, "Read[%s]: %s | %s | %s | %s | %s\n", (Emu ? "Emu" : "Real"),
+		DEBUG_LOG(WIIMOTE, "Read[%s]: %s | %s | %s | %s | %s", (Emu ? "Emu" : "Real"),
 			TmpCore.c_str(), TmpAccel.c_str(), TmpIR.c_str(), TmpExt.c_str(), CCData.c_str());
 		// Formatted data only
-		//INFO_LOG(CONSOLE, "Read[%s]: 0x%02x | %s | %s | %s\n", (Emu ? "Emu" : "Real"), data[1], RollPitch.c_str(), GForce.c_str(), IRData.c_str());
+		//DEBUG_LOG(WIIMOTE, "Read[%s]: 0x%02x | %s | %s | %s", (Emu ? "Emu" : "Real"), data[1], RollPitch.c_str(), GForce.c_str(), IRData.c_str());
 		// IR data
-		//INFO_LOG(CONSOLE, "Read[%s]: %s | %s\n", (Emu ? "Emu" : "Real"), TmpData.c_str(), IRData.c_str());
+		//DEBUG_LOG(WIIMOTE, "Read[%s]: %s | %s", (Emu ? "Emu" : "Real"), TmpData.c_str(), IRData.c_str());
 		// Accelerometer data
-		//INFO_LOG(CONSOLE, "Read[%s]: %s | %s | %s | %s | %s | %s | %s\n", (Emu ? "Emu" : "Real"),
+		//DEBUG_LOG(WIIMOTE, "Read[%s]: %s | %s | %s | %s | %s | %s | %s", (Emu ? "Emu" : "Real"),
 		//	TmpCore.c_str(), TmpAccel.c_str(), TmpIR.c_str(), TmpExt.c_str(), RollPitch.c_str(), GForce.c_str(), CCData.c_str());
 		// Timestamp
-		//INFO_LOG(CONSOLE, " (%s): %s\n", Tm(true).c_str(), Temp.c_str());
+		//DEBUG_LOG(WIIMOTE, " (%s): %s", Tm(true).c_str(), Temp.c_str());
 		
 	}
 	if(g_DebugAccelerometer)
 	{		
 		// Accelerometer only
 		//		Console::ClearScreen();	
-		INFO_LOG(CONSOLE, "Accel x, y, z: %03u %03u %03u\n", data[4], data[5], data[6]);
+		DEBUG_LOG(WIIMOTE, "Accel x, y, z: %03u %03u %03u", data[4], data[5], data[6]);
 	}
 }
 
@@ -872,18 +872,18 @@ void InterruptDebugging(bool Emu, const void* _pData)
 					Name.append(" REG_SPEAKER");
 					if(data[6] == 7)
 					{
-						INFO_LOG(CONSOLE, "\nSound configuration:\n");
+						DEBUG_LOG(WIIMOTE, "Sound configuration:");
 						if(data[8] == 0x00)
 						{
 							memcpy(&SampleValue, &data[9], 2);
-							INFO_LOG(CONSOLE, "    Data format: 4-bit ADPCM (%i Hz)\n", 6000000 / SampleValue);
-							INFO_LOG(CONSOLE, "    Volume: %02i%%\n\n", (data[11] / 0x40) * 100);
+							DEBUG_LOG(WIIMOTE, "    Data format: 4-bit ADPCM (%i Hz)", 6000000 / SampleValue);
+							DEBUG_LOG(WIIMOTE, "    Volume: %02i%%", (data[11] / 0x40) * 100);
 						}
 						else if (data[8] == 0x40)
 						{
 							memcpy(&SampleValue, &data[9], 2);
-							INFO_LOG(CONSOLE, "    Data format: 8-bit PCM (%i Hz)\n", 12000000 / SampleValue);
-							INFO_LOG(CONSOLE, "    Volume: %02i%%\n\n", (data[11] / 0xff) * 100);
+							DEBUG_LOG(WIIMOTE, "    Data format: 8-bit PCM (%i Hz)", 12000000 / SampleValue);
+							DEBUG_LOG(WIIMOTE, "    Volume: %02i%%", (data[11] / 0xff) * 100);
 						}
 					}
 				}
@@ -897,7 +897,7 @@ void InterruptDebugging(bool Emu, const void* _pData)
 						WiiMoteEmu::g_Encryption = true;
 					else if (data[7] == 0x55)
 						WiiMoteEmu::g_Encryption = false;
-					INFO_LOG(CONSOLE, "\nExtension enryption turned %s\n\n", WiiMoteEmu::g_Encryption ? "On" : "Off");
+					DEBUG_LOG(WIIMOTE, "Extension enryption turned %s", WiiMoteEmu::g_Encryption ? "On" : "Off");
 				}		
 				break;
 			case 0xb0:
@@ -942,9 +942,9 @@ void InterruptDebugging(bool Emu, const void* _pData)
 		if (g_DebugComm) Name.append("WM_SPEAKER");
 		size = 1;
 		if(data[1] == 0x14) {
-			INFO_LOG(CONSOLE, "\nSpeaker %s\n\n", (data[2] == 0x06) ? "On" : "Off");
+			DEBUG_LOG(WIIMOTE, "Speaker %s", (data[2] == 0x06) ? "On" : "Off");
 		} else if(data[1] == 0x19) {
-			INFO_LOG(CONSOLE, "\nSpeaker %s\n\n", (data[2] == 0x06) ? "Muted" : "Unmuted");
+			DEBUG_LOG(WIIMOTE, "Speaker %s", (data[2] == 0x06) ? "Muted" : "Unmuted");
 		}
 		break;
 	case WM_WRITE_SPEAKER_DATA: // 0x18
@@ -954,22 +954,22 @@ void InterruptDebugging(bool Emu, const void* _pData)
 
 	default:
 		size = 15;
-		INFO_LOG(CONSOLE, "%s InterruptDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
+		DEBUG_LOG(WIIMOTE, "%s InterruptDebugging: Unknown channel 0x%02x", (Emu ? "Emu" : "Real"), data[1]);
 		break;
 	}
 	if (g_DebugComm && !SoundData)
 	{
 		std::string Temp = ArrayToString(data, size + 2, 0, 30);
-		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		INFO_LOG(CONSOLE, "%s: %s\n", Name.c_str(), Temp.c_str()); // No timestamp
-		//INFO_LOG(CONSOLE, " (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
+		//LOGV(WIIMOTE, 3, "   Data: %s", Temp.c_str());
+		DEBUG_LOG(WIIMOTE, "%s: %s", Name.c_str(), Temp.c_str()); // No timestamp
+		//DEBUG_LOG(WIIMOTE, " (%s): %s", Tm(true).c_str(), Temp.c_str()); // Timestamp
 	}
 	if (g_DebugSoundData && SoundData)
 	{
 		std::string Temp = ArrayToString(data, size + 2, 0, 30);
-		//LOGV(WII_IPC_WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		INFO_LOG(CONSOLE, "%s: %s\n", Name.c_str(), Temp.c_str()); // No timestamp
-		//INFO_LOG(CONSOLE, " (%s): %s\n", Tm(true).c_str(), Temp.c_str()); // Timestamp
+		//LOGV(WIIMOTE, 3, "   Data: %s", Temp.c_str());
+		DEBUG_LOG(WIIMOTE, "%s: %s", Name.c_str(), Temp.c_str()); // No timestamp
+		//DEBUG_LOG(WIIMOTE, " (%s): %s", Tm(true).c_str(), Temp.c_str()); // Timestamp
 	}
 	
 }
@@ -996,7 +996,7 @@ int GetUpdateRate()
 		// Calculate the time and save it
 		int Time = (int)(10 / (Common::Timer::GetDoubleTime() - g_UpdateTime));
 		g_UpdateTimeList.push_back(Time);
-		//INFO_LOG(CONSOLE, "Time: %i %f\n", Time, Common::Timer::GetDoubleTime());
+		//DEBUG_LOG(WIIMOTE, "Time: %i %f", Time, Common::Timer::GetDoubleTime());
 
 		int TotalTime = 0;
 		for (int i = 0; i < (int)g_UpdateTimeList.size(); i++)

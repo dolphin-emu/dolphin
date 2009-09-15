@@ -221,6 +221,7 @@ void Config::Load(bool ChangePad)
 	// General
 	iniFile.Get("Settings", "SidewaysDPad", &bSidewaysDPad, false);
 	iniFile.Get("Settings", "ExtensionConnected", &iExtensionConnected, EXT_NONE);
+	iniFile.Get("Settings", "MotionPlusConnected", &bMotionPlusConnected, false);
 
 	// Real Wiimote
 	iniFile.Get("Real", "Connect", &bConnectRealWiimote, true);
@@ -312,7 +313,7 @@ void Config::Load(bool ChangePad)
 	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);
 	iniFile.Get("Settings", "Crop", &bCrop, false);
 
-	//INFO_LOG(CONSOLE, "Load()\n");
+	//DEBUG_LOG(WIIMOTE, "Load()");
 }
 
 void Config::Save(int Slot)
@@ -321,6 +322,7 @@ void Config::Save(int Slot)
 	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
 	iniFile.Set("Settings", "SidewaysDPad", bSidewaysDPad);
 	iniFile.Set("Settings", "ExtensionConnected", iExtensionConnected);
+	iniFile.Set("Settings", "MotionPlusConnected", bMotionPlusConnected);
 
 	iniFile.Set("Real", "Connect", bConnectRealWiimote);	
 	iniFile.Set("Real", "Use", bUseRealWiimote);
@@ -407,5 +409,5 @@ void Config::Save(int Slot)
 	iniFile.Set(TmpSection, "IRHeight", iIRHeight);
 	iniFile.Save(FULL_CONFIG_DIR "IR Pointer.ini");
 
-	//INFO_LOG(CONSOLE, "Save()\n");
+	//DEBUG_LOG(WIIMOTE, "Save()");
 }

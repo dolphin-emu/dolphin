@@ -98,7 +98,7 @@ int G2Accelerometer(int _G, int XYZ, int Wm)
 	int Return = (int)Accelerometer;
 
 	// Logging
-	//INFO_LOG(CONSOLE, "G2Accelerometer():%f %f %f %f\n", Neutral, OneG, G, Accelerometer);
+	//DEBUG_LOG(WIIMOTE, "G2Accelerometer():%f %f %f %f", Neutral, OneG, G, Accelerometer);
 
 	// Boundaries
 	if (Return > 255) Return = 255;
@@ -117,14 +117,14 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 	if(VRecording.at(g_RecordingPlaying[Wm]).Recording.size() == 0)
 	{
 		g_RecordingPlaying[Wm] = -1;
-		INFO_LOG(CONSOLE, "Empty\n\n");
+		DEBUG_LOG(WIIMOTE, "Empty");
 		return false;
 	}
 
 	// Return if the playback speed is unset
 	if(VRecording.at(g_RecordingPlaying[Wm]).PlaybackSpeed < 0)
 	{
-		INFO_LOG(CONSOLE, "PlaybackSpeed empty: %i\n\n", g_RecordingPlaying[Wm]);
+		DEBUG_LOG(WIIMOTE, "PlaybackSpeed empty: %i", g_RecordingPlaying[Wm]);
 		g_RecordingPlaying[Wm] = -1;
 		return false;
 	}
@@ -139,7 +139,7 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 			)
 		)
 	{
-		INFO_LOG(CONSOLE, "Wrong IR mode: %i\n\n", g_RecordingPlaying[Wm]);
+		DEBUG_LOG(WIIMOTE, "Wrong IR mode: %i", g_RecordingPlaying[Wm]);
 		g_RecordingPlaying[Wm] = -1;
 		return false;
 	}
@@ -147,7 +147,7 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 	// Get starting time
 	if(g_RecordingCounter[Wm] == 0)
 	{
-		INFO_LOG(CONSOLE, "\n\nBegin: %i\n", Wm);
+		DEBUG_LOG(WIIMOTE, "Begin: %i", Wm);
 		g_RecordingStart[Wm] = Common::Timer::GetDoubleTime();
 	}
 
@@ -177,7 +177,7 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 		g_RecordingPlaying[Wm] = -1;
 		g_RecordingStart[Wm] = 0;
 		g_RecordingCurrentTime[Wm] = 0;
-		INFO_LOG(CONSOLE, "End: %i\n\n", Wm);
+		DEBUG_LOG(WIIMOTE, "End: %i", Wm);
 		return false;
 	}
 
@@ -191,13 +191,13 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 	if (g_DebugAccelerometer)
 	{
 		//Console::ClearScreen();
-		INFO_LOG(CONSOLE, "Current time: [%i / %i]  %f %f\n",
+		DEBUG_LOG(WIIMOTE, "Current time: [%i / %i]  %f %f",
 			g_RecordingPoint[Wm], VRecording.at(g_RecordingPlaying[Wm]).Recording.size(),
 			VRecording.at(g_RecordingPlaying[Wm]).Recording.at(g_RecordingPoint[Wm]).Time, g_RecordingCurrentTime[Wm]
 			);
-		INFO_LOG(CONSOLE, "Accel x, y, z: %03u %03u %03u\n", _x, _y, _z);
+		DEBUG_LOG(WIIMOTE, "Accel x, y, z: %03u %03u %03u", _x, _y, _z);
 	}
-	//INFO_LOG(CONSOLE, "Accel x, y, z: %03u %03u %03u\n", _x, _y, _z);
+	//DEBUG_LOG(WIIMOTE, "Accel x, y, z: %03u %03u %03u", _x, _y, _z);
 
 	g_RecordingCounter[Wm]++;
 
@@ -259,7 +259,7 @@ bool IsSwitchPressed(int _Key)
 int RecordingCheckKeys(int WmNuIr)
 {
 #ifdef _WIN32
-	//INFO_LOG(CONSOLE, "RecordingCheckKeys: %i\n", Wiimote);
+	//DEBUG_LOG(WIIMOTE, "RecordingCheckKeys: %i", Wiimote);
 
 	// Check if we have a HotKey match
 	bool Match = false;
@@ -274,7 +274,7 @@ int RecordingCheckKeys(int WmNuIr)
 				|| VRecording.at(i).HotKeyIR == j && WmNuIr == 2 && IsNumericalKeyPressed(j))
 				&& (IsSwitchPressed(VRecording.at(i).HotKeySwitch) || VRecording.at(i).HotKeySwitch == 3))
 			{
-				//INFO_LOG(CONSOLE, "Match: %i %i\n", i, Key);
+				//DEBUG_LOG(WIIMOTE, "Match: %i %i", i, Key);
 				Match = true;
 				Recording = i;
 				break;
@@ -430,7 +430,7 @@ void SingleShake(u8 &_y, u8 &_z, int i)
 		Shake[i] = -1;
 	}
 #endif
-	//if (Shake[i] > -1) INFO_LOG(CONSOLE, "Shake: %i\n", Shake[i]);
+	//if (Shake[i] > -1) DEBUG_LOG(WIIMOTE, "Shake: %i", Shake[i]);
 }
 
 
@@ -551,7 +551,7 @@ void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 	else
 	{
 		Pitch = KbDegree;
-		//INFO_LOG(CONSOLE, "Degree: %2.1f\n", KbDegree);
+		//DEBUG_LOG(WIIMOTE, "Degree: %2.1f", KbDegree);
 	}
 #endif
 }
@@ -580,9 +580,9 @@ void Tilt(u8 &_x, u8 &_y, u8 &_z)
 
 	if (g_DebugData)
 	{
-		/*INFO_LOG(CONSOLE, "L:%2.1f R:%2.1f Lx:%2.1f Range:%2.1f Degree:%2.1f L:%i R:%i\n",
+		/*DEBUG_LOG(WIIMOTE, "L:%2.1f R:%2.1f Lx:%2.1f Range:%2.1f Degree:%2.1f L:%i R:%i",
 			Tl, Tr, Lx, Range, Degree, PadState[Page].Axis.Tl, PadState[Page].Axis.Tr);*/
-		/*INFO_LOG(CONSOLE, "Roll:%2.1f Pitch:%2.1f\n", Roll, Pitch);*/
+		/*DEBUG_LOG(WIIMOTE, "Roll:%2.1f Pitch:%2.1f", Roll, Pitch);*/
 	}
 }
 
@@ -598,7 +598,7 @@ void FillReportAcc(wm_accel& _acc)
 	{
 		// If the recording reached the end or failed somehow we will not return
 		if (RecordingPlay(_acc.x, _acc.y, _acc.z, 0)) return;
-		//INFO_LOG(CONSOLE, "X, Y, Z: %u %u %u\n", _acc.x, _acc.y, _acc.z);
+		//DEBUG_LOG(WIIMOTE, "X, Y, Z: %u %u %u", _acc.x, _acc.y, _acc.z);
 	}
 
 	// The default values can change so we need to update them all the time
@@ -698,13 +698,13 @@ void FillReportAcc(wm_accel& _acc)
 
 	
 	//if(consoleDisplay == 0)
-	INFO_LOG(CONSOLE, "x: %03i | y: %03i | z: %03i  |  A:%i B:%i C:%i  a:%i b:%i c:%i d:%i  X:%i Y:%i Z:%i\n",
+	DEBUG_LOG(WIIMOTE, "x: %03i | y: %03i | z: %03i  |  A:%i B:%i C:%i  a:%i b:%i c:%i d:%i  X:%i Y:%i Z:%i",
 		_acc.x, _acc.y, _acc.z,
 		A, B, C,
 		a, b, c, d,
 		X, Y, Z
 		);
-	INFO_LOG(CONSOLE, "x: %03i | y: %03i | z: %03i  |  X:%i Y:%i Z:%i  | AX:%i AY:%i AZ:%i \n",
+	DEBUG_LOG(WIIMOTE, "x: %03i | y: %03i | z: %03i  |  X:%i Y:%i Z:%i  | AX:%i AY:%i AZ:%i ",
 		_acc.x, _acc.y, _acc.z,
 		X, Y, Z,
 		AX, AY, AZ
@@ -730,7 +730,7 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	}
 	else
 	{
-		//INFO_LOG(CONSOLE, "X, Y, Z: %u %u %u\n", _acc.x, _acc.y, _acc.z);
+		//DEBUG_LOG(WIIMOTE, "X, Y, Z: %u %u %u", _acc.x, _acc.y, _acc.z);
 		if (RecordingPlayIR(_ir0)) return;		
 	}
 
@@ -777,7 +777,7 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 
 	//Console::ClearScreen();
 	//if(consoleDisplay == 1)
-	INFO_LOG(CONSOLE, "x0:%03i x1:%03i  y0:%03i y1:%03i | T:%i L:%i R:%i B:%i S:%i\n",
+	DEBUG_LOG(WIIMOTE, "x0:%03i x1:%03i  y0:%03i y1:%03i | T:%i L:%i R:%i B:%i S:%i",
 		x0, x1, y0, y1, Top, Left, Right, Bottom, SensorBarRadius
 		);*/
 
@@ -810,7 +810,7 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	// We are playing back a recording, we don't accept any manual input this time
 	else
 	{
-		//INFO_LOG(CONSOLE, "X, Y, Z: %u %u %u\n", _acc.x, _acc.y, _acc.z);
+		//DEBUG_LOG(WIIMOTE, "X, Y, Z: %u %u %u", _acc.x, _acc.y, _acc.z);
 		if (RecordingPlayIR(_ir0)) return;		
 	}
 
@@ -868,11 +868,11 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	//ClearScreen();
 	//if(consoleDisplay == 1)
 		
-		INFO_LOG(CONSOLE, "x1:%03i x2:%03i  y1:%03i y2:%03i   irx1:%02x y1:%02x  x2:%02x y2:%02x | T:%i L:%i R:%i B:%i S:%i\n",
+		DEBUG_LOG(WIIMOTE, "x1:%03i x2:%03i  y1:%03i y2:%03i   irx1:%02x y1:%02x  x2:%02x y2:%02x | T:%i L:%i R:%i B:%i S:%i",
 		x1, x2, y1, y2, _ir0.x1, _ir0.y1, _ir1.x2, _ir1.y2, Top, Left, Right, Bottom, SensorBarRadius
 		);
-		INFO_LOG(CONSOLE, "\n");
-		INFO_LOG(CONSOLE, "ir0.x1:%02x x1h:%02x x2:%02x x2h:%02x  |  ir0.y1:%02x y1h:%02x y2:%02x y2h:%02x  |  ir1.x1:%02x x1h:%02x x2:%02x x2h:%02x  |  ir1.y1:%02x y1h:%02x y2:%02x y2h:%02x\n",
+		DEBUG_LOG(WIIMOTE, "");
+		DEBUG_LOG(WIIMOTE, "ir0.x1:%02x x1h:%02x x2:%02x x2h:%02x  |  ir0.y1:%02x y1h:%02x y2:%02x y2h:%02x  |  ir1.x1:%02x x1h:%02x x2:%02x x2h:%02x  |  ir1.y1:%02x y1h:%02x y2:%02x y2h:%02x",
 		_ir0.x1, _ir0.x1Hi, _ir0.x2, _ir0.x2Hi,
 		_ir0.y1, _ir0.y1Hi, _ir0.y2, _ir0.y2Hi,
 		_ir1.x1, _ir1.x1Hi, _ir1.x2, _ir1.x2Hi,

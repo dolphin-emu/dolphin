@@ -883,7 +883,7 @@ void Callback_KeyPress(int key, bool shift, bool control)
 //
 void Callback_WiimoteLog(const TCHAR* _szMessage, int _v)
 {
-	GENERIC_LOG(LogTypes::WII_IPC_WIIMOTE, (LogTypes::LOG_LEVELS)_v, _szMessage);
+	GENERIC_LOG(LogTypes::WIIMOTE, (LogTypes::LOG_LEVELS)_v, _szMessage);
 }
  
 // TODO: Get rid of at some point

@@ -183,7 +183,7 @@ void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 // Input button clicked
 void WiimotePadConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
-	//INFO_LOG(CONSOLE, "OnButtonClick: %i\n", g_Pressed);
+	//DEBUG_LOG(WIIMOTE, "OnButtonClick: %i", g_Pressed);
 
 	// Don't allow space to start a new Press Key option, that will interfer with setting a key to space
 	if (g_Pressed == WXK_SPACE) { g_Pressed = 0; return; }
@@ -252,7 +252,7 @@ void WiimotePadConfigDialog::DoSave(bool ChangePad, int Slot)
 	// Then change it back to ""
 	ToBlank();
 
-	INFO_LOG(CONSOLE, "WiiMoteEmu::PadMapping[%i].ID = %i\n", Page, m_Joyname[Page]->GetSelection());
+	DEBUG_LOG(WIIMOTE, "WiiMoteEmu::PadMapping[%i].ID = %i", Page, m_Joyname[Page]->GetSelection());
 }
 
 // Bitmap box and dot

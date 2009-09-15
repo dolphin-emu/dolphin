@@ -101,6 +101,7 @@ struct Config
 	bool bSidewaysDPad;
 	bool bWideScreen;
 	int iExtensionConnected;
+	bool bMotionPlusConnected;
 
 	// Real Wiimote
 	bool bConnectRealWiimote, bUseRealWiimote, bUpdateRealWiimote;

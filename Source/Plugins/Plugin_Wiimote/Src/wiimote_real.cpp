@@ -105,7 +105,7 @@ void SendData(u16 _channelID, const u8* _pData, u32 _Size)
 
 		// Debugging
 		//std::string Temp = ArrayToString(WriteEvent.m_PayLoad, 28, 0, 30);
-		//INFO_LOG(CONSOLE, "Wiimote Write:\n%s\n", Temp.c_str());
+		//DEBUG_LOG(WIIMOTE, "Wiimote Write:\n%s", Temp.c_str());
     }
     m_pCriticalSection->Leave();
 }
@@ -119,7 +119,7 @@ void ReadData()
 	// Send data to the Wiimote
     if (!m_EventWriteQueue.empty())
     {
-		//INFO_LOG(CONSOLE, "Writing data to the Wiimote\n");
+		//DEBUG_LOG(WIIMOTE, "Writing data to the Wiimote");
         SEvent& rEvent = m_EventWriteQueue.front();
 		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, MAX_PAYLOAD);
 		m_EventWriteQueue.pop();
@@ -133,6 +133,7 @@ void ReadData()
     }
 
     m_pCriticalSection->Leave();
+
 
 	// Read data from wiimote (but don't send it to the core, just filter and queue)
 	if (wiiuse_io_read(m_pWiiMote))
@@ -263,7 +264,7 @@ void SendAcc(u8 _ReportID)
 	wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)DataAcc, MAX_PAYLOAD);
 
 	std::string Temp = ArrayToString(DataAcc, 28, 0, 30);
-	INFO_LOG(CONSOLE, "SendAcc: %s\n", Temp.c_str());
+	DEBUG_LOG(WIIMOTE, "SendAcc: %s", Temp.c_str());
 
 	//22 00 00 _reportID 00
 }
@@ -311,7 +312,7 @@ int Initialize()
     g_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
 	g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
 	if (g_NumberOfWiiMotes > 0) g_RealWiiMotePresent = true;
-	INFO_LOG(CONSOLE, "Found No of Wiimotes: %i\n", g_NumberOfWiiMotes);
+	DEBUG_LOG(WIIMOTE, "Found No of Wiimotes: %i", g_NumberOfWiiMotes);
 
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
 	{
@@ -324,11 +325,16 @@ int Initialize()
 		// Set flags
 		//wiiuse_set_flags(g_WiiMotesFromWiiUse[i], NULL, WIIUSE_SMOOTHING);
 	}
+
+	// psyjoe reports this allows majority of lost packets to be transferred.
+	// Will test soon
+	//wiiuse_set_timeout(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes, 220, 220);
+
 	// WiiUse initializes the Wiimotes in Windows right from the wiiuse_find function
 	// The Functionality should REALLY be changed
 	#ifndef _WIN32
 		int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
-		INFO_LOG(CONSOLE, "Connected: %i\n", Connect);
+		DEBUG_LOG(WIIMOTE, "Connected: %i", Connect);
 	#endif
 
 	// If we are connecting from the config window without a game running we flash the lights
@@ -403,14 +409,14 @@ void Shutdown(void)
 
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
-	//INFO_LOG(CONSOLE, "Real InterruptChannel\n");
+	//DEBUG_LOG(WIIMOTE, "Real InterruptChannel");
 	// TODO: Update for multiple Wiimotes
 	g_WiiMotes[0]->SendData(_channelID, (const u8*)_pData, _Size);
 }
 
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 {
-	//INFO_LOG(CONSOLE, "Real ControlChannel\n");
+	//DEBUG_LOG(WIIMOTE, "Real ControlChannel");
     g_WiiMotes[0]->SendData(_channelID, (const u8*)_pData, _Size);
 }
 
@@ -418,7 +424,7 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 // Read the Wiimote once
 void Update()
 {
-	//INFO_LOG(CONSOLE, "Real Update\n");
+	//DEBUG_LOG(WIIMOTE, "Real Update");
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
 	{
 		g_WiiMotes[i]->Update();

@@ -102,8 +102,8 @@ void GetMousePos(float& x, float& y)
 			YOffset = YOffset - PictureHeight / 2.0f;
 		}
 		/*
-		INFO_LOG(WII_IPC_WIIMOTE, "Screen         Width:%4.0f Height:%4.0f Ratio:%1.2f\n", WinWidth, WinHeight, Ratio);
-		INFO_LOG(WII_IPC_WIIMOTE, "Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f\n", PictureWidth, PictureHeight, YOffset, XOffset);
+		INFO_LOG(WIIMOTE, "Screen         Width:%4.0f Height:%4.0f Ratio:%1.2f", WinWidth, WinHeight, Ratio);
+		INFO_LOG(WIIMOTE, "Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f", PictureWidth, PictureHeight, YOffset, XOffset);
 		*/
 	}
 
@@ -126,8 +126,8 @@ void GetMousePos(float& x, float& y)
 		YOffset = float(YOffset - (IncreasedHeight / 2.0));
 
 		/*
-		INFO_LOG(WII_IPC_WIIMOTE, "Crop           Ratio:%1.2f IncrWidth:%3.0f IncrHeight:%3.0f\n", Ratio, IncreasedWidth, IncreasedHeight);
-		INFO_LOG(WII_IPC_WIIMOTE, "Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f\n", PictureWidth, PictureHeight, YOffset, XOffset);
+		INFO_LOG(WIIMOTE, "Crop           Ratio:%1.2f IncrWidth:%3.0f IncrHeight:%3.0f", Ratio, IncreasedWidth, IncreasedHeight);
+		INFO_LOG(WIIMOTE, "Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f", PictureWidth, PictureHeight, YOffset, XOffset);
 		*/
 	}
 	
@@ -136,9 +136,9 @@ void GetMousePos(float& x, float& y)
 	y = ((float)point.y - YOffset) / PictureHeight;
 	
 	/*
-	INFO_LOG(WII_IPC_WIIMOTE, "GetCursorPos:  %i %i\n", point.x, point.y);
-	INFO_LOG(WII_IPC_WIIMOTE, "GetClientRect: %i %i  %i %i\n", Rect.left, Rect.right, Rect.top, Rect.bottom);
-	INFO_LOG(WII_IPC_WIIMOTE, "Position       X:%1.2f Y:%1.2f\n", x, y);
+	INFO_LOG(WIIMOTE, "GetCursorPos:  %i %i", point.x, point.y);
+	INFO_LOG(WIIMOTE, "GetClientRect: %i %i  %i %i", Rect.left, Rect.right, Rect.top, Rect.bottom);
+	INFO_LOG(WIIMOTE, "Position       X:%1.2f Y:%1.2f", x, y);
 	*/
 	
 #else
@@ -176,21 +176,21 @@ void GetCalibrationChecksum()
 	for (u32 i = 0; i < sizeof(nunchuck_calibration) - 2; i++)
 		sum += nunchuck_calibration[i];
 
-	INFO_LOG(WII_IPC_WIIMOTE, "0x%02x 0x%02x",  (sum + 0x55), (sum + 0xaa));
+	INFO_LOG(WIIMOTE, "0x%02x 0x%02x",  (sum + 0x55), (sum + 0xaa));
 }
 
 
 /* Load pre-recorded movements */
 void LoadRecordedMovements()
 {
-	INFO_LOG(WII_IPC_WIIMOTE, "LoadRecordedMovements()\n");
+	INFO_LOG(WIIMOTE, "LoadRecordedMovements()");
 
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
 
 	for(int i = 0; i < RECORDING_ROWS; i++)
 	{
-		//INFO_LOG(WII_IPC_WIIMOTE, "Recording%i ", i + 1);
+		//INFO_LOG(WIIMOTE, "Recording%i ", i + 1);
 
 		// Temporary storage
 		int iTmp;
@@ -258,10 +258,10 @@ void LoadRecordedMovements()
 			VRecording.at(i).Recording.push_back(Tmp);
 
 			// Log results
-			/*INFO_LOG(WII_IPC_WIIMOTE, "Time:%f\n", Tmp.Time);
+			/*INFO_LOG(WIIMOTE, "Time:%f", Tmp.Time);
 			std::string TmpIRLog = ArrayToString(Tmp.IR, TmpIRBytes, 0, 30);
-			INFO_LOG(WII_IPC_WIIMOTE, "IR: %s\n", TmpIRLog.c_str());
-			INFO_LOG(WII_IPC_WIIMOTE, "\n");*/
+			INFO_LOG(WIIMOTE, "IR: %s", TmpIRLog.c_str());
+			INFO_LOG(WIIMOTE, "");*/
 		}
 
 		// Get HotKey
@@ -281,7 +281,7 @@ void LoadRecordedMovements()
 		else
 			TmpIRLog = "";
 		
-		INFO_LOG(WII_IPC_WIIMOTE, "Size:%i HotKey:%i PlSpeed:%i IR:%s X:%i Y:%i Z:%i\n",
+		INFO_LOG(WIIMOTE, "Size:%i HotKey:%i PlSpeed:%i IR:%s X:%i Y:%i Z:%i",
 			VRecording.at(i).Recording.size(), VRecording.at(i).HotKeyWiimote, VRecording.at(i).PlaybackSpeed,
 			TmpIRLog.c_str(),
 			VRecording.at(i).Recording.at(0).x, VRecording.at(i).Recording.at(0).y, VRecording.at(i).Recording.at(0).z
@@ -299,7 +299,7 @@ void UpdateEeprom()
 	g_wm.cal_g.y = g_Eeprom[27] - g_Eeprom[24];
 	g_wm.cal_g.z = g_Eeprom[28] - g_Eeprom[24];
 
-	INFO_LOG(WII_IPC_WIIMOTE, "\nUpdateEeprom: %i %i %i\n",
+	INFO_LOG(WIIMOTE, "UpdateEeprom: %i %i %i",
 		WiiMoteEmu::g_Eeprom[22], WiiMoteEmu::g_Eeprom[23], WiiMoteEmu::g_Eeprom[28]);
 
 	if(g_Config.iExtensionConnected == EXT_NUNCHUCK)
@@ -317,7 +317,7 @@ void UpdateEeprom()
 		g_nu.jy.min = g_RegExt[0x2c];
 		g_nu.jy.center = g_RegExt[0x2d];
 
-		INFO_LOG(WII_IPC_WIIMOTE, "UpdateNunchuck: %i %i   %i %i %i\n\n",
+		INFO_LOG(WIIMOTE, "UpdateNunchuck: %i %i   %i %i %i",
 			WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
 			WiiMoteEmu::g_RegExt[0x20], WiiMoteEmu::g_RegExt[0x21], WiiMoteEmu::g_RegExt[0x26]);
 	}
@@ -340,11 +340,11 @@ void UpdateEeprom()
 		g_ClassicContCalibration.Tl.neutral = g_RegExt[0x2c];
 		g_ClassicContCalibration.Tr.neutral = g_RegExt[0x2d];
 
-		INFO_LOG(WII_IPC_WIIMOTE, "UpdateCC: %i %i   %i %i %i\n\n",
+		INFO_LOG(WIIMOTE, "UpdateCC: %i %i   %i %i %i",
 			WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
 			WiiMoteEmu::g_RegExt[0x20], WiiMoteEmu::g_RegExt[0x21], WiiMoteEmu::g_RegExt[0x26]);
 	}
-else if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
+	else if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
 	{
 		// TODO get the correct values here
 		g_GH3Calibration.Lx.max = g_RegExt[0x20];
@@ -364,7 +364,7 @@ void ExtensionChecksum(u8 * Calibration)
 	for (u32 i = 0; i < sizeof(Calibration) - 2; i++)
 	{
 		sum += Calibration[i];
-		printf("Plus 0x%02x\n", Calibration[i]);
+		//INFO_LOG(WIIMOTE, "Plus 0x%02x", Calibration[i]);
 	}
 	//	Byte15 = sum + 0x55; // Byte 15
 	//	Byte16 = sum + 0xaa; // Byte 16
@@ -392,7 +392,7 @@ void ResetVariables()
 }
 
 // Update the extension calibration values with our default values
-void SetDefaultExtensionRegistry()
+void UpdateExtRegisterBlocks()
 {
 	// Copy extension id and calibration to its register	
 	if(g_Config.iExtensionConnected == EXT_NUNCHUCK)
@@ -415,7 +415,7 @@ void SetDefaultExtensionRegistry()
 		memcpy(g_RegExt + 0xfa, gh3glp_id, sizeof(gh3glp_id));
 	}
 
-	INFO_LOG(WII_IPC_WIIMOTE, "\nSetDefaultExtensionRegistry()\n\n");
+	INFO_LOG(WIIMOTE, "UpdateExtRegisterBlocks()");
 
 	UpdateEeprom();
 }
@@ -444,7 +444,7 @@ void Initialize()
 	}
 
 	// Copy extension id and calibration to its register, g_Config.Load() is needed before this
-	SetDefaultExtensionRegistry();
+	UpdateExtRegisterBlocks();
 
 	// The emulated Wiimote is initialized
 	g_EmulatedWiiMoteInitialized = true;
@@ -500,7 +500,7 @@ void DoState(PointerWrap &p)
    not called we need to reset these variables. */
 void Shutdown(void) 
 {
-	INFO_LOG(WII_IPC_WIIMOTE, "ShutDown\n");
+	INFO_LOG(WIIMOTE, "ShutDown");
 
 	ResetVariables();
 
@@ -511,7 +511,7 @@ void Shutdown(void)
 		if (PadMapping[i].enabled && joyinfo.size() > (u32)PadMapping[i].ID)
 			if (joyinfo.at(PadMapping[i].ID).Good)
 			{
-				INFO_LOG(WII_IPC_WIIMOTE, "ShutDown: %i\n", PadState[i].joy);
+				INFO_LOG(WIIMOTE, "ShutDown: %i", PadState[i].joy);
 				/* SDL_JoystickClose() crashes for some reason so I avoid this
 				   for now, SDL_Quit() should close the pads to I think */
 				//if(SDL_JoystickOpened(PadMapping[i].ID)) SDL_JoystickClose(PadState[i].joy);
@@ -563,7 +563,7 @@ void CheckAckDelay()
 			}
 			AckDelay.at(i).Delay--;
 
-			//INFO_LOG(WII_IPC_WIIMOTE, "%i  0x%04x  0x%02x", i, AckDelay.at(i).ChannelID, AckDelay.at(i).ReportID);
+			//INFO_LOG(WIIMOTE, "%i  0x%04x  0x%02x", i, AckDelay.at(i).ChannelID, AckDelay.at(i).ReportID);
 		}
 	}
 }
@@ -573,9 +573,9 @@ void CheckAckDelay()
    response to Output from the Wii. */
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
-	//INFO_LOG(WII_IPC_WIIMOTE, "Emu InterruptChannel\n");
+	//INFO_LOG(WIIMOTE, "Emu InterruptChannel");
 
-	DEBUG_LOG(WII_IPC_WIIMOTE, "Wiimote_Input");
+	DEBUG_LOG(WIIMOTE, "Wiimote_Input");
 	const u8* data = (const u8*)_pData;
 
 	/* Debugging. We have not yet decided how much of 'data' we will use, it's
@@ -636,14 +636,14 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
-	//INFO_LOG(WII_IPC_WIIMOTE, "Emu ControlChannel\n");
+	//INFO_LOG(WIIMOTE, "Emu ControlChannel");
 
 	const u8* data = (const u8*)_pData;
 	// Dump raw data
 	{
-		INFO_LOG(WII_IPC_WIIMOTE, "Wiimote_ControlChannel");
+		INFO_LOG(WIIMOTE, "Wiimote_ControlChannel");
 		std::string Temp = ArrayToString(data, 0, _Size);
-		DEBUG_LOG(WII_IPC_WIIMOTE, "   Data: %s", Temp.c_str());
+		DEBUG_LOG(WIIMOTE, "   Data: %s", Temp.c_str());
 	}
 
 	hid_packet* hidp = (hid_packet*) data;
@@ -694,8 +694,8 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 void Update() 
 {
 	readKeyboard();
-	//LOG(WII_IPC_WIIMOTE, "Wiimote_Update");
-	//INFO_LOG(WII_IPC_WIIMOTE, "Emu Update: %i\n", g_ReportingMode);
+	//LOG(WIIMOTE, "Wiimote_Update");
+	//INFO_LOG(WIIMOTE, "Emu Update: %i", g_ReportingMode);
 
 	// Check if the pad state should be updated
 	if ((g_Config.Trigger.Type == g_Config.Trigger.TRIGGER || g_Config.Trigger.Type == g_Config.Trigger.ANALOG1 || g_Config.Trigger.Type == g_Config.Trigger.ANALOG2

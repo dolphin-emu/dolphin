@@ -75,6 +75,7 @@ extern u8 g_IR;
 
 extern u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
 extern u8 g_RegSpeaker[WIIMOTE_REG_SPEAKER_SIZE];
+//extern u8 g_RegMotionPlus[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
