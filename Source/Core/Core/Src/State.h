@@ -39,12 +39,12 @@ void State_Load(int slot);
 void State_SaveAs(const std::string &filename);
 void State_LoadAs(const std::string &filename);
 
+void State_LoadFromBuffer(u8 **buffer);
+void State_SaveToBuffer(u8 **buffer);
+
 void State_LoadLastSaved();
 void State_UndoSaveState();
 void State_UndoLoadState();
-
-void State_LoadFromBuffer(u8 **buffer);
-void State_SaveToBuffer(u8 **buffer);
 
 
 typedef struct  

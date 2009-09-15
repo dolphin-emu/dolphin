@@ -52,6 +52,7 @@ static unsigned char __LZO_MMODEL out [ OUT_LEN ];
 
 static HEAP_ALLOC(wrkmem,LZO1X_1_MEM_COMPRESS);
 
+static bool state_op_in_progress = false;
 
 static int ev_Save, ev_BufferSave;
 static int ev_Load, ev_BufferLoad;
@@ -75,7 +76,8 @@ void DoState(PointerWrap &p)
 {
 	u32 cookie = 0xBAADBABE + version;
 	p.Do(cookie);
-	if (cookie != 0xBAADBABE + version) {
+	if (cookie != 0xBAADBABE + version)
+	{
 		PanicAlert("Can't load states from other versions.");
 		return;
 	}
@@ -84,7 +86,7 @@ void DoState(PointerWrap &p)
         pm.GetVideo()->DoState(p.GetPPtr(), p.GetMode());
         pm.GetDSP()->DoState(p.GetPPtr(), p.GetMode());
 		pm.GetPad(0)->DoState(p.GetPPtr(), p.GetMode());
-		if(Core::g_CoreStartupParameter.bWii)
+		if (Core::g_CoreStartupParameter.bWii)
 			pm.GetWiimote(0)->DoState(p.GetPPtr(), p.GetMode());
 	PowerPC::DoState(p);
 	HW::DoState(p);
@@ -93,7 +95,7 @@ void DoState(PointerWrap &p)
 
 void LoadBufferStateCallback(u64 userdata, int cyclesLate)
 {
-	if(!cur_buffer || !*cur_buffer) {
+	if (!cur_buffer || !*cur_buffer) {
 		Core::DisplayMessage("State does not exist", 1000);
 		return;
 	}
@@ -107,13 +109,14 @@ void LoadBufferStateCallback(u64 userdata, int cyclesLate)
 	cur_buffer = NULL;
 
 	Core::DisplayMessage("Loaded state", 2000);
+	state_op_in_progress = false;
 }
 
 void SaveBufferStateCallback(u64 userdata, int cyclesLate)
 {
 	size_t sz;
 
-	if(!cur_buffer) {
+	if (!cur_buffer) {
 		Core::DisplayMessage("Error saving state", 1000);
 		return;
 	}
@@ -126,8 +129,8 @@ void SaveBufferStateCallback(u64 userdata, int cyclesLate)
 	DoState(p);
 	sz = (size_t)ptr;
 
-	if(*cur_buffer)
-		delete[] (*cur_buffer);
+	if (*cur_buffer)
+		delete [] (*cur_buffer);
 
 	*cur_buffer = new u8[sz];
 	ptr = *cur_buffer;
@@ -135,6 +138,7 @@ void SaveBufferStateCallback(u64 userdata, int cyclesLate)
 	DoState(p);
 
 	cur_buffer = NULL;
+	state_op_in_progress = false;
 }
 
 THREAD_RETURN CompressAndDumpState(void *pArgs)
@@ -149,16 +153,16 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	delete saveArg;
 
 	// Moving to last overwritten save-state
-	if(File::Exists(cur_filename.c_str())) {
-		if(File::Exists(FULL_STATESAVES_DIR "lastState.sav"))
+	if (File::Exists(cur_filename.c_str())) {
+		if (File::Exists(FULL_STATESAVES_DIR "lastState.sav"))
 			File::Delete(FULL_STATESAVES_DIR "lastState.sav");
 
-		if(!File::Rename(cur_filename.c_str(), FULL_STATESAVES_DIR "lastState.sav"))
+		if (!File::Rename(cur_filename.c_str(), FULL_STATESAVES_DIR "lastState.sav"))
 			Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
 	}
 
 	FILE *f = fopen(filename.c_str(), "wb");
-	if(f == NULL) {
+	if (f == NULL) {
 		Core::DisplayMessage("Could not save state", 2000);
 		delete [] buffer;
 		return 0;
@@ -169,31 +173,33 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	header.sz = bCompressed ? sz : 0;
 
 	fwrite(&header, sizeof(state_header), 1, f);
-
 	if (bCompressed) {
-		lzo_uint cur_len;
+		lzo_uint cur_len = 0;
 		lzo_uint i = 0;
 
-		for(;;) {
-			if((i + IN_LEN) >= sz)
+		for (;;) {
+			if ((i + IN_LEN) >= sz)
 				cur_len = sz - i;
 			else
 				cur_len = IN_LEN;
 
-			if(lzo1x_1_compress((buffer + i), cur_len, out, &out_len, wrkmem) != LZO_E_OK)
+			if (lzo1x_1_compress((buffer + i), cur_len, out, &out_len, wrkmem) != LZO_E_OK)
 				PanicAlert("Internal LZO Error - compression failed");
 
 			// The size of the data to write is 'out_len'
 			fwrite(&out_len, sizeof(int), 1, f);
 			fwrite(out, out_len, 1, f);
 
-			if(cur_len != IN_LEN)
+			if (cur_len != IN_LEN)
 				break;
 			i += cur_len;
 		}
 
-	} else
+	}
+	else
+	{
 		fwrite(buffer, sz, 1, f);
+	}
 
 	fclose(f);
 
@@ -202,23 +208,28 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	Core::DisplayMessage(StringFromFormat("Saved State to %s",
 		filename.c_str()).c_str(), 2000);
 
+	state_op_in_progress = false;
 	return 0;
 }
 
 void SaveStateCallback(u64 userdata, int cyclesLate)
 {
 	// If already saving state, wait for it to finish
-	if(saveThread)
+	if (saveThread)
 	{
 		delete saveThread;
 		saveThread = NULL;
 	}
 
 	jit.ClearCache();
+
+	// Measure the size of the buffer.
 	u8 *ptr = 0;
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 	DoState(p);
 	size_t sz = (size_t)ptr;
+
+	// Then actually do the write.
 	u8 *buffer = new u8[sz];
 	ptr = buffer;
 	p.SetMode(PointerWrap::MODE_WRITE);
@@ -235,13 +246,10 @@ void SaveStateCallback(u64 userdata, int cyclesLate)
 
 void LoadStateCallback(u64 userdata, int cyclesLate)
 {
-	lzo_uint cur_len;
-	lzo_uint new_len;
-
 	bool bCompressedState;
 
 	// If saving state, wait for it to finish
-	if(saveThread)
+	if (saveThread)
 	{
 		delete saveThread;
 		saveThread = NULL;
@@ -252,7 +260,8 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	SaveBufferStateCallback(userdata, cyclesLate);
 
 	FILE *f = fopen(cur_filename.c_str(), "rb");
-	if (!f) {
+	if (!f)
+	{
 		Core::DisplayMessage("State not found", 2000);
 		return;
 	}
@@ -263,7 +272,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 
 	fread(&header, sizeof(state_header), 1, f);
 	
-	if(memcmp(Core::GetStartupParameter().GetUniqueID().c_str(), header.gameID, 6)) 
+	if (memcmp(Core::GetStartupParameter().GetUniqueID().c_str(), header.gameID, 6)) 
 	{
 		char gameID[7] = {0};
 		memcpy(gameID, header.gameID, 6);
@@ -277,43 +286,46 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 
 	sz = header.sz;
 	bCompressedState = (sz != 0);
-
-	if (bCompressedState) {
+	if (bCompressedState)
+	{
 		Core::DisplayMessage("Decompressing State...", 500);
 
 		lzo_uint i = 0;
 		buffer = new u8[sz];
-		if(!buffer) {
+		if (!buffer) {
 			PanicAlert("Error allocating buffer");
 			return;
 		}
-
-		
-		for (;;) {
+		while (true)
+		{
+			lzo_uint cur_len = 0;
+			lzo_uint new_len = 0;
 			if (fread(&cur_len, 1, sizeof(int), f) == 0)
 				break;
+			if (feof(f))
+				break;  // don't know if this happens.
 			fread(out, 1, cur_len, f);
-
 			int res = lzo1x_decompress(out, cur_len, (buffer + i), &new_len, NULL);
-			if(res != LZO_E_OK) {
+			if (res != LZO_E_OK)
+			{
+				// This doesn't seem to happen anymore.
 				PanicAlert("Internal LZO Error - decompression failed (%d) (%d, %d) \n"
 					"Try loading the state again", res, i, new_len);
 				fclose(f);
-
-				delete[] buffer;
+				delete [] buffer;
 				return;
 			}
 	
 			// The size of the data to read to our buffer is 'new_len'
 			i += new_len;
 		}
-	} else {
+	}
+	else
+	{
 		fseek(f, 0, SEEK_END);
 		sz = (int)(ftell(f) - sizeof(int));
 		fseek(f, sizeof(int), SEEK_SET);
-
 		buffer = new u8[sz];
-
 		int x;
 		if ((x = (int)fread(buffer, 1, sz, f)) != (int)sz)
 			PanicAlert("wtf? %d %d", x, sz);
@@ -344,13 +356,13 @@ void State_Init()
 
 void State_Shutdown()
 {
-	if(saveThread)
+	if (saveThread)
 	{
 		delete saveThread;
 		saveThread = NULL;
 	}
 
-	if(undoLoad)
+	if (undoLoad)
 	{
 		delete[] undoLoad;
 		undoLoad = NULL;
@@ -364,6 +376,9 @@ std::string MakeStateFilename(int state_number)
 
 void State_SaveAs(const std::string &filename)
 {
+	if (state_op_in_progress)
+		return;
+	state_op_in_progress = true;
 	cur_filename = filename;
 	lastFilename = filename;
 	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Save);
@@ -376,6 +391,9 @@ void State_Save(int slot)
 
 void State_LoadAs(const std::string &filename)
 {
+	if (state_op_in_progress)
+		return;
+	state_op_in_progress = true;
 	cur_filename = filename;
 	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Load);
 }
@@ -387,7 +405,7 @@ void State_Load(int slot)
 
 void State_LoadLastSaved()
 {
-	if(lastFilename.empty())
+	if (lastFilename.empty())
 		Core::DisplayMessage("There is no last saved state", 2000);
 	else
 		State_LoadAs(lastFilename);
@@ -395,12 +413,18 @@ void State_LoadLastSaved()
 
 void State_LoadFromBuffer(u8 **buffer)
 {
+	if (state_op_in_progress)
+		return;
+	state_op_in_progress = true;
 	cur_buffer = buffer;
 	CoreTiming::ScheduleEvent_Threadsafe(0, ev_BufferLoad);
 }
 
 void State_SaveToBuffer(u8 **buffer)
 {
+	if (state_op_in_progress)
+		return;
+	state_op_in_progress = true;
 	cur_buffer = buffer;
 	CoreTiming::ScheduleEvent_Threadsafe(0, ev_BufferSave);
 }
