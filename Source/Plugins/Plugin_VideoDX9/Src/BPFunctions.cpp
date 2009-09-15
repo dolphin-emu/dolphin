@@ -102,12 +102,10 @@ void FlushPipeline()
 
 void SetGenerationMode(const BPCmd &bp)
 {
-	// dev->SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
 	D3D::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
 
 	if (bpmem.genMode.cullmode == 3)
 	{
-		// dev->SetRenderState(D3DRS_COLORWRITEENABLE, 0);
 		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, 0);
 	}
 	else
@@ -118,7 +116,6 @@ void SetGenerationMode(const BPCmd &bp)
 		if (bpmem.blendmode.colorupdate) 
 			write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 		
-		// dev->SetRenderState(D3DRS_COLORWRITEENABLE, write);
 		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 	}
 }
@@ -295,19 +292,17 @@ void SetSamplerState(const BPCmd &bp)
 	if ((bp.address & 0xE0) == 0xA0)
 		stage += 4;	
 	
-	if (g_ActiveConfig.iMaxAnisotropy > 1)
+	if (mag == D3DTEXF_LINEAR && min == D3DTEXF_LINEAR &&
+		g_ActiveConfig.iMaxAnisotropy > 1)
 	{
-		mag = D3DTEXF_LINEAR;
 		min = D3DTEXF_ANISOTROPIC;
-		mip = D3DTEXF_LINEAR;
 	}
-	dev->SetSamplerState(stage, D3DSAMP_MINFILTER, min);
-	dev->SetSamplerState(stage, D3DSAMP_MAGFILTER, mag);
-	dev->SetSamplerState(stage, D3DSAMP_MIPFILTER, mip);
+	D3D::SetSamplerState(stage, D3DSAMP_MINFILTER, min);
+	D3D::SetSamplerState(stage, D3DSAMP_MAGFILTER, mag);
+	D3D::SetSamplerState(stage, D3DSAMP_MIPFILTER, mip);
 	
-	dev->SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, g_ActiveConfig.iMaxAnisotropy);
-	dev->SetSamplerState(stage, D3DSAMP_ADDRESSU, d3dClamps[tm0.wrap_s]);
-	dev->SetSamplerState(stage, D3DSAMP_ADDRESSV, d3dClamps[tm0.wrap_t]);
+	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSU, d3dClamps[tm0.wrap_s]);
+	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSV, d3dClamps[tm0.wrap_t]);
 	//wip
 	//dev->SetSamplerState(stage,D3DSAMP_MIPMAPLODBIAS,tm0.lod_bias/4.0f);
 	//char temp[256];

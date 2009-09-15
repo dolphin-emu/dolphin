@@ -68,12 +68,19 @@ void SetupDeviceObjects()
 	D3D::font.Init();
 	VertexLoaderManager::Init();
 	FBManager::Create();
+
+	VertexShaderManager::Init();
+	PixelShaderManager::Init();
+
 	// Tex and shader caches will recreate themselves over time.
 }
 
 // Kill off all POOL_DEFAULT device objects.
 void TeardownDeviceObjects()
 {
+	VertexShaderManager::Shutdown();
+	PixelShaderManager::Shutdown();
+
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 	D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
 	FBManager::Destroy();
@@ -83,8 +90,6 @@ void TeardownDeviceObjects()
 	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Clear();
 	PixelShaderCache::Clear();
-	
-	// This really should be all but Zelda for example still fails...
 }
 
 bool Renderer::Init() 
@@ -134,8 +139,8 @@ bool Renderer::Init()
 
 	SetupDeviceObjects();
 
-	for (int i = 0; i < 8; i++)
-		D3D::dev->SetSamplerState(i, D3DSAMP_MAXANISOTROPY, 16);
+	for (int stage = 0; stage < 8; stage++)
+		D3D::SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, g_ActiveConfig.iMaxAnisotropy);
 
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 0, 0);
 
@@ -358,7 +363,6 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
-	D3D::dev->SetRenderState(D3DRS_ZENABLE, TRUE);
 
 	RECT rc;
 	rc.left   = 0; 
@@ -366,7 +370,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	rc.right  = (LONG)s_target_width;
 	rc.bottom = (LONG)s_target_height;
 	D3D::dev->SetScissorRect(&rc);
-	D3D::dev->SetRenderState(D3DRS_SCISSORTESTENABLE, false);
+	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, false);
 
 	UpdateViewport();
 }

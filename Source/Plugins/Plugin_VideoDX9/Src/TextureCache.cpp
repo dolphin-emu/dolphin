@@ -49,7 +49,7 @@ void TextureCache::TCacheEntry::Destroy(bool shutdown)
 	texture = 0;
 	if (!isRenderTarget && !shutdown)
 	{
-		u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset*4);
+		u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr);
 		if (ptr && *ptr == hash)
 			*ptr = oldpixel;
 	}
@@ -211,11 +211,10 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	//Make an entry in the table
 	TCacheEntry& entry = textures[texID];
 
-	entry.hashoffset = 0; 
 	entry.hash = hash_value;
 	//entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
 	entry.paletteHash = palhash;
-	entry.oldpixel = ((u32 *)ptr)[entry.hashoffset];
+	entry.oldpixel = ((u32 *)ptr)[0];
 	//((u32 *)ptr)[entry.hashoffset] = entry.hash;
 
 	entry.addr = address;
@@ -226,32 +225,25 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	entry.w = width;
 	entry.h = height;
 	entry.fmt = format;
-	entry.mode = bpmem.tex[stage > 3].texMode0[stage & 3];
 	
 	if (g_ActiveConfig.bDumpTextures)
 	{ // dump texture to file
-
 		char szTemp[MAX_PATH];
 		char szDir[MAX_PATH];
 		const char* uniqueId = globals->unique_id;
 		bool bCheckedDumpDir = false;
-
-		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,uniqueId);
-
-		if(!bCheckedDumpDir)
+		sprintf(szDir, "%s/%s", FULL_DUMP_TEXTURES_DIR, uniqueId);
+		if (!bCheckedDumpDir)
 		{
 			if (!File::Exists(szDir) || !File::IsDirectory(szDir))
 				File::CreateDir(szDir);
 
 			bCheckedDumpDir = true;
 		}
-
-		sprintf(szTemp, "%s/%s_%08x_%i.png",szDir, uniqueId, tex_hash, format);
+		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir, uniqueId, tex_hash, format);
 		//sprintf(szTemp, "%s\\txt_%04i_%i.png", g_Config.texDumpPath.c_str(), counter++, format); <-- Old method
 		if (!File::Exists(szTemp))
 			D3DXSaveTextureToFileA(szTemp,D3DXIFF_BMP,entry.texture,0);
-
-
 	}
 
 	INCSTAT(stats.numTexturesCreated);
@@ -298,7 +290,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		TCacheEntry entry;
 		entry.isRenderTarget = true;
 		entry.hash = 0;
-		entry.hashoffset = 0;
 		entry.frameCount = frameCount;
 		entry.w = tex_w;
 		entry.h = tex_h;

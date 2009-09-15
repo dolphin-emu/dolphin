@@ -37,6 +37,13 @@ LPDIRECT3DTEXTURE9 GetEFBColorTexture(const EFBRectangle& sourceRc)
 	return s_efb_color_texture;
 }
 
+LPDIRECT3DTEXTURE9 GetEFBDepthTexture(const EFBRectangle &sourceRc)
+{
+	// Depth textures not supported under DX9. We're gonna fake this
+	// with a secondary render target later.
+	return NULL;
+}
+
 void Create()
 {
 	// Simplest possible setup to start with.
@@ -47,7 +54,7 @@ void Create()
 		                                 D3DPOOL_DEFAULT, &s_efb_color_texture, NULL);
 	CHECK(hr);
 
-	hr = s_efb_color_texture->GetSurfaceLevel(0, &s_efb_color_surface);
+  	hr = s_efb_color_texture->GetSurfaceLevel(0, &s_efb_color_surface);
 	CHECK(hr);
 
 	hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, D3DFMT_D24S8,
@@ -62,10 +69,9 @@ void Destroy()
 
 	s_efb_color_surface->Release();
 	s_efb_color_surface = NULL;
-#ifdef TEXSURF
+
 	s_efb_color_texture->Release();
 	s_efb_color_texture = NULL;
-#endif
 }
 
 }  // namespace

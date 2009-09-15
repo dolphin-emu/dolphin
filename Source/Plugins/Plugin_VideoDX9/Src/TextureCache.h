@@ -31,21 +31,26 @@ public:
 	struct TCacheEntry
 	{
 		LPDIRECT3DTEXTURE9 texture;
+
 		u32 addr;
+		u32 size_in_bytes;
 		u32 hash;
 		u32 paletteHash;
-		u32 hashoffset;
 		u32 oldpixel;
+		
+		int frameCount;
+		int w, h, fmt;
+		
 		bool isRenderTarget;
 		bool isNonPow2;
-		int frameCount;
-		int w,h,fmt;
-		TexMode0 mode; // current filter and clamp modes that texture is set to
+
 		TCacheEntry()
 		{
-			texture=0;
-			isRenderTarget=0;
-			hash=0;
+			texture = 0;
+			isRenderTarget = 0;
+			hash = 0;
+			paletteHash = 0;
+			oldpixel = 0;
 		}
 		void Destroy(bool shutdown);
 	};
