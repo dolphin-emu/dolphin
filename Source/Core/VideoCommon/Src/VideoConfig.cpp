@@ -95,9 +95,9 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
 	if (iAdapter == -1) 
 		iAdapter = 0;
-	iniFile.Get("Hardware", "WindowedRes", &iWindowedRes, 0);
+	//	iniFile.Get("Hardware", "WindowedRes", &iWindowedRes, 0);
 	iniFile.Get("Hardware", "VSync", &bVsync, 0);
-	iniFile.Get("Hardware", "FullscreenRes", &iFSResolution, 0);
+	//	iniFile.Get("Hardware", "FullscreenRes", &iFSResolution, 0);
 	iniFile.Get("Hardware", "SimpleFB", &bSimpleFB, false);
 
 	// Load common settings
@@ -174,9 +174,9 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Hacks", "ProjectionHack", iPhackvalue);
 
 	iniFile.Set("Hardware", "Adapter", iAdapter);
-	iniFile.Set("Hardware", "WindowedRes", iWindowedRes);
+	//	iniFile.Set("Hardware", "WindowedRes", iWindowedRes);
 	iniFile.Set("Hardware", "VSync", bVsync);
-	iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
+	//	iniFile.Set("Hardware", "FullscreenRes", iFSResolution);
 	iniFile.Set("Hardware", "SimpleFB", bSimpleFB);
 
     iniFile.Save(ini_file);

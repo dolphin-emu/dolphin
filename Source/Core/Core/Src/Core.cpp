@@ -205,6 +205,7 @@ bool Init()
 	emuThreadGoing.Init();
 	// This will execute EmuThread() further down in this file
 	g_EmuThread = new Common::Thread(EmuThread, NULL);
+	
 	emuThreadGoing.MsgWait();
 	emuThreadGoing.Shutdown();
 

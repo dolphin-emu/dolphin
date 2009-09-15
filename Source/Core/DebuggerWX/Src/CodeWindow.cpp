@@ -197,8 +197,6 @@ void CCodeWindow::OnKeyDown(wxKeyEvent& event)
 
 void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 {
-	return;
-
 	switch (event.GetId())
 	{
 	    case IDM_NOTIFYMAPLOADED:
@@ -388,7 +386,6 @@ void CCodeWindow::UpdateLists()
 
 void CCodeWindow::UpdateCallstack()
 {
-	return;
 	//if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN) return;
 	//if (Core::GetState() == Core::CORE_STOPPING) return;
 
@@ -629,7 +626,6 @@ bool CCodeWindow::JITBlockLinking()
 }
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Toolbar
 void CCodeWindow::InitBitmaps()
 {
@@ -670,16 +666,10 @@ void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
 	// the changes
 	toolBar->Realize();
 }
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Update GUI
-
 void CCodeWindow::Update()
 {
-	return;
-
 	if (!codeview) return;
 
 	codeview->Refresh();
