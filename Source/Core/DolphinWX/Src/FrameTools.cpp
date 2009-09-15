@@ -440,40 +440,44 @@ void CFrame::InitBitmaps()
 void CFrame::BootGame()
 {
 	// Rerecording
-	#ifdef RERECORDING
-		Core::RerecordingStart();
-	#endif
+#ifdef RERECORDING
+	Core::RerecordingStart();
+#endif
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		if (Core::GetState() == Core::CORE_RUN)
-		{
 			Core::SetState(Core::CORE_PAUSE);
+		else
+			Core::SetState(Core::CORE_RUN);
+		UpdateGUI();
+	}
+	// Start the selected ISO, or try one of the saved paths.
+	// If all that fails, ask to add a dir and don't boot
+	else if (m_GameListCtrl->GetSelectedISO() != NULL)
+	{
+		if (m_GameListCtrl->GetSelectedISO()->IsValid())
+			BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
+	}
+	else
+	{
+		SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
+		if (!StartUp.m_strDefaultGCM.empty()
+			&&	wxFileExists(wxString(StartUp.m_strDefaultGCM.c_str(), wxConvUTF8)))
+		{
+			BootManager::BootCore(StartUp.m_strDefaultGCM);
+		}
+		else if (!SConfig::GetInstance().m_LastFilename.empty()
+			&& wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
+		{
+			BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
 		}
 		else
 		{
-			Core::SetState(Core::CORE_RUN);
+			m_GameListCtrl->BrowseForDirectory();
+			return;
 		}
-		UpdateGUI();
-	}
-	// Start the selected ISO, return if gamelist is empty
-	else if (m_GameListCtrl->GetSelectedISO() == 0) return;
-	else if (m_GameListCtrl->GetSelectedISO()->IsValid())
-	{
-		BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
-	}
-	// Start the default ISO, or if we don't have a default ISO, start the last
-	// started ISO
-	else if (!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty() &&
-		wxFileExists(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.
-		m_strDefaultGCM.c_str(), wxConvUTF8)))
-	{
-		BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM);
-	}
-	else if (!SConfig::GetInstance().m_LastFilename.empty() &&
-		wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
-	{
-		BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
 	}
 }
 

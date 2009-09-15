@@ -735,9 +735,7 @@ const GameListItem * CGameListCtrl::GetSelectedISO()
 {
 	if (m_ISOFiles.size() == 0)
 	{
-		// There are no detected games, so add a GCMPath
-		BrowseForDirectory();
-		return 0;
+		return NULL;
 	}
 	else
 	{
