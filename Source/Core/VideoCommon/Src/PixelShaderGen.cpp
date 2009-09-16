@@ -721,7 +721,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
             break;
         case TEVCMP_R8_EQ:
         case TEVCMP_RGB8_EQ:
-            WRITE(p, "   %s + (abs(%s.r - %s.r)<%f ? %s : float3(0.0f,0.0f,0.0f))n",
+            WRITE(p, "   %s + (abs(%s.r - %s.r)<%f ? %s : float3(0.0f,0.0f,0.0f))",
                 tevCInputTable[cc.d], tevCInputTable2[cc.a], tevCInputTable2[cc.b], epsilon8bit, tevCInputTable[cc.c]);
             break;
         
