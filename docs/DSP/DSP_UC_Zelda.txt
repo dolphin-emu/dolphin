@@ -3209,29 +3209,61 @@ void 0919_Decoder0x6_Constant(AR0, AX0.L) {
 }
 
 void 091c_Decoder0x7_WaveTable(ACC0, AR0, AX0.L) {
-	091c 0082 0100 lri         $AR2, #0x0100
-	091e 008a 003f lri         $WR2, #0x003f
-	0920 0086 0000 lri         $IX2, #0x0000
-	0922 1406      lsl         $ACC0, #6
-	0923 8900      clr         $ACC1
-	0924 1fb8      mrr         $AC1.L, $AX0.L
-	0925 1505      lsl         $ACC1, #5
-	0926 009b 003f lri         $AX1.H, #0x003f
-	0928 009a 0000 lri         $AX0.H, #0x0000
-	092a 3600      andr        $AC0.M, $AX1.H
-	092b 1cde      mrr         $IX2, $AC0.M
-	092c 001a      addarn      $AR2, $IX2
-	092d 3400      andr        $AC0.M, $AX0.H
-	092e 1150 0934 bloopi      #0x50, 0x0934
+	// So AR2 is where it reads the data from, and it updates ACC0 to the final read address in the end
+	// Questions: What is IX2 used for? And how does the wrap register change the data access?
+	
+	// 091c 0082 0100 lri         $AR2, #0x0100
+	// 091e 008a 003f lri         $WR2, #0x003f
+	// 0920 0086 0000 lri         $IX2, #0x0000
+	// 0922 1406      lsl         $ACC0, #6
+	// 0923 8900      clr         $ACC1
+	// 0924 1fb8      mrr         $AC1.L, $AX0.L
+	// 0925 1505      lsl         $ACC1, #5
+
+
+	WR2 = 0x003f;
+	ACC0 <<= 6;
+	ACC1 = AX0.L << 5;
+	
+
+	// 0926 009b 003f lri         $AX1.H, #0x003f
+	// 0928 009a 0000 lri         $AX0.H, #0x0000
+	// 092a 3600      andr        $AC0.M, $AX1.H
+	// 092b 1cde      mrr         $IX2, $AC0.M
+	// 092c 001a      addarn      $AR2, $IX2
+	// 092d 3400      andr        $AC0.M, $AX0.H
+
+	AC0.M &= 0x003f;	
+	IX2 = AC0.M;
+	AR2 += 0x0100 + IX2;
+
+	AC0.M = 0;
+
+
+	// 092e 1150 0934 bloopi      #0x50, 0x0934
+	for(int i = 0; i < 0x50; i++) {
 		0930 4c4a      add'l       $ACC0, $ACC1 : $AX1.L, @$AR2
 		0931 3606      andr'dr     $AC0.M, $AX1.H : $AR2
-		0932 1cde      mrr         $IX2, $AC0.M
+
+		// 0932 1cde      mrr         $IX2, $AC0.M
+		IX2 = AC0.M;
+
 		0933 340e      andr'nr     $AC0.M, $AX0.H : $AR2
-		0934 1b19      srri        @$AR0, $AX1.L
-	0935 1fc2      mrr         $AC0.M, $AR2
-	0936 147a      lsr         $ACC0, #-6
-	0937 008a ffff lri         $WR2, #0xffff
-	0939 02df      ret         
+
+		// 0934 1b19      srri        @$AR0, $AX1.L
+		*AR0++ = AX1.L
+
+	}
+
+	// 0935 1fc2      mrr         $AC0.M, $AR2
+	// 0936 147a      lsr         $ACC0, #-6
+	// 0937 008a ffff lri         $WR2, #0xffff
+
+	AC0.M = AR2;
+	ACC0 >>= 6;
+	WR2 = 0xffff;
+
+	// 0939 02df      ret         
 }
 
 void 093a_Unk() {
