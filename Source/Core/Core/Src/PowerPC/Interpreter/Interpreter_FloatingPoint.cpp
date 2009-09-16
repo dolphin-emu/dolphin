@@ -59,8 +59,24 @@ void fcmpo(UGeckoInstruction _inst)
 	double fb = rPS0(_inst.FB);
 
 	int compareResult;
-	if (IsNAN(fa) || IsNAN(fb)) 
+	//if (IsNAN(fa) || IsNAN(fb)) 
+	//{
+	//	FPSCR.FX = 1;
+	//	compareResult = 1;
+	//	if (IsSNAN(fa) || IsSNAN(fb))
+	//	{
+	//		FPSCR.VXSNAN = 1;
+	//		if (!FPSCR.FEX || IsQNAN(fa) || IsQNAN(fb))
+	//			FPSCR.VXVC = 1;
+	//	}
+	//}
+	//else 
+	if (fa < fb)				compareResult = 8; 
+	else if (fa > fb)           compareResult = 4; 
+	else if (fa == fb)          compareResult = 2;
+	else
 	{
+		// either fa or fb is NaN, or both, 
 		FPSCR.FX = 1;
 		compareResult = 1;
 		if (IsSNAN(fa) || IsSNAN(fb))
@@ -69,10 +85,8 @@ void fcmpo(UGeckoInstruction _inst)
 			if (!FPSCR.FEX || IsQNAN(fa) || IsQNAN(fb))
 				FPSCR.VXVC = 1;
 		}
+
 	}
-	else if (fa < fb)           compareResult = 8; 
-	else if (fa > fb)           compareResult = 4; 
-	else                        compareResult = 2;
 
 	FPSCR.FPRF = compareResult;
 	SetCRField(_inst.CRFD, compareResult);
@@ -86,8 +100,22 @@ void fcmpu(UGeckoInstruction _inst)
 	double fb = rPS0(_inst.FB);
 
 	int compareResult;
-	if (IsNAN(fa) || IsNAN(fb))
+	//if (IsNAN(fa) || IsNAN(fb))
+	//{
+	//	FPSCR.FX = 1;
+	//	compareResult = 1; 
+	//	if (IsSNAN(fa) || IsSNAN(fb))
+	//	{
+	//		FPSCR.VXSNAN = 1;
+	//	}
+	//}
+	//else 
+	if (fa < fb)            compareResult = 8; 
+	else if (fa > fb)       compareResult = 4; 
+	else if (fa == fb)		compareResult = 2;
+	else
 	{
+		// either fa or fb is NaN, or both
 		FPSCR.FX = 1;
 		compareResult = 1; 
 		if (IsSNAN(fa) || IsSNAN(fb))
@@ -95,9 +123,6 @@ void fcmpu(UGeckoInstruction _inst)
 			FPSCR.VXSNAN = 1;
 		}
 	}
-	else if (fa < fb)            compareResult = 8; 
-	else if (fa > fb)            compareResult = 4; 
-	else                         compareResult = 2;
 
 	FPSCR.FPRF = compareResult;
 	SetCRField(_inst.CRFD, compareResult);
