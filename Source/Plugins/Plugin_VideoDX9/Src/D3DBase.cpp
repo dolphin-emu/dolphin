@@ -49,11 +49,12 @@ static int cur_adapter;
 
 // Value caches for state filtering
 const int MaxTextureStages = 9;
-const int MaxRenderStates = 210;
-const DWORD MaxTextureTypes = 33;
-const DWORD MaxSamplerSize = 13;
-const DWORD MaxSamplerTypes = 15;
-static DWORD m_RenderStates[MaxRenderStates+46];
+const int MaxRenderStates = 210 + 46;
+const int MaxTextureTypes = 33;
+const int MaxSamplerSize = 13;
+const int MaxSamplerTypes = 15;
+static bool m_RenderStatesSet[MaxRenderStates];
+static DWORD m_RenderStates[MaxRenderStates];
 static DWORD m_TextureStageStates[MaxTextureStages][MaxTextureTypes];
 static DWORD m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
 LPDIRECT3DBASETEXTURE9 m_Textures[16];
@@ -185,6 +186,24 @@ void Enumerate()
 				}
 			}
 		}
+
+		// Determine if INTZ is supported. Code from ATI's doc.
+		// http://developer.amd.com/gpu_assets/Advanced%20DX9%20Capabilities%20for%20ATI%20Radeon%20Cards.pdf
+		a.supports_intz = D3D_OK == D3D->CheckDeviceFormat(
+			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8,
+			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_INTZ); 
+		// Also check for RAWZ (nvidia only, but the only option to get Z24 textures on sub GF8800
+		a.supports_rawz = D3D_OK == D3D->CheckDeviceFormat(
+			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8,
+			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_RAWZ); 
+		// Might as well check for RESZ and NULL too.
+		a.supports_resz = D3D_OK == D3D->CheckDeviceFormat(
+			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8,
+			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_RESZ); 
+		a.supports_resz = D3D_OK == D3D->CheckDeviceFormat(
+			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8,
+			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_NULL); 
+
 		if (a.aa_levels.size() == 1)
 		{
 			strcpy(a.aa_levels[0].name, "(Not supported on this device)");
@@ -260,6 +279,7 @@ HRESULT Create(int adapter, HWND wnd, bool _fullscreen, int _resolution, int aa_
 			return E_FAIL;
 		}
 	}
+
 	dev->GetDeviceCaps(&caps);
 	dev->GetRenderTarget(0, &back_buffer);
 	if (dev->GetDepthStencilSurface(&back_buffer_z) == D3DERR_NOTFOUND)
@@ -322,7 +342,7 @@ void Reset()
 {
 	if (dev)
 	{
-		ForgetCachedState();
+		// ForgetCachedState();
 
 		// Can't keep a pointer around to the backbuffer surface when resetting.
 		if (back_buffer_z)
@@ -339,6 +359,7 @@ void Reset()
 		dev->GetRenderTarget(0, &back_buffer);
 		if (dev->GetDepthStencilSurface(&back_buffer_z) == D3DERR_NOTFOUND)
 			back_buffer_z = NULL;
+		ApplyCachedState();
 	}
 }
 
@@ -401,12 +422,26 @@ void EndFrame()
 	}
 }
 
-void ForgetCachedState()
+void ApplyCachedState()
 {
+	for (int sampler = 0; sampler < 8; sampler++)
+	{
+		for (int type = 0; type < MaxSamplerTypes; type++)
+		{
+			D3D::dev->SetSamplerState(sampler, (D3DSAMPLERSTATETYPE)type, m_SamplerStates[sampler][type]);
+		}
+	}
+
+	for (int rs = 0; rs < MaxRenderStates; rs++)
+	{
+		if (m_RenderStatesSet[rs])
+			D3D::dev->SetRenderState((D3DRENDERSTATETYPE)rs, m_RenderStates[rs]);
+	}
+
+	// We don't bother restoring these so let's just wipe the state copy
+	// so no stale state is around.
 	memset(m_Textures, 0, sizeof(m_Textures));
-	memset(m_RenderStates, 0xFF, sizeof(m_RenderStates));
 	memset(m_TextureStageStates, 0xFF, sizeof(m_TextureStageStates));
-	memset(m_SamplerStates, 0xFF, sizeof(m_SamplerStates));
 }
 
 void SetTexture(DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture)
@@ -423,6 +458,7 @@ void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value)
 	if (m_RenderStates[State] != Value)
 	{
 		m_RenderStates[State] = Value;
+		m_RenderStatesSet[State] = true;
 		D3D::dev->SetRenderState(State, Value);
 	}
 }

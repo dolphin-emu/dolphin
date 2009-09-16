@@ -28,6 +28,20 @@
 namespace D3D
 {
 
+// From http://developer.amd.com/gpu_assets/Advanced%20DX9%20Capabilities%20for%20ATI%20Radeon%20Cards.pdf
+// Magic FourCC's to unlock undocumented D3D9 features:
+
+// Z texture formats
+#define FOURCC_INTZ ((D3DFORMAT)(MAKEFOURCC('I','N','T','Z')))
+#define FOURCC_RAWZ ((D3DFORMAT)(MAKEFOURCC('R','A','W','Z')))
+
+// Depth buffer resolve:
+#define FOURCC_RESZ ((D3DFORMAT)(MAKEFOURCC('R','E','S','Z')))
+#define RESZ_CODE 0x7fa05000
+
+// Null render target to do Z-only shadow maps: (probably not useful for Dolphin)
+#define FOURCC_NULL ((D3DFORMAT)(MAKEFOURCC('N','U','L','L')))
+
 HRESULT Init();
 HRESULT Create(int adapter, HWND wnd, bool fullscreen, int resolution, int aa_mode, bool auto_depth);
 void Close();
@@ -41,6 +55,7 @@ bool BeginFrame();
 void EndFrame();
 void SwitchFullscreen(bool fullscreen);
 bool IsFullscreen();
+bool CanUseINTZ();
 
 int GetBackBufferWidth();
 int GetBackBufferHeight();
@@ -57,7 +72,7 @@ void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
 void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);
 void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
 void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
-void ForgetCachedState();
+void ApplyCachedState();
 
 // Utility functions for vendor specific hacks. So far, just the one.
 void EnableAlphaToCoverage();
@@ -85,6 +100,12 @@ struct Adapter
 	std::vector<Resolution> resolutions;
 	std::vector<AALevel> aa_levels;
 	bool supports_alpha_to_coverage;
+
+	// Magic render targets, see the top of this file.
+	bool supports_intz;
+	bool supports_rawz;
+	bool supports_resz;
+	bool supports_null;
 };
 
 const Adapter &GetAdapter(int i);
