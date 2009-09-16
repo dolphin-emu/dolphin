@@ -169,7 +169,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 	PIXELSHADERUID uid;
     u32 dstAlpha = dstAlphaEnable ? 1 : 0;
 	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), dstAlpha);
-	if (uid == last_pixel_shader_uid)
+	if (uid == last_pixel_shader_uid && pshaders[uid].frameCount == frameCount)
 	{
 		return pShaderLast;
 	}

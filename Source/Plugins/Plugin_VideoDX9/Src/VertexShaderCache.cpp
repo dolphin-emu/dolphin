@@ -120,7 +120,7 @@ bool VertexShaderCache::SetShader(u32 components)
 
 	VERTEXSHADERUID uid;
 	GetVertexShaderId(uid, components);
-	if (uid == last_vertex_shader_uid)
+	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)
 	{
 		if (vshaders[uid].shader)
 			return true;

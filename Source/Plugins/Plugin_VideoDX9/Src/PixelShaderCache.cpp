@@ -89,7 +89,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 
 	PIXELSHADERUID uid;
 	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), dstAlpha);
-	if (uid == last_pixel_shader_uid)
+	if (uid == last_pixel_shader_uid && PixelShaders[uid].frameCount == frameCount)
 	{
 		PSCache::const_iterator iter = PixelShaders.find(uid);
 		if (iter != PixelShaders.end() && iter->second.shader)
