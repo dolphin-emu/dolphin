@@ -27,6 +27,7 @@ DInput m_dinput;
 #endif
 
 BEGIN_EVENT_TABLE(PADConfigDialogSimple,wxDialog)
+	EVT_SHOW(PADConfigDialogSimple::OnShow)
 	EVT_CLOSE(PADConfigDialogSimple::OnClose)
 	EVT_BUTTON(ID_CLOSE,PADConfigDialogSimple::OnCloseClick)
 	EVT_BUTTON(ID_PAD_ABOUT,PADConfigDialogSimple::DllAbout)
@@ -69,9 +70,6 @@ END_EVENT_TABLE()
 PADConfigDialogSimple::PADConfigDialogSimple(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-#ifdef _WIN32
-	m_dinput.Init((HWND)parent);
-#endif
 	ClickedButton = NULL;
 	CreateGUIControls();
 	Fit();
@@ -85,8 +83,6 @@ PADConfigDialogSimple::PADConfigDialogSimple(wxWindow *parent, wxWindowID id, co
 PADConfigDialogSimple::~PADConfigDialogSimple()
 {
 }
-
-
 
 // Create input button controls
 // -------------------
@@ -326,6 +322,13 @@ void PADConfigDialogSimple::OnClose(wxCloseEvent& event)
 	m_dinput.Free();
 #endif
 	EndModal(0);
+}
+
+void PADConfigDialogSimple::OnShow(wxShowEvent& event)
+{
+#ifdef _WIN32
+	m_dinput.Init((HWND)this->GetParent());
+#endif
 }
 
 void PADConfigDialogSimple::OnKeyDown(wxKeyEvent& event)

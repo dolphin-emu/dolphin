@@ -125,7 +125,8 @@ class PADConfigDialogSimple : public wxDialog
 		void ControllerSettingsChanged(wxCommandEvent& event);
 		void OnButtonClick(wxCommandEvent& event);
 		void DllAbout(wxCommandEvent& event);
-		
+		void OnShow(wxShowEvent& event);
+
 		int keyPress;
 		wxButton *ClickedButton;
 		wxString oldLabel;
