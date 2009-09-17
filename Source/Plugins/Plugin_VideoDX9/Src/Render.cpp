@@ -111,6 +111,9 @@ bool Renderer::Init()
 			(D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions[fullScreenRes].yres == h_temp))
 			break;
 	}
+	if (fullScreenRes == D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions.size())
+		fullScreenRes = 0;
+
 	D3D::Create(g_ActiveConfig.iAdapter, EmuWindow::GetWnd(), g_ActiveConfig.bFullscreen,
 				fullScreenRes, backbuffer_ms_mode, false);
 

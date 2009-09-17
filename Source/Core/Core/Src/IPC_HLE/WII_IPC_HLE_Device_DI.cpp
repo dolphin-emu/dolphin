@@ -200,6 +200,7 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			{
 				INFO_LOG(WII_IPC_DVD, "DVDLowRead: %s (0x%x) - (DVDAddr: 0x%x, Size: 0x%x)",
 					pFilename, m_pFileSystem->GetFileSize(pFilename), DVDAddress, Size);
+				FileMon::CheckFile(std::string(pFilename), (int)m_pFileSystem->GetFileSize(pFilename));
 			}
 			else
 			{
@@ -217,8 +218,6 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 			{
 				PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
 			}
-
-			FileMon::CheckFile(std::string(pFilename), (int)m_pFileSystem->GetFileSize(pFilename));
 		}
 		break;
 
