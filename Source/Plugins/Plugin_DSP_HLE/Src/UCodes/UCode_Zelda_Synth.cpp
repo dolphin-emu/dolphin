@@ -113,16 +113,54 @@ void CUCode_Zelda::RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Siz
 {
 	// TODO: Header, footer
 	for (int i = 0; i < _Size; i++)
-		_Buffer[i++] = (s32)PB.RatioInt;
+		_Buffer[i] = (s32)PB.RatioInt;
 }
 
 
 void CUCode_Zelda::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
-    WARN_LOG(DSPHLE, "Not synthesizing un-REd format 0x%04x", PB.Format);
-    // TODO: Header, footer
-    //for (int i = 0; i < _Size; i++)
-    //_Buffer[i++] = (s32)PB.RatioInt;
+	u16 address;
+	switch(PB.Format) {
+	default:
+	case 0x0004:
+		address = 0x140;
+		break;
+
+	case 0x0007:
+		address = 0x100;
+		break;
+
+	case 0x000b:
+		address = 0x180;
+		break;
+
+	case 0x000c:
+		address = 0x1c0;
+		break;
+	}
+
+	// TODO: What about the 0x003f wrap register?
+
+	//WARN_LOG(DSPHLE, "Not synthesizing un-REd format 0x%04x", PB.Format);
+	u64 ACC0 = PB.CurSampleFrac << 6;
+
+	ACC0 &= 0x3f0000;
+
+	address += (ACC0 >> 16);
+	ACC0 &= 0xffff;
+
+	for(int i = 0; i < _Size; i++) 
+	{
+		_Buffer[i] = m_MiscTable[address];
+	
+		ACC0 += PB.RatioInt << 5;
+		address += ((ACC0 >> 16) & 0x003f) - 1;
+
+		ACC0 &= 0xffff;
+	}
+
+	ACC0 = address << 16;
+	PB.CurSampleFrac = (ACC0 >> 6) & 0xffff;
 }
 
 

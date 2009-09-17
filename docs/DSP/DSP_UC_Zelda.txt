@@ -3165,6 +3165,8 @@ void 08ed_Decoder0x1_SawWave(ACC0, AR0, AX0.L) {
 
 
 void 08f3_Decoder0x4_0xb_0xc_WaveTable(ACC0, AR0, AX0.L) {
+	// See 091c
+	
 	08f3 0082 0180 lri         $AR2, #0x0180    // Entrance 1, 0x0b
 	08f5 029f 08fd jmp         0x08fd
 	
@@ -3172,6 +3174,7 @@ void 08f3_Decoder0x4_0xb_0xc_WaveTable(ACC0, AR0, AX0.L) {
 	08f9 029f 08fd jmp         0x08fd
 	
 	08fb 0082 0140 lri         $AR2, #0x0140    // Entrance 3, 0x04
+	
 	08fd 008a 003f lri         $WR2, #0x003f
 	08ff 0086 0000 lri         $IX2, #0x0000
 	0901 1406      lsl         $ACC0, #6
@@ -3235,23 +3238,31 @@ void 091c_Decoder0x7_WaveTable(ACC0, AR0, AX0.L) {
 
 	AC0.M &= 0x003f;	
 	IX2 = AC0.M;
-	AR2 += 0x0100 + IX2;
+	AR2 = 0x0100 + IX2;
 
 	AC0.M = 0;
 
 
 	// 092e 1150 0934 bloopi      #0x50, 0x0934
 	for(int i = 0; i < 0x50; i++) {
-		0930 4c4a      add'l       $ACC0, $ACC1 : $AX1.L, @$AR2
-		0931 3606      andr'dr     $AC0.M, $AX1.H : $AR2
+		// 0930 4c4a      add'l       $ACC0, $ACC1 : $AX1.L, @$AR2
+		
+		ACC0 += ACC1;
+		AX1.L = *AR2;
+		
+		// 0931 3606      andr'dr     $AC0.M, $AX1.H : $AR2
+		AC0.M &= 0x003f;
+		AR2--;
 
 		// 0932 1cde      mrr         $IX2, $AC0.M
 		IX2 = AC0.M;
 
-		0933 340e      andr'nr     $AC0.M, $AX0.H : $AR2
+		// 0933 340e      andr'nr     $AC0.M, $AX0.H : $AR2
+		AC0.M = 0;
+		AR2 += IX2;
 
 		// 0934 1b19      srri        @$AR0, $AX1.L
-		*AR0++ = AX1.L
+		*AR0++ = AX1.L;
 
 	}
 
