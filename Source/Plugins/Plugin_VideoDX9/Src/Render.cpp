@@ -105,10 +105,10 @@ bool Renderer::Init()
 
 	sscanf(g_Config.cFSResolution, "%dx%d", &w_temp, &h_temp);
 
-	for (fullScreenRes = 0; fullScreenRes < D3D::GetNumAdapters(); fullScreenRes++)
+	for (fullScreenRes = 0; fullScreenRes < D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions.size(); fullScreenRes++)
 	{
-		if ((D3D::GetAdapter(fullScreenRes).resolutions[fullScreenRes].xres == w_temp) && 
-			(D3D::GetAdapter(fullScreenRes).resolutions[fullScreenRes].yres == h_temp))
+		if ((D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions[fullScreenRes].xres == w_temp) && 
+			(D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions[fullScreenRes].yres == h_temp))
 			break;
 	}
 	D3D::Create(g_ActiveConfig.iAdapter, EmuWindow::GetWnd(), g_ActiveConfig.bFullscreen,
