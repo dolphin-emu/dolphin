@@ -29,12 +29,6 @@ namespace Interpreter
 // These "binary instructions" do not alter FPSCR.
 void ps_sel(UGeckoInstruction _inst)
 {
-	//rPS0(_inst.FD) = !IsNAN(rPS0(_inst.FA)) && rPS0(_inst.FA) >= -0.0 ?
-	//	              rPS0(_inst.FC) : rPS0(_inst.FB);
-	//rPS1(_inst.FD) = !IsNAN(rPS1(_inst.FA)) && rPS1(_inst.FA) >= -0.0 ?
-	//	              rPS1(_inst.FC) : rPS1(_inst.FB);
-
-	// no need to check isNaN
 	rPS0(_inst.FD) = rPS0(_inst.FA) >= -0.0 ? rPS0(_inst.FC) : rPS0(_inst.FB);
 	rPS1(_inst.FD) = rPS1(_inst.FA) >= -0.0 ? rPS1(_inst.FC) : rPS1(_inst.FB);
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
@@ -247,20 +241,46 @@ void ps_cmpu0(UGeckoInstruction _inst)
 	double fa = rPS0(_inst.FA);
 	double fb = rPS0(_inst.FB);
 	int compareResult;
-	//if (IsNAN(fa) || IsNAN(fb)) compareResult = 1;
-	//else 
+
 	if (fa < fb)         		compareResult = 8; 
 	else if (fa > fb)        	compareResult = 4; 
 	else if (fa == fb)			compareResult = 2;
-	else						compareResult = 1;
+	else						
+	{
+		compareResult = 1;
+		if (IsSNAN(fa) || IsSNAN(fb))
+		{
+			FPSCR.VXSNAN = 1;
+		}
+	}
 	SetCRField(_inst.CRFD, compareResult);
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_cmpo0(UGeckoInstruction _inst)
 {
-	// for now HACK
-	ps_cmpu0(_inst);
+	// Ector, please check
+	//ps_cmpu0(_inst);
+	double fa = rPS0(_inst.FA);
+	double fb = rPS0(_inst.FB);
+	int compareResult;
+
+	if (fa < fb)         		compareResult = 8; 
+	else if (fa > fb)        	compareResult = 4; 
+	else if (fa == fb)			compareResult = 2;
+	else						
+	{
+		compareResult = 1;
+		if (IsSNAN(fa) || IsSNAN(fb))
+		{
+			FPSCR.VXSNAN = 1;
+			if (!FPSCR.FEX) FPSCR.VXVC = 1;
+		}
+		else if (IsQNAN(fa) || IsQNAN(fb)) 
+			FPSCR.VXVC = 1;
+	}
+	SetCRField(_inst.CRFD, compareResult);
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_cmpu1(UGeckoInstruction _inst)
@@ -268,20 +288,46 @@ void ps_cmpu1(UGeckoInstruction _inst)
 	double fa = rPS1(_inst.FA);
 	double fb = rPS1(_inst.FB);
 	int compareResult;
-	//if (IsNAN(fa) || IsNAN(fb)) compareResult = 1;
-	//else 
+
 	if (fa < fb)         		compareResult = 8; 
 	else if (fa > fb)        	compareResult = 4; 
 	else if (fa == fb)			compareResult = 2;
-	else						compareResult = 1;
+	else						
+	{
+		compareResult = 1;
+		if (IsSNAN(fa) || IsSNAN(fb))
+		{
+			FPSCR.VXSNAN = 1;
+		}
+	}
 	SetCRField(_inst.CRFD, compareResult);
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_cmpo1(UGeckoInstruction _inst)
 {
-	// for now HACK
-	ps_cmpu1(_inst);
+	// Ector, please check
+	//ps_cmpu1(_inst);
+	double fa = rPS1(_inst.FA);
+	double fb = rPS1(_inst.FB);
+	int compareResult;
+
+	if (fa < fb)         		compareResult = 8; 
+	else if (fa > fb)        	compareResult = 4; 
+	else if (fa == fb)			compareResult = 2;
+	else						
+	{
+		compareResult = 1;
+		if (IsSNAN(fa) || IsSNAN(fb))
+		{
+			FPSCR.VXSNAN = 1;
+			if (!FPSCR.FEX) FPSCR.VXVC = 1;
+		}
+		else if (IsQNAN(fa) || IsQNAN(fb)) 
+			FPSCR.VXVC = 1;
+	}
+	SetCRField(_inst.CRFD, compareResult);
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 // __________________________________________________________________________________________________
