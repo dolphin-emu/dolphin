@@ -117,4 +117,12 @@ void CUCode_Zelda::RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Siz
 }
 
 
+void CUCode_Zelda::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
+{
+    WARN_LOG(DSPHLE, "Not synthesizing un-REd format 0x%04x", PB.Format);
+    // TODO: Header, footer
+    //for (int i = 0; i < _Size; i++)
+    //_Buffer[i++] = (s32)PB.RatioInt;
+}
+
 

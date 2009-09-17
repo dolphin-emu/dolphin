@@ -3052,15 +3052,15 @@ void 087c_DefaultDecoder()
 0893 029f 08ed jmp         0x08ed // case 0x1  // 08ed_Decoder0x1_SawWave (used in ZWW)
 0895 029f 08d5 jmp         0x08d5 // case 0x2  // 08d5_Decoder0x2_SquareSaw (hasn't been spotted)
 0897 029f 08c2 jmp         0x08c2 // case 0x3  // 08c2_Decoder0x3_RectangleWave (hasn't been spotted)
-0899 029f 08fb jmp         0x08fb // case 0x4  (used in Pikmin)
+0899 029f 08fb jmp         0x08fb // case 0x4  // void 08f3_Decoder0x4_0xb_0xc_WaveTable (used in Pikmin)
 089b 029f 08b1 jmp         0x08b1 // case 0x5  (can never happen)
 089d 029f 0919 jmp         0x0919 // case 0x6  // 0919_Decoder0x6_Constant (hasn't been spotted)
 089f 029f 091c jmp         0x091c // case 0x7  // 091c_Decoder0x7_WaveTable (used in Pikmin)
 08a1 029f 08b1 jmp         0x08b1 // case 0x8  (can never happen)
 08a3 029f 08b1 jmp         0x08b1 // case 0x9  (can never happen)
 08a5 029f 093a jmp         0x093a // case 0xa  (hasn't been spotted)
-08a7 029f 08f3 jmp         0x08f3 // case 0xb  (used in Pikmin)
-08a9 029f 08f7 jmp         0x08f7 // case 0xc  (Zelda force field in temple of gods)
+08a7 029f 08f3 jmp         0x08f3 // case 0xb  // void 08f3_Decoder0x4_0xb_0xc_WaveTable (used in Pikmin) (used in Pikmin)
+08a9 029f 08f7 jmp         0x08f7 // case 0xc  // void 08f3_Decoder0x4_0xb_0xc_WaveTable (used in Pikmin) (Zelda force field in temple of gods)
 08ab 029f 08b1 jmp         0x08b1 // case 0xd  (unused)
 08ad 029f 08b1 jmp         0x08b1 // case 0xe  (unused)
 08af 029f 08b1 jmp         0x08b1 // case 0xf  (unused)
@@ -3164,14 +3164,14 @@ void 08ed_Decoder0x1_SawWave(ACC0, AR0, AX0.L) {
 }
 
 
-void 08f3_Unk() {
-	08f3 0082 0180 lri         $AR2, #0x0180    // Three entrances
+void 08f3_Decoder0x4_0xb_0xc_WaveTable(ACC0, AR0, AX0.L) {
+	08f3 0082 0180 lri         $AR2, #0x0180    // Entrance 1, 0x0b
 	08f5 029f 08fd jmp         0x08fd
 	
-	08f7 0082 01c0 lri         $AR2, #0x01c0    // Entrance 2
+	08f7 0082 01c0 lri         $AR2, #0x01c0    // Entrance 2, 0x0c
 	08f9 029f 08fd jmp         0x08fd
 	
-	08fb 0082 0140 lri         $AR2, #0x0140    // Entrance 3
+	08fb 0082 0140 lri         $AR2, #0x0140    // Entrance 3, 0x04
 	08fd 008a 003f lri         $WR2, #0x003f
 	08ff 0086 0000 lri         $IX2, #0x0000
 	0901 1406      lsl         $ACC0, #6

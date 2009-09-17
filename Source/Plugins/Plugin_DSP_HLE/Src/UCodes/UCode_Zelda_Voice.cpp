@@ -531,12 +531,15 @@ void CUCode_Zelda::RenderAddVoice(ZeldaVoicePB &PB, s32* _LeftBuffer, s32* _Righ
 			break;
                         
   		// These are more "synth" formats - square wave, saw wave etc.
-		case 0x0002: WARN_LOG(DSPHLE, "PB Format 0x02 used!");
+		case 0x0002:
+			WARN_LOG(DSPHLE, "PB Format 0x02 used!");
+			break;
+                    
 		case 0x0004: // Example: Big Pikmin onion mothership landing/building a bridge in Pikmin
 		case 0x0007: // Example: "success" SFX in Pikmin 1, Pikmin 2 in a cave, not sure what sound it is.
 		case 0x000b: // Example: SFX in area selection menu in Pikmin
 		case 0x000c: // Example: beam of death/yellow force-field in Temple of the Gods, ZWW
-			WARN_LOG(DSPHLE, "Not synthesizing unreversed-engineerd format 0x%04x", PB.Format);
+			RenderSynth_WaveTable(PB, m_VoiceBuffer, _Size);
 			break;
 
 		default:

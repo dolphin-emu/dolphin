@@ -307,6 +307,7 @@ private:
 	void RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
 	void RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
 	void RenderSynth_SawWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
+	void RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Size);
 
 	void RenderVoice_PCM8(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
 	void RenderVoice_PCM16(ZeldaVoicePB& PB, s16* _Buffer, int _Size);
