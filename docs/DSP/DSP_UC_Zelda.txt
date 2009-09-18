@@ -3248,7 +3248,7 @@ void 091c_Decoder0x7_WaveTable(ACC0, AR0, AX0.L) {
 		// 0930 4c4a      add'l       $ACC0, $ACC1 : $AX1.L, @$AR2
 		
 		ACC0 += ACC1;
-		AX1.L = *AR2;
+		AX1.L = *AR2++;
 		
 		// 0931 3606      andr'dr     $AC0.M, $AX1.H : $AR2
 		AC0.M &= 0x003f;
