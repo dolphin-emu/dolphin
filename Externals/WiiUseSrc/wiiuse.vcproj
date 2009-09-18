@@ -4,6 +4,7 @@
 	Version="9.00"
 	Name="wiiuse"
 	ProjectGUID="{944EF6DE-471D-447E-A2FD-D37D58805169}"
+	RootNamespace="wiiuse"
 	TargetFrameworkVersion="0"
 	>
 	<Platforms>
@@ -25,7 +26,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -52,10 +53,11 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\DDK_HID\Include"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WIIUSE_EXPORTS"
+				IgnoreStandardIncludePath="true"
 				StringPooling="true"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile=".\win32\Release/wiiuse.pch"
 				AssemblerListingLocation=".\win32\Release/"
@@ -78,14 +80,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib"
-				OutputFile=".\win32\Release/wiiuse.dll"
+				OutputFile="..\WiiUse\$(PlatformName)\wiiuse.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\DDK_HID\win32"
+				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\win7\i386"
 				ProgramDatabaseFile=".\win32\Release/wiiuse.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary=".\win32\Release/wiiuse.lib"
+				ImportLibrary="$(TargetDir)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -120,7 +122,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -147,10 +149,11 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\DDK_HID\Include"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WIIUSE_EXPORTS;_WIN64"
+				IgnoreStandardIncludePath="true"
 				StringPooling="true"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				PrecompiledHeaderFile=".\x64\Release/wiiuse.pch"
 				AssemblerListingLocation=".\x64\Release/"
@@ -173,14 +176,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib"
-				OutputFile=".\x64\Release/wiiuse.dll"
+				OutputFile="..\WiiUse\$(PlatformName)\wiiuse.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\DDK_HID\x64"
+				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\win7\amd64"
 				ProgramDatabaseFile=".\x64\Release/wiiuse.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary=".\x64\Release/wiiuse.lib"
+				ImportLibrary="$(TargetDir)\$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -215,7 +218,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -241,11 +244,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\DDK_HID\Include"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;WIIUSE_EXPORTS;WITH_WIIUSE_DEBUG"
+				IgnoreStandardIncludePath="true"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
 				PrecompiledHeaderFile=".\win32\Debug/wiiuse.pch"
 				AssemblerListingLocation=".\win32\Debug/"
 				ObjectFile=".\win32\Debug/"
@@ -268,15 +272,15 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib"
-				OutputFile=".\win32\Debug/wiiuse.dll"
+				OutputFile="..\WiiUse\$(PlatformName)\wiiused.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\DDK_HID\win32"
+				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\win7\i386"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\win32\Debug/wiiuse.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary=".\win32\Debug/wiiuse.lib"
+				ImportLibrary="$(TargetDir)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -311,7 +315,7 @@
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -337,11 +341,12 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\DDK_HID\Include"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;WIIUSE_EXPORTS;WITH_WIIUSE_DEBUG"
+				IgnoreStandardIncludePath="true"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				RuntimeLibrary="3"
 				PrecompiledHeaderFile=".\x64\Debug/wiiuse.pch"
 				AssemblerListingLocation=".\x64\Debug/"
 				ObjectFile=".\x64\Debug/"
@@ -364,15 +369,15 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib"
-				OutputFile=".\x64\Debug/wiiuse.dll"
+				OutputFile="..\WiiUse\$(PlatformName)\wiiused.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="..\DDK_HID\x64"
+				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\win7\amd64"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\x64\Debug/wiiuse.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
-				ImportLibrary=".\x64\Debug/wiiuse.lib"
+				ImportLibrary="$(TargetDir)\$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -407,7 +412,7 @@
 			Name="Expansion Devices"
 			>
 			<File
-				RelativePath=".\Src\classic.cpp"
+				RelativePath=".\Src\classic.c"
 				>
 			</File>
 			<File
@@ -415,7 +420,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\guitar_hero_3.cpp"
+				RelativePath=".\Src\guitar_hero_3.c"
 				>
 			</File>
 			<File
@@ -423,7 +428,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\nunchuk.cpp"
+				RelativePath=".\Src\nunchuk.c"
 				>
 			</File>
 			<File
@@ -431,7 +436,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\wiiboard.cpp"
+				RelativePath=".\Src\wiiboard.c"
 				>
 			</File>
 			<File
@@ -443,7 +448,7 @@
 			Name="I/O"
 			>
 			<File
-				RelativePath=".\Src\io.cpp"
+				RelativePath=".\Src\io.c"
 				>
 			</File>
 			<File
@@ -451,7 +456,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\io_nix.cpp"
+				RelativePath=".\Src\io_nix.c"
 				>
 			</File>
 			<File
@@ -459,7 +464,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\io_win.cpp"
+				RelativePath=".\Src\io_win.c"
 				>
 			</File>
 		</Filter>
@@ -467,7 +472,7 @@
 			Name="Wiimote Data"
 			>
 			<File
-				RelativePath=".\Src\dynamics.cpp"
+				RelativePath=".\Src\dynamics.c"
 				>
 			</File>
 			<File
@@ -475,7 +480,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\events.cpp"
+				RelativePath=".\Src\events.c"
 				>
 			</File>
 			<File
@@ -483,7 +488,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\ir.cpp"
+				RelativePath=".\Src\ir.c"
 				>
 			</File>
 			<File
@@ -512,7 +517,7 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\wiiuse.cpp"
+			RelativePath=".\Src\wiiuse.c"
 			>
 		</File>
 		<File

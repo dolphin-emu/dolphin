@@ -34,10 +34,8 @@
 #ifndef CONNECT_H_INCLUDED
 #define CONNECT_H_INCLUDED
 
-#ifndef WIN32
-#if !defined(__APPLE__)
+#ifdef __linux__
 	#include <bluetooth/bluetooth.h>
-#endif
 #endif
 
 #include "wiiuse_internal.h"

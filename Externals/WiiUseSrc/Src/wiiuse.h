@@ -563,7 +563,7 @@ typedef struct wiimote_t {
 	#if defined(__APPLE__)
 		WCONST char bdaddr[10];				/**< bt address	on osx addr are string						*/
 	#else
-		WCONST bdaddr_t bdaddr;				/**< bt address								*/
+		WCONST bdaddr_t bdaddr;				/**< bt address	(linux)							*/
 	#endif
 		WCONST char bdaddr_str[18];			/**< readable bt address					*/
 		WCONST int out_sock;				/**< output socket							*/
