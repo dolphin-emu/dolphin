@@ -23,6 +23,9 @@
 #include "../Globals.h"
 #include "../D3DBase.h"
 #include "../FramebufferManager.h"
+#include "../TextureCache.h"
+#include "../VertexShaderCache.h"
+#include "../PixelShaderCache.h"
 
 extern int g_Preset;
 
@@ -41,7 +44,11 @@ BEGIN_EVENT_TABLE(GFXDebuggerDX9,wxDialog)
 	EVT_BUTTON(ID_DUMP,GFXDebuggerDX9::OnDumpButton)
 	EVT_BUTTON(ID_UPDATE_SCREEN,GFXDebuggerDX9::OnUpdateScreenButton)
 	EVT_BUTTON(ID_CLEAR_SCREEN,GFXDebuggerDX9::OnClearScreenButton)
+	EVT_BUTTON(ID_CLEAR_TEXTURE_CACHE,GFXDebuggerDX9::OnClearTextureCacheButton)
+	EVT_BUTTON(ID_CLEAR_VERTEX_SHADER_CACHE,GFXDebuggerDX9::OnClearVertexShaderCacheButton)
+	EVT_BUTTON(ID_CLEAR_PIXEL_SHADER_CACHE,GFXDebuggerDX9::OnClearPixelShaderCacheButton)
 END_EVENT_TABLE()
+
 
 GFXDebuggerDX9::GFXDebuggerDX9(wxWindow *parent, wxWindowID id, const wxString &title,
 				   const wxPoint &position, const wxSize& size, long style)
@@ -147,18 +154,17 @@ static PauseEventMap pauseEventMap[] = {
 
 	{NEXT_SET_TLUT,				wxT("TLUT Cmd")},
 
-	{NEXT_FIFO,					wxT("Fifo")},
-	{NEXT_DLIST,				wxT("DList")},
-	{NEXT_UCODE,				wxT("Ucode")},
-
 	{NEXT_ERROR,				wxT("Error")}
 };
 static const int numPauseEventMap = sizeof(pauseEventMap)/sizeof(PauseEventMap);
 
 
+static GFXDebuggerDX9 *g_pdebugger = NULL;
 
 void GFXDebuggerDX9::CreateGUIControls()
 {
+	g_pdebugger = this;
+
 	// Basic settings
 	SetIcon(wxNullIcon);
 	CenterOnParent();
@@ -191,6 +197,9 @@ void GFXDebuggerDX9::CreateGUIControls()
 	m_pButtonDump = new wxButton(m_MainPanel, ID_DUMP, wxT("Dump"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Dump"));
 	m_pButtonUpdateScreen = new wxButton(m_MainPanel, ID_UPDATE_SCREEN, wxT("Update Screen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Update Screen"));
 	m_pButtonClearScreen = new wxButton(m_MainPanel, ID_CLEAR_SCREEN, wxT("Clear Screen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Clear Screen"));
+	m_pButtonClearTextureCache = new wxButton(m_MainPanel, ID_CLEAR_TEXTURE_CACHE, wxT("Clear Textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Clear Textures"));
+	m_pButtonClearVertexShaderCache = new wxButton(m_MainPanel, ID_CLEAR_VERTEX_SHADER_CACHE, wxT("Clear V Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Clear V Shaders"));
+	m_pButtonClearPixelShaderCache = new wxButton(m_MainPanel, ID_CLEAR_PIXEL_SHADER_CACHE, wxT("Clear P Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Clear P Shaders"));
 	m_pCount = new wxTextCtrl(m_MainPanel, ID_COUNT, wxT("1"), wxDefaultPosition, wxSize(50,25), 0, wxDefaultValidator, wxT("Count"));
 
 	m_pDumpList = new wxChoice(m_MainPanel, ID_DUMP_LIST, wxDefaultPosition, wxSize(120,25), 0, NULL,0,wxDefaultValidator, wxT("DumpList"));
@@ -228,11 +237,27 @@ void GFXDebuggerDX9::CreateGUIControls()
 	sMain->Add(m_pDumpList, 0, 0, 5);
 	sMain->Add(m_pButtonUpdateScreen, 0, 0, 5);
 	sMain->Add(m_pButtonClearScreen, 0, 0, 5);
+	sMain->Add(m_pButtonClearTextureCache, 0, 0, 5);
+	sMain->Add(m_pButtonClearVertexShaderCache, 0, 0, 5);
+	sMain->Add(m_pButtonClearPixelShaderCache, 0, 0, 5);
 	sMain->Add(m_pButtonPauseAtNextFrame, 0, 0, 5);
 	sMain->Add(m_pButtonGo, 0, 0, 5);
 	m_MainPanel->SetSizerAndFit(sMain);
 	Fit();
+
+	EnableButtons(false);
 }
+
+void GFXDebuggerDX9::EnableButtons(bool enable)
+{
+	m_pButtonDump->Enable(enable);
+	m_pButtonUpdateScreen->Enable(enable);
+	m_pButtonClearScreen->Enable(enable);
+	m_pButtonClearTextureCache->Enable(enable);
+	m_pButtonClearVertexShaderCache->Enable(enable);
+	m_pButtonClearPixelShaderCache->Enable(enable);
+}
+
 
 // General settings
 void GFXDebuggerDX9::GeneralSettings(wxCommandEvent& event)
@@ -270,11 +295,11 @@ void GFXDebuggerDX9::OnPauseButton(wxCommandEvent& event)
 void GFXDebuggerDX9::OnPauseAtNextButton(wxCommandEvent& event)
 {
 	DX9DebuggerPauseFlag = false;
-	DX9DebuggerToPauseAtNext = (PauseEvent)(m_pPauseAtList->GetSelection());
+	DX9DebuggerToPauseAtNext = pauseEventMap[m_pPauseAtList->GetSelection()].event;
 	wxString val = m_pCount->GetValue();
 	long value;
 	if (val.ToLong(&value) )
-		DX9DebuggerEventToPauseCount = pauseEventMap[value].event;
+		DX9DebuggerEventToPauseCount = value;
 	else
 		DX9DebuggerEventToPauseCount = 1;
 }
@@ -296,11 +321,23 @@ void GFXDebuggerDX9::OnGoButton(wxCommandEvent& event)
 	DX9DebuggerPauseFlag = false;
 }
 
-void GFXDebuggerDX9::OnUpdateScreenButton(wxCommandEvent& event)
-{
-}
 void GFXDebuggerDX9::OnClearScreenButton(wxCommandEvent& event)
 {
+}
+
+void GFXDebuggerDX9::OnClearTextureCacheButton(wxCommandEvent& event)
+{
+	TextureCache::Invalidate(false);
+}
+
+void GFXDebuggerDX9::OnClearVertexShaderCacheButton(wxCommandEvent& event)
+{
+	VertexShaderCache::Clear();
+}
+
+void GFXDebuggerDX9::OnClearPixelShaderCacheButton(wxCommandEvent& event)
+{
+	PixelShaderCache::Clear();
 }
 
 void UpdateFPSDisplay(const char *text);
@@ -336,12 +373,18 @@ static void DX9DebuggerUpdateScreen()
 
 void DX9DebuggerCheckAndPause(bool update)
 {
-	while( DX9DebuggerPauseFlag )
+	if (DX9DebuggerPauseFlag)
 	{
-		UpdateFPSDisplay("Paused by Video Debugger");
+		g_pdebugger->EnableButtons(true);
+		while( DX9DebuggerPauseFlag )
+		{
 
-		if (update)	DX9DebuggerUpdateScreen();
-		Sleep(5);
+			UpdateFPSDisplay("Paused by Video Debugger");
+
+			if (update)	DX9DebuggerUpdateScreen();
+			Sleep(5);
+		}
+		g_pdebugger->EnableButtons(false);
 	}
 }
 
@@ -358,3 +401,7 @@ void ContinueDX9Debugger()
 	DX9DebuggerPauseFlag = false;
 }
 
+void GFXDebuggerDX9::OnUpdateScreenButton(wxCommandEvent& event)
+{
+	DX9DebuggerUpdateScreen();
+}

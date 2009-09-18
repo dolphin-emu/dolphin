@@ -50,6 +50,8 @@ public:
 	bool bSaveTargets;
 	bool bSaveShaders;
 
+	void EnableButtons(bool enable);
+
 private:
 	DECLARE_EVENT_TABLE();
 
@@ -65,6 +67,9 @@ private:
 	wxChoice	*m_pDumpList;
 	wxButton	*m_pButtonUpdateScreen;
 	wxButton	*m_pButtonClearScreen;
+	wxButton	*m_pButtonClearTextureCache;
+	wxButton	*m_pButtonClearVertexShaderCache;
+	wxButton	*m_pButtonClearPixelShaderCache;
 	wxTextCtrl	*m_pCount;
 
 
@@ -88,6 +93,9 @@ private:
 		ID_DUMP_LIST,
 		ID_UPDATE_SCREEN,
 		ID_CLEAR_SCREEN,
+		ID_CLEAR_TEXTURE_CACHE,
+		ID_CLEAR_VERTEX_SHADER_CACHE,
+		ID_CLEAR_PIXEL_SHADER_CACHE,
 		ID_COUNT
 	};
 
@@ -102,7 +110,11 @@ private:
 	void OnGoButton(wxCommandEvent& event);
 	void OnUpdateScreenButton(wxCommandEvent& event);
 	void OnClearScreenButton(wxCommandEvent& event);
+	void OnClearTextureCacheButton(wxCommandEvent& event);
+	void OnClearVertexShaderCacheButton(wxCommandEvent& event);
+	void OnClearPixelShaderCacheButton(wxCommandEvent& event);
 	void OnCountEnter(wxCommandEvent& event);
+
 };
 
 enum PauseEvent {

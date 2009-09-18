@@ -34,6 +34,8 @@
 #include "TextureDecoder.h"
 #include "TextureCache.h"
 
+#include "debugger/debugger.h"
+
 u8 *TextureCache::temp = NULL;
 TextureCache::TexCache TextureCache::textures;
 
@@ -254,6 +256,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 	lastTexture[stage] = entry.texture;
 
+	DEBUGGER_PAUSE_LOG_AT(NEXT_NEW_TEXTURE,true,{printf("A new texture (%d x %d) is loaded", width, height);});
 	return &entry;
 }
  
