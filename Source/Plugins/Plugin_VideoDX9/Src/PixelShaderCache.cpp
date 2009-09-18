@@ -109,7 +109,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 		last_entry = &entry;
 		
 
-		DEBUGGER_PAUSE_COUNT_N(NEXT_PIXEL_SHADER_CHANGE);
+		DEBUGGER_PAUSE_AT(NEXT_PIXEL_SHADER_CHANGE,true);
 
 		if (entry.shader)
 		{

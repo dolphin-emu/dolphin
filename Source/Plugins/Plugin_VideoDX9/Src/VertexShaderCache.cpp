@@ -137,7 +137,7 @@ bool VertexShaderCache::SetShader(u32 components)
 		const VSCacheEntry &entry = iter->second;
 		last_entry = &entry;
 
-		DEBUGGER_PAUSE_COUNT_N(NEXT_VERTEX_SHADER_CHANGE);
+		DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE,true);
 		if (entry.shader)
 		{
 			D3D::dev->SetVertexShader(entry.shader);

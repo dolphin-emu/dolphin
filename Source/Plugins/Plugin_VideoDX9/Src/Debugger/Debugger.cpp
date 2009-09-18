@@ -22,6 +22,7 @@
 #include "VideoConfig.h"
 #include "../Globals.h"
 #include "../D3DBase.h"
+#include "../FramebufferManager.h"
 
 extern int g_Preset;
 
@@ -35,6 +36,7 @@ BEGIN_EVENT_TABLE(GFXDebuggerDX9,wxDialog)
 	EVT_CHECKBOX(ID_SAVESHADERS,GFXDebuggerDX9::GeneralSettings)
 	EVT_BUTTON(ID_PAUSE,GFXDebuggerDX9::OnPauseButton)
 	EVT_BUTTON(ID_PAUSE_AT_NEXT,GFXDebuggerDX9::OnPauseAtNextButton)
+	EVT_BUTTON(ID_PAUSE_AT_NEXT_FRAME,GFXDebuggerDX9::OnPauseAtNextFrameButton)
 	EVT_BUTTON(ID_GO,GFXDebuggerDX9::OnGoButton)
 	EVT_BUTTON(ID_DUMP,GFXDebuggerDX9::OnDumpButton)
 	EVT_BUTTON(ID_UPDATE_SCREEN,GFXDebuggerDX9::OnUpdateScreenButton)
@@ -119,6 +121,42 @@ void GFXDebuggerDX9::LoadSettings()
 	//m_Check[5]->SetValue(bSaveShaders);
 }
 
+struct PauseEventMap
+{
+	PauseEvent event;
+	const wxString ListStr;
+};
+
+static PauseEventMap pauseEventMap[] = {
+	{NEXT_FRAME,				wxT("Frame")},
+	{NEXT_FLUSH,				wxT("Flush")},
+
+	{NEXT_PIXEL_SHADER_CHANGE,	wxT("Pixel Shader")},
+	{NEXT_VERTEX_SHADER_CHANGE,	wxT("Vertex Shader")},
+	{NEXT_TEXTURE_CHANGE,		wxT("Texture")},
+	{NEXT_NEW_TEXTURE,			wxT("New Texture")},
+
+	{NEXT_XFB_CMD,				wxT("XFB Cmd")},
+	{NEXT_EFB_CMD,				wxT("EFB Cmd")},
+
+	{NEXT_MATRIX_CMD,			wxT("Matrix Cmd")},
+	{NEXT_VERTEX_CMD,			wxT("Vertex Cmd")},
+	{NEXT_TEXTURE_CMD,			wxT("Texture Cmd")},
+	{NEXT_LIGHT_CMD,			wxT("Light Cmd")},
+	{NEXT_FOG_CMD,				wxT("Fog Cmd")},
+
+	{NEXT_SET_TLUT,				wxT("TLUT Cmd")},
+
+	{NEXT_FIFO,					wxT("Fifo")},
+	{NEXT_DLIST,				wxT("DList")},
+	{NEXT_UCODE,				wxT("Ucode")},
+
+	{NEXT_ERROR,				wxT("Error")}
+};
+static const int numPauseEventMap = sizeof(pauseEventMap)/sizeof(PauseEventMap);
+
+
+
 void GFXDebuggerDX9::CreateGUIControls()
 {
 	// Basic settings
@@ -139,26 +177,15 @@ void GFXDebuggerDX9::CreateGUIControls()
 
 	m_pButtonPause = new wxButton(m_MainPanel, ID_PAUSE, wxT("Pause"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Pause"));
 	m_pButtonPauseAtNext = new wxButton(m_MainPanel, ID_PAUSE_AT_NEXT, wxT("Pause At Next"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Pause At Next"));
+	m_pButtonPauseAtNextFrame = new wxButton(m_MainPanel, ID_PAUSE_AT_NEXT_FRAME, wxT("Next Frame"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Next Frame"));
 	m_pButtonGo = new wxButton(m_MainPanel, ID_GO, wxT("Go"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Go"));
 
 	m_pPauseAtList = new wxChoice(m_MainPanel, ID_PAUSE_AT_LIST, wxDefaultPosition, wxSize(100,25), 0, NULL,0,wxDefaultValidator, wxT("PauseAtList"));
-	//m_pPauseAtList->SetEditable(false);
-	m_pPauseAtList->Insert(wxT("Frame"),0);
-	m_pPauseAtList->Append(wxT("Flush"));
-	m_pPauseAtList->Append(wxT("Fifo"));
-	m_pPauseAtList->Append(wxT("Dlist Call"));
-	m_pPauseAtList->Append(wxT("Pixel Shader Change"));
-	m_pPauseAtList->Append(wxT("Vertex Shader Change"));
-	m_pPauseAtList->Append(wxT("New Texture"));
-	m_pPauseAtList->Append(wxT("Render To Texture"));
-	m_pPauseAtList->Append(wxT("Matrix Ucode"));
-	m_pPauseAtList->Append(wxT("Vertex Ucode"));
-	m_pPauseAtList->Append(wxT("Texture Ucode"));
-	m_pPauseAtList->Append(wxT("Light Ucode"));
-	m_pPauseAtList->Append(wxT("Frame Buffer Command"));
-	m_pPauseAtList->Append(wxT("Fog Command"));
-	m_pPauseAtList->Append(wxT("Set Color Constant"));
-	m_pPauseAtList->Append(wxT("Ucode"));
+	for (int i=0; i<numPauseEventMap; i++)
+	{
+		m_pPauseAtList->Append(pauseEventMap[i].ListStr);
+	}
+
 	m_pPauseAtList->SetSelection(0);
 
 	m_pButtonDump = new wxButton(m_MainPanel, ID_DUMP, wxT("Dump"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("Dump"));
@@ -201,6 +228,7 @@ void GFXDebuggerDX9::CreateGUIControls()
 	sMain->Add(m_pDumpList, 0, 0, 5);
 	sMain->Add(m_pButtonUpdateScreen, 0, 0, 5);
 	sMain->Add(m_pButtonClearScreen, 0, 0, 5);
+	sMain->Add(m_pButtonPauseAtNextFrame, 0, 0, 5);
 	sMain->Add(m_pButtonGo, 0, 0, 5);
 	m_MainPanel->SetSizerAndFit(sMain);
 	Fit();
@@ -246,9 +274,16 @@ void GFXDebuggerDX9::OnPauseAtNextButton(wxCommandEvent& event)
 	wxString val = m_pCount->GetValue();
 	long value;
 	if (val.ToLong(&value) )
-		DX9DebuggerEventToPauseCount = PauseEvent(value);
+		DX9DebuggerEventToPauseCount = pauseEventMap[value].event;
 	else
 		DX9DebuggerEventToPauseCount = 1;
+}
+
+void GFXDebuggerDX9::OnPauseAtNextFrameButton(wxCommandEvent& event)
+{
+	DX9DebuggerPauseFlag = false;
+	DX9DebuggerToPauseAtNext = NEXT_FRAME;
+	DX9DebuggerEventToPauseCount = 1;
 }
 
 void GFXDebuggerDX9::OnDumpButton(wxCommandEvent& event)
@@ -269,42 +304,57 @@ void GFXDebuggerDX9::OnClearScreenButton(wxCommandEvent& event)
 }
 
 void UpdateFPSDisplay(const char *text);
-void DX9DebuggerCheckAndPause()
+extern bool D3D::bFrameInProgress;
+
+static void DX9DebuggerUpdateScreen()
+{
+	//update screen
+	if (D3D::bFrameInProgress)
+	{
+		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
+		D3D::dev->SetDepthStencilSurface(NULL);
+
+		D3D::dev->StretchRect(FBManager::GetEFBColorRTSurface(), NULL,
+			D3D::GetBackBufferSurface(), NULL,
+			D3DTEXF_LINEAR);
+
+		D3D::dev->EndScene();
+		D3D::dev->Present(NULL, NULL, NULL, NULL);
+
+		D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
+		D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+		D3D::dev->BeginScene();
+	}
+	else
+	{
+		D3D::dev->EndScene();
+		D3D::dev->Present(NULL, NULL, NULL, NULL);
+		D3D::dev->BeginScene();
+	}
+}
+
+
+void DX9DebuggerCheckAndPause(bool update)
 {
 	while( DX9DebuggerPauseFlag )
 	{
 		UpdateFPSDisplay("Paused by Video Debugger");
+
+		if (update)	DX9DebuggerUpdateScreen();
 		Sleep(5);
 	}
 }
+
+void DX9DebuggerToPause(bool update)
+{
+	DX9DebuggerToPauseAtNext = NOT_PAUSE;
+	DX9DebuggerPauseFlag = true;
+	DX9DebuggerCheckAndPause(update);
+}
+
 
 void ContinueDX9Debugger()
 {
 	DX9DebuggerPauseFlag = false;
 }
-
-#ifdef ENABLE_DX_DEBUGGER
-
-void DX9Debugger_Pause_Count_N(PauseEvent event,bool update)
-{
-	if (DX9DebuggerToPauseAtNext == event || DX9DebuggerPauseFlag)
-	{
-		DX9DebuggerEventToPauseCount--;
-		if (DX9DebuggerEventToPauseCount<=0 || DX9DebuggerPauseFlag)
-		{
-			DX9DebuggerToPauseAtNext = NOT_PAUSE;
-			DX9DebuggerPauseFlag = true;
-
-			if (update)
-			{
-				D3D::EndFrame();
-				D3D::BeginFrame();
-			}
-			DX9DebuggerCheckAndPause();
-		}
-	}
-}
-
-#endif ENABLE_DX_DEBUGGER
-
 

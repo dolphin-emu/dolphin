@@ -49,6 +49,7 @@ void Shutdown();
 
 // Direct access to the device.
 extern IDirect3DDevice9 *dev;
+extern bool bFrameInProgress;
 
 void Reset();
 bool BeginFrame();

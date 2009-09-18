@@ -307,7 +307,7 @@ void Flush()
 shader_fail:
 		collection = C_NOTHING;
 		VertexManager::s_pCurBufferPointer = fakeVBuffer;
-		DEBUGGER_PAUSE_COUNT_N(NEXT_FLUSH);
+		DEBUGGER_PAUSE_AT(NEXT_FLUSH,true);
 	}
 	//DX9DEBUGGER_PAUSE_IF(NEXT_FLUSH);
 }

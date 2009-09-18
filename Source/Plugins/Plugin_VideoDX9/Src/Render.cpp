@@ -243,6 +243,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	if (g_bSkipCurrentFrame)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);
+		DEBUGGER_PAUSE_LOG_AT(NEXT_XFB_CMD,false,{printf("RenderToXFB - disabled");});
 		return;
 	}
 
@@ -334,8 +335,6 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	OSD::DrawMessages();
 	D3D::EndFrame();
 
-	DEBUGGER_PAUSE_COUNT_N_WITHOUT_UPDATE(NEXT_FRAME);
-
 	// D3D frame is now over
 	// Clean out old stuff from caches.
 	frameCount++;
@@ -350,6 +349,10 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	g_VideoInitialize.pCopiedToXFB(false);
 
 	CheckForResize();
+
+	DEBUGGER_PAUSE_LOG_AT(NEXT_XFB_CMD,false,{printf("RenderToXFB");});
+	DEBUGGER_PAUSE_AT(NEXT_FRAME,false);
+
 
 
 	// Begin new frame
@@ -490,6 +493,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		// WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
 		break;
 	}
+
+	DEBUGGER_PAUSE_LOG_AT(NEXT_EFB_CMD,true,{printf("AccessEFB, type = %d",type);});
 
 	return 0;
 }

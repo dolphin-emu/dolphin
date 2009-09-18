@@ -40,7 +40,7 @@ static bool auto_depth_stencil = false;
 #define VENDOR_NVIDIA 4318
 #define VENDOR_ATI    4098
 
-static bool bFrameInProgress = false;
+bool bFrameInProgress = false;
 
 #define MAX_ADAPTERS 4
 static Adapter adapters[MAX_ADAPTERS];
