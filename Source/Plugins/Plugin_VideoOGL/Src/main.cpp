@@ -272,8 +272,10 @@ void CocaAddResolutions() {
 		if (px != modeWidth && py != modeHeight) {
 			char temp[32];
 			sprintf(temp,"%dx%d", modeWidth, modeHeight);
+			#if defined(HAVE_WX) && HAVE_WX
 			m_ConfigFrame->AddFSReso(temp);
 			m_ConfigFrame->AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
+			#endif
 			px = modeWidth;
 			py = modeHeight;
 		}

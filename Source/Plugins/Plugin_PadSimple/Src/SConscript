@@ -31,6 +31,8 @@ if padenv['HAVE_WX']:
 if padenv['HAVE_COCOA']:
 	padenv.Append(	CXXFLAGS = compileFlags,
 			LIBS = [ 'common' ])
+	padenv['FRAMEWORKS'] = ['Cocoa', 'System']
+
 else:
 	padenv.Append(LIBS = [ 'common', 'inputcommon' ])
 

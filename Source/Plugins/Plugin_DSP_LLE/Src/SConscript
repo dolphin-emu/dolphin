@@ -41,5 +41,5 @@ else:
 		CXXFLAGS = [ '-fPIC' ],
 		LIBS = [ 'dspcore', 'audiocommon', 'common' ],
 		)
-
+lleenv['FRAMEWORKS'] = ['CoreFoundation', 'System']
 lleenv.SharedLibrary(env['plugin_dir']+name, files)

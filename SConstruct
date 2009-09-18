@@ -106,6 +106,7 @@ vars.AddVariables(
     BoolVariable('bundle', 'Set to create bundle', False),
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
     BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
+    BoolVariable('noal', 'Build without OpenAL', False),
     BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
     BoolVariable('jittest', 'temp don\'t use (WIP)', False),
 	BoolVariable('nojit', 'Remove entire jit cores', False),
@@ -243,7 +244,10 @@ env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 
 # needed for sound
 env['HAVE_AO'] = conf.CheckPKG('ao')
-env['HAVE_OPENAL'] = conf.CheckPKG('openal')
+if env['noal']:
+	env['HAVE_OPENAL'] = 0
+else:
+	env['HAVE_OPENAL'] = conf.CheckPKG('openal')
 env['HAVE_ALSA'] = conf.CheckPKG('alsa')
 
 
@@ -262,9 +266,10 @@ if conf.CheckPKG('sfml-network') and conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
 if sys.platform == 'darwin':
     if env['osx'] == '64cocoa':
         env['nowx'] = True
-        compileFlags += ['-arch' , 'x86_64' ]
+        compileFlags += ['-arch' , 'x86_64', '-m64' ]
         conf.Define('MAP_32BIT', 0)
-
+    if env['osx'] == '32cocoa':
+        compileFlags += ['-arch' , 'i386', '-m32' ]
     if not env['osx'] == '32x11':
         env['HAVE_X11'] = 0
         env['HAVE_COCOA'] = 1

@@ -128,11 +128,13 @@ struct wiimote_t** wiiuse_init(int wiimotes) {
 			wm[i]->out_sock = -1;
 			wm[i]->in_sock = -1;
 		#else
+		#if !defined(__APPLE__)
 			wm[i]->dev_handle = 0;
 			wm[i]->stack = WIIUSE_STACK_UNKNOWN;
 			wm[i]->normal_timeout = WIIMOTE_DEFAULT_TIMEOUT;
 			wm[i]->exp_timeout = WIIMOTE_EXP_TIMEOUT;
 			wm[i]->timeout = wm[i]->normal_timeout;
+		#endif
 		#endif
 
 		wm[i]->state = WIIMOTE_INIT_STATES;

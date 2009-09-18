@@ -1,6 +1,7 @@
 # -*- python -*-
 
 Import('env')
+import sys
 
 dtenv = env.Clone()
 
@@ -16,5 +17,7 @@ libs = [
 
 dtenv.Append(CXXFLAGS = [ '-fPIC' ],
              LIBS = libs)
+if sys.platform == 'darwin':
+    dtenv['FRAMEWORKS'] = ['CoreFoundation', 'Cocoa', 'System']
 
 dtenv.Program(dtenv['binary_dir'] + 'dsptool', files)

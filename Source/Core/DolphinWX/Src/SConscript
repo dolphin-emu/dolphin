@@ -91,6 +91,7 @@ if sys.platform == 'darwin':
 
 	icon = 'Dolphin'
 	version = 'svn'
+	wxenv['FRAMEWORKS'] = ['Cocoa', 'CoreFoundation', 'System']
 	wxenv.Plist(
 		env['binary_dir'] + 'Dolphin.app/Contents/Info.plist',
 		Value(dict(

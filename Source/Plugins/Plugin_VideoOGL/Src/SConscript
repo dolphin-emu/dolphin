@@ -31,7 +31,7 @@ compileFlags = [
 linkFlags = [
 	]
 libs = [
-	'videocommon', 'soil', 'common',
+	'videocommon', 'soil', 'common'
 	]
 
 gfxenv = env.Clone()
@@ -65,7 +65,7 @@ if sys.platform == 'darwin':
 	conf.CheckPKG('OpenGL')
 	if not conf.CheckPKG('Cg'):
 		print name + " must have Cg framework from nvidia to be build"
-		Return()
+		#Return()
 
 elif sys.platform == 'win32':
         print name + " is assuming that you have opengl, glu, cg, and cggl"
@@ -107,7 +107,7 @@ conf.Finish()
 if gfxenv['USE_WX'] and not gfxenv['HAVE_WX']:
     print "Must have wx to use wxgl"
     Return()
-
+gfxenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'OpenGL', 'Cocoa', 'Cg']
 gfxenv.Append(
 	CXXFLAGS = compileFlags,
 	LINKFLAGS = linkFlags,

@@ -43,6 +43,7 @@ if sys.platform == 'darwin':
     	LINKFLAGS = ['-framework' ,'IOBluetooth'],
     	LIBS = libs,
     	)
+    wmenv['FRAMEWORKS'] = ['Cocoa', 'System']
 else:
     wmenv.Append(
     	CXXFLAGS = cxxflags,
