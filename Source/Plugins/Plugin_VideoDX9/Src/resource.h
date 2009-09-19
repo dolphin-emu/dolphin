@@ -1224,6 +1224,8 @@
 #define IDC_WIDESCREEN_HACK             1036
 #define IDC_DUMPFRAMES                  1037
 #define psh14                           0x040d
+#define IDC_ASPECT_16_10                1037
+#define IDC_SAFE_TEXTURE_CACHE          1037
 #define psh15                           0x040e
 #define psh16                           0x040f
 #define _WIN32_WINDOWS                  0x0410
@@ -1532,8 +1534,8 @@
 #define SPVERSION_MASK                  0x0000FF00
 #define HTERROR                         -2
 #define IDC_STATIC                      -1
-#define PWR_FAIL                        -1
 #define UNICODE_NOCHAR                  0xFFFF
+#define PWR_FAIL                        -1
 #define HTTRANSPARENT                   -1
 
 // Next default values for new objects

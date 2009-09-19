@@ -31,6 +31,8 @@ void IndexGenerator::Start(unsigned short *startptr)
 	ptr = startptr;
 	index = 0;
 	numPrims = 0;
+	adds = 0;
+	onlyLists = true;
 }
 
 void IndexGenerator::AddList(int numVerts)
@@ -45,6 +47,7 @@ void IndexGenerator::AddList(int numVerts)
 	}
 	index += numVerts;
 	numPrims += numTris;
+	adds++;
 }
 
 void IndexGenerator::AddStrip(int numVerts)
@@ -61,6 +64,8 @@ void IndexGenerator::AddStrip(int numVerts)
 	}
 	index += numVerts;
 	numPrims += numTris;
+	adds++;
+	onlyLists = false;
 }
 
 void IndexGenerator::AddLineList(int numVerts)
@@ -74,6 +79,7 @@ void IndexGenerator::AddLineList(int numVerts)
 	}
 	index += numVerts;
 	numPrims += numLines;
+	adds++;
 }
 
 void IndexGenerator::AddLineStrip(int numVerts)
@@ -87,8 +93,9 @@ void IndexGenerator::AddLineStrip(int numVerts)
 	}
 	index += numVerts;
 	numPrims += numLines;
+	adds++;
+	onlyLists = false;
 }
-
 
 void IndexGenerator::AddFan(int numVerts)
 {
@@ -102,6 +109,8 @@ void IndexGenerator::AddFan(int numVerts)
 	}
 	index += numVerts;
 	numPrims += numTris;
+	adds++;
+	onlyLists = false;
 }
 
 void IndexGenerator::AddQuads(int numVerts)
@@ -119,10 +128,13 @@ void IndexGenerator::AddQuads(int numVerts)
 	}
 	index += numVerts;
 	numPrims += numTris;
+	adds++;
+	onlyLists = false;
 }
 
-
-void IndexGenerator::AddPointList(int numVerts)
+void IndexGenerator::AddPoints(int numVerts)
 {
 	index += numVerts;
+	numPrims += numVerts;
+	adds++;
 }

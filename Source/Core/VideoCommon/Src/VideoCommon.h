@@ -142,6 +142,12 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 
 #define LOG_VTX()
 
+#ifdef _WIN32
+#define ERASE_THROUGH_ITERATOR(container, iterator) iterator = container.erase(iterator)
+#else
+#define ERASE_THROUGH_ITERATOR(container, iterator) container.erase(iterator++)
+#endif
+
 bool IsD3D();
 
 #endif  // _VIDEOCOMMON_H

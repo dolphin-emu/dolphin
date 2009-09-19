@@ -57,6 +57,7 @@ char *Statistics::ToString(char *ptr)
 	p+=sprintf(p,"dlists alive:     %i\n",stats.numDListsAlive);
 	p+=sprintf(p,"primitive joins: %i\n",stats.thisFrame.numPrimitiveJoins);
 	p+=sprintf(p,"draw calls:       %i\n",stats.thisFrame.numDrawCalls);
+	p+=sprintf(p,"indexed draw calls: %i\n",stats.thisFrame.numIndexedDrawCalls);
 	p+=sprintf(p,"buffer splits:    %i\n",stats.thisFrame.numBufferSplits);
 	p+=sprintf(p,"primitives: %i\n",stats.thisFrame.numPrims);
 	p+=sprintf(p,"primitives (DL): %i\n",stats.thisFrame.numDLPrims);

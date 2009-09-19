@@ -28,16 +28,20 @@ public:
 	void AddList(int numVerts);
 	void AddStrip(int numVerts);
 	void AddLineList(int numVerts);
-	void AddPointList(int numVerts); //dummy for counting vertices
 	void AddLineStrip(int numVerts);
 	void AddFan(int numVerts);
 	void AddQuads(int numVerts);
+	void AddPoints(int numVerts);
 	int GetNumPrims() {return numPrims;} //returns numprimitives
 	int GetNumVerts() {return index;} //returns numprimitives
+	int GetNumAdds() {return adds;}
+	bool GetOnlyLists() {return onlyLists;}
 private:
 	unsigned short *ptr;
 	int numPrims;
 	int index;
+	int adds;
+	bool onlyLists;
 };
 
 #endif  // _INDEXGENERATOR_H

@@ -49,7 +49,7 @@ void TextureCache::TCacheEntry::Destroy(bool shutdown)
 	if (texture)
 		texture->Release();
 	texture = 0;
-	if (!isRenderTarget && !shutdown)
+	if (!isRenderTarget && !shutdown && !g_ActiveConfig.bSafeTextureCache)
 	{
 		u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr);
 		if (ptr && *ptr == hash)
@@ -103,88 +103,78 @@ void TextureCache::Cleanup()
 	}
 }
 
-TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt)
+TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width, int height, int tex_format, int tlutaddr, int tlutfmt)
 {
 	if (address == 0)
 		return NULL;
 
 	u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
+	int bsw = TexDecoder_GetBlockWidthInTexels(tex_format) - 1; //TexelSizeInNibbles(format)*width*height/16;
+	int bsh = TexDecoder_GetBlockHeightInTexels(tex_format) - 1; //TexelSizeInNibbles(format)*width*height/16;
+	int expandedWidth  = (width + bsw)  & (~bsw);
+	int expandedHeight = (height + bsh) & (~bsh);
 
-	int palSize = TexDecoder_GetPaletteSize(format);
-	u32 palhash = 0xc0debabe;
-	if (palSize)
+	u32 hash_value;
+	u32 texID = address;
+	u32 texHash;
+
+	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bDumpTextures)
 	{
-		// TODO: Share this code with the GL plugin.
-		if (palSize > 32) 
-			palSize = 32; //let's not do excessive amount of checking
-		u8 *pal = g_VideoInitialize.pGetMemoryPointer(tlutaddr);
-		if (pal != 0)
+		texHash = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, expandedHeight, tex_format, 0);
+		if (g_ActiveConfig.bSafeTextureCache)
+			hash_value = texHash;
+		if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
 		{
-			for (int i = 0; i < palSize; i++)
-			{
-				palhash = _rotl(palhash,13);
-				palhash ^= pal[i];
-				palhash += 31;
-			}
-		}
-	}
-
-	static LPDIRECT3DTEXTURE9 lastTexture[8] = {0,0,0,0,0,0,0,0};
-
-	int bs = TexDecoder_GetBlockWidthInTexels(format)-1; //TexelSizeInNibbles(format)*width*height/16;
-	int expandedWidth = (width+bs) & (~bs);
-	u32 hash_value = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, height, format, 0);
-	u32 tex_hash = 0;
-    u32 texID = address;
-	
-	if (g_ActiveConfig.bDumpTextures || g_ActiveConfig.bSafeTextureCache)
-	{
-		tex_hash = hash_value;
-		if ((format == GX_TF_C4) || (format == GX_TF_C8) || (format == GX_TF_C14X2))
-		{
-			u32 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], (format == GX_TF_C4) ? 32 : 128);
-			tex_hash ^= tlutHash;
+			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
+			// tlut size can be up to 32768B (GX_TF_C14X2) but Safer == Slower.
+			// This trick (to change the texID depending on the TLUT addr) is a trick to get around
+			// an issue with metroid prime's fonts, where it has multiple sets of fonts on top of
+			// each other stored in a single texture, and uses the palette to make different characters
+			// visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
+			// we must make sure that texture with different tluts get different IDs.
+ 			u32 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], (tex_format == GX_TF_C4) ? 32 : 128);
+			texHash ^= tlutHash;
 			if (g_ActiveConfig.bSafeTextureCache)
 				texID ^= tlutHash;
 		}
 	}
 
+	bool skip_texture_create = false;
 	TexCache::iterator iter = textures.find(texID);
+
 	if (iter != textures.end())
 	{
 		TCacheEntry &entry = iter->second;
+
+		if (!g_ActiveConfig.bSafeTextureCache)
+			hash_value = ((u32 *)ptr)[0];
+
 		if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash)))
 		{
 			entry.frameCount = frameCount;
-			if (lastTexture[stage] == entry.texture)
-			{
-				return &entry;
-			}
-			lastTexture[stage] = entry.texture;
 			D3D::SetTexture(stage, entry.texture);
 			return &entry;
 		}
 		else
 		{
-/*			if (width == iter->second.w && height==entry.h && format==entry.fmt)
+            // Let's reload the new texture data into the same texture,
+			// instead of destroying it and having to create a new one.
+			// Might speed up movie playback very, very slightly.
+
+			if (width == entry.w && height==entry.h && tex_format == entry.fmt)
 			{
-				LPDIRECT3DTEXTURE9 tex = entry.texture;
-				int bs = TexDecoder_GetBlockWidthInTexels(format)-1; //TexelSizeInNibbles(format)*width*height/16;
-				int expandedWidth = (width+bs) & (~bs);
-				D3DFORMAT dfmt = TexDecoder_Decode(temp,ptr,expandedWidth,height,format, tlutaddr, tlutfmt);
-				D3D::ReplaceTexture2D(tex,temp,width,height,expandedWidth,dfmt);
-				D3D::dev->SetTexture(stage,tex);
-				return;
+				skip_texture_create = true;
 			}
 			else
-			{*/
+			{
 				entry.Destroy(false);
 				textures.erase(iter);
-			//}
+			}
 		}
 	}
 	
-	PC_TexFormat pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, format, tlutaddr, tlutfmt);
+	PC_TexFormat pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, tex_format, tlutaddr, tlutfmt);
+
 	D3DFORMAT d3d_fmt;
 	switch (pcfmt) {
 	case PC_TEX_FMT_BGRA32:
@@ -213,23 +203,32 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	//Make an entry in the table
 	TCacheEntry& entry = textures[texID];
 
-	entry.hash = hash_value;
-	//entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
-	entry.paletteHash = palhash;
 	entry.oldpixel = ((u32 *)ptr)[0];
-	//((u32 *)ptr)[entry.hashoffset] = entry.hash;
+	if (g_ActiveConfig.bSafeTextureCache)
+		entry.hash = hash_value;
+	else
+	{
+		entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
+	    ((u32 *)ptr)[0] = entry.hash;
+	}
 
 	entry.addr = address;
+	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, tex_format);
 	entry.isRenderTarget = false;
 	entry.isNonPow2 = ((width & (width - 1)) || (height & (height - 1)));
-	entry.texture = D3D::CreateTexture2D((BYTE*)temp, width, height, expandedWidth, d3d_fmt);
+	if (!skip_texture_create) {
+		entry.texture = D3D::CreateTexture2D((BYTE*)temp, width, height, expandedWidth, d3d_fmt);
+	} else {
+		D3D::ReplaceTexture2D(entry.texture, (BYTE*)temp, width, height, expandedWidth, d3d_fmt);
+	}
 	entry.frameCount = frameCount;
 	entry.w = width;
 	entry.h = height;
-	entry.fmt = format;
+	entry.fmt = tex_format;
 	
 	if (g_ActiveConfig.bDumpTextures)
-	{ // dump texture to file
+	{
+		// dump texture to file
 		char szTemp[MAX_PATH];
 		char szDir[MAX_PATH];
 		const char* uniqueId = globals->unique_id;
@@ -242,7 +241,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 			bCheckedDumpDir = true;
 		}
-		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir, uniqueId, tex_hash, format);
+		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir, uniqueId, texHash, tex_format);
 		//sprintf(szTemp, "%s\\txt_%04i_%i.png", g_Config.texDumpPath.c_str(), counter++, format); <-- Old method
 		if (!File::Exists(szTemp))
 			D3DXSaveTextureToFileA(szTemp,D3DXIFF_BMP,entry.texture,0);
@@ -253,8 +252,6 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 	//Set the texture!
 	D3D::SetTexture(stage, entry.texture);
-
-	lastTexture[stage] = entry.texture;
 
 	DEBUGGER_PAUSE_LOG_AT(NEXT_NEW_TEXTURE,true,{printf("A new texture (%d x %d) is loaded", width, height);});
 	return &entry;

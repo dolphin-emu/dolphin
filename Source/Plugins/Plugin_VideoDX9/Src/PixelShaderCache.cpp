@@ -151,6 +151,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 
 void PixelShaderCache::Cleanup()
 {
+	/*
 	PSCache::iterator iter;
 	iter = PixelShaders.begin();
 	while (iter != PixelShaders.end())
@@ -167,6 +168,7 @@ void PixelShaderCache::Cleanup()
 		}
 	}
 	SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
+	*/
 }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)

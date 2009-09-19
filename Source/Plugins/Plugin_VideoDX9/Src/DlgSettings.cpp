@@ -92,6 +92,7 @@ struct TabDirect3D : public W32Util::Tab
 		CheckDlgButton(hDlg, IDC_ASPECT_16_9, g_Config.bKeepAR169 ? TRUE : FALSE);
 		CheckDlgButton(hDlg, IDC_ASPECT_4_3, g_Config.bKeepAR43 ? TRUE : FALSE);
 		CheckDlgButton(hDlg, IDC_WIDESCREEN_HACK, g_Config.bWidescreenHack ? TRUE : FALSE);
+		CheckDlgButton(hDlg, IDC_SAFE_TEXTURE_CACHE, g_Config.bSafeTextureCache ? TRUE : FALSE);
 	}
 
 	void Command(HWND hDlg,WPARAM wParam)
@@ -113,6 +114,9 @@ struct TabDirect3D : public W32Util::Tab
 			break;
 		case IDC_WIREFRAME:
 			g_Config.bWireFrame = Button_GetCheck(GetDlgItem(hDlg,IDC_WIREFRAME)) ? true : false;
+			break;
+		case IDC_SAFE_TEXTURE_CACHE:
+			g_Config.bSafeTextureCache = Button_GetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE));
 			break;
 		default:
 			break;

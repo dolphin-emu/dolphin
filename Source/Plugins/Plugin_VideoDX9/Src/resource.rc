@@ -2,15 +2,6 @@
 //
 #include "resource.h"
 #include <windows.h>
-
-#define APSTUDIO_READONLY_SYMBOLS
-/////////////////////////////////////////////////////////////////////////////
-//
-// Generated from the TEXTINCLUDE 2 resource.
-//
-/////////////////////////////////////////////////////////////////////////////
-#undef APSTUDIO_READONLY_SYMBOLS
-
 /////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
 
@@ -36,7 +27,7 @@ BEGIN
     LTEXT           "Will not work correctly on older GPU:s.",IDC_STATIC,7,47,170,8
 END
 
-IDD_SETTINGS DIALOGEX 0, 0, 231, 174
+IDD_SETTINGS DIALOGEX 0, 0, 231, 194
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
@@ -57,6 +48,7 @@ BEGIN
     CONTROL         "4:3",IDC_ASPECT_4_3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,66,59,11
     CONTROL         "16:9",IDC_ASPECT_16_9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,80,49,11
     CONTROL         "&Widescreen Hack",IDC_WIDESCREEN_HACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,128,81,73,10
+    CONTROL         "&Safe Texture Cache",IDC_SAFE_TEXTURE_CACHE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,172,85,11
 END
 
 IDD_DEBUGGER DIALOGEX 0, 0, 234, 254
@@ -128,7 +120,7 @@ BEGIN
         VERTGUIDE, 81
         VERTGUIDE, 87
         TOPMARGIN, 7
-        BOTTOMMARGIN, 167
+        BOTTOMMARGIN, 187
     END
 
     IDD_DEBUGGER, DIALOG
@@ -198,7 +190,7 @@ END
 // Generated from the TEXTINCLUDE 3 resource.
 //
 
-À
+
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

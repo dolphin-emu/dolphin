@@ -36,7 +36,6 @@ public:
         u32 size_in_bytes;
         u32 hash;
         u32 paletteHash;
-        u32 hashoffset;
         u32 oldpixel; // used for simple cleanup
         TexMode0 mode; // current filter and clamp modes that texture is set to
 

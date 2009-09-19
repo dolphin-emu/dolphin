@@ -129,6 +129,13 @@ void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int w
 	D3DLOCKED_RECT Lock;
 	pTexture->LockRect(level, &Lock, NULL, 0);
 	u32* pIn = pBuffer;
+
+	bool bExpand = false;
+
+	if (fmt == D3DFMT_A8P8) {
+		fmt = D3DFMT_A8L8;
+		bExpand = true;
+	}
 	switch(fmt) 
 	{
 	case D3DFMT_A8R8G8B8:
@@ -141,8 +148,59 @@ void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int w
 			}
 		}
 		break;
+	case D3DFMT_L8:
+	case D3DFMT_A8:
+	case D3DFMT_A4L4:
+		{
+			const u8 *pIn = buffer;
+			for (int y = 0; y < height; y++)
+			{
+				u8* pBits = ((u8*)Lock.pBits + (y * Lock.Pitch));
+				memcpy(pBits, pIn, width);
+				pIn += pitch;
+			}
+		}
+		break;
+	case D3DFMT_R5G6B5:
+		{
+			const u16 *pIn = (u16*)buffer;
+			for (int y = 0; y < height; y++)
+			{
+				u16* pBits = (u16*)((u8*)Lock.pBits + (y * Lock.Pitch));
+				memcpy(pBits, pIn, width * 2);
+				pIn += pitch;
+			}
+		}
+		break;
+	case D3DFMT_A8L8:
+		{
+			if (bExpand) { // I8
+				const u8 *pIn = buffer;
+				// TODO(XK): Find a better way that does not involve either unpacking
+				//           or downsampling (i.e. A4L4)
+				for (int y = 0; y < height; y++)
+				{
+					u8* pBits = ((u8*)Lock.pBits + (y * Lock.Pitch));
+					for(int i = 0; i < width * 2; i += 2) {
+						pBits[i] = pIn[i / 2];
+						pBits[i + 1] = pIn[i / 2];
+					}
+					pIn += pitch;
+				}
+			} else { // IA8
+				const u16 *pIn = (u16*)buffer;
+
+				for (int y = 0; y < height; y++)
+				{
+					u16* pBits = (u16*)((u8*)Lock.pBits + (y * Lock.Pitch));
+					memcpy(pBits, pIn, width * 2);
+					pIn += pitch;
+				}
+			}
+		}
+		break;
 	case D3DFMT_DXT1:
-		memcpy(Lock.pBits,buffer,(width/4)*(height/4)*8);
+		memcpy(Lock.pBits, buffer, (width/4) * (height/4) * 8);
 		break;
 	}
 	pTexture->UnlockRect(level); 

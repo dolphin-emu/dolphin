@@ -148,7 +148,7 @@ void TextureMngr::TCacheEntry::Destroy(bool shutdown)
         return;
     glDeleteTextures(1, &texture);
     if (!isRenderTarget && !shutdown && !g_ActiveConfig.bSafeTextureCache) {
-        u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr + hashoffset * 4);
+        u32 *ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr);
         if (ptr && *ptr == hash)
             *ptr = oldpixel;
     }
@@ -183,12 +183,6 @@ void TextureMngr::Shutdown()
     temp = NULL;
 }
 
-#ifdef _WIN32
-#define ERASE_THROUGH_ITERATOR(container, iterator) iterator = container.erase(iterator)
-#else
-#define ERASE_THROUGH_ITERATOR(container, iterator) container.erase(iterator++)
-#endif
-
 void TextureMngr::ProgressiveCleanup()
 {
     TexCache::iterator iter = textures.begin();
@@ -210,7 +204,8 @@ void TextureMngr::ProgressiveCleanup()
     }
 }
 
-void TextureMngr::InvalidateRange(u32 start_address, u32 size) {
+void TextureMngr::InvalidateRange(u32 start_address, u32 size)
+{
 	TexCache::iterator iter = textures.begin();
 	while (iter != textures.end())
 	{
@@ -291,11 +286,12 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	bool skip_texture_create = false;
 	TexCache::iterator iter = textures.find(texID);
 
-	if (iter != textures.end()) {
+	if (iter != textures.end())
+	{
         TCacheEntry &entry = iter->second;
 
 		if (!g_ActiveConfig.bSafeTextureCache)
-			hash_value = ((u32 *)ptr)[entry.hashoffset];
+			hash_value = ((u32 *)ptr)[0];
 
         if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash)))
 		{
@@ -355,20 +351,15 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	if (dfmt == PC_TEX_FMT_NONE)
 		dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt);
 
-	entry.hashoffset = 0;
-    //entry.paletteHash = hashseed;
-    entry.oldpixel = ((u32 *)ptr)[entry.hashoffset];
+    entry.oldpixel = ((u32 *)ptr)[0];
 
 	if (g_ActiveConfig.bSafeTextureCache)
 		entry.hash = hash_value;
 	else 
 	{
 		entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
-	    ((u32 *)ptr)[entry.hashoffset] = entry.hash;
+	    ((u32 *)ptr)[0] = entry.hash;
 	}
-	//DebugLog("%c  addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_ActiveConfig.bSafeTextureCache ? 'S' : 'U'
- 	//		, address, tex_format, entry.hash, width, height);
-	
 
     entry.addr = address;
 	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, tex_format);
@@ -511,7 +502,6 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
 	TCacheEntry& entry = textures[address];
 	entry.hash = 0;
-	entry.hashoffset = 0;
 	entry.frameCount = frameCount;
 
 	int w = (abs(source_rect.GetWidth()) >> bScaleByHalf);

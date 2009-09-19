@@ -182,6 +182,7 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 
 void VertexShaderCache::ProgressiveCleanup()
 {
+	/*
 	VSCache::iterator iter = vshaders.begin();
 	while (iter != vshaders.end()) {
 		VSCacheEntry &entry = iter->second;
@@ -199,6 +200,7 @@ void VertexShaderCache::ProgressiveCleanup()
 	}
 
 	SETSTAT(stats.numVertexShadersAlive, vshaders.size());
+	*/
 }
 
 bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrprogram)

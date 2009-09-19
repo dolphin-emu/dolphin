@@ -56,8 +56,17 @@ enum Collection
 	C_POINTS,
 };
 
+const D3DPRIMITIVETYPE pts[3] = 
+{
+	D3DPT_POINTLIST, //DUMMY
+	D3DPT_TRIANGLELIST, 
+	D3DPT_LINELIST,
+};
+
 static IndexGenerator indexGen;
 static Collection collection;
+
+int lastPrimitive;
 
 static u8 *fakeVBuffer;   // format undefined - NativeVertexFormat takes care of the declaration.
 static u16 *fakeIBuffer;  // These are just straightforward 16-bit indices.
@@ -67,15 +76,28 @@ static u16 *fakeIBuffer;  // These are just straightforward 16-bit indices.
 
 const Collection collectionTypeLUT[8] =
 {
-	C_TRIANGLES,//quads
-	C_NOTHING,  //nothing
-	C_TRIANGLES,//triangles
-	C_TRIANGLES,//strip
-	C_TRIANGLES,//fan
-	C_LINES,    //lines
-	C_LINES,    //linestrip
-	C_POINTS    //guess :P
+	C_TRIANGLES, //quads
+	C_NOTHING,   //nothing
+	C_TRIANGLES, //triangles
+	C_TRIANGLES, //strip
+	C_TRIANGLES, //fan
+	C_LINES,     //lines
+	C_LINES,     //linestrip
+	C_POINTS     //guess :P
 };
+
+const D3DPRIMITIVETYPE gxPrimToD3DPrim[8] = {
+	(D3DPRIMITIVETYPE)0,  // not supported
+	(D3DPRIMITIVETYPE)0,  // nothing
+
+	D3DPT_TRIANGLELIST,
+	D3DPT_TRIANGLESTRIP,
+	D3DPT_TRIANGLEFAN,
+
+	D3DPT_LINELIST,
+	D3DPT_LINESTRIP,
+};
+
 
 void CreateDeviceObjects();
 void DestroyDeviceObjects();
@@ -116,7 +138,7 @@ void AddIndices(int _primitive, int _numVertices)
 	case GX_DRAW_TRIANGLE_FAN:   indexGen.AddFan(_numVertices);       return;
 	case GX_DRAW_LINE_STRIP:     indexGen.AddLineStrip(_numVertices); return;
 	case GX_DRAW_LINES:		     indexGen.AddLineList(_numVertices);  return;
-	case GX_DRAW_POINTS:         indexGen.AddPointList(_numVertices); return;
+	case GX_DRAW_POINTS:         indexGen.AddPoints(_numVertices);    return;
 	}
 }
 
@@ -129,7 +151,8 @@ void AddVertices(int _primitive, int _numVertices)
 {
 	if (_numVertices <= 0) //This check is pretty stupid... 
 		return;
-	
+	lastPrimitive = _primitive;
+
 	Collection type = collectionTypeLUT[_primitive];
 	if (type == C_NOTHING)
 		return;
@@ -166,12 +189,55 @@ void AddVertices(int _primitive, int _numVertices)
 	}
 }
 
-const D3DPRIMITIVETYPE pts[3] = 
+inline void Draw(int numVertices, int stride)
 {
-	D3DPT_POINTLIST, //DUMMY
-	D3DPT_TRIANGLELIST, 
-	D3DPT_LINELIST,
-};
+	if (collection != C_POINTS)
+	{
+		int numPrimitives = indexGen.GetNumPrims();
+		/*  For some reason, this makes things slower!
+		if ((indexGen.GetNumAdds() == 1 || indexGen.GetOnlyLists()) && lastPrimitive != GX_DRAW_QUADS && gxPrimToD3DPrim[lastPrimitive])
+		{
+			if (FAILED(D3D::dev->DrawPrimitiveUP(
+				gxPrimToD3DPrim[lastPrimitive],
+				numPrimitives,
+				fakeVBuffer,
+				stride))) {
+#if defined(_DEBUG) || defined(DEBUGFAST)
+				std::string error_shaders;
+				error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
+				error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
+				File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
+				PanicAlert("DrawPrimitiveUP failed. Shaders written to bad_shader_combo.txt.");
+#endif
+			}
+			INCSTAT(stats.thisFrame.numDrawCalls);
+		} else*/ {
+			if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
+				pts[(int)collection], 
+				0, numVertices, numPrimitives,
+				fakeIBuffer,
+				D3DFMT_INDEX16,
+				fakeVBuffer,
+				stride))) {
+#if defined(_DEBUG) || defined(DEBUGFAST)
+				std::string error_shaders;
+				error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
+				error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
+				File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
+				PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to bad_shader_combo.txt.");
+#endif
+			}
+			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+		}
+	}
+	else
+	{
+		D3D::dev->SetIndices(0);
+		D3D::dev->DrawPrimitiveUP(D3DPT_POINTLIST, numVertices, fakeVBuffer, stride);
+		INCSTAT(stats.thisFrame.numDrawCalls);
+	}
+
+}
 
 void Flush()
 {
@@ -219,73 +285,26 @@ void Flush()
 			VertexShaderManager::SetConstants();
 			PixelShaderManager::SetConstants();
 
-			if (!PixelShaderCache::SetShader(false))
-				goto shader_fail;
 			if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
+				goto shader_fail;
+			if (!PixelShaderCache::SetShader(false))
 				goto shader_fail;
 
 			int stride = g_nativeVertexFmt->GetVertexStride();
 			g_nativeVertexFmt->SetupVertexPointers();
-			if (collection != C_POINTS)
-			{
-				int numPrimitives = indexGen.GetNumPrims();
-				if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
-					pts[(int)collection], 
-					0, numVertices, numPrimitives,
-					fakeIBuffer,
-					D3DFMT_INDEX16,
-					fakeVBuffer,
-					stride))) {
-#if defined(_DEBUG) || defined(DEBUGFAST)
-					std::string error_shaders;
-					error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
-					error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
-					File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
-					PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to bad_shader_combo.txt.");
-#endif
-				}
-			}
-			else
-			{
-				D3D::dev->SetIndices(0);
-				D3D::dev->DrawPrimitiveUP(D3DPT_POINTLIST, numVertices, fakeVBuffer, stride);
-			}
+
+			Draw(numVertices, stride);
 
 			if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
 			{
 				DWORD write = 0;
 				if (!PixelShaderCache::SetShader(true))
 					goto shader_fail;
-
 				// update alpha only
 				D3D::SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
 				D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, false);
 
-				g_nativeVertexFmt->SetupVertexPointers();
-				if (collection != C_POINTS)
-				{
-					int numPrimitives = indexGen.GetNumPrims();
-					if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
-						pts[(int)collection], 
-						0, numVertices, numPrimitives,
-						fakeIBuffer,
-						D3DFMT_INDEX16,
-						fakeVBuffer,
-						stride))) {
-#if defined(_DEBUG) || defined(DEBUGFAST)
-						std::string error_shaders;
-						error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
-						error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
-						File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
-						PanicAlert("DrawIndexedPrimitiveUP failed (dstalpha). Shaders written to bad_shader_combo.txt.");
-#endif
-					}
-				}
-				else
-				{
-					D3D::dev->SetIndices(0);
-					D3D::dev->DrawPrimitiveUP(D3DPT_POINTLIST, numVertices, fakeVBuffer, stride);
-				}
+				Draw(numVertices, stride);
 
 				if (bpmem.blendmode.alphaupdate) 
 					write = D3DCOLORWRITEENABLE_ALPHA;
@@ -295,11 +314,7 @@ void Flush()
 					D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, true);
 
 				D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
-
-				INCSTAT(stats.thisFrame.numDrawCalls);
 			}
-
-			INCSTAT(stats.thisFrame.numDrawCalls);
 		}
 shader_fail:
 		collection = C_NOTHING;

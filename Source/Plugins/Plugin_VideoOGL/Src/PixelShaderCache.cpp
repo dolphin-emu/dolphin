@@ -222,6 +222,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 
 void PixelShaderCache::ProgressiveCleanup()
 {
+	/*
 	PSCache::iterator iter = pshaders.begin();
 	while (iter != pshaders.end()) {
 		PSCacheEntry &entry = iter->second;
@@ -237,6 +238,7 @@ void PixelShaderCache::ProgressiveCleanup()
 			iter++;
 	}
 	SETSTAT(stats.numPixelShadersAlive, (int)pshaders.size());
+	*/
 }
 
 bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)

@@ -67,6 +67,7 @@ struct Statistics
 
 	    int numPrimitiveJoins;
 	    int numDrawCalls;
+	    int numIndexedDrawCalls;
 	    int numBufferSplits;
 
 		int numDListsCalled;

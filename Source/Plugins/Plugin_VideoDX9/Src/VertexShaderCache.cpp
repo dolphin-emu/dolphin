@@ -203,6 +203,7 @@ bool VertexShaderCache::SetShader(u32 components)
 
 void VertexShaderCache::Cleanup()
 {
+	/*
 	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end();)
 	{
 		VSCacheEntry &entry = iter->second;
@@ -216,7 +217,8 @@ void VertexShaderCache::Cleanup()
 			++iter;
 		}
 	}
-	SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
+	SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());*/
+
 }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
