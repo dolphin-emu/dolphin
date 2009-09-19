@@ -162,7 +162,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 void D3DVertexFormat::SetupVertexPointers() const
 {
 	if (d3d_decl)
-		D3D::dev->SetVertexDeclaration(d3d_decl);
+		D3D::SetVertexDeclaration(d3d_decl);
 	else
 		ERROR_LOG(VIDEO, "invalid d3d decl");
 }

@@ -58,6 +58,7 @@ static DWORD m_RenderStates[MaxRenderStates];
 static DWORD m_TextureStageStates[MaxTextureStages][MaxTextureTypes];
 static DWORD m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
 LPDIRECT3DBASETEXTURE9 m_Textures[16];
+LPDIRECT3DVERTEXDECLARATION9 m_VtxDecl;
 
 void Enumerate();
 
@@ -256,25 +257,18 @@ HRESULT Create(int adapter, HWND wnd, bool _fullscreen, int _resolution, int aa_
 		adapter, 
 		D3DDEVTYPE_HAL, 
 		wnd,
-		D3DCREATE_HARDWARE_VERTEXPROCESSING,
+		D3DCREATE_HARDWARE_VERTEXPROCESSING, // | D3DCREATE_PUREDEVICE,  doesn't seem to make a difference
 		&d3dpp, &dev)))
 	{
-		MessageBox(wnd,
-			_T("Sorry, but it looks like your 3D accelerator is too old,\n")
-			_T("or doesn't support features that Dolphin requires.\n")
-			_T("Falling back to software vertex processing.\n"),
-			_T("Dolphin Direct3D plugin"), MB_OK | MB_ICONERROR);
 		if (FAILED(D3D->CreateDevice( 
 			adapter, 
 			D3DDEVTYPE_HAL, 
 			wnd,
-			D3DCREATE_SOFTWARE_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
-			// |D3DCREATE_MULTITHREADED /* | D3DCREATE_PUREDEVICE*/,
-			//D3DCREATE_SOFTWARE_VERTEXPROCESSING ,
+			D3DCREATE_SOFTWARE_VERTEXPROCESSING,
 			&d3dpp, &dev)))
 		{
 			MessageBox(wnd,
-				_T("Software VP failed too. Upgrade your graphics card."),
+				_T("Failed to initialize Direct3D."),
 				_T("Dolphin Direct3D plugin"), MB_OK | MB_ICONERROR);
 			return E_FAIL;
 		}
@@ -442,6 +436,7 @@ void ApplyCachedState()
 	// so no stale state is around.
 	memset(m_Textures, 0, sizeof(m_Textures));
 	memset(m_TextureStageStates, 0xFF, sizeof(m_TextureStageStates));
+	m_VtxDecl = NULL;
 }
 
 void SetTexture(DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture)
@@ -478,6 +473,19 @@ void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
 	{
 		m_SamplerStates[Sampler][Type] = Value;
 		D3D::dev->SetSamplerState(Sampler, Type, Value);
+	}
+}
+
+void SetVertexDeclaration(LPDIRECT3DVERTEXDECLARATION9 decl)
+{
+	if (!decl) {
+		m_VtxDecl = NULL;
+		return;
+	}
+	if (decl != m_VtxDecl)
+	{
+		D3D::dev->SetVertexDeclaration(decl);
+		m_VtxDecl = decl;
 	}
 }
 

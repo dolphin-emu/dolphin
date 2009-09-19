@@ -73,6 +73,7 @@ void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
 void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);
 void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
 void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
+void SetVertexDeclaration(LPDIRECT3DVERTEXDECLARATION9 decl);
 void ApplyCachedState();
 
 // Utility functions for vendor specific hacks. So far, just the one.

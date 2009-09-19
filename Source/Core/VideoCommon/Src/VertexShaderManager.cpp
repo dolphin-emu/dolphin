@@ -100,9 +100,8 @@ void VertexShaderManager::SetConstants()
         int startn = nNormalMatricesChanged[0] / 3;
         int endn = (nNormalMatricesChanged[1] + 2) / 3;
         const float *pnstart = (const float*)&xfmem[XFMEM_NORMALMATRICES+3*startn];
-        for (int i = startn; i < endn; ++i, pnstart += 3)
-            SetVSConstant4fv(C_NORMALMATRICES + i, pnstart);  // looks like we're reading one too much..
-        nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
+        SetMultiVSConstant3fv(C_NORMALMATRICES + startn, endn - startn, pnstart);
+		nNormalMatricesChanged[0] = nNormalMatricesChanged[1] = -1;
     }
 
     if (nPostTransformMatricesChanged[0] >= 0)
@@ -165,9 +164,7 @@ void VertexShaderManager::SetConstants()
         const float *norm = (const float *)xfmem + XFMEM_NORMALMATRICES + 3 * (MatrixIndexA.PosNormalMtxIdx & 31);
 
         SetMultiVSConstant4fv(C_POSNORMALMATRIX, 3, pos);
-        SetVSConstant4fv(C_POSNORMALMATRIX+3, norm);
-        SetVSConstant4fv(C_POSNORMALMATRIX+4, norm + 3);
-        SetVSConstant4fv(C_POSNORMALMATRIX+5, norm + 6);
+		SetMultiVSConstant3fv(C_POSNORMALMATRIX + 3, 3, norm);
 	}
 
     if (bTexMatricesChanged[0])

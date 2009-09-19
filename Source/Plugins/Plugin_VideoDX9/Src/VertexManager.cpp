@@ -99,6 +99,7 @@ void Shutdown()
 
 void CreateDeviceObjects()
 {
+	
 }
 
 void DestroyDeviceObjects()
@@ -140,12 +141,8 @@ void AddVertices(int _primitive, int _numVertices)
 
 	if (collection != type)
 	{
-		//We are NOT collecting the right type.
+		// We are NOT collecting the right type.
 		Flush();
-
-		// Copy the extra verts that we lost.
-		memcpy(s_pCurBufferPointer, fakeVBuffer, _numVertices * g_nativeVertexFmt->GetVertexStride());
-
 		collection = type;
 		u16 *ptr = 0;
 		if (type != C_POINTS)

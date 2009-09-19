@@ -227,6 +227,7 @@ void CD3DFont::SetRenderStates()
 	dev->SetPixelShader(0);
 	dev->SetVertexShader(0);
 	
+	D3D::SetVertexDeclaration(NULL);  // throw away cached vtx decl
 	dev->SetFVF(D3DFVF_FONT2DVERTEX);
 
 	for (int i = 0; i < 6; i++)
@@ -366,6 +367,7 @@ void quad2d(float x1, float y1, float x2, float y2, u32 color, float u1, float v
 	dev->SetVertexShader(0);
 	dev->SetVertexDeclaration(0);
 	
+	D3D::SetVertexDeclaration(NULL);  // throw away cached vtx decl
 	dev->SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1);
 	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));
 	
