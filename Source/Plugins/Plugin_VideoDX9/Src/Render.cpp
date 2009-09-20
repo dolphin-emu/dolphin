@@ -238,16 +238,62 @@ void CheckForResize()
 	}
 }
 
-
-void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
+static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 {
-	if (g_bSkipCurrentFrame)
+	// Set the backbuffer as the rendering target
+	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
+	D3D::dev->SetDepthStencilSurface(NULL);
+
+	// Blit our render target onto the backbuffer.
+	// TODO: Change to a quad so we can do post processing.
+	TargetRectangle src_rect, dst_rect;
+	src_rect = Renderer::ConvertEFBRectangle(sourceRc);
+	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
+
+	//LPD3DXSPRITE pSprite=NULL;
+	//D3DXCreateSprite(D3D::dev, &pSprite);
+	//D3DXVECTOR3 pos(0,0,0);
+	//EFBRectangle efbRect;
+	//
+	//pSprite->Begin(D3DXSPRITE_ALPHABLEND);
+	//pSprite->Draw(FBManager::GetEFBColorTexture(efbRect),NULL, NULL, &pos, 0xFFFFFFFF);
+	//pSprite->End();
+	//pSprite->Release();
+
+	//D3D::dev->Clear(0,NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,D3DCOLOR_XRGB(0,0,0),1.0f,0);
+
+	// todo, to draw the EFB texture to the backbuffer instead of StretchRect
+	D3D::dev->StretchRect(FBManager::GetEFBColorRTSurface(), src_rect.AsRECT(),
+		D3D::GetBackBufferSurface(), dst_rect.AsRECT(),
+		D3DTEXF_LINEAR);
+
+	// Finish up the current frame, print some stats
+	if (g_ActiveConfig.bOverlayStats)
 	{
-		g_VideoInitialize.pCopiedToXFB(false);
-		DEBUGGER_PAUSE_LOG_AT(NEXT_XFB_CMD,false,{printf("RenderToXFB - disabled");});
-		return;
+		Statistics::ToString(st);
+		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
+	}
+	else if (g_ActiveConfig.bOverlayProjStats)
+	{
+		Statistics::ToStringProj(st);
+		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
 	}
 
+	OSD::DrawMessages();
+
+	// u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
+
+	// Clear the render target. We probably don't need to do this every frame.
+	//D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 1.0f, 0);
+
+	// Set rendering target back to the EFB rendering texture
+	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+}
+
+
+static void D3DDumpFrame()
+{
 	if (EmuWindow::GetParentWnd())
 	{
 		// Re-stretch window to parent window size again, if it has a parent window.
@@ -308,18 +354,23 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 
 		s_LastFrameDumped = false;
 	}
+}
 
-	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
-	D3D::dev->SetDepthStencilSurface(NULL);
 
-	// Blit our render target onto the backbuffer.
-	// TODO: Change to a quad so we can do post processing.
-	TargetRectangle src_rect, dst_rect;
-	src_rect = ConvertEFBRectangle(sourceRc);
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-	D3D::dev->StretchRect(FBManager::GetEFBColorRTSurface(), src_rect.AsRECT(),
-		                  D3D::GetBackBufferSurface(), dst_rect.AsRECT(),
-						  D3DTEXF_LINEAR);
+void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
+{
+	if (g_bSkipCurrentFrame)
+	{
+		g_VideoInitialize.pCopiedToXFB(false);
+		DEBUGGER_PAUSE_LOG_AT(NEXT_XFB_CMD,false,{printf("RenderToXFB - disabled");});
+		return;
+	}
+
+	D3D::EndFrame();
+	D3DDumpFrame();
+	EFBTextureToD3DBackBuffer(sourceRc);
+	D3D::BeginFrame();
+
 	DEBUGGER_LOG_AT((NEXT_XFB_CMD|NEXT_EFB_CMD|NEXT_FRAME),
 		{printf("StretchRect, EFB->XFB\n");});
 	DEBUGGER_PAUSE_LOG_AT(
@@ -329,29 +380,6 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 		sourceRc.left, sourceRc.top, sourceRc.right, sourceRc.bottom);}
 	);
 
-	// Finish up the current frame, print some stats
-	if (g_ActiveConfig.bOverlayStats)
-	{
-		Statistics::ToString(st);
-		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
-	}
-	else if (g_ActiveConfig.bOverlayProjStats)
-	{
-		Statistics::ToStringProj(st);
-		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
-	}
-
-	OSD::DrawMessages();
-	D3D::EndFrame();
-
-	// u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
-	D3D::BeginFrame();
-
-	// Clear the render target. We probably don't need to do this every frame.
-	//D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 1.0f, 0);
-
-	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
 
 	RECT rc;
 	rc.left   = 0; 

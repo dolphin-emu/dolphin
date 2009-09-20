@@ -402,13 +402,13 @@ void EndFrame()
 		return;
 	}
 	bFrameInProgress = false;
+	dev->EndScene();
 }
 
 void Present()
 {
 	if (dev)
 	{
-		dev->EndScene();
 		dev->Present(NULL, NULL, NULL, NULL);
 	}
 
