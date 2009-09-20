@@ -157,6 +157,7 @@ void Renderer::Shutdown()
 {
 	TeardownDeviceObjects();
 	D3D::EndFrame();
+	D3D::Present();
 	D3D::Close();
 
 	if (s_AVIDumping)
@@ -319,6 +320,14 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	D3D::dev->StretchRect(FBManager::GetEFBColorRTSurface(), src_rect.AsRECT(),
 		                  D3D::GetBackBufferSurface(), dst_rect.AsRECT(),
 						  D3DTEXF_LINEAR);
+	DEBUGGER_LOG_AT((NEXT_XFB_CMD|NEXT_EFB_CMD|NEXT_FRAME),
+		{printf("StretchRect, EFB->XFB\n");});
+	DEBUGGER_PAUSE_LOG_AT(
+		(NEXT_XFB_CMD),false,
+	{printf("RenderToXFB: addr = %08X, %d x %d, sourceRc = (%d,%d,%d,%d)\n", 
+		xfbAddr, fbWidth, fbHeight, 
+		sourceRc.left, sourceRc.top, sourceRc.right, sourceRc.bottom);}
+	);
 
 	// Finish up the current frame, print some stats
 	if (g_ActiveConfig.bOverlayStats)
@@ -335,34 +344,11 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	OSD::DrawMessages();
 	D3D::EndFrame();
 
-	// D3D frame is now over
-	// Clean out old stuff from caches.
-	frameCount++;
-	PixelShaderCache::Cleanup();
-	VertexShaderCache::Cleanup();
-	TextureCache::Cleanup();
-
-	// Make any new configuration settings active.
-	UpdateActiveConfig();
-
-	// TODO: Resize backbuffer if window size has changed. This code crashes, debug it.
-	g_VideoInitialize.pCopiedToXFB(false);
-
-	CheckForResize();
-
-	DEBUGGER_PAUSE_LOG_AT(NEXT_XFB_CMD,false,{printf("RenderToXFB");});
-	DEBUGGER_PAUSE_AT(NEXT_FRAME,false);
-
-
-
-	// Begin new frame
-	// Set default viewport and scissor, for the clear to work correctly
-	stats.ResetFrame();
 	// u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 	D3D::BeginFrame();
 
-	// Clear backbuffer. We probably don't need to do this every frame.
-	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 1.0f, 0);
+	// Clear the render target. We probably don't need to do this every frame.
+	//D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 1.0f, 0);
 
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
@@ -376,6 +362,9 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, false);
 
 	UpdateViewport();
+
+	//Swap(0,FIELD_PROGRESSIVE,0,0);	// we used to swap the buffer here, now we will wait
+										// until the XFB pointer is updated by VI
 }
 
 bool Renderer::SetScissorRect()
@@ -528,4 +517,34 @@ void UpdateViewport()
 	if (vp.MaxZ > 1.0f) vp.MaxZ = 1.0f;
 	
 	D3D::dev->SetViewport(&vp);
+}
+
+void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
+{
+	// this function is called after the XFB field is changed, not after
+	// EFB is copied to XFB. In this way, flickering is reduced in games
+	// and seems to also give more FPS in ZTP
+
+	// D3D frame is now over
+	// Clean out old stuff from caches.
+	frameCount++;
+	PixelShaderCache::Cleanup();
+	VertexShaderCache::Cleanup();
+	TextureCache::Cleanup();
+
+	// Make any new configuration settings active.
+	UpdateActiveConfig();
+
+	//TODO: Resize backbuffer if window size has changed. This code crashes, debug it.
+	g_VideoInitialize.pCopiedToXFB(false);
+
+	CheckForResize();
+
+
+	// Begin new frame
+	// Set default viewport and scissor, for the clear to work correctly
+	stats.ResetFrame();
+
+	// Flip/present backbuffer to frontbuffer here
+	D3D::Present();
 }

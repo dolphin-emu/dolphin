@@ -23,6 +23,7 @@
 #include "VertexManager.h"
 #include "VertexShaderManager.h"
 #include "Utils.h"
+#include "debugger/debugger.h"
 
 
 bool textureChanged[8];
@@ -209,6 +210,9 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 			//TextureConverter::EncodeToRam(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
 		//else // To D3D Texture
 			TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
+			DEBUGGER_PAUSE_LOG_AT(NEXT_EFB_CMD,false,
+			{printf("EFB to texture: addr = %08X\n",address);});
+
 	}
 }
 
@@ -229,8 +233,7 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 
 	if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
 	{                    
-		if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
-			col = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
+		col = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
 		clearflags |= D3DCLEAR_TARGET;   // set to break animal crossing :p  ??
 	}
 

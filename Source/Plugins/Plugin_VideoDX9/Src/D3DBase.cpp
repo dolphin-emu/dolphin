@@ -402,7 +402,10 @@ void EndFrame()
 		return;
 	}
 	bFrameInProgress = false;
+}
 
+void Present()
+{
 	if (dev)
 	{
 		dev->EndScene();

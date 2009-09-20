@@ -54,6 +54,7 @@ extern bool bFrameInProgress;
 void Reset();
 bool BeginFrame();
 void EndFrame();
+void Present();
 void SwitchFullscreen(bool fullscreen);
 bool IsFullscreen();
 bool CanUseINTZ();

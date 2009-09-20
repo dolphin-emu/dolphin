@@ -317,4 +317,8 @@ have_texture:
 	srcSurface = FBManager::GetEFBColorRTSurface();
 	D3D::dev->StretchRect(srcSurface, &source_rc, destSurface, &dest_rc, D3DTEXF_LINEAR);
 	destSurface->Release();
+
+	DEBUGGER_LOG_AT((NEXT_XFB_CMD|NEXT_EFB_CMD|NEXT_FRAME|NEXT_NEW_TEXTURE|NEXT_FLUSH),
+	{printf("StretchRect, EFB (%d,%d) -> Texture at 0x%08X (%d,%d)\n",efb_w,efb_h,address,tex_w,tex_h);});
+	DEBUGGER_PAUSE_AT((NEXT_EFB_CMD|NEXT_NEW_TEXTURE),false);
 }

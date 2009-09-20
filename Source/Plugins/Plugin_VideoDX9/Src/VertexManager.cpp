@@ -273,7 +273,10 @@ void Flush()
 					PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
 				}
 				else
+				{
+					DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to load texture\n");});
 					ERROR_LOG(VIDEO, "error loading texture");
+				}
 			}
 		}
 		PixelShaderManager::SetTexturesUsed(0);
@@ -285,10 +288,17 @@ void Flush()
 			VertexShaderManager::SetConstants();
 			PixelShaderManager::SetConstants();
 
-			if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
-				goto shader_fail;
 			if (!PixelShaderCache::SetShader(false))
+			{
+				DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 				goto shader_fail;
+			}
+			if (!VertexShaderCache::SetShader(g_nativeVertexFmt->m_components))
+			{
+				DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set vertex shader\n");});
+				goto shader_fail;
+
+			}
 
 			int stride = g_nativeVertexFmt->GetVertexStride();
 			g_nativeVertexFmt->SetupVertexPointers();
@@ -299,7 +309,11 @@ void Flush()
 			{
 				DWORD write = 0;
 				if (!PixelShaderCache::SetShader(true))
+				{
+					DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
 					goto shader_fail;
+				}
+
 				// update alpha only
 				D3D::SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
 				D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, false);
@@ -315,13 +329,12 @@ void Flush()
 
 				D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 			}
+			DEBUGGER_PAUSE_AT(NEXT_FLUSH,true);
 		}
 shader_fail:
 		collection = C_NOTHING;
 		VertexManager::s_pCurBufferPointer = fakeVBuffer;
-		DEBUGGER_PAUSE_AT(NEXT_FLUSH,true);
 	}
-	//DX9DEBUGGER_PAUSE_IF(NEXT_FLUSH);
 }
 
 }  // namespace

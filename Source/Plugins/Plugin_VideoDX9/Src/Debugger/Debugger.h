@@ -118,32 +118,27 @@ private:
 };
 
 enum PauseEvent {
-	NEXT_FRAME,
-	NEXT_FLUSH,
+	NOT_PAUSE	=	0,
+	NEXT_FRAME	=	1<<0,
+	NEXT_FLUSH	=	1<<1,
 
-	NEXT_PIXEL_SHADER_CHANGE,
-	NEXT_VERTEX_SHADER_CHANGE,
-	NEXT_TEXTURE_CHANGE,
-	NEXT_NEW_TEXTURE,
+	NEXT_PIXEL_SHADER_CHANGE	=	1<<2,
+	NEXT_VERTEX_SHADER_CHANGE	=	1<<3,
+	NEXT_TEXTURE_CHANGE	=	1<<4,
+	NEXT_NEW_TEXTURE	=	1<<5,
 
-	NEXT_XFB_CMD,
-	NEXT_EFB_CMD,
+	NEXT_XFB_CMD	=	1<<6,
+	NEXT_EFB_CMD	=	1<<7,
 
-	NEXT_MATRIX_CMD,
-	NEXT_VERTEX_CMD,
-	NEXT_TEXTURE_CMD,
-	NEXT_LIGHT_CMD,
-	NEXT_FOG_CMD,
+	NEXT_MATRIX_CMD	=	1<<8,
+	NEXT_VERTEX_CMD	=	1<<9,
+	NEXT_TEXTURE_CMD	=	1<<10,
+	NEXT_LIGHT_CMD	=	1<<11,
+	NEXT_FOG_CMD	=	1<<12,
 
-	NEXT_SET_TLUT,
+	NEXT_SET_TLUT	=	1<<13,
 
-	NEXT_FIFO,
-	NEXT_DLIST,
-	NEXT_UCODE,
-
-	NEXT_ERROR,
-
-	NOT_PAUSE,
+	NEXT_ERROR	=	1<<14,
 };
 
 extern volatile bool DX9DebuggerPauseFlag;
@@ -160,13 +155,15 @@ void DX9DebuggerToPause(bool update);
 
 #ifdef ENABLE_DX_DEBUGGER
 
-#define DEBUGGER_PAUSE_AT(event,update) {if ((DX9DebuggerToPauseAtNext == event && --DX9DebuggerEventToPauseCount<=0) || DX9DebuggerPauseFlag) DX9DebuggerToPause(update);}
-#define DEBUGGER_PAUSE_LOG_AT(event,update,dumpfunc) {if ((DX9DebuggerToPauseAtNext == event && --DX9DebuggerEventToPauseCount<=0) || DX9DebuggerPauseFlag) {{dumpfunc};DX9DebuggerToPause(update);}}
+#define DEBUGGER_PAUSE_AT(event,update) {if (((DX9DebuggerToPauseAtNext & event) && --DX9DebuggerEventToPauseCount<=0) || DX9DebuggerPauseFlag) DX9DebuggerToPause(update);}
+#define DEBUGGER_PAUSE_LOG_AT(event,update,dumpfunc) {if (((DX9DebuggerToPauseAtNext & event) && --DX9DebuggerEventToPauseCount<=0) || DX9DebuggerPauseFlag) {{dumpfunc};DX9DebuggerToPause(update);}}
+#define DEBUGGER_LOG_AT(event,dumpfunc) {if (( DX9DebuggerToPauseAtNext & event ) ) {{dumpfunc};}}
 
 #else
 // Not to use debugger in release build
 #define DEBUGGER_PAUSE_AT(event,update)
 #define DEBUGGER_PAUSE_LOG_AT(event,update,dumpfunc)
+#define DEBUGGER_LOG_AT(event,dumpfunc)
 
 #endif ENABLE_DX_DEBUGGER
 

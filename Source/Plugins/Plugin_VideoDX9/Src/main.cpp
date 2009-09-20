@@ -24,6 +24,7 @@
 #include "Thread.h"
 #include "LogManager.h"
 #include "GlobalControl.h"
+#include "debugger/debugger.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "Debugger/Debugger.h"
@@ -52,6 +53,8 @@ GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 #include "EmuWindow.h"
 #include "VideoState.h"
 #include "XFBConvert.h"
+#include "render.h"
+
 
 // Having to include this is TERRIBLY ugly. FIXME x100
 #include "../../../Core/Core/Src/ConfigManager.h" // FIXME
@@ -64,6 +67,14 @@ PLUGIN_GLOBALS* globals = NULL;
 bool s_initialized;
 
 static u32 s_efbAccessRequested = FALSE;
+static bool s_swapRequested = false;
+static volatile struct
+{
+	u32 xfbAddr;
+	FieldType field;
+	u32 fbWidth;
+	u32 fbHeight;
+} s_beginFieldArgs;
 
 static volatile EFBAccessType s_AccessEFBType;
 
@@ -308,31 +319,54 @@ void Video_SendFifoData(u8* _uData, u32 len)
 	Fifo_SendFifoData(_uData, len);
 }
 
+// Run from the graphics thread
 void VideoFifo_CheckSwapRequest()
 {
-	// CPU swap unimplemented
+	// CPU swap, not finished, seems to be working fine for dual-core for now
+
+	if (s_swapRequested)
+	{
+		// Flip the backbuffer to front buffer now
+		s_swapRequested = false;
+		if (s_beginFieldArgs.field == FIELD_PROGRESSIVE || s_beginFieldArgs.field == FIELD_LOWER)
+		{
+			Renderer::Swap(0,FIELD_PROGRESSIVE,0,0);	// The swap function is not finished
+														// so it is ok to pass dummy parameters for now
+		}
+	}
 }
 
+// Run from the graphics thread
 void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
 	// CPU swap unimplemented
 }
 
+// Run from the CPU thread (from VideoInterface.cpp)
 void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
-	/*
-	ConvertXFB(tempBuffer, _pXFB, _dwWidth, _dwHeight);
+	s_beginFieldArgs.xfbAddr = xfbAddr;
+	s_beginFieldArgs.field = field;
+	s_beginFieldArgs.fbWidth = fbWidth;
+	s_beginFieldArgs.fbHeight = fbHeight;
+	s_swapRequested = true;
 
-	// blubb
-	static LPDIRECT3DTEXTURE9 pTexture = D3D::CreateTexture2D((BYTE*)tempBuffer, _dwWidth, _dwHeight, _dwWidth, D3DFMT_A8R8G8B8);
+	if (s_initialized)
+	{
 
-	D3D::ReplaceTexture2D(pTexture, (BYTE*)tempBuffer, _dwWidth, _dwHeight, _dwWidth, D3DFMT_A8R8G8B8);
-	D3D::dev->SetTexture(0, pTexture);
+		// Make sure previous swap request has made it to the screen
+		if (g_VideoInitialize.bUseDualCore)
+		{
+			// It seems to be working fine in this way for now without using AtomicLoadAcquire
+			// ector, please check here
+			//while (Common::AtomicLoadAcquire(s_swapRequested))
+			//	Common::YieldCPU();
+		}
+		else
+			VideoFifo_CheckSwapRequest();
 
-	D3D::quad2d(0,0,(float)Postprocess::GetWidth(),(float)Postprocess::GetHeight(), 0xFFFFFFFF);
-
-	D3D::EndFrame();
-	D3D::BeginFrame();*/
+	}
+	DEBUGGER_LOG_AT(NEXT_XFB_CMD,{printf("Begin Field: %08x, %d x %d\n",xfbAddr,fbWidth,fbHeight);});
 }
 
 void Video_EndField()
