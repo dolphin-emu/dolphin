@@ -323,12 +323,13 @@ void Video_SendFifoData(u8* _uData, u32 len)
 void VideoFifo_CheckSwapRequest()
 {
 	// CPU swap, not finished, seems to be working fine for dual-core for now
+	return;
 
 	if (s_swapRequested)
 	{
 		// Flip the backbuffer to front buffer now
 		s_swapRequested = false;
-		if (s_beginFieldArgs.field == FIELD_PROGRESSIVE || s_beginFieldArgs.field == FIELD_LOWER)
+		//if (s_beginFieldArgs.field == FIELD_PROGRESSIVE || s_beginFieldArgs.field == FIELD_LOWER)
 		{
 			Renderer::Swap(0,FIELD_PROGRESSIVE,0,0);	// The swap function is not finished
 														// so it is ok to pass dummy parameters for now

@@ -391,7 +391,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 
 	UpdateViewport();
 
-	//Swap(0,FIELD_PROGRESSIVE,0,0);	// we used to swap the buffer here, now we will wait
+	Swap(0,FIELD_PROGRESSIVE,0,0);	// we used to swap the buffer here, now we will wait
 										// until the XFB pointer is updated by VI
 }
 
