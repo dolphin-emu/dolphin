@@ -171,15 +171,23 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lua", "..\Externals\Lua\Lua.vcproj", "{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxAdv28", "..\Externals\wxWidgets\build\msw\wx_adv.vcproj", "{0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{11F55366-12EC-4C44-A8CB-1D4E315D61ED} = {11F55366-12EC-4C44-A8CB-1D4E315D61ED}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxAui", "..\Externals\wxWidgets\build\msw\wx_aui.vcproj", "{05C75041-D67D-4903-A362-8395A7B35C75}"
+	ProjectSection(ProjectDependencies) = postProject
+		{11F55366-12EC-4C44-A8CB-1D4E315D61ED} = {11F55366-12EC-4C44-A8CB-1D4E315D61ED}
+		{0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E} = {0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxBase28", "..\Externals\wxWidgets\build\msw\wx_base.vcproj", "{1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{3E03C179-8251-46E4-81F4-466F114BAC63} = {3E03C179-8251-46E4-81F4-466F114BAC63}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "wxCore28", "..\Externals\wxWidgets\build\msw\wx_core.vcproj", "{11F55366-12EC-4C44-A8CB-1D4E315D61ED}"
 	ProjectSection(ProjectDependencies) = postProject
-		{05C75041-D67D-4903-A362-8395A7B35C75} = {05C75041-D67D-4903-A362-8395A7B35C75}
-		{0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E} = {0E231FB1-F3C9-4724-ACCB-DE8BCB3C089E}
 		{1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE} = {1C8436C9-DBAF-42BE-83BC-CF3EC9175ABE}
 	EndProjectSection
 EndProject
