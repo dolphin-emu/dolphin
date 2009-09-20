@@ -644,7 +644,7 @@ void disable_expansion(struct wiimote_t* wm) {
 			guitar_hero_3_disconnected(&wm->exp.gh3);
 			wm->event = WIIUSE_GUITAR_HERO_3_CTRL_REMOVED;
 			break;
-		case EXP_WII_BOARD://Fix me
+		case EXP_WII_BOARD:
 			wii_board_disconnected(&wm->exp.wb);
 			wm->event = WIIUSE_WII_BOARD_CTRL_REMOVED;
 			break;
@@ -654,6 +654,7 @@ void disable_expansion(struct wiimote_t* wm) {
 
 	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_EXP);
 	wm->exp.type = EXP_NONE;
+
 }
 
 

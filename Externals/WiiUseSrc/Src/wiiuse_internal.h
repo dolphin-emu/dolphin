@@ -129,6 +129,7 @@
 
 #define WM_IR_TYPE_BASIC			0x01
 #define WM_IR_TYPE_EXTENDED			0x03
+#define WM_IR_TYPE_FULL				0x05
 
 /* controller status flags for the first message byte */
 /* bit 1 is unknown */
@@ -153,7 +154,7 @@
 
 /* encrypted expansion id codes (located at 0x04A400FC) */
 #define EXP_ID_CODE_NUNCHUK					0x9A1EFEFE
-#define EXP_ID_CODE_WII_BOARD				0xa4200402
+#define EXP_ID_CODE_WII_BOARD				0xa4200402 //Find the encrypted epansion id code
 #define EXP_ID_CODE_CLASSIC_CONTROLLER		0x9A1EFDFD
 #define EXP_ID_CODE_GUITAR					0x9A1EFDFB
 

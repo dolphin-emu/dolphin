@@ -49,7 +49,7 @@ static void get_ir_dot_avg(struct ir_dot_t* dot, int* x, int* y);
 static void reorder_ir_dots(struct ir_dot_t* dot);
 static float ir_distance(struct ir_dot_t* dot);
 static int ir_correct_for_bounds(int* x, int* y, enum aspect_t aspect, int offset_x, int offset_y);
-static void ir_convert_to_vres(int* x, int* y, enum aspect_t aspect, int vx, int vy);
+static void ir_convert_to_vres(int* x, int* y, enum aspect_t aspect, unsigned int vx, unsigned int vy);
 
 
 /**
@@ -626,7 +626,7 @@ static void reorder_ir_dots(struct ir_dot_t* dot) {
 		i = 0;
 
 		for (; !dot[i].visible || dot[i].order; ++i)
-		if (i > 4)
+		if (i == 4)
 			return;
 
 		for (j = 0; j < 4; ++j) {
@@ -714,7 +714,7 @@ static int ir_correct_for_bounds(int* x, int* y, enum aspect_t aspect, int offse
 /**
  *	@brief Interpolate the point to the user defined virtual screen resolution.
  */
-static void ir_convert_to_vres(int* x, int* y, enum aspect_t aspect, int vx, int vy) {
+static void ir_convert_to_vres(int* x, int* y, enum aspect_t aspect, unsigned int vx, unsigned int vy) {
 	int xs, ys;
 
 	if (aspect == WIIUSE_ASPECT_16_9) {

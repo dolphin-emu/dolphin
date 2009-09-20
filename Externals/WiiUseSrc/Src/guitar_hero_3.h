@@ -36,14 +36,18 @@
 
 #include "wiiuse_internal.h"
 
-#define GUITAR_HERO_3_JS_MIN_X				0xC5
-#define GUITAR_HERO_3_JS_MAX_X				0xFC
-#define GUITAR_HERO_3_JS_CENTER_X			0xE0
-#define GUITAR_HERO_3_JS_MIN_Y				0xC5
-#define GUITAR_HERO_3_JS_MAX_Y				0xFA
-#define GUITAR_HERO_3_JS_CENTER_Y			0xE0
-#define GUITAR_HERO_3_WHAMMY_BAR_MIN		0xEF
-#define GUITAR_HERO_3_WHAMMY_BAR_MAX		0xFA
+#define GUITAR_HERO_3_JS_MASK				0x3F
+#define GUITAR_HERO_3_TOUCH_MASK			0x1F
+#define GUITAR_HERO_3_WHAMMY_MASK			0x1F
+
+#define GUITAR_HERO_3_JS_MIN_X				0x05
+#define GUITAR_HERO_3_JS_MAX_X				0x3C
+#define GUITAR_HERO_3_JS_CENTER_X			0x20
+#define GUITAR_HERO_3_JS_MIN_Y				0x05
+#define GUITAR_HERO_3_JS_MAX_Y				0x3A
+#define GUITAR_HERO_3_JS_CENTER_Y			0x20
+#define GUITAR_HERO_3_WHAMMY_BAR_MIN		0x0F
+#define GUITAR_HERO_3_WHAMMY_BAR_MAX		0x1A
 
 #ifdef __cplusplus
 extern "C" {

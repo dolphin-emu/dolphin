@@ -226,3 +226,51 @@ void apply_smoothing(struct accel_t* ac, struct orient_t* orient, int type) {
 		}
 	}
 }
+
+
+void calc_balanceboard_state(struct wii_board_t *wb)
+{
+	/* 
+	Interpolate values 
+	Calculations borrowed from wiili.org - No names to mention sadly :( http://www.wiili.org/index.php/Wii_Balance_Board_PC_Drivers
+	*/
+
+	if(wb->rtr<wb->ctr[1])
+	{
+		wb->tr = 17.0f*(float)(wb->rtr-wb->ctr[0])/(float)(wb->ctr[1]-wb->ctr[0]);
+	}
+	else
+	{
+		wb->tr = 17.0f*(float)(wb->rtr-wb->ctr[1])/(float)(wb->ctr[2]-wb->ctr[1]) + 17.0f;
+	}
+
+	if(wb->rtl<wb->ctl[1])
+	{
+		wb->tl = 17.0f*(float)(wb->rtl-wb->ctl[0])/(float)(wb->ctl[1]-wb->ctl[0]);
+	}
+	else
+	{
+		wb->tl = 17.0f*(float)(wb->rtl-wb->ctl[1])/(float)(wb->ctl[2]-wb->ctl[1]) + 17.0f;
+	}
+
+	if(wb->rbr<wb->cbr[1])
+	{
+		wb->br = 17.0f*(float)(wb->rbr-wb->cbr[0])/(float)(wb->cbr[1]-wb->cbr[0]);
+	}
+	else
+	{
+		wb->br = 17.0f*(float)(wb->rbr-wb->cbr[1])/(float)(wb->cbr[2]-wb->cbr[1]) + 17.0f;
+	}
+
+	if(wb->rbl<wb->cbl[1])
+	{
+		wb->bl = 17.0f*(float)(wb->rbl-wb->cbl[0])/(float)(wb->cbl[1]-wb->cbl[0]);
+	}
+	else
+	{
+		wb->bl = 17.0f*(float)(wb->rbl-wb->cbl[1])/(float)(wb->cbl[2]-wb->cbl[1]) + 17.0f;
+	}	 
+
+	wb->x = (wb->tr+wb->br) - (wb->tl+wb->bl)/2.0f;
+	wb->y = (wb->bl+wb->br) - (wb->tl+wb->tr)/2.0f;
+}

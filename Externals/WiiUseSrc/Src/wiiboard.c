@@ -28,7 +28,7 @@
 
 /**
  *	@file
- *	@brief Wii Fit Balance Board device.
+ *	@brief Wiiboard expansion device.
  */
 
 #include <stdio.h>
@@ -45,16 +45,6 @@
 #include "events.h"
 #include "wiiboard.h"
 
-static short big_to_lil(unsigned short num)
-{
-	short ret = num;
-	char *bret = (char*)&ret;
-	char tmp = bret[1];
-	bret[1] = bret[0];
-	bret[0] = tmp;
-	return ret;
-}
-
 /**
  *	@brief Handle the handshake data from the guitar.
  *
@@ -66,51 +56,37 @@ static short big_to_lil(unsigned short num)
  */
 
 int wii_board_handshake(struct wiimote_t* wm, struct wii_board_t* wb, byte* data, unsigned short len) {
-	int i;
-	short* handshake_short;
-	/* decrypt data */
-	printf("DECRYPTED DATA WIIBOARD\n");
-	for (i = 0; i < len; i++)
-	{
-		if(i%16==0)
-		{			
-			if(i!=0)
-				printf("\n");
 
-			printf("%X: ",0x4a40000+32+i);
+	int offset = 0;
+	if (data[offset]==0xff) {
+		if (data[offset+16]==0xff) {
+			WIIUSE_DEBUG("Wii Balance Board handshake appears invalid, trying again.");
+			wiiuse_read_data(wm, data, WM_EXP_MEM_CALIBR, EXP_HANDSHAKE_LEN);
+			return 0;
 		}
-		printf("%02X ", data[i]);
+		offset += 16;
 	}
-	printf("\n");
 
+	wb->ctr[0] = (data[offset+4]<<8)|data[offset+5];
+	wb->cbr[0] = (data[offset+6]<<8)|data[offset+7];
+	wb->ctl[0] = (data[offset+8]<<8)|data[offset+9];
+	wb->cbl[0] = (data[offset+10]<<8)|data[offset+11];
 
-	handshake_short = (short*)data;
-	
-	wb->ctr[0] = big_to_lil(handshake_short[2]);
-	wb->cbr[0] = big_to_lil(handshake_short[3]);
-	wb->ctl[0] = big_to_lil(handshake_short[4]);
-	wb->cbl[0] = big_to_lil(handshake_short[5]);
+	wb->ctr[1] = (data[offset+12]<<8)|data[offset+13];
+	wb->cbr[1] = (data[offset+14]<<8)|data[offset+15];
+	wb->ctl[1] = (data[offset+16]<<8)|data[offset+17];
+	wb->cbl[1] = (data[offset+18]<<8)|data[offset+19];
 
-	wb->ctr[1] = big_to_lil(handshake_short[6]);
-	wb->cbr[1] = big_to_lil(handshake_short[7]);
-	wb->ctl[1] = big_to_lil(handshake_short[8]);
-	wb->cbl[1] = big_to_lil(handshake_short[9]);
-
-	wb->ctr[2] = big_to_lil(handshake_short[10]);
-	wb->cbr[2] = big_to_lil(handshake_short[11]);
-	wb->ctl[2] = big_to_lil(handshake_short[12]);
-	wb->cbl[2] = big_to_lil(handshake_short[13]);
-
+	wb->ctr[2] = (data[offset+20]<<8)|data[offset+21];
+	wb->cbr[2] = (data[offset+22]<<8)|data[offset+23];
+	wb->ctl[2] = (data[offset+24]<<8)|data[offset+25];
+	wb->cbl[2] = (data[offset+26]<<8)|data[offset+27];
 
 	/* handshake done */
+	wm->event = WIIUSE_WII_BOARD_CTRL_INSERTED;
 	wm->exp.type = EXP_WII_BOARD;
 
-
-	#ifdef WIN32
-	wm->timeout = WIIMOTE_DEFAULT_TIMEOUT;
-	#endif
-
-	return 1;
+	return 1; 
 }
 
 
@@ -130,58 +106,9 @@ void wii_board_disconnected(struct wii_board_t* wb) {
  *	@param msg		The message specified in the event packet.
  */
 void wii_board_event(struct wii_board_t* wb, byte* msg) {
-	short *shmsg = (short*)(msg);
-	wb->rtr = big_to_lil(shmsg[0]);
-	if(wb->rtr<0) wb->rtr = 0;
-	wb->rbr = big_to_lil(shmsg[1]);
-	if(wb->rbr<0) wb->rbr = 0;
-	wb->rtl = big_to_lil(shmsg[2]);
-	if(wb->rtl<0) wb->rtl = 0;
-	wb->rbl = big_to_lil(shmsg[3]);		
-	if(wb->rbl<0) wb->rbl = 0;
-
-	/* 
-		Interpolate values 
-		Calculations borrowed from wiili.org - No names to mention sadly :( http://www.wiili.org/index.php/Wii_Balance_Board_PC_Drivers page however!
-	*/
-
-	if(wb->rtr<wb->ctr[1])
-	{
-		wb->tr = 68*(wb->rtr-wb->ctr[0])/(wb->ctr[1]-wb->ctr[0]);
-	}
-	else if(wb->rtr >= wb->ctr[1])
-	{
-		wb->tr = 68*(wb->rtr-wb->ctr[1])/(wb->ctr[2]-wb->ctr[1]) + 68;
-	}
-
-	if(wb->rtl<wb->ctl[1])
-	{
-		wb->tl = 68*(wb->rtl-wb->ctl[0])/(wb->ctl[1]-wb->ctl[0]);
-	}
-	else if(wb->rtl >= wb->ctl[1])
-	{
-		wb->tl = 68*(wb->rtl-wb->ctl[1])/(wb->ctl[2]-wb->ctl[1]) + 68;
-	}
-
-	if(wb->rbr<wb->cbr[1])
-	{
-		wb->br = 68*(wb->rbr-wb->cbr[0])/(wb->cbr[1]-wb->cbr[0]);
-	}
-	else if(wb->rbr >= wb->cbr[1])
-	{
-		wb->br = 68*(wb->rbr-wb->cbr[1])/(wb->cbr[2]-wb->cbr[1]) + 68;
-	}
-
-	if(wb->rbl<wb->cbl[1])
-	{
-		wb->bl = 68*(wb->rbl-wb->cbl[0])/(wb->cbl[1]-wb->cbl[0]);
-	}
-	else if(wb->rbl >= wb->cbl[1])
-	{
-		wb->bl = 68*(wb->rbl-wb->cbl[1])/(wb->cbl[2]-wb->cbl[1]) + 68;
-	}	
-}
-
-void wiiuse_set_wii_board_calib(struct wiimote_t *wm)
-{
+	wb->rtr = (msg[0]<<8)|msg[1];
+	wb->rbr = (msg[2]<<8)|msg[3];
+	wb->rtl = (msg[4]<<8)|msg[5];
+	wb->rbl = (msg[6]<<8)|msg[7];	
+	calc_balanceboard_state(wb);
 }
