@@ -51,6 +51,26 @@ static float ir_distance(struct ir_dot_t* dot);
 static int ir_correct_for_bounds(int* x, int* y, enum aspect_t aspect, int offset_x, int offset_y);
 static void ir_convert_to_vres(int* x, int* y, enum aspect_t aspect, unsigned int vx, unsigned int vy);
 
+/**
+ *	@brief	Set if the wiimote IR mode.
+ *
+ *	@param wm		Pointer to a wiimote_t structure.
+ */
+void wiiuse_set_ir_mode(struct wiimote_t *wm)
+{
+	byte buf = 0x00;
+
+	if(!wm) return;
+	
+	if(WIIMOTE_IS_SET(wm,WIIMOTE_STATE_IR)) return;
+
+	if(WIIMOTE_IS_SET(wm,WIIMOTE_STATE_EXP))
+		buf = WM_IR_TYPE_BASIC;
+	else
+		buf = WM_IR_TYPE_EXTENDED;
+		wiiuse_write_data(wm,WM_REG_IR_MODENUM, &buf, 1);
+}
+
 
 /**
  *	@brief	Set if the wiimote should track IR targets.
@@ -75,7 +95,10 @@ void wiiuse_set_ir(struct wiimote_t* wm, int status) {
 	 */
 	if (!WIIMOTE_IS_SET(wm, WIIMOTE_STATE_HANDSHAKE_COMPLETE)) {
 		WIIUSE_DEBUG("Tried to enable IR, will wait until handshake finishes.");
-		WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_IR);
+		if(status)
+			WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_IR);
+		else
+			WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_IR_INIT);
 		return;
 	}
 
@@ -127,11 +150,11 @@ void wiiuse_set_ir(struct wiimote_t* wm, int status) {
 	wiiuse_write_data(wm, WM_REG_IR_BLOCK2, (byte*)block2, 2);
 
 	/* set the IR mode */
-	if (WIIMOTE_IS_SET(wm, WIIMOTE_STATE_EXP))
+	if(WIIMOTE_IS_SET(wm,WIIMOTE_STATE_EXP))
 		buf = WM_IR_TYPE_BASIC;
-	else
+	else 
 		buf = WM_IR_TYPE_EXTENDED;
-	wiiuse_write_data(wm, WM_REG_IR_MODENUM, &buf, 1);
+	wiiuse_write_data(wm,WM_REG_IR_MODENUM, &buf, 1);
 
 	#ifndef WIN32
 		usleep(50000);
@@ -140,7 +163,7 @@ void wiiuse_set_ir(struct wiimote_t* wm, int status) {
 	#endif
 
 	/* set the wiimote report type */
-	wiiuse_set_report_type(wm);
+	wiiuse_status(wm);
 
 	WIIUSE_DEBUG("Enabled IR camera for wiimote id %i (sensitivity level %i).", wm->unid, ir_level);
 }
@@ -303,6 +326,8 @@ void wiiuse_set_ir_sensitivity(struct wiimote_t* wm, int level) {
 		default:
 			return;
 	}
+
+if(!WIIMOTE_IS_SET(wm,WIIMOTE_STATE_IR)) return;
 
 	/* set the new sensitivity */
 	get_ir_sens(wm, &block1, &block2);

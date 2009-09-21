@@ -138,6 +138,7 @@
 #define EXP_CLASSIC						2
 #define EXP_GUITAR_HERO_3				3
 #define EXP_WII_BOARD					4
+#define	EXP_MOTION_PLUS					5
 
 /* IR correction types */
 typedef enum ir_position_t {
@@ -214,8 +215,8 @@ typedef enum ir_position_t {
  *	be a useful feature to keep so it wasn't removed.
  */
 #ifdef WIN32
-	#define WIIMOTE_DEFAULT_TIMEOUT		10
-	#define WIIMOTE_EXP_TIMEOUT			10
+	#define WIIMOTE_DEFAULT_TIMEOUT		100
+	#define WIIMOTE_EXP_TIMEOUT			100
 #endif
 
 typedef unsigned char byte;
@@ -418,6 +419,7 @@ typedef struct nunchuk_t {
 	int* flags;						/**< options flag (points to wiimote_t.flags) */
 
 	byte btns;						/**< what buttons have just been pressed	*/
+	byte btns_last;				/**< what buttons have just been pressed	*/
 	byte btns_held;					/**< what buttons are being held down		*/
 	byte btns_released;				/**< what buttons were just released this	*/
 
@@ -436,6 +438,7 @@ typedef struct nunchuk_t {
  */
 typedef struct classic_ctrl_t {
 	short btns;						/**< what buttons have just been pressed	*/
+	short btns_last;				/**< what buttons have just been pressed	*/
 	short btns_held;				/**< what buttons are being held down		*/
 	short btns_released;			/**< what buttons were just released this	*/
 
@@ -490,6 +493,13 @@ typedef struct wii_board_t {
 	float y;
 } wii_board_t;
 
+typedef struct motion_plus_t
+{
+	short rx, ry, rz;
+	byte status;
+	byte ext;
+} motion_plus_t;
+
 /**
  *	@struct expansion_t
  *	@brief Generic expansion device plugged into wiimote.
@@ -502,6 +512,7 @@ typedef struct expansion_t {
 		struct classic_ctrl_t classic;
 		struct guitar_hero_3_t gh3;
 		struct wii_board_t wb;
+		struct motion_plus_t mp;
 	};
 } expansion_t;
 
@@ -542,6 +553,8 @@ typedef struct wiimote_state_t {
 	unsigned short btns;
 
 	struct vec3b_t accel;
+	struct expansion_t exp;
+
 } wiimote_state_t;
 
 
@@ -564,7 +577,9 @@ typedef enum WIIUSE_EVENT_TYPE {
 	WIIUSE_GUITAR_HERO_3_CTRL_INSERTED,
 	WIIUSE_GUITAR_HERO_3_CTRL_REMOVED,
 	WIIUSE_WII_BOARD_CTRL_INSERTED,
-	WIIUSE_WII_BOARD_CTRL_REMOVED
+	WIIUSE_WII_BOARD_CTRL_REMOVED,
+	WIIUSE_MOTION_PLUS_CTRL_REMOVED,
+	WIIUSE_MOTION_PLUS_CTRL_INSERTED
 } WIIUSE_EVENT_TYPE;
 
 /**
@@ -611,6 +626,7 @@ typedef struct wiimote_t {
 	WCONST struct ir_t ir;					/**< IR data								*/
 
 	WCONST unsigned short btns;				/**< what buttons have just been pressed	*/
+	WCONST unsigned short btns_last;		/**< what buttons have just been pressed	*/
 	WCONST unsigned short btns_held;		/**< what buttons are being held down		*/
 	WCONST unsigned short btns_released;	/**< what buttons were just released this	*/
 
@@ -621,6 +637,8 @@ typedef struct wiimote_t {
 
 	WCONST WIIUSE_EVENT_TYPE event;			/**< type of event that occured				*/
 	WCONST byte event_buf[MAX_PAYLOAD];		/**< event buffer							*/
+
+	WCONST byte motion_plus_id[6];
 } wiimote;
 
 
@@ -695,6 +713,9 @@ WIIUSE_EXPORT extern int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int le
 
 /* Balance Board */
 WIIUSE_EXPORT extern void wiiuse_set_wii_board_calib(struct wiimote_t *wm);
+
+/* motion_plus.c */
+WIIUSE_EXPORT extern void wiiuse_set_motion_plus(struct wiimote_t *wm, int status);
 
 #ifdef __cplusplus
 }

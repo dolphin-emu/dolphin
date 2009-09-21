@@ -176,10 +176,10 @@ void guitar_hero_3_event(struct guitar_hero_3_t* gh3, byte* msg) {
 		gh3->touch_bar = GUITAR_HERO_3_TOUCH_GREEN;
 
 	/* whammy bar */
-	gh3->whammy_bar = (msg[3] - GUITAR_HERO_3_WHAMMY_BAR_MIN) / (float)(GUITAR_HERO_3_WHAMMY_BAR_MAX - GUITAR_HERO_3_WHAMMY_BAR_MIN);
+	gh3->whammy_bar = (gh3->wb_raw - GUITAR_HERO_3_WHAMMY_BAR_MIN) / (float)(GUITAR_HERO_3_WHAMMY_BAR_MAX - GUITAR_HERO_3_WHAMMY_BAR_MIN);
 
 	/* joy stick */
-	calc_joystick_state(&gh3->js, msg[0], msg[1]);
+	calc_joystick_state(&gh3->js, gh3->js.pos.x, gh3->js.pos.y);
 
 }
 

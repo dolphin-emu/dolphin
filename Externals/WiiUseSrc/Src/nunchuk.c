@@ -189,6 +189,9 @@ static void nunchuk_pressed_buttons(struct nunchuk_t* nc, byte now) {
 	/* message is inverted (0 is active, 1 is inactive) */
 	now = ~now & NUNCHUK_BUTTON_ALL;
 
+	/* preserve old btns pressed */
+	nc->btns_last = nc->btns;
+
 	/* pressed now & were pressed, then held */
 	nc->btns_held = (now & nc->btns);
 

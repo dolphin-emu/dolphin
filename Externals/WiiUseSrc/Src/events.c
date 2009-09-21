@@ -57,6 +57,7 @@
 #include "classic.h"
 #include "guitar_hero_3.h"
 #include "wiiboard.h"
+#include "motion_plus.h"
 #include "events.h"
 
 static void idle_cycle(struct wiimote_t* wm);
@@ -308,6 +309,9 @@ void wiiuse_pressed_buttons(struct wiimote_t* wm, byte* msg) {
 	/* convert to big endian */
 	now = BIG_ENDIAN_SHORT(*(short*)msg) & WIIMOTE_BUTTON_ALL;
 
+	/* preserve old btns pressed */
+	wm->btns_last = wm->btns;
+
 	/* pressed now & were pressed, then held */
 	wm->btns_held = (now & wm->btns);
 
@@ -442,7 +446,6 @@ static void event_status(struct wiimote_t* wm, byte* msg) {
 	int led[4] = {0};
 	int attachment = 0;
 	int ir = 0;
-	int exp_changed = 0;
 
 	/*
 	 *	An event occured.
@@ -474,17 +477,34 @@ static void event_status(struct wiimote_t* wm, byte* msg) {
 	/* find the battery level and normalize between 0 and 1 */
 	wm->battery_level = (msg[5] / (float)WM_MAX_BATTERY_CODE);
 
-	/* expansion port */
-	if (attachment && !WIIMOTE_IS_SET(wm, WIIMOTE_STATE_EXP)) {
-		/* send the initialization code for the attachment */
-		handshake_expansion(wm, NULL, 0);
-		exp_changed = 1;
-	} else if (!attachment && WIIMOTE_IS_SET(wm, WIIMOTE_STATE_EXP)) {
-		/* attachment removed */
-		disable_expansion(wm);
-		exp_changed = 1;
+	if(!ir && WIIMOTE_IS_SET(wm,WIIMOTE_STATE_IR_INIT)) {
+		WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_IR_INIT);
+		wiiuse_set_ir(wm, 1);
+		goto done;
 	}
 
+	if(ir && !WIIMOTE_IS_SET(wm,WIIMOTE_STATE_IR)) WIIMOTE_ENABLE_STATE(wm,WIIMOTE_STATE_IR);
+
+	/* expansion port */
+	if (attachment){
+		if(!WIIMOTE_IS_SET(wm, WIIMOTE_STATE_EXP) && !WIIMOTE_IS_SET(wm,WIIMOTE_STATE_EXP_FAILED && !WIIMOTE_IS_SET(wm,WIIMOTE_STATE_EXP_HANDSHAKE))) {
+			/* send the initialization code for the attachment */
+			handshake_expansion(wm, NULL, 0);
+			goto done;
+		}
+	} else{
+		WIIMOTE_DISABLE_STATE(wm,WIIMOTE_STATE_EXP_FAILED);
+		if (WIIMOTE_IS_SET(wm, WIIMOTE_STATE_EXP)) {
+			/* attachment removed */
+			disable_expansion(wm);
+			goto done;
+		}
+	}
+
+	wiiuse_set_report_type(wm);
+
+
+done:
 	#ifdef WIN32
 	if (!attachment) {
 		WIIUSE_DEBUG("Setting timeout to normal %i ms.", wm->normal_timeout);
@@ -492,20 +512,6 @@ static void event_status(struct wiimote_t* wm, byte* msg) {
 	}
 	#endif
 
-	/*
-	 *	From now on the remote will only send status packets.
-	 *	We need to send a WIIMOTE_CMD_REPORT_TYPE packet to
-	 *	reenable other incoming reports.
-	 */
-	if (exp_changed && WIIMOTE_IS_SET(wm, WIIMOTE_STATE_IR)) {
-		/*
-		 *	Since the expansion status changed IR needs to
-		 *	be reset for the new IR report mode.
-		 */
-		WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_IR);
-		wiiuse_set_ir(wm, 1);
-	} else
-		wiiuse_set_report_type(wm);
 }
 
 
@@ -604,6 +610,7 @@ void handshake_expansion(struct wiimote_t* wm, byte* data, unsigned short len) {
 				wm->event = WIIUSE_WII_BOARD_CTRL_INSERTED;
 			break;
 		}
+
 		default:
 		{
 			WIIUSE_WARNING("Unknown expansion type. Code: 0x%x", wid);
@@ -648,11 +655,16 @@ void disable_expansion(struct wiimote_t* wm) {
 			wii_board_disconnected(&wm->exp.wb);
 			wm->event = WIIUSE_WII_BOARD_CTRL_REMOVED;
 			break;
+		case EXP_MOTION_PLUS:
+			motion_plus_disconnected(&wm->exp.mp);
+			wm->event = WIIUSE_MOTION_PLUS_CTRL_REMOVED;
+			break;
+
 		default:
 			break;
 	}
 
-	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_EXP);
+	WIIMOTE_DISABLE_STATE(wm, (WIIMOTE_STATE_EXP|WIIMOTE_STATE_EXP_HANDSHAKE));
 	wm->exp.type = EXP_NONE;
 
 }
@@ -796,11 +808,17 @@ static int state_changed(struct wiimote_t* wm) {
 		}
 		case EXP_WII_BOARD:
 		{
-			STATE_CHANGED(wm->exp.wb.ltr,wm->exp.wb.tr);
-			STATE_CHANGED(wm->exp.wb.ltl,wm->exp.wb.tl);
-			STATE_CHANGED(wm->exp.wb.lbr,wm->exp.wb.br);
-			STATE_CHANGED(wm->exp.wb.lbl,wm->exp.wb.bl);
+			STATE_CHANGED(wm->exp.wb.rtl, wm->lstate.exp.wb.rtl);
+			STATE_CHANGED(wm->exp.wb.rtr, wm->lstate.exp.wb.rtr);
+			STATE_CHANGED(wm->exp.wb.rbl, wm->lstate.exp.wb.rbl);
+			STATE_CHANGED(wm->exp.wb.rbr, wm->lstate.exp.wb.rbr);
 			break;
+		}
+		case EXP_MOTION_PLUS:
+		{
+			STATE_CHANGED(wm->lstate.exp.mp.rx, wm->exp.mp.rx);
+			STATE_CHANGED(wm->lstate.exp.mp.ry, wm->exp.mp.ry);
+			STATE_CHANGED(wm->lstate.exp.mp.rz, wm->exp.mp.rz);
 		}
 		case EXP_NONE:
 		{

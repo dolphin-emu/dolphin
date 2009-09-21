@@ -179,6 +179,9 @@ static void classic_ctrl_pressed_buttons(struct classic_ctrl_t* cc, short now) {
 	/* message is inverted (0 is active, 1 is inactive) */
 	now = ~now & CLASSIC_CTRL_BUTTON_ALL;
 
+	/* preserve old btns pressed */
+	cc->btns_last = cc->btns;
+
 	/* pressed now & were pressed, then held */
 	cc->btns_held = (now & cc->btns);
 
