@@ -157,7 +157,6 @@
 #define EXP_ID_CODE_WII_BOARD				0xa4200402 //Find the encrypted epansion id code
 #define EXP_ID_CODE_CLASSIC_CONTROLLER		0x9A1EFDFD
 #define EXP_ID_CODE_GUITAR					0x9A1EFDFB
-#define EXP_ID_CODE_MOTION_PLUS				0xa4200405 //Find the encrypted epansion id code
 
 #define EXP_HANDSHAKE_LEN					224
 
@@ -168,24 +167,20 @@
  ********************/
 
 /* wiimote state flags - (some duplicated in wiiuse.h)*/
-#define WIIMOTE_STATE_DEV_FOUND				0x00001
-//#define WIIMOTE_STATE_DEV_REGISTER		0x00002
-#define WIIMOTE_STATE_HANDSHAKE				0x00004	/* actual connection exists but no handshake yet */
-#define WIIMOTE_STATE_HANDSHAKE_COMPLETE	0x00008	/* actual connection exists but no handshake yet */
-#define WIIMOTE_STATE_CONNECTED				0x00010
-#define WIIMOTE_STATE_EXP_HANDSHAKE			0x00020	/* actual connection exists but no handshake yet */
-#define WIIMOTE_STATE_EXP_FAILED			0x00040	/* actual connection exists but no handshake yet */
-#define WIIMOTE_STATE_RUMBLE				0x00100
-#define WIIMOTE_STATE_ACC					0x00100
-#define WIIMOTE_STATE_EXP					0x00200
-#define WIIMOTE_STATE_IR					0x00400
-#define WIIMOTE_STATE_SPEAKER				0x00800
-#define WIIMOTE_STATE_IR_SENS_LVL1			0x01000
-#define WIIMOTE_STATE_IR_SENS_LVL2			0x02000
-#define WIIMOTE_STATE_IR_SENS_LVL3			0x04000
-#define WIIMOTE_STATE_IR_SENS_LVL4			0x08000
-#define WIIMOTE_STATE_IR_SENS_LVL5			0x10000
-#define WIIMOTE_STATE_IR_INIT				0x20000
+#define WIIMOTE_STATE_DEV_FOUND				0x0001
+#define WIIMOTE_STATE_HANDSHAKE				0x0002	/* actual connection exists but no handshake yet */
+#define WIIMOTE_STATE_HANDSHAKE_COMPLETE	0x0004	/* actual connection exists but no handshake yet */
+#define WIIMOTE_STATE_CONNECTED				0x0008
+#define WIIMOTE_STATE_RUMBLE				0x0010
+#define WIIMOTE_STATE_ACC					0x0020
+#define WIIMOTE_STATE_EXP					0x0040
+#define WIIMOTE_STATE_IR					0x0080
+#define WIIMOTE_STATE_SPEAKER				0x0100
+#define WIIMOTE_STATE_IR_SENS_LVL1			0x0200
+#define WIIMOTE_STATE_IR_SENS_LVL2			0x0400
+#define WIIMOTE_STATE_IR_SENS_LVL3			0x0800
+#define WIIMOTE_STATE_IR_SENS_LVL4			0x1000
+#define WIIMOTE_STATE_IR_SENS_LVL5			0x2000
 
 #define WIIMOTE_INIT_STATES					(WIIMOTE_STATE_IR_SENS_LVL3)
 
