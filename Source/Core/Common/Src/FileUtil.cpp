@@ -562,9 +562,8 @@ std::string GetPluginsDirectory()
 	pluginsDir = PLUGINS_DIR;	
 #endif
 
-#if !defined (__APPLE__)
 	pluginsDir += DIR_SEP;
-#endif
+
 	INFO_LOG(COMMON, "GetPluginsDirectory: Setting to %s:", pluginsDir.c_str());
 	return pluginsDir;
 	

@@ -29,7 +29,11 @@ void AOSound::SoundLoop()
     default_driver = ao_default_driver_id();
     format.bits = 16;
     format.channels = 2;
+#ifdef __APPLE__
+	format.rate = 44100; // libao for osx only supports 44.1kHz...
+#else
     format.rate = m_mixer->GetSampleRate();
+#endif
     format.byte_format = AO_FMT_LITTLE;
 		
     device = ao_open_live(default_driver, &format, NULL /* no options */);

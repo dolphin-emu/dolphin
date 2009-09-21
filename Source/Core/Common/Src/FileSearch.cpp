@@ -101,7 +101,11 @@ void CFileSearch::FindFiles(const std::string& _searchString, const std::string&
 
 		if ( (s.size() > ext.size()) && (!strcasecmp(s.substr(s.size() - ext.size()).c_str(), ext.c_str())) )
 		{
+#ifdef __APPLE__
+			std::string full_name = _strPath + s;
+#else
 			std::string full_name = _strPath + "/" + s;
+#endif
 			m_FileNames.push_back(full_name);
 		}
 	}
