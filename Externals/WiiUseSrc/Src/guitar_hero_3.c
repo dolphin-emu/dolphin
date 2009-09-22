@@ -57,7 +57,6 @@ static void guitar_hero_3_pressed_buttons(struct guitar_hero_3_t* gh3, short now
  *	@return	Returns 1 if handshake was successful, 0 if not.
  */
 int guitar_hero_3_handshake(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, byte* data, unsigned short len) {
-	int i;
 	int offset = 0;
 
 	/*
@@ -73,33 +72,6 @@ int guitar_hero_3_handshake(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, b
 	gh3->whammy_bar = 0.0f;
 	gh3->tb_raw = 0;
 	gh3->touch_bar = -1;
-
-	/* decrypt data */
-	for (i = 0; i < len; ++i)
-		data[i] = (data[i] ^ 0x17) + 0x17;
-
-	if (data[offset] == 0xFF) {
-		/*
-		 *	Sometimes the data returned here is not correct.
-		 *	This might happen because the wiimote is lagging
-		 *	behind our initialization sequence.
-		 *	To fix this just request the handshake again.
-		 *
-		 *	Other times it's just the first 16 bytes are 0xFF,
-		 *	but since the next 16 bytes are the same, just use
-		 *	those.
-		 */
-		if (data[offset + 16] == 0xFF) {
-			/* get the calibration data */
-			byte* handshake_buf = (byte *)malloc(EXP_HANDSHAKE_LEN * sizeof(byte));
-
-			WIIUSE_DEBUG("Guitar Hero 3 handshake appears invalid, trying again.");
-			wiiuse_read_data_cb(wm, handshake_expansion, handshake_buf, WM_EXP_MEM_CALIBR, EXP_HANDSHAKE_LEN);
-
-			return 0;
-		} else
-			offset += 16;
-	}
 
 	/* joystick stuff */
 	gh3->js.max.x = GUITAR_HERO_3_JS_MAX_X;
@@ -179,7 +151,7 @@ void guitar_hero_3_event(struct guitar_hero_3_t* gh3, byte* msg) {
 	gh3->whammy_bar = (msg[3] - GUITAR_HERO_3_WHAMMY_BAR_MIN) / (float)(GUITAR_HERO_3_WHAMMY_BAR_MAX - GUITAR_HERO_3_WHAMMY_BAR_MIN);
 
 	/* joy stick */
-	calc_joystick_state(&gh3->js, msg[0], msg[1]);
+	calc_joystick_state(&gh3->js, gh3->js.pos.x, gh3->js.pos.y);
 
 }
 
