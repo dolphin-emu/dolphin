@@ -2,6 +2,7 @@
 # -*- python -*-
 
 Import('env')
+import sys
 
 files = [
     'AudioCommonConfig.cpp',
@@ -21,5 +22,8 @@ if acenv['HAVE_AO']:
 
 if acenv['HAVE_ALSA']:
     files += [ 'AlsaSoundStream.cpp' ]
+if sys.platform == 'darwin':
+    files += [ 'CoreAudioSoundStream.cpp' ]
+    acenv['FRAMEWORKS'] = [ 'CoreAudio' ]
     
 acenv.StaticLibrary(env['local_libs'] + 'audiocommon', files)

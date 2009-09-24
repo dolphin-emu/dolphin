@@ -27,7 +27,7 @@ void AudioCommonConfig::Load(IniFile &file) {
 	file.Get("Config", "Backend", &sBackend, "DSound");
 #elif defined(__APPLE__)
 	std::string temp;
-	file.Get("Config", "Backend", &temp, "AOSound");
+	file.Get("Config", "Backend", &temp, "CoreAudio");
 	strncpy(sBackend, temp.c_str(), 128);
 #else
 	file.Get("Config", "Backend", &sBackend, "AOSound");
