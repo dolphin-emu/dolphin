@@ -307,7 +307,7 @@ namespace Interpreter
 
 	// paired helper
 	float Helper_Dequantize(const u32 _Addr, const EQuantizeType _quantizeType, const unsigned int _uScale);
-	void  Helper_Quantize  (const u32 _Addr, const float _fValue, const EQuantizeType _quantizeType, const unsigned _uScale);
+	void  Helper_Quantize  (const u32 _Addr, const double _fValue, const EQuantizeType _quantizeType, const unsigned _uScale);
 
 	// other helper
 	u32 Helper_Mask(int mb, int me);

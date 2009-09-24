@@ -28,6 +28,8 @@
 #include "../Jit64/Jit.h"
 #include "../JitCommon/JitCache.h"
 
+#include "Interpreter_FPUtils.h"
+
 namespace Interpreter
 {
 
@@ -234,16 +236,16 @@ void stfdu(UGeckoInstruction _inst)
 
 void stfs(UGeckoInstruction _inst)
 {
-	double value = rPS0(_inst.FS);
-	float fTemp = (float)value;
-	Memory::Write_U32(*(u32*)&fTemp, Helper_Get_EA(_inst));
+	//double value = rPS0(_inst.FS);
+	//float fTemp = (float)value;
+	//Memory::Write_U32(*(u32*)&fTemp, Helper_Get_EA(_inst));
+	Memory::Write_U32(ConvertToSingle(riPS0(_inst.FS)), Helper_Get_EA(_inst));
 }
 
 void stfsu(UGeckoInstruction _inst)
-{
-	float fTemp = (float)rPS0(_inst.FS);
-	u32 uAddress = Helper_Get_EA_U(_inst);
-	Memory::Write_U32(*(u32*)&fTemp, uAddress);
+{	
+	u32 uAddress = Helper_Get_EA_U(_inst);	
+	Memory::Write_U32(ConvertToSingle(riPS0(_inst.FS)), uAddress);
 	m_GPR[_inst.RA] = uAddress;
 }
 
@@ -465,19 +467,15 @@ void stfiwx(UGeckoInstruction _inst)
 
 
 void stfsux(UGeckoInstruction _inst)
-{
-	double value = rPS0(_inst.FS);
-	float fTemp = (float)value;
-	u32 uAddress = Helper_Get_EA_UX(_inst);
-	Memory::Write_U32(*(u32*)&fTemp, uAddress);
+{	
+	u32 uAddress = Helper_Get_EA_UX(_inst);	
+	Memory::Write_U32(ConvertToSingle(riPS0(_inst.FS)), uAddress);
 	m_GPR[_inst.RA] = uAddress;
 }
 
 void stfsx(UGeckoInstruction _inst)
-{
-	double value = rPS0(_inst.FS);
-	float fTemp = (float)value;
-	Memory::Write_U32(*(u32 *)&fTemp, Helper_Get_EA_X(_inst));
+{	
+	Memory::Write_U32(ConvertToSingle(riPS0(_inst.FS)), Helper_Get_EA_X(_inst));
 }
 
 void sthbrx(UGeckoInstruction _inst)

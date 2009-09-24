@@ -43,6 +43,8 @@ static const unsigned short FPU_ROUND_MASK = 3 << 10;
 #include "../../Core.h"
 #include "Interpreter.h"
 
+#include "Interpreter_FPUtils.h"
+
 /*
 
 Most of these are together with fctiwx
@@ -95,8 +97,8 @@ void FPSCRtoFPUSettings(UReg_FPSCR fp)
 #endif
 	if (fp.VE || fp.OE || fp.UE || fp.ZE || fp.XE)
 	{
-		//PanicAlert("FPSCR - exceptions enabled. Please report. VE=%i OE=%i UE=%i ZE=%i XE=%i",
-		//	fp.VE, fp.OE, fp.UE, fp.ZE, fp.XE);
+		PanicAlert("FPSCR - exceptions enabled. Please report. VE=%i OE=%i UE=%i ZE=%i XE=%i",
+			fp.VE, fp.OE, fp.UE, fp.ZE, fp.XE);
 		// Pokemon Colosseum does this. Gah.
 	}
 
@@ -119,60 +121,29 @@ void FPSCRtoFPUSettings(UReg_FPSCR fp)
 	_mm_setcsr(csr);
 }
 
-void mcrfs(UGeckoInstruction _inst)
-{
-	u32 fpflags = ((FPSCR.Hex >> (4*(7 - _inst.CRFS))) & 0xF);
-	switch (_inst.CRFS) {
-	case 0:
-		FPSCR.FX = 0;
-		FPSCR.OX = 0;
-		break;
-	case 1:
-		FPSCR.UX = 0;
-		FPSCR.ZX = 0;
-		FPSCR.XX = 0;
-		FPSCR.VXSNAN = 0;
-		break;
-	case 2:
-		FPSCR.VXISI = 0;
-		FPSCR.VXIDI = 0;
-		FPSCR.VXZDZ = 0;
-		FPSCR.VXIMZ = 0;
-		break;
-	case 3:
-		FPSCR.VXVC = 0;
-		break;
-	case 5:
-		FPSCR.VXSOFT = 0;
-		FPSCR.VXSQRT = 0;
-		FPSCR.VXCVI = 0;
-		break;
-	}
-	SetCRField(_inst.CRFD, fpflags);
-	FPSCRtoFPUSettings(FPSCR);
-}
-
-void mffsx(UGeckoInstruction _inst)
-{
-	// load from FPSCR
-	// This may or may not be accurate - but better than nothing, I guess
-	// TODO(ector): grab all overflow flags etc and set them in FPSCR
-
-	riPS0(_inst.FD)	= (u64)FPSCR.Hex;
-	if (_inst.Rc) PanicAlert("mffsx: inst_.Rc");
-}
-
 void mtfsb0x(UGeckoInstruction _inst)
 {
-	FPSCR.Hex &= (~(0x80000000 >> _inst.CRBD));
+	u32 b = 0x80000000 >> _inst.CRBD;
+
+	/*if (b & 0x9ff80700)
+		PanicAlert("mtfsb0 clears bit %d, PC=%x", _inst.CRBD, PC);*/
+
+	FPSCR.Hex &= ~b;
 	FPSCRtoFPUSettings(FPSCR);
+
 	if (_inst.Rc) PanicAlert("mtfsb0x: inst_.Rc");
 }
 
 void mtfsb1x(UGeckoInstruction _inst)
 {
-	FPSCR.Hex |= 0x80000000 >> _inst.CRBD;
-	FPSCRtoFPUSettings(FPSCR);
+	// this instruction can affect FX
+	u32 b = 0x80000000 >> _inst.CRBD;
+	if (b & FPSCR_ANY_X)
+		SetFPException(b);
+	else
+		FPSCR.Hex |= b;
+	FPSCRtoFPUSettings(FPSCR);	
+
 	if (_inst.Rc) PanicAlert("mtfsb1x: inst_.Rc");
 }
 
@@ -180,8 +151,15 @@ void mtfsfix(UGeckoInstruction _inst)
 {
 	u32 mask = (0xF0000000 >> (4 * _inst.CRFD));
 	u32 imm = (_inst.hex << 16) & 0xF0000000;
+
+	/*u32 cleared = ~(imm >> (4 * _inst.CRFD)) & FPSCR.Hex & mask;
+	if (cleared & 0x9ff80700)
+		PanicAlert("mtfsfi clears %08x, PC=%x", cleared, PC);*/
+
 	FPSCR.Hex = (FPSCR.Hex & ~mask) | (imm >> (4 * _inst.CRFD));
+
 	FPSCRtoFPUSettings(FPSCR);
+
 	if (_inst.Rc) PanicAlert("mtfsfix: inst_.Rc");
 }
 
@@ -189,14 +167,19 @@ void mtfsfx(UGeckoInstruction _inst)
 {
 	u32 fm = _inst.FM;
 	u32 m = 0;
-	for (int i = 0; i < 8; i++)  //7?? todo check
+	for (int i = 0; i < 8; i++)
 	{
 		if (fm & (1 << i))
 			m |= (0xF << (i * 4));
 	}
 
+	/*u32 cleared = ~((u32)(riPS0(_inst.FB))) & FPSCR.Hex & m;
+	if (cleared & 0x9ff80700)
+		PanicAlert("mtfsf clears %08x, PC=%x", cleared, PC);*/
+
 	FPSCR.Hex = (FPSCR.Hex & ~m) | ((u32)(riPS0(_inst.FB)) & m);
 	FPSCRtoFPUSettings(FPSCR);
+
 	if (_inst.Rc) PanicAlert("mtfsfx: inst_.Rc");
 }
 
@@ -456,6 +439,55 @@ void mcrf(UGeckoInstruction _inst)
 void isync(UGeckoInstruction _inst)
 {
 	//shouldnt do anything
+}
+
+// the following commands read from FPSCR
+
+void mcrfs(UGeckoInstruction _inst)
+{
+	//if (_inst.CRFS != 3 && _inst.CRFS != 4)
+	//	PanicAlert("msrfs at %x, CRFS = %d, CRFD = %d", PC, (int)_inst.CRFS, (int)_inst.CRFD);
+
+	UpdateFPSCR();
+	u32 fpflags = ((FPSCR.Hex >> (4*(7 - _inst.CRFS))) & 0xF);
+	switch (_inst.CRFS) {
+	case 0:
+		FPSCR.FX = 0;
+		FPSCR.OX = 0;
+		break;
+	case 1:
+		FPSCR.UX = 0;
+		FPSCR.ZX = 0;
+		FPSCR.XX = 0;
+		FPSCR.VXSNAN = 0;
+		break;
+	case 2:
+		FPSCR.VXISI = 0;
+		FPSCR.VXIDI = 0;
+		FPSCR.VXZDZ = 0;
+		FPSCR.VXIMZ = 0;
+		break;
+	case 3:
+		FPSCR.VXVC = 0;
+		break;
+	case 5:
+		FPSCR.VXSOFT = 0;
+		FPSCR.VXSQRT = 0;
+		FPSCR.VXCVI = 0;
+		break;
+	}
+	SetCRField(_inst.CRFD, fpflags);	
+}
+
+void mffsx(UGeckoInstruction _inst)
+{
+	// load from FPSCR
+	// This may or may not be accurate - but better than nothing, I guess
+	// TODO(ector): grab all overflow flags etc and set them in FPSCR
+
+	UpdateFPSCR();
+	riPS0(_inst.FD)	= (u64)FPSCR.Hex;
+	if (_inst.Rc) PanicAlert("mffsx: inst_.Rc");
 }
 
 }  // namespace

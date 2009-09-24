@@ -1031,6 +1031,10 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\Src\PowerPC\Interpreter\Interpreter_FPUtils.h"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\PowerPC\Interpreter\Interpreter_Integer.cpp"
 					>
 				</File>

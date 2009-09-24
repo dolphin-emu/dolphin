@@ -21,6 +21,8 @@
 #include "Interpreter.h"
 #include "../../HW/Memmap.h"
 
+#include "Interpreter_FPUtils.h"
+
 using namespace MathUtil;
 
 namespace Interpreter
@@ -99,140 +101,272 @@ void ps_merge11(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
-
 // From here on, the real deal.
-
 void ps_div(UGeckoInstruction _inst)
-{
-	rPS0(_inst.FD) = static_cast<float>(rPS0(_inst.FA) / rPS0(_inst.FB));
-	rPS1(_inst.FD) = static_cast<float>(rPS1(_inst.FA) / rPS1(_inst.FB));
-	if (fabs(rPS0(_inst.FB)) == 0.0) {
-		FPSCR.ZX = 1;
+{	
+	u32 ex_mask = 0;
+
+	// PS0
+	{
+		double a = rPS0(_inst.FA);
+		double b = rPS0(_inst.FB);
+		double &res = rPS0(_inst.FD);
+
+		if (a != a) res = a;
+		else if (b != b) res = b;
+		else
+		{
+			if (b == 0.0)
+			{
+				ex_mask |= FPSCR_ZX;
+				if (rPS0(_inst.FA) == 0.0)
+				{
+					ex_mask |= FPSCR_VXZDZ;
+					res = PPC_NAN;
+				}
+				else
+				{
+					res = ForceSingle(a / b);
+				}
+			}
+			else
+			{
+				if (IsINF(a) && IsINF(b))
+				{
+					ex_mask |= FPSCR_VXIDI;
+					res = PPC_NAN;
+				}
+				else
+				{
+					res = ForceSingle(a / b);
+				}
+			}
+		}
 	}
+
+	// PS1
+	{
+		double a = rPS1(_inst.FA);
+		double b = rPS1(_inst.FB);
+		double &res = rPS1(_inst.FD);
+
+		if (a != a) res = a;
+		else if (b != b) res = b;
+		else
+		{
+			if (b == 0.0)
+			{
+				ex_mask |= FPSCR_ZX;
+				if (rPS0(_inst.FA) == 0.0)
+				{
+					ex_mask |= FPSCR_VXZDZ;
+					res = PPC_NAN;
+				}
+				else
+				{
+					res = ForceSingle(a / b);
+				}
+			}
+			else
+			{
+				if (IsINF(a) && IsINF(b))
+				{
+					ex_mask |= FPSCR_VXIDI;
+					res = PPC_NAN;
+				}
+				else
+				{
+					res = ForceSingle(a / b);
+				}
+			}
+		}
+	}
+
+	SetFPException(ex_mask);	
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_res(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = 1.0f / static_cast<float>(rPS0(_inst.FB));
-	rPS1(_inst.FD) = 1.0f / static_cast<float>(rPS1(_inst.FB));
-	if (fabs(rPS0(_inst.FB)) == 0.0) {
-		FPSCR.ZX = 1;
+	// this code is based on the real hardware tests
+	double a = rPS0(_inst.FB);
+	double b = rPS1(_inst.FB);
+	if (a == 0.0 || b == 0.0)
+	{
+		SetFPException(FPSCR_ZX);
 	}
+	rPS0(_inst.FD) = ForceSingle(1.0 / a);
+	if (a != 0.0 && IsINF(rPS0(_inst.FD)))
+	{
+		if (rPS0(_inst.FD) > 0)
+			riPS0(_inst.FD) = MAX_SINGLE; // largest finite single
+		else
+			riPS0(_inst.FD) = MIN_SINGLE; // most negative finite single
+	}
+	rPS1(_inst.FD) = ForceSingle(1.0 / b);
+	if (b != 0.0 && IsINF(rPS1(_inst.FD)))
+	{
+		if (rPS1(_inst.FD) > 0)
+			riPS1(_inst.FD) = MAX_SINGLE;
+		else
+			riPS1(_inst.FD) = MIN_SINGLE;
+	}
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_rsqrte(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = static_cast<double>(1.0f / sqrtf((float)rPS0(_inst.FB)));
-	rPS1(_inst.FD) = static_cast<double>(1.0f / sqrtf((float)rPS1(_inst.FB)));
-	if (fabs(rPS0(_inst.FB)) == 0.0) {
-		FPSCR.ZX = 1;
+	// this code is based on the real hardware tests
+	if (rPS0(_inst.FB) == 0.0 || rPS1(_inst.FB) == 0.0)
+	{
+		SetFPException(FPSCR_ZX);
 	}
+	// PS0
+	if (rPS0(_inst.FB) < 0.0)
+	{
+		SetFPException(FPSCR_VXSQRT);
+		rPS0(_inst.FD) = PPC_NAN;
+	}
+	else
+	{
+		rPS0(_inst.FD) = 1.0 / sqrt(rPS0(_inst.FB));
+		u32 t = ConvertToSingle(riPS0(_inst.FD));
+		rPS0(_inst.FD) = *(float*)&t;
+	}
+	// PS1
+	if (rPS1(_inst.FB) < 0.0)
+	{
+		SetFPException(FPSCR_VXSQRT);
+		rPS1(_inst.FD) = PPC_NAN;
+	}
+	else
+	{
+		rPS1(_inst.FD) = 1.0 / sqrt(rPS1(_inst.FB));
+		u32 t = ConvertToSingle(riPS1(_inst.FD));
+		rPS1(_inst.FD) = *(float*)&t;
+	}
+
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
+
 void ps_sub(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = static_cast<float>(rPS0(_inst.FA) - rPS0(_inst.FB));
-	rPS1(_inst.FD) = static_cast<float>(rPS1(_inst.FA) - rPS1(_inst.FB));
+	rPS0(_inst.FD) = ForceSingle(NI_sub(rPS0(_inst.FA), rPS0(_inst.FB)));
+	rPS1(_inst.FD) = ForceSingle(NI_sub(rPS1(_inst.FA), rPS1(_inst.FB)));
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_add(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = static_cast<float>(rPS0(_inst.FA) + rPS0(_inst.FB));
-	rPS1(_inst.FD) = static_cast<float>(rPS1(_inst.FA) + rPS1(_inst.FB));
+	rPS0(_inst.FD) = ForceSingle(NI_add(rPS0(_inst.FA), rPS0(_inst.FB)));
+	rPS1(_inst.FD) = ForceSingle(NI_add(rPS1(_inst.FA), rPS1(_inst.FB)));
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_mul(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = static_cast<float>(rPS0(_inst.FA) * rPS0(_inst.FC));
-	rPS1(_inst.FD) = static_cast<float>(rPS1(_inst.FA) * rPS1(_inst.FC));
+	rPS0(_inst.FD) = ForceSingle(NI_mul(rPS0(_inst.FA), rPS0(_inst.FC)));
+	rPS1(_inst.FD) = ForceSingle(NI_mul(rPS1(_inst.FA), rPS1(_inst.FC)));
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 
 void ps_msub(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = static_cast<float>((rPS0(_inst.FA) * rPS0(_inst.FC)) - rPS0(_inst.FB));
-	rPS1(_inst.FD) = static_cast<float>((rPS1(_inst.FA) * rPS1(_inst.FC)) - rPS1(_inst.FB));
+	rPS0(_inst.FD) = ForceSingle(NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	rPS1(_inst.FD) = ForceSingle(NI_msub(rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB)));
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_madd(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = static_cast<float>((rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB));
-	rPS1(_inst.FD) = static_cast<float>((rPS1(_inst.FA) * rPS1(_inst.FC)) + rPS1(_inst.FB));
+	rPS0(_inst.FD) = ForceSingle(NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	rPS1(_inst.FD) = ForceSingle(NI_madd(rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB)));
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_nmsub(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = static_cast<float>(-(rPS0(_inst.FA) * rPS0(_inst.FC) - rPS0(_inst.FB)));
-	rPS1(_inst.FD) = static_cast<float>(-(rPS1(_inst.FA) * rPS1(_inst.FC) - rPS1(_inst.FB)));
+	rPS0(_inst.FD) = ForceSingle( 0.0-NI_msub( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ) );
+	rPS1(_inst.FD) = ForceSingle( 0.0-NI_msub( rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB) ) );
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_nmadd(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = static_cast<float>(-(rPS0(_inst.FA) * rPS0(_inst.FC) + rPS0(_inst.FB)));
-	rPS1(_inst.FD) = static_cast<float>(-(rPS1(_inst.FA) * rPS1(_inst.FC) + rPS1(_inst.FB)));
+	rPS0(_inst.FD) = ForceSingle( 0.0-NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ) );
+	rPS1(_inst.FD) = ForceSingle( 0.0-NI_madd( rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB) ) );
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_sum0(UGeckoInstruction _inst)
 {
-	double p0 = (float)(rPS0(_inst.FA) + rPS1(_inst.FB));
-	double p1 = (float)(rPS1(_inst.FC));
+	double p0 = ForceSingle(NI_add(rPS0(_inst.FA), rPS1(_inst.FB)));
+	double p1 = ForceSingle(rPS1(_inst.FC));
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_sum1(UGeckoInstruction _inst)
 {
-	double p0 = rPS0(_inst.FC);
-	double p1 = rPS0(_inst.FA) + rPS1(_inst.FB);
+	double p0 = ForceSingle(rPS0(_inst.FC));
+	double p1 = ForceSingle(NI_add(rPS0(_inst.FA), rPS1(_inst.FB)));
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	UpdateFPRF(rPS1(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_muls0(UGeckoInstruction _inst)
 {
-	double p0 = rPS0(_inst.FA) * rPS0(_inst.FC);
-	double p1 = rPS1(_inst.FA) * rPS0(_inst.FC);
+	double p0 = ForceSingle(NI_mul(rPS0(_inst.FA), rPS0(_inst.FC)));
+	double p1 = ForceSingle(NI_mul(rPS1(_inst.FA), rPS0(_inst.FC)));
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_muls1(UGeckoInstruction _inst)
 {
-	double p0 = rPS0(_inst.FA) * rPS1(_inst.FC);
-	double p1 = rPS1(_inst.FA) * rPS1(_inst.FC);
+	double p0 = ForceSingle(NI_mul(rPS0(_inst.FA), rPS1(_inst.FC)));
+	double p1 = ForceSingle(NI_mul(rPS1(_inst.FA), rPS1(_inst.FC)));
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_madds0(UGeckoInstruction _inst)
 {
-	double p0 = (rPS0(_inst.FA) * rPS0(_inst.FC)) + rPS0(_inst.FB);
-	double p1 = (rPS1(_inst.FA) * rPS0(_inst.FC)) + rPS1(_inst.FB);
+	double p0 = ForceSingle( NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)) );
+	double p1 = ForceSingle( NI_madd( rPS1(_inst.FA), rPS0(_inst.FC), rPS1(_inst.FB)) );
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_madds1(UGeckoInstruction _inst)
 {
-	double p0 = (rPS0(_inst.FA) * rPS1(_inst.FC)) + rPS0(_inst.FB);
-	double p1 = (rPS1(_inst.FA) * rPS1(_inst.FC)) + rPS1(_inst.FB);
+	double p0 = ForceSingle( NI_madd( rPS0(_inst.FA), rPS1(_inst.FC), rPS0(_inst.FB)) );
+	double p1 = ForceSingle( NI_madd( rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB)) );
 	rPS0(_inst.FD) = p0;
 	rPS1(_inst.FD) = p1;
+	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
@@ -250,17 +384,15 @@ void ps_cmpu0(UGeckoInstruction _inst)
 		compareResult = 1;
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
-			FPSCR.VXSNAN = 1;
+			SetFPException(FPSCR_VXSNAN);
 		}
 	}
-	SetCRField(_inst.CRFD, compareResult);
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	FPSCR.FPRF = compareResult;
+	SetCRField(_inst.CRFD, compareResult);	
 }
 
 void ps_cmpo0(UGeckoInstruction _inst)
-{
-	// Ector, please check
-	//ps_cmpu0(_inst);
+{	
 	double fa = rPS0(_inst.FA);
 	double fb = rPS0(_inst.FB);
 	int compareResult;
@@ -268,19 +400,23 @@ void ps_cmpo0(UGeckoInstruction _inst)
 	if (fa < fb)         		compareResult = 8; 
 	else if (fa > fb)        	compareResult = 4; 
 	else if (fa == fb)			compareResult = 2;
-	else						
+	else
 	{
 		compareResult = 1;
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
-			FPSCR.VXSNAN = 1;
-			if (!FPSCR.FEX) FPSCR.VXVC = 1;
+			SetFPException(FPSCR_VXSNAN);
+			if (!FPSCR.VE) 
+				SetFPException(FPSCR_VXVC);
 		}
-		else if (IsQNAN(fa) || IsQNAN(fb)) 
-			FPSCR.VXVC = 1;
+		else 
+		{
+			//if (IsQNAN(fa) || IsQNAN(fb)) // this is always true
+			SetFPException(FPSCR_VXVC);
+		}
 	}
-	SetCRField(_inst.CRFD, compareResult);
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	FPSCR.FPRF = compareResult;
+	SetCRField(_inst.CRFD, compareResult);	
 }
 
 void ps_cmpu1(UGeckoInstruction _inst)
@@ -297,17 +433,15 @@ void ps_cmpu1(UGeckoInstruction _inst)
 		compareResult = 1;
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
-			FPSCR.VXSNAN = 1;
+			SetFPException(FPSCR_VXSNAN);
 		}
 	}
-	SetCRField(_inst.CRFD, compareResult);
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	FPSCR.FPRF = compareResult;
+	SetCRField(_inst.CRFD, compareResult);	
 }
 
 void ps_cmpo1(UGeckoInstruction _inst)
-{
-	// Ector, please check
-	//ps_cmpu1(_inst);
+{	
 	double fa = rPS1(_inst.FA);
 	double fb = rPS1(_inst.FB);
 	int compareResult;
@@ -315,19 +449,23 @@ void ps_cmpo1(UGeckoInstruction _inst)
 	if (fa < fb)         		compareResult = 8; 
 	else if (fa > fb)        	compareResult = 4; 
 	else if (fa == fb)			compareResult = 2;
-	else						
+	else
 	{
 		compareResult = 1;
 		if (IsSNAN(fa) || IsSNAN(fb))
 		{
-			FPSCR.VXSNAN = 1;
-			if (!FPSCR.FEX) FPSCR.VXVC = 1;
+			SetFPException(FPSCR_VXSNAN);
+			if (!FPSCR.VE) 
+				SetFPException(FPSCR_VXVC);
 		}
-		else if (IsQNAN(fa) || IsQNAN(fb)) 
-			FPSCR.VXVC = 1;
+		else 
+		{
+			//if (IsQNAN(fa) || IsQNAN(fb)) // this is always true
+			SetFPException(FPSCR_VXVC);
+		}
 	}
-	SetCRField(_inst.CRFD, compareResult);
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	FPSCR.FPRF = compareResult;
+	SetCRField(_inst.CRFD, compareResult);	
 }
 
 // __________________________________________________________________________________________________

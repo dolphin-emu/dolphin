@@ -19,6 +19,8 @@
 #include "Interpreter.h"
 #include "../../HW/Memmap.h"
 
+#include "Interpreter_FPUtils.h"
+
 namespace Interpreter
 {
 
@@ -71,40 +73,40 @@ inline T CLAMP(T a, T bottom, T top) {
 	return a;
 }
 
-void Helper_Quantize(const u32 _Addr, const float _fValue, 
+void Helper_Quantize(const u32 _Addr, const double _fValue, 
 							  const EQuantizeType _quantizeType, const unsigned int _uScale)
 {
 	switch(_quantizeType) 
 	{
-	case QUANTIZE_FLOAT:
-		Memory::Write_U32(*(u32*)&_fValue,_Addr);
+	case QUANTIZE_FLOAT:		
+		Memory::Write_U32( ConvertToSingleFTZ( *(u64*)&_fValue ), _Addr );
 		break;
 
 	// used for THP player
 	case QUANTIZE_U8:
 		{
-			float fResult = CLAMP(_fValue * m_quantizeTable[_uScale], 0.0f, 255.0f);
+			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], 0.0f, 255.0f);
 			Memory::Write_U8((u8)fResult, _Addr); 
 		}
 		break;
 
 	case QUANTIZE_U16:
 		{
-			float fResult = CLAMP(_fValue * m_quantizeTable[_uScale], 0.0f, 65535.0f);
+			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], 0.0f, 65535.0f);
 			Memory::Write_U16((u16)fResult, _Addr); 
 		}
 		break;
 
 	case QUANTIZE_S8:
 		{
-			float fResult = CLAMP(_fValue * m_quantizeTable[_uScale], -128.0f, 127.0f);
+			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], -128.0f, 127.0f);
 			Memory::Write_U8((u8)(s8)fResult, _Addr); 
 		}
 		break;
 
 	case QUANTIZE_S16:
 		{
-			float fResult = CLAMP(_fValue * m_quantizeTable[_uScale], -32768.0f, 32767.0f);
+			float fResult = CLAMP((float)_fValue * m_quantizeTable[_uScale], -32768.0f, 32767.0f);
 			Memory::Write_U16((u16)(s16)fResult, _Addr); 
 		}
 		break;
@@ -215,8 +217,8 @@ void psq_st(UGeckoInstruction _inst)
 
 	if (_inst.W == 0)
 	{
-		Helper_Quantize( EA,   (float)rPS0(_inst.RS), stType, stScale );
-		Helper_Quantize( EA+c, (float)rPS1(_inst.RS), stType, stScale );
+		Helper_Quantize( EA,   rPS0(_inst.RS), stType, stScale );
+		Helper_Quantize( EA+c, rPS1(_inst.RS), stType, stScale );
 	}
 	else
 	{
@@ -237,12 +239,12 @@ void psq_stu(UGeckoInstruction _inst)
 
 	if (_inst.W == 0)
 	{
-		Helper_Quantize(EA,   (float)rPS0(_inst.RS), stType, stScale);
-		Helper_Quantize(EA+c, (float)rPS1(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA+c, rPS1(_inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize(EA,   (float)rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
 	}
 	m_GPR[_inst.RA] = EA;
 }
@@ -283,12 +285,12 @@ void psq_stx(UGeckoInstruction _inst)
 
 	if (_inst.Wx == 0)
 	{
-		Helper_Quantize(EA,   (float)rPS0(_inst.RS), stType, stScale);
-		Helper_Quantize(EA+c, (float)rPS1(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA+c, rPS1(_inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize(EA,   (float)rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
 	}
 }
 
@@ -329,12 +331,12 @@ void psq_stux(UGeckoInstruction _inst)
 
 	if (_inst.Wx == 0)
 	{
-		Helper_Quantize(EA,   (float)rPS0(_inst.RS), stType, stScale);
-		Helper_Quantize(EA+c, (float)rPS1(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA+c, rPS1(_inst.RS), stType, stScale);
 	}
 	else
 	{
-		Helper_Quantize(EA,   (float)rPS0(_inst.RS), stType, stScale);
+		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
 	}
 	m_GPR[_inst.RA] = EA;
 
