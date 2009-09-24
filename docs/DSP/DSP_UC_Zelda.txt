@@ -3213,7 +3213,7 @@ void 0919_Decoder0x6_Constant(AR0, AX0.L) {
 
 void 091c_Decoder0x7_WaveTable(ACC0, AR0, AX0.L) {
 	// So AR2 is where it reads the data from, and it updates ACC0 to the final read address in the end
-	// Questions: What is IX2 used for? And how does the wrap register change the data access?
+	// Questions: How does the wrap register change the data access?
 	
 	// 091c 0082 0100 lri         $AR2, #0x0100
 	// 091e 008a 003f lri         $WR2, #0x003f

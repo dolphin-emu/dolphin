@@ -116,6 +116,32 @@ void CUCode_Zelda::RenderSynth_Constant(ZeldaVoicePB &PB, s32* _Buffer, int _Siz
 		_Buffer[i] = (s32)PB.RatioInt;
 }
 
+// A piece of code from LLE so we can see how the wrap register affects the sound
+
+// HORRIBLE UGLINESS, someone please fix.
+// See http://code.google.com/p/dolphin-emu/source/detail?r=3125
+inline u16 ToMask(u16 a)
+{
+	a = a | (a >> 8);
+	a = a | (a >> 4);
+	a = a | (a >> 2);
+	return a | (a >> 1);
+}
+
+inline s16 AddValueToReg(s16 reg, s32 value)
+{
+	s16 tmp = reg;
+	u16 tmb = ToMask(0x003f);
+
+	for(int i = 0; i < value; i++) {
+		if ((tmp & tmb) == tmb)
+			tmp ^= 0x003f;
+		else
+			tmp++;
+	}
+
+	return tmp;
+}
 
 void CUCode_Zelda::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
@@ -139,24 +165,24 @@ void CUCode_Zelda::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Si
 		break;
 	}
 
-	// TODO: What about the 0x003f wrap register?
+	// TODO: Resample this!
+	WARN_LOG(DSPHLE, "Synthesizing the incomplete format 0x%04x", PB.Format);
 
-	//WARN_LOG(DSPHLE, "Not synthesizing un-REd format 0x%04x", PB.Format);
 	u64 ACC0 = PB.CurSampleFrac << 6;
 
-	ACC0 &= 0x3f0000;
+	ACC0 &= 0xffff003fffff;
 
-	address += (ACC0 >> 16);
-	ACC0 &= 0xffff;
+	address = AddValueToReg(address, ((ACC0 >> 16) & 0xffff));
+	ACC0 &= 0xffff0000ffff;
 
 	for(int i = 0; i < _Size; i++) 
 	{
 		_Buffer[i] = m_MiscTable[address];
 	
 		ACC0 += PB.RatioInt << 5;
-		address += ((ACC0 >> 16) & 0x003f);
+		address = AddValueToReg(address, ((ACC0 >> 16) & 0xffff));
 
-		ACC0 &= 0xffff;
+		ACC0 &= 0xffff0000ffff;
 	}
 
 	ACC0 = address << 16;

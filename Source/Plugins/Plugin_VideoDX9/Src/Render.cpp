@@ -142,6 +142,7 @@ bool Renderer::Init()
 	for (int stage = 0; stage < 8; stage++)
 		D3D::SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, g_ActiveConfig.iMaxAnisotropy);
 
+	D3D::dev->Clear(0, NULL, D3DCLEAR_ZBUFFER,D3DCOLOR_XRGB(255,255,255),1.0f,0);
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 0, 0);
 
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
@@ -465,7 +466,31 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
 
 		u32 z = 0;
-		// glReadPixels(srcX, srcY, 1, 1, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, &z);
+		float val = 0.0f;
+
+		LPDIRECT3DSURFACE9 pZBuffer = NULL;
+		if (D3D::dev->GetDepthStencilSurface(&pZBuffer) == D3DERR_NOTFOUND)
+			pZBuffer = NULL;
+
+		//D3DLOCKED_RECT drect;
+		//HRESULT hr;
+
+		if(!pZBuffer) {
+			PanicAlert("No Z-Buffer!");
+			return 0;
+		}
+
+		// TODO: Fix
+		//if((hr = pZBuffer->LockRect(0, &drect, NULL, NULL)) != D3D_OK)
+		//	PanicAlert("IT WAS AS I THOUGHT, %s", hr == D3DERR_WASSTILLDRAWING ? "Still drawing" :
+		//										  hr == D3DERR_INVALIDCALL     ? "Invalid call" : "w00t");	
+			
+		//val = ((float *)drect.pBits)[0];
+
+		//pZBuffer->UnlockRect(0);
+
+		// [0.0, 1.0] ==> [0, 0xFFFFFFFF]
+		z = val * 0xFFFFFFFF;
 
 		// Scale the 32-bit value returned by glReadPixels to a 24-bit
 		// value (GC uses a 24-bit Z-buffer).
