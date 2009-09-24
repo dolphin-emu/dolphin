@@ -107,6 +107,7 @@ vars.AddVariables(
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
     BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
     BoolVariable('noal', 'Build without OpenAL', False),
+    BoolVariable('noao', 'Build without AO', False),
     BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
     BoolVariable('jittest', 'temp don\'t use (WIP)', False),
 	BoolVariable('nojit', 'Remove entire jit cores', False),
@@ -243,11 +244,14 @@ env['HAVE_SDL'] = conf.CheckSDL('1.0.0')
 env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 
 # needed for sound
-env['HAVE_AO'] = conf.CheckPKG('ao')
-if env['noal']:
-	env['HAVE_OPENAL'] = 0
+if env['noao']:
+    env['HAVE_AO'] = 0
 else:
-	env['HAVE_OPENAL'] = conf.CheckPKG('openal')
+    env['HAVE_AO'] = conf.CheckPKG('ao')
+if env['noal']:
+    env['HAVE_OPENAL'] = 0
+else:
+    env['HAVE_OPENAL'] = conf.CheckPKG('openal')
 env['HAVE_ALSA'] = conf.CheckPKG('alsa')
 
 

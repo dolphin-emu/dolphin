@@ -3,19 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 45;
+	objectVersion = 46;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5208D8090EEA371F003D9F1D /* libwx_macud-2.8.0.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52492CB30ED199D3008ADF7D /* libwx_macud-2.8.0.1.1.dylib */; };
-		5208D8450EEA398B003D9F1D /* libao.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5208D8440EEA398B003D9F1D /* libao.a */; };
-		520A5FB90EEA5799004FE1ED /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 520A5FB80EEA5799004FE1ED /* SDL.framework */; };
-		520A5FC20EEA5825004FE1ED /* libwx_macud-2.8.0.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52492CB30ED199D3008ADF7D /* libwx_macud-2.8.0.1.1.dylib */; };
-		5232B1660EEA5BD50093A7B1 /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 520A5FB80EEA5799004FE1ED /* SDL.framework */; };
-		5232B1CE0EEB623A0093A7B1 /* libwx_macud-2.8.0.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52492CB30ED199D3008ADF7D /* libwx_macud-2.8.0.1.1.dylib */; };
 		5232B1F10EEB634D0093A7B1 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5232B1F00EEB634D0093A7B1 /* Cocoa.framework */; };
 		5232B2820EEBE2210093A7B1 /* Cg.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5232B2810EEBE2210093A7B1 /* Cg.framework */; };
-		52492CB40ED199D3008ADF7D /* libwx_macud-2.8.0.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52492CB30ED199D3008ADF7D /* libwx_macud-2.8.0.1.1.dylib */; };
 		52492CB80ED19A02008ADF7D /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52492CB70ED19A02008ADF7D /* libz.dylib */; };
 		52FFFDB20EECC8E900FD8C0D /* libPlugin_DSP_NULL.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 52C432F90EEA514900B87C53 /* libPlugin_DSP_NULL.dylib */; };
 		52FFFDB30EECC8E900FD8C0D /* libPlugin_nJoy_SDL.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = 52771A740EEA55E8006A702B /* libPlugin_nJoy_SDL.dylib */; };
@@ -52,17 +45,6 @@
 		B122DA0C1003541B00D86E1A /* pluginspecs_wiimote.h in Headers */ = {isa = PBXBuildFile; fileRef = B122D9F01003541B00D86E1A /* pluginspecs_wiimote.h */; };
 		B122DA441003543700D86E1A /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA111003543700D86E1A /* Config.cpp */; };
 		B122DA451003543700D86E1A /* Config.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA121003543700D86E1A /* Config.h */; };
-		B122DA461003543700D86E1A /* ConfigDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA131003543700D86E1A /* ConfigDlg.cpp */; };
-		B122DA471003543700D86E1A /* ConfigDlg.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA141003543700D86E1A /* ConfigDlg.h */; };
-		B122DA481003543700D86E1A /* Blocks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA161003543700D86E1A /* Blocks.cpp */; };
-		B122DA491003543700D86E1A /* Debugger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA171003543700D86E1A /* Debugger.cpp */; };
-		B122DA4A1003543700D86E1A /* Debugger.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA181003543700D86E1A /* Debugger.h */; };
-		B122DA4B1003543700D86E1A /* File.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA191003543700D86E1A /* File.cpp */; };
-		B122DA4C1003543700D86E1A /* File.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA1A1003543700D86E1A /* File.h */; };
-		B122DA4D1003543700D86E1A /* Logging.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA1B1003543700D86E1A /* Logging.cpp */; };
-		B122DA4E1003543700D86E1A /* Mails.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA1C1003543700D86E1A /* Mails.cpp */; };
-		B122DA4F1003543700D86E1A /* PBView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA1D1003543700D86E1A /* PBView.cpp */; };
-		B122DA501003543700D86E1A /* PBView.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA1E1003543700D86E1A /* PBView.h */; };
 		B122DA511003543700D86E1A /* DSPHandler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA1F1003543700D86E1A /* DSPHandler.cpp */; };
 		B122DA521003543700D86E1A /* DSPHandler.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA201003543700D86E1A /* DSPHandler.h */; };
 		B122DA531003543700D86E1A /* Globals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA211003543700D86E1A /* Globals.cpp */; };
@@ -86,8 +68,6 @@
 		B122DA651003543700D86E1A /* UCode_CARD.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA351003543700D86E1A /* UCode_CARD.h */; };
 		B122DA661003543700D86E1A /* UCode_InitAudioSystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA361003543700D86E1A /* UCode_InitAudioSystem.cpp */; };
 		B122DA671003543700D86E1A /* UCode_InitAudioSystem.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA371003543700D86E1A /* UCode_InitAudioSystem.h */; };
-		B122DA681003543700D86E1A /* UCode_Jac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA381003543700D86E1A /* UCode_Jac.cpp */; };
-		B122DA691003543700D86E1A /* UCode_Jac.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA391003543700D86E1A /* UCode_Jac.h */; };
 		B122DA6A1003543700D86E1A /* UCode_ROM.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA3A1003543700D86E1A /* UCode_ROM.cpp */; };
 		B122DA6B1003543700D86E1A /* UCode_ROM.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA3B1003543700D86E1A /* UCode_ROM.h */; };
 		B122DA6C1003543700D86E1A /* UCode_Zelda.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA3C1003543700D86E1A /* UCode_Zelda.cpp */; };
@@ -99,12 +79,6 @@
 		B122DA721003543700D86E1A /* UCodes.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA431003543700D86E1A /* UCodes.h */; };
 		B122DA921003545900D86E1A /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA761003545900D86E1A /* Config.cpp */; };
 		B122DA931003545900D86E1A /* Config.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA771003545900D86E1A /* Config.h */; };
-		B122DA941003545900D86E1A /* Debugger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA791003545900D86E1A /* Debugger.cpp */; };
-		B122DA951003545900D86E1A /* Debugger.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA7A1003545900D86E1A /* Debugger.h */; };
-		B122DA961003545900D86E1A /* DSPRegisterView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA7B1003545900D86E1A /* DSPRegisterView.cpp */; };
-		B122DA971003545900D86E1A /* DSPRegisterView.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA7C1003545900D86E1A /* DSPRegisterView.h */; };
-		B122DA981003545900D86E1A /* DSPConfigDlgLLE.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA7D1003545900D86E1A /* DSPConfigDlgLLE.cpp */; };
-		B122DA991003545900D86E1A /* DSPConfigDlgLLE.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA7E1003545900D86E1A /* DSPConfigDlgLLE.h */; };
 		B122DA9A1003545900D86E1A /* DSPDebugInterface.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA7F1003545900D86E1A /* DSPDebugInterface.cpp */; };
 		B122DA9B1003545900D86E1A /* DSPDebugInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DA801003545900D86E1A /* DSPDebugInterface.h */; };
 		B122DA9C1003545900D86E1A /* DSPHost.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DA811003545900D86E1A /* DSPHost.cpp */; };
@@ -177,14 +151,6 @@
 		B122DB451003546C00D86E1A /* XFB.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB0D1003546C00D86E1A /* XFB.h */; };
 		B122DB6D1003548600D86E1A /* Config.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB501003548600D86E1A /* Config.cpp */; };
 		B122DB6E1003548600D86E1A /* Config.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB511003548600D86E1A /* Config.h */; };
-		B122DB6F1003548600D86E1A /* ConfigBasicDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB521003548600D86E1A /* ConfigBasicDlg.cpp */; };
-		B122DB701003548600D86E1A /* ConfigBasicDlg.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB531003548600D86E1A /* ConfigBasicDlg.h */; };
-		B122DB711003548600D86E1A /* ConfigGamepad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB541003548600D86E1A /* ConfigGamepad.cpp */; };
-		B122DB721003548600D86E1A /* ConfigPadDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB551003548600D86E1A /* ConfigPadDlg.cpp */; };
-		B122DB731003548600D86E1A /* ConfigPadDlg.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB561003548600D86E1A /* ConfigPadDlg.h */; };
-		B122DB741003548600D86E1A /* ConfigRecording.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB571003548600D86E1A /* ConfigRecording.cpp */; };
-		B122DB751003548600D86E1A /* ConfigRecordingDlg.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB581003548600D86E1A /* ConfigRecordingDlg.cpp */; };
-		B122DB761003548600D86E1A /* ConfigRecordingDlg.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB591003548600D86E1A /* ConfigRecordingDlg.h */; };
 		B122DB771003548600D86E1A /* DataReports.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB5A1003548600D86E1A /* DataReports.cpp */; };
 		B122DB781003548600D86E1A /* EmuDefinitions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB5B1003548600D86E1A /* EmuDefinitions.cpp */; };
 		B122DB791003548600D86E1A /* EmuDefinitions.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB5C1003548600D86E1A /* EmuDefinitions.h */; };
@@ -196,7 +162,6 @@
 		B122DB7F1003548600D86E1A /* EmuSubroutines.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB621003548600D86E1A /* EmuSubroutines.h */; };
 		B122DB801003548600D86E1A /* Encryption.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB631003548600D86E1A /* Encryption.cpp */; };
 		B122DB811003548600D86E1A /* Encryption.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB641003548600D86E1A /* Encryption.h */; };
-		B122DB821003548600D86E1A /* FillReport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB651003548600D86E1A /* FillReport.cpp */; };
 		B122DB831003548600D86E1A /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB661003548600D86E1A /* main.cpp */; };
 		B122DB841003548600D86E1A /* main.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DB671003548600D86E1A /* main.h */; };
 		B122DB851003548600D86E1A /* ReadWiimote.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DB681003548600D86E1A /* ReadWiimote.cpp */; };
@@ -217,7 +182,6 @@
 		B122DCDA100356AA00D86E1A /* CommonFuncs.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DC8D100356AA00D86E1A /* CommonFuncs.h */; };
 		B122DCDB100356AA00D86E1A /* CommonPaths.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DC8E100356AA00D86E1A /* CommonPaths.h */; };
 		B122DCDC100356AA00D86E1A /* CommonTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DC8F100356AA00D86E1A /* CommonTypes.h */; };
-		B122DCDD100356AA00D86E1A /* Config.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DC90100356AA00D86E1A /* Config.h */; };
 		B122DCDE100356AA00D86E1A /* ConsoleListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DC91100356AA00D86E1A /* ConsoleListener.cpp */; };
 		B122DCDF100356AA00D86E1A /* CPUDetect.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DC92100356AA00D86E1A /* CPUDetect.cpp */; };
 		B122DCE0100356AA00D86E1A /* CPUDetect.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DC93100356AA00D86E1A /* CPUDetect.h */; };
@@ -278,8 +242,6 @@
 		B122DD19100356AA00D86E1A /* x64Emitter.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DCCD100356AA00D86E1A /* x64Emitter.h */; };
 		B122DD821003578400D86E1A /* aldlist.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DD6F1003578400D86E1A /* aldlist.cpp */; };
 		B122DD831003578400D86E1A /* aldlist.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DD701003578400D86E1A /* aldlist.h */; };
-		B122DD841003578400D86E1A /* AOSoundStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DD711003578400D86E1A /* AOSoundStream.cpp */; };
-		B122DD851003578400D86E1A /* AOSoundStream.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DD721003578400D86E1A /* AOSoundStream.h */; };
 		B122DD861003578400D86E1A /* AudioCommon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DD731003578400D86E1A /* AudioCommon.cpp */; };
 		B122DD871003578400D86E1A /* AudioCommon.h in Headers */ = {isa = PBXBuildFile; fileRef = B122DD741003578400D86E1A /* AudioCommon.h */; };
 		B122DD881003578400D86E1A /* AudioCommonConfig.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122DD751003578400D86E1A /* AudioCommonConfig.cpp */; };
@@ -635,7 +597,6 @@
 		B122E15F10035F5000D86E1A /* ImageWrite.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E12010035F5000D86E1A /* ImageWrite.h */; };
 		B122E16010035F5000D86E1A /* IndexGenerator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122E12110035F5000D86E1A /* IndexGenerator.cpp */; };
 		B122E16110035F5000D86E1A /* IndexGenerator.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E12210035F5000D86E1A /* IndexGenerator.h */; };
-		B122E16210035F5000D86E1A /* LookUpTables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122E12310035F5000D86E1A /* LookUpTables.cpp */; };
 		B122E16310035F5000D86E1A /* LookUpTables.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E12410035F5000D86E1A /* LookUpTables.h */; };
 		B122E16410035F5000D86E1A /* memcpy_amd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122E12510035F5000D86E1A /* memcpy_amd.cpp */; };
 		B122E16510035F5000D86E1A /* NativeVertexFormat.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E12610035F5000D86E1A /* NativeVertexFormat.h */; };
@@ -693,45 +654,31 @@
 		B122E1CE1003605600D86E1A /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B122E1CD1003605600D86E1A /* OpenAL.framework */; };
 		B122E1CF1003605600D86E1A /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B122E1CD1003605600D86E1A /* OpenAL.framework */; };
 		B122E1D51003607500D86E1A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5232B1F00EEB634D0093A7B1 /* Cocoa.framework */; };
-		B122E1DB100360AA00D86E1A /* libwx_macud-2.8.0.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52492CB30ED199D3008ADF7D /* libwx_macud-2.8.0.1.1.dylib */; };
 		B122E1DD100360C300D86E1A /* libDSPCore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122DD531003575600D86E1A /* libDSPCore.a */; };
 		B122E1E1100360D300D86E1A /* libCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122DC741003562E00D86E1A /* libCommon.a */; };
 		B122E1E3100360DD00D86E1A /* libAudioCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122DD301003571D00D86E1A /* libAudioCommon.a */; };
 		B122E1E4100360E500D86E1A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5232B1F00EEB634D0093A7B1 /* Cocoa.framework */; };
-		B122E1E6100360F300D86E1A /* libao.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5208D8440EEA398B003D9F1D /* libao.a */; };
 		B122E1E81003610600D86E1A /* libDebuggerUICommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122DD3E1003573400D86E1A /* libDebuggerUICommon.a */; };
 		B122E1ED1003611E00D86E1A /* libCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122DC741003562E00D86E1A /* libCommon.a */; };
 		B122E1EF1003612700D86E1A /* libInputCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122DD5A1003576200D86E1A /* libInputCommon.a */; };
 		B122E1FA1003616200D86E1A /* libCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122DC741003562E00D86E1A /* libCommon.a */; };
-		B122E257100361C800D86E1A /* classic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122E23B100361C800D86E1A /* classic.cpp */; };
 		B122E258100361C800D86E1A /* classic.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E23C100361C800D86E1A /* classic.h */; };
 		B122E259100361C800D86E1A /* definitions.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E23D100361C800D86E1A /* definitions.h */; };
-		B122E25A100361C800D86E1A /* dynamics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122E23E100361C800D86E1A /* dynamics.cpp */; };
 		B122E25B100361C800D86E1A /* dynamics.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E23F100361C800D86E1A /* dynamics.h */; };
-		B122E25C100361C800D86E1A /* events.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122E240100361C800D86E1A /* events.cpp */; };
 		B122E25D100361C800D86E1A /* events.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E241100361C800D86E1A /* events.h */; };
-		B122E25E100361C800D86E1A /* guitar_hero_3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122E242100361C800D86E1A /* guitar_hero_3.cpp */; };
 		B122E25F100361C800D86E1A /* guitar_hero_3.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E243100361C800D86E1A /* guitar_hero_3.h */; };
-		B122E260100361C800D86E1A /* io.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122E244100361C800D86E1A /* io.cpp */; };
 		B122E261100361C800D86E1A /* io.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E245100361C800D86E1A /* io.h */; };
 		B122E263100361C800D86E1A /* io_osx.m in Sources */ = {isa = PBXBuildFile; fileRef = B122E247100361C800D86E1A /* io_osx.m */; };
-		B122E265100361C800D86E1A /* ir.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122E249100361C800D86E1A /* ir.cpp */; };
 		B122E266100361C800D86E1A /* ir.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E24A100361C800D86E1A /* ir.h */; };
-		B122E268100361C800D86E1A /* nunchuk.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122E24C100361C800D86E1A /* nunchuk.cpp */; };
 		B122E269100361C800D86E1A /* nunchuk.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E24D100361C800D86E1A /* nunchuk.h */; };
 		B122E26A100361C800D86E1A /* os.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E24E100361C800D86E1A /* os.h */; };
-		B122E26B100361C800D86E1A /* wiiboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122E250100361C800D86E1A /* wiiboard.cpp */; };
 		B122E26C100361C800D86E1A /* wiiboard.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E251100361C800D86E1A /* wiiboard.h */; };
-		B122E26D100361C800D86E1A /* wiiuse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B122E252100361C800D86E1A /* wiiuse.cpp */; };
 		B122E26E100361C800D86E1A /* wiiuse.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E253100361C800D86E1A /* wiiuse.h */; };
 		B122E26F100361C800D86E1A /* wiiuse_internal.h in Headers */ = {isa = PBXBuildFile; fileRef = B122E254100361C800D86E1A /* wiiuse_internal.h */; };
 		B122E28F1003651800D86E1A /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B122E28D1003651800D86E1A /* IOBluetooth.framework */; };
 		B122E2901003651800D86E1A /* IOBluetoothUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B122E28E1003651800D86E1A /* IOBluetoothUI.framework */; };
-		B122E2A51003661E00D86E1A /* libWiiUse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122E2011003619200D86E1A /* libWiiUse.a */; };
-		B122E2D61003666000D86E1A /* libwx_macud-2.8.0.1.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 52492CB30ED199D3008ADF7D /* libwx_macud-2.8.0.1.1.dylib */; };
 		B122E2D71003666B00D86E1A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5232B1F00EEB634D0093A7B1 /* Cocoa.framework */; };
 		B122E2D91003667C00D86E1A /* libInputCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122DD5A1003576200D86E1A /* libInputCommon.a */; };
-		B122E2DE1003669200D86E1A /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 520A5FB80EEA5799004FE1ED /* SDL.framework */; };
 		B122E2FD100366AB00D86E1A /* IOBluetooth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B122E28D1003651800D86E1A /* IOBluetooth.framework */; };
 		B122E2FE100366AB00D86E1A /* IOBluetoothUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B122E28E1003651800D86E1A /* IOBluetoothUI.framework */; };
 		B122E344100369E000D86E1A /* libCommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122DC741003562E00D86E1A /* libCommon.a */; };
@@ -821,6 +768,48 @@
 		B1C736E91007E7410088EA1B /* Jit_Tables.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1C736E71007E7410088EA1B /* Jit_Tables.cpp */; };
 		B1C736EA1007E7410088EA1B /* Jit_Tables.h in Headers */ = {isa = PBXBuildFile; fileRef = B1C736E81007E7410088EA1B /* Jit_Tables.h */; };
 		B1C736EC1007E7540088EA1B /* Interpreter_Tables.h in Headers */ = {isa = PBXBuildFile; fileRef = B1C736EB1007E7540088EA1B /* Interpreter_Tables.h */; };
+		B1EDF478106C1F240003EAE6 /* SysConf.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF476106C1F230003EAE6 /* SysConf.cpp */; };
+		B1EDF479106C1F240003EAE6 /* SysConf.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF477106C1F230003EAE6 /* SysConf.h */; };
+		B1EDF47A106C1F320003EAE6 /* SysConf.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF477106C1F230003EAE6 /* SysConf.h */; };
+		B1EDF485106C1F6E0003EAE6 /* Atomic_GCC.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF483106C1F6E0003EAE6 /* Atomic_GCC.h */; };
+		B1EDF486106C1F6E0003EAE6 /* Atomic.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF484106C1F6E0003EAE6 /* Atomic.h */; };
+		B1EDF487106C1F6E0003EAE6 /* Atomic_GCC.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF483106C1F6E0003EAE6 /* Atomic_GCC.h */; };
+		B1EDF488106C1F6E0003EAE6 /* Atomic.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF484106C1F6E0003EAE6 /* Atomic.h */; };
+		B1EDF4B2106C222D0003EAE6 /* classic.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4A9106C222D0003EAE6 /* classic.c */; };
+		B1EDF4B3106C222D0003EAE6 /* dynamics.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4AA106C222D0003EAE6 /* dynamics.c */; };
+		B1EDF4B4106C222D0003EAE6 /* events.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4AB106C222D0003EAE6 /* events.c */; };
+		B1EDF4B5106C222D0003EAE6 /* guitar_hero_3.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4AC106C222D0003EAE6 /* guitar_hero_3.c */; };
+		B1EDF4B6106C222D0003EAE6 /* io.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4AD106C222D0003EAE6 /* io.c */; };
+		B1EDF4B7106C222D0003EAE6 /* ir.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4AE106C222D0003EAE6 /* ir.c */; };
+		B1EDF4B8106C222D0003EAE6 /* nunchuk.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4AF106C222D0003EAE6 /* nunchuk.c */; };
+		B1EDF4B9106C222D0003EAE6 /* wiiboard.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4B0106C222D0003EAE6 /* wiiboard.c */; };
+		B1EDF4BA106C222D0003EAE6 /* wiiuse.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4B1106C222D0003EAE6 /* wiiuse.c */; };
+		B1EDF4BB106C222D0003EAE6 /* classic.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4A9106C222D0003EAE6 /* classic.c */; };
+		B1EDF4BC106C222D0003EAE6 /* dynamics.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4AA106C222D0003EAE6 /* dynamics.c */; };
+		B1EDF4BD106C222D0003EAE6 /* events.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4AB106C222D0003EAE6 /* events.c */; };
+		B1EDF4BE106C222D0003EAE6 /* guitar_hero_3.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4AC106C222D0003EAE6 /* guitar_hero_3.c */; };
+		B1EDF4BF106C222D0003EAE6 /* io.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4AD106C222D0003EAE6 /* io.c */; };
+		B1EDF4C0106C222D0003EAE6 /* ir.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4AE106C222D0003EAE6 /* ir.c */; };
+		B1EDF4C1106C222D0003EAE6 /* nunchuk.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4AF106C222D0003EAE6 /* nunchuk.c */; };
+		B1EDF4C2106C222D0003EAE6 /* wiiboard.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4B0106C222D0003EAE6 /* wiiboard.c */; };
+		B1EDF4C3106C222D0003EAE6 /* wiiuse.c in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4B1106C222D0003EAE6 /* wiiuse.c */; };
+		B1EDF4C6106C22760003EAE6 /* libWiiUse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B122E2011003619200D86E1A /* libWiiUse.a */; };
+		B1EDF4E0106C23AC0003EAE6 /* VideoConfig.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF4DE106C23AC0003EAE6 /* VideoConfig.cpp */; };
+		B1EDF4E1106C23AC0003EAE6 /* VideoConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF4DF106C23AC0003EAE6 /* VideoConfig.h */; };
+		B1EDF4E3106C24C10003EAE6 /* Config.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF4E2106C24C10003EAE6 /* Config.h */; };
+		B1EDF4E4106C24C10003EAE6 /* Config.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF4E2106C24C10003EAE6 /* Config.h */; };
+		B1EDF54E106C2AB10003EAE6 /* libSDL-1.3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B1EDF54C106C2AAB0003EAE6 /* libSDL-1.3.0.dylib */; };
+		B1EDF54F106C2AB30003EAE6 /* libSDL-1.3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B1EDF54C106C2AAB0003EAE6 /* libSDL-1.3.0.dylib */; };
+		B1EDF55C106C2CBA0003EAE6 /* CoreAudioSoundStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF55A106C2CBA0003EAE6 /* CoreAudioSoundStream.cpp */; };
+		B1EDF55D106C2CBA0003EAE6 /* CoreAudioSoundStream.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF55B106C2CBA0003EAE6 /* CoreAudioSoundStream.h */; };
+		B1EDF55E106C2CBA0003EAE6 /* CoreAudioSoundStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF55A106C2CBA0003EAE6 /* CoreAudioSoundStream.cpp */; };
+		B1EDF55F106C2CBA0003EAE6 /* CoreAudioSoundStream.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF55B106C2CBA0003EAE6 /* CoreAudioSoundStream.h */; };
+		B1EDF560106C2CBA0003EAE6 /* CoreAudioSoundStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B1EDF55A106C2CBA0003EAE6 /* CoreAudioSoundStream.cpp */; };
+		B1EDF561106C2CBA0003EAE6 /* CoreAudioSoundStream.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF55B106C2CBA0003EAE6 /* CoreAudioSoundStream.h */; };
+		B1EDF565106C2CD70003EAE6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1EDF564106C2CD70003EAE6 /* CoreAudio.framework */; };
+		B1EDF579106C2DAE0003EAE6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1EDF564106C2CD70003EAE6 /* CoreAudio.framework */; };
+		B1EDF582106C2E000003EAE6 /* Render.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF581106C2E000003EAE6 /* Render.h */; };
+		B1EDF583106C2E000003EAE6 /* Render.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF581106C2E000003EAE6 /* Render.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1087,13 +1076,10 @@
 		5048396D09E3307300765E4B /* DolphinProj.xcconfig */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xcconfig; path = DolphinProj.xcconfig; sourceTree = "<group>"; };
 		5048396E09E3307300765E4B /* DolphinTarget.xcconfig */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xcconfig; path = DolphinTarget.xcconfig; sourceTree = "<group>"; };
 		508344B209E5C41E0093A071 /* Dolphin.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Dolphin.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		5208D8440EEA398B003D9F1D /* libao.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libao.a; path = ../../../lib/libao.a; sourceTree = SOURCE_ROOT; };
-		520A5FB80EEA5799004FE1ED /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = /Library/Frameworks/SDL.framework; sourceTree = "<absolute>"; };
 		520A5FD30EEA5863004FE1ED /* libPlugin_VideoOGL.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libPlugin_VideoOGL.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		5232B1F00EEB634D0093A7B1 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		5232B1F50EEB638F0093A7B1 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		5232B2810EEBE2210093A7B1 /* Cg.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cg.framework; path = /Library/Frameworks/Cg.framework; sourceTree = "<absolute>"; };
-		52492CB30ED199D3008ADF7D /* libwx_macud-2.8.0.1.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libwx_macud-2.8.0.1.1.dylib"; path = "/usr/lib/libwx_macud-2.8.0.1.1.dylib"; sourceTree = SOURCE_ROOT; };
 		52492CB70ED19A02008ADF7D /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = /usr/lib/libz.dylib; sourceTree = SOURCE_ROOT; };
 		52771A740EEA55E8006A702B /* libPlugin_nJoy_SDL.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libPlugin_nJoy_SDL.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		5280817E0EEA2EBE00B63386 /* libPlugin_DSP_HLE.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libPlugin_DSP_HLE.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1112,17 +1098,6 @@
 		B122DA0F1003543700D86E1A /* Plugin_DSP_HLE.vcproj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Plugin_DSP_HLE.vcproj; sourceTree = "<group>"; };
 		B122DA111003543700D86E1A /* Config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Config.cpp; sourceTree = "<group>"; };
 		B122DA121003543700D86E1A /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Config.h; sourceTree = "<group>"; };
-		B122DA131003543700D86E1A /* ConfigDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigDlg.cpp; sourceTree = "<group>"; };
-		B122DA141003543700D86E1A /* ConfigDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConfigDlg.h; sourceTree = "<group>"; };
-		B122DA161003543700D86E1A /* Blocks.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Blocks.cpp; sourceTree = "<group>"; };
-		B122DA171003543700D86E1A /* Debugger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Debugger.cpp; sourceTree = "<group>"; };
-		B122DA181003543700D86E1A /* Debugger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Debugger.h; sourceTree = "<group>"; };
-		B122DA191003543700D86E1A /* File.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = File.cpp; sourceTree = "<group>"; };
-		B122DA1A1003543700D86E1A /* File.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = File.h; sourceTree = "<group>"; };
-		B122DA1B1003543700D86E1A /* Logging.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Logging.cpp; sourceTree = "<group>"; };
-		B122DA1C1003543700D86E1A /* Mails.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Mails.cpp; sourceTree = "<group>"; };
-		B122DA1D1003543700D86E1A /* PBView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PBView.cpp; sourceTree = "<group>"; };
-		B122DA1E1003543700D86E1A /* PBView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PBView.h; sourceTree = "<group>"; };
 		B122DA1F1003543700D86E1A /* DSPHandler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DSPHandler.cpp; sourceTree = "<group>"; };
 		B122DA201003543700D86E1A /* DSPHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DSPHandler.h; sourceTree = "<group>"; };
 		B122DA211003543700D86E1A /* Globals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Globals.cpp; sourceTree = "<group>"; };
@@ -1147,8 +1122,6 @@
 		B122DA351003543700D86E1A /* UCode_CARD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UCode_CARD.h; sourceTree = "<group>"; };
 		B122DA361003543700D86E1A /* UCode_InitAudioSystem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UCode_InitAudioSystem.cpp; sourceTree = "<group>"; };
 		B122DA371003543700D86E1A /* UCode_InitAudioSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UCode_InitAudioSystem.h; sourceTree = "<group>"; };
-		B122DA381003543700D86E1A /* UCode_Jac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UCode_Jac.cpp; sourceTree = "<group>"; };
-		B122DA391003543700D86E1A /* UCode_Jac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UCode_Jac.h; sourceTree = "<group>"; };
 		B122DA3A1003543700D86E1A /* UCode_ROM.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UCode_ROM.cpp; sourceTree = "<group>"; };
 		B122DA3B1003543700D86E1A /* UCode_ROM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UCode_ROM.h; sourceTree = "<group>"; };
 		B122DA3C1003543700D86E1A /* UCode_Zelda.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UCode_Zelda.cpp; sourceTree = "<group>"; };
@@ -1162,12 +1135,6 @@
 		B122DA741003545900D86E1A /* Plugin_DSP_LLE.vcproj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Plugin_DSP_LLE.vcproj; sourceTree = "<group>"; };
 		B122DA761003545900D86E1A /* Config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Config.cpp; sourceTree = "<group>"; };
 		B122DA771003545900D86E1A /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Config.h; sourceTree = "<group>"; };
-		B122DA791003545900D86E1A /* Debugger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Debugger.cpp; sourceTree = "<group>"; };
-		B122DA7A1003545900D86E1A /* Debugger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Debugger.h; sourceTree = "<group>"; };
-		B122DA7B1003545900D86E1A /* DSPRegisterView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DSPRegisterView.cpp; sourceTree = "<group>"; };
-		B122DA7C1003545900D86E1A /* DSPRegisterView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DSPRegisterView.h; sourceTree = "<group>"; };
-		B122DA7D1003545900D86E1A /* DSPConfigDlgLLE.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DSPConfigDlgLLE.cpp; sourceTree = "<group>"; };
-		B122DA7E1003545900D86E1A /* DSPConfigDlgLLE.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DSPConfigDlgLLE.h; sourceTree = "<group>"; };
 		B122DA7F1003545900D86E1A /* DSPDebugInterface.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DSPDebugInterface.cpp; sourceTree = "<group>"; };
 		B122DA801003545900D86E1A /* DSPDebugInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DSPDebugInterface.h; sourceTree = "<group>"; };
 		B122DA811003545900D86E1A /* DSPHost.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DSPHost.cpp; sourceTree = "<group>"; };
@@ -1252,14 +1219,6 @@
 		B122DB4E1003548600D86E1A /* Plugin_Wiimote.vcproj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Plugin_Wiimote.vcproj; sourceTree = "<group>"; };
 		B122DB501003548600D86E1A /* Config.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Config.cpp; sourceTree = "<group>"; };
 		B122DB511003548600D86E1A /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Config.h; sourceTree = "<group>"; };
-		B122DB521003548600D86E1A /* ConfigBasicDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigBasicDlg.cpp; sourceTree = "<group>"; };
-		B122DB531003548600D86E1A /* ConfigBasicDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConfigBasicDlg.h; sourceTree = "<group>"; };
-		B122DB541003548600D86E1A /* ConfigGamepad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigGamepad.cpp; sourceTree = "<group>"; };
-		B122DB551003548600D86E1A /* ConfigPadDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigPadDlg.cpp; sourceTree = "<group>"; };
-		B122DB561003548600D86E1A /* ConfigPadDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConfigPadDlg.h; sourceTree = "<group>"; };
-		B122DB571003548600D86E1A /* ConfigRecording.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigRecording.cpp; sourceTree = "<group>"; };
-		B122DB581003548600D86E1A /* ConfigRecordingDlg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigRecordingDlg.cpp; sourceTree = "<group>"; };
-		B122DB591003548600D86E1A /* ConfigRecordingDlg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConfigRecordingDlg.h; sourceTree = "<group>"; };
 		B122DB5A1003548600D86E1A /* DataReports.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DataReports.cpp; sourceTree = "<group>"; };
 		B122DB5B1003548600D86E1A /* EmuDefinitions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EmuDefinitions.cpp; sourceTree = "<group>"; };
 		B122DB5C1003548600D86E1A /* EmuDefinitions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EmuDefinitions.h; sourceTree = "<group>"; };
@@ -1271,7 +1230,6 @@
 		B122DB621003548600D86E1A /* EmuSubroutines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EmuSubroutines.h; sourceTree = "<group>"; };
 		B122DB631003548600D86E1A /* Encryption.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Encryption.cpp; sourceTree = "<group>"; };
 		B122DB641003548600D86E1A /* Encryption.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Encryption.h; sourceTree = "<group>"; };
-		B122DB651003548600D86E1A /* FillReport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FillReport.cpp; sourceTree = "<group>"; };
 		B122DB661003548600D86E1A /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		B122DB671003548600D86E1A /* main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = main.h; sourceTree = "<group>"; };
 		B122DB681003548600D86E1A /* ReadWiimote.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReadWiimote.cpp; sourceTree = "<group>"; };
@@ -1296,7 +1254,6 @@
 		B122DC8D100356AA00D86E1A /* CommonFuncs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CommonFuncs.h; sourceTree = "<group>"; };
 		B122DC8E100356AA00D86E1A /* CommonPaths.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CommonPaths.h; sourceTree = "<group>"; };
 		B122DC8F100356AA00D86E1A /* CommonTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CommonTypes.h; sourceTree = "<group>"; };
-		B122DC90100356AA00D86E1A /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Config.h; sourceTree = "<group>"; };
 		B122DC91100356AA00D86E1A /* ConsoleListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConsoleListener.cpp; sourceTree = "<group>"; };
 		B122DC92100356AA00D86E1A /* CPUDetect.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CPUDetect.cpp; sourceTree = "<group>"; };
 		B122DC93100356AA00D86E1A /* CPUDetect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CPUDetect.h; sourceTree = "<group>"; };
@@ -1368,8 +1325,6 @@
 		B122DD6D1003578400D86E1A /* AudioCommon.vcproj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = AudioCommon.vcproj; sourceTree = "<group>"; };
 		B122DD6F1003578400D86E1A /* aldlist.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = aldlist.cpp; sourceTree = "<group>"; };
 		B122DD701003578400D86E1A /* aldlist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aldlist.h; sourceTree = "<group>"; };
-		B122DD711003578400D86E1A /* AOSoundStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AOSoundStream.cpp; sourceTree = "<group>"; };
-		B122DD721003578400D86E1A /* AOSoundStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AOSoundStream.h; sourceTree = "<group>"; };
 		B122DD731003578400D86E1A /* AudioCommon.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioCommon.cpp; sourceTree = "<group>"; };
 		B122DD741003578400D86E1A /* AudioCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioCommon.h; sourceTree = "<group>"; };
 		B122DD751003578400D86E1A /* AudioCommonConfig.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioCommonConfig.cpp; sourceTree = "<group>"; };
@@ -1742,7 +1697,6 @@
 		B122E12010035F5000D86E1A /* ImageWrite.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ImageWrite.h; sourceTree = "<group>"; };
 		B122E12110035F5000D86E1A /* IndexGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IndexGenerator.cpp; sourceTree = "<group>"; };
 		B122E12210035F5000D86E1A /* IndexGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IndexGenerator.h; sourceTree = "<group>"; };
-		B122E12310035F5000D86E1A /* LookUpTables.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LookUpTables.cpp; sourceTree = "<group>"; };
 		B122E12410035F5000D86E1A /* LookUpTables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LookUpTables.h; sourceTree = "<group>"; };
 		B122E12510035F5000D86E1A /* memcpy_amd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = memcpy_amd.cpp; sourceTree = "<group>"; };
 		B122E12610035F5000D86E1A /* NativeVertexFormat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativeVertexFormat.h; sourceTree = "<group>"; };
@@ -1802,27 +1756,17 @@
 		B122E1AB10035F9B00D86E1A /* stbi_DDS_aug_c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stbi_DDS_aug_c.h; sourceTree = "<group>"; };
 		B122E1CD1003605600D86E1A /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = /System/Library/Frameworks/OpenAL.framework; sourceTree = "<absolute>"; };
 		B122E2011003619200D86E1A /* libWiiUse.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libWiiUse.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		B122E23B100361C800D86E1A /* classic.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = classic.cpp; sourceTree = "<group>"; };
 		B122E23C100361C800D86E1A /* classic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = classic.h; sourceTree = "<group>"; };
 		B122E23D100361C800D86E1A /* definitions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = definitions.h; sourceTree = "<group>"; };
-		B122E23E100361C800D86E1A /* dynamics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dynamics.cpp; sourceTree = "<group>"; };
 		B122E23F100361C800D86E1A /* dynamics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dynamics.h; sourceTree = "<group>"; };
-		B122E240100361C800D86E1A /* events.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = events.cpp; sourceTree = "<group>"; };
 		B122E241100361C800D86E1A /* events.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = events.h; sourceTree = "<group>"; };
-		B122E242100361C800D86E1A /* guitar_hero_3.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = guitar_hero_3.cpp; sourceTree = "<group>"; };
 		B122E243100361C800D86E1A /* guitar_hero_3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = guitar_hero_3.h; sourceTree = "<group>"; };
-		B122E244100361C800D86E1A /* io.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = io.cpp; sourceTree = "<group>"; };
 		B122E245100361C800D86E1A /* io.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = io.h; sourceTree = "<group>"; };
 		B122E247100361C800D86E1A /* io_osx.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = io_osx.m; sourceTree = "<group>"; };
-		B122E249100361C800D86E1A /* ir.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ir.cpp; sourceTree = "<group>"; };
 		B122E24A100361C800D86E1A /* ir.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ir.h; sourceTree = "<group>"; };
-		B122E24C100361C800D86E1A /* nunchuk.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = nunchuk.cpp; sourceTree = "<group>"; };
 		B122E24D100361C800D86E1A /* nunchuk.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nunchuk.h; sourceTree = "<group>"; };
 		B122E24E100361C800D86E1A /* os.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = os.h; sourceTree = "<group>"; };
-		B122E24F100361C800D86E1A /* SConscript */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = SConscript; sourceTree = "<group>"; };
-		B122E250100361C800D86E1A /* wiiboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wiiboard.cpp; sourceTree = "<group>"; };
 		B122E251100361C800D86E1A /* wiiboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wiiboard.h; sourceTree = "<group>"; };
-		B122E252100361C800D86E1A /* wiiuse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = wiiuse.cpp; sourceTree = "<group>"; };
 		B122E253100361C800D86E1A /* wiiuse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wiiuse.h; sourceTree = "<group>"; };
 		B122E254100361C800D86E1A /* wiiuse_internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = wiiuse_internal.h; sourceTree = "<group>"; };
 		B122E255100361C800D86E1A /* wiiuse.sln */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = wiiuse.sln; sourceTree = "<group>"; };
@@ -1959,6 +1903,28 @@
 		B1C736EB1007E7540088EA1B /* Interpreter_Tables.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Interpreter_Tables.h; sourceTree = "<group>"; };
 		B1C7370C1007E7930088EA1B /* DolphinIL.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DolphinIL.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1C7370E1007E7940088EA1B /* DolphinIL-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "DolphinIL-Info.plist"; sourceTree = "<group>"; };
+		B1EDF476106C1F230003EAE6 /* SysConf.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SysConf.cpp; sourceTree = "<group>"; };
+		B1EDF477106C1F230003EAE6 /* SysConf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SysConf.h; sourceTree = "<group>"; };
+		B1EDF483106C1F6E0003EAE6 /* Atomic_GCC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Atomic_GCC.h; sourceTree = "<group>"; };
+		B1EDF484106C1F6E0003EAE6 /* Atomic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Atomic.h; sourceTree = "<group>"; };
+		B1EDF4A9106C222D0003EAE6 /* classic.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp; fileEncoding = 4; path = classic.c; sourceTree = "<group>"; };
+		B1EDF4AA106C222D0003EAE6 /* dynamics.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp; fileEncoding = 4; path = dynamics.c; sourceTree = "<group>"; };
+		B1EDF4AB106C222D0003EAE6 /* events.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp; fileEncoding = 4; path = events.c; sourceTree = "<group>"; };
+		B1EDF4AC106C222D0003EAE6 /* guitar_hero_3.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp; fileEncoding = 4; path = guitar_hero_3.c; sourceTree = "<group>"; };
+		B1EDF4AD106C222D0003EAE6 /* io.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp; fileEncoding = 4; path = io.c; sourceTree = "<group>"; };
+		B1EDF4AE106C222D0003EAE6 /* ir.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp; fileEncoding = 4; path = ir.c; sourceTree = "<group>"; };
+		B1EDF4AF106C222D0003EAE6 /* nunchuk.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp; fileEncoding = 4; path = nunchuk.c; sourceTree = "<group>"; };
+		B1EDF4B0106C222D0003EAE6 /* wiiboard.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp; fileEncoding = 4; path = wiiboard.c; sourceTree = "<group>"; };
+		B1EDF4B1106C222D0003EAE6 /* wiiuse.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp; fileEncoding = 4; path = wiiuse.c; sourceTree = "<group>"; };
+		B1EDF4DE106C23AC0003EAE6 /* VideoConfig.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = VideoConfig.cpp; sourceTree = "<group>"; };
+		B1EDF4DF106C23AC0003EAE6 /* VideoConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VideoConfig.h; sourceTree = "<group>"; };
+		B1EDF4E2106C24C10003EAE6 /* Config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Config.h; sourceTree = "<group>"; };
+		B1EDF50E106C274B0003EAE6 /* DolphinNoGUI-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "DolphinNoGUI-Info.plist"; sourceTree = "<group>"; };
+		B1EDF54C106C2AAB0003EAE6 /* libSDL-1.3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libSDL-1.3.0.dylib"; path = "/opt/local/lib/libSDL-1.3.0.dylib"; sourceTree = "<absolute>"; };
+		B1EDF55A106C2CBA0003EAE6 /* CoreAudioSoundStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CoreAudioSoundStream.cpp; sourceTree = "<group>"; };
+		B1EDF55B106C2CBA0003EAE6 /* CoreAudioSoundStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreAudioSoundStream.h; sourceTree = "<group>"; };
+		B1EDF564106C2CD70003EAE6 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
+		B1EDF581106C2E000003EAE6 /* Render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Render.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1969,8 +1935,6 @@
 				B122E531100387BB00D86E1A /* libVideoCommon.a in Frameworks */,
 				B122E5A21004757F00D86E1A /* libCommon.a in Frameworks */,
 				B122E5DA100482B000D86E1A /* libSOIL.a in Frameworks */,
-				5232B1660EEA5BD50093A7B1 /* SDL.framework in Frameworks */,
-				5232B1CE0EEB623A0093A7B1 /* libwx_macud-2.8.0.1.1.dylib in Frameworks */,
 				B122E5C3100481E600D86E1A /* OpenGL.framework in Frameworks */,
 				5232B1F10EEB634D0093A7B1 /* Cocoa.framework in Frameworks */,
 				5232B2820EEBE2210093A7B1 /* Cg.framework in Frameworks */,
@@ -1984,8 +1948,6 @@
 			files = (
 				B122E1ED1003611E00D86E1A /* libCommon.a in Frameworks */,
 				B122E1EF1003612700D86E1A /* libInputCommon.a in Frameworks */,
-				520A5FB90EEA5799004FE1ED /* SDL.framework in Frameworks */,
-				520A5FC20EEA5825004FE1ED /* libwx_macud-2.8.0.1.1.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1996,9 +1958,8 @@
 				B122E1D51003607500D86E1A /* Cocoa.framework in Frameworks */,
 				B122E1CB1003602300D86E1A /* libAudioCommon.a in Frameworks */,
 				B122E1C91003601300D86E1A /* libCommon.a in Frameworks */,
-				5208D8090EEA371F003D9F1D /* libwx_macud-2.8.0.1.1.dylib in Frameworks */,
-				5208D8450EEA398B003D9F1D /* libao.a in Frameworks */,
 				B122E1CE1003605600D86E1A /* OpenAL.framework in Frameworks */,
+				B1EDF565106C2CD70003EAE6 /* CoreAudio.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2008,12 +1969,11 @@
 			files = (
 				B122E1E1100360D300D86E1A /* libCommon.a in Frameworks */,
 				B122E1DD100360C300D86E1A /* libDSPCore.a in Frameworks */,
-				B122E1E6100360F300D86E1A /* libao.a in Frameworks */,
 				B122E1E81003610600D86E1A /* libDebuggerUICommon.a in Frameworks */,
 				B122E1E3100360DD00D86E1A /* libAudioCommon.a in Frameworks */,
 				B122E1E4100360E500D86E1A /* Cocoa.framework in Frameworks */,
-				B122E1DB100360AA00D86E1A /* libwx_macud-2.8.0.1.1.dylib in Frameworks */,
 				B122E1CF1003605600D86E1A /* OpenAL.framework in Frameworks */,
+				B1EDF579106C2DAE0003EAE6 /* CoreAudio.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2029,7 +1989,6 @@
 				B122E45F100376CE00D86E1A /* Cocoa.framework in Frameworks */,
 				B122E45D1003769800D86E1A /* libBochs_Disasm.a in Frameworks */,
 				B122E452100375F200D86E1A /* libSFML.a in Frameworks */,
-				52492CB40ED199D3008ADF7D /* libwx_macud-2.8.0.1.1.dylib in Frameworks */,
 				8D0C4E920486CD37000505A6 /* Carbon.framework in Frameworks */,
 				52492CB80ED19A02008ADF7D /* libz.dylib in Frameworks */,
 				B122E4641003775900D86E1A /* CoreFoundation.framework in Frameworks */,
@@ -2041,14 +2000,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B122E2DE1003669200D86E1A /* SDL.framework in Frameworks */,
 				B122E2D71003666B00D86E1A /* Cocoa.framework in Frameworks */,
-				B122E2A51003661E00D86E1A /* libWiiUse.a in Frameworks */,
-				B122E2D61003666000D86E1A /* libwx_macud-2.8.0.1.1.dylib in Frameworks */,
 				B122E2FD100366AB00D86E1A /* IOBluetooth.framework in Frameworks */,
 				B122E2FE100366AB00D86E1A /* IOBluetoothUI.framework in Frameworks */,
 				B122E2D91003667C00D86E1A /* libInputCommon.a in Frameworks */,
 				B122E1FA1003616200D86E1A /* libCommon.a in Frameworks */,
+				B1EDF4C6106C22760003EAE6 /* libWiiUse.a in Frameworks */,
+				B1EDF54E106C2AB10003EAE6 /* libSDL-1.3.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2108,6 +2066,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B1EDF54F106C2AB30003EAE6 /* libSDL-1.3.0.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2162,12 +2121,12 @@
 			isa = PBXGroup;
 			children = (
 				508344B209E5C41E0093A071 /* Dolphin.app */,
-				B122DB4A1003547A00D86E1A /* Plugin_Wiimote.dylib */,
+				B122DD451003574100D86E1A /* libDebuggerWX.a */,
+				B1C7370C1007E7930088EA1B /* DolphinIL.app */,
 				B122DF5F100358E300D86E1A /* libBochs_Disasm.a */,
 				B122DD301003571D00D86E1A /* libAudioCommon.a */,
 				B122DC741003562E00D86E1A /* libCommon.a */,
 				B122DD371003572900D86E1A /* libCore.a */,
-				B122DD451003574100D86E1A /* libDebuggerWX.a */,
 				B122DD4C1003574D00D86E1A /* libDiscIO.a */,
 				B122DD3E1003573400D86E1A /* libDebuggerUICommon.a */,
 				B122DD531003575600D86E1A /* libDSPCore.a */,
@@ -2176,7 +2135,6 @@
 				B122E19310035F8400D86E1A /* libSOIL.a */,
 				B122E2011003619200D86E1A /* libWiiUse.a */,
 				B122E3A71003726F00D86E1A /* libSFML.a */,
-				B1C7370C1007E7930088EA1B /* DolphinIL.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -2190,6 +2148,7 @@
 				20286C32FDCF999611CA2CEA /* External Frameworks and Libraries */,
 				195DF8CFFE9D517E11CA2CBB /* Products */,
 				B1C7370E1007E7940088EA1B /* DolphinIL-Info.plist */,
+				B1EDF50E106C274B0003EAE6 /* DolphinNoGUI-Info.plist */,
 			);
 			name = Dolphin;
 			sourceTree = "<group>";
@@ -2212,6 +2171,7 @@
 				52771A740EEA55E8006A702B /* libPlugin_nJoy_SDL.dylib */,
 				520A5FD30EEA5863004FE1ED /* libPlugin_VideoOGL.dylib */,
 				5280817E0EEA2EBE00B63386 /* libPlugin_DSP_HLE.dylib */,
+				B122DB4A1003547A00D86E1A /* Plugin_Wiimote.dylib */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -2232,11 +2192,10 @@
 				5232B2810EEBE2210093A7B1 /* Cg.framework */,
 				5232B1F50EEB638F0093A7B1 /* OpenGL.framework */,
 				5232B1F00EEB634D0093A7B1 /* Cocoa.framework */,
-				520A5FB80EEA5799004FE1ED /* SDL.framework */,
-				5208D8440EEA398B003D9F1D /* libao.a */,
 				52492CB70ED19A02008ADF7D /* libz.dylib */,
-				52492CB30ED199D3008ADF7D /* libwx_macud-2.8.0.1.1.dylib */,
 				20286C33FDCF999611CA2CEA /* Carbon.framework */,
+				B1EDF54C106C2AAB0003EAE6 /* libSDL-1.3.0.dylib */,
+				B1EDF564106C2CD70003EAE6 /* CoreAudio.framework */,
 			);
 			name = "External Frameworks and Libraries";
 			sourceTree = "<group>";
@@ -2291,9 +2250,6 @@
 			children = (
 				B122DA111003543700D86E1A /* Config.cpp */,
 				B122DA121003543700D86E1A /* Config.h */,
-				B122DA131003543700D86E1A /* ConfigDlg.cpp */,
-				B122DA141003543700D86E1A /* ConfigDlg.h */,
-				B122DA151003543700D86E1A /* Debugger */,
 				B122DA1F1003543700D86E1A /* DSPHandler.cpp */,
 				B122DA201003543700D86E1A /* DSPHandler.h */,
 				B122DA211003543700D86E1A /* Globals.cpp */,
@@ -2312,22 +2268,6 @@
 			path = Src;
 			sourceTree = "<group>";
 		};
-		B122DA151003543700D86E1A /* Debugger */ = {
-			isa = PBXGroup;
-			children = (
-				B122DA161003543700D86E1A /* Blocks.cpp */,
-				B122DA171003543700D86E1A /* Debugger.cpp */,
-				B122DA181003543700D86E1A /* Debugger.h */,
-				B122DA191003543700D86E1A /* File.cpp */,
-				B122DA1A1003543700D86E1A /* File.h */,
-				B122DA1B1003543700D86E1A /* Logging.cpp */,
-				B122DA1C1003543700D86E1A /* Mails.cpp */,
-				B122DA1D1003543700D86E1A /* PBView.cpp */,
-				B122DA1E1003543700D86E1A /* PBView.h */,
-			);
-			path = Debugger;
-			sourceTree = "<group>";
-		};
 		B122DA2C1003543700D86E1A /* UCodes */ = {
 			isa = PBXGroup;
 			children = (
@@ -2342,8 +2282,6 @@
 				B122DA351003543700D86E1A /* UCode_CARD.h */,
 				B122DA361003543700D86E1A /* UCode_InitAudioSystem.cpp */,
 				B122DA371003543700D86E1A /* UCode_InitAudioSystem.h */,
-				B122DA381003543700D86E1A /* UCode_Jac.cpp */,
-				B122DA391003543700D86E1A /* UCode_Jac.h */,
 				B122DA3A1003543700D86E1A /* UCode_ROM.cpp */,
 				B122DA3B1003543700D86E1A /* UCode_ROM.h */,
 				B122DA3C1003543700D86E1A /* UCode_Zelda.cpp */,
@@ -2373,9 +2311,6 @@
 			children = (
 				B122DA761003545900D86E1A /* Config.cpp */,
 				B122DA771003545900D86E1A /* Config.h */,
-				B122DA781003545900D86E1A /* Debugger */,
-				B122DA7D1003545900D86E1A /* DSPConfigDlgLLE.cpp */,
-				B122DA7E1003545900D86E1A /* DSPConfigDlgLLE.h */,
 				B122DA7F1003545900D86E1A /* DSPDebugInterface.cpp */,
 				B122DA801003545900D86E1A /* DSPDebugInterface.h */,
 				B122DA811003545900D86E1A /* DSPHost.cpp */,
@@ -2390,17 +2325,6 @@
 				B122DA911003545900D86E1A /* Tools.h */,
 			);
 			path = Src;
-			sourceTree = "<group>";
-		};
-		B122DA781003545900D86E1A /* Debugger */ = {
-			isa = PBXGroup;
-			children = (
-				B122DA791003545900D86E1A /* Debugger.cpp */,
-				B122DA7A1003545900D86E1A /* Debugger.h */,
-				B122DA7B1003545900D86E1A /* DSPRegisterView.cpp */,
-				B122DA7C1003545900D86E1A /* DSPRegisterView.h */,
-			);
-			path = Debugger;
 			sourceTree = "<group>";
 		};
 		B122DA861003545900D86E1A /* Logging */ = {
@@ -2574,14 +2498,6 @@
 			children = (
 				B122DB501003548600D86E1A /* Config.cpp */,
 				B122DB511003548600D86E1A /* Config.h */,
-				B122DB521003548600D86E1A /* ConfigBasicDlg.cpp */,
-				B122DB531003548600D86E1A /* ConfigBasicDlg.h */,
-				B122DB541003548600D86E1A /* ConfigGamepad.cpp */,
-				B122DB551003548600D86E1A /* ConfigPadDlg.cpp */,
-				B122DB561003548600D86E1A /* ConfigPadDlg.h */,
-				B122DB571003548600D86E1A /* ConfigRecording.cpp */,
-				B122DB581003548600D86E1A /* ConfigRecordingDlg.cpp */,
-				B122DB591003548600D86E1A /* ConfigRecordingDlg.h */,
 				B122DB5A1003548600D86E1A /* DataReports.cpp */,
 				B122DB5B1003548600D86E1A /* EmuDefinitions.cpp */,
 				B122DB5C1003548600D86E1A /* EmuDefinitions.h */,
@@ -2593,7 +2509,6 @@
 				B122DB621003548600D86E1A /* EmuSubroutines.h */,
 				B122DB631003548600D86E1A /* Encryption.cpp */,
 				B122DB641003548600D86E1A /* Encryption.h */,
-				B122DB651003548600D86E1A /* FillReport.cpp */,
 				B122DB661003548600D86E1A /* main.cpp */,
 				B122DB671003548600D86E1A /* main.h */,
 				B122DB681003548600D86E1A /* ReadWiimote.cpp */,
@@ -2619,6 +2534,11 @@
 		B122DC81100356AA00D86E1A /* Src */ = {
 			isa = PBXGroup;
 			children = (
+				B1EDF4E2106C24C10003EAE6 /* Config.h */,
+				B1EDF483106C1F6E0003EAE6 /* Atomic_GCC.h */,
+				B1EDF484106C1F6E0003EAE6 /* Atomic.h */,
+				B1EDF476106C1F230003EAE6 /* SysConf.cpp */,
+				B1EDF477106C1F230003EAE6 /* SysConf.h */,
 				B122DC82100356AA00D86E1A /* ABI.cpp */,
 				B122DC83100356AA00D86E1A /* ABI.h */,
 				B122DC84100356AA00D86E1A /* BreakPoints.cpp */,
@@ -2633,7 +2553,6 @@
 				B122DC8D100356AA00D86E1A /* CommonFuncs.h */,
 				B122DC8E100356AA00D86E1A /* CommonPaths.h */,
 				B122DC8F100356AA00D86E1A /* CommonTypes.h */,
-				B122DC90100356AA00D86E1A /* Config.h */,
 				B122DC91100356AA00D86E1A /* ConsoleListener.cpp */,
 				B122DC92100356AA00D86E1A /* CPUDetect.cpp */,
 				B122DC93100356AA00D86E1A /* CPUDetect.h */,
@@ -2709,10 +2628,10 @@
 		B122DD6E1003578400D86E1A /* Src */ = {
 			isa = PBXGroup;
 			children = (
+				B1EDF55A106C2CBA0003EAE6 /* CoreAudioSoundStream.cpp */,
+				B1EDF55B106C2CBA0003EAE6 /* CoreAudioSoundStream.h */,
 				B122DD6F1003578400D86E1A /* aldlist.cpp */,
 				B122DD701003578400D86E1A /* aldlist.h */,
-				B122DD711003578400D86E1A /* AOSoundStream.cpp */,
-				B122DD721003578400D86E1A /* AOSoundStream.h */,
 				B122DD731003578400D86E1A /* AudioCommon.cpp */,
 				B122DD741003578400D86E1A /* AudioCommon.h */,
 				B122DD751003578400D86E1A /* AudioCommonConfig.cpp */,
@@ -3301,6 +3220,9 @@
 		B122E11010035F5000D86E1A /* Src */ = {
 			isa = PBXGroup;
 			children = (
+				B1EDF581106C2E000003EAE6 /* Render.h */,
+				B1EDF4DE106C23AC0003EAE6 /* VideoConfig.cpp */,
+				B1EDF4DF106C23AC0003EAE6 /* VideoConfig.h */,
 				B122E11310035F5000D86E1A /* BPFunctions.h */,
 				B122E11410035F5000D86E1A /* BPMemory.cpp */,
 				B122E11510035F5000D86E1A /* BPMemory.h */,
@@ -3317,7 +3239,6 @@
 				B122E12010035F5000D86E1A /* ImageWrite.h */,
 				B122E12110035F5000D86E1A /* IndexGenerator.cpp */,
 				B122E12210035F5000D86E1A /* IndexGenerator.h */,
-				B122E12310035F5000D86E1A /* LookUpTables.cpp */,
 				B122E12410035F5000D86E1A /* LookUpTables.h */,
 				B122E12510035F5000D86E1A /* memcpy_amd.cpp */,
 				B122E12610035F5000D86E1A /* NativeVertexFormat.h */,
@@ -3399,27 +3320,26 @@
 		B122E23A100361C800D86E1A /* Src */ = {
 			isa = PBXGroup;
 			children = (
-				B122E23B100361C800D86E1A /* classic.cpp */,
+				B1EDF4A9106C222D0003EAE6 /* classic.c */,
+				B1EDF4AA106C222D0003EAE6 /* dynamics.c */,
+				B1EDF4AB106C222D0003EAE6 /* events.c */,
+				B1EDF4AC106C222D0003EAE6 /* guitar_hero_3.c */,
+				B1EDF4AD106C222D0003EAE6 /* io.c */,
+				B1EDF4AE106C222D0003EAE6 /* ir.c */,
+				B1EDF4AF106C222D0003EAE6 /* nunchuk.c */,
+				B1EDF4B0106C222D0003EAE6 /* wiiboard.c */,
+				B1EDF4B1106C222D0003EAE6 /* wiiuse.c */,
 				B122E23C100361C800D86E1A /* classic.h */,
 				B122E23D100361C800D86E1A /* definitions.h */,
-				B122E23E100361C800D86E1A /* dynamics.cpp */,
 				B122E23F100361C800D86E1A /* dynamics.h */,
-				B122E240100361C800D86E1A /* events.cpp */,
 				B122E241100361C800D86E1A /* events.h */,
-				B122E242100361C800D86E1A /* guitar_hero_3.cpp */,
 				B122E243100361C800D86E1A /* guitar_hero_3.h */,
-				B122E244100361C800D86E1A /* io.cpp */,
 				B122E245100361C800D86E1A /* io.h */,
 				B122E247100361C800D86E1A /* io_osx.m */,
-				B122E249100361C800D86E1A /* ir.cpp */,
 				B122E24A100361C800D86E1A /* ir.h */,
-				B122E24C100361C800D86E1A /* nunchuk.cpp */,
 				B122E24D100361C800D86E1A /* nunchuk.h */,
 				B122E24E100361C800D86E1A /* os.h */,
-				B122E24F100361C800D86E1A /* SConscript */,
-				B122E250100361C800D86E1A /* wiiboard.cpp */,
 				B122E251100361C800D86E1A /* wiiboard.h */,
-				B122E252100361C800D86E1A /* wiiuse.cpp */,
 				B122E253100361C800D86E1A /* wiiuse.h */,
 				B122E254100361C800D86E1A /* wiiuse_internal.h */,
 			);
@@ -3719,6 +3639,7 @@
 				B122DB3D1003546C00D86E1A /* VertexShaderCache.h in Headers */,
 				B122DB451003546C00D86E1A /* XFB.h in Headers */,
 				B122E57D100474C200D86E1A /* Profiler.h in Headers */,
+				B1EDF583106C2E000003EAE6 /* Render.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3752,10 +3673,6 @@
 				B122D9F61003541B00D86E1A /* pluginspecs_video.h in Headers */,
 				B122D9F71003541B00D86E1A /* pluginspecs_wiimote.h in Headers */,
 				B122DA451003543700D86E1A /* Config.h in Headers */,
-				B122DA471003543700D86E1A /* ConfigDlg.h in Headers */,
-				B122DA4A1003543700D86E1A /* Debugger.h in Headers */,
-				B122DA4C1003543700D86E1A /* File.h in Headers */,
-				B122DA501003543700D86E1A /* PBView.h in Headers */,
 				B122DA521003543700D86E1A /* DSPHandler.h in Headers */,
 				B122DA541003543700D86E1A /* Globals.h in Headers */,
 				B122DA561003543700D86E1A /* HLEMixer.h in Headers */,
@@ -3769,10 +3686,10 @@
 				B122DA631003543700D86E1A /* UCode_AXWii.h in Headers */,
 				B122DA651003543700D86E1A /* UCode_CARD.h in Headers */,
 				B122DA671003543700D86E1A /* UCode_InitAudioSystem.h in Headers */,
-				B122DA691003543700D86E1A /* UCode_Jac.h in Headers */,
 				B122DA6B1003543700D86E1A /* UCode_ROM.h in Headers */,
 				B122DA6D1003543700D86E1A /* UCode_Zelda.h in Headers */,
 				B122DA721003543700D86E1A /* UCodes.h in Headers */,
+				B1EDF55F106C2CBA0003EAE6 /* CoreAudioSoundStream.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3788,15 +3705,13 @@
 				B122D9FD1003541B00D86E1A /* pluginspecs_video.h in Headers */,
 				B122D9FE1003541B00D86E1A /* pluginspecs_wiimote.h in Headers */,
 				B122DA931003545900D86E1A /* Config.h in Headers */,
-				B122DA951003545900D86E1A /* Debugger.h in Headers */,
-				B122DA971003545900D86E1A /* DSPRegisterView.h in Headers */,
-				B122DA991003545900D86E1A /* DSPConfigDlgLLE.h in Headers */,
 				B122DA9B1003545900D86E1A /* DSPDebugInterface.h in Headers */,
 				B122DA9E1003545900D86E1A /* DSPSymbols.h in Headers */,
 				B122DAA01003545900D86E1A /* Globals.h in Headers */,
 				B122DAA31003545900D86E1A /* Logging.h in Headers */,
 				B122DAA51003545900D86E1A /* UCode_AXStructs.h in Headers */,
 				B122DAAA1003545900D86E1A /* Tools.h in Headers */,
+				B1EDF561106C2CBA0003EAE6 /* CoreAudioSoundStream.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3805,9 +3720,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B122DB6E1003548600D86E1A /* Config.h in Headers */,
-				B122DB701003548600D86E1A /* ConfigBasicDlg.h in Headers */,
-				B122DB731003548600D86E1A /* ConfigPadDlg.h in Headers */,
-				B122DB761003548600D86E1A /* ConfigRecordingDlg.h in Headers */,
 				B122DB791003548600D86E1A /* EmuDefinitions.h in Headers */,
 				B122DB7C1003548600D86E1A /* EmuMain.h in Headers */,
 				B122DB7F1003548600D86E1A /* EmuSubroutines.h in Headers */,
@@ -3831,7 +3743,6 @@
 				B122DCDA100356AA00D86E1A /* CommonFuncs.h in Headers */,
 				B122DCDB100356AA00D86E1A /* CommonPaths.h in Headers */,
 				B122DCDC100356AA00D86E1A /* CommonTypes.h in Headers */,
-				B122DCDD100356AA00D86E1A /* Config.h in Headers */,
 				B122DCE0100356AA00D86E1A /* CPUDetect.h in Headers */,
 				B122DCE1100356AA00D86E1A /* DebugInterface.h in Headers */,
 				B122DCE3100356AA00D86E1A /* DynamicLibrary.h in Headers */,
@@ -3863,6 +3774,10 @@
 				B122DD15100356AA00D86E1A /* Timer.h in Headers */,
 				B122DD17100356AA00D86E1A /* x64Analyzer.h in Headers */,
 				B122DD19100356AA00D86E1A /* x64Emitter.h in Headers */,
+				B1EDF479106C1F240003EAE6 /* SysConf.h in Headers */,
+				B1EDF485106C1F6E0003EAE6 /* Atomic_GCC.h in Headers */,
+				B1EDF486106C1F6E0003EAE6 /* Atomic.h in Headers */,
+				B1EDF4E4106C24C10003EAE6 /* Config.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3878,7 +3793,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B122DD831003578400D86E1A /* aldlist.h in Headers */,
-				B122DD851003578400D86E1A /* AOSoundStream.h in Headers */,
 				B122DD871003578400D86E1A /* AudioCommon.h in Headers */,
 				B122DD891003578400D86E1A /* AudioCommonConfig.h in Headers */,
 				B122DD8D1003578400D86E1A /* Mixer.h in Headers */,
@@ -3886,6 +3800,7 @@
 				B122DD901003578400D86E1A /* OpenALStream.h in Headers */,
 				B122DD911003578400D86E1A /* SoundStream.h in Headers */,
 				B122DD931003578400D86E1A /* WaveFile.h in Headers */,
+				B1EDF55D106C2CBA0003EAE6 /* CoreAudioSoundStream.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4043,6 +3958,9 @@
 				B122DFE6100359E700D86E1A /* VolumeWad.h in Headers */,
 				B122DFE8100359E700D86E1A /* VolumeWiiCrypted.h in Headers */,
 				B122DFEA100359E700D86E1A /* WiiWad.h in Headers */,
+				B1EDF47A106C1F320003EAE6 /* SysConf.h in Headers */,
+				B1EDF487106C1F6E0003EAE6 /* Atomic_GCC.h in Headers */,
+				B1EDF488106C1F6E0003EAE6 /* Atomic.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4118,6 +4036,9 @@
 				B122E18810035F5000D86E1A /* XFBConvert.h in Headers */,
 				B122E18A10035F5000D86E1A /* XFMemory.h in Headers */,
 				B122E18C10035F5000D86E1A /* XFStructs.h in Headers */,
+				B1EDF4E1106C23AC0003EAE6 /* VideoConfig.h in Headers */,
+				B1EDF4E3106C24C10003EAE6 /* Config.h in Headers */,
+				B1EDF582106C2E000003EAE6 /* Render.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4574,7 +4495,7 @@
 		20286C28FDCF999611CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			buildConfigurationList = C0E91AC908A95435008D54AB /* Build configuration list for PBXProject "Dolphin" */;
-			compatibilityVersion = "Xcode 3.0";
+			compatibilityVersion = "Xcode 3.2";
 			hasScannedForEncodings = 1;
 			mainGroup = 20286C29FDCF999611CA2CEA /* Dolphin */;
 			projectDirPath = "";
@@ -4680,13 +4601,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B122DA441003543700D86E1A /* Config.cpp in Sources */,
-				B122DA461003543700D86E1A /* ConfigDlg.cpp in Sources */,
-				B122DA481003543700D86E1A /* Blocks.cpp in Sources */,
-				B122DA491003543700D86E1A /* Debugger.cpp in Sources */,
-				B122DA4B1003543700D86E1A /* File.cpp in Sources */,
-				B122DA4D1003543700D86E1A /* Logging.cpp in Sources */,
-				B122DA4E1003543700D86E1A /* Mails.cpp in Sources */,
-				B122DA4F1003543700D86E1A /* PBView.cpp in Sources */,
 				B122DA511003543700D86E1A /* DSPHandler.cpp in Sources */,
 				B122DA531003543700D86E1A /* Globals.cpp in Sources */,
 				B122DA551003543700D86E1A /* HLEMixer.cpp in Sources */,
@@ -4697,13 +4611,13 @@
 				B122DA621003543700D86E1A /* UCode_AXWii.cpp in Sources */,
 				B122DA641003543700D86E1A /* UCode_CARD.cpp in Sources */,
 				B122DA661003543700D86E1A /* UCode_InitAudioSystem.cpp in Sources */,
-				B122DA681003543700D86E1A /* UCode_Jac.cpp in Sources */,
 				B122DA6A1003543700D86E1A /* UCode_ROM.cpp in Sources */,
 				B122DA6C1003543700D86E1A /* UCode_Zelda.cpp in Sources */,
 				B122DA6E1003543700D86E1A /* UCode_Zelda_ADPCM.cpp in Sources */,
 				B122DA6F1003543700D86E1A /* UCode_Zelda_Synth.cpp in Sources */,
 				B122DA701003543700D86E1A /* UCode_Zelda_Voice.cpp in Sources */,
 				B122DA711003543700D86E1A /* UCodes.cpp in Sources */,
+				B1EDF55E106C2CBA0003EAE6 /* CoreAudioSoundStream.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4712,9 +4626,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B122DA921003545900D86E1A /* Config.cpp in Sources */,
-				B122DA941003545900D86E1A /* Debugger.cpp in Sources */,
-				B122DA961003545900D86E1A /* DSPRegisterView.cpp in Sources */,
-				B122DA981003545900D86E1A /* DSPConfigDlgLLE.cpp in Sources */,
 				B122DA9A1003545900D86E1A /* DSPDebugInterface.cpp in Sources */,
 				B122DA9C1003545900D86E1A /* DSPHost.cpp in Sources */,
 				B122DA9D1003545900D86E1A /* DSPSymbols.cpp in Sources */,
@@ -4724,6 +4635,7 @@
 				B122DAA41003545900D86E1A /* ReadPBs.cpp in Sources */,
 				B122DAA61003545900D86E1A /* main.cpp in Sources */,
 				B122DAA91003545900D86E1A /* Tools.cpp in Sources */,
+				B1EDF560106C2CBA0003EAE6 /* CoreAudioSoundStream.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4780,11 +4692,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B122DB6D1003548600D86E1A /* Config.cpp in Sources */,
-				B122DB6F1003548600D86E1A /* ConfigBasicDlg.cpp in Sources */,
-				B122DB711003548600D86E1A /* ConfigGamepad.cpp in Sources */,
-				B122DB721003548600D86E1A /* ConfigPadDlg.cpp in Sources */,
-				B122DB741003548600D86E1A /* ConfigRecording.cpp in Sources */,
-				B122DB751003548600D86E1A /* ConfigRecordingDlg.cpp in Sources */,
 				B122DB771003548600D86E1A /* DataReports.cpp in Sources */,
 				B122DB781003548600D86E1A /* EmuDefinitions.cpp in Sources */,
 				B122DB7A1003548600D86E1A /* EmuDynamics.cpp in Sources */,
@@ -4792,7 +4699,6 @@
 				B122DB7D1003548600D86E1A /* EmuPad.cpp in Sources */,
 				B122DB7E1003548600D86E1A /* EmuSubroutines.cpp in Sources */,
 				B122DB801003548600D86E1A /* Encryption.cpp in Sources */,
-				B122DB821003548600D86E1A /* FillReport.cpp in Sources */,
 				B122DB831003548600D86E1A /* main.cpp in Sources */,
 				B122DB851003548600D86E1A /* ReadWiimote.cpp in Sources */,
 				B122DB871003548600D86E1A /* wiimote_real.cpp in Sources */,
@@ -4835,6 +4741,7 @@
 				B122DD14100356AA00D86E1A /* Timer.cpp in Sources */,
 				B122DD16100356AA00D86E1A /* x64Analyzer.cpp in Sources */,
 				B122DD18100356AA00D86E1A /* x64Emitter.cpp in Sources */,
+				B1EDF478106C1F240003EAE6 /* SysConf.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4843,12 +4750,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				B122DD821003578400D86E1A /* aldlist.cpp in Sources */,
-				B122DD841003578400D86E1A /* AOSoundStream.cpp in Sources */,
 				B122DD861003578400D86E1A /* AudioCommon.cpp in Sources */,
 				B122DD881003578400D86E1A /* AudioCommonConfig.cpp in Sources */,
 				B122DD8C1003578400D86E1A /* Mixer.cpp in Sources */,
 				B122DD8F1003578400D86E1A /* OpenALStream.cpp in Sources */,
 				B122DD921003578400D86E1A /* WaveFile.cpp in Sources */,
+				B1EDF55C106C2CBA0003EAE6 /* CoreAudioSoundStream.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5018,6 +4925,15 @@
 				B122DFE5100359E700D86E1A /* VolumeWad.cpp in Sources */,
 				B122DFE7100359E700D86E1A /* VolumeWiiCrypted.cpp in Sources */,
 				B122DFE9100359E700D86E1A /* WiiWad.cpp in Sources */,
+				B1EDF4B2106C222D0003EAE6 /* classic.c in Sources */,
+				B1EDF4B3106C222D0003EAE6 /* dynamics.c in Sources */,
+				B1EDF4B4106C222D0003EAE6 /* events.c in Sources */,
+				B1EDF4B5106C222D0003EAE6 /* guitar_hero_3.c in Sources */,
+				B1EDF4B6106C222D0003EAE6 /* io.c in Sources */,
+				B1EDF4B7106C222D0003EAE6 /* ir.c in Sources */,
+				B1EDF4B8106C222D0003EAE6 /* nunchuk.c in Sources */,
+				B1EDF4B9106C222D0003EAE6 /* wiiboard.c in Sources */,
+				B1EDF4BA106C222D0003EAE6 /* wiiuse.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5072,7 +4988,6 @@
 				B122E15C10035F5000D86E1A /* HiresTextures.cpp in Sources */,
 				B122E15E10035F5000D86E1A /* ImageWrite.cpp in Sources */,
 				B122E16010035F5000D86E1A /* IndexGenerator.cpp in Sources */,
-				B122E16210035F5000D86E1A /* LookUpTables.cpp in Sources */,
 				B122E16410035F5000D86E1A /* memcpy_amd.cpp in Sources */,
 				B122E16610035F5000D86E1A /* NativeVertexWriter.cpp in Sources */,
 				B122E16810035F5000D86E1A /* OpcodeDecoding.cpp in Sources */,
@@ -5093,6 +5008,7 @@
 				B122E18710035F5000D86E1A /* XFBConvert.cpp in Sources */,
 				B122E18910035F5000D86E1A /* XFMemory.cpp in Sources */,
 				B122E18B10035F5000D86E1A /* XFStructs.cpp in Sources */,
+				B1EDF4E0106C23AC0003EAE6 /* VideoConfig.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5124,16 +5040,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B122E257100361C800D86E1A /* classic.cpp in Sources */,
-				B122E25A100361C800D86E1A /* dynamics.cpp in Sources */,
-				B122E25C100361C800D86E1A /* events.cpp in Sources */,
-				B122E25E100361C800D86E1A /* guitar_hero_3.cpp in Sources */,
-				B122E260100361C800D86E1A /* io.cpp in Sources */,
 				B122E263100361C800D86E1A /* io_osx.m in Sources */,
-				B122E265100361C800D86E1A /* ir.cpp in Sources */,
-				B122E268100361C800D86E1A /* nunchuk.cpp in Sources */,
-				B122E26B100361C800D86E1A /* wiiboard.cpp in Sources */,
-				B122E26D100361C800D86E1A /* wiiuse.cpp in Sources */,
+				B1EDF4BB106C222D0003EAE6 /* classic.c in Sources */,
+				B1EDF4BC106C222D0003EAE6 /* dynamics.c in Sources */,
+				B1EDF4BD106C222D0003EAE6 /* events.c in Sources */,
+				B1EDF4BE106C222D0003EAE6 /* guitar_hero_3.c in Sources */,
+				B1EDF4BF106C222D0003EAE6 /* io.c in Sources */,
+				B1EDF4C0106C222D0003EAE6 /* ir.c in Sources */,
+				B1EDF4C1106C222D0003EAE6 /* nunchuk.c in Sources */,
+				B1EDF4C2106C222D0003EAE6 /* wiiboard.c in Sources */,
+				B1EDF4C3106C222D0003EAE6 /* wiiuse.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5341,6 +5257,13 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				HEADER_SEARCH_PATHS = (
+					Core/VideoCommon/Src/,
+					/opt/local/include,
+					"/usr/lib/wx/include/mac-unicode-debug-2.8/",
+					"/usr/include/wx-2.8",
+					../Externals,
+				);
 				INSTALL_PATH = /usr/local/lib;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -5543,6 +5466,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
 				INSTALL_PATH = /usr/local/lib;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+				);
 				OTHER_LDFLAGS = (
 					"-framework",
 					Carbon,
@@ -5566,6 +5493,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
 				INSTALL_PATH = /usr/local/lib;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+				);
 				OTHER_LDFLAGS = (
 					"-framework",
 					Carbon,
@@ -5929,6 +5860,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
 				INSTALL_PATH = /usr/local/lib;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+				);
 				OTHER_LDFLAGS = (
 					"-framework",
 					Carbon,
@@ -5950,6 +5885,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/Carbon.framework/Headers/Carbon.h";
 				INSTALL_PATH = /usr/local/lib;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					/opt/local/lib,
+				);
 				OTHER_LDFLAGS = (
 					"-framework",
 					Carbon,
@@ -6271,6 +6210,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/build/Release\"",
 					"\"$(SRCROOT)/build/Debug\"",
+					/opt/local/lib,
 				);
 				OTHER_CFLAGS = (
 					"-D_FILE_OFFSET_BITS=64",
@@ -6307,6 +6247,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/build/Release\"",
 					"\"$(SRCROOT)/build/Debug\"",
+					/opt/local/lib,
 				);
 				OTHER_CFLAGS = (
 					"-D_FILE_OFFSET_BITS=64",
@@ -6328,7 +6269,7 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_VERSION = 4.0;
+				GCC_VERSION = 4.2;
 				HEADER_SEARCH_PATHS = (
 					/opt/local/include,
 					"/usr/lib/wx/include/mac-unicode-debug-2.8/",
@@ -6355,7 +6296,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				GCC_C_LANGUAGE_STANDARD = c99;
-				GCC_VERSION = 4.0;
+				GCC_VERSION = 4.2;
 				HEADER_SEARCH_PATHS = (
 					/opt/local/include,
 					"/usr/lib/wx/include/mac-unicode-debug-2.8/",
