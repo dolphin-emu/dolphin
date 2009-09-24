@@ -170,10 +170,10 @@ void CUCode_Zelda::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Si
 
 	u64 ACC0 = PB.CurSampleFrac << 6;
 
-	ACC0 &= 0xffff003fffff;
+	ACC0 &= 0xffff003fffffULL;
 
 	address = AddValueToReg(address, ((ACC0 >> 16) & 0xffff));
-	ACC0 &= 0xffff0000ffff;
+	ACC0 &= 0xffff0000ffffULL;
 
 	for(int i = 0; i < _Size; i++) 
 	{
@@ -182,7 +182,7 @@ void CUCode_Zelda::RenderSynth_WaveTable(ZeldaVoicePB &PB, s32* _Buffer, int _Si
 		ACC0 += PB.RatioInt << 5;
 		address = AddValueToReg(address, ((ACC0 >> 16) & 0xffff));
 
-		ACC0 &= 0xffff0000ffff;
+		ACC0 &= 0xffff0000ffffULL;
 	}
 
 	ACC0 = address << 16;
