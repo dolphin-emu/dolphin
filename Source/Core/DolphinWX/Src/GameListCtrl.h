@@ -21,8 +21,21 @@
 #include <vector>
 
 #include <wx/listctrl.h>
+#include <wx/tipwin.h>
 
 #include "ISOFile.h"
+
+
+class wxEmuStateTip : public wxTipWindow
+{
+public:
+	wxEmuStateTip(wxWindow* parent, const wxString& text, wxEmuStateTip** windowPtr)
+		: wxTipWindow(parent, text, 70, (wxTipWindow**)windowPtr) {}
+	// wxTipWindow doesn't correctly handle KeyEvents and crashes... we must overload that.
+	void OnKeyDown(wxKeyEvent& event) { event.StopPropagation(); Close(); }
+private:
+	DECLARE_EVENT_TABLE()
+};
 
 class CGameListCtrl : public wxListCtrl
 {
@@ -43,14 +56,14 @@ public:
 
 	enum
 	{
-		COLUMN_BANNER = 0,
+		COLUMN_PLATFORM = 0,
+		COLUMN_BANNER,
 		COLUMN_TITLE,
 		COLUMN_COMPANY,
 		COLUMN_NOTES,
 		COLUMN_COUNTRY,
 		COLUMN_SIZE,
 		COLUMN_EMULATION_STATE,
-		COLUMN_PLATFORM,
 		NUMBER_OF_COLUMN
 	};
 
@@ -58,6 +71,7 @@ private:
 
 	std::vector<int> m_FlagImageIndex;
 	std::vector<int> m_PlatformImageIndex;
+	std::vector<int> m_EmuStateImageIndex;
 	std::vector<GameListItem> m_ISOFiles;
 
 	// NetPlay string for the gamelist
@@ -67,6 +81,7 @@ private:
 	int last_column;
 	int last_sort;
 	wxSize lastpos;
+	wxEmuStateTip *toolTip;
 	void InitBitmaps();
 	void InsertItemInReportView(long _Index);
 	void SetBackgroundColor();
@@ -76,8 +91,10 @@ private:
 
 	// events
 	void OnRightClick(wxMouseEvent& event);
+	void OnMouseMotion(wxMouseEvent& event);
 	void OnColumnClick(wxListEvent& event);
 	void OnColBeginDrag(wxListEvent& event);
+	void OnKeyPress(wxListEvent& event);
 	void OnSize(wxSizeEvent& event);
 	void OnProperties(wxCommandEvent& event);
 	void OnOpenContainingFolder(wxCommandEvent& event);
@@ -99,7 +116,6 @@ private:
 	static void CompressCB(const char* text, float percent, void* arg);
 	static void MultiCompressCB(const char* text, float percent, void* arg);
 };
-
 
 #endif
 

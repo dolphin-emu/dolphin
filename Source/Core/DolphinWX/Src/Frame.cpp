@@ -679,11 +679,11 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 	// 2. Boot the default or last loaded iso.
 	// 3. Call BrowseForDirectory if the gamelist is empty
 	if (!m_GameListCtrl->GetGameNames().size() &&
-		!((SConfig::GetInstance().m_ListGC ||
-		SConfig::GetInstance().m_ListWii ||
+		!((SConfig::GetInstance().m_ListGC &&
+		SConfig::GetInstance().m_ListWii &&
 		SConfig::GetInstance().m_ListWad) &&
-		(SConfig::GetInstance().m_ListJap ||
-		SConfig::GetInstance().m_ListUsa  ||
+		(SConfig::GetInstance().m_ListJap &&
+		SConfig::GetInstance().m_ListUsa  &&
 		SConfig::GetInstance().m_ListPal)))
 	{
 		SConfig::GetInstance().m_ListGC  =	SConfig::GetInstance().m_ListWii =

@@ -334,12 +334,12 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	EmuStateText = new wxStaticText(m_GameConfig, ID_EMUSTATE_TEXT, _("Emulation State: "), wxDefaultPosition, wxDefaultSize);
 	arrayStringFor_EmuState.Add(_("Not Set"));
 	arrayStringFor_EmuState.Add(_("Broken"));
-	arrayStringFor_EmuState.Add(_("Problems: "));
 	arrayStringFor_EmuState.Add(_("Intro"));
 	arrayStringFor_EmuState.Add(_("In Game"));
+	arrayStringFor_EmuState.Add(_("Playable"));
 	arrayStringFor_EmuState.Add(_("Perfect"));
 	EmuState = new wxChoice(m_GameConfig, ID_EMUSTATE, wxDefaultPosition, wxDefaultSize, arrayStringFor_EmuState, 0, wxDefaultValidator);
-	EmuIssues = new wxTextCtrl(m_GameConfig,ID_EMU_ISSUES, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0,wxDefaultValidator);
+	EmuIssues = new wxTextCtrl(m_GameConfig, ID_EMU_ISSUES, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	wxBoxSizer* sConfigPage;
 	sConfigPage = new wxBoxSizer(wxVERTICAL);
@@ -753,7 +753,7 @@ void CISOProperties::SetRefresh(wxCommandEvent& event)
 	bRefreshList = true;
 
 	if (event.GetId() == ID_EMUSTATE)
-		EmuIssues->Enable(event.GetSelection() == 2);
+		EmuIssues->Enable(event.GetSelection() != 0);
 }
 
 void CISOProperties::LoadGameConfig()
@@ -839,7 +839,7 @@ void CISOProperties::LoadGameConfig()
 		EmuIssues->SetValue(wxString::FromAscii(sTemp.c_str()));
 		bRefreshList = true;
 	}
-	EmuIssues->Enable(EmuState->GetSelection() == 2);
+	EmuIssues->Enable(EmuState->GetSelection() != 0);
 
 	PatchList_Load();
 	ActionReplayList_Load();

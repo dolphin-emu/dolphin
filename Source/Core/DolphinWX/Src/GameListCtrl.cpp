@@ -46,12 +46,13 @@
 	#include "../resources/Platform_Wad.xpm"
 	#include "../resources/Platform_Wii.xpm"
 	#include "../resources/Platform_Gamecube.xpm"
+
+	#include "../resources/rating_gamelist.h"
 #endif // USE_XPM_BITMAPS
 
 size_t CGameListCtrl::m_currentItem = 0;
 size_t CGameListCtrl::m_numberItem = 0;
 std::string CGameListCtrl::m_currentFilename;
-
 
 static int currentColumn = 0;
 bool operator < (const GameListItem &one, const GameListItem &other)
@@ -85,25 +86,32 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 	}
 }
 
-BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 
-EVT_SIZE(CGameListCtrl::OnSize)
-EVT_RIGHT_DOWN(CGameListCtrl::OnRightClick)
-EVT_LIST_COL_BEGIN_DRAG(LIST_CTRL, CGameListCtrl::OnColBeginDrag)
-EVT_LIST_COL_CLICK(LIST_CTRL, CGameListCtrl::OnColumnClick)
-EVT_MENU(IDM_PROPERTIES, CGameListCtrl::OnProperties)
-EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
-EVT_MENU(IDM_OPENSAVEFOLDER, CGameListCtrl::OnOpenSaveFolder)
-EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
-EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
-EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
-EVT_MENU(IDM_MULTIDECOMPRESSGCM, CGameListCtrl::OnMultiDecompressGCM)
-EVT_MENU(IDM_DELETEGCM, CGameListCtrl::OnDeleteGCM)
-EVT_MENU(IDM_INSTALLWAD, CGameListCtrl::OnInstallWAD)
+BEGIN_EVENT_TABLE(wxEmuStateTip, wxTipWindow)
+	EVT_KEY_DOWN(wxEmuStateTip::OnKeyDown)
 END_EVENT_TABLE()
 
+BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
+	EVT_SIZE(CGameListCtrl::OnSize)
+	EVT_RIGHT_DOWN(CGameListCtrl::OnRightClick)
+	EVT_LIST_KEY_DOWN(LIST_CTRL, CGameListCtrl::OnKeyPress)
+	EVT_MOTION(CGameListCtrl::OnMouseMotion)
+	EVT_LIST_COL_BEGIN_DRAG(LIST_CTRL, CGameListCtrl::OnColBeginDrag)
+	EVT_LIST_COL_CLICK(LIST_CTRL, CGameListCtrl::OnColumnClick)
+	EVT_MENU(IDM_PROPERTIES, CGameListCtrl::OnProperties)
+	EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
+	EVT_MENU(IDM_OPENSAVEFOLDER, CGameListCtrl::OnOpenSaveFolder)
+	EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
+	EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
+	EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
+	EVT_MENU(IDM_MULTIDECOMPRESSGCM, CGameListCtrl::OnMultiDecompressGCM)
+	EVT_MENU(IDM_DELETEGCM, CGameListCtrl::OnDeleteGCM)
+	EVT_MENU(IDM_INSTALLWAD, CGameListCtrl::OnInstallWAD)
+END_EVENT_TABLE()
+
+
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
-	: wxListCtrl(parent, id, pos, size, style)
+	: wxListCtrl(parent, id, pos, size, style), toolTip(0)
 {
 }
 
@@ -147,6 +155,20 @@ void CGameListCtrl::InitBitmaps()
 	m_PlatformImageIndex[1] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Platform_Wad_xpm));
 	m_PlatformImageIndex[2] = m_imageListSmall->Add(iconTemp);
+
+	m_EmuStateImageIndex.resize(6);
+	iconTemp.CopyFromBitmap(wxBitmap(rating_0));
+	m_EmuStateImageIndex[0] = m_imageListSmall->Add(iconTemp);
+	iconTemp.CopyFromBitmap(wxBitmap(rating_1));
+	m_EmuStateImageIndex[1] = m_imageListSmall->Add(iconTemp);
+	iconTemp.CopyFromBitmap(wxBitmap(rating_2));
+	m_EmuStateImageIndex[2] = m_imageListSmall->Add(iconTemp);
+	iconTemp.CopyFromBitmap(wxBitmap(rating_3));
+	m_EmuStateImageIndex[3] = m_imageListSmall->Add(iconTemp);
+	iconTemp.CopyFromBitmap(wxBitmap(rating_4));
+	m_EmuStateImageIndex[4] = m_imageListSmall->Add(iconTemp);
+	iconTemp.CopyFromBitmap(wxBitmap(rating_5));
+	m_EmuStateImageIndex[5] = m_imageListSmall->Add(iconTemp);
 }
 
 void CGameListCtrl::BrowseForDirectory()
@@ -206,6 +228,7 @@ void CGameListCtrl::Update()
 		Show();
 
 		// add columns
+		InsertColumn(COLUMN_PLATFORM, _(""));
 		InsertColumn(COLUMN_BANNER, _("Banner"));
 		InsertColumn(COLUMN_TITLE, _("Title"));
 		InsertColumn(COLUMN_COMPANY, _("Company"));
@@ -213,17 +236,16 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_COUNTRY, _(""));
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("Emulation"));
-		InsertColumn(COLUMN_PLATFORM, _("Platform"));
 
 
 		// set initial sizes for columns
-		SetColumnWidth(COLUMN_BANNER, 106);
+		SetColumnWidth(COLUMN_PLATFORM, 35);
+		SetColumnWidth(COLUMN_BANNER, 96);
 		SetColumnWidth(COLUMN_TITLE, 150);
 		SetColumnWidth(COLUMN_COMPANY, 130);
 		SetColumnWidth(COLUMN_NOTES, 150);
 		SetColumnWidth(COLUMN_COUNTRY, 32);
-		SetColumnWidth(COLUMN_EMULATION_STATE, 120);
-		SetColumnWidth(COLUMN_PLATFORM, 50);
+		SetColumnWidth(COLUMN_EMULATION_STATE, 50);
 
 		Hide();
 
@@ -235,16 +257,23 @@ void CGameListCtrl::Update()
 				SetItemTextColour(i, wxColour(0xFF0000));
 		}
 
+		// Sort items by Title
+		wxListEvent event;
+		event.m_col = COLUMN_TITLE; last_column = 0;
+		OnColumnClick(event);
+
 		SetColumnWidth(COLUMN_SIZE, wxLIST_AUTOSIZE);
 	}
 	else
 	{
 		wxString errorString;
-		if ((SConfig::GetInstance().m_ListGC  ||
-			SConfig::GetInstance().m_ListWii  ||
+		// We just check for one hide setting to be enabled, as we may only have GC games
+		// for example, and hide them, so we should show the second message instead
+		if ((SConfig::GetInstance().m_ListGC  &&
+			SConfig::GetInstance().m_ListWii  &&
 			SConfig::GetInstance().m_ListWad) &&
-			(SConfig::GetInstance().m_ListJap ||
-			SConfig::GetInstance().m_ListUsa  ||
+			(SConfig::GetInstance().m_ListJap &&
+			SConfig::GetInstance().m_ListUsa  &&
 			SConfig::GetInstance().m_ListPal))
 		{
 			errorString = _("Dolphin could not find any GC/Wii ISOs. Doubleclick here to browse for files...");
@@ -253,11 +282,10 @@ void CGameListCtrl::Update()
 		{
 			errorString = _("Dolphin is currently set to hide all games. Doubleclick here to show all games...");
 		}
-		InsertColumn(COLUMN_BANNER, _("No ISOs or WADS found"));
-		long index = InsertItem(0, wxString::FromAscii("msgRow"));
-		SetItem(index, COLUMN_BANNER, errorString);
+		InsertColumn(0, _("No ISOs or WADS found"));
+		long index = InsertItem(0, errorString);
 		SetItemFont(index, *wxITALIC_FONT);
-		SetColumnWidth(COLUMN_BANNER, wxLIST_AUTOSIZE);
+		SetColumnWidth(0, wxLIST_AUTOSIZE);
 	}
 
 	Show();
@@ -308,14 +336,14 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	m_gamePath.append(std::string(rISOFile.GetFileName()) + '\n');
 	
 	int ImageIndex = -1;
-	
 	if (rISOFile.GetImage().IsOk())
-	{
 		ImageIndex = m_imageListSmall->Add(rISOFile.GetImage());
-	}
 
-	// Insert a row with the banner image
-	long ItemIndex = InsertItem(_Index, wxEmptyString, ImageIndex);
+	// Insert a row with the platform image, that will be used as the Index
+	long ItemIndex = InsertItem(_Index, wxEmptyString, m_PlatformImageIndex[rISOFile.GetPlatform()]);
+
+	// Set the game's banner in the second column
+	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
 
 	switch (rISOFile.GetCountry())
 	{
@@ -357,57 +385,16 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	std::string GameIni = FULL_GAMECONFIG_DIR + (rISOFile.GetUniqueID()) + ".ini";
 	ini.Load(GameIni.c_str());
 
-	// Emulation status = COLUMN_EMULATION_STATE
-	{
-		wxListItem item;
-		item.SetId(_Index);
-		std::string EmuState;
-		std::string issues;
-		item.SetColumn(COLUMN_EMULATION_STATE);
-		ini.Get("EmuState","EmulationStateId",&EmuState);
-		if (!EmuState.empty())
-		{
-			switch(atoi(EmuState.c_str()))
-			{
-			case 5:
-				item.SetText(_("Perfect"));
-				break;
-			case 4:
-				item.SetText(_("In Game"));
-				break;
-			case 3:
-				item.SetText(_("Intro"));
-				break;
-			case 2:
-				//NOTE (Daco): IMO under 2 goes problems like music and games that only work with specific settings
-				ini.Get("EmuState","EmulationIssues",&issues);
-				if (!issues.empty())
-				{
-					issues = "Problems: " + issues;
-					item.SetText(wxString::FromAscii(issues.c_str()));
-				}
-				else
-					item.SetText(_("Problems: Other"));
-				break;
-			case 1:
-				item.SetText(_("Broken"));
-				break;
-			case 0:
-				item.SetText(_("Not Set"));
-				break;
-			default:
-				//if the EmuState isn't a number between 0 & 5 we dont know the state D:
-				item.SetText(_("unknown emu ID"));
-				break;
-			}
-		}
-		SetItem(item);
-	}
+	// Emulation status
+	int nState;
+
+	ini.Get("EmuState", "EmulationStateId", &nState);
+
+	// Emulation state
+	SetItemColumnImage(_Index, COLUMN_EMULATION_STATE, m_EmuStateImageIndex[nState]);
 
 	// Country
 	SetItemColumnImage(_Index, COLUMN_COUNTRY, m_FlagImageIndex[rISOFile.GetCountry()]);
-	//Platform
-	SetItemColumnImage(_Index, COLUMN_PLATFORM, m_PlatformImageIndex[rISOFile.GetPlatform()]);
 
 	// Background color
 	SetBackgroundColor();
@@ -640,6 +627,19 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 		if(iso1->GetPlatform() > iso2->GetPlatform()) return  1 *t;
 		if(iso1->GetPlatform() < iso2->GetPlatform()) return -1 *t;
 		return 0;
+	case CGameListCtrl::COLUMN_EMULATION_STATE:
+		IniFile ini; int nState1 = 0, nState2 = 0;
+		std::string GameIni1 = FULL_GAMECONFIG_DIR + iso1->GetUniqueID() + ".ini";
+		std::string GameIni2 = FULL_GAMECONFIG_DIR + iso2->GetUniqueID() + ".ini";
+		
+		ini.Load(GameIni1.c_str());
+		ini.Get("EmuState", "EmulationStateId", &nState1);
+		ini.Load(GameIni2.c_str());
+		ini.Get("EmuState", "EmulationStateId", &nState2);
+
+		if(nState1 > nState2) return  1 *t;
+		if(nState1 < nState2) return -1 *t;
+		return 0;
 	}
  
 	return 0;
@@ -647,7 +647,7 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 
 void CGameListCtrl::OnColumnClick(wxListEvent& event)
 {
-	if(event.GetColumn() != COLUMN_BANNER && event.GetColumn() != COLUMN_EMULATION_STATE)
+	if(event.GetColumn() != COLUMN_BANNER)
 	{
 		int current_column = event.GetColumn();
  
@@ -666,6 +666,107 @@ void CGameListCtrl::OnColumnClick(wxListEvent& event)
 	}
 
 	SetBackgroundColor();
+
+	event.Skip();
+}
+
+// This is used by keyboard gamelist search
+void CGameListCtrl::OnKeyPress(wxListEvent& event)
+{
+	static int lastKey = 0, sLoop = 0;
+	int Loop = 0;
+
+	for (int i = 0; i < (int)m_ISOFiles.size(); i++)
+	{
+		// Easy way to get game string
+		wxListItem bleh;
+		bleh.SetId(i);
+		bleh.SetColumn(COLUMN_TITLE);
+		bleh.SetMask(wxLIST_MASK_TEXT);
+		GetItem(bleh);
+
+		wxString text = bleh.GetText();
+
+		if (text.MakeUpper().at(0) == event.GetKeyCode())
+		{
+			if (lastKey == event.GetKeyCode() && Loop < sLoop)
+			{
+				Loop++;
+				if (i+1 == (int)m_ISOFiles.size())
+					i = -1;
+				continue;
+			}
+			else if (lastKey != event.GetKeyCode())
+				sLoop = 0;
+
+			lastKey = event.GetKeyCode();
+			sLoop++;
+
+			UnselectAll();
+			SetItemState(i, wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED, wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED);
+			EnsureVisible(i);
+			break;
+		}
+
+		// If we get past the last game in the list, we'll have to go back to the first one.
+		if (i+1 == (int)m_ISOFiles.size() && sLoop > 0 && Loop > 0)
+			i = -1;
+	}
+
+	event.Skip();
+}
+
+// This shows a little tooltip with the current Game's emulation state
+void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
+{
+	int flags; long subitem;
+	long item = HitTest(event.GetPosition(), flags, &subitem);
+	static int lastItem = -1;
+
+	if (item != wxNOT_FOUND) 
+	{
+		if (subitem == COLUMN_EMULATION_STATE)
+		{
+			if (toolTip || lastItem == item) {
+				event.Skip();
+				return;
+			}
+
+			const GameListItem& rISO = m_ISOFiles[GetItemData(item)];
+
+			IniFile ini;
+			ini.Load(std::string(FULL_GAMECONFIG_DIR + (rISO.GetUniqueID()) + ".ini").c_str());
+
+			// Emulation status
+			std::string emuState[5] = {"Broken", "Intro", "In-Game", "Playable", "Perfect"}, issues;
+
+			int nState;
+			ini.Get("EmuState", "EmulationStateId", &nState);
+			ini.Get("EmuState", "EmulationIssues", &issues, "No Description");
+
+			// If the key exists in the ini but is not set, we still use "No description"
+			issues = (issues == "" ? "No Description" : issues);
+
+			// Get item Coords then convert from wxWindow coord to Screen coord
+			wxRect Rect;
+			this->GetItemRect(item, Rect);
+			int mx = Rect.GetWidth();
+			int my = Rect.GetY();
+			this->ClientToScreen(&mx, &my);
+
+			// Show a tooltip containing the EmuState and the state description
+			if (nState > 0 && nState < 6)
+				toolTip = new wxEmuStateTip(this->GetGrandParent(), wxString::Format(wxT(" ^ %s :\n%s"), 
+					wxString::FromAscii(emuState[nState - 1].c_str()), wxString::FromAscii(issues.c_str())), &toolTip);
+			else
+				toolTip = new wxEmuStateTip(this->GetGrandParent(), wxT("Not Set"), &toolTip);
+
+			toolTip->SetBoundingRect(wxRect(mx - GetColumnWidth(subitem), my, GetColumnWidth(subitem), Rect.GetHeight()));
+			toolTip->SetPosition(wxPoint(mx - GetColumnWidth(subitem), my - 10 + Rect.GetHeight()));
+			
+			lastItem = item;
+		}
+	}
 
 	event.Skip();
 }
@@ -1044,11 +1145,22 @@ void CGameListCtrl::AutomaticColumnWidth()
 			+ GetColumnWidth(COLUMN_SIZE)
 			+ GetColumnWidth(COLUMN_EMULATION_STATE)
 			+ GetColumnWidth(COLUMN_PLATFORM)
-			+ 8); // some pad to keep the horizontal scrollbar away :)
+			+ 5); // some pad to keep the horizontal scrollbar away :)
 
-		SetColumnWidth(COLUMN_TITLE, wxMax(0.3*resizable, 100));
-		SetColumnWidth(COLUMN_COMPANY, wxMax(0.2*resizable, 90));
-		SetColumnWidth(COLUMN_NOTES, wxMax(0.5*resizable, 100));
+		// We hide the Company column if the window is too small
+		if (0.66*resizable > 200)
+		{
+			SetColumnWidth(COLUMN_TITLE, 0.66*resizable);
+			SetColumnWidth(COLUMN_COMPANY, 0.34*resizable);
+		}
+		else
+		{
+			SetColumnWidth(COLUMN_TITLE, resizable);
+			SetColumnWidth(COLUMN_COMPANY, 0);
+		}
+
+		// We currently always hide the notes column
+		SetColumnWidth(COLUMN_NOTES, 0);
 	}
 }
 
