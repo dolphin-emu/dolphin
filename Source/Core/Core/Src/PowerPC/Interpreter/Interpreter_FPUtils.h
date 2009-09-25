@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#ifndef _INTERPRETER_FPUTILS_H
+#define _INTERPRETER_FPUTILS_H
+
 #include "../../Core.h"
 #include "Interpreter.h"
 #include "MathUtil.h"
@@ -241,3 +244,5 @@ inline u32 ConvertToSingleFTZ(u64 x)
 		return (x >> 32) & 0x80000000;		
 	}
 }
+
+#endif

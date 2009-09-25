@@ -97,8 +97,8 @@ void FPSCRtoFPUSettings(UReg_FPSCR fp)
 #endif
 	if (fp.VE || fp.OE || fp.UE || fp.ZE || fp.XE)
 	{
-		PanicAlert("FPSCR - exceptions enabled. Please report. VE=%i OE=%i UE=%i ZE=%i XE=%i",
-			fp.VE, fp.OE, fp.UE, fp.ZE, fp.XE);
+		//PanicAlert("FPSCR - exceptions enabled. Please report. VE=%i OE=%i UE=%i ZE=%i XE=%i",
+		//	fp.VE, fp.OE, fp.UE, fp.ZE, fp.XE);
 		// Pokemon Colosseum does this. Gah.
 	}
 
