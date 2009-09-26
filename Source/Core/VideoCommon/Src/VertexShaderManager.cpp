@@ -122,11 +122,12 @@ void VertexShaderManager::SetConstants()
         for (int i = istart; i < iend; ++i) 
 		{
             u32 color = *(const u32*)(xfmemptr + 3);
+			float NormalizationCoef = 1 / 255.0f;
             SetVSConstant4f(C_LIGHTS + 5 * i,
-                ((color >> 24) & 0xFF) / 255.0f,
-				((color >> 16) & 0xFF) / 255.0f,
-				((color >> 8)  & 0xFF) / 255.0f,
-				((color)       & 0xFF) / 255.0f);
+                ((color >> 24) & 0xFF) * NormalizationCoef,
+				((color >> 16) & 0xFF) * NormalizationCoef,
+				((color >> 8)  & 0xFF) * NormalizationCoef,
+				((color)       & 0xFF) * NormalizationCoef);
             xfmemptr += 4;
 
             for (int j = 0; j < 4; ++j, xfmemptr += 3) 
@@ -466,11 +467,11 @@ void VertexShaderManager::SetMaterialColor(int index, u32 data)
 	int ind = index * 4;
 
 	nMaterialsChanged  |= (1 << index);
-
-	s_fMaterials[ind++] = ((data >> 24) & 0xFF) / 255.0f;
-	s_fMaterials[ind++] = ((data >> 16) & 0xFF) / 255.0f;
-	s_fMaterials[ind++] = ((data >>  8) & 0xFF) / 255.0f;
-	s_fMaterials[ind]   = ( data        & 0xFF) / 255.0f;
+	float NormalizationCoef = 1 / 255.0f;
+	s_fMaterials[ind++] = ((data >> 24) & 0xFF) * NormalizationCoef;
+	s_fMaterials[ind++] = ((data >> 16) & 0xFF) * NormalizationCoef;
+	s_fMaterials[ind++] = ((data >>  8) & 0xFF) * NormalizationCoef;
+	s_fMaterials[ind]   = ( data        & 0xFF) * NormalizationCoef;
 }
 
 void VertexShaderManager::TranslateView(float x, float y)

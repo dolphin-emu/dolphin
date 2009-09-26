@@ -35,12 +35,14 @@ public:
 	int GetNumPrims() {return numPrims;} //returns numprimitives
 	int GetNumVerts() {return index;} //returns numprimitives
 	int GetNumAdds() {return adds;}
+	int GetindexLen() {return indexLen;}
 	bool GetOnlyLists() {return onlyLists;}
 private:
 	unsigned short *ptr;
 	int numPrims;
 	int index;
 	int adds;
+	int indexLen;
 	bool onlyLists;
 };
 

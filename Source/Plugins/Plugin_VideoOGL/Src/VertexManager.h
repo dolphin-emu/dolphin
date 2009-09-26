@@ -28,7 +28,7 @@ namespace VertexManager
 
 bool Init();
 void Shutdown();
-
+void AddIndices(int _primitive, int _numVertices);
 void ResetBuffer();
 
 };

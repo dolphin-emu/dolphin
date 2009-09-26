@@ -40,6 +40,8 @@ static GLuint s_DepthMatrixProgram = 0;
 PixelShaderCache::PSCache PixelShaderCache::pshaders;
 PIXELSHADERUID PixelShaderCache::s_curuid;
 bool PixelShaderCache::s_displayCompileAlert;
+GLuint PixelShaderCache::CurrentShader;
+bool PixelShaderCache::ShaderEnabled;
 
 static FRAGMENTSHADER* pShaderLast = NULL;
 static float lastPSconstants[C_COLORMATRIX+16][4];
@@ -138,6 +140,9 @@ void PixelShaderCache::Init()
 		glDeleteProgramsARB(1, &s_DepthMatrixProgram);
 		s_DepthMatrixProgram = 0;
 	}
+	CurrentShader=0;
+	ShaderEnabled = false;
+	EnableShader(s_DepthMatrixProgram);	
 }
 
 void PixelShaderCache::Shutdown()
@@ -280,7 +285,9 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 	}
 
 	glGenProgramsARB(1, &ps.glprogid);
-	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps.glprogid);
+	EnableShader(ps.glprogid);	
+	//glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps.glprogid);
+	//CurrentShader = ps.glprogid;
 	glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
 
 	err = GL_REPORT_ERROR();
@@ -311,4 +318,44 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 	ps.strprog = pstrprogram;
 #endif
 	return true;
+}
+
+//Disable Fragment programs and reset the selected Program
+void PixelShaderCache::DisableShader()
+{
+	CurrentShader = 0;
+	if(ShaderEnabled)
+	{		
+		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, CurrentShader);
+		glDisable(GL_FRAGMENT_PROGRAM_ARB);
+		ShaderEnabled = false;
+	}	
+}
+
+
+//bind a program if is diferent from the binded oone
+void PixelShaderCache::SetCurrentShader(GLuint Shader)
+{
+	//The caching here breakes Super Mario Sunshine i'm still trying to figure out wy
+	if(ShaderEnabled /*&& CurrentShader != Shader*/)
+	{
+		CurrentShader = Shader;
+		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, CurrentShader);
+	}
+}
+
+//Enable Fragment program and bind initial program
+void PixelShaderCache::EnableShader(GLuint Shader)
+{
+	if(!ShaderEnabled)
+	{
+		glEnable(GL_FRAGMENT_PROGRAM_ARB);
+		ShaderEnabled = true;
+		CurrentShader =  0;
+	}
+	if(CurrentShader != Shader)
+	{
+		CurrentShader = Shader;
+		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, CurrentShader);
+	}
 }

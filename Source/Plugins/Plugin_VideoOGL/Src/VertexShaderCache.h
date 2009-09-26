@@ -53,6 +53,9 @@ class VertexShaderCache
 	static VSCache vshaders;
 
     static bool s_displayCompileAlert;
+	
+	static GLuint CurrentShader;
+	static bool ShaderEnabled;
 
 public:
 	static void Init();
@@ -61,6 +64,11 @@ public:
 
 	static VERTEXSHADER* GetShader(u32 components);
 	static bool CompileVertexShader(VERTEXSHADER& ps, const char* pstrprogram);
+
+	static void SetCurrentShader(GLuint Shader);
+
+	static void DisableShader();
+	static void EnableShader(GLuint Shader);
 };
 
 #endif // _VERTEXSHADERCACHE_H_

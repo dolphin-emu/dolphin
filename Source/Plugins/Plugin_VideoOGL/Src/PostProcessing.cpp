@@ -74,14 +74,12 @@ bool ApplyShader()
 
 	if (s_shader.glprogid != 0)
 	{
-		glEnable(GL_FRAGMENT_PROGRAM_ARB);
-		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, s_shader.glprogid);
+		PixelShaderCache::EnableShader(s_shader.glprogid);		
 		return true;
 	}
 	else
 	{
-		glDisable(GL_FRAGMENT_PROGRAM_ARB);
-		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
+		PixelShaderCache::DisableShader();
 		return false;
 	}
 }

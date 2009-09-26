@@ -37,8 +37,9 @@
 #include "VertexShaderGen.h"
 #include "VertexLoader.h"
 #include "VertexManager.h"
+#include "IndexGenerator.h"
 
-#define MAX_BUFFER_SIZE 0x4000
+#define MAX_BUFFER_SIZE 0x50000
 
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;
@@ -46,13 +47,17 @@ extern NativeVertexFormat *g_nativeVertexFmt;
 namespace VertexManager
 {
 
-static GLuint s_vboBuffers[0x40] = {0};
-static int s_nCurVBOIndex = 0; // current free buffer
-static u8 *s_pBaseBufferPointer = NULL;
-static std::vector< GLint > s_vertexFirstOffset;
-static std::vector< GLsizei > s_vertexGroupSize;
-static std::vector< std::pair< GLenum, int > > s_vertexGroups;
-u32 s_vertexCount;
+static const GLenum c_RenderprimitiveType[8] =
+{
+    GL_TRIANGLES,
+    GL_ZERO, //nothing
+    GL_TRIANGLES,
+    GL_TRIANGLES,
+    GL_TRIANGLES,
+    GL_LINES,
+    GL_LINES,
+    GL_POINTS
+};
 
 static const GLenum c_primitiveType[8] =
 {
@@ -66,35 +71,48 @@ static const GLenum c_primitiveType[8] =
     GL_POINTS
 };
 
+static IndexGenerator indexGen;
+
+static GLenum lastPrimitive;
+static GLenum CurrentRenderPrimitive;
+
+static u8 *LocalVBuffer;   
+static u16 *IBuffer;  
+
+#define MAXVBUFFERSIZE 0x50000
+#define MAXIBUFFERSIZE 0x20000
+#define MAXVBOBUFFERCOUNT 0x4
+
+static GLuint s_vboBuffers[MAXVBOBUFFERCOUNT] = {0};
+static GLuint s_IBuffers[MAXVBOBUFFERCOUNT] = {0};
+static int s_nCurVBOIndex = 0; // current free buffer
+
+
+
 bool Init()
 {
-	s_pBaseBufferPointer = (u8*)AllocateMemoryPages(MAX_BUFFER_SIZE);
-	s_pCurBufferPointer = s_pBaseBufferPointer;
-
+	lastPrimitive = GL_ZERO;
+	CurrentRenderPrimitive = GL_ZERO;
+	LocalVBuffer = new u8[MAXVBUFFERSIZE];
+	IBuffer = new u16[MAXIBUFFERSIZE];
+	s_pCurBufferPointer = LocalVBuffer;
 	s_nCurVBOIndex = 0;
 	glGenBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
 	for (u32 i = 0; i < ARRAYSIZE(s_vboBuffers); ++i) {
 		glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[i]);
-		glBufferData(GL_ARRAY_BUFFER, MAX_BUFFER_SIZE, NULL, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, MAXVBUFFERSIZE, NULL, GL_STREAM_DRAW);
 	}
-
 	glEnableClientState(GL_VERTEX_ARRAY);
 	g_nativeVertexFmt = NULL;
 	GL_REPORT_ERRORD();
-
 	return true;
 }
 
 void Shutdown()
 {
-	FreeMemoryPages(s_pBaseBufferPointer, MAX_BUFFER_SIZE); s_pBaseBufferPointer = s_pCurBufferPointer = NULL;
+	delete [] LocalVBuffer;
+	delete [] IBuffer;
 	glDeleteBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
-	memset(s_vboBuffers, 0, sizeof(s_vboBuffers));
-
-	s_vertexFirstOffset.resize(0);
-	s_vertexGroupSize.resize(0);
-	s_vertexGroups.resize(0);
-	s_vertexCount = 0;
 	s_nCurVBOIndex = 0;
 	ResetBuffer();
 }
@@ -102,58 +120,85 @@ void Shutdown()
 void ResetBuffer()
 {
 	s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
-	s_pCurBufferPointer = s_pBaseBufferPointer;
-	s_vertexFirstOffset.resize(0);
-	s_vertexGroupSize.resize(0);
-	s_vertexGroups.resize(0);
-	s_vertexCount = 0;
+	s_pCurBufferPointer = LocalVBuffer;
+	CurrentRenderPrimitive = GL_ZERO;
+	u16 *ptr = 0;
+	indexGen.Start((unsigned short*)ptr);
+}
+
+void AddIndices(int _primitive, int _numVertices)
+{
+	switch (_primitive)
+	{
+	case GL_QUADS:          indexGen.AddQuads(_numVertices);     return;    
+	case GL_TRIANGLES:      indexGen.AddList(_numVertices);      return;    
+	case GL_TRIANGLE_STRIP: indexGen.AddStrip(_numVertices);     return;
+	case GL_TRIANGLE_FAN:   indexGen.AddFan(_numVertices);       return;
+	case GL_LINE_STRIP:     indexGen.AddLineStrip(_numVertices); return;
+	case GL_LINES:		     indexGen.AddLineList(_numVertices);  return;
+	case GL_POINTS:         indexGen.AddPoints(_numVertices);    return;
+	}
 }
 
 int GetRemainingSize()
 {
-	return MAX_BUFFER_SIZE - (int)(s_pCurBufferPointer - s_pBaseBufferPointer);
+	return LocalVBuffer + MAXVBUFFERSIZE - s_pCurBufferPointer;
 }
 
 void AddVertices(int primitive, int numvertices)
 {
-	_assert_(numvertices > 0);
-	_assert_(g_nativeVertexFmt != NULL);
+	if (numvertices <= 0)
+		return;
 
+	if (c_primitiveType[primitive] == GL_ZERO)
+		return;
+	DVSTARTPROFILE();	
+	
+	lastPrimitive = c_primitiveType[primitive];
+	
 	ADDSTAT(stats.thisFrame.numPrims, numvertices);
-	if (!s_vertexGroups.empty() && s_vertexGroups.back().first == c_primitiveType[primitive]) {
-		// We can join primitives for free here. Not likely to help much, though, but whatever...
-		if (c_primitiveType[primitive] == GL_TRIANGLES ||
-			c_primitiveType[primitive] == GL_LINES ||
-			c_primitiveType[primitive] == GL_POINTS ||
-			c_primitiveType[primitive] == GL_QUADS) {
-			INCSTAT(stats.thisFrame.numPrimitiveJoins);
-			// Easy join
-			s_vertexGroupSize.back() += numvertices;
-			s_vertexCount += numvertices;
-			return;
+
+	if (CurrentRenderPrimitive != c_RenderprimitiveType[primitive])
+	{
+		// We are NOT collecting the right type.
+		Flush();
+		CurrentRenderPrimitive = c_RenderprimitiveType[primitive];
+		u16 *ptr = 0;
+		if (lastPrimitive != GL_POINTS)
+		{
+			ptr = IBuffer;			
 		}
+		indexGen.Start((unsigned short*)ptr);
+		AddIndices(c_primitiveType[primitive], numvertices);		
 	}
+	else  // We are collecting the right type, keep going
+	{
+		INCSTAT(stats.thisFrame.numPrimitiveJoins);
+		AddIndices(c_primitiveType[primitive], numvertices);		
+	}
+}
 
-	s_vertexFirstOffset.push_back(s_vertexCount);
-	s_vertexGroupSize.push_back(numvertices);
-	s_vertexCount += numvertices;
-	if (!s_vertexGroups.empty() && s_vertexGroups.back().first == c_primitiveType[primitive])
-		s_vertexGroups.back().second++;
+inline void Draw(int numVertices, int indexLen)
+{	
+
+	if (CurrentRenderPrimitive != GL_POINT)
+	{		
+		glDrawElements(CurrentRenderPrimitive, indexLen, GL_UNSIGNED_SHORT, IBuffer);
+		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+	}
 	else
-		s_vertexGroups.push_back(std::make_pair(c_primitiveType[primitive], 1));
-
-#if defined(_DEBUG) || defined(DEBUGFAST) 
-	static const char *sprims[8] = {"quads", "nothing", "tris", "tstrip", "tfan", "lines", "lstrip", "points"};
-	PRIM_LOG("prim: %s, c=%d", sprims[primitive], numvertices);
-#endif
+	{
+		glDrawArrays(CurrentRenderPrimitive,0,numVertices);
+		INCSTAT(stats.thisFrame.numDrawCalls);
+	}
+	
 }
 
 void Flush()
 {
-	if (s_vertexCount == 0)
-		return;
-
-	_assert_(s_pCurBufferPointer != s_pBaseBufferPointer);
+	if (LocalVBuffer == s_pCurBufferPointer) return;	
+	int numVerts = indexGen.GetNumVerts();
+	if(numVerts == 0) return;
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfregs.numTexGens,
@@ -187,9 +232,10 @@ void Flush()
 
 	GL_REPORT_ERRORD(); 
 
-
+	
+	
 	glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
-	glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - s_pBaseBufferPointer, s_pBaseBufferPointer, GL_STREAM_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER,0, s_pCurBufferPointer - LocalVBuffer, LocalVBuffer);
 	GL_REPORT_ERRORD();
 
 	// setup the pointers
@@ -266,54 +312,35 @@ void Flush()
 
 	// finally bind
 
-	// TODO - cache progid, check if same as before. Maybe GL does this internally, though.
-	// This is the really annoying problem with GL - you never know whether it's worth caching stuff yourself.
-	if (vs) glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vs->glprogid);
-	if (ps) glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps->glprogid); // Lego Star Wars crashes here.
+	int groupStart = 0;
+	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
+	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	PRIM_LOG("");
 #endif
 
-	int groupStart = 0;
-	for (unsigned i = 0; i < s_vertexGroups.size(); i++)
-	{
-		INCSTAT(stats.thisFrame.numDrawCalls);
-		glMultiDrawArrays(s_vertexGroups[i].first,
-		                  &s_vertexFirstOffset[groupStart],
-		                  &s_vertexGroupSize[groupStart], 
-		                  s_vertexGroups[i].second);
-		groupStart += s_vertexGroups[i].second;
-	}
-
+	int numIndexes = indexGen.GetindexLen();
+	Draw(numVerts,numIndexes);
+	
     // run through vertex groups again to set alpha
     if (!g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
 	{
         ps = PixelShaderCache::GetShader(true);
 
-        if (ps) glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps->glprogid);
+        if (ps)PixelShaderCache::SetCurrentShader(ps->glprogid);
 
-        // only update alpha
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
+		// only update alpha
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
 
-        glDisable(GL_BLEND);
+		glDisable(GL_BLEND);
 
-        groupStart = 0;
-	    for (unsigned i = 0; i < s_vertexGroups.size(); i++)
-	    {
-		    INCSTAT(stats.thisFrame.numDrawCalls);
-		    glMultiDrawArrays(s_vertexGroups[i].first,
-		                      &s_vertexFirstOffset[groupStart],
-		                      &s_vertexGroupSize[groupStart], 
-		                      s_vertexGroups[i].second);
-		    groupStart += s_vertexGroups[i].second;
-	    }
+		Draw(numVerts,numIndexes);
+		// restore color mask
+		Renderer::SetColorMask();
 
-        // restore color mask
-        Renderer::SetColorMask();
-
-        if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
-            glEnable(GL_BLEND);
+		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
+			glEnable(GL_BLEND);	
     }
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
@@ -342,5 +369,5 @@ void Flush()
 
 	ResetBuffer();
 }
-
 }  // namespace
+

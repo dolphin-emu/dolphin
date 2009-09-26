@@ -34,6 +34,8 @@ namespace TextureConverter
 
 static GLuint s_texConvFrameBuffer = 0;
 static GLuint s_srcTexture = 0;			// for decoding from RAM
+static GLuint s_srcTextureWidth = 0;
+static GLuint s_srcTextureHeight = 0;
 static GLuint s_dstRenderBuffer = 0;	// for encoding to RAM
 
 const int renderBufferWidth = 1024;
@@ -60,15 +62,12 @@ void CreateRgbToYuyvProgram()
 	"  float2 uv1 = float2(uv0.x + 1.0f, uv0.y);\n"
 	"  float3 c0 = texRECT(samp0, uv0).rgb;\n"
 	"  float3 c1 = texRECT(samp0, uv1).rgb;\n"
-
-	"  float y0 = (0.257f * c0.r) + (0.504f * c0.g) + (0.098f * c0.b) + 0.0625f;\n"
-	"  float u0 =-(0.148f * c0.r) - (0.291f * c0.g) + (0.439f * c0.b) + 0.5f;\n"
-	"  float v0 = (0.439f * c0.r) - (0.368f * c0.g) - (0.071f * c0.b) + 0.5f;\n"
-	"  float y1 = (0.257f * c1.r) + (0.504f * c1.g) + (0.098f * c1.b) + 0.0625f;\n"
-	"  float u1 =-(0.148f * c1.r) - (0.291f * c1.g) + (0.439f * c1.b) + 0.5f;\n"
-	"  float v1 = (0.439f * c1.r) - (0.368f * c1.g) - (0.071f * c1.b) + 0.5f;\n"
-
-	"  ocol0 = float4(y1, (u0 + u1) / 2, y0, (v0 + v1) / 2);\n"
+	"  float3 y_const = float3(0.257f,0.504f,0.098f);\n"
+	"  float3 u_const = float3(-0.148f,-0.291f,0.439f);\n"
+	"  float3 v_const = float3(0.439f,-0.368f,-0.071f);\n"
+	"  float4 const3 = float4(0.0625f,0.5f,0.0625f,0.5f);\n"
+	"  float3 c01 = (c0 + c1) * 0.5f;\n"  
+	"  ocol0 = float4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"	  	
 	"}\n";
 
 	if (!PixelShaderCache::CompilePixelShader(s_rgbToYuyvProgram, FProgram)) {
@@ -204,8 +203,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 
 	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
 
-	glEnable(GL_FRAGMENT_PROGRAM_ARB);
-	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, shader.glprogid);	
+	PixelShaderCache::EnableShader(shader.glprogid);
 
 	// Draw...
 	glBegin(GL_QUADS);
@@ -218,7 +216,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 
 	// .. and then readback the results.
 	// TODO: make this less slow.
-	glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
+	glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, destAddr);
 	GL_REPORT_ERRORD();
 
 	g_framebufferManager.SetFramebuffer(0);
@@ -332,13 +330,21 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_srcTexture);
 
 	// TODO: make this less slow.  (How?)
-    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);	
+	if(s_srcTextureWidth == (GLsizei)srcFmtWidth && s_srcTextureHeight == (GLsizei)srcHeight)
+	{
+		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0,0,0,s_srcTextureWidth, s_srcTextureHeight, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);	
+	}
+	else
+	{	
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);	
+		s_srcTextureWidth = (GLsizei)srcFmtWidth;
+		s_srcTextureHeight = (GLsizei)srcHeight;
+	}
 
 	glViewport(0, 0, srcWidth, srcHeight);
 
-	glEnable(GL_FRAGMENT_PROGRAM_ARB);
-    glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, s_yuyvToRgbProgram.glprogid);	
-
+	PixelShaderCache::EnableShader(s_yuyvToRgbProgram.glprogid);
+	
 	GL_REPORT_ERRORD();
 
     glBegin(GL_QUADS);

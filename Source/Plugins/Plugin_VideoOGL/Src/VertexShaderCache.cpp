@@ -38,6 +38,8 @@
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 bool VertexShaderCache::s_displayCompileAlert;
+GLuint VertexShaderCache::CurrentShader;
+bool VertexShaderCache::ShaderEnabled;
 
 static VERTEXSHADER *pShaderLast = NULL;
 static int s_nMaxVertexInstructions;
@@ -119,6 +121,9 @@ void VertexShaderCache::Init()
 	s_displayCompileAlert = true;
 
     glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);
+	ShaderEnabled = false;
+	CurrentShader = 0;
+	EnableShader(0);
 }
 
 void VertexShaderCache::Shutdown()
@@ -243,9 +248,10 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 		plocal = strstr(plocal + 13, "program.local");
 	}
 	glGenProgramsARB(1, &vs.glprogid);
-	glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vs.glprogid);
-	glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
-
+	EnableShader(vs.glprogid);
+	//glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vs.glprogid);
+	//CurrentShader = vs.glprogid;
+	glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);	
 	err = GL_REPORT_ERROR();
 	if (err != GL_NO_ERROR) {
 		ERROR_LOG(VIDEO, pstrprogram);
@@ -257,6 +263,42 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	vs.strprog = pstrprogram;
 #endif
-
+	
 	return true;
 }
+
+void VertexShaderCache::DisableShader()
+{
+	if(ShaderEnabled)
+	{
+		CurrentShader = 0;
+		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);
+		glDisable(GL_VERTEX_PROGRAM_ARB);
+		ShaderEnabled = false;
+	}
+}
+
+void VertexShaderCache::SetCurrentShader(GLuint Shader)
+{
+	if(ShaderEnabled && CurrentShader != Shader)
+	{
+		CurrentShader = Shader;
+		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);
+	}
+}
+
+void VertexShaderCache::EnableShader(GLuint Shader)
+{
+	if(!ShaderEnabled)
+	{
+		glEnable(GL_VERTEX_PROGRAM_ARB);
+		ShaderEnabled= true;
+		CurrentShader = 0;
+	}
+	if(CurrentShader != Shader)
+	{
+		CurrentShader = Shader;
+		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);
+	}
+}
+

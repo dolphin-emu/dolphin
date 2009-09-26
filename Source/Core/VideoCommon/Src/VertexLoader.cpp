@@ -602,7 +602,8 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	// Flush if our vertex format is different from the currently set.
 	if (g_nativeVertexFmt != NULL && g_nativeVertexFmt != m_NativeFmt)
 	{
-		VertexManager::Flush();
+		//Don't flush here we can join some primitives, let the vertex manager do this work
+		//VertexManager::Flush();
 		// Also move the Set() here?
 	}
 	g_nativeVertexFmt = m_NativeFmt;

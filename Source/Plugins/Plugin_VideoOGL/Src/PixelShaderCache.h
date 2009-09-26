@@ -63,6 +63,10 @@ class PixelShaderCache
 
     static bool s_displayCompileAlert;
 
+	static GLuint CurrentShader;
+
+	static bool ShaderEnabled;
+
 public:
 	static void Init();
 	static void ProgressiveCleanup();
@@ -74,6 +78,12 @@ public:
 	static GLuint GetColorMatrixProgram();
 
     static GLuint GetDepthMatrixProgram();
+
+	static void SetCurrentShader(GLuint Shader);
+
+	static void DisableShader();
+	
+	static void EnableShader(GLuint Shader);
 };
 
 #endif // _PIXELSHADERCACHE_H_

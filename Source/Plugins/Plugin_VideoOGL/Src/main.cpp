@@ -513,6 +513,7 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		// Make sure previous swap request has made it to the screen
 		if (g_VideoInitialize.bUseDualCore)
 		{
+			
 			while (Common::AtomicLoadAcquire(s_swapRequested))
 				Common::YieldCPU();
 		}

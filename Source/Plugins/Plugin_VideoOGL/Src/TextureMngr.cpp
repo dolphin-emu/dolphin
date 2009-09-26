@@ -513,7 +513,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	{
 		glGenTextures(1, (GLuint *)&entry.texture);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
 		GL_REPORT_ERRORD();
 	}
 	else 
@@ -531,7 +531,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 			glDeleteTextures(1,(GLuint *)&entry.texture);
 			glGenTextures(1, (GLuint *)&entry.texture);
 			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
-			glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+			glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
 			GL_REPORT_ERRORD();
 		}
 	}
@@ -692,8 +692,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
    
     glViewport(0, 0, w, h);
 
-    glEnable(GL_FRAGMENT_PROGRAM_ARB);
-    glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, bFromZBuffer ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());
+	PixelShaderCache::EnableShader(bFromZBuffer ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
     PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
     GL_REPORT_ERRORD();
 

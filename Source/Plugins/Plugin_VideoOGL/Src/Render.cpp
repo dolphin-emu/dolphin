@@ -564,8 +564,8 @@ void Renderer::ResetAPIState()
 {
 	// Gets us to a reasonably sane state where it's possible to do things like
 	// image copies with textured quads, etc.
-    glDisable(GL_VERTEX_PROGRAM_ARB);
-    glDisable(GL_FRAGMENT_PROGRAM_ARB);
+	VertexShaderCache::DisableShader();
+	PixelShaderCache::DisableShader();   
 
     glDisable(GL_SCISSOR_TEST);
     glDisable(GL_DEPTH_TEST);
@@ -597,8 +597,8 @@ void Renderer::RestoreAPIState()
     SetColorMask();
 	SetBlendMode(true);
 
-	glEnable(GL_VERTEX_PROGRAM_ARB);
-    glEnable(GL_FRAGMENT_PROGRAM_ARB);
+	VertexShaderCache::EnableShader(0);
+	PixelShaderCache::EnableShader(0);	
 }
 
 void Renderer::SetColorMask()
@@ -843,7 +843,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (s_skipSwap)
 		return;
-
 	const XFBSource* xfbSource = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight);
 	if (!xfbSource)
 	{
@@ -917,9 +916,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 			glTexCoord2f(sourceRc.right, sourceRc.top);    glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1); glVertex2f( 1,  1);
 			glTexCoord2f(sourceRc.right, sourceRc.bottom); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0); glVertex2f( 1, -1);
 		glEnd();
-
-		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, 0);
-		glDisable(GL_FRAGMENT_PROGRAM_ARB);
+		PixelShaderCache::DisableShader();;
 	}
 	else
 	{
@@ -1070,12 +1067,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// ---------------------------------------------------------------------
     GL_REPORT_ERRORD();
 
-	for (int i = 0; i < 8; i++) {
+	/*for (int i = 0; i < 8; i++) {
 		glActiveTexture(GL_TEXTURE0 + i);
 		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_TEXTURE_RECTANGLE_ARB);
 	}
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0);*/
 
 	DrawDebugText();
 
@@ -1087,8 +1084,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	OSD::DrawMessages();
 	if (blend_enabled)
 		glEnable(GL_BLEND);
-	GL_REPORT_ERRORD();
-
+	GL_REPORT_ERRORD();	
 #if defined(DVPROFILE)
     if (g_bWriteProfile) { 
         //g_bWriteProfile = 0;
@@ -1107,8 +1103,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	GL_REPORT_ERRORD();
 
 	// Clear framebuffer
-	glClearColor(0, 0, 0, 0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	//glClearColor(0, 0, 0, 0);
+	//glClear(GL_COLOR_BUFFER_BIT);
 
 	GL_REPORT_ERRORD();
 
