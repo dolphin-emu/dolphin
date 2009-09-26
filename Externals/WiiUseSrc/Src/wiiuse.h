@@ -439,6 +439,9 @@ typedef struct classic_ctrl_t {
 	short btns_held;				/**< what buttons are being held down		*/
 	short btns_released;			/**< what buttons were just released this	*/
 
+	byte rs_raw;
+	byte ls_raw;
+
 	float r_shoulder;				/**< right shoulder button (range 0-1)		*/
 	float l_shoulder;				/**< left shoulder button (range 0-1)		*/
 

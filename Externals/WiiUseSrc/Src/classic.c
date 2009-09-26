@@ -138,8 +138,7 @@ void classic_ctrl_disconnected(struct classic_ctrl_t* cc) {
  *	@param msg		The message specified in the event packet.
  */
 void classic_ctrl_event(struct classic_ctrl_t* cc, byte* msg) {
-	int i, lx, ly, rx, ry;
-	byte l, r;
+	int i;
 
 	/* decrypt data */
 	for (i = 0; i < 6; ++i)
@@ -148,24 +147,25 @@ void classic_ctrl_event(struct classic_ctrl_t* cc, byte* msg) {
 	classic_ctrl_pressed_buttons(cc, BIG_ENDIAN_SHORT(*(short*)(msg + 4)));
 
 	/* left/right buttons */
-	l = (((msg[2] & 0x60) >> 2) | ((msg[3] & 0xE0) >> 5));
-	r = (msg[3] & 0x1F);
+	cc->ls_raw = (((msg[2] & 0x60) >> 2) | ((msg[3] & 0xE0) >> 5));
+	cc->rs_raw = (msg[3] & 0x1F);
 
 	/*
 	 *	TODO - LR range hardcoded from 0x00 to 0x1F.
 	 *	This is probably in the calibration somewhere.
 	 */
-	cc->r_shoulder = ((float)r / 0x1F);
-	cc->l_shoulder = ((float)l / 0x1F);
+	cc->r_shoulder = ((float)cc->rs_raw / 0x1F);
+	cc->l_shoulder = ((float)cc->ls_raw / 0x1F);
 
 	/* calculate joystick orientation */
-	lx = (msg[0] & 0x3F);
-	ly = (msg[1] & 0x3F);
-	rx = ((msg[0] & 0xC0) >> 3) | ((msg[1] & 0xC0) >> 5) | ((msg[2] & 0x80) >> 7);
-	ry = (msg[2] & 0x1F);
+	
+	cc->ljs.pos.x = (msg[0] & 0x3F);
+	cc->ljs.pos.y = (msg[1] & 0x3F);
+	cc->rjs.pos.x = ((msg[0] & 0xC0) >> 3) | ((msg[1] & 0xC0) >> 5) | ((msg[2] & 0x80) >> 7);
+	cc->rjs.pos.y = (msg[2] & 0x1F);
 
-	calc_joystick_state(&cc->ljs, lx, ly);
-	calc_joystick_state(&cc->rjs, rx, ry);
+	calc_joystick_state(&cc->ljs, cc->ljs.pos.x, cc->ljs.pos.y);
+	calc_joystick_state(&cc->rjs, cc->rjs.pos.x, cc->rjs.pos.y);
 }
 
 
