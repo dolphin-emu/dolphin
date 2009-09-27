@@ -25,6 +25,10 @@
 #include "CodeView.h"
 #include "../DSPSymbols.h"
 
+// Define these here to avoid undefined symbols while still saving functionality
+void Host_NotifyMapLoaded() {}
+void Host_UpdateBreakPointView() {}
+
 // Event table and class
 BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxFrame)	
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)

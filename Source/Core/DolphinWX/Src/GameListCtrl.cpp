@@ -223,10 +223,6 @@ void CGameListCtrl::Update()
 		// Don't load bitmaps unless there are games to list
 		InitBitmaps();
 
-		// this is needed to get the correct column width on startup
-		// This way, we avoid the dumb horizontal scrollbar
-		Show();
-
 		// add columns
 		InsertColumn(COLUMN_PLATFORM, _(""));
 		InsertColumn(COLUMN_BANNER, _("Banner"));
@@ -235,7 +231,7 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_NOTES, _("Notes"));
 		InsertColumn(COLUMN_COUNTRY, _(""));
 		InsertColumn(COLUMN_SIZE, _("Size"));
-		InsertColumn(COLUMN_EMULATION_STATE, _("Emulation"));
+		InsertColumn(COLUMN_EMULATION_STATE, _("State"));
 
 
 		// set initial sizes for columns
@@ -246,8 +242,6 @@ void CGameListCtrl::Update()
 		SetColumnWidth(COLUMN_NOTES, 150);
 		SetColumnWidth(COLUMN_COUNTRY, 32);
 		SetColumnWidth(COLUMN_EMULATION_STATE, 50);
-
-		Hide();
 
 		// add all items
 		for (int i = 0; i < (int)m_ISOFiles.size(); i++)
@@ -742,10 +736,7 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 
 			int nState;
 			ini.Get("EmuState", "EmulationStateId", &nState);
-			ini.Get("EmuState", "EmulationIssues", &issues, "No Description");
-
-			// If the key exists in the ini but is not set, we still use "No description"
-			issues = (issues == "" ? "No Description" : issues);
+			ini.Get("EmuState", "EmulationIssues", &issues, "");
 
 			// Get item Coords then convert from wxWindow coord to Screen coord
 			wxRect Rect;
@@ -756,13 +747,14 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 
 			// Show a tooltip containing the EmuState and the state description
 			if (nState > 0 && nState < 6)
-				toolTip = new wxEmuStateTip(this->GetGrandParent(), wxString::Format(wxT(" ^ %s :\n%s"), 
-					wxString::FromAscii(emuState[nState - 1].c_str()), wxString::FromAscii(issues.c_str())), &toolTip);
+				toolTip = new wxEmuStateTip(this, wxString::Format(wxT(" ^ %s%s%s"), 
+					wxString::FromAscii(emuState[nState - 1].c_str()), issues.size() > 0 ? wxT(" :\n") : wxT(""),
+					wxString::FromAscii(issues.c_str())), &toolTip);
 			else
-				toolTip = new wxEmuStateTip(this->GetGrandParent(), wxT("Not Set"), &toolTip);
+				toolTip = new wxEmuStateTip(this, wxT("Not Set"), &toolTip);
 
 			toolTip->SetBoundingRect(wxRect(mx - GetColumnWidth(subitem), my, GetColumnWidth(subitem), Rect.GetHeight()));
-			toolTip->SetPosition(wxPoint(mx - GetColumnWidth(subitem), my - 10 + Rect.GetHeight()));
+			toolTip->SetPosition(wxPoint(mx - GetColumnWidth(subitem), my - 5 + Rect.GetHeight()));
 			
 			lastItem = item;
 		}

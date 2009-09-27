@@ -142,7 +142,7 @@ EVT_LISTBOX(ID_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
 EVT_LISTBOX(ID_CALLERSLIST,    CCodeWindow::OnCallersListChange)
 EVT_LISTBOX(ID_CALLSLIST,      CCodeWindow::OnCallsListChange)
 
-//EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)	
+EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)	
 
 //EVT_COMMAND(ID_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
 

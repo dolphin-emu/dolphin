@@ -21,6 +21,7 @@
 #include <wx/listctrl.h>
 
 #include "Common.h"
+#include "BreakpointWindow.h"
 
 class CBreakPointView
 	: public wxListCtrl
@@ -30,12 +31,31 @@ class CBreakPointView
 		CBreakPointView(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
 
 		void Update();
-
 		void DeleteCurrentSelection();
+};
+
+class CBreakPointBar
+	: public wxListCtrl
+{
+	public:
+
+		CBreakPointBar(CBreakPointWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style);
+
+		void PopulateBar();
 
 	private:
+		void OnSelectItem(wxListEvent& event);
 
-		DECLARE_EVENT_TABLE()
+		enum
+		{
+			Toolbar_Delete,
+			Toolbar_Add_BP,
+			Toolbar_Add_MC,
+			Bitmaps_max
+		};
+
+		CBreakPointWindow* BPWindow;
+		wxBitmap m_Bitmaps[Bitmaps_max];
 };
 
 #endif

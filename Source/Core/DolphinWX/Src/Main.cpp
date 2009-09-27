@@ -501,7 +501,7 @@ void Host_UpdateMainFrame()
 		wxPostEvent(main_frame->g_pCodeWindow, event);
 	}
 }
-// Remove this?
+
 void Host_UpdateBreakPointView()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);

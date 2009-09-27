@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Debugger.h"
-#include "BreakpointWindow.h"
 #include "BreakpointView.h"
 #include "CodeWindow.h"
 #include "HW/Memmap.h"
@@ -25,23 +24,11 @@
 #include "Host.h"
 #include "PowerPC/PowerPC.h"
 
-#include <wx/mstream.h>
-
-extern "C" {
-#include "../resources/toolbar_add_breakpoint.c"
-#include "../resources/toolbar_add_memorycheck.c"
-#include "../resources/toolbar_delete.c"
-}
 
 BEGIN_EVENT_TABLE(CBreakPointWindow, wxPanel)
 	EVT_CLOSE(CBreakPointWindow::OnClose)
-	EVT_MENU(IDM_DELETE, CBreakPointWindow::OnDelete)
-	EVT_MENU(IDM_CLEAR, CBreakPointWindow::OnClear)
-	EVT_MENU(IDM_ADD_BREAKPOINT, CBreakPointWindow::OnAddBreakPoint)
-	EVT_MENU(IDM_ADD_BREAKPOINTMANY, CBreakPointWindow::OnAddBreakPointMany)	
-	EVT_MENU(IDM_ADD_MEMORYCHECK, CBreakPointWindow::OnAddMemoryCheck)
-	EVT_MENU(IDM_ADD_MEMORYCHECKMANY, CBreakPointWindow::OnAddMemoryCheckMany)	
-    EVT_LIST_ITEM_ACTIVATED(ID_BPS, CBreakPointWindow::OnActivated)
+	EVT_LIST_ITEM_ACTIVATED(ID_BPS, CBreakPointWindow::OnActivated)
+	EVT_LIST_ITEM_SELECTED(ID_TOOLBAR, CBreakPointWindow::OnSelectItem)
 END_EVENT_TABLE()
 
 CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
@@ -49,81 +36,51 @@ CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent
 	, m_BreakPointListView(NULL)
     , m_pCodeWindow(_pCodeWindow)
 {
-	InitBitmaps();
-
 	CreateGUIControls();
-
-	// Create the toolbar
-	RecreateToolbar();
 }
 
 void CBreakPointWindow::CreateGUIControls()
 {
-	//	SetTitle(wxT("Breakpoints"));
-	//	SetIcon(wxNullIcon);
 	SetSize(8, 8, 400, 370);
 	Center();
 
-	m_BreakPointListView = new CBreakPointView(this, ID_BPS, wxDefaultPosition, GetSize(),
+	m_BreakPointBar = new CBreakPointBar(this, ID_TOOLBAR, wxDefaultPosition, wxSize(0, 55),
+			wxLC_ICON | wxSUNKEN_BORDER | wxLC_SINGLE_SEL);
+	m_BreakPointListView = new CBreakPointView(this, ID_BPS, wxDefaultPosition, wxDefaultSize,
 			wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT | wxLC_SINGLE_SEL | wxLC_SORT_ASCENDING);
 
+	wxBoxSizer* sizerH = new wxBoxSizer(wxVERTICAL);
+	sizerH->Add(m_BreakPointBar, 0, wxALL | wxEXPAND);
+	sizerH->Add((wxListCtrl*)m_BreakPointListView, 1, wxEXPAND);
+
 	NotifyUpdate();
+	SetSizer(sizerH);
 }
 
-void CBreakPointWindow::PopulateToolbar(wxToolBar* toolBar)
+void CBreakPointWindow::OnSelectItem(wxListEvent& event)
 {
-	int w = m_Bitmaps[Toolbar_Delete].GetWidth(),
-		h = m_Bitmaps[Toolbar_Delete].GetHeight();
-
-	toolBar->SetToolBitmapSize(wxSize(w, h));
-	toolBar->AddTool(IDM_DELETE, _T("Delete"), m_Bitmaps[Toolbar_Delete], _T("Delete the selected BreakPoint or MemoryCheck"));
-	toolBar->AddTool(IDM_CLEAR, _T("Clear all"), m_Bitmaps[Toolbar_Delete], _T("Clear all BreakPoints and MemoryChecks"));
-	
-	toolBar->AddSeparator();
-
-	toolBar->AddTool(IDM_ADD_BREAKPOINT,    _T("BP"),    m_Bitmaps[Toolbar_Add_BreakPoint], _T("Add BreakPoint..."));
-	toolBar->AddTool(IDM_ADD_BREAKPOINTMANY,    _T("BPs"),    m_Bitmaps[Toolbar_Add_BreakPoint], _T("Add BreakPoints..."));
-
-    // just add memory breakpoints if you can use them
-    if (Memory::AreMemoryBreakpointsActivated())
-    {
-	    toolBar->AddTool(IDM_ADD_MEMORYCHECK, _T("MC"), m_Bitmaps[Toolbar_Add_Memcheck], _T("Add MemoryCheck..."));
-		toolBar->AddTool(IDM_ADD_MEMORYCHECKMANY, _T("MCs"), m_Bitmaps[Toolbar_Add_Memcheck], _T("Add MemoryChecks..."));
-    }
-
-	// after adding the buttons to the toolbar, must call Realize() to reflect
-	// the changes
-	toolBar->Realize();
-}
-
-void CBreakPointWindow::RecreateToolbar()
-{
-	// FIXME: what do we do with this?
-	// delete and recreate the toolbar
-	//	wxToolBarBase* toolBar = GetToolBar();
-	//	long style = toolBar ? toolBar->GetWindowStyle() : wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
-
-	//	delete toolBar;
-	//	SetToolBar(NULL);
-
-	//	style &= ~(wxTB_HORIZONTAL | wxTB_VERTICAL | wxTB_BOTTOM | wxTB_RIGHT | wxTB_HORZ_LAYOUT | wxTB_TOP);
-	//	wxToolBar* theToolBar = CreateToolBar(style, ID_TOOLBAR);
-
-	//	PopulateToolbar(theToolBar);
-	//	SetToolBar(theToolBar);
-}
-
-void CBreakPointWindow::InitBitmaps()
-{
-	// load orignal size 48x48
-	m_Bitmaps[Toolbar_Delete] = wxGetBitmapFromMemory(toolbar_delete_png);
-	m_Bitmaps[Toolbar_Add_BreakPoint] = wxGetBitmapFromMemory(toolbar_add_breakpoint_png);
-	m_Bitmaps[Toolbar_Add_Memcheck] = wxGetBitmapFromMemory(toolbar_add_memcheck_png);
-
-	// scale to 24x24 for toolbar
-	for (size_t n = Toolbar_Delete; n < WXSIZEOF(m_Bitmaps); n++)
+	switch(event.GetItem().GetId())
 	{
-		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(16, 16));
+	case IDM_DELETE:
+		OnDelete();
+		m_BreakPointBar->SetItemState(event.GetItem().GetId(), 0, wxLIST_STATE_FOCUSED);
+		break;
+	case IDM_CLEAR:
+		OnClear();
+		m_BreakPointBar->SetItemState(event.GetItem().GetId(), 0, wxLIST_STATE_FOCUSED);
+		break;
+	case IDM_ADD_BREAKPOINT:
+		OnAddBreakPoint();
+		break;
+	case IDM_ADD_BREAKPOINTMANY:
+		OnAddBreakPointMany();
+		break;
+	case IDM_ADD_MEMORYCHECK:
+		OnAddMemoryCheck();
+		break;
+	case IDM_ADD_MEMORYCHECKMANY:
+		OnAddMemoryCheckMany();
+		break;
 	}
 }
 
@@ -137,7 +94,7 @@ void CBreakPointWindow::NotifyUpdate()
 	if (m_BreakPointListView != NULL) m_BreakPointListView->Update();
 }
 
-void CBreakPointWindow::OnDelete(wxCommandEvent& event)
+void CBreakPointWindow::OnDelete()
 {
 	if (m_BreakPointListView)
 	{
@@ -163,19 +120,20 @@ void CBreakPointWindow::OnActivated(wxListEvent& event)
 // ---------------------
 
 // Clear all breakpoints
-void CBreakPointWindow::OnClear(wxCommandEvent& event)
+void CBreakPointWindow::OnClear()
 {
 	PowerPC::breakpoints.Clear();
+	PowerPC::memchecks.Clear();
 	NotifyUpdate();
 }
 // Add one breakpoint
-void CBreakPointWindow::OnAddBreakPoint(wxCommandEvent& event)
+void CBreakPointWindow::OnAddBreakPoint()
 {
 	BreakPointDlg bpDlg(this, this);
 	bpDlg.ShowModal();
 }
 // Load breakpoints from file
-void CBreakPointWindow::OnAddBreakPointMany(wxCommandEvent& event)
+void CBreakPointWindow::OnAddBreakPointMany()
 {
 	// load ini
 	IniFile ini;
@@ -211,19 +169,17 @@ void CBreakPointWindow::OnAddBreakPointMany(wxCommandEvent& event)
 }
 
 
-
-
 // Memory check actions
 // ---------------------
 void 
-CBreakPointWindow::OnAddMemoryCheck(wxCommandEvent& event)
+CBreakPointWindow::OnAddMemoryCheck()
 {
 	MemoryCheckDlg memDlg(this);
 	memDlg.ShowModal();
 }
 
 // Load memory checks from file
-void CBreakPointWindow::OnAddMemoryCheckMany(wxCommandEvent& event)
+void CBreakPointWindow::OnAddMemoryCheckMany()
 {
 	// load ini
 	IniFile ini;

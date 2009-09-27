@@ -18,10 +18,23 @@
 #ifndef __BREAKPOINTWINDOW_h__
 #define __BREAKPOINTWINDOW_h__
 
+#include <wx/listctrl.h>
+
 class CBreakPointView;
+class CBreakPointBar;
 class CCodeWindow;
 class wxListEvent;
 class IniFile;
+
+enum
+{
+	IDM_DELETE = 0,
+	IDM_CLEAR,
+	IDM_ADD_BREAKPOINT,
+	IDM_ADD_BREAKPOINTMANY,
+	IDM_ADD_MEMORYCHECK,
+	IDM_ADD_MEMORYCHECKMANY
+};
 
 class CBreakPointWindow
 	: public wxPanel
@@ -37,6 +50,12 @@ class CBreakPointWindow
 						  long style = wxNO_BORDER);
 
 		void NotifyUpdate();
+		void OnDelete();
+		void OnClear();
+		void OnAddBreakPoint();
+		void OnAddBreakPointMany();		
+		void OnAddMemoryCheck();
+		void OnAddMemoryCheckMany();
 
 	private:
 
@@ -44,40 +63,19 @@ class CBreakPointWindow
 		{
 			ID_TOOLBAR = 501,
 			ID_BPS = 1002,
-			IDM_DELETE,
-			IDM_CLEAR,
-			IDM_ADD_BREAKPOINT,
-			IDM_ADD_BREAKPOINTMANY,
-			IDM_ADD_MEMORYCHECK,
-			IDM_ADD_MEMORYCHECKMANY
 		};
 
-		enum
-		{
-			Toolbar_Delete,
-			Toolbar_Add_BreakPoint,
-			Toolbar_Add_Memcheck,
-			Bitmaps_max
-		};
-
+		CBreakPointBar* m_BreakPointBar;
 		CBreakPointView* m_BreakPointListView;
         CCodeWindow* m_pCodeWindow;
 
-		wxBitmap m_Bitmaps[Bitmaps_max];
-
-		void OnClose(wxCloseEvent& event);
+		// void RecreateToolbar();
+		// void PopulateToolbar(wxToolBar* toolBar);
+		// void InitBitmaps();
 		void CreateGUIControls();
 
-		void RecreateToolbar();
-		void PopulateToolbar(wxToolBar* toolBar);
-		void InitBitmaps();
-
-		void OnDelete(wxCommandEvent& event);
-		void OnClear(wxCommandEvent& event);
-		void OnAddBreakPoint(wxCommandEvent& event);
-		void OnAddBreakPointMany(wxCommandEvent& event);		
-		void OnAddMemoryCheck(wxCommandEvent& event);
-		void OnAddMemoryCheckMany(wxCommandEvent& event);
+		void OnSelectItem(wxListEvent& event);
+		void OnClose(wxCloseEvent& event);
         void OnActivated(wxListEvent& event);
 };
 

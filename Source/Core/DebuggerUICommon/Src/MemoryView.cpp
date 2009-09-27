@@ -17,6 +17,9 @@
 
 #include "DebuggerUIUtil.h"
 #include "Common.h"
+#include "Host.h"
+#include "PowerPC/PowerPC.h"
+#include "HW/Memmap.h"
 
 #include "MemoryView.h"
 #include <wx/event.h>
@@ -102,8 +105,27 @@ void CMemoryView::OnMouseDown(wxMouseEvent& event)
 	}
 	else
 	{
-		debugger->toggleBreakpoint(YToAddress(y));
+		int address = YToAddress(y);
+		if (Memory::AreMemoryBreakpointsActivated() && !PowerPC::memchecks.GetMemCheck(address))
+		{
+			// Add Memory Check
+			TMemCheck MemCheck;
+			MemCheck.StartAddress = address;
+			MemCheck.EndAddress = address;
+			MemCheck.OnRead = true;
+			MemCheck.OnWrite = true;
+
+			MemCheck.Log = true;
+			MemCheck.Break = true;
+
+			PowerPC::memchecks.Add(MemCheck);
+
+		}
+		else
+			PowerPC::memchecks.DeleteByAddress(address);
+
 		redraw();
+		Host_UpdateBreakPointView();
 	}
 
 	event.Skip(true);
@@ -233,7 +255,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 
 	wxBrush currentBrush(_T("#FFEfE8")); // light gray
 	wxBrush pcBrush(_T("#70FF70")); // green
-	wxBrush bpBrush(_T("#FF3311")); // red
+	wxBrush mcBrush(_T("#1133FF")); // blue
 	wxBrush bgBrush(bgColor);
 	wxBrush nullBrush(bgColor);
 	nullBrush.SetStyle(wxTRANSPARENT);
@@ -307,6 +329,13 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			if (strlen(desc))
 			{
 				dc.DrawText(wxString::FromAscii(desc), 17+fontSize*(8+8+8+30), rowY1);
+			}
+
+			// Show blue memory check dot
+			if (Memory::AreMemoryBreakpointsActivated() && PowerPC::memchecks.GetMemCheck(address))
+			{
+				dc.SetBrush(mcBrush);
+				dc.DrawRectangle(2, rowY1 + 1, 11, 11);
 			}
 		}
 	}

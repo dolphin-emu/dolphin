@@ -24,7 +24,7 @@
 #include "DebuggerUIUtil.h"
 #include "DebugInterface.h"
 
-// #include "Host.h"
+#include "Host.h"
 #include "CodeView.h"
 #include "SymbolDB.h"
 // #include "JitWindow.h"
@@ -125,7 +125,7 @@ void CCodeView::OnMouseDown(wxMouseEvent& event)
 	{
 		debugger->toggleBreakpoint(YToAddress(y));
 		redraw();
-//		Host_UpdateBreakPointView();
+		Host_UpdateBreakPointView();
 	}
 
 	event.Skip(true);
@@ -311,7 +311,7 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 		case IDM_ADDFUNCTION:
 			{
 			symbol_db->AddFunction(selection);
-//			Host_NotifyMapLoaded();
+			Host_NotifyMapLoaded();
 			}
 			break;
 
@@ -323,9 +323,9 @@ void CCodeView::OnPopupMenu(wxCommandEvent& event)
 					wxString::FromAscii(symbol->name.c_str()));
 				if (input_symbol.ShowModal() == wxID_OK) {
 					symbol->name = input_symbol.GetValue().mb_str();
+					redraw(); // Redraw to show the renamed symbol
 				}
-//			    redraw();
-//				Host_NotifyMapLoaded();
+				Host_NotifyMapLoaded();
 			}
 			}
 			break;
