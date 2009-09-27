@@ -1,3 +1,6 @@
+// Memory map:
+//  0x0C00: current AXList
+
  0000 0000      nop         
  0001 0000      nop         
 
@@ -31,12 +34,12 @@ void 0010_Entry() {
  0027 00fe 0ce9 sr          @0x0ce9, $AC0.M
  0029 8900      clr         $ACC1
  002a 16fc dcd1 si          @DMBH, #0xdcd1
-s 002c 16fd 0000 si          @DMBL, #0x0000
- 002e 16fb 0001 si          @DIRQ, #0x0001
+ 002c 16fd 0000 si          @DMBL, #0x0000
+ 002e 16fb 0001 si          @DIRQ, #0x0001			// send a 0xDCD10000 and trigger an IRQ
  0030 26fc      lrs         $AC0.M, @DMBH
  0031 02a0 8000 andf        $AC0.M, #0x8000
- 0033 029c 0030 jlnz        0x0030
- 0035 029f 004c jmp         0x004c
+ 0033 029c 0030 jlnz        0x0030					// wait until the mail is received by CPU
+ 0035 029f 004c jmp         0x004c					// enter the main loop
 }
 
 void 0037_Unk_Restart() {
@@ -51,35 +54,37 @@ void 0037_Unk_Restart() {
  003f 0092 00ff lri         $CR, #0x00ff
  0041 16fc dcd1 si          @DMBH, #0xdcd1
  0043 16fd 0001 si          @DMBL, #0x0001
- 0045 16fb 0001 si          @DIRQ, #0x0001
+ 0045 16fb 0001 si          @DIRQ, #0x0001			// send a 0xDCD10001 and trigger an IRQ
  0047 26fc      lrs         $AC0.M, @DMBH
  0048 02a0 8000 andf        $AC0.M, #0x8000
- 004a 029c 0047 jlnz        0x0047
+ 004a 029c 0047 jlnz        0x0047					// wait until the mail is received by CPU
+ 
+// main loop
  004c 8e00      set16       
  004d 8100      clr         $ACC0
  004e 8900      clr         $ACC1
  004f 009f babe lri         $AC1.M, #0xbabe
  0051 26fe      lrs         $AC0.M, @CMBH
  0052 02c0 8000 andcf       $AC0.M, #0x8000
- 0054 029c 0051 jlnz        0x0051
+ 0054 029c 0051 jlnz        0x0051					// wait until we get a new mail from CPU
  0056 8200      cmp         
- 0057 0294 0051 jnz         0x0051
- 0059 23ff      lrs         $AX1.H, @CMBL
+ 0057 0294 0051 jnz         0x0051					// discard it if it's not a 0xBABE---- (AXList begin)
+ 0059 23ff      lrs         $AX1.H, @CMBL			// AX1.H = low part of 0xBABE---- mail = length of list in bytes
  005a 8100      clr         $ACC0
  005b 26fe      lrs         $AC0.M, @CMBH
  005c 02c0 8000 andcf       $AC0.M, #0x8000
- 005e 029c 005b jlnz        0x005b
+ 005e 029c 005b jlnz        0x005b					// wait until the next mail
  0060 27ff      lrs         $AC1.M, @CMBL
- 0061 0240 7fff andi        $AC0.M, #0x7fff
+ 0061 0240 7fff andi        $AC0.M, #0x7fff			// AC0.M = address high part, AC1.M = address low part
  0063 2ece      srs         @DSMAH, $AC0.M
  0064 2fcf      srs         @DSMAL, $AC1.M
  0065 16cd 0c00 si          @DSPA, #0x0c00
  0067 8100      clr         $ACC0
  0068 2ec9      srs         @DSCR, $AC0.M
- 0069 1ffb      mrr         $AC1.M, $AX1.H
- 006a 2fcb      srs         @DSBL, $AC1.M
- 006b 02bf 0084 call        0084_WaitForMail()
- 006d 0080 0c00 lri         $AR0, #0x0c00
+ 0069 1ffb      mrr         $AC1.M, $AX1.H			// Transfer the AXList
+ 006a 2fcb      srs         @DSBL, $AC1.M			// DMA transfer from main memory (addr = second mail) to 0x0C00, len = low part of first mail
+ 006b 02bf 0084 call        0084_WaitForDMACompletion()
+ 006d 0080 0c00 lri         $AR0, #0x0c00			// AR0 = 0x0C00
 } // continues into next function 
 
 void 006f_MailHandler() {
@@ -90,13 +95,13 @@ void 006f_MailHandler() {
  0073 0291 0080 jl          0x0080
  0075 0a0e      lris        $AX0.H, #0x0e
  0076 c100      cmpar       $ACC0, $AX0.H
- 0077 0292 0080 jg          0x0080
+ 0077 0292 0080 jg          0x0080					// die if command number is higher than 0xE
  0079 009f 0d04 lri         $AC1.M, #0x0d04
  007b 4c00      add         $ACC0, $ACC1
  007c 1c7e      mrr         $AR3, $AC0.M
  007d 0213      ilrr        $AC0.M, @$AR3
- 007e 1c7e      mrr         $AR3, $AC0.M
- 007f 176f      jmpr        $AR3
+ 007e 1c7e      mrr         $AR3, $AC0.M			// func at [0x0D04 + cmd_num]
+ 007f 176f      jmpr        $AR3					// Jump to command func; AR0 = 0x0C01
 }
 
 void 0080_Die() {
@@ -105,7 +110,7 @@ void 0080_Die() {
  0083 0021      halt
 }
 
-void 0084_WaitForMail() {       
+void 0084_WaitForDMACompletion() {       
  0084 26c9      lrs         $AC0.M, @DSCR
  0085 02a0 0004 andf        $AC0.M, #0x0004
  0087 029c 0084 jlnz        0x0084
@@ -128,7 +133,7 @@ void 0082_JumpTable_0() {
  009d 8100      clr         $ACC0
  009e 8900      clr         $ACC1
  009f 8f00      set40       
- 00a0 02bf 0084 call        0084_WaitForMail()
+ 00a0 02bf 0084 call        0084_WaitForDMACompletion()
  00a2 193e      lrri        $AC0.M, @$AR1
  00a3 193c      lrri        $AC0.L, @$AR1
  00a4 b179      tst'l       $ACC0 : $AC1.M, @$AR1
@@ -448,7 +453,7 @@ void 0x222_JumpTable1() {
  0232 0081 0d08 lri         $AR1, #0x0d08
  0234 0084 ffff lri         $IX0, #0xffff
  0236 1ce4      mrr         $IX3, $IX0
- 0237 02bf 0084 call        0084_WaitForMail()
+ 0237 02bf 0084 call        0084_WaitForDMACompletion()
  0239 8f00      set40       
  023a 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
  023b 80c9      nx'ldm      : $AX0.L, $AX1.L, @$AR1
@@ -486,7 +491,7 @@ void 0x222_JumpTable1() {
  025f 0081 0d08 lri         $AR1, #0x0d08
  0261 0084 ffff lri         $IX0, #0xffff
  0263 1ce4      mrr         $IX3, $IX0
- 0264 02bf 0084 call        0084_WaitForMail()
+ 0264 02bf 0084 call        0084_WaitForDMACompletion()
  0266 8f00      set40       
  0267 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
  0268 80c9      nx'ldm      : $AX0.L, $AX1.L, @$AR1
@@ -511,7 +516,9 @@ void 0x222_JumpTable1() {
  027c 029f 006f jmp         006f_MailHandler()
 }
 
-void 027e_JumpTable3() {
+// Command 0x4 - set PBs address
+// stores command data at 0x02D0
+void 027e_Cmd4_SetPBsAddress() {
  027e 8100      clr         $ACC0
  027f 8970      clr'l       $ACC1 : $AC0.M, @$AR0
  0280 8e60      set16'l     : $AC0.L, @$AR0
@@ -521,7 +528,7 @@ void 027e_JumpTable3() {
  0285 16cd 02d0 si          @DSPA, #0x02d0
  0287 16c9 0000 si          @DSCR, #0x0000
  0289 16cb 0140 si          @DSBL, #0x0140
- 028b 02bf 0084 call        0084_WaitForMail()
+ 028b 02bf 0084 call        0084_WaitForDMACompletion()
  028d 8100      clr         $ACC0
  028e 8900      clr         $ACC1
  028f 00de 02d4 lr          $AC0.M, @0x02d4
@@ -645,7 +652,7 @@ void 027e_JumpTable3() {
  032f 16cd 0c40 si          @DSPA, #0x0c40
  0331 16c9 0000 si          @DSCR, #0x0000
  0333 16cb 0040 si          @DSBL, #0x0040
- 0335 02bf 0084 call        0084_WaitForMail()
+ 0335 02bf 0084 call        0084_WaitForDMACompletion()
  0337 029f 0341 jmp         0x0341
  0339 009f 0c60 lri         $AC1.M, #0x0c60
  033b 00ff 0ce2 sr          @0x0ce2, $AC1.M
@@ -859,7 +866,7 @@ void 027e_JumpTable3() {
  0477 16cd 0ca0 si          @DSPA, #0x0ca0
  0479 16c9 0001 si          @DSCR, #0x0001
  047b 16cb 0040 si          @DSBL, #0x0040
- 047d 02bf 0084 call        0084_WaitForMail()
+ 047d 02bf 0084 call        0084_WaitForDMACompletion()
  047f 8100      clr         $ACC0
  0480 8900      clr         $ACC1
  0481 00de 02d2 lr          $AC0.M, @0x02d2
@@ -869,7 +876,7 @@ void 027e_JumpTable3() {
  0487 16cd 02d0 si          @DSPA, #0x02d0
  0489 16c9 0001 si          @DSCR, #0x0001
  048b 16cb 0140 si          @DSBL, #0x0140
- 048d 02bf 0084 call        0084_WaitForMail()
+ 048d 02bf 0084 call        0084_WaitForDMACompletion()
  048f 8100      clr         $ACC0
  0490 00de 02d0 lr          $AC0.M, @0x02d0
  0492 00dc 02d1 lr          $AC0.L, @0x02d1
@@ -894,7 +901,7 @@ void 049b_JumpTable4() {
  04a9 2ecd      srs         @DSPA, $AC0.M
  04aa 16c9 0001 si          @DSCR, #0x0001
  04ac 16cb 0480 si          @DSBL, #0x0480
- 04ae 02bf 0084 call        0084_WaitForMail()
+ 04ae 02bf 0084 call        0084_WaitForDMACompletion()
  04b0 02bf 04e6 call        0x04e6
  04b2 029f 006f jmp         006f_MailHandler()
 }
@@ -914,11 +921,12 @@ void 04b4_JumpTable5() {
  04c2 2ecd      srs         @DSPA, $AC0.M
  04c3 16c9 0001 si          @DSCR, #0x0001
  04c5 16cb 0480 si          @DSBL, #0x0480
- 04c7 02bf 0084 call        0084_WaitForMail()
+ 04c7 02bf 0084 call        0084_WaitForDMACompletion()
  04c9 02bf 04e6 call        0x04e6
  04cb 029f 006f jmp         006f_MailHandler()
 }
 
+// set out buffer
 void 04cd_JumpTable6() {
  04cd 8e00      set16       
  04ce 00c4 0ce8 lr          $IX0, @0x0ce8
@@ -934,7 +942,7 @@ void 04cd_JumpTable6() {
  04db 2ecd      srs         @DSPA, $AC0.M
  04dc 16c9 0001 si          @DSCR, #0x0001
  04de 16cb 0480 si          @DSBL, #0x0480
- 04e0 02bf 0084 call        0084_WaitForMail()
+ 04e0 02bf 0084 call        0084_WaitForDMACompletion()
  04e2 02bf 04e6 call        0x04e6
  04e4 029f 006f jmp         006f_MailHandler()
 }
@@ -967,7 +975,7 @@ void 04e6_JumpTable7() {
  0502 2dcd      srs         @DSPA, $AC1.L
  0503 16c9 0000 si          @DSCR, #0x0000
  0505 16cb 0480 si          @DSBL, #0x0480
- 0507 02bf 0084 call        0084_WaitForMail()
+ 0507 02bf 0084 call        0084_WaitForDMACompletion()
  0509 00e0 0cd2 sr          @0x0cd2, $AR0
  050b 8f00      set40       
  050c 8d00      set15       
@@ -1143,7 +1151,7 @@ void 05a2_JumpTable8() {
  05d0 16cd 0d08 si          @DSPA, #0x0d08
  05d2 16c9 0000 si          @DSCR, #0x0000
  05d4 16cb 00c0 si          @DSBL, #0x00c0
- 05d6 02bf 0084 call        0084_WaitForMail()
+ 05d6 02bf 0084 call        0084_WaitForDMACompletion()
  05d8 8a48      m2'l        : $AX1.L, @$AR0
  05d9 0083 0d08 lri         $AR3, #0x0d08
  05db 0080 0000 lri         $AR0, #0x0000
@@ -1214,7 +1222,7 @@ void 060b_JumpTable9() {
  062c dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
  062d 4e31      addp's      $ACC0 : @$AR1, $AC0.M
  062e 1b39      srri        @$AR1, $AX1.L
- 062f 02bf 0084 call        0084_WaitForMail()
+ 062f 02bf 0084 call        0084_WaitForDMACompletion()
  0631 8f00      set40       
  0632 8d00      set15       
  0633 8a00      m2          
@@ -1256,7 +1264,7 @@ void 060b_JumpTable9() {
  065d 16cd 0400 si          @DSPA, #0x0400
  065f 16c9 0001 si          @DSCR, #0x0001
  0661 16cb 0180 si          @DSBL, #0x0180
- 0663 02bf 0084 call        0084_WaitForMail()
+ 0663 02bf 0084 call        0084_WaitForDMACompletion()
  0665 16fc dcd1 si          @DMBH, #0xdcd1
  0667 16fd 0004 si          @DMBL, #0x0004
  0669 16fb 0001 si          @DIRQ, #0x0001
@@ -1299,7 +1307,7 @@ void 067c_JumpTable10() {
    0699 195c      lrri        $AC0.L, @$AR2
    069a f000      lsl16       $ACC0
    069b 1b3e      srri        @$AR1, $AC0.M
-  069c 02bf 0084 call        0084_WaitForMail()
+  069c 02bf 0084 call        0084_WaitForDMACompletion()
   069e 191e      lrri        $AC0.M, @$AR0
   069f 191c      lrri        $AC0.L, @$AR0
   06a0 2ece      srs         @DSMAH, $AC0.M
@@ -1307,7 +1315,7 @@ void 067c_JumpTable10() {
  06a2 2dcd      srs         @DSPA, $AC1.L
  06a3 16c9 0001 si          @DSCR, #0x0001
  06a5 16cb 0024 si          @DSBL, #0x0024
- 06a7 02bf 0084 call        0084_WaitForMail()
+ 06a7 02bf 0084 call        0084_WaitForDMACompletion()
  06a9 029f 006f jmp         006f_MailHandler()
 }
 
@@ -2459,20 +2467,25 @@ void 0c21_Unknown() {
  0d01 6e2b      movp's      $ACC0 : @$AR3, $AC1.L
  0d02 1f1e      mrr         $AX0.L, $AC0.M
  0d03 02df      ret         
- 0d04 008a 0222 lri         $WR2, #0x0222
- 0d06 024f      cw          0x024f		; *** UNKNOWN OPCODE ***
- 0d07 0e83      lris        $AC0.M, #0x83
- 0d08 027e      cw          0x027e		; *** UNKNOWN OPCODE ***
- 0d09 049b      addis       $ACC0, #0x9b
- 0d0a 04b4      addis       $ACC0, #0xb4
- 0d0b 04cd      addis       $ACC0, #0xcd
- 0d0c 0dbd      lris        $AC1.L, #0xbd
- 0d0d 0ddf      lris        $AC1.L, #0xdf
- 0d0e 057b      addis       $ACC1, #0x7b
- 0d0f 060b      cmpis       $ACC0, #0x0b
- 0d10 0ec6      lris        $AC0.M, #0xc6
- 0d11 067c      cmpis       $ACC0, #0x7c
- 0d12 0672      cmpis       $ACC0, #0x72
+ 
+// Command jump table
+ 0d04 008a  // 0x0 - ???
+ 0d05 0222  // 0x1 - ???
+ 0d06 024f  // 0x2 - ???
+ 0d07 0e83  // 0x3 - ???
+ 0d08 027e  // 0x4 - set PBs address
+ 0d09 049b  // 0x5 - ???
+ 0d0a 04b4  // 0x6 - ???
+ 0d0b 04cd  // 0x7 - set output buffers
+ 0d0c 0dbd  // 0x8 - ???
+ 0d0d 0ddf  // 0x9 - ???
+ 0d0e 057b  // 0xA - set compressor table
+ 0d0f 060b  // 0xB - ???
+ 0d10 0ec6  // 0xC - ???
+ 0d11 067c  // 0xD - ???
+ 0d12 0672  // 0xE - The End
+ 
+// coef table?
  0d13 081f      lris        $AX0.L, #0x1f
  0d14 0820      lris        $AX0.L, #0x20
  0d15 082c      lris        $AX0.L, #0x2c
@@ -2655,7 +2668,7 @@ void 0c21_Unknown() {
  0dc9 16cd 0400 si          @DSPA, #0x0400
  0dcb 16c9 0001 si          @DSCR, #0x0001
  0dcd 16cb 0480 si          @DSBL, #0x0480
- 0dcf 02bf 0084 call        0084_WaitForMail()
+ 0dcf 02bf 0084 call        0084_WaitForDMACompletion()
  0dd1 191e      lrri        $AC0.M, @$AR0
  0dd2 191c      lrri        $AC0.L, @$AR0
  0dd3 2ece      srs         @DSMAH, $AC0.M
@@ -2663,7 +2676,7 @@ void 0c21_Unknown() {
  0dd5 16cd 0940 si          @DSPA, #0x0940
  0dd7 16c9 0001 si          @DSCR, #0x0001
  0dd9 16cb 0180 si          @DSBL, #0x0180
- 0ddb 02bf 0084 call        0084_WaitForMail()
+ 0ddb 02bf 0084 call        0084_WaitForDMACompletion()
  0ddd 029f 0e01 jmp         0x0e01
  0ddf 8e00      set16       
  0de0 00c4 0ce7 lr          $IX0, @0x0ce7
@@ -2677,7 +2690,7 @@ void 0c21_Unknown() {
  0deb 16cd 0640 si          @DSPA, #0x0640
  0ded 16c9 0001 si          @DSCR, #0x0001
  0def 16cb 0480 si          @DSBL, #0x0480
- 0df1 02bf 0084 call        0084_WaitForMail()
+ 0df1 02bf 0084 call        0084_WaitForDMACompletion()
  0df3 191e      lrri        $AC0.M, @$AR0
  0df4 191c      lrri        $AC0.L, @$AR0
  0df5 2ece      srs         @DSMAH, $AC0.M
@@ -2685,7 +2698,7 @@ void 0c21_Unknown() {
  0df7 16cd 0a00 si          @DSPA, #0x0a00
  0df9 16c9 0001 si          @DSCR, #0x0001
  0dfb 16cb 0180 si          @DSBL, #0x0180
- 0dfd 02bf 0084 call        0084_WaitForMail()
+ 0dfd 02bf 0084 call        0084_WaitForDMACompletion()
  0dff 029f 0e01 jmp         0x0e01
  0e01 8b00      m0          
  0e02 8100      clr         $ACC0
@@ -2714,7 +2727,7 @@ void 0c21_Unknown() {
  0e1f 16cb 0180 si          @DSBL, #0x0180
  0e21 0081 0000 lri         $AR1, #0x0000
  0e23 1c41      mrr         $AR2, $AR1
- 0e24 02bf 0084 call        0084_WaitForMail()
+ 0e24 02bf 0084 call        0084_WaitForDMACompletion()
  0e26 02bf 0e57 call        0x0e57
  0e28 191e      lrri        $AC0.M, @$AR0
  0e29 191c      lrri        $AC0.L, @$AR0
@@ -2723,7 +2736,7 @@ void 0c21_Unknown() {
  0e2c 00e6 ffcd sr          @DSPA, $IX2
  0e2e 16c9 0000 si          @DSCR, #0x0000
  0e30 16cb 0180 si          @DSBL, #0x0180
- 0e32 02bf 0084 call        0084_WaitForMail()
+ 0e32 02bf 0084 call        0084_WaitForDMACompletion()
  0e34 02bf 0e57 call        0x0e57
  0e36 191e      lrri        $AC0.M, @$AR0
  0e37 191c      lrri        $AC0.L, @$AR0
@@ -2732,7 +2745,7 @@ void 0c21_Unknown() {
  0e3a 00e6 ffcd sr          @DSPA, $IX2
  0e3c 16c9 0000 si          @DSCR, #0x0000
  0e3e 16cb 0180 si          @DSBL, #0x0180
- 0e40 02bf 0084 call        0084_WaitForMail()
+ 0e40 02bf 0084 call        0084_WaitForDMACompletion()
  0e42 02bf 0e57 call        0x0e57
  0e44 191e      lrri        $AC0.M, @$AR0
  0e45 191c      lrri        $AC0.L, @$AR0
@@ -2743,7 +2756,7 @@ void 0c21_Unknown() {
  0e4c 16cb 0180 si          @DSBL, #0x0180
  0e4e 0081 0880 lri         $AR1, #0x0880
  0e50 1c41      mrr         $AR2, $AR1
- 0e51 02bf 0084 call        0084_WaitForMail()
+ 0e51 02bf 0084 call        0084_WaitForDMACompletion()
  0e53 02bf 0e57 call        0x0e57
  0e55 029f 006f jmp         006f_MailHandler()
 
@@ -2796,7 +2809,7 @@ void 0c21_Unknown() {
  0e88 16cd 0d08 si          @DSPA, #0x0d08
  0e8a 16c9 0000 si          @DSCR, #0x0000
  0e8c 16cb 0300 si          @DSBL, #0x0300
- 0e8e 02bf 0084 call        0084_WaitForMail()
+ 0e8e 02bf 0084 call        0084_WaitForDMACompletion()
  0e90 1c80      mrr         $IX0, $AR0
  0e91 8f00      set40       
  0e92 0080 0d08 lri         $AR0, #0x0d08
@@ -2856,7 +2869,7 @@ void 0c21_Unknown() {
  0ecd 16cd 0180 si          @DSPA, #0x0180
  0ecf 16c9 0001 si          @DSCR, #0x0001
  0ed1 16cb 0180 si          @DSBL, #0x0180
- 0ed3 02bf 0084 call        0084_WaitForMail()
+ 0ed3 02bf 0084 call        0084_WaitForDMACompletion()
  0ed5 8100      clr         $ACC0
  0ed6 009c 0180 lri         $AC0.L, #0x0180
  0ed8 4d00      add         $ACC1, $ACC0
@@ -2883,7 +2896,7 @@ void 0c21_Unknown() {
  0ef6 dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
  0ef7 4e31      addp's      $ACC0 : @$AR1, $AC0.M
  0ef8 1b39      srri        @$AR1, $AX1.L
- 0ef9 02bf 0084 call        0084_WaitForMail()
+ 0ef9 02bf 0084 call        0084_WaitForDMACompletion()
  0efb 8f00      set40       
  0efc 8d00      set15       
  0efd 8a00      m2          
@@ -2925,7 +2938,7 @@ void 0c21_Unknown() {
  0f27 16cd 0400 si          @DSPA, #0x0400
  0f29 16c9 0001 si          @DSCR, #0x0001
  0f2b 16cb 0180 si          @DSBL, #0x0180
- 0f2d 02bf 0084 call        0084_WaitForMail()
+ 0f2d 02bf 0084 call        0084_WaitForDMACompletion()
  0f2f 16fc dcd1 si          @DMBH, #0xdcd1
  0f31 16fd 0004 si          @DMBL, #0x0004
  0f33 16fb 0001 si          @DIRQ, #0x0001
