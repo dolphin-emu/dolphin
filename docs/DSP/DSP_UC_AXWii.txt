@@ -1,5 +1,7 @@
  0000 0000      nop         
  0001 0000      nop         
+
+// Exception jump table
  0002 029f 0f3c jmp         0x0f3c
  0004 029f 0f48 jmp         0x0f48
  0006 029f 0f4d jmp         0x0f4d
@@ -7,6 +9,9 @@
  000a 029f 0f61 jmp         0x0f61
  000c 029f 0f8d jmp         0x0f8d
  000e 029f 0f92 jmp         0x0f92
+
+// Entry point
+void 0010_Entry() {
  0010 1302      sbset       #0x02
  0011 1303      sbset       #0x03
  0012 1204      sbclr       #0x04
@@ -26,12 +31,15 @@
  0027 00fe 0ce9 sr          @0x0ce9, $AC0.M
  0029 8900      clr         $ACC1
  002a 16fc dcd1 si          @DMBH, #0xdcd1
- 002c 16fd 0000 si          @DMBL, #0x0000
+s 002c 16fd 0000 si          @DMBL, #0x0000
  002e 16fb 0001 si          @DIRQ, #0x0001
  0030 26fc      lrs         $AC0.M, @DMBH
  0031 02a0 8000 andf        $AC0.M, #0x8000
  0033 029c 0030 jlnz        0x0030
  0035 029f 004c jmp         0x004c
+}
+
+void 0037_Unk_Restart() {
  0037 1302      sbset       #0x02
  0038 1303      sbset       #0x03
  0039 1204      sbclr       #0x04
@@ -70,8 +78,11 @@
  0068 2ec9      srs         @DSCR, $AC0.M
  0069 1ffb      mrr         $AC1.M, $AX1.H
  006a 2fcb      srs         @DSBL, $AC1.M
- 006b 02bf 0084 call        0x0084
+ 006b 02bf 0084 call        0084_WaitForMail()
  006d 0080 0c00 lri         $AR0, #0x0c00
+} // continues into next function 
+
+void 006f_MailHandler() {
  006f 8e00      set16       
  0070 8100      clr         $ACC0
  0071 8970      clr'l       $ACC1 : $AC0.M, @$AR0
@@ -86,13 +97,22 @@
  007d 0213      ilrr        $AC0.M, @$AR3
  007e 1c7e      mrr         $AR3, $AC0.M
  007f 176f      jmpr        $AR3
+}
+
+void 0080_Die() {
  0080 16fc baad si          @DMBH, #0xbaad
  0082 2efd      srs         @DMBL, $AC0.M
- 0083 0021      halt        
+ 0083 0021      halt
+}
+
+void 0084_WaitForMail() {       
  0084 26c9      lrs         $AC0.M, @DSCR
  0085 02a0 0004 andf        $AC0.M, #0x0004
  0087 029c 0084 jlnz        0x0084
  0089 02df      ret         
+}
+
+void 0082_JumpTable_0() {
  008a 8100      clr         $ACC0
  008b 8970      clr'l       $ACC1 : $AC0.M, @$AR0
  008c 8e78      set16'l     : $AC1.M, @$AR0
@@ -108,43 +128,43 @@
  009d 8100      clr         $ACC0
  009e 8900      clr         $ACC1
  009f 8f00      set40       
- 00a0 02bf 0084 call        0x0084
+ 00a0 02bf 0084 call        0084_WaitForMail()
  00a2 193e      lrri        $AC0.M, @$AR1
  00a3 193c      lrri        $AC0.L, @$AR1
  00a4 b179      tst'l       $ACC0 : $AC1.M, @$AR1
  00a5 0294 00ab jnz         0x00ab
  00a7 005a      loop        $AX0.H
- 00a8 1b5e      srri        @$AR2, $AC0.M
+  00a8 1b5e      srri        @$AR2, $AC0.M
  00a9 029f 00b3 jmp         0x00b3
  00ab 9900      asr16       $ACC1
  00ac 1b5e      srri        @$AR2, $AC0.M
  00ad 1b5c      srri        @$AR2, $AC0.L
  00ae 007b 00b2 bloop       $AX1.H, 0x00b2
- 00b0 4c00      add         $ACC0, $ACC1
- 00b1 1b5e      srri        @$AR2, $AC0.M
- 00b2 1b5c      srri        @$AR2, $AC0.L
+  00b0 4c00      add         $ACC0, $ACC1
+  00b1 1b5e      srri        @$AR2, $AC0.M		
+  00b2 1b5c      srri        @$AR2, $AC0.L
  00b3 0082 00c0 lri         $AR2, #0x00c0
  00b5 193e      lrri        $AC0.M, @$AR1
  00b6 193c      lrri        $AC0.L, @$AR1
  00b7 b179      tst'l       $ACC0 : $AC1.M, @$AR1
  00b8 0294 00be jnz         0x00be
  00ba 005a      loop        $AX0.H
- 00bb 1b5e      srri        @$AR2, $AC0.M
+  00bb 1b5e      srri        @$AR2, $AC0.M
  00bc 029f 00c6 jmp         0x00c6
  00be 9900      asr16       $ACC1
  00bf 1b5e      srri        @$AR2, $AC0.M
  00c0 1b5c      srri        @$AR2, $AC0.L
  00c1 007b 00c5 bloop       $AX1.H, 0x00c5
- 00c3 4c00      add         $ACC0, $ACC1
- 00c4 1b5e      srri        @$AR2, $AC0.M
- 00c5 1b5c      srri        @$AR2, $AC0.L
+  00c3 4c00      add         $ACC0, $ACC1
+  00c4 1b5e      srri        @$AR2, $AC0.M
+  00c5 1b5c      srri        @$AR2, $AC0.L
  00c6 0082 0180 lri         $AR2, #0x0180
  00c8 193e      lrri        $AC0.M, @$AR1
  00c9 193c      lrri        $AC0.L, @$AR1
  00ca b179      tst'l       $ACC0 : $AC1.M, @$AR1
  00cb 0294 00d1 jnz         0x00d1
  00cd 005a      loop        $AX0.H
- 00ce 1b5e      srri        @$AR2, $AC0.M
+  00ce 1b5e      srri        @$AR2, $AC0.M
  00cf 029f 00d9 jmp         0x00d9
  00d1 9900      asr16       $ACC1
  00d2 1b5e      srri        @$AR2, $AC0.M
@@ -159,135 +179,135 @@
  00dd b179      tst'l       $ACC0 : $AC1.M, @$AR1
  00de 0294 00e4 jnz         0x00e4
  00e0 005a      loop        $AX0.H
- 00e1 1b5e      srri        @$AR2, $AC0.M
+  00e1 1b5e      srri        @$AR2, $AC0.M
  00e2 029f 00ec jmp         0x00ec
  00e4 9900      asr16       $ACC1
  00e5 1b5e      srri        @$AR2, $AC0.M
  00e6 1b5c      srri        @$AR2, $AC0.L
  00e7 007b 00eb bloop       $AX1.H, 0x00eb
- 00e9 4c00      add         $ACC0, $ACC1
- 00ea 1b5e      srri        @$AR2, $AC0.M
- 00eb 1b5c      srri        @$AR2, $AC0.L
+  00e9 4c00      add         $ACC0, $ACC1
+  00ea 1b5e      srri        @$AR2, $AC0.M
+  00eb 1b5c      srri        @$AR2, $AC0.L
  00ec 0082 04c0 lri         $AR2, #0x04c0
  00ee 193e      lrri        $AC0.M, @$AR1
  00ef 193c      lrri        $AC0.L, @$AR1
  00f0 b179      tst'l       $ACC0 : $AC1.M, @$AR1
  00f1 0294 00f7 jnz         0x00f7
  00f3 005a      loop        $AX0.H
- 00f4 1b5e      srri        @$AR2, $AC0.M
+  00f4 1b5e      srri        @$AR2, $AC0.M
  00f5 029f 00ff jmp         0x00ff
  00f7 9900      asr16       $ACC1
  00f8 1b5e      srri        @$AR2, $AC0.M
  00f9 1b5c      srri        @$AR2, $AC0.L
  00fa 007b 00fe bloop       $AX1.H, 0x00fe
- 00fc 4c00      add         $ACC0, $ACC1
- 00fd 1b5e      srri        @$AR2, $AC0.M
- 00fe 1b5c      srri        @$AR2, $AC0.L
+  00fc 4c00      add         $ACC0, $ACC1
+  00fd 1b5e      srri        @$AR2, $AC0.M
+  00fe 1b5c      srri        @$AR2, $AC0.L
  00ff 0082 0580 lri         $AR2, #0x0580
  0101 193e      lrri        $AC0.M, @$AR1
  0102 193c      lrri        $AC0.L, @$AR1
  0103 b179      tst'l       $ACC0 : $AC1.M, @$AR1
  0104 0294 010a jnz         0x010a
  0106 005a      loop        $AX0.H
- 0107 1b5e      srri        @$AR2, $AC0.M
+  0107 1b5e      srri        @$AR2, $AC0.M
  0108 029f 0112 jmp         0x0112
  010a 9900      asr16       $ACC1
  010b 1b5e      srri        @$AR2, $AC0.M
  010c 1b5c      srri        @$AR2, $AC0.L
  010d 007b 0111 bloop       $AX1.H, 0x0111
- 010f 4c00      add         $ACC0, $ACC1
- 0110 1b5e      srri        @$AR2, $AC0.M
- 0111 1b5c      srri        @$AR2, $AC0.L
+  010f 4c00      add         $ACC0, $ACC1
+  0110 1b5e      srri        @$AR2, $AC0.M
+  0111 1b5c      srri        @$AR2, $AC0.L
  0112 0082 0640 lri         $AR2, #0x0640
  0114 193e      lrri        $AC0.M, @$AR1
  0115 193c      lrri        $AC0.L, @$AR1
  0116 b179      tst'l       $ACC0 : $AC1.M, @$AR1
  0117 0294 011d jnz         0x011d
  0119 005a      loop        $AX0.H
- 011a 1b5e      srri        @$AR2, $AC0.M
+  011a 1b5e      srri        @$AR2, $AC0.M
  011b 029f 0125 jmp         0x0125
  011d 9900      asr16       $ACC1
  011e 1b5e      srri        @$AR2, $AC0.M
  011f 1b5c      srri        @$AR2, $AC0.L
  0120 007b 0124 bloop       $AX1.H, 0x0124
- 0122 4c00      add         $ACC0, $ACC1
- 0123 1b5e      srri        @$AR2, $AC0.M
- 0124 1b5c      srri        @$AR2, $AC0.L
+  0122 4c00      add         $ACC0, $ACC1
+  0123 1b5e      srri        @$AR2, $AC0.M
+  0124 1b5c      srri        @$AR2, $AC0.L
  0125 0082 0700 lri         $AR2, #0x0700
  0127 193e      lrri        $AC0.M, @$AR1
  0128 193c      lrri        $AC0.L, @$AR1
  0129 b179      tst'l       $ACC0 : $AC1.M, @$AR1
  012a 0294 0130 jnz         0x0130
  012c 005a      loop        $AX0.H
- 012d 1b5e      srri        @$AR2, $AC0.M
+  012d 1b5e      srri        @$AR2, $AC0.M
  012e 029f 0138 jmp         0x0138
  0130 9900      asr16       $ACC1
  0131 1b5e      srri        @$AR2, $AC0.M
  0132 1b5c      srri        @$AR2, $AC0.L
  0133 007b 0137 bloop       $AX1.H, 0x0137
- 0135 4c00      add         $ACC0, $ACC1
- 0136 1b5e      srri        @$AR2, $AC0.M
- 0137 1b5c      srri        @$AR2, $AC0.L
+  0135 4c00      add         $ACC0, $ACC1
+  0136 1b5e      srri        @$AR2, $AC0.M
+  0137 1b5c      srri        @$AR2, $AC0.L
  0138 0082 07c0 lri         $AR2, #0x07c0
  013a 193e      lrri        $AC0.M, @$AR1
  013b 193c      lrri        $AC0.L, @$AR1
  013c b179      tst'l       $ACC0 : $AC1.M, @$AR1
  013d 0294 0143 jnz         0x0143
  013f 005a      loop        $AX0.H
- 0140 1b5e      srri        @$AR2, $AC0.M
+  0140 1b5e      srri        @$AR2, $AC0.M
  0141 029f 014b jmp         0x014b
  0143 9900      asr16       $ACC1
  0144 1b5e      srri        @$AR2, $AC0.M
  0145 1b5c      srri        @$AR2, $AC0.L
  0146 007b 014a bloop       $AX1.H, 0x014a
- 0148 4c00      add         $ACC0, $ACC1
- 0149 1b5e      srri        @$AR2, $AC0.M
- 014a 1b5c      srri        @$AR2, $AC0.L
+  0148 4c00      add         $ACC0, $ACC1
+  0149 1b5e      srri        @$AR2, $AC0.M
+  014a 1b5c      srri        @$AR2, $AC0.L
  014b 0082 0880 lri         $AR2, #0x0880
  014d 193e      lrri        $AC0.M, @$AR1
  014e 193c      lrri        $AC0.L, @$AR1
  014f b179      tst'l       $ACC0 : $AC1.M, @$AR1
  0150 0294 0156 jnz         0x0156
  0152 005a      loop        $AX0.H
- 0153 1b5e      srri        @$AR2, $AC0.M
+  0153 1b5e      srri        @$AR2, $AC0.M
  0154 029f 015e jmp         0x015e
  0156 9900      asr16       $ACC1
  0157 1b5e      srri        @$AR2, $AC0.M
  0158 1b5c      srri        @$AR2, $AC0.L
  0159 007b 015d bloop       $AX1.H, 0x015d
- 015b 4c00      add         $ACC0, $ACC1
- 015c 1b5e      srri        @$AR2, $AC0.M
- 015d 1b5c      srri        @$AR2, $AC0.L
+  015b 4c00      add         $ACC0, $ACC1
+  015c 1b5e      srri        @$AR2, $AC0.M
+  015d 1b5c      srri        @$AR2, $AC0.L
  015e 0082 0940 lri         $AR2, #0x0940
  0160 193e      lrri        $AC0.M, @$AR1
  0161 193c      lrri        $AC0.L, @$AR1
  0162 b179      tst'l       $ACC0 : $AC1.M, @$AR1
  0163 0294 0169 jnz         0x0169
  0165 005a      loop        $AX0.H
- 0166 1b5e      srri        @$AR2, $AC0.M
+  0166 1b5e      srri        @$AR2, $AC0.M
  0167 029f 0171 jmp         0x0171
  0169 9900      asr16       $ACC1
  016a 1b5e      srri        @$AR2, $AC0.M
  016b 1b5c      srri        @$AR2, $AC0.L
  016c 007b 0170 bloop       $AX1.H, 0x0170
- 016e 4c00      add         $ACC0, $ACC1
- 016f 1b5e      srri        @$AR2, $AC0.M
- 0170 1b5c      srri        @$AR2, $AC0.L
+  016e 4c00      add         $ACC0, $ACC1
+  016f 1b5e      srri        @$AR2, $AC0.M
+  0170 1b5c      srri        @$AR2, $AC0.L
  0171 0082 0a00 lri         $AR2, #0x0a00
  0173 193e      lrri        $AC0.M, @$AR1
  0174 193c      lrri        $AC0.L, @$AR1
  0175 b179      tst'l       $ACC0 : $AC1.M, @$AR1
  0176 0294 017c jnz         0x017c
  0178 005a      loop        $AX0.H
- 0179 1b5e      srri        @$AR2, $AC0.M
+  0179 1b5e      srri        @$AR2, $AC0.M
  017a 029f 0184 jmp         0x0184
  017c 9900      asr16       $ACC1
  017d 1b5e      srri        @$AR2, $AC0.M
  017e 1b5c      srri        @$AR2, $AC0.L
  017f 007b 0183 bloop       $AX1.H, 0x0183
- 0181 4c00      add         $ACC0, $ACC1
- 0182 1b5e      srri        @$AR2, $AC0.M
- 0183 1b5c      srri        @$AR2, $AC0.L
+  0181 4c00      add         $ACC0, $ACC1
+  0182 1b5e      srri        @$AR2, $AC0.M
+  0183 1b5c      srri        @$AR2, $AC0.L
  0184 009b 0011 lri         $AX1.H, #0x0011
  0186 009a 0024 lri         $AX0.H, #0x0024
  0188 0082 0240 lri         $AR2, #0x0240
@@ -296,121 +316,124 @@
  018c b179      tst'l       $ACC0 : $AC1.M, @$AR1
  018d 0294 0193 jnz         0x0193
  018f 005a      loop        $AX0.H
- 0190 1b5e      srri        @$AR2, $AC0.M
+  0190 1b5e      srri        @$AR2, $AC0.M
  0191 029f 019b jmp         0x019b
  0193 9900      asr16       $ACC1
  0194 1b5e      srri        @$AR2, $AC0.M
  0195 1b5c      srri        @$AR2, $AC0.L
  0196 007b 019a bloop       $AX1.H, 0x019a
- 0198 4c00      add         $ACC0, $ACC1
- 0199 1b5e      srri        @$AR2, $AC0.M
- 019a 1b5c      srri        @$AR2, $AC0.L
+  0198 4c00      add         $ACC0, $ACC1
+  0199 1b5e      srri        @$AR2, $AC0.M
+  019a 1b5c      srri        @$AR2, $AC0.L
  019b 0082 0ac0 lri         $AR2, #0x0ac0
  019d 193e      lrri        $AC0.M, @$AR1
  019e 193c      lrri        $AC0.L, @$AR1
  019f b179      tst'l       $ACC0 : $AC1.M, @$AR1
  01a0 0294 01a6 jnz         0x01a6
  01a2 005a      loop        $AX0.H
- 01a3 1b5e      srri        @$AR2, $AC0.M
+  01a3 1b5e      srri        @$AR2, $AC0.M
  01a4 029f 01ae jmp         0x01ae
  01a6 9900      asr16       $ACC1
  01a7 1b5e      srri        @$AR2, $AC0.M
  01a8 1b5c      srri        @$AR2, $AC0.L
  01a9 007b 01ad bloop       $AX1.H, 0x01ad
- 01ab 4c00      add         $ACC0, $ACC1
- 01ac 1b5e      srri        @$AR2, $AC0.M
- 01ad 1b5c      srri        @$AR2, $AC0.L
+  01ab 4c00      add         $ACC0, $ACC1
+  01ac 1b5e      srri        @$AR2, $AC0.M
+  01ad 1b5c      srri        @$AR2, $AC0.L
  01ae 0082 0264 lri         $AR2, #0x0264
  01b0 193e      lrri        $AC0.M, @$AR1
  01b1 193c      lrri        $AC0.L, @$AR1
  01b2 b179      tst'l       $ACC0 : $AC1.M, @$AR1
  01b3 0294 01b9 jnz         0x01b9
- 01b5 005a      loop        $AX0.H
+  01b5 005a      loop        $AX0.H
  01b6 1b5e      srri        @$AR2, $AC0.M
  01b7 029f 01c1 jmp         0x01c1
  01b9 9900      asr16       $ACC1
  01ba 1b5e      srri        @$AR2, $AC0.M
  01bb 1b5c      srri        @$AR2, $AC0.L
  01bc 007b 01c0 bloop       $AX1.H, 0x01c0
- 01be 4c00      add         $ACC0, $ACC1
- 01bf 1b5e      srri        @$AR2, $AC0.M
- 01c0 1b5c      srri        @$AR2, $AC0.L
+  01be 4c00      add         $ACC0, $ACC1
+  01bf 1b5e      srri        @$AR2, $AC0.M
+  01c0 1b5c      srri        @$AR2, $AC0.L
  01c1 0082 0ae4 lri         $AR2, #0x0ae4
  01c3 193e      lrri        $AC0.M, @$AR1
  01c4 193c      lrri        $AC0.L, @$AR1
  01c5 b179      tst'l       $ACC0 : $AC1.M, @$AR1
  01c6 0294 01cc jnz         0x01cc
  01c8 005a      loop        $AX0.H
- 01c9 1b5e      srri        @$AR2, $AC0.M
+  01c9 1b5e      srri        @$AR2, $AC0.M
  01ca 029f 01d4 jmp         0x01d4
  01cc 9900      asr16       $ACC1
  01cd 1b5e      srri        @$AR2, $AC0.M
  01ce 1b5c      srri        @$AR2, $AC0.L
  01cf 007b 01d3 bloop       $AX1.H, 0x01d3
- 01d1 4c00      add         $ACC0, $ACC1
- 01d2 1b5e      srri        @$AR2, $AC0.M
- 01d3 1b5c      srri        @$AR2, $AC0.L
+  01d1 4c00      add         $ACC0, $ACC1
+  01d2 1b5e      srri        @$AR2, $AC0.M
+  01d3 1b5c      srri        @$AR2, $AC0.L
  01d4 0082 0288 lri         $AR2, #0x0288
  01d6 193e      lrri        $AC0.M, @$AR1
  01d7 193c      lrri        $AC0.L, @$AR1
  01d8 b179      tst'l       $ACC0 : $AC1.M, @$AR1
  01d9 0294 01df jnz         0x01df
  01db 005a      loop        $AX0.H
- 01dc 1b5e      srri        @$AR2, $AC0.M
+  01dc 1b5e      srri        @$AR2, $AC0.M
  01dd 029f 01e7 jmp         0x01e7
  01df 9900      asr16       $ACC1
  01e0 1b5e      srri        @$AR2, $AC0.M
  01e1 1b5c      srri        @$AR2, $AC0.L
  01e2 007b 01e6 bloop       $AX1.H, 0x01e6
- 01e4 4c00      add         $ACC0, $ACC1
- 01e5 1b5e      srri        @$AR2, $AC0.M
- 01e6 1b5c      srri        @$AR2, $AC0.L
+  01e4 4c00      add         $ACC0, $ACC1
+  01e5 1b5e      srri        @$AR2, $AC0.M
+  01e6 1b5c      srri        @$AR2, $AC0.L
  01e7 0082 0b08 lri         $AR2, #0x0b08
  01e9 193e      lrri        $AC0.M, @$AR1
  01ea 193c      lrri        $AC0.L, @$AR1
  01eb b179      tst'l       $ACC0 : $AC1.M, @$AR1
  01ec 0294 01f2 jnz         0x01f2
  01ee 005a      loop        $AX0.H
- 01ef 1b5e      srri        @$AR2, $AC0.M
+  01ef 1b5e      srri        @$AR2, $AC0.M
  01f0 029f 01fa jmp         0x01fa
  01f2 9900      asr16       $ACC1
  01f3 1b5e      srri        @$AR2, $AC0.M
  01f4 1b5c      srri        @$AR2, $AC0.L
  01f5 007b 01f9 bloop       $AX1.H, 0x01f9
- 01f7 4c00      add         $ACC0, $ACC1
- 01f8 1b5e      srri        @$AR2, $AC0.M
- 01f9 1b5c      srri        @$AR2, $AC0.L
+  01f7 4c00      add         $ACC0, $ACC1
+  01f8 1b5e      srri        @$AR2, $AC0.M
+  01f9 1b5c      srri        @$AR2, $AC0.L
  01fa 0082 02ac lri         $AR2, #0x02ac
  01fc 193e      lrri        $AC0.M, @$AR1
  01fd 193c      lrri        $AC0.L, @$AR1
  01fe b179      tst'l       $ACC0 : $AC1.M, @$AR1
  01ff 0294 0205 jnz         0x0205
  0201 005a      loop        $AX0.H
- 0202 1b5e      srri        @$AR2, $AC0.M
+  0202 1b5e      srri        @$AR2, $AC0.M
  0203 029f 020d jmp         0x020d
  0205 9900      asr16       $ACC1
  0206 1b5e      srri        @$AR2, $AC0.M
  0207 1b5c      srri        @$AR2, $AC0.L
  0208 007b 020c bloop       $AX1.H, 0x020c
- 020a 4c00      add         $ACC0, $ACC1
- 020b 1b5e      srri        @$AR2, $AC0.M
- 020c 1b5c      srri        @$AR2, $AC0.L
+  020a 4c00      add         $ACC0, $ACC1
+  020b 1b5e      srri        @$AR2, $AC0.M
+  020c 1b5c      srri        @$AR2, $AC0.L
  020d 0082 0b2c lri         $AR2, #0x0b2c
  020f 193e      lrri        $AC0.M, @$AR1
  0210 193c      lrri        $AC0.L, @$AR1
  0211 b179      tst'l       $ACC0 : $AC1.M, @$AR1
  0212 0294 0218 jnz         0x0218
  0214 005a      loop        $AX0.H
- 0215 1b5e      srri        @$AR2, $AC0.M
+  0215 1b5e      srri        @$AR2, $AC0.M
  0216 029f 0220 jmp         0x0220
  0218 9900      asr16       $ACC1
  0219 1b5e      srri        @$AR2, $AC0.M
  021a 1b5c      srri        @$AR2, $AC0.L
  021b 007b 021f bloop       $AX1.H, 0x021f
- 021d 4c00      add         $ACC0, $ACC1
- 021e 1b5e      srri        @$AR2, $AC0.M
- 021f 1b5c      srri        @$AR2, $AC0.L
- 0220 029f 006f jmp         0x006f
+  021d 4c00      add         $ACC0, $ACC1
+  021e 1b5e      srri        @$AR2, $AC0.M
+  021f 1b5c      srri        @$AR2, $AC0.L
+ 0220 029f 006f jmp         006f_MailHandler()
+}
+
+void 0x222_JumpTable1() {
  0222 8100      clr         $ACC0
  0223 8970      clr'l       $ACC1 : $AC0.M, @$AR0
  0224 8e60      set16'l     : $AC0.L, @$AR0
@@ -425,7 +448,7 @@
  0232 0081 0d08 lri         $AR1, #0x0d08
  0234 0084 ffff lri         $IX0, #0xffff
  0236 1ce4      mrr         $IX3, $IX0
- 0237 02bf 0084 call        0x0084
+ 0237 02bf 0084 call        0084_WaitForMail()
  0239 8f00      set40       
  023a 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
  023b 80c9      nx'ldm      : $AX0.L, $AX1.L, @$AR1
@@ -435,17 +458,20 @@
  023f 6994      movax'lsn   $ACC1, $AX0.L : $AX1.L, $AC0.M
  0240 4b23      addax's     $ACC1, $AX1.L : @$AR3, $AC0.L
  0241 115f 0249 bloopi      #0x5f, 0x0249
- 0243 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
- 0244 80c9      nx'ldm      : $AX0.L, $AX1.L, @$AR1
- 0245 6838      movax's     $ACC0, $AX0.L : @$AR0, $AC1.M
- 0246 4a28      addax's     $ACC0, $AX1.L : @$AR0, $AC1.L
- 0247 191b      lrri        $AX1.H, @$AR0
- 0248 6994      movax'lsn   $ACC1, $AX0.L : $AX1.L, $AC0.M
- 0249 4b23      addax's     $ACC1, $AX1.L : @$AR3, $AC0.L
+  0243 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+  0244 80c9      nx'ldm      : $AX0.L, $AX1.L, @$AR1
+  0245 6838      movax's     $ACC0, $AX0.L : @$AR0, $AC1.M
+  0246 4a28      addax's     $ACC0, $AX1.L : @$AR0, $AC1.L
+  0247 191b      lrri        $AX1.H, @$AR0
+  0248 6994      movax'lsn   $ACC1, $AX0.L : $AX1.L, $AC0.M
+  0249 4b23      addax's     $ACC1, $AX1.L : @$AR3, $AC0.L
  024a 1b1f      srri        @$AR0, $AC1.M
  024b 1b1d      srri        @$AR0, $AC1.L
  024c 1c06      mrr         $AR0, $IX2
- 024d 029f 006f jmp         0x006f
+ 024d 029f 006f jmp         006f_MailHandler()
+}
+
+0x24f_JumpTable2() {
  024f 8100      clr         $ACC0
  0250 8970      clr'l       $ACC1 : $AC0.M, @$AR0
  0251 8e60      set16'l     : $AC0.L, @$AR0
@@ -460,7 +486,7 @@
  025f 0081 0d08 lri         $AR1, #0x0d08
  0261 0084 ffff lri         $IX0, #0xffff
  0263 1ce4      mrr         $IX3, $IX0
- 0264 02bf 0084 call        0x0084
+ 0264 02bf 0084 call        0084_WaitForMail()
  0266 8f00      set40       
  0267 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
  0268 80c9      nx'ldm      : $AX0.L, $AX1.L, @$AR1
@@ -471,18 +497,21 @@
  026d 7d00      neg         $ACC1
  026e 4b23      addax's     $ACC1, $AX1.L : @$AR3, $AC0.L
  026f 115f 0278 bloopi      #0x5f, 0x0278
- 0271 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
- 0272 80c9      nx'ldm      : $AX0.L, $AX1.L, @$AR1
- 0273 6838      movax's     $ACC0, $AX0.L : @$AR0, $AC1.M
- 0274 4a28      addax's     $ACC0, $AX1.L : @$AR0, $AC1.L
- 0275 191b      lrri        $AX1.H, @$AR0
- 0276 6994      movax'lsn   $ACC1, $AX0.L : $AX1.L, $AC0.M
- 0277 7d00      neg         $ACC1
- 0278 4b23      addax's     $ACC1, $AX1.L : @$AR3, $AC0.L
+  0271 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+  0272 80c9      nx'ldm      : $AX0.L, $AX1.L, @$AR1
+  0273 6838      movax's     $ACC0, $AX0.L : @$AR0, $AC1.M
+  0274 4a28      addax's     $ACC0, $AX1.L : @$AR0, $AC1.L
+  0275 191b      lrri        $AX1.H, @$AR0
+  0276 6994      movax'lsn   $ACC1, $AX0.L : $AX1.L, $AC0.M
+  0277 7d00      neg         $ACC1
+  0278 4b23      addax's     $ACC1, $AX1.L : @$AR3, $AC0.L
  0279 1b1f      srri        @$AR0, $AC1.M
  027a 1b1d      srri        @$AR0, $AC1.L
  027b 1c06      mrr         $AR0, $IX2
- 027c 029f 006f jmp         0x006f
+ 027c 029f 006f jmp         006f_MailHandler()
+}
+
+void 027e_JumpTable3() {
  027e 8100      clr         $ACC0
  027f 8970      clr'l       $ACC1 : $AC0.M, @$AR0
  0280 8e60      set16'l     : $AC0.L, @$AR0
@@ -492,7 +521,7 @@
  0285 16cd 02d0 si          @DSPA, #0x02d0
  0287 16c9 0000 si          @DSCR, #0x0000
  0289 16cb 0140 si          @DSBL, #0x0140
- 028b 02bf 0084 call        0x0084
+ 028b 02bf 0084 call        0084_WaitForMail()
  028d 8100      clr         $ACC0
  028e 8900      clr         $ACC1
  028f 00de 02d4 lr          $AC0.M, @0x02d4
@@ -616,7 +645,7 @@
  032f 16cd 0c40 si          @DSPA, #0x0c40
  0331 16c9 0000 si          @DSCR, #0x0000
  0333 16cb 0040 si          @DSBL, #0x0040
- 0335 02bf 0084 call        0x0084
+ 0335 02bf 0084 call        0084_WaitForMail()
  0337 029f 0341 jmp         0x0341
  0339 009f 0c60 lri         $AC1.M, #0x0c60
  033b 00ff 0ce2 sr          @0x0ce2, $AC1.M
@@ -644,8 +673,8 @@
  035a 0080 0d08 lri         $AR0, #0x0d08
  035c a830      mulx's      $AX0.L, $AX1.H : @$AR0, $AC0.M
  035d 112f 0360 bloopi      #0x2f, 0x0360
- 035f ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
- 0360 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+  035f ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+  0360 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
  0361 ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
  0362 00fe 0305 sr          @0x0305, $AC0.M
  0364 8f00      set40       
@@ -657,8 +686,8 @@
  036c b051      mulx'l      $AX0.H, $AX1.L : $AX0.H, @$AR1
  036d 1919      lrri        $AX1.L, @$AR0
  036e 115e 0371 bloopi      #0x5e, 0x0371
- 0370 b651      mulxmv'l    $AX0.H, $AX1.L, $ACC0 : $AX0.H, @$AR1
- 0371 8090      nx'ls       : $AX1.L, $AC0.M
+  0370 b651      mulxmv'l    $AX0.H, $AX1.L, $ACC0 : $AX0.H, @$AR1
+  0371 8090      nx'ls       : $AX1.L, $AC0.M
  0372 b600      mulxmv      $AX0.H, $AX1.L, $ACC0
  0373 6e33      movp's      $ACC0 : @$AR3, $AC0.M
  0374 1b7e      srri        @$AR3, $AC0.M
@@ -675,14 +704,14 @@
  0386 0080 0332 lri         $AR0, #0x0332
  0388 00c1 0ce1 lr          $AR1, @0x0ce1
  038a 1c41      mrr         $AR2, $AR1
- 038b 02bf 06c3 call        0x06c3
+ 038b 02bf 06c3 call        06c3_Unknown()
  038d 0080 02f9 lri         $AR0, #0x02f9
  038f 8100      clr         $ACC0
  0390 100c      loopi       #0x0c
- 0391 1b1e      srri        @$AR0, $AC0.M
+  0391 1b1e      srri        @$AR0, $AC0.M
  0392 0080 034d lri         $AR0, #0x034d
  0394 1008      loopi       #0x08
- 0395 1b1e      srri        @$AR0, $AC0.M
+  0395 1b1e      srri        @$AR0, $AC0.M
  0396 00c3 0cd3 lr          $AR3, @0x0cd3
  0398 177f      callr       $AR3
  0399 00c3 0cd4 lr          $AR3, @0x0cd4
@@ -703,7 +732,7 @@
  03b0 0080 035b lri         $AR0, #0x035b
  03b2 00c1 0ce1 lr          $AR1, @0x0ce1
  03b4 0082 0d0c lri         $AR2, #0x0d0c
- 03b6 02bf 06c3 call        0x06c3
+ 03b6 02bf 06c3 call        06c3_Unknown()
  03b8 029f 03cc jmp         0x03cc
  03ba 0080 0d0c lri         $AR0, #0x0d0c
  03bc 00c1 0ce1 lr          $AR1, @0x0ce1
@@ -713,8 +742,8 @@
  03c4 0080 0d0c lri         $AR0, #0x0d0c
  03c6 00c1 0ce1 lr          $AR1, @0x0ce1
  03c8 1160 03cb bloopi      #0x60, 0x03cb
- 03ca 193f      lrri        $AC1.M, @$AR1
- 03cb 1b1f      srri        @$AR0, $AC1.M
+  03ca 193f      lrri        $AC1.M, @$AR1
+  03cb 1b1f      srri        @$AR0, $AC1.M
  03cc 0082 0355 lri         $AR2, #0x0355
  03ce 8c00      clr15       
  03cf 8100      clr         $ACC0
@@ -723,28 +752,28 @@
  03d3 0099 5555 lri         $AX1.L, #0x5555
  03d5 0080 0d08 lri         $AR0, #0x0d08
  03d7 1104 03da bloopi      #0x04, 0x03da
- 03d9 195f      lrri        $AC1.M, @$AR2
- 03da 1b1f      srri        @$AR0, $AC1.M
+  03d9 195f      lrri        $AC1.M, @$AR2
+  03da 1b1f      srri        @$AR0, $AC1.M
  03db 0081 0cc0 lri         $AR1, #0x0cc0
  03dd 0084 0d08 lri         $IX0, #0x0d08
  03df 0087 1000 lri         $IX3, #0x1000
  03e1 1112 03f2 bloopi      #0x12, 0x03f2
- 03e3 4a00      addax       $ACC0, $AX1.L
- 03e4 1c1e      mrr         $AR0, $AC0.M
- 03e5 0010      addarn      $AR0, $IX0
- 03e6 8900      clr         $ACC1
- 03e7 1fbc      mrr         $AC1.L, $AC0.L
- 03e8 1577      lsr         $ACC1, #-9
- 03e9 1512      lsl         $ACC1, #18
- 03ea 1c7f      mrr         $AR3, $AC1.M
- 03eb 001f      addarn      $AR3, $IX3
- 03ec 80c3      nx'ld       : $AX0.L, $AX1.L, @$AR3
- 03ed 90c3      mul'ld      $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
- 03ee 97c3      mulmv'ld    $AX0.L, $AX0.H, $ACC1 : $AX0.L, $AX1.L, @$AR3
- 03ef 95c3      mulac'ld    $AX0.L, $AX0.H, $ACC1 : $AX0.L, $AX1.L, @$AR3
- 03f0 9500      mulac       $AX0.L, $AX0.H, $ACC1
- 03f1 4f00      addp        $ACC1
- 03f2 1b3f      srri        @$AR1, $AC1.M
+  03e3 4a00      addax       $ACC0, $AX1.L
+  03e4 1c1e      mrr         $AR0, $AC0.M
+  03e5 0010      addarn      $AR0, $IX0
+  03e6 8900      clr         $ACC1
+  03e7 1fbc      mrr         $AC1.L, $AC0.L
+  03e8 1577      lsr         $ACC1, #-9
+  03e9 1512      lsl         $ACC1, #18
+  03ea 1c7f      mrr         $AR3, $AC1.M
+  03eb 001f      addarn      $AR3, $IX3
+  03ec 80c3      nx'ld       : $AX0.L, $AX1.L, @$AR3
+  03ed 90c3      mul'ld      $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
+  03ee 97c3      mulmv'ld    $AX0.L, $AX0.H, $ACC1 : $AX0.L, $AX1.L, @$AR3
+  03ef 95c3      mulac'ld    $AX0.L, $AX0.H, $ACC1 : $AX0.L, $AX1.L, @$AR3
+  03f0 9500      mulac       $AX0.L, $AX0.H, $ACC1
+  03f1 4f00      addp        $ACC1
+  03f2 1b3f      srri        @$AR1, $AC1.M
  03f3 0004      dar         $AR0
  03f4 0006      dar         $AR2
  03f5 189f      lrrd        $AC1.M, @$AR0
@@ -830,7 +859,7 @@
  0477 16cd 0ca0 si          @DSPA, #0x0ca0
  0479 16c9 0001 si          @DSCR, #0x0001
  047b 16cb 0040 si          @DSBL, #0x0040
- 047d 02bf 0084 call        0x0084
+ 047d 02bf 0084 call        0084_WaitForMail()
  047f 8100      clr         $ACC0
  0480 8900      clr         $ACC1
  0481 00de 02d2 lr          $AC0.M, @0x02d2
@@ -840,14 +869,17 @@
  0487 16cd 02d0 si          @DSPA, #0x02d0
  0489 16c9 0001 si          @DSCR, #0x0001
  048b 16cb 0140 si          @DSBL, #0x0140
- 048d 02bf 0084 call        0x0084
+ 048d 02bf 0084 call        0084_WaitForMail()
  048f 8100      clr         $ACC0
  0490 00de 02d0 lr          $AC0.M, @0x02d0
  0492 00dc 02d1 lr          $AC0.L, @0x02d1
  0494 b100      tst         $ACC0
  0495 0294 0283 jnz         0x0283
  0497 00c0 0cd2 lr          $AR0, @0x0cd2
- 0499 029f 006f jmp         0x006f
+ 0499 029f 006f jmp         006f_MailHandler()
+}
+
+void 049b_JumpTable4() {
  049b 8e00      set16       
  049c 00c4 0ce6 lr          $IX0, @0x0ce6
  049e 1905      lrri        $IX1, @$AR0
@@ -862,9 +894,12 @@
  04a9 2ecd      srs         @DSPA, $AC0.M
  04aa 16c9 0001 si          @DSCR, #0x0001
  04ac 16cb 0480 si          @DSBL, #0x0480
- 04ae 02bf 0084 call        0x0084
+ 04ae 02bf 0084 call        0084_WaitForMail()
  04b0 02bf 04e6 call        0x04e6
- 04b2 029f 006f jmp         0x006f
+ 04b2 029f 006f jmp         006f_MailHandler()
+}
+
+void 04b4_JumpTable5() {
  04b4 8e00      set16       
  04b5 00c4 0ce7 lr          $IX0, @0x0ce7
  04b7 1905      lrri        $IX1, @$AR0
@@ -879,9 +914,12 @@
  04c2 2ecd      srs         @DSPA, $AC0.M
  04c3 16c9 0001 si          @DSCR, #0x0001
  04c5 16cb 0480 si          @DSBL, #0x0480
- 04c7 02bf 0084 call        0x0084
+ 04c7 02bf 0084 call        0084_WaitForMail()
  04c9 02bf 04e6 call        0x04e6
- 04cb 029f 006f jmp         0x006f
+ 04cb 029f 006f jmp         006f_MailHandler()
+}
+
+void 04cd_JumpTable6() {
  04cd 8e00      set16       
  04ce 00c4 0ce8 lr          $IX0, @0x0ce8
  04d0 1905      lrri        $IX1, @$AR0
@@ -896,9 +934,12 @@
  04db 2ecd      srs         @DSPA, $AC0.M
  04dc 16c9 0001 si          @DSCR, #0x0001
  04de 16cb 0480 si          @DSBL, #0x0480
- 04e0 02bf 0084 call        0x0084
+ 04e0 02bf 0084 call        0084_WaitForMail()
  04e2 02bf 04e6 call        0x04e6
- 04e4 029f 006f jmp         0x006f
+ 04e4 029f 006f jmp         006f_MailHandler()
+}
+
+void 04e6_JumpTable7() {
  04e6 8b00      m0          
  04e7 8100      clr         $ACC0
  04e8 1fc4      mrr         $AC0.M, $IX0
@@ -910,9 +951,9 @@
  04f1 d000      mulc        $AC1.M, $AX0.H
  04f2 d400      mulcac      $AC1.M, $AX0.H, $ACC0
  04f3 111f 04f7 bloopi      #0x1f, 0x04f7
- 04f5 dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
- 04f6 d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
- 04f7 d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
+  04f5 dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
+  04f6 d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
+  04f7 d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
  04f8 dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
  04f9 4e31      addp's      $ACC0 : @$AR1, $AC0.M
  04fa 1b25      srri        @$AR1, $IX1
@@ -926,7 +967,7 @@
  0502 2dcd      srs         @DSPA, $AC1.L
  0503 16c9 0000 si          @DSCR, #0x0000
  0505 16cb 0480 si          @DSBL, #0x0480
- 0507 02bf 0084 call        0x0084
+ 0507 02bf 0084 call        0084_WaitForMail()
  0509 00e0 0cd2 sr          @0x0cd2, $AR0
  050b 8f00      set40       
  050c 8d00      set15       
@@ -943,20 +984,20 @@
  0519 4e00      addp        $ACC0
  051a 4800      addax       $ACC0, $AX0.L
  051b 112f 052a bloopi      #0x2f, 0x052a
- 051d 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
- 051e 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
- 051f a000      mulx        $AX0.L, $AX1.L
- 0520 af00      mulxmv      $AX0.L, $AX1.H, $ACC1
- 0521 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
- 0522 4f32      addp's      $ACC1 : @$AR2, $AC0.M
- 0523 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
- 0524 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
- 0525 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
- 0526 a000      mulx        $AX0.L, $AX1.L
- 0527 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
- 0528 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
- 0529 4e3a      addp's      $ACC0 : @$AR2, $AC1.M
- 052a 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
+  051d 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+  051e 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+  051f a000      mulx        $AX0.L, $AX1.L
+  0520 af00      mulxmv      $AX0.L, $AX1.H, $ACC1
+  0521 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
+  0522 4f32      addp's      $ACC1 : @$AR2, $AC0.M
+  0523 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
+  0524 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+  0525 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+  0526 a000      mulx        $AX0.L, $AX1.L
+  0527 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
+  0528 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
+  0529 4e3a      addp's      $ACC0 : @$AR2, $AC1.M
+  052a 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
  052b 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
  052c 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
  052d a000      mulx        $AX0.L, $AX1.L
@@ -975,20 +1016,20 @@
  053b 4e00      addp        $ACC0
  053c 4800      addax       $ACC0, $AX0.L
  053d 112f 054c bloopi      #0x2f, 0x054c
- 053f 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
- 0540 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
- 0541 a000      mulx        $AX0.L, $AX1.L
- 0542 af00      mulxmv      $AX0.L, $AX1.H, $ACC1
- 0543 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
- 0544 4f32      addp's      $ACC1 : @$AR2, $AC0.M
- 0545 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
- 0546 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
- 0547 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
- 0548 a000      mulx        $AX0.L, $AX1.L
- 0549 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
- 054a 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
- 054b 4e3a      addp's      $ACC0 : @$AR2, $AC1.M
- 054c 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
+  053f 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+  0540 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+  0541 a000      mulx        $AX0.L, $AX1.L
+  0542 af00      mulxmv      $AX0.L, $AX1.H, $ACC1
+  0543 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
+  0544 4f32      addp's      $ACC1 : @$AR2, $AC0.M
+  0545 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
+  0546 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+  0547 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+  0548 a000      mulx        $AX0.L, $AX1.L
+  0549 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
+  054a 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
+  054b 4e3a      addp's      $ACC0 : @$AR2, $AC1.M
+  054c 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
  054d 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
  054e 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
  054f a000      mulx        $AX0.L, $AX1.L
@@ -1007,20 +1048,20 @@
  055d 4e00      addp        $ACC0
  055e 4800      addax       $ACC0, $AX0.L
  055f 112f 056e bloopi      #0x2f, 0x056e
- 0561 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
- 0562 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
- 0563 a000      mulx        $AX0.L, $AX1.L
- 0564 af00      mulxmv      $AX0.L, $AX1.H, $ACC1
- 0565 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
- 0566 4f32      addp's      $ACC1 : @$AR2, $AC0.M
- 0567 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
- 0568 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
- 0569 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
- 056a a000      mulx        $AX0.L, $AX1.L
- 056b ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
- 056c 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
- 056d 4e3a      addp's      $ACC0 : @$AR2, $AC1.M
- 056e 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
+  0561 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+  0562 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+  0563 a000      mulx        $AX0.L, $AX1.L
+  0564 af00      mulxmv      $AX0.L, $AX1.H, $ACC1
+  0565 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
+  0566 4f32      addp's      $ACC1 : @$AR2, $AC0.M
+  0567 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
+  0568 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+  0569 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+  056a a000      mulx        $AX0.L, $AX1.L
+  056b ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
+  056c 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
+  056d 4e3a      addp's      $ACC0 : @$AR2, $AC1.M
+  056e 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
  056f 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
  0570 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
  0571 a000      mulx        $AX0.L, $AX1.L
@@ -1043,16 +1084,16 @@
  0586 193e      lrri        $AC0.M, @$AR1
  0587 193c      lrri        $AC0.L, @$AR1
  0588 1160 0593 bloopi      #0x60, 0x0593
- 058a a100      tstaxl      $ACC0
- 058b 8271      cmp'l       : $AC0.M, @$AR1
- 058c 0277      ifc         
- 058d 1f19      mrr         $AX0.L, $AX1.L
- 058e 193c      lrri        $AC0.L, @$AR1
- 058f a100      tstaxl      $ACC0
- 0590 8271      cmp'l       : $AC0.M, @$AR1
- 0591 0277      ifc         
- 0592 1f19      mrr         $AX0.L, $AX1.L
- 0593 193c      lrri        $AC0.L, @$AR1
+  058a a100      tstaxl      $ACC0
+  058b 8271      cmp'l       : $AC0.M, @$AR1
+  058c 0277      ifc         
+  058d 1f19      mrr         $AX0.L, $AX1.L
+  058e 193c      lrri        $AC0.L, @$AR1
+  058f a100      tstaxl      $ACC0
+  0590 8271      cmp'l       : $AC0.M, @$AR1
+  0591 0277      ifc         
+  0592 1f19      mrr         $AX0.L, $AX1.L
+  0593 193c      lrri        $AC0.L, @$AR1
  0594 1fd8      mrr         $AC0.M, $AX0.L
  0595 b100      tst         $ACC0
  0596 0294 05c0 jnz         0x05c0
@@ -1062,7 +1103,10 @@
  059d 191c      lrri        $AC0.L, @$AR0
  059e 191c      lrri        $AC0.L, @$AR0
  059f 191c      lrri        $AC0.L, @$AR0
- 05a0 029f 006f jmp         0x006f
+ 05a0 029f 006f jmp         006f_MailHandler()
+}
+
+void 05a2_JumpTable8() {
  05a2 8b00      m0          
  05a3 7a00      dec         $ACC0
  05a4 00fe 0ce4 sr          @0x0ce4, $AC0.M
@@ -1099,7 +1143,7 @@
  05d0 16cd 0d08 si          @DSPA, #0x0d08
  05d2 16c9 0000 si          @DSCR, #0x0000
  05d4 16cb 00c0 si          @DSBL, #0x00c0
- 05d6 02bf 0084 call        0x0084
+ 05d6 02bf 0084 call        0084_WaitForMail()
  05d8 8a48      m2'l        : $AX1.L, @$AR0
  05d9 0083 0d08 lri         $AR3, #0x0d08
  05db 0080 0000 lri         $AR0, #0x0000
@@ -1112,14 +1156,14 @@
  05e4 b441      mulxac'l    $AX0.H, $AX1.L, $ACC0 : $AX0.L, @$AR1
  05e5 9100      asr16       $ACC0
  05e6 1130 05ef bloopi      #0x30, 0x05ef
- 05e8 a792      mulxmv'sl   $AX0.L, $AX1.L, $ACC1 : $AC0.M, $AX1.L
- 05e9 f151      lsl16'l     $ACC1 : $AX0.H, @$AR1
- 05ea b520      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR0, $AC0.L
- 05eb 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
- 05ec a693      mulxmv'sl   $AX0.L, $AX1.L, $ACC0 : $AC1.M, $AX1.L
- 05ed f051      lsl16'l     $ACC0 : $AX0.H, @$AR1
- 05ee b428      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR0, $AC1.L
- 05ef 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
+  05e8 a792      mulxmv'sl   $AX0.L, $AX1.L, $ACC1 : $AC0.M, $AX1.L
+  05e9 f151      lsl16'l     $ACC1 : $AX0.H, @$AR1
+  05ea b520      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR0, $AC0.L
+  05eb 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
+  05ec a693      mulxmv'sl   $AX0.L, $AX1.L, $ACC0 : $AC1.M, $AX1.L
+  05ed f051      lsl16'l     $ACC0 : $AX0.H, @$AR1
+  05ee b428      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR0, $AC1.L
+  05ef 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
  05f0 0083 0d08 lri         $AR3, #0x0d08
  05f2 0080 00c0 lri         $AR0, #0x00c0
  05f4 0081 00c0 lri         $AR1, #0x00c0
@@ -1131,16 +1175,19 @@
  05fb b441      mulxac'l    $AX0.H, $AX1.L, $ACC0 : $AX0.L, @$AR1
  05fc 9100      asr16       $ACC0
  05fd 1130 0606 bloopi      #0x30, 0x0606
- 05ff a792      mulxmv'sl   $AX0.L, $AX1.L, $ACC1 : $AC0.M, $AX1.L
- 0600 f151      lsl16'l     $ACC1 : $AX0.H, @$AR1
- 0601 b520      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR0, $AC0.L
- 0602 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
- 0603 a693      mulxmv'sl   $AX0.L, $AX1.L, $ACC0 : $AC1.M, $AX1.L
- 0604 f051      lsl16'l     $ACC0 : $AX0.H, @$AR1
- 0605 b428      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR0, $AC1.L
- 0606 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
+  05ff a792      mulxmv'sl   $AX0.L, $AX1.L, $ACC1 : $AC0.M, $AX1.L
+  0600 f151      lsl16'l     $ACC1 : $AX0.H, @$AR1
+  0601 b520      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR0, $AC0.L
+  0602 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
+  0603 a693      mulxmv'sl   $AX0.L, $AX1.L, $ACC0 : $AC1.M, $AX1.L
+  0604 f051      lsl16'l     $ACC0 : $AX0.H, @$AR1
+  0605 b428      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR0, $AC1.L
+  0606 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
  0607 00c0 0cd2 lr          $AR0, @0x0cd2
- 0609 029f 006f jmp         0x006f
+ 0609 029f 006f jmp         006f_MailHandler()
+}
+
+void 060b_JumpTable9() {
  060b 8e48      set16'l     : $AX1.L, @$AR0
  060c 8b70      m0'l        : $AC0.M, @$AR0
  060d 8960      clr'l       $ACC1 : $AC0.L, @$AR0
@@ -1161,13 +1208,13 @@
  0625 d000      mulc        $AC1.M, $AX0.H
  0626 d400      mulcac      $AC1.M, $AX0.H, $ACC0
  0627 111f 062b bloopi      #0x1f, 0x062b
- 0629 dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
- 062a d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
- 062b d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
+  0629 dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
+  062a d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
+  062b d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
  062c dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
  062d 4e31      addp's      $ACC0 : @$AR1, $AC0.M
  062e 1b39      srri        @$AR1, $AX1.L
- 062f 02bf 0084 call        0x0084
+ 062f 02bf 0084 call        0084_WaitForMail()
  0631 8f00      set40       
  0632 8d00      set15       
  0633 8a00      m2          
@@ -1184,16 +1231,16 @@
  0642 4e5b      addp'l      $ACC0 : $AX1.H, @$AR3
  0643 f04b      lsl16'l     $ACC0 : $AX1.L, @$AR3
  0644 115f 064f bloopi      #0x5f, 0x064f
- 0646 a031      mulx's      $AX0.L, $AX1.L : @$AR1, $AC0.M
- 0647 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
- 0648 9140      asr16'l     $ACC0 : $AX0.L, @$AR0
- 0649 4e5a      addp'l      $ACC0 : $AX1.H, @$AR2
- 064a f04a      lsl16'l     $ACC0 : $AX1.L, @$AR2
- 064b a031      mulx's      $AX0.L, $AX1.L : @$AR1, $AC0.M
- 064c ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
- 064d 9100      asr16       $ACC0
- 064e 4e5b      addp'l      $ACC0 : $AX1.H, @$AR3
- 064f f04b      lsl16'l     $ACC0 : $AX1.L, @$AR3
+  0646 a031      mulx's      $AX0.L, $AX1.L : @$AR1, $AC0.M
+  0647 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
+  0648 9140      asr16'l     $ACC0 : $AX0.L, @$AR0
+  0649 4e5a      addp'l      $ACC0 : $AX1.H, @$AR2
+  064a f04a      lsl16'l     $ACC0 : $AX1.L, @$AR2
+  064b a031      mulx's      $AX0.L, $AX1.L : @$AR1, $AC0.M
+  064c ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
+  064d 9100      asr16       $ACC0
+  064e 4e5b      addp'l      $ACC0 : $AX1.H, @$AR3
+  064f f04b      lsl16'l     $ACC0 : $AX1.L, @$AR3
  0650 a031      mulx's      $AX0.L, $AX1.L : @$AR1, $AC0.M
  0651 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
  0652 9100      asr16       $ACC0
@@ -1209,19 +1256,24 @@
  065d 16cd 0400 si          @DSPA, #0x0400
  065f 16c9 0001 si          @DSCR, #0x0001
  0661 16cb 0180 si          @DSBL, #0x0180
- 0663 02bf 0084 call        0x0084
+ 0663 02bf 0084 call        0084_WaitForMail()
  0665 16fc dcd1 si          @DMBH, #0xdcd1
  0667 16fd 0004 si          @DMBL, #0x0004
  0669 16fb 0001 si          @DIRQ, #0x0001
  066b 26fc      lrs         $AC0.M, @DMBH
  066c 02a0 8000 andf        $AC0.M, #0x8000
  066e 029c 066b jlnz        0x066b
- 0670 029f 006f jmp         0x006f
+ 0670 029f 006f jmp         006f_MailHandler()
+}
+
+// Restart code??
  0672 16fc dcd1 si          @DMBH, #0xdcd1
  0674 16fd 0002 si          @DMBL, #0x0002
  0676 16fb 0001 si          @DIRQ, #0x0001
  0678 029f 0f9b jmp         0x0f9b
  067a 029f 004c jmp         0x004c
+
+void 067c_JumpTable10() {
  067c 8c00      clr15       
  067d 8a00      m2          
  067e 8f00      set40       
@@ -1229,34 +1281,37 @@
  0681 0082 0240 lri         $AR2, #0x0240
  0683 1fa1      mrr         $AC1.L, $AR1
  0684 1112 0689 bloopi      #0x12, 0x0689
- 0686 195e      lrri        $AC0.M, @$AR2
- 0687 195c      lrri        $AC0.L, @$AR2
- 0688 f000      lsl16       $ACC0
- 0689 1b3e      srri        @$AR1, $AC0.M
+  0686 195e      lrri        $AC0.M, @$AR2
+  0687 195c      lrri        $AC0.L, @$AR2
+  0688 f000      lsl16       $ACC0
+  0689 1b3e      srri        @$AR1, $AC0.M
  068a 191e      lrri        $AC0.M, @$AR0
  068b 191c      lrri        $AC0.L, @$AR0
  068c 2ece      srs         @DSMAH, $AC0.M
  068d 2ccf      srs         @DSMAL, $AC0.L
  068e 2dcd      srs         @DSPA, $AC1.L
  068f 1103 06a2 bloopi      #0x03, 0x06a2
- 0691 16c9 0001 si          @DSCR, #0x0001
- 0693 16cb 0024 si          @DSBL, #0x0024
- 0695 1fa1      mrr         $AC1.L, $AR1
- 0696 1112 069b bloopi      #0x12, 0x069b
- 0698 195e      lrri        $AC0.M, @$AR2
- 0699 195c      lrri        $AC0.L, @$AR2
- 069a f000      lsl16       $ACC0
- 069b 1b3e      srri        @$AR1, $AC0.M
- 069c 02bf 0084 call        0x0084
- 069e 191e      lrri        $AC0.M, @$AR0
- 069f 191c      lrri        $AC0.L, @$AR0
- 06a0 2ece      srs         @DSMAH, $AC0.M
- 06a1 2ccf      srs         @DSMAL, $AC0.L
+  0691 16c9 0001 si          @DSCR, #0x0001
+  0693 16cb 0024 si          @DSBL, #0x0024
+  0695 1fa1      mrr         $AC1.L, $AR1
+  0696 1112 069b bloopi      #0x12, 0x069b
+   0698 195e      lrri        $AC0.M, @$AR2
+   0699 195c      lrri        $AC0.L, @$AR2
+   069a f000      lsl16       $ACC0
+   069b 1b3e      srri        @$AR1, $AC0.M
+  069c 02bf 0084 call        0084_WaitForMail()
+  069e 191e      lrri        $AC0.M, @$AR0
+  069f 191c      lrri        $AC0.L, @$AR0
+  06a0 2ece      srs         @DSMAH, $AC0.M
+  06a1 2ccf      srs         @DSMAL, $AC0.L
  06a2 2dcd      srs         @DSPA, $AC1.L
  06a3 16c9 0001 si          @DSCR, #0x0001
  06a5 16cb 0024 si          @DSBL, #0x0024
- 06a7 02bf 0084 call        0x0084
- 06a9 029f 006f jmp         0x006f
+ 06a7 02bf 0084 call        0084_WaitForMail()
+ 06a9 029f 006f jmp         006f_MailHandler()
+}
+
+void 06ab_unknown() {
  06ab 0087 ffff lri         $IX3, #0xffff
  06ad 1c83      mrr         $IX0, $AR3
  06ae 197e      lrri        $AC0.M, @$AR3
@@ -1268,17 +1323,20 @@
  06b4 1f5e      mrr         $AX0.H, $AC0.M
  06b5 e2e1      maddx'ld    $AX0.H, $AX1.L : $AX0.H, $AX1.L, @$AR1
  06b6 112f 06bd bloopi      #0x2f, 0x06bd
- 06b8 b79a      mulxmv'slm  $AX0.H, $AX1.L, $ACC1 : $AC0.M, $AX1.L
- 06b9 1f5f      mrr         $AX0.H, $AC1.M
- 06ba e2e1      maddx'ld    $AX0.H, $AX1.L : $AX0.H, $AX1.L, @$AR1
- 06bb b69b      mulxmv'slm  $AX0.H, $AX1.L, $ACC0 : $AC1.M, $AX1.L
- 06bc 1f5e      mrr         $AX0.H, $AC0.M
- 06bd e2e1      maddx'ld    $AX0.H, $AX1.L : $AX0.H, $AX1.L, @$AR1
+  06b8 b79a      mulxmv'slm  $AX0.H, $AX1.L, $ACC1 : $AC0.M, $AX1.L
+  06b9 1f5f      mrr         $AX0.H, $AC1.M
+  06ba e2e1      maddx'ld    $AX0.H, $AX1.L : $AX0.H, $AX1.L, @$AR1
+  06bb b69b      mulxmv'slm  $AX0.H, $AX1.L, $ACC0 : $AC1.M, $AX1.L
+  06bc 1f5e      mrr         $AX0.H, $AC0.M
+  06bd e2e1      maddx'ld    $AX0.H, $AX1.L : $AX0.H, $AX1.L, @$AR1
  06be 6f30      movp's      $ACC1 : @$AR0, $AC0.M
  06bf 1b1f      srri        @$AR0, $AC1.M
  06c0 1c64      mrr         $AR3, $IX0
  06c1 1b7f      srri        @$AR3, $AC1.M
  06c2 02df      ret         
+}
+
+void 06c3_Unknown() {
  06c3 8c00      clr15       
  06c4 8b00      m0          
  06c5 1ca0      mrr         $IX1, $AR0
@@ -1291,8 +1349,8 @@
  06cd 191b      lrri        $AX1.H, @$AR0
  06ce 0083 0d03 lri         $AR3, #0x0d03
  06d0 1105 06d3 bloopi      #0x05, 0x06d3
- 06d2 191a      lrri        $AX0.H, @$AR0
- 06d3 1b7a      srri        @$AR3, $AX0.H
+  06d2 191a      lrri        $AX0.H, @$AR0
+  06d3 1b7a      srri        @$AR3, $AX0.H
  06d4 0080 0d03 lri         $AR0, #0x0d03
  06d6 0088 0004 lri         $WR0, #0x0004
  06d8 0083 0370 lri         $AR3, #0x0370
@@ -1311,26 +1369,26 @@
  06e8 1f7e      mrr         $AX1.H, $AC0.M
  06e9 1b5e      srri        @$AR2, $AC0.M
  06ea 112f 06ff bloopi      #0x2f, 0x06ff
- 06ec d0c3      mulc'ld     $AC1.M, $AX0.H : $AX0.L, $AX1.L, @$AR3
- 06ed f2cb      madd'ldm    $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
- 06ee f2a9      madd'lsm    $AX0.L, $AX0.H : $AX0.H, $AC1.M
- 06ef e350      maddx'l     $AX0.H, $AX1.H : $AX0.H, @$AR0
- 06f0 e279      maddx'l     $AX0.H, $AX1.L : $AC1.M, @$AR1
- 06f1 6e50      movp'l      $ACC0 : $AX0.H, @$AR0
- 06f2 1482      asl         $ACC0, #2
- 06f3 fc00      clrl        $AC1.L
- 06f4 1f3e      mrr         $AX1.L, $AC0.M
- 06f5 1b5e      srri        @$AR2, $AC0.M
- 06f6 d0c3      mulc'ld     $AC1.M, $AX0.H : $AX0.L, $AX1.L, @$AR3
- 06f7 f2cb      madd'ldm    $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
- 06f8 f2a9      madd'lsm    $AX0.L, $AX0.H : $AX0.H, $AC1.M
- 06f9 e250      maddx'l     $AX0.H, $AX1.L : $AX0.H, @$AR0
- 06fa e379      maddx'l     $AX0.H, $AX1.H : $AC1.M, @$AR1
- 06fb 6e50      movp'l      $ACC0 : $AX0.H, @$AR0
- 06fc 1482      asl         $ACC0, #2
- 06fd fc00      clrl        $AC1.L
- 06fe 1f7e      mrr         $AX1.H, $AC0.M
- 06ff 1b5e      srri        @$AR2, $AC0.M
+  06ec d0c3      mulc'ld     $AC1.M, $AX0.H : $AX0.L, $AX1.L, @$AR3
+  06ed f2cb      madd'ldm    $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
+  06ee f2a9      madd'lsm    $AX0.L, $AX0.H : $AX0.H, $AC1.M
+  06ef e350      maddx'l     $AX0.H, $AX1.H : $AX0.H, @$AR0
+  06f0 e279      maddx'l     $AX0.H, $AX1.L : $AC1.M, @$AR1
+  06f1 6e50      movp'l      $ACC0 : $AX0.H, @$AR0
+  06f2 1482      asl         $ACC0, #2
+  06f3 fc00      clrl        $AC1.L
+  06f4 1f3e      mrr         $AX1.L, $AC0.M
+  06f5 1b5e      srri        @$AR2, $AC0.M
+  06f6 d0c3      mulc'ld     $AC1.M, $AX0.H : $AX0.L, $AX1.L, @$AR3
+  06f7 f2cb      madd'ldm    $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
+  06f8 f2a9      madd'lsm    $AX0.L, $AX0.H : $AX0.H, $AC1.M
+  06f9 e250      maddx'l     $AX0.H, $AX1.L : $AX0.H, @$AR0
+  06fa e379      maddx'l     $AX0.H, $AX1.H : $AC1.M, @$AR1
+  06fb 6e50      movp'l      $ACC0 : $AX0.H, @$AR0
+  06fc 1482      asl         $ACC0, #2
+  06fd fc00      clrl        $AC1.L
+  06fe 1f7e      mrr         $AX1.H, $AC0.M
+  06ff 1b5e      srri        @$AR2, $AC0.M
  0700 d0c3      mulc'ld     $AC1.M, $AX0.H : $AX0.L, $AX1.L, @$AR3
  0701 f2cb      madd'ldm    $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
  0702 f2a9      madd'lsm    $AX0.L, $AX0.H : $AX0.H, $AC1.M
@@ -1353,7 +1411,9 @@
  0716 1b1b      srri        @$AR0, $AX1.H
  0717 8d00      set15       
  0718 8a00      m2          
- 0719 02df      ret         
+ 0719 02df      ret 
+}
+        
  071a 02bf 07e6 call        0x07e6
  071c 8c00      clr15       
  071d 8a00      m2          
@@ -1377,24 +1437,24 @@
  0733 00c7 0ce0 lr          $IX3, @0x0ce0
  0735 4a00      addax       $ACC0, $AX1.L
  0736 1160 074a bloopi      #0x60, 0x074a
- 0738 8912      clr'mv      $ACC1 : $AX0.L, $AC0.M
- 0739 1fbc      mrr         $AC1.L, $AC0.L
- 073a 1577      lsr         $ACC1, #-9
- 073b 1512      lsl         $ACC1, #18
- 073c 1c7f      mrr         $AR3, $AC1.M
- 073d 001f      addarn      $AR3, $IX3
- 073e 0078 0743 bloop       $AX0.L, 0x0743
- 0740 185a      lrr         $AX0.H, @$AR2
- 0741 1b1a      srri        @$AR0, $AX0.H
- 0742 5000      subr        $ACC0, $AX0.L
- 0743 1f1d      mrr         $AX0.L, $AC1.L
- 0744 4ac3      addax'ld    $ACC0, $AX1.L : $AX0.L, $AX1.L, @$AR3
- 0745 90c3      mul'ld      $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
- 0746 97c3      mulmv'ld    $AX0.L, $AX0.H, $ACC1 : $AX0.L, $AX1.L, @$AR3
- 0747 95c3      mulac'ld    $AX0.L, $AX0.H, $ACC1 : $AX0.L, $AX1.L, @$AR3
- 0748 9500      mulac       $AX0.L, $AX0.H, $ACC1
- 0749 4f00      addp        $ACC1
- 074a 1b3f      srri        @$AR1, $AC1.M
+  0738 8912      clr'mv      $ACC1 : $AX0.L, $AC0.M
+  0739 1fbc      mrr         $AC1.L, $AC0.L
+  073a 1577      lsr         $ACC1, #-9
+  073b 1512      lsl         $ACC1, #18
+  073c 1c7f      mrr         $AR3, $AC1.M
+  073d 001f      addarn      $AR3, $IX3
+  073e 0078 0743 bloop       $AX0.L, 0x0743
+   0740 185a      lrr         $AX0.H, @$AR2
+   0741 1b1a      srri        @$AR0, $AX0.H
+   0742 5000      subr        $ACC0, $AX0.L
+   0743 1f1d      mrr         $AX0.L, $AC1.L
+  0744 4ac3      addax'ld    $ACC0, $AX1.L : $AX0.L, $AX1.L, @$AR3
+  0745 90c3      mul'ld      $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
+  0746 97c3      mulmv'ld    $AX0.L, $AX0.H, $ACC1 : $AX0.L, $AX1.L, @$AR3
+  0747 95c3      mulac'ld    $AX0.L, $AX0.H, $ACC1 : $AX0.L, $AX1.L, @$AR3
+  0748 9500      mulac       $AX0.L, $AX0.H, $ACC1
+  0749 4f00      addp        $ACC1
+  074a 1b3f      srri        @$AR1, $AC1.M
  074b 5a00      subax       $ACC0, $AX1.L
  074c 0004      dar         $AR0
  074d 0082 0329 lri         $AR2, #0x0329
@@ -1423,6 +1483,7 @@
  0768 8e00      set16       
  0769 8b00      m0          
  076a 02df      ret         
+
  076b 02bf 07e6 call        0x07e6
  076d 8d00      set15       
  076e 8b00      m0          
@@ -1447,25 +1508,25 @@
  0786 1f25      mrr         $AX1.L, $IX1
  0787 4a00      addax       $ACC0, $AX1.L
  0788 1160 079f bloopi      #0x60, 0x079f
- 078a 8912      clr'mv      $ACC1 : $AX0.L, $AC0.M
- 078b 0078 0790 bloop       $AX0.L, 0x0790
- 078d 185a      lrr         $AX0.H, @$AR2
- 078e 1b1a      srri        @$AR0, $AX0.H
- 078f 5000      subr        $ACC0, $AX0.L
- 0790 1f1f      mrr         $AX0.L, $AC1.M
- 0791 7c00      neg         $ACC0
- 0792 b114      tst'mv      $ACC0 : $AX1.L, $AC0.L
- 0793 0294 0799 jnz         0x0799
- 0795 191f      lrri        $AC1.M, @$AR0
- 0796 0010      addarn      $AR0, $IX0
- 0797 029f 079e jmp         0x079e
- 0799 7c50      neg'l       $ACC0 : $AX0.H, @$AR0
- 079a b014      mulx'mv     $AX0.H, $AX1.L : $AX1.L, $AC0.L
- 079b 199a      lrrn        $AX0.H, @$AR0
- 079c b700      mulxmv      $AX0.H, $AX1.L, $ACC1
- 079d 4f00      addp        $ACC1
- 079e 1f25      mrr         $AX1.L, $IX1
- 079f 4a39      addax's     $ACC0, $AX1.L : @$AR1, $AC1.M
+  078a 8912      clr'mv      $ACC1 : $AX0.L, $AC0.M
+  078b 0078 0790 bloop       $AX0.L, 0x0790
+   078d 185a      lrr         $AX0.H, @$AR2
+   078e 1b1a      srri        @$AR0, $AX0.H
+   078f 5000      subr        $ACC0, $AX0.L
+   0790 1f1f      mrr         $AX0.L, $AC1.M
+  0791 7c00      neg         $ACC0
+  0792 b114      tst'mv      $ACC0 : $AX1.L, $AC0.L
+  0793 0294 0799 jnz         0x0799
+  0795 191f      lrri        $AC1.M, @$AR0
+  0796 0010      addarn      $AR0, $IX0
+  0797 029f 079e jmp         0x079e
+  0799 7c50      neg'l       $ACC0 : $AX0.H, @$AR0
+  079a b014      mulx'mv     $AX0.H, $AX1.L : $AX1.L, $AC0.L
+  079b 199a      lrrn        $AX0.H, @$AR0
+  079c b700      mulxmv      $AX0.H, $AX1.L, $ACC1
+  079d 4f00      addp        $ACC1
+  079e 1f25      mrr         $AX1.L, $IX1
+  079f 4a39      addax's     $ACC0, $AX1.L : @$AR1, $AC1.M
  07a0 5a00      subax       $ACC0, $AX1.L
  07a1 0004      dar         $AR0
  07a2 0082 0329 lri         $AR2, #0x0329
@@ -1494,14 +1555,15 @@
  07bd 8e00      set16       
  07be 8c00      clr15       
  07bf 02df      ret         
+
  07c0 02bf 07e6 call        0x07e6
  07c2 0080 0c60 lri         $AR0, #0x0c60
  07c4 0082 ffdd lri         $AR2, #0xffdd
  07c6 1160 07cb bloopi      #0x60, 0x07cb
- 07c8 1844      lrr         $IX0, @$AR2
- 07c9 1b04      srri        @$AR0, $IX0
- 07ca 0000      nop         
- 07cb 0000      nop         
+  07c8 1844      lrr         $IX0, @$AR2
+  07c9 1b04      srri        @$AR0, $IX0
+  07ca 0000      nop         
+  07cb 0000      nop         
  07cc 0004      dar         $AR0
  07cd 0082 0329 lri         $AR2, #0x0329
  07cf 189f      lrrd        $AC1.M, @$AR0
@@ -1525,6 +1587,8 @@
  07e3 27d8      lrs         $AC1.M, @ACCAH
  07e4 1adf      srrd        @$AR2, $AC1.M
  07e5 02df      ret         
+
+07e6_Sample() {
  07e6 0082 0308 lri         $AR2, #0x0308
  07e8 195e      lrri        $AC0.M, @$AR2
  07e9 2ed1      srs         @SampleFormat, $AC0.M
@@ -1586,14 +1650,14 @@
  0822 0081 02da lri         $AR1, #0x02da
  0824 0082 0000 lri         $AR2, #0x0000
  0826 1c62      mrr         $AR3, $AR2
- 0827 02bf 0bd1 call        0x0bd1
+ 0827 02bf 0bd1 call        0bd1_Unknown()
  0829 00f8 02f9 sr          @0x02f9, $AX0.L
  082b 02df      ret         
  082c 00c0 0ce3 lr          $AR0, @0x0ce3
  082e 0081 02dc lri         $AR1, #0x02dc
  0830 0082 00c0 lri         $AR2, #0x00c0
  0832 1c62      mrr         $AR3, $AR2
- 0833 02bf 0bd1 call        0x0bd1
+ 0833 02bf 0bd1 call        0bd1_Unknown()
  0835 00f8 02fd sr          @0x02fd, $AX0.L
  0837 02df      ret         
  0838 00c0 0ce2 lr          $AR0, @0x0ce2
@@ -1620,84 +1684,84 @@
  085f 0081 02ea lri         $AR1, #0x02ea
  0861 0082 0180 lri         $AR2, #0x0180
  0863 1c62      mrr         $AR3, $AR2
- 0864 02bf 0bd1 call        0x0bd1
+ 0864 02bf 0bd1 call        0bd1_Unknown()
  0866 00f8 0301 sr          @0x0301, $AX0.L
  0868 02df      ret         
  0869 00c0 0ce1 lr          $AR0, @0x0ce1
  086b 0081 02ea lri         $AR1, #0x02ea
  086d 0082 0180 lri         $AR2, #0x0180
  086f 1c62      mrr         $AR3, $AR2
- 0870 02bf 0bd1 call        0x0bd1
+ 0870 02bf 0bd1 call        0bd1_Unknown()
  0872 00f8 0301 sr          @0x0301, $AX0.L
  0874 029f 0820 jmp         0x0820
  0876 00c0 0ce1 lr          $AR0, @0x0ce1
  0878 0081 02ea lri         $AR1, #0x02ea
  087a 0082 0180 lri         $AR2, #0x0180
  087c 1c62      mrr         $AR3, $AR2
- 087d 02bf 0bd1 call        0x0bd1
+ 087d 02bf 0bd1 call        0bd1_Unknown()
  087f 00f8 0301 sr          @0x0301, $AX0.L
  0881 029f 082c jmp         0x082c
  0883 00c0 0ce1 lr          $AR0, @0x0ce1
  0885 0081 02ea lri         $AR1, #0x02ea
  0887 0082 0180 lri         $AR2, #0x0180
  0889 1c62      mrr         $AR3, $AR2
- 088a 02bf 0bd1 call        0x0bd1
+ 088a 02bf 0bd1 call        0bd1_Unknown()
  088c 00f8 0301 sr          @0x0301, $AX0.L
  088e 029f 0838 jmp         0x0838
  0890 00c0 0ce1 lr          $AR0, @0x0ce1
  0892 0081 02ea lri         $AR1, #0x02ea
  0894 0082 0180 lri         $AR2, #0x0180
  0896 1c62      mrr         $AR3, $AR2
- 0897 02bf 0bd1 call        0x0bd1
+ 0897 02bf 0bd1 call        0bd1_Unknown()
  0899 00f8 0301 sr          @0x0301, $AX0.L
  089b 029f 084a jmp         0x084a
  089d 00c0 0ce1 lr          $AR0, @0x0ce1
  089f 0081 02ea lri         $AR1, #0x02ea
  08a1 0082 0180 lri         $AR2, #0x0180
  08a3 0083 0d08 lri         $AR3, #0x0d08
- 08a5 02bf 0c21 call        0x0c21
+ 08a5 02bf 0c21 call        0c21_Unknown()
  08a7 00f8 0301 sr          @0x0301, $AX0.L
  08a9 02df      ret         
  08aa 00c0 0ce1 lr          $AR0, @0x0ce1
  08ac 0081 02ea lri         $AR1, #0x02ea
  08ae 0082 0180 lri         $AR2, #0x0180
  08b0 0083 0d08 lri         $AR3, #0x0d08
- 08b2 02bf 0c21 call        0x0c21
+ 08b2 02bf 0c21 call        0c21_Unknown()
  08b4 00f8 0301 sr          @0x0301, $AX0.L
  08b6 029f 0820 jmp         0x0820
  08b8 00c0 0ce1 lr          $AR0, @0x0ce1
  08ba 0081 02ea lri         $AR1, #0x02ea
  08bc 0082 0180 lri         $AR2, #0x0180
  08be 0083 0d08 lri         $AR3, #0x0d08
- 08c0 02bf 0c21 call        0x0c21
+ 08c0 02bf 0c21 call        0c21_Unknown()
  08c2 00f8 0301 sr          @0x0301, $AX0.L
  08c4 029f 082c jmp         0x082c
  08c6 00c0 0ce1 lr          $AR0, @0x0ce1
  08c8 0081 02ea lri         $AR1, #0x02ea
  08ca 0082 0180 lri         $AR2, #0x0180
  08cc 0083 0d08 lri         $AR3, #0x0d08
- 08ce 02bf 0c21 call        0x0c21
+ 08ce 02bf 0c21 call        0c21_Unknown()
  08d0 00f8 0301 sr          @0x0301, $AX0.L
  08d2 029f 0838 jmp         0x0838
  08d4 00c0 0ce1 lr          $AR0, @0x0ce1
  08d6 0081 02ea lri         $AR1, #0x02ea
  08d8 0082 0180 lri         $AR2, #0x0180
  08da 0083 0d08 lri         $AR3, #0x0d08
- 08dc 02bf 0c21 call        0x0c21
+ 08dc 02bf 0c21 call        0c21_Unknown()
  08de 00f8 0301 sr          @0x0301, $AX0.L
  08e0 029f 084a jmp         0x084a
  08e2 00c0 0ce2 lr          $AR0, @0x0ce2
  08e4 0081 02de lri         $AR1, #0x02de
  08e6 0082 0400 lri         $AR2, #0x0400
  08e8 1c62      mrr         $AR3, $AR2
- 08e9 02bf 0bd1 call        0x0bd1
+ 08e9 02bf 0bd1 call        0bd1_Unknown()
  08eb 00f8 02fa sr          @0x02fa, $AX0.L
  08ed 02df      ret         
  08ee 00c0 0ce3 lr          $AR0, @0x0ce3
  08f0 0081 02e0 lri         $AR1, #0x02e0
  08f2 0082 04c0 lri         $AR2, #0x04c0
  08f4 1c62      mrr         $AR3, $AR2
- 08f5 02bf 0bd1 call        0x0bd1
+ 08f5 02bf 0bd1 call        0bd1_Unknown()
  08f7 00f8 02fe sr          @0x02fe, $AX0.L
  08f9 02df      ret         
  08fa 00c0 0ce2 lr          $AR0, @0x0ce2
@@ -1724,84 +1788,84 @@
  0921 0081 02ec lri         $AR1, #0x02ec
  0923 0082 0580 lri         $AR2, #0x0580
  0925 1c62      mrr         $AR3, $AR2
- 0926 02bf 0bd1 call        0x0bd1
+ 0926 02bf 0bd1 call        0bd1_Unknown()
  0928 00f8 0302 sr          @0x0302, $AX0.L
  092a 02df      ret         
  092b 00c0 0ce1 lr          $AR0, @0x0ce1
  092d 0081 02ec lri         $AR1, #0x02ec
  092f 0082 0580 lri         $AR2, #0x0580
  0931 1c62      mrr         $AR3, $AR2
- 0932 02bf 0bd1 call        0x0bd1
+ 0932 02bf 0bd1 call        0bd1_Unknown()
  0934 00f8 0302 sr          @0x0302, $AX0.L
  0936 029f 08e2 jmp         0x08e2
  0938 00c0 0ce1 lr          $AR0, @0x0ce1
  093a 0081 02ec lri         $AR1, #0x02ec
  093c 0082 0580 lri         $AR2, #0x0580
  093e 1c62      mrr         $AR3, $AR2
- 093f 02bf 0bd1 call        0x0bd1
+ 093f 02bf 0bd1 call        0bd1_Unknown()
  0941 00f8 0302 sr          @0x0302, $AX0.L
  0943 029f 08ee jmp         0x08ee
  0945 00c0 0ce1 lr          $AR0, @0x0ce1
  0947 0081 02ec lri         $AR1, #0x02ec
  0949 0082 0580 lri         $AR2, #0x0580
  094b 1c62      mrr         $AR3, $AR2
- 094c 02bf 0bd1 call        0x0bd1
+ 094c 02bf 0bd1 call        0bd1_Unknown()
  094e 00f8 0302 sr          @0x0302, $AX0.L
  0950 029f 08fa jmp         0x08fa
  0952 00c0 0ce1 lr          $AR0, @0x0ce1
  0954 0081 02ec lri         $AR1, #0x02ec
  0956 0082 0580 lri         $AR2, #0x0580
  0958 1c62      mrr         $AR3, $AR2
- 0959 02bf 0bd1 call        0x0bd1
+ 0959 02bf 0bd1 call        0bd1_Unknown()
  095b 00f8 0302 sr          @0x0302, $AX0.L
  095d 029f 090c jmp         0x090c
  095f 00c0 0ce1 lr          $AR0, @0x0ce1
  0961 0081 02ec lri         $AR1, #0x02ec
  0963 0082 0580 lri         $AR2, #0x0580
  0965 0083 0d08 lri         $AR3, #0x0d08
- 0967 02bf 0c21 call        0x0c21
+ 0967 02bf 0c21 call        0c21_Unknown()
  0969 00f8 0302 sr          @0x0302, $AX0.L
  096b 02df      ret         
  096c 00c0 0ce1 lr          $AR0, @0x0ce1
  096e 0081 02ec lri         $AR1, #0x02ec
  0970 0082 0580 lri         $AR2, #0x0580
  0972 0083 0d08 lri         $AR3, #0x0d08
- 0974 02bf 0c21 call        0x0c21
+ 0974 02bf 0c21 call        0c21_Unknown()
  0976 00f8 0302 sr          @0x0302, $AX0.L
  0978 029f 08e2 jmp         0x08e2
  097a 00c0 0ce1 lr          $AR0, @0x0ce1
  097c 0081 02ec lri         $AR1, #0x02ec
  097e 0082 0580 lri         $AR2, #0x0580
  0980 0083 0d08 lri         $AR3, #0x0d08
- 0982 02bf 0c21 call        0x0c21
+ 0982 02bf 0c21 call        0c21_Unknown()
  0984 00f8 0302 sr          @0x0302, $AX0.L
  0986 029f 08ee jmp         0x08ee
  0988 00c0 0ce1 lr          $AR0, @0x0ce1
  098a 0081 02ec lri         $AR1, #0x02ec
  098c 0082 0580 lri         $AR2, #0x0580
  098e 0083 0d08 lri         $AR3, #0x0d08
- 0990 02bf 0c21 call        0x0c21
+ 0990 02bf 0c21 call        0c21_Unknown()
  0992 00f8 0302 sr          @0x0302, $AX0.L
  0994 029f 08fa jmp         0x08fa
  0996 00c0 0ce1 lr          $AR0, @0x0ce1
  0998 0081 02ec lri         $AR1, #0x02ec
  099a 0082 0580 lri         $AR2, #0x0580
  099c 0083 0d08 lri         $AR3, #0x0d08
- 099e 02bf 0c21 call        0x0c21
+ 099e 02bf 0c21 call        0c21_Unknown()
  09a0 00f8 0302 sr          @0x0302, $AX0.L
  09a2 029f 090c jmp         0x090c
  09a4 00c0 0ce2 lr          $AR0, @0x0ce2
  09a6 0081 02e2 lri         $AR1, #0x02e2
  09a8 0082 0640 lri         $AR2, #0x0640
  09aa 1c62      mrr         $AR3, $AR2
- 09ab 02bf 0bd1 call        0x0bd1
+ 09ab 02bf 0bd1 call        0bd1_Unknown()
  09ad 00f8 02fb sr          @0x02fb, $AX0.L
  09af 02df      ret         
  09b0 00c0 0ce3 lr          $AR0, @0x0ce3
  09b2 0081 02e4 lri         $AR1, #0x02e4
  09b4 0082 0700 lri         $AR2, #0x0700
  09b6 1c62      mrr         $AR3, $AR2
- 09b7 02bf 0bd1 call        0x0bd1
+ 09b7 02bf 0bd1 call        0bd1_Unknown()
  09b9 00f8 02ff sr          @0x02ff, $AX0.L
  09bb 02df      ret         
  09bc 00c0 0ce2 lr          $AR0, @0x0ce2
@@ -1828,86 +1892,88 @@
  09e3 0081 02ee lri         $AR1, #0x02ee
  09e5 0082 07c0 lri         $AR2, #0x07c0
  09e7 1c62      mrr         $AR3, $AR2
- 09e8 02bf 0bd1 call        0x0bd1
+ 09e8 02bf 0bd1 call        0bd1_Unknown()
  09ea 00f8 0303 sr          @0x0303, $AX0.L
  09ec 02df      ret         
  09ed 00c0 0ce1 lr          $AR0, @0x0ce1
  09ef 0081 02ee lri         $AR1, #0x02ee
  09f1 0082 07c0 lri         $AR2, #0x07c0
  09f3 1c62      mrr         $AR3, $AR2
- 09f4 02bf 0bd1 call        0x0bd1
+ 09f4 02bf 0bd1 call        0bd1_Unknown()
  09f6 00f8 0303 sr          @0x0303, $AX0.L
  09f8 029f 09a4 jmp         0x09a4
  09fa 00c0 0ce1 lr          $AR0, @0x0ce1
  09fc 0081 02ee lri         $AR1, #0x02ee
  09fe 0082 07c0 lri         $AR2, #0x07c0
  0a00 1c62      mrr         $AR3, $AR2
- 0a01 02bf 0bd1 call        0x0bd1
+ 0a01 02bf 0bd1 call        0bd1_Unknown()
  0a03 00f8 0303 sr          @0x0303, $AX0.L
  0a05 029f 09b0 jmp         0x09b0
  0a07 00c0 0ce1 lr          $AR0, @0x0ce1
  0a09 0081 02ee lri         $AR1, #0x02ee
  0a0b 0082 07c0 lri         $AR2, #0x07c0
  0a0d 1c62      mrr         $AR3, $AR2
- 0a0e 02bf 0bd1 call        0x0bd1
+ 0a0e 02bf 0bd1 call        0bd1_Unknown()
  0a10 00f8 0303 sr          @0x0303, $AX0.L
  0a12 029f 09bc jmp         0x09bc
  0a14 00c0 0ce1 lr          $AR0, @0x0ce1
  0a16 0081 02ee lri         $AR1, #0x02ee
  0a18 0082 07c0 lri         $AR2, #0x07c0
  0a1a 1c62      mrr         $AR3, $AR2
- 0a1b 02bf 0bd1 call        0x0bd1
+ 0a1b 02bf 0bd1 call        0bd1_Unknown()
  0a1d 00f8 0303 sr          @0x0303, $AX0.L
  0a1f 029f 09ce jmp         0x09ce
  0a21 00c0 0ce1 lr          $AR0, @0x0ce1
  0a23 0081 02ee lri         $AR1, #0x02ee
  0a25 0082 07c0 lri         $AR2, #0x07c0
  0a27 0083 0d08 lri         $AR3, #0x0d08
- 0a29 02bf 0c21 call        0x0c21
+ 0a29 02bf 0c21 call        0c21_Unknown()
  0a2b 00f8 0303 sr          @0x0303, $AX0.L
  0a2d 02df      ret         
  0a2e 00c0 0ce1 lr          $AR0, @0x0ce1
  0a30 0081 02ee lri         $AR1, #0x02ee
  0a32 0082 07c0 lri         $AR2, #0x07c0
  0a34 0083 0d08 lri         $AR3, #0x0d08
- 0a36 02bf 0c21 call        0x0c21
+ 0a36 02bf 0c21 call        0c21_Unknown()
  0a38 00f8 0303 sr          @0x0303, $AX0.L
  0a3a 029f 09a4 jmp         0x09a4
  0a3c 00c0 0ce1 lr          $AR0, @0x0ce1
  0a3e 0081 02ee lri         $AR1, #0x02ee
  0a40 0082 07c0 lri         $AR2, #0x07c0
  0a42 0083 0d08 lri         $AR3, #0x0d08
- 0a44 02bf 0c21 call        0x0c21
+ 0a44 02bf 0c21 call        0c21_Unknown()
  0a46 00f8 0303 sr          @0x0303, $AX0.L
  0a48 029f 09b0 jmp         0x09b0
  0a4a 00c0 0ce1 lr          $AR0, @0x0ce1
  0a4c 0081 02ee lri         $AR1, #0x02ee
  0a4e 0082 07c0 lri         $AR2, #0x07c0
  0a50 0083 0d08 lri         $AR3, #0x0d08
- 0a52 02bf 0c21 call        0x0c21
+ 0a52 02bf 0c21 call        0c21_Unknown()
  0a54 00f8 0303 sr          @0x0303, $AX0.L
  0a56 029f 09bc jmp         0x09bc
  0a58 00c0 0ce1 lr          $AR0, @0x0ce1
  0a5a 0081 02ee lri         $AR1, #0x02ee
  0a5c 0082 07c0 lri         $AR2, #0x07c0
  0a5e 0083 0d08 lri         $AR3, #0x0d08
- 0a60 02bf 0c21 call        0x0c21
+ 0a60 02bf 0c21 call        0c21_Unknown()
  0a62 00f8 0303 sr          @0x0303, $AX0.L
  0a64 029f 09ce jmp         0x09ce
  0a66 00c0 0ce2 lr          $AR0, @0x0ce2
  0a68 0081 02e6 lri         $AR1, #0x02e6
  0a6a 0082 0880 lri         $AR2, #0x0880
  0a6c 1c62      mrr         $AR3, $AR2
- 0a6d 02bf 0bd1 call        0x0bd1
+ 0a6d 02bf 0bd1 call        0bd1_Unknown()
  0a6f 00f8 02fc sr          @0x02fc, $AX0.L
  0a71 02df      ret         
+
  0a72 00c0 0ce3 lr          $AR0, @0x0ce3
  0a74 0081 02e8 lri         $AR1, #0x02e8
  0a76 0082 0940 lri         $AR2, #0x0940
  0a78 1c62      mrr         $AR3, $AR2
- 0a79 02bf 0bd1 call        0x0bd1
+ 0a79 02bf 0bd1 call        0bd1_Unknown()
  0a7b 00f8 0300 sr          @0x0300, $AX0.L
  0a7d 02df      ret         
+
  0a7e 00c0 0ce2 lr          $AR0, @0x0ce2
  0a80 0081 02e6 lri         $AR1, #0x02e6
  0a82 0082 0880 lri         $AR2, #0x0880
@@ -1918,6 +1984,7 @@
  0a8b 00f8 02fc sr          @0x02fc, $AX0.L
  0a8d 00fb 0300 sr          @0x0300, $AX1.H
  0a8f 02df      ret         
+
  0a90 00c0 0ce2 lr          $AR0, @0x0ce2
  0a92 0081 02e6 lri         $AR1, #0x02e6
  0a94 0082 0880 lri         $AR2, #0x0880
@@ -1932,86 +1999,87 @@
  0aa5 0081 02f0 lri         $AR1, #0x02f0
  0aa7 0082 0a00 lri         $AR2, #0x0a00
  0aa9 1c62      mrr         $AR3, $AR2
- 0aaa 02bf 0bd1 call        0x0bd1
+ 0aaa 02bf 0bd1 call        0bd1_Unknown()
  0aac 00f8 0304 sr          @0x0304, $AX0.L
  0aae 02df      ret         
  0aaf 00c0 0ce1 lr          $AR0, @0x0ce1
  0ab1 0081 02f0 lri         $AR1, #0x02f0
  0ab3 0082 0a00 lri         $AR2, #0x0a00
  0ab5 1c62      mrr         $AR3, $AR2
- 0ab6 02bf 0bd1 call        0x0bd1
+ 0ab6 02bf 0bd1 call        0bd1_Unknown()
  0ab8 00f8 0304 sr          @0x0304, $AX0.L
  0aba 029f 0a66 jmp         0x0a66
  0abc 00c0 0ce1 lr          $AR0, @0x0ce1
  0abe 0081 02f0 lri         $AR1, #0x02f0
  0ac0 0082 0a00 lri         $AR2, #0x0a00
  0ac2 1c62      mrr         $AR3, $AR2
- 0ac3 02bf 0bd1 call        0x0bd1
+ 0ac3 02bf 0bd1 call        0bd1_Unknown()
  0ac5 00f8 0304 sr          @0x0304, $AX0.L
  0ac7 029f 0a72 jmp         0x0a72
  0ac9 00c0 0ce1 lr          $AR0, @0x0ce1
  0acb 0081 02f0 lri         $AR1, #0x02f0
  0acd 0082 0a00 lri         $AR2, #0x0a00
  0acf 1c62      mrr         $AR3, $AR2
- 0ad0 02bf 0bd1 call        0x0bd1
+ 0ad0 02bf 0bd1 call        0bd1_Unknown()
  0ad2 00f8 0304 sr          @0x0304, $AX0.L
  0ad4 029f 0a7e jmp         0x0a7e
  0ad6 00c0 0ce1 lr          $AR0, @0x0ce1
  0ad8 0081 02f0 lri         $AR1, #0x02f0
  0ada 0082 0a00 lri         $AR2, #0x0a00
  0adc 1c62      mrr         $AR3, $AR2
- 0add 02bf 0bd1 call        0x0bd1
+ 0add 02bf 0bd1 call        0bd1_Unknown()
  0adf 00f8 0304 sr          @0x0304, $AX0.L
  0ae1 029f 0a90 jmp         0x0a90
  0ae3 00c0 0ce1 lr          $AR0, @0x0ce1
  0ae5 0081 02f0 lri         $AR1, #0x02f0
  0ae7 0082 0a00 lri         $AR2, #0x0a00
  0ae9 0083 0d08 lri         $AR3, #0x0d08
- 0aeb 02bf 0c21 call        0x0c21
+ 0aeb 02bf 0c21 call        0c21_Unknown()
  0aed 00f8 0304 sr          @0x0304, $AX0.L
  0aef 02df      ret         
  0af0 00c0 0ce1 lr          $AR0, @0x0ce1
  0af2 0081 02f0 lri         $AR1, #0x02f0
  0af4 0082 0a00 lri         $AR2, #0x0a00
  0af6 0083 0d08 lri         $AR3, #0x0d08
- 0af8 02bf 0c21 call        0x0c21
+ 0af8 02bf 0c21 call        0c21_Unknown()
  0afa 00f8 0304 sr          @0x0304, $AX0.L
  0afc 029f 0a66 jmp         0x0a66
  0afe 00c0 0ce1 lr          $AR0, @0x0ce1
  0b00 0081 02f0 lri         $AR1, #0x02f0
  0b02 0082 0a00 lri         $AR2, #0x0a00
  0b04 0083 0d08 lri         $AR3, #0x0d08
- 0b06 02bf 0c21 call        0x0c21
+ 0b06 02bf 0c21 call        0c21_Unknown()
  0b08 00f8 0304 sr          @0x0304, $AX0.L
  0b0a 029f 0a72 jmp         0x0a72
  0b0c 00c0 0ce1 lr          $AR0, @0x0ce1
  0b0e 0081 02f0 lri         $AR1, #0x02f0
  0b10 0082 0a00 lri         $AR2, #0x0a00
  0b12 0083 0d08 lri         $AR3, #0x0d08
- 0b14 02bf 0c21 call        0x0c21
+ 0b14 02bf 0c21 call        0c21_Unknown()
  0b16 00f8 0304 sr          @0x0304, $AX0.L
  0b18 029f 0a7e jmp         0x0a7e
  0b1a 00c0 0ce1 lr          $AR0, @0x0ce1
  0b1c 0081 02f0 lri         $AR1, #0x02f0
  0b1e 0082 0a00 lri         $AR2, #0x0a00
  0b20 0083 0d08 lri         $AR3, #0x0d08
- 0b22 02bf 0c21 call        0x0c21
+ 0b22 02bf 0c21 call        0c21_Unknown()
  0b24 00f8 0304 sr          @0x0304, $AX0.L
  0b26 029f 0a90 jmp         0x0a90
  0b28 00c0 0ce1 lr          $AR0, @0x0ce1
  0b2a 0081 02e6 lri         $AR1, #0x02e6
  0b2c 0082 0880 lri         $AR2, #0x0880
  0b2e 1c62      mrr         $AR3, $AR2
- 0b2f 02bf 0bd1 call        0x0bd1
+ 0b2f 02bf 0bd1 call        0bd1_Unknown()
  0b31 00f8 02fc sr          @0x02fc, $AX0.L
  0b33 02df      ret         
  0b34 00c0 0ce1 lr          $AR0, @0x0ce1
  0b36 0081 02e8 lri         $AR1, #0x02e8
  0b38 0082 0940 lri         $AR2, #0x0940
  0b3a 1c62      mrr         $AR3, $AR2
- 0b3b 02bf 0bd1 call        0x0bd1
+ 0b3b 02bf 0bd1 call        0bd1_Unknown()
  0b3d 00f8 0300 sr          @0x0300, $AX0.L
  0b3f 02df      ret         
+
  0b40 00c0 0ce1 lr          $AR0, @0x0ce1
  0b42 0081 02e6 lri         $AR1, #0x02e6
  0b44 0082 0880 lri         $AR2, #0x0880
@@ -2022,6 +2090,8 @@
  0b4d 00f8 02fc sr          @0x02fc, $AX0.L
  0b4f 00fb 0300 sr          @0x0300, $AX1.H
  0b51 02df      ret         
+
+void 0b52_Maybe_Mixer() {
  0b52 00c0 0ce1 lr          $AR0, @0x0ce1
  0b54 0081 02e6 lri         $AR1, #0x02e6
  0b56 0082 0880 lri         $AR2, #0x0880
@@ -2036,58 +2106,62 @@
  0b67 0081 02f0 lri         $AR1, #0x02f0
  0b69 0082 0a00 lri         $AR2, #0x0a00
  0b6b 1c62      mrr         $AR3, $AR2
- 0b6c 02bf 0bd1 call        0x0bd1
+ 0b6c 02bf 0bd1 call        0bd1_Unknown()
  0b6e 00f8 0304 sr          @0x0304, $AX0.L
  0b70 029f 0b28 jmp         0x0b28
  0b72 00c0 0ce1 lr          $AR0, @0x0ce1
  0b74 0081 02f0 lri         $AR1, #0x02f0
  0b76 0082 0a00 lri         $AR2, #0x0a00
  0b78 1c62      mrr         $AR3, $AR2
- 0b79 02bf 0bd1 call        0x0bd1
+ 0b79 02bf 0bd1 call        0bd1_Unknown()
  0b7b 00f8 0304 sr          @0x0304, $AX0.L
  0b7d 029f 0b34 jmp         0x0b34
  0b7f 00c0 0ce1 lr          $AR0, @0x0ce1
  0b81 0081 02f0 lri         $AR1, #0x02f0
  0b83 0082 0a00 lri         $AR2, #0x0a00
  0b85 1c62      mrr         $AR3, $AR2
- 0b86 02bf 0bd1 call        0x0bd1
+ 0b86 02bf 0bd1 call        0bd1_Unknown()
  0b88 00f8 0304 sr          @0x0304, $AX0.L
  0b8a 029f 0b40 jmp         0x0b40
  0b8c 00c0 0ce1 lr          $AR0, @0x0ce1
  0b8e 0081 02f0 lri         $AR1, #0x02f0
  0b90 0082 0a00 lri         $AR2, #0x0a00
  0b92 1c62      mrr         $AR3, $AR2
- 0b93 02bf 0bd1 call        0x0bd1
+ 0b93 02bf 0bd1 call        0bd1_Unknown()
  0b95 00f8 0304 sr          @0x0304, $AX0.L
  0b97 029f 0b52 jmp         0x0b52
  0b99 00c0 0ce1 lr          $AR0, @0x0ce1
  0b9b 0081 02f0 lri         $AR1, #0x02f0
  0b9d 0082 0a00 lri         $AR2, #0x0a00
  0b9f 0083 0d08 lri         $AR3, #0x0d08
- 0ba1 02bf 0c21 call        0x0c21
+ 0ba1 02bf 0c21 call        0c21_Unknown()
  0ba3 00f8 0304 sr          @0x0304, $AX0.L
  0ba5 029f 0b28 jmp         0x0b28
  0ba7 00c0 0ce1 lr          $AR0, @0x0ce1
  0ba9 0081 02f0 lri         $AR1, #0x02f0
  0bab 0082 0a00 lri         $AR2, #0x0a00
  0bad 0083 0d08 lri         $AR3, #0x0d08
- 0baf 02bf 0c21 call        0x0c21
+ 0baf 02bf 0c21 call        0c21_Unknown()
  0bb1 00f8 0304 sr          @0x0304, $AX0.L
  0bb3 029f 0b34 jmp         0x0b34
  0bb5 00c0 0ce1 lr          $AR0, @0x0ce1
  0bb7 0081 02f0 lri         $AR1, #0x02f0
  0bb9 0082 0a00 lri         $AR2, #0x0a00
  0bbb 0083 0d08 lri         $AR3, #0x0d08
- 0bbd 02bf 0c21 call        0x0c21
+ 0bbd 02bf 0c21 call        0c21_Unknown()
  0bbf 00f8 0304 sr          @0x0304, $AX0.L
  0bc1 029f 0b40 jmp         0x0b40
  0bc3 00c0 0ce1 lr          $AR0, @0x0ce1
  0bc5 0081 02f0 lri         $AR1, #0x02f0
  0bc7 0082 0a00 lri         $AR2, #0x0a00
  0bc9 0083 0d08 lri         $AR3, #0x0d08
- 0bcb 02bf 0c21 call        0x0c21
+ 0bcb 02bf 0c21 call        0c21_Unknown()
  0bcd 00f8 0304 sr          @0x0304, $AX0.L
  0bcf 029f 0b52 jmp         0x0b52
+}
+
+// Mixer loop??
+void 0bd1_Unknown() { 
  0bd1 191a      lrri        $AX0.H, @$AR0
  0bd2 1939      lrri        $AX1.L, @$AR1
  0bd3 b072      mulx'l      $AX0.H, $AX1.L : $AC0.M, @$AR2
@@ -2098,14 +2172,14 @@
  0bd8 9100      asr16       $ACC0
  0bd9 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
  0bda 112f 0be3 bloopi      #0x2f, 0x0be3
- 0bdc b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
- 0bdd 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
- 0bde 195c      lrri        $AC0.L, @$AR2
- 0bdf f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
- 0be0 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
- 0be1 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
- 0be2 195d      lrri        $AC1.L, @$AR2
- 0be3 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
+  0bdc b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
+  0bdd 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
+  0bde 195c      lrri        $AC0.L, @$AR2
+  0bdf f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
+  0be0 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
+  0be1 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
+  0be2 195d      lrri        $AC1.L, @$AR2
+  0be3 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
  0be4 1b7c      srri        @$AR3, $AC0.L
  0be5 6e00      movp        $ACC0
  0be6 4f12      addp'mv     $ACC1 : $AX0.L, $AC0.M
@@ -2113,6 +2187,8 @@
  0be8 1b7f      srri        @$AR3, $AC1.M
  0be9 812b      clr's       $ACC0 : @$AR3, $AC1.L
  0bea 02df      ret         
+}
+
  0beb 191a      lrri        $AX0.H, @$AR0
  0bec 1939      lrri        $AX1.L, @$AR1
  0bed b072      mulx'l      $AX0.H, $AX1.L : $AC0.M, @$AR2
@@ -2123,14 +2199,14 @@
  0bf2 9100      asr16       $ACC0
  0bf3 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
  0bf4 112f 0bfd bloopi      #0x2f, 0x0bfd
- 0bf6 b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
- 0bf7 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
- 0bf8 195c      lrri        $AC0.L, @$AR2
- 0bf9 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
- 0bfa b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
- 0bfb 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
- 0bfc 195d      lrri        $AC1.L, @$AR2
- 0bfd f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
+  0bf6 b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
+  0bf7 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
+  0bf8 195c      lrri        $AC0.L, @$AR2
+  0bf9 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
+  0bfa b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
+  0bfb 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
+  0bfc 195d      lrri        $AC1.L, @$AR2
+  0bfd f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
  0bfe 1b7c      srri        @$AR3, $AC0.L
  0bff 6e00      movp        $ACC0
  0c00 4f12      addp'mv     $ACC1 : $AX0.L, $AC0.M
@@ -2150,14 +2226,14 @@
  0c0e 9100      asr16       $ACC0
  0c0f f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
  0c10 112f 0c19 bloopi      #0x2f, 0x0c19
- 0c12 b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
- 0c13 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
- 0c14 195c      lrri        $AC0.L, @$AR2
- 0c15 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
- 0c16 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
- 0c17 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
- 0c18 195d      lrri        $AC1.L, @$AR2
- 0c19 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
+  0c12 b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
+  0c13 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
+  0c14 195c      lrri        $AC0.L, @$AR2
+  0c15 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
+  0c16 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
+  0c17 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
+  0c18 195d      lrri        $AC1.L, @$AR2
+  0c19 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
  0c1a 1b7c      srri        @$AR3, $AC0.L
  0c1b 6e00      movp        $ACC0
  0c1c 4f1e      addp'mv     $ACC1 : $AX1.H, $AC0.M
@@ -2165,6 +2241,8 @@
  0c1e 1b7f      srri        @$AR3, $AC1.M
  0c1f 1b7d      srri        @$AR3, $AC1.L
  0c20 02df      ret         
+
+void 0c21_Unknown() {
  0c21 1ce3      mrr         $IX3, $AR3
  0c22 8e00      set16       
  0c23 8100      clr         $ACC0
@@ -2174,10 +2252,10 @@
  0c27 4c00      add         $ACC0, $ACC1
  0c28 1b7e      srri        @$AR3, $AC0.M
  0c29 112f 0c2e bloopi      #0x2f, 0x0c2e
- 0c2b 4c00      add         $ACC0, $ACC1
- 0c2c 1b7e      srri        @$AR3, $AC0.M
- 0c2d 4c00      add         $ACC0, $ACC1
- 0c2e 1b7e      srri        @$AR3, $AC0.M
+  0c2b 4c00      add         $ACC0, $ACC1
+  0c2c 1b7e      srri        @$AR3, $AC0.M
+  0c2d 4c00      add         $ACC0, $ACC1
+  0c2e 1b7e      srri        @$AR3, $AC0.M
  0c2f 4c00      add         $ACC0, $ACC1
  0c30 1b3e      srri        @$AR1, $AC0.M
  0c31 1c27      mrr         $AR1, $IX3
@@ -2194,16 +2272,16 @@
  0c3c f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
  0c3d 1939      lrri        $AX1.L, @$AR1
  0c3e 112f 0c49 bloopi      #0x2f, 0x0c49
- 0c40 b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
- 0c41 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
- 0c42 195c      lrri        $AC0.L, @$AR2
- 0c43 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
- 0c44 1939      lrri        $AX1.L, @$AR1
- 0c45 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
- 0c46 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
- 0c47 195d      lrri        $AC1.L, @$AR2
- 0c48 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
- 0c49 1939      lrri        $AX1.L, @$AR1
+  0c40 b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
+  0c41 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
+  0c42 195c      lrri        $AC0.L, @$AR2
+  0c43 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
+  0c44 1939      lrri        $AX1.L, @$AR1
+  0c45 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
+  0c46 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
+  0c47 195d      lrri        $AC1.L, @$AR2
+  0c48 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
+  0c49 1939      lrri        $AX1.L, @$AR1
  0c4a 1b7c      srri        @$AR3, $AC0.L
  0c4b 6e00      movp        $ACC0
  0c4c 4f12      addp'mv     $ACC1 : $AX0.L, $AC0.M
@@ -2220,10 +2298,10 @@
  0c57 4c00      add         $ACC0, $ACC1
  0c58 1b7e      srri        @$AR3, $AC0.M
  0c59 112f 0c5e bloopi      #0x2f, 0x0c5e
- 0c5b 4c00      add         $ACC0, $ACC1
- 0c5c 1b7e      srri        @$AR3, $AC0.M
- 0c5d 4c00      add         $ACC0, $ACC1
- 0c5e 1b7e      srri        @$AR3, $AC0.M
+  0c5b 4c00      add         $ACC0, $ACC1
+  0c5c 1b7e      srri        @$AR3, $AC0.M
+  0c5d 4c00      add         $ACC0, $ACC1
+  0c5e 1b7e      srri        @$AR3, $AC0.M
  0c5f 4c00      add         $ACC0, $ACC1
  0c60 1b3e      srri        @$AR1, $AC0.M
  0c61 0009      iar         $AR1
@@ -2234,10 +2312,10 @@
  0c66 4c00      add         $ACC0, $ACC1
  0c67 1b7e      srri        @$AR3, $AC0.M
  0c68 112f 0c6d bloopi      #0x2f, 0x0c6d
- 0c6a 4c00      add         $ACC0, $ACC1
- 0c6b 1b7e      srri        @$AR3, $AC0.M
- 0c6c 4c00      add         $ACC0, $ACC1
- 0c6d 1b7e      srri        @$AR3, $AC0.M
+  0c6a 4c00      add         $ACC0, $ACC1
+  0c6b 1b7e      srri        @$AR3, $AC0.M
+  0c6c 4c00      add         $ACC0, $ACC1
+  0c6d 1b7e      srri        @$AR3, $AC0.M
  0c6e 4c00      add         $ACC0, $ACC1
  0c6f 1b3e      srri        @$AR1, $AC0.M
  0c70 1c27      mrr         $AR1, $IX3
@@ -2254,16 +2332,16 @@
  0c7b f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
  0c7c 1939      lrri        $AX1.L, @$AR1
  0c7d 112f 0c88 bloopi      #0x2f, 0x0c88
- 0c7f b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
- 0c80 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
- 0c81 195c      lrri        $AC0.L, @$AR2
- 0c82 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
- 0c83 1939      lrri        $AX1.L, @$AR1
- 0c84 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
- 0c85 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
- 0c86 195d      lrri        $AC1.L, @$AR2
- 0c87 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
- 0c88 1939      lrri        $AX1.L, @$AR1
+  0c7f b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
+  0c80 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
+  0c81 195c      lrri        $AC0.L, @$AR2
+  0c82 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
+  0c83 1939      lrri        $AX1.L, @$AR1
+  0c84 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
+  0c85 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
+  0c86 195d      lrri        $AC1.L, @$AR2
+  0c87 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
+  0c88 1939      lrri        $AX1.L, @$AR1
  0c89 1b7c      srri        @$AR3, $AC0.L
  0c8a 6e00      movp        $ACC0
  0c8b 4f12      addp'mv     $ACC1 : $AX0.L, $AC0.M
@@ -2285,16 +2363,16 @@
  0c9b f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
  0c9c 1939      lrri        $AX1.L, @$AR1
  0c9d 112f 0ca8 bloopi      #0x2f, 0x0ca8
- 0c9f b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
- 0ca0 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
- 0ca1 195c      lrri        $AC0.L, @$AR2
- 0ca2 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
- 0ca3 1939      lrri        $AX1.L, @$AR1
- 0ca4 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
- 0ca5 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
- 0ca6 195d      lrri        $AC1.L, @$AR2
- 0ca7 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
- 0ca8 1939      lrri        $AX1.L, @$AR1
+  0c9f b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
+  0ca0 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
+  0ca1 195c      lrri        $AC0.L, @$AR2
+  0ca2 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
+  0ca3 1939      lrri        $AX1.L, @$AR1
+  0ca4 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
+  0ca5 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
+  0ca6 195d      lrri        $AC1.L, @$AR2
+  0ca7 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
+  0ca8 1939      lrri        $AX1.L, @$AR1
  0ca9 1b7c      srri        @$AR3, $AC0.L
  0caa 6e00      movp        $ACC0
  0cab 4f1e      addp'mv     $ACC1 : $AX1.H, $AC0.M
@@ -2304,6 +2382,8 @@
  0caf 02df      ret         
  0cb0 0098 0000 lri         $AX0.L, #0x0000
  0cb2 02df      ret         
+}
+
  0cb3 0080 0cc0 lri         $AR0, #0x0cc0
  0cb5 1c62      mrr         $AR3, $AR2
  0cb6 1939      lrri        $AX1.L, @$AR1
@@ -2317,14 +2397,14 @@
  0cbe 195d      lrri        $AC1.L, @$AR2
  0cbf f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
  0cc0 1108 0cc9 bloopi      #0x08, 0x0cc9
- 0cc2 b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
- 0cc3 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
- 0cc4 195c      lrri        $AC0.L, @$AR2
- 0cc5 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
- 0cc6 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
- 0cc7 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
- 0cc8 195d      lrri        $AC1.L, @$AR2
- 0cc9 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
+  0cc2 b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
+  0cc3 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
+  0cc4 195c      lrri        $AC0.L, @$AR2
+  0cc5 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
+  0cc6 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
+  0cc7 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
+  0cc8 195d      lrri        $AC1.L, @$AR2
+  0cc9 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
  0cca 4f23      addp's      $ACC1 : @$AR3, $AC0.L
  0ccb 9900      asr16       $ACC1
  0ccc 1b7f      srri        @$AR3, $AC1.M
@@ -2342,10 +2422,10 @@
  0cda 4c00      add         $ACC0, $ACC1
  0cdb 1b7e      srri        @$AR3, $AC0.M
  0cdc 1108 0ce1 bloopi      #0x08, 0x0ce1
- 0cde 4c00      add         $ACC0, $ACC1
- 0cdf 1b7e      srri        @$AR3, $AC0.M
- 0ce0 4c00      add         $ACC0, $ACC1
- 0ce1 1b7e      srri        @$AR3, $AC0.M
+  0cde 4c00      add         $ACC0, $ACC1
+  0cdf 1b7e      srri        @$AR3, $AC0.M
+  0ce0 4c00      add         $ACC0, $ACC1
+  0ce1 1b7e      srri        @$AR3, $AC0.M
  0ce2 4c00      add         $ACC0, $ACC1
  0ce3 1b3e      srri        @$AR1, $AC0.M
  0ce4 1c27      mrr         $AR1, $IX3
@@ -2363,16 +2443,16 @@
  0cf0 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
  0cf1 1939      lrri        $AX1.L, @$AR1
  0cf2 1108 0cfd bloopi      #0x08, 0x0cfd
- 0cf4 b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
- 0cf5 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
- 0cf6 195c      lrri        $AC0.L, @$AR2
- 0cf7 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
- 0cf8 1939      lrri        $AX1.L, @$AR1
- 0cf9 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
- 0cfa 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
- 0cfb 195d      lrri        $AC1.L, @$AR2
- 0cfc f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
- 0cfd 1939      lrri        $AX1.L, @$AR1
+  0cf4 b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
+  0cf5 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
+  0cf6 195c      lrri        $AC0.L, @$AR2
+  0cf7 f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
+  0cf8 1939      lrri        $AX1.L, @$AR1
+  0cf9 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
+  0cfa 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
+  0cfb 195d      lrri        $AC1.L, @$AR2
+  0cfc f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
+  0cfd 1939      lrri        $AX1.L, @$AR1
  0cfe 4f23      addp's      $ACC1 : @$AR3, $AC0.L
  0cff 9900      asr16       $ACC1
  0d00 1b7f      srri        @$AR3, $AC1.M
@@ -2575,7 +2655,7 @@
  0dc9 16cd 0400 si          @DSPA, #0x0400
  0dcb 16c9 0001 si          @DSCR, #0x0001
  0dcd 16cb 0480 si          @DSBL, #0x0480
- 0dcf 02bf 0084 call        0x0084
+ 0dcf 02bf 0084 call        0084_WaitForMail()
  0dd1 191e      lrri        $AC0.M, @$AR0
  0dd2 191c      lrri        $AC0.L, @$AR0
  0dd3 2ece      srs         @DSMAH, $AC0.M
@@ -2583,7 +2663,7 @@
  0dd5 16cd 0940 si          @DSPA, #0x0940
  0dd7 16c9 0001 si          @DSCR, #0x0001
  0dd9 16cb 0180 si          @DSBL, #0x0180
- 0ddb 02bf 0084 call        0x0084
+ 0ddb 02bf 0084 call        0084_WaitForMail()
  0ddd 029f 0e01 jmp         0x0e01
  0ddf 8e00      set16       
  0de0 00c4 0ce7 lr          $IX0, @0x0ce7
@@ -2597,7 +2677,7 @@
  0deb 16cd 0640 si          @DSPA, #0x0640
  0ded 16c9 0001 si          @DSCR, #0x0001
  0def 16cb 0480 si          @DSBL, #0x0480
- 0df1 02bf 0084 call        0x0084
+ 0df1 02bf 0084 call        0084_WaitForMail()
  0df3 191e      lrri        $AC0.M, @$AR0
  0df4 191c      lrri        $AC0.L, @$AR0
  0df5 2ece      srs         @DSMAH, $AC0.M
@@ -2605,7 +2685,7 @@
  0df7 16cd 0a00 si          @DSPA, #0x0a00
  0df9 16c9 0001 si          @DSCR, #0x0001
  0dfb 16cb 0180 si          @DSBL, #0x0180
- 0dfd 02bf 0084 call        0x0084
+ 0dfd 02bf 0084 call        0084_WaitForMail()
  0dff 029f 0e01 jmp         0x0e01
  0e01 8b00      m0          
  0e02 8100      clr         $ACC0
@@ -2619,10 +2699,10 @@
  0e0d d000      mulc        $AC1.M, $AX0.H
  0e0e d400      mulcac      $AC1.M, $AX0.H, $ACC0
  0e0f 111f 0e13 bloopi      #0x1f, 0x0e13
- 0e11 dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
- 0e12 d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
- 0e13 d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
- 0e14 dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
+  0e11 dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
+  0e12 d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
+  0e13 d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
+  0e14 dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
  0e15 4e31      addp's      $ACC0 : @$AR1, $AC0.M
  0e16 1b25      srri        @$AR1, $IX1
  0e17 191e      lrri        $AC0.M, @$AR0
@@ -2634,7 +2714,7 @@
  0e1f 16cb 0180 si          @DSBL, #0x0180
  0e21 0081 0000 lri         $AR1, #0x0000
  0e23 1c41      mrr         $AR2, $AR1
- 0e24 02bf 0084 call        0x0084
+ 0e24 02bf 0084 call        0084_WaitForMail()
  0e26 02bf 0e57 call        0x0e57
  0e28 191e      lrri        $AC0.M, @$AR0
  0e29 191c      lrri        $AC0.L, @$AR0
@@ -2643,7 +2723,7 @@
  0e2c 00e6 ffcd sr          @DSPA, $IX2
  0e2e 16c9 0000 si          @DSCR, #0x0000
  0e30 16cb 0180 si          @DSBL, #0x0180
- 0e32 02bf 0084 call        0x0084
+ 0e32 02bf 0084 call        0084_WaitForMail()
  0e34 02bf 0e57 call        0x0e57
  0e36 191e      lrri        $AC0.M, @$AR0
  0e37 191c      lrri        $AC0.L, @$AR0
@@ -2652,7 +2732,7 @@
  0e3a 00e6 ffcd sr          @DSPA, $IX2
  0e3c 16c9 0000 si          @DSCR, #0x0000
  0e3e 16cb 0180 si          @DSBL, #0x0180
- 0e40 02bf 0084 call        0x0084
+ 0e40 02bf 0084 call        0084_WaitForMail()
  0e42 02bf 0e57 call        0x0e57
  0e44 191e      lrri        $AC0.M, @$AR0
  0e45 191c      lrri        $AC0.L, @$AR0
@@ -2663,9 +2743,10 @@
  0e4c 16cb 0180 si          @DSBL, #0x0180
  0e4e 0081 0880 lri         $AR1, #0x0880
  0e50 1c41      mrr         $AR2, $AR1
- 0e51 02bf 0084 call        0x0084
+ 0e51 02bf 0084 call        0084_WaitForMail()
  0e53 02bf 0e57 call        0x0e57
- 0e55 029f 006f jmp         0x006f
+ 0e55 029f 006f jmp         006f_MailHandler()
+
  0e57 8f00      set40       
  0e58 8d00      set15       
  0e59 8a00      m2          
@@ -2680,20 +2761,20 @@
  0e64 4e00      addp        $ACC0
  0e65 4800      addax       $ACC0, $AX0.L
  0e66 112f 0e75 bloopi      #0x2f, 0x0e75
- 0e68 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
- 0e69 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
- 0e6a a000      mulx        $AX0.L, $AX1.L
- 0e6b af00      mulxmv      $AX0.L, $AX1.H, $ACC1
- 0e6c 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
- 0e6d 4f32      addp's      $ACC1 : @$AR2, $AC0.M
- 0e6e 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
- 0e6f 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
- 0e70 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
- 0e71 a000      mulx        $AX0.L, $AX1.L
- 0e72 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
- 0e73 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
- 0e74 4e3a      addp's      $ACC0 : @$AR2, $AC1.M
- 0e75 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
+  0e68 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+  0e69 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+  0e6a a000      mulx        $AX0.L, $AX1.L
+  0e6b af00      mulxmv      $AX0.L, $AX1.H, $ACC1
+  0e6c 9941      asr16'l     $ACC1 : $AX0.L, @$AR1
+  0e6d 4f32      addp's      $ACC1 : @$AR2, $AC0.M
+  0e6e 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
+  0e6f 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
+  0e70 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+  0e71 a000      mulx        $AX0.L, $AX1.L
+  0e72 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
+  0e73 9141      asr16'l     $ACC0 : $AX0.L, @$AR1
+  0e74 4e3a      addp's      $ACC0 : @$AR2, $AC1.M
+  0e75 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
  0e76 80f1      nx'ld       : $AX0.H, $AX1.H, @$AR1
  0e77 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
  0e78 a000      mulx        $AX0.L, $AX1.L
@@ -2705,7 +2786,8 @@
  0e7e 1b5d      srri        @$AR2, $AC1.L
  0e7f 00c0 0cd2 lr          $AR0, @0x0cd2
  0e81 8e00      set16       
- 0e82 02df      ret         
+ 0e82 02df      ret      
+   
  0e83 8e00      set16       
  0e84 191f      lrri        $AC1.M, @$AR0
  0e85 191d      lrri        $AC1.L, @$AR0
@@ -2714,7 +2796,7 @@
  0e88 16cd 0d08 si          @DSPA, #0x0d08
  0e8a 16c9 0000 si          @DSCR, #0x0000
  0e8c 16cb 0300 si          @DSBL, #0x0300
- 0e8e 02bf 0084 call        0x0084
+ 0e8e 02bf 0084 call        0084_WaitForMail()
  0e90 1c80      mrr         $IX0, $AR0
  0e91 8f00      set40       
  0e92 0080 0d08 lri         $AR0, #0x0d08
@@ -2725,14 +2807,14 @@
  0e99 6a00      movax       $ACC0, $AX1.L
  0e9a 4800      addax       $ACC0, $AX0.L
  0e9b 112f 0ea4 bloopi      #0x2f, 0x0ea4
- 0e9d 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
- 0e9e 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
- 0e9f 6b32      movax's     $ACC1, $AX1.L : @$AR2, $AC0.M
- 0ea0 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
- 0ea1 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
- 0ea2 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
- 0ea3 6a3a      movax's     $ACC0, $AX1.L : @$AR2, $AC1.M
- 0ea4 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
+  0e9d 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+  0e9e 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+  0e9f 6b32      movax's     $ACC1, $AX1.L : @$AR2, $AC0.M
+  0ea0 4922      addax's     $ACC1, $AX0.L : @$AR2, $AC0.L
+  0ea1 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+  0ea2 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+  0ea3 6a3a      movax's     $ACC0, $AX1.L : @$AR2, $AC1.M
+  0ea4 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
  0ea5 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
  0ea6 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
  0ea7 6b32      movax's     $ACC1, $AX1.L : @$AR2, $AC0.M
@@ -2745,16 +2827,16 @@
  0eae 7c00      neg         $ACC0
  0eaf 4a00      addax       $ACC0, $AX1.L
  0eb0 112f 0ebb bloopi      #0x2f, 0x0ebb
- 0eb2 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
- 0eb3 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
- 0eb4 6932      movax's     $ACC1, $AX0.L : @$AR2, $AC0.M
- 0eb5 7d00      neg         $ACC1
- 0eb6 4b22      addax's     $ACC1, $AX1.L : @$AR2, $AC0.L
- 0eb7 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
- 0eb8 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
- 0eb9 683a      movax's     $ACC0, $AX0.L : @$AR2, $AC1.M
- 0eba 7c00      neg         $ACC0
- 0ebb 4a2a      addax's     $ACC0, $AX1.L : @$AR2, $AC1.L
+  0eb2 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+  0eb3 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+  0eb4 6932      movax's     $ACC1, $AX0.L : @$AR2, $AC0.M
+  0eb5 7d00      neg         $ACC1
+  0eb6 4b22      addax's     $ACC1, $AX1.L : @$AR2, $AC0.L
+  0eb7 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
+  0eb8 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
+  0eb9 683a      movax's     $ACC0, $AX0.L : @$AR2, $AC1.M
+  0eba 7c00      neg         $ACC0
+  0ebb 4a2a      addax's     $ACC0, $AX1.L : @$AR2, $AC1.L
  0ebc 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
  0ebd 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
  0ebe 6932      movax's     $ACC1, $AX0.L : @$AR2, $AC0.M
@@ -2763,7 +2845,8 @@
  0ec1 1b5f      srri        @$AR2, $AC1.M
  0ec2 1b5d      srri        @$AR2, $AC1.L
  0ec3 1c04      mrr         $AR0, $IX0
- 0ec4 029f 006f jmp         0x006f
+ 0ec4 029f 006f jmp         006f_MailHandler()
+
  0ec6 8e48      set16'l     : $AX1.L, @$AR0
  0ec7 8b78      m0'l        : $AC1.M, @$AR0
  0ec8 8168      clr'l       $ACC0 : $AC1.L, @$AR0
@@ -2773,7 +2856,7 @@
  0ecd 16cd 0180 si          @DSPA, #0x0180
  0ecf 16c9 0001 si          @DSCR, #0x0001
  0ed1 16cb 0180 si          @DSBL, #0x0180
- 0ed3 02bf 0084 call        0x0084
+ 0ed3 02bf 0084 call        0084_WaitForMail()
  0ed5 8100      clr         $ACC0
  0ed6 009c 0180 lri         $AC0.L, #0x0180
  0ed8 4d00      add         $ACC1, $ACC0
@@ -2794,13 +2877,13 @@
  0eef d000      mulc        $AC1.M, $AX0.H
  0ef0 d400      mulcac      $AC1.M, $AX0.H, $ACC0
  0ef1 111f 0ef5 bloopi      #0x1f, 0x0ef5
- 0ef3 dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
- 0ef4 d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
- 0ef5 d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
+  0ef3 dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
+  0ef4 d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
+  0ef5 d431      mulcac's    $AC1.M, $AX0.H, $ACC0 : @$AR1, $AC0.M
  0ef6 dc31      mulcac's    $AC1.M, $AX1.H, $ACC0 : @$AR1, $AC0.M
  0ef7 4e31      addp's      $ACC0 : @$AR1, $AC0.M
  0ef8 1b39      srri        @$AR1, $AX1.L
- 0ef9 02bf 0084 call        0x0084
+ 0ef9 02bf 0084 call        0084_WaitForMail()
  0efb 8f00      set40       
  0efc 8d00      set15       
  0efd 8a00      m2          
@@ -2817,16 +2900,16 @@
  0f0c 4e5b      addp'l      $ACC0 : $AX1.H, @$AR3
  0f0d f04b      lsl16'l     $ACC0 : $AX1.L, @$AR3
  0f0e 115f 0f19 bloopi      #0x5f, 0x0f19
- 0f10 a031      mulx's      $AX0.L, $AX1.L : @$AR1, $AC0.M
- 0f11 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
- 0f12 9140      asr16'l     $ACC0 : $AX0.L, @$AR0
- 0f13 4e5a      addp'l      $ACC0 : $AX1.H, @$AR2
- 0f14 f04a      lsl16'l     $ACC0 : $AX1.L, @$AR2
- 0f15 a031      mulx's      $AX0.L, $AX1.L : @$AR1, $AC0.M
- 0f16 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
- 0f17 9100      asr16       $ACC0
- 0f18 4e5b      addp'l      $ACC0 : $AX1.H, @$AR3
- 0f19 f04b      lsl16'l     $ACC0 : $AX1.L, @$AR3
+  0f10 a031      mulx's      $AX0.L, $AX1.L : @$AR1, $AC0.M
+  0f11 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
+  0f12 9140      asr16'l     $ACC0 : $AX0.L, @$AR0
+  0f13 4e5a      addp'l      $ACC0 : $AX1.H, @$AR2
+  0f14 f04a      lsl16'l     $ACC0 : $AX1.L, @$AR2
+  0f15 a031      mulx's      $AX0.L, $AX1.L : @$AR1, $AC0.M
+  0f16 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
+  0f17 9100      asr16       $ACC0
+  0f18 4e5b      addp'l      $ACC0 : $AX1.H, @$AR3
+  0f19 f04b      lsl16'l     $ACC0 : $AX1.L, @$AR3
  0f1a a031      mulx's      $AX0.L, $AX1.L : @$AR1, $AC0.M
  0f1b ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
  0f1c 9100      asr16       $ACC0
@@ -2842,14 +2925,16 @@
  0f27 16cd 0400 si          @DSPA, #0x0400
  0f29 16c9 0001 si          @DSCR, #0x0001
  0f2b 16cb 0180 si          @DSBL, #0x0180
- 0f2d 02bf 0084 call        0x0084
+ 0f2d 02bf 0084 call        0084_WaitForMail()
  0f2f 16fc dcd1 si          @DMBH, #0xdcd1
  0f31 16fd 0004 si          @DMBL, #0x0004
  0f33 16fb 0001 si          @DIRQ, #0x0001
  0f35 26fc      lrs         $AC0.M, @DMBH
  0f36 02a0 8000 andf        $AC0.M, #0x8000
  0f38 029c 0f35 jlnz        0x0f35
- 0f3a 029f 006f jmp         0x006f
+ 0f3a 029f 006f jmp         006f_MailHandler()
+
+void 0f3c_Int1_Handler() {
  0f3c 8e00      set16       
  0f3d 1fcc      mrr         $AC0.M, $ST0
  0f3e 1d9e      mrr         $ST0, $AC0.M
@@ -2859,11 +2944,17 @@
  0f43 02a0 8000 andf        $AC0.M, #0x8000
  0f45 029c 0f42 jlnz        0x0f42
  0f47 02ff      rti         
+}
+
+void 0f48_Int2_Handler() {
  0f48 0000      nop         
  0f49 0000      nop         
  0f4a 0000      nop         
  0f4b 0000      nop         
- 0f4c 02ff      rti         
+ 0f4c 02ff      rti       
+}
+  
+void 0f4d_Int3_Handler() {
  0f4d 8e00      set16       
  0f4e 1dbc      mrr         $ST1, $AC0.L
  0f4f 1dbe      mrr         $ST1, $AC0.M
@@ -2875,12 +2966,18 @@
  0f57 00fe 02d8 sr          @0x02d8, $AC0.M
  0f59 1fcd      mrr         $AC0.M, $ST1
  0f5a 1f8d      mrr         $AC0.L, $ST1
- 0f5b 02ff      rti         
+ 0f5b 02ff      rti
+}
+
+void 0f5c_Int4_Handler() {         
  0f5c 0000      nop         
  0f5d 0000      nop         
  0f5e 0000      nop         
  0f5f 0000      nop         
- 0f60 02ff      rti         
+ 0f60 02ff      rti
+}
+
+void 0f61_Int5_Handler() {         
  0f61 8e00      set16       
  0f62 1dbc      mrr         $ST1, $AC0.L
  0f63 1dbe      mrr         $ST1, $AC0.M
@@ -2893,7 +2990,10 @@
  0f6d 0082 0ce9 lri         $AR2, #0x0ce9
  0f6f 1fcd      mrr         $AC0.M, $ST1
  0f70 1f8d      mrr         $AC0.L, $ST1
- 0f71 02ff      rti         
+ 0f71 02ff      rti        
+}
+ 
+void 0f72_Int5_Handler() {
  0f72 00de 02d9 lr          $AC0.M, @0x02d9
  0f74 0601      cmpis       $ACC0, #0x01
  0f75 0295 0f83 jz          0x0f83
@@ -2905,7 +3005,7 @@
  0f7f 2edc      srs         @yn2, $AC0.M
  0f80 1fcd      mrr         $AC0.M, $ST1
  0f81 1f8d      mrr         $AC0.L, $ST1
- 0f82 02ff      rti         
+ 0f82 02ff      rti 
  0f83 00de 032a lr          $AC0.M, @0x032a
  0f85 2eda      srs         @pred_scale, $AC0.M
  0f86 26db      lrs         $AC0.M, @yn1
@@ -2914,17 +3014,25 @@
  0f89 2edc      srs         @yn2, $AC0.M
  0f8a 1fcd      mrr         $AC0.M, $ST1
  0f8b 1f8d      mrr         $AC0.L, $ST1
- 0f8c 02ff      rti         
+ 0f8c 02ff      rti
+}
+
+void 0f8d_Int6_Handler() {         
  0f8d 0000      nop         
  0f8e 0000      nop         
  0f8f 0000      nop         
  0f90 0000      nop         
- 0f91 02ff      rti         
+ 0f91 02ff      rti       
+}
+
+void 0f92_Int7_Handler() {           
  0f92 0000      nop         
  0f93 0000      nop         
  0f94 0000      nop         
  0f95 0000      nop         
  0f96 02ff      rti         
+}
+
  0f97 0fa9      lris        $AC1.M, #0xa9
  0f98 0fac      lris        $AC1.M, #0xac
  0f99 0fe4      lris        $AC1.M, #0xe4
@@ -2983,20 +3091,25 @@
  0fdc 26c9      lrs         $AC0.M, @DSCR
  0fdd 02a0 0004 andf        $AC0.M, #0x0004
  0fdf 029c 0fdc jlnz        0x0fdc
+
  0fe1 029f 80b5 jmp         0x80b5
  0fe3 0021      halt        
  0fe4 029f 8000 jmp         0x8000
  0fe6 0021      halt        
  0fe7 029f 004c jmp         0x004c
  0fe9 0021      halt        
+
  0fea 26fe      lrs         $AC0.M, @CMBH
  0feb 02c0 8000 andcf       $AC0.M, #0x8000
  0fed 029c 0fea jlnz        0x0fea
  0fef 02df      ret         
+
  0ff0 27fe      lrs         $AC1.M, @CMBH
  0ff1 03c0 8000 andcf       $AC1.M, #0x8000
  0ff3 029c 0ff0 jlnz        0x0ff0
  0ff5 02df      ret         
+
+
  0ff6 0000      nop         
  0ff7 0000      nop         
  0ff8 0000      nop         
