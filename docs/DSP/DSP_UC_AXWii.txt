@@ -517,7 +517,8 @@ void 0x222_JumpTable1() {
 }
 
 // Command 0x4 - set PBs address
-// stores command data at 0x02D0
+// Parameters: AR0 -> 0x0C01
+// AXList data: command (2), PBs address (4)
 void 027e_Cmd4_SetPBsAddress() {
  027e 8100      clr         $ACC0
  027f 8970      clr'l       $ACC1 : $AC0.M, @$AR0
@@ -527,7 +528,7 @@ void 027e_Cmd4_SetPBsAddress() {
  0284 2ccf      srs         @DSMAL, $AC0.L
  0285 16cd 02d0 si          @DSPA, #0x02d0
  0287 16c9 0000 si          @DSCR, #0x0000
- 0289 16cb 0140 si          @DSBL, #0x0140
+ 0289 16cb 0140 si          @DSBL, #0x0140					// transfer 0x140 bytes from the PBs address to 0x02D0
  028b 02bf 0084 call        0084_WaitForDMACompletion()
  028d 8100      clr         $ACC0
  028e 8900      clr         $ACC1
@@ -1274,10 +1275,10 @@ void 060b_JumpTable9() {
  0670 029f 006f jmp         006f_MailHandler()
 }
 
-// Restart code??
+// Command 0xE - AXList end
  0672 16fc dcd1 si          @DMBH, #0xdcd1
  0674 16fd 0002 si          @DMBL, #0x0002
- 0676 16fb 0001 si          @DIRQ, #0x0001
+ 0676 16fb 0001 si          @DIRQ, #0x0001					// send a 0xDCD10002 and trigger an IRQ
  0678 029f 0f9b jmp         0x0f9b
  067a 029f 004c jmp         0x004c
 
@@ -3046,21 +3047,26 @@ void 0f92_Int7_Handler() {
  0f96 02ff      rti         
 }
 
- 0f97 0fa9      lris        $AC1.M, #0xa9
- 0f98 0fac      lris        $AC1.M, #0xac
- 0f99 0fe4      lris        $AC1.M, #0xe4
- 0f9a 0fe7      lris        $AC1.M, #0xe7
+// action jump table
+ 0f97 0fa9      lris        $AC1.M, #0xa9	// Action 0 - restart
+ 0f98 0fac      lris        $AC1.M, #0xac	// Action 1 - wait for 10 mails and dump memory?
+ 0f99 0fe4      lris        $AC1.M, #0xe4	// Action 2 - soft reset
+ 0f9a 0fe7      lris        $AC1.M, #0xe7	// Action 3 - jump back to main loop
+ 
+// called at AXList end; wait for a last mail and take an action
+// Note: the same thing can be found in Zelda ucode. It's called after DsyncFrame.
+// Probably debugging stuff.
  0f9b 8e00      set16       
  0f9c 8100      clr         $ACC0
  0f9d 8900      clr         $ACC1
- 0f9e 02bf 0fea call        0x0fea
- 0fa0 27ff      lrs         $AC1.M, @CMBL
+ 0f9e 02bf 0fea call        0x0fea				// wait for the mail; the high part is likely 0xCDD1 as for Zelda
+ 0fa0 27ff      lrs         $AC1.M, @CMBL		// the low part of the mail tells the action to take
  0fa1 009e 0f97 lri         $AC0.M, #0x0f97
  0fa3 4c00      add         $ACC0, $ACC1
  0fa4 1c7e      mrr         $AR3, $AC0.M
  0fa5 0313      ilrr        $AC1.M, @$AR3
  0fa6 1c7f      mrr         $AR3, $AC1.M
- 0fa7 176f      jmpr        $AR3
+ 0fa7 176f      jmpr        $AR3				// take the action!
  0fa8 0021      halt        
  0fa9 029f 0037 jmp         0x0037
  0fab 0021      halt        

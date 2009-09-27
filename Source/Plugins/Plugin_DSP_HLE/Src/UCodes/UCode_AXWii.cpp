@@ -70,6 +70,10 @@ void CUCode_AXWii::HandleMail(u32 _uMail)
 	{
 		// a new List
 	}
+	else if ((_uMail & 0xFFFF0000) == 0xCDD10000)
+	{
+		//NOTICE_LOG(DSPHLE, "action mail %08X", _uMail);
+	}
 	else
 	{
 		AXTask(_uMail);
@@ -421,8 +425,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 	SaveLog("=====================================================================");
 	SaveLog("End");
 
-	// i hope resume is okay AX
-	m_rMailHandler.PushMail(0xDCD10001);
+	m_rMailHandler.PushMail(0xDCD10002);
 	return true;
 }
 
