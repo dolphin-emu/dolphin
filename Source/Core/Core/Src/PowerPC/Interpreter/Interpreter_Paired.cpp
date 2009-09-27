@@ -473,18 +473,8 @@ void ps_cmpo1(UGeckoInstruction _inst)
 // TODO(ector) check docs
 void dcbz_l(UGeckoInstruction _inst)
 {
-	// This is supposed to allocate a cache line in the locked cache. Not entirely sure how
-	// this is visible to the rest of the world. For now, we ignore it.
-	/*
-	addr_t ea = Helper_Get_EA(_inst);
-
-	u32 blockStart = ea & (~(CACHEBLOCKSIZE-1));
-	u32 blockEnd = blockStart + CACHEBLOCKSIZE;
-
 	//FAKE: clear memory instead of clearing the cache block
-	for (int i=blockStart; i<blockEnd; i+=4)
-	Memory::Write_U32(0,i);
-	*/
+	Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
 }
 
 }  // namespace

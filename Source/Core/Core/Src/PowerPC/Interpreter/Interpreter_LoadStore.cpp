@@ -315,19 +315,18 @@ void dcbtst(UGeckoInstruction _inst)
 	_assert_msg_(POWERPC,0,"dcbtst - Not implemented");
 }
 
-// __________________________________________________________________________________________________
-// dcbz
-// TODO(ector) check docs
 void dcbz(UGeckoInstruction _inst)
 {
     // !!! after the dcbz follows a dcbf... dont clear the memory in this case !!!
     // 0x81330c2c
-    u32 NextOpcode = Memory::Read_U32(PC+4);
+    // LinesPrower: why? does it break something?
+    //              according to docs dcbz->dcbf should clear the memory immediately!
+    //              However, dcbz->dcbi won't clear anything, but that's completely senseless
+   /* u32 NextOpcode = Memory::Read_U32(PC+4);
     if (NextOpcode == 0x7C0400AC)
     {
         return;
-    }
-
+    }*/
 	// HACK but works... we think
 	Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
 }

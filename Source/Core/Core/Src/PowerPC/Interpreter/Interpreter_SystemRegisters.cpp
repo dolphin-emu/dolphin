@@ -323,6 +323,9 @@ void mtspr(UGeckoInstruction _inst)
 			UReg_HID2 old_hid2;
 			old_hid2.Hex = oldValue;
 
+			//if (HID2.LCE && !old_hid2.LCE)
+			//	PanicAlert("Locked cache enabled!");
+
 			if (HID2.PSE == 0)
 				PanicAlert("WARNING: PSE in HID2 isnt set");
 
@@ -363,6 +366,7 @@ void mtspr(UGeckoInstruction _inst)
 			u32 dwMemAddress = DMAU.MEM_ADDR << 5;
 			u32 dwCacheAddress = DMAL.LC_ADDR << 5;
 			u32 iLength = ((DMAU.DMA_LEN_U << 2) | DMAL.DMA_LEN_L);
+			//INFO_LOG(POWERPC, "DMA: mem = %x, cache = %x, len = %u, LD = %d, PC=%x", dwMemAddress, dwCacheAddress, iLength, (int)DMAL.DMA_LD, PC);
 			if (iLength == 0) 
 				iLength = 128;
 			if (DMAL.DMA_LD)
@@ -370,6 +374,7 @@ void mtspr(UGeckoInstruction _inst)
 			else
 				Memory::DMA_LCToMemory(dwMemAddress, dwCacheAddress, iLength);
 		}
+		DMAL.DMA_T = 0;
 		break;
 
 	case SPR_DEC:

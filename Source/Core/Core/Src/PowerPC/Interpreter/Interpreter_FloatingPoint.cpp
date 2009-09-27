@@ -105,7 +105,6 @@ void fcmpu(UGeckoInstruction _inst)
 }
 
 // Apply current rounding mode
-// need to investigate this instruction.
 void fctiwx(UGeckoInstruction _inst)
 {
 	const double b = rPS0(_inst.FB);
@@ -133,7 +132,7 @@ void fctiwx(UGeckoInstruction _inst)
 			{
 				double t = b + 0.5;
 				i = (s32)t;
-				if (t - i < 0) i--;
+				if (t - i < 0 || (t - i == 0 && b > 0)) i--;
 				break;
 			}
 		case 1: // zero
@@ -161,18 +160,14 @@ void fctiwx(UGeckoInstruction _inst)
 			FPSCR.FR = fabs(di) > fabs(b);
 		}
 	}	
-	
-	//FPRF undefined
-
-	riPS0(_inst.FD) = (u64)value; // zero extend
-	if (_inst.Rc) 
+	// based on HW tests
+	// FPRF is not affected
+	riPS0(_inst.FD) = 0xfff8000000000000ull | value;
+	if (value == 0 && ( (*(u64*)&b) & DOUBLE_SIGN ))
+		riPS0(_inst.FD) |= 0x100000000ull;
+	if (_inst.Rc)
 		Helper_UpdateCR1(rPS0(_inst.FD));
 }
-
-/*
-In the float -> int direction, floating point input values larger than the largest 
-representable int result in 0x80000000 (a very negative number) rather than the 
-largest representable int on PowerPC. */
 
 // Always round toward zero
 void fctiwzx(UGeckoInstruction _inst)
@@ -209,8 +204,11 @@ void fctiwzx(UGeckoInstruction _inst)
 		}
 		value = (u32)i;
 	}
-
-	riPS0(_inst.FD) = (u64)value;
+	// based on HW tests
+	// FPRF is not affected
+	riPS0(_inst.FD) = 0xfff8000000000000ull | value;
+	if (value == 0 && ( (*(u64*)&b) & DOUBLE_SIGN ))
+		riPS0(_inst.FD) |= 0x100000000ull;	
 	if (_inst.Rc)
 		Helper_UpdateCR1(rPS0(_inst.FD));
 }
