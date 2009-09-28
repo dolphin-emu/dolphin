@@ -40,6 +40,17 @@ namespace DSPInterpreter
 namespace Ext 
 {
 
+inline bool IsSameMemArea(u16 a, u16 b)
+{
+//LM:AX games have probs with this,... more tests needed
+#if 0
+	if ((a>>12)==(b>>12)) //from http://code.google.com/p/dolphin-emu/wiki/DSP_todo (Luigi research)
+		return true;
+	else
+#endif
+		return false;
+}
+
 // DR $arR
 // xxxx xxxx 0000 01rr
 // Decrement addressing register $arR.
@@ -290,11 +301,21 @@ void ld(const UDSPInstruction& opc)
 
 	if (sreg != 0x03) {
 		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r[sreg]));
-		writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r[sreg]));
+
+		if (IsSameMemArea(g_dsp.r[sreg],g_dsp.r[0x3]))	
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r[sreg]));
+		else
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r[0x3]));
+
 		writeToBackLog(2, sreg,	dsp_increment_addr_reg(sreg));
 	} else {
 		writeToBackLog(0, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r[dreg]));
-		writeToBackLog(1, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r[dreg]));
+
+		if (IsSameMemArea(g_dsp.r[dreg],g_dsp.r[0x3]))	
+			writeToBackLog(1, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r[dreg]));
+		else
+			writeToBackLog(1, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r[0x3]));
+
 		writeToBackLog(2, dreg,	dsp_increment_addr_reg(dreg));
 	}
 
@@ -312,11 +333,21 @@ void ldn(const UDSPInstruction& opc)
 	
 	if (sreg != 0x03) {
 		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r[sreg]));
-		writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r[sreg]));
+
+		if (IsSameMemArea(g_dsp.r[sreg],g_dsp.r[0x3]))	
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r[sreg]));
+		else
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r[0x3]));
+
 		writeToBackLog(2, sreg,	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]));
 	} else {
 		writeToBackLog(0, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r[dreg]));
-		writeToBackLog(1, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r[dreg]));
+
+		if (IsSameMemArea(g_dsp.r[dreg],g_dsp.r[0x3]))	
+			writeToBackLog(1, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r[dreg]));
+		else
+			writeToBackLog(1, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r[0x3]));
+
 		writeToBackLog(2, dreg,	dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]));
 	}
 	
@@ -335,11 +366,21 @@ void ldm(const UDSPInstruction& opc)
 
 	if (sreg != 0x03) {
 		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r[sreg]));
-		writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r[sreg]));
+
+		if (IsSameMemArea(g_dsp.r[sreg],g_dsp.r[0x3]))	
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r[sreg]));
+		else
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r[0x3]));
+
 		writeToBackLog(2, sreg,	dsp_increment_addr_reg(sreg));
 	} else {
 		writeToBackLog(0, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r[dreg]));
-		writeToBackLog(1, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r[dreg]));
+
+		if (IsSameMemArea(g_dsp.r[dreg],g_dsp.r[0x3]))	
+			writeToBackLog(1, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r[dreg]));
+		else
+			writeToBackLog(1, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r[0x3]));
+
 		writeToBackLog(2, dreg,	dsp_increment_addr_reg(dreg));
 	}
 
@@ -358,11 +399,21 @@ void ldnm(const UDSPInstruction& opc)
 
 	if (sreg != 0x03) {
 		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r[sreg]));
-		writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r[sreg]));
+
+		if (IsSameMemArea(g_dsp.r[sreg],g_dsp.r[0x3]))	
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r[sreg]));
+		else
+			writeToBackLog(1, (rreg << 1) + DSP_REG_AXL1, dsp_dmem_read(g_dsp.r[0x3]));
+
 		writeToBackLog(2, sreg,	dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]));
 	} else {
 		writeToBackLog(0, rreg + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r[dreg]));
-		writeToBackLog(1, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r[dreg]));
+
+		if (IsSameMemArea(g_dsp.r[dreg],g_dsp.r[0x3]))	
+			writeToBackLog(1, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r[dreg]));
+		else
+			writeToBackLog(1, rreg + DSP_REG_AXH0, dsp_dmem_read(g_dsp.r[0x3]));
+
 		writeToBackLog(2, dreg,	dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]));
 	}
 

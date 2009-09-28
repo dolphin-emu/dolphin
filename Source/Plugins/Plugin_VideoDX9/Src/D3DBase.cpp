@@ -201,7 +201,7 @@ void Enumerate()
 		a.supports_resz = D3D_OK == D3D->CheckDeviceFormat(
 			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8,
 			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_RESZ); 
-		a.supports_resz = D3D_OK == D3D->CheckDeviceFormat(
+		a.supports_null = D3D_OK == D3D->CheckDeviceFormat(
 			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8,
 			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_NULL); 
 

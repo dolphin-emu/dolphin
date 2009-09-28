@@ -95,6 +95,7 @@ void UpdateProjectionHack(int iPhackvalue)
 		fhackvalue1 = 0.0075f;
 		bPhackvalue2 = 0;
 		bProjHack1 = 0;
+		break;
 	case PROJECTION_HACK_BATEN_KAITOS:
 		bPhackvalue1 = 1;
 		fhackvalue1 = 0.0026f;

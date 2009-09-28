@@ -32,9 +32,11 @@ inline s64 dsp_get_multiply_prod(u16 a, u16 b, bool sign)
 {
 	s64 prod;
 
+#if 0 //causing probs with all games atm
 	if (sign && g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)
 		prod = (u64)a * (u64)b;  // won't overflow 32-bits
 	else
+#endif
 		prod = (s32)(s16)a * (s32)(s16)b;  // won't overflow 32-bits
 
 	// Conditionally multiply by 2.
