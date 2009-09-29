@@ -24,6 +24,7 @@
 #include "HW/Memmap.h"
 
 #include <wx/mstream.h>
+#include <wx/imaglist.h>
 
 extern "C" {
 #include "../resources/toolbar_add_breakpoint.c"
