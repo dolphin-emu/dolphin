@@ -638,7 +638,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	if (!_rFullPath) // Extract all
 	{
 		index[0] = 0;
-		index[1] = fst.size();
+		index[1] = (u32)fst.size();
 
 		FS->ExportApploader(_rExportFolder);
 	}

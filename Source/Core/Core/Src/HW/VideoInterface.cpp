@@ -1088,8 +1088,8 @@ static void EndField()
 void Update()
 {
 	// Update the target refresh rate
-	TargetRefreshRate = (m_DisplayControlRegister.FMT == 0 || m_DisplayControlRegister.FMT == 2)
-		? NTSC_FIELD_RATE : PAL_FIELD_RATE;
+	TargetRefreshRate = (float)((m_DisplayControlRegister.FMT == 0 || m_DisplayControlRegister.FMT == 2)
+		? NTSC_FIELD_RATE : PAL_FIELD_RATE);
 
 	// Calculate actual refresh rate
 	static u64 LastTick = 0;
@@ -1105,7 +1105,7 @@ void Update()
 		// Multipled by two because of the way TicksPerFrame is calculated (divided by 25 and 30
 		// rather than 50 and 60)
 
-		ActualRefreshRate = ((double)SyncTicksProgress / (double)TicksPerFrame) * 2.0;		
+		ActualRefreshRate = (float)(((double)SyncTicksProgress / (double)TicksPerFrame) * 2.0);		
 		LastTick = CoreTiming::GetTicks();
 		SyncTicksProgress = 0;
 	}

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1255"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Lua"
 	ProjectGUID="{DA4CA030-A741-4DDC-9DA8-B2F351F0F158}"
 	RootNamespace="Lua"
@@ -233,6 +233,7 @@
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4334;"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

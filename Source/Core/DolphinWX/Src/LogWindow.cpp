@@ -283,10 +283,8 @@ void CLogWindow::UpdateChecks()
 
 void CLogWindow::UnPopulateRight()
 {
-	// Use ->Detach instead, as per sizer.h?
-	sRight->Remove(m_Log);
-	sRight->Remove(sRightBottom);
-	// Remove() destroys sizers
+	sRight->Detach(m_Log);
+	sRight->Detach(sRightBottom);
 	sRightBottom = new wxBoxSizer(wxHORIZONTAL);
 }
 void CLogWindow::PopulateRight()
@@ -445,10 +443,9 @@ void CLogWindow::OnLogTimer(wxTimerEvent& WXUNUSED(event))
 	if (!m_LogAccess) return;
 
 	//m_Log->Freeze();
-	int MsgSz = msgQueue.size();
 	UpdateLog();
 	// Better auto scroll than wxTE_AUTO_SCROLL
-	if (MsgSz > 0)
+	if (msgQueue.size() > 0)
 	{
 		m_Log->ScrollLines(1);
 		m_Log->ShowPosition( m_Log->GetLastPosition() );

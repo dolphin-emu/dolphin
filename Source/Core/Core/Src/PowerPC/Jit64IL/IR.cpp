@@ -150,7 +150,7 @@ InstLoc IRBuilder::EmitZeroOp(unsigned Opcode, unsigned extra = 0) {
 
 InstLoc IRBuilder::EmitUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 	InstLoc curIndex = &InstList[InstList.size()];
-	unsigned backOp1 = curIndex - 1 - Op1;
+	unsigned backOp1 = (s32)(curIndex - 1 - Op1);
 	if (backOp1 >= 256) {
 		InstList.push_back(Tramp | backOp1 << 8);
 		backOp1 = 0;
@@ -162,13 +162,13 @@ InstLoc IRBuilder::EmitUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 
 InstLoc IRBuilder::EmitBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned extra) {
 	InstLoc curIndex = &InstList[InstList.size()];
-	unsigned backOp1 = curIndex - 1 - Op1;
+	unsigned backOp1 = (s32)(curIndex - 1 - Op1);
 	if (backOp1 >= 255) {
 		InstList.push_back(Tramp | backOp1 << 8);
 		backOp1 = 0;
 		curIndex++;
 	}
-	unsigned backOp2 = curIndex - 1 - Op2;
+	unsigned backOp2 = (s32)(curIndex - 1 - Op2);
 	if (backOp2 >= 256) {
 		InstList.push_back(Tramp | backOp2 << 8);
 		backOp2 = 0;

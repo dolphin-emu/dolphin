@@ -116,7 +116,7 @@ struct TabDirect3D : public W32Util::Tab
 			g_Config.bWireFrame = Button_GetCheck(GetDlgItem(hDlg,IDC_WIREFRAME)) ? true : false;
 			break;
 		case IDC_SAFE_TEXTURE_CACHE:
-			g_Config.bSafeTextureCache = Button_GetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE));
+			g_Config.bSafeTextureCache = Button_GetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE)) == 0 ? false : true;
 			break;
 		default:
 			break;

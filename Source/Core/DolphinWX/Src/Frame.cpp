@@ -534,7 +534,7 @@ void CFrame::OnRestart(wxCommandEvent& WXUNUSED (event))
 	#ifdef _WIN32
 		char Str[MAX_PATH + 1];
 		DWORD Size = sizeof(Str)/sizeof(char);
-		DWORD n = GetModuleFileNameA(NULL, Str, Size);
+		//DWORD n = GetModuleFileNameA(NULL, Str, Size);
 		ShellExecuteA(NULL, "open", PathToFilename(*new std::string(Str)).c_str(), g_pCodeWindow ? "" : "-d", NULL, SW_SHOW);
 	#endif
 

@@ -76,6 +76,7 @@
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
+				DisableSpecificWarnings="4005;"
 				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool
@@ -186,6 +187,7 @@
 				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 				CompileAs="0"
+				DisableSpecificWarnings="4005;"
 				ForcedIncludeFiles="stdafx.h"
 			/>
 			<Tool

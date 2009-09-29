@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="SOIL"
 	ProjectGUID="{C0B84DA9-FF15-4FAB-9590-17132F3C6DE4}"
 	RootNamespace="SOIL"
@@ -173,6 +173,7 @@
 				EnableFunctionLevelLinking="false"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4018;4267;4224;4244;"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -237,6 +238,7 @@
 				EnableFunctionLevelLinking="false"
 				WarningLevel="3"
 				DebugInformationFormat="3"
+				DisableSpecificWarnings="4018;4267;4224;4244;"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
