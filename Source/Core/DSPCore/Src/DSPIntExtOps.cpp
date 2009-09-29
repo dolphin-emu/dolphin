@@ -42,12 +42,10 @@ namespace Ext
 
 inline bool IsSameMemArea(u16 a, u16 b)
 {
-//LM:AX games have probs with this,... more tests needed
-#if 0
-	if ((a>>12)==(b>>12)) //from http://code.google.com/p/dolphin-emu/wiki/DSP_todo (Luigi research)
+//LM: tested on WII
+	if ((a>>10)==(b>>10))
 		return true;
 	else
-#endif
 		return false;
 }
 
