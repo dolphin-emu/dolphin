@@ -278,6 +278,7 @@ HRESULT Create(int adapter, HWND wnd, bool _fullscreen, int _resolution, int aa_
 	dev->GetRenderTarget(0, &back_buffer);
 	if (dev->GetDepthStencilSurface(&back_buffer_z) == D3DERR_NOTFOUND)
 		back_buffer_z = NULL;
+	dev->SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE );
 
 	// Device state would normally be set here
 	return S_OK;

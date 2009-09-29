@@ -3443,8 +3443,10 @@ label09ab:
 		0a0a_ReadFromAccelerator8To16(OutBuffer($AR3), Count($AX0.H))
 
 		09d3 5500      subr        $ACC1, $AX0.H
-		09d4 0a01      lris        $AX0.H, #0x01
-		09d5 00fa 0405 sr          @0x0405, $AX0.H
+		// 09d4 0a01      lris        $AX0.H, #0x01
+		// 09d5 00fa 0405 sr          @0x0405, $AX0.H
+		*0x405 = 1; // PB.ReachedEnd = 1;
+		
 		09d7 029f 09ab jmp         0x09ab
 	}
 
@@ -3459,12 +3461,18 @@ label09ab:
 	09df 263a      lrs         $AC0.M, @0x003a
 	09e0 243b      lrs         $AC0.L, @0x003b
 	09e1 1570      lsr         $ACC1, #-16
-	09e2 0a01      lris        $AX0.H, #0x01
-	09e3 0081 0405 lri         $AR1, #0x0405
-	09e5 5c00      sub         $ACC0, $ACC1
-	09e6 b100      tst         $ACC0
-	09e7 0275      ifz         
-		09e8 1a3a      srr         @$AR1, $AX0.H
+	
+	// 09e2 0a01      lris        $AX0.H, #0x01
+	// 09e3 0081 0405 lri         $AR1, #0x0405
+	// 09e5 5c00      sub         $ACC0, $ACC1
+	// 09e6 b100      tst         $ACC0
+	// 09e7 0275      ifz         
+	// 	09e8 1a3a      srr         @$AR1, $AX0.H
+	
+	ACC0 -= ACC1;
+	if(ACC0 == 0)
+		*0x405 = 1; // PB.ReachedEnd = 1
+	
 	09e9 2e3a      srs         @0x003a, $AC0.M
 	09ea 2c3b      srs         @0x003b, $AC0.L
 	09eb 2638      lrs         $AC0.M, @0x0038
@@ -3612,8 +3620,10 @@ void Decoder0x10() {
 			// 0a56 02bf 0a91 call        0x0a91              // Read more samples
 			0a91_ReadFromAccelerator(OutBuffer($AR3), Count($AX0.H));
 			0a58 5500      subr        $ACC1, $AX0.H
-			0a59 0a01      lris        $AX0.H, #0x01
-			0a5a 00fa 0405 sr          @0x0405, $AX0.H
+			// 0a59 0a01      lris        $AX0.H, #0x01
+			// 0a5a 00fa 0405 sr          @0x0405, $AX0.H
+			*0x405 = 1; // PB.ReachedEnd
+			
 			0a5c 029f 0a30 jmp         0x0a30  // GOTO retry_0a30;
 		}
 	} 
@@ -3629,12 +3639,17 @@ void Decoder0x10() {
 	0a64 263a      lrs         $AC0.M, @0x003a
 	0a65 243b      lrs         $AC0.L, @0x003b
 	0a66 1570      lsr         $ACC1, #-16
-	0a67 0a01      lris        $AX0.H, #0x01
-	0a68 0081 0405 lri         $AR1, #0x0405
-	0a6a 5c00      sub         $ACC0, $ACC1
-	0a6b b100      tst         $ACC0
-	0a6c 0275      ifz         
-		0a6d 1a3a      srr         @$AR1, $AX0.H
+	// 0a67 0a01      lris        $AX0.H, #0x01
+	// 0a68 0081 0405 lri         $AR1, #0x0405
+	// 0a6a 5c00      sub         $ACC0, $ACC1
+	// 0a6b b100      tst         $ACC0
+	// 0a6c 0275      ifz         
+	// 	 0a6d 1a3a      srr         @$AR1, $AX0.H
+		
+	ACC0 -= ACC1;
+	if(ACC0 == 0)
+		*0x405 = 1; // PB.ReachedEnd = 1	
+
 	0a6e 2e3a      srs         @0x003a, $AC0.M
 	0a6f 2c3b      srs         @0x003b, $AC0.L
 	0a70 2638      lrs         $AC0.M, @0x0038

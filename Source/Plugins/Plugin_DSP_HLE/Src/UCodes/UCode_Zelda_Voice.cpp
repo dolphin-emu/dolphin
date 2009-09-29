@@ -272,12 +272,15 @@ void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 restart:
 	if (PB.ReachedEnd)
 	{
+		PB.ReachedEnd = 0;
+
 		// HACK: AFC looping doesn't work.
 		if (PB.RepeatMode == 0) //MKDD excluded (hack) - strange menu sounds
 		{
 			PB.KeyOff = 1;
-			// PB.RemLength = 0;
-			// PB.CurAddr = PB.StartAddr + PB.RestartPos + PB.Length;
+			PB.RemLength = 0;
+			PB.CurAddr = PB.StartAddr + PB.RestartPos + PB.Length;
+			
 			while (sampleCount < _RealSize)
 				_Buffer[sampleCount++] = 0;
 			return;
@@ -293,6 +296,7 @@ restart:
 			// Hmm, this shouldn't be reversed .. or should it? Is it different between versions of the ucode?
 			PB.YN1 = PB.LoopYN2;
 			PB.YN2 = PB.LoopYN1;
+ 				
 		}
 	}
 
