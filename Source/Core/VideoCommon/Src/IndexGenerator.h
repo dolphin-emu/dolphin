@@ -21,6 +21,8 @@
 #ifndef _INDEXGENERATOR_H
 #define _INDEXGENERATOR_H
 
+
+
 class IndexGenerator
 {
 public:
@@ -44,6 +46,57 @@ private:
 	int adds;
 	int indexLen;
 	bool onlyLists;
+};
+
+class IndexGenerator2
+{
+public:
+	//Init
+	void Start(unsigned short *Triangleptr,unsigned short *Lineptr,unsigned short *Pointptr);
+	//Triangles
+	void AddList(int numVerts);
+	void AddStrip(int numVerts);
+	void AddFan(int numVerts);
+	void AddQuads(int numVerts);
+	//Lines
+	void AddLineList(int numVerts);
+	void AddLineStrip(int numVerts);
+	//Points
+	void AddPoints(int numVerts);
+	//Interface
+	int GetNumTriangles() {return numT;}
+	int GetNumLines() {return numL;}
+	int GetNumPoints() {return numP;}
+	int GetNumVerts() {return index;} //returns numprimitives
+	int GetNumAdds() {return Tadds + Ladds + Padds;}
+	int GetTriangleindexLen() {return TindexLen;}
+	int GetLineindexLen() {return LindexLen;}
+	int GetPointindexLen() {return PindexLen;}		
+public:
+	enum IndexPrimitiveType
+	{
+		None,
+		List,
+		Strip,
+		Fan
+	};
+private:
+	unsigned short *Tptr;
+	unsigned short *Lptr;
+	unsigned short *Pptr;
+	int numT;
+	int numL;
+	int numP;
+	int index;	
+	int Tadds;
+	int Ladds;
+	int Padds;
+	int TindexLen;
+	int LindexLen;
+	int PindexLen;
+	IndexPrimitiveType LastTPrimitive;
+	IndexPrimitiveType LastLPrimitive;	
+
 };
 
 #endif  // _INDEXGENERATOR_H

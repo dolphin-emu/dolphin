@@ -39,8 +39,6 @@
 #include "VertexManager.h"
 #include "IndexGenerator.h"
 
-#define MAX_BUFFER_SIZE 0x50000
-
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;
 
@@ -71,20 +69,21 @@ static const GLenum c_primitiveType[8] =
     GL_POINTS
 };
 
-static IndexGenerator indexGen;
+static IndexGenerator2 indexGen;
 
 static GLenum lastPrimitive;
 static GLenum CurrentRenderPrimitive;
 
 static u8 *LocalVBuffer;   
-static u16 *IBuffer;  
+static u16 *TIBuffer;
+static u16 *LIBuffer;  
+static u16 *PIBuffer;  
 
 #define MAXVBUFFERSIZE 0x50000
 #define MAXIBUFFERSIZE 0x20000
 #define MAXVBOBUFFERCOUNT 0x4
 
 static GLuint s_vboBuffers[MAXVBOBUFFERCOUNT] = {0};
-static GLuint s_IBuffers[MAXVBOBUFFERCOUNT] = {0};
 static int s_nCurVBOIndex = 0; // current free buffer
 
 
@@ -94,7 +93,9 @@ bool Init()
 	lastPrimitive = GL_ZERO;
 	CurrentRenderPrimitive = GL_ZERO;
 	LocalVBuffer = new u8[MAXVBUFFERSIZE];
-	IBuffer = new u16[MAXIBUFFERSIZE];
+	TIBuffer = new u16[MAXIBUFFERSIZE];
+	LIBuffer = new u16[MAXIBUFFERSIZE];
+	PIBuffer = new u16[MAXIBUFFERSIZE];
 	s_pCurBufferPointer = LocalVBuffer;
 	s_nCurVBOIndex = 0;
 	glGenBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
@@ -105,13 +106,19 @@ bool Init()
 	glEnableClientState(GL_VERTEX_ARRAY);
 	g_nativeVertexFmt = NULL;
 	GL_REPORT_ERRORD();
+	u16 *Tptr = TIBuffer;
+	u16 *Lptr = LIBuffer;
+	u16 *Pptr = PIBuffer;
+	indexGen.Start(Tptr,Lptr,Pptr);
 	return true;
 }
 
 void Shutdown()
 {
 	delete [] LocalVBuffer;
-	delete [] IBuffer;
+	delete [] TIBuffer;
+	delete [] LIBuffer;
+	delete [] PIBuffer;
 	glDeleteBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
 	s_nCurVBOIndex = 0;
 	ResetBuffer();
@@ -122,8 +129,10 @@ void ResetBuffer()
 	s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
 	s_pCurBufferPointer = LocalVBuffer;
 	CurrentRenderPrimitive = GL_ZERO;
-	u16 *ptr = 0;
-	indexGen.Start((unsigned short*)ptr);
+	u16 *Tptr = TIBuffer;
+	u16 *Lptr = LIBuffer;
+	u16 *Pptr = PIBuffer;
+	indexGen.Start(Tptr,Lptr,Pptr);
 }
 
 void AddIndices(int _primitive, int _numVertices)
@@ -135,7 +144,7 @@ void AddIndices(int _primitive, int _numVertices)
 	case GL_TRIANGLE_STRIP: indexGen.AddStrip(_numVertices);     return;
 	case GL_TRIANGLE_FAN:   indexGen.AddFan(_numVertices);       return;
 	case GL_LINE_STRIP:     indexGen.AddLineStrip(_numVertices); return;
-	case GL_LINES:		     indexGen.AddLineList(_numVertices);  return;
+	case GL_LINES:		    indexGen.AddLineList(_numVertices);  return;
 	case GL_POINTS:         indexGen.AddPoints(_numVertices);    return;
 	}
 }
@@ -158,40 +167,28 @@ void AddVertices(int primitive, int numvertices)
 	
 	ADDSTAT(stats.thisFrame.numPrims, numvertices);
 
-	if (CurrentRenderPrimitive != c_RenderprimitiveType[primitive])
-	{
-		// We are NOT collecting the right type.
-		Flush();
-		CurrentRenderPrimitive = c_RenderprimitiveType[primitive];
-		u16 *ptr = 0;
-		if (lastPrimitive != GL_POINTS)
-		{
-			ptr = IBuffer;			
-		}
-		indexGen.Start((unsigned short*)ptr);
-		AddIndices(c_primitiveType[primitive], numvertices);		
-	}
-	else  // We are collecting the right type, keep going
-	{
-		INCSTAT(stats.thisFrame.numPrimitiveJoins);
-		AddIndices(c_primitiveType[primitive], numvertices);		
-	}
+	INCSTAT(stats.thisFrame.numPrimitiveJoins);
+	AddIndices(c_primitiveType[primitive], numvertices);		
+	
 }
 
-inline void Draw(int numVertices, int indexLen)
+inline void Draw()
 {	
-
-	if (CurrentRenderPrimitive != GL_POINT)
-	{		
-		glDrawElements(CurrentRenderPrimitive, indexLen, GL_UNSIGNED_SHORT, IBuffer);
+	if(indexGen.GetNumTriangles() > 0)
+	{
+		glDrawElements(GL_TRIANGLES, indexGen.GetTriangleindexLen(), GL_UNSIGNED_SHORT, TIBuffer);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	else
+	if(indexGen.GetNumLines() > 0)
 	{
-		glDrawArrays(CurrentRenderPrimitive,0,numVertices);
-		INCSTAT(stats.thisFrame.numDrawCalls);
+		glDrawElements(GL_LINES, indexGen.GetLineindexLen(), GL_UNSIGNED_SHORT, LIBuffer);
+		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	
+	if(indexGen.GetNumPoints() > 0)
+	{
+		glDrawElements(GL_POINTS, indexGen.GetPointindexLen(), GL_UNSIGNED_SHORT, PIBuffer);
+		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+	}	
 }
 
 void Flush()
@@ -320,8 +317,7 @@ void Flush()
 	PRIM_LOG("");
 #endif
 
-	int numIndexes = indexGen.GetindexLen();
-	Draw(numVerts,numIndexes);
+	Draw();
 	
     // run through vertex groups again to set alpha
     if (!g_ActiveConfig.bDstAlphaPass && bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
@@ -335,7 +331,7 @@ void Flush()
 
 		glDisable(GL_BLEND);
 
-		Draw(numVerts,numIndexes);
+		Draw();
 		// restore color mask
 		Renderer::SetColorMask();
 

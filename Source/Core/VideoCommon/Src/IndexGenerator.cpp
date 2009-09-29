@@ -145,3 +145,152 @@ void IndexGenerator::AddPoints(int numVerts)
 	numPrims += numVerts;
 	adds++;
 }
+
+
+
+	//Init
+void IndexGenerator2::Start(unsigned short *Triangleptr,unsigned short *Lineptr,unsigned short *Pointptr)
+{	
+	Tptr = Triangleptr;
+	Lptr = Lineptr;
+	Pptr = Pointptr;
+	index = 0;
+	numT = 0;
+	numL = 0;
+	numP = 0;
+	Tadds = 0;
+	Ladds = 0;
+	Padds = 0;
+	TindexLen = 0;
+	LindexLen = 0;
+	PindexLen = 0;
+	LastTPrimitive = None;
+	LastLPrimitive = None;
+}
+// Triangles
+void IndexGenerator2::AddList(int numVerts)
+{
+	int numTris = numVerts / 3;
+	if (numTris <= 0) return;
+	for (int i = 0; i < numTris; i++)
+	{
+		*Tptr++ = index+i*3;
+		*Tptr++ = index+i*3+1;
+		*Tptr++ = index+i*3+2;
+	}
+	TindexLen += numVerts;
+	index += numVerts;
+	numT += numTris;
+	Tadds++;
+	LastTPrimitive = List;
+}
+
+void IndexGenerator2::AddStrip(int numVerts)
+{
+	int numTris = numVerts - 2;
+	if (numTris <= 0) return;
+	bool wind = false;
+	for (int i = 0; i < numTris; i++)
+	{
+		*Tptr++ = index+i;
+		*Tptr++ = index+i+(wind?2:1);
+		*Tptr++ = index+i+(wind?1:2);
+		wind = !wind;
+	}
+	TindexLen += numTris * 3;
+	index += numVerts;
+	numT += numTris;
+	Tadds++;	
+	LastTPrimitive = Strip;
+}
+void IndexGenerator2::AddFan(int numVerts)
+{
+	int numTris = numVerts - 2;
+	if (numTris <= 0) return;
+	for (int i = 0; i < numTris; i++)
+	{
+		*Tptr++ = index;
+		*Tptr++ = index+i+1;
+		*Tptr++ = index+i+2;
+	}
+	TindexLen += numTris * 3;
+	index += numVerts;
+	numT += numTris;
+	Tadds++;	
+	LastTPrimitive = Fan;
+}
+
+void IndexGenerator2::AddQuads(int numVerts)
+{
+	int numTris = (numVerts/4)*2;
+	if (numTris <= 0) return;
+	for (int i = 0; i < numTris / 2; i++)
+	{
+		*Tptr++ = index+i*4;
+		*Tptr++ = index+i*4+1;
+		*Tptr++ = index+i*4+3;
+		*Tptr++ = index+i*4+1;
+		*Tptr++ = index+i*4+2;
+		*Tptr++ = index+i*4+3;
+	}
+	TindexLen += numTris * 3;
+	index += numVerts;
+	numT += numTris;
+	Tadds++;	
+	LastTPrimitive = List;
+}
+
+
+//Lines
+void IndexGenerator2::AddLineList(int numVerts)
+{
+	int numLines= numVerts / 2;
+	if (numLines <= 0) return;
+	for (int i = 0; i < numLines; i++)
+	{
+		*Lptr++ = index+i*2;
+		*Lptr++ = index+i*2+1;
+	}
+	LindexLen += numVerts;
+	index += numVerts;
+	numL += numLines;
+	Ladds++;
+	LastLPrimitive = List;
+}
+
+void IndexGenerator2::AddLineStrip(int numVerts)
+{
+	int numLines = numVerts - 1;
+	if (numLines <= 0) return;
+	for (int i = 0; i < numLines; i++)
+	{
+		*Lptr++ = index+i;
+		*Lptr++ = index+i+1;
+	}
+	LindexLen += numLines * 2;
+	index += numVerts;
+	numL += numLines;
+	Ladds++;	
+	LastLPrimitive = Strip;
+}
+
+
+
+//Points
+void IndexGenerator2::AddPoints(int numVerts)
+{
+	for (int i = 0; i < numVerts; i++)
+	{
+		*Pptr++ = index+i;		
+	}
+	index += numVerts;
+	numP += numVerts;
+	PindexLen+=numVerts;
+	Padds++;
+}
+
+
+
+
+	
+
