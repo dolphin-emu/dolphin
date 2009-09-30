@@ -58,6 +58,8 @@ sDecoders Decoders[] = { {NULL, NULL, &Kernel},
 };
 bool Inited = false;
 
+// TODO: Deinit (clRelease...)
+
 bool Init_OpenCL()
 {
     int err;                            // error code returned from api calls
@@ -124,15 +126,19 @@ bool Init_OpenCL()
     }  */
 }
 
-PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
     if(!Inited)
     {
         // Not yet inited, let's init now
         // Need to make a init function later
         if(!Init_OpenCL())
-            ;// Crap, seems we can't use OpenCL, should fallback on regular decoding
+            PanicAlert("OpenCL could not initialize successfully");
     }
+
+	// clEnqueueNDRangeKernel
+
+
     /*switch (texformat)
     {
     case GX_TF_C4:

@@ -240,6 +240,9 @@ if sys.platform == 'darwin':
 
 env['HAVE_SDL'] = conf.CheckSDL('1.0.0')
 
+# OpenCL
+env['HAVE_OPENCL'] = conf.CheckPKG('opencl')
+
 # Bluetooth for wii support
 env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 
