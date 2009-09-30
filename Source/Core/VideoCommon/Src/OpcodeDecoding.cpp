@@ -41,6 +41,8 @@
 #include "Fifo.h"
 #include "DataReader.h"
 
+#include "OpenCL.h"
+
 u8* g_pVideoData = 0;
 
 extern u8* FAKE_GetFifoStartPtr();
@@ -377,11 +379,18 @@ static void DecodeSemiNop()
 void OpcodeDecoder_Init()
 {	
 	g_pVideoData = FAKE_GetFifoStartPtr();
+
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
+	OpenCL::Initialize();
+#endif
 }
 
 
 void OpcodeDecoder_Shutdown()
 {
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
+	OpenCL::Destroy();
+#endif
 }
 
 void OpcodeDecoder_Run(bool skipped_frame)

@@ -17,11 +17,7 @@
 
 #include "TextureDecoder.h"
 
-#ifdef __APPLE__
-#include <OpenCL/opencl.h>
-#else
-#include <CL/cl.h>
-#endif
+#include "OpenCL.h"
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -32,12 +28,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-    size_t global;                      // global domain size for our calculation
-    size_t local;                       // local domain size for our calculation
-
-    cl_device_id device_id;             // compute device id 
-    cl_context context;                 // compute context
-    cl_command_queue commands;          // compute command queue
+size_t global;                      // global domain size for our calculation
+size_t local;                       // local domain size for our calculation
     
     
 struct sDecoders
@@ -46,105 +38,71 @@ struct sDecoders
     cl_kernel kernel;                   // compute kernel
     const char **cKernel;
 };
-const char *Kernel = "                                                  \
-__kernel void Decode(__local unsigned char *dst,                        \
-		     __local const unsigned char *src,                  \
-		     int width, int height)                             \
-{                                                                       \
-	int id = get_global_id(0);                                      \
-	for (int xy = 0; xy < height*width; xy += 4)                    \
-		for (int iy = 0; iy < 4; iy++, src += 8) {              \
-			u16 *ptr = (u16 *)dst + ((xy / width) + iy) *   \
-				   width + (xy % width);                \
-			u16 *s = (u16 *)src;                            \
-			for(int j = 0; j < 4; j++)                      \
-				*ptr++ = Common::swap16(*s++);          \
-		}
+
+const char *Kernel = "                              		\
+kernel void Decode(global uchar *dst,               		\
+		     const global uchar *src,               		\
+		     int width, int height)                 		\
+{                                                   		\
+	int x = get_global_id(0), y = get_global_id(1);   		\
+															\
+	for (int iy = 0; iy < 4; iy++, src += 8) {  			\
+	u16 *ptr = (u16 *)dst + ((x + (y / width)) + iy) *		\
+		width + ((x * width + y) % width);					\
+		u16 *s = (u16 *)src;								\
+		for(int j = 0; j < 4; j++)							\
+			*ptr++ = Common::swap16(*s++);					\
+	}														\
 }";
 
 sDecoders Decoders[] = { {NULL, NULL, &Kernel}, 
 
-bool Inited = false;
-
-// TODO: Deinit (clRelease...)
-
-bool Init_OpenCL()
-{
-    int err;                            // error code returned from api calls
-            
-    // Connect to a compute device
-    //
-    int gpu = 1;
-    err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
-    if (err != CL_SUCCESS)
-    {
-        printf("Error: Failed to create a device group!\n");
-        return EXIT_FAILURE;
-    }
-  
-    // Create a compute context 
-    //
-    context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
-    if (!context)
-    {
-        printf("Error: Failed to create a compute context!\n");
-        return EXIT_FAILURE;
-    }
-
-    // Create a command commands
-    //
-    commands = clCreateCommandQueue(context, device_id, 0, &err);
-    if (!commands)
-    {
-        printf("Error: Failed to create a command commands!\n");
-        return EXIT_FAILURE;
-    }
-
-    // Create the compute program from the source buffer
-    //
-    /*
-    program = clCreateProgramWithSource(context, 1, (const char **) & KernelSource, NULL, &err);
-    if (!program)
-    {
-        printf("Error: Failed to create compute program!\n");
-        return EXIT_FAILURE;
-    }
-
-    // Build the program executable
-    //
-    err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
-    if (err != CL_SUCCESS)
-    {
-        size_t len;
-        char buffer[2048];
-
-        printf("Error: Failed to build program executable!\n");
-        clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
-        printf("%s\n", buffer);
-        exit(1);
-    }
-
-    // Create the compute kernel in the program we wish to run
-    //
-    kernel = clCreateKernel(program, "Decoder", &err);
-    if (!kernel || err != CL_SUCCESS)
-    {
-        printf("Error: Failed to create compute kernel!\n");
-        exit(1);
-    }  */
-}
+bool g_Inited = false;
 
 PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
-    if(!Inited)
+    if(!g_Inited)
     {
-        // Not yet inited, let's init now
-        // Need to make a init function later
-        if(!Init_OpenCL())
-            PanicAlert("OpenCL could not initialize successfully");
-    }
+		g_Inited = true;
 
-	// clEnqueueNDRangeKernel
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
+		// TODO: Compile the program
+	    // Create the compute program from the source buffer
+		//
+		/*
+		program = clCreateProgramWithSource(context, 1, (const char **) & KernelSource, NULL, &err);
+		if (!program)
+		{
+			printf("Error: Failed to create compute program!\n");
+			return EXIT_FAILURE;
+		}
+
+		// Build the program executable
+		//
+		err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+		if (err != CL_SUCCESS)
+		{
+			size_t len;
+			char buffer[2048];
+
+			printf("Error: Failed to build program executable!\n");
+			clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+			printf("%s\n", buffer);
+			exit(1);
+		}
+
+		// Create the compute kernel in the program we wish to run
+		//
+		kernel = clCreateKernel(program, "Decoder", &err);
+		if (!kernel || err != CL_SUCCESS)
+		{
+			printf("Error: Failed to create compute kernel!\n");
+			exit(1);
+		}  */
+#endif
+	}
+
+	// TODO: clEnqueueNDRangeKernel
 
 
     /*switch (texformat)
@@ -279,25 +237,6 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
     case GX_TF_CMPR:  // speed critical
         // The metroid games use this format almost exclusively.
 		{
-#if 0   // TODO - currently does not handle transparency correctly and causes problems when texture dimensions are not multiples of 8
-            // 11111111 22222222 55555555 66666666
-            // 33333333 44444444 77777777 88888888
-			for (int y = 0; y < height; y += 8)
-			{
-                for (int x = 0; x < width; x += 8)
-                {
-					copyDXTBlock(dst+(y/2)*width+x*2, src);
-					src += 8;
-					copyDXTBlock(dst+(y/2)*width+x*2+8, src);
-					src += 8;
-					copyDXTBlock(dst+(y/2+2)*width+x*2, src);
-					src += 8;
-					copyDXTBlock(dst+(y/2+2)*width+x*2+8, src);
-					src += 8;
-				}
-			}
-			return PC_TEX_FMT_DXT1;
-#else
 			for (int y = 0; y < height; y += 8)
 			{
                 for (int x = 0; x < width; x += 8)
@@ -312,7 +251,6 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
                                         src += sizeof(DXTBlock);
                 }
 			}
-#endif
 			return PC_TEX_FMT_BGRA32;
 		}
     }

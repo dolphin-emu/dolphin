@@ -688,6 +688,18 @@
 				RelativePath=".\Src\TextureDecoder.h"
 				>
 			</File>
+			<Filter
+				Name="OpenCL"
+				>
+				<File
+					RelativePath=".\Src\OpenCL\TextureDecoder.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\OpenCL\TextureDecoder.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath=".\Src\GlobalControl.cpp"

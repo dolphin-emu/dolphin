@@ -725,6 +725,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\OpenCL.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\OpenCL.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\SConscript"
 			>
 		</File>
