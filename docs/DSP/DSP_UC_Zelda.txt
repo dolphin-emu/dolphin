@@ -782,7 +782,7 @@ void 01d0_Unk() {
 	AC0.M++;
 	
 	// 01d8 d100      cmpar       $ACC1, $AX0.H
-	// 01d9 0270      ifns        
+	// 01d9 0270      ifge        
 	if (ACC1 - AX0.H >= 0) {
 		01da 8100      clr         $ACC0
 	}
@@ -1377,7 +1377,7 @@ void 0243_COMMAND_02()  // sync frame
 						// 038a 185e      lrr         $AC0.M, @$AR2
 						// 038b 0272      ifg         
 						//	038c 7400      incm        $AC0.M
-						// 038d 0271      ifs         
+						// 038d 0271      ifl         
 						//	038e 7800      decm        $AC0.M
 						// 038f 1a5e      srr         @$AR2, $AC0.M
 					if ($ACC1 < $AX0.H) {
@@ -2512,7 +2512,7 @@ void 06f9_Unk_PrepareSampleDecode()
 	0703 04fe      addis       $ACC0, #0xfe
 	0704 1f1e      mrr         $AX0.L, $AC0.M
 	0705 191e      lrri        $AC0.M, @$AR0
-	// 0706 0291 070c js          0x070c
+	// 0706 0291 070c jl          0x070c
 	if ( .. ?? ..) {
 		0708 191a      lrri        $AX0.H, @$AR0
 		// Copy-loop
@@ -2543,27 +2543,32 @@ void 0717_InitializeDecoderState()   // 0xff88 to 0xff8B
 	// 0717 00de 04fb lr          $AC0.M, @0x04fb
 	// 0719 7400      incm        $AC0.M
 	// 071a 00fe 04fb sr          @0x04fb, $AC0.M
+	
 	(*0x4fb)++;
 	
 	// 071c 8100      clr         $ACC0
 	// 071d 2e32      srs         @0x0032, $AC0.M
 	// 071e 2e66      srs         @0x0066, $AC0.M
 	// 071f 2e67      srs         @0x0067, $AC0.M
-	CurBlock = 0
-	YN1 = 0
-	YN2 = 0
+	
+	PB.CurBlock = 0
+	PB.YN1 = 0
+	PB.YN2 = 0
 	
 	// 0720 268a      lrs         $AC0.M, @0xff8a
 	// 0721 248b      lrs         $AC0.L, @0xff8b
 	// 0722 2e3a      srs         @0x003a, $AC0.M
 	// 0723 2c3b      srs         @0x003b, $AC0.L
-	RemLength = Length
+	
+	PB.RemLength = PB.Length
 	
 	// 0724 268c      lrs         $AC0.M, @0xff8c
 	// 0725 248d      lrs         $AC0.L, @0xff8d
 	// 0726 2e38      srs         @0x0038, $AC0.M
 	// 0727 2c39      srs         @0x0039, $AC0.L
-	CurAddr = StartAddr
+	
+	PB.CurAddr = PB.StartAddr
+	
 	// 0728 02df      ret     
 }
 
@@ -2572,33 +2577,39 @@ void 0729_UpdateDecoderState()
 	// 0729 8100      clr         $ACC0
 	// 072a 2689      lrs         $AC0.M, @0xff89
 	// 072b 0240 000f andi        $AC0.M, #0x000f
-	ACC0 = 0;
-	AC0.M = *0x0489 & 0xF;
-	
+
+	$AC0.M = PB.LoopStartPos & 0xf;
+		
 	// 072d 1f5e      mrr         $AX0.H, $AC0.M
 	// 072e 8100      clr         $ACC0
 	// 072f 0e10      lris        $AC0.M, #0x10
 	// 0730 5400      subr        $ACC0, $AX0.H
-	AC0.M = 16 - AC0.M
+	
+	$AC0.M = 0x10 - (PB.LoopStartPos & 0xf)
 	
 	// 0731 2e32      srs         @0x0032, $AC0.M
-	*0x0432 = AC0.M
+	
+	PB.CurBlock = 0x10 - (PB.LoopStartPos & 0xf);
 	
 	// 0732 268a      lrs         $AC0.M, @0xff8a
 	// 0733 248b      lrs         $AC0.L, @0xff8b
 	// 0734 2288      lrs         $AX0.H, @0xff88
 	// 0735 2089      lrs         $AX0.L, @0xff89
 	// 0736 5800      subax       $ACC0, $AX0
-	ACC0 = Length[8a,8b] - LoopStartPos[88,89];
+	
+	$ACC0 = PB.Length[8a,8b] - PB.LoopStartPos[88,89];
 	
 	// 0737 0a00      lris        $AX0.H, #0x00
 	// 0738 2032      lrs         $AX0.L, @0x0032
 	// 0739 5800      subax       $ACC0, $AX0
-	ACC0 -= CurBlock? (*0x0432);
+	
+	$ACC0 -= PB.CurBlock (*0x0432);
 	
 	// 073a 2e3a      srs         @0x003a, $AC0.M
 	// 073b 2c3b      srs         @0x003b, $AC0.L
-	[3a, 3b] = ACC0  // = [8a, 8b] - [88, 89] - [32]
+	
+	PB.RemLength[3a,3b] = PB.Length[8a,8b] - (PB.LoopStartPos[88,89] + PB.CurBlock[32]);
+	
 	// 073c 02df      ret         
 }
  
@@ -2640,7 +2651,7 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 	0754 8100      clr         $ACC0	 
 	0755 263b      lrs         $AC0.M, @0x003b
 	0756 8200      cmp         
-	0757 0291 07ab js          0x07ab	 
+	0757 0291 07ab jl          0x07ab	 
 	if ()
 	{	 
 		// compute how many samples we have to copy
@@ -2658,7 +2669,7 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 		0763 263a      lrs         $AC0.M, @0x003a
 		0764 243b      lrs         $AC0.L, @0x003b
 		0765 5800      subax       $ACC0, $AX0
-		0766 0290 0771 jns         0x0771
+		0766 0290 0771 jge         0x0771
 		if ()
 		{
 			0768 8100      clr         $ACC0
@@ -2760,35 +2771,57 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 		07be 0295 07e3 jz          0x07e3   // stop rendering, see below 7e3
 		
 		// Repeat.
-		07c0 2380      lrs         $AX1.H, @0xff80
+		// 07c0 2380      lrs         $AX1.H, @0xff80
 		// 07c1 2688      lrs         $AC0.M, @0xff88
 		// 07c2 2489      lrs         $AC0.L, @0xff89
 		// 07c3 1408      lsl         $ACC0, #8
 		// 07c4 14f4      asr         $ACC0, #-12
-		$AC0 = PB.LoopStartPos >> 4
 		
-		07c5 2380      lrs         $AX1.H, @0xff80
-		07c6 8d00      set15       
-		07c7 c810      mulc'mv     $AC0.M, $AX1.H : $AX0.L, $AC0.L
-		07c8 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
-		07c9 8c00      clr15       
-		07ca f000      lsl16       $ACC0
-		07cb 4e00      addp        $ACC0
-		// The above is a 32 bit mul - loopstart * format
+		$ACC0 = PB.LoopStartPos >> 4
+		
+		//07c5 2380      lrs         $AX1.H, @0xff80
+		//07c6 8d00      set15       
+		//07c7 c810      mulc'mv     $AC0.M, $AX1.H : $AX0.L, $AC0.L
+		
+		$AX0.l = (PB.LoopStartPos >> 4) & 0xffff;
+		prod = (PB.LoopStartPos >> 4 & 0xffff0000)*PB.Format;		
+		
+		//07c8 ae00      mulxmv      $AX0.L, $AX1.H, $ACC0
+		
+		$ACC0 = (PB.LoopStartPos >> 4 & 0xffff0000)*PB.Format;
+		prod = ((PB.LoopStartPos >> 4) & 0xffff)*PB.Format;		
+
+		//07c9 8c00      clr15       
+		//07ca f000      lsl16       $ACC0
+		
+		$ACC0 =  (((PB.LoopStartPos >> 4) & 0xffff0000)*PB.Format)<<16		
+		
+		//07cb 4e00      addp        $ACC0
+
+		$ACC0 = ((((PB.LoopStartPos >> 4) & 0xffff0000)*PB.Format)<<16)+
+		(((PB.LoopStartPos >> 4) & 0xffff)*PB.Format)			
 				
 		// 07cc 238c      lrs         $AX1.H, @0xff8c
 		// 07cd 218d      lrs         $AX1.L, @0xff8d
 		// 07ce 4a00      addax       $ACC0, $AX1
+		
+		$ACC0 = (((((PB.LoopStartPos >> 4) & 0xffff0000)*PB.Format)<<16)+
+		(((PB.LoopStartPos >> 4) & 0xffff)*PB.Format))+PB.StartAddr			
+		
 		// 07cf 2e38      srs         @0x0038, $AC0.M
 		// 07d0 2c39      srs         @0x0039, $AC0.L
-		So, CurAddr = Loopstart * format + Startaddr
+
+		PB.CurAddr = $ACC0 & 0xffffffff;
 		
 		// 07d1 2682      lrs         $AC0.M, @0xff82
 		// 07d2 2e67      srs         @0x0067, $AC0.M
 		// 07d3 2683      lrs         $AC0.M, @0xff83
 		// 07d4 2e66      srs         @0x0066, $AC0.M
-		Unconditionally (!) copy YN1 and YN2 from loopyn2 and loopyn1
+		//Unconditionally (!) copy YN1 and YN2 from loopyn2 and loopyn1
 		
+		PB.YN1 = PB.LoopYN1;
+		PB.YN2 = PB.LoopYN2;
+				
 		07d5 00e3 0363 sr          @0x0363, $AR3
 		07d7 0083 0458 lri         $AR3, #0x0458
 		07d9 8100      clr         $ACC0
@@ -2803,8 +2836,10 @@ void 073d_DECODE_0x05_0x09(_dest($AR3), _numberOfSamples($AC1.M), _len(AX1))   /
 		
 		// No repeat
 	 	// stop rendering of this PB (0x401 == 1) and clear the output buffer with zeroes...
-		07e3 0e01      lris        $AC0.M, #0x01 
-		07e4 2e01      srs         @0x0001, $AC0.M
+		//07e3 0e01      lris        $AC0.M, #0x01 
+		//07e4 2e01      srs         @0x0001, $AC0.M
+		
+		PB.KeyOff = 1; 
 		 
 	early_out:
 	 // Zero the buffer.
@@ -2995,7 +3030,7 @@ void 07eb_AFCDecoder(_numberOfSample(AC0.M))
 	0871 04fe      addis       $ACC0, #0xfe
 	0872 1f1e      mrr         $AX0.L, $AC0.M
 	0873 191e      lrri        $AC0.M, @$AR0
-	0874 0291 087a js          0x087a
+	0874 0291 087a jl          0x087a
 		0876 191a      lrri        $AX0.H, @$AR0
 		0877 0058      loop        $AX0.L
 			0878 64a0      movr'ls     $ACC0, $AX0.H : $AX0.H, $AC0.M
@@ -3436,7 +3471,7 @@ label09ab:
 	if (*(0x043a)) {
 		09cc 263b      lrs         $AC0.M, @0x003b
 		09cd 5c00      sub         $ACC0, $ACC1
-		09ce 0290 09d9 jns         0x09d9
+		09ce 0290 09d9 jge         0x09d9
 		
 		09d0 223b      lrs         $AX0.H, @0x003b
 		// 09d1 02bf 0a0a call        0x0a0a   // Load more samples.
@@ -3614,7 +3649,7 @@ void Decoder0x10() {
 	if (!*0x043a) {
 		0a51 263b      lrs         $AC0.M, @0x003b
 		0a52 5c00      sub         $ACC0, $ACC1
-		0a53 0290 0a5e jns         0x0a5e
+		0a53 0290 0a5e jge         0x0a5e
 		if (0x43b <= ACC1) {   // not sure, but ..  not enough samples?
 			0a55 223b      lrs         $AX0.H, @0x003b
 			// 0a56 02bf 0a91 call        0x0a91              // Read more samples
@@ -3841,7 +3876,7 @@ void 0ab3_Decoder0x21Core(AC1.M, AR3) {
 	// 0ad9 5000      subr        $ACC0, $AX0.L
 	ACC0 -= AX0.L;
 
-	0ada 0290 0af0 jns         0x0af0
+	0ada 0290 0af0 jge         0x0af0
 	if (ACC0 < 0) {
 		// 0adc 00c0 0436 lr          $AR0, @0x0436
 		// 0ade 02bf 0af6 call        0x0af6
@@ -4294,11 +4329,11 @@ void 0c1c_ComputeReverbFrom0a60To0a00()
 	0c27 5d00      sub         $ACC1, $ACC0
 	0c28 0e50      lris        $AC0.M, #0x50
 	0c29 0750      cmpis       $ACC1, #0x50
-	0c2a 0270      ifns        
+	0c2a 0270      ifge        
 		0c2b 5d00      sub         $ACC1, $ACC0
 	0c2c 00da 03f2 lr          $AX0.H, @0x03f2
 	0c2e 8600      tstaxh      $AX0.H
-	0c2f 0290 0c4d jns         0x0c4d
+	0c2f 0290 0c4d jge         0x0c4d
 	0c31 00de 03f3 lr          $AC0.M, @0x03f3
 	0c33 5c00      sub         $ACC0, $ACC1
 	0c34 0293 0c38 jle         0x0c38
@@ -4779,7 +4814,7 @@ void 0d7f_ResampleAudioData(_src($AR0), _dest($AR1), param(AX1.L) = 0, _option??
 	
 	// $ACC0 here still contains ratio << 12;
 	0d9b 0604      cmpis       $ACC0, #0x04
-	// 0d9c 0290 0df3 jns         0x0df3   // subroutine
+	// 0d9c 0290 0df3 jge         0x0df3   // subroutine
 	
 	// If ratio too low, don't bother resampling?
 	GOTONS JustCopyWithoutResampling;
