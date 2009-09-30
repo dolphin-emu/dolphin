@@ -16,12 +16,15 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <cmath>
-
 #include "Common.h"
 //#include "VideoCommon.h" // to get debug logs
 
 #include "CPUDetect.h"
 #include "TextureDecoder.h"
+#ifdef OPENCL
+#include "OpenCL/TextureDecoder.h"
+#endif
+
 #include "LookUpTables.h"
 
 bool TexFmt_Overlay_Enable=false;
@@ -578,7 +581,11 @@ void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center)
 
 PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
+	#ifdef OPENCL
+	PC_TexFormat retval = TexDecoder_Decode_OpenCL(dst, src, width, height, texformat, tlutaddr, tlutfmt);
+	#else
 	PC_TexFormat  retval = TexDecoder_Decode_real(dst,src,width,height,texformat,tlutaddr,tlutfmt);
+	#endif
 	if ((!TexFmt_Overlay_Enable)|| (retval == PC_TEX_FMT_NONE))
 		return retval;
 

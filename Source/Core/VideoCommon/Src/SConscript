@@ -13,6 +13,7 @@ files = [
 	'memcpy_amd.cpp',
 	'OpcodeDecoding.cpp',
 	'TextureDecoder.cpp',
+#	'OpenCL/TextureDecoder.cpp',
 	'XFMemory.cpp',
 	'XFBConvert.cpp',
 	'IndexGenerator.cpp',

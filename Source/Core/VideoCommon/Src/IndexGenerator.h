@@ -72,14 +72,14 @@ public:
 	int GetTriangleindexLen() {return TindexLen;}
 	int GetLineindexLen() {return LindexLen;}
 	int GetPointindexLen() {return PindexLen;}		
-public:
+
 	enum IndexPrimitiveType
 	{
-		None,
-		List,
-		Strip,
-		Fan
-	};
+		Prim_None = 0,
+		Prim_List,
+		Prim_Strip,
+		Prim_Fan
+	} ;
 private:
 	unsigned short *Tptr;
 	unsigned short *Lptr;

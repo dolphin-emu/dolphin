@@ -164,8 +164,8 @@ void IndexGenerator2::Start(unsigned short *Triangleptr,unsigned short *Lineptr,
 	TindexLen = 0;
 	LindexLen = 0;
 	PindexLen = 0;
-	LastTPrimitive = None;
-	LastLPrimitive = None;
+	LastTPrimitive = Prim_None;
+	LastLPrimitive = Prim_None;
 }
 // Triangles
 void IndexGenerator2::AddList(int numVerts)
@@ -182,7 +182,7 @@ void IndexGenerator2::AddList(int numVerts)
 	index += numVerts;
 	numT += numTris;
 	Tadds++;
-	LastTPrimitive = List;
+	LastTPrimitive = Prim_List;
 }
 
 void IndexGenerator2::AddStrip(int numVerts)
@@ -201,7 +201,7 @@ void IndexGenerator2::AddStrip(int numVerts)
 	index += numVerts;
 	numT += numTris;
 	Tadds++;	
-	LastTPrimitive = Strip;
+	LastTPrimitive = Prim_Strip;
 }
 void IndexGenerator2::AddFan(int numVerts)
 {
@@ -217,7 +217,7 @@ void IndexGenerator2::AddFan(int numVerts)
 	index += numVerts;
 	numT += numTris;
 	Tadds++;	
-	LastTPrimitive = Fan;
+	LastTPrimitive = Prim_Fan;
 }
 
 void IndexGenerator2::AddQuads(int numVerts)
@@ -237,7 +237,7 @@ void IndexGenerator2::AddQuads(int numVerts)
 	index += numVerts;
 	numT += numTris;
 	Tadds++;	
-	LastTPrimitive = List;
+	LastTPrimitive = Prim_List;
 }
 
 
@@ -255,7 +255,7 @@ void IndexGenerator2::AddLineList(int numVerts)
 	index += numVerts;
 	numL += numLines;
 	Ladds++;
-	LastLPrimitive = List;
+	LastLPrimitive = Prim_List;
 }
 
 void IndexGenerator2::AddLineStrip(int numVerts)
@@ -271,7 +271,7 @@ void IndexGenerator2::AddLineStrip(int numVerts)
 	index += numVerts;
 	numL += numLines;
 	Ladds++;	
-	LastLPrimitive = Strip;
+	LastLPrimitive = Prim_Strip;
 }
 
 
