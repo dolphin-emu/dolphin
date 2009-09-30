@@ -78,7 +78,7 @@ public:
 		}
 
 		size_t index = 0;
-		for (index; index < m_Entries.size() - 1; index++)
+		for (; index < m_Entries.size() - 1; index++)
 		{
 			if (strcmp(m_Entries.at(index).name, sectionName) == 0)
 				break;
@@ -99,7 +99,7 @@ public:
 			return false;
 
 		size_t index = 0;
-		for (index; index < m_Entries.size() - 1; index++)
+		for (; index < m_Entries.size() - 1; index++)
 		{
 			if (strcmp(m_Entries.at(index).name, sectionName) == 0)
 				break;

@@ -13,7 +13,6 @@ files = [
 	'memcpy_amd.cpp',
 	'OpcodeDecoding.cpp',
 	'TextureDecoder.cpp',
-#	'OpenCL/TextureDecoder.cpp',
 	'XFMemory.cpp',
 	'XFBConvert.cpp',
 	'IndexGenerator.cpp',
@@ -37,6 +36,13 @@ files = [
 	'HiresTextures.cpp',
 	]
 
-env_common = env.Clone()
-env_common.Append(CXXFLAGS = [ '-fPIC' ])
-env_common.StaticLibrary(env['local_libs'] + "videocommon", files)
+
+env_vcommon = env.Clone()
+
+if env_vcommon['HAVE_OPENCL']:
+    files += [
+        'OpenCL/TextureDecoder.cpp',
+        ]
+
+env_vcommon.Append(CXXFLAGS = [ '-fPIC' ])
+env_vcommon.StaticLibrary(env['local_libs'] + "videocommon", files)

@@ -33,12 +33,18 @@ namespace AudioCommon
 			mixer = new CMixer();
 
 		std::string backend = ac_Config.sBackend;
-		if (backend == BACKEND_COREAUDIO       && CoreAudioSound::isValid())       soundStream = new CoreAudioSound(mixer);
-		if (backend == BACKEND_DIRECTSOUND && DSound::isValid())          soundStream = new DSound(mixer, g_dspInitialize.hWnd);
-		if (backend == BACKEND_AOSOUND     && AOSound::isValid())         soundStream = new AOSound(mixer);
-		if (backend == BACKEND_OPENAL      && OpenALStream::isValid())    soundStream = new OpenALStream(mixer);
-		if (backend == BACKEND_ALSA        && AlsaSound::isValid()) soundStream = new AlsaSound(mixer);
-		if (backend == BACKEND_NULL        && NullSound::isValid())       soundStream = new NullSound(mixer);
+		if (backend == BACKEND_COREAUDIO   && CoreAudioSound::isValid()) 
+			soundStream = new CoreAudioSound(mixer);
+		if (backend == BACKEND_DIRECTSOUND && DSound::isValid()) 
+			soundStream = new DSound(mixer, g_dspInitialize.hWnd);
+		if (backend == BACKEND_AOSOUND     && AOSound::isValid()) 
+			soundStream = new AOSound(mixer);
+		if (backend == BACKEND_OPENAL      && OpenALStream::isValid()) 
+			soundStream = new OpenALStream(mixer);
+		if (backend == BACKEND_ALSA        && AlsaSound::isValid())
+			soundStream = new AlsaSound(mixer);
+		if (backend == BACKEND_NULL        && NullSound::isValid()) 
+			soundStream = new NullSound(mixer);
 
 		if (soundStream != NULL)
 		{
@@ -85,12 +91,18 @@ namespace AudioCommon
 	{
 		std::vector<std::string> backends;
 
-		if (CoreAudioSound::isValid())       backends.push_back(BACKEND_COREAUDIO);
-		if (DSound::isValid())       backends.push_back(BACKEND_DIRECTSOUND);
-		if (AOSound::isValid())      backends.push_back(BACKEND_AOSOUND);
-		if (OpenALStream::isValid()) backends.push_back(BACKEND_OPENAL);
-		if (AlsaSound::isValid())    backends.push_back(BACKEND_ALSA);
-		if (NullSound::isValid())    backends.push_back(BACKEND_NULL);
+		if (CoreAudioSound::isValid())       
+			backends.push_back(BACKEND_COREAUDIO);
+		if (DSound::isValid())  
+			backends.push_back(BACKEND_DIRECTSOUND);
+		if (AOSound::isValid())   
+			backends.push_back(BACKEND_AOSOUND);
+		if (OpenALStream::isValid())
+			backends.push_back(BACKEND_OPENAL);
+		if (AlsaSound::isValid()) 
+			backends.push_back(BACKEND_ALSA);
+		if (NullSound::isValid()) 
+			backends.push_back(BACKEND_NULL);
 	   
 		return backends;
 	}
