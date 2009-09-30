@@ -21,7 +21,7 @@
 
 #include "CPUDetect.h"
 #include "TextureDecoder.h"
-#ifdef HAVE_OPENCL
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
 #include "OpenCL/TextureDecoder.h"
 #endif
 
@@ -581,11 +581,11 @@ void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center)
 
 PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
-	#ifdef HAVE_OPENCL
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	PC_TexFormat retval = TexDecoder_Decode_OpenCL(dst, src, width, height, texformat, tlutaddr, tlutfmt);
-	#else
+#else
 	PC_TexFormat  retval = TexDecoder_Decode_real(dst,src,width,height,texformat,tlutaddr,tlutfmt);
-	#endif
+#endif
 	if ((!TexFmt_Overlay_Enable)|| (retval == PC_TEX_FMT_NONE))
 		return retval;
 

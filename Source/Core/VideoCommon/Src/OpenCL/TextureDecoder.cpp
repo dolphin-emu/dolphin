@@ -46,21 +46,24 @@ struct sDecoders
     cl_kernel kernel;                   // compute kernel
     const char **cKernel;
 };
-const char *Kernel = "\n" \
-"__kernel void Decode( __local unsigned char *dst, __local const unsigned char *src, \n" \
-"                       int width, int height) \n" \
-"   int id = get_global_id(0); \n" \
-"			for (int xy = 0; xy < height*width; xy += 4)"
-"					for (int iy = 0; iy < 4; iy++, src += 8)"
-"					{"
-"						u16 *ptr = (u16 *)dst + ((xy / width) + iy) * width + (xy % width);"
-"						u16 *s = (u16 *)src;"
-"						for(int j = 0; j < 4; j++)"
-"							*ptr++ = Common::swap16(*s++);"
-"					}" \
+const char *Kernel = "                                                  \
+__kernel void Decode(__local unsigned char *dst,                        \
+		     __local const unsigned char *src,                  \
+		     int width, int height)                             \
+{                                                                       \
+	int id = get_global_id(0);                                      \
+	for (int xy = 0; xy < height*width; xy += 4)                    \
+		for (int iy = 0; iy < 4; iy++, src += 8) {              \
+			u16 *ptr = (u16 *)dst + ((xy / width) + iy) *   \
+				   width + (xy % width);                \
+			u16 *s = (u16 *)src;                            \
+			for(int j = 0; j < 4; j++)                      \
+				*ptr++ = Common::swap16(*s++);          \
+		}
+}";
 
 sDecoders Decoders[] = { {NULL, NULL, &Kernel}, 
-};
+
 bool Inited = false;
 
 // TODO: Deinit (clRelease...)

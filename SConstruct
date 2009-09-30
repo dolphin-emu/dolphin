@@ -110,6 +110,7 @@ vars.AddVariables(
     BoolVariable('noao', 'Build without AO', False),
     BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
     BoolVariable('jittest', 'temp don\'t use (WIP)', False),
+    BoolVariable('opencl', 'Build with OpenCL', False),
 	BoolVariable('nojit', 'Remove entire jit cores', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
                  allowed_values = ('release', 'devel', 'debug', 'fastlog', 'prof'),
@@ -240,9 +241,6 @@ if sys.platform == 'darwin':
 
 env['HAVE_SDL'] = conf.CheckSDL('1.0.0')
 
-# OpenCL
-env['HAVE_OPENCL'] = conf.CheckPKG('opencl')
-
 # Bluetooth for wii support
 env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 
@@ -257,6 +255,11 @@ else:
     env['HAVE_OPENAL'] = conf.CheckPKG('openal')
 env['HAVE_ALSA'] = conf.CheckPKG('alsa')
 
+# OpenCL
+if env['opencl']:   
+    env['HAVE_OPENCL'] = conf.CheckPKG('opencl')
+else:
+    env['HAVE_OPENCL'] = 0
 
 if sys.platform != 'darwin':
 # needed for mic
