@@ -183,7 +183,7 @@ void DSPCore_CheckExceptions()
 	// but for sure they should not be called together therefore the
 	// g_dsp.exception_in_progress
 	if (g_dsp.exception_in_progress != -1) {
-#ifdef DEBUG_EXP
+#if defined(_DEBUG) || defined(DEBUGFAST)
 		ERROR_LOG(DSPLLE, "Firing exception %d failed exception %d active", g_dsp.exceptions, g_dsp.exception_in_progress);
 #endif		
 		return;
@@ -206,7 +206,7 @@ void DSPCore_CheckExceptions()
 					g_dsp.exception_in_progress = i;
 				break;
 			} else {
-#ifdef DEBUG_EXP
+#if defined(_DEBUG) || defined(DEBUGFAST)
 				ERROR_LOG(DSPLLE, "Firing exception %d failed", i);
 #endif
 			}

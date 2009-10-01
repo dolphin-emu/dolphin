@@ -58,7 +58,7 @@ bool DSPHost_Running()
 
 void DSPHost_InterruptRequest()
 {
-#ifdef DEBUG_EXP
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	NOTICE_LOG(DSPLLE, "Firing an interrupt on the PPC ASAP");
 #endif
 	// Fire an interrupt on the PPC ASAP.

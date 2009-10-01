@@ -87,7 +87,7 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 	if (DSPHost_OnThread())
 		g_CriticalSection.Leave();
 
-#ifdef DEBUG_EXP
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	if (mbx == GDSP_MBOX_DSP)
 	{
 		NOTICE_LOG(DSP_MAIL, "DSP(WM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.pc);
@@ -116,7 +116,7 @@ u16 gdsp_mbox_read_l(u8 mbx)
 	if (DSPHost_OnThread())
 		g_CriticalSection.Leave();
 
-#ifdef DEBUG_EXP
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	if (mbx == GDSP_MBOX_DSP)
 	{
 		NOTICE_LOG(DSP_MAIL, "DSP(RM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(GDSP_MBOX_DSP), g_dsp.pc);
@@ -315,7 +315,7 @@ void gdsp_do_dma()
 		ERROR_LOG(DSPLLE, "DMA ERROR pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 		exit(0);
 	}
-#ifdef DEBUG_EXP
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	NOTICE_LOG(DSPLLE, "DMA pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 #endif
 	switch (ctl & 0x3)

@@ -45,6 +45,7 @@
 
 #ifdef HW_RVL
 #include <wiiuse/wpad.h>
+#include <sdcard/wiisd_io.h>
 #endif
 
 #include "ConsoleHelper.h"
@@ -392,9 +393,16 @@ void handle_dsp_mail(void)
 	}
 }
 
-void dump_all_ucodes(void)
+void dump_all_ucodes(bool fastmode)
 {
 	char filename[260] = {0};
+	char temp[100];
+	u32 written;
+
+	sprintf(filename, "sd:/dsp_dump_all.bin");
+	FILE *f2 = fopen(filename, "wb");
+	fclose(f2);
+
 	for (int UCodeToDump = 0; UCodeToDump < NUM_UCODES; UCodeToDump++)
 	{
 		// First, change the microcode
@@ -414,22 +422,55 @@ void dump_all_ucodes(void)
 			handle_dsp_mail();
 		VIDEO_WaitVSync();
 
-		// Then write microcode dump to file
-		sprintf(filename, "sd:/dsp_dump%d.bin", UCodeToDump);
-		FILE *f = fopen(filename, "wb");
-		if (f) 
-		{
-			// First write initial regs
-			u32 written = fwrite(dspreg_in, 1, 32 * 2, f);
+		sprintf(filename, "sd:/dsp_dump_all.bin");
+		FILE *f2 = fopen(filename, "ab");
 
-			// Then write all the dumps.
-			written += fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f);
-			fclose(f);
-			CON_PrintRow(4, 24, "Dump %i Successful. Wrote %d bytes, steps: %d", UCodeToDump, written, dsp_steps);
+		if (fastmode == false) 
+		{
+			// Then write microcode dump to file
+			sprintf(filename, "sd:/dsp_dump%d.bin", UCodeToDump);
+			FILE *f = fopen(filename, "wb");
+			if (f)  
+			{
+				// First write initial regs
+				written = fwrite(dspreg_in, 1, 32 * 2, f);
+				
+				// Then write all the dumps.
+				written += fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f);
+				fclose(f);
+			}
+			else
+			{
+				UpdateLastMessage("SD Write Error");
+				break;
+			}
+		}
+
+		if (f2) //all in 1 dump file (extra)
+ 		{
+			if (UCodeToDump == 0) {
+				// First write initial regs
+				written = fwrite(dspreg_in, 1, 32 * 2, f2);
+				written += fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f2);
+			}
+			else {
+				written = fwrite(dspreg_out, 1, dsp_steps * 32 * 2, f2);
+			}
+
+			fclose(f2);
+
+			if (UCodeToDump < NUM_UCODES-1)
+			{
+				sprintf(temp, "Dump %d Successful. Wrote %d bytes, steps: %d", UCodeToDump+1, written, dsp_steps);
+				UpdateLastMessage(temp);
+			}
+			else {
+				UpdateLastMessage("DUMPING DONE!");
+			}
 		}
 		else
 		{
-			CON_PrintRow(4, 24, "Dump %i Failed", UCodeToDump);
+			UpdateLastMessage("SD Write Error");
 			break;
 		}
 	}
@@ -472,7 +513,8 @@ void InitGeneral()
 
 #ifdef HW_RVL
 	// Initialize FAT so we can write to SD.
-	fatInit(8, false);
+	__io_wiisd.startup();
+	fatMountSimple("sd", &__io_wiisd);
 #else
 	// Init debug over BBA...change IPs to suite your needs
 	tcp_localip="192.168.1.103";
@@ -484,6 +526,11 @@ void InitGeneral()
 
 void ExitToLoader()
 {
+#ifdef HW_RVL
+	fatUnmount("sd");
+	__io_wiisd.shutdown();
+#endif
+
 	UpdateLastMessage("Exiting...");
 	real_dsp.Reset();
 	reboot();
@@ -523,16 +570,16 @@ int main()
 			ExitToLoader();
 
 		CON_Printf(2, 18, "Controls:");
-		CON_Printf(4, 19, "+/- to move");
-		CON_Printf(4, 20, "A to edit register, B to start over");
-		CON_Printf(4, 21, "1 to move to next microcode");
-		CON_Printf(4, 22, "2 to dump all microcode results to SD");
-		CON_Printf(4, 23, "Home to exit");
+		CON_Printf(4, 19, "+/- (GC:'L'/'R') to move");
+		CON_Printf(4, 20, "A (GC:'A') to edit register; B (GC:'B') to start over");
+		CON_Printf(4, 21, "1 (GC:'Z') to move next microcode");
+		CON_Printf(4, 22, "2 (GC:'X') dump results to SD; UP (GC:'Y') dump results to SD (SINGLE FILE)");
+		CON_Printf(4, 23, "Home (GC:'START') to exit");
 #else
 		CON_Printf(2, 18, "Controls:");
 		CON_Printf(4, 19, "L/R to move");
-		CON_Printf(4, 21, "A to edit register, B to start over");
-		CON_Printf(4, 20, "Z to move to next microcode");
+		CON_Printf(4, 20, "A to edit register, B to start over");
+		CON_Printf(4, 21, "Z to move to next microcode");
 		CON_Printf(4, 22, "Start to exit");
 #endif
 
@@ -630,9 +677,16 @@ int main()
 		// The future is web-based reporting ;)
 		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_2) || (PAD_ButtonsDown(0) & PAD_BUTTON_X))
 		{
-			dump_all_ucodes();
+			dump_all_ucodes(false);
+		}
+
+		// Dump all results into 1 file (skip file per ucode part) = FAST because of LIBFAT filecreate bug
+		if ((WPAD_ButtonsDown(0) & WPAD_BUTTON_UP) || (PAD_ButtonsDown(0) & PAD_BUTTON_Y))
+		{
+			dump_all_ucodes(true);
 		}
 #endif
+
 	} // end main loop
 
 	ExitToLoader();
