@@ -222,31 +222,19 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 
 	// it seems that the GC is able to alpha blend on color-fill
 	// we cant do that so if alpha is != 255 we skip it
-
 	VertexShaderManager::SetViewportChanged();
 
-	// Since clear operations use the source rectangle, we have to do
-	// regular renders
-	DWORD clearflags = 0;
-	D3DCOLOR col = 0;
-	float clearZ = 0;
+	bool colorEnable = bpmem.blendmode.colorupdate;
+	bool alphaEnable = (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 && bpmem.blendmode.alphaupdate);
+	bool zEnable = bpmem.zmode.updateenable;
 
-	if (bpmem.blendmode.colorupdate || bpmem.blendmode.alphaupdate)
-	{                    
-		col = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
-		clearflags |= D3DCLEAR_TARGET;   // set to break animal crossing :p  ??
-	}
-
-	// clear z-buffer
-	if (bpmem.zmode.updateenable)
+	if (colorEnable || alphaEnable || zEnable)
 	{
-		clearZ = (float)(bpmem.clearZValue & 0xFFFFFF) / float(0xFFFFFF);
-		if (clearZ > 1.0f) clearZ = 1.0f;
-		if (clearZ < 0.0f) clearZ = 0.0f;
-		clearflags |= D3DCLEAR_ZBUFFER;//removed stencil
-	}
+		u32 color = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
+		u32 z = bpmem.clearZValue;
 
-	D3D::dev->Clear(0, NULL, clearflags, col, clearZ, 0);
+		Renderer::ClearScreen(rc, colorEnable, alphaEnable, zEnable, color, z);
+	}
 }
 
 void RestoreRenderState(const BPCmd &bp)

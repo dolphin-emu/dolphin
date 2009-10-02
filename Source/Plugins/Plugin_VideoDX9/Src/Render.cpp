@@ -148,7 +148,7 @@ bool Renderer::Init()
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
 
-	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER , 0x0, 1.0f, 0);//| D3DCLEAR_STENCIL
+	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x0, 1.0f, 0);
 
 	D3D::BeginFrame();
 	return true;
@@ -493,12 +493,12 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		pZBuffer->UnlockRect();
 
 		// [0.0, 1.0] ==> [0, 0xFFFFFFFF]
-		z = val * 0xFFFFFFFF;
+		z =((u32)(val * 0xffffff));// 0xFFFFFFFF;
 
 		// Scale the 32-bit value returned by glReadPixels to a 24-bit
 		// value (GC uses a 24-bit Z-buffer).
 		// TODO: in RE0 this value is often off by one, which causes lighting to disappear
-		return z >> 8;
+		return z;//z >> 8;
 	}
 
 	case POKE_Z:
@@ -574,6 +574,46 @@ void UpdateViewport()
 	
 	D3D::dev->SetViewport(&vp);
 }
+
+void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
+{
+	// Update the view port for clearing the picture
+	D3DVIEWPORT9 vp;	
+	vp.X = 0;
+	vp.Y = 0;	
+	vp.Width  = Renderer::GetTargetWidth();
+	vp.Height = Renderer::GetTargetHeight();
+	vp.MinZ = 0.0;
+	vp.MaxZ = 1.0;
+	D3D::dev->SetViewport(&vp);	
+
+	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
+
+    // Always set the scissor in case it was set by the game and has not been reset
+	RECT sirc;
+	sirc.left   = targetRc.left;
+	sirc.top    = targetRc.top;
+	sirc.right  = targetRc.right;
+	sirc.bottom = targetRc.bottom;
+	D3D::dev->SetScissorRect(&sirc);	
+
+    VertexShaderManager::SetViewportChanged();
+
+	DWORD clearflags = 0;	
+	if(colorEnable)
+	{
+		clearflags |= D3DCLEAR_TARGET;
+	}
+	if (zEnable)
+	{
+		clearflags |= D3DCLEAR_ZBUFFER;
+	}
+
+	D3D::dev->Clear(0, NULL, clearflags, color,(z & 0xFFFFFF) / float(0xFFFFFF), 0);	
+}
+
+
+
 
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
