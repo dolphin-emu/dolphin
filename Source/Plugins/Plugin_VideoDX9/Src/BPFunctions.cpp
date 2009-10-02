@@ -243,7 +243,7 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 		clearZ = (float)(bpmem.clearZValue & 0xFFFFFF) / float(0xFFFFFF);
 		if (clearZ > 1.0f) clearZ = 1.0f;
 		if (clearZ < 0.0f) clearZ = 0.0f;
-		clearflags |= D3DCLEAR_ZBUFFER | D3DCLEAR_STENCIL;
+		clearflags |= D3DCLEAR_ZBUFFER;//removed stencil
 	}
 
 	D3D::dev->Clear(0, NULL, clearflags, col, clearZ, 0);
