@@ -472,22 +472,25 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		if (D3D::dev->GetDepthStencilSurface(&pZBuffer) == D3DERR_NOTFOUND)
 			pZBuffer = NULL;
 
-		//D3DLOCKED_RECT drect;
-		//HRESULT hr;
-
+		D3DLOCKED_RECT drect;
+		HRESULT hr;
+		
 		if(!pZBuffer) {
 			PanicAlert("No Z-Buffer!");
 			return 0;
 		}
-
-		// TODO: Fix
-		//if((hr = pZBuffer->LockRect(0, &drect, NULL, NULL)) != D3D_OK)
-		//	PanicAlert("IT WAS AS I THOUGHT, %s", hr == D3DERR_WASSTILLDRAWING ? "Still drawing" :
-		//										  hr == D3DERR_INVALIDCALL     ? "Invalid call" : "w00t");	
+		RECT RectToLock;
+		RectToLock.bottom = targetPixelRc.bottom;
+		RectToLock.left = targetPixelRc.left;
+		RectToLock.right = targetPixelRc.right;
+		RectToLock.top = targetPixelRc.top;
+		if((hr = pZBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
+			PanicAlert("IT WAS AS I THOUGHT, %s", hr == D3DERR_WASSTILLDRAWING ? "Still drawing" :
+												  hr == D3DERR_INVALIDCALL     ? "Invalid call" : "w00t");	
 			
-		//val = ((float *)drect.pBits)[0];
+		val = ((float *)drect.pBits)[0];
 
-		//pZBuffer->UnlockRect(0);
+		pZBuffer->UnlockRect();
 
 		// [0.0, 1.0] ==> [0, 0xFFFFFFFF]
 		z = val * 0xFFFFFFFF;

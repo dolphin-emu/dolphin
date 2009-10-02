@@ -57,7 +57,9 @@ void Create()
   	hr = s_efb_color_texture->GetSurfaceLevel(0, &s_efb_color_surface);
 	CHECK(hr);
 
-	hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, D3DFMT_D24S8,
+	//D3DFMT_D32F_LOCKABLE and D3DFMT_D16_LOCKABLE must be used to peek_z to work, 16 bits is a crapy z buffer and to allow
+	// to read directi as a float we need it to be float so using ...
+	hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, D3DFMT_D32F_LOCKABLE,
 		                                     D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
 	CHECK(hr);
 }

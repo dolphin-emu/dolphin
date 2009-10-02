@@ -48,75 +48,45 @@ extern NativeVertexFormat *g_nativeVertexFmt;
 namespace VertexManager
 {
 
-enum Collection
-{
-	C_NOTHING,
-	C_TRIANGLES,
-	C_LINES,
-	C_POINTS,
-};
+static IndexGenerator2 indexGen;
 
-const D3DPRIMITIVETYPE pts[3] = 
-{
-	D3DPT_POINTLIST, //DUMMY
-	D3DPT_TRIANGLELIST, 
-	D3DPT_LINELIST,
-};
+static int lastPrimitive;
 
-static IndexGenerator indexGen;
-static Collection collection;
-
-int lastPrimitive;
-
-static u8 *fakeVBuffer;   // format undefined - NativeVertexFormat takes care of the declaration.
-static u16 *fakeIBuffer;  // These are just straightforward 16-bit indices.
-
-#define MAXVBUFFERSIZE 65536*128
-#define MAXIBUFFERSIZE 65536*4
-
-const Collection collectionTypeLUT[8] =
-{
-	C_TRIANGLES, //quads
-	C_NOTHING,   //nothing
-	C_TRIANGLES, //triangles
-	C_TRIANGLES, //strip
-	C_TRIANGLES, //fan
-	C_LINES,     //lines
-	C_LINES,     //linestrip
-	C_POINTS     //guess :P
-};
-
-const D3DPRIMITIVETYPE gxPrimToD3DPrim[8] = {
-	(D3DPRIMITIVETYPE)0,  // not supported
-	(D3DPRIMITIVETYPE)0,  // nothing
-
-	D3DPT_TRIANGLELIST,
-	D3DPT_TRIANGLESTRIP,
-	D3DPT_TRIANGLEFAN,
-
-	D3DPT_LINELIST,
-	D3DPT_LINESTRIP,
-};
-
+static u8 *LocalVBuffer;   
+static u16 *TIBuffer;
+static u16 *LIBuffer;  
+static u16 *PIBuffer;  
+#define MAXVBUFFERSIZE 0x50000
+#define MAXIBUFFERSIZE 0xFFFF
 
 void CreateDeviceObjects();
 void DestroyDeviceObjects();
 
 bool Init()
 {
-	collection = C_NOTHING;
-	fakeVBuffer = new u8[MAXVBUFFERSIZE];
-	fakeIBuffer = new u16[MAXIBUFFERSIZE];
-	CreateDeviceObjects();
-	VertexManager::s_pCurBufferPointer = fakeVBuffer;
+	LocalVBuffer = new u8[MAXVBUFFERSIZE];
+	TIBuffer = new u16[MAXIBUFFERSIZE];
+	LIBuffer = new u16[MAXIBUFFERSIZE];
+	PIBuffer = new u16[MAXIBUFFERSIZE];
+	s_pCurBufferPointer = LocalVBuffer;
+	indexGen.Start(TIBuffer,LIBuffer,PIBuffer);	
 	return true;
+}
+
+void ResetBuffer()
+{
+	s_pCurBufferPointer = LocalVBuffer;	
+	indexGen.Start(TIBuffer,LIBuffer,PIBuffer);
 }
 
 void Shutdown()
 {
 	DestroyDeviceObjects();
-	delete [] fakeVBuffer;
-	delete [] fakeIBuffer;
+	delete [] LocalVBuffer;
+	delete [] TIBuffer;
+	delete [] LIBuffer;
+	delete [] PIBuffer;	
+	ResetBuffer();
 }
 
 void CreateDeviceObjects()
@@ -142,83 +112,55 @@ void AddIndices(int _primitive, int _numVertices)
 	}
 }
 
+
+
 int GetRemainingSize()
 {
-	return fakeVBuffer + MAXVBUFFERSIZE - VertexManager::s_pCurBufferPointer;
+	return  MAXVBUFFERSIZE - (int)(s_pCurBufferPointer - LocalVBuffer);
 }
 
 void AddVertices(int _primitive, int _numVertices)
 {
-	if (_numVertices <= 0) //This check is pretty stupid... 
+	if (_numVertices < 0)
 		return;
-	lastPrimitive = _primitive;
-
-	Collection type = collectionTypeLUT[_primitive];
-	if (type == C_NOTHING)
-		return;
-
-    DVSTARTPROFILE();
-	_assert_msg_(type != C_NOTHING, "type == C_NOTHING!!", "WTF");
-	
+	switch (_primitive)
+	{
+		case GX_DRAW_QUADS:          
+		case GX_DRAW_TRIANGLES:      
+		case GX_DRAW_TRIANGLE_STRIP: 
+		case GX_DRAW_TRIANGLE_FAN:   
+			if(MAXIBUFFERSIZE - indexGen.GetTriangleindexLen() < 2 * _numVertices)
+			Flush();
+			break;
+		case GX_DRAW_LINE_STRIP:
+		case GX_DRAW_LINES:
+			if(MAXIBUFFERSIZE - indexGen.GetLineindexLen() < 2 * _numVertices)
+			Flush();
+			break;
+		case GX_DRAW_POINTS:
+			if(MAXIBUFFERSIZE - indexGen.GetPointindexLen() < _numVertices)
+			Flush();
+			break;
+		default: return;
+	}
+	lastPrimitive = _primitive;	
 	ADDSTAT(stats.thisFrame.numPrims, _numVertices);
-
-	if (collection != type)
-	{
-		// We are NOT collecting the right type.
-		Flush();
-		collection = type;
-		u16 *ptr = 0;
-		if (type != C_POINTS)
-		{
-			ptr = fakeIBuffer;
-			indexGen.Start((unsigned short*)ptr);
-			AddIndices(_primitive, _numVertices);
-		}
-		if (_numVertices >= MAXVBUFFERSIZE)
-			MessageBoxA(NULL, "Too many vertices for the buffer", "Dolphin DX9 Video Plugin", MB_OK);
-	}
-	else  // We are collecting the right type, keep going
-	{
-		_assert_msg_(vbufferwrite != 0, "collecting: vbufferwrite == 0!","WTF");
-		INCSTAT(stats.thisFrame.numPrimitiveJoins);
-		//Success, keep adding to unlocked buffer
-		int last = indexGen.GetNumVerts();
-		AddIndices(_primitive, _numVertices);
-		if (_numVertices >= MAXVBUFFERSIZE)
-			MessageBoxA(NULL, "Too many vertices for the buffer", "Dolphin DX9 Video Plugin", MB_OK);
-	}
+	INCSTAT(stats.thisFrame.numPrimitiveJoins);
+	AddIndices(_primitive, _numVertices);
 }
 
 inline void Draw(int numVertices, int stride)
 {
-	if (collection != C_POINTS)
+	if(indexGen.GetNumTriangles() > 0)
 	{
-		int numPrimitives = indexGen.GetNumPrims();
-		/*  For some reason, this makes things slower!
-		if ((indexGen.GetNumAdds() == 1 || indexGen.GetOnlyLists()) && lastPrimitive != GX_DRAW_QUADS && gxPrimToD3DPrim[lastPrimitive])
-		{
-			if (FAILED(D3D::dev->DrawPrimitiveUP(
-				gxPrimToD3DPrim[lastPrimitive],
-				numPrimitives,
-				fakeVBuffer,
-				stride))) {
-#if defined(_DEBUG) || defined(DEBUGFAST)
-				std::string error_shaders;
-				error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
-				error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
-				File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
-				PanicAlert("DrawPrimitiveUP failed. Shaders written to bad_shader_combo.txt.");
-#endif
-			}
-			INCSTAT(stats.thisFrame.numDrawCalls);
-		} else*/ {
-			if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
-				pts[(int)collection], 
-				0, numVertices, numPrimitives,
-				fakeIBuffer,
+		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
+				D3DPT_TRIANGLELIST, 
+				0, indexGen.GetNumVerts(), indexGen.GetNumTriangles(),
+				TIBuffer,
 				D3DFMT_INDEX16,
-				fakeVBuffer,
-				stride))) {
+				LocalVBuffer,
+				stride))) 
+			{
 #if defined(_DEBUG) || defined(DEBUGFAST)
 				std::string error_shaders;
 				error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
@@ -227,23 +169,58 @@ inline void Draw(int numVertices, int stride)
 				PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to bad_shader_combo.txt.");
 #endif
 			}
-			INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-		}
+		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	else
+	if(indexGen.GetNumLines() > 0)
 	{
-		D3D::dev->SetIndices(0);
-		D3D::dev->DrawPrimitiveUP(D3DPT_POINTLIST, numVertices, fakeVBuffer, stride);
-		INCSTAT(stats.thisFrame.numDrawCalls);
+		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
+				D3DPT_LINELIST, 
+				0, indexGen.GetNumVerts(), indexGen.GetNumLines(),
+				LIBuffer,
+				D3DFMT_INDEX16,
+				LocalVBuffer,
+				stride))) 
+			{
+#if defined(_DEBUG) || defined(DEBUGFAST)
+				std::string error_shaders;
+				error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
+				error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
+				File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
+				PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to bad_shader_combo.txt.");
+#endif
+			}
+		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-
+	if(indexGen.GetNumPoints() > 0)
+	{
+		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
+				D3DPT_POINTLIST, 
+				0, indexGen.GetNumVerts(), indexGen.GetNumPoints(),
+				PIBuffer,
+				D3DFMT_INDEX16,
+				LocalVBuffer,
+				stride))) 
+			{
+#if defined(_DEBUG) || defined(DEBUGFAST)
+				std::string error_shaders;
+				error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
+				error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
+				File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
+				PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to bad_shader_combo.txt.");
+#endif
+			}
+		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
+	}	
 }
 
 void Flush()
 {
+	if (LocalVBuffer == s_pCurBufferPointer) return;	
+	int numVerts = indexGen.GetNumVerts();
+	if(numVerts == 0) return;
+
 	DVSTARTPROFILE();
-	if (collection != C_NOTHING)
-	{
+	
 		u32 usedtextures = 0;
 		for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) {
 			if (bpmem.tevorders[i/2].getEnable(i & 1))
@@ -330,10 +307,9 @@ void Flush()
 				D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
 			}
 			DEBUGGER_PAUSE_AT(NEXT_FLUSH,true);
-		}
+
 shader_fail:
-		collection = C_NOTHING;
-		VertexManager::s_pCurBufferPointer = fakeVBuffer;
+		ResetBuffer();
 	}
 }
 
