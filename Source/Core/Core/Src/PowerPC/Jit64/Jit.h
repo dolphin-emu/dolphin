@@ -27,14 +27,9 @@
 //   * A flush simply does a conditional write to the appropriate CRx.
 //   * If flag available, branch code can become absolutely trivial.
 
-
-
 // Settings
 // ----------
 #define JIT_OFF_OPTIONS // Compile with JIT off options
-
-
-
 
 // Include
 // ----------
@@ -54,9 +49,6 @@
 #ifdef _WIN32
 	#include <windows.h>
 #endif
-
-
-
 
 // Declarations and definitions
 // ----------
@@ -308,6 +300,8 @@ public:
 
 	void lmw(UGeckoInstruction inst);
 	void stmw(UGeckoInstruction inst);
+
+	void icbi(UGeckoInstruction inst);
 };
 
 extern Jit64 jit;

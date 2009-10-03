@@ -24,7 +24,11 @@
 #include "CoreTiming.h"
 #include "HW/HW.h"
 #include "PowerPC/PowerPC.h"
+#ifdef JITTEST
+#include "PowerPC/Jit64IL/Jit.h"
+#else
 #include "PowerPC/Jit64/Jit.h"
+#endif
 
 #include "PluginManager.h"
 
@@ -91,6 +95,9 @@ void DoState(PointerWrap &p)
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);
+#ifdef JIT_UNLIMITED_ICACHE	
+	p.DoVoid(jit.GetBlockCache()->GetICache(), JIT_ICACHE_SIZE);	
+#endif
 }
 
 void LoadBufferStateCallback(u64 userdata, int cyclesLate)

@@ -287,8 +287,7 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, CodeBuffer *buffer)
 {
 	memset(st, 0, sizeof(st));
-
-	UGeckoInstruction previnst = Memory::Read_Instruction(address - 4);
+	UGeckoInstruction previnst = Memory::Read_Opcode_JIT_LC(address - 4);
 	if (previnst.hex == 0x4e800020)
 		st->isFirstBlockOfFunction = true;
 
@@ -309,10 +308,9 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 	{
 		memset(&code[i], 0, sizeof(CodeOp));
 		code[i].address = address;
-		UGeckoInstruction inst = Memory::Read_Instruction(code[i].address);
-		UGeckoInstruction untouched_op = Memory::ReadUnchecked_U32(code[i].address);
-		if (untouched_op.OPCD == 1)  // Do handle HLE instructions.
-			inst = untouched_op;
+		
+		UGeckoInstruction inst = Memory::Read_Opcode_JIT(code[i].address);
+
 		_assert_msg_(POWERPC, inst.hex != 0, "Zero Op - Error flattening %08x op %08x", address + i*4, inst.hex);
 		code[i].inst = inst;
 		code[i].branchTo = -1;

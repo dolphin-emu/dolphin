@@ -528,17 +528,82 @@ bool AreMemoryBreakpointsActivated()
 
 u32 Read_Instruction(const u32 em_address)
 {
-	UGeckoInstruction inst = ReadUnchecked_U32(em_address);
-	if (inst.OPCD == 0)
-		inst.hex = jit.GetBlockCache()->GetOriginalCode(em_address);
+	UGeckoInstruction inst = ReadUnchecked_U32(em_address);	
 	if (inst.OPCD == 1)
 		return HLE::GetOrigInstruction(em_address);
 	else
 		return inst.hex;
 }
 
+u32 Read_Opcode_JIT(const u32 _Address)
+{
+#ifdef JIT_UNLIMITED_ICACHE
+	//return Memory::ReadUnchecked_U32(_Address);
+	if ((_Address & ~JIT_ICACHE_MASK) != 0x80000000 && (_Address & ~JIT_ICACHE_MASK) != 0x00000000)
+	{
+		PanicAlert("iCacheJIT: Reading Opcode from %x. Please report.", _Address);
+		return 0;
+	}
+	u8* iCache = jit.GetBlockCache()->GetICache();
+	u32 addr = _Address & JIT_ICACHE_MASK;
+	jit.GetBlockCache()->GetICache();
+	u32 inst = *(u32*)(iCache + addr);
+	if (inst == JIT_ICACHE_INVALID_WORD)
+	{
+		u32 block_start = addr & ~0x1f;
+		u8 *pMem = Memory::GetPointer(block_start);
+		memcpy(iCache + block_start, pMem, 32);
+		inst = *(u32*)(iCache + addr);
+	}
+	inst = Common::swap32(inst);
+#else
+	u32 inst = Memory::ReadUnchecked_U32(_Address);
+#endif
+	if ((inst & 0xfc000000) == 0)
+	{
+		inst = jit.GetBlockCache()->GetOriginalFirstOp(inst);
+	}
+	//PanicAlert("Read from %x. res = %x. mem=%x", _Address, inst, Memory::Read_U32(_Address));	
+	return inst;
+}
 
+u32 Read_Opcode_JIT_LC(const u32 _Address)
+{
+#ifdef JIT_UNLIMITED_ICACHE
+	//return Memory::ReadUnchecked_U32(_Address);
+	if ((_Address & ~JIT_ICACHE_MASK) != 0x80000000 && (_Address & ~JIT_ICACHE_MASK) != 0x00000000)
+	{
+		PanicAlert("iCacheJIT: Reading Opcode from %x. Please report.", _Address);
+		return 0;
+	}
+	u8* iCache = jit.GetBlockCache()->GetICache();
+	u32 addr = _Address & JIT_ICACHE_MASK;
+	jit.GetBlockCache()->GetICache();
+	u32 inst = *(u32*)(iCache + addr);
+	if (inst == JIT_ICACHE_INVALID_WORD)
+		inst = Memory::ReadUnchecked_U32(_Address);
+	else
+		inst = Common::swap32(inst);
+#else
+	u32 inst = Memory::ReadUnchecked_U32(_Address);
+#endif
+	if ((inst & 0xfc000000) == 0)
+	{
+		inst = jit.GetBlockCache()->GetOriginalFirstOp(inst);
+	}
+	return inst;
+}
 
+// WARNING! No checks!
+// We assume that _Address is cached
+void Write_Opcode_JIT(const u32 _Address, const u32 _Value)
+{
+#ifdef JIT_UNLIMITED_ICACHE
+	*(u32*)(jit.GetBlockCache()->GetICache() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);
+#else
+	Memory::WriteUnchecked_U32(_Value, _Address);
+#endif	
+}
 
 
 // =======================================================

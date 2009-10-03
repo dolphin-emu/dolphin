@@ -316,15 +316,7 @@ void dcbtst(UGeckoInstruction _inst)
 }
 
 void dcbz(UGeckoInstruction _inst)
-{
-	// hack to prevent clearing of memory cached in the CPU instruction cache
-	// needed to run WiiWare games
-	// 0x81330c2c
-    u32 NextOpcode = Memory::Read_U32(PC+4);
-    if (NextOpcode == 0x7C0400AC)
-    {
-        return;
-    }
+{	
 	// HACK but works... we think
 	Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
 }
@@ -345,19 +337,10 @@ void eieio(UGeckoInstruction _inst)
 }
 
 void icbi(UGeckoInstruction _inst)
-{
-	u32 address = Helper_Get_EA_X(_inst);
-	// block size seems to be 0x20
-	address &= ~0x1f;
-
-	// this comment is slightly outdated but still relevant:
-	// Inform the JIT to kill off this area of code NOW
-	// VERY IMPORTANT when we start linking blocks
-	// There are a TON of these so hopefully we can make this mechanism
-	// fast in the JIT
-	// ector said that this isn't needed anymore, and that making 
-	// a jit version of this instruction would be easy anyway
-	//jit.GetBlockCache()->InvalidateCodeRange(address, 0x20);
+{	
+	u32 address = Helper_Get_EA_X(_inst);	
+	PowerPC::ppcState.iCache.Invalidate(address);
+	jit.GetBlockCache()->InvalidateICache(address);
 }
 
 void lbzux(UGeckoInstruction _inst)

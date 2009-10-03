@@ -127,6 +127,8 @@ void Init()
 	// ... but start as interpreter by default.
 	mode = MODE_INTERPRETER;
 	state = CPU_STEPPING;
+
+	ppcState.iCache.Reset();
 }
 
 void Shutdown()

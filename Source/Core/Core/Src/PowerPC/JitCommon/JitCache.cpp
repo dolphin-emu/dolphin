@@ -60,7 +60,6 @@ using namespace Gen;
 
 #define INVALID_EXIT 0xFFFFFFFF
 
-
 bool JitBlock::ContainsAddress(u32 em_address)
 {
 	// WARNING - THIS DOES NOT WORK WITH INLINING ENABLED.
@@ -86,7 +85,21 @@ bool JitBlock::ContainsAddress(u32 em_address)
 #endif
 		blocks = new JitBlock[MAX_NUM_BLOCKS];
 		blockCodePointers = new const u8*[MAX_NUM_BLOCKS];
-
+#ifdef JIT_UNLIMITED_ICACHE
+		if (iCache == 0)
+		{
+			iCache = new u8[JIT_ICACHE_SIZE];
+		}
+		else
+		{
+			PanicAlert("JitBlockCache::Init() - iCache is already initialized");
+		}
+		if (iCache == 0)
+		{
+			PanicAlert("JitBlockCache::Init() - unable to allocate iCache");
+		}
+		memset(iCache, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
+#endif
 		Clear();
 	}
 
@@ -94,6 +107,11 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	{
 		delete [] blocks;
 		delete [] blockCodePointers;
+#ifdef JIT_UNLIMITED_ICACHE		
+		if (iCache != 0)
+			delete [] iCache;
+		iCache = 0;
+#endif
 		blocks = 0;
 		blockCodePointers = 0;
 		num_blocks = 0;
@@ -105,19 +123,19 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	// This clears the JIT cache. It's called from JitCache.cpp when the JIT cache
 	// is full and when saving and loading states.
 	void JitBlockCache::Clear()
-	{
+	{		
 		Core::DisplayMessage("Cleared code cache.", 3000);
-		// Is destroying the blocks really necessary?
 		for (int i = 0; i < num_blocks; i++)
 		{
 			DestroyBlock(i, false);
 		}
 		links_to.clear();
+		block_map.clear();
 		num_blocks = 0;
-		memset(blockCodePointers, 0, sizeof(u8*)*MAX_NUM_BLOCKS);
+		memset(blockCodePointers, 0, sizeof(u8*)*MAX_NUM_BLOCKS);		
 	}
 
-	void JitBlockCache::DestroyBlocksWithFlag(BlockFlag death_flag)
+	/*void JitBlockCache::DestroyBlocksWithFlag(BlockFlag death_flag)
 	{
 		for (int i = 0; i < num_blocks; i++)
 		{
@@ -126,7 +144,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 				DestroyBlock(i, false);
 			}
 		}
-	}
+	}*/
 
 	void JitBlockCache::Reset()
 	{
@@ -161,7 +179,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		JitBlock &b = blocks[num_blocks];
 		b.invalid = false;
 		b.originalAddress = em_address;
-		b.originalFirstOpcode = Memory::ReadFast32(em_address);
 		b.exitAddress[0] = INVALID_EXIT;
 		b.exitAddress[1] = INVALID_EXIT;
 		b.exitPtrs[0] = 0;
@@ -177,7 +194,9 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	{
 		blockCodePointers[block_num] = code_ptr;
 		JitBlock &b = blocks[block_num];
-		Memory::WriteUnchecked_U32((JIT_OPCODE << 26) | block_num, blocks[block_num].originalAddress);
+		b.originalFirstOpcode = Memory::Read_Opcode_JIT(b.originalAddress);
+		Memory::Write_Opcode_JIT(b.originalAddress, (JIT_OPCODE << 26) | block_num);
+		block_map[std::make_pair(b.originalAddress + b.originalSize - 1, b.originalAddress)] = block_num;
 		if (block_link)
 		{
 			for (int i = 0; i < 2; i++)
@@ -204,51 +223,52 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		return blockCodePointers;
 	}
 
+#ifdef JIT_UNLIMITED_ICACHE
+	u8 *JitBlockCache::GetICache()
+	{
+		return iCache;
+	}
+#endif
+
 	int JitBlockCache::GetBlockNumberFromStartAddress(u32 addr)
 	{
 		if (!blocks)
+			return -1;		
+#ifdef JIT_UNLIMITED_ICACHE
+		u32 inst = *(u32*)(iCache + (addr & JIT_ICACHE_MASK));
+		inst = Common::swap32(inst);
+#else
+		u32 inst = Memory::ReadFast32(addr);
+#endif
+		if (inst & 0xfc000000) // definitely not a JIT block
 			return -1;
-		u32 code = Memory::ReadFast32(addr);
-		if ((code >> 26) == JIT_OPCODE)
-		{
-			// Jitted code.
-			unsigned int block = code & 0x03FFFFFF;
-			if (block >= (unsigned int)num_blocks) {
-				return -1;
-			}
-
-			if (blocks[block].originalAddress != addr)
-			{
-				//_assert_msg_(DYNA_REC, 0, "GetBlockFromAddress %08x - No match - This is BAD", addr);
-				return -1;
-			}
-			return block;
-		}
-		else
-		{
+		if (inst >= num_blocks)
 			return -1;
-		}
+		if (blocks[inst].originalAddress != addr)
+			return -1;		
+		return inst;
 	}
 
-void JitBlockCache::GetBlockNumbersFromAddress(u32 em_address, std::vector<int> *block_numbers)
-{
-	for (int i = 0; i < num_blocks; i++)
-		if (blocks[i].ContainsAddress(em_address))
-			block_numbers->push_back(i);
-}
-
-	u32 JitBlockCache::GetOriginalCode(u32 address)
+	void JitBlockCache::GetBlockNumbersFromAddress(u32 em_address, std::vector<int> *block_numbers)
 	{
-		int num = GetBlockNumberFromStartAddress(address);
-		if (num == -1)
-			return Memory::ReadUnchecked_U32(address);
-		else
-			return blocks[num].originalFirstOpcode;
-	} 
+		for (int i = 0; i < num_blocks; i++)
+			if (blocks[i].ContainsAddress(em_address))
+				block_numbers->push_back(i);
+	}
+
+	u32 JitBlockCache::GetOriginalFirstOp(u32 block_num)
+	{
+		if (block_num >= num_blocks)
+		{
+			//PanicAlert("JitBlockCache::GetOriginalFirstOp - block_num = %u is out of range", block_num);
+			return block_num;
+		}
+		return blocks[block_num].originalFirstOpcode;
+	}
 
 	CompiledCode JitBlockCache::GetCompiledCodeFromBlock(int blockNumber)
-	{
-		return (CompiledCode)blockCodePointers[blockNumber];
+	{		
+		return (CompiledCode)blocks[blockNumber].normalEntry;
 	}
 
 	//Block linker
@@ -301,52 +321,64 @@ void JitBlockCache::GetBlockNumbersFromAddress(u32 em_address, std::vector<int> 
 
 	void JitBlockCache::DestroyBlock(int blocknum, bool invalidate)
 	{
-		u32 codebytes = (JIT_OPCODE << 26) | blocknum; //generate from i
+		if (blocknum < 0 || blocknum >= num_blocks)
+		{
+			PanicAlert("DestroyBlock: Invalid block number %d", blocknum);
+			return;
+		}
 		JitBlock &b = blocks[blocknum];
-		b.invalid = 1;
-		if (codebytes == Memory::ReadFast32(b.originalAddress))
+		if (b.invalid)
 		{
-			//nobody has changed it, good
+			if (invalidate)
+				PanicAlert("Invalidating invalid block %d", blocknum);
+			return;
+		}
+		b.invalid = true;
+#ifdef JIT_UNLIMITED_ICACHE
+		Memory::Write_Opcode_JIT(b.originalAddress, b.originalFirstOpcode);
+#else
+		if (Memory::ReadFast32(b.originalAddress) == blocknum)
 			Memory::WriteUnchecked_U32(b.originalFirstOpcode, b.originalAddress);
-		}
-		else if (!invalidate)
-		{
-			//PanicAlert("Detected code overwrite");
-			//else, we may be in trouble, since we apparently know of this block but it's been
-			//overwritten. We should have thrown it out before, on instruction cache invalidate or something.
-			//Not ne cessarily bad though , if a game has simply thrown away a lot of code and is now using the space
-			//for something else, then it's fine.
-			DEBUG_LOG(MASTER_LOG, "WARNING - ClearCache detected code overwrite @ %08x", blocks[blocknum].originalAddress);
-		}
+#endif
 
 		// We don't unlink blocks, we just send anyone who tries to run them back to the dispatcher.
-		// Not entirely ideal, but .. pretty good.
-
-		// TODO - make sure that the below stuff really is safe.
-
+		// Not entirely ideal, but .. pretty good.		
 		// Spurious entrances from previously linked blocks can only come through checkedEntry
 		XEmitter emit((u8 *)b.checkedEntry);
 		emit.MOV(32, M(&PC), Imm32(b.originalAddress));
 		emit.JMP(asm_routines.dispatcher, true);
-
+		// this is not needed really
+		/*
 		emit.SetCodePtr((u8 *)blockCodePointers[blocknum]);
 		emit.MOV(32, M(&PC), Imm32(b.originalAddress));
 		emit.JMP(asm_routines.dispatcher, true);
+		*/
 	}
 
 
-	void JitBlockCache::InvalidateCodeRange(u32 address, u32 length)
-	{
-		if (!jit.jo.enableBlocklink)
-			return;
-		return;
-		//This is slow but should be safe (zelda needs it for block linking)
-		for (int i = 0; i < num_blocks; i++)
+	void JitBlockCache::InvalidateICache(u32 address)
+	{			
+		address &= ~0x1f;
+		// destroy JIT blocks
+		// !! this works correctly under assumption that any two overlapping blocks end at the same address
+		std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(address, 0)), it2 = it1, it;
+		while (it2 != block_map.end() && it2->first.second < address + 0x20)
 		{
-			if (RangeIntersect(blocks[i].originalAddress, blocks[i].originalAddress + blocks[i].originalSize,
-				               address, address + length))
-			{
-				DestroyBlock(i, true);
-			}
+			DestroyBlock(it2->second, true);
+			it2++;
 		}
+		if (it1 != it2)
+		{
+			block_map.erase(it1, it2);			
+		}
+
+#ifdef JIT_UNLIMITED_ICACHE
+		// invalidate iCache
+		if ((address & ~JIT_ICACHE_MASK) != 0x80000000 && (address & ~JIT_ICACHE_MASK) != 0x00000000)
+		{
+			return;
+		}
+		u32 cacheaddr = address & JIT_ICACHE_MASK;
+		memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);		
+#endif
 	}

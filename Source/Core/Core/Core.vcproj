@@ -964,6 +964,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\PowerPC\PPCCache.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PowerPC\PPCCache.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\PowerPC\PPCSymbolDB.cpp"
 				>
 			</File>

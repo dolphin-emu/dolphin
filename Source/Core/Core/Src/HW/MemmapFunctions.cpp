@@ -294,9 +294,10 @@ u32 Read_Opcode(const u32 _Address)
 		return 0x00000000;
 	}
 
-	u32 _var = 0;	
+	/*u32 _var = 0;	
 	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_OPCODE);
-	return _var;
+	return _var;*/
+	return PowerPC::ppcState.iCache.ReadInstruction(_Address);
 }
 
 u8 Read_U8(const u32 _Address)

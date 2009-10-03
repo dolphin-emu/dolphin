@@ -294,6 +294,8 @@ public:
 
 	void lmw(UGeckoInstruction inst);
 	void stmw(UGeckoInstruction inst);
+
+	void icbi(UGeckoInstruction inst);
 };
 
 extern Jit64 jit;
@@ -303,4 +305,3 @@ void Jit(u32 em_address);
 void ProfiledReJit();
 
 #endif
-

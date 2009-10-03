@@ -280,7 +280,7 @@ static GekkoOPTemplate table31[] =
 
 	{4,   Interpreter::tw,           {"tw",     OPTYPE_SYSTEM, 0, 1}},
 	{598, Interpreter::sync,       {"sync",   OPTYPE_SYSTEM, 0, 2}},
-	{982, Interpreter::icbi,         {"icbi",   OPTYPE_SYSTEM, 0, 3}},
+	{982, Interpreter::icbi,         {"icbi",   OPTYPE_SYSTEM, FL_ENDBLOCK, 3}},
 
 	// Unused instructions on GC
 	{310, Interpreter::eciwx,       {"eciwx",   OPTYPE_INTEGER, FL_RC_BIT}},

@@ -22,6 +22,7 @@
 #include "Gekko.h"
 #include "BreakPoints.h"
 #include "../Debugger/PPCDebugInterface.h"
+#include "PPCCache.h"
 
 class PointerWrap;
 
@@ -64,6 +65,9 @@ struct GC_ALIGNED64(PowerPCState)
 	// special purpose registers - controlls quantizers, DMA, and lots of other misc extensions.
 	// also for power management, but we don't care about that.
 	u32 spr[1024];
+	
+	InstructionCache iCache;
+	// JIT-mode instruction cache. Managed by JitCache
 };
 
 enum CPUState
@@ -101,6 +105,7 @@ void OnIdle(u32 _uThreadAddr);
 void OnIdleIL();
 
 	// Easy register access macros.
+#define HID0 ((UReg_HID0&)PowerPC::ppcState.spr[SPR_HID0])
 #define HID2 ((UReg_HID2&)PowerPC::ppcState.spr[SPR_HID2])
 #define DMAU  (*(UReg_DMAU*)&PowerPC::ppcState.spr[SPR_DMAU])
 #define DMAL  (*(UReg_DMAL*)&PowerPC::ppcState.spr[SPR_DMAL])

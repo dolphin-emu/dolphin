@@ -196,3 +196,9 @@ void Jit64::stmw(UGeckoInstruction inst)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitIntConst(4));
 	}
 }
+
+void Jit64::icbi(UGeckoInstruction inst)
+{
+	Default(inst);
+	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
+}

@@ -391,6 +391,45 @@ union UReg_FPSCR
 	UReg_FPSCR()		{ Hex = 0;}
 };
 
+// Hardware Implementation-Dependent Register 0
+union UReg_HID0
+{
+	struct
+	{
+		unsigned NOOPTI		:	1;
+		unsigned			:	1;
+		unsigned BHT		:	1;
+		unsigned ABE		:	1;
+		unsigned			:	1;
+		unsigned BTIC		:	1;
+		unsigned DCFA		:	1;
+		unsigned SGE		:	1;
+		unsigned IFEM		:	1;
+		unsigned SPD		:	1;
+		unsigned DCFI		:	1;
+		unsigned ICFI		:	1;
+		unsigned DLOCK		:	1;
+		unsigned ILOCK		:	1;
+		unsigned DCE		:	1;
+		unsigned ICE		:	1;
+		unsigned NHR		:	1;
+		unsigned			:	3;
+		unsigned DPM		:	1;
+		unsigned SLEEP		:	1;
+		unsigned NAP		:	1;
+		unsigned DOZE		:	1;
+		unsigned PAR		:	1;
+		unsigned ECLK		:	1;
+		unsigned			:	1;
+		unsigned BCLK		:	1;
+		unsigned EBD		:	1;
+		unsigned EBA		:	1;
+		unsigned DBP		:	1;
+		unsigned EMCP		:	1;
+	};
+	u32 Hex;
+};
+
 // Hardware Implementation-Dependent Register 2
 union UReg_HID2
 {
@@ -590,6 +629,8 @@ enum
 	SPR_DBAT3L  = 542,
 	SPR_DBAT3U  = 543,
 	SPR_GQR0  = 912,
+	SPR_HID0  = 1008,
+	SPR_HID1  = 1009,
 	SPR_HID2  = 920,
 	SPR_WPAR  = 921,
 	SPR_DMAU  = 922,

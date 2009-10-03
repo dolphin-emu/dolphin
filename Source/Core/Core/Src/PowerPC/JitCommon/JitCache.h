@@ -28,6 +28,17 @@
 #include <windows.h>
 #endif
 
+// emulate CPU with unlimited instruction cache
+// the only way to invalidate a region is the "icbi" instruction
+#define JIT_UNLIMITED_ICACHE
+
+#define JIT_ICACHE_SIZE 0x2000000
+#define JIT_ICACHE_MASK 0x1ffffff
+// this corresponds to opcode 5 which is invalid in PowerPC
+#define JIT_ICACHE_INVALID_BYTE 0x14
+#define JIT_ICACHE_INVALID_WORD 0x14141414
+
+
 enum BlockFlag
 {
 	BLOCK_USE_GQR0 = 0x1, BLOCK_USE_GQR1 = 0x2, BLOCK_USE_GQR2 = 0x4, BLOCK_USE_GQR3 = 0x8,
@@ -71,6 +82,10 @@ class JitBlockCache
 	JitBlock *blocks;
 	int num_blocks;
 	std::multimap<u32, int> links_to;
+	std::map<std::pair<u32,u32>, u32> block_map; // (end_addr, start_addr) -> number
+#ifdef JIT_UNLIMITED_ICACHE
+	u8 *iCache;
+#endif
 	int MAX_NUM_BLOCKS;
 
 	bool RangeIntersect(int s1, int e1, int s2, int e2) const;
@@ -94,6 +109,9 @@ public:
 	JitBlock *GetBlock(int block_num);
 	int GetNumBlocks() const;
 	const u8 **GetCodePointers();
+#ifdef JIT_UNLIMITED_ICACHE
+	u8 *GetICache();
+#endif
 
 	// Fast way to get a block. Only works on the first ppc instruction of a block.
 	int GetBlockNumberFromStartAddress(u32 em_address);
@@ -104,15 +122,15 @@ public:
 	// This one is slow so should only be used for one-shots from the debugger UI, not for anything during runtime.
 	void GetBlockNumbersFromAddress(u32 em_address, std::vector<int> *block_numbers);
 
-	u32 GetOriginalCode(u32 address);
+	u32 GetOriginalFirstOp(u32 block_num);
 	CompiledCode GetCompiledCodeFromBlock(int blockNumber);
 
 	// DOES NOT WORK CORRECTLY WITH INLINING
-	void InvalidateCodeRange(u32 em_address, u32 length);
+	void InvalidateICache(u32 em_address);
 	void DestroyBlock(int blocknum, bool invalidate);
 
 	// Not currently used
-	void DestroyBlocksWithFlag(BlockFlag death_flag);
+	//void DestroyBlocksWithFlag(BlockFlag death_flag);
 };
 
 #endif

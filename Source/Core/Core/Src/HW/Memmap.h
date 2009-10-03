@@ -89,8 +89,7 @@ namespace Memory
 
 	void InitHWMemFuncs();
 	void InitHWMemFuncsWii();
-
-	u32 Read_Instruction(const u32 _Address);
+	
 	bool IsRAMAddress(const u32 addr, bool allow_locked_cache = false);
 	writeFn32 GetHWWriteFun32(const u32 _Address);
 
@@ -105,7 +104,17 @@ namespace Memory
 	#endif
 	}
 
+	// used by interpreter to read instructions, uses iCache
 	u32 Read_Opcode(const u32 _Address);
+	// used by JIT to read instructions, uses iCacheJIT
+	u32 Read_Opcode_JIT(const u32 _Address);
+	// used by JIT. uses iCacheJIT. Reads in the "Locked cache" mode
+	u32 Read_Opcode_JIT_LC(const u32 _Address);
+	void Write_Opcode_JIT(const u32 _Address, const u32 _Value);
+	// this is used by Debugger a lot. 
+	// For now, just reads from memory!
+	u32 Read_Instruction(const u32 _Address);
+
 
 	// For use by emulator
 

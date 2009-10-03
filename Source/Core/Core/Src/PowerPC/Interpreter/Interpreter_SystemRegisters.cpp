@@ -318,6 +318,28 @@ void mtspr(UGeckoInstruction _inst)
 		TU = m_GPR[_inst.RD];
 		break;
 
+	case SPR_HID0: // HID0
+		{
+			UReg_HID0 old_hid0;
+			old_hid0.Hex = oldValue;
+			if (HID0.ICE != old_hid0.ICE)
+			{
+				NOTICE_LOG(POWERPC, "Instruction Cache Enable (HID0.ICE) = %d", (int)HID0.ICE);
+			}
+			if (HID0.ILOCK != old_hid0.ILOCK)
+			{
+				NOTICE_LOG(POWERPC, "Instruction Cache Lock (HID0.ILOCK) = %d", (int)HID0.ILOCK);
+			}
+			if (HID0.ICFI)
+			{
+				HID0.ICFI = 0;
+				NOTICE_LOG(POWERPC, "Flush Instruction Cache! ICE=%d", (int)HID0.ICE);
+				// this is rather slow
+				// most games do it only once during initialization
+				PowerPC::ppcState.iCache.Reset();
+			}
+		}
+		break;
 	case SPR_HID2: // HID2
 		{
 			UReg_HID2 old_hid2;
