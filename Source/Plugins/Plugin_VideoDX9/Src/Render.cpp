@@ -449,96 +449,66 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 
 	TargetRectangle targetPixelRc = Renderer::ConvertEFBRectangle(efbPixelRc);
 
-	// TODO (FIX) : currently, AA path is broken/offset and doesn't return the correct pixel
-	switch (type)
-	{
-	case PEEK_Z:
-	{
-		// if (s_MSAASamples > 1)
-		{
-			// Resolve our rectangle.
-			// g_framebufferManager.GetEFBDepthTexture(efbPixelRc);
-			// glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, g_framebufferManager.GetResolvedFramebuffer());
-		}
 
-		// Sample from the center of the target region.
-		int srcX = (targetPixelRc.left + targetPixelRc.right) / 2;
-		int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
+	// Sample from the center of the target region.
+	int srcX = (targetPixelRc.left + targetPixelRc.right) / 2;
+	int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
 
-		u32 z = 0;
-		float val = 0.0f;
+	u32 z = 0;
+	float val = 0.0f;
 
-		LPDIRECT3DSURFACE9 pZBuffer = NULL;
-		if (D3D::dev->GetDepthStencilSurface(&pZBuffer) == D3DERR_NOTFOUND)
-			pZBuffer = NULL;
-
-		D3DLOCKED_RECT drect;
-		HRESULT hr;
+	LPDIRECT3DSURFACE9 pBuffer = (type == PEEK_Z || type == POKE_Z) ? 
+		FBManager::GetEFBDepthRTSurface() : FBManager::GetEFBColorRTSurface();
+	D3DLOCKED_RECT drect;
+	HRESULT hr;
+	
+	if(!pBuffer) {
+		PanicAlert("No %s!", (type == PEEK_Z || type == POKE_Z) ? "Z-Buffer" : "Color EFB");
+		return 0;
+	}
+	RECT RectToLock;
+	RectToLock.bottom = targetPixelRc.bottom;
+	RectToLock.left = targetPixelRc.left;
+	RectToLock.right = targetPixelRc.right;
+	RectToLock.top = targetPixelRc.top;
+	if((hr = pBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
+		PanicAlert("ERROR: %s", hr == D3DERR_WASSTILLDRAWING ? "Still drawing" :
+											  hr == D3DERR_INVALIDCALL     ? "Invalid call" : "w00t");	
 		
-		if(!pZBuffer) {
-			PanicAlert("No Z-Buffer!");
-			return 0;
-		}
-		RECT RectToLock;
-		RectToLock.bottom = targetPixelRc.bottom;
-		RectToLock.left = targetPixelRc.left;
-		RectToLock.right = targetPixelRc.right;
-		RectToLock.top = targetPixelRc.top;
-		if((hr = pZBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
-			PanicAlert("IT WAS AS I THOUGHT, %s", hr == D3DERR_WASSTILLDRAWING ? "Still drawing" :
-												  hr == D3DERR_INVALIDCALL     ? "Invalid call" : "w00t");	
+	switch(type) {
+		case PEEK_Z:
+			val = ((float *)drect.pBits)[0];
 			
-		val = ((float *)drect.pBits)[0];
+			// [0.0, 1.0] ==> [0, 0xFFFFFFFF]
+			z = ((u32)(val * 0xffffff));// 0xFFFFFFFF;
+			break;
 
-		pZBuffer->UnlockRect();
+		case POKE_Z:
+			// TODO: Get that Z value to poke from somewhere
+			//((float *)drect.pBits)[0] = val;
+			PanicAlert("Poke Z-buffer not implemented");
+			break;
 
-		// [0.0, 1.0] ==> [0, 0xFFFFFFFF]
-		z =((u32)(val * 0xffffff));// 0xFFFFFFFF;
+		case PEEK_COLOR:
+			z = ((u32 *)drect.pBits)[0];
+			break;
 
-		// Scale the 32-bit value returned by glReadPixels to a 24-bit
-		// value (GC uses a 24-bit Z-buffer).
-		// TODO: in RE0 this value is often off by one, which causes lighting to disappear
-		return z;//z >> 8;
+		case POKE_COLOR:
+			// TODO: Get that ARGB value to poke from somewhere
+			//((float *)drect.pBits)[0] = val;
+			PanicAlert("Poke color EFB not implemented");
+			break;
 	}
 
-	case POKE_Z:
-		// TODO: Implement
-		break;
 
-	case PEEK_COLOR: // GXPeekARGB
-	{
-		// Although it may sound strange, this really is A8R8G8B8 and not RGBA or 24-bit...
+	pBuffer->UnlockRect();
 
-		// Tested in Killer 7, the first 8bits represent the alpha value which is used to
-		// determine if we're aiming at an enemy (0x80 / 0x88) or not (0x70) 
-		// Wind Waker is also using it for the pictograph to determine the color of each pixel
 
-		// if (s_MSAASamples > 1)
-		{
-			// Resolve our rectangle.
-			// g_framebufferManager.GetEFBColorTexture(efbPixelRc);
-			// glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, g_framebufferManager.GetResolvedFramebuffer());
-		}
-
-		// Sample from the center of the target region.
-		int srcX = (targetPixelRc.left + targetPixelRc.right) / 2;
-		int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
-
-		// Read back pixel in BGRA format, then byteswap to get GameCube's ARGB Format.
-		u32 color = 0;
-		// glReadPixels(srcX, srcY, 1, 1, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, &color);
-
-		return color;
-	}
-
-	case POKE_COLOR:
-		// TODO: Implement. One way is to draw a tiny pixel-sized rectangle at
-		// the exact location. Note: EFB pokes are susceptible to Z-buffering
-		// and perhaps blending.
-		// WARN_LOG(VIDEOINTERFACE, "This is probably some kind of software rendering");
-		break;
-	}
-
+	// Scale the 32-bit value returned to a 24-bit
+	// value (GC uses a 24-bit Z-buffer).
+	// TODO: in RE0 this value is often off by one, which causes lighting to disappear
+	return z;//z >> 8;
+	
 	DEBUGGER_PAUSE_LOG_AT(NEXT_EFB_CMD,true,{printf("AccessEFB, type = %d",type);});
 
 	return 0;
