@@ -34,6 +34,9 @@
 
 #define JIT_ICACHE_SIZE 0x2000000
 #define JIT_ICACHE_MASK 0x1ffffff
+#define JIT_ICACHEEX_SIZE 0x4000000
+#define JIT_ICACHEEX_MASK 0x3ffffff
+#define JIT_ICACHE_EXRAM_BIT 0x10000000
 // this corresponds to opcode 5 which is invalid in PowerPC
 #define JIT_ICACHE_INVALID_BYTE 0x14
 #define JIT_ICACHE_INVALID_WORD 0x14141414
@@ -85,6 +88,7 @@ class JitBlockCache
 	std::map<std::pair<u32,u32>, u32> block_map; // (end_addr, start_addr) -> number
 #ifdef JIT_UNLIMITED_ICACHE
 	u8 *iCache;
+	u8 *iCacheEx;
 #endif
 	int MAX_NUM_BLOCKS;
 
@@ -111,6 +115,7 @@ public:
 	const u8 **GetCodePointers();
 #ifdef JIT_UNLIMITED_ICACHE
 	u8 *GetICache();
+	u8 *GetICacheEx();
 #endif
 
 	// Fast way to get a block. Only works on the first ppc instruction of a block.

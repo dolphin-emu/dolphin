@@ -67,7 +67,6 @@ struct GC_ALIGNED64(PowerPCState)
 	u32 spr[1024];
 	
 	InstructionCache iCache;
-	// JIT-mode instruction cache. Managed by JitCache
 };
 
 enum CPUState

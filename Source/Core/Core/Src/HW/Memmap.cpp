@@ -537,22 +537,32 @@ u32 Read_Instruction(const u32 em_address)
 
 u32 Read_Opcode_JIT(const u32 _Address)
 {
-#ifdef JIT_UNLIMITED_ICACHE
-	//return Memory::ReadUnchecked_U32(_Address);
-	if ((_Address & ~JIT_ICACHE_MASK) != 0x80000000 && (_Address & ~JIT_ICACHE_MASK) != 0x00000000)
+#ifdef JIT_UNLIMITED_ICACHE	
+	if ((_Address & ~JIT_ICACHE_MASK) != 0x80000000 && (_Address & ~JIT_ICACHE_MASK) != 0x00000000 &&
+		(_Address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (_Address & ~JIT_ICACHEEX_MASK) != 0x10000000)
 	{
 		PanicAlert("iCacheJIT: Reading Opcode from %x. Please report.", _Address);
 		return 0;
 	}
-	u8* iCache = jit.GetBlockCache()->GetICache();
-	u32 addr = _Address & JIT_ICACHE_MASK;
-	jit.GetBlockCache()->GetICache();
+	u8* iCache;
+	u32 addr;
+	if (_Address & JIT_ICACHE_EXRAM_BIT)
+	{		
+		iCache = jit.GetBlockCache()->GetICacheEx();
+		addr = _Address & JIT_ICACHEEX_MASK;		
+	}
+	else
+	{
+		iCache = jit.GetBlockCache()->GetICache();
+		addr = _Address & JIT_ICACHE_MASK;
+	}
 	u32 inst = *(u32*)(iCache + addr);
 	if (inst == JIT_ICACHE_INVALID_WORD)
 	{
-		u32 block_start = addr & ~0x1f;
-		u8 *pMem = Memory::GetPointer(block_start);
-		memcpy(iCache + block_start, pMem, 32);
+		u32 cache_block_start = addr & ~0x1f;
+		u32 mem_block_start = _Address & ~0x1f;
+		u8 *pMem = Memory::GetPointer(mem_block_start);
+		memcpy(iCache + cache_block_start, pMem, 32);
 		inst = *(u32*)(iCache + addr);
 	}
 	inst = Common::swap32(inst);
@@ -563,22 +573,37 @@ u32 Read_Opcode_JIT(const u32 _Address)
 	{
 		inst = jit.GetBlockCache()->GetOriginalFirstOp(inst);
 	}
-	//PanicAlert("Read from %x. res = %x. mem=%x", _Address, inst, Memory::Read_U32(_Address));	
+	
+	// if a crash occured after that message
+	// that means that we've compiled outdated code from the cache instead of memory
+	// this could happen if a game forgot to icbi the new code
+	u32 inst_mem = Memory::ReadUnchecked_U32(_Address);	
+	if (inst_mem != inst)
+			ERROR_LOG(POWERPC, "JIT: compiling outdated code. addr=%x, mem=%x, cache=%x", _Address, inst_mem, inst);
 	return inst;
 }
 
 u32 Read_Opcode_JIT_LC(const u32 _Address)
 {
-#ifdef JIT_UNLIMITED_ICACHE
-	//return Memory::ReadUnchecked_U32(_Address);
-	if ((_Address & ~JIT_ICACHE_MASK) != 0x80000000 && (_Address & ~JIT_ICACHE_MASK) != 0x00000000)
+#ifdef JIT_UNLIMITED_ICACHE	
+	if ((_Address & ~JIT_ICACHE_MASK) != 0x80000000 && (_Address & ~JIT_ICACHE_MASK) != 0x00000000 &&
+		(_Address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (_Address & ~JIT_ICACHEEX_MASK) != 0x10000000)
 	{
 		PanicAlert("iCacheJIT: Reading Opcode from %x. Please report.", _Address);
 		return 0;
 	}
-	u8* iCache = jit.GetBlockCache()->GetICache();
-	u32 addr = _Address & JIT_ICACHE_MASK;
-	jit.GetBlockCache()->GetICache();
+	u8* iCache;
+	u32 addr;
+	if (_Address & JIT_ICACHE_EXRAM_BIT)
+	{		
+		iCache = jit.GetBlockCache()->GetICacheEx();
+		addr = _Address & JIT_ICACHEEX_MASK;		
+	}
+	else
+	{
+		iCache = jit.GetBlockCache()->GetICache();
+		addr = _Address & JIT_ICACHE_MASK;
+	}
 	u32 inst = *(u32*)(iCache + addr);
 	if (inst == JIT_ICACHE_INVALID_WORD)
 		inst = Memory::ReadUnchecked_U32(_Address);
@@ -590,7 +615,7 @@ u32 Read_Opcode_JIT_LC(const u32 _Address)
 	if ((inst & 0xfc000000) == 0)
 	{
 		inst = jit.GetBlockCache()->GetOriginalFirstOp(inst);
-	}
+	}	
 	return inst;
 }
 
@@ -599,7 +624,12 @@ u32 Read_Opcode_JIT_LC(const u32 _Address)
 void Write_Opcode_JIT(const u32 _Address, const u32 _Value)
 {
 #ifdef JIT_UNLIMITED_ICACHE
-	*(u32*)(jit.GetBlockCache()->GetICache() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);
+	if (_Address & JIT_ICACHE_EXRAM_BIT)
+	{
+		*(u32*)(jit.GetBlockCache()->GetICacheEx() + (_Address & JIT_ICACHEEX_MASK)) = Common::swap32(_Value);		
+	}
+	else
+		*(u32*)(jit.GetBlockCache()->GetICache() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);
 #else
 	Memory::WriteUnchecked_U32(_Value, _Address);
 #endif	

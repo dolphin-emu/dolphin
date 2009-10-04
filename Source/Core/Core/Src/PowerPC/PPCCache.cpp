@@ -71,6 +71,7 @@ namespace PowerPC
 		memset(plru, 0, sizeof(plru));
 #ifdef FAST_ICACHE
 		memset(lookup_table, 0xff, sizeof(lookup_table));
+		memset(lookup_table_ex, 0xff, sizeof(lookup_table_ex));
 #endif
 	}
 
@@ -84,20 +85,31 @@ namespace PowerPC
 		for (int i = 0; i < 8; i++)
 			if (valid[set] & (1<<i))
 			{
-				lookup_table[((tags[set][i] << 7) | set) & 0xfffff] = 0xff;
+				if (tags[set][i] & (ICACHE_EXRAM_BIT >> 12))
+					lookup_table_ex[((tags[set][i] << 7) | set) & 0x1fffff] = 0xff;
+				else
+					lookup_table[((tags[set][i] << 7) | set) & 0xfffff] = 0xff;
 			}
 #endif
 		valid[set] = 0;
 	}
 
 	u32 InstructionCache::ReadInstruction(u32 addr)
-	{
+	{		
 		if (!HID0.ICE) // instuction cache is disabled
 			return Memory::ReadUnchecked_U32(addr);
 		u32 set = (addr >> 5) & 0x7f;
 		u32 tag = addr >> 12;
 #ifdef FAST_ICACHE
-		u32 t = lookup_table[(addr>>5) & 0xfffff];		
+		u32 t;
+		if (addr & ICACHE_EXRAM_BIT)
+		{
+			t = lookup_table_ex[(addr>>5) & 0x1fffff];			
+		}
+		else
+		{
+			t = lookup_table[(addr>>5) & 0xfffff];
+		}
 #else
 		u32 t = 0xff;
 		for (u32 i = 0; i < 8; i++)
@@ -121,15 +133,24 @@ namespace PowerPC
 			memcpy(data[set][t], p, 32);
 #ifdef FAST_ICACHE
 			if (valid[set] & (1<<t))
-				lookup_table[((tags[set][t] << 7) | set) & 0xfffff] = 0xff;
-			lookup_table[(addr>>5) & 0xfffff] = t;
+			{
+				if (tags[set][t] & (ICACHE_EXRAM_BIT >> 12))
+					lookup_table_ex[((tags[set][t] << 7) | set) & 0x1fffff] = 0xff;
+				else
+					lookup_table[((tags[set][t] << 7) | set) & 0xfffff] = 0xff;
+			}
+			if (addr & ICACHE_EXRAM_BIT)
+				lookup_table_ex[(addr>>5) & 0x1fffff] = t;
+			else
+				lookup_table[(addr>>5) & 0xfffff] = t;
 #endif
 			tags[set][t] = tag;
 			valid[set] |= 1<<t;
 		}
 		// update plru
 		plru[set] = (plru[set] & ~plru_mask[t]) | plru_value[t];
-		return Common::swap32(data[set][t][(addr>>2)&7]);
+		u32 res = Common::swap32(data[set][t][(addr>>2)&7]);
+		return res;
 	}
 
 }

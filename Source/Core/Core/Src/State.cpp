@@ -96,7 +96,8 @@ void DoState(PointerWrap &p)
 	HW::DoState(p);
 	CoreTiming::DoState(p);
 #ifdef JIT_UNLIMITED_ICACHE	
-	p.DoVoid(jit.GetBlockCache()->GetICache(), JIT_ICACHE_SIZE);	
+	p.DoVoid(jit.GetBlockCache()->GetICache(), JIT_ICACHE_SIZE);
+	p.DoVoid(jit.GetBlockCache()->GetICacheEx(), JIT_ICACHEEX_SIZE);
 #endif
 }
 

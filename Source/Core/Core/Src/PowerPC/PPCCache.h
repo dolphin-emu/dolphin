@@ -25,10 +25,12 @@
 namespace PowerPC
 {
 
-	const u32 ICACHE_SETS = 128;	
+	const u32 ICACHE_SETS = 128;
 	const u32 ICACHE_WAYS = 8;
 	// size of an instruction cache block in words
 	const u32 ICACHE_BLOCK_SIZE = 8;
+
+	const u32 ICACHE_EXRAM_BIT = 0x10000000;
 
 	struct InstructionCache
 	{
@@ -42,6 +44,7 @@ namespace PowerPC
 
 #ifdef FAST_ICACHE
 		u8 lookup_table[1<<20];
+		u8 lookup_table_ex[1<<21];
 #endif
 
 		InstructionCache();

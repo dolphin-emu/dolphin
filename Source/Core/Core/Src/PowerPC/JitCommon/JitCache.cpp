@@ -86,19 +86,21 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		blocks = new JitBlock[MAX_NUM_BLOCKS];
 		blockCodePointers = new const u8*[MAX_NUM_BLOCKS];
 #ifdef JIT_UNLIMITED_ICACHE
-		if (iCache == 0)
+		if (iCache == 0 && iCacheEx == 0)
 		{
 			iCache = new u8[JIT_ICACHE_SIZE];
+			iCacheEx = new u8[JIT_ICACHEEX_SIZE];
 		}
 		else
 		{
 			PanicAlert("JitBlockCache::Init() - iCache is already initialized");
 		}
-		if (iCache == 0)
+		if (iCache == 0 || iCacheEx == 0)
 		{
 			PanicAlert("JitBlockCache::Init() - unable to allocate iCache");
 		}
 		memset(iCache, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
+		memset(iCacheEx, JIT_ICACHE_INVALID_BYTE, JIT_ICACHEEX_SIZE);
 #endif
 		Clear();
 	}
@@ -111,6 +113,9 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		if (iCache != 0)
 			delete [] iCache;
 		iCache = 0;
+		if (iCacheEx != 0)
+			delete [] iCacheEx;
+		iCacheEx = 0;
 #endif
 		blocks = 0;
 		blockCodePointers = 0;
@@ -224,9 +229,14 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	}
 
 #ifdef JIT_UNLIMITED_ICACHE
-	u8 *JitBlockCache::GetICache()
+	u8* JitBlockCache::GetICache()
 	{
 		return iCache;
+	}
+
+	u8* JitBlockCache::GetICacheEx()
+	{
+		return iCacheEx;
 	}
 #endif
 
@@ -235,7 +245,15 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		if (!blocks)
 			return -1;		
 #ifdef JIT_UNLIMITED_ICACHE
-		u32 inst = *(u32*)(iCache + (addr & JIT_ICACHE_MASK));
+		u32 inst;
+		if (addr & JIT_ICACHE_EXRAM_BIT)
+		{
+			inst = *(u32*)(iCacheEx + (addr & JIT_ICACHEEX_MASK));
+		}
+		else
+		{
+			inst = *(u32*)(iCache + (addr & JIT_ICACHE_MASK));
+		}
 		inst = Common::swap32(inst);
 #else
 		u32 inst = Memory::ReadFast32(addr);
@@ -369,16 +387,29 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		}
 		if (it1 != it2)
 		{
-			block_map.erase(it1, it2);			
+			if (address & JIT_ICACHE_EXRAM_BIT)
+				PanicAlert("icbi deleted blocks. addr=%x", address);
+			block_map.erase(it1, it2);
 		}
 
 #ifdef JIT_UNLIMITED_ICACHE
-		// invalidate iCache
-		if ((address & ~JIT_ICACHE_MASK) != 0x80000000 && (address & ~JIT_ICACHE_MASK) != 0x00000000)
+		// invalidate iCache.
+		// icbi can be called with any address, so we sholud check
+		if ((address & ~JIT_ICACHE_MASK) != 0x80000000 && (address & ~JIT_ICACHE_MASK) != 0x00000000 &&
+			(address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (address & ~JIT_ICACHEEX_MASK) != 0x10000000)
 		{
 			return;
 		}
-		u32 cacheaddr = address & JIT_ICACHE_MASK;
-		memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);		
+		if (address & JIT_ICACHE_EXRAM_BIT)
+		{
+			ERROR_LOG(POWERPC, "icbi clearing exram icache. addr=%x", address);
+			u32 cacheaddr = address & JIT_ICACHEEX_MASK;
+			memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);
+		}
+		else
+		{
+			u32 cacheaddr = address & JIT_ICACHE_MASK;
+			memset(iCache + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);
+		}
 #endif
 	}
