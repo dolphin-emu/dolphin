@@ -387,8 +387,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		}
 		if (it1 != it2)
 		{
-			if (address & JIT_ICACHE_EXRAM_BIT)
-				PanicAlert("icbi deleted blocks. addr=%x", address);
 			block_map.erase(it1, it2);
 		}
 
