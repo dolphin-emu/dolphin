@@ -402,7 +402,6 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		}
 		if (address & JIT_ICACHE_EXRAM_BIT)
 		{
-			ERROR_LOG(POWERPC, "icbi clearing exram icache. addr=%x", address);
 			u32 cacheaddr = address & JIT_ICACHEEX_MASK;
 			memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);
 		}
