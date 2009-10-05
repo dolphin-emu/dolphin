@@ -24,8 +24,8 @@
 // Per-(video )Frame actions
 
 namespace Frame {
-	
 
+// Enumerations and structs
 enum PlayMode {
 	MODE_NONE = 0,
 	MODE_RECORDING,
@@ -42,6 +42,18 @@ typedef struct {
 	
 	bool reserved[6];							// Reserved bits, 6 bits
 } ControllerState; // Total: 58 + 6 = 64 bits per frame
+
+
+// Global declarations
+extern bool g_bFrameStep, g_bAutoFire, g_bFirstKey, g_bPolled;
+extern u32 g_autoFirstKey, g_autoSecondKey;
+extern PlayMode g_playMode;
+
+extern int g_framesToSkip, g_frameSkipCounter, g_numPads;
+extern ControllerState *g_padStates;
+extern FILE *g_recordfd;
+
+extern u64 g_frameCounter, g_lagCounter;
 
 typedef struct {
 	u8 filetype[4];			// Unique Identifier (always "DTM"0x1A)
