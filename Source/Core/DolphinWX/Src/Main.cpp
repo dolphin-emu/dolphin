@@ -345,10 +345,10 @@ bool DolphinApp::OnInit()
 		selectPadPlugin = parser.Found("pad_plugin", &padPluginFilename);
 		selectWiimotePlugin = parser.Found("wiimote_plugin", &wiimotePluginFilename);
 #else
-		selectVideoPlugin = parser.Found("video_plugin", &videoPluginFilename);
-		selectAudioPlugin = parser.Found("audio_plugin", &audioPluginFilename);
-		selectPadPlugin = parser.Found("pad_plugin", &padPluginFilename);
-		selectWiimotePlugin = parser.Found("wiimote_plugin", &wiimotePluginFilename);
+		selectVideoPlugin = parser.Found(_T("video_plugin"), &videoPluginFilename);
+		selectAudioPlugin = parser.Found(_T("audio_plugin"), &audioPluginFilename);
+		selectPadPlugin = parser.Found(_T("pad_plugin"), &padPluginFilename);
+		selectWiimotePlugin = parser.Found(_T("wiimote_plugin"), &wiimotePluginFilename);
 #endif
 		// ============
 	#endif
