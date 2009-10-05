@@ -281,12 +281,12 @@ void WiimotePadConfigDialog::ToBlank(bool _ToBlank)
 		if(_ToBlank)
 		{
 			for(int i = IDB_ANALOG_LEFT_X; i <= IDB_TRIGGER_R; i++)
-				#ifndef _WIN32
-					if(GetButtonText(i, j).ToAscii() == "-1")
-						SetButtonText(i, (char *)"", j);
-				#else
-					if(GetButtonText(i, j) == wxT("-1")) SetButtonText(i, "", j);
-				#endif
+#if ! defined _WIN32 && ! wxCHECK_VERSION(2, 9, 0)
+				if(GetButtonText(i, j).ToAscii() == "-1")
+					SetButtonText(i, (char *)"", j);
+#else
+			if(GetButtonText(i, j) == wxT("-1")) SetButtonText(i, "", j);
+#endif
 		}
 		else
 		{

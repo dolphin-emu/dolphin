@@ -671,9 +671,9 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	// Extraction
 	for (u32 i = index[0]; i < index[1]; i++)
 	{
-		dialog.SetTitle(wxString::Format(_T("%s : %d%%"), dialogTitle,
+		dialog.SetTitle(wxString::Format(_T("%s : %d%%"), (const char *)dialogTitle.mb_str(),
 			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
-		if (!dialog.Update(i, wxString::Format(_T("Extracting %s"), wxString::FromAscii(fst[i]->m_FullPath))))
+		if (!dialog.Update(i, wxString::Format(_T("Extracting %s"), fst[i]->m_FullPath)))
 			break;
 
 		if (fst[i]->IsDirectory())

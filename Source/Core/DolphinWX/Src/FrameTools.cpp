@@ -803,7 +803,7 @@ void CFrame::OnLoadStateFromFile(wxCommandEvent& WXUNUSED (event))
 		wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 		this);
 
-	if(path)
+	if(!path.IsEmpty())
 		State_LoadAs((const char*)path.mb_str());
 }
 
@@ -821,7 +821,7 @@ void CFrame::OnSaveStateToFile(wxCommandEvent& WXUNUSED (event))
 		wxFD_SAVE,
 		this);
 
-	if(path)
+	if(! path.IsEmpty())
 		State_SaveAs((const char*)path.mb_str());
 }
 

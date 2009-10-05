@@ -304,7 +304,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
                 _T("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
                 _T("Dolphin Symbole Rename File (*.sym)|*.sym;"), wxFD_OPEN | wxFD_FILE_MUST_EXIST,
                 this);
-            if (path) 
+            if (! path.IsEmpty()) 
             {
                 FILE *f = fopen(path.mb_str(), "r");
                 if (!f)
@@ -342,7 +342,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 					_T("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
 					_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_SAVE,
 					this);
-			if (path) {
+			if (! path.IsEmpty()) {
 				SignatureDB db;
 				db.Initialize(&g_symbolDB, prefix.c_str());
 				std::string filename(path.mb_str());		// PPCAnalyst::SaveSignatureDB(
@@ -357,7 +357,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 				_T("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
 				_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_OPEN | wxFD_FILE_MUST_EXIST,
 				this);
-		if (path) {
+		if (! path.IsEmpty()) {
 			SignatureDB db;
 			db.Load(path.mb_str());
 			db.Apply(&g_symbolDB);

@@ -93,7 +93,7 @@ bool CopySJISToString(wxString& _rDestination, const char* _src)
 		}
 	}
 #else
-	_rDestination = wxString(wxString(_src,wxConvLibc),wxConvUTF8);
+	_rDestination = wxString(_src,wxConvUTF8);
 	returnCode = true;
 #endif
 	return returnCode;

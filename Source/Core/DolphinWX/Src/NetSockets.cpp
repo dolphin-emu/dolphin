@@ -41,8 +41,9 @@ void NetEvent::SendEvent(int EventType, const std::string text, int integer)
 	event.SetId( EventType );
 	event.SetInt( integer );
 	event.SetString( wxString::FromAscii(text.c_str()) );
-
+#if ! wxCHECK_VERSION(2, 9, 0)
 	m_netptr->AddPendingEvent(event);
+#endif
 }
 
 //--------------------------------

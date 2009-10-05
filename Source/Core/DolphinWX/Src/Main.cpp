@@ -201,43 +201,82 @@ bool DolphinApp::OnInit()
 
 	// Parse command lines
 	#if wxUSE_CMDLINE_PARSER
+#if wxCHECK_VERSION(2, 9, 0)
 		wxCmdLineEntryDesc cmdLineDesc[] =
 		{
 			{
-				wxCMD_LINE_SWITCH, _T("h"), _T("help"), _T("Show this help message"),
+				wxCMD_LINE_SWITCH, "h", "help", "Show this help message",
 				wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
 			},
 			{
-				wxCMD_LINE_SWITCH, _T("d"), _T("debugger"), _T("Opens the debugger")
+				wxCMD_LINE_SWITCH, "d", "debugger", "Opens the debugger"
 			},
 			{
-				wxCMD_LINE_SWITCH, _T("l"), _T("logger"), _T("Opens The Logger")
+				wxCMD_LINE_SWITCH, "l", "logger", "Opens The Logger"
 			},
 			{
-				wxCMD_LINE_OPTION, _T("e"), _T("elf"), _T("Loads an elf file"),
+				wxCMD_LINE_OPTION, "e", "elf", "Loads an elf file",
 				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 			},
 			{
-				wxCMD_LINE_OPTION, _T("V"), _T("video_plugin"),_T("Specify a video plugin"),
+				wxCMD_LINE_OPTION, "V", "video_plugin","Specify a video plugin",
 				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 			},
 			{
-				wxCMD_LINE_OPTION, _T("A"), _T("audio_plugin"),_T("Specify an audio plugin"),
+				wxCMD_LINE_OPTION, "A", "audio_plugin","Specify an audio plugin",
 				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 			},
 			{
-				wxCMD_LINE_OPTION, _T("P"), _T("pad_plugin"),_T("Specify a pad plugin"),
+				wxCMD_LINE_OPTION, "P", "pad_plugin","Specify a pad plugin",
 				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 			},
 			{
-				wxCMD_LINE_OPTION, _T("W"), _T("wiimote_plugin"),_T("Specify a wiimote plugin"),
+				wxCMD_LINE_OPTION, "W", "wiimote_plugin","Specify a wiimote plugin",
 				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 			},
 			{
 				wxCMD_LINE_NONE
 			}
 		};
-
+#else
+		wxCmdLineEntryDesc cmdLineDesc[] =
+		{
+			{
+				wxCMD_LINE_SWITCH, _("h"), _("help"), 
+				wxT("Show this help message"),
+				wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
+			},
+			{
+				wxCMD_LINE_SWITCH, _("d"), _("debugger"), wxT("Opens the debugger")
+			},
+			{
+				wxCMD_LINE_SWITCH, _("l"), _("logger"), wxT("Opens The Logger")
+			},
+			{
+				wxCMD_LINE_OPTION, _("e"), _("elf"), wxT("Loads an elf file"),
+				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+			},
+			{
+				wxCMD_LINE_OPTION, _("V"), _("video_plugin"), wxT("Specify a video plugin"),
+				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+			},
+			{
+				wxCMD_LINE_OPTION, _("A"), _("audio_plugin"), wxT("Specify an audio plugin"),
+				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+			},
+			{
+				wxCMD_LINE_OPTION, _("P"), _("pad_plugin"), wxT("Specify a pad plugin"),
+				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+			},
+			{
+				wxCMD_LINE_OPTION, _("W"), _("wiimote_plugin"), wxT("Specify a wiimote plugin"),
+				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+			},
+			{
+				wxCMD_LINE_NONE
+			}
+		};
+#endif
 		#if defined(__APPLE__) 
 			// check to see if ~/Library/Application Support/Dolphin exists; if not, create it
 			char AppSupportDir[MAXPATHLEN];
@@ -288,19 +327,29 @@ bool DolphinApp::OnInit()
 		{
 			return false;
 		} 
-
-		UseDebugger = parser.Found(_T("debugger"));
-		UseLogger = parser.Found(_T("logger"));
-		LoadElf = parser.Found(_T("elf"), &ElfFile);
-
+#if wxCHECK_VERSION(2, 9, 0)
+		UseDebugger = parser.Found("debugger");
+		UseLogger = parser.Found("logger");
+		LoadElf = parser.Found("elf", &ElfFile);
+#else
+		UseDebugger = parser.Found(_("debugger"));
+		UseLogger = parser.Found(_("logger"));
+		LoadElf = parser.Found(_("elf"), &ElfFile);
+#endif
 		if( LoadElf && ElfFile == wxEmptyString )
 			PanicAlert("You did not specify a file name");
 
-		selectVideoPlugin = parser.Found(_T("video_plugin"), &videoPluginFilename);
-		selectAudioPlugin = parser.Found(_T("audio_plugin"), &audioPluginFilename);
-		selectPadPlugin = parser.Found(_T("pad_plugin"), &padPluginFilename);
-		selectWiimotePlugin = parser.Found(_T("wiimote_plugin"), &wiimotePluginFilename);
-
+#if wxCHECK_VERSION(2, 9, 0)
+		selectVideoPlugin = parser.Found("video_plugin", &videoPluginFilename);
+		selectAudioPlugin = parser.Found("audio_plugin", &audioPluginFilename);
+		selectPadPlugin = parser.Found("pad_plugin", &padPluginFilename);
+		selectWiimotePlugin = parser.Found("wiimote_plugin", &wiimotePluginFilename);
+#else
+		selectVideoPlugin = parser.Found("video_plugin", &videoPluginFilename);
+		selectAudioPlugin = parser.Found("audio_plugin", &audioPluginFilename);
+		selectPadPlugin = parser.Found("pad_plugin", &padPluginFilename);
+		selectWiimotePlugin = parser.Found("wiimote_plugin", &wiimotePluginFilename);
+#endif
 		// ============
 	#endif
 
