@@ -440,7 +440,26 @@ void Renderer::SetColorMask()
 
 u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 {
+	
+	//Get the working buffer and it's format
+	LPDIRECT3DSURFACE9 pBuffer = (type == PEEK_Z || type == POKE_Z) ? 
+		FBManager::GetEFBDepthRTSurface() : FBManager::GetEFBColorRTSurface();
+	D3DLOCKED_RECT drect;
+	
+	D3DFORMAT BufferFormat = (type == PEEK_Z || type == POKE_Z) ? 
+		FBManager::GetEFBDepthRTSurfaceFormat() : FBManager::GetEFBColorRTSurfaceFormat();
+	//Buffer not found alert
+	if(!pBuffer) {
+		PanicAlert("No %s!", (type == PEEK_Z || type == POKE_Z) ? "Z-Buffer" : "Color EFB");
+		return 0;
+	}
+	// Z buffer lock not suported: returning
+	if((type == PEEK_Z || type == POKE_Z) && BufferFormat == D3DFMT_D24S8)
+	{
+		return 0;
+	}
 	// Get the rectangular target region covered by the EFB pixel.
+	
 	EFBRectangle efbPixelRc;
 	efbPixelRc.left = x;
 	efbPixelRc.top = y;
@@ -456,33 +475,36 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 
 	u32 z = 0;
 	float val = 0.0f;
-
-	LPDIRECT3DSURFACE9 pBuffer = (type == PEEK_Z || type == POKE_Z) ? 
-		FBManager::GetEFBDepthRTSurface() : FBManager::GetEFBColorRTSurface();
-	D3DLOCKED_RECT drect;
 	HRESULT hr;
-	
-	if(!pBuffer) {
-		PanicAlert("No %s!", (type == PEEK_Z || type == POKE_Z) ? "Z-Buffer" : "Color EFB");
-		return 0;
-	}
 	RECT RectToLock;
 	RectToLock.bottom = targetPixelRc.bottom;
 	RectToLock.left = targetPixelRc.left;
 	RectToLock.right = targetPixelRc.right;
 	RectToLock.top = targetPixelRc.top;
+	
+	//lock the buffer
 	if((hr = pBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
 		PanicAlert("ERROR: %s", hr == D3DERR_WASSTILLDRAWING ? "Still drawing" :
 											  hr == D3DERR_INVALIDCALL     ? "Invalid call" : "w00t");	
 		
 	switch(type) {
 		case PEEK_Z:
-			val = ((float *)drect.pBits)[0];
-			
+			{			
+			switch (BufferFormat)
+			{
+			case D3DFMT_D32F_LOCKABLE:
+				val = ((float *)drect.pBits)[0];
+				break;
+			case D3DFMT_D16_LOCKABLE:
+				val = ((float)((u16 *)drect.pBits)[0])/((float)0xFFFF);
+				break;
+			default:
+				val=0;
+			};			
 			// [0.0, 1.0] ==> [0, 0xFFFFFFFF]
 			z = ((u32)(val * 0xffffff));// 0xFFFFFFFF;
 			break;
-
+			}
 		case POKE_Z:
 			// TODO: Get that Z value to poke from somewhere
 			//((float *)drect.pBits)[0] = val;

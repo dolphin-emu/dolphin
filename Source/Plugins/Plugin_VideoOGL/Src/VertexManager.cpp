@@ -46,8 +46,6 @@ extern NativeVertexFormat *g_nativeVertexFmt;
 namespace VertexManager
 {
 
-static IndexGenerator2 indexGen;
-
 static int lastPrimitive;
 
 static u8 *LocalVBuffer;   
@@ -61,7 +59,7 @@ static GLint max_Index_size = 0;
 
 static GLuint s_vboBuffers[MAXVBOBUFFERCOUNT] = {0};
 static int s_nCurVBOIndex = 0; // current free buffer
-
+static bool Flushed=false;
 
 
 bool Init()
@@ -71,11 +69,12 @@ bool Init()
 	
 	if(max_Index_size>MAXIBUFFERSIZE)
 		max_Index_size = MAXIBUFFERSIZE;
-
+	
 	LocalVBuffer = new u8[MAXVBUFFERSIZE];
 	TIBuffer = new u16[max_Index_size];
 	LIBuffer = new u16[max_Index_size];
 	PIBuffer = new u16[max_Index_size];
+	IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
 	s_pCurBufferPointer = LocalVBuffer;
 	s_nCurVBOIndex = 0;
 	glGenBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
@@ -85,8 +84,9 @@ bool Init()
 	}
 	glEnableClientState(GL_VERTEX_ARRAY);
 	g_nativeVertexFmt = NULL;
+	Flushed=false;
 	GL_REPORT_ERRORD();
-	indexGen.Start(TIBuffer,LIBuffer,PIBuffer);
+	
 	return true;
 }
 
@@ -97,34 +97,31 @@ void Shutdown()
 	delete [] LIBuffer;
 	delete [] PIBuffer;
 	glDeleteBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
-	s_nCurVBOIndex = 0;
-	ResetBuffer();
+	s_nCurVBOIndex = 0;	
 }
 
 void ResetBuffer()
 {
 	s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
 	s_pCurBufferPointer = LocalVBuffer;	
-	indexGen.Start(TIBuffer,LIBuffer,PIBuffer);
 }
 
-void AddIndices(int _primitive, int _numVertices)
+void AddIndices(int primitive, int numVertices)
 {
-	switch (_primitive)
+	switch (primitive)
 	{
-	case GX_DRAW_QUADS:          indexGen.AddQuads(_numVertices);     return;    
-	case GX_DRAW_TRIANGLES:      indexGen.AddList(_numVertices);      return;    
-	case GX_DRAW_TRIANGLE_STRIP: indexGen.AddStrip(_numVertices);     return;
-	case GX_DRAW_TRIANGLE_FAN:   indexGen.AddFan(_numVertices);       return;
-	case GX_DRAW_LINE_STRIP:     indexGen.AddLineStrip(_numVertices); return;
-	case GX_DRAW_LINES:		     indexGen.AddLineList(_numVertices);  return;
-	case GX_DRAW_POINTS:         indexGen.AddPoints(_numVertices);    return;
+		case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(numVertices);      break;
+		case GX_DRAW_QUADS:          IndexGenerator::AddQuads(numVertices);     break;
+		case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(numVertices);     break;
+		case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(numVertices);       break;
+		case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(numVertices); break;
+		case GX_DRAW_LINES:		     IndexGenerator::AddLineList(numVertices);  break;
+		case GX_DRAW_POINTS:         IndexGenerator::AddPoints(numVertices);    break;
 	}
 }
 
 int GetRemainingSize()
-{
-	
+{	
 	return  MAXVBUFFERSIZE - (int)(s_pCurBufferPointer - LocalVBuffer);
 }
 
@@ -138,44 +135,48 @@ void AddVertices(int primitive, int numvertices)
 		case GX_DRAW_TRIANGLES:      
 		case GX_DRAW_TRIANGLE_STRIP: 
 		case GX_DRAW_TRIANGLE_FAN:   
-			if(max_Index_size - indexGen.GetTriangleindexLen() < 2 * numvertices)
-			Flush();
+			if(max_Index_size - IndexGenerator::GetTriangleindexLen() < 2 * numvertices)
+				Flush();
 			break;
 		case GX_DRAW_LINE_STRIP:
 		case GX_DRAW_LINES:
-			if(max_Index_size - indexGen.GetLineindexLen() < 2 * numvertices)
-			Flush();
+			if(max_Index_size - IndexGenerator::GetLineindexLen() < 2 * numvertices)
+				Flush();
 			break;
 		case GX_DRAW_POINTS:
-			if(max_Index_size - indexGen.GetPointindexLen() < numvertices)
-			Flush();
+			if(max_Index_size - IndexGenerator::GetPointindexLen() < numvertices)
+				Flush();
 			break;
 		default: return;
 	}
-	
-	
-	
+	if(Flushed)
+	{
+		IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
+		Flushed=false;
+	}
 	lastPrimitive = primitive;	
 	ADDSTAT(stats.thisFrame.numPrims, numvertices);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
-	AddIndices(primitive, numvertices);	
+	AddIndices(primitive, numvertices);
+		
+		
 }
 
 inline void Draw()
 {	
-	if(indexGen.GetNumTriangles() > 0)
+	if(IndexGenerator::GetNumTriangles() > 0)
 	{
-		glDrawElements(GL_TRIANGLES, indexGen.GetTriangleindexLen(), GL_UNSIGNED_SHORT,TIBuffer);
+		glDrawElements(GL_TRIANGLES, IndexGenerator::GetTriangleindexLen(), GL_UNSIGNED_SHORT,TIBuffer);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	if(indexGen.GetNumLines() > 0)
+	if(IndexGenerator::GetNumLines() > 0)
 	{
-		glDrawElements(GL_LINES, indexGen.GetLineindexLen(), GL_UNSIGNED_SHORT,LIBuffer);
+		glDrawElements(GL_LINES, IndexGenerator::GetLineindexLen(), GL_UNSIGNED_SHORT,LIBuffer);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
-	if(indexGen.GetNumPoints() > 0)
+	if(IndexGenerator::GetNumPoints() > 0)
 	{
-		glDrawElements(GL_POINTS, indexGen.GetPointindexLen(), GL_UNSIGNED_SHORT,PIBuffer);
+		glDrawElements(GL_POINTS, IndexGenerator::GetPointindexLen(), GL_UNSIGNED_SHORT,PIBuffer);
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}		
 }
@@ -183,9 +184,8 @@ inline void Draw()
 void Flush()
 {
 	if (LocalVBuffer == s_pCurBufferPointer) return;	
-	int numVerts = indexGen.GetNumVerts();
-	if(numVerts == 0) return;
-
+	if(Flushed) return;
+	Flushed=true;
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	PRIM_LOG("frame%d:\n texgen=%d, numchan=%d, dualtex=%d, ztex=%d, cole=%d, alpe=%d, ze=%d", g_ActiveConfig.iSaveTargetId, xfregs.numTexGens,
 		xfregs.nNumChans, (int)xfregs.bEnableDualTexTransform, bpmem.ztex2.op,
@@ -302,10 +302,6 @@ void Flush()
 	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
 	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
 
-#if defined(_DEBUG) || defined(DEBUGFAST) 
-	PRIM_LOG("");
-#endif
-
 	Draw();
 	
     // run through vertex groups again to set alpha
@@ -327,7 +323,9 @@ void Flush()
 		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract) 
 			glEnable(GL_BLEND);	
     }
-	ResetBuffer();
+	s_nCurVBOIndex = (s_nCurVBOIndex + 1) % ARRAYSIZE(s_vboBuffers);
+	s_pCurBufferPointer = LocalVBuffer;
+	IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS) 

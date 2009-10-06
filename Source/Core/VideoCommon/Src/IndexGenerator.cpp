@@ -26,130 +26,25 @@ QUAD simulator
 021231 243453 
 */
 
-void IndexGenerator::Start(unsigned short *startptr)
-{
-	ptr = startptr;
-	index = 0;
-	numPrims = 0;
-	adds = 0;
-	indexLen = 0;
-	onlyLists = true;
-}
+//Init
+u16 *IndexGenerator::Tptr = 0;
+u16 *IndexGenerator::Lptr = 0;
+u16 *IndexGenerator::Pptr = 0;
+int IndexGenerator::numT = 0;
+int IndexGenerator::numL = 0;
+int IndexGenerator::numP = 0;
+int IndexGenerator::index = 0;	
+int IndexGenerator::Tadds = 0;
+int IndexGenerator::Ladds = 0;
+int IndexGenerator::Padds = 0;
+int IndexGenerator::TindexLen = 0;
+int IndexGenerator::LindexLen = 0;
+int IndexGenerator::PindexLen = 0;
+IndexGenerator::IndexPrimitiveType IndexGenerator::LastTPrimitive = Prim_None;
+IndexGenerator::IndexPrimitiveType IndexGenerator::LastLPrimitive = Prim_None;
+bool IndexGenerator::used = false;
 
-void IndexGenerator::AddList(int numVerts)
-{
-	int numTris = numVerts / 3;
-	if (numTris <= 0) return;
-	for (int i = 0; i < numTris; i++)
-	{
-		*ptr++ = index+i*3;
-		*ptr++ = index+i*3+1;
-		*ptr++ = index+i*3+2;
-	}
-	indexLen += numVerts;
-	index += numVerts;
-	numPrims += numTris;
-	adds++;
-}
-
-void IndexGenerator::AddStrip(int numVerts)
-{
-	int numTris = numVerts - 2;
-	if (numTris <= 0) return;
-	bool wind = false;
-	for (int i = 0; i < numTris; i++)
-	{
-		*ptr++ = index+i;
-		*ptr++ = index+i+(wind?2:1);
-		*ptr++ = index+i+(wind?1:2);
-		wind = !wind;
-	}
-	indexLen += numTris * 3;
-	index += numVerts;
-	numPrims += numTris;
-	adds++;
-	onlyLists = false;
-}
-
-void IndexGenerator::AddLineList(int numVerts)
-{
-	int numLines= numVerts / 2;
-	if (numLines <= 0) return;
-	for (int i = 0; i < numLines; i++)
-	{
-		*ptr++ = index+i*2;
-		*ptr++ = index+i*2+1;
-	}
-	indexLen += numVerts;
-	index += numVerts;
-	numPrims += numLines;
-	adds++;
-}
-
-void IndexGenerator::AddLineStrip(int numVerts)
-{
-	int numLines = numVerts - 1;
-	if (numLines <= 0) return;
-	for (int i = 0; i < numLines; i++)
-	{
-		*ptr++ = index+i;
-		*ptr++ = index+i+1;
-	}
-	indexLen += numLines * 2;
-	index += numVerts;
-	numPrims += numLines;
-	adds++;
-	onlyLists = false;
-}
-
-void IndexGenerator::AddFan(int numVerts)
-{
-	int numTris = numVerts - 2;
-	if (numTris <= 0) return;
-	for (int i = 0; i < numTris; i++)
-	{
-		*ptr++ = index;
-		*ptr++ = index+i+1;
-		*ptr++ = index+i+2;
-	}
-	indexLen += numTris * 3;
-	index += numVerts;
-	numPrims += numTris;
-	adds++;
-	onlyLists = false;
-}
-
-void IndexGenerator::AddQuads(int numVerts)
-{
-	int numTris = (numVerts/4)*2;
-	if (numTris <= 0) return;
-	for (int i = 0; i < numTris / 2; i++)
-	{
-		*ptr++ = index+i*4;
-		*ptr++ = index+i*4+1;
-		*ptr++ = index+i*4+3;
-		*ptr++ = index+i*4+1;
-		*ptr++ = index+i*4+2;
-		*ptr++ = index+i*4+3;
-	}
-	indexLen += numTris * 3;
-	index += numVerts;
-	numPrims += numTris;
-	adds++;
-	onlyLists = false;
-}
-
-void IndexGenerator::AddPoints(int numVerts)
-{
-	index += numVerts;
-	numPrims += numVerts;
-	adds++;
-}
-
-
-
-	//Init
-void IndexGenerator2::Start(unsigned short *Triangleptr,unsigned short *Lineptr,unsigned short *Pointptr)
+void IndexGenerator::Start(u16 *Triangleptr,u16 *Lineptr,u16 *Pointptr)
 {	
 	Tptr = Triangleptr;
 	Lptr = Lineptr;
@@ -168,7 +63,7 @@ void IndexGenerator2::Start(unsigned short *Triangleptr,unsigned short *Lineptr,
 	LastLPrimitive = Prim_None;
 }
 // Triangles
-void IndexGenerator2::AddList(int numVerts)
+void IndexGenerator::AddList(int numVerts)
 {
 	int numTris = numVerts / 3;
 	if (numTris <= 0) return;
@@ -185,7 +80,7 @@ void IndexGenerator2::AddList(int numVerts)
 	LastTPrimitive = Prim_List;
 }
 
-void IndexGenerator2::AddStrip(int numVerts)
+void IndexGenerator::AddStrip(int numVerts)
 {
 	int numTris = numVerts - 2;
 	if (numTris <= 0) return;
@@ -203,7 +98,7 @@ void IndexGenerator2::AddStrip(int numVerts)
 	Tadds++;	
 	LastTPrimitive = Prim_Strip;
 }
-void IndexGenerator2::AddFan(int numVerts)
+void IndexGenerator::AddFan(int numVerts)
 {
 	int numTris = numVerts - 2;
 	if (numTris <= 0) return;
@@ -220,7 +115,7 @@ void IndexGenerator2::AddFan(int numVerts)
 	LastTPrimitive = Prim_Fan;
 }
 
-void IndexGenerator2::AddQuads(int numVerts)
+void IndexGenerator::AddQuads(int numVerts)
 {
 	int numTris = (numVerts/4)*2;
 	if (numTris <= 0) return;
@@ -242,7 +137,7 @@ void IndexGenerator2::AddQuads(int numVerts)
 
 
 //Lines
-void IndexGenerator2::AddLineList(int numVerts)
+void IndexGenerator::AddLineList(int numVerts)
 {
 	int numLines= numVerts / 2;
 	if (numLines <= 0) return;
@@ -258,7 +153,7 @@ void IndexGenerator2::AddLineList(int numVerts)
 	LastLPrimitive = Prim_List;
 }
 
-void IndexGenerator2::AddLineStrip(int numVerts)
+void IndexGenerator::AddLineStrip(int numVerts)
 {
 	int numLines = numVerts - 1;
 	if (numLines <= 0) return;
@@ -277,7 +172,7 @@ void IndexGenerator2::AddLineStrip(int numVerts)
 
 
 //Points
-void IndexGenerator2::AddPoints(int numVerts)
+void IndexGenerator::AddPoints(int numVerts)
 {
 	for (int i = 0; i < numVerts; i++)
 	{

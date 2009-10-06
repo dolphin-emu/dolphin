@@ -20,58 +20,32 @@
 
 #ifndef _INDEXGENERATOR_H
 #define _INDEXGENERATOR_H
-
-
+#include "CommonTypes.h"
 
 class IndexGenerator
 {
 public:
-	void Start(unsigned short *startptr);
-	void AddList(int numVerts);
-	void AddStrip(int numVerts);
-	void AddLineList(int numVerts);
-	void AddLineStrip(int numVerts);
-	void AddFan(int numVerts);
-	void AddQuads(int numVerts);
-	void AddPoints(int numVerts);
-	int GetNumPrims() {return numPrims;} //returns numprimitives
-	int GetNumVerts() {return index;} //returns numprimitives
-	int GetNumAdds() {return adds;}
-	int GetindexLen() {return indexLen;}
-	bool GetOnlyLists() {return onlyLists;}
-private:
-	unsigned short *ptr;
-	int numPrims;
-	int index;
-	int adds;
-	int indexLen;
-	bool onlyLists;
-};
-
-class IndexGenerator2
-{
-public:
 	//Init
-	void Start(unsigned short *Triangleptr,unsigned short *Lineptr,unsigned short *Pointptr);
+	static void Start(u16 *Triangleptr,u16 *Lineptr,u16 *Pointptr);
 	//Triangles
-	void AddList(int numVerts);
-	void AddStrip(int numVerts);
-	void AddFan(int numVerts);
-	void AddQuads(int numVerts);
+	static void AddList(int numVerts);
+	static void AddStrip(int numVerts);
+	static void AddFan(int numVerts);
+	static void AddQuads(int numVerts);
 	//Lines
-	void AddLineList(int numVerts);
-	void AddLineStrip(int numVerts);
+	static void AddLineList(int numVerts);
+	static void AddLineStrip(int numVerts);
 	//Points
-	void AddPoints(int numVerts);
+	static void AddPoints(int numVerts);
 	//Interface
-	int GetNumTriangles() {return numT;}
-	int GetNumLines() {return numL;}
-	int GetNumPoints() {return numP;}
-	int GetNumVerts() {return index;} //returns numprimitives
-	int GetNumAdds() {return Tadds + Ladds + Padds;}
-	int GetTriangleindexLen() {return TindexLen;}
-	int GetLineindexLen() {return LindexLen;}
-	int GetPointindexLen() {return PindexLen;}		
+	static int GetNumTriangles() {used = true; return numT;}
+	static int GetNumLines() {used = true;return numL;}
+	static int GetNumPoints() {used = true;return numP;}
+	static int GetNumVerts() {return index;} //returns numprimitives
+	static int GetNumAdds() {return Tadds + Ladds + Padds;}
+	static int GetTriangleindexLen() {return TindexLen;}
+	static int GetLineindexLen() {return LindexLen;}
+	static int GetPointindexLen() {return PindexLen;}		
 
 	enum IndexPrimitiveType
 	{
@@ -81,21 +55,22 @@ public:
 		Prim_Fan
 	} ;
 private:
-	unsigned short *Tptr;
-	unsigned short *Lptr;
-	unsigned short *Pptr;
-	int numT;
-	int numL;
-	int numP;
-	int index;	
-	int Tadds;
-	int Ladds;
-	int Padds;
-	int TindexLen;
-	int LindexLen;
-	int PindexLen;
-	IndexPrimitiveType LastTPrimitive;
-	IndexPrimitiveType LastLPrimitive;	
+	static u16 *Tptr;
+	static u16 *Lptr;
+	static u16 *Pptr;
+	static int numT;
+	static int numL;
+	static int numP;
+	static int index;	
+	static int Tadds;
+	static int Ladds;
+	static int Padds;
+	static int TindexLen;
+	static int LindexLen;
+	static int PindexLen;
+	static IndexPrimitiveType LastTPrimitive;
+	static IndexPrimitiveType LastLPrimitive;
+	static bool used;
 
 };
 
