@@ -87,14 +87,12 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC)
 	{
-		DEBUG_LOG(MASTER_LOG, "Call bNTSC");
 		PowerPC::ppcState.gpr[1] = 0x81566550;		// StackPointer, used to be set to 0x816ffff0
 		PowerPC::ppcState.gpr[2] = 0x81465cc0;		// global pointer to Small Data Area 2 Base (haven't seen anything use it...meh)
 		PowerPC::ppcState.gpr[13] = 0x81465320;		// global pointer to Small Data Area Base (Luigi's Mansion's apploader uses it)
 	}
 	else
 	{
-		DEBUG_LOG(MASTER_LOG, "Call PAL");
 		PowerPC::ppcState.gpr[1] = 0x815edca8;
 		PowerPC::ppcState.gpr[2] = 0x814b5b20;
 		PowerPC::ppcState.gpr[13] = 0x814b4fc0;
