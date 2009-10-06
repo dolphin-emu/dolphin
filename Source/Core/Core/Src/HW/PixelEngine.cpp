@@ -28,7 +28,7 @@
 
 #include "../CoreTiming.h"
 #include "../PowerPC/PowerPC.h"
-#include "PeripheralInterface.h"
+#include "ProcessorInterface.h"
 #include "CommandProcessor.h"
 #include "CPU.h"
 #include "../Core.h"
@@ -309,15 +309,15 @@ void UpdateInterrupts()
 {
 	// check if there is a token-interrupt
 	if (g_bSignalTokenInterrupt	& m_Control.PETokenEnable)
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_PE_TOKEN, true);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_PE_TOKEN, true);
 	else
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_PE_TOKEN, false);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_PE_TOKEN, false);
 
 	// check if there is a finish-interrupt
 	if (g_bSignalFinishInterrupt & m_Control.PEFinishEnable)
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_PE_FINISH, true);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_PE_FINISH, true);
 	else
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_PE_FINISH, false);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_PE_FINISH, false);
 }
 
 // TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).

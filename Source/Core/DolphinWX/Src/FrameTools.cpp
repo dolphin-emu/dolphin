@@ -61,6 +61,7 @@ Core::GetWindowHandle().
 #include "Core.h"
 #include "OnFrame.h"
 #include "HW/DVDInterface.h"
+#include "HW/ProcessorInterface.h"
 #include "State.h"
 #include "VolumeHandler.h"
 #include "NANDContentLoader.h"
@@ -127,8 +128,9 @@ void CFrame::CreateMenu()
 	wxMenu* emulationMenu = new wxMenu;
 	emulationMenu->Append(IDM_PLAY, _T("&Play\tF10"));
 	emulationMenu->Append(IDM_STOP, _T("&Stop"));
+	emulationMenu->Append(IDM_RESET, _T("&Reset"));
 	emulationMenu->AppendSeparator();
-	emulationMenu->Append(IDM_RECORD, _T("Start &Recording..."));
+	emulationMenu->Append(IDM_RECORD, _T("Start Re&cording..."));
 	emulationMenu->Append(IDM_PLAYRECORD, _T("P&lay Recording..."));
 	emulationMenu->AppendSeparator();
 	emulationMenu->Append(IDM_CHANGEDISC, _T("Change &Disc"));
@@ -655,6 +657,11 @@ void CFrame::DoStop()
 void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
 	DoStop();
+}
+
+void CFrame::OnReset(wxCommandEvent& WXUNUSED (event))
+{
+	ProcessorInterface::ResetButton_Tap();
 }
 
 void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))

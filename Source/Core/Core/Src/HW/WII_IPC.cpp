@@ -22,7 +22,7 @@
 
 #include "CPU.h"
 #include "Memmap.h"
-#include "PeripheralInterface.h"
+#include "ProcessorInterface.h"
 
 #include "../IPC_HLE/WII_IPC_HLE.h"
 #include "WII_IPC.h"
@@ -233,11 +233,11 @@ void UpdateInterrupts()
 	// check if we have to generate an interrupt
 	if (g_IPC_Config.INT_MASK & g_IPC_Status.INTERRUPT)
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_WII_IPC, true);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_WII_IPC, true);
 	}
 	else
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_WII_IPC, false);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_WII_IPC, false);
 	}
 }
 

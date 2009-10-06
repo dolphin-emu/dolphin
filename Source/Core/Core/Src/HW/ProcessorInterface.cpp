@@ -20,29 +20,62 @@
 #include "ChunkFile.h"
 #include "../PowerPC/PowerPC.h"
 
-#include "../HW/CPU.h"
-#include "PeripheralInterface.h"
+#include "CPU.h"
+#include "../CoreTiming.h"
+#include "ProcessorInterface.h"
 #include "GPFifo.h"
 
+namespace ProcessorInterface
+{
+
+// Internal hardware addresses
+enum
+{
+	PI_INTERRUPT_CAUSE		= 0x00,
+	PI_INTERRUPT_MASK       = 0x04,
+	PI_FIFO_BASE            = 0x0C,
+	PI_FIFO_END             = 0x10,
+	PI_FIFO_WPTR            = 0x14,
+	PI_FIFO_RESET           = 0x18, // ??? - GXAbortFrameWrites to it
+	PI_RESET_CODE           = 0x24,
+	PI_MB_REV               = 0x2C,
+};
+
+
 // STATE_TO_SAVE
-u32 volatile CPeripheralInterface::m_InterruptMask;
-u32 volatile CPeripheralInterface::m_InterruptCause;
-
+volatile u32 m_InterruptCause;
+volatile u32 m_InterruptMask;
 // addresses for CPU fifo accesses
-u32 CPeripheralInterface::Fifo_CPUBase;
-u32 CPeripheralInterface::Fifo_CPUEnd;
-u32 CPeripheralInterface::Fifo_CPUWritePointer;
+u32 Fifo_CPUBase;
+u32 Fifo_CPUEnd;
+u32 Fifo_CPUWritePointer;
+u32 m_Fifo_Reset;
+u32 m_ResetCode;
+u32 m_MBRev;
 
-void CPeripheralInterface::DoState(PointerWrap &p)
+
+// ID and callback for scheduling reset button presses/releases
+static int toggleResetButton;
+void ToggleResetButtonCallback(u64 userdata, int cyclesLate);
+
+// Let the PPC know that an external exception is set/cleared
+void UpdateException();
+
+
+void DoState(PointerWrap &p)
 {
 	p.Do(m_InterruptMask);
 	p.Do(m_InterruptCause);
 	p.Do(Fifo_CPUBase);
 	p.Do(Fifo_CPUEnd);
 	p.Do(Fifo_CPUWritePointer);
+// (shuffle2) Enable sometime ;p
+// 	p.Do(m_Fifo_Reset);
+// 	p.Do(m_ResetCode);
+// 	p.Do(m_MBRev);
 }
 
-void CPeripheralInterface::Init()
+void Init()
 {
 	m_InterruptMask = 0;
 	m_InterruptCause = 0;
@@ -51,12 +84,18 @@ void CPeripheralInterface::Init()
 	Fifo_CPUEnd = 0;
 	Fifo_CPUWritePointer = 0;
 
-	m_InterruptCause |= INT_CAUSE_RST_BUTTON;		// Reset button state
+	m_MBRev = 2 << 28; // HW2 production board
+
+	// Bleh, why?
+	//m_ResetCode |= 0x80000000;
+	//m_InterruptCause |= INT_CAUSE_RST_BUTTON;
+
+	toggleResetButton = CoreTiming::RegisterEvent("ToggleResetButton", &ToggleResetButtonCallback);
 }
 
-void CPeripheralInterface::Read32(u32& _uReturnValue, const u32 _iAddress)
+void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
-	//LOG(PERIPHERALINTERFACE, "(r32) 0x%08x", _iAddress);
+	//INFO_LOG(PROCESSORINTERFACE, "(r32) 0x%08x", _iAddress);
 
 	switch(_iAddress & 0xFFF) 
 	{
@@ -69,100 +108,89 @@ void CPeripheralInterface::Read32(u32& _uReturnValue, const u32 _iAddress)
 		return;
 
 	case PI_FIFO_BASE:
-		INFO_LOG(PERIPHERALINTERFACE,"read cpu fifo base, value = %08x",Fifo_CPUBase);
+		DEBUG_LOG(PROCESSORINTERFACE, "read cpu fifo base, value = %08x", Fifo_CPUBase);
 		_uReturnValue = Fifo_CPUBase;
 		return;
 
 	case PI_FIFO_END:
-		INFO_LOG(PERIPHERALINTERFACE,"read cpu fifo end, value = %08x",Fifo_CPUEnd);
+		DEBUG_LOG(PROCESSORINTERFACE, "read cpu fifo end, value = %08x", Fifo_CPUEnd);
 		_uReturnValue = Fifo_CPUEnd;
 		return;
 
 	case PI_FIFO_WPTR:
-		DEBUG_LOG(PERIPHERALINTERFACE, "read writepointer, value = %08x",Fifo_CPUWritePointer);
+		DEBUG_LOG(PROCESSORINTERFACE, "read writepointer, value = %08x", Fifo_CPUWritePointer);
 		_uReturnValue = Fifo_CPUWritePointer;  //really writes in 32-byte chunks
-
 		// Monk's gcube does some crazy align trickery here.
 		return;
 
 	case PI_RESET_CODE:
-		_uReturnValue = 0x80000000;
+		INFO_LOG(PROCESSORINTERFACE, "read reset code, 0x%08x", m_ResetCode);
+		_uReturnValue = m_ResetCode;
 		return;
 
 	case PI_MB_REV:
-		_uReturnValue = 0x20000000; // HW2 production board
+		INFO_LOG(PROCESSORINTERFACE, "read board rev, 0x%08x", m_MBRev);
+		_uReturnValue = m_MBRev;
 		return;
 		
 	default:
-		ERROR_LOG(PERIPHERALINTERFACE,"!!!!Unknown write!!!! 0x%08x", _iAddress);
+		ERROR_LOG(PROCESSORINTERFACE, "!!!!Unknown write!!!! 0x%08x", _iAddress);
 		break;
 	}
 	
 	_uReturnValue = 0xAFFE0000;
 }
 
-void CPeripheralInterface::Write32(const u32 _uValue, const u32 _iAddress)
+void Write32(const u32 _uValue, const u32 _iAddress)
 {
-	INFO_LOG(PERIPHERALINTERFACE, "(w32) 0x%08x @ 0x%08x", _uValue, _iAddress);
+	//INFO_LOG(PROCESSORINTERFACE, "(w32) 0x%08x @ 0x%08x", _uValue, _iAddress);
 	switch(_iAddress & 0xFFF) 
 	{
 	case PI_INTERRUPT_CAUSE:
-		m_InterruptCause &= ~_uValue; //writes turns them off
+		m_InterruptCause &= ~_uValue; // writes turn them off
 		UpdateException();
 		return;
 
 	case PI_INTERRUPT_MASK: 
 		m_InterruptMask = _uValue;
-		DEBUG_LOG(PERIPHERALINTERFACE,"New Interrupt mask: %08x",m_InterruptMask);
+		DEBUG_LOG(PROCESSORINTERFACE,"New Interrupt mask: %08x", m_InterruptMask);
 		UpdateException();
 		return;
 	
 	case PI_FIFO_BASE:
 		Fifo_CPUBase = _uValue & 0xFFFFFFE0;
-		DEBUG_LOG(PERIPHERALINTERFACE,"Fifo base = %08x", _uValue);
+		DEBUG_LOG(PROCESSORINTERFACE,"Fifo base = %08x", _uValue);
 		break;
 
 	case PI_FIFO_END:
 		Fifo_CPUEnd = _uValue & 0xFFFFFFE0;
-		DEBUG_LOG(PERIPHERALINTERFACE,"Fifo end = %08x", _uValue);
+		DEBUG_LOG(PROCESSORINTERFACE,"Fifo end = %08x", _uValue);
 		break;
 
 	case PI_FIFO_WPTR:
 		Fifo_CPUWritePointer = _uValue & 0xFFFFFFE0;		
-		DEBUG_LOG(PERIPHERALINTERFACE,"Fifo writeptr = %08x", _uValue);
+		DEBUG_LOG(PROCESSORINTERFACE,"Fifo writeptr = %08x", _uValue);
 		break;
 
     case PI_FIFO_RESET:
-        // Fifo_CPUWritePointer = Fifo_CPUBase; ??
-		// PanicAlert("Unknown write to PI_FIFO_RESET (%08x)", _uValue);
+        //Fifo_CPUWritePointer = Fifo_CPUBase; ??
+		//PanicAlert("Unknown write to PI_FIFO_RESET (%08x)", _uValue);
+		WARN_LOG(PROCESSORINTERFACE, "Fifo reset (%08x)", _uValue);
         break;
 
 	case PI_RESET_CODE:
-        {
-            INFO_LOG(PERIPHERALINTERFACE,"PI Reset = %08x ???", _uValue);
-
-            if ((_uValue != 0x80000001) && (_uValue != 0x80000005)) // DVDLowReset 
-            {
-				switch (_uValue) {
-				case 3:
-					PanicAlert("The game wants to go to memory card manager. BIOS is being HLE:d - so we can't do that.\n");
-					break;
-				default:
-					_dbg_assert_msg_(PERIPHERALINTERFACE,0,"The game wants to reset the machine. PI_RESET_CODE: (%08x)", _uValue);
-					break;
-				}
-            }
-        }
+		NOTICE_LOG(PROCESSORINTERFACE, "Write %08x to PI_RESET_CODE", _uValue);
+		// (shuffle2) TODO :)
 		break;
 
 	default:
-		ERROR_LOG(PERIPHERALINTERFACE,"!!!!Unknown PI write!!!! 0x%08x", _iAddress);
+		ERROR_LOG(PROCESSORINTERFACE,"!!!!Unknown PI write!!!! 0x%08x", _iAddress);
 		PanicAlert("Unknown write to PI: %08x", _iAddress);
 		break;
 	}
 }
 
-void CPeripheralInterface::UpdateException()
+void UpdateException()
 {
 	if ((m_InterruptCause & m_InterruptMask) != 0)
 		PowerPC::ppcState.Exceptions |= EXCEPTION_EXTERNAL_INT;
@@ -170,7 +198,7 @@ void CPeripheralInterface::UpdateException()
 		PowerPC::ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 }
 
-const char *CPeripheralInterface::Debug_GetInterruptName(InterruptCause _causemask)
+static const char *Debug_GetInterruptName(InterruptCause _causemask)
 {
 	switch (_causemask)
 	{
@@ -190,23 +218,22 @@ const char *CPeripheralInterface::Debug_GetInterruptName(InterruptCause _causema
     case INT_CAUSE_WII_IPC:			return "INT_CAUSE_WII_IPC";
 	case INT_CAUSE_HSP:				return "INT_CAUSE_HSP";
 	case INT_CAUSE_RST_BUTTON:      return "INT_CAUSE_RST_BUTTON";
+	default:						return "!!! ERROR-unknown Interrupt !!!";
 	}
-
-	return "!!! ERROR-unknown Interrupt !!!";
 }
 
-void CPeripheralInterface::SetInterrupt(InterruptCause _causemask, bool _bSet)
+void SetInterrupt(InterruptCause _causemask, bool _bSet)
 {
-	//TODO(ector): add sanity check that current thread id is cpu thread
+	// TODO(ector): add sanity check that current thread id is cpu thread
 
     if (_bSet && !(m_InterruptCause & (u32)_causemask))
     {
-        INFO_LOG(PERIPHERALINTERFACE, "Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "set");
+        DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "set");
     }
 
     if (!_bSet && (m_InterruptCause & (u32)_causemask))
     {
-        INFO_LOG(PERIPHERALINTERFACE, "Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "clear");
+        DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "clear");
     }
 	
 	if (_bSet)
@@ -218,7 +245,7 @@ void CPeripheralInterface::SetInterrupt(InterruptCause _causemask, bool _bSet)
 	UpdateException();
 }
 
-void CPeripheralInterface::SetResetButton(bool _bSet)
+void SetResetButton(bool _bSet)
 {
 	if (_bSet)
 		m_InterruptCause &= ~INT_CAUSE_RST_BUTTON;
@@ -226,3 +253,15 @@ void CPeripheralInterface::SetResetButton(bool _bSet)
 		m_InterruptCause |= INT_CAUSE_RST_BUTTON;			
 }
 
+void ToggleResetButtonCallback(u64 userdata, int cyclesLate)
+{
+	SetResetButton(!!userdata);
+}
+
+void ResetButton_Tap()
+{
+	CoreTiming::ScheduleEvent_Threadsafe(0, toggleResetButton, true);
+	CoreTiming::ScheduleEvent_Threadsafe(243000000, toggleResetButton, false);
+}
+
+} // namespace ProcessorInterface

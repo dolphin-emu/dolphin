@@ -77,7 +77,7 @@
 #include "Atomic.h"
 
 #include "Memmap.h"
-#include "PeripheralInterface.h"
+#include "ProcessorInterface.h"
 #include "GPFifo.h"
 #include "CPU.h"
 #include "../Core.h"
@@ -616,9 +616,9 @@ void STACKALIGN GatherPipeBursted()
 				s_fifoIdleEvent.MsgWait();
 		}
 		// check if we are in sync
-		_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== CPeripheralInterface::Fifo_CPUWritePointer, "FIFOs linked but out of sync");
-		_assert_msg_(COMMANDPROCESSOR, fifo.CPBase			== CPeripheralInterface::Fifo_CPUBase, "FIFOs linked but out of sync");
-		_assert_msg_(COMMANDPROCESSOR, fifo.CPEnd			== CPeripheralInterface::Fifo_CPUEnd, "FIFOs linked but out of sync");
+		_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== ProcessorInterface::Fifo_CPUWritePointer, "FIFOs linked but out of sync");
+		_assert_msg_(COMMANDPROCESSOR, fifo.CPBase			== ProcessorInterface::Fifo_CPUBase, "FIFOs linked but out of sync");
+		_assert_msg_(COMMANDPROCESSOR, fifo.CPEnd			== ProcessorInterface::Fifo_CPUEnd, "FIFOs linked but out of sync");
 	}
 	else
 	{
@@ -626,9 +626,9 @@ void STACKALIGN GatherPipeBursted()
 		if (fifo.CPWritePointer >= fifo.CPEnd)
 			fifo.CPWritePointer = fifo.CPBase;
 		// check if we are in sync
-		_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== CPeripheralInterface::Fifo_CPUWritePointer, "FIFOs linked but out of sync");
-		_assert_msg_(COMMANDPROCESSOR, fifo.CPBase			== CPeripheralInterface::Fifo_CPUBase, "FIFOs linked but out of sync");
-		_assert_msg_(COMMANDPROCESSOR, fifo.CPEnd			== CPeripheralInterface::Fifo_CPUEnd, "FIFOs linked but out of sync");
+		_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== ProcessorInterface::Fifo_CPUWritePointer, "FIFOs linked but out of sync");
+		_assert_msg_(COMMANDPROCESSOR, fifo.CPBase			== ProcessorInterface::Fifo_CPUBase, "FIFOs linked but out of sync");
+		_assert_msg_(COMMANDPROCESSOR, fifo.CPEnd			== ProcessorInterface::Fifo_CPUEnd, "FIFOs linked but out of sync");
 
 		UpdateFifoRegister();
 	}
@@ -723,11 +723,11 @@ void UpdateInterrupts()
 	if (m_CPCtrlReg.CPIntEnable &&
 		(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_CP, true);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_CP, true);
 	}
 	else
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_CP, false);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_CP, false);
 	}
 }
 

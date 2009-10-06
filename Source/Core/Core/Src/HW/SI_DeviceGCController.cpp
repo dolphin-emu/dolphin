@@ -27,28 +27,28 @@
 
 #include "../OnFrame.h"
 
+#include "Timer.h"
+#include "ProcessorInterface.h"
+
 
 // --- standard gamecube controller ---
-
-
-CSIDevice_GCController::CSIDevice_GCController(int _iDeviceNumber) :
-	ISIDevice(_iDeviceNumber)
+CSIDevice_GCController::CSIDevice_GCController(int _iDeviceNumber)
+	: ISIDevice(_iDeviceNumber)
+	, m_TButtonComboStart(0)
+	, m_TButtonCombo(0)
+	, m_LastButtonCombo(COMBO_NONE)
 {
-	memset(&m_origin, 0, sizeof(SOrigin));
+	memset(&m_Origin, 0, sizeof(SOrigin));
+	m_Origin.uCommand			= CMD_ORIGIN;
+	m_Origin.uOriginStickX		= 0x80; // center
+	m_Origin.uOriginStickY		= 0x80;
+	m_Origin.uSubStickStickX	= 0x80;
+	m_Origin.uSubStickStickY	= 0x80;
+	m_Origin.uTrigger_L			= 0x1F; // 0-30 is the lower deadzone
+	m_Origin.uTrigger_R			= 0x1F;
 
-	// Resetting to origin is a function of the controller itself
-	// press X+Y+Start for three seconds to trigger a reset
-	// probably this is meant to read current pad status and use it as
-	// the origin, but we just use these:
-	m_origin.uCommand			= CMD_ORIGIN;
-	m_origin.uOriginStickX		= 0x80; // center
-	m_origin.uOriginStickY		= 0x80;
-	m_origin.uSubStickStickX	= 0x80;
-	m_origin.uSubStickStickY	= 0x80;
-	m_origin.uTrigger_L			= 0x1F; // 0-30 is the lower deadzone
-	m_origin.uTrigger_R			= 0x1F;
 	// Dunno if we need to do this, game/lib should set it?
-	m_Mode						= 0x03; // PadAnalogMode 3 as default
+	m_Mode						= 0x03;
 }
 
 int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
@@ -76,7 +76,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 		case CMD_ORIGIN:
 			{
 				INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
-				u8* pCalibration = reinterpret_cast<u8*>(&m_origin);
+				u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
 				for (int i = 0; i < (int)sizeof(SOrigin); i++)
 				{
 					_pBuffer[i ^ 3] = *pCalibration++;
@@ -89,7 +89,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 		case CMD_RECALIBRATE:
 			{
 				INFO_LOG(SERIALINTERFACE, "PAD - Recalibrate");
-				u8* pCalibration = reinterpret_cast<u8*>(&m_origin);
+				u8* pCalibration = reinterpret_cast<u8*>(&m_Origin);
 				for (int i = 0; i < (int)sizeof(SOrigin); i++)
 				{
 					_pBuffer[i ^ 3] = *pCalibration++;
@@ -124,8 +124,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 // [00?SYXBA] [1LRZUDRL] [x] [y] [cx] [cy] [l] [r]
 //  |\_ ERR_LATCH (error latched - check SISR)
 //  |_ ERR_STATUS (error on last GetData or SendCmd?)
-bool
-CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
+bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 {
 	SPADStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
@@ -214,6 +213,40 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 		_Low |= (u32)((u8)PadStatus.substickX << 24);			// All 8 bits
 	}
 
+	// Keep track of the special button combos (embedded in controller hardware... :( )
+	EButtonCombo tempCombo;
+	if ((PadStatus.button & 0xff00) == (PAD_BUTTON_Y|PAD_BUTTON_X|PAD_BUTTON_START))
+		tempCombo = COMBO_ORIGIN;
+	else if ((PadStatus.button & 0xff00) == (PAD_BUTTON_B|PAD_BUTTON_X|PAD_BUTTON_START))
+		tempCombo = COMBO_RESET;
+	else
+		tempCombo = COMBO_NONE;
+	if (tempCombo != m_LastButtonCombo)
+	{
+		m_LastButtonCombo = tempCombo;
+		if (m_LastButtonCombo != COMBO_NONE)
+			m_TButtonComboStart = timeGetTime();
+	}
+	if (m_LastButtonCombo != COMBO_NONE)
+	{
+		m_TButtonCombo = timeGetTime();
+		if ((m_TButtonCombo - m_TButtonComboStart) > 3000)
+		{
+			if (m_LastButtonCombo == COMBO_RESET)
+				ProcessorInterface::ResetButton_Tap();
+			else if (m_LastButtonCombo == COMBO_ORIGIN)
+			{
+				m_Origin.uOriginStickX		= PadStatus.stickX;
+				m_Origin.uOriginStickY		= PadStatus.stickY;
+				m_Origin.uSubStickStickX	= PadStatus.substickX;
+				m_Origin.uSubStickStickY	= PadStatus.substickY;
+				m_Origin.uTrigger_L			= PadStatus.triggerLeft;
+				m_Origin.uTrigger_R			= PadStatus.triggerRight;
+			}
+			m_LastButtonCombo = COMBO_NONE;
+		}
+	}
+
 	SetMic(PadStatus.MicButton); // This is dumb and should not be here
 
 	return true;
@@ -221,9 +254,7 @@ CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 
 
 // SendCommand
-
-void
-CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
+void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 {
 	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad(ISIDevice::m_iDeviceNumber);
 	UCommand command(_Cmd);

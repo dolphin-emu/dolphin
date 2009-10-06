@@ -32,7 +32,7 @@ may be redirected here (for example to Read_U32()).
 #include "../PowerPC/Jit64/Jit.h"
 #include "../HLE/HLE.h"
 #include "CPU.h"
-#include "PeripheralInterface.h"
+#include "ProcessorInterface.h"
 #include "DSP.h"
 #include "DVDInterface.h"
 #include "GPFifo.h"
@@ -204,8 +204,8 @@ void InitHWMemFuncs()
 		hwWrite16[VI_START+i] = VideoInterface::Write16;
 		hwWrite32[VI_START+i] = VideoInterface::Write32;
 
-		hwRead32 [PI_START+i] = CPeripheralInterface::Read32;
-		hwWrite32[PI_START+i] = CPeripheralInterface::Write32;
+		hwRead32 [PI_START+i] = ProcessorInterface::Read32;
+		hwWrite32[PI_START+i] = ProcessorInterface::Write32;
 
 		hwRead16 [MI_START+i] = MemoryInterface::Read16;
 		hwRead32 [MI_START+i] = MemoryInterface::Read32;
@@ -270,8 +270,8 @@ void InitHWMemFuncsWii()
 		hwWrite16[PE_START+i] = PixelEngine::Write16;
 		hwWrite32[PE_START+i] = PixelEngine::Write32;
 
-		hwRead32 [PI_START+i] = CPeripheralInterface::Read32;
-		hwWrite32[PI_START+i] = CPeripheralInterface::Write32;
+		hwRead32 [PI_START+i] = ProcessorInterface::Read32;
+		hwWrite32[PI_START+i] = ProcessorInterface::Write32;
 
 		hwRead8  [VI_START+i] = VideoInterface::Read8;
 		hwRead16 [VI_START+i] = VideoInterface::Read16;

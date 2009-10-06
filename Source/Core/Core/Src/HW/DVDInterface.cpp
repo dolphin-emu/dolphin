@@ -23,7 +23,7 @@
 #include "StreamADPCM.H" // Core
 #include "DVDInterface.h"
 #include "../PowerPC/PowerPC.h"
-#include "PeripheralInterface.h"
+#include "ProcessorInterface.h"
 #include "Memmap.h"
 #include "Thread.h"
 #include "../VolumeHandler.h"
@@ -507,11 +507,11 @@ void UpdateInterrupts()
 		(dvdMem.StatusReg.BRKINT & dvdMem.StatusReg.BRKINTMASK) ||
 		(dvdMem.CoverReg.CVRINT	& dvdMem.CoverReg.CVRINTMASK))
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_DI, true);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, true);
 	}
 	else
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_DI, false);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DI, false);
 	}
 }
 

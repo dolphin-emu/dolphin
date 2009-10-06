@@ -27,7 +27,7 @@
 #include "EXI.h"
 #include "GPFifo.h"
 #include "Memmap.h"
-#include "PeripheralInterface.h"
+#include "ProcessorInterface.h"
 #include "PixelEngine.h"
 #include "SI.h"
 #include "AudioInterface.h"
@@ -56,7 +56,7 @@ namespace HW
 		CommandProcessor::Init();
 		VideoInterface::Init();
 		SerialInterface::Init();
-		CPeripheralInterface::Init();
+		ProcessorInterface::Init();
 		Memory::Init();
 		DSP::Init();
 		DVDInterface::Init();
@@ -100,7 +100,7 @@ namespace HW
 		CommandProcessor::DoState(p);
 		VideoInterface::DoState(p);
 		SerialInterface::DoState(p);
-		CPeripheralInterface::DoState(p);
+		ProcessorInterface::DoState(p);
 		DSP::DoState(p);
 		DVDInterface::DoState(p);
 		GPFifo::DoState(p);

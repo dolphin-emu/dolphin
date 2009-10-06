@@ -24,7 +24,7 @@
 #define EXI_READWRITE	2
 
 
-#include "PeripheralInterface.h"
+#include "ProcessorInterface.h"
 #include "../PowerPC/PowerPC.h"
 
 CEXIChannel::CEXIChannel() :

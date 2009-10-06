@@ -20,7 +20,7 @@
 #include "../ConfigManager.h"
 #include "../CoreTiming.h"
 
-#include "PeripheralInterface.h"
+#include "ProcessorInterface.h"
 
 #include "SI.h"
 
@@ -493,11 +493,11 @@ void UpdateInterrupts()
 	if ((g_ComCSR.RDSTINT	& g_ComCSR.RDSTINTMSK) ||
 		(g_ComCSR.TCINT		& g_ComCSR.TCINTMSK))
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_SI, true);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, true);
 	}
 	else
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_SI, false);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_SI, false);
 	}
 }
 

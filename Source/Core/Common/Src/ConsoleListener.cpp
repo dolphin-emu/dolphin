@@ -229,7 +229,7 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 
 	int BytesWritten = 0;
 	DWORD cAttrWritten = 0;
-	for (int i = 0; i < Attr.size(); i++)
+	for (size_t i = 0; i < Attr.size(); i++)
 	{
 		if (!WriteConsoleOutputCharacter(hConsole, Str[i], ReadBufferSize, coordScreen, &cCharsWritten))
 			SLog += StringFromFormat("WriteConsoleOutputCharacter error");

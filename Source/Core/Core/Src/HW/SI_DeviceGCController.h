@@ -23,8 +23,6 @@
 
 
 // standard gamecube controller
-
-
 class CSIDevice_GCController : public ISIDevice
 {
 private:
@@ -73,8 +71,27 @@ private:
 		UCommand(u32 _iValue)	{Hex = _iValue;}		
 	};
 
-	SOrigin m_origin;
+	enum EButtonCombo
+	{
+		COMBO_NONE = 0,
+		COMBO_ORIGIN,
+		COMBO_RESET
+	};
+
+	// struct to compare input against
+	// Set on connection and (standard pad only) on button combo
+	SOrigin m_Origin;
+
+	// PADAnalogMode
 	u8 m_Mode;
+
+	// Timer to track special button combos:
+	// y, X, start for 3 seconds updates origin with current status
+	//   Technically, the above is only on standard pad, wavebird does not support it for example
+	// b, x, start for 3 seconds triggers reset (PI reset button interrupt)
+	u32 m_TButtonComboStart, m_TButtonCombo;
+	// Type of button combo from the last/current poll
+	EButtonCombo m_LastButtonCombo;
 
 public:
 

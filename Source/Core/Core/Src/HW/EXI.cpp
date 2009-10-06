@@ -20,7 +20,7 @@
 #include "../ConfigManager.h"
 #include "../CoreTiming.h"
 
-#include "PeripheralInterface.h"
+#include "ProcessorInterface.h"
 #include "../PowerPC/PowerPC.h"
 
 #include "EXI.h"
@@ -132,12 +132,12 @@ void UpdateInterrupts()
 	{
 		if(g_Channels[i].IsCausingInterrupt())
 		{
-			CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_EXI, true);
+			ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, true);
 			return;
 		}
 	}
 
-	CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_EXI, false);
+	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_EXI, false);
 }
 
 } // end of namespace ExpansionInterface

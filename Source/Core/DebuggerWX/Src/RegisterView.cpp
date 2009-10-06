@@ -18,7 +18,7 @@
 #include "Debugger.h"
 #include "RegisterView.h"
 #include "PowerPC/PowerPC.h"
-#include "HW/PeripheralInterface.h"
+#include "HW/ProcessorInterface.h"
 
 // F-zero 80005e60 wtf??
 
@@ -39,8 +39,8 @@ static u32 GetSpecialRegValue(int reg) {
 	case 5: return PowerPC::ppcState.spr[SPR_SRR0];
 	case 6: return PowerPC::ppcState.spr[SPR_SRR1];
 	case 7: return PowerPC::ppcState.Exceptions;
-	case 8: return CPeripheralInterface::GetMask();
-	case 9: return CPeripheralInterface::GetCause();
+	case 8: return ProcessorInterface::GetMask();
+	case 9: return ProcessorInterface::GetCause();
 	default: return 0;	
 	}
 }

@@ -27,7 +27,7 @@
 #include "../HW/HW.h"
 #include "../HW/EXI_DeviceIPL.h"
 #include "../HW/Memmap.h"
-#include "../HW/PeripheralInterface.h"
+#include "../HW/ProcessorInterface.h"
 #include "../HW/DVDInterface.h"
 #include "../HW/VideoInterface.h"
 #include "../HW/CPU.h"

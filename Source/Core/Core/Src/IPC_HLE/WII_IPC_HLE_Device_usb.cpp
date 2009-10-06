@@ -34,7 +34,7 @@ int g_GlobalHandle = 0;
 // The device class
 CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-        , m_PINType(0)
+	, m_PINType(0)
 	, m_ScanEnable(0)
 	, m_EventFilterType(0)
 	, m_EventFilterCondition(0)
@@ -345,7 +345,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		pHeader->PBFlag = 2;
 		pHeader->Size = frame.size;
 
-		// Write the fram to the PayloadBuffer
+		// Write the frame to the PayloadBuffer
 		memcpy(Memory::GetPointer(m_pACLBuffer->PayloadBuffer[0].m_Address + sizeof(UACLHeader)),
 			frame.data, frame.size);
 
@@ -590,7 +590,6 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRemoteNameReq(bdaddr_t _bd)
 
 
 /* This is called from Update() after ScanEnable has been enabled. */
-// ØØØØØØØØØ
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HLE_WiiMote& _rWiiMote)
 {
 	// We have to disable scan now to avoid running this function over and over again
@@ -627,7 +626,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HL
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  COD[0]: 0x%02x", pEventRequestConnection->uclass[0]);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  COD[1]: 0x%02x", pEventRequestConnection->uclass[1]);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  COD[2]: 0x%02x", pEventRequestConnection->uclass[2]);
-	// DEBUG_LOG(WII_IPC_WIIMOTE, "  LinkType: %s", LinkType[pEventRequestConnection->LinkType]);
+	//DEBUG_LOG(WII_IPC_WIIMOTE, "  LinkType: %s", LinkType[pEventRequestConnection->LinkType]);
 
 	return true;
 };
@@ -997,8 +996,6 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventDisconnect(u16 _connectionHan
 // This is called from the USB_IOCTL_HCI_COMMAND_MESSAGE Ioctlv
 //
 //
-
-
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICommandMessage& _rHCICommandMessage)
 {
 	u8* pInput = Memory::GetPointer(_rHCICommandMessage.m_PayLoadAddr + 3);
@@ -1188,8 +1185,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 // --- command helper
 //
 //
-
-
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReset(u8* _Input)
 {
 	// reply
@@ -1322,9 +1317,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 	SendEventCommandComplete(HCI_CMD_READ_STORED_LINK_KEY, &Reply, sizeof(hci_read_stored_link_key_rp));
 }
 
-// ===================================================
-/* This is the last message we get from homebrew's lwbt. Why does it stop with this one? */
-// ----------------
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteUnitClass(u8* _Input)
 {
 	// command parameters
@@ -1429,7 +1421,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageTimeOut(u8* _Input)
 
 
 /* This will enable ScanEnable so that Update() can start the Wiimote. */
-// ØØØØØØØØØ
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 {
 	// Command parameters
@@ -1913,8 +1904,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandLinkKeyRep(u8* _Input)
 // --- helper
 //
 //
-
-
 CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305::AccessWiiMote(const bdaddr_t& _rAddr)
 {
 	for (size_t i=0; i<m_WiiMotes.size(); i++)
@@ -1955,9 +1944,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::LOG_LinkKey(const u8* _pLinkKey)
 //
 // CWII_IPC_HLE_Device_usb_oh0
 //
-
-
-
 CWII_IPC_HLE_Device_usb_oh0::CWII_IPC_HLE_Device_usb_oh0(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
@@ -1991,5 +1977,3 @@ bool CWII_IPC_HLE_Device_usb_oh0::IOCtlV(u32 _CommandAddress)
 	Memory::Write_U32(0, _CommandAddress + 0x4);
 	return true;
 }
-
-

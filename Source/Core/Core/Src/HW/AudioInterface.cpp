@@ -28,7 +28,7 @@
 #include "AudioInterface.h"
 
 #include "CPU.h"
-#include "PeripheralInterface.h"
+#include "ProcessorInterface.h"
 #include "DVDInterface.h"
 #include "../PowerPC/PowerPC.h"
 #include "../CoreTiming.h"
@@ -251,11 +251,11 @@ void UpdateInterrupts()
 {
 	if (g_AudioRegister.m_Control.AIINT & g_AudioRegister.m_Control.AIINTMSK)
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_AUDIO, true);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_AUDIO, true);
 	}
 	else
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_AUDIO, false);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_AUDIO, false);
 	}
 }
 

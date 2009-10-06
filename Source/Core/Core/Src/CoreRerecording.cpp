@@ -40,7 +40,7 @@
 #include "PatchEngine.h"
  
 #include "HW/Memmap.h"
-#include "HW/PeripheralInterface.h"
+#include "HW/ProcessorInterface.h"
 #include "HW/GPFifo.h"
 #include "HW/CPU.h"
 #include "HW/HW.h"

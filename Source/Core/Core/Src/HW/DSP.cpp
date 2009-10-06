@@ -42,7 +42,7 @@
 #include "CPU.h"
 #include "MemoryUtil.h"
 #include "Memmap.h"
-#include "PeripheralInterface.h"
+#include "ProcessorInterface.h"
 #include "AudioInterface.h"
 #include "../PowerPC/PowerPC.h"
 #include "../PluginManager.h"
@@ -525,11 +525,11 @@ void UpdateInterrupts()
 		(g_dspState.DSPControl.ARAM & g_dspState.DSPControl.ARAM_mask) ||
 		(g_dspState.DSPControl.DSP  & g_dspState.DSPControl.DSP_mask))
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_DSP, true);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, true);
 	}
 	else
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_DSP, false);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_DSP, false);
 	}
 }
 

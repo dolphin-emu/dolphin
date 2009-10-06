@@ -22,7 +22,7 @@
 
 #include "../Core.h"			// <- for Core::GetStartupParameter().bUseDualCore
 #include "CommandProcessor.h"	// <- for homebrew's XFB draw hack
-#include "PeripheralInterface.h"
+#include "ProcessorInterface.h"
 #include "VideoInterface.h"
 #include "Memmap.h"
 #include "../PluginManager.h"
@@ -710,6 +710,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 			if (tmpConfig.RST)
 			{
+				// shuffle2 clear all data, reset to default vals, and enter idle mode
 				m_DisplayControlRegister.RST = 0;
 			}
 
@@ -963,11 +964,11 @@ void UpdateInterrupts()
 		(m_InterruptRegister[2].IR_INT && m_InterruptRegister[2].IR_MASK) ||
 		(m_InterruptRegister[3].IR_INT && m_InterruptRegister[3].IR_MASK))
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_VI, true);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_VI, true);
 	}
 	else
 	{
-		CPeripheralInterface::SetInterrupt(CPeripheralInterface::INT_CAUSE_VI, false);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_VI, false);
 	}
 }
 
