@@ -114,27 +114,21 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
     
 #endif
 	}
-	    /*switch(texformat)
+	    switch(texformat)
 		{
 			case GX_TF_I8:
 			{
-				int srcOffset = 0;
-					for (int y = 0; y < height; y ++)
-						for (int x = 0; x < width; x ++)
-						{
-							//printf("X: %d Y: %d, copying 32 bytes from %d to %d\n", x, y, srcOffset,(y)*width+x);
-							memcpy(dst + (y + 0)*width+x, src + srcOffset + 0, 8);
-							memcpy(dst + (y + 1)*width+x, src + srcOffset + 8, 8);
-							memcpy(dst + (y + 2)*width+x, src + srcOffset + 16, 8);
-							memcpy(dst + (y + 3)*width+x, src + srcOffset + 24, 8);
-							srcOffset += 4;
-						}
-				return PC_TEX_FMT_I8;
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+						memcpy(dst + (y + iy)*width+x, src, 8);
+			return PC_TEX_FMT_I8;
 			}
+			break;
 			default:
 			return PC_TEX_FMT_NONE;
-		}*/
-		return PC_TEX_FMT_NONE;
+		}
+		//return PC_TEX_FMT_NONE;
     switch(texformat)
     {
         case GX_TF_I8:
@@ -171,7 +165,7 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
             
 			// Get the maximum work group size for executing the kernel on the device
             //
-            err = clGetKernelWorkGroupInfo(Decoders[0].kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(int), &local, NULL);
+            err = clGetKernelWorkGroupInfo(Decoders[0].kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &local, NULL);
             if (err != CL_SUCCESS)
             {
                 printf("Error: Failed to retrieve kernel work group info! %d\n", err);

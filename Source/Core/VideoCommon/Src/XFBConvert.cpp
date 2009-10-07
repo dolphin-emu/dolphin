@@ -173,11 +173,11 @@ void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height)
             
         // Get the maximum work group size for executing the kernel on the device
             //
-            err = clGetKernelWorkGroupInfo(From_kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(int), &local, NULL);
+            err = clGetKernelWorkGroupInfo(From_kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &local, NULL);
             if (err != CL_SUCCESS)
             {
                 printf("Error: Failed to retrieve kernel work group info! %d\n", err);
-                local = 32;
+				local = 64;
             } 
 			
             // Execute the kernel over the entire range of our 1d input data set
@@ -279,7 +279,7 @@ void ConvertToXFB(u32 *dst, const u8* _pEFB, int width, int height)
             
         // Get the maximum work group size for executing the kernel on the device
             //
-            err = clGetKernelWorkGroupInfo(To_kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(int), &local, NULL);
+            err = clGetKernelWorkGroupInfo(To_kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(size_t), &local, NULL);
             if (err != CL_SUCCESS)
             {
                 printf("Error: Failed to retrieve kernel work group info! %d\n", err);
