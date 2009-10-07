@@ -104,7 +104,8 @@ struct VideoConfig
     bool bFreeLook;
     
     // Hacks
-    bool bEFBCopyDisable;
+    bool bEFBAccessEnable;
+	bool bEFBCopyDisable;  // should reverse polarity of this one :) true=disabled can be confusing
     bool bEFBCopyDisableHotKey;
 	bool bHack;
 	bool bCopyEFBToRAM;

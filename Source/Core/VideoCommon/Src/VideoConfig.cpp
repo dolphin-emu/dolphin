@@ -87,6 +87,7 @@ void VideoConfig::Load(const char *ini_file)
     iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 3);  // NOTE - this is x in (1 << x)
 	iniFile.Get("Enhancements", "PostProcessingShader", &sPostProcessingShader, "");
     
+    iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, true);
     iniFile.Get("Hacks", "EFBCopyDisable", &bEFBCopyDisable, 0);
     iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bEFBCopyDisableHotKey, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, 0);

@@ -499,7 +499,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 				val = ((float)((u16 *)drect.pBits)[0])/((float)0xFFFF);
 				break;
 			default:
-				val=0;
+				val = 0;
+				break;
 			};			
 			// [0.0, 1.0] ==> [0, 0xFFFFFFFF]
 			z = ((u32)(val * 0xffffff));// 0xFFFFFFFF;

@@ -442,6 +442,9 @@ void VideoFifo_CheckEFBAccess()
 
 u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 {
+	if (!g_ActiveConfig.bEFBAccessEnable)
+		return 0;
+
 	s_accessEFBArgs.type = type;
 	s_accessEFBArgs.x = x;
 	s_accessEFBArgs.y = y;

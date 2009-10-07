@@ -16,6 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <string.h>
+
+#include "VideoConfig.h"
 #include "Setup.h"
 #include "MemoryUtil.h"
 #include "Thread.h"
@@ -131,7 +133,8 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
     while (fifoStateRun)
     {
 		video_initialize.pPeekMessages();
-		VideoFifo_CheckEFBAccess();
+		if (g_ActiveConfig.bEFBAccessEnable)
+			VideoFifo_CheckEFBAccess();
 		VideoFifo_CheckSwapRequest();
 
 		s_criticalFifo.Enter();

@@ -1227,6 +1227,8 @@
 #define IDC_ASPECT_16_10                1037
 #define IDC_SAFE_TEXTURE_CACHE          1037
 #define psh15                           0x040e
+#define IDC_EFBACCESSENABLE             1038
+#define IDC_EFB_ACCESS_ENABLE           1038
 #define psh16                           0x040f
 #define _WIN32_WINDOWS                  0x0410
 #define chx1                            0x0410
@@ -1544,7 +1546,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1037
+#define _APS_NEXT_CONTROL_VALUE         1039
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
