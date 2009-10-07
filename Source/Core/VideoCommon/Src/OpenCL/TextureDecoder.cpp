@@ -42,10 +42,12 @@ __kernel void Decode(__global unsigned char *dst,               \n		\
 		     const __global unsigned char *src,       \n        		\
 		     const __global int width, const __global int height)       \n          		\
 {                                    \n               		\
-//	int x = get_global_id(0) % width, y = get_global_id(0) / width;   \n		\
-	int srcOffset = 0; \n \
-			for (int y = 0; y < height; y += 4) \n \
-				for (int x = 0; x < width; x += 8) \n \
+	int x = get_global_id(0) % width, y = get_global_id(0) / width;   \n		\
+	if((y % 4) == 0 && (x % 8) == 0) \n \
+	{ \n \
+	int srcOffset = (x * 4) + (y * width); \n \
+//			for (int y = 0; y < height; y += 4) \n \
+//				for (int x = 0; x < width; x += 8) \n \
 	for (int iy = 0; iy < 4; iy++, srcOffset += 8) \n\
 	{ \n \
 		dst[(y + iy)*width + x] = src[srcOffset]; \n \
@@ -57,6 +59,7 @@ __kernel void Decode(__global unsigned char *dst,               \n		\
 		dst[(y + iy)*width + x + 6] = src[srcOffset + 6]; \n \
 		dst[(y + iy)*width + x + 7] = src[srcOffset + 7]; \n \
 	} \n \
+} \n \
 }\n";
 //						memcpy(dst + (y + iy)*width+x, src, 8);			
 const char *KernelOld = "         \n                     		\
@@ -114,21 +117,25 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
     
 #endif
 	}
-	    switch(texformat)
+	    /*switch(texformat)
 		{
 			case GX_TF_I8:
 			{
+				int srcOffset = 0;
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						memcpy(dst + (y + iy)*width+x, src, 8);
+					for (int iy = 0; iy < 4; iy++, srcOffset += 8)
+					{
+						printf("x: %d y: %d offset: %d\n", x, y, srcOffset);
+						memcpy(dst + (y + iy)*width+x, src + srcOffset, 8);
+					}
 			return PC_TEX_FMT_I8;
 			}
 			break;
 			default:
 			return PC_TEX_FMT_NONE;
 		}
-		//return PC_TEX_FMT_NONE;
+		//return PC_TEX_FMT_NONE;*/
     switch(texformat)
     {
         case GX_TF_I8:
