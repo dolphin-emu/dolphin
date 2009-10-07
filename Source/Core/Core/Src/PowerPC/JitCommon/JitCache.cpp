@@ -63,7 +63,7 @@ using namespace Gen;
 bool JitBlock::ContainsAddress(u32 em_address)
 {
 	// WARNING - THIS DOES NOT WORK WITH INLINING ENABLED.
-	return (em_address >= originalAddress && em_address < originalAddress + originalSize);
+	return (em_address >= originalAddress && em_address < originalAddress + 4 * originalSize);
 }
 
 	bool JitBlockCache::IsFull() const 
@@ -201,7 +201,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		JitBlock &b = blocks[block_num];
 		b.originalFirstOpcode = Memory::Read_Opcode_JIT(b.originalAddress);
 		Memory::Write_Opcode_JIT(b.originalAddress, (JIT_OPCODE << 26) | block_num);
-		block_map[std::make_pair(b.originalAddress + b.originalSize - 1, b.originalAddress)] = block_num;
+		block_map[std::make_pair(b.originalAddress + 4 * b.originalSize - 1, b.originalAddress)] = block_num;
 		if (block_link)
 		{
 			for (int i = 0; i < 2; i++)
@@ -379,7 +379,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		address &= ~0x1f;
 		// destroy JIT blocks
 		// !! this works correctly under assumption that any two overlapping blocks end at the same address
-		std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(address, 0)), it2 = it1, it;
+		std::map<pair<u32,u32>, u32>::iterator it1 = block_map.lower_bound(std::make_pair(address, 0)), it2 = it1, it;		
 		while (it2 != block_map.end() && it2->first.second < address + 0x20)
 		{
 			DestroyBlock(it2->second, true);
