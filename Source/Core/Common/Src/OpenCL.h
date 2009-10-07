@@ -39,6 +39,7 @@ typedef void *cl_context;
 typedef void *cl_command_queue;
 typedef void *cl_program;
 typedef void *cl_kernel;
+typedef void *cl_mem;
 
 #endif
 
