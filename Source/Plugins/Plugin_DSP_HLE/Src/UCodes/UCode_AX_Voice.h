@@ -37,12 +37,14 @@ extern float ratioFactor;
 
 
 template<class ParamBlockType>
-inline void ReadOutPBWii(u32 pbs_address, ParamBlockType& PB)
+inline bool ReadOutPBWii(u32 pbs_address, ParamBlockType& PB)
 {
 	u32 blockAddr = pbs_address;
 	u32 pAddr = 0;
 
 	const short *pSrc = (const short *)g_dspInitialize.pGetMemoryPointer(blockAddr);
+	if (!pSrc)
+		return false;
 	pAddr = blockAddr;
 	short *pDest = (short *)&PB;
 	for (u32 p = 0; p < sizeof(ParamBlockType) / 2; p++)
@@ -58,21 +60,25 @@ inline void ReadOutPBWii(u32 pbs_address, ParamBlockType& PB)
 	}
 
 	PB.mixer_control = Common::swap32(PB.mixer_control);
+	return true;
 }
 
 template<class ParamBlockType>
-inline void WriteBackPBWii(u32 pb_address, ParamBlockType& PB)
+inline bool WriteBackPBWii(u32 pb_address, ParamBlockType& PB)
 //void WriteBackPBsWii(u32 pbs_address, AXParamBlockWii* _pPBs, int _num)
 {
 	// write back and 'halfword'swap
 	short* pSrc  = (short*)&PB;
 	short* pDest = (short*)g_dspInitialize.pGetMemoryPointer(pb_address);
+	if (!pDest)
+		return false;
 	PB.mixer_control = Common::swap32(PB.mixer_control);
 	for (size_t p = 0; p < sizeof(ParamBlockType) / 2; p++)
 	{
 		if (p == 6 || p == 7) pDest[p] = pSrc[p]; // control for the u32		
 		else pDest[p] = Common::swap16(pSrc[p]);
 	}
+	return true;
 }
 
 template<class ParamBlockType>
@@ -89,7 +95,7 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 		// Read initial parameters
 		// ------------
 		//constants
-		const u32 ratio     = (u32)(((pb.src.ratio_hi << 16) + pb.src.ratio_lo) * ratioFactor);
+		const u32 ratio = (u32)(((pb.src.ratio_hi << 16) + pb.src.ratio_lo) * ratioFactor);
 		u32 sampleEnd = (pb.audio_addr.end_addr_hi << 16) | pb.audio_addr.end_addr_lo;
 		u32 loopPos   = (pb.audio_addr.loop_addr_hi << 16) | pb.audio_addr.loop_addr_lo;
 

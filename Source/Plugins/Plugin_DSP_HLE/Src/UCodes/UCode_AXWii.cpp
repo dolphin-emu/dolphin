@@ -174,14 +174,17 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PB)
 #endif
 
 	u32 blockAddr = m_addressPBs;
-
+	if (!blockAddr)
+		return;
 	for (int i = 0; i < NUMBER_OF_PBS; i++)
 	{
 		// read out pbs
-		ReadOutPBWii(blockAddr, PB);
+		if (!ReadOutPBWii(blockAddr, PB))
+			break;
 		ProcessUpdates(PB);
 		MixAddVoice(PB, templbuffer, temprbuffer, _iSize, true);
-		WriteBackPBWii(blockAddr, PB);
+		if (!WriteBackPBWii(blockAddr, PB))
+			break;
 		
 		// next block		
 		blockAddr = (PB.next_pb_hi << 16) | PB.next_pb_lo;
