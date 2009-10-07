@@ -34,13 +34,12 @@ struct sDecoders
 	cl_mem src, dst;                    // texture buffer memory objects
 };
 
-// XK's neatly aligned kernel
-const char *XKernel = "                                        \n\
+const char *Kernel = "                                        \n\
 kernel void DecodeI8(global uchar *dst,                       \n\
                      const global uchar *src, int width)      \n\
 {                                                             \n\
     int x = get_global_id(0) * 8, y = get_global_id(1) * 4;   \n\
-    int srcOffset = 0;                                        \n\
+    int srcOffset = (x * 4) + (y * width);                    \n\
     for (int iy = 0; iy < 4; iy++)                            \n\
     {                                                         \n\
         dst[(y + iy)*width + x] = src[srcOffset];             \n\
@@ -51,35 +50,9 @@ kernel void DecodeI8(global uchar *dst,                       \n\
         dst[(y + iy)*width + x + 5] = src[srcOffset + 5];     \n\
         dst[(y + iy)*width + x + 6] = src[srcOffset + 6];     \n\
         dst[(y + iy)*width + x + 7] = src[srcOffset + 7];     \n\
-		srcOffset += 8;                                       \n\
+        srcOffset += 8;                                       \n\
     }                                                         \n\
 }\n";
-
-const char *Kernel = "         \n                               \
-__kernel void DecodeI8(__global unsigned char *dst,               \n              \
-                     const __global unsigned char *src,       \n                        \
-                     const __global int width)       \n                      \
-{                                    \n                         \
-        int x = get_global_id(0) % width, y = get_global_id(0) / width;   \n            \
-        if((y % 4) == 0 && (x % 8) == 0) \n \
-        { \n \
-        int srcOffset = (x * 4) + (y * width); \n \
-//                      for (int y = 0; y < height; y += 4) \n \
-//                              for (int x = 0; x < width; x += 8) \n \
-        for (int iy = 0; iy < 4; iy++, srcOffset += 8) \n\
-        { \n \
-                dst[(y + iy)*width + x] = src[srcOffset]; \n \
-                dst[(y + iy)*width + x + 1] = src[srcOffset + 1]; \n \
-                dst[(y + iy)*width + x + 2] = src[srcOffset + 2]; \n \
-                dst[(y + iy)*width + x + 3] = src[srcOffset + 3]; \n \
-                dst[(y + iy)*width + x + 4] = src[srcOffset + 4]; \n \
-                dst[(y + iy)*width + x + 5] = src[srcOffset + 5]; \n \
-                dst[(y + iy)*width + x + 6] = src[srcOffset + 6]; \n \
-                dst[(y + iy)*width + x + 7] = src[srcOffset + 7]; \n \
-        } \n \
-} \n \
-}\n";
-
 
 sDecoders Decoders[] = { {NULL, NULL, NULL, NULL}, };
 
@@ -113,12 +86,17 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 				clSetKernelArg(Decoders[0].kernel, 1, sizeof(cl_mem), &Decoders[0].src);
 				clSetKernelArg(Decoders[0].kernel, 2, sizeof(cl_int), &width);
 
-				//size_t global[] = { width, height, 0 }, local[3] = {0}; // Later on we'll get the max work-group size and actually use them
-				size_t global = width * height, local;
+				size_t global[] = { width / 8, height / 4 };
 
-				clGetKernelWorkGroupInfo(Decoders[0].kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
+				// No work-groups for now
+				/*
+				size_t local;
+				err = clGetKernelWorkGroupInfo(Decoders[0].kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
+				if(err)
+					PanicAlert("Error obtaining work-group information");
+				*/
 
-				err = clEnqueueNDRangeKernel(OpenCL::GetCommandQueue(), Decoders[0].kernel, 1 /* 2 */, NULL, &global, &local, 0, NULL, NULL);
+				err = clEnqueueNDRangeKernel(OpenCL::GetCommandQueue(), Decoders[0].kernel, 2 , NULL, global, NULL, 0, NULL, NULL);
 				if(err)
 					PanicAlert("Error queueing kernel");
 
