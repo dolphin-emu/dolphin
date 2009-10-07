@@ -18,7 +18,7 @@
 #ifndef __OPENCL_H__
 #define __OPENCL_H__
 
-#include "Config.h"
+#include "Common.h"
 // Change to #if 1 if you want to test OpenCL (and you have it) on Windows
 #if 0
 #pragma comment(lib, "OpenCL.lib")

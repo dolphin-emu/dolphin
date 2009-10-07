@@ -43,28 +43,14 @@ __m128i _b1[256];
 __m128i _b2[256];
 
 }  // namespace
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
+bool Inited = false;
 
-void InitXFBConvTables() 
-{
-	for (int i = 0; i < 256; i++)
-	{
-		_y[i] = _mm_set_epi32(0xFFFFFFF,     76283*(i - 16),      76283*(i - 16),     76283*(i - 16));
-		_u[i] = _mm_set_epi32(        0,                  0,  -25624 * (i - 128), 132252 * (i - 128));
-		_v[i] = _mm_set_epi32(        0, 104595 * (i - 128),  -53281 * (i - 128),                  0);
-
-		_r1[i] = _mm_add_epi32(_mm_set_epi32( 28770 * i / 2,          0,  -9699 * i / 2, 16843 * i),
-							   _bias1);
-		_g1[i] = _mm_set_epi32(-24117 * i / 2,          0, -19071 * i / 2, 33030 * i);
-		_b1[i] = _mm_set_epi32( -4653 * i / 2,          0,  28770 * i / 2,  6423 * i);
-										   									
-		_r2[i] = _mm_add_epi32(_mm_set_epi32( 28770 * i / 2,  16843 * i,  -9699 * i / 2,         0),
-							   _bias2);
-		_g2[i] = _mm_set_epi32(-24117 * i / 2,  33030 * i, -19071 * i / 2,         0);
-		_b2[i] = _mm_set_epi32( -4653 * i / 2,   6423 * i,  28770 * i / 2,         0);
-	}
-}
-
-
+	cl_kernel To_kernel;
+	cl_program To_program;
+	cl_kernel From_kernel;
+	cl_program From_program;
+	
 const char *__ConvertFromXFB = "int bound(int i) \n \
 { \n \
         return (i>255)?255:((i<0)?0:i); \n \
@@ -97,6 +83,55 @@ void ConvertFromXFB(u32 *dst, const u8* _pXFB) \n \
                 dst[dstOffset + 1] = 0xFF000000 | (r<<16) | (g<<8) | (b); \n \
 } \n";
 
+const char  *__ConvertToXFB = "__kernel void ConvertToXFB(__global unsigned int *dst, __global const unsigned char* _pEFB) \n \
+{ \n \
+        const unsigned char *src = _pEFB;\n \
+		int id = get_global_id(0);\n \
+		src += id * 8; \n \
+		\n \
+		int y1 = (((16843 * src[0]) + (33030 * src[1]) + (6423 * src[2])) >> 16) + 16;          \n \
+		int u1 = ((-(9699 * src[0]) - (19071 * src[1]) + (28770 * src[2])) >> 16) + 128;\n \
+		src += 4;\n \
+		\n \
+		int y2 = (((16843 * src[0]) + (33030 * src[1]) + (6423 * src[2])) >> 16) + 16;\n \
+		int v2 = (((28770 * src[0]) - (24117 * src[1]) - (4653 * src[2])) >> 16) + 128;\n \
+		src += 4;\n \
+		\n \
+		dst[id] = (v2 << 24) | (y2 << 16) | (u1 << 8) | (y1);    \n \
+} \n ";
+
+void InitKernels()
+{
+	
+
+	From_program = OpenCL::CompileProgram(__ConvertFromXFB);
+	From_kernel = OpenCL::CompileKernel(From_program, "ConvertFromXFB");
+	
+	To_program = OpenCL::CompileProgram(__ConvertToXFB);
+	To_kernel = OpenCL::CompileKernel(To_program, "ConvertToXFB");
+	Inited = true;
+}
+#endif
+void InitXFBConvTables() 
+{
+	for (int i = 0; i < 256; i++)
+	{
+		_y[i] = _mm_set_epi32(0xFFFFFFF,     76283*(i - 16),      76283*(i - 16),     76283*(i - 16));
+		_u[i] = _mm_set_epi32(        0,                  0,  -25624 * (i - 128), 132252 * (i - 128));
+		_v[i] = _mm_set_epi32(        0, 104595 * (i - 128),  -53281 * (i - 128),                  0);
+
+		_r1[i] = _mm_add_epi32(_mm_set_epi32( 28770 * i / 2,          0,  -9699 * i / 2, 16843 * i),
+							   _bias1);
+		_g1[i] = _mm_set_epi32(-24117 * i / 2,          0, -19071 * i / 2, 33030 * i);
+		_b1[i] = _mm_set_epi32( -4653 * i / 2,          0,  28770 * i / 2,  6423 * i);
+										   									
+		_r2[i] = _mm_add_epi32(_mm_set_epi32( 28770 * i / 2,  16843 * i,  -9699 * i / 2,         0),
+							   _bias2);
+		_g2[i] = _mm_set_epi32(-24117 * i / 2,  33030 * i, -19071 * i / 2,         0);
+		_b2[i] = _mm_set_epi32( -4653 * i / 2,   6423 * i,  28770 * i / 2,         0);
+	}
+}
+
 void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height)
 {
 	if (((size_t)dst & 0xF) != 0) {
@@ -105,10 +140,8 @@ void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height)
 		const unsigned char *src = _pXFB;
 	u32 numBlocks = ((width * height) / 2) / 2;
 	#if defined(HAVE_OPENCL) && HAVE_OPENCL
-	cl_kernel kernel;
-	cl_program program;
-	program = OpenCL::CompileProgram(__ConvertFromXFB);
-	kernel = OpenCL::CompileKernel(program, "ConvertFromXFB");
+	if(!Inited)
+		InitKernels();
 	int err;
 	
 			size_t global = 0;                      // global domain size for our calculation
@@ -131,8 +164,8 @@ void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height)
             // Set the arguments to our compute kernel
             //
             err = 0;
-            err  = clSetKernelArg(kernel, 0, sizeof(cl_mem), &_dst);
-            err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &_src);
+            err  = clSetKernelArg(From_kernel, 0, sizeof(cl_mem), &_dst);
+            err |= clSetKernelArg(From_kernel, 1, sizeof(cl_mem), &_src);
             if (err != CL_SUCCESS)
             {
                 printf("Error: Failed to set kernel arguments! %d\n", err);
@@ -141,7 +174,7 @@ void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height)
             
         // Get the maximum work group size for executing the kernel on the device
             //
-            err = clGetKernelWorkGroupInfo(Decoders[0].kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(int), &local, NULL);
+            err = clGetKernelWorkGroupInfo(From_kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(int), &local, NULL);
             if (err != CL_SUCCESS)
             {
                 printf("Error: Failed to retrieve kernel work group info! %d\n", err);
@@ -155,7 +188,7 @@ void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height)
 			{
 				// Global can't be less than local
 			}
-            err = clEnqueueNDRangeKernel(OpenCL::g_cmdq, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+            err = clEnqueueNDRangeKernel(OpenCL::g_cmdq, From_kernel, 1, NULL, &global, &local, 0, NULL, NULL);
             if (err != CL_SUCCESS)
             {
                 printf("Error: Failed to execute kernel! %d\n", err);
@@ -201,23 +234,6 @@ void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height)
 	#endif
 }
 
-const char  *__ConvertToXFB = "__kernel void ConvertToXFB(__global unsigned int *dst, __global const unsigned char* _pEFB) \n \
-{ \n \
-        const unsigned char *src = _pEFB;\n \
-		int id = get_global_id(0);\n \
-		src += id * 8; \n \
-		\n \
-		int y1 = (((16843 * src[0]) + (33030 * src[1]) + (6423 * src[2])) >> 16) + 16;          \n \
-		int u1 = ((-(9699 * src[0]) - (19071 * src[1]) + (28770 * src[2])) >> 16) + 128;\n \
-		src += 4;\n \
-		\n \
-		int y2 = (((16843 * src[0]) + (33030 * src[1]) + (6423 * src[2])) >> 16) + 16;\n \
-		int v2 = (((28770 * src[0]) - (24117 * src[1]) - (4653 * src[2])) >> 16) + 128;\n \
-		src += 4;\n \
-		\n \
-		dst[id] = (v2 << 24) | (y2 << 16) | (u1 << 8) | (y1);    \n \
-} \n ";
-
 
 void ConvertToXFB(u32 *dst, const u8* _pEFB, int width, int height)
 {
@@ -228,10 +244,9 @@ void ConvertToXFB(u32 *dst, const u8* _pEFB, int width, int height)
 		PanicAlert("ConvertToXFB - unaligned XFB");
 	}
 	#if defined(HAVE_OPENCL) && HAVE_OPENCL
-	cl_kernel kernel;
-	cl_program program;
-	program = OpenCL::CompileProgram(__ConvertToXFB);
-	kernel = OpenCL::CompileKernel(program, "ConvertToXFB");
+	if(!Inited)
+		InitKernels();
+
 	int err;
 	
 			size_t global = 0;                      // global domain size for our calculation
@@ -254,8 +269,8 @@ void ConvertToXFB(u32 *dst, const u8* _pEFB, int width, int height)
             // Set the arguments to our compute kernel
             //
             err = 0;
-            err  = clSetKernelArg(kernel, 0, sizeof(cl_mem), &_dst);
-            err |= clSetKernelArg(kernel, 1, sizeof(cl_mem), &_src);
+            err  = clSetKernelArg(To_kernel, 0, sizeof(cl_mem), &_dst);
+            err |= clSetKernelArg(To_kernel, 1, sizeof(cl_mem), &_src);
             if (err != CL_SUCCESS)
             {
                 printf("Error: Failed to set kernel arguments! %d\n", err);
@@ -264,7 +279,7 @@ void ConvertToXFB(u32 *dst, const u8* _pEFB, int width, int height)
             
         // Get the maximum work group size for executing the kernel on the device
             //
-            err = clGetKernelWorkGroupInfo(Decoders[0].kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(int), &local, NULL);
+            err = clGetKernelWorkGroupInfo(To_kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(int), &local, NULL);
             if (err != CL_SUCCESS)
             {
                 printf("Error: Failed to retrieve kernel work group info! %d\n", err);
@@ -278,7 +293,7 @@ void ConvertToXFB(u32 *dst, const u8* _pEFB, int width, int height)
 			{
 				// Global can't be less than local
 			}
-            err = clEnqueueNDRangeKernel(OpenCL::g_cmdq, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+            err = clEnqueueNDRangeKernel(OpenCL::g_cmdq, To_kernel, 1, NULL, &global, &local, 0, NULL, NULL);
             if (err != CL_SUCCESS)
             {
                 printf("Error: Failed to execute kernel! %d\n", err);
