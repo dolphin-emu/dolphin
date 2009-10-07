@@ -41,7 +41,7 @@ env_vcommon = env.Clone()
 
 if env_vcommon['HAVE_OPENCL']:
     files += [
-        'OpenCL/TextureDecoder.cpp',
+        'OpenCL/OCLTextureDecoder.cpp',
         ]
 
 env_vcommon.Append(CXXFLAGS = [ '-fPIC' ])

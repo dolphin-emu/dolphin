@@ -21,8 +21,10 @@
 
 #include "CPUDetect.h"
 #include "TextureDecoder.h"
+
+#include "OpenCL.h"
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
-#include "OpenCL/TextureDecoder.h"
+#include "OpenCL/OCLTextureDecoder.h"
 #endif
 
 #include "LookUpTables.h"

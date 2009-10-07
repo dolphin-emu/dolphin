@@ -27,8 +27,12 @@ namespace OpenCL {
     cl_command_queue g_cmdq = NULL;
 	#endif
 
+bool g_bInitialized = false;
+
 bool Initialize() {
-	
+	if(g_bInitialized)
+		return true;
+
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if(g_context)
 		return false;
@@ -41,7 +45,7 @@ bool Initialize() {
     err = clGetDeviceIDs(NULL, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
     if (err != CL_SUCCESS)
     {
-        PanicAlert("Error: Failed to create a device group!\n");
+        PanicAlert("Error: Failed to create a device group!");
         return false;
     }
   
@@ -50,7 +54,7 @@ bool Initialize() {
     g_context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
     if (!g_context)
     {
-        PanicAlert("Error: Failed to create a compute context!\n");
+        PanicAlert("Error: Failed to create a compute context!");
         return false;
     }
 
@@ -59,17 +63,18 @@ bool Initialize() {
     g_cmdq = clCreateCommandQueue(g_context, device_id, 0, &err);
     if (!g_cmdq)
     {
-        PanicAlert("Error: Failed to create a command commands!\n");
+        PanicAlert("Error: Failed to create a command commands!");
         return false;
     }
-	printf("Initialized OpenCL fine!\n");
+	//PanicAlert("Initialized OpenCL fine!");
+	g_bInitialized = true;
 	return true;
 #else
 	return false;
 #endif
 }
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
-cl_context GetInstance() {
+cl_context GetContext() {
 	return g_context;
 }
 
@@ -83,21 +88,18 @@ cl_program CompileProgram(const char *Kernel) {
 		program = clCreateProgramWithSource(OpenCL::g_context, 1, (const char **) & Kernel, NULL, &err);
 		if (!program)
 		{
-			printf("Error: Failed to create compute program!\n");
+			printf("Error: Failed to create compute program!");
 			return NULL;
 		}
 
 		// Build the program executable
 		//
 		err = clBuildProgram(program , 0, NULL, NULL, NULL, NULL);
-		if (err != CL_SUCCESS)
-		{
-			size_t len;
-			char buffer[2048];
-
-			printf("Error: Failed to build program executable!\n");
-			clGetProgramBuildInfo(program , OpenCL::device_id, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
-			printf("%s\n", buffer);
+		if(err != CL_SUCCESS) {
+			char *errors[16384] = {0};
+			err = clGetProgramBuildInfo(program, OpenCL::device_id, CL_PROGRAM_BUILD_LOG, sizeof(errors),
+									    errors, NULL);
+			PanicAlert("Error log:\n%s\n", errors);
 			return NULL;
 		}
 
@@ -112,7 +114,7 @@ cl_kernel CompileKernel(cl_program program, const char *Function)
 		cl_kernel kernel = clCreateKernel(program, Function, &err);
 		if (!kernel || err != CL_SUCCESS)
 		{
-			printf("Error: Failed to create compute kernel!\n");
+			PanicAlert("Error: Failed to create compute kernel!");
 			return NULL;
 		} 
 		return kernel;

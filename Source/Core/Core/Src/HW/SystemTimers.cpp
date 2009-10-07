@@ -238,11 +238,11 @@ void Init()
 		CPU_CORE_CLOCK = 729000000u;
 		SI_PERIOD = GetTicksPerSecond() / 60; // once a frame is good for controllers
 
-		if (!Core::GetStartupParameter().bDSPThread) {
-			DSP_PERIOD = 12000;  // TO BE TWEAKED
-		} else {
+		//if (!Core::GetStartupParameter().bDSPThread) {
+		//	DSP_PERIOD = 12000;  // TO BE TWEAKED
+		//} else {
 			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
-		}
+		//}
 
 		// This is the biggest question mark.
 		AI_PERIOD = GetTicksPerSecond() / 80;
@@ -254,11 +254,11 @@ void Init()
 		CPU_CORE_CLOCK = 486000000;
 		SI_PERIOD = GetTicksPerSecond() / 60; // once a frame is good for controllers
 	
-		if (!Core::GetStartupParameter().bDSPThread) {
-			DSP_PERIOD = 12000;  // TO BE TWEAKED
-		} else {
+		//if (!Core::GetStartupParameter().bDSPThread) {
+		//	DSP_PERIOD = 12000;  // TO BE TWEAKED
+		//} else {
 			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.005f);
-		}
+		//}
 
 		// This is the biggest question mark.
 		AI_PERIOD = GetTicksPerSecond() / 80;

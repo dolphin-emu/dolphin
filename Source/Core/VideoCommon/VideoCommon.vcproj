@@ -692,11 +692,11 @@
 				Name="OpenCL"
 				>
 				<File
-					RelativePath=".\Src\OpenCL\TextureDecoder.cpp"
+					RelativePath=".\Src\OpenCL\OCLTextureDecoder.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Src\OpenCL\TextureDecoder.h"
+					RelativePath=".\Src\OpenCL\OCLTextureDecoder.h"
 					>
 				</File>
 			</Filter>

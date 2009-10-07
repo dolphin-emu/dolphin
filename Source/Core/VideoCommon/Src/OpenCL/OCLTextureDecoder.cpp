@@ -15,127 +15,136 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "TextureDecoder.h"
+#include "OCLTextureDecoder.h"
 
 #include "OpenCL.h"
-#include <CL/cl.h>
 
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-    
     
 struct sDecoders
 {
     cl_program program;                 // compute program
     cl_kernel kernel;                   // compute kernel
-    const char **cKernel;
+	cl_mem src, dst;                    // texture buffer memory objects
 };
 
-const char *Kernel = "         \n                     		\
-__kernel void Decode(__global unsigned char *dst,               \n		\
-		     const __global unsigned char *src,       \n        		\
-		     const __global int width, const __global int height)       \n          		\
-{                                    \n               		\
-	int x = get_global_id(0) % width, y = get_global_id(0) / width;   \n		\
-	if((y % 4) == 0 && (x % 8) == 0) \n \
-	{ \n \
-	int srcOffset = (x * 4) + (y * width); \n \
-//			for (int y = 0; y < height; y += 4) \n \
-//				for (int x = 0; x < width; x += 8) \n \
-	for (int iy = 0; iy < 4; iy++, srcOffset += 8) \n\
-	{ \n \
-		dst[(y + iy)*width + x] = src[srcOffset]; \n \
-		dst[(y + iy)*width + x + 1] = src[srcOffset + 1]; \n \
-		dst[(y + iy)*width + x + 2] = src[srcOffset + 2]; \n \
-		dst[(y + iy)*width + x + 3] = src[srcOffset + 3]; \n \
-		dst[(y + iy)*width + x + 4] = src[srcOffset + 4]; \n \
-		dst[(y + iy)*width + x + 5] = src[srcOffset + 5]; \n \
-		dst[(y + iy)*width + x + 6] = src[srcOffset + 6]; \n \
-		dst[(y + iy)*width + x + 7] = src[srcOffset + 7]; \n \
-	} \n \
+// XK's neatly aligned kernel
+const char *XKernel = "                                        \n\
+kernel void DecodeI8(global uchar *dst,                       \n\
+                     const global uchar *src, int width)      \n\
+{                                                             \n\
+    int x = get_global_id(0) * 8, y = get_global_id(1) * 4;   \n\
+    int srcOffset = 0;                                        \n\
+    for (int iy = 0; iy < 4; iy++)                            \n\
+    {                                                         \n\
+        dst[(y + iy)*width + x] = src[srcOffset];             \n\
+        dst[(y + iy)*width + x + 1] = src[srcOffset + 1];     \n\
+        dst[(y + iy)*width + x + 2] = src[srcOffset + 2];     \n\
+        dst[(y + iy)*width + x + 3] = src[srcOffset + 3];     \n\
+        dst[(y + iy)*width + x + 4] = src[srcOffset + 4];     \n\
+        dst[(y + iy)*width + x + 5] = src[srcOffset + 5];     \n\
+        dst[(y + iy)*width + x + 6] = src[srcOffset + 6];     \n\
+        dst[(y + iy)*width + x + 7] = src[srcOffset + 7];     \n\
+		srcOffset += 8;                                       \n\
+    }                                                         \n\
+}\n";
+
+const char *Kernel = "         \n                               \
+__kernel void DecodeI8(__global unsigned char *dst,               \n              \
+                     const __global unsigned char *src,       \n                        \
+                     const __global int width)       \n                      \
+{                                    \n                         \
+        int x = get_global_id(0) % width, y = get_global_id(0) / width;   \n            \
+        if((y % 4) == 0 && (x % 8) == 0) \n \
+        { \n \
+        int srcOffset = (x * 4) + (y * width); \n \
+//                      for (int y = 0; y < height; y += 4) \n \
+//                              for (int x = 0; x < width; x += 8) \n \
+        for (int iy = 0; iy < 4; iy++, srcOffset += 8) \n\
+        { \n \
+                dst[(y + iy)*width + x] = src[srcOffset]; \n \
+                dst[(y + iy)*width + x + 1] = src[srcOffset + 1]; \n \
+                dst[(y + iy)*width + x + 2] = src[srcOffset + 2]; \n \
+                dst[(y + iy)*width + x + 3] = src[srcOffset + 3]; \n \
+                dst[(y + iy)*width + x + 4] = src[srcOffset + 4]; \n \
+                dst[(y + iy)*width + x + 5] = src[srcOffset + 5]; \n \
+                dst[(y + iy)*width + x + 6] = src[srcOffset + 6]; \n \
+                dst[(y + iy)*width + x + 7] = src[srcOffset + 7]; \n \
+        } \n \
 } \n \
 }\n";
-//						memcpy(dst + (y + iy)*width+x, src, 8);			
-const char *KernelOld = "         \n                     		\
-__kernel void Decode(__global uchar *dst,               \n		\
-		     const __global uchar *src,       \n        		\
-		     int width, int height)       \n          		\
-{  \n \
-    dst[get_global_id(0)] = 0xFF; \n \
-} \n ";
-sDecoders Decoders[] = { {NULL, NULL, &Kernel}, };
+
+
+sDecoders Decoders[] = { {NULL, NULL, NULL, NULL}, };
 
 bool g_Inited = false;
 
 PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
-    int err;
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
+    cl_int err;
     if(!g_Inited)
     {
-		g_Inited = true;
+		if(!OpenCL::Initialize())
+			return PC_TEX_FMT_NONE;
 
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
-		// TODO: Switch this over to the OpenCl.h backend
-	    // Create the compute program from the source buffer
-		//
 		
-		Decoders[0].program = clCreateProgramWithSource(OpenCL::g_context, 1, (const char **) & Kernel, NULL, &err);
-		if (!Decoders[0].program)
-		{
-			printf("Error: Failed to create compute program!\n");
-			return PC_TEX_FMT_NONE;
-		}
+		Decoders[0].program = OpenCL::CompileProgram(Kernel);
+		Decoders[0].kernel = OpenCL::CompileKernel(Decoders[0].program, "DecodeI8");
 
-		// Build the program executable
-		//
-		err = clBuildProgram(Decoders[0].program , 0, NULL, NULL, NULL, NULL);
-		if (err != CL_SUCCESS)
-		{
-			size_t len;
-			char buffer[2048];
-
-			printf("Error: Failed to build program executable!\n");
-			clGetProgramBuildInfo(Decoders[0].program , OpenCL::device_id, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
-			printf("%s\n", buffer);
-			exit(1);
-		}
-
-		// Create the compute kernel in the program we wish to run
-		//
-		Decoders[0].kernel = clCreateKernel(Decoders[0].program, "Decode", &err);
-		if (!Decoders[0].kernel || err != CL_SUCCESS)
-		{
-			printf("Error: Failed to create compute kernel!\n");
-			exit(1);
-		} 
-    
-#endif
+		g_Inited = true;
 	}
-	    /*switch(texformat)
-		{
-			case GX_TF_I8:
+    switch(texformat)
+	{
+		case GX_TF_I8:
 			{
-				int srcOffset = 0;
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 4; iy++, srcOffset += 8)
-					{
-						printf("x: %d y: %d offset: %d\n", x, y, srcOffset);
-						memcpy(dst + (y + iy)*width+x, src + srcOffset, 8);
-					}
-			return PC_TEX_FMT_I8;
+				// TODO: Optimize
+				//PanicAlert("Really calling the OCL version");
+				Decoders[0].src = clCreateBuffer(OpenCL::GetContext(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, width * height * sizeof(u8), (void *)src, NULL);
+				Decoders[0].dst = clCreateBuffer(OpenCL::GetContext(), CL_MEM_WRITE_ONLY, width * height * sizeof(u8), NULL, NULL);
+
+				clSetKernelArg(Decoders[0].kernel, 0, sizeof(cl_mem), &Decoders[0].dst);
+				clSetKernelArg(Decoders[0].kernel, 1, sizeof(cl_mem), &Decoders[0].src);
+				clSetKernelArg(Decoders[0].kernel, 2, sizeof(cl_int), &width);
+
+				//size_t global[] = { width, height, 0 }, local[3] = {0}; // Later on we'll get the max work-group size and actually use them
+				size_t global = width * height, local;
+
+				clGetKernelWorkGroupInfo(Decoders[0].kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
+
+				err = clEnqueueNDRangeKernel(OpenCL::GetCommandQueue(), Decoders[0].kernel, 1 /* 2 */, NULL, &global, &local, 0, NULL, NULL);
+				if(err)
+					PanicAlert("Error queueing kernel");
+
+				clFinish(OpenCL::GetCommandQueue());
+				
+				clEnqueueReadBuffer(OpenCL::GetCommandQueue(), Decoders[0].dst, CL_TRUE, 0, width * height * sizeof(u8), dst, 0, NULL, NULL);
+
+				clReleaseMemObject(Decoders[0].src);
+				clReleaseMemObject(Decoders[0].dst);
+				
+				/*
+				for (int y = 0; y < height; y += 4)
+					for (int x = 0; x < width; x += 8)
+						for (int iy = 0; iy < 4; iy++, src += 8)
+							memcpy(dst + (y + iy)*width+x, src, 8);
+							*/
+				return PC_TEX_FMT_I8;
 			}
-			break;
-			default:
+
+		default:
 			return PC_TEX_FMT_NONE;
-		}
-		//return PC_TEX_FMT_NONE;*/
+	}
+#else
+	return PC_TEX_FMT_NONE;
+#endif
+	/* OLD CODE
     switch(texformat)
     {
         case GX_TF_I8:
@@ -211,9 +220,9 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
             return PC_TEX_FMT_NONE;
     }
 	// TODO: clEnqueueNDRangeKernel
+*/
 
-
-    /*switch (texformat)
+  /*  switch (texformat)
     {
     case GX_TF_C4:
 		if (tlutfmt == 2)
