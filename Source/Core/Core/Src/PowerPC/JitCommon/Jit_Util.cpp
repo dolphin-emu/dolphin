@@ -85,8 +85,8 @@ void Jit64::SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signEx
 	switch (accessSize)
 	{
 	case 32: ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U32, 1), reg); break;
-	case 16: ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U16, 1), reg); break;
-	case 8:  ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U8, 1), reg);  break;
+	case 16: ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U16_ZX, 1), reg); break;
+	case 8:  ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U8_ZX, 1), reg);  break;
 	}
 	if (signExtend && accessSize < 32) {
 		// Need to sign extend values coming from the Read_U* functions.

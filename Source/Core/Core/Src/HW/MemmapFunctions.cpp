@@ -368,6 +368,15 @@ u64 Read_U64(const u32 _Address)
 	return _var;
 }
 
+u32 Read_U8_ZX(const u32 _Address)
+{
+	return (u32)Read_U8(_Address);
+}
+
+u32 Read_U16_ZX(const u32 _Address)
+{
+	return (u32)Read_U16(_Address);
+}
 
 void Write_U8(const u8 _Data, const u32 _Address)	
 {

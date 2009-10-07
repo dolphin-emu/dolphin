@@ -167,7 +167,10 @@ enum Opcode {
 	// reference directly; this is a size optimization
 	Tramp,
 	// "Opcode"s representing the start and end
-	BlockStart, BlockEnd
+	BlockStart, BlockEnd,
+
+	// used for debugging
+	Int3
 };
 
 typedef unsigned Inst;
@@ -504,6 +507,10 @@ public:
 	}
 	InstLoc EmitStoreSRR(InstLoc op1, unsigned srr) {
 		return FoldUOp(StoreSRR, op1, srr);
+	}
+	InstLoc EmitINT3()
+	{
+		return FoldZeroOp(Int3, 0);
 	}
 
 	void StartBackPass() { curReadPtr = &InstList[InstList.size()]; }

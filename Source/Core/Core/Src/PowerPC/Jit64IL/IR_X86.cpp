@@ -470,8 +470,8 @@ static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size) {
 	switch (Size)
 	{
 	case 32: RI.Jit->ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U32, 1), ECX); break;
-	case 16: RI.Jit->ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U16, 1), ECX); break;
-	case 8:  RI.Jit->ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U8, 1), ECX);  break;
+	case 16: RI.Jit->ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U16_ZX, 1), ECX); break;
+	case 8:  RI.Jit->ABI_CallFunctionR(thunks.ProtectFunction((void *)&Memory::Read_U8_ZX, 1), ECX);  break;
 	}
 	if (reg != EAX) {
 		RI.Jit->MOV(32, R(reg), R(EAX));
@@ -665,7 +665,8 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile, bool Mak
 		case SystemCall:
 		case RFIExit:
 		case InterpreterBranch:		
-		case ShortIdleLoop:		
+		case ShortIdleLoop:
+		case Int3:
 		case Tramp:
 			// No liveness effects
 			break;
@@ -1588,6 +1589,10 @@ static void DoWriteCode(IRBuilder* ibuild, Jit64* Jit, bool UseProfile, bool Mak
 			// NPC = SRR0; 
 			Jit->MOV(32, R(EAX), M(&SRR0));
 			Jit->WriteRfiExitDestInEAX();
+			break;
+		}
+		case Int3: {
+			Jit->INT3();
 			break;
 		}
 		case Tramp: break;

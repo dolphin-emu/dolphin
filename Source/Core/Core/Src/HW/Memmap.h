@@ -128,6 +128,10 @@ namespace Memory
 	u32 Read_U32(const u32 _Address);
 	u64 Read_U64(const u32 _Address);
 
+	// used by JIT. Return zero-extended 32bit values
+	u32  Read_U8_ZX(const u32 _Address);
+	u32 Read_U16_ZX(const u32 _Address);
+
 	void Write_U8(const u8 _Data, const u32 _Address);
 	void Write_U16(const u16 _Data, const u32 _Address);
 	void Write_U32(const u32 _Data, const u32 _Address);
