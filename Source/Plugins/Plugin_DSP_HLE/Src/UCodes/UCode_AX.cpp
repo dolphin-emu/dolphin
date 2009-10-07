@@ -249,24 +249,32 @@ if (m_DebuggerFrame->ScanMails)
 }
 // ----------------
 
-static void ReadOutPB(u32 pb_address, AXParamBlock &PB)
+static bool ReadOutPB(u32 pb_address, AXParamBlock &PB)
 {
 	const u16 *pSrc = (const u16 *)g_dspInitialize.pGetMemoryPointer(pb_address);
+	if (!pSrc)
+		return false;
 	u16 *pDest = (u16 *)&PB;
+	// TODO: SSE. Although it won't help much.
 	for (int p = 0; p < (int)sizeof(AXParamBlock) / 2; p++)
 	{
 		pDest[p] = Common::swap16(pSrc[p]);
 	}
+	return true;
 }
 
-static void WriteBackPB(u32 pb_address, AXParamBlock &PB)
+static bool WriteBackPB(u32 pb_address, AXParamBlock &PB)
 {
 	const u16 *pSrc  = (const u16*)&PB;
 	u16 *pDest = (u16 *)g_dspInitialize.pGetMemoryPointer(pb_address);
+	if (!pDest)
+		return false;
+	// TODO: SSE. Although it won't help much.
 	for (size_t p = 0; p < sizeof(AXParamBlock) / 2; p++)
 	{
 		pDest[p] = Common::swap16(pSrc[p]);
 	}
+	return true;
 }
 
 static void ProcessUpdates(AXParamBlock &PB)
@@ -330,13 +338,18 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 
 	AXParamBlock PB;
 	u32 blockAddr = m_addressPBs;
+	if (!blockAddr)
+		return;
+
 	// ------------
 	for (int i = 0; i < NUMBER_OF_PBS; i++)
 	{
-		ReadOutPB(blockAddr, PB);
+		if (!ReadOutPB(blockAddr, PB))
+			break;
 		ProcessUpdates(PB);
 		MixAddVoice(PB, templbuffer, temprbuffer, _iSize, false);
-		WriteBackPB(blockAddr, PB);
+		if (!WriteBackPB(blockAddr, PB))
+			break;
 
 		blockAddr = (PB.next_pb_hi << 16) | PB.next_pb_lo;
 		if (!blockAddr) {
