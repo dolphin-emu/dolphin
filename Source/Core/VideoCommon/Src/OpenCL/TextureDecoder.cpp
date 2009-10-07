@@ -134,6 +134,7 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 			default:
 			return PC_TEX_FMT_NONE;
 		}*/
+		return PC_TEX_FMT_NONE;
     switch(texformat)
     {
         case GX_TF_I8:
@@ -143,13 +144,13 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
             printf("width %d, height %d\n", width, height);
             // Create the input and output arrays in device memory for our calculation
             //
-            cl_mem _dst = clCreateBuffer(OpenCL::g_context, CL_MEM_WRITE_ONLY, TexDecoder_GetTextureSizeInBytes(width, height, texformat), NULL, NULL);
+            cl_mem _dst = clCreateBuffer(OpenCL::g_context, CL_MEM_WRITE_ONLY, sizeof(unsigned char) * width * height, NULL, NULL);
             if (!dst)
             {
                 printf("Error: Failed to allocate device memory!\n");
                 exit(1);
             }  
-             cl_mem _src = clCreateBuffer(OpenCL::g_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, TexDecoder_GetTextureSizeInBytes(width, height, texformat), (void*)src, NULL);
+             cl_mem _src = clCreateBuffer(OpenCL::g_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, sizeof(unsigned char) * width * height, (void*)src, NULL);
             if (!src)
             {
                 printf("Error: Failed to allocate device memory!\n");
@@ -174,8 +175,9 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
             if (err != CL_SUCCESS)
             {
                 printf("Error: Failed to retrieve kernel work group info! %d\n", err);
-                exit(1);
+                local = 64;
             } 
+			
             // Execute the kernel over the entire range of our 1d input data set
             // using the maximum number of work group items for this device
             //
@@ -193,7 +195,7 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 
             // Read back the results from the device to verify the output
             //
-            err = clEnqueueReadBuffer( OpenCL::g_cmdq, _dst, CL_TRUE, 0, TexDecoder_GetTextureSizeInBytes(width, height, texformat), dst, 0, NULL, NULL );  
+            err = clEnqueueReadBuffer( OpenCL::g_cmdq, _dst, CL_TRUE, 0, sizeof(unsigned char) * width * height, dst, 0, NULL, NULL );  
             if (err != CL_SUCCESS)
             {
                 printf("Error: Failed to read output array! %d\n", err);

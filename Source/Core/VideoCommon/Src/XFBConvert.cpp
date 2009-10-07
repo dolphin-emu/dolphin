@@ -87,15 +87,14 @@ const char  *__ConvertToXFB = "__kernel void ConvertToXFB(__global unsigned int 
 { \n \
         const unsigned char *src = _pEFB;\n \
 		int id = get_global_id(0);\n \
-		src += id * 8; \n \
+		int srcOffset = id * 8; \n \
 		\n \
-		int y1 = (((16843 * src[0]) + (33030 * src[1]) + (6423 * src[2])) >> 16) + 16;          \n \
-		int u1 = ((-(9699 * src[0]) - (19071 * src[1]) + (28770 * src[2])) >> 16) + 128;\n \
-		src += 4;\n \
+		int y1 = (((16843 * src[srcOffset]) + (33030 * src[srcOffset + 1]) + (6423 * src[srcOffset + 2])) >> 16) + 16;          \n \
+		int u1 = ((-(9699 * src[srcOffset]) - (19071 * src[srcOffset + 1]) + (28770 * src[srcOffset + 2])) >> 16) + 128;\n \
+		srcOffset += 4;\n \
 		\n \
-		int y2 = (((16843 * src[0]) + (33030 * src[1]) + (6423 * src[2])) >> 16) + 16;\n \
-		int v2 = (((28770 * src[0]) - (24117 * src[1]) - (4653 * src[2])) >> 16) + 128;\n \
-		src += 4;\n \
+		int y2 = (((16843 * src[srcOffset]) + (33030 * src[srcOffset + 1]) + (6423 * src[srcOffset + 2])) >> 16) + 16;\n \
+		int v2 = (((28770 * src[srcOffset]) - (24117 * src[srcOffset + 1]) - (4653 * src[srcOffset + 2])) >> 16) + 128;\n \
 		\n \
 		dst[id] = (v2 << 24) | (y2 << 16) | (u1 << 8) | (y1);    \n \
 } \n ";
@@ -178,8 +177,9 @@ void ConvertFromXFB(u32 *dst, const u8* _pXFB, int width, int height)
             if (err != CL_SUCCESS)
             {
                 printf("Error: Failed to retrieve kernel work group info! %d\n", err);
-                exit(1);
+                local = 32;
             } 
+			
             // Execute the kernel over the entire range of our 1d input data set
             // using the maximum number of work group items for this device
             //
@@ -283,8 +283,9 @@ void ConvertToXFB(u32 *dst, const u8* _pEFB, int width, int height)
             if (err != CL_SUCCESS)
             {
                 printf("Error: Failed to retrieve kernel work group info! %d\n", err);
-                exit(1);
+                local = 64;
             } 
+			
             // Execute the kernel over the entire range of our 1d input data set
             // using the maximum number of work group items for this device
             //
