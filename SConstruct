@@ -257,7 +257,7 @@ env['HAVE_ALSA'] = conf.CheckPKG('alsa')
 
 # OpenCL
 if env['opencl']:   
-    env['HAVE_OPENCL'] = conf.CheckPKG('opencl')
+    env['HAVE_OPENCL'] = 1
 else:
     env['HAVE_OPENCL'] = 0
 
@@ -320,6 +320,7 @@ conf.Define('NOJIT', env['NOJIT'])
 conf.Define('HAVE_SDL', env['HAVE_SDL'])
 conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
 conf.Define('HAVE_AO', env['HAVE_AO'])
+conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
 conf.Define('HAVE_OPENAL', env['HAVE_OPENAL'])
 conf.Define('HAVE_ALSA', env['HAVE_ALSA'])
 conf.Define('HAVE_WX', env['HAVE_WX'])

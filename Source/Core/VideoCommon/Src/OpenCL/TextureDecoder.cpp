@@ -18,6 +18,7 @@
 #include "TextureDecoder.h"
 
 #include "OpenCL.h"
+#include <CL/cl.h>
 
 #include <fcntl.h>
 #include <stdio.h>
@@ -27,9 +28,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
-size_t global;                      // global domain size for our calculation
-size_t local;                       // local domain size for our calculation
     
     
 struct sDecoders
@@ -39,69 +37,176 @@ struct sDecoders
     const char **cKernel;
 };
 
-const char *Kernel = "                              		\
-kernel void Decode(global uchar *dst,               		\
-		     const global uchar *src,               		\
-		     int width, int height)                 		\
-{                                                   		\
-	int x = get_global_id(0), y = get_global_id(1);   		\
-															\
-	for (int iy = 0; iy < 4; iy++, src += 8) {  			\
-	u16 *ptr = (u16 *)dst + ((x + (y / width)) + iy) *		\
-		width + ((x * width + y) % width);					\
-		u16 *s = (u16 *)src;								\
-		for(int j = 0; j < 4; j++)							\
-			*ptr++ = Common::swap16(*s++);					\
-	}														\
-}";
-
-sDecoders Decoders[] = { {NULL, NULL, &Kernel}, 
+const char *Kernel = "         \n                     		\
+__kernel void Decode(__global unsigned char *dst,               \n		\
+		     const __global unsigned char *src,       \n        		\
+		     const __global int width, const __global int height)       \n          		\
+{                                    \n               		\
+//	int x = get_global_id(0) % width, y = get_global_id(0) / width;   \n		\
+	int srcOffset = 0; \n \
+			for (int y = 0; y < height; y += 4) \n \
+				for (int x = 0; x < width; x += 8) \n \
+	for (int iy = 0; iy < 4; iy++, srcOffset += 8) \n\
+	{ \n \
+		dst[(y + iy)*width + x] = src[srcOffset]; \n \
+		dst[(y + iy)*width + x + 1] = src[srcOffset + 1]; \n \
+		dst[(y + iy)*width + x + 2] = src[srcOffset + 2]; \n \
+		dst[(y + iy)*width + x + 3] = src[srcOffset + 3]; \n \
+		dst[(y + iy)*width + x + 4] = src[srcOffset + 4]; \n \
+		dst[(y + iy)*width + x + 5] = src[srcOffset + 5]; \n \
+		dst[(y + iy)*width + x + 6] = src[srcOffset + 6]; \n \
+		dst[(y + iy)*width + x + 7] = src[srcOffset + 7]; \n \
+	} \n \
+}\n";
+//						memcpy(dst + (y + iy)*width+x, src, 8);			
+const char *KernelOld = "         \n                     		\
+__kernel void Decode(__global uchar *dst,               \n		\
+		     const __global uchar *src,       \n        		\
+		     int width, int height)       \n          		\
+{  \n \
+    dst[get_global_id(0)] = 0xFF; \n \
+} \n ";
+sDecoders Decoders[] = { {NULL, NULL, &Kernel}, };
 
 bool g_Inited = false;
 
 PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
+    int err;
     if(!g_Inited)
     {
 		g_Inited = true;
 
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
-		// TODO: Compile the program
+		// TODO: Switch this over to the OpenCl.h backend
 	    // Create the compute program from the source buffer
 		//
-		/*
-		program = clCreateProgramWithSource(context, 1, (const char **) & KernelSource, NULL, &err);
-		if (!program)
+		
+		Decoders[0].program = clCreateProgramWithSource(OpenCL::g_context, 1, (const char **) & Kernel, NULL, &err);
+		if (!Decoders[0].program)
 		{
 			printf("Error: Failed to create compute program!\n");
-			return EXIT_FAILURE;
+			return PC_TEX_FMT_NONE;
 		}
 
 		// Build the program executable
 		//
-		err = clBuildProgram(program, 0, NULL, NULL, NULL, NULL);
+		err = clBuildProgram(Decoders[0].program , 0, NULL, NULL, NULL, NULL);
 		if (err != CL_SUCCESS)
 		{
 			size_t len;
 			char buffer[2048];
 
 			printf("Error: Failed to build program executable!\n");
-			clGetProgramBuildInfo(program, device_id, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
+			clGetProgramBuildInfo(Decoders[0].program , OpenCL::device_id, CL_PROGRAM_BUILD_LOG, sizeof(buffer), buffer, &len);
 			printf("%s\n", buffer);
 			exit(1);
 		}
 
 		// Create the compute kernel in the program we wish to run
 		//
-		kernel = clCreateKernel(program, "Decoder", &err);
-		if (!kernel || err != CL_SUCCESS)
+		Decoders[0].kernel = clCreateKernel(Decoders[0].program, "Decode", &err);
+		if (!Decoders[0].kernel || err != CL_SUCCESS)
 		{
 			printf("Error: Failed to create compute kernel!\n");
 			exit(1);
-		}  */
+		} 
+    
 #endif
 	}
+	    /*switch(texformat)
+		{
+			case GX_TF_I8:
+			{
+				int srcOffset = 0;
+					for (int y = 0; y < height; y ++)
+						for (int x = 0; x < width; x ++)
+						{
+							//printf("X: %d Y: %d, copying 32 bytes from %d to %d\n", x, y, srcOffset,(y)*width+x);
+							memcpy(dst + (y + 0)*width+x, src + srcOffset + 0, 8);
+							memcpy(dst + (y + 1)*width+x, src + srcOffset + 8, 8);
+							memcpy(dst + (y + 2)*width+x, src + srcOffset + 16, 8);
+							memcpy(dst + (y + 3)*width+x, src + srcOffset + 24, 8);
+							srcOffset += 4;
+						}
+				return PC_TEX_FMT_I8;
+			}
+			default:
+			return PC_TEX_FMT_NONE;
+		}*/
+    switch(texformat)
+    {
+        case GX_TF_I8:
+		{
+			size_t global = 0;                      // global domain size for our calculation
+			size_t local = 0;                       // local domain size for our calculation
+            printf("width %d, height %d\n", width, height);
+            // Create the input and output arrays in device memory for our calculation
+            //
+            cl_mem _dst = clCreateBuffer(OpenCL::g_context, CL_MEM_WRITE_ONLY, TexDecoder_GetTextureSizeInBytes(width, height, texformat), NULL, NULL);
+            if (!dst)
+            {
+                printf("Error: Failed to allocate device memory!\n");
+                exit(1);
+            }  
+             cl_mem _src = clCreateBuffer(OpenCL::g_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, TexDecoder_GetTextureSizeInBytes(width, height, texformat), (void*)src, NULL);
+            if (!src)
+            {
+                printf("Error: Failed to allocate device memory!\n");
+                exit(1);
+            }      
+            // Set the arguments to our compute kernel
+            //
+            err = 0;
+            err  = clSetKernelArg(Decoders[0].kernel, 0, sizeof(cl_mem), &_dst);
+            err |= clSetKernelArg(Decoders[0].kernel, 1, sizeof(cl_mem), &_src);
+            err |= clSetKernelArg(Decoders[0].kernel, 2, sizeof(cl_int), &width);
+            err |= clSetKernelArg(Decoders[0].kernel, 3, sizeof(cl_int), &height);
+            if (err != CL_SUCCESS)
+            {
+                printf("Error: Failed to set kernel arguments! %d\n", err);
+                exit(1);
+            }
+            
+			// Get the maximum work group size for executing the kernel on the device
+            //
+            err = clGetKernelWorkGroupInfo(Decoders[0].kernel, OpenCL::device_id, CL_KERNEL_WORK_GROUP_SIZE, sizeof(int), &local, NULL);
+            if (err != CL_SUCCESS)
+            {
+                printf("Error: Failed to retrieve kernel work group info! %d\n", err);
+                exit(1);
+            } 
+            // Execute the kernel over the entire range of our 1d input data set
+            // using the maximum number of work group items for this device
+            //
+            global = width * height;
+            err = clEnqueueNDRangeKernel(OpenCL::g_cmdq, Decoders[0].kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+            if (err != CL_SUCCESS)
+            {
+                printf("Error: Failed to execute kernel! %d\n", err);
+                return PC_TEX_FMT_NONE;
+            }
 
+            // Wait for the command commands to get serviced before reading back results
+            //
+            clFinish(OpenCL::g_cmdq);
+
+            // Read back the results from the device to verify the output
+            //
+            err = clEnqueueReadBuffer( OpenCL::g_cmdq, _dst, CL_TRUE, 0, TexDecoder_GetTextureSizeInBytes(width, height, texformat), dst, 0, NULL, NULL );  
+            if (err != CL_SUCCESS)
+            {
+                printf("Error: Failed to read output array! %d\n", err);
+                exit(1);
+            }
+			clReleaseMemObject(_dst);
+			clReleaseMemObject(_src);
+		}
+		return PC_TEX_FMT_I8;
+        break;
+        default:
+            return PC_TEX_FMT_NONE;
+    }
 	// TODO: clEnqueueNDRangeKernel
 
 

@@ -18,6 +18,7 @@
 #ifndef __OPENCL_H__
 #define __OPENCL_H__
 
+#include "Config.h"
 // Change to #if 1 if you want to test OpenCL (and you have it) on Windows
 #if 0
 #pragma comment(lib, "OpenCL.lib")
@@ -37,10 +38,16 @@
 typedef void *cl_context;
 typedef void *cl_command_queue;
 typedef void *cl_program;
+typedef void *cl_kernel;
 
 #endif
 
 namespace OpenCL {
+    #if defined(HAVE_OPENCL) && HAVE_OPENCL
+    extern cl_device_id device_id;
+    extern cl_context g_context;
+    extern cl_command_queue g_cmdq;
+    #endif
 
 bool Initialize();
 
@@ -50,7 +57,8 @@ cl_command_queue GetCommandQueue();
 
 void Destroy();
 
-cl_program CompileProgram(const char *program, unsigned int size);
+cl_program CompileProgram(const char *Kernel);
+cl_kernel CompileKernel(cl_program program, const char *Function);
 
 };
 

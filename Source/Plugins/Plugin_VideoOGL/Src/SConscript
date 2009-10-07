@@ -40,7 +40,8 @@ files += [
 	'main.cpp',
 	'GLUtil.cpp',
 	]
-
+if gfxenv['HAVE_OPENCL']:
+	libs += [ 'OpenCL']
 if gfxenv['HAVE_WX']:
 	files += [
                 'GUI/ConfigDlg.cpp',

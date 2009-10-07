@@ -583,6 +583,8 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
 {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 	PC_TexFormat retval = TexDecoder_Decode_OpenCL(dst, src, width, height, texformat, tlutaddr, tlutfmt);
+	if(retval == PC_TEX_FMT_NONE)
+		retval = TexDecoder_Decode_real(dst,src,width,height,texformat,tlutaddr,tlutfmt);
 #else
 	PC_TexFormat  retval = TexDecoder_Decode_real(dst,src,width,height,texformat,tlutaddr,tlutfmt);
 #endif

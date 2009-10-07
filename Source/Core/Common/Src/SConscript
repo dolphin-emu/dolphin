@@ -23,6 +23,7 @@ files = [
 	"MemoryUtil.cpp",
 	"Misc.cpp",
 	"MsgHandler.cpp",
+	"OpenCL.cpp",
 	"Plugin.cpp",
 	"PluginDSP.cpp",
 	"PluginWiimote.cpp",
