@@ -39,22 +39,35 @@ kernel void DecodeI8(global uchar *dst,                       \n\
                      const global uchar *src, int width)      \n\
 {                                                             \n\
     int x = get_global_id(0) * 8, y = get_global_id(1) * 4;   \n\
-    int srcOffset = (x * 4) + (y * width);                    \n\
+    int srcOffset = ((x * 4) + (y * width)) / 8;              \n\
     for (int iy = 0; iy < 4; iy++)                            \n\
     {                                                         \n\
-        dst[(y + iy)*width + x] = src[srcOffset];             \n\
-        dst[(y + iy)*width + x + 1] = src[srcOffset + 1];     \n\
-        dst[(y + iy)*width + x + 2] = src[srcOffset + 2];     \n\
-        dst[(y + iy)*width + x + 3] = src[srcOffset + 3];     \n\
-        dst[(y + iy)*width + x + 4] = src[srcOffset + 4];     \n\
-        dst[(y + iy)*width + x + 5] = src[srcOffset + 5];     \n\
-        dst[(y + iy)*width + x + 6] = src[srcOffset + 6];     \n\
-        dst[(y + iy)*width + x + 7] = src[srcOffset + 7];     \n\
-        srcOffset += 8;                                       \n\
+        vstore8(vload8(srcOffset, src),                       \n\
+                0, dst + ((y + iy)*width + x));               \n\
+        srcOffset++;                                          \n\
     }                                                         \n\
-}\n";
+}                                                             \n\
+                                                              \n\
+kernel void DecodeIA4(global ushort *dst,                     \n\
+                     const global uchar *src, int width)      \n\
+{                                                             \n\
+    int x = get_global_id(0) * 8, y = get_global_id(1) * 4;   \n\
+    int srcOffset = ((x * 4) + (y * width)) / 8;              \n\
+    for (int iy = 0; iy < 4; iy++)                            \n\
+    {                                                         \n\
+        uchar8 val = vload8(srcOffset, src);                  \n\
+        ushort8 res;                                          \n\
+        res.hi = upsample(val.hi, val.hi);                    \n\
+        res.lo = upsample(val.lo, val.lo);                    \n\
+        vstore8(res, 0, dst + ((y + iy)*width + x));          \n\
+        srcOffset++;                                          \n\
+    }                                                         \n\
+}                                                             \n\
+";
 
-sDecoders Decoders[] = { {NULL, NULL, NULL, NULL}, };
+sDecoders Decoders[] = { {NULL, NULL, NULL, NULL},
+						 {NULL, NULL, NULL, NULL}, 
+};
 
 bool g_Inited = false;
 
@@ -62,6 +75,8 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
     cl_int err;
+	cl_kernel kernelToRun = Decoders[0].kernel;
+	int sizeOfDst = sizeof(u8);
     if(!g_Inited)
     {
 		if(!OpenCL::Initialize())
@@ -70,21 +85,26 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 		
 		Decoders[0].program = OpenCL::CompileProgram(Kernel);
 		Decoders[0].kernel = OpenCL::CompileKernel(Decoders[0].program, "DecodeI8");
+		Decoders[1].kernel = OpenCL::CompileKernel(Decoders[0].program, "DecodeIA4");
 
 		g_Inited = true;
 	}
     switch(texformat)
 	{
+		case GX_TF_IA4:
+			// Maybe a cleaner way is needed
+			kernelToRun = Decoders[1].kernel;
+			sizeOfDst = sizeof(u16);
 		case GX_TF_I8:
 			{
 				// TODO: Optimize
 				//PanicAlert("Really calling the OCL version");
 				Decoders[0].src = clCreateBuffer(OpenCL::GetContext(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, width * height * sizeof(u8), (void *)src, NULL);
-				Decoders[0].dst = clCreateBuffer(OpenCL::GetContext(), CL_MEM_WRITE_ONLY, width * height * sizeof(u8), NULL, NULL);
+				Decoders[0].dst = clCreateBuffer(OpenCL::GetContext(), CL_MEM_WRITE_ONLY, width * height * sizeOfDst, NULL, NULL);
 
-				clSetKernelArg(Decoders[0].kernel, 0, sizeof(cl_mem), &Decoders[0].dst);
-				clSetKernelArg(Decoders[0].kernel, 1, sizeof(cl_mem), &Decoders[0].src);
-				clSetKernelArg(Decoders[0].kernel, 2, sizeof(cl_int), &width);
+				clSetKernelArg(kernelToRun, 0, sizeof(cl_mem), &Decoders[0].dst);
+				clSetKernelArg(kernelToRun, 1, sizeof(cl_mem), &Decoders[0].src);
+				clSetKernelArg(kernelToRun, 2, sizeof(cl_int), &width);
 
 				size_t global[] = { width / 8, height / 4 };
 
@@ -96,13 +116,13 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 					PanicAlert("Error obtaining work-group information");
 				*/
 
-				err = clEnqueueNDRangeKernel(OpenCL::GetCommandQueue(), Decoders[0].kernel, 2 , NULL, global, NULL, 0, NULL, NULL);
+				err = clEnqueueNDRangeKernel(OpenCL::GetCommandQueue(), kernelToRun, 2 , NULL, global, NULL, 0, NULL, NULL);
 				if(err)
 					PanicAlert("Error queueing kernel");
 
 				clFinish(OpenCL::GetCommandQueue());
 				
-				clEnqueueReadBuffer(OpenCL::GetCommandQueue(), Decoders[0].dst, CL_TRUE, 0, width * height * sizeof(u8), dst, 0, NULL, NULL);
+				clEnqueueReadBuffer(OpenCL::GetCommandQueue(), Decoders[0].dst, CL_TRUE, 0, width * height * sizeOfDst, dst, 0, NULL, NULL);
 
 				clReleaseMemObject(Decoders[0].src);
 				clReleaseMemObject(Decoders[0].dst);
@@ -112,9 +132,24 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 					for (int x = 0; x < width; x += 8)
 						for (int iy = 0; iy < 4; iy++, src += 8)
 							memcpy(dst + (y + iy)*width+x, src, 8);
-							*/
-				return PC_TEX_FMT_I8;
+				*/
+				if(texformat == GX_TF_I8)
+					return PC_TEX_FMT_I8;
+				else
+					return PC_TEX_FMT_IA4_AS_IA8;
 			}
+				/* IA4:
+				for (int y = 0; y < height; y += 4)
+					for (int x = 0; x < width; x += 8)
+						for (int iy = 0; iy < 4; iy++, src += 8)
+							for (int x = 0; x < 8; x++)
+							{
+								const u8 val = src[x];
+								u8 a = Convert4To8(val >> 4);
+								u8 l = Convert4To8(val & 0xF);
+								dst[x] = (a << 8) | l;
+							}
+				*/
 
 		default:
 			return PC_TEX_FMT_NONE;
