@@ -311,12 +311,14 @@ bool DolphinApp::OnInit()
 			//TODO : if not exist copy game config dir in user dir and detect the revision to upgrade if necessary
 			//TODO : if not exist copy maps dir in user dir and detect revision to upgrade if necessary
 			
+#if !wxCHECK_VERSION(2, 9, 0)
 			// HACK: Get rid of bogus osx param
 			if (argc > 1 && wxString(argv[argc - 1]).StartsWith(_("-psn_"))) {
 				delete argv[argc-1];
 				argv[argc-1] = NULL;
 				argc--;
 			}        
+#endif
 		#endif
 
 		// Gets the passed media files from command line

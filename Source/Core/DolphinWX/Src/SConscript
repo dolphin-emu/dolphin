@@ -67,13 +67,10 @@ if wxenv['HAVE_COCOA']:
     wxenv.Append(
 	CXXFLAGS = compileFlags,
        	LINKFLAGS = [
-               	'-pthread',
+               	'-pthread', '-framework', 'IOKit'
                	],
        	LIBS = libs
        	)
-    if not wxenv['HAVE_WX']:
-	wxenv.Append(
-	    LINKFLAGS = ['-framework', 'IOKit'])
 else:
     wxenv.Append(
        	LINKFLAGS = [

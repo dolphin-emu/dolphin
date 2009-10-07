@@ -275,7 +275,6 @@ if conf.CheckPKG('sfml-network') and conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
 #osx 64 specifics
 if sys.platform == 'darwin':
     if env['osx'] == '64cocoa':
-        env['nowx'] = True
         compileFlags += ['-arch' , 'x86_64', '-m64' ]
         conf.Define('MAP_32BIT', 0)
     if env['osx'] == '32cocoa':
