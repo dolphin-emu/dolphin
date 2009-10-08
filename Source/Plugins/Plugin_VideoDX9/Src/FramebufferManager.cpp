@@ -18,6 +18,7 @@
 #include "D3DBase.h"
 #include "Render.h"
 #include "FramebufferManager.h"
+#include "VideoConfig.h"
 
 namespace FBManager
 {
@@ -25,6 +26,10 @@ namespace FBManager
 static LPDIRECT3DTEXTURE9 s_efb_color_texture;
 static LPDIRECT3DSURFACE9 s_efb_color_surface;
 static LPDIRECT3DSURFACE9 s_efb_depth_surface;
+
+static LPDIRECT3DSURFACE9 s_efb_color_OffScreensurface;
+
+
 static D3DFORMAT s_efb_color_surface_Format;
 static D3DFORMAT s_efb_depth_surface_Format;
 #undef CHECK
@@ -32,6 +37,8 @@ static D3DFORMAT s_efb_depth_surface_Format;
 
 LPDIRECT3DSURFACE9 GetEFBColorRTSurface() { return s_efb_color_surface; }
 LPDIRECT3DSURFACE9 GetEFBDepthRTSurface() { return s_efb_depth_surface; }
+LPDIRECT3DSURFACE9 GetEFBColorOffScreenRTSurface() { return s_efb_color_OffScreensurface; }
+
 D3DFORMAT GetEFBDepthRTSurfaceFormat(){return s_efb_depth_surface_Format;}
 D3DFORMAT GetEFBColorRTSurfaceFormat(){return s_efb_color_surface_Format;}
 
@@ -61,29 +68,40 @@ void Create()
 	CHECK(hr);
 
   	hr = s_efb_color_texture->GetSurfaceLevel(0, &s_efb_color_surface);
+	CHECK(hr);	
+	hr = D3D::dev->CreateOffscreenPlainSurface(target_width, target_height, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &s_efb_color_OffScreensurface, NULL );
 	CHECK(hr);
-
 	//Select Zbuffer format supported by hadware.
-	s_efb_depth_surface_Format = D3DFMT_D32F_LOCKABLE;
+	if (g_ActiveConfig.bEFBAccessEnable)
+	{
+		s_efb_depth_surface_Format = D3DFMT_D32F_LOCKABLE;
+	}
+	else
+	{
+		s_efb_depth_surface_Format = D3DFMT_D24S8;
+	}
 	hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, D3DFMT_D32F_LOCKABLE,
-		                                     D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
+											 D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
 	if (FAILED(hr))
 	{
 		s_efb_depth_surface_Format = D3DFMT_D16_LOCKABLE;
 		hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, D3DFMT_D16_LOCKABLE,
-		                                     D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
+											 D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
 		if(FAILED(hr))
 		{
 			s_efb_depth_surface_Format = D3DFMT_D24S8;
 			hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, D3DFMT_D24S8,
-		                                     D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
+											 D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
 		}
-	}
+	}	
 	CHECK(hr);
 }
 
 void Destroy()
 {
+	if(s_efb_color_OffScreensurface)
+		s_efb_color_OffScreensurface->Release();
+
 	if(s_efb_depth_surface)
 		s_efb_depth_surface->Release();
 	s_efb_depth_surface = NULL;

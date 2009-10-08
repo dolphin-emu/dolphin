@@ -444,6 +444,10 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	//Get the working buffer and it's format
 	LPDIRECT3DSURFACE9 pBuffer = (type == PEEK_Z || type == POKE_Z) ? 
 		FBManager::GetEFBDepthRTSurface() : FBManager::GetEFBColorRTSurface();
+	
+	LPDIRECT3DSURFACE9 pOffScreenBuffer = (type == PEEK_Z || type == POKE_Z) ? 
+		FBManager::GetEFBDepthRTSurface() : FBManager::GetEFBColorOffScreenRTSurface();
+
 	D3DLOCKED_RECT drect;
 	
 	D3DFORMAT BufferFormat = (type == PEEK_Z || type == POKE_Z) ? 
@@ -469,10 +473,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	TargetRectangle targetPixelRc = Renderer::ConvertEFBRectangle(efbPixelRc);
 
 
-	// Sample from the center of the target region.
-	int srcX = (targetPixelRc.left + targetPixelRc.right) / 2;
-	int srcY = (targetPixelRc.top + targetPixelRc.bottom) / 2;
-
 	u32 z = 0;
 	float val = 0.0f;
 	HRESULT hr;
@@ -483,7 +483,18 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	RectToLock.top = targetPixelRc.top;
 	
 	//lock the buffer
-	if((hr = pBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
+
+	if(!(type == PEEK_Z || type == POKE_Z))
+	{
+		hr = D3D::dev->StretchRect(pBuffer,&RectToLock,pOffScreenBuffer,&RectToLock, D3DTEXF_NONE);
+		if(FAILED(hr))
+		{
+			PanicAlert("Unable to copy data to mem buffer");
+			return 0;
+		}
+	}
+
+	if((hr = pOffScreenBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
 		PanicAlert("ERROR: %s", hr == D3DERR_WASSTILLDRAWING ? "Still drawing" :
 											  hr == D3DERR_INVALIDCALL     ? "Invalid call" : "w00t");	
 		

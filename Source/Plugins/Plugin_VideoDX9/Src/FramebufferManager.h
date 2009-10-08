@@ -34,6 +34,8 @@ LPDIRECT3DTEXTURE9 GetEFBDepthTexture(const EFBRectangle& sourceRc);
 
 LPDIRECT3DSURFACE9 GetEFBColorRTSurface();
 LPDIRECT3DSURFACE9 GetEFBDepthRTSurface();
+LPDIRECT3DSURFACE9 GetEFBColorOffScreenRTSurface();
+LPDIRECT3DSURFACE9 GetEFBDepthOffScreenRTSurface();
 D3DFORMAT GetEFBDepthRTSurfaceFormat();
 D3DFORMAT GetEFBColorRTSurfaceFormat();
 
