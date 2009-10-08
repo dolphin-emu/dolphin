@@ -284,6 +284,7 @@ cleanup:
 	delete[] in_buf;
 	delete[] out_buf;
 	delete[] offsets;
+	delete[] hashes;
 	fclose(f);
 	fclose(inf);
 	callback("Done compressing disc image.", 1.0f, arg);
