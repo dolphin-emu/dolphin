@@ -177,6 +177,7 @@ void VideoConfig::Save(const char *ini_file)
     iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);
 	iniFile.Set("Enhancements", "PostProcessingShader", sPostProcessingShader);
     
+    iniFile.Set("Hacks", "EFBAccessEnable", bEFBAccessEnable);
     iniFile.Set("Hacks", "EFBCopyDisable", bEFBCopyDisable);
     iniFile.Set("Hacks", "EFBCopyDisableHotKey", bEFBCopyDisableHotKey);
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToRAM);
