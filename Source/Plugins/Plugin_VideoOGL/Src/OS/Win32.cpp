@@ -220,6 +220,8 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
             lastMouse[0] = point.x;
             lastMouse[1] = point.y;
         }
+		// This looks like it might leak cursors, but it really doesn't.
+		// See http://msdn.microsoft.com/en-us/library/ms648391(VS.85).aspx
 		break;
 
     case WM_RBUTTONDOWN:
@@ -267,6 +269,8 @@ void OnKeyDown(WPARAM wParam)
 }
 // ---------------------------------------------------------------------
 
+
+// Should really take a look at the mouse stuff in here - some of it is weird.
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {		
 	switch (iMsg)
@@ -304,7 +308,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			OnKeyDown(wParam);
 		break;
 
-	/* Post thes mouse events to the main window, it's nessesary becase in difference to the
+	/* Post these mouse events to the main window, it's nessesary becase in difference to the
 	   keyboard inputs these events only appear here, not in the parent window or any other WndProc()*/
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONUP:
@@ -319,10 +323,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	   same as the one before. */
 	case WM_MOUSEMOVE:
 		/* Check rendering mode; child or parent. Then post the mouse moves to the main window
-		   it's nessesary for both the chil dwindow and separate rendering window because
+		   it's nessesary for both the child window and separate rendering window because
 		   moves over the rendering window do not reach the main program then. */
-		if (GetParentWnd() == NULL) // Separate rendering window
+		if (GetParentWnd() == NULL) { // Separate rendering window
 			PostMessage(m_hParent, iMsg, wParam, -1);			
+			SetCursor(hCursor);
+		}
 		else
 			PostMessage(GetParentWnd(), iMsg, wParam, lParam);
 		break;
