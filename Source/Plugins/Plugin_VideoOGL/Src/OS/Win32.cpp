@@ -220,8 +220,6 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
             lastMouse[0] = point.x;
             lastMouse[1] = point.y;
         }
-		// This looks like it might leak cursors, but it really doesn't.
-		// See http://msdn.microsoft.com/en-us/library/ms648391(VS.85).aspx
 		break;
 
     case WM_RBUTTONDOWN:
