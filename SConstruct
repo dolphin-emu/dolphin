@@ -288,7 +288,12 @@ else:
     env['HAVE_COCOA'] = 0
    
 # handling wx flags CCFLAGS should be created before
-wxmods = ['aui', 'adv', 'core', 'base']
+if sys.platform == 'darwin':
+    if env['osx'] == '64cocoa':
+        wxmods = ['adv', 'core', 'base']
+else:
+    wxmods = ['aui', 'adv', 'core', 'base']
+
 env['USE_WX'] = 0
 if env['wxgl']:
     wxmods.append('gl')
