@@ -29,6 +29,7 @@
 #include "VideoCommon.h"
 #include "Profiler.h"
 #include "OpcodeDecoding.h"
+#include "CommandProcessor.h"
 
 #include "VertexLoaderManager.h"
 
@@ -170,7 +171,7 @@ bool FifoCommandRunnable()
             g_VideoInitialize.pSysMessage(szTemp);
             g_VideoInitialize.pLog(szTemp, TRUE);
 			{
-				SCPFifoStruct &fifo = *g_VideoInitialize.pCPFifo;
+                SCPFifoStruct &fifo = CommandProcessor::fifo;
 
 				char szTmp[256];
 				// sprintf(szTmp, "Illegal command %02x (at %08x)",cmd_byte,g_pDataReader->GetPtr());

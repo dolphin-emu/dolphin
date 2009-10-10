@@ -22,6 +22,8 @@
 #include "XFMemory.h"
 #include "TextureDecoder.h"
 #include "Fifo.h"
+#include "CommandProcessor.h"
+#include "PixelEngine.h"
 
 static void DoState(PointerWrap &p)
 {
@@ -43,6 +45,9 @@ static void DoState(PointerWrap &p)
  
     // FIFO
     Fifo_DoState(p);
+
+    CommandProcessor::DoState(p);
+    PixelEngine::DoState(p);
 }
 
 void VideoCommon_DoState(PointerWrap &p)

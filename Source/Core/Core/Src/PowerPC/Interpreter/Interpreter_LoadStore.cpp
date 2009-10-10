@@ -19,8 +19,6 @@
 #include "MathUtil.h"
 
 #include "../../HW/Memmap.h"
-#include "../../HW/CommandProcessor.h"
-#include "../../HW/PixelEngine.h"
 
 #include "Interpreter.h"
 #include "../../Core.h"

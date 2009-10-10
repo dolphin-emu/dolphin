@@ -45,6 +45,8 @@ GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 #include "PixelShaderManager.h"
 #include "VertexShaderCache.h"
 #include "PixelShaderCache.h"
+#include "CommandProcessor.h"
+#include "PixelEngine.h"
 #include "OnScreenDisplay.h"
 #include "DlgSettings.h"
 #include "D3DTexture.h"
@@ -271,6 +273,8 @@ void Video_Prepare()
 	VertexShaderManager::Init();
 	PixelShaderCache::Init();
 	PixelShaderManager::Init();
+    CommandProcessor::Init();
+    PixelEngine::Init();
 }
 
 void Shutdown()
@@ -312,11 +316,6 @@ void Video_ExitLoop()
 
 void Video_SetRendering(bool bEnabled) {
 	Fifo_SetRendering(bEnabled);
-}
-
-void Video_SendFifoData(u8* _uData, u32 len)
-{
-	Fifo_SendFifoData(_uData, len);
 }
 
 // Run from the graphics thread
@@ -460,4 +459,40 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 		VideoFifo_CheckEFBAccess();
 
 	return s_AccessEFBResult;
+}
+
+
+void Video_CommandProcessorRead16(u16& _rReturnValue, const u32 _Address)
+{
+    CommandProcessor::Read16(_rReturnValue, _Address);
+}
+
+void Video_CommandProcessorWrite16(const u16 _Data, const u32 _Address)
+{
+    CommandProcessor::Write16(_Data, _Address);
+}
+
+void Video_PixelEngineRead16(u16& _rReturnValue, const u32 _Address)
+{
+    PixelEngine::Read16(_rReturnValue, _Address);
+}
+
+void Video_PixelEngineWrite16(const u16 _Data, const u32 _Address)
+{
+    PixelEngine::Write16(_Data, _Address);
+}
+
+void Video_PixelEngineWrite32(const u32 _Data, const u32 _Address)
+{
+    PixelEngine::Write32(_Data, _Address);
+}
+
+inline void Video_GatherPipeBursted(void)
+{
+    CommandProcessor::GatherPipeBursted();
+}
+
+void Video_WaitForFrameFinish(void)
+{
+    CommandProcessor::WaitForFrameFinish();
 }

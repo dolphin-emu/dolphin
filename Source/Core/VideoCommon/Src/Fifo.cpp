@@ -23,6 +23,7 @@
 #include "Thread.h"
 #include "Atomic.h"
 #include "OpcodeDecoding.h"
+#include "CommandProcessor.h"
 
 #include "Fifo.h"
 
@@ -127,7 +128,7 @@ void Fifo_SendFifoData(u8* _uData, u32 len)
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
     fifoStateRun = true;
-    SCPFifoStruct &_fifo = *video_initialize.pCPFifo;
+    SCPFifoStruct &_fifo = CommandProcessor::fifo;
 	s32 distToSend;
 
     while (fifoStateRun)
@@ -178,7 +179,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				if (_fifo.bFF_BPEnable && (readPtr == _fifo.CPBreakpoint))
                 {
 						Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
-                        video_initialize.pUpdateInterrupts();
+                        CommandProcessor::UpdateInterruptsFromVideoPlugin();
                 }
 
 				// Update CPReadPointer and RWDistance
@@ -189,7 +190,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			} while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance  && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint));
 
 			Common::AtomicStore(_fifo.CPReadIdle, 1);
-			video_initialize.pSetFifoIdle();
+            CommandProcessor::SetFifoIdleFromVideoPlugin();
         }
 		else
 		{

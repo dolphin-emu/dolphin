@@ -18,7 +18,7 @@
 #include "Common.h"
 #include "ChunkFile.h"
 #include "ProcessorInterface.h"
-#include "CommandProcessor.h"
+#include "../PluginManager.h"
 #include "Memmap.h"
 #include "../PowerPC/PowerPC.h"
 
@@ -87,8 +87,10 @@ void STACKALIGN CheckGatherPipe()
 						ProcessorInterface::Fifo_CPUWritePointer, ProcessorInterface::Fifo_CPUEnd);
 
 		if (ProcessorInterface::Fifo_CPUWritePointer >= ProcessorInterface::Fifo_CPUEnd)
-			ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;		
-		CommandProcessor::GatherPipeBursted();
+			ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;
+
+        // TODO store video plugin pointer
+		CPluginManager::GetInstance().GetVideo()->Video_GatherPipeBursted();
 	}
 }
 

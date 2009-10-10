@@ -9,19 +9,19 @@
 
 #include "ExportProlog.h"
 
+typedef void (*TimedCallback)(u64 userdata, int cyclesLate);
 
-typedef void			(*TSetPEToken)(const unsigned short _token, const int _bSetTokenAcknowledge);
-typedef void			(*TSetPEFinish)(void);
+typedef void            (*TSetInterrupt)(u32 _causemask, bool _bSet);
+typedef int             (*TRegisterEvent)(const char *name, TimedCallback callback);
+typedef void            (*TScheduleEvent_Threadsafe)(int cyclesIntoFuture, int event_type, u64 userdata);
 typedef unsigned char*	(*TGetMemoryPointer)(const unsigned int  _iAddress);
 typedef void			(*TVideoLog)(const char* _pMessage, int _bBreak);
 typedef void			(*TSysMessage)(const char *fmt, ...);
 typedef void			(*TRequestWindowSize)(int _iWidth, int _iHeight, bool _bFullscreen);
 typedef void			(*TCopiedToXFB)(bool video_update);
 typedef unsigned int	(*TPeekMessages)(void);
-typedef void			(*TUpdateInterrupts)(void);
 typedef void			(*TUpdateFPSDisplay)(const char* text); // sets the window title
 typedef void			(*TKeyPressed)(int keycode, bool shift, bool control); // sets the window title
-typedef void            (*TSetFifoIdle)();
 
 enum FieldType
 {
@@ -71,26 +71,23 @@ typedef struct
 {
 	void *pWindowHandle;
 
-	TSetPEToken						pSetPEToken;
-	TSetPEFinish					pSetPEFinish;
+    TSetInterrupt                   pSetInterrupt;
+    TRegisterEvent                  pRegisterEvent;
+    TScheduleEvent_Threadsafe       pScheduleEvent_Threadsafe;
 	TGetMemoryPointer				pGetMemoryPointer;
 	TVideoLog						pLog;
 	TSysMessage						pSysMessage;
 	TRequestWindowSize              pRequestWindowSize;
 	TCopiedToXFB					pCopiedToXFB;
 	TPeekMessages					pPeekMessages;
-	TUpdateInterrupts               pUpdateInterrupts;
     TUpdateFPSDisplay               pUpdateFPSDisplay;
 	TKeyPressed                     pKeyPress;
-	TSetFifoIdle                    pSetFifoIdle;
-	SCPFifoStruct                   *pCPFifo;
 	void *pMemoryBase;
 	bool bWii;
 	bool bUseDualCore;
-
-	unsigned short                  *pBBox;  // points to four shorts: left, top, right, bottom
-	// TODO:
-	bool                            *pBBoxActive;  // we guess that after a bbox reset, we only need to track bbox size until the corresponding read.
+    u32 *Fifo_CPUBase;
+    u32 *Fifo_CPUEnd;
+    u32 *Fifo_CPUWritePointer;
 
 } SVideoInitialize;
 
@@ -107,14 +104,6 @@ typedef struct
 // output:   none
 //
 EXPORT void CALL Video_Prepare(void);
-
-// __________________________________________________________________________________________________
-// Function: Video_SendFifoData
-// Purpose:  This function is called to submit fifo data directly - only single core mode calls this.
-// input:    u8 *_uData, u32 len - a block of fifo data.
-// output:   none
-//
-EXPORT void CALL Video_SendFifoData(u8* _uData, u32 len);
 
 // __________________________________________________________________________________________________
 // Function: Video_BeginField
@@ -180,6 +169,14 @@ EXPORT void CALL Video_SetRendering(bool bEnabled);
 // output:   none
 //
 EXPORT void CALL Video_AddMessage(const char* pstr, unsigned int milliseconds);
+
+EXPORT void CALL Video_CommandProcessorRead16(u16& _rReturnValue, const u32 _Address);
+EXPORT void CALL Video_CommandProcessorWrite16(const u16 _Data, const u32 _Address);
+EXPORT void CALL Video_PixelEngineRead16(u16& _rReturnValue, const u32 _Address);
+EXPORT void CALL Video_PixelEngineWrite16(const u16 _Data, const u32 _Address);
+EXPORT void CALL Video_PixelEngineWrite32(const u32 _Data, const u32 _Address);
+EXPORT void CALL Video_GatherPipeBursted(void);
+EXPORT void CALL Video_WaitForFrameFinish(void);
 
 #include "ExportEpilog.h"
 #endif

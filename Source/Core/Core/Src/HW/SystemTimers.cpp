@@ -68,7 +68,6 @@
 #include "../HW/AudioInterface.h"
 #include "../HW/VideoInterface.h"
 #include "../HW/SI.h"
-#include "../HW/CommandProcessor.h" // for DC watchdog hack
 #include "../HW/EXI_DeviceIPL.h"
 #include "../PowerPC/PowerPC.h"
 #include "../CoreTiming.h"
@@ -226,7 +225,7 @@ void AdvanceCallback(int cyclesExecuted)
 // For DC watchdog hack
 void FakeGPWatchdogCallback(u64 userdata, int cyclesLate)
 {
-	CommandProcessor::WaitForFrameFinish(); // lock CPUThread until frame finish
+    CPluginManager::GetInstance().GetVideo()->Video_WaitForFrameFinish();  // lock CPUThread until frame finish
 	CoreTiming::ScheduleEvent(FAKE_GP_WATCHDOG_PERIOD-cyclesLate, et_FakeGPWD);
 }
 

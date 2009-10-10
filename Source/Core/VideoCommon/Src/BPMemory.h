@@ -875,7 +875,7 @@ struct BPMemory
     u32 clearcolorAR; //4f
     u32 clearcolorGB; //50
     u32 clearZValue; //51
-    u32 triggerEFBCopy; //52
+    UPE_Copy triggerEFBCopy; //52
     u32 copyfilter[2]; //53,54
     u32 boundbox0;//55
     u32 boundbox1;//56

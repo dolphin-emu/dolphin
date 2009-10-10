@@ -39,14 +39,14 @@ may be redirected here (for example to Read_U32()).
 #include "VideoInterface.h"
 #include "SI.h"
 #include "EXI.h"
-#include "PixelEngine.h"
-#include "CommandProcessor.h"
+#include "PluginVideo.h"
 #include "AudioInterface.h"
 #include "MemoryInterface.h"
 #include "WII_IOB.h"
 #include "WII_IPC.h"
 #include "../ConfigManager.h"
 #include "../Debugger/Debugger_SymbolMap.h"
+#include "../PluginManager.h"
 
 
 
@@ -191,12 +191,12 @@ void InitHWMemFuncs()
 
 	for (int i = 0; i < BLOCKSIZE; i++)
 	{
-		hwRead16 [CP_START+i] = CommandProcessor::Read16;
-		hwWrite16[CP_START+i] = CommandProcessor::Write16;
+		hwRead16 [CP_START+i] = CPluginManager::GetInstance().GetVideo()->Video_CommandProcessorRead16;
+		hwWrite16[CP_START+i] = CPluginManager::GetInstance().GetVideo()->Video_CommandProcessorWrite16;
  
-		hwRead16 [PE_START+i] = PixelEngine::Read16;
-		hwWrite16[PE_START+i] = PixelEngine::Write16;
-		hwWrite32[PE_START+i] = PixelEngine::Write32;
+		hwRead16 [PE_START+i] = CPluginManager::GetInstance().GetVideo()->Video_PixelEngineRead16;
+		hwWrite16[PE_START+i] = CPluginManager::GetInstance().GetVideo()->Video_PixelEngineWrite16;
+		hwWrite32[PE_START+i] = CPluginManager::GetInstance().GetVideo()->Video_PixelEngineWrite32;
 
 		hwRead8  [VI_START+i] = VideoInterface::Read8;
 		hwRead16 [VI_START+i] = VideoInterface::Read16;
@@ -263,12 +263,12 @@ void InitHWMemFuncsWii()
 	// MI, PI, DSP are still mapped to 0xCCxxxxxx
 	for (int i = 0; i < BLOCKSIZE; i++)
 	{
-		hwRead16 [CP_START+i] = CommandProcessor::Read16;
-		hwWrite16[CP_START+i] = CommandProcessor::Write16;
-
-		hwRead16 [PE_START+i] = PixelEngine::Read16;
-		hwWrite16[PE_START+i] = PixelEngine::Write16;
-		hwWrite32[PE_START+i] = PixelEngine::Write32;
+		hwRead16 [CP_START+i] = CPluginManager::GetInstance().GetVideo()->Video_CommandProcessorRead16;
+		hwWrite16[CP_START+i] = CPluginManager::GetInstance().GetVideo()->Video_CommandProcessorWrite16;
+ 
+		hwRead16 [PE_START+i] = CPluginManager::GetInstance().GetVideo()->Video_PixelEngineRead16;
+		hwWrite16[PE_START+i] = CPluginManager::GetInstance().GetVideo()->Video_PixelEngineWrite16;
+		hwWrite32[PE_START+i] = CPluginManager::GetInstance().GetVideo()->Video_PixelEngineWrite32;
 
 		hwRead32 [PI_START+i] = ProcessorInterface::Read32;
 		hwWrite32[PI_START+i] = ProcessorInterface::Write32;

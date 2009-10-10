@@ -21,14 +21,12 @@
 #include "HW.h"
 #include "../PowerPC/PowerPC.h"
 #include "CPU.h"
-#include "CommandProcessor.h"
 #include "DSP.h"
 #include "DVDInterface.h"
 #include "EXI.h"
 #include "GPFifo.h"
 #include "Memmap.h"
 #include "ProcessorInterface.h"
-#include "PixelEngine.h"
 #include "SI.h"
 #include "AudioInterface.h"
 #include "VideoInterface.h"
@@ -52,8 +50,6 @@ namespace HW
 
 		// Init the whole Hardware
 		AudioInterface::Init();
-		PixelEngine::Init();
-		CommandProcessor::Init();
 		VideoInterface::Init();
 		SerialInterface::Init();
 		ProcessorInterface::Init();
@@ -96,8 +92,6 @@ namespace HW
 	void DoState(PointerWrap &p)
 	{
 		Memory::DoState(p);
-		PixelEngine::DoState(p);
-		CommandProcessor::DoState(p);
 		VideoInterface::DoState(p);
 		SerialInterface::DoState(p);
 		ProcessorInterface::DoState(p);

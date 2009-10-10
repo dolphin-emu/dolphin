@@ -43,8 +43,6 @@
 #include "HW/GPFifo.h"
 #include "HW/AudioInterface.h"
 #include "HW/VideoInterface.h"
-#include "HW/CommandProcessor.h"
-#include "HW/PixelEngine.h"
 #include "HW/SystemTimers.h"
  
 #include "PowerPC/PowerPC.h"
@@ -360,26 +358,25 @@ THREAD_RETURN EmuThread(void *pArg)
  
 	// Load the VideoPlugin
  	SVideoInitialize VideoInitialize;
-	VideoInitialize.pGetMemoryPointer	= Memory::GetPointer;
-	VideoInitialize.pSetPEToken			= PixelEngine::SetToken;
-	VideoInitialize.pSetPEFinish		= PixelEngine::SetFinish;
-	// This is first the m_Panel handle, then it is updated to have the new window handle
-	VideoInitialize.pWindowHandle		= _CoreParameter.hMainWindow;
-	VideoInitialize.pLog				= Callback_VideoLog;
-	VideoInitialize.pSysMessage			= Host_SysMessage;
-	VideoInitialize.pRequestWindowSize	= NULL; //Callback_VideoRequestWindowSize;
-	VideoInitialize.pCopiedToXFB		= Callback_VideoCopiedToXFB;
-	VideoInitialize.pPeekMessages       = NULL;
-	VideoInitialize.pUpdateFPSDisplay   = NULL;
-	VideoInitialize.pCPFifo             = (SCPFifoStruct*)&CommandProcessor::fifo;
-	VideoInitialize.pUpdateInterrupts   = &(CommandProcessor::UpdateInterruptsFromVideoPlugin);
-	VideoInitialize.pMemoryBase         = Memory::base;
-	VideoInitialize.pKeyPress           = Callback_KeyPress;
-	VideoInitialize.pSetFifoIdle        = &(CommandProcessor::SetFifoIdleFromVideoPlugin);
-	VideoInitialize.bWii                = _CoreParameter.bWii;
-	VideoInitialize.bUseDualCore		= _CoreParameter.bUseDualCore;
-	VideoInitialize.pBBox               = &PixelEngine::bbox[0];
-	VideoInitialize.pBBoxActive         = &PixelEngine::bbox_active;
+	VideoInitialize.pGetMemoryPointer	        = Memory::GetPointer;
+    VideoInitialize.pSetInterrupt               = ProcessorInterface::SetInterrupt;
+    VideoInitialize.pRegisterEvent              = CoreTiming::RegisterEvent;
+    VideoInitialize.pScheduleEvent_Threadsafe   = CoreTiming::ScheduleEvent_Threadsafe;
+    // This is first the m_Panel handle, then it is updated to have the new window handle
+	VideoInitialize.pWindowHandle		        = _CoreParameter.hMainWindow;
+	VideoInitialize.pLog				        = Callback_VideoLog;
+	VideoInitialize.pSysMessage			        = Host_SysMessage;
+	VideoInitialize.pRequestWindowSize	        = NULL; //Callback_VideoRequestWindowSize;
+	VideoInitialize.pCopiedToXFB		        = Callback_VideoCopiedToXFB;
+	VideoInitialize.pPeekMessages               = NULL;
+	VideoInitialize.pUpdateFPSDisplay           = NULL;
+	VideoInitialize.pMemoryBase                 = Memory::base;
+	VideoInitialize.pKeyPress                   = Callback_KeyPress;
+	VideoInitialize.bWii                        = _CoreParameter.bWii;
+	VideoInitialize.bUseDualCore		        = _CoreParameter.bUseDualCore;
+    VideoInitialize.Fifo_CPUBase                = &ProcessorInterface::Fifo_CPUBase;
+    VideoInitialize.Fifo_CPUEnd                 = &ProcessorInterface::Fifo_CPUEnd;
+    VideoInitialize.Fifo_CPUWritePointer        = &ProcessorInterface::Fifo_CPUWritePointer;
 
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
  

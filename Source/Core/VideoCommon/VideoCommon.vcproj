@@ -702,6 +702,14 @@
 			</Filter>
 		</Filter>
 		<File
+			RelativePath=".\Src\CommandProcessor.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\CommandProcessor.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\GlobalControl.cpp"
 			>
 		</File>
@@ -715,6 +723,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\NativeVertexFormat.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PixelEngine.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\PixelEngine.h"
 			>
 		</File>
 		<File

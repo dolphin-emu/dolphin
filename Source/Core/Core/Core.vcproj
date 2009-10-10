@@ -812,18 +812,6 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="PE - Pixel Engine"
-				>
-				<File
-					RelativePath=".\Src\Hw\PixelEngine.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\Hw\PixelEngine.h"
-					>
-				</File>
-			</Filter>
-			<Filter
 				Name="AI - Audio Interface"
 				>
 				<File
@@ -840,18 +828,6 @@
 				</File>
 				<File
 					RelativePath=".\Src\HW\StreamADPCM.H"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="CP - Command Processor"
-				>
-				<File
-					RelativePath=".\Src\Hw\CommandProcessor.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\Hw\CommandProcessor.h"
 					>
 				</File>
 			</Filter>

@@ -22,6 +22,7 @@
 #include "Render.h"
 #include "VideoCommon.h"
 #include "PixelShaderManager.h"
+#include "PixelEngine.h"
 #include "BPFunctions.h"
 #include "BPStructs.h"
 #include "TextureDecoder.h"
@@ -162,7 +163,7 @@ void BPWritten(const BPCmd& bp)
 		switch (bp.newvalue & 0xFF)
         {
         case 0x02:
-            g_VideoInitialize.pSetPEFinish(); // may generate interrupt
+            PixelEngine::SetFinish(); // may generate interrupt
             DEBUG_LOG(VIDEO, "GXSetDrawDone SetPEFinish (value: 0x%02X)", (bp.newvalue & 0xFFFF));
             break;
 
@@ -172,11 +173,11 @@ void BPWritten(const BPCmd& bp)
         }
         break;
 	case BPMEM_PE_TOKEN_ID: // Pixel Engine Token ID
-        g_VideoInitialize.pSetPEToken(static_cast<u16>(bp.newvalue & 0xFFFF), FALSE);
+        PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), FALSE);
         DEBUG_LOG(VIDEO, "SetPEToken 0x%04x", (bp.newvalue & 0xFFFF));
         break;
     case BPMEM_PE_TOKEN_INT_ID: // Pixel Engine Interrupt Token ID
-        g_VideoInitialize.pSetPEToken(static_cast<u16>(bp.newvalue & 0xFFFF), TRUE);
+        PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), TRUE);
         DEBUG_LOG(VIDEO, "SetPEToken + INT 0x%04x", (bp.newvalue & 0xFFFF));
         break;
 	// ------------------------
@@ -194,8 +195,7 @@ void BPWritten(const BPCmd& bp)
 			rc.right = (int)(bpmem.copyTexSrcXY.x + bpmem.copyTexSrcWH.x + 1);
 			rc.bottom = (int)(bpmem.copyTexSrcXY.y + bpmem.copyTexSrcWH.y + 1);
 
-			UPE_Copy PE_copy;
-			PE_copy.Hex = bpmem.triggerEFBCopy;
+			UPE_Copy PE_copy = bpmem.triggerEFBCopy;
 
 			// Check if we are to copy from the EFB or draw to the XFB
 			if (PE_copy.copy_to_xfb == 0)

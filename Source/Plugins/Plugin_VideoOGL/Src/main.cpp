@@ -85,6 +85,8 @@ GFXDebuggerOGL *m_DebuggerFrame = NULL;
 #include "VertexShaderManager.h"
 #include "XFB.h"
 #include "XFBConvert.h"
+#include "CommandProcessor.h"
+#include "PixelEngine.h"
 #include "TextureConverter.h"
 #include "PostProcessing.h"
 #include "OnScreenDisplay.h"
@@ -377,6 +379,9 @@ void Video_Prepare(void)
         exit(1);
     }
 
+    CommandProcessor::Init();
+    PixelEngine::Init();
+
     TextureMngr::Init();
 
     BPInit();
@@ -423,11 +428,6 @@ void Shutdown(void)
 	OpcodeDecoder_Shutdown();
 	Renderer::Shutdown();
 	OpenGL_Shutdown();
-}
-
-void Video_SendFifoData(u8* _uData, u32 len)
-{
-	Fifo_SendFifoData(_uData, len);
 }
 
 // Enter and exit the video loop
@@ -578,4 +578,40 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 
 	return 0;
 }
+
+void Video_CommandProcessorRead16(u16& _rReturnValue, const u32 _Address)
+{
+    CommandProcessor::Read16(_rReturnValue, _Address);
+}
+
+void Video_CommandProcessorWrite16(const u16 _Data, const u32 _Address)
+{
+    CommandProcessor::Write16(_Data, _Address);
+}
+
+void Video_PixelEngineRead16(u16& _rReturnValue, const u32 _Address)
+{
+    PixelEngine::Read16(_rReturnValue, _Address);
+}
+
+void Video_PixelEngineWrite16(const u16 _Data, const u32 _Address)
+{
+    PixelEngine::Write16(_Data, _Address);
+}
+
+void Video_PixelEngineWrite32(const u32 _Data, const u32 _Address)
+{
+    PixelEngine::Write32(_Data, _Address);
+}
+
+inline void Video_GatherPipeBursted(void)
+{
+    CommandProcessor::GatherPipeBursted();
+}
+
+void Video_WaitForFrameFinish(void)
+{
+    CommandProcessor::WaitForFrameFinish();
+}
+
 

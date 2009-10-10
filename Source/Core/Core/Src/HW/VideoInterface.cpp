@@ -21,7 +21,6 @@
 #include "../PowerPC/PowerPC.h"
 
 #include "../Core.h"			// <- for Core::GetStartupParameter().bUseDualCore
-#include "CommandProcessor.h"	// <- for homebrew's XFB draw hack
 #include "ProcessorInterface.h"
 #include "VideoInterface.h"
 #include "Memmap.h"

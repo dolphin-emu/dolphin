@@ -63,7 +63,7 @@ void Write32(const u32 _iValue, const u32 _iAddress);
 inline u32 GetMask() { return m_InterruptMask; }
 inline u32 GetCause() { return m_InterruptCause; }
 
-void SetInterrupt(InterruptCause _causemask, bool _bSet=true);
+void SetInterrupt(u32 _causemask, bool _bSet=true);
 
 // Thread-safe func which sets and clears reset button state automagically
 void ResetButton_Tap();
