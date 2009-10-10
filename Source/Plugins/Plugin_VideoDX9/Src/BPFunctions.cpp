@@ -32,31 +32,6 @@ const bool renderFog = false;
 
 using namespace D3D;
 
-// State translation lookup tables
-static const D3DBLEND d3dSrcFactors[8] =
-{
-	D3DBLEND_ZERO,
-	D3DBLEND_ONE,
-	D3DBLEND_DESTCOLOR,
-	D3DBLEND_INVDESTCOLOR,
-	D3DBLEND_SRCALPHA,
-	D3DBLEND_INVSRCALPHA, 
-	D3DBLEND_DESTALPHA,
-	D3DBLEND_INVDESTALPHA
-};
-
-static const D3DBLEND d3dDestFactors[8] =
-{
-	D3DBLEND_ZERO,
-	D3DBLEND_ONE,
-	D3DBLEND_SRCCOLOR,
-	D3DBLEND_INVSRCCOLOR,
-	D3DBLEND_SRCALPHA,
-	D3DBLEND_INVSRCALPHA, 
-	D3DBLEND_DESTALPHA,
-	D3DBLEND_INVDESTALPHA
-};
-
 static const D3DCULL d3dCullModes[4] = 
 {
 	D3DCULL_NONE,
@@ -150,42 +125,7 @@ void SetDepthMode(const BPCmd &bp)
 
 void SetBlendMode(const BPCmd &bp)
 {
-	if (bp.changes & 1)
-		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable);
-
-	D3DBLEND src = d3dSrcFactors[bpmem.blendmode.srcfactor];
-	D3DBLEND dst = d3dDestFactors[bpmem.blendmode.dstfactor];
-
-	if (bp.changes & 0x700)
-		D3D::SetRenderState(D3DRS_SRCBLEND, src);
-
-	if (bp.changes & 0xE0)
-	{
-		if (!bpmem.blendmode.subtract)
-		{
-			D3D::SetRenderState(D3DRS_DESTBLEND, dst);
-		}
-		else
-		{
-			D3D::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-		}
-	}
-	if (bp.changes & 0x800) 
-	{
-		if (bpmem.blendmode.subtract)
-		{
-			D3D::SetRenderState(D3DRS_SRCBLEND, D3DBLEND_ONE);
-			D3D::SetRenderState(D3DRS_DESTBLEND, D3DBLEND_ONE);
-		}
-		else
-		{
-			D3D::SetRenderState(D3DRS_SRCBLEND, src);
-			D3D::SetRenderState(D3DRS_DESTBLEND, dst);
-		}
-		
-		D3D::SetRenderState(D3DRS_BLENDOP, 
-			bpmem.blendmode.subtract ? D3DBLENDOP_SUBTRACT : D3DBLENDOP_ADD);
-	}
+	Renderer::SetBlendMode(false);
 }
 void SetDitherMode(const BPCmd &bp)
 {

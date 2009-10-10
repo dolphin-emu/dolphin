@@ -59,9 +59,36 @@ static int s_recordHeight;
 static bool s_LastFrameDumped;
 static bool s_AVIDumping;
 
+static u32 s_blendMode;
+
 #define NUMWNDRES 6
 extern int g_Res[NUMWNDRES][2];
 char st[32768];
+
+// State translation lookup tables
+static const D3DBLEND d3dSrcFactors[8] =
+{
+	D3DBLEND_ZERO,
+	D3DBLEND_ONE,
+	D3DBLEND_DESTCOLOR,
+	D3DBLEND_INVDESTCOLOR,
+	D3DBLEND_SRCALPHA,
+	D3DBLEND_INVSRCALPHA, 
+	D3DBLEND_DESTALPHA,
+	D3DBLEND_INVDESTALPHA
+};
+
+static const D3DBLEND d3dDestFactors[8] =
+{
+	D3DBLEND_ZERO,
+	D3DBLEND_ONE,
+	D3DBLEND_SRCCOLOR,
+	D3DBLEND_INVSRCCOLOR,
+	D3DBLEND_SRCALPHA,
+	D3DBLEND_INVSRCALPHA, 
+	D3DBLEND_DESTALPHA,
+	D3DBLEND_INVDESTALPHA
+};
 
 void SetupDeviceObjects()
 {
@@ -100,7 +127,7 @@ bool Renderer::Init()
 		h_temp = 480;
 	}
 	EmuWindow::SetSize(w_temp, h_temp);
-
+	s_blendMode = 0;
 	int backbuffer_ms_mode = 0;  // g_ActiveConfig.iMultisampleMode;
 
 	sscanf(g_Config.cFSResolution, "%dx%d", &w_temp, &h_temp);
@@ -441,24 +468,29 @@ void Renderer::SetColorMask()
 u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 {
 	
-	//Get the working buffer and it's format
+	//Get the working buffer
 	LPDIRECT3DSURFACE9 pBuffer = (type == PEEK_Z || type == POKE_Z) ? 
 		FBManager::GetEFBDepthRTSurface() : FBManager::GetEFBColorRTSurface();
-	
+	//get the temporal buffer to move 1pixel data
+	LPDIRECT3DSURFACE9 RBuffer = (type == PEEK_Z || type == POKE_Z) ? 
+		FBManager::GetEFBDepthReadSurface() : FBManager::GetEFBColorReadSurface();
+	//get the memory buffer that can be locked
 	LPDIRECT3DSURFACE9 pOffScreenBuffer = (type == PEEK_Z || type == POKE_Z) ? 
-		FBManager::GetEFBDepthRTSurface() : FBManager::GetEFBColorOffScreenRTSurface();
-
-	D3DLOCKED_RECT drect;
-	
+		FBManager::GetEFBDepthOffScreenRTSurface() : FBManager::GetEFBColorOffScreenRTSurface();
+	//get the buffer format
 	D3DFORMAT BufferFormat = (type == PEEK_Z || type == POKE_Z) ? 
 		FBManager::GetEFBDepthRTSurfaceFormat() : FBManager::GetEFBColorRTSurfaceFormat();
+	
+	D3DLOCKED_RECT drect;
+	
+	
 	//Buffer not found alert
 	if(!pBuffer) {
 		PanicAlert("No %s!", (type == PEEK_Z || type == POKE_Z) ? "Z-Buffer" : "Color EFB");
 		return 0;
 	}
 	// Z buffer lock not suported: returning
-	if((type == PEEK_Z || type == POKE_Z) && BufferFormat == D3DFMT_D24S8)
+	if((type == PEEK_Z || type == POKE_Z) && BufferFormat == D3DFMT_D24X8)
 	{
 		return 0;
 	}
@@ -472,7 +504,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 
 	TargetRectangle targetPixelRc = Renderer::ConvertEFBRectangle(efbPixelRc);
 
-
 	u32 z = 0;
 	float val = 0.0f;
 	HRESULT hr;
@@ -484,19 +515,54 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	
 	//lock the buffer
 
-	if(!(type == PEEK_Z || type == POKE_Z))
+	if(!(BufferFormat == D3DFMT_D32F_LOCKABLE || BufferFormat == D3DFMT_D16_LOCKABLE))
 	{
-		hr = D3D::dev->StretchRect(pBuffer,&RectToLock,pOffScreenBuffer,&RectToLock, D3DTEXF_NONE);
+		//the hard support stretchrect in both color and z so use it
+		hr = D3D::dev->StretchRect(pBuffer,&RectToLock,RBuffer,NULL, D3DTEXF_NONE);
+		if(FAILED(hr))
+		{
+			PanicAlert("Unable to stretch data to buffer");
+			return 0;
+		}
+		//retriebe the pixel data to the local memory buffer
+		D3D::dev->GetRenderTargetData(RBuffer,pOffScreenBuffer);
 		if(FAILED(hr))
 		{
 			PanicAlert("Unable to copy data to mem buffer");
 			return 0;
 		}
+		//change the rect to lock the entire one pixel buffer
+		RectToLock.bottom = 1;
+		RectToLock.left = 0;
+		RectToLock.right = 1;
+		RectToLock.top = 0;
 	}
-
+	else
+	{
+		//like i say in FramebufferManager this is ugly... using the pointers to decide the peek path.. but it works:) 
+		if(BufferFormat == D3DFMT_D32F_LOCKABLE &&  RBuffer == pOffScreenBuffer)
+		{
+			//we are using vista path so use updateSurface to copy depth data
+			hr = D3D::dev->UpdateSurface(pBuffer,&RectToLock,pOffScreenBuffer,NULL);
+			if(FAILED(hr))
+			{
+				PanicAlert("Unable to update data to mem buffer");
+				return 0;
+			}	
+		}
+		else
+		{
+			//we are using lockable depth buffer so  change the pointer to lock it directly
+			pOffScreenBuffer = pBuffer;
+		}
+	}
+	//the surface is good.. lock it
 	if((hr = pOffScreenBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
+	{
 		PanicAlert("ERROR: %s", hr == D3DERR_WASSTILLDRAWING ? "Still drawing" :
 											  hr == D3DERR_INVALIDCALL     ? "Invalid call" : "w00t");	
+		return 0;
+	}
 		
 	switch(type) {
 		case PEEK_Z:
@@ -505,16 +571,19 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 			{
 			case D3DFMT_D32F_LOCKABLE:
 				val = ((float *)drect.pBits)[0];
+				z = ((u32)(val * 0xffffff));// 0xFFFFFFFF;
 				break;
+			case (D3DFORMAT)MAKEFOURCC('D','F','1','6'):
 			case D3DFMT_D16_LOCKABLE:
 				val = ((float)((u16 *)drect.pBits)[0])/((float)0xFFFF);
+				z = ((u32)(val * 0xffffff));
 				break;
 			default:
-				val = 0;
+				z = ((u32 *)drect.pBits)[0] >> 8;
 				break;
 			};			
 			// [0.0, 1.0] ==> [0, 0xFFFFFFFF]
-			z = ((u32)(val * 0xffffff));// 0xFFFFFFFF;
+			
 			break;
 			}
 		case POKE_Z:
@@ -535,17 +604,12 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	}
 
 
-	pBuffer->UnlockRect();
+	pOffScreenBuffer->UnlockRect();
 
 
-	// Scale the 32-bit value returned to a 24-bit
-	// value (GC uses a 24-bit Z-buffer).
 	// TODO: in RE0 this value is often off by one, which causes lighting to disappear
-	return z;//z >> 8;
+	return z;
 	
-	DEBUGGER_PAUSE_LOG_AT(NEXT_EFB_CMD,true,{printf("AccessEFB, type = %d",type);});
-
-	return 0;
 }
 
 //		mtx.m[0][3] = pMatrix[1]; // -0.5f/s_target_width;  <-- fix d3d pixel center?
@@ -616,6 +680,45 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	D3D::dev->Clear(0, NULL, clearflags, color,(z & 0xFFFFFF) / float(0xFFFFFF), 0);	
 }
 
+void Renderer::SetBlendMode(bool forceUpdate)
+{	
+	// blend mode bit mask
+	// 0 - blend enable
+	// 2 - reverse subtract enable (else add)
+	// 3-5 - srcRGB function
+	// 6-8 - dstRGB function
+
+	u32 newval = bpmem.blendmode.subtract << 2;
+
+    if (bpmem.blendmode.subtract) {
+        newval |= 0x0049;   // enable blending src 1 dst 1
+    } else if (bpmem.blendmode.blendenable) {		
+		newval |= 1;    // enable blending
+		newval |= bpmem.blendmode.srcfactor << 3;
+		newval |= bpmem.blendmode.dstfactor << 6;
+	}
+	
+	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
+
+	if (changes & 1) {
+        // blend enable change
+		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, (newval & 1));
+		
+	}
+
+	if (changes & 4) {		
+		// subtract enable change
+		D3D::SetRenderState(D3DRS_BLENDOP, newval & 4 ? D3DBLENDOP_REVSUBTRACT : D3DBLENDOP_ADD);
+	}
+
+	if (changes & 0x1F8) {
+		// blend RGB change
+		D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[(newval >> 3) & 7]);
+		D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[(newval >> 6) & 7]);		
+	}
+
+	s_blendMode = newval;
+}
 
 
 
