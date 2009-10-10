@@ -23,8 +23,6 @@
 #include "../PowerPC.h"
 #include "../../Core.h" // include "Common.h", "CoreParameter.h"
 #include "../../HW/GPFifo.h"
-#include "../../HW/CommandProcessor.h"
-#include "../../HW/PixelEngine.h"
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
 #include "CPUDetect.h"
