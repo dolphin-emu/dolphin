@@ -116,45 +116,42 @@ bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFi
 	return false;
 }
 
-void CFileSystemGCWii::ExportApploader(const char* _rExportFolder) const
+bool CFileSystemGCWii::ExportApploader(const char* _rExportFolder) const
 {
-	char exportName[512];
+	u32 AppSize = Read32(0x2440 + 0x14) << m_OffsetShift;// apploader size
+	AppSize += Read32(0x2440 + 0x18) << m_OffsetShift;	// + trailer size
+	AppSize += 0x20;									// + header size
+	DEBUG_LOG(DISCIO,"AppSize -> %x", AppSize);
 
-	// Extract Apploader
-	// ------------------
-	// Apploader code size
-	u32 AppSize = Read32(0x2440 + 0x14) << m_OffsetShift; 
-	AppSize += Read32(0x2440 + 0x18) << m_OffsetShift; // + apptrailer size
-	AppSize += 0x20; // + the header = Apploader size! :')
-	DEBUG_LOG(DISCIO,"AppSize -> %x",AppSize);
-
-	char* buffer = new char[AppSize];
-	m_rVolume->Read(0x2440, AppSize, (u8*)buffer);
-	sprintf(exportName, "%s/apploader.ldr", _rExportFolder);
-	FILE* AppFile = fopen(exportName,"w");
-	if (!AppFile)
+	u8* buffer = new u8[AppSize];
+	if (m_rVolume->Read(0x2440, AppSize, buffer))
 	{
-		PanicAlert("Failed to create %s! canceling further extraction",exportName);
-		return;
+		char exportName[512];
+		sprintf(exportName, "%s/apploader.img", _rExportFolder);
+		FILE* AppFile = fopen(exportName, "wb");
+		if (AppFile)
+		{
+			fwrite(buffer, AppSize, 1, AppFile);
+			fclose(AppFile);
+			delete[] buffer;
+			return true;
+		}
 	}
-	fwrite(buffer, 1, AppSize, AppFile);
-	fclose(AppFile);
-	//delete[] buffer; buffer = 0;
 
-	/* TODO : This part crashes with Wii games :/
-	// Extract dol(bootfile)
-	// ---------------------
+	delete[] buffer;
+	return false;
+}
+
+bool CFileSystemGCWii::ExportDOL(const char* _rExportFolder) const
+{
 	u32 DolOffset = Read32(0x420) << m_OffsetShift;
-	u32 DolSize = 0, offset = 0, size = 0, max = 0;
-	// note DacoTaco : thank you shuffle and discscrubber :P . find it kinda of pointless to include
-	// the discscrubber just for the GetDolSize function so its copy pasta time ...
-	// TODO: fix boot.dol size. or gc-tool is again silly with size or we are wrong (more likely :/)
+	u32 DolSize, offset = 0, size = 0;
 
 	// Iterate through the 7 code segments
 	for (u8 i = 0; i < 7; i++)
 	{
-		m_rVolume->Read(DolOffset + 0x00 + i * 4, 4, (u8*)&offset);
-		m_rVolume->Read(DolOffset + 0x90 + i * 4, 4, (u8*)&size);
+		offset	= Read32(DolOffset + 0x00 + i * 4);
+		size	= Read32(DolOffset + 0x90 + i * 4);
 		if (offset + size > DolSize)
 			DolSize = offset + size;
 	}
@@ -162,26 +159,29 @@ void CFileSystemGCWii::ExportApploader(const char* _rExportFolder) const
 	// Iterate through the 11 data segments
 	for (u8 i = 0; i < 11; i++)
 	{
-		m_rVolume->Read(DolOffset + 0x1c + i * 4, 4, (u8*)&offset);
-		m_rVolume->Read(DolOffset + 0xac + i * 4, 4, (u8*)&size);
+		offset	= Read32(DolOffset + 0x1c + i * 4);
+		size	= Read32(DolOffset + 0xac + i * 4);
 		if (offset + size > DolSize)
 			DolSize = offset + size;
 	}
-	// Add header to size
-	DolSize += 0x40;
-	buffer = new char[DolSize];
-	m_rVolume->Read(DolOffset, DolSize, (u8*)&buffer);
-	sprintf(exportName, "%s/boot.dol", _rExportFolder);
-	FILE* DolFile = fopen(exportName, "w");
-	if (!DolFile)
+
+	u8* buffer = new u8[DolSize];
+	if (m_rVolume->Read(DolOffset, DolSize, buffer))
 	{
-		PanicAlert("Failed to create %s! canceling further extraction",exportName);
-		return;
+		char exportName[512];
+		sprintf(exportName, "%s/boot.dol", _rExportFolder);
+		FILE* DolFile = fopen(exportName, "wb");
+		if (DolFile)
+		{
+			fwrite(buffer, DolSize, 1, DolFile);
+			fclose(DolFile);
+			delete[] buffer;
+			return true;
+		}
 	}
-	fwrite(buffer, 1, DolSize, DolFile);
-	fclose(DolFile);
+	
 	delete[] buffer;
-	*/
+	return false;
 }
 
 u32 CFileSystemGCWii::Read32(u64 _Offset) const

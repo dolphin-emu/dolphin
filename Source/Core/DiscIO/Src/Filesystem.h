@@ -54,7 +54,8 @@ public:
 	virtual u64 GetFileSize(const char* _rFullPath) const = 0;
 	virtual u64 ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const = 0;
 	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) const = 0;
-	virtual void ExportApploader(const char* _rExportFolder) const = 0;
+	virtual bool ExportApploader(const char* _rExportFolder) const = 0;
+	virtual bool ExportDOL(const char* _rExportFolder) const = 0;
 	virtual const char* GetFileName(u64 _Address) const = 0;
 
 	virtual const IVolume *GetVolume() const { return m_rVolume; }

@@ -640,7 +640,10 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		index[0] = 0;
 		index[1] = (u32)fst.size();
 
+		// Add buttons to do this without dumping whole disc, sometime
 		FS->ExportApploader(_rExportFolder);
+		if (!DiscIO::IsVolumeWiiDisc(OpenISO))
+			FS->ExportDOL(_rExportFolder);
 	}
 	else // Look for the dir we are going to extract
 	{
