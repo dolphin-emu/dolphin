@@ -31,7 +31,7 @@
 	Core		Core.cpp			Init		Thread creation
 									EmuThread	Calls CBoot::BootUp
 				Boot.cpp			CBoot::BootUp()
-									CBoot::EmulatedBIOS_Wii() / GC() or Load_BIOS()
+									CBoot::EmulatedBS2_Wii() / GC() or Load_BS2()
  */
 // =============
 

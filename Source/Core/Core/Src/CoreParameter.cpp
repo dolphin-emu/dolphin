@@ -61,11 +61,11 @@ void SCoreStartupParameter::LoadDefaults()
 	m_strUniqueID = "00000000";
 }
 
-bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios) 
+bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2) 
 {
 	std::string Region(EUR_DIR);
 
-	switch (_BootBios)
+	switch (_BootBS2)
 	{
 	case BOOT_DEFAULT:
 		{
@@ -191,19 +191,19 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 		}
 		break;
 
-	case BOOT_BIOS_USA:
+	case BOOT_BS2_USA:
 		Region = USA_DIR;
 		m_strFilename.clear();
 		bNTSC = true;
 		break;
 
-	case BOOT_BIOS_JAP:
+	case BOOT_BS2_JAP:
 		Region = JAP_DIR;
 		m_strFilename.clear();
 		bNTSC = true;
 		break;
 
-	case BOOT_BIOS_EUR:  
+	case BOOT_BS2_EUR:  
 		Region = EUR_DIR;
 		m_strFilename.clear();
 		bNTSC = false;
@@ -216,20 +216,20 @@ bool SCoreStartupParameter::AutoSetup(EBootBios _BootBios)
 	m_strSRAM = GC_SRAM_FILE;
 	if (!bWii)
 	{
-		m_strBios = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + Region + DIR_SEP GC_IPL;
-		if (!bHLEBios)
+		m_strBootROM = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + Region + DIR_SEP GC_IPL;
+		if (!bHLE_BS2)
 		{
-			if (!File::Exists(m_strBios.c_str()))
+			if (!File::Exists(m_strBootROM.c_str()))
 			{
-				WARN_LOG(BOOT, "BIOS file %s not found - using HLE.", m_strBios.c_str());
-				bHLEBios = true;
+				WARN_LOG(BOOT, "bootrom file %s not found - using HLE.", m_strBootROM.c_str());
+				bHLE_BS2 = true;
 			}
 		}
 	}
-	else if (bWii && !bHLEBios)
+	else if (bWii && !bHLE_BS2)
 	{
-		WARN_LOG(BOOT, "GC BIOS file will not be loaded for Wii mode.");
-		bHLEBios = true;
+		WARN_LOG(BOOT, "GC bootrom file will not be loaded for Wii mode.");
+		bHLE_BS2 = true;
 	}
 
 	return true;

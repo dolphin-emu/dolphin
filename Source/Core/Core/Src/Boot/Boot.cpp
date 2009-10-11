@@ -95,8 +95,8 @@ std::string CBoot::GenerateMapFilename()
                 char tmpBuffer[32];
                 sprintf(tmpBuffer, "%08x_%08x", (u32)(TitleID >> 32) & 0xFFFFFFFF , (u32)TitleID & 0xFFFFFFFF );
                 return FULL_MAPS_DIR + std::string(tmpBuffer) + ".map";
-            }            
-        }  
+            }
+        }
         break;
 
 	case SCoreStartupParameter::BOOT_ELF:
@@ -136,17 +136,23 @@ bool CBoot::LoadMapFromFilename(const std::string &_rFilename, const char *_game
 	return success;
 }
 
-
-
-// Load a GC or Wii BIOS file
-bool CBoot::Load_BIOS(const std::string& _rBiosFilename)
+// This function does *some* of what BS1 does: loading IPL(BS2) and jumping to it
+// It does not initialize the hardware or anything else like BS1 does
+// We should eventually just load BS1 and let it take care of everything :)
+bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 {
+	// Load the whole ROM dump
 	std::string data;
-	if (!File::ReadFileToString(false, _rBiosFilename.c_str(), data))
+	if (!File::ReadFileToString(false, _rBootROMFilename.c_str(), data))
 		return false;
 
-	Memory::WriteBigEData((const u8*)data.data() + 0x820, 0x81300000, (int)data.size() - 0x820);
-    PC = 0x81300000;
+	// Run the descrambler over the encrypted section containing BS1/BS2
+	CEXIIPL::Descrambler((u8*)data.data()+0x100, 0x1AFE00);
+
+	//File::WriteStringToFile(false, data, "decrypted_bs1_bs2.bin");
+	//Memory::WriteBigEData((const u8*)data.data() + 0x100, 0x81200000, 0x700);
+	Memory::WriteBigEData((const u8*)data.data() + 0x820, 0x81300000, 0x1AFE00);
+	PC = 0x81300000;
     return true;
 }
 
@@ -189,29 +195,28 @@ bool CBoot::BootUp()
 
             DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 
-			// Use HLE BIOS or not
-            if (_StartupPara.bHLEBios)
+			// HLE BS2 or not
+            if (_StartupPara.bHLE_BS2)
             {
                 if (!VolumeHandler::IsWii())
-		            EmulatedBIOS(bDebugIsoBootup);
+		            EmulatedBS2(bDebugIsoBootup);
 				else
 				{
 					_StartupPara.bWii = true;
-					EmulatedBIOS_Wii(bDebugIsoBootup);
+					EmulatedBS2_Wii(bDebugIsoBootup);
 				}
             } 
             else
             {
-				// If we can't load the BIOS file we use the HLE BIOS instead
-                if (!Load_BIOS(_StartupPara.m_strBios))
+				// If we can't load the bootrom file we HLE it instead
+                if (!Load_BS2(_StartupPara.m_strBootROM))
                 {
-                    // fails to load a BIOS so HLE it
                     if (!VolumeHandler::IsWii())
-						EmulatedBIOS(bDebugIsoBootup);
+						EmulatedBS2(bDebugIsoBootup);
 					else
 					{
 						_StartupPara.bWii = true;
-						EmulatedBIOS_Wii(bDebugIsoBootup);
+						EmulatedBS2_Wii(bDebugIsoBootup);
 					}
                 }
             }
@@ -237,19 +242,19 @@ bool CBoot::BootUp()
 				PanicAlert("Warning - starting DOL in wrong console mode!");
 			}
 
-			// stop apploader from running when BIOS boots
+			// stop apploader from running when the BS2 HLE funcs run
 			VolumeHandler::SetVolumeName("");			
 
 			if (dolWii)
 			{                              
-				EmulatedBIOS_Wii(false);
+				EmulatedBS2_Wii(false);
 			}
 			else
 			{
 				if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultGCM.empty())
 				{
 					VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM.c_str());
-					EmulatedBIOS(false);
+					EmulatedBS2(false);
 				}
 			}
 
@@ -282,19 +287,19 @@ bool CBoot::BootUp()
 				PanicAlert("Warning - starting ELF in wrong console mode!");
 			}
 
-			// stop apploader from running when BIOS boots
+			// stop apploader from running when the BS2 HLE funcs run
 			VolumeHandler::SetVolumeName("");			
 
 			if (elfWii)
 			{                              
-				EmulatedBIOS_Wii(false);
+				EmulatedBS2_Wii(false);
 			}
 			else
 			{
 				if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultGCM.empty())
 				{
 					VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM.c_str());
-					EmulatedBIOS(false);
+					EmulatedBS2(false);
 				}
 			}
 
@@ -342,12 +347,12 @@ bool CBoot::BootUp()
 		break;
 
 
-    // BIOS
+    // Bootstrap 2 (AKA: Initial Program Loader, "BIOS")
     // ===================================================================================
-    case SCoreStartupParameter::BOOT_BIOS:
+    case SCoreStartupParameter::BOOT_BS2:
         {
             DVDInterface::SetDiscInside(VolumeHandler::IsValid());
-            if (Load_BIOS(_StartupPara.m_strBios))
+            if (Load_BS2(_StartupPara.m_strBootROM))
             {
                 if (LoadMapFromFilename(_StartupPara.m_strFilename))
 					HLE::PatchFunctions();

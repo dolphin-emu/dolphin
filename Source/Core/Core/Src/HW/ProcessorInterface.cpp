@@ -36,9 +36,10 @@ enum
 	PI_FIFO_BASE            = 0x0C,
 	PI_FIFO_END             = 0x10,
 	PI_FIFO_WPTR            = 0x14,
-	PI_FIFO_RESET           = 0x18, // ??? - GXAbortFrameWrites to it
+	PI_FIFO_RESET           = 0x18, // ??? - GXAbortFrame writes to it
 	PI_RESET_CODE           = 0x24,
 	PI_MB_REV               = 0x2C,
+	PI_UNKNOWN				= 0x30 // ??? - BS1 writes to it
 };
 
 
@@ -49,9 +50,11 @@ volatile u32 m_InterruptMask;
 u32 Fifo_CPUBase;
 u32 Fifo_CPUEnd;
 u32 Fifo_CPUWritePointer;
+
 u32 m_Fifo_Reset;
 u32 m_ResetCode;
 u32 m_MBRev;
+u32 m_Unknown;
 
 
 // ID and callback for scheduling reset button presses/releases
@@ -69,10 +72,10 @@ void DoState(PointerWrap &p)
 	p.Do(Fifo_CPUBase);
 	p.Do(Fifo_CPUEnd);
 	p.Do(Fifo_CPUWritePointer);
-// (shuffle2) Enable sometime ;p
-// 	p.Do(m_Fifo_Reset);
-// 	p.Do(m_ResetCode);
-// 	p.Do(m_MBRev);
+ 	p.Do(m_Fifo_Reset);
+ 	p.Do(m_ResetCode);
+ 	p.Do(m_MBRev);
+	p.Do(m_Unknown);
 }
 
 void Init()
@@ -85,6 +88,7 @@ void Init()
 	Fifo_CPUWritePointer = 0;
 
 	m_MBRev = 2 << 28; // HW2 production board
+	m_Unknown = 0;
 
 	// Bleh, why?
 	//m_ResetCode |= 0x80000000;

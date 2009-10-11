@@ -26,13 +26,15 @@ class CEXIIPL : public IEXIDevice
 public:
 	CEXIIPL();
 	virtual ~CEXIIPL();
+
 	virtual void SetCS(int _iCS);
 	bool IsPresent();
-	static u32 GetGCTime();
 	void DoState(PointerWrap &p);
 
-private:
+	static u32 GetGCTime();
+	static void Descrambler(u8* data, u32 size);
 
+private:
 	enum
 	{
 		ROM_SIZE = 1024*1024*2,
@@ -59,10 +61,11 @@ private:
 
 	char m_szBuffer[256];
 	int m_count;
+	bool m_FontsLoaded;
 
 	virtual void TransferByte(u8 &_uByte);
 
-	void LoadFileToIPL(const char* filename, u32 offset);
+	void LoadFileToIPL(std::string filename, u32 offset);
 };
 
 #endif

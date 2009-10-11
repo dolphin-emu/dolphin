@@ -44,13 +44,12 @@ void CBoot::RunFunction(u32 _iAddr)
 }
 
 // __________________________________________________________________________________________________
-//
-// GameCube BIOS HLE: 
+// GameCube Bootstrap 2 HLE: 
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
-void CBoot::EmulatedBIOS(bool _bDebug)
+void CBoot::EmulatedBS2(bool _bDebug)
 {
-	INFO_LOG(BOOT, "Faking GC BIOS...");
+	INFO_LOG(BOOT, "Faking GC BS2...");
 	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 	m_MSR.FP = 1;
 
@@ -153,14 +152,14 @@ void CBoot::EmulatedBIOS(bool _bDebug)
 	// return
 	PC = PowerPC::ppcState.gpr[3];
 
-	// --- preinit some stuff from bios ---
+	// --- preinit some stuff from IPL ---
 
 	// Bus Clock Speed
 	Memory::Write_U32(0x09a7ec80, 0x800000F8);
 	// CPU Clock Speed
 	Memory::Write_U32(0x1cf7c580, 0x800000FC);
 
-	// fake the VI Init of the BIOS 
+	// fake the VI Init of the IPL 
 	Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC 
 			  ? 0 : 1, 0x800000CC);
 
@@ -277,7 +276,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	Memory::Write_U16(0x0000, 0x000030e0);			// PADInit
 	Memory::Write_U32(0x80000000, 0x00003184);		// GameID Address
 
-	// Fake the VI Init of the BIOS 
+	// Fake the VI Init of the IPL 
 	Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC ? 0 : 1, 0x000000CC);
 
 	// Clear exception handler. Why? Don't we begin with only zeros?
@@ -289,14 +288,12 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 }
 
 // __________________________________________________________________________________________________
-//
-// Wii BIOS HLE: 
+// Wii Bootstrap 2 HLE: 
 // copy the apploader to 0x81200000
 // execute the apploader
-//
-bool CBoot::EmulatedBIOS_Wii(bool _bDebug)
+bool CBoot::EmulatedBS2_Wii(bool _bDebug)
 {	
-	INFO_LOG(BOOT, "Faking Wii BIOS...");
+	INFO_LOG(BOOT, "Faking Wii BS2...");
 
 	// setup wii memory
 	DiscIO::IVolume::ECountry CountryCode = DiscIO::IVolume::COUNTRY_UNKNOWN;

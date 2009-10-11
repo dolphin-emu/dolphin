@@ -51,7 +51,7 @@ std::string Summarize_Settings()
 {
 	return StringFromFormat(
 		"Dolphin Settings\n\n"
-		"Always HLE Bios: %s\n"
+		"HLE the IPL: %s\n"
 		"Use Dynarec: %s\n"
 		"Use Dual Core: %s\n"
 		"DSP Thread: %s\n"
@@ -74,7 +74,7 @@ std::string Summarize_Settings()
 		"Frame Limit: %d\n"
 		"[Wii]Widescreen: %s\n"
 		"[Wii]Progressive Scan: %s\n",
-		Core::GetStartupParameter().bHLEBios?"True":"False",
+		Core::GetStartupParameter().bHLE_BS2?"True":"False",
 		Core::GetStartupParameter().bUseJIT?"True":"False",
 		Core::GetStartupParameter().bUseDualCore?"True":"False",
 		Core::GetStartupParameter().bDSPThread?"True":"False",

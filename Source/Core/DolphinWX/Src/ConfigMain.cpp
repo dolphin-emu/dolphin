@@ -47,7 +47,7 @@ EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_LEDS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_SPEAKERS, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::CoreSettingsChanged)
 
-EVT_CHECKBOX(ID_ALLWAYS_HLEBIOS, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_ALLWAYS_HLE_BS2, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDYNAREC, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDUALCORE, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_DSPTHREAD, CConfigMain::CoreSettingsChanged)
@@ -119,7 +119,7 @@ void CConfigMain::UpdateGUI()
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		// Disable the Core stuff on GeneralPage
-		AlwaysUseHLEBIOS->Disable();
+		AlwaysHLE_BS2->Disable();
 		UseDynaRec->Disable();
 		UseDualCore->Disable();
 		DSPThread->Disable();
@@ -206,8 +206,8 @@ void CConfigMain::CreateGUIControls()
 	Framelimit->SetSelection(SConfig::GetInstance().m_Framelimit);
 
 	// Core Settings - Advanced
-	AlwaysUseHLEBIOS = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLEBIOS, wxT("HLE the BIOS all the time"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	AlwaysUseHLEBIOS->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios);
+	AlwaysHLE_BS2 = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLE_BS2, wxT("Always HLE the IPL"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	AlwaysHLE_BS2->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2);
 	UseDynaRec = new wxCheckBox(GeneralPage, ID_USEDYNAREC, wxT("Enable the JIT dynarec"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UseDynaRec->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT);
 	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -296,7 +296,7 @@ void CConfigMain::CreateGUIControls()
 	sbBasic->Add(sFramelimit, 0, wxALL | wxEXPAND, 5);
 
 	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
-	sbAdvanced->Add(AlwaysUseHLEBIOS, 0, wxALL, 5);
+	sbAdvanced->Add(AlwaysHLE_BS2, 0, wxALL, 5);
 	sbAdvanced->Add(UseDynaRec, 0, wxALL, 5);
 	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
 	sbAdvanced->Add(OptimizeQuantizers, 0, wxALL, 5);
@@ -630,8 +630,8 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	case ID_FRAMELIMIT:
 		SConfig::GetInstance().m_Framelimit = (u32)Framelimit->GetSelection();
 		break;
-	case ID_ALLWAYS_HLEBIOS: // Core
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLEBios = AlwaysUseHLEBIOS->IsChecked();
+	case ID_ALLWAYS_HLE_BS2: // Core
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2 = AlwaysHLE_BS2->IsChecked();
 		break;
 	case ID_USEDYNAREC:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT = UseDynaRec->IsChecked();

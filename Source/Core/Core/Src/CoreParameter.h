@@ -60,7 +60,7 @@ struct SCoreStartupParameter
 	bool bDSPThread;
 	bool bSkipIdle;
 	bool bNTSC;
-	bool bHLEBios;
+	bool bHLE_BS2;
 	bool bUseFastMem;
 	bool bLockThreads;
 	bool bOptimizeQuantizers;
@@ -81,12 +81,12 @@ struct SCoreStartupParameter
 	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers;
 	int iTheme; 
 	
-	enum EBootBios
+	enum EBootBS2
 	{
 		BOOT_DEFAULT,
-		BOOT_BIOS_JAP,
-		BOOT_BIOS_USA,
-		BOOT_BIOS_EUR,
+		BOOT_BS2_JAP,
+		BOOT_BS2_USA,
+		BOOT_BS2_EUR,
 	};
 
 	enum EBootType
@@ -95,7 +95,7 @@ struct SCoreStartupParameter
 		BOOT_ELF,
 		BOOT_DOL,
 		BOOT_WII_NAND,
-		BOOT_BIOS
+		BOOT_BS2
 	};
 	EBootType m_BootType;
 
@@ -106,7 +106,7 @@ struct SCoreStartupParameter
 	std::string m_strWiimotePlugin[MAXWIIMOTES];
 
 	std::string m_strFilename;
-	std::string m_strBios;
+	std::string m_strBootROM;
 	std::string m_strSRAM;
 	std::string m_strDefaultGCM;
 	std::string m_strDVDRoot;
@@ -118,7 +118,7 @@ struct SCoreStartupParameter
 	SCoreStartupParameter();
 
 	void LoadDefaults();
-	bool AutoSetup(EBootBios _BootBios);
+	bool AutoSetup(EBootBS2 _BootBS2);
 	const std::string &GetUniqueID() const { return m_strUniqueID; }
 	void CheckMemcardPath(std::string& memcardPath, std::string Region, bool isSlotA);
 };

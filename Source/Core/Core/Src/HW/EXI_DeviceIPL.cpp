@@ -58,27 +58,91 @@ static const char iplverPAL[0x100] = "(C) 1999-2001 Nintendo.  All rights reserv
 static const char iplverNTSC[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
 									 "(C) 1999 ArtX Inc.  All rights reserved.";
 
+// segher is a supercomputer
+void CEXIIPL::Descrambler(u8* data, u32 size)
+{
+	u8 acc = 0;
+	u8 nacc = 0;
+
+	u16 t = 0x2953;
+	u16 u = 0xd9c2;
+	u16 v = 0x3ff1;
+
+	u8 x = 1;
+
+	for (u32 it = 0; it < size;)
+	{
+		int t0 = t & 1;
+		int t1 = (t >> 1) & 1;
+		int u0 = u & 1;
+		int u1 = (u >> 1) & 1;
+		int v0 = v & 1;
+
+		x ^= t1 ^ v0;
+		x ^= (u0 | u1);
+		x ^= (t0 ^ u1 ^ v0) & (t0 ^ u0);
+
+		if (t0 == u0)
+		{
+			v >>= 1;
+			if (v0)
+				v ^= 0xb3d0;
+		}
+
+		if (t0 == 0)
+		{
+			u >>= 1;
+			if (u0)
+				u ^= 0xfb10;
+		}
+
+		t >>= 1;
+		if (t0)
+			t ^= 0xa740;
+
+		nacc++;
+		acc = 2*acc + x;
+		if (nacc == 8)
+		{
+			data[it++] ^= acc;
+			nacc = 0;
+		}
+	}
+}
 
 CEXIIPL::CEXIIPL() :
 	m_uPosition(0),
 	m_uAddress(0),
 	m_uRWOffset(0),
-	m_count(0)
+	m_count(0),
+	m_FontsLoaded(false)
 {
 	// Determine region
 	m_bNTSC = SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC;
 
 	// Create the IPL
 	m_pIPL = (u8*)AllocateMemoryPages(ROM_SIZE);
+	
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2)
+	{
+		// Copy header
+		memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL, sizeof(m_bNTSC ? iplverNTSC : iplverPAL));
 
-	// Copy header
-	memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL, sizeof(m_bNTSC ? iplverNTSC : iplverPAL));
+		// Load fonts
+		LoadFileToIPL((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SJIS), 0x1aff00);
+		LoadFileToIPL((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_ANSI), 0x1fcf00);
+	}
+	else
+	{
+		m_FontsLoaded = true;
+		// Load whole ROM dump
+		LoadFileToIPL(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strBootROM, 0);
+		// Descramble the encrypted section (contains BS1 and BS2)
+		Descrambler(m_pIPL + 0x100, 0x1aff00);
+		INFO_LOG(BOOT, "Loaded bootrom: %s", m_pIPL); // yay for null-terminated strings ;p
+	}
 
-	// Load fonts
-	LoadFileToIPL((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SJIS).c_str(), 0x001aff00);
-	LoadFileToIPL((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_ANSI).c_str(), 0x001fcf00);
-
-	// Clear RTC 
+	// Clear RTC
 	memset(m_RTC, 0, sizeof(m_RTC));
 
 	// SRAM
@@ -92,7 +156,7 @@ CEXIIPL::CEXIIPL() :
     {
 		m_SRAM = sram_dump;
     }
-    // We Overwrite it here since it's possible on the GC to change the language as you please
+    // We Overwrite language selection here since it's possible on the GC to change the language as you please
 	m_SRAM.syssram.lang = SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage;
 
 	WriteProtectMemory(m_pIPL, ROM_SIZE);
@@ -110,7 +174,7 @@ CEXIIPL::~CEXIIPL()
 	{
 		FreeMemoryPages(m_pIPL, ROM_SIZE);
 		m_pIPL = NULL;
-	}	
+	}
 
     // SRAM
     FILE *file = fopen(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM.c_str(), "wb");
@@ -122,15 +186,12 @@ CEXIIPL::~CEXIIPL()
 }
 void CEXIIPL::DoState(PointerWrap &p)
 {
-	// commented out to not break current savestates
-	// TODO: uncomment when adding the next savestate change
-	//p.DoArray(m_RTC, 4);
+	p.DoArray(m_RTC, 4);
 }
 
-void CEXIIPL::LoadFileToIPL(const char* filename, u32 offset)
+void CEXIIPL::LoadFileToIPL(std::string filename, u32 offset)
 {
-	FILE* pStream = NULL;
-	pStream = fopen(filename, "rb");
+	FILE* pStream = fopen(filename.c_str(), "rb");
 	if (pStream != NULL)
 	{
 		fseek(pStream, 0, SEEK_END);
@@ -139,13 +200,8 @@ void CEXIIPL::LoadFileToIPL(const char* filename, u32 offset)
 
 		fread(m_pIPL + offset, 1, filesize, pStream);
 		fclose(pStream);
-	}
-	else
-	{
-		// This is a poor way to handle failure.  We should either not display this message unless fonts
-		// are actually accessed, or better yet, emulate them using a system font.  -bushing
-		PanicAlert("Error: failed to load %s. Fonts in a few games may not work, or crash the game.",
-			filename);
+
+		m_FontsLoaded = true;
 	}
 }
 
@@ -229,41 +285,34 @@ void CEXIIPL::TransferByte(u8& _uByte)
 	} 
 	else
 	{
-		//
-		// --- ROM ---
-		//
+		// --- Encrypted ROM ---
+		// atm we pre-decrypt the whole thing, see CEXIIPL ctor
 		if ((m_uAddress & 0x60000000) == 0)
 		{
 			if ((m_uAddress & 0x80000000) == 0)
-				_uByte = m_pIPL[((m_uAddress >> 6) & ROM_MASK) + m_uRWOffset];
-#if 0
-			u32 position = ((m_uAddress >> 6) & ROM_MASK) + m_uRWOffset;
-				char msg[5] = "";
-				if (position >= 0 &&  position < 0x100)
-					sprintf(msg, "COPY");
-				else if (position >= 0x00000100 &&  position <= 0x001aeee8)
-					sprintf(msg, "BIOS");
-				else if (position >= 0x001AFF00 &&  position <= 0x001FA0E0)
-					sprintf(msg, "SJIS");
-				else if (position >= 0x001FCF00 &&  position <= 0x001FF474)
-					sprintf(msg, "ANSI");
-				WARN_LOG(EXPANSIONINTERFACE, "m_pIPL[0x%08x] = 0x%02x %s\t0x%08x 0x%08x 0x%08x",
-					position, _uByte, msg, m_uPosition,m_uAddress,m_uRWOffset);
-#endif
+			{
+				u32 position = ((m_uAddress >> 6) & ROM_MASK) + m_uRWOffset;
+
+				// Technically we should apply descrambling here, if it's currently enabled.
+				_uByte = m_pIPL[position];
+
+				if ((position >= 0x001AFF00) && (position <= 0x001FF474) && !m_FontsLoaded)
+				{
+					PanicAlert("Error: Trying to access %s fonts but they are not loaded. Games may not show fonts correctly, or crash.",
+						(position >= 0x001FCF00)?"ANSI":"SJIS");
+					m_FontsLoaded = true; // Don't be a nag :p
+				}
+			}
 		} 
-		//
 		// --- Real Time Clock (RTC) ---
-		//
 		else if ((m_uAddress & 0x7FFFFF00) == 0x20000000)
 		{
 			if (m_uAddress & 0x80000000)
 				m_RTC[(m_uAddress & 0x03) + m_uRWOffset] = _uByte;
 			else
 				_uByte = m_RTC[(m_uAddress & 0x03) + m_uRWOffset];
-		} 
-		//
+		}
 		// --- SRAM ---
-		//
 		else if ((m_uAddress & 0x7FFFFF00) == 0x20000100)
 		{
 			if (m_uAddress & 0x80000000)
@@ -271,9 +320,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			else
 				_uByte = m_SRAM.p_SRAM[(m_uAddress & 0x3F) + m_uRWOffset];
 		}
-		//
 		// --- UART ---
-		//
 		else if ((m_uAddress & 0x7FFFFF00) == 0x20010000)
 		{
 			if (m_uAddress & 0x80000000)

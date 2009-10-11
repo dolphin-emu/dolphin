@@ -22,7 +22,7 @@ class PointerWrap;
 
 namespace VideoInterface
 {
-	// For BIOS HLE
+	// For BS2 HLE
 	void PreInit(bool _bNTSC);
 	void SetRegionReg(char _region);
 

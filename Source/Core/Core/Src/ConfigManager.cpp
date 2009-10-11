@@ -96,7 +96,7 @@ void SConfig::SaveSettings()
 		ini.Set("GameList", "ListUsa",		m_ListUsa);
 
 		// Core
-		ini.Set("Core", "HLEBios",			m_LocalCoreStartupParameter.bHLEBios);
+		ini.Set("Core", "HLE_BS2",			m_LocalCoreStartupParameter.bHLE_BS2);
 		ini.Set("Core", "UseDynarec",		m_LocalCoreStartupParameter.bUseJIT);
 		ini.Set("Core", "UseDualCore",		m_LocalCoreStartupParameter.bUseDualCore);
 		ini.Set("Core", "DSPThread",		m_LocalCoreStartupParameter.bDSPThread);
@@ -208,7 +208,7 @@ void SConfig::LoadSettings()
 		ini.Get("GameList", "ListUsa",		&m_ListUsa, true);
 
 		// Core
-		ini.Get("Core", "HLEBios",     &m_LocalCoreStartupParameter.bHLEBios,     true);
+		ini.Get("Core", "HLE_BS2",     &m_LocalCoreStartupParameter.bHLE_BS2,     true);
 		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseJIT,      true);
 		ini.Get("Core", "DSPThread",   &m_LocalCoreStartupParameter.bDSPThread,   true);
 		ini.Get("Core", "UseDualCore", &m_LocalCoreStartupParameter.bUseDualCore, false);

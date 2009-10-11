@@ -62,7 +62,7 @@ private:
 
 	wxBoxSizer* sCore;
 	wxStaticBoxSizer* sbBasic, *sbAdvanced, *sbInterface;
-	wxCheckBox* AlwaysUseHLEBIOS;
+	wxCheckBox* AlwaysHLE_BS2;
 	wxCheckBox* UseDynaRec;
 	wxCheckBox* UseDualCore;
 	wxCheckBox* DSPThread;
@@ -153,7 +153,7 @@ private:
 		ID_PATHSPAGE,
 		ID_PLUGINPAGE,
 
-		ID_ALLWAYS_HLEBIOS,
+		ID_ALLWAYS_HLE_BS2,
 		ID_USEDYNAREC,
 		ID_USEDUALCORE,
 		ID_DSPTHREAD,

@@ -36,8 +36,6 @@ public:
 	static bool Install_WiiWAD(const char *filename);
 
 private:
-	enum { BIOS_SIZE = 2*1024*1024 };
-
 	static void RunFunction(u32 _iAddr);
 
 	static void UpdateDebugger_MapLoaded(const char* _gameID = NULL);
@@ -46,9 +44,9 @@ private:
 	static bool Boot_ELF(const char *filename);
 	static bool Boot_WiiWAD(const char *filename);
 
-	static void EmulatedBIOS(bool _bDebug);
-	static bool EmulatedBIOS_Wii(bool _bDebug);
-    static bool Load_BIOS(const std::string& _rBiosFilename);
+	static void EmulatedBS2(bool _bDebug);
+	static bool EmulatedBS2_Wii(bool _bDebug);
+    static bool Load_BS2(const std::string& _rBootROMFilename);
 	static void Load_FST(bool _bIsWii);
 
     static bool SetupWiiMemory(unsigned int _CountryCode);
