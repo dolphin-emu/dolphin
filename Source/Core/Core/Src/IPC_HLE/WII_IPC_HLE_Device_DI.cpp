@@ -32,8 +32,8 @@
 using namespace DVDInterface;
 
 
-#define DI_COVER_REG_INITIALIZED	0x40
-#define DI_COVER_REG_NO_DISC		0x01
+#define DI_COVER_REG_INITIALIZED	0 // Should be 4, but doesn't work correctly...
+#define DI_COVER_REG_NO_DISC		1
 
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName )
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
@@ -166,10 +166,10 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		{
 			// (shuffle2) Taken from my wii
 			Memory::Write_U32(0x00000002, _BufferOut);
-			Memory::Write_U32(0x20060526, _BufferOut);
+			Memory::Write_U32(0x20060526, _BufferOut + 4);
 			// This was in the oubuf even though this cmd is only supposed to reply with 64bits
 			// However, this and other tests strongly suggest that the buffer is static, and it's never - or rarely cleared.
-			Memory::Write_U32(0x41000000, _BufferOut);
+			Memory::Write_U32(0x41000000, _BufferOut + 8);
 
 			INFO_LOG(WII_IPC_DVD, "DVDLowInquiry (Buffer 0x%08x, 0x%x)",
 				_BufferOut, _BufferOutSize);
