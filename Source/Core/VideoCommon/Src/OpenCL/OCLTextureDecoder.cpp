@@ -29,7 +29,7 @@
     
 struct sDecoders
 {
-    cl_program program;                 // compute program
+    const char name[256];               // kernel name
     cl_kernel kernel;                   // compute kernel
 };
 
@@ -86,11 +86,28 @@ kernel void DecodeIA4(global ushort *dst,                     \n\
         srcOffset++;                                          \n\
     }                                                         \n\
 }                                                             \n\
+                                                              \n\
+kernel void DecodeDXT(global ulong *dst,                      \n\
+                      const global ulong *src, int width)     \n\
+{   // TODO: PLEASE NOTE THAT THIS CODE DOES NOT WORK         \n\
+    int x = get_global_id(0) * 8, y = get_global_id(1) * 8;   \n\
+    int srcOffset = ((x * 4) + (y * width)) / 8;              \n\
+    for (int iy = 0; iy < 4; iy++)                            \n\
+    {                                                         \n\
+        vstore8(vload8(srcOffset, src),                       \n\
+                0, dst + ((y + iy)*width + x));               \n\
+        srcOffset++;                                          \n\
+    }                                                         \n\
+}                                                             \n\
 ";
 
-sDecoders Decoders[] = { {NULL, NULL},
-						 {NULL, NULL}, 
-						 {NULL, NULL},
+cl_program g_program;
+// NULL terminated set of kernels
+sDecoders Decoders[] = { {"DecodeI8", NULL},
+						 {"DecodeIA4", NULL}, 
+						 {"DecodeIA8", NULL},
+						 {"DecodeDXT", NULL},
+						 {"", NULL},
 };
 
 bool g_Inited = false;
@@ -109,11 +126,13 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 			return PC_TEX_FMT_NONE;
 
 		
-		Decoders[0].program = OpenCL::CompileProgram(Kernel);
+		g_program = OpenCL::CompileProgram(Kernel);
 
-		Decoders[0].kernel = OpenCL::CompileKernel(Decoders[0].program, "DecodeI8");
-		Decoders[1].kernel = OpenCL::CompileKernel(Decoders[0].program, "DecodeIA4");
-		Decoders[2].kernel = OpenCL::CompileKernel(Decoders[0].program, "DecodeIA8");
+		int i = 0;
+		while(strlen(Decoders[i].name) > 0) {
+			Decoders[i].kernel = OpenCL::CompileKernel(g_program, Decoders[i].name);
+			i++;
+		}
 
 		g_Inited = true;
 	}
@@ -136,12 +155,20 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 			formatResult = PC_TEX_FMT_I8;
 			break;
 		case GX_TF_IA8:
+			//return PC_TEX_FMT_NONE; // <-- TODO: Fix IA8
 			kernelToRun = Decoders[2].kernel;
 			sizeOfSrc = sizeOfDst = sizeof(u16);
 			xSkip = 4;
 			ySkip = 4;
 			formatResult = PC_TEX_FMT_IA8;
 			break;
+		case GX_TF_CMPR:
+			return PC_TEX_FMT_NONE; // <-- TODO: Fix CMPR
+			kernelToRun = Decoders[3].kernel;
+			sizeOfSrc = sizeOfDst = sizeof(u32);
+			xSkip = 8;
+			ySkip = 8;
+			formatResult = PC_TEX_FMT_BGRA32;
 		default:
 			return PC_TEX_FMT_NONE;
 	}
