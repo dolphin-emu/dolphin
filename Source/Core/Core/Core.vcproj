@@ -711,14 +711,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\Src\HW\EXI_DeviceAMBaseboard.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\HW\EXI_DeviceAMBaseboard.h"
-					>
-				</File>
-				<File
 					RelativePath=".\Src\HW\EXI_DeviceEthernet.cpp"
 					>
 				</File>
@@ -788,14 +780,6 @@
 				</File>
 				<File
 					RelativePath=".\Src\HW\SI_Device.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\HW\SI_DeviceAMBaseboard.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\HW\SI_DeviceAMBaseboard.h"
 					>
 				</File>
 				<File
