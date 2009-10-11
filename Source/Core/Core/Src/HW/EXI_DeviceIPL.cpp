@@ -134,7 +134,6 @@ CEXIIPL::CEXIIPL() :
 	}
 	else
 	{
-		m_FontsLoaded = true;
 		// Load whole ROM dump
 		LoadFileToIPL(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strBootROM, 0);
 		// Descramble the encrypted section (contains BS1 and BS2)
