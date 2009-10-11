@@ -230,87 +230,78 @@ void Shutdown()
 
 void Read16(u16& _uReturnValue, const u32 _iAddress)
 {
-	// WTF is this check about? DSP is at 5000    TODO remove
-	if ((_iAddress & 0x6C00) != 0x6c00)
+	switch (_iAddress & 0xFFFF)
 	{
-		switch (_iAddress & 0xFFFF)
-		{
 		// AI_REGS 0x5000+
-		case DSP_MAIL_TO_DSP_HI:
-			_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(true);
-			break;
+	case DSP_MAIL_TO_DSP_HI:
+		_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(true);
+		break;
 
-		case DSP_MAIL_TO_DSP_LO:
-			_uReturnValue = dsp_plugin->DSP_ReadMailboxLow(true);
-			break;
+	case DSP_MAIL_TO_DSP_LO:
+		_uReturnValue = dsp_plugin->DSP_ReadMailboxLow(true);
+		break;
 
-		case DSP_MAIL_FROM_DSP_HI:
-			_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(false);
-			break;
+	case DSP_MAIL_FROM_DSP_HI:
+		_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(false);
+		break;
 
-		case DSP_MAIL_FROM_DSP_LO:
-			_uReturnValue = dsp_plugin->DSP_ReadMailboxLow(false);
-			break;
+	case DSP_MAIL_FROM_DSP_LO:
+		_uReturnValue = dsp_plugin->DSP_ReadMailboxLow(false);
+		break;
 
-		case DSP_CONTROL:
-			_uReturnValue = (g_dspState.DSPControl.Hex & ~DSP_CONTROL_MASK) |
-							(dsp_plugin->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
-			break;
+	case DSP_CONTROL:
+		_uReturnValue = (g_dspState.DSPControl.Hex & ~DSP_CONTROL_MASK) |
+			(dsp_plugin->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
+		break;
 
 		// AR_REGS 0x501x+
-		case 0x5012:
-			_uReturnValue = g_AR_MODE;
-			break;
+	case 0x5012:
+		_uReturnValue = g_AR_MODE;
+		break;
 
-		case 0x5016:		// ready flag?
-			_uReturnValue = g_AR_READY_FLAG;			
-			break;
+	case 0x5016:		// ready flag?
+		_uReturnValue = g_AR_READY_FLAG;			
+		break;
 
-		case 0x501a:
-			_uReturnValue = 0x000;
-			break;
+	case 0x501a:
+		_uReturnValue = 0x000;
+		break;
 
-		case AR_DMA_MMADDR_H: _uReturnValue = g_arDMA.MMAddr >> 16; return;
-		case AR_DMA_MMADDR_L: _uReturnValue = g_arDMA.MMAddr & 0xFFFF; return;
-		case AR_DMA_ARADDR_H: _uReturnValue = g_arDMA.ARAddr >> 16; return;
-		case AR_DMA_ARADDR_L: _uReturnValue = g_arDMA.ARAddr & 0xFFFF; return;
-		case AR_DMA_CNT_H:    _uReturnValue = g_arDMA.Cnt.Hex >> 16; return;
-		case AR_DMA_CNT_L:    _uReturnValue = g_arDMA.Cnt.Hex & 0xFFFF; return;
+	case AR_DMA_MMADDR_H: _uReturnValue = g_arDMA.MMAddr >> 16; return;
+	case AR_DMA_MMADDR_L: _uReturnValue = g_arDMA.MMAddr & 0xFFFF; return;
+	case AR_DMA_ARADDR_H: _uReturnValue = g_arDMA.ARAddr >> 16; return;
+	case AR_DMA_ARADDR_L: _uReturnValue = g_arDMA.ARAddr & 0xFFFF; return;
+	case AR_DMA_CNT_H:    _uReturnValue = g_arDMA.Cnt.Hex >> 16; return;
+	case AR_DMA_CNT_L:    _uReturnValue = g_arDMA.Cnt.Hex & 0xFFFF; return;
 
 		// DMA_REGS 0x5030+
-		case AUDIO_DMA_BYTES_LEFT:
-			// Hmm. Would be stupid to ask for bytes left. Assume it wants
-			// blocks left.
-			_uReturnValue = g_audioDMA.BlocksLeft;
-			break;
+	case AUDIO_DMA_BYTES_LEFT:
+		// Hmm. Would be stupid to ask for bytes left. Assume it wants
+		// blocks left.
+		_uReturnValue = g_audioDMA.BlocksLeft;
+		break;
 
-		case AUDIO_DMA_START_LO:
-			_uReturnValue = g_audioDMA.SourceAddress & 0xFFFF;
-			break;
+	case AUDIO_DMA_START_LO:
+		_uReturnValue = g_audioDMA.SourceAddress & 0xFFFF;
+		break;
 
-		case AUDIO_DMA_START_HI:
-			_uReturnValue = g_audioDMA.SourceAddress >> 16;
-			break;
+	case AUDIO_DMA_START_HI:
+		_uReturnValue = g_audioDMA.SourceAddress >> 16;
+		break;
 
-		case AUDIO_DMA_CONTROL_LEN:
-			_uReturnValue = g_audioDMA.AudioDMAControl.Hex;
-			break;
+	case AUDIO_DMA_CONTROL_LEN:
+		_uReturnValue = g_audioDMA.AudioDMAControl.Hex;
+		break;
 
-		default:
-			_dbg_assert_(DSPINTERFACE,0);
-			break;
-		}
-		if (_iAddress != 0xCC005004)
-		{
-			DEBUG_LOG(DSPINTERFACE, "DSPInterface(r16) 0x%08x (%02x)  (%08x)", _iAddress, _uReturnValue, PowerPC::ppcState.pc);
-		}
-		return;
-	}
-	else
-	{
+	default:
 		_dbg_assert_(DSPINTERFACE,0);
+		break;
 	}
-	_uReturnValue = 0x000;
+
+	if (_iAddress != (0xCC000000 + DSP_MAIL_FROM_DSP_HI))
+	{
+		DEBUG_LOG(DSPINTERFACE, "DSPInterface(r16) 0x%08x (%02x)  (%08x)", _iAddress, _uReturnValue, PowerPC::ppcState.pc);
+	}
 }
 
 void Write16(const u16 _Value, const u32 _Address)

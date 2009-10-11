@@ -33,7 +33,7 @@ void DoState(PointerWrap &p);
 
 void Update();
 
-// Calls by DSP plugin
+// Called by DSP plugin
 u32 Callback_GetStreaming(short* _pDestBuffer, u32 _numSamples);
 
 void Read32(u32& _uReturnValue, const u32 _iAddress);
