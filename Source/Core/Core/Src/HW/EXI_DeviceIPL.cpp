@@ -268,6 +268,14 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			{
 				DEBUG_LOG(EXPANSIONINTERFACE,  "EXI IPL-DEV: UART");
 			}
+			else if ((m_uAddress & 0x7FFFFF00) == 0x20011300)
+			{
+				DEBUG_LOG(EXPANSIONINTERFACE,  "EXI IPL-DEV: UART Barnacle");
+			}
+			else if ((m_uAddress & 0x7FFFFF00) == 0x20010300)
+			{
+				DEBUG_LOG(EXPANSIONINTERFACE,  "EXI IPL-DEV: UART Other?");
+			}
             else if (((m_uAddress & 0x7FFFFF00) == 0x21000000) ||
                     ((m_uAddress & 0x7FFFFF00) == 0x21000100) ||
                     ((m_uAddress & 0x7FFFFF00) == 0x21000800))
@@ -336,6 +344,15 @@ void CEXIIPL::TransferByte(u8& _uByte)
 			}
 			else
 				_uByte = 0x01; // dunno
+		}
+		else if ((m_uAddress & 0x7FFFFF00) == 0x20011300)
+		{
+			INFO_LOG(OSREPORT, "UART Barnacle %x", _uByte);
+		}
+		else if ((m_uAddress & 0x7FFFFF00) == 0x20010300)
+		{
+			INFO_LOG(OSREPORT, "UART? %x", _uByte);
+			_uByte = 0xff;
 		}
         else if (((m_uAddress & 0x7FFFFF00) == 0x21000000) ||
                 ((m_uAddress & 0x7FFFFF00) == 0x21000100) ||
