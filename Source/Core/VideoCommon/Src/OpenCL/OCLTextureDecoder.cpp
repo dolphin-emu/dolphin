@@ -48,6 +48,12 @@ kernel void DecodeI8(global uchar *dst,                       \n\
     }                                                         \n\
 }                                                             \n\
                                                               \n\
+                                                              \n\
+ushort swapbytes(ushort x) {                                  \n\
+    return (x & 0xf00f) | ((x >> 4) & 0x00f0) |               \n\
+           ((x << 4) & 0x0f00);                               \n\
+}                                                             \n\
+                                                              \n\
 kernel void DecodeIA4(global ushort *dst,                     \n\
                      const global uchar *src, int width)      \n\
 {                                                             \n\
@@ -56,9 +62,15 @@ kernel void DecodeIA4(global ushort *dst,                     \n\
     for (int iy = 0; iy < 4; iy++)                            \n\
     {                                                         \n\
         uchar8 val = vload8(srcOffset, src);                  \n\
-        ushort8 res;                                          \n\
-        res.hi = upsample(val.hi, val.hi);                    \n\
-        res.lo = upsample(val.lo, val.lo);                    \n\
+        ushort8 res = val.s0011223344556677;                  \n\
+        res.s0 = swapbytes(res.s0);                           \n\
+        res.s1 = swapbytes(res.s1);                           \n\
+        res.s2 = swapbytes(res.s2);                           \n\
+        res.s3 = swapbytes(res.s3);                           \n\
+        res.s4 = swapbytes(res.s4);                           \n\
+        res.s5 = swapbytes(res.s5);                           \n\
+        res.s6 = swapbytes(res.s6);                           \n\
+        res.s7 = swapbytes(res.s7);                           \n\
         vstore8(res, 0, dst + ((y + iy)*width + x));          \n\
         srcOffset++;                                          \n\
     }                                                         \n\
