@@ -58,7 +58,8 @@ static const char iplverPAL[0x100] = "(C) 1999-2001 Nintendo.  All rights reserv
 static const char iplverNTSC[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
 									 "(C) 1999 ArtX Inc.  All rights reserved.";
 
-// segher is a supercomputer
+// bootrom descrambler reversed by segher
+// Copyright 2008 Segher Boessenkool <segher@kernel.crashing.org>
 void CEXIIPL::Descrambler(u8* data, u32 size)
 {
 	u8 acc = 0;
