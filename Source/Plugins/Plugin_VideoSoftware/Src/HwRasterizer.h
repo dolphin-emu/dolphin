@@ -20,8 +20,8 @@
 
 #include <map>
 
-#include "BpMemLoader.h"
-#include "GlUtil.h"
+#include "BPMemLoader.h"
+#include "GLUtil.h"
 
 struct OutputVertexData;
 

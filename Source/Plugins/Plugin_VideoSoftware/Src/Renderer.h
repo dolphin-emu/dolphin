@@ -18,7 +18,7 @@
 #ifndef _RENDERER_H_
 #define _RENDERER_H_
 
-#include "PluginSpecs_Video.h"
+#include "pluginspecs_video.h"
 
 namespace Renderer
 {

@@ -1,0 +1,118 @@
+# -*- python -*-
+
+Import('env')
+# can we import path in one place?
+import sys
+sys.path.append(env['base_dir']+'SconsTests')
+import utils
+import platform
+
+name = "Plugin_VideoSoftware"
+
+files = [
+	'BPMemLoader.cpp',
+	'Clipper.cpp',
+	'CommandProcessor.cpp',
+	'CPMemLoader.cpp',
+	'DebugUtil.cpp',
+	'EfbCopy.cpp',
+	'EfbInterface.cpp',
+	'GLUtil.cpp',
+	'HwRasterizer.cpp',
+	'main.cpp',
+	'OpcodeDecoder.cpp',
+	'PixelEngine.cpp',
+	'Rasterizer.cpp',
+	'Renderer.cpp',
+        'SetupUnit.cpp',
+        'Statistics.cpp',
+        'Tev.cpp',
+        'TextureEncoder.cpp',
+        'TextureSampler.cpp',
+        'TransformUnit.cpp',
+        'VertexFormatConverter.cpp',
+        'VertexLoader.cpp',
+        'VideoConfig.cpp',
+        'XFMemLoader.cpp',
+	]
+compileFlags = [
+	'-fPIC',
+	]
+linkFlags = [
+	]
+libs = [
+	'videocommon', 'soil', 'common'
+	]
+
+gfxenv = env.Clone()
+
+files += [
+	'main.cpp',
+	'GLUtil.cpp',
+	]
+
+if sys.platform == 'win32':
+        files += [ 'Win32.cpp' ]
+
+tests = {'CheckPKG' : utils.CheckPKG}
+conf = gfxenv.Configure(custom_tests = tests,
+                        config_h=env['base_dir']+"Source/Core/Common/Src/Config.h")
+
+if sys.platform == 'darwin':
+	gfxenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'OpenGL', 'Cocoa', 'Cg']
+
+	conf.CheckPKG('OpenGL')
+	if not conf.CheckPKG('Cg'):
+		print name + " must have Cg framework from nvidia to be build"
+		Return()
+
+elif sys.platform == 'win32':
+        print name + " is assuming that you have opengl, glu, cg, and cggl"
+else:
+        if not (conf.CheckPKG('GL') and conf.CheckPKG('GLU')):
+                print name + " must have opengl and glu to be build"
+                Return()
+	
+	if not conf.CheckPKG('Cg') or not conf.CheckPKG('CgGL'):
+                print name + " must have cg and cggl to be build"
+                Return()
+if sys.platform == 'win32':
+	print name + " is assuming that you have glew"
+else:
+	if not conf.CheckPKG('GLEW'):
+		print name + " must have glew to be build"
+		Return()
+
+
+if sys.platform == 'win32':
+	files += [
+		'Win32.cpp'
+		]
+	libs += [
+		env['base_dir'] + '/Externals/Cg/'
+		]	
+	gfxenv['CPPPATH'] += libs
+	
+
+# check for xxf86vm
+
+gfxenv['HAVE_XXF86VM'] = gfxenv['HAVE_X11'] and conf.CheckPKG('xxf86vm')
+        
+conf.Define('HAVE_XXF86VM', gfxenv['HAVE_XXF86VM'])
+
+conf.Finish()
+
+# Sanity check
+if gfxenv['USE_WX'] and not gfxenv['HAVE_WX']:
+    print "Must have wx to use wxgl"
+    Return()
+gfxenv.Append(
+	CXXFLAGS = compileFlags,
+	LINKFLAGS = linkFlags,
+	)
+
+gfxenv.SharedLibrary(
+	env['plugin_dir']+name,
+	files,
+	LIBS =  libs + gfxenv['LIBS']
+	)

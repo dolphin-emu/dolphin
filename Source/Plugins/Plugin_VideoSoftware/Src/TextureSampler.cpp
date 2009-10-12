@@ -16,7 +16,7 @@
 
 
 #include "TextureSampler.h"
-#include "Main.h"
+#include "main.h"
 
 #include "BPMemLoader.h"
 #include "../../../Core/VideoCommon/Src/TextureDecoder.h"
@@ -30,7 +30,7 @@ inline int iround(float x)
 {
     int t;
 
-    __asm
+    __asm volatile
     {
         fld  x
         fistp t

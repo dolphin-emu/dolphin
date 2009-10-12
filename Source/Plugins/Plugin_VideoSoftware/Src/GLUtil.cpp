@@ -339,7 +339,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
                           GLX_GREEN_SIZE, 8,
                           GLX_BLUE_SIZE, 8,
                           GLX_DEPTH_SIZE, 24,
-                          GLX_SAMPLE_BUFFERS_ARB, g_Config.iMultisampleMode, GLX_SAMPLES_ARB, 1, None };
+                          GLX_SAMPLE_BUFFERS_ARB, GLX_SAMPLES_ARB, 1, None };
 	GLWin.dpy = XOpenDisplay(0);
 	g_VideoInitialize.pWindowHandle = (HWND)GLWin.dpy;
 	GLWin.screen = DefaultScreen(GLWin.dpy);

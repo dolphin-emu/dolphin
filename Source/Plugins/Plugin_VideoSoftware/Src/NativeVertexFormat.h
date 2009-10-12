@@ -18,8 +18,12 @@
 #ifndef _NATIVEVERTEXFORMAT_H
 #define _NATIVEVERTEXFORMAT_H
 
-
+#ifdef WIN32
 #define LOADERDECL __cdecl
+#else
+#define LOADERDECL
+#endif
+
 typedef void (LOADERDECL *TPipelineFunction)();
 
 struct InputVertexData

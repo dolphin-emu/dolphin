@@ -78,6 +78,7 @@ dirs = [
     'Source/Core/DSPCore/Src',
     'Source/DSPTool/Src',
     'Source/Plugins/Plugin_VideoOGL/Src',
+    'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',
     'Source/Plugins/Plugin_PadSimple/Src',

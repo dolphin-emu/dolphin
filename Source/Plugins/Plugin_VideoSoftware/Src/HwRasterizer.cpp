@@ -18,9 +18,9 @@
 #include "Common.h"
 #include "MemoryUtil.h"
 
-#include <videocommon.h>
+#include <VideoCommon.h>
 
-#include "BpMemLoader.h"
+#include "BPMemLoader.h"
 #include "HwRasterizer.h"
 #include "GLUtil.h"
 #include "NativeVertexFormat.h"
