@@ -30,11 +30,17 @@ inline int iround(float x)
 {
     int t;
 
-    __asm volatile
+#if defined(_WIN32) && !defined(_M_X64)
+    __asm
     {
         fld  x
         fistp t
     }
+#else
+	t = (int)x;
+	if((x - t) >= 0.5)
+		return t + 1;
+#endif
 
     return t;
 }
