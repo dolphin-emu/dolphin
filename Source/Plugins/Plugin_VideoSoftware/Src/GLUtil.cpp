@@ -53,14 +53,12 @@ extern HINSTANCE g_hInstance;
 
 void OpenGL_SwapBuffers()
 {
-#if USE_SDL
-    SDL_GL_SwapBuffers();
+#if defined(USE_WX) && USE_WX
+    GLWin.glCanvas->SwapBuffers();
 #elif defined(HAVE_COCOA) && HAVE_COCOA
     cocoaGLSwap(GLWin.cocoaCtx,GLWin.cocoaWin);
 #elif defined(_WIN32)
     SwapBuffers(hDC);
-#elif defined(USE_WX) && USE_WX
-    GLWin.glCanvas->SwapBuffers();
 #elif defined(HAVE_X11) && HAVE_X11
     glXSwapBuffers(GLWin.dpy, GLWin.win);
 #endif
@@ -78,15 +76,13 @@ u32 OpenGL_GetBackbufferHeight()
 
 void OpenGL_SetWindowText(const char *text)
 {
-#if USE_SDL
-    SDL_WM_SetCaption(text, NULL);
+#if defined(USE_WX) && USE_WX
+    GLWin.frame->SetTitle(wxString::FromAscii(text));
 #elif defined(HAVE_COCOA) && HAVE_COCOA
     cocoaGLSetTitle(GLWin.cocoaWin, text);
 #elif defined(_WIN32)
-    // TODO convert text to unicode and change SetWindowTextA to SetWindowText
+	// TODO convert text to unicode and change SetWindowTextA to SetWindowText
     SetWindowTextA(EmuWindow::GetWnd(), text);
-#elif defined(USE_WX) && USE_WX
-    GLWin.frame->SetTitle(wxString::FromAscii(text));
 #elif defined(HAVE_X11) && HAVE_X11 // GLX
     /**
     * Tell X to ask the window manager to set the window title. (X
@@ -147,27 +143,11 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 
-#if USE_SDL
-	//init sdl video
-	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-		//TODO : Display an error message
-		SDL_Quit();
-		return false;
-	}
-
-	//setup ogl to use double buffering
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-    GLWin.width = s_backbuffer_width;
-    GLWin.height = s_backbuffer_height;
-    GLWin.cocoaWin = cocoaGLCreateWindow(GLWin.width, GLWin.height);
-    GLWin.cocoaCtx = cocoaGLInit(g_Config.iMultisampleMode);
-#elif defined(USE_WX) && USE_WX
+#if defined(USE_WX) && USE_WX
     int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
-    wxSize size(_iwidth, _iheight);
-    if (!g_Config.renderToMainframe ||
-        g_VideoInitialize.pWindowHandle == NULL) {
+    wxSize size(_twidth, _theight);
+    if ( g_VideoInitialize.pWindowHandle == NULL) {
         GLWin.frame = new wxFrame((wxWindow *)g_VideoInitialize.pWindowHandle,
                                   -1, _("Dolphin"), wxPoint(50,50), size);
     } else {
@@ -175,24 +155,19 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
                                   -1, _("Dolphin"), wxPoint(50,50), size);
     }
 
-#if defined(__APPLE__)
-    GLWin.glCanvas = new wxGLCanvas(GLWin.frame, wxID_ANY,  wxPoint(0,0), size, 0, wxT("Dolphin"), args, wxNullPalette);
-#else
     GLWin.glCanvas = new wxGLCanvas(GLWin.frame, wxID_ANY, args,
                                     wxPoint(0,0), size, wxSUNKEN_BORDER);
     GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
-#endif
-
     GLWin.frame->Show(TRUE);
     GLWin.glCanvas->Show(TRUE);
 
-#if defined(__APPLE__)
-    GLWin.glCanvas->SetCurrent();
-#else
     GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
-    //    GLWin.glCtxt->SetCurrent(*GLWin.glCanvas);
-#endif
 
+#elif defined(HAVE_COCOA) && HAVE_COCOA
+    GLWin.width = s_backbuffer_width;
+    GLWin.height = s_backbuffer_height;
+    GLWin.cocoaWin = cocoaGLCreateWindow(GLWin.width, GLWin.height);
+    GLWin.cocoaCtx = cocoaGLInit(g_Config.iMultisampleMode);
 
 #elif defined(_WIN32)
 	// ---------------------------------------------------------------------------------------
@@ -454,36 +429,8 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 
 bool OpenGL_MakeCurrent()
 {
-#if USE_SDL
-	// Note: The reason for having the call to SDL_SetVideoMode in here instead
-	//       of in OpenGL_Create() is that "make current" is part of the video
-	//       mode setting and is not available as a separate call in SDL. We
-	//       have to do "make current" here because this method runs in the CPU
-	//       thread while OpenGL_Create() runs in a diferent thread and "make
-	//       current" has to be done in the same thread that will be making
-	//       calls to OpenGL.
-
-	// Fetch video info.
-	const SDL_VideoInfo *videoInfo = SDL_GetVideoInfo();
-        if (!videoInfo) {
-		// TODO: Display an error message.
-		SDL_Quit();
-		return false;
-	}
-	// Compute video mode flags.
-	const int videoFlags = SDL_OPENGL
-		| ( videoInfo->hw_available ? SDL_HWSURFACE : SDL_SWSURFACE )
-		| ( g_Config.bFullscreen ? SDL_FULLSCREEN : 0);
-	// Set vide mode.
-	// TODO: Can we use this field or is a separate field needed?
-	int _twidth = s_backbuffer_width;
-	int _theight = s_backbuffer_height;
-	SDL_Surface *screen = SDL_SetVideoMode(_twidth, _theight, 0, videoFlags);
-	if (!screen) {
-		//TODO : Display an error message
-		SDL_Quit();
-		return false;
-	}
+#if defined(USE_WX) && USE_WX
+    GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
 #elif defined(HAVE_COCOA) && HAVE_COCOA
     cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
 #elif defined(_WIN32)
@@ -491,13 +438,6 @@ bool OpenGL_MakeCurrent()
         PanicAlert("(5) Can't Activate The GL Rendering Context.");
         return false;
     }
-#elif defined(USE_WX) && USE_WX
-#if defined(__APPLE__)
-    GLWin.glCanvas->SetCurrent();
-#else
-    GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
-#endif
-    return true;
 #elif defined(HAVE_X11) && HAVE_X11
     Window winDummy;
     unsigned int borderDummy;
@@ -518,35 +458,21 @@ bool OpenGL_MakeCurrent()
 #endif
 	return true;
 }
-
-
-// =======================================================================================
 // Update window width, size and etc. Called from Render.cpp
-// ----------------
 void OpenGL_Update()
 {
-#if USE_SDL
-    SDL_Surface *surface = SDL_GetVideoSurface();
+#if defined(USE_WX) && USE_WX
     RECT rcWindow = {0};
-    if (!surface)
-		return;
-    s_backbuffer_width = surface->w;
-    s_backbuffer_height = surface->h;
-
-    rcWindow.right = surface->w;
-    rcWindow.bottom = surface->h;
+    rcWindow.right = GLWin.width;
+    rcWindow.bottom = GLWin.height;
+    
+    // TODO fill in
 
 #elif defined(HAVE_COCOA) && HAVE_COCOA
 	RECT rcWindow = {0};
     rcWindow.right = GLWin.width;
     rcWindow.bottom = GLWin.height;
 
-#elif defined(USE_WX) && USE_WX
-    RECT rcWindow = {0};
-    rcWindow.right = GLWin.width;
-    rcWindow.bottom = GLWin.height;
-    
-    // TODO fill in
 #elif defined(_WIN32)
 	RECT rcWindow;
 	if (!EmuWindow::GetParentWnd())
@@ -647,18 +573,15 @@ void OpenGL_Update()
 }
 
 
-// =======================================================================================
 // Close plugin
-// ----------------
 void OpenGL_Shutdown()
 {
-#if USE_SDL
-	SDL_Quit();
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-	cocoaGLDelete(GLWin.cocoaCtx);
-#elif defined(USE_WX) && USE_WX
+#if defined(USE_WX) && USE_WX
 	delete GLWin.glCanvas;
 	delete GLWin.frame;
+#elif defined(HAVE_COCOA) && HAVE_COCOA
+	cocoaGLDelete(GLWin.cocoaCtx);
+
 #elif defined(_WIN32)
 	if (hRC)                                            // Do We Have A Rendering Context?
 	{
@@ -679,9 +602,7 @@ void OpenGL_Shutdown()
 
 	if (hDC && !ReleaseDC(EmuWindow::GetWnd(), hDC))      // Are We Able To Release The DC
 	{
-#ifndef SETUP_TIMER_WAITING // This fails
 		ERROR_LOG(VIDEO, "Release Device Context Failed.");
-#endif
 		hDC = NULL;                                       // Set DC To NULL
 	}
 #elif defined(HAVE_X11) && HAVE_X11

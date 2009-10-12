@@ -46,11 +46,6 @@ libs = [
 
 gfxenv = env.Clone()
 
-files += [
-	'main.cpp',
-	'GLUtil.cpp',
-	]
-
 if sys.platform == 'win32':
         files += [ 'Win32.cpp' ]
 

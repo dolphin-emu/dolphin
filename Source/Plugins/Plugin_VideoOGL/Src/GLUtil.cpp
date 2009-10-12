@@ -59,7 +59,6 @@ void OpenGL_SwapBuffers()
     cocoaGLSwap(GLWin.cocoaCtx,GLWin.cocoaWin);
 #elif defined(_WIN32)
     SwapBuffers(hDC);
-
 #elif defined(HAVE_X11) && HAVE_X11
     glXSwapBuffers(GLWin.dpy, GLWin.win);
 #endif

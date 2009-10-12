@@ -37,7 +37,7 @@ enum
 };
 
 // STATE_TO_SAVE
-PEReg PixelEngine::pereg;
+PEReg pereg;
 
 static bool g_bSignalTokenInterrupt;
 static bool g_bSignalFinishInterrupt;
