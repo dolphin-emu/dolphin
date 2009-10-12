@@ -24,7 +24,7 @@
 
 #include "Common.h"
 
-#include "StreamADPCM.H"
+#include "StreamADPCM.h"
 #include "AudioInterface.h"
 
 #include "CPU.h"

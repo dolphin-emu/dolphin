@@ -20,7 +20,7 @@
 #include "../ConfigManager.h"
 #include "../CoreTiming.h"
 
-#include "StreamADPCM.H" // Core
+#include "StreamADPCM.h" // Core
 #include "DVDInterface.h"
 #include "../PowerPC/PowerPC.h"
 #include "ProcessorInterface.h"

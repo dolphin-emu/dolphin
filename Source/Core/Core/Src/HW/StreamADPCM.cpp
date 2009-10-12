@@ -1,6 +1,6 @@
 // Adapted from in_cube by hcs & destop
 
-#include "StreamADPCM.H"
+#include "StreamADPCM.h"
 
 #define ONE_BLOCK_SIZE		32
 #define SAMPLES_PER_BLOCK	28
