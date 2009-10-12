@@ -159,13 +159,16 @@ void Video_EnterLoop()
 
     while (fifoStateRun)
     {
-        if (!CommandProcessor::RunBuffer())
+		g_VideoInitialize.pPeekMessages();
+		if (!CommandProcessor::RunBuffer()) {
             Common::SleepCurrentThread(1);
+		}
     }
 }
 
 void Video_ExitLoop()
 {
+	fifoStateRun = false;
 }
 
 void Video_AddMessage(const char* pstr, u32 milliseconds)
