@@ -200,6 +200,12 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 	    }
 	    break;
 #endif
+
+		case IDM_TOGGLEMEMORY:
+			memory ^= 1;
+			redraw();
+			break;
+
 		case IDM_VIEWASFP:
 			viewAsType = VIEWAS_FP;
 			redraw();
