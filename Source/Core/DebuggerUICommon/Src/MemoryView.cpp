@@ -35,17 +35,18 @@ enum
 	IDM_RUNTOHERE,
 	IDM_DYNARECRESULTS,
 	IDM_TOGGLEMEMORY,
+	IDM_VIEWASFP,
+	IDM_VIEWASASCII,
 };
 
 
 BEGIN_EVENT_TABLE(CMemoryView, wxControl)
 EVT_ERASE_BACKGROUND(CMemoryView::OnErase)
 EVT_PAINT(CMemoryView::OnPaint)
-EVT_LEFT_DOWN(CMemoryView::OnMouseDown)
+EVT_LEFT_DOWN(CMemoryView::OnMouseDownL)
 EVT_LEFT_UP(CMemoryView::OnMouseUpL)
 EVT_MOTION(CMemoryView::OnMouseMove)
-EVT_RIGHT_DOWN(CMemoryView::OnMouseDown)
-EVT_RIGHT_UP(CMemoryView::OnMouseUpR)
+EVT_RIGHT_DOWN(CMemoryView::OnMouseDownR)
 EVT_MENU(-1, CMemoryView::OnPopupMenu)
 END_EVENT_TABLE()
 
@@ -59,7 +60,8 @@ CMemoryView::CMemoryView(DebugInterface* debuginterface, wxWindow* parent, wxWin
       selecting(false),
       hasFocus(false),
       showHex(false),
-	  memory(0)
+	  memory(0),
+	  viewAsType(VIEWAS_FP)
 {
 	rowHeight = 13;
 	align = debuginterface->getInstructionSize(0);
@@ -85,7 +87,7 @@ int CMemoryView::YToAddress(int y)
 }
 
 
-void CMemoryView::OnMouseDown(wxMouseEvent& event)
+void CMemoryView::OnMouseDownL(wxMouseEvent& event)
 {
 	int x = event.m_x;
 	int y = event.m_y;
@@ -152,7 +154,7 @@ void CMemoryView::OnMouseMove(wxMouseEvent& event)
 			}
 			else
 			{
-				OnMouseDown(event);
+				OnMouseDownL(event);
 			}
 		}
 	}
@@ -197,12 +199,16 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 		    wxTheClipboard->SetData(new wxTextDataObject(wxString::FromAscii(temp)));
 	    }
 	    break;
-
-		case IDM_TOGGLEMEMORY:
-			memory ^= 1;
+#endif
+		case IDM_VIEWASFP:
+			viewAsType = VIEWAS_FP;
 			redraw();
 			break;
-#endif
+
+		case IDM_VIEWASASCII:
+			viewAsType = VIEWAS_ASCII;
+			redraw();
+			break;
 	}
 
 #if wxUSE_CLIPBOARD
@@ -212,7 +218,7 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 }
 
 
-void CMemoryView::OnMouseUpR(wxMouseEvent& event)
+void CMemoryView::OnMouseDownR(wxMouseEvent& event)
 {
 	// popup menu
 	wxMenu menu;
@@ -222,7 +228,14 @@ void CMemoryView::OnMouseUpR(wxMouseEvent& event)
 	menu.Append(IDM_COPYHEX, wxString::FromAscii("Copy &hex"));
 #endif
 	menu.Append(IDM_TOGGLEMEMORY, wxString::FromAscii("Toggle &memory (RAM/ARAM)"));
+
+	wxMenu viewAsSubMenu;
+	viewAsSubMenu.Append(IDM_VIEWASFP, wxString::FromAscii("FP value"));
+	viewAsSubMenu.Append(IDM_VIEWASASCII, wxString::FromAscii("ASCII"));
+	menu.AppendSubMenu(&viewAsSubMenu, wxString::FromAscii("View As:"));
+
 	PopupMenu(&menu);
+
 	event.Skip(true);
 }
 
@@ -313,8 +326,21 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 		{
 			char dis[256] = {0};
 			u32 mem_data = debugger->readExtraMemory(memory, address);
-			float flt = *(float *)(&mem_data);
-			sprintf(dis, "f: %f", flt);
+
+			if (viewAsType == VIEWAS_FP)
+			{
+				float flt = *(float *)(&mem_data);
+				sprintf(dis, "f: %f", flt);
+			}
+			else if (viewAsType == VIEWAS_ASCII)
+			{
+				sprintf(dis, "%c%c%c%c",
+					(mem_data&0xff000000)>>24, (mem_data&0xff0000)>>16,
+					(mem_data&0xff00)>>8, mem_data&0xff);
+			}
+			else
+				sprintf(dis, "INVALID VIEWAS TYPE");
+
 			char desc[256] = "";
 
 			dc.DrawText(wxString::FromAscii(dis), 77 + fontSize*(8 + 8), rowY1);

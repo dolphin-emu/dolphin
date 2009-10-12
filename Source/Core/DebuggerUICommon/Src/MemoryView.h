@@ -29,10 +29,10 @@ public:
 	wxSize DoGetBestSize() const;
 	void OnPaint(wxPaintEvent& event);
 	void OnErase(wxEraseEvent& event);
-	void OnMouseDown(wxMouseEvent& event);
+	void OnMouseDownL(wxMouseEvent& event);
 	void OnMouseMove(wxMouseEvent& event);
 	void OnMouseUpL(wxMouseEvent& event);
-	void OnMouseUpR(wxMouseEvent& event);
+	void OnMouseDownR(wxMouseEvent& event);
 	void OnPopupMenu(wxCommandEvent& event);
 
 	u32 GetSelection() { return selection ; }
@@ -62,6 +62,13 @@ private:
 	bool showHex;
 
 	int memory;
+
+	enum EViewAsType
+	{
+		VIEWAS_ASCII = 0,
+		VIEWAS_FP,
+	};
+	EViewAsType viewAsType;
 
 	DECLARE_EVENT_TABLE()
 };
