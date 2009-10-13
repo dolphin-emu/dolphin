@@ -15,12 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Globals.h"
 #include "GLUtil.h"
 
 #include <string.h>
 
-#include "rasterfont.h"
+#include "RasterFont.h"
 // globals
 
 GLubyte rasters[][13] = {

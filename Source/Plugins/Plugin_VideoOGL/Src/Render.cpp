@@ -42,7 +42,7 @@
 #include "OpcodeDecoding.h"
 #include "BPStructs.h"
 #include "TextureMngr.h"
-#include "rasterfont.h"
+#include "RasterFont.h"
 #include "VertexShaderGen.h"
 #include "DLCache.h"
 #include "PixelShaderCache.h"

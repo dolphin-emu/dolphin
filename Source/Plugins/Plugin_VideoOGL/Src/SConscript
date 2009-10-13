@@ -12,7 +12,7 @@ name = "Plugin_VideoOGL"
 files = [
 	'BPFunctions.cpp',
 	'DLCache.cpp',
-	'rasterfont.cpp',
+	'RasterFont.cpp',
 	'Render.cpp',
 	'TextureMngr.cpp',
 	'NativeVertexFormat.cpp',

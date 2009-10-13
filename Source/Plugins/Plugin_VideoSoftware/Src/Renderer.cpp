@@ -21,7 +21,7 @@
 #include "Renderer.h"
 #include "main.h"
 #include "Statistics.h"
-#include "../../Plugin_VideoOGL/Src/rasterfont.h"
+#include "RasterFont.h"
 
 #define VSYNC_ENABLED 0
 

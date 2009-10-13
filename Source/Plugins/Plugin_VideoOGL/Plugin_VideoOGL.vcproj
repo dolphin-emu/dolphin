@@ -873,7 +873,7 @@
 			Name="Logging"
 			>
 			<File
-				RelativePath=".\Src\rasterfont.cpp"
+				RelativePath=".\Src\RasterFont.cpp"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -901,7 +901,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\Src\rasterfont.h"
+				RelativePath=".\Src\RasterFont.h"
 				>
 			</File>
 		</Filter>

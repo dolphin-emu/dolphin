@@ -23,6 +23,7 @@ files = [
 	'OpcodeDecoder.cpp',
 	'PixelEngine.cpp',
 	'Rasterizer.cpp',
+	'RasterFont.cpp',
 	'Renderer.cpp',
         'SetupUnit.cpp',
         'Statistics.cpp',

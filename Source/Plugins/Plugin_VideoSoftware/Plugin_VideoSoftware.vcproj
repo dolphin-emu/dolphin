@@ -391,7 +391,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\Plugin_VideoOGL\Src\rasterfont.cpp"
+				RelativePath=".\Src\RasterFont.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\RasterFont.h"
 				>
 			</File>
 			<File
