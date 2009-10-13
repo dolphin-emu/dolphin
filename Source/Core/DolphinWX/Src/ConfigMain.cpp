@@ -48,7 +48,8 @@ EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_SPEAKERS, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::CoreSettingsChanged)
 
 EVT_CHECKBOX(ID_ALLWAYS_HLE_BS2, CConfigMain::CoreSettingsChanged)
-EVT_CHECKBOX(ID_USEDYNAREC, CConfigMain::CoreSettingsChanged)
+EVT_RADIOBUTTON(ID_RADIOJIT, CConfigMain::CoreSettingsChanged)
+EVT_RADIOBUTTON(ID_RADIOINT, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_USEDUALCORE, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_DSPTHREAD, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::CoreSettingsChanged)
@@ -120,7 +121,8 @@ void CConfigMain::UpdateGUI()
 	{
 		// Disable the Core stuff on GeneralPage
 		AlwaysHLE_BS2->Disable();
-		UseDynaRec->Disable();
+		m_RadioJIT->Disable();
+		m_RadioInt->Disable();
 		UseDualCore->Disable();
 		DSPThread->Disable();
 		LockThreads->Disable();
@@ -193,9 +195,9 @@ void CConfigMain::CreateGUIControls()
 	// General page
 
 	// Core Settings - Basic
-	UseDualCore = new wxCheckBox(GeneralPage, ID_USEDUALCORE, wxT("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	UseDualCore = new wxCheckBox(GeneralPage, ID_USEDUALCORE, wxT("Enable Dual Core (speedup)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UseDualCore->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);
-	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Enable Idle Skipping (speedup)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
 	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable Cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
@@ -206,15 +208,17 @@ void CConfigMain::CreateGUIControls()
 	Framelimit->SetSelection(SConfig::GetInstance().m_Framelimit);
 
 	// Core Settings - Advanced
-	AlwaysHLE_BS2 = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLE_BS2, wxT("Always HLE the IPL"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	//
+	AlwaysHLE_BS2 = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLE_BS2, wxT("HLE the IPL (recommended)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	AlwaysHLE_BS2->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2);
-	UseDynaRec = new wxCheckBox(GeneralPage, ID_USEDYNAREC, wxT("Enable the JIT dynarec"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	UseDynaRec->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT);
+	m_RadioJIT = new wxRadioButton(GeneralPage, ID_RADIOJIT, wxT("JIT Recompiler (recommended)"));
+	m_RadioInt = new wxRadioButton(GeneralPage, ID_RADIOINT, wxT("Interpreter (very slow)"));
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT ? m_RadioJIT->SetValue(true) : m_RadioInt->SetValue(true);
 	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	LockThreads->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads);
-	OptimizeQuantizers = new wxCheckBox(GeneralPage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	OptimizeQuantizers = new wxCheckBox(GeneralPage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize Quantizers (speedup)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	OptimizeQuantizers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers);
-	DSPThread = new wxCheckBox(GeneralPage, ID_DSPTHREAD, wxT("LLE DSP on thread"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	DSPThread = new wxCheckBox(GeneralPage, ID_DSPTHREAD, wxT("DSP on thread (recommended)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	DSPThread->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread);
 
 	// Interface settings
@@ -259,8 +263,6 @@ void CConfigMain::CreateGUIControls()
 	Theme->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme);
 
 	// ToolTips
-	UseDynaRec->SetToolTip(wxT("Disabling this will cause Dolphin to run in interpreter mode,")
-		wxT("\nwhich can be more accurate, but is MUCH slower"));
 	ConfirmStop->SetToolTip(wxT("Show a confirmation box before stopping a game."));
 	UsePanicHandlers->SetToolTip(wxT("Show a message box when a potentially serious error has occured.")
 		wxT(" Disabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin")
@@ -297,7 +299,10 @@ void CConfigMain::CreateGUIControls()
 
 	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
 	sbAdvanced->Add(AlwaysHLE_BS2, 0, wxALL, 5);
-	sbAdvanced->Add(UseDynaRec, 0, wxALL, 5);
+	wxStaticBoxSizer* sizerCoreType = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("CPU Emulator Engine"));
+	sizerCoreType->Add(m_RadioJIT, 0, wxALL | wxEXPAND, 5);
+	sizerCoreType->Add(m_RadioInt, 0, wxALL | wxEXPAND, 5);
+	sbAdvanced->Add(sizerCoreType, 0, wxALL, 5);
 	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
 	sbAdvanced->Add(OptimizeQuantizers, 0, wxALL, 5);
 	sbAdvanced->Add(DSPThread, 0, wxALL, 5);
@@ -633,8 +638,11 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	case ID_ALLWAYS_HLE_BS2: // Core
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2 = AlwaysHLE_BS2->IsChecked();
 		break;
-	case ID_USEDYNAREC:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT = UseDynaRec->IsChecked();
+	case ID_RADIOJIT:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT = true;
+		break;
+	case ID_RADIOINT:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT = false;
 		break;
 	case ID_USEDUALCORE:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore = UseDualCore->IsChecked();
