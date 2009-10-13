@@ -204,7 +204,7 @@ void Video_PixelEngineWrite32(const u32 _Data, const u32 _Address)
     PixelEngine::Write32(_Data, _Address);
 }
 
-inline void Video_GatherPipeBursted(void)
+void Video_GatherPipeBursted(void)
 {
     CommandProcessor::GatherPipeBursted();
 }
