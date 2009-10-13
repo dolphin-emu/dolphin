@@ -34,6 +34,23 @@ struct sDecoders
 };
 
 const char *Kernel = "                                        \n\
+kernel void DecodeI4(global uchar *dst,                       \n\
+                     const global uchar *src, int width)      \n\
+{                                                             \n\
+    int x = get_global_id(0) * 8, y = get_global_id(1) * 8;   \n\
+    int srcOffset = x + y * width / 8;                        \n\
+    for (int iy = 0; iy < 8; iy++)                            \n\
+    {                                                         \n\
+        uchar4 val = vload4(srcOffset, src);                  \n\
+        uchar8 res;                                           \n\
+        res.even = (val >> 4) & 0x0F;                         \n\
+        res.odd = val & 0x0F;                                 \n\
+        res |= res << 4;                                      \n\
+        vstore8(res, 0, dst + ((y + iy)*width + x));          \n\
+        srcOffset++;                                          \n\
+    }                                                         \n\
+}                                                             \n\
+                                                              \n\
 kernel void DecodeI8(global uchar *dst,                       \n\
                      const global uchar *src, int width)      \n\
 {                                                             \n\
@@ -47,25 +64,23 @@ kernel void DecodeI8(global uchar *dst,                       \n\
     }                                                         \n\
 }                                                             \n\
                                                               \n\
-kernel void DecodeIA8(global ushort *dst,                     \n\
-                      const global ushort *src, int width)    \n\
+kernel void DecodeIA8(global uchar *dst,                      \n\
+                      const global uchar *src, int width)     \n\
 {                                                             \n\
     int x = get_global_id(0) * 4, y = get_global_id(1) * 4;   \n\
     int srcOffset = ((x * 4) + (y * width)) / 4;              \n\
     for (int iy = 0; iy < 4; iy++)                            \n\
     {                                                         \n\
-        vstore4(vload4(srcOffset, src),                       \n\
-                0, dst + ((y + iy)*width + x));               \n\
+        uchar8 val = vload8(srcOffset, src);                  \n\
+        uchar8 res;                                           \n\
+        res.odd = val.even;                                   \n\
+        res.even = val.odd;                                   \n\
+        vstore8(res, 0, dst + ((y + iy)*width + x) * 2);      \n\
         srcOffset++;                                          \n\
     }                                                         \n\
 }                                                             \n\
                                                               \n\
-ushort swapbytes(ushort x) {                                  \n\
-    return (x & 0xf00f) | ((x >> 4) & 0x00f0) |               \n\
-           ((x << 4) & 0x0f00);                               \n\
-}                                                             \n\
-                                                              \n\
-kernel void DecodeIA4(global ushort *dst,                     \n\
+kernel void DecodeIA4(global uchar *dst,                      \n\
                      const global uchar *src, int width)      \n\
 {                                                             \n\
     int x = get_global_id(0) * 8, y = get_global_id(1) * 4;   \n\
@@ -73,16 +88,11 @@ kernel void DecodeIA4(global ushort *dst,                     \n\
     for (int iy = 0; iy < 4; iy++)                            \n\
     {                                                         \n\
         uchar8 val = vload8(srcOffset, src);                  \n\
-        ushort8 res = val.s0011223344556677;                  \n\
-        res.s0 = swapbytes(res.s0);                           \n\
-        res.s1 = swapbytes(res.s1);                           \n\
-        res.s2 = swapbytes(res.s2);                           \n\
-        res.s3 = swapbytes(res.s3);                           \n\
-        res.s4 = swapbytes(res.s4);                           \n\
-        res.s5 = swapbytes(res.s5);                           \n\
-        res.s6 = swapbytes(res.s6);                           \n\
-        res.s7 = swapbytes(res.s7);                           \n\
-        vstore8(res, 0, dst + ((y + iy)*width + x));          \n\
+        uchar16 res;                                          \n\
+        res.odd = (val >> 4) & 0x0F;                          \n\
+        res.even  = val & 0x0F;                               \n\
+        res |= res << 4;                                      \n\
+        vstore16(res, 0, dst + ((y + iy)*width + x) * 2);     \n\
         srcOffset++;                                          \n\
     }                                                         \n\
 }                                                             \n\
@@ -103,21 +113,23 @@ kernel void DecodeDXT(global ulong *dst,                      \n\
 
 cl_program g_program;
 // NULL terminated set of kernels
-sDecoders Decoders[] = { {"DecodeI8", NULL},
-						 {"DecodeIA4", NULL}, 
-						 {"DecodeIA8", NULL},
-						 {"DecodeDXT", NULL},
-						 {"", NULL},
+sDecoders Decoders[] = {
+{"DecodeI4", NULL},
+{"DecodeI8", NULL},
+{"DecodeIA4", NULL}, 
+{"DecodeIA8", NULL},
+{"DecodeDXT", NULL},
+{"", NULL},
 };
 
 bool g_Inited = false;
 
-PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+extern PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
     cl_int err;
 	cl_kernel kernelToRun = Decoders[0].kernel;
-	int sizeOfDst = sizeof(u8), sizeOfSrc = sizeof(u8), xSkip, ySkip;
+	float sizeOfDst = sizeof(u8), sizeOfSrc = sizeof(u8), xSkip, ySkip;
 	PC_TexFormat formatResult;
 	cl_mem clsrc, cldst;                    // texture buffer memory objects
     if(!g_Inited)
@@ -138,25 +150,32 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 	}
     switch(texformat)
 	{
+		case GX_TF_I4:
+            kernelToRun = Decoders[0].kernel;
+			sizeOfSrc = sizeof(u8) / 2.0f;
+			sizeOfDst = sizeof(u8);
+			xSkip = 8;
+			ySkip = 8;
+            formatResult = PC_TEX_FMT_I4_AS_I8;
+            break;
+		case GX_TF_I8:
+			kernelToRun = Decoders[1].kernel;
+			sizeOfSrc = sizeOfDst = sizeof(u8);
+			xSkip = 8;
+			ySkip = 4;
+			formatResult = PC_TEX_FMT_I8;
+			break;
 		case GX_TF_IA4:
 			// Maybe a cleaner way is needed
-			kernelToRun = Decoders[1].kernel;
+			kernelToRun = Decoders[2].kernel;
 			sizeOfSrc = sizeof(u8);
 			sizeOfDst = sizeof(u16);
 			xSkip = 8;
 			ySkip = 4;
 			formatResult = PC_TEX_FMT_IA4_AS_IA8;
 			break;
-		case GX_TF_I8:
-			kernelToRun = Decoders[0].kernel;
-			sizeOfSrc = sizeOfDst = sizeof(u8);
-			xSkip = 8;
-			ySkip = 4;
-			formatResult = PC_TEX_FMT_I8;
-			break;
 		case GX_TF_IA8:
-			//return PC_TEX_FMT_NONE; // <-- TODO: Fix IA8
-			kernelToRun = Decoders[2].kernel;
+			kernelToRun = Decoders[3].kernel;
 			sizeOfSrc = sizeOfDst = sizeof(u16);
 			xSkip = 4;
 			ySkip = 4;
@@ -169,19 +188,20 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 			xSkip = 8;
 			ySkip = 8;
 			formatResult = PC_TEX_FMT_BGRA32;
+			break;
 		default:
 			return PC_TEX_FMT_NONE;
 	}
 
 	// TODO: Optimize
-	clsrc = clCreateBuffer(OpenCL::GetContext(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, width * height * sizeOfSrc, (void *)src, NULL);
+	clsrc = clCreateBuffer(OpenCL::GetContext(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, (size_t)(width * height * sizeOfSrc), (void *)src, NULL);
 	cldst = clCreateBuffer(OpenCL::GetContext(), CL_MEM_WRITE_ONLY, width * height * sizeOfDst, NULL, NULL);
 
 	clSetKernelArg(kernelToRun, 0, sizeof(cl_mem), &cldst);
 	clSetKernelArg(kernelToRun, 1, sizeof(cl_mem), &clsrc);
 	clSetKernelArg(kernelToRun, 2, sizeof(cl_int), &width);
 
-	size_t global[] = { width / xSkip, height / ySkip };
+	size_t global[] = { (size_t)(width / xSkip), (size_t)(height / ySkip) };
 
 	// No work-groups for now
 	/*
@@ -197,7 +217,7 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 
 	clFinish(OpenCL::GetCommandQueue());
 	
-	clEnqueueReadBuffer(OpenCL::GetCommandQueue(), cldst, CL_TRUE, 0, width * height * sizeOfDst, dst, 0, NULL, NULL);
+	clEnqueueReadBuffer(OpenCL::GetCommandQueue(), cldst, CL_TRUE, 0, (size_t)(width * height * sizeOfDst), dst, 0, NULL, NULL);
 
 	clReleaseMemObject(clsrc);
 	clReleaseMemObject(cldst);
@@ -226,20 +246,6 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
                         decodebytesC4_To_Raw16((u16*)dst + (y + iy) * width + x, src, tlutaddr);
 		}
         return GetPCFormatFromTLUTFormat(tlutfmt);
-    case GX_TF_I4:
-		{
-			for (int y = 0; y < height; y += 8)
-				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 8; iy++, src += 4)
-						for (int ix = 0; ix < 4; ix++)
-						{
-							int val = src[ix];
-							dst[(y + iy) * width + x + ix * 2] = Convert4To8(val >> 4);
-							dst[(y + iy) * width + x + ix * 2 + 1] = Convert4To8(val & 0xF);
-						}
-        }
-       return PC_TEX_FMT_I4_AS_I8;
-
     case GX_TF_C8:
 		if (tlutfmt == 2)
         {
@@ -257,20 +263,6 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
                         decodebytesC8_To_Raw16((u16*)dst + (y + iy) * width + x, src, tlutaddr);
 		}
         return GetPCFormatFromTLUTFormat(tlutfmt);
-    case GX_TF_IA8:
-        {
-			for (int y = 0; y < height; y += 4)
-				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-					{
-						u16 *ptr = (u16 *)dst + (y + iy) * width + x;
-						u16 *s = (u16 *)src;
-						for(int j = 0; j < 4; j++)
-							*ptr++ = Common::swap16(*s++);
-					}
-
-        }
-		return PC_TEX_FMT_IA8;
     case GX_TF_C14X2: 
 		if (tlutfmt == 2)
         {
