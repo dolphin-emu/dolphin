@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <math.h>
+#include <locale.h>
 #include "Common.h"
 
 #include "TextureConversionShader.h"
@@ -642,6 +643,7 @@ void WriteZ24Encoder(char* p)
 
 const char *GenerateEncodingShader(u32 format)
 {
+	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
 
 	char *p = text;
@@ -725,6 +727,7 @@ const char *GenerateEncodingShader(u32 format)
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("TextureConversionShader generator - buffer too small, canary has been eaten!");
 
+	setlocale(LC_NUMERIC, ""); // restore locale
     return text;
 }
 

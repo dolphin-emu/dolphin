@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <math.h>
+#include <locale.h>
 
 #include "Profiler.h"
 #include "NativeVertexFormat.h"
@@ -80,6 +81,7 @@ char *GenerateLightShader(char* p, int index, const LitChannel& chan, const char
 
 const char *GenerateVertexShader(u32 components, bool D3D)
 {
+	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();
 
@@ -496,5 +498,6 @@ char* GenerateLightShader(char* p, int index, const LitChannel& chan, const char
     }
     WRITE(p, "\n");
 
+	setlocale(LC_NUMERIC, ""); // restore locale
     return p;
 }

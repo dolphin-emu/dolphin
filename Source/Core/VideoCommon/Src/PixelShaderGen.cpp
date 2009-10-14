@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <cmath>
 #include <assert.h>
+#include <locale.h>
 
 #include "Profiler.h"
 #include "PixelShaderGen.h"
@@ -382,6 +383,7 @@ static void BuildSwapModeTable()
 
 const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL)
 {
+	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();
 
@@ -551,6 +553,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
 
+	setlocale(LC_NUMERIC, ""); // restore locale
     return text;
 }
 
