@@ -43,6 +43,9 @@
 #include "DataReader.h"
 
 #include "OpenCL.h"
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
+#include "OpenCL/OCLTextureDecoder.h"
+#endif
 
 u8* g_pVideoData = 0;
 
@@ -383,6 +386,7 @@ void OpcodeDecoder_Init()
 
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 	OpenCL::Initialize();
+	TexDecoder_OpenCL_Initialize();
 #endif
 }
 
@@ -391,6 +395,7 @@ void OpcodeDecoder_Shutdown()
 {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 	OpenCL::Destroy();
+	TexDecoder_OpenCL_Shutdown();
 #endif
 }
 

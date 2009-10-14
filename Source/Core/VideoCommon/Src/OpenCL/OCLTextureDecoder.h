@@ -20,6 +20,9 @@
 #include "Common.h"
 #include "../TextureDecoder.h"
 
+void TexDecoder_OpenCL_Initialize();
+void TexDecoder_OpenCL_Shutdown();
+
 PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt);
 
 #endif

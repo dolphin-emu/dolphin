@@ -97,6 +97,74 @@ kernel void DecodeIA4(global uchar *dst,                      \n\
     }                                                         \n\
 }                                                             \n\
                                                               \n\
+kernel void DecodeRGBA8(global uchar *dst,                    \n\
+                      const global uchar *src, int width)     \n\
+{                                                             \n\
+    int x = get_global_id(0) * 4, y = get_global_id(1) * 4;   \n\
+    int srcOffset = (x * 2) + (y * width) / 2;                \n\
+    for (int iy = 0; iy < 4; iy++)                            \n\
+    {                                                         \n\
+        uchar8 ar = vload8(srcOffset, src);                   \n\
+        uchar8 gb = vload8(srcOffset + 4, src);               \n\
+        uchar16 res;                                          \n\
+        res.even.even = gb.odd;                               \n\
+        res.even.odd = ar.odd;                                \n\
+        res.odd.even = gb.even;                               \n\
+        res.odd.odd = ar.even;                                \n\
+        vstore16(res, 0, dst + ((y + iy)*width + x) * 4);     \n\
+        srcOffset++;                                          \n\
+    }                                                         \n\
+}                                                             \n\
+                                                              \n\
+kernel void DecodeRGB565(global ushort *dst,                  \n\
+                         const global ushort *src, int width) \n\
+{                                                             \n\
+    int x = get_global_id(0) * 4, y = get_global_id(1) * 4;   \n\
+    int srcOffset = x + (y * width) / 4;                      \n\
+    for (int iy = 0; iy < 4; iy++)                            \n\
+    {                                                         \n\
+        ushort4 val = vload4(srcOffset, src);                 \n\
+        val = (val >> 8) | (val << 8);                        \n\
+        vstore4(val, 0, dst + ((y + iy)*width + x));          \n\
+        srcOffset++;                                          \n\
+    }                                                         \n\
+}                                                             \n\
+                                                              \n\
+kernel void DecodeRGB5A3(global uchar *dst,                   \n\
+                         const global uchar *src, int width)  \n\
+{                                                             \n\
+    int x = get_global_id(0) * 4, y = get_global_id(1) * 4;   \n\
+    int srcOffset = x + (y * width) / 4;                      \n\
+    for (int iy = 0; iy < 4; iy++)                            \n\
+    {                                                         \n\
+        ushort8 val = convert_ushort8(vload8(srcOffset, src));\n\
+        ushort4 vs = val.odd | (val.even << 8);               \n\
+        uchar16 resNoAlpha;                                   \n\
+        resNoAlpha.odd.odd = (uchar4)(0xFF);                  \n\
+        resNoAlpha.even.odd = convert_uchar4(vs >> 7) & 0xF8; \n\
+        resNoAlpha.odd.even = convert_uchar4(vs >> 2) & 0xF8; \n\
+        resNoAlpha.even.even = convert_uchar4(vs << 3) & 0xF8;\n\
+        // Better but cause color bleeding                    \n\
+        //resNoAlpha |= resNoAlpha >> 5;                      \n\
+        uchar16 resAlpha;                                     \n\
+        resAlpha.even.odd = convert_uchar4(vs >> 8) & 0x0F;   \n\
+        resAlpha.odd.even = convert_uchar4(vs >> 4) & 0x0F;   \n\
+        resAlpha.even.even = convert_uchar4(vs) & 0x0F;       \n\
+        resAlpha |= resNoAlpha << 4;                          \n\
+        resAlpha.odd.odd = convert_uchar4(vs >> 7) & 0xE0;    \n\
+        resAlpha.odd.odd |= (resAlpha.odd.odd >> 3)           \n\
+                            | (resAlpha.odd.odd >> 6);        \n\
+        uchar16 choice = (uchar16)((uchar4)(vs.s0 >> 8),      \n\
+                                   (uchar4)(vs.s1 >> 8),      \n\
+                                   (uchar4)(vs.s2 >> 8),      \n\
+                                   (uchar4)(vs.s3 >> 8));     \n\
+        uchar16 res;                                          \n\
+        res = select(resAlpha, resNoAlpha, choice);           \n\
+        vstore16(res, 0, dst + ((y + iy)*width + x) * 4);     \n\
+        srcOffset++;                                          \n\
+    }                                                         \n\
+}                                                             \n\
+                                                              \n\
 kernel void DecodeDXT(global ulong *dst,                      \n\
                       const global ulong *src, int width)     \n\
 {   // TODO: PLEASE NOTE THAT THIS CODE DOES NOT WORK         \n\
@@ -118,24 +186,22 @@ sDecoders Decoders[] = {
 {"DecodeI8", NULL},
 {"DecodeIA4", NULL}, 
 {"DecodeIA8", NULL},
+{"DecodeRGBA8", NULL},
+{"DecodeRGB565", NULL},
+{"DecodeRGB5A3", NULL},
 {"DecodeDXT", NULL},
 {"", NULL},
 };
 
 bool g_Inited = false;
+cl_mem g_clsrc, g_cldst;                    // texture buffer memory objects
 
-extern PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
-{
+void TexDecoder_OpenCL_Initialize() {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
-    cl_int err;
-	cl_kernel kernelToRun = Decoders[0].kernel;
-	float sizeOfDst = sizeof(u8), sizeOfSrc = sizeof(u8), xSkip, ySkip;
-	PC_TexFormat formatResult;
-	cl_mem clsrc, cldst;                    // texture buffer memory objects
-    if(!g_Inited)
+	if(!g_Inited)
     {
 		if(!OpenCL::Initialize())
-			return PC_TEX_FMT_NONE;
+			return;
 
 		
 		g_program = OpenCL::CompileProgram(Kernel);
@@ -146,8 +212,33 @@ extern PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, 
 			i++;
 		}
 
+		// Allocating maximal Wii texture size in advance, so that we don't have to allocate/deallocate per texture
+		g_clsrc = clCreateBuffer(OpenCL::GetContext(), CL_MEM_READ_ONLY , 1024 * 1024 * sizeof(u32), NULL, NULL);
+		g_cldst = clCreateBuffer(OpenCL::GetContext(), CL_MEM_WRITE_ONLY, 1024 * 1024 * sizeof(u32), NULL, NULL);
+
 		g_Inited = true;
 	}
+#endif
+}
+
+void TexDecoder_OpenCL_Shutdown() {
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
+	if(g_clsrc)
+		clReleaseMemObject(g_clsrc);
+
+	if(g_cldst)
+		clReleaseMemObject(g_cldst);
+#endif
+}
+
+PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+{
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
+    cl_int err;
+	cl_kernel kernelToRun = Decoders[0].kernel;
+	float sizeOfDst = sizeof(u8), sizeOfSrc = sizeof(u8), xSkip, ySkip;
+	PC_TexFormat formatResult;
+  
     switch(texformat)
 	{
 		case GX_TF_I4:
@@ -181,9 +272,31 @@ extern PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, 
 			ySkip = 4;
 			formatResult = PC_TEX_FMT_IA8;
 			break;
+		case GX_TF_RGBA8:
+			kernelToRun = Decoders[4].kernel;
+			sizeOfSrc = sizeOfDst = sizeof(u32);
+			xSkip = 4;
+			ySkip = 4;
+			formatResult = PC_TEX_FMT_BGRA32;
+			break;
+		case GX_TF_RGB565:
+			kernelToRun = Decoders[5].kernel;
+			sizeOfSrc = sizeOfDst = sizeof(u16);
+			xSkip = 4;
+			ySkip = 4;
+            formatResult = PC_TEX_FMT_RGB565;
+			break;
+        case GX_TF_RGB5A3:
+			kernelToRun = Decoders[6].kernel;
+			sizeOfSrc = sizeof(u16);
+            sizeOfDst = sizeof(u32);
+			xSkip = 4;
+			ySkip = 4;
+			formatResult = PC_TEX_FMT_BGRA32;
+			break;
 		case GX_TF_CMPR:
 			return PC_TEX_FMT_NONE; // <-- TODO: Fix CMPR
-			kernelToRun = Decoders[3].kernel;
+			kernelToRun = Decoders[7].kernel;
 			sizeOfSrc = sizeOfDst = sizeof(u32);
 			xSkip = 8;
 			ySkip = 8;
@@ -193,12 +306,10 @@ extern PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, 
 			return PC_TEX_FMT_NONE;
 	}
 
-	// TODO: Optimize
-	clsrc = clCreateBuffer(OpenCL::GetContext(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, (size_t)(width * height * sizeOfSrc), (void *)src, NULL);
-	cldst = clCreateBuffer(OpenCL::GetContext(), CL_MEM_WRITE_ONLY, width * height * sizeOfDst, NULL, NULL);
+	clEnqueueWriteBuffer(OpenCL::GetCommandQueue(), g_clsrc, CL_TRUE, 0, (size_t)(width * height * sizeOfSrc), src, 0, NULL, NULL);
 
-	clSetKernelArg(kernelToRun, 0, sizeof(cl_mem), &cldst);
-	clSetKernelArg(kernelToRun, 1, sizeof(cl_mem), &clsrc);
+	clSetKernelArg(kernelToRun, 0, sizeof(cl_mem), &g_cldst);
+	clSetKernelArg(kernelToRun, 1, sizeof(cl_mem), &g_clsrc);
 	clSetKernelArg(kernelToRun, 2, sizeof(cl_int), &width);
 
 	size_t global[] = { (size_t)(width / xSkip), (size_t)(height / ySkip) };
@@ -217,10 +328,7 @@ extern PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, 
 
 	clFinish(OpenCL::GetCommandQueue());
 	
-	clEnqueueReadBuffer(OpenCL::GetCommandQueue(), cldst, CL_TRUE, 0, (size_t)(width * height * sizeOfDst), dst, 0, NULL, NULL);
-
-	clReleaseMemObject(clsrc);
-	clReleaseMemObject(cldst);
+	clEnqueueReadBuffer(OpenCL::GetCommandQueue(), g_cldst, CL_TRUE, 0, (size_t)(width * height * sizeOfDst), dst, 0, NULL, NULL);
 	
 	return formatResult;
 #else
