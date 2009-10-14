@@ -274,8 +274,8 @@ restart:
 	{
 		PB.ReachedEnd = 0;
 
-		// HACK: AFC looping doesn't work.
-		if (PB.RepeatMode == 0) //MKDD excluded (hack) - strange menu sounds
+		// HACK: AFC looping doesn't work yet. (remove "true ||" for pikmin2/zeldatp intro music - but its causing probs)
+		if (true || PB.RepeatMode == 0)
 		{
 			PB.KeyOff = 1;
 			PB.RemLength = 0;
@@ -292,7 +292,6 @@ restart:
 			// PB.RestartPos = PB.LoopStartPos;
  			PB.RemLength = PB.Length; // - PB.RestartPos;
 			PB.CurAddr = PB.StartAddr; //+ (PB.LoopStartPos >> 4) * PB.Format + ;
-			PB.ReachedEnd = 0;
 			// Hmm, this shouldn't be reversed .. or should it? Is it different between versions of the ucode?
 			PB.YN1 = PB.LoopYN2;
 			PB.YN2 = PB.LoopYN1;
