@@ -50,40 +50,50 @@ void CBoot::RunFunction(u32 _iAddr)
 void CBoot::EmulatedBS2(bool _bDebug)
 {
 	INFO_LOG(BOOT, "Faking GC BS2...");
+
 	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 	m_MSR.FP = 1;
 
+	// Clear ALL memory
 	Memory::Clear();
 
-	// =======================================================================================
 	// Write necessary values
-	//
-	// Here we write values to memory that the apploader does not take care of. Game iso info goes
-	// to 0x80000000 according to yagcd 4.2. I'm not sure what bytes 8-10 does (version and
-	//  streaming), but I include them anyway because it seems like they are supposed to be there. 
-	//
-	DVDInterface::DVDRead(0x00000000, 0x80000000, 10); // write boot info needed for multidisc games
+	// Here we write values to memory that the apploader does not take care of. Game info goes
+	// to 0x80000000 according to yagcd 4.2.
+	DVDInterface::DVDRead(0x00000000, 0x80000000, 10); // write disc info
+
+	Memory::Write_U32(0xc2339f3d, 0x8000001C);	// gamecube game disc magic number
+	Memory::Write_U32(0x0D15EA5E, 0x80000020);	// booted from bootrom. 0xE5207C22 = booted from jtag
+	Memory::Write_U32(0x01800000, 0x80000028);	// Physical Memory Size (24MB on retail)
+	// TODO determine why some games fail when using a retail id. (Seem to take different EXI paths, see ikaruga for example)
+	Memory::Write_U32(0x10000006, 0x8000002C);	// Console type - DevKit  (retail ID == 0x00000003) see yagcd 4.2.1.1.2
+
+	Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC
+						 ? 0 : 1, 0x800000CC);	// fake the VI Init of the IPL (yagcd 4.2.1.4)
+
+	Memory::Write_U32(0x01000000, 0x800000d0);	// ARAM Size. 16MB main + 4/16/32MB external (retail consoles have no external ARAM)
+
+	Memory::Write_U32(0x09a7ec80, 0x800000F8);	// Bus Clock Speed
+	Memory::Write_U32(0x1cf7c580, 0x800000FC);	// CPU Clock Speed
 
 	Memory::Write_U32(0x4c000064, 0x80000300);	// write default DFI Handler:		rfi
 	Memory::Write_U32(0x4c000064, 0x80000800);	// write default FPU Handler:		rfi
 	Memory::Write_U32(0x4c000064, 0x80000C00);	// write default Syscall Handler:   rfi
 
-	Memory::Write_U32(0xc2339f3d, 0x8000001C);	// gamecube game disc magic number
-	Memory::Write_U32(0x0D15EA5E, 0x80000020);	// booted from bootrom. 0xE5207C22 = booted from jtag
-	Memory::Write_U32(0x01800000, 0x80000028);	// Physical Memory Size
-
-	// On any of the production boards, ikaruga fails to read the memcard the first time. It succeeds on the second time though.
-	// And (only sometimes?) with 0x00000003, the loading picture in the bottom right will become corrupt and
-	// the emu will slow to 7mhz...I don't think it ever actually progresses
-	// This seems to be caused by the initialization of the memcard going amiss (remember, this uses a dsp program!)
-	// so, probably some fault with dsp timing/emulation in general (endless dsp interrupts...)
-	Memory::Write_U32(0x10000006,	0x8000002C);	// Console type - DevKit  (retail ID == 0x00000003) see yagcd 4.2.1.1.2
+	Memory::Write_U64((u64)CEXIIPL::GetGCTime() * (u64)40500000, 0x800030D8);	// preset time base ticks
 
 	Memory::Write_U32(((1 & 0x3f) << 26) | 2, 0x81300000);		// HLE OSReport for Apploader
 
-	// Load Apploader to Memory - The apploader is hardcoded to begin at byte 9 280 on the disc,
-	// but it seems like the size can be variable. Compare with yagcd chap 13.
+	// Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
+	// but the size can differ between discs. Compare with yagcd chap 13.
+	u32 iAppLoaderOffset = 0x2440;
+	u32 iAppLoaderEntry = VolumeHandler::Read32(iAppLoaderOffset + 0x10);
+	u32 iAppLoaderSize  = VolumeHandler::Read32(iAppLoaderOffset + 0x14);
+	if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))
+		return;
+	VolumeHandler::ReadToPtr(Memory::GetPointer(0x81200000), iAppLoaderOffset + 0x20, iAppLoaderSize);
 
+	// Setup pointers like real BS2 does
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC)
 	{
 		PowerPC::ppcState.gpr[1] = 0x81566550;		// StackPointer, used to be set to 0x816ffff0
@@ -96,16 +106,11 @@ void CBoot::EmulatedBS2(bool _bDebug)
 		PowerPC::ppcState.gpr[2] = 0x814b5b20;
 		PowerPC::ppcState.gpr[13] = 0x814b4fc0;
 	}
-	u32 iAppLoaderOffset = 0x2440;					// 0x1c40 - 2MB lower...perhaps used on early GCMs? MYSTERY OLD COMMENT
-	u32 iAppLoaderEntry = VolumeHandler::Read32(iAppLoaderOffset + 0x10);
-	u32 iAppLoaderSize  = VolumeHandler::Read32(iAppLoaderOffset + 0x14);
-	if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))
-		return;
-	VolumeHandler::ReadToPtr(Memory::GetPointer(0x81200000), iAppLoaderOffset + 0x20, iAppLoaderSize);
+
+	// TODO - Make Apploader(or just RunFunction()) debuggable!!!
 
 	// Call iAppLoaderEntry.
 	DEBUG_LOG(MASTER_LOG, "Call iAppLoaderEntry");
-
 	u32 iAppLoaderFuncAddr = 0x80003100;
 	PowerPC::ppcState.gpr[3] = iAppLoaderFuncAddr + 0;
 	PowerPC::ppcState.gpr[4] = iAppLoaderFuncAddr + 4;
@@ -145,26 +150,14 @@ void CBoot::EmulatedBS2(bool _bDebug)
 	DEBUG_LOG(MASTER_LOG, "call iAppLoaderClose");
 	RunFunction(iAppLoaderClose);
 
-	// Load patches
-	std::string gameID = VolumeHandler::GetVolume()->GetUniqueID();
-	PatchEngine::LoadPatches(gameID.c_str());
-	PowerPC::ppcState.DebugCount = 0;
 	// return
 	PC = PowerPC::ppcState.gpr[3];
 
-	// --- preinit some stuff from IPL ---
-
-	// Bus Clock Speed
-	Memory::Write_U32(0x09a7ec80, 0x800000F8);
-	// CPU Clock Speed
-	Memory::Write_U32(0x1cf7c580, 0x800000FC);
-
-	// fake the VI Init of the IPL 
-	Memory::Write_U32(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC 
-			  ? 0 : 1, 0x800000CC);
-
-	// preset time base ticks
-	Memory::Write_U64( (u64)CEXIIPL::GetGCTime() * (u64)40500000, 0x800030D8);
+	// Load patches
+	std::string gameID = VolumeHandler::GetVolume()->GetUniqueID();
+	PatchEngine::LoadPatches(gameID.c_str());
+	
+	PowerPC::ppcState.DebugCount = 0;
 }
 
 
