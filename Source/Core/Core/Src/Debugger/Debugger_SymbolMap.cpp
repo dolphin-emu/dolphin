@@ -46,6 +46,9 @@ void AddAutoBreakpoints()
 #endif
 }
 
+// Returns callstack "formatted for debugging" - meaning that it
+// includes LR as the last item, and all items are the last step,
+// instead of "pointing ahead"
 bool GetCallstack(std::vector<CallstackEntry> &output) 
 {
 	if (Core::GetState() == Core::CORE_UNINITIALIZED)
@@ -55,22 +58,23 @@ bool GetCallstack(std::vector<CallstackEntry> &output)
         return false;
 
 	u32 addr = Memory::ReadUnchecked_U32(PowerPC::ppcState.gpr[1]);  // SP
-	if (LR == 0) {
+	if (LR == 0)
+	{
         CallstackEntry entry;
         entry.Name = "(error: LR=0)";
         entry.vAddress = 0x0;
 		output.push_back(entry);
 		return false;
 	}
+
 	int count = 1;
-	if (g_symbolDB.GetDescription(PowerPC::ppcState.pc) != g_symbolDB.GetDescription(LR))
-	{
-        CallstackEntry entry;
-        entry.Name = StringFromFormat(" * %s [ LR = %08x ]\n", g_symbolDB.GetDescription(LR), LR);
-        entry.vAddress = 0x0;
-		count++;
-	}
-	
+
+	CallstackEntry entry;
+	entry.Name = StringFromFormat(" * %s [ LR = %08x ]\n", g_symbolDB.GetDescription(LR), LR - 4);
+	entry.vAddress = LR - 4;
+	output.push_back(entry);
+	count++;
+
 	//walk the stack chain
 	while ((addr != 0xFFFFFFFF) && (addr != 0) && (count++ < 20) && (PowerPC::ppcState.gpr[1] != 0))
 	{
@@ -83,13 +87,13 @@ bool GetCallstack(std::vector<CallstackEntry> &output)
 			str = "(unknown)";
 
         CallstackEntry entry;
-        entry.Name = StringFromFormat(" * %s [ addr = %08x ]\n", str, func);
-        entry.vAddress = func;
+        entry.Name = StringFromFormat(" * %s [ addr = %08x ]\n", str, func - 4);
+        entry.vAddress = func - 4;
 		output.push_back(entry);
 
         if (!Memory::IsRAMAddress(addr))
             return false;
-             
+
 	    addr = Memory::ReadUnchecked_U32(addr);
 	}
 

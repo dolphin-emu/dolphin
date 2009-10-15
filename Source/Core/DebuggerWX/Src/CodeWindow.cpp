@@ -393,18 +393,16 @@ void CCodeWindow::UpdateCallstack()
 
 	std::vector<Dolphin_Debugger::CallstackEntry> stack;
 
-	if (Dolphin_Debugger::GetCallstack(stack))
+	bool ret = Dolphin_Debugger::GetCallstack(stack);
+
+	for (size_t i = 0; i < stack.size(); i++)
 	{
-		for (size_t i = 0; i < stack.size(); i++)
-		{
-			int idx = callstack->Append(wxString::FromAscii(stack[i].Name.c_str()));
-			callstack->SetClientData(idx, (void*)(u64)stack[i].vAddress);
-		}
+		int idx = callstack->Append(wxString::FromAscii(stack[i].Name.c_str()));
+		callstack->SetClientData(idx, (void*)(u64)stack[i].vAddress);
 	}
-	else
-	{
+
+	if (!ret)
 		callstack->Append(wxString::FromAscii("invalid callstack"));
-	}
 }
 
 void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter)
