@@ -119,11 +119,7 @@ bool AlsaSound::AlsaInit()
 		return false;
 	}
 
-	// This is weird - if I do pass in a pointer to a variable, like the header
-	// wants me to, the sample rate goes mad. It seems that the alsa header
-	// doesn't match the library we link in :( If anyone know why, i'd
-	// appreciate if you let me know - ector.
-	err = snd_pcm_hw_params_set_rate_near(handle, hwparams, (unsigned int *)sample_rate, &dir);
+	err = snd_pcm_hw_params_set_rate_near(handle, hwparams, &sample_rate, &dir);
 	if (err < 0) 
 	{
 		ERROR_LOG(AUDIO, "Rate not available: %s\n", snd_strerror(err));
