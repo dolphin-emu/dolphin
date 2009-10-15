@@ -22,6 +22,7 @@ if acenv['HAVE_AO']:
 
 if acenv['HAVE_ALSA']:
     files += [ 'AlsaSoundStream.cpp' ]
+
 if sys.platform == 'darwin':
     files += [ 'CoreAudioSoundStream.cpp' ]
     acenv['FRAMEWORKS'] = [ 'CoreAudio' ]

@@ -107,7 +107,7 @@ vars.AddVariables(
     BoolVariable('bundle', 'Set to create bundle', False),
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
     BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
-    BoolVariable('noal', 'Build without OpenAL', False),
+    BoolVariable('openal', 'Build with OpenAL', False),
     BoolVariable('noao', 'Build without AO', False),
     BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
     BoolVariable('jittest', 'temp don\'t use (WIP)', False),
@@ -246,27 +246,25 @@ env['HAVE_SDL'] = conf.CheckSDL('1.0.0')
 env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 
 # needed for sound
-if env['noao']:
-    env['HAVE_AO'] = 0
-else:
+env['HAVE_AO'] = 0
+if not env['noao']:
     env['HAVE_AO'] = conf.CheckPKG('ao')
-if env['noal']:
-    env['HAVE_OPENAL'] = 0
-else:
+
+env['HAVE_OPENAL'] = 0
+if env['openal']:
     env['HAVE_OPENAL'] = conf.CheckPKG('openal')
+
 env['HAVE_ALSA'] = conf.CheckPKG('alsa')
 
 # OpenCL
+env['HAVE_OPENCL'] = 0
 if env['opencl']:   
-    env['HAVE_OPENCL'] = 1
-else:
-    env['HAVE_OPENCL'] = 0
+    env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
 
+env['HAVE_PORTAUDIO'] =  0
 if sys.platform != 'darwin':
 # needed for mic
     env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
-else:
-    env['HAVE_PORTAUDIO'] =  0
 
 # sfml
 env['HAVE_SFML'] = 0

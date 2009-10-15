@@ -24,13 +24,13 @@ void AudioCommonConfig::Load(IniFile &file) {
 	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
 	file.Get("Config", "Volume", &m_Volume, 75);
 #ifdef _WIN32
-	file.Get("Config", "Backend", &sBackend, "DSound");
+	file.Get("Config", "Backend", &sBackend, BACKEND_DIRECTSOUND);
 #elif defined(__APPLE__)
 	std::string temp;
-	file.Get("Config", "Backend", &temp, "CoreAudio");
+	file.Get("Config", "Backend", &temp, BACKEND_COREAUDIO);
 	strncpy(sBackend, temp.c_str(), 128);
-#else
-	file.Get("Config", "Backend", &sBackend, "AOSound");
+#else // linux
+	file.Get("Config", "Backend", &sBackend, BACKEND_ALSA);
 #endif
 }
 
