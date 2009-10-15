@@ -23,6 +23,7 @@
 #include "NullSoundStream.h"
 #include "CoreAudioSoundStream.h"
 #include "OpenALStream.h"
+#include "PulseAudioStream.h"
 
 namespace AudioCommon 
 {	
@@ -43,6 +44,8 @@ namespace AudioCommon
 			soundStream = new OpenALStream(mixer);
 		if (backend == BACKEND_ALSA        && AlsaSound::isValid())
 			soundStream = new AlsaSound(mixer);
+		if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
+			soundStream = new PulseAudio(mixer);
 		if (backend == BACKEND_NULL        && NullSound::isValid()) 
 			soundStream = new NullSound(mixer);
 
@@ -101,6 +104,8 @@ namespace AudioCommon
 			backends.push_back(BACKEND_OPENAL);
 		if (AlsaSound::isValid()) 
 			backends.push_back(BACKEND_ALSA);
+		if (PulseAudio::isValid()) 
+			backends.push_back(BACKEND_PULSEAUDIO);
 		if (NullSound::isValid()) 
 			backends.push_back(BACKEND_NULL);
 	   

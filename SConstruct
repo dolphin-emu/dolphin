@@ -256,6 +256,9 @@ if env['openal']:
 
 env['HAVE_ALSA'] = conf.CheckPKG('alsa')
 
+env['HAVE_PULSEAUDIO'] = 0
+#env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse')
+
 # OpenCL
 env['HAVE_OPENCL'] = 0
 if env['opencl']:   
