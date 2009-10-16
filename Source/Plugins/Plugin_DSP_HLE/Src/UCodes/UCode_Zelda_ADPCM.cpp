@@ -44,7 +44,7 @@ void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *src, signed shor
     {
 		// In Pikmin, Dolphin's engine sound is using AFC type 5, even though such a sound is hard
 		// to compare, it seems like to sound exactly like a real GC
-		// In Super Mario Sunshine, you can get such a sound by talking to anyone
+		// In Super Mario Sunshine, you can get such a sound by talking to/jumping on anyone
 		DEBUG_LOG(DSPHLE, "5 bytes AFC sample");
         for (int i = 0; i < 16; i += 4)
         {
@@ -68,7 +68,10 @@ void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *src, signed shor
     for (int i = 0; i < 16; i++)
 	{
         int sample = delta * nibbles[i] + ((long)hist * coef[idx * 2]) + ((long)hist2 * coef[idx * 2 + 1]);
-        sample >>= 11;
+	    if (type == 9)
+		    sample >>= 11;
+		else
+		    sample >>= 13;
         if (sample > 32767)
             sample = 32767;
         if (sample < -32768)
