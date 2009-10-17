@@ -112,7 +112,7 @@ void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
 
 	pp->MultiSampleType = adapters[adapter].aa_levels[aa_mode].ms_setting;
 	pp->MultiSampleQuality = adapters[adapter].aa_levels[aa_mode].qual_setting;
-	
+
 	pp->Flags = auto_depth_stencil ? D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL : 0;
 	if (fullScreen)
 	{
@@ -136,9 +136,12 @@ void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
 void Enumerate()
 {
 	numAdapters = D3D::D3D->GetAdapterCount();
+
 	for (int i = 0; i < std::min(MAX_ADAPTERS, numAdapters); i++)
 	{
 		Adapter &a = adapters[i];
+		a.aa_levels.clear();
+		a.resolutions.clear();
 		D3D::D3D->GetAdapterIdentifier(i, 0, &a.ident);
 		bool isNvidia = a.ident.VendorId == VENDOR_NVIDIA;
 
