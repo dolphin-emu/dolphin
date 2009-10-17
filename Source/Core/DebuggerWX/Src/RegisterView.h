@@ -31,14 +31,17 @@
 // CTR
 // CR0-7
 // FPSCR
+// MSR
 // SRR0
 // SRR1
 // Exceptions
+// Interrupt Mask (PI)
+// Interrupt Cause(PI)
 
 class CRegTable : public wxGridTableBase
 {
 	enum {
-		NUM_SPECIALS = 10,
+		NUM_SPECIALS = 11,
 	};
 
 public:

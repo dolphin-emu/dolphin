@@ -26,7 +26,7 @@ extern const char* GetGPRName(unsigned int index);
 extern const char* GetFPRName(unsigned int index);
 
 static const char *special_reg_names[] = {
-	"PC", "LR", "CTR", "CR", "FPSCR", "SRR0", "SRR1", "Exceptions", "Int Mask", "Int Cause",
+	"PC", "LR", "CTR", "CR", "FPSCR", "MSR", "SRR0", "SRR1", "Exceptions", "Int Mask", "Int Cause",
 };
 
 static u32 GetSpecialRegValue(int reg) {
@@ -36,11 +36,12 @@ static u32 GetSpecialRegValue(int reg) {
 	case 2: return PowerPC::ppcState.spr[SPR_CTR];
 	case 3: return GetCR();
 	case 4: return PowerPC::ppcState.fpscr;
-	case 5: return PowerPC::ppcState.spr[SPR_SRR0];
-	case 6: return PowerPC::ppcState.spr[SPR_SRR1];
-	case 7: return PowerPC::ppcState.Exceptions;
-	case 8: return ProcessorInterface::GetMask();
-	case 9: return ProcessorInterface::GetCause();
+	case 5: return PowerPC::ppcState.msr;
+	case 6: return PowerPC::ppcState.spr[SPR_SRR0];
+	case 7: return PowerPC::ppcState.spr[SPR_SRR1];
+	case 8: return PowerPC::ppcState.Exceptions;
+	case 9: return ProcessorInterface::GetMask();
+	case 10: return ProcessorInterface::GetCause();
 	default: return 0;	
 	}
 }
@@ -70,18 +71,19 @@ wxString CRegTable::GetValue(int row, int col)
 
 static void SetSpecialRegValue(int reg, u32 value) {
 	switch (reg) {
-	case 0: PowerPC::ppcState.pc = value;
-	case 1: PowerPC::ppcState.spr[SPR_LR] = value;
-	case 2: PowerPC::ppcState.spr[SPR_CTR] = value;
-	case 3: SetCR(value);
-	case 4: PowerPC::ppcState.fpscr = value;
-	case 5: PowerPC::ppcState.spr[SPR_SRR0] = value;
-	case 6: PowerPC::ppcState.spr[SPR_SRR1] = value;
-	case 7: PowerPC::ppcState.Exceptions = value;
+	case 0: PowerPC::ppcState.pc = value; break;
+	case 1: PowerPC::ppcState.spr[SPR_LR] = value; break;
+	case 2: PowerPC::ppcState.spr[SPR_CTR] = value; break;
+	case 3: SetCR(value); break;
+	case 4: PowerPC::ppcState.fpscr = value; break;
+	case 5: PowerPC::ppcState.msr = value; break;
+	case 6: PowerPC::ppcState.spr[SPR_SRR0] = value; break;
+	case 7: PowerPC::ppcState.spr[SPR_SRR1] = value; break;
+	case 8: PowerPC::ppcState.Exceptions = value; break;
 // Should we just change the value, or use ProcessorInterface::SetInterrupt() to make the system aware?
-// 	case 8: return ProcessorInterface::GetMask();
-// 	case 9: return ProcessorInterface::GetCause();
-	default: return;	
+// 	case 9: return ProcessorInterface::GetMask();
+// 	case 10: return ProcessorInterface::GetCause();
+	default: return;
 	}
 }
 
@@ -120,7 +122,7 @@ void CRegTable::UpdateCachedRegs()
 		m_CachedFRegHasChanged[i][1] = (m_CachedFRegs[i][1] != rPS1(i));
 		m_CachedFRegs[i][1] = rPS1(i);
 	}
-	for (int i = 0; i < 6; ++i)
+	for (int i = 0; i < NUM_SPECIALS; ++i)
 	{
 		m_CachedSpecialRegHasChanged[i] = (m_CachedSpecialRegs[i] != GetSpecialRegValue(i));
 		m_CachedSpecialRegs[i] = GetSpecialRegValue(i);
