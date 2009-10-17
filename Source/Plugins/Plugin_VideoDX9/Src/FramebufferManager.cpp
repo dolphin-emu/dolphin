@@ -40,7 +40,7 @@ static LPDIRECT3DSURFACE9 s_efb_depth_OffScreenReadBuffer;
 static D3DFORMAT s_efb_color_surface_Format;
 static D3DFORMAT s_efb_depth_surface_Format;
 #undef CHECK
-#define CHECK(hr,Message) if (FAILED(hr)) { PanicAlert(__FUNCTION__ " FAIL: %s" ,Message); }
+#define CHECK(hr,Message) //if (FAILED(hr)) { PanicAlert(__FUNCTION__ " FAIL: %s" ,Message); }
 
 
 
@@ -87,7 +87,7 @@ void Create()
 	CHECK(hr,"Get Color Surface");
 	//create a one pixel texture to work as a buffer for peeking
 	hr = D3D::dev->CreateTexture(1, 1, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8,
-		                                 D3DPOOL_DEFAULT, &s_efb_colorBuffer_texture, NULL);
+		                                  D3DPOOL_DEFAULT, &s_efb_colorBuffer_texture, NULL);
 	if (!FAILED(hr))
 	{
 		//get the surface for the peeking texture
@@ -111,7 +111,7 @@ void Create()
 		DepthTexFormats[5] = D3DFMT_D16_LOCKABLE;
 		DepthTexFormats[6] = D3DFMT_D24X8;
 
-		for(int i = 0;i<4;i++)
+		for (int i = 0;i<4;i++)
 		{
 			s_efb_depth_surface_Format = DepthTexFormats[i];
 			hr = D3D::dev->CreateTexture(target_width, target_height, 1, D3DUSAGE_DEPTHSTENCIL, s_efb_depth_surface_Format,
@@ -143,8 +143,8 @@ void Create()
 					//no depth in system mem so try vista path to grab depth data
 					//create a offscreen lockeable surface
 					hr = D3D::dev->CreateOffscreenPlainSurface(1, 1, D3DFMT_D32F_LOCKABLE, D3DPOOL_DEFAULT, &s_efb_depth_OffScreenReadBuffer, NULL );
-					CHECK(hr,"Create Depth D3DFMT_D32F_LOCKABLE offscreen Surface");
-					if(s_efb_depth_ReadBuffer)
+					CHECK(hr, "Create Depth D3DFMT_D32F_LOCKABLE offscreen Surface");
+					if (s_efb_depth_ReadBuffer)
 						s_efb_depth_ReadBuffer->Release();
 					//this is ugly but is a fast way to test wich path to proceed for peeking
 					s_efb_depth_ReadBuffer = s_efb_depth_OffScreenReadBuffer;
