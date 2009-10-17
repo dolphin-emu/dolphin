@@ -68,8 +68,44 @@ wxString CRegTable::GetValue(int row, int col)
     return wxString::FromAscii("");
 }
 
-void CRegTable::SetValue(int, int, const wxString &)
+static void SetSpecialRegValue(int reg, u32 value) {
+	switch (reg) {
+	case 0: PowerPC::ppcState.pc = value;
+	case 1: PowerPC::ppcState.spr[SPR_LR] = value;
+	case 2: PowerPC::ppcState.spr[SPR_CTR] = value;
+	case 3: SetCR(value);
+	case 4: PowerPC::ppcState.fpscr = value;
+	case 5: PowerPC::ppcState.spr[SPR_SRR0] = value;
+	case 6: PowerPC::ppcState.spr[SPR_SRR1] = value;
+	case 7: PowerPC::ppcState.Exceptions = value;
+// Should we just change the value, or use ProcessorInterface::SetInterrupt() to make the system aware?
+// 	case 8: return ProcessorInterface::GetMask();
+// 	case 9: return ProcessorInterface::GetCause();
+	default: return;	
+	}
+}
+
+void CRegTable::SetValue(int row, int col, const wxString& strNewVal)
 {
+	u32 newVal = 0;
+	double newValFP = 0.0;
+	if (TryParseUInt(std::string(strNewVal.mb_str()), &newVal))
+	{
+		if (row < 32) {
+			if (col == 1)
+				GPR(row) = newVal;
+			else if (strNewVal.ToDouble(&newValFP)) {
+				if (col == 3)
+					rPS0(row) = newValFP;
+				else if (col == 4)
+					rPS1(row) = newValFP;
+			}
+		} else {
+			if ((row - 32 < NUM_SPECIALS) && (col == 1)) {
+				SetSpecialRegValue(row - 32, newVal);
+			}
+		}
+	}
 }
 
 void CRegTable::UpdateCachedRegs()
@@ -100,9 +136,11 @@ wxGridCellAttr *CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
 
 	switch (col) {
 	case 1:
+		attr->SetAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
+		break;
 	case 3:
 	case 4:
-		attr->SetAlignment(wxALIGN_CENTER, wxALIGN_CENTER);
+		attr->SetAlignment(wxALIGN_RIGHT, wxALIGN_CENTER);
 		break;
 	default:
 		attr->SetAlignment(wxALIGN_LEFT, wxALIGN_CENTER);
