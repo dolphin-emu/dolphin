@@ -289,10 +289,10 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 									break;
 								case 0x14: // get features
 									msg.addData(1);
-									msg.addData("\x01\x02\x0a\x00", 4);  // 2 player, 10 bit
-									msg.addData("\x02\x02\x00\x00", 4);  // 2 coin slots
-									//msg.addData("\x03\x02\x08\x00", 4); 
-									msg.addData("\x00\x00\x00\x00", 4); 
+									msg.addData((void *)"\x01\x02\x0a\x00", 4);  // 2 player, 10 bit
+									msg.addData((void *)"\x02\x02\x00\x00", 4);  // 2 coin slots
+									//msg.addData((void *)"\x03\x02\x08\x00", 4); 
+									msg.addData((void *)"\x00\x00\x00\x00", 4); 
 									break;
 								case 0x15:
 									while (*jvs_io++);
