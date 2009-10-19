@@ -158,6 +158,9 @@ void CBoot::EmulatedBS2(bool _bDebug)
 	PatchEngine::LoadPatches(gameID.c_str());
 	
 	PowerPC::ppcState.DebugCount = 0;
+
+	// If we have any patches that need to be applied very early, here's a good place
+	PatchEngine::ApplyFramePatches();
 }
 
 

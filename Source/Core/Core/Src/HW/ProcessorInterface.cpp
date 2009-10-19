@@ -232,20 +232,20 @@ void SetInterrupt(u32 _causemask, bool _bSet)
 
     if (_bSet && !(m_InterruptCause & _causemask))
     {
-        DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "set");
+        DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (%s)", Debug_GetInterruptName(_causemask), "set");
     }
 
-    if (!_bSet && (m_InterruptCause & _causemask))
+	if (!_bSet && (m_InterruptCause & _causemask))
     {
-        DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (%s)",Debug_GetInterruptName(_causemask), "clear");
+        DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (%s)", Debug_GetInterruptName(_causemask), "clear");
     }
 	
 	if (_bSet)
 		m_InterruptCause |= _causemask;
 	else
-		m_InterruptCause &= ~_causemask;   // is there any reason to have this possibility?
-												// F|RES: i think the hw devices reset the interrupt in the PI to 0 
-												// if the interrupt cause is eliminated. that isnt done by software (afaik)
+		m_InterruptCause &= ~_causemask;// is there any reason to have this possibility?
+										// F|RES: i think the hw devices reset the interrupt in the PI to 0 
+										// if the interrupt cause is eliminated. that isnt done by software (afaik)
 	UpdateException();
 }
 

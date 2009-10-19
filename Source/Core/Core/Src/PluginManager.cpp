@@ -389,10 +389,10 @@ Common::PluginPAD *CPluginManager::GetPad(int controller)
 	// Else do this
 	if (OkayToInitPlugin(controller) == -1) {
 		m_pad[controller] = (Common::PluginPAD*)LoadPlugin(m_params->m_strPadPlugin[controller].c_str(), controller);
-		INFO_LOG(CONSOLE, "LoadPlugin: %i\n", controller);
+		INFO_LOG(CONSOLE, "LoadPlugin: %i", controller);
 	}
 	else {
-		INFO_LOG(CONSOLE, "Pointed: %i to %i\n", controller, OkayToInitPlugin(controller));
+		INFO_LOG(CONSOLE, "Pointed: %i to %i", controller, OkayToInitPlugin(controller));
 		m_pad[controller] = m_pad[OkayToInitPlugin(controller)];
 	}	
 	return m_pad[controller];
