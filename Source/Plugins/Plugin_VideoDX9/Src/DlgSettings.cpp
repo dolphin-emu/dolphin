@@ -28,16 +28,6 @@
 #include "TextureCache.h"
 // TODO: remove if/when ini files use unicode
 #define ComboBox_GetTextA(hwndCtl, lpch, cchMax) GetWindowTextA((hwndCtl), (lpch), (cchMax))
-#define NUMWNDRES 6
-int g_Res[NUMWNDRES][2] = 
-{
-	{640,480},
-	{800,600},
-	{1024,768},
-	{1280,960},
-	{1280,1024},
-	{1600,1200},
-};
 
 struct TabDirect3D : public W32Util::Tab
 {
@@ -72,17 +62,12 @@ struct TabDirect3D : public W32Util::Tab
 			const D3D::Resolution &r = adapter.resolutions[i];
 			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, r.name, -1, tempwstr, 2000);
 			ComboBox_AddString(GetDlgItem(hDlg,IDC_RESOLUTION), tempwstr);
+			ComboBox_AddString(GetDlgItem(hDlg,IDC_RESOLUTIONWINDOWED),tempwstr);
 		}
 		
 		for (int i = 0; i <16; i++) tempwstr[i] = g_Config.cFSResolution[i];
 		ComboBox_SelectString(GetDlgItem(hDlg,IDC_RESOLUTION), -1, tempwstr);
-		for (int i = 0; i < NUMWNDRES; i++)
-		{
-			char temp[256];
-			sprintf(temp,"%ix%i",g_Res[i][0],g_Res[i][1]);
-			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, temp, -1, tempwstr, 2000);
-			ComboBox_AddString(GetDlgItem(hDlg,IDC_RESOLUTIONWINDOWED),tempwstr);
-		}
+
 		for (int i = 0; i < 16; i++) tempwstr[i] = g_Config.cInternalRes[i];		
 		ComboBox_SelectString(GetDlgItem(hDlg,IDC_RESOLUTIONWINDOWED), -1, tempwstr);
 

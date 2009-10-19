@@ -61,8 +61,6 @@ static bool s_AVIDumping;
 
 static u32 s_blendMode;
 
-#define NUMWNDRES 6
-extern int g_Res[NUMWNDRES][2];
 char st[32768];
 
 // State translation lookup tables
