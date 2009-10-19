@@ -32,6 +32,19 @@
 
 extern CFrame* main_frame;
 
+// Strings for Device Selections
+#define DEV_NONE_STR		"<Nothing>"
+#define DEV_DUMMY_STR		"Dummy"
+
+#define SIDEV_STDCONT_STR	"Standard Controller"
+#define SIDEV_GBA_STR		"GBA"
+#define SIDEV_AM_BB_STR		"AM-Baseboard"
+
+#define EXIDEV_MEMCARD_STR	"Memory Card"
+#define EXIDEV_MIC_STR		"Mic"
+#define EXIDEV_BBA_STR		"BBA"
+#define EXIDEV_AM_BB_STR	"AM-Baseboard"
+
 
 BEGIN_EVENT_TABLE(CConfigMain, wxDialog)
 
@@ -352,10 +365,10 @@ void CConfigMain::CreateGUIControls()
 	GCEXIDeviceText[0] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SLOTA_TEXT, wxT("Slot A"), wxDefaultPosition, wxDefaultSize);
 	GCEXIDeviceText[1] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SLOTB_TEXT, wxT("Slot B"), wxDefaultPosition, wxDefaultSize);
 	GCEXIDeviceText[2] = new wxStaticText(GamecubePage, ID_GC_EXIDEVICE_SP1_TEXT,	wxT("SP1   "), wxDefaultPosition, wxDefaultSize);
-	GCEXIDeviceText[2]->SetToolTip(wxT("Serial Port 1 - This is the port the network adapter uses"));
-	const wxString SlotDevices[] = {wxT("<Nothing>"),wxT("Memory Card"), wxT("Mic")};
+	GCEXIDeviceText[2]->SetToolTip(wxT("Serial Port 1 - This is the port which devices such as the net adapter use"));
+	const wxString SlotDevices[] = {wxT(DEV_NONE_STR),wxT(DEV_DUMMY_STR),wxT(EXIDEV_MEMCARD_STR), wxT(EXIDEV_MIC_STR)};
 	static const int numSlotDevices = sizeof(SlotDevices)/sizeof(wxString);
-	const wxString SP1Devices[] = {wxT("<Nothing>"),wxT("BBA")};
+	const wxString SP1Devices[] = {wxT(DEV_NONE_STR),wxT(DEV_DUMMY_STR),wxT(EXIDEV_BBA_STR),wxT(EXIDEV_AM_BB_STR)};
 	static const int numSP1Devices = sizeof(SP1Devices)/sizeof(wxString);
 	GCEXIDevice[0] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTA, wxDefaultPosition, wxDefaultSize, numSlotDevices, SlotDevices, 0, wxDefaultValidator);
 	GCEXIDevice[1] = new wxChoice(GamecubePage, ID_GC_EXIDEVICE_SLOTB, wxDefaultPosition, wxDefaultSize, numSlotDevices, SlotDevices, 0, wxDefaultValidator);
@@ -365,16 +378,29 @@ void CConfigMain::CreateGUIControls()
 	for (int i = 0; i < 3; ++i)
 	{
 		bool isMemcard = false;
-		if (SConfig::GetInstance().m_EXIDevice[i] == EXIDEVICE_MEMORYCARD_A)
-			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[1]);
-		else if (SConfig::GetInstance().m_EXIDevice[i] == EXIDEVICE_MEMORYCARD_B)
-			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[1]);
-		else if (SConfig::GetInstance().m_EXIDevice[i] == EXIDEVICE_MIC)
-			GCEXIDevice[i]->SetStringSelection(SlotDevices[2]);
-		else if (SConfig::GetInstance().m_EXIDevice[i] == EXIDEVICE_ETH)
-			GCEXIDevice[i]->SetStringSelection(SP1Devices[1]);
-		else
-			GCEXIDevice[i]->SetStringSelection(wxT("<Nothing>"));
+		switch (SConfig::GetInstance().m_EXIDevice[i])
+		{
+		case EXIDEVICE_NONE:
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[0]);
+			break;
+		case EXIDEVICE_MEMORYCARD_A:
+		case EXIDEVICE_MEMORYCARD_B:
+			isMemcard = GCEXIDevice[i]->SetStringSelection(SlotDevices[2]);
+			break;
+		case EXIDEVICE_MIC:
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[3]);
+			break;
+		case EXIDEVICE_ETH:
+			GCEXIDevice[i]->SetStringSelection(SP1Devices[2]);
+			break;
+		case EXIDEVICE_AM_BASEBOARD:
+			GCEXIDevice[i]->SetStringSelection(SP1Devices[3]);
+			break;
+		case EXIDEVICE_DUMMY:
+		default:
+			GCEXIDevice[i]->SetStringSelection(SlotDevices[1]);
+			break;
+		}
 		if (!isMemcard && i < 2)
 			GCMemcardPath[i]->Disable();
 	}
@@ -384,7 +410,7 @@ void CConfigMain::CreateGUIControls()
 	GCSIDeviceText[1] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 2"), wxDefaultPosition, wxDefaultSize);
 	GCSIDeviceText[2] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 3"), wxDefaultPosition, wxDefaultSize);
 	GCSIDeviceText[3] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 4"), wxDefaultPosition, wxDefaultSize);
-	const wxString SIDevices[] = {wxT("<Nothing>"), wxT("Standard Controller"), wxT("GBA")};
+	const wxString SIDevices[] = {wxT(DEV_DUMMY_STR),wxT(SIDEV_STDCONT_STR),wxT(SIDEV_GBA_STR),wxT(SIDEV_AM_BB_STR)};
 	static const int numSIDevices = sizeof(SIDevices)/sizeof(wxString);
 	GCSIDevice[0] = new wxChoice(GamecubePage, ID_GC_SIDEVICE0, wxDefaultPosition, wxDefaultSize, numSIDevices, SIDevices, 0, wxDefaultValidator);
 	GCSIDevice[1] = new wxChoice(GamecubePage, ID_GC_SIDEVICE1, wxDefaultPosition, wxDefaultSize, numSIDevices, SIDevices, 0, wxDefaultValidator);
@@ -392,12 +418,21 @@ void CConfigMain::CreateGUIControls()
 	GCSIDevice[3] = new wxChoice(GamecubePage, ID_GC_SIDEVICE3, wxDefaultPosition, wxDefaultSize, numSIDevices, SIDevices, 0, wxDefaultValidator);
 	for (int i = 0; i < 4; ++i)
 	{
-		if (SConfig::GetInstance().m_SIDevice[i] == SI_GC_CONTROLLER)
+		switch (SConfig::GetInstance().m_SIDevice[i])
+		{
+		case SI_GC_CONTROLLER:
 			GCSIDevice[i]->SetStringSelection(SIDevices[1]);
-		else if (SConfig::GetInstance().m_SIDevice[i] == SI_GBA)
+			break;
+		case SI_GBA:
 			GCSIDevice[i]->SetStringSelection(SIDevices[2]);
-		else
+			break;
+		case SI_AM_BASEBOARD:
+			GCSIDevice[i]->SetStringSelection(SIDevices[3]);
+			break;
+		default:
 			GCSIDevice[i]->SetStringSelection(SIDevices[0]);
+			break;
+		}
 	}
 
 	sGamecube = new wxBoxSizer(wxVERTICAL);
@@ -678,7 +713,7 @@ void CConfigMain::GCSettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage = GCSystemLang->GetSelection();
 		break;
 
-	case ID_GC_EXIDEVICE_SP1: // The only thing we emulate on SP1 is the BBA
+	case ID_GC_EXIDEVICE_SP1:
 		exidevice++;
 	case ID_GC_EXIDEVICE_SLOTB:
 		exidevice++;
@@ -741,10 +776,12 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
 {
 	TSIDevices tempType;
-	if (deviceName.compare("Standard Controller") == 0)
+	if (!deviceName.compare(SIDEV_STDCONT_STR))
 		tempType = SI_GC_CONTROLLER;
-	else if (deviceName.compare("GBA") == 0)
+	else if (!deviceName.compare(SIDEV_GBA_STR))
 		tempType = SI_GBA;
+	else if (!deviceName.compare(SIDEV_AM_BB_STR))
+		tempType = SI_AM_BASEBOARD;
 	else
 		tempType = SI_DUMMY;
 
@@ -761,12 +798,16 @@ void CConfigMain::ChooseEXIDevice(std::string deviceName, int deviceNum)
 {
 	TEXIDevices tempType;
 
-	if (deviceName.compare("Memory Card") == 0)
+	if (!deviceName.compare(EXIDEV_MEMCARD_STR))
 		tempType = deviceNum ? EXIDEVICE_MEMORYCARD_B : EXIDEVICE_MEMORYCARD_A;
-	else if (deviceName.compare("Mic") == 0)
+	else if (!deviceName.compare(EXIDEV_MIC_STR))
 		tempType = EXIDEVICE_MIC;
-	else if (deviceName.compare("BBA") == 0)
+	else if (!deviceName.compare(EXIDEV_BBA_STR))
 		tempType = EXIDEVICE_ETH;
+	else if (!deviceName.compare(EXIDEV_AM_BB_STR))
+		tempType = EXIDEVICE_AM_BASEBOARD;
+	else if (!deviceName.compare(DEV_NONE_STR))
+		tempType = EXIDEVICE_NONE;
 	else
 		tempType = EXIDEVICE_DUMMY;
 
@@ -939,8 +980,6 @@ void CConfigMain::CallConfig(wxChoice* _pChoice)
 
 void CConfigMain::FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::string& _SelectFilename)
 {
-	INFO_LOG(CONSOLE, "FillChoiceBox\n");
-
 	_pChoice->Clear();
 
 	int Index = -1;

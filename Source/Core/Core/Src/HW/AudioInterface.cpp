@@ -196,7 +196,7 @@ void Write32(const u32 _Value, const u32 _Address)
 
 				// This is the only new code in this ~3,326 revision, it seems to avoid hanging Crazy Taxi,
 				// while the 1080 and Wave Race music still works
-				if (!tmpAICtrl.PSTAT) DVDInterface::m_bStream = false;
+				if (!tmpAICtrl.PSTAT) DVDInterface::g_bStream = false;
             }
 
             // AI Interrupt

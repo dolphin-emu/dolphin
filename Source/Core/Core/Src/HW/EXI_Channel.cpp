@@ -27,24 +27,22 @@
 #include "ProcessorInterface.h"
 #include "../PowerPC/PowerPC.h"
 
-CEXIChannel::CEXIChannel() :
+CEXIChannel::CEXIChannel(u32 ChannelId) :
 	m_DMAMemoryAddress(0),
 	m_DMALength(0),
 	m_ImmData(0),
-	m_ChannelId(-1)
+	m_ChannelId(ChannelId)
 {
-	m_Control.hex = 0;
-	m_Status.hex = 0;
+	m_Control.Hex = 0;
+	m_Status.Hex = 0;
 
-	m_Status.CHIP_SELECT = 1;
+	if (m_ChannelId == 0 || m_ChannelId == 1)
+		m_Status.EXTINT = 1;
+	if (m_ChannelId == 1)
+		m_Status.CHIP_SELECT = 1;
 
 	for (int i = 0; i < NUM_DEVICES; i++)
-	{
-		m_pDevices[i] = EXIDevice_Create(EXIDEVICE_DUMMY);
-		_dbg_assert_(EXPANSIONINTERFACE, m_pDevices[i] != NULL);
-	}
-
-	m_Status.TCINTMASK = 1;
+		m_pDevices[i] = EXIDevice_Create(EXIDEVICE_NONE);
 }
 
 CEXIChannel::~CEXIChannel()
@@ -56,11 +54,8 @@ void CEXIChannel::RemoveDevices()
 {
 	for (int i = 0; i < NUM_DEVICES; i++)
 	{
-		if (m_pDevices[i] != NULL)
-		{
-			delete m_pDevices[i];
-			m_pDevices[i] = NULL;
-		}
+		delete m_pDevices[i];
+		m_pDevices[i] = NULL;
 	}
 }
 
@@ -77,7 +72,14 @@ void CEXIChannel::AddDevice(const TEXIDevices _device, const unsigned int _iSlot
 
 	// create the new one
 	m_pDevices[_iSlot] = EXIDevice_Create(_device);
-	_dbg_assert_(EXPANSIONINTERFACE, m_pDevices[_iSlot] != NULL);
+
+	// This means "device presence changed", software has to check
+	// m_Status.EXT to see if it is now present or not
+	if (m_ChannelId != 2)
+	{
+		m_Status.EXTINT = 1;
+		UpdateInterrupts();
+	}
 }
 
 void CEXIChannel::UpdateInterrupts()
@@ -87,18 +89,11 @@ void CEXIChannel::UpdateInterrupts()
 
 bool CEXIChannel::IsCausingInterrupt()
 {
-	if (m_ChannelId != 2) /* Channels 0 and 1: Memcard slot (device 0) produces interrupt */
-	{
-		for (int i = 0; i < NUM_DEVICES; i++)
-			if (m_pDevices[i]->IsInterruptSet())
-				m_Status.EXIINT = 1;
-	}
-	else /* Channel 2: In fact, Channel 0, Device 2 (Serial A) produces interrupt */
-	{
-		// WTF? this[-2]??? EVIL HACK
-		if (this[-2].m_pDevices[2]->IsInterruptSet())
+	if (m_ChannelId != 2 && GetDevice(1)->IsInterruptSet())
+		m_Status.EXIINT = 1; // Always check memcard slots
+	else if (GetDevice(m_Status.CHIP_SELECT))
+		if (GetDevice(m_Status.CHIP_SELECT)->IsInterruptSet())
 			m_Status.EXIINT = 1;
-	}
 
 	if ((m_Status.EXIINT	& m_Status.EXIINTMASK) ||
 		(m_Status.TCINT		& m_Status.TCINTMASK) ||
@@ -134,22 +129,18 @@ void CEXIChannel::Update()
 
 void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 {
-	DEBUG_LOG(EXPANSIONINTERFACE, "ExtensionInterface(R): channel: %i  reg: %i", m_ChannelId, _iRegister);
-
 	switch (_iRegister)
 	{
 	case EXI_STATUS:
 		{
-			// check if a device is present
-			for (int i = 0; i < NUM_DEVICES; i++)
-			{
-				if (m_pDevices[i]->IsPresent())
-				{
-					m_Status.EXT = 1;
-					break;
-				}
-			}
-			_uReturnValue = m_Status.hex;
+			// check if external device is present
+			// pretty sure it is memcard only, not entirely sure
+			if (m_ChannelId == 2)
+				m_Status.EXT = 0;
+			else
+				m_Status.EXT = GetDevice(1)->IsPresent() ? 1 : 0;
+
+			_uReturnValue = m_Status.Hex;
 			break;
 		}
 
@@ -162,7 +153,7 @@ void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 		break;
 
 	case EXI_DMACONTROL:
-		_uReturnValue = m_Control.hex;
+		_uReturnValue = m_Control.Hex;
 		break;
 
 	case EXI_IMMDATA:
@@ -174,11 +165,14 @@ void CEXIChannel::Read32(u32& _uReturnValue, const u32 _iRegister)
 		_uReturnValue = 0xDEADBEEF;
 	}
 
+	DEBUG_LOG(EXPANSIONINTERFACE, "(r32) 0x%08x channel: %i  reg: %s",
+		_uReturnValue, m_ChannelId, Debug_GetRegisterName(_iRegister));
 }
 
 void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 {
-	INFO_LOG(EXPANSIONINTERFACE, "ExtensionInterface(W): 0x%08x channel: %i  reg: %i", _iValue, m_ChannelId, _iRegister);
+	DEBUG_LOG(EXPANSIONINTERFACE, "(w32) 0x%08x channel: %i  reg: %s",
+		_iValue, m_ChannelId, Debug_GetRegisterName(_iRegister));
 
 	switch (_iRegister)
 	{
@@ -186,64 +180,45 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 		{
 			UEXI_STATUS newStatus(_iValue);
 
-			// static
 			m_Status.EXIINTMASK		= newStatus.EXIINTMASK;
+			if (newStatus.EXIINT)	m_Status.EXIINT = 0;
+
 			m_Status.TCINTMASK		= newStatus.TCINTMASK;
-			m_Status.EXTINTMASK		= newStatus.EXTINTMASK;
+			if (newStatus.TCINT)	m_Status.TCINT = 0;
+
 			m_Status.CLK			= newStatus.CLK;
-			m_Status.ROMDIS			= newStatus.ROMDIS;
 
-			// Device
-			if (m_Status.CHIP_SELECT != newStatus.CHIP_SELECT)
+			if (m_ChannelId == 0 || m_ChannelId == 1)
 			{
-				for (int i = 0; i < NUM_DEVICES; i++)
-				{
-					u8 dwDeviceMask = 1 << i;
-					IEXIDevice* pDevice = GetDevice(dwDeviceMask);
-					if (pDevice != NULL)
-					{
-						if (((newStatus.CHIP_SELECT & dwDeviceMask) == dwDeviceMask) &&
-							((m_Status.CHIP_SELECT & dwDeviceMask) == 0))
-							// device gets activated
-							pDevice->SetCS(1);
-
-						if (((newStatus.CHIP_SELECT & dwDeviceMask) == 0) &&
-							((m_Status.CHIP_SELECT & dwDeviceMask) == dwDeviceMask))
-							// device gets deactivated
-							pDevice->SetCS(0);
-					}
-				}
-				m_Status.CHIP_SELECT = newStatus.CHIP_SELECT;
+				m_Status.EXTINTMASK	= newStatus.EXTINTMASK;
+				if (newStatus.EXTINT)	m_Status.EXTINT = 0;
 			}
 
-			// External Status
-			IEXIDevice* pDevice = GetDevice(newStatus.CHIP_SELECT);
-			if (pDevice != NULL)
-				m_Status.EXT = pDevice->IsPresent() ? 1 : 0;
-			else
-				m_Status.EXT = 0;
+			if (m_ChannelId == 0)
+				m_Status.ROMDIS		= newStatus.ROMDIS;
 
-			// interrupt
-			if (newStatus.EXIINT)	m_Status.EXIINT = 0;
-			if (newStatus.TCINT)	m_Status.TCINT = 0;
-			if (newStatus.EXTINT)	m_Status.EXTINT = 0;
+			IEXIDevice* pDevice = GetDevice(m_Status.CHIP_SELECT ^ newStatus.CHIP_SELECT);
+			m_Status.CHIP_SELECT	= newStatus.CHIP_SELECT;
+			if (pDevice != NULL)
+				pDevice->SetCS(m_Status.CHIP_SELECT);
+
 			UpdateInterrupts();
 		}
 		break;
 
 	case EXI_DMAADDR:
-		INFO_LOG(EXPANSIONINTERFACE, "EXI: Wrote DMABuf, chan %i", m_ChannelId);
+		INFO_LOG(EXPANSIONINTERFACE, "Wrote DMAAddr, chan %i", m_ChannelId);
 		m_DMAMemoryAddress = _iValue;
 		break;
 
 	case EXI_DMALENGTH:
-		INFO_LOG(EXPANSIONINTERFACE, "EXI: Wrote DMASize, chan %i", m_ChannelId);
+		INFO_LOG(EXPANSIONINTERFACE, "Wrote DMALength, chan %i", m_ChannelId);
 		m_DMALength = _iValue;
 		break;
 
 	case EXI_DMACONTROL:
-		INFO_LOG(EXPANSIONINTERFACE, "EXI: Wrote DMAControl, chan %i", m_ChannelId);
-		m_Control.hex = _iValue;
+		INFO_LOG(EXPANSIONINTERFACE, "Wrote DMAControl, chan %i", m_ChannelId);
+		m_Control.Hex = _iValue;
 
 		if (m_Control.TSTART)
 		{
@@ -289,7 +264,7 @@ void CEXIChannel::Write32(const u32 _iValue, const u32 _iRegister)
 		break;
 
 	case EXI_IMMDATA:
-		INFO_LOG(EXPANSIONINTERFACE, "EXI: Wrote IMMData, chan %i", m_ChannelId);
+		INFO_LOG(EXPANSIONINTERFACE, "Wrote IMMData, chan %i", m_ChannelId);
 		m_ImmData = _iValue;
 		break;
 	}

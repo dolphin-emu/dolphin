@@ -18,10 +18,10 @@
 #include "SI_Device.h"
 #include "SI_DeviceGCController.h"
 #include "SI_DeviceGBA.h"
+#include "SI_DeviceAMBaseboard.h"
 
 
 // --- interface ISIDevice ---
-
 int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 {
 #ifdef _DEBUG
@@ -49,10 +49,9 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 
 
 // --- class CSIDummy ---
-
 // Just a dummy that logs reads and writes
 // to be used for SI devices we haven't emulated
-// and hopefully as an "emtpy" device
+// DOES NOT FUNCTION AS "NO DEVICE INSERTED" -> Appears as unknown device
 class CSIDevice_Dummy : public ISIDevice
 {
 public:
@@ -71,14 +70,12 @@ public:
 		return 4;
 	}
 
-	bool GetData(u32& _Hi, u32& _Low)	{INFO_LOG(SERIALINTERFACE, "SI DUMMY %i GetData", this->m_iDeviceNumber); return false;}
-	void SendCommand(u32 _Cmd, u8 _Poll){INFO_LOG(SERIALINTERFACE, "SI DUMMY %i SendCommand: %08x", this->m_iDeviceNumber, _Cmd);}
+	bool GetData(u32& _Hi, u32& _Low)	{DEBUG_LOG(SERIALINTERFACE, "SI DUMMY %i GetData", this->m_iDeviceNumber); return false;}
+	void SendCommand(u32 _Cmd, u8 _Poll){DEBUG_LOG(SERIALINTERFACE, "SI DUMMY %i SendCommand: %08x", this->m_iDeviceNumber, _Cmd);}
 };
 
 
 // F A C T O R Y 
-
-
 ISIDevice* SIDevice_Create(TSIDevices _SIDevice, int _iDeviceNumber)
 {
 	switch(_SIDevice)
@@ -93,6 +90,10 @@ ISIDevice* SIDevice_Create(TSIDevices _SIDevice, int _iDeviceNumber)
 
 	case SI_GBA:
 		return new CSIDevice_GBA(_iDeviceNumber);
+		break;
+
+	case SI_AM_BASEBOARD:
+		return new CSIDevice_AMBaseboard(_iDeviceNumber);
 		break;
 
 	default:

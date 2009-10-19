@@ -275,9 +275,9 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	// registers
 	switch (_iAddress & 0x3FF)
 	{
-		
-		// Channel 0
-		
+	//////////////////////////////////////////////////////////////////////////
+	// Channel 0
+	//////////////////////////////////////////////////////////////////////////
 	case SI_CHANNEL_0_OUT:		
 		_uReturnValue = g_Channel[0].m_Out.Hex;
 		return;
@@ -294,9 +294,9 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		_uReturnValue = g_Channel[0].m_InLo.Hex;
 		return;
 
-		
-		// Channel 1
-		
+	//////////////////////////////////////////////////////////////////////////
+	// Channel 1
+	//////////////////////////////////////////////////////////////////////////
 	case SI_CHANNEL_1_OUT:		
 		_uReturnValue = g_Channel[1].m_Out.Hex;
 		return;
@@ -313,9 +313,9 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		_uReturnValue = g_Channel[1].m_InLo.Hex;
 		return;
 
-		
-		// Channel 2
-		
+	//////////////////////////////////////////////////////////////////////////
+	// Channel 2
+	//////////////////////////////////////////////////////////////////////////
 	case SI_CHANNEL_2_OUT:		
 		_uReturnValue = g_Channel[2].m_Out.Hex;
 		return;
@@ -332,9 +332,9 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		_uReturnValue = g_Channel[2].m_InLo.Hex;
 		return;
 
-		
-		// Channel 3
-		
+	//////////////////////////////////////////////////////////////////////////
+	// Channel 3
+	//////////////////////////////////////////////////////////////////////////
 	case SI_CHANNEL_3_OUT:		
 		_uReturnValue = g_Channel[3].m_Out.Hex;
 		return;
@@ -351,6 +351,9 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		_uReturnValue = g_Channel[3].m_InLo.Hex;
 		return;
 
+	//////////////////////////////////////////////////////////////////////////
+	// Other
+	//////////////////////////////////////////////////////////////////////////
 	case SI_POLL:				_uReturnValue = g_Poll.Hex; return;
 	case SI_COM_CSR:			_uReturnValue = g_ComCSR.Hex; return;
 	case SI_STATUS_REG:			_uReturnValue = g_StatusReg.Hex; return;

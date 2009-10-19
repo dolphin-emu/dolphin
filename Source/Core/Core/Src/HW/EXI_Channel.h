@@ -38,33 +38,50 @@ private:
 		EXI_DMACONTROL	= 3,
 		EXI_IMMDATA		= 4
 	};
+	const char* Debug_GetRegisterName(u32 _register)
+	{
+		switch (_register)
+		{
+		case EXI_STATUS:		return "STATUS";
+		case EXI_DMAADDR:		return "DMAADDR";
+		case EXI_DMALENGTH:		return "DMALENGTH";
+		case EXI_DMACONTROL:	return "DMACONTROL";
+		case EXI_IMMDATA:		return "IMMDATA";
+		default:				return "!!! Unknown EXI Register !!!";
+		}
+	}
 
-	// EXI Status Register
+	// EXI Status Register - "Channel Parameter Register"
 	union UEXI_STATUS
 	{
-		u32 hex;
+		u32 Hex;
+		// DO NOT obey the warning and give this struct a name. Things will fail.
 		struct
 		{
-			unsigned EXIINTMASK		: 1; //31
-			unsigned EXIINT			: 1; //30
-			unsigned TCINTMASK		: 1; //29
-			unsigned TCINT			: 1; //28
-			unsigned CLK			: 3; //27
-			unsigned CHIP_SELECT	: 3; //24
-			unsigned EXTINTMASK		: 1; //21
-			unsigned EXTINT			: 1; //20
-			unsigned EXT			: 1; //19 // External Insertion Status (1: External EXI device present)
-			unsigned ROMDIS			: 1; //18 // ROM Disable
+		// Indentation Meaning:
+		//	Channels 0, 1, 2
+		//		Channels 0, 1 only
+		//			Channel 0 only
+			unsigned EXIINTMASK		: 1;
+			unsigned EXIINT			: 1;
+			unsigned TCINTMASK		: 1;
+			unsigned TCINT			: 1;
+			unsigned CLK			: 3;
+			unsigned CHIP_SELECT	: 3; // CS1 and CS2 are Channel 0 only
+				unsigned EXTINTMASK	: 1;
+				unsigned EXTINT		: 1;
+				unsigned EXT		: 1; // External Insertion Status (1: External EXI device present)
+					unsigned ROMDIS	: 1; // ROM Disable
 			unsigned				:18;
-		};  // DO NOT obey the warning and give this struct a name. Things will fail.
-		UEXI_STATUS() {hex = 0;}
-		UEXI_STATUS(u32 _hex) {hex = _hex;}
+		};
+		UEXI_STATUS() {Hex = 0;}
+		UEXI_STATUS(u32 _hex) {Hex = _hex;}
 	};
 
 	// EXI Control Register
 	union UEXI_CONTROL
 	{
-		u32 hex;
+		u32 Hex;
 		struct
 		{
 			unsigned TSTART			: 1;
@@ -77,9 +94,9 @@ private:
 
 	// STATE_TO_SAVE
 	UEXI_STATUS		m_Status;
-	UEXI_CONTROL	m_Control;
 	u32				m_DMAMemoryAddress;
 	u32				m_DMALength;
+	UEXI_CONTROL	m_Control;
 	u32				m_ImmData;
 
 	// Devices
@@ -90,13 +107,14 @@ private:
 
 	IEXIDevice* m_pDevices[NUM_DEVICES];
 
+	// Since channels operate a bit differently from each other
+	u32 m_ChannelId;
+
 public:
 	// get device
 	IEXIDevice* GetDevice(u8 _CHIP_SELECT);
-	// channelId for debugging
-	u32 m_ChannelId;
 
-	CEXIChannel();
+	CEXIChannel(u32 ChannelId);
 	~CEXIChannel();
 
 	void AddDevice(const TEXIDevices _device, const unsigned int _iSlot);
@@ -110,6 +128,9 @@ public:
 	void Update();
 	bool IsCausingInterrupt();
 	void UpdateInterrupts();
+
+	// This should only be used to transition interrupts from SP1 to Channel 2
+	void SetEXIINT(bool exiint) { m_Status.EXIINT = !!exiint; }
 };
 
 #endif

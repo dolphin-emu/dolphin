@@ -69,6 +69,7 @@ enum TSIDevices
 	SI_GC_CONTROLLER	= (SI_TYPE_GC | SI_GC_STANDARD),
 	SI_GC_KEYBOARD		= (SI_TYPE_GC | 0x00200000),
 	SI_GC_STEERING		= SI_TYPE_GC, // (shuffle2)I think the "chainsaw" is the same (Or else it's just standard)
+	SI_AM_BASEBOARD		= 0x10110800 // gets ORd with dipswitch state
 };
 
 extern ISIDevice* SIDevice_Create(TSIDevices _SIDevice, int _iDeviceNumber);

@@ -286,9 +286,23 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 		command = byte;  // first byte is command
 		byte = 0xFF; // would be tristate, but we don't care.
 
-		switch (command)
+		switch (command) // This seems silly, do we really need it?
 		{
-		case 0x52:
+		case cmdNintendoID:
+		case cmdReadArray:
+		case cmdArrayToBuffer:
+		case cmdSetInterrupt:
+		case cmdWriteBuffer:
+		case cmdReadStatus:
+		case cmdReadID:
+		case cmdReadErrorBuffer:
+		case cmdWakeUp:
+		case cmdSleep:
+		case cmdClearStatus:
+		case cmdSectorErase:
+		case cmdPageProgram:
+		case cmdExtraByteProgram:
+		case cmdChipErase:
 			INFO_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0. seems normal.", command);
 			break;
 		default:

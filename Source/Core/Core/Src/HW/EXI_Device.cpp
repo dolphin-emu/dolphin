@@ -23,13 +23,13 @@
 #include "EXI_DeviceAD16.h"
 #include "EXI_DeviceMic.h"
 #include "EXI_DeviceEthernet.h"
+#include "EXI_DeviceAMBaseboard.h"
 
 #include "../Core.h"
 #include "../ConfigManager.h"
 
 
 // --- interface IEXIDevice ---
-
 void IEXIDevice::ImmWrite(u32 _uData,  u32 _uSize)
 {
 	while (_uSize--)
@@ -76,9 +76,9 @@ void IEXIDevice::DMARead(u32 _uAddr, u32 _uSize)
 
 
 // --- class CEXIDummy ---
-
 // Just a dummy that logs reads and writes
 // to be used for EXI devices we haven't emulated
+// DOES NOT FUNCTION AS "NO DEVICE INSERTED" -> Appears as unknown device
 class CEXIDummy : public IEXIDevice
 {
 	std::string m_strName;
@@ -94,15 +94,13 @@ public:
 	virtual ~CEXIDummy(){}
 
 	void ImmWrite(u32 data, u32 size)	{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmWrite: %08x", m_strName.c_str(), data);}
-	u32 ImmRead (u32 size)				{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmRead", m_strName.c_str()); return 0;}
+	u32  ImmRead (u32 size)				{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s ImmRead", m_strName.c_str()); return 0;}
 	void DMAWrite(u32 addr, u32 size)	{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMAWrite: %08x bytes, from %08x to device", m_strName.c_str(), size, addr);}
 	void DMARead (u32 addr, u32 size)	{INFO_LOG(EXPANSIONINTERFACE, "EXI DUMMY %s DMARead:  %08x bytes, from device to %08x", m_strName.c_str(), size, addr);}
 };
 
 
 // F A C T O R Y 
-
-
 IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 {
 	switch(_EXIDevice)
@@ -119,7 +117,7 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 		return new CEXIMemoryCard("MemoryCardB", SConfig::GetInstance().m_strMemoryCardB, 1);
 		break;
 
-	case EXIDEVICE_IPL:
+	case EXIDEVICE_MASKROM:
 		return new CEXIIPL();
 		break;
 
@@ -135,6 +133,13 @@ IEXIDevice* EXIDevice_Create(TEXIDevices _EXIDevice)
 		return new CEXIETHERNET();
 		break;
 
+	case EXIDEVICE_AM_BASEBOARD:
+		return new CEXIAMBaseboard();
+		break;
+
+	case EXIDEVICE_NONE:
+	default:
+		return new IEXIDevice();
+		break;
 	}
-	return NULL;
 }
