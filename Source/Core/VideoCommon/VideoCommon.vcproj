@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="VideoCommon"
 	ProjectGUID="{E5D1F0C0-AA07-4841-A4EB-4CF4DAA6B0FA}"
 	RootNamespace="VideoCommon"
@@ -17,6 +17,9 @@
 		/>
 	</Platforms>
 	<ToolFiles>
+		<ToolFile
+			RelativePath=".\OpenCL.rules"
+		/>
 	</ToolFiles>
 	<Configurations>
 		<Configuration
@@ -31,6 +34,9 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="OpenCL source"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -96,6 +102,9 @@
 				Name="VCCustomBuildTool"
 			/>
 			<Tool
+				Name="OpenCL source"
+			/>
+			<Tool
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
@@ -159,6 +168,9 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="OpenCL source"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -227,6 +239,9 @@
 				Name="VCCustomBuildTool"
 			/>
 			<Tool
+				Name="OpenCL source"
+			/>
+			<Tool
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
@@ -293,6 +308,9 @@
 				Name="VCCustomBuildTool"
 			/>
 			<Tool
+				Name="OpenCL source"
+			/>
+			<Tool
 				Name="VCXMLDataGeneratorTool"
 			/>
 			<Tool
@@ -352,6 +370,9 @@
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="OpenCL source"
 			/>
 			<Tool
 				Name="VCXMLDataGeneratorTool"
@@ -697,6 +718,10 @@
 				</File>
 				<File
 					RelativePath=".\Src\OpenCL\OCLTextureDecoder.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\Data\User\OpenCL\TextureDecoder.cl"
 					>
 				</File>
 			</Filter>
