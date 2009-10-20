@@ -60,8 +60,10 @@ void Destroy();
 
 cl_program CompileProgram(const char *Kernel);
 cl_kernel CompileKernel(cl_program program, const char *Function);
-void HandleCLError(cl_int error, char* str = 0);
 
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
+void HandleCLError(cl_int error, char* str = 0);
+#endif
 };
 
 #endif

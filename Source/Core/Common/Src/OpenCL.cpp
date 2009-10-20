@@ -130,6 +130,7 @@ void Destroy() {
 #endif
 }
 
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
 void HandleCLError(cl_int error, char* str)
 {
     char* name;
@@ -191,5 +192,6 @@ void HandleCLError(cl_int error, char* str)
     PanicAlert("OpenCL error: %s %s (%d)", str, name, error);
 
 }
+#endif
 
 };
