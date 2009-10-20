@@ -39,7 +39,6 @@
 
 // TODO: Investigate a memory leak on save/load state
 
-
 #if defined(__LZO_STRICT_16BIT)
 #define IN_LEN      (8*1024u)
 #elif defined(LZO_ARCH_I086) && !defined(LZO_HAVE_MM_HUGE_ARRAY)
@@ -71,18 +70,18 @@ static bool const bCompressed = true;
 
 static Common::Thread *saveThread = NULL;
 
-enum
-{
-	version = 1,
-};
+
+// Don't forget to increase this after doing changes on the savestate system 
+#define STATE_VERSION 1
+
 
 void DoState(PointerWrap &p)
 {
-	u32 cookie = 0xBAADBABE + version;
+	u32 cookie = 0xBAADBABE + STATE_VERSION;
 	p.Do(cookie);
-	if (cookie != 0xBAADBABE + version)
+	if (cookie != 0xBAADBABE + STATE_VERSION)
 	{
-		PanicAlert("Can't load states from other versions.");
+		PanicAlert("Savestate version mismatch !\nSorry, you can't load states from others revisions.");
 		return;
 	}
 	// Begin with video plugin, so that it gets a chance to clear it's caches and writeback modified things to RAM

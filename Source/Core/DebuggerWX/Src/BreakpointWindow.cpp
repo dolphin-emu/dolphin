@@ -163,7 +163,7 @@ void CBreakPointWindow::OnAddBreakPointMany()
 	}
 	else
 	{
-		wxMessageBox(_T("You have no GameIni/BreakPoints.ini file"));
+		wxMessageBox(_T("Couldn't find User/GameConfig/BreakPoints.ini file"));
 	}
 
 }
