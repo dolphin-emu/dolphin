@@ -677,7 +677,7 @@ void ExecuteCommand(UDICR& _DICR)
 
 			case 0x40: // Read DiscID
 				_dbg_assert_(DVDINTERFACE, m_DICMDBUF[1].Hex == 0);
-				_dbg_assert_(DVDINTERFACE, m_DICMDBUF[1].Hex == m_DILENGTH.Length);
+				_dbg_assert_(DVDINTERFACE, m_DICMDBUF[2].Hex == m_DILENGTH.Length);
 				_dbg_assert_(DVDINTERFACE, m_DILENGTH.Length == 0x20);
 				if (!DVDRead(m_DICMDBUF[1].Hex, m_DIMAR.Address, m_DILENGTH.Length))
 					PanicAlert("Cant read from DVD_Plugin - DVD-Interface: Fatal Error");
