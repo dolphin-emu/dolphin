@@ -54,15 +54,16 @@ static const SPatch OSPatches[] =
 
 	// speedup
 	{ "OSProtectRange",	            HLE_Misc::UnimplementedFunctionFalse },
-	//	{ "THPPlayerGetState",			HLE_Misc:THPPlayerGetState },
+	//{ "THPPlayerGetState",			HLE_Misc:THPPlayerGetState },
 
 
 	// debug out is very nice ;)
 	{ "OSReport",					HLE_OS::HLE_OSReport    },
 	{ "OSPanic",					HLE_OS::HLE_OSPanic     },
-	{ "vprintf",					HLE_OS::HLE_vprintf     },		
+	{ "vprintf",					HLE_OS::HLE_vprintf     },
 	{ "printf",						HLE_OS::HLE_printf      },
-	{ "puts",						HLE_OS::HLE_printf      },	//gcc-optimized printf?
+	{ "puts",						HLE_OS::HLE_printf      }, //gcc-optimized printf?
+	{ "___blank(char *,...)",		HLE_OS::HLE___blank		}, // dunno, but awesome :D
 
 	// wii only
 	{ "__OSInitAudioSystem",        HLE_Misc::UnimplementedFunction },			

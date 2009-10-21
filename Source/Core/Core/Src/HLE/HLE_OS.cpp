@@ -85,6 +85,21 @@ void HLE_printf()
     PC = hackPC;
 }
 
+void HLE___blank()
+{
+	std::string ReportMessage;
+	GetStringVA(ReportMessage);
+	NPC = LR;
+
+	u32 hackPC = PC;
+	PC = LR;
+
+//   PanicAlert("(PC=%08x) Printf: %s ", LR, ReportMessage.c_str());
+	NOTICE_LOG(OSREPORT, "(PC=%08x) ___blank: %s ", LR, ReportMessage.c_str());	
+
+	PC = hackPC;
+}
+
 void GetStringVA(std::string& _rOutBuffer)
 {
 	_rOutBuffer = "";
