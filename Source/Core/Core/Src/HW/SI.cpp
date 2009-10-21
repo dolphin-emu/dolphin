@@ -20,7 +20,9 @@
 #include "../ConfigManager.h"
 #include "../CoreTiming.h"
 
+#include "SystemTimers.h"
 #include "ProcessorInterface.h"
+#include "VideoInterface.h"
 
 #include "SI.h"
 
@@ -246,6 +248,7 @@ void Init()
 	}
 
 	g_Poll.Hex = 0;
+	g_Poll.X = 7;
 	g_ComCSR.Hex = 0;
 	g_StatusReg.Hex = 0;
 	g_EXIClockCount.Hex = 0;
@@ -399,10 +402,12 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	case SI_CHANNEL_3_IN_LO:	g_Channel[3].m_InLo.Hex = _iValue; break;
 
 	case SI_POLL:
-		DEBUG_LOG(SERIALINTERFACE, "Poll: X=%03d Y=%03d %s%s%s%s%s%s%s%s",
+		INFO_LOG(SERIALINTERFACE, "Poll: X=%03d Y=%03d %s%s%s%s%s%s%s%s",
 			g_Poll.X, g_Poll.Y,
-			g_Poll.EN0 ? "EN0 ":" ", g_Poll.EN1 ? "EN1 ":" ", g_Poll.EN2 ? "EN2 ":" ", g_Poll.EN3 ? "EN3 ":" ",
-			g_Poll.VBCPY0 ? "VBCPY0 ":" ", g_Poll.VBCPY1 ? "VBCPY1 ":" ", g_Poll.VBCPY2 ? "VBCPY2 ":" ", g_Poll.VBCPY3 ? "VBCPY3 ":" ");
+			g_Poll.EN0 ? "EN0 ":" ", g_Poll.EN1 ? "EN1 ":" ",
+			g_Poll.EN2 ? "EN2 ":" ", g_Poll.EN3 ? "EN3 ":" ",
+			g_Poll.VBCPY0 ? "VBCPY0 ":" ", g_Poll.VBCPY1 ? "VBCPY1 ":" ",
+			g_Poll.VBCPY2 ? "VBCPY2 ":" ", g_Poll.VBCPY3 ? "VBCPY3 ":" ");
 		g_Poll.Hex = _iValue;
 		break;
 
@@ -600,16 +605,26 @@ void RunSIBuffer()
 	else
 		outLength++;
 
-#if MAX_LOGLEVEL >= INFO_LEVEL
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	int numOutput =
 #endif
 		g_Channel[g_ComCSR.CHANNEL].m_pDevice->RunBuffer(g_SIBuffer, inLength);
 
-	INFO_LOG(SERIALINTERFACE, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength, outLength, numOutput);
+	DEBUG_LOG(SERIALINTERFACE, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength, outLength, numOutput);
 
 	// Transfer completed
 	GenerateSIInterrupt(INT_TCINT);
 	g_ComCSR.TSTART = 0;
+}
+
+int GetTicksToNextSIPoll()
+{
+	if (!g_Poll.Y && g_Poll.X)
+		return VideoInterface::GetTicksPerLine() * g_Poll.X;
+	else if (!g_Poll.Y)
+		return SystemTimers::GetTicksPerSecond() / 60;
+
+	return min(VideoInterface::GetTicksPerFrame() / g_Poll.Y, VideoInterface::GetTicksPerLine() * g_Poll.X);
 }
 
 } // end of namespace SerialInterface

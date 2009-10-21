@@ -39,6 +39,8 @@ void ChangeDevice(TSIDevices device, int deviceNumber);
 void Read32(u32& _uReturnValue, const u32 _iAddress);
 void Write32(const u32 _iValue, const u32 _iAddress);
 
+int GetTicksToNextSIPoll();
+
 }; // end of namespace SerialInterface
 
 #endif

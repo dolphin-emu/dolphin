@@ -1044,10 +1044,16 @@ void UpdateTiming()
     }
 }
 
-int getTicksPerLine() {
+int GetTicksPerLine()
+{
 	if (s_lineCount == 0)
 		return 100000;
 	return TicksPerFrame / s_lineCount;
+}
+
+int GetTicksPerFrame()
+{
+	return TicksPerFrame;
 }
 
 

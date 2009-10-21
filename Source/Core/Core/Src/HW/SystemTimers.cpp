@@ -184,14 +184,13 @@ void VICallback(u64 userdata, int cyclesLate)
 		WII_IPC_HLE_Interface::Update();
 
 	VideoInterface::Update();
-	CoreTiming::ScheduleEvent(VideoInterface::getTicksPerLine() - cyclesLate, et_VI);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine() - cyclesLate, et_VI);
 }
 
 void SICallback(u64 userdata, int cyclesLate)
 {
-	// TODO make this obey the SIPoll register
 	SerialInterface::UpdateDevices();
-	CoreTiming::ScheduleEvent((GetTicksPerSecond() / 60) - cyclesLate, et_SI);
+	CoreTiming::ScheduleEvent(SerialInterface::GetTicksToNextSIPoll() - cyclesLate, et_SI);
 }
 
 void DecrementerCallback(u64 userdata, int cyclesLate)
@@ -286,7 +285,7 @@ void Init()
 	et_PatchEngine = CoreTiming::RegisterEvent("PatchEngine", PatchEngineCallback);
 
 	CoreTiming::ScheduleEvent(AI_PERIOD, et_AI);
-	CoreTiming::ScheduleEvent(VideoInterface::getTicksPerLine(), et_VI);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine(), et_VI);
 	CoreTiming::ScheduleEvent(DSP_PERIOD, et_DSP);
 	CoreTiming::ScheduleEvent(GetTicksPerSecond() / 60, et_SI);
 	CoreTiming::ScheduleEvent(CPU_CORE_CLOCK / (32000 * 4 / 32), et_AudioFifo);
