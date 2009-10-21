@@ -7,8 +7,8 @@
 		<CustomBuildRule
 			Name="OpenCL source"
 			DisplayName="OpenCL"
-			CommandLine="xcopy /I /Y $(InputPath) $(SolutionDir)\..\Binary\$(PlatformName)\User\OpenCL"
-			Outputs="$(SolutionDir)\..\Binary\$(PlatformName)\User\OpenCL\$(InputFileName)"
+			CommandLine='xcopy /I /Y "$(InputPath)" "$(SolutionDir)\..\Binary\$(PlatformName)\User\OpenCL\"'
+			Outputs='"$(SolutionDir)\..\Binary\$(PlatformName)\User\OpenCL\$(InputFileName)"'
 			FileExtensions="*.cl"
 			>
 			<Properties>
