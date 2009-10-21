@@ -81,7 +81,7 @@ void DoState(PointerWrap &p)
 	p.Do(cookie);
 	if (cookie != 0xBAADBABE + STATE_VERSION)
 	{
-		PanicAlert("Savestate version mismatch !\nSorry, you can't load states from others revisions.");
+		PanicAlert("Savestate version mismatch !\nSorry, you can't load states from other revisions.");
 		return;
 	}
 	// Begin with video plugin, so that it gets a chance to clear it's caches and writeback modified things to RAM

@@ -1042,8 +1042,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	GL_REPORT_ERRORD();
 
 	// Clear framebuffer
-	//glClearColor(0, 0, 0, 0);
-	//glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	GL_REPORT_ERRORD();
 
