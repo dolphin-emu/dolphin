@@ -24,6 +24,7 @@
 // where to put baseboard debug
 #define AMBASEBOARDDEBUG OSREPORT
 
+// "JAMMA Video Standard" I/O
 class JVSIOMessage
 {
 public:
@@ -84,6 +85,8 @@ public:
 	}
 }; // end class JVSIOMessage
 
+
+// AM-Baseboard device on SI
 CSIDevice_AMBaseboard::CSIDevice_AMBaseboard(int _iDeviceNumber)
 	: ISIDevice(_iDeviceNumber)
 {
