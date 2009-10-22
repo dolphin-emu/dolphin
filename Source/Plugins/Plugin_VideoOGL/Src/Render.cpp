@@ -293,15 +293,11 @@ bool Renderer::Init()
 
 	// Decide frambuffer size
 	int W = (int)OpenGL_GetBackbufferWidth(), H = (int)OpenGL_GetBackbufferHeight();
-	if (g_ActiveConfig.bNativeResolution)
+	
+	if (g_ActiveConfig.b2xResolution)
 	{
-		m_FrameBufferWidth = EFB_WIDTH;
-		m_FrameBufferHeight = EFB_HEIGHT;
-	}
-	else if (g_ActiveConfig.b2xResolution)
-	{
-		m_FrameBufferWidth = 2 * EFB_WIDTH;
-		m_FrameBufferHeight = 2 * EFB_HEIGHT;
+		m_FrameBufferWidth = (2 * EFB_HEIGHT >= W) ? 2 * EFB_HEIGHT : W;
+		m_FrameBufferHeight = (2 * EFB_HEIGHT >= H) ? 2 * EFB_HEIGHT : H;
 	}
 	else
 	{
@@ -324,7 +320,7 @@ bool Renderer::Init()
 	m_CustomHeight = (int)OpenGL_GetBackbufferHeight();
 
 	// Because of the fixed framebuffer size we need to disable the resolution options while running
-	g_ActiveConfig.bRunning = true;
+	g_Config.bRunning = true;
 
     if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
@@ -1154,64 +1150,67 @@ void Renderer::DrawDebugText()
 	}
 
 	// OSD Menu messages
-	if (OSDChoice > 0 && g_ActiveConfig.bEFBCopyDisableHotKey)
+	if (g_ActiveConfig.bOSDHotKey)
 	{
-		OSDTime = timeGetTime() + 3000;
-		OSDChoice = -OSDChoice;
-	}
-	if ((u32)OSDTime > timeGetTime() && g_ActiveConfig.bEFBCopyDisableHotKey)
-	{
-		std::string T1 = "", T2 = "";
-		std::vector<std::string> T0;
+		if (OSDChoice > 0)
+		{
+			OSDTime = timeGetTime() + 3000;
+			OSDChoice = -OSDChoice;
+		}
+		if ((u32)OSDTime > timeGetTime())
+		{
+			std::string T1 = "", T2 = "";
+			std::vector<std::string> T0;
 
-		int W, H;
-		sscanf(g_ActiveConfig.cInternalRes, "%dx%d", &W, &H);
+			int W, H;
+			sscanf(g_ActiveConfig.cInternalRes, "%dx%d", &W, &H);
 
-		std::string OSDM1 =
-			g_ActiveConfig.bNativeResolution || g_ActiveConfig.b2xResolution ?
-			(g_ActiveConfig.bNativeResolution ? 
-			StringFromFormat("%i x %i (native)", OSDInternalW, OSDInternalH)
-			: StringFromFormat("%i x %i (2x)", OSDInternalW, OSDInternalH))
-			: StringFromFormat("%i x %i (custom)", W, H);
-		std::string OSDM21 =
-			!(g_ActiveConfig.bKeepAR43 || g_ActiveConfig.bKeepAR169) ? "-": (g_ActiveConfig.bKeepAR43 ? "4:3" : "16:9");
-		std::string OSDM22 =
-			g_ActiveConfig.bCrop ? " (crop)" : "";			
-		std::string OSDM31 =
-			g_ActiveConfig.bCopyEFBToRAM ? "RAM" : "Texture";
-		std::string OSDM32 =
-			g_ActiveConfig.bEFBCopyDisable ? "No" : "Yes";
+			std::string OSDM1 =
+				g_ActiveConfig.bNativeResolution || g_ActiveConfig.b2xResolution ?
+				(g_ActiveConfig.bNativeResolution ? 
+				StringFromFormat("%i x %i (native)", OSDInternalW, OSDInternalH)
+				: StringFromFormat("%i x %i (2x)", OSDInternalW, OSDInternalH))
+				: StringFromFormat("%i x %i (custom)", W, H);
+			std::string OSDM21 =
+				!(g_ActiveConfig.bKeepAR43 || g_ActiveConfig.bKeepAR169) ? "-": (g_ActiveConfig.bKeepAR43 ? "4:3" : "16:9");
+			std::string OSDM22 =
+				g_ActiveConfig.bCrop ? " (crop)" : "";			
+			std::string OSDM31 =
+				g_ActiveConfig.bCopyEFBToRAM ? "RAM" : "Texture";
+			std::string OSDM32 =
+				g_ActiveConfig.bEFBCopyDisable ? "No" : "Yes";
 
-		// If there is more text than this we will have a collission
-		if (g_ActiveConfig.bShowFPS)
-			{ T1 += "\n\n"; T2 += "\n\n"; }
+			// If there is more text than this we will have a collission
+			if (g_ActiveConfig.bShowFPS)
+				{ T1 += "\n\n"; T2 += "\n\n"; }
 
-		// The rows
-		T0.push_back(StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()));
-		T0.push_back(StringFromFormat("4: Lock Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()));
-		T0.push_back(StringFromFormat("5: Copy Embedded Framebuffer to %s: %s\n", OSDM31.c_str(), OSDM32.c_str()));
-		T0.push_back(StringFromFormat("6: Fog: %s\n", g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"));
-		T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"));	
+			// The rows
+			T0.push_back(StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()));
+			T0.push_back(StringFromFormat("4: Lock Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()));
+			T0.push_back(StringFromFormat("5: Copy Embedded Framebuffer to %s: %s\n", OSDM31.c_str(), OSDM32.c_str()));
+			T0.push_back(StringFromFormat("6: Fog: %s\n", g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"));
+			T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"));	
 
-		// The latest changed setting in yellow
-		T1 += (OSDChoice == -1) ? T0.at(0) : "\n";
-		T1 += (OSDChoice == -2) ? T0.at(1) : "\n";
-		T1 += (OSDChoice == -3) ? T0.at(2) : "\n";
-		T1 += (OSDChoice == -4) ? T0.at(3) : "\n";
-		T1 += (OSDChoice == -5) ? T0.at(4) : "\n";		
+			// The latest changed setting in yellow
+			T1 += (OSDChoice == -1) ? T0.at(0) : "\n";
+			T1 += (OSDChoice == -2) ? T0.at(1) : "\n";
+			T1 += (OSDChoice == -3) ? T0.at(2) : "\n";
+			T1 += (OSDChoice == -4) ? T0.at(3) : "\n";
+			T1 += (OSDChoice == -5) ? T0.at(4) : "\n";		
 
-		// The other settings in cyan
-		T2 += !(OSDChoice == -1) ? T0.at(0) : "\n";
-		T2 += !(OSDChoice == -2) ? T0.at(1) : "\n";
-		T2 += !(OSDChoice == -3) ? T0.at(2) : "\n";
-		T2 += !(OSDChoice == -4) ? T0.at(3) : "\n";
-		T2 += !(OSDChoice == -5) ? T0.at(4) : "\n";		
+			// The other settings in cyan
+			T2 += (OSDChoice != -1) ? T0.at(0) : "\n";
+			T2 += (OSDChoice != -2) ? T0.at(1) : "\n";
+			T2 += (OSDChoice != -3) ? T0.at(2) : "\n";
+			T2 += (OSDChoice != -4) ? T0.at(3) : "\n";
+			T2 += (OSDChoice != -5) ? T0.at(4) : "\n";		
 
-		// Render a shadow, and then the text
-		Renderer::RenderText(T1.c_str(), 21, 21, 0xDD000000);
-		Renderer::RenderText(T1.c_str(), 20, 20, 0xFFffff00);
-		Renderer::RenderText(T2.c_str(), 21, 21, 0xDD000000);
-		Renderer::RenderText(T2.c_str(), 20, 20, 0xFF00FFFF);
+			// Render a shadow, and then the text
+			Renderer::RenderText(T1.c_str(), 21, 21, 0xDD000000);
+			Renderer::RenderText(T1.c_str(), 20, 20, 0xFFffff00);
+			Renderer::RenderText(T2.c_str(), 21, 21, 0xDD000000);
+			Renderer::RenderText(T2.c_str(), 20, 20, 0xFF00FFFF);
+		}
 	}
 }
 void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
