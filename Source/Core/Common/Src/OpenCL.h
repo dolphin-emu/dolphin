@@ -40,15 +40,18 @@ typedef void *cl_command_queue;
 typedef void *cl_program;
 typedef void *cl_kernel;
 typedef void *cl_mem;
+typedef void *cl_int;
 
 #endif
 
-namespace OpenCL {
-    #if defined(HAVE_OPENCL) && HAVE_OPENCL
-    extern cl_device_id device_id;
-    extern cl_context g_context;
-    extern cl_command_queue g_cmdq;
-    #endif
+namespace OpenCL
+{
+
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
+extern cl_device_id device_id;
+extern cl_context g_context;
+extern cl_command_queue g_cmdq;
+#endif
 
 bool Initialize();
 
@@ -61,9 +64,7 @@ void Destroy();
 cl_program CompileProgram(const char *Kernel);
 cl_kernel CompileKernel(cl_program program, const char *Function);
 
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 void HandleCLError(cl_int error, char* str = 0);
-#endif
-};
+}
 
 #endif

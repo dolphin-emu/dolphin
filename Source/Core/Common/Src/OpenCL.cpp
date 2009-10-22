@@ -19,17 +19,21 @@
 
 #include "OpenCL.h"
 #include "Common.h"
+#include "Timer.h"
 
-namespace OpenCL {
-	#if defined(HAVE_OPENCL) && HAVE_OPENCL
-	cl_device_id device_id = NULL;
-    cl_context g_context = NULL;
-    cl_command_queue g_cmdq = NULL;
-	#endif
+namespace OpenCL
+{
+
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
+cl_device_id device_id = NULL;
+cl_context g_context = NULL;
+cl_command_queue g_cmdq = NULL;
+#endif
 
 bool g_bInitialized = false;
 
-bool Initialize() {
+bool Initialize()
+{
 	if(g_bInitialized)
 		return true;
 
@@ -66,62 +70,72 @@ bool Initialize() {
         HandleCLError(err, "Failed to create a command commands!");
         return false;
     }
-	//PanicAlert("Initialized OpenCL fine!");
+
+	NOTICE_LOG(COMMON, "Initialized OpenCL!");
 	g_bInitialized = true;
 	return true;
 #else
 	return false;
 #endif
 }
+
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
-cl_context GetContext() {
+cl_context GetContext()
+{
 	return g_context;
 }
 
-cl_command_queue GetCommandQueue() {
+cl_command_queue GetCommandQueue()
+{
 	return g_cmdq;
 }
 
-cl_program CompileProgram(const char *Kernel) {
-		int err;
-		cl_program program; 
-		program = clCreateProgramWithSource(OpenCL::g_context, 1, (const char **) & Kernel, NULL, &err);
-		if (!program)
-		{
-			HandleCLError(err, "Error: Failed to create compute program!");
-			return NULL;
-		}
+cl_program CompileProgram(const char *Kernel)
+{
+	u32 compileStart = timeGetTime();
+	int err;
+	cl_program program;
+	program = clCreateProgramWithSource(OpenCL::g_context, 1, (const char **) & Kernel, NULL, &err);
+	if (!program)
+	{
+		HandleCLError(err, "Error: Failed to create compute program!");
+		return NULL;
+	}
 
-		// Build the program executable
-		//
-		err = clBuildProgram(program , 0, NULL, NULL, NULL, NULL);
-		if(err != CL_SUCCESS) {
-			char *errors[16384] = {0};
-			err = clGetProgramBuildInfo(program, OpenCL::device_id, CL_PROGRAM_BUILD_LOG, sizeof(errors),
-									    errors, NULL);
-			PanicAlert("Error log:\n%s\n", errors);
-			return NULL;
-		}
+	// Build the program executable
+	//
+	err = clBuildProgram(program , 0, NULL, NULL, NULL, NULL);
+	if(err != CL_SUCCESS) {
+		char *errors[16384] = {0};
+		err = clGetProgramBuildInfo(program, OpenCL::device_id, CL_PROGRAM_BUILD_LOG, sizeof(errors),
+									errors, NULL);
+		PanicAlert("Error log:\n%s\n", errors);
+		return NULL;
+	}
 
-
-		return program;
+	NOTICE_LOG(COMMON, "OpenCL CompileProgram took %.3f seconds", (float)(timeGetTime() - compileStart) / 1000.0);
+	return program;
 }
+
 cl_kernel CompileKernel(cl_program program, const char *Function)
 {
-		int err;
-		// Create the compute kernel in the program we wish to run
-		//
-		cl_kernel kernel = clCreateKernel(program, Function, &err);
-		if (!kernel || err != CL_SUCCESS)
-		{
-			HandleCLError(err, "Failed to create compute kernel!");
-			return NULL;
-		} 
-		return kernel;
+	u32 compileStart = timeGetTime();
+	int err;
+	// Create the compute kernel in the program we wish to run
+	//
+	cl_kernel kernel = clCreateKernel(program, Function, &err);
+	if (!kernel || err != CL_SUCCESS)
+	{
+		HandleCLError(err, "Failed to create compute kernel!");
+		return NULL;
+	}
+	NOTICE_LOG(COMMON, "OpenCL CompileKernel took %.3f seconds", (float)(timeGetTime() - compileStart) / 1000.0);
+	return kernel;
 }
 #endif
-void Destroy() {
 
+void Destroy()
+{
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if(!g_context)
 		return;
@@ -130,9 +144,10 @@ void Destroy() {
 #endif
 }
 
-#if defined(HAVE_OPENCL) && HAVE_OPENCL
 void HandleCLError(cl_int error, char* str)
 {
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
+
     char* name;
     switch(error)
     {
@@ -191,7 +206,7 @@ void HandleCLError(cl_int error, char* str)
         str = "";
     PanicAlert("OpenCL error: %s %s (%d)", str, name, error);
 
-}
 #endif
+}
 
-};
+}
