@@ -175,14 +175,13 @@ kernel void decodeCMPRBlock(global uchar *dst,
           ((color565 >> 8) & 0xF8) | ((color565 >> 13) & 0x7),
             0xFF, 0xFF));
     uint4 colors;
-    uint4 choice = (uint4)((color565.s0 - color565.s1) << 16);
+    //uint4 choice = (uint4)((color565.s0 - color565.s1) << 16);
     uint4 colorNoAlpha;
     //uchar4 frac = (color32.odd - color32.even) / 2;
     //frac = frac - (frac / 4);
     uchar4 frac = convert_uchar4((((convert_ushort4(color32.even) & 0xFF) - (convert_ushort4(color32.odd) & 0xFF)) * 3) / 8);
-    //colorNoAlpha = convert_uint4(frac);
-    colorNoAlpha = convert_uint4(color32.even - frac);
-    colorNoAlpha = (colorNoAlpha << 8) | convert_uint4(color32.odd + frac);
+    colorNoAlpha = convert_uint4(color32.odd + frac);
+    colorNoAlpha = (colorNoAlpha << 8) | convert_uint4(color32.even - frac);
     colorNoAlpha = (colorNoAlpha << 8) | convert_uint4(color32.odd);
     colorNoAlpha = (colorNoAlpha << 8) | convert_uint4(color32.even);
 
@@ -190,7 +189,6 @@ kernel void decodeCMPRBlock(global uchar *dst,
     //uchar4 midpoint = rhadd(color32.odd, color32.even);
     uchar4 midpoint = convert_uchar4((convert_ushort4(color32.odd) + convert_ushort4(color32.even) + 1) / 2);
     midpoint.s3 = 0xFF;
-    //colorAlpha = convert_uint4(color32.odd);
     colorAlpha = convert_uint4((uchar4)(0, 0, 0, 0));
     colorAlpha = (colorAlpha << 8) | convert_uint4(midpoint);    
     colorAlpha = (colorAlpha << 8) | convert_uint4(color32.odd);
@@ -199,7 +197,8 @@ kernel void decodeCMPRBlock(global uchar *dst,
     //colorNoAlpha = (uint4)(0xFFFFFFFF);
     //colorAlpha = (uint4)(0, 0, 0, 0xFFFFFFFF);
 
-    colors  = select(colorNoAlpha, colorAlpha, choice);
+    //colors  = select(colorAlpha, colorNoAlpha, choice);
+    colors = color565.s0 > color565.s1 ? colorNoAlpha : colorAlpha;
 
     uint16 colorsFull = (uint16)(colors, colors, colors, colors);
 
