@@ -103,7 +103,7 @@ class GFXConfigDialogOGL : public wxDialog
 		wxCheckBox *m_NativeResolution, *m_2xResolution;
 		wxCheckBox *m_WidescreenHack;
 		wxCheckBox *m_ForceFiltering;
-		wxCheckBox *m_KeepAR43, *m_KeepAR169, *m_Crop;
+		wxCheckBox *m_Crop;
 		wxCheckBox *m_UseXFB;
 		wxCheckBox *m_AutoScale;
 		#ifndef _WIN32
@@ -116,7 +116,7 @@ class GFXConfigDialogOGL : public wxDialog
 		wxChoice *m_MaxAnisotropyCB;
 		wxArrayString arrayStringFor_MSAAModeCB, arrayStringFor_PhackvalueCB;
 		wxArrayString arrayStringFor_PostShaderCB;
-		wxChoice *m_MSAAModeCB, *m_PhackvalueCB, *m_PostShaderCB;
+		wxChoice *m_MSAAModeCB, *m_PhackvalueCB, *m_PostShaderCB, *m_KeepAR;
 
 		wxCheckBox *m_ShowFPS;
 		wxCheckBox *m_ShaderErrors;
@@ -138,7 +138,7 @@ class GFXConfigDialogOGL : public wxDialog
 		wxStaticBox * m_StaticBox_EFB;
 		wxCheckBox *m_CheckBox_DisableCopyEFB;
 		wxRadioButton *m_Radio_CopyEFBToRAM, *m_Radio_CopyEFBToGL;
-		wxCheckBox *m_EFBCopyDisableHotKey;
+		wxCheckBox *m_OSDHotKey;
 		wxCheckBox *m_Hack;
 		wxCheckBox *m_SafeTextureCache;
 		// Screen size
@@ -159,8 +159,7 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_VSYNC,
 			ID_RENDERTOMAINWINDOW,
 			ID_NATIVERESOLUTION, ID_2X_RESOLUTION,
-			ID_WIDESCREEN_HACK,
-			ID_KEEPAR_4_3, ID_KEEPAR_16_9, ID_CROP,
+			ID_KEEPAR, ID_CROP,
 			ID_USEXFB,
 			ID_AUTOSCALE,
 
@@ -205,7 +204,7 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_TEXTUREPATH,
 
 			ID_CHECKBOX_DISABLECOPYEFB, 
-			ID_EFBCOPYDISABLEHOTKEY,
+			ID_OSDHOTKEY,
 			//ID_PROJECTIONHACK1,
             ID_DSTALPHAPASS,
 			ID_RADIO_COPYEFBTORAM,

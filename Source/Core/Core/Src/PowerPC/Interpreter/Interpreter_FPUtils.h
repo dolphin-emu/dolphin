@@ -87,10 +87,11 @@ inline double ForceSingle(double _x)
 	//	PanicAlert("RN = %d at %x", (int)FPSCR.RN, PC);
 	if (FPSCR.NI)
 		_x = FlushToZeroAsFloat(_x);
+
 	IntDouble single;
 	single.d = _x;
-	memset(&single.i, 0, 4);
-	
+	single.i &= 0xFFFFFFFFE0000000;
+
 	return single.d;
 }
 

@@ -107,6 +107,11 @@ struct TabDirect3D : public W32Util::Tab
 		case IDC_EFB_ACCESS_ENABLE:
 			g_Config.bEFBAccessEnable = Button_GetCheck(GetDlgItem(hDlg, IDC_EFB_ACCESS_ENABLE)) == 0 ? false : true;
 			break;
+		case IDC_RENDER_TO_MAINWINDOW:
+			Button_Enable(GetDlgItem(hDlg, IDC_FULLSCREENENABLE), !Button_GetCheck(GetDlgItem(hDlg, IDC_RENDER_TO_MAINWINDOW)));
+			if (Button_GetCheck(GetDlgItem(hDlg, IDC_RENDER_TO_MAINWINDOW)))
+				Button_SetCheck(GetDlgItem(hDlg, IDC_FULLSCREENENABLE),  false);
+			break;
 		default:
 			break;
 		}

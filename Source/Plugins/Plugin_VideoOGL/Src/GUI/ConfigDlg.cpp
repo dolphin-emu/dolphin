@@ -46,13 +46,11 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHOICE(ID_MAXANISOTROPY, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MSAAMODECB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_NATIVERESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_2X_RESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)	
-	EVT_CHECKBOX(ID_WIDESCREEN_HACK, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_2X_RESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USEXFB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_FORCEFILTERING, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_AUTOSCALE, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_KEEPAR_4_3, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_KEEPAR_16_9, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHOICE(ID_KEEPAR, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_CROP, GFXConfigDialogOGL::GeneralSettingsChanged)
 	#ifndef _WIN32
 		EVT_CHECKBOX(ID_HIDECURSOR, GFXConfigDialogOGL::GeneralSettingsChanged)
@@ -73,7 +71,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_DISABLELIGHTING, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLETEXTURING, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLEFOG, GFXConfigDialogOGL::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_EFBCOPYDISABLEHOTKEY, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_OSDHOTKEY, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_HACK, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,GFXConfigDialogOGL::AdvancedSettingsChanged)
     EVT_CHECKBOX(ID_DSTALPHAPASS,GFXConfigDialogOGL::AdvancedSettingsChanged)
@@ -174,16 +172,13 @@ void GFXConfigDialogOGL::CreateGUIControls()
 
 	// General Display Settings
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Basic Display Settings"));
-	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Child window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to Main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_RenderToMainWindow->SetValue(g_Config.RenderToMainframe);
 	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_2xResolution = new wxCheckBox(m_PageGeneral, ID_2X_RESOLUTION, wxT("2x"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_WidescreenHack = new wxCheckBox(m_PageGeneral, ID_WIDESCREEN_HACK, wxT("Wide screen hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	wxStaticText *IRText = new wxStaticText(m_PageGeneral, ID_IRTEXT, wxT("Native resolution:"), wxDefaultPosition, wxDefaultSize, 0);
-	wxStaticText *RText = new wxStaticText(m_PageGeneral, ID_RTEXT, wxT("Custom resolution:"), wxDefaultPosition, wxDefaultSize, 0);
-	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Child window:"), wxDefaultPosition, wxDefaultSize , 0 );
-	wxStaticText *WM2Text = new wxStaticText(m_PageGeneral, ID_WM2TEXT, wxT("Window mode:"), wxDefaultPosition, wxDefaultSize , 0 );
-	wxStaticText *FMText = new wxStaticText(m_PageGeneral, ID_FMTEXT, wxT("Separate window:"), wxDefaultPosition, wxDefaultSize , 0 );
+	wxStaticText *IRText = new wxStaticText(m_PageGeneral, ID_IRTEXT, wxT("Resolution :"), wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticText *RText = new wxStaticText(m_PageGeneral, ID_RTEXT, wxT("Custom resolution :"), wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Windowed :"), wxDefaultPosition, wxDefaultSize , 0 );
 	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
 	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.cInternalRes));
 	m_WindowFSResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWFSRESOLUTIONCB, arrayStringFor_FullscreenCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, wxCB_READONLY, wxDefaultValidator);
@@ -191,10 +186,13 @@ void GFXConfigDialogOGL::CreateGUIControls()
 
 	// Aspect ratio / positioning controls
 	wxStaticText *KeepARText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Keep aspect ratio:"), wxDefaultPosition, wxDefaultSize, 0);
-	m_KeepAR43 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_4_3, wxT("4:3"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_KeepAR169 = new wxCheckBox(m_PageGeneral, ID_KEEPAR_16_9, wxT("16:9"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_KeepAR = new wxChoice(m_PageGeneral, ID_KEEPAR, wxDefaultPosition, wxDefaultSize);
+	m_KeepAR->Append(wxT("Disabled"));
+	m_KeepAR->Append(wxT("4:3"));
+	m_KeepAR->Append(wxT("16:9"));
+	m_KeepAR->Append(wxT("WideScreen Hack"));
 	m_Crop = new wxCheckBox(m_PageGeneral, ID_CROP, wxT("Crop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Fullscreen = new wxCheckBox(m_PageGeneral, ID_FULLSCREEN, wxT("Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Fullscreen = new wxCheckBox(m_PageGeneral, ID_FULLSCREEN, wxT("Fullscreen :"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Fullscreen->SetValue(g_Config.bFullscreen);
 	m_UseXFB = new wxCheckBox(m_PageGeneral, ID_USEXFB, wxT("Use Real XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_AutoScale = new wxCheckBox(m_PageGeneral, ID_AUTOSCALE, wxT("Auto scale (try to remove borders)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -202,9 +200,10 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	// Default values
 	m_NativeResolution->SetValue(g_Config.bNativeResolution);
 	m_2xResolution->SetValue(g_Config.b2xResolution);
-	m_WidescreenHack->SetValue(g_Config.bWidescreenHack);
-	m_KeepAR43->SetValue(g_Config.bKeepAR43);
-	m_KeepAR169->SetValue(g_Config.bKeepAR169);
+	if (g_Config.bKeepAR43)				m_KeepAR->SetSelection(1);
+	else if (g_Config.bWidescreenHack)	m_KeepAR->SetSelection(3);
+	else if (g_Config.bKeepAR169)		m_KeepAR->SetSelection(2);
+	else								m_KeepAR->SetSelection(0);
 	m_Crop->SetValue(g_Config.bCrop);
 	m_UseXFB->SetValue(g_Config.bUseXFB);
 	m_AutoScale->SetValue(g_Config.bAutoScale);
@@ -231,12 +230,12 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_MSAAModeCB->Append(wxT("16xQ CSAA"));
 	m_MSAAModeCB->SetSelection(g_Config.iMultisampleMode);
 
-	m_EFBCopyDisableHotKey = new wxCheckBox(m_PageGeneral, ID_EFBCOPYDISABLEHOTKEY, wxT("OSD Hotkeys"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_OSDHotKey = new wxCheckBox(m_PageGeneral, ID_OSDHOTKEY, wxT("Enabke Hotkeys"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	#ifndef _WIN32
 	// JPeterson set the hot key to be Win32-specific
-	m_EFBCopyDisableHotKey->Enable(false);
+	m_OSDHotKey->Enable(false);
 	#endif
-	m_EFBCopyDisableHotKey->SetValue(g_Config.bEFBCopyDisableHotKey);
+	m_OSDHotKey->SetValue(g_Config.bOSDHotKey);
 
 	// Tool tips
 	m_Fullscreen->SetToolTip(
@@ -251,10 +250,9 @@ void GFXConfigDialogOGL::CreateGUIControls()
 		wxT("\n\nApplies instanty during gameplay: <Yes>"));
 	m_2xResolution->SetToolTip(wxT(
 		"Applies instanty during gameplay: <Yes, if allowed>"));
-	m_WidescreenHack->SetToolTip(
-		wxT("This multiplys a perpective projection value to increase the amount being")
-		wxT("\nshown instead of stretching the screen, this may cause graphical problems")
-		wxT("\nin some games")
+	m_KeepAR->SetToolTip(
+		wxT("This sets the aspect ratio of the image.")
+		wxT("\nThe Widescreen hack may cause graphical issues in some games !")
 		wxT("\n\nApplies instanty during gameplay: <Yes>"));
 	m_Crop->SetToolTip(
 		wxT("Crop the picture instead of creating a letterbox. It will assume that your screen")
@@ -269,8 +267,8 @@ void GFXConfigDialogOGL::CreateGUIControls()
 		wxT("\n\nApplies instanty during gameplay: <No>"));
 	m_MSAAModeCB->SetToolTip(wxT(
 		"Applies instanty during gameplay: <No>"));
-	m_EFBCopyDisableHotKey->SetToolTip(wxT(
-		"Enable OSD hotkeys '3', '4', '5', etc."));
+	m_OSDHotKey->SetToolTip(
+		wxT("Enable OSD hotkeys '3', '4', '5', '6' and '7' to easily toggle some settings."));
 	
 	// Enhancements
 	sbEnhancements = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Enhancements"));
@@ -282,8 +280,11 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_MaxAnisotropyCB->Append(wxT("8x"));
 	m_MaxAnisotropyCB->Append(wxT("16x"));
 	m_MaxAnisotropyCB->SetSelection(g_Config.iMaxAnisotropy - 1);
-	m_ForceFiltering = new wxCheckBox(m_PageGeneral, ID_FORCEFILTERING, wxT("Force bi/trilinear filter. (Breaks FMV in many Wii games)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ForceFiltering = new wxCheckBox(m_PageGeneral, ID_FORCEFILTERING, wxT("Force Linear filter (!)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
+	m_ForceFiltering->SetToolTip(
+		wxT("Even though it will increase the IQ, it will also break some EFB effects\n")
+		wxT("such as Bink FMV in many Wii games or the goo in Mario Sunshine, so be careful :)"));
 
 	wxStaticText *PostShaderText = new wxStaticText(m_PageGeneral, ID_POSTSHADERTEXT, wxT("Post-processing shader:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_PostShaderCB = new wxChoice(m_PageGeneral, ID_POSTSHADER, wxDefaultPosition, wxDefaultSize, arrayStringFor_PostShaderCB, 0, wxDefaultValidator);
@@ -325,47 +326,44 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasic->Add(RText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(WMText, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_WindowResolutionCB, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(FMText, wxGBPosition(1, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBasic->Add(m_Fullscreen, wxGBPosition(1, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_WindowFSResolutionCB, wxGBPosition(2, 2), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_Fullscreen,		wxGBPosition(2, 3), wxGBSpan(1, 1), wxALL | wxALIGN_CENTER_VERTICAL, 5);	
 
 	sBasic->Add(KeepARText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_KeepAR43,			wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_KeepAR169,		wxGBPosition(3, 2), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_Crop,				wxGBPosition(3, 3), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_WidescreenHack,	wxGBPosition(4, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBasic->Add(m_KeepAR,			wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_Crop,				wxGBPosition(3, 2), wxGBSpan(1, 1), wxALL | wxALIGN_CENTER_VERTICAL, 5);
 
 	// This option is configured from the main Dolphin.exe settings for _WIN32
 	#ifndef _WIN32
 	sBasic->Add(m_HideCursor, wxGBPosition(5, 0), wxGBSpan(1, 4), wxALL, 5);
 	#endif
 
-	sbBasic->Add(sBasic);
+	sbBasic->Add(sBasic, 1, wxEXPAND);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 
 	sBasicAdvanced = new wxGridBagSizer(0, 0);
 
-	sBasicAdvanced->Add(WM2Text,				wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-	sBasicAdvanced->Add(m_RenderToMainWindow,	wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasicAdvanced->Add(m_Fullscreen,			wxGBPosition(0, 2), wxGBSpan(1, 1), wxALL, 5);	
+	sBasicAdvanced->Add(m_RenderToMainWindow,	wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
 
-	sBasicAdvanced->Add(m_EFBCopyDisableHotKey,	wxGBPosition(1, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasicAdvanced->Add(m_VSync,				wxGBPosition(2, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasicAdvanced->Add(m_UseXFB,				wxGBPosition(3, 0), wxGBSpan(1, 3), wxALL, 5);
-	sBasicAdvanced->Add(m_AutoScale,			wxGBPosition(4, 0), wxGBSpan(1, 3), wxALL, 5);
+	sBasicAdvanced->Add(m_OSDHotKey,			wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_VSync,				wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_UseXFB,				wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_AutoScale,			wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
 
 	sbBasicAdvanced->Add(sBasicAdvanced);
 	sGeneral->Add(sbBasicAdvanced, 0, wxEXPAND|wxALL, 5);
 
 	sEnhancements = new wxGridBagSizer(0, 0);
 	sEnhancements->Add(AnisoText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sEnhancements->Add(m_MaxAnisotropyCB, wxGBPosition(0, 1), wxGBSpan(1, 2), wxALL, 5);
+	sEnhancements->Add(m_MaxAnisotropyCB, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL|wxEXPAND, 5);
+	sEnhancements->Add(m_ForceFiltering, wxGBPosition(0, 2), wxGBSpan(1, 2), wxALL, 5);
 	sEnhancements->Add(MSAAText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sEnhancements->Add(m_MSAAModeCB, wxGBPosition(1, 1), wxGBSpan(1, 2), wxALL, 5);
-	sEnhancements->Add(m_ForceFiltering, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
-	sEnhancements->Add(PostShaderText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-	sEnhancements->Add(m_PostShaderCB, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
-	sEnhancements->Add(m_ReloadShader, wxGBPosition(3, 2), wxGBSpan(1, 1), wxALL, 5);
-	sEnhancements->Add(m_EditShader, wxGBPosition(3, 3), wxGBSpan(1, 1), wxALL, 5);
+	sEnhancements->Add(m_MSAAModeCB, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL|wxEXPAND, 5);
+	sEnhancements->Add(PostShaderText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sEnhancements->Add(m_PostShaderCB, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 5);
+	sEnhancements->Add(m_ReloadShader, wxGBPosition(2, 2), wxGBSpan(1, 1), wxALL, 5);
+	sEnhancements->Add(m_EditShader, wxGBPosition(2, 3), wxGBSpan(1, 1), wxALL, 5);
 	sbEnhancements->Add(sEnhancements);
 	sGeneral->Add(sbEnhancements, 0, wxEXPAND|wxALL, 5);
 	m_PageGeneral->SetSizer(sGeneral);
@@ -593,9 +591,6 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 		// Don't allow 1x and 2x at the same time
 		if (g_Config.b2xResolution) { g_Config.bNativeResolution = false; m_NativeResolution->SetValue(false); }
 		break;
-	case ID_WIDESCREEN_HACK:
-		g_Config.bWidescreenHack = m_WidescreenHack->IsChecked();
-		break;
 	case ID_VSYNC:
 		g_Config.bVSync = m_VSync->IsChecked();
 		break;
@@ -605,15 +600,20 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_AUTOSCALE:
 		g_Config.bAutoScale = m_AutoScale->IsChecked();
 		break;
-	case ID_KEEPAR_4_3:
-		g_Config.bKeepAR43 = m_KeepAR43->IsChecked();
-		// Don't allow both at the same time
-		if (g_Config.bKeepAR43) { g_Config.bKeepAR169 = false; m_KeepAR169->SetValue(false); }		
-		break;
-	case ID_KEEPAR_16_9:
-		g_Config.bKeepAR169 = m_KeepAR169->IsChecked();
-		// Don't allow both at the same time
-		if (g_Config.bKeepAR169) { g_Config.bKeepAR43 = false; m_KeepAR43->SetValue(false); }	
+	case ID_KEEPAR:
+
+		g_Config.bKeepAR169 = false;
+		g_Config.bKeepAR43 = false;
+		g_Config.bWidescreenHack = false;
+
+		if (m_KeepAR->GetSelection() == 1)		// 4:3
+			g_Config.bKeepAR43 = true;
+		else if (m_KeepAR->GetSelection() == 2)	// 16:9
+			g_Config.bKeepAR169 = true;
+		else if (m_KeepAR->GetSelection() == 3) {	// WideScreen hack / 16:9
+			g_Config.bKeepAR169 = true;
+			g_Config.bWidescreenHack = true;
+		}	
 		break;
 	case ID_CROP:
 		g_Config.bCrop = m_Crop->IsChecked();	
@@ -718,8 +718,8 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_CHECKBOX_DISABLECOPYEFB:
 		g_Config.bEFBCopyDisable = m_CheckBox_DisableCopyEFB->IsChecked();
 		break;
-	case ID_EFBCOPYDISABLEHOTKEY:
-		g_Config.bEFBCopyDisableHotKey = m_EFBCopyDisableHotKey->IsChecked();
+	case ID_OSDHOTKEY:
+		g_Config.bOSDHotKey = m_OSDHotKey->IsChecked();
 		break;
 	// Hacks
 	case ID_SAFETEXTURECACHE:
@@ -771,8 +771,8 @@ void GFXConfigDialogOGL::UpdateGUI()
 
 	// Resolution settings
 	m_2xResolution->Enable(!g_Config.bRunning || Renderer::Allow2x());
-	m_WindowResolutionCB->Enable(!g_Config.bRunning && !(g_Config.bNativeResolution || g_Config.b2xResolution));
-	m_WindowFSResolutionCB->Enable(!g_Config.bRunning && !(g_Config.RenderToMainframe || g_Config.bNativeResolution || g_Config.b2xResolution));
+	m_WindowResolutionCB->Enable(!g_Config.bRunning);
+	m_WindowFSResolutionCB->Enable(!g_Config.bRunning && !g_Config.RenderToMainframe);
 
 	// Disable the Copy to options when EFBCopy is disabled
 	m_Radio_CopyEFBToRAM->Enable(!(g_Config.bEFBCopyDisable));

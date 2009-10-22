@@ -85,7 +85,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 }
 
 extern bool gShowDebugger;
-int OSDChoice = 0, OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
+int OSDChoice = 0 , OSDTime = 0, OSDInternalW = 0, OSDInternalH = 0;
 
 
 // ---------------------------------------------------------------------
@@ -260,7 +260,8 @@ void OnKeyDown(WPARAM wParam)
 	case '5':
 	case '6':
 	case '7':
-		OSDMenu(wParam);
+		if (g_Config.bOSDHotKey)
+			OSDMenu(wParam);
 		break;
 	}
 	g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
