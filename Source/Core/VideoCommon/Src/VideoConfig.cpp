@@ -54,7 +54,7 @@ void VideoConfig::Load(const char *ini_file)
     iniFile.Get("Settings", "StretchToFit", &bNativeResolution, true);
 	iniFile.Get("Settings", "2xResolution", &b2xResolution, false);
 	iniFile.Get("Settings", "wideScreenHack", &bWidescreenHack, false);
-	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, false);
+	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, true);
 	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);
 	iniFile.Get("Settings", "Crop", &bCrop, false);
     iniFile.Get("Settings", "HideCursor", &bHideCursor, false);
@@ -84,13 +84,13 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "DisableFog", &bDisableFog, 0);
     
     iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
-    iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 3);  // NOTE - this is x in (1 << x)
+    iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 1);  // NOTE - this is x in (1 << x)
 	iniFile.Get("Enhancements", "PostProcessingShader", &sPostProcessingShader, "");
     
     iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, true);
     iniFile.Get("Hacks", "EFBCopyDisable", &bEFBCopyDisable, 0);
     iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bOSDHotKey, 0);
-	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, 0);
+	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, true);
 	iniFile.Get("Hacks", "ProjectionHack", &iPhackvalue, 0);
 
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);

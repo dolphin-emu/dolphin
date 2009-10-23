@@ -213,7 +213,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "DSPThread",   &m_LocalCoreStartupParameter.bDSPThread,   true);
 		ini.Get("Core", "UseDualCore", &m_LocalCoreStartupParameter.bUseDualCore, false);
 		ini.Get("Core", "SkipIdle",    &m_LocalCoreStartupParameter.bSkipIdle,    true);
-		ini.Get("Core", "LockThreads", &m_LocalCoreStartupParameter.bLockThreads, true);
+		ini.Get("Core", "LockThreads", &m_LocalCoreStartupParameter.bLockThreads, false);
 		ini.Get("Core", "DefaultGCM",  &m_LocalCoreStartupParameter.m_strDefaultGCM);
 		ini.Get("Core", "DVDRoot",     &m_LocalCoreStartupParameter.m_strDVDRoot);
 		ini.Get("Core", "OptimizeQuantizers", &m_LocalCoreStartupParameter.bOptimizeQuantizers, true);
@@ -223,7 +223,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "MemcardB",			&m_strMemoryCardB);
 		ini.Get("Core", "SlotA",			(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD_A);
 		ini.Get("Core", "SlotB",			(int*)&m_EXIDevice[1], EXIDEVICE_MEMORYCARD_B);
-		ini.Get("Core", "SerialPort1",		(int*)&m_EXIDevice[2], EXIDEVICE_DUMMY);
+		ini.Get("Core", "SerialPort1",		(int*)&m_EXIDevice[2], EXIDEVICE_NONE);
 		ini.Get("Core", "ProfiledReJIT", &m_LocalCoreStartupParameter.bJITProfiledReJIT, false);
 		char sidevicenum[16];
 		for (int i = 0; i < 4; ++i)
