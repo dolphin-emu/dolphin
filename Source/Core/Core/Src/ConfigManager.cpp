@@ -96,7 +96,7 @@ void SConfig::SaveSettings()
 		// Core
 		ini.Set("Core", "HLE_BS2",			m_LocalCoreStartupParameter.bHLE_BS2);
 		ini.Set("Core", "UseDynarec",		m_LocalCoreStartupParameter.bUseJIT);
-		ini.Set("Core", "GPUThread",		m_LocalCoreStartupParameter.bCPUThread);
+		ini.Set("Core", "CPUThread",		m_LocalCoreStartupParameter.bCPUThread);
 		ini.Set("Core", "DSPThread",		m_LocalCoreStartupParameter.bDSPThread);
 		ini.Set("Core", "SkipIdle",			m_LocalCoreStartupParameter.bSkipIdle);
 		ini.Set("Core", "LockThreads",		m_LocalCoreStartupParameter.bLockThreads);
@@ -208,7 +208,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "HLE_BS2",		&m_LocalCoreStartupParameter.bHLE_BS2,		true);
 		ini.Get("Core", "UseDynarec",	&m_LocalCoreStartupParameter.bUseJIT,		true);
 		ini.Get("Core", "DSPThread",	&m_LocalCoreStartupParameter.bDSPThread,	true);
-		ini.Get("Core", "GPUThread",	&m_LocalCoreStartupParameter.bCPUThread,	true);
+		ini.Get("Core", "CPUThread",	&m_LocalCoreStartupParameter.bCPUThread,	true);
 		ini.Get("Core", "SkipIdle",		&m_LocalCoreStartupParameter.bSkipIdle,		true);
 		ini.Get("Core", "LockThreads",	&m_LocalCoreStartupParameter.bLockThreads,	false);
 		ini.Get("Core", "DefaultGCM",	&m_LocalCoreStartupParameter.m_strDefaultGCM);
