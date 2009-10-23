@@ -786,7 +786,7 @@ void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))
 {
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore = !SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread = !SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread;
 	SConfig::GetInstance().SaveSettings();
 }
 

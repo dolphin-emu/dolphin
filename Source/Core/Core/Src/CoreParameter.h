@@ -56,7 +56,7 @@ struct SCoreStartupParameter
 
 	bool bEnableFPRF;
 
-	bool bUseDualCore;
+	bool bCPUThread;
 	bool bDSPThread;
 	bool bSkipIdle;
 	bool bNTSC;

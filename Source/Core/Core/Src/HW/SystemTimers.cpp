@@ -291,7 +291,7 @@ void Init()
 	CoreTiming::ScheduleEvent(CPU_CORE_CLOCK / (32000 * 4 / 32), et_AudioFifo);
 
 	// For DC watchdog hack
-	if (Core::GetStartupParameter().bUseDualCore)
+	if (Core::GetStartupParameter().bCPUThread)
 	{
 		CoreTiming::ScheduleEvent(FAKE_GP_WATCHDOG_PERIOD, et_FakeGPWD);
 	}

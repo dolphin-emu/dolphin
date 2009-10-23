@@ -302,7 +302,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 bool AllowIdleSkipping()
 {
-	return !g_VideoInitialize.bUseDualCore|| (!m_Control.PETokenEnable && !m_Control.PEFinishEnable);
+	return !g_VideoInitialize.bOnThread|| (!m_Control.PETokenEnable && !m_Control.PEFinishEnable);
 }
 
 void UpdateInterrupts()

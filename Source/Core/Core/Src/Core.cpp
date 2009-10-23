@@ -243,7 +243,7 @@ void Stop()  // - Hammertime!
 	CPluginManager::GetInstance().GetDSP()->DSP_StopSoundStream();
  
 	// If dual core mode, the CPU thread should immediately exit here.
-	if (_CoreParameter.bUseDualCore) {
+	if (_CoreParameter.bCPUThread) {
 		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Wait for Video Loop to exit ...").c_str());
 		CPluginManager::GetInstance().GetVideo()->Video_ExitLoop();
 	}
@@ -292,7 +292,7 @@ THREAD_RETURN CpuThread(void *pArg)
 	CPluginManager &Plugins = CPluginManager::GetInstance();
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-	if (_CoreParameter.bUseDualCore)
+	if (_CoreParameter.bCPUThread)
 	{
 		Common::SetCurrentThreadName("CPU thread");
 	}
@@ -325,7 +325,7 @@ THREAD_RETURN CpuThread(void *pArg)
 	gpuShutdownCall.Wait();
 
 	// Call video shutdown from the video thread in single core mode, which is the cpuThread
-	if (!_CoreParameter.bUseDualCore)
+	if (!_CoreParameter.bCPUThread)
 		Plugins.ShutdownVideoPlugin();
 #endif
 
@@ -350,7 +350,7 @@ THREAD_RETURN EmuThread(void *pArg)
 		Common::Thread::SetCurrentThreadAffinity(2);  // Force to second core
  
 	INFO_LOG(OSREPORT, "Starting core = %s mode", _CoreParameter.bWii ? "Wii" : "Gamecube");
-	INFO_LOG(OSREPORT, "Dualcore = %s", _CoreParameter.bUseDualCore ? "Yes" : "No");
+	INFO_LOG(OSREPORT, "CPU Thread seperate = %s", _CoreParameter.bCPUThread ? "Yes" : "No");
 
 	HW::Init();	
 
@@ -373,33 +373,33 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pMemoryBase                 = Memory::base;
 	VideoInitialize.pKeyPress                   = Callback_KeyPress;
 	VideoInitialize.bWii                        = _CoreParameter.bWii;
-	VideoInitialize.bUseDualCore		        = _CoreParameter.bUseDualCore;
+	VideoInitialize.bOnThread					= _CoreParameter.bCPUThread;
     VideoInitialize.Fifo_CPUBase                = &ProcessorInterface::Fifo_CPUBase;
     VideoInitialize.Fifo_CPUEnd                 = &ProcessorInterface::Fifo_CPUEnd;
     VideoInitialize.Fifo_CPUWritePointer        = &ProcessorInterface::Fifo_CPUWritePointer;
 
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
  
-	// Under linux, this is an X11 Display, not an HWND!
-	g_pWindowHandle = (HWND)VideoInitialize.pWindowHandle;
-	Callback_PeekMessages = VideoInitialize.pPeekMessages;
-	g_pUpdateFPSDisplay = VideoInitialize.pUpdateFPSDisplay;
+	// Under linux, this is an X11 Display, not a HWND!
+	g_pWindowHandle			= (HWND)VideoInitialize.pWindowHandle;
+	Callback_PeekMessages	= VideoInitialize.pPeekMessages;
+	g_pUpdateFPSDisplay		= VideoInitialize.pUpdateFPSDisplay;
 
     // Load and init DSPPlugin	
 	DSPInitialize dspInit;
-	dspInit.hWnd = g_pWindowHandle;
-	dspInit.pARAM_Read_U8 = (u8  (__cdecl *)(const u32))DSP::ReadARAM; 
-	dspInit.pARAM_Write_U8 = (void (__cdecl *)(const u8, const u32))DSP::WriteARAM; 
-	dspInit.pGetARAMPointer = DSP::GetARAMPtr;
-	dspInit.pGetMemoryPointer = Memory::GetPointer;
-	dspInit.pLog = Callback_DSPLog;
-	dspInit.pName = Callback_ISOName;
-	dspInit.pDebuggerBreak = Callback_DebuggerBreak;
-	dspInit.pGenerateDSPInterrupt = Callback_DSPInterrupt;
-	dspInit.pGetAudioStreaming = AudioInterface::Callback_GetStreaming;
-	dspInit.pEmulatorState = (int *)PowerPC::GetStatePtr();
-	dspInit.bWii = _CoreParameter.bWii;
-	dspInit.bOnThread = _CoreParameter.bDSPThread;
+	dspInit.hWnd					= g_pWindowHandle;
+	dspInit.pARAM_Read_U8			= (u8  (__cdecl *)(const u32))DSP::ReadARAM; 
+	dspInit.pARAM_Write_U8			= (void (__cdecl *)(const u8, const u32))DSP::WriteARAM; 
+	dspInit.pGetARAMPointer			= DSP::GetARAMPtr;
+	dspInit.pGetMemoryPointer		= Memory::GetPointer;
+	dspInit.pLog					= Callback_DSPLog;
+	dspInit.pName					= Callback_ISOName;
+	dspInit.pDebuggerBreak			= Callback_DebuggerBreak;
+	dspInit.pGenerateDSPInterrupt	= Callback_DSPInterrupt;
+	dspInit.pGetAudioStreaming		= AudioInterface::Callback_GetStreaming;
+	dspInit.pEmulatorState			= (int *)PowerPC::GetStatePtr();
+	dspInit.bWii					= _CoreParameter.bWii;
+	dspInit.bOnThread				= _CoreParameter.bDSPThread;
 
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
 
@@ -407,9 +407,9 @@ THREAD_RETURN EmuThread(void *pArg)
 	for (int i = 0; i < MAXPADS; i++)
 	{			
 		SPADInitialize PADInitialize;
-		PADInitialize.hWnd = g_pWindowHandle;
-		PADInitialize.pLog = Callback_PADLog;
-		PADInitialize.padNumber = i;
+		PADInitialize.hWnd		= g_pWindowHandle;
+		PADInitialize.pLog		= Callback_PADLog;
+		PADInitialize.padNumber	= i;
 		// This is may be needed to avoid a SDL problem
 		//Plugins.FreeWiimote();
 		// Check if we should init the plugin
@@ -431,11 +431,10 @@ THREAD_RETURN EmuThread(void *pArg)
 	if (_CoreParameter.bWii)
 	{
 		SWiimoteInitialize WiimoteInitialize;
-		WiimoteInitialize.hWnd = g_pWindowHandle;
-		// Add the ISO Id
-		WiimoteInitialize.ISOId = Ascii2Hex(_CoreParameter.m_strUniqueID);
-		WiimoteInitialize.pLog = Callback_WiimoteLog;
-		WiimoteInitialize.pWiimoteInput = Callback_WiimoteInput;
+		WiimoteInitialize.hWnd			= g_pWindowHandle;
+		WiimoteInitialize.ISOId			= Ascii2Hex(_CoreParameter.m_strUniqueID);
+		WiimoteInitialize.pLog			= Callback_WiimoteLog;
+		WiimoteInitialize.pWiimoteInput	= Callback_WiimoteInput;
 		// Wait for Wiiuse to find the number of connected Wiimotes
 		Plugins.GetWiimote(0)->Initialize((void *)&WiimoteInitialize);
 	}
@@ -467,7 +466,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	Common::Thread *cpuThread = NULL;
  
 	// ENTER THE VIDEO THREAD LOOP
-	if (_CoreParameter.bUseDualCore) // DualCore mode
+	if (_CoreParameter.bCPUThread)
 	{
 		// This thread, after creating the EmuWindow, spawns a CPU thread,
 		// and then takes over and becomes the video thread
@@ -524,7 +523,7 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	// Call video shutdown from the video thread, in dual core mode it's the EmuThread
 	// Or set an event in Single Core mode, to call the shutdown from the cpuThread
-	if (_CoreParameter.bUseDualCore)
+	if (_CoreParameter.bCPUThread)
 		Plugins.ShutdownVideoPlugin();
 #else
 	// On unix platforms, the EmuThread is ALWAYS the video thread
@@ -773,7 +772,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
 						_CoreParameter.bUseJIT ? "JIT64" : "Int64",
 			#endif
 		#endif
-		_CoreParameter.bUseDualCore ? "DC" : "SC");
+		_CoreParameter.bCPUThread ? "DC" : "SC");
 
 		#ifdef EXTENDED_INFO
 			std::string SFPS = StringFromFormat("FPS: %4.1f - VPS: %i/%i (%3.0f%%)",

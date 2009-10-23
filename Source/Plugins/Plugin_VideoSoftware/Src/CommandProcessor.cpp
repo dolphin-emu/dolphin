@@ -120,7 +120,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 
 void RunGpu()
 {
-    if (!g_VideoInitialize.bUseDualCore)
+    if (!g_VideoInitialize.bOnThread)
     {
         // We are going to do FP math on the main thread so have to save the current state
         SaveSSEState();

@@ -344,7 +344,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 
 bool AllowIdleSkipping()
 {
-	return !g_VideoInitialize.bUseDualCore || (!m_CPCtrlReg.CPIntEnable && !m_CPCtrlReg.BPEnable);
+	return !g_VideoInitialize.bOnThread || (!m_CPCtrlReg.CPIntEnable && !m_CPCtrlReg.BPEnable);
 }
 
 void Write16(const u16 _Value, const u32 _Address)
@@ -354,7 +354,7 @@ void Write16(const u16 _Value, const u32 _Address)
 	//Spin until queue is empty - it WILL become empty because this is the only thread
 	//that submits data
 
-	if (g_VideoInitialize.bUseDualCore)
+	if (g_VideoInitialize.bOnThread)
 	{
 		// Force complete fifo flush if we attempt to set/reset the fifo (API GXSetGPFifo or equivalent)
 		// It's kind of an API hack but it works for lots of games... and I hope it's the same way for every games.
@@ -566,7 +566,7 @@ void Write16(const u16 _Value, const u32 _Address)
 	}
 
 	// TODO(mb2): better. Check if it help: avoid CPReadPointer overwrites when stupidly done like in Super Monkey Ball
-	if ((!fifo.bFF_GPReadEnable && fifo.CPReadIdle) || !g_VideoInitialize.bUseDualCore) // TOCHECK(mb2): check again if thread safe?
+	if ((!fifo.bFF_GPReadEnable && fifo.CPReadIdle) || !g_VideoInitialize.bOnThread) // TOCHECK(mb2): check again if thread safe?
 		UpdateFifoRegister();
 }
 
@@ -587,7 +587,7 @@ void STACKALIGN GatherPipeBursted()
 	if (!fifo.bFF_GPLinkEnable)
 		return;
 
-	if (g_VideoInitialize.bUseDualCore)
+	if (g_VideoInitialize.bOnThread)
 	{
 		// update the fifo-pointer
 		fifo.CPWritePointer += GATHER_PIPE_SIZE;
@@ -716,7 +716,7 @@ void UpdateFifoRegister()
 
 	Common::AtomicStore(fifo.CPReadWriteDistance, dist);
 
-	if (!g_VideoInitialize.bUseDualCore)
+	if (!g_VideoInitialize.bOnThread)
 		CatchUpGPU();
 }
 

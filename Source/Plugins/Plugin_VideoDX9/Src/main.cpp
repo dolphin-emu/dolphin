@@ -355,7 +355,7 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	{
 
 		// Make sure previous swap request has made it to the screen
-		if (g_VideoInitialize.bUseDualCore)
+		if (g_VideoInitialize.bOnThread)
 		{
 			// It seems to be working fine in this way for now without using AtomicLoadAcquire
 			// ector, please check here
@@ -450,7 +450,7 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 
 	Common::AtomicStoreRelease(s_efbAccessRequested, TRUE);
 
-	if (g_VideoInitialize.bUseDualCore)
+	if (g_VideoInitialize.bOnThread)
 	{
 		while (Common::AtomicLoadAcquire(s_efbAccessRequested))
 			Common::YieldCPU();

@@ -114,7 +114,7 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 bool AllowIdleSkipping()
 {
-	return !g_VideoInitialize.bUseDualCore || (!pereg.ctrl.PETokenEnable && !pereg.ctrl.PEFinishEnable);
+	return !g_VideoInitialize.bOnThread || (!pereg.ctrl.PETokenEnable && !pereg.ctrl.PEFinishEnable);
 }
 
 void UpdateInterrupts()

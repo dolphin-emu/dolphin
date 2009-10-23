@@ -65,7 +65,7 @@ private:
 	wxCheckBox* AlwaysHLE_BS2;
 	wxRadioButton* m_RadioJIT;
 	wxRadioButton* m_RadioInt;
-	wxCheckBox* UseDualCore;
+	wxCheckBox* CPUThread;
 	wxCheckBox* DSPThread;
 	wxCheckBox* LockThreads;
 	wxCheckBox* OptimizeQuantizers;
@@ -157,7 +157,7 @@ private:
 		ID_ALLWAYS_HLE_BS2,
 		ID_RADIOJIT,
 		ID_RADIOINT,
-		ID_USEDUALCORE,
+		ID_CPUTHREAD,
 		ID_DSPTHREAD,
 		ID_LOCKTHREADS,
 		ID_OPTIMIZEQUANTIZERS,

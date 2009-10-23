@@ -63,7 +63,7 @@ EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_ALLWAYS_HLE_BS2, CConfigMain::CoreSettingsChanged)
 EVT_RADIOBUTTON(ID_RADIOJIT, CConfigMain::CoreSettingsChanged)
 EVT_RADIOBUTTON(ID_RADIOINT, CConfigMain::CoreSettingsChanged)
-EVT_CHECKBOX(ID_USEDUALCORE, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_CPUTHREAD, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_DSPTHREAD, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::CoreSettingsChanged)
@@ -136,7 +136,7 @@ void CConfigMain::UpdateGUI()
 		AlwaysHLE_BS2->Disable();
 		m_RadioJIT->Disable();
 		m_RadioInt->Disable();
-		UseDualCore->Disable();
+		CPUThread->Disable();
 		DSPThread->Disable();
 		LockThreads->Disable();
 		OptimizeQuantizers->Disable();
@@ -208,8 +208,8 @@ void CConfigMain::CreateGUIControls()
 	// General page
 
 	// Core Settings - Basic
-	UseDualCore = new wxCheckBox(GeneralPage, ID_USEDUALCORE, wxT("Enable Dual Core (speedup)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	UseDualCore->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore);
+	CPUThread = new wxCheckBox(GeneralPage, ID_CPUTHREAD, wxT("Enable Dual Core (speedup)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	CPUThread->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread);
 	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Enable Idle Skipping (speedup)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
 	EnableCheats = new wxCheckBox(GeneralPage, ID_ENABLECHEATS, wxT("Enable Cheats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -286,7 +286,7 @@ void CConfigMain::CreateGUIControls()
 	WiimoteStatusLEDs->SetToolTip(wxT("Show which wiimotes are connected in the statusbar."));
 	WiimoteStatusSpeakers->SetToolTip(wxT("Show wiimote speaker status in the statusbar."));
 	DSPThread->SetToolTip(wxT("This should be on when using HLE and off when using LLE."));
-	UseDualCore->SetToolTip(wxT("This splits the Video and CPU threads, so they can be run on separate cores.")
+	CPUThread->SetToolTip(wxT("This splits the Video and CPU threads, so they can be run on separate cores.")
 		wxT("\nCauses major speed improvements on PCs with more than one core,")
 		wxT("\nbut can also cause occasional crashes/glitches."));
 
@@ -302,7 +302,7 @@ void CConfigMain::CreateGUIControls()
 	// Populate the settings
 	sCore = new wxBoxSizer(wxHORIZONTAL);
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Basic Settings"));
-	sbBasic->Add(UseDualCore, 0, wxALL, 5);
+	sbBasic->Add(CPUThread, 0, wxALL, 5);
 	sbBasic->Add(SkipIdle, 0, wxALL, 5);
 	sbBasic->Add(EnableCheats, 0, wxALL, 5);
 	wxBoxSizer *sFramelimit = new wxBoxSizer(wxHORIZONTAL);
@@ -679,8 +679,8 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	case ID_RADIOINT:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT = false;
 		break;
-	case ID_USEDUALCORE:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseDualCore = UseDualCore->IsChecked();
+	case ID_CPUTHREAD:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread = CPUThread->IsChecked();
 		break;
 	case ID_DSPTHREAD:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread = DSPThread->IsChecked();

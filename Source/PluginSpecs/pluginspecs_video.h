@@ -84,7 +84,7 @@ typedef struct
 	TKeyPressed                     pKeyPress;
 	void *pMemoryBase;
 	bool bWii;
-	bool bUseDualCore;
+	bool bOnThread;
     u32 *Fifo_CPUBase;
     u32 *Fifo_CPUEnd;
     u32 *Fifo_CPUWritePointer;

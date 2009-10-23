@@ -511,9 +511,8 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	if (s_PluginInitialized)
 	{
 		// Make sure previous swap request has made it to the screen
-		if (g_VideoInitialize.bUseDualCore)
+		if (g_VideoInitialize.bOnThread)
 		{
-			
 			while (Common::AtomicLoadAcquire(s_swapRequested))
 				Common::YieldCPU();
 		}
@@ -565,7 +564,7 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 
 		Common::AtomicStoreRelease(s_efbAccessRequested, TRUE);
 
-		if (g_VideoInitialize.bUseDualCore)
+		if (g_VideoInitialize.bOnThread)
 		{
 			while (Common::AtomicLoadAcquire(s_efbAccessRequested))
 				Common::YieldCPU();

@@ -81,7 +81,7 @@ bool BootCore(const std::string& _rFilename)
 	#if defined(HAVE_WX) && HAVE_WX		
 		if (main_frame->g_pCodeWindow)
 		{
-			//StartUp.bUseDualCore = code_frame->UseDualCore();
+			//StartUp.bCPUThread = code_frame->UseDualCore();
 			StartUp.bUseJIT = !main_frame->g_pCodeWindow->UseInterpreter();
 			StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
 			StartUp.bAutomaticStart = main_frame->g_pCodeWindow->AutomaticStart();
@@ -90,7 +90,7 @@ bool BootCore(const std::string& _rFilename)
 		}
 		else
 		{
-			//StartUp.bUseDualCore = false;
+			//StartUp.bCPUThread = false;
 			//StartUp.bUseJIT = true;
 		}		
 		StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false; // RUNNING_DEBUG
@@ -120,11 +120,11 @@ bool BootCore(const std::string& _rFilename)
 	if (unique_id.size() == 6 && game_ini.Load(StartUp.m_strGameIni.c_str()))
 	{
 		// General settings
-		game_ini.Get("Core", "UseDualCore", &StartUp.bUseDualCore, StartUp.bUseDualCore);
-		game_ini.Get("Core", "SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
-		game_ini.Get("Core", "OptimizeQuantizers", &StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
-		game_ini.Get("Core", "EnableFPRF", &StartUp.bEnableFPRF, StartUp.bEnableFPRF);
-		game_ini.Get("Core", "TLBHack", &StartUp.iTLBHack, StartUp.iTLBHack);
+		game_ini.Get("Core", "CPUOnThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
+		game_ini.Get("Core", "SkipIdle",			&StartUp.bSkipIdle, StartUp.bSkipIdle);
+		game_ini.Get("Core", "OptimizeQuantizers",	&StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
+		game_ini.Get("Core", "EnableFPRF",			&StartUp.bEnableFPRF, StartUp.bEnableFPRF);
+		game_ini.Get("Core", "TLBHack",				&StartUp.iTLBHack, StartUp.iTLBHack);
 		// Wii settings
 		if (StartUp.bWii)
 		{

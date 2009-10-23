@@ -289,7 +289,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	OverrideText = new wxStaticText(m_GameConfig, ID_OVERRIDE_TEXT, _("These settings override core Dolphin settings.\nUndetermined means the game uses Dolphin's setting."), wxDefaultPosition, wxDefaultSize);
 	// Core
 	sbCoreOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Core"));
-	UseDualCore = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	CPUThread = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	OptimizeQuantizers = new wxCheckBox(m_GameConfig, ID_OPTIMIZEQUANTIZERS, _("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("TLB Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -344,7 +344,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	wxBoxSizer* sConfigPage;
 	sConfigPage = new wxBoxSizer(wxVERTICAL);
 	sbGameConfig->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
-	sbCoreOverrides->Add(UseDualCore, 0, wxEXPAND|wxLEFT, 5);
+	sbCoreOverrides->Add(CPUThread, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(SkipIdle, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(OptimizeQuantizers, 0, wxEXPAND|wxLEFT, 5);
@@ -765,10 +765,10 @@ void CISOProperties::LoadGameConfig()
 	int iTemp;
 	std::string sTemp;
 
-	if (GameIni.Get("Core", "UseDualCore", &bTemp))
-		UseDualCore->Set3StateValue((wxCheckBoxState)bTemp);
+	if (GameIni.Get("Core", "CPUThread", &bTemp))
+		CPUThread->Set3StateValue((wxCheckBoxState)bTemp);
 	else
-		UseDualCore->Set3StateValue(wxCHK_UNDETERMINED);
+		CPUThread->Set3StateValue(wxCHK_UNDETERMINED);
 
 	if (GameIni.Get("Core", "SkipIdle", &bTemp))
 		SkipIdle->Set3StateValue((wxCheckBoxState)bTemp);
@@ -850,10 +850,10 @@ void CISOProperties::LoadGameConfig()
 
 bool CISOProperties::SaveGameConfig()
 {
-	if (UseDualCore->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Core", "UseDualCore");
+	if (CPUThread->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "CPUThread");
 	else
-		GameIni.Set("Core", "UseDualCore", UseDualCore->Get3StateValue());
+		GameIni.Set("Core", "CPUThread", CPUThread->Get3StateValue());
 
 	if (SkipIdle->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Core", "SkipIdle");
