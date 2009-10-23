@@ -211,7 +211,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "HLE_BS2",     &m_LocalCoreStartupParameter.bHLE_BS2,     true);
 		ini.Get("Core", "UseDynarec",  &m_LocalCoreStartupParameter.bUseJIT,      true);
 		ini.Get("Core", "DSPThread",   &m_LocalCoreStartupParameter.bDSPThread,   true);
-		ini.Get("Core", "UseDualCore", &m_LocalCoreStartupParameter.bUseDualCore, false);
+		ini.Get("Core", "UseDualCore", &m_LocalCoreStartupParameter.bUseDualCore, true);
 		ini.Get("Core", "SkipIdle",    &m_LocalCoreStartupParameter.bSkipIdle,    true);
 		ini.Get("Core", "LockThreads", &m_LocalCoreStartupParameter.bLockThreads, false);
 		ini.Get("Core", "DefaultGCM",  &m_LocalCoreStartupParameter.m_strDefaultGCM);
