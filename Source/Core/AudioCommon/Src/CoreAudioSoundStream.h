@@ -22,6 +22,8 @@
 #include "SoundStream.h"
 #if defined(__APPLE__)
 #include <CoreAudio/AudioHardware.h>
+#include <AudioUnit/AudioUnit.h>
+#include <CoreServices/CoreServices.h>
 #endif
 
 #include "Thread.h"
@@ -29,6 +31,11 @@
 class CoreAudioSound : public SoundStream
 {
 #if defined(__APPLE__)
+
+        Common::Thread *thread;
+        Common::CriticalSection soundCriticalSection;
+        Common::Event soundSyncEvent;
+
 public:
 	CoreAudioSound(CMixer *mixer);
 	virtual ~CoreAudioSound();
