@@ -148,15 +148,6 @@ bool GetRealWiimote()
     return g_bRealWiimote;
 }
 
-// This can occur when the emulator is not running and the nJoy configuration window is opened
-void ReconnectPad()
-{
-	CPluginManager &Plugins = CPluginManager::GetInstance();
-	Plugins.FreePad(0);
-	Plugins.GetPad(0)->Config(g_pWindowHandle);
-	INFO_LOG(CONSOLE, "ReconnectPad()\n");
-}
-
 // This doesn't work yet, I don't understand how the connection work yet
 void ReconnectWiimote()
 {

@@ -275,7 +275,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	switch (iMsg)
 	{
 	case WM_CREATE:
-		PostMessage(m_hParent, WM_USER, OPENGL_WM_USER_CREATE, (int)m_hParent);
+		PostMessage((HWND)g_VideoInitialize.pWindowHandle, WM_USER, OPENGL_WM_USER_CREATE, (int)m_hParent);
 		break;
 
 	case WM_PAINT:
@@ -345,6 +345,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		}
 		if (wParam == OPENGL_WM_USER_KEYDOWN)
 			OnKeyDown(lParam);
+		if (wParam == TOGGLE_FULLSCREEN)
+			ToggleFullscreen(m_hWnd);
 		break;
 
 	// This is called when we close the window when we render to a separate window
@@ -418,6 +420,11 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	// Create new separate window
     else
     {
+		// Don't forget to make it NULL, or a broken window will be created in case we
+		// render to main, stop, then render to separate window, as the GUI will still
+		// think we're rendering to main because m_hParent will still contain the old HWND...
+		m_hParent = NULL;
+
 		DWORD style = g_Config.bFullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW;
 
         RECT rc = {0, 0, width, height};

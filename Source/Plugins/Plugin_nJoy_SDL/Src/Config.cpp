@@ -28,9 +28,6 @@
 // http://code.google.com/p/dolphin-emu/
 //
 
-
-
-
 // Include
 // ---------
 #include "nJoy.h"
@@ -67,7 +64,7 @@ void DEBUG_INIT()
 	#endif
 
 	pFile = fopen ("nJoy-debug.txt","wt");
-	fprintf(pFile, "nJoy v"INPUT_VERSION" Debug\n");
+	fprintf(pFile, "nJoy Debug\n");
 	#ifdef _WIN32
 	fprintf(pFile, "Date: %s\nTime: %s\n", dateStr, timeStr);
 	#endif
@@ -181,10 +178,6 @@ void Config::Save(int Slot)
 		file.Set(SectionName.c_str(), "RadiusOnOffC", PadMapping[i].bRadiusOnOffC);	
 		file.Set(SectionName.c_str(), "DiagonalC", PadMapping[i].SDiagonalC);
 		file.Set(SectionName.c_str(), "SquareToCircleC", PadMapping[i].bSquareToCircleC);
-		// ======================================
-
-		// Debugging
-		//if(m_ConfigFrame) m_ConfigFrame->LogMsg("Saved: %s %i\n", SectionName.c_str(), PadMapping[i].triggertype);
 	}
 
 	INFO_LOG(CONSOLE, "%i: Save: %i\n", 0, PadMapping[0].halfpress);
@@ -202,7 +195,7 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 	// Load file
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "nJoy.ini");
-	bool Tmp; // Tmp storage
+	bool Tmp;
 
 	// ==================================================================
 	// Global settings
@@ -211,10 +204,6 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 	file.Get("General", "CheckForFocus", &g_Config.bCheckFocus, false);
 	file.Get("General", "NoTriggerFilter", &g_Config.bNoTriggerFilter, false);
 	file.Get("General", "RumbleStrength", &g_Config.RumbleStrength, 8);
-#ifdef RERECORDING
-	file.Get("General", "Recording", &g_Config.bRecording, false);
-	file.Get("General", "Playback", &g_Config.bPlayback, false);
-#endif
 
 	if(!ChangeSaveByID)
 	{
@@ -239,8 +228,8 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 			// Current joypad name: joyinfo[PadMapping[i].ID].Name
 		if(g_Config.bSaveByID)
 		{
-			/* Prevent a crash from illegal access to joyinfo that will only have values for
-			   the current amount of connected pads */
+			// Prevent a crash from illegal access to joyinfo that will only have values for
+			// the current amount of connected pads 
 			if((u32)PadMapping[i].ID >= joyinfo.size()) continue;
 
 			// Create a section name			
@@ -280,10 +269,6 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 		file.Get(SectionName.c_str(), "RadiusOnOffC", &Tmp, false); PadMapping[i].bRadiusOnOffC = Tmp;
 		file.Get(SectionName.c_str(), "DiagonalC", &PadMapping[i].SDiagonalC, "100%");
 		file.Get(SectionName.c_str(), "SquareToCircleC", &Tmp, false); PadMapping[i].bSquareToCircleC = Tmp;
-		// =============================
-
-		// Debugging
-		//if(m_ConfigFrame) m_ConfigFrame->LogMsg("%i: Enabled: %i\n", i, PadMapping[i].buttons[CTL_X_BUTTON]);		
 	}
 
 	INFO_LOG(CONSOLE, "%i: Load: %i\n", 0, PadMapping[0].halfpress);

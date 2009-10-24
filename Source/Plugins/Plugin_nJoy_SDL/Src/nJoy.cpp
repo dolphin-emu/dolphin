@@ -28,44 +28,6 @@
 // http://code.google.com/p/dolphin-emu/
 //
 
-
- 
-
-
-// Issues
-/* ---------
-
-   The StrangeHack in ConfigAdvanced.cpp doesn't work in Linux, it still wont resize the
-   window correctly. So currently in Linux you have to have advanced controls enabled when
-   you open the window to see them.
-   // TODO : we should not need a Hack in the first place :/
-
-////////////////////////*/
-
- 
-
-
-// Variables guide
-/* ---------
-
-   Joyinfo[1, 2, 3, 4, ..., number of attached devices]: Gamepad info that is populate by Search_Devices()
-   PadMapping[1, 2, 3 and 4]: The button mapping
-   Joystate[1, 2, 3 and 4]: The current button states
-
-   The arrays PadMapping[] and PadState[] are numbered 0 to 3 for the four different virtual
-   controllers. Joysticks[].ID will have the number of the physical input device mapped to that
-   controller (this value range between 0 and the total number of connected physical devices). The
-   mapping of a certain physical device to PadState[].joy is initially done by Initialize(), but
-   for the configuration we can remap that, like in PADConfigDialognJoy::ChangeJoystick().
-
-   The joyinfo[] array holds the physical gamepad info for a certain physical device. It's therefore
-   used as joyinfo[PadMapping[controller].ID] if we want to get the joyinfo for a certain joystick.
-
-////////////////////////*/
-
- 
-
-
 // Include
 // ---------
 #include "nJoy.h"
@@ -77,11 +39,9 @@
 #endif
 
 
- 
 
 // Variables
 // ---------
-
 #define _EXCLUDE_MAIN_ // Avoid certain declarations in nJoy.h
 FILE *pFile;
 std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
@@ -95,10 +55,6 @@ int NumPads = 0, NumGoodPads = 0, LastPad = 0;
 SPADInitialize *g_PADInitialize = NULL;
 PLUGIN_GLOBALS* globals = NULL;
 
-// Rumble 
-#if defined(__linux__)
-	extern int fd;
-#endif
 
 // Standard crap to make wxWidgets happy
 #ifdef _WIN32
@@ -177,12 +133,12 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Type = PLUGIN_TYPE_PAD;
 
 #ifdef DEBUGFAST
-	sprintf(_PluginInfo->Name, "nJoy v"INPUT_VERSION" (DebugFast) by Falcon4ever");
+	sprintf(_PluginInfo->Name, "nJoy (DebugFast) by Falcon4ever");
 #else
 #ifndef _DEBUG
-	sprintf(_PluginInfo->Name, "nJoy v"INPUT_VERSION " by Falcon4ever");
+	sprintf(_PluginInfo->Name, "nJoy by Falcon4ever");
 #else
-	sprintf(_PluginInfo->Name, "nJoy v"INPUT_VERSION" (Debug) by Falcon4ever");
+	sprintf(_PluginInfo->Name, "nJoy (Debug) by Falcon4ever");
 #endif
 #endif
 }
@@ -198,26 +154,9 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 // ------------------
 void DllConfig(HWND _hParent)
 {
-#ifdef _WIN32
-	// Start the pads so we can use them in the configuration and advanced controls
-	if (!g_EmulatorRunning)
-	{
-		Search_Devices(joyinfo, NumPads, NumGoodPads); // Populate joyinfo for all attached devices
-
-		// Check if a DirectInput error occured
-		if (ReloadDLL())
-		{
-			PostMessage(_hParent, WM_USER, NJOY_RELOAD, 0);
-			return;
-		}
-	}
-#else
-	if (SDL_Init(SDL_INIT_JOYSTICK ) < 0)
-	{
-		printf("Could not initialize SDL! (%s)\n", SDL_GetError());
-		return;
-	}
-#endif
+	// Init Joystick + Haptic (force feedback) subsystem on SDL 1.3
+	// Populate joyinfo for all attached devices
+	Search_Devices(joyinfo, NumPads, NumGoodPads);
 
 	g_Config.Load();	// load settings
 
@@ -240,19 +179,9 @@ void DllDebugger(HWND _hParent, bool Show) {}
  
 // Init PAD (start emulation)
 // --------------------------
-/* Information: This function can not be run twice without a Shutdown in between. If
-   it's run twice the SDL_Init() will cause a crash. One solution to this is to keep a
-   global function that remembers the SDL_Init() and SDL_Quit() (g_EmulatorRunning does
-   not do that since we can open and close this without any game running). But I would
-   suggest that avoiding to run this twice from the Core is better. */
 void Initialize(void *init)
 {
-	// Debugging
-	//	#ifdef SHOW_PAD_STATUS
-	//		Console::Open(110);
-	//		m_hConsole = Console::GetHwnd();
-	//	#endif
-	INFO_LOG(CONSOLE, "Initialize: %i\n", SDL_WasInit(0));
+	INFO_LOG(PAD, "Initialize: %i\n", SDL_WasInit(0));
     g_PADInitialize = (SPADInitialize*)init;
 	g_EmulatorRunning = true;
 	
@@ -264,18 +193,8 @@ void Initialize(void *init)
 		DEBUG_INIT();
 	#endif
 
-	// Populate joyinfo for all attached devices if the configuration window is not already open
-#if defined(HAVE_WX) && HAVE_WX
-	if(!m_ConfigFrame)
-	{
-		Search_Devices(joyinfo, NumPads, NumGoodPads);
-		// Check if a DirectInput error occured
-		if(ReloadDLL()) g_PADInitialize->padNumber = -1;
-	}
-#endif
-	#ifdef RERECORDING
-		Recording::Initialize();
-	#endif
+	// Populate joyinfo for all attached devices
+	Search_Devices(joyinfo, NumPads, NumGoodPads);
 }
 
 // Shutdown PAD (stop emulation)
@@ -285,15 +204,7 @@ void Initialize(void *init)
    Called from: The Dolphin Core, PADConfigDialognJoy::OnClose() */
 void Shutdown()
 {
-	INFO_LOG(CONSOLE, "Shutdown: %i\n", SDL_WasInit(0));
-
-	// -------------------------------------------
-	// Play back input instead of accepting any user input
-	// ----------------------
-	#ifdef RERECORDING
-		Recording::ShutDown();
-	#endif
-	// ----------------------
+	INFO_LOG(PAD, "Shutdown: %i\n", SDL_WasInit(0));
 
 	// Always change this variable
 	g_EmulatorRunning = false;
@@ -302,19 +213,8 @@ void Shutdown()
 	#ifdef _DEBUG
 		DEBUG_QUIT();
 	#endif
-	
-	#ifdef _WIN32
-		// Free DInput before closing SDL, or get a crash !
-		FreeDirectInput();
-	#elif defined(__linux__)
-		close(fd);
-	#endif
 
-	// Don't shutdown the gamepad if the configuration window is still showing
-	// Todo: Coordinate with the Wiimote plugin, SDL_Quit() will remove the pad for it to
-#if defined(HAVE_WX) && HAVE_WX
-	if (m_ConfigFrame) return;
-#endif
+	PAD_RumbleClose();
 
 	/* Close all devices carefully. We must check that we are not accessing any undefined
 	   vector elements or any bad devices */
@@ -335,7 +235,7 @@ void Shutdown()
 	NumGoodPads = 0;
 
 	// Finally close SDL
-	if (SDL_WasInit(0)) SDL_Quit();
+	SDL_Quit();
 
 	// Remove the pointer to the initialize data
 	g_PADInitialize = NULL;
@@ -364,9 +264,6 @@ void PAD_Input(u16 _Key, u8 _UpDown)
 				{ PadState[i].dpad2[j] = _UpDown; break; }
 		}
 	}
-
-	// Debugging
-	//INFO_LOG(CONSOLE, "%i", _Key);
 }
 
 
@@ -386,24 +283,9 @@ void DoState(unsigned char **ptr, int mode)
 // Function: Gives the current pad status to the Core
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
-	//INFO_LOG(CONSOLE, "PAD_GetStatus(): %i %i %i\n", _numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy);
-
-	/* Check if the pad is avaliable, currently we don't disable pads just because they are
-	   disconnected */
+	// Check if the pad is avaliable, currently we don't disable pads just because they are
+	// disconnected
 	if (!PadState[_numPAD].joy) return;
-
-	// -------------------------------------------
-	// Play back input instead of accepting any user input
-	// ----------------------
-	#ifdef RERECORDING
-	if (g_Config.bPlayback)
-	{
-		*_pPADStatus = Recording::Play();
-		return;
-	}
-	#endif
-
-	// ----------------------
 
 	// Clear pad status
 	memset(_pPADStatus, 0, sizeof(SPADStatus));
@@ -543,45 +425,6 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 	// Update error code
 	_pPADStatus->err = PAD_ERR_NONE;
-
-	// -------------------------------------------
-	// Rerecording
-	// ----------------------
-	#ifdef RERECORDING
-	// Record input
-	if (g_Config.bRecording) Recording::RecordInput(*_pPADStatus);
-	#endif
-	// ----------------------
-
-	// Debugging 
-	/*	
-	// Show the status of all connected pads
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	if ((LastPad == 0 && _numPAD == 0) || _numPAD < LastPad) Console->ClearScreen();	
-	LastPad = _numPAD;
-//	Console->ClearScreen();
-	int X = _pPADStatus->stickX - 128, Y = _pPADStatus->stickY - 128;
-	int Xc = _pPADStatus->substickX - 128, Yc = _pPADStatus->substickY - 128;
-	NOTICE_LOG(CONSOLE, 
-		"Pad        | Number:%i Enabled:%i Handle:%i\n"
-		"Stick      | X:%03i Y:%03i R:%3.0f\n"
-		"C-Stick    | X:%03i Y:%03i R:%3.0f\n"
-		"Trigger    | StatusL:%04x StatusR:%04x  TriggerL:%04x TriggerR:%04x  TriggerValue:%i\n"
-		"Buttons    | Overall:%i  A:%i X:%i\n"
-		"======================================================\n",
-
-		_numPAD, PadMapping[_numPAD].enabled, PadState[_numPAD].joy,
-
-		X, Y, sqrt((float)(X*X + Y*Y)),
-		Xc, Yc, sqrt((float)(Xc*Xc + Yc*Yc)),
-
-		_pPADStatus->triggerLeft, _pPADStatus->triggerRight,  TriggerLeft, TriggerRight,  TriggerValue,
-
-		_pPADStatus->button,
-		PadState[_numPAD].buttons[InputCommon::CTL_A_BUTTON],
-		PadState[_numPAD].buttons[InputCommon::CTL_X_BUTTON]
-		);
-	*/
 }
 
 
@@ -619,37 +462,6 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 	}
 
 	return Success;
-}
-
-
-
-/* Check if any of the pads failed to open. In Windows there is a strange "IDirectInputDevice2::
-   SetDataFormat() DirectX error -2147024809" after exactly four SDL_Init() and SDL_Quit() */
-// ----------------
-bool ReloadDLL()
-{
-	if (   (PadState[0].joy == NULL)
-		|| (PadState[1].joy == NULL)
-		|| (PadState[2].joy == NULL)
-		|| (PadState[3].joy == NULL))
-	{
-		// Check if it was an error and not just no pads connected
-		std::string StrError = SDL_GetError();
-		if (StrError.find("IDirectInputDevice2") != std::string::npos)
-		{
-			// Clear the physical device info
-			joyinfo.clear();
-			NumPads = 0;
-			NumGoodPads = 0;
-			// Close SDL
-			if (SDL_WasInit(0)) SDL_Quit();
-			// Log message
-			INFO_LOG(CONSOLE, "Error: %s\n", StrError.c_str());	
-			return true;
-		}
-	}
-
-	return false;
 }
 
 

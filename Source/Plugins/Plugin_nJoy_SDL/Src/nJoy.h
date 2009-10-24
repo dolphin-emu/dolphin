@@ -54,52 +54,34 @@
 #if defined(HAVE_WX) && HAVE_WX
 	#include "GUI/AboutBox.h"
 	#include "GUI/ConfigBox.h"
-	//extern ConfigBox* m_frame;
 #endif
-
-#ifdef _WIN32
-	#include <tchar.h>
-	#define DIRECTINPUT_VERSION 0x0800
-	#define WIN32_LEAN_AND_MEAN
-
-	#pragma comment(lib, "dxguid.lib")
-	#pragma comment(lib, "dinput8.lib")
-	#pragma comment(lib, "winmm.lib")
-	#include <dinput.h>
-	void FreeDirectInput(); // Needed in both nJoy.cpp and Rumble.cpp
-#else
-	#include <unistd.h>
-	#include <sys/ioctl.h>
-#endif
-
-#ifdef __linux__
-#include <linux/input.h>
-#endif
-
-
-
 
 // Define
 // ----------
 
-#define INPUT_VERSION	"0.3"
+// SDL Haptic fails on windows, it just doesn't work (even the sample doesn't work)
+// So until i can make it work, this is all disabled >:(
+#if SDL_VERSION_ATLEAST(1, 3, 0) && !defined(_WIN32)
+	#define SDL_RUMBLE
+#else
+	#ifdef _WIN32
+		#define RUMBLE_HACK
+		#define DIRECTINPUT_VERSION 0x0800
+		#define WIN32_LEAN_AND_MEAN
+
+		#pragma comment(lib, "dxguid.lib")
+		#pragma comment(lib, "dinput8.lib")
+		#pragma comment(lib, "winmm.lib")
+		#include <dinput.h>
+	#endif
+#endif
+
 #define INPUT_STATE		wxT("PUBLIC RELEASE")
 #define RELDAY			wxT("21")
 #define RELMONTH		wxT("07")
 #define RELYEAR			wxT("2008")
 #define THANKYOU		wxT("`plot`, Absolute0, Aprentice, Bositman, Brice, ChaosCode, CKemu, CoDeX, Dave2001, dn, drk||Raziel, Florin, Gent, Gigaherz, Hacktarux, JegHegy, Linker, Linuzappz, Martin64, Muad, Knuckles, Raziel, Refraction, Rudy_x, Shadowprince, Snake785, Saqib, vEX, yaz0r, Zilmar, Zenogais and ZeZu.")
-#define PLUGIN_VER_STR	wxT("nJoy v")wxT(INPUT_VERSION)wxT(" by Falcon4ever\nRelease: ") RELDAY wxT("/") RELMONTH wxT("/") RELYEAR wxT("\nwww.multigesture.net")
-
-
-// Input vector. Todo: Save the configured keys here instead of in joystick
-// ---------
-/*
-#ifndef _CONTROLLER_STATE_H
-extern std::vector<u8> Keys;
-#endif
-*/
-
-
+#define PLUGIN_VER_STR	wxT("Based on nJoy 0.3 by Falcon4ever\nRelease: ") RELDAY wxT("/") RELMONTH wxT("/") RELYEAR wxT("\nwww.multigesture.net")
 
 
 // Variables
@@ -117,8 +99,6 @@ extern std::vector<u8> Keys;
 #endif
 
 
-
-
 // Custom Functions
 // ----------------
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads);
@@ -126,29 +106,5 @@ void DEBUG_INIT();
 void DEBUG_QUIT();
 bool IsFocus();
 bool ReloadDLL();
-#ifdef _WIN32
-HRESULT InitRumble(HWND hWnd);
-#endif
-
-
-
-
-
-// ReRecording
-// ----------------
-#ifdef RERECORDING
-namespace Recording
-{
-	void Initialize();
-	void DoState(unsigned char **ptr, int mode);
-	void ShutDown();
-	void Save();
-	void Load();
-	const SPADStatus& Play();
-	void RecordInput(const SPADStatus& _rPADStatus);
-}
-#endif
-
-
-
+void PAD_RumbleClose();
 #endif // __NJOY_h__

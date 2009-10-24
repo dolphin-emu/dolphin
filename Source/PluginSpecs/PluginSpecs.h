@@ -27,9 +27,9 @@ enum PLUGIN_COMM
 	OPENGL_WM_USER_CREATE,
 	OPENGL_WM_USER_KEYDOWN,
 	OPENGL_VIDEO_STOP,
+	TOGGLE_FULLSCREEN,
 	VIDEO_DESTROY, // The video debugging window was destroyed
 	AUDIO_DESTROY, // The audio debugging window was destroyed
-	NJOY_RELOAD, // Reload nJoy if DirectInput has failed
 	WIIMOTE_RECONNECT, // Reconnect the Wiimote if it has disconnected
 	INPUT_FRAME_COUNTER // Wind back the frame counter for rerecording
 };

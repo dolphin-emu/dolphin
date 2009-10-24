@@ -328,8 +328,8 @@ void Initialize(void *init)
     g_Config.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
 	g_Config.GameIniLoad(globals->game_ini);
 
-#if defined(HAVE_WX) && HAVE_WX
 	g_Config.UpdateProjectionHack();
+#if defined(HAVE_WX) && HAVE_WX
 	//Enable support for PNG screenshots.
 	wxImage::AddHandler( new wxPNGHandler );
 #endif

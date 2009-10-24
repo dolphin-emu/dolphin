@@ -309,7 +309,6 @@ class CFrame : public wxFrame
 
 		void OnShow_CheatsWindow(wxCommandEvent& event);
 		void OnShow_InfoWindow(wxCommandEvent& event);
-		void OnRestart(wxCommandEvent& event);
 		void OnLoadWiiMenu(wxCommandEvent& event);
 		void GameListChanged(wxCommandEvent& event);
 

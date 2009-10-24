@@ -28,57 +28,37 @@
 // http://code.google.com/p/dolphin-emu/
 //
 
-
-
-
 // Include
 // ---------
 #include "nJoy.h"
 
 
+#ifdef RUMBLE_HACK
 
-// Enable or disable rumble. 
-// ---------
+struct RUMBLE // GC Pad rumble DIDevice 
+{	
+	LPDIRECTINPUTDEVICE8	g_pDevice;	// 4 pads objects
+	LPDIRECTINPUTEFFECT		g_pEffect;
+	DWORD					g_dwNumForceFeedbackAxis;
+	DIEFFECT				eff;
+};
 
-// Rumble in windows
-#ifdef _WIN32
+#define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p)=NULL; } }
 
-	struct RUMBLE // GC Pad rumble DIDevice 
-	{	
-		LPDIRECTINPUTDEVICE8	g_pDevice;	// 4 pads objects
-		LPDIRECTINPUTEFFECT		g_pEffect;
-		DWORD					g_dwNumForceFeedbackAxis;
-		DIEFFECT				eff;
-	};
+BOOL CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContext);
+BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext);
+void SetDeviceForcesXY(int pad, int nXYForce);
+HRESULT InitRumble(HWND hWnd);
 
-	#define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p)=NULL; } }
+LPDIRECTINPUT8		g_Rumble;		// DInput Rumble object
+RUMBLE				pRumble[4];		// 4 GC Rumble Pads
 
-	BOOL CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContext);
-	BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext);
-	void SetDeviceForcesXY(int pad, int nXYForce);
-
-	LPDIRECTINPUT8		g_Rumble;		// DInput Rumble object
-	RUMBLE				pRumble[4];		// 4 GC Rumble Pads
-	extern InputCommon::CONTROLLER_MAPPING PadMapping[4];
-
-#elif defined(__linux__)
-	#include <sys/types.h>
-	#include <sys/stat.h>
-	#include <fcntl.h>
-
-	int fd;
-	char device_file_name[64];
-	struct ff_effect effect;
-	bool CanRumble = false;
-#endif
-
-
+//////////////////////
 // Use PAD rumble
-// --------------
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 void Pad_Use_Rumble(u8 _numPAD)
 {
-#ifdef _WIN32
 	if (PadMapping[_numPAD].rumble)
 	{
 		if (!g_Rumble)
@@ -93,100 +73,32 @@ void Pad_Use_Rumble(u8 _numPAD)
 				pRumble[_numPAD].g_pDevice->Acquire();
 		}
 	}
-#elif defined(__linux__)
-	if (!fd)
-	{
-		sprintf(device_file_name, "/dev/input/event%d", PadMapping[_numPAD].eventnum); //TODO: Make dynamic //
-
-		/* Open device */
-		fd = open(device_file_name, O_RDWR);
-		if (fd == -1) {
-			perror("Open device file");
-			//Something wrong, probably permissions, just return now
-			return;
-		}
-		int n_effects = 0;
-		if (ioctl(fd, EVIOCGEFFECTS, &n_effects) == -1) {
-			perror("Ioctl number of effects");
-		}
-		if (n_effects > 0)
-			CanRumble = true;
-		else
-			return; // Return since we can't do any effects
-		/* a strong rumbling effect */
-		effect.type = FF_RUMBLE;
-		effect.id = -1;
-		effect.u.rumble.strong_magnitude = 0x8000;
-		effect.u.rumble.weak_magnitude = 0;
-		effect.replay.length = 5000; // Set to 5 seconds, if a Game needs more for a single rumble event, it is dumb and must be a demo
-		effect.replay.delay = 0;
-		if (ioctl(fd, EVIOCSFF, &effect) == -1) {
-			perror("Upload effect");
-			CanRumble = false; //We have effects but it doesn't support the rumble we are using. This is basic rumble, should work for most
-		}
-	}
-#endif
 }
 
-
+////////////////////////////////////////////////////
 // Set PAD rumble. Explanation: Stop = 0, Rumble = 1
-// --------------
+// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
-
 	Pad_Use_Rumble(_numPAD);
 
-	// SDL can't rumble the gamepad so we need to use platform specific code
-#ifdef _WIN32
-	int a = 0;
-
-	if (_uType == 1)
-	{
-		// it looks like _uStrength is equal to 3 everytime anyway...
-		a = _uStrength > 2 ? (1000*(g_Config.RumbleStrength + 1)) : 0;
-		a = a > 10000 ? 10000 : a;
-	}
-
-	// a = int ((float)a * 0.96f);
-	// What is this for ?
-	// else if ((_uType == 0) || (_uType == 2))
+	int Strenght = 0;
 
 	if (PadMapping[_numPAD].rumble)  // rumble activated
 	{
-		// Start Effect 
-		SetDeviceForcesXY(_numPAD, a);
-	}
+		if (_uType == 1 && _uStrength > 2) 
+		{
+			// it looks like _uStrength is equal to 3 everytime anyway...
+			Strenght = 1000 * (g_Config.RumbleStrength + 1);
+			Strenght = Strenght > 10000 ? 10000 : Strenght;
+		}
+		else
+			Strenght = 0;
 
-#elif defined(__linux__)
-	struct input_event event;
-	if (CanRumble)
-	{
-		if (_uType == 1)
-		{
-			event.type = EV_FF;
-			event.code = effect.id;
-			event.value = 1;
-			if (write(fd, (const void*) &event, sizeof(event)) == -1) {
-				perror("Play effect");
-				exit(1);
-			}
-		}
-		if ((_uType == 0) || (_uType == 2))
-		{
-			event.type = EV_FF;
-			event.code =  effect.id;
-			event.value = 0;
-			if (write(fd, (const void*) &event, sizeof(event)) == -1) {
-				perror("Stop effect");
-				exit(1);
-			}
-		}
+		SetDeviceForcesXY(_numPAD, Strenght);
 	}
-#endif
 }
-
-#ifdef _WIN32
 
 // Rumble stuff :D!
 // ----------------
@@ -360,21 +272,106 @@ BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pCont
 	return DIENUM_CONTINUE;
 }
 
-VOID FreeDirectInput()
+void PAD_RumbleClose()
 {
-    // Unacquire the device one last time just in case 
-    // the app tried to exit while the device is still acquired.
-
-	for (int i=0; i<4; i++)		// Free all pads
+    // It may look weird, but we don't free anything here, it was the cause of crashes
+	// on stop, and the DLL isn't unloaded anyway, so the pointers stay
+	// We just stop the rumble in case it's still playing an effect.
+	for (int i=0; i<4; i++)
 	{
-		if (pRumble[i].g_pDevice)
-			pRumble[i].g_pDevice->Unacquire();
-
-		SAFE_RELEASE(pRumble[i].g_pEffect);
-		SAFE_RELEASE(pRumble[i].g_pDevice);
+		if (pRumble[i].g_pDevice && pRumble[i].g_pEffect)
+			pRumble[i].g_pEffect->Stop();
 	}
-
-	SAFE_RELEASE(g_Rumble);		// Rumble object
 }
 
+#else // Multiplatform SDL Rumble code
+
+#ifdef SDL_RUMBLE
+
+struct RUMBLE // GC Pad rumble DIDevice 
+{	
+	SDL_Haptic*				g_pDevice;
+	SDL_HapticEffect		g_pEffect;
+	int						effect_id;
+};
+
+RUMBLE pRumble[4] = {0};		// 4 GC Rumble Pads
 #endif
+
+
+// Use PAD rumble
+// --------------
+bool PAD_Init_Rumble(u8 _numPAD, SDL_Joystick *SDL_Device)
+{
+#ifdef SDL_RUMBLE
+	if (SDL_Device == NULL)
+		return false;
+
+	pRumble[_numPAD].g_pDevice = SDL_HapticOpenFromJoystick(SDL_Device);
+
+	if (pRumble[_numPAD].g_pDevice == NULL)
+		return false; // Most likely joystick isn't haptic	
+	
+	if (!(SDL_HapticQuery(pRumble[_numPAD].g_pDevice) & SDL_HAPTIC_CONSTANT))
+	{
+		SDL_HapticClose(pRumble[_numPAD].g_pDevice); // No effect
+		pRumble[_numPAD].g_pDevice = 0;
+		PadMapping[_numPAD].rumble = false;
+		return false;
+	}
+
+	// Set the strength of the rumble effect
+	int Strenght = 3276 * (g_Config.RumbleStrength + 1);
+	Strenght = Strenght > 32767 ? 32767 : Strenght;
+
+	// Create the effect
+	memset(&pRumble[_numPAD].g_pEffect, 0, sizeof(SDL_HapticEffect)); // 0 is safe default
+	pRumble[_numPAD].g_pEffect.type = SDL_HAPTIC_CONSTANT;
+	pRumble[_numPAD].g_pEffect.constant.direction.type = SDL_HAPTIC_POLAR; // Polar coordinates
+	pRumble[_numPAD].g_pEffect.constant.direction.dir[0] = 18000; // Force comes from south
+	pRumble[_numPAD].g_pEffect.constant.level = Strenght;
+	pRumble[_numPAD].g_pEffect.constant.length = 10000; // 10s long (should be INFINITE, but 10s is safer)
+	pRumble[_numPAD].g_pEffect.constant.attack_length = 0; // disable Fade in...
+	pRumble[_numPAD].g_pEffect.constant.fade_length = 0; // ...and out
+
+	// Upload the effect
+	pRumble[_numPAD].effect_id = SDL_HapticNewEffect( pRumble[_numPAD].g_pDevice, &pRumble[_numPAD].g_pEffect );
+#endif
+	return true;
+}
+
+
+// Set PAD rumble. Explanation: Stop = 0, Rumble = 1
+// --------------
+void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
+{
+	int Strenght = 0;
+
+#ifdef SDL_RUMBLE
+	if (PadMapping[_numPAD].rumble)  // rumble activated
+	{
+		if (!pRumble[_numPAD].g_pDevice)
+			return;
+
+		if (_uType == 1 && _uStrength > 2)
+			SDL_HapticRunEffect( pRumble[_numPAD].g_pDevice, pRumble[_numPAD].effect_id, 1 );
+		else
+			SDL_HapticStopAll(pRumble[_numPAD].g_pDevice);
+	}
+#endif
+}
+
+void PAD_RumbleClose()
+{
+#ifdef SDL_RUMBLE
+	for (int i=0; i<4; i++)		// Free all pads
+	{
+		if (pRumble[_numPAD].g_pDevice) {
+			SDL_HapticClose( pRumble[_numPAD].g_pDevice );
+			pRumble[_numPAD].g_pDevice = NULL;
+		}
+	}
+#endif
+}
+
+#endif // RUMBLE_HACK

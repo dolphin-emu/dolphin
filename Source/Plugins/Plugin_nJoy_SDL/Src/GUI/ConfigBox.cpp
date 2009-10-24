@@ -83,11 +83,6 @@ BEGIN_EVENT_TABLE(PADConfigDialognJoy,wxDialog)
 	EVT_COMBOBOX(IDCB_CSTICK_DIAGONAL, PADConfigDialognJoy::ChangeSettings)
 	EVT_CHECKBOX(IDCB_CSTICK_S_TO_C, PADConfigDialognJoy::ChangeSettings)
 	EVT_CHECKBOX(IDCB_FILTER_SETTINGS, PADConfigDialognJoy::ChangeSettings)
-#ifdef RERECORDING
-	EVT_CHECKBOX(ID_RECORDING, PADConfigDialognJoy::ChangeSettings)
-	EVT_CHECKBOX(ID_PLAYBACK, PADConfigDialognJoy::ChangeSettings)
-	EVT_BUTTON(ID_SAVE_RECORDING, PADConfigDialognJoy::GetButtons)
-#endif
 
 	EVT_BUTTON(IDB_SHOULDER_L, PADConfigDialognJoy::GetButtons)
 	EVT_BUTTON(IDB_SHOULDER_R, PADConfigDialognJoy::GetButtons)
@@ -155,9 +150,6 @@ PADConfigDialognJoy::~PADConfigDialognJoy()
 
 void PADConfigDialognJoy::OnKeyDown(wxKeyEvent& event)
 {
-	/*m_pStatusBar->SetLabel(wxString::Format(
-		"Key: %i", event.GetKeyCode()
-		));*/
 	g_Pressed = event.GetKeyCode();
 }
 
@@ -171,7 +163,7 @@ void PADConfigDialognJoy::OnClose(wxCloseEvent& event)
 	m_ConstantTimer->Stop();
 
 	// Close pads, unless we are running a game
-	if(!g_EmulatorRunning) Shutdown();
+	if (!g_EmulatorRunning) Shutdown();
 }
 
 // Call about dialog
@@ -199,7 +191,7 @@ void PADConfigDialognJoy::OKClick(wxCommandEvent& event)
 	if (event.GetId() == ID_OK)
 	{
 		DoSave();	// Save settings
-		if(Debugging) PanicAlert("Done");
+		if (Debugging) PanicAlert("Done");
 		Close(); // Call OnClose()
 	}
 }
@@ -219,7 +211,7 @@ void PADConfigDialognJoy::CancelClick(wxCommandEvent& event)
 void PADConfigDialognJoy::LogMsg(const char* format, ...)
 {
 	#ifdef _WIN32
-	if(Debugging)
+	if (Debugging)
 	{
 		const int MaxMsgSize = 1024*2;
 		char buffer[MaxMsgSize];
@@ -257,7 +249,7 @@ void PADConfigDialognJoy::DoSave(bool ChangePad, int Slot)
 	// Replace "" with "-1" before we are saving
 	ToBlank(false);
 
-	if(ChangePad)
+	if (ChangePad)
 	{
 		// Since we are selecting the pad to save to by the Id we can't update it when we change the pad
 		for(int i = 0; i < 4; i++) SaveButtonMapping(i, true);
@@ -304,34 +296,18 @@ void PADConfigDialognJoy::DoChangeJoystick()
 	g_Config.Load(true);
 	UpdateGUI(notebookpage); // Update the GUI
 }
-void PADConfigDialognJoy::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
-{
-	// Check that we got a good pad
-	if (!joyinfo.at(PadMapping[Open].ID).Good)
-	{
-		PadState[Open].joy = NULL;
-		return;
-	}
-
-	PadState[Open].joy = SDL_JoystickOpen(PadMapping[Open].ID);
-}
-void PADConfigDialognJoy::PadClose(int Close) // Close for slot 1, 2, 3 or 4
-{
-	if (SDL_JoystickOpened(PadMapping[Close].ID)) SDL_JoystickClose(PadState[Close].joy);
-	PadState[Close].joy = NULL;
-}
 
 // Notebook page changed
 void PADConfigDialognJoy::NotebookPageChanged(wxNotebookEvent& event)
 {	
 	// Save current settings now, don't wait for OK
-	if(ControlsCreated && !g_Config.bSaveByID) DoSave(false, notebookpage);
+	if (ControlsCreated && !g_Config.bSaveByID) DoSave(false, notebookpage);
 
 	// Update the global variable
 	notebookpage = event.GetSelection();
 
 	// Update GUI
-	if(ControlsCreated) UpdateGUI(notebookpage);
+	if (ControlsCreated) UpdateGUI(notebookpage);
 }
 
 // Replace the harder to understand -1 with "" for the sake of user friendliness
@@ -365,7 +341,7 @@ void PADConfigDialognJoy::SetButtonTextAll(int id, const char *text)
 	for (int i = 0; i < 4; i++)
 	{
 		// Safety check to avoid crash
-		if(joyinfo.size() > (u32)PadMapping[i].ID)
+		if (joyinfo.size() > (u32)PadMapping[i].ID)
 			if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[notebookpage].ID].Name)
 				SetButtonText(id, text, i);
 	};
@@ -376,7 +352,7 @@ void PADConfigDialognJoy::SaveButtonMappingAll(int Slot)
 	for (int i = 0; i < 4; i++)
 	{
 		// This can occur when no gamepad is detected
-		if(joyinfo.size() > (u32)PadMapping[i].ID)
+		if (joyinfo.size() > (u32)PadMapping[i].ID)
 			if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
 				SaveButtonMapping(i, false, Slot);
 	}
@@ -384,7 +360,7 @@ void PADConfigDialognJoy::SaveButtonMappingAll(int Slot)
 
 void PADConfigDialognJoy::UpdateGUIAll(int Slot)
 {
-	if(Slot == -1)
+	if (Slot == -1)
 	{
 		for (int i = 0; i < 4; i++) UpdateGUI(i);
 	}
@@ -393,7 +369,7 @@ void PADConfigDialognJoy::UpdateGUIAll(int Slot)
 		for (int i = 0; i < 4; i++)
 		{
 			// Safety check to avoid crash
-			if(joyinfo.size() > (u32)PadMapping[i].ID)
+			if (joyinfo.size() > (u32)PadMapping[i].ID)
 				if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
 					UpdateGUI(i);
 		}
@@ -412,11 +388,14 @@ void PADConfigDialognJoy::ChangeSettings( wxCommandEvent& event )
 			g_Config.bShowAdvanced = m_CBShowAdvanced[notebookpage]->IsChecked();			
 			for(int i = 0; i < 4; i++)
 			{
+				UpdateGUI(i);
 				m_CBShowAdvanced[i]->SetValue(g_Config.bShowAdvanced);
 				m_sMainRight[i]->Show(g_Config.bShowAdvanced);
 			}
-			SizeWindow();
+			// Resize the window without the need of any weird hack 
+			SetSizerAndFit(m_MainSizer);
 			break;
+
 		// Advanced settings
 		case IDCB_CHECKFOCUS:
 			g_Config.bCheckFocus = m_CBCheckFocus[notebookpage]->IsChecked();
@@ -432,24 +411,6 @@ void PADConfigDialognJoy::ChangeSettings( wxCommandEvent& event )
 				m_AdvancedMapFilter[i]->SetValue(g_Config.bNoTriggerFilter);
 			}
 			break;
-#ifdef RERECORDING
-		case ID_RECORDING:
-			g_Config.bRecording = m_CheckRecording[notebookpage]->IsChecked();
-			if(g_Config.bRecording) g_Config.bPlayback = !g_Config.bRecording;
-			for(int i = 0; i < 4; i++) m_CheckRecording[i]->SetValue(g_Config.bRecording);
-			for(int i = 0; i < 4; i++) m_CheckPlayback[i]->SetValue(g_Config.bPlayback);
-			break;
-		case ID_PLAYBACK:
-			g_Config.bPlayback = m_CheckPlayback[notebookpage]->IsChecked();
-			if(g_Config.bPlayback) g_Config.bRecording = !g_Config.bPlayback;
-			for(int i = 0; i < 4; i++) m_CheckPlayback[i]->SetValue(g_Config.bPlayback);
-			for(int i = 0; i < 4; i++) m_CheckPlayback[i]->SetValue(g_Config.bRecording);
-			break;
-		case ID_SAVE_RECORDING:
-			// Double check again that we are still running a game
-			if (g_EmulatorRunning) Recording::Save();
-			break;
-#endif
 
 		case IDC_CONTROLTYPE:
 			if(!g_Config.bSaveByID)
@@ -529,10 +490,6 @@ void PADConfigDialognJoy::UpdateGUI(int _notebookpage)
 	m_CBCheckFocus[_notebookpage]->SetValue(g_Config.bCheckFocus);
 	m_AdvancedMapFilter[_notebookpage]->SetValue(g_Config.bNoTriggerFilter);
 	m_RStrength[_notebookpage]->SetSelection(g_Config.RumbleStrength);
-#ifdef RERECORDING
-	m_CheckRecording[_notebookpage]->SetValue(g_Config.bRecording);
-	m_CheckPlayback[_notebookpage]->SetValue(g_Config.bPlayback);
-#endif
 
 	// Replace the harder to understand -1 with "" for the sake of user friendliness
 	ToBlank();
@@ -568,12 +525,12 @@ void PADConfigDialognJoy::OnPaint(wxPaintEvent &event)
 // Populate the config window
 void PADConfigDialognJoy::CreateGUIControls()
 {
-	INFO_LOG(CONSOLE, "CreateGUIControls()\n");
+	INFO_LOG(PAD, "CreateGUIControls()\n");
 
 	#ifndef _DEBUG		
-		SetTitle(wxT("Configure: nJoy v")wxT(INPUT_VERSION)wxT(" Input Plugin"));
+		SetTitle(wxT("Configure: nJoy Input Plugin"));
 	#else			
-		SetTitle(wxT("Configure: nJoy v")wxT(INPUT_VERSION)wxT(" (Debug) Input Plugin"));
+		SetTitle(wxT("Configure: nJoy (Debug) Input Plugin"));
 	#endif
 
 	SetIcon(wxNullIcon);
@@ -614,7 +571,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 
 	// Search for devices and add them to the device list
 	wxArrayString arrayStringFor_Joyname; // The string array
-	if(NumGoodPads > 0)
+	if (NumGoodPads > 0)
 	{
 		for(int x = 0; (u32)x < joyinfo.size(); x++)
 		{
@@ -829,6 +786,9 @@ void PADConfigDialognJoy::CreateGUIControls()
 		// Create objects for Rumble settings (general 4)	
 		m_RStrength[i] = new wxComboBox(m_Controller[i], IDC_RUMBLESTRENGTH, wxAS_RumbleStrength[0], wxDefaultPosition, wxSize(85, 20), wxAS_RumbleStrength, wxCB_READONLY);
 		m_Rumble[i] = new wxCheckBox(m_Controller[i], IDC_ENABLERUMBLE, wxT("Enable Rumble"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+#if !SDL_VERSION_ATLEAST(1, 3, 0) && !defined(_WIN32)
+		m_Rumble[i]->Disable();
+#endif
 
 		// Populate general settings 4
 		m_gRumble[i] = new wxStaticBoxSizer( wxVERTICAL, m_Controller[i], wxT("Rumble settings"));
@@ -990,7 +950,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 		m_sMain[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_sMain[i]->Add(m_sMainLeft[i], 0, wxEXPAND | (wxALL), 0);
 		m_sMain[i]->Add(m_sMainRight[i], 0, wxEXPAND | (wxRIGHT | wxTOP), 5);
-		m_Controller[i]->SetSizer(m_sMain[i]); // Set the main sizer
+		m_Controller[i]->SetSizerAndFit(m_sMain[i]); // Set the main sizer
 
 		// Show or hide it. We have to do this after we add it to its sizer
 		m_sMainRight[i]->Show(g_Config.bShowAdvanced);
@@ -998,7 +958,6 @@ void PADConfigDialognJoy::CreateGUIControls()
 		// Update GUI
 		UpdateGUI(i);
 	} // end of loop
-
 
 	// Populate buttons sizer.
 	wxBoxSizer * m_sButtons = new wxBoxSizer(wxHORIZONTAL);
@@ -1012,23 +971,14 @@ void PADConfigDialognJoy::CreateGUIControls()
 	m_MainSizer = new wxBoxSizer(wxVERTICAL);
 	m_MainSizer->Add(m_Notebook, 0, wxEXPAND | wxALL, 5);
 	m_MainSizer->Add(m_sButtons, 1, wxEXPAND | ( wxLEFT | wxRIGHT | wxBOTTOM), 5);
-	this->SetSizer(m_MainSizer);
+	SetSizerAndFit(m_MainSizer);
 
 	// Debugging
 	#ifdef SHOW_PAD_STATUS
 		m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(135, 100), wxDefaultSize);
 	#endif
-	//m_pStatusBar2 = new wxStaticText(this, IDT_DEBUGGING2, wxT("Debugging2"), wxPoint(125, 200), wxDefaultSize);
-	//m_pStatusBar->SetLabel(wxString::Format("Debugging text"));
-
-	/*m_TCDebugging = new wxTextCtrl(this, IDT_DEBUGGING3, _T(""), wxDefaultPosition, wxSize(400, 400),
-		wxTE_RICH | wxTE_MULTILINE | wxTE_DONTWRAP | wxNO_BORDER);
-	wxBoxSizer * m_LogSizer = new wxBoxSizer(wxVERTICAL);
-	m_LogSizer->Add(m_TCDebugging, 0, wxEXPAND | (wxALL), 0);
-	m_MainSizer->Add(m_LogSizer, 0, wxEXPAND | ( wxLEFT | wxRIGHT | wxBOTTOM), 5);*/
 
 	// Set window size
-	SizeWindow();
 	Center();
 
 	// All done
@@ -1036,9 +986,4 @@ void PADConfigDialognJoy::CreateGUIControls()
 
 	// Replace the harder to understand -1 with "" for the sake of user friendliness
 	ToBlank();
-}
-
-void PADConfigDialognJoy::SizeWindow()
-{
-	SetClientSize(m_MainSizer->GetMinSize().GetWidth(), m_MainSizer->GetMinSize().GetHeight());
 }

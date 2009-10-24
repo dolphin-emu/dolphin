@@ -120,7 +120,6 @@ void CFrame::CreateMenu()
 	fileMenu->AppendSeparator();
 	fileMenu->Append(IDM_BROWSE, _T("&Browse for ISOs..."));
 	fileMenu->AppendSeparator();
-	//	fileMenu->Append(IDM_RESTART, g_pCodeWindow ? _T("Restart in regular &mode") : _T("&Restart in debugging &mode"));
 	fileMenu->Append(wxID_EXIT, _T("E&xit\tAlt+F4"));
 	m_MenuBar->Append(fileMenu, _T("&File"));
 
@@ -781,7 +780,12 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
 // the entire screen (when we render to the main window).
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 {
-	DoFullscreen(!IsFullScreen());
+	if (bRenderToMain || Core::GetState() != Core::CORE_RUN)
+		DoFullscreen(!IsFullScreen());
+#ifdef _WIN32
+	else // Post the message to the separate rendering window which will then handle it.
+		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, TOGGLE_FULLSCREEN, 0);
+#endif
 }
 
 void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))

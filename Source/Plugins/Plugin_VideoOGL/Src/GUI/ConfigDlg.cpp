@@ -230,7 +230,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_MSAAModeCB->Append(wxT("16xQ CSAA"));
 	m_MSAAModeCB->SetSelection(g_Config.iMultisampleMode);
 
-	m_OSDHotKey = new wxCheckBox(m_PageGeneral, ID_OSDHOTKEY, wxT("Enabke Hotkeys"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_OSDHotKey = new wxCheckBox(m_PageGeneral, ID_OSDHOTKEY, wxT("Enable Hotkeys"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	#ifndef _WIN32
 	// JPeterson set the hot key to be Win32-specific
 	m_OSDHotKey->Enable(false);
@@ -327,8 +327,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasic->Add(WMText, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_WindowResolutionCB, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 5);
 	sBasic->Add(m_Fullscreen, wxGBPosition(1, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_WindowFSResolutionCB, wxGBPosition(2, 2), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_Fullscreen,		wxGBPosition(2, 3), wxGBSpan(1, 1), wxALL | wxALIGN_CENTER_VERTICAL, 5);	
+	sBasic->Add(m_WindowFSResolutionCB, wxGBPosition(2, 2), wxGBSpan(1, 1), wxALL, 5);	
 
 	sBasic->Add(KeepARText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_KeepAR,			wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
@@ -339,7 +338,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasic->Add(m_HideCursor, wxGBPosition(5, 0), wxGBSpan(1, 4), wxALL, 5);
 	#endif
 
-	sbBasic->Add(sBasic, 1, wxEXPAND);
+	sbBasic->Add(sBasic);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 
 	sBasicAdvanced = new wxGridBagSizer(0, 0);
@@ -357,7 +356,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sEnhancements = new wxGridBagSizer(0, 0);
 	sEnhancements->Add(AnisoText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sEnhancements->Add(m_MaxAnisotropyCB, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALL|wxEXPAND, 5);
-	sEnhancements->Add(m_ForceFiltering, wxGBPosition(0, 2), wxGBSpan(1, 2), wxALL, 5);
+	sEnhancements->Add(m_ForceFiltering, wxGBPosition(0, 2), wxGBSpan(1, 2), wxALL|wxALIGN_CENTER_VERTICAL, 5);
 	sEnhancements->Add(MSAAText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sEnhancements->Add(m_MSAAModeCB, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL|wxEXPAND, 5);
 	sEnhancements->Add(PostShaderText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);

@@ -140,6 +140,11 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		//Shutdown();
 		//PostQuitMessage( 0 );
 		break;
+
+	case WM_USER:
+		// if (wParam == TOGGLE_FULLSCREEN)
+		// TODO : Insert some toggle fullscreen code here, kthx :d
+		break;
 	
 	case WM_SIZE:
 		// Reset the D3D Device here

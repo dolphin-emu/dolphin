@@ -60,10 +60,12 @@ namespace InputCommon
 // -----------------------
 bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
 {
-	/* SDL 1.3 use DirectInput instead of the old Microsoft Multimedia API, and with this we need 
-	   the SDL_INIT_VIDEO flag to */
 	if (!SDL_WasInit(0))
-		if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK) < 0)
+#if SDL_VERSION_ATLEAST(1, 3, 0)
+		if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) < 0)
+#else
+		if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
+#endif
 		{
 			PanicAlert("Could not initialize SDL: %s", SDL_GetError());
 			return false;

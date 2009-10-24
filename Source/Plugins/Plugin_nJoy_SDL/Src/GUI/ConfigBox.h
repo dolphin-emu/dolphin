@@ -196,11 +196,6 @@ class PADConfigDialognJoy : public wxDialog
 			*m_bmpSquareC[4], *m_bmpDotC[4], *m_bmpSquareOutC[4], *m_bmpDotOutC[4], *m_bmpAreaOutC[4];
 		
 		int notebookpage; bool ControlsCreated;
-#ifdef RERECORDING
-		wxStaticBoxSizer *m_SizeRecording[4];
-		wxCheckBox *m_CheckRecording[4], *m_CheckPlayback[4];
-		wxButton *m_BtnSaveRecording[4];
-#endif
 
 	private:
 		enum
@@ -236,9 +231,6 @@ class PADConfigDialognJoy : public wxDialog
 			IDCB_MAINSTICK_RADIUS, IDCB_MAINSTICK_CB_RADIUS, IDCB_MAINSTICK_DIAGONAL, IDCB_MAINSTICK_S_TO_C, IDT_MAINSTICK_DIAGONAL,
 			IDCB_CSTICK_RADIUS, IDCB_CSTICK_CB_RADIUS, IDCB_CSTICK_DIAGONAL, IDCB_CSTICK_S_TO_C, IDT_CSTICK_DIAGONAL,
 			IDT_TRIGGERS, IDCB_CHECKFOCUS, IDCB_FILTER_SETTINGS,
-#ifdef RERECORDING
-			ID_RECORDING, ID_PLAYBACK, ID_SAVE_RECORDING,
-#endif
 
 			// Timers
 			IDTM_CONSTANT, IDTM_BUTTON,
@@ -327,9 +319,6 @@ class PADConfigDialognJoy : public wxDialog
 
 		void DoChangeJoystick(); 
 
-		void PadOpen(int Open); 
-		void PadClose(int Close);
-
 		void UpdateGUI(int _notebookpage);
 
 		void ChangeSettings(wxCommandEvent& event);
@@ -338,7 +327,6 @@ class PADConfigDialognJoy : public wxDialog
 		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
 		void CreateAdvancedControls(int i);
-		void SizeWindow();
 		wxBitmap CreateBitmap(); 
 		wxBitmap CreateBitmapDot();
 		wxBitmap CreateBitmapArea(int,int);

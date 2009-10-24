@@ -141,18 +141,6 @@ int abc = 0;
 	{
 		switch (nMsg)
 		{
-			/*
-		case WM_LBUTTONDOWN:
-		case WM_LBUTTONUP:
-		case WM_MOUSEMOVE:
-			break;
-		case WM_LBUTTONDBLCLK:
-			break;
-			*/
-
-		//case WM_KEYDOWN:
-		//	break;
-
 		case WM_USER:
 			switch(wParam)
 			{
@@ -168,11 +156,6 @@ int abc = 0;
 					main_frame->bRenderToMain = false;
 				else
 					main_frame->bRenderToMain = true;
-				return 0;
-
-			case NJOY_RELOAD:
-				// DirectInput in nJoy has failed
-				Core::ReconnectPad();
 				return 0;
 
 			case WIIMOTE_RECONNECT:
@@ -192,9 +175,6 @@ int abc = 0;
 			// -----------------------------
 			}
 			break;
-
-		//default:
-		//	return wxPanel::MSWWindowProc(nMsg, wParam, lParam);
 		}
 		
 		// By default let wxWidgets do what it normally does with this event
@@ -261,7 +241,6 @@ EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
 EVT_MENU(IDM_INFO, CFrame::OnShow_InfoWindow)
-EVT_MENU(IDM_RESTART, CFrame::OnRestart)
 EVT_MENU(IDM_CHANGEDISC, CFrame::OnChangeDisc)
 EVT_MENU(IDM_LOAD_WII_MENU, CFrame::OnLoadWiiMenu)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
@@ -402,7 +381,7 @@ CFrame::CFrame(wxFrame* parent,
 	m_Mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT);
 #endif
 	NOTEBOOK_STYLE = wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_EXTERNAL_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_WINDOWLIST_BUTTON | wxNO_BORDER;
-	TOOLBAR_STYLE = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT   /*wxAUI_TB_OVERFLOW overflow visible*/;
+	TOOLBAR_STYLE = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT  /*wxAUI_TB_OVERFLOW overflow visible*/;
 	wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 
 	if (g_pCodeWindow)
@@ -521,24 +500,6 @@ CFrame::~CFrame()
 
 void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 {
-	Close(true);
-}
-
-void CFrame::OnRestart(wxCommandEvent& WXUNUSED (event))
-{
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-	{
-		wxMessageBox(wxT("Please stop the current game before restarting."), wxT("Notice"), wxOK, this);
-		return;
-	}
-	// Get exe name and restart
-	#ifdef _WIN32
-		char Str[MAX_PATH + 1];
-		DWORD Size = sizeof(Str)/sizeof(char);
-		//DWORD n = GetModuleFileNameA(NULL, Str, Size);
-		ShellExecuteA(NULL, "open", PathToFilename(*new std::string(Str)).c_str(), g_pCodeWindow ? "" : "-d", NULL, SW_SHOW);
-	#endif
-
 	Close(true);
 }
 
@@ -705,10 +666,6 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
-	// In this case event.Skip() cause a double posting to this function
-	if (! (Core::GetState() == Core::CORE_RUN && bRenderToMain && event.GetEventObject() == this))
-		event.Skip();
-
 	// Toggle fullscreen
 	if (event.GetKeyCode() == WXK_ESCAPE || (event.GetKeyCode() == WXK_RETURN && event.GetModifiers() == wxMOD_ALT))
 	{
@@ -719,14 +676,6 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	{
 		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, OPENGL_WM_USER_KEYDOWN, event.GetKeyCode());
 	}
-#endif
-
-#ifdef RERECORDING
-	// Turn on or off frame advance
-	if (event.GetKeyCode() == WXK_CONTROL) Core::FrameStepOnOff();
-
-	// Step forward
-	if (event.GetKeyCode() == WXK_SPACE) Core::FrameAdvance();
 #endif
 
 	// Send the keyboard status to the Input plugin

@@ -86,10 +86,6 @@ void PADConfigDialognJoy::UpdateGUIButtonMapping(int controller)
 	m_AdvancedMapFilter[controller]->SetValue(g_Config.bNoTriggerFilter);
 	// Update Rumble checkbox
 	m_Rumble[controller]->SetValue(PadMapping[controller].rumble);
-#ifdef RERECORDING
-	m_CheckRecording[controller]->SetValue(g_Config.bRecording);
-	m_CheckPlayback[controller]->SetValue(g_Config.bPlayback);
-#endif
 
 	// Update D-Pad
 	if(PadMapping[controller].controllertype == InputCommon::CTL_DPAD_HAT)
@@ -152,9 +148,6 @@ void PADConfigDialognJoy::SaveButtonMapping(int controller, bool DontChangeId, i
 	m_JoyButtonY[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[InputCommon::CTL_Y_BUTTON] = value; tmp.clear();
 	m_JoyButtonZ[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[InputCommon::CTL_Z_TRIGGER] = value; tmp.clear();
 	m_JoyButtonStart[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].buttons[InputCommon::CTL_START] = value; tmp.clear();
-
-	//LogMsg("PadMapping[%i].triggertype = %i, m_TriggerType[%i]->GetSelection() = %i\n",
-	//	controller, PadMapping[controller].triggertype, FromSlot, m_TriggerType[FromSlot]->GetSelection());
 
 	// The halfpress button
 	m_JoyButtonHalfpress[FromSlot]->GetValue().ToLong(&value); PadMapping[controller].halfpress = value; tmp.clear();
@@ -324,9 +317,6 @@ void PADConfigDialognJoy::DoGetButtons(int GetId)
 	bool Stop = false; // Stop the timer
 	// =======================
 
-	//INFO_LOG(CONSOLE, "Before (%i) Id:%i %i  IsRunning:%i\n",
-	//	GetButtonWaitingTimer, GetButtonWaitingID, GetId, m_ButtonMappingTimer->IsRunning());
-
 	// If the Id has changed or the timer is not running we should start one
 	if( GetButtonWaitingID != GetId || !m_ButtonMappingTimer->IsRunning() )
 	{
@@ -430,12 +420,4 @@ void PADConfigDialognJoy::DoGetButtons(int GetId)
 			wxT(" select another key with a higher key code."), pressed)
 			, wxT("Notice"), wxICON_INFORMATION);		
 	}
-	// ======================== Process results
-
-	// Debugging
-	/*
-	INFO_LOG(CONSOLE, "Change: %i %i %i %i  '%s' '%s' '%s' '%s'\n",
-		PadMapping[0].halfpress, PadMapping[1].halfpress, PadMapping[2].halfpress, PadMapping[3].halfpress,
-		m_JoyButtonHalfpress[0]->GetValue().c_str(), m_JoyButtonHalfpress[1]->GetValue().c_str(), m_JoyButtonHalfpress[2]->GetValue().c_str(), m_JoyButtonHalfpress[3]->GetValue().c_str()
-		);*/
 }

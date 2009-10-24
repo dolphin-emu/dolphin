@@ -40,8 +40,16 @@
 
 #ifdef _WIN32
 #include <SDL.h> // Externals
+#include <SDL_version.h>
+#if SDL_VERSION_ATLEAST(1, 3, 0)
+	#include <SDL_haptic.h>
+#endif
 #else
 #include <SDL/SDL.h>
+#include <SDL/SDL_version.h>
+#if SDL_VERSION_ATLEAST(1, 3, 0)
+	#include <SDL/SDL_haptic.h>
+#endif
 #endif
 
 #include "Common.h" // Common

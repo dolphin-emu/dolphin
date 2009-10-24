@@ -46,7 +46,8 @@ Rerecording options
 #include "FileUtil.h"
 #include "ChunkFile.h"
 
-
+// TODO :
+// This is pretty much useless now with the TAS features right ?
 
 #ifdef RERECORDING
 
