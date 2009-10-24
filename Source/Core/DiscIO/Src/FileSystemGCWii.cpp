@@ -145,7 +145,7 @@ bool CFileSystemGCWii::ExportApploader(const char* _rExportFolder) const
 bool CFileSystemGCWii::ExportDOL(const char* _rExportFolder) const
 {
 	u32 DolOffset = Read32(0x420) << m_OffsetShift;
-	u32 DolSize, offset = 0, size = 0;
+	u32 DolSize = 0, offset = 0, size = 0;
 
 	// Iterate through the 7 code segments
 	for (u8 i = 0; i < 7; i++)

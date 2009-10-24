@@ -44,7 +44,7 @@ public:
 		m_csum = 0;
 		addData(hdr, 3, 1);
 	}
-	void addData(void *data, int len)
+	void addData(void *data, size_t len)
 	{
 		addData((unsigned char*)data, len);
 	}
@@ -65,7 +65,7 @@ public:
 		addData(m_csum + len - 2);
 	}
 
-	void addData(unsigned char *dst, int len, int sync = 0)
+	void addData(unsigned char *dst, size_t len, int sync = 0)
 	{
 		while (len--)
 		{
