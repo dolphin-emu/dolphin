@@ -780,12 +780,7 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
 // the entire screen (when we render to the main window).
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 {
-	if (bRenderToMain || Core::GetState() != Core::CORE_RUN)
-		DoFullscreen(!IsFullScreen());
-#ifdef _WIN32
-	else // Post the message to the separate rendering window which will then handle it.
-		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, TOGGLE_FULLSCREEN, 0);
-#endif
+	DoFullscreen(!IsFullScreen());
 }
 
 void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))

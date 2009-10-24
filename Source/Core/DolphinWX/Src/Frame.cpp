@@ -163,16 +163,6 @@ int abc = 0;
 				//INFO_LOG(CONSOLE, "WIIMOTE_RECONNECT\n");
 				Core::ReconnectWiimote();
 				return 0;
-
-			// -----------------------------------------
-			#ifdef RERECORDING
-			// -----------------
-				case INPUT_FRAME_COUNTER:
-					// Wind back the frame counter after a save state has been loaded
-					Core::WindBack((int)lParam);
-					return 0;
-			#endif
-			// -----------------------------
 			}
 			break;
 		}
@@ -670,7 +660,14 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	if (event.GetKeyCode() == WXK_ESCAPE || (event.GetKeyCode() == WXK_RETURN && event.GetModifiers() == wxMOD_ALT))
 	{
 		DoFullscreen(!IsFullScreen());
+
+		// We do that to avoid the event to be double processed (which would cause the window to be stuck in fullscreen) 
+		event.StopPropagation();
 	}
+	// event.Skip() allows the event to propagate to the gamelist for example
+	else if (! (Core::GetState() == Core::CORE_RUN && bRenderToMain && event.GetEventObject() == this))
+		event.Skip();
+
 #ifdef _WIN32
 	if(event.GetKeyCode() == 'M', '3', '4', '5', '6', '7') // Send this to the video plugin WndProc
 	{
@@ -834,26 +831,37 @@ wxAuiNotebook* CFrame::CreateEmptyNotebook()
 
 void CFrame::DoFullscreen(bool bF)
 {
-	ShowFullScreen(bF);
-	if (bF)
+	// Only switch this to fullscreen if we're rendering to main OR if we're not running a game
+	// AND if this is the active window, as it could cause the main window to become unresponsive
+	// if we're switching to fullscreen while a modal dialog is open
+	if ((bRenderToMain || Core::GetState() != Core::CORE_RUN) && this->IsActive())
 	{
-		// Save the current mode before going to fullscreen
-		AuiCurrent = m_Mgr->SavePerspective();
-		m_Mgr->LoadPerspective(AuiFullscreen, true);
-	}
-	else
-	{
-		// Restore saved perspective
-		m_Mgr->LoadPerspective(AuiCurrent, true);
-	}
+		ShowFullScreen(bF);
 
-	// Show the cursor again, in case it was hidden
-	if (IsFullScreen())
-	{
-		#ifdef _WIN32
-		MSWSetCursor(true);
-		#endif
+		if (bF)
+		{
+			// Save the current mode before going to fullscreen
+			AuiCurrent = m_Mgr->SavePerspective();
+			m_Mgr->LoadPerspective(AuiFullscreen, true);
+		}
+		else
+		{
+			// Restore saved perspective
+			m_Mgr->LoadPerspective(AuiCurrent, true);
+		}
+
+		// Show the cursor again, in case it was hidden
+		if (IsFullScreen())
+		{
+			#ifdef _WIN32
+			MSWSetCursor(true);
+			#endif
+		}
 	}
+#ifdef _WIN32
+	else // Post the message to the separate rendering window which will then handle it.
+		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, TOGGLE_FULLSCREEN, 0);
+#endif
 }
 
 // Debugging, show loose windows
