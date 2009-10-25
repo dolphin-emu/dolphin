@@ -144,8 +144,14 @@ static const GLenum glSrcFactors[8] =
 };
 
 static const GLenum glDestFactors[8] = {
-    GL_ZERO, GL_ONE, GL_SRC_COLOR, GL_ONE_MINUS_SRC_COLOR,
-    GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,  GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA
+    GL_ZERO, 
+	GL_ONE, 
+	GL_SRC_COLOR, 
+	GL_ONE_MINUS_SRC_COLOR,
+    GL_SRC_ALPHA, 
+	GL_ONE_MINUS_SRC_ALPHA,  
+	GL_DST_ALPHA, 
+	GL_ONE_MINUS_DST_ALPHA
 };
 
 void SetDefaultRectTexParams()
@@ -538,14 +544,9 @@ void Renderer::RestoreAPIState()
 
 void Renderer::SetColorMask()
 {
-    if (bpmem.blendmode.alphaupdate && bpmem.blendmode.colorupdate)
-        glColorMask(GL_TRUE,  GL_TRUE,  GL_TRUE,  GL_TRUE);
-    else if (bpmem.blendmode.alphaupdate)
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-    else if (bpmem.blendmode.colorupdate) 
-        glColorMask(GL_TRUE,  GL_TRUE,  GL_TRUE,  GL_FALSE);
-	else
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	GLenum ColorMask = (bpmem.blendmode.colorupdate) ? GL_TRUE : GL_FALSE;
+	GLenum AlphaMask = (bpmem.blendmode.alphaupdate) ? GL_TRUE : GL_FALSE;
+	glColorMask(ColorMask,  ColorMask,  ColorMask,  AlphaMask);
 }
 
 void Renderer::SetBlendMode(bool forceUpdate)
@@ -1001,14 +1002,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
     }
 	// ---------------------------------------------------------------------
     GL_REPORT_ERRORD();
-
-	/*for (int i = 0; i < 8; i++) {
-		glActiveTexture(GL_TEXTURE0 + i);
-		glDisable(GL_TEXTURE_2D);
-		glDisable(GL_TEXTURE_RECTANGLE_ARB);
-	}
-	glActiveTexture(GL_TEXTURE0);*/
-
+	
 	DrawDebugText();
 
     GL_REPORT_ERRORD();

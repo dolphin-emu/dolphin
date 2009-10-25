@@ -534,26 +534,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		RectToLock.left = 0;
 		RectToLock.right = 1;
 		RectToLock.top = 0;
-	}
-	else
-	{
-		//like i say in FramebufferManager this is ugly... using the pointers to decide the peek path.. but it works:) 
-		if(BufferFormat == D3DFMT_D32F_LOCKABLE &&  RBuffer == pOffScreenBuffer)
-		{
-			//we are using vista path so use updateSurface to copy depth data
-			hr = D3D::dev->UpdateSurface(pBuffer,&RectToLock,pOffScreenBuffer,NULL);
-			if(FAILED(hr))
-			{
-				PanicAlert("Unable to update data to mem buffer");
-				return 0;
-			}	
-		}
-		else
-		{
-			//we are using lockable depth buffer so  change the pointer to lock it directly
-			pOffScreenBuffer = pBuffer;
-		}
-	}
+	}	
 	//the surface is good.. lock it
 	if((hr = pOffScreenBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
 	{
@@ -571,7 +552,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 				val = ((float *)drect.pBits)[0];
 				z = ((u32)(val * 0xffffff));// 0xFFFFFFFF;
 				break;
-			case (D3DFORMAT)MAKEFOURCC('D','F','1','6'):
 			case D3DFMT_D16_LOCKABLE:
 				val = ((float)((u16 *)drect.pBits)[0])/((float)0xFFFF);
 				z = ((u32)(val * 0xffffff));

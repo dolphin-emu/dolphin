@@ -40,7 +40,7 @@ static LPDIRECT3DSURFACE9 s_efb_depth_OffScreenReadBuffer;
 static D3DFORMAT s_efb_color_surface_Format;
 static D3DFORMAT s_efb_depth_surface_Format;
 #undef CHECK
-#define CHECK(hr,Message) //if (FAILED(hr)) { PanicAlert(__FUNCTION__ " FAIL: %s" ,Message); }
+#define CHECK(hr,Message) if (FAILED(hr)) { PanicAlert(__FUNCTION__ " FAIL: %s" ,Message); }
 
 
 
@@ -102,87 +102,11 @@ void Create()
 	if (g_ActiveConfig.bEFBAccessEnable)
 	{
 		//depth format in prefered order
-		D3DFORMAT *DepthTexFormats = new D3DFORMAT[7];
-		DepthTexFormats[0] = (D3DFORMAT)MAKEFOURCC('D','F','2','4');
-		DepthTexFormats[1] = (D3DFORMAT)MAKEFOURCC('I','N','T','Z');
-		DepthTexFormats[2] = (D3DFORMAT)MAKEFOURCC('R','A','W','Z');
-		DepthTexFormats[3] = (D3DFORMAT)MAKEFOURCC('D','F','1','6');
-		DepthTexFormats[4] = D3DFMT_D32F_LOCKABLE;		
-		DepthTexFormats[5] = D3DFMT_D16_LOCKABLE;
-		DepthTexFormats[6] = D3DFMT_D24X8;
-
-		for (int i = 0;i<4;i++)
-		{
-			s_efb_depth_surface_Format = DepthTexFormats[i];
-			hr = D3D::dev->CreateTexture(target_width, target_height, 1, D3DUSAGE_DEPTHSTENCIL, s_efb_depth_surface_Format,
-		                                 D3DPOOL_DEFAULT, &s_efb_depth_texture, NULL);
-			if (!FAILED(hr)) 
-				break;
-			
-		}
-		CHECK(hr,"Create Depth Texture");
-		if (!FAILED(hr))
-		{
-			//we found a dept texture suported by hardware so  get the surface to draw to
-			hr = s_efb_depth_texture->GetSurfaceLevel(0, &s_efb_depth_surface);
-			CHECK(hr,"Get Depth Surface");
-			//create a buffer texture for peeking
-			hr = D3D::dev->CreateTexture(1, 1, 1, D3DUSAGE_DEPTHSTENCIL, s_efb_depth_surface_Format,
-		                                 D3DPOOL_DEFAULT, &s_efb_depthBuffer_texture, NULL);
-			CHECK(hr,"Create Depth Pixel Texture");
-			if (!FAILED(hr))
-			{
-				//texture create correctly so get the surface
-				hr = s_efb_depthBuffer_texture->GetSurfaceLevel(0, &s_efb_depth_ReadBuffer);
-				CHECK(hr,"Get Depth Pixel Surface");
-				// create an ofscren surface to grab the data
-				hr = D3D::dev->CreateOffscreenPlainSurface(1, 1, s_efb_depth_surface_Format, D3DPOOL_SYSTEMMEM, &s_efb_depth_OffScreenReadBuffer, NULL );
-				CHECK(hr,"Create Depth offscreen Surface");
-				if (FAILED(hr))
-				{
-					//no depth in system mem so try vista path to grab depth data
-					//create a offscreen lockeable surface
-					hr = D3D::dev->CreateOffscreenPlainSurface(1, 1, D3DFMT_D32F_LOCKABLE, D3DPOOL_DEFAULT, &s_efb_depth_OffScreenReadBuffer, NULL );
-					CHECK(hr, "Create Depth D3DFMT_D32F_LOCKABLE offscreen Surface");
-					if (s_efb_depth_ReadBuffer)
-						s_efb_depth_ReadBuffer->Release();
-					//this is ugly but is a fast way to test wich path to proceed for peeking
-					s_efb_depth_ReadBuffer = s_efb_depth_OffScreenReadBuffer;
-					s_efb_depth_surface_Format = D3DFMT_D32F_LOCKABLE;
-				}
-			}
-												
-		}
-		if (!FAILED(hr))
-		{
-			//so far so god, texture depth works so return
-			delete [] DepthTexFormats;
-			return;			
-		}
-		else
-		{
-			//no depth texture... cleanup
-			if(s_efb_depth_ReadBuffer)
-				s_efb_depth_ReadBuffer->Release();
-			s_efb_depth_ReadBuffer = NULL;
-			
-			if(s_efb_depth_OffScreenReadBuffer)
-				s_efb_depth_OffScreenReadBuffer->Release();
-
-			if(s_efb_depth_surface)
-				s_efb_depth_surface->Release();
-			s_efb_depth_surface = NULL;
-			
-			if(s_efb_depthBuffer_texture)
-				s_efb_depthBuffer_texture->Release();
-			s_efb_depthBuffer_texture=NULL;
-
-			if(s_efb_depth_texture)
-				s_efb_depth_texture->Release();
-			s_efb_depth_texture = NULL;
-		}
-		// no depth textures... try to create an lockable depth surface
-		for(int i = 4;i<7;i++)
+		D3DFORMAT *DepthTexFormats = new D3DFORMAT[3];
+		DepthTexFormats[0] = D3DFMT_D32F_LOCKABLE;		
+		DepthTexFormats[1] = D3DFMT_D16_LOCKABLE;
+		DepthTexFormats[2] = D3DFMT_D24X8;		
+		for(int i = 0;i<3;i++)
 		{
 			s_efb_depth_surface_Format = DepthTexFormats[i];
 			hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, s_efb_depth_surface_Format,
@@ -190,6 +114,7 @@ void Create()
 			if (!FAILED(hr)) break;
 		}		
 		s_efb_depth_ReadBuffer = s_efb_depth_surface;
+		s_efb_depth_OffScreenReadBuffer = s_efb_depth_surface;		
 		CHECK(hr,"CreateDepthStencilSurface");
 		delete [] DepthTexFormats;
 	}

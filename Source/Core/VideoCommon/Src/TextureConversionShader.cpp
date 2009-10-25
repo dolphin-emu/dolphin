@@ -30,6 +30,7 @@
 #define WRITE p+=sprintf
 
 static char text[16384];
+static bool IntensityConstantAdded =  false;
 
 namespace TextureConversionShader
 {
@@ -157,7 +158,13 @@ void WriteSampleColor(char*& p, const char* colorComp, const char* dest)
 
 void WriteColorToIntensity(char*& p, const char* src, const char* dest)
 {
-	WRITE(p, "  %s = (0.257f * %s.r) + (0.504f * %s.g) + (0.098f * %s.b) + 0.0625f;\n", dest, src, src, src);
+	if(!IntensityConstantAdded)
+	{
+		WRITE(p, "  float4 IntensityConst = float4(0.257f,0.504f,0.098f,0.0625f);\n");
+		IntensityConstantAdded = true;
+	}
+	//WRITE(p, "  %s = (0.257f * %s.r) + (0.504f * %s.g) + (0.098f * %s.b) + 0.0625f;\n", dest, src, src, src);
+	WRITE(p, "  %s = dot(IntensityConst.rgb, %s.rgb) + IntensityConst.a;\n", dest, src);
 }
 
 void WriteIncrementSampleX(char*& p)
@@ -169,6 +176,12 @@ void WriteToBitDepth(char*& p, u8 depth, const char* src, const char* dest)
 {
 	float result = pow(2.0f, depth) - 1.0f;
 	WRITE(p, "  %s = floor(%s * %ff);\n", dest, src, result);
+}
+
+void WriteEncoderEnd(char* p)
+{
+	WRITE(p, "}\n");
+	IntensityConstantAdded = false;
 }
 
 void WriteI8Encoder(char* p)
@@ -191,7 +204,7 @@ void WriteI8Encoder(char* p)
 	WriteSampleColor(p, "rgb", "texSample");
 	WriteColorToIntensity(p, "texSample", "ocol0.a");
 
-	WRITE(p, "}\n");
+	WriteEncoderEnd(p);
 }
 
 void WriteI4Encoder(char* p)
@@ -236,7 +249,7 @@ void WriteI4Encoder(char* p)
 	WriteToBitDepth(p, 4, "color1", "color1");
 
 	WRITE(p, "  ocol0 = (color0 * 16.0f + color1) / 255.0f;\n");
-	WRITE(p, "}\n");
+	WriteEncoderEnd(p);
 }
 
 void WriteIA8Encoder(char* p)
@@ -253,7 +266,7 @@ void WriteIA8Encoder(char* p)
 	WRITE(p, "  ocol0.r = texSample.a;\n");
 	WriteColorToIntensity(p, "texSample", "ocol0.a");
 
-	WRITE(p, "}\n");
+	WriteEncoderEnd(p);
 }
 
 void WriteIA4Encoder(char* p)
@@ -286,7 +299,7 @@ void WriteIA4Encoder(char* p)
 	WriteToBitDepth(p, 4, "color1", "color1");
 
 	WRITE(p, "  ocol0 = (color0 * 16.0f + color1) / 255.0f;\n");
-	WRITE(p, "}\n");
+	WriteEncoderEnd(p);
 }
 
 void WriteRGB565Encoder(char* p)
@@ -321,7 +334,7 @@ void WriteRGB565Encoder(char* p)
 	WRITE(p, "  ocol0.a = ocol0.a + gLower * 32.0f;\n");
 
 	WRITE(p, "  ocol0 = ocol0 / 255.0f;\n");
-	WRITE(p, "}\n");
+	WriteEncoderEnd(p);
 }
 
 void WriteRGB5A3Encoder(char* p)
@@ -388,7 +401,7 @@ void WriteRGB5A3Encoder(char* p)
     WRITE(p, "}\n");
 
 	WRITE(p, "  ocol0 = ocol0 / 255.0f;\n");
-	WRITE(p, "}\n");
+	WriteEncoderEnd(p);
 }
 
 void WriteRGBA4443Encoder(char* p)
@@ -414,7 +427,7 @@ void WriteRGBA4443Encoder(char* p)
 	WriteToBitDepth(p, 4, "texSample.b", "color1.a");
 
 	WRITE(p, "  ocol0 = (color0 * 16.0f + color1) / 255.0f;\n");
-	WRITE(p, "}\n");
+	WriteEncoderEnd(p);
 }
 
 void WriteRGBA8Encoder(char* p)
@@ -444,7 +457,7 @@ void WriteRGBA8Encoder(char* p)
 
 	WRITE(p, "  ocol0 = (cl0 * color0) + (cl1 * color1);\n");
 
-	WRITE(p, "}\n");
+	WriteEncoderEnd(p);
 }
 
 void WriteC4Encoder(char* p, const char* comp)
@@ -480,7 +493,7 @@ void WriteC4Encoder(char* p, const char* comp)
 	WriteToBitDepth(p, 4, "color1", "color1");
 
 	WRITE(p, "  ocol0 = (color0 * 16.0f + color1) / 255.0f;\n");
-	WRITE(p, "}\n");
+	WriteEncoderEnd(p);
 }
 
 void WriteC8Encoder(char* p, const char* comp)
@@ -498,7 +511,7 @@ void WriteC8Encoder(char* p, const char* comp)
 
 	WriteSampleColor(p, comp, "ocol0.a");
 
-	WRITE(p, "}\n");
+	WriteEncoderEnd(p);
 }
 
 void WriteCC4Encoder(char* p, const char* comp)
@@ -531,7 +544,7 @@ void WriteCC4Encoder(char* p, const char* comp)
 	WriteToBitDepth(p, 4, "color1", "color1");
 
 	WRITE(p, "  ocol0 = (color0 * 16.0f + color1) / 255.0f;\n");
-	WRITE(p, "}\n");
+	WriteEncoderEnd(p);
 }
 
 void WriteCC8Encoder(char* p, const char* comp)
@@ -543,7 +556,7 @@ void WriteCC8Encoder(char* p, const char* comp)
 
 	WriteSampleColor(p, comp, "ocol0.ra");
 
-	WRITE(p, "}\n");
+	WriteEncoderEnd(p);
 }
 
 void WriteZ8Encoder(char* p, const char* multiplier)
@@ -567,7 +580,7 @@ void WriteZ8Encoder(char* p, const char* multiplier)
     WriteSampleColor(p, "b", "depth");
     WRITE(p, "ocol0.a = frac(depth * %s);\n", multiplier);
 
-	WRITE(p, "}\n");
+	WriteEncoderEnd(p);
 }
 
 void WriteZ16Encoder(char* p)
@@ -588,7 +601,7 @@ void WriteZ16Encoder(char* p)
     WRITE(p, "  ocol0.r = frac(depth * 256.0f);\n");
     WRITE(p, "  ocol0.a = depth;\n");    
 
-    WRITE(p, "}\n");
+    WriteEncoderEnd(p);
 }
 
 void WriteZ16LEncoder(char* p)
@@ -609,7 +622,7 @@ void WriteZ16LEncoder(char* p)
     WRITE(p, "  ocol0.r = frac(depth * 65536.0f);\n");
     WRITE(p, "  ocol0.a = frac(depth * 256.0f);\n");    
 
-    WRITE(p, "}\n");
+    WriteEncoderEnd(p);
 }
 
 void WriteZ24Encoder(char* p)
@@ -637,8 +650,8 @@ void WriteZ24Encoder(char* p)
     WRITE(p, "     ocol0.g = frac(depth0 * 65536.0f);\n");
     WRITE(p, "     ocol0.r = 1.0f;\n");
     WRITE(p, "     ocol0.a = frac(depth0 * 65536.0f);\n");
-    WRITE(p, "  }\n"
-             "}\n");
+    WRITE(p, "  }\n");
+    WriteEncoderEnd(p);
 }
 
 const char *GenerateEncodingShader(u32 format)

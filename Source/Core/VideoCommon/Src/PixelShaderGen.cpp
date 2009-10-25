@@ -154,13 +154,13 @@ const float epsilon8bit = 1.0f / 255.0f;
 static const char *tevKSelTableC[] = // KCSEL
 {
     "1.0f,1.0f,1.0f",    // 1   = 0x00
-    "0.875,0.875,0.875", // 7_8 = 0x01
-    "0.75,0.75,0.75",	 // 3_4 = 0x02
-    "0.625,0.625,0.625", // 5_8 = 0x03
-    "0.5,0.5,0.5",       // 1_2 = 0x04
-    "0.375,0.375,0.375", // 3_8 = 0x05
-    "0.25,0.25,0.25",    // 1_4 = 0x06
-    "0.125,0.125,0.125", // 1_8 = 0x07
+    "0.875f,0.875f,0.875f", // 7_8 = 0x01
+    "0.75f,0.75f,0.75f",	 // 3_4 = 0x02
+    "0.625f,0.625f,0.625f", // 5_8 = 0x03
+    "0.5f,0.5f,0.5f",       // 1_2 = 0x04
+    "0.375f,0.375f,0.375f", // 3_8 = 0x05
+    "0.25f,0.25f,0.25f",    // 1_4 = 0x06
+    "0.125f,0.125f,0.125f", // 1_8 = 0x07
     "ERROR", // 0x08
     "ERROR", // 0x09
     "ERROR", // 0x0a
@@ -266,7 +266,7 @@ static const char *tevCInputTable[] = // CC
     "rastemp.rgb",        // RASC,
     "rastemp.aaa",        // RASA,
     "float3(1.0f,1.0f,1.0f)",              // ONE,
-    "float3(.5f,.5f,.5f)",                 // HALF,
+    "float3(0.5f,0.5f,0.5f)",                 // HALF,
     "konsttemp.rgb",                       // KONST,
     "float3(0.0f,0.0f,0.0f)",              // ZERO
     "PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
@@ -291,7 +291,7 @@ static const char *tevCInputTable2[] = // CC
     "rastemp",            // RASC,
     "(rastemp.aaa)",      // RASA,
     "float3(1.0f,1.0f,1.0f)",              // ONE
-    "float3(.5f,.5f,.5f)",                 // HALF
+    "float3(0.5f,0.5f,0.5f)",                 // HALF
     "konsttemp", //"konsttemp.rgb",        // KONST
     "float3(0.0f,0.0f,0.0f)",              // ZERO
     "PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
@@ -326,7 +326,7 @@ static const char *tevAInputTable2[] = // CA
     "textemp",         // TEXA,
     "rastemp",         // RASA,
     "konsttemp",       // KONST,  (hw1 had quarter)
-    "float4(0,0,0,0)", // ZERO
+    "float4(0.0,0.0,0.0,0.0)", // ZERO
     "PADERROR", "PADERROR", "PADERROR", "PADERROR",
     "PADERROR", "PADERROR", "PADERROR", "PADERROR",
     "PADERROR", "PADERROR", "PADERROR", "PADERROR",
@@ -342,7 +342,7 @@ static const char *tevRasTable[] =
     "ERROR", //4
     "alphabump", // use bump alpha
     "(alphabump*(255.0f/248.0f))", //normalized
-    "float4(0,0,0,0)", // zero
+    "float4(0.0,0.0,0.0,0.0)", // zero
 };
 
 static const char *alphaRef[2] = 
@@ -473,7 +473,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
     char* pmainstart = p;
 
     WRITE(p, "  float4 c0="I_COLORS"[1],c1="I_COLORS"[2],c2="I_COLORS"[3],prev=float4(0.0f,0.0f,0.0f,0.0f),textemp,rastemp,konsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n"
-            "  float3 comp16 = float3(1,255,0), comp24 = float3(1,255,255*255);\n"
+            "  float3 comp16 = float3(1.0f,255.0f,0.0f), comp24 = float3(1.0f,255.0f,255.0f*255.0f);\n"
             "  float4 alphabump=0;\n"
             "  float3 tevcoord;\n"
             "  float2 wrappedcoord, tempcoord;\n\n");
@@ -533,9 +533,8 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
 	{
         // alpha test will always fail, so restart the shader and just make it an empty function
         p = pmainstart;
-        WRITE(p, HLSL ? "clip(-1);" : "discard;\n");
-		//WRITE(p, "discard;\n");
         WRITE(p, "ocol0 = 0;\n");
+		WRITE(p, HLSL ? "clip(-1);" : "discard;\n");
     }
     else
 	{
@@ -578,19 +577,28 @@ static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
 		{
             // write the bump alpha
 			if (bpmem.tevind[n].fmt == ITF_8) 
-				WRITE(p, "alphabump = indtex%d.%s %s;\n", bpmem.tevind[n].bt, 
-					tevIndAlphaSel[bpmem.tevind[n].bs], tevIndAlphaScale[bpmem.tevind[n].fmt]);
+				WRITE(p, "alphabump = indtex%d.%s %s;\n", 
+				bpmem.tevind[n].bt, 
+				tevIndAlphaSel[bpmem.tevind[n].bs], 
+				tevIndAlphaScale[bpmem.tevind[n].fmt]);
 			else 
 			{			
 				// donkopunchstania: really bad way to do this
 				// cannot always use fract because fract(1.0) is 0.0 when it needs to be 1.0
 				// omitting fract seems to work as well
-				WRITE(p, "if (indtex%d.%s >= 1.0f )\n", bpmem.tevind[n].bt, 
-					tevIndAlphaSel[bpmem.tevind[n].bs]);
+				WRITE(p, "if (indtex%d.%s >= 1.0f )\n", bpmem.tevind[n].bt,	tevIndAlphaSel[bpmem.tevind[n].bs]);
 				WRITE(p, "   alphabump = 1.0f;\n");
 				WRITE(p, "else\n");
-				WRITE(p, "   alphabump = fract ( indtex%d.%s %s );\n", bpmem.tevind[n].bt, 
-					tevIndAlphaSel[bpmem.tevind[n].bs], tevIndAlphaScale[bpmem.tevind[n].fmt]);
+				WRITE(p, "   alphabump = fract ( indtex%d.%s %s );\n", 
+					bpmem.tevind[n].bt,
+					tevIndAlphaSel[bpmem.tevind[n].bs], 
+					tevIndAlphaScale[bpmem.tevind[n].fmt]);
+				/*WRITE(p, "   alphabump = indtex%d.%s %s;\n", 
+					bpmem.tevind[n].bt,
+					tevIndAlphaSel[bpmem.tevind[n].bs], 
+					tevIndAlphaScale[bpmem.tevind[n].fmt]);
+				WRITE(p, "if (alphabump > 1.0f ){ alphabump = fract ( alphabump );if (alphabump == 0.0f ) alphabump = 1.0f;}\n");*/
+				
 			}
 		}
 
@@ -669,7 +677,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
         SampleTexture(p, "textemp", "tevcoord", texswap, texmap, texture_mask, HLSL);
     }
     else
-        WRITE(p, "textemp=float4(1,1,1,1);\n");
+        WRITE(p, "textemp=float4(1.0,1.0,1.0,1.0);\n");
 
     int kc = bpmem.tevksel[n / 2].getKC(n & 1);
     int ka = bpmem.tevksel[n / 2].getKA(n & 1);
@@ -720,23 +728,41 @@ static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
         case TEVCMP_R8_GT:
         case TEVCMP_RGB8_GT: // per component compares
             WRITE(p, "   %s + ((%s.%s > %s.%s) ? %s : float3(0.0f,0.0f,0.0f))",
-                tevCInputTable[cc.d], tevCInputTable2[cc.a], cmp==TEVCMP_R8_GT?"r":"rgb", tevCInputTable2[cc.b], cmp==TEVCMP_R8_GT?"r":"rgb", tevCInputTable[cc.c]);
+                tevCInputTable[cc.d], 
+				tevCInputTable2[cc.a], 
+				cmp==TEVCMP_R8_GT?"r":"rgb", 
+				tevCInputTable2[cc.b], 
+				cmp==TEVCMP_R8_GT?"r":"rgb", 
+				tevCInputTable[cc.c]);
             break;
         case TEVCMP_R8_EQ:
         case TEVCMP_RGB8_EQ:
             WRITE(p, "   %s + (abs(%s.r - %s.r)<%f ? %s : float3(0.0f,0.0f,0.0f))",
-                tevCInputTable[cc.d], tevCInputTable2[cc.a], tevCInputTable2[cc.b], epsilon8bit, tevCInputTable[cc.c]);
+                tevCInputTable[cc.d], 
+				tevCInputTable2[cc.a], 
+				tevCInputTable2[cc.b], 
+				epsilon8bit, 
+				tevCInputTable[cc.c]);
             break;
         
         case TEVCMP_GR16_GT: // 16 bit compares: 255*g+r (probably used for ztextures, so make sure in ztextures, g is the most significant byte)
         case TEVCMP_BGR24_GT: // 24 bit compares: 255*255*b+255*g+r
             WRITE(p, "   %s + (( dot(%s.rgb-%s.rgb, comp%s) > 0) ? %s : float3(0.0f,0.0f,0.0f))",
-                tevCInputTable[cc.d], tevCInputTable2[cc.a], tevCInputTable2[cc.b], cmp==TEVCMP_GR16_GT?"16":"24", tevCInputTable[cc.c]);
+                tevCInputTable[cc.d], 
+				tevCInputTable2[cc.a], 
+				tevCInputTable2[cc.b], 
+				cmp==TEVCMP_GR16_GT?"16":"24", 
+				tevCInputTable[cc.c]);
             break;
         case TEVCMP_GR16_EQ:
         case TEVCMP_BGR24_EQ:
             WRITE(p, "   %s + (abs(dot(%s.rgb - %s.rgb, comp%s))<%f ? %s : float3(0.0f,0.0f,0.0f))",
-                tevCInputTable[cc.d], tevCInputTable2[cc.a], tevCInputTable2[cc.b], cmp==TEVCMP_GR16_EQ?"16":"24", epsilon8bit, tevCInputTable[cc.c]);
+                tevCInputTable[cc.d], 
+				tevCInputTable2[cc.a], 
+				tevCInputTable2[cc.b], 
+				cmp==TEVCMP_GR16_EQ?"16":"24", 
+				epsilon8bit, 
+				tevCInputTable[cc.c]);
             break;
         default:
             WRITE(p, "float3(0.0f,0.0f,0.0f)");
@@ -785,23 +811,41 @@ static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
         case TEVCMP_R8_GT:
         case TEVCMP_A8_GT:
             WRITE(p, "   %s + ((%s.%s > %s.%s) ? %s : 0)",
-                tevAInputTable[ac.d],tevAInputTable2[ac.a], cmp==TEVCMP_R8_GT?"r":"a", tevAInputTable2[ac.b], cmp==TEVCMP_R8_GT?"r":"a", tevAInputTable[ac.c]);
+                tevAInputTable[ac.d],
+				tevAInputTable2[ac.a], 
+				cmp==TEVCMP_R8_GT?"r":"a", 
+				tevAInputTable2[ac.b], 
+				cmp==TEVCMP_R8_GT?"r":"a", 
+				tevAInputTable[ac.c]);
             break;
         case TEVCMP_R8_EQ:
         case TEVCMP_A8_EQ:
-            WRITE(p, "   %s + (abs(%s.r - %s.r)<%f ? %s : 0)",
-                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b],epsilon8bit,tevAInputTable[ac.c]);
+            WRITE(p, "   %s + (abs(%s.r - %s.r)<= %f ? %s : 0)",
+                tevAInputTable[ac.d],
+				tevAInputTable2[ac.a], 
+				tevAInputTable2[ac.b],
+				epsilon8bit,
+				tevAInputTable[ac.c]);
             break;
         
         case TEVCMP_GR16_GT: // 16 bit compares: 255*g+r (probably used for ztextures, so make sure in ztextures, g is the most significant byte)
         case TEVCMP_BGR24_GT: // 24 bit compares: 255*255*b+255*g+r
             WRITE(p, "   %s + (( dot(%s.rgb-%s.rgb, comp%s) > 0) ? %s : 0)",
-                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b], cmp==TEVCMP_GR16_GT?"16":"24", tevAInputTable[ac.c]);
+                tevAInputTable[ac.d],
+				tevAInputTable2[ac.a], 
+				tevAInputTable2[ac.b], 
+				cmp==TEVCMP_GR16_GT?"16":"24", 
+				tevAInputTable[ac.c]);
             break;
         case TEVCMP_GR16_EQ:
         case TEVCMP_BGR24_EQ:
-            WRITE(p, "   %s + (abs(dot(%s.rgb - %s.rgb, comp%s))<%f ? %s : 0)",
-                tevAInputTable[ac.d],tevAInputTable2[ac.a], tevAInputTable2[ac.b],cmp==TEVCMP_GR16_EQ?"16":"24",epsilon8bit,tevAInputTable[ac.c]);
+            WRITE(p, "   %s + (abs(dot(%s.rgb - %s.rgb, comp%s))<=%f ? %s : 0)",
+                tevAInputTable[ac.d],
+				tevAInputTable2[ac.a], 
+				tevAInputTable2[ac.b],
+				cmp==TEVCMP_GR16_EQ?"16":"24",
+				epsilon8bit,
+				tevAInputTable[ac.c]);
             break;
         default:
             WRITE(p, "0)");
@@ -851,21 +895,37 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
     }
 }
 
-static void WriteAlphaCompare(char *&p, int num, int comp)
+static const char *tevAlphaFuncsTable[] = 
 {
-    switch(comp) 
-	{
-    case ALPHACMP_ALWAYS:  WRITE(p, "(false)");	break;
-    case ALPHACMP_NEVER:   WRITE(p, "(true)");	break;
-    case ALPHACMP_LEQUAL:  WRITE(p, "(prev.a > %s)",alphaRef[num]);	break;
-    case ALPHACMP_LESS:    WRITE(p, "(prev.a >= %s - %f)",alphaRef[num],epsilon8bit*0.5f);break;
-    case ALPHACMP_GEQUAL:  WRITE(p, "(prev.a < %s)",alphaRef[num]);	break;
-    case ALPHACMP_GREATER: WRITE(p, "(prev.a <= %s + %f)",alphaRef[num],epsilon8bit*0.5f);break;
-    case ALPHACMP_EQUAL:   WRITE(p, "(abs(prev.a-%s)>%f)",alphaRef[num],epsilon8bit*2); break;
-    case ALPHACMP_NEQUAL:  WRITE(p, "(abs(prev.a-%s)<%f)",alphaRef[num],epsilon8bit*2); break;
-	default: PanicAlert("Bad Alpha Compare! %08x", comp);
-    }
-}
+    "(false)",						//ALPHACMP_NEVER 0
+	"(prev.a < %s + %f)",			//ALPHACMP_LESS 1
+	"(abs( prev.a - %s ) <= %f)",	//ALPHACMP_EQUAL 2
+	"(prev.a <= %s + %f)",			//ALPHACMP_LEQUAL 3
+	"(prev.a > %s - %f)",			//ALPHACMP_GREATER 4
+	"(abs( prev.a - %s ) > %f)",	//ALPHACMP_NEQUAL 5
+	"(prev.a >= %s - %f)",			//ALPHACMP_GEQUAL 6
+	"(true)"						//ALPHACMP_ALWAYS 7
+};
+
+static const float tevAlphaDeltas[] = 
+{
+    0.0f,				//ALPHACMP_NEVER 0
+	epsilon8bit*0.5f,	//ALPHACMP_LESS 1
+	epsilon8bit,		//ALPHACMP_EQUAL 2
+	epsilon8bit*0.5f,	//ALPHACMP_LEQUAL 3
+	epsilon8bit*0.5f,	//ALPHACMP_GREATER 4
+	epsilon8bit,		//ALPHACMP_NEQUAL 5
+	epsilon8bit*0.5f,	//ALPHACMP_GEQUAL 6
+	0.0f				//ALPHACMP_ALWAYS 7
+};
+
+static const char *tevAlphaFunclogicTable[] =
+{
+	" && ", // and
+    " || ",	// or
+    " != ",	// xor
+    " == "	// xnor
+};
 
 static bool WriteAlphaTest(char *&p, bool HLSL)
 {
@@ -876,38 +936,22 @@ static bool WriteAlphaTest(char *&p, bool HLSL)
     switch(op) 
 	{
     case 0: // AND
-        if (comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS)
-			return true;
-        if (comp[0] == ALPHACMP_NEVER || comp[1] == ALPHACMP_NEVER)
-		{
-			WRITE(p, HLSL ? "clip(-1);" : "discard;\n");
-            return false;
-        }
+        if (comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) return true;
+        if (comp[0] == ALPHACMP_NEVER || comp[1] == ALPHACMP_NEVER) return false;
         break;
     case 1: // OR
-        if (comp[0] == ALPHACMP_ALWAYS || comp[1] == ALPHACMP_ALWAYS)
-			return true;
-        if (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER)
-		{
-            WRITE(p, HLSL ? "clip(-1);" : "discard;\n");
-            return false;
-        }
+        if (comp[0] == ALPHACMP_ALWAYS || comp[1] == ALPHACMP_ALWAYS) return true;
+        if (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER)return false;
         break;
     case 2: // XOR
         if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS)) 
 			return true;
         if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER)) 
-		{
-            WRITE(p, HLSL ? "clip(-1);" : "discard;\n");
-            return false;
-        }
+		    return false;        
         break;
     case 3: // XNOR
         if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_NEVER) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_ALWAYS)) 
-		{
-            WRITE(p, HLSL ? "clip(-1);" : "discard;\n");
-            return false;
-        }
+			return false;        
         if ((comp[0] == ALPHACMP_ALWAYS && comp[1] == ALPHACMP_ALWAYS) || (comp[0] == ALPHACMP_NEVER && comp[1] == ALPHACMP_NEVER))
             return true;
         break;
@@ -918,78 +962,67 @@ static bool WriteAlphaTest(char *&p, bool HLSL)
 	if (HLSL) 
 		WRITE(p, "clip( ");
 	else 
-		WRITE(p, "discard( ");
+		WRITE(p, "discard(!( ");
 
-    WriteAlphaCompare(p, 0, bpmem.alphaFunc.comp0);
+	int compindex = bpmem.alphaFunc.comp0 % 8;
+	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[0],tevAlphaDeltas[compindex]);
     
-    // negated because testing the inverse condition
-    switch (bpmem.alphaFunc.logic) 
-	{
-    case 0: WRITE(p, " || "); break; // and
-    case 1: WRITE(p, " && "); break; // or
-    case 2: WRITE(p, " == "); break; // xor
-    case 3: WRITE(p, " != "); break; // xnor
-	default: break;
-    }
-
-    WriteAlphaCompare(p, 1, bpmem.alphaFunc.comp1);
+	WRITE(p, tevAlphaFunclogicTable[bpmem.alphaFunc.logic % 4]);
+   
+    compindex = bpmem.alphaFunc.comp1 % 8;
+	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1],tevAlphaDeltas[compindex]);    
 
 	if (HLSL) {
 		// clip works differently than discard - discard takes a bool, clip takes a value that kills the pixel on negative
-		WRITE(p, " ? -1 : 1);\n");
+		WRITE(p, " ? 1 : -1);\n");
 	} else {
-		WRITE(p, ");\n");
+		WRITE(p, "));\n");
 	}
-
     return true;
 }
 
+static const char *tevFogFuncsTable[] =
+{
+	"",																//No Fog
+	"",																//?
+	"",																//Linear
+	"",																//?
+	"  fog = 1.0f - pow(2, -8.0f * fog);\n",						//exp
+	"  fog = 1.0f - pow(2, -8.0f * fog * fog);\n",					//exp2
+	"  fog = pow(2, -8.0f * (1.0f - fog));\n",						//backward exp
+	"  fog = 1.0f - fog;\n   fog = pow(2, -8.0f * fog * fog);\n"	//backward exp2
+};
+
 static void WriteFog(char *&p)
 {
-	bool enabled = bpmem.fog.c_proj_fsel.fsel == 0 ? false : true;
+	if(bpmem.fog.c_proj_fsel.fsel == 0)return;//no Fog
 
-    if (enabled) 
+	if (bpmem.fog.c_proj_fsel.proj == 0) 
 	{
-        if (bpmem.fog.c_proj_fsel.proj == 0) 
-		{
-            // perspective
-            // ze = A/(B - Zs)
-            WRITE (p, "  float ze = "I_FOG"[1].x / ("I_FOG"[1].y - depth);\n");
-        } 
-		else 
-		{
-            // orthographic
-            // ze = a*Zs
-            WRITE (p, "  float ze = "I_FOG"[1].x * depth;\n");
-        }
-
-        //WRITE (p, "  float fog = clamp(ze - "I_FOG"[1].z, 0.0f, 1.0f);\n");
-		WRITE (p, "  float fog = saturate(ze - "I_FOG"[1].z);\n");
-
-		switch (bpmem.fog.c_proj_fsel.fsel) 
-		{
-		case 0: // TODO - No fog?
-			break;
-		case 2: // linear
-			// empty
-			break;
-		case 4: // exp
-			WRITE(p, "  fog = 1.0f - pow(2, -8.0f * fog);\n");
-			break;
-		case 5: // exp2
-			WRITE(p, "  fog = 1.0f - pow(2, -8.0f * fog * fog);\n");
-			break;
-		case 6: // backward exp
-			WRITE(p, "  fog = 1.0f - fog;\n");
-			WRITE(p, "  fog = pow(2, -8.0f * fog);\n");
-			break;
-		case 7: // backward exp2
-			WRITE(p, "  fog = 1.0f - fog;\n");
-			WRITE(p, "  fog = pow(2, -8.0f * fog * fog);\n");
-			break;
-		default: WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
-		}
-
-        WRITE(p, "  prev.rgb = (1.0f - fog) * prev.rgb + (fog * "I_FOG"[0].rgb);\n");
+        // perspective
+        // ze = A/(B - Zs)
+        WRITE (p, "  float ze = "I_FOG"[1].x / ("I_FOG"[1].y - depth);\n");
+    } 
+	else 
+	{
+        // orthographic
+        // ze = a*Zs
+        WRITE (p, "  float ze = "I_FOG"[1].x * depth;\n");
     }
+
+    //WRITE (p, "  float fog = clamp(ze - "I_FOG"[1].z, 0.0f, 1.0f);\n");
+	WRITE (p, "  float fog = saturate(ze - "I_FOG"[1].z);\n");
+
+	if(bpmem.fog.c_proj_fsel.fsel > 3)
+	{
+		WRITE(p, tevFogFuncsTable[bpmem.fog.c_proj_fsel.fsel]);
+	}
+	else
+	{
+		if(bpmem.fog.c_proj_fsel.fsel != 2)
+			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
+	}		
+
+    WRITE(p, "  prev.rgb = (1.0f - fog) * prev.rgb + (fog * "I_FOG"[0].rgb);\n");
+    
 }

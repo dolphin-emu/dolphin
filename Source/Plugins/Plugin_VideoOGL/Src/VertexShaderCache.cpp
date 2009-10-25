@@ -280,7 +280,7 @@ void VertexShaderCache::DisableShader()
 
 void VertexShaderCache::SetCurrentShader(GLuint Shader)
 {
-	if(ShaderEnabled && CurrentShader != Shader)
+	if(ShaderEnabled /*&& CurrentShader != Shader*/)
 	{
 		CurrentShader = Shader;
 		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);

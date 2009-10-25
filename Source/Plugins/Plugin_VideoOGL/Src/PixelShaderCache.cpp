@@ -286,8 +286,6 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 
 	glGenProgramsARB(1, &ps.glprogid);
 	EnableShader(ps.glprogid);	
-	//glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, ps.glprogid);
-	//CurrentShader = ps.glprogid;
 	glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
 
 	err = GL_REPORT_ERROR();
