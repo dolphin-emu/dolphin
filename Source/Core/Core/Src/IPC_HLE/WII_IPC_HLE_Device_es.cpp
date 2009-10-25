@@ -83,11 +83,11 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
 
     // scan for the title ids listed in TMDs within /title/
 	m_TitleIDs.clear();
-    m_TitleIDs.push_back(0x0000000100000002ULL);
-    // m_TitleIDs.push_back(0x0001000248414741ULL); 
-    // m_TitleIDs.push_back(0x0001000248414341ULL);
-    // m_TitleIDs.push_back(0x0001000248414241ULL);
-    // m_TitleIDs.push_back(0x0001000248414141ULL);
+	m_TitleIDs.push_back(0x0000000100000002ULL);
+    //m_TitleIDs.push_back(0x0001000248414741ULL); 
+    //m_TitleIDs.push_back(0x0001000248414341ULL);
+    //m_TitleIDs.push_back(0x0001000248414241ULL);
+    //m_TitleIDs.push_back(0x0001000248414141ULL);
     
 	//FindValidTitleIDs();
 
@@ -97,13 +97,7 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
 
 CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
 {
-    CTitleToContentMap::const_iterator itr = m_NANDContent.begin();
-    while(itr != m_NANDContent.end())
-    {
-        if (itr->second)
-            delete itr->second;
-        itr++;
-    }
+	// Leave deletion of the INANDContentLoader objects to CNANDContentManager, don't do it here!
     m_NANDContent.clear();
 }
 

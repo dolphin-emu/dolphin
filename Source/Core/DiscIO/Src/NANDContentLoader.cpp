@@ -164,7 +164,7 @@ CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 	}
 	else
 	{
-//		_dbg_assert_msg_(BOOT, 0, "CNANDContentLoader loads neither folder nor file");
+		_dbg_assert_msg_(BOOT, 0, "CNANDContentLoader loads neither folder nor file");
 	}
 }
 
@@ -362,14 +362,12 @@ CNANDContentManager::~CNANDContentManager()
 
 const INANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& _rName)
 {
-	std::string KeyString(_rName);
+	CNANDContentMap::iterator lb = m_Map.lower_bound(_rName);
 
-	CNANDContentMap::iterator itr = m_Map.find(KeyString);
-	if (itr != m_Map.end())
-		return *itr->second;
+	if(lb == m_Map.end() || (m_Map.key_comp()(_rName, lb->first)))
+		m_Map.insert(lb, CNANDContentMap::value_type(_rName, new CNANDContentLoader(_rName)));
 
-	m_Map[KeyString] = new CNANDContentLoader(KeyString);
-	return *m_Map[KeyString];
+	return *m_Map[_rName];
 }
 
 } // namespace end

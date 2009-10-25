@@ -197,7 +197,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 				Extensions.push_back("*.*");
 
 				CFileSearch FileSearch(Extensions, Directories);
-			
+
 				u64 overAllSize = 0;
 				for (size_t i=0; i<FileSearch.GetFileNames().size(); i++)
 				{
@@ -220,7 +220,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 				// PanicAlert("IOCTL_GETUSAGE - unk dir %s", Filename.c_str());
 				WARN_LOG(WII_IPC_FILEIO, "    error: not executed on a valid directoy: %s", Filename.c_str());
 			}
-			
+
 			Memory::Write_U32(fsBlock, CommandBuffer.PayloadBuffer[0].m_Address);
 			Memory::Write_U32(iNodes, CommandBuffer.PayloadBuffer[1].m_Address);
 		}
@@ -233,7 +233,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 	}
 
 	Memory::Write_U32(ReturnValue, _CommandAddress+4);
-	
+
 	return true; 
 }
 
