@@ -90,7 +90,7 @@ inline double ForceSingle(double _x)
 
 	IntDouble single;
 	single.d = _x;
-	single.i &= 0xFFFFFFFFE0000000;
+	single.i &= 0xFFFFFFFFE0000000ULL;
 
 	return single.d;
 }
