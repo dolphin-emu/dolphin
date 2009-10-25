@@ -27,7 +27,7 @@
 namespace HLE_OS
 {
 
-void GetStringVA(std::string& _rOutBuffer);
+void GetStringVA(std::string& _rOutBuffer, u32 strReg = 3);
 
 void HLE_OSPanic()
 {
@@ -51,13 +51,24 @@ void HLE_GeneralDebugPrint()
 	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());	
 }
 
-void GetStringVA(std::string& _rOutBuffer)
+// __write_console is slightly abnormal
+void HLE_write_console()
+{
+	std::string ReportMessage;
+	GetStringVA(ReportMessage, 4);
+	NPC = LR;
+
+	//PanicAlert("(%08x->%08x) %s", LR, PC, ReportMessage.c_str());
+	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());	
+}
+
+void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 {
 	_rOutBuffer = "";
 	char ArgumentBuffer[256];
 	u32 ParameterCounter = 4;    
 	u32 FloatingParameterCounter = 1;
-	char* pString = (char*)Memory::GetPointer(GPR(3));
+	char* pString = (char*)Memory::GetPointer(GPR(strReg));
 	if (!pString) {
 		//PanicAlert("Invalid GetStringVA call");
 		return;

@@ -23,6 +23,7 @@
 namespace HLE_OS
 {
     void HLE_GeneralDebugPrint();
+	void HLE_write_console();
     void HLE_OSPanic();
 }
 
