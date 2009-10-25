@@ -54,6 +54,8 @@ public:
 	static void SetFogParamChanged();
 	static void SetColorMatrix(const float* pmatrix, const float* pfConstAdd);
 	static u32 GetTextureMask();
+	static void SetZScale(float data);
+	static void SetZOffset(float data);
 };
 
 

@@ -610,9 +610,9 @@ void UpdateViewport()
 	
 	vp.Width  = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
 	vp.Height = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
-	
-	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777215.0f;
-	vp.MaxZ = xfregs.rawViewport[5] / 16777215.0f;
+	//new depth equation , don't know if is correct but...
+	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2]+xfregs.Zoffset) / xfregs.ZScale;
+	vp.MaxZ = (xfregs.rawViewport[5] + xfregs.Zoffset) / xfregs.ZScale;
 	
 	// This seems to happen a lot - the above calc is probably wrong.
 	if (vp.MinZ < 0.0f) vp.MinZ = 0.0f;

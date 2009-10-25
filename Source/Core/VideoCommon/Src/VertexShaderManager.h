@@ -38,6 +38,8 @@ public:
 	static void SetTexMatrixChangedA(u32 Value);
 	static void SetTexMatrixChangedB(u32 Value);
 	static void SetMaterialColor(int index, u32 data);
+	static void SetZScale(float data);
+	static void SetZOffset(float data);
 
 	static void TranslateView(float x, float y);
 	static void RotateView(float x, float y);

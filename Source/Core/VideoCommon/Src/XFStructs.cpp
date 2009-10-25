@@ -174,12 +174,18 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 			// paper mario writes 16777216.0f, 1677721.75
 			// Killer 7 writes 16777216.0f here
 			case XFMEM_SETZSCALE:
+				VertexManager::Flush();
+				VertexShaderManager::SetZScale((float)data);
+				PixelShaderManager::SetZScale((float)data);
 				INFO_LOG(VIDEO, "Set ZScale : %x=%x\n", address, data);
 				break;
 
 			// paper mario writes 16777216.0f, 5033165.0f
 			// Killer 7 alterns this between 16777216.0f and 16710107.0f
             case XFMEM_SETZOFFSET:
+				VertexManager::Flush();
+				VertexShaderManager::SetZOffset((float)data);
+				PixelShaderManager::SetZOffset((float)data);
 				INFO_LOG(VIDEO, "Set ZOffset : %x=%x\n", address, data);
 				break;
 

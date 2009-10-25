@@ -62,7 +62,8 @@ void VertexShaderManager::Init()
 
 	memset(&xfregs, 0, sizeof(xfregs));
 	memset(xfmem, 0, sizeof(xfmem));
-
+	xfregs.ZScale = 16777216.0f;
+	xfregs.Zoffset = 0.0f;
 	ResetView();    
 }
 
@@ -448,6 +449,18 @@ void VertexShaderManager::SetViewport(float* _Viewport)
             return;
     }
     memcpy(xfregs.rawViewport, _Viewport, sizeof(xfregs.rawViewport));
+    bViewportChanged = true;
+}
+
+void VertexShaderManager::SetZScale(float data)
+{
+    xfregs.ZScale = data;
+    bViewportChanged = true;
+}
+
+void VertexShaderManager::SetZOffset(float data)
+{
+    xfregs.Zoffset = data;
     bViewportChanged = true;
 }
 

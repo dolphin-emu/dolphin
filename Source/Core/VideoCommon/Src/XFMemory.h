@@ -228,6 +228,8 @@ struct XFRegisters
     bool bEnableDualTexTransform;
 	float rawViewport[6];
 	float rawProjection[7];
+	float ZScale;
+	float Zoffset;
 };
 
 

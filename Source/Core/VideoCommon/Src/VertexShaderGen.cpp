@@ -198,7 +198,7 @@ const char *GenerateVertexShader(u32 components, bool D3D)
                     //"half3 norm2 = normalize(_norm2);\n");
     }
     else {
-        WRITE(p, "float4 pos = float4(dot("I_POSNORMALMATRIX".T0, rawpos), dot("I_POSNORMALMATRIX".T1, rawpos), dot("I_POSNORMALMATRIX".T2, rawpos), 1);\n");
+        WRITE(p, "float4 pos = float4(dot("I_POSNORMALMATRIX".T0, rawpos), dot("I_POSNORMALMATRIX".T1, rawpos), dot("I_POSNORMALMATRIX".T2, rawpos), 1.0f);\n");
         if (components & VB_HAS_NRM0)
             WRITE(p, "half3 _norm0 = half3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm0));\n"
                      "half3 norm0 = normalize(_norm0);\n");
@@ -243,7 +243,7 @@ const char *GenerateVertexShader(u32 components, bool D3D)
                 if (components & (VB_HAS_COL0<<j) )
                     WRITE(p, "lacc = color%d;\n", j);
                 else
-					WRITE(p, "lacc = half4(0.0f,0.0f,0.0f,0.0f);\n");
+					WRITE(p, "lacc = half4(0,0,0,0);\n");
             }
             else // from color
                 WRITE(p, "lacc = "I_MATERIALS".C%d;\n", j);
@@ -338,7 +338,7 @@ const char *GenerateVertexShader(u32 components, bool D3D)
         case XF_SRCNORMAL_INROW:
             if (components & VB_HAS_NRM0) {
                 _assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
-                WRITE(p, "float4 coord = float4(rawnorm0.xyz, 1.0);\n");
+                WRITE(p, "float4 coord = float4(rawnorm0.xyz, 1.0f);\n");
             }
             else WRITE(p, "float4 coord = float4(0.0f, 0.0f, 1.0f, 1.0f);\n");  // avoid errors
             break;
@@ -348,14 +348,14 @@ const char *GenerateVertexShader(u32 components, bool D3D)
         case XF_SRCBINORMAL_T_INROW:
             if (components & VB_HAS_NRM1) {
                 _assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
-                WRITE(p, "float4 coord = float4(rawnorm1.xyz, 1.0);\n");
+                WRITE(p, "float4 coord = float4(rawnorm1.xyz, 1.0f);\n");
             }
             else WRITE(p, "float4 coord = float4(0.0f, 0.0f, 1.0f, 1.0f);\n");  // avoid errors
             break;
         case XF_SRCBINORMAL_B_INROW:
             if (components & VB_HAS_NRM2) {
                 _assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
-                WRITE(p, "float4 coord = float4(rawnorm2.xyz, 1.0);\n");
+                WRITE(p, "float4 coord = float4(rawnorm2.xyz, 1.0f);\n");
             }
             else WRITE(p, "float4 coord = float4(0.0f, 0.0f, 1.0f, 1.0f);\n");  // avoid errors
             break;
@@ -479,7 +479,7 @@ char* GenerateLightShader(char* p, int index, const LitChannel& chan, const char
             WRITE(p, "attn = max(0.0f, dot("I_LIGHTS".lights[%d].cosatt.xyz, half3(1, attn, attn*attn))) / dot("I_LIGHTS".lights[%d].distatt.xyz, half3(1,dist,dist2));\n", index, index);
         }
         else if (chan.attnfunc == 1) { // specular
-            WRITE(p, "attn = dot(norm0, "I_LIGHTS".lights[%d].pos.xyz) > 0 ? max(0.0f, dot(norm0, "I_LIGHTS".lights[%d].dir.xyz)) : 0;\n", index, index);
+            WRITE(p, "attn = dot(norm0, "I_LIGHTS".lights[%d].pos.xyz) > 0.0f ? max(0.0f, dot(norm0, "I_LIGHTS".lights[%d].dir.xyz)) : 0.0f;\n", index, index);
             WRITE(p, "ldir = half3(1,attn,attn*attn);\n");
             WRITE(p, "attn = max(0.0f, dot("I_LIGHTS".lights[%d].cosatt.xyz, ldir)) / dot("I_LIGHTS".lights[%d].distatt.xyz, ldir);\n", index, index);
         }
