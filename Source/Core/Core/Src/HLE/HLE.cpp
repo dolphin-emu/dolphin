@@ -58,12 +58,13 @@ static const SPatch OSPatches[] =
 
 
 	// debug out is very nice ;)
-	{ "OSReport",					HLE_OS::HLE_OSReport    },
-	{ "OSPanic",					HLE_OS::HLE_OSPanic     },
-	{ "vprintf",					HLE_OS::HLE_vprintf     },
-	{ "printf",						HLE_OS::HLE_printf      },
-	{ "puts",						HLE_OS::HLE_printf      }, //gcc-optimized printf?
-	{ "___blank(char *,...)",		HLE_OS::HLE___blank		}, // dunno, but awesome :D
+	{ "OSReport",					HLE_OS::HLE_GeneralDebugPrint	},
+	{ "OSPanic",					HLE_OS::HLE_OSPanic				},
+	{ "vprintf",					HLE_OS::HLE_GeneralDebugPrint	},
+	{ "printf",						HLE_OS::HLE_GeneralDebugPrint	},
+	{ "puts",						HLE_OS::HLE_GeneralDebugPrint	}, // gcc-optimized printf?
+	{ "___blank(char *,...)",		HLE_OS::HLE_GeneralDebugPrint	}, // dunno, but awesome :D
+	{ "__write_console",			HLE_OS::HLE_GeneralDebugPrint	}, // used by sysmenu (+more?)
 
 	// wii only
 	{ "__OSInitAudioSystem",        HLE_Misc::UnimplementedFunction },			

@@ -22,10 +22,7 @@
 
 namespace HLE_OS
 {
-    void HLE_vprintf();
-    void HLE_printf();
-	void HLE___blank();
-    void HLE_OSReport();
+    void HLE_GeneralDebugPrint();
     void HLE_OSPanic();
 }
 

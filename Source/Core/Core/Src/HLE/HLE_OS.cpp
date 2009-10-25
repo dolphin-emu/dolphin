@@ -40,64 +40,15 @@ void HLE_OSPanic()
 	NPC = LR;
 }
 
-void HLE_OSReport()
-{
-	std::string ReportMessage;
-	GetStringVA(ReportMessage);
-    NPC = LR;
-	
-    u32 hackPC = PC;
-    PC = LR;
-
-//    PanicAlert("(PC=%08x) OSReport: %s", LR, ReportMessage.c_str());
-	NOTICE_LOG(OSREPORT, "(PC=%08x) OSReport: %s", LR, ReportMessage.c_str());	
-
-    PC = hackPC;
-}
-
-void HLE_vprintf()
-{
-	std::string ReportMessage;
-	GetStringVA(ReportMessage);
-    NPC = LR;
-
-    u32 hackPC = PC;
-    PC = LR;
-
- //   PanicAlert("(PC=%08x) VPrintf: %s", LR, ReportMessage.c_str());
-	NOTICE_LOG(OSREPORT, "(PC=%08x) VPrintf: %s", LR, ReportMessage.c_str());	
-
-    PC = hackPC;
-}
-
-void HLE_printf()
-{
-	std::string ReportMessage;
-	GetStringVA(ReportMessage);
-    NPC = LR;
-
-    u32 hackPC = PC;
-    PC = LR;
-
- //   PanicAlert("(PC=%08x) Printf: %s ", LR, ReportMessage.c_str());
-	NOTICE_LOG(OSREPORT, "(PC=%08x) Printf: %s ", LR, ReportMessage.c_str());	
-
-    PC = hackPC;
-}
-
-void HLE___blank()
+// Generalized func for just printing string pointed to by r3.
+void HLE_GeneralDebugPrint()
 {
 	std::string ReportMessage;
 	GetStringVA(ReportMessage);
 	NPC = LR;
 
-	u32 hackPC = PC;
-	PC = LR;
-
-//   PanicAlert("(PC=%08x) Printf: %s ", LR, ReportMessage.c_str());
-	NOTICE_LOG(OSREPORT, "(PC=%08x) ___blank: %s ", LR, ReportMessage.c_str());	
-
-	PC = hackPC;
+	//PanicAlert("(%08x->%08x) %s", LR, PC, ReportMessage.c_str());
+	NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());	
 }
 
 void GetStringVA(std::string& _rOutBuffer)
