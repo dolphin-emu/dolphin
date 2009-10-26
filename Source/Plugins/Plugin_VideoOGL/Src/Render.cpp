@@ -1345,8 +1345,8 @@ void UpdateViewport()
 	int GLWidth = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
 	int GLHeight = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
 	//new dept equation , don't know if is correct but...
-	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2] + xfregs.Zoffset) / xfregs.ZScale;
-	double GLFar = (xfregs.rawViewport[5] + xfregs.Zoffset) / xfregs.ZScale;
+	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
+	double GLFar = xfregs.rawViewport[5] / 16777216.0f;	
 
 	// Update the view port
 	glViewport(GLx, GLy, GLWidth, GLHeight);

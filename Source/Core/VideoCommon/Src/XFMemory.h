@@ -227,9 +227,7 @@ struct XFRegisters
     TexCoordInfo texcoords[8];
     bool bEnableDualTexTransform;
 	float rawViewport[6];
-	float rawProjection[7];
-	float ZScale;
-	float Zoffset;
+	float rawProjection[7];	
 };
 
 

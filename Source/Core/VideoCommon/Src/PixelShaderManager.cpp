@@ -31,7 +31,7 @@ static bool s_bZTextureTypeChanged;
 static bool s_bDepthRangeChanged;
 static bool s_bFogColorChanged;
 static bool s_bFogParamChanged;
-static float lastDepthRange[4]; // 0 = far z, 1 = far - near, 2 = scale , 3 = offset
+static float lastDepthRange[2]; // 0 = far z, 1 = far - near
 static float lastRGBAfull[2][4][4];
 static float lastCustomTexScale[8][2];
 static u8 s_nTexDimsChanged;
@@ -54,10 +54,6 @@ void PixelShaderManager::Init()
 	lastZBias = 0;
 	s_texturemask = 0;
 	memset(lastRGBAfull, 0, sizeof(lastRGBAfull));
-	lastDepthRange[0]=16777216.0f;
-	lastDepthRange[1]=16777216.0f;
-	lastDepthRange[2]=16777216.0f;
-	lastDepthRange[3]=0.0f;
 	Dirty();
 }
 
@@ -136,7 +132,7 @@ void PixelShaderManager::SetConstants()
 	if (s_bZBiasChanged || s_bDepthRangeChanged) 
 	{
         //ERROR_LOG("pixel=%x,%x, bias=%x\n", bpmem.zcontrol.pixel_format, bpmem.ztex2.type, lastZBias);
-        SetPSConstant4f(C_ZBIAS+1, (lastDepthRange[0] + lastDepthRange[3]) / lastDepthRange[2], (lastDepthRange[1] + lastDepthRange[3]) / lastDepthRange[2], 0, (float)( (((int)lastZBias<<8)>>8))/16777215.0f);
+        SetPSConstant4f(C_ZBIAS+1, lastDepthRange[0] / 16777216.0f, lastDepthRange[1] / 16777216.0f, 0, (float)( (((int)lastZBias<<8)>>8))/16777216.0f);
 		s_bZBiasChanged = s_bDepthRangeChanged = false;
     }
 
@@ -332,18 +328,18 @@ void PixelShaderManager::SetViewport(float* viewport)
 
 void PixelShaderManager::SetZScale(float data)
 {
-	if (lastDepthRange[2] != data)
+	if (lastDepthRange[0] != data)
 	{
-		lastDepthRange[2] = data;
+		lastDepthRange[0] = data;
 		s_bDepthRangeChanged = true;
 	}
 }
 
 void PixelShaderManager::SetZOffset(float data)
 {
-	if (lastDepthRange[3] != data)
+	if (lastDepthRange[1] != data)
 	{
-		lastDepthRange[3] = data;
+		lastDepthRange[1] = data;
 		s_bDepthRangeChanged = true;
 	}
 }
