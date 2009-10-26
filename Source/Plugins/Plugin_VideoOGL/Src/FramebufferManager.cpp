@@ -333,7 +333,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 
 		glGenTextures(1, &xfbTexture);
 
-#if 1 // XXX: Some video drivers don't handle glCopyTexImage2D correctly, so use EXT_framebuffer_blit whenever possible.
+#if 0// XXX: Some video drivers don't handle glCopyTexImage2D correctly, so use EXT_framebuffer_blit whenever possible.
 		if (m_msaaSamples > 1)
 #else
 		if (s_bHaveFramebufferBlit)
@@ -373,7 +373,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 
 	// Copy EFB to XFB texture
 
-#if 1
+#if 0
 	if (m_msaaSamples <= 1)
 #else
 	if (!s_bHaveFramebufferBlit)
