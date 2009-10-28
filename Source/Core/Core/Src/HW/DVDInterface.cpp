@@ -715,7 +715,7 @@ void ExecuteCommand(UDICR& _DICR)
 			else*/
 			if ((offset < 0) || ((offset + len) > 0x40) || len > 0x40)
 			{
-				unsigned long addr = m_DIMAR.Address;
+				u32 addr = m_DIMAR.Address;
 				if (iDVDOffset == 0x84800000) {
 					ERROR_LOG(DVDINTERFACE, "FIRMWARE UPLOAD");
 				} else {
@@ -731,7 +731,7 @@ void ExecuteCommand(UDICR& _DICR)
 			}
 			else
 			{
-				unsigned long addr = m_DIMAR.Address;
+				u32 addr = m_DIMAR.Address;
 				memcpy(media_buffer + offset, Memory::GetPointer(addr), len);
 				while (len >= 4)
 				{
@@ -769,7 +769,8 @@ void ExecuteCommand(UDICR& _DICR)
 				break;
 			case 0x100:
 				{
-					static int percentage;
+					// urgh
+					static int percentage = 0;
 					static int status = 0;
 					percentage++;
 					if (percentage > 100)

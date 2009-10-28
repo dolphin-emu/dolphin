@@ -67,7 +67,7 @@ void CUCode_Zelda::AFCdecodebuffer(const s16 *coef, const char *src, signed shor
     short hist2 = *hist2p;
     for (int i = 0; i < 16; i++)
 	{
-        int sample = delta * nibbles[i] + ((long)hist * coef[idx * 2]) + ((long)hist2 * coef[idx * 2 + 1]);
+        int sample = delta * nibbles[i] + ((int)hist * coef[idx * 2]) + ((int)hist2 * coef[idx * 2 + 1]);
 	    if (type == 9)
 		    sample >>= 11;
 		else
