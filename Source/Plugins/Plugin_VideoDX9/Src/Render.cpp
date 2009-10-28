@@ -286,7 +286,7 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 	//pSprite->End();
 	//pSprite->Release();
 
-	//D3D::dev->Clear(0,NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,D3DCOLOR_XRGB(0,0,0),1.0f,0);
+	D3D::dev->Clear(0,NULL, D3DCLEAR_TARGET,D3DCOLOR_XRGB(0,0,0),1.0f,0);
 
 	// todo, to draw the EFB texture to the backbuffer instead of StretchRect
 	D3D::dev->StretchRect(FBManager::GetEFBColorRTSurface(), src_rect.AsRECT(),
