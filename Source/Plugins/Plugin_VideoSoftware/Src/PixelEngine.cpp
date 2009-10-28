@@ -136,8 +136,7 @@ void UpdateInterrupts()
 // Called only if BPMEM_PE_TOKEN_INT_ID is ack by GP
 void SetToken_OnMainThread(u64 userdata, int cyclesLate)
 {
-	g_bSignalTokenInterrupt = true;	
-	//_dbg_assert_msg_(PIXELENGINE, (CommandProcessor::fifo.PEToken == (userdata&0xFFFF)), "WTF? BPMEM_PE_TOKEN_INT_ID's token != BPMEM_PE_TOKEN_ID's token" );
+	g_bSignalTokenInterrupt = true;
     INFO_LOG(PIXELENGINE, "VIDEO Plugin raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", pereg.token);
 	UpdateInterrupts();
 }
@@ -157,10 +156,6 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 	{
         g_VideoInitialize.pScheduleEvent_Threadsafe(
 			0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
-	}
-	else // set token value
-	{
-		ERROR_LOG(PIXELENGINE, "VIDEO plugin should set the token directly");
 	}
 }
 

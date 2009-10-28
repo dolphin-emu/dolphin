@@ -21,6 +21,8 @@
 #include "EfbInterface.h"
 #include "TextureSampler.h"
 #include "Statistics.h"
+#include "VideoConfig.h"
+#include "DebugUtil.h"
 
 #include <math.h>
 
@@ -120,6 +122,11 @@ inline s16 Clamp255(s16 in)
     return in>255?255:(in<0?0:in);
 }
 
+inline s16 Clamp1024(s16 in)
+{
+     return in>1023?1023:(in<-1024?-1024:in);
+}
+
 inline void Tev::SetRasColor(int colorChan, int swaptable)
 {
     switch(colorChan)
@@ -168,12 +175,7 @@ inline void Tev::SetRasColor(int colorChan, int swaptable)
 
 void Tev::DrawColorRegular(TevStageCombiner::ColorCombiner &cc)
 {
-    struct {
-        unsigned a : 8;
-        unsigned b : 8;
-        unsigned c : 8;
-        signed   d : 11;
-    } InputReg;
+    InputRegType InputReg;
 
     for (int i = 0; i < 3; i++)
     {
@@ -202,12 +204,7 @@ void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner &cc)
     u32 a;
     u32 b;
 
-    struct {
-        unsigned a : 8;
-        unsigned b : 8;
-        unsigned c : 8;
-        signed   d : 11;
-    } InputReg;
+    InputRegType InputReg;
 
     switch(cmp) {
     case TEVCMP_R8_GT:        
@@ -308,13 +305,7 @@ void Tev::DrawColorCompare(TevStageCombiner::ColorCombiner &cc)
 
 void Tev::DrawAlphaRegular(TevStageCombiner::AlphaCombiner &ac)
 {
-    struct {
-        unsigned a : 8;
-        unsigned b : 8;
-        unsigned c : 8;
-        signed   d : 11;
-    } InputReg;
-
+    InputRegType InputReg;
 
     InputReg.a = *m_AlphaInputLUT[ac.a];
     InputReg.b = *m_AlphaInputLUT[ac.b];
@@ -340,12 +331,7 @@ void Tev::DrawAlphaCompare(TevStageCombiner::AlphaCombiner &ac)
     u32 a;
     u32 b;
     
-    struct {
-        unsigned a : 8;
-        unsigned b : 8;
-        unsigned c : 8;
-        signed   d : 11;
-    } InputReg;
+    InputRegType InputReg;
 
     switch(cmp) {
     case TEVCMP_R8_GT:        
@@ -641,7 +627,7 @@ void Tev::Draw()
         StageKonst[ALP_C] = *(m_KonstLUT[ka][ALP_C]);
 
         // set color        
-        SetRasColor(order.getColorChan(stageOdd), ac.rswap * 2);        
+        SetRasColor(order.getColorChan(stageOdd), ac.rswap * 2);
 
         // combine inputs
         if (cc.bias != 3)
@@ -655,6 +641,12 @@ void Tev::Draw()
             Reg[cc.dest][GRN_C] = Clamp255(Reg[cc.dest][GRN_C]);
             Reg[cc.dest][BLU_C] = Clamp255(Reg[cc.dest][BLU_C]);
         }
+        else
+        {
+            Reg[cc.dest][RED_C] = Clamp1024(Reg[cc.dest][RED_C]);
+            Reg[cc.dest][GRN_C] = Clamp1024(Reg[cc.dest][GRN_C]);
+            Reg[cc.dest][BLU_C] = Clamp1024(Reg[cc.dest][BLU_C]);
+        }
 
         if (ac.bias != 3)
             DrawAlphaRegular(ac);
@@ -663,7 +655,16 @@ void Tev::Draw()
 
         if (ac.clamp)
             Reg[ac.dest][ALP_C] = Clamp255(Reg[ac.dest][ALP_C]);
+        else
+            Reg[ac.dest][ALP_C] = Clamp1024(Reg[ac.dest][ALP_C]);
 
+#ifdef _DEBUG
+        if (g_Config.bDumpTevStages)
+        {
+            u8 stage[4] = {(u8)Reg[0][0], (u8)Reg[0][1], (u8)Reg[0][2], (u8)Reg[0][3]};
+            DebugUtil::DrawObjectBuffer(Position[0], Position[1], stage, stageNum, "Stage");
+        }
+#endif
     }
     
     // convert to 8 bits per component

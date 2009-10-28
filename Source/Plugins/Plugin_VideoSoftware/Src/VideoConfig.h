@@ -38,6 +38,7 @@ struct Config
     bool bDumpTextures;
     bool bDumpObjects;
     bool bDumpFrames;
+    bool bDumpTevStages;
 
     bool bHwRasterizer;
 

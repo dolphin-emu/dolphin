@@ -33,6 +33,7 @@
 #include "HwRasterizer.h"
 #include "LogManager.h"
 #include "EfbInterface.h"
+#include "DebugUtil.h"
 
 
 PLUGIN_GLOBALS* globals = NULL;
@@ -88,6 +89,7 @@ void Initialize(void *init)
     Rasterizer::Init();
     HwRasterizer::Init();
     Renderer::Init(_pVideoInitialize);
+    DebugUtil::Init();
 }
 
 void DoState(unsigned char **ptr, int mode)
@@ -109,6 +111,7 @@ void Video_Prepare(void)
 // Run from the CPU thread (from VideoInterface.cpp)
 void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {	
+    g_VideoInitialize.pCopiedToXFB(true);
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)

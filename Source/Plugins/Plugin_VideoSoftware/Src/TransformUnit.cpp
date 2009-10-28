@@ -199,6 +199,11 @@ inline float Clamp(float val, float a, float b)
     return val<a?a:val>b?b:val;
 }
 
+inline float SafeDivide(float n, float d)
+{
+    return (d==0)?(n>0?1:0):n/d;
+}
+
 void LightColor(const float *vertexPos, const float *normal, u8 lightNum, const LitChannel &chan, Vec3 &lightCol)
 {
     // must be the size of 3 32bit floats for the light pointer to be valid
@@ -244,15 +249,16 @@ void LightColor(const float *vertexPos, const float *normal, u8 lightNum, const 
 
             float cosAtt = light->cosatt.x + (light->cosatt.y * attn) + (light->cosatt.z * attn * attn);
             float distAtt = light->distatt.x + (light->distatt.y * dist) + (light->distatt.z * dist2);
-            attn = distAtt==0.0f?0.0f:(max(0.0f, cosAtt) / distAtt); 
+            attn = SafeDivide(max(0.0f, cosAtt), distAtt);
         }
         else if (chan.attnfunc == 1) { // specular
-            attn = (light->pos * (*norm0)) > 0 ? max(0.0f, (light->dir * (*norm0))) : 0;
+            // donko - what is going on here?  655.36 is a guess but seems about right.
+            attn = (light->pos * (*norm0)) > -655.36 ? max(0.0f, (light->dir * (*norm0))) : 0;
             ldir.set(1.0f, attn, attn * attn);
 
-            float cosAtt = light->cosatt * ldir;
+            float cosAtt = max(0.0f, light->cosatt * ldir);
             float distAtt = light->distatt * ldir;
-            attn = distAtt==0.0f?1.0f:(max(0.0f, cosAtt) / distAtt); 
+            attn = SafeDivide(max(0.0f, cosAtt), distAtt);
         }
 
         switch (chan.diffusefunc) {
@@ -321,15 +327,16 @@ void LightAlpha(const float *vertexPos, const float *normal, u8 lightNum, const 
 
             float cosAtt = light->cosatt.x + (light->cosatt.y * attn) + (light->cosatt.z * attn * attn);
             float distAtt = light->distatt.x + (light->distatt.y * dist) + (light->distatt.z * dist2);
-            attn = distAtt==0.0f?0.0f:(max(0.0f, cosAtt) / distAtt); 
+            attn = SafeDivide(max(0.0f, cosAtt), distAtt);
         }
         else if (chan.attnfunc == 1) { // specular
-            attn = (light->pos * (*norm0)) > 0 ? max(0.0f, (light->dir * (*norm0))) : 0;
+            // donko - what is going on here?  655.36 is a guess but seems about right.
+            attn = (light->pos * (*norm0)) > -655.36 ? max(0.0f, (light->dir * (*norm0))) : 0;
             ldir.set(1.0f, attn, attn * attn);
 
             float cosAtt = light->cosatt * ldir;
             float distAtt = light->distatt * ldir;
-            attn = distAtt==0.0f?1.0f:(max(0.0f, cosAtt) / distAtt); 
+            attn = SafeDivide(max(0.0f, cosAtt), distAtt);
         }
 
         switch (chan.diffusefunc) {

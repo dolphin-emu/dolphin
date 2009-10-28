@@ -32,6 +32,7 @@ Config::Config()
     bDumpTextures = false;
     bDumpObjects = false;
     bDumpFrames = false;
+    bDumpTevStages = false;
 
     bHwRasterizer = false;
 

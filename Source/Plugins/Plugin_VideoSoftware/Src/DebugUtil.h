@@ -20,6 +20,8 @@
 
 namespace DebugUtil
 {
+    void Init();
+
     void GetTextureBGRA(u8 *dst, u32 texmap, int width, int height);
 
     void DumpActiveTextures();
@@ -28,6 +30,8 @@ namespace DebugUtil
     void OnObjectEnd();
 
     void OnFrameEnd();
+
+    void DrawObjectBuffer(s16 x, s16 y, u8 *color, int buffer, const char *name);
 }
 
 #endif 

@@ -32,6 +32,20 @@ namespace DebugUtil
 {
 
 u32 skipFrames = 0;
+const int NumObjectBuffers = 32;
+u8 ObjectBuffer[NumObjectBuffers][EFB_WIDTH*EFB_HEIGHT*4];
+bool DrawnToBuffer[NumObjectBuffers];
+const char* ObjectBufferName[NumObjectBuffers];
+
+void Init()
+{
+    for (int i = 0; i < NumObjectBuffers; i++)
+    {
+        memset(ObjectBuffer[i], 0, sizeof(ObjectBuffer[i]));
+        DrawnToBuffer[i] = false;
+        ObjectBufferName[i] = 0;
+    }
+}
 
 bool SaveTexture(const char* filename, u32 texmap, int width, int height)
 {
@@ -133,11 +147,24 @@ void DumpDepth(const char* filename)
     delete []data;
 }
 
+void DrawObjectBuffer(s16 x, s16 y, u8 *color, int buffer, const char *name)
+{
+    u32 offset = (x + y * EFB_WIDTH) * 4;
+    u8 *dst = &ObjectBuffer[buffer][offset];
+    *(dst++) = color[2];
+    *(dst++) = color[1];
+    *(dst++) = color[0];
+    *(dst++) = color[3];
+
+    DrawnToBuffer[buffer] = true;
+    ObjectBufferName[buffer] = name;
+}
+
 void OnObjectBegin()
 {
     if (!g_SkipFrame)
     {
-        if (g_Config.bDumpTextures)
+        if (g_Config.bDumpTextures && stats.thisFrame.numDrawnObjects >= g_Config.drawStart && stats.thisFrame.numDrawnObjects < g_Config.drawEnd)
             DumpActiveTextures();
 
         if (g_Config.bHwRasterizer)
@@ -149,11 +176,22 @@ void OnObjectEnd()
 {
     if (!g_SkipFrame)
     {
-        if (g_Config.bDumpObjects)
+        if (g_Config.bDumpObjects && stats.thisFrame.numDrawnObjects >= g_Config.drawStart && stats.thisFrame.numDrawnObjects < g_Config.drawEnd)
             DumpEfb(StringFromFormat("%s/object%i.tga", FULL_FRAMES_DIR, stats.thisFrame.numDrawnObjects).c_str());
 
         if (g_Config.bHwRasterizer)
             HwRasterizer::EndTriangles();
+
+        for (int i = 0; i < NumObjectBuffers; i++)
+        {
+            if (DrawnToBuffer[i])
+            {
+                DrawnToBuffer[i] = false;
+                SaveTGA(StringFromFormat("%s/object%i_%s(%i).tga", FULL_FRAMES_DIR,
+                    stats.thisFrame.numDrawnObjects, ObjectBufferName[i], i).c_str(), EFB_WIDTH, EFB_HEIGHT, ObjectBuffer[i]);
+                memset(ObjectBuffer[i], 0, sizeof(ObjectBuffer[i]));
+            }
+        }
 
         stats.thisFrame.numDrawnObjects++;
     }

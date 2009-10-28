@@ -46,6 +46,8 @@ const int maxCommandBufferWrite = commandBufferSize - commandBufferCopySize;
 u8 commandBuffer[commandBufferSize];
 u32 readPos;
 u32 writePos;
+bool interruptSet;
+int et_UpdateInterrupts;
 
 CPReg cpreg; // shared between gfx and emulator thread
 
@@ -55,20 +57,13 @@ void DoState(PointerWrap &p)
 	p.Do(cpreg);
 }
 
-// function
-void UpdateFifoRegister();
-void UpdateInterrupts();
-
 // does it matter that there is no synchronization between threads during writes?
 inline void WriteLow (u32& _reg, u16 lowbits)  {_reg = (_reg & 0xFFFF0000) | lowbits;}
 inline void WriteHigh(u32& _reg, u16 highbits) {_reg = (_reg & 0x0000FFFF) | ((u32)highbits << 16);}
-//inline void WriteLow (volatile u32& _reg, u16 lowbits)  {Common::SyncInterlockedExchange((LONG*)&_reg,(_reg & 0xFFFF0000) | lowbits);}
-//inline void WriteHigh(volatile u32& _reg, u16 highbits) {Common::SyncInterlockedExchange((LONG*)&_reg,(_reg & 0x0000FFFF) | ((u32)highbits << 16));}
 
 inline u16 ReadLow  (u32 _reg)  {return (u16)(_reg & 0xFFFF);}
 inline u16 ReadHigh (u32 _reg)  {return (u16)(_reg >> 16);}
 
-int et_UpdateInterrupts;
 
 void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
 {
@@ -97,25 +92,13 @@ void Init()
     readPos = 0;
     writePos = 0;
 
+    interruptSet = false;
+
     g_pVideoData = 0;
 }
 
 void Shutdown()
 {
-#ifndef _WIN32
-  //  delete fifo.sync;
-#endif
-}
-
-void Read16(u16& _rReturnValue, const u32 _Address)
-{
-	DEBUG_LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
-
-    u32 regAddr = (_Address & 0xFFF) >> 1;
-    if (regAddr < 0x20)
-        _rReturnValue = ((u16*)&cpreg)[regAddr];
-    else
-        _rReturnValue = 0;
 }
 
 void RunGpu()
@@ -127,10 +110,23 @@ void RunGpu()
 	    LoadDefaultSSEState();			
         
         // run the opcode decoder
+        do {
         RunBuffer();
+        } while (cpreg.ctrl.GPReadEnable && !cpreg.status.Breakpoint && cpreg.rwdistance >= commandBufferCopySize);
 
         LoadSSEState();
     }
+}
+
+void Read16(u16& _rReturnValue, const u32 _Address)
+{
+	DEBUG_LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
+
+    u32 regAddr = (_Address & 0xFFF) >> 1;
+    if (regAddr < 0x20)
+        _rReturnValue = ((u16*)&cpreg)[regAddr];
+    else
+        _rReturnValue = 0;
 }
 
 void Write16(const u16 _Value, const u32 _Address)
@@ -149,6 +145,8 @@ void Write16(const u16 _Value, const u32 _Address)
             cpreg.status.Hex = _Value;
 
 			INFO_LOG(COMMANDPROCESSOR,"\t write to STATUS_REGISTER : %04x", _Value);
+
+            UpdateInterrupts();
 		}
 		break;
 
@@ -158,22 +156,22 @@ void Write16(const u16 _Value, const u32 _Address)
 
             // clear breakpoint if BPEnable and CPIntEnable are 0
             if (!cpreg.ctrl.BPEnable) {
-                if (!cpreg.ctrl.CPIntEnable) {
+                if (!cpreg.ctrl.BreakPointIntEnable) {
                     cpreg.status.Breakpoint = 0;
                 }
             }
 
-			UpdateInterrupts();
-
 			DEBUG_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
-			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | CPULINK %s | BP %s || CPIntEnable %s | OvF %s | UndF %s"
+			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | CPULINK %s | BP %s || BPIntEnable %s | OvF %s | UndF %s"
                 , cpreg.ctrl.GPReadEnable ?				"ON" : "OFF"
                 , cpreg.ctrl.GPLinkEnable ?				"ON" : "OFF"
                 , cpreg.ctrl.BPEnable ?					"ON" : "OFF"
-                , cpreg.ctrl.CPIntEnable ?				"ON" : "OFF"
+                , cpreg.ctrl.BreakPointIntEnable ?		"ON" : "OFF"
 				, cpreg.ctrl.FifoOverflowIntEnable ?	"ON" : "OFF"
 				, cpreg.ctrl.FifoUnderflowIntEnable ?	"ON" : "OFF"
 				);
+
+            UpdateInterrupts();
 
 		}
 		break;
@@ -188,6 +186,8 @@ void Write16(const u16 _Value, const u32 _Address)
                 cpreg.status.UnderflowLoWatermark = 0;
 
             INFO_LOG(COMMANDPROCESSOR,"\t write to CLEAR_REGISTER : %04x",_Value);
+
+            UpdateInterrupts();
 		}		
 		break;
 
@@ -303,19 +303,21 @@ void STACKALIGN GatherPipeBursted()
 
 void UpdateInterrupts()
 {
-    bool bpInt = cpreg.status.Breakpoint && cpreg.ctrl.BPEnable;
+    bool bpInt = cpreg.status.Breakpoint && cpreg.ctrl.BreakPointIntEnable;
     bool ovfInt = cpreg.status.OverflowHiWatermark && cpreg.ctrl.FifoOverflowIntEnable;
     bool undfInt = cpreg.status.UnderflowLoWatermark && cpreg.ctrl.FifoUnderflowIntEnable;    
 
     DEBUG_LOG(COMMANDPROCESSOR, "\tUpdate Interrupts");
-    DEBUG_LOG(COMMANDPROCESSOR, "\tCPIntEnable %s | BP %s | OvF %s | UndF %s"
-                , cpreg.ctrl.CPIntEnable ?				"ON" : "OFF"
+    DEBUG_LOG(COMMANDPROCESSOR, "\tBreakPointIntEnable %s | BP %s | OvF %s | UndF %s"
+        , cpreg.ctrl.BreakPointIntEnable ?				"ON" : "OFF"
                 , cpreg.ctrl.BPEnable ?					"ON" : "OFF"                
 				, cpreg.ctrl.FifoOverflowIntEnable ?	"ON" : "OFF"
 				, cpreg.ctrl.FifoUnderflowIntEnable ?	"ON" : "OFF"
 				);
 
-    if (cpreg.ctrl.CPIntEnable && (bpInt || ovfInt || undfInt))
+    interruptSet = bpInt || ovfInt || undfInt;
+
+    if (interruptSet)
 	{
 		DEBUG_LOG(COMMANDPROCESSOR,"Interrupt set");
         g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, true);        
@@ -334,8 +336,6 @@ void UpdateInterruptsFromVideoPlugin()
 
 void ReadFifo()
 {
-    bool updateInterrupts = false;
-
     cpreg.status.ReadIdle = 0;
 
     // update rwdistance
@@ -347,7 +347,6 @@ void ReadFifo()
 
     // overflow check
     cpreg.status.OverflowHiWatermark = cpreg.rwdistance < cpreg.hiwatermark?0:1;
-    updateInterrupts |= cpreg.ctrl.FifoOverflowIntEnable && cpreg.status.OverflowHiWatermark;
 
     // read from fifo    
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(cpreg.readptr);    
@@ -363,8 +362,6 @@ void ReadFifo()
         {
             cpreg.status.Breakpoint = 1;
             DEBUG_LOG(VIDEO,"Hit breakpoint at %x", readptr);
-            if (cpreg.ctrl.CPIntEnable)
-                updateInterrupts = true;
         }
         else
         {
@@ -389,12 +386,20 @@ void ReadFifo()
 
     // underflow check
     cpreg.status.UnderflowLoWatermark = cpreg.rwdistance > cpreg.lowatermark?0:1;
-    updateInterrupts |= cpreg.ctrl.FifoUnderflowIntEnable && cpreg.status.UnderflowLoWatermark;
 
     cpreg.status.ReadIdle = 1;
 
-    if (updateInterrupts)
+    bool bpInt = cpreg.status.Breakpoint && cpreg.ctrl.BreakPointIntEnable;
+    bool ovfInt = cpreg.status.OverflowHiWatermark && cpreg.ctrl.FifoOverflowIntEnable;
+    bool undfInt = cpreg.status.UnderflowLoWatermark && cpreg.ctrl.FifoUnderflowIntEnable;
+
+    bool interrupt = bpInt || ovfInt || undfInt;
+
+    if (interrupt != interruptSet)
+    {
+        interruptSet = interrupt;
         UpdateInterruptsFromVideoPlugin();
+    }
 }
 
 bool RunBuffer()

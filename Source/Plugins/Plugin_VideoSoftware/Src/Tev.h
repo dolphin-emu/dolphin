@@ -51,6 +51,13 @@ class Tev
 
     void Indirect(unsigned int stageNum, float s, float t);    
 
+    struct InputRegType {
+        unsigned a : 8;
+        unsigned b : 8;
+        unsigned c : 8;
+        signed   d : 11;
+    };
+
 public:
     s32 Position[3];
     u8 Color[2][4];

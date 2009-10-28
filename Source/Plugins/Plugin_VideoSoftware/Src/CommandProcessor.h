@@ -76,7 +76,7 @@ namespace CommandProcessor
 	    struct
 	    {
 		    unsigned GPReadEnable			:	1;
-		    unsigned CPIntEnable			:	1;
+		    unsigned BreakPointIntEnable	:	1;
 		    unsigned FifoOverflowIntEnable	:	1;
 		    unsigned FifoUnderflowIntEnable	:	1;
 		    unsigned GPLinkEnable			:	1;
