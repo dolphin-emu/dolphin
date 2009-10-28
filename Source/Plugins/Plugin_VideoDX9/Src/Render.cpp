@@ -118,13 +118,6 @@ bool Renderer::Init()
 {
 	UpdateActiveConfig();
 	int fullScreenRes, w_temp, h_temp;
-	sscanf(g_Config.cInternalRes, "%dx%d", &w_temp, &h_temp);
-	if (w_temp <= 0 || h_temp <= 0)
-	{
-		w_temp = 640;
-		h_temp = 480;
-	}
-	EmuWindow::SetSize(w_temp, h_temp);
 	s_blendMode = 0;
 	int backbuffer_ms_mode = 0;  // g_ActiveConfig.iMultisampleMode;
 

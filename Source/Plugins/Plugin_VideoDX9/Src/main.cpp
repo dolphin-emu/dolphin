@@ -235,9 +235,9 @@ void Initialize(void *init)
 	UpdateProjectionHack(g_Config.iPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
 
     // create the window
-	if (!g_Config.RenderToMainframe || g_VideoInitialize.pWindowHandle == NULL) // ignore parent for this plugin
+	/*if (!g_Config.RenderToMainframe || g_VideoInitialize.pWindowHandle == NULL) // ignore parent for this plugin
 		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, _T("Loading - Please wait."));
-	else
+	else*/
 		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Loading - Please wait."));
 	if (g_VideoInitialize.pWindowHandle == NULL)
 	{

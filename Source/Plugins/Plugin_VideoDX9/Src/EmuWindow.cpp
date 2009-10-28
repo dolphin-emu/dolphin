@@ -130,10 +130,11 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	break;
 
 	case WM_CLOSE:
-		Fifo_ExitLoopNonBlocking();
-		Shutdown();
+		//Fifo_ExitLoopNonBlocking();
+		//Shutdown();
+		PostMessage( m_hParent, WM_USER, OPENGL_WM_USER_STOP, 0 );
 		// Simple hack to easily exit without stopping. Hope to fix the stopping errors soon.
-		ExitProcess(0);
+		//ExitProcess(0);
 		return 0;
 
 	case WM_DESTROY:
@@ -184,16 +185,16 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	m_hInstance = hInstance;
 	RegisterClassEx( &wndClass );
 
-	if (parent)
+	if (g_Config.RenderToMainframe)
 	{
-		m_hWnd = CreateWindow(m_szClassName, title,
-			WS_CHILD,
-			CW_USEDEFAULT, CW_USEDEFAULT,CW_USEDEFAULT, CW_USEDEFAULT,
-			parent, NULL, hInstance, NULL );
-
 		m_hParent = parent;
 
-		ShowWindow(m_hWnd, SW_SHOWMAXIMIZED);            
+		m_hWnd = CreateWindowEx(0, m_szClassName, title, WS_CHILD,
+			0, 0, width, height,
+			m_hParent, NULL, hInstance, NULL);
+
+		if( !g_Config.bFullscreen )
+			SetWindowPos( GetParent(m_hParent), NULL, 0, 0, width, height, SWP_NOMOVE|SWP_NOZORDER );
 	}
 	else
 	{
@@ -210,14 +211,9 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 		rc.top = (1024 - h)/2;
 		rc.bottom = rc.top + h;
 
-		m_hWnd = CreateWindow(m_szClassName, title,
-			style,
+		m_hWnd = CreateWindowEx(0, m_szClassName, title, style,
 			rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top,
-			parent, NULL, hInstance, NULL );
-
-		g_winstyle = GetWindowLong( m_hWnd, GWL_STYLE );
-		g_winstyle &= ~WS_MAXIMIZE & ~WS_MINIMIZE; // remove minimize/maximize style
-
+			NULL, NULL, hInstance, NULL );
 	}
 
 	return m_hWnd;
@@ -225,14 +221,16 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 
 void Show()
 {
-	ShowWindow(m_hWnd, SW_SHOW);
+	ShowWindow(m_hWnd, SW_SHOWNORMAL);
 	BringWindowToTop(m_hWnd);
 	UpdateWindow(m_hWnd);
 }
 
 HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
 {
-	return OpenWindow(hParent, hInstance, 640, 480, title);
+	int width=640, height=480;
+	sscanf( g_Config.bFullscreen ? g_Config.cFSResolution : g_Config.cInternalRes, "%dx%d", &width, &height );
+	return OpenWindow(hParent, hInstance, width, height, title);
 }
 
 void Close()
@@ -244,7 +242,8 @@ void Close()
 void SetSize(int width, int height)
 {
 	RECT rc = {0, 0, width, height};
-	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, false);
+	DWORD style = GetWindowLong(m_hWnd, GWL_STYLE);
+	AdjustWindowRect(&rc, style, false);
 
 	int w = rc.right - rc.left;
 	int h = rc.bottom - rc.top;
