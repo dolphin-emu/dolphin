@@ -356,7 +356,8 @@ static const char *alphaRef[2] =
 static const char *tevCOutputTable[]  = { "prev.rgb", "c0.rgb", "c1.rgb", "c2.rgb" };
 static const char *tevAOutputTable[]  = { "prev.a", "c0.a", "c1.a", "c2.a" };
 static const char *tevIndAlphaSel[]   = {"", "x", "y", "z"};
-static const char *tevIndAlphaScale[] = {"", "*32","*16","*8"};
+//static const char *tevIndAlphaScale[] = {"", "*32","*16","*8"};
+static const char *tevIndAlphaScale[] = {"*(248.0f/255.0f)", "*(224.0f/255.0f)","*(240.0f/255.0f)","*(248.0f/255.0f)"};
 static const char *tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
 static const char *tevIndBiasAdd[]    = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
 static const char *tevIndWrapStart[]  = {"0", "256", "128", "64", "32", "16", "0.001" };
@@ -556,6 +557,52 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
     return text;
 }
 
+
+
+//table with the color compare operations
+static const char *TEVCMPColorOPTable[16] =
+{
+	"float3(0.0f,0.0f,0.0f)",//0
+	"float3(0.0f,0.0f,0.0f)",//1
+	"float3(0.0f,0.0f,0.0f)",//2
+	"float3(0.0f,0.0f,0.0f)",//3
+	"float3(0.0f,0.0f,0.0f)",//4
+	"float3(0.0f,0.0f,0.0f)",//5
+	"float3(0.0f,0.0f,0.0f)",//6
+	"float3(0.0f,0.0f,0.0f)",//7
+	"   %s + ((%s.r > %s.r + (1.0f/510.0f)) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_R8_GT 8
+	"   %s + ((abs(%s.r - %s.r) < (1.0f/255.0f)) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_R8_EQ 9
+	"   %s + (( dot(%s.rgb, comp16) >= (dot(%s.rgb, comp16) + (1.0f/510.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_GR16_GT 10
+	"   %s + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (1.0f/255.0f) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_GR16_EQ 11
+	"   %s + (( dot(%s.rgb, comp24) >= (dot(%s.rgb, comp24) + (1.0f/510.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_BGR24_GT 12
+	"   %s + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (1.0f/255.0f) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_BGR24_EQ 13
+	"   %s + (max(sign(%s.rgb - %s.rgb - (1.0f/510.0f)),float3(0.0f,0.0f,0.0f)) * %s)",//#define TEVCMP_RGB8_GT  14
+	"   %s + ((float3(1.0f,1.0f,1.0f) - max(sign(abs(%s.rgb - %s.rgb) - (1.0f/255.0f)),float3(0.0f,0.0f,0.0f))) * %s)"//#define TEVCMP_RGB8_EQ  15
+};
+
+//table with the alpha compare operations
+static const char *TEVCMPAlphaOPTable[16] =
+{
+	"0.0f",//0
+	"0.0f",//1
+	"0.0f",//2
+	"0.0f",//3
+	"0.0f",//4
+	"0.0f",//5
+	"0.0f",//6
+	"0.0f",//7
+	"   %s + ((%s.r >= (%s.r + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_R8_GT 8
+	"   %s + (abs(%s.r - %s.r) < (1.0f/255.0f) ? %s : 0.0f)",//#define TEVCMP_R8_EQ 9
+	"   %s + ((dot(%s.rgb, comp16) >= (dot(%s.rgb, comp16) + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_GR16_GT 10
+	"   %s + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (1.0f/255.0f) ? %s : 0.0f)",//#define TEVCMP_GR16_EQ 11
+	"   %s + ((dot(%s.rgb, comp24) >= (dot(%s.rgb, comp24) + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_BGR24_GT 12
+	"   %s + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (1.0f/255.0f) ? %s : 0.0f)",//#define TEVCMP_BGR24_EQ 13	
+	"   %s + ((%s.a >= (%s.a + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_A8_GT 14
+	"   %s + (abs(%s.a - %s.a) < (1.0f/255.0f) ? %s : 0.0f)"//#define TEVCMP_A8_EQ 15
+
+};
+
+
 static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
 {
     char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
@@ -575,33 +622,11 @@ static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
         // perform the indirect op on the incoming regular coordinates using indtex%d as the offset coords
 		if (bpmem.tevind[n].bs != ITBA_OFF) 
 		{
-            // write the bump alpha
-			if (bpmem.tevind[n].fmt == ITF_8) 
-				WRITE(p, "alphabump = indtex%d.%s %s;\n", 
-				bpmem.tevind[n].bt, 
-				tevIndAlphaSel[bpmem.tevind[n].bs], 
-				tevIndAlphaScale[bpmem.tevind[n].fmt]);
-			else 
-			{			
-				// donkopunchstania: really bad way to do this
-				// cannot always use fract because fract(1.0) is 0.0 when it needs to be 1.0
-				// omitting fract seems to work as well
-				WRITE(p, "if (indtex%d.%s >= 1.0f )\n", bpmem.tevind[n].bt,	tevIndAlphaSel[bpmem.tevind[n].bs]);
-				WRITE(p, "   alphabump = 1.0f;\n");
-				WRITE(p, "else\n");
-				WRITE(p, "   alphabump = fract ( indtex%d.%s %s );\n", 
-					bpmem.tevind[n].bt,
-					tevIndAlphaSel[bpmem.tevind[n].bs], 
-					tevIndAlphaScale[bpmem.tevind[n].fmt]);
-				/*WRITE(p, "   alphabump = indtex%d.%s %s;\n", 
-					bpmem.tevind[n].bt,
-					tevIndAlphaSel[bpmem.tevind[n].bs], 
-					tevIndAlphaScale[bpmem.tevind[n].fmt]);
-				WRITE(p, "if (alphabump > 1.0f ){ alphabump = fract ( alphabump );if (alphabump == 0.0f ) alphabump = 1.0f;}\n");*/
-				
-			}
-		}
-
+			WRITE(p, "alphabump = indtex%d.%s %s;\n", 
+			bpmem.tevind[n].bt, 
+			tevIndAlphaSel[bpmem.tevind[n].bs], 
+			tevIndAlphaScale[bpmem.tevind[n].fmt]);			
+		}		
         // format
         WRITE(p, "float3 indtevcrd%d = indtex%d * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt]);
 
@@ -677,7 +702,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
         SampleTexture(p, "textemp", "tevcoord", texswap, texmap, texture_mask, HLSL);
     }
     else
-        WRITE(p, "textemp=float4(1.0,1.0,1.0,1.0);\n");
+        WRITE(p, "textemp=float4(1.0f,1.0f,1.0f,1.0f);\n");
 
     int kc = bpmem.tevksel[n / 2].getKC(n & 1);
     int ka = bpmem.tevksel[n / 2].getKA(n & 1);
@@ -723,51 +748,11 @@ static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
     else 
 	{
         int cmp = (cc.shift<<1)|cc.op|8; // comparemode stored here
-        switch(cmp) 
-		{
-        case TEVCMP_R8_GT:
-        case TEVCMP_RGB8_GT: // per component compares
-            WRITE(p, "   %s + ((%s.%s > %s.%s) ? %s : float3(0.0f,0.0f,0.0f))",
+		WRITE(p, TEVCMPColorOPTable[cmp],//lockup the function from the op table
                 tevCInputTable[cc.d], 
-				tevCInputTable2[cc.a], 
-				cmp==TEVCMP_R8_GT?"r":"rgb", 
-				tevCInputTable2[cc.b], 
-				cmp==TEVCMP_R8_GT?"r":"rgb", 
-				tevCInputTable[cc.c]);
-            break;
-        case TEVCMP_R8_EQ:
-        case TEVCMP_RGB8_EQ:
-            WRITE(p, "   %s + (abs(%s.r - %s.r)<%f ? %s : float3(0.0f,0.0f,0.0f))",
-                tevCInputTable[cc.d], 
-				tevCInputTable2[cc.a], 
-				tevCInputTable2[cc.b], 
-				epsilon8bit, 
-				tevCInputTable[cc.c]);
-            break;
-        
-        case TEVCMP_GR16_GT: // 16 bit compares: 255*g+r (probably used for ztextures, so make sure in ztextures, g is the most significant byte)
-        case TEVCMP_BGR24_GT: // 24 bit compares: 255*255*b+255*g+r
-            WRITE(p, "   %s + (( dot(%s.rgb-%s.rgb, comp%s) > 0) ? %s : float3(0.0f,0.0f,0.0f))",
-                tevCInputTable[cc.d], 
-				tevCInputTable2[cc.a], 
-				tevCInputTable2[cc.b], 
-				cmp==TEVCMP_GR16_GT?"16":"24", 
-				tevCInputTable[cc.c]);
-            break;
-        case TEVCMP_GR16_EQ:
-        case TEVCMP_BGR24_EQ:
-            WRITE(p, "   %s + (abs(dot(%s.rgb - %s.rgb, comp%s))<%f ? %s : float3(0.0f,0.0f,0.0f))",
-                tevCInputTable[cc.d], 
-				tevCInputTable2[cc.a], 
-				tevCInputTable2[cc.b], 
-				cmp==TEVCMP_GR16_EQ?"16":"24", 
-				epsilon8bit, 
-				tevCInputTable[cc.c]);
-            break;
-        default:
-            WRITE(p, "float3(0.0f,0.0f,0.0f)");
-            break;
-        }
+				tevCInputTable2[cc.a],
+				tevCInputTable2[cc.b],
+				tevCInputTable[cc.c]);       
     }
 
 	WRITE(p,");\n");
@@ -806,51 +791,11 @@ static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
 	{
         //compare alpha combiner goes here
         int cmp = (ac.shift<<1)|ac.op|8; // comparemode stored here
-        switch(cmp) 
-		{
-        case TEVCMP_R8_GT:
-        case TEVCMP_A8_GT:
-            WRITE(p, "   %s + ((%s.%s > %s.%s) ? %s : 0)",
+		WRITE(p, TEVCMPAlphaOPTable[cmp],
                 tevAInputTable[ac.d],
-				tevAInputTable2[ac.a], 
-				cmp==TEVCMP_R8_GT?"r":"a", 
-				tevAInputTable2[ac.b], 
-				cmp==TEVCMP_R8_GT?"r":"a", 
-				tevAInputTable[ac.c]);
-            break;
-        case TEVCMP_R8_EQ:
-        case TEVCMP_A8_EQ:
-            WRITE(p, "   %s + (abs(%s.r - %s.r)<= %f ? %s : 0)",
-                tevAInputTable[ac.d],
-				tevAInputTable2[ac.a], 
+				tevAInputTable2[ac.a],
 				tevAInputTable2[ac.b],
-				epsilon8bit,
-				tevAInputTable[ac.c]);
-            break;
-        
-        case TEVCMP_GR16_GT: // 16 bit compares: 255*g+r (probably used for ztextures, so make sure in ztextures, g is the most significant byte)
-        case TEVCMP_BGR24_GT: // 24 bit compares: 255*255*b+255*g+r
-            WRITE(p, "   %s + (( dot(%s.rgb-%s.rgb, comp%s) > 0) ? %s : 0)",
-                tevAInputTable[ac.d],
-				tevAInputTable2[ac.a], 
-				tevAInputTable2[ac.b], 
-				cmp==TEVCMP_GR16_GT?"16":"24", 
-				tevAInputTable[ac.c]);
-            break;
-        case TEVCMP_GR16_EQ:
-        case TEVCMP_BGR24_EQ:
-            WRITE(p, "   %s + (abs(dot(%s.rgb - %s.rgb, comp%s))<=%f ? %s : 0)",
-                tevAInputTable[ac.d],
-				tevAInputTable2[ac.a], 
-				tevAInputTable2[ac.b],
-				cmp==TEVCMP_GR16_EQ?"16":"24",
-				epsilon8bit,
-				tevAInputTable[ac.c]);
-            break;
-        default:
-            WRITE(p, "0)");
-            break;
-        }
+				tevAInputTable[ac.c]);       		
     }
 
     WRITE(p, ");\n\n");
@@ -897,26 +842,14 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
 
 static const char *tevAlphaFuncsTable[] = 
 {
-    "(false)",						//ALPHACMP_NEVER 0
-	"(prev.a <= %s - %f)",			//ALPHACMP_LESS 1
-	"(abs( prev.a - %s ) < %f)",	//ALPHACMP_EQUAL 2
-	"(prev.a < %s + %f)",			//ALPHACMP_LEQUAL 3
-	"(prev.a >= %s + %f)",			//ALPHACMP_GREATER 4
-	"(abs( prev.a - %s ) >= %f)",	//ALPHACMP_NEQUAL 5
-	"(prev.a > %s - %f)",			//ALPHACMP_GEQUAL 6
-	"(true)"						//ALPHACMP_ALWAYS 7
-};
-
-static const float tevAlphaDeltas[] = 
-{
-    0.0f,				//ALPHACMP_NEVER 0
-	epsilon8bit*0.5f,	//ALPHACMP_LESS 1
-	epsilon8bit,		//ALPHACMP_EQUAL 2
-	epsilon8bit*0.5f,	//ALPHACMP_LEQUAL 3
-	epsilon8bit*0.5f,	//ALPHACMP_GREATER 4
-	epsilon8bit,		//ALPHACMP_NEQUAL 5
-	epsilon8bit*0.5f,	//ALPHACMP_GEQUAL 6
-	0.0f				//ALPHACMP_ALWAYS 7
+    "(false)",									//ALPHACMP_NEVER 0
+	"(prev.a <= %s - (1.0f/510.0f))",			//ALPHACMP_LESS 1
+	"(abs( prev.a - %s ) < (1.0f/255.0f))",		//ALPHACMP_EQUAL 2
+	"(prev.a < %s + (1.0f/510.0f))",			//ALPHACMP_LEQUAL 3
+	"(prev.a >= %s + (1.0f/510.0f))",			//ALPHACMP_GREATER 4
+	"(abs( prev.a - %s ) >= (1.0f/255.0f))",	//ALPHACMP_NEQUAL 5
+	"(prev.a > %s - (1.0f/510.0f))",			//ALPHACMP_GEQUAL 6
+	"(true)"									//ALPHACMP_ALWAYS 7
 };
 
 static const char *tevAlphaFunclogicTable[] =
@@ -965,12 +898,12 @@ static bool WriteAlphaTest(char *&p, bool HLSL)
 		WRITE(p, "discard(!( ");
 
 	int compindex = bpmem.alphaFunc.comp0 % 8;
-	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[0],tevAlphaDeltas[compindex]);
+	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[0]);//lockup the first component from the alpha function table
     
-	WRITE(p, tevAlphaFunclogicTable[bpmem.alphaFunc.logic % 4]);
+	WRITE(p, tevAlphaFunclogicTable[bpmem.alphaFunc.logic % 4]);//lockup the logic op
    
     compindex = bpmem.alphaFunc.comp1 % 8;
-	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1],tevAlphaDeltas[compindex]);    
+	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lockup the second component from the alpha function table    
 
 	if (HLSL) {
 		// clip works differently than discard - discard takes a bool, clip takes a value that kills the pixel on negative
