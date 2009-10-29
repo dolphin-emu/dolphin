@@ -23,6 +23,10 @@
 #include <sys/param.h>
 #endif
 
+#ifdef __linux__
+#include <X11/Xlib.h>
+#endif
+
 #include "Common.h" // Common
 #include "CPUDetect.h"
 #include "IniFile.h"
@@ -119,7 +123,9 @@ bool DolphinApp::OnInit()
 		RegisterMsgAlertHandler(&wxMsgAlert);
 #endif
 
-
+#if defined __linux__
+		XInitThreads();
+#endif 
 	// "ExtendedTrace" looks freakin dangerous!!!
 	#ifdef _WIN32
 		EXTENDEDTRACEINITIALIZE(".");
