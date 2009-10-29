@@ -38,7 +38,7 @@ void Jit64::lbzx(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
 	if (Core::g_CoreStartupParameter.bJITLoadStorelbzxOff)
-		Default(inst); return;
+	{ Default(inst); return; }
 
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 	gpr.Lock(a, b, d);
@@ -114,7 +114,7 @@ void Jit64::lXz(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
 	if (Core::g_CoreStartupParameter.bJITLoadStorelXzOff)
-		Default(inst); return;
+	{ Default(inst); return; }
 
 	int d = inst.RD;
 	int a = inst.RA;
