@@ -813,7 +813,7 @@ union UPE_Copy
         unsigned                        : 1;
         unsigned target_pixel_format	: 4; // realformat is (fmt/2)+((fmt&1)*8).... for some reason the msb is the lsb
         unsigned gamma					: 2;
-        unsigned half_scale             : 1; // real size should be 2x smaller (run a gauss filter?)
+        unsigned half_scale             : 1; // real size should be 2x smaller (run a gauss filter?) "mipmap"
         unsigned scale_invert			: 1;
         unsigned clear					: 1;
         unsigned frame_to_field			: 2;

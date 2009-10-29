@@ -194,16 +194,19 @@ void Jit64::fsign(UGeckoInstruction inst)
 
 void Jit64::fmrx(UGeckoInstruction inst)
 {
+	INSTRUCTION_START
 	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
 		{Default(inst); return;} // turn off from debugger
-	INSTRUCTION_START;
 	if (inst.Rc) {
 		Default(inst); return;
 	}
 	int d = inst.FD;
 	int b = inst.FB;
-	fpr.LoadToX64(d, true);  // we don't want to destroy the high bit
-	MOVSD(fpr.RX(d), fpr.R(b));
+	fpr.Lock(b, d);
+	fpr.LoadToX64(d, true, true);
+	MOVSD(XMM0, fpr.R(b));
+	MOVSD(fpr.R(d), XMM0);
+	fpr.UnlockAll();
 }
  
 void Jit64::fcmpx(UGeckoInstruction inst)
