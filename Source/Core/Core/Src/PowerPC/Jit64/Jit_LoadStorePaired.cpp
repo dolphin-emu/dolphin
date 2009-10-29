@@ -91,9 +91,8 @@ const double GC_ALIGNED16(m_dequantizeTableD[]) =
 // We will have to break block after quantizers are written to.
 void Jit64::psq_st(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStorePairedOff)
-		{Default(inst); return;} // turn off from debugger	
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(LoadStorePaired)
 	js.block_flags |= BLOCK_USE_GQR0 << inst.I;
 
 	if (js.blockSetsQuantizers || !Core::GetStartupParameter().bOptimizeQuantizers)
@@ -296,9 +295,8 @@ void Jit64::psq_st(UGeckoInstruction inst)
 
 void Jit64::psq_l(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStorePairedOff)
-		{Default(inst); return;} // turn off from debugger	
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(LoadStorePaired)
 
 	js.block_flags |= BLOCK_USE_GQR0 << inst.I;
 

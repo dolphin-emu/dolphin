@@ -77,7 +77,10 @@ void Jit(u32 em_address);
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);
 #define INSTRUCTION_START
 
-
+#define JITDISABLE(type) \
+	if (Core::g_CoreStartupParameter.bJITOff || \
+	Core::g_CoreStartupParameter.bJIT##type##Off) \
+	{Default(inst); return;}
 
 class TrampolineCache : public Gen::XCodeBlock
 {

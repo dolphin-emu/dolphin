@@ -51,9 +51,8 @@ u32 GC_ALIGNED16(temp32);
 
 void Jit64::lfs(UGeckoInstruction inst)
 {
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-		{Default(inst); return;} // turn off from debugger	
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(LoadStoreFloating)
 
 	int d = inst.RD;
 	int a = inst.RA;
@@ -88,9 +87,8 @@ void Jit64::lfs(UGeckoInstruction inst)
 
 void Jit64::lfd(UGeckoInstruction inst)
 {
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-		{Default(inst); return;} // turn off from debugger	
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(LoadStoreFloating)
 
 	int d = inst.RD;
 	int a = inst.RA;
@@ -155,10 +153,8 @@ void Jit64::lfd(UGeckoInstruction inst)
 
 void Jit64::stfd(UGeckoInstruction inst)
 {
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-		{Default(inst); return;} // turn off from debugger	
-
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(LoadStoreFloating)
 
 	int s = inst.RS;
 	int a = inst.RA;
@@ -234,9 +230,8 @@ void Jit64::stfd(UGeckoInstruction inst)
 
 void Jit64::stfs(UGeckoInstruction inst)
 {
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-		{Default(inst); return;} // turn off from debugger	
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(LoadStoreFloating)
 
 	bool update = inst.OPCD & 1;
 	int s = inst.RS;
@@ -291,9 +286,8 @@ void Jit64::stfs(UGeckoInstruction inst)
 
 void Jit64::stfsx(UGeckoInstruction inst)
 {
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-		{Default(inst); return;} // turn off from debugger	
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(LoadStoreFloating)
 
 	// We can take a shortcut here - it's not likely that a hardware access would use this instruction.
 	gpr.FlushLockX(ABI_PARAM1);
@@ -311,9 +305,8 @@ void Jit64::stfsx(UGeckoInstruction inst)
 
 void Jit64::lfsx(UGeckoInstruction inst)
 {
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITLoadStoreFloatingOff)
-		{Default(inst); return;} // turn off from debugger	
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(LoadStoreFloating)
 
 	fpr.Lock(inst.RS);
 	fpr.LoadToX64(inst.RS, false, true);

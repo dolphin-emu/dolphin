@@ -73,9 +73,8 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEm
 
 void Jit64::fp_arith_s(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
-		{Default(inst); return;} // turn off from debugger
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -104,9 +103,8 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 
 void Jit64::fmaddXX(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
-		{Default(inst); return;} // turn off from debugger		
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -162,9 +160,8 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 
 void Jit64::fsign(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
-		{Default(inst); return;} // turn off from debugger
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -195,8 +192,7 @@ void Jit64::fsign(UGeckoInstruction inst)
 void Jit64::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITFloatingPointOff)
-		{Default(inst); return;} // turn off from debugger
+	JITDISABLE(FloatingPoint)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
@@ -213,9 +209,9 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 {
 	// TODO : This still causes crashes in Nights, and broken graphics
 	// in Paper Mario, Super Paper Mario as well as SoulCalibur 2 prolly others too.. :(
-	INSTRUCTION_START;
-	if(Core::g_CoreStartupParameter.bJITOff || jo.fpAccurateFcmp
-	|| Core::g_CoreStartupParameter.bJITFloatingPointOff) {
+	INSTRUCTION_START
+	JITDISABLE(FloatingPoint)
+	if (jo.fpAccurateFcmp) {
 		Default(inst); return; // turn off from debugger
 	}
 
