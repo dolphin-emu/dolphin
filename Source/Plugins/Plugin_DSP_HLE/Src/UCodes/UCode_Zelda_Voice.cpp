@@ -242,7 +242,9 @@ void PrintObject(const T &Obj)
 void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
 	// TODO: Compare mono, stereo and surround samples
+#if defined DEBUG || defined DEBUGFAST
 	PrintObject(PB);
+#endif
 
 	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
 
