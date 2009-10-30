@@ -117,7 +117,7 @@ void PixelShaderCache::Init()
 						"TEMP R0;\n"
 						"TEMP R1;\n"
                         "TEMP R2;\n"
-                        "PARAM K0 = { 65536.0, 256.0 };\n" 
+                        "PARAM K0 = { 65535.0, 255.0 };\n" 
 						"TEX R2, fragment.texcoord[0], texture[0], RECT;\n"
                         "MUL R0.x, R2.x, K0.x;\n"
                         "FRC R0.x, R0.x;\n"

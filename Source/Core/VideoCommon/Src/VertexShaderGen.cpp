@@ -168,7 +168,7 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 			WRITE(p, "  float4 blend_indices : BLENDINDICES,\n");
 		}
 		else
-			WRITE(p, "  half posmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+			WRITE(p, "  float posmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
 	}
     WRITE(p, "  float4 rawpos : POSITION) {\n");
     WRITE(p, "VS_OUTPUT o;\n");
@@ -188,36 +188,36 @@ const char *GenerateVertexShader(u32 components, bool D3D)
         }
 
         if (components & VB_HAS_NRM0)
-            WRITE(p, "half3 _norm0 = half3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, rawnorm0));\n"
-                     "half3 norm0 = normalize(_norm0);\n");
+            WRITE(p, "float3 _norm0 = float3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, rawnorm0));\n"
+                     "float3 norm0 = normalize(_norm0);\n");
         if (components & VB_HAS_NRM1)
-            WRITE(p, "half3 _norm1 = half3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, rawnorm1));\n");
+            WRITE(p, "float3 _norm1 = float3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, rawnorm1));\n");
                     //"half3 norm1 = normalize(_norm1);\n");
         if (components & VB_HAS_NRM2)
-            WRITE(p, "half3 _norm2 = half3(dot(N0, rawnorm2), dot(N1, rawnorm2), dot(N2, rawnorm2));\n");
+            WRITE(p, "float3 _norm2 = float3(dot(N0, rawnorm2), dot(N1, rawnorm2), dot(N2, rawnorm2));\n");
                     //"half3 norm2 = normalize(_norm2);\n");
     }
     else {
         WRITE(p, "float4 pos = float4(dot("I_POSNORMALMATRIX".T0, rawpos), dot("I_POSNORMALMATRIX".T1, rawpos), dot("I_POSNORMALMATRIX".T2, rawpos), 1.0f);\n");
         if (components & VB_HAS_NRM0)
-            WRITE(p, "half3 _norm0 = half3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm0));\n"
-                     "half3 norm0 = normalize(_norm0);\n");
+            WRITE(p, "float3 _norm0 = float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm0));\n"
+                     "float3 norm0 = normalize(_norm0);\n");
         if (components & VB_HAS_NRM1)
-            WRITE(p, "half3 _norm1 = half3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm1));\n");
+            WRITE(p, "float3 _norm1 = float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm1));\n");
                     //"half3 norm1 = normalize(_norm1);\n");
         if (components & VB_HAS_NRM2)
-            WRITE(p, "half3 _norm2 = half3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm2));\n");
+            WRITE(p, "float3 _norm2 = float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm2));\n");
                     //"half3 norm2 = normalize(_norm2);\n");
     }
 
     if (!(components & VB_HAS_NRM0))
-        WRITE(p, "half3 _norm0 = half3(0,0,0), norm0 = half3(0,0,0);\n");
+        WRITE(p, "float3 _norm0 = float3(0.0f,0.0f,0.0f), norm0 = float3(0.0f,0.0f,0.0f);\n");
 
     WRITE(p, "o.pos = float4(dot("I_PROJECTION".T0, pos), dot("I_PROJECTION".T1, pos), dot("I_PROJECTION".T2, pos), dot("I_PROJECTION".T3, pos));\n");
 
-    WRITE(p, "half4 mat;\n" // = half4(1,1,1,1), lacc = half4(0,0,0,0);\n"
-    "half3 ldir, h;\n"
-    "half dist, dist2, attn;\n");
+    WRITE(p, "float4 mat;\n" // = half4(1,1,1,1), lacc = half4(0,0,0,0);\n"
+    "float3 ldir, h;\n"
+    "float dist, dist2, attn;\n");
 
     // lights/colors
     for (int j = 0; j < xfregs.nNumChans; j++) {
@@ -228,12 +228,12 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 
         WRITE(p, "{\n");
 	
-		WRITE(p, "half4 lacc = half4(1,1,1,1);\n");
+		WRITE(p, "float4 lacc = float4(1.0f,1.0f,1.0f,1.0f);\n");
         if (color.matsource) {// from vertex
             if (components & (VB_HAS_COL0 << j))
                 WRITE(p, "mat = color%d;\n", j);
             else
-				WRITE(p, "mat = half4(1,1,1,1);\n");
+				WRITE(p, "mat = float4(1.0f,1.0f,1.0f,1.0f);\n");
         }
         else // from color
             WRITE(p, "mat = "I_MATERIALS".C%d;\n", j+2);
@@ -243,7 +243,7 @@ const char *GenerateVertexShader(u32 components, bool D3D)
                 if (components & (VB_HAS_COL0<<j) )
                     WRITE(p, "lacc = color%d;\n", j);
                 else
-					WRITE(p, "lacc = half4(0,0,0,0);\n");
+					WRITE(p, "lacc = float4(0.0f,0.0f,0.0f,0.0f);\n");
             }
             else // from color
                 WRITE(p, "lacc = "I_MATERIALS".C%d;\n", j);
@@ -323,7 +323,7 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 
     // zero left over channels
     for (int i = xfregs.nNumChans; i < 2; ++i)
-		WRITE(p, "o.colors[%d] = float4(0,0,0,0);\n", i);
+		WRITE(p, "o.colors[%d] = float4(0.0f,0.0f,0.0f,0.0f);\n", i);
 
     // transform texcoords
     for (int i = 0; i < xfregs.numTexGens; ++i) {
@@ -476,11 +476,11 @@ char* GenerateLightShader(char* p, int index, const LitChannel& chan, const char
                 "dist = sqrt(dist2);\n"
                 "ldir = ldir / dist;\n"
                 "attn = max(0.0f, dot(ldir, "I_LIGHTS".lights[%d].dir.xyz));\n",index);
-            WRITE(p, "attn = max(0.0f, dot("I_LIGHTS".lights[%d].cosatt.xyz, half3(1, attn, attn*attn))) / dot("I_LIGHTS".lights[%d].distatt.xyz, half3(1,dist,dist2));\n", index, index);
+            WRITE(p, "attn = max(0.0f, dot("I_LIGHTS".lights[%d].cosatt.xyz, float3(1.0f, attn, attn*attn))) / dot("I_LIGHTS".lights[%d].distatt.xyz, float3(1.0f,dist,dist2));\n", index, index);
         }
         else if (chan.attnfunc == 1) { // specular
             WRITE(p, "attn = dot(norm0, "I_LIGHTS".lights[%d].pos.xyz) > 0.0f ? max(0.0f, dot(norm0, "I_LIGHTS".lights[%d].dir.xyz)) : 0.0f;\n", index, index);
-            WRITE(p, "ldir = half3(1,attn,attn*attn);\n");
+            WRITE(p, "ldir = float3(1,attn,attn*attn);\n");
             WRITE(p, "attn = max(0.0f, dot("I_LIGHTS".lights[%d].cosatt.xyz, ldir)) / dot("I_LIGHTS".lights[%d].distatt.xyz, ldir);\n", index, index);
         }
 

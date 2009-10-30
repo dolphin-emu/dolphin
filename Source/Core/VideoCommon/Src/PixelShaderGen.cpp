@@ -310,7 +310,7 @@ static const char *tevAInputTable[] = // CA
     "textemp.a",         // TEXA,
     "rastemp.a",         // RASA,
     "konsttemp.a",       // KONST
-    "0.0",               // ZERO
+    "0.0f",               // ZERO
     "PADERROR", "PADERROR", "PADERROR", "PADERROR",
     "PADERROR", "PADERROR", "PADERROR", "PADERROR",
     "PADERROR", "PADERROR", "PADERROR", "PADERROR",
@@ -326,7 +326,7 @@ static const char *tevAInputTable2[] = // CA
     "textemp",         // TEXA,
     "rastemp",         // RASA,
     "konsttemp",       // KONST,  (hw1 had quarter)
-    "float4(0.0,0.0,0.0,0.0)", // ZERO
+    "float4(0.0f,0.0f,0.0f,0.0f)", // ZERO
     "PADERROR", "PADERROR", "PADERROR", "PADERROR",
     "PADERROR", "PADERROR", "PADERROR", "PADERROR",
     "PADERROR", "PADERROR", "PADERROR", "PADERROR",
@@ -342,7 +342,7 @@ static const char *tevRasTable[] =
     "ERROR", //4
     "alphabump", // use bump alpha
     "(alphabump*(255.0f/248.0f))", //normalized
-    "float4(0.0,0.0,0.0,0.0)", // zero
+    "float4(0.0f,0.0f,0.0f,0.0f)", // zero
 };
 
 static const char *alphaRef[2] = 
@@ -730,9 +730,9 @@ static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
 			WRITE(p, "   (%s%s",tevCInputTable[cc.d],tevOpTable[cc.op]);
 
 		if (cc.a == 15 && cc.b == 15)
-			WRITE(p, "0");
+			WRITE(p, "0.0f");
 		else if (cc.a == 15 && cc.c == 15)
-			WRITE(p, "0");
+			WRITE(p, "0.0f");
 		else if (cc.b == 15 && cc.c == 15)
 			WRITE(p,"%s",tevCInputTable[cc.a]);
 		else if (cc.a == 15)
@@ -748,7 +748,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
     else 
 	{
         int cmp = (cc.shift<<1)|cc.op|8; // comparemode stored here
-		WRITE(p, TEVCMPColorOPTable[cmp],//lockup the function from the op table
+		WRITE(p, TEVCMPColorOPTable[cmp],//lookup the function from the op table
                 tevCInputTable[cc.d], 
 				tevCInputTable2[cc.a],
 				tevCInputTable2[cc.b],
@@ -772,9 +772,9 @@ static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
 			WRITE(p, "   (%s%s",tevAInputTable[ac.d],tevOpTable[ac.op]);
 
 		if (ac.a == 7 && ac.b == 7)
-			WRITE(p, "0");
+			WRITE(p, "0.0f");
 		else if (ac.a == 7 && ac.c == 7)
-			WRITE(p, "0");
+			WRITE(p, "0.0f");
 		else if (ac.b == 7 && ac.c == 7)
 			WRITE(p,"%s",tevAInputTable[ac.a]);
 		else if (ac.a == 7)
@@ -843,11 +843,11 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
 static const char *tevAlphaFuncsTable[] = 
 {
     "(false)",									//ALPHACMP_NEVER 0
-	"(prev.a <= %s - (1.0f/510.0f))",			//ALPHACMP_LESS 1
+	"(prev.a < %s - (1.0f/510.0f))",			//ALPHACMP_LESS 1
 	"(abs( prev.a - %s ) < (1.0f/255.0f))",		//ALPHACMP_EQUAL 2
 	"(prev.a < %s + (1.0f/510.0f))",			//ALPHACMP_LEQUAL 3
-	"(prev.a >= %s + (1.0f/510.0f))",			//ALPHACMP_GREATER 4
-	"(abs( prev.a - %s ) >= (1.0f/255.0f))",	//ALPHACMP_NEQUAL 5
+	"(prev.a > %s + (1.0f/510.0f))",			//ALPHACMP_GREATER 4
+	"(abs( prev.a - %s ) > (1.0f/255.0f))",		//ALPHACMP_NEQUAL 5
 	"(prev.a > %s - (1.0f/510.0f))",			//ALPHACMP_GEQUAL 6
 	"(true)"									//ALPHACMP_ALWAYS 7
 };
@@ -891,23 +891,24 @@ static bool WriteAlphaTest(char *&p, bool HLSL)
 	default: PanicAlert("bad logic for alpha test? %08x", op);
     }
 
+
 	// Seems we need discard for Cg and clip for d3d. sigh.
 	if (HLSL) 
-		WRITE(p, "clip( ");
+		WRITE(p, "clip( (");
 	else 
 		WRITE(p, "discard(!( ");
 
 	int compindex = bpmem.alphaFunc.comp0 % 8;
-	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[0]);//lockup the first component from the alpha function table
+	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[0]);//lookup the first component from the alpha function table
     
-	WRITE(p, tevAlphaFunclogicTable[bpmem.alphaFunc.logic % 4]);//lockup the logic op
+	WRITE(p, tevAlphaFunclogicTable[bpmem.alphaFunc.logic % 4]);//lookup the logic op
    
     compindex = bpmem.alphaFunc.comp1 % 8;
-	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lockup the second component from the alpha function table    
+	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table    
 
 	if (HLSL) {
 		// clip works differently than discard - discard takes a bool, clip takes a value that kills the pixel on negative
-		WRITE(p, " ? 1 : -1);\n");
+		WRITE(p, ") ? 1 : -1);\n");
 	} else {
 		WRITE(p, "));\n");
 	}

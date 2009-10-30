@@ -216,16 +216,13 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 
 	// .. and then readback the results.
 	// TODO: make this less slow.
-	glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, destAddr);
+	glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
 	GL_REPORT_ERRORD();
 
 	g_framebufferManager.SetFramebuffer(0);
-    Renderer::RestoreAPIState();
-    VertexShaderManager::SetViewportChanged();
-	
+    VertexShaderManager::SetViewportChanged();	
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
     TextureMngr::DisableStage(0);
-
 	Renderer::RestoreAPIState();
     GL_REPORT_ERRORD();
 }

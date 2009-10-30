@@ -169,6 +169,7 @@ bool Renderer::Init()
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x0, 1.0f, 0);
 
 	D3D::BeginFrame();
+	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, true);
 	return true;
 }
 
@@ -412,6 +413,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 
 	Swap(0,FIELD_PROGRESSIVE,0,0);	// we used to swap the buffer here, now we will wait
 										// until the XFB pointer is updated by VI
+	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, true);
 }
 
 bool Renderer::SetScissorRect()
@@ -600,7 +602,6 @@ void UpdateViewport()
 	// Stretch picture with increased internal resolution
 	vp.X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * MValueX);
 	vp.Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY);
-	
 	vp.Width  = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
 	vp.Height = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
 	//new depth equation , don't know if is correct but...
