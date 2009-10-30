@@ -108,8 +108,8 @@ union ZeldaVoicePB
 		u32 StartAddr;					// 0x8C | sound start address
 		u32 UnkAddr;					// 0x8E | ???
 		u16 Padding[0x10];				// 0x90 | padding
-		u16 Padding2[0x8];				// 0xa0 | FIR filter coefs of some sort
-		u16 FilterEnable;               // 0xa8 | FilterBufferInPlace enable.
+		u16 Padding2[0x8];				// 0xa0 | FIR filter coefs of some sort (0xa4 controls the appearance of 0xa5-0xa7 and is almost always 0x7FFF)
+		u16 FilterEnable;               // 0xa8 | FilterBufferInPlace enable
 		u16 Padding3[0x7];              // 0xa9 | padding
 		u16 Padding4[0x10];				// 0xb0 | padding
 	};

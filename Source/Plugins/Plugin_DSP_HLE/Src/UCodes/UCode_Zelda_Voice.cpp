@@ -22,6 +22,8 @@
 #include "../main.h"
 #include "Mixer.h"
 
+#include <sstream>
+
 void CUCode_Zelda::ReadVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 {
 	u16 *memory = (u16*)g_dspInitialize.pGetMemoryPointer(_Addr);
@@ -220,9 +222,28 @@ clear_buffer:
 	PB.CurAddr += rem_samples;
 }
 
+template <typename T> 
+void PrintObject(const T &Obj) 
+{
+	char byte[2] = {0};
+	std::stringstream ss;
+	u8 *o = (u8 *)&Obj;
+	for(int i = 0; i < sizeof(T); i++) {
+		if(i > 0 && i % 2 == 0)
+			ss << " ";
+
+		sprintf(byte, "%02X", Common::swap16(o[i]));
+		ss << byte;
+	}
+
+	DEBUG_LOG(DSPHLE, "AFC PB: %s", ss.str().c_str());
+}
 
 void CUCode_Zelda::RenderVoice_AFC(ZeldaVoicePB &PB, s16 *_Buffer, int _Size)
 {
+	// TODO: Compare mono, stereo and surround samples
+	PrintObject(PB);
+
 	int _RealSize = SizeForResampling(PB, _Size, PB.RatioInt);
 
 	// initialize "decoder" if the sample is played the first time
@@ -340,6 +361,7 @@ restart:
 	PB.CurAddr = prev_addr;
 
     PB.NeedsReset = 0;
+	// PB.CurBlock = 0x10 - (PB.LoopStartPos & 0xf);
 	// write back
     // NumberOfSamples = (NumberOfSamples << 4) | frac;    // missing fraction
 

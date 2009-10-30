@@ -2529,12 +2529,15 @@ void 06f9_Unk_PrepareSampleDecode()
 void EarlyOutFrom_073d_DECODE_0x05_0x09() {
 	//070e 02bf 06f9 call        0x06f9
 	06f9_Unk_PrepareSampleDecode()
-	0710 8100      clr         $ACC0
-	0711 2632      lrs         $AC0.M, @0x0032
-	0712 5c00      sub         $ACC0, $ACC1
-	0713 2e32      srs         @0x0032, $AC0.M
-	0714 0092 00ff lri         $CR, #0x00ff
-	0716 02df      ret     
+	// 0710 8100      clr         $ACC0
+	// 0711 2632      lrs         $AC0.M, @0x0032
+	// 0712 5c00      sub         $ACC0, $ACC1
+	// 0713 2e32      srs         @0x0032, $AC0.M
+	
+	*0x0432 -= _numberOfSamples // PB.CurBlock
+	
+	// 0714 0092 00ff lri         $CR, #0x00ff
+	// 0716 02df      ret     
 }
 
 // Here, CR is 0x04 and thus these are not hw regs.
