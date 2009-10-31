@@ -340,9 +340,11 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 			}
 			else if (viewAsType == VIEWAS_ASCII)
 			{
-				sprintf(dis, "%c%c%c%c",
-					(mem_data&0xff000000)>>24, (mem_data&0xff0000)>>16,
-					(mem_data&0xff00)>>8, mem_data&0xff);
+				char a[4] = {(mem_data&0xff000000)>>24, (mem_data&0xff0000)>>16, (mem_data&0xff00)>>8, mem_data&0xff};
+				for (size_t i = 0; i < 4; i++)
+					if (a[i] == '\0')
+						a[i] = ' ';
+				sprintf(dis, "%c%c%c%c", a[0], a[1], a[2], a[3]);
 			}
 			else
 				sprintf(dis, "INVALID VIEWAS TYPE");
