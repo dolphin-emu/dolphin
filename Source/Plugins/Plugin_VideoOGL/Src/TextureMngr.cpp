@@ -578,6 +578,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
                 colmat[0] = 1;
                 colmat[5] = 1;
                 colmat[10] = 1;
+				colmat[15] = 1;
                 break;
             case 9: // Z8M
                 colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
