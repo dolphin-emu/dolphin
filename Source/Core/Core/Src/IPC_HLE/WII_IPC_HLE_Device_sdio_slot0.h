@@ -94,7 +94,7 @@ private:
 		ACMD_SENDOPCOND		= 0x29,
 		ACMD_SENDSCR		= 0x33,
 
-		CRAZY_BIGN64		= 0x40,
+		SDHC_CAPABILITIES	= 0x40,
 		CRAZY_BIGN65		= 0x41,
 	};
 

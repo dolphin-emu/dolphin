@@ -63,7 +63,8 @@ static const SPatch OSPatches[] =
 	{ "vprintf",					HLE_OS::HLE_GeneralDebugPrint	},
 	{ "printf",						HLE_OS::HLE_GeneralDebugPrint	},
 	{ "puts",						HLE_OS::HLE_GeneralDebugPrint	}, // gcc-optimized printf?
-	{ "___blank(char *,...)",		HLE_OS::HLE_GeneralDebugPrint	}, // dunno, but awesome :D
+	{ "___blank(char *,...)",		HLE_OS::HLE_GeneralDebugPrint	}, // used for early init things (normally)
+	{ "___blank",					HLE_OS::HLE_GeneralDebugPrint	},
 	{ "__write_console",			HLE_OS::HLE_write_console		}, // used by sysmenu (+more?)
 
 	// wii only

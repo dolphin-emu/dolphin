@@ -91,21 +91,27 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 			*pArgument++ = *pString;
 			*pArgument = NULL;
 
-			u32 Parameter;
+			u64 Parameter;
 			if (ParameterCounter > 10)
 			{
 				Parameter = Memory::Read_U32(GPR(1) + 0x8 + ((ParameterCounter - 11) * 4));
 			}
 			else
 			{
-				Parameter = GPR(ParameterCounter);
+				if ((*(pString-2) == 'l') && (*(pString-1) == 'l')) // hax, just seen this on sysmenu osreport
+				{
+					Parameter = GPR(++ParameterCounter);
+					Parameter = (Parameter<<32)|GPR(++ParameterCounter);
+				}
+				else // normal, 32bit
+					Parameter = GPR(ParameterCounter);
 			}
 			ParameterCounter++;
 
 			switch(*pString)
 			{
 			case 's':
-				_rOutBuffer += StringFromFormat(ArgumentBuffer, (char*)Memory::GetPointer(Parameter));
+				_rOutBuffer += StringFromFormat(ArgumentBuffer, (char*)Memory::GetPointer((u32)Parameter));
 				break;
 
 			case 'd':

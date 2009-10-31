@@ -20,10 +20,13 @@
 
 #include "WII_IPC_HLE_Device.h"
 
+// **********************************************************************************
+// KD is the IOS module responsible for implementing WiiConnect24 functionality. It
+// can perform HTTPS downloads, send and receive mail via SMTP, and execute a
+// JavaScript-like language while the Wii is in standby mode.
 class CWII_IPC_HLE_Device_net_kd_request : public IWII_IPC_HLE_Device
 {
 public:
-
     CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName);
 
 	virtual ~CWII_IPC_HLE_Device_net_kd_request();
@@ -33,7 +36,6 @@ public:
 	virtual bool IOCtl(u32 _CommandAddress);
 
 private:
-
     enum
     {
         IOCTL_NWC24_SUSPEND_SCHEDULAR               = 0x01,
@@ -61,15 +63,13 @@ private:
     };
 };
 
-// **************************************************************************************
-
+// **********************************************************************************
 class CWII_IPC_HLE_Device_net_kd_time : public IWII_IPC_HLE_Device
 {
 public:
-
 	CWII_IPC_HLE_Device_net_kd_time(u32 _DeviceID, const std::string& _rDeviceName) :
-		IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-		{}
+	  IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+	  {}
 
 	virtual ~CWII_IPC_HLE_Device_net_kd_time()
 	{}
@@ -90,11 +90,11 @@ public:
 
 	virtual bool IOCtl(u32 _CommandAddress) 
 	{
-        u32 Parameter = Memory::Read_U32(_CommandAddress +0x0C);
-        u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
-        u32 BufferInSize =  Memory::Read_U32(_CommandAddress + 0x14);
-        u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-        u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);		
+        u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
+        u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
+        u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
+        u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+        u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);		
 
         switch (Parameter)
         {
@@ -117,7 +117,8 @@ public:
 
             Memory::Write_U32(0, _CommandAddress + 0x4);
             return true;
-            
+
+		case IOCTL_NW24_GET_TIME_DIFF: // Input: none, Output: 32
         default:
             ERROR_LOG(WII_IPC_NET, "%s - IOCtl:\n"
                 "    Parameter: 0x%x   (0x17 NWC24iSetRtcCounter) \n"
@@ -135,7 +136,6 @@ public:
 	}
 
 private:
-
     enum
     {
         IOCTL_NW24_SET_RTC_COUNTER      = 0x17,
@@ -145,8 +145,7 @@ private:
     u8 m_RtcCounter[0x20];
 };
 
-// **************************************************************************************
-
+// **********************************************************************************
 class CWII_IPC_HLE_Device_net_ip_top : public IWII_IPC_HLE_Device
 {
 public:
@@ -160,50 +159,49 @@ public:
 	virtual bool IOCtlV(u32 _CommandAddress);
 	
 private:
-
     enum {
         IOCTL_SO_ACCEPT = 1,
-        IOCTL_SO_BIND,   
-        IOCTL_SO_CLOSE, 
-        IOCTL_SO_CONNECT, 
+        IOCTL_SO_BIND,
+        IOCTL_SO_CLOSE,
+        IOCTL_SO_CONNECT,
         IOCTL_SO_FCNTL,
-        IOCTL_SO_GETPEERNAME, // todo
-        IOCTL_SO_GETSOCKNAME, // todo
-        IOCTL_SO_GETSOCKOPT,  // todo    8
+        IOCTL_SO_GETPEERNAME,
+        IOCTL_SO_GETSOCKNAME,
+        IOCTL_SO_GETSOCKOPT,
         IOCTL_SO_SETSOCKOPT,  
         IOCTL_SO_LISTEN,
-        IOCTL_SO_POLL,        // todo    b
+        IOCTL_SO_POLL,
         IOCTLV_SO_RECVFROM,
         IOCTLV_SO_SENDTO,
-        IOCTL_SO_SHUTDOWN,    // todo    e
+        IOCTL_SO_SHUTDOWN,
         IOCTL_SO_SOCKET,
         IOCTL_SO_GETHOSTID,
         IOCTL_SO_GETHOSTBYNAME,
-        IOCTL_SO_GETHOSTBYADDR,// todo
-        IOCTLV_SO_GETNAMEINFO, // todo   13
-        IOCTL_SO_UNK14,        // todo
-        IOCTL_SO_INETATON,     // todo
-        IOCTL_SO_INETPTON,     // todo
-        IOCTL_SO_INETNTOP,     // todo
-        IOCTLV_SO_GETADDRINFO, // todo
-        IOCTL_SO_SOCKATMARK,   // todo
-        IOCTLV_SO_UNK1A,       // todo
-        IOCTLV_SO_UNK1B,       // todo
-        IOCTLV_SO_GETINTERFACEOPT, // todo
-        IOCTLV_SO_SETINTERFACEOPT, // todo
-        IOCTL_SO_SETINTERFACE,     // todo
-        IOCTL_SO_STARTUP,           // 0x1f
-        IOCTL_SO_ICMPSOCKET =   0x30, // todo
-        IOCTLV_SO_ICMPPING,         // todo
-        IOCTL_SO_ICMPCANCEL,        // todo
-        IOCTL_SO_ICMPCLOSE          // todo
+        IOCTL_SO_GETHOSTBYADDR,
+        IOCTLV_SO_GETNAMEINFO,
+        IOCTL_SO_UNK14,
+        IOCTL_SO_INETATON,
+        IOCTL_SO_INETPTON,
+        IOCTL_SO_INETNTOP,
+        IOCTLV_SO_GETADDRINFO,
+        IOCTL_SO_SOCKATMARK,
+        IOCTLV_SO_UNK1A,
+        IOCTLV_SO_UNK1B,
+        IOCTLV_SO_GETINTERFACEOPT,
+        IOCTLV_SO_SETINTERFACEOPT,
+        IOCTL_SO_SETINTERFACE,
+        IOCTL_SO_STARTUP,
+        IOCTL_SO_ICMPSOCKET = 0x30,
+        IOCTLV_SO_ICMPPING,
+        IOCTL_SO_ICMPCANCEL,
+        IOCTL_SO_ICMPCLOSE
     };
 
 	u32 ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut, u32 _BufferOutSize);
 };
 
-// **************************************************************************************
-
+// **********************************************************************************
+// Seems like just wireless stuff?
 class CWII_IPC_HLE_Device_net_ncd_manage : public IWII_IPC_HLE_Device
 {
 public:
@@ -215,6 +213,14 @@ public:
 	virtual bool Close(u32 _CommandAddress);
 	virtual bool IOCtlV(u32 _CommandAddress);
 
+private:
+	enum {
+		IOCTL_NCD_UNK1				= 1, // NCDLockWirelessDriver
+		IOCTL_NCD_UNK2				= 2, // NCDUnlockWirelessDriver
+		IOCTL_NCD_SETIFCONFIG3		= 3,
+		IOCTL_NCD_SETIFCONFIG4		= 4, // NCDGetWirelessMacAddress
+		IOCTL_NCD_GETLINKSTATUS		= 7 // NCDGetLinkStatus
+	};
 };
 
 #endif

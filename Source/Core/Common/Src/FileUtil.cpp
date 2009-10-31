@@ -100,7 +100,7 @@ bool IsDirectory(const char *filename)
 // Doesn't supports deleting a directory
 bool Delete(const char *filename)
 {
-	INFO_LOG(COMMON, "Delete: file %s\n", filename);
+	INFO_LOG(COMMON, "Delete: file %s", filename);
 
 	// Return true because we care about the file no 
 	// being there, not the actual delete.
@@ -135,7 +135,7 @@ bool Delete(const char *filename)
 // Returns true if successful, or path already exists.
 bool CreateDir(const char *path)
 {
-	INFO_LOG(COMMON, "CreateDir: directory %s\n", path);
+	INFO_LOG(COMMON, "CreateDir: directory %s", path);
 #ifdef _WIN32
 	if (::CreateDirectory(path, NULL))
 		return true;
@@ -166,10 +166,10 @@ bool CreateDir(const char *path)
 bool CreateFullPath(const char *fullPath)
 {
 	int panicCounter = 100;
-	INFO_LOG(COMMON, "CreateFullPath: path %s\n", fullPath);
+	INFO_LOG(COMMON, "CreateFullPath: path %s", fullPath);
 		
 	if (File::Exists(fullPath)) {
-		INFO_LOG(COMMON, "CreateFullPath: path exists %s\n", fullPath);
+		INFO_LOG(COMMON, "CreateFullPath: path exists %s", fullPath);
 		return true;
 	}
 

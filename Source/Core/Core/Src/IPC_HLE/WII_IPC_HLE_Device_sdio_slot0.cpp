@@ -38,7 +38,6 @@ CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, co
 
 CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
 {
-
 }
 
 bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
@@ -101,7 +100,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 
 		if ((reg == HCR_CLOCKCONTROL) && (val & 1))
 		{
-			// Clock is set to oscilliate, enable bit 1 to say it's stable
+			// Clock is set to oscillate, enable bit 1 to say it's stable
 			Memory::Write_U32(val | 2, SDIO_BASE + reg);
 		}
 		else if ((reg == HCR_SOFTWARERESET) && val)
@@ -148,7 +147,10 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 
 	case IOCTL_SENDCMD:
-		INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD 0x%08x", Memory::Read_U32(BufferIn));
+		if (Memory::Read_U32(BufferIn) != SDHC_CAPABILITIES)
+		{
+			INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD 0x%08x", Memory::Read_U32(BufferIn));
+		}
 		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, 0, 0, BufferOut, BufferOutSize);	
 		break;
 
@@ -389,17 +391,20 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		Memory::Write_U32(0x900, _BufferOut);
 		break;
 
-	case CRAZY_BIGN64:
-		WARN_LOG(WII_IPC_SD, "CMD64, wtf");
-
-		// <svpe> shuffle2_: try returning -4 for cmd x'40.
-		Memory::Write_U32(-0x04, _BufferOut);
-
-		_dbg_assert_msg_(WII_IPC_SD, req.arg == 2, "cmd64 odd arg value 0x%08x", req.arg);
-		break;
+	case SDHC_CAPABILITIES:
+		{
+			DEBUG_LOG(WII_IPC_SD, "SDHC_CAPABILITIES");
+			// SDHC 1.0 supports only 10-63 MHz.
+			// So of course we reply 63MHz :)
+			u8 mhz_units = 1 << 7;
+			u16 freq = 63 << 8;
+			u32 caps = freq | mhz_units;
+			Memory::Write_U32(caps, _BufferOut);
+			break;
+		}
 
 	case CRAZY_BIGN65:
-		ERROR_LOG(WII_IPC_SD, "CMD65, wtf");
+		// Just means unmount/detach, but we don't care
 		break;
 
 	default:
