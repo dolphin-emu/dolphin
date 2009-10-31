@@ -113,8 +113,8 @@ void PixelShaderManager::SetConstants()
             case 0:
                 // 8 bits
                 // this breaks the menu in SSBM when it is set correctly to
-                //ftemp[0] = ffrac/(65536.0f); ftemp[1] = 0; ftemp[2] = 0; ftemp[3] = 0;
-                ftemp[0] = ffrac/65536.0f; ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac; ftemp[3] = 0;
+                ftemp[0] = ffrac/(65536.0f); ftemp[1] = 0; ftemp[2] = 0; ftemp[3] = 0;
+                //ftemp[0] = ffrac/65536.0f; ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac; ftemp[3] = 0;
                 break;
             case 1:
                 // 16 bits
@@ -122,7 +122,8 @@ void PixelShaderManager::SetConstants()
                 break;
             case 2:
                 // 24 bits
-                ftemp[0] = ffrac; ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac/65536.0f; ftemp[3] = 0;
+				ftemp[0] = ffrac/65536.0f; ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac; ftemp[3] = 0;
+                //ftemp[0] = ffrac; ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac/65536.0f; ftemp[3] = 0;
                 break;
         }
 		SetPSConstant4fv(C_ZBIAS, ftemp);
