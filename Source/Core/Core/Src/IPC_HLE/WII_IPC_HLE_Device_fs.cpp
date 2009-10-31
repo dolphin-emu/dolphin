@@ -41,7 +41,7 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 {
 	// clear tmp folder
 	{
-	    //		std::string WiiTempFolder = File::GetUserDirectory() + FULL_WII_USER_DIR + std::string("tmp");
+	    //std::string WiiTempFolder = File::GetUserDirectory() + FULL_WII_USER_DIR + std::string("tmp");
 	    std::string WiiTempFolder = FULL_WII_USER_DIR + std::string("tmp");
 	    File::DeleteDirRecursively(WiiTempFolder.c_str());
 	    File::CreateDir(WiiTempFolder.c_str());
@@ -68,6 +68,31 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	return true;
+}
+
+bool CWII_IPC_HLE_Device_fs::Close(u32 _CommandAddress)
+{
+	// Do we even need to do anything?
+	INFO_LOG(WII_IPC_NET, "/dev/fs: Close");
+	Memory::Write_U32(0, _CommandAddress + 4);
+	return true;
+}
+
+// Get total filesize of contents of a directory (recursive)
+// Only used for ES_GetUsage atm, could be useful elsewhere?
+static u64 ComputeTotalFileSize(const File::FSTEntry& parentEntry)
+{
+	u64 sizeOfFiles = 0;
+	const std::vector<File::FSTEntry>& children = parentEntry.children;
+	for (std::vector<File::FSTEntry>::const_iterator it = children.begin(); it != children.end(); ++it)
+	{
+		const File::FSTEntry& entry = *it;
+		if (entry.isDirectory)
+			sizeOfFiles += ComputeTotalFileSize(entry);
+		else
+			sizeOfFiles += entry.size;
+	}
+	return sizeOfFiles;
 }
 
 bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress) 
@@ -173,55 +198,40 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 	case IOCTLV_GETUSAGE:
 		{
-			// check buffer sizes
 			_dbg_assert_(WII_IPC_FILEIO, CommandBuffer.PayloadBuffer.size() == 2);
 			_dbg_assert_(WII_IPC_FILEIO, CommandBuffer.PayloadBuffer[0].m_Size == 4);
 			_dbg_assert_(WII_IPC_FILEIO, CommandBuffer.PayloadBuffer[1].m_Size == 4);
 
 			// this command sucks because it asks of the number of used 
 			// fsBlocks and inodes
-			// we answer nothing is used, but if a program uses it to check
-			// how much memory has been used we are doomed...
-			std::string Filename(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address), CommandBuffer.InBuffer[0].m_Size));
-			u32 fsBlock = 0;
+			// It should be correct, but don't count on it...
+			std::string path(HLE_IPC_BuildFilename((const char*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address), CommandBuffer.InBuffer[0].m_Size));
+			u32 fsBlocks = 0;
 			u32 iNodes = 0;
 
-			WARN_LOG(WII_IPC_FILEIO, "FS: IOCTL_GETUSAGE %s", Filename.c_str());
-			if (File::IsDirectory(Filename.c_str()))
+			INFO_LOG(WII_IPC_FILEIO, "IOCTL_GETUSAGE %s", path.c_str());
+			if (File::IsDirectory(path.c_str()))
 			{
-				// make a file search
-				CFileSearch::XStringVector Directories;
-				Directories.push_back(Filename);
+				File::FSTEntry parentDir;
+				iNodes = File::ScanDirectoryTree(path.c_str(), parentDir);
 
-				CFileSearch::XStringVector Extensions;
-				Extensions.push_back("*.*");
+				u64 totalSize = ComputeTotalFileSize(parentDir); // "Real" size, to be converted to nand blocks
 
-				CFileSearch FileSearch(Extensions, Directories);
-
-				u64 overAllSize = 0;
-				for (size_t i=0; i<FileSearch.GetFileNames().size(); i++)
-				{
-					overAllSize += File::GetSize(FileSearch.GetFileNames()[i].c_str());
-				}
-
-				fsBlock = (u32)(overAllSize / (16 * 1024));  // one bock is 16kb
-				iNodes = (u32)(FileSearch.GetFileNames().size());
+				fsBlocks = (u32)(totalSize / (16 * 1024));  // one bock is 16kb
 
 				ReturnValue = FS_RESULT_OK;
 
-				WARN_LOG(WII_IPC_FILEIO, "    fsBlock: %i, iNodes: %i", fsBlock, iNodes);
+				INFO_LOG(WII_IPC_FILEIO, "\tfsBlock: %i, iNodes: %i", fsBlocks, iNodes);
 			}
 			else
 			{
-				fsBlock = 0;
+				fsBlocks = 0;
 				iNodes = 0;
 				ReturnValue = FS_RESULT_OK;
-
-				// PanicAlert("IOCTL_GETUSAGE - unk dir %s", Filename.c_str());
-				WARN_LOG(WII_IPC_FILEIO, "    error: not executed on a valid directoy: %s", Filename.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "\tError: not executed on a valid directoy: %s", path.c_str());
 			}
 
-			Memory::Write_U32(fsBlock, CommandBuffer.PayloadBuffer[0].m_Address);
+			Memory::Write_U32(fsBlocks, CommandBuffer.PayloadBuffer[0].m_Address);
 			Memory::Write_U32(iNodes, CommandBuffer.PayloadBuffer[1].m_Address);
 		}
 		break;
