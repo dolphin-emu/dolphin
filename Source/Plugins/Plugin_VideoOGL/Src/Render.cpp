@@ -1347,6 +1347,11 @@ void UpdateViewport()
 	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
 	double GLFar = xfregs.rawViewport[5] / 16777216.0f;
 
+	if (GLNear < 0.0f) GLNear = 0.0f;
+	if (GLNear > 1.0f) GLNear = 1.0f;
+	if (GLFar > 1.0f) GLFar = 1.0f;
+	if (GLFar < 0.0f) GLFar = 0.0f;
+
 	// Update the view port
 	glViewport(GLx, GLy, GLWidth, GLHeight);
 	glDepthRange(GLNear, GLFar);

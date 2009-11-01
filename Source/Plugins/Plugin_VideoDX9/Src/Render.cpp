@@ -610,8 +610,10 @@ void UpdateViewport()
 	
 	// This seems to happen a lot - the above calc is probably wrong.
 	if (vp.MinZ < 0.0f) vp.MinZ = 0.0f;
+	if (vp.MinZ > 1.0f) vp.MinZ = 1.0f;
 	if (vp.MaxZ > 1.0f) vp.MaxZ = 1.0f;
-	
+	if (vp.MaxZ < 0.0f) vp.MaxZ = 0.0f;
+
 	D3D::dev->SetViewport(&vp);
 }
 
