@@ -72,7 +72,7 @@ static Common::Thread *saveThread = NULL;
 
 
 // Don't forget to increase this after doing changes on the savestate system 
-#define STATE_VERSION 1
+#define STATE_VERSION 2
 
 
 void DoState(PointerWrap &p)
@@ -81,7 +81,8 @@ void DoState(PointerWrap &p)
 	p.Do(cookie);
 	if (cookie != 0xBAADBABE + STATE_VERSION)
 	{
-		PanicAlert("Savestate version mismatch !\nSorry, you can't load states from other revisions.");
+		//PanicAlert("Savestate version mismatch !\nSorry, you can't load states from other revisions.");
+		p.SetMode(PointerWrap::MODE_MEASURE);
 		return;
 	}
 	// Begin with video plugin, so that it gets a chance to clear it's caches and writeback modified things to RAM
@@ -97,6 +98,7 @@ void DoState(PointerWrap &p)
 #ifdef JIT_UNLIMITED_ICACHE	
 	p.DoVoid(jit.GetBlockCache()->GetICache(), JIT_ICACHE_SIZE);
 	p.DoVoid(jit.GetBlockCache()->GetICacheEx(), JIT_ICACHEEX_SIZE);
+	p.DoVoid(jit.GetBlockCache()->GetICacheVMEM(), JIT_ICACHE_SIZE);
 #endif
 }
 
@@ -345,9 +347,13 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	u8 *ptr = buffer;
 	PointerWrap p(&ptr, PointerWrap::MODE_READ);
 	DoState(p);
-	delete [] buffer;
 
-	Core::DisplayMessage(StringFromFormat("Loaded state from %s", cur_filename.c_str()).c_str(), 2000);
+	if (p.GetMode() == PointerWrap::MODE_READ)
+		Core::DisplayMessage(StringFromFormat("Loaded state from %s", cur_filename.c_str()).c_str(), 2000);
+	else
+		Core::DisplayMessage("Unable to Load : Can't load state from other revisions !", 4000);
+
+	delete [] buffer;
 }
 
 void State_Init()

@@ -45,6 +45,7 @@ namespace Interpreter
 void UpdateSSEState();
 
 // Extremely rare - actually, never seen.
+// Star Wars : Rogue Leader spams that at some point :|
 void Helper_UpdateCR1(double _fValue)
 {
 	// Should just update exception flags, not do any compares.

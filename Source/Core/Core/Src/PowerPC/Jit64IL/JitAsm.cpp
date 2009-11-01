@@ -164,6 +164,8 @@ void AsmRoutineManager::Generate()
 			SetJumpTarget(needinst);
 #ifdef JIT_UNLIMITED_ICACHE
 			
+			TEST(32, R(EAX), Imm32(JIT_ICACHE_VMEM_BIT));
+			FixupBranch vmem = J_CC(CC_NZ);
 			TEST(32, R(EAX), Imm32(JIT_ICACHE_EXRAM_BIT));
 			FixupBranch exram = J_CC(CC_NZ);
 
@@ -184,9 +186,21 @@ void AsmRoutineManager::Generate()
 #else
 			MOV(64, R(RSI), Imm64((u64)jit.GetBlockCache()->GetICacheEx()));
 			MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
-#endif			
+#endif
+
+			FixupBranch getinst2 = J();
+			SetJumpTarget(vmem);
+						
+			AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
+#ifdef _M_IX86
+			MOV(32, R(EAX), MDisp(EAX, (u32)jit.GetBlockCache()->GetICacheVMEM()));
+#else
+			MOV(64, R(RSI), Imm64((u64)jit.GetBlockCache()->GetICacheVMEM()));
+			MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
+#endif
 
 			SetJumpTarget(getinst);
+			SetJumpTarget(getinst2);
 #else
 #ifdef _M_IX86
 			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));

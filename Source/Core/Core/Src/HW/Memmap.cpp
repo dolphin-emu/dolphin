@@ -50,7 +50,6 @@ may be redirected here (for example to Read_U32()).
 
 
 
-
 // Declarations and definitions
 // ----------------
 namespace Memory
@@ -539,6 +538,7 @@ u32 Read_Opcode_JIT(const u32 _Address)
 {
 #ifdef JIT_UNLIMITED_ICACHE	
 	if ((_Address & ~JIT_ICACHE_MASK) != 0x80000000 && (_Address & ~JIT_ICACHE_MASK) != 0x00000000 &&
+		(_Address & ~JIT_ICACHE_MASK) != 0x7e000000 && // TLB area
 		(_Address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (_Address & ~JIT_ICACHEEX_MASK) != 0x10000000)
 	{
 		PanicAlert("iCacheJIT: Reading Opcode from %x. Please report.", _Address);
@@ -546,10 +546,15 @@ u32 Read_Opcode_JIT(const u32 _Address)
 	}
 	u8* iCache;
 	u32 addr;
-	if (_Address & JIT_ICACHE_EXRAM_BIT)
+	if (_Address & JIT_ICACHE_VMEM_BIT)
+	{		
+		iCache = jit.GetBlockCache()->GetICacheVMEM();
+		addr = _Address & JIT_ICACHE_MASK;
+	}
+	else if (_Address & JIT_ICACHE_EXRAM_BIT)
 	{		
 		iCache = jit.GetBlockCache()->GetICacheEx();
-		addr = _Address & JIT_ICACHEEX_MASK;		
+		addr = _Address & JIT_ICACHEEX_MASK;
 	}
 	else
 	{
@@ -587,6 +592,7 @@ u32 Read_Opcode_JIT_LC(const u32 _Address)
 {
 #ifdef JIT_UNLIMITED_ICACHE	
 	if ((_Address & ~JIT_ICACHE_MASK) != 0x80000000 && (_Address & ~JIT_ICACHE_MASK) != 0x00000000 &&
+		(_Address & ~JIT_ICACHE_MASK) != 0x7e000000 && // TLB area
 		(_Address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (_Address & ~JIT_ICACHEEX_MASK) != 0x10000000)
 	{
 		PanicAlert("iCacheJIT: Reading Opcode from %x. Please report.", _Address);
@@ -594,10 +600,15 @@ u32 Read_Opcode_JIT_LC(const u32 _Address)
 	}
 	u8* iCache;
 	u32 addr;
-	if (_Address & JIT_ICACHE_EXRAM_BIT)
+	if (_Address & JIT_ICACHE_VMEM_BIT)
+	{		
+		iCache = jit.GetBlockCache()->GetICacheVMEM();
+		addr = _Address & JIT_ICACHE_MASK;
+	}
+	else if (_Address & JIT_ICACHE_EXRAM_BIT)
 	{		
 		iCache = jit.GetBlockCache()->GetICacheEx();
-		addr = _Address & JIT_ICACHEEX_MASK;		
+		addr = _Address & JIT_ICACHEEX_MASK;
 	}
 	else
 	{
@@ -624,7 +635,11 @@ u32 Read_Opcode_JIT_LC(const u32 _Address)
 void Write_Opcode_JIT(const u32 _Address, const u32 _Value)
 {
 #ifdef JIT_UNLIMITED_ICACHE
-	if (_Address & JIT_ICACHE_EXRAM_BIT)
+	if (_Address & JIT_ICACHE_VMEM_BIT)
+	{
+		*(u32*)(jit.GetBlockCache()->GetICacheVMEM() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);		
+	}
+	else if (_Address & JIT_ICACHE_EXRAM_BIT)
 	{
 		*(u32*)(jit.GetBlockCache()->GetICacheEx() + (_Address & JIT_ICACHEEX_MASK)) = Common::swap32(_Value);		
 	}
@@ -790,7 +805,7 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
     }
     else
     {
-        // (comment for old implementation) : F|RES: rouge squadron and other games use the TLB ... so this cant work
+        // (comment for old implementation) : F|RES: rogue squadron and other games use the TLB ... so this cant work
         
         // fixed implementation:
         for (u32 i = 0; i < _iLength; i++)
@@ -893,6 +908,10 @@ u8 *GetPointer(const u32 _Address)
 			return (u8*)(((char*)m_pEXRAM) + (_Address & EXRAM_MASK));
 		else
 			return 0;
+
+	case 0x7E:
+	case 0x7F:
+		return (u8*)(((char*)m_pFakeVMEM) + (_Address & RAM_MASK));
 
 	case 0xE0:
 		if (_Address < (0xE0000000 + L1_CACHE_SIZE))

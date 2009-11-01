@@ -194,6 +194,7 @@ class CFrame : public wxFrame
 		bool m_bEdit;
 		bool m_bTabSplit;
 		bool m_bNoDocking;
+		bool m_bModalDialogOpen;
 
 		char **drives;
 

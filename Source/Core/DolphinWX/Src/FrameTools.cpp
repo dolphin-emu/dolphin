@@ -665,9 +665,11 @@ void CFrame::OnReset(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 {
+	m_bModalDialogOpen = true;
 	CConfigMain ConfigMain(this);
 	if (ConfigMain.ShowModal() == wxID_OK)
 		m_GameListCtrl->Update();
+	m_bModalDialogOpen = false;
 }
 
 void CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
@@ -712,8 +714,10 @@ void CFrame::OnHelp(wxCommandEvent& event)
 	{
 	case IDM_HELPABOUT:
 		{
-		AboutDolphin frame(this);
-		frame.ShowModal();
+		m_bModalDialogOpen = true;
+			AboutDolphin frame(this);
+			frame.ShowModal();
+		m_bModalDialogOpen = false;
 		break;
 		}
 	case IDM_HELPWEBSITE:
@@ -756,8 +760,10 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 {
+m_bModalDialogOpen = true;
 	CMemcardManager MemcardManager(this);
 	MemcardManager.ShowModal();
+m_bModalDialogOpen = false;
 }
 
 void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))

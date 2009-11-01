@@ -86,21 +86,23 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		blocks = new JitBlock[MAX_NUM_BLOCKS];
 		blockCodePointers = new const u8*[MAX_NUM_BLOCKS];
 #ifdef JIT_UNLIMITED_ICACHE
-		if (iCache == 0 && iCacheEx == 0)
+		if (iCache == 0 && iCacheEx == 0 && iCacheVMEM == 0)
 		{
 			iCache = new u8[JIT_ICACHE_SIZE];
 			iCacheEx = new u8[JIT_ICACHEEX_SIZE];
+			iCacheVMEM = new u8[JIT_ICACHE_SIZE];
 		}
 		else
 		{
 			PanicAlert("JitBlockCache::Init() - iCache is already initialized");
 		}
-		if (iCache == 0 || iCacheEx == 0)
+		if (iCache == 0 || iCacheEx == 0 || iCacheVMEM == 0)
 		{
 			PanicAlert("JitBlockCache::Init() - unable to allocate iCache");
 		}
 		memset(iCache, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
 		memset(iCacheEx, JIT_ICACHE_INVALID_BYTE, JIT_ICACHEEX_SIZE);
+		memset(iCacheVMEM, JIT_ICACHE_INVALID_BYTE, JIT_ICACHE_SIZE);
 #endif
 		Clear();
 	}
@@ -116,6 +118,9 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		if (iCacheEx != 0)
 			delete [] iCacheEx;
 		iCacheEx = 0;
+		if (iCacheVMEM != 0)
+			delete [] iCacheVMEM;
+		iCacheVMEM = 0;
 #endif
 		blocks = 0;
 		blockCodePointers = 0;
@@ -238,6 +243,11 @@ bool JitBlock::ContainsAddress(u32 em_address)
 	{
 		return iCacheEx;
 	}
+
+	u8* JitBlockCache::GetICacheVMEM()
+	{
+		return iCacheVMEM;
+	}
 #endif
 
 	int JitBlockCache::GetBlockNumberFromStartAddress(u32 addr)
@@ -246,7 +256,11 @@ bool JitBlock::ContainsAddress(u32 em_address)
 			return -1;		
 #ifdef JIT_UNLIMITED_ICACHE
 		u32 inst;
-		if (addr & JIT_ICACHE_EXRAM_BIT)
+		if (addr & JIT_ICACHE_VMEM_BIT)
+		{
+			inst = *(u32*)(iCacheVMEM + (addr & JIT_ICACHE_MASK));
+		}
+		else if (addr & JIT_ICACHE_EXRAM_BIT)
 		{
 			inst = *(u32*)(iCacheEx + (addr & JIT_ICACHEEX_MASK));
 		}
@@ -394,11 +408,17 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		// invalidate iCache.
 		// icbi can be called with any address, so we sholud check
 		if ((address & ~JIT_ICACHE_MASK) != 0x80000000 && (address & ~JIT_ICACHE_MASK) != 0x00000000 &&
+			(address & ~JIT_ICACHE_MASK) != 0x7e000000 && // TLB area
 			(address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (address & ~JIT_ICACHEEX_MASK) != 0x10000000)
 		{
 			return;
 		}
-		if (address & JIT_ICACHE_EXRAM_BIT)
+		if (address & JIT_ICACHE_VMEM_BIT)
+		{
+			u32 cacheaddr = address & JIT_ICACHE_MASK;
+			memset(iCacheVMEM + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);
+		}
+		else if (address & JIT_ICACHE_EXRAM_BIT)
 		{
 			u32 cacheaddr = address & JIT_ICACHEEX_MASK;
 			memset(iCacheEx + cacheaddr, JIT_ICACHE_INVALID_BYTE, 32);

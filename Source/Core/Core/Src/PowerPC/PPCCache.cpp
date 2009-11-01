@@ -72,6 +72,7 @@ namespace PowerPC
 #ifdef FAST_ICACHE
 		memset(lookup_table, 0xff, sizeof(lookup_table));
 		memset(lookup_table_ex, 0xff, sizeof(lookup_table_ex));
+		memset(lookup_table_vmem, 0xff, sizeof(lookup_table_vmem));
 #endif
 	}
 
@@ -85,7 +86,9 @@ namespace PowerPC
 		for (int i = 0; i < 8; i++)
 			if (valid[set] & (1<<i))
 			{
-				if (tags[set][i] & (ICACHE_EXRAM_BIT >> 12))
+				if (tags[set][i] & (ICACHE_VMEM_BIT >> 12))
+					lookup_table_vmem[((tags[set][i] << 7) | set) & 0xfffff] = 0xff;
+				else if (tags[set][i] & (ICACHE_EXRAM_BIT >> 12))
 					lookup_table_ex[((tags[set][i] << 7) | set) & 0x1fffff] = 0xff;
 				else
 					lookup_table[((tags[set][i] << 7) | set) & 0xfffff] = 0xff;
@@ -102,7 +105,11 @@ namespace PowerPC
 		u32 tag = addr >> 12;
 #ifdef FAST_ICACHE
 		u32 t;
-		if (addr & ICACHE_EXRAM_BIT)
+		if (addr & ICACHE_VMEM_BIT)
+		{
+			t = lookup_table_vmem[(addr>>5) & 0xfffff];			
+		}
+		else if (addr & ICACHE_EXRAM_BIT)
 		{
 			t = lookup_table_ex[(addr>>5) & 0x1fffff];			
 		}
@@ -134,12 +141,16 @@ namespace PowerPC
 #ifdef FAST_ICACHE
 			if (valid[set] & (1<<t))
 			{
-				if (tags[set][t] & (ICACHE_EXRAM_BIT >> 12))
+				if (tags[set][t] & (ICACHE_VMEM_BIT >> 12))
+					lookup_table_vmem[((tags[set][t] << 7) | set) & 0xfffff] = 0xff;
+				else if (tags[set][t] & (ICACHE_EXRAM_BIT >> 12))
 					lookup_table_ex[((tags[set][t] << 7) | set) & 0x1fffff] = 0xff;
 				else
 					lookup_table[((tags[set][t] << 7) | set) & 0xfffff] = 0xff;
 			}
-			if (addr & ICACHE_EXRAM_BIT)
+			if (addr & ICACHE_VMEM_BIT)
+				lookup_table_vmem[(addr>>5) & 0xfffff] = t;
+			else if (addr & ICACHE_EXRAM_BIT)
 				lookup_table_ex[(addr>>5) & 0x1fffff] = t;
 			else
 				lookup_table[(addr>>5) & 0xfffff] = t;

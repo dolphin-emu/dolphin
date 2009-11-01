@@ -37,6 +37,7 @@
 #define JIT_ICACHEEX_SIZE 0x4000000
 #define JIT_ICACHEEX_MASK 0x3ffffff
 #define JIT_ICACHE_EXRAM_BIT 0x10000000
+#define JIT_ICACHE_VMEM_BIT 0x20000000
 // this corresponds to opcode 5 which is invalid in PowerPC
 #define JIT_ICACHE_INVALID_BYTE 0x14
 #define JIT_ICACHE_INVALID_WORD 0x14141414
@@ -89,6 +90,7 @@ class JitBlockCache
 #ifdef JIT_UNLIMITED_ICACHE
 	u8 *iCache;
 	u8 *iCacheEx;
+	u8 *iCacheVMEM;
 #endif
 	int MAX_NUM_BLOCKS;
 
@@ -116,6 +118,7 @@ public:
 #ifdef JIT_UNLIMITED_ICACHE
 	u8 *GetICache();
 	u8 *GetICacheEx();
+	u8 *GetICacheVMEM();
 #endif
 
 	// Fast way to get a block. Only works on the first ppc instruction of a block.
