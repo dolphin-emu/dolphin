@@ -153,68 +153,68 @@ void AddVertices(int _primitive, int _numVertices)
 	AddIndices(_primitive, _numVertices);
 }
 
+inline void DumpBadShaders()
+{
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	std::string error_shaders;
+	error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
+	error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
+	char filename[512] = "bad_shader_combo_0.txt";
+	int which = 0;
+	while (File::Exists(filename))
+	{
+		which++;
+		sprintf(filename, "bad_shader_combo_%i.txt", which);
+	}
+	File::WriteStringToFile(true, error_shaders, filename);
+	PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to %s", filename);
+#endif
+}
+
 inline void Draw(int stride)
 {
 	if(IndexGenerator::GetNumTriangles() > 0)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
-				D3DPT_TRIANGLELIST, 
-				0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumTriangles(),
-				TIBuffer,
-				D3DFMT_INDEX16,
-				LocalVBuffer,
-				stride))) 
-			{
-#if defined(_DEBUG) || defined(DEBUGFAST)
-				std::string error_shaders;
-				error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
-				error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
-				File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
-				PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to bad_shader_combo.txt.");
-#endif
-			}
+			D3DPT_TRIANGLELIST, 
+			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumTriangles(),
+			TIBuffer,
+			D3DFMT_INDEX16,
+			LocalVBuffer,
+			stride))) 
+		{
+			DumpBadShaders();
+		}
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	if(IndexGenerator::GetNumLines() > 0)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
-				D3DPT_LINELIST, 
-				0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumLines(),
-				LIBuffer,
-				D3DFMT_INDEX16,
-				LocalVBuffer,
-				stride))) 
-			{
-#if defined(_DEBUG) || defined(DEBUGFAST)
-				std::string error_shaders;
-				error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
-				error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
-				File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
-				PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to bad_shader_combo.txt.");
-#endif
-			}
+			D3DPT_LINELIST, 
+			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumLines(),
+			LIBuffer,
+			D3DFMT_INDEX16,
+			LocalVBuffer,
+			stride))) 
+		{
+			DumpBadShaders();
+		}
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
 	}
 	if(IndexGenerator::GetNumPoints() > 0)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
-				D3DPT_POINTLIST, 
-				0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumPoints(),
-				PIBuffer,
-				D3DFMT_INDEX16,
-				LocalVBuffer,
-				stride))) 
-			{
-#if defined(_DEBUG) || defined(DEBUGFAST)
-				std::string error_shaders;
-				error_shaders.append(VertexShaderCache::GetCurrentShaderCode());
-				error_shaders.append(PixelShaderCache::GetCurrentShaderCode());
-				File::WriteStringToFile(true, error_shaders, "bad_shader_combo.txt");
-				PanicAlert("DrawIndexedPrimitiveUP failed. Shaders written to bad_shader_combo.txt.");
-#endif
-			}
+			D3DPT_POINTLIST, 
+			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumPoints(),
+			PIBuffer,
+			D3DFMT_INDEX16,
+			LocalVBuffer,
+			stride))) 
+		{
+			DumpBadShaders();
+		}
 		INCSTAT(stats.thisFrame.numIndexedDrawCalls);
-	}	
+	}
 }
 
 void Flush()
