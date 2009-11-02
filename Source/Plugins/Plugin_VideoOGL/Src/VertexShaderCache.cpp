@@ -269,7 +269,7 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 
 void VertexShaderCache::DisableShader()
 {
-	if(ShaderEnabled)
+	//if(ShaderEnabled)
 	{
 		CurrentShader = 0;
 		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);
@@ -280,7 +280,7 @@ void VertexShaderCache::DisableShader()
 
 void VertexShaderCache::SetCurrentShader(GLuint Shader)
 {
-	if(ShaderEnabled && CurrentShader != Shader)
+	//if(ShaderEnabled && CurrentShader != Shader)
 	{
 		CurrentShader = Shader;
 		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);
@@ -289,13 +289,13 @@ void VertexShaderCache::SetCurrentShader(GLuint Shader)
 
 void VertexShaderCache::EnableShader(GLuint Shader)
 {
-	if(!ShaderEnabled)
+	//if(!ShaderEnabled)
 	{
 		glEnable(GL_VERTEX_PROGRAM_ARB);
 		ShaderEnabled= true;
 		CurrentShader = 0;
 	}
-	if(CurrentShader != Shader)
+	//if(CurrentShader != Shader)
 	{
 		CurrentShader = Shader;
 		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);

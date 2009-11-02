@@ -58,7 +58,7 @@ void FramebufferManager::Init(int targetWidth, int targetHeight, int msaaSamples
 		m_efbDepth = glObj[1];
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_efbColor);
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, m_targetWidth, m_targetHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_efbDepth);
 		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
@@ -119,7 +119,7 @@ void FramebufferManager::Init(int targetWidth, int targetHeight, int msaaSamples
 		m_resolvedDepthTexture = glObj[1];
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_resolvedColorTexture);
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, m_targetWidth, m_targetHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, m_targetWidth, m_targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_resolvedDepthTexture);
 		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_DEPTH_COMPONENT24, m_targetWidth, m_targetHeight, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
@@ -343,7 +343,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 			// the image will be allocated by glCopyTexImage2D (later).
 
 			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfbTexture);
-			glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, m_targetWidth, m_targetHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+			glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, m_targetWidth, m_targetHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
 			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 		}
@@ -431,7 +431,7 @@ const XFBSource* FramebufferManager::getRealXFBSource(u32 xfbAddr, u32 fbWidth, 
 		glGenTextures(1, &m_realXFBSource.texture);
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, m_realXFBSource.texture);
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, MAX_XFB_WIDTH, MAX_XFB_HEIGHT, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, MAX_XFB_WIDTH, MAX_XFB_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	}

@@ -319,7 +319,7 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 void PixelShaderCache::DisableShader()
 {
 	CurrentShader = 0;
-	if(ShaderEnabled)
+	//if(ShaderEnabled)
 	{		
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, CurrentShader);
 		glDisable(GL_FRAGMENT_PROGRAM_ARB);
@@ -332,7 +332,7 @@ void PixelShaderCache::DisableShader()
 void PixelShaderCache::SetCurrentShader(GLuint Shader)
 {
 	//The caching here breakes Super Mario Sunshine i'm still trying to figure out wy
-	if(ShaderEnabled /*&& CurrentShader != Shader*/)
+	//if(ShaderEnabled /*&& CurrentShader != Shader*/)
 	{
 		CurrentShader = Shader;
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, CurrentShader);
@@ -342,13 +342,13 @@ void PixelShaderCache::SetCurrentShader(GLuint Shader)
 //Enable Fragment program and bind initial program
 void PixelShaderCache::EnableShader(GLuint Shader)
 {
-	if(!ShaderEnabled)
+	//if(!ShaderEnabled)
 	{
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
 		ShaderEnabled = true;
 		CurrentShader =  0;
 	}
-	if(CurrentShader != Shader)
+	//if(CurrentShader != Shader)
 	{
 		CurrentShader = Shader;
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, CurrentShader);

@@ -589,6 +589,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 //		mtx.m[1][3] = pMatrix[3]; // +0.5f/s_target_height; <-- fix d3d pixel center?
 
 // Called from VertexShaderManager
+// Called from VertexShaderManager
 void UpdateViewport()
 {
 	int scissorXOff = bpmem.scissorOffset.x * 2;
@@ -604,16 +605,9 @@ void UpdateViewport()
 	vp.Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY);
 	vp.Width  = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
 	vp.Height = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
-	//new depth equation , don't know if is correct but...
-	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
-	vp.MaxZ = xfregs.rawViewport[5] / 16777216.0f;
-	
-	// This seems to happen a lot - the above calc is probably wrong.
-	if (vp.MinZ < 0.0f) vp.MinZ = 0.0f;
-	if (vp.MinZ > 1.0f) vp.MinZ = 1.0f;
-	if (vp.MaxZ > 1.0f) vp.MaxZ = 1.0f;
-	if (vp.MaxZ < 0.0f) vp.MaxZ = 0.0f;
-
+	//some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
+	vp.MinZ = 0.0f;//(xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
+	vp.MaxZ = 1.0f;//xfregs.rawViewport[5] / 16777216.0f;
 	D3D::dev->SetViewport(&vp);
 }
 
