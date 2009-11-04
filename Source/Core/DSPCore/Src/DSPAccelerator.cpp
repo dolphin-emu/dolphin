@@ -67,17 +67,30 @@ s16 ADPCM_Step(u32& _rSamplePos)
 u16 dsp_read_aram_d3()
 {
 	// Zelda ucode reads ARAM through 0xffd3.
+	const u32 EndAddress = (gdsp_ifx_regs[DSP_ACEAH] << 16) | gdsp_ifx_regs[DSP_ACEAL];
 	u32 Address = (gdsp_ifx_regs[DSP_ACCAH] << 16) | gdsp_ifx_regs[DSP_ACCAL];
-	u8 value = 0;
+	u16 val = 0;
 	switch (gdsp_ifx_regs[DSP_FORMAT]) {
 		case 0x5:   // unsigned 8-bit reads .. I think.
-			value = DSPHost_ReadHostMemory(Address);
+			val = DSPHost_ReadHostMemory(Address);
+			Address++;
+			break;
+		case 0x6:   // unsigned 16-bit reads .. I think.
+		    val = (DSPHost_ReadHostMemory(Address) << 8) | DSPHost_ReadHostMemory(Address + 1);
+			Address += 2;
 			break;
 		default:
 			ERROR_LOG(DSPLLE, "dsp_read_aram_d3: Unseen Format %i", gdsp_ifx_regs[DSP_FORMAT]);
 			break;
 	}
-	return value;
+	if (Address >= EndAddress) 
+	{
+		// Set address back to start address.
+		Address = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];
+	}
+	gdsp_ifx_regs[DSP_ACCAH] = Address >> 16;
+	gdsp_ifx_regs[DSP_ACCAL] = Address & 0xffff;
+	return val;
 }
 
 void dsp_write_aram_d3(u16 value)

@@ -232,7 +232,6 @@ void ilrrd(const UDSPInstruction& opc)
 	u16 dreg = DSP_REG_ACM0 + ((opc.hex >> 8) & 1);
 
 	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
-
 	dsp_conditional_extend_accum(dreg);
 	g_dsp.r[reg] = dsp_decrement_addr_reg(reg);
 }
@@ -247,7 +246,7 @@ void ilrri(const UDSPInstruction& opc)
 	u16 dreg = DSP_REG_ACM0 + ((opc.hex >> 8) & 1);
 
 	g_dsp.r[dreg] = dsp_imem_read(g_dsp.r[reg]);
-
+	dsp_conditional_extend_accum(dreg);
 	g_dsp.r[reg] = dsp_increment_addr_reg(reg);
 }
 

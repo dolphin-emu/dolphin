@@ -91,8 +91,11 @@ void Step()
 		ProfilerDump(g_dsp.step_counter);
 	}
 #endif
-	//	if (g_dsp.pc >= 0x0272 && g_dsp.pc <= 0x0282)
-	//		printf("pc %04x acc0 %04x acc1 %04x\n", g_dsp.pc, dsp_get_acc_m(0), dsp_get_acc_m(1));
+/*
+	//Pikmin GC (US)
+	if (g_dsp.pc == 0x0506)
+		NOTICE_LOG(DSPLLE,"-> FORMAT JUMPTABLE --> pc:=%04x,ac0.m:=%04x,ac1.m:=%04x", g_dsp.pc, dsp_get_acc_m(0), dsp_get_acc_m(1));
+*/
 	
 	u16 opc = dsp_fetch_code();
 	ExecuteInstruction(UDSPInstruction(opc));

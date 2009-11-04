@@ -137,9 +137,10 @@ void movax(const UDSPInstruction& opc)
 }
 
 // XORR $acD.m, $axS.h
-// 0011 00sd xxxx xxxx
+// 0011 00sd 0xxx xxxx
 // Logic XOR (exclusive or) middle part of accumulator $acD.m with
 // high part of secondary accumulator $axS.h.
+// x = extension (7 bits!!)
 void xorr(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 9) & 0x1;
@@ -149,15 +150,15 @@ void xorr(const UDSPInstruction& opc)
 	zeroWriteBackLog();
 
 	g_dsp.r[DSP_REG_ACM0 + dreg] ^= axh;
-
-	s64 acc = dsp_get_long_acc(dreg);
-	Update_SR_Register64(acc);
+	
+	Update_SR_Register16(dsp_get_acc_m(dreg));
 }
 
 // ANDR $acD.m, $axS.h
-// 0011 01sd xxxx xxxx
+// 0011 01sd 0xxx xxxx
 // Logic AND middle part of accumulator $acD.m with high part of
 // secondary accumulator $axS.h.
+// x = extension (7 bits!!)
 void andr(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 9) & 0x1;
@@ -167,15 +168,15 @@ void andr(const UDSPInstruction& opc)
 	zeroWriteBackLog();
 
 	g_dsp.r[DSP_REG_ACM0 + dreg] &= axh;
-
-	s64 acc = dsp_get_long_acc(dreg);
-	Update_SR_Register64(acc);
+	
+	Update_SR_Register16(dsp_get_acc_m(dreg));
 }
 
 // ORR $acD.m, $axS.h
-// 0011 10sd xxxx xxxx
+// 0011 10sd 0xxx xxxx
 // Logic OR middle part of accumulator $acD.m with high part of
 // secondary accumulator $axS.h.
+// x = extension (7 bits!!)
 void orr(const UDSPInstruction& opc)
 {
 	u8 sreg = (opc.hex >> 9) & 0x1;
@@ -186,15 +187,14 @@ void orr(const UDSPInstruction& opc)
 
 	g_dsp.r[DSP_REG_ACM0 + dreg] |= axh;
 
-	s64 acc = dsp_get_long_acc(dreg);
-	Update_SR_Register64(acc);
+	Update_SR_Register16(dsp_get_acc_m(dreg));
 }
 
-// FIXME: How does it fit what we know about andc'ls 
 // ANDC $acD.m, $ac(1-D).m
-// 0011 110d xxxx xxxx
+// 0011 110d 0xxx xxxx
 // Logic AND middle part of accumulator $acD.m with middle part of
 // accumulator $ac(1-D).m
+// x = extension (7 bits!!)
 void andc(const UDSPInstruction& opc)
 {
 	u8 D = (opc.hex >> 8) & 0x1;
@@ -207,11 +207,11 @@ void andc(const UDSPInstruction& opc)
 	Update_SR_Register16(dsp_get_acc_m(D));
 }
 
-// FIXME: How does it fit what we know about orc'ls 
 // ORC $acD.m, $ac(1-D).m
-// 0011 111d xxxx xxxx
+// 0011 111d 0xxx xxxx
 // Logic OR middle part of accumulator $acD.m with middle part of
 // accumulator $ac(1-D).m.
+// x = extension (7 bits!!)
 void orc(const UDSPInstruction& opc)
 {
 	u8 D = (opc.hex >> 8) & 0x1;
@@ -222,6 +222,36 @@ void orc(const UDSPInstruction& opc)
 	g_dsp.r[DSP_REG_ACM0+D] |= accm;
 
 	Update_SR_Register16(dsp_get_acc_m(D));
+}
+
+// XORC $acD.m
+// 0011 000d 1xxx xxxx
+// Logic XOR (exclusive or) middle part of accumulator $acD.m with $ac(1-D).m
+// x = extension (7 bits!!)
+void xorc(const UDSPInstruction& opc)
+{
+	u8 dreg = (opc.hex >> 8) & 0x1;
+	u16 res = dsp_get_acc_m(dreg) ^ dsp_get_acc_m(1 - dreg);
+
+	zeroWriteBackLog();
+
+	g_dsp.r[DSP_REG_ACM0 + dreg] = res;
+	Update_SR_Register16(res);
+}
+
+// NOT $acD.m
+// 0011 001d 1xxx xxxx
+// Invert all bits in dest reg, aka xor with 0xffff
+// x = extension (7 bits!!)
+void not(const UDSPInstruction& opc)
+{
+	u8 dreg = (opc.hex >> 8) & 0x1;
+	u16 res = dsp_get_acc_m(dreg)^0xffff;
+
+	zeroWriteBackLog();
+
+	g_dsp.r[DSP_REG_ACM0 + dreg] = res;
+	Update_SR_Register16(res);
 }
 
 void orf(const UDSPInstruction& opc)
@@ -743,22 +773,51 @@ void asrn(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// LSRNRX
+// 0011 01sd 1xxx xxxx
+// 0011 10sd 1xxx xxxx
+// Logically shifts right accumulator $ACC[D] by signed 16-bit value $AX[S].H
+// Not described by Duddie's doc.
+// x = extension (7 bits!!)
+void lsrnrx(const UDSPInstruction& opc)
+{
+  u8 dreg = (opc.hex >> 8) & 0x1; //accD
+  u8 sreg = (opc.hex >> 9) & 0x1; //axhS 
+  u64 acc = dsp_get_long_acc(dreg);
+  s16 shift = g_dsp.r[DSP_REG_AXH0 + sreg];
+  acc & 0x000000FFFFFFFFFFULL;
+  if (shift > 0) {
+    acc <<= shift;
+  } else if (shift < 0) {
+    acc >>= -shift;
+  }
+
+  zeroWriteBackLog();
+  
+  dsp_set_long_acc(dreg, acc);
+  Update_SR_Register64(acc);
+}
+
 // LSRNR  $acR
-// 0011 110d 1100 0000
-// Logically shifts right accumulator $ACC0 by signed 16-bit value $AC0.M
+// 0011 11?d 1xxx xxxx
+// Logically shifts right accumulator $ACC[D] by signed 16-bit value $AC[1-D].M
 // Not described by Duddie's doc - at least not as a separate instruction.
+// x = extension (7 bits!!)
 void lsrnr(const UDSPInstruction& opc)
 {
-  u8 sreg = 1;//Check if it should be (opc.hex >> 8) & 0x1;
-  s16 shift = dsp_get_acc_m(0);
-  u64 acc = dsp_get_long_acc(sreg);
+  u8 D = (opc.hex >> 8) & 0x1;
+  s16 shift = dsp_get_acc_m(1-D);
+  u64 acc = dsp_get_long_acc(D);
   acc &= 0x000000FFFFFFFFFFULL;
   if (shift > 0) {
     acc <<= shift;
   } else if (shift < 0) {
     acc >>= -shift;
   }
-  dsp_set_long_acc(sreg, acc);
+
+  zeroWriteBackLog();
+ 
+  dsp_set_long_acc(D, acc);
   Update_SR_Register64(acc);
 }
 

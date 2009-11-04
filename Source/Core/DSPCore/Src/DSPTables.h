@@ -158,8 +158,12 @@ void zeroWriteBackLog();
 
 inline void ExecuteInstruction(const UDSPInstruction& inst)
 {
-	if (opTableUseExt[inst.hex])
-		extOpTable[inst.hex & 0xFF](inst);
+	if (opTableUseExt[inst.hex]) {
+		if ((inst.hex >> 12) == 0x3)
+			extOpTable[inst.hex & 0x7F](inst);
+		else
+			extOpTable[inst.hex & 0xFF](inst);
+	}
 	opTable[inst.hex](inst);
 	if (opTableUseExt[inst.hex]) {
 		applyWriteBackLog();

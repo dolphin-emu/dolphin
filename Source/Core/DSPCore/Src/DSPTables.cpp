@@ -17,37 +17,6 @@
 
 // Additional copyrights go to Duddie (c) 2005 (duddie@walla.com)
 
-/* NOTES BY HERMES:
-
-LZ flag: original opcodes andf and andcf are swaped. Also "jzr" and "jnz" are swaped but now named 'jlz' and 'jlnz' 
-As you can see it obtain the same result but now LZ=1 correctly
-
-Added conditional instructions:
-
-conditional names:
-
-NZ -> NOT ZERO
-Z  -> ZERO 
-
-NC -> NOT CARRY
-C  -> CARRY
-
-LZ  -> LOGIC ZERO (only used with andcf-andf instructions?)
-LNZ -> LOGIC NOT ZERO
-
-G -> GREATER
-LE-> LESS EQUAL
-
-GE-> GREATER EQUAL
-L -> LESS
-
-Examples:
-
-jnz, ifs, retlnz
-
-*/
-
-
 #include "Common.h"
 #include "DSPTables.h"
 
@@ -64,7 +33,6 @@ void nop(const UDSPInstruction& opc)
  
 // Unknown Ops
 // All AX games: a100
-// Zelda Four Swords: 02ca
 
 // TODO: Fill up the tables with the corresponding instructions
 const DSPOPCTemplate opcodes[] =
@@ -125,7 +93,6 @@ const DSPOPCTemplate opcodes[] =
 	{"JLZ",		0x029d, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, false},
 	{"JMP",		0x029f, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, false},
 
-
 	{"JRGE",	0x1700, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false},
 	{"JRL",		0x1701, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false},
 	{"JRG",		0x1702, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false},
@@ -153,7 +120,6 @@ const DSPOPCTemplate opcodes[] =
 	{"SBCLR",   0x1200, 0xfff8, DSPInterpreter::sbclr, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, false},
 	{"SBSET",   0x1300, 0xfff8, DSPInterpreter::sbset, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, false},
 
-	// actually, given the masks these should probably be 0x3f. need investigation.
 	{"LSL",		0x1400, 0xfec0, DSPInterpreter::lsl, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, false},
 	{"LSR",		0x1440, 0xfec0, DSPInterpreter::lsr, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, false},
 	{"ASL",		0x1480, 0xfec0, DSPInterpreter::asl, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, false},
@@ -162,9 +128,6 @@ const DSPOPCTemplate opcodes[] =
 	// discovered by ector!
 	{"LSRN",	0x02ca, 0xffff, DSPInterpreter::lsrn, nop, 1, 0, {}, false},
 	{"ASRN",	0x02cb, 0xffff, DSPInterpreter::asrn, nop, 1, 0, {}, false},
-
-	// andc'ls is behaving weird so it got its own opcode
-	{"LSRNR",	0x3d80,  0xfdff, DSPInterpreter::lsrnr, nop, 1, 1, {{P_ACC, 1, 0, 8, 0x0100}}, false},
 
 	{"LRI",		0x0080, 0xffe0, DSPInterpreter::lri, nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_IMM, 2, 1, 0, 0xffff}}, false},
 	{"LR",      0x00c0, 0xffe0, DSPInterpreter::lr, nop, 2, 2, {{P_REG, 1, 0, 0, 0x001f}, {P_MEM, 2, 1, 0, 0xffff}}, false},
@@ -217,23 +180,41 @@ const DSPOPCTemplate opcodes[] =
 
 	{"ADDARN",  0x0010, 0xfff0, DSPInterpreter::addarn, nop, 1, 2, {{P_REG, 1, 0, 0, 0x0003}, {P_REG04, 1, 0, 2, 0x000c}}, false},
 	
+// opcodes that can be extended
+// extended opcodes, note size of opcode will be set to 0
 
-	// opcodes that can be extended
-	// extended opcodes, note size of opcode will be set to 0
-	{"ANDC",    0x3c00, 0xfe80, DSPInterpreter::andc, nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true},
-	{"ORC",     0x3e00, 0xfe80, DSPInterpreter::orc,  nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true},
+	//3 - main opcode defined by 9 bits, extension defined by last 7 bits!!
+	{"XORR",    0x3000, 0xfc80, DSPInterpreter::xorr,	nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, true},
+	{"ANDR",    0x3400, 0xfc80, DSPInterpreter::andr,	nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, true},
+	{"ORR",		0x3800, 0xfc80, DSPInterpreter::orr,	nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, true},
+	{"ANDC",    0x3c00, 0xfe80, DSPInterpreter::andc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true},
+	{"ORC",     0x3e00, 0xfe80, DSPInterpreter::orc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true},
+	{"XORC",	0x3080, 0xfe80, DSPInterpreter::xorc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true}, //new
+	{"NOT",		0x3280, 0xfe80, DSPInterpreter::not,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true}, //new
+	{"LSRNRX1",	0x3480, 0xfc80, DSPInterpreter::lsrnrx,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true}, //new
+	{"LSRNRX2",	0x3880, 0xfc80, DSPInterpreter::lsrnrx,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true}, //new
+	{"LSRNR",	0x3c80, 0xfc80, DSPInterpreter::lsrnr,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},	// discovered by luigi!
 
-	{"NX",      0x8000, 0xf700, DSPInterpreter::nx,     nop, 1 | P_EXT, 0, {}, true},
-	{"M2",      0x8a00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},
-	{"M0",      0x8b00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},
+	//4
+	{"ADDR",    0x4000, 0xf800, DSPInterpreter::addr,	nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, true},
+	{"ADDAX",   0x4800, 0xfc00, DSPInterpreter::addax,	nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, true},
+	{"ADD",		0x4c00, 0xfe00, DSPInterpreter::add,	nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_ACC_D, 1, 0, 8, 0x0100}}, true},
+	{"ADDP",    0x4e00, 0xfe00, DSPInterpreter::addp,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
 
-	{"CLR15",   0x8c00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},
-	{"SET15",   0x8d00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},
+	//5
+	{"SUBR",    0x5000, 0xf800, DSPInterpreter::subr,  nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, true},
+	{"SUBAX",   0x5800, 0xfc00, DSPInterpreter::subax, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, true},
+	{"SUB",		0x5c00, 0xfe00, DSPInterpreter::sub,   nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_ACC_D, 1, 0, 8, 0x0100}}, true},
+	{"SUBP",    0x5e00, 0xfe00, DSPInterpreter::subp,  nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
 
-	{"SET16",	0x8e00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},
-	{"SET40",	0x8f00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},
+	//6
+	{"MOVR",    0x6000, 0xf800, DSPInterpreter::movr,  nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, true},
+	{"MOVAX",   0x6800, 0xfc00, DSPInterpreter::movax, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, true},
+	{"MOV",		0x6c00, 0xfe00, DSPInterpreter::mov,   nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_ACC_D, 1, 0, 8, 0x0100}}, true},
+	{"MOVP",    0x6e00, 0xfe00, DSPInterpreter::movp,  nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
 
-
+	//7
+	{"ADDAXL",  0x7000, 0xfc00, DSPInterpreter::addaxl, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, true},
 	{"INCM",    0x7400, 0xfe00, DSPInterpreter::incm,   nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true},
 	{"INC",		0x7600, 0xfe00, DSPInterpreter::inc,    nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"DECM",    0x7800, 0xfe00, DSPInterpreter::decm,   nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true},
@@ -241,71 +222,58 @@ const DSPOPCTemplate opcodes[] =
 	{"NEG",		0x7c00, 0xfe00, DSPInterpreter::neg,    nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"MOVNP",   0x7e00, 0xfe00, DSPInterpreter::movnp,  nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
 
-
-	{"TST",		0xb100, 0xf700, DSPInterpreter::tst,   nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, true},
-
-	// Definitely not TSTAXL, it affects one of the accumulators. (a100 or a900, same op, one parameter).
-	{"TSTAXL",  0xa100, 0xff00, DSPInterpreter::tstaxl, nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, true},
-
-	{"TSTAXH",  0x8600, 0xfe00, DSPInterpreter::tstaxh, nop, 1 | P_EXT, 1, {{P_REG1A, 1, 0, 8, 0x0100}}, true},
-
-	{"CMP",		0x8200, 0xff00, DSPInterpreter::cmp,    nop, 1 | P_EXT, 0, {}, true},
-	
-	// This op does NOT exist, at least not under this name, in duddie's docs!
-	{"CMPAR" ,  0xc100, 0xe700, DSPInterpreter::cmpar, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, true},
-
-	{"CLRL",	0xfc00, 0xff00, DSPInterpreter::clrl, nop, 1 | P_EXT,  1, {{P_ACCL, 1, 0, 11, 0x0800}}, true}, // clear acl0
+	//8
+	{"NX",      0x8000, 0xf700, DSPInterpreter::nx,     nop, 1 | P_EXT, 0, {}, true},
 	{"CLR",		0x8100, 0xf700, DSPInterpreter::clr,  nop, 1 | P_EXT,  1, {{P_ACC, 1, 0, 11, 0x0800}}, true}, // clear acc0
+	{"CMP",		0x8200, 0xff00, DSPInterpreter::cmp,    nop, 1 | P_EXT, 0, {}, true},
+	//0x8300 - unknown - not used atm - could be cmp(acc1-acc0)
 	{"CLRP",	0x8400, 0xff00, DSPInterpreter::clrp, nop, 1 | P_EXT,  0, {}, },
-     
-	{"MOV",		0x6c00, 0xfe00, DSPInterpreter::mov,   nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_ACC_D, 1, 0, 8, 0x0100}}, true},
-	{"MOVAX",   0x6800, 0xfc00, DSPInterpreter::movax, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, true},
-	{"MOVR",    0x6000, 0xf800, DSPInterpreter::movr,  nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, true},
-	{"MOVP",    0x6e00, 0xfe00, DSPInterpreter::movp,  nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
-	{"MOVPZ",   0xfe00, 0xfe00, DSPInterpreter::movpz, nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
+	//0x8500 - unknown mul opcode (modifies prod regs) - not used atm
+	{"TSTAXH",  0x8600, 0xfe00, DSPInterpreter::tstaxh, nop, 1 | P_EXT, 1, {{P_REG1A, 1, 0, 8, 0x0100}}, true},
+	{"M2",      0x8a00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},
+	{"M0",      0x8b00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},
+	{"CLR15",   0x8c00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},
+	{"SET15",   0x8d00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},
+	{"SET16",	0x8e00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},
+	{"SET40",	0x8f00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},
 
-	{"ADDPAXZ", 0xf800, 0xfc00, DSPInterpreter::addpaxz, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 9, 0x0200}, {P_REG1A, 1, 0, 8, 0x0100}}, true},  //Think the args are wrong
-	{"ADDP",    0x4e00, 0xfe00, DSPInterpreter::addp,    nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
-
-	{"LSL16",   0xf000, 0xfe00, DSPInterpreter::lsl16, nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
-	{"LSR16",   0xf400, 0xfe00, DSPInterpreter::lsr16, nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
+	//9
+	{"MUL",		0x9000, 0xf700, DSPInterpreter::mul,    nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}}, true},
 	{"ASR16",   0x9100, 0xf700, DSPInterpreter::asr16, nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, true},
-
-	{"XORR",    0x3000, 0xfc00, DSPInterpreter::xorr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, true},
-	{"ANDR",    0x3400, 0xfc00, DSPInterpreter::andr, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, true},
-	{"ORR",		0x3800, 0xfc00, DSPInterpreter::orr,  nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, true},
-
+	{"MULMVZ",  0x9200, 0xf600, DSPInterpreter::mulmvz, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
+	{"MULAC",   0x9400, 0xf600, DSPInterpreter::mulac,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
+	{"MULMV",   0x9600, 0xf600, DSPInterpreter::mulmv,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
+	
+	//a-b (!!!retest TST/TSTAXL!!!)
 	{"MULX",    0xa000, 0xe700, DSPInterpreter::mulx,    nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}}, true},
+	{"TST",		0xa100, 0xe700, DSPInterpreter::tst,   nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, true},
+	//{"TSTAXL",  0xa100, 0xff00, DSPInterpreter::tstaxl, nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, true}, //Definitely not TSTAXL, it affects one of the accumulators
+	//{"TST",		0xb100, 0xf700, DSPInterpreter::tst,   nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, true},
 	{"MULXMVZ", 0xa200, 0xe600, DSPInterpreter::mulxmvz, nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"MULXAC",  0xa400, 0xe600, DSPInterpreter::mulxac,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"MULXMV",  0xa600, 0xe600, DSPInterpreter::mulxmv,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 
-	{"MUL",		0x9000, 0xf700, DSPInterpreter::mul,    nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}}, true},
-	{"MULMVZ",  0x9200, 0xf600, DSPInterpreter::mulmvz, nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
-	{"MULAC",   0x9400, 0xf600, DSPInterpreter::mulac,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
-	{"MULMV",   0x9600, 0xf600, DSPInterpreter::mulmv,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
-
+	//c-d
 	{"MULC",    0xc000, 0xe700, DSPInterpreter::mulc,    nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, true},
+	{"CMPAR" ,  0xc100, 0xe700, DSPInterpreter::cmpar, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, true}, //MIA in duddie dox
 	{"MULCMVZ", 0xc200, 0xe600, DSPInterpreter::mulcmvz, nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"MULCAC",  0xc400, 0xe600, DSPInterpreter::mulcac,  nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"MULCMV",  0xc600, 0xe600, DSPInterpreter::mulcmv,  nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 
-	{"ADDR",    0x4000, 0xf800, DSPInterpreter::addr,   nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, true},
-	{"ADDAX",   0x4800, 0xfc00, DSPInterpreter::addax,  nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, true},
-	{"ADD",		0x4c00, 0xfe00, DSPInterpreter::add,    nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_ACC_D, 1, 0, 8, 0x0100}}, true},
-	{"ADDAXL",  0x7000, 0xfc00, DSPInterpreter::addaxl, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, true},
-
-	{"SUBR",    0x5000, 0xf800, DSPInterpreter::subr,  nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, true},
-	{"SUBAX",   0x5800, 0xfc00, DSPInterpreter::subax, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0200}}, true},
-	{"SUB",		0x5c00, 0xfe00, DSPInterpreter::sub,   nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_ACC_D, 1, 0, 8, 0x0100}}, true},
-	{"SUBP",    0x5e00, 0xfe00, DSPInterpreter::subp,  nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
-
-	{"MADD",    0xf200, 0xfe00, DSPInterpreter::madd,  nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, true},
-	{"MSUB",    0xf600, 0xfe00, DSPInterpreter::msub , nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, true},
+	//e
 	{"MADDX",   0xe000, 0xfc00, DSPInterpreter::maddx, nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 8, 0x0200}, {P_REGM19, 1, 0, 7, 0x0100}}, true},
 	{"MSUBX",   0xe400, 0xfc00, DSPInterpreter::msubx, nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 8, 0x0200}, {P_REGM19, 1, 0, 7, 0x0100}}, true},
 	{"MADDC",   0xe800, 0xfc00, DSPInterpreter::maddc, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 9, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}}, true},
 	{"MSUBC",   0xec00, 0xfc00, DSPInterpreter::msubc, nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 9, 0x0200}, {P_REG19, 1, 0, 7, 0x0100}}, true},
+
+	//f
+	{"LSL16",   0xf000, 0xfe00, DSPInterpreter::lsl16, nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
+	{"MADD",    0xf200, 0xfe00, DSPInterpreter::madd,  nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, true},
+	{"LSR16",   0xf400, 0xfe00, DSPInterpreter::lsr16, nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
+	{"MSUB",    0xf600, 0xfe00, DSPInterpreter::msub , nop, 1 | P_EXT, 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, true},
+	{"ADDPAXZ", 0xf800, 0xfc00, DSPInterpreter::addpaxz, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 9, 0x0200}, {P_REG1A, 1, 0, 8, 0x0100}}, true},  //Think the args are wrong
+	{"CLRL",	0xfc00, 0xfe00, DSPInterpreter::clrl, nop, 1 | P_EXT,  1, {{P_ACCL, 1, 0, 11, 0x0800}}, true}, // clear acl0
+	{"MOVPZ",   0xfe00, 0xfe00, DSPInterpreter::movpz, nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},
 };
 
 const DSPOPCTemplate cw = 
@@ -530,10 +498,6 @@ const DSPOPCTemplate *GetOpTemplate(const UDSPInstruction &inst)
 	for (int i = 0; i < opcodes_size; i++)
 	{
 		u16 mask = opcodes[i].opcode_mask;
-		if (opcodes[i].size & P_EXT) {
-			// Ignore extension bits.
-			mask &= 0xFF00;
-		}
 		if ((mask & inst.hex) == opcodes[i].opcode)
 			return &opcodes[i];
 	}
