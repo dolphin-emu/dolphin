@@ -785,7 +785,7 @@ void lsrnrx(const UDSPInstruction& opc)
   u8 sreg = (opc.hex >> 9) & 0x1; //axhS 
   u64 acc = dsp_get_long_acc(dreg);
   s16 shift = g_dsp.r[DSP_REG_AXH0 + sreg];
-  acc & 0x000000FFFFFFFFFFULL;
+  acc &= 0x000000FFFFFFFFFFULL;
   if (shift > 0) {
     acc <<= shift;
   } else if (shift < 0) {
