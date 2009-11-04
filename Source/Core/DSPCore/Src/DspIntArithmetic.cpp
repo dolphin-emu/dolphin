@@ -42,7 +42,7 @@ void clr(const UDSPInstruction& opc)
 // Clears $acR.l - low 16 bits of accumulator $acR.
 void clrl(const UDSPInstruction& opc)
 {
-	u16 reg = DSP_REG_ACL0 + ((opc.hex >> 11) & 0x1);
+	u16 reg = DSP_REG_ACL0 + ((opc.hex >> 8) & 0x1);
 	g_dsp.r[reg] = 0;
 
 	// Should this be 64bit?
@@ -242,8 +242,6 @@ void andcf(const UDSPInstruction& opc)
 	u16 val = dsp_get_acc_m(reg);
 
 	Update_SR_LZ(((val & imm) == imm) ? 0 : 1);
-
-	zeroWriteBackLog();
 }
 
 // Hermes switched andf and andcf, so check to make sure they are still correct
@@ -261,8 +259,6 @@ void andf(const UDSPInstruction& opc)
 	u16 val = dsp_get_acc_m(reg);
 
 	Update_SR_LZ(((val & imm) == 0) ? 0 : 1);
-
-	zeroWriteBackLog();
 }
 
 // CMPI $amD, #I
@@ -279,7 +275,6 @@ void cmpi(const UDSPInstruction& opc)
 	s64 val = dsp_get_long_acc(reg);
 	Update_SR_Register64(val - imm);
 
-	zeroWriteBackLog();
 }
 
 // XORI $acD.m, #I
@@ -291,8 +286,6 @@ void xori(const UDSPInstruction& opc)
 {
 	u8 reg  = DSP_REG_ACM0 + ((opc.hex >> 8) & 0x1);
 	u16 imm = dsp_fetch_code();
-
-	zeroWriteBackLog();
 
 	g_dsp.r[reg] ^= imm;
 
@@ -307,7 +300,6 @@ void andi(const UDSPInstruction& opc)
 {
 	u8 reg  = DSP_REG_ACM0 + ((opc.hex >> 8) & 0x1);
 	u16 imm = dsp_fetch_code();
-	zeroWriteBackLog();
 
 	g_dsp.r[reg] &= imm;
 
@@ -323,7 +315,6 @@ void ori(const UDSPInstruction& opc)
 {
 	u8 reg  = DSP_REG_ACM0 + ((opc.hex >> 8) & 0x1);
 	u16 imm = dsp_fetch_code();
-	zeroWriteBackLog();
 
 	g_dsp.r[reg] |= imm;
 
@@ -397,7 +388,6 @@ void cmpis(const UDSPInstruction& opc)
 	s64 res = acc - val;
 
 	Update_SR_Register64(res);
-	zeroWriteBackLog();
 }
 
 
@@ -580,7 +570,6 @@ void addis(const UDSPInstruction& opc)
 	s64 acc = dsp_get_long_acc(areg);
 	acc += Imm;
 
-	zeroWriteBackLog();
 	dsp_set_long_acc(areg, acc);
 
 	Update_SR_Register64(acc);
@@ -599,7 +588,6 @@ void addi(const UDSPInstruction& opc)
 	s64 acc = dsp_get_long_acc(areg);
 	acc += sub;
 
-	zeroWriteBackLog();
 	dsp_set_long_acc(areg, acc);
 
 	Update_SR_Register64(acc);
@@ -663,7 +651,6 @@ void lsl(const UDSPInstruction& opc)
 
 	acc <<= shift;
 
-	zeroWriteBackLog();
 	dsp_set_long_acc(opc.areg, acc);
 	Update_SR_Register64(acc);
 }
@@ -680,7 +667,6 @@ void lsr(const UDSPInstruction& opc)
 	acc &= 0x000000FFFFFFFFFFULL;
 	acc >>= shift;
 
-	zeroWriteBackLog();
 	dsp_set_long_acc(opc.areg, (s64)acc);
 	Update_SR_Register64(acc);
 }
@@ -696,7 +682,6 @@ void asl(const UDSPInstruction& opc)
 	u64 acc = dsp_get_long_acc(opc.areg);
 	acc <<= shift;
 
-	zeroWriteBackLog();
 	dsp_set_long_acc(opc.areg, acc);
 
 	Update_SR_Register64(acc);
@@ -714,7 +699,6 @@ void asr(const UDSPInstruction& opc)
 	s64 acc = dsp_get_long_acc(opc.areg);
 	acc >>= shift;
 
-	zeroWriteBackLog();
 	dsp_set_long_acc(opc.areg, acc);
 
 	Update_SR_Register64(acc);
@@ -737,7 +721,6 @@ void lsrn(const UDSPInstruction& opc)
 	} else if (shift < 0) {
 		acc <<= -shift;
 	}
-	zeroWriteBackLog();
 	dsp_set_long_acc(0, (s64)acc);
 	Update_SR_Register64(acc);
 }
@@ -756,7 +739,6 @@ void asrn(const UDSPInstruction& opc)
 	} else if (shift < 0) {
 		acc <<= -shift;
 	}
-	zeroWriteBackLog();
 	dsp_set_long_acc(0, acc);
 	Update_SR_Register64(acc);
 }
@@ -776,7 +758,6 @@ void lsrnr(const UDSPInstruction& opc)
   } else if (shift < 0) {
     acc >>= -shift;
   }
-  zeroWriteBackLog();
   dsp_set_long_acc(sreg, acc);
   Update_SR_Register64(acc);
 }
