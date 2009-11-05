@@ -90,7 +90,7 @@ void orr(const UDSPInstruction& opc);
 void andc(const UDSPInstruction& opc);
 void orc(const UDSPInstruction& opc);
 void xorc(const UDSPInstruction& opc);
-void not(const UDSPInstruction& opc);
+void notc(const UDSPInstruction& opc);
 void lsrnrx(const UDSPInstruction& opc);
 void lsrnr(const UDSPInstruction& opc);
 void orf(const UDSPInstruction& opc);

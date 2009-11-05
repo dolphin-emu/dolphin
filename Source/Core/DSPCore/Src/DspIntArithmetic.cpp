@@ -243,7 +243,7 @@ void xorc(const UDSPInstruction& opc)
 // 0011 001d 1xxx xxxx
 // Invert all bits in dest reg, aka xor with 0xffff
 // x = extension (7 bits!!)
-void not(const UDSPInstruction& opc)
+void notc(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x1;
 	u16 res = dsp_get_acc_m(dreg)^0xffff;
@@ -866,3 +866,4 @@ void tst(const UDSPInstruction& opc)
 }
 
 }  // namespace
+

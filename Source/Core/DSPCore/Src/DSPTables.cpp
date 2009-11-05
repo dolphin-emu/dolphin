@@ -190,7 +190,7 @@ const DSPOPCTemplate opcodes[] =
 	{"ANDC",    0x3c00, 0xfe80, DSPInterpreter::andc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true},
 	{"ORC",     0x3e00, 0xfe80, DSPInterpreter::orc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true},
 	{"XORC",	0x3080, 0xfe80, DSPInterpreter::xorc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true}, //new
-	{"NOT",		0x3280, 0xfe80, DSPInterpreter::not,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true}, //new
+	{"NOT",		0x3280, 0xfe80, DSPInterpreter::notc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true}, //new
 	{"LSRNRX1",	0x3480, 0xfc80, DSPInterpreter::lsrnrx,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true}, //new
 	{"LSRNRX2",	0x3880, 0xfc80, DSPInterpreter::lsrnrx,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true}, //new
 	{"LSRNR",	0x3c80, 0xfc80, DSPInterpreter::lsrnr,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},	// discovered by luigi!
