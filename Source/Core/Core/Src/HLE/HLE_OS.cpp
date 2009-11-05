@@ -31,11 +31,12 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg = 3);
 
 void HLE_OSPanic()
 {
-	std::string Error;
+	std::string Error, Msg;
 	GetStringVA(Error);
+	GetStringVA(Msg, 5);
 
-	PanicAlert("OSPanic: %s", Error.c_str());
-	ERROR_LOG(OSREPORT, "(PC=%08x), OSPanic: %s", LR, Error.c_str());
+	PanicAlert("OSPanic: %s: %s", Error.c_str(), Msg.c_str());
+	ERROR_LOG(OSREPORT, "%08x->%08x| OSPanic: %s: %s", LR, PC, Error.c_str(), Msg.c_str());
 
 	NPC = LR;
 }

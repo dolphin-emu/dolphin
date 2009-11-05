@@ -387,7 +387,7 @@ void CCodeWindow::UpdateLists()
 void CCodeWindow::UpdateCallstack()
 {
 	//if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN) return;
-	//if (Core::GetState() == Core::CORE_STOPPING) return;
+	if (Core::GetState() == Core::CORE_STOPPING) return;
 
 	callstack->Clear();
 
