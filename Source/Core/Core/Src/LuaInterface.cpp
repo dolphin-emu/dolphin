@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <cstring>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -35,7 +34,7 @@ extern "C" {
 #include "lstate.h"
 };
 
-// TODO: This code is RIDDEN with warnings. NEEDS FIXING URGENTLY. Item Count: 20
+// TODO Count: 22
 
 // TODO: GUI
 
@@ -142,9 +141,6 @@ bool g_stopAllScriptsEnabled = true;
 	#define GetCurrentInfo() *luaStateToContextMap[L] // should always work but might be slower
 #endif
 
-//#define ASK_USER_ON_FREEZE // dialog on freeze is disabled now because it seems to be unnecessary, but this can be re-defined to enable it
-
-
 static std::map<lua_CFunction, const char*> s_cFuncInfoMap;
 
 // using this macro you can define a callable-from-Lua function
@@ -162,8 +158,6 @@ static std::map<lua_CFunction, const char*> s_cFuncInfoMap;
 	#define snprintf _snprintf
 	#define vscprintf _vscprintf
 #else
-	#define stricmp strcasecmp
-	#define strnicmp strncasecmp
 	#define __forceinline __attribute__((always_inline))
 #endif
 
@@ -232,7 +226,7 @@ static int memory_registerHook(lua_State* L, LuaMemHookType hookType, int defaul
 	int funcIdx = 2;
 	if(lua_isnumber(L,2))
 	{
-		size = luaL_checkinteger(L,2);
+		size = (int)luaL_checkinteger(L,2);
 		if(size < 0)
 		{
 			size = -size;
@@ -292,7 +286,7 @@ LuaMemHookType MatchHookTypeToCPU(lua_State* L, LuaMemHookType hookType)
 	if(cpunameIndex)
 	{
 		const char* cpuName = lua_tostring(L, cpunameIndex);
-		if(!stricmp(cpuName, "sub") || !stricmp(cpuName, "s68k"))
+		if(!strcasecmp(cpuName, "sub") || !strcasecmp(cpuName, "s68k"))
 			cpuID = 1;
 		lua_remove(L, cpunameIndex);
 	}
@@ -414,7 +408,7 @@ DEFINE_LUA_FUNCTION(state_registerload, "func[,loadkey]")
 
 DEFINE_LUA_FUNCTION(input_registerhotkey, "keynum,func")
 {
-	int hotkeyNumber = luaL_checkinteger(L,1);
+	int hotkeyNumber = (int)luaL_checkinteger(L,1);
 	if(hotkeyNumber < 1 || hotkeyNumber > 16)
 	{
 		luaL_error(L, "input.registerhotkey(n,func) requires 1 <= n <= 16, but got n = %d.", hotkeyNumber);
@@ -443,8 +437,8 @@ static int doPopup(lua_State* L, const char* deftype, const char* deficon)
 	int itype = -1, iters = 0;
 	while(itype == -1 && iters++ < 2)
 	{
-		if(!stricmp(type, "ok")) itype = 0;
-		else if(!stricmp(type, "yesno")) itype = 1;
+		if(!strcasecmp(type, "ok")) itype = 0;
+		else if(!strcasecmp(type, "yesno")) itype = 1;
 		else type = deftype;
 	}
 	assert(itype >= 0 && itype <= 4);
@@ -453,8 +447,8 @@ static int doPopup(lua_State* L, const char* deftype, const char* deficon)
 	int iicon = -1; iters = 0;
 	while(iicon == -1 && iters++ < 2)
 	{
-		if(!stricmp(icon, "message") || !stricmp(icon, "notice")) iicon = 0;
-		else if(!stricmp(icon, "warning") || !stricmp(icon, "error")) iicon = 1;
+		if(!strcasecmp(icon, "message") || !strcasecmp(icon, "notice")) iicon = 0;
+		else if(!strcasecmp(icon, "warning") || !strcasecmp(icon, "error")) iicon = 1;
 		else icon = deficon;
 	}
 	assert(iicon >= 0 && iicon <= 3);
@@ -628,7 +622,7 @@ DEFINE_LUA_FUNCTION(emulua_persistglobalvariables, "variabletable")
 			// keep track of the variable name for later
 			const char* varName = lua_tostring(L, varNameIndex);
 			info.persistVars.push_back(varName);
-			unsigned int varNameCRC = crc32(0, (const unsigned char*)varName, strlen(varName));
+			unsigned int varNameCRC = crc32(0, (const unsigned char*)varName, (int)strlen(varName));
 			info.newDefaultData.SaveRecordPartial(uid, varNameCRC, defaultIndex);
 
 			// load the previous default value for this variable if it exists.
@@ -686,7 +680,7 @@ void DeferFunctionCall(lua_State* L, const char* idstring)
 	// put the list into a global array
 	lua_getfield(L, LUA_REGISTRYINDEX, idstring);
 	lua_insert(L, 1);
-	int curSize = lua_objlen(L, 1);
+	int curSize = (int)lua_objlen(L, 1);
 	lua_rawseti(L, 1, curSize+1);
 
 	// clean the stack
@@ -696,11 +690,11 @@ void CallDeferredFunctions(lua_State* L, const char* idstring)
 {
 	lua_settop(L, 0);
 	lua_getfield(L, LUA_REGISTRYINDEX, idstring);
-	int numCalls = lua_objlen(L, 1);
+	int numCalls = (int)lua_objlen(L, 1);
 	for(int i = 1; i <= numCalls; i++)
 	{
         lua_rawgeti(L, 1, i);  // get the function+arguments list
-		int listSize = lua_objlen(L, 2);
+		int listSize = (int)lua_objlen(L, 2);
 
 		// push the arguments and the function
 		for(int j = 1; j <= listSize; j++)
@@ -848,9 +842,8 @@ defcase:default: APPENDPRINT "%s:%p",luaL_typename(L,i),lua_topointer(L,i) END b
 			std::vector<const void*>::const_iterator foundCycleIter = std::find(s_tableAddressStack.begin(), s_tableAddressStack.end(), lua_topointer(L,i));
 			if(foundCycleIter != s_tableAddressStack.end())
 			{
-				int parentNum = s_tableAddressStack.end() - foundCycleIter;
-				if(parentNum > 1)
-					APPENDPRINT "%s:parent^%d",luaL_typename(L,i),parentNum END
+				if((s_tableAddressStack.end() - foundCycleIter) > 1)
+					APPENDPRINT "%s:parent^%d",luaL_typename(L,i),(s_tableAddressStack.end() - foundCycleIter) END
 				else
 					APPENDPRINT "%s:parent",luaL_typename(L,i) END
 			}
@@ -1054,7 +1047,7 @@ DEFINE_LUA_FUNCTION(copytable, "origtable")
 		return 1;
 	}
 	
-	lua_createtable(L, lua_objlen(L,1), 0);
+	lua_createtable(L, (int)lua_objlen(L,1), 0);
 	int copyIndex = lua_gettop(L);
 
 	lua_pushnil(L); // first key
@@ -1092,7 +1085,7 @@ DEFINE_LUA_FUNCTION(bitand, "...[integers]")
 	int rv = ~0;
 	int numArgs = lua_gettop(L);
 	for(int i = 1; i <= numArgs; i++)
-		rv &= luaL_checkinteger(L,i);
+		rv &= (int)luaL_checkinteger(L,i);
 	lua_settop(L,0);
 	lua_pushinteger(L,rv);
 	return 1;
@@ -1102,7 +1095,7 @@ DEFINE_LUA_FUNCTION(bitor, "...[integers]")
 	int rv = 0;
 	int numArgs = lua_gettop(L);
 	for(int i = 1; i <= numArgs; i++)
-		rv |= luaL_checkinteger(L,i);
+		rv |= (int)luaL_checkinteger(L,i);
 	lua_settop(L,0);
 	lua_pushinteger(L,rv);
 	return 1;
@@ -1112,15 +1105,15 @@ DEFINE_LUA_FUNCTION(bitxor, "...[integers]")
 	int rv = 0;
 	int numArgs = lua_gettop(L);
 	for(int i = 1; i <= numArgs; i++)
-		rv ^= luaL_checkinteger(L,i);
+		rv ^= (int)luaL_checkinteger(L,i);
 	lua_settop(L,0);
 	lua_pushinteger(L,rv);
 	return 1;
 }
 DEFINE_LUA_FUNCTION(bitshift, "num,shift")
 {
-	int num = luaL_checkinteger(L,1);
-	int shift = luaL_checkinteger(L,2);
+	int num = (int)luaL_checkinteger(L,1);
+	int shift = (int)luaL_checkinteger(L,2);
 	if(shift < 0)
 		num <<= -shift;
 	else
@@ -1134,7 +1127,7 @@ DEFINE_LUA_FUNCTION(bitbit, "whichbit")
 	int rv = 0;
 	int numArgs = lua_gettop(L);
 	for(int i = 1; i <= numArgs; i++)
-		rv |= (1 << luaL_checkinteger(L,i));
+		rv |= (1 << (int)luaL_checkinteger(L,i));
 	lua_settop(L,0);
 	lua_pushinteger(L,rv);
 	return 1;
@@ -1224,30 +1217,9 @@ void printfToOutput(const char* fmt, ...)
 	delete[] str;
 }
 
+// What is THAT?
 bool FailVerifyAtFrameBoundary(lua_State* L, const char* funcName, int unstartedSeverity=2, int inframeSeverity=2)
-{// TODO
-	/*if (!Core::isRunning())
-	{
-		static const char* msg = "cannot call %s() when emulation has not started.";
-		switch(unstartedSeverity)
-		{
-		case 0: break;
-		case 1: printfToOutput(msg, funcName); break;
-		default: case 2: luaL_error(L, msg, funcName); break;
-		}
-		return true;
-	}
-	if(Inside_Frame)
-	{
-		static const char* msg = "cannot call %s() inside an emulation frame.";
-		switch(inframeSeverity)
-		{
-		case 0: break;
-		case 1: printfToOutput(msg, funcName); break;
-		default: case 2: luaL_error(L, msg, funcName); break;
-		}
-		return true;
-	}*/
+{
 	return false;
 }
 
@@ -1354,13 +1326,13 @@ DEFINE_LUA_FUNCTION(emulua_speedmode, "mode")
 	else
 	{
 		const char* str = luaL_checkstring(L,1);
-		if(!stricmp(str, "normal"))
+		if(!strcasecmp(str, "normal"))
 			newSpeedMode = SPEEDMODE_NORMAL;
-		else if(!stricmp(str, "nothrottle"))
+		else if(!strcasecmp(str, "nothrottle"))
 			newSpeedMode = SPEEDMODE_NOTHROTTLE;
-		else if(!stricmp(str, "turbo"))
+		else if(!strcasecmp(str, "turbo"))
 			newSpeedMode = SPEEDMODE_TURBO;
-		else if(!stricmp(str, "maximum"))
+		else if(!strcasecmp(str, "maximum"))
 			newSpeedMode = SPEEDMODE_MAXIMUM;
 	}
 
@@ -1472,7 +1444,7 @@ DEFINE_LUA_FUNCTION(emulua_redraw, "")
 
 DEFINE_LUA_FUNCTION(memory_readbyte, "address")
 {
-	int address = luaL_checkinteger(L,1);
+	int address = (int)luaL_checkinteger(L,1);
 	unsigned char value = (unsigned char)(ReadValueAtHardwareAddress(address, 1) & 0xFF);
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1480,7 +1452,7 @@ DEFINE_LUA_FUNCTION(memory_readbyte, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readbytesigned, "address")
 {
-	int address = luaL_checkinteger(L,1);
+	int address = (int)luaL_checkinteger(L,1);
 	signed char value = (signed char)(ReadValueAtHardwareAddress(address, 1) & 0xFF);
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1488,7 +1460,7 @@ DEFINE_LUA_FUNCTION(memory_readbytesigned, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readword, "address")
 {
-	int address = luaL_checkinteger(L,1);
+	int address = (int)luaL_checkinteger(L,1);
 	unsigned short value = (unsigned short)(ReadValueAtHardwareAddress(address, 2) & 0xFFFF);
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1496,7 +1468,7 @@ DEFINE_LUA_FUNCTION(memory_readword, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readwordsigned, "address")
 {
-	int address = luaL_checkinteger(L,1);
+	int address = (int)luaL_checkinteger(L,1);
 	signed short value = (signed short)(ReadValueAtHardwareAddress(address, 2) & 0xFFFF);
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1504,7 +1476,7 @@ DEFINE_LUA_FUNCTION(memory_readwordsigned, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readdword, "address")
 {
-	int address = luaL_checkinteger(L,1);
+	int address = (int)luaL_checkinteger(L,1);
 	unsigned long value = (unsigned long)(ReadValueAtHardwareAddress(address, 4));
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1512,7 +1484,7 @@ DEFINE_LUA_FUNCTION(memory_readdword, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readdwordsigned, "address")
 {
-	int address = luaL_checkinteger(L,1);
+	int address = (int)luaL_checkinteger(L,1);
 	signed long value = (signed long)(ReadValueAtHardwareAddress(address, 4));
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1521,21 +1493,21 @@ DEFINE_LUA_FUNCTION(memory_readdwordsigned, "address")
 
 DEFINE_LUA_FUNCTION(memory_writebyte, "address,value")
 {
-	int address = luaL_checkinteger(L,1);
+	int address = (int)luaL_checkinteger(L,1);
 	unsigned char value = (unsigned char)(luaL_checkinteger(L,2) & 0xFF);
 	WriteValueAtHardwareRAMAddress(address, value, 1);
 	return 0;
 }
 DEFINE_LUA_FUNCTION(memory_writeword, "address,value")
 {
-	int address = luaL_checkinteger(L,1);
+	int address = (int)luaL_checkinteger(L,1);
 	unsigned short value = (unsigned short)(luaL_checkinteger(L,2) & 0xFFFF);
 	WriteValueAtHardwareRAMAddress(address, value, 2);
 	return 0;
 }
 DEFINE_LUA_FUNCTION(memory_writedword, "address,value")
 {
-	int address = luaL_checkinteger(L,1);
+	int address = (int)luaL_checkinteger(L,1);
 	unsigned long value = (unsigned long)(luaL_checkinteger(L,2));
 	WriteValueAtHardwareRAMAddress(address, value, 4);
 	return 0;
@@ -1543,8 +1515,8 @@ DEFINE_LUA_FUNCTION(memory_writedword, "address,value")
 
 DEFINE_LUA_FUNCTION(memory_readbyterange, "address,length")
 {
-	int address = luaL_checkinteger(L,1);
-	int length = luaL_checkinteger(L,2);
+	int address = (int)luaL_checkinteger(L,1);
+	int length = (int)luaL_checkinteger(L,2);
 
 	if(length < 0)
 	{
@@ -1572,7 +1544,7 @@ DEFINE_LUA_FUNCTION(memory_readbyterange, "address,length")
 
 DEFINE_LUA_FUNCTION(memory_isvalid, "address")
 {
-	int address = luaL_checkinteger(L,1);
+	int address = (int)luaL_checkinteger(L,1);
 	lua_settop(L,0);
 	lua_pushboolean(L, IsHardwareAddressValid(address));
 	return 1;
@@ -1653,14 +1625,14 @@ DEFINE_LUA_FUNCTION(memory_getregister, "cpu_dot_registername_string")
 	for(int cpu = 0; cpu < sizeof(cpuToRegisterMaps)/sizeof(*cpuToRegisterMaps); cpu++)
 	{
 		cpuToRegisterMap ctrm = cpuToRegisterMaps[cpu];
-		int cpuNameLen = strlen(ctrm.cpuName);
-		if(!strnicmp(qualifiedRegisterName, ctrm.cpuName, cpuNameLen))
+		int cpuNameLen = (int)strlen(ctrm.cpuName);
+		if(!strncasecmp(qualifiedRegisterName, ctrm.cpuName, cpuNameLen))
 		{
 			qualifiedRegisterName += cpuNameLen;
 			for(int reg = 0; ctrm.rpmap[reg].dataSize; reg++)
 			{
 				registerPointerMap rpm = ctrm.rpmap[reg];
-				if(!stricmp(qualifiedRegisterName, rpm.registerName))
+				if(!strcasecmp(qualifiedRegisterName, rpm.registerName))
 				{
 					switch(rpm.dataSize)
 					{ default:
@@ -1686,14 +1658,14 @@ DEFINE_LUA_FUNCTION(memory_setregister, "cpu_dot_registername_string,value")
 	for(int cpu = 0; cpu < sizeof(cpuToRegisterMaps)/sizeof(*cpuToRegisterMaps); cpu++)
 	{
 		cpuToRegisterMap ctrm = cpuToRegisterMaps[cpu];
-		int cpuNameLen = strlen(ctrm.cpuName);
-		if(!strnicmp(qualifiedRegisterName, ctrm.cpuName, cpuNameLen))
+		int cpuNameLen = (int)strlen(ctrm.cpuName);
+		if(!strncasecmp(qualifiedRegisterName, ctrm.cpuName, cpuNameLen))
 		{
 			qualifiedRegisterName += cpuNameLen;
 			for(int reg = 0; ctrm.rpmap[reg].dataSize; reg++)
 			{
 				registerPointerMap rpm = ctrm.rpmap[reg];
-				if(!stricmp(qualifiedRegisterName, rpm.registerName))
+				if(!strcasecmp(qualifiedRegisterName, rpm.registerName))
 				{
 					switch(rpm.dataSize)
 					{ default:
@@ -1734,7 +1706,7 @@ DEFINE_LUA_FUNCTION(state_create, "[location]")
 
 	return 1;
 }
-
+*/
 // savestate.save(location [, option])
 // saves the current emulation state to the given location
 // you can pass in either a savestate file number (an integer),
@@ -1743,12 +1715,14 @@ DEFINE_LUA_FUNCTION(state_create, "[location]")
 // if option is "scriptdataonly" then the state will not actually be saved, but any save callbacks will still get called and their results will be saved (see savestate.registerload()/savestate.registersave())
 DEFINE_LUA_FUNCTION(state_save, "location[,option]")
 {
+// TODO
+	/*
 	const char* option = (lua_type(L,2) == LUA_TSTRING) ? lua_tostring(L,2) : NULL;
 	if(option)
 	{
-		if(!stricmp(option, "quiet")) // I'm not sure if saving can generate warning messages, but we might as well support suppressing them should they turn out to exist
+		if(!strcasecmp(option, "quiet")) // I'm not sure if saving can generate warning messages, but we might as well support suppressing them should they turn out to exist
 			g_disableStatestateWarnings = true;
-		else if(!stricmp(option, "scriptdataonly"))
+		else if(!strcasecmp(option, "scriptdataonly"))
 			g_onlyCallSavestateCallbacks = true;
 	}
 	struct Scope { ~Scope(){ g_disableStatestateWarnings = false; g_onlyCallSavestateCallbacks = false; } } scope; // needs to run even if the following code throws an exception... maybe I should have put this in a "finally" block instead, but this project seems to have something against using the "try" statement
@@ -1762,7 +1736,7 @@ DEFINE_LUA_FUNCTION(state_save, "location[,option]")
 		case LUA_TNUMBER: // numbered save file
 		default:
 		{
-			int stateNumber = luaL_checkinteger(L,1);
+			int stateNumber = (int)luaL_checkinteger(L,1);
 			Set_Current_State(stateNumber, false,false);
 			char Name [1024] = {0};
 			Get_State_File_Name(Name);
@@ -1778,6 +1752,8 @@ DEFINE_LUA_FUNCTION(state_save, "location[,option]")
 			}
 		}	return 0;
 	}
+*/
+	return 0;
 }
 
 // savestate.load(location [, option])
@@ -1791,9 +1767,9 @@ DEFINE_LUA_FUNCTION(state_load, "location[,option]")
 	const char* option = (lua_type(L,2) == LUA_TSTRING) ? lua_tostring(L,2) : NULL;
 	if(option)
 	{
-		if(!stricmp(option, "quiet"))
+		if(!strcasecmp(option, "quiet"))
 			g_disableStatestateWarnings = true;
-		else if(!stricmp(option, "scriptdataonly"))
+		else if(!strcasecmp(option, "scriptdataonly"))
 			g_onlyCallSavestateCallbacks = true;
 	}
 	struct Scope { ~Scope(){ g_disableStatestateWarnings = false; g_onlyCallSavestateCallbacks = false; } } scope; // needs to run even if the following code throws an exception... maybe I should have put this in a "finally" block instead, but this project seems to have something against using the "try" statement
@@ -1812,11 +1788,13 @@ DEFINE_LUA_FUNCTION(state_load, "location[,option]")
 			LuaContextInfo& info = GetCurrentInfo();
 			if(info.rerecordCountingDisabled)
 				SkipNextRerecordIncrement = true;
-			int stateNumber = luaL_checkinteger(L,1);
+			int stateNumber = (int)luaL_checkinteger(L,1);
 			Set_Current_State(stateNumber, false,!g_disableStatestateWarnings);
 			char Name [1024] = {0};
-			Get_State_File_Name(Name);
-			Load_State(Name);
+
+			//TODO
+			//Get_State_File_Name(Name);
+			//Load_State(Name);
 		}	return 0;
 		case LUA_TUSERDATA: // in-memory save slot
 		{
@@ -1825,7 +1803,7 @@ DEFINE_LUA_FUNCTION(state_load, "location[,option]")
 			{
 				stateBuffer += ((16 - (int)stateBuffer) & 15); // for performance alignment reasons
 				if(stateBuffer[0])
-					Load_State_From_Buffer(stateBuffer);
+					;// Load_State_From_Buffer(stateBuffer); TODO
 				else // the first byte of a valid savestate is never 0
 					luaL_error(L, "attempted to load an anonymous savestate before saving it");
 			}
@@ -1854,10 +1832,10 @@ DEFINE_LUA_FUNCTION(state_loadscriptdata, "location")
 		case LUA_TNUMBER: // numbered save file
 		default:
 		{
-			int stateNumber = luaL_checkinteger(L,1);
+			int stateNumber = (int)luaL_checkinteger(L,1);
 			Set_Current_State(stateNumber, false,false);
 			char Name [1024] = {0};
-			Get_State_File_Name(Name);
+			//Get_State_File_Name(Name); TODO
 			{
 				LuaSaveData saveData;
 
@@ -1894,9 +1872,10 @@ DEFINE_LUA_FUNCTION(state_savescriptdata, "location")
 	lua_settop(L, 1);
 	lua_pushstring(L, "scriptdataonly");
 	return state_save(L);
-}*/
+}
 
 
+// TODO: Convert to Dolphin?
 static const struct ButtonDesc
 {
 	unsigned short controllerNum;
@@ -1957,15 +1936,15 @@ int joy_getArgControllerNum(lua_State* L, int& index)
 		if(type == LUA_TSTRING)
 		{
 			const char* str = lua_tostring(L,index);
-			if(!stricmp(str, "1C"))
+			if(!strcasecmp(str, "1C"))
 				controllerNumber = 0x1C;
-			else if(!stricmp(str, "1B"))
+			else if(!strcasecmp(str, "1B"))
 				controllerNumber = 0x1B;
-			else if(!stricmp(str, "1A"))
+			else if(!strcasecmp(str, "1A"))
 				controllerNumber = 0x1A;
 		}
 		if(!controllerNumber)
-			controllerNumber = luaL_checkinteger(L,index);
+			controllerNumber = (int)luaL_checkinteger(L,index);
 		index++;
 	}
 	else
@@ -2149,7 +2128,7 @@ inline int getcolor_unmodified(lua_State *L, int idx, int defaultColor)
 	{
 		case LUA_TNUMBER:
 		{
-			return lua_tointeger(L,idx);
+			return (int)lua_tointeger(L,idx);
 		}	break;
 		case LUA_TSTRING:
 		{
@@ -2158,7 +2137,7 @@ inline int getcolor_unmodified(lua_State *L, int idx, int defaultColor)
 			{
 				int color;
 				sscanf(str+1, "%X", &color);
-				int len = strlen(str+1);
+				int len = (int)strlen(str+1);
 				int missing = max(0, 8-len);
 				color <<= missing << 2;
 				if(missing >= 2) color |= 0xFF;
@@ -2166,10 +2145,10 @@ inline int getcolor_unmodified(lua_State *L, int idx, int defaultColor)
 			}
 			else for(int i = 0; i<sizeof(s_colorMapping)/sizeof(*s_colorMapping); i++)
 			{
-				if(!stricmp(str,s_colorMapping[i].name))
+				if(!strcasecmp(str,s_colorMapping[i].name))
 					return s_colorMapping[i].value;
 			}
-			if(!strnicmp(str, "rand", 4))
+			if(!strncasecmp(str, "rand", 4))
 				return ((rand()*255/RAND_MAX) << 8) | ((rand()*255/RAND_MAX) << 16) | ((rand()*255/RAND_MAX) << 24) | 0xFF;
 		}	break;
 		case LUA_TTABLE:
@@ -2183,8 +2162,8 @@ inline int getcolor_unmodified(lua_State *L, int idx, int defaultColor)
 			{
 				bool keyIsString = (lua_type(L, keyIndex) == LUA_TSTRING);
 				bool keyIsNumber = (lua_type(L, keyIndex) == LUA_TNUMBER);
-				int key = keyIsString ? tolower(*lua_tostring(L, keyIndex)) : (keyIsNumber ? lua_tointeger(L, keyIndex) : 0);
-				int value = lua_tointeger(L, valueIndex);
+				int key = keyIsString ? tolower(*lua_tostring(L, keyIndex)) : (keyIsNumber ? (int)lua_tointeger(L, keyIndex) : 0);
+				int value = (int)lua_tointeger(L, valueIndex);
 				if(value < 0) value = 0;
 				if(value > 255) value = 255;
 				switch(key)
@@ -2242,8 +2221,8 @@ DEFINE_LUA_FUNCTION(gui_text, "x,y,str[,color=\"white\"[,outline=\"black\"]]")
 		return 0; // we have to wait until later to call this function because emulua hasn't emulated the next frame yet
 		          // (the only way to avoid this deferring is to be in a gui.register or emulua.registerafter callback)
 
-	int x = luaL_checkinteger(L,1) & 0xFFFF;
-	int y = luaL_checkinteger(L,2) & 0xFFFF;
+	int x = (int)luaL_checkinteger(L,1) & 0xFFFF;
+	int y = (int)luaL_checkinteger(L,2) & 0xFFFF;
 	const char* str = toCString(L,3); // better than using luaL_checkstring here (more permissive)
 	
 	if(str && *str)
@@ -2283,9 +2262,9 @@ static inline void ApplyShaderToPixel(int off, std::map<int,int>& cachedShaderRe
 
 		lua_call(L, 3, 3);
 
-		int rout = lua_tointeger(L, -3);
-		int gout = lua_tointeger(L, -2);
-		int bout = lua_tointeger(L, -1);
+		int rout = (int)lua_tointeger(L, -3);
+		int gout = (int)lua_tointeger(L, -2);
+		int bout = (int)lua_tointeger(L, -1);
 		lua_pop(L,3);
 		if(rout < 0) rout = 0; if(rout > 255) rout = 255;
 		if(gout < 0) gout = 0; if(gout > 255) gout = 255;
@@ -2369,15 +2348,15 @@ void ApplyShaderToBoxOutline(int x1, int y1, int x2, int y2, lua_State* L, int i
 
 int amplifyShader(lua_State* L)
 {
-	int rin = lua_tointeger(L, 1);
-	int gin = lua_tointeger(L, 2);
-	int bin = lua_tointeger(L, 3);
+	int rin = (int)lua_tointeger(L, 1);
+	int gin = (int)lua_tointeger(L, 2);
+	int bin = (int)lua_tointeger(L, 3);
 	lua_pushvalue(L, lua_upvalueindex(1));
 	lua_insert(L, 1);
 	lua_call(L, 3, 3);
-	int rout = lua_tointeger(L, 1);
-	int gout = lua_tointeger(L, 2);
-	int bout = lua_tointeger(L, 3);
+	int rout = (int)lua_tointeger(L, 1);
+	int gout = (int)lua_tointeger(L, 2);
+	int bout = (int)lua_tointeger(L, 3);
 	lua_settop(L, 0);
 	lua_pushinteger(L, rout*4 - rin*3);
 	lua_pushinteger(L, gout*4 - gin*3);
@@ -2390,10 +2369,10 @@ DEFINE_LUA_FUNCTION(gui_box, "x1,y1,x2,y2[,fill[,outline]]")
 	if(DeferGUIFuncIfNeeded(L))
 		return 0;
 
-	int x1 = luaL_checkinteger(L,1); // & 0xFFFF removed because it was turning -1 into 65535 which screwed up the out-of-bounds checking in ApplyShaderToBox
-	int y1 = luaL_checkinteger(L,2);
-	int x2 = luaL_checkinteger(L,3);
-	int y2 = luaL_checkinteger(L,4);
+	int x1 = (int)luaL_checkinteger(L,1); // & 0xFFFF removed because it was turning -1 into 65535 which screwed up the out-of-bounds checking in ApplyShaderToBox
+	int y1 = (int)luaL_checkinteger(L,2);
+	int x2 = (int)luaL_checkinteger(L,3);
+	int y2 = (int)luaL_checkinteger(L,4);
 	int fillcolor = getcolor(L,5,0xFFFFFF3F);
 	int outlinecolor = getcolor(L,6,fillcolor|0xFF);
 	if(!lua_isfunction(L,5) || !lua_isnoneornil(L,6))
@@ -2424,8 +2403,8 @@ DEFINE_LUA_FUNCTION(gui_pixel, "x,y[,color=\"white\"]")
 	if(DeferGUIFuncIfNeeded(L))
 		return 0;
 
-	int x = luaL_checkinteger(L,1) & 0xFFFF;
-	int y = luaL_checkinteger(L,2) & 0xFFFF;
+	int x = (int)luaL_checkinteger(L,1) & 0xFFFF;
+	int y = (int)luaL_checkinteger(L,2) & 0xFFFF;
 	int color = getcolor(L,3,0xFFFFFFFF);
 	int color32 = color>>8;
 	int color16 = DrawUtil::Pix32To16(color32);
@@ -2439,8 +2418,8 @@ DEFINE_LUA_FUNCTION(gui_pixel, "x,y[,color=\"white\"]")
 // r,g,b = gui.getpixel(x,y)
 DEFINE_LUA_FUNCTION(gui_getpixel, "x,y")
 {
-	int x = luaL_checkinteger(L,1);
-	int y = luaL_checkinteger(L,2);
+	int x = (int)luaL_checkinteger(L,1);
+	int y = (int)luaL_checkinteger(L,2);
 
 	int xres = ((VDP_Reg.Set4 & 0x1) || Debug || !Game || !FrameCount) ? 320 : 256;
 	int yres = ((VDP_Reg.Set2 & 0x8) && !(Debug || !Game || !FrameCount)) ? 240 : 224;
@@ -2471,10 +2450,10 @@ DEFINE_LUA_FUNCTION(gui_line, "x1,y1,x2,y2[,color=\"white\"[,skipfirst=false]]")
 	if(DeferGUIFuncIfNeeded(L))
 		return 0;
 
-	int x1 = luaL_checkinteger(L,1) & 0xFFFF;
-	int y1 = luaL_checkinteger(L,2) & 0xFFFF;
-	int x2 = luaL_checkinteger(L,3) & 0xFFFF;
-	int y2 = luaL_checkinteger(L,4) & 0xFFFF;
+	int x1 = (int)luaL_checkinteger(L,1) & 0xFFFF;
+	int y1 = (int)luaL_checkinteger(L,2) & 0xFFFF;
+	int x2 = (int)luaL_checkinteger(L,3) & 0xFFFF;
+	int y2 = (int)luaL_checkinteger(L,4) & 0xFFFF;
 	int color = getcolor(L,5,0xFFFFFFFF);
 	int color32 = color>>8;
 	int color16 = DrawUtil::Pix32To16(color32);
@@ -2614,9 +2593,9 @@ DEFINE_LUA_FUNCTION(gui_gdoverlay, "[x=0,y=0,]gdimage[,alphamul]")
 	int index = 1;
 	if(lua_type(L,index) == LUA_TNUMBER)
 	{
-		xStart = lua_tointeger(L,index++);
+		xStart = (int)lua_tointeger(L,index++);
 		if(lua_type(L,index) == LUA_TNUMBER)
-			yStart = lua_tointeger(L,index++);
+			yStart = (int)lua_tointeger(L,index++);
 	}
 
 	luaL_checktype(L,index,LUA_TSTRING);
@@ -2825,7 +2804,7 @@ DEFINE_LUA_FUNCTION(movie_rerecordcount, "")
 }
 DEFINE_LUA_FUNCTION(movie_setrerecordcount, "")
 {
-	//TODO: MainMovie.NbRerecords = luaL_checkinteger(L, 1);
+	//TODO: MainMovie.NbRerecords = (int)luaL_checkinteger(L, 1);
 	return 0;
 }
 DEFINE_LUA_FUNCTION(emulua_rerecordcounting, "[enabled]")
@@ -3629,7 +3608,7 @@ void RequestAbortLuaScript(int uid, const char* message)
 
 void SetSaveKey(LuaContextInfo& info, const char* key)
 {
-	info.dataSaveKey = crc32(0, (const unsigned char*)key, strlen(key));
+	info.dataSaveKey = crc32(0, (const unsigned char*)key, (int)strlen(key));
 
 	if(!info.dataSaveLoadKeySet)
 	{
@@ -3639,7 +3618,7 @@ void SetSaveKey(LuaContextInfo& info, const char* key)
 }
 void SetLoadKey(LuaContextInfo& info, const char* key)
 {
-	info.dataLoadKey = crc32(0, (const unsigned char*)key, strlen(key));
+	info.dataLoadKey = crc32(0, (const unsigned char*)key, (int)strlen(key));
 
 	if(!info.dataSaveLoadKeySet)
 	{
@@ -3715,13 +3694,13 @@ void CallExitFunction(int uid)
 			// gather the final value of the variables we're supposed to persist
 			LuaSaveData newExitData;
 			{
-				int numPersistVars = info.persistVars.size();
+				int numPersistVars = (int)info.persistVars.size();
 				for(int i = 0; i < numPersistVars; i++)
 				{
 					const char* varName = info.persistVars[i].c_str();
 					lua_getfield(L, LUA_GLOBALSINDEX, varName);
 					int type = lua_type(L,-1);
-					unsigned int varNameCRC = crc32(0, (const unsigned char*)varName, strlen(varName));
+					unsigned int varNameCRC = crc32(0, (const unsigned char*)varName, (int)strlen(varName));
 					newExitData.SaveRecordPartial(uid, varNameCRC, -1);
 					lua_pop(L,1);
 				}
@@ -3886,7 +3865,7 @@ struct TieredRegion
 
 	__forceinline int NotEmpty()
 	{
-		return broad.islands.size();
+		return (int)broad.islands.size();
 	}
 
 	// note: it is illegal to call this if NotEmpty() returns 0
@@ -3920,7 +3899,7 @@ static void CalculateMemHookRegions(LuaMemHookType hookType)
 				{
 					if(lua_isfunction(L, -1))
 					{
-						unsigned int addr = lua_tointeger(L, -2);
+						unsigned int addr = (int)lua_tointeger(L, -2);
 						hookedBytes.push_back(addr);
 					}
 					lua_pop(L, 1);
@@ -4183,7 +4162,7 @@ void PushBinaryItem(T item, std::vector<unsigned char>& output)
 	for(int i = sizeof(T); i; i--)
 		output.push_back(*buf++);
 #else
-	int vecsize = output.size();
+	int vecsize = (int)output.size();
 	for(int i = sizeof(T); i; i--)
 		output.insert(output.begin() + vecsize, *buf++);
 #endif
@@ -4330,7 +4309,7 @@ static void LuaStackToBinaryConverter(lua_State* L, int i, std::vector<unsigned 
 			// then a Lua value per array entry, then a (key,value) pair of Lua values per hashed entry
 			// note that the structure of table references are not faithfully serialized (yet)
 		{
-			int outputTypeIndex = output.size() - 1;
+			int outputTypeIndex = (int)output.size() - 1;
 			int arraySize = 0;
 			int hashSize = 0;
 
@@ -4341,7 +4320,7 @@ static void LuaStackToBinaryConverter(lua_State* L, int i, std::vector<unsigned 
 
 				bool wasnil = false;
 				int nilcount = 0;
-				arraySize = lua_objlen(L, i);
+				arraySize = (int)lua_objlen(L, i);
 				int arrayValIndex = lua_gettop(L) + 1;
 				for(int j = 1; j <= arraySize; j++)
 				{
@@ -4456,7 +4435,7 @@ void BinaryToLuaStackConverter(lua_State* L, const unsigned char*& data, unsigne
 			break;
 		case LUA_TSTRING:
 			lua_pushstring(L, (const char*)data);
-			AdvanceByteStream(data, remaining, strlen((const char*)data) + 1);
+			AdvanceByteStream(data, remaining, (int)strlen((const char*)data) + 1);
 			break;
 		case LUA_TNUMBER:
 			lua_pushnumber(L, AdvanceByteStream<double>(data, remaining));
@@ -4555,7 +4534,7 @@ unsigned char* LuaStackToBinary(lua_State* L, unsigned int& size)
 
 	unsigned char* rv = new unsigned char [output.size()];
 	memcpy(rv, &output.front(), output.size());
-	size = output.size();
+	size = (int)output.size();
 	return rv;
 }
 
@@ -4651,7 +4630,7 @@ void LuaSaveData::SaveRecordPartial(int uid, unsigned int key, int idx)
 
 		unsigned char* rv = new unsigned char [output.size()];
 		memcpy(rv, &output.front(), output.size());
-		cur->size = output.size();
+		cur->size = (int)output.size();
 		cur->data = rv;
 	}
 
