@@ -39,123 +39,24 @@ inline u32 getbitsw(u32 dword, int start, int end) {
 	return (dword & makemaskw(start, end)) >> (31 - end);
 }
 
-// Container Class Stolen from Whinecube
-template<class T> class SubContainer;
-
-template<class T> class Container
-{
-public:
-	Container(size_t _size) {
-		b = 0;
-		allocate(_size);
-	}
-	Container(size_t _size, const T *data) {
-		b = 0;
-		allocate(size);
-		memcpy(a, data, _size);
-	}
-	~Container() {
-		if (a) /*if(_msize(a))*/ free(a);
-	}
-	void resize(size_t _size) {
-		if (b == _size)
-			return;
-		free(a);
-		allocate(_size);
-	}
-
-	/*void insert(int before, void *src, size_t size) {
-	char *temp = a;
-	a = new char[b + size];
-	if(a == NULL)
-	BFE("Memory insert failed in container");
-	memcpy(a, temp, before);
-	memcpy(a+before, src, size);
-	memcpy(a+before+size, temp+before, b-before);
-	b += size;
-	delete temp;
-	}*/
-
-	class SubContainer : public Container {
-	private:
-		SubContainer(void* ptr, size_t size) : Container(ptr, size) {}
-		friend class Container;
-	public:
-		~SubContainer() {
-			a = NULL;
-			b = 0;
-		}
-	};
-	SubContainer getSub(size_t pos) {
-		return SubContainer(((char*)a) + pos, b - pos);
-	}
-
-	operator T*() { return (T *)a; }
-	operator const T*() const { return (T *)a; }
-	T* p() { return (T *)a; }
-	const T* p() const { return (T *)a; }
-	T *operator->() { return (T *)a; }
-	size_t size() const { return b; }
-	void steal(Container<T> &src) {
-		resize(0); a = src.a; b = src.b;
-		src.a = NULL; src.b = 0;
-	}
-	void swap(Container<T> &other) {
-		T *ta = a; size_t tb = b;
-		a = other.a; b = other.b;
-		other.a = ta; other.b = tb;
-	}
-
-protected:
-	void *a;
-	size_t b;
-
-private:
-	Container(const Container&);
-	Container &operator=(const Container&);
-	Container(void* ptr, size_t _size) : a(ptr), b(_size) {}
-	friend class SubContainer;
-
-	void allocate(size_t _size)
-	{
-		if (_size > (100*1024*1024)) // 100 MB cap
-			exit(0);
-
-		//DEGUB("Resize: %i -> %i = %i\n", b, size, g_con_total);
-		//if(size > 1000*K) {
-		//DEGUB("Megabyte Container resize!\n");
-		//}
-
-		b = _size;
-		if (_size == 0)
-			a = NULL;
-		else
-		{
-			a = malloc(_size);
-			//if(!_CrtIsValidHeapPointer(a))
-				//throw generic_fatal_exception("malloc failed in Container");
-		}
-	}
-};
-
-void DEBUGPRINT (const char * format, ...);
+void DEBUGPRINT(const char * format, ...);
 
 class WriteBuffer
 {
 public:
-	WriteBuffer(u32 s) :_size(0)
+	WriteBuffer(u32 s) : _size(0)
 	{
 		_buffer = (u8*)malloc(s*sizeof(u8));
 		ucapacity = s;
 	}
-	~WriteBuffer() { free(_buffer);}
+	~WriteBuffer() { free(_buffer); }
 	u32 size() const { return _size; }
 	u32 capacity() const { return ucapacity; }
 	void write(u32 s, const void *src)
 	{
 		if (_size + s >= ucapacity)
 		{
-			printf("Write too large!");
+			DEBUGPRINT("Write too large!");
 			exit(0);
 		}
 
@@ -171,112 +72,55 @@ private:
 	u32 _size;
 };
 
-//Doesn't contain error checks for wraparound writes
+// Doesn't contain error checks for wraparound writes
 class CyclicBufferWriter 
 {
 public:
-	CyclicBufferWriter(u8 *buffer, size_t cap) 
-	{
-		_buffer = buffer; _cap = cap; _write = 0;
+	CyclicBufferWriter(u8 *buffer, size_t cap) {
+		_buffer = buffer; _capacity = cap; _write = 0;
 	}
 
 	size_t p_write() const { return _write; }
 	void reset() { _write = 0; }
 
-	void write(void *src, size_t size);
-	void align();	//aligns the write pointer to steps of 0x100, like the real BBA
+	void write(void *src, size_t size) {
+		_dbg_assert_(SP1, size < _capacity);
+		u8* bsrc = (u8*) src;
+		if (_write + size >= _capacity)
+		{
+			// wraparound
+			memcpy(_buffer + _write, src, _capacity - _write);
+			memcpy(_buffer, bsrc + (_capacity - _write), size - (_capacity - _write));
+			_write = size - (_capacity - _write);
+		} else {
+			memcpy(_buffer + _write, src, size);
+			_write += size;
+		}
+		//DEBUG_LOG(SP1, "CBWrote %i bytes", size);
+	}
+	// Aligns the write pointer to steps of 0x100, like the real BBA
+	void align() {
+		_write = (_write + 0xff) & ~0xff;
+		if(_write >= _capacity)
+			_write -= _capacity;
+	}
 
 private:
 	size_t _write;
-	size_t _cap;	//capacity
+	size_t _capacity;
 	u8 *_buffer;
 };
 
-class CEXIETHERNET : public IEXIDevice
-{
-public:
-	CEXIETHERNET();
-	~CEXIETHERNET();
-	void SetCS(int _iCS);
-	bool IsPresent();
-	void Update();
-	bool IsInterruptSet();
-	void ImmWrite(u32 _uData,  u32 _uSize);
-	u32  ImmRead(u32 _uSize);
-	void DMAWrite(u32 _uAddr, u32 _uSize);
-	void DMARead(u32 _uAddr, u32 _uSize);
-
-//private:
-	// STATE_TO_SAVE
-	u32 m_uPosition;
-	u32 m_uCommand;
-
-	bool m_bInterruptSet;
-	u32 mWriteP, mReadP;
-	#define INVALID_P 0xFFFF
-
-	bool mExpectSpecialImmRead;	//reset to false on deselect
-	u32 mSpecialImmData;
-	bool Activated;
-
-	u16 mRBRPP;  //RRP - Receive Buffer Read Page Pointer
-	bool mRBEmpty;
-
-	#define BBAMEM_SIZE 0x1000
-	u8 mBbaMem[BBAMEM_SIZE];
-
-	WriteBuffer mWriteBuffer;
-	CyclicBufferWriter mCbw;
-
-	bool mExpectVariableLengthImmWrite;
-	bool mReadyToSend;
-	unsigned int ID;
-	u8 RegisterBlock[0x1000];
-	enum
-	{
-		CMD_ID = 0x00,
-		CMD_READ_REG = 0x01,
-	};
-
-	void recordSendComplete();
-	bool sendPacket(u8 *etherpckt, int size);
-	bool checkRecvBuffer();
-	bool handleRecvdPacket();
-
-	//TAP interface
-	bool activate();
-	bool CheckRecieved();
-	bool deactivate();
-	bool isActivated();
-	bool resume();
-	bool startRecv();
-	bool cbwriteDescriptor(u32 size);
-
-
-	volatile bool mWaiting;
-	Container<u8> mRecvBuffer;
-#ifdef _WIN32
-	HANDLE mHAdapter, mHRecvEvent, mHReadWait;
-	DWORD mMtu;
-	OVERLAPPED mReadOverlapped;
-	DWORD mRecvBufferLength;
-	static VOID CALLBACK ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired);
-#else
-	u32 mRecvBufferLength;
-#endif
-};
-
-enum
-{
-	EXPECT_NONE = 0,
-	EXPECT_ID
-};
+#define INVALID_P 0xFFFF
 
 // TODO: convert into unions
 enum
 {
+	BBA_RECV_SIZE = 0x800,
+	BBA_MEM_SIZE = 0x1000,
+
 	CB_OFFSET	= 0x100,
-	CB_SIZE		= (BBAMEM_SIZE - CB_OFFSET),
+	CB_SIZE		= (BBA_MEM_SIZE - CB_OFFSET),
 	SIZEOF_RECV_DESCRIPTOR = 4,
 
 	EXI_DEVTYPE_ETHER	= 0x04020200,
@@ -286,7 +130,7 @@ enum
 	BBA_NCRA_ST0		= 0x02, // ST0, Start transmit command/status
 	BBA_NCRA_ST1		= 0x04, // ST1,  "
 	BBA_NCRA_SR			= 0x08, // SR, Start Receive
-	
+
 	BBA_NCRB					= 0x01, // Network Control Register B, RW
 	BBA_NCRB_PR					= 0x01, // PR, Promiscuous Mode
 	BBA_NCRB_CA					= 0x02, // CA, Capture Effect Mode
@@ -300,7 +144,7 @@ enum
 	BBA_NCRB_2_PACKETS_PER_INT	= 0x40, // 0 1
 	BBA_NCRB_4_PACKETS_PER_INT	= 0x80, // 1 0
 	BBA_NCRB_8_PACKETS_PER_INT	= 0xC0, // 1 1
-	
+
 	BBA_IMR			= 0x08, // Interrupt Mask Register, RW, 00h
 
 	BBA_IR			= 0x09, // Interrupt Register, RW, 00h
@@ -330,7 +174,7 @@ enum
 	BBA_NWAYS_10TXF		= 0x40,
 	BBA_NWAYS_10TXH		= 0x80,
 
-    BBA_INTERRUPT_RECV			= 0x02,
+	BBA_INTERRUPT_RECV			= 0x02,
 	BBA_INTERRUPT_SENT			= 0x04,
 	BBA_INTERRUPT_RECV_ERROR	= 0x08,
 	BBA_INTERRUPT_SEND_ERROR	= 0x10,
@@ -339,6 +183,83 @@ enum
 	BBA_RRP					 = 0x18, // Receive Buffer Read Page Pointer Register
 
 	BBA_SI_ACTRL2			 = 0x60
+};
+
+enum
+{
+	EXPECT_NONE = 0,
+	EXPECT_ID
+};
+
+class CEXIETHERNET : public IEXIDevice
+{
+public:
+	CEXIETHERNET();
+	~CEXIETHERNET();
+	void SetCS(int _iCS);
+	bool IsPresent();
+	void Update();
+	bool IsInterruptSet();
+	void ImmWrite(u32 _uData,  u32 _uSize);
+	u32  ImmRead(u32 _uSize);
+	void DMAWrite(u32 _uAddr, u32 _uSize);
+	void DMARead(u32 _uAddr, u32 _uSize);
+
+//private:
+	// STATE_TO_SAVE
+	u32 m_uPosition;
+	u32 m_uCommand;
+
+	bool m_bInterruptSet;
+	u32 mWriteP, mReadP;
+
+	bool mExpectSpecialImmRead;	//reset to false on deselect
+	u32 mSpecialImmData;
+	bool Activated;
+
+	u16 mRBRPP;  //RRP - Receive Buffer Read Page Pointer
+	bool mRBEmpty;
+
+	u8 mBbaMem[BBA_MEM_SIZE];
+
+	WriteBuffer mWriteBuffer;
+	CyclicBufferWriter mCbw;
+
+	bool mExpectVariableLengthImmWrite;
+	bool mReadyToSend;
+	u8 RegisterBlock[0x1000];
+	enum
+	{
+		CMD_ID = 0x00,
+		CMD_READ_REG = 0x01,
+	};
+
+	void recordSendComplete();
+	bool sendPacket(u8 *etherpckt, int size);
+	bool checkRecvBuffer();
+	bool handleRecvdPacket();
+
+	//TAP interface
+	bool activate();
+	bool CheckRecieved();
+	bool deactivate();
+	bool isActivated();
+	bool resume();
+	bool startRecv();
+	bool cbwriteDescriptor(u32 size);
+
+
+	volatile bool mWaiting;
+	u8 mRecvBuffer[BBA_RECV_SIZE];
+#ifdef _WIN32
+	HANDLE mHAdapter, mHRecvEvent, mHReadWait;
+	DWORD mMtu;
+	OVERLAPPED mReadOverlapped;
+	DWORD mRecvBufferLength;
+	static VOID CALLBACK ReadWaitCallback(PVOID lpParameter, BOOLEAN TimerFired);
+#else
+	u32 mRecvBufferLength;
+#endif
 };
 
 #endif

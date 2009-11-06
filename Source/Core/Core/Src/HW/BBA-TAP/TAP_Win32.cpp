@@ -384,7 +384,7 @@ bool CEXIETHERNET::startRecv()
 		return true;
 	}
 
-	DWORD res = ReadFile(mHAdapter, mRecvBuffer, (DWORD)mRecvBuffer.size(),
+	DWORD res = ReadFile(mHAdapter, mRecvBuffer, BBA_RECV_SIZE,
 		&mRecvBufferLength, &mReadOverlapped);
 
 	if (res)
