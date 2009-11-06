@@ -215,12 +215,7 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 	// find opcode
 	for (int j = 0; j < opcodes_size; j++)
 	{
-		u16 mask;
-
-		if (opcodes[j].size & P_EXT)
-			mask = opcodes[j].opcode_mask & 0xff00;
-		else
-			mask = opcodes[j].opcode_mask;
+		u16 mask = opcodes[j].opcode_mask;
 
 		if ((op1 & mask) == opcodes[j].opcode)
 		{
@@ -232,8 +227,14 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 	if (!opc)
 		opc = &fake_op;
 
-	bool extended;
-	if ((opc->size & P_EXT) && (op1 & 0x00ff))
+	bool extended = false;
+	bool only7bitext = false;
+
+	if (((opc->opcode >> 12) == 0x3) && (op1 & 0x007f)) {
+		extended = true;
+		only7bitext = true;
+	}
+	else if (((opc->opcode >> 12) > 0x3) && (op1 & 0x00ff))
 		extended = true;
 	else
 		extended = false;
@@ -244,10 +245,19 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 		// find opcode
 		for (int j = 0; j < opcodes_ext_size; j++)
 		{
-			if ((op1 & opcodes_ext[j].opcode_mask) == opcodes_ext[j].opcode)
-			{
-				opc_ext = &opcodes_ext[j];
-				break;
+			if (only7bitext) {
+				if (((op1 & 0x7f) & opcodes_ext[j].opcode_mask) == opcodes_ext[j].opcode)
+				{
+					opc_ext = &opcodes_ext[j];
+					break;
+				}
+			}
+			else {
+				if ((op1 & opcodes_ext[j].opcode_mask) == opcodes_ext[j].opcode)
+				{
+					opc_ext = &opcodes_ext[j];
+					break;
+				}
 			}
 		}
 	}

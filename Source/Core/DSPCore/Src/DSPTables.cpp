@@ -191,8 +191,8 @@ const DSPOPCTemplate opcodes[] =
 	{"ORC",     0x3e00, 0xfe80, DSPInterpreter::orc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true},
 	{"XORC",	0x3080, 0xfe80, DSPInterpreter::xorc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true}, //new
 	{"NOT",		0x3280, 0xfe80, DSPInterpreter::notc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true}, //new
-	{"LSRNRX1",	0x3480, 0xfc80, DSPInterpreter::lsrnrx,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true}, //new
-	{"LSRNRX2",	0x3880, 0xfc80, DSPInterpreter::lsrnrx,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true}, //new
+	{"LSRNRX",	0x3480, 0xfc80, DSPInterpreter::lsrnrx,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true}, //new
+	{"LSRNRX",	0x3880, 0xfc80, DSPInterpreter::lsrnrx,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true}, //new
 	{"LSRNR",	0x3c80, 0xfc80, DSPInterpreter::lsrnr,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},	// discovered by luigi!
 
 	//4
@@ -227,7 +227,7 @@ const DSPOPCTemplate opcodes[] =
 	{"CLR",		0x8100, 0xf700, DSPInterpreter::clr,  nop, 1 | P_EXT,  1, {{P_ACC, 1, 0, 11, 0x0800}}, true}, // clear acc0
 	{"CMP",		0x8200, 0xff00, DSPInterpreter::cmp,    nop, 1 | P_EXT, 0, {}, true},
 	//0x8300 - unknown - not used atm - could be cmp(acc1-acc0)
-	{"CLRP",	0x8400, 0xff00, DSPInterpreter::clrp, nop, 1 | P_EXT,  0, {}, },
+	{"CLRP",	0x8400, 0xff00, DSPInterpreter::clrp, nop, 1 | P_EXT,  0, {}, true},
 	//0x8500 - unknown mul opcode (modifies prod regs) - not used atm
 	{"TSTAXH",  0x8600, 0xfe00, DSPInterpreter::tstaxh, nop, 1 | P_EXT, 1, {{P_REG1A, 1, 0, 8, 0x0100}}, true},
 	{"M2",      0x8a00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},

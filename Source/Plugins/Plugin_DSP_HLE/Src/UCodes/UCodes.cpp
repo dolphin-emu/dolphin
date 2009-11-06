@@ -78,8 +78,8 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
       // WII CRCs
 	case 0xb7eb9a9c: // Wii Pikmin - PAL
 	case 0xeaeb38cc: // Wii Pikmin 2 - PAL
-	case 0x6c3f6f94: // zelda - PAL
-	case 0xd643001f: // mario galaxy - PAL    
+	case 0x6c3f6f94: // Zelda TP - PAL
+	case 0xd643001f: // Mario Galaxy - PAL / WII DK Jungle Beat - PAL    
 		INFO_LOG(DSPHLE, "CRC %08x: Zelda Wii ucode chosen\n", _CRC);
 		return new CUCode_Zelda(_rMailHandler, _CRC);
 
