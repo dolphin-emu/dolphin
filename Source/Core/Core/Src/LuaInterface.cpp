@@ -21,8 +21,8 @@
 #include <algorithm>
 #include <assert.h>
 
-
 #include "LuaInterface.h"
+#include "Common.h"
 #include "Core.h"
 #include "OnFrame.h"
 #include "zlib.h"
@@ -35,12 +35,9 @@ extern "C" {
 #include "lstate.h"
 };
 
-// TODO: This code is RIDDEN with warnings and NOT EVEN CLOSE to be portable. NEEDS FIXING URGENTLY
+// TODO: This code is RIDDEN with warnings. NEEDS FIXING URGENTLY. Item Count: 20
 
-// TODO: WTF this code is so not portable
-#ifdef _WIN32
-#include <windows.h>
-#endif
+// TODO: GUI
 
 #if defined(DEBUG) || defined(DEBUGFAST)
 bool Debug = true;
@@ -448,9 +445,6 @@ static int doPopup(lua_State* L, const char* deftype, const char* deficon)
 	{
 		if(!stricmp(type, "ok")) itype = 0;
 		else if(!stricmp(type, "yesno")) itype = 1;
-		else if(!stricmp(type, "yesnocancel")) itype = 2;
-		else if(!stricmp(type, "okcancel")) itype = 3;
-		else if(!stricmp(type, "abortretryignore")) itype = 4;
 		else type = deftype;
 	}
 	assert(itype >= 0 && itype <= 4);
@@ -460,49 +454,20 @@ static int doPopup(lua_State* L, const char* deftype, const char* deficon)
 	while(iicon == -1 && iters++ < 2)
 	{
 		if(!stricmp(icon, "message") || !stricmp(icon, "notice")) iicon = 0;
-		else if(!stricmp(icon, "question")) iicon = 1;
-		else if(!stricmp(icon, "warning")) iicon = 2;
-		else if(!stricmp(icon, "error")) iicon = 3;
+		else if(!stricmp(icon, "warning") || !stricmp(icon, "error")) iicon = 1;
 		else icon = deficon;
 	}
 	assert(iicon >= 0 && iicon <= 3);
 	if(!(iicon >= 0 && iicon <= 3)) iicon = 0;
 
-	static const char * const titles [] = {"Notice", "Question", "Warning", "Error"};
 	const char* answer = "ok";
-#ifdef _WIN32
-	static const int etypes [] = {MB_OK, MB_YESNO, MB_YESNOCANCEL, MB_OKCANCEL, MB_ABORTRETRYIGNORE};
-	static const int eicons [] = {MB_ICONINFORMATION, MB_ICONQUESTION, MB_ICONWARNING, MB_ICONERROR};
-	//DialogsOpen++;
-	int uid = luaStateToUIDMap[L];
-	//EnableWindow((HWND)Core::g_CoreStartupParameter.hMainWindow, false);
-	/*if (Full_Screen)
-	{
-		while (ShowCursor(false) >= 0);
-		while (ShowCursor(true) < 0);
-	}*/
-	int ianswer = MessageBox((HWND)uid, str, titles[iicon], etypes[itype] | eicons[iicon]);
-	//EnableWindow((HWND)Core::g_CoreStartupParameter.hMainWindow, true);
-	//DialogsOpen--;
-	switch(ianswer)
-	{
-		case IDOK: answer = "ok"; break;
-		case IDCANCEL: answer = "cancel"; break;
-		case IDABORT: answer = "abort"; break;
-		case IDRETRY: answer = "retry"; break;
-		case IDIGNORE: answer = "ignore"; break;
-		case IDYES: answer = "yes"; break;
-		case IDNO: answer = "no"; break;
-	}
-#else
-	// NYI (assume first answer for now)
-	switch(itype)
-	{
-		case 0: case 3: answer = "ok"; break;
-		case 1: case 2: answer = "yes"; break;
-		case 4: answer = "abort"; break;
-	}
-#endif
+
+	if(itype == 1)
+		answer = PanicYesNo(str) ? "yes" : "no";
+	else if(iicon == 1)
+		SuccessAlert(str);
+	else
+		PanicAlert(str);
 
 	lua_pushstring(L, answer);
 	return 1;
@@ -1180,49 +1145,6 @@ int emulua_wait(lua_State* L);
 void indicateBusy(lua_State* L, bool busy)
 {
 	// disabled because there have been complaints about this message being useless spam.
-	// the script window's title changing should be sufficient, I guess.
-/*	if(busy)
-	{
-		const char* fmt = "script became busy (frozen?)";
-		va_list argp;
-		va_start(argp, fmt);
-		luaL_where(L, 0);
-		lua_pushvfstring(L, fmt, argp);
-		va_end(argp);
-		lua_concat(L, 2);
-		LuaContextInfo& info = GetCurrentInfo();
-		int uid = luaStateToUIDMap[L];
-		if(info.print)
-		{
-			info.print(uid, lua_tostring(L,-1));
-			info.print(uid, "\r\n");
-		}
-		else
-		{
-			fprintf(stderr, "%s\n", lua_tostring(L,-1));
-		}
-		lua_pop(L, 1);
-	}
-*/
-#ifdef _WIN32
-	int uid = luaStateToUIDMap[L];
-	HWND hDlg = (HWND)uid;
-	char str [1024];
-	GetWindowText(hDlg, str, 1000);
-	char* extra = strchr(str, '<');
-	if(busy)
-	{
-		if(!extra)
-			extra = str + strlen(str), *extra++ = ' ';
-		strcpy(extra, "<BUSY>");
-	}
-	else
-	{
-		if(extra)
-			extra[-1] = 0;
-	}
-	SetWindowText(hDlg, str);
-#endif
 }
 
 #define HOOKCOUNT 4096
@@ -1257,17 +1179,8 @@ void LuaRescueHook(lua_State* L, lua_Debug *dbg)
 		if(!info.panic)
 		{
 			Clear_Sound_Buffer();
-#if defined(ASK_USER_ON_FREEZE) && defined(_WIN32)
-			DialogsOpen++;
-			int answer = MessageBox((HWND)Core::g_CoreStartupParameter.hMainWindow, "A Lua script has been running for quite a while. Maybe it is in an infinite loop.\n\nWould you like to stop the script?\n\n(Yes to stop it now,\n No to keep running and not ask again,\n Cancel to keep running but ask again later)", "Lua Alert", MB_YESNOCANCEL | MB_DEFBUTTON3 | MB_ICONASTERISK);
-			DialogsOpen--;
-			if(answer == IDNO)
-				stoprunning = false;
-			if(answer == IDCANCEL)
-				stopworrying = false;
-#else
-			stoprunning = false;
-#endif
+
+			stoprunning = PanicYesNo("A Lua script has been running for quite a while. Maybe it is in an infinite loop.\n\nWould you like to stop the script?\n\n(Yes to stop it now,\n No to keep running and not ask again)");
 		}
 
 		if(!stoprunning && stopworrying)
@@ -2843,14 +2756,12 @@ static void GetCurrentScriptDir(char* buffer, int bufLen)
 
 DEFINE_LUA_FUNCTION(emu_openscript, "filename")
 {
-#ifdef WIN32
 	char curScriptDir[1024]; GetCurrentScriptDir(curScriptDir, 1024); // make sure we can always find scripts that are in the same directory as the current script
 	const char* filename = lua_isstring(L,1) ? lua_tostring(L,1) : NULL;
 	extern const char* OpenLuaScript(const char* filename, const char* extraDirToCheck, bool makeSubservient);
 	const char* errorMsg = OpenLuaScript(filename, curScriptDir, true);
 	if(errorMsg)
 		luaL_error(L, errorMsg);
-#endif
     return 0;
 }
 
@@ -3019,109 +2930,6 @@ DEFINE_LUA_FUNCTION(sound_clear, "")
 	return 0;
 }
 
-#ifdef _WIN32
-const char* s_keyToName[256] =
-{
-	NULL,
-	"leftclick",
-	"rightclick",
-	NULL,
-	"middleclick",
-	NULL,
-	NULL,
-	NULL,
-	"backspace",
-	"tab",
-	NULL,
-	NULL,
-	NULL,
-	"enter",
-	NULL,
-	NULL,
-	"shift", // 0x10
-	"control",
-	"alt",
-	"pause",
-	"capslock",
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	"escape",
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	"space", // 0x20
-	"pageup",
-	"pagedown",
-	"end",
-	"home",
-	"left",
-	"up",
-	"right",
-	"down",
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	"insert",
-	"delete",
-	NULL,
-	"0","1","2","3","4","5","6","7","8","9",
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	"A","B","C","D","E","F","G","H","I","J",
-	"K","L","M","N","O","P","Q","R","S","T",
-	"U","V","W","X","Y","Z",
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	"numpad0","numpad1","numpad2","numpad3","numpad4","numpad5","numpad6","numpad7","numpad8","numpad9",
-	"numpad*","numpad+",
-	NULL,
-	"numpad-","numpad.","numpad/",
-	"F1","F2","F3","F4","F5","F6","F7","F8","F9","F10","F11","F12",
-	"F13","F14","F15","F16","F17","F18","F19","F20","F21","F22","F23","F24",
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	"numlock",
-	"scrolllock",
-	NULL, // 0x92
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, // 0xB9
-	"semicolon",
-	"plus",
-	"comma",
-	"minus",
-	"period",
-	"slash",
-	"tilde",
-	NULL, // 0xC1
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	NULL, // 0xDA
-	"leftbracket",
-	"backslash",
-	"rightbracket",
-	"quote",
-};
-#endif
-
-
 // input.get()
 // takes no input, returns a lua table of entries representing the current input state,
 // independent of the joypad buttons the emulated game thinks are pressed
@@ -3133,7 +2941,8 @@ DEFINE_LUA_FUNCTION(input_getcurrentinputstatus, "")
 {
 	lua_newtable(L);
 
-#ifdef _WIN32
+	// TODO: Use pad plugin's input
+/*
 	// keyboard and mouse button status
 	{
 		unsigned char keys [256];
@@ -3197,9 +3006,7 @@ DEFINE_LUA_FUNCTION(input_getcurrentinputstatus, "")
 		lua_pushinteger(L, y);
 		lua_setfield(L, -2, "ymouse");
 	}
-#else
-	// NYI (well, return an empty table)
-#endif
+*/
 
 	return 1;
 }
@@ -4363,7 +4170,7 @@ static int s_dbg_dataSize = 0;
 
 
 // can't remember what the best way of doing this is...
-#if defined(i386) || defined(__i386) || defined(__i386__) || defined(M_I86) || defined(_M_IX86) || defined(_WIN32)
+#if defined(i386) || defined(__i386) || defined(__i386__) || defined(M_I86) || defined(_M_IX86)
 	#define IS_LITTLE_ENDIAN
 #endif
 
