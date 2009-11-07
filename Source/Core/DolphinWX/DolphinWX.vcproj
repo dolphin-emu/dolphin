@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Dolphin"
 	ProjectGUID="{A72606EF-C5C1-4954-90AD-F0F93A8D97D9}"
 	RootNamespace="DolphinWX"
@@ -212,6 +212,8 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="$(SolutionDir)\$(ConfigurationName)\$(PlatformName);..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)"
+				IgnoreAllDefaultLibraries="false"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
@@ -548,6 +550,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)\Release\$(PlatformName)&quot;;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
@@ -660,6 +663,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)\Release\$(PlatformName)&quot;;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				GenerateMapFile="false"
@@ -774,7 +778,7 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)\Release\$(PlatformName)&quot;;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				IgnoreAllDefaultLibraries="false"
-				IgnoreDefaultLibraryNames="msvcrt"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				GenerateMapFile="false"
@@ -889,6 +893,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="&quot;$(SolutionDir)\Release\$(PlatformName)&quot;;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
+				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
@@ -1162,6 +1167,14 @@
 			</File>
 			<File
 				RelativePath=".\src\LogWindow.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\LuaWindow.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\LuaWindow.h"
 				>
 			</File>
 			<File

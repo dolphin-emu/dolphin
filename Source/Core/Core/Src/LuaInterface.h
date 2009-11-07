@@ -97,7 +97,7 @@ private:
 	// disallowed, it's dangerous to call this
 	// (because the memory the destructor deletes isn't refcounted and shouldn't need to be copied)
 	// so pass LuaSaveDatas by reference and this should never get called
-	LuaSaveData(const LuaSaveData& copy) {}
+	LuaSaveData(const LuaSaveData& ) {}
 };
 void CallRegisteredLuaSaveFunctions(int savestateNumber, LuaSaveData& saveData);
 void CallRegisteredLuaLoadFunctions(int savestateNumber, const LuaSaveData& saveData);

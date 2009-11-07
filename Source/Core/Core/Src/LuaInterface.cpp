@@ -17,7 +17,6 @@
 
 #include <vector>
 #include <map>
-#include <algorithm>
 #include <cassert>
 #include "zlib.h"
 
@@ -78,12 +77,12 @@ namespace Lua {
 //extern void UpdateLagCount();
 //extern bool Step_emulua_MainLoop(bool allowSleep, bool allowEmulate);
 
-extern int disableSound2, disableRamSearchUpdate;
-extern bool BackgroundInput;
-extern bool g_disableStatestateWarnings;
-extern bool g_onlyCallSavestateCallbacks;
-extern bool frameadvSkipLagForceDisable;
-extern bool SkipNextRerecordIncrement;
+int disableSound2, disableRamSearchUpdate;
+bool BackgroundInput;
+bool g_disableStatestateWarnings;
+bool g_onlyCallSavestateCallbacks;
+bool frameadvSkipLagForceDisable;
+bool SkipNextRerecordIncrement;
 
 enum SpeedMode
 {
@@ -1338,7 +1337,7 @@ DEFINE_LUA_FUNCTION(emulua_speedmode, "mode")
 	info.speedMode = newSpeedMode;
 	RefreshScriptSpeedStatus();
 	return 0;
-}
+}*/
 
 // tells emulua to wait while the script is doing calculations
 // can call this periodically instead of emulua.frameadvance
@@ -1346,7 +1345,7 @@ DEFINE_LUA_FUNCTION(emulua_speedmode, "mode")
 // (e.g. a savestate could possibly get loaded before emulua.wait() returns)
 DEFINE_LUA_FUNCTION(emulua_wait, "")
 {
-	LuaContextInfo& info = GetCurrentInfo();
+	/*LuaContextInfo& info = GetCurrentInfo();
 
 	switch(info.speedMode)
 	{
@@ -1359,11 +1358,11 @@ DEFINE_LUA_FUNCTION(emulua_wait, "")
 		case SPEEDMODE_MAXIMUM:
 			Step_emulua_MainLoop(Core::GetState() == Core::CORE_PAUSE, false);
 			break;
-	}
+	}*/
 
 	return 0;
 }
-*/
+
 
 DEFINE_LUA_FUNCTION(emulua_frameadvance, "")
 {
@@ -1373,9 +1372,13 @@ DEFINE_LUA_FUNCTION(emulua_frameadvance, "")
 	int uid = luaStateToUIDMap[L];
 	LuaContextInfo& info = GetCurrentInfo();
 
-	info.ranFrameAdvance = !info.ranFrameAdvance;
+	if(!info.ranFrameAdvance) {
+		info.ranFrameAdvance = true;
+		Frame::SetFrameStepping(info.ranFrameAdvance);
+	}
 
-	Frame::SetFrameStepping(info.ranFrameAdvance);
+	// Should step exactly one frame
+	Core::SetState(Core::CORE_RUN);
 
 	return 0;
 }
@@ -2707,13 +2710,14 @@ static void GetCurrentScriptDir(char* buffer, int bufLen)
 
 DEFINE_LUA_FUNCTION(emu_openscript, "filename")
 {
-	char curScriptDir[1024]; GetCurrentScriptDir(curScriptDir, 1024); // make sure we can always find scripts that are in the same directory as the current script
+	/*char curScriptDir[1024]; GetCurrentScriptDir(curScriptDir, 1024); // make sure we can always find scripts that are in the same directory as the current script
 	const char* filename = lua_isstring(L,1) ? lua_tostring(L,1) : NULL;
 	extern const char* OpenLuaScript(const char* filename, const char* extraDirToCheck, bool makeSubservient);
 	const char* errorMsg = OpenLuaScript(filename, curScriptDir, true);
 	if(errorMsg)
-		luaL_error(L, errorMsg);
-    return 0;
+		luaL_error(L, errorMsg);*/
+	luaL_error(L, "ERROR: emu_openscript not implemented");
+    return 1;
 }
 
 DEFINE_LUA_FUNCTION(emulua_loadrom, "filename")
@@ -3563,9 +3567,7 @@ void StopScriptIfFinished(int uid, bool justReturned)
 	}
 	else
 	{
-		if(info.print)
-			info.print(uid, "script finished running\r\n");
-		else
+		if(!info.print)
 			fprintf(stderr, "%s\n", "script finished running");
 
 		StopLuaScript(uid);
