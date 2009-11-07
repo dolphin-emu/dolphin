@@ -63,39 +63,38 @@ void bcx(UGeckoInstruction _inst)
 			NPC = SignExt16(_inst.BD << 2);
 		else
 			NPC = PC + SignExt16(_inst.BD << 2);
-	}	
+	}
 	m_EndBlock = true;
 }
 
 void bcctrx(UGeckoInstruction _inst)
 {
-	if ((_inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
-		CTR--;
+	_dbg_assert_msg_(POWERPC, _inst.BO_2 & BO_DONT_DECREMENT_FLAG, "bcctrx with decrement and test CTR option is invalid!");
 
-	int condition = ((_inst.BO>>4) | (GetCRBit(_inst.BI) == ((_inst.BO>>3) & 1))) & 1;
+	int condition = ((_inst.BO_2>>4) | (GetCRBit(_inst.BI_2) == ((_inst.BO_2>>3) & 1))) & 1;
 
 	if (condition)
 	{
-		if (_inst.LK)
-			LR = PC + 4;
 		NPC = CTR & (~3);
+		if (_inst.LK_3)
+			LR = PC + 4;
 	}
 	m_EndBlock = true;
 }
 
 void bclrx(UGeckoInstruction _inst)
 {
-	if ((_inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
+	if ((_inst.BO_2 & BO_DONT_DECREMENT_FLAG) == 0)
 		CTR--;
 
-	int counter = ((_inst.BO >> 2) | ((CTR != 0) ^ (_inst.BO >> 1)))&1;
-	int condition = ((_inst.BO >> 4) | (GetCRBit(_inst.BI) == ((_inst.BO >> 3) & 1))) & 1;
+	int counter = ((_inst.BO_2 >> 2) | ((CTR != 0) ^ (_inst.BO_2 >> 1))) & 1;
+	int condition = ((_inst.BO_2 >> 4) | (GetCRBit(_inst.BI_2) == ((_inst.BO_2 >> 3) & 1))) & 1;
 
 	if (counter & condition)
 	{
-		NPC = LR & (~3); 
-		if (_inst.LK)
-			LR = PC+4;
+		NPC = LR & (~3);
+		if (_inst.LK_3)
+			LR = PC + 4;
 	}
 	m_EndBlock = true;
 }

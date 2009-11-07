@@ -15,7 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <assert.h>
 #include "StringUtil.h"
 #include "../Memmap.h"
 // GROSS CODE ALERT: headers need to be included in the following order
@@ -226,8 +225,7 @@ bool CEXIETHERNET::activate()
 		if ( !(info[0] > TAP_WIN32_MIN_MAJOR
 			|| (info[0] == TAP_WIN32_MIN_MAJOR && info[1] >= TAP_WIN32_MIN_MINOR)) )
 		{
-#define PACKAGE_NAME "Dolphin"
-			DEBUGPRINT("ERROR:  This version of " PACKAGE_NAME " requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your " PACKAGE_NAME " distribution, a reboot is probably required at this point to get Windows to see the new driver.",
+			DEBUGPRINT("ERROR:  This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver.",
 				TAP_WIN32_MIN_MAJOR,
 				TAP_WIN32_MIN_MINOR);
 			return false;
@@ -279,7 +277,7 @@ bool CEXIETHERNET::CheckRecieved()
 	return false;
 }
 
-bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
+bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 {
 	if (!isActivated())
 		activate();
@@ -297,7 +295,7 @@ bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 		DWORD res = GetLastError();
 		DEBUGPRINT("Failed to send packet with error 0x%X", res);
 	}
-	if (numBytesWrit != size) 
+	if (numBytesWrit != size)
 	{
 		DEBUGPRINT("BBA sendPacket %i only got %i bytes sent!", size, numBytesWrit);
 		return false;
@@ -307,7 +305,7 @@ bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size)
 	return true;
 }
 
-bool CEXIETHERNET::handleRecvdPacket() 
+bool CEXIETHERNET::handleRecvdPacket()
 {
 	int rbwpp = (int)(mCbw.p_write() + CB_OFFSET);  // read buffer write page pointer
 	u32 available_bytes_in_cb;
@@ -322,7 +320,7 @@ bool CEXIETHERNET::handleRecvdPacket()
 	//DUMPWORD(mRBRPP);
 	//DUMPWORD(available_bytes_in_cb);
 
-	assert(available_bytes_in_cb <= CB_SIZE);
+	_dbg_assert_(SP1, available_bytes_in_cb <= CB_SIZE);
 	if (available_bytes_in_cb != CB_SIZE)//< mRecvBufferLength + SIZEOF_RECV_DESCRIPTOR)
 		return true;
 	cbwriteDescriptor(mRecvBufferLength);
@@ -440,9 +438,7 @@ union bba_descr
 
 bool CEXIETHERNET::cbwriteDescriptor(u32 size)
 {
-	//if(size < 0x3C) {//60
-#define ETHERNET_HEADER_SIZE 0xE
-	if (size < ETHERNET_HEADER_SIZE) 
+	if (size < SIZEOF_ETH_HEADER)
 	{
 		DEBUGPRINT("Packet too small: %i bytes", size);
 		return false;
@@ -453,7 +449,7 @@ bool CEXIETHERNET::cbwriteDescriptor(u32 size)
 
 	//We should probably not implement wraparound here,
 	//since neither tmbinc, riptool.dol, or libogc does...
-	if (mCbw.p_write() + SIZEOF_RECV_DESCRIPTOR >= CB_SIZE) 
+	if (mCbw.p_write() + SIZEOF_RECV_DESCRIPTOR >= CB_SIZE)
 	{
 		DEBUGPRINT("The descriptor won't fit");
 		return false;
@@ -469,11 +465,11 @@ bool CEXIETHERNET::cbwriteDescriptor(u32 size)
 	descr.packet_len = size;
 	descr.status = 0;
 	u32 npp;
-	if (mCbw.p_write() + size < CB_SIZE) 
+	if (mCbw.p_write() + size < CB_SIZE)
 	{
 		npp = (u32)(mCbw.p_write() + size + CB_OFFSET);
 	} 
-	else 
+	else
 	{
 		npp = (u32)(mCbw.p_write() + size + CB_OFFSET - CB_SIZE);
 	}

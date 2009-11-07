@@ -42,10 +42,8 @@ using namespace Gen;
 
 void Jit64::sc(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
-		{Default(inst); return;} // turn off from debugger
-
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(Branch)
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
@@ -54,10 +52,8 @@ void Jit64::sc(UGeckoInstruction inst)
 
 void Jit64::rfi(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
-		{Default(inst); return;} // turn off from debugger
-
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(Branch)
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
@@ -79,10 +75,8 @@ void Jit64::rfi(UGeckoInstruction inst)
 
 void Jit64::bx(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
-		{Default(inst); return;} // turn off from debugger
-
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(Branch)
 
 	if (inst.LK)
 		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
@@ -121,10 +115,8 @@ void Jit64::bx(UGeckoInstruction inst)
 // variants of this instruction.
 void Jit64::bcx(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
-		{Default(inst); return;} // turn off from debugger
-
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(Branch)
 
 	// USES_CR
 	_assert_msg_(DYNA_REC, js.isLastInstruction, "bcx not last instruction of block");
@@ -138,13 +130,13 @@ void Jit64::bcx(UGeckoInstruction inst)
 	//const bool only_condition_check = (inst.BO & 4) ? true : false;
 	//if (only_condition_check && only_counter_check)
 	//	PanicAlert("Bizarre bcx encountered. Likely bad or corrupt code.");
-	bool doFullTest = (inst.BO & 16) == 0 && (inst.BO & 4) == 0;
+	bool doFullTest = ((inst.BO & BO_DONT_CHECK_CONDITION) == 0) && ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0);
 	bool ctrDecremented = false;
 
-	if ((inst.BO & 16) == 0)  // Test a CR bit
+	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
 	{
 		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
-		if (inst.BO & 8)  // Conditional branch 
+		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch 
 			branch = CC_NZ;
 		else
 			branch = CC_Z; 
@@ -158,13 +150,13 @@ void Jit64::bcx(UGeckoInstruction inst)
 			MOV(32, R(EAX), Imm32(1));
 	}
 
-	if ((inst.BO & 4) == 0)  // Decrement and test CTR
+	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
 	{
 		// Decrement CTR 
 		SUB(32, M(&CTR), Imm8(1));
 		ctrDecremented = true;
 		// Test whether to branch if CTR is zero or not 
-		if (inst.BO & 2)
+		if (inst.BO & BO_BRANCH_IF_CTR_0)
 			branch = CC_Z;
 		else
 			branch = CC_NZ;
@@ -217,56 +209,58 @@ void Jit64::bcx(UGeckoInstruction inst)
 
 void Jit64::bcctrx(UGeckoInstruction inst)
 {
-	if(Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
-		{Default(inst); return;} // turn off from debugger
-
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(Branch)
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
 
-	// bool fastway = true;
+	// bcctrx doesn't decrement and/or test CTR
+	_dbg_assert_msg_(POWERPC, inst.BO_2 & BO_DONT_DECREMENT_FLAG, "bcctrx with decrement and test CTR option is invalid!");
 
-	if ((inst.BO & 16) == 0)				
+	if (inst.BO_2 & BO_DONT_CHECK_CONDITION)
 	{
-		// Rare condition usually used by NES Emulators
-		// TODO: JIT does not support this
-		ERROR_LOG(DYNA_REC, "Bizarro bcctrx %08x, not supported.", inst.hex);
-		//_assert_msg_(DYNA_REC, 0, "Bizarro bcctrx");
-		/*
-		fastway = false;
-		MOV(32, M(&PC), Imm32(js.compilerPC+4));
-		MOV(32, R(EAX), M(&CR));
-		XOR(32, R(ECX), R(ECX));
-		AND(32, R(EAX), Imm32(0x80000000 >> inst.BI));
+		// BO_2 == 1z1zz -> b always
 
-		CCFlags branch;
-		if(inst.BO & 8)
-			branch = CC_NZ;
-		else
-			branch = CC_Z;
-			*/
-		// TODO(ector): Why is this commented out?
-		//SETcc(branch, R(ECX));
-		// check for EBX
-		//TEST(32, R(ECX), R(ECX));
-		//linkEnd = J_CC(branch);
+		//NPC = CTR & 0xfffffffc;
+		MOV(32, R(EAX), M(&CTR));
+		if (inst.LK_3)
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
+		AND(32, R(EAX), Imm32(0xFFFFFFFC));
+		WriteExitDestInEAX(0);
 	}
-	// NPC = CTR & 0xfffffffc;
-	MOV(32, R(EAX), M(&CTR));
-	if (inst.LK)
-		MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
-	AND(32, R(EAX), Imm32(0xFFFFFFFC));
-	WriteExitDestInEAX(0);
+	else
+	{
+		// Rare condition seen in (just some versions of?) Nintendo's NES Emulator
+
+		// BO_2 == 001zy -> b if false
+		// BO_2 == 011zy -> b if true
+
+		// Ripped from bclrx
+		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
+		Gen::CCFlags branch;
+		if (inst.BO_2 & BO_BRANCH_IF_TRUE)
+			branch = CC_Z;
+		else
+			branch = CC_NZ; 
+		MOV(32, R(EAX), Imm32(js.compilerPC + 4));
+		FixupBranch b = J_CC(branch, false);
+		MOV(32, R(EAX), M(&CTR));
+		MOV(32, M(&PC), R(EAX));
+		if (inst.LK_3)
+			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
+		// Would really like to continue the block here, but it ends. TODO.
+		SetJumpTarget(b);
+		WriteExitDestInEAX(0);	
+		return;
+	}
 }
 
 
 void Jit64::bclrx(UGeckoInstruction inst)
 {
-	if (Core::g_CoreStartupParameter.bJITOff || Core::g_CoreStartupParameter.bJITBranchOff)
-		{Default(inst); return;} // turn off from debugger
-
-	INSTRUCTION_START;
+	INSTRUCTION_START
+	JITDISABLE(Branch)
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
@@ -281,13 +275,14 @@ void Jit64::bclrx(UGeckoInstruction inst)
 #endif
 		MOV(32, R(EAX), M(&LR));
 		MOV(32, M(&PC), R(EAX));
-		if (inst.LK)
+		if (inst.LK_3)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
 		WriteExitDestInEAX(0);
 		return;
-	} else if ((inst.BO & 4) == 0) {
-		// Decrement CTR?? in bclrx?? this goes to fallback.
-	} else if ((inst.BO & 16) == 0) {
+	} else if ((inst.BO_2 & BO_DONT_DECREMENT_FLAG) == 0) {
+		// Decrement CTR. Not mutually exclusive...
+		// Will fall back to int, but we should be able to do it here, sometime
+	} else if ((inst.BO_2 & BO_DONT_CHECK_CONDITION) == 0) {
 		// Test a CR bit. Not too hard.
 		// beqlr- 4d820020
 		// blelr- 4c810020
@@ -296,7 +291,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		// etc...
 		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
 		Gen::CCFlags branch;
-		if (inst.BO & 8)
+		if (inst.BO_2 & BO_BRANCH_IF_TRUE)
 			branch = CC_Z;
 		else
 			branch = CC_NZ; 
@@ -304,7 +299,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		FixupBranch b = J_CC(branch, false);
 		MOV(32, R(EAX), M(&LR));
 		MOV(32, M(&PC), R(EAX));
-		if (inst.LK)
+		if (inst.LK_3)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);

@@ -589,7 +589,10 @@ enum EQuantizeType
 // branches
 enum 
 {
-	BO_DONT_DECREMENT_FLAG = 0x4,
+	BO_BRANCH_IF_CTR_0		=  2, // 3
+	BO_DONT_DECREMENT_FLAG	=  4, // 2
+	BO_BRANCH_IF_TRUE		=  8, // 1
+	BO_DONT_CHECK_CONDITION	= 16, // 0
 };
 
 // Special purpose register indices

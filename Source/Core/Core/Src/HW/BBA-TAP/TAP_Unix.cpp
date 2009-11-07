@@ -251,9 +251,7 @@ union bba_descr {
 	u32 word;
 };
 bool CEXIETHERNET::cbwriteDescriptor(u32 size) {
-	//if(size < 0x3C) {//60
-#define ETHERNET_HEADER_SIZE 0xE
-	if(size < ETHERNET_HEADER_SIZE) 
+	if(size < SIZEOF_ETH_HEADER) 
 	{
 		DEBUGPRINT("Packet too small: %i bytes\n", size);
 		return false;
