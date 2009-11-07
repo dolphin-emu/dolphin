@@ -49,4 +49,24 @@ private:
 #endif
 };
 
+enum {
+	MV_MIRROR_PREVIOUS = 1,
+	MV_FAKE_VMEM = 2,
+	MV_WII_ONLY = 4,
+};
+
+struct MemoryView
+{
+	u8 **out_ptr_low;
+	u8 **out_ptr;
+	u32 virtual_address;
+	u32 size;
+	u32 flags;
+};
+
+// Uses a memory arena to set up an emulator-friendly memory map according to
+// a passed-in list of MemoryView structures.
+u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena);
+void MemoryMap_Shutdown(const MemoryView *views, int num_views, u32 flags, MemArena *arena);
+
 #endif // _MEMARENA_H_

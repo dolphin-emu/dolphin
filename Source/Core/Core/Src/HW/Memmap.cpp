@@ -78,24 +78,27 @@ MemArena g_arena;
 
 // STATE_TO_SAVE (applies to a lot of things in this file)
 
-// Pointers to low memory
-u8*	m_pRAM = NULL;
-u8*	m_pFakeVMEM = NULL;
-u8*	m_pEXRAM = NULL; //wii
-u8*	m_pEFB = NULL;
-u8*	m_pL1Cache = NULL;
 bool m_IsInitialized = false; // Save the Init(), Shutdown() state
 
-// Pointers into the "View"  (rarely used)
-u8* m_pPhysicalFakeVMEM;
-u8* m_pPhysicalRAM;
-u8* m_pPhysicalEXRAM; //wii
-u8* m_pVirtualCachedRAM;
-u8* m_pVirtualUncachedRAM;
-u8* m_pVirtualCachedEXRAM;
-u8* m_pVirtualUncachedEXRAM;
-u8* m_pVirtualEFB;
-u8* m_pVirtualL1Cache;
+// 64-bit: Pointers to low-mem (sub-0x10000000) mirror
+// 32-bit: Same as the corresponding physical/virtual pointers.
+u8 *m_pRAM;
+u8 *m_pEFB; 
+u8 *m_pL1Cache;
+u8 *m_pEXRAM;
+u8 *m_pFakeVMEM;
+
+// 64-bit: Pointers to high-mem mirrors
+// 32-bit: Same as above
+u8 *m_pPhysicalRAM;
+u8 *m_pVirtualCachedRAM;
+u8 *m_pVirtualUncachedRAM;
+u8 *m_pPhysicalEXRAM;        // wii only
+u8 *m_pVirtualCachedEXRAM;   // wii only
+u8 *m_pVirtualUncachedEXRAM; // wii only
+u8 *m_pVirtualEFB;
+u8 *m_pVirtualL1Cache;
+u8 *m_pVirtualFakeVMEM;
 
 // =================================
 // Read and write shortcuts
@@ -119,36 +122,29 @@ readFn8   hwReadWii8 [NUMHWMEMFUN];
 readFn16  hwReadWii16[NUMHWMEMFUN];
 readFn32  hwReadWii32[NUMHWMEMFUN];
 readFn64  hwReadWii64[NUMHWMEMFUN];
-// ===============
-
-
-
-
 
 // Default read and write functions
-// ----------------
-u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag);
-
 template <class T>
 void HW_Default_Write(const T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Write%i %08x", sizeof(T)*8, _Address);_dbg_assert_(MEMMAP, 0);}
 
 template <class T>
 void HW_Default_Read(T _Data, const u32 _Address){	ERROR_LOG(MASTER_LOG, "Illegal HW Read%i %08x", sizeof(T)*8, _Address); _dbg_assert_(MEMMAP, 0);}
 
+u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag);
 
 #define PAGE_SHIFT 10
 #define PAGE_SIZE (1 << PAGE_SHIFT)
 #define PAGE_MASK (PAGE_SHIFT - 1)
 
-template <class T, u8* P> void HW_Read_Memory(T &_Data, const u32 _Address)	{	_Data = *(T*)&P[_Address & PAGE_MASK];	}
-template <class T, u8* P> void HW_Write_Memory(T _Data, const u32 _Address)	{	*(T*)&P[_Address & PAGE_MASK] = _Data;	}
+template <class T, u8 *P> void HW_Read_Memory(T &_Data, const u32 _Address) {
+	_Data = *(T *)&P[_Address & PAGE_MASK];
+}
+template <class T, u8 *P> void HW_Write_Memory(T _Data, const u32 _Address) {
+	*(T *)&P[_Address & PAGE_MASK] = _Data;
+}
 
-
-
-
-/* Create shortcuts to the hardware devices' read and write functions. This can be seen
-   as an alternative to a switch() or if() table. */
-// ----------------
+// Create shortcuts to the hardware devices' read and write functions.
+// This can be seen as an alternative to a switch() or if() table. 
 #define BLOCKSIZE 4
 #define CP_START		0x00 //0x0000 >> 10
 #define WII_IPC_START	0x00 //0x0000 >> 10
@@ -163,7 +159,6 @@ template <class T, u8* P> void HW_Write_Memory(T _Data, const u32 _Address)	{	*(
 #define AUDIO_START		0x1B //0x6C00 >> 10
 #define GP_START		0x20 //0x8000 >> 10
 
-
 void InitHWMemFuncs()
 {
 	for (int i = 0; i < NUMHWMEMFUN; i++)
@@ -177,7 +172,8 @@ void InitHWMemFuncs()
 		hwRead32 [i] = HW_Default_Read<u32&>;
 		hwRead64 [i] = HW_Default_Read<u64&>;
 
-		// To prevent Dolphin from crashing when running Wii executables in Gc mode.
+		// To prevent Dolphin from crashing when accidentally running Wii
+		// executables in GC mode (or running malicious GC executables...)
 		hwWriteWii8 [i] = HW_Default_Write<u8>;
 		hwWriteWii16[i] = HW_Default_Write<u16>;
 		hwWriteWii32[i] = HW_Default_Write<u32>;
@@ -327,114 +323,39 @@ writeFn32 GetHWWriteFun32(const u32 _Address)
 	return hwWrite32[(_Address >> HWSHIFT) & (NUMHWMEMFUN-1)];
 }
 
-
-
-
-
-// Init and Shutdown
-// ----------------
 bool IsInitialized()
 {
 	return m_IsInitialized;
 }
 
 
+// We don't declare the IO region in here since its handled by other means.
+static const MemoryView views[] =
+{
+	{&m_pRAM,      &m_pPhysicalRAM,          0x00000000, RAM_SIZE, 0},
+	{NULL,         &m_pVirtualCachedRAM,     0x80000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
+	{NULL,         &m_pVirtualUncachedRAM,   0xC0000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
+
+	{&m_pEFB,      &m_pVirtualEFB,           0xC8000000, EFB_SIZE, 0},
+	{&m_pL1Cache,  &m_pVirtualL1Cache,       0xE0000000, L1_CACHE_SIZE, 0},
+
+	{&m_pFakeVMEM, &m_pVirtualFakeVMEM,      0x7E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
+
+	{&m_pEXRAM,    &m_pPhysicalEXRAM,        0x10000000, EXRAM_SIZE, MV_WII_ONLY},
+	{NULL,         &m_pVirtualCachedEXRAM,   0x90000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
+	{NULL,         &m_pVirtualUncachedEXRAM, 0xD0000000, EXRAM_SIZE, MV_WII_ONLY | MV_MIRROR_PREVIOUS},
+};
+static const int num_views = sizeof(views) / sizeof(MemoryView);
+
 bool Init()
 {
 	bool wii = Core::GetStartupParameter().bWii;
 	bFakeVMEM = Core::GetStartupParameter().iTLBHack == 1;
 
-	int totalMemSize = RAM_SIZE + EFB_SIZE + L1_CACHE_SIZE + IO_SIZE;
-	if (bFakeVMEM)
-		totalMemSize += FAKEVMEM_SIZE;
-	if (wii)
-		totalMemSize += EXRAM_SIZE;
-
-	//Grab some pagefile backed memory out of the void ...
-	g_arena.GrabLowMemSpace(totalMemSize);
-
-	//First, map in our regular pointers
-	int position = 0;
-	m_pRAM     = (u8*)g_arena.CreateView(position, RAM_SIZE);
-	position += RAM_SIZE;
-	m_pEFB     = (u8*)g_arena.CreateView(position, EFB_SIZE);
-	position += EFB_SIZE;
-	m_pL1Cache = (u8*)g_arena.CreateView(position, L1_CACHE_SIZE);
-	position += L1_CACHE_SIZE;
-	if (bFakeVMEM)
-	{
-		m_pFakeVMEM = (u8*)g_arena.CreateView(position, FAKEVMEM_SIZE);
-		position += FAKEVMEM_SIZE;
-	}
-
-	if (wii)
-		m_pEXRAM = (u8*)g_arena.CreateView(position, EXRAM_SIZE);
-
-#ifdef _M_X64
-	//Then, in x64 mode where we have space, grab a 4GB virtual address space
-	base = MemArena::Find4GBBase();
-	//OK, we know where to find free space. Now grab it!
-	
-	//Physical should be unmapped when not in "real mode"
-	//All in all, we should obey IBAT and DBAT. Maybe IBAT and DBAT should have a 4GB space each?
-	//It's not like 4GB is anything these days...
-	position = 0;
-	m_pPhysicalRAM        = (u8*)g_arena.CreateViewAt(position, RAM_SIZE, base + 0x00000000);
-	m_pVirtualCachedRAM   = (u8*)g_arena.CreateViewAt(position, RAM_SIZE, base + 0x80000000);
-	m_pVirtualUncachedRAM = (u8*)g_arena.CreateViewAt(position, RAM_SIZE, base + 0xC0000000);
-	position += RAM_SIZE;
-	m_pVirtualEFB         = (u8*)g_arena.CreateViewAt(position, EFB_SIZE, base + 0xC8000000);
-	position += EFB_SIZE;
-	m_pVirtualL1Cache     = (u8*)g_arena.CreateViewAt(position, L1_CACHE_SIZE, base + 0xE0000000);
-	position += L1_CACHE_SIZE;
-	if (bFakeVMEM) {
-		m_pPhysicalFakeVMEM   = (u8*)g_arena.CreateViewAt(position, FAKEVMEM_SIZE, base + 0x7E000000);
-		position += FAKEVMEM_SIZE;
-	}
-	
-	if (wii)
-	{	
-		m_pPhysicalEXRAM        = (u8*)g_arena.CreateViewAt(position, EXRAM_SIZE, base + 0x10000000);
-		m_pVirtualCachedEXRAM   = (u8*)g_arena.CreateViewAt(position, EXRAM_SIZE, base + 0x90000000);
-		m_pVirtualUncachedEXRAM = (u8*)g_arena.CreateViewAt(position, EXRAM_SIZE, base + 0xD0000000);
-	}
-#else
-	// Do a poor mans version - just grab 1GB, possibly discontiguous, and use &0x3FFFFFFF as the mask whenever it is accessed.
-	base = MemArena::Find4GBBase();
-	if (!base) {
-		PanicAlert("Failed to grab 1 GB of contiguous memory!\nDo you have an antivirus program or any other program\n"
-			       "that injects itself into every process, consuming address space?\nOr simply a bad graphics driver?\n\n"
-				   "Dolphin will handle this better in the future by falling back to slow memory emulation.\n"
-				   "For now, sorry, but it won't work. Try the 64-bit build if you can.");
-	}
-	position = 0;
-	m_pPhysicalRAM        = (u8*)g_arena.CreateViewAt(position, RAM_SIZE, base + (0x00000000 & MEMVIEW32_MASK));
-	m_pVirtualCachedRAM   = m_pPhysicalRAM;
-	m_pVirtualUncachedRAM = m_pPhysicalRAM;
-	position += RAM_SIZE;
-	m_pVirtualEFB         = (u8*)g_arena.CreateViewAt(position, EFB_SIZE, base + (0xC8000000 & MEMVIEW32_MASK));
-	position += EFB_SIZE;
-	m_pVirtualL1Cache     = (u8*)g_arena.CreateViewAt(position, L1_CACHE_SIZE, base + (0xE0000000 & MEMVIEW32_MASK));
-	position += L1_CACHE_SIZE;
-	if (bFakeVMEM) {
-		m_pPhysicalFakeVMEM   = (u8*)g_arena.CreateViewAt(position, FAKEVMEM_SIZE, base + (0x7E000000 & MEMVIEW32_MASK));
-		position += FAKEVMEM_SIZE;
-	}
-	//WriteProtectMemory(base + 24*1024*1024, 8*1024*1024);
-	if (wii)
-	{	
-		m_pPhysicalEXRAM        = (u8*)g_arena.CreateViewAt(position, EXRAM_SIZE, base + (0x10000000 & MEMVIEW32_MASK));
-		m_pVirtualCachedEXRAM   = m_pPhysicalEXRAM;
-		m_pVirtualUncachedEXRAM = m_pPhysicalEXRAM;
-	}
-#endif
-
-	memset(m_pRAM, 0, RAM_SIZE);
-	if (wii) {
-		memset(m_pPhysicalEXRAM, 0, EXRAM_SIZE);
-	}
-	memset(m_pEFB, 0, EFB_SIZE);
-	memset(m_pL1Cache, 0, L1_CACHE_SIZE);
+	u32 flags = 0;
+	if (wii) flags |= MV_WII_ONLY;
+	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
+	base = MemoryMap_Setup(views, num_views, flags, &g_arena);
 
 	if (wii)
 		InitHWMemFuncsWii();
@@ -450,9 +371,9 @@ bool Init()
 void DoState(PointerWrap &p)
 {
 	bool wii = Core::GetStartupParameter().bWii;
-	p.DoArray(m_pRAM, RAM_SIZE);
-	p.DoArray(m_pEFB, EFB_SIZE);
-	p.DoArray(m_pL1Cache, L1_CACHE_SIZE);
+	p.DoArray(m_pPhysicalRAM, RAM_SIZE);
+	p.DoArray(m_pVirtualEFB, EFB_SIZE);
+	p.DoArray(m_pVirtualL1Cache, L1_CACHE_SIZE);
 	if (wii)
 		p.DoArray(m_pEXRAM, EXRAM_SIZE);
 }
@@ -460,47 +381,15 @@ void DoState(PointerWrap &p)
 bool Shutdown()
 {
 	m_IsInitialized = false;
-	bool wii = Core::GetStartupParameter().bWii;
-
-	g_arena.ReleaseView(m_pRAM, RAM_SIZE);
-	g_arena.ReleaseView(m_pEFB, EFB_SIZE); 
-	g_arena.ReleaseView(m_pL1Cache, L1_CACHE_SIZE);
-	if (wii) {
-		g_arena.ReleaseView(m_pEXRAM, EXRAM_SIZE);	
-	}
-	if (bFakeVMEM) { 
-		g_arena.ReleaseView(m_pFakeVMEM, FAKEVMEM_SIZE);
-	}
-	
-#ifdef _M_X64
-	g_arena.ReleaseView(m_pPhysicalRAM, RAM_SIZE);
-	g_arena.ReleaseView(m_pVirtualCachedRAM, RAM_SIZE);
-	g_arena.ReleaseView(m_pVirtualUncachedRAM, RAM_SIZE);
-	g_arena.ReleaseView(m_pVirtualEFB, EFB_SIZE);
-	g_arena.ReleaseView(m_pVirtualL1Cache, L1_CACHE_SIZE);
-	if (wii)
-	{
-		g_arena.ReleaseView(m_pPhysicalEXRAM, EXRAM_SIZE);
-		g_arena.ReleaseView(m_pVirtualCachedEXRAM, EXRAM_SIZE);
-		g_arena.ReleaseView(m_pVirtualUncachedEXRAM, EXRAM_SIZE);
-	}
-	if (bFakeVMEM) {
-		g_arena.ReleaseView(m_pPhysicalFakeVMEM, FAKEVMEM_SIZE);
-	}
-#else
-	g_arena.ReleaseView(m_pPhysicalRAM, RAM_SIZE);
-	g_arena.ReleaseView(m_pVirtualEFB, EFB_SIZE);
-	g_arena.ReleaseView(m_pVirtualL1Cache, L1_CACHE_SIZE);
-	if (wii)
-		g_arena.ReleaseView(m_pPhysicalEXRAM, EXRAM_SIZE);
-	if (bFakeVMEM)
-		g_arena.ReleaseView(m_pPhysicalFakeVMEM, FAKEVMEM_SIZE);
-#endif
+	u32 flags = 0;
+	if (Core::GetStartupParameter().bWii) flags |= MV_WII_ONLY;
+	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
+	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
 	g_arena.ReleaseSpace();
+	base = NULL;
 	INFO_LOG(MEMMAP, "Memory system shut down.");
 	return true;
 }
-
 
 void Clear()
 {
@@ -514,7 +403,6 @@ void Clear()
 		memset(m_pEXRAM, 0, EXRAM_SIZE);
 }
 
-
 bool AreMemoryBreakpointsActivated()
 {
 #ifndef ENABLE_MEM_CHECK
@@ -523,7 +411,6 @@ bool AreMemoryBreakpointsActivated()
 	return true;
 #endif
 }
-
 
 u32 Read_Instruction(const u32 em_address)
 {
@@ -781,20 +668,11 @@ void CheckForBadAddresses32(u32 Address, u32 Data, bool Read)
 
 void CheckForBadAddresses64(u32 Address, u64 Data, bool Read)
 {CheckForBadAddresses(Address, (u32)Data, Read, 64);}
-// =============
 
-
-
-
-
-
-// Other functions
-// ----------------
 void WriteBigEData(const u8 *_pData, const u32 _Address, const u32 _iSize)
 {
 	memcpy(GetPointer(_Address), _pData, _iSize);
 }
-
 
 void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
 {	
@@ -813,13 +691,12 @@ void Memset(const u32 _Address, const u8 _iValue, const u32 _iLength)
     }
 }
 
-
 void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlocks)
 {
-	u8 *src = GetCachePtr() + (_CacheAddr & 0x3FFFF);
+	const u8 *src = GetCachePtr() + (_CacheAddr & 0x3FFFF);
 	u8 *dst = GetPointer(_MemAddr);
 
-    if ((dst != NULL) && (src != NULL))
+    if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
     {
 	    memcpy(dst, src, 32 * _iNumBlocks);
     }
@@ -833,13 +710,12 @@ void DMA_LCToMemory(const u32 _MemAddr, const u32 _CacheAddr, const u32 _iNumBlo
     }
 }
 
-
 void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlocks)
 {
-	u8 *src = GetPointer(_MemAddr);
+	const u8 *src = GetPointer(_MemAddr);
 	u8 *dst = GetCachePtr() + (_CacheAddr & 0x3FFFF);
 
-    if ((dst != NULL) && (src != NULL))
+    if ((dst != NULL) && (src != NULL) && (_MemAddr & 3) == 0 && (_CacheAddr & 3) == 0)
     {
         memcpy(dst, src, 32 * _iNumBlocks);
     }
@@ -853,27 +729,24 @@ void DMA_MemoryToLC(const u32 _CacheAddr, const u32 _MemAddr, const u32 _iNumBlo
     }
 }
 
-
-void ReadBigEData( u8 *_pData, const u32 _Address, const u32 size)
+void ReadBigEData(u8 *data, const u32 em_address, const u32 size)
 {
-	u8 *src = GetPointer(_Address);
-	memcpy(_pData, src, size);
+	u8 *src = GetPointer(em_address);
+	memcpy(data, src, size);
 }
 
-
-void GetString(std::string& _string, const u32 _Address)
+void GetString(std::string& _string, const u32 em_address)
 {
 	char stringBuffer[2048];
 	char *string = stringBuffer;
 	char c;
-	int addr = _Address;
+	u32 addr = em_address;
 	while ((c = Read_U8(addr)))
 	{
 		*string++ = c;
 		addr++;
 	}
-	*string++=0;
-
+	*string++ = '\0';
 	_string = stringBuffer;
 }
 
@@ -890,7 +763,7 @@ u8 *GetPointer(const u32 _Address)
 	case 0x81:
 	case 0xC0:
 	case 0xC1:
-		return (u8*)(((char*)m_pRAM) + (_Address & RAM_MASK));
+		return (u8*)(((char*)m_pPhysicalRAM) + (_Address & RAM_MASK));
 
 	case 0x10:
 	case 0x11:
@@ -905,13 +778,13 @@ u8 *GetPointer(const u32 _Address)
 	case 0xD2:
 	case 0xD3:
 		if (Core::GetStartupParameter().bWii)
-			return (u8*)(((char*)m_pEXRAM) + (_Address & EXRAM_MASK));
+			return (u8*)(((char*)m_pPhysicalEXRAM) + (_Address & EXRAM_MASK));
 		else
 			return 0;
 
 	case 0x7E:
 	case 0x7F:
-		return (u8*)(((char*)m_pFakeVMEM) + (_Address & RAM_MASK));
+		return (u8*)(((char*)m_pVirtualFakeVMEM) + (_Address & RAM_MASK));
 
 	case 0xE0:
 		if (_Address < (0xE0000000 + L1_CACHE_SIZE))

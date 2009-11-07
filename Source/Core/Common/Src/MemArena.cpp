@@ -66,7 +66,6 @@ void* MemArena::CreateView(s64 offset, size_t size, bool ensure_low_mem)
 {
 #ifdef _WIN32
 	return MapViewOfFile(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size);
-
 #else
 	void* ptr = mmap(0, size,
 			PROT_READ | PROT_WRITE,
@@ -75,15 +74,8 @@ void* MemArena::CreateView(s64 offset, size_t size, bool ensure_low_mem)
 			| (ensure_low_mem ? MAP_32BIT : 0)
 #endif
 			, fd, offset);
-
-	if (!ptr)
-	{
-		PanicAlert("Failed to create view");
-	}
-
-	return(ptr);
+	return ptr;
 #endif
-
 }
 
 
@@ -140,4 +132,155 @@ u8* MemArena::Find4GBBase()
 	return static_cast<u8*>(base);
 #endif
 #endif
+}
+
+
+// yeah, this could also be done in like two bitwise ops...
+#define SKIP(a_flags, b_flags) \
+	if (!(a_flags & MV_WII_ONLY) && (b_flags & MV_WII_ONLY)) \
+		continue; \
+	if (!(a_flags & MV_FAKE_VMEM) && (b_flags & MV_FAKE_VMEM)) \
+		continue; \
+
+
+static bool Memory_TryBase(u8 *base, const MemoryView *views, int num_views, u32 flags, MemArena *arena) {
+	// OK, we know where to find free space. Now grab it!
+	// We just mimic the popular BAT setup.
+	u32 position = 0;
+	u32 last_position = 0;
+
+	// Zero all the pointers to be sure.
+	for (int i = 0; i < num_views; i++)
+	{
+		if (views[i].out_ptr_low)
+			*views[i].out_ptr_low = 0;
+		if (views[i].out_ptr)
+			*views[i].out_ptr = 0;
+	}
+
+	int i;
+	for (i = 0; i < num_views; i++)
+	{
+		SKIP(flags, views[i].flags);
+		if (views[i].flags & MV_MIRROR_PREVIOUS) {
+			position = last_position;
+		} else {
+			*(views[i].out_ptr_low) = (u8*)arena->CreateView(position, views[i].size);
+			if (!*views[i].out_ptr_low)
+				goto bail;
+		}
+#ifdef _M_X64
+		*views[i].out_ptr = (u8*)arena->CreateViewAt(
+			position, views[i].size, base + views[i].virtual_address);
+#else
+		if (views[i].flags & MV_MIRROR_PREVIOUS) {
+			// No need to create multiple identical views.
+			*views[i].out_ptr = *views[i - 1].out_ptr;
+		} else {
+			*views[i].out_ptr = (u8*)arena->CreateViewAt(
+				position, views[i].size, base + (views[i].virtual_address & 0x3FFFFFFF));
+			if (!*views[i].out_ptr)
+				goto bail;
+		}
+#endif
+		last_position = position;
+		position += views[i].size;
+	}
+
+	return true;
+
+bail:
+	// Argh! ERROR! Free what we grabbed so far so we can try again.
+	for (int j = 0; j <= i; j++)
+	{
+		if (views[j].out_ptr_low && *views[j].out_ptr_low)
+		{
+			arena->ReleaseView(*views[j].out_ptr_low, views[j].size);
+			*views[j].out_ptr_low = NULL;
+		}
+		if (*views[j].out_ptr)
+		{
+#ifdef _M_X64
+			arena->ReleaseView(*views[j].out_ptr, views[j].size);
+#else
+			if (!(views[j].flags & MV_MIRROR_PREVIOUS))
+			{
+				arena->ReleaseView(*views[j].out_ptr, views[j].size);
+			}
+#endif
+			*views[j].out_ptr = NULL;
+		}
+	}
+	return false;
+}
+
+u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena)
+{
+	u32 total_mem = 0;
+	for (int i = 0; i < num_views; i++)
+	{
+		SKIP(flags, views[i].flags);
+		if ((views[i].flags & MV_MIRROR_PREVIOUS) == 0)
+			total_mem += views[i].size;
+	}
+	// Grab some pagefile backed memory out of the void ...
+	arena->GrabLowMemSpace(total_mem);
+
+	// Now, create views in high memory where there's plenty of space.
+#ifdef _M_X64
+	u8 *base = MemArena::Find4GBBase();
+	// This really shouldn't fail - in 64-bit, there will always be enough
+	// address space.
+	if (!Memory_TryBase(base, views, num_views, flags, arena))
+	{
+		PanicAlert("MemoryMap_Setup: Failed finding a memory base.");
+		exit(0);
+		return 0;
+	}
+#else
+#ifdef _WIN32
+	// Try a whole range of possible bases. Return once we got a valid one.
+	u32 max_base_addr = 0x7FFF0000 - 0x31000000;
+	u8 *base = NULL;
+	int base_attempts = 1;
+	for (u32 base_addr = 0; base_addr < max_base_addr; base_addr += 0x40000)
+	{
+		base = (u8 *)base_addr;
+		if (Memory_TryBase(base, views, num_views, flags, arena)) 
+		{
+			INFO_LOG(MEMMAP, "Found valid memory base at %p after %i tries.", base, base_attempts);
+			break;
+		}
+		base_attempts++;
+	}
+#else
+	// Linux32 is fine with the x64 method, although limited to 32-bit with no automirrors.
+	u8 *base = MemArena::Find4GBBase();
+	if (!Memory_TryBase(base, views, num_views, flags, arena))
+	{
+		PanicAlert("MemoryMap_Setup: Failed finding a memory base.");
+		exit(0);
+		return 0;
+	}
+#endif
+
+#endif
+	if (!base)
+		PanicAlert("No possible memory base pointer found!");
+	return base;
+}
+
+void MemoryMap_Shutdown(const MemoryView *views, int num_views, u32 flags, MemArena *arena)
+{
+	for (int i = 0; i < num_views; i++)
+	{
+		SKIP(flags, views[i].flags);
+		if (views[i].out_ptr_low && *views[i].out_ptr_low)
+			arena->ReleaseView(*views[i].out_ptr_low, views[i].size);
+		if (*views[i].out_ptr && (views[i].out_ptr_low && *views[i].out_ptr != *views[i].out_ptr_low))
+			arena->ReleaseView(*views[i].out_ptr, views[i].size);
+		*views[i].out_ptr = NULL;
+		if (views[i].out_ptr_low) 
+			*views[i].out_ptr_low = NULL;
+	}
 }
