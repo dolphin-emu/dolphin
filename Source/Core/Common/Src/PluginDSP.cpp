@@ -40,6 +40,8 @@ PluginDSP::PluginDSP(const char *_Filename)
 		(LoadSymbol("DSP_SendAIBuffer"));
 	DSP_StopSoundStream      = reinterpret_cast<TDSP_StopSoundStream>
 		(LoadSymbol("DSP_StopSoundStream"));
+	DSP_ClearAudioBuffer     = reinterpret_cast<TDSP_ClearAudioBuffer>
+		(LoadSymbol("DSP_ClearAudioBuffer"));
 
 	if ((DSP_ReadMailboxHigh != 0) &&
 		(DSP_ReadMailboxLow != 0) &&
@@ -49,7 +51,8 @@ PluginDSP::PluginDSP(const char *_Filename)
 		(DSP_WriteControlRegister != 0) &&
 		(DSP_SendAIBuffer != 0) &&
 		(DSP_Update != 0) &&
-		(DSP_StopSoundStream != 0))
+		(DSP_StopSoundStream != 0) &&
+		(DSP_ClearAudioBuffer != 0))
 		validDSP = true;
 }
 

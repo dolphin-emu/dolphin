@@ -170,6 +170,13 @@ void DSound::Update()
 	soundSyncEvent.Set();
 }
 
+void DSound::Clear()
+{
+	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
+
+	Update();
+}
+
 void DSound::Stop()
 {
 	soundCriticalSection.Enter();

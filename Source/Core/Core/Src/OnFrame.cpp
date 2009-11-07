@@ -41,6 +41,9 @@ FILE *g_recordfd = NULL;
 u64 g_frameCounter = 0, g_lagCounter = 0;
 bool g_bPolled = false;
 
+int g_numRerecords = 0;
+std::string g_recordFile;
+
 void FrameUpdate() {
 	g_frameCounter++;
 
@@ -205,6 +208,8 @@ bool BeginRecordingInput(const char *filename, int controllers)
 
 	g_playMode = MODE_RECORDING;
 
+	g_recordFile = filename;
+
 	return true;
 }
 
@@ -313,6 +318,8 @@ bool PlayInput(const char *filename)
 
 	g_numPads = header.numControllers;
 	g_padStates = new ControllerState[g_numPads];
+	g_numRerecords = header.numRerecords;
+	g_recordFile = filename;
 
 	g_playMode = MODE_PLAYING;
 

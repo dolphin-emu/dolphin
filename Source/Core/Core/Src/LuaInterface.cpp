@@ -18,13 +18,18 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
+#include "zlib.h"
 
 #include "LuaInterface.h"
 #include "Common.h"
-#include "Core.h"
 #include "OnFrame.h"
-#include "zlib.h"
+#include "Core.h"
+#include "State.h"
+#include "ConfigManager.h"
+#include "PluginManager.h"
+#include "HW/Memmap.h"
+#include "Host.h"
 
 
 extern "C" {
@@ -34,7 +39,7 @@ extern "C" {
 #include "lstate.h"
 };
 
-// TODO Count: 22
+// TODO Count: 8
 
 // TODO: GUI
 
@@ -46,44 +51,38 @@ bool Debug = false;
 
 namespace Lua {
 
-// TODO: Find proper implementations of these
-
 // the emulator must provide these so that we can implement
 // the various functions the user can call from their lua script
 // (this interface with the emulator needs cleanup, I know)
-extern int (*Update_Frame)();
-extern int (*Update_Frame_Fast)();
-extern unsigned int ReadValueAtHardwareAddress(unsigned int address, unsigned int size);
-extern bool WriteValueAtHardwareAddress(unsigned int address, unsigned int value, unsigned int size, bool hookless=false);
-extern bool WriteValueAtHardwareRAMAddress(unsigned int address, unsigned int value, unsigned int size, bool hookless=false);
-extern bool WriteValueAtHardwareROMAddress(unsigned int address, unsigned int value, unsigned int size);
-extern bool IsHardwareAddressValid(unsigned int address);
-extern bool IsHardwareRAMAddressValid(unsigned int address);
-extern bool IsHardwareROMAddressValid(unsigned int address);
-extern "C" int disableSound2, disableRamSearchUpdate;
-extern "C" int Clear_Sound_Buffer(void);
-extern long long GetCurrentInputCondensed();
-extern long long PeekInputCondensed();
-extern void SetNextInputCondensed(long long input, long long mask);
-extern int Set_Current_State(int Num, bool showOccupiedMessage, bool showEmptyMessage);
-extern int Update_Emulation_One(HWND hWnd);
-extern void Update_Emulation_One_Before(HWND hWnd);
-extern void Update_Emulation_After_Fast(HWND hWnd);
-extern void Update_Emulation_One_Before_Minimal();
-extern int Update_Frame_Adjusted();
-extern int Update_Frame_Hook();
-extern int Update_Frame_Fast_Hook();
-extern void Update_Emulation_After_Controlled(HWND hWnd, bool flip);
-extern void Prevent_Next_Frame_Skipping();
-extern void UpdateLagCount();
+//extern unsigned int ReadValueAtHardwareAddress(unsigned int address, unsigned int size);
+//extern bool WriteValueAtHardwareAddress(unsigned int address, unsigned int value, unsigned int size, bool hookless=false);
+//extern bool WriteValueAtHardwareRAMAddress(unsigned int address, unsigned int value, unsigned int size, bool hookless=false);
+//extern bool WriteValueAtHardwareROMAddress(unsigned int address, unsigned int value, unsigned int size);
+//extern bool IsHardwareAddressValid(unsigned int address);
+//extern bool IsHardwareRAMAddressValid(unsigned int address);
+//extern bool IsHardwareROMAddressValid(unsigned int address);
+//extern int Clear_Sound_Buffer(void);
+//extern long long GetCurrentInputCondensed();
+//extern long long PeekInputCondensed();
+//extern void SetNextInputCondensed(long long input, long long mask);
+//extern int Set_Current_State(int Num, bool showOccupiedMessage, bool showEmptyMessage);
+//extern int Update_Emulation_One(HWND hWnd);
+//extern void Update_Emulation_One_Before(HWND hWnd);
+//extern void Update_Emulation_After_Fast(HWND hWnd);
+//extern void Update_Emulation_One_Before_Minimal();
+//extern int Update_Frame_Adjusted();
+//extern int Update_Frame_Hook();
+//extern int Update_Frame_Fast_Hook();
+//extern void Update_Emulation_After_Controlled(HWND hWnd, bool flip);
+//extern void Prevent_Next_Frame_Skipping();
+//extern void UpdateLagCount();
+//extern bool Step_emulua_MainLoop(bool allowSleep, bool allowEmulate);
+
+extern int disableSound2, disableRamSearchUpdate;
 extern bool BackgroundInput;
 extern bool g_disableStatestateWarnings;
 extern bool g_onlyCallSavestateCallbacks;
-extern bool Step_emulua_MainLoop(bool allowSleep, bool allowEmulate);
 extern bool frameadvSkipLagForceDisable;
-extern "C" void Put_Info_NonImmediate(char *Message, int Duration);
-extern int Show_Genesis_Screen();
-extern void emuluaReplayMovie();
 extern bool SkipNextRerecordIncrement;
 
 enum SpeedMode
@@ -1022,7 +1021,7 @@ DEFINE_LUA_FUNCTION(print, "...")
 DEFINE_LUA_FUNCTION(emulua_message, "str")
 {
 	const char* str = toCString(L);
-	Put_Info_NonImmediate((char*)str, 500);
+	Core::DisplayMessage(str, 2000);
 	return 0;
 }
 
@@ -1171,8 +1170,7 @@ void LuaRescueHook(lua_State* L, lua_Debug *dbg)
 		bool stopworrying = true;
 		if(!info.panic)
 		{
-			Clear_Sound_Buffer();
-
+			CPluginManager::GetInstance().GetDSP()->DSP_ClearAudioBuffer();
 			stoprunning = PanicYesNo("A Lua script has been running for quite a while. Maybe it is in an infinite loop.\n\nWould you like to stop the script?\n\n(Yes to stop it now,\n No to keep running and not ask again)");
 		}
 
@@ -1367,8 +1365,6 @@ DEFINE_LUA_FUNCTION(emulua_wait, "")
 }
 */
 
-// TODO
-/*
 DEFINE_LUA_FUNCTION(emulua_frameadvance, "")
 {
 	if(FailVerifyAtFrameBoundary(L, "emulua.frameadvance", 0,1))
@@ -1377,66 +1373,29 @@ DEFINE_LUA_FUNCTION(emulua_frameadvance, "")
 	int uid = luaStateToUIDMap[L];
 	LuaContextInfo& info = GetCurrentInfo();
 
-	if(!info.ranFrameAdvance)
-	{
-		// otherwise we'll never see the first frame of GUI drawing
-		if(info.speedMode != SPEEDMODE_MAXIMUM)
-			Show_Genesis_Screen();
-		info.ranFrameAdvance = true;
-	}
+	info.ranFrameAdvance = !info.ranFrameAdvance;
 
-	switch(info.speedMode)
-	{
-		default:
-		case SPEEDMODE_NORMAL:
-			while(!Step_emulua_MainLoop(true, true) && !info.panic);
-			break;
-		case SPEEDMODE_NOTHROTTLE:
-			while(!Step_emulua_MainLoop(Core::GetState() == Core::CORE_PAUSE, false) && !info.panic);
-			if(!(FastForwardKeyDown && (GetActiveWindow()==(HWND)Core::g_CoreStartupParameter.hMainWindow || BackgroundInput)))
-				emulua_emulateframefastnoskipping(L);
-			else
-				emulua_emulateframefast(L);
-			break;
-		case SPEEDMODE_TURBO:
-			while(!Step_emulua_MainLoop(Core::GetState() == Core::CORE_PAUSE, false) && !info.panic);
-			emulua_emulateframefast(L);
-			break;
-		case SPEEDMODE_MAXIMUM:
-			while(!Step_emulua_MainLoop(Core::GetState() == Core::CORE_PAUSE, false) && !info.panic);
-			emulua_emulateframeinvisible(L);
-			break;
-	}
+	Frame::SetFrameStepping(info.ranFrameAdvance);
+
 	return 0;
 }
-*/
+
 
 DEFINE_LUA_FUNCTION(emulua_pause, "")
 {
-	LuaContextInfo& info = GetCurrentInfo();
-
 	Core::SetState(Core::CORE_PAUSE);
-	while(!Step_emulua_MainLoop(true, false) && !info.panic);
-
-	// allow the user to not have to manually unpause
-	// after restarting a script that used emulua.pause()
-	if(info.panic)
-		Core::SetState(Core::CORE_RUN);
-
 	return 0;
 }
 
 DEFINE_LUA_FUNCTION(emulua_unpause, "")
 {
-	LuaContextInfo& info = GetCurrentInfo();
-
 	Core::SetState(Core::CORE_RUN);
 	return 0;
 }
 
 DEFINE_LUA_FUNCTION(emulua_redraw, "")
 {
-	Show_Genesis_Screen();
+	Host_UpdateMainFrame();
 	worry(L,250);
 	return 0;
 }
@@ -1445,7 +1404,7 @@ DEFINE_LUA_FUNCTION(emulua_redraw, "")
 DEFINE_LUA_FUNCTION(memory_readbyte, "address")
 {
 	int address = (int)luaL_checkinteger(L,1);
-	unsigned char value = (unsigned char)(ReadValueAtHardwareAddress(address, 1) & 0xFF);
+	unsigned char value = Memory::Read_U8(address);
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
 	return 1; // we return the number of return values
@@ -1453,7 +1412,7 @@ DEFINE_LUA_FUNCTION(memory_readbyte, "address")
 DEFINE_LUA_FUNCTION(memory_readbytesigned, "address")
 {
 	int address = (int)luaL_checkinteger(L,1);
-	signed char value = (signed char)(ReadValueAtHardwareAddress(address, 1) & 0xFF);
+	signed char value = (signed char)(Memory::Read_U8(address));
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
 	return 1;
@@ -1461,7 +1420,7 @@ DEFINE_LUA_FUNCTION(memory_readbytesigned, "address")
 DEFINE_LUA_FUNCTION(memory_readword, "address")
 {
 	int address = (int)luaL_checkinteger(L,1);
-	unsigned short value = (unsigned short)(ReadValueAtHardwareAddress(address, 2) & 0xFFFF);
+	unsigned short value = Memory::Read_U16(address);
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
 	return 1;
@@ -1469,7 +1428,7 @@ DEFINE_LUA_FUNCTION(memory_readword, "address")
 DEFINE_LUA_FUNCTION(memory_readwordsigned, "address")
 {
 	int address = (int)luaL_checkinteger(L,1);
-	signed short value = (signed short)(ReadValueAtHardwareAddress(address, 2) & 0xFFFF);
+	signed short value = (signed short)(Memory::Read_U16(address));
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
 	return 1;
@@ -1477,7 +1436,7 @@ DEFINE_LUA_FUNCTION(memory_readwordsigned, "address")
 DEFINE_LUA_FUNCTION(memory_readdword, "address")
 {
 	int address = (int)luaL_checkinteger(L,1);
-	unsigned long value = (unsigned long)(ReadValueAtHardwareAddress(address, 4));
+	unsigned long value = Memory::Read_U32(address);
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
 	return 1;
@@ -1485,7 +1444,23 @@ DEFINE_LUA_FUNCTION(memory_readdword, "address")
 DEFINE_LUA_FUNCTION(memory_readdwordsigned, "address")
 {
 	int address = (int)luaL_checkinteger(L,1);
-	signed long value = (signed long)(ReadValueAtHardwareAddress(address, 4));
+	signed long value = (signed long)(Memory::Read_U32(address));
+	lua_settop(L,0);
+	lua_pushinteger(L, value);
+	return 1;
+}
+DEFINE_LUA_FUNCTION(memory_readqword, "address")
+{
+	int address = (int)luaL_checkinteger(L,1);
+	unsigned long long value = Memory::Read_U64(address);
+	lua_settop(L,0);
+	lua_pushinteger(L, value);
+	return 1;
+}
+DEFINE_LUA_FUNCTION(memory_readqwordsigned, "address")
+{
+	int address = (int)luaL_checkinteger(L,1);
+	signed long long value = (signed long long)(Memory::Read_U64(address));
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
 	return 1;
@@ -1495,21 +1470,28 @@ DEFINE_LUA_FUNCTION(memory_writebyte, "address,value")
 {
 	int address = (int)luaL_checkinteger(L,1);
 	unsigned char value = (unsigned char)(luaL_checkinteger(L,2) & 0xFF);
-	WriteValueAtHardwareRAMAddress(address, value, 1);
+	Memory::Write_U8(value, address);
 	return 0;
 }
 DEFINE_LUA_FUNCTION(memory_writeword, "address,value")
 {
 	int address = (int)luaL_checkinteger(L,1);
 	unsigned short value = (unsigned short)(luaL_checkinteger(L,2) & 0xFFFF);
-	WriteValueAtHardwareRAMAddress(address, value, 2);
+	Memory::Write_U16(value, address);
 	return 0;
 }
 DEFINE_LUA_FUNCTION(memory_writedword, "address,value")
 {
 	int address = (int)luaL_checkinteger(L,1);
 	unsigned long value = (unsigned long)(luaL_checkinteger(L,2));
-	WriteValueAtHardwareRAMAddress(address, value, 4);
+	Memory::Write_U32(value, address);
+	return 0;
+}
+DEFINE_LUA_FUNCTION(memory_writeqword, "address,value")
+{
+	int address = (int)luaL_checkinteger(L,1);
+	unsigned long value = (unsigned long)(luaL_checkinteger(L,2));
+	Memory::Write_U64(value, address);
 	return 0;
 }
 
@@ -1530,9 +1512,9 @@ DEFINE_LUA_FUNCTION(memory_readbyterange, "address,length")
 	// put all the values into the (1-based) array
 	for(int a = address, n = 1; n <= length; a++, n++)
 	{
-		if(IsHardwareAddressValid(a))
+		if(Memory::IsRAMAddress(a))
 		{
-			unsigned char value = (unsigned char)(ReadValueAtHardwareAddress(a, 1) & 0xFF);
+			unsigned char value = Memory::Read_U8(a);
 			lua_pushinteger(L, value);
 			lua_rawseti(L, -2, n);
 		}
@@ -1546,7 +1528,7 @@ DEFINE_LUA_FUNCTION(memory_isvalid, "address")
 {
 	int address = (int)luaL_checkinteger(L,1);
 	lua_settop(L,0);
-	lua_pushboolean(L, IsHardwareAddressValid(address));
+	lua_pushboolean(L, Memory::IsRAMAddress(address));
 	return 1;
 }
 
@@ -1682,8 +1664,7 @@ DEFINE_LUA_FUNCTION(memory_setregister, "cpu_dot_registername_string,value")
 	return 0;
 }
 
-// TODO: (also not implemented in DeSmuME)
-/*
+// Creates a savestate object
 DEFINE_LUA_FUNCTION(state_create, "[location]")
 {
 	if(lua_isnumber(L,1))
@@ -1694,11 +1675,7 @@ DEFINE_LUA_FUNCTION(state_create, "[location]")
 		return 1;
 	}
 
-	int len = GENESIS_STATE_LENGTH;
-	if (SegaCD_Started) len += SEGACD_LENGTH_EX;
-	if (_32X_Started) len += G32X_LENGTH_EX;
-	if (!((Genesis_Started)||(SegaCD_Started)||(_32X_Started)))
-		len += max(SEGACD_LENGTH_EX, G32X_LENGTH_EX);
+	size_t len = State_GetSize();
 
 	// allocate the in-memory/anonymous savestate
 	unsigned char* stateBuffer = (unsigned char*)lua_newuserdata(L, len + 16); // 16 is for performance alignment reasons
@@ -1706,7 +1683,7 @@ DEFINE_LUA_FUNCTION(state_create, "[location]")
 
 	return 1;
 }
-*/
+
 // savestate.save(location [, option])
 // saves the current emulation state to the given location
 // you can pass in either a savestate file number (an integer),
@@ -1715,8 +1692,6 @@ DEFINE_LUA_FUNCTION(state_create, "[location]")
 // if option is "scriptdataonly" then the state will not actually be saved, but any save callbacks will still get called and their results will be saved (see savestate.registerload()/savestate.registersave())
 DEFINE_LUA_FUNCTION(state_save, "location[,option]")
 {
-// TODO
-	/*
 	const char* option = (lua_type(L,2) == LUA_TSTRING) ? lua_tostring(L,2) : NULL;
 	if(option)
 	{
@@ -1736,24 +1711,21 @@ DEFINE_LUA_FUNCTION(state_save, "location[,option]")
 		case LUA_TNUMBER: // numbered save file
 		default:
 		{
-			int stateNumber = (int)luaL_checkinteger(L,1);
-			Set_Current_State(stateNumber, false,false);
-			char Name [1024] = {0};
-			Get_State_File_Name(Name);
-			Save_State(Name);
-		}	return 0;
+			State_Save((int)luaL_checkinteger(L,1));
+			return 0;
+		}	
+
 		case LUA_TUSERDATA: // in-memory save slot
 		{
 			unsigned char* stateBuffer = (unsigned char*)lua_touserdata(L,1);
 			if(stateBuffer)
 			{
 				stateBuffer += ((16 - (int)stateBuffer) & 15); // for performance alignment reasons
-				Save_State_To_Buffer(stateBuffer);
+				State_SaveToBuffer(&stateBuffer);
 			}
-		}	return 0;
+			return 0;
+		}	
 	}
-*/
-	return 0;
 }
 
 // savestate.load(location [, option])
@@ -1788,14 +1760,11 @@ DEFINE_LUA_FUNCTION(state_load, "location[,option]")
 			LuaContextInfo& info = GetCurrentInfo();
 			if(info.rerecordCountingDisabled)
 				SkipNextRerecordIncrement = true;
-			int stateNumber = (int)luaL_checkinteger(L,1);
-			Set_Current_State(stateNumber, false,!g_disableStatestateWarnings);
-			char Name [1024] = {0};
+			State_Load((int)luaL_checkinteger(L,1));
+		
+			return 0;
+		}
 
-			//TODO
-			//Get_State_File_Name(Name);
-			//Load_State(Name);
-		}	return 0;
 		case LUA_TUSERDATA: // in-memory save slot
 		{
 			unsigned char* stateBuffer = (unsigned char*)lua_touserdata(L,1);
@@ -1803,11 +1772,12 @@ DEFINE_LUA_FUNCTION(state_load, "location[,option]")
 			{
 				stateBuffer += ((16 - (int)stateBuffer) & 15); // for performance alignment reasons
 				if(stateBuffer[0])
-					;// Load_State_From_Buffer(stateBuffer); TODO
+					State_LoadFromBuffer(&stateBuffer);
 				else // the first byte of a valid savestate is never 0
 					luaL_error(L, "attempted to load an anonymous savestate before saving it");
 			}
-		}	return 0;
+			return 0;
+		}	
 	}
 }
 
@@ -1832,10 +1802,11 @@ DEFINE_LUA_FUNCTION(state_loadscriptdata, "location")
 		case LUA_TNUMBER: // numbered save file
 		default:
 		{
+			// TODO
 			int stateNumber = (int)luaL_checkinteger(L,1);
-			Set_Current_State(stateNumber, false,false);
+			//Set_Current_State(stateNumber, false,false);
 			char Name [1024] = {0};
-			//Get_State_File_Name(Name); TODO
+			//Get_State_File_Name(Name); 
 			{
 				LuaSaveData saveData;
 
@@ -1876,6 +1847,7 @@ DEFINE_LUA_FUNCTION(state_savescriptdata, "location")
 
 
 // TODO: Convert to Dolphin?
+/*
 static const struct ButtonDesc
 {
 	unsigned short controllerNum;
@@ -2095,7 +2067,7 @@ DEFINE_LUA_FUNCTION(joy_peekup, "[controller=1]")
 {
 	return joy_peek_internal(L, true, false);
 }
-
+*/
 
 static const struct ColorMapping
 {
@@ -2744,29 +2716,63 @@ DEFINE_LUA_FUNCTION(emu_openscript, "filename")
     return 0;
 }
 
-// TODO
-/*
 DEFINE_LUA_FUNCTION(emulua_loadrom, "filename")
 {
 	struct Temp { Temp() {EnableStopAllLuaScripts(false);} ~Temp() {EnableStopAllLuaScripts(true);}} dontStopScriptsHere;
 	const char* filename = lua_isstring(L,1) ? lua_tostring(L,1) : NULL;
 	char curScriptDir[1024]; GetCurrentScriptDir(curScriptDir, 1024);
-	filename = MakeRomPathAbsolute(filename, curScriptDir);
-	int result = emuluaLoadRom(filename);
-	if(result <= 0)
-		luaL_error(L, "Failed to load ROM \"%s\": %s", filename, result ? "invalid or unsupported" : "cancelled or not found");
+	
+	if(Core::GetState() != Core::CORE_UNINITIALIZED)
+		Core::Stop();
+
+	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
+	StartUp.m_BootType = SCoreStartupParameter::BOOT_ISO;
+	StartUp.m_strFilename = filename;
+	SConfig::GetInstance().m_LastFilename = filename;
+	StartUp.bRunCompareClient = false;
+	StartUp.bRunCompareServer = false;
+
+	// If for example the ISO file is bad we return here
+	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT)) return 1;
+
+	// Load game specific settings
+	IniFile game_ini;
+	std::string unique_id = StartUp.GetUniqueID();
+	StartUp.m_strGameIni = FULL_GAMECONFIG_DIR + unique_id + ".ini";
+	if (unique_id.size() == 6 && game_ini.Load(StartUp.m_strGameIni.c_str()))
+	{
+		// General settings
+		game_ini.Get("Core", "CPUOnThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
+		game_ini.Get("Core", "SkipIdle",			&StartUp.bSkipIdle, StartUp.bSkipIdle);
+		game_ini.Get("Core", "OptimizeQuantizers",	&StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
+		game_ini.Get("Core", "EnableFPRF",			&StartUp.bEnableFPRF, StartUp.bEnableFPRF);
+		game_ini.Get("Core", "TLBHack",				&StartUp.iTLBHack, StartUp.iTLBHack);
+		// Wii settings
+		if (StartUp.bWii)
+		{
+			// Flush possible changes to SYSCONF to file
+			SConfig::GetInstance().m_SYSCONF->Save();
+		}
+	} 
+
+	if (!Core::Init())
+		return 1;
+
+	Core::SetState(Core::CORE_RUN);
+
 	CallRegisteredLuaFunctions(LUACALL_ONSTART);
     return 0;
 }
-*/
+
 DEFINE_LUA_FUNCTION(emulua_getframecount, "")
 {
-	lua_pushinteger(L, Frame::g_frameCounter);
+	lua_pushinteger(L, (lua_Integer)Frame::g_frameCounter);
 	return 1;
 }
 DEFINE_LUA_FUNCTION(emulua_getlagcount, "")
 {
-	lua_pushinteger(L, Frame::g_lagCounter);
+	lua_pushinteger(L, (lua_Integer)Frame::g_lagCounter);
 	return 1;
 }
 DEFINE_LUA_FUNCTION(emulua_lagged, "")
@@ -2788,7 +2794,7 @@ DEFINE_LUA_FUNCTION(emulua_atframeboundary, "")
 
 DEFINE_LUA_FUNCTION(movie_getlength, "")
 {
-	lua_pushinteger(L, Frame::g_recordfd ? Frame::g_frameCounter : 0);
+	lua_pushinteger(L, Frame::g_recordfd ? (lua_Integer)Frame::g_frameCounter : 0);
 	return 1;
 }
 DEFINE_LUA_FUNCTION(movie_isactive, "")
@@ -2798,13 +2804,12 @@ DEFINE_LUA_FUNCTION(movie_isactive, "")
 }
 DEFINE_LUA_FUNCTION(movie_rerecordcount, "")
 {
-	// TODO
-	lua_pushinteger(L, /*Frame::g_recordfd ? MainMovie.NbRerecords :*/ 0);
+	lua_pushinteger(L, Frame::g_recordfd ? (lua_Integer)Frame::g_numRerecords : 0);
 	return 1;
 }
 DEFINE_LUA_FUNCTION(movie_setrerecordcount, "")
 {
-	//TODO: MainMovie.NbRerecords = (int)luaL_checkinteger(L, 1);
+	Frame::g_numRerecords = (int)luaL_checkinteger(L, 1);
 	return 0;
 }
 DEFINE_LUA_FUNCTION(emulua_rerecordcounting, "[enabled]")
@@ -2825,20 +2830,14 @@ DEFINE_LUA_FUNCTION(emulua_rerecordcounting, "[enabled]")
 }
 DEFINE_LUA_FUNCTION(movie_getreadonly, "")
 {
-	//TODO
-	lua_pushboolean(L, /*MainMovie.File ? MainMovie.ReadOnly :*/ 0);
+	// We don't support read-only rerecords
+	lua_pushboolean(L, 0);
 	return 1;
 }
 DEFINE_LUA_FUNCTION(movie_setreadonly, "readonly")
 {
-	//TODO
-	/*
-	int readonly = lua_toboolean(L,1) ? 1 : 0;
-	if(MainMovie.ReadOnly != 2)
-		MainMovie.ReadOnly = readonly;
-	else if(!readonly)
-		luaL_error(L, "movie.setreadonly failed: write permission denied");
-	*/
+	// We don't support read-only rerecords
+	luaL_error(L, "movie.setreadonly failed: No such feature");
 	return 0;
 }
 DEFINE_LUA_FUNCTION(movie_isrecording, "")
@@ -2872,7 +2871,7 @@ DEFINE_LUA_FUNCTION(movie_getmode, "")
 }
 DEFINE_LUA_FUNCTION(movie_getname, "")
 {
-	lua_pushstring(L, "TODO" /*MainMovie.FileName*/);
+	lua_pushstring(L, Frame::g_recordFile.c_str());
 	return 1;
 }
 // movie.play() -- plays a movie of the user's choice
@@ -2880,32 +2879,30 @@ DEFINE_LUA_FUNCTION(movie_getname, "")
 // throws an error (with a description) if for whatever reason the movie couldn't be played
 DEFINE_LUA_FUNCTION(movie_play, "[filename]")
 {
-	// TODO
-	/*
 	const char* filename = lua_isstring(L,1) ? lua_tostring(L,1) : NULL;
-	const char* errorMsg = emuluaPlayMovie(filename, true);
-	if(errorMsg)
-		luaL_error(L, errorMsg);*/
+	if(!Frame::PlayInput(filename))
+		luaL_error(L, "ERROR playing rereecording");
     return 0;
 } 
 DEFINE_LUA_FUNCTION(movie_replay, "")
 {
-	if(Frame::g_recordfd)
-		emuluaReplayMovie();
-	else
+	if(Frame::g_recordfd) {
+		std::string filename = Frame::g_recordFile;
+		Frame::EndPlayInput();
+		Frame::PlayInput(filename.c_str());
+	} else
 		luaL_error(L, "it is invalid to call movie.replay when no movie open.");
     return 0;
 } 
 DEFINE_LUA_FUNCTION(movie_close, "")
 {
-	// TODO
-	//CloseMovieFile(&MainMovie);
+	Frame::EndPlayInput();
 	return 0;
 }
 
 DEFINE_LUA_FUNCTION(sound_clear, "")
 {
-	Clear_Sound_Buffer();
+	CPluginManager::GetInstance().GetDSP()->DSP_ClearAudioBuffer();
 	return 0;
 }
 
@@ -3006,9 +3003,9 @@ int dontworry(LuaContextInfo& info)
 
 static const struct luaL_reg emulualib [] =
 {
-//	{"frameadvance", emulua_frameadvance},
+	{"frameadvance", emulua_frameadvance},
 //	{"speedmode", emulua_speedmode},
-//	{"wait", emulua_wait},
+	{"wait", emulua_wait},
 	{"pause", emulua_pause},
 	{"unpause", emulua_unpause},
 //	{"emulateframe", emulua_emulateframe},
@@ -3028,9 +3025,9 @@ static const struct luaL_reg emulualib [] =
 	{"message", emulua_message},
 	{"print", print}, // sure, why not
 //	{"openscript", emulua_openscript},
-//	{"loadrom", emulua_loadrom},
+	{"loadrom", emulua_loadrom},
 	// alternative names
-//	{"openrom", emulua_loadrom},
+	{"openrom", emulua_loadrom},
 	{NULL, NULL}
 };
 static const struct luaL_reg guilib [] =
@@ -3064,11 +3061,11 @@ static const struct luaL_reg guilib [] =
 };
 static const struct luaL_reg statelib [] =
 {
-//	{"create", state_create},
-//	{"save", state_save},
-//	{"load", state_load},
-//	{"loadscriptdata", state_loadscriptdata},
-//	{"savescriptdata", state_savescriptdata},
+	{"create", state_create},
+	{"save", state_save},
+	{"load", state_load},
+	{"loadscriptdata", state_loadscriptdata},
+	{"savescriptdata", state_savescriptdata},
 	{"registersave", state_registersave},
 	{"registerload", state_registerload},
 	{NULL, NULL}
@@ -3098,8 +3095,11 @@ static const struct luaL_reg memorylib [] =
 	{"readlong", memory_readdword},
 	{"readlongunsigned", memory_readdword},
 	{"readlongsigned", memory_readdwordsigned},
+	{"readlonglongunsigned", memory_readqword},
+	{"readlonglongsigned", memory_readqwordsigned},
 	{"writeshort", memory_writeword},
 	{"writelong", memory_writedword},
+	{"writelonglong", memory_writeqword},
 
 	// memory hooks
 	{"registerwrite", memory_registerwrite},
@@ -3114,18 +3114,18 @@ static const struct luaL_reg memorylib [] =
 };
 static const struct luaL_reg joylib [] =
 {
-	{"get", joy_get},
-	{"getdown", joy_getdown},
-	{"getup", joy_getup},
-	{"peek", joy_peek},
-	{"peekdown", joy_peekdown},
-	{"peekup", joy_peekup},
-	{"set", joy_set},
-	// alternative names
-	{"read", joy_get},
-	{"write", joy_set},
-	{"readdown", joy_getdown},
-	{"readup", joy_getup},
+	//{"get", joy_get},
+	//{"getdown", joy_getdown},
+	//{"getup", joy_getup},
+	//{"peek", joy_peek},
+	//{"peekdown", joy_peekdown},
+	//{"peekup", joy_peekup},
+	//{"set", joy_set},
+	//// alternative names
+	//{"read", joy_get},
+	//{"write", joy_set},
+	//{"readdown", joy_getdown},
+	//{"readup", joy_getup},
 	{NULL, NULL}
 };
 static const struct luaL_reg inputlib [] =
@@ -3520,7 +3520,6 @@ void RunLuaScriptFile(int uid, const char* filenameCStr)
 		}
 		else
 		{
-			Show_Genesis_Screen();
 			StopScriptIfFinished(uid, true);
 		}
 	} while(info.restart);

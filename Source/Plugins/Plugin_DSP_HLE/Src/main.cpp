@@ -383,3 +383,7 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 		soundStream->Update();
 }
 
+void DSP_ClearAudioBuffer()
+{
+	soundStream->Clear();
+}

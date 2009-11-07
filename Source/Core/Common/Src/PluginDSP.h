@@ -30,6 +30,7 @@ typedef unsigned short (__cdecl* TDSP_WriteControlRegister)(unsigned short);
 typedef void (__cdecl *TDSP_SendAIBuffer)(unsigned int address, int sample_rate);
 typedef void (__cdecl *TDSP_Update)(int cycles);
 typedef void (__cdecl *TDSP_StopSoundStream)();
+typedef void (__cdecl *TDSP_ClearAudioBuffer)();
 
 class PluginDSP : public CPlugin
 {
@@ -47,6 +48,7 @@ public:
 	TDSP_SendAIBuffer	         DSP_SendAIBuffer;
 	TDSP_Update                  DSP_Update;
 	TDSP_StopSoundStream         DSP_StopSoundStream;
+	TDSP_ClearAudioBuffer        DSP_ClearAudioBuffer;
 
 private:
 	bool validDSP;

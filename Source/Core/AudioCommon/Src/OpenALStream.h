@@ -50,6 +50,7 @@ public:
 	virtual bool Start();
 	virtual void SoundLoop();
 	virtual void Stop();
+	virtual void Clear();
 	static bool isValid() { return true; }
 	virtual bool usesMixer() const { return true; }
 	virtual void Update();

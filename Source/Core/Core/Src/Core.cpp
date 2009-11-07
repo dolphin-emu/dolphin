@@ -575,6 +575,7 @@ void SetState(EState _State)
 		break;
 	case CORE_PAUSE:
 		CCPU::EnableStepping(true);  // Break
+		CPluginManager::GetInstance().GetDSP()->DSP_ClearAudioBuffer();
 		break;
 	case CORE_RUN:
 		CCPU::EnableStepping(false);

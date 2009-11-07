@@ -81,7 +81,14 @@ void AOSound::Update()
 {
     soundSyncEvent.Set();
 }
-    
+
+void AOSound::Clear()
+{
+	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
+
+	Update();
+}
+
 void AOSound::Stop()
 {
     soundCriticalSection.Enter();

@@ -46,6 +46,8 @@ void State_LoadLastSaved();
 void State_UndoSaveState();
 void State_UndoLoadState();
 
+size_t State_GetSize();
+
 
 typedef struct  
 {

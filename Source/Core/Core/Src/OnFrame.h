@@ -21,6 +21,8 @@
 #include "Common.h"
 #include "pluginspecs_pad.h"
 
+#include <string>
+
 // Per-(video )Frame actions
 
 namespace Frame {
@@ -52,8 +54,11 @@ extern PlayMode g_playMode;
 extern int g_framesToSkip, g_frameSkipCounter, g_numPads;
 extern ControllerState *g_padStates;
 extern FILE *g_recordfd;
+extern std::string g_recordFile;
 
 extern u64 g_frameCounter, g_lagCounter;
+
+extern int g_numRerecords;
 
 typedef struct {
 	u8 filetype[4];			// Unique Identifier (always "DTM"0x1A)

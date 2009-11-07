@@ -44,6 +44,7 @@ public:
 	virtual void SoundLoop() {}
 	virtual void Stop() {}
 	virtual void Update() {}
+	virtual void Clear() {}
 	virtual void StartLogAudio(const char *filename) {
 		if (! m_logAudio) {
 			m_logAudio = true;

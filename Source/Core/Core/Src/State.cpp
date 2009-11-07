@@ -36,6 +36,7 @@
 
 #include "minilzo.h"
 
+// TODO: Move to namespace
 
 // TODO: Investigate a memory leak on save/load state
 
@@ -452,4 +453,13 @@ void State_UndoLoadState()
 void State_UndoSaveState()
 {
 	State_LoadAs(FULL_STATESAVES_DIR "lastState.sav");
+}
+
+size_t State_GetSize()
+{
+	// Measure the size of the buffer.
+	u8 *ptr = 0;
+	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
+	DoState(p);
+	return (size_t)ptr;
 }

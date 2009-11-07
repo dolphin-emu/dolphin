@@ -104,5 +104,10 @@ EXPORT void CALL DSP_SendAIBuffer(unsigned int address, int sample_rate);
 // Purpose:  Stops audio playback. Must be called before Shutdown().
 EXPORT void CALL DSP_StopSoundStream();
 
+// __________________________________________________________________________________________________
+// Function: DSP_ClearAudioBuffer
+// Purpose:  Stops audio. Called while pausing to stop the annoying noises.
+EXPORT void CALL DSP_ClearAudioBuffer();
+
 #include "ExportEpilog.h"
 #endif

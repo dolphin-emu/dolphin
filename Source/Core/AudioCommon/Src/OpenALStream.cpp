@@ -92,6 +92,13 @@ void OpenALStream::Update()
 	}
 }
 
+void OpenALStream::Clear()
+{
+	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
+
+	Update();
+}
+
 THREAD_RETURN OpenALStream::ThreadFunc(void* args)
 {
 	(reinterpret_cast<OpenALStream *>(args))->SoundLoop();

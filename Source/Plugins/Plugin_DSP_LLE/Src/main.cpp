@@ -360,3 +360,9 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 	if (/*(counter & 31) == 0 &&*/ soundStream)
 		soundStream->Update();
 }
+
+void DSP_ClearAudioBuffer()
+{
+	soundStream->Clear();
+}
+
