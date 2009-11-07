@@ -19,6 +19,7 @@
 
 #include "EXI_Device.h"
 #include "EXI_DeviceEthernet.h"
+#include <stdarg.h>
 
 //#define SONICDEBUG
 #ifdef SONICDEBUG
