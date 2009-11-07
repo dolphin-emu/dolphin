@@ -193,6 +193,7 @@ bail:
 	// Argh! ERROR! Free what we grabbed so far so we can try again.
 	for (int j = 0; j <= i; j++)
 	{
+		SKIP(flags, views[i].flags);
 		if (views[j].out_ptr_low && *views[j].out_ptr_low)
 		{
 			arena->ReleaseView(*views[j].out_ptr_low, views[j].size);
