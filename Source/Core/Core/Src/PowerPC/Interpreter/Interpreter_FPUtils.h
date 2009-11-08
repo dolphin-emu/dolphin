@@ -88,11 +88,9 @@ inline double ForceSingle(double _x)
 	if (FPSCR.NI)
 		_x = FlushToZeroAsFloat(_x);
 
-	IntDouble single;
-	single.d = _x;
-	single.i &= 0xFFFFFFFFE0000000ULL;
+	double x = static_cast<float>(_x);
 
-	return single.d;
+	return x;
 }
 
 inline double ForceDouble(double d)

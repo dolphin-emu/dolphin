@@ -1119,6 +1119,7 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 		break;
 	case ID_REMOVECHEAT:
 		arCodes.erase(arCodes.begin() + Cheats->GetSelection());
+		Cheats->Delete(Cheats->GetSelection());
 		break;
 	}
 

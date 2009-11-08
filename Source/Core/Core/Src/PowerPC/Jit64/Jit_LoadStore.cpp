@@ -193,7 +193,7 @@ void Jit64::lXz(UGeckoInstruction inst)
 	}
 
 	//Still here? Do regular path.
-#if defined(_M_X64)
+#if defined(_M_X64) && 0 // This is disabled, it's unaccurate
 	if (accessSize == 8 || accessSize == 16 || !jo.enableFastMem) {
 #else
 	if (true) {
@@ -210,7 +210,7 @@ void Jit64::lXz(UGeckoInstruction inst)
 		return;
 	}
 
-	// Fast and daring
+	// Fast and daring/failing
 	gpr.Lock(a, d);
 	gpr.LoadToX64(a, true, false);
 	gpr.LoadToX64(d, a == d, true);
