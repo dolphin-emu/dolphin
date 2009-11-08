@@ -40,6 +40,7 @@ D3DFORMAT GetEFBDepthRTSurfaceFormat();
 D3DFORMAT GetEFBColorRTSurfaceFormat();
 LPDIRECT3DSURFACE9 GetEFBColorReadSurface();
 LPDIRECT3DSURFACE9 GetEFBDepthReadSurface();
+LPDIRECT3DSURFACE9 GetEFBDepthEncodedSurface();
 
 
 

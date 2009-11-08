@@ -35,6 +35,13 @@ const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 
 static float GC_ALIGNED16(lastVSconstants[C_FOGPARAMS+8][4]);
 
+static LPDIRECT3DVERTEXSHADER9 SimpleVertexSahder;
+
+LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetSimpleVertexSahder()
+{
+	return SimpleVertexSahder;
+}
+
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
 	if (lastVSconstants[const_number][0] != f1 || 
@@ -121,6 +128,21 @@ void SetMultiVSConstant4fv(int const_number, int count, const float *f)
 
 void VertexShaderCache::Init()
 {
+	char vSimpleProg[1024];
+	sprintf(vSimpleProg,"struct VSOUTPUT\n"
+						"{\n"
+						   "float4 vPosition   : POSITION;\n"
+						   "float4 vTexCoord   : TEXCOORD0;\n"
+						"};\n"
+						"VSOUTPUT main( float4 inPosition : POSITION, float4 inUV : TEXCOORD0)\n"
+						"{\n"
+						   "VSOUTPUT OUT = (VSOUTPUT)0;\n"
+						   "OUT.vPosition = inPosition;\n"
+						   "OUT.vTexCoord = inUV;\n"
+						   "return OUT;\n"
+						"}\n");
+
+	SimpleVertexSahder = D3D::CompileVertexShader(vSimpleProg, (int)strlen(vSimpleProg));
 	Clear();
 }
 
@@ -138,6 +160,8 @@ void VertexShaderCache::Clear()
 
 void VertexShaderCache::Shutdown()
 {
+	if(SimpleVertexSahder)
+		SimpleVertexSahder->Release();
 	Clear();
 }
 

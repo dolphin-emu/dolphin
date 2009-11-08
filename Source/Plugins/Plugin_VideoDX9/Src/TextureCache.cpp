@@ -27,7 +27,12 @@
 
 #include "D3DBase.h"
 #include "D3DTexture.h"
+#include "D3DUtil.h"
 #include "FramebufferManager.h"
+#include "PixelShaderCache.h"
+#include "PixelShaderManager.h"
+#include "VertexShaderManager.h"
+#include "VertexShaderCache.h"
 
 #include "Render.h"
 
@@ -257,9 +262,12 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	return &entry;
 }
  
+#undef CHECK
+#define CHECK(hr) if (FAILED(hr)) { PanicAlert(__FUNCTION__ " FAIL"); }
 // EXTREMELY incomplete.
 void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source_rect)
 {
+	HRESULT hr = S_OK;
 	int efb_w = source_rect.GetWidth();
 	int efb_h = source_rect.GetHeight();
 
@@ -271,18 +279,19 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	iter = textures.find(address);
 	if (iter != textures.end())
 	{
-		if (!iter->second.isRenderTarget)
+		if (iter->second.isRenderTarget && iter->second.w == tex_w && iter->second.h == tex_h)
+		{
+			
+			tex = iter->second.texture;
+			iter->second.frameCount = frameCount;
+			goto have_texture;
+		}
+		else
 		{
 			// Remove it and recreate it as a render target
 			iter->second.texture->Release();
 			iter->second.texture = 0;
 			textures.erase(iter);
-		}
-		else
-		{
-			tex = iter->second.texture;
-			iter->second.frameCount = frameCount;
-			goto have_texture;
 		}
 	}
 
@@ -293,14 +302,16 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		entry.frameCount = frameCount;
 		entry.w = tex_w;
 		entry.h = tex_h;
-
-		D3D::dev->CreateTexture(tex_w, tex_h, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
+		entry.fmt = copyfmt;
+		
+		hr = D3D::dev->CreateTexture(tex_w, tex_h, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
+		CHECK(hr);
 		textures[address] = entry;
 		tex = entry.texture;
 	}
 
 have_texture:
-	TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
+	/*TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
 	RECT source_rc;
 	source_rc.left = targetSource.left;
 	source_rc.top = targetSource.top;
@@ -317,8 +328,162 @@ have_texture:
 	srcSurface = FBManager::GetEFBColorRTSurface();
 	D3D::dev->StretchRect(srcSurface, &source_rc, destSurface, &dest_rc, D3DTEXF_LINEAR);
 	destSurface->Release();
+	return;*/
+	float colmat[16]= {0.0f};
+	float fConstAdd[4] = {0.0f};	
 
-	DEBUGGER_LOG_AT((NEXT_XFB_CMD|NEXT_EFB_CMD|NEXT_FRAME|NEXT_NEW_TEXTURE|NEXT_FLUSH),
-	{printf("StretchRect, EFB (%d,%d) -> Texture at 0x%08X (%d,%d)\n",efb_w,efb_h,address,tex_w,tex_h);});
-	DEBUGGER_PAUSE_AT((NEXT_EFB_CMD|NEXT_NEW_TEXTURE),false);
+    if (bFromZBuffer) 
+	{
+        switch(copyfmt) 
+		{
+            case 0: // Z4
+            case 1: // Z8
+                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
+                break;
+            
+            case 3: // Z16 //?
+                colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
+            case 11: // Z16 (reverse order)
+                colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1;
+                break;
+            case 6: // Z24X8
+                colmat[0] = 1;
+                colmat[5] = 1;
+                colmat[10] = 1;
+				colmat[15] = 1;
+                break;
+            case 9: // Z8M
+                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
+                break;
+            case 10: // Z8L
+                colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
+                break;
+            case 12: // Z16L
+                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
+                break;
+            default:
+                ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", copyfmt);
+                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+                break;
+        }
+    }
+    else if (bIsIntensityFmt) 
+	{
+        fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f/255.0f;
+        switch (copyfmt) 
+		{
+            case 0: // I4
+            case 1: // I8
+            case 2: // IA4
+            case 3: // IA8
+				// TODO - verify these coefficients
+                colmat[0] = 0.257f; colmat[1] = 0.504f; colmat[2] = 0.098f;
+                colmat[4] = 0.257f; colmat[5] = 0.504f; colmat[6] = 0.098f;
+                colmat[8] = 0.257f; colmat[9] = 0.504f; colmat[10] = 0.098f;
+
+                if (copyfmt < 2) 
+				{
+                    fConstAdd[3] = 16.0f / 255.0f;
+                    colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
+                }
+                else// alpha
+                    colmat[15] = 1;
+
+                break;
+            default:
+                ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", copyfmt);
+                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+                break;
+        }
+    }
+    else 
+	{
+        switch (copyfmt) 
+		{
+            case 0: // R4
+            case 8: // R8
+                colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
+                break;
+            case 2: // RA4
+            case 3: // RA8
+                colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1;
+                break;
+
+            case 7: // A8
+                colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1; 
+                break;
+            case 9: // G8
+                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
+                break;
+            case 10: // B8
+                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
+                break;
+            case 11: // RG8
+                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
+                break;
+            case 12: // GB8
+                colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
+                break;
+
+            case 4: // RGB565
+                colmat[0] = colmat[5] = colmat[10] = 1;
+                fConstAdd[3] = 1; // set alpha to 1
+                break;
+            case 5: // RGB5A3
+            case 6: // RGBA8
+                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+                break;
+
+            default:
+                ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", copyfmt);
+                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+                break;
+        }
+    }
+	// Make sure to resolve anything we need to read from.
+	LPDIRECT3DTEXTURE9 read_texture = bFromZBuffer ? FBManager::GetEFBDepthTexture(source_rect) : FBManager::GetEFBColorTexture(source_rect);
+    
+    // We have to run a pixel shader, for color conversion.
+    Renderer::ResetAPIState(); // reset any game specific settings
+	LPDIRECT3DSURFACE9 Rendersurf = NULL;
+	hr = tex->GetSurfaceLevel(0,&Rendersurf);
+	CHECK(hr);
+	D3D::dev->SetDepthStencilSurface(NULL);
+	D3D::dev->SetRenderTarget(1, NULL);
+	D3D::dev->SetRenderTarget(0, Rendersurf);		
+    
+	D3DVIEWPORT9 vp;
+
+	// Stretch picture with increased internal resolution
+	vp.X = 0;
+	vp.Y = 0;
+	vp.Width  = tex_w;
+	vp.Height = tex_h;
+	vp.MinZ = 0.0f;
+	vp.MaxZ = 1.0f;
+	hr = D3D::dev->SetViewport(&vp);
+	CHECK(hr);
+	RECT destrect;
+	destrect.bottom = tex_h;
+	destrect.left = 0;
+	destrect.right = tex_w;
+	destrect.top = 0;
+	
+
+	PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
+	//TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
+	RECT sourcerect;
+	sourcerect.bottom = source_rect.bottom;
+	sourcerect.left = source_rect.left;
+	sourcerect.right = source_rect.right;
+	sourcerect.top = source_rect.top;
+
+	D3D::drawShadedTexQuad(read_texture,&sourcerect, EFB_WIDTH , EFB_HEIGHT,&destrect,PixelShaderCache::GetColorMatrixProgram(),NULL);	
+
+	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
+	D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());
+	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+	VertexShaderManager::SetViewportChanged();
+	Renderer::RestoreAPIState();	
+	Rendersurf->Release();
 }

@@ -451,7 +451,9 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
 
     WRITE(p, "void main(\n");
 
-    WRITE(p, "  out half4 ocol0 : COLOR0,\n");
+    WRITE(p, "  out float4 ocol0 : COLOR0,\n");
+	if (HLSL)
+		WRITE(p, "  out float4 ocol1 : COLOR1,\n");
     WRITE(p, "  out float depth : DEPTH,\n");
 
     // compute window position if needed because binding semantic WPOS is not widely supported
@@ -522,12 +524,20 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
 
     // use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
     if (bpmem.ztex2.op == ZTEXTURE_ADD)
-        WRITE(p, "depth = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord);\n");
+        WRITE(p, "zCoord = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord);\n");
     else if (bpmem.ztex2.op == ZTEXTURE_REPLACE)
-        WRITE(p, "depth = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w);\n");
-    else
-        WRITE(p, "depth = zCoord;\n");
+        WRITE(p, "zCoord = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w);\n");
+    
+    WRITE(p, "depth = zCoord;\n");
 
+	if(HLSL)
+	{
+		//WRITE(p, "ocol1 = float4(1.0f/255.0f,2.0f/255.0f,3.0f/255.0f,0.0f);\n");
+		WRITE(p, "float4 EncodedDepth = frac(zCoord * float4(254.0f*255.0f,255.0f,254.0f/255.0f,254.0f*255.0f*255.0f));\n");
+		//WRITE(p, "EncodedDepth -= EncodedDepth.aarg * float4(1.0f/255.0f,1.0f/255.0f,1.0f/255.0f,0.0f);\n");
+		WRITE(p, "ocol1 = EncodedDepth;\n");
+		
+	}
     //if (bpmem.genMode.numindstages ) WRITE(p, "prev.rg = indtex0.xy;\nprev.b = 0;\n");
 
     if (!WriteAlphaTest(p, HLSL))

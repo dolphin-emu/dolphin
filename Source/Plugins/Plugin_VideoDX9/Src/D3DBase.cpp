@@ -485,6 +485,14 @@ void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
 	}
 }
 
+void RefreshVertexDeclaration()
+{
+	if (m_VtxDecl)
+	{
+		D3D::dev->SetVertexDeclaration(m_VtxDecl);		
+	}
+}
+
 void SetVertexDeclaration(LPDIRECT3DVERTEXDECLARATION9 decl)
 {
 	if (!decl) {

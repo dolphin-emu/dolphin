@@ -63,7 +63,8 @@ int GetBackBufferWidth();
 int GetBackBufferHeight();
 LPDIRECT3DSURFACE9 GetBackBufferSurface();
 LPDIRECT3DSURFACE9 GetBackBufferDepthSurface();
-
+LPDIRECT3DVERTEXBUFFER9  GetquadVB();
+LPDIRECT3DVERTEXDECLARATION9 GetBasicvertexDecl();
 const D3DCAPS9 &GetCaps();
 const char *PixelShaderVersionString();
 const char *VertexShaderVersionString();
@@ -74,6 +75,7 @@ void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
 void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);
 void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
 void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
+void RefreshVertexDeclaration();
 void SetVertexDeclaration(LPDIRECT3DVERTEXDECLARATION9 decl);
 void ApplyCachedState();
 

@@ -63,6 +63,7 @@ static u32 s_blendMode;
 
 char st[32768];
 
+
 // State translation lookup tables
 static const D3DBLEND d3dSrcFactors[8] =
 {
@@ -98,6 +99,7 @@ void SetupDeviceObjects()
 	PixelShaderManager::Dirty();
 
 	// Tex and shader caches will recreate themselves over time.
+
 }
 
 // Kill off all POOL_DEFAULT device objects.
@@ -159,15 +161,25 @@ bool Renderer::Init()
 
 	for (int stage = 0; stage < 8; stage++)
 		D3D::SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, g_ActiveConfig.iMaxAnisotropy);
-
-	D3D::dev->Clear(0, NULL, D3DCLEAR_ZBUFFER,D3DCOLOR_XRGB(255,255,255),1.0f,0);
+	D3DVIEWPORT9 vp;
+	vp.X = 0;
+	vp.Y = 0;
+	vp.Width  = s_backbuffer_width;
+	vp.Height = s_backbuffer_height;
+	vp.MinZ = 0.0f;
+	vp.MaxZ = 0.0f;
+	D3D::dev->SetViewport(&vp);
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 0, 0);
-
+	
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
+	D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
-
+	vp.Width  = s_target_width;
+	vp.Height = s_target_height;
+	vp.MinZ = 0.0f;
+	vp.MaxZ = 0.0f;
+	D3D::dev->SetViewport(&vp);
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x0, 1.0f, 0);
-
 	D3D::BeginFrame();
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, true);
 	return true;
@@ -209,9 +221,9 @@ void dumpMatrix(D3DXMATRIX &mtx)
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
 	TargetRectangle result;
-	result.left   = (rc.left   * s_target_width)  / EFB_WIDTH;
+	result.left   = (rc.left   * s_target_width)  / EFB_WIDTH ;
 	result.top    = (rc.top    * s_target_height) / EFB_HEIGHT;
-	result.right  = (rc.right  * s_target_width)  / EFB_WIDTH;
+	result.right  = (rc.right  * s_target_width)  / EFB_WIDTH ;
 	result.bottom = (rc.bottom * s_target_height) / EFB_HEIGHT;
 	return result;
 }
@@ -261,32 +273,49 @@ void CheckForResize()
 static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 {
 	// Set the backbuffer as the rendering target
-	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 	D3D::dev->SetDepthStencilSurface(NULL);
-
-	// Blit our render target onto the backbuffer.
-	// TODO: Change to a quad so we can do post processing.
+	D3D::dev->SetRenderTarget(1, NULL);
+	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());	
+	
 	TargetRectangle src_rect, dst_rect;
 	src_rect = Renderer::ConvertEFBRectangle(sourceRc);
 	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-	//LPD3DXSPRITE pSprite=NULL;
-	//D3DXCreateSprite(D3D::dev, &pSprite);
-	//D3DXVECTOR3 pos(0,0,0);
-	//EFBRectangle efbRect;
-	//
-	//pSprite->Begin(D3DXSPRITE_ALPHABLEND);
-	//pSprite->Draw(FBManager::GetEFBColorTexture(efbRect),NULL, NULL, &pos, 0xFFFFFFFF);
-	//pSprite->End();
-	//pSprite->Release();
+	D3DVIEWPORT9 vp;
+	vp.X = 0;
+	vp.Y = 0;
+	vp.Width  = s_backbuffer_width;
+	vp.Height = s_backbuffer_height;
+	vp.MinZ = 0.0f;
+	vp.MaxZ = 0.0f;
+	D3D::dev->SetViewport(&vp);
 
 	D3D::dev->Clear(0,NULL, D3DCLEAR_TARGET,D3DCOLOR_XRGB(0,0,0),1.0f,0);
+	vp.X = dst_rect.left;
+	vp.Y = dst_rect.top;
+	vp.Width  = dst_rect.right - dst_rect.left;
+	vp.Height = dst_rect.bottom - dst_rect.top;
+	vp.MinZ = 0.0f;
+	vp.MaxZ = 0.0f;
+	D3D::dev->SetViewport(&vp);
 
-	// todo, to draw the EFB texture to the backbuffer instead of StretchRect
-	D3D::dev->StretchRect(FBManager::GetEFBColorRTSurface(), src_rect.AsRECT(),
-		D3D::GetBackBufferSurface(), dst_rect.AsRECT(),
-		D3DTEXF_LINEAR);
+	EFBRectangle efbRect;
+	
+	
+	
+	LPDIRECT3DTEXTURE9 read_texture = FBManager::GetEFBColorTexture(efbRect);
+	RECT destinationrect;
+	destinationrect.bottom = dst_rect.bottom;
+	destinationrect.left = dst_rect.left;
+	destinationrect.right = dst_rect.right;
+	destinationrect.top = dst_rect.top;
+	RECT sourcerect;
+	sourcerect.bottom = src_rect.bottom;
+	sourcerect.left = src_rect.left;
+	sourcerect.right = src_rect.right;
+	sourcerect.top = src_rect.top;
 
+	D3D::drawShadedTexQuad(read_texture,&sourcerect,Renderer::GetTargetWidth(),Renderer::GetTargetHeight(),&destinationrect,PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexSahder());	
+	
 	// Finish up the current frame, print some stats
 	if (g_ActiveConfig.bOverlayStats)
 	{
@@ -301,14 +330,11 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 
 	OSD::DrawMessages();
 
-	// u32 clearColor = (bpmem.clearcolorAR << 16) | bpmem.clearcolorGB;
-
-	// Clear the render target. We probably don't need to do this every frame.
-	//D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 1.0f, 0);
-
-	// Set rendering target back to the EFB rendering texture
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
+	D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+	
+    VertexShaderManager::SetViewportChanged();
 }
 
 
@@ -386,10 +412,11 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 		return;
 	}
 
-	D3D::EndFrame();
+	Renderer::ResetAPIState();
 	D3DDumpFrame();
 	EFBTextureToD3DBackBuffer(sourceRc);
-	D3D::BeginFrame();
+	D3D::EndFrame();
+	
 
 	DEBUGGER_LOG_AT((NEXT_XFB_CMD|NEXT_EFB_CMD|NEXT_FRAME),
 		{printf("StretchRect, EFB->XFB\n");});
@@ -399,21 +426,12 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 		xfbAddr, fbWidth, fbHeight, 
 		sourceRc.left, sourceRc.top, sourceRc.right, sourceRc.bottom);}
 	);
-
-
-	RECT rc;
-	rc.left   = 0; 
-	rc.top    = 0;
-	rc.right  = (LONG)s_target_width;
-	rc.bottom = (LONG)s_target_height;
-	D3D::dev->SetScissorRect(&rc);
-	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, false);
-
-	UpdateViewport();
-
 	Swap(0,FIELD_PROGRESSIVE,0,0);	// we used to swap the buffer here, now we will wait
-										// until the XFB pointer is updated by VI
-	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, true);
+										// until the XFB pointer is updated by VI	
+	D3D::BeginFrame();
+	Renderer::RestoreAPIState();
+	UpdateViewport();
+	
 }
 
 bool Renderer::SetScissorRect()
@@ -432,10 +450,27 @@ bool Renderer::SetScissorRect()
 	rc.bottom = (int)(rc.bottom * yScale);
 
 	if (rc.left < 0) rc.left = 0;
-	if (rc.right > s_target_width) rc.right = s_target_width;
+	if (rc.right < 0) rc.right = 0;
+	if (rc.left > s_target_width) rc.left = s_target_width;
+	if (rc.right > s_target_width) rc.right = s_target_width;	
 	if (rc.top < 0) rc.top = 0;
+	if (rc.bottom < 0) rc.bottom = 0;
+	if (rc.top > s_target_height) rc.top = s_target_height;
 	if (rc.bottom > s_target_height) rc.bottom = s_target_height;
-
+	/*LONG temprc = 0;
+	if(rc.right < rc.left)
+	{
+		temprc = rc.right;
+		rc.right = rc.left;
+		rc.left = temprc;
+	}
+	if(rc.bottom < rc.top)
+	{
+		temprc = rc.bottom;
+		rc.bottom = rc.top;
+		rc.top = temprc;
+	}
+	D3D::dev->SetScissorRect(&rc);*/
 	if (rc.right >= rc.left && rc.bottom >= rc.top)
 	{
 		D3D::dev->SetScissorRect(&rc);
@@ -443,9 +478,10 @@ bool Renderer::SetScissorRect()
 	}
 	else
 	{
-		WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
+		WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);		
 		return false;
 	}
+	return true;
 }
 
 void Renderer::SetColorMask() 
@@ -460,10 +496,9 @@ void Renderer::SetColorMask()
 
 u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 {
-	
 	//Get the working buffer
 	LPDIRECT3DSURFACE9 pBuffer = (type == PEEK_Z || type == POKE_Z) ? 
-		FBManager::GetEFBDepthRTSurface() : FBManager::GetEFBColorRTSurface();
+		FBManager::GetEFBDepthEncodedSurface() : FBManager::GetEFBColorRTSurface();
 	//get the temporal buffer to move 1pixel data
 	LPDIRECT3DSURFACE9 RBuffer = (type == PEEK_Z || type == POKE_Z) ? 
 		FBManager::GetEFBDepthReadSurface() : FBManager::GetEFBColorReadSurface();
@@ -480,11 +515,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	//Buffer not found alert
 	if(!pBuffer) {
 		PanicAlert("No %s!", (type == PEEK_Z || type == POKE_Z) ? "Z-Buffer" : "Color EFB");
-		return 0;
-	}
-	// Z buffer lock not suported: returning
-	if((type == PEEK_Z || type == POKE_Z) && BufferFormat == D3DFMT_D24X8)
-	{
 		return 0;
 	}
 	// Get the rectangular target region covered by the EFB pixel.
@@ -506,30 +536,25 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	RectToLock.right = targetPixelRc.right;
 	RectToLock.top = targetPixelRc.top;
 	
-	//lock the buffer
-
-	if(!(BufferFormat == D3DFMT_D32F_LOCKABLE || BufferFormat == D3DFMT_D16_LOCKABLE))
+	hr = D3D::dev->StretchRect(pBuffer,&RectToLock,RBuffer,NULL, D3DTEXF_NONE);
+	if(FAILED(hr))
 	{
-		//the hard support stretchrect in both color and z so use it
-		hr = D3D::dev->StretchRect(pBuffer,&RectToLock,RBuffer,NULL, D3DTEXF_NONE);
-		if(FAILED(hr))
-		{
-			PanicAlert("Unable to stretch data to buffer");
-			return 0;
-		}
-		//retriebe the pixel data to the local memory buffer
-		D3D::dev->GetRenderTargetData(RBuffer,pOffScreenBuffer);
-		if(FAILED(hr))
-		{
-			PanicAlert("Unable to copy data to mem buffer");
-			return 0;
-		}
-		//change the rect to lock the entire one pixel buffer
-		RectToLock.bottom = 1;
-		RectToLock.left = 0;
-		RectToLock.right = 1;
-		RectToLock.top = 0;
-	}	
+		PanicAlert("Unable to stretch data to buffer");
+		return 0;
+	}
+	//retriebe the pixel data to the local memory buffer
+	D3D::dev->GetRenderTargetData(RBuffer,pOffScreenBuffer);
+	if(FAILED(hr))
+	{
+		PanicAlert("Unable to copy data to mem buffer");
+		return 0;
+	}
+	//change the rect to lock the entire one pixel buffer
+	RectToLock.bottom = 1;
+	RectToLock.left = 0;
+	RectToLock.right = 1;
+	RectToLock.top = 0;
+		
 	//the surface is good.. lock it
 	if((hr = pOffScreenBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
 	{
@@ -540,25 +565,18 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		
 	switch(type) {
 		case PEEK_Z:
-			{			
-			switch (BufferFormat)
 			{
-			case D3DFMT_D32F_LOCKABLE:
-				val = ((float *)drect.pBits)[0];
-				z = ((u32)(val * 0xffffff));// 0xFFFFFFFF;
-				break;
-			case D3DFMT_D16_LOCKABLE:
-				val = ((float)((u16 *)drect.pBits)[0])/((float)0xFFFF);
-				z = ((u32)(val * 0xffffff));
-				break;
-			default:
-				z = ((u32 *)drect.pBits)[0] >> 8;
-				break;
-			};			
-			// [0.0, 1.0] ==> [0, 0xFFFFFFFF]
-			
-			break;
+				static float ffrac = 255.0f/254.0f;
+				z = ((u32 *)drect.pBits)[0];
+				float fvalue = (((float)(z & 0xFF)) / 255.0f) * ffrac;
+				fvalue += (((float)((z>>8) & 0xFF)) / 255.0f) * (ffrac/255.0f);
+				fvalue += (((float)((z>>16) & 0xFF)) / 255.0f) * (ffrac/(255.0f*255.0f));
+				fvalue += (((float)((z>>24) & 0xFF)) / 255.0f) * (ffrac/(255.0f*255.0f*255.0f));
+				if(fvalue>1.0f)fvalue=1.0f;
+				if(fvalue<0.0f)fvalue=0.0f;
+				z = ((u32)(fvalue * 0xffffff));			
 			}
+			break;			
 		case POKE_Z:
 			// TODO: Get that Z value to poke from somewhere
 			//((float *)drect.pBits)[0] = val;
@@ -568,7 +586,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		case PEEK_COLOR:
 			z = ((u32 *)drect.pBits)[0];
 			break;
-
 		case POKE_COLOR:
 			// TODO: Get that ARGB value to poke from somewhere
 			//((float *)drect.pBits)[0] = val;
@@ -577,9 +594,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	}
 
 
-	pOffScreenBuffer->UnlockRect();
-
-
+	pOffScreenBuffer->UnlockRect();	
 	// TODO: in RE0 this value is often off by one, which causes lighting to disappear
 	return z;
 	
@@ -605,6 +620,14 @@ void UpdateViewport()
 	vp.Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY);
 	vp.Width  = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
 	vp.Height = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
+	if(vp.X < 0) vp.X = 0;
+	if(vp.Y < 0) vp.Y = 0;
+	if(vp.X > s_target_width) vp.X = s_target_width;
+	if(vp.Y > s_target_height) vp.Y = s_target_height;
+	if(vp.Width < 0) vp.Width = 0;
+	if(vp.Height < 0) vp.Height = 0;
+	if(vp.Width > (s_target_width - vp.X)) vp.Width = s_target_width - vp.X;
+	if(vp.Height > (s_target_height - vp.Y)) vp.Height = s_target_height - vp.Y;
 	//some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
 	vp.MinZ = 0.0f;//(xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
 	vp.MaxZ = 1.0f;//xfregs.rawViewport[5] / 16777216.0f;
@@ -718,4 +741,30 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();
+}
+
+void Renderer::ResetAPIState()
+{
+	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+    D3D::SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+    D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+    D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
+	D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+    DWORD color_mask = D3DCOLORWRITEENABLE_ALPHA| D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
+}
+
+void Renderer::RestoreAPIState()
+{
+	// Gets us back into a more game-like state.
+
+	UpdateViewport();
+
+    if (bpmem.zmode.testenable) D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
+    if (bpmem.zmode.updateenable)   D3D::SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+
+    D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
+	SetScissorRect();
+    SetColorMask();
+	SetBlendMode(true);	
 }

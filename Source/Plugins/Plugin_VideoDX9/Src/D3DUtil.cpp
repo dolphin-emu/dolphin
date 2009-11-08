@@ -208,10 +208,24 @@ void SaveRenderStates()
 
 void RestoreRenderStates()
 {
-	D3D::SetTexture(0, texture_old);
-
-	dev->SetPixelShader(ps_old);
-	dev->SetVertexShader(vs_old);
+	if(texture_old)
+	{
+		D3D::SetTexture(0, texture_old);
+		texture_old->Release();
+		texture_old = NULL;
+	}
+	if(ps_old)
+	{
+		dev->SetPixelShader(ps_old);
+		ps_old->Release();
+		ps_old = NULL;
+	}
+	if(vs_old)
+	{
+		dev->SetVertexShader(vs_old);
+		vs_old->Release();
+		vs_old = NULL;
+	}
 	
 	for (int i = 0; i < 6; i++)
 	{
@@ -373,5 +387,38 @@ void quad2d(float x1, float y1, float x2, float y2, u32 color, float u1, float v
 	
 	RestoreRenderStates();
 }
+
+void drawShadedTexQuad(IDirect3DTexture9 *texture,
+					   const RECT *rSource,
+					   int SourceWidth,
+					   int SourceHeight,
+					   const RECT *rDest,
+					   IDirect3DPixelShader9 *PShader,
+					   IDirect3DVertexShader9 *Vshader)
+{
+	SaveRenderStates();
+	
+	float span = ((rSource->right-rSource->left - 1.0f) * (rDest->right - rDest->left))/(SourceWidth*((rDest->right - rDest->left)-1.0f));
+	float u1=((0.5f+rSource->left)/(float) SourceWidth)-(span*0.5f/(float)(rDest->right - rDest->left));
+	float u2=u1+span;  
+	span = ((rSource->bottom-rSource->top - 1.0f) * (rDest->bottom - rDest->top))/(SourceHeight*((rDest->bottom - rDest->top)-1.0f));
+	float v1=((0.5f+rSource->top)/(float) SourceHeight)-(span*0.5f/(float)(rDest->bottom - rDest->top));
+	float v2=v1+span; 
+
+	struct Q2DVertex { float x,y,z,rhw,u,v; } coords[4] = {
+		{(float)rDest->left-1.0f, (float)rDest->top-1.0f, 0.0f, 1.0f, u1, v1},
+		{(float)rDest->right, (float)rDest->top-1.0f, 0.0f,1.0f, u2, v1},
+		{(float)rDest->right, (float)rDest->bottom, 0.0f,1.0f, u2, v2},
+		{(float)rDest->left-1.0f, (float)rDest->bottom, 0.0f,1.0f, u1, v2}
+	};
+	dev->SetFVF(D3DFVF_XYZRHW | D3DFVF_TEX1);
+	dev->SetVertexShader(Vshader);
+	dev->SetPixelShader(PShader);	
+	dev->SetTexture(0, texture);
+	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));	
+	D3D::RefreshVertexDeclaration();
+	RestoreRenderStates();
+
+}	
 
 }  // namespace

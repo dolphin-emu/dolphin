@@ -56,6 +56,7 @@ public:
 	static void Cleanup();
 	static void Shutdown();
 	static bool SetShader(u32 components);
+	static LPDIRECT3DVERTEXSHADER9 GetSimpleVertexSahder();
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	static std::string GetCurrentShaderCode();
 #endif

@@ -34,6 +34,19 @@ PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry *PixelShaderCache::last_entry;
 static float lastPSconstants[C_COLORMATRIX+16][4];
 
+static LPDIRECT3DPIXELSHADER9 s_ColorMatrixProgram = 0;
+static LPDIRECT3DPIXELSHADER9 s_ColorCopyProgram = 0;
+
+LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetColorMatrixProgram()
+{
+	return s_ColorMatrixProgram;
+}
+
+LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetColorCopyProgram()
+{
+	return s_ColorCopyProgram;
+}
+
 void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
 	if( lastPSconstants[const_number][0] != f1 || lastPSconstants[const_number][1] != f2 ||
@@ -63,6 +76,25 @@ void SetPSConstant4fv(int const_number, const float *f)
 
 void PixelShaderCache::Init()
 {
+	char pmatrixprog[1024];
+	sprintf(pmatrixprog,"uniform sampler samp0 : register(s0);\n"
+						"uniform float4 cColMatrix[5] : register(c%d);\n"
+						"void main(\n"
+						"out float4 ocol0 : COLOR0,\n"
+						" in float3 uv0 : TEXCOORD0){\n"
+						"float4 texcol = tex2D(samp0,uv0.xy);\n"
+						"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"						
+						"}\n",C_COLORMATRIX);
+	char pcopyprog[1024];
+	sprintf(pcopyprog,"uniform sampler samp0 : register(s0);\n"
+						"void main(\n"
+						"out float4 ocol0 : COLOR0,\n"
+						" in float3 uv0 : TEXCOORD0){\n"
+						"ocol0 = tex2D(samp0,uv0.xy);\n"						
+						"}\n");
+
+	s_ColorMatrixProgram = D3D::CompilePixelShader(pmatrixprog, (int)strlen(pmatrixprog));
+	s_ColorCopyProgram = D3D::CompilePixelShader(pcopyprog, (int)strlen(pcopyprog));
 	Clear();
 }
 
@@ -80,6 +112,12 @@ void PixelShaderCache::Clear()
 
 void PixelShaderCache::Shutdown()
 {
+	if(s_ColorMatrixProgram)
+		s_ColorMatrixProgram->Release();
+	s_ColorMatrixProgram = NULL;
+	if(s_ColorCopyProgram)
+		s_ColorCopyProgram->Release();
+	s_ColorCopyProgram=NULL;
 	Clear();
 }
 

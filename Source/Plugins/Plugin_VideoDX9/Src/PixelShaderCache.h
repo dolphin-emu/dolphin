@@ -59,6 +59,8 @@ public:
 	static void Clear();
 	static void Shutdown();
 	static bool SetShader(bool dstAlpha);
+	static LPDIRECT3DPIXELSHADER9 GetColorMatrixProgram();
+	static LPDIRECT3DPIXELSHADER9 GetColorCopyProgram();
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	static std::string GetCurrentShaderCode();
 #endif

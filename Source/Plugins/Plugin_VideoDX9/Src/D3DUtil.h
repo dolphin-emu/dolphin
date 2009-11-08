@@ -58,4 +58,13 @@ namespace D3D
 	extern CD3DFont font;
 
 	void quad2d(float x1, float y1, float x2, float y2, u32 color, float u1=0, float v1=0, float u2=1, float v2=1);
+	void drawShadedTexQuad(IDirect3DTexture9 *texture,
+					   const RECT *rSource,
+					   int SourceWidth,
+					   int SourceHeight,
+					   const RECT *rDest,
+					   IDirect3DPixelShader9 *PShader,
+					   IDirect3DVertexShader9 *Vshader);
+	void SaveRenderStates();
+	void RestoreRenderStates();
 }
