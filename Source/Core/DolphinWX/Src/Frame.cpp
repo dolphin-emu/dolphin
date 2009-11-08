@@ -660,10 +660,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	// Toggle fullscreen
 	if (event.GetKeyCode() == WXK_ESCAPE || (event.GetKeyCode() == WXK_RETURN && event.GetModifiers() == wxMOD_ALT))
 	{
-		// If a modal dialog is open, this will still process the keyboard events, and may cause
-		// the main window to become unresponsive, so we have to avoid that.
-		if ((bRenderToMain || Core::GetState() != Core::CORE_RUN) && !m_bModalDialogOpen)
-			DoFullscreen(!IsFullScreen());
+		DoFullscreen(!IsFullScreen());
 
 		// We do that to avoid the event to be double processed (which would cause the window to be stuck in fullscreen) 
 		event.StopPropagation();
@@ -835,8 +832,10 @@ wxAuiNotebook* CFrame::CreateEmptyNotebook()
 
 void CFrame::DoFullscreen(bool bF)
 {
-	// Only switch this to fullscreen if we're rendering to main OR if we're not running a game
-	if (bRenderToMain || Core::GetState() != Core::CORE_RUN)
+	// Only switch this to fullscreen if we're rendering to main AND if we're running a game
+	// plus if a modal dialog is open, this will still process the keyboard events, and may cause
+	// the main window to become unresponsive, so we have to avoid that.
+	if ((bRenderToMain && Core::GetState() == Core::CORE_RUN) && !m_bModalDialogOpen)
 	{
 		ShowFullScreen(bF);
 
