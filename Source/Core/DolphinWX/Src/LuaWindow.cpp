@@ -145,7 +145,7 @@ void wxLuaWindow::OnEvent_ScriptLoad_Press(wxCommandEvent&  WXUNUSED(event))
 	m_TextCtrl_Log->Clear();
 	m_TextCtrl_Log->AppendText(wxString::FromAscii(
 		StringFromFormat("Script %s loaded successfully.\n", 
-						 path.mb_str()).c_str()));
+						 (const char *)path.mb_str()).c_str()));
 	m_Button_Run->Enable();
 }
 

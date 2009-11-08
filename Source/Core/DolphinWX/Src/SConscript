@@ -10,16 +10,10 @@ files = [
 	'cmdline.c',
 	]
 
-if wxenv['HAVE_WX']:
-	libs = [
-		'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'inputcommon',
-		'common', 'z', 'debugger_ui_util'
-		]
-else:
-	libs = [
-		'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 'inputcommon',
-		'common', 'z'
-		]
+libs = [
+	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 
+	'inputcommon', 'common', 'lua', 'z'
+	]
 
 if wxenv['HAVE_WX']:
 	files += [
@@ -30,6 +24,7 @@ if wxenv['HAVE_WX']:
 		'FrameAui.cpp',
 		'FrameTools.cpp',
 		'FrameWiimote.cpp',
+		'LuaWindow.cpp',
 		'LogWindow.cpp',
 		'GameListCtrl.cpp',
 		'Globals.cpp',
@@ -49,7 +44,8 @@ if wxenv['HAVE_WX']:
                 'wxNEEDS_CHARPP',
                 ],
 
-	libs = [ 'debwx' ] + libs
+	libs = [ 'debwx', 'debugger_ui_util'] + libs
+
 if wxenv['HAVE_SFML']:
 	files += [ 
 		'NetEvent.cpp',

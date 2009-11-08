@@ -16,6 +16,7 @@ files = ["ActionReplay.cpp",
          "MemTools.cpp",
          "PatchEngine.cpp",
          "PluginManager.cpp",
+	 "LuaInterface.cpp",
          "State.cpp",
          "Tracer.cpp",
          "VolumeHandler.cpp",
@@ -84,7 +85,7 @@ files = ["ActionReplay.cpp",
          "PowerPC/Interpreter/Interpreter_LoadStore.cpp",
          "PowerPC/Interpreter/Interpreter_LoadStorePaired.cpp",
          "PowerPC/Interpreter/Interpreter_SystemRegisters.cpp",
-		 "PowerPC/Interpreter/Interpreter_Tables.cpp",
+	 "PowerPC/Interpreter/Interpreter_Tables.cpp",
          "PowerPC/JitCommon/JitCache.cpp",
          "PowerPC/JitCommon/JitBackpatch.cpp",
          "PowerPC/JitCommon/Jit_Util.cpp",
@@ -136,6 +137,7 @@ else:
 libs = [
 	'bdisasm',
         'inputcommon',
+	'lua'
 	]
 
 env_core = env.Clone();

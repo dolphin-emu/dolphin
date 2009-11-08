@@ -63,6 +63,7 @@ inline u32 _rotr(u32 x, int shift) {
 	#define strncasecmp _strnicmp
 	#define unlink _unlink
 	#define snprintf _snprintf
+	#define vscprintf _vscprintf
 char* strndup (char const *s, size_t n);	
 
 // 64 bit offsets for windows
