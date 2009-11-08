@@ -3839,8 +3839,8 @@ struct TieredRegion
 
 		bool Contains(unsigned int address, int size) const
 		{
-			std::vector<Island>::const_iterator iter = islands.begin();
-			std::vector<Island>::const_iterator end = islands.end();
+			typename std::vector<Island>::const_iterator iter;// = islands.begin();
+			typename std::vector<Island>::const_iterator end;// = islands.end();
 			for(; iter != end; ++iter)
 				if(iter->Contains(address, size))
 					return true;
@@ -3863,7 +3863,10 @@ struct TieredRegion
 
 	TieredRegion()
 	{
-		Calculate(std::vector<unsigned int>);
+		std::vector<unsigned int> bytes;
+		Calculate(bytes);
+		// GCC didn't like the old style
+		// Calculate(std::vector<unsigned int>());
 	}
 
 	__forceinline int NotEmpty()
