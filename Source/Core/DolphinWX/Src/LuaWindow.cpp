@@ -57,7 +57,7 @@ wxLuaWindow::wxLuaWindow(wxFrame* parent, const wxPoint& pos, const wxSize& size
 {
 	// Create Lua context
 	luaID = luaCount;
-	///Lua::OpenLuaContext(luaID, LuaPrint, NULL, LuaStop);
+	Lua::OpenLuaContext(luaID, LuaPrint, NULL, LuaStop);
 	g_contextMap[luaID] = this;
 	luaCount++;
 	bScriptRunning = false;
@@ -76,7 +76,7 @@ wxLuaWindow::wxLuaWindow(wxFrame* parent, const wxPoint& pos, const wxSize& size
 wxLuaWindow::~wxLuaWindow()
 {
 	// On Disposal
-	///Lua::CloseLuaContext(luaID);
+	Lua::CloseLuaContext(luaID);
 	g_contextMap.erase(luaID);
 }
 
@@ -157,12 +157,12 @@ void wxLuaWindow::OnEvent_ScriptRun_Press(wxCommandEvent&  WXUNUSED(event))
 	m_Button_Run->Disable();
 	m_Button_Stop->Enable();
 
-	///Lua::RunLuaScriptFile(luaID, (const char *)currentScript.mb_str());
+	Lua::RunLuaScriptFile(luaID, (const char *)currentScript.mb_str());
 }
 
 void wxLuaWindow::OnEvent_ScriptStop_Press(wxCommandEvent&  WXUNUSED(event)) 
 {
-	///Lua::StopLuaScript(luaID);
+	Lua::StopLuaScript(luaID);
 	OnStop();
 	PrintMessage("Script stopped!\n");
 }
