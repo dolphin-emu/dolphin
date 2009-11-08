@@ -406,7 +406,7 @@ bool CompileAndRunDisplayList(u32 address, int size, CachedDisplayList *dl)
 				emitter.MOV(64, R(RAX), Imm64(pre_draw_video_data));
 				emitter.MOV(64, M(&g_pVideoData), R(RAX));
 #else
-				emitter.MOV(32, R(EAX), Imm32(pre_draw_video_data));
+				emitter.MOV(32, R(EAX), Imm32((u32)pre_draw_video_data));
 				emitter.MOV(32, M(&g_pVideoData), R(EAX));
 #endif
 				emitter.ABI_CallFunctionCCC(

@@ -123,7 +123,7 @@ bool Renderer::Init()
 
 	sscanf(g_Config.cFSResolution, "%dx%d", &w_temp, &h_temp);
 
-	for (fullScreenRes = 0; fullScreenRes < D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions.size(); fullScreenRes++)
+	for (fullScreenRes = 0; fullScreenRes < (int)D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions.size(); fullScreenRes++)
 	{
 		if ((D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions[fullScreenRes].xres == w_temp) && 
 			(D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions[fullScreenRes].yres == h_temp))

@@ -178,7 +178,7 @@ bool ReadAnnotatedAssembly(const char *filename)
 		// Scan for function starts
 		if (!memcmp(line, "void", 4)) {
 			char temp[256];
-			for (int i = 6; i < len; i++) {
+			for (size_t i = 6; i < len; i++) {
 				if (line[i] == '(') {
 					// Yep, got one.
 					memcpy(temp, line + 5, i - 5);
@@ -197,7 +197,7 @@ bool ReadAnnotatedAssembly(const char *filename)
 		}
 
 		// Scan for braces
-		for (int i = 0; i < (int)len; i++) {
+		for (size_t i = 0; i < len; i++) {
 			if (line[i] == '{')
 				brace_count++;
 			if (line[i] == '}')
