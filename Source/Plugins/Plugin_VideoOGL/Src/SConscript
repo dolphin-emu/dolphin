@@ -40,8 +40,9 @@ files += [
 	'main.cpp',
 	'GLUtil.cpp',
 	]
-if gfxenv['HAVE_OPENCL']:
-	libs += [ 'OpenCL']
+if sys.platform != 'darwin':
+	if gfxenv['HAVE_OPENCL']:
+		libs += [ 'OpenCL']
 if gfxenv['HAVE_WX']:
 	files += [
                 'GUI/ConfigDlg.cpp',
@@ -63,6 +64,8 @@ conf = gfxenv.Configure(custom_tests = tests,
 
 if sys.platform == 'darwin':
 	gfxenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'OpenGL', 'Cocoa', 'Cg']
+	if gfxenv['HAVE_OPENCL']:
+		gfxenv['FRAMEWORKS'] += ['OpenCL']
 
 	conf.CheckPKG('OpenGL')
 	if not conf.CheckPKG('Cg'):

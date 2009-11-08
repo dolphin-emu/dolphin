@@ -42,5 +42,5 @@ else:
 		LIBS = [ 'dspcore', 'audiocommon', 'common' ],
 		)
 if sys.platform == 'darwin':
-   lleenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'CoreAudio']
+   lleenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'CoreAudio', 'CoreServices' ]
 lleenv.SharedLibrary(env['plugin_dir']+name, files)

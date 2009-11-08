@@ -366,9 +366,9 @@ void PAD_RumbleClose()
 #ifdef SDL_RUMBLE
 	for (int i=0; i<4; i++)		// Free all pads
 	{
-		if (pRumble[_numPAD].g_pDevice) {
-			SDL_HapticClose( pRumble[_numPAD].g_pDevice );
-			pRumble[_numPAD].g_pDevice = NULL;
+		if (pRumble[i].g_pDevice) {
+			SDL_HapticClose( pRumble[i].g_pDevice );
+			pRumble[i].g_pDevice = NULL;
 		}
 	}
 #endif

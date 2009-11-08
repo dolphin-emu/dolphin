@@ -43,6 +43,6 @@ dspenv.Append(
 	LIBS = [ 'common', 'audiocommon' ],
 	)
 if sys.platform == 'darwin':
-    dspenv['FRAMEWORKS'] = [ 'CoreAudio' ]
+    dspenv['FRAMEWORKS'] = [ 'CoreAudio', 'CoreServices' ]
 
 dspenv.SharedLibrary(env['plugin_dir']+name, files)
