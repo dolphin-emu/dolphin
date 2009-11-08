@@ -1076,7 +1076,7 @@ DEFINE_LUA_FUNCTION(addressof, "table_or_function")
 	return 1;
 }
 
-DEFINE_LUA_FUNCTION(bitand, "...[integers]")
+DEFINE_LUA_FUNCTION(_bitand, "...[integers]")
 {
 	int rv = ~0;
 	int numArgs = lua_gettop(L);
@@ -1086,7 +1086,7 @@ DEFINE_LUA_FUNCTION(bitand, "...[integers]")
 	lua_pushinteger(L,rv);
 	return 1;
 }
-DEFINE_LUA_FUNCTION(bitor, "...[integers]")
+DEFINE_LUA_FUNCTION(_bitor, "...[integers]")
 {
 	int rv = 0;
 	int numArgs = lua_gettop(L);
@@ -1129,7 +1129,29 @@ DEFINE_LUA_FUNCTION(bitbit, "whichbit")
 	return 1;
 }
 
-int emulua_wait(lua_State* L);
+// tells emulua to wait while the script is doing calculations
+// can call this periodically instead of emulua.frameadvance
+// note that the user can use hotkeys at this time
+// (e.g. a savestate could possibly get loaded before emulua.wait() returns)
+DEFINE_LUA_FUNCTION(emulua_wait, "")
+{
+	/*LuaContextInfo& info = GetCurrentInfo();
+
+	switch(info.speedMode)
+	{
+		default:
+		case SPEEDMODE_NORMAL:
+			Step_emulua_MainLoop(true, false);
+			break;
+		case SPEEDMODE_NOTHROTTLE:
+		case SPEEDMODE_TURBO:
+		case SPEEDMODE_MAXIMUM:
+			Step_emulua_MainLoop(Core::GetState() == Core::CORE_PAUSE, false);
+			break;
+	}*/
+
+	return 0;
+}
 
 void indicateBusy(lua_State* L, bool busy)
 {
@@ -1192,7 +1214,12 @@ void printfToOutput(const char* fmt, ...)
 {
 	va_list list;
 	va_start(list, fmt);
+	#ifdef _WIN32
 	int len = vscprintf(fmt, list);
+	#else
+	//vscprint is non-standard windows crap
+	int len = 1024;
+	#endif
 	char* str = new char[len+1];
 	vsprintf(str, fmt, list);
 	va_end(list);
@@ -1337,29 +1364,6 @@ DEFINE_LUA_FUNCTION(emulua_speedmode, "mode")
 	return 0;
 }*/
 
-// tells emulua to wait while the script is doing calculations
-// can call this periodically instead of emulua.frameadvance
-// note that the user can use hotkeys at this time
-// (e.g. a savestate could possibly get loaded before emulua.wait() returns)
-DEFINE_LUA_FUNCTION(emulua_wait, "")
-{
-	/*LuaContextInfo& info = GetCurrentInfo();
-
-	switch(info.speedMode)
-	{
-		default:
-		case SPEEDMODE_NORMAL:
-			Step_emulua_MainLoop(true, false);
-			break;
-		case SPEEDMODE_NOTHROTTLE:
-		case SPEEDMODE_TURBO:
-		case SPEEDMODE_MAXIMUM:
-			Step_emulua_MainLoop(Core::GetState() == Core::CORE_PAUSE, false);
-			break;
-	}*/
-
-	return 0;
-}
 
 
 DEFINE_LUA_FUNCTION(emulua_frameadvance, "")
@@ -1721,7 +1725,7 @@ DEFINE_LUA_FUNCTION(state_save, "location[,option]")
 			unsigned char* stateBuffer = (unsigned char*)lua_touserdata(L,1);
 			if(stateBuffer)
 			{
-				stateBuffer += ((16 - (int)stateBuffer) & 15); // for performance alignment reasons
+				stateBuffer += ((16 - (u64)stateBuffer) & 15); // for performance alignment reasons
 				State_SaveToBuffer(&stateBuffer);
 			}
 			return 0;
@@ -1771,7 +1775,7 @@ DEFINE_LUA_FUNCTION(state_load, "location[,option]")
 			unsigned char* stateBuffer = (unsigned char*)lua_touserdata(L,1);
 			if(stateBuffer)
 			{
-				stateBuffer += ((16 - (int)stateBuffer) & 15); // for performance alignment reasons
+				stateBuffer += ((16 - (u64)stateBuffer) & 15); // for performance alignment reasons
 				if(stateBuffer[0])
 					State_LoadFromBuffer(&stateBuffer);
 				else // the first byte of a valid savestate is never 0
@@ -3338,8 +3342,8 @@ void registerLibs(lua_State* L)
 	lua_register(L, "tostring", tostring);
 	lua_register(L, "addressof", addressof);
 	lua_register(L, "copytable", copytable);
-	lua_register(L, "AND", bitand);
-	lua_register(L, "OR", bitor);
+	lua_register(L, "AND", _bitand);
+	lua_register(L, "OR", _bitor);
 	lua_register(L, "XOR", bitxor);
 	lua_register(L, "SHIFT", bitshift);
 	lua_register(L, "BIT", bitbit);
@@ -3859,7 +3863,7 @@ struct TieredRegion
 
 	TieredRegion()
 	{
-		Calculate(std::vector<unsigned int>());
+		Calculate(std::vector<unsigned int>);
 	}
 
 	__forceinline int NotEmpty()
