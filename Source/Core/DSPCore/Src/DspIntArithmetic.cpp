@@ -42,12 +42,10 @@ void clr(const UDSPInstruction& opc)
 // Clears $acR.l - low 16 bits of accumulator $acR.
 void clrl(const UDSPInstruction& opc)
 {
-	u16 reg = DSP_REG_ACL0 + ((opc.hex >> 8) & 0x1);
-	g_dsp.r[reg] = 0;
+	u8 reg = (opc.hex >> 8) & 0x1;
+	g_dsp.r[DSP_REG_ACL0 + reg] = 0;
+	Update_SR_Register64(dsp_get_long_acc(reg));
 
-	// Should this be 64bit?
-	// nakee: it says the whole reg in duddie's doc sounds weird
-	Update_SR_Register64((s64)reg);
 	zeroWriteBackLog();
 }
 

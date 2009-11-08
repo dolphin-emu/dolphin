@@ -223,7 +223,8 @@ int DSPCore_RunCycles(int cycles)
 		switch (core_state)
 		{
 		case DSPCORE_RUNNING:
-#if 1   // Set to 0 to disable breakpoints, for a speed boost.
+			// Seems to slow things down
+#if defined(_DEBUG) || defined(DEBUGFAST)
 			cycles = DSPInterpreter::RunCyclesDebug(cycles);
 #else
 			cycles = DSPInterpreter::RunCycles(cycles);
