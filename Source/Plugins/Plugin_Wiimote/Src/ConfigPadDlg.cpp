@@ -757,20 +757,20 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 				 wxT("- "),
 				 wxT("Home"),
 				 wxT("Left trigger"),
+				 wxT("Right trigger"),
 				 wxT("Left Z"),
 				 wxT("Right Z"),
-				 wxT("Right trigger"),
 				 wxT("Digital Left"),
-				 wxT("Digital Up"),
 				 wxT("Digital Right"),
+				 wxT("Digital Up"),
 				 wxT("Digital Down"),
 				 wxT("L Left"),
-				 wxT("L Up"),
 				 wxT("L Right"),
+				 wxT("L Up"),
 				 wxT("L Down"),
 				 wxT("R Left"),
-				 wxT("R Up"),
 				 wxT("R Right"),
+				 wxT("R Up"),
 				 wxT("R Down"),
 			};
 			for ( int x = 0; x < CC_CONTROLS; x++)
@@ -801,24 +801,20 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 			m_SCcVertLeft[i]->Add(m_SCcLeftStick[i], 0, wxALIGN_RIGHT | (wxALL), 2);
 			m_SCcVertLeft[i]->Add(m_SCcRightStick[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 2);
 			m_SCcVertLeft[i]->AddSpacer(2);
-			// Digital l,r,u,d
-			for ( int x = IDB_CC_DL; x <= IDB_CC_DD; x++)
-			{
+			// Left and right stick
+			for ( int x = IDB_CC_LL; x <= IDB_CC_RD; x++)
 				m_SCcVertLeft[i]->Add(m_Sizer_Classic[x - IDB_CC_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-			}
-			// left and right trigger
-			m_SCcVertLeft[i]->Add(m_Sizer_Classic[IDB_CC_TL - IDB_CC_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-			m_SCcVertLeft[i]->Add(m_Sizer_Classic[IDB_CC_TR - IDB_CC_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 
 			// The middle parent
 			m_SCcVertMiddle[i] = new wxBoxSizer(wxVERTICAL);
 			m_SCcVertMiddle[i]->Add(m_SCcTriggers[i], 0, wxALIGN_RIGHT | (wxALL), 1);
-			m_SCcVertLeft[i]->AddSpacer(2);
-			// Left and right stick
-			for ( int x = IDB_CC_LL; x <= IDB_CC_RD; x++)
-			{
+			m_SCcVertMiddle[i]->AddSpacer(2);
+			// Shoulder buttons
+			for ( int x = IDB_CC_TL; x <= IDB_CC_ZR; x++)
 				m_SCcVertMiddle[i]->Add(m_Sizer_Classic[x - IDB_CC_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-			}
+			// Digital l,r,u,d
+			for ( int x = IDB_CC_DL; x <= IDB_CC_DD; x++)
+				m_SCcVertMiddle[i]->Add(m_Sizer_Classic[x - IDB_CC_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 
 			// The right parent
 			m_SCcVertRight[i] = new wxBoxSizer(wxVERTICAL);
@@ -862,8 +858,8 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 				wxT("- "),
 				wxT("Whammy"),
 				wxT("Left"), //analog stick
-				wxT("Up"),
 				wxT("Right"),
+				wxT("Up"),
 				wxT("Down"),
 				wxT("Strum Up"),
 				wxT("Strum Down"),

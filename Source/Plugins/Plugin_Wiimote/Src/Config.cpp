@@ -26,8 +26,11 @@
 #include "EmuDefinitions.h" // for PadMapping
 #include "main.h"
 
-// Ini Control Names
+// Configuration file control names
 // Do not change the order unless you change the related arrays
+// Directionals are ordered as L, R, U, D
+
+// Wiimote
 static const char* wmControlNames[] =
 { 
 	"WmA",
@@ -44,8 +47,38 @@ static const char* wmControlNames[] =
 	"WmShake",
 	"WmPitchL",
 	"WmPitchR",
- };
+};
+static int wmDefaultControls[] = 
+{
+	'Z',
+	'X',
+	'C',
+	'V',
+	'M',
+	'B',
+	'N',
+#ifdef _WIN32
+	VK_LEFT,
+	VK_RIGHT,
+	VK_UP,
+	VK_DOWN,
+	VK_OEM_2, // /?
+	VK_OEM_COMMA,
+	VK_OEM_PERIOD
+#elif defined(HAVE_X11) && HAVE_X11
+	XK_Left,
+	XK_Right,
+	XK_Up,
+	XK_Down,
+	XK_slash,
+	XK_comma,
+	XK_period
+#else
+	0,0,0,0,0,0,0
+#endif
+};
 
+// Nunchuk
 static const char* ncControlNames[] =
 {
 	"NcZ",
@@ -56,7 +89,30 @@ static const char* ncControlNames[] =
 	"NcD",
 	"NcShake",
 };
+static int nCDefaultControls[] =
+{
+#ifdef _WIN32
+	VK_NUMPAD0,
+	VK_DECIMAL,
+	VK_NUMPAD4,
+	VK_NUMPAD6,
+	VK_NUMPAD8,
+	VK_NUMPAD5,
+	VK_ADD
+#elif defined(HAVE_X11) && HAVE_X11
+	XK_KP_0,
+	XK_KP_Decimal,
+	XK_KP_4,
+	XK_KP_6,
+	XK_KP_8,
+	XK_KP_5,
+	XK_KP_Add
+#else
+	0,0,0,0,0,0,0
+#endif
+};
 
+// Classic Controller
 static const char* ccControlNames[] =
 {
 	"CcA",
@@ -67,23 +123,74 @@ static const char* ccControlNames[] =
 	"CcM",
 	"CcH",
 	"CcTl",
+	"CcTr",
 	"CcZl",
 	"CcZr",
-	"CcTr",
 	"CcDl",
-	"CcDu",
 	"CcDr",
+	"CcDu",
 	"CcDd",
 	"CcLl",
-	"CcLu",
 	"CcLr",
+	"CcLu",
 	"CcLd",
 	"CcRl",
-	"CcRu",
 	"CcRr",
+	"CcRu",
 	"CcRd",
 };
+static int ccDefaultControls[] =
+{
+// A, B, X, Y
+#ifdef _WIN32
+	VK_OEM_6, // ]
+	VK_OEM_7, // '
+	VK_OEM_4, // [
+	VK_OEM_1, // ;
+#elif defined(HAVE_X11) && HAVE_X11
+	XK_bracketright,
+	XK_quoteright,
+	XK_bracketleft,
+	XK_semicolon,
+#else
+	0,0,0,0,
+#endif
+// +, -, Home
+	'L',
+	'J',
+	'K',
+// Triggers, Zs
+	'E',
+	'U',
+	'R',
+	'Y',
+// Digital pad
+	'A',
+	'D',
+	'W',
+	'S',
+// Left analog
+	'F',
+	'H',
+	'T',
+	'G',
+// Right analog
+#ifdef _WIN32
+	VK_NUMPAD4,
+	VK_NUMPAD6,
+	VK_NUMPAD8,
+	VK_NUMPAD5
+#elif defined(HAVE_X11) && HAVE_X11
+	XK_KP_4,
+	XK_KP_6,
+	XK_KP_8,
+	XK_KP_5
+#else
+	0,0,0,0
+#endif
+};
 
+// GH3 Default controls
 static const char* gh3ControlNames[] =
 {
 	"GH3Green",
@@ -95,112 +202,37 @@ static const char* gh3ControlNames[] =
 	"GH3Minus",
 	"GH3Whammy",
 	"GH3Al",
-	"GH3Au",
 	"GH3Ar",
+	"GH3Au",
 	"GH3Ad",
 	"GH3StrumUp",
 	"GH3StrumDown",
 };
-// Default controls
-static int wmDefaultControls[] = 
-{
-	65, // WmA
-	66, // WmB
-	49, // Wm1
-	50, // Wm2
-	80, // WmP
-	77, // WmM
-	72, // WmH
-#ifdef _WIN32
-	VK_LEFT, // Regular directional keys
-	VK_RIGHT,
-	VK_UP,
-	VK_DOWN,
-#elif defined(HAVE_X11) && HAVE_X11
-	XK_Left,
-	XK_Right,
-	XK_Up,
-	XK_Down,
-#else
-	0,0,0,0,
-#endif
-	83, // WmShake (S)
-	51, // WmPitchL (3)
-	52, // WmPitchR (4)
-};
-
-static int nCDefaultControls[] =
-{
-	90, // NcZ Z
-	67, // NcC C
-#ifdef _WIN32
-	VK_NUMPAD4, // NcL
-	VK_NUMPAD6, // NcR
-	VK_NUMPAD8, // NcU
-	VK_NUMPAD5, // NcD
-#elif defined(HAVE_X11) && HAVE_X11
-	XK_KP_Left, // Numlock must be off
-	XK_KP_Right,
-	XK_KP_Up,
-	XK_KP_Down,
-#else
-	0,0,0,0,
-#endif
-	68, // NcShake D
-};
-
-static int ccDefaultControls[] =
-{
-	90, // CcA (C)
-	67, // CcB (Z)
-	0x58, // CcX (X)
-	0x59, // CcY (Y)
-	0x4f, // CcP O instead of P
-	0x4e, // CcM N instead of M
-	0x55, // CcH U instead of H
-	0x37, // CcTl 7
-	0x38, // CcZl 8
-	0x39, // CcZr 9
-	0x30, // CcTr 0
-#ifdef _WIN32		//  TODO: ugly that wm/nc use lrud and cc/gh3 use lurd
-	VK_NUMPAD4, //CcDl
-	VK_NUMPAD8, // CcDu
-	VK_NUMPAD6, // CcDr
-	VK_NUMPAD5, // CcDd
-#elif defined(HAVE_X11) && HAVE_X11
-	XK_KP_Left, // Numlock must be off
-	XK_KP_Up,
-	XK_KP_Right,
-	XK_KP_Down,
-#else
-	0,0,0,0,
-#endif
-	0x4a, // CcLl J
-	0x49, // CcLu I
-	0x4c, // CcLr L
-	0x4b, // CcLd K
-	0x44, // CcRl D 
-	0x52, // CcRu R
-	0x47, // CcRr G
-	0x46, // CcRd F
-};
-
 static int GH3DefaultControls[] =
 {
-	0, // GH3Green
-	0, // GH3Red
-	0, // GH3Yellow
-	0, // GH3Blue
-	0, // GH3Orange
-	0, // GH3Plus
-	0, // GH3Minus
-	0, // GH3Whammy
-	0, // GH3Al
-	0, // GH3Au
-	0, // GH3Ar
-	0, // GH3Ad
-	13, // GH3StrumUp
-	161, // GH3StrumDown
+	'A',
+	'S',
+	'D',
+	'F',
+	'G',
+	'L',
+	'J',
+	'H',
+#ifdef _WIN32
+	VK_NUMPAD4,
+	VK_NUMPAD6,
+	VK_NUMPAD8,
+	VK_NUMPAD5,
+#elif defined(HAVE_X11) && HAVE_X11
+	XK_KP_4,
+	XK_KP_6,
+	XK_KP_8,
+	XK_KP_5,
+#else
+	0,0,0,0,
+#endif
+	'I',
+	'K',
 };
 
 
@@ -245,21 +277,21 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(SectionName, "TriggerPitchRange", &Trigger.Range.Pitch, false);
 
 		// Wiimote
-		for (int x = 0; x < 14; x++)
+		for (int x = 0; x < WM_CONTROLS; x++)
 			iniFile.Get(SectionName, wmControlNames[x], &WiiMoteEmu::PadMapping[i].Wm.keyForControls[x], wmDefaultControls[x]);
 		// Nunchuck
 		iniFile.Get(SectionName, "NunchuckStick", &Nunchuck.Type, Nunchuck.KEYBOARD);
-		for (int x = 0; x < 7; x++)
+		for (int x = 0; x < NC_CONTROLS; x++)
 			iniFile.Get(SectionName, ncControlNames[x], &WiiMoteEmu::PadMapping[i].Nc.keyForControls[x], nCDefaultControls[x]);
 
 		// Classic Controller
 		iniFile.Get(SectionName, "CcLeftStick", &ClassicController.LType, ClassicController.KEYBOARD);
 		iniFile.Get(SectionName, "CcRightStick", &ClassicController.RType, ClassicController.KEYBOARD);
 		iniFile.Get(SectionName, "CcTriggers", &ClassicController.TType, ClassicController.KEYBOARD);
-		for (int x = 0; x < 23; x++)
+		for (int x = 0; x < CC_CONTROLS; x++)
 			iniFile.Get(SectionName, ccControlNames[x], &WiiMoteEmu::PadMapping[i].Cc.keyForControls[x], ccDefaultControls[x]);
 		iniFile.Get(SectionName, "GH3Analog", &GH3Controller.AType, GH3Controller.ANALOG1);
-		for (int x = 0; x < 14; x++)
+		for (int x = 0; x < GH3_CONTROLS; x++)
 			iniFile.Get(SectionName, gh3ControlNames[x], &WiiMoteEmu::PadMapping[i].GH3c.keyForControls[x], GH3DefaultControls[x]);
 
 		// Don't update this when we are loading settings from the ConfigBox
@@ -347,23 +379,23 @@ void Config::Save(int Slot)
 		iniFile.Set(SectionName, "TriggerPitchRange", Trigger.Range.Pitch);
 
 		// Wiimote
-		for (int x = 0; x < 14; x++)
+		for (int x = 0; x < WM_CONTROLS; x++)
 			iniFile.Set(SectionName, wmControlNames[x], WiiMoteEmu::PadMapping[i].Wm.keyForControls[x]);
 
 		// Nunchuck
 		iniFile.Set(SectionName, "NunchuckStick", Nunchuck.Type);
-		for (int x = 0; x < 7; x++)
+		for (int x = 0; x < NC_CONTROLS; x++)
 			iniFile.Set(SectionName, ncControlNames[x], WiiMoteEmu::PadMapping[i].Nc.keyForControls[x]);
 
 		// Classic Controller
 		iniFile.Set(SectionName, "CcLeftStick", ClassicController.LType);
 		iniFile.Set(SectionName, "CcRightStick", ClassicController.RType);
 		iniFile.Set(SectionName, "CcTriggers", ClassicController.TType);
-		for (int x = 0; x < 23; x++)
+		for (int x = 0; x < CC_CONTROLS; x++)
 			iniFile.Set(SectionName, ccControlNames[x], WiiMoteEmu::PadMapping[i].Cc.keyForControls[x]);
 		// GH3
 		iniFile.Set(SectionName, "GH3Analog", GH3Controller.AType);
-		for (int x = 0; x < 14; x++)
+		for (int x = 0; x < GH3_CONTROLS; x++)
 			iniFile.Set(SectionName, gh3ControlNames[x], WiiMoteEmu::PadMapping[i].GH3c.keyForControls[x]);
 
 		// Save the physical device ID number

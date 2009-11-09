@@ -1215,19 +1215,19 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		if(IsKey(g_ClassicContExt.X))
 			_ext.b2.bX = 0x00;
 
-		if(IsKey(g_ClassicContExt.P)) // O instead of P
+		if(IsKey(g_ClassicContExt.P))
 			_ext.b1.bP = 0x00;
 
-		if(IsKey(g_ClassicContExt.M)) // N instead of M
+		if(IsKey(g_ClassicContExt.M))
 			_ext.b1.bM = 0x00;
 
-		if(IsKey(g_ClassicContExt.H)) // Home button
+		if(IsKey(g_ClassicContExt.H))
 			_ext.b1.bH = 0x00;
 
-		if(IsKey(g_ClassicContExt.Zl)) // Digital left trigger
+		if(IsKey(g_ClassicContExt.Zl))
 			_ext.b2.bZL = 0x00;
 
-		if(IsKey(g_ClassicContExt.Zr)) // Digital right trigger
+		if(IsKey(g_ClassicContExt.Zr))
 			_ext.b2.bZR = 0x00;
 		
 		// All buttons pressed

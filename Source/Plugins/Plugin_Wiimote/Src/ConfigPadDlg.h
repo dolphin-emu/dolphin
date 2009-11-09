@@ -218,10 +218,10 @@ class WiimotePadConfigDialog : public wxDialog
 			IDB_CC_A, IDB_CC_B,
 			IDB_CC_X, IDB_CC_Y,
 			IDB_CC_P, IDB_CC_M, IDB_CC_H,
-			IDB_CC_TL, IDB_CC_ZL, IDB_CC_ZR, IDB_CC_TR,
-			IDB_CC_DL, IDB_CC_DU, IDB_CC_DR, IDB_CC_DD, // Digital pad
-			IDB_CC_LL, IDB_CC_LU, IDB_CC_LR, IDB_CC_LD, // Left analog stick
-			IDB_CC_RL, IDB_CC_RU, IDB_CC_RR, IDB_CC_RD, // Right analog stick
+			IDB_CC_TL, IDB_CC_TR, IDB_CC_ZL, IDB_CC_ZR, // Shoulder triggers and Zs
+			IDB_CC_DL, IDB_CC_DR, IDB_CC_DU, IDB_CC_DD, // Digital pad
+			IDB_CC_LL, IDB_CC_LR, IDB_CC_LU, IDB_CC_LD, // Left analog stick
+			IDB_CC_RL, IDB_CC_RR, IDB_CC_RU, IDB_CC_RD, // Right analog stick
 
 			// Guitar Hero 3 Controller
 			IDB_GH3_GREEN,
@@ -233,8 +233,8 @@ class WiimotePadConfigDialog : public wxDialog
 			IDB_GH3_MINUS,
 			IDB_GH3_WHAMMY,
 			IDB_GH3_ANALOG_LEFT,
-			IDB_GH3_ANALOG_UP,
 			IDB_GH3_ANALOG_RIGHT,
+			IDB_GH3_ANALOG_UP,
 			IDB_GH3_ANALOG_DOWN,
 			IDB_GH3_STRUM_UP,
 			IDB_GH3_STRUM_DOWN,
