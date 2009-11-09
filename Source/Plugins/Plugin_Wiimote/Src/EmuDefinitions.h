@@ -251,10 +251,10 @@ struct KeyboardClassicController
 		#endif
 		B, X, Y,
 		P, M, H,
-		Dl, Dr, Du, Dd,
+		Dl, Du, Dr, Dd,
 		Tl, Tr, Zl, Zr,
-		Ll, Lr, Lu, Ld,
-		Rl, Rr, Ru, Rd,
+		Ll, Lu, Lr, Ld,
+		Rl, Ru, Rr, Rd,
 		SHAKE,
 		LAST_CONSTANT
 	};
@@ -274,7 +274,7 @@ struct KeyboardGH3GLP
 		Red, Yellow, Blue,
 		Orange,Plus, Minus,
 		Whammy,
-		Al, Ar, Au, Ad,
+		Al, Au, Ar, Ad,
 		StrumUp, StrumDown,
 		SHAKE,
 		LAST_CONSTANT
