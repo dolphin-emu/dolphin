@@ -265,10 +265,10 @@ GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc) cons
 TargetRectangle FramebufferManager::ConvertEFBRectangle(const EFBRectangle& rc) const
 {
 	TargetRectangle result;
-	result.left = rc.left * Renderer::GetTargetWidth() / EFB_WIDTH;
-	result.top = Renderer::GetTargetHeight() - (rc.top * Renderer::GetTargetHeight() / EFB_HEIGHT);
-	result.right = rc.right * Renderer::GetTargetWidth() / EFB_WIDTH;
-	result.bottom = Renderer::GetTargetHeight() - (rc.bottom * Renderer::GetTargetHeight() / EFB_HEIGHT);
+	result.left = rc.left * Renderer::GetTargetWidth() / EFB_WIDTH + 1 ;
+	result.top = Renderer::GetTargetHeight() - (rc.top * Renderer::GetTargetHeight() / EFB_HEIGHT) - 1;
+	result.right = rc.right * Renderer::GetTargetWidth() / EFB_WIDTH + 1;
+	result.bottom = Renderer::GetTargetHeight() - (rc.bottom * Renderer::GetTargetHeight() / EFB_HEIGHT) - 1;
 	return result;
 }
 

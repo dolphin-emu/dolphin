@@ -123,49 +123,63 @@ void Create()
 	//Select Zbuffer format supported by hadware.
 	if (g_ActiveConfig.bEFBAccessEnable)
 	{
-		
-		hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, D3DFMT_D24X8,
-											 D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
-		CHECK(hr,"CreateDepthStencilSurface");
+		if(D3D::GetCaps().NumSimultaneousRTs > 1)	
+		{
+			hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, D3DFMT_D24X8,
+												 D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
+			CHECK(hr,"CreateDepthStencilSurface");
+			D3DFORMAT *DepthTexFormats = new D3DFORMAT[3];
+			DepthTexFormats[0] = D3DFMT_R32F;		
+			DepthTexFormats[1] = D3DFMT_A8R8G8B8;
 
-		s_efb_depth_surface_Format = D3DFMT_A8R8G8B8;
-		//get the framebuffer Depth texture
-		HRESULT hr = D3D::dev->CreateTexture(target_width, target_height, 1, D3DUSAGE_RENDERTARGET, s_efb_depth_surface_Format,
-											 D3DPOOL_DEFAULT, &s_efb_depth_texture, NULL);
-		CHECK(hr,"Depth Color Texture");
-		//get the Surface
-		if(s_efb_depth_texture)
-		{
-			s_efb_depth_texture->GetSurfaceLevel(0,&s_efb_depthColor_surface);
+			for(int i = 0;i<2;i++)
+			{
+				s_efb_depth_surface_Format = DepthTexFormats[i];
+				//get the framebuffer Depth texture
+				hr = D3D::dev->CreateTexture(target_width, target_height, 1, D3DUSAGE_RENDERTARGET, s_efb_depth_surface_Format,
+												 D3DPOOL_DEFAULT, &s_efb_depth_texture, NULL);
+				if (!FAILED(hr)) break;
+			}			
+			CHECK(hr,"Depth Color Texture");
+			//get the Surface
+			if(s_efb_depth_texture)
+			{
+				s_efb_depth_texture->GetSurfaceLevel(0,&s_efb_depthColor_surface);
+			}
+  			//create a one pixel texture to work as a buffer for peeking
+			hr = D3D::dev->CreateTexture(1, 1, 1, D3DUSAGE_RENDERTARGET, s_efb_depth_surface_Format,
+												  D3DPOOL_DEFAULT, &s_efb_depthRead_texture, NULL);
+			CHECK(hr,"Create Depth Read texture");
+			if(s_efb_depthRead_texture)
+			{
+				s_efb_depthRead_texture->GetSurfaceLevel(0,&s_efb_depth_ReadBuffer);
+			}
+			//create an offscreen surface that we can lock to retrieve the data
+			hr = D3D::dev->CreateOffscreenPlainSurface(1, 1, s_efb_depth_surface_Format, D3DPOOL_SYSTEMMEM, &s_efb_depth_OffScreenReadBuffer, NULL );
+			CHECK(hr,"Create Depth offScreen Surface");
+			delete [] DepthTexFormats;
 		}
-  		//create a one pixel texture to work as a buffer for peeking
-		hr = D3D::dev->CreateTexture(1, 1, 1, D3DUSAGE_RENDERTARGET, s_efb_depth_surface_Format,
-											  D3DPOOL_DEFAULT, &s_efb_depthRead_texture, NULL);
-		CHECK(hr,"Create Depth Read texture");
-		if(s_efb_depthRead_texture)
+		else
 		{
-			s_efb_depthRead_texture->GetSurfaceLevel(0,&s_efb_depth_ReadBuffer);
+			//depth format in prefered order
+			D3DFORMAT *DepthTexFormats = new D3DFORMAT[3];
+			DepthTexFormats[0] = D3DFMT_D32F_LOCKABLE;		
+			DepthTexFormats[1] = D3DFMT_D16_LOCKABLE;
+			DepthTexFormats[2] = D3DFMT_D24X8;		
+			for(int i = 0;i<3;i++)
+			{
+				s_efb_depth_surface_Format = DepthTexFormats[i];
+				hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, s_efb_depth_surface_Format,
+												 D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
+				if (!FAILED(hr)) break;
+			}		
+			s_efb_depth_ReadBuffer = s_efb_depth_surface;
+			s_efb_depth_OffScreenReadBuffer = s_efb_depth_surface;
+			//ULTRAAAAAAAAAAA ugly hack when no depth textures are supported
+			s_efb_depthColor_surface = s_efb_color_surface;
+			CHECK(hr,"CreateDepthStencilSurface");
+			delete [] DepthTexFormats;
 		}
-		//create an offscreen surface that we can lock to retrieve the data
-		hr = D3D::dev->CreateOffscreenPlainSurface(1, 1, s_efb_depth_surface_Format, D3DPOOL_SYSTEMMEM, &s_efb_depth_OffScreenReadBuffer, NULL );
-		CHECK(hr,"Create Depth offScreen Surface");
-		
-		/*//depth format in prefered order
-		D3DFORMAT *DepthTexFormats = new D3DFORMAT[3];
-		DepthTexFormats[0] = D3DFMT_D32F_LOCKABLE;		
-		DepthTexFormats[1] = D3DFMT_D16_LOCKABLE;
-		DepthTexFormats[2] = D3DFMT_D24X8;		
-		for(int i = 0;i<3;i++)
-		{
-			s_efb_depth_surface_Format = DepthTexFormats[i];
-			hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, s_efb_depth_surface_Format,
-											 D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
-			if (!FAILED(hr)) break;
-		}		
-		s_efb_depth_ReadBuffer = s_efb_depth_surface;
-		s_efb_depth_OffScreenReadBuffer = s_efb_depth_surface;		
-		CHECK(hr,"CreateDepthStencilSurface");
-		delete [] DepthTexFormats;*/
 	}
 	else
 	{
@@ -173,6 +187,8 @@ void Create()
 		hr = D3D::dev->CreateDepthStencilSurface(target_width, target_height, s_efb_depth_surface_Format,
 											 D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
 		CHECK(hr,"CreateDepthStencilSurface");
+		//ULTRAAAAAAAAAAA ugly hack when no depth textures are supported
+		s_efb_depthColor_surface = s_efb_color_surface;
 	}	
 }
 

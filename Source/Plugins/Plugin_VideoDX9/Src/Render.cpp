@@ -172,7 +172,8 @@ bool Renderer::Init()
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 0, 0);
 	
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-	D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());
+	if(D3D::GetCaps().NumSimultaneousRTs > 1)
+		D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
 	vp.Width  = s_target_width;
 	vp.Height = s_target_height;
@@ -274,7 +275,8 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 {
 	// Set the backbuffer as the rendering target
 	D3D::dev->SetDepthStencilSurface(NULL);
-	D3D::dev->SetRenderTarget(1, NULL);
+	if(D3D::GetCaps().NumSimultaneousRTs > 1)
+		D3D::dev->SetRenderTarget(1, NULL);
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());	
 	
 	TargetRectangle src_rect, dst_rect;
@@ -331,7 +333,8 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 	OSD::DrawMessages();
 
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-	D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());
+	if(D3D::GetCaps().NumSimultaneousRTs > 1)
+		D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
 	
     VertexShaderManager::SetViewportChanged();
@@ -478,7 +481,12 @@ bool Renderer::SetScissorRect()
 	}
 	else
 	{
-		WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);		
+		WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
+		rc.left   = 0;
+		rc.top    = 0;
+		rc.right  = GetTargetWidth();
+		rc.bottom = GetTargetHeight();
+		D3D::dev->SetScissorRect(&rc);				
 		return false;
 	}
 	return true;
@@ -510,7 +518,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		FBManager::GetEFBDepthRTSurfaceFormat() : FBManager::GetEFBColorRTSurfaceFormat();
 	
 	D3DLOCKED_RECT drect;
-	
+	if(!g_ActiveConfig.bEFBAccessEnable || BufferFormat == D3DFMT_D24X8)
+		return 0;
 	
 	//Buffer not found alert
 	if(!pBuffer) {
@@ -535,25 +544,27 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	RectToLock.left = targetPixelRc.left;
 	RectToLock.right = targetPixelRc.right;
 	RectToLock.top = targetPixelRc.top;
-	
-	hr = D3D::dev->StretchRect(pBuffer,&RectToLock,RBuffer,NULL, D3DTEXF_NONE);
-	if(FAILED(hr))
+	if(BufferFormat != D3DFMT_D32F_LOCKABLE && BufferFormat != D3DFMT_D16_LOCKABLE)
 	{
-		PanicAlert("Unable to stretch data to buffer");
-		return 0;
+		hr = D3D::dev->StretchRect(pBuffer,&RectToLock,RBuffer,NULL, D3DTEXF_NONE);
+		if(FAILED(hr))
+		{
+			PanicAlert("Unable to stretch data to buffer");
+			return 0;
+		}
+		//retriebe the pixel data to the local memory buffer
+		D3D::dev->GetRenderTargetData(RBuffer,pOffScreenBuffer);
+		if(FAILED(hr))
+		{
+			PanicAlert("Unable to copy data to mem buffer");
+			return 0;
+		}
+		//change the rect to lock the entire one pixel buffer
+		RectToLock.bottom = 1;
+		RectToLock.left = 0;
+		RectToLock.right = 1;
+		RectToLock.top = 0;
 	}
-	//retriebe the pixel data to the local memory buffer
-	D3D::dev->GetRenderTargetData(RBuffer,pOffScreenBuffer);
-	if(FAILED(hr))
-	{
-		PanicAlert("Unable to copy data to mem buffer");
-		return 0;
-	}
-	//change the rect to lock the entire one pixel buffer
-	RectToLock.bottom = 1;
-	RectToLock.left = 0;
-	RectToLock.right = 1;
-	RectToLock.top = 0;
 		
 	//the surface is good.. lock it
 	if((hr = pOffScreenBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
@@ -566,15 +577,32 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	switch(type) {
 		case PEEK_Z:
 			{
-				static float ffrac = 255.0f/254.0f;
-				z = ((u32 *)drect.pBits)[0];
-				float fvalue = (((float)(z & 0xFF)) / 255.0f) * ffrac;
-				fvalue += (((float)((z>>8) & 0xFF)) / 255.0f) * (ffrac/255.0f);
-				fvalue += (((float)((z>>16) & 0xFF)) / 255.0f) * (ffrac/(255.0f*255.0f));
-				fvalue += (((float)((z>>24) & 0xFF)) / 255.0f) * (ffrac/(255.0f*255.0f*255.0f));
-				if(fvalue>1.0f)fvalue=1.0f;
-				if(fvalue<0.0f)fvalue=0.0f;
-				z = ((u32)(fvalue * 0xffffff));			
+				switch (BufferFormat)
+				{
+				case D3DFMT_D32F_LOCKABLE:
+					val = ((float *)drect.pBits)[0];					
+					break;
+				case D3DFMT_D16_LOCKABLE:
+					val = ((float)((u16 *)drect.pBits)[0])/((float)0xFFFF);
+					break;
+				case D3DFMT_R32F:
+					val = ((float *)drect.pBits)[0] * (255.0f/254.0f);					
+					break;
+				default:
+					float ffrac = 1.0f/254.0f;
+					z = ((u32 *)drect.pBits)[0];
+					val =	((float)((z>>16) & 0xFF)) * ffrac;
+					ffrac*= 1 / 255.0f;
+					val +=	((float)((z>>8) & 0xFF)) * ffrac;
+					ffrac*= 1 / 255.0f;
+					val +=	((float)(z & 0xFF)) * ffrac;
+					//ffrac*= 1 / 255.0f;
+					//val +=	((float)((z>>24) & 0xFF)) * ffrac;
+					break;
+				};
+				if(val>1.0f)val=1.0f;
+				if(val<0.0f)val=0.0f;
+				z = ((u32)(val * 0xffffff));
 			}
 			break;			
 		case POKE_Z:

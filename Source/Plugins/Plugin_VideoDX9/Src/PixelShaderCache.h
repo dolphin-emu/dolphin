@@ -61,6 +61,7 @@ public:
 	static bool SetShader(bool dstAlpha);
 	static LPDIRECT3DPIXELSHADER9 GetColorMatrixProgram();
 	static LPDIRECT3DPIXELSHADER9 GetColorCopyProgram();
+	static LPDIRECT3DPIXELSHADER9 GetDepthMatrixProgram();
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	static std::string GetCurrentShaderCode();
 #endif

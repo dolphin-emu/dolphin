@@ -36,10 +36,17 @@ static float lastPSconstants[C_COLORMATRIX+16][4];
 
 static LPDIRECT3DPIXELSHADER9 s_ColorMatrixProgram = 0;
 static LPDIRECT3DPIXELSHADER9 s_ColorCopyProgram = 0;
+static LPDIRECT3DPIXELSHADER9 s_DepthMatrixProgram = 0;
+
 
 LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetColorMatrixProgram()
 {
 	return s_ColorMatrixProgram;
+}
+
+LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetDepthMatrixProgram()
+{
+	return s_DepthMatrixProgram;
 }
 
 LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetColorCopyProgram()
@@ -92,9 +99,22 @@ void PixelShaderCache::Init()
 						" in float3 uv0 : TEXCOORD0){\n"
 						"ocol0 = tex2D(samp0,uv0.xy);\n"						
 						"}\n");
+	char pdmatrixprog[1024];
+	sprintf(pdmatrixprog,"uniform sampler samp0 : register(s0);\n"
+						"uniform float4 cColMatrix[5] : register(c%d);\n"
+						"void main(\n"
+						"out float4 ocol0 : COLOR0,\n"
+						" in float3 uv0 : TEXCOORD0){\n"
+						"float4 texcol = tex2D(samp0,uv0.xy);\n"
+						"float4 EncodedDepth = frac(texcol.r * float4(1.0f,255.0f,255.0f*255.0f,255.0f*255.0f*255.0f));\n"
+						"EncodedDepth -= EncodedDepth.raag * float4(0.0f,1.0f/255.0f,1.0f/255.0f,0.0f);\n"
+						"texcol = float4(EncodedDepth.rgb,1.0f);\n"
+						"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"						
+						"}\n",C_COLORMATRIX);
 
 	s_ColorMatrixProgram = D3D::CompilePixelShader(pmatrixprog, (int)strlen(pmatrixprog));
 	s_ColorCopyProgram = D3D::CompilePixelShader(pcopyprog, (int)strlen(pcopyprog));
+	s_DepthMatrixProgram = D3D::CompilePixelShader(pdmatrixprog, (int)strlen(pdmatrixprog));
 	Clear();
 }
 
@@ -118,6 +138,9 @@ void PixelShaderCache::Shutdown()
 	if(s_ColorCopyProgram)
 		s_ColorCopyProgram->Release();
 	s_ColorCopyProgram=NULL;
+	if(s_DepthMatrixProgram)
+			s_DepthMatrixProgram->Release();
+	s_DepthMatrixProgram = NULL;
 	Clear();
 }
 
@@ -158,7 +181,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 			return false;
 	}
 
-	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), dstAlpha, true);
+	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), dstAlpha, (D3D::GetCaps().NumSimultaneousRTs > 1)? 1 : 2);
 	LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePixelShader(code, (int)strlen(code));
 
 	// Make an entry in the table

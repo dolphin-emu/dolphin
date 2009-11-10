@@ -334,36 +334,33 @@ have_texture:
 
     if (bFromZBuffer) 
 	{
-        switch(copyfmt) 
+		switch(copyfmt) 
 		{
             case 0: // Z4
             case 1: // Z8
-                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
+                colmat[0] = colmat[4] = colmat[8] = colmat[12] = 255.0f/254.0f;
                 break;
             
             case 3: // Z16 //?
-                colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
+                colmat[1] = colmat[5] = colmat[9] = colmat[12] = 255.0f/254.0f;
             case 11: // Z16 (reverse order)
-                colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1;
+                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 255.0f/254.0f;
                 break;
             case 6: // Z24X8
-                colmat[0] = 1;
-                colmat[5] = 1;
-                colmat[10] = 1;
-				colmat[15] = 1;
+                colmat[2] = colmat[5] = colmat[8] = 255.0f/254.0f;
                 break;
             case 9: // Z8M
-                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
+                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 255.0f/254.0f;
                 break;
             case 10: // Z8L
-                colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
+                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 255.0f/254.0f;
                 break;
             case 12: // Z16L
-                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
+                colmat[2] = colmat[6] = colmat[10] = colmat[13] = 255.0f/254.0f;
                 break;
             default:
                 ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", copyfmt);
-                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+                colmat[2] = colmat[5] = colmat[8] = 255.0f/254.0f;
                 break;
         }
     }
@@ -478,7 +475,7 @@ have_texture:
 	sourcerect.right = source_rect.right;
 	sourcerect.top = source_rect.top;
 
-	D3D::drawShadedTexQuad(read_texture,&sourcerect, EFB_WIDTH , EFB_HEIGHT,&destrect,PixelShaderCache::GetColorMatrixProgram(),NULL);	
+	D3D::drawShadedTexQuad(read_texture,&sourcerect, EFB_WIDTH , EFB_HEIGHT,&destrect,(FBManager::GetEFBDepthRTSurfaceFormat() == D3DFMT_R32F && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(): PixelShaderCache::GetColorMatrixProgram(),NULL);	
 
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
 	D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());

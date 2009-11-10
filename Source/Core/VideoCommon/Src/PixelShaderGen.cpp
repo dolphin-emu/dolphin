@@ -143,10 +143,10 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 texturemask, u32 dstAlphaEnable)
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and 
 
-static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL);
-static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, bool HLSL);
+static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL);
+static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, u32 HLSL);
 static void WriteAlphaCompare(char *&p, int num, int comp);
-static bool WriteAlphaTest(char *&p, bool HLSL);
+static bool WriteAlphaTest(char *&p, u32 HLSL);
 static void WriteFog(char *&p);
 
 const float epsilon8bit = 1.0f / 255.0f;
@@ -382,7 +382,7 @@ static void BuildSwapModeTable()
     }
 }
 
-const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL)
+const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, u32 HLSL)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
@@ -452,7 +452,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
     WRITE(p, "void main(\n");
 
     WRITE(p, "  out float4 ocol0 : COLOR0,\n");
-	if (HLSL)
+	if (HLSL == 1)
 		WRITE(p, "  out float4 ocol1 : COLOR1,\n");
     WRITE(p, "  out float depth : DEPTH,\n");
 
@@ -530,14 +530,13 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, bool HLSL
     
     WRITE(p, "depth = zCoord;\n");
 
-	if(HLSL)
+	if(HLSL == 1)
 	{
-		//WRITE(p, "ocol1 = float4(1.0f/255.0f,2.0f/255.0f,3.0f/255.0f,0.0f);\n");
-		WRITE(p, "float4 EncodedDepth = frac(zCoord * float4(254.0f*255.0f,255.0f,254.0f/255.0f,254.0f*255.0f*255.0f));\n");
-		//WRITE(p, "EncodedDepth -= EncodedDepth.aarg * float4(1.0f/255.0f,1.0f/255.0f,1.0f/255.0f,0.0f);\n");
-		WRITE(p, "ocol1 = EncodedDepth;\n");
+		WRITE(p, "float4 EncodedDepth = frac(zCoord * float4(254.0f/255.0,254.0f,254.0f*255.0f,0.0f));\n");
+		WRITE(p, "EncodedDepth -= EncodedDepth.raag * float4(0.0f,1.0f/255.0f,1.0f/255.0f,0.0f);\n");
+		WRITE(p, "ocol1 = float4(EncodedDepth.rgb,1.0f);\n");
 		
-	}
+	}	
     //if (bpmem.genMode.numindstages ) WRITE(p, "prev.rg = indtex0.xy;\nprev.b = 0;\n");
 
     if (!WriteAlphaTest(p, HLSL))
@@ -613,7 +612,7 @@ static const char *TEVCMPAlphaOPTable[16] =
 };
 
 
-static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
+static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 {
     char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
     char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
@@ -811,7 +810,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, bool HLSL)
     WRITE(p, ");\n\n");
 }
 
-void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, bool HLSL)
+void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, u32 HLSL)
 {
     if (texture_mask & (1<<texmap)) {
         // non pow 2
@@ -870,7 +869,7 @@ static const char *tevAlphaFunclogicTable[] =
     " == "	// xnor
 };
 
-static bool WriteAlphaTest(char *&p, bool HLSL)
+static bool WriteAlphaTest(char *&p, u32 HLSL)
 {
     u32 op = bpmem.alphaFunc.logic;
     u32 comp[2] = {bpmem.alphaFunc.comp0,bpmem.alphaFunc.comp1};
