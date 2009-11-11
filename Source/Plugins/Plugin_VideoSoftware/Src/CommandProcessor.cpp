@@ -17,16 +17,33 @@
 
 #include "Common.h"
 #include "pluginspecs_video.h"
+#include "Thread.h"
+#include "Atomic.h"
 
 #include "CommandProcessor.h"
-#include "OpcodeDecoder.h"
-#include "main.h"
 #include "ChunkFile.h"
 #include "MathUtil.h"
 
+volatile bool g_bSkipCurrentFrame;
+bool fifoStateRun;
 
-u8* g_pVideoData; // data reader uses this as the read pointer
+// set to 0 if using in video common
+#define SW_PLUGIN 1
 
+#if (SW_PLUGIN)
+
+#include "OpcodeDecoder.h"
+#include "main.h"
+u8* g_pVideoData;
+
+#else
+
+#include "VideoConfig.h"
+#include "OpcodeDecoding.h"
+#include "VideoCommon.h"
+extern u8* g_pVideoData;
+
+#endif
 
 namespace CommandProcessor
 {
@@ -40,17 +57,18 @@ enum
 // STATE_TO_SAVE
 // variables
 
-const int commandBufferSize = 4 * 1024;
-const int commandBufferCopySize = 32;
-const int maxCommandBufferWrite = commandBufferSize - commandBufferCopySize;
+const int commandBufferSize = 1024 * 1024;
+const int maxCommandBufferWrite = commandBufferSize - GATHER_PIPE_SIZE;
 u8 commandBuffer[commandBufferSize];
 u32 readPos;
 u32 writePos;
-bool interruptSet;
 int et_UpdateInterrupts;
+volatile bool interruptSet;
+volatile bool interruptWaiting;
 
 CPReg cpreg; // shared between gfx and emulator thread
 
+Common::CriticalSection criticalSection;
 
 void DoState(PointerWrap &p)
 {
@@ -67,7 +85,12 @@ inline u16 ReadHigh (u32 _reg)  {return (u16)(_reg >> 16);}
 
 void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
 {
-	UpdateInterrupts();
+	UpdateInterrupts(userdata);
+}
+
+inline bool AtBreakpoint()
+{
+    return cpreg.ctrl.BPEnable && (cpreg.readptr == cpreg.breakpt);
 }
 
 void Init()
@@ -93,8 +116,10 @@ void Init()
     writePos = 0;
 
     interruptSet = false;
+    interruptWaiting = false;
 
     g_pVideoData = 0;
+    g_bSkipCurrentFrame = false;
 }
 
 void Shutdown()
@@ -112,7 +137,7 @@ void RunGpu()
         // run the opcode decoder
         do {
         RunBuffer();
-        } while (cpreg.ctrl.GPReadEnable && !cpreg.status.Breakpoint && cpreg.rwdistance >= commandBufferCopySize);
+        } while (cpreg.ctrl.GPReadEnable && !AtBreakpoint() && cpreg.readptr != cpreg.writeptr);
 
         LoadSSEState();
     }
@@ -120,9 +145,10 @@ void RunGpu()
 
 void Read16(u16& _rReturnValue, const u32 _Address)
 {
-	DEBUG_LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
-
     u32 regAddr = (_Address & 0xFFF) >> 1;
+
+    DEBUG_LOG(COMMANDPROCESSOR, "(r): 0x%08x : 0x%08x", _Address, ((u16*)&cpreg)[regAddr]);
+   
     if (regAddr < 0x20)
         _rReturnValue = ((u16*)&cpreg)[regAddr];
     else
@@ -137,29 +163,13 @@ void Write16(const u16 _Value, const u32 _Address)
 	{
 	case STATUS_REGISTER:
 		{
-            UCPStatusReg tmpStatus(_Value);
-
-            if (cpreg.status.Breakpoint != tmpStatus.Breakpoint)
-                INFO_LOG(COMMANDPROCESSOR,"Set breakpoint status by writing to STATUS_REGISTER");
-
-            cpreg.status.Hex = _Value;
-
-			INFO_LOG(COMMANDPROCESSOR,"\t write to STATUS_REGISTER : %04x", _Value);
-
-            UpdateInterrupts();
+			ERROR_LOG(COMMANDPROCESSOR,"\t write to STATUS_REGISTER : %04x", _Value);
 		}
 		break;
 
 	case CTRL_REGISTER:
 		{
-			cpreg.ctrl.Hex = _Value;
-
-            // clear breakpoint if BPEnable and CPIntEnable are 0
-            if (!cpreg.ctrl.BPEnable) {
-                if (!cpreg.ctrl.BreakPointIntEnable) {
-                    cpreg.status.Breakpoint = 0;
-                }
-            }
+            cpreg.ctrl.Hex = _Value;
 
 			DEBUG_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
 			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | CPULINK %s | BP %s || BPIntEnable %s | OvF %s | UndF %s"
@@ -170,9 +180,6 @@ void Write16(const u16 _Value, const u32 _Address)
 				, cpreg.ctrl.FifoOverflowIntEnable ?	"ON" : "OFF"
 				, cpreg.ctrl.FifoUnderflowIntEnable ?	"ON" : "OFF"
 				);
-
-            UpdateInterrupts();
-
 		}
 		break;
 
@@ -186,8 +193,6 @@ void Write16(const u16 _Value, const u32 _Address)
                 cpreg.status.UnderflowLoWatermark = 0;
 
             INFO_LOG(COMMANDPROCESSOR,"\t write to CLEAR_REGISTER : %04x",_Value);
-
-            UpdateInterrupts();
 		}		
 		break;
 
@@ -198,7 +203,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case FIFO_BASE_LO:			
-        WriteLow ((u32 &)cpreg.fifobase, _Value);
+        WriteLow ((u32 &)cpreg.fifobase, _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_BASE_LO. FIFO base is : %08x", cpreg.fifobase);
 		break;
 	case FIFO_BASE_HI:			
@@ -206,7 +211,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_BASE_HI. FIFO base is : %08x", cpreg.fifobase);
 		break;
 	case FIFO_END_LO:			
-        WriteLow ((u32 &)cpreg.fifoend, _Value);
+        WriteLow ((u32 &)cpreg.fifoend, _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_END_LO. FIFO end is : %08x", cpreg.fifoend);
 		break;
 	case FIFO_END_HI:
@@ -215,7 +220,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case FIFO_WRITE_POINTER_LO:
-        WriteLow ((u32 &)cpreg.writeptr, _Value);
+        WriteLow ((u32 &)cpreg.writeptr, _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_WRITE_POINTER_LO. write ptr is : %08x", cpreg.writeptr);
 		break;
 	case FIFO_WRITE_POINTER_HI:
@@ -223,7 +228,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_WRITE_POINTER_HI. write ptr is : %08x", cpreg.writeptr);
 		break;
 	case FIFO_READ_POINTER_LO:
-        WriteLow ((u32 &)cpreg.readptr, _Value);
+        WriteLow ((u32 &)cpreg.readptr, _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_READ_POINTER_LO. read ptr is : %08x", cpreg.readptr);
 		break;
 	case FIFO_READ_POINTER_HI:
@@ -249,7 +254,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
     case FIFO_BP_LO:
-        WriteLow ((u32 &)cpreg.breakpt, _Value);
+        WriteLow ((u32 &)cpreg.breakpt, _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_BP_LO. breakpt is : %08x", cpreg.breakpt);
 		break;
 	case FIFO_BP_HI:
@@ -257,12 +262,8 @@ void Write16(const u16 _Value, const u32 _Address)
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_BP_HI. breakpt is : %08x", cpreg.breakpt);
 		break;
 
-    // Super monkey try to overwrite CPReadWriteDistance by an old saved RWD value. Which is lame for us.
-	// hack: We have to force CPU to think fifo is alway empty and on idle.
-	// When we fall here CPReadWriteDistance should be always null and the game should always want to overwrite it by 0.
-	// So, we can skip it.
     case FIFO_RW_DISTANCE_LO:
-        WriteLow ((u32 &)cpreg.rwdistance, _Value);
+        WriteLow ((u32 &)cpreg.rwdistance, _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_RW_DISTANCE_LO. rwdistance is : %08x", cpreg.rwdistance);
 		break;
 	case FIFO_RW_DISTANCE_HI:
@@ -289,105 +290,106 @@ void STACKALIGN GatherPipeBursted()
 {
 	if (cpreg.ctrl.GPLinkEnable)
     {
-        cpreg.writeptr += GATHER_PIPE_SIZE;
-        if (cpreg.writeptr >= (cpreg.fifoend & 0xFFFFFFE0))
-            cpreg.writeptr = cpreg.fifobase;
+        DEBUG_LOG(COMMANDPROCESSOR,"\t WGP burst. write thru : %08x", cpreg.writeptr);
 
-        // the read/write pointers will be managed in RunGpu which will read the current fifo and
-        // send as much data as is available and the plugin can take
-        // this will have the cost of copying data to the plugin fifo buffer in the main thread
+        if (cpreg.writeptr == cpreg.fifoend)
+            cpreg.writeptr = cpreg.fifobase;
+        else
+            cpreg.writeptr += GATHER_PIPE_SIZE;
+
+        Common::AtomicAdd(cpreg.rwdistance, GATHER_PIPE_SIZE);
     }
 
     RunGpu();
 }
 
-void UpdateInterrupts()
+void UpdateInterrupts(u64 userdata)
 {
-    bool bpInt = cpreg.status.Breakpoint && cpreg.ctrl.BreakPointIntEnable;
-    bool ovfInt = cpreg.status.OverflowHiWatermark && cpreg.ctrl.FifoOverflowIntEnable;
-    bool undfInt = cpreg.status.UnderflowLoWatermark && cpreg.ctrl.FifoUnderflowIntEnable;    
-
-    DEBUG_LOG(COMMANDPROCESSOR, "\tUpdate Interrupts");
-    DEBUG_LOG(COMMANDPROCESSOR, "\tBreakPointIntEnable %s | BP %s | OvF %s | UndF %s"
-        , cpreg.ctrl.BreakPointIntEnable ?				"ON" : "OFF"
-                , cpreg.ctrl.BPEnable ?					"ON" : "OFF"                
-				, cpreg.ctrl.FifoOverflowIntEnable ?	"ON" : "OFF"
-				, cpreg.ctrl.FifoUnderflowIntEnable ?	"ON" : "OFF"
-				);
-
-    interruptSet = bpInt || ovfInt || undfInt;
-
-    if (interruptSet)
+    if (userdata)
 	{
-		DEBUG_LOG(COMMANDPROCESSOR,"Interrupt set");
+		interruptSet = true;
+        INFO_LOG(COMMANDPROCESSOR,"Interrupt set");
         g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, true);        
 	}
 	else
 	{
-		DEBUG_LOG(COMMANDPROCESSOR,"Interrupt cleared");
+        interruptSet = false;
+		INFO_LOG(COMMANDPROCESSOR,"Interrupt cleared");
         g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, false);        
 	}
+    interruptWaiting = false;
 }
 
-void UpdateInterruptsFromVideoPlugin()
+void UpdateInterruptsFromVideoPlugin(u64 userdata)
 {
-    g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, 0);
+    g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
 }
 
 void ReadFifo()
 {
-    cpreg.status.ReadIdle = 0;
+    bool canRead = cpreg.readptr != cpreg.writeptr && writePos < maxCommandBufferWrite;
+    bool atBreakpoint = AtBreakpoint();
 
-    // update rwdistance
-    u32 writePtr = cpreg.writeptr;
-    if (cpreg.readptr <= writePtr)
-        cpreg.rwdistance = writePtr - cpreg.readptr;
-    else
-        cpreg.rwdistance = ((cpreg.fifoend & 0xFFFFFFE0) - cpreg.fifobase) - (cpreg.readptr - writePtr);
-
-    // overflow check
-    cpreg.status.OverflowHiWatermark = cpreg.rwdistance < cpreg.hiwatermark?0:1;
-
-    // read from fifo    
-    u8 *ptr = g_VideoInitialize.pGetMemoryPointer(cpreg.readptr);    
-
-    u32 readptr = cpreg.readptr;
-    u32 distance = cpreg.rwdistance;
-
-    while (distance >= commandBufferCopySize && !cpreg.status.Breakpoint && writePos < maxCommandBufferWrite)
+    if (canRead && !atBreakpoint)
     {
-        // check for breakpoint
-        // todo - check if this is precise enough
-        if (cpreg.ctrl.BPEnable && (cpreg.breakpt & 0xFFFFFFE0) == (readptr & 0xFFFFFFE0))
-        {
-            cpreg.status.Breakpoint = 1;
-            DEBUG_LOG(VIDEO,"Hit breakpoint at %x", readptr);
-        }
-        else
+        // read from fifo
+        u8 *ptr = g_VideoInitialize.pGetMemoryPointer(cpreg.readptr);
+        int bytesRead = 0;
+
+        do
         {
             // copy to buffer
-            memcpy(&commandBuffer[writePos], ptr, commandBufferCopySize);
-            writePos += commandBufferCopySize;
-            ptr += commandBufferCopySize;
-            readptr += commandBufferCopySize;
-            distance -= commandBufferCopySize;
-        }
+            memcpy(&commandBuffer[writePos], ptr, GATHER_PIPE_SIZE);
+            writePos += GATHER_PIPE_SIZE;
+            bytesRead += GATHER_PIPE_SIZE;
 
-        if (readptr >= (cpreg.fifoend & 0xFFFFFFE0))
-        {
-            readptr = cpreg.fifobase;
-            ptr = g_VideoInitialize.pGetMemoryPointer(readptr);
-        }
+            if (cpreg.readptr == cpreg.fifoend)
+            {
+                cpreg.readptr = cpreg.fifobase;
+                ptr = g_VideoInitialize.pGetMemoryPointer(cpreg.readptr);
+            }
+            else
+            {
+                cpreg.readptr += GATHER_PIPE_SIZE;
+                ptr += GATHER_PIPE_SIZE;    
+            }
+
+            canRead = cpreg.readptr != cpreg.writeptr && writePos < maxCommandBufferWrite;
+            atBreakpoint = AtBreakpoint();
+        } while (canRead && !atBreakpoint);
+
+        Common::AtomicAdd(cpreg.rwdistance, -bytesRead);
     }
+}
 
-    // lock read pointer until rw distance is updated?
-    cpreg.readptr = readptr;                
-    cpreg.rwdistance = distance;    
+void SetStatus()
+{
+    // overflow check
+    if (cpreg.rwdistance > cpreg.hiwatermark)
+        cpreg.status.OverflowHiWatermark = 1;
 
     // underflow check
-    cpreg.status.UnderflowLoWatermark = cpreg.rwdistance > cpreg.lowatermark?0:1;
+    if (cpreg.rwdistance < cpreg.lowatermark)
+        cpreg.status.UnderflowLoWatermark = 1;
 
-    cpreg.status.ReadIdle = 1;
+    // breakpoint     
+    if (cpreg.ctrl.BPEnable)
+    {
+        if (cpreg.breakpt == cpreg.readptr)
+        {
+            if (!cpreg.status.Breakpoint)
+                INFO_LOG(COMMANDPROCESSOR, "Hit breakpoint at %x", cpreg.readptr);
+            cpreg.status.Breakpoint = 1;
+        }
+    }
+    else
+    {
+        if (cpreg.status.Breakpoint)
+            INFO_LOG(COMMANDPROCESSOR, "Cleared breakpoint at %x", cpreg.readptr);
+        cpreg.status.Breakpoint = 0;
+    }
+
+    cpreg.status.ReadIdle = cpreg.readptr == cpreg.writeptr;
 
     bool bpInt = cpreg.status.Breakpoint && cpreg.ctrl.BreakPointIntEnable;
     bool ovfInt = cpreg.status.OverflowHiWatermark && cpreg.ctrl.FifoOverflowIntEnable;
@@ -395,10 +397,16 @@ void ReadFifo()
 
     bool interrupt = bpInt || ovfInt || undfInt;
 
-    if (interrupt != interruptSet)
+    if (interrupt != interruptSet && !interruptWaiting)
     {
-        interruptSet = interrupt;
-        UpdateInterruptsFromVideoPlugin();
+        u64 userdata = interrupt?1:0;
+        if (g_VideoInitialize.bOnThread)
+        {
+            interruptWaiting = true;
+            CommandProcessor::UpdateInterruptsFromVideoPlugin(userdata);
+        }
+        else
+            CommandProcessor::UpdateInterrupts(userdata);
     }
 }
 
@@ -408,12 +416,16 @@ bool RunBuffer()
     // read fifo data to internal buffer
     if (cpreg.ctrl.GPReadEnable)
         ReadFifo();
+
+    SetStatus();
+    
+    _dbg_assert_(COMMANDPROCESSOR, writePos >= readPos);
     
     g_pVideoData = &commandBuffer[readPos];
 
     u32 availableBytes = writePos - readPos;
-    _dbg_assert_(VIDEO, writePos >= readPos);
 
+#if (SW_PLUGIN)
     while (OpcodeDecoder::CommandRunnable(availableBytes))
     {
         cpreg.status.CommandIdle = 0;
@@ -425,10 +437,17 @@ bool RunBuffer()
         _dbg_assert_(VIDEO, writePos >= readPos);
         availableBytes = writePos - readPos;
     }
+#else
+    cpreg.status.CommandIdle = 0;
+    OpcodeDecoder_Run(g_bSkipCurrentFrame);
+
+    // if data was read by the opcode decoder then the video data pointer changed
+    readPos = g_pVideoData - &commandBuffer[0];
+    _dbg_assert_(COMMANDPROCESSOR, writePos >= readPos);
+    availableBytes = writePos - readPos;
+#endif
 
     cpreg.status.CommandIdle = 1;
-
-    _dbg_assert_(VIDEO, writePos >= readPos);
 
     bool ranDecoder = false;
         
@@ -446,3 +465,66 @@ bool RunBuffer()
 }
 
 } // end of namespace CommandProcessor
+
+
+// fifo functions
+#if (SW_PLUGIN)
+
+void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
+{
+    fifoStateRun = true;
+
+    while (fifoStateRun)
+    {
+		g_VideoInitialize.pPeekMessages();
+        if (!CommandProcessor::RunBuffer()) {
+            Common::YieldCPU();
+		}
+    }
+}
+
+#else
+
+void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
+{
+    fifoStateRun = true;
+
+    while (fifoStateRun)
+    {
+		g_VideoInitialize.pPeekMessages();
+        if (g_ActiveConfig.bEFBAccessEnable)
+			VideoFifo_CheckEFBAccess();
+		VideoFifo_CheckSwapRequest();
+
+		if (!CommandProcessor::RunBuffer()) {
+            Common::YieldCPU();
+		}
+    }
+}
+
+#endif
+
+void Fifo_ExitLoop()
+{
+    fifoStateRun = false;
+}
+
+void Fifo_SetRendering(bool enabled)
+{
+    g_bSkipCurrentFrame = !enabled;
+}
+
+// for compatibility with video common
+void Fifo_Init() {}
+void Fifo_Shutdown() {}
+void Fifo_DoState(PointerWrap &p) {}
+
+u8* FAKE_GetFifoStartPtr()
+{
+    return CommandProcessor::commandBuffer;
+}
+
+u8* FAKE_GetFifoEndPtr()
+{
+    return &CommandProcessor::commandBuffer[CommandProcessor::writePos];
+}

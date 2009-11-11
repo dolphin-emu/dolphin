@@ -26,6 +26,7 @@
 #include "Statistics.h"
 #include "HwRasterizer.h"
 #include "StringUtil.h"
+#include "CommandProcessor.h"
 #include "../../../Core/VideoCommon/Src/ImageWrite.h"
 
 namespace DebugUtil
@@ -162,7 +163,7 @@ void DrawObjectBuffer(s16 x, s16 y, u8 *color, int buffer, const char *name)
 
 void OnObjectBegin()
 {
-    if (!g_SkipFrame)
+    if (!g_bSkipCurrentFrame)
     {
         if (g_Config.bDumpTextures && stats.thisFrame.numDrawnObjects >= g_Config.drawStart && stats.thisFrame.numDrawnObjects < g_Config.drawEnd)
             DumpActiveTextures();
@@ -174,7 +175,7 @@ void OnObjectBegin()
 
 void OnObjectEnd()
 {
-    if (!g_SkipFrame)
+    if (!g_bSkipCurrentFrame)
     {
         if (g_Config.bDumpObjects && stats.thisFrame.numDrawnObjects >= g_Config.drawStart && stats.thisFrame.numDrawnObjects < g_Config.drawEnd)
             DumpEfb(StringFromFormat("%s/object%i.tga", FULL_FRAMES_DIR, stats.thisFrame.numDrawnObjects).c_str());
@@ -199,7 +200,7 @@ void OnObjectEnd()
 
 void OnFrameEnd()
 {
-    if (!g_SkipFrame)
+    if (!g_bSkipCurrentFrame)
     {
         if (g_Config.bDumpFrames)
         {
@@ -207,9 +208,6 @@ void OnFrameEnd()
             DumpDepth(StringFromFormat("%s/frame%i_depth.tga", FULL_FRAMES_DIR, stats.frameCount).c_str());
         }
     }
-
-    g_SkipFrame = skipFrames > 0;
-    skipFrames = g_SkipFrame?(skipFrames-1):g_Config.nFrameSkip;
 }
 
 }

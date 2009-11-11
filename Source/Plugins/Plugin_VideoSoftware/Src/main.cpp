@@ -37,9 +37,7 @@
 
 
 PLUGIN_GLOBALS* globals = NULL;
-static volatile bool fifoStateRun = false;
 SVideoInitialize g_VideoInitialize;
-bool g_SkipFrame;
 
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo)
@@ -75,8 +73,6 @@ void Initialize(void *init)
 {
     SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
     g_VideoInitialize = *_pVideoInitialize;
-
-    g_SkipFrame = false;
 
     g_Config.Load();
 
@@ -158,20 +154,12 @@ void Video_Screenshot(const char *_szFilename)
 // -------------------------------
 void Video_EnterLoop()
 {
-    fifoStateRun = true;
-
-    while (fifoStateRun)
-    {
-		g_VideoInitialize.pPeekMessages();
-		if (!CommandProcessor::RunBuffer()) {
-            Common::SleepCurrentThread(1);
-		}
-    }
+    Fifo_EnterLoop(g_VideoInitialize);
 }
 
 void Video_ExitLoop()
 {
-	fifoStateRun = false;
+	Fifo_ExitLoop();
 }
 
 void Video_AddMessage(const char* pstr, u32 milliseconds)
@@ -179,7 +167,8 @@ void Video_AddMessage(const char* pstr, u32 milliseconds)
 }
 
 void Video_SetRendering(bool bEnabled)
-{	
+{
+    Fifo_SetRendering(bEnabled);
 }
 
 void Video_CommandProcessorRead16(u16& _rReturnValue, const u32 _Address)

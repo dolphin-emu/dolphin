@@ -22,6 +22,22 @@
 #include "pluginspecs_video.h"
 class PointerWrap;
 
+extern volatile bool g_bSkipCurrentFrame;
+
+// for compatibility with video common
+void Fifo_Init();
+void Fifo_Shutdown();
+void Fifo_DoState(PointerWrap &p);
+
+void Fifo_EnterLoop(const SVideoInitialize &video_initialize);
+void Fifo_ExitLoop();
+void Fifo_SetRendering(bool bEnabled);
+
+// Implemented by the Video Plugin
+void VideoFifo_CheckSwapRequest();
+void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
+void VideoFifo_CheckEFBAccess();
+
 namespace CommandProcessor
 {
     // internal hardware addresses
@@ -76,11 +92,11 @@ namespace CommandProcessor
 	    struct
 	    {
 		    unsigned GPReadEnable			:	1;
-		    unsigned BreakPointIntEnable	:	1;
+		    unsigned BPEnable           	:	1;
 		    unsigned FifoOverflowIntEnable	:	1;
 		    unsigned FifoUnderflowIntEnable	:	1;
 		    unsigned GPLinkEnable			:	1;
-		    unsigned BPEnable				:	1;
+		    unsigned BreakPointIntEnable	:	1;
 		    unsigned						:	10;
 	    };
 	    u16 Hex;
@@ -134,6 +150,7 @@ namespace CommandProcessor
     void DoState(PointerWrap &p);
 
     bool RunBuffer();
+    void RunGpu();
 
     // Read
     void Read16(u16& _rReturnValue, const u32 _Address);
@@ -143,8 +160,8 @@ namespace CommandProcessor
 
     // for CGPFIFO
     void GatherPipeBursted();
-    void UpdateInterrupts();
-    void UpdateInterruptsFromVideoPlugin();
+    void UpdateInterrupts(u64 userdata);
+    void UpdateInterruptsFromVideoPlugin(u64 userdata);
 
 
 } // end of namespace CommandProcessor

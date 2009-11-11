@@ -42,8 +42,6 @@ struct Config
 
     bool bHwRasterizer;
 
-    u32 nFrameSkip;
-
     u32 drawStart;
     u32 drawEnd;
 

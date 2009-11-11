@@ -22,6 +22,4 @@
 
 extern SVideoInitialize g_VideoInitialize;
 
-extern bool g_SkipFrame;
-
 #endif

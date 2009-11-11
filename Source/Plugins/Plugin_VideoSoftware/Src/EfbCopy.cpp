@@ -25,6 +25,7 @@
 #include "VideoConfig.h"
 #include "DebugUtil.h"
 #include "HwRasterizer.h"
+#include "CommandProcessor.h"
 
 
 namespace EfbCopy
@@ -73,7 +74,7 @@ namespace EfbCopy
         if (bpmem.triggerEFBCopy.copy_to_xfb)
             DebugUtil::OnFrameEnd();
 
-        if (!g_SkipFrame)
+        if (!g_bSkipCurrentFrame)
         {
             if (bpmem.triggerEFBCopy.copy_to_xfb)
             {
@@ -93,6 +94,14 @@ namespace EfbCopy
                     HwRasterizer::Clear();
                 else
                     ClearEfb();
+            }
+        }
+        else
+        {
+            if (bpmem.triggerEFBCopy.copy_to_xfb)
+            {
+                // no frame rendered but tell that a frame has finished for frame skip counter
+                g_VideoInitialize.pCopiedToXFB(false);
             }
         }
     }    

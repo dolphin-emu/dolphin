@@ -36,8 +36,6 @@ Config::Config()
 
     bHwRasterizer = false;
 
-    nFrameSkip = 0;
-
     drawStart = 0;
     drawEnd = 100000;
 }

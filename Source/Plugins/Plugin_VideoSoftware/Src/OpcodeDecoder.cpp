@@ -27,6 +27,7 @@
 #include "VertexLoader.h"
 #include "Statistics.h"
 #include "DebugUtil.h"
+#include "CommandProcessor.h"
 
 typedef void (*DecodingFunction)(u32);
 DecodingFunction currentFunction = NULL;
@@ -47,7 +48,7 @@ void DecodePrimitiveStream(u32 iBufferSize)
 {
     u32 vertexSize = vertexLoader.GetVertexSize();
 
-    if(g_SkipFrame)
+    if(g_bSkipCurrentFrame)
     {
         while (streamSize > 0 && iBufferSize >= vertexSize)
         {
