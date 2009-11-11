@@ -87,7 +87,7 @@ void LogInfo(const char *format, ...);
 bool Subtype_RamWriteAndFill(u32 addr, u32 data);
 bool Subtype_WriteToPointer(u32 addr, u32 data);
 bool Subtype_AddCode(u32 addr, u32 data);
-bool Subtype_MasterCodeAndWriteToCCXXXXXX();
+bool Subtype_MasterCodeAndWriteToCCXXXXXX(u32 addr, u32 data);
 bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data);
 bool ZeroCode_MemoryCopy(u32 val_last, u32 addr, u32 data);
 bool NormalCode(u8 subtype, u32 addr, u32 data);
@@ -448,8 +448,8 @@ bool IsSelfLogging()
 // Code Functions
 bool Subtype_RamWriteAndFill(u32 addr, u32 data)
 {
-	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000); // real GC address
-	u8 size = ((addr >> 25) & 0x03);
+	u32 new_addr = (addr & 0x01FFFFFF) | 0x80000000; // real GC address
+	u8 size = (addr >> 25) & 0x03;
 	LogInfo("Hardware Address: %08x", new_addr);
 	LogInfo("Size: %08x", size);
 	switch (size)
@@ -458,8 +458,8 @@ bool Subtype_RamWriteAndFill(u32 addr, u32 data)
 		{
 			LogInfo("8-bit Write");
 			LogInfo("--------");
-			u8 repeat = data >> 8;
-			for (int i = 0; i <= repeat; i++) {
+			u32 repeat = data >> 8;
+			for (u32 i = 0; i <= repeat; i++) {
 				Memory::Write_U8(data & 0xFF, new_addr + i);
 				LogInfo("Wrote %08x to address %08x", data & 0xFF, new_addr + i);
 			}
@@ -471,16 +471,15 @@ bool Subtype_RamWriteAndFill(u32 addr, u32 data)
 		{
 			LogInfo("16-bit Write");
 			LogInfo("--------");
-			u16 repeat = data >> 16;
-			for (int i = 0; i <= repeat; i++) {
+			u32 repeat = data >> 16;
+			for (u32 i = 0; i <= repeat; i++) {
 				Memory::Write_U16(data & 0xFFFF, new_addr + i * 2);
 				LogInfo("Wrote %08x to address %08x", data & 0xFFFF, new_addr + i * 2);
 			}
 			LogInfo("--------");
 			break;
 		}
-	case DATATYPE_32BIT_FLOAT: //some codes use 03, but its just the same as 02...
-		LogInfo("The odd size 3 code, could this really by floating point?");
+	case DATATYPE_32BIT_FLOAT:
 	case DATATYPE_32BIT: // Dword write
 		LogInfo("32bit Write");
 		LogInfo("--------");
@@ -498,8 +497,8 @@ bool Subtype_RamWriteAndFill(u32 addr, u32 data)
 
 bool Subtype_WriteToPointer(u32 addr, u32 data)
 {
-	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
-	u8 size = ((addr >> 25) & 0x03);
+	u32 new_addr = (addr & 0x01FFFFFF) | 0x80000000;
+	u8 size = (addr >> 25) & 0x03;
 	LogInfo("Hardware Address: %08x", new_addr);
 	LogInfo("Size: %08x", size);
 	switch (size)
@@ -555,8 +554,8 @@ bool Subtype_WriteToPointer(u32 addr, u32 data)
 bool Subtype_AddCode(u32 addr, u32 data)
 {
 	// Used to incrment a value in memory
-	u32 new_addr = (addr & 0x81FFFFFF);
-	u8 size = ((addr >> 25) & 0x03);
+	u32 new_addr = (addr & 0x01FFFFFF) | 0x80000000;
+	u8 size = (addr >> 25) & 0x03;
 	LogInfo("Hardware Address: %08x", new_addr);
 	LogInfo("Size: %08x", size);
 	switch (size)
@@ -564,14 +563,14 @@ bool Subtype_AddCode(u32 addr, u32 data)
 	case DATATYPE_8BIT:
 		LogInfo("8-bit Add");
 		LogInfo("--------");
-		Memory::Write_U8(Memory::Read_U8(new_addr) + (data & 0xFF), new_addr);
+		Memory::Write_U8(Memory::Read_U8(new_addr) + data, new_addr);
 		LogInfo("Wrote %08x to address %08x", Memory::Read_U8(new_addr) + (data & 0xFF), new_addr);
 		LogInfo("--------");
 		break;
 	case DATATYPE_16BIT:
 		LogInfo("16-bit Add");
 		LogInfo("--------");
-		Memory::Write_U16(Memory::Read_U16(new_addr) + (data & 0xFFFF), new_addr);
+		Memory::Write_U16(Memory::Read_U16(new_addr) + data, new_addr);
 		LogInfo("Wrote %08x to address %08x", Memory::Read_U16(new_addr) + (data & 0xFFFF), new_addr);
 		LogInfo("--------");
 		break;
@@ -603,8 +602,12 @@ bool Subtype_AddCode(u32 addr, u32 data)
 	return true;
 }
 
-bool Subtype_MasterCodeAndWriteToCCXXXXXX()
+bool Subtype_MasterCodeAndWriteToCCXXXXXX(u32 addr, u32 data)
 {
+	u32 new_addr = (addr & 0x01FFFFFF) | 0x80000000;
+	u8	mcode_type = (data & 0xFF0000) >> 16;
+	u8  mcode_count = (data & 0xFF00) >> 8;
+	u8  mcode_number = data & 0xFF;
 	// code not yet implemented - TODO
 	PanicAlert("Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)", code.name.c_str());
 	return false;
@@ -612,54 +615,32 @@ bool Subtype_MasterCodeAndWriteToCCXXXXXX()
 
 bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more testing
 {
-	u32 new_addr = (val_last & 0x81FFFFFF);
-	u8 size = ((val_last >> 25) & 0x03);
-	int addr_incr;
+	u32 new_addr = (val_last & 0x01FFFFFF) | 0x80000000;
+	u8  size = (val_last >> 25) & 0x03;
+	s16 addr_incr = (s16)(data & 0xFFFF);
+	s8  val_incr = (s8)((data & 0xFF000000) >> 24);
+	u8  write_num = (data & 0xFF0000) >> 16;
 	u32 val = addr;
-	int val_incr;
-	u8 write_num = ((data & 0x78000) >> 16); // Z2
 	u32 curr_addr = new_addr;
+
 	LogInfo("Current Hardware Address: %08x", new_addr);
 	LogInfo("Size: %08x", size);
 	LogInfo("Write Num: %08x", write_num);
-
-	if (write_num < 1) {
-		LogInfo("Write Num is less than 1, exiting Fill and Slide call...");
-		return true;
-	}
-
-	if ((data >> 24) >> 3) { // z1 >> 3
-		addr_incr = ((data & 0x7FFF) + 0xFFFF0000); // FFFFZ3Z4 
-		val_incr = (int)((data & 0x7F) + 0xFFFFFF00); // FFFFFFZ1
-	}
-	else {
-		addr_incr = (data & 0x7FFF); // 0000Z3Z4
-		val_incr = (int)(data & 0x7F); // 000000Z1
-	}
-
 	LogInfo("Address Increment: %i", addr_incr);
 	LogInfo("Value Increment: %i", val_incr);
-
-	// Correct?
-	if (val_incr < 0)
-	{
-		curr_addr = new_addr + (addr_incr * write_num);
-		LogInfo("Value increment is less than 0, we need to go to the last address");
-		LogInfo("Current Hardware Address Update: %08x", curr_addr);
-	}
 
 	switch (size)
 	{
 		case DATATYPE_8BIT:
 			LogInfo("8-bit Write");
 			LogInfo("--------");
-			for (int i=0; i < write_num; i++) {
+			for (int i = 0; i < write_num; i++) 
+			{
 				Memory::Write_U8(val & 0xFF, curr_addr);
+				curr_addr += addr_incr;
+				val += val_incr;
 				LogInfo("Write %08x to address %08x", val & 0xFF, curr_addr);
-				if (val_incr != 0) 
-					val_incr > 0 ? val += (u32)val_incr : val -= (u32)(val_incr * -1);
-				if (addr_incr != 0) 
-					addr_incr > 0 ? curr_addr += (u32)addr_incr : curr_addr -= (u32)(addr_incr * -1);
+
 				LogInfo("Value Update: %08x", val);
 				LogInfo("Current Hardware Address Update: %08x", curr_addr);
 			}
@@ -671,10 +652,8 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more 
 			for (int i=0; i < write_num; i++) {
 				Memory::Write_U16(val & 0xFFFF, curr_addr);
 				LogInfo("Write %08x to address %08x", val & 0xFFFF, curr_addr);
-				if (val_incr != 0) 
-					val_incr > 0 ? val += (u32)val_incr : val -= (u32)(val_incr * -1);
-				if (addr_incr != 0) 
-					addr_incr > 0 ? curr_addr += (u32)addr_incr : curr_addr -= (u32)(addr_incr * -1);
+				curr_addr += addr_incr * 2;
+				val += val_incr;
 				LogInfo("Value Update: %08x", val);
 				LogInfo("Current Hardware Address Update: %08x", curr_addr);
 			}
@@ -686,10 +665,8 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more 
 			for (int i = 0; i < write_num; i++) {
 				Memory::Write_U32(val, curr_addr);
 				LogInfo("Write %08x to address %08x", val, curr_addr);
-				if (val_incr != 0) 
-					val_incr > 0 ? val += (u32)val_incr : val -= (u32)(val_incr * -1);
-				if (addr_incr != 0) 
-					addr_incr > 0 ? curr_addr += (u32)addr_incr : curr_addr -= (u32)(addr_incr * -1);
+				curr_addr += addr_incr * 4;
+				val += val_incr;
 				LogInfo("Value Update: %08x", val);
 				LogInfo("Current Hardware Address Update: %08x", curr_addr);
 			}
@@ -703,11 +680,12 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more 
 	return true;
 }
 
+// Looks like this is new??
 bool ZeroCode_MemoryCopy(u32 val_last, u32 addr, u32 data) // Has not been tested
 {
-	u32 addr_dest = (val_last | 0x06000000);
-	u32 addr_src = ((addr & 0x7FFFFF) | 0x80000000);
-	u8 num_bytes = (data & 0x7FFF);
+	u32 addr_dest = val_last | 0x06000000;
+	u32 addr_src = (addr & 0x01FFFFFF) | 0x80000000;
+	u8 num_bytes = data & 0x7FFF;
 	LogInfo("Dest Address: %08x", addr_dest);
 	LogInfo("Src Address: %08x", addr_src);
 	LogInfo("Size: %08x", num_bytes);
@@ -766,7 +744,7 @@ bool NormalCode(u8 subtype, u32 addr, u32 data)
 		break;
 	case SUB_MASTER_CODE : // Master Code & Write to CCXXXXXX
 		LogInfo("Doing Master Code And Write to CCXXXXXX (ncode not supported)");
-		if (!Subtype_MasterCodeAndWriteToCCXXXXXX())
+		if (!Subtype_MasterCodeAndWriteToCCXXXXXX(addr, data))
 			return false;
 		break;
 	default:
@@ -779,7 +757,7 @@ bool NormalCode(u8 subtype, u32 addr, u32 data)
 bool ConditionalCode(u8 subtype, u32 addr, u32 data, int *pCount, bool *pSkip, int compareType)
 {
 	u8 size = (addr >> 25) & 0x03;
-	u32 new_addr = ((addr & 0x7FFFFF) | 0x80000000);
+	u32 new_addr = ((addr & 0x01FFFFFF) | 0x80000000);
 	LogInfo("Size: %08x", size);
 	LogInfo("Hardware Address: %08x", new_addr);
 	bool con = true;
