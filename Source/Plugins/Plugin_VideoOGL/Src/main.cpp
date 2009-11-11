@@ -230,10 +230,13 @@ void X11AddResolutions() {
 			{
 				char temp[32];
 				sprintf(temp,"%dx%d", modes[i]->hdisplay, modes[i]->vdisplay);
+				
+				#if defined(HAVE_WX) && HAVE_WX
 				m_ConfigFrame->AddFSReso(temp);
 				m_ConfigFrame->AddWindowReso(temp);//Add same to Window ones,
 												   //since they should be
 												   //nearly all that's needed
+				#endif
 				px = modes[i]->hdisplay;//Used to remove repeating from
 										//different screen depths
 				py = modes[i]->vdisplay;

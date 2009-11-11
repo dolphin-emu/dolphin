@@ -31,10 +31,9 @@ compileFlags = [
     '-fno-exceptions',
     '-fno-strict-aliasing',
     '-msse2',
-    #'-fomit-frame-pointer'
+#    '-fomit-frame-pointer',
+#    '-flto',
     ]
-if sys.platform != 'win32':
-    compileFlags += [ '-fvisibility=hidden' ]
 
 cppDefines = [
     ( '_FILE_OFFSET_BITS', 64),

@@ -45,7 +45,7 @@ size_t strnlen(const char *s, size_t n)
   return(p ? p-s : n);
 }
 #endif
-
+#if defined(_WIN32) || !(__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
 // strdup with cropping after size n
 char* strndup(char const *s, size_t n)
 {
@@ -58,3 +58,4 @@ char* strndup(char const *s, size_t n)
 	dup[len] = '\0';
 	return (char *)memcpy(dup, s, len);
 }
+#endif

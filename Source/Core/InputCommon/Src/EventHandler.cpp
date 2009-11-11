@@ -1,4 +1,6 @@
 #include "EventHandler.h"
+#include <stdio.h>
+#include <ctype.h>
 
 #if defined HAVE_WX && HAVE_WX
 #include <wx/wx.h>

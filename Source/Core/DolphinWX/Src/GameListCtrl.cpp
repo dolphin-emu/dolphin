@@ -747,9 +747,11 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 
 			// Show a tooltip containing the EmuState and the state description
 			if (nState > 0 && nState < 6)
-				toolTip = new wxEmuStateTip(this, wxString::Format(wxT(" ^ %s%s%s"), 
-					wxString::FromAscii(emuState[nState - 1].c_str()), issues.size() > 0 ? wxT(" :\n") : wxT(""),
-					wxString::FromAscii(issues.c_str())), &toolTip);
+			{
+				char temp[2048];
+				sprintf(temp, "^ %s%s%s", emuState[nState -1].c_str(), issues.size() > 0 ? " :\n" : "", issues.c_str());
+				toolTip = new wxEmuStateTip(this, wxString::FromAscii(temp), &toolTip);
+			}
 			else
 				toolTip = new wxEmuStateTip(this, wxT("Not Set"), &toolTip);
 
