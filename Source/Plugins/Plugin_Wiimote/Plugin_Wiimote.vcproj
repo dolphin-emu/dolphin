@@ -67,7 +67,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib rpcrt4.lib  wxbase28ud.lib wxmsw28ud_core.lib"
+				AdditionalDependencies="xinput.lib comctl32.lib winmm.lib wiiuse.lib rpcrt4.lib  wxbase28ud.lib wxmsw28ud_core.lib"
 				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_WiimoteD.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"

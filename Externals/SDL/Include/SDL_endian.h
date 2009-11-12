@@ -21,9 +21,9 @@
 */
 
 /**
- * \file SDL_endian.h
- *
- * Functions for reading and writing endian-specific values
+ *  \file SDL_endian.h
+ *  
+ *  Functions for reading and writing endian-specific values
  */
 
 #ifndef _SDL_endian_h
@@ -31,9 +31,13 @@
 
 #include "SDL_stdinc.h"
 
-/* The two types of endianness */
+/**
+ *  \name The two types of endianness
+ */
+/*@{*/
 #define SDL_LIL_ENDIAN	1234
 #define SDL_BIG_ENDIAN	4321
+/*@}*/
 
 #ifndef SDL_BYTEORDER           /* Not defined in SDL_config.h? */
 #if defined(__hppa__) || \
@@ -56,11 +60,14 @@ extern "C" {
 /* *INDENT-ON* */
 #endif
 
-/* Use inline functions for compilers that support them, and static
-   functions for those that do not.  Because these functions become
-   static for compilers that do not support inline functions, this
-   header should only be included in files that actually use them.
-*/
+/**
+ *  \file SDL_endian.h
+ *  
+ *  Uses inline functions for compilers that support them, and static
+ *  functions for those that do not.  Because these functions become
+ *  static for compilers that do not support inline functions, this
+ *  header should only be included in files that actually use them.
+ */
 #if defined(__GNUC__) && defined(__i386__) && \
    !(__GNUC__ == 2 && __GNUC_MINOR__ == 95 /* broken gcc version */)
 static __inline__ Uint16
@@ -174,9 +181,9 @@ SDL_Swap64(Uint64 x)
     Uint32 hi, lo;
 
     /* Separate into high and low 32-bit values and swap them */
-    lo = (Uint32) (x & 0xFFFFFFFF);
+    lo = SDL_static_cast(Uint32, x & 0xFFFFFFFF);
     x >>= 32;
-    hi = (Uint32) (x & 0xFFFFFFFF);
+    hi = SDL_static_cast(Uint32, x & 0xFFFFFFFF);
     x = SDL_Swap32(lo);
     x <<= 32;
     x |= SDL_Swap32(hi);
@@ -184,10 +191,11 @@ SDL_Swap64(Uint64 x)
 }
 #endif
 #else
-/* This is mainly to keep compilers from complaining in SDL code.
-   If there is no real 64-bit datatype, then compilers will complain about
-   the fake 64-bit datatype that SDL provides when it compiles user code.
-*/
+/**
+ *  This is mainly to keep compilers from complaining in SDL code.
+ *  If there is no real 64-bit datatype, then compilers will complain about
+ *  the fake 64-bit datatype that SDL provides when it compiles user code.
+ */
 #define SDL_Swap64(X)	(X)
 #endif /* SDL_HAS_64BIT_TYPE */
 
@@ -206,7 +214,11 @@ SDL_SwapFloat(float x)
 }
 
 
-/* Byteswap item from the specified endianness to the native endianness */
+/**
+ *  \name Swap to native
+ *  Byteswap item from the specified endianness to the native endianness.
+ */
+/*@{*/
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN
 #define SDL_SwapLE16(X)	(X)
 #define SDL_SwapLE32(X)	(X)
@@ -226,6 +238,7 @@ SDL_SwapFloat(float x)
 #define SDL_SwapBE64(X)	(X)
 #define SDL_SwapFloatBE(X)	(X)
 #endif
+/*@}*//*Swap to native*/
 
 /* Ends C function definitions when using C++ */
 #ifdef __cplusplus

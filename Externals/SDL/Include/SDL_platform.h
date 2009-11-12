@@ -20,7 +20,11 @@
     slouken@libsdl.org
 */
 
-/* Try to get a standard set of platform defines */
+/**
+ *  \file SDL_platform.h
+ *  
+ *  Try to get a standard set of platform defines.
+ */
 
 #ifndef _SDL_platform_h
 #define _SDL_platform_h
@@ -33,6 +37,10 @@
 #undef __BEOS__
 #define __BEOS__	1
 #endif
+#if defined(__HAIKU__)
+#undef __HAIKU__
+#define __HAIKU__	1
+#endif
 #if defined(bsdi) || defined(__bsdi) || defined(__bsdi__)
 #undef __BSDI__
 #define __BSDI__	1
@@ -41,7 +49,7 @@
 #undef __DREAMCAST__
 #define __DREAMCAST__	1
 #endif
-#if defined(__FreeBSD__) || defined(__DragonFly__)
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
 #undef __FREEBSD__
 #define __FREEBSD__	1
 #endif
@@ -119,4 +127,28 @@
 #define __NINTENDODS__	1
 #endif
 
+
+#include "begin_code.h"
+/* Set up for C function definitions, even when using C++ */
+#ifdef __cplusplus
+/* *INDENT-OFF* */
+extern "C" {
+/* *INDENT-ON* */
+#endif
+
+/**
+ *  \brief Gets the name of the platform.
+ */
+extern DECLSPEC const char * SDLCALL SDL_GetPlatform (void);
+
+/* Ends C function definitions when using C++ */
+#ifdef __cplusplus
+/* *INDENT-OFF* */
+}
+/* *INDENT-ON* */
+#endif
+#include "close_code.h"
+
 #endif /* _SDL_platform_h */
+
+/* vi: set ts=4 sw=4 expandtab: */

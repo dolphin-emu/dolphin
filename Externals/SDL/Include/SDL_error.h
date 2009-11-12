@@ -21,8 +21,9 @@
 */
 
 /**
- * \file SDL_error.h
- * Simple error message routines for SDL
+ *  \file SDL_error.h
+ *  
+ *  Simple error message routines for SDL.
  */
 
 #ifndef _SDL_error_h
@@ -43,7 +44,13 @@ extern DECLSPEC void SDLCALL SDL_SetError(const char *fmt, ...);
 extern DECLSPEC char *SDLCALL SDL_GetError(void);
 extern DECLSPEC void SDLCALL SDL_ClearError(void);
 
-/* Private error message function - used internally */
+/**
+ *  \name Internal error functions
+ *  
+ *  \internal 
+ *  Private error message function - used internally.
+ */
+/*@{*/
 #define SDL_OutOfMemory()	SDL_Error(SDL_ENOMEM)
 #define SDL_Unsupported()	SDL_Error(SDL_UNSUPPORTED)
 typedef enum
@@ -56,7 +63,7 @@ typedef enum
     SDL_LASTERROR
 } SDL_errorcode;
 extern DECLSPEC void SDLCALL SDL_Error(SDL_errorcode code);
-
+/*@}*//*Internal error functions*/
 
 /* Ends C function definitions when using C++ */
 #ifdef __cplusplus

@@ -46,6 +46,7 @@ Config::Config()
 {
 	// Clear the memory
 	//memset(this, 0, sizeof(Config));
+	Loaded = false;
 }
 
 
@@ -95,7 +96,7 @@ void DEBUG_QUIT()
 void Config::Save(int Slot)
 {
 	// If there are no good pads don't save
-	if (NumGoodPads == 0) return;
+	if (NumPads == 0) return;
 
 	// Load ini file
 	IniFile file;
@@ -127,22 +128,27 @@ void Config::Save(int Slot)
 
 		// Save the physical device ID
 		file.Set(SectionName.c_str(), "joy_id", PadMapping[i].ID);
+		file.Set(SectionName.c_str(), "joy_name", PadMapping[i].Name);
 		// ===================
 		
 		// ==================================================================
 		// Joypad or slot specific settings
 		// -----------------
-			// Current joypad device ID: PadMapping[i].ID
-			// Current joypad name: joyinfo[PadMapping[i].ID].Name		
+			// Current joypad device ID:	PadMapping[i].ID
+			// Current joypad name:			IDToName(PadMapping[i].ID])		
 		if(g_Config.bSaveByID)
 		{
-			/* Save joypad specific settings. Check for "PadMapping[i].ID < SDL_NumJoysticks()" to
-			   avoid reading a joyinfo that does't exist */
-			if((u32)PadMapping[i].ID >= joyinfo.size()) continue;
-
 			// Create a new section name after the joypad name
-			SectionName = joyinfo[PadMapping[i].ID].Name;
+			SectionName = IDToName(PadMapping[i].ID);
+			// Don't save a blank name
+			if (SectionName == "")
+			{
+				ERROR_LOG(PAD, "ID %i has no name, will not save", PadMapping[i].ID);
+				continue;
+			}
 		}
+		
+		NOTICE_LOG(PAD, "Save settings for ID %i '%s' from PadMapping[%i]", PadMapping[i].ID, SectionName.c_str(), i);
 
 		file.Set(SectionName.c_str(), "l_shoulder", PadMapping[i].buttons[InputCommon::CTL_L_SHOULDER]);
 		file.Set(SectionName.c_str(), "r_shoulder", PadMapping[i].buttons[InputCommon::CTL_R_SHOULDER]);
@@ -180,8 +186,6 @@ void Config::Save(int Slot)
 		file.Set(SectionName.c_str(), "SquareToCircleC", PadMapping[i].bSquareToCircleC);
 	}
 
-	INFO_LOG(CONSOLE, "%i: Save: %i\n", 0, PadMapping[0].halfpress);
-
 	file.Save(FULL_CONFIG_DIR "nJoy.ini");
 }
 
@@ -189,8 +193,7 @@ void Config::Save(int Slot)
 // -----------------------
 void Config::Load(bool ChangePad, bool ChangeSaveByID)
 {
-	// If there are no good pads don't load
-	if (NumGoodPads == 0) return;
+	Loaded = true;
 
 	// Load file
 	IniFile file;
@@ -211,6 +214,9 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 	}
 	// =============
 
+	// If there are no good pads don't load anymore
+	if (NumPads == 0) return;
+
 	for (int i = 0; i < 4; i++)
 	{
 		std::string SectionName = StringFromFormat("PAD%i", i+1);
@@ -219,23 +225,32 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 		if (!ChangePad)
 		{
 			file.Get(SectionName.c_str(), "joy_id", &PadMapping[i].ID, 0);
+			file.Get(SectionName.c_str(), "joy_name", &PadMapping[i].Name, "");
 		}
 
 		// ==================================================================
 		// Joypad or slot specific settings
 		// -----------------
-			// Current joypad device ID: PadMapping[i].ID
-			// Current joypad name: joyinfo[PadMapping[i].ID].Name
-		if(g_Config.bSaveByID)
+			// Current joypad device ID:	PadMapping[i].ID
+			// Current joypad name:			IDToName(PadMapping[i].ID)
+		if (g_Config.bSaveByID)
 		{
-			// Prevent a crash from illegal access to joyinfo that will only have values for
-			// the current amount of connected pads 
-			if((u32)PadMapping[i].ID >= joyinfo.size()) continue;
-
 			// Create a section name			
-			SectionName = joyinfo[PadMapping[i].ID].Name;
+			SectionName = PadMapping[i].Name;
+			// Don't load settings for a non-connected device
+			if (!IsConnected(SectionName))
+			{
+				ERROR_LOG(PAD, "Slot %i: The device '%s' is not connected, will not load settings", SectionName.c_str());
+				continue;
+			}
+			// Don't load a blank ID
+			if (SectionName == "")
+			{
+				ERROR_LOG(PAD, "Slot %i has no device name, will not load settings", i);
+				continue;
+			}
 		}
-
+			
 		file.Get(SectionName.c_str(), "l_shoulder", &PadMapping[i].buttons[InputCommon::CTL_L_SHOULDER], 4);
 		file.Get(SectionName.c_str(), "r_shoulder", &PadMapping[i].buttons[InputCommon::CTL_R_SHOULDER], 5);
 		file.Get(SectionName.c_str(), "a_button", &PadMapping[i].buttons[InputCommon::CTL_A_BUTTON], 0);
@@ -269,8 +284,11 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 		file.Get(SectionName.c_str(), "RadiusOnOffC", &Tmp, false); PadMapping[i].bRadiusOnOffC = Tmp;
 		file.Get(SectionName.c_str(), "DiagonalC", &PadMapping[i].SDiagonalC, "100%");
 		file.Get(SectionName.c_str(), "SquareToCircleC", &Tmp, false); PadMapping[i].bSquareToCircleC = Tmp;
+		
+		NOTICE_LOG(PAD, "Slot %i: Load settings for ID %i '%s'", i, PadMapping[i].ID, SectionName.c_str());
+
 	}
 
-	INFO_LOG(CONSOLE, "%i: Load: %i\n", 0, PadMapping[0].halfpress);
+	//INFO_LOG(PAD, "%i: Load: %i\n", 0, PadMapping[0].halfpress);
 }
 

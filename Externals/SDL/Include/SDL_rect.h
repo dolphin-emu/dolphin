@@ -21,9 +21,9 @@
 */
 
 /**
- * \file SDL_rect.h
- *
- * Header file for SDL_rect definition and management functions
+ *  \file SDL_rect.h
+ *  
+ *  Header file for SDL_rect definition and management functions.
  */
 
 #ifndef _SDL_rect_h
@@ -43,15 +43,13 @@ extern "C" {
 #endif
 
 /**
- * \struct SDL_Rect
- *
- * \brief A rectangle, with the origin at the upper left.
- *
- * \sa SDL_RectEmpty
- * \sa SDL_RectEquals
- * \sa SDL_HasIntersection
- * \sa SDL_IntersectRect
- * \sa SDL_UnionRect
+ *  \brief A rectangle, with the origin at the upper left.
+ *  
+ *  \sa SDL_RectEmpty
+ *  \sa SDL_RectEquals
+ *  \sa SDL_HasIntersection
+ *  \sa SDL_IntersectRect
+ *  \sa SDL_UnionRect
  */
 typedef struct SDL_Rect
 {
@@ -60,56 +58,44 @@ typedef struct SDL_Rect
 } SDL_Rect;
 
 /**
- * \def SDL_RectEmpty()
- *
- * \brief Returns true if the rectangle has no area.
+ *  \brief Returns true if the rectangle has no area.
  */
 #define SDL_RectEmpty(X)    (((X)->w <= 0) || ((X)->h <= 0))
 
 /**
- * \def SDL_RectEquals()
- *
- * \brief Returns true if the two rectangles are equal.
+ *  \brief Returns true if the two rectangles are equal.
  */
 #define SDL_RectEquals(A, B)   (((A)->x == (B)->x) && ((A)->y == (B)->y) && \
                                 ((A)->w == (B)->w) && ((A)->h == (B)->h))
 
 /**
- * \fn SDL_bool SDL_HasIntersection(const SDL_Rect * A, const SDL_Rect * B);
- *
- * \brief Determine whether two rectangles intersect.
- *
- * \return SDL_TRUE if there is an intersection, SDL_FALSE otherwise.
+ *  \brief Determine whether two rectangles intersect.
+ *  
+ *  \return SDL_TRUE if there is an intersection, SDL_FALSE otherwise.
  */
 extern DECLSPEC SDL_bool SDLCALL SDL_HasIntersection(const SDL_Rect * A,
                                                      const SDL_Rect * B);
 
 /**
- * \fn SDL_bool SDL_IntersectRect(const SDL_Rect * A, const SDL_Rect * B, SDL_Rect * result)
- *
- * \brief Calculate the intersection of two rectangles.
- *
- * \return SDL_TRUE if there is an intersection, SDL_FALSE otherwise.
+ *  \brief Calculate the intersection of two rectangles.
+ *  
+ *  \return SDL_TRUE if there is an intersection, SDL_FALSE otherwise.
  */
 extern DECLSPEC SDL_bool SDLCALL SDL_IntersectRect(const SDL_Rect * A,
                                                    const SDL_Rect * B,
                                                    SDL_Rect * result);
 
 /**
- * \fn void SDL_UnionRect(const SDL_Rect * A, const SDL_Rect * B, SDL_Rect * result)
- *
- * \brief Calculate the union of two rectangles
+ *  \brief Calculate the union of two rectangles.
  */
 extern DECLSPEC void SDLCALL SDL_UnionRect(const SDL_Rect * A,
                                            const SDL_Rect * B,
                                            SDL_Rect * result);
 
 /**
- * \fn SDL_bool SDL_IntersectRectAndLine(const SDL_Rect *rect, int *X1, int *Y1, int *X2, int *Y2)
- *
- * \brief Calculate the intersection of a rectangle and line segment.
- *
- * \return SDL_TRUE if there is an intersection, SDL_FALSE otherwise.
+ *  \brief Calculate the intersection of a rectangle and line segment.
+ *  
+ *  \return SDL_TRUE if there is an intersection, SDL_FALSE otherwise.
  */
 extern DECLSPEC SDL_bool SDLCALL SDL_IntersectRectAndLine(const SDL_Rect *
                                                           rect, int *X1,

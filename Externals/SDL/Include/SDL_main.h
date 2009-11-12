@@ -25,7 +25,11 @@
 
 #include "SDL_stdinc.h"
 
-/* Redefine main() on some platforms so that it is called by SDL */
+/**
+ *  \file SDL_main.h
+ *  
+ *  Redefine main() on some platforms so that it is called by SDL.
+ */
 
 #if defined(__WIN32__) || \
     (defined(__MWERKS__) && !defined(__BEOS__)) || \
@@ -37,18 +41,26 @@
 #define C_LINKAGE
 #endif /* __cplusplus */
 
-/* The application's main() function must be called with C linkage,
-   and should be declared like this:
-#ifdef __cplusplus
-extern "C"
-#endif
-	int main(int argc, char *argv[])
-	{
-	}
+/**
+ *  \file SDL_main.h
+ *
+ *  The application's main() function must be called with C linkage,
+ *  and should be declared like this:
+ *  \code
+ *  #ifdef __cplusplus
+ *  extern "C"
+ *  #endif
+ *  int main(int argc, char *argv[])
+ *  {
+ *  }
+ *  \endcode
  */
+
 #define main	SDL_main
 
-/* The prototype for the application's main() function */
+/**
+ *  The prototype for the application's main() function
+ */
 extern C_LINKAGE int SDL_main(int argc, char *argv[]);
 
 
@@ -62,7 +74,9 @@ extern "C" {
 /* *INDENT-ON* */
 #endif
 
-/* This can be called to set the application class at startup */
+/**
+ *  This can be called to set the application class at startup
+ */
 extern DECLSPEC int SDLCALL SDL_RegisterApp(char *name, Uint32 style,
                                             void *hInst);
 extern DECLSPEC void SDLCALL SDL_UnregisterApp(void);

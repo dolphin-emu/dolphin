@@ -182,7 +182,8 @@ static const u8 partially_id[] =
 };
 
 // Gamepad input
-extern int NumPads, NumGoodPads; // Number of goods pads
+extern int NumPads, NumDIDevices; // Number of pads
+extern bool SDLPolling; // Turn off polling
 extern std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 extern InputCommon::CONTROLLER_STATE_NEW PadState[4];
 extern InputCommon::CONTROLLER_MAPPING_NEW PadMapping[4];

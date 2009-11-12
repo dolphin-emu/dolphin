@@ -59,9 +59,11 @@ class WiimotePadConfigDialog : public wxDialog
 		void Convert2Box(int &x);
 		void ConvertToString();
 		void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
+		void Update(wxTimerEvent& WXUNUSED(event));
 		void UpdatePad(wxTimerEvent& WXUNUSED(event));
 
-		wxTimer *m_UpdatePad,
+		wxTimer	*m_Update,
+				*m_UpdatePad,
 				*m_ButtonMappingTimer;
 
 		wxStaticBitmap  *m_bmpDotLeftIn[4],
@@ -74,6 +76,7 @@ class WiimotePadConfigDialog : public wxDialog
 		DECLARE_EVENT_TABLE();
 
 		bool ControlsCreated;
+		bool LiveUpdates;
 		int Page, BoxW, BoxH, g_Pressed;
 
 		wxNotebook *m_Notebook;
@@ -142,7 +145,9 @@ class WiimotePadConfigDialog : public wxDialog
 			*m_Button_GH3[GH3_CONTROLS][4],
 			*m_bGH3_Analog[4];
 
-		wxStaticText *m_TextScreenWidth[4], *m_TextScreenHeight[4], *m_TextScreenLeft[4], *m_TextScreenTop[4], *m_TextAR[4],
+		wxStaticText
+			*m_pStatusBar,
+			*m_TextScreenWidth[4], *m_TextScreenHeight[4], *m_TextScreenLeft[4], *m_TextScreenTop[4], *m_TextAR[4],
 			*m_tAnalogX[8], *m_tAnalogY[8], *m_TiltTextRoll[4], *m_TiltTextPitch[4],
 			*m_CheckC2SLabel[4], *m_ComboDeadZoneLabel[4], *m_TStatusLeftIn[4], *m_TStatusLeftOut[4], *m_TStatusRightIn[4], *m_TStatusRightOut[4],
 			*m_TriggerStatusL[4], *m_TriggerStatusR[4], *m_TriggerStatusLx[4], *m_TriggerStatusRx[4],
@@ -178,10 +183,12 @@ class WiimotePadConfigDialog : public wxDialog
 		{
 			ID_CLOSE = 1000,
 			ID_APPLY,
-			IDTM_EXIT,
+			IDTM_EXIT, // Timer
 			IDTM_BUTTON,
-			IDTM_UPDATE_PAD, // Timer
-
+			IDTM_UPDATE,
+			IDTM_UPDATE_PAD,
+			
+			IDT_DEBUGGING,
 			ID_NOTEBOOK,
 			ID_CONTROLLERPAGE1,
 			ID_CONTROLLERPAGE2,
@@ -246,6 +253,7 @@ class WiimotePadConfigDialog : public wxDialog
 		};
 
 		void OnClose(wxCloseEvent& event);
+		void UpdateDeviceList();
 		void CreatePadGUIControls();
 		void GeneralSettingsChanged(wxCommandEvent& event);
 
@@ -257,8 +265,9 @@ class WiimotePadConfigDialog : public wxDialog
 		void SaveKeyboardMapping(int Controller, int Id, int Key);
 		void ToBlank(bool ToBlank = true);
 		void PadGetStatus();
+		void UpdateID();
 		void DoSave(bool ChangePad = false, int Slot = -1);
-		void DoChangeJoystick(); void PadOpen(int Open); void PadClose(int Close); void DoChangeDeadZone(bool Left);
+		void DoChangeJoystick(); void DoChangeDeadZone(bool Left);
 		void OnButtonClick(wxCommandEvent& event);
 
 		// Configure buttons

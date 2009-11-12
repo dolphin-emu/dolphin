@@ -25,6 +25,7 @@
 
 #include "SDL_platform.h"
 
+#if !defined(_STDINT_H_) && (!defined(HAVE_STDINT_H) || !_HAVE_STDINT_H)
 typedef signed char int8_t;
 typedef unsigned char uint8_t;
 typedef signed short int16_t;
@@ -32,6 +33,14 @@ typedef unsigned short uint16_t;
 typedef signed int int32_t;
 typedef unsigned int uint32_t;
 typedef unsigned long uintptr_t;
+#endif /* !_STDINT_H_ && !HAVE_STDINT_H */
+
+#ifdef __LP64__
+#define SIZEOF_VOIDP 8
+#else
+#define SIZEOF_VOIDP 4
+#endif
+
 #define SDL_HAS_64BIT_TYPE	1
 
 #define HAVE_ALLOCA_H		1
@@ -82,6 +91,18 @@ typedef unsigned long uintptr_t;
 #define HAVE_SSCANF	1
 #define HAVE_SNPRINTF	1
 #define HAVE_VSNPRINTF	1
+#define HAVE_CEIL	1
+#define HAVE_COPYSIGN	1
+#define HAVE_COS	1
+#define HAVE_COSF	1
+#define HAVE_FABS	1
+#define HAVE_FLOOR	1
+#define HAVE_LOG	1
+#define HAVE_POW	1
+#define HAVE_SCALBN	1
+#define HAVE_SIN	1
+#define HAVE_SINF	1
+#define HAVE_SQRT	1
 #define HAVE_SIGACTION	1
 #define HAVE_SETJMP	1
 #define HAVE_NANOSLEEP	1
@@ -90,9 +111,6 @@ typedef unsigned long uintptr_t;
 #define SDL_AUDIO_DRIVER_COREAUDIOIPHONE 1
 /* Enable the dummy audio driver (src/audio/dummy/\*.c) */
 #define SDL_AUDIO_DRIVER_DUMMY	1
-
-/* Enable the stub cdrom driver (src/cdrom/dummy/\*.c) */
-#define SDL_CDROM_DISABLED	1
 
 /* Enable the stub haptic driver (src/haptic/dummy/\*.c) */
 #define SDL_HAPTIC_DISABLED	1
@@ -118,6 +136,9 @@ typedef unsigned long uintptr_t;
 /* enable OpenGL ES */
 #define SDL_VIDEO_OPENGL_ES	1
 #define SDL_VIDEO_RENDER_OGL_ES	1
+
+/* Enable system power support */
+#define SDL_POWER_MACOSX 1
 
 /* enable iPhone keyboard support */
 #define SDL_IPHONE_KEYBOARD 1

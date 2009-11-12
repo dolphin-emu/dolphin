@@ -62,11 +62,16 @@ class PADConfigDialognJoy : public wxDialog
 			long style = wxDEFAULT_DIALOG_STYLE);
 		virtual ~PADConfigDialognJoy();
 
+		// Timers
 	#if wxUSE_TIMER
+		void OnSlowTimer(wxTimerEvent& WXUNUSED(event)) { UpdateSlow(); }
 		void OnTimer(wxTimerEvent& WXUNUSED(event)) { Update(); }
 		void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
-		wxTimer *m_ConstantTimer, *m_ButtonMappingTimer;
+		wxTimer *m_SlowTimer, *m_ConstantTimer, *m_ButtonMappingTimer;
 	#endif
+
+		// Functions
+		void DoShow();
 
 		// Debugging
 		wxStaticText* m_pStatusBar, * m_pStatusBar2;
@@ -195,7 +200,10 @@ class PADConfigDialognJoy : public wxDialog
 			*m_bmpSquare[4], *m_bmpDot[4], *m_bmpSquareOut[4], *m_bmpDotOut[4], *m_bmpAreaOut[4],
 			*m_bmpSquareC[4], *m_bmpDotC[4], *m_bmpSquareOutC[4], *m_bmpDotOutC[4], *m_bmpAreaOutC[4];
 		
-		int notebookpage; bool ControlsCreated;
+		// Settings
+		int notebookpage;
+		bool ControlsCreated;
+		bool LiveUpdates;
 
 	private:
 		enum
@@ -233,7 +241,7 @@ class PADConfigDialognJoy : public wxDialog
 			IDT_TRIGGERS, IDCB_CHECKFOCUS, IDCB_FILTER_SETTINGS,
 
 			// Timers
-			IDTM_CONSTANT, IDTM_BUTTON,
+			IDTM_SLOW, IDTM_CONSTANT, IDTM_BUTTON,
 
 
 			// ==============================================
@@ -316,6 +324,8 @@ class PADConfigDialognJoy : public wxDialog
 		void OKClick(wxCommandEvent& event);
 		void CancelClick(wxCommandEvent& event);
 		void DoSave(bool ChangePad = false, int Slot = -1);
+		void UpdateID();
+		void StartTimer();
 
 		void DoChangeJoystick(); 
 
@@ -323,20 +333,22 @@ class PADConfigDialognJoy : public wxDialog
 
 		void ChangeSettings(wxCommandEvent& event);
 		void ComboChange(wxCommandEvent& event);
-
+		
 		void OnClose(wxCloseEvent& event);
+		void UpdateDeviceList();
 		void CreateGUIControls();
 		void CreateAdvancedControls(int i);
 		wxBitmap CreateBitmap(); 
 		wxBitmap CreateBitmapDot();
 		wxBitmap CreateBitmapArea(int,int);
-		void PadGetStatus(); 
+		void PadShowStatus(); 
+		void UpdateSlow();
 		void Update();
  
 		void UpdateGUIButtonMapping(int controller);
 		void SaveButtonMapping(int controller, bool DontChangeId = false, int FromSlot = -1);
 		void SaveButtonMappingAll(int Slot);
-		void UpdateGUIAll(int Slot);
+		void UpdateGUIAll(int Slot = -1);
 		void ToBlank(bool ToBlank = true);
 		void OnSaveById();
 

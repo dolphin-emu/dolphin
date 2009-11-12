@@ -27,6 +27,7 @@
 
 /* This is a set of defines to configure the SDL features */
 
+#if !defined(_STDINT_H_) && (!defined(HAVE_STDINT_H) || !_HAVE_STDINT_H)
 #if defined(__GNUC__) || defined(__DMC__)
 #define HAVE_STDINT_H	1
 #elif defined(_MSC_VER)
@@ -68,6 +69,13 @@ typedef unsigned int size_t;
 #endif
 typedef unsigned int uintptr_t;
 #endif /* __GNUC__ || _MSC_VER */
+#endif /* !_STDINT_H_ && !HAVE_STDINT_H */
+
+#ifdef _WIN64
+# define SIZEOF_VOIDP 8
+#else
+# define SIZEOF_VOIDP 4
+#endif
 #define SDL_HAS_64BIT_TYPE	1
 
 /* Enabled for SDL 1.2 (binary compatibility) */
@@ -142,13 +150,6 @@ typedef unsigned int uintptr_t;
 #define SDL_AUDIO_DRIVER_DISK	1
 #define SDL_AUDIO_DRIVER_DUMMY	1
 
-/* Enable various cdrom drivers */
-#ifdef _WIN32_WCE
-#define SDL_CDROM_DISABLED	1
-#else
-#define SDL_CDROM_WIN32		1
-#endif
-
 /* Enable various input drivers */
 #ifdef _WIN32_WCE
 #define SDL_JOYSTICK_DISABLED	1
@@ -184,6 +185,9 @@ typedef unsigned int uintptr_t;
 #define SDL_VIDEO_OPENGL_WGL	1
 #define SDL_VIDEO_RENDER_OGL	1
 #endif
+
+/* Enable system power support */
+#define SDL_POWER_WINDOWS 1
 
 /* Enable assembly routines (Win64 doesn't have inline asm) */
 #ifndef _WIN64

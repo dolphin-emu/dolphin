@@ -50,8 +50,11 @@ void PADConfigDialognJoy::UpdateGUIButtonMapping(int controller)
 	// http://wiki.wxwidgets.org/Converting_everything_to_and_from_wxString
 	wxString tmp;
 
+	// Assert
+	//if (!ControlsCreated[i]) return;
+
 	// Update selected gamepad
-	m_Joyname[controller]->SetSelection(PadMapping[controller].ID);
+	m_Joyname[controller]->SetValue(wxString::FromAscii(PadMapping[controller].Name.c_str()));
 
 	tmp << PadMapping[controller].buttons[InputCommon::CTL_L_SHOULDER]; m_JoyShoulderL[controller]->SetValue(tmp); tmp.clear();
 	tmp << PadMapping[controller].buttons[InputCommon::CTL_R_SHOULDER]; m_JoyShoulderR[controller]->SetValue(tmp); tmp.clear();
@@ -99,7 +102,8 @@ void PADConfigDialognJoy::UpdateGUIButtonMapping(int controller)
 		tmp << PadMapping[controller].dpad2[InputCommon::CTL_D_PAD_LEFT]; m_JoyDpadLeft[controller]->SetValue(tmp); tmp.clear();
 		tmp << PadMapping[controller].dpad2[InputCommon::CTL_D_PAD_RIGHT]; m_JoyDpadRight[controller]->SetValue(tmp); tmp.clear();
 	}
-
+	
+	NOTICE_LOG(PAD, "Loaded from PadMapping[%i] to slot %i", controller, controller);
 }
 
 /* Populate the PadMapping array with the dialog items settings (for example
@@ -117,7 +121,21 @@ void PADConfigDialognJoy::SaveButtonMapping(int controller, bool DontChangeId, i
 	ToBlank(false);
 
 	// Set other settings
-	if(!DontChangeId) PadMapping[controller].ID = m_Joyname[FromSlot]->GetSelection();
+	if(!DontChangeId)
+	{		
+		if (joyinfo.size() > m_Joyname[FromSlot]->GetSelection())
+		{
+			INFO_LOG(PAD, "%i: Changed PadMapping ID from %i to %i", controller, PadMapping[controller].ID, joyinfo.at(m_Joyname[FromSlot]->GetSelection()).ID);
+			PadMapping[controller].ID = joyinfo.at(m_Joyname[FromSlot]->GetSelection()).ID;			
+		}
+		//else
+			// Assert
+		PadMapping[controller].Name = m_Joyname[FromSlot]->GetValue().mb_str();	
+	}
+	
+	NOTICE_LOG(PAD, "Saved PadMapping[%i] from slot %i", controller, FromSlot);
+	
+	// Settings
 	PadMapping[controller].controllertype = m_ControlType[FromSlot]->GetSelection();
 	PadMapping[controller].triggertype = m_TriggerType[FromSlot]->GetSelection();
 	PadMapping[controller].deadzone = m_Deadzone[FromSlot]->GetSelection();
@@ -264,6 +282,13 @@ void PADConfigDialognJoy::GetButtons(wxCommandEvent& event)
 
 void PADConfigDialognJoy::DoGetButtons(int GetId)
 {
+	//INFO_LOG(PAD, "DoGetButtons: %i", GetId);
+
+	if (!SDLPolling || SDL_JoystickEventState(SDL_QUERY) == SDL_ENABLE) return;
+
+	// Turn off live updates because the change the joy handles
+	LiveUpdates = false;
+
 	// =============================================
 	// Collect the starting values
 	// ----------------
@@ -280,7 +305,7 @@ void PADConfigDialognJoy::DoGetButtons(int GetId)
 	int Axes = SDL_JoystickNumAxes(joy);
 	int Hats = SDL_JoystickNumHats(joy);
 
-	INFO_LOG(CONSOLE, "PadID: %i Axes: %i\n", PadID, joyinfo[PadID].NumAxes, joyinfo[PadID].joy);
+	//NOTICE_LOG(PAD, "PadID: %i Axes: %i Handle: %i\n", PadID, joyinfo[PadID].NumAxes, joyinfo[PadID].joy);
 
 	// Get the controller and trigger type
 	int ControllerType = PadMapping[Controller].controllertype;
@@ -343,6 +368,8 @@ void PADConfigDialognJoy::DoGetButtons(int GetId)
 		#if wxUSE_TIMER
 			m_ButtonMappingTimer->Start( floor((double)(1000 / TimesPerSecond)) );
 		#endif
+		
+		//INFO_LOG(PAD, "Timer started");
 	}
 
 	// ===============================================
@@ -353,7 +380,7 @@ void PADConfigDialognJoy::DoGetButtons(int GetId)
 	else
 	{
 		InputCommon::GetButton(
-			joy, PadID, Buttons, Axes, Hats, 
+			joy, PadID,
 			g_Pressed, value, type, pressed, Succeed, Stop,
 			LeftRight, Axis, XInput, Button, Hat, NoTriggerFilter);
 	}
@@ -368,7 +395,7 @@ void PADConfigDialognJoy::DoGetButtons(int GetId)
 	GetButtonWaitingTimer++;
 
 	// This is run every second
-	if(GetButtonWaitingTimer % TimesPerSecond == 0)
+	if (GetButtonWaitingTimer % TimesPerSecond == 0)
 	{
 		// Current time
 		int TmpTime = Seconds - (GetButtonWaitingTimer / TimesPerSecond);
@@ -379,7 +406,7 @@ void PADConfigDialognJoy::DoGetButtons(int GetId)
 	}
 
 	// Time's up
-	if( (GetButtonWaitingTimer / TimesPerSecond) >= Seconds )
+	if ( (GetButtonWaitingTimer / TimesPerSecond) >= Seconds )
 	{
 		Stop = true;
 		// Leave a blank mapping
@@ -387,8 +414,10 @@ void PADConfigDialognJoy::DoGetButtons(int GetId)
 	}
 
 	// If we got a button
-	if(Succeed)
+	if (Succeed)
 	{
+		//INFO_LOG(PAD, "Button mapping succeeded: %i", pressed);
+	
 		Stop = true;		
 		// Write the number of the pressed button to the text box
 		sprintf(format, "%d", pressed);
@@ -396,10 +425,12 @@ void PADConfigDialognJoy::DoGetButtons(int GetId)
 	}
 
 	// Stop the timer
-	if(Stop)
+	if (Stop)
 	{
 		m_ButtonMappingTimer->Stop();
 		GetButtonWaitingTimer = 0;
+		LiveUpdates = true;
+		//INFO_LOG(PAD, "Timer stopped");
 
 		/* Update the button mapping for all slots that use this device. (It doesn't make sense to have several slots
 		   controlled by the same device, but several DirectInput instances of different but identical devices may possible

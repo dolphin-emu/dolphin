@@ -98,6 +98,7 @@ BEGIN_EVENT_TABLE(WiimotePadConfigDialog,wxDialog)
 	EVT_BUTTON(IDB_TRIGGER_L, WiimotePadConfigDialog::GetButtons)
 	EVT_BUTTON(IDB_TRIGGER_R, WiimotePadConfigDialog::GetButtons)
 	EVT_TIMER(IDTM_BUTTON, WiimotePadConfigDialog::OnButtonTimer)
+	EVT_TIMER(IDTM_UPDATE, WiimotePadConfigDialog::Update)
 	EVT_TIMER(IDTM_UPDATE_PAD, WiimotePadConfigDialog::UpdatePad)
 END_EVENT_TABLE()
 
@@ -107,14 +108,25 @@ WiimotePadConfigDialog::WiimotePadConfigDialog(wxWindow *parent, wxWindowID id, 
 {
 #if wxUSE_TIMER
 	m_ButtonMappingTimer = new wxTimer(this, IDTM_BUTTON);
-	m_UpdatePad = new wxTimer(this, IDTM_UPDATE_PAD);
+	m_Update = new wxTimer(this, IDTM_UPDATE);	
+	m_UpdatePad = new wxTimer(this, IDTM_UPDATE_PAD);	
 
 	// Reset values
 	GetButtonWaitingID = 0;
 	GetButtonWaitingTimer = 0;
+	// Settings
+	// Only tested in Windows
+	#ifdef _WIN32
+	LiveUpdates = true;
+	#else
+	LiveUpdates = false;
+	#endif
 
-	// Start the permanent timer
-	const int TimesPerSecond = 30;
+	// Start the slow timer
+	int TimesPerSecond = 2;
+	m_Update->Start( floor((double)(1000 / TimesPerSecond)) );
+	// Start the fast timer
+	TimesPerSecond = 30;
 	m_UpdatePad->Start( floor((double)(1000 / TimesPerSecond)) );
 #endif
 
@@ -128,6 +140,9 @@ WiimotePadConfigDialog::WiimotePadConfigDialog(wxWindow *parent, wxWindowID id, 
 	
 	// Set control values
 	UpdateGUI();
+	
+	// Update device list
+	UpdateDeviceList();
 
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
 		wxKeyEventHandler(WiimotePadConfigDialog::OnKeyDown),
@@ -204,9 +219,13 @@ void WiimotePadConfigDialog::OnClose(wxCloseEvent& event)
 {
 	g_FrameOpen = false;
 	SaveButtonMappingAll(Page);
-	if(m_UpdatePad)
-		m_UpdatePad->Stop();
+	// Stop timers
+	if(m_Update) m_Update->Stop();
+	if(m_UpdatePad) m_UpdatePad->Stop();	
+	if(m_ButtonMappingTimer) m_ButtonMappingTimer->Stop();
+	INFO_LOG(WIIMOTE, "All timers stopped");
 	g_Config.Save();
+	
 	event.Skip();
 }
 
@@ -228,18 +247,20 @@ void WiimotePadConfigDialog::CloseClick(wxCommandEvent& event)
 
 void WiimotePadConfigDialog::DoSave(bool ChangePad, int Slot)
 {
+	WARN_LOG(WIIMOTE, "DoSave - %i slot %i", ChangePad, Slot);
+
 	// Replace "" with "-1" before we are saving
 	ToBlank(false);
 
 	if(ChangePad)
 	{
 		// Since we are selecting the pad to save to by the Id we can't update it when we change the pad
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < MAX_WIIMOTES; i++)
 			SaveButtonMapping(i, true);
 		// Save the settings for the current pad
 		g_Config.Save(Slot);
 		// Now we can update the ID
-		WiiMoteEmu::PadMapping[Page].ID = m_Joyname[Page]->GetSelection();
+		UpdateID();
 	}
 	else
 	{
@@ -251,8 +272,14 @@ void WiimotePadConfigDialog::DoSave(bool ChangePad, int Slot)
 
 	// Then change it back to ""
 	ToBlank();
-
-	DEBUG_LOG(WIIMOTE, "WiiMoteEmu::PadMapping[%i].ID = %i", Page, m_Joyname[Page]->GetSelection());
+}
+void WiimotePadConfigDialog::UpdateID()
+{
+	INFO_LOG(WIIMOTE, "PadMapping[%i].ID = %i from %i",
+		Page, WiiMoteEmu::joyinfo.at(m_Joyname[Page]->GetSelection()).ID, WiiMoteEmu::PadMapping[Page].ID);
+	WiiMoteEmu::PadMapping[Page].ID = WiiMoteEmu::joyinfo.at(m_Joyname[Page]->GetSelection()).ID;	
+	WiiMoteEmu::PadMapping[Page].Name = m_Joyname[Page]->GetValue().mb_str();	
+	WiiMoteEmu::PadState[Page].joy = WiiMoteEmu::joyinfo.at(m_Joyname[Page]->GetSelection()).joy;
 }
 
 // Bitmap box and dot
@@ -325,24 +352,40 @@ wxBitmap WiimotePadConfigDialog::CreateBitmapClear()
 	return bitmap;
 }
 
+void WiimotePadConfigDialog::UpdateDeviceList()
+{
+	if (!ControlsCreated) return;
 
+	DEBUG_LOG(WIIMOTE, "UpdateDeviceList");
+
+	for (int i = 0; i < MAX_WIIMOTES; i++)
+	{
+		// Save current selection
+		//std::string CurrentSel = m_Joyname[i]->GetValue().mb_str();
+		m_Joyname[i]->Clear();
+
+		// Search for devices and add them to the device list	
+		if (WiiMoteEmu::NumPads > 0)
+		{
+			for (int j = 0; j < WiiMoteEmu::NumPads; j++)	
+				m_Joyname[i]->Append(wxString::FromAscii(WiiMoteEmu::joyinfo.at(j).Name.c_str()));
+			// Set selection
+			for (int j = 0; j <  WiiMoteEmu::NumPads; j++)	
+				if (WiiMoteEmu::joyinfo.at(j).Name == WiiMoteEmu::PadMapping[i].Name) m_Joyname[i]->SetSelection(j);
+			if (m_Joyname[i]->GetSelection() == -1) m_Joyname[i]->SetSelection(0);
+			// Load settings
+			DoChangeJoystick();
+		}
+		else
+		{
+			m_Joyname[i]->Append(wxString::FromAscii("<No Gamepad Detected>"));		
+			m_Joyname[i]->SetSelection(0);
+		}
+	}	
+}
 
 void WiimotePadConfigDialog::CreatePadGUIControls()
 {
-
-
-	// Search for devices and add them to the device list
-	wxArrayString StrJoyname; // The string array
-	if (WiiMoteEmu::NumGoodPads > 0)
-	{
-		for (int x = 0; x < (int)WiiMoteEmu::joyinfo.size(); x++)
-			StrJoyname.Add(wxString::FromAscii(WiiMoteEmu::joyinfo[x].Name.c_str()));
-	}
-	else
-	{
-		StrJoyname.Add(wxString::FromAscii("<No Gamepad Detected>"));
-	}
-
 	// The tilt list
 	wxArrayString StrTilt;
 	StrTilt.Add(wxString::FromAscii("<Off>"));
@@ -372,13 +415,17 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 	wxArrayString StrCcTriggers;
 	StrCcTriggers.Add(wxString::FromAscii("Keyboard"));
 	StrCcTriggers.Add(wxString::FromAscii("Triggers"));
-
-
+	
+	#ifdef SHOW_PAD_STATUS
+	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxSize(-1, 600));
+	m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(250, 250), wxDefaultSize);
+	#else
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
+	#endif
 
 	for (int i = 0; i < MAX_WIIMOTES; i++)
-	{
-		m_Controller[i] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE1 + i, wxDefaultPosition, wxDefaultSize);
+	{		
+		m_Controller[i] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE1 + i, wxDefaultPosition, wxDefaultSize);		
 		m_Notebook->AddPage(m_Controller[i], wxString::Format(wxT("Wiimote %d"), i+1));
 
 		// A small type font
@@ -387,9 +434,8 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		// Configuration controls sizes
 		static const int TxtW = 50, TxtH = 19, BtW = 75, BtH = 20;
 
-
 		// Controller
-		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(200, -1), StrJoyname, wxCB_READONLY);
+		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, wxEmptyString, wxDefaultPosition, wxSize(200, -1), 0, NULL, wxCB_READONLY);
 	
 		// Circle to square
 		m_CheckC2S[i] = new wxCheckBox(m_Controller[i], IDC_LEFT_C2S, wxT("Circle To Square"));
@@ -946,7 +992,6 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 	}
 
 
-
 	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"));
 	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"));
 	m_Close->SetToolTip(wxT("Apply and Close"));
@@ -1037,14 +1082,16 @@ void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 
 void WiimotePadConfigDialog::UpdateGUI(int Slot)
 {
+	DEBUG_LOG(WIIMOTE, "UpdateGUI");
+
 	UpdateGUIButtonMapping(Page);
 	DoChangeDeadZone(true); DoChangeDeadZone(false);
 
 	// Linux has no FindItem()
 	// Disable all pad items if no pads are detected
-	if(ControlsCreated)
+	if (ControlsCreated)
 	{
-		bool PadEnabled = WiiMoteEmu::NumGoodPads != 0;
+		bool PadEnabled = WiiMoteEmu::NumPads != 0;
 		#ifdef _WIN32
 			for(int i = IDB_ANALOG_LEFT_X; i <= IDB_TRIGGER_R; i++) m_Notebook->FindItem(i)->Enable(PadEnabled);
 			m_Notebook->FindItem(IDC_JOYNAME)->Enable(PadEnabled);

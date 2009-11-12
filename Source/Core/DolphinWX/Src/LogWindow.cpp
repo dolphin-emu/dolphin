@@ -234,7 +234,7 @@ void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 	for (int i = 0; i < msgQueueSize; i++) 
 		msgQueue.pop();
 	m_LogSection.Leave();
-
+	
 	m_console->ClearScreen();
 	NOTICE_LOG(CONSOLE, "Console cleared");
 	NotifyUpdate();
@@ -517,11 +517,12 @@ void CLogWindow::UpdateLog()
 	m_LogTimer->Start(UPDATETIME);
 }
 
+// Receive log messages
 void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text) 
 {
 	m_LogSection.Enter();
-	if (msgQueue.size() >= 100)
-		msgQueue.pop();
+	// Remove the first message if the queue is big
+	//if (msgQueue.size() >= 200) msgQueue.pop();
 	msgQueue.push(std::pair<u8, wxString>((u8)level, wxString::FromAscii(text)));
 	m_LogSection.Leave();
 }

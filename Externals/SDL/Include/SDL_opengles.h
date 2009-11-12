@@ -20,10 +20,13 @@
  slouken@libsdl.org
  */
 
-/*
-	This is a simple file to encapsulate the OpenGL ES API headers.
-	Headers copied from The Kronos Group website.
-	http://www.khronos.org/opengles/
+/**
+ *  \file SDL_opengles.h
+ *  
+ *  This is a simple file to encapsulate the OpenGL ES API headers.
+ *  
+ *  Headers copied from The Kronos Group website.
+ *  	http://www.khronos.org/opengles/
  */
 
 #ifndef __gles_h_
@@ -48,6 +51,9 @@ extern "C"
 #define GL_APIENTRY
 #endif
 
+#ifndef GL_API
+#define GL_API
+#endif                          /* GL_API */
 
 /*
 ** License Applicability. Except to the extent portions of this file are
@@ -340,6 +346,14 @@ extern "C"
 #define GL_SAMPLES                        0x80A9
 #define GL_SAMPLE_COVERAGE_VALUE          0x80AA
 #define GL_SAMPLE_COVERAGE_INVERT         0x80AB
+
+/* OpenGL ES 1.0 defines, they gone in 1.1 and 2.0 */
+#ifndef GL_MAX_ELEMENTS_VERTICES
+#define GL_MAX_ELEMENTS_VERTICES          0x80E8
+#endif                          /* GL_MAX_ELEMENTS_VERTICES */
+#ifndef GL_MAX_ELEMENTS_INDICES
+#define GL_MAX_ELEMENTS_INDICES           0x80E9
+#endif                          /* GL_MAX_ELEMENTS_INDICES */
 
 /* GetTextureParameter */
 /*      GL_TEXTURE_MAG_FILTER */
@@ -655,6 +669,29 @@ extern "C"
 #define GL_COORD_REPLACE_OES                                    0x8862
 #endif
 
+/* GL_OES_draw_texture */
+#ifndef GL_OES_draw_texture
+#define GL_TEXTURE_CROP_RECT_OES                                0x8B9D
+#endif                          /* GL_OES_draw_texture */
+
+/*  GL_OES_vertex_buffer_object */
+#ifndef GL_OES_vertex_buffer_object
+#define GL_ARRAY_BUFFER_OES                                     0x8892
+#define GL_ELEMENT_ARRAY_BUFFER_OES                             0x8893
+#define GL_ARRAY_BUFFER_BINDING_OES                             0x8894
+#define GL_ELEMENT_ARRAY_BUFFER_BINDING_OES                     0x8895
+#define GL_VERTEX_ARRAY_BUFFER_BINDING_OES                      0x8896
+#define GL_NORMAL_ARRAY_BUFFER_BINDING_OES                      0x8897
+#define GL_COLOR_ARRAY_BUFFER_BINDING_OES                       0x8898
+#define GL_TEXTURE_COORD_ARRAY_BUFFER_BINDING_OES               0x889A
+#define GL_STATIC_DRAW_OES                                      0x88E4
+#define GL_DYNAMIC_DRAW_OES                                     0x88E8
+#define GL_WRITE_ONLY_OES                                       0x88B9
+#define GL_BUFFER_SIZE_OES                                      0x8764
+#define GL_BUFFER_USAGE_OES                                     0x8765
+#define GL_BUFFER_ACCESS_OES                                    0x88BB
+#endif                          /* GL_OES_vertex_buffer_object */
+
 /*************************************************************/
 
 /* Available only in Common profile */
@@ -936,10 +973,64 @@ extern "C"
                                                   const GLvoid * pointer);
 #endif
 
+/* GL_OES_query_matrix */
+#ifndef GL_OES_query_matrix
+#define GL_OES_query_matrix 1
+    GL_API GLbitfield GL_APIENTRY glQueryMatrixxOES(GLfixed mantissa[16],
+                                                    GLint exponent[16]);
+#endif                          /* GL_OES_query_matrix */
+
 /* GL_OES_point_sprite */
 #ifndef GL_OES_point_sprite
 #define GL_OES_point_sprite 1
 #endif
+
+/* GL_OES_draw_texture */
+#ifndef GL_OES_draw_texture
+#define GL_OES_draw_texture 1
+    GL_API void GL_APIENTRY glDrawTexsOES(GLshort x, GLshort y, GLshort z,
+                                          GLshort width, GLshort height);
+    GL_API void GL_APIENTRY glDrawTexiOES(GLint x, GLint y, GLint z,
+                                          GLint width, GLint height);
+    GL_API void GL_APIENTRY glDrawTexxOES(GLfixed x, GLfixed y, GLfixed z,
+                                          GLfixed width, GLfixed height);
+    GL_API void GL_APIENTRY glDrawTexsvOES(const GLshort * coords);
+    GL_API void GL_APIENTRY glDrawTexivOES(const GLint * coords);
+    GL_API void GL_APIENTRY glDrawTexxvOES(const GLfixed * coords);
+    GL_API void GL_APIENTRY glDrawTexfOES(GLfloat x, GLfloat y, GLfloat z,
+                                          GLfloat width, GLfloat height);
+    GL_API void GL_APIENTRY glDrawTexfvOES(const GLfloat * coords);
+#endif                          /* GL_OES_draw_texture */
+
+/* GL_OES_single_precision */
+#ifndef GL_OES_single_precision
+#define GL_OES_single_precision 1
+    GL_API void GL_APIENTRY glDepthRangefOES(GLclampf zNear, GLclampf zFar);
+    GL_API void GL_APIENTRY glFrustumfOES(GLfloat left, GLfloat right,
+                                          GLfloat bottom, GLfloat top,
+                                          GLfloat zNear, GLfloat zFar);
+    GL_API void GL_APIENTRY glOrthofOES(GLfloat left, GLfloat right,
+                                        GLfloat bottom, GLfloat top,
+                                        GLfloat zNear, GLfloat zFar);
+    GL_API void GL_APIENTRY glClipPlanefOES(GLenum plane,
+                                            const GLfloat * equation);
+    GL_API void GL_APIENTRY glGetClipPlanefOES(GLenum pname, GLfloat eqn[4]);
+    GL_API void GL_APIENTRY glClearDepthfOES(GLclampf depth);
+#endif                          /* GL_OES_single_precision */
+
+/* GL_OES_vertex_buffer_object */
+#ifndef GL_OES_vertex_buffer_object
+#define GL_OES_vertex_buffer_object 1
+    GL_API void APIENTRY glBindBufferOES(GLenum, GLuint);
+    GL_API void APIENTRY glDeleteBuffersOES(GLsizei, const GLuint *);
+    GL_API void APIENTRY glGenBuffersOES(GLsizei, GLuint *);
+    GL_API GLboolean APIENTRY glIsBufferOES(GLuint);
+    GL_API void APIENTRY glBufferDataOES(GLenum, GLsizeiptr, const GLvoid *,
+                                         GLenum);
+    GL_API void APIENTRY glBufferSubDataOES(GLenum, GLintptr, GLsizeiptr,
+                                            const GLvoid *);
+    GL_API void APIENTRY glGetBufferParameterivOES(GLenum, GLenum, GLint *);
+#endif                          /* GL_OES_vertex_buffer_object */
 
 #ifdef __cplusplus
 }

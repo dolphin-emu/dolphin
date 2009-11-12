@@ -20,10 +20,13 @@
     slouken@libsdl.org
 */
 
-/* This file sets things up for C dynamic library function definitions,
-   static inlined functions, and structures aligned at 4-byte alignment.
-   If you don't like ugly C preprocessor code, don't look at this file. :)
-*/
+/**
+ *  \file begin_code.h
+ *
+ *  This file sets things up for C dynamic library function definitions,
+ *  static inlined functions, and structures aligned at 4-byte alignment.
+ *  If you don't like ugly C preprocessor code, don't look at this file. :)
+ */
 
 /* This shouldn't be nested -- included it around code only. */
 #ifdef _begin_code_h
@@ -33,7 +36,7 @@
 
 /* Some compilers use a special export keyword */
 #ifndef DECLSPEC
-# if defined(__BEOS__)
+# if defined(__BEOS__) || defined(__HAIKU__)
 #  if defined(__GNUC__)
 #   define DECLSPEC	__declspec(dllexport)
 #  else
@@ -49,16 +52,6 @@
 #  else
 #   define DECLSPEC	__declspec(dllexport)
 #  endif
-# elif defined(__OS2__)
-#  ifdef __WATCOMC__
-#   ifdef BUILD_SDL
-#    define DECLSPEC	__declspec(dllexport)
-#   else
-#    define DECLSPEC
-#   endif
-#  else
-#   define DECLSPEC
-#  endif
 # else
 #  if defined(__GNUC__) && __GNUC__ >= 4
 #   define DECLSPEC	__attribute__ ((visibility("default")))
@@ -73,13 +66,7 @@
 #if defined(__WIN32__) && !defined(__GNUC__)
 #define SDLCALL __cdecl
 #else
-#ifdef __OS2__
-/* But on OS/2, we use the _System calling convention */
-/* to be compatible with every compiler */
-#define SDLCALL _System
-#else
 #define SDLCALL
-#endif
 #endif
 #endif /* SDLCALL */
 

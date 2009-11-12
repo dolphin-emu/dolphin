@@ -471,7 +471,7 @@
 				AdditionalDependencies="SDL.lib comctl32.lib rpcrt4.lib xinput.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\$(ProjectName)DF.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
+				AdditionalLibraryDirectories="..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"

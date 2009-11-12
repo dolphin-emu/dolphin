@@ -23,9 +23,10 @@ struct Config
     Config();
     void Load(bool ChangePad = false, bool ChangeSaveByID = false);
     void Save(int Slot = -1);
+    bool Loaded;
 	int CheckForDuplicateJoypads(bool OK);
 
-    // General
+    // Settings
 	bool bShowAdvanced; // Only allow one of these
 	bool bSaveByID;
 	bool bCheckFocus;

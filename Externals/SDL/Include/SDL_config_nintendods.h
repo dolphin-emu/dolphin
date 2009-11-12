@@ -27,6 +27,7 @@
 
 /* This is a set of defines to configure the SDL features */
 
+#if !defined(_STDINT_H_) && (!defined(HAVE_STDINT_H) || !_HAVE_STDINT_H)
 typedef signed char int8_t;
 typedef unsigned char uint8_t;
 typedef signed short int16_t;
@@ -43,7 +44,7 @@ typedef unsigned long uintptr_t;
 #else
 typedef unsigned __PTRDIFF_TYPE__ uintptr_t;
 #endif
-
+#endif /* !_STDINT_H_ && !HAVE_STDINT_H */
 
 #define SDL_HAS_64BIT_TYPE	1
 
@@ -95,9 +96,6 @@ typedef unsigned __PTRDIFF_TYPE__ uintptr_t;
 #define SDL_AUDIO_DRIVER_NDS	1
 /*#define SDL_AUDIO_DRIVER_DUMMY	1 TODO: uncomment this later*/
 
-/* DS doesn't have optical media */
-#define SDL_CDROM_DISABLED	1
-
 /* Enable various input drivers */
 #define SDL_JOYSTICK_NDS	1
 /*#define SDL_JOYSTICK_DUMMY	1 TODO: uncomment this later*/
@@ -115,5 +113,8 @@ typedef unsigned __PTRDIFF_TYPE__ uintptr_t;
 /* Enable various video drivers */
 #define SDL_VIDEO_DRIVER_NDS	1
 /*#define SDL_VIDEO_DRIVER_DUMMY	1 TODO: uncomment this later*/
+
+/* Enable system power support */
+#define SDL_POWER_NINTENDODS 1
 
 #endif /* _SDL_config_nintendods_h */

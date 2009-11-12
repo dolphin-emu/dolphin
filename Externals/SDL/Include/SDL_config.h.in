@@ -23,7 +23,11 @@
 #ifndef _SDL_config_h
 #define _SDL_config_h
 
-/* This is a set of defines to configure the SDL features */
+/**
+ *  \file SDL_config.h.in
+ *
+ *  This is a set of defines to configure the SDL features
+ */
 
 /* General platform specific identifiers */
 #include "SDL_platform.h"
@@ -39,6 +43,7 @@
 #undef volatile
 
 /* C datatypes */
+#if !defined(_STDINT_H_) && (!defined(HAVE_STDINT_H) || !_HAVE_STDINT_H)
 #undef size_t
 #undef int8_t
 #undef uint8_t
@@ -49,10 +54,10 @@
 #undef int64_t
 #undef uint64_t
 #undef uintptr_t
-#undef SDL_HAS_64BIT_TYPE
+#endif /* !_STDINT_H_ && !HAVE_STDINT_H */
 
-/* Endianness */
-#undef SDL_BYTEORDER
+#undef SIZEOF_VOIDP
+#undef SDL_HAS_64BIT_TYPE
 
 /* Comment this if you want to build without any C library requirements */
 #undef HAVE_LIBC
@@ -146,8 +151,8 @@
 #undef HAVE_SETJMP
 #undef HAVE_NANOSLEEP
 #undef HAVE_CLOCK_GETTIME
-#undef HAVE_DLVSYM
 #undef HAVE_GETPAGESIZE
+#undef HAVE_MPROTECT
 
 #else
 /* We may need some replacement for stdarg.h here */
@@ -156,7 +161,6 @@
 
 /* Allow disabling of core subsystems */
 #undef SDL_AUDIO_DISABLED
-#undef SDL_CDROM_DISABLED
 #undef SDL_CPUINFO_DISABLED
 #undef SDL_EVENTS_DISABLED
 #undef SDL_FILE_DISABLED
@@ -166,6 +170,7 @@
 #undef SDL_THREADS_DISABLED
 #undef SDL_TIMERS_DISABLED
 #undef SDL_VIDEO_DISABLED
+#undef SDL_POWER_DISABLED
 
 /* Enable various audio drivers */
 #undef SDL_AUDIO_DRIVER_ALSA
@@ -177,15 +182,12 @@
 #undef SDL_AUDIO_DRIVER_BEOSAUDIO
 #undef SDL_AUDIO_DRIVER_BSD
 #undef SDL_AUDIO_DRIVER_COREAUDIO
-#undef SDL_AUDIO_DRIVER_DART
-#undef SDL_AUDIO_DRIVER_DC
 #undef SDL_AUDIO_DRIVER_DISK
 #undef SDL_AUDIO_DRIVER_DUMMY
 #undef SDL_AUDIO_DRIVER_DMEDIA
 #undef SDL_AUDIO_DRIVER_DSOUND
 #undef SDL_AUDIO_DRIVER_ESD
 #undef SDL_AUDIO_DRIVER_ESD_DYNAMIC
-#undef SDL_AUDIO_DRIVER_MINT
 #undef SDL_AUDIO_DRIVER_MMEAUDIO
 #undef SDL_AUDIO_DRIVER_NAS
 #undef SDL_AUDIO_DRIVER_NAS_DYNAMIC
@@ -193,41 +195,21 @@
 #undef SDL_AUDIO_DRIVER_OSS
 #undef SDL_AUDIO_DRIVER_OSS_SOUNDCARD_H
 #undef SDL_AUDIO_DRIVER_PAUDIO
-#undef SDL_AUDIO_DRIVER_QNXNTO
-#undef SDL_AUDIO_DRIVER_SNDMGR
+#undef SDL_AUDIO_DRIVER_QSA
 #undef SDL_AUDIO_DRIVER_SUNAUDIO
 #undef SDL_AUDIO_DRIVER_WINWAVEOUT
 #undef SDL_AUDIO_DRIVER_FUSIONSOUND
 #undef SDL_AUDIO_DRIVER_FUSIONSOUND_DYNAMIC
 
-/* Enable various cdrom drivers */
-#undef SDL_CDROM_AIX
-#undef SDL_CDROM_BEOS
-#undef SDL_CDROM_BSDI
-#undef SDL_CDROM_DC
-#undef SDL_CDROM_DUMMY
-#undef SDL_CDROM_FREEBSD
-#undef SDL_CDROM_LINUX
-#undef SDL_CDROM_MACOSX
-#undef SDL_CDROM_MINT
-#undef SDL_CDROM_OPENBSD
-#undef SDL_CDROM_OS2
-#undef SDL_CDROM_OSF
-#undef SDL_CDROM_QNX
-#undef SDL_CDROM_WIN32
-
 /* Enable various input drivers */
 #undef SDL_INPUT_LINUXEV
 #undef SDL_INPUT_TSLIB
 #undef SDL_JOYSTICK_BEOS
-#undef SDL_JOYSTICK_DC
 #undef SDL_JOYSTICK_DINPUT
 #undef SDL_JOYSTICK_DUMMY
 #undef SDL_JOYSTICK_IOKIT
 #undef SDL_JOYSTICK_LINUX
-#undef SDL_JOYSTICK_MINT
 #undef SDL_JOYSTICK_NDS
-#undef SDL_JOYSTICK_OS2
 #undef SDL_JOYSTICK_RISCOS
 #undef SDL_JOYSTICK_WINMM
 #undef SDL_JOYSTICK_USBHID
@@ -243,14 +225,11 @@
 #undef SDL_LOADSO_DLOPEN
 #undef SDL_LOADSO_DUMMY
 #undef SDL_LOADSO_LDG
-#undef SDL_LOADSO_OS2
 #undef SDL_LOADSO_WIN32
 
 /* Enable various threading systems */
 #undef SDL_THREAD_BEOS
-#undef SDL_THREAD_DC
 #undef SDL_THREAD_NDS
-#undef SDL_THREAD_OS2
 #undef SDL_THREAD_PTH
 #undef SDL_THREAD_PTHREAD
 #undef SDL_THREAD_PTHREAD_RECURSIVE_MUTEX
@@ -260,11 +239,8 @@
 
 /* Enable various timer systems */
 #undef SDL_TIMER_BEOS
-#undef SDL_TIMER_DC
 #undef SDL_TIMER_DUMMY
-#undef SDL_TIMER_MINT
 #undef SDL_TIMER_NDS
-#undef SDL_TIMER_OS2
 #undef SDL_TIMER_RISCOS
 #undef SDL_TIMER_UNIX
 #undef SDL_TIMER_WIN32
@@ -273,24 +249,18 @@
 /* Enable various video drivers */
 #undef SDL_VIDEO_DRIVER_BWINDOW
 #undef SDL_VIDEO_DRIVER_COCOA
-#undef SDL_VIDEO_DRIVER_DC
 #undef SDL_VIDEO_DRIVER_DIRECTFB
 #undef SDL_VIDEO_DRIVER_DIRECTFB_DYNAMIC
 #undef SDL_VIDEO_DRIVER_DUMMY
 #undef SDL_VIDEO_DRIVER_FBCON
-#undef SDL_VIDEO_DRIVER_GAPI
-#undef SDL_VIDEO_DRIVER_GEM
-#undef SDL_VIDEO_DRIVER_IPOD
-#undef SDL_VIDEO_DRIVER_NANOX
 #undef SDL_VIDEO_DRIVER_NDS
-#undef SDL_VIDEO_DRIVER_OS2FS
 #undef SDL_VIDEO_DRIVER_PHOTON
+#undef SDL_VIDEO_DRIVER_QNXGF
 #undef SDL_VIDEO_DRIVER_PS2GS
+#undef SDL_VIDEO_DRIVER_PS3
 #undef SDL_VIDEO_DRIVER_RISCOS
 #undef SDL_VIDEO_DRIVER_SVGALIB
-#undef SDL_VIDEO_DRIVER_VGL
 #undef SDL_VIDEO_DRIVER_WIN32
-#undef SDL_VIDEO_DRIVER_WSCONS
 #undef SDL_VIDEO_DRIVER_X11
 #undef SDL_VIDEO_DRIVER_X11_DYNAMIC
 #undef SDL_VIDEO_DRIVER_X11_DYNAMIC_XEXT
@@ -304,21 +274,32 @@
 #undef SDL_VIDEO_DRIVER_X11_XINPUT
 #undef SDL_VIDEO_DRIVER_X11_SCRNSAVER
 #undef SDL_VIDEO_DRIVER_X11_XV
-#undef SDL_VIDEO_DRIVER_XBIOS
 
 #undef SDL_VIDEO_RENDER_D3D
 #undef SDL_VIDEO_RENDER_GDI
 #undef SDL_VIDEO_RENDER_OGL
+#undef SDL_VIDEO_RENDER_OGL_ES
 #undef SDL_VIDEO_RENDER_X11
+#undef SDL_VIDEO_RENDER_GAPI
+#undef SDL_VIDEO_RENDER_DDRAW
 
 /* Enable OpenGL support */
 #undef SDL_VIDEO_OPENGL
+#undef SDL_VIDEO_OPENGL_ES
 #undef SDL_VIDEO_OPENGL_BGL
 #undef SDL_VIDEO_OPENGL_CGL
 #undef SDL_VIDEO_OPENGL_GLX
 #undef SDL_VIDEO_OPENGL_WGL
 #undef SDL_VIDEO_OPENGL_OSMESA
 #undef SDL_VIDEO_OPENGL_OSMESA_DYNAMIC
+
+/* Enable system power support */
+#undef SDL_POWER_LINUX
+#undef SDL_POWER_WINDOWS
+#undef SDL_POWER_MACOSX
+#undef SDL_POWER_BEOS
+#undef SDL_POWER_NINTENDODS
+#undef SDL_POWER_HARDWIRED
 
 /* Enable assembly routines */
 #undef SDL_ASSEMBLY_ROUTINES
