@@ -20,8 +20,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)..\Binary\$(PlatformName)"
-			IntermediateDirectory=".\Debug"
+			OutputDirectory="$(ProjectDir)$(ConfigurationName)\"
+			IntermediateDirectory="$(ProjectDir)$(ConfigurationName)\"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -107,12 +107,13 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy /y &quot;$(OutDir)\SDL.dll&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot;"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(SolutionDir)..\Binary\$(PlatformName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(ProjectDir)$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(ProjectDir)$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -191,12 +192,13 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy /y &quot;$(OutDir)\SDL.dll&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot;"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)..\Binary\$(PlatformName)"
-			IntermediateDirectory=".\Release"
+			OutputDirectory="$(ProjectDir)$(ConfigurationName)\"
+			IntermediateDirectory="$(ProjectDir)$(ConfigurationName)\"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -278,12 +280,13 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy /y &quot;$(OutDir)\SDL.dll&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot;"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(SolutionDir)..\Binary\$(PlatformName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(ProjectDir)$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(ProjectDir)$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC70.vsprops"
 			UseOfMFC="0"
@@ -361,6 +364,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy /y &quot;$(OutDir)\SDL.dll&quot; &quot;$(SolutionDir)..\Binary\$(PlatformName)\&quot;"
 			/>
 		</Configuration>
 	</Configurations>
