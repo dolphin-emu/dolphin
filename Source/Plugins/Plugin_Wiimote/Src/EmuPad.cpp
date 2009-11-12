@@ -59,7 +59,6 @@ bool LocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int
 
 bool LocalSearchDevicesReset(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
 {
-	PanicAlert("LocalSearchDevicesReset");
 	DEBUG_LOG(CONSOLE, "LocalSearchDevicesReset");
 	
 	// Turn off device polling while resetting
