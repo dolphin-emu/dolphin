@@ -49,7 +49,7 @@ InputCommon::CONTROLLER_STATE PadState[4];
 InputCommon::CONTROLLER_MAPPING PadMapping[4];
 bool g_EmulatorRunning = false;
 bool SDLPolling = true;
-int NumPads = 0, NumDIDevices = 0, LastPad = 0;
+int NumPads = 0, NumDIDevices = -1, LastPad = 0;
 #ifdef _WIN32
 	HWND m_hWnd = NULL, m_hConsole = NULL; // Handle to window
 #endif

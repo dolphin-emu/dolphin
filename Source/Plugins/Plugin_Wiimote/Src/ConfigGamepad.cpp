@@ -692,8 +692,11 @@ void WiimotePadConfigDialog::Update(wxTimerEvent& WXUNUSED(event))
 {
 	if (!LiveUpdates) return;
 	
+	// Don't run this the first time
+	int OldNumDIDevices;
+	if (WiiMoteEmu::NumDIDevices == -1) OldNumDIDevices = InputCommon::SearchDIDevices();
 	// Search for connected devices and update dialog
-	int OldNumDIDevices = WiiMoteEmu::NumDIDevices;
+	OldNumDIDevices = WiiMoteEmu::NumDIDevices;	
 	WiiMoteEmu::NumDIDevices = InputCommon::SearchDIDevices();	
 
 	// Update if a pad has been connected/disconnected. Todo: Add a better check that also takes into consideration the pad id

@@ -253,8 +253,10 @@ void ConsoleListener::PixelSpace(int Left, int Top, int Width, int Height, bool 
 
 void ConsoleListener::CustomLog(const char *Text)
 {
+	#ifdef _WIN32
 	DWORD cCharsWritten;
 	WriteConsole(hConsole, Text, (DWORD)strlen(Text), &cCharsWritten, NULL);
+	#endif
 }
 
 void ConsoleListener::Log(LogTypes::LOG_LEVELS Level, const char *Text)
