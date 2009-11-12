@@ -50,11 +50,11 @@ namespace WiiMoteEmu
 bool LocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
 {
 	//DEBUG_LOG(PAD, "LocalSearchDevices");
-	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads);
+	bool bSuccess = InputCommon::SearchDevices(_joyinfo, _NumPads);
 	
 	DoLocalSearchDevices(_joyinfo, _NumPads);
 	
-	return Success;
+	return bSuccess;
 }
 
 bool LocalSearchDevicesReset(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
@@ -64,13 +64,13 @@ bool LocalSearchDevicesReset(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo
 	// Turn off device polling while resetting
 	EnablePolling(false);
 	
-	bool Success = InputCommon::SearchDevicesReset(_joyinfo, _NumPads);
+	bool bSuccess = InputCommon::SearchDevicesReset(_joyinfo, _NumPads);
 	
 	EnablePolling(true);
 	
 	DoLocalSearchDevices(_joyinfo, _NumPads);
 	
-	return Success;
+	return bSuccess;
 }
 
 // Fill joyinfo with the current connected devices
