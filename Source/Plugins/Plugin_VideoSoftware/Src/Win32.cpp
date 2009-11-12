@@ -129,7 +129,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	switch( iMsg )
 	{
 	case WM_CREATE:
-		PostMessage(m_hMain, WM_USER, OPENGL_WM_USER_CREATE, (int)m_hParent);
+		PostMessage(m_hMain, WM_USER, WM_USER_CREATE, (int)m_hParent);
 		break;
 
 	case WM_PAINT:
@@ -164,7 +164,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			else if (!g_Config.renderToMainframe)
 			{
 				// And stops the emulation when already in Windowed mode
-				PostMessage(m_hMain, WM_USER, OPENGL_WM_USER_STOP, 0);
+				PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
 			}
 			break;
         }

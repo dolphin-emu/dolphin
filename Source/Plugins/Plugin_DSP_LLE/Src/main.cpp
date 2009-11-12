@@ -319,7 +319,13 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 void DSP_Update(int cycles)
 {
 	// This gets called VERY OFTEN. The soundstream update might be expensive so only do it 200 times per second or something.
-	const int cycles_between_ss_update = 80000000 / 200;
+	int cycles_between_ss_update;
+
+	if (g_dspInitialize.bWii)
+		cycles_between_ss_update = 121500000 / 200;
+	else
+		cycles_between_ss_update = 81000000 / 200;
+	
 	static int cycle_count = 0;
 	cycle_count += cycles;
 	if (cycle_count > cycles_between_ss_update)
