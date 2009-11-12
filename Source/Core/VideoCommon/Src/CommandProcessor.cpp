@@ -590,9 +590,11 @@ void STACKALIGN GatherPipeBursted()
 	if (g_VideoInitialize.bOnThread)
 	{
 		// update the fifo-pointer
-		fifo.CPWritePointer += GATHER_PIPE_SIZE;
-		if (fifo.CPWritePointer >= fifo.CPEnd)
+        if (fifo.CPWritePointer >= fifo.CPEnd)
 			fifo.CPWritePointer = fifo.CPBase;
+        else
+		    fifo.CPWritePointer += GATHER_PIPE_SIZE;
+		
         Common::AtomicAdd(fifo.CPReadWriteDistance, GATHER_PIPE_SIZE);
 
 		// High watermark overflow handling (hacked way)
@@ -626,9 +628,10 @@ void STACKALIGN GatherPipeBursted()
 	}
 	else
 	{
-		fifo.CPWritePointer += GATHER_PIPE_SIZE;
 		if (fifo.CPWritePointer >= fifo.CPEnd)
 			fifo.CPWritePointer = fifo.CPBase;
+        else
+		    fifo.CPWritePointer += GATHER_PIPE_SIZE;
 		// check if we are in sync
 		_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== *(g_VideoInitialize.Fifo_CPUWritePointer), "FIFOs linked but out of sync");
 		_assert_msg_(COMMANDPROCESSOR, fifo.CPBase			== *(g_VideoInitialize.Fifo_CPUBase), "FIFOs linked but out of sync");
@@ -666,14 +669,11 @@ void CatchUpGPU()
 			}
 
 			// read the data and send it to the VideoPlugin
-			fifo.CPReadPointer += 32;
 			// We are going to do FP math on the main thread so have to save the current state
 			SaveSSEState();
 			LoadDefaultSSEState();
 			Fifo_SendFifoData(ptr,32);
 			LoadSSEState();
-			// adjust
-			ptr += 32;
 
 			fifo.CPReadWriteDistance -= 32;
 
@@ -685,6 +685,11 @@ void CatchUpGPU()
 				ptr = Memory_GetPtr(fifo.CPReadPointer);
 				INFO_LOG(COMMANDPROCESSOR, "BUFFER LOOP");
 			}
+            else
+            {
+                fifo.CPReadPointer += 32;
+			    ptr += 32;
+            }
 		}
 	}
 }
@@ -712,7 +717,7 @@ void UpdateFifoRegister()
 	if (wp >= rp)
 		dist = wp - rp;
 	else
-		dist = (wp - fifo.CPBase) + (fifo.CPEnd - rp);
+		dist = (wp - fifo.CPBase) + ((fifo.CPEnd + GATHER_PIPE_SIZE) - rp);
 
 	Common::AtomicStore(fifo.CPReadWriteDistance, dist);
 

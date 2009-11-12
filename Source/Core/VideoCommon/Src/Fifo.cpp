@@ -165,18 +165,21 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 						break;
 					}
 					distToSend = 32;
-					readPtr += 32;
+					
 					if ( readPtr >= _fifo.CPEnd) 
 						readPtr = _fifo.CPBase;
+                    else
+                        readPtr += 32;
 				}
 				else
 				{
 					distToSend = _fifo.CPReadWriteDistance;
 					// send 1024B chunk max length to have better control over PeekMessages' period
 					distToSend = distToSend > 1024 ? 1024 : distToSend;
-					if ((distToSend + readPtr) >= _fifo.CPEnd) // TODO: better?
+                    // add 32 bytes because the cp end points to the start of the last 32 byte chunk
+					if ((distToSend + readPtr) >= (_fifo.CPEnd + 32)) // TODO: better?
 					{
-						distToSend =_fifo.CPEnd - readPtr;
+						distToSend =(_fifo.CPEnd + 32) - readPtr;
 						readPtr = _fifo.CPBase;
 					}
 					else

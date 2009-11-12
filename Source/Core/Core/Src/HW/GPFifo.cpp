@@ -80,14 +80,10 @@ void STACKALIGN CheckGatherPipe()
 		memcpy(m_gatherPipe, m_gatherPipe + GATHER_PIPE_SIZE, m_gatherPipeCount);
 		
 		// increase the CPUWritePointer
-		ProcessorInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE; 
-
-		if (ProcessorInterface::Fifo_CPUWritePointer > ProcessorInterface::Fifo_CPUEnd)
-			_assert_msg_(DYNA_REC, 0, "Fifo_CPUWritePointer out of bounds: %08x (end = %08x)", 
-						ProcessorInterface::Fifo_CPUWritePointer, ProcessorInterface::Fifo_CPUEnd);
-
-		if (ProcessorInterface::Fifo_CPUWritePointer >= ProcessorInterface::Fifo_CPUEnd)
+		if (ProcessorInterface::Fifo_CPUWritePointer == ProcessorInterface::Fifo_CPUEnd)
 			ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;
+        else
+            ProcessorInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE;
 
         // TODO store video plugin pointer
 		CPluginManager::GetInstance().GetVideo()->Video_GatherPipeBursted();
