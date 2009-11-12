@@ -59,6 +59,7 @@ bool LocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int
 
 bool LocalSearchDevicesReset(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
 {
+	PanicAlert("LocalSearchDevicesReset");
 	DEBUG_LOG(CONSOLE, "LocalSearchDevicesReset");
 	
 	// Turn off device polling while resetting
@@ -130,17 +131,13 @@ bool IsConnected(std::string Name)
 // ----------------
 bool IsPolling()
 {
-	return true;
-	/*
 	if (!SDLPolling || SDL_JoystickEventState(SDL_QUERY) == SDL_ENABLE)
 		return false;
 	else
 		return true;
-	*/
 }
 void EnablePolling(bool Enable)
 {
-	/*
 	if (Enable)
 	{
 		SDLPolling = true;
@@ -151,7 +148,6 @@ void EnablePolling(bool Enable)
 		SDLPolling = false;
 		SDL_JoystickEventState(SDL_ENABLE);
 	}
-	*/
 }
 
 // ID to Name

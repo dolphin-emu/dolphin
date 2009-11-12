@@ -512,22 +512,17 @@ bool IsConnected(std::string Name)
 	}
 }
 
-// Earlier versions of SDL could crash if SDL functions were called during SDL_Quit/SDL_Init. I could not get
-// such a crash in the new version even with frequent SDL_Quit/SDL_Init so thse functions are disabled now.
+// It could be possible to crash SDL.dll if SDL functions are called during SDL_Quit/SDL_Init. Therefore these functions.
 // ----------------
 bool IsPolling()
 {
-	return true;
-	/*
 	if (!SDLPolling || SDL_JoystickEventState(SDL_QUERY) == SDL_ENABLE)
 		return false;
 	else
 		return true;
-	*/
 }
 void EnablePolling(bool Enable)
 {
-	/*
 	if (Enable)
 	{
 		SDLPolling = true;
@@ -538,7 +533,6 @@ void EnablePolling(bool Enable)
 		SDLPolling = false;
 		SDL_JoystickEventState(SDL_ENABLE);
 	}
-	*/
 }
 
 // ID to Name

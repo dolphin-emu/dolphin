@@ -175,9 +175,11 @@ void PADConfigDialognJoy::UpdateSlow()
 
 	// Don't run this the first time
 	int OldNumDIDevices;
-	if (NumDIDevices == -1) OldNumDIDevices = InputCommon::SearchDIDevices();
+	if (NumDIDevices == -1)
+		OldNumDIDevices = InputCommon::SearchDIDevices();
+	else
 	// Search for connected devices and update dialog
-	OldNumDIDevices = NumDIDevices;
+		OldNumDIDevices = NumDIDevices;
 	NumDIDevices = InputCommon::SearchDIDevices();
 	
 	// Update if a pad has been connected/disconnected. Todo: Add a better check that also takes into consideration the pad id
