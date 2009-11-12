@@ -10,6 +10,7 @@
 namespace EmuWindow
 {
 HWND m_hWnd = NULL;
+HWND m_hMain = NULL;
 HWND m_hParent = NULL;
 HINSTANCE m_hInstance = NULL;
 WNDCLASSEX wndClass;
@@ -36,6 +37,9 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 {
 	switch( iMsg )
 	{
+	case WM_CREATE:
+		PostMessage( m_hMain, WM_USER, WM_USER_CREATE, g_Config.RenderToMainframe );
+		break;
 	case WM_PAINT:
 		{
 			HDC hdc;
@@ -54,9 +58,18 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		break;
 
 	case WM_KEYDOWN:
+		switch (LOWORD(wParam))
+		{
+			case VK_ESCAPE:
+				SendMessage(m_hWnd, WM_CLOSE, 0, 0);
+				break;
+		}
+		g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
+		break;
+	case WM_SYSKEYDOWN:
 		switch( LOWORD( wParam ))
 		{
-			case VK_ESCAPE:   // Pressing Esc switch FullScreen/Windowed
+			case VK_RETURN:   // Pressing Esc switch FullScreen/Windowed
 				if (g_ActiveConfig.bFullscreen)
 				{
 					DestroyWindow(hWnd);
@@ -118,7 +131,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 				}*/
 				break;
 		}
-		g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
+		//g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 		break;
 
 	/* Post thes mouse events to the main window, it's nessesary because in difference to the
@@ -132,7 +145,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	case WM_CLOSE:
 		//Fifo_ExitLoopNonBlocking();
 		//Shutdown();
-		PostMessage( m_hParent, WM_USER, OPENGL_WM_USER_STOP, 0 );
+		PostMessage( m_hMain, WM_USER, WM_USER_STOP, 0 );
 		// Simple hack to easily exit without stopping. Hope to fix the stopping errors soon.
 		//ExitProcess(0);
 		return 0;
@@ -187,7 +200,7 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 
 	if (g_Config.RenderToMainframe)
 	{
-		m_hParent = parent;
+		m_hParent = m_hMain = parent;
 
 		m_hWnd = CreateWindowEx(0, m_szClassName, title, WS_CHILD,
 			0, 0, width, height,
@@ -198,6 +211,8 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	}
 	else
 	{
+		m_hMain = parent;
+
 		DWORD style = g_Config.bFullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW;
 
 		RECT rc = {0, 0, width, height};
@@ -213,7 +228,7 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 
 		m_hWnd = CreateWindowEx(0, m_szClassName, title, style,
 			rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top,
-			NULL, NULL, hInstance, NULL );
+			NULL, NULL, hInstance, NULL);
 	}
 
 	return m_hWnd;

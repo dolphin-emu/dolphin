@@ -145,11 +145,11 @@ int abc = 0;
 			switch(wParam)
 			{
 			// Stop
-			case OPENGL_WM_USER_STOP:
+			case WM_USER_STOP:
 				main_frame->DoStop();
 				return 0;
 			
-			case OPENGL_WM_USER_CREATE:
+			case WM_USER_CREATE:
 				// We don't have a local setting for bRenderToMain but we can detect it this way instead
 				//PanicAlert("main call %i  %i  %i  %i", lParam, (HWND)Core::GetWindowHandle(), MSWGetParent_((HWND)Core::GetWindowHandle()), (HWND)this->GetHWND());
 				if (lParam == NULL)
@@ -303,7 +303,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
 	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
-	, bRenderToMain(true), bFloatLogWindow(false), bFloatConsoleWindow(false)
+	, bRenderToMain(false), bFloatLogWindow(false), bFloatConsoleWindow(false)
 	, HaveLeds(false), HaveSpeakers(false)
 	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 	#if wxUSE_TIMER
@@ -672,7 +672,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 #ifdef _WIN32
 	if(event.GetKeyCode() == 'M', '3', '4', '5', '6', '7') // Send this to the video plugin WndProc
 	{
-		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, OPENGL_WM_USER_KEYDOWN, event.GetKeyCode());
+		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
 	}
 #endif
 

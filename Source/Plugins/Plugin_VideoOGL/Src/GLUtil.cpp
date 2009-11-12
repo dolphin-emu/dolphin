@@ -192,10 +192,10 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 #elif defined(_WIN32)
 	// Create rendering window in Windows
     // Create a separate window
-    if (!g_Config.RenderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
+    /*if (!g_Config.RenderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
 		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, _T("Please wait..."));
 	// Create a child window
-    else
+    else*/
         g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Please wait..."));
 
 	// Show the window
