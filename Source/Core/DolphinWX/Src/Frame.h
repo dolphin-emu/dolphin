@@ -250,6 +250,7 @@ class CFrame : public wxFrame
 #endif
 		// Event functions
 		void OnQuit(wxCommandEvent& event);
+		void OnRestart(wxCommandEvent& WXUNUSED (event));
 		void OnHelp(wxCommandEvent& event);
 		void OnToolBar(wxCommandEvent& event);
 		void OnAuiToolBar(wxAuiToolBarEvent& event);
