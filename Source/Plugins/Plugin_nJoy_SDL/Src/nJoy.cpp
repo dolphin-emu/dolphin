@@ -445,15 +445,10 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 bool LocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
 {
-	// Turn off device polling while searching
-	EnablePolling(false);
-
 	//DEBUG_LOG(PAD, "LocalSearchDevices");
 	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads);
 	
 	DoLocalSearchDevices(_joyinfo, _NumPads);
-	
-	EnablePolling(true);
 	
 	return Success;
 }
@@ -461,8 +456,10 @@ bool LocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int
 bool LocalSearchDevicesReset(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
 {
 	//DEBUG_LOG(PAD, "LocalSearchDevicesUpdate: %i", IsPolling());
-	
-	bool Success = InputCommon::SearchDevicesReset(_joyinfo, _NumPads);
+	// Turn off device polling while resetting
+	EnablePolling(false);	
+	bool Success = InputCommon::SearchDevicesReset(_joyinfo, _NumPads);		
+	EnablePolling(true);
 	
 	DoLocalSearchDevices(_joyinfo, _NumPads);
 	

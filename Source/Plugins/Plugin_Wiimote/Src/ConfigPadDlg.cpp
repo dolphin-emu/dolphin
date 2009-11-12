@@ -365,12 +365,12 @@ void WiimotePadConfigDialog::UpdateDeviceList()
 		m_Joyname[i]->Clear();
 
 		// Search for devices and add them to the device list	
-		if (WiiMoteEmu::NumPads > 0)
+		if (WiiMoteEmu::joyinfo.size() > 0)
 		{
-			for (int j = 0; j < WiiMoteEmu::NumPads; j++)	
+			for (int j = 0; j < WiiMoteEmu::joyinfo.size(); j++)	
 				m_Joyname[i]->Append(wxString::FromAscii(WiiMoteEmu::joyinfo.at(j).Name.c_str()));
 			// Set selection
-			for (int j = 0; j <  WiiMoteEmu::NumPads; j++)	
+			for (int j = 0; j < WiiMoteEmu::joyinfo.size(); j++)	
 				if (WiiMoteEmu::joyinfo.at(j).Name == WiiMoteEmu::PadMapping[i].Name) m_Joyname[i]->SetSelection(j);
 			if (m_Joyname[i]->GetSelection() == -1) m_Joyname[i]->SetSelection(0);
 			// Load settings

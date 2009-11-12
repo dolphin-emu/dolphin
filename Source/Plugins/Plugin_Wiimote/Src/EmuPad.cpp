@@ -62,10 +62,8 @@ bool LocalSearchDevicesReset(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo
 	DEBUG_LOG(CONSOLE, "LocalSearchDevicesReset");
 	
 	// Turn off device polling while resetting
-	EnablePolling(false);
-	
-	bool bSuccess = InputCommon::SearchDevicesReset(_joyinfo, _NumPads);
-	
+	EnablePolling(false);	
+	bool bSuccess = InputCommon::SearchDevicesReset(_joyinfo, _NumPads);	
 	EnablePolling(true);
 	
 	DoLocalSearchDevices(_joyinfo, _NumPads);

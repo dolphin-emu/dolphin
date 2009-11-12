@@ -366,13 +366,13 @@ void PADConfigDialognJoy::UpdateDeviceList()
 		m_Joyname[i]->Clear();
 
 		// Search for devices and add them to the device list	
-		if (NumPads > 0)
+		if (joyinfo.size() > 0)
 		{			
-			for (int j = 0; j < NumPads; j++)	
+			for (int j = 0; j < joyinfo.size(); j++)	
 				m_Joyname[i]->Append(wxString::FromAscii(joyinfo.at(j).Name.c_str()));
 			// Set selection
 							//PanicAlert("%s", PadMapping[i].Name.c_str());
-			for (int j = 0; j < NumPads; j++)
+			for (int j = 0; j < joyinfo.size(); j++)
 			{	
 				if (joyinfo.at(j).Name == PadMapping[i].Name) m_Joyname[i]->SetSelection(j);
 			}
