@@ -57,29 +57,24 @@ bool LocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int
 	return bSuccess;
 }
 
+
 bool LocalSearchDevicesReset(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
 {
 	DEBUG_LOG(CONSOLE, "LocalSearchDevicesReset");
 	
 	// Turn off device polling while resetting
 	EnablePolling(false);	
-	bool bSuccess = InputCommon::SearchDevicesReset(_joyinfo, _NumPads);	
+	bool bSuccess = InputCommon::SearchDevicesReset(_joyinfo, _NumPads);		
+	DoLocalSearchDevices(_joyinfo, _NumPads);
 	EnablePolling(true);
 	
-	DoLocalSearchDevices(_joyinfo, _NumPads);
-	
-	return bSuccess;
+	return true;
 }
 
 // Fill joyinfo with the current connected devices
 bool DoLocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
 {
 	//DEBUG_LOG(WIIMOTE, "LocalSearchDevices");
-	
-	// Turn off device polling while searching
-	WiiMoteEmu::EnablePolling(false);		
-	
-	bool bReturn = InputCommon::SearchDevices(_joyinfo, _NumPads);
 
 	// Warn the user if no gamepads are detected
 	if (_NumPads == 0 && g_EmulatorRunning)
@@ -108,9 +103,7 @@ bool DoLocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, i
 		if (!Match) PadState[i].joy = NULL;
 	}
 
-	WiiMoteEmu::EnablePolling(true);
-
-	return bReturn;
+	return true;
 }
 
 // Is the device connected?
@@ -146,6 +139,7 @@ void EnablePolling(bool Enable)
 		SDL_JoystickEventState(SDL_ENABLE);
 	}
 }
+
 
 // ID to Name
 // ----------------
@@ -219,10 +213,10 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 	//DEBUG_LOG(WIIMOTE, "GetJoyState: Polling:%i NumPads:%i", SDLPolling, NumPads);
 
 	// Return if polling is off
-	if (!IsPolling) return;
+	if (!IsPolling()) return;
 	// Update joyinfo handles. This is in case the Wiimote plugin has restarted SDL after a pad was conencted/disconnected
 	// so that the handles are updated. We don't need to run this this often. Once a second would be enough.
-	LocalSearchDevices(joyinfo, NumPads);
+	if (LiveUpdates) LocalSearchDevices(joyinfo, NumPads);
 	// Return if we have no pads
 	if (NumPads == 0) return;
 	// Read info

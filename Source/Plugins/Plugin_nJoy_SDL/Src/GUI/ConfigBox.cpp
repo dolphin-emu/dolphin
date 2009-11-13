@@ -121,12 +121,6 @@ PADConfigDialognJoy::PADConfigDialognJoy(wxWindow *parent, wxWindowID id, const 
 	
 	// Settings
 	Debugging = false;
-	// Only tested in Windows
-	#ifdef _WIN32
-	LiveUpdates = true;
-	#else
-	LiveUpdates = false;
-	#endif
 
 	// Create controls
 	CreateGUIControls();

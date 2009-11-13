@@ -59,6 +59,12 @@ bool g_Encryption; // Encryption on or off
 // Gamepad input
 int NumPads = 0, NumDIDevices = -1; // Number of pads
 bool SDLPolling = true;
+#ifdef _WIN32
+bool LiveUpdates = false;
+#else
+bool LiveUpdates = false;
+#endif
+
 std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 InputCommon::CONTROLLER_STATE_NEW PadState[4];
 InputCommon::CONTROLLER_MAPPING_NEW PadMapping[4];

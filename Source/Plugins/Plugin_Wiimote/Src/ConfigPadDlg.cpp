@@ -114,13 +114,6 @@ WiimotePadConfigDialog::WiimotePadConfigDialog(wxWindow *parent, wxWindowID id, 
 	// Reset values
 	GetButtonWaitingID = 0;
 	GetButtonWaitingTimer = 0;
-	// Settings
-	// Only tested in Windows
-	#ifdef _WIN32
-	LiveUpdates = true;
-	#else
-	LiveUpdates = false;
-	#endif
 
 	// Start the slow timer
 	int TimesPerSecond = 2;

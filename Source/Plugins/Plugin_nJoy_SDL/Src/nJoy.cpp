@@ -49,6 +49,11 @@ InputCommon::CONTROLLER_STATE PadState[4];
 InputCommon::CONTROLLER_MAPPING PadMapping[4];
 bool g_EmulatorRunning = false;
 bool SDLPolling = true;
+#ifdef _WIN32
+bool LiveUpdates = false;
+#else
+bool LiveUpdates = false;
+#endif
 int NumPads = 0, NumDIDevices = -1, LastPad = 0;
 #ifdef _WIN32
 	HWND m_hWnd = NULL, m_hConsole = NULL; // Handle to window
@@ -284,7 +289,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	
 	// Update joyinfo handles. This is in case the Wiimote plugin has restarted SDL after a pad was conencted/disconnected
 	// so that the handles are updated.
-	LocalSearchDevices(joyinfo, NumPads);
+	if (LiveUpdates) LocalSearchDevices(joyinfo, NumPads);
 	
 	// Check if the pad is avaliable, currently we don't disable pads just because they are
 	// disconnected
@@ -459,9 +464,8 @@ bool LocalSearchDevicesReset(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo
 	// Turn off device polling while resetting
 	EnablePolling(false);	
 	bool Success = InputCommon::SearchDevicesReset(_joyinfo, _NumPads);		
-	EnablePolling(true);
-	
 	DoLocalSearchDevices(_joyinfo, _NumPads);
+	EnablePolling(true);
 	
 	return Success;
 }

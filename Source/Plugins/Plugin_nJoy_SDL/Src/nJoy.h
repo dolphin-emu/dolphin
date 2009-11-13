@@ -97,6 +97,7 @@
 	#endif
 	extern int NumPads, NumDIDevices, LastPad; // Number of pads
 	extern bool SDLPolling;
+	extern bool LiveUpdates;
 #endif
 
 

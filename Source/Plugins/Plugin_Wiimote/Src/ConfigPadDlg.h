@@ -61,6 +61,7 @@ class WiimotePadConfigDialog : public wxDialog
 		void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
 		void Update(wxTimerEvent& WXUNUSED(event));
 		void UpdatePad(wxTimerEvent& WXUNUSED(event));
+		void UpdateDeviceList();
 
 		wxTimer	*m_Update,
 				*m_UpdatePad,
@@ -253,7 +254,6 @@ class WiimotePadConfigDialog : public wxDialog
 		};
 
 		void OnClose(wxCloseEvent& event);
-		void UpdateDeviceList();
 		void CreatePadGUIControls();
 		void GeneralSettingsChanged(wxCommandEvent& event);
 
