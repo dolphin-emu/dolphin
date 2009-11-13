@@ -38,10 +38,10 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 	#include "ConfigPadDlg.h"
+	extern WiimotePadConfigDialog *m_PadConfigFrame;
 #endif
 
 extern SWiimoteInitialize g_WiimoteInitialize;
-extern WiimotePadConfigDialog *m_PadConfigFrame;
 
 namespace WiiMoteEmu
 {

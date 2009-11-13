@@ -36,10 +36,10 @@
 
 #if defined(HAVE_WX) && HAVE_WX
 	#include "ConfigPadDlg.h"
+	extern WiimotePadConfigDialog *m_PadConfigFrame;
 #endif
 
 extern SWiimoteInitialize g_WiimoteInitialize;
-extern WiimotePadConfigDialog *m_PadConfigFrame;
 
 namespace WiiMoteEmu
 {
@@ -443,10 +443,12 @@ void Initialize()
 	/* Populate joyinfo for all attached devices and do g_Config.Load() if the
 	   configuration window is not already open, if it's already open we
 	   continue with the settings we have */
+	#if defined(HAVE_WX) && HAVE_WX
 	if (!m_PadConfigFrame)
 	{
 		LocalSearchDevices(joyinfo, NumPads);
 	}
+	#endif
 
 	// Copy extension id and calibration to its register, g_Config.Load() is needed before this
 	UpdateExtRegisterBlocks();
