@@ -359,6 +359,9 @@ static void DX9DebuggerUpdateScreen()
 		D3D::dev->Present(NULL, NULL, NULL, NULL);
 
 		D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
+
+		if(D3D::GetCaps().NumSimultaneousRTs > 1)
+			D3D::dev->SetRenderTarget(1,FBManager::GetEFBDepthEncodedSurface());
 		D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
 		D3D::dev->BeginScene();
 	}
