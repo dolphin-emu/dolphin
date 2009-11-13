@@ -235,8 +235,7 @@ void PatchEngineCallback(u64 userdata, int cyclesLate)
 	// Patch mem and run the Action Replay
 	PatchEngine::ApplyFramePatches();
 	PatchEngine::ApplyARPatches();
-
-	CoreTiming::ScheduleEvent((GetTicksPerSecond() / 60) - cyclesLate, et_PatchEngine);
+	CoreTiming::ScheduleEvent((CPU_CORE_CLOCK / 5000) - cyclesLate, et_PatchEngine);
 }
 
 void Init()
