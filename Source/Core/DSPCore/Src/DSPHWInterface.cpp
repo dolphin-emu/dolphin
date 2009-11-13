@@ -316,7 +316,7 @@ void gdsp_do_dma()
 		exit(0);
 	}
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	NOTICE_LOG(DSPLLE, "DMA pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
+	DEBUG_LOG(DSPLLE, "DMA pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 #endif
 	switch (ctl & 0x3)
 	{
