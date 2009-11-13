@@ -244,7 +244,7 @@ void OnKeyDown(WPARAM wParam)
 	switch (LOWORD( wParam ))
 	{
 	case VK_ESCAPE:
-		if (g_Config.bFullscreen && !g_Config.RenderToMainframe)
+		if (!g_Config.RenderToMainframe)
 		{
 			// Pressing Esc stops the emulation
 			SendMessage( m_hWnd, WM_CLOSE, 0, 0 );
