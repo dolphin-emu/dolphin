@@ -81,8 +81,8 @@ void WiimotePadConfigDialog::SetButtonTextAll(int id, char text[128])
 void WiimotePadConfigDialog::SaveButtonMappingAll(int Slot)
 {
 	for (int i = 0; i < MAX_WIIMOTES; i++)
-	{				
-		if (WiiMoteEmu::IDToName(WiiMoteEmu::PadMapping[i].ID) == WiiMoteEmu::IDToName(WiiMoteEmu::PadMapping[Slot].ID))
+	{
+		if (WiiMoteEmu::PadMapping[i].Name.length() > 0 && WiiMoteEmu::PadMapping[i].Name == WiiMoteEmu::PadMapping[Slot].Name)
 			SaveButtonMapping(i, false, Slot);
 	}
 }
@@ -204,6 +204,7 @@ void WiimotePadConfigDialog::SaveButtonMapping(int controller, bool DontChangeId
 	   a blank selection. */
 	if (!DontChangeId)
 	{
+		if (m_Joyname[FromSlot]->GetSelection() >= WiiMoteEmu::joyinfo.size()) PanicAlert("Bug in SaveButtonMapping");
 		WiiMoteEmu::PadMapping[controller].ID = WiiMoteEmu::joyinfo.at(m_Joyname[FromSlot]->GetSelection()).ID;
 		WiiMoteEmu::PadMapping[controller].Name = m_Joyname[FromSlot]->GetValue().mb_str();
 	}

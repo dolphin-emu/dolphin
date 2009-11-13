@@ -437,7 +437,7 @@ void PADConfigDialognJoy::SaveButtonMappingAll(int Slot)
 {
 	for (int i = 0; i < 4; i++)
 	{
-		if (IDToName(PadMapping[i].ID) == IDToName(PadMapping[Slot].ID))
+		if (PadMapping[i].Name.length() > 0 && PadMapping[i].Name == PadMapping[Slot].Name)
 			SaveButtonMapping(i, false, Slot);
 	}
 }
