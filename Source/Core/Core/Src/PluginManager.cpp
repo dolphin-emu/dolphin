@@ -76,12 +76,11 @@ CPluginManager::~CPluginManager()
 
 	for (int i = 0; i < MAXPADS; i++)
 	{
-		if (m_pad[i] && (OkayToInitPlugin(i) == -1))
+		if (m_pad[i] && (OkayToInitPlugin(i) == -1) && !m_params->m_strPadPlugin[i].empty())
 		{
 			INFO_LOG(CONSOLE, "Delete: %i\n", i);
-			delete m_pad[i];
+			FreePad(i);
 		}
-		m_pad[i] = NULL;
 	}
 
 	for (int i = 0; i < MAXWIIMOTES; i++)
@@ -165,9 +164,9 @@ void CPluginManager::ShutdownPlugins()
 		if (m_pad[i])
 		{
 			m_pad[i]->Shutdown();
-			//delete m_pad[i];
+			delete m_pad[i];
 		}
-		//m_pad[i] = NULL;
+		m_pad[i] = NULL;
 	}
 
 	for (int i = 0; i < MAXWIIMOTES; i++)
