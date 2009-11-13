@@ -117,7 +117,7 @@ void 0084_WaitForDMACompletion() {
  0089 02df      ret         
 }
 
-void 0082_JumpTable_0() {
+void 008a_Cmd_0() {
  008a 8100      clr         $ACC0
  008b 8970      clr'l       $ACC1 : $AC0.M, @$AR0
  008c 8e78      set16'l     : $AC1.M, @$AR0
@@ -438,7 +438,7 @@ void 0082_JumpTable_0() {
  0220 029f 006f jmp         006f_MailHandler()
 }
 
-void 0x222_JumpTable1() {
+void 0222_Cmd_1() {
  0222 8100      clr         $ACC0
  0223 8970      clr'l       $ACC1 : $AC0.M, @$AR0
  0224 8e60      set16'l     : $AC0.L, @$AR0
@@ -476,7 +476,7 @@ void 0x222_JumpTable1() {
  024d 029f 006f jmp         006f_MailHandler()
 }
 
-0x24f_JumpTable2() {
+void 024f_Cmd_2() {
  024f 8100      clr         $ACC0
  0250 8970      clr'l       $ACC1 : $AC0.M, @$AR0
  0251 8e60      set16'l     : $AC0.L, @$AR0
@@ -519,7 +519,7 @@ void 0x222_JumpTable1() {
 // Command 0x4 - set PBs address
 // Parameters: AR0 -> 0x0C01
 // AXList data: command (2), PBs address (4)
-void 027e_Cmd4_SetPBsAddress() {
+void 027e_Cmd_4_SetPBsAddress() {
  027e 8100      clr         $ACC0
  027f 8970      clr'l       $ACC1 : $AC0.M, @$AR0
  0280 8e60      set16'l     : $AC0.L, @$AR0
@@ -887,7 +887,7 @@ void 027e_Cmd4_SetPBsAddress() {
  0499 029f 006f jmp         006f_MailHandler()
 }
 
-void 049b_JumpTable4() {
+void 049b_Cmd_5() {
  049b 8e00      set16       
  049c 00c4 0ce6 lr          $IX0, @0x0ce6
  049e 1905      lrri        $IX1, @$AR0
@@ -907,7 +907,7 @@ void 049b_JumpTable4() {
  04b2 029f 006f jmp         006f_MailHandler()
 }
 
-void 04b4_JumpTable5() {
+void 04b4_Cmd_6() {
  04b4 8e00      set16       
  04b5 00c4 0ce7 lr          $IX0, @0x0ce7
  04b7 1905      lrri        $IX1, @$AR0
@@ -928,7 +928,7 @@ void 04b4_JumpTable5() {
 }
 
 // set out buffer
-void 04cd_JumpTable6() {
+void 04cd_Cmd_7() {
  04cd 8e00      set16       
  04ce 00c4 0ce8 lr          $IX0, @0x0ce8
  04d0 1905      lrri        $IX1, @$AR0
@@ -948,7 +948,7 @@ void 04cd_JumpTable6() {
  04e4 029f 006f jmp         006f_MailHandler()
 }
 
-void 04e6_JumpTable7() {
+void 04e6_Unk() {
  04e6 8b00      m0          
  04e7 8100      clr         $ACC0
  04e8 1fc4      mrr         $AC0.M, $IX0
@@ -1081,7 +1081,10 @@ void 04e6_JumpTable7() {
  0576 1b5f      srri        @$AR2, $AC1.M
  0577 1b5d      srri        @$AR2, $AC1.L
  0578 00c0 0cd2 lr          $AR0, @0x0cd2
- 057a 02df      ret         
+ 057a 02df      ret       
+}
+
+void 057b_Cmd_A() {   
  057b 8d00      set15       
  057c 8f00      set40       
  057d 8a00      m2          
@@ -1113,9 +1116,6 @@ void 04e6_JumpTable7() {
  059e 191c      lrri        $AC0.L, @$AR0
  059f 191c      lrri        $AC0.L, @$AR0
  05a0 029f 006f jmp         006f_MailHandler()
-}
-
-void 05a2_JumpTable8() {
  05a2 8b00      m0          
  05a3 7a00      dec         $ACC0
  05a4 00fe 0ce4 sr          @0x0ce4, $AC0.M
@@ -1196,7 +1196,7 @@ void 05a2_JumpTable8() {
  0609 029f 006f jmp         006f_MailHandler()
 }
 
-void 060b_JumpTable9() {
+void 060b_Cmd_B() {
  060b 8e48      set16'l     : $AX1.L, @$AR0
  060c 8b70      m0'l        : $AC0.M, @$AR0
  060d 8960      clr'l       $ACC1 : $AC0.L, @$AR0
@@ -1266,9 +1266,9 @@ void 060b_JumpTable9() {
  065f 16c9 0001 si          @DSCR, #0x0001
  0661 16cb 0180 si          @DSBL, #0x0180
  0663 02bf 0084 call        0084_WaitForDMACompletion()
- 0665 16fc dcd1 si          @DMBH, #0xdcd1
- 0667 16fd 0004 si          @DMBL, #0x0004
- 0669 16fb 0001 si          @DIRQ, #0x0001
+ 0665 16fc dcd1 si          @DMBH, #0xdcd1 <--------------!!!
+ 0667 16fd 0004 si          @DMBL, #0x0004 <--------------!!!
+ 0669 16fb 0001 si          @DIRQ, #0x0001 <--------------!!!
  066b 26fc      lrs         $AC0.M, @DMBH
  066c 02a0 8000 andf        $AC0.M, #0x8000
  066e 029c 066b jlnz        0x066b
@@ -1276,13 +1276,15 @@ void 060b_JumpTable9() {
 }
 
 // Command 0xE - AXList end
+void 0672_Cmd_E() {
  0672 16fc dcd1 si          @DMBH, #0xdcd1
  0674 16fd 0002 si          @DMBL, #0x0002
  0676 16fb 0001 si          @DIRQ, #0x0001					// send a 0xDCD10002 and trigger an IRQ
  0678 029f 0f9b jmp         0x0f9b
  067a 029f 004c jmp         0x004c
+}
 
-void 067c_JumpTable10() {
+void 067c_Cmd_D() {
  067c 8c00      clr15       
  067d 8a00      m2          
  067e 8f00      set40       
@@ -1655,13 +1657,15 @@ void 06c3_Unknown() {
  081d 2edc      srs         @yn2, $AC0.M
  081e 02df      ret         
  081f 02df      ret         
+ 
  0820 00c0 0ce2 lr          $AR0, @0x0ce2
  0822 0081 02da lri         $AR1, #0x02da
  0824 0082 0000 lri         $AR2, #0x0000
  0826 1c62      mrr         $AR3, $AR2
  0827 02bf 0bd1 call        0bd1_Unknown()
  0829 00f8 02f9 sr          @0x02f9, $AX0.L
- 082b 02df      ret         
+ 082b 02df      ret  
+        
  082c 00c0 0ce3 lr          $AR0, @0x0ce3
  082e 0081 02dc lri         $AR1, #0x02dc
  0830 0082 00c0 lri         $AR2, #0x00c0
@@ -1669,6 +1673,7 @@ void 06c3_Unknown() {
  0833 02bf 0bd1 call        0bd1_Unknown()
  0835 00f8 02fd sr          @0x02fd, $AX0.L
  0837 02df      ret         
+ 
  0838 00c0 0ce2 lr          $AR0, @0x0ce2
  083a 0081 02da lri         $AR1, #0x02da
  083c 0082 0000 lri         $AR2, #0x0000
@@ -1679,6 +1684,7 @@ void 06c3_Unknown() {
  0845 00f8 02f9 sr          @0x02f9, $AX0.L
  0847 00fb 02fd sr          @0x02fd, $AX1.H
  0849 02df      ret         
+ 
  084a 00c0 0ce2 lr          $AR0, @0x0ce2
  084c 0081 02da lri         $AR1, #0x02da
  084e 0082 0000 lri         $AR2, #0x0000
@@ -1689,6 +1695,7 @@ void 06c3_Unknown() {
  0858 00f8 02f9 sr          @0x02f9, $AX0.L
  085a 00fb 02fd sr          @0x02fd, $AX1.H
  085c 02df      ret         
+ 
  085d 00c0 0ce1 lr          $AR0, @0x0ce1
  085f 0081 02ea lri         $AR1, #0x02ea
  0861 0082 0180 lri         $AR2, #0x0180
@@ -1696,6 +1703,7 @@ void 06c3_Unknown() {
  0864 02bf 0bd1 call        0bd1_Unknown()
  0866 00f8 0301 sr          @0x0301, $AX0.L
  0868 02df      ret         
+ 
  0869 00c0 0ce1 lr          $AR0, @0x0ce1
  086b 0081 02ea lri         $AR1, #0x02ea
  086d 0082 0180 lri         $AR2, #0x0180
@@ -1731,6 +1739,7 @@ void 06c3_Unknown() {
  08a5 02bf 0c21 call        0c21_Unknown()
  08a7 00f8 0301 sr          @0x0301, $AX0.L
  08a9 02df      ret         
+ 
  08aa 00c0 0ce1 lr          $AR0, @0x0ce1
  08ac 0081 02ea lri         $AR1, #0x02ea
  08ae 0082 0180 lri         $AR2, #0x0180
@@ -1766,6 +1775,7 @@ void 06c3_Unknown() {
  08e9 02bf 0bd1 call        0bd1_Unknown()
  08eb 00f8 02fa sr          @0x02fa, $AX0.L
  08ed 02df      ret         
+ 
  08ee 00c0 0ce3 lr          $AR0, @0x0ce3
  08f0 0081 02e0 lri         $AR1, #0x02e0
  08f2 0082 04c0 lri         $AR2, #0x04c0
@@ -1773,6 +1783,7 @@ void 06c3_Unknown() {
  08f5 02bf 0bd1 call        0bd1_Unknown()
  08f7 00f8 02fe sr          @0x02fe, $AX0.L
  08f9 02df      ret         
+ 
  08fa 00c0 0ce2 lr          $AR0, @0x0ce2
  08fc 0081 02de lri         $AR1, #0x02de
  08fe 0082 0400 lri         $AR2, #0x0400
@@ -1783,6 +1794,7 @@ void 06c3_Unknown() {
  0907 00f8 02fa sr          @0x02fa, $AX0.L
  0909 00fb 02fe sr          @0x02fe, $AX1.H
  090b 02df      ret         
+ 
  090c 00c0 0ce2 lr          $AR0, @0x0ce2
  090e 0081 02de lri         $AR1, #0x02de
  0910 0082 0400 lri         $AR2, #0x0400
@@ -1793,6 +1805,7 @@ void 06c3_Unknown() {
  091a 00f8 02fa sr          @0x02fa, $AX0.L
  091c 00fb 02fe sr          @0x02fe, $AX1.H
  091e 02df      ret         
+ 
  091f 00c0 0ce1 lr          $AR0, @0x0ce1
  0921 0081 02ec lri         $AR1, #0x02ec
  0923 0082 0580 lri         $AR2, #0x0580
@@ -1800,6 +1813,7 @@ void 06c3_Unknown() {
  0926 02bf 0bd1 call        0bd1_Unknown()
  0928 00f8 0302 sr          @0x0302, $AX0.L
  092a 02df      ret         
+ 
  092b 00c0 0ce1 lr          $AR0, @0x0ce1
  092d 0081 02ec lri         $AR1, #0x02ec
  092f 0082 0580 lri         $AR2, #0x0580
@@ -1835,6 +1849,7 @@ void 06c3_Unknown() {
  0967 02bf 0c21 call        0c21_Unknown()
  0969 00f8 0302 sr          @0x0302, $AX0.L
  096b 02df      ret         
+ 
  096c 00c0 0ce1 lr          $AR0, @0x0ce1
  096e 0081 02ec lri         $AR1, #0x02ec
  0970 0082 0580 lri         $AR2, #0x0580
@@ -1870,6 +1885,7 @@ void 06c3_Unknown() {
  09ab 02bf 0bd1 call        0bd1_Unknown()
  09ad 00f8 02fb sr          @0x02fb, $AX0.L
  09af 02df      ret         
+ 
  09b0 00c0 0ce3 lr          $AR0, @0x0ce3
  09b2 0081 02e4 lri         $AR1, #0x02e4
  09b4 0082 0700 lri         $AR2, #0x0700
@@ -1877,6 +1893,7 @@ void 06c3_Unknown() {
  09b7 02bf 0bd1 call        0bd1_Unknown()
  09b9 00f8 02ff sr          @0x02ff, $AX0.L
  09bb 02df      ret         
+ 
  09bc 00c0 0ce2 lr          $AR0, @0x0ce2
  09be 0081 02e2 lri         $AR1, #0x02e2
  09c0 0082 0640 lri         $AR2, #0x0640
@@ -1886,7 +1903,8 @@ void 06c3_Unknown() {
  09c7 02bf 0beb call        0x0beb
  09c9 00f8 02fb sr          @0x02fb, $AX0.L
  09cb 00fb 02ff sr          @0x02ff, $AX1.H
- 09cd 02df      ret         
+ 09cd 02df      ret             
+ 
  09ce 00c0 0ce2 lr          $AR0, @0x0ce2
  09d0 0081 02e2 lri         $AR1, #0x02e2
  09d2 0082 0640 lri         $AR2, #0x0640
@@ -1896,14 +1914,16 @@ void 06c3_Unknown() {
  09da 02bf 0c51 call        0x0c51
  09dc 00f8 02fb sr          @0x02fb, $AX0.L
  09de 00fb 02ff sr          @0x02ff, $AX1.H
- 09e0 02df      ret         
+ 09e0 02df      ret            
+ 
  09e1 00c0 0ce1 lr          $AR0, @0x0ce1
  09e3 0081 02ee lri         $AR1, #0x02ee
  09e5 0082 07c0 lri         $AR2, #0x07c0
  09e7 1c62      mrr         $AR3, $AR2
  09e8 02bf 0bd1 call        0bd1_Unknown()
  09ea 00f8 0303 sr          @0x0303, $AX0.L
- 09ec 02df      ret         
+ 09ec 02df      ret             
+ 
  09ed 00c0 0ce1 lr          $AR0, @0x0ce1
  09ef 0081 02ee lri         $AR1, #0x02ee
  09f1 0082 07c0 lri         $AR2, #0x07c0
@@ -1938,7 +1958,8 @@ void 06c3_Unknown() {
  0a27 0083 0d08 lri         $AR3, #0x0d08
  0a29 02bf 0c21 call        0c21_Unknown()
  0a2b 00f8 0303 sr          @0x0303, $AX0.L
- 0a2d 02df      ret         
+ 0a2d 02df      ret               
+ 
  0a2e 00c0 0ce1 lr          $AR0, @0x0ce1
  0a30 0081 02ee lri         $AR1, #0x02ee
  0a32 0082 07c0 lri         $AR2, #0x07c0
@@ -2010,7 +2031,8 @@ void 06c3_Unknown() {
  0aa9 1c62      mrr         $AR3, $AR2
  0aaa 02bf 0bd1 call        0bd1_Unknown()
  0aac 00f8 0304 sr          @0x0304, $AX0.L
- 0aae 02df      ret         
+ 0aae 02df      ret           
+ 
  0aaf 00c0 0ce1 lr          $AR0, @0x0ce1
  0ab1 0081 02f0 lri         $AR1, #0x02f0
  0ab3 0082 0a00 lri         $AR2, #0x0a00
@@ -2045,7 +2067,8 @@ void 06c3_Unknown() {
  0ae9 0083 0d08 lri         $AR3, #0x0d08
  0aeb 02bf 0c21 call        0c21_Unknown()
  0aed 00f8 0304 sr          @0x0304, $AX0.L
- 0aef 02df      ret         
+ 0aef 02df      ret            
+ 
  0af0 00c0 0ce1 lr          $AR0, @0x0ce1
  0af2 0081 02f0 lri         $AR1, #0x02f0
  0af4 0082 0a00 lri         $AR2, #0x0a00
@@ -2080,7 +2103,8 @@ void 06c3_Unknown() {
  0b2e 1c62      mrr         $AR3, $AR2
  0b2f 02bf 0bd1 call        0bd1_Unknown()
  0b31 00f8 02fc sr          @0x02fc, $AX0.L
- 0b33 02df      ret         
+ 0b33 02df      ret                 
+ 
  0b34 00c0 0ce1 lr          $AR0, @0x0ce1
  0b36 0081 02e8 lri         $AR1, #0x02e8
  0b38 0082 0940 lri         $AR2, #0x0940
@@ -2657,6 +2681,8 @@ void 0c21_Unknown() {
  0dba 1000      loopi       #0x00
  0dbb 1200      sbclr       #0x00
  0dbc 1400      lsl         $ACC0, #0
+ 
+void 0dbd_Cmd_8() { 
  0dbd 8e00      set16       
  0dbe 00c4 0ce6 lr          $IX0, @0x0ce6
  0dc0 1905      lrri        $IX1, @$AR0
@@ -2678,7 +2704,10 @@ void 0c21_Unknown() {
  0dd7 16c9 0001 si          @DSCR, #0x0001
  0dd9 16cb 0180 si          @DSBL, #0x0180
  0ddb 02bf 0084 call        0084_WaitForDMACompletion()
- 0ddd 029f 0e01 jmp         0x0e01
+ 0ddd 029f 0e01 jmp         0e01_Unk()
+} 
+
+void 0ddf_Cmd_9() { 
  0ddf 8e00      set16       
  0de0 00c4 0ce7 lr          $IX0, @0x0ce7
  0de2 1905      lrri        $IX1, @$AR0
@@ -2700,7 +2729,10 @@ void 0c21_Unknown() {
  0df9 16c9 0001 si          @DSCR, #0x0001
  0dfb 16cb 0180 si          @DSBL, #0x0180
  0dfd 02bf 0084 call        0084_WaitForDMACompletion()
- 0dff 029f 0e01 jmp         0x0e01
+ 0dff 029f 0e01 jmp         0e01_Unk()
+}
+
+void 0e01_Unk() { 
  0e01 8b00      m0          
  0e02 8100      clr         $ACC0
  0e03 8900      clr         $ACC1
@@ -2760,6 +2792,7 @@ void 0c21_Unknown() {
  0e51 02bf 0084 call        0084_WaitForDMACompletion()
  0e53 02bf 0e57 call        0x0e57
  0e55 029f 006f jmp         006f_MailHandler()
+}
 
  0e57 8f00      set40       
  0e58 8d00      set15       
@@ -2801,7 +2834,8 @@ void 0c21_Unknown() {
  0e7f 00c0 0cd2 lr          $AR0, @0x0cd2
  0e81 8e00      set16       
  0e82 02df      ret      
-   
+  
+void 0e83_Cmd_3() {    
  0e83 8e00      set16       
  0e84 191f      lrri        $AC1.M, @$AR0
  0e85 191d      lrri        $AC1.L, @$AR0
@@ -2860,7 +2894,9 @@ void 0c21_Unknown() {
  0ec2 1b5d      srri        @$AR2, $AC1.L
  0ec3 1c04      mrr         $AR0, $IX0
  0ec4 029f 006f jmp         006f_MailHandler()
+}
 
+void 0ec6_Cmd_C() {  
  0ec6 8e48      set16'l     : $AX1.L, @$AR0
  0ec7 8b78      m0'l        : $AC1.M, @$AR0
  0ec8 8168      clr'l       $ACC0 : $AC1.L, @$AR0
@@ -2940,13 +2976,14 @@ void 0c21_Unknown() {
  0f29 16c9 0001 si          @DSCR, #0x0001
  0f2b 16cb 0180 si          @DSBL, #0x0180
  0f2d 02bf 0084 call        0084_WaitForDMACompletion()
- 0f2f 16fc dcd1 si          @DMBH, #0xdcd1
- 0f31 16fd 0004 si          @DMBL, #0x0004
- 0f33 16fb 0001 si          @DIRQ, #0x0001
+ 0f2f 16fc dcd1 si          @DMBH, #0xdcd1 <-------------- !!!
+ 0f31 16fd 0004 si          @DMBL, #0x0004 <-------------- !!!
+ 0f33 16fb 0001 si          @DIRQ, #0x0001 <-------------- !!!
  0f35 26fc      lrs         $AC0.M, @DMBH
  0f36 02a0 8000 andf        $AC0.M, #0x8000
  0f38 029c 0f35 jlnz        0x0f35
  0f3a 029f 006f jmp         006f_MailHandler()
+}
 
 void 0f3c_Int1_Handler() {
  0f3c 8e00      set16       
@@ -3056,6 +3093,7 @@ void 0f92_Int7_Handler() {
 // called at AXList end; wait for a last mail and take an action
 // Note: the same thing can be found in Zelda ucode. It's called after DsyncFrame.
 // Probably debugging stuff.
+
  0f9b 8e00      set16       
  0f9c 8100      clr         $ACC0
  0f9d 8900      clr         $ACC1
@@ -3068,8 +3106,10 @@ void 0f92_Int7_Handler() {
  0fa6 1c7f      mrr         $AR3, $AC1.M
  0fa7 176f      jmpr        $AR3				// take the action!
  0fa8 0021      halt        
- 0fa9 029f 0037 jmp         0x0037
+ 
+ 0fa9 029f 0037 jmp         0037_Unk_Restart()
  0fab 0021      halt        
+ 
  0fac 8100      clr         $ACC0
  0fad 8900      clr         $ACC1
  0fae 02bf 0fea call        0x0fea
@@ -3110,11 +3150,10 @@ void 0f92_Int7_Handler() {
  0fdc 26c9      lrs         $AC0.M, @DSCR
  0fdd 02a0 0004 andf        $AC0.M, #0x0004
  0fdf 029c 0fdc jlnz        0x0fdc
-
  0fe1 029f 80b5 jmp         0x80b5
  0fe3 0021      halt        
  0fe4 029f 8000 jmp         0x8000
- 0fe6 0021      halt        
+ 0fe6 0021      halt   
  0fe7 029f 004c jmp         0x004c
  0fe9 0021      halt        
 
@@ -3127,7 +3166,6 @@ void 0f92_Int7_Handler() {
  0ff1 03c0 8000 andcf       $AC1.M, #0x8000
  0ff3 029c 0ff0 jlnz        0x0ff0
  0ff5 02df      ret         
-
 
  0ff6 0000      nop         
  0ff7 0000      nop         
