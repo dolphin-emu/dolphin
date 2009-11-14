@@ -166,7 +166,7 @@ void CPluginManager::ShutdownPlugins()
 			m_pad[i]->Shutdown();
 			//delete m_pad[i]; Causes crash on stop
 		}
-		m_pad[i] = NULL;
+		//m_pad[i] = NULL;
 	}
 
 	for (int i = 0; i < MAXWIIMOTES; i++)
