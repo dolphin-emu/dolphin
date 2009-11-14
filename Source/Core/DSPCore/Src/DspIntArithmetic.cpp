@@ -33,7 +33,7 @@ void clr(const UDSPInstruction& opc)
 	u8 reg = (opc.hex >> 11) & 0x1;
 
 	dsp_set_long_acc(reg, 0);
-	Update_SR_Register64((s64)0);   // really?
+	Update_SR_Register64(0);
 	zeroWriteBackLog();
 }
 

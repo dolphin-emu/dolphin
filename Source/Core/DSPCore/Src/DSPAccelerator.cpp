@@ -103,11 +103,14 @@ void dsp_write_aram_d3(u16 value)
 		case 0xA:   // 16-bit writes
 			DSPHost_WriteHostMemory(value >> 8, Address);
 			DSPHost_WriteHostMemory(value & 0xFF, Address + 1);
+			Address += 2;
 			break;
 		default:
 			ERROR_LOG(DSPLLE, "dsp_write_aram_d3: Unseen Format %i", gdsp_ifx_regs[DSP_FORMAT]);
 			break;
 	}
+	gdsp_ifx_regs[DSP_ACCAH] = Address >> 16;
+	gdsp_ifx_regs[DSP_ACCAL] = Address & 0xffff;
 }
 
 u16 dsp_read_accelerator()
