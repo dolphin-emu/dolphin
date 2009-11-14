@@ -923,15 +923,23 @@ void FillReportExtension(wm_extension& _ext)
 			_ext.jy = g_nu.jy.min;
 		if(IsKey(g_NunchuckExt.U))
 			_ext.jy = g_nu.jy.max;
+
+		// On a real stick, the initialization value of center is 0x80,
+		// but after a first time touch, the center value automatically changes to 0x7F
+		if(_ext.jx != g_nu.jx.center)
+			g_nu.jx.center = 0x7F;
+		if(_ext.jy != g_nu.jy.center)
+			g_nu.jy.center = 0x7F;
 	}
 	else
 	{
 		// Get adjusted pad state values
 		int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
 		PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
-		// The Y-axis is inverted
-		_Ly = 0xff - _Ly;
-		_Ry = 0xff - _Ry;
+		// The Y-axis is inverted, but we should keep its initialization center value
+		// till it is touched for the first time
+		if (_Ly != g_nu.jy.center) _Ly = 0xFE - _Ly;
+		if (_Ry != g_nu.jy.center) _Ry = 0xFE - _Ry;
 
 		/* This is if we are also using a real Nunchuck that we are sharing the
 		   calibration with. It's not needed if we are using our default
@@ -945,8 +953,8 @@ void FillReportExtension(wm_extension& _ext)
 			float Ly = (float)_Ly;
 			float Rx = (float)_Rx;
 			float Ry = (float)_Ry;
-			//			float Tl = (float)_Tl;
-			//			float Tr = (float)_Tr;
+			//float Tl = (float)_Tl;
+			//float Tr = (float)_Tr;
 
 			float XRangePos = (float) (g_nu.jx.max - g_nu.jx.center);
 			float XRangeNeg = (float) (g_nu.jx.center - g_nu.jx.min);
@@ -1062,15 +1070,22 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 			if(IsKey(g_ClassicContExt.Ld)) // down
 				Ly = g_ClassicContCalibration.Ly.min;
 
+			// On a real stick, the initialization value of center is 0x80,
+			// but after a first time touch, the center value automatically changes to 0x7F
+			if(Lx != g_ClassicContCalibration.Lx.center)
+				g_ClassicContCalibration.Lx.center = 0x7F;
+			if(Ly != g_ClassicContCalibration.Ly.center)
+				g_ClassicContCalibration.Ly.center = 0x7F;
 		}
 		else
 		{
 			// Get adjusted pad state values
 			int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
 			PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
-			// The Y-axis is inverted
-			_Ly = 0xff - _Ly;
-			_Ry = 0xff - _Ry;
+			// The Y-axis is inverted, but we should keep its initialization center value
+			// till it is touched for the first time
+			if (_Ly != g_ClassicContCalibration.Ly.center) _Ly = 0xFE - _Ly;
+			if (_Ry != g_ClassicContCalibration.Ry.center) _Ry = 0xFE - _Ry;
 
 			/* This is if we are also using a real Classic Controller that we
 			   are sharing the calibration with.  It's not needed if we are
@@ -1104,15 +1119,23 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 				Rx = g_ClassicContCalibration.Rx.max;
 			if(IsKey(g_ClassicContExt.Rd)) // down
 				Ry = g_ClassicContCalibration.Ry.min;
+
+			// On a real stick, the initialization value of center is 0x80,
+			// but after a first time touch, the center value automatically changes to 0x7F
+			if(Rx != g_ClassicContCalibration.Rx.center)
+				g_ClassicContCalibration.Rx.center = 0x7F;
+			if(Ry != g_ClassicContCalibration.Ry.center)
+				g_ClassicContCalibration.Ry.center = 0x7F;
 		}
 		else
 		{
 			// Get adjusted pad state values
 			int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
 			PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
-			// The Y-axis is inverted
-			_Ly = 0xff - _Ly;
-			_Ry = 0xff - _Ry;
+			// The Y-axis is inverted, but we should keep its initialization center value
+			// till it is touched for the first time
+			if (_Ly != g_ClassicContCalibration.Ly.center) _Ly = 0xFE - _Ly;
+			if (_Ry != g_ClassicContCalibration.Ry.center) _Ry = 0xFE - _Ry;
 
 			/* This is if we are also using a real Classic Controller that we
 			   are sharing the calibration with.  It's not needed if we are
