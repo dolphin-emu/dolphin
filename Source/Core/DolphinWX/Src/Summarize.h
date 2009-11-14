@@ -18,8 +18,6 @@
 #ifndef __SUMMARIZE_H__
 #define __SUMMARIZE_H__
 
-#include <windows.h>
-
 std::string Summarize_Plug()
 {
 	return StringFromFormat(
@@ -106,7 +104,7 @@ std::string Summarize_CPU()
 {
 	return StringFromFormat(
 		"Processor Information: \n%s\n",
-		cpu_info.Summarize_long().c_str()
+		cpu_info.Summarize().c_str()
 		);
 }
 
@@ -125,67 +123,5 @@ std::string Summarize_Drives()
 	}
 	return drive;
 }
-
-
-std::string Summarize_OS(void)
-{
-
-	std::string operatingSystem;
-
-#ifdef _WIN32
-	#include <windows.h>
-
-	OSVERSIONINFO osver;
-	osver.dwOSVersionInfoSize = sizeof(osver);
-
-	if (GetVersionEx(&osver))
-	{
-		switch(osver.dwMajorVersion)
-		{
-			case 6:
-				switch(osver.dwMinorVersion)
-				{
-					case 1:
-						if(osver.dwPlatformId == VER_NT_WORKSTATION)
-							operatingSystem = "Windows 7";
-						else
-							operatingSystem += "Windows Server 2008 R2";
-						break;
-					case 0:
-						if(osver.dwPlatformId == VER_NT_WORKSTATION)
-							operatingSystem = "Windows Vista";
-						else
-							operatingSystem = "Windows Server 2008";
-						break;
-				}
-				break;
-			case 5:
-				switch(osver.dwMinorVersion)
-				{
-					case 2:
-						if(GetSystemMetrics(SM_SERVERR2) != 0)
-							operatingSystem = "Windows Server 2003 R2";
-						else
-							operatingSystem = "Windows Server 2003";
-						break;
-					case 1:
-						operatingSystem = "Windows XP";
-						break;
-					case 0:
-						operatingSystem = "Windows 2000";
-						break;
-				}
-				break;
-		}
-	}
-#else
-#ifdef __linux__ 
-	#include "linux/version.h"
-	operatingSystem = UTS_RELEASE;
-#endif
-#endif
-	return StringFromFormat("Operating System: %s",operatingSystem);
-}
-
 
 #endif //__SUMMARIZE_H__

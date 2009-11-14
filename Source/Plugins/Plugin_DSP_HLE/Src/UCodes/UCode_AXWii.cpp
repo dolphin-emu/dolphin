@@ -48,6 +48,7 @@ CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler, u32 l_CRC)
 {
 	// we got loaded
 	m_rMailHandler.PushMail(0xDCD10000);
+	m_rMailHandler.PushMail(0x80000000);  // handshake ??? only (crc == 0xe2136399) needs it ...
 
 	templbuffer = new int[1024 * 1024];
 	temprbuffer = new int[1024 * 1024];
@@ -69,12 +70,9 @@ void CUCode_AXWii::HandleMail(u32 _uMail)
 	{
 		// a new List
 	}
-	else if (_uMail == 0xCDD10000) // Action 0 - restart
+	else if ((_uMail & 0xFFFF0000) == 0xCDD10000)
 	{
-		m_rMailHandler.PushMail(0xDCD10001);
-	}
-	else if ((_uMail & 0xFFFF0000) == 0xCDD10000) // Action 1/2/3
-	{
+		//NOTICE_LOG(DSPHLE, "action mail %08X", _uMail);
 	}
 	else
 	{
@@ -373,13 +371,11 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		case 0x000b:
 			uAddress += 2;  // one 0x8000 in rabbids
 			uAddress += 4 * 2; // then two RAM addressses
-			m_rMailHandler.PushMail(0xDCD10004);
 			break;
 
 		case 0x000c:
 			uAddress += 2;  // one 0x8000 in rabbids
 			uAddress += 4 * 2; // then two RAM addressses
-			m_rMailHandler.PushMail(0xDCD10004);
 			break;
 
 		case 0x000d:
@@ -389,7 +385,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 	    case 0x000e:
 			// This is the end.
 			bExecuteList = false;
-			m_rMailHandler.PushMail(0xDCD10002);
+			SaveLog("%08x : AXLIST end, wii stylee.", uAddress);
 			break;
 
 	    default:
@@ -432,6 +428,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 	SaveLog("=====================================================================");
 	SaveLog("End");
 
+	m_rMailHandler.PushMail(0xDCD10002);
 	return true;
 }
 

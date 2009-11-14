@@ -116,8 +116,8 @@ void CARCodeAddEdit::SaveCheatData(wxCommandEvent& WXUNUSED (event))
 		
 		if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
 		{
-			u32 addr = strtoul(pieces[0].c_str(), NULL, 16);
-			u32 value = strtoul(pieces[1].c_str(), NULL, 16);
+			u32 addr = strtol(pieces[0].c_str(), NULL, 16);
+			u32 value = strtol(pieces[1].c_str(), NULL, 16);
 			// Decrypted code
 			tempEntries.push_back(ActionReplay::AREntry(addr, value));
 		}

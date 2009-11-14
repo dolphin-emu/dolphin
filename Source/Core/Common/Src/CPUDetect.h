@@ -58,9 +58,6 @@ struct CPUInfo
 
 	// Turn the cpu info into a string we can show
 	std::string Summarize();
-
-	// Turn the cpu info into a string we can show(This version uses headings and line breaks)
-	std::string Summarize_long();
 };
 
 extern CPUInfo cpu_info;

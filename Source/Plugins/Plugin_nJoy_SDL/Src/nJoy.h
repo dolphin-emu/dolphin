@@ -95,24 +95,13 @@
 	#ifdef _WIN32
 		extern HWND m_hWnd, m_hConsole; // Handle to window
 	#endif
-	extern int NumPads, NumDIDevices, LastPad; // Number of pads
-	extern bool SDLPolling;
-	extern bool LiveUpdates;
+	extern int NumPads, NumGoodPads, LastPad; // Number of goods pads
 #endif
 
 
 // Custom Functions
 // ----------------
-bool LocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads);
-bool LocalSearchDevicesReset(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads);
-bool DoLocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads);
-int SearchDIDevices();
-bool IsConnected(std::string Name);
-bool IsPolling();
-void EnablePolling(bool Enable);
-std::string IDToName(int ID);
-bool IsConnected(std::string Name);
-int IDToid(int ID);
+bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads);
 void DEBUG_INIT();
 void DEBUG_QUIT();
 bool IsFocus();

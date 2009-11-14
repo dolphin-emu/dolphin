@@ -146,8 +146,7 @@ namespace EmuWindow
 {
 
 HWND m_hWnd = NULL; // The new window that is created here
-HWND m_hParent = NULL;
-HWND m_hMain = NULL; // The main CPanel
+HWND m_hParent = NULL; // The main CPanel
 
 HINSTANCE m_hInstance = NULL;
 WNDCLASSEX wndClass;
@@ -244,10 +243,16 @@ void OnKeyDown(WPARAM wParam)
 	switch (LOWORD( wParam ))
 	{
 	case VK_ESCAPE:
-		if (!g_Config.RenderToMainframe)
+		if (g_Config.bFullscreen && !g_Config.RenderToMainframe)
 		{
-			// Pressing Esc stops the emulation
-			SendMessage( m_hWnd, WM_CLOSE, 0, 0 );
+			// Pressing Esc switch to Windowed in Fullscreen mode
+			ToggleFullscreen(m_hWnd);
+			return;
+		}
+		else if (!g_Config.RenderToMainframe)
+		{
+			// And stops the emulation when already in Windowed mode
+			PostMessage(m_hParent, WM_USER, OPENGL_WM_USER_STOP, 0);
 		}
 		break;
 	case '3': // OSD keys
@@ -270,7 +275,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	switch (iMsg)
 	{
 	case WM_CREATE:
-		PostMessage(m_hMain, WM_USER, WM_USER_CREATE, g_Config.RenderToMainframe);
+		PostMessage((HWND)g_VideoInitialize.pWindowHandle, WM_USER, OPENGL_WM_USER_CREATE, (int)m_hParent);
 		break;
 
 	case WM_PAINT:
@@ -320,7 +325,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		   it's nessesary for both the child window and separate rendering window because
 		   moves over the rendering window do not reach the main program then. */
 		if (GetParentWnd() == NULL) { // Separate rendering window
-			PostMessage(m_hMain, iMsg, wParam, -1);			
+			PostMessage(m_hParent, iMsg, wParam, -1);			
 			SetCursor(hCursor);
 		}
 		else
@@ -331,14 +336,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	    only let it pass through Dolphin > Frame.cpp to determine if it should be on or off
 		and coordinate it with the other settings if nessesary */
 	case WM_USER:
-		if (wParam == WM_USER_STOP)
+		if (wParam == OPENGL_WM_USER_STOP)
 		{
 			if (lParam)
 				SetCursor(hCursor);
 			else
 				SetCursor(hCursorBlank);
 		}
-		if (wParam == WM_USER_KEYDOWN)
+		if (wParam == OPENGL_WM_USER_KEYDOWN)
 			OnKeyDown(lParam);
 		if (wParam == TOGGLE_FULLSCREEN)
 			ToggleFullscreen(m_hWnd);
@@ -349,7 +354,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		if (m_hParent == NULL)
 		{
 			// Simple hack to easily exit without stopping. Hope to fix the stopping errors soon.
-			PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
+			ExitProcess(0);
 			return 0;
 		}
 
@@ -400,16 +405,16 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	CreateCursors(m_hInstance);
 
 	// Create child window
-    if (g_Config.RenderToMainframe)
+    if (parent)
     {
-		m_hParent = m_hMain = parent;
+		m_hParent = parent;
 
-		m_hWnd = CreateWindowEx(0, m_szClassName, title, WS_CHILD,
+        m_hWnd = CreateWindow(m_szClassName, title,
+            WS_CHILD,
             CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
             parent, NULL, hInstance, NULL);
 
-		if( !g_Config.bFullscreen )
-			SetWindowPos( GetParent(m_hParent), NULL, 0, 0, width, height, SWP_NOMOVE | SWP_NOZORDER );
+        ShowWindow(m_hWnd, SW_SHOWMAXIMIZED);
     }
 
 	// Create new separate window
@@ -419,7 +424,6 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 		// render to main, stop, then render to separate window, as the GUI will still
 		// think we're rendering to main because m_hParent will still contain the old HWND...
 		m_hParent = NULL;
-		m_hMain = parent;
 
 		DWORD style = g_Config.bFullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW;
 
@@ -434,9 +438,13 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
         rc.top = (1024 - h)/2;
         rc.bottom = rc.top + h;
 
-        m_hWnd = CreateWindowEx(0, m_szClassName, title, style,
+        m_hWnd = CreateWindow(m_szClassName, title,
+            style,
             rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top,
-            NULL, NULL, hInstance, NULL);
+            parent, NULL, hInstance, NULL );
+
+        g_winstyle = GetWindowLong( m_hWnd, GWL_STYLE );
+        g_winstyle &= ~WS_MAXIMIZE & ~WS_MINIMIZE; // remove minimize/maximize style
     }
 
 	return m_hWnd;
@@ -531,9 +539,7 @@ void Show()
 
 HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
 {
-	int width=640, height=480;
-	sscanf( g_Config.bFullscreen ? g_Config.cFSResolution : g_Config.cInternalRes, "%dx%d", &width, &height );
-	return OpenWindow(hParent, hInstance, width, height, title);
+	return OpenWindow(hParent, hInstance, 640, 480, title);
 }
 
 void Close()
@@ -548,8 +554,7 @@ void Close()
 void SetSize(int width, int height)
 {
 	RECT rc = {0, 0, width, height};
-	DWORD dwStyle = GetWindowLong(m_hWnd, GWL_STYLE);
-	AdjustWindowRect(&rc, dwStyle, false);
+	AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, false);
 
 	int w = rc.right - rc.left;
 	int h = rc.bottom - rc.top;

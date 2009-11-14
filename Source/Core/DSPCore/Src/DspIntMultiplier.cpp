@@ -455,7 +455,7 @@ void maddx(const UDSPInstruction& opc)
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-	s64 prod = dsp_multiply_add(val1, val2);
+	s64 prod = dsp_multiply_add(val1, val2, true);
 	
 	zeroWriteBackLog();
 	dsp_set_long_prod(prod);
@@ -474,7 +474,7 @@ void msubx(const UDSPInstruction& opc)
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-	s64 prod = dsp_multiply_sub(val1, val2);
+	s64 prod = dsp_multiply_sub(val1, val2, true);
 
 	zeroWriteBackLog();
 	dsp_set_long_prod(prod);

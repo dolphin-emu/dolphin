@@ -34,11 +34,6 @@
 #include "Encryption.h" // for extension encryption
 #include "Config.h" // for g_Config
 
-#if defined(HAVE_WX) && HAVE_WX
-	#include "ConfigPadDlg.h"
-	extern WiimotePadConfigDialog *m_PadConfigFrame;
-#endif
-
 extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu
@@ -443,12 +438,10 @@ void Initialize()
 	/* Populate joyinfo for all attached devices and do g_Config.Load() if the
 	   configuration window is not already open, if it's already open we
 	   continue with the settings we have */
-	#if defined(HAVE_WX) && HAVE_WX
-	if (!m_PadConfigFrame)
+	if(!g_FrameOpen)
 	{
-		LocalSearchDevices(joyinfo, NumPads);
+		Search_Devices(joyinfo, NumPads, NumGoodPads);
 	}
-	#endif
 
 	// Copy extension id and calibration to its register, g_Config.Load() is needed before this
 	UpdateExtRegisterBlocks();
@@ -493,6 +486,7 @@ void DoState(PointerWrap &p)
 	p.Do(g_Encryption);
 
 	p.Do(NumPads);
+	p.Do(NumGoodPads);
 	p.Do(joyinfo);
 	p.DoArray(PadState, 4);
 	p.DoArray(PadMapping, 4);
@@ -515,16 +509,20 @@ void Shutdown(void)
 	for (int i = 0; i < 1; i++)
 	{
 		if (PadMapping[i].enabled && joyinfo.size() > (u32)PadMapping[i].ID)
-			INFO_LOG(WIIMOTE, "ShutDown: %i", PadState[i].joy);
-			/* SDL_JoystickClose() crashes for some reason so I avoid this
-			   for now, SDL_Quit() should close the pads to I think */
-			//if(SDL_JoystickOpened(PadMapping[i].ID)) SDL_JoystickClose(PadState[i].joy);
-			//PadState[i].joy = NULL;
+			if (joyinfo.at(PadMapping[i].ID).Good)
+			{
+				INFO_LOG(WIIMOTE, "ShutDown: %i", PadState[i].joy);
+				/* SDL_JoystickClose() crashes for some reason so I avoid this
+				   for now, SDL_Quit() should close the pads to I think */
+				//if(SDL_JoystickOpened(PadMapping[i].ID)) SDL_JoystickClose(PadState[i].joy);
+				//PadState[i].joy = NULL;
+			}
 	}
 
 	// Clear the physical device info
 	joyinfo.clear();
 	NumPads = 0;
+	NumGoodPads = 0;
 
 	// Finally close SDL
 	if (SDL_WasInit(0)) SDL_Quit();
@@ -695,7 +693,20 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
    of times per second. */
 void Update() 
 {
+	readKeyboard();
+	//LOG(WIIMOTE, "Wiimote_Update");
 	//INFO_LOG(WIIMOTE, "Emu Update: %i", g_ReportingMode);
+
+	// Check if the pad state should be updated
+	if ((g_Config.Trigger.Type == g_Config.Trigger.TRIGGER || g_Config.Trigger.Type == g_Config.Trigger.ANALOG1 || g_Config.Trigger.Type == g_Config.Trigger.ANALOG2
+		|| g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG1 || g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG2
+		|| g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG2
+		|| g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG2)
+		&& NumGoodPads > 0 && joyinfo.size() > (u32)PadMapping[0].ID)
+	{
+		const int Page = 0;
+		WiiMoteEmu::GetJoyState(PadState[Page], PadMapping[Page], Page, joyinfo[PadMapping[Page].ID].NumButtons);
+	}
 
 	switch(g_ReportingMode)
 	{
@@ -710,22 +721,9 @@ void Update()
 
 	// Potentially send a delayed acknowledgement to an InterruptChannel() Output
 	CheckAckDelay();
-	
-	ReadKeyboard();
-	
-	// Check if the pad state should be updated	
-	if ((g_Config.Trigger.Type == g_Config.Trigger.TRIGGER || g_Config.Trigger.Type == g_Config.Trigger.ANALOG1 || g_Config.Trigger.Type == g_Config.Trigger.ANALOG2
-		|| g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG1 || g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG2
-		|| g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG2
-		|| g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG2)
-		&& NumPads > 0 && joyinfo.size() > (u32)PadMapping[0].ID)
-	{
-		const int Page = 0;
-		WiiMoteEmu::GetJoyState(PadState[Page], PadMapping[Page], Page);
-	}
 }
 
-void ReadKeyboard()
+void readKeyboard()
 {
 #if defined(HAVE_X11) && HAVE_X11
 	XEvent E;

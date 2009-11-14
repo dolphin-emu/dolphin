@@ -30,15 +30,36 @@
    is only used the first time the pads are checked. */
 void WiimotePadConfigDialog::DoChangeJoystick()
 {
-	WARN_LOG(WIIMOTE, "---- DoChangeJoystick ----");
+	// Close the current pad, unless it's used by another slot
+	//if (PadMapping[notebookpage].enabled) PadClose(notebookpage);
 
 	// Before changing the pad we save potential changes to the current pad
 	DoSave(true);
 	
 	// Load the settings for the new Id
 	g_Config.Load(true);
-	// Update the GUI
-	UpdateGUI(Page);
+	UpdateGUI(Page); // Update the GUI
+
+	// Open the new pad
+	if (WiiMoteEmu::PadMapping[Page].enabled) PadOpen(Page);
+}
+void WiimotePadConfigDialog::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
+{
+	// Check that we got a good pad
+	if (!WiiMoteEmu::joyinfo.at(WiiMoteEmu::PadMapping[Open].ID).Good)
+	{
+		DEBUG_LOG(WIIMOTE, "A bad pad was selected");
+		WiiMoteEmu::PadState[Open].joy = NULL;
+		return;
+	}
+
+	DEBUG_LOG(WIIMOTE, "Update the Slot %i handle to Id %i", Page, WiiMoteEmu::PadMapping[Open].ID);
+	WiiMoteEmu::PadState[Open].joy = SDL_JoystickOpen(WiiMoteEmu::PadMapping[Open].ID);
+}
+void WiimotePadConfigDialog::PadClose(int _Close) // Close for slot 1, 2, 3 or 4
+{
+	if (SDL_JoystickOpened(WiiMoteEmu::PadMapping[_Close].ID)) SDL_JoystickClose(WiiMoteEmu::PadState[_Close].joy);
+	WiiMoteEmu::PadState[_Close].joy = NULL;
 }
 
 void WiimotePadConfigDialog::DoChangeDeadZone(bool Left)
@@ -69,29 +90,30 @@ void WiimotePadConfigDialog::DoChangeDeadZone(bool Left)
 // Set the button text for all four Wiimotes
 void WiimotePadConfigDialog::SetButtonTextAll(int id, char text[128])
 {
-	for (int i = 0; i < MAX_WIIMOTES; i++)
+	for (int i = 0; i < 1; i++)
 	{
-		if (WiiMoteEmu::IDToName(WiiMoteEmu::PadMapping[i].ID) == WiiMoteEmu::IDToName(WiiMoteEmu::PadMapping[Page].ID))
-		{
-			SetButtonText(id, text, i);
-			DEBUG_LOG(PAD, "Updated button text for slot %i", i);
-		}
+		// Safety check to avoid crash
+		if ((int)WiiMoteEmu::joyinfo.size() > WiiMoteEmu::PadMapping[i].ID)
+			if (WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name == WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[Page].ID].Name)
+				SetButtonText(id, text, i);
 	};
 }
+
+
 void WiimotePadConfigDialog::SaveButtonMappingAll(int Slot)
 {
-	for (int i = 0; i < MAX_WIIMOTES; i++)
+	for (int i = 0; i < 4; i++)
 	{
-		if (WiiMoteEmu::PadMapping[i].Name.length() > 0 && WiiMoteEmu::PadMapping[i].Name == WiiMoteEmu::PadMapping[Slot].Name)
-			SaveButtonMapping(i, false, Slot);
+		// This can occur when no gamepad is detected
+		if ((int)WiiMoteEmu::joyinfo.size() > WiiMoteEmu::PadMapping[i].ID && WiiMoteEmu::PadMapping[i].ID >= 0)
+			if (WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name == WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[Slot].ID].Name)
+				SaveButtonMapping(i, false, Slot);
 	}
 }
 
 // Set dialog items from saved values
 void WiimotePadConfigDialog::UpdateGUIButtonMapping(int controller)
 {	
-	NOTICE_LOG(WIIMOTE, "Load ButtonMapping | controller:%i", controller);
-
 	// Temporary storage
 	wxString tmp;
 
@@ -182,19 +204,12 @@ void WiimotePadConfigDialog::UpdateGUIButtonMapping(int controller)
 
 void WiimotePadConfigDialog::SaveButtonMapping(int controller, bool DontChangeId, int FromSlot)
 {
-	// Log
-	NOTICE_LOG(WIIMOTE, "SaveButtonMapping | controller:%i FromSlot:%i", controller, FromSlot);
-
 	// Temporary storage
 	wxString tmp;
 	long value;
 
 	// Save from or to the same or different slots
 	if (FromSlot == -1) FromSlot = controller;
-	
-	// TEMPORARY
-	// There is	only one slot at the moment	
-	if (FromSlot > MAX_WIIMOTES-1) FromSlot = MAX_WIIMOTES-1;
 
 	// Replace "" with "-1" in the GUI controls
 	ToBlank(false);
@@ -203,11 +218,7 @@ void WiimotePadConfigDialog::SaveButtonMapping(int controller, bool DontChangeId
 	   -1 that's a bug that should be fixed. Because the m_Joyname[] combo box should always show <No Gamepad Detected>, or a gamepad name, not a
 	   a blank selection. */
 	if (!DontChangeId)
-	{
-		if (m_Joyname[FromSlot]->GetSelection() >= WiiMoteEmu::joyinfo.size()) PanicAlert("Bug in SaveButtonMapping");
-		WiiMoteEmu::PadMapping[controller].ID = WiiMoteEmu::joyinfo.at(m_Joyname[FromSlot]->GetSelection()).ID;
-		WiiMoteEmu::PadMapping[controller].Name = m_Joyname[FromSlot]->GetValue().mb_str();
-	}
+		WiiMoteEmu::PadMapping[controller].ID = m_Joyname[FromSlot]->GetSelection();
 	// Set enabled or disable status 
 	if (FromSlot == controller)
 		WiiMoteEmu::PadMapping[controller].enabled = true; //m_Joyattach[FromSlot]->GetValue(); // Only enable one
@@ -361,11 +372,6 @@ void WiimotePadConfigDialog::GetButtons(wxCommandEvent& event)
 
 void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 {
-	DEBUG_LOG(WIIMOTE, "DoGetButtons");
-
-	bool _LiveUpdates = LiveUpdates;
-	LiveUpdates = false;
-
 	// Collect the starting values
 
 	// Get the current controller	
@@ -393,7 +399,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	// Values used in this function
 	char format[128];
 	int Seconds = 4; // Seconds to wait for
-	int TimesPerSecond = 60; // How often to run the check
+	int TimesPerSecond = 40; // How often to run the check
 
 	// Values returned from InputCommon::GetButton()
 	int value; // Axis value
@@ -432,7 +438,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 			m_ButtonMappingTimer->Start( floor((double)(1000 / TimesPerSecond)) );
 		#endif
 		DEBUG_LOG(WIIMOTE, "Timer Started for Pad:%i _GetId:%i"
-			" Allowed input is Axis:%i LeftRight:%i XInput:%i Button:%i Hat:%i\n",
+			"Allowed input is Axis:%i LeftRight:%i XInput:%i Button:%i Hat:%i\n",
 			WiiMoteEmu::PadMapping[Controller].ID, _GetId,
 			Axis, LeftRight, XInput, Button, Hat);
 	}
@@ -443,7 +449,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	else
 	{
 		InputCommon::GetButton(
-			WiiMoteEmu::PadState[Page].joy, PadID,
+			WiiMoteEmu::joyinfo[PadID].joy, PadID, WiiMoteEmu::joyinfo[PadID].NumButtons, WiiMoteEmu::joyinfo[PadID].NumAxes, WiiMoteEmu::joyinfo[PadID].NumHats, 
 			g_Pressed, value, type, pressed, Succeed, Stop,
 			LeftRight, Axis, XInput, Button, Hat, NoTriggerFilter);
 	}
@@ -476,7 +482,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	}
 
 	// If we got a button
-	if (Succeed)
+	if(Succeed)
 	{
 		Stop = true;
 		// Write the number of the pressed button to the text box
@@ -485,11 +491,10 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	}
 
 	// Stop the timer
-	if (Stop)
+	if(Stop)
 	{
 		m_ButtonMappingTimer->Stop();
 		GetButtonWaitingTimer = 0;
-		LiveUpdates = _LiveUpdates;
 
 		/* Update the button mapping for all slots that use this device. (It
 		   doesn't make sense to have several slots controlled by the same
@@ -540,12 +545,12 @@ void WiimotePadConfigDialog::Convert2Box(int &x)
 // Update the input status boxes
 void WiimotePadConfigDialog::PadGetStatus()
 {
-	//DEBUG_LOG(WIIMOTE, "PadGetStatus");
+	//DEBUG_LOG(WIIMOTE, "SDL_WasInit: %i", SDL_WasInit(0));
 
 	/* Return if it's not detected. The ID should never be less than zero here,
 	   it can only be that because of a manual ini file change, but we make
 	   that check anway. */
-	if (WiiMoteEmu::PadMapping[Page].ID < 0 || WiiMoteEmu::PadMapping[Page].ID >= SDL_NumJoysticks())
+	if(WiiMoteEmu::PadMapping[Page].ID < 0 || WiiMoteEmu::PadMapping[Page].ID >= SDL_NumJoysticks())
 	{
 		m_TStatusLeftIn[Page]->SetLabel(wxT("Not connected"));
 		m_TStatusLeftOut[Page]->SetLabel(wxT("Not connected"));
@@ -569,13 +574,15 @@ void WiimotePadConfigDialog::PadGetStatus()
 	}
 
 	// Get physical device status
-	int ID = WiiMoteEmu::PadMapping[Page].ID;
+	int PhysicalDevice = WiiMoteEmu::PadMapping[Page].ID;
 	int TriggerType = WiiMoteEmu::PadMapping[Page].triggertype;
 
 	// Check that Dolphin is in focus, otherwise don't update the pad status
 	//if (IsFocus())
-		WiiMoteEmu::GetJoyState(WiiMoteEmu::PadState[Page], WiiMoteEmu::PadMapping[Page], Page);
+		WiiMoteEmu::GetJoyState(WiiMoteEmu::PadState[Page], WiiMoteEmu::PadMapping[Page], Page, WiiMoteEmu::joyinfo.at(WiiMoteEmu::PadMapping[Page].ID).NumButtons);
 
+
+	
 	// Analog stick
 	// Set Deadzones perhaps out of function
 	//int deadzone = (int)(((float)(128.00/100.00)) * (float)(PadMapping[_numPAD].deadzone+1));
@@ -688,45 +695,16 @@ void WiimotePadConfigDialog::PadGetStatus()
 		wxT("%03i"), TriggerRight));
 }
 
-// Slow timer, once a second
-void WiimotePadConfigDialog::Update(wxTimerEvent& WXUNUSED(event))
-{
-	if (!LiveUpdates) return;
-	
-	// Don't run this the first time
-	int OldNumDIDevices;
-	if (WiiMoteEmu::NumDIDevices == -1)
-		OldNumDIDevices = InputCommon::SearchDIDevices();
-	else
-	// Search for connected devices and update dialog
-		OldNumDIDevices = WiiMoteEmu::NumDIDevices;	
-	WiiMoteEmu::NumDIDevices = InputCommon::SearchDIDevices();	
-
-	// Update if a pad has been connected/disconnected. Todo: Add a better check that also takes into consideration the pad id
-	// and other things to ensure nothing has changed
-	//DEBUG_LOG(WIIMOTE, "Found %i devices", WiiMoteEmu::NumDIDevices);
-	//DEBUG_LOG(WIIMOTE, "Update: %i %i", OldNumPads, WiiMoteEmu::NumPads);
-	if (OldNumDIDevices != WiiMoteEmu::NumDIDevices)
-	{
-		WiiMoteEmu::LocalSearchDevicesReset(WiiMoteEmu::joyinfo, WiiMoteEmu::NumPads);
-		WiimotePadConfigDialog::UpdateDeviceList();
-	}
-}
-
 // Populate the advanced tab
 void WiimotePadConfigDialog::UpdatePad(wxTimerEvent& WXUNUSED(event))
 {
-	if (!WiiMoteEmu::IsPolling()) return;
-
-	//DEBUG_LOG(WIIMOTE, "UpdatePad");
-	
 	// Show the current status
+	/*
 	#ifdef SHOW_PAD_STATUS
-		m_pStatusBar->SetLabel(wxString::FromAscii(InputCommon::DoShowStatus(
-		Page, m_Joyname[Page]->GetSelection(),
-		WiiMoteEmu::PadMapping, WiiMoteEmu::PadState, WiiMoteEmu::joyinfo
-		).c_str()));
-	#endif
+		m_pStatusBar->SetLabel(wxString::Format(
+			"%s", ShowStatus(notebookpage).c_str()
+			));
+	#endif*/
 
 	//LogMsg("Abc%s\n", ShowStatus(notebookpage).c_str());
 

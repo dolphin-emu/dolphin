@@ -26,6 +26,8 @@
 namespace WiiMoteReal
 {
 
+#define MAX_WIIMOTES 1
+
 int Initialize();
 void DoState(PointerWrap &p);
 void Shutdown(void);

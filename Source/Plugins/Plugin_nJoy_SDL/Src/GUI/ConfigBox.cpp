@@ -103,7 +103,6 @@ BEGIN_EVENT_TABLE(PADConfigDialognJoy,wxDialog)
 	EVT_BUTTON(IDB_ANALOG_SUB_Y, PADConfigDialognJoy::GetButtons)
 
 	#if wxUSE_TIMER
-		EVT_TIMER(IDTM_SLOW, PADConfigDialognJoy::OnSlowTimer)
 		EVT_TIMER(IDTM_CONSTANT, PADConfigDialognJoy::OnTimer)
 		EVT_TIMER(IDTM_BUTTON, PADConfigDialognJoy::OnButtonTimer)
 	#endif
@@ -113,34 +112,26 @@ PADConfigDialognJoy::PADConfigDialognJoy(wxWindow *parent, wxWindowID id, const 
 					 const wxPoint &position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
-	// Initialize values
+	// Define values
 	notebookpage = 0;
-	g_Pressed = 0;	
+	g_Pressed = 0;
+	Debugging = false;
 	m_TCDebugging = NULL;
 	ControlsCreated = false;
-	
-	// Settings
-	Debugging = false;
 
 	// Create controls
 	CreateGUIControls();
-	
-	// Update GUI
-	UpdateGUIAll();
-	
-	// Update device list
-	UpdateDeviceList();
 
 	#if wxUSE_TIMER
-		m_SlowTimer = new wxTimer(this, IDTM_SLOW);
 		m_ConstantTimer = new wxTimer(this, IDTM_CONSTANT);
 		m_ButtonMappingTimer = new wxTimer(this, IDTM_BUTTON);
 
 		// Reset values
 		GetButtonWaitingID = 0; GetButtonWaitingTimer = 0;
 
-		// Start timers
-		StartTimer();
+		// Start the constant timer
+		int TimesPerSecond = 30;
+		m_ConstantTimer->Start( floor((double)(1000 / TimesPerSecond)) );
 	#endif
 
 	// wxEVT_KEY_DOWN is blocked for enter, tab and the directional keys
@@ -157,24 +148,6 @@ PADConfigDialognJoy::~PADConfigDialognJoy()
 #endif
 }
 
-void PADConfigDialognJoy::DoShow()
-{
-	// Start timers
-	StartTimer();
-	// Show
-	ShowModal();
-}
-
-void PADConfigDialognJoy::StartTimer()
-{	
-	// Start the slow timer
-	double TimesPerSecond = 2;
-	m_SlowTimer->Start( floor((double)(1000.0 / TimesPerSecond)) );
-	// Start the constant timer
-	TimesPerSecond = 30;
-	m_ConstantTimer->Start( floor((double)(1000 / TimesPerSecond)) );
-}
-
 void PADConfigDialognJoy::OnKeyDown(wxKeyEvent& event)
 {
 	g_Pressed = event.GetKeyCode();
@@ -187,9 +160,7 @@ void PADConfigDialognJoy::OnClose(wxCloseEvent& event)
 	event.Skip();
 
 	// Stop the timer
-	m_SlowTimer->Stop();
 	m_ConstantTimer->Stop();
-	m_ButtonMappingTimer->Stop();
 
 	// Close pads, unless we are running a game
 	if (!g_EmulatorRunning) Shutdown();
@@ -285,7 +256,7 @@ void PADConfigDialognJoy::DoSave(bool ChangePad, int Slot)
 		
 		g_Config.Save(Slot);
 		// Now we can update the ID
-		UpdateID();
+		PadMapping[notebookpage].ID = m_Joyname[notebookpage]->GetSelection();
 	}
 	else
 	{
@@ -296,21 +267,6 @@ void PADConfigDialognJoy::DoSave(bool ChangePad, int Slot)
 
 	// Then change it back to ""
 	ToBlank();
-}
-void PADConfigDialognJoy::UpdateID()
-{
-	INFO_LOG(PAD, "Slot %i: Changed PadMapping ID from %i to %i", notebookpage, PadMapping[notebookpage].ID, m_Joyname[notebookpage]->GetSelection());
-	PadMapping[notebookpage].ID = joyinfo.at(m_Joyname[notebookpage]->GetSelection()).ID;
-	PadMapping[notebookpage].Name = joyinfo.at(m_Joyname[notebookpage]->GetSelection()).Name;
-	// Update all handles
-	for(int i = 0; i < 4; i++)
-	{
-		if (PadMapping[i].Name == PadMapping[notebookpage].Name)
-		{
-			if (m_Joyname[i]->GetSelection() >= 0 && joyinfo.size() > m_Joyname[i]->GetSelection())
-			PadState[i].joy = joyinfo.at(m_Joyname[i]->GetSelection()).joy;
-		}
-	}
 }
 
 // On changing the SaveById option we update all pages
@@ -334,52 +290,11 @@ void PADConfigDialognJoy::OnSaveById()
 void PADConfigDialognJoy::DoChangeJoystick()
 {
 	// Before changing the pad we save potential changes to the current pad (to support SaveByID)
-	WARN_LOG(PAD, "\n--- DoChangeJoystick ----");
-	WARN_LOG(PAD, "DoSave");
 	DoSave(true);
 	
-	// Load the settings for the new ID
-	WARN_LOG(PAD, "Load");
+	// Load the settings for the new Id
 	g_Config.Load(true);
-	// Update the GUI
-	WARN_LOG(PAD, "UpdateGUI");
-	UpdateGUI(notebookpage);
-	WARN_LOG(PAD, "");
-}
-// Pads have been connected/disconnected
-void PADConfigDialognJoy::UpdateDeviceList()
-{
-	if (!ControlsCreated) return;
-
-	DEBUG_LOG(PAD, "UpdateDeviceList");
-
-	for (int i = 0; i < 4; i++)
-	{	
-		// Save current selection
-		//std::string CurrentSel = m_Joyname[i]->GetValue().mb_str();
-		m_Joyname[i]->Clear();
-
-		// Search for devices and add them to the device list	
-		if (joyinfo.size() > 0)
-		{			
-			for (int j = 0; j < joyinfo.size(); j++)	
-				m_Joyname[i]->Append(wxString::FromAscii(joyinfo.at(j).Name.c_str()));
-			// Set selection
-							//PanicAlert("%s", PadMapping[i].Name.c_str());
-			for (int j = 0; j < joyinfo.size(); j++)
-			{	
-				if (joyinfo.at(j).Name == PadMapping[i].Name) m_Joyname[i]->SetSelection(j);
-			}
-			if (m_Joyname[i]->GetSelection() == -1) m_Joyname[i]->SetSelection(0);
-			// Load settings
-			DoChangeJoystick();
-		}
-		else
-		{
-			m_Joyname[i]->Append(wxString::FromAscii("<No Gamepad Detected>"));	
-			m_Joyname[i]->SetSelection(0);
-		}
-	}	
+	UpdateGUI(notebookpage); // Update the GUI
 }
 
 // Notebook page changed
@@ -388,7 +303,7 @@ void PADConfigDialognJoy::NotebookPageChanged(wxNotebookEvent& event)
 	// Save current settings now, don't wait for OK
 	if (ControlsCreated && !g_Config.bSaveByID) DoSave(false, notebookpage);
 
-	// Update the global variable	
+	// Update the global variable
 	notebookpage = event.GetSelection();
 
 	// Update GUI
@@ -420,28 +335,28 @@ void PADConfigDialognJoy::ToBlank(bool ToBlank)
 }
 
 
-// Change settings for all slots that have this pad selected
-// -----------------------
+// Change settings
 void PADConfigDialognJoy::SetButtonTextAll(int id, const char *text)
 {
 	for (int i = 0; i < 4; i++)
 	{
-		if (IDToName(PadMapping[i].ID) == IDToName(PadMapping[notebookpage].ID))
-		{
-			SetButtonText(id, text, i);
-			DEBUG_LOG(PAD, "Updated button text for slot %i", i);
-		}
+		// Safety check to avoid crash
+		if (joyinfo.size() > (u32)PadMapping[i].ID)
+			if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[notebookpage].ID].Name)
+				SetButtonText(id, text, i);
 	};
 }
+
 void PADConfigDialognJoy::SaveButtonMappingAll(int Slot)
 {
 	for (int i = 0; i < 4; i++)
 	{
-		if (PadMapping[i].Name.length() > 0 && PadMapping[i].Name == PadMapping[Slot].Name)
-			SaveButtonMapping(i, false, Slot);
+		// This can occur when no gamepad is detected
+		if (joyinfo.size() > (u32)PadMapping[i].ID)
+			if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
+				SaveButtonMapping(i, false, Slot);
 	}
 }
-// -----------------------
 
 void PADConfigDialognJoy::UpdateGUIAll(int Slot)
 {
@@ -453,8 +368,10 @@ void PADConfigDialognJoy::UpdateGUIAll(int Slot)
 	{
 		for (int i = 0; i < 4; i++)
 		{
-			if (IDToName(PadMapping[i].ID) == IDToName(PadMapping[Slot].ID))
-				UpdateGUI(i);
+			// Safety check to avoid crash
+			if (joyinfo.size() > (u32)PadMapping[i].ID)
+				if (joyinfo[PadMapping[i].ID].Name == joyinfo[PadMapping[Slot].ID].Name)
+					UpdateGUI(i);
 		}
 	}
 }
@@ -521,10 +438,8 @@ void PADConfigDialognJoy::ChangeSettings( wxCommandEvent& event )
 	}
 
 	// Update all slots that use this device
-	//if(g_Config.bSaveByID)
-		SaveButtonMappingAll(notebookpage);
-	//if(g_Config.bSaveByID)
-		UpdateGUIAll(notebookpage);
+	if(g_Config.bSaveByID) SaveButtonMappingAll(notebookpage);
+	if(g_Config.bSaveByID) UpdateGUIAll(notebookpage);
 }
 
 
@@ -532,17 +447,11 @@ void PADConfigDialognJoy::ChangeSettings( wxCommandEvent& event )
 // Called from: CreateGUIControls(), ChangeControllertype()
 void PADConfigDialognJoy::UpdateGUI(int _notebookpage)
 {
-	DEBUG_LOG(PAD, "UpdateGUI for slot %i, %i pads connected", _notebookpage, NumPads);
-
 	// If there are no good pads disable the entire notebook
-	if (NumPads == 0)
+	if (NumGoodPads == 0)
 	{
 		m_Notebook->Enable(false);
 		return;
-	}
-	else
-	{
-		m_Notebook->Enable(true);
 	}
 
 	// Update the GUI from PadMapping[]
@@ -596,8 +505,6 @@ void PADConfigDialognJoy::UpdateGUI(int _notebookpage)
 			else m_CoBRadiusC[_notebookpage]->Enable(false);
 		if (PadMapping[_notebookpage].bSquareToCircleC) m_CoBDiagonalC[_notebookpage]->Enable(true);
 			else m_CoBDiagonalC[_notebookpage]->Enable(false);
-
-		DEBUG_LOG(PAD, "Main radius %s", PadMapping[_notebookpage].bRadiusOnOff ? "enabled" : "disabled");
 	}
 
 	 // Repaint the background
@@ -658,8 +565,23 @@ void PADConfigDialognJoy::CreateGUIControls()
 	m_Controller[3] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE4, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_Controller[3], wxT("Controller 4"));
 
+
 	// Define bitmap for EVT_PAINT
 	WxStaticBitmap1_BITMAP = wxBitmap(ConfigBox_WxStaticBitmap1_XPM);
+
+	// Search for devices and add them to the device list
+	wxArrayString arrayStringFor_Joyname; // The string array
+	if (NumGoodPads > 0)
+	{
+		for(int x = 0; (u32)x < joyinfo.size(); x++)
+		{
+			arrayStringFor_Joyname.Add(wxString::FromAscii(joyinfo[x].Name.c_str()));
+		}
+	}
+	else
+	{
+		arrayStringFor_Joyname.Add(wxString::FromAscii("<No Gamepad Detected>"));
+	}
 
 	// Populate the DPad type and Trigger type list
 	wxArrayString wxAS_DPadType;
@@ -799,9 +721,9 @@ void PADConfigDialognJoy::CreateGUIControls()
 		// Populate Controller sizer
 		// Groups
 		#ifdef _WIN32
-		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, wxEmptyString, wxDefaultPosition, wxSize(476, 21), 0, NULL, wxCB_READONLY);
+		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, arrayStringFor_Joyname[0], wxDefaultPosition, wxSize(476, 21), arrayStringFor_Joyname, wxCB_READONLY);
 		#else
-		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, wxEmptyString, wxDefaultPosition, wxSize(450, 25), 0, NULL, wxCB_READONLY);
+		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, arrayStringFor_Joyname[0], wxDefaultPosition, wxSize(450, 25), arrayStringFor_Joyname, 0, wxDefaultValidator, wxT("m_Joyname"));
 		#endif
 
 		m_gJoyname[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Controller"));
@@ -1032,6 +954,9 @@ void PADConfigDialognJoy::CreateGUIControls()
 
 		// Show or hide it. We have to do this after we add it to its sizer
 		m_sMainRight[i]->Show(g_Config.bShowAdvanced);
+
+		// Update GUI
+		UpdateGUI(i);
 	} // end of loop
 
 	// Populate buttons sizer.
@@ -1050,7 +975,7 @@ void PADConfigDialognJoy::CreateGUIControls()
 
 	// Debugging
 	#ifdef SHOW_PAD_STATUS
-		m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(135, 100), wxSize(200, -1));
+		m_pStatusBar = new wxStaticText(this, IDT_DEBUGGING, wxT("Debugging"), wxPoint(135, 100), wxDefaultSize);
 	#endif
 
 	// Set window size

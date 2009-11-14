@@ -127,12 +127,6 @@ void CFrame::ToggleConsole(bool bShow, int i)
 #ifdef _WIN32
 	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();	
 
-	// For developers: Use this to get a regular separate console window
-	/*
-	if(!GetConsoleWindow()) Console->Open(); else ShowWindow(GetConsoleWindow(), SW_SHOW);
-	return;
-	*/
-
 	if (bShow)
 	{
 		//Console->Log(LogTypes::LNOTICE, StringFromFormat(" >>> Show\n").c_str());
@@ -754,7 +748,7 @@ void CFrame::ResizeConsole()
 		wxBorder = 2;
 		Border = 4;
 		LowerBorder = 6;
-		MenuBar = 26; // Including upper border				
+		MenuBar = 30; // Including upper border				
 		ScrollBar = 19;
 	}
 	else // XP

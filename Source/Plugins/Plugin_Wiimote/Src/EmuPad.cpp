@@ -23,7 +23,6 @@
 #include "../../../Core/InputCommon/Src/XInput.h"
 
 #include "Common.h" // Common
-#include "LogManager.h"
 #include "StringUtil.h" // for ArrayToString()
 #include "IniFile.h"
 #include "pluginspecs_wiimote.h"
@@ -36,124 +35,36 @@
 #include "Encryption.h" // for extension encryption
 #include "Config.h" // for g_Config
 
-#if defined(HAVE_WX) && HAVE_WX
-	#include "ConfigPadDlg.h"
-	extern WiimotePadConfigDialog *m_PadConfigFrame;
-#endif
-
 extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu
 {
 
-
-bool LocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
-{
-	//DEBUG_LOG(PAD, "LocalSearchDevices");
-	bool bSuccess = InputCommon::SearchDevices(_joyinfo, _NumPads);
-	
-	DoLocalSearchDevices(_joyinfo, _NumPads);
-	
-	return bSuccess;
-}
-
-
-bool LocalSearchDevicesReset(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
-{
-	DEBUG_LOG(CONSOLE, "LocalSearchDevicesReset");
-	
-	// Turn off device polling while resetting
-	EnablePolling(false);	
-	bool bSuccess = InputCommon::SearchDevicesReset(_joyinfo, _NumPads);		
-	DoLocalSearchDevices(_joyinfo, _NumPads);
-	EnablePolling(true);
-	
-	return true;
-}
-
 // Fill joyinfo with the current connected devices
-bool DoLocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
+bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
 {
-	//DEBUG_LOG(WIIMOTE, "LocalSearchDevices");
+	bool WasGotten = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
 
 	// Warn the user if no gamepads are detected
-	if (_NumPads == 0 && g_EmulatorRunning)
+	if (_NumGoodPads == 0 && g_EmulatorRunning)
 	{
-		//PanicAlert("Wiimote: No Gamepad Detected");
+		//PanicAlert("nJoy: No Gamepad Detected");
 		//return false;
 	}
 
-	// Load the first time
-	if (!g_Config.Loaded) g_Config.Load();
+	// Load PadMapping[] etc
+	g_Config.Load();
 
 	// Update the PadState[].joy handle
-	// If the saved ID matches, select this device for this slot
-	bool Match = false;
-	for (int i = 0; i < MAX_WIIMOTES; i++)
-	{	
-		for (int j = 0; j < joyinfo.size(); j++)
-		{
-			if (joyinfo.at(j).Name == PadMapping[i].Name)
-			{
-				PadState[i].joy = joyinfo.at(j).joy;
-				Match = true;
-				//INFO_LOG(WIIMOTE, "Slot %i: '%s' %06i", i, joyinfo.at(j).Name.c_str(), PadState[i].joy);
-			}
-		}
-		if (!Match) PadState[i].joy = NULL;
-	}
-
-	return true;
-}
-
-// Is the device connected?
-// ----------------
-bool IsConnected(std::string Name)
-{
-	for (int i = 0; i < joyinfo.size(); i++)
+	for (int i = 0; i < 1; i++)
 	{
-		DEBUG_LOG(WIIMOTE, "Pad %i: IsConnected checking '%s' against '%s'", i, joyinfo.at(i).Name.c_str(), Name.c_str());
-		if (joyinfo.at(i).Name == Name)
-			return true;
+		if (PadMapping[i].enabled && joyinfo.size() > (u32)PadMapping[i].ID)
+			if(joyinfo.at(PadMapping[i].ID).Good)
+				PadState[i].joy = SDL_JoystickOpen(PadMapping[i].ID);
 	}
-}
-// See description of the equivalent functions in nJoy.cpp...
-// ----------------
-bool IsPolling()
-{
-	if (!SDLPolling || SDL_JoystickEventState(SDL_QUERY) == SDL_ENABLE)
-		return false;
-	else
-		return true;
-}
-void EnablePolling(bool Enable)
-{
-	if (Enable)
-	{
-		SDLPolling = true;
-		SDL_JoystickEventState(SDL_IGNORE);
-	}
-	else
-	{
-		SDLPolling = false;
-		SDL_JoystickEventState(SDL_ENABLE);
-	}
-}
 
-
-// ID to Name
-// ----------------
-std::string IDToName(int ID)
-{
-	for (int i = 0; i < joyinfo.size(); i++)
-	{
-		//DEBUG_LOG(WIIMOTE, "IDToName: ID %i id %i %s", ID, i, joyinfo.at(i).Name.c_str());
-		if (joyinfo.at(i).ID == ID)
-			return joyinfo.at(i).Name;
-	}
-	return "";
+	return WasGotten;
 }
-
 
 // Return adjusted input values
 void PadStateAdjustments(int &Lx, int &Ly, int &Rx, int &Ry, int &Tl, int &Tr)
@@ -208,20 +119,11 @@ void PadStateAdjustments(int &Lx, int &Ly, int &Rx, int &Ry, int &Tl, int &Tr)
    Function: Updates the PadState struct with the current pad status. The input
    value "controller" is for a virtual controller 0 to 3. */
 
-void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONTROLLER_MAPPING_NEW _PadMapping, int controller)
+void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONTROLLER_MAPPING_NEW _PadMapping, int controller, int NumButtons)
 {
-	//DEBUG_LOG(WIIMOTE, "GetJoyState: Polling:%i NumPads:%i", SDLPolling, NumPads);
-
-	// Return if polling is off
-	if (!IsPolling()) return;
-	// Update joyinfo handles. This is in case the Wiimote plugin has restarted SDL after a pad was conencted/disconnected
-	// so that the handles are updated. We don't need to run this this often. Once a second would be enough.
-	if (LiveUpdates) LocalSearchDevices(joyinfo, NumPads);
 	// Return if we have no pads
-	if (NumPads == 0) return;
-	// Read info
-	int NumButtons = SDL_JoystickNumButtons(_PadState.joy);
-	
+	if (NumGoodPads == 0) return;
+
 	// Update the gamepad status
 	SDL_JoystickUpdate();
 
@@ -250,13 +152,14 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 	}
 #endif
 
-	/* Debugging
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	Console->ClearScreen();
-	Console->CustomLog(StringFromFormat(
-		"Controller: %i Handle: %i\n"
-		"Triggers: %i  %i %i  %i %i\n"
-		"Analog: %06i %06i  \n",
+	/* Debugging 
+//	Console::ClearScreen();
+	DEBUG_LOG(CONSOLE,
+		"Controller and handle: %i %i\n"
+
+		"Triggers:%i  %i %i  %i %i\n"
+
+		"Analog:%06i %06i  \n",
 
 		controller, (int)_PadState.joy,
 
@@ -265,8 +168,7 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 		_PadState.Axis.Tl, _PadState.Axis.Tr,
 
 		_PadState.Axis.Lx, _PadState.Axis.Ly
-		).c_str());
-	*/
+		);*/
 }
 
 

@@ -21,7 +21,6 @@
 #include <string>
 
 #include "Common.h" // Common
-#include "LogManager.h"
 #include "Timer.h"
 #include "pluginspecs_wiimote.h"
 #include "StringUtil.h" // For ArrayToString
@@ -441,7 +440,7 @@ void SingleShake(u8 &_y, u8 &_z, int i)
 void TiltWiimoteGamepad(float &Roll, float &Pitch)
 {
 	// Return if we have no pads
-	if (NumPads == 0) return;
+	if (NumGoodPads == 0) return;
 
 	// This has to be changed if multiple Wiimotes are to be supported later
 	const int Page = 0;

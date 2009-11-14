@@ -398,18 +398,18 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 {
 	SaveRenderStates();
 	
-	//float span = ((rSource->right-rSource->left - 1.0f) * (rDest->right - rDest->left))/(SourceWidth*((rDest->right - rDest->left)-1.0f));
-	float u1=((float)rSource->left+1.0f)/(float) SourceWidth;//*/((0.5f+rSource->left)/(float) SourceWidth)-(span*0.5f/(float)(rDest->right - rDest->left));
-	float u2=((float)rSource->right-1.0f)/(float) SourceWidth;;//*/u1+span;  
-	//span = ((rSource->bottom-rSource->top - 1.0f) * (rDest->bottom - rDest->top))/(SourceHeight*((rDest->bottom - rDest->top)-1.0f));
-	float v1=((float)rSource->top+1.0f)/(float) SourceHeight;//*/((0.5f+rSource->top)/(float) SourceHeight)-(span*0.5f/(float)(rDest->bottom - rDest->top));
-	float v2=((float)rSource->bottom-1.0f)/(float) SourceHeight;//*/v1+span; 
+	float span = ((rSource->right-rSource->left - 1.0f) * (rDest->right - rDest->left))/(SourceWidth*((rDest->right - rDest->left)-1.0f));
+	float u1=((0.5f+rSource->left)/(float) SourceWidth)-(span*0.5f/(float)(rDest->right - rDest->left));
+	float u2=u1+span;  
+	span = ((rSource->bottom-rSource->top - 1.0f) * (rDest->bottom - rDest->top))/(SourceHeight*((rDest->bottom - rDest->top)-1.0f));
+	float v1=((0.5f+rSource->top)/(float) SourceHeight)-(span*0.5f/(float)(rDest->bottom - rDest->top));
+	float v2=v1+span; 
 
 	struct Q2DVertex { float x,y,z,rhw,u,v; } coords[4] = {
-		{(float)rDest->left-0.5f, (float)rDest->top-0.5f, 0.0f, 1.0f, u1, v1},
-		{(float)rDest->right-0.5f, (float)rDest->top-0.5f, 0.0f,1.0f, u2, v1},
-		{(float)rDest->right-0.5f, (float)rDest->bottom-0.5f, 0.0f,1.0f, u2, v2},
-		{(float)rDest->left-0.5f, (float)rDest->bottom-0.5f, 0.0f,1.0f, u1, v2}
+		{(float)rDest->left-1.0f, (float)rDest->top-1.0f, 0.0f, 1.0f, u1, v1},
+		{(float)rDest->right, (float)rDest->top-1.0f, 0.0f,1.0f, u2, v1},
+		{(float)rDest->right, (float)rDest->bottom, 0.0f,1.0f, u2, v2},
+		{(float)rDest->left-1.0f, (float)rDest->bottom, 0.0f,1.0f, u1, v2}
 	};
 	dev->SetFVF(D3DFVF_XYZRHW | D3DFVF_TEX1);
 	dev->SetVertexShader(Vshader);

@@ -22,7 +22,6 @@
 #include "../../../Core/InputCommon/Src/XInput.h"
 
 #include "Common.h" // Common
-#include "LogManager.h"
 #include "MathUtil.h"
 #include "StringUtil.h" // for ArrayToString()
 #include "IniFile.h"
@@ -60,8 +59,7 @@ void TiltTest(u8 x, u8 y, u8 z)
 	std::string To = StringFromFormat("%s\nTo:   X:%i Y:%i Z:%i Roll:%s Pitch:%s", From.c_str(), x, y, z,
 		(_Roll >= 0) ? StringFromFormat(" %03i", (int)_Roll).c_str() : StringFromFormat("%04i", (int)_Roll).c_str(),
 		(_Pitch >= 0) ? StringFromFormat(" %03i", (int)_Pitch).c_str() : StringFromFormat("%04i", (int)_Pitch).c_str());
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	Console->CustomLog(StringFromFormat("\n%s", To.c_str()).c_str());
+	DEBUG_LOG(WIIMOTE, "%s", To.c_str());
 }
 
 
@@ -102,29 +100,14 @@ void PitchDegreeToAccelerometer(float _Roll, float _Pitch, u8 &_x, u8 &_y, u8 &_
 	// In these cases we can use the simple and accurate formula
 	if(g_Config.Trigger.Range.Pitch == 0)
 	{
-		if (!g_Config.Trigger.Upright)
-		{
-			x = sin(_Roll);
-			z = cos(_Roll);
-		}
-		else
-		{
-			z = sin(_Roll);
-			y = -cos(_Roll);
-		}
+		x = sin(_Roll);
+		z = cos(_Roll);
 	}
 	else if (g_Config.Trigger.Range.Roll == 0)
 	{
-		if (!g_Config.Trigger.Upright)
-		{
-			y = sin(_Pitch);
-			z = cos(_Pitch);
-		}
-		else
-		{
-			x = -sin(_Pitch);
-			y = -cos(_Pitch);
-		}
+
+		y = sin(_Pitch);
+		z = cos(_Pitch);
 	}
 	else
 	{
@@ -135,28 +118,16 @@ void PitchDegreeToAccelerometer(float _Roll, float _Pitch, u8 &_x, u8 &_y, u8 &_
 		   and Pitch. But if we select a Z from the smallest of the absolute
 		   value of cos(Roll) and cos (Pitch) we get the right values. */
 		// ---------	
-		if (!g_Config.Trigger.Upright)
-		{
-			if (abs(cos(_Roll)) < abs(cos(_Pitch))) z = cos(_Roll); else z = cos(_Pitch);
-			/* I got these from reversing the calculation in
-			   PitchAccelerometerToDegree() in a math program. */
-			float x_num = 2 * tanf(0.5f * _Roll) * z;
-			float x_den = pow2f(tanf(0.5f * _Roll)) - 1;
-			x = - (x_num / x_den);
-			float y_num = 2 * tanf(0.5f * _Pitch) * z;
-			float y_den = pow2f(tanf(0.5f * _Pitch)) - 1;
-			y = - (y_num / y_den);
-		}
-		else
-		{
-			if (abs(-cos(_Roll)) < abs(-cos(_Pitch))) y = -cos(_Roll); else y = -cos(_Pitch);
-			float z_num = 2 * tanf(0.5f * _Roll) * y;
-			float z_den = pow2f(tanf(0.5f * _Roll)) - 1;
-			z = (z_num / z_den);
-			float x_num = 2 * tanf(0.5f * _Pitch) * y;
-			float x_den = pow2f(tanf(0.5f * _Pitch)) - 1;
-			x = - (x_num / x_den);
-		}
+		if (abs(cos(_Roll)) < abs(cos(_Pitch))) z = cos(_Roll); else z = cos(_Pitch);
+		/* I got these from reversing the calculation in
+		   PitchAccelerometerToDegree() in a math program I don't know if we
+		   can derive these from some kind of matrix or something */
+		float x_num = 2 * tanf(0.5f * _Roll) * z;
+		float x_den = pow2f(tanf(0.5f * _Roll)) - 1;
+		x = - (x_num / x_den);
+		float y_num = 2 * tanf(0.5f * _Pitch) * z;
+		float y_den = pow2f(tanf(0.5f * _Pitch)) - 1;
+		y = - (y_num / y_den);
 	}
 
 	// Multiply with the neutral of z and its g
@@ -174,18 +145,9 @@ void PitchDegreeToAccelerometer(float _Roll, float _Pitch, u8 &_x, u8 &_y, u8 &_
 	if (ix < 0) ix = 0; if (ix > 255) ix = 255;
 	if (iy < 0) iy = 0; if (iy > 255) iy = 255;
 	if (iz < 0) iz = 0; if (iz > 255) iz = 255;
-	if (!g_Config.Trigger.Upright)
-	{
-		if(g_Config.Trigger.Range.Roll != 0) _x = ix;
-		if(g_Config.Trigger.Range.Pitch != 0) _y = iy;
-		_z = iz;
-	}
-	else
-	{
-		if(g_Config.Trigger.Range.Roll != 0) _z = iz;
-		if(g_Config.Trigger.Range.Pitch != 0) _x = ix;
-		_y = iy;
-	}
+	if(g_Config.Trigger.Range.Roll != 0) _x = ix;
+	if(g_Config.Trigger.Range.Pitch != 0) _y = iy;
+	_z = iz;
 }
 
 // Accelerometer to roll and pitch angles
@@ -205,34 +167,17 @@ void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, in
 	float y = AccelerometerToG((float)_y, (float)g_wm.cal_zero.y, (float)g_wm.cal_g.y);
 	float z = AccelerometerToG((float)_z, (float)g_wm.cal_zero.z, (float)g_wm.cal_g.z);
 
-	if (!g_Config.Trigger.Upright)
+	// If it is over 1g then it is probably accelerating and may not reliable
+	//if (abs(accel->x - ac->cal_zero.x) <= ac->cal_g.x)
 	{
-		// If it is over 1g then it is probably accelerating and may not reliable
-		//if (abs(accel->x - ac->cal_zero.x) <= ac->cal_g.x)
-		{
-			// Calculate the degree
-			Roll = InputCommon::Rad2Deg(atan2(x, z));
-		}
-
-		//if (abs(_y - g_wm.cal_zero.y) <= g_wm.cal_g.y)
-		{
-			// Calculate the degree
-			Pitch = InputCommon::Rad2Deg(atan2(y, z));
-		}
+		// Calculate the degree
+		Roll = InputCommon::Rad2Deg(atan2(x, z));
 	}
-	else
-	{
-		//if (abs(accel->z - ac->cal_zero.z) <= ac->cal_g.x)
-		{
-			// Calculate the degree
-			Roll = InputCommon::Rad2Deg(atan2(z, -y));
-		}
 
-		//if (abs(_x - g_wm.cal_zero.x) <= g_wm.cal_g.x)
-		{
-			// Calculate the degree
-			Pitch = InputCommon::Rad2Deg(atan2(-x, -y));
-		}
+	//if (abs(_y - g_wm.cal_zero.y) <= g_wm.cal_g.y)
+	{
+		// Calculate the degree
+		Pitch = InputCommon::Rad2Deg(atan2(y, z));
 	}
 
 	_Roll = (int)Roll;
@@ -242,16 +187,9 @@ void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, in
 	if (x < -1.0) x = -1.0; else if (x > 1.0) x = 1.0;
 	if (y < -1.0) y = -1.0; else if (y > 1.0) y = 1.0;
 	if (z < -1.0) z = -1.0; else if (z > 1.0) z = 1.0;
-	if (!g_Config.Trigger.Upright)
-	{
-		Roll = InputCommon::Rad2Deg(atan2(x, z));
-		Pitch = InputCommon::Rad2Deg(atan2(y, z));
-	}
-	else
-	{
-		Roll = InputCommon::Rad2Deg(atan2(z, -y));
-		Pitch = InputCommon::Rad2Deg(atan2(-x, -y));
-	}
+	Roll = InputCommon::Rad2Deg(atan2(x, z));
+	Pitch = InputCommon::Rad2Deg(atan2(y, z));
+
 	_RollAdj = (int)Roll;
 	_PitchAdj = (int)Pitch;
 }

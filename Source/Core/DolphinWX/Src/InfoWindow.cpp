@@ -57,8 +57,7 @@ void wxInfoWindow::Init_ChildControls()
 
 
 	Info.append(StringFromFormat(
-		"\n\n_-Computer Information-_\n\n%s\n%s\n%s\n\n_-Dolphin Information-_\n\n%s\n\n%s\n\n",
-		Summarize_OS().c_str(),
+		"\n\n%s\n%s\n%s\n\n%s\n\n",
 		Summarize_Drives().c_str(),
 		Summarize_CPU().c_str(),
 		Summarize_Plug().c_str(),

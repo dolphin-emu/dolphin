@@ -145,11 +145,11 @@ int abc = 0;
 			switch(wParam)
 			{
 			// Stop
-			case WM_USER_STOP:
+			case OPENGL_WM_USER_STOP:
 				main_frame->DoStop();
 				return 0;
 			
-			case WM_USER_CREATE:
+			case OPENGL_WM_USER_CREATE:
 				// We don't have a local setting for bRenderToMain but we can detect it this way instead
 				//PanicAlert("main call %i  %i  %i  %i", lParam, (HWND)Core::GetWindowHandle(), MSWGetParent_((HWND)Core::GetWindowHandle()), (HWND)this->GetHWND());
 				if (lParam == NULL)
@@ -232,7 +232,6 @@ EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
 EVT_MENU(IDM_INFO, CFrame::OnShow_InfoWindow)
-EVT_MENU(IDM_RESTART, CFrame::OnRestart)
 EVT_MENU(IDM_CHANGEDISC, CFrame::OnChangeDisc)
 EVT_MENU(IDM_LOAD_WII_MENU, CFrame::OnLoadWiiMenu)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
@@ -304,7 +303,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
 	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
-	, bRenderToMain(false), bFloatLogWindow(false), bFloatConsoleWindow(false)
+	, bRenderToMain(true), bFloatLogWindow(false), bFloatConsoleWindow(false)
 	, HaveLeds(false), HaveSpeakers(false)
 	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 	#if wxUSE_TIMER
@@ -495,24 +494,6 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 	Close(true);
 }
 
-void CFrame::OnRestart(wxCommandEvent& WXUNUSED (event))
-{
-	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-	{
-		wxMessageBox(wxT("Please stop the current game before restarting."), wxT("Notice"), wxOK, this);
-		return;
-	}
-	// Get exe path and restart
-	#ifdef _WIN32
-		char Str[MAX_PATH + 1];
-		DWORD Size = sizeof(Str)/sizeof(char);
-		DWORD n = GetModuleFileNameA(NULL, Str, Size);
-		ShellExecuteA(NULL, "open", Str, g_pCodeWindow ? "" : "-d", NULL, SW_SHOW);
-	#endif
-
-	Close(true);
-}
-
 // --------
 // Events
 
@@ -691,7 +672,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 #ifdef _WIN32
 	if(event.GetKeyCode() == 'M', '3', '4', '5', '6', '7') // Send this to the video plugin WndProc
 	{
-		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
+		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, OPENGL_WM_USER_KEYDOWN, event.GetKeyCode());
 	}
 #endif
 

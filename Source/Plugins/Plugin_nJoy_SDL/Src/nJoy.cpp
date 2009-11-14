@@ -48,13 +48,7 @@ std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 InputCommon::CONTROLLER_STATE PadState[4];
 InputCommon::CONTROLLER_MAPPING PadMapping[4];
 bool g_EmulatorRunning = false;
-bool SDLPolling = true;
-#ifdef _WIN32
-bool LiveUpdates = false;
-#else
-bool LiveUpdates = false;
-#endif
-int NumPads = 0, NumDIDevices = -1, LastPad = 0;
+int NumPads = 0, NumGoodPads = 0, LastPad = 0;
 #ifdef _WIN32
 	HWND m_hWnd = NULL, m_hConsole = NULL; // Handle to window
 #endif
@@ -160,9 +154,11 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 // ------------------
 void DllConfig(HWND _hParent)
 {
+	// Init Joystick + Haptic (force feedback) subsystem on SDL 1.3
 	// Populate joyinfo for all attached devices
-	LocalSearchDevices(joyinfo, NumPads);
-	//g_Config.Load();	// load settings
+	Search_Devices(joyinfo, NumPads, NumGoodPads);
+
+	g_Config.Load();	// load settings
 
 #if defined(HAVE_WX) && HAVE_WX
 	if (!m_ConfigFrame)
@@ -172,9 +168,9 @@ void DllConfig(HWND _hParent)
 
 	// Only allow one open at a time
 	if (!m_ConfigFrame->IsShown())
-		m_ConfigFrame->DoShow();
+		m_ConfigFrame->ShowModal();
 	else
-		m_ConfigFrame->Hide();	
+		m_ConfigFrame->Hide();
 #endif
 }
 
@@ -198,7 +194,7 @@ void Initialize(void *init)
 	#endif
 
 	// Populate joyinfo for all attached devices
-	LocalSearchDevices(joyinfo, NumPads);
+	Search_Devices(joyinfo, NumPads, NumGoodPads);
 }
 
 // Shutdown PAD (stop emulation)
@@ -225,16 +221,18 @@ void Shutdown()
 	for (int i = 0; i < 4; i++)
 	{
 		if (joyinfo.size() > (u32)PadMapping[i].ID)
-			if(SDL_JoystickOpened(PadMapping[i].ID))
-			{
-				SDL_JoystickClose(PadState[i].joy);
-				PadState[i].joy = NULL;
-			}
+			if (joyinfo.at(PadMapping[i].ID).Good)
+				if(SDL_JoystickOpened(PadMapping[i].ID))
+				{
+					SDL_JoystickClose(PadState[i].joy);
+					PadState[i].joy = NULL;
+				}
 	}
 
 	// Clear the physical device info
 	joyinfo.clear();
 	NumPads = 0;
+	NumGoodPads = 0;
 
 	// Finally close SDL
 	SDL_Quit();
@@ -285,12 +283,6 @@ void DoState(unsigned char **ptr, int mode)
 // Function: Gives the current pad status to the Core
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
-	if (!IsPolling()) return;
-	
-	// Update joyinfo handles. This is in case the Wiimote plugin has restarted SDL after a pad was conencted/disconnected
-	// so that the handles are updated.
-	if (LiveUpdates) LocalSearchDevices(joyinfo, NumPads);
-	
 	// Check if the pad is avaliable, currently we don't disable pads just because they are
 	// disconnected
 	if (!PadState[_numPAD].joy) return;
@@ -300,7 +292,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 	// Check that Dolphin is in focus, otherwise don't update the pad status
 	if (g_Config.bCheckFocus || IsFocus())
-		GetJoyState(PadState[_numPAD], PadMapping[_numPAD]);
+		GetJoyState(PadState[_numPAD], PadMapping[_numPAD], _numPAD, joyinfo[PadMapping[_numPAD].ID].NumButtons);
 
 	// Get type
 	int TriggerType = PadMapping[_numPAD].triggertype;
@@ -447,127 +439,29 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 // Search for SDL devices
 // ----------------
-
-bool LocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
+bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
 {
-	//DEBUG_LOG(PAD, "LocalSearchDevices");
-	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads);
-	
-	DoLocalSearchDevices(_joyinfo, _NumPads);
-	
-	return Success;
-}
+	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
 
-bool LocalSearchDevicesReset(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
-{
-	//DEBUG_LOG(PAD, "LocalSearchDevicesUpdate: %i", IsPolling());
-	// Turn off device polling while resetting
-	EnablePolling(false);	
-	bool Success = InputCommon::SearchDevicesReset(_joyinfo, _NumPads);		
-	DoLocalSearchDevices(_joyinfo, _NumPads);
-	EnablePolling(true);
-	
-	return Success;
-}
-
-
-bool DoLocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads)
-{	
-	// Don't warn the user if no gamepads are detected. If the pad doesn't respond he will open the configuration and fix it.
-	// Also, if he's using a Wii game he may not care that the gamepad is turned off.
-	if (_NumPads == 0 && g_EmulatorRunning)
+	// Warn the user if no gamepads are detected
+	if (_NumGoodPads == 0 && g_EmulatorRunning)
 	{
-		//PanicAlert("nJoy: No Gamepad Detected");
+		PanicAlert("nJoy: No Gamepad Detected");
 		return false;
 	}
 
-	// Load the first time
-	if (!g_Config.Loaded) g_Config.Load();
+	// Load PadMapping[] etc
+	g_Config.Load();
 
 	// Update the PadState[].joy handle
 	for (int i = 0; i < 4; i++)
 	{
-		for (int j = 0; j < joyinfo.size(); j++)
-		{
-			if (joyinfo.at(j).Name == PadMapping[i].Name)
-			{
-				PadState[i].joy = joyinfo.at(j).joy;
-				//DEBUG_LOG(PAD, "Slot %i: %s", i, joyinfo.at(j).Name.c_str());
-			}
-		}
+		if (joyinfo.size() > (u32)PadMapping[i].ID)
+			if(joyinfo.at(PadMapping[i].ID).Good)
+				PadState[i].joy = SDL_JoystickOpen(PadMapping[i].ID);
 	}
 
-	return true;
-}
-
-
-// Is the device connected?
-// ----------------
-bool IsConnected(std::string Name)
-{
-	for (int i = 0; i < joyinfo.size(); i++)
-	{
-		//DEBUG_LOG(PAD, "IDToName: ID %i id %i %s", ID, i, joyinfo.at(i).Name.c_str());
-		if (joyinfo.at(i).Name == Name)
-			return true;
-	}
-}
-
-// It could be possible to crash SDL.dll if SDL functions are called during SDL_Quit/SDL_Init. Therefore these functions.
-// ----------------
-bool IsPolling()
-{
-	if (!SDLPolling || SDL_JoystickEventState(SDL_QUERY) == SDL_ENABLE)
-		return false;
-	else
-		return true;
-}
-void EnablePolling(bool Enable)
-{
-	if (Enable)
-	{
-		SDLPolling = true;
-		SDL_JoystickEventState(SDL_IGNORE);
-	}
-	else
-	{
-		SDLPolling = false;
-		SDL_JoystickEventState(SDL_ENABLE);
-	}
-}
-
-// ID to Name
-// ----------------
-std::string IDToName(int ID)
-{
-	for (int i = 0; i < joyinfo.size(); i++)
-	{
-		//DEBUG_LOG(PAD, "IDToName: ID %i id %i %s", ID, i, joyinfo.at(i).Name.c_str());
-		if (joyinfo.at(i).ID == ID)
-			return joyinfo.at(i).Name;
-	}
-	return "";
-}
-
-// ID to id - Get the gamepad id from a device ID (the ids will be all or some of the IDs)
-// ----------------
-int IDToid(int ID)
-{
-	for (int i = 0; i < joyinfo.size(); i++)
-	{
-		if (joyinfo.at(i).ID == ID)
-			return i;
-	}
-	if (joyinfo.size() > 0)
-	{
-		ERROR_LOG(PAD, "IDToid error");
-		return 0;
-	}
-	else
-	{
-		PanicAlert("Error in IDToid. The plugin may crash.");
-		return -1;
-	}
+	return Success;
 }
 
 

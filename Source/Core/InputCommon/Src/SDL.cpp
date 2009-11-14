@@ -35,13 +35,13 @@
 #define _SDL_MAIN_ // Avoid certain declarations in SDL.h
 #include "SDL.h" // Local
 #include "XInput.h"
-#ifdef _WIN32
-#include <windows.h>
-#include <dinput.h>
-#pragma comment(lib, "dxguid.lib")
-#pragma comment(lib, "dinput8.lib")
-#endif
 
+
+
+
+// Definitions
+// -------------------
+int g_LastPad = 0;
 
 
 
@@ -51,47 +51,30 @@ namespace InputCommon
 
 // Definitions
 // -------------------
-int g_LastPad = 0;
-int NumDIDevices = 0;
 
 
-// Reset and search for devices
+
+
+
+// Search attached devices. Populate joyinfo for all attached physical devices.
 // -----------------------
-bool SearchDevicesReset(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads)
+bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
 {
-	// This is needed to update SDL_NumJoysticks
-	if (SDL_WasInit(0))
-		SDL_Quit();
-	
-	return SearchDevices(_joyinfo, _NumPads);
-}
-
-// Initialize if not previously initialized
-// -----------------------
-bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads)
-{
-	// Init Joystick + Haptic (force feedback) subsystem on SDL 1.3
 	if (!SDL_WasInit(0))
-	{		
-#if SDL_VERSION_ATLEAST(1, 3, 0) && !defined(_WIN32)
-		NOTICE_LOG(PAD, "SDL_Init | HAPTIC");
+#if SDL_VERSION_ATLEAST(1, 3, 0)
 		if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) < 0)
 #else
-		//NOTICE_LOG(PAD, "SDL_Init");
 		if (SDL_Init(SDL_INIT_JOYSTICK) < 0)
 #endif
 		{
 			PanicAlert("Could not initialize SDL: %s", SDL_GetError());
 			return false;
 		}
-	}
 
-	// Clear joyinfo
-	_joyinfo.clear();
 	// Get device status
 	int numjoy = SDL_NumJoysticks();
 	for (int i = 0; i < numjoy; i++ )
-	{	
+	{
 		CONTROLLER_INFO Tmp;
 
 		Tmp.joy			= SDL_JoystickOpen(i);
@@ -103,160 +86,39 @@ bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads)
 		Tmp.Name		= SDL_JoystickName(i);
 
 		// Check if the device is okay
-		if ( !(  Tmp.NumAxes == 0
+		if (   Tmp.NumAxes == 0
 			&&  Tmp.NumBalls == 0
 			&&  Tmp.NumButtons == 0
-			&&  Tmp.NumHats == 0)
+			&&  Tmp.NumHats == 0
 			)
 		{
-			_joyinfo.push_back(Tmp);
+			Tmp.Good = false;
 		}
 		else
 		{
-			//if (SDL_JoystickOpened(i)) SDL_JoystickClose(Tmp.joy);
-		}	
+			_NumGoodPads++;
+			Tmp.Good = true;
+		}
+
+		_joyinfo.push_back(Tmp);
+
+		// We have now read the values we need so we close the device
+		if (SDL_JoystickOpened(i)) SDL_JoystickClose(_joyinfo[i].joy);
 	}
 
 	_NumPads = (int)_joyinfo.size();
+
 	return true;
 }
 
 
-// Show the current pad status
-// -----------------
-std::string ShowStatus(int Slot, int Device, CONTROLLER_MAPPING PadMapping[], CONTROLLER_STATE PadState[],
-	std::vector<InputCommon::CONTROLLER_INFO> joyinfo)
-{
-	CONTROLLER_MAPPING_NEW _PadMapping[4];
-	CONTROLLER_STATE_NEW _PadState[4];
-	for (int i = 0; i < 4; i++)
-	{
-		_PadMapping[i].ID = PadMapping[i].ID;
-		_PadMapping[i].Name = PadMapping[i].Name;
-		_PadState[i].joy = PadState[i].joy;
-	}
-	return DoShowStatus(Slot, Device, _PadMapping, _PadState, joyinfo);
-}
-std::string DoShowStatus(int Slot, int Device,
-	CONTROLLER_MAPPING_NEW PadMapping[], CONTROLLER_STATE_NEW PadState[],
-	std::vector<InputCommon::CONTROLLER_INFO> joyinfo)
-{
-	// Save the physical device
-	int ID = PadMapping[Slot].ID;
-	// Make local shortcut
-	SDL_Joystick *joy = PadState[Slot].joy;
-
-	// Make shortcuts for all pads
-	SDL_Joystick *joy0 = PadState[0].joy;
-	SDL_Joystick *joy1 = PadState[1].joy;
-	SDL_Joystick *joy2 = PadState[2].joy;
-	SDL_Joystick *joy3 = PadState[3].joy;
-
-	// Temporary storage
-	std::string
-		StrAllHandles, StrAllName,
-		StrHandles, StrId, StrName,
-		StrAxes, StrHats, StrBut;
-	int value;
-
-	// All devices
-	int numjoy = SDL_NumJoysticks();
-	for (int i = 0; i < numjoy; i++ )
-	{
-		SDL_Joystick *AllJoy = SDL_JoystickOpen(i);
-		StrAllHandles += StringFromFormat(" %i:%06i", i, AllJoy);
-		StrAllName += StringFromFormat("Name %i: %s\n", i, SDL_JoystickName(i));
-	}
-
-	// Get handles
-	for(int i = 0; i < joyinfo.size(); i++)
-	{	
-		StrHandles += StringFromFormat(" %i:%06i", i, joyinfo.at(i).joy);	
-		StrId += StringFromFormat(" %i:%i", i, joyinfo.at(i).ID);
-		StrName += StringFromFormat("Name %i:%s\n", i, joyinfo.at(i).Name.c_str());
-	}
-
-	// Get status
-	int Axes = joyinfo[Device].NumAxes;
-	int Balls = joyinfo[Device].NumBalls;
-	int Hats = joyinfo[Device].NumHats;
-	int Buttons = joyinfo[Device].NumButtons;
-
-	// Update the internal values
-	SDL_JoystickUpdate();
-
-	// Go through all axes and read out their values
-	for(int i = 0; i < Axes; i++)
-	{	
-		value = SDL_JoystickGetAxis(joy, i);
-		StrAxes += StringFromFormat(" %i:%06i", i, value);
-	}
-	for(int i = 0;i < Hats; i++)
-	{	
-		value = SDL_JoystickGetHat(joy, i);
-		StrHats += StringFromFormat(" %i:%i", i, value);
-	}
-	for(int i = 0;i < Buttons; i++)
-	{	
-		value = SDL_JoystickGetButton(joy, i);
-		StrBut += StringFromFormat(" %i:%i", i+1, value);
-	}
-
-	return StringFromFormat(
-		"All devices:\n"
-		"Handles: %s\n"
-		"%s"
-	
-		"\nAll pads:\n"
-		"Handles: %s\n"
-		"ID: %s\n"
-		"%s"
-		
-		"\nAll slots:\n"
-		"ID: %i %i %i %i\n"
-		"Name: '%s' '%s' '%s' '%s'\n"
-		//"Controllertype: %i %i %i %i\n"
-		//"SquareToCircle: %i %i %i %i\n\n"
-		#ifdef _WIN32
-			"Handles: %i %i %i %i\n"
-			//"XInput: %i %i %i\n"
-		#endif
-
-		"\nThis pad:\n"
-		"Handle: %06i\n"
-		"ID: %i\n"
-		//"Slot: %i\n"
-		"Axes: %s\n"
-		"Hats: %s\n"
-		"But: %s\n"
-		"Device: Ax: %i Balls:%i Hats:%i But:%i",
-		StrAllHandles.c_str(), StrAllName.c_str(),
-		StrHandles.c_str(), StrId.c_str(), StrName.c_str(),
-		
-		PadMapping[0].ID, PadMapping[1].ID, PadMapping[2].ID, PadMapping[3].ID,
-		PadMapping[0].Name.c_str(), PadMapping[1].Name.c_str(), PadMapping[2].Name.c_str(), PadMapping[3].Name.c_str(),
-		//PadMapping[0].controllertype, PadMapping[1].controllertype, PadMapping[2].controllertype, PadMapping[3].controllertype,
-		//PadMapping[0].bSquareToCircle, PadMapping[1].bSquareToCircle, PadMapping[2].bSquareToCircle, PadMapping[3].bSquareToCircle,
-		#ifdef _WIN32
-			joy0, joy1, joy2, joy3,
-			//PadState[PadMapping[0].ID].joy, PadState[PadMapping[1].ID].joy, PadState[PadMapping[2].ID].joy, PadState[PadMapping[3].ID].joy,
-			//XInput::IsConnected(0), XInput::GetXI(0, InputCommon::XI_TRIGGER_L), XInput::GetXI(0, InputCommon::XI_TRIGGER_R),
-			joy,
-		#endif
-		//Slot,		
-		ID,
-		StrAxes.c_str(), StrHats.c_str(), StrBut.c_str(),
-		Axes, Balls, Hats, Buttons
-		);
-}
-
 
 
 // Supporting functions
-// ====================
+// ----------------
 
 // Read current joystick status
-/* --------------------
+/* ----------------
 	The value PadMapping[].buttons[] is the number of the assigned joypad button,
 	PadState[].buttons[] is the status of the button, it becomes 0 (no pressed) or 1 (pressed) */
 
@@ -278,15 +140,10 @@ void ReadButton(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int
    Input: The virtual device 0, 1, 2 or 3
    Function: Updates the PadState struct with the current pad status. The input value "controller" is
    for a virtual controller 0 to 3. */
-void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping)
-{	
-	if (SDL_JoystickEventState(SDL_QUERY) == SDL_ENABLE) return;
-	//NOTICE_LOG(PAD, "SDL_JoystickEventState: %s", (SDL_JoystickEventState(SDL_QUERY) == SDL_ENABLE) ? "SDL_ENABLE" : "SDL_IGNORE");
-
+void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int Controller, int NumButtons)
+{
 	// Update the gamepad status
 	SDL_JoystickUpdate();
-	// Read info
-	int NumButtons = SDL_JoystickNumButtons(_PadState.joy);
 
 	// Update axis states. It doesn't hurt much if we happen to ask for nonexisting axises here.
 	_PadState.axis[CTL_MAIN_X] = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.axis[CTL_MAIN_X]);
@@ -349,13 +206,12 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping)
 	}
 
 #ifdef SHOW_PAD_STATUS
-	/*
 	// Show the status of all connected pads
 	//ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	//if ((g_LastPad == 0 && _PadMapping.ID == 0) || Controller < g_LastPad) Console->ClearScreen();	
+	//if ((g_LastPad == 0 && Controller == 0) || Controller < g_LastPad) Console->ClearScreen();	
 	g_LastPad = Controller;
 	NOTICE_LOG(CONSOLE, 
-		"Pad        | Number:%i Handle:%i\n"
+		"Pad        | Number:%i Enabled:%i Handle:%i\n"
 		"Main Stick | X:%03i  Y:%03i\n"
 		"C Stick    | X:%03i  Y:%03i\n"
 		"Trigger    | Type:%s DigitalL:%i DigitalR:%i AnalogL:%03i AnalogR:%03i HalfPress:%i\n"
@@ -363,7 +219,7 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping)
 		"D-Pad      | Type:%s Hat:%i U:%i D:%i\n"
 		"======================================================\n",
 
-		_PadMapping.ID, _PadState.joy,
+		Controller, _PadMapping.enabled, _PadState.joy,
 
 		_PadState.axis[InputCommon::CTL_MAIN_X], _PadState.axis[InputCommon::CTL_MAIN_Y],
 		_PadState.axis[InputCommon::CTL_SUB_X], _PadState.axis[InputCommon::CTL_SUB_Y],
@@ -379,7 +235,6 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping)
 			_PadState.dpad,
 			_PadState.dpad2[InputCommon::CTL_D_PAD_UP], _PadState.dpad2[InputCommon::CTL_D_PAD_DOWN]
 		);
-		*/
 #endif
 }
 
@@ -408,23 +263,18 @@ bool AvoidValues(int value, bool NoTriggerFilter)
 
 // Detect a pressed button
 // ---------------------
-void GetButton(SDL_Joystick *joy, int ControllerID,
+void GetButton(SDL_Joystick *joy, int ControllerID, int buttons, int axes, int hats,
 				int &KeyboardKey, int &value, int &type, int &pressed, bool &Succeed, bool &Stop,
 				bool LeftRight, bool Axis, bool XInput, bool Button, bool Hat, bool NoTriggerFilter)
 {
 	// It needs the wxWidgets excape keycode
 	static const int WXK_ESCAPE = 27;
 
-	// Save info
-	int buttons = SDL_JoystickNumButtons(joy);
-	int axes = SDL_JoystickNumAxes(joy);;
-	int hats = SDL_JoystickNumHats(joy);;
-
 	// Update the internal status
 	SDL_JoystickUpdate();
 
 	// For the triggers we accept both a digital or an analog button
-	if (Axis)
+	if(Axis)
 	{
 		for(int i = 0; i < axes; i++)
 		{
@@ -439,7 +289,7 @@ void GetButton(SDL_Joystick *joy, int ControllerID,
 	}
 
 	// Check for a hat
-	if (Hat)
+	if(Hat)
 	{
 		for(int i = 0; i < hats; i++)
 		{	
@@ -518,42 +368,6 @@ void GetButton(SDL_Joystick *joy, int ControllerID,
 }
 /////////////////////////////////////////////////////////// Configure button mapping
 
-
-
-// **********************************************
-
-
-
-// Search for DirectInput devices
-// ----------------
-#ifdef _WIN32
-BOOL CALLBACK EnumDICallback(const DIDEVICEINSTANCE* pInst, VOID* pContext)
-{
-	NumDIDevices++;
-	return true;
-}
-#endif
-int SearchDIDevices()
-{
-	#ifdef _WIN32
-	LPDIRECTINPUT8			g_pObject;
-	LPDIRECTINPUTDEVICE8	g_pDevice;
-	DIPROPDWORD dipdw;
-	HRESULT hr;
-	NumDIDevices = 0;
-
-	// Register with the DirectInput subsystem and get a pointer to a IDirectInput interface we can use.
-	if (FAILED(hr = DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (VOID**)&g_pObject, NULL)))
-		return 0;
-
-	// Look for a device
-	if (FAILED(hr = g_pObject->EnumDevices(DI8DEVCLASS_GAMECTRL, EnumDICallback, NULL, DIEDFL_ATTACHEDONLY)))
-		return 0;
-	return NumDIDevices;
-	#else
-	return 0;
-	#endif
-}
 
 
 } // InputCommon

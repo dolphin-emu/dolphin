@@ -76,11 +76,12 @@ CPluginManager::~CPluginManager()
 
 	for (int i = 0; i < MAXPADS; i++)
 	{
-		if (m_pad[i] && (OkayToInitPlugin(i) == -1) && !m_params->m_strPadPlugin[i].empty())
+		if (m_pad[i] && (OkayToInitPlugin(i) == -1))
 		{
 			INFO_LOG(CONSOLE, "Delete: %i\n", i);
-			FreePad(i);
+			delete m_pad[i];
 		}
+		m_pad[i] = NULL;
 	}
 
 	for (int i = 0; i < MAXWIIMOTES; i++)
@@ -164,7 +165,7 @@ void CPluginManager::ShutdownPlugins()
 		if (m_pad[i])
 		{
 			m_pad[i]->Shutdown();
-			//delete m_pad[i]; Causes crash on stop
+			//delete m_pad[i];
 		}
 		//m_pad[i] = NULL;
 	}
@@ -301,7 +302,7 @@ void *CPluginManager::LoadPlugin(const char *_rFilename, int Number)
 		PanicAlert("Can't open %s, it has a missing function", _rFilename);
 		return NULL;
 	}
-
+	
 	// Call the DLL function SetGlobals
 	plugin->SetGlobals(m_PluginGlobals);
 	return plugin;

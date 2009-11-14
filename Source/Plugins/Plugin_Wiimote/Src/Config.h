@@ -41,7 +41,6 @@ struct Config
 	Config();
 	void Load(bool ChangePad = false);
 	void Save(int Slot = -1);
-	bool Loaded;
 
 	struct PadRange
 	{
@@ -60,7 +59,6 @@ struct Config
 			TRIGGER
 		};
 		int Type;
-		bool Upright;
 		PadRange Range;
 	};
 	struct PadNunchuck

@@ -51,7 +51,7 @@ enum
 	ZCODE_END      = 0x00,
 	ZCODE_NORM     = 0x02, 
 	ZCODE_ROW	   = 0x03, 
-	ZCODE_04 = 0x04,
+	ZCODE_MEM_COPY = 0x04,
 
     // Conditonal Codes
 	CONDTIONAL_IF_EQUAL                  = 0x01,
@@ -227,17 +227,16 @@ void LogInfo(const char *format, ...)
 
 void RunAllActive()
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
-	{
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats) {
 		for (std::vector<ARCode>::iterator i = activeCodes.begin(); i != activeCodes.end(); ++i) 
 		{
 			if (i->active)
 			{
-				i->active = RunCode(*i);
+				if (!RunCode(*i))
+					i->active = false;
 				LogInfo("\n");
 			}
 		}
-
 		if (!b_RanOnce) 
 			b_RanOnce = true;
 	}
@@ -293,18 +292,16 @@ bool RunCode(const ARCode &arcode) {
 		LogInfo("Command: %08x", cmd);
 
 		// Do Fill & Slide
-		if (doFillNSlide)
-		{
+		if (doFillNSlide) {
 			doFillNSlide = false;
 			LogInfo("Doing Fill And Slide");
 			if (!ZeroCode_FillAndSlide(val_last, addr, data))
 				return false;
 			continue;
-		}
+			}
 
 		// Memory Copy
-		if (doMemoryCopy)
-		{
+		if (doMemoryCopy) {
 			doMemoryCopy = false;
 			LogInfo("Doing Memory Copy");
 			if (!ZeroCode_MemoryCopy(val_last, addr, data))
@@ -313,8 +310,7 @@ bool RunCode(const ARCode &arcode) {
 		}
 
 		// ActionReplay program self modification codes
-		if (addr >= 0x00002000 && addr < 0x00003000)
-		{
+		if (addr >= 0x00002000 && addr < 0x00003000) {
 			LogInfo("This action replay simulator does not support codes that modify Action Replay itself.");
 			PanicAlert("This action replay simulator does not support codes that modify Action Replay itself.");
 			return false;
@@ -343,7 +339,7 @@ bool RunCode(const ARCode &arcode) {
 					LogInfo("ZCode: Executes all codes in the same row, Set register 1BB4 to 1 (zcode not supported)");
 					PanicAlert("Zero 3 code not supported");
 					return false;
-				case ZCODE_04: // Fill & Slide or Memory Copy
+				case ZCODE_MEM_COPY: // Fill & Slide or Memory Copy
 					if (((addr >> 25) & 0x03) == 0x3) 
 					{
 						LogInfo("ZCode: Memory Copy");
@@ -558,7 +554,7 @@ bool Subtype_WriteToPointer(u32 addr, u32 data)
 bool Subtype_AddCode(u32 addr, u32 data)
 {
 	// Used to incrment a value in memory
-	u32 new_addr = (addr & 0x81FFFFFF);
+	u32 new_addr = (addr & 0x01FFFFFF) | 0x80000000;
 	u8 size = (addr >> 25) & 0x03;
 	LogInfo("Hardware Address: %08x", new_addr);
 	LogInfo("Size: %08x", size);
@@ -589,15 +585,12 @@ bool Subtype_AddCode(u32 addr, u32 data)
 		{
 			LogInfo("32-bit floating Add");
 			LogInfo("--------");
-
-			u32 read = Memory::Read_U32(new_addr);
-			float fread = *((float*)&read);
-			fread += (float)data;
-			u32 newval = *((u32*)&fread);
-			Memory::Write_U32(newval, new_addr);
-			LogInfo("Old Value %08x", read);
-			LogInfo("Increment %08x", data);
-			LogInfo("New value %08x", newval);
+			union conv {float x; u32 y;};
+			conv c1;
+		    c1.y = Memory::Read_U32(new_addr);
+			c1.x += (float)data;
+			Memory::Write_U32((u32)c1.x, new_addr);
+			LogInfo("Wrote %08x to address %08x",  (u32)c1.x, new_addr);
 			LogInfo("--------");
 			break;
 		}
@@ -622,7 +615,7 @@ bool Subtype_MasterCodeAndWriteToCCXXXXXX(u32 addr, u32 data)
 
 bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more testing
 {
-	u32 new_addr = (val_last & 0x81FFFFFF);
+	u32 new_addr = (val_last & 0x01FFFFFF) | 0x80000000;
 	u8  size = (val_last >> 25) & 0x03;
 	s16 addr_incr = (s16)(data & 0xFFFF);
 	s8  val_incr = (s8)((data & 0xFF000000) >> 24);

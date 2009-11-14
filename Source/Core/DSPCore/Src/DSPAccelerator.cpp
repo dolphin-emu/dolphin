@@ -103,14 +103,11 @@ void dsp_write_aram_d3(u16 value)
 		case 0xA:   // 16-bit writes
 			DSPHost_WriteHostMemory(value >> 8, Address);
 			DSPHost_WriteHostMemory(value & 0xFF, Address + 1);
-			Address += 2;
 			break;
 		default:
 			ERROR_LOG(DSPLLE, "dsp_write_aram_d3: Unseen Format %i", gdsp_ifx_regs[DSP_FORMAT]);
 			break;
 	}
-	gdsp_ifx_regs[DSP_ACCAH] = Address >> 16;
-	gdsp_ifx_regs[DSP_ACCAL] = Address & 0xffff;
 }
 
 u16 dsp_read_accelerator()
@@ -156,10 +153,9 @@ u16 dsp_read_accelerator()
 		// Set address back to start address.
 		Address = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];
 
-		// Do we really need both? (nakee: seems to cause problems with some
-		// AX games)
-		//		DSPHost_InterruptRequest();
-		//		DSPCore_SetException(EXP_2);
+		// Do we really need both?
+		DSPHost_InterruptRequest();
+		DSPCore_SetException(EXP_2);
 		DSPCore_SetException(EXP_ACCOV);
 
 		// Somehow, YN1 and YN2 must be initialized with their "loop" values,

@@ -53,7 +53,7 @@
 #endif
 
 #include "Common.h" // Common
-#include "StringUtil.h"
+
 
 
 namespace InputCommon
@@ -62,7 +62,7 @@ namespace InputCommon
 
 // Settings
 // ----------
-// Show a status window with the detected devices etc
+// Show a status window with the detected axes, buttons and so on
 //#define SHOW_PAD_STATUS
 
 
@@ -82,7 +82,7 @@ struct CONTROLLER_STATE		// GC PAD INFO/STATE
 	int dpad;				// Automatic SDL D-Pad (8 directions + neutral)
 	int dpad2[4];			// D-pad using buttons
 	int axis[6];			// 2 x 2 Axes (Main & Sub)
-	int halfpress;			// L and R triggers half pressed
+	int halfpress;			// Halfpress... you know, like not fully pressed ;)...
 	SDL_Joystick *joy;		// SDL joystick device
 };
 
@@ -95,7 +95,6 @@ struct CONTROLLER_MAPPING	// GC PAD MAPPING
 	int halfpress;			// (See above)
 	int deadzone;			// Deadzone... what else?
 	int ID;					// SDL joystick device ID
-	std::string Name;		// SDL joystick device name
 	int controllertype;		// Hat: Hat or custom buttons
 	int triggertype;		// Triggers range
 	std::string SRadius, SDiagonal, SRadiusC, SDiagonalC;
@@ -112,6 +111,7 @@ struct CONTROLLER_INFO		// CONNECTED WINDOWS DEVICES INFO
 	int NumHats;			// Amount of Hats (POV)
 	std::string Name;		// Joypad/stickname
 	int ID;					// SDL joystick device ID
+	bool Good;				// Pad is good (it has at least one button or axis)
 	SDL_Joystick *joy;		// SDL joystick device
 };
 enum
@@ -220,7 +220,6 @@ struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 	int DeadZoneL;			// Analog 1 Deadzone
 	int DeadZoneR;			// Analog 2 Deadzone
 	int ID;					// SDL joystick device ID
-	std::string Name;		// SDL joystick device name
 	int controllertype;		// D-Pad type: Hat or custom buttons
 	int triggertype;		// SDL or XInput trigger
 	std::string SDiagonal;
@@ -237,14 +236,9 @@ struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 // ---------
 
 // General functions
-bool SearchDevicesReset(std::vector<CONTROLLER_INFO> &_joyinfo, int &NumPads);
-bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &NumPads);
-std::string ShowStatus(int Slot, int Device, CONTROLLER_MAPPING PadMapping[], CONTROLLER_STATE PadState[],
-	std::vector<InputCommon::CONTROLLER_INFO> joyinfo);
-std::string DoShowStatus(int Slot, int Device, CONTROLLER_MAPPING_NEW PadMapping[], CONTROLLER_STATE_NEW PadState[],
-	std::vector<InputCommon::CONTROLLER_INFO> joyinfo);	
-void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping);
-void GetButton(SDL_Joystick*, int, int&,int&,int&,int&,bool&,bool&, bool,bool,bool,bool,bool,bool);
+bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &NumPads, int &NumGoodPads);
+void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int controller, int NumButtons);
+void GetButton(SDL_Joystick*, int,int,int,int, int&,int&,int&,int&,bool&,bool&, bool,bool,bool,bool,bool,bool);
 
 // Value conversion
 float Deg2Rad(float Deg);
@@ -262,9 +256,7 @@ std::string VKToString(int keycode);
 	extern int g_LastPad;
 #endif
 
-// DirectInput
-extern int NumDIDevices;
-int SearchDIDevices();
+
 
 } // InputCommon
 

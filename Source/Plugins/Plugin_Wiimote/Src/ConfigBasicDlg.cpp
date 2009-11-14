@@ -34,7 +34,6 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_CHECKBOX(ID_CONNECT_REAL, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USE_REAL, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_SIDEWAYSDPAD, WiimoteBasicConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_UPRIGHTWIIMOTE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_MOTIONPLUSCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)	
 	EVT_CHOICE(ID_EXTCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	// IR cursor
@@ -208,9 +207,9 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		// Emulated Wiimote
 		m_SidewaysDPad[i] = new wxCheckBox(m_Controller[i], ID_SIDEWAYSDPAD, wxT("Sideways D-Pad"));
 		m_SidewaysDPad[i]->SetValue(g_Config.bSidewaysDPad);
-		m_UprightWiimote[i] = new wxCheckBox(m_Controller[i], ID_UPRIGHTWIIMOTE, wxT("Upright Wiimote"));
-		m_UprightWiimote[i]->SetValue(g_Config.Trigger.Upright);
-		m_UprightWiimote[i]->SetToolTip(wxT("Treat the upright position as neutral for roll and pitch"));
+
+		m_SizeEmu[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Wiimote"));
+		m_SizeEmu[i]->Add(m_SidewaysDPad[i], 0, wxEXPAND | wxALL, 5);
 
 		//IR Pointer
 		m_TextScreenWidth[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Width: 000"));
@@ -251,12 +250,6 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_CheckAR43[i]->Enable(false);
 		m_CheckAR169[i]->Enable(false);
 		m_Crop[i]->Enable(false);
-
-		// Sizers
-
-		m_SizeEmu[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Wiimote"));
-		m_SizeEmu[i]->Add(m_SidewaysDPad[i], 0, wxEXPAND | wxALL, 5);
-		m_SizeEmu[i]->Add(m_UprightWiimote[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
 
 		m_SizerIRPointerScreen[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SizerIRPointerScreen[i]->Add(m_TextAR[i], 0, wxEXPAND | (wxTOP), 0);
@@ -398,9 +391,6 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 
 	case ID_SIDEWAYSDPAD:
 		g_Config.bSidewaysDPad = m_SidewaysDPad[Page]->IsChecked();
-		break;		
-	case ID_UPRIGHTWIIMOTE:
-		g_Config.Trigger.Upright = m_UprightWiimote[Page]->IsChecked();
 		break;
 
 	case ID_MOTIONPLUSCONNECTED:

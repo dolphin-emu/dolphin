@@ -19,7 +19,6 @@
 // Supports simple memory patches, and has a partial Action Replay implementation
 // in ActionReplay.cpp/h.
 
-// TODO: Still even needed?  Zelda WW now works with improved DSP code.
 // Zelda item hang fixes:
 // [Tue Aug 21 2007] [18:30:40] <Knuckles->    0x802904b4 in US released
 // [Tue Aug 21 2007] [18:30:53] <Knuckles->    0x80294d54 in EUR Demo version

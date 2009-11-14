@@ -201,23 +201,3 @@ std::string CPUInfo::Summarize()
 	if (bLongMode) sum += ", 64-bit support";
 	return sum;
 }
-
-// Turn the cpu info into a string we can show(This version uses headings and line breaks)
-std::string CPUInfo::Summarize_long()
-{
-	std::string sum;
-	sum = StringFromFormat("CPU Brand: %s\n",cpu_string);
-
-	sum += StringFromFormat("Number of cores: %i \n ",num_cores);
-
-	sum+= "Supported instruction sets:\n";
-
-	if (bSSE) sum += "   -SSE\n";
-	if (bSSE2) sum += "   -SSE2\n";
-	if (bSSE3) sum += "   -SSE3\n";
-	if (bSSSE3) sum += "   -SSSE3\n";
-	if (bSSE4_1) sum += "   -SSE4.1\n";
-	if (bSSE4_2) sum += "   -SSE4.2\n";
-	if (bLongMode) sum += "64-bit supported";
-	return sum;
-}

@@ -420,13 +420,11 @@ bool IsFocus()
 	HWND Parent = GetParent(RenderingWindow);
 	HWND TopLevel = GetParent(Parent);
 	// Allow updates when the config window is in focus to
-	HWND Config = NULL, ConfigPad = NULL, ConfigRecording = NULL;
-	if (m_BasicConfigFrame) Config = (HWND)m_BasicConfigFrame->GetHWND();
-	if (m_PadConfigFrame) ConfigPad = (HWND)m_PadConfigFrame->GetHWND();
-	if (m_RecordingConfigFrame) ConfigRecording = (HWND)m_RecordingConfigFrame->GetHWND();
+	HWND Config = NULL;
+	if (m_BasicConfigFrame)
+		Config = (HWND)m_BasicConfigFrame->GetHWND();
 	// Support both rendering to main window and not
-	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == RenderingWindow || GetForegroundWindow() == Config
-		|| GetForegroundWindow() == ConfigPad || GetForegroundWindow() == ConfigRecording)
+	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == RenderingWindow || GetForegroundWindow() == Config)
 		return true;
 	else
 		return false;
@@ -759,14 +757,12 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		// ---------------------------------------------
 		// Test the angles to x, y, z values formula by calculating the values back and forth
 		// -----------
-		/**/
-		ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-		Console->ClearScreen();
+		/*		//Console::ClearScreen();
 		// Show a test of our calculations
 		WiiMoteEmu::TiltTest(data[4], data[5], data[6]);
-		//u8 x, y, z;
-		//WiiMoteEmu::Tilt(x, y, z);
-		//WiiMoteEmu::TiltTest(x, y, z);
+		u8 x, y, z;
+		WiiMoteEmu::Tilt(x, y, z);
+		WiiMoteEmu::TiltTest(x, y, z);*/
 		// -------------------------
 
 		// ---------------------------------------------

@@ -57,14 +57,7 @@ wiimote_key g_ExtKey; // The extension encryption key
 bool g_Encryption; // Encryption on or off
 
 // Gamepad input
-int NumPads = 0, NumDIDevices = -1; // Number of pads
-bool SDLPolling = true;
-#ifdef _WIN32
-bool LiveUpdates = false;
-#else
-bool LiveUpdates = false;
-#endif
-
+int NumPads = 0, NumGoodPads = 0; // Number of goods pads
 std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 InputCommon::CONTROLLER_STATE_NEW PadState[4];
 InputCommon::CONTROLLER_MAPPING_NEW PadMapping[4];

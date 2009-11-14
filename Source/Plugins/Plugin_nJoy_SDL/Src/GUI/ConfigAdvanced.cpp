@@ -1,3 +1,4 @@
+
 // Project description
 // -------------------
 // Name: nJoy 
@@ -31,15 +32,14 @@
 // ---------
 #include "ConfigBox.h"
 #include "../nJoy.h"
-#include "LogManager.h"
 #include "Images/controller.xpm"
 
 extern bool g_EmulatorRunning;
 
 // Set PAD status
 // --------------
-void PADConfigDialognJoy::PadShowStatus()
-{	
+void PADConfigDialognJoy::PadGetStatus()
+{
 	// Return if it's not detected. The ID should never be less than zero here, it can only be that
 	// because of a manual ini file change, but we make that check anway.
 	if(PadMapping[notebookpage].ID < 0 || PadMapping[notebookpage].ID >= SDL_NumJoysticks())
@@ -51,7 +51,7 @@ void PADConfigDialognJoy::PadShowStatus()
 	}
 
 	// Get physical device status
-	int ID = PadMapping[notebookpage].ID;
+	int PhysicalDevice = PadMapping[notebookpage].ID;
 	int TriggerType = PadMapping[notebookpage].triggertype;
 
 	// Get original values
@@ -105,6 +105,7 @@ void PADConfigDialognJoy::PadShowStatus()
 	m_bmpDotOutC[notebookpage]->SetPosition(wxPoint(sub_x_out, sub_y_out));
 	///////////////////// Analog stick
 
+
 	
 	// Triggers
 	// -----------------
@@ -142,12 +143,84 @@ void PADConfigDialognJoy::PadShowStatus()
 	///////////////////// Triggers
 }
 
-// Update the advanced tab
+// Show the current pad status
+// -----------------
+std::string ShowStatus(int VirtualController)
+{
+	// Save the physical device
+	int PhysicalDevice = PadMapping[VirtualController].ID;
+
+	// Make local shortcut
+	SDL_Joystick *joy = PadState[VirtualController].joy;
+
+	// Make shortcuts for all pads
+	SDL_Joystick *joy0 = PadState[0].joy;
+	SDL_Joystick *joy1 = PadState[1].joy;
+	SDL_Joystick *joy2 = PadState[2].joy;
+	SDL_Joystick *joy3 = PadState[3].joy;
+
+	// Temporary storage
+	std::string StrAxes, StrHats, StrBut;
+	int value;
+
+	// Get status
+	int Axes = joyinfo[PhysicalDevice].NumAxes;
+	int Balls = joyinfo[PhysicalDevice].NumBalls;
+	int Hats = joyinfo[PhysicalDevice].NumHats;
+	int Buttons = joyinfo[PhysicalDevice].NumButtons;
+
+	// Update the internal values
+	SDL_JoystickUpdate();
+
+	// Go through all axes and read out their values
+	for(int i = 0; i < Axes; i++)
+	{	
+		value = SDL_JoystickGetAxis(joy, i);
+		StrAxes += StringFromFormat(" %i:%06i", i, value);
+	}
+	for(int i = 0;i < Hats; i++)
+	{	
+		value = SDL_JoystickGetHat(joy, i);
+		StrHats += StringFromFormat(" %i:%i", i, value);
+	}
+	for(int i = 0;i < Buttons; i++)
+	{	
+		value = SDL_JoystickGetButton(joy, i);
+		StrBut += StringFromFormat(" %i:%i", i+1, value);
+	}
+
+	return StringFromFormat(
+		"All pads:\n"
+		"ID: %i %i %i %i\n"
+		"Controllertype: %i %i %i %i\n"
+		"SquareToCircle: %i %i %i %i\n\n"	
+		#ifdef _WIN32
+			"Handles: %i %i %i %i\n"
+			"XInput: %i %i %i\n"
+		#endif
+
+		"This pad:\n"
+		"Axes: %s\n"
+		"Hats: %s\n"
+		"But: %s\n"
+		"Device: Ax: %i Balls:%i Hats:%i But:%i",
+		PadMapping[0].ID, PadMapping[1].ID, PadMapping[2].ID, PadMapping[3].ID,
+		PadMapping[0].controllertype, PadMapping[1].controllertype, PadMapping[2].controllertype, PadMapping[3].controllertype,
+		PadMapping[0].bSquareToCircle, PadMapping[1].bSquareToCircle, PadMapping[2].bSquareToCircle, PadMapping[3].bSquareToCircle,
+		#ifdef _WIN32
+			joy0, joy1, joy2, joy3,
+			//PadState[PadMapping[0].ID].joy, PadState[PadMapping[1].ID].joy, PadState[PadMapping[2].ID].joy, PadState[PadMapping[3].ID].joy,
+			XInput::IsConnected(0), XInput::GetXI(0, InputCommon::XI_TRIGGER_L), XInput::GetXI(0, InputCommon::XI_TRIGGER_R),
+		#endif
+		StrAxes.c_str(), StrHats.c_str(), StrBut.c_str(),
+		Axes, Balls, Hats, Buttons
+		);
+}
+
+// Populate the advanced tab
 // -----------------
 void PADConfigDialognJoy::Update()
-{	
-	if (!IsPolling()) return;
-
+{
 	// Check that Dolphin is in focus, otherwise don't update the pad status
 	/* If the emulator is running and unpaused GetJoyState() is run a little more often than needed,
 	   but I allow that since it can confuse the user if the input status in the configuration window
@@ -155,46 +228,17 @@ void PADConfigDialognJoy::Update()
 	if (g_Config.bCheckFocus || IsFocus()) // && !g_EmulatorRunning)
 	{
 		for (int i = 0; (u32)i < joyinfo.size(); i++)
-			InputCommon::GetJoyState(PadState[notebookpage], PadMapping[notebookpage]);
-		PadShowStatus();
+			InputCommon::GetJoyState(PadState[i], PadMapping[i], i, joyinfo[PadMapping[i].ID].NumButtons);
 	}
 
 	// Show the current status in a window in the wxPanel
 	#ifdef SHOW_PAD_STATUS
-		m_pStatusBar->SetLabel(wxString::FromAscii(InputCommon::ShowStatus(
-			notebookpage, m_Joyname[notebookpage]->GetSelection(),
-			PadMapping, PadState, joyinfo
-			).c_str()));
+		m_pStatusBar->SetLabel(wxString::Format(
+			"%s", ShowStatus(notebookpage).c_str()
+			));
 	#endif
 }
 
-// Search for devices
-void PADConfigDialognJoy::UpdateSlow()
-{
-	if (!LiveUpdates) return;
-
-	// Don't run this the first time
-	int OldNumDIDevices;
-	if (NumDIDevices == -1)
-		OldNumDIDevices = InputCommon::SearchDIDevices();
-	else
-	// Search for connected devices and update dialog
-		OldNumDIDevices = NumDIDevices;
-	NumDIDevices = InputCommon::SearchDIDevices();
-	
-	// Update if a pad has been connected/disconnected. Todo: Add a better check that also takes into consideration the pad id
-	// and other things to better ensure that nothing has changed
-	//DEBUG_LOG(PAD, "Found %i devices", NumDIDevices);
-	//DEBUG_LOG(PAD, "UpdateSlow: %i %i", OldNumPads, NumPads);
-	if (OldNumDIDevices != NumDIDevices)
-	{
-		WARN_LOG(PAD, "\n---- %s ----", (NumDIDevices > OldNumDIDevices) ? "Pad connected" : "Pad disconnected");
-		LocalSearchDevicesReset(joyinfo, NumPads);
-		UpdateDeviceList();	
-		// Enable controls again, if disabled
-		UpdateGUIAll();
-	}
-}
 
 // Populate the advanced tab
 // -----------------
@@ -324,5 +368,6 @@ wxBitmap PADConfigDialognJoy::CreateBitmapArea(int Max, int Diagonal)
 	Points[7].x = (int)(-Diagonal * Adj + iAdj); Points[7].y = (int)(Diagonal * Adj + iAdj);
 	// Draw polygon 
 	dc.DrawPolygon(8, Points);
+
 	return bitmap;
 }

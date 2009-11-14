@@ -23,10 +23,10 @@
 enum PLUGIN_COMM
 {
 	// Begin at 10 in case there is already messages with wParam = 0, 1, 2 and so on
-	WM_USER_STOP = 10,
-	WM_USER_CREATE,
-	WM_USER_KEYDOWN,
-	WM_USER_VIDEO_STOP,
+	OPENGL_WM_USER_STOP = 10,
+	OPENGL_WM_USER_CREATE,
+	OPENGL_WM_USER_KEYDOWN,
+	OPENGL_VIDEO_STOP,
 	TOGGLE_FULLSCREEN,
 	VIDEO_DESTROY, // The video debugging window was destroyed
 	AUDIO_DESTROY, // The audio debugging window was destroyed

@@ -41,7 +41,7 @@ void Shutdown(void);
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) ;
 void Update();
-void ReadKeyboard();
+void readKeyboard();
 
 // Recordings
 void LoadRecordedMovements();
@@ -52,14 +52,8 @@ void UpdateEeprom();
 void UpdateExtRegisterBlocks();
 
 // Gamepad
-bool LocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads);
-bool LocalSearchDevicesReset(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads);
-bool DoLocalSearchDevices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads);
-bool IsConnected(std::string Name);
-bool IsPolling();
-void EnablePolling(bool Enable);
-std::string IDToName(int ID);
-void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONTROLLER_MAPPING_NEW _PadMapping, int controller);
+bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads);
+void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONTROLLER_MAPPING_NEW _PadMapping, int controller, int NumButtons);
 void PadStateAdjustments(int &Lx, int &Ly, int &Rx, int &Ry, int &Tl, int &Tr);
 
 // Accelerometer

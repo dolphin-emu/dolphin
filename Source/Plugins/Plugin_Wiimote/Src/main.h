@@ -35,7 +35,7 @@ int GetUpdateRate();
 void InterruptDebugging(bool Emu, const void* _pData);
 void ReadDebugging(bool Emu, const void* _pData, int Size);
 bool IsFocus();
-#define MAX_WIIMOTES 1
+
 
 // Movement recording
 #define RECORDING_ROWS 15
