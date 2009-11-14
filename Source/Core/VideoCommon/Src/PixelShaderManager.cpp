@@ -120,7 +120,8 @@ void PixelShaderManager::SetConstants()
                 break;
             case 2:
                 // 24 bits
-				ftemp[0] = ffrac/65536.0f; ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac; ftemp[3] = 0;                
+				//ftemp[0] = ffrac/65536.0f; ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac; ftemp[3] = 0;
+				ftemp[0] = ffrac; ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac/65536.0f; ftemp[3] = 0;
                 break;
         }
 		SetPSConstant4fv(C_ZBIAS, ftemp);

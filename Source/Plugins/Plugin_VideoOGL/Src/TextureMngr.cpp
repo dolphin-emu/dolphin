@@ -496,6 +496,202 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	// IA4,RA4 - IA4
 	// Z8M,G8,I8,A8,Z8,R8,B8,Z8L - I8
 	// Z16,GB8,RG8,Z16L,IA8,RA8 - IA8
+	int gl_format;
+	int gl_iformat;
+	int gl_type;
+	float colmat[16];
+	float fConstAdd[4] = {0};
+	memset(colmat, 0, sizeof(colmat));
+
+    if (bFromZBuffer) 
+	{
+        switch(copyfmt) 
+		{
+            case 0: // Z4
+				colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
+				gl_format = GL_LUMINANCE;
+				gl_iformat = GL_INTENSITY4;
+				gl_type = GL_UNSIGNED_BYTE;
+                break;
+            case 1: // Z8
+				gl_format = GL_LUMINANCE;
+				gl_iformat = GL_INTENSITY8;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
+                break;            
+            case 3: // Z16 //?
+				gl_format = GL_LUMINANCE_ALPHA;
+				gl_iformat = GL_LUMINANCE8_ALPHA8;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
+				break;
+            case 11: // Z16 (reverse order)
+				gl_format = GL_LUMINANCE_ALPHA;
+				gl_iformat = GL_LUMINANCE8_ALPHA8;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1;
+                break;
+            case 6: // Z24X8
+				gl_format = GL_RGBA;
+				gl_iformat = 4;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[2] = colmat[5] = colmat[8] = colmat[15] = 1;
+                break;
+            case 9: // Z8M
+				gl_format = GL_LUMINANCE;
+				gl_iformat = GL_INTENSITY8;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
+                break;
+            case 10: // Z8L
+				gl_format = GL_LUMINANCE;
+				gl_iformat = GL_INTENSITY8;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
+                break;
+            case 12: // Z16L
+				gl_format = GL_LUMINANCE_ALPHA;
+				gl_iformat = GL_LUMINANCE8_ALPHA8;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
+                break;
+            default:
+                ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", copyfmt);
+				gl_format = GL_RGBA;
+				gl_iformat = 4;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+                break;
+        }
+    }
+    else if (bIsIntensityFmt) 
+	{
+			// TODO - verify these coefficients
+        fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f/255.0f;
+		colmat[0] = 0.257f; colmat[1] = 0.504f; colmat[2] = 0.098f;
+        colmat[4] = 0.257f; colmat[5] = 0.504f; colmat[6] = 0.098f;
+        colmat[8] = 0.257f; colmat[9] = 0.504f; colmat[10] = 0.098f;
+		if (copyfmt < 2) 
+		{
+            fConstAdd[3] = 16.0f / 255.0f;
+            colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
+        }
+        else// alpha
+            colmat[15] = 1;
+        switch (copyfmt) 
+		{
+            case 0: // I4
+				gl_format = GL_LUMINANCE;
+				gl_iformat = GL_INTENSITY4;
+				gl_type = GL_UNSIGNED_BYTE;
+				break;
+            case 1: // I8
+				gl_format = GL_LUMINANCE;
+				gl_iformat = GL_INTENSITY8;
+				gl_type = GL_UNSIGNED_BYTE;
+				break;
+            case 2: // IA4
+				gl_format = GL_LUMINANCE_ALPHA;
+				gl_iformat = GL_LUMINANCE4_ALPHA4;
+				gl_type = GL_UNSIGNED_BYTE;
+				break;
+            case 3: // IA8
+				gl_format = GL_LUMINANCE_ALPHA;
+				gl_iformat = GL_LUMINANCE8_ALPHA8;
+				gl_type = GL_UNSIGNED_BYTE;
+                break;
+            default:
+                ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", copyfmt);                
+                break;
+        }
+    }
+    else 
+	{
+        switch (copyfmt) 
+		{
+            case 0: // R4
+				colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
+				gl_format = GL_LUMINANCE;
+				gl_iformat = GL_INTENSITY4;
+				gl_type = GL_UNSIGNED_BYTE;
+				break;
+            case 8: // R8
+				gl_format = GL_LUMINANCE;
+				gl_iformat = GL_INTENSITY8;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
+                break;
+            case 2: // RA4
+				gl_format = GL_LUMINANCE_ALPHA;
+				gl_iformat = GL_LUMINANCE4_ALPHA4;
+				gl_type = GL_UNSIGNED_BYTE;
+				colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1;
+                break;
+            case 3: // RA8
+				gl_format = GL_LUMINANCE_ALPHA;
+				gl_iformat = GL_LUMINANCE8_ALPHA8;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1;
+                break;
+            case 7: // A8
+				gl_format = GL_ALPHA;
+				gl_iformat = GL_ALPHA8;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1; 
+                break;
+            case 9: // G8
+				gl_format = GL_LUMINANCE;
+				gl_iformat = GL_INTENSITY8;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
+                break;
+            case 10: // B8
+				gl_format = GL_LUMINANCE;
+				gl_iformat = GL_INTENSITY8;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
+                break;
+            case 11: // RG8
+				gl_format = GL_RGBA;
+				gl_iformat = 4;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
+                break;
+            case 12: // GB8
+				gl_format = GL_RGBA;
+				gl_iformat = 4;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
+                break;
+            case 4: // RGB565
+				gl_format = GL_RGB;
+				gl_iformat = GL_RGB;
+				gl_type = GL_UNSIGNED_SHORT_5_6_5;
+                colmat[0] = colmat[5] = colmat[10] = 1;
+                fConstAdd[3] = 1; // set alpha to 1
+                break;
+            case 5: // RGB5A3
+				gl_format = GL_RGBA;
+				gl_iformat = 4;
+				gl_type = GL_UNSIGNED_BYTE;
+				colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+                break;
+            case 6: // RGBA8
+				gl_format = GL_RGBA;
+				gl_iformat = 4;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+                break;
+            default:
+                ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", copyfmt);
+				gl_format = GL_RGBA;
+				gl_iformat = 4;
+				gl_type = GL_UNSIGNED_BYTE;
+                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+                break;
+        }
+    }
+
 	bool bIsInit = textures.find(address) != textures.end();
 
 	PRIM_LOG("copytarg: addr=0x%x, fromz=%d, intfmt=%d, copyfmt=%d", address, (int)bFromZBuffer, (int)bIsIntensityFmt,copyfmt);
@@ -513,14 +709,14 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	{
 		glGenTextures(1, (GLuint *)&entry.texture);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, gl_iformat, w, h, 0, gl_format, gl_type, NULL);
 		GL_REPORT_ERRORD();
 	}
 	else 
 	{
 		_assert_(entry.texture);
 		GL_REPORT_ERROR();
-		if (entry.w == w && entry.h == h && entry.isRectangle) 
+		if (entry.w == w && entry.h == h && entry.isRectangle && entry.fmt == copyfmt) 
 		{
 			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
 			// for some reason mario sunshine errors here...
@@ -531,7 +727,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 			glDeleteTextures(1,(GLuint *)&entry.texture);
 			glGenTextures(1, (GLuint *)&entry.texture);
 			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
-			glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, 4, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+			glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, gl_iformat, w, h, 0, gl_format, gl_type, NULL);
 			GL_REPORT_ERRORD();
 		}
 	}
@@ -554,120 +750,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	entry.h = h;
 	entry.isRectangle = true;
 	entry.isRenderTarget = true;
-	entry.fmt = copyfmt;
-
-	float colmat[16];
-	float fConstAdd[4] = {0};
-	memset(colmat, 0, sizeof(colmat));
-
-    if (bFromZBuffer) 
-	{
-        switch(copyfmt) 
-		{
-            case 0: // Z4
-            case 1: // Z8
-                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
-                break;
-            
-            case 3: // Z16 //?
-                colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
-            case 11: // Z16 (reverse order)
-                colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1;
-                break;
-            case 6: // Z24X8
-                colmat[0] = 1;
-                colmat[5] = 1;
-                colmat[10] = 1;
-				colmat[15] = 1;
-                break;
-            case 9: // Z8M
-                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
-                break;
-            case 10: // Z8L
-                colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
-                break;
-            case 12: // Z16L
-                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
-                break;
-            default:
-                ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", copyfmt);
-                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
-                break;
-        }
-    }
-    else if (bIsIntensityFmt) 
-	{
-        fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f/255.0f;
-        switch (copyfmt) 
-		{
-            case 0: // I4
-            case 1: // I8
-            case 2: // IA4
-            case 3: // IA8
-				// TODO - verify these coefficients
-                colmat[0] = 0.257f; colmat[1] = 0.504f; colmat[2] = 0.098f;
-                colmat[4] = 0.257f; colmat[5] = 0.504f; colmat[6] = 0.098f;
-                colmat[8] = 0.257f; colmat[9] = 0.504f; colmat[10] = 0.098f;
-
-                if (copyfmt < 2) 
-				{
-                    fConstAdd[3] = 16.0f / 255.0f;
-                    colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
-                }
-                else// alpha
-                    colmat[15] = 1;
-
-                break;
-            default:
-                ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", copyfmt);
-                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
-                break;
-        }
-    }
-    else 
-	{
-        switch (copyfmt) 
-		{
-            case 0: // R4
-            case 8: // R8
-                colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
-                break;
-            case 2: // RA4
-            case 3: // RA8
-                colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1;
-                break;
-
-            case 7: // A8
-                colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1; 
-                break;
-            case 9: // G8
-                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
-                break;
-            case 10: // B8
-                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
-                break;
-            case 11: // RG8
-                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
-                break;
-            case 12: // GB8
-                colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
-                break;
-
-            case 4: // RGB565
-                colmat[0] = colmat[5] = colmat[10] = 1;
-                fConstAdd[3] = 1; // set alpha to 1
-                break;
-            case 5: // RGB5A3
-            case 6: // RGBA8
-                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
-                break;
-
-            default:
-                ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", copyfmt);
-                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
-                break;
-        }
-    }
+	entry.fmt = copyfmt;	
 
 	// Make sure to resolve anything we need to read from.
 	GLuint read_texture = bFromZBuffer ? g_framebufferManager.ResolveAndGetDepthTarget(source_rect) : g_framebufferManager.ResolveAndGetRenderTarget(source_rect);

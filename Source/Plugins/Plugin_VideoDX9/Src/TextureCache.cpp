@@ -355,7 +355,7 @@ have_texture:
                 colmat[0] = colmat[4] = colmat[8] = colmat[13] = 255.0f/254.0f;
                 break;
             case 6: // Z24X8
-                colmat[2] = colmat[5] = colmat[8] = 255.0f/254.0f;
+                colmat[0] = colmat[5] = colmat[10] = 255.0f/254.0f;
                 break;
             case 9: // Z8M
                 colmat[1] = colmat[5] = colmat[9] = colmat[13] = 255.0f/254.0f;

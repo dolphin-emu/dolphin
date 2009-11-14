@@ -51,8 +51,6 @@ static FRAGMENTSHADER s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 void CreateRgbToYuyvProgram()
 {
 	// Output is BGRA because that is slightly faster than RGBA.
-
-	// TODO: Use the dot() function for faster dot products. Probably mostly helps ATI (nvidia is scalar anyway).
 	const char *FProgram =
 	"uniform samplerRECT samp0 : register(s0);\n"	
 	"void main(\n"
