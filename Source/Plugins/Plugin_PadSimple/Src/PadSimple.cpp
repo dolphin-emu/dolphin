@@ -259,9 +259,43 @@ void ScaleStickValues(unsigned char* outx,
 	*outy = 0x80 + iy;
 }
 
+// for same displacement should be sqrt(2)/2 (in theory)
+// 3/4 = 0.75 is a little faster than sqrt(2)/2 = 0.7071...
+// In SMS, 17/20 = 0.85 is perfect; in WW, 7/10 = 0.70 is closer.
+#define DIAGONAL_SCALE 0.70710678
+void EmulateAnalogStick(unsigned char *stickX, unsigned char *stickY, bool buttonUp, bool buttonDown, bool buttonLeft, bool buttonRight, int magnitude) {
+	int mainY = 0;
+	int mainX = 0;
+	if      (buttonUp)
+		mainY = magnitude;
+	else if (buttonDown)
+		mainY = -magnitude;
+	if      (buttonLeft)
+		mainX = -magnitude;
+	else if (buttonRight)
+		mainX = magnitude;
+	// only update if there is some action
+	// this allows analog stick to still work
+	// disable for now, enable later if any platform supports both methods of input
+	//if ((mainX != 0) && (mainY != 0)) {
+	if (true) {
+		if ((mainX == 0) || (mainY == 0))
+		{
+			*stickX += mainX;
+			*stickY += mainY;
+		}
+		else
+		{
+			*stickX += mainX*DIAGONAL_SCALE;
+			*stickY += mainY*DIAGONAL_SCALE;
+		}
+	}
+}
+
 //******************************************************************************
 // Input
 //******************************************************************************
+
 
 #ifdef _WIN32
 void DInput_Read(int _numPAD, SPADStatus* _pPADStatus)
@@ -310,48 +344,24 @@ void DInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 			_pPADStatus->button |= PAD_TRIGGER_R;
 	}
 	// Main stick
-	int mainY = 0;
-	int mainX = 0;
-	if      (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINUP]] & 0xFF)
-		mainY = mainstickvalue;
-	else if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINDOWN]] & 0xFF)
-		mainY = -mainstickvalue;
-	if      (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINLEFT]] & 0xFF)
-		mainX = -mainstickvalue;
-	else if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINRIGHT]] & 0xFF)
-		mainX = mainstickvalue;
-	if (mainX == 0 || mainY == 0)
-	{
-		_pPADStatus->stickX += mainX;
-		_pPADStatus->stickY += mainY;
-	}
-	else
-	{
-		_pPADStatus->stickX += mainX*3/4; // 3/4 = 0.75 is a little faster
-		_pPADStatus->stickY += mainY*3/4; // than sqrt(2) = 0.7071...
-		// In SMS, 17/20 = 0.85 is perfect; in WW, 7/10 = 0.70 is closer.
-	}
+	EmulateAnalogStick(
+		&_pPADStatus->stickX,
+		&_pPADStatus->stickY,
+		(dinput.diks[pad[_numPAD].keyForControl[CTL_MAINUP]] & 0xFF),
+		(dinput.diks[pad[_numPAD].keyForControl[CTL_MAINDOWN]] & 0xFF),
+		(dinput.diks[pad[_numPAD].keyForControl[CTL_MAINLEFT]] & 0xFF),
+		(dinput.diks[pad[_numPAD].keyForControl[CTL_MAINRIGHT]] & 0xFF),
+		mainstickvalue );
+		
 	// Sub-stick (C-stick)
-	int subY = 0;
-	int subX = 0;
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBUP]] & 0xFF)
-		subY = substickvalue;
-	else if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBDOWN]] & 0xFF)
-		subY = -substickvalue;
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBLEFT]] & 0xFF)
-		subX = -substickvalue;
-	else if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBRIGHT]] & 0xFF)
-		subX = substickvalue;
-	if (subX == 0 || subY == 0)
-	{
-		_pPADStatus->substickX += subX;
-		_pPADStatus->substickY += subY;
-	}
-	else
-	{
-		_pPADStatus->substickX += subX*17/20;
-		_pPADStatus->substickY += subY*17/20;
-	}
+	EmulateAnalogStick(
+		&_pPADStatus->substickX,
+		&_pPADStatus->substickY,
+		(dinput.diks[pad[_numPAD].keyForControl[CTL_SUBUP]] & 0xFF),
+		(dinput.diks[pad[_numPAD].keyForControl[CTL_SUBDOWN]] & 0xFF),
+		(dinput.diks[pad[_numPAD].keyForControl[CTL_SUBLEFT]] & 0xFF),
+		(dinput.diks[pad[_numPAD].keyForControl[CTL_SUBRIGHT]] & 0xFF),
+		substickvalue );
 	// D-pad
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADUP]]    & 0xFF){_pPADStatus->button |= PAD_BUTTON_UP;}
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADDOWN]]  & 0xFF){_pPADStatus->button |= PAD_BUTTON_DOWN;}
@@ -548,47 +558,22 @@ void cocoa_Read(int _numPAD, SPADStatus* _pPADStatus)
 	if (KeyStatus[CTL_L_SEMI]){_pPADStatus->triggerLeft = pad[_numPAD].Trigger_semivalue;}
 	if (KeyStatus[CTL_R_SEMI]){_pPADStatus->triggerRight = pad[_numPAD].Trigger_semivalue;}
 	// Main stick
-	int mainY = 0;
-	int mainX = 0;
-	if      (KeyStatus[CTL_MAINUP])
-		mainY = mainstickvalue;
-	else if (KeyStatus[CTL_MAINDOWN])
-		mainY = -mainstickvalue;
-	if      (KeyStatus[CTL_MAINLEFT])
-		mainX = -mainstickvalue;
-	else if (KeyStatus[CTL_MAINRIGHT])
-		mainX = mainstickvalue;
-	if (mainX == 0 || mainY == 0)
-	{
-		_pPADStatus->stickX += mainX;
-		_pPADStatus->stickY += mainY;
-	}
-	else
-	{
-		_pPADStatus->stickX += mainX*17/20;
-		_pPADStatus->stickY += mainY*17/20;
-	}
-	// Sub-stick (C-stick)
-	int subY = 0;
-	int subX = 0;
-	if (KeyStatus[CTL_SUBUP])
-		subY = substickvalue;
-	else if (KeyStatus[CTL_SUBDOWN])
-		subY = -substickvalue;
-	if (KeyStatus[CTL_SUBLEFT])
-		subX = -substickvalue;
-	else if (KeyStatus[CTL_SUBRIGHT])
-		subX = substickvalue;
-	if (subX == 0 || subY == 0)
-	{
-		_pPADStatus->substickX += subX;
-		_pPADStatus->substickY += subY;
-	}
-	else
-	{
-		_pPADStatus->substickX += subX*17/20;
-		_pPADStatus->substickY += subY*17/20;
-	}
+	EmulateAnalogStick(
+		&_pPADStatus->stickX,
+		&_pPADStatus->stickY,
+		KeyStatus[CTL_MAINUP],
+		KeyStatus[CTL_MAINDOWN],
+		KeyStatus[CTL_MAINLEFT],
+		KeyStatus[CTL_MAINRIGHT],
+		mainstickvalue );
+	EmulateAnalogStick(
+		&_pPADStatus->substickX,
+		&_pPADStatus->substickY,
+		KeyStatus[CTL_SUBUP],
+		KeyStatus[CTL_SUBDOWN],
+		KeyStatus[CTL_SUBLEFT],
+		KeyStatus[CTL_SUBRIGHT],
+		substickvalue );
 	// D-pad
 	if (KeyStatus[CTL_DPADUP])   {_pPADStatus->button |= PAD_BUTTON_UP;}
 	if (KeyStatus[CTL_DPADDOWN]) {_pPADStatus->button |= PAD_BUTTON_DOWN;}
