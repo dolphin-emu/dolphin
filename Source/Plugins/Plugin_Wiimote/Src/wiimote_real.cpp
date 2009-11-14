@@ -233,11 +233,8 @@ void SendEvent(SEvent& _rEvent)
     pHidHeader->param = HID_PARAM_INPUT;
 
 	// Create the buffer
-    memcpy(&Buffer[Offset], _rEvent.m_PayLoad, MAX_PAYLOAD);
-	/* This Offset value is not exactly correct like it is for the emulated
-	   Wiimote reports. It's often to big, but I guess that's okay. The game
-	   will know how big the actual data is. */
-    Offset += MAX_PAYLOAD;
+    memcpy(&Buffer[Offset], _rEvent.m_PayLoad, sizeof(_rEvent.m_PayLoad));
+    Offset += sizeof(_rEvent.m_PayLoad); 
 
 	// Send it
 	g_WiimoteInitialize.pWiimoteInput(m_channelID, Buffer, Offset);
