@@ -936,10 +936,9 @@ void FillReportExtension(wm_extension& _ext)
 		// Get adjusted pad state values
 		int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
 		PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
-		// The Y-axis is inverted, but we should keep its initialization center value
-		// till it is touched for the first time
-		if (_Ly != g_nu.jy.center) _Ly = 0xFE - _Ly;
-		if (_Ry != g_nu.jy.center) _Ry = 0xFE - _Ry;
+		// The Y-axis is inverted
+		_Ly = 0xff - _Ly;
+		_Ry = 0xff - _Ry;
 
 		/* This is if we are also using a real Nunchuck that we are sharing the
 		   calibration with. It's not needed if we are using our default
@@ -1082,10 +1081,9 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 			// Get adjusted pad state values
 			int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
 			PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
-			// The Y-axis is inverted, but we should keep its initialization center value
-			// till it is touched for the first time
-			if (_Ly != g_ClassicContCalibration.Ly.center) _Ly = 0xFE - _Ly;
-			if (_Ry != g_ClassicContCalibration.Ry.center) _Ry = 0xFE - _Ry;
+			// The Y-axis is inverted
+			_Ly = 0xff - _Ly;
+			_Ry = 0xff - _Ry;
 
 			/* This is if we are also using a real Classic Controller that we
 			   are sharing the calibration with.  It's not needed if we are
@@ -1132,10 +1130,9 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 			// Get adjusted pad state values
 			int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
 			PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
-			// The Y-axis is inverted, but we should keep its initialization center value
-			// till it is touched for the first time
-			if (_Ly != g_ClassicContCalibration.Ly.center) _Ly = 0xFE - _Ly;
-			if (_Ry != g_ClassicContCalibration.Ry.center) _Ry = 0xFE - _Ry;
+			// The Y-axis is inverted
+			_Ly = 0xff - _Ly;
+			_Ry = 0xff - _Ry;
 
 			/* This is if we are also using a real Classic Controller that we
 			   are sharing the calibration with.  It's not needed if we are
