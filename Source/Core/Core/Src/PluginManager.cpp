@@ -164,7 +164,7 @@ void CPluginManager::ShutdownPlugins()
 		if (m_pad[i])
 		{
 			m_pad[i]->Shutdown();
-			delete m_pad[i];
+			//delete m_pad[i]; Causes crash on stop
 		}
 		m_pad[i] = NULL;
 	}
@@ -301,7 +301,7 @@ void *CPluginManager::LoadPlugin(const char *_rFilename, int Number)
 		PanicAlert("Can't open %s, it has a missing function", _rFilename);
 		return NULL;
 	}
-	
+
 	// Call the DLL function SetGlobals
 	plugin->SetGlobals(m_PluginGlobals);
 	return plugin;
