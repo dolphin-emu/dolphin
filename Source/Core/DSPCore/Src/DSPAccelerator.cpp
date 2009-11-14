@@ -156,9 +156,10 @@ u16 dsp_read_accelerator()
 		// Set address back to start address.
 		Address = (gdsp_ifx_regs[DSP_ACSAH] << 16) | gdsp_ifx_regs[DSP_ACSAL];
 
-		// Do we really need both?
-		DSPHost_InterruptRequest();
-		DSPCore_SetException(EXP_2);
+		// Do we really need both? (nakee: seems to cause problems with some
+		// AX games)
+		//		DSPHost_InterruptRequest();
+		//		DSPCore_SetException(EXP_2);
 		DSPCore_SetException(EXP_ACCOV);
 
 		// Somehow, YN1 and YN2 must be initialized with their "loop" values,

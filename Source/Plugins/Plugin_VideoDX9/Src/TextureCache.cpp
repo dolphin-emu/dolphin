@@ -75,6 +75,31 @@ void TextureCache::Invalidate(bool shutdown)
 	textures.clear();
 }
 
+void TextureCache::InvalidateRange(u32 start_address, u32 size)
+{
+	TexCache::iterator iter = textures.begin();
+	while (iter != textures.end())
+	{
+		if (iter->second.IntersectsMemoryRange(start_address, size))
+		{
+			iter->second.Destroy(false);
+			ERASE_THROUGH_ITERATOR(textures, iter);
+		}
+		else {
+			++iter;
+		}
+	}
+}
+
+bool TextureCache::TCacheEntry::IntersectsMemoryRange(u32 range_address, u32 range_size)
+{
+	if (addr + size_in_bytes < range_address)
+		return false;
+	if (addr >= range_address + range_size)
+		return false;
+	return true;
+}
+
 void TextureCache::Shutdown()
 {
 	Invalidate(true);
@@ -183,6 +208,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	D3DFORMAT d3d_fmt;
 	switch (pcfmt) {
 	case PC_TEX_FMT_BGRA32:
+	case PC_TEX_FMT_RGBA32:
 		d3d_fmt = D3DFMT_A8R8G8B8;
 		break;
 	case PC_TEX_FMT_RGB565:
@@ -204,7 +230,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		d3d_fmt = D3DFMT_DXT1;
 		break;
 	}
-
+	
 	//Make an entry in the table
 	TCacheEntry& entry = textures[texID];
 
@@ -310,25 +336,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		tex = entry.texture;
 	}
 
-have_texture:
-	/*TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
-	RECT source_rc;
-	source_rc.left = targetSource.left;
-	source_rc.top = targetSource.top;
-	source_rc.right = targetSource.right;
-	source_rc.bottom = targetSource.bottom;
-	RECT dest_rc;
-	dest_rc.left = 0;
-	dest_rc.top = 0;
-	dest_rc.right = tex_w;
-	dest_rc.bottom = tex_h;
-
-	LPDIRECT3DSURFACE9 srcSurface, destSurface;
-	tex->GetSurfaceLevel(0, &destSurface);
-	srcSurface = FBManager::GetEFBColorRTSurface();
-	D3D::dev->StretchRect(srcSurface, &source_rc, destSurface, &dest_rc, D3DTEXF_LINEAR);
-	destSurface->Release();
-	return;*/
+have_texture:	
 	float colmat[16]= {0.0f};
 	float fConstAdd[4] = {0.0f};	
 
@@ -446,7 +454,8 @@ have_texture:
 	hr = tex->GetSurfaceLevel(0,&Rendersurf);
 	CHECK(hr);
 	D3D::dev->SetDepthStencilSurface(NULL);
-	D3D::dev->SetRenderTarget(1, NULL);
+	if(D3D::GetCaps().NumSimultaneousRTs > 1)
+		D3D::dev->SetRenderTarget(1, NULL);
 	D3D::dev->SetRenderTarget(0, Rendersurf);		
     
 	D3DVIEWPORT9 vp;
@@ -468,17 +477,18 @@ have_texture:
 	
 
 	PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
-	//TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
+	TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
 	RECT sourcerect;
-	sourcerect.bottom = source_rect.bottom;
-	sourcerect.left = source_rect.left;
-	sourcerect.right = source_rect.right;
-	sourcerect.top = source_rect.top;
+	sourcerect.bottom = targetSource.bottom;
+	sourcerect.left = targetSource.left;
+	sourcerect.right = targetSource.right;
+	sourcerect.top = targetSource.top;
 
-	D3D::drawShadedTexQuad(read_texture,&sourcerect, EFB_WIDTH , EFB_HEIGHT,&destrect,(FBManager::GetEFBDepthRTSurfaceFormat() == D3DFMT_R32F && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(): PixelShaderCache::GetColorMatrixProgram(),NULL);	
+	D3D::drawShadedTexQuad(read_texture,&sourcerect, Renderer::GetTargetWidth() , Renderer::GetTargetHeight(),&destrect,(FBManager::GetEFBDepthRTSurfaceFormat() == D3DFMT_R32F && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(): PixelShaderCache::GetColorMatrixProgram(),VertexShaderCache::GetSimpleVertexSahder());	
 
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-	D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());
+	if(D3D::GetCaps().NumSimultaneousRTs > 1)
+		D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
 	VertexShaderManager::SetViewportChanged();
 	Renderer::RestoreAPIState();	

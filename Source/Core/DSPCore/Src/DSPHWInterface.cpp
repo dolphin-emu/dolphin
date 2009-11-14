@@ -161,7 +161,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 		    break;
 
 		case 0xd3:   // ZeldaUnk (accelerator WRITE)
-		   	NOTICE_LOG(DSPLLE, "Write To ZeldaUnk pc=%04x (%04x)", g_dsp.pc, val);
+			//		   	NOTICE_LOG(DSPLLE, "Write To ZeldaUnk pc=%04x (%04x)", g_dsp.pc, val);
 			dsp_write_aram_d3(val);
 			break;
 
@@ -215,7 +215,7 @@ u16 gdsp_ifx_read(u16 addr)
 		    return dsp_read_accelerator();
 
 	    case 0xd3:
-			NOTICE_LOG(DSPLLE, "Read from ZeldaUnk pc=%04x", g_dsp.pc);
+			//NOTICE_LOG(DSPLLE, "Read from ZeldaUnk pc=%04x", g_dsp.pc);
 		    return dsp_read_aram_d3();
 
 	    default:
@@ -316,7 +316,7 @@ void gdsp_do_dma()
 		exit(0);
 	}
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	NOTICE_LOG(DSPLLE, "DMA pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
+	DEBUG_LOG(DSPLLE, "DMA pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 #endif
 	switch (ctl & 0x3)
 	{
