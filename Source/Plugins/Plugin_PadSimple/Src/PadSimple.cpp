@@ -76,7 +76,7 @@ class wxDLLApp : public wxApp
 		return true;
 	}
 };
-IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
 
@@ -97,7 +97,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 				return FALSE;
 #endif
 		}
-		break; 
+		break;
 
 	case DLL_PROCESS_DETACH:
 #if defined(HAVE_WX) && HAVE_WX
@@ -268,54 +268,96 @@ void DInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 {
 	dinput.Read();
 
-	int stickvalue =    (dinput.diks[pad[_numPAD].keyForControl[CTL_HALFPRESS]] & 0xFF) ? 40 : 100;
-	int triggervalue = (dinput.diks[pad[_numPAD].keyForControl[CTL_HALFPRESS]] & 0xFF) ? 100 : 255;
-
-	// get the new keys
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINLEFT]] & 0xFF){_pPADStatus->stickX -= stickvalue;}
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINRIGHT]] & 0xFF){_pPADStatus->stickX += stickvalue;}
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINDOWN]] & 0xFF){_pPADStatus->stickY -= stickvalue;}
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINUP]]   & 0xFF){_pPADStatus->stickY += stickvalue;}
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBLEFT]]  & 0xFF){_pPADStatus->substickX -= stickvalue;}
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBRIGHT]] & 0xFF){_pPADStatus->substickX += stickvalue;}
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBDOWN]]  & 0xFF){_pPADStatus->substickY -= stickvalue;}
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBUP]]    & 0xFF){_pPADStatus->substickY += stickvalue;}
-
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_L]] & 0xFF)
-	{
-		if (triggervalue > 230)
-			_pPADStatus->button |= PAD_TRIGGER_L;
-		_pPADStatus->triggerLeft = triggervalue;
-	}
-
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_R]] & 0xFF)
-	{
-		if (triggervalue > 230)
-			_pPADStatus->button |= PAD_TRIGGER_R;
-		_pPADStatus->triggerRight = triggervalue;
-	}
-
+	// Analog stick values based on semi-press keys
+	int mainstickvalue = (dinput.diks[pad[_numPAD].keyForControl[CTL_MAIN_SEMI]] & 0xFF) ? pad[_numPAD].Main_stick_semivalue : STICK_FULL;
+	int substickvalue = (dinput.diks[pad[_numPAD].keyForControl[CTL_SUB_SEMI]] & 0xFF) ? pad[_numPAD].Sub_stick_semivalue : STICK_FULL;
+	// Buttons (A/B/X/Y/Z/Start)
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_A]] & 0xFF)
 	{
 		_pPADStatus->button |= PAD_BUTTON_A;
-		_pPADStatus->analogA = 255;
+		_pPADStatus->analogA = BUTTON_FULL;
 	}
-
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_B]] & 0xFF)
 	{
 		_pPADStatus->button |= PAD_BUTTON_B;
-		_pPADStatus->analogB = 255;
+		_pPADStatus->analogB = BUTTON_FULL;
 	}
-
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_X]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_X;}
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_Y]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_Y;}
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_Z]] & 0xFF){_pPADStatus->button |= PAD_TRIGGER_Z;}
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADUP]]   & 0xFF){_pPADStatus->button |= PAD_BUTTON_UP;}
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADDOWN]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_DOWN;}
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADLEFT]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_LEFT;}
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADRIGHT]]& 0xFF){_pPADStatus->button |= PAD_BUTTON_RIGHT;}
-	if (dinput.diks[pad[_numPAD].keyForControl[CTL_START]]    & 0xFF){_pPADStatus->button |= PAD_BUTTON_START;}
-
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_START]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_START;}
+	// Triggers (L/R)
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_L]] & 0xFF)
+	{
+		_pPADStatus->button |= PAD_TRIGGER_L;
+		_pPADStatus->triggerLeft = TRIGGER_FULL;
+	}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_R]] & 0xFF)
+	{
+		_pPADStatus->button |= PAD_TRIGGER_R;
+		_pPADStatus->triggerRight = TRIGGER_FULL;
+	}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_L_SEMI]] & 0xFF)
+	{
+		_pPADStatus->triggerLeft = pad[_numPAD].Trigger_semivalue;
+		if (pad[_numPAD].Trigger_semivalue > TRIGGER_THRESHOLD)
+			_pPADStatus->button |= PAD_TRIGGER_L;
+	}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_R_SEMI]] & 0xFF)
+	{
+		_pPADStatus->triggerRight = pad[_numPAD].Trigger_semivalue;
+		if (pad[_numPAD].Trigger_semivalue > TRIGGER_THRESHOLD)
+			_pPADStatus->button |= PAD_TRIGGER_R;
+	}
+	// Main stick
+	int mainY = 0;
+	int mainX = 0;
+	if      (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINUP]] & 0xFF)
+		mainY = mainstickvalue;
+	else if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINDOWN]] & 0xFF)
+		mainY = -mainstickvalue;
+	if      (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINLEFT]] & 0xFF)
+		mainX = -mainstickvalue;
+	else if (dinput.diks[pad[_numPAD].keyForControl[CTL_MAINRIGHT]] & 0xFF)
+		mainX = mainstickvalue;
+	if (mainX == 0 || mainY == 0)
+	{
+		_pPADStatus->stickX += mainX;
+		_pPADStatus->stickY += mainY;
+	}
+	else
+	{
+		_pPADStatus->stickX += mainX*3/4; // 3/4 = 0.75 is a little faster
+		_pPADStatus->stickY += mainY*3/4; // than sqrt(2) = 0.7071...
+		// In SMS, 17/20 = 0.85 is perfect; in WW, 7/10 = 0.70 is closer.
+	}
+	// Sub-stick (C-stick)
+	int subY = 0;
+	int subX = 0;
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBUP]] & 0xFF)
+		subY = substickvalue;
+	else if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBDOWN]] & 0xFF)
+		subY = -substickvalue;
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBLEFT]] & 0xFF)
+		subX = -substickvalue;
+	else if (dinput.diks[pad[_numPAD].keyForControl[CTL_SUBRIGHT]] & 0xFF)
+		subX = substickvalue;
+	if (subX == 0 || subY == 0)
+	{
+		_pPADStatus->substickX += subX;
+		_pPADStatus->substickY += subY;
+	}
+	else
+	{
+		_pPADStatus->substickX += subX*17/20;
+		_pPADStatus->substickY += subY*17/20;
+	}
+	// D-pad
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADUP]]    & 0xFF){_pPADStatus->button |= PAD_BUTTON_UP;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADDOWN]]  & 0xFF){_pPADStatus->button |= PAD_BUTTON_DOWN;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADLEFT]]  & 0xFF){_pPADStatus->button |= PAD_BUTTON_LEFT;}
+	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADRIGHT]] & 0xFF){_pPADStatus->button |= PAD_BUTTON_RIGHT;}
+	// Mic key
 	_pPADStatus->MicButton = (dinput.diks[pad[_numPAD].keyForControl[CTL_MIC]] & 0xFF) ? true : false;
 }
 
@@ -348,21 +390,21 @@ bool XInput_Read(int XPadPlayer, SPADStatus* _pPADStatus)
 					xpad.sThumbRY);
 		}
 
+		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_UP)       {_pPADStatus->button |= PAD_BUTTON_UP;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)     {_pPADStatus->button |= PAD_BUTTON_DOWN;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)     {_pPADStatus->button |= PAD_BUTTON_LEFT;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)    {_pPADStatus->button |= PAD_BUTTON_RIGHT;}
+
 		_pPADStatus->triggerLeft  = xpad.bLeftTrigger;
 		_pPADStatus->triggerRight = xpad.bRightTrigger;
-
-		if (xpad.bLeftTrigger > 200)					{_pPADStatus->button |= PAD_TRIGGER_L;}
-		if (xpad.bRightTrigger > 200)					{_pPADStatus->button |= PAD_TRIGGER_R;}
-		if (xpad.wButtons & XINPUT_GAMEPAD_A)			{_pPADStatus->button |= PAD_BUTTON_A;}
-		if (xpad.wButtons & XINPUT_GAMEPAD_X)			{_pPADStatus->button |= PAD_BUTTON_B;}
-		if (xpad.wButtons & XINPUT_GAMEPAD_B)			{_pPADStatus->button |= PAD_BUTTON_X;}
-		if (xpad.wButtons & XINPUT_GAMEPAD_Y)			{_pPADStatus->button |= PAD_BUTTON_Y;}
+		if (xpad.bLeftTrigger > TRIGGER_THRESHOLD)        {_pPADStatus->button |= PAD_TRIGGER_L;}
+		if (xpad.bRightTrigger > TRIGGER_THRESHOLD)       {_pPADStatus->button |= PAD_TRIGGER_R;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_START)         {_pPADStatus->button |= PAD_BUTTON_START;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_A)             {_pPADStatus->button |= PAD_BUTTON_A;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_B)             {_pPADStatus->button |= PAD_BUTTON_X;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_X)             {_pPADStatus->button |= PAD_BUTTON_B;}
+		if (xpad.wButtons & XINPUT_GAMEPAD_Y)             {_pPADStatus->button |= PAD_BUTTON_Y;}
 		if (xpad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER){_pPADStatus->button |= PAD_TRIGGER_Z;}
-		if (xpad.wButtons & XINPUT_GAMEPAD_START)		{_pPADStatus->button |= PAD_BUTTON_START;}
-		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)	{_pPADStatus->button |= PAD_BUTTON_LEFT;}
-		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)	{_pPADStatus->button |= PAD_BUTTON_RIGHT;}
-		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_UP)		{_pPADStatus->button |= PAD_BUTTON_UP;}
-		if (xpad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)	{_pPADStatus->button |= PAD_BUTTON_DOWN;}
 
 		//_pPADStatus->MicButton = (xpad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) ? true : false;
 
@@ -375,233 +417,196 @@ bool XInput_Read(int XPadPlayer, SPADStatus* _pPADStatus)
 }
 #endif
 
+#if (defined(HAVE_X11) && HAVE_X11) || (defined(HAVE_COCOA) && HAVE_COCOA)
 #if defined(HAVE_X11) && HAVE_X11
 // The graphics plugin in the PCSX2 design leaves a lot of the window processing to the pad plugin, weirdly enough.
 void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
 {
-    // Do all the stuff we need to do once per frame here
-    if (_numPAD != 0) {
-        return;
-    }
-    // This code is from Zerofrog's pcsx2 pad plugin
-    XEvent E;
-    //int keyPress=0, keyRelease=0;
-    KeySym key;
-    
-    // keyboard input
-    int num_events;
-    for (num_events = XPending(GXdsp);num_events > 0;num_events--) {
-        XNextEvent(GXdsp, &E);
-        switch (E.type) {
-        case KeyPress:
-            //_KeyPress(pad, XLookupKeysym((XKeyEvent *)&E, 0)); break;
+	// Do all the stuff we need to do once per frame here
+	if (_numPAD != 0)
+		return;
+	// This code is from Zerofrog's pcsx2 pad plugin
+	XEvent E;
+	//int keyPress=0, keyRelease=0;
+	KeySym key;
 
-            key = XLookupKeysym((XKeyEvent*)&E, 0);
-            
-            if((key >= XK_F1 && key <= XK_F9) ||
-               key == XK_Shift_L || key == XK_Shift_R ||
-               key == XK_Control_L || key == XK_Control_R) {
-                XPutBackEvent(GXdsp, &E);
-                break;
-            }
+	// keyboard input
+	int num_events;
+	for (num_events = XPending(GXdsp);num_events > 0;num_events--)
+	{
+		XNextEvent(GXdsp, &E);
+		switch (E.type)
+		{
+		case KeyPress:
+			//_KeyPress(pad, XLookupKeysym((XKeyEvent *)&E, 0));
+			//break;
+			key = XLookupKeysym((XKeyEvent*)&E, 0);
 
-            int i;
-            for (i = 0; i < NUMCONTROLS; i++) {
-                if (key == pad[_numPAD].keyForControl[i]) {
-                    KeyStatus[i] = true;
-                    break;
-                }
-            }
-            
-            
-            break;
-            
-        case KeyRelease:
-
-            key = XLookupKeysym((XKeyEvent*)&E, 0);
-            
-            if((key >= XK_F1 && key <= XK_F9) ||
-               key == XK_Shift_L || key == XK_Shift_R ||
-               key == XK_Control_L || key == XK_Control_R) {
-                XPutBackEvent(GXdsp, &E);
-                break;
-            }
-          
-            //_KeyRelease(pad, XLookupKeysym((XKeyEvent *)&E, 0));
-            for (i = 0; i < NUMCONTROLS; i++) {
-                if (key == pad[_numPAD].keyForControl[i]) {
-                    KeyStatus[i] = false;
-                    break;
-                }
-            }
-  
-            break;
-            
-        default:
-            break;
-        }
-    }
-
-    int stickvalue =   (KeyStatus[CTL_HALFPRESS]) ? 40 : 100;
-    int triggervalue = (KeyStatus[CTL_HALFPRESS]) ? 100 : 255;
-
-    if (KeyStatus[CTL_MAINLEFT]){_pPADStatus->stickX -= stickvalue;}
-    if (KeyStatus[CTL_MAINUP]){_pPADStatus->stickY += stickvalue;}
-    if (KeyStatus[CTL_MAINRIGHT]){_pPADStatus->stickX += stickvalue;}
-    if (KeyStatus[CTL_MAINDOWN]){_pPADStatus->stickY -= stickvalue;}
-
-    if (KeyStatus[CTL_SUBLEFT]){_pPADStatus->substickX -= stickvalue;}
-    if (KeyStatus[CTL_SUBUP]){_pPADStatus->substickY += stickvalue;}
-    if (KeyStatus[CTL_SUBRIGHT]){_pPADStatus->substickX += stickvalue;}
-    if (KeyStatus[CTL_SUBDOWN]){_pPADStatus->substickY -= stickvalue;}
-
-    if (KeyStatus[CTL_DPADLEFT]){_pPADStatus->button |= PAD_BUTTON_LEFT;}
-    if (KeyStatus[CTL_DPADUP]){_pPADStatus->button |= PAD_BUTTON_UP;}
-    if (KeyStatus[CTL_DPADRIGHT]){_pPADStatus->button |= PAD_BUTTON_RIGHT;}
-    if (KeyStatus[CTL_DPADDOWN]){_pPADStatus->button |= PAD_BUTTON_DOWN;}
-
-    if (KeyStatus[CTL_A]) {
-        _pPADStatus->button |= PAD_BUTTON_A;
-        _pPADStatus->analogA = 255;
-    }
-    
-    if (KeyStatus[CTL_B]) {
-        _pPADStatus->button |= PAD_BUTTON_B;
-        _pPADStatus->analogB = 255;
-    }
-    
-    if (KeyStatus[CTL_X]){_pPADStatus->button |= PAD_BUTTON_X;}
-    if (KeyStatus[CTL_Y]){_pPADStatus->button |= PAD_BUTTON_Y;}
-    if (KeyStatus[CTL_Z]){_pPADStatus->button |= PAD_TRIGGER_Z;}
-
-    if (KeyStatus[CTL_L]) {
-        _pPADStatus->button |= PAD_TRIGGER_L;
-        _pPADStatus->triggerLeft = triggervalue;
-    }
-    
-    if (KeyStatus[CTL_R]) {
-        _pPADStatus->button |= PAD_TRIGGER_R;
-        _pPADStatus->triggerRight = triggervalue;
-    }
-    
-    if (KeyStatus[CTL_START]){_pPADStatus->button |= PAD_BUTTON_START;}
-    if (KeyStatus[CTL_MIC])
-    	_pPADStatus->MicButton = true;
-    else
-    	_pPADStatus->MicButton = false;
-}
-
-
-#endif
-
-#if defined(HAVE_COCOA) && HAVE_COCOA
+			if((key >= XK_F1 && key <= XK_F9) ||
+				key == XK_Shift_L || key == XK_Shift_R ||
+				key == XK_Control_L || key == XK_Control_R)
+			{
+				XPutBackEvent(GXdsp, &E);
+				break;
+			}
+			int i;
+			for (i = 0; i < NUMCONTROLS; i++) {
+				if (key == pad[_numPAD].keyForControl[i]) {
+					KeyStatus[i] = true;
+					break;
+				}
+			}
+			break;
+		case KeyRelease:
+			key = XLookupKeysym((XKeyEvent*)&E, 0);
+			if((key >= XK_F1 && key <= XK_F9) ||
+				key == XK_Shift_L || key == XK_Shift_R ||
+				key == XK_Control_L || key == XK_Control_R)
+			{
+				XPutBackEvent(GXdsp, &E);
+				break;
+			}
+			//_KeyRelease(pad, XLookupKeysym((XKeyEvent *)&E, 0));
+			for (i = 0; i < NUMCONTROLS; i++)
+			{
+				if (key == pad[_numPAD].keyForControl[i])
+				{
+					KeyStatus[i] = false;
+					break;
+				}
+			}
+			break;
+		}
+	}
+#elif defined(HAVE_COCOA) && HAVE_COCOA
 void cocoa_Read(int _numPAD, SPADStatus* _pPADStatus)
 {
-    // Do all the stuff we need to do once per frame here
-    if (_numPAD != 0) {
-        return;
-    }
-
+	// Do all the stuff we need to do once per frame here
+	if (_numPAD != 0)
+		return;
 	//get event from main thread
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-        NSConnection *conn;
-        NSDistantObject *proxy;
+	NSConnection *conn;
+	NSDistantObject *proxy;
 
 	conn = [NSConnection connectionWithRegisteredName:@"DolphinCocoaEvent" host:nil];
-        if (!conn) {
-                //printf("error creating cnx event client\n");
-        }
-
-        proxy = [conn rootProxy];
-
-        if (!proxy) {
-                //printf("error prox client\n");
-        }
+	//if (!conn) {
+		//printf("error creating cnx event client\n");
+	//}
+	proxy = [conn rootProxy];
+	//if (!proxy) {
+	//	printf("error prox client\n");
+	//}
 
 	long cocoaKey = (long)[proxy keyCode];
 
 	int i;
-        if ((long)[proxy type] == 10)
+	if ((long)[proxy type] == 10)
 	{
-		for (i = 0; i < NUMCONTROLS; i++) {
-        		if (cocoaKey == pad[_numPAD].keyForControl[i]) {
-                		KeyStatus[i] = true;
-                		break;
-                	}
-        	}
+		for (i = 0; i < NUMCONTROLS; i++)
+		{
+			if (cocoaKey == pad[_numPAD].keyForControl[i])
+			{
+				KeyStatus[i] = true;
+				break;
+			}
+		}
 	}
-        else
+	else
 	{
-		for (i = 0; i < NUMCONTROLS; i++) {
-        		if (cocoaKey == pad[_numPAD].keyForControl[i]) {
-                		KeyStatus[i] = false;
-                		break;
-                	}
-        	}
-
+		for (i = 0; i < NUMCONTROLS; i++)
+		{
+			if (cocoaKey == pad[_numPAD].keyForControl[i])
+			{
+				KeyStatus[i] = false;
+				break;
+			}
+		}
 	}
-
-
-    int stickvalue =   (KeyStatus[CTL_HALFPRESS]) ? 40 : 100;
-    int triggervalue = (KeyStatus[CTL_HALFPRESS]) ? 100 : 255;
-
-    if (KeyStatus[CTL_MAINLEFT]){_pPADStatus->stickX -= stickvalue;}
-    if (KeyStatus[CTL_MAINUP]){_pPADStatus->stickY += stickvalue;}
-    if (KeyStatus[CTL_MAINRIGHT]){_pPADStatus->stickX += stickvalue;}
-    if (KeyStatus[CTL_MAINDOWN]){_pPADStatus->stickY -= stickvalue;}
-
-    if (KeyStatus[CTL_SUBLEFT]){_pPADStatus->substickX -= stickvalue;}
-    if (KeyStatus[CTL_SUBUP]){_pPADStatus->substickY += stickvalue;}
-    if (KeyStatus[CTL_SUBRIGHT]){_pPADStatus->substickX += stickvalue;}
-    if (KeyStatus[CTL_SUBDOWN]){_pPADStatus->substickY -= stickvalue;}
-
-    if (KeyStatus[CTL_DPADLEFT]){_pPADStatus->button |= PAD_BUTTON_LEFT;}
-    if (KeyStatus[CTL_DPADUP]){_pPADStatus->button |= PAD_BUTTON_UP;}
-    if (KeyStatus[CTL_DPADRIGHT]){_pPADStatus->button |= PAD_BUTTON_RIGHT;}
-    if (KeyStatus[CTL_DPADDOWN]){_pPADStatus->button |= PAD_BUTTON_DOWN;}
-
-    if (KeyStatus[CTL_A]) {
-        _pPADStatus->button |= PAD_BUTTON_A;
-        _pPADStatus->analogA = 255;
-    }
-    
-    if (KeyStatus[CTL_B]) {
-        _pPADStatus->button |= PAD_BUTTON_B;
-        _pPADStatus->analogB = 255;
-    }
-    
-    if (KeyStatus[CTL_X]){_pPADStatus->button |= PAD_BUTTON_X;}
-    if (KeyStatus[CTL_Y]){_pPADStatus->button |= PAD_BUTTON_Y;}
-    if (KeyStatus[CTL_Z]){_pPADStatus->button |= PAD_TRIGGER_Z;}
-
-    if (KeyStatus[CTL_L]) {
-        _pPADStatus->button |= PAD_TRIGGER_L;
-        _pPADStatus->triggerLeft = triggervalue;
-    }
-    
-    if (KeyStatus[CTL_R]) {
-        _pPADStatus->button |= PAD_TRIGGER_R;
-        _pPADStatus->triggerRight = triggervalue;
-    }
-    
-    if (KeyStatus[CTL_START]){_pPADStatus->button |= PAD_BUTTON_START;}
-    if (KeyStatus[CTL_MIC])
-    	_pPADStatus->MicButton = true;
-    else
-    	_pPADStatus->MicButton = false;
-
-	[pool release];
-
-}
-
 #endif
-
-
+	// Analog stick values based on semi-press keys
+	int mainstickvalue = (KeyStatus[CTL_MAIN_SEMI]) ? pad[_numPAD].Main_stick_semivalue : STICK_FULL;
+	int substickvalue = (KeyStatus[CTL_SUB_SEMI]) ? pad[_numPAD].Sub_stick_semivalue : STICK_FULL;
+	// Buttons (A/B/X/Y/Z/Start)
+	if (KeyStatus[CTL_A])
+	{
+		_pPADStatus->button |= PAD_BUTTON_A;
+		_pPADStatus->analogA = BUTTON_FULL;
+	}
+	if (KeyStatus[CTL_B])
+	{
+		_pPADStatus->button |= PAD_BUTTON_B;
+		_pPADStatus->analogB = BUTTON_FULL;
+	}
+	if (KeyStatus[CTL_X]){_pPADStatus->button |= PAD_BUTTON_X;}
+	if (KeyStatus[CTL_Y]){_pPADStatus->button |= PAD_BUTTON_Y;}
+	if (KeyStatus[CTL_Z]){_pPADStatus->button |= PAD_TRIGGER_Z;}
+	if (KeyStatus[CTL_START]){_pPADStatus->button |= PAD_BUTTON_START;}
+	// Triggers (L/R)
+	if (KeyStatus[CTL_L]){_pPADStatus->triggerLeft = TRIGGER_FULL;}
+	if (KeyStatus[CTL_R]){_pPADStatus->triggerRight = TRIGGER_FULL;}
+	if (KeyStatus[CTL_L_SEMI]){_pPADStatus->triggerLeft = pad[_numPAD].Trigger_semivalue;}
+	if (KeyStatus[CTL_R_SEMI]){_pPADStatus->triggerRight = pad[_numPAD].Trigger_semivalue;}
+	// Main stick
+	int mainY = 0;
+	int mainX = 0;
+	if      (KeyStatus[CTL_MAINUP])
+		mainY = mainstickvalue;
+	else if (KeyStatus[CTL_MAINDOWN])
+		mainY = -mainstickvalue;
+	if      (KeyStatus[CTL_MAINLEFT])
+		mainX = -mainstickvalue;
+	else if (KeyStatus[CTL_MAINRIGHT])
+		mainX = mainstickvalue;
+	if (mainX == 0 || mainY == 0)
+	{
+		_pPADStatus->stickX += mainX;
+		_pPADStatus->stickY += mainY;
+	}
+	else
+	{
+		_pPADStatus->stickX += mainX*17/20;
+		_pPADStatus->stickY += mainY*17/20;
+	}
+	// Sub-stick (C-stick)
+	int subY = 0;
+	int subX = 0;
+	if (KeyStatus[CTL_SUBUP])
+		subY = substickvalue;
+	else if (KeyStatus[CTL_SUBDOWN])
+		subY = -substickvalue;
+	if (KeyStatus[CTL_SUBLEFT])
+		subX = -substickvalue;
+	else if (KeyStatus[CTL_SUBRIGHT])
+		subX = substickvalue;
+	if (subX == 0 || subY == 0)
+	{
+		_pPADStatus->substickX += subX;
+		_pPADStatus->substickY += subY;
+	}
+	else
+	{
+		_pPADStatus->substickX += subX*17/20;
+		_pPADStatus->substickY += subY*17/20;
+	}
+	// D-pad
+	if (KeyStatus[CTL_DPADUP])   {_pPADStatus->button |= PAD_BUTTON_UP;}
+	if (KeyStatus[CTL_DPADDOWN]) {_pPADStatus->button |= PAD_BUTTON_DOWN;}
+	if (KeyStatus[CTL_DPADLEFT]) {_pPADStatus->button |= PAD_BUTTON_LEFT;}
+	if (KeyStatus[CTL_DPADRIGHT]){_pPADStatus->button |= PAD_BUTTON_RIGHT;}
+	// Mic key
+	_pPADStatus->MicButton = KeyStatus[CTL_MIC];
+#if defined(HAVE_X11) && HAVE_X11
+}
+#elif defined(HAVE_COCOA) && HAVE_COCOA
+	[pool release];
+}
+#endif
+#endif
 
 //******************************************************************************
 // Plugin specification functions
 //******************************************************************************
-
 
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
@@ -772,7 +777,8 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	_pPADStatus->err = PAD_ERR_NONE;
 
 	// Read XInput
-	if (pad[_numPAD].bEnableXPad) XInput_Read(pad[_numPAD].XPadPlayer, _pPADStatus);
+	if (pad[_numPAD].bEnableXPad)
+		XInput_Read(pad[_numPAD].XPadPlayer, _pPADStatus);
 
 	// Read Direct Input
 	DInput_Read(_numPAD, _pPADStatus);
@@ -834,82 +840,94 @@ void LoadConfig()
 #ifdef _WIN32
 	const int defaultKeyForControl[NUMCONTROLS] =
 	{
-		DIK_X,	//A
-		DIK_Z,
-		DIK_C,
-		DIK_S,
-		DIK_D,
-		DIK_RETURN,
-		DIK_Q,
-		DIK_W,
-		DIK_UP,	//mainstick
-		DIK_DOWN,
-		DIK_LEFT,
-		DIK_RIGHT,
-		DIK_I,	//substick
-		DIK_K,
-		DIK_J,
-		DIK_L,
-		DIK_T,	//dpad
-		DIK_G,
-		DIK_F,
-		DIK_H,
-		DIK_LSHIFT, //halfpress
-		DIK_M //Mic
+		DIK_X, // A
+		DIK_Z, // B
+		DIK_C, // X
+		DIK_S, // Y
+		DIK_D, // Z
+		DIK_RETURN, // Start
+		DIK_Q, // L
+		DIK_W, // R
+		0x00, // L semi-press
+		0x00, // R semi-press
+		DIK_UP, // Main stick up
+		DIK_DOWN, // Main stick down
+		DIK_LEFT, // Main stick left
+		DIK_RIGHT, // Main stick right
+		DIK_LSHIFT, // Main stick semi-press
+		DIK_I, // C-stick up
+		DIK_K, // C-stick down
+		DIK_J, // C-stick left
+		DIK_L, // C-stick right
+		DIK_LCONTROL, // C-stick semi-press
+		DIK_T, // D-pad up
+		DIK_G, // D-pad down
+		DIK_F, // D-pad left
+		DIK_H, // D-pad right
+		DIK_M, // Mic
 	};
 #elif defined(HAVE_X11) && HAVE_X11
 	const int defaultKeyForControl[NUMCONTROLS] =
 	{
-          XK_x, //A
-          XK_z,
-          XK_c,
-		  XK_s,
-          XK_d,
-          XK_Return,
-          XK_q,
-          XK_w,
-          XK_Up, //mainstick
-          XK_Down,
-          XK_Left,
-          XK_Right,
-          XK_i, //substick
-          XK_K,
-          XK_j,
-          XK_l,
-          XK_t, //dpad
-          XK_g,
-          XK_f,
-          XK_h,
-		  XK_Shift_L, //halfpress
-		  XK_p //Mic
+		XK_x, // A
+		XK_z, // B
+		XK_c, // X
+		XK_s, // Y
+		XK_d, // Z
+		XK_Return, // Start
+		XK_q, // L
+		XK_w, // R
+		0x00, // L semi-press
+		0x00, // R semi-press
+		XK_Up, // Main stick up
+		XK_Down, // Main stick down
+		XK_Left, // Main stick left
+		XK_Right, // Main stick right
+		XK_Shift_L, // Main stick semi-press
+		XK_i, // C-stick up
+		XK_k, // C-stick down
+		XK_j, // C-stick left
+		XK_l, // C-stick right
+		XK_Control_L, // C-stick semi-press
+		XK_t, // D-pad up
+		XK_g, // D-pad down
+		XK_f, // D-pad left
+		XK_h, // D-pad right
+		XK_m, // Mic
 	};
 #elif defined(HAVE_COCOA) && HAVE_COCOA
-        const int defaultKeyForControl[NUMCONTROLS] =
-        {
-          7, //A
-          6,
-          8,
-		  1,
-          2,
-          36,
-          12,
-          13,
-          126, //mainstick
-          125,
-          123,
-          124,
-          34, //substick
-          40,
-          38,
-          37,
-          17, //dpad
-          5,
-          3,
-          4,
-          56, //halfpress
-          35 //Mic
-        };
+	// Reference for Cocoa key codes:
+	// http://boredzo.org/blog/archives/2007-05-22/virtual-key-codes
+	const int defaultKeyForControl[NUMCONTROLS] =
+	{
+		7, // A (x)
+		6, // B (z)
+		8, // X (c)
+		1, // Y (s)
+		2, // Z (d)
+		36, // Start (return)
+		12, // L (q)
+		13, // R (w)
+		-1, // L semi-press (none)
+		-1, // R semi-press (none)
+		126, // Main stick up (up)
+		125, // Main stick down (down)
+		123, // Main stick left (left)
+		124, // Main stick right (right)
+		56, // Main stick semi-press (left shift)
+		34, // C-stick up (i)
+		40, // C-stick down (k)
+		38, // C-stick left (j)
+		37, // C-stick right (l)
+		59, // C-stick semi-press (left control)
+		17, // D-pad up (t)
+		5, // D-pad down (g)
+		3, // D-pad left (f)
+		4, // D-pad right (h)
+		46, // Mic (m)
+	};
 #endif
+
 	IniFile file;
 	file.Load(FULL_CONFIG_DIR "pad.ini");
 
@@ -924,6 +942,10 @@ void LoadConfig()
 		file.Get(SectionName, "RumbleStrength", &pad[i].RumbleStrength, 8000);
 		file.Get(SectionName, "XPad#", &pad[i].XPadPlayer);
 
+		file.Get(SectionName, "Trigger_semivalue", &pad[i].Trigger_semivalue, TRIGGER_HALF_DEFAULT);
+		file.Get(SectionName, "Main_stick_semivalue", &pad[i].Main_stick_semivalue, STICK_HALF_DEFAULT);
+		file.Get(SectionName, "Sub_stick_semivalue", &pad[i].Sub_stick_semivalue, STICK_HALF_DEFAULT);
+
 		#ifdef RERECORDING
 			file.Get(SectionName, "Recording", &pad[0].bRecording, false);
 			file.Get(SectionName, "Playback", &pad[0].bPlayback, false);
@@ -931,8 +953,9 @@ void LoadConfig()
 
 		for (int x = 0; x < NUMCONTROLS; x++)
 		{
-			file.Get(SectionName, controlNames[x], &pad[i].keyForControl[x],
-                                     (i==0)?defaultKeyForControl[x]:0);
+			file.Get(SectionName, controlNames[x],
+			         &pad[i].keyForControl[x],
+                     (i==0) ? defaultKeyForControl[x] : 0);
 #if defined(HAVE_X11) && HAVE_X11
 			// In linux we have a problem assigning the upper case of the
 			// keys because they're not being recognized
@@ -958,6 +981,10 @@ void SaveConfig()
 		file.Set(SectionName, "Rumble", pad[i].bRumble);
 		file.Set(SectionName, "RumbleStrength", pad[i].RumbleStrength);
 		file.Set(SectionName, "XPad#", pad[i].XPadPlayer);
+
+		file.Set(SectionName, "Trigger_semivalue", pad[i].Trigger_semivalue);
+		file.Set(SectionName, "Main_stick_semivalue", pad[i].Main_stick_semivalue);
+		file.Set(SectionName, "Sub_stick_semivalue", pad[i].Sub_stick_semivalue);
 
 		#ifdef RERECORDING
 			file.Set(SectionName, "Recording", pad[0].bRecording);

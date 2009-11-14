@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <sstream>
+
 #include "Common.h"
 #include "ConfigDlg.h"
 #include "../PadSimple.h"
@@ -38,33 +40,39 @@ BEGIN_EVENT_TABLE(PADConfigDialogSimple,wxDialog)
 	EVT_CHECKBOX(ID_DISABLE,PADConfigDialogSimple::ControllerSettingsChanged)
 
 	// Input recording
-	#ifdef RERECORDING
-		EVT_CHECKBOX(ID_RECORDING,PADConfigDialogSimple::ControllerSettingsChanged)
-		EVT_CHECKBOX(ID_PLAYBACK,PADConfigDialogSimple::ControllerSettingsChanged)
-		EVT_BUTTON(ID_SAVE_RECORDING,PADConfigDialogSimple::ControllerSettingsChanged)	
-	#endif
+#ifdef RERECORDING
+	EVT_CHECKBOX(ID_RECORDING,PADConfigDialogSimple::ControllerSettingsChanged)
+	EVT_CHECKBOX(ID_PLAYBACK,PADConfigDialogSimple::ControllerSettingsChanged)
+	EVT_BUTTON(ID_SAVE_RECORDING,PADConfigDialogSimple::ControllerSettingsChanged)
+#endif
 
-	EVT_BUTTON(CTL_A,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_B,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_X,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_Y,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_Z,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_START,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_L,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_R,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_MAINUP,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_MAINDOWN,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_MAINLEFT,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_MAINRIGHT,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_SUBUP,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_SUBDOWN,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_SUBLEFT,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_SUBRIGHT,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_DPADUP,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_DPADDOWN,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_DPADLEFT,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_DPADRIGHT,PADConfigDialogSimple::OnButtonClick)
-	EVT_BUTTON(CTL_HALFPRESS,PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_A, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_B, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_X, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_Y, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_Z, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_START, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_L, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_R, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_L_SEMI, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_R_SEMI, PADConfigDialogSimple::OnButtonClick)
+	EVT_SLIDER(ID_TRIGGER_SEMIVALUE, PADConfigDialogSimple::ControllerSettingsChanged)
+	EVT_BUTTON(CTL_MAINUP, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_MAINDOWN, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_MAINLEFT, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_MAINRIGHT, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_MAIN_SEMI, PADConfigDialogSimple::OnButtonClick)
+	EVT_SLIDER(ID_MAIN_SEMIVALUE, PADConfigDialogSimple::ControllerSettingsChanged)
+	EVT_BUTTON(CTL_SUBUP, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_SUBDOWN, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_SUBLEFT, PADConfigDialogSimple::OnButtonClick)
+	EVT_SLIDER(ID_SUB_SEMIVALUE, PADConfigDialogSimple::ControllerSettingsChanged)
+	EVT_BUTTON(CTL_SUBRIGHT, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_SUB_SEMI, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_DPADUP, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_DPADDOWN, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_DPADLEFT, PADConfigDialogSimple::OnButtonClick)
+	EVT_BUTTON(CTL_DPADRIGHT, PADConfigDialogSimple::OnButtonClick)
 END_EVENT_TABLE()
 
 PADConfigDialogSimple::PADConfigDialogSimple(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
@@ -86,16 +94,16 @@ PADConfigDialogSimple::~PADConfigDialogSimple()
 
 // Create input button controls
 // -------------------
-inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
-					   const char *name, int ctl, int controller)
+inline void AddControl(wxPanel *pan, wxButton **button,
+		wxStaticBoxSizer *sizer, const char *name, int ctl, int controller)
 {
 	wxBoxSizer *hButton = new wxBoxSizer(wxHORIZONTAL);
 	char keyStr[10] = {0};
 
 	// Add the label
 	hButton->Add(new wxStaticText(pan, 0, wxString::FromAscii(name), 
-				 wxDefaultPosition, wxDefaultSize), 0,
-				 wxALIGN_CENTER_VERTICAL|wxALL);
+	             wxDefaultPosition, wxDefaultSize), 0,
+	             wxALIGN_CENTER_VERTICAL|wxALL);
 
 	// Give it the mapped key name
 #ifdef _WIN32
@@ -106,12 +114,75 @@ inline void AddControl(wxPanel *pan, wxButton **button, wxStaticBoxSizer *sizer,
 
 	// Add the button to its sizer
 	*button = new wxButton(pan, ctl, wxString::FromAscii(keyStr), 
-		                   wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
+	                       wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
 	hButton->Add(*button, 0, wxALIGN_RIGHT|wxALL);
 	sizer->Add(hButton, 0, wxALIGN_RIGHT|wxALL);
 }
 
+// Create input slider controls
+// -------------------
+inline void PADConfigDialogSimple::AddSlider(wxPanel *pan, wxSlider **slider,
+		wxStaticBoxSizer *sizer, const char *name, int ctl, int controller)
+{
+	wxBoxSizer *hSlider = new wxBoxSizer(wxHORIZONTAL);
+	int semivalue, maxvalue;
+	std::stringstream ss;
 
+	// Add the label
+	hSlider->Add(new wxStaticText(pan, 0, wxString::FromAscii(name), 
+	             wxDefaultPosition, wxDefaultSize), 0,
+	             wxALIGN_CENTER_VERTICAL|wxALL);
+
+	// Do everything else
+	switch (ctl)
+	{
+	case ID_TRIGGER_SEMIVALUE:
+		semivalue = pad[controller].Trigger_semivalue;
+		maxvalue = TRIGGER_FULL;
+		// Add the slider to its sizer
+		*slider = new wxSlider(pan, ctl, semivalue, 0, maxvalue, wxDefaultPosition, wxSize(100,-1));
+		(**slider).SetPageSize(32);
+		hSlider->Add(*slider, 0, wxALIGN_RIGHT|wxALL);
+		sizer->Add(hSlider, 0, wxALIGN_RIGHT|wxALL);
+		// Add numeric value label to sizer
+		ss << pad[controller].Trigger_semivalue;
+		m_Trigger_SemiValue_Label[controller] = new wxStaticText(pan, 0,
+			wxString::FromAscii( ss.str().c_str() ), wxDefaultPosition, wxSize(25, -1));
+		hSlider->Add(m_Trigger_SemiValue_Label[controller],
+		             0, wxALIGN_CENTER_VERTICAL|wxALL);
+		break;
+	case ID_MAIN_SEMIVALUE:
+		semivalue = pad[controller].Main_stick_semivalue;
+		maxvalue = STICK_FULL;
+		// Add the slider to its sizer
+		*slider = new wxSlider(pan, ctl, semivalue, 0, maxvalue, wxDefaultPosition, wxSize(100, -1));
+		(**slider).SetPageSize(10);
+		hSlider->Add(*slider, 0, wxALIGN_RIGHT|wxALL);
+		sizer->Add(hSlider, 0, wxALIGN_RIGHT|wxALL);
+		// Add numeric value label to sizer
+		ss << pad[controller].Main_stick_semivalue;
+		m_Stick_SemiValue_Label[controller] = new wxStaticText(pan, 0,
+			wxString::FromAscii( ss.str().c_str() ), wxDefaultPosition, wxSize(25, -1));
+		hSlider->Add(m_Stick_SemiValue_Label[controller],
+		             0, wxALIGN_CENTER_VERTICAL|wxALL);
+		break;
+	case ID_SUB_SEMIVALUE:
+		semivalue = pad[controller].Sub_stick_semivalue;
+		maxvalue = STICK_FULL;
+		// Add the slider to its sizer
+		*slider = new wxSlider(pan, ctl, semivalue, 0, maxvalue, wxDefaultPosition, wxSize(100,-1));
+		(**slider).SetPageSize(10);
+		hSlider->Add(*slider, 0, wxALIGN_RIGHT|wxALL);
+		sizer->Add(hSlider, 0, wxALIGN_RIGHT|wxALL);
+		// Add numeric value label to sizer
+		ss << pad[controller].Sub_stick_semivalue;
+		m_CStick_SemiValue_Label[controller] = new wxStaticText(pan, 0,
+			wxString::FromAscii( ss.str().c_str() ), wxDefaultPosition, wxSize(25, -1));
+		hSlider->Add(m_CStick_SemiValue_Label[controller],
+		             0, wxALIGN_CENTER_VERTICAL|wxALL);
+		break;
+	}
+}
 
 void PADConfigDialogSimple::CreateGUIControls()
 {
@@ -219,7 +290,7 @@ void PADConfigDialogSimple::CreateGUIControls()
 		
 		// Rerecording
 		// ---------
-		#ifdef RERECORDING
+#ifdef RERECORDING
 		// Create controls
 		m_SizeRecording[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Input Recording"));
 		m_CheckRecording[i] = new wxCheckBox(m_Controller[i], ID_RECORDING, wxT("Record input"));
@@ -252,7 +323,7 @@ void PADConfigDialogSimple::CreateGUIControls()
 		m_CheckPlayback[0]->SetValue(pad[0].bPlayback);
 
 		//DEBUG_LOG(CONSOLE, "m_CheckRecording: %i\n", pad[0].bRecording, pad[0].bPlayback);
-		#endif
+#endif
 		
 	
 
@@ -270,12 +341,11 @@ void PADConfigDialogSimple::CreateGUIControls()
 
 		sTriggers[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Triggers"));
 
-		AddControl(m_Controller[i], &(m_ButtonL[i]), sTriggers[i], "        L: ", CTL_L, i);
-		AddControl(m_Controller[i], &(m_ButtonR[i]), sTriggers[i], "        R: ", CTL_R, i);
-
-		sModifiers[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Modifiers"));
-
-		AddControl(m_Controller[i], &(m_HalfPress[i]), sModifiers[i], "1/2 Press: ", CTL_HALFPRESS, i);
+		AddControl(m_Controller[i], &(m_ButtonL[i]), sTriggers[i], "L: ", CTL_L, i);
+		AddControl(m_Controller[i], &(m_ButtonR[i]), sTriggers[i], "R: ", CTL_R, i);
+		AddControl(m_Controller[i], &(m_ButtonL_Semi[i]), sTriggers[i], "Semi-L: ", CTL_L_SEMI, i);
+		AddControl(m_Controller[i], &(m_ButtonR_Semi[i]), sTriggers[i], "Semi-R: ", CTL_R_SEMI, i);
+		AddSlider(m_Controller[i], &(m_Trigger_SemiValue[i]), sTriggers[i], "Semi: ", ID_TRIGGER_SEMIVALUE, i);
 
 		sStick[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Main Stick"));
 
@@ -283,6 +353,8 @@ void PADConfigDialogSimple::CreateGUIControls()
 		AddControl(m_Controller[i], &(m_StickDown[i]), sStick[i], "Down: ", CTL_MAINDOWN, i);
 		AddControl(m_Controller[i], &(m_StickLeft[i]), sStick[i], "Left: ", CTL_MAINLEFT, i);
 		AddControl(m_Controller[i], &(m_StickRight[i]), sStick[i], "Right: ", CTL_MAINRIGHT, i);
+		AddControl(m_Controller[i], &(m_Stick_Semi[i]), sStick[i], "Semi-press: ", CTL_MAIN_SEMI, i);
+		AddSlider(m_Controller[i], &(m_Stick_SemiValue[i]), sStick[i], "Semi: ", ID_MAIN_SEMIVALUE, i);
 
 		sDPad[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("D-Pad"));
 
@@ -297,6 +369,8 @@ void PADConfigDialogSimple::CreateGUIControls()
 		AddControl(m_Controller[i], &(m_CStickDown[i]), sCStick[i], "Down: ", CTL_SUBDOWN, i);
 		AddControl(m_Controller[i], &(m_CStickLeft[i]), sCStick[i], "Left: ", CTL_SUBLEFT, i);
 		AddControl(m_Controller[i], &(m_CStickRight[i]), sCStick[i], "Right: ", CTL_SUBRIGHT, i);
+		AddControl(m_Controller[i], &(m_CStick_Semi[i]), sCStick[i], "Semi-press: ", CTL_SUB_SEMI, i);
+		AddSlider(m_Controller[i], &(m_CStick_SemiValue[i]), sCStick[i], "Semi: ", ID_SUB_SEMIVALUE, i);
 
 		// --------------------------------------------------------------------
 		// Sizers
@@ -307,7 +381,6 @@ void PADConfigDialogSimple::CreateGUIControls()
 		sPage[i]->Add(sDevice[i], wxGBPosition(0, 0), wxGBSpan(1, 5), wxEXPAND|wxALL, 1);
 		sPage[i]->Add(sButtons[i], wxGBPosition(1, 0), wxGBSpan(2, 1), wxALL, 1);
 		sPage[i]->Add(sTriggers[i], wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 1);
-		sPage[i]->Add(sModifiers[i], wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 1);
 		sPage[i]->Add(sStick[i], wxGBPosition(1, 2), wxGBSpan(2, 1), wxALL, 1);
 		sPage[i]->Add(sDPad[i], wxGBPosition(1, 3), wxGBSpan(2, 1), wxALL, 1);
 		sPage[i]->Add(sCStick[i], wxGBPosition(1, 4), wxGBSpan(2, 1), wxALL, 1);
@@ -324,6 +397,11 @@ void PADConfigDialogSimple::OnClose(wxCloseEvent& event)
 	EndModal(0);
 }
 
+void PADConfigDialogSimple::OnCloseClick(wxCommandEvent& event)
+{
+	Close();
+}
+
 void PADConfigDialogSimple::OnShow(wxShowEvent& event)
 {
 #ifdef _WIN32
@@ -334,30 +412,46 @@ void PADConfigDialogSimple::OnShow(wxShowEvent& event)
 void PADConfigDialogSimple::OnKeyDown(wxKeyEvent& event)
 {
 	char keyStr[10] = {0};
-	if(ClickedButton != NULL)
+	if(ClickedButton)
 	{
 		// Get the selected notebook page
 		int page = m_Notebook->GetSelection();
 
 #ifdef _WIN32
 		m_dinput.Read();
-		for(int i = 0; i < 255; i++)
+		if (m_dinput.diks[DIK_ESCAPE])
 		{
-			if(m_dinput.diks[i])
+			pad[page].keyForControl[ClickedButton->GetId()] = 0x00;
+			ClickedButton->SetLabel(wxString::FromAscii(""));
+		}
+		else
+		{
+			for(int i = 0; i < 255; i++)
 			{
-				// Save the mapped key, the wxButtons have the Id 0 to 21
-				pad[page].keyForControl[ClickedButton->GetId()] = i;
-				// Get the key name
-				DInput::DIKToString(i, keyStr);
-				ClickedButton->SetLabel(wxString::FromAscii(keyStr));
-				break;
+				if(m_dinput.diks[i])
+				{
+					// Save the mapped key
+					pad[page].keyForControl[ClickedButton->GetId()] = i;
+					// Get the key name
+					DInput::DIKToString(i, keyStr);
+					ClickedButton->SetLabel(wxString::FromAscii(keyStr));
+					break;
+				}
 			}
 		}
-#elif defined(HAVE_X11) && HAVE_X11
-		pad[page].keyForControl[ClickedButton->GetId()] = InputCommon::wxCharCodeWXToX(event.GetKeyCode());
 
-		InputCommon::XKeyToString(pad[page].keyForControl[ClickedButton->GetId()], keyStr);
-		ClickedButton->SetLabel(wxString::FromAscii(keyStr));
+#elif defined(HAVE_X11) && HAVE_X11
+		if (event.GetKeyCode() == (XK_Escape & 0xFF))
+		{
+			pad[page].keyForControl[ClickedButton->GetId()] = InputCommon::wxCharCodeWXToX(0x00);
+			ClickedButton->SetLabel(wxString::FromAscii(""));
+		}
+		else
+		{
+			pad[page].keyForControl[ClickedButton->GetId()] = InputCommon::wxCharCodeWXToX(event.GetKeyCode());
+			InputCommon::XKeyToString(pad[page].keyForControl[ClickedButton->GetId()], keyStr);
+			ClickedButton->SetLabel(wxString::FromAscii(keyStr));
+		}
 #endif
 		ClickedButton->Disconnect();
 	}
@@ -370,9 +464,9 @@ void PADConfigDialogSimple::OnKeyDown(wxKeyEvent& event)
 void PADConfigDialogSimple::OnButtonClick(wxCommandEvent& event)
 {
 	// Check if the Space key was set, to solve the problem that the Space key calls this function
-	#ifdef _WIN32
-		if (m_dinput.diks[DIK_SPACE]) { m_dinput.diks[DIK_SPACE] = 0; return; }
-	#endif
+#ifdef _WIN32
+	if (m_dinput.diks[DIK_SPACE]) { m_dinput.diks[DIK_SPACE] = 0; return; }
+#endif
 
 	// If we come here again before any key was set
 	if(ClickedButton) ClickedButton->SetLabel(oldLabel);
@@ -380,19 +474,15 @@ void PADConfigDialogSimple::OnButtonClick(wxCommandEvent& event)
 	// Save the old button label so we can reapply it if necessary
 	ClickedButton = (wxButton *)event.GetEventObject();
 	oldLabel = ClickedButton->GetLabel();
-	ClickedButton->SetLabel(_("Press Key"));
+	ClickedButton->SetLabel(_("Press Key/Esc"));
 
 	ClickedButton->SetWindowStyle(wxWANTS_CHARS);
-}
-
-void PADConfigDialogSimple::OnCloseClick(wxCommandEvent& event)
-{
-	Close();
 }
 
 void PADConfigDialogSimple::ControllerSettingsChanged(wxCommandEvent& event)
 {
 	int page = m_Notebook->GetSelection();
+	std::stringstream ss;
 
 	switch (event.GetId())
 	{
@@ -414,8 +504,25 @@ void PADConfigDialogSimple::ControllerSettingsChanged(wxCommandEvent& event)
 		pad[page].bRumble = m_Rumble[page]->GetValue();
 		break;
 
+	// Semi-press adjustment
+	case ID_TRIGGER_SEMIVALUE:
+		pad[page].Trigger_semivalue = m_Trigger_SemiValue[page]->GetValue();
+		ss << pad[page].Trigger_semivalue;
+		(*m_Trigger_SemiValue_Label[page]).SetLabel(wxString::FromAscii( ss.str().c_str() ));
+		break;
+	case ID_MAIN_SEMIVALUE:
+		pad[page].Main_stick_semivalue = m_Stick_SemiValue[page]->GetValue();
+		ss << pad[page].Main_stick_semivalue;
+		(*m_Stick_SemiValue_Label[page]).SetLabel(wxString::FromAscii( ss.str().c_str() ));
+		break;
+	case ID_SUB_SEMIVALUE:
+		pad[page].Sub_stick_semivalue = m_CStick_SemiValue[page]->GetValue();
+		ss << pad[page].Sub_stick_semivalue;
+		(*m_CStick_SemiValue_Label[page]).SetLabel(wxString::FromAscii( ss.str().c_str() ));
+		break;
+
 	// Input recording
-	#ifdef RERECORDING
+#ifdef RERECORDING
 		case ID_RECORDING:
 			pad[page].bRecording = m_CheckRecording[page]->GetValue();
 			// Turn off the other option
@@ -430,7 +537,7 @@ void PADConfigDialogSimple::ControllerSettingsChanged(wxCommandEvent& event)
 			// Double check again that we are still running a game
 			if (g_EmulatorRunning) SaveRecord();
 			break;
-	#endif		
+#endif		
 	}
 }
 

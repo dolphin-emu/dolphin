@@ -55,7 +55,6 @@ class PADConfigDialogSimple : public wxDialog
 		wxGridBagSizer *sPage[4];
 		wxStaticBoxSizer *sButtons[4];
 		wxStaticBoxSizer *sTriggers[4];
-		wxStaticBoxSizer *sModifiers[4];
 		wxStaticBoxSizer *sStick[4];
 		wxStaticBoxSizer *sCStick[4];
 		wxStaticBoxSizer *sDPad[4];
@@ -79,15 +78,24 @@ class PADConfigDialogSimple : public wxDialog
 		wxButton *m_ButtonStart[4];
 		wxButton *m_ButtonL[4];
 		wxButton *m_ButtonR[4];
-		wxButton *m_HalfPress[4];
+		wxButton *m_ButtonL_Semi[4];
+		wxButton *m_ButtonR_Semi[4];
+		wxSlider *m_Trigger_SemiValue[4];
+		wxStaticText *m_Trigger_SemiValue_Label[4];
 		wxButton *m_StickUp[4];
 		wxButton *m_StickDown[4];
 		wxButton *m_StickLeft[4];
 		wxButton *m_StickRight[4];
+		wxButton *m_Stick_Semi[4];
+		wxSlider *m_Stick_SemiValue[4];
+		wxStaticText *m_Stick_SemiValue_Label[4];
 		wxButton *m_CStickUp[4];
 		wxButton *m_CStickDown[4];
 		wxButton *m_CStickLeft[4];
 		wxButton *m_CStickRight[4];
+		wxButton *m_CStick_Semi[4];
+		wxSlider *m_CStick_SemiValue[4];
+		wxStaticText *m_CStick_SemiValue_Label[4];
 		wxButton *m_DPadUp[4];
 		wxButton *m_DPadDown[4];
 		wxButton *m_DPadLeft[4];
@@ -108,6 +116,11 @@ class PADConfigDialogSimple : public wxDialog
 			ID_X360PAD,
 			ID_RUMBLE,
 
+			// Semi-press values
+			ID_TRIGGER_SEMIVALUE,
+			ID_MAIN_SEMIVALUE,
+			ID_SUB_SEMIVALUE,
+
 			// Input recording
 			ID_RECORDING,
 			ID_PLAYBACK,
@@ -115,7 +128,7 @@ class PADConfigDialogSimple : public wxDialog
 
 			// General settings
 			ID_DISABLE,
-			ID_PAD_ABOUT
+			ID_PAD_ABOUT,
 		};
 	
 		void OnClose(wxCloseEvent& event);
@@ -126,8 +139,9 @@ class PADConfigDialogSimple : public wxDialog
 		void OnButtonClick(wxCommandEvent& event);
 		void DllAbout(wxCommandEvent& event);
 		void OnShow(wxShowEvent& event);
+		void AddSlider(wxPanel *pan, wxSlider **slider,
+			wxStaticBoxSizer *sizer, const char *name, int ctl, int controller);
 
-		int keyPress;
 		wxButton *ClickedButton;
 		wxString oldLabel;
 };
