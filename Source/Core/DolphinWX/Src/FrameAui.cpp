@@ -38,7 +38,6 @@
 #include "PluginManager.h"
 #include "MemcardManager.h"
 #include "CheatsWindow.h"
-#include "InfoWindow.h"
 #include "AboutDolphin.h"
 #include "GameListCtrl.h"
 #include "BootManager.h"

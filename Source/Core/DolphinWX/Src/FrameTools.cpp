@@ -50,7 +50,6 @@ Core::GetWindowHandle().
 #include "PluginManager.h"
 #include "MemcardManager.h"
 #include "CheatsWindow.h"
-#include "InfoWindow.h"
 #include "LuaWindow.h"
 #include "AboutDolphin.h"
 #include "GameListCtrl.h"
@@ -93,7 +92,6 @@ extern "C" {
 
 // Other Windows
 wxCheatsWindow* CheatsWindow;
-wxInfoWindow* InfoWindow;
 
 
 // Create menu items
@@ -187,7 +185,6 @@ void CFrame::CreateMenu()
 	toolsMenu->Append(IDM_LUA, _T("New &Lua Console"));
 	toolsMenu->Append(IDM_MEMCARD, _T("&Memcard Manager"));
 	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
-	toolsMenu->Append(IDM_INFO, _T("System Information"));
 
 #if defined(HAVE_SFML) && HAVE_SFML
 	toolsMenu->Append(IDM_NETPLAY, _T("Start &NetPlay"));
@@ -777,12 +774,6 @@ void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
 {
 	CheatsWindow = new wxCheatsWindow(this, wxDefaultPosition, wxSize(600, 390));
 }
-
-void CFrame::OnShow_InfoWindow(wxCommandEvent& WXUNUSED (event))
-{
-	InfoWindow = new wxInfoWindow(this, wxDefaultPosition, wxSize(600, 390));
-}
-
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
 {
