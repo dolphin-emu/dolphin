@@ -171,20 +171,20 @@ int TexDecoder_GetBlockHeightInTexels(u32 format)
     case GX_TF_CMPR: return 4;
 	case GX_CTF_R4: return 8;
     case GX_CTF_RA4: return 4;
-    case GX_CTF_RA8: return 2;
+    case GX_CTF_RA8: return 4;
     case GX_CTF_A8: return 4;
     case GX_CTF_R8: return 4;
     case GX_CTF_G8: return 4;
     case GX_CTF_B8: return 4;
-    case GX_CTF_RG8: return 2;
-    case GX_CTF_GB8: return 2;
+    case GX_CTF_RG8: return 4;
+    case GX_CTF_GB8: return 4;
 	case GX_TF_Z8: return 4;
-	case GX_TF_Z16: return 2;
+	case GX_TF_Z16: return 4;
 	case GX_TF_Z24X8: return 1;
 	case GX_CTF_Z4: return 8;
 	case GX_CTF_Z8M: return 4;
 	case GX_CTF_Z8L: return 4;
-	case GX_CTF_Z16L: return 2;
+	case GX_CTF_Z16L: return 4;
     default:
 		ERROR_LOG(VIDEO, "Unsupported Texture Format (%08x)! (GetBlockHeightInTexels)", format);
 		return 4;

@@ -216,7 +216,7 @@ void SetBlockDimensions(int blkWidthLog2, int blkHeightLog2, u16 &sBlkCount, u16
     tBlkSize = 1 << blkHeightLog2;
 }
 
-void SetSpans(int sBlkSize, int tBlkSize, s32 &tSpan, s32 &sBlkSpan, s32 &tBlkSpan)
+void SetSpans(int sBlkSize, int tBlkSize, s32 &tSpan, s32 &sBlkSpan, s32 &tBlkSpan, s32 &writeStride)
 {
     // width is 1 less than the number of pixels of width
     u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
@@ -227,10 +227,13 @@ void SetSpans(int sBlkSize, int tBlkSize, s32 &tSpan, s32 &sBlkSpan, s32 &tBlkSp
     tSpan = (640 - sBlkSize) * readStride; // bytes to advance src pointer after each row of texels in a block
     sBlkSpan = ((-640 * tBlkSize) + sBlkSize) * readStride; // bytes to advance src pointer after each block
     tBlkSpan = ((640 * tBlkSize) - alignedWidth) * readStride; // bytes to advance src pointer after each row of blocks
+
+    writeStride = bpmem.copyMipMapStrideChannels * 32;
 }
 
 #define ENCODE_LOOP_BLOCKS                                  \
         for (int tBlk = 0; tBlk < tBlkCount; tBlk++) {      \
+            dst = dstBlockStart;                            \
             for (int sBlk = 0; sBlk < sBlkCount; sBlk++) {  \
                 for (int t = 0; t < tBlkSize; t++) {        \
                     for (int s = 0; s < sBlkSize; s++) {    \
@@ -243,6 +246,7 @@ void SetSpans(int sBlkSize, int tBlkSize, s32 &tSpan, s32 &sBlkSpan, s32 &tBlkSp
                 src += sBlkSpan;                            \
             }                                               \
             src += tBlkSpan;                                \
+            dstBlockStart += writeStride;                   \
         }                                                   \
 
 #define ENCODE_LOOP_SPANS2                                  \
@@ -253,20 +257,22 @@ void SetSpans(int sBlkSize, int tBlkSize, s32 &tSpan, s32 &sBlkSpan, s32 &tBlkSp
                 dst += 32;                                  \
             }                                               \
             src += tBlkSpan;                                \
+            dstBlockStart += writeStride;                   \
         }                                                   \
 
 void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 {
     u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
-    s32 tSpan, sBlkSpan, tBlkSpan;
+    s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
     u8 r, g, b, a;
     u32 readStride = 3;
+    u8 *dstBlockStart = dst;
 
     switch(format)
     {
     case GX_TF_I4:
         SetBlockDimensions(3, 3, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         sBlkSize /= 2;
         ENCODE_LOOP_BLOCKS
         {
@@ -284,7 +290,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_I8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             RGBA_to_RGB8(src, r, g, b);
@@ -296,7 +302,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_IA4:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             RGBA_to_RGBA8(src, r, g, b, a);
@@ -308,7 +314,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_IA8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             RGBA_to_RGBA8(src, r, g, b, a);
@@ -321,7 +327,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_RGB565:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             u32 srcColor = *(u32*)src;
@@ -336,7 +342,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_RGB5A3:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             u32 srcColor = *(u32*)src;
@@ -357,7 +363,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_RGBA8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             RGBA_to_RGBA8(src, dst[1], dst[32], dst[33], dst[0]); 
@@ -369,7 +375,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_R4:
         SetBlockDimensions(3, 3, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         sBlkSize /= 2;
         ENCODE_LOOP_BLOCKS
         {
@@ -387,7 +393,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_RA4:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             u32 srcColor = *(u32*)src;
@@ -399,7 +405,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_RA8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             u32 srcColor = *(u32*)src;
@@ -412,7 +418,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_A8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             u32 srcColor = *(u32*)src;
@@ -424,7 +430,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_R8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             u32 srcColor = *(u32*)src;
@@ -436,7 +442,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_G8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             u32 srcColor = *(u32*)src;
@@ -448,7 +454,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_B8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             u32 srcColor = *(u32*)src;
@@ -460,7 +466,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_RG8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             u32 srcColor = *(u32*)src;
@@ -473,7 +479,7 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_GB8:
 	    SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             u32 srcColor = *(u32*)src;
@@ -494,15 +500,16 @@ void EncodeRGBA6(u8 *dst, u8 *src, u32 format)
 void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 {
     u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
-    s32 tSpan, sBlkSpan, tBlkSpan;
+    s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
     u8 r, g, b, a;
     u32 readStride = 6;
+    u8 *dstBlockStart = dst;
 
     switch(format)
     {
     case GX_TF_I4:
         SetBlockDimensions(3, 3, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         sBlkSize /= 2;
         ENCODE_LOOP_BLOCKS
         {
@@ -520,7 +527,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_I8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_RGB8(src, r, g, b);
@@ -532,7 +539,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_IA4:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_RGBA8(src, r, g, b, a);
@@ -544,7 +551,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_IA8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_RGBA8(src, r, g, b, a);
@@ -557,7 +564,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_RGB565:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_RGB8(src, r, g, b);
@@ -572,7 +579,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_RGB5A3:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_RGBA8(src, r, g, b, a);
@@ -592,7 +599,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_RGBA8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_RGBA8(src, dst[1], dst[32], dst[33], dst[0]); 
@@ -604,7 +611,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_R4:
         SetBlockDimensions(3, 3, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         sBlkSize /= 2;
         ENCODE_LOOP_BLOCKS
         {
@@ -622,7 +629,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_RA4:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_xx8(src, r, a, 0, 18);
@@ -634,7 +641,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_RA8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_xx8(src, r, a, 0, 18);
@@ -647,7 +654,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_A8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_x8(src, a, 18);
@@ -659,7 +666,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_R8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_x8(src, r, 0);
@@ -671,7 +678,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_G8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_x8(src, g, 6);
@@ -683,7 +690,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_B8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_x8(src, b, 12);
@@ -695,7 +702,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_RG8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_xx8(src, r, g, 0, 6);
@@ -708,7 +715,7 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_GB8:
 	    SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGBA_to_xx8(src, g, b, 6, 12);
@@ -728,14 +735,15 @@ void EncodeRGBA6halfscale(u8 *dst, u8 *src, u32 format)
 void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 {
     u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
-    s32 tSpan, sBlkSpan, tBlkSpan;
+    s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
     u32 readStride = 3;
+    u8 *dstBlockStart = dst;
 
     switch(format)
     {
     case GX_TF_I4:
         SetBlockDimensions(3, 3, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         sBlkSize /= 2;
         ENCODE_LOOP_BLOCKS
         {
@@ -751,7 +759,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_I8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = RGB8_to_I(src[0], src[1], src[2]);
@@ -762,7 +770,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_IA4:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = 0xf0 | (RGB8_to_I(src[0], src[1], src[2]) >> 4);
@@ -773,7 +781,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_IA8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = 0xff;
@@ -786,7 +794,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_RGB565:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             u16 val = ((src[0] << 8) & 0xf800) | ((src[1] << 3) & 0x07e0) | ((src[2] >> 3) & 0x001e); 
@@ -799,7 +807,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_RGB5A3:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             u16 val = 0x8000 | ((src[0] << 7) & 0x7c00) | ((src[1] << 2) & 0x03e0) | ((src[2] >> 3) & 0x001e);
@@ -812,7 +820,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_RGBA8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             dst[0] = 0xff;
@@ -827,7 +835,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_R4:
         SetBlockDimensions(3, 3, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         sBlkSize /= 2;
         ENCODE_LOOP_BLOCKS
         {
@@ -844,7 +852,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_RA4:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = 0xf0 | (src[0] >> 4);
@@ -855,7 +863,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_RA8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = 0xff;
@@ -867,7 +875,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_A8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = 0xff;
@@ -877,7 +885,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_R8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = src[0];
@@ -888,7 +896,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_G8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = src[1];
@@ -899,7 +907,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_B8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = src[2];
@@ -910,7 +918,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_RG8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = src[1];
@@ -922,7 +930,7 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_GB8:
 	    SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = src[2];
@@ -941,15 +949,16 @@ void EncodeRGB8(u8 *dst, u8 *src, u32 format)
 void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 {
     u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
-    s32 tSpan, sBlkSpan, tBlkSpan;
+    s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
     u8 r, g, b;
     u32 readStride = 6;
+    u8 *dstBlockStart = dst;
 
     switch(format)
     {
     case GX_TF_I4:
         SetBlockDimensions(3, 3, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         sBlkSize /= 2;
         ENCODE_LOOP_BLOCKS
         {
@@ -967,7 +976,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_I8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_RGB8(src, r, g, b);
@@ -979,7 +988,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_IA4:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_RGB8(src, r, g, b);
@@ -991,7 +1000,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_IA8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_RGB8(src, r, g, b);
@@ -1004,7 +1013,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_RGB565:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_RGB8(src, r, g, b);
@@ -1018,7 +1027,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_RGB5A3:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_RGB8(src, r, g, b);
@@ -1032,7 +1041,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_RGBA8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_RGB8(src, r, g, b);
@@ -1048,7 +1057,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_R4:
         SetBlockDimensions(3, 3, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         sBlkSize /= 2;
         ENCODE_LOOP_BLOCKS
         {
@@ -1067,7 +1076,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_RA4:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_x8(src, r, 0);
@@ -1079,7 +1088,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_RA8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_x8(src, r, 0);
@@ -1092,7 +1101,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_A8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = 0xff;
@@ -1102,7 +1111,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_R8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_x8(src, r, 0);
@@ -1114,7 +1123,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_G8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_x8(src, g, 1);
@@ -1126,7 +1135,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_B8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_x8(src, b, 2);
@@ -1138,7 +1147,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_RG8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_xx8(src, r, g, 0, 1);
@@ -1151,7 +1160,7 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_GB8:
 	    SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_xx8(src, g, b, 1, 2);
@@ -1171,14 +1180,15 @@ void EncodeRGB8halfscale(u8 *dst, u8 *src, u32 format)
 void EncodeZ24(u8 *dst, u8 *src, u32 format)
 {
     u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
-    s32 tSpan, sBlkSpan, tBlkSpan;
+    s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
     u32 readStride = 3;
+    u8 *dstBlockStart = dst;
 
     switch(format)
     {    
     case GX_TF_Z8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = src[2];
@@ -1189,7 +1199,7 @@ void EncodeZ24(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_Z16:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = src[1];
@@ -1201,7 +1211,7 @@ void EncodeZ24(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_Z24X8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             dst[0] = 0xff;
@@ -1216,7 +1226,7 @@ void EncodeZ24(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_Z4:
         SetBlockDimensions(3, 3, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         sBlkSize /= 2;
         ENCODE_LOOP_BLOCKS
         {
@@ -1233,7 +1243,7 @@ void EncodeZ24(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_Z8M:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = src[1];
@@ -1244,7 +1254,7 @@ void EncodeZ24(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_Z8L:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = src[0];
@@ -1255,7 +1265,7 @@ void EncodeZ24(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_Z16L:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             *dst++ = src[0];
@@ -1274,15 +1284,16 @@ void EncodeZ24(u8 *dst, u8 *src, u32 format)
 void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 {
     u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
-    s32 tSpan, sBlkSpan, tBlkSpan;
+    s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
     u32 readStride = 6;
     u8 r, g, b;
+    u8 *dstBlockStart = dst;
 
     switch(format)
     {    
     case GX_TF_Z8:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_x8(src, b, 2);
@@ -1294,7 +1305,7 @@ void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_Z16:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_xx8(src, g, b, 1, 2);
@@ -1307,7 +1318,7 @@ void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_TF_Z24X8:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_RGB8(src, dst[33], dst[32], dst[1]); 
@@ -1320,7 +1331,7 @@ void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_Z4:
         SetBlockDimensions(3, 3, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         sBlkSize /= 2;
         ENCODE_LOOP_BLOCKS
         {
@@ -1339,7 +1350,7 @@ void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_Z8M:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_x8(src, g, 1);
@@ -1351,7 +1362,7 @@ void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_Z8L:
         SetBlockDimensions(3, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_x8(src, r, 0);
@@ -1363,7 +1374,7 @@ void EncodeZ24halfscale(u8 *dst, u8 *src, u32 format)
 
     case GX_CTF_Z16L:
         SetBlockDimensions(2, 2, sBlkCount, tBlkCount, sBlkSize, tBlkSize);
-        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan);
+        SetSpans(sBlkSize, tBlkSize, tSpan, sBlkSpan, tBlkSpan, writeStride);
         ENCODE_LOOP_BLOCKS
         {
             boxfilterRGB_to_xx8(src, r, g, 0, 1);

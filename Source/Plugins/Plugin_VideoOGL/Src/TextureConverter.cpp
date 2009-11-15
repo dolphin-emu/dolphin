@@ -166,7 +166,7 @@ void Shutdown()
 }
 
 void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const TargetRectangle& sourceRc,
-				            u8* destAddr, int dstWidth, int dstHeight, bool linearFilter)
+				            u8* destAddr, int dstWidth, int dstHeight, int readStride, bool toTexture, bool linearFilter)
 {
 	Renderer::ResetAPIState();
 	
@@ -214,7 +214,29 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 
 	// .. and then readback the results.
 	// TODO: make this less slow.
-	glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
+
+    int writeStride = bpmem.copyMipMapStrideChannels * 32;
+
+    if (writeStride != readStride && toTexture)
+    {
+        // writing to a texture of a different size
+
+        int readHeight = readStride / dstWidth;
+        readHeight /= 4; // 4 bytes per pixel
+
+        int readStart = 0;
+        int readLoops = dstHeight / readHeight;
+        for (int i = 0; i < readLoops; i++)
+        {
+            glReadPixels(0, readStart, (GLsizei)dstWidth, (GLsizei)readHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
+
+            readStart += readHeight;
+            destAddr += writeStride;
+        }
+    }
+    else
+        glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
+
 	GL_REPORT_ERRORD();
 
 	g_framebufferManager.SetFramebuffer(0);
@@ -282,13 +304,20 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	scaledSource.left = 0;
 	scaledSource.right = expandedWidth / samples;
 
-	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, bScaleByHalf > 0);
+
+    int cacheBytes = 32;
+    if ((format & 0x0f) == 6)
+        cacheBytes = 64;
+
+    int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
+
+	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
 }
 
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc,
 				     u8* destAddr, int dstWidth, int dstHeight)
 {
-	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, false);
+	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
 }
 
 
