@@ -249,189 +249,145 @@ void CUCode_AXWii::SaveLog(const char* _fmt, ...)
 bool CUCode_AXWii::AXTask(u32& _uMail)
 {
 	u32 uAddress = _uMail;
-	SaveLog("Begin");
-	SaveLog("=====================================================================");
-	SaveLog("%08x: AXTask - AXCommandList-Addr", uAddress);
-
 	u32 Addr__AXStudio;
 	u32 Addr__AXOutSBuffer;
-        //	u32 Addr__AXOutSBuffer_1;
-        //	u32 Addr__AXOutSBuffer_2;
-	u32 Addr__A;
-        //	u32 Addr__12;
-	u32 Addr__5_1;
-	u32 Addr__5_2;
-	u32 Addr__6;
-        //	u32 Addr__9;
-
 	bool bExecuteList = true;
+
 #if defined(HAVE_WX) && HAVE_WX
 	if(m_DebuggerFrame) lCUCode_AX->SaveMail(true, uAddress); // Save mail for debugging
 #endif
-	if (false) 
-	{
-		// PanicAlert("%i", sizeof(AXParamBlockWii));  // 252 ??
-		FILE *f = fopen("D:\\axdump.txt", "a");
-		if (!f)
-			f = fopen("D:\\axdump.txt", "w");
 
-		u32 addr = uAddress;
-		for (int i = 0; i < 100; i++) {
-			fprintf(f, "%02x\n", Memory_Read_U16(addr + i * 2));
-		}
-		fprintf(f, "===========------------------------------------------------=\n");
-		fclose(f);
+/*
+	for (int i=0;i<64;i++) {
+		NOTICE_LOG(DSPHLE,"%x - %08x",uAddress+(i*4),Memory_Read_U32(uAddress+(i*4)));
 	}
-	else
-	{
-		// PanicAlert("%i", sizeof(AXParamBlock));  // 192
-	}
+*/
 
 	while (bExecuteList)
 	{
-		static int last_valid_command = 0;
 		u16 iCommand = Memory_Read_U16(uAddress);
 		uAddress += 2;
+		//NOTICE_LOG(DSPHLE,"AXWII - AXLIST CMD %X",iCommand);
+
 		switch (iCommand)
 		{
-	    case 0x0000: //00
+	    case 0x0000: 
 		    Addr__AXStudio = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    SaveLog("%08x : AXLIST studio address: %08x", uAddress, Addr__AXStudio);
 		    break;
 
 	    case 0x0001:
-		    {
-		    u32 address = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    SaveLog("%08x : AXLIST 1: %08x", uAddress, address);
-		    }
 		    break;
 
 		case 0x0003:
-		    {
-		    u32 address = Memory_Read_U32(uAddress);
 		    uAddress += 4;
-		    SaveLog("%08x : AXLIST 3: %08x", uAddress, address);
-		    }
 		    break;
 
-	    case 0x0004:  // PBs are here now
-		    m_addressPBs = Memory_Read_U32(uAddress);
+	    case 0x0004: 
+			// PBs are here now
+			m_addressPBs = Memory_Read_U32(uAddress);
 			lCUCode_AX->m_addressPBs = m_addressPBs; // for the sake of logging
-		    soundStream->GetMixer()->SetHLEReady(true);
-		    SaveLog("%08x : AXLIST PB address: %08x", uAddress, m_addressPBs);
-            soundStream->Update();
-		    uAddress += 4;
+			soundStream->GetMixer()->SetHLEReady(true);
+			soundStream->Update();
+			uAddress += 4;
 		    break;
 
 	    case 0x0005:
-			if(Memory_Read_U16(uAddress) > 25) // this occured in Wii Sports
+			if (_CRC != 0xfa450138) 
 			{
-				Addr__5_1 = Memory_Read_U32(uAddress);
-				uAddress += 4;
-				Addr__5_2 = Memory_Read_U32(uAddress);
-				uAddress += 4;
-				
-				uAddress += 2;
-				SaveLog("%08x : AXLIST 5_1 5_2 addresses: %08x %08x", uAddress, Addr__5_1, Addr__5_2);
+				uAddress += 10;
 			}
-			else
+			else // Wii Sports uCode
 			{
-				uAddress += 2;
-				SaveLog("%08x : AXLIST Empty 0x0005", uAddress);
 			}
 		    break;
 
 	    case 0x0006:
-		    Addr__6   = Memory_Read_U32(uAddress);
 		    uAddress += 10;
-		    SaveLog("%08x : AXLIST 6 address: %08x", uAddress, Addr__6);
 		    break; 
 
-/**/	    case 0x0007:   // AXLIST_SBUFFER
+		case 0x0007:   // AXLIST_SBUFFER
 		    Addr__AXOutSBuffer = Memory_Read_U32(uAddress);
 		    uAddress += 10;
-			// uAddress += 12;
-		    SaveLog("%08x : AXLIST OutSBuffer (0x0007) address: %08x", uAddress, Addr__AXOutSBuffer);			
 		    break;
 
-/*	    case 0x0009:
-		    Addr__9   = Memory_Read_U32(uAddress);
-		    uAddress += 4;
-		    DEBUG_LOG(DSPHLE, "AXLIST 6 address: %08x", Addr__9);
-		    break;*/
-
-		case 0x000a:  // AXLIST_COMPRESSORTABLE
-		    Addr__A   = Memory_Read_U32(uAddress);
-		    uAddress += 4;
-		    //Addr__A   = Memory_Read_U32(uAddress);
-		    uAddress += 4;
-		    SaveLog("%08x : AXLIST CompressorTable address: %08x", uAddress, Addr__A);
+		case 0x000a:
+			if (_CRC != 0xfa450138) // AXLIST_COMPRESSORTABLE
+			{
+			    uAddress += 8;
+			}
+			else  // Wii Sports uCode
+			{
+				uAddress += 4;
+			}
 		    break;
 
 		case 0x000b:
-			uAddress += 2;  // one 0x8000 in rabbids
-			uAddress += 4 * 2; // then two RAM addressses
-			m_rMailHandler.PushMail(0xDCD10004);
+			if (_CRC != 0xfa450138) 
+			{
+				uAddress += 10;
+				m_rMailHandler.PushMail(0xDCD10004);
+			}
+			else // Wii Sports uCode
+			{
+				uAddress += 2;
+			}
 			break;
 
 		case 0x000c:
-			uAddress += 2;  // one 0x8000 in rabbids
-			uAddress += 4 * 2; // then two RAM addressses
-			m_rMailHandler.PushMail(0xDCD10004);
+			if (_CRC != 0xfa450138) 
+			{
+				uAddress += 10;
+				m_rMailHandler.PushMail(0xDCD10004);
+			}
+			else  // Wii Sports uCode
+			{
+				uAddress += 8;
+				m_rMailHandler.PushMail(0xDCD10004);
+			}
 			break;
 
 		case 0x000d:
-			uAddress += 4 * 4;
+			if (_CRC != 0xfa450138) 
+			{
+				uAddress += 16;
+			}
+			else  // Wii Sports uCode 
+			{
+				uAddress += 16; //??
+				m_rMailHandler.PushMail(0xDCD10004);
+			}
 			break;
 
 	    case 0x000e:
+			if (_CRC != 0xfa450138) 
+			{
+				// This is the end.
+				bExecuteList = false;
+				//m_rMailHandler.PushMail(0xDCD10002);
+			}
+			else  // Wii Sports uCode
+			{
+				uAddress += 16;
+			}
+			break;
+
+	    case 0x000f: // only for Wii Sports uCode
 			// This is the end.
 			bExecuteList = false;
-			m_rMailHandler.PushMail(0xDCD10002);
+			//m_rMailHandler.PushMail(0xDCD10002);
 			break;
 
 	    default:
-			{
-		    static bool bFirst = true;
-		    if (bFirst == true)
-		    {
-				// A little more descreet way to say that there is a problem, that also let you
-				// take a look at the mail (and possible previous mails) in the debugger
-				SaveLog("%08x : Unknown AX-Command 0x%04x", uAddress, iCommand);
-				bExecuteList = false;
-				break;
-
-			    char szTemp[2048];
-				sprintf(szTemp, "Unknown AX-Command 0x%04x (address: 0x%08x). Last valid: %02x\n",
-					    iCommand, uAddress - 2, last_valid_command);
-			    int num = -32;
-			    while (num < 64+32)
-			    {
-				    char szTemp2[128] = "";
-					sprintf(szTemp2, "%s0x%04x\n", num == 0 ? ">>" : "  ", Memory_Read_U16(uAddress + num));
-				    strcat(szTemp, szTemp2);
-				    num += 2;
-			    }
-
-				// Wii AX will always show this
-			    PanicAlert(szTemp);
-			   // bFirst = false;
-		    }
-
+			ERROR_LOG(DSPHLE,"DSPHLE - AXwii - AXLIST - Unknown CMD: %x",iCommand);
 		    // unknown command so stop the execution of this TaskList
 		    bExecuteList = false;
-			}
 			break;
 		}
-		if (bExecuteList)
-			last_valid_command = iCommand;
 	}
-	SaveLog("AXTask - done, send resume");
-	SaveLog("=====================================================================");
-	SaveLog("End");
 
+	m_rMailHandler.PushMail(0xDCD10002); //its here in case there is a CMD fuckup
 	return true;
 }
 
