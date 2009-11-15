@@ -10,7 +10,7 @@
 
 #include <limits.h>
 #include <stddef.h>
-
+#include "../../Source/Core/Common/Src/Config.h"
 
 /*
 ** ==================================================================

@@ -335,6 +335,18 @@ conf.Define('HAVE_COCOA', env['HAVE_COCOA'])
 conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
 conf.Define('HAVE_SFML', env['HAVE_SFML'])
 
+# lua
+env['LUA_USE_MACOSX'] = 0
+env['LUA_USE_LINUX'] = 0
+env['LUA_USE_POSIX'] = 0
+if sys.platform == 'darwin':
+	env['LUA_USE_MACOSX'] = 1
+elif sys.platform == 'linux2':
+	env['LUA_USE_LINUX'] = 1
+
+conf.Define('LUA_USE_MACOSX', env['LUA_USE_MACOSX'])
+conf.Define('LUA_USE_LINUX', env['LUA_USE_LINUX'])
+
 # profile
 env['USE_OPROFILE'] = 0
 if (flavour == 'prof'): 
