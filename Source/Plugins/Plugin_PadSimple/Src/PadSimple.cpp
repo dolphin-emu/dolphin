@@ -347,20 +347,20 @@ void DInput_Read(int _numPAD, SPADStatus* _pPADStatus)
 	EmulateAnalogStick(
 		&_pPADStatus->stickX,
 		&_pPADStatus->stickY,
-		(dinput.diks[pad[_numPAD].keyForControl[CTL_MAINUP]] & 0xFF),
-		(dinput.diks[pad[_numPAD].keyForControl[CTL_MAINDOWN]] & 0xFF),
-		(dinput.diks[pad[_numPAD].keyForControl[CTL_MAINLEFT]] & 0xFF),
-		(dinput.diks[pad[_numPAD].keyForControl[CTL_MAINRIGHT]] & 0xFF),
+		!!dinput.diks[pad[_numPAD].keyForControl[CTL_MAINUP]],
+		!!dinput.diks[pad[_numPAD].keyForControl[CTL_MAINDOWN]],
+		!!dinput.diks[pad[_numPAD].keyForControl[CTL_MAINLEFT]],
+		!!dinput.diks[pad[_numPAD].keyForControl[CTL_MAINRIGHT]],
 		mainstickvalue );
 		
 	// Sub-stick (C-stick)
 	EmulateAnalogStick(
 		&_pPADStatus->substickX,
 		&_pPADStatus->substickY,
-		(dinput.diks[pad[_numPAD].keyForControl[CTL_SUBUP]] & 0xFF),
-		(dinput.diks[pad[_numPAD].keyForControl[CTL_SUBDOWN]] & 0xFF),
-		(dinput.diks[pad[_numPAD].keyForControl[CTL_SUBLEFT]] & 0xFF),
-		(dinput.diks[pad[_numPAD].keyForControl[CTL_SUBRIGHT]] & 0xFF),
+		!!dinput.diks[pad[_numPAD].keyForControl[CTL_SUBUP]],
+		!!dinput.diks[pad[_numPAD].keyForControl[CTL_SUBDOWN]],
+		!!dinput.diks[pad[_numPAD].keyForControl[CTL_SUBLEFT]],
+		!!dinput.diks[pad[_numPAD].keyForControl[CTL_SUBRIGHT]],
 		substickvalue );
 	// D-pad
 	if (dinput.diks[pad[_numPAD].keyForControl[CTL_DPADUP]]    & 0xFF){_pPADStatus->button |= PAD_BUTTON_UP;}
