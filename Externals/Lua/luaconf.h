@@ -10,7 +10,11 @@
 
 #include <limits.h>
 #include <stddef.h>
+// can't include Common.h because it's C++
+// the following is OK because on Windows, Lua needs nothing special
+#ifndef _WIN32
 #include "../../Source/Core/Common/Src/Config.h"
+#endif
 
 /*
 ** ==================================================================
