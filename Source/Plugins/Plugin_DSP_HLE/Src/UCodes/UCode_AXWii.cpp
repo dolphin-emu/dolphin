@@ -327,7 +327,8 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 			if (_CRC != 0xfa450138) 
 			{
 				uAddress += 10;
-				m_rMailHandler.PushMail(0xDCD10004);
+				//0xDCD10004 <-- causing problems for some games under HLE (TOS2/NTSC,...)
+				//m_rMailHandler.PushMail(0xDCD10004); 
 			}
 			else // Wii Sports uCode
 			{
@@ -339,12 +340,12 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 			if (_CRC != 0xfa450138) 
 			{
 				uAddress += 10;
-				m_rMailHandler.PushMail(0xDCD10004);
+				//m_rMailHandler.PushMail(0xDCD10004);
 			}
 			else  // Wii Sports uCode
 			{
 				uAddress += 8;
-				m_rMailHandler.PushMail(0xDCD10004);
+				//m_rMailHandler.PushMail(0xDCD10004);
 			}
 			break;
 
@@ -356,7 +357,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 			else  // Wii Sports uCode 
 			{
 				uAddress += 16; //??
-				m_rMailHandler.PushMail(0xDCD10004);
+				//m_rMailHandler.PushMail(0xDCD10004);
 			}
 			break;
 
