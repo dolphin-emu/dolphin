@@ -58,9 +58,6 @@ if sys.platform == 'darwin':
 	gfxenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'OpenGL', 'Cocoa', 'Cg']
 
 	conf.CheckPKG('OpenGL')
-	if not conf.CheckPKG('Cg'):
-		print name + " must have Cg framework from nvidia to be build"
-		Return()
 
 elif sys.platform == 'win32':
         print name + " is assuming that you have opengl, glu, cg, and cggl"
@@ -69,9 +66,6 @@ else:
                 print name + " must have opengl and glu to be build"
                 Return()
 	
-	if not conf.CheckPKG('Cg') or not conf.CheckPKG('CgGL'):
-                print name + " must have cg and cggl to be build"
-                Return()
 if sys.platform == 'win32':
 	print name + " is assuming that you have glew"
 else:

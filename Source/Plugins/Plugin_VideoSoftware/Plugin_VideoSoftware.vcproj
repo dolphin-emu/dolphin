@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew"
+				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_WIN32;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -131,7 +131,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew"
+				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;_WIN32;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				MinimalRebuild="false"
 				BasicRuntimeChecks="3"
@@ -220,7 +220,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew"
+				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;_WIN32;PLUGIN_VIDEOSOFTWARE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -307,7 +307,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew"
+				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew"
 				PreprocessorDefinitions="WIN32;_WINDOWS;_USRDLL;_WIN32;PLUGIN_VIDEOSOFTWARE_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -423,10 +423,6 @@
 			</File>
 			<File
 				RelativePath="..\..\Core\VideoCommon\Src\VertexLoader_TextCoord.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\VideoCommon.h"
 				>
 			</File>
 		</Filter>
