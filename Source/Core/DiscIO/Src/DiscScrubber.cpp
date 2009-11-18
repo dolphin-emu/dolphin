@@ -32,12 +32,12 @@ namespace DiscScrubber
 
 #define	CLUSTER_SIZE 0x8000
 
-u8* m_Sector1;
-u8* m_FreeTable;
-u64 m_FileSize;
+static u8* m_Sector1;
+static u8* m_FreeTable;
+static u64 m_FileSize;
 
-std::string m_Filename;
-IVolume* m_Disc = NULL;
+static std::string m_Filename;
+static IVolume* m_Disc = NULL;
 
 struct SPartitionHeader
 {
@@ -72,7 +72,7 @@ struct SPartitionGroup
 	u64 PartitionsOffset;
 	std::vector<SPartition> PartitionsVec;
 };
-SPartitionGroup PartitionGroup[4];
+static SPartitionGroup PartitionGroup[4];
 
 
 void MarkAsUsed(u64 _Offset, u64 _Size);
@@ -138,8 +138,7 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 
 	// Fill out table of free blocks
 	callback("DiscScrubber: Parsing...", 0, arg);
-	if (!ParseDisc())
-		success = false;
+	success = ParseDisc();
 	// Done with it; need it closed for the next part
 	delete m_Disc;
 	m_Disc = NULL;
@@ -160,7 +159,7 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 	NOTICE_LOG(DISCIO, "Removing garbage data...go get some coffee :)");
 	for (u32 i = 0;	i < numClusters; i++)
 	{
-		u64 CurrentOffset = i * CLUSTER_SIZE;
+		u64 CurrentOffset = (u64)i * CLUSTER_SIZE;
 
 		if (m_FreeTable[i])
 		{
@@ -184,7 +183,7 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 		if (i % (numClusters / 1000) == 0)
 		{
 			char temp[512];
-			sprintf(temp, "DiscScrubber: %u/%u (%s)", i, numClusters, m_FreeTable[i] ? "Free" : "Used");
+			sprintf(temp, "DiscScrubber: %x/%x (%s)", i, numClusters, m_FreeTable[i] ? "Free" : "Used");
 			callback(temp, (float)i / (float)numClusters, arg);
 		}
 	}
@@ -380,7 +379,7 @@ bool ParsePartitionData(SPartition& _rPartition)
 		// Go through the filesystem and mark entries as used
 		for (size_t currentFile = 0; currentFile < numFiles; currentFile++)
 		{
-			DEBUG_LOG(DISCIO, "%s", (*Files.at(currentFile)).m_FullPath);
+			DEBUG_LOG(DISCIO, "%s", currentFile ? (*Files.at(currentFile)).m_FullPath : "/");
 			// Just 1byte for directory? - it will end up reserving a cluster this way
 			if ((*Files.at(currentFile)).m_NameOffset & 0x1000000)
 				MarkAsUsedE(_rPartition.Offset
