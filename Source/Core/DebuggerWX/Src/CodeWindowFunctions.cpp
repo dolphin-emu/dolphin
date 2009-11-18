@@ -334,34 +334,42 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 
 	case IDM_CREATESIGNATUREFILE:
 		{
-		wxTextEntryDialog input_prefix(this, wxString::FromAscii("Only export symbols with prefix:"), wxGetTextFromUserPromptStr, _T("."));
-		if (input_prefix.ShowModal() == wxID_OK) {
-			std::string prefix(input_prefix.GetValue().mb_str());
+			wxTextEntryDialog input_prefix(
+				this,
+				wxString::FromAscii("Only export symbols with prefix:\n(Blank for all symbols)"),
+				wxGetTextFromUserPromptStr,
+				wxEmptyString);
 
-			wxString path = wxFileSelector(
+			if (input_prefix.ShowModal() == wxID_OK)
+			{
+				std::string prefix(input_prefix.GetValue().mb_str());
+
+				wxString path = wxFileSelector(
 					_T("Save signature as"), wxEmptyString, wxEmptyString, wxEmptyString,
 					_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_SAVE,
 					this);
-			if (! path.IsEmpty()) {
-				SignatureDB db;
-				db.Initialize(&g_symbolDB, prefix.c_str());
-				std::string filename(path.mb_str());		// PPCAnalyst::SaveSignatureDB(
-				db.Save(path.mb_str());
+				if (!path.IsEmpty())
+				{
+					SignatureDB db;
+					db.Initialize(&g_symbolDB, prefix.c_str());
+					std::string filename(path.mb_str());
+					db.Save(path.mb_str());
+				}
 			}
-		}
 		}
 		break;
 	case IDM_USESIGNATUREFILE:
 		{
-		wxString path = wxFileSelector(
+			wxString path = wxFileSelector(
 				_T("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
 				_T("Dolphin Signature File (*.dsy)|*.dsy;"), wxFD_OPEN | wxFD_FILE_MUST_EXIST,
 				this);
-		if (! path.IsEmpty()) {
-			SignatureDB db;
-			db.Load(path.mb_str());
-			db.Apply(&g_symbolDB);
-		}
+			if (!path.IsEmpty())
+			{
+				SignatureDB db;
+				db.Load(path.mb_str());
+				db.Apply(&g_symbolDB);
+			}
 		}
 		NotifyMapLoaded();
 		break;

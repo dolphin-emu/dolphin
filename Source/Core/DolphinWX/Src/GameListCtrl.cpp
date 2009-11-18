@@ -959,11 +959,11 @@ void CGameListCtrl::OnInstallWAD(wxCommandEvent& WXUNUSED (event))
 
 void CGameListCtrl::MultiCompressCB(const char* text, float percent, void* arg)
 {
-	wxString textString(wxString::FromAscii(StringFromFormat("%s (%i/%i) - %s", m_currentFilename.c_str(), (int)m_currentItem+1, (int)m_numberItem, text).c_str()));
+	percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
 
-    percent = (((float)m_currentItem) + percent) / (float)m_numberItem;
-    wxProgressDialog* pDialog = (wxProgressDialog*)arg;
-    pDialog->Update((int)(percent*1000), textString);
+	wxString textString(wxString::Format(wxT("%s (%i/%i) - %s"), m_currentFilename.c_str(), (int)m_currentItem+1, (int)m_numberItem, text));
+
+    ((wxProgressDialog*)arg)->Update((int)(percent*1000), textString);
 }
 
 void CGameListCtrl::OnMultiCompressGCM(wxCommandEvent& /*event*/)
@@ -1037,8 +1037,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 void CGameListCtrl::CompressCB(const char* text, float percent, void* arg)
 {
-	wxProgressDialog* pDialog = (wxProgressDialog*)arg;
-	pDialog->Update((int)(percent*1000), wxString::FromAscii(text));
+	((wxProgressDialog*)arg)->Update((int)(percent*1000), wxString::FromAscii(text));
 }
 
 void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) 

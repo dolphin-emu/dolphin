@@ -64,9 +64,7 @@
 		#error needs at least version 1000 of MSC
 	#endif
 
-// Memory leak check defines
-	#define _CRTDBG_MAP_ALLOC
-	#define _CRTDBG_MAP_ALLOC_NEW
+// Memory leak checks
 	#define CHECK_HEAP_INTEGRITY()
 
 	#define POSIX 0
@@ -102,6 +100,11 @@
 		#include <crtdbg.h>
 		#undef CHECK_HEAP_INTEGRITY
 		#define CHECK_HEAP_INTEGRITY() {if (!_CrtCheckMemory()) PanicAlert("memory corruption detected. see log.");}
+		// If you want to see how much a pain in the ass singletons are, for example:
+		// {614} normal block at 0x030C5310, 188 bytes long.
+		// Data: <Master Log      > 4D 61 73 74 65 72 20 4C 6F 67 00 00 00 00 00 00
+		struct CrtDebugBreak { CrtDebugBreak(int spot) { _CrtSetBreakAlloc(spot); } };
+		//CrtDebugBreak breakAt(614);
 	#endif // end DEBUG/FAST
 
 #else // Not windows

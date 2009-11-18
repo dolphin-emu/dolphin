@@ -173,6 +173,7 @@ std::string StringFromFormat(const char* format, ...)
 
 	buf[writtenCount] = '\0';
 	std::string temp = buf;
+	delete[] buf;
 	return temp;
 }
 

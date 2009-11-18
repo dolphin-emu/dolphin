@@ -140,7 +140,7 @@ void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const char *prefix)
 	std::string prefix_str(prefix);
 	for (PPCSymbolDB::XFuncMap::const_iterator iter = symbol_db->GetConstIterator(); iter != symbol_db->End(); iter++)
 	{
-		if (iter->second.name.substr(0, prefix_str.size()) == prefix_str)
+		if ((iter->second.name.substr(0, prefix_str.size()) == prefix_str) || prefix_str.empty())
 		{
 			DBFunc temp_dbfunc;
 			temp_dbfunc.name = iter->second.name;
