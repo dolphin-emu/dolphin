@@ -306,7 +306,7 @@ void PixelShaderManager::SetZTextureBias(u32 bias)
     }
 }
 
-void PixelShaderManager::SetViewport(float* viewport)
+void PixelShaderManager::SetViewport(float* viewport,int VIndex)
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
     // [0] = width/2
@@ -316,30 +316,28 @@ void PixelShaderManager::SetViewport(float* viewport)
     // [4] = yorig + height/2 + 342
     // [5] = 16777215 * farz
 
-	if (lastDepthRange[0] != viewport[5] || lastDepthRange[1] != viewport[2])
+	if(VIndex <= 0)
 	{
-		lastDepthRange[0] = viewport[5];
-		lastDepthRange[1] = viewport[2];
+		if (lastDepthRange[0] != viewport[5] || lastDepthRange[1] != viewport[2])
+		{
+			lastDepthRange[0] = viewport[5];
+			lastDepthRange[1] = viewport[2];
 
-		s_bDepthRangeChanged = true;
+			s_bDepthRangeChanged = true;
+		}
 	}
-}
-
-void PixelShaderManager::SetZScale(float data)
-{
-	if (lastDepthRange[0] != data)
+	else
 	{
-		lastDepthRange[0] = data;
-		s_bDepthRangeChanged = true;
-	}
-}
-
-void PixelShaderManager::SetZOffset(float data)
-{
-	if (lastDepthRange[1] != data)
-	{
-		lastDepthRange[1] = data;
-		s_bDepthRangeChanged = true;
+		if (VIndex == 2 && lastDepthRange[1] != viewport[0])
+		{
+			lastDepthRange[1] = viewport[0];
+			s_bDepthRangeChanged = true;
+		}
+		else if(VIndex == 5 && lastDepthRange[0] != viewport[0])
+		{
+			lastDepthRange[0] = viewport[0];
+			s_bDepthRangeChanged = true;
+		}
 	}
 }
 

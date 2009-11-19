@@ -31,15 +31,13 @@ public:
 	// constant management
 	static void SetConstants();
 
-	static void SetViewport(float* _Viewport);
+	static void SetViewport(float* _Viewport, int constantIndex = -1);
 	static void SetViewportChanged();
 	static void SetProjection(float* _pProjection, int constantIndex = -1);
 	static void InvalidateXFRange(int start, int end);
 	static void SetTexMatrixChangedA(u32 Value);
 	static void SetTexMatrixChangedB(u32 Value);
 	static void SetMaterialColor(int index, u32 data);
-	static void SetZScale(float data);
-	static void SetZOffset(float data);
 
 	static void TranslateView(float x, float y);
 	static void RotateView(float x, float y);

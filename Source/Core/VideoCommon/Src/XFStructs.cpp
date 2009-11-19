@@ -49,6 +49,28 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
 		{
 			xfregs.texcoords[address - XFMEM_SETPOSMTXINFO].postmtxinfo.hex = pData[i];
 		}
+		else if (address >= XFMEM_SETVIEWPORT && address <= XFMEM_SETVIEWPORT+5)
+		{
+			VertexManager::Flush();
+			u32 Index = address - XFMEM_SETVIEWPORT;
+            VertexShaderManager::SetViewport((float*)&pData[i],Index);
+			PixelShaderManager::SetViewport((float*)&pData[i],Index);
+            if(Index == 0)
+			{
+				i += 5;
+			}
+
+		}
+		else if (address >= XFMEM_SETPROJECTION && address <= XFMEM_SETPROJECTION+7)
+		{
+			VertexManager::Flush();
+			u32 Index = address - XFMEM_SETPROJECTION;
+            VertexShaderManager::SetProjection((float*)&pData[i],Index);
+			if(Index == 0)
+			{
+				i += 7;
+			}			
+		}
         else if (address < 0x2000)
         {
             u32 data = pData[i];
@@ -147,47 +169,13 @@ void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
                 //_assert_msg_(GX_XF, 0, "XF matrixindex1");
                 VertexShaderManager::SetTexMatrixChangedB(data); // ?
                 break;
-
-            case XFMEM_SETVIEWPORT:
-                VertexManager::Flush();
-                VertexShaderManager::SetViewport((float*)&pData[i]);
-				PixelShaderManager::SetViewport((float*)&pData[i]);
-                i += 6;
-                break;
-
-            case XFMEM_SETPROJECTION:
-                VertexManager::Flush();
-                VertexShaderManager::SetProjection((float*)&pData[i]);
-                i += 7;
-                break;
-
             case XFMEM_SETNUMTEXGENS: // GXSetNumTexGens
                 if ((u32)xfregs.numTexGens != data)
 				{
                     VertexManager::Flush();
                     xfregs.numTexGens = data;
                 }
-                break;
-
-			// GXSetZScaleOffset ?
-			// Actually everything i tried didn't seem to change anything x)
-			// paper mario writes 16777216.0f, 1677721.75
-			// Killer 7 writes 16777216.0f here
-			case XFMEM_SETZSCALE:
-				VertexManager::Flush();
-				VertexShaderManager::SetZScale(*(float*)&data);
-				PixelShaderManager::SetZScale(*(float*)&data);
-				INFO_LOG(VIDEO, "Set ZScale : %x=%x\n", address, data);
-				break;
-
-			// paper mario writes 16777216.0f, 5033165.0f
-			// Killer 7 alterns this between 16777216.0f and 16710107.0f
-            case XFMEM_SETZOFFSET:
-				VertexManager::Flush();
-				VertexShaderManager::SetZOffset(*(float*)&data);
-				PixelShaderManager::SetZOffset(*(float*)&data);
-				INFO_LOG(VIDEO, "Set ZOffset : %x=%x\n", address, data);
-				break;
+                break;			
 
 			// --------------
 			// Unknown Regs

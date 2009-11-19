@@ -438,27 +438,24 @@ void VertexShaderManager::SetTexMatrixChangedB(u32 Value)
     }
 }
 
-void VertexShaderManager::SetViewport(float* _Viewport)
+void VertexShaderManager::SetViewport(float* _Viewport, int constantIndex)
 {
-    // Workaround for paper mario, yep this is bizarre.
+	if(constantIndex <= 0)
+	{
+		memcpy(xfregs.rawViewport, _Viewport, sizeof(xfregs.rawViewport));
+	}
+	else
+	{
+		xfregs.rawViewport[constantIndex] = _Viewport[0];
+	}
+    /*//Tino: i think this is nod needed so let this commented til confirmed
+	// Workaround for paper mario, yep this is bizarre.
     for (size_t i = 0; i < ARRAYSIZE(xfregs.rawViewport); ++i) 
 	{
         if (*(u32*)(_Viewport + i) == 0x7f800000)  // invalid fp number
             return;
     }
-    memcpy(xfregs.rawViewport, _Viewport, sizeof(xfregs.rawViewport));
-    bViewportChanged = true;
-}
-
-void VertexShaderManager::SetZScale(float data)
-{
-	xfregs.rawViewport[5] = data;
-    bViewportChanged = true;
-}
-
-void VertexShaderManager::SetZOffset(float data)
-{
-    xfregs.rawViewport[2] = data;
+    memcpy(xfregs.rawViewport, _Viewport, sizeof(xfregs.rawViewport));*/
     bViewportChanged = true;
 }
 
@@ -469,7 +466,14 @@ void VertexShaderManager::SetViewportChanged()
 
 void VertexShaderManager::SetProjection(float* _pProjection, int constantIndex)
 {
-    memcpy(xfregs.rawProjection, _pProjection, sizeof(xfregs.rawProjection));
+	if(constantIndex <= 0)
+	{
+		memcpy(xfregs.rawProjection, _pProjection, sizeof(xfregs.rawProjection));
+	}
+	else
+	{
+		xfregs.rawProjection[constantIndex] = _pProjection[0];
+	}
     bProjectionChanged = true;
 }
 
