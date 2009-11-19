@@ -100,7 +100,8 @@ void SendData(u16 _channelID, const u8* _pData, u32 _Size)
     m_pCriticalSection->Enter();
     {
         SEvent WriteEvent;
-        memcpy(WriteEvent.m_PayLoad, _pData + 1, _Size - 1);
+        memcpy(WriteEvent.m_PayLoad, _pData, _Size);
+		WriteEvent._Size = _Size - 1;
         m_EventWriteQueue.push(WriteEvent);
 
 		// Debugging
@@ -121,15 +122,10 @@ void ReadData()
     {
 		//DEBUG_LOG(WIIMOTE, "Writing data to the Wiimote");
         SEvent& rEvent = m_EventWriteQueue.front();
-		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, MAX_PAYLOAD);
+		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, rEvent._Size);
 		m_EventWriteQueue.pop();
 		
-#ifdef _WIN32
-		// Debugging. Move the data one step to the right first.
-		memcpy(rEvent.m_PayLoad + 1, rEvent.m_PayLoad, sizeof(rEvent.m_PayLoad) - 1);
-		rEvent.m_PayLoad[0] = 0xa2;
 		InterruptDebugging(false, rEvent.m_PayLoad);
-#endif
     }
 
     m_pCriticalSection->Leave();
@@ -145,17 +141,17 @@ void ReadData()
 			m_pCriticalSection->Enter();
 			
 			// Filter out data reports
-			if (pBuffer[0] >= 0x30) 
+			if (pBuffer[1] >= 0x30) 
 			{
 				// Copy Buffer to LastReport
-				memcpy(m_LastReport.m_PayLoad, pBuffer, MAX_PAYLOAD);
+				memcpy(m_LastReport.m_PayLoad, pBuffer + 1, MAX_PAYLOAD);
 				m_LastReportValid = true;
 			}
 			else
 			{
 				// Copy Buffer to ImportantEvent
 				SEvent ImportantEvent;
-				memcpy(ImportantEvent.m_PayLoad, pBuffer, MAX_PAYLOAD);
+				memcpy(ImportantEvent.m_PayLoad, pBuffer + 1, MAX_PAYLOAD);
 
 				// Put it in the read queue right away
 				m_EventReadQueue.push(ImportantEvent);
@@ -206,6 +202,7 @@ private:
             memset(m_PayLoad, 0, MAX_PAYLOAD);
         }
         byte m_PayLoad[MAX_PAYLOAD];
+		u32 _Size;
     };
     typedef std::queue<SEvent> CEventQueue;
 
@@ -213,10 +210,10 @@ private:
     u16 m_channelID;  
     CEventQueue m_EventReadQueue; // Read from Wiimote
     CEventQueue m_EventWriteQueue; // Write to Wiimote
-    bool m_LastReportValid;
     SEvent m_LastReport;
 	wiimote_t* m_pWiiMote; // This is g_WiiMotesFromWiiUse[]
     Common::CriticalSection* m_pCriticalSection;
+	bool m_LastReportValid;
 
 // Send queued data to the core
 void SendEvent(SEvent& _rEvent)

@@ -121,9 +121,7 @@ int nunchuk_handshake(struct wiimote_t* wm, struct nunchuk_t* nc, byte* data, un
 		if (nc->js.max.y == 0) nc->js.max.y = nc->js.center.y + 80;
 	}
 
-	#ifdef WIN32
 	wm->timeout = WIIMOTE_DEFAULT_TIMEOUT;
-	#endif
 
 	return 1;
 }

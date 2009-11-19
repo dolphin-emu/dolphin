@@ -121,8 +121,8 @@ vars.AddVariables(
                  ignorecase = 2
                  ),
     PathVariable('wxconfig', 'Path to the wxconfig', None),
-    ('CC', 'The c compiler', 'gcc'),
-    ('CXX', 'The c++ compiler', 'g++'),
+    ('CC', 'The c compiler', 'gcc-4.4'),
+    ('CXX', 'The c++ compiler', 'g++-4.4'),
     )
 
 if sys.platform == 'win32':

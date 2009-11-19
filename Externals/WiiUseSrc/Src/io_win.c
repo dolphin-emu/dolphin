@@ -198,6 +198,9 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 			WIIUSE_WARNING("A wait error occured on reading from wiimote %i.", wm->unid);
 			return 0;
 		}
+		// Move the data over one, so we can add back in 0xa2
+		memcpy(wm->event_buf[1], &wm->event_buf, sizeof(wm->event_buf));
+		wm->event_buf[0] = 0xa2; // Put back in the crazy Data that Windows strips out
 
 		if (!GetOverlappedResult(wm->dev_handle, &wm->hid_overlap, &b, 0))
 			return 0;
@@ -219,13 +222,13 @@ int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int len) {
 		case WIIUSE_STACK_UNKNOWN:
 		{
 			/* try to auto-detect the stack type */
-			if (i = WriteFile(wm->dev_handle, buf, 22, &bytes, &wm->hid_overlap)) {
+			if (i = WriteFile(wm->dev_handle, buf + 1, 22, &bytes, &wm->hid_overlap)) {
 				/* bluesoleil will always return 1 here, even if it's not connected */
 				wm->stack = WIIUSE_STACK_BLUESOLEIL;
 				return i;
 			}
 
-			if (i = HidD_SetOutputReport(wm->dev_handle, buf, len)) {
+			if (i = HidD_SetOutputReport(wm->dev_handle, buf + 1, len - 1)) {
 				wm->stack = WIIUSE_STACK_MS;
 				return i;
 			}
@@ -235,10 +238,10 @@ int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int len) {
 		}
 
 		case WIIUSE_STACK_MS:
-			return HidD_SetOutputReport(wm->dev_handle, buf, len);
+			return HidD_SetOutputReport(wm->dev_handle, buf + 1, len - 1);
 
 		case WIIUSE_STACK_BLUESOLEIL:
-			return WriteFile(wm->dev_handle, buf, 22, &bytes, &wm->hid_overlap);
+			return WriteFile(wm->dev_handle, buf + 1, 22, &bytes, &wm->hid_overlap);
 	}
 
 	return 0;

@@ -96,7 +96,7 @@ int wiiuse_poll(struct wiimote_t** wm, int wiimotes) {
 
 			if (wiiuse_io_read(wm[i])) {
 				/* propagate the event */
-				propagate_event(wm[i], wm[i]->event_buf[0], wm[i]->event_buf+1);
+				propagate_event(wm[i], wm[i]->event_buf[1], wm[i]->event_buf+2);
 				evnt += (wm[i]->event != WIIUSE_NONE);
 
 				/* clear out the event buffer */
@@ -485,12 +485,10 @@ static void event_status(struct wiimote_t* wm, byte* msg) {
 		exp_changed = 1;
 	}
 
-	#ifdef WIN32
 	if (!attachment) {
 		WIIUSE_DEBUG("Setting timeout to normal %i ms.", wm->normal_timeout);
 		wm->timeout = wm->normal_timeout;
 	}
-	#endif
 
 	/*
 	 *	From now on the remote will only send status packets.
@@ -559,10 +557,8 @@ void handshake_expansion(struct wiimote_t* wm, byte* data, unsigned short len) {
 			disable_expansion(wm);
 
 		/* increase the timeout until the handshake completes */
-		#ifdef WIN32
 		WIIUSE_DEBUG("Setting timeout to expansion %i ms.", wm->exp_timeout);
 		wm->timeout = wm->exp_timeout;
-		#endif
 
 		wiiuse_write_data(wm, WM_EXP_MEM_ENABLE, &buf, 1);
 

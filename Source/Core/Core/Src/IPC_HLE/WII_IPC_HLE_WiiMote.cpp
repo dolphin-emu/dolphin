@@ -690,7 +690,7 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16* MTU, u16* Flu
 
 void CWII_IPC_HLE_WiiMote::SDPSendServiceSearchResponse(u16 cid, u16 TransactionID, u8* pServiceSearchPattern, u16 MaximumServiceRecordCount)
 {
-	// verify block... we hanlde search pattern for HID service only
+	// verify block... we handle search pattern for HID service only
 	{
 		CBigEndianBuffer buffer(pServiceSearchPattern);		
 		_dbg_assert_(WII_IPC_WIIMOTE, buffer.Read8(0) == SDP_SEQ8);       // data sequence

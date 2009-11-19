@@ -38,7 +38,7 @@
 
 #ifndef WIIUSE_H_INCLUDED
 #define WIIUSE_H_INCLUDED
-
+#define WITH_WIIUSE_DEBUG
 #ifdef _WIN32
 	/* windows */
 	#include <windows.h>
@@ -213,10 +213,8 @@ typedef enum ir_position_t {
  *	This is left over from an old hack, but it may actually
  *	be a useful feature to keep so it wasn't removed.
  */
-#ifdef WIN32
-	#define WIIMOTE_DEFAULT_TIMEOUT		10
-	#define WIIMOTE_EXP_TIMEOUT			10
-#endif
+#define WIIMOTE_DEFAULT_TIMEOUT		10
+#define WIIMOTE_EXP_TIMEOUT			10
 
 typedef unsigned char byte;
 typedef char sbyte;
@@ -590,10 +588,10 @@ typedef struct wiimote_t {
 		WCONST HANDLE dev_handle;			/**< HID handle								*/
 		WCONST OVERLAPPED hid_overlap;		/**< overlap handle							*/
 		WCONST enum win_bt_stack_t stack;	/**< type of bluetooth stack to use			*/
+	#endif
 		WCONST int timeout;					/**< read timeout							*/
 		WCONST byte normal_timeout;			/**< normal timeout							*/
 		WCONST byte exp_timeout;			/**< timeout for expansion handshake		*/
-	#endif
 
 	WCONST int state;						/**< various state flags					*/
 	WCONST byte leds;						/**< currently lit leds						*/

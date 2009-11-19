@@ -85,9 +85,7 @@ int guitar_hero_3_handshake(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, b
 	wm->event = WIIUSE_GUITAR_HERO_3_CTRL_INSERTED;
 	wm->exp.type = EXP_GUITAR_HERO_3;
 
-	#ifdef WIN32
 	wm->timeout = WIIMOTE_DEFAULT_TIMEOUT;
-	#endif
 
 	return 1;
 }

@@ -131,12 +131,13 @@ struct wiimote_t** wiiuse_init(int wiimotes) {
 		#if !defined(__APPLE__)
 			wm[i]->dev_handle = 0;
 			wm[i]->stack = WIIUSE_STACK_UNKNOWN;
-			wm[i]->normal_timeout = WIIMOTE_DEFAULT_TIMEOUT;
-			wm[i]->exp_timeout = WIIMOTE_EXP_TIMEOUT;
-			wm[i]->timeout = wm[i]->normal_timeout;
 		#endif
 		#endif
 
+		wm[i]->normal_timeout = WIIMOTE_DEFAULT_TIMEOUT;
+		wm[i]->exp_timeout = WIIMOTE_EXP_TIMEOUT;
+		wm[i]->timeout = wm[i]->normal_timeout;
+			
 		wm[i]->state = WIIMOTE_INIT_STATES;
 		wm[i]->flags = WIIUSE_INIT_FLAGS;
 
@@ -573,12 +574,8 @@ int wiiuse_send(struct wiimote_t* wm, byte report_type, byte* msg, int len) {
 	byte buf[32];		/* no payload is better than this */
 	int rumble = 0;
 
-	#ifndef WIN32
-		buf[0] = WM_SET_REPORT | WM_BT_OUTPUT;
-		buf[1] = report_type;
-	#else
-		buf[0] = report_type;
-	#endif
+	buf[0] = WM_SET_REPORT | WM_BT_OUTPUT;
+	buf[1] = report_type;
 
 	switch (report_type) {
 		case WM_CMD_LED:
@@ -594,15 +591,9 @@ int wiiuse_send(struct wiimote_t* wm, byte report_type, byte* msg, int len) {
 			break;
 	}
 
-	#ifndef WIN32
-		memcpy(buf+2, msg, len);
-		if (rumble)
-			buf[2] |= 0x01;
-	#else
-		memcpy(buf+1, msg, len);
-		if (rumble)
-			buf[1] |= 0x01;
-	#endif
+	memcpy(buf+2, msg, len);
+	if (rumble)
+		buf[2] |= 0x01;
 
 	#ifdef WITH_WIIUSE_DEBUG
 	{
@@ -618,11 +609,7 @@ int wiiuse_send(struct wiimote_t* wm, byte report_type, byte* msg, int len) {
 	}
 	#endif
 
-	#ifndef WIN32
-		return wiiuse_io_write(wm, buf, len+2);
-	#else
-		return wiiuse_io_write(wm, buf, len+1);
-	#endif
+	return wiiuse_io_write(wm, buf, len+2);
 }
 
 
@@ -753,7 +740,6 @@ void wiiuse_resync(struct wiimote_t* wm) {
  *	@param exp_timeout		The timeout in millisecondsd to wait for an expansion handshake.
  */
 void wiiuse_set_timeout(struct wiimote_t** wm, int wiimotes, byte normal_timeout, byte exp_timeout) {
-	#ifdef WIN32
 	int i;
 
 	if (!wm)	return;
@@ -762,5 +748,4 @@ void wiiuse_set_timeout(struct wiimote_t** wm, int wiimotes, byte normal_timeout
 		wm[i]->normal_timeout = normal_timeout;
 		wm[i]->exp_timeout = exp_timeout;
 	}
-	#endif
 }

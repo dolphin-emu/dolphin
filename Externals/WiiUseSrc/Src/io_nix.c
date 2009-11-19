@@ -272,7 +272,7 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 
 	/* block select() for 1/2000th of a second */
 	tv.tv_sec = 0;
-	tv.tv_usec = 500;
+	tv.tv_usec = wm->timeout * 1000; // timeout is in Milliseconds tv_usec is in Microseconds!
 
 	FD_ZERO(&fds);
 	/* only poll it if it is connected */
@@ -296,6 +296,7 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 
 	if (FD_ISSET(wm->in_sock, &fds)) 
 	{
+		//memset(wm->event_buf, 0, sizeof(wm->event_buf));
 		/* read the pending message into the buffer */
 		r = read(wm->in_sock, wm->event_buf, sizeof(wm->event_buf));
 		if (r == -1) {
@@ -309,7 +310,7 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 				wiiuse_disconnect(wm);
 				wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
 			}
-
+			
 			return 0;
 		}
 		if (!r) {
@@ -317,7 +318,7 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 			wiiuse_disconnected(wm);
 			return 0;
 		}
-		memcpy(wm->event_buf, &wm->event_buf[1], r - 1);
+		wm->event_buf[0] = 0xa2; // Make sure it's 0xa2, just in case
 		return 1;
 	}
 	return 0;
@@ -326,15 +327,8 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 
 int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int len) 
 {
-	if(buf[0] != (WM_SET_REPORT | WM_BT_OUTPUT))
-	{
-		// Linux and OSX need this, Windows strips it out
-		// Only packets from Dolphin don't have the start
-		// Wiiuse uses ifdefs to add the first byte without you ever knowing it
-		// Should find out a nice way of doing this, getting windows to stop stripping the packets would be nice
-		memcpy(buf + 1, buf, len - 1);
-		buf[0] = (WM_SET_REPORT | WM_BT_OUTPUT);
-	}
+	if(buf[0] == 0xa2)
+		buf[0] = 0x52; // May not be needed. Will be changing/correcting in the next few revisions
 	return write(wm->out_sock, buf, len);
 }
 
