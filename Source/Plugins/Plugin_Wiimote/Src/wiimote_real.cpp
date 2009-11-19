@@ -100,8 +100,8 @@ void SendData(u16 _channelID, const u8* _pData, u32 _Size)
     m_pCriticalSection->Enter();
     {
         SEvent WriteEvent;
-        memcpy(WriteEvent.m_PayLoad, _pData, _Size);
-		WriteEvent._Size = _Size - 1;
+		memcpy(WriteEvent.m_PayLoad, _pData, _Size);
+		WriteEvent._Size = _Size;
         m_EventWriteQueue.push(WriteEvent);
 
 		// Debugging

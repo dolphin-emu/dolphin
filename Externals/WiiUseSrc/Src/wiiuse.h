@@ -38,7 +38,9 @@
 
 #ifndef WIIUSE_H_INCLUDED
 #define WIIUSE_H_INCLUDED
-#define WITH_WIIUSE_DEBUG
+
+//#define WITH_WIIUSE_DEBUG
+
 #ifdef _WIN32
 	/* windows */
 	#include <windows.h>
