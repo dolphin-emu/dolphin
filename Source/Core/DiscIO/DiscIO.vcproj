@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\Common\Src"
+				AdditionalIncludeDirectories="..\Common\Src;..\..\..\Externals\zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -110,7 +110,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\Common\Src"
+				AdditionalIncludeDirectories="..\Common\Src;..\..\..\Externals\zlib"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -173,7 +173,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\Common\Src"
+				AdditionalIncludeDirectories="..\Common\Src;..\..\..\Externals\zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
@@ -237,7 +237,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories="..\Common\Src"
+				AdditionalIncludeDirectories="..\Common\Src;..\..\..\Externals\zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
@@ -298,7 +298,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\Common\Src"
+				AdditionalIncludeDirectories="..\Common\Src;..\..\..\Externals\zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;"
 				RuntimeLibrary="0"
 				EnableEnhancedInstructionSet="2"
@@ -361,7 +361,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\Common\Src"
+				AdditionalIncludeDirectories="..\Common\Src;..\..\..\Externals\zlib"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="2"
@@ -533,6 +533,14 @@
 			Name="Volume"
 			>
 			<File
+				RelativePath=".\Src\FileMonitor.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\FileMonitor.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Volume.h"
 				>
 			</File>
@@ -648,15 +656,6 @@
 				RelativePath=".\Src\VolumeDirectory.cpp"
 				>
 			</File>
-			<File
-			   RelativePath=".\Src\FileMonitor.cpp"
-			   >
-			</File>
-			<File
-			   RelativePath=".\Src\FileMonitor.h"
-			   >
-			</File>
-
 			<File
 				RelativePath=".\Src\VolumeDirectory.h"
 				>

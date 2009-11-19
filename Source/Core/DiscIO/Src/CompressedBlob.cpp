@@ -30,12 +30,7 @@
 #include "FileUtil.h"
 #include "Hash.h"
 
-#ifdef _WIN32
-#include "../../../../Externals/zlib/zlib.h"
-#else
-// TODO: Include generic zlib.h
-#include "../../../../Externals/zlib/zlib.h"
-#endif
+#include "zlib.h"
 
 namespace DiscIO
 {
