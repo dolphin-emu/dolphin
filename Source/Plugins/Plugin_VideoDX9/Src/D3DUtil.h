@@ -65,6 +65,7 @@ namespace D3D
 					   const RECT *rDest,
 					   IDirect3DPixelShader9 *PShader,
 					   IDirect3DVertexShader9 *Vshader);
+	void drawColoredQuad(const RECT *rDest, u32 Color);
 	void SaveRenderStates();
 	void RestoreRenderStates();
 }

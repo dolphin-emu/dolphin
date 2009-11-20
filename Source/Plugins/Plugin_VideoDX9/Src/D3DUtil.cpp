@@ -189,9 +189,9 @@ const int TS[6][2] =
 
 static DWORD RS_old[6];
 static DWORD TS_old[6];
-static LPDIRECT3DBASETEXTURE9 texture_old;
-static LPDIRECT3DPIXELSHADER9 ps_old;
-static LPDIRECT3DVERTEXSHADER9 vs_old;
+static LPDIRECT3DBASETEXTURE9 texture_old = NULL;
+static LPDIRECT3DPIXELSHADER9 ps_old = NULL;
+static LPDIRECT3DVERTEXSHADER9 vs_old = NULL;
 
 void SaveRenderStates()
 {
@@ -397,7 +397,7 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 					   IDirect3DVertexShader9 *Vshader)
 {
 	SaveRenderStates();
-	
+	D3D::SetTexture(0, 0);
 	//float span = ((rSource->right-rSource->left - 1.0f) * (rDest->right - rDest->left))/(SourceWidth*((rDest->right - rDest->left)-1.0f));
 	float u1=((float)rSource->left+1.0f)/(float) SourceWidth;//*/((0.5f+rSource->left)/(float) SourceWidth)-(span*0.5f/(float)(rDest->right - rDest->left));
 	float u2=((float)rSource->right-1.0f)/(float) SourceWidth;;//*/u1+span;  
@@ -419,6 +419,24 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 	D3D::RefreshVertexDeclaration();
 	RestoreRenderStates();
 
-}	
+}
+
+void drawColoredQuad(const RECT *rDest, u32 Color)
+{
+	SaveRenderStates();	
+	struct Q2DVertex { float x,y,z,rhw;u32 Color; } coords[4] = {
+		{(float)rDest->left-0.5f, (float)rDest->top-0.5f, 0.0f, 1.0f, Color},
+		{(float)rDest->right-0.5f, (float)rDest->top-0.5f, 0.0f,1.0f, Color},
+		{(float)rDest->right-0.5f, (float)rDest->bottom-0.5f, 0.0f,1.0f, Color},
+		{(float)rDest->left-0.5f, (float)rDest->bottom-0.5f, 0.0f,1.0f, Color}
+	};
+	dev->SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE);
+	dev->SetVertexShader(0);
+	dev->SetPixelShader(0);	
+	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));	
+	D3D::RefreshVertexDeclaration();
+	RestoreRenderStates();
+}
+
 
 }  // namespace

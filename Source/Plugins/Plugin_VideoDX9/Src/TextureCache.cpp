@@ -288,12 +288,8 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	return &entry;
 }
  
-#undef CHECK
-#define CHECK(hr) if (FAILED(hr)) { PanicAlert(__FUNCTION__ " FAIL"); }
-// EXTREMELY incomplete.
 void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source_rect)
 {
-	HRESULT hr = S_OK;
 	int efb_w = source_rect.GetWidth();
 	int efb_h = source_rect.GetHeight();
 
@@ -330,8 +326,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		entry.h = tex_h;
 		entry.fmt = copyfmt;
 		
-		hr = D3D::dev->CreateTexture(tex_w, tex_h, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
-		CHECK(hr);
+		D3D::dev->CreateTexture(tex_w, tex_h, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
 		textures[address] = entry;
 		tex = entry.texture;
 	}
@@ -451,8 +446,7 @@ have_texture:
     // We have to run a pixel shader, for color conversion.
     Renderer::ResetAPIState(); // reset any game specific settings
 	LPDIRECT3DSURFACE9 Rendersurf = NULL;
-	hr = tex->GetSurfaceLevel(0,&Rendersurf);
-	CHECK(hr);
+	tex->GetSurfaceLevel(0,&Rendersurf);
 	D3D::dev->SetDepthStencilSurface(NULL);
 	if(D3D::GetCaps().NumSimultaneousRTs > 1)
 		D3D::dev->SetRenderTarget(1, NULL);
@@ -467,8 +461,7 @@ have_texture:
 	vp.Height = tex_h;
 	vp.MinZ = 0.0f;
 	vp.MaxZ = 1.0f;
-	hr = D3D::dev->SetViewport(&vp);
-	CHECK(hr);
+	D3D::dev->SetViewport(&vp);
 	RECT destrect;
 	destrect.bottom = tex_h;
 	destrect.left = 0;

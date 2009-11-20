@@ -188,7 +188,7 @@ void Create()
 											 D3DMULTISAMPLE_NONE, 0, FALSE, &s_efb_depth_surface, NULL);
 		CHECK(hr,"CreateDepthStencilSurface");
 		//ULTRAAAAAAAAAAA ugly hack when no depth textures are supported
-		s_efb_depthColor_surface = s_efb_color_surface;
+		//s_efb_depthColor_surface = s_efb_color_surface;
 	}	
 }
 

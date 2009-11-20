@@ -41,6 +41,7 @@
 #include "OnScreenDisplay.h"
 #include "FramebufferManager.h"
 #include "Fifo.h"
+#include "TextureConverter.h"
 
 #include "debugger/debugger.h"
 
@@ -97,7 +98,7 @@ void SetupDeviceObjects()
 
 	VertexShaderManager::Dirty();
 	PixelShaderManager::Dirty();
-
+	TextureConverter::Init();
 	// Tex and shader caches will recreate themselves over time.
 
 }
@@ -114,6 +115,7 @@ void TeardownDeviceObjects()
 	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Clear();
 	PixelShaderCache::Clear();
+	TextureConverter::Shutdown();
 }
 
 bool Renderer::Init() 
@@ -167,7 +169,7 @@ bool Renderer::Init()
 	vp.Width  = s_backbuffer_width;
 	vp.Height = s_backbuffer_height;
 	vp.MinZ = 0.0f;
-	vp.MaxZ = 0.0f;
+	vp.MaxZ = 1.0f;
 	D3D::dev->SetViewport(&vp);
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 0, 0);
 	
@@ -177,8 +179,6 @@ bool Renderer::Init()
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
 	vp.Width  = s_target_width;
 	vp.Height = s_target_height;
-	vp.MinZ = 0.0f;
-	vp.MaxZ = 0.0f;
 	D3D::dev->SetViewport(&vp);
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x0, 1.0f, 0);
 	D3D::BeginFrame();
@@ -273,12 +273,6 @@ void CheckForResize()
 
 static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 {
-	// Set the backbuffer as the rendering target
-	D3D::dev->SetDepthStencilSurface(NULL);
-	if(D3D::GetCaps().NumSimultaneousRTs > 1)
-		D3D::dev->SetRenderTarget(1, NULL);
-	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());	
-	
 	TargetRectangle src_rect, dst_rect;
 	src_rect = Renderer::ConvertEFBRectangle(sourceRc);
 	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
@@ -288,21 +282,33 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 	vp.Width  = s_backbuffer_width;
 	vp.Height = s_backbuffer_height;
 	vp.MinZ = 0.0f;
-	vp.MaxZ = 0.0f;
+	vp.MaxZ = 1.0f;
 	D3D::dev->SetViewport(&vp);
 
 	D3D::dev->Clear(0,NULL, D3DCLEAR_TARGET,D3DCOLOR_XRGB(0,0,0),1.0f,0);
-	vp.X = dst_rect.left;
-	vp.Y = dst_rect.top;
-	vp.Width  = dst_rect.right - dst_rect.left;
-	vp.Height = dst_rect.bottom - dst_rect.top;
+	int X = dst_rect.left;
+	int Y = dst_rect.top;
+	int Width  = dst_rect.right - dst_rect.left;
+	int Height = dst_rect.bottom - dst_rect.top;
+	
+	if(X < 0) X = 0;
+	if(Y < 0) Y = 0;
+	if(X > s_backbuffer_width) X = s_backbuffer_width;
+	if(Y > s_backbuffer_height) Y = s_backbuffer_height;
+	if(Width < 0) Width = 0;
+	if(Height < 0) Height = 0;
+	if(Width > (s_backbuffer_width - X)) Width = s_backbuffer_width - X;
+	if(Height > (s_backbuffer_height - Y)) Height = s_backbuffer_height - Y;
+	vp.X = X;
+	vp.Y = Y;
+	vp.Width = Width;
+	vp.Height = Height;
 	vp.MinZ = 0.0f;
-	vp.MaxZ = 0.0f;
+	vp.MaxZ = 1.0f;
+
 	D3D::dev->SetViewport(&vp);
 
-	EFBRectangle efbRect;
-	
-	
+	EFBRectangle efbRect;	
 	
 	LPDIRECT3DTEXTURE9 read_texture = FBManager::GetEFBColorTexture(efbRect);
 	RECT destinationrect;
@@ -331,13 +337,6 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 	}
 
 	OSD::DrawMessages();
-
-	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-	if(D3D::GetCaps().NumSimultaneousRTs > 1)
-		D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());
-	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
-	
-    VertexShaderManager::SetViewportChanged();
 }
 
 
@@ -414,8 +413,13 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 		DEBUGGER_PAUSE_LOG_AT(NEXT_XFB_CMD,false,{printf("RenderToXFB - disabled");});
 		return;
 	}
-
 	Renderer::ResetAPIState();
+	// Set the backbuffer as the rendering target
+	D3D::dev->SetDepthStencilSurface(NULL);
+	if(D3D::GetCaps().NumSimultaneousRTs > 1)
+		D3D::dev->SetRenderTarget(1, NULL);
+	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());	
+
 	D3DDumpFrame();
 	EFBTextureToD3DBackBuffer(sourceRc);
 	D3D::EndFrame();
@@ -433,7 +437,12 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 										// until the XFB pointer is updated by VI	
 	D3D::BeginFrame();
 	Renderer::RestoreAPIState();
-	UpdateViewport();
+	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
+	if(D3D::GetCaps().NumSimultaneousRTs > 1)
+		D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());
+	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());	
+	UpdateViewport();	
+    VertexShaderManager::SetViewportChanged();
 	
 }
 
@@ -460,20 +469,7 @@ bool Renderer::SetScissorRect()
 	if (rc.bottom < 0) rc.bottom = 0;
 	if (rc.top > s_target_height) rc.top = s_target_height;
 	if (rc.bottom > s_target_height) rc.bottom = s_target_height;
-	/*LONG temprc = 0;
-	if(rc.right < rc.left)
-	{
-		temprc = rc.right;
-		rc.right = rc.left;
-		rc.left = temprc;
-	}
-	if(rc.bottom < rc.top)
-	{
-		temprc = rc.bottom;
-		rc.bottom = rc.top;
-		rc.top = temprc;
-	}
-	D3D::dev->SetScissorRect(&rc);*/
+	
 	if (rc.right >= rc.left && rc.bottom >= rc.top)
 	{
 		D3D::dev->SetScissorRect(&rc);
@@ -482,14 +478,14 @@ bool Renderer::SetScissorRect()
 	else
 	{
 		WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
-		rc.left   = 0;
+		/*rc.left   = 0;
 		rc.top    = 0;
 		rc.right  = GetTargetWidth();
 		rc.bottom = GetTargetHeight();
-		D3D::dev->SetScissorRect(&rc);				
+		D3D::dev->SetScissorRect(&rc);*/
 		return false;
 	}
-	return true;
+	return false;
 }
 
 void Renderer::SetColorMask() 
@@ -644,18 +640,23 @@ void UpdateViewport()
 	D3DVIEWPORT9 vp;
 
 	// Stretch picture with increased internal resolution
-	vp.X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * MValueX);
-	vp.Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY);
-	vp.Width  = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
-	vp.Height = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
-	if(vp.X < 0) vp.X = 0;
-	if(vp.Y < 0) vp.Y = 0;
-	if(vp.X > s_target_width) vp.X = s_target_width;
-	if(vp.Y > s_target_height) vp.Y = s_target_height;
-	if(vp.Width < 0) vp.Width = 0;
-	if(vp.Height < 0) vp.Height = 0;
-	if(vp.Width > (s_target_width - vp.X)) vp.Width = s_target_width - vp.X;
-	if(vp.Height > (s_target_height - vp.Y)) vp.Height = s_target_height - vp.Y;
+	int X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * MValueX); 	
+	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY);
+	int Width  = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
+	int Height = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
+
+	if(X < 0) X = 0;
+	if(Y < 0) Y = 0;
+	if(X > s_target_width) X = s_target_width;
+	if(Y > s_target_height) Y = s_target_height;
+	if(Width < 0) Width = 0;
+	if(Height < 0) Height = 0;
+	if(Width > (s_target_width - X)) Width = s_target_width - X;
+	if(Height > (s_target_height - Y)) Height = s_target_height - Y;
+	vp.X = X;
+	vp.Y = Y;
+	vp.Width = Width;
+	vp.Height = Height;
 	//some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
 	vp.MinZ = 0.0f;//(xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
 	vp.MaxZ = 1.0f;//xfregs.rawViewport[5] / 16777216.0f;
@@ -664,28 +665,6 @@ void UpdateViewport()
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
-	// Update the view port for clearing the picture
-	D3DVIEWPORT9 vp;	
-	vp.X = 0;
-	vp.Y = 0;	
-	vp.Width  = Renderer::GetTargetWidth();
-	vp.Height = Renderer::GetTargetHeight();
-	vp.MinZ = 0.0;
-	vp.MaxZ = 1.0;
-	D3D::dev->SetViewport(&vp);	
-
-	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
-
-    // Always set the scissor in case it was set by the game and has not been reset
-	RECT sirc;
-	sirc.left   = targetRc.left;
-	sirc.top    = targetRc.top;
-	sirc.right  = targetRc.right;
-	sirc.bottom = targetRc.bottom;
-	D3D::dev->SetScissorRect(&sirc);	
-
-    VertexShaderManager::SetViewportChanged();
-
 	DWORD clearflags = 0;	
 	if(colorEnable)
 	{
@@ -695,8 +674,31 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	{
 		clearflags |= D3DCLEAR_ZBUFFER;
 	}
+	if(clearflags)
+	{
+		// Update the view port for clearing the picture
+		D3DVIEWPORT9 vp;	
+		vp.X = 0;
+		vp.Y = 0;	
+		vp.Width  = Renderer::GetTargetWidth();
+		vp.Height = Renderer::GetTargetHeight();
+		vp.MinZ = 0.0;
+		vp.MaxZ = 1.0;
+		D3D::dev->SetViewport(&vp);	
 
-	D3D::dev->Clear(0, NULL, clearflags, color,(z & 0xFFFFFF) / float(0xFFFFFF), 0);	
+		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
+
+		// Always set the scissor in case it was set by the game and has not been reset
+		RECT sirc;
+		sirc.left   = targetRc.left;
+		sirc.top    = targetRc.top;
+		sirc.right  = targetRc.right;
+		sirc.bottom = targetRc.bottom;
+		D3D::dev->SetScissorRect(&sirc);
+		D3D::dev->Clear(0, NULL, clearflags, color,(z & 0xFFFFFF) / float(0xFFFFFF), 0);			
+		SetScissorRect();
+		VertexShaderManager::SetViewportChanged();
+	}
 }
 
 void Renderer::SetBlendMode(bool forceUpdate)

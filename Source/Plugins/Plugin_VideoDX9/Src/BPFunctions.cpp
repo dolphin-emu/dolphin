@@ -24,6 +24,7 @@
 #include "VertexShaderManager.h"
 #include "Utils.h"
 #include "debugger/debugger.h"
+#include "TextureConverter.h"
 
 
 bool textureChanged[8];
@@ -145,24 +146,24 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 {
 	if (!g_ActiveConfig.bEFBCopyDisable)
 	{
-		//if (g_ActiveConfig.bCopyEFBToRAM)
+		//uncomment this to see the efb to ram work in progress
+		/*if (g_ActiveConfig.bCopyEFBToRAM)
+		{
 			// To RAM, not implemented yet
-			//TextureConverter::EncodeToRam(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
-		//else // To D3D Texture
-			TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
-			DEBUGGER_PAUSE_LOG_AT(NEXT_EFB_CMD,false,
-			{printf("EFB to texture: addr = %08X\n",address);});
+			TextureConverter::EncodeToRam(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
+		}
+		else // To D3D Texture*/
+		{
+			TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);			
+		}
 
 	}
 }
 
 void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 {
-	// TODO: Scale EFBRectangle correctly
-
 	// it seems that the GC is able to alpha blend on color-fill
 	// we cant do that so if alpha is != 255 we skip it
-	VertexShaderManager::SetViewportChanged();
 
 	bool colorEnable = bpmem.blendmode.colorupdate;
 	bool alphaEnable = (bpmem.zcontrol.pixel_format == PIXELFMT_RGBA6_Z24 && bpmem.blendmode.alphaupdate);
