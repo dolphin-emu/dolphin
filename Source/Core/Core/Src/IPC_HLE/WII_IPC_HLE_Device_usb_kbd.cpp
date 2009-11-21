@@ -342,7 +342,7 @@ u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesQWERTY[256] = {
 	0
 };
 
-u8 m_KeyCodesAZERTY[256] = {
+u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesAZERTY[256] = {
 	0
 };
 #elif defined __APPLE__
