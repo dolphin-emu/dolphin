@@ -676,10 +676,10 @@ void Tev::Draw()
     // z texture
     if (bpmem.ztex2.op)
     {
-        s32 ztex = bpmem.ztex1.bias;
+        u32 ztex = bpmem.ztex1.bias;
         switch (bpmem.ztex2.type) {
             case 0: // 8 bit
-                ztex += TexColor[RED_C];
+                ztex += TexColor[ALP_C];
                 break;
             case 1: // 16 bit
                 ztex += TexColor[ALP_C] << 8 | TexColor[RED_C];
@@ -689,14 +689,10 @@ void Tev::Draw()
                 break;
         }
 
-        switch (bpmem.ztex2.op) {
-            case ZTEXTURE_ADD:
-                Position[2] += ztex;
-                break;
-            case ZTEXTURE_REPLACE:
-                Position[2] = ztex;
-                break;
-        }
+        if (bpmem.ztex2.op == ZTEXTURE_ADD)
+            ztex += Position[2];
+
+        Position[2] = ztex & 0x00ffffff;
     }
 
     if (!bpmem.zcontrol.zcomploc && bpmem.zmode.testenable)

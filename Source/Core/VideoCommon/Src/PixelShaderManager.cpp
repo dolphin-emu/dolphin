@@ -106,22 +106,20 @@ void PixelShaderManager::SetConstants()
 
 	if (s_bZTextureTypeChanged) 
 	{    
-        static float ffrac = 255.0f/256.0f;
         float ftemp[4];
         switch (bpmem.ztex2.type) 
 		{
              case 0:
                 // 8 bits                
-                ftemp[0] = ffrac; ftemp[1] = 0; ftemp[2] = 0; ftemp[3] = 0;                
+                ftemp[0] = 0; ftemp[1] = 0; ftemp[2] = 0; ftemp[3] = 255.0f/16777215.0f;
                 break;
             case 1:
                 // 16 bits
-                ftemp[0] = ffrac/256.0f; ftemp[1] = 0; ftemp[2] = 0; ftemp[3] = ffrac;
+                ftemp[0] = 255.0f/16777215.0f; ftemp[1] = 0; ftemp[2] = 0; ftemp[3] = 65280.0f/16777215.0f;
                 break;
             case 2:
                 // 24 bits
-				//ftemp[0] = ffrac/65536.0f; ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac; ftemp[3] = 0;
-				ftemp[0] = ffrac; ftemp[1] = ffrac/256.0f; ftemp[2] = ffrac/65536.0f; ftemp[3] = 0;
+				ftemp[0] = 16711680.0f/16777215.0f; ftemp[1] = 65280.0f/16777215.0f; ftemp[2] = 255.0f/16777215.0f; ftemp[3] = 0;
                 break;
         }
 		SetPSConstant4fv(C_ZBIAS, ftemp);
@@ -131,7 +129,7 @@ void PixelShaderManager::SetConstants()
 	if (s_bZBiasChanged || s_bDepthRangeChanged) 
 	{
         //ERROR_LOG("pixel=%x,%x, bias=%x\n", bpmem.zcontrol.pixel_format, bpmem.ztex2.type, lastZBias);
-        SetPSConstant4f(C_ZBIAS+1, lastDepthRange[0] / 16777216.0f, lastDepthRange[1] / 16777216.0f, 0, (float)( (((int)lastZBias<<8)>>8))/16777216.0f);
+        SetPSConstant4f(C_ZBIAS+1, lastDepthRange[0] / 16777216.0f, lastDepthRange[1] / 16777216.0f, 0, (float)(lastZBias)/16777215.0f);
 		s_bZBiasChanged = s_bDepthRangeChanged = false;
     }
 

@@ -58,8 +58,11 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 texturemask, u32 dstAlphaEnable)
 
 	uid.values[2] = texturemask;
 
+    u32 enableZTexture = (!bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)?1:0;
+
     uid.values[3] = (u32)bpmem.fog.c_proj_fsel.fsel |
-                   ((u32)bpmem.fog.c_proj_fsel.proj << 3);
+                   ((u32)bpmem.fog.c_proj_fsel.proj << 3) |
+                   ((u32)enableZTexture << 4);
 
 	int hdr = 4;
 	u32* pcurvalue = &uid.values[hdr];
@@ -522,11 +525,19 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, u32 HLSL)
 	// the screen space depth value = far z + (clip z / clip w) * z range
 	WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
 
-    // use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
-    if (bpmem.ztex2.op == ZTEXTURE_ADD)
-        WRITE(p, "zCoord = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord);\n");
-    else if (bpmem.ztex2.op == ZTEXTURE_REPLACE)
-        WRITE(p, "zCoord = frac(dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w);\n");
+    if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)
+    {
+        // use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
+        if (bpmem.ztex2.op == ZTEXTURE_ADD)
+            WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord;\n");
+        else
+            WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w;\n");
+
+        // scale to make result from frac correct
+        WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
+        WRITE(p, "zCoord = frac(zCoord);\n");
+        WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
+    }
     
     WRITE(p, "depth = zCoord;\n");
 
