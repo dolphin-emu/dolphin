@@ -55,6 +55,7 @@
 #include "WII_IPC_HLE_Device_net.h"
 #include "WII_IPC_HLE_Device_es.h"
 #include "WII_IPC_HLE_Device_usb.h"
+#include "WII_IPC_HLE_Device_usb_kbd.h"
 #include "WII_IPC_HLE_Device_sdio_slot0.h"
 
 #include "FileUtil.h" // For Copy

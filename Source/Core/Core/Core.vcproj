@@ -2095,19 +2095,11 @@
 				Name="Keyboard"
 				>
 				<File
-					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_Usb_Kbd_apple.h"
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_Usb_Kbd_linux.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_Usb_Kbd_win32.h"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Usb_Kbd.cpp"
+					RelativePath=".\Src\IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h"
 					>
 				</File>
 			</Filter>

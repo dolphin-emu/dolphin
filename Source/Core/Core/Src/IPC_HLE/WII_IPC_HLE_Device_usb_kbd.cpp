@@ -15,6 +15,152 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "../Core.h" // Local core functions
+#include "WII_IPC_HLE_Device_usb.h"
+#include "WII_IPC_HLE_Device_usb_kbd.h"
+
+
+CWII_IPC_HLE_Device_usb_kbd::CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const std::string& _rDeviceName)
+: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+{}
+
+CWII_IPC_HLE_Device_usb_kbd::~CWII_IPC_HLE_Device_usb_kbd()
+{}
+
+bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
+{
+    Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+
+	IniFile ini;
+	ini.Load(CONFIG_FILE);
+	ini.Get("USB Keyboard", "Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
+
+	for(int i = 0; i < 256; i++)
+		m_OldKeyBuffer[i] = false;
+	m_OldModifiers = 0x00;
+
+	m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, NULL));
+
+    return true;
+}
+
+bool CWII_IPC_HLE_Device_usb_kbd::Write(u32 _CommandAddress)
+{
+	WARN_LOG(WII_IPC_STM, "Ignoring write to CWII_IPC_HLE_Device_usb_kbd");
+	DumpCommands(_CommandAddress, 10, LogTypes::WII_IPC_STM, LogTypes::LDEBUG);
+	return true;
+}
+
+bool CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
+{
+    u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
+    u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
+    u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
+    u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+    u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+
+	if (!m_MessageQueue.empty())
+	{
+		*(SMessageData*)Memory::GetPointer(BufferOut) = m_MessageQueue.front();
+		m_MessageQueue.pop();
+	}
+
+    Memory::Write_U32(0, _CommandAddress + 0x4);
+    return true;
+}
+
+bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
+{
+#ifdef _WIN32
+	if (GetAsyncKeyState(_Key) & 0x8000)
+		return true;
+	else
+		return false;
+#else
+	// TODO: do it for non-Windows platforms
+	return false;
+#endif
+}
+
+u32 CWII_IPC_HLE_Device_usb_kbd::Update()
+{
+	u8 Modifiers = 0x00;
+	u8 PressedKeys[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+	bool GotEvent = false;
+	int num_pressed_keys = 0;
+	for (int i = 0; i < 256; i++)
+	{
+		bool KeyPressedNow = IsKeyPressed(i);
+		bool KeyPressedBefore = m_OldKeyBuffer[i];
+		u8 KeyCode = 0;
+
+		if (KeyPressedNow ^ KeyPressedBefore)
+		{
+			if (KeyPressedNow)
+			{
+				switch (m_KeyboardLayout)
+				{
+				case KBD_LAYOUT_QWERTY:
+					KeyCode = m_KeyCodesQWERTY[i];
+					break;
+
+				case KBD_LAYOUT_AZERTY:
+					KeyCode = m_KeyCodesAZERTY[i];
+					break;
+				}
+
+				if (KeyCode == 0x00)
+					continue;
+
+				PressedKeys[num_pressed_keys] = KeyCode;
+
+				num_pressed_keys++;
+				if (num_pressed_keys == 6)
+					break;
+			}
+
+			GotEvent = true;
+		}
+
+		m_OldKeyBuffer[i] = KeyPressedNow;
+	}
+
+#ifdef _WIN32
+	if (GetAsyncKeyState(VK_LCONTROL) & 0x8000)
+		Modifiers |= 0x01;
+	if (GetAsyncKeyState(VK_LSHIFT) & 0x8000)
+		Modifiers |= 0x02;
+	if (GetAsyncKeyState(VK_MENU) & 0x8000)
+		Modifiers |= 0x04;
+	if (GetAsyncKeyState(VK_LWIN) & 0x8000)
+		Modifiers |= 0x08;
+	if (GetAsyncKeyState(VK_RCONTROL) & 0x8000)
+		Modifiers |= 0x10;
+	if (GetAsyncKeyState(VK_RSHIFT) & 0x8000)
+		Modifiers |= 0x20;
+	if (GetAsyncKeyState(VK_MENU) & 0x8000) // TODO: VK_MENU is for ALT, not for ALT GR (ALT GR seems to work though...)
+		Modifiers |= 0x40;
+	if (GetAsyncKeyState(VK_RWIN) & 0x8000)
+		Modifiers |= 0x80;
+#else
+	// TODO: modifiers for non-Windows platforms
+#endif
+
+	if (Modifiers ^ m_OldModifiers)
+	{
+		GotEvent = true;
+		m_OldModifiers = Modifiers;
+	}
+
+	if (GotEvent)
+		m_MessageQueue.push(SMessageData(MSG_EVENT, Modifiers, PressedKeys));
+
+	return 0;
+}
+
+
+// Crazy ugly
+#ifdef _WIN32
 u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesQWERTY[256] = {
 
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -190,3 +336,22 @@ u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesAZERTY[256] = {
 	0x00, // Nothing interesting past this point.
 
 };
+#elif defined __linux__
+// TODO Add support for Linux keycodes
+u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesQWERTY[256] = {
+	0
+};
+
+u8 m_KeyCodesAZERTY[256] = {
+	0
+};
+#elif defined __APPLE__
+// TODO Add support for Apple keycodes
+u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesQWERTY[256] = {
+	0
+};
+
+u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesAZERTY[256] = {
+	0
+};
+#endif
