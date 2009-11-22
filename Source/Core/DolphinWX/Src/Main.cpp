@@ -510,11 +510,11 @@ void Host_Message(int Id)
 void Host_NotifyMapLoaded()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_NOTIFYMAPLOADED);
-	wxPostEvent(main_frame, event);
+	main_frame->AddPendingEvent(event);
 
 	if (main_frame->g_pCodeWindow)
 	{
-		wxPostEvent(main_frame->g_pCodeWindow, event);
+		main_frame->g_pCodeWindow->AddPendingEvent(event);
 	}
 }
 
@@ -522,11 +522,11 @@ void Host_NotifyMapLoaded()
 void Host_UpdateLogDisplay()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATELOGDISPLAY);
-	wxPostEvent(main_frame, event);
+	main_frame->AddPendingEvent(event);
 
 	if (main_frame->g_pCodeWindow)
 	{
-		wxPostEvent(main_frame->g_pCodeWindow, event);
+		main_frame->g_pCodeWindow->AddPendingEvent(event);
 	}
 }
 
@@ -534,11 +534,11 @@ void Host_UpdateLogDisplay()
 void Host_UpdateDisasmDialog()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEDISASMDIALOG);
-	wxPostEvent(main_frame, event);
+	main_frame->AddPendingEvent(event);
 
 	if (main_frame->g_pCodeWindow)
 	{
-		wxPostEvent(main_frame->g_pCodeWindow, event);
+		main_frame->g_pCodeWindow->AddPendingEvent(event);
 	}
 }
 
@@ -551,22 +551,22 @@ void Host_ShowJitResults(unsigned int address)
 void Host_UpdateMainFrame()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
-	wxPostEvent(main_frame, event);
+	main_frame->AddPendingEvent(event);
 
 	if (main_frame->g_pCodeWindow)
 	{
-		wxPostEvent(main_frame->g_pCodeWindow, event);
+		main_frame->g_pCodeWindow->AddPendingEvent(event);
 	}
 }
 
 void Host_UpdateBreakPointView()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
-	wxPostEvent(main_frame, event);
+	main_frame->AddPendingEvent(event);
 
 	if (main_frame->g_pCodeWindow)
 	{
-		wxPostEvent(main_frame->g_pCodeWindow, event);
+		main_frame->g_pCodeWindow->AddPendingEvent(event);
 	}
 }
 
@@ -643,7 +643,7 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 	// Post message
 	// TODO : this has been said to cause hang (??) how is that even possible ? :d
 	event.StopPropagation();
-	wxPostEvent(main_frame, event);
+	main_frame->AddPendingEvent(event);
 	// Process the event before continue
 	wxGetApp().ProcessPendingEvents();
 }
@@ -670,6 +670,6 @@ void Host_SetWiiMoteConnectionState(int _State)
 		event.SetInt(1);
 	#endif
 
-	wxPostEvent(main_frame, event);
+	main_frame->AddPendingEvent(event);
 }
 #endif // HAVE_WX

@@ -524,18 +524,18 @@ void CFrame::PostEvent(wxCommandEvent& event)
 		)
 	{
 		event.StopPropagation();
-		wxPostEvent(g_pCodeWindow, event);
+		g_pCodeWindow->AddPendingEvent(event);
 	}
 	else
 		event.Skip();
 }
 void CFrame::PostMenuEvent(wxMenuEvent& event)
 {
-	if (g_pCodeWindow) wxPostEvent(g_pCodeWindow, event);
+	if (g_pCodeWindow) g_pCodeWindow->AddPendingEvent(event);
 }
 void CFrame::PostUpdateUIEvent(wxUpdateUIEvent& event)
 {
-	if (g_pCodeWindow) wxPostEvent(g_pCodeWindow, event);
+	if (g_pCodeWindow) g_pCodeWindow->AddPendingEvent(event);
 }
 
 void CFrame::OnResize(wxSizeEvent& event)
