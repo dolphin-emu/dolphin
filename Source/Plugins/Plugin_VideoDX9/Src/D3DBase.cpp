@@ -476,6 +476,11 @@ void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Valu
 	}
 }
 
+void RefreshSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type)
+{
+	D3D::dev->SetSamplerState(Sampler, Type, m_SamplerStates[Sampler][Type]);	
+}
+
 void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
 {
 	if (m_SamplerStates[Sampler][Type] != Value)

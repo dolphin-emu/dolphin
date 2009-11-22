@@ -189,21 +189,21 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 
 	tempTexture->GetSurfaceLevel(0,&Rendersurf);
 	hr = D3D::dev->SetDepthStencilSurface(NULL);
-	if(D3D::GetCaps().NumSimultaneousRTs > 1)
-		hr = D3D::dev->SetRenderTarget(1, NULL);
 	hr = D3D::dev->SetRenderTarget(0, Rendersurf);
 	
 	
-	/*if (linearFilter)
+	if (linearFilter)
 	{
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		D3D::dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+		D3D::dev->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+		D3D::dev->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_LINEAR);
 	}
 	else
 	{
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	}*/
+		D3D::dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+		D3D::dev->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+		D3D::dev->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
+	}
 
 	
 	D3DVIEWPORT9 vp;
@@ -227,14 +227,14 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 
 
 	// Draw...
-	D3D::drawShadedTexQuad(srcTexture,&SrcRect,srcTextureWidth,srcTextureHeight,&DstRect,shader,VertexShaderCache::GetSimpleVertexSahder());
+	D3D::drawShadedTexQuad(srcTexture,&SrcRect,srcTextureWidth,srcTextureHeight,&DstRect,shader,VertexShaderCache::GetSimpleVertexShader());
 	hr = D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-	if(D3D::GetCaps().NumSimultaneousRTs > 1)
-		hr = D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());
 	hr = D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
 	VertexShaderManager::SetViewportChanged();
 	Renderer::RestoreAPIState();	
-	
+	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
+	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
+	D3D::RefreshSamplerState(0, D3DSAMP_MIPFILTER);
 
 	// .. and then readback the results.
 	// TODO: make this less slow.

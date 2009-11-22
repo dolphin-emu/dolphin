@@ -34,6 +34,8 @@ namespace D3D
 // Z texture formats
 #define FOURCC_INTZ ((D3DFORMAT)(MAKEFOURCC('I','N','T','Z')))
 #define FOURCC_RAWZ ((D3DFORMAT)(MAKEFOURCC('R','A','W','Z')))
+#define FOURCC_DF24 ((D3DFORMAT)(MAKEFOURCC('D','F','2','4')))
+#define FOURCC_DF16 ((D3DFORMAT)(MAKEFOURCC('D','F','1','6')))
 
 // Depth buffer resolve:
 #define FOURCC_RESZ ((D3DFORMAT)(MAKEFOURCC('R','E','S','Z')))
@@ -74,6 +76,7 @@ void ShowD3DError(HRESULT err);
 void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
 void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);
 void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
+void RefreshSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type);
 void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
 void RefreshVertexDeclaration();
 void SetVertexDeclaration(LPDIRECT3DVERTEXDECLARATION9 decl);

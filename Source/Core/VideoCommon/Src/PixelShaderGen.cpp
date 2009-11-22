@@ -453,10 +453,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, u32 HLSL)
     WRITE(p, "uniform float4 "I_FOG"[2] : register(c%d);\n", C_FOG);
 
     WRITE(p, "void main(\n");
-
-    WRITE(p, "  out float4 ocol0 : COLOR0,\n");
-	if (HLSL == 1)
-		WRITE(p, "  out float4 ocol1 : COLOR1,\n");
+    WRITE(p, "  out float4 ocol0 : COLOR0,\n");	
     WRITE(p, "  out float depth : DEPTH,\n");
 
     // compute window position if needed because binding semantic WPOS is not widely supported
@@ -541,13 +538,6 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, u32 HLSL)
     
     WRITE(p, "depth = zCoord;\n");
 
-	if(HLSL == 1)
-	{
-		WRITE(p, "float4 EncodedDepth = frac(zCoord * float4(254.0f/255.0,254.0f,254.0f*255.0f,0.0f));\n");
-		WRITE(p, "EncodedDepth -= EncodedDepth.raag * float4(0.0f,1.0f/255.0f,1.0f/255.0f,0.0f);\n");
-		WRITE(p, "ocol1 = float4(EncodedDepth.rgb,1.0f);\n");
-		
-	}	
     //if (bpmem.genMode.numindstages ) WRITE(p, "prev.rg = indtex0.xy;\nprev.b = 0;\n");
 
     if (!WriteAlphaTest(p, HLSL))

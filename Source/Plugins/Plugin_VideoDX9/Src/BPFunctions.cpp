@@ -115,12 +115,12 @@ void SetDepthMode(const BPCmd &bp)
 	{
 		D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
 		D3D::SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
-		D3D::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);
+		D3D::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);		
 	}
 	else
 	{
 		D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
-		D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);  // ??
+		D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);  // ??		
 	}			
 }
 

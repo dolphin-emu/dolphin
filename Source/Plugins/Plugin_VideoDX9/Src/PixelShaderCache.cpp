@@ -36,6 +36,8 @@ static float lastPSconstants[C_COLORMATRIX+16][4];
 
 static LPDIRECT3DPIXELSHADER9 s_ColorMatrixProgram = 0;
 static LPDIRECT3DPIXELSHADER9 s_ColorCopyProgram = 0;
+static LPDIRECT3DPIXELSHADER9 s_ClearProgram = 0;
+static LPDIRECT3DPIXELSHADER9 s_ClearZProgram = 0;
 static LPDIRECT3DPIXELSHADER9 s_DepthMatrixProgram = 0;
 
 
@@ -52,6 +54,11 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetDepthMatrixProgram()
 LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetColorCopyProgram()
 {
 	return s_ColorCopyProgram;
+}
+
+LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetClearProgram()
+{
+	return s_ClearProgram;
 }
 
 void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
@@ -99,6 +106,14 @@ void PixelShaderCache::Init()
 						" in float3 uv0 : TEXCOORD0){\n"
 						"ocol0 = tex2D(samp0,uv0.xy);\n"						
 						"}\n");
+	
+	char pclearprog[1024];
+	sprintf(pclearprog,"void main(\n"
+						"out float4 ocol0 : COLOR0,\n"
+						" in float4 incol0 : COLOR0){\n"
+						"ocol0 = incol0;\n"
+						"}\n");
+
 	char pdmatrixprog[1024];
 	sprintf(pdmatrixprog,"uniform sampler samp0 : register(s0);\n"
 						"uniform float4 cColMatrix[5] : register(c%d);\n"
@@ -106,15 +121,15 @@ void PixelShaderCache::Init()
 						"out float4 ocol0 : COLOR0,\n"
 						" in float3 uv0 : TEXCOORD0){\n"
 						"float4 texcol = tex2D(samp0,uv0.xy);\n"
-						"float4 EncodedDepth = frac(texcol.r * float4(1.0f,255.0f,255.0f*255.0f,255.0f*255.0f*255.0f));\n"
-						"EncodedDepth -= EncodedDepth.raag * float4(0.0f,1.0f/255.0f,1.0f/255.0f,0.0f);\n"
-						"texcol = float4(EncodedDepth.rgb,1.0f);\n"
+						"float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,255.0f,255.0f*255.0f,255.0f*255.0f*255.0f));\n"
+						"texcol = float4((EncodedDepth.rgb * (16777216.0f/16777215.0f)),1.0f);\n"
 						"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"						
 						"}\n",C_COLORMATRIX);
 
 	s_ColorMatrixProgram = D3D::CompilePixelShader(pmatrixprog, (int)strlen(pmatrixprog));
 	s_ColorCopyProgram = D3D::CompilePixelShader(pcopyprog, (int)strlen(pcopyprog));
 	s_DepthMatrixProgram = D3D::CompilePixelShader(pdmatrixprog, (int)strlen(pdmatrixprog));
+	s_ClearProgram = D3D::CompilePixelShader(pclearprog, (int)strlen(pclearprog));	
 	Clear();
 }
 
@@ -141,6 +156,10 @@ void PixelShaderCache::Shutdown()
 	if(s_DepthMatrixProgram)
 			s_DepthMatrixProgram->Release();
 	s_DepthMatrixProgram = NULL;
+	if(s_ClearProgram)
+		s_ClearProgram->Release();
+	s_ClearProgram=NULL;	
+	
 	Clear();
 }
 
@@ -181,7 +200,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 			return false;
 	}
 
-	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), dstAlpha, (D3D::GetCaps().NumSimultaneousRTs > 1)? 1 : 2);
+	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), dstAlpha, /*(D3D::GetCaps().NumSimultaneousRTs > 1)? 1 :*/ 2);
 	LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePixelShader(code, (int)strlen(code));
 
 	// Make an entry in the table

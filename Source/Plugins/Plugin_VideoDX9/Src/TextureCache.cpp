@@ -341,29 +341,29 @@ have_texture:
 		{
             case 0: // Z4
             case 1: // Z8
-                colmat[0] = colmat[4] = colmat[8] = colmat[12] = 255.0f/254.0f;
+                colmat[0] = colmat[4] = colmat[8] = colmat[12] =1.0f;
                 break;
             
             case 3: // Z16 //?
-                colmat[1] = colmat[5] = colmat[9] = colmat[12] = 255.0f/254.0f;
+                colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;
             case 11: // Z16 (reverse order)
-                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 255.0f/254.0f;
+                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
                 break;
             case 6: // Z24X8
-                colmat[0] = colmat[5] = colmat[10] = 255.0f/254.0f;
+                colmat[0] = colmat[5] = colmat[10] = 1.0f;
                 break;
             case 9: // Z8M
-                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 255.0f/254.0f;
+                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
                 break;
             case 10: // Z8L
-                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 255.0f/254.0f;
+                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
                 break;
             case 12: // Z16L
-                colmat[2] = colmat[6] = colmat[10] = colmat[13] = 255.0f/254.0f;
+                colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1.0f;
                 break;
             default:
                 ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", copyfmt);
-                colmat[2] = colmat[5] = colmat[8] = 255.0f/254.0f;
+                colmat[2] = colmat[5] = colmat[8] = 1.0f;
                 break;
         }
     }
@@ -448,8 +448,6 @@ have_texture:
 	LPDIRECT3DSURFACE9 Rendersurf = NULL;
 	tex->GetSurfaceLevel(0,&Rendersurf);
 	D3D::dev->SetDepthStencilSurface(NULL);
-	if(D3D::GetCaps().NumSimultaneousRTs > 1)
-		D3D::dev->SetRenderTarget(1, NULL);
 	D3D::dev->SetRenderTarget(0, Rendersurf);		
     
 	D3DVIEWPORT9 vp;
@@ -476,12 +474,22 @@ have_texture:
 	sourcerect.left = targetSource.left;
 	sourcerect.right = targetSource.right;
 	sourcerect.top = targetSource.top;
-
-	D3D::drawShadedTexQuad(read_texture,&sourcerect, Renderer::GetTargetWidth() , Renderer::GetTargetHeight(),&destrect,(FBManager::GetEFBDepthRTSurfaceFormat() == D3DFMT_R32F && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(): PixelShaderCache::GetColorMatrixProgram(),VertexShaderCache::GetSimpleVertexSahder());	
+	if(bFromZBuffer)
+	{
+		D3D::dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+		D3D::dev->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+		D3D::dev->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_POINT);		
+	}
+	D3DFORMAT bformat = FBManager::GetEFBDepthRTSurfaceFormat();
+	D3D::drawShadedTexQuad(read_texture,&sourcerect, Renderer::GetTargetWidth() , Renderer::GetTargetHeight(),&destrect,((bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8) && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(): PixelShaderCache::GetColorMatrixProgram(),VertexShaderCache::GetSimpleVertexShader());	
+	if(bFromZBuffer)
+	{		
+		D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
+		D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
+		D3D::RefreshSamplerState(0, D3DSAMP_MIPFILTER);
+	}
 
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-	if(D3D::GetCaps().NumSimultaneousRTs > 1)
-		D3D::dev->SetRenderTarget(1, FBManager::GetEFBDepthEncodedSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
 	VertexShaderManager::SetViewportChanged();
 	Renderer::RestoreAPIState();	
