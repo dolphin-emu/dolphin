@@ -713,7 +713,7 @@ void CGameListCtrl::OnKeyPress(wxListEvent& event)
 // This shows a little tooltip with the current Game's emulation state
 void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 {
-	int flags; long subitem;
+	int flags; long subitem = 0;
 	long item = HitTest(event.GetPosition(), flags, &subitem);
 	static int lastItem = -1;
 

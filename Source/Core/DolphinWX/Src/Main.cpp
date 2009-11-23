@@ -123,9 +123,6 @@ bool DolphinApp::OnInit()
 		RegisterMsgAlertHandler(&wxMsgAlert);
 #endif
 
-#if defined __linux__
-		XInitThreads();
-#endif 
 	// "ExtendedTrace" looks freakin dangerous!!!
 	#ifdef _WIN32
 		EXTENDEDTRACEINITIALIZE(".");
@@ -457,6 +454,9 @@ bool DolphinApp::OnInit()
 
 	// Set main parent window
 	SetTopWindow(main_frame);
+#if defined __linux__
+		XInitThreads();
+#endif 
 	return true;
 }
 
