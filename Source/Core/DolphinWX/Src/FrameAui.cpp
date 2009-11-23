@@ -277,40 +277,40 @@ void CFrame::OnTab(wxAuiNotebookEvent& event)
 	if (!g_pCodeWindow) return;
 
 	// Create the popup menu
-	wxMenu MenuPopup;
+	wxMenu* MenuPopup = new wxMenu;
 
-	wxMenuItem* Item =  new wxMenuItem(&MenuPopup, wxID_ANY, wxT("Select floating windows"));
-	MenuPopup.Append(Item);
+	wxMenuItem* Item =  new wxMenuItem(MenuPopup, wxID_ANY, wxT("Select floating windows"));
+	MenuPopup->Append(Item);
 	Item->Enable(false);
-	MenuPopup.Append(new wxMenuItem(&MenuPopup));
-	Item =  new wxMenuItem(&MenuPopup, IDM_FLOAT_LOGWINDOW, WindowNameFromId(IDM_LOGWINDOW), wxT(""), wxITEM_CHECK);
-	MenuPopup.Append(Item);
+	MenuPopup->Append(new wxMenuItem(MenuPopup));
+	Item = new wxMenuItem(MenuPopup, IDM_FLOAT_LOGWINDOW, WindowNameFromId(IDM_LOGWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup->Append(Item);
 	Item->Check(!!FindWindowById(IDM_LOGWINDOW_PARENT));
-	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_CONSOLEWINDOW, WindowNameFromId(IDM_CONSOLEWINDOW), wxT(""), wxITEM_CHECK);
-	MenuPopup.Append(Item);
+	Item = new wxMenuItem(MenuPopup, IDM_FLOAT_CONSOLEWINDOW, WindowNameFromId(IDM_CONSOLEWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup->Append(Item);
 	Item->Check(!!FindWindowById(IDM_CONSOLEWINDOW_PARENT));
-	MenuPopup.Append(new wxMenuItem(&MenuPopup));
-	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_CODEWINDOW, WindowNameFromId(IDM_CODEWINDOW), wxT(""), wxITEM_CHECK);
-	MenuPopup.Append(Item);
+	MenuPopup->Append(new wxMenuItem(MenuPopup));
+	Item = new wxMenuItem(MenuPopup, IDM_FLOAT_CODEWINDOW, WindowNameFromId(IDM_CODEWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup->Append(Item);
 	Item->Check(!!FindWindowById(IDM_CODEWINDOW_PARENT));
-	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_REGISTERWINDOW, WindowNameFromId(IDM_REGISTERWINDOW), wxT(""), wxITEM_CHECK);
-	MenuPopup.Append(Item);
+	Item = new wxMenuItem(MenuPopup, IDM_FLOAT_REGISTERWINDOW, WindowNameFromId(IDM_REGISTERWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup->Append(Item);
 	Item->Check(!!FindWindowById(IDM_REGISTERWINDOW_PARENT));
-	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_BREAKPOINTWINDOW, WindowNameFromId(IDM_BREAKPOINTWINDOW), wxT(""), wxITEM_CHECK);
-	MenuPopup.Append(Item);
+	Item = new wxMenuItem(MenuPopup, IDM_FLOAT_BREAKPOINTWINDOW, WindowNameFromId(IDM_BREAKPOINTWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup->Append(Item);
 	Item->Check(!!FindWindowById(IDM_BREAKPOINTWINDOW_PARENT));
-	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_MEMORYWINDOW, WindowNameFromId(IDM_MEMORYWINDOW), wxT(""), wxITEM_CHECK);
-	MenuPopup.Append(Item);
+	Item = new wxMenuItem(MenuPopup, IDM_FLOAT_MEMORYWINDOW, WindowNameFromId(IDM_MEMORYWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup->Append(Item);
 	Item->Check(!!FindWindowById(IDM_MEMORYWINDOW_PARENT));
-	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_JITWINDOW, WindowNameFromId(IDM_JITWINDOW), wxT(""), wxITEM_CHECK);
-	MenuPopup.Append(Item);
+	Item = new wxMenuItem(MenuPopup, IDM_FLOAT_JITWINDOW, WindowNameFromId(IDM_JITWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup->Append(Item);
 	Item->Check(!!FindWindowById(IDM_JITWINDOW_PARENT));
-	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_SOUNDWINDOW, WindowNameFromId(IDM_SOUNDWINDOW), wxT(""), wxITEM_CHECK);
-	MenuPopup.Append(Item);
+	Item = new wxMenuItem(MenuPopup, IDM_FLOAT_SOUNDWINDOW, WindowNameFromId(IDM_SOUNDWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup->Append(Item);
 	Item->Check(!!FindWindowById(IDM_SOUNDWINDOW_PARENT));
 	Item->Enable(false);
-	Item = new wxMenuItem(&MenuPopup, IDM_FLOAT_VIDEOWINDOW, WindowNameFromId(IDM_VIDEOWINDOW), wxT(""), wxITEM_CHECK);
-	MenuPopup.Append(Item);
+	Item = new wxMenuItem(MenuPopup, IDM_FLOAT_VIDEOWINDOW, WindowNameFromId(IDM_VIDEOWINDOW), wxT(""), wxITEM_CHECK);
+	MenuPopup->Append(Item);
 	Item->Check(!!FindWindowById(IDM_VIDEOWINDOW_PARENT));
 	Item->Enable(false);
 
@@ -318,7 +318,7 @@ void CFrame::OnTab(wxAuiNotebookEvent& event)
 	wxPoint Pt = ::wxGetMousePosition();
 	Pt = ScreenToClient(Pt);
 	// Show
-	PopupMenu(&MenuPopup, Pt);
+	PopupMenu(MenuPopup, Pt);
 }
 void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
 {
@@ -513,16 +513,16 @@ void CFrame::OnDropDownSettingsToolbar(wxAuiToolBarEvent& event)
 		Tb->SetToolSticky(event.GetId(), true);
 
 		// Create the popup menu
-		wxMenu menuPopup;
+		wxMenu* menuPopup = new wxMenu;
 
-		wxMenuItem* Item =  new wxMenuItem(&menuPopup, IDM_PERSPECTIVES_ADD_PANE, wxT("Add new pane"));
-		menuPopup.Append(Item);
-		menuPopup.Append(new wxMenuItem(&menuPopup));
-		Item =  new wxMenuItem(&menuPopup, IDM_TAB_SPLIT, wxT("Tab split"), wxT(""), wxITEM_CHECK);
-		menuPopup.Append(Item);
+		wxMenuItem* Item =  new wxMenuItem(menuPopup, IDM_PERSPECTIVES_ADD_PANE, wxT("Add new pane"));
+		menuPopup->Append(Item);
+		menuPopup->Append(new wxMenuItem(menuPopup));
+		Item = new wxMenuItem(menuPopup, IDM_TAB_SPLIT, wxT("Tab split"), wxT(""), wxITEM_CHECK);
+		menuPopup->Append(Item);
 		Item->Check(m_bTabSplit);
-		Item = new wxMenuItem(&menuPopup, IDM_NO_DOCKING, wxT("No docking"), wxT(""), wxITEM_CHECK);
-		menuPopup.Append(Item);
+		Item = new wxMenuItem(menuPopup, IDM_NO_DOCKING, wxT("No docking"), wxT(""), wxITEM_CHECK);
+		menuPopup->Append(Item);
 		Item->Check(m_bNoDocking);
 
 		// Line up our menu with the button
@@ -530,7 +530,7 @@ void CFrame::OnDropDownSettingsToolbar(wxAuiToolBarEvent& event)
 		wxPoint Pt = Tb->ClientToScreen(rect.GetBottomLeft());
 		Pt = ScreenToClient(Pt);
 		// Show
-		PopupMenu(&menuPopup, Pt);
+		PopupMenu(menuPopup, Pt);
 		// Make the button un-stuck again
 		if (!m_bEdit) Tb->SetToolSticky(event.GetId(), false);
     }
@@ -546,17 +546,17 @@ void CFrame::OnDropDownToolbarItem(wxAuiToolBarEvent& event)
         tb->SetToolSticky(event.GetId(), true);
 
         // create the popup menu
-        wxMenu menuPopup;
-        wxMenuItem* Item = new wxMenuItem(&menuPopup, IDM_ADD_PERSPECTIVE, wxT("Create new perspective"));
-        menuPopup.Append(Item);
+        wxMenu* menuPopup = new wxMenu;
+        wxMenuItem* Item = new wxMenuItem(menuPopup, IDM_ADD_PERSPECTIVE, wxT("Create new perspective"));
+        menuPopup->Append(Item);
 
 		if (Perspectives.size() > 0)
 		{
-			menuPopup.Append(new wxMenuItem(&menuPopup));
+			menuPopup->Append(new wxMenuItem(menuPopup));
 			for (u32 i = 0; i < Perspectives.size(); i++)
 			{
-				wxMenuItem* mItem = new wxMenuItem(&menuPopup, IDM_PERSPECTIVES_0 + i, wxString::FromAscii(Perspectives.at(i).Name.c_str()), wxT(""), wxITEM_CHECK);
-				menuPopup.Append(mItem);
+				wxMenuItem* mItem = new wxMenuItem(menuPopup, IDM_PERSPECTIVES_0 + i, wxString::FromAscii(Perspectives.at(i).Name.c_str()), wxT(""), wxITEM_CHECK);
+				menuPopup->Append(mItem);
 				if (i == ActivePerspective) mItem->Check(true);
 			}
 		}
@@ -566,7 +566,7 @@ void CFrame::OnDropDownToolbarItem(wxAuiToolBarEvent& event)
         wxPoint pt = tb->ClientToScreen(rect.GetBottomLeft());
         pt = ScreenToClient(pt);
 		// show
-        PopupMenu(&menuPopup, pt);
+        PopupMenu(menuPopup, pt);
         // make sure the button is "un-stuck"
         tb->SetToolSticky(event.GetId(), false);
     }

@@ -785,44 +785,44 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 		const GameListItem *selected_iso = GetSelectedISO();
 		if (selected_iso)
 		{
-			wxMenu popupMenu;
-			popupMenu.Append(IDM_PROPERTIES, _("&Properties"));
-			popupMenu.AppendSeparator();
+			wxMenu* popupMenu = new wxMenu;
+			popupMenu->Append(IDM_PROPERTIES, _("&Properties"));
+			popupMenu->AppendSeparator();
 
 			if (selected_iso->GetPlatform() != GameListItem::GAMECUBE_DISC)
-				popupMenu.Append(IDM_OPENSAVEFOLDER, _("Open Wii &save folder"));
+				popupMenu->Append(IDM_OPENSAVEFOLDER, _("Open Wii &save folder"));
 
-			popupMenu.Append(IDM_OPENCONTAININGFOLDER, _("Open &containing folder"));
-			popupMenu.AppendCheckItem(IDM_SETDEFAULTGCM, _("Set as &default ISO"));
+			popupMenu->Append(IDM_OPENCONTAININGFOLDER, _("Open &containing folder"));
+			popupMenu->AppendCheckItem(IDM_SETDEFAULTGCM, _("Set as &default ISO"));
 			
 			// First we have to decide a starting value when we append it
 			if(selected_iso->GetFileName() == SConfig::GetInstance().
 				m_LocalCoreStartupParameter.m_strDefaultGCM)
-				popupMenu.FindItem(IDM_SETDEFAULTGCM)->Check();
+				popupMenu->FindItem(IDM_SETDEFAULTGCM)->Check();
 
-			popupMenu.AppendSeparator();
-			popupMenu.Append(IDM_DELETEGCM, _("&Delete ISO..."));
+			popupMenu->AppendSeparator();
+			popupMenu->Append(IDM_DELETEGCM, _("&Delete ISO..."));
 
 			if (selected_iso->GetPlatform() != GameListItem::WII_WAD)
 			{
 				if (selected_iso->IsCompressed())
-					popupMenu.Append(IDM_COMPRESSGCM, _("Decompress ISO..."));
+					popupMenu->Append(IDM_COMPRESSGCM, _("Decompress ISO..."));
 				else
-					popupMenu.Append(IDM_COMPRESSGCM, _("Compress ISO..."));
+					popupMenu->Append(IDM_COMPRESSGCM, _("Compress ISO..."));
 			} else
-				popupMenu.Append(IDM_INSTALLWAD, _("Install to Wii Menu"));
+				popupMenu->Append(IDM_INSTALLWAD, _("Install to Wii Menu"));
 
-			PopupMenu(&popupMenu);
+			PopupMenu(popupMenu);
 		}
 	}
 	else if (GetSelectedItemCount() > 1)
 	{
-		wxMenu popupMenu;
-		popupMenu.Append(IDM_DELETEGCM, _("&Delete selected ISOs..."));
-		popupMenu.AppendSeparator();
-		popupMenu.Append(IDM_MULTICOMPRESSGCM, _("Compress selected ISOs..."));
-		popupMenu.Append(IDM_MULTIDECOMPRESSGCM, _("Decompress selected ISOs..."));
-		PopupMenu(&popupMenu);
+		wxMenu* popupMenu = new wxMenu;
+		popupMenu->Append(IDM_DELETEGCM, _("&Delete selected ISOs..."));
+		popupMenu->AppendSeparator();
+		popupMenu->Append(IDM_MULTICOMPRESSGCM, _("Compress selected ISOs..."));
+		popupMenu->Append(IDM_MULTIDECOMPRESSGCM, _("Decompress selected ISOs..."));
+		PopupMenu(popupMenu);
 	}
 }
 

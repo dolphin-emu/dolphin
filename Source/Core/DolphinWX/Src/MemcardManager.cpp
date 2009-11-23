@@ -883,7 +883,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 
 	int flags;
 	long item = HitTest(event.GetPosition(), flags);
-	wxMenu popupMenu;
+	wxMenu* popupMenu = new wxMenu;
 
 	if (item != wxNOT_FOUND) 
 	{
@@ -894,47 +894,47 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
 		SetItemState(item, wxLIST_STATE_FOCUSED, wxLIST_STATE_FOCUSED);
 
 		int slot = event.GetId() - ID_MEMCARDLIST_A;
-		popupMenu.Append(ID_COPYFROM_A + slot, wxString::Format(wxT("Copy to Memcard %c"), 'B' - slot));
-		popupMenu.Append(ID_DELETE_A + slot, wxT("Delete Save"));
-		popupMenu.Append(ID_SAVEIMPORT_A + slot, wxT("Import Save"));
-		popupMenu.Append(ID_SAVEEXPORT_A + slot, wxT("Export Save"));
-		popupMenu.Append(ID_EXPORTALL_A + slot, wxT("Export all saves"));
+		popupMenu->Append(ID_COPYFROM_A + slot, wxString::Format(wxT("Copy to Memcard %c"), 'B' - slot));
+		popupMenu->Append(ID_DELETE_A + slot, wxT("Delete Save"));
+		popupMenu->Append(ID_SAVEIMPORT_A + slot, wxT("Import Save"));
+		popupMenu->Append(ID_SAVEEXPORT_A + slot, wxT("Export Save"));
+		popupMenu->Append(ID_EXPORTALL_A + slot, wxT("Export all saves"));
 				
 		if (!twoCardsLoaded) 
-			popupMenu.FindItem(ID_COPYFROM_A + slot)->Enable(false);
+			popupMenu->FindItem(ID_COPYFROM_A + slot)->Enable(false);
 
-		popupMenu.AppendSeparator();
+		popupMenu->AppendSeparator();
 
-		popupMenu.Append(ID_FIXCHECKSUM_A + slot, wxT("Fix Checksums"));
-		popupMenu.Append(ID_PREVPAGE_A + slot, wxT("Previous Page"));
-		popupMenu.Append(ID_NEXTPAGE_A + slot, wxT("Next Page"));
-		popupMenu.Append(ID_MEMCARDPATH_A + slot, wxString::Format(wxT("Set as default Memcard %c"), 'A' + slot));
-		popupMenu.AppendCheckItem(ID_USEPAGES, wxT("Enable pages"));
+		popupMenu->Append(ID_FIXCHECKSUM_A + slot, wxT("Fix Checksums"));
+		popupMenu->Append(ID_PREVPAGE_A + slot, wxT("Previous Page"));
+		popupMenu->Append(ID_NEXTPAGE_A + slot, wxT("Next Page"));
+		popupMenu->Append(ID_MEMCARDPATH_A + slot, wxString::Format(wxT("Set as default Memcard %c"), 'A' + slot));
+		popupMenu->AppendCheckItem(ID_USEPAGES, wxT("Enable pages"));
 	
 		if (!prevPage || !usePages)
-			popupMenu.FindItem(ID_PREVPAGE_A + slot)->Enable(false);
+			popupMenu->FindItem(ID_PREVPAGE_A + slot)->Enable(false);
 		if (!nextPage || !usePages)
-			popupMenu.FindItem(ID_NEXTPAGE_A + slot)->Enable(false);
+			popupMenu->FindItem(ID_NEXTPAGE_A + slot)->Enable(false);
 		if(usePages)
-			popupMenu.FindItem(ID_USEPAGES)->Check();
+			popupMenu->FindItem(ID_USEPAGES)->Check();
 		
-		popupMenu.AppendSeparator();
+		popupMenu->AppendSeparator();
 
-		popupMenu.AppendCheckItem(COLUMN_BANNER, wxT("Show save banner"));
-		popupMenu.AppendCheckItem(COLUMN_TITLE, wxT("Show save title"));
-		popupMenu.AppendCheckItem(COLUMN_COMMENT, wxT("Show save comment"));
-		popupMenu.AppendCheckItem(COLUMN_ICON, wxT("Show save icon"));
-		popupMenu.AppendCheckItem(COLUMN_BLOCKS, wxT("Show save blocks"));
+		popupMenu->AppendCheckItem(COLUMN_BANNER, wxT("Show save banner"));
+		popupMenu->AppendCheckItem(COLUMN_TITLE, wxT("Show save title"));
+		popupMenu->AppendCheckItem(COLUMN_COMMENT, wxT("Show save comment"));
+		popupMenu->AppendCheckItem(COLUMN_ICON, wxT("Show save icon"));
+		popupMenu->AppendCheckItem(COLUMN_BLOCKS, wxT("Show save blocks"));
 
 		for (int i = COLUMN_BANNER; i <= COLUMN_BLOCKS; i++)
 		{
-			if (column[i]) popupMenu.FindItem(i)->Check();
+			if (column[i]) popupMenu->FindItem(i)->Check();
 		}
 #ifdef DEBUG_MCM
-		popupMenu.AppendCheckItem(NUMBER_OF_COLUMN, wxT("Debug Memcard"));
-		if (column[NUMBER_OF_COLUMN]) popupMenu.FindItem(NUMBER_OF_COLUMN)->Check();
+		popupMenu->AppendCheckItem(NUMBER_OF_COLUMN, wxT("Debug Memcard"));
+		if (column[NUMBER_OF_COLUMN]) popupMenu->FindItem(NUMBER_OF_COLUMN)->Check();
 #endif
 	}
-	PopupMenu(&popupMenu);
+	PopupMenu(popupMenu);
 }
 

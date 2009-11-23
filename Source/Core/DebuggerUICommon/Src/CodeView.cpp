@@ -348,26 +348,26 @@ void CCodeView::OnMouseUpR(wxMouseEvent& event)
 {
 	bool isSymbol = symbol_db->GetSymbolFromAddr(selection) != 0;
 	// popup menu
-	wxMenu menu;
-	//menu.Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
-	menu.Append(IDM_FOLLOWBRANCH, wxString::FromAscii("&Follow branch"))->Enable(AddrToBranch(selection) ? true : false);
-	menu.AppendSeparator();
+	wxMenu* menu = new wxMenu;
+	//menu->Append(IDM_GOTOINMEMVIEW, "&Goto in mem view");
+	menu->Append(IDM_FOLLOWBRANCH, wxString::FromAscii("&Follow branch"))->Enable(AddrToBranch(selection) ? true : false);
+	menu->AppendSeparator();
 #if wxUSE_CLIPBOARD
-	menu.Append(IDM_COPYADDRESS, wxString::FromAscii("Copy &address"));
-	menu.Append(IDM_COPYFUNCTION, wxString::FromAscii("Copy &function"))->Enable(isSymbol);
-	menu.Append(IDM_COPYCODE, wxString::FromAscii("Copy &code line"));
-	menu.Append(IDM_COPYHEX, wxString::FromAscii("Copy &hex"));
-	menu.AppendSeparator();
+	menu->Append(IDM_COPYADDRESS, wxString::FromAscii("Copy &address"));
+	menu->Append(IDM_COPYFUNCTION, wxString::FromAscii("Copy &function"))->Enable(isSymbol);
+	menu->Append(IDM_COPYCODE, wxString::FromAscii("Copy &code line"));
+	menu->Append(IDM_COPYHEX, wxString::FromAscii("Copy &hex"));
+	menu->AppendSeparator();
 #endif
-	menu.Append(IDM_RENAMESYMBOL, wxString::FromAscii("Rename &symbol"))->Enable(isSymbol);
-	menu.AppendSeparator();
-	menu.Append(IDM_RUNTOHERE, _T("&Run To Here"));
-	menu.Append(IDM_ADDFUNCTION, _T("&Add function"));
-	menu.Append(IDM_JITRESULTS, wxString::FromAscii("PPC vs X86"));
-	menu.Append(IDM_INSERTBLR, wxString::FromAscii("Insert &blr"));
-	menu.Append(IDM_INSERTNOP, wxString::FromAscii("Insert &nop"));
-	menu.Append(IDM_PATCHALERT, wxString::FromAscii("Patch alert"));
-	PopupMenu(&menu);
+	menu->Append(IDM_RENAMESYMBOL, wxString::FromAscii("Rename &symbol"))->Enable(isSymbol);
+	menu->AppendSeparator();
+	menu->Append(IDM_RUNTOHERE, _T("&Run To Here"));
+	menu->Append(IDM_ADDFUNCTION, _T("&Add function"));
+	menu->Append(IDM_JITRESULTS, wxString::FromAscii("PPC vs X86"));
+	menu->Append(IDM_INSERTBLR, wxString::FromAscii("Insert &blr"));
+	menu->Append(IDM_INSERTNOP, wxString::FromAscii("Insert &nop"));
+	menu->Append(IDM_PATCHALERT, wxString::FromAscii("Patch alert"));
+	PopupMenu(menu);
 	event.Skip(true);
 }
 

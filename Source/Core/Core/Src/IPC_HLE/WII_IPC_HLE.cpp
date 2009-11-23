@@ -138,7 +138,8 @@ IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID)
     if (g_DeviceMap.find(_ID) != g_DeviceMap.end())
         return g_DeviceMap[_ID];
 
-    _dbg_assert_msg_(WII_IPC, 0, "IOP tries to access an unknown device 0x%x", _ID);
+	// ID = 0 just means it hasn't been created yet
+    _dbg_assert_msg_(WII_IPC, _ID == 0, "IOP tries to access an unknown device 0x%x", _ID);
 
 	return NULL;
 }

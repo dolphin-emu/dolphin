@@ -164,7 +164,7 @@ CNANDContentLoader::CNANDContentLoader(const std::string& _rName)
 	}
 	else
 	{
-		_dbg_assert_msg_(BOOT, 0, "CNANDContentLoader loads neither folder nor file");
+//		_dbg_assert_msg_(BOOT, 0, "CNANDContentLoader loads neither folder nor file");
 	}
 }
 
