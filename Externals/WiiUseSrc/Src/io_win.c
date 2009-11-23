@@ -103,7 +103,7 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 			/* this is a wiimote */
 			wm[found]->dev_handle = dev;
 
-			wm[found]->hid_overlap.hEvent = CreateEvent(NULL, 1, 1, "");
+			wm[found]->hid_overlap.hEvent = CreateEvent(NULL, 1, 1, L"");
 			wm[found]->hid_overlap.Offset = 0;
 			wm[found]->hid_overlap.OffsetHigh = 0;
 
@@ -198,13 +198,15 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 			WIIUSE_WARNING("A wait error occured on reading from wiimote %i.", wm->unid);
 			return 0;
 		}
-		// Move the data over one, so we can add back in 0xa2
-		memcpy(wm->event_buf[1], &wm->event_buf, sizeof(wm->event_buf));
-		wm->event_buf[0] = 0xa2; // Put back in the crazy Data that Windows strips out
 
 		if (!GetOverlappedResult(wm->dev_handle, &wm->hid_overlap, &b, 0))
 			return 0;
 	}
+
+	// This needs to be done even if ReadFile fails, essential during init
+	// Move the data over one, so we can add back in 0xa2
+	memcpy(wm->event_buf + 1, wm->event_buf, sizeof(wm->event_buf) - 1);
+	wm->event_buf[0] = 0xa2; // Put back in the crazy Data that Windows strips out
 
 	ResetEvent(wm->hid_overlap.hEvent);
 	return 1;
