@@ -358,9 +358,6 @@ bool DolphinApp::OnInit()
 		// ============
 	#endif
 
-		// Load CONFIG_FILE settings
-		SConfig::GetInstance().LoadSettings();
-
 		if (selectVideoPlugin && videoPluginFilename != wxEmptyString)
 		{
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin = std::string(videoPluginFilename.mb_str());

@@ -675,9 +675,11 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_RADIOJIT:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT = true;
+		if (main_frame->g_pCodeWindow) main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER, false);
 		break;
 	case ID_RADIOINT:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT = false;
+		if (main_frame->g_pCodeWindow) main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER, true);
 		break;
 	case ID_CPUTHREAD:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread = CPUThread->IsChecked();
