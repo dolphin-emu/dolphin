@@ -33,26 +33,6 @@ const bool renderFog = false;
 
 using namespace D3D;
 
-static const D3DCULL d3dCullModes[4] = 
-{
-	D3DCULL_NONE,
-	D3DCULL_CCW,
-	D3DCULL_CW,
-	D3DCULL_CCW
-};
-
-static const D3DCMPFUNC d3dCmpFuncs[8] = 
-{
-	D3DCMP_NEVER,
-	D3DCMP_LESS,
-	D3DCMP_EQUAL,
-	D3DCMP_LESSEQUAL,
-	D3DCMP_GREATER,
-	D3DCMP_NOTEQUAL,
-	D3DCMP_GREATEREQUAL,
-	D3DCMP_ALWAYS
-};
-
 static const D3DTEXTUREFILTERTYPE d3dMipFilters[4] = 
 {
 	D3DTEXF_NONE,
@@ -79,22 +59,7 @@ void FlushPipeline()
 
 void SetGenerationMode(const BPCmd &bp)
 {
-	D3D::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
-
-	if (bpmem.genMode.cullmode == 3)
-	{
-		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, 0);
-	}
-	else
-	{
-		DWORD write = 0;
-		if (bpmem.blendmode.alphaupdate) 
-			write = D3DCOLORWRITEENABLE_ALPHA;
-		if (bpmem.blendmode.colorupdate) 
-			write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
-		
-		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
-	}
+	Renderer::SetGenerationMode();
 }
 
 void SetScissor(const BPCmd &bp)
@@ -111,17 +76,7 @@ void SetLineWidth(const BPCmd &bp)
 
 void SetDepthMode(const BPCmd &bp)
 {
-	if (bpmem.zmode.testenable)
-	{
-		D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
-		D3D::SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
-		D3D::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);		
-	}
-	else
-	{
-		D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
-		D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);  // ??		
-	}			
+	Renderer::SetDepthMode();			
 }
 
 void SetBlendMode(const BPCmd &bp)

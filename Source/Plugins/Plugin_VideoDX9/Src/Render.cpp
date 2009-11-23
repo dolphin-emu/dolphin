@@ -90,6 +90,29 @@ static const D3DBLEND d3dDestFactors[8] =
 	D3DBLEND_INVDESTALPHA
 };
 
+
+static const D3DCULL d3dCullModes[4] = 
+{
+	D3DCULL_NONE,
+	D3DCULL_CCW,
+	D3DCULL_CW,
+	D3DCULL_CCW
+};
+
+static const D3DCMPFUNC d3dCmpFuncs[8] = 
+{
+	D3DCMP_NEVER,
+	D3DCMP_LESS,
+	D3DCMP_EQUAL,
+	D3DCMP_LESSEQUAL,
+	D3DCMP_GREATER,
+	D3DCMP_NOTEQUAL,
+	D3DCMP_GREATEREQUAL,
+	D3DCMP_ALWAYS
+};
+
+
+
 void SetupDeviceObjects()
 {
 	D3D::font.Init();
@@ -463,6 +486,18 @@ bool Renderer::SetScissorRect()
 	if (rc.bottom < 0) rc.bottom = 0;
 	if (rc.top > s_target_height) rc.top = s_target_height;
 	if (rc.bottom > s_target_height) rc.bottom = s_target_height;
+	if(rc.left > rc.right)
+	{
+		int temp = rc.right;
+		rc.right = rc.left;
+		rc.left = temp;
+	}
+	if(rc.top > rc.bottom)
+	{
+		int temp = rc.bottom;
+		rc.bottom = rc.top;
+		rc.top = temp;
+	}
 	
 	if (rc.right >= rc.left && rc.bottom >= rc.top)
 	{
@@ -471,7 +506,7 @@ bool Renderer::SetScissorRect()
 	}
 	else
 	{
-		WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
+		//WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
 		rc.left   = 0;
 		rc.top    = 0;
 		rc.right  = GetTargetWidth();
@@ -592,7 +627,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 
 		hr = D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
 		hr = D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
-		UpdateViewport();
 		RestoreAPIState();
 		RectToLock.bottom = 4;
 		RectToLock.left = 0;
@@ -684,6 +718,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 // Called from VertexShaderManager
 void UpdateViewport()
 {
+	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
+    // [0] = width/2
+    // [1] = height/2
+    // [2] = 16777215 * (farz - nearz)
+    // [3] = xorig + width/2 + 342
+    // [4] = yorig + height/2 + 342
+    // [5] = 16777215 * farz
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
@@ -695,17 +736,29 @@ void UpdateViewport()
 	// Stretch picture with increased internal resolution
 	int X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * MValueX); 	
 	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY);
-	int Width  = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
-	int Height = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
+	int Width  = (int)ceil((int)(2 * xfregs.rawViewport[0]) * MValueX);
+	int Height = (int)ceil((int)(-2 * xfregs.rawViewport[1]) * MValueY);
 
+	if(Width < 0)
+	{
+		X += Width;
+		Width*=-1;
+		if( X < 0)
+		{
+			Width +=X;
+		}
+	}
+	if(Height < 0)
+	{
+		Y += Height;
+		Height *= -1;
+		if(Y < 0)
+		{
+			Height+=Y;
+		}
+	}
 	if(X < 0) X = 0;
-	if(Y < 0) Y = 0;
-	if(X > s_target_width) X = s_target_width;
-	if(Y > s_target_height) Y = s_target_height;
-	if(Width < 0) Width = 0;
-	if(Height < 0) Height = 0;
-	if(Width > (s_target_width - X)) Width = s_target_width - X;
-	if(Height > (s_target_height - Y)) Height = s_target_height - Y;
+	if(Y < 0) Y = 0;	
 	vp.X = X;
 	vp.Y = Y;
 	vp.Width = Width;
@@ -736,11 +789,15 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	sirc.top    = targetRc.top;
 	sirc.right  = targetRc.right;
 	sirc.bottom = targetRc.bottom;
-	D3D::dev->SetScissorRect(&sirc);
+	D3D::dev->SetScissorRect(&sirc);	
+	if(zEnable)
+		D3D::SetRenderState(D3DRS_ZFUNC, D3DCMP_ALWAYS);
 	D3D::drawClearQuad(&sirc,color,(z & 0xFFFFFF) / float(0xFFFFFF),PixelShaderCache::GetClearProgram(),VertexShaderCache::GetSimpleVertexShader());	
-	//D3D::dev->Clear(0, NULL, clearflags, color,(z & 0xFFFFFF) / float(0xFFFFFF), 0);			
+	if(zEnable)
+		D3D::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);
+	//D3D::dev->Clear(0, NULL, (colorEnable ? D3DCLEAR_TARGET : 0)| ( zEnable ? D3DCLEAR_ZBUFFER : 0), color,(z & 0xFFFFFF) / float(0xFFFFFF), 0);			
 	SetScissorRect();
-	VertexShaderManager::SetViewportChanged();	
+	UpdateViewport();
 }
 
 void Renderer::SetBlendMode(bool forceUpdate)
@@ -839,4 +896,39 @@ void Renderer::RestoreAPIState()
 	SetScissorRect();
     SetColorMask();
 	SetBlendMode(true);	
+}
+
+void Renderer::SetGenerationMode()
+{
+	D3D::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
+
+	if (bpmem.genMode.cullmode == 3)
+	{
+		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, 0);
+	}
+	else
+	{
+		DWORD write = 0;
+		if (bpmem.blendmode.alphaupdate) 
+			write = D3DCOLORWRITEENABLE_ALPHA;
+		if (bpmem.blendmode.colorupdate) 
+			write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+		
+		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
+	}
+}
+
+void Renderer::SetDepthMode()
+{
+	if (bpmem.zmode.testenable)
+	{
+		D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
+		D3D::SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
+		D3D::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);		
+	}
+	else
+	{
+		D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
+		D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);  // ??		
+	}			
 }

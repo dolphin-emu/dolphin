@@ -230,7 +230,6 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 	D3D::drawShadedTexQuad(srcTexture,&SrcRect,srcTextureWidth,srcTextureHeight,&DstRect,shader,VertexShaderCache::GetSimpleVertexShader());
 	hr = D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
 	hr = D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
-	VertexShaderManager::SetViewportChanged();
 	Renderer::RestoreAPIState();	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);

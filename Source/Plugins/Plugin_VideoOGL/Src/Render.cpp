@@ -700,11 +700,18 @@ bool Renderer::SetScissorRect()
 	rc_bottom *= MValueY;
 	if (rc_bottom > EFB_HEIGHT * MValueY) rc_bottom = EFB_HEIGHT * MValueY;
 
-   /*LOG(VIDEO, "Scissor: lt=(%d,%d), rb=(%d,%d,%i), off=(%d,%d)\n",
-		rc_left, rc_top,
-		rc_right, rc_bottom, Renderer::GetTargetHeight(),
-		xoff, yoff
-		);*/
+   if(rc_left > rc_right)
+	{
+		int temp = rc_right;
+		rc_right = rc_left;
+		rc_left = temp;
+	}
+	if(rc_top > rc_bottom)
+	{
+		int temp = rc_bottom;
+		rc_bottom = rc_top;
+		rc_top = temp;
+	}
 
 	// Check that the coordinates are good
     if (rc_right >= rc_left && rc_bottom >= rc_top)
@@ -1333,6 +1340,13 @@ void Renderer::FlipImageData(u8 *data, int w, int h)
 // Called from VertexShaderManager
 void UpdateViewport()
 {
+	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
+    // [0] = width/2
+    // [1] = height/2
+    // [2] = 16777215 * (farz - nearz)
+    // [3] = xorig + width/2 + 342
+    // [4] = yorig + height/2 + 342
+    // [5] = 16777215 * farz
 	int scissorXOff = bpmem.scissorOffset.x * 2;   // 342
 	int scissorYOff = bpmem.scissorOffset.y * 2;   // 342
 
@@ -1342,10 +1356,20 @@ void UpdateViewport()
 	// Stretch picture with increased internal resolution
 	int GLx = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - scissorXOff) * MValueX);
 	int GLy = (int)ceil(Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - scissorYOff)) * MValueY);
-	int GLWidth = (int)ceil(abs((int)(2 * xfregs.rawViewport[0])) * MValueX);
-	int GLHeight = (int)ceil(abs((int)(2 * xfregs.rawViewport[1])) * MValueY);
+	int GLWidth = (int)ceil((int)(2 * xfregs.rawViewport[0]) * MValueX);
+	int GLHeight = (int)ceil((int)(-2 * xfregs.rawViewport[1]) * MValueY);
 	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
-	double GLFar = xfregs.rawViewport[5] / 16777216.0f;	
+	double GLFar = xfregs.rawViewport[5] / 16777216.0f;
+	if(GLWidth < 0)
+	{
+		GLx += GLWidth;
+		GLWidth*=-1;		
+	}
+	if(GLHeight < 0)
+	{
+		GLy += GLHeight;
+		GLHeight *= -1;
+	}
 	// Update the view port
 	glViewport(GLx, GLy, GLWidth, GLHeight);
 	glDepthRange(GLNear, GLFar);

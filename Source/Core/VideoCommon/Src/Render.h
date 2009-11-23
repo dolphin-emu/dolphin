@@ -54,7 +54,8 @@ public:
 	static void SetColorMask();
 	static void SetBlendMode(bool forceUpdate);
 	static bool SetScissorRect();
-
+	static void SetGenerationMode();
+	static void SetDepthMode();
 	// Live resolution change
 	static bool Allow2x();
 	static bool AllowCustom();

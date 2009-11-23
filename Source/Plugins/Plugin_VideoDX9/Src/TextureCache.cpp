@@ -490,8 +490,7 @@ have_texture:
 	}
 
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
-	VertexShaderManager::SetViewportChanged();
+	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());	
 	Renderer::RestoreAPIState();	
 	Rendersurf->Release();
 }
