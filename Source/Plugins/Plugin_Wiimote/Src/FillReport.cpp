@@ -432,7 +432,7 @@ void SingleShake(u8 &_y, u8 &_z, int i)
 
 /* Tilting Wiimote with gamepad. We can guess that the game will calculate a
    Wiimote pitch and use it as a measure of the tilting of the Wiimote. We are
-   interested in this tilting range 90?to -90?*/
+   interested in this tilting range 90 to -90*/
 void TiltWiimoteGamepad(float &Roll, float &Pitch)
 {
 	// Return if we have no pads
@@ -456,7 +456,7 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 	float Tl = (float)_Tl;
 	float Tr = (float)_Tr;
 
-	// Save the Range in degrees, 45?and 90?are good values in some games
+	// Save the Range in degrees, 45 and 90 are good values in some games
 	float RollRange = (float)g_Config.Trigger.Range.Roll;
 	float PitchRange = (float)g_Config.Trigger.Range.Pitch;
 

@@ -73,7 +73,8 @@ public:
 	virtual u32 Update();
 
 	void SendACLPacket(u16 _ConnectionHandle, u8* _pData, u32 _Size);
-	void PurgeACLFrame();
+	void PurgeACLPool();
+	void PurgeHCIPool();
 
 	//hack for wiimote plugin
 
@@ -120,12 +121,24 @@ private:
 		u32 m_Address;
 	};
 
-	struct ACLFrame 
+	struct ACLPool 
 	{
 		u32 m_number;
-		u8 m_data[1024];
+		u8 m_data[1024];	// Capacity: 64B x 16
 
-		ACLFrame(int num)
+		ACLPool(int num)
+			: m_number(num)
+		{
+		}
+	};
+
+	struct HCIPool 
+	{
+		u32 m_number;
+		u8 m_data[1024];	// Capacity: 64B x 16
+		u8 m_size[16];
+
+		HCIPool(int num)
 			: m_number(num)
 		{
 		}
@@ -171,8 +184,9 @@ private:
 	// STATE_TO_SAVE
 	SHCICommandMessage m_CtrlSetup;
 	CtrlBuffer m_HCIBuffer;
+	HCIPool m_HCIPool;
 	CtrlBuffer m_ACLBuffer;
-	ACLFrame m_ACLFrame;
+	ACLPool m_ACLPool;
 	u32 m_LastCmd;
 	int m_PacketCount;
 

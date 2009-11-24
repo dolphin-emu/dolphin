@@ -20,6 +20,8 @@
 
 #include "ChunkFile.h"
 
+class IWII_IPC_HLE_Device;
+
 namespace WII_IPC_HLE_Interface
 {
 // Init
@@ -31,11 +33,23 @@ void Shutdown();
 // Reset
 void Reset();
 
+void DeleteDeviceByID(u32 ID);
+
+u32 GetDeviceIDByName(const std::string& _rDeviceName);
+
+IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID);
+
+void DeleteDeviceByID(u32 _ID);
+
+IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName);
+
 // Do State
 void DoState(PointerWrap &p);
 
 // Set default content file
 void SetDefaultContentFile(const std::string& _rFilename);
+
+void CopySettingsFile(std::string& DeviceName);
 
 // Update
 void Update();

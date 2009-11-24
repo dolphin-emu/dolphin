@@ -74,13 +74,48 @@ public:
 		(*ptr) += size;
 	}
 
-	// Store maps to file. Very useful.
 	template<class T>
-	void Do(std::map<unsigned int, T> &x) {
+	void Do(std::map<unsigned int, T> &x)
+	{
 		// TODO
 		PanicAlert("Do(map<>) does not yet work.");
 	}
-	
+
+	void Do(std::map<unsigned int, std::string> &x)
+	{
+		unsigned int number = (unsigned int)x.size();
+		Do(number);
+		switch (mode) {
+		case MODE_READ:
+			{
+				x.clear();
+				while (number > 0)
+				{
+					unsigned int first;
+					Do(first);
+					std::string second;
+					Do(second);
+					x[first] = second;
+					--number;
+				}
+			}
+			break;
+		case MODE_WRITE:
+		case MODE_MEASURE:
+			{
+				std::map<unsigned int, std::string>::iterator itr = x.begin();
+				while (number > 0)
+				{
+					Do(itr->first);
+					Do(itr->second);
+					--number;
+					++itr;
+				}
+			}
+			break;
+		}
+	}
+
 	// Store vectors.
 	template<class T>
 	void Do(std::vector<T> &x) {

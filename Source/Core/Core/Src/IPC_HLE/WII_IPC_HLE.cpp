@@ -74,6 +74,9 @@ typedef std::map<u32, IWII_IPC_HLE_Device*> TDeviceMap;
 TDeviceMap g_DeviceMap;
 
 // STATE_TO_SAVE
+typedef std::map<u32, std::string> TFileNameMap;
+TFileNameMap g_FileNameMap;
+
 u32 g_LastDeviceID = 0x13370000;
 std::string g_DefaultContentFile;
 
@@ -85,16 +88,15 @@ void Init()
 
 void Reset()
 {
-	// AyuanX: We really should save this to state or build the map and devices statically
-	// Mem dynamic allocation is too risky when doing state save/load 
     TDeviceMap::const_iterator itr = g_DeviceMap.begin();
     while (itr != g_DeviceMap.end())
     {
-        if (itr->second)
+		if(itr->second)
 			delete itr->second;
 		++itr;
     }
-    g_DeviceMap.clear();    
+	g_DeviceMap.clear();
+	g_FileNameMap.clear();
 }
 
 void Shutdown()
@@ -130,8 +132,6 @@ IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID)
         return g_DeviceMap[_ID];
 
 	// ID = 0 just means it hasn't been created yet
-    _dbg_assert_msg_(WII_IPC, _ID == 0, "IOP tries to access an unknown device 0x%x", _ID);
-
 	return NULL;
 }
 
@@ -231,7 +231,7 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
 
 
 // Let the game read the setting.txt file
-void CopySettingsFile(std::string DeviceName)
+void CopySettingsFile(std::string& DeviceName)
 {
 	std::string Source = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP;
 	if(Core::GetStartupParameter().bNTSC)
@@ -259,14 +259,43 @@ void CopySettingsFile(std::string DeviceName)
 void DoState(PointerWrap &p)
 {
 	p.Do(g_LastDeviceID);
-	//p.Do(g_DefaultContentFile);
+	p.Do(g_DefaultContentFile);
 
-	// AyuanX: I think maybe we really should create devices statically at initilization
+	// AyuanX: I think we should seperate hardware from file handle
+	// and create hardware at initilization instead of runtime allocation when first accessed
 	IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(GetDeviceIDByName(std::string("/dev/usb/oh1/57e/305")));
 	if (pDevice)
 		pDevice->DoState(p);
 	else
-		PanicAlert("WII_IPC_HLE: Save/Load State failed, /dev/usb/oh1/57e/305 doesn't exist!");
+		PanicAlert("WII_IPC_HLE: Save/Load State failed, Device /dev/usb/oh1/57e/305 doesn't exist!");
+
+	// Let's just hope hardware device IDs are constant throughout the game
+	// If there is any ID overlapping between hardware IDs and file IDs, we are dead
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{	
+		// Delete file Handles
+		TFileNameMap::const_iterator itr = g_FileNameMap.begin();
+		while (itr != g_FileNameMap.end())
+		{
+			delete g_DeviceMap[itr->first];
+			g_DeviceMap.erase(itr->first);
+			++itr;
+		}
+		// Load file names
+		p.Do(g_FileNameMap);
+		// Rebuild file handles
+		itr = g_FileNameMap.begin();
+		while (itr != g_FileNameMap.end())
+		{
+			g_DeviceMap[itr->first] = new CWII_IPC_HLE_Device_FileIO(itr->first, itr->second);
+			++itr;
+		}
+	}
+	else
+	{
+		p.Do(g_FileNameMap);
+	}
+
 }
 
 void ExecuteCommand(u32 _Address)
@@ -307,15 +336,16 @@ void ExecuteCommand(u32 _Address)
 			    g_LastDeviceID++;
                                 
                 CmdSuccess = pDevice->Open(_Address, Mode);
-				if(pDevice->GetDeviceName().find("/dev/") == std::string::npos
-					|| pDevice->GetDeviceName().c_str() == std::string("/dev/fs"))
-				{					
-					INFO_LOG(WII_IPC_FILEIO, "IOP: Open (Device=%s, DeviceID=%08x, Mode=%i, CmdSuccess=%i)",
+				if(pDevice->GetDeviceName().find("/dev/") == std::string::npos)
+				//	|| pDevice->GetDeviceName().c_str() == std::string("/dev/fs"))
+				{
+					g_FileNameMap[CurrentDeviceID] = DeviceName;
+					INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, DeviceID=%08x, Mode=%i, CmdSuccess=%i)",
 						pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode, (int)CmdSuccess);
 				}
 				else
 				{
-					INFO_LOG(WII_IPC_HLE, "IOP: Open (Device=%s, DeviceID=%08x, Mode=%i)",
+					INFO_LOG(WII_IPC_HLE, "IOP: Open Device (Device=%s, DeviceID=%08x, Mode=%i)",
                         pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode);
 				}
             }
@@ -438,7 +468,10 @@ void ExecuteCommand(u32 _Address)
 				ERROR_LOG(WII_IPC_HLE, "IOP: Reply to unknown device ID (DeviceID=%i)", DeviceID);
 
 			if (ClosedDeviceID > 0 && (ClosedDeviceID == DeviceID))
+			{
 				DeleteDeviceByID(DeviceID);
+				g_FileNameMap.erase(DeviceID);
+			}
         }
     }
 	else

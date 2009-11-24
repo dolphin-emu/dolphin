@@ -411,6 +411,14 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		ERROR_LOG(WII_IPC_DVD, "DVDLowAudioBufferConfig");
 		break;
 
+	// New Super Mario Bros.Wii sends these cmds
+	// but it seems we don't need to implement anything
+	case 0x95:
+	case 0x96:
+		WARN_LOG(WII_IPC_DVD, "unimplemented cmd 0x%08x (Buffer 0x%08x, 0x%x)",
+			Command, _BufferOut, _BufferOutSize);
+		break;
+
 	default:
 		ERROR_LOG(WII_IPC_DVD, "unknown cmd 0x%08x (Buffer 0x%08x, 0x%x)",
 			Command, _BufferOut, _BufferOutSize);

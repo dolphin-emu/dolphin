@@ -38,8 +38,9 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	, m_HostNumACLPackets(0)
 	, m_HostNumSCOPackets(0)
 	, m_HCIBuffer(NULL)
+	, m_HCIPool(0)
 	, m_ACLBuffer(NULL)
-	, m_ACLFrame(0)
+	, m_ACLPool(0)
 	, m_LastCmd(NULL)
 	, m_PacketCount(0)
 {
@@ -63,7 +64,9 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 }
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
-{}
+{
+	m_WiiMotes.clear();
+}
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 {
@@ -71,8 +74,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.Do(m_PacketCount);
 	p.Do(m_CtrlSetup);
 	p.Do(m_HCIBuffer);
+	p.Do(m_HCIPool);
 	p.Do(m_ACLBuffer);
-	p.Do(m_ACLFrame);
+	p.Do(m_ACLPool);
 }
 
 // ===================================================
@@ -138,7 +142,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 			// check termination
 			_dbg_assert_msg_(WII_IPC_WIIMOTE, *(u8*)Memory::GetPointer(CommandBuffer.InBuffer[5].m_Address) == 0,
 													"WIIMOTE: Termination != 0");
-
+			#if defined(_DEBUG) || defined(DEBUGFAST)
 			DEBUG_LOG(WII_IPC_WIIMOTE, "USB_IOCTL_CTRLMSG (0x%08x) - execute command", _CommandAddress);
 			DEBUG_LOG(WII_IPC_WIIMOTE, "    bRequestType: 0x%x", m_CtrlSetup.bRequestType);
 			DEBUG_LOG(WII_IPC_WIIMOTE, "    bRequest: 0x%x", m_CtrlSetup.bRequest);
@@ -147,6 +151,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 			DEBUG_LOG(WII_IPC_WIIMOTE, "    wLength: 0x%x", m_CtrlSetup.wLength);
 			DEBUG_LOG(WII_IPC_WIIMOTE, "    m_PayLoadAddr:  0x%x", m_CtrlSetup.m_PayLoadAddr);
 			DEBUG_LOG(WII_IPC_WIIMOTE, "    m_PayLoadSize:  0x%x", m_CtrlSetup.m_PayLoadSize);
+			#endif
 
 			ExecuteHCICommandMessage(m_CtrlSetup);
 			// Replies are generated inside
@@ -177,9 +182,9 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 					SendToDevice(pACLHeader->ConnectionHandle, Memory::GetPointer(BulkBuffer.m_buffer + 4), pACLHeader->Size);
 					m_PacketCount++;
 
-					// If ACLFrame is not used, we can send a reply immediately
+					// If ACLPool is not used, we can send a reply immediately
 					// or else we have to delay this reply
-					if (m_ACLFrame.m_number == 0)
+					if (m_ACLPool.m_number == 0)
 						_SendReply = true;
 				}
 				break;
@@ -279,10 +284,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8
 // The header is for example 07 00 41 00 which means size 0x0007 and channel 0x0041.
 // ---------------------------------------------------
 
-
 // AyuanX: Basically, our WII_IPC_HLE is efficient enough to send the packet immediately
 // rather than enqueue it to some other memory 
-// But...the only exception is the Wiimote_Plugin
+// But...the only exception comes from the Wiimote_Plugin
 //
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
@@ -308,48 +312,49 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 		// Invalidate ACL buffer
 		m_ACLBuffer.m_address = NULL;
 		m_ACLBuffer.m_buffer = NULL;
-		m_ACLFrame.m_number = 0;
+	}
+	else if ((sizeof(UACLHeader) + _Size) > 64 )
+	{
+		ERROR_LOG(WII_IPC_HLE, "ACL Packet size is too big! (>64B)");
+		PanicAlert("WII_IPC_HLE: ACL Packet size is too big! (>64B)");
+	}
+	else if (m_ACLPool.m_number >= 16)
+	{
+		ERROR_LOG(WII_IPC_HLE, "ACL Pool is full, something must be wrong!");
+		PanicAlert("WII_IPC_HLE: ACL Pool is full, something must be wrong!");
 	}
 	else
 	{
-		// Actually this temp storage is not quite necessary
-		// the whole WII_IPC (HLE+USB+BT) won't need it
-		// but current implementation of WiiMote_Plugin has ruined everything 
-		// although I can fix the Eme_WiiMote but that requires a little change of the plugin spec
-		// so unless somebody who works on the Real_WiiMote agrees, I won't do that
-		//
-		UACLHeader* pHeader = (UACLHeader*)(m_ACLFrame.m_data + m_ACLFrame.m_number * 64); // I belive 64B is enough
+		UACLHeader* pHeader = (UACLHeader*)(m_ACLPool.m_data + m_ACLPool.m_number * 64); // I belive 64B is enough
 		pHeader->ConnectionHandle = _ConnectionHandle;
 		pHeader->BCFlag = 0;
 		pHeader->PBFlag = 2;
 		pHeader->Size = _Size;
 
 		memcpy((u8*)pHeader + sizeof(UACLHeader), _pData, _Size);
-		m_ACLFrame.m_number++;
-
-		if (m_ACLFrame.m_number > 16)
-		{
-			ERROR_LOG(WII_IPC_WIIMOTE, "ACL Frame is full, something must be wrong!");
-			PanicAlert("WII_IPC_WIIMOTE: ACL Frame is full, something must be wrong!");
-		}
+		m_ACLPool.m_number++;
 	}
 }
 
-// AyuanX: this ugly function is only useful when there are 
-// multiple L2CAP packets come from WiiMote_Plugin in one cycle
+// The normal hardware behavior is like this:
+// e.g. if you have 3 packets to send you have to send them one by one in 3 cycles
+// and this is the mechanism how our IPC works
+// but current implementation of WiiMote_Plugin doesn't comply with this rule
+// It acts like sending all the 3 packets in one cycle and idling around in the other two cycles
+// that's why we need this contingent ACL pool
 //
-void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeACLFrame()
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeACLPool()
 {
 	if(m_ACLBuffer.m_address == NULL)
 		return;
 
-		INFO_LOG(WII_IPC_WIIMOTE, "Purging ACL Frame: 0x%08x ....", m_ACLBuffer.m_address);
+		INFO_LOG(WII_IPC_WIIMOTE, "Purging ACL Pool: 0x%08x ....", m_ACLBuffer.m_address);
 
-		if(m_ACLFrame.m_number > 0)
+		if(m_ACLPool.m_number > 0)
 		{
-			m_ACLFrame.m_number--;
+			m_ACLPool.m_number--;
 			// Fill the buffer
-			u8* _Address = m_ACLFrame.m_data + m_ACLFrame.m_number * 64;
+			u8* _Address = m_ACLPool.m_data + m_ACLPool.m_number * 64;
 			memcpy(Memory::GetPointer(m_ACLBuffer.m_buffer), _Address, 64);
 			// Write the packet size as return value
 			Memory::Write_U32(sizeof(UACLHeader) + ((UACLHeader*)_Address)->Size, m_ACLBuffer.m_address + 0x4);
@@ -366,6 +371,15 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeACLFrame()
 // ----------------
 u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 {
+	// Check if HCI Pool is not purged
+	if (m_HCIPool.m_number > 0)
+	{
+		PurgeHCIPool();
+		if (m_HCIPool.m_number == 0)
+			WII_IPCInterface::EnqReply(m_CtrlSetup.m_Address);
+		return true;
+	}
+
 	// Check if last command needs more work
 	if (m_HCIBuffer.m_address && m_LastCmd)
 	{
@@ -373,11 +387,11 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		return true;
 	}
 
-	// Check if temp ACL frame is not purged
-	if (m_ACLFrame.m_number > 0)
+	// Check if ACL Pool is not purged
+	if (m_ACLPool.m_number > 0)
 	{
-		PurgeACLFrame();
-		if (m_ACLFrame.m_number == 0)
+		PurgeACLPool();
+		if (m_ACLPool.m_number == 0)
 			WII_IPCInterface::EnqReply(m_CtrlSetup.m_Address);
 		return true;
 	}
@@ -427,14 +441,15 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		}
 	}
 
-	// AyuanX: This event should be sent periodically or WiiMote will desync automatically
-	// but not too many or it will jam the bus and cost extra CPU time
+	// AyuanX: This event should be sent periodically after ACL connection is accepted
+	// or CPU will disconnect WiiMote automatically
+	// but don't send too many or it will jam the bus and cost extra CPU time
 	//
 	static u32 FreqDividerSync = 0;
-	if (m_HCIBuffer.m_address && !WII_IPCInterface::GetAddress() && m_WiiMotes[0].IsLinked())
+	if (m_HCIBuffer.m_address && !WII_IPCInterface::GetAddress() && m_WiiMotes[0].IsConnected())
 	{
 		FreqDividerSync++;
-		if ((m_PacketCount >0) || (FreqDividerSync > 15))	// Feel free to tweak it
+		if ((m_PacketCount > 0) || (FreqDividerSync > 30))	// Feel free to tweak it
 		{
 			FreqDividerSync = 0;
 			SendEventNumberOfCompletedPackets(m_WiiMotes[0].GetConnectionHandle(), m_PacketCount);
@@ -453,7 +468,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	if (m_ACLBuffer.m_address && !WII_IPCInterface::GetAddress() && !m_LastCmd && m_WiiMotes[0].IsLinked())
 	{
 		FreqDividerMote++;
-		if(FreqDividerMote > 100)	// Feel free to tweak it
+		if(FreqDividerMote > 99)	// Feel free to tweak it
 		{
 			FreqDividerMote = 0;
 			CPluginManager::GetInstance().GetWiimote(0)->Wiimote_Update();
@@ -474,6 +489,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 
 // Our WII_IPC_HLE is so efficient that we could fill the buffer immediately
 // rather than enqueue it to some other memory and this will do good for StateSave
+//
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _event)
 {
 	if (m_HCIBuffer.m_address != NULL)
@@ -491,16 +507,54 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 		// Invalidate HCI buffer
 		m_HCIBuffer.m_address = NULL;
 		m_HCIBuffer.m_buffer = NULL;
-
-		return;
+	}
+	else if (_event.m_size > 64)
+	{
+		ERROR_LOG(WII_IPC_HLE, "HCI Packet size too big! (>64B)");
+		PanicAlert("WII_IPC_HLE: HCI Packet size too big! (>64B)");
+	}
+	else if (m_HCIPool.m_number >= 16)
+	{
+		ERROR_LOG(WII_IPC_HLE, "HCI Pool is full, something must be wrong!");
+		PanicAlert("WII_IPC_HLE: HCI Pool is full, something must be wrong!");
 	}
 	else
-	{	
-		ERROR_LOG(WII_IPC_WIIMOTE, "Sending HCI Packet failed, HCI Buffer is invald!");
-		PanicAlert("WII_IPC_HLE_DEVICE_USB: Sending HCI Packet failed, HCI Buffer is invald!");
+	{
+		memcpy(m_HCIPool.m_data + m_HCIPool.m_number * 64, _event.m_buffer, _event.m_size);
+		// HCI Packet doesn't contain size info inside, so we have to store it somewhere
+		m_HCIPool.m_size[m_HCIPool.m_number] = _event.m_size;
+		m_HCIPool.m_number++;
 	}
 }
 
+// Generally, CPU should send us a valid HCI buffer before issuing any HCI command
+// but since we don't know the exact frequency at which IPC should be running
+// so when IPC is running too fast that CPU can't catch up
+// then CPU(actually it is the usb driver) sometimes throws out a command before sending us a HCI buffer
+// So I put this contingent HCI Pool here until we figure out the true reason
+//
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeHCIPool()
+{
+	if(m_HCIBuffer.m_address == NULL)
+		return;
+
+		INFO_LOG(WII_IPC_WIIMOTE, "Purging HCI Pool: 0x%08x ....", m_HCIBuffer.m_address);
+
+		if(m_HCIPool.m_number > 0)
+		{
+			m_HCIPool.m_number--;
+			// Fill the buffer
+			u8* _Address = m_HCIPool.m_data + m_HCIPool.m_number * 64;
+			memcpy(Memory::GetPointer(m_HCIBuffer.m_buffer), _Address, 64);
+			// Write the packet size as return value
+			Memory::Write_U32(m_HCIPool.m_size[m_HCIPool.m_number], m_HCIBuffer.m_address + 0x4);
+			// Send a reply to indicate ACL buffer is sent
+			WII_IPCInterface::EnqReply(m_HCIBuffer.m_address);
+			// Invalidate ACL buffer
+			m_HCIBuffer.m_address = NULL;
+			m_HCIBuffer.m_buffer = NULL;
+		}
+}
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventCommandStatus(u16 _Opcode)
 {
@@ -744,7 +798,10 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventLinkKeyNotification(const CWI
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x",
 		pEventLinkKey->bdaddr.b[0], pEventLinkKey->bdaddr.b[1], pEventLinkKey->bdaddr.b[2],
 		pEventLinkKey->bdaddr.b[3], pEventLinkKey->bdaddr.b[4], pEventLinkKey->bdaddr.b[5]);
+
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	LOG_LinkKey(pEventLinkKey->LinkKey);
+#endif
 
 	return true;
 };
@@ -1247,9 +1304,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 		break;
 	}
 
-	if (m_LastCmd == NULL)
+	if ((m_LastCmd == NULL) && (m_HCIPool.m_number == 0))
 	{
-		// HCI command finished, send a reply to command
+		// If HCI command is finished and HCI pool is empty, send a reply to command
 		WII_IPCInterface::EnqReply(_rHCICommandMessage.m_Address);
 	}
 }
@@ -1375,7 +1432,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 
 	// generate link key
 	// Let us have some fun :P
-	if(m_LastCmd<m_WiiMotes.size())
+	if(m_LastCmd < m_WiiMotes.size())
 	{
 		SendEventLinkKeyNotification(m_WiiMotes[m_LastCmd]);
 		m_LastCmd++;
@@ -1900,6 +1957,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDisconnect(u8* _Input)
 	CWII_IPC_HLE_WiiMote* pWiimote = AccessWiiMote(pDiscon->con_handle);
 	if (pWiimote)
 		pWiimote->EventDisconnect();
+
+	// Here we should enable scan so reconnect is possible
+	m_ScanEnable = 0x2;
 */
 
 	static bool OneShotMessage = true;
