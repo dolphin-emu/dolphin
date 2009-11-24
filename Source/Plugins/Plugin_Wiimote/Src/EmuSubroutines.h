@@ -42,17 +42,17 @@ void WmReadData(u16 _channelID, wm_read_data* rd);
 void WmWriteData(u16 _channelID, wm_write_data* wd);
 void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension = -1);
 void WmRequestStatus_(u16 _channelID, int a);
-void WmDataReporting(u16 _channelID, wm_data_reporting* dr);
+void WmReportMode(u16 _channelID, wm_report_mode* dr);
 
-void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _Size);
 void SendReportCoreAccel(u16 _channelID);
 void SendReportCoreAccelIr12(u16 _channelID);
 void SendReportCore(u16 _channelID);
 void SendReportCoreAccelExt16(u16 _channelID);
 void SendReportCoreAccelIr10Ext(u16 _channelID);
 
-int WriteWmReport(u8* dst, u8 channel);
-void WmSendAck(u16 _channelID, u8 _reportID, u32 address);
+int WriteWmReportHdr(u8* dst, u8 wm);
+void WmSendAck(u16 _channelID, u8 _reportID);
+void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, int _Size);
 
 void FillReportAcc(wm_accel& _acc);
 void FillReportInfo(wm_core& _core);

@@ -45,7 +45,7 @@ struct hid_packet {
 //source: http://wiibrew.org/wiki/Wiimote
 
 struct wm_report {
-	u8 channel;
+	u8 wm;
 	u8 data[0];
 };
 
@@ -57,8 +57,8 @@ struct wm_leds {
 	u8 leds : 4;
 };
 
-#define WM_DATA_REPORTING 0x12
-struct wm_data_reporting {
+#define WM_REPORT_MODE 0x12
+struct wm_report_mode {
 	u8 rumble : 1;
 	u8 continuous : 1;
 	u8 all_the_time : 1;
@@ -98,12 +98,10 @@ struct wm_write_data
 	u8 data[16];
 };
 
-#define WM_WRITE_DATA_REPLY 0x22	//empty, afaik
+#define WM_ACK_DATA 0x22
 struct wm_acknowledge 
 {
-	u8 Channel;
-	u8 unk0; // Core buttons state (wm_core), can be zero
-	u8 unk1;
+	u16 buttons;
 	u8 reportID;
 	u8 errorID;
 };

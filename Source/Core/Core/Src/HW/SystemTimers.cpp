@@ -102,6 +102,7 @@ broadway:						729
 // So, ratio is 1 / (1/4 * 1/3 = 1/12) = 12.
 // note: ZWW is ok and faster with TIMER_RATIO=8 though.
 // !!! POSSIBLE STABLE PERF BOOST HACK THERE !!!
+
 enum
 {
 	TIMER_RATIO = 12
@@ -174,15 +175,14 @@ void AudioFifoCallback(u64 userdata, int cyclesLate)
 
 void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 {
-	WII_IPC_HLE_Interface::UpdateDevices();
-	CoreTiming::ScheduleEvent(IPC_HLE_PERIOD-cyclesLate, et_IPC_HLE);
+	if (Core::GetStartupParameter().bWii)
+		WII_IPC_HLE_Interface::Update();
+
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine()-cyclesLate, et_IPC_HLE);
 }
 
 void VICallback(u64 userdata, int cyclesLate)
 {
-	if (Core::GetStartupParameter().bWii)
-		WII_IPC_HLE_Interface::Update();
-
 	VideoInterface::Update();
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine() - cyclesLate, et_VI);
 }
@@ -252,6 +252,9 @@ void Init()
 		if (!UsingDSPLLE)
 			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 
+		// AyuanX: TO BE TWEAKED
+		// If this update frequency is too high, WiiMote could easily jam the IPC Bus
+		// but if it is too low, sometimes IPC gets overflown by CPU :~~~(
 		IPC_HLE_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 	}
 	else

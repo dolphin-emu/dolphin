@@ -33,6 +33,7 @@ static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb;
 
 CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number)
 	: m_Connected(false)
+	, m_Linked(false)
 	, m_HIDControlChannel_Connected(false)
 	, m_HIDControlChannel_ConnectedWait(false)
 	, m_HIDControlChannel_Config(false)
@@ -47,7 +48,7 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 
 {
 	s_Usb = _pHost;
-	INFO_LOG(WII_IPC_WIIMOTE, "Wiimote %i constructed", _Number);
+	INFO_LOG(WII_IPC_WIIMOTE, "Wiimote #%i constructed", _Number);
 
 	m_BD.b[0] = 0x11;
 	m_BD.b[1] = 0x02;
@@ -89,25 +90,24 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 //
 //
 
-
-bool CWII_IPC_HLE_WiiMote::Update()
+bool CWII_IPC_HLE_WiiMote::LinkChannel()
 {
-	if (m_Connected == false)
+	if ((m_Connected == false) || (m_Linked == true))
 		return false;
 
-	// try to connect HIDP_CONTROL_CHANNEL
+	// try to connect HID_CONTROL_CHANNEL
 	if (!m_HIDControlChannel_Connected)
 	{
 		if (m_HIDControlChannel_ConnectedWait)
 			return false;
 
 		m_HIDControlChannel_ConnectedWait = true;
-		SendConnectionRequest(0x0040, HIDP_CONTROL_CHANNEL);
-
+		// The CID is fixed, other CID will be rejected 
+		SendConnectionRequest(0x0040, HID_CONTROL_CHANNEL);
 		return true;
 	}
 
-	// try to config HIDP_CONTROL_CHANNEL
+	// try to config HID_CONTROL_CHANNEL
 	if (!m_HIDControlChannel_Config)
 	{
 		if (m_HIDControlChannel_ConfigWait)
@@ -127,6 +127,7 @@ bool CWII_IPC_HLE_WiiMote::Update()
 			return false;
 
 		m_HIDInterruptChannel_ConnectedWait = true;
+		// The CID is fixed, other CID will be rejected 
 		SendConnectionRequest(0x0041, HID_INTERRUPT_CHANNEL);
 		return true;
 	}
@@ -144,11 +145,75 @@ bool CWII_IPC_HLE_WiiMote::Update()
 		return true;
 	}
 
+	m_Linked = true;
 	UpdateStatus();
 
 	return false;
 }
 
+// ===================================================
+/* Send a status report to the status bar. */
+// ----------------
+void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
+{
+        // Check if it's enabled
+    SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+        bool LedsOn = StartUp.bWiiLeds;
+        bool SpeakersOn = StartUp.bWiiSpeakers;
+
+        const u8* data = (const u8*)_pData;
+
+        // Get the last four bits with LED info
+        if (LedsOn)
+        {
+                if (data[1] == 0x11)
+                {
+                        int led_bits = (data[2] >> 4);
+                        Host_UpdateLeds(led_bits);
+                }
+        }
+
+        int speaker_bits = 0;
+
+        if (SpeakersOn)
+        {
+                u8 Bits = 0;
+                switch (data[1])
+                {
+                case 0x14: // Enable and disable speakers
+                        if (data[2] == 0x02) // Off
+                                Bits = 0;
+                        else if (data[2] == 0x06) // On
+                                Bits = 1;
+                        Host_UpdateSpeakerStatus(0, Bits);
+                        break;
+
+                case 0x19: // Mute and unmute
+                        // Get the value
+                        if (data[2] == 0x02) // Unmute
+                                Bits = 1;
+                        else if (data[2] == 0x06) // Mute
+                                Bits = 0;
+                        Host_UpdateSpeakerStatus(1, Bits);
+                        break;
+                // Write to speaker registry, or write sound
+                case 0x16:
+                case 0x18:
+                                // Turn on the activity light
+                                Host_UpdateSpeakerStatus(2, 1);
+                        break;
+                }
+        }
+}
+
+// Turn off the activity icon again
+void CWII_IPC_HLE_WiiMote::UpdateStatus()
+{
+        // Check if it's enabled
+        if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers)
+                return;
+        Host_UpdateStatus();
+}
 
 //
 //
@@ -165,11 +230,13 @@ bool CWII_IPC_HLE_WiiMote::Update()
 void CWII_IPC_HLE_WiiMote::EventConnectionAccepted()
 {
 	m_Connected = true;
+	m_Linked = false;
 }
 
 void CWII_IPC_HLE_WiiMote::EventDisconnect()
 {
 	m_Connected = false;
+	m_Linked = false;
 }
 
 bool CWII_IPC_HLE_WiiMote::EventPagingChanged(u8 _pageMode)
@@ -210,22 +277,20 @@ void CWII_IPC_HLE_WiiMote::EventCommandWriteLinkPolicy()
 //
 
 
-
 // ===================================================
-/* This function send ACL frams from the Wii to Wiimote_ControlChannel() in the Wiimote.
-   It's called from SendToDevice() in WII_IPC_HLE_Device_usb.cpp. */
-// ----------------
-void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
+// This function receives L2CAP commands from the CPU
+// It's called from SendToDevice() in WII_IPC_HLE_Device_usb.cpp.
+// ---------------------------------------------------
+void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 {
-	// Debugger::PrintDataBuffer(LogTypes::WIIMOTE, _pData, _Size, "SendACLFrame: ");
+	// Debugger::PrintDataBuffer(LogTypes::WIIMOTE, _pData, _Size, "SendACLPacket: ");
 
 	// parse the command
 	SL2CAP_Header* pHeader = (SL2CAP_Header*)_pData;
 	u8* pData = _pData + sizeof(SL2CAP_Header);
 	u32 DataSize = _Size - sizeof(SL2CAP_Header);
-
-	INFO_LOG(WII_IPC_WIIMOTE, "L2Cap-SendFrame: Channel 0x%04x, Len 0x%x, DataSize 0x%x",
-		pHeader->CID, pHeader->Length, DataSize);
+	INFO_LOG(WII_IPC_WIIMOTE, "++++++++++++++++++++++++++++++++++++++");
+	INFO_LOG(WII_IPC_WIIMOTE, "Execute L2CAP Command: Cid 0x%04x, Len 0x%x, DataSize 0x%x", pHeader->CID, pHeader->Length, DataSize);
 
 	if(pHeader->Length != DataSize)
 	{
@@ -241,8 +306,9 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 
 	default:
 		{
-			_dbg_assert_msg_(WII_IPC_WIIMOTE, DoesChannelExist(pHeader->CID), "SendACLFrame to unknown channel %i", pHeader->CID);
+			_dbg_assert_msg_(WII_IPC_WIIMOTE, DoesChannelExist(pHeader->CID), "L2CAP: SendACLPacket to unknown channel %i", pHeader->CID);
 			CChannelMap::iterator  itr= m_Channel.find(pHeader->CID);
+
 			Common::PluginWiimote* mote = CPluginManager::GetInstance().GetWiimote(0);
 			if (itr != m_Channel.end())
 			{
@@ -253,13 +319,15 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 					HandleSDP(pHeader->CID, pData, DataSize);
 					break;
 
-				case HIDP_CONTROL_CHANNEL:
+				case HID_CONTROL_CHANNEL:
 					mote->Wiimote_ControlChannel(rChannel.DCID, pData, DataSize);
+					// Call Wiimote Plugin
 					break;
 
 				case HID_INTERRUPT_CHANNEL:
 					ShowStatus(pData);
 					mote->Wiimote_InterruptChannel(rChannel.DCID, pData, DataSize);
+					// Call Wiimote Plugin
 					break;
 
 				default:
@@ -272,72 +340,6 @@ void CWII_IPC_HLE_WiiMote::SendACLFrame(u8* _pData, u32 _Size)
 		break;
 	}
 }
-
-
-// ===================================================
-/* Send a status report to the status bar. */
-// ----------------
-void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
-{
-	// Check if it's enabled
-    SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
-	bool LedsOn = StartUp.bWiiLeds;
-	bool SpeakersOn = StartUp.bWiiSpeakers;
-
-	const u8* data = (const u8*)_pData;
-
-	// Get the last four bits with LED info
-	if (LedsOn)
-	{
-		if (data[1] == 0x11)
-		{
-			int led_bits = (data[2] >> 4);
-			Host_UpdateLeds(led_bits);
-		}
-	}
-
-	int speaker_bits = 0;
-
-	if (SpeakersOn)
-	{
-		u8 Bits = 0;
-		switch (data[1])
-		{ 
-		case 0x14: // Enable and disable speakers
-			if (data[2] == 0x02) // Off
-				Bits = 0;
-			else if (data[2] == 0x06) // On
-				Bits = 1;
-			Host_UpdateSpeakerStatus(0, Bits);
-			break;
-
-		case 0x19: // Mute and unmute		
-			// Get the value
-			if (data[2] == 0x02) // Unmute
-				Bits = 1;
-			else if (data[2] == 0x06) // Mute
-				Bits = 0;
-			Host_UpdateSpeakerStatus(1, Bits);
-			break;
-		// Write to speaker registry, or write sound
-		case 0x16:
-		case 0x18:
-				// Turn on the activity light
-				Host_UpdateSpeakerStatus(2, 1);
-			break;
-		}
-	}
-}
-
-// Turn off the activity icon again
-void CWII_IPC_HLE_WiiMote::UpdateStatus()
-{
-	// Check if it's enabled
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers)
-		return;
-	Host_UpdateStatus();
-}
-
 // ================
 
 void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
@@ -350,34 +352,34 @@ void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
 
 		switch(pCommand->code)
 		{
-		case L2CAP_CONN_REQ:            
-			CommandConnectionReq(pCommand->ident,  _pData, pCommand->len);
+		case L2CAP_COMMAND_REJ:
+			ERROR_LOG(WII_IPC_WIIMOTE, "SignalChannel - L2CAP_COMMAND_REJ (something went wrong)."
+				"Try to replace your SYSCONF file with a new copy."
+				,pCommand->code); 
+			PanicAlert(
+				"SignalChannel - L2CAP_COMMAND_REJ (something went wrong)."
+				"Try to replace your SYSCONF file with a new copy."
+				,pCommand->code);
 			break;
 
-		case L2CAP_CONF_REQ:            
-			CommandCofigurationReq(pCommand->ident,  _pData, pCommand->len);
+		case L2CAP_CONN_REQ:            
+			ReceiveConnectionReq(pCommand->ident,  _pData, pCommand->len);
 			break;
 
 		case L2CAP_CONN_RSP:
-			CommandConnectionResponse(pCommand->ident,  _pData, pCommand->len);
+			ReceiveConnectionResponse(pCommand->ident,  _pData, pCommand->len);
 			break;
 
-		case L2CAP_DISCONN_REQ:
-			CommandDisconnectionReq(pCommand->ident,  _pData, pCommand->len);
+		case L2CAP_CONF_REQ:            
+			ReceiveConfigurationReq(pCommand->ident,  _pData, pCommand->len);
 			break;
 
 		case L2CAP_CONF_RSP:
-			CommandConfigurationResponse(pCommand->ident, _pData, pCommand->len);
+			ReceiveConfigurationResponse(pCommand->ident, _pData, pCommand->len);
 			break;
 
-		case L2CAP_COMMAND_REJ:
-			ERROR_LOG(WII_IPC_WIIMOTE, "SignalChannel - L2CAP_COMMAND_REJ (something went wrong). Try to replace your"
-				"SYSCONF file with a new copy."
-				,pCommand->code); 
-			PanicAlert(
-				"SignalChannel - L2CAP_COMMAND_REJ (something went wrong). Try to replace your"
-				"SYSCONF file with a new copy."
-				,pCommand->code);
+		case L2CAP_DISCONN_REQ:
+			ReceiveDisconnectionReq(pCommand->ident,  _pData, pCommand->len);
 			break;
 
 		default:
@@ -390,21 +392,18 @@ void CWII_IPC_HLE_WiiMote::SignalChannel(u8* _pData, u32 _Size)
 	}
 }
 
+//
+//
+//
+//
+// ---  Receive Commands from CPU
+//
+//
+//
+//
+//
 
-//
-//
-//
-//
-// ---  Send Commands To Device
-//
-//
-//
-//
-//
-
-
-
-void CWII_IPC_HLE_WiiMote::CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size)
+void CWII_IPC_HLE_WiiMote::ReceiveConnectionReq(u8 _Ident, u8* _pData, u32 _Size)
 {
 	SL2CAP_CommandConnectionReq* pCommandConnectionReq = (SL2CAP_CommandConnectionReq*)_pData;
 
@@ -414,7 +413,7 @@ void CWII_IPC_HLE_WiiMote::CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size
 	rChannel.SCID = pCommandConnectionReq->scid;
 	rChannel.DCID = pCommandConnectionReq->scid;
 
-	INFO_LOG(WII_IPC_WIIMOTE, "  CommandConnectionReq");
+	INFO_LOG(WII_IPC_WIIMOTE, "[ACL] ReceiveConnectionRequest");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    PSM: 0x%04x", rChannel.PSM);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", rChannel.SCID);
@@ -427,31 +426,58 @@ void CWII_IPC_HLE_WiiMote::CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size
 	Rsp.result = 0x00;
 	Rsp.status = 0x00;
 
+	INFO_LOG(WII_IPC_WIIMOTE, "[ACL] SendConnectionResponse");
 	SendCommandToACL(_Ident, L2CAP_CONN_RSP, sizeof(SL2CAP_ConnectionResponse), (u8*)&Rsp);
+}
 
-	// update state machine
-	if (rChannel.PSM == HIDP_CONTROL_CHANNEL)
+void CWII_IPC_HLE_WiiMote::ReceiveConnectionResponse(u8 _Ident, u8* _pData, u32 _Size)
+{
+	l2cap_conn_rsp* rsp = (l2cap_conn_rsp*)_pData;
+
+	_dbg_assert_(WII_IPC_WIIMOTE, _Size == sizeof(l2cap_conn_rsp));
+
+	INFO_LOG(WII_IPC_WIIMOTE, "[ACL] ReceiveConnectionResponse");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", rsp->dcid);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", rsp->scid);
+ 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Result: 0x%04x", rsp->result);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Status: 0x%04x", rsp->status);
+
+	_dbg_assert_(WII_IPC_WIIMOTE, rsp->result == 0);
+	_dbg_assert_(WII_IPC_WIIMOTE, rsp->status == 0);
+	_dbg_assert_(WII_IPC_WIIMOTE, DoesChannelExist(rsp->scid));
+
+	SChannel& rChannel = m_Channel[rsp->scid];
+	rChannel.DCID = rsp->dcid;
+
+	//
+	// AyuanX: I'm commenting this out because CPU thinks he is faster than WiiMote
+	// and basically CPU will take the initiative to config channel
+	// in any case we don't want to race against CPU, or we are doomed
+	// so we wait for CPU to request first
+	//
+	/*
+	if (rChannel.PSM == HID_CONTROL_CHANNEL)
 		m_HIDControlChannel_Connected = true;
 
 	if (rChannel.PSM == HID_INTERRUPT_CHANNEL)
 		m_HIDInterruptChannel_Connected = true;
+	*/
 }
 
-void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Size)
+void CWII_IPC_HLE_WiiMote::ReceiveConfigurationReq(u8 _Ident, u8* _pData, u32 _Size)
 {
-	INFO_LOG(WII_IPC_WIIMOTE, "*******************************************************");
 	u32 Offset = 0;
 	SL2CAP_CommandConfigurationReq* pCommandConfigReq = (SL2CAP_CommandConfigurationReq*)_pData;
 
 	_dbg_assert_(WII_IPC_WIIMOTE, pCommandConfigReq->flags == 0x00); // 1 means that the options are send in multi-packets
-
 	_dbg_assert_(WII_IPC_WIIMOTE, DoesChannelExist(pCommandConfigReq->dcid));
+
 	SChannel& rChannel = m_Channel[pCommandConfigReq->dcid];
 
-	INFO_LOG(WII_IPC_WIIMOTE, "  CommandCofigurationReq");
-	INFO_LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
-	INFO_LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", pCommandConfigReq->dcid);
-	INFO_LOG(WII_IPC_WIIMOTE, "    Flags: 0x%04x", pCommandConfigReq->flags);
+	INFO_LOG(WII_IPC_WIIMOTE, "[ACL] ReceiveConfigurationRequest");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", pCommandConfigReq->dcid);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "    Flags: 0x%04x", pCommandConfigReq->flags);
 
 	Offset += sizeof(SL2CAP_CommandConfigurationReq);
 
@@ -478,7 +504,11 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 				_dbg_assert_(WII_IPC_WIIMOTE, pOptions->length == 2);
 				SL2CAP_OptionsMTU* pMTU = (SL2CAP_OptionsMTU*)&_pData[Offset];
 				rChannel.MTU = pMTU->MTU;
-				INFO_LOG(WII_IPC_WIIMOTE, "    Config MTU: 0x%04x", pMTU->MTU);
+				DEBUG_LOG(WII_IPC_WIIMOTE, "    Config MTU: 0x%04x", pMTU->MTU);
+				// AyuanX: My experiment shows that the MTU is always set to 640 bytes
+				// This means that we only need temp_frame_size of 640B instead 1024B
+				// Actually I've never seen a frame bigger than 64B
+				// But... who cares of several KB mem today? Never mind
 			}
 			break;
 
@@ -487,7 +517,7 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 				_dbg_assert_(WII_IPC_WIIMOTE, pOptions->length == 2);
 				SL2CAP_OptionsFlushTimeOut* pFlushTimeOut = (SL2CAP_OptionsFlushTimeOut*)&_pData[Offset];
 				rChannel.FlushTimeOut = pFlushTimeOut->TimeOut;
-				INFO_LOG(WII_IPC_WIIMOTE, "    Config FlushTimeOut: 0x%04x", pFlushTimeOut->TimeOut);
+				DEBUG_LOG(WII_IPC_WIIMOTE, "    Config FlushTimeOut: 0x%04x", pFlushTimeOut->TimeOut);
 			}
 			break;
 
@@ -503,44 +533,25 @@ void CWII_IPC_HLE_WiiMote::CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Si
 		RespLen += OptionSize;
 	}
 
+	INFO_LOG(WII_IPC_WIIMOTE, "[ACL] SendConfigurationResponse");
 	SendCommandToACL(_Ident, L2CAP_CONF_RSP, RespLen, TempBuffer);
-	INFO_LOG(WII_IPC_WIIMOTE, "*******************************************************");
-}
-
-void CWII_IPC_HLE_WiiMote::CommandConnectionResponse(u8 _Ident, u8* _pData, u32 _Size)
-{
-	l2cap_conn_rsp* rsp = (l2cap_conn_rsp*)_pData;
-
-	_dbg_assert_(WII_IPC_WIIMOTE, _Size == sizeof(l2cap_conn_rsp));
-
-	INFO_LOG(WII_IPC_WIIMOTE, "  CommandConnectionResponse");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", rsp->dcid);
-	DEBUG_LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", rsp->scid);
- 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Result: 0x%04x", rsp->result);
-	DEBUG_LOG(WII_IPC_WIIMOTE, "    Status: 0x%04x", rsp->status);
-
-	_dbg_assert_(WII_IPC_WIIMOTE, rsp->result == 0);
-	_dbg_assert_(WII_IPC_WIIMOTE, rsp->status == 0);
-
-	_dbg_assert_(WII_IPC_WIIMOTE, DoesChannelExist(rsp->scid));
-	SChannel& rChannel = m_Channel[rsp->scid];
-	rChannel.DCID = rsp->dcid;
 
 	// update state machine
-	if (rChannel.PSM == HIDP_CONTROL_CHANNEL)
+	if (rChannel.PSM == HID_CONTROL_CHANNEL)
 		m_HIDControlChannel_Connected = true;
 
 	if (rChannel.PSM == HID_INTERRUPT_CHANNEL)
 		m_HIDInterruptChannel_Connected = true;
+
 }
 
-void CWII_IPC_HLE_WiiMote::CommandConfigurationResponse(u8 _Ident, u8* _pData, u32 _Size)
+void CWII_IPC_HLE_WiiMote::ReceiveConfigurationResponse(u8 _Ident, u8* _pData, u32 _Size)
 {
 	l2cap_conf_rsp* rsp = (l2cap_conf_rsp*)_pData;
 
 	_dbg_assert_(WII_IPC_WIIMOTE, _Size == sizeof(l2cap_conf_rsp));
 
-	INFO_LOG(WII_IPC_WIIMOTE, "  CommandConfigurationResponse");
+	INFO_LOG(WII_IPC_WIIMOTE, "[ACL] ReceiveConfigurationResponse");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", rsp->scid);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Flags: 0x%04x", rsp->flags);
  	DEBUG_LOG(WII_IPC_WIIMOTE, "    Result: 0x%04x", rsp->result);
@@ -549,21 +560,22 @@ void CWII_IPC_HLE_WiiMote::CommandConfigurationResponse(u8 _Ident, u8* _pData, u
 
 	// update state machine
 	SChannel& rChannel = m_Channel[rsp->scid];
-	if (rChannel.PSM == HIDP_CONTROL_CHANNEL)
+
+	if (rChannel.PSM == HID_CONTROL_CHANNEL)
 		m_HIDControlChannel_Config = true;
 
 	if (rChannel.PSM == HID_INTERRUPT_CHANNEL)
 		m_HIDInterruptChannel_Config = true;
+
 }
 
-void CWII_IPC_HLE_WiiMote::CommandDisconnectionReq(u8 _Ident, u8* _pData, u32 _Size)
+void CWII_IPC_HLE_WiiMote::ReceiveDisconnectionReq(u8 _Ident, u8* _pData, u32 _Size)
 {
 	SL2CAP_CommandDisconnectionReq* pCommandDisconnectionReq = (SL2CAP_CommandDisconnectionReq*)_pData;
 
-	// create the channel
 	_dbg_assert_(WII_IPC_WIIMOTE, m_Channel.find(pCommandDisconnectionReq->scid) != m_Channel.end());
 
-	INFO_LOG(WII_IPC_WIIMOTE, "  CommandDisconnectionReq");
+	INFO_LOG(WII_IPC_WIIMOTE, "[ACL] ReceiveDisconnectionReq");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    SCID: 0x%04x", pCommandDisconnectionReq->dcid);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    DCID: 0x%04x", pCommandDisconnectionReq->scid);
@@ -573,23 +585,22 @@ void CWII_IPC_HLE_WiiMote::CommandDisconnectionReq(u8 _Ident, u8* _pData, u32 _S
 	Rsp.scid   = pCommandDisconnectionReq->scid;
 	Rsp.dcid   = pCommandDisconnectionReq->dcid;
 
+	INFO_LOG(WII_IPC_WIIMOTE, "[ACL] SendDisconnectionResponse");
 	SendCommandToACL(_Ident, L2CAP_DISCONN_RSP, sizeof(SL2CAP_CommandDisconnectionResponse), (u8*)&Rsp);
 }
 
+//
+//
+//
+//
+// ---  Send Commands To CPU
+//
+//
+//
+//
+//
 
-//
-//
-//
-//
-// ---  Send Commands To Device
-//
-//
-//
-//
-//
-
-
-
+// We assume WiiMote is always connected
 void CWII_IPC_HLE_WiiMote::SendConnectionRequest(u16 scid, u16 psm)
 {
 	// create the channel
@@ -601,13 +612,14 @@ void CWII_IPC_HLE_WiiMote::SendConnectionRequest(u16 scid, u16 psm)
 	cr.psm = psm;
 	cr.scid = scid;
 
-	INFO_LOG(WII_IPC_WIIMOTE, "  SendConnectionRequest()");
+	INFO_LOG(WII_IPC_WIIMOTE, "[ACL] SendConnectionRequest");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Psm: 0x%04x", cr.psm);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Scid: 0x%04x", cr.scid);
 
 	SendCommandToACL(L2CAP_CONN_REQ, L2CAP_CONN_REQ, sizeof(l2cap_conn_req), (u8*)&cr);
 }
 
+// We don't initiatively disconnet Wiimote though ...
 void CWII_IPC_HLE_WiiMote::SendDisconnectRequest(u16 scid)
 {
 	// create the channel
@@ -617,7 +629,7 @@ void CWII_IPC_HLE_WiiMote::SendDisconnectRequest(u16 scid)
 	cr.dcid = rChannel.DCID;
 	cr.scid = rChannel.SCID;
 
-	INFO_LOG(WII_IPC_WIIMOTE, "  SendDisconnectionRequest()");
+	INFO_LOG(WII_IPC_WIIMOTE, "[ACL] SendDisconnectionRequest");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Dcid: 0x%04x", cr.dcid);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Scid: 0x%04x", cr.scid);
 
@@ -659,13 +671,10 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16* MTU, u16* Flu
 		*(u16*)&Buffer[Offset] = *FlushTimeOut;  Offset += 2;
 	}
 
-	INFO_LOG(WII_IPC_WIIMOTE, "  SendConfigurationRequest()");
+	INFO_LOG(WII_IPC_WIIMOTE, "[ACL] SendConfigurationRequest");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Dcid: 0x%04x", cr->dcid);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Flags: 0x%04x", cr->flags);
 
-	// hack:
-	static u8 ident = 99;
-	ident++;
 	SendCommandToACL(L2CAP_CONF_REQ, L2CAP_CONF_REQ, Offset, Buffer);
 }
 
@@ -680,7 +689,6 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16* MTU, u16* Flu
 //
 //
 //
-
 
 #define SDP_UINT8  		0x08
 #define SDP_UINT16		0x09
@@ -718,7 +726,7 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceSearchResponse(u16 cid, u16 Transaction
 
 
 	pHeader->Length = (u16)(Offset - sizeof(SL2CAP_Header));
-	m_pHost->SendACLFrame(GetConnectionHandle(), DataFrame, pHeader->Length + sizeof(SL2CAP_Header));
+	m_pHost->SendACLPacket(GetConnectionHandle(), DataFrame, pHeader->Length + sizeof(SL2CAP_Header));
 }
 
 u32 ParseCont(u8* pCont)
@@ -746,9 +754,11 @@ int ParseAttribList(u8* pAttribIDList, u16& _startID, u16& _endID)
 	u32 attribOffset = 0;
 	CBigEndianBuffer attribList(pAttribIDList);
 
-	u8 sequence		= attribList.Read8(attribOffset);		attribOffset++;  _dbg_assert_(WII_IPC_WIIMOTE, sequence == SDP_SEQ8);
+	u8 sequence		= attribList.Read8(attribOffset);		attribOffset++;
 	u8 seqSize		= attribList.Read8(attribOffset);		attribOffset++;
 	u8 typeID      = attribList.Read8(attribOffset);		attribOffset++;
+
+	_dbg_assert_(WII_IPC_WIIMOTE, sequence == SDP_SEQ8);
 
 	if (typeID == SDP_UINT32)
 	{
@@ -759,7 +769,7 @@ int ParseAttribList(u8* pAttribIDList, u16& _startID, u16& _endID)
 	{
 		_startID = attribList.Read16(attribOffset);		attribOffset += 2;
 		_endID = _startID;
-		WARN_LOG(WII_IPC_WIIMOTE, "Read just a single attrib - not tested");
+		DEBUG_LOG(WII_IPC_WIIMOTE, "Read just a single attrib - not tested");
 		PanicAlert("Read just a single attrib - not tested");
 	}
 
@@ -799,9 +809,9 @@ void CWII_IPC_HLE_WiiMote::SDPSendServiceAttributeResponse(u16 cid, u16 Transact
 	memcpy(buffer.GetPointer(Offset), pPacket, packetSize);				Offset += packetSize;
 
 	pHeader->Length = (u16)(Offset - sizeof(SL2CAP_Header));
-	m_pHost->SendACLFrame(GetConnectionHandle(), DataFrame, pHeader->Length + sizeof(SL2CAP_Header));
+	m_pHost->SendACLPacket(GetConnectionHandle(), DataFrame, pHeader->Length + sizeof(SL2CAP_Header));
 
-//	Debugger::PrintDataBuffer(LogTypes::WIIMOTE, DataFrame, pHeader->Length + sizeof(SL2CAP_Header), "test response: ");
+	//	Debugger::PrintDataBuffer(LogTypes::WIIMOTE, DataFrame, pHeader->Length + sizeof(SL2CAP_Header), "test response: ");
 }
 
 void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
@@ -812,7 +822,7 @@ void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
 
 	switch(buffer.Read8(0))
 	{
-		// SDP_ServiceSearchRequest
+	// SDP_ServiceSearchRequest
 	case 0x02:
 		{
 			WARN_LOG(WII_IPC_WIIMOTE, "!!! SDP_ServiceSearchRequest !!!");
@@ -829,7 +839,7 @@ void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
 		}
 		break;
 
-		// SDP_ServiceAttributeRequest
+	// SDP_ServiceAttributeRequest
 	case 0x04:
 		{
 			WARN_LOG(WII_IPC_WIIMOTE, "!!! SDP_ServiceAttributeRequest !!!");
@@ -867,8 +877,6 @@ void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
 //
 //
 
-
-
 void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLength, u8* _pCommandData)
 {
 	u8 DataFrame[1024];
@@ -885,22 +893,22 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 
 	memcpy(&DataFrame[Offset], _pCommandData, _CommandLength);
 
-	INFO_LOG(WII_IPC_WIIMOTE, "  SendCommandToACL (answer)");
+	DEBUG_LOG(WII_IPC_WIIMOTE, "  SendCommandToACL (to CPU)");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Ident: 0x%02x", _Ident);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Code: 0x%02x", _Code);
 
 	// send ....
-	m_pHost->SendACLFrame(GetConnectionHandle(), DataFrame, pHeader->Length + sizeof(SL2CAP_Header));
+	m_pHost->SendACLPacket(GetConnectionHandle(), DataFrame, pHeader->Length + sizeof(SL2CAP_Header));
 
-	//	Debugger::PrintDataBuffer(LogTypes::WIIMOTE, DataFrame, pHeader->Length + sizeof(SL2CAP_Header), "m_pHost->SendACLFrame: ");
+	//	Debugger::PrintDataBuffer(LogTypes::WIIMOTE, DataFrame, pHeader->Length + sizeof(SL2CAP_Header), "m_pHost->SendACLPacket: ");
 }
 
 
 // ===================================================
-/* On a second boot the _dbg_assert_(WII_IPC_WIIMOTE, DoesChannelExist(scid)) makes a report. However
-   the game eventually starts and the Wiimote connects, but it takes at least ten seconds. */
-// ----------------
-void CWII_IPC_HLE_WiiMote::SendL2capData(u16 scid, const void* _pData, u32 _Size)
+// On a second boot the _dbg_assert_(WII_IPC_WIIMOTE, DoesChannelExist(scid)) makes a report.
+// However the game eventually starts and the Wiimote connects, but it takes at least ten seconds.
+// ---------------------------------------------------
+void CWII_IPC_HLE_WiiMote::ReceiveL2capData(u16 scid, const void* _pData, u32 _Size)
 {
 	// Allocate DataFrame
 	u8 DataFrame[1024];
@@ -921,11 +929,11 @@ void CWII_IPC_HLE_WiiMote::SendL2capData(u16 scid, const void* _pData, u32 _Size
 	// Update Offset to the final size of the report
 	Offset += _Size;
 
-	// Send the report
-	m_pHost->SendACLFrame(GetConnectionHandle(), DataFrame, Offset);
-
 	// Update the status bar
 	Host_SetWiiMoteConnectionState(2);
+
+	// Send the report
+	m_pHost->SendACLPacket(GetConnectionHandle(), DataFrame, Offset);
 }
 
 
@@ -942,7 +950,7 @@ namespace Core
 		DEBUG_LOG(WII_IPC_WIIMOTE, "   Data: %s", ArrayToString(pData, _Size, 0, 50).c_str());
 		DEBUG_LOG(WII_IPC_WIIMOTE, "   Channel: %u", _channelID);
 
-		s_Usb->m_WiiMotes[0].SendL2capData(_channelID, _pData, _Size);
+		s_Usb->m_WiiMotes[0].ReceiveL2capData(_channelID, _pData, _Size);
 		DEBUG_LOG(WII_IPC_WIIMOTE, "=========================================================");
 	}
 }

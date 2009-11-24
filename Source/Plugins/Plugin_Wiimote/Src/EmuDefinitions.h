@@ -80,6 +80,7 @@ extern u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
+extern bool g_ReportingAuto;
 extern u8 g_ReportingMode;
 extern u16 g_ReportingChannel;
 

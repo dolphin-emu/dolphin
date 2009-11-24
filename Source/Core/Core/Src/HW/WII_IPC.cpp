@@ -85,36 +85,46 @@ union UIPC_Config
 };
 
 // STATE_TO_SAVE
-UIPC_Status g_IPC_Status;
-UIPC_Config g_IPC_Config;
-UIPC_Control g_IPC_Control;
-
-u32 g_Address = 0;
-u32 g_Reply = 0;
-u32 g_SensorBarPower = 0;
+bool g_ExeCmd = false;
+u32 g_Address = NULL;
+u32 g_Reply = NULL;
+u32 g_ReplyHead = NULL;
+u32 g_ReplyTail = NULL;
+u32 g_SensorBarPower = NULL;
+UIPC_Status g_IPC_Status(NULL);
+UIPC_Config g_IPC_Config(NULL);
+UIPC_Control g_IPC_Control(NULL);
 
 void DoState(PointerWrap &p)
 {
+	p.Do(g_ExeCmd);
+	p.Do(g_Address);
+	p.Do(g_Reply);
+	p.Do(g_ReplyHead);
+	p.Do(g_ReplyTail);
+	p.Do(g_SensorBarPower);
 	p.Do(g_IPC_Status);
 	p.Do(g_IPC_Config);
 	p.Do(g_IPC_Control);
-	p.Do(g_Address);
-	p.Do(g_Reply);
-	p.Do(g_SensorBarPower);
 }
-
-void UpdateInterrupts();
 
 // Init
 void Init()
 {
-    g_Address = 0;
-    g_Reply = 0;
-    g_SensorBarPower = 0;
+	g_ExeCmd = false;
+	g_Address = NULL;
+    g_Reply = NULL;
+	g_ReplyHead = NULL;
+    g_ReplyTail = NULL;
+	g_SensorBarPower = NULL;
+    g_IPC_Status = UIPC_Status(NULL);
+    g_IPC_Config = UIPC_Config(NULL);
+    g_IPC_Control = UIPC_Control(NULL);
+}
 
-    g_IPC_Status = UIPC_Status();
-    g_IPC_Config = UIPC_Config();
-    g_IPC_Control = UIPC_Control();
+void Reset()
+{
+	Init();
 }
 
 void Shutdown()
@@ -127,16 +137,16 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 	{
 	case IPC_CONTROL_REGISTER:	
         _rReturnValue = g_IPC_Control.Hex;
-		INFO_LOG(WII_IPC, "IOP: Read32 from IPC_CONTROL_REGISTER(0x04) = 0x%08x", _rReturnValue);
+		INFO_LOG(WII_IPC, "IOP: Read32, IPC_CONTROL_REGISTER(0x04) = 0x%08x [R:%i A:%i E:%i]",
+			_rReturnValue, (_rReturnValue>>2)&1, (_rReturnValue>>1)&1, _rReturnValue&1);
 
         // if ((REASON_REG & 0x14) == 0x14) CALL IPCReplayHanlder
         // if ((REASON_REG & 0x22) != 0x22) Jumps to the end
-
 		break;
 
     case IPC_REPLY_REGISTER: // looks a little bit like a callback function
         _rReturnValue = g_Reply;
-        INFO_LOG(WII_IPC, "IOP: Write32 to IPC_REPLAY_REGISTER(0x08) = 0x%08x ", _rReturnValue);
+		INFO_LOG(WII_IPC, "IOP: Read32, IPC_REPLY_REGISTER(0x08) = 0x%08x ", _rReturnValue);
         break;
 
 	case IPC_SENSOR_BAR_POWER_REGISTER:
@@ -146,7 +156,7 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 	default:
 		_dbg_assert_msg_(WII_IPC, 0, "IOP: Read32 from 0x%08x", _Address);
 		break;
-	}	
+	}
 }
 
 void Write32(const u32 _Value, const u32 _Address)
@@ -157,30 +167,36 @@ void Write32(const u32 _Value, const u32 _Address)
 	case IPC_COMMAND_REGISTER:					// __ios_Ipc2 ... a value from __responses is loaded
         {
             g_Address = _Value;
-            INFO_LOG(WII_IPC, "IOP: Write32 to IPC_ADDRESS_REGISTER(0x00) = 0x%08x", g_Address);
+            INFO_LOG(WII_IPC, "IOP: Write32, IPC_ADDRESS_REGISTER(0x00) = 0x%08x", g_Address);
         }
 		break;
 
 	case IPC_CONTROL_REGISTER:
         {
-            INFO_LOG(WII_IPC, "IOP: Write32 to IPC_CONTROL_REGISTER(0x04) = 0x%08x (old: 0x%08x)", _Value, g_IPC_Control.Hex);
+			INFO_LOG(WII_IPC, "IOP: Write32, IPC_CONTROL_REGISTER(0x04) = 0x%08x [R:%i A:%i E:%i] (old: 0x%08x) ",
+				_Value, (_Value>>2)&1, (_Value>>1)&1, _Value&1, g_IPC_Control.Hex);
 
             UIPC_Control TempControl(_Value);
             _dbg_assert_msg_(WII_IPC, TempControl.pad == 0, "IOP: Write to UIPC_Control.pad", _Address);
 
-
             if (TempControl.AckReady)       { g_IPC_Control.AckReady = 0; }
             if (TempControl.ReplyReady)     { g_IPC_Control.ReplyReady = 0; }
-            if (TempControl.Relaunch)       { g_IPC_Control.Relaunch = 0; }        
-            
+
+			// Ayuanx: What is this Relaunch bit used for ???
+			// I have done considerable amount of tests that show no use of it at all
+			// So I'm commenting this out
+			//
+            //if (TempControl.Relaunch)       { g_IPC_Control.Relaunch = 0; }
+
+			g_IPC_Control.Relaunch = TempControl.Relaunch;
             g_IPC_Control.unk5 = TempControl.unk5;
             g_IPC_Control.unk6 = TempControl.unk6;
             g_IPC_Control.pad = TempControl.pad;
 
 			if (TempControl.ExecuteCmd)     
 			{ 
-				WII_IPC_HLE_Interface::AckCommand(g_Address);
-   			}
+				g_ExeCmd = true;
+			}
         }
 		break;  
 
@@ -189,21 +205,22 @@ void Write32(const u32 _Value, const u32 _Address)
             UIPC_Status NewStatus(_Value);
             if (NewStatus.INTERRUPT) g_IPC_Status.INTERRUPT = 0;    // clear interrupt
 
-            INFO_LOG(WII_IPC,  "IOP: Write32 to IPC_STATUS_REGISTER(0x30) = 0x%08x", _Value);
+            INFO_LOG(WII_IPC,  "IOP: Write32, IPC_STATUS_REGISTER(0x30) = 0x%08x", _Value);
         }
         break;
 
 	case IPC_CONFIG_REGISTER:	// __OSInterruptInit (0x40000000)
         {							
-		    INFO_LOG(WII_IPC, "IOP: Write32 to IPC_CONFIG_REGISTER(0x33) = 0x%08x", _Value);
+		    INFO_LOG(WII_IPC, "IOP: Write32, IPC_CONFIG_REGISTER(0x33) = 0x%08x", _Value);
+
 		    g_IPC_Config.Hex = _Value;
-
-
-            if (_Value&0x40000000) 
-            { 
-                WII_IPC_HLE_Interface::Reset();
-            }
-
+			
+			if (_Value&0x40000000)
+			{
+				INFO_LOG(WII_IPC, "Reset triggered, Resetting ...");
+				Reset();
+				WII_IPC_HLE_Interface::Reset();
+			}
         }
 		break;
 
@@ -217,9 +234,56 @@ void Write32(const u32 _Value, const u32 _Address)
         }
 		break;
 	}	
-
 	//  update the interrupts
 	UpdateInterrupts();
+}
+
+u32 GetAddress()
+{
+	return ((g_ExeCmd) ? g_Address : NULL);
+}
+
+void GenerateAck()
+{
+	g_ExeCmd = false;
+    g_IPC_Control.AckReady = 1;
+    UpdateInterrupts();
+}
+
+void GenerateReply(u32 _Address)
+{
+	g_Reply = _Address;
+	g_IPC_Control.ReplyReady = 1;
+	UpdateInterrupts();
+}
+
+void EnqReply(u32 _Address)
+{
+	// AyuanX: Replies are stored in a FIFO (depth 2), like ping-pong, and 2 is fairly enough
+	// Simple structure of fixed length will do good for DoState
+	//
+	if (g_ReplyHead == NULL)
+	{
+		g_ReplyHead = g_ReplyTail;
+		g_ReplyTail = _Address;
+	}
+	else
+	{
+		ERROR_LOG(WII_IPC, "Reply FIFO is full, something must be wrong!");
+		PanicAlert("WII_IPC: Reply FIFO is full, something must be wrong!");
+	}
+}
+
+u32 DeqReply()
+{
+	u32 _Address = (g_ReplyHead) ?  g_ReplyHead : g_ReplyTail;
+
+	if (g_ReplyHead)
+		g_ReplyHead = NULL;
+	else
+		g_ReplyTail = NULL;
+
+	return _Address;
 }
 
 void UpdateInterrupts()
@@ -244,22 +308,6 @@ void UpdateInterrupts()
 bool IsReady()
 {
 	return ((g_IPC_Control.ReplyReady == 0) && (g_IPC_Control.AckReady == 0) && (g_IPC_Status.INTERRUPT == 0));
-}
-
-void GenerateAck(u32 _AnswerAddress)
-{
-    g_Reply = _AnswerAddress;
-    g_IPC_Control.AckReady = 1;
-
-    UpdateInterrupts();
-}
-
-void GenerateReply(u32 _AnswerAddress)
-{
-	g_Reply = _AnswerAddress;
-	g_IPC_Control.ReplyReady = 1;
-
-    UpdateInterrupts();
 }
 
 } // end of namespace IPC

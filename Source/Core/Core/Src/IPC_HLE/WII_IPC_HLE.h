@@ -18,9 +18,10 @@
 #ifndef _WII_IPC_HLE_H_
 #define _WII_IPC_HLE_H_
 
+#include "ChunkFile.h"
+
 namespace WII_IPC_HLE_Interface
 {
-
 // Init
 void Init();
 
@@ -29,6 +30,9 @@ void Shutdown();
 
 // Reset
 void Reset();
+
+// Do State
+void DoState(PointerWrap &p);
 
 // Set default content file
 void SetDefaultContentFile(const std::string& _rFilename);
@@ -39,8 +43,7 @@ void Update();
 // Update Devices
 void UpdateDevices();
 
-// Acknowledge command
-bool AckCommand(u32 _Address);
+void ExecuteCommand(u32 _Address);
 
 enum ECommandType
 {

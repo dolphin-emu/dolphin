@@ -26,7 +26,7 @@ class CWII_IPC_HLE_Device_usb_oh1_57e_305;
 enum
 {
 	SDP_CHANNEL			 = 0x01,
-	HIDP_CONTROL_CHANNEL = 0x11,
+	HID_CONTROL_CHANNEL  = 0x11,
 	HID_INTERRUPT_CHANNEL= 0x13,
 
 	// L2CAP command codes
@@ -192,9 +192,13 @@ public:
 	// ugly Host handling....
 	// we really have to clean all this code
 
-	bool Update();
+	bool LinkChannel();
 	bool IsConnected() const { return m_Connected; }
-
+	bool IsLinked() const { return m_Linked; }
+	void ShowStatus(const void* _pData); // Show status
+	void UpdateStatus(); // Update status
+	void ExecuteL2capCmd(u8* _pData, u32 _Size);	// From CPU
+	void ReceiveL2capData(u16 scid, const void* _pData, u32 _Size);	// From wiimote
 
 	void EventConnectionAccepted();
 	void EventDisconnect();
@@ -202,33 +206,20 @@ public:
 	void EventCommandWriteLinkPolicy();
 
 	const bdaddr_t& GetBD() const { return m_BD; }
-
 	const uint8_t* GetClass() const { return uclass; }
-
 	u16 GetConnectionHandle() const { return m_ControllerConnectionHandle; }
-
 	const u8* GetFeatures() const { return features; }
-
 	const char* GetName() const { return m_Name.c_str(); }
-
 	u8 GetLMPVersion() const { return lmp_version; }
-
 	u16 GetLMPSubVersion() const { return lmp_subversion; }
-
 	u8 GetManufactorID() const { return 0xF; }  // Broadcom Corporation
-
-	void SendACLFrame(u8* _pData, u32 _Size);	// To wiimote
-	void ShowStatus(const void* _pData); // Show status
-	void UpdateStatus(); // Update status
-
-	void SendL2capData(u16 scid, const void* _pData, u32 _Size); // From wiimote
-
 	const u8* GetLinkKey() const { return m_LinkKey; }
 
 private:
 
 	// state machine
 	bool m_Connected;
+	bool m_Linked;
 	bool m_HIDControlChannel_Connected;
 	bool m_HIDControlChannel_ConnectedWait;
 	bool m_HIDControlChannel_Config;
@@ -238,25 +229,15 @@ private:
 	bool m_HIDInterruptChannel_Config;
 	bool m_HIDInterruptChannel_ConfigWait;
 
-
-
 	// STATE_TO_SAVE
 	bdaddr_t m_BD;
-
 	u16 m_ControllerConnectionHandle;
-
 	uint8_t uclass[HCI_CLASS_SIZE];
-
 	u8 features[HCI_FEATURES_SIZE];
-
 	u8 lmp_version;
-
 	u16 lmp_subversion;
-
 	u8 m_LinkKey[16];
-
 	std::string m_Name;
-
 	CWII_IPC_HLE_Device_usb_oh1_57e_305* m_pHost;
 
 	struct SChannel 
@@ -285,13 +266,11 @@ private:
 	void SendConfigurationRequest(u16 _SCID, u16* _pMTU = NULL, u16* _pFlushTimeOut = NULL);
 	void SendDisconnectRequest(u16 _SCID);
 
-	void CommandConnectionReq(u8 _Ident, u8* _pData, u32 _Size);
-	void CommandCofigurationReq(u8 _Ident, u8* _pData, u32 _Size);
-	void CommandConnectionResponse(u8 _Ident, u8* _pData, u32 _Size);
-	void CommandDisconnectionReq(u8 _Ident, u8* _pData, u32 _Size);
-	void CommandConfigurationResponse(u8 _Ident, u8* _pData, u32 _Size);
-
-
+	void ReceiveConnectionReq(u8 _Ident, u8* _pData, u32 _Size);
+	void ReceiveConnectionResponse(u8 _Ident, u8* _pData, u32 _Size);
+	void ReceiveDisconnectionReq(u8 _Ident, u8* _pData, u32 _Size);
+	void ReceiveConfigurationReq(u8 _Ident, u8* _pData, u32 _Size);
+	void ReceiveConfigurationResponse(u8 _Ident, u8* _pData, u32 _Size);
 	
 	// some new ugly stuff
 	//

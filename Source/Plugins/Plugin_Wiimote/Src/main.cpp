@@ -269,10 +269,9 @@ void Shutdown(void)
 void DoState(unsigned char **ptr, int mode)
 {
 	PointerWrap p(ptr, mode);
-	
-	return;
 
 	// TODO: Shorten the list
+
 	//p.Do(g_EmulatorRunning);
 	//p.Do(g_ISOId);
 	p.Do(g_FrameOpen);
@@ -280,16 +279,18 @@ void DoState(unsigned char **ptr, int mode)
 	p.Do(g_RealWiiMoteInitialized);
 	p.Do(g_EmulatedWiiMoteInitialized);
 	p.Do(g_WiimoteUnexpectedDisconnect);
-	p.Do(g_UpdateCounter);
-	p.Do(g_UpdateTime);
-	p.Do(g_UpdateRate);
-	p.Do(g_UpdateWriteScreen);
-	p.Do(g_UpdateTimeList);
+	//p.Do(g_UpdateCounter);
+	//p.Do(g_UpdateTime);
+	//p.Do(g_UpdateRate);
+	//p.Do(g_UpdateWriteScreen);
+	//p.Do(g_UpdateTimeList);
 
 #if HAVE_WIIUSE
 	WiiMoteReal::DoState(p);
 #endif
 	WiiMoteEmu::DoState(p);
+
+	return;
 }
 
 
@@ -305,7 +306,7 @@ void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 
 	// Debugging
 	{
-		DEBUG_LOG(WIIMOTE, "Wiimote_Input");
+		DEBUG_LOG(WIIMOTE, "Wiimote_InterruptChannel");
 		DEBUG_LOG(WIIMOTE, "   Channel ID: %04x", _channelID);
 		std::string Temp = ArrayToString(data, _Size);
 		DEBUG_LOG(WIIMOTE, "   Data: %s", Temp.c_str());
@@ -333,6 +334,7 @@ void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 		DEBUG_LOG(WIIMOTE, "Wiimote Disconnected");
 		g_EmulatorRunning = false;
 		g_WiimoteUnexpectedDisconnect = true;
+
 #if defined(HAVE_WX) && HAVE_WX
 		if (m_BasicConfigFrame) m_BasicConfigFrame->UpdateGUI();
 #endif
@@ -344,7 +346,6 @@ void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 		DEBUG_LOG(WIIMOTE, "Wiimote_ControlChannel");
 		std::string Temp = ArrayToString(data, _Size);
 		DEBUG_LOG(WIIMOTE, "    Data: %s", Temp.c_str());
-		//PanicAlert("Wiimote_ControlChannel");
 	}
 
 	//if (!g_RealWiiMotePresent)
@@ -372,8 +373,8 @@ void Wiimote_Update()
 		}
 		g_UpdateWriteScreen++;
 	}
-
 #endif
+
 	// This functions will send:
 	//		Emulated Wiimote: Only data reports 0x30-0x37
 	//		Real Wiimote: Both data reports 0x30-0x37 and all other read reports
@@ -638,7 +639,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		}
 		
 		break;
-	case WM_WRITE_DATA_REPLY:  // 0x22
+	case WM_ACK_DATA:  // 0x22
 		size = sizeof(wm_acknowledge) - 1;
 		Name = "REPLY";
 		break;
@@ -820,7 +821,6 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 
 void InterruptDebugging(bool Emu, const void* _pData)
 {
-	//
 	const u8* data = (const u8*)_pData;
 	
 	std::string Name;
@@ -840,9 +840,9 @@ void InterruptDebugging(bool Emu, const void* _pData)
 		size = sizeof(wm_leds);
 		if (g_DebugComm) Name.append("WM_LEDS");
 		break;
-	case WM_DATA_REPORTING: // 0x12
-		size = sizeof(wm_data_reporting);
-		if (g_DebugComm) Name.append("WM_DATA_REPORTING");
+	case WM_REPORT_MODE: // 0x12
+		size = sizeof(wm_report_mode);
+		if (g_DebugComm) Name.append("WM_REPORT_MODE");
 		break;
 	case WM_REQUEST_STATUS: // 0x15
 		size = sizeof(wm_request_status);

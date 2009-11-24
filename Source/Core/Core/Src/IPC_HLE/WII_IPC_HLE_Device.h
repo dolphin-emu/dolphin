@@ -22,6 +22,8 @@
 #include "../HW/Memmap.h"
 #include "../HW/CPU.h"
 
+class PointerWrap;
+
 class IWII_IPC_HLE_Device
 {
 public:
@@ -32,6 +34,9 @@ public:
 	{}
 
 	virtual ~IWII_IPC_HLE_Device()
+	{}
+
+	virtual void DoState(PointerWrap &p)
 	{}
 
 	const std::string& GetDeviceName() const { return m_Name; } 
@@ -114,14 +119,12 @@ protected:
             }
         }
 
- 		// STATE_TO_SAVE
         const u32 m_Address;
 
         u32 Parameter;
         u32 NumberInBuffer;
         u32 NumberPayloadBuffer;
         u32 BufferVector;
-        u32 BufferSize;
 
         struct SBuffer { u32 m_Address, m_Size; };
         std::vector<SBuffer> InBuffer;
@@ -152,9 +155,8 @@ protected:
 		LogTypes::LOG_LEVELS Verbosity = LogTypes::LDEBUG)
     {
 		GENERIC_LOG(LogType, Verbosity, "======= DumpAsync ======");
-        // write return value
+
         u32 BufferOffset = BufferVector;
-        Memory::Write_U32(1, _CommandAddress + 0x4);
 
         for (u32 i = 0; i < NumberInBuffer; i++)
         {            
@@ -179,8 +181,6 @@ protected:
         {
 			u32 OutBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
 			u32 OutBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
-
-            Memory::Write_U32(1, _CommandAddress + 0x4);
 
             GENERIC_LOG(LogType, LogTypes::LINFO, "%s - IOCtlV OutBuffer[%i]:", GetDeviceName().c_str(), i);
             GENERIC_LOG(LogType, LogTypes::LINFO, "    OutBuffer: 0x%08x (0x%x):", OutBuffer, OutBufferSize);

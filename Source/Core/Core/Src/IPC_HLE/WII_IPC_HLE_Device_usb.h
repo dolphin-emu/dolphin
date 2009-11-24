@@ -18,11 +18,11 @@
 #ifndef _WII_IPC_HLE_DEVICE_USB_H_
 #define _WII_IPC_HLE_DEVICE_USB_H_
 
-#include "WII_IPC_HLE_Device.h"
 #include "hci.h"
 #include <vector>
 #include <queue>
-
+#include "WII_IPC_HLE.h"
+#include "WII_IPC_HLE_Device.h"
 #include "WII_IPC_HLE_WiiMote.h"
 
 
@@ -38,13 +38,6 @@ union UACLHeader
 	u32 Hex;
 };
 
-struct ACLFrame 
-{
-	u16 ConnectionHandle;
-	u8* data;
-	u32 size;
-};
-
 struct SQueuedEvent
 {
 	u8 m_buffer[1024];
@@ -58,7 +51,7 @@ struct SQueuedEvent
 		if (m_size > 1024)
 		{
 			// i know this code sux...
-			PanicAlert("SQueuedEvent: allocate a to big buffer!!");
+			PanicAlert("SQueuedEvent: allocate too big buffer!!");
 		}
 	}
 };
@@ -79,7 +72,8 @@ public:
 
 	virtual u32 Update();
 
-	void SendACLFrame(u16 _ConnectionHandle, u8* _pData, u32 _Size);
+	void SendACLPacket(u16 _ConnectionHandle, u8* _pData, u32 _Size);
+	void PurgeACLFrame();
 
 	//hack for wiimote plugin
 
@@ -88,6 +82,8 @@ public:
 	std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
 	CWII_IPC_HLE_WiiMote* AccessWiiMote(const bdaddr_t& _rAddr);
 	CWII_IPC_HLE_WiiMote* AccessWiiMote(u16 _ConnectionHandle);
+
+	void DoState(PointerWrap &p);
 
 private:
 
@@ -106,7 +102,7 @@ private:
 	enum
 	{
 		HCI_EVENT_ENDPOINT				= 0x81,
-		ACL_DATA_ENDPOINT_READ          = 0x02,
+		ACL_DATA_BLK_OUT				= 0x02,
 		ACL_DATA_ENDPOINT				= 0x82,
 	};
 
@@ -121,6 +117,39 @@ private:
 
 		u32 m_PayLoadAddr;
 		u32 m_PayLoadSize;
+		u32 m_Address;
+	};
+
+	struct ACLFrame 
+	{
+		u32 m_number;
+		u8 m_data[1024];
+
+		ACLFrame(int num)
+			: m_number(num)
+		{
+		}
+	};
+
+	struct CtrlBuffer 
+	{
+		u32 m_address;
+		u32 m_buffer;
+
+		CtrlBuffer(u32 _Address)
+			: m_address(_Address)
+		{
+			if(_Address == NULL)
+			{
+				m_buffer = NULL;
+			}
+			else
+			{
+				u32 _BufferVector = Memory::Read_U32(_Address + 0x18);
+				u32 _InBufferNum = Memory::Read_U32(_Address + 0x10);
+				m_buffer = Memory::Read_U32(_BufferVector + _InBufferNum * 8);
+			}
+		}
 	};
 
 	bdaddr_t m_ControllerBD;
@@ -138,13 +167,14 @@ private:
 	u16 m_HostNumSCOPackets;
 
 	typedef std::queue<SQueuedEvent> CEventQueue;
-	typedef std::queue<ACLFrame> CACLFrameQueue;
 
-	CEventQueue m_EventQueue;	
-	CACLFrameQueue m_AclFrameQue;
-
-	SIOCtlVBuffer* m_pACLBuffer;
-	SIOCtlVBuffer* m_pHCIBuffer;
+	// STATE_TO_SAVE
+	SHCICommandMessage m_CtrlSetup;
+	CtrlBuffer m_HCIBuffer;
+	CtrlBuffer m_ACLBuffer;
+	ACLFrame m_ACLFrame;
+	u32 m_LastCmd;
+	int m_PacketCount;
 
 	// Events
 	void AddEventToQueue(const SQueuedEvent& _event);

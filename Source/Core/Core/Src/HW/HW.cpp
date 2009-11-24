@@ -62,8 +62,8 @@ namespace HW
 		SystemTimers::Init();
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
-			WII_IPC_HLE_Interface::Init();
 			WII_IPCInterface::Init();
+			WII_IPC_HLE_Interface::Init();
 		}
 	}
 
@@ -80,8 +80,8 @@ namespace HW
 
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		{
-			WII_IPC_HLE_Interface::Shutdown();
 			WII_IPCInterface::Shutdown();
+			WII_IPC_HLE_Interface::Shutdown();
 		}
 		
 		State_Shutdown();
@@ -100,12 +100,17 @@ namespace HW
 		GPFifo::DoState(p);
 		ExpansionInterface::DoState(p);
 		AudioInterface::DoState(p);
-        WII_IPCInterface::DoState(p);
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+		{
+			WII_IPCInterface::DoState(p);
+			WII_IPC_HLE_Interface::DoState(p);
+		}
 	}
 
 	// Restart Wiimote
 	void InitWiimote()
 	{
 		WII_IPCInterface::Init();
+		WII_IPC_HLE_Interface::Init();
 	}
 }

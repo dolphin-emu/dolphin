@@ -373,6 +373,7 @@ void ExtensionChecksum(u8 * Calibration)
 // Set initial valuesm this done both in Init and Shutdown
 void ResetVariables()
 {
+	g_ReportingAuto = false;
 	g_ReportingMode = 0;
 	g_ReportingChannel = 0;
 	g_Encryption = false;
@@ -465,11 +466,10 @@ void Initialize()
 
 void DoState(PointerWrap &p) 
 {
-	return;
 	// TODO: Shorten the list
 	p.Do(g_Leds);
-	//p.Do(g_Speaker);
-	//p.Do(g_SpeakerVoice);
+	p.Do(g_Speaker);
+	p.Do(g_SpeakerVoice);
 	p.Do(g_IR);
 	p.DoArray(g_Eeprom, WIIMOTE_EEPROM_SIZE);
 	p.DoArray(g_RegSpeaker, WIIMOTE_REG_SPEAKER_SIZE);
@@ -477,23 +477,23 @@ void DoState(PointerWrap &p)
 	p.DoArray(g_RegExtTmp, WIIMOTE_REG_EXT_SIZE);
 	p.DoArray(g_RegIr, WIIMOTE_REG_IR_SIZE);
 
+	p.Do(g_ReportingAuto);
 	p.Do(g_ReportingMode);
 	p.Do(g_ReportingChannel);
-
-	p.Do(AckDelay);
 
 	p.Do(g_ExtKey);
 	p.Do(g_Encryption);
 
-	p.Do(NumPads);
-	p.Do(NumGoodPads);
-	p.Do(joyinfo);
-	p.DoArray(PadState, 4);
-	p.DoArray(PadMapping, 4);
+	//p.Do(NumPads);
+	//p.Do(NumGoodPads);
+	//p.Do(joyinfo);
+	//p.DoArray(PadState, 4);
+	//p.DoArray(PadMapping, 4);
 
-	p.Do(g_Wiimote_kbd);
-	p.Do(g_NunchuckExt);
-	p.Do(g_ClassicContExt);	
+	//p.Do(g_Wiimote_kbd);
+	//p.Do(g_NunchuckExt);
+	//p.Do(g_ClassicContExt);
+	return;
 }
 
 /* This is not needed if we call FreeLibrary() when we stop a game, but if it's
@@ -528,62 +528,19 @@ void Shutdown(void)
 	if (SDL_WasInit(0)) SDL_Quit();
 }
 
-
-/* An ack delay of 1 was not small enough, but 2 seemed to work, that was about
-   between 20 ms and 100 ms in my case in Zelda - TP. You may have to increase
-   this value for other things to work, for example in the wpad demo I had to
-   set it to at least 3 for the Sound to be able to turned on (I have an update
-   rate of around 150 fps in the wpad demo) */
-void CreateAckDelay(u8 _ChannelID, u16 _ReportID)
-{
-	// Settings
-	int GlobalDelay = 2;
-
-	// Queue an acknowledgment
-	wm_ackdelay Tmp;
-	Tmp.Delay = GlobalDelay;
-	Tmp.ChannelID = _ChannelID;
-	Tmp.ReportID = (u8)_ReportID;
-	AckDelay.push_back(Tmp);
-}
-
-
-void CheckAckDelay()
-{
-	for (int i = 0; i < (int)AckDelay.size(); i++)
-	{
-		// See if there are any acks to send
-		if (AckDelay.at(i).Delay >= 0)
-		{
-			if(AckDelay.at(i).Delay == 0)
-			{
-				WmSendAck(AckDelay.at(i).ChannelID, AckDelay.at(i).ReportID, 0);
-				AckDelay.erase(AckDelay.begin() + i);
-				continue;
-			}
-			AckDelay.at(i).Delay--;
-
-			//INFO_LOG(WIIMOTE, "%i  0x%04x  0x%02x", i, AckDelay.at(i).ChannelID, AckDelay.at(i).ReportID);
-		}
-	}
-}
-
-
 /* This function produce Wiimote Input, i.e. reports from the Wiimote in
    response to Output from the Wii. */
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
-	//INFO_LOG(WIIMOTE, "Emu InterruptChannel");
-
-	DEBUG_LOG(WIIMOTE, "Wiimote_Input");
-	const u8* data = (const u8*)_pData;
-
 	/* Debugging. We have not yet decided how much of 'data' we will use, it's
 	   not determined by sizeof(data). We have to determine it by looking at
 	   the data cases. */
-	InterruptDebugging(true, data);
+	//InterruptDebugging(true, (const void*)_pData);
 
-	hid_packet* hidp = (hid_packet*) data;
+	hid_packet* hidp = (hid_packet*)_pData;
+
+	INFO_LOG(WIIMOTE, "Emu InterruptChannel (type: 0x%02x, param: 0x%02x)", hidp->type, hidp->param);
+
 	switch(hidp->type)
 	{
 	case HID_TYPE_DATA:
@@ -612,11 +569,20 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 					// that, also if we do *we should update the 0x22 to have
 					// the core keys* otherwise the game will think we release
 					// the key every time it rumbles
+					
+					// AyuanX: Since I've rewritten the whole WII_IPC & WII_IPC_HLE & USB & BT
+					// finally we can get rid of this AckDelay issue, HAHA!
+					//
+					/*
+					const u8* data = (const u8*)_pData;
 					if(!(data[1] == WM_READ_DATA && data[2] == 0x00)
 						&& !(data[1] == WM_REQUEST_STATUS)
 						&& !(data[1] == WM_WRITE_SPEAKER_DATA)
 						&& !(data[1] == WM_RUMBLE))						
-						if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent) CreateAckDelay((u8)_channelID, (u16)sr->channel);
+						if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
+							CreateAckDelay((u8)_channelID, (u16)sr->wm);
+					*/
+					
 				}
 				break;
 
@@ -636,47 +602,36 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) 
 {
-	//INFO_LOG(WIIMOTE, "Emu ControlChannel");
+	hid_packet* hidp = (hid_packet*)_pData;
 
-	const u8* data = (const u8*)_pData;
-	// Dump raw data
-	{
-		INFO_LOG(WIIMOTE, "Wiimote_ControlChannel");
-		std::string Temp = ArrayToString(data, 0, _Size);
-		DEBUG_LOG(WIIMOTE, "   Data: %s", Temp.c_str());
-	}
+	INFO_LOG(WIIMOTE, "Emu ControlChannel (type: 0x%02x, param: 0x%02x)", hidp->type, hidp->param);
 
-	hid_packet* hidp = (hid_packet*) data;
 	switch(hidp->type)
 	{
 	case HID_TYPE_HANDSHAKE:
-		if (hidp->param == HID_PARAM_INPUT)
-		{
-			PanicAlert("HID_TYPE_HANDSHAKE - HID_PARAM_INPUT");
-		}
-		else
-		{
-			PanicAlert("HID_TYPE_HANDSHAKE - HID_PARAM_OUTPUT"); 
-		}
+		PanicAlert("HID_TYPE_HANDSHAKE - %s", (hidp->param == HID_PARAM_INPUT) ? "INPUT" : "OUPUT");
 		break;
 
 	case HID_TYPE_SET_REPORT:
 		if (hidp->param == HID_PARAM_INPUT)
 		{
-			PanicAlert("HID_TYPE_SET_REPORT input"); 
+			PanicAlert("HID_TYPE_SET_REPORT - INPUT"); 
 		}
 		else
 		{
-			HidOutputReport(_channelID, (wm_report*)hidp->data);
-
-			// Return handshake
+			// AyuanX: My experiment shows Control Channel is never used
+			// In case it happens, we will send back a handshake which means report failed/rejected
+			// (TO_BE_VERIFIED)
+			//
 			u8 handshake = 0;
 			g_WiimoteInitialize.pWiimoteInput(_channelID, &handshake, 1);
+
+			PanicAlert("HID_TYPE_DATA - OUTPUT: Ambiguous Control Channel Report!");
 		}
 		break;
 
 	case HID_TYPE_DATA:
-		PanicAlert("HID_TYPE_DATA %s", hidp->type, hidp->param == HID_PARAM_INPUT ? "input" : "output");
+		PanicAlert("HID_TYPE_DATA - %s", (hidp->param == HID_PARAM_INPUT) ? "INPUT" : "OUTPUT");
 		break;
 
 	default:
@@ -693,9 +648,10 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
    of times per second. */
 void Update() 
 {
+	if(g_ReportingAuto == false)
+		return;
+
 	readKeyboard();
-	//LOG(WIIMOTE, "Wiimote_Update");
-	//INFO_LOG(WIIMOTE, "Emu Update: %i", g_ReportingMode);
 
 	// Check if the pad state should be updated
 	if ((g_Config.Trigger.Type == g_Config.Trigger.TRIGGER || g_Config.Trigger.Type == g_Config.Trigger.ANALOG1 || g_Config.Trigger.Type == g_Config.Trigger.ANALOG2
@@ -712,16 +668,24 @@ void Update()
 	{
 	case 0:
 		break;
-	case WM_REPORT_CORE:			SendReportCore(g_ReportingChannel);				break;
-	case WM_REPORT_CORE_ACCEL:		SendReportCoreAccel(g_ReportingChannel);		break;
-	case WM_REPORT_CORE_ACCEL_IR12: SendReportCoreAccelIr12(g_ReportingChannel);	break;
-	case WM_REPORT_CORE_ACCEL_EXT16: SendReportCoreAccelExt16(g_ReportingChannel);	break;
-	case WM_REPORT_CORE_ACCEL_IR10_EXT6: SendReportCoreAccelIr10Ext(g_ReportingChannel);break;
+	case WM_REPORT_CORE:
+		SendReportCore(g_ReportingChannel);
+		break;
+	case WM_REPORT_CORE_ACCEL:
+		SendReportCoreAccel(g_ReportingChannel);
+		break;
+	case WM_REPORT_CORE_ACCEL_IR12:
+		SendReportCoreAccelIr12(g_ReportingChannel);
+		break;
+	case WM_REPORT_CORE_ACCEL_EXT16:
+		SendReportCoreAccelExt16(g_ReportingChannel);
+		break;
+	case WM_REPORT_CORE_ACCEL_IR10_EXT6:
+		SendReportCoreAccelIr10Ext(g_ReportingChannel);
+		break;
 	}
-
-	// Potentially send a delayed acknowledgement to an InterruptChannel() Output
-	CheckAckDelay();
 }
+
 
 void readKeyboard()
 {

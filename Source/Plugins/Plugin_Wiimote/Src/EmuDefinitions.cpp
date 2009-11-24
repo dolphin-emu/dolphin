@@ -48,6 +48,7 @@ u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
 u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
 u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
+bool g_ReportingAuto; // Auto report or passive report
 u8 g_ReportingMode; // The reporting mode and channel id
 u16 g_ReportingChannel;
 

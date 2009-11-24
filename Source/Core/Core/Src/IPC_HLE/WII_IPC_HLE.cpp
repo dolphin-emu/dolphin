@@ -66,6 +66,7 @@
 #include "../Debugger/Debugger_SymbolMap.h"
 #include "../PowerPC/PowerPC.h"
 
+
 namespace WII_IPC_HLE_Interface
 {
 
@@ -74,11 +75,6 @@ TDeviceMap g_DeviceMap;
 
 // STATE_TO_SAVE
 u32 g_LastDeviceID = 0x13370000;
-std::list<u32> g_Ack;
-u32 g_AckNumber = 0;
-std::queue<std::pair<u32,std::string> > g_ReplyQueue;
-void ExecuteCommand(u32 _Address);
-
 std::string g_DefaultContentFile;
 
 // General IPC functions 
@@ -89,27 +85,22 @@ void Init()
 
 void Reset()
 {
+	// AyuanX: We really should save this to state or build the map and devices statically
+	// Mem dynamic allocation is too risky when doing state save/load 
     TDeviceMap::const_iterator itr = g_DeviceMap.begin();
     while (itr != g_DeviceMap.end())
     {
-        delete itr->second;
-        ++itr;
+        if (itr->second)
+			delete itr->second;
+		++itr;
     }
     g_DeviceMap.clear();    
-
-    while (!g_ReplyQueue.empty())
-    {
-        g_ReplyQueue.pop();
-    }
-
-    g_Ack.clear();    
 }
 
 void Shutdown()
 {
     Reset();
     g_LastDeviceID = 0x13370000;
-    g_AckNumber = 0;
     g_DefaultContentFile.clear();
 }
 
@@ -237,31 +228,7 @@ IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName
    debugging I also noticed that the Ioctl arguments are stored temporarily in
    0x933e.... with the same .... as in the _CommandAddress. */
 // ----------------
-bool AckCommand(u32 _Address)
-{
-#if MAX_LOG_LEVEL >= DEBUG_LEVEL
-	Debugger::PrintCallstack(LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);
-#endif
-    INFO_LOG(WII_IPC_HLE, "AckCommand: 0%08x (num: %i) PC=0x%08x", _Address, g_AckNumber, PC);
 
-	std::list<u32>::iterator itr = g_Ack.begin();
-	while (itr != g_Ack.end())
-	{
-		if (*itr == _Address)
-		{
-			ERROR_LOG(WII_IPC_HLE, "execute a command two times");
-			PanicAlert("execute a command two times");
-			return false;
-		}
-
-		itr++;
-	}
-
-    g_Ack.push_back(_Address);
-    g_AckNumber++;
-
-    return true;
-}
 
 // Let the game read the setting.txt file
 void CopySettingsFile(std::string DeviceName)
@@ -289,12 +256,30 @@ void CopySettingsFile(std::string DeviceName)
 	}
 }
 
+void DoState(PointerWrap &p)
+{
+	p.Do(g_LastDeviceID);
+	//p.Do(g_DefaultContentFile);
+
+	// AyuanX: I think maybe we really should create devices statically at initilization
+	IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(GetDeviceIDByName(std::string("/dev/usb/oh1/57e/305")));
+	if (pDevice)
+		pDevice->DoState(p);
+	else
+		PanicAlert("WII_IPC_HLE: Save/Load State failed, /dev/usb/oh1/57e/305 doesn't exist!");
+}
+
 void ExecuteCommand(u32 _Address)
 {
-    bool GenerateReply = false;
+    bool CmdSuccess = false;
 	u32 ClosedDeviceID = 0;
 
     ECommandType Command = static_cast<ECommandType>(Memory::Read_U32(_Address));
+	u32 DeviceID = Memory::Read_U32(_Address + 8);
+	IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
+
+	INFO_LOG(WII_IPC_HLE, "-->> Execute Command Address: 0x%08x (code: %x, device: %x) ", _Address, Command, DeviceID);
+
     switch (Command)
     {
     case COMMAND_OPEN_DEVICE:
@@ -308,7 +293,7 @@ void ExecuteCommand(u32 _Address)
 			if(DeviceName.find("setting.txt") != std::string::npos) CopySettingsFile(DeviceName);
 
             u32 Mode = Memory::Read_U32(_Address + 0x10);
-            u32 DeviceID = GetDeviceIDByName(DeviceName);
+            DeviceID = GetDeviceIDByName(DeviceName);
 			
 			// check if a device with this name has been created already
             if (DeviceID == 0)				
@@ -317,16 +302,16 @@ void ExecuteCommand(u32 _Address)
 				// alternatively we could pre create all devices and put them in a directory tree structure
 				// then this would just return a pointer to the wanted device.
                 u32 CurrentDeviceID = g_LastDeviceID;
-                IWII_IPC_HLE_Device* pDevice = CreateDevice(CurrentDeviceID, DeviceName);			
+                pDevice = CreateDevice(CurrentDeviceID, DeviceName);			
 			    g_DeviceMap[CurrentDeviceID] = pDevice;
 			    g_LastDeviceID++;
                                 
-                GenerateReply = pDevice->Open(_Address, Mode);
+                CmdSuccess = pDevice->Open(_Address, Mode);
 				if(pDevice->GetDeviceName().find("/dev/") == std::string::npos
 					|| pDevice->GetDeviceName().c_str() == std::string("/dev/fs"))
 				{					
-					INFO_LOG(WII_IPC_FILEIO, "IOP: Open (Device=%s, DeviceID=%08x, Mode=%i, GenerateReply=%i)",
-						pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode, (int)GenerateReply);
+					INFO_LOG(WII_IPC_FILEIO, "IOP: Open (Device=%s, DeviceID=%08x, Mode=%i, CmdSuccess=%i)",
+						pDevice->GetDeviceName().c_str(), CurrentDeviceID, Mode, (int)CmdSuccess);
 				}
 				else
 				{
@@ -337,13 +322,13 @@ void ExecuteCommand(u32 _Address)
             else
             {
 				// The device has already been opened and was not closed, reuse the same DeviceID. 
+                pDevice = AccessDeviceByID(DeviceID);
 
-                IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
-                // If we return -6 here after a Open > Failed > CREATE_FILE > ReOpen call
+				// If we return -6 here after a Open > Failed > CREATE_FILE > ReOpen call
 				//   sequence Mario Galaxy and Mario Kart Wii will not start writing to the file,
 				//   it will just (seemingly) wait for one or two seconds and then give an error
 				//   message. So I'm trying to return the DeviceID instead to make it write to the file.
-				//   (Which was most likely the reason it created the file in the first place.) */
+				//   (Which was most likely the reason it created the file in the first place.)
 
 				// F|RES: prolly the re-open is just a mode change
 
@@ -359,81 +344,69 @@ void ExecuteCommand(u32 _Address)
 					//  Open > Failed > ... other stuff > ReOpen call sequence, in that case
 					//  we have no file and no file handle, so we call Open again to basically
 					//  get a -106 error so that the game call CreateFile and then ReOpen again. 
+
 					if(pDevice->ReturnFileHandle())
 						Memory::Write_U32(DeviceID, _Address + 4);
 					else
-						GenerateReply = pDevice->Open(_Address, newMode);						
+						pDevice->Open(_Address, newMode);						
 				}
 				else
 				{
 					// We have already opened this device, return -6
 					Memory::Write_U32(u32(-6), _Address + 4);
 				}
-                GenerateReply = true;                
-            } 
+                CmdSuccess = true;                
+            }
         }
         break;
 
     case COMMAND_CLOSE_DEVICE:
-        {
-            u32 DeviceID = Memory::Read_U32(_Address + 8);
-            
-            IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
+        {   
             if (pDevice != NULL)
               {
                 pDevice->Close(_Address);
 
 				// Delete the device when CLOSE is called, this does not effect
 				// GenerateReply() for any other purpose than the logging because
-				// it's a true / false only function //
+				// it's a true / false only function
                 ClosedDeviceID = DeviceID;
-                GenerateReply = true;
+                CmdSuccess = true;
               }            
         }
         break;
 
     case COMMAND_READ:
         {
-            u32 DeviceID = Memory::Read_U32(_Address+8);
-            IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
 			if (pDevice != NULL)
-				GenerateReply = pDevice->Read(_Address);
+				CmdSuccess = pDevice->Read(_Address);
         }
         break;
     
     case COMMAND_WRITE:
         {
-            u32 DeviceID = Memory::Read_U32(_Address+8);
-            IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
 			if (pDevice != NULL)
-				GenerateReply = pDevice->Write(_Address);
+				CmdSuccess = pDevice->Write(_Address);
         }
         break;
 
     case COMMAND_SEEK:
         {
-            u32 DeviceID = Memory::Read_U32(_Address+8);
-            IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
 			if (pDevice != NULL)
-				GenerateReply = pDevice->Seek(_Address);
+				CmdSuccess = pDevice->Seek(_Address);
         }
         break;
 
     case COMMAND_IOCTL:
         {
-            u32 DeviceID = Memory::Read_U32(_Address+8);
-            IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
 			if (pDevice != NULL)
-				GenerateReply = pDevice->IOCtl(_Address);
+				CmdSuccess = pDevice->IOCtl(_Address);
         }
         break;
 
     case COMMAND_IOCTLV:
         {
-            u32 DeviceID = Memory::Read_U32(_Address+8);
-            IWII_IPC_HLE_Device* pDevice = AccessDeviceByID(DeviceID);
 			if (pDevice)
-				GenerateReply = pDevice->IOCtlV(_Address);
+				CmdSuccess = pDevice->IOCtlV(_Address);
         }
         break;
 
@@ -443,88 +416,101 @@ void ExecuteCommand(u32 _Address)
         break;
     }
 
+
     // It seems that the original hardware overwrites the command after it has been
 	//	   executed. We write 8 which is not any valid command. 
-	Memory::Write_U32(8, _Address);
+	//
+	// AyuanX: Is this really necessary?
+	// My experiment says no, so I'm just commenting this out
+	//
+	//Memory::Write_U32(8, _Address);
 
-	// Generate a reply to the IPC command
-    if (GenerateReply)
+    if (CmdSuccess)
     {
-		// Get device id
+			// Generate a reply to the IPC command
+			WII_IPCInterface::EnqReply(_Address);
+
 		u32 DeviceID = Memory::Read_U32(_Address + 8);
-		IWII_IPC_HLE_Device* pDevice = NULL;
-
-        // Get the device from the device map
-        if (DeviceID != 0) {
-            if (g_DeviceMap.find(DeviceID) != g_DeviceMap.end())
-                pDevice = g_DeviceMap[DeviceID];
-
-			if (pDevice != NULL) {
-				// Write reply, this will later be executed in Update()
-				g_ReplyQueue.push(std::pair<u32, std::string>(_Address, pDevice->GetDeviceName()));
-			} else {
+		// DeviceID == 0 means it's used for devices that weren't created yet
+        if (DeviceID != 0)
+		{
+            if (g_DeviceMap.find(DeviceID) == g_DeviceMap.end())
 				ERROR_LOG(WII_IPC_HLE, "IOP: Reply to unknown device ID (DeviceID=%i)", DeviceID);
-				g_ReplyQueue.push(std::pair<u32, std::string>(_Address, "unknown"));
-			}
 
-			if (ClosedDeviceID > 0 && ClosedDeviceID == DeviceID)
+			if (ClosedDeviceID > 0 && (ClosedDeviceID == DeviceID))
 				DeleteDeviceByID(DeviceID);
-
-        } else {
-			// 0 is ok, as it's used for devices that weren't created yet
-			g_ReplyQueue.push(std::pair<u32, std::string>(_Address, "unknown"));
         }
     }
+	else
+	{
+		//INFO_LOG(WII_IPC_HLE, "<<-- Failed or Not Ready to Reply to Command Address: 0x%08x ", _Address);
+	}
 }
 
 
 // ===================================================
-/* This is called continuously from SystemTimers.cpp and WII_IPCInterface::IsReady()
-   is controlled from WII_IPC.cpp. */
-// ----------------
-void UpdateDevices()
-{
-    if (WII_IPCInterface::IsReady())    
-    {
-        // check if an executed must be updated
-        TDeviceMap::const_iterator itr = g_DeviceMap.begin();
-        while(itr != g_DeviceMap.end())
-        {
-            u32 CommandAddr = itr->second->Update();
-            if (CommandAddr != 0)
-            {
-                g_ReplyQueue.push(std::pair<u32, std::string>(CommandAddr, itr->second->GetDeviceName()));        
-            }
-            ++itr;
-        }
-    }
-}
-
+// This is called continuously from SystemTimers.cpp
+// ---------------------------------------------------
 void Update()
 {
-	if (WII_IPCInterface::IsReady())    
+	if (WII_IPCInterface::IsReady() == false)
+		return;
+
+	UpdateDevices();
+
+	// if we have a reply to send
+	u32 _Reply = WII_IPCInterface::DeqReply();
+	if (_Reply != NULL)
 	{
-        // Check if we have to execute an acknowledge command...
-        if (!g_ReplyQueue.empty())
-        {
-			WII_IPCInterface::GenerateReply(g_ReplyQueue.front().first);
-            g_ReplyQueue.pop();
-            return;
-        }
+		WII_IPCInterface::GenerateReply(_Reply);
+		INFO_LOG(WII_IPC_HLE, "<<-- Reply to Command Address: 0x%08x", _Reply);
+		return;
+	}
 
-		// ...no we don't, we can now execute the IPC command
-        if (g_ReplyQueue.empty() && !g_Ack.empty())
-        {
-            u32 _Address = g_Ack.front();
-            g_Ack.pop_front();
-            DEBUG_LOG(WII_IPC_HLE, "-- Execute Ack (0x%08x)", _Address);
-            ExecuteCommand(_Address);
-            DEBUG_LOG(WII_IPC_HLE, "-- End of ExecuteAck (0x%08x)", _Address);
+	// If there is a a new command
+	u32 _Address = WII_IPCInterface::GetAddress();
+	if (_Address != NULL)
+	{
+		WII_IPCInterface::GenerateAck();
+		INFO_LOG(WII_IPC_HLE, "||-- Acknowledge Command Address: 0x%08x", _Address);
 
-			// Go back to WII_IPC.cpp and generate an acknowledgement
-            WII_IPCInterface::GenerateAck(_Address);
-        }
+		ExecuteCommand(_Address);
+
+		// AyuanX: Since current HLE time slot is empty, we can piggyback a reply
+		// Besides, this trick makes a Ping-Pong Reply FIFO never get full
+		// I don't know whether original hardware supports this feature or not
+		// but it works here and we gain 1/3 extra bandwidth
+		//
+		u32 _Reply = WII_IPCInterface::DeqReply();
+		if (_Reply != NULL)
+		{
+			WII_IPCInterface::GenerateReply(_Reply);
+			INFO_LOG(WII_IPC_HLE, "<<-- Reply to Command Address: 0x%08x", _Reply);
+		}
+
+		#if MAX_LOG_LEVEL >= DEBUG_LEVEL
+			Debugger::PrintCallstack(LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);
+		#endif
+
+		return;
+	}
+
+}
+
+void UpdateDevices()
+{
+	// check if a device must be updated
+	TDeviceMap::const_iterator itr = g_DeviceMap.begin();
+
+	while(itr != g_DeviceMap.end())
+	{
+		if (itr->second->Update())
+		{
+			break;
+		}
+		++itr;
 	}
 }
+
 
 } // end of namespace IPC

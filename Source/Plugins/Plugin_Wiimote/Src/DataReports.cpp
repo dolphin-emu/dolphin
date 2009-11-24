@@ -37,7 +37,7 @@
 	     Callback_WiimoteInput()
 	     CWII_IPC_HLE_WiiMote::SendL2capData()
 	  WII_IPC_HLE_Device_usb.cpp:
-	     CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLFrame()
+	     CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket()
 	  at that point the message is queued and will be sent by the next
 	     CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 */
@@ -69,22 +69,20 @@ namespace WiiMoteEmu
 
 // Update the data reporting mode 
 
-void WmDataReporting(u16 _channelID, wm_data_reporting* dr) 
+void WmReportMode(u16 _channelID, wm_report_mode* dr) 
 {
-	DEBUG_LOG(WIIMOTE, " Set Data reporting mode");
+	INFO_LOG(WIIMOTE, "Set data report mode");
 	DEBUG_LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
 	DEBUG_LOG(WIIMOTE, "  Continuous: %x", dr->continuous);
 	DEBUG_LOG(WIIMOTE, "  All The Time: %x (not only on data change)", dr->all_the_time);
 	DEBUG_LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
-	DEBUG_LOG(WIIMOTE, "Data reporting:");
-	DEBUG_LOG(WIIMOTE, "   Continuous: %x", dr->continuous);
-	DEBUG_LOG(WIIMOTE, "   All The Time: %x (not only on data change)", dr->all_the_time);
-	DEBUG_LOG(WIIMOTE, "   Mode: 0x%02x", dr->mode);
-	DEBUG_LOG(WIIMOTE, "   Channel: 0x%04x", _channelID);
-	
+
+	g_ReportingAuto = dr->all_the_time;
 	g_ReportingMode = dr->mode;
 	g_ReportingChannel = _channelID;
-	switch(dr->mode) // See Wiimote_Update()
+
+	// Validation check
+	switch(dr->mode)
 	{
 	case WM_REPORT_CORE:
 	case WM_REPORT_CORE_ACCEL:
@@ -95,9 +93,6 @@ void WmDataReporting(u16 _channelID, wm_data_reporting* dr)
 	default:
 		PanicAlert("Wiimote: Unsupported reporting mode 0x%x", dr->mode);
 	}
-
-	// WmSendAck(_channelID, WM_DATA_REPORTING);
-
 }
 
 
@@ -106,7 +101,7 @@ void WmDataReporting(u16 _channelID, wm_data_reporting* dr)
 void SendReportCore(u16 _channelID) 
 {
 	u8 DataFrame[1024];
-	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE);
+	u32 Offset = WriteWmReportHdr(DataFrame, WM_REPORT_CORE);
 
 	wm_report_core* pReport = (wm_report_core*)(DataFrame + Offset);
 	Offset += sizeof(wm_report_core);
@@ -115,12 +110,14 @@ void SendReportCore(u16 _channelID)
 	FillReportInfo(pReport->c);
 #endif
 
-	INFO_LOG(WIIMOTE, "  SendReportCore()");
+	INFO_LOG(WIIMOTE,   "  SendReportCore(0x30)");
+	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
+	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 
 	// Debugging
-	ReadDebugging(true, DataFrame, Offset);
+	//ReadDebugging(true, DataFrame, Offset);
 }
 
 
@@ -128,7 +125,7 @@ void SendReportCore(u16 _channelID)
 void SendReportCoreAccel(u16 _channelID) 
 {
 	u8 DataFrame[1024];
-	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE_ACCEL);
+	u32 Offset = WriteWmReportHdr(DataFrame, WM_REPORT_CORE_ACCEL);
 
 	wm_report_core_accel* pReport = (wm_report_core_accel*)(DataFrame + Offset);
 	Offset += sizeof(wm_report_core_accel);
@@ -140,20 +137,20 @@ void SendReportCoreAccel(u16 _channelID)
 #endif
 
 	INFO_LOG(WIIMOTE,  "  SendReportCoreAccel (0x31)");
-	INFO_LOG(WIIMOTE,  "      Channel: %04x", _channelID);
-	INFO_LOG(WIIMOTE,  "      Offset: %08x", Offset);
+	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
+	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 
 	// Debugging
-	ReadDebugging(true, DataFrame, Offset);
+	//ReadDebugging(true, DataFrame, Offset);
 }
 
 
 /* Case 0x33: Core Buttons and Accelerometer with 12 IR bytes   */
 void SendReportCoreAccelIr12(u16 _channelID) {
 	u8 DataFrame[1024];
-	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE_ACCEL_IR12);
+	u32 Offset = WriteWmReportHdr(DataFrame, WM_REPORT_CORE_ACCEL_IR12);
 
 	wm_report_core_accel_ir12* pReport = (wm_report_core_accel_ir12*)(DataFrame + Offset);
 	Offset += sizeof(wm_report_core_accel_ir12);
@@ -169,13 +166,14 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 	memset(&pReport->ir[2], 0xff, sizeof(wm_ir_extended));
 	memset(&pReport->ir[3], 0xff, sizeof(wm_ir_extended));
 
-	INFO_LOG(WIIMOTE,  "  SendReportCoreAccelIr12()");
-	INFO_LOG(WIIMOTE,  "    Offset: %08x", Offset);
+	INFO_LOG(WIIMOTE,  "  SendReportCoreAccelIr12(0x33)");
+	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
+	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 
 	// Debugging
-	ReadDebugging(true, DataFrame, Offset);
+	//ReadDebugging(true, DataFrame, Offset);
 }
 
 
@@ -183,7 +181,7 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 void SendReportCoreAccelExt16(u16 _channelID) 
 {
 	u8 DataFrame[1024];
-	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE_ACCEL_EXT16);
+	u32 Offset = WriteWmReportHdr(DataFrame, WM_REPORT_CORE_ACCEL_EXT16);
 
 	wm_report_core_accel_ext16* pReport = (wm_report_core_accel_ext16*)(DataFrame + Offset);
 	Offset += sizeof(wm_report_core_accel_ext16);
@@ -209,18 +207,18 @@ void SendReportCoreAccelExt16(u16 _channelID)
 #if defined(HAVE_WX) && HAVE_WX
 		FillReportClassicExtension(_ext);
 #endif
-//TODO		// Copy _ext to pReport->ext
+		// Copy _ext to pReport->ext
 		memcpy(&pReport->ext, &_ext, sizeof(_ext));
 	}
 
 	INFO_LOG(WIIMOTE,  "  SendReportCoreAccelExt16 (0x35)");
-	INFO_LOG(WIIMOTE,  "      Channel: %04x", _channelID);
-	INFO_LOG(WIIMOTE,  "      Offset: %08x", Offset);
+	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
+	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 
 	// Debugging
-	ReadDebugging(true, DataFrame, Offset);
+	//ReadDebugging(true, DataFrame, Offset);
 }
 
 
@@ -228,7 +226,7 @@ void SendReportCoreAccelExt16(u16 _channelID)
 void SendReportCoreAccelIr10Ext(u16 _channelID) 
 {
 	u8 DataFrame[1024];
-	u32 Offset = WriteWmReport(DataFrame, WM_REPORT_CORE_ACCEL_IR10_EXT6);
+	u32 Offset = WriteWmReportHdr(DataFrame, WM_REPORT_CORE_ACCEL_IR10_EXT6);
 
 	wm_report_core_accel_ir10_ext6* pReport = (wm_report_core_accel_ir10_ext6*)(DataFrame + Offset);
 	Offset += sizeof(wm_report_core_accel_ir10_ext6);
@@ -267,12 +265,14 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 		memcpy(&pReport->ext, &_GH3_ext, sizeof(_GH3_ext));
 	}
 
-	INFO_LOG(WIIMOTE,  "  SendReportCoreAccelIr10Ext()");
+	INFO_LOG(WIIMOTE,  "  SendReportCoreAccelIr10Ext(0x37)");
+	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
+	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 	
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 
 	// Debugging
-	ReadDebugging(true, DataFrame, Offset);
+	//ReadDebugging(true, DataFrame, Offset);
 }
 
 
