@@ -43,14 +43,15 @@ public:
 		curAddress = addr;
 		redraw();
 	}
-
+	int dataType;//u8,u16,u32
+		int curAddress;//Will be accessed by parent
 private:
 	int YToAddress(int y);
 	void redraw() {Refresh();}
 
 	DebugInterface* debugger;
 
-	int curAddress;
+
 	int align;
 	int rowHeight;
 
@@ -67,7 +68,9 @@ private:
 	{
 		VIEWAS_ASCII = 0,
 		VIEWAS_FP,
+		VIEWAS_HEX,
 	};
+
 	EViewAsType viewAsType;
 
 	DECLARE_EVENT_TABLE()

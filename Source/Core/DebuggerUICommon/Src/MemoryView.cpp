@@ -37,6 +37,7 @@ enum
 	IDM_TOGGLEMEMORY,
 	IDM_VIEWASFP,
 	IDM_VIEWASASCII,
+	IDM_VIEWASHEX,
 };
 
 
@@ -215,6 +216,10 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 			viewAsType = VIEWAS_ASCII;
 			redraw();
 			break;
+		case IDM_VIEWASHEX:
+			viewAsType = VIEWAS_HEX;
+			redraw();
+			break;
 	}
 
 #if wxUSE_CLIPBOARD
@@ -235,14 +240,18 @@ void CMemoryView::OnMouseDownR(wxMouseEvent& event)
 #endif
 	menu->Append(IDM_TOGGLEMEMORY, wxString::FromAscii("Toggle &memory (RAM/ARAM)"));
 
+
+
 	wxMenu* viewAsSubMenu = new wxMenu;
- 	viewAsSubMenu->Append(IDM_VIEWASFP, wxString::FromAscii("FP value"));
- 	viewAsSubMenu->Append(IDM_VIEWASASCII, wxString::FromAscii("ASCII"));
+	viewAsSubMenu->Append(IDM_VIEWASFP, wxString::FromAscii("FP value"));
+	viewAsSubMenu->Append(IDM_VIEWASASCII, wxString::FromAscii("ASCII"));
+	viewAsSubMenu->Append(IDM_VIEWASHEX, wxString::FromAscii("Hex"));
  	menu->AppendSubMenu(viewAsSubMenu, wxString::FromAscii("View As:"));
+
 
 	PopupMenu(menu);
 
-	event.Skip(true);
+	//event.Skip(true);
 }
 
 
@@ -251,6 +260,186 @@ void CMemoryView::OnErase(wxEraseEvent& event)
 
 
 void CMemoryView::OnPaint(wxPaintEvent& event)
+{
+	wxPaintDC dc(this);
+	wxRect rc = GetClientRect();
+	wxFont hFont(_T("Courier"));
+	
+	if(viewAsType==VIEWAS_HEX){
+		hFont.SetFamily(wxFONTFAMILY_TELETYPE);
+		dc.SetFont(hFont);
+
+	}else{
+	dc.SetFont(DebuggerFont);
+	}
+	//wxFont tempFont(Lucida Console);
+	int fontSize =(viewAsType==VIEWAS_HEX?hFont.GetPointSize() : DebuggerFont.GetPointSize());
+	int textPlacement=77;
+	struct branch
+	{
+		int src, dst, srcAddr;
+	};
+
+	// TODO: Add any drawing code here...
+	int width   = rc.width;
+	int numRows = (rc.height / rowHeight) / 2 + 2;
+	//numRows=(numRows&(~1)) + 1;
+	dc.SetBackgroundMode(wxTRANSPARENT);
+	const wxChar* bgColor = _T("#ffffff");
+	wxPen nullPen(bgColor);
+	wxPen currentPen(_T("#000000"));
+	wxPen selPen(_T("#808080")); // gray
+	nullPen.SetStyle(wxTRANSPARENT);
+
+	wxBrush currentBrush(_T("#FFEfE8")); // light gray
+	wxBrush pcBrush(_T("#70FF70")); // green
+	wxBrush mcBrush(_T("#1133FF")); // blue
+	wxBrush bgBrush(bgColor);
+	wxBrush nullBrush(bgColor);
+	nullBrush.SetStyle(wxTRANSPARENT);
+
+	dc.SetPen(nullPen);
+	dc.SetBrush(bgBrush);
+	dc.DrawRectangle(0, 0, 16, rc.height);
+	dc.DrawRectangle(0, 0, rc.width, 5+8);
+	// TODO - clean up this freaking mess!!!!!
+	int i;
+
+	for (i = -numRows; i <= numRows; i++)
+	{
+		unsigned int address = curAddress + i * align;
+
+		int rowY1 = rc.height / 2 + rowHeight * i - rowHeight / 2;
+		int rowY2 = rc.height / 2 + rowHeight * i + rowHeight / 2;
+
+		wxString temp = wxString::Format(_T("%08x"), address);
+		u32 col = debugger->getColor(address);
+		wxBrush rowBrush(wxColor(col >> 16, col >> 8, col));
+		dc.SetBrush(nullBrush);
+		dc.SetPen(nullPen);
+		dc.DrawRectangle(0, rowY1, 16, rowY2);
+
+		if (selecting && (address == selection))
+		{
+			dc.SetPen(selPen);
+		}
+		else
+		{
+			dc.SetPen(i == 0 ? currentPen : nullPen);
+		}
+
+		if (address == debugger->getPC())
+		{
+			dc.SetBrush(pcBrush);
+		}
+		else
+		{
+			dc.SetBrush(rowBrush);
+		}
+
+		dc.DrawRectangle(16, rowY1, width, rowY2 - 1);
+		dc.SetBrush(currentBrush);
+		dc.SetTextForeground(_T("#600000"));
+		dc.DrawText(temp, 17, rowY1);
+		if(viewAsType!=VIEWAS_HEX){
+		char mem[256];
+		debugger->getRawMemoryString(memory, address, mem, 256);
+		dc.SetTextForeground(_T("#000080"));
+		dc.DrawText(wxString::FromAscii(mem), 17+fontSize*(8), rowY1);
+		dc.SetTextForeground(_T("#000000"));
+		}
+		if (debugger->isAlive())
+		{
+			char dis[256] = {0};
+			u32 mem_data = debugger->readExtraMemory(memory, address);
+
+			if (viewAsType == VIEWAS_FP)
+			{
+				float flt = *(float *)(&mem_data);
+				sprintf(dis, "f: %f", flt);
+			}
+			else if (viewAsType == VIEWAS_ASCII)
+			{
+				char a[4] = {(mem_data&0xff000000)>>24, (mem_data&0xff0000)>>16, (mem_data&0xff00)>>8, mem_data&0xff};
+				for (size_t i = 0; i < 4; i++)
+					if (a[i] == '\0')
+						a[i] = ' ';
+				sprintf(dis, "%c%c%c%c", a[0], a[1], a[2], a[3]);
+			}
+			else if(viewAsType==VIEWAS_HEX){
+				      dis[0]=0;dis[1]=0;
+					  u32 mema[8]={
+						  debugger->readExtraMemory(memory, address),
+						  debugger->readExtraMemory(memory, address+4),
+						  debugger->readExtraMemory(memory, address+8),
+						  debugger->readExtraMemory(memory, address+12),
+						  debugger->readExtraMemory(memory, address+16),
+						  debugger->readExtraMemory(memory, address+20),
+						  debugger->readExtraMemory(memory, address+24),
+						  debugger->readExtraMemory(memory, address+28)
+					  };
+					
+			//	for(size_t i=0;i<2;i++){
+				 
+				   //sprintf(dis,"%s %x %x %x %x",((mems&0xff000000)>>24)&0xFF, ((mems&0xff0000)>>16)&0xFF, ((mems&0xff00)>>8)&0xFF, mems&0xff);
+				int i=0;
+				for(i=0;i<8;i++){
+					switch(dataType){
+					case 0:
+					sprintf(dis,"%s %02X %02X %02X %02X",dis,((mema[i]&0xff000000)>>24)&0xFF, ((mema[i]&0xff0000)>>16)&0xFF, ((mema[i]&0xff00)>>8)&0xFF, mema[i]&0xff);
+                    break;
+					case 1:
+					sprintf(dis,"%s %02X%02X %02X%02X",dis,((mema[i]&0xff000000)>>24)&0xFF, ((mema[i]&0xff0000)>>16)&0xFF, ((mema[i]&0xff00)>>8)&0xFF, mema[i]&0xff);
+                    break;
+					case 2:
+					sprintf(dis,"%s %02X%02X%02X%02X",dis,((mema[i]&0xff000000)>>24)&0xFF, ((mema[i]&0xff0000)>>16)&0xFF, ((mema[i]&0xff00)>>8)&0xFF, mema[i]&0xff);
+                    break;
+					}
+					//  sprintf(dis,"%s %08X",dis,mema[i]);
+				 //  while((strlen(dis))%9)strcat(dis," ");
+				}
+				size_t len=strlen(dis);
+				//if(strlen(dis)%2)strcat(dis," ");
+	          strcat(dis,"\0");
+				curAddress+=32;
+				//textPlacement-=32;
+
+			}
+			else
+				sprintf(dis, "INVALID VIEWAS TYPE");
+
+			char desc[256] = "";
+			if(viewAsType!=VIEWAS_HEX){
+			 dc.DrawText(wxString::FromAscii(dis), textPlacement + fontSize*(8 + 8), rowY1);
+		    }else{
+             dc.DrawText(wxString::FromAscii(dis), textPlacement +  8+16, rowY1);
+		    }
+			if (desc[0] == 0)
+			{
+				strcpy(desc, debugger->getDescription(address).c_str());
+			}
+
+			dc.SetTextForeground(_T("#0000FF"));
+
+			if (strlen(desc))
+			{
+				dc.DrawText(wxString::FromAscii(desc), 17+fontSize*((8+8+8+30)*2), rowY1);
+			}
+
+			// Show blue memory check dot
+			if (Memory::AreMemoryBreakpointsActivated() && PowerPC::memchecks.GetMemCheck(address))
+			{
+				dc.SetBrush(mcBrush);
+				dc.DrawRectangle(8, rowY1 + 1, 11, 11);
+			}
+		}
+	}
+
+	dc.SetPen(currentPen);
+}
+
+/*
+void OnPaint2(wxPaintEvent& event)
 {
 	wxPaintDC dc(this);
 	wxRect rc = GetClientRect();
@@ -376,5 +565,4 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 
 	dc.SetPen(currentPen);
 }
-
-
+*/
