@@ -37,10 +37,12 @@
 
 namespace WiiMoteReal
 {
-int GetReportSize(struct wiimote_t* wm)
+int GetIRDataSize(struct wiimote_t* wm)
 {
-	// The report size is 0x33 = 18, 0x37 = 22 withouth the leading (a1) byte
-	if(WIIUSE_USING_EXP(wm)) return 22; else return 18;
+	if (WIIUSE_USING_EXP(wm))
+		return 10;
+	else
+		return 12;
 }
 
 void handle_ctrl_status(struct wiimote_t* wm)
@@ -56,19 +58,14 @@ void handle_ctrl_status(struct wiimote_t* wm)
 
 bool IRDataOK(struct wiimote_t* wm)
 {
-	//DEBUG_LOG(WIIMOTE, "IRDataOK: ");
-	// The report size is 0x33 = 18, 0x37 = 22 withouth the leading (a1) byte
-	int ReportSize = GetReportSize(wm);
-	for(int i = 0; i < ReportSize; i++)
-	{
-		//DEBUG_LOG(WIIMOTE, "%02x ", wm->event_buf[i]);
-		if (wm->event_buf[i] > 0)
-		{
-			//DEBUG_LOG(WIIMOTE, "");
-			return true;
-		}
-	}
-	return false;
+	// This check is valid because 0 should only be returned if the data
+	// hasn't been filled in by wiiuse
+	int IRDataSize = GetIRDataSize(wm);
+	for (int i = 7; i < IRDataSize; i++)
+		if (wm->event_buf[i] == 0)
+			return false;
+
+	return true;
 }
 
 void handle_event(struct wiimote_t* wm)
@@ -129,17 +126,12 @@ void handle_event(struct wiimote_t* wm)
 		Tmp += StringFromFormat("G-Force x, y, z: %1.2f %1.2f %1.2f\n", wm->gforce.x, wm->gforce.y, wm->gforce.z);
 		Tmp += StringFromFormat("Accel x, y, z: %03i %03i %03i\n", wm->accel.x, wm->accel.y, wm->accel.z);
 
-		// The report size is 0x33 = 18, 0x37 = 22
-		int ReportSize; if(WIIUSE_USING_EXP(wm)) ReportSize = 22; else ReportSize = 18;
-
 		// wm->event_buf is cleared at the end of all wiiuse_poll(), so wm->event_buf will always be zero
 		// after that. To get the raw IR data we need to read the wiimote again. This seems to work most of the time,
 		// it seems to fails with a regular interval about each tenth read.
-		if(wiiuse_io_read(wm))
-		{
-			// Check that it's not zero
-			if (IRDataOK(wm)) memcpy(g_EventBuffer, wm->event_buf, ReportSize);
-		}
+		if (wiiuse_io_read(wm))
+			if (IRDataOK(wm))
+				memcpy(g_EventBuffer, wm->event_buf, GetIRDataSize(wm));
 
 		// Go through each of the 4 possible IR sources
 		for (int i = 0; i < 4; ++i)
@@ -163,7 +155,6 @@ void handle_event(struct wiimote_t* wm)
 		//std::string TmpData = ArrayToString(g_EventBuffer, ReportSize, 0, 30);
 		//Tmp += "Data: " + TmpData;
 
-		//Console::ClearScreen();
 		//DEBUG_LOG(WIIMOTE, "%s", Tmp.c_str());
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -211,13 +202,10 @@ void handle_event(struct wiimote_t* wm)
 
 				if(m_RecordingConfigFrame->m_bRecording)
 					DEBUG_LOG(WIIMOTE, "Wiiuse Recorded accel x, y, z: %03i %03i %03i", Gx, Gy, Gz);
-					//DEBUG_LOG(WIIMOTE, "Wiiuse Recorded accel x, y, z: %02x %02x %02x", Gx, Gy, Gz);
 			}
 
 			// Send the data to be saved
-			//const u8* data = (const u8*)wm->event_buf;
-			m_RecordingConfigFrame->DoRecordMovement(Gx, Gy, Gz, (g_EventBuffer + 6),
-				(WIIUSE_USING_EXP(wm) ? 10 : 12));
+			m_RecordingConfigFrame->DoRecordMovement(Gx, Gy, Gz, g_EventBuffer + 6, GetIRDataSize(wm));
 
 			// Turn recording on and off
 			if (IS_PRESSED(wm, WIIMOTE_BUTTON_A)) m_RecordingConfigFrame->DoRecordA(true);
@@ -226,7 +214,6 @@ void handle_event(struct wiimote_t* wm)
 			// ------------------------------------
 			// Show roll and pitch in the status box
 			// --------------
-
 			if(!g_DebugData)
 			{
 				DEBUG_LOG(WIIMOTE, "Roll:%03i Pitch:%03i", (int)wm->orient.roll, (int)wm->orient.pitch);

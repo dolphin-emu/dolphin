@@ -51,8 +51,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="1"
+				Optimization="0"
+				InlineFunctionExpansion="2"
 				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WIIUSE_EXPORTS"
 				IgnoreStandardIncludePath="true"
@@ -147,8 +147,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="1"
+				Optimization="0"
+				InlineFunctionExpansion="2"
 				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WIIUSE_EXPORTS;_WIN64"
 				IgnoreStandardIncludePath="true"

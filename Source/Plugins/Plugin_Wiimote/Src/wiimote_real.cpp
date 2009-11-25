@@ -144,14 +144,14 @@ void ReadData()
 			if (pBuffer[1] >= 0x30) 
 			{
 				// Copy Buffer to LastReport
-				memcpy(m_LastReport.m_PayLoad, pBuffer + 1, MAX_PAYLOAD);
+				memcpy(m_LastReport.m_PayLoad, pBuffer + 1, MAX_PAYLOAD - 1);
 				m_LastReportValid = true;
 			}
 			else
 			{
 				// Copy Buffer to ImportantEvent
 				SEvent ImportantEvent;
-				memcpy(ImportantEvent.m_PayLoad, pBuffer + 1, MAX_PAYLOAD);
+				memcpy(ImportantEvent.m_PayLoad, pBuffer + 1, MAX_PAYLOAD - 1);
 
 				// Put it in the read queue right away
 				m_EventReadQueue.push(ImportantEvent);
