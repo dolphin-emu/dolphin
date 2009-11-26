@@ -46,11 +46,6 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 namespace WiiMoteEmu
 {
 
-//******************************************************************************
-// Subroutines
-//******************************************************************************
-
-
 /* Here we process the Output Reports that the Wii sends. Our response will be
    an Input Report back to the Wii. Input and Output is from the Wii's
    perspective, Output means data to the Wiimote (from the Wii), Input means
@@ -60,10 +55,6 @@ namespace WiiMoteEmu
 
    1. Wiimote_InterruptChannel > InterruptChannel > HidOutputReport
    2. Wiimote_ControlChannel > ControlChannel > HidOutputReport
-   
-   The IR lights and speaker enable/disable and mute/unmute values are
-		0x2 = Disable
-		0x6 = Enable
 */
 void HidOutputReport(u16 _channelID, wm_report* sr)
 {
@@ -71,8 +62,8 @@ void HidOutputReport(u16 _channelID, wm_report* sr)
 
 	switch(sr->wm)
 	{
-	case WM_RUMBLE: // 0x10
-		// TODO: Implement rumble for real wiimotes
+	case 0x10:
+		// Unknown
 		break;
 
 	case WM_LEDS: // 0x11
@@ -128,8 +119,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr)
 	
 	// Send general feedback except the following types
 	// as these ones generate their own feedbacks
-	if ((sr->wm != WM_RUMBLE)
-			&& (sr->wm != WM_READ_DATA)
+	if ((sr->wm != WM_READ_DATA)
 			&& (sr->wm != WM_REQUEST_STATUS)
 			&& (sr->wm != WM_WRITE_SPEAKER_DATA)
 		)
@@ -235,7 +225,8 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			blockSize = WIIMOTE_REG_EXT_SIZE;
 			DEBUG_LOG(WIIMOTE, "  Case 0xa4: ExtReg");
 			break;
-/*
+
+			// MotionPlus is pretty much just a dummy atm :p
 		case 0xA6:
 			block = g_RegMotionPlus;
 			block[0xFC] = 0xA6;
@@ -245,7 +236,7 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			blockSize = WIIMOTE_REG_EXT_SIZE;
 			DEBUG_LOG(WIIMOTE, "  Case 0xa6: MotionPlusReg [%x]", address);
 			break;
-*/
+
 		case 0xB0:
 			block = g_RegIr;
 			blockSize = WIIMOTE_REG_IR_SIZE;
@@ -407,13 +398,13 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 				blockSize = WIIMOTE_REG_EXT_SIZE;
 				DEBUG_LOG(WIIMOTE, "  Case 0xa4: ExtReg");
 				break;
-/*
+
 			case 0xA6:
 				block = g_RegMotionPlus;
 				blockSize = WIIMOTE_REG_EXT_SIZE;
 				DEBUG_LOG(WIIMOTE, "  Case 0xa6: MotionPlusReg [%x]", address);
 				break;
-*/
+
 			case 0xB0:
 				block = g_RegIr;
 				blockSize = WIIMOTE_REG_IR_SIZE;

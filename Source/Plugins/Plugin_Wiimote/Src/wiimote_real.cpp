@@ -225,11 +225,12 @@ void SendEvent(SEvent& _rEvent)
     u8 Buffer[1024];
     u32 Offset = 0;
     hid_packet* pHidHeader = (hid_packet*)(Buffer + Offset);
-    Offset += sizeof(hid_packet);
     pHidHeader->type = HID_TYPE_DATA;
     pHidHeader->param = HID_PARAM_INPUT;
 
 	// Create the buffer
+	memcpy(&Buffer[Offset], pHidHeader, sizeof(hid_packet));
+	Offset += sizeof(hid_packet);
     memcpy(&Buffer[Offset], _rEvent.m_PayLoad, sizeof(_rEvent.m_PayLoad));
     Offset += sizeof(_rEvent.m_PayLoad); 
 

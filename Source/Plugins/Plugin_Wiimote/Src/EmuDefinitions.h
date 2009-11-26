@@ -75,7 +75,7 @@ extern u8 g_IR;
 
 extern u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
 extern u8 g_RegSpeaker[WIIMOTE_REG_SPEAKER_SIZE];
-//extern u8 g_RegMotionPlus[WIIMOTE_REG_EXT_SIZE];
+extern u8 g_RegMotionPlus[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
@@ -140,47 +140,15 @@ static const u8 classic_calibration[] =
 	0x00,0x00, 0x51,0xa6
 };
 
-
-
-/* The Nunchuck id. It should be written to the last bytes of the
-   extension register */
-static const u8 nunchuck_id[] =
-{
-	0x00, 0x00, 0xa4, 0x20, 0x00, 0x00
-};
-
-/* The Classic Controller id. It should be written to the last bytes of the
-   extension register */
-static const u8 classic_id[] =
-{
-	0x00, 0x00, 0xa4, 0x20, 0x01, 0x01
-};
-
-/* The GH3 guitar id. It should be written to the last bytes of the
-   extension register */
-static const u8 gh3glp_id[] =
-{
-	0x00, 0x00, 0xa4, 0x20, 0x01, 0x03
-};
-
-/* The GHWT drums id. It should be written to the last bytes of the
-   extension register */
-static const u8 ghwtdrums_id[] =
-{
-	0x01, 0x00, 0xa4, 0x20, 0x01, 0x03
-};
-
-/* The id for nothing inserted */
-static const u8 nothing_id[] =
-{
-	0x00, 0x00, 0x00, 0x00, 0x2e, 0x2e
-};
-
-/* The id for a partially inserted extension */
-static const u8 partially_id[] =
-{
-	0x00, 0x00, 0x00, 0x00, 0xff, 0xff
-};
+// Extension device IDs to be written to the last bytes of the extension reg
+static const u8 nunchuck_id[]	= { 0x00, 0x00, 0xa4, 0x20, 0x00, 0x00 };
+static const u8 classic_id[]	= { 0x00, 0x00, 0xa4, 0x20, 0x01, 0x01 };
+static const u8 gh3glp_id[]		= { 0x00, 0x00, 0xa4, 0x20, 0x01, 0x03 };
+static const u8 ghwtdrums_id[]	= { 0x01, 0x00, 0xa4, 0x20, 0x01, 0x03 };
+// The id for nothing inserted
+static const u8 nothing_id[]	= { 0x00, 0x00, 0x00, 0x00, 0x2e, 0x2e };
+// The id for a partially inserted extension
+static const u8 partially_id[]	= { 0x00, 0x00, 0x00, 0x00, 0xff, 0xff };
 
 // Gamepad input
 extern int NumPads, NumGoodPads; // Number of goods pads

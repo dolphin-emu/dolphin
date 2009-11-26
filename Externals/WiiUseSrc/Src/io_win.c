@@ -204,9 +204,9 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 	}
 
 	// This needs to be done even if ReadFile fails, essential during init
-	// Move the data over one, so we can add back in 0xa2
+	// Move the data over one, so we can add back in data report indicator byte (here, 0xa1)
 	memmove(wm->event_buf + 1, wm->event_buf, sizeof(wm->event_buf) - 1);
-	wm->event_buf[0] = 0xa2;
+	wm->event_buf[0] = 0xa1;
 
 	ResetEvent(wm->hid_overlap.hEvent);
 	return 1;

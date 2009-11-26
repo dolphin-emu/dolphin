@@ -474,6 +474,7 @@ void DoState(PointerWrap &p)
 	p.DoArray(g_Eeprom, WIIMOTE_EEPROM_SIZE);
 	p.DoArray(g_RegSpeaker, WIIMOTE_REG_SPEAKER_SIZE);
 	p.DoArray(g_RegExt, WIIMOTE_REG_EXT_SIZE);
+	p.DoArray(g_RegMotionPlus, WIIMOTE_REG_EXT_SIZE);
 	p.DoArray(g_RegExtTmp, WIIMOTE_REG_EXT_SIZE);
 	p.DoArray(g_RegIr, WIIMOTE_REG_IR_SIZE);
 

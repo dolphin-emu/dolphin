@@ -942,9 +942,9 @@ void InterruptDebugging(bool Emu, const void* _pData)
 		if (g_DebugComm) Name.append("WM_SPEAKER");
 		size = 1;
 		if(data[1] == 0x14) {
-			DEBUG_LOG(WIIMOTE, "Speaker %s", (data[2] == 0x06) ? "On" : "Off");
+			DEBUG_LOG(WIIMOTE, "Speaker %s", (data[2] & 4) ? "On" : "Off");
 		} else if(data[1] == 0x19) {
-			DEBUG_LOG(WIIMOTE, "Speaker %s", (data[2] == 0x06) ? "Muted" : "Unmuted");
+			DEBUG_LOG(WIIMOTE, "Speaker %s", (data[2] & 4) ? "Muted" : "Unmuted");
 		}
 		break;
 	case WM_WRITE_SPEAKER_DATA: // 0x18
