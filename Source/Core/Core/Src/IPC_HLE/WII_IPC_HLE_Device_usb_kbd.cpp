@@ -40,7 +40,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 	m_OldModifiers = 0x00;
 
 	m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, NULL));
-
+	m_Active = true;
     return true;
 }
 

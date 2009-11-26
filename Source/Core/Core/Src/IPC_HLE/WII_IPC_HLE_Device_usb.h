@@ -189,6 +189,8 @@ private:
 	ACLPool m_ACLPool;
 	u32 m_LastCmd;
 	int m_PacketCount;
+	u32 m_FreqDividerSync;
+	u32 m_FreqDividerMote;
 
 	// Events
 	void AddEventToQueue(const SQueuedEvent& _event);

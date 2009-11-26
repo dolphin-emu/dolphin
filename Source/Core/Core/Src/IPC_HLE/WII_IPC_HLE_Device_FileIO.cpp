@@ -40,8 +40,8 @@ std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 	return Filename;
 }
 
-CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName ) 
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName) 
+    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false)	// not a real hardware
     , m_pFileHandle(NULL)
     , m_FileLength(0)
 {
@@ -66,7 +66,7 @@ CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
 
 	// Close always return 0 for success
 	Memory::Write_U32(0, _CommandAddress + 4);
-	
+	m_Active = false;
 	return true;
 }
 
@@ -130,6 +130,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 	}
 
 	Memory::Write_U32(ReturnValue, _CommandAddress+4);
+	m_Active = true;
 	return true;
 }
 

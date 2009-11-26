@@ -55,11 +55,21 @@
 
 
 
-CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName, const std::string& _rDefaultContentFile) 
+CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName) 
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
     , m_pContentLoader(NULL)
     , m_TitleID(-1)
     , AccessIdentID(0x6000000)
+{
+}
+
+CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
+{
+	// Leave deletion of the INANDContentLoader objects to CNANDContentManager, don't do it here!
+    m_NANDContent.clear();
+}
+
+void CWII_IPC_HLE_Device_es::Load(const std::string& _rDefaultContentFile) 
 {
     m_pContentLoader = &DiscIO::CNANDContentManager::Access().GetNANDLoader(_rDefaultContentFile);
 
@@ -91,19 +101,13 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
     
 	//FindValidTitleIDs();
 
-
     INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", (u32)(m_TitleID>>32), (u32)m_TitleID);
-}
-
-CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
-{
-	// Leave deletion of the INANDContentLoader objects to CNANDContentManager, don't do it here!
-    m_NANDContent.clear();
 }
 
 bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
 {
     Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+	m_Active = true;
     return true;
 }
 
@@ -111,7 +115,8 @@ bool CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress)
 {
     INFO_LOG(WII_IPC_ES, "ES: Close");
     Memory::Write_U32(0, _CommandAddress + 4);
-    return true;
+	m_Active = false;
+	return true;
 }
 
 bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress) 

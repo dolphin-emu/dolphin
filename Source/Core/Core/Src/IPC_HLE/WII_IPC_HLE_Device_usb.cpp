@@ -43,6 +43,8 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	, m_ACLPool(0)
 	, m_LastCmd(NULL)
 	, m_PacketCount(0)
+	, m_FreqDividerSync(0)
+	, m_FreqDividerMote(0)
 {
 	m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, 0));
 	// Connect one Wiimote by default
@@ -77,6 +79,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.Do(m_HCIPool);
 	p.Do(m_ACLBuffer);
 	p.Do(m_ACLPool);
+	p.Do(m_FreqDividerSync);
+	p.Do(m_FreqDividerMote);
 }
 
 // ===================================================
@@ -84,6 +88,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress, u32 _Mode)
 {
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+	m_Active = true;
 	return true;
 }
 
@@ -92,6 +97,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress, u32 _Mode)
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress)
 {
 	Memory::Write_U32(0, _CommandAddress + 4);
+	m_Active = false;
 	return true;
 }
 
@@ -371,6 +377,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeACLPool()
 // ----------------
 u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 {
+
 	// Check if HCI Pool is not purged
 	if (m_HCIPool.m_number > 0)
 	{
@@ -445,13 +452,12 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// or CPU will disconnect WiiMote automatically
 	// but don't send too many or it will jam the bus and cost extra CPU time
 	//
-	static u32 FreqDividerSync = 0;
 	if (m_HCIBuffer.m_address && !WII_IPCInterface::GetAddress() && m_WiiMotes[0].IsConnected())
 	{
-		FreqDividerSync++;
-		if ((m_PacketCount > 0) || (FreqDividerSync > 30))	// Feel free to tweak it
+		m_FreqDividerSync++;
+		if ((m_PacketCount > 0) || (m_FreqDividerSync > 30))	// Feel free to tweak it
 		{
-			FreqDividerSync = 0;
+			m_FreqDividerSync = 0;
 			SendEventNumberOfCompletedPackets(m_WiiMotes[0].GetConnectionHandle(), m_PacketCount);
 			m_PacketCount = 0;
 			return true;
@@ -464,13 +470,12 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// Besides, decreasing its reporting frequency also brings us great FPS boost
 	// Now I am making it running at 1/100 frequency of IPC which is already fast enough for human input
 	// 
-	static u32 FreqDividerMote = 0;
 	if (m_ACLBuffer.m_address && !WII_IPCInterface::GetAddress() && !m_LastCmd && m_WiiMotes[0].IsLinked())
 	{
-		FreqDividerMote++;
-		if(FreqDividerMote > 99)	// Feel free to tweak it
+		m_FreqDividerMote++;
+		if(m_FreqDividerMote > 99)	// Feel free to tweak it
 		{
-			FreqDividerMote = 0;
+			m_FreqDividerMote = 0;
 			CPluginManager::GetInstance().GetWiimote(0)->Wiimote_Update();
 			return true;
 		}
@@ -2132,12 +2137,14 @@ CWII_IPC_HLE_Device_usb_oh0::~CWII_IPC_HLE_Device_usb_oh0()
 bool CWII_IPC_HLE_Device_usb_oh0::Open(u32 _CommandAddress, u32 _Mode)
 {
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+	m_Active = true;
 	return true;
 }
 
 bool CWII_IPC_HLE_Device_usb_oh0::Close(u32 _CommandAddress)
 {
 	Memory::Write_U32(0, _CommandAddress + 0x4);
+	m_Active = false;
 	return true;
 }
 

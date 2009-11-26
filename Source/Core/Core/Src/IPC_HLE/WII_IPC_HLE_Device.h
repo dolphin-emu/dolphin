@@ -28,9 +28,11 @@ class IWII_IPC_HLE_Device
 {
 public:
 
-	IWII_IPC_HLE_Device(u32 _DeviceID, const std::string& _rName) :
+	IWII_IPC_HLE_Device(u32 _DeviceID, const std::string& _rName, bool _Hardware = true) :
         m_Name(_rName),
-		m_DeviceID(_DeviceID)
+		m_DeviceID(_DeviceID),
+		m_Hardware(_Hardware),
+		m_Active(false)
 	{}
 
 	virtual ~IWII_IPC_HLE_Device()
@@ -42,8 +44,8 @@ public:
 	const std::string& GetDeviceName() const { return m_Name; } 
     u32 GetDeviceID() const { return m_DeviceID; } 
 
-    virtual bool Open(u32 _CommandAddress, u32 _Mode)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Open()", m_Name.c_str()); return true; }
-    virtual bool Close(u32 _CommandAddress)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Close()", m_Name.c_str()); return true; }
+    virtual bool Open(u32 _CommandAddress, u32 _Mode)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Open()", m_Name.c_str()); m_Active = true; return true; }
+    virtual bool Close(u32 _CommandAddress)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Close()", m_Name.c_str()); m_Active = false; return true; }
     virtual bool Seek(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Seek()", m_Name.c_str()); return true; }
 	virtual bool Read(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Read()", m_Name.c_str()); return true; }
 	virtual bool Write(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Write()", m_Name.c_str()); return true; }
@@ -54,15 +56,16 @@ public:
 
 	virtual bool ReturnFileHandle() { return false; }
 
+	virtual bool IsHardware() { return m_Hardware; }
+	virtual bool IsOpened() { return m_Active; }
 
-private:
+protected:
 
 	// STATE_TO_SAVE
 	std::string m_Name;
-    u32 m_DeviceID;
-
-
-protected:
+	u32 m_DeviceID;
+	bool m_Hardware;
+	bool m_Active;
 
 	// ===================================================
 	/* A struct for IOS ioctlv calls */

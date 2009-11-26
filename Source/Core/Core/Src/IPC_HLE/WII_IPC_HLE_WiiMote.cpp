@@ -237,6 +237,8 @@ void CWII_IPC_HLE_WiiMote::EventDisconnect()
 {
 	m_Connected = false;
 	m_Linked = false;
+	// Clear channel flags
+	EventCommandWriteLinkPolicy();
 }
 
 bool CWII_IPC_HLE_WiiMote::EventPagingChanged(u8 _pageMode)

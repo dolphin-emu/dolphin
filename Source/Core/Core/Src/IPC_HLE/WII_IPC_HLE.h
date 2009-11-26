@@ -24,6 +24,10 @@ class IWII_IPC_HLE_Device;
 
 namespace WII_IPC_HLE_Interface
 {
+
+#define IPC_FIRST_HARDWARE_ID	0x13370000		// first IPC device ID
+#define IPC_FIRST_FILEIO_ID		0x13380000		// first IPC file ID 
+
 // Init
 void Init();
 
@@ -31,17 +35,7 @@ void Init();
 void Shutdown();	
 
 // Reset
-void Reset();
-
-void DeleteDeviceByID(u32 ID);
-
-u32 GetDeviceIDByName(const std::string& _rDeviceName);
-
-IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID);
-
-void DeleteDeviceByID(u32 _ID);
-
-IWII_IPC_HLE_Device* CreateDevice(u32 _DeviceID, const std::string& _rDeviceName);
+void Reset(bool _hard = false);
 
 // Do State
 void DoState(PointerWrap &p);
@@ -49,7 +43,15 @@ void DoState(PointerWrap &p);
 // Set default content file
 void SetDefaultContentFile(const std::string& _rFilename);
 
+u32 GetDeviceIDByName(const std::string& _rDeviceName);
+
+IWII_IPC_HLE_Device* AccessDeviceByID(u32 _ID);
+
+void DeleteDeviceByID(u32 _ID);
+
 void CopySettingsFile(std::string& DeviceName);
+
+IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName);
 
 // Update
 void Update();

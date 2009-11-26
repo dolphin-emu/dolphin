@@ -61,6 +61,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
 	}
 
     Memory::Write_U32(GetDeviceID(), _CommandAddress + 0x4);
+	m_Active = true;
     return true;
 }
 
@@ -72,6 +73,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress)
 		fclose(m_Card);
 
     Memory::Write_U32(0, _CommandAddress + 0x4);
+	m_Active = false;
     return true;
 }
 

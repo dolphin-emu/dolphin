@@ -26,9 +26,11 @@ class CWII_IPC_HLE_Device_es : public IWII_IPC_HLE_Device
 {
 public:
 
-    CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName, const std::string& _rDefaultContentFile);    
+    CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName);    
 
     virtual ~CWII_IPC_HLE_Device_es();
+
+    void Load(const std::string& _rDefaultContentFile);
 
     virtual bool Open(u32 _CommandAddress, u32 _Mode);
 

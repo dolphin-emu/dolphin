@@ -35,6 +35,7 @@ public:
     {
 		PanicAlert("CWII_IPC_HLE_Device_Error");
         Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+		m_Active = true;
         return true;
     }
 };
