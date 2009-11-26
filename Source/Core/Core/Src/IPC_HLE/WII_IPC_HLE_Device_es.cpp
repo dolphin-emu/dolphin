@@ -60,8 +60,8 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
     , m_pContentLoader(NULL)
     , m_TitleID(-1)
     , AccessIdentID(0x6000000)
-{
-}
+	, m_ContentFile()
+{}
 
 CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
 {
@@ -69,9 +69,14 @@ CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
     m_NANDContent.clear();
 }
 
-void CWII_IPC_HLE_Device_es::Load(const std::string& _rDefaultContentFile) 
+void CWII_IPC_HLE_Device_es::LoadWAD(const std::string& _rContentFile) 
 {
-    m_pContentLoader = &DiscIO::CNANDContentManager::Access().GetNANDLoader(_rDefaultContentFile);
+	m_ContentFile = _rContentFile;
+}
+
+bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
+{
+    m_pContentLoader = &DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
 
     // check for cd ...
     if (m_pContentLoader->IsValid())
@@ -102,11 +107,8 @@ void CWII_IPC_HLE_Device_es::Load(const std::string& _rDefaultContentFile)
 	//FindValidTitleIDs();
 
     INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", (u32)(m_TitleID>>32), (u32)m_TitleID);
-}
 
-bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
-{
-    Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	m_Active = true;
     return true;
 }

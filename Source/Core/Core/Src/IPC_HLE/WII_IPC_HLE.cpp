@@ -89,7 +89,6 @@ void Init()
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_immediate(i, std::string("/dev/stm/immediate")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_stm_eventhook(i, std::string("/dev/stm/eventhook")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_fs(i, std::string("/dev/fs")); i++;
-	// Warning: "/dev/es" must be created after "/dev/fs", not before
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_es(i, std::string("/dev/es")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_di(i, std::string("/dev/di")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_kd_request(i, std::string("/dev/net/kd/request")); i++;
@@ -140,7 +139,7 @@ void SetDefaultContentFile(const std::string& _rFilename)
 {
 	CWII_IPC_HLE_Device_es* pDevice = (CWII_IPC_HLE_Device_es*)AccessDeviceByID(GetDeviceIDByName(std::string("/dev/es")));
 	if (pDevice)
-		pDevice->Load(_rFilename);
+		pDevice->LoadWAD(_rFilename);
 }
 
 u32 GetDeviceIDByName(const std::string& _rDeviceName)

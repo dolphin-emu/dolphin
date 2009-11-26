@@ -30,7 +30,7 @@ public:
 
     virtual ~CWII_IPC_HLE_Device_es();
 
-    void Load(const std::string& _rDefaultContentFile);
+    void LoadWAD(const std::string& _rContentFile);
 
     virtual bool Open(u32 _CommandAddress, u32 _Mode);
 
@@ -132,6 +132,7 @@ private:
     std::vector<u64> m_TitleIDs;
     u64 m_TitleID;
     u32 AccessIdentID;
+	std::string m_ContentFile;
 
     u64 GetCurrentTitleID() const;
 

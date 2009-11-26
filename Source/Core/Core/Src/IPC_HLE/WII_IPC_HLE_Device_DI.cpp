@@ -40,14 +40,7 @@ CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string&
     , m_pFileSystem(NULL)
 	, m_ErrorStatus(0)
 	, m_CoverStatus(DI_COVER_REG_NO_DISC)
-{
-	if (VolumeHandler::IsValid())
-	{
-        m_pFileSystem = DiscIO::CreateFileSystem(VolumeHandler::GetVolume());
-		m_CoverStatus |= DI_COVER_REG_INITIALIZED;
-		m_CoverStatus &= ~DI_COVER_REG_NO_DISC;
-	}
-}
+{}
 
 CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
 {
@@ -60,7 +53,13 @@ CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
 
 bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
 {
-    Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
+	if (VolumeHandler::IsValid())
+	{
+        m_pFileSystem = DiscIO::CreateFileSystem(VolumeHandler::GetVolume());
+		m_CoverStatus |= DI_COVER_REG_INITIALIZED;
+		m_CoverStatus &= ~DI_COVER_REG_NO_DISC;
+	}
+	Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
     m_Active = true;
     return true;
 }
