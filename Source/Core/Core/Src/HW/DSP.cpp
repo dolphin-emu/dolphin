@@ -408,12 +408,20 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case AUDIO_DMA_CONTROL_LEN:			// called by AIStartDMA()
+	{
+		UAudioDMAControl old_control = g_audioDMA.AudioDMAControl;
 		g_audioDMA.AudioDMAControl.Hex = _Value;
-		g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
-		g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
-		INFO_LOG(DSPINTERFACE, "AID DMA started - source address %08x, length %i blocks", g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks);
-		break;
 
+		if (!old_control.Enabled && g_audioDMA.AudioDMAControl.Enabled)
+		{
+			// Enabled bit was flipped to true, let's latch address & length and call the interrupt.
+			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
+			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
+			GenerateDSPInterrupt(DSP::INT_AID);
+			INFO_LOG(DSPINTERFACE, "AID DMA started - source address %08x, length %i blocks", g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks);
+		}
+		break;
+	}
 	case AUDIO_DMA_BYTES_LEFT:
 		_dbg_assert_(DSPINTERFACE,0);
 		break;
@@ -438,6 +446,11 @@ void UpdateAudioDMA()
 		g_audioDMA.ReadAddress += 32;
 		g_audioDMA.BlocksLeft--;
 		if (!g_audioDMA.BlocksLeft) {
+			// No need to turn off the DMA - we can only get here if we had
+			// blocks left when we entered this function, and no longer have
+			// any.  Latch new parameters
+			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
+			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
 			// DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
 			GenerateDSPInterrupt(DSP::INT_AID);
 		}

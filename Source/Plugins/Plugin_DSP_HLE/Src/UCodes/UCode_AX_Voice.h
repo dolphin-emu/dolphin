@@ -82,7 +82,7 @@ inline bool WriteBackPBWii(u32 pb_address, ParamBlockType& PB)
 }
 
 template<class ParamBlockType>
-inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, int _iSize, bool Wii)
+inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, int _iSize, bool Wii, u32 CRC = 0)
 {
     ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
 
@@ -249,12 +249,18 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 					// New Super Mario Bros.Wii, Fatal Frame 4,
 					// Resident Evil Darkside Chronicles, Muramasa The Demon Blade, etc.
 					samplePos = newSamplePos - sampleEnd + loopPos;
-
-					// AyuanX: DSP should not touch this running state
-					// even when a non-looping voice reaches the end of current sample
-					// because some game checks this flag and will turn it off when necessary
-					//
-					//pb.running = 0;
+	
+					if (Wii && (CRC == 0xfa450138))
+					{
+						// Some Wii games check this flag and will turn it off when necessary
+						// If that is the case, DSP should not touch it
+						//
+						//pb.running = 0;
+					}
+					else
+					{
+						pb.running = 0;
+					}
 
 					break;
 				}

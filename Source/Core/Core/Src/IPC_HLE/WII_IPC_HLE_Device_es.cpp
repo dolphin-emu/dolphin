@@ -115,6 +115,8 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress)
 {
+    // Leave deletion of the INANDContentLoader objects to CNANDContentManager, don't do it here!
+    m_NANDContent.clear();
     INFO_LOG(WII_IPC_ES, "ES: Close");
     Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
