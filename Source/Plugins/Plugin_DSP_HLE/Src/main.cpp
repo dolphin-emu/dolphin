@@ -49,19 +49,11 @@ SoundStream *soundStream = NULL;
 struct DSPState
 {
 	u32 CPUMailbox;
-	bool CPUMailbox_Written[2];
-
 	u32 DSPMailbox;
-	bool DSPMailbox_Read[2];
 
 	void Reset() {
 		CPUMailbox = 0x00000000;
-		CPUMailbox_Written[0] = false;
-		CPUMailbox_Written[1] = false;
-
 		DSPMailbox = 0x00000000;
-		DSPMailbox_Read[0] = true;
-		DSPMailbox_Read[1] = true;
 	}
 
 	DSPState()
@@ -281,25 +273,11 @@ unsigned short DSP_ReadMailboxLow(bool _CPUMailbox)
 	}
 }
 
-void Update_DSP_WriteRegister()
-{
-	// check if the whole message is complete and if we can send it
-	if (g_dspState.CPUMailbox_Written[0] && g_dspState.CPUMailbox_Written[1])
-	{
-		CDSPHandler::GetInstance().SendMailToDSP(g_dspState.CPUMailbox);
-		g_dspState.CPUMailbox_Written[0] = g_dspState.CPUMailbox_Written[1] = false;
-		g_dspState.CPUMailbox = 0; // Mail sent so clear it to show that it is progressed
-	}
-}
-
 void DSP_WriteMailboxHigh(bool _CPUMailbox, unsigned short _Value)
 {
 	if (_CPUMailbox)
 	{
 		g_dspState.CPUMailbox = (g_dspState.CPUMailbox & 0xFFFF) | (_Value << 16);
-		g_dspState.CPUMailbox_Written[0] = true;
-
-		Update_DSP_WriteRegister();
 	}
 	else
 	{
@@ -312,9 +290,9 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, unsigned short _Value)
 	if (_CPUMailbox)
 	{
 		g_dspState.CPUMailbox = (g_dspState.CPUMailbox & 0xFFFF0000) | _Value;
-		g_dspState.CPUMailbox_Written[1] = true;
-
-		Update_DSP_WriteRegister();
+		CDSPHandler::GetInstance().SendMailToDSP(g_dspState.CPUMailbox);
+		// Mail sent so clear MSB to show that it is progressed
+		g_dspState.CPUMailbox &= 0x7FFFFFFF; 
 	}
 	else
 	{

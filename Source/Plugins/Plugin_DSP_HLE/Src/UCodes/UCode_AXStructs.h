@@ -206,31 +206,28 @@ struct AXParamBlockWii
 
 struct AXParamBlockWii_ // new CRC version
 {
-	u16 next_pb_hi;
-	u16 next_pb_lo;
-
-	u16 this_pb_hi;
-	u16 this_pb_lo;
-
-	u16 src_type;     // Type of sample rate converter (none, ?, linear)
-	u16 coef_select;
-	u32 mixer_control;
-
-	u16 running;       // 1=RUN   0=STOP
-	u16 is_stream;     // 1 = stream, 0 = one shot
-
-/*  10 */	PBMixerWii mixer;
-/*  34 */	PBInitialTimeDelay initial_time_delay;  
-/*  41 */	PBUpdatesWii updates;
-/*  46 */	PBDpopWii_ dpop;
-/*  53 */	PBVolumeEnvelope vol_env;
-/*  55 */	PBAudioAddr audio_addr;
-/*  63 */	PBADPCMInfo adpcm;
-/*  83 */	PBSampleRateConverter src;
-/*  90 */	PBADPCMLoopInfo adpcm_loop_info;
-/*  93 */	PBLpf lpf;
-/* 97 */	PBHpf hpf;
-/* 101 */	u16 pad[27];
+/* 0x000 */	u16 next_pb_hi;
+/* 0x002 */	u16 next_pb_lo;
+/* 0x004 */	u16 this_pb_hi;
+/* 0x006 */	u16 this_pb_lo;
+/* 0x008 */	u16 src_type;     // Type of sample rate converter (none, ?, linear)
+/* 0x00A */	u16 coef_select;
+/* 0x00C */	u32 mixer_control;
+/* 0x010 */	u16 running;       // 1=RUN   0=STOP
+/* 0x012 */	u16 is_stream;     // 1 = stream, 0 = one shot
+/* 0x014 */	PBMixerWii mixer;
+/* 0x044 */	PBInitialTimeDelay initial_time_delay;
+/* 0x052 */	PBUpdatesWii updates;
+/* 0x05C */	PBDpopWii_ dpop;
+/* 0x06A */	PBVolumeEnvelope vol_env;
+/* 0x06E */	PBAudioAddr audio_addr;
+/* 0x07E */	PBADPCMInfo adpcm;
+/* 0x0A6 */	PBSampleRateConverter src;
+/* 0x0B4 */	PBADPCMLoopInfo adpcm_loop_info;
+/* 0x0BA */	PBLpf lpf;
+/* 0x0C2 */	PBHpf hpf;
+/* 0x0CA */	u16 pad[27];
+/* 0x100 */
 };
 
 enum {

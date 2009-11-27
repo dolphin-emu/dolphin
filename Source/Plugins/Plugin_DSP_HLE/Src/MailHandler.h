@@ -37,7 +37,6 @@ public:
 
 	u16 ReadDSPMailboxHigh();
 	u16 ReadDSPMailboxLow();
-	void Update();
 
 	u32 GetNextMail()
 	{ 

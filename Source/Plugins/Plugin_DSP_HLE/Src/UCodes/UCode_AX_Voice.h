@@ -245,7 +245,17 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 				}
 				else
 				{
-					pb.running = 0;
+					// This accurate boundary wrapping will fix the hangup in many Wii games like:
+					// New Super Mario Bros.Wii, Fatal Frame 4,
+					// Resident Evil Darkside Chronicles, Muramasa The Demon Blade, etc.
+					samplePos = newSamplePos - sampleEnd + loopPos;
+
+					// AyuanX: DSP should not touch this running state
+					// even when a non-looping voice reaches the end of current sample
+					// because some game checks this flag and will turn it off when necessary
+					//
+					//pb.running = 0;
+
 					break;
 				}
 			}

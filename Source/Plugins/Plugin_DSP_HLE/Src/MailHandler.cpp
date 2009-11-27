@@ -18,9 +18,7 @@
 #include "MailHandler.h"
 
 CMailHandler::CMailHandler()
-{
-
-}
+{}
 
 CMailHandler::~CMailHandler()
 {
@@ -31,7 +29,6 @@ void CMailHandler::PushMail(u32 _Mail)
 {
 	m_Mails.push(_Mail);
 	DEBUG_LOG(DSP_MAIL, "DSP writes 0x%08x", _Mail);
-	Update();
 }
 
 u16 CMailHandler::ReadDSPMailboxHigh()
@@ -40,10 +37,8 @@ u16 CMailHandler::ReadDSPMailboxHigh()
 	if (!m_Mails.empty())
 	{
 		u16 result = (m_Mails.front() >> 16) & 0xFFFF;
-		Update();
 		return result;
 	}
-
 	return 0x00;
 }
 
@@ -53,14 +48,9 @@ u16 CMailHandler::ReadDSPMailboxLow()
 	if (!m_Mails.empty())
 	{
 		u16 result = m_Mails.front() & 0xFFFF;
-
         m_Mails.pop();
-
-		Update();
-
 		return result;
 	}
-
 	return 0x00;
 }
 
@@ -81,16 +71,6 @@ void CMailHandler::Halt(bool _Halt)
 	{
 		Clear();
 		m_Mails.push(0x80544348);
-	}
-
-	Update();
-}
-
-void CMailHandler::Update()
-{
-	if (!IsEmpty())
-	{
-		//       g_dspInitialize.pGenerateDSPInterrupt();
 	}
 }
 
