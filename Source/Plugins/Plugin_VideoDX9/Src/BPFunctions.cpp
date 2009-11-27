@@ -33,22 +33,6 @@ const bool renderFog = false;
 
 using namespace D3D;
 
-static const D3DTEXTUREFILTERTYPE d3dMipFilters[4] = 
-{
-	D3DTEXF_NONE,
-	D3DTEXF_POINT,
-	D3DTEXF_LINEAR,
-	D3DTEXF_LINEAR, //reserved
-};
-
-static const D3DTEXTUREADDRESS d3dClamps[4] =
-{
-	D3DTADDRESS_CLAMP,
-	D3DTADDRESS_WRAP,
-	D3DTADDRESS_MIRROR,
-	D3DTADDRESS_WRAP //reserved
-};
-
 namespace BPFunctions
 {
 
@@ -69,9 +53,7 @@ void SetScissor(const BPCmd &bp)
 
 void SetLineWidth(const BPCmd &bp)
 {
-	// We can't change line width in D3D unless we use ID3DXLine
-	float psize = float(bpmem.lineptwidth.pointsize) * 6.0f;
-	D3D::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
+	Renderer::SetLineWidth();
 }
 
 void SetDepthMode(const BPCmd &bp)
@@ -85,7 +67,7 @@ void SetBlendMode(const BPCmd &bp)
 }
 void SetDitherMode(const BPCmd &bp)
 {
-	D3D::SetRenderState(D3DRS_DITHERENABLE,bpmem.blendmode.dither);
+	Renderer::SetDitherMode();
 }
 void SetLogicOpMode(const BPCmd &bp)
 {
@@ -102,16 +84,15 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 	if (!g_ActiveConfig.bEFBCopyDisable)
 	{
 		//uncomment this to see the efb to ram work in progress
-		/*if (g_ActiveConfig.bCopyEFBToRAM)
+		if (g_ActiveConfig.bCopyEFBToRAM)
 		{
-			// To RAM, not implemented yet
+			//ToRam
 			TextureConverter::EncodeToRam(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
 		}
-		else // To D3D Texture*/
+		else // To D3D Texture
 		{
 			TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);			
 		}
-
 	}
 }
 
@@ -135,7 +116,7 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc)
 
 void RestoreRenderState(const BPCmd &bp)
 {
-	//Renderer::SetRenderMode(Renderer::RM_Normal);
+	Renderer::RestoreAPIState();
 }
 
 bool GetConfig(const int &type)
@@ -161,40 +142,8 @@ u8 *GetPointer(const u32 &address)
 
 void SetSamplerState(const BPCmd &bp)
 {
-	const FourTexUnits &tex = bpmem.tex[(bp.address & 0xE0) == 0xA0];
 	int stage = (bp.address & 3);//(addr>>4)&2;
-	const TexMode0 &tm0 = tex.texMode0[stage];
-	
-	D3DTEXTUREFILTERTYPE min, mag, mip;
-	if (g_ActiveConfig.bForceFiltering)
-	{
-		min = mag = mip = D3DTEXF_LINEAR;
-	}
-	else
-	{
-		min = (tm0.min_filter & 4) ? D3DTEXF_LINEAR : D3DTEXF_POINT;
-		mag = tm0.mag_filter ? D3DTEXF_LINEAR : D3DTEXF_POINT;
-		mip = d3dMipFilters[tm0.min_filter & 3];
-	}
-	if ((bp.address & 0xE0) == 0xA0)
-		stage += 4;	
-	
-	if (mag == D3DTEXF_LINEAR && min == D3DTEXF_LINEAR &&
-		g_ActiveConfig.iMaxAnisotropy > 1)
-	{
-		min = D3DTEXF_ANISOTROPIC;
-	}
-	D3D::SetSamplerState(stage, D3DSAMP_MINFILTER, min);
-	D3D::SetSamplerState(stage, D3DSAMP_MAGFILTER, mag);
-	D3D::SetSamplerState(stage, D3DSAMP_MIPFILTER, mip);
-	
-	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSU, d3dClamps[tm0.wrap_s]);
-	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSV, d3dClamps[tm0.wrap_t]);
-	//wip
-	//dev->SetSamplerState(stage,D3DSAMP_MIPMAPLODBIAS,tm0.lod_bias/4.0f);
-	//char temp[256];
-	//sprintf(temp,"lod %f",tm0.lod_bias/4.0f);
-	//g_VideoInitialize.pLog(temp);
+	Renderer::SetSamplerState(stage,(bp.address & 0xE0) == 0xA0);
 }
 
 void SetInterlacingMode(const BPCmd &bp)

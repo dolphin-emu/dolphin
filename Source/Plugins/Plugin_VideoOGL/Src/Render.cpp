@@ -154,6 +154,15 @@ static const GLenum glDestFactors[8] = {
 	GL_ONE_MINUS_DST_ALPHA
 };
 
+static const GLenum glCmpFuncs[8] = {
+	GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS
+};
+
+static const GLenum glLogicOpCodes[16] = {
+    GL_CLEAR, GL_AND, GL_AND_REVERSE, GL_COPY, GL_AND_INVERTED, GL_NOOP, GL_XOR, 
+	GL_OR, GL_NOR, GL_EQUIV, GL_INVERT, GL_OR_REVERSE, GL_COPY_INVERTED, GL_OR_INVERTED, GL_NAND, GL_SET
+};
+
 void SetDefaultRectTexParams()
 {
 	// Set some standard texture filter modes.
@@ -1373,4 +1382,71 @@ void UpdateViewport()
 	// Update the view port
 	glViewport(GLx, GLy, GLWidth, GLHeight);
 	glDepthRange(GLNear, GLFar);
+}
+
+void Renderer::SetGenerationMode()
+{
+	// none, ccw, cw, ccw
+    if (bpmem.genMode.cullmode > 0) 
+	{
+        glEnable(GL_CULL_FACE);
+        glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
+    }
+    else
+		glDisable(GL_CULL_FACE);
+}
+
+void Renderer::SetDepthMode()
+{
+	if (bpmem.zmode.testenable) 
+	{
+		glEnable(GL_DEPTH_TEST);
+		glDepthMask(bpmem.zmode.updateenable ? GL_TRUE : GL_FALSE);
+		glDepthFunc(glCmpFuncs[bpmem.zmode.func]);
+	}
+	else 
+	{
+		// if the test is disabled write is disabled too
+		glDisable(GL_DEPTH_TEST);
+		glDepthMask(GL_FALSE);
+	}			
+}
+
+void Renderer::SetLogicOpMode()
+{
+	if (bpmem.blendmode.logicopenable) 
+	{
+		glEnable(GL_COLOR_LOGIC_OP);
+		glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
+	}
+	else 
+		glDisable(GL_COLOR_LOGIC_OP);
+}
+
+void Renderer::SetDitherMode()
+{
+    if (bpmem.blendmode.dither) 
+		glEnable(GL_DITHER);
+    else 
+		glDisable(GL_DITHER);
+}
+
+
+void Renderer::SetLineWidth()
+{
+	float fratio = xfregs.rawViewport[0] != 0 ? ((float)Renderer::GetTargetWidth() / EFB_WIDTH) : 1.0f;
+	if (bpmem.lineptwidth.linesize > 0)
+		glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f); // scale by ratio of widths
+	if (bpmem.lineptwidth.pointsize > 0)
+		glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
+}
+
+void Renderer::SetSamplerState(int stage,int texindex)
+{
+	// TODO
+}
+
+void Renderer::SetInterlacingMode()
+{
+	// TODO
 }

@@ -34,14 +34,6 @@ namespace BPFunctions
 // Reference: Yet Another Gamecube Documentation
 // ----------------------------------------------
 
-static const GLenum glCmpFuncs[8] = {
-	GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS
-};
-
-static const GLenum glLogicOpCodes[16] = {
-    GL_CLEAR, GL_AND, GL_AND_REVERSE, GL_COPY, GL_AND_INVERTED, GL_NOOP, GL_XOR, 
-	GL_OR, GL_NOR, GL_EQUIV, GL_INVERT, GL_OR_REVERSE, GL_COPY_INVERTED, GL_OR_INVERTED, GL_NAND, GL_SET
-};
 
 void FlushPipeline()
 {
@@ -49,16 +41,8 @@ void FlushPipeline()
 }
 void SetGenerationMode(const BPCmd &bp)
 {
-    // none, ccw, cw, ccw
-    if (bpmem.genMode.cullmode > 0) 
-	{
-        glEnable(GL_CULL_FACE);
-        glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
-    }
-    else
-		glDisable(GL_CULL_FACE);
+	Renderer::SetGenerationMode();
 }
-
 
 void SetScissor(const BPCmd &bp)
 {
@@ -68,26 +52,11 @@ void SetScissor(const BPCmd &bp)
 }
 void SetLineWidth(const BPCmd &bp)
 {
-	float fratio = xfregs.rawViewport[0] != 0 ? ((float)Renderer::GetTargetWidth() / EFB_WIDTH) : 1.0f;
-	if (bpmem.lineptwidth.linesize > 0)
-		glLineWidth((float)bpmem.lineptwidth.linesize * fratio / 6.0f); // scale by ratio of widths
-	if (bpmem.lineptwidth.pointsize > 0)
-		glPointSize((float)bpmem.lineptwidth.pointsize * fratio / 6.0f);
+	Renderer::SetLineWidth();
 }
 void SetDepthMode(const BPCmd &bp)
 {
-	if (bpmem.zmode.testenable) 
-	{
-		glEnable(GL_DEPTH_TEST);
-		glDepthMask(bpmem.zmode.updateenable ? GL_TRUE : GL_FALSE);
-		glDepthFunc(glCmpFuncs[bpmem.zmode.func]);
-	}
-	else 
-	{
-		// if the test is disabled write is disabled too
-		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
-	}
+	Renderer::SetDepthMode();
 }
 void SetBlendMode(const BPCmd &bp)
 {
@@ -95,20 +64,11 @@ void SetBlendMode(const BPCmd &bp)
 }
 void SetDitherMode(const BPCmd &bp)
 {
-    if (bpmem.blendmode.dither) 
-		glEnable(GL_DITHER);
-    else 
-		glDisable(GL_DITHER);
+    Renderer::SetDitherMode();
 }
 void SetLogicOpMode(const BPCmd &bp)
 {
-	if (bpmem.blendmode.logicopenable) 
-	{
-		glEnable(GL_COLOR_LOGIC_OP);
-		glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
-	}
-	else 
-		glDisable(GL_COLOR_LOGIC_OP);
+	Renderer::SetLogicOpMode();
 }
 
 void SetColorMask(const BPCmd &bp)

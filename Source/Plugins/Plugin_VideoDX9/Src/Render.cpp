@@ -111,7 +111,21 @@ static const D3DCMPFUNC d3dCmpFuncs[8] =
 	D3DCMP_ALWAYS
 };
 
+static const D3DTEXTUREFILTERTYPE d3dMipFilters[4] = 
+{
+	D3DTEXF_NONE,
+	D3DTEXF_POINT,
+	D3DTEXF_LINEAR,
+	D3DTEXF_LINEAR, //reserved
+};
 
+static const D3DTEXTUREADDRESS d3dClamps[4] =
+{
+	D3DTADDRESS_CLAMP,
+	D3DTADDRESS_WRAP,
+	D3DTADDRESS_MIRROR,
+	D3DTADDRESS_WRAP //reserved
+};
 
 void SetupDeviceObjects()
 {
@@ -243,10 +257,10 @@ void dumpMatrix(D3DXMATRIX &mtx)
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
 	TargetRectangle result;
-	result.left   = (rc.left   * s_target_width)  / EFB_WIDTH ;
-	result.top    = (rc.top    * s_target_height) / EFB_HEIGHT;
-	result.right  = (rc.right  * s_target_width)  / EFB_WIDTH ;
-	result.bottom = (rc.bottom * s_target_height) / EFB_HEIGHT;
+	result.left   = (int)ceilf((((float)rc.left   * s_target_width)  / (float)EFB_WIDTH)-0.5f) ;
+	result.top    = (int)ceilf((((float)rc.top    * s_target_height) / (float)EFB_HEIGHT)-0.5f);
+	result.right  = (int)floorf((((float)rc.right  * s_target_width)  / (float)EFB_WIDTH)+0.5f) ;
+	result.bottom = (int)floorf((((float)rc.bottom * s_target_height) / (float)EFB_HEIGHT)+0.5f);
 	return result;
 }
 
@@ -764,8 +778,22 @@ void UpdateViewport()
 	vp.Width = Width;
 	vp.Height = Height;
 	//some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
-	vp.MinZ = 0.0f;//(xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
-	vp.MaxZ = 1.0f;//xfregs.rawViewport[5] / 16777216.0f;
+	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
+	vp.MaxZ = xfregs.rawViewport[5] / 16777216.0f;
+	if(vp.MinZ < 0.0f)
+		vp.MinZ = 0.0f;
+	if(vp.MinZ > 1.0f)
+		vp.MinZ = 1.0f;
+	if(vp.MaxZ < 0.0f)
+		vp.MaxZ = 0.0f;
+	if(vp.MaxZ > 1.0f)
+		vp.MaxZ = 1.0f;
+	if(vp.MinZ > vp.MaxZ)
+	{
+		float temp = vp.MinZ;
+		vp.MinZ = vp.MaxZ;
+		vp.MaxZ = temp;
+	}
 	D3D::dev->SetViewport(&vp);
 }
 
@@ -888,7 +916,7 @@ void Renderer::RestoreAPIState()
 	// Gets us back into a more game-like state.
 
 	UpdateViewport();
-
+	D3D::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
     if (bpmem.zmode.testenable) D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
     if (bpmem.zmode.updateenable)   D3D::SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 
@@ -931,4 +959,63 @@ void Renderer::SetDepthMode()
 		D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
 		D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);  // ??		
 	}			
+}
+
+void Renderer::SetLogicOpMode()
+{
+	//TODO
+}
+
+void Renderer::SetDitherMode()
+{
+   D3D::SetRenderState(D3DRS_DITHERENABLE,bpmem.blendmode.dither);
+}
+
+void Renderer::SetLineWidth()
+{
+	// We can't change line width in D3D unless we use ID3DXLine
+	float psize = float(bpmem.lineptwidth.pointsize) * 6.0f;
+	D3D::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
+}
+
+void Renderer::SetSamplerState(int stage,int texindex)
+{
+	const FourTexUnits &tex = bpmem.tex[texindex];	
+	const TexMode0 &tm0 = tex.texMode0[stage];
+	
+	D3DTEXTUREFILTERTYPE min, mag, mip;
+	if (g_ActiveConfig.bForceFiltering)
+	{
+		min = mag = mip = D3DTEXF_LINEAR;
+	}
+	else
+	{
+		min = (tm0.min_filter & 4) ? D3DTEXF_LINEAR : D3DTEXF_POINT;
+		mag = tm0.mag_filter ? D3DTEXF_LINEAR : D3DTEXF_POINT;
+		mip = d3dMipFilters[tm0.min_filter & 3];
+	}
+	if (texindex)
+		stage += 4;	
+	
+	if (mag == D3DTEXF_LINEAR && min == D3DTEXF_LINEAR &&
+		g_ActiveConfig.iMaxAnisotropy > 1)
+	{
+		min = D3DTEXF_ANISOTROPIC;
+	}
+	D3D::SetSamplerState(stage, D3DSAMP_MINFILTER, min);
+	D3D::SetSamplerState(stage, D3DSAMP_MAGFILTER, mag);
+	D3D::SetSamplerState(stage, D3DSAMP_MIPFILTER, mip);
+	
+	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSU, d3dClamps[tm0.wrap_s]);
+	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSV, d3dClamps[tm0.wrap_t]);
+	//wip
+	//dev->SetSamplerState(stage,D3DSAMP_MIPMAPLODBIAS,tm0.lod_bias/4.0f);
+	//char temp[256];
+	//sprintf(temp,"lod %f",tm0.lod_bias/4.0f);
+	//g_VideoInitialize.pLog(temp);
+}
+
+void Renderer::SetInterlacingMode()
+{
+	// TODO
 }

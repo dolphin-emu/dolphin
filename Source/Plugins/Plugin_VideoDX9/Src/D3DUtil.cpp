@@ -398,16 +398,16 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 {
 	SaveRenderStates();
 	D3D::SetTexture(0, 0);
-	float u1=((float)rSource->left+1.0f)/(float) SourceWidth;
-	float u2=((float)rSource->right-1.0f)/(float) SourceWidth;
-	float v1=((float)rSource->top+1.0f)/(float) SourceHeight;
-	float v2=((float)rSource->bottom-1.0f)/(float) SourceHeight;
+	float u1=((float)rSource->left)/(float) SourceWidth;
+	float u2=((float)rSource->right)/(float) SourceWidth;
+	float v1=((float)rSource->top)/(float) SourceHeight;
+	float v2=((float)rSource->bottom)/(float) SourceHeight;
 
 	struct Q2DVertex { float x,y,z,rhw,u,v; } coords[4] = {
-		{(float)rDest->left-0.5f, (float)rDest->top-0.5f, 0.0f, 1.0f, u1, v1},
-		{(float)rDest->right-0.5f, (float)rDest->top-0.5f, 0.0f,1.0f, u2, v1},
-		{(float)rDest->right-0.5f, (float)rDest->bottom-0.5f, 0.0f,1.0f, u2, v2},
-		{(float)rDest->left-0.5f, (float)rDest->bottom-0.5f, 0.0f,1.0f, u1, v2}
+		{(float)rDest->left - 0.5f, (float)rDest->top- 0.5f, 0.0f, 1.0f, u1, v1},
+		{(float)rDest->right- 0.5f, (float)rDest->top- 0.5f, 0.0f,1.0f, u2, v1},
+		{(float)rDest->right- 0.5f, (float)rDest->bottom- 0.5f, 0.0f,1.0f, u2, v2},
+		{(float)rDest->left- 0.5f, (float)rDest->bottom- 0.5f, 0.0f,1.0f, u1, v2}
 	};
 	HRESULT hr  = 0;
 	hr = dev->SetFVF(D3DFVF_XYZRHW | D3DFVF_TEX1);

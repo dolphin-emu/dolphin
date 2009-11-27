@@ -168,7 +168,7 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 			WRITE(p, "  float4 blend_indices : BLENDINDICES,\n");
 		}
 		else
-			WRITE(p, "  float posmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+			WRITE(p, "  float fposmtx : ATTR%d,\n", SHADER_POSMTX_ATTRIB);
 	}
     WRITE(p, "  float4 rawpos : POSITION) {\n");
     WRITE(p, "VS_OUTPUT o;\n");
@@ -180,6 +180,11 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 			WRITE(p, "int4 indices = D3DCOLORtoUBYTE4(blend_indices);\n"
 					 "int posmtx = indices.x;\n");
 		}
+		else
+		{
+			WRITE(p, "int posmtx = fposmtx;\n");
+		}
+
         WRITE(p, "float4 pos = float4(dot("I_TRANSFORMMATRICES".T[posmtx].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+1].t, rawpos), dot("I_TRANSFORMMATRICES".T[posmtx+2].t, rawpos),1);\n");
         
         if (components & VB_HAS_NRMALL) {
@@ -188,34 +193,30 @@ const char *GenerateVertexShader(u32 components, bool D3D)
         }
 
         if (components & VB_HAS_NRM0)
-            WRITE(p, "float3 _norm0 = float3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, rawnorm0));\n"
-                     "float3 norm0 = normalize(_norm0);\n");
+            WRITE(p, "float3 _norm0 = normalize(float3(dot(N0, rawnorm0), dot(N1, rawnorm0), dot(N2, rawnorm0)));\n");                     
         if (components & VB_HAS_NRM1)
-            WRITE(p, "float3 _norm1 = float3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, rawnorm1));\n");
-                    //"half3 norm1 = normalize(_norm1);\n");
+            WRITE(p, "float3 _norm1 = float3(dot(N0, rawnorm1), dot(N1, rawnorm1), dot(N2, rawnorm1));\n");					
         if (components & VB_HAS_NRM2)
             WRITE(p, "float3 _norm2 = float3(dot(N0, rawnorm2), dot(N1, rawnorm2), dot(N2, rawnorm2));\n");
-                    //"half3 norm2 = normalize(_norm2);\n");
+					
     }
     else {
         WRITE(p, "float4 pos = float4(dot("I_POSNORMALMATRIX".T0, rawpos), dot("I_POSNORMALMATRIX".T1, rawpos), dot("I_POSNORMALMATRIX".T2, rawpos), 1.0f);\n");
         if (components & VB_HAS_NRM0)
-            WRITE(p, "float3 _norm0 = float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm0));\n"
-                     "float3 norm0 = normalize(_norm0);\n");
+            WRITE(p, "float3 _norm0 = normalize(float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm0), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm0)));\n");            
         if (components & VB_HAS_NRM1)
-            WRITE(p, "float3 _norm1 = float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm1));\n");
-                    //"half3 norm1 = normalize(_norm1);\n");
+            WRITE(p, "float3 _norm1 = float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm1));\n");      
         if (components & VB_HAS_NRM2)
             WRITE(p, "float3 _norm2 = float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm2));\n");
-                    //"half3 norm2 = normalize(_norm2);\n");
+                    
     }
 
     if (!(components & VB_HAS_NRM0))
-        WRITE(p, "float3 _norm0 = float3(0.0f,0.0f,0.0f), norm0 = float3(0.0f,0.0f,0.0f);\n");
+        WRITE(p, "float3 _norm0 = float3(0.0f,0.0f,0.0f);\n");
 
     WRITE(p, "o.pos = float4(dot("I_PROJECTION".T0, pos), dot("I_PROJECTION".T1, pos), dot("I_PROJECTION".T2, pos), dot("I_PROJECTION".T3, pos));\n");
 
-    WRITE(p, "float4 mat;\n" // = half4(1,1,1,1), lacc = half4(0,0,0,0);\n"
+    WRITE(p, "float4 mat,lacc;\n" // = half4(1,1,1,1), lacc = half4(0,0,0,0);\n"
     "float3 ldir, h;\n"
     "float dist, dist2, attn;\n");
 
@@ -228,7 +229,7 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 
         WRITE(p, "{\n");
 	
-		WRITE(p, "float4 lacc = float4(1.0f,1.0f,1.0f,1.0f);\n");
+		WRITE(p, "lacc = float4(1.0f,1.0f,1.0f,1.0f);\n");
         if (color.matsource) {// from vertex
             if (components & (VB_HAS_COL0 << j))
                 WRITE(p, "mat = color%d;\n", j);
@@ -303,18 +304,15 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 
         if (color.enablelighting != alpha.enablelighting) {
             if (color.enablelighting)
-                //WRITE(p, "o.colors[%d].xyz = mat.xyz * clamp(lacc.xyz,float3(0.0f,0.0f,0.0f),float3(1.0f,1.0f,1.0f));\n"
                 WRITE(p, "o.colors[%d].xyz = mat.xyz * saturate(lacc.xyz);\n"
                     "o.colors[%d].w = mat.w;\n", j, j);
             else
                 WRITE(p, "o.colors[%d].xyz = mat.xyz;\n"
-                    //"o.colors[%d].w = mat.w  * clamp(lacc.w,0.0f,1.0f);\n", j, j);
-					"o.colors[%d].w = mat.w  * saturate(lacc.w);\n", j, j);
+                    "o.colors[%d].w = mat.w  * saturate(lacc.w);\n", j, j);
         }
         else {
             if (alpha.enablelighting)
-                //WRITE(p, "o.colors[%d] = mat * clamp(lacc, float4(0.0f,0.0f,0.0f,0.0f), float4(1.0f,1.0f,1.0f,1.0f));\n", j);
-				WRITE(p, "o.colors[%d] = mat * saturate(lacc);\n", j);
+                WRITE(p, "o.colors[%d] = mat * saturate(lacc);\n", j);
             else
 				WRITE(p, "o.colors[%d] = mat;\n", j);
         }
@@ -431,12 +429,14 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 		WRITE(p, "o.tex3.w = o.pos.w;\n");
 	}
 
-	if (!D3D) {
+	if (D3D) 
+	{
+		WRITE(p, "o.pos.z = o.pos.z + o.pos.w;\n");		
+	} 
+	else 
+	{
 		// scale to gl clip space - which is -o.pos.w to o.pos.w, hence the addition.
 		WRITE(p, "o.pos.z = (o.pos.z * 2.0f) + o.pos.w;\n");
-	} else {
-
-		WRITE(p, "o.pos.z = o.pos.z + o.pos.w;\n");
 	}
 
     WRITE(p, "return o;\n}\n");
@@ -462,7 +462,7 @@ char* GenerateLightShader(char* p, int index, const LitChannel& chan, const char
             case LIGHTDIF_SIGN:
             case LIGHTDIF_CLAMP:
                 WRITE(p, "ldir = normalize("I_LIGHTS".lights[%d].pos.xyz - pos.xyz);\n", index);
-                WRITE(p, "%s.%s += %sdot(ldir, norm0)) * "I_LIGHTS".lights[%d].col.%s;\n",
+                WRITE(p, "%s.%s += %sdot(ldir, _norm0)) * "I_LIGHTS".lights[%d].col.%s;\n",
                     dest, swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(", index, swizzle);
                 break;
             default: _assert_(0);
@@ -479,7 +479,7 @@ char* GenerateLightShader(char* p, int index, const LitChannel& chan, const char
             WRITE(p, "attn = max(0.0f, dot("I_LIGHTS".lights[%d].cosatt.xyz, float3(1.0f, attn, attn*attn))) / dot("I_LIGHTS".lights[%d].distatt.xyz, float3(1.0f,dist,dist2));\n", index, index);
         }
         else if (chan.attnfunc == 1) { // specular
-            WRITE(p, "attn = dot(norm0, "I_LIGHTS".lights[%d].pos.xyz) > 0.0f ? max(0.0f, dot(norm0, "I_LIGHTS".lights[%d].dir.xyz)) : 0.0f;\n", index, index);
+            WRITE(p, "attn = dot(_norm0, "I_LIGHTS".lights[%d].pos.xyz) > 0.0f ? max(0.0f, dot(_norm0, "I_LIGHTS".lights[%d].dir.xyz)) : 0.0f;\n", index, index);
             WRITE(p, "ldir = float3(1,attn,attn*attn);\n");
             WRITE(p, "attn = max(0.0f, dot("I_LIGHTS".lights[%d].cosatt.xyz, ldir)) / dot("I_LIGHTS".lights[%d].distatt.xyz, ldir);\n", index, index);
         }
@@ -490,7 +490,7 @@ char* GenerateLightShader(char* p, int index, const LitChannel& chan, const char
                 break;
             case LIGHTDIF_SIGN:
             case LIGHTDIF_CLAMP:
-                WRITE(p, "%s.%s += attn * %sdot(ldir, norm0)) * "I_LIGHTS".lights[%d].col.%s;\n",
+                WRITE(p, "%s.%s += attn * %sdot(ldir, _norm0)) * "I_LIGHTS".lights[%d].col.%s;\n",
                     dest, swizzle, chan.diffusefunc != LIGHTDIF_SIGN ? "max(0.0f," :"(", index, swizzle);
                 break;
             default: _assert_(0);
