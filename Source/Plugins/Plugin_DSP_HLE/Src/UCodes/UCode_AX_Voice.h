@@ -18,6 +18,7 @@
 #ifndef _UCODE_AX_VOICE_H
 #define _UCODE_AX_VOICE_H
 
+#include "UCodes.h"
 #include "UCode_AX_ADPCM.h"
 #include "UCode_AX.h"
 #include "../main.h"
@@ -82,7 +83,7 @@ inline bool WriteBackPBWii(u32 pb_address, ParamBlockType& PB)
 }
 
 template<class ParamBlockType>
-inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, int _iSize, bool Wii, u32 CRC = 0)
+inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, int _iSize, bool Wii, u32 _uCode = UCODE_ROM)
 {
     ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
 
@@ -245,15 +246,14 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 				}
 				else
 				{
-					// This accurate boundary wrapping will fix the hangup in many Wii games like:
-					// New Super Mario Bros.Wii, Fatal Frame 4,
-					// Resident Evil Darkside Chronicles, Muramasa The Demon Blade, etc.
-					samplePos = newSamplePos - sampleEnd + loopPos;
-	
-					if (Wii && (CRC == 0xfa450138))
+					if (Wii && (_uCode == UCODE_AXWII))
 					{
-						// Some Wii games check this flag and will turn it off when necessary
-						// If that is the case, DSP should not touch it
+						// This accurate boundary wrapping will fix the hangup in many AXWii games like:
+						// New Super Mario Bros.Wii, Fatal Frame 4, Resident Evil Darkside Chronicles
+						samplePos = newSamplePos - sampleEnd + loopPos;
+
+						// And these AXWii games check this flag and will turn it off when necessary
+						// So DSP should not touch it
 						//
 						//pb.running = 0;
 					}

@@ -24,6 +24,7 @@
 
 #define UCODE_ROM                   0x0000000
 #define UCODE_INIT_AUDIO_SYSTEM     0x0000001
+#define UCODE_AXWII					0x1000000
 
 class CMailHandler;
 

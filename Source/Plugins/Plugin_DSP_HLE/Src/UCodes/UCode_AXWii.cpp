@@ -184,7 +184,7 @@ void CUCode_AXWii::MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PB)
 		if (!ReadOutPBWii(blockAddr, PB))
 			break;
 		ProcessUpdates(PB);
-		MixAddVoice(PB, templbuffer, temprbuffer, _iSize, true, _CRC);
+		MixAddVoice(PB, templbuffer, temprbuffer, _iSize, true, UCODE_AXWII);
 		if (!WriteBackPBWii(blockAddr, PB))
 			break;
 		
