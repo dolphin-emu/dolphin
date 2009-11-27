@@ -64,7 +64,8 @@ void AlsaSound::SoundLoop()
 	AlsaInit();
 	while (!thread_data)
 	{
-		int frames_to_deliver = 512;
+		// nakee: What is the optimal value?
+		int frames_to_deliver = 4096;
 		m_mixer->Mix(reinterpret_cast<short *>(mix_buffer), frames_to_deliver);
 		int rc = snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
 		if (rc == -EPIPE)
