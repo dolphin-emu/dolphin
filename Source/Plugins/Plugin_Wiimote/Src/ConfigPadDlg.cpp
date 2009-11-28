@@ -168,6 +168,7 @@ void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 					SetButtonText(ClickedButton->GetId(), keyStr);
 					// Save the setting
 					SaveKeyboardMapping(Page, ClickedButton->GetId(), i);
+					break;
 				}
 			}
 		#elif defined(HAVE_X11) && HAVE_X11
