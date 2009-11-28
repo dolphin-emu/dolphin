@@ -79,6 +79,7 @@ struct TabDirect3D : public W32Util::Tab
 		CheckDlgButton(hDlg, IDC_WIDESCREEN_HACK, g_Config.bWidescreenHack ? TRUE : FALSE);
 		CheckDlgButton(hDlg, IDC_SAFE_TEXTURE_CACHE, g_Config.bSafeTextureCache ? TRUE : FALSE);
 		CheckDlgButton(hDlg, IDC_EFB_ACCESS_ENABLE, g_Config.bEFBAccessEnable ? TRUE : FALSE);
+		Button_GetCheck(GetDlgItem(hDlg,IDC_RENDER_TO_MAINWINDOW)) ? Button_Enable(GetDlgItem(hDlg,IDC_FULLSCREENENABLE), false) : Button_Enable(GetDlgItem(hDlg,IDC_FULLSCREENENABLE), true);
 	}
 
 	void Command(HWND hDlg,WPARAM wParam)
@@ -142,16 +143,25 @@ struct TabAdvanced : public W32Util::Tab
 		//ComboBox_AddString(opt,"Recompile to vbuffers and shaders");
 //		ComboBox_SetCurSel(opt,g_Config.iCompileDLsLevel);
 
+		Button_SetCheck(GetDlgItem(hDlg,IDC_OVERLAYFPS), g_Config.bShowFPS);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_OVERLAYSTATS), g_Config.bOverlayStats);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_OVERLAYPROJSTATS), g_Config.bOverlayProjStats);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_WIREFRAME), g_Config.bWireFrame);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_TEXDUMP), g_Config.bDumpTextures);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_DUMPFRAMES), g_Config.bDumpFrames);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_SHOWSHADERERRORS), g_Config.bShowShaderErrors);
+		Button_SetCheck(GetDlgItem(hDlg,IDC_DISABLEFOG), g_Config.bDisableFog);
+		Button_SetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY), !g_Config.bEFBCopyDisable);
+		if(g_Config.bCopyEFBToRAM)
+			Button_SetCheck(GetDlgItem(hDlg,IDC_EFBTORAM), TRUE);
+		else
+			Button_SetCheck(GetDlgItem(hDlg,IDC_EFBTOTEX), TRUE);
 
 		Button_SetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY), g_Config.bTexFmtOverlayEnable);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_TEXFMT_CENTER),  g_Config.bTexFmtOverlayCenter);
 		Button_GetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY)) ? Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), true) : Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), false);
+		Button_GetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY)) ? Button_Enable(GetDlgItem(hDlg,IDC_EFBTORAM), true) : Button_Enable(GetDlgItem(hDlg,IDC_EFBTORAM), false);
+		Button_GetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY)) ? Button_Enable(GetDlgItem(hDlg,IDC_EFBTOTEX), true) : Button_Enable(GetDlgItem(hDlg,IDC_EFBTOTEX), false);
 	}
 	void Command(HWND hDlg,WPARAM wParam)
 	{
@@ -163,6 +173,12 @@ struct TabAdvanced : public W32Util::Tab
 	//			SetWindowText(GetDlgItem(hDlg,IDC_TEXDUMPPATH),path.c_str());
 	//		}
 	//		break;
+		case IDC_ENABLEEFBCOPY:
+			{
+				Button_GetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY)) ? Button_Enable(GetDlgItem(hDlg,IDC_EFBTORAM), true) : Button_Enable(GetDlgItem(hDlg,IDC_EFBTORAM), false);
+				Button_GetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY)) ? Button_Enable(GetDlgItem(hDlg,IDC_EFBTOTEX), true) : Button_Enable(GetDlgItem(hDlg,IDC_EFBTOTEX), false);
+			}
+			break;
 		case IDC_TEXFMT_OVERLAY:
 			{
 				Button_GetCheck(GetDlgItem(hDlg, IDC_TEXFMT_OVERLAY)) ? Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), true) : Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), false);
@@ -177,19 +193,24 @@ struct TabAdvanced : public W32Util::Tab
 		g_Config.bTexFmtOverlayEnable = Button_GetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY)) ? true : false;
 		g_Config.bTexFmtOverlayCenter = Button_GetCheck(GetDlgItem(hDlg,IDC_TEXFMT_CENTER)) ? true : false;
 
+		g_Config.bShowFPS = Button_GetCheck(GetDlgItem(hDlg,IDC_OVERLAYFPS)) ? true : false;
 		g_Config.bOverlayStats = Button_GetCheck(GetDlgItem(hDlg,IDC_OVERLAYSTATS)) ? true : false;
 		g_Config.bOverlayProjStats = Button_GetCheck(GetDlgItem(hDlg,IDC_OVERLAYPROJSTATS)) ? true : false;
 		g_Config.bWireFrame = Button_GetCheck(GetDlgItem(hDlg,IDC_WIREFRAME)) ? true : false;
 		g_Config.bDumpTextures = Button_GetCheck(GetDlgItem(hDlg,IDC_TEXDUMP)) ? true : false;
 		g_Config.bDumpFrames   = Button_GetCheck(GetDlgItem(hDlg,IDC_DUMPFRAMES)) ? true : false;
 		g_Config.bShowShaderErrors = Button_GetCheck(GetDlgItem(hDlg,IDC_SHOWSHADERERRORS)) ? true : false;
+		g_Config.bDisableFog = Button_GetCheck(GetDlgItem(hDlg,IDC_DISABLEFOG)) ? true : false;
+		g_Config.bEFBCopyDisable = Button_GetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY)) ? false : true;
+		g_Config.bCopyEFBToRAM = Button_GetCheck(GetDlgItem(hDlg,IDC_EFBTORAM)) ? true : false;
 		//char temp[MAX_PATH];
 		//GetWindowText(GetDlgItem(hDlg,IDC_TEXDUMPPATH), temp, MAX_PATH);  <-- Old method
 		//g_Config.texDumpPath = temp;
 		g_Config.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
 
-		if( D3D::dev != NULL )
+		if( D3D::dev != NULL ) {
 			D3D::dev->SetRenderState( D3DRS_FILLMODE, g_Config.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID );
+		}
 	}
 };
 

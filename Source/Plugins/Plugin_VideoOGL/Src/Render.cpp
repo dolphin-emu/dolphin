@@ -101,7 +101,6 @@ static Common::CriticalSection s_criticalScreenshot;
 static std::string s_sScreenshotName;
 
 int frameCount;
-static int s_fps = 0;
 
 // The custom resolution
 // TODO: Add functionality to reinit all the render targets when the window is resized.

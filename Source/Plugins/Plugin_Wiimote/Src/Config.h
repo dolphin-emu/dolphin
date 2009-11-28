@@ -59,6 +59,7 @@ struct Config
 			TRIGGER
 		};
 		int Type;
+		bool Upright;
 		PadRange Range;
 	};
 	struct PadNunchuck

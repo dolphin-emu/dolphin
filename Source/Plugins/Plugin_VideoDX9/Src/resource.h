@@ -21,22 +21,27 @@
 #define IDC_SAFE_TEXTURE_CACHE          1011
 #define IDC_EFB_ACCESS_ENABLE           1012
 #define IDC_WIREFRAME                   1013
-#define IDC_OVERLAYSTATS                1014
-#define IDC_OVERLAYPROJSTATS            1015
-#define IDC_TEXDUMP                     1016
-#define IDC_DUMPFRAMES                  1017
-#define IDC_SHOWSHADERERRORS            1018
-#define IDC_TEXFMT_OVERLAY              1019
-#define IDC_TEXFMT_CENTER               1020
-#define IDC_FORCEFILTERING              1021
-#define IDC_FORCEANISOTROPY             1022
+#define IDC_DISABLEFOG					1014
+#define IDC_OVERLAYFPS					1015
+#define IDC_OVERLAYSTATS                1016
+#define IDC_OVERLAYPROJSTATS            1017
+#define IDC_ENABLEEFBCOPY				1018
+#define IDC_EFBTORAM					1019
+#define IDC_EFBTOTEX					1020
+#define IDC_TEXDUMP                     1021
+#define IDC_DUMPFRAMES                  1022
+#define IDC_SHOWSHADERERRORS            1023
+#define IDC_TEXFMT_OVERLAY              1024
+#define IDC_TEXFMT_CENTER               1025
+#define IDC_FORCEFILTERING              1026
+#define IDC_FORCEANISOTROPY             1027
 
-#define IDC_CHECK1                      1023
-#define IDC_LIST1                       1024
-#define IDC_DEBUGSTEP                   1025
-#define IDC_REGISTERS                   1026
-#define IDC_ENABLEDEBUGGING             1027
-#define IDC_REGISTERSELECT              1028
+#define IDC_CHECK1                      1100
+#define IDC_LIST1                       1101
+#define IDC_DEBUGSTEP                   1102
+#define IDC_REGISTERS                   1103
+#define IDC_ENABLEDEBUGGING             1104
+#define IDC_REGISTERSELECT              1105
 
 #define IDC_STATIC                      -1
 

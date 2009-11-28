@@ -273,6 +273,7 @@ void Config::Load(bool ChangePad)
 		sprintf(SectionName, "Wiimote%i", i + 1);
 		iniFile.Get(SectionName, "NoTriggerFilter", &bNoTriggerFilter, false);
 		iniFile.Get(SectionName, "TriggerType", &Trigger.Type, Trigger.TRIGGER_OFF);
+		iniFile.Get(SectionName, "TriggerUpright", &Trigger.Upright, false);
 		iniFile.Get(SectionName, "TriggerRollRange", &Trigger.Range.Roll, 50);
 		iniFile.Get(SectionName, "TriggerPitchRange", &Trigger.Range.Pitch, false);
 
@@ -375,6 +376,7 @@ void Config::Save(int Slot)
 		iniFile.Set(SectionName, "Enabled", WiiMoteEmu::PadMapping[i].enabled);
 		iniFile.Set(SectionName, "NoTriggerFilter", bNoTriggerFilter);		
 		iniFile.Set(SectionName, "TriggerType", Trigger.Type);
+		iniFile.Set(SectionName, "TriggerUpright", Trigger.Upright);
 		iniFile.Set(SectionName, "TriggerRollRange", Trigger.Range.Roll);
 		iniFile.Set(SectionName, "TriggerPitchRange", Trigger.Range.Pitch);
 

@@ -758,12 +758,15 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		// ---------------------------------------------
 		// Test the angles to x, y, z values formula by calculating the values back and forth
 		// -----------
-		/*		//Console::ClearScreen();
+		/*
+		ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
+		Console->ClearScreen();
 		// Show a test of our calculations
 		WiiMoteEmu::TiltTest(data[4], data[5], data[6]);
 		u8 x, y, z;
-		WiiMoteEmu::Tilt(x, y, z);
-		WiiMoteEmu::TiltTest(x, y, z);*/
+		//WiiMoteEmu::Tilt(x, y, z);
+		//WiiMoteEmu::TiltTest(x, y, z);	
+		*/
 		// -------------------------
 
 		// ---------------------------------------------

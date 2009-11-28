@@ -1,7 +1,16 @@
 // Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
 #include <windows.h>
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
 /////////////////////////////////////////////////////////////////////////////
 // English (U.S.) resources
 
@@ -28,7 +37,7 @@ BEGIN
 END
 
 IDD_SETTINGS DIALOGEX 0, 0, 244, 217
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_BORDER | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "&Graphics card:",IDC_STATIC,7,9,61,8
@@ -66,23 +75,29 @@ BEGIN
     CONTROL         "",IDC_REGISTERSELECT,"SysTabControl32",TCS_BUTTONS,80,52,145,13
 END
 
-IDD_ADVANCED DIALOGEX 0, 0, 206, 195
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
+IDD_ADVANCED DIALOGEX 0, 0, 244, 214
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_BORDER | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    GROUPBOX        "&Settings",IDC_STATIC,7,7,192,81
-    CONTROL         "&Wireframe",IDC_WIREFRAME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,19,79,9
-    CONTROL         "&Overlay some statistics",IDC_OVERLAYSTATS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,31,88,9
+    GROUPBOX        "&Settings",IDC_STATIC,6,7,228,95
+    CONTROL         "Overlay FPS",IDC_OVERLAYFPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,18,54,12
+    CONTROL         "&Overlay some statistics",IDC_OVERLAYSTATS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,114,18,90,12
     CONTROL         "Overlay &Projection Statistics",IDC_OVERLAYPROJSTATS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,42,118,9
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,30,102,12
     CONTROL         "Show s&hader compilation errors",IDC_SHOWSHADERERRORS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,53,127,9
-    GROUPBOX        "&Data dumping",IDC_STATIC,7,91,192,42
-    CONTROL         "Dump &textures",IDC_TEXDUMP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,104,70,9
-    CONTROL         "Dump Frames to User/Dump/Frames",IDC_DUMPFRAMES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,116,138,9
-    GROUPBOX        "Texture Format Overlay",IDC_STATIC,7,136,192,30
-    CONTROL         "Enable Overlay",IDC_TEXFMT_OVERLAY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,14,148,74,10
-    CONTROL         "Centered",IDC_TEXFMT_CENTER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,110,148,82,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,114,30,114,12
+    CONTROL         "Enable &Wireframe",IDC_WIREFRAME,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,48,78,12
+    CONTROL         "Disable Fog",IDC_DISABLEFOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,114,48,66,12
+    GROUPBOX        "EFB Copy",IDC_STATIC,12,60,216,36
+    CONTROL         "Enable",IDC_ENABLEEFBCOPY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,18,72,42,8
+    CONTROL         "To RAM",IDC_EFBTORAM,"Button",BS_AUTORADIOBUTTON | WS_GROUP,24,84,84,10
+    CONTROL         "To Texture",IDC_EFBTOTEX,"Button",BS_AUTORADIOBUTTON,108,84,84,10
+    GROUPBOX        "&Data dumping",IDC_STATIC,6,108,228,36
+    CONTROL         "Dump &textures",IDC_TEXDUMP,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,120,70,9
+    CONTROL         "Dump Frames to User/Dump/Frames",IDC_DUMPFRAMES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,132,138,9
+    GROUPBOX        "Texture Format Overlay",IDC_STATIC,6,150,228,30
+    CONTROL         "Enable Overlay",IDC_TEXFMT_OVERLAY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,12,162,74,10
+    CONTROL         "Centered",IDC_TEXFMT_CENTER,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,108,162,82,10
 END
 
 IDD_ENHANCEMENTS DIALOGEX 0, 0, 224, 175
@@ -136,12 +151,12 @@ BEGIN
     IDD_ADVANCED, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 199
+        RIGHTMARGIN, 237
         VERTGUIDE, 14
         VERTGUIDE, 110
         TOPMARGIN, 7
-        BOTTOMMARGIN, 168
-        HORZGUIDE, 150
+        BOTTOMMARGIN, 187
+        HORZGUIDE, 168
     END
 
     IDD_ENHANCEMENTS, DIALOG
@@ -170,13 +185,12 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
-    "\0"
+    "#include <windows.h\0"
 END
 
 3 TEXTINCLUDE 
 BEGIN
-    "\r\n"
-    "\0"
+    "#include <windows.h\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -191,8 +205,7 @@ END
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
-
+#include <windows.h>
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 

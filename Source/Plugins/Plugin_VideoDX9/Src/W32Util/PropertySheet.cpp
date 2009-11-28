@@ -195,6 +195,7 @@ namespace W32Util
 
 		case WM_COMMAND:
 			tab->Command(hDlg,wParam);
+			PropSheet_Changed(GetParent(hDlg), hDlg);
 			break;
 		case WM_NOTIFY:
 			{

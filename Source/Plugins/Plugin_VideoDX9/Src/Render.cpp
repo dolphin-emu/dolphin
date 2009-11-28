@@ -17,6 +17,7 @@
 
 #include <list>
 #include <d3dx9.h>
+#include <strsafe.h>
 
 #include "Common.h"
 #include "Statistics.h"
@@ -360,6 +361,12 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 	D3D::drawShadedTexQuad(read_texture,&sourcerect,Renderer::GetTargetWidth(),Renderer::GetTargetHeight(),&destinationrect,PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader());	
 	
 	// Finish up the current frame, print some stats
+	if (g_ActiveConfig.bShowFPS)
+	{
+		char fps[20];
+		StringCchPrintfA(fps, 20, "FPS: %d\n", s_fps);
+		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,fps,false);
+	}
 	if (g_ActiveConfig.bOverlayStats)
 	{
 		Statistics::ToString(st);
@@ -891,6 +898,18 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	CheckForResize();
 
+	// ---------------------------------------------------------------------
+	// Count FPS.
+	// -------------
+	static int fpscount = 0;
+    static unsigned long lasttime;
+    ++fpscount;
+    if (timeGetTime() - lasttime > 1000) 
+    {
+        lasttime = timeGetTime();
+        s_fps = fpscount - 1;
+        fpscount = 0;
+    }
 
 	// Begin new frame
 	// Set default viewport and scissor, for the clear to work correctly

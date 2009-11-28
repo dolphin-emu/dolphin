@@ -126,7 +126,7 @@ bool GetConfig(const int &type)
 	case CONFIG_ISWII:
 		return g_VideoInitialize.bWii;
 	case CONFIG_DISABLEFOG:
-		return false;
+		return g_ActiveConfig.bDisableFog;
 	case CONFIG_SHOWEFBREGIONS:
 		return false;
 	default:
