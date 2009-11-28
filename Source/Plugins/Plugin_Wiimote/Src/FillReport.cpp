@@ -407,27 +407,48 @@ std::vector<u8> yhist(15, 0); float KbDegree;
 void SingleShake(u8 &_x, u8 &_y, u8 &_z, int wm)
 {
 #ifdef _WIN32
-	if(Shake[wm] == 1)
+	if (Shake[wm] == 0)
 	{
+		if((wm == 0 && IsKey(g_Wiimote_kbd.SHAKE)) || (wm == 1 && IsKey(g_NunchuckExt.SHAKE)))
+			Shake[wm] = 1;
+	}
+	switch(Shake[wm])
+	{
+	case 1:
+	case 3:
+		_x = g_wm.cal_zero.x / 2;
+		_y = g_wm.cal_zero.y / 2;
+		_z = g_wm.cal_zero.z / 2;
+		break;
+	case 5:
+	case 7:
+		_x = (0xFF - g_wm.cal_zero.x ) / 2;
+		_y = (0xFF - g_wm.cal_zero.y ) / 2;
+		_z = (0xFF - g_wm.cal_zero.z ) / 2;
+		break;
+	case 2:
 		_x = 0x00;
 		_y = 0x00;
 		_z = 0x00;
-		Shake[wm] = -1;
-	}
-	else if((wm == 0 && IsKey(g_Wiimote_kbd.SHAKE)) || (wm == 1 && IsKey(g_NunchuckExt.SHAKE)))
-	{
+		break;
+	case 6:
 		_x = 0xFF;
 		_y = 0xFF;
 		_z = 0xFF;
-		Shake[wm] = 1;
-	}
-	else
-	{
+		break;
+	case 4:
+		_x = 0x80;
+		_y = 0x80;
+		_z = 0x80;
+		break;
+	default:
+		Shake[wm] = -1;
 		_x = g_wm.cal_zero.x;
 		_y = g_wm.cal_zero.y;
 		_z = g_wm.cal_zero.z + g_wm.cal_g.z;
-		Shake[wm] = 0;
+		break;
 	}
+	Shake[wm]++;
 #endif
 	//if (Shake[wm] != 0) DEBUG_LOG(WIIMOTE, "Shake: %i - 0x%02x, 0x%02x, 0x%02x", Shake[wm], _x, _y, _z);
 }
