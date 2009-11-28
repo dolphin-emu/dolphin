@@ -98,7 +98,7 @@ void Init()
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_oh0(i, std::string("/dev/usb/oh0")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_kbd(i, std::string("/dev/usb/kbd")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_sdio_slot0(i, std::string("/dev/sdio/slot0")); i++;
-	//g_DeviceMap[i] = new CWII_IPC_HLE_Device_Error(i, std::string("_Unknown_Device_")); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_Error(i, std::string("_Unknown_Device_")); i++;
 
 	g_LastDeviceID = IPC_FIRST_FILEIO_ID;
 }
@@ -287,7 +287,10 @@ void ExecuteCommand(u32 _Address)
 				if (DeviceName.find("/dev/") != std::string::npos)
 				{
 					ERROR_LOG(WII_IPC_FILEIO, "Unknown device: %s", DeviceName.c_str());
-				 	PanicAlert("Unknown device: %s", DeviceName.c_str());
+				 	PanicAlert("Unknown device: %s\n\nMaybe you can continue to play or maybe the game will freeze.", DeviceName.c_str());
+
+					pDevice = AccessDeviceByID(GetDeviceIDByName(std::string("_Unknown_Device_")));
+					CmdSuccess = pDevice->Open(_Address, Mode);
 				}
 				else
 				{

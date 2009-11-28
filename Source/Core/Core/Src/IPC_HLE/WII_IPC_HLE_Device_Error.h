@@ -33,8 +33,9 @@ public:
 
     virtual bool Open(u32 _CommandAddress, u32 _Mode)
     {
-		PanicAlert("CWII_IPC_HLE_Device_Error");
-        Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+		//PanicAlert("CWII_IPC_HLE_Device_Error");
+        //Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
+        Memory::Write_U32(0, _CommandAddress+4);
 		m_Active = true;
         return true;
     }

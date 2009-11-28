@@ -24,6 +24,7 @@ struct CConfig
 {
     bool m_EnableHLEAudio;
 	bool m_EnableRE0Fix;
+	bool m_EnableLoopFix;
 
     CConfig();
     

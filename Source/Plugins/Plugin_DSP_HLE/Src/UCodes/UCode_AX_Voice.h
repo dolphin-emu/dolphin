@@ -21,8 +21,9 @@
 #include "UCodes.h"
 #include "UCode_AX_ADPCM.h"
 #include "UCode_AX.h"
-#include "../main.h"
 #include "Mixer.h"
+#include "../main.h"
+#include "../Config.h"
 
 // ----------------------------------------------------
 // Externals
@@ -92,7 +93,6 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 	// =============
 	if (pb.running)
 	{
-
 		// Read initial parameters
 		// ------------
 		//constants
@@ -191,7 +191,9 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 				    break;
 
 			    case AUDIOFORMAT_ADPCM:
-				    sample = ADPCM_Step(pb.adpcm, samplePos, newSamplePos, frac);
+					u32 toSamplePos;
+					toSamplePos = (newSamplePos > sampleEnd) ? sampleEnd : newSamplePos;
+				    sample = ADPCM_Step(pb.adpcm, samplePos, toSamplePos, frac);
 				    break;
 
 			    default:
@@ -246,7 +248,7 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 				}
 				else
 				{
-					if (Wii && (_uCode == UCODE_AXWII))
+					if (!g_Config.m_EnableLoopFix && Wii && (_uCode == UCODE_AXWII))
 					{
 						// This accurate boundary wrapping will fix the hangup in many AXWii games like:
 						// New Super Mario Bros.Wii, Fatal Frame 4, Resident Evil Darkside Chronicles
@@ -261,7 +263,9 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 					{
 						pb.running = 0;
 					}
-
+					// not sure if this will mute the unwanted over looping sound
+					pb.mixer.volume_left = 0;
+					pb.mixer.volume_right = 0;
 					break;
 				}
 			}
