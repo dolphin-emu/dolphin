@@ -296,7 +296,7 @@ void UpdateEeprom()
 	g_wm.cal_zero.y = g_Eeprom[23];
 	g_wm.cal_zero.z = g_Eeprom[24];
 	g_wm.cal_g.x = g_Eeprom[26] - g_Eeprom[22];
-	g_wm.cal_g.y = g_Eeprom[27] - g_Eeprom[24];
+	g_wm.cal_g.y = g_Eeprom[27] - g_Eeprom[23];
 	g_wm.cal_g.z = g_Eeprom[28] - g_Eeprom[24];
 
 	INFO_LOG(WIIMOTE, "UpdateEeprom: %i %i %i",

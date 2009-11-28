@@ -396,37 +396,40 @@ void FillReportInfo(wm_core& _core)
 // For all functions
 u8 g_x, g_y, g_z, g_X, g_Y, g_Z;
 
-// For the shake function, 0 = Wiimote, 1 = Nunchuck
-int Shake[] = {-1, -1};
+// For the shake function, Wiimote: wm = 0, Nunchuck: wm = 1
+int Shake[] = {0, 0};
 
 // For the tilt function, the size of this list determines how fast Y returns to its neutral value
 std::vector<u8> yhist(15, 0); float KbDegree;
 
 
-// Single shake of Wiimote while holding it sideways (Wario Land pound ground)
-void SingleShake(u8 &_y, u8 &_z, int i)
+// Single shake of all three directions
+void SingleShake(u8 &_x, u8 &_y, u8 &_z, int wm)
 {
 #ifdef _WIN32
-	// Shake Wiimote with S, Nunchuck with D
-	if((i == 0 && IsKey(g_Wiimote_kbd.SHAKE)) || (i == 1 && IsKey(g_NunchuckExt.SHAKE)))
+	if(Shake[wm] == 1)
 	{
-		_z = 0;
-		_y = 0;
-		Shake[i] = 2;
+		_x = 0x00;
+		_y = 0x00;
+		_z = 0x00;
+		Shake[wm] = -1;
 	}
-	else if(Shake[i] == 2)
+	else if((wm == 0 && IsKey(g_Wiimote_kbd.SHAKE)) || (wm == 1 && IsKey(g_NunchuckExt.SHAKE)))
 	{
-		// This works regardless of calibration, in Wario Land
-		_z = g_wm.cal_zero.z - 2;
-		_y = 0;
-		Shake[i] = 1;
+		_x = 0xFF;
+		_y = 0xFF;
+		_z = 0xFF;
+		Shake[wm] = 1;
 	}
-	else if(Shake[i] == 1)
+	else
 	{
-		Shake[i] = -1;
+		_x = g_wm.cal_zero.x;
+		_y = g_wm.cal_zero.y;
+		_z = g_wm.cal_zero.z + g_wm.cal_g.z;
+		Shake[wm] = 0;
 	}
 #endif
-	//if (Shake[i] > -1) DEBUG_LOG(WIIMOTE, "Shake: %i", Shake[i]);
+	//if (Shake[wm] != 0) DEBUG_LOG(WIIMOTE, "Shake: %i - 0x%02x, 0x%02x, 0x%02x", Shake[wm], _x, _y, _z);
 }
 
 
@@ -597,39 +600,20 @@ void FillReportAcc(wm_accel& _acc)
 		//DEBUG_LOG(WIIMOTE, "X, Y, Z: %u %u %u", _acc.x, _acc.y, _acc.z);
 	}
 
-	// The default values can change so we need to update them all the time
-	g_X = g_wm.cal_zero.x;
-	g_Y = g_wm.cal_zero.y;
-	g_Z = g_wm.cal_zero.z + g_wm.cal_g.z;
-
-
 	// Check that Dolphin is in focus
 	if (!IsFocus())
 	{
-		_acc.x = g_X;
-		_acc.y = g_y;
-		_acc.z = g_z;
+		_acc.x = g_wm.cal_zero.x;
+		_acc.y = g_wm.cal_zero.y;
+		_acc.z = g_wm.cal_zero.z + g_wm.cal_g.z;
 		return;
 	}
 
-	// Wiimote to Gamepad translations
-	
-	// The following functions may or may not update these values
-	g_x = g_X;
-	g_y = g_Y;
-	g_z = g_Z;
-
 	// Shake the Wiimote
-	SingleShake(g_y, g_z, 0);
+	SingleShake(_acc.x, _acc.y, _acc.z, 0);
 
 	// Tilt Wiimote, allow the shake function to interrupt it
-	if (Shake[0] == -1) Tilt(g_x, g_y, g_z);
-
-	// Write final values
-	_acc.x = g_x;
-	_acc.y = g_y;
-	_acc.z = g_z;
-	
+	if (Shake[0] == 0) Tilt(_acc.x, _acc.y, _acc.z);
 
 	// Debugging for translating Wiimote to Keyboard (or Gamepad)
 	/*
@@ -899,7 +883,7 @@ void FillReportExtension(wm_extension& _ext)
 	}
 
 	// Shake the Wiimote
-	SingleShake(_ext.ay, _ext.az, 1);
+	SingleShake(_ext.ax, _ext.ay, _ext.az, 1);
 
 	// The default joystick and button values unless we use them
 	_ext.jx = g_nu.jx.center;
