@@ -105,7 +105,7 @@ void Init()
 
 void Reset(bool _bHard)
 {
-    TDeviceMap::const_iterator itr = g_DeviceMap.begin();
+    TDeviceMap::iterator itr = g_DeviceMap.begin();
     while (itr != g_DeviceMap.end())
     {
 		// Hardware should not be deleted unless it is a hard reset
