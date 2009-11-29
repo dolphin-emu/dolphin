@@ -293,7 +293,8 @@ void GetButton(SDL_Joystick *joy, int ControllerID, int buttons, int axes, int h
 	{
 		for(int i = 0; i < hats; i++)
 		{	
-			if(SDL_JoystickGetHat(joy, i))
+			value = SDL_JoystickGetHat(joy, i);
+			if(value)
 			{
 				pressed = i;
 				type = InputCommon::CTL_HAT;

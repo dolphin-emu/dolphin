@@ -67,21 +67,22 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 
 void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
 {
+	event.Skip();
 	g_FrameOpen = false;
 	g_Config.Save();
 	if (m_PadConfigFrame)
 	{
-		m_PadConfigFrame->EndModal(wxID_CLOSE);
+		delete m_PadConfigFrame;
 		m_PadConfigFrame = NULL;
 	}
 	if (m_RecordingConfigFrame)
 	{
-		m_RecordingConfigFrame->EndModal(wxID_CLOSE);
+		delete m_RecordingConfigFrame;
 		m_RecordingConfigFrame = NULL;
 	}
-	if (!g_EmulatorRunning) Shutdown();
-	// This will let the Close() function close and remove the wxDialog
-	event.Skip();
+	if (!g_EmulatorRunning)
+		Shutdown();
+	EndModal(wxID_CLOSE);
 }
 
 /* Timeout the shutdown. In Windows at least the g_pReadThread execution will hang at any attempt to
@@ -89,11 +90,13 @@ void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
    We must therefore shut down the thread from here and wait for that before we can call ShutDown(). */
 void WiimoteBasicConfigDialog::ShutDown(wxTimerEvent& WXUNUSED(event))
 {
-	// Close() is a wxWidgets function that will trigger EVT_CLOSE() and then call this->Destroy().
+	// Wait for the Wiimote thread to stop, then close and shutdown
+	WiiMoteReal::g_Shutdown = true;
+	m_ShutDownTimer->Start(10);
+	
 	if(!WiiMoteReal::g_ThreadGoing)
 	{
 		m_ShutDownTimer->Stop();
-		Close();
 	}
 }
 
@@ -102,25 +105,15 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 	switch(event.GetId())
 	{
 	case ID_CLOSE:
-		// Wait for the Wiimote thread to stop, then close and shutdown
-		if(!g_EmulatorRunning)
-		{
-			WiiMoteReal::g_Shutdown = true;
-			m_ShutDownTimer->Start(10);
-		}
-		// Close directly
-		else
-		{
-			Close();
-		}
+		// Close() is a wxWidgets function that will trigger EVT_CLOSE() and then call this->Destroy().
+		Close();
 		break;
 	case ID_APPLY:
 		g_Config.Save();
 		break;
 	case ID_BUTTONMAPPING:
-		if (m_PadConfigFrame)
-			m_PadConfigFrame->EndModal(wxID_CLOSE);
-		m_PadConfigFrame = new WiimotePadConfigDialog(this);
+		if (!m_PadConfigFrame)
+			m_PadConfigFrame = new WiimotePadConfigDialog(this);
 		if (!m_PadConfigFrame->IsShown())
 			m_PadConfigFrame->ShowModal();
 		break;

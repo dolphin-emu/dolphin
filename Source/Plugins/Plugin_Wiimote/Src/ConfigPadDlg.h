@@ -49,7 +49,7 @@ class WiimotePadConfigDialog : public wxDialog
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE | wxWANTS_CHARS);
-		virtual ~WiimotePadConfigDialog(){;}
+		virtual ~WiimotePadConfigDialog();
 
 		void CloseClick(wxCommandEvent& event);
 		void UpdateGUI(int Slot = 0);
@@ -70,6 +70,7 @@ class WiimotePadConfigDialog : public wxDialog
 						*m_bmpDotRightOut[4],
 						*m_bmpDeadZoneLeftIn[4],
 						*m_bmpDeadZoneRightIn[4];
+
 	private:
 		DECLARE_EVENT_TABLE();
 
@@ -250,15 +251,19 @@ class WiimotePadConfigDialog : public wxDialog
 		void GeneralSettingsChanged(wxCommandEvent& event);
 
 		// Gamepad configuration
-		void SetButtonText(int id, char text[128], int _Page = -1); void SetButtonTextAll(int id, char text[128]);
+		void SetButtonText(int id, const char text[128], int _Page = -1);
+		void SetButtonTextAll(int id, char text[128]);
 		wxString GetButtonText(int id, int Page = -1);
 		void GetButtons(wxCommandEvent& event); void DoGetButtons(int);
-		void SaveButtonMapping(int controller, bool DontChangeId = false, int FromSlot = -1); void SaveButtonMappingAll(int Slot);
+		void SaveButtonMapping(int controller, bool DontChangeId = false, int FromSlot = -1);
+		void SaveButtonMappingAll(int Slot);
 		void SaveKeyboardMapping(int Controller, int Id, int Key);
 		void ToBlank(bool ToBlank = true);
 		void PadGetStatus();
 		void DoSave(bool ChangePad = false, int Slot = -1);
-		void DoChangeJoystick(); void PadOpen(int Open); void PadClose(int Close); void DoChangeDeadZone(bool Left);
+		void DoChangeJoystick();
+		void PadOpen(int Open); void PadClose(int Close);
+		void DoChangeDeadZone(bool Left);
 		void OnButtonClick(wxCommandEvent& event);
 
 		// Configure buttons

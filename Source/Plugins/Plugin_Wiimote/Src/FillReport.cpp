@@ -297,28 +297,49 @@ int RecordingCheckKeys(int WmNuIr)
 
 // Subroutines
 
+int GetMapKeyState(int _MapKey)
+{
+	const int Page = 0;
+
+	if (_MapKey < 256)
+		return GetAsyncKeyState(_MapKey);	// Keyboard
+	else if (_MapKey < 0x1100)
+		return SDL_JoystickGetButton(PadState[Page].joy, _MapKey - 0x1000);	// Pad button
+	else	// Pad hat
+	{
+		u8 HatCode, HatKey;
+		HatCode = SDL_JoystickGetHat(PadState[Page].joy, (_MapKey - 0x1100) / 0x0010);
+		HatKey = (_MapKey - 0x1100) % 0x0010;
+
+		if (HatCode & HatKey)
+			return HatKey;
+	}
+	return NULL;
+}
 
 // Multi System Input Status Check
 int IsKey(int Key)
 {
 #ifdef _WIN32
-	if (Key == g_Wiimote_kbd.SHAKE)
-		return GetAsyncKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A]) || GetAsyncKeyState(VK_MBUTTON);
 	if (g_Wiimote_kbd.A <= Key && Key <= g_Wiimote_kbd.PITCH_R)
 	{
-		return GetAsyncKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A]);
+		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A]);
+	}
+	if (Key == g_Wiimote_kbd.SHAKE)
+	{
+		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A]) || GetAsyncKeyState(VK_MBUTTON);
 	}
 	if (g_NunchuckExt.Z <= Key && Key <= g_NunchuckExt.SHAKE)
 	{
-		return GetAsyncKeyState(PadMapping[0].Nc.keyForControls[Key - g_NunchuckExt.Z]);
+		return GetMapKeyState(PadMapping[0].Nc.keyForControls[Key - g_NunchuckExt.Z]);
 	}
 	if (g_ClassicContExt.A <= Key && Key <= g_ClassicContExt.Rd)
 	{
-		return GetAsyncKeyState(PadMapping[0].Cc.keyForControls[Key - g_ClassicContExt.A]);
+		return GetMapKeyState(PadMapping[0].Cc.keyForControls[Key - g_ClassicContExt.A]);
 	}
 	if (g_GH3Ext.Green <= Key && Key <= g_GH3Ext.StrumDown)
 	{
-		return GetAsyncKeyState(PadMapping[0].GH3c.keyForControls[Key - g_GH3Ext.Green]);
+		return GetMapKeyState(PadMapping[0].GH3c.keyForControls[Key - g_GH3Ext.Green]);
 	}
 
 	switch(Key)

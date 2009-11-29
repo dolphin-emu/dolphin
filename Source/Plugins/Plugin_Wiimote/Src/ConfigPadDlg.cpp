@@ -114,7 +114,7 @@ WiimotePadConfigDialog::WiimotePadConfigDialog(wxWindow *parent, wxWindowID id, 
 	GetButtonWaitingTimer = 0;
 
 	// Start the permanent timer
-	const int TimesPerSecond = 30;
+	const int TimesPerSecond = 10;
 	m_UpdatePad->Start( floor((double)(1000 / TimesPerSecond)) );
 #endif
 
@@ -134,26 +134,33 @@ WiimotePadConfigDialog::WiimotePadConfigDialog(wxWindow *parent, wxWindowID id, 
 		(wxObject*)0, this);
 }
 
+WiimotePadConfigDialog::~WiimotePadConfigDialog()
+{
+	if (m_ButtonMappingTimer)
+		delete m_ButtonMappingTimer;
+	if (m_UpdatePad)
+		delete m_UpdatePad;
+}
+
 void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 {
 	event.Skip();
 
-	// Save the key
-	g_Pressed = event.GetKeyCode();
-
-	// Handle the keyboard key mapping
-	char keyStr[64] = {0};
 	if(ClickedButton != NULL)
 	{
+		// Save the key
+		g_Pressed = event.GetKeyCode();
+		// Handle the keyboard key mapping
+		char keyStr[128] = {0};
+
 		// Allow the escape key to set a blank key
 		if (g_Pressed == WXK_ESCAPE)
 		{
 			SaveKeyboardMapping(Page, ClickedButton->GetId(), -1);
 			SetButtonText(ClickedButton->GetId(), "");
-			ClickedButton = NULL;
-			return;
 		}
-
+		else
+		{
 		#ifdef _WIN32
 			BYTE keyState[256];
 			GetKeyboardState(keyState);
@@ -177,8 +184,12 @@ void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 			SetButtonText(ClickedButton->GetId(), keyStr);
 			SaveKeyboardMapping(Page, ClickedButton->GetId(), g_Pressed);
 		#endif
+		}
+		m_ButtonMappingTimer->Stop();
+		GetButtonWaitingTimer = 0;
+		GetButtonWaitingID = 0;
+		ClickedButton = NULL;
 	}
-	ClickedButton = NULL;
 }
 
 // Input button clicked
@@ -186,29 +197,29 @@ void WiimotePadConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
 	//DEBUG_LOG(WIIMOTE, "OnButtonClick: %i", g_Pressed);
 
+	if (m_ButtonMappingTimer->IsRunning()) return;
+
 	// Don't allow space to start a new Press Key option, that will interfer with setting a key to space
 	if (g_Pressed == WXK_SPACE) { g_Pressed = 0; return; }
 
-	// Reset the old label
-	if(ClickedButton) ClickedButton->SetLabel(OldLabel);
-
 	// Create the button object
 	ClickedButton = (wxButton *)event.GetEventObject();
+	// Save old label so we can revert back
 	OldLabel = ClickedButton->GetLabel();
-	ClickedButton->SetLabel(wxT("<Press Key>"));
-	// Allow Tab and directional keys to
 	ClickedButton->SetWindowStyle(wxWANTS_CHARS);
+	ClickedButton->SetLabel(wxT("<Press Key>"));
+	DoGetButtons(ClickedButton->GetId());
 }
 
 
 void WiimotePadConfigDialog::OnClose(wxCloseEvent& event)
 {
+	event.Skip();
 	g_FrameOpen = false;
-	SaveButtonMappingAll(Page);
 	if(m_UpdatePad)
 		m_UpdatePad->Stop();
-	g_Config.Save();
-	event.Skip();
+	SaveButtonMappingAll(Page);
+	EndModal(wxID_CLOSE);
 }
 
 void WiimotePadConfigDialog::CloseClick(wxCommandEvent& event)
@@ -220,7 +231,6 @@ void WiimotePadConfigDialog::CloseClick(wxCommandEvent& event)
 		break;
 	case ID_APPLY:
 		SaveButtonMappingAll(Page);
-		g_Config.Save();
 		break;
 	}
 }

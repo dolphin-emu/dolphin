@@ -160,7 +160,7 @@ void RadiusAdjustment(int &_x, int &_y, int _pad, std::string SRadius)
 // ---------------------
 
 /* Calculate the distance from the outer edges of the box to the outer edges of the circle inside the box
-   at any angle from 0° to 360°. The returned value is 1 + Distance, for example at most sqrt(2) in the
+   at any angle from 0 to 360. The returned value is 1 + Distance, for example at most sqrt(2) in the
    corners and at least 1.0 at the horizontal and vertical angles. */
 float Square2CircleDistance(float deg)
 {
@@ -240,9 +240,13 @@ std::string VKToString(int keycode)
 #ifdef _WIN32
 	// Default value
 	char KeyStr[64] = {0};
+	std::string KeyString;
+
 	// TODO: Switch to unicode GetKeyNameText?
-	GetKeyNameTextA(MapVirtualKey(keycode, MAPVK_VK_TO_VSC) << 16, KeyStr, 64);
-	std::string KeyString = KeyStr;
+	if (keycode < 256)	// Keyboard
+		GetKeyNameTextA(MapVirtualKey(keycode, MAPVK_VK_TO_VSC) << 16, KeyStr, 64);
+	else	// Pad
+		sprintf(KeyStr, "PAD: %d", keycode - 0x1000);
 
 	switch(keycode)
 	{
@@ -263,7 +267,7 @@ std::string VKToString(int keycode)
 		case VK_RCONTROL: return "RIGHT CTRL";
 		case VK_LMENU: return "LEFT ALT";
 
-		default: return KeyString;
+		default: return KeyString = KeyStr;
 	}
 #else
 	// An equivalent name translation can probably be used on other systems to?

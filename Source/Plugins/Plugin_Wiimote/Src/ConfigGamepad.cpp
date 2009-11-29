@@ -90,7 +90,7 @@ void WiimotePadConfigDialog::DoChangeDeadZone(bool Left)
 // Set the button text for all four Wiimotes
 void WiimotePadConfigDialog::SetButtonTextAll(int id, char text[128])
 {
-	for (int i = 0; i < 1; i++)
+	for (int i = 0; i < 1; i++)	// We've got only 1 currently
 	{
 		// Safety check to avoid crash
 		if ((int)WiiMoteEmu::joyinfo.size() > WiiMoteEmu::PadMapping[i].ID)
@@ -113,7 +113,7 @@ void WiimotePadConfigDialog::SaveButtonMappingAll(int Slot)
 
 // Set dialog items from saved values
 void WiimotePadConfigDialog::UpdateGUIButtonMapping(int controller)
-{	
+{
 	// Temporary storage
 	wxString tmp;
 
@@ -299,7 +299,7 @@ void WiimotePadConfigDialog::ToBlank(bool _ToBlank)
 
 
 // Update the textbox for the buttons
-void WiimotePadConfigDialog::SetButtonText(int id, char text[128], int _Page)
+void WiimotePadConfigDialog::SetButtonText(int id, const char text[128], int _Page)
 {
 	// Set controller value
 	int controller;	
@@ -367,6 +367,14 @@ wxString WiimotePadConfigDialog::GetButtonText(int id, int _Page)
    on. Therefore a timer is easier to control. */
 void WiimotePadConfigDialog::GetButtons(wxCommandEvent& event)
 {
+	if (event.GetEventType() != wxEVT_COMMAND_BUTTON_CLICKED)
+		return;
+
+	if (m_ButtonMappingTimer->IsRunning())
+		return;
+
+	OldLabel.clear();
+	SetButtonText(event.GetId(), "<Axis>");
 	DoGetButtons(event.GetId());
 }
 
@@ -390,9 +398,9 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	
 	bool XInput = (TriggerType == InputCommon::CTL_TRIGGER_XINPUT);
 
-	bool Button = false; // No digital buttons allowed
+	bool Button = (_GetId >= IDB_WM_A && _GetId <= IDB_GH3_STRUM_DOWN);
 
-	bool Hat = false; // No hats allowed
+	bool Hat = (_GetId >= IDB_WM_A && _GetId <= IDB_GH3_STRUM_DOWN);
 
 	bool NoTriggerFilter = g_Config.bNoTriggerFilter;
 
@@ -402,8 +410,9 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	int TimesPerSecond = 40; // How often to run the check
 
 	// Values returned from InputCommon::GetButton()
-	int value; // Axis value
+	int value; // Axis value or Hat value
 	int type; // Button type
+
 	int pressed = 0;
 	bool Succeed = false;
 	bool Stop = false; // Stop the timer
@@ -415,23 +424,13 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	if( GetButtonWaitingID != _GetId || !m_ButtonMappingTimer->IsRunning() )
 	{
 		if(m_ButtonMappingTimer->IsRunning())
-		{
 			m_ButtonMappingTimer->Stop();
-			GetButtonWaitingTimer = 0;
-
-			// Update the old textbox
-			SetButtonText(GetButtonWaitingID, (char *)"");
-		}
 
 		 // Save the button Id
 		GetButtonWaitingID = _GetId;
-
+		GetButtonWaitingTimer = 0;
 		// Reset the key in case we happen to have an old one
 		g_Pressed = 0;
-
-		// Update the text box
-		sprintf(format, "[%d]", Seconds);
-		SetButtonText(_GetId, format);
 
 		// Start the timer
 		#if wxUSE_TIMER
@@ -459,6 +458,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	// Count each time
 	GetButtonWaitingTimer++;
 
+
 	// This is run every second
 	if(GetButtonWaitingTimer % TimesPerSecond == 0)
 	{
@@ -466,53 +466,71 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 		int TmpTime = Seconds - (GetButtonWaitingTimer / TimesPerSecond);
 
 		// Update text
-		sprintf(format, "[%d]", TmpTime);
+		sprintf(format, "[ %d ]", TmpTime);
 		SetButtonText(_GetId, format);
-
-		/* Debug 
-		DEBUG_LOG(WIIMOTE, "Keyboard: %i", g_Pressed);*/
 	}
+
 
 	// Time's up
 	if( (GetButtonWaitingTimer / TimesPerSecond) >= Seconds )
 	{
 		Stop = true;
-		// Leave a blank mapping
-		SetButtonTextAll(_GetId, (char *)"-1");
+		// Revert back to old label
+		SetButtonText(_GetId, OldLabel.ToAscii());
 	}
 
 	// If we got a button
 	if(Succeed)
 	{
 		Stop = true;
-		// Write the number of the pressed button to the text box
-		sprintf(format, "%d", pressed);
+		// We need to assign hat special code
+		if (type == InputCommon::CTL_HAT)
+		{
+			// Index of pressed starts from 0
+			if (value & SDL_HAT_UP) pressed = 0x0100 + 0x0010 * pressed + SDL_HAT_UP;
+			else if (value & SDL_HAT_DOWN) pressed = 0x0100 + 0x0010 * pressed + SDL_HAT_DOWN;
+			else if (value & SDL_HAT_LEFT) pressed = 0x0100 + 0x0010 * pressed + SDL_HAT_LEFT;
+			else if (value & SDL_HAT_RIGHT) pressed = 0x0100 + 0x0010 * pressed + SDL_HAT_RIGHT;
+			else pressed = -1;
+		}
+		if (_GetId >= IDB_WM_A && _GetId <= IDB_GH3_STRUM_DOWN)
+		{
+			// Better make the pad button code far from virtual key code
+			SaveKeyboardMapping(Page, ClickedButton->GetId(), 0x1000 + pressed);
+			sprintf(format, "PAD: %d", pressed);
+		}
+		else
+		{
+			/* Update the button mapping for all slots that use this device. (It
+			   doesn't make sense to have several slots controlled by the same
+			   device, but several DirectInput instances of different but identical
+			   devices may possible have the same id, I don't know. So we have to
+			   do this. The user may also have selected the same device for several
+			   disabled slots. */
+			SaveButtonMappingAll(Controller);
+			// Write the number of the pressed button to the text box
+			sprintf(format, "%d", pressed);
+		}
 		SetButtonTextAll(_GetId, format);
 	}
 
 	// Stop the timer
 	if(Stop)
 	{
-		m_ButtonMappingTimer->Stop();
-		GetButtonWaitingTimer = 0;
-
-		/* Update the button mapping for all slots that use this device. (It
-		   doesn't make sense to have several slots controlled by the same
-		   device, but several DirectInput instances of different but identical
-		   devices may possible have the same id, I don't know. So we have to
-		   do this. The user may also have selected the same device for several
-		   disabled slots. */
-		SaveButtonMappingAll(Controller);
-
 		DEBUG_LOG(WIIMOTE, "Timer Stopped for Pad:%i _GetId:%i",
 			WiiMoteEmu::PadMapping[Controller].ID, _GetId);
+
+		m_ButtonMappingTimer->Stop();
+		GetButtonWaitingTimer = 0;
+		GetButtonWaitingID = 0;
+		ClickedButton = NULL;
 	}
 
 	// If we got a bad button
 	if(g_Pressed == -1)
 	{
 		// Update text
-		SetButtonTextAll(_GetId, (char *)"-1");
+		SetButtonTextAll(_GetId, (char *)"PAD: -1");
 		
 		// Notify the user
 		wxMessageBox(wxString::Format(

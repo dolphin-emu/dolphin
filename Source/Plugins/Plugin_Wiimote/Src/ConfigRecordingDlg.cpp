@@ -85,10 +85,10 @@ WiimoteRecordingConfigDialog::WiimoteRecordingConfigDialog(wxWindow *parent, wxW
 
 void WiimoteRecordingConfigDialog::OnClose(wxCloseEvent& event)
 {
+	event.Skip();
 	g_FrameOpen = false;
 	SaveFile();
-	g_Config.Save();
-	event.Skip();
+	EndModal(wxID_CLOSE);
 }
 
 
@@ -100,7 +100,6 @@ void WiimoteRecordingConfigDialog::CloseClick(wxCommandEvent& event)
 		Close();
 		break;
 	case ID_APPLY:
-		g_Config.Save();
 		SaveFile();
 		WiiMoteEmu::LoadRecordedMovements();
 		break;
