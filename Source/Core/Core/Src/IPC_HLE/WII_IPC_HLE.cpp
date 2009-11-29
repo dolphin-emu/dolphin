@@ -103,27 +103,19 @@ void Init()
 	g_LastDeviceID = IPC_FIRST_FILEIO_ID;
 }
 
-void Reset(bool _hard)
+void Reset(bool _bHard)
 {
     TDeviceMap::const_iterator itr = g_DeviceMap.begin();
     while (itr != g_DeviceMap.end())
     {
-		if (itr->second)
-		{
-			if (_hard||(!itr->second->IsHardware()))
-			{
-				// Hardware should not be deleted unless it is a hard reset
-				delete itr->second;
-				g_DeviceMap.erase(itr->first);
-			}
-		}
-		else
-		{
-			// Erase invalid device
-			g_DeviceMap.erase(itr->first);
-		}
+		// Hardware should not be deleted unless it is a hard reset
+		if (_bHard || !itr->second->IsHardware())
+			delete itr->second;
 		++itr;
     }
+	// Erase invalid device
+	itr = g_DeviceMap.find((_bHard)? IPC_FIRST_HARDWARE_ID : IPC_FIRST_FILEIO_ID);
+	g_DeviceMap.erase(itr, g_DeviceMap.end());
 	g_FileNameMap.clear();
 
     g_LastDeviceID = IPC_FIRST_FILEIO_ID;

@@ -35,7 +35,7 @@ void Init();
 void Shutdown();	
 
 // Reset
-void Reset(bool _hard = false);
+void Reset(bool _bHard = false);
 
 // Do State
 void DoState(PointerWrap &p);
