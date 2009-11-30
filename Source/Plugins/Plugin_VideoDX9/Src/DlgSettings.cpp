@@ -54,7 +54,7 @@ struct TabDirect3D : public W32Util::Tab
 		ComboBox_SetCurSel(GetDlgItem(hDlg, IDC_ANTIALIASMODE), g_Config.iMultisampleMode);
 		if (adapter.aa_levels.size() == 1) 
 		{
-			EnableWindow(GetDlgItem(hDlg, IDC_ANTIALIASMODE), FALSE);
+			ComboBox_Enable(GetDlgItem(hDlg, IDC_ANTIALIASMODE), FALSE);
 		}
 
 		for (int i = 0; i < (int)adapter.resolutions.size(); i++)
@@ -71,14 +71,14 @@ struct TabDirect3D : public W32Util::Tab
 		for (int i = 0; i < 16; i++) tempwstr[i] = g_Config.cInternalRes[i];		
 		ComboBox_SelectString(GetDlgItem(hDlg,IDC_RESOLUTIONWINDOWED), -1, tempwstr);
 
-		CheckDlgButton(hDlg, IDC_FULLSCREENENABLE, g_Config.bFullscreen ? TRUE : FALSE);
-		CheckDlgButton(hDlg, IDC_VSYNC, g_Config.bVSync ? TRUE : FALSE);
-		CheckDlgButton(hDlg, IDC_RENDER_TO_MAINWINDOW, g_Config.RenderToMainframe ? TRUE : FALSE);		
-		CheckDlgButton(hDlg, IDC_ASPECT_16_9, g_Config.bKeepAR169 ? TRUE : FALSE);
-		CheckDlgButton(hDlg, IDC_ASPECT_4_3, g_Config.bKeepAR43 ? TRUE : FALSE);
-		CheckDlgButton(hDlg, IDC_WIDESCREEN_HACK, g_Config.bWidescreenHack ? TRUE : FALSE);
-		CheckDlgButton(hDlg, IDC_SAFE_TEXTURE_CACHE, g_Config.bSafeTextureCache ? TRUE : FALSE);
-		CheckDlgButton(hDlg, IDC_EFB_ACCESS_ENABLE, g_Config.bEFBAccessEnable ? TRUE : FALSE);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_FULLSCREENENABLE), g_Config.bFullscreen);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_VSYNC), g_Config.bVSync);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_RENDER_TO_MAINWINDOW), g_Config.RenderToMainframe);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_ASPECT_16_9), g_Config.bKeepAR169);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_ASPECT_4_3), g_Config.bKeepAR43);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_WIDESCREEN_HACK), g_Config.bWidescreenHack);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE), g_Config.bSafeTextureCache);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_EFB_ACCESS_ENABLE), g_Config.bEFBAccessEnable);
 		Button_GetCheck(GetDlgItem(hDlg,IDC_RENDER_TO_MAINWINDOW)) ? Button_Enable(GetDlgItem(hDlg,IDC_FULLSCREENENABLE), false) : Button_Enable(GetDlgItem(hDlg,IDC_FULLSCREENENABLE), true);
 	}
 

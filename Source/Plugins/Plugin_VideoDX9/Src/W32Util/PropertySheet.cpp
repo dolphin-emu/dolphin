@@ -99,25 +99,6 @@ namespace W32Util
 		sheet.hwndParent = hParent;
 		sheet.pszbmWatermark = watermark;
 		sheet.pszbmHeader = header;
-		
-		if (icon)
-			sheet.hIcon = icon;
-
-		if (wizard)
-			sheet.dwFlags = PSH_USECALLBACK | PSH_WIZARD97 | (watermark?PSH_WATERMARK:0) | (header?PSH_HEADER:0);
-		else
-			sheet.dwFlags = PSH_USECALLBACK | PSH_PROPTITLE;
-
-		sheet.dwFlags |= PSH_NOCONTEXTHELP;
-
-		if (floating)
-			sheet.dwFlags |= PSH_MODELESS;
-		//else
-		//	sheet.dwFlags |= PSH_NOAPPLYNOW;
-
-		if (icon) 
-			sheet.dwFlags |= PSH_USEHICON;
-
 		sheet.pszCaption = title;
 		sheet.nPages = (UINT)list.size();
 		sheet.phpage = pages;
@@ -131,6 +112,7 @@ namespace W32Util
 		
 		if (wizard)
 		{
+			sheet.dwFlags = PSH_USECALLBACK | PSH_WIZARD97 | (watermark?PSH_WATERMARK:0) | (header?PSH_HEADER:0);
 
 			//Create the intro/end title font
 			LOGFONT TitleLogFont = ncm.lfMessageFont;
@@ -143,9 +125,22 @@ namespace W32Util
 			TitleLogFont.lfHeight = 0 - GetDeviceCaps(hdc, LOGPIXELSY) * FontSize / 72;
 			hTitleFont = CreateFontIndirect(&TitleLogFont);
 			ReleaseDC(NULL, hdc);
-		}
-		else
+		} else {
+			sheet.dwFlags = PSH_USECALLBACK | PSH_PROPTITLE;
 			hTitleFont = 0;
+		}
+
+		if (icon) {
+			sheet.dwFlags |= PSH_USEHICON;
+			sheet.hIcon = icon;
+		}
+
+		sheet.dwFlags |= PSH_NOCONTEXTHELP;
+
+		if (floating)
+			sheet.dwFlags |= PSH_MODELESS;
+		//else
+		//	sheet.dwFlags |= PSH_NOAPPLYNOW;
 
 		centered=false;
 		PropertySheet(&sheet);

@@ -619,12 +619,10 @@ void Host_SetDebugMode(bool)
 void Host_SetWaitCursor(bool enable)
 {
 #ifdef _WIN32
-	if (enable)
+	if(enable)
 	{
 		SetCursor(LoadCursor(NULL, IDC_WAIT));
-	}
-	else
-	{
+	} else {
 		SetCursor(LoadCursor(NULL, IDC_ARROW));
 	}
 #endif

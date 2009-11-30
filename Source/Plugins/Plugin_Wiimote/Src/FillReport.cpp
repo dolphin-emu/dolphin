@@ -302,7 +302,9 @@ int GetMapKeyState(int _MapKey)
 	const int Page = 0;
 
 	if (_MapKey < 256)
+#ifdef WIN32
 		return GetAsyncKeyState(_MapKey);	// Keyboard
+#endif
 	else if (_MapKey < 0x1100)
 		return SDL_JoystickGetButton(PadState[Page].joy, _MapKey - 0x1000);	// Pad button
 	else	// Pad hat
@@ -320,7 +322,7 @@ int GetMapKeyState(int _MapKey)
 // Multi System Input Status Check
 int IsKey(int Key)
 {
-#ifdef _WIN32
+#ifdef WIN32
 	if (g_Wiimote_kbd.A <= Key && Key <= g_Wiimote_kbd.PITCH_R)
 	{
 		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A]);
