@@ -91,17 +91,12 @@ void Update_SR_Register16(s16 _Value, bool carry, bool overflow)
 	}
 }
 
-void Update_SR_LZ(s64 value) {
+void Update_SR_LZ(bool value) {
 
-	if (value == 0) 
-	{
+	if (value == true) 
 		g_dsp.r[DSP_REG_SR] |= SR_LOGIC_ZERO; 
-	}
 	else
-	{
 		g_dsp.r[DSP_REG_SR] &= ~SR_LOGIC_ZERO;
-	}
-
 }
 
 inline int GetMultiplyModifier()

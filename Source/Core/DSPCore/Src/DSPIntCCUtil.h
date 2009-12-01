@@ -32,7 +32,7 @@ int GetMultiplyModifier();
 
 void Update_SR_Register16(s16 _Value, bool carry = false, bool overflow = false);
 void Update_SR_Register64(s64 _Value, bool carry = false, bool overflow = false);
-void Update_SR_LZ(s64 value);
+void Update_SR_LZ(bool value);
 
 inline bool isAddCarry(u64 val, u64 result) {
 	return (val > result);

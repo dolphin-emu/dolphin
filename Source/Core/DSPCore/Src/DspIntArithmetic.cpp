@@ -134,6 +134,8 @@ void movax(const UDSPInstruction& opc)
 	Update_SR_Register64(acx);
 }
 
+// 0x3...
+
 // XORR $acD.m, $axS.h
 // 0011 00sd 0xxx xxxx
 // Logic XOR (exclusive or) middle part of accumulator $acD.m with
@@ -141,15 +143,14 @@ void movax(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 void xorr(const UDSPInstruction& opc)
 {
-	u8 sreg = (opc.hex >> 9) & 0x1;
 	u8 dreg = (opc.hex >> 8) & 0x1;
-	u16 axh = g_dsp.r[DSP_REG_AXH0 + sreg];
+	u8 sreg = (opc.hex >> 9) & 0x1;
+	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] ^ g_dsp.r[DSP_REG_AXH0 + sreg];
 	
 	zeroWriteBackLog();
 
-	g_dsp.r[DSP_REG_ACM0 + dreg] ^= axh;
-	
-	Update_SR_Register16(dsp_get_acc_m(dreg));
+	g_dsp.r[DSP_REG_ACM0 + dreg] = accm;
+	Update_SR_Register16((s16)accm);
 }
 
 // ANDR $acD.m, $axS.h
@@ -159,15 +160,14 @@ void xorr(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 void andr(const UDSPInstruction& opc)
 {
-	u8 sreg = (opc.hex >> 9) & 0x1;
 	u8 dreg = (opc.hex >> 8) & 0x1;
-	u16 axh = g_dsp.r[DSP_REG_AXH0 + sreg];
+	u8 sreg = (opc.hex >> 9) & 0x1;
+	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] & g_dsp.r[DSP_REG_AXH0 + sreg];
 	
 	zeroWriteBackLog();
 
-	g_dsp.r[DSP_REG_ACM0 + dreg] &= axh;
-	
-	Update_SR_Register16(dsp_get_acc_m(dreg));
+	g_dsp.r[DSP_REG_ACM0 + dreg] = accm;
+	Update_SR_Register16((s16)accm);
 }
 
 // ORR $acD.m, $axS.h
@@ -177,15 +177,14 @@ void andr(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 void orr(const UDSPInstruction& opc)
 {
-	u8 sreg = (opc.hex >> 9) & 0x1;
 	u8 dreg = (opc.hex >> 8) & 0x1;
-	u16 axh = g_dsp.r[DSP_REG_AXH0 + sreg];
+	u8 sreg = (opc.hex >> 9) & 0x1;
+	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] | g_dsp.r[DSP_REG_AXH0 + sreg];
 	
 	zeroWriteBackLog();
 
-	g_dsp.r[DSP_REG_ACM0 + dreg] |= axh;
-
-	Update_SR_Register16(dsp_get_acc_m(dreg));
+	g_dsp.r[DSP_REG_ACM0 + dreg] = accm;
+	Update_SR_Register16((s16)accm);
 }
 
 // ANDC $acD.m, $ac(1-D).m
@@ -195,14 +194,13 @@ void orr(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 void andc(const UDSPInstruction& opc)
 {
-	u8 D = (opc.hex >> 8) & 0x1;
-	u16 accm = dsp_get_acc_m(1-D);
+	u8 dreg = (opc.hex >> 8) & 0x1;
+	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] & g_dsp.r[DSP_REG_ACM0 + (1 - dreg)];
 	
 	zeroWriteBackLog();
 
-	g_dsp.r[DSP_REG_ACM0+D] &= accm;
-
-	Update_SR_Register16(dsp_get_acc_m(D));
+	g_dsp.r[DSP_REG_ACM0 + dreg] = accm;
+	Update_SR_Register16((s16)accm);
 }
 
 // ORC $acD.m, $ac(1-D).m
@@ -212,14 +210,13 @@ void andc(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 void orc(const UDSPInstruction& opc)
 {
-	u8 D = (opc.hex >> 8) & 0x1;
-	u16 accm = dsp_get_acc_m(1-D);
+	u8 dreg = (opc.hex >> 8) & 0x1;
+	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] | g_dsp.r[DSP_REG_ACM0 + (1 - dreg)];
 	
 	zeroWriteBackLog();
 
-	g_dsp.r[DSP_REG_ACM0+D] |= accm;
-
-	Update_SR_Register16(dsp_get_acc_m(D));
+	g_dsp.r[DSP_REG_ACM0 + dreg] = accm;
+	Update_SR_Register16((s16)accm);
 }
 
 // XORC $acD.m
@@ -229,12 +226,12 @@ void orc(const UDSPInstruction& opc)
 void xorc(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x1;
-	u16 res = dsp_get_acc_m(dreg) ^ dsp_get_acc_m(1 - dreg);
+	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] ^ g_dsp.r[DSP_REG_ACM0 + (1 - dreg)];
 
 	zeroWriteBackLog();
 
-	g_dsp.r[DSP_REG_ACM0 + dreg] = res;
-	Update_SR_Register16(res);
+	g_dsp.r[DSP_REG_ACM0 + dreg] = accm;
+	Update_SR_Register16((s16)accm);
 }
 
 // NOT $acD.m
@@ -244,12 +241,12 @@ void xorc(const UDSPInstruction& opc)
 void notc(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x1;
-	u16 res = dsp_get_acc_m(dreg)^0xffff;
+	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] ^ 0xffff;
 
 	zeroWriteBackLog();
 
-	g_dsp.r[DSP_REG_ACM0 + dreg] = res;
-	Update_SR_Register16(res);
+	g_dsp.r[DSP_REG_ACM0 + dreg] = accm;
+	Update_SR_Register16((s16)accm);
 }
 
 void orf(const UDSPInstruction& opc)
@@ -257,7 +254,6 @@ void orf(const UDSPInstruction& opc)
 	ERROR_LOG(DSPLLE, "orf not implemented");
 }
 
-// Hermes switched andf and andcf, so check to make sure they are still correct
 // ANDCF $acD.m, #I
 // 0000 001r 1100 0000
 // iiii iiii iiii iiii
@@ -269,10 +265,8 @@ void andcf(const UDSPInstruction& opc)
 	u16 imm = dsp_fetch_code();
 	u16 val = dsp_get_acc_m(reg);
 
-	Update_SR_LZ(((val & imm) == imm) ? 0 : 1);
+	Update_SR_LZ(((val & imm) == imm) ? true : false);
 }
-
-// Hermes switched andf and andcf, so check to make sure they are still correct
 
 // ANDF $acD.m, #I
 // 0000 001r 1010 0000
@@ -286,7 +280,7 @@ void andf(const UDSPInstruction& opc)
 	u16 imm = dsp_fetch_code();
 	u16 val = dsp_get_acc_m(reg);
 
-	Update_SR_LZ(((val & imm) == 0) ? 0 : 1);
+	Update_SR_LZ(((val & imm) == 0) ? true : false);
 }
 
 // CMPI $amD, #I
@@ -674,13 +668,14 @@ void asr16(const UDSPInstruction& opc)
 // Logically shifts left accumulator $acR by number specified by value I.
 void lsl(const UDSPInstruction& opc) 
 {
-	u16 shift = opc.ushift;
-	u64 acc = dsp_get_long_acc(opc.areg);
-
+	u8 rreg = (opc.hex >> 8) & 0x01;
+	u16 shift = opc.hex & 0x3f; 
+	u64 acc = dsp_get_long_acc(rreg);
 	acc <<= shift;
+	if (shift != 0x0)
+		dsp_set_long_acc(rreg, acc);
 
-	dsp_set_long_acc(opc.areg, acc);
-	Update_SR_Register64(acc);
+	Update_SR_Register64((s64)acc);
 }
 
 // LSR $acR, #I
@@ -689,14 +684,15 @@ void lsl(const UDSPInstruction& opc)
 // calculated by negating sign extended bits 0-6.
 void lsr(const UDSPInstruction& opc)
 {
-	u16 shift = (u16) -(((s8)(opc.ushift << 2)) >> 2);
-	u64 acc = dsp_get_long_acc(opc.areg);
-	// Lop off the extraneous sign extension our 64-bit fake accum causes
-	acc &= 0x000000FFFFFFFFFFULL;
-	acc >>= shift;
+	u8 rreg = (opc.hex >> 8) & 0x01;
+	u16 shift = 0x40 - (opc.hex & 0x3f);
 
-	dsp_set_long_acc(opc.areg, (s64)acc);
-	Update_SR_Register64(acc);
+	u64 acc = dsp_get_long_acc(rreg);
+	acc &= 0x000000FFFFFFFFFFULL; 	// Lop off the extraneous sign extension our 64-bit fake accum causes
+	acc >>= shift;
+	
+	dsp_set_long_acc(rreg, (s64)acc);
+	Update_SR_Register64((s64)acc);
 }
 
 // ASL $acR, #I
@@ -704,15 +700,17 @@ void lsr(const UDSPInstruction& opc)
 // Logically shifts left accumulator $acR by number specified by value I.
 void asl(const UDSPInstruction& opc)
 {
-	u16 shift = opc.ushift;
-
-	// arithmetic shift
-	u64 acc = dsp_get_long_acc(opc.areg);
+	u8 rreg = (opc.hex >> 8) & 0x01;
+	u16 shift = opc.hex & 0x3f;
+	
+	u64 acc = dsp_get_long_acc(rreg);
 	acc <<= shift;
+	
+	// arithmetic shift
+	if (shift != 0x0)
+		dsp_set_long_acc(rreg, acc);
 
-	dsp_set_long_acc(opc.areg, acc);
-
-	Update_SR_Register64(acc);
+	Update_SR_Register64((s64)acc);
 }
 
 // ASR $acR, #I
@@ -721,14 +719,14 @@ void asl(const UDSPInstruction& opc)
 // value calculated by negating sign extended bits 0-6.
 void asr(const UDSPInstruction& opc)
 {
-	u16 shift = (u16) -(((s8)(opc.ushift << 2)) >> 2);
+	u8 rreg = (opc.hex >> 8) & 0x01;
+	u16 shift = 0x40 - (opc.hex & 0x3f);
 
 	// arithmetic shift
-	s64 acc = dsp_get_long_acc(opc.areg);
+	s64 acc = dsp_get_long_acc(rreg);
 	acc >>= shift;
 
-	dsp_set_long_acc(opc.areg, acc);
-
+	dsp_set_long_acc(rreg, acc);
 	Update_SR_Register64(acc);
 }
 

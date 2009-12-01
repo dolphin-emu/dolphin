@@ -312,6 +312,10 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 		    uAddress += 10;
 		    break;
 
+		case 0x0008:
+		    uAddress += 26;
+			break;
+
 		case 0x000a:
 			if (_CRC != 0xfa450138) // AXLIST_COMPRESSORTABLE
 			{
@@ -381,7 +385,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 			break;
 
 	    default:
-			ERROR_LOG(DSPHLE,"DSPHLE - AXwii - AXLIST - Unknown CMD: %x",iCommand);
+			INFO_LOG(DSPHLE,"DSPHLE - AXwii - AXLIST - Unknown CMD: %x",iCommand);
 		    // unknown command so stop the execution of this TaskList
 		    bExecuteList = false;
 			break;
