@@ -297,15 +297,17 @@ int RecordingCheckKeys(int WmNuIr)
 
 // Subroutines
 
-int GetMapKeyState(int _MapKey)
+int GetMapKeyState(int _MapKey, int Key)
 {
 	const int Page = 0;
 
 	if (_MapKey < 256)
-#ifdef WIN32
-		return GetAsyncKeyState(_MapKey);	// Keyboard
+#ifdef _WIN32
+		return GetAsyncKeyState(_MapKey);	// Keyboard (Windows)
+#else
+		return KeyStatus[Key];			// Keyboard (Linux)
 #endif
-	else if (_MapKey < 0x1100)
+	if (_MapKey < 0x1100)
 		return SDL_JoystickGetButton(PadState[Page].joy, _MapKey - 0x1000);	// Pad button
 	else	// Pad hat
 	{
@@ -322,28 +324,32 @@ int GetMapKeyState(int _MapKey)
 // Multi System Input Status Check
 int IsKey(int Key)
 {
-#ifdef WIN32
+
 	if (g_Wiimote_kbd.A <= Key && Key <= g_Wiimote_kbd.PITCH_R)
 	{
-		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A]);
+		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A], Key);
 	}
 	if (Key == g_Wiimote_kbd.SHAKE)
 	{
-		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A]) || GetAsyncKeyState(VK_MBUTTON);
+#ifdef _WIN32
+		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A], Key) || GetAsyncKeyState(VK_MBUTTON);
+#else
+		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A], Key);
+#endif
 	}
 	if (g_NunchuckExt.Z <= Key && Key <= g_NunchuckExt.SHAKE)
 	{
-		return GetMapKeyState(PadMapping[0].Nc.keyForControls[Key - g_NunchuckExt.Z]);
+		return GetMapKeyState(PadMapping[0].Nc.keyForControls[Key - g_NunchuckExt.Z], Key);
 	}
 	if (g_ClassicContExt.A <= Key && Key <= g_ClassicContExt.Rd)
 	{
-		return GetMapKeyState(PadMapping[0].Cc.keyForControls[Key - g_ClassicContExt.A]);
+		return GetMapKeyState(PadMapping[0].Cc.keyForControls[Key - g_ClassicContExt.A], Key);
 	}
 	if (g_GH3Ext.Green <= Key && Key <= g_GH3Ext.StrumDown)
 	{
-		return GetMapKeyState(PadMapping[0].GH3c.keyForControls[Key - g_GH3Ext.Green]);
+		return GetMapKeyState(PadMapping[0].GH3c.keyForControls[Key - g_GH3Ext.Green], Key);
 	}
-
+#ifdef _WIN32
 	switch(Key)
 	{
 	// Wiimote
@@ -356,7 +362,6 @@ int IsKey(int Key)
 		PanicAlert("There is syntax error in a function that is calling IsKey(%i)", Key);
 		return false;
 	}
-
 #else
 	return KeyStatus[Key];
 #endif

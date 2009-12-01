@@ -41,10 +41,10 @@ union UACLHeader
 struct SQueuedEvent
 {
 	u8 m_buffer[1024];
-	size_t m_size;
+	u32 m_size;
 	u16 m_connectionHandle;
 
-	SQueuedEvent(size_t size, u16 connectionHandle)
+	SQueuedEvent(u32 size, u16 connectionHandle)
 		: m_size(size)
 		, m_connectionHandle(connectionHandle)
 	{
@@ -65,7 +65,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_usb_oh1_57e_305();
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress);
+	virtual bool Close(u32 _CommandAddress, bool _bForce);
 
 	virtual bool IOCtlV(u32 _CommandAddress);
 	virtual bool IOCtl(u32 _CommandAddress);
@@ -179,8 +179,6 @@ private:
 	u16 m_HostNumACLPackets; 
 	u16 m_HostNumSCOPackets;
 
-	typedef std::queue<SQueuedEvent> CEventQueue;
-
 	// STATE_TO_SAVE
 	SHCICommandMessage m_CtrlSetup;
 	CtrlBuffer m_HCIBuffer;
@@ -273,7 +271,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_usb_oh0();
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress);  // hermes' dsp demo
+	virtual bool Close(u32 _CommandAddress, bool _bForce);  // hermes' dsp demo
 
 	virtual bool IOCtlV(u32 _CommandAddress);
 	virtual bool IOCtl(u32 _CommandAddress);

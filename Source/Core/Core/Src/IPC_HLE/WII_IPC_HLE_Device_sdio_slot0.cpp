@@ -27,17 +27,19 @@
 
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-{
-	m_Card = NULL;
-	m_Status = CARD_INSERTED;
-	m_BlockLength = 0;
-	m_BusWidth = 0;
-	// Clear the whole SD Host Control Register
-	//Memory::Memset(SDIO_BASE, 0, 0x100);
-}
+	, m_Card(NULL)
+	, m_Status(CARD_INSERTED)
+	, m_BlockLength(0)
+	, m_BusWidth(0)
+{}
 
 CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()
 {
+	if(m_Card)
+	{
+		fclose(m_Card);
+		m_Card = NULL;
+	}
 }
 
 bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
@@ -65,14 +67,21 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
     return true;
 }
 
-bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress, bool _bForce)
 {
 	INFO_LOG(WII_IPC_SD, "Close");
 
 	if(m_Card)
+	{
 		fclose(m_Card);
+		m_Card = NULL;
+	}
+	m_Status = CARD_INSERTED;
+	m_BlockLength = 0;
+	m_BusWidth = 0;
 
-    Memory::Write_U32(0, _CommandAddress + 0x4);
+	if (!_bForce)
+	    Memory::Write_U32(0, _CommandAddress + 0x4);
 	m_Active = false;
     return true;
 }

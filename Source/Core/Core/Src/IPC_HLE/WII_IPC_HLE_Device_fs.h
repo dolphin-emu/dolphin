@@ -36,7 +36,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_fs();
 
     virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress);
+	virtual bool Close(u32 _CommandAddress, bool _bForce);
 
 	virtual bool IOCtl(u32 _CommandAddress);
 	virtual bool IOCtlV(u32 _CommandAddress);

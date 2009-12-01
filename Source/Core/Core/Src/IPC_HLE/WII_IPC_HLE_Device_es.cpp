@@ -64,10 +64,7 @@ CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string&
 {}
 
 CWII_IPC_HLE_Device_es::~CWII_IPC_HLE_Device_es()
-{
-	// Leave deletion of the INANDContentLoader objects to CNANDContentManager, don't do it here!
-    m_NANDContent.clear();
-}
+{}
 
 void CWII_IPC_HLE_Device_es::LoadWAD(const std::string& _rContentFile) 
 {
@@ -97,7 +94,6 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
 
 
     // scan for the title ids listed in TMDs within /title/
-	m_TitleIDs.clear();
 	m_TitleIDs.push_back(0x0000000100000002ULL);
     //m_TitleIDs.push_back(0x0001000248414741ULL); 
     //m_TitleIDs.push_back(0x0001000248414341ULL);
@@ -113,12 +109,19 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
     return true;
 }
 
-bool CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce)
 {
     // Leave deletion of the INANDContentLoader objects to CNANDContentManager, don't do it here!
     m_NANDContent.clear();
+	m_ContentAccessMap.clear();
+	m_pContentLoader = NULL;
+	m_TitleIDs.clear();
+    m_TitleID = -1;
+	AccessIdentID = 0x6000000;
+
     INFO_LOG(WII_IPC_ES, "ES: Close");
-    Memory::Write_U32(0, _CommandAddress + 4);
+    if (!_bForce)
+		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
 	return true;
 }

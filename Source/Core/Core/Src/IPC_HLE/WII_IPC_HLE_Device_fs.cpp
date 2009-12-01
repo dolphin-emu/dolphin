@@ -71,11 +71,11 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_fs::Close(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_fs::Close(u32 _CommandAddress, bool _bForce)
 {
-	// Do we even need to do anything?
 	INFO_LOG(WII_IPC_NET, "/dev/fs: Close");
-	Memory::Write_U32(0, _CommandAddress + 4);
+	if (!_bForce)
+		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
 	return true;
 }

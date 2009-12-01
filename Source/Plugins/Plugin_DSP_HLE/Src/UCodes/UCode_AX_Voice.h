@@ -191,9 +191,7 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 				    break;
 
 			    case AUDIOFORMAT_ADPCM:
-					u32 toSamplePos;
-					toSamplePos = (newSamplePos > sampleEnd) ? sampleEnd : newSamplePos;
-				    sample = ADPCM_Step(pb.adpcm, samplePos, toSamplePos, frac);
+				    sample = ADPCM_Step(pb.adpcm, samplePos, newSamplePos, frac);
 				    break;
 
 			    default:
@@ -248,24 +246,10 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 				}
 				else
 				{
-					if (!g_Config.m_EnableLoopFix && Wii && (_uCode == UCODE_AXWII))
-					{
-						// This accurate boundary wrapping will fix the hangup in many AXWii games like:
-						// New Super Mario Bros.Wii, Fatal Frame 4, Resident Evil Darkside Chronicles
-						samplePos = newSamplePos - sampleEnd + loopPos;
-
-						// And these AXWii games check this flag and will turn it off when necessary
-						// So DSP should not touch it
-						//
-						//pb.running = 0;
-					}
-					else
-					{
-						pb.running = 0;
-					}
-					// not sure if this will mute the unwanted over looping sound
-					pb.mixer.volume_left = 0;
-					pb.mixer.volume_right = 0;
+					pb.running = 0;
+					samplePos = samplePos - sampleEnd + loopPos;
+					memset(&pb.updates, 0, sizeof(pb.updates));
+					memset(pb.src.last_samples, 0, 8);
 					break;
 				}
 			}

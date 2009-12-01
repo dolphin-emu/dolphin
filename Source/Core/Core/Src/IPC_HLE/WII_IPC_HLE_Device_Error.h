@@ -39,9 +39,10 @@ public:
         return true;
     }
 
-	virtual bool Close(u32 _CommandAddress)
+	virtual bool Close(u32 _CommandAddress, bool _bForce)
 	{
-		Memory::Write_U32(0, _CommandAddress + 4);
+		if (!_bForce)
+			Memory::Write_U32(0, _CommandAddress + 4);
 		m_Active = false;
 		return true;
 	}

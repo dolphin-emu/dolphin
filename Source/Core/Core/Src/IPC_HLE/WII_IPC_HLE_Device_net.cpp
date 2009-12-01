@@ -64,12 +64,10 @@ extern std::queue<std::pair<u32,std::string> > g_ReplyQueueLater;
 // Handle /dev/net/kd/request requests
 CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName) 
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-{
-}
+{}
 
 CWII_IPC_HLE_Device_net_kd_request::~CWII_IPC_HLE_Device_net_kd_request()
-{
-}
+{}
 
 bool CWII_IPC_HLE_Device_net_kd_request::Open(u32 _CommandAddress, u32 _Mode)
 {
@@ -79,10 +77,11 @@ bool CWII_IPC_HLE_Device_net_kd_request::Open(u32 _CommandAddress, u32 _Mode)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_net_kd_request::Close(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_net_kd_request::Close(u32 _CommandAddress, bool _bForce)
 {
 	INFO_LOG(WII_IPC_NET, "NET_KD_REQ: Close");
-	Memory::Write_U32(0, _CommandAddress + 4);
+	if (!_bForce)
+		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
 	return true;
 }
@@ -170,10 +169,11 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::Open(u32 _CommandAddress, u32 _Mode)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_net_ncd_manage::Close(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_net_ncd_manage::Close(u32 _CommandAddress, bool _bForce)
 {
     INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Close");
-	Memory::Write_U32(0, _CommandAddress + 4);
+	if (!_bForce)
+		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
 	return true;
 }
@@ -221,10 +221,11 @@ bool CWII_IPC_HLE_Device_net_ip_top::Open(u32 _CommandAddress, u32 _Mode)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_net_ip_top::Close(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_net_ip_top::Close(u32 _CommandAddress, bool _bForce)
 {
     INFO_LOG(WII_IPC_NET, "NET_IP_TOP: Close");
-	Memory::Write_U32(0, _CommandAddress + 4);
+	if (!_bForce)
+		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
 	return true;
 }

@@ -94,9 +94,29 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress, u32 _Mode)
 
 // ===================================================
 // Close
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress, bool _bForce)
 {
-	Memory::Write_U32(0, _CommandAddress + 4);
+	m_PINType = 0;
+	m_ScanEnable = 0;
+	m_EventFilterType = 0;
+	m_EventFilterCondition = 0;
+	m_HostMaxACLSize = 0;
+	m_HostMaxSCOSize = 0;
+	m_HostNumACLPackets = 0;
+	m_HostNumSCOPackets = 0;
+
+	m_LastCmd = NULL;
+	m_PacketCount = 0;
+	m_FreqDividerSync = 0;
+	m_FreqDividerMote = 0;
+
+	m_HCIBuffer.m_address = NULL;
+	m_HCIPool.m_number = 0;
+	m_ACLBuffer.m_address = NULL;
+	m_ACLPool.m_number = 0;
+
+	if (!_bForce)
+		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
 	return true;
 }
@@ -2128,8 +2148,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::LOG_LinkKey(const u8* _pLinkKey)
 //
 CWII_IPC_HLE_Device_usb_oh0::CWII_IPC_HLE_Device_usb_oh0(u32 _DeviceID, const std::string& _rDeviceName)
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-{
-}
+{}
 
 CWII_IPC_HLE_Device_usb_oh0::~CWII_IPC_HLE_Device_usb_oh0()
 {}
@@ -2141,9 +2160,10 @@ bool CWII_IPC_HLE_Device_usb_oh0::Open(u32 _CommandAddress, u32 _Mode)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_usb_oh0::Close(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_usb_oh0::Close(u32 _CommandAddress, bool _bForce)
 {
-	Memory::Write_U32(0, _CommandAddress + 0x4);
+	if (!_bForce)
+		Memory::Write_U32(0, _CommandAddress + 0x4);
 	m_Active = false;
 	return true;
 }

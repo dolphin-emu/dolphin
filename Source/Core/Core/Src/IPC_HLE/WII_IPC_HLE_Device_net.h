@@ -32,7 +32,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_net_kd_request();
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress);
+	virtual bool Close(u32 _CommandAddress, bool _bForce);
 	virtual bool IOCtl(u32 _CommandAddress);
 
 private:
@@ -81,10 +81,11 @@ public:
 		return true;
 	}
 
-	virtual bool Close(u32 _CommandAddress)
+	virtual bool Close(u32 _CommandAddress, bool _bForce)
 	{
         INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Close");
-		Memory::Write_U32(0, _CommandAddress + 4);
+		if (!_bForce)
+			Memory::Write_U32(0, _CommandAddress + 4);
 		return true;
 	}
 
@@ -154,7 +155,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_net_ip_top();
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress);
+	virtual bool Close(u32 _CommandAddress, bool _bForce);
 	virtual bool IOCtl(u32 _CommandAddress);
 	virtual bool IOCtlV(u32 _CommandAddress);
 	
@@ -210,7 +211,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_net_ncd_manage();
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode);
-	virtual bool Close(u32 _CommandAddress);
+	virtual bool Close(u32 _CommandAddress, bool _bForce);
 	virtual bool IOCtlV(u32 _CommandAddress);
 
 private:

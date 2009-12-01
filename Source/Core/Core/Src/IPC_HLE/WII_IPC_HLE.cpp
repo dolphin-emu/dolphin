@@ -108,9 +108,13 @@ void Reset(bool _bHard)
     TDeviceMap::iterator itr = g_DeviceMap.begin();
     while (itr != g_DeviceMap.end())
     {
-		// Hardware should not be deleted unless it is a hard reset
-		if (_bHard || !itr->second->IsHardware())
-			delete itr->second;
+		if (itr->second)
+		{
+			itr->second->Close(NULL, true);
+			// Hardware should not be deleted unless it is a hard reset
+			if (_bHard || !itr->second->IsHardware())
+				delete itr->second;
+		}
 		++itr;
     }
 	// Erase invalid device
@@ -220,7 +224,8 @@ void DoState(PointerWrap &p)
 		TFileNameMap::const_iterator itr = g_FileNameMap.begin();
 		while (itr != g_FileNameMap.end())
 		{
-			delete g_DeviceMap[itr->first];
+			if (g_DeviceMap[itr->first])
+				delete g_DeviceMap[itr->first];
 			g_DeviceMap.erase(itr->first);
 			++itr;
 		}

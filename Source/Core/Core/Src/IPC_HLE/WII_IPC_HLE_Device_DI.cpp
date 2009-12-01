@@ -64,14 +64,16 @@ bool CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
     return true;
 }
 
-bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress)
+bool CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
 {
 	if (m_pFileSystem)
 	{
 		delete m_pFileSystem;
 		m_pFileSystem = NULL;
 	}
-	Memory::Write_U32(0, _CommandAddress + 4);
+	m_ErrorStatus = 0;
+	if (!_bForce)
+		Memory::Write_U32(0, _CommandAddress + 4);
     m_Active = false;
     return true;
 }

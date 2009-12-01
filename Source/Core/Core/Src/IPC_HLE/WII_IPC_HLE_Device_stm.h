@@ -47,7 +47,7 @@ public:
 
 	CWII_IPC_HLE_Device_stm_immediate(u32 _DeviceID, const std::string& _rDeviceName) :
 		IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-		{}
+	{}
 
 	virtual ~CWII_IPC_HLE_Device_stm_immediate()
 	{}
@@ -60,10 +60,11 @@ public:
 		return true;
 	}
 
-	virtual bool Close(u32 _CommandAddress)
+	virtual bool Close(u32 _CommandAddress, bool _bForce)
 	{
 		ERROR_LOG(WII_IPC_STM, "STM immediate: Close");
-		Memory::Write_U32(0, _CommandAddress+4);
+		if (!_bForce)
+			Memory::Write_U32(0, _CommandAddress+4);
 		m_Active = false;
 		return true;
 	}
@@ -151,10 +152,13 @@ public:
 		return true;
     }
 
-	virtual bool Close(u32 _CommandAddress)
+	virtual bool Close(u32 _CommandAddress, bool _bForce)
 	{
+		m_EventHookAddress = 0;
+
 		INFO_LOG(WII_IPC_STM, "STM eventhook: Close");
-		Memory::Write_U32(0, _CommandAddress+4);
+		if (!_bForce)
+			Memory::Write_U32(0, _CommandAddress+4);
 		m_Active = false;
 		return true;
 	}

@@ -25,7 +25,6 @@ EVT_CHECKBOX(ID_ENABLE_HLE_AUDIO, DSPConfigDialogHLE::SettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogHLE::SettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogHLE::SettingsChanged)
 EVT_CHECKBOX(ID_ENABLE_RE0_FIX, DSPConfigDialogHLE::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_LOOP_FIX, DSPConfigDialogHLE::SettingsChanged)
 EVT_COMMAND_SCROLL(ID_VOLUME, DSPConfigDialogHLE::VolumeChanged)
 END_EVENT_TABLE()
 
@@ -40,9 +39,8 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wx
 	// Create items
 	m_buttonEnableHLEAudio = new wxCheckBox(this, ID_ENABLE_HLE_AUDIO, wxT("Enable HLE Audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, wxT("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Other Audio (Throttle)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Audio Throttle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_buttonEnableRE0Fix = new wxCheckBox(this, ID_ENABLE_RE0_FIX, wxT("Enable RE0 Audio Hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_buttonEnableLoopFix = new wxCheckBox(this, ID_ENABLE_LOOP_FIX, wxT("Enable Loop Audio Hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
 	m_BackendSelection = new wxComboBox(this, ID_BACKEND, wxEmptyString, wxDefaultPosition, wxSize(90, 20), wxArrayBackends, wxCB_READONLY, wxDefaultValidator);
 
@@ -54,18 +52,16 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wx
 	m_buttonEnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
 	m_buttonEnableThrottle->SetValue(ac_Config.m_EnableThrottle ? true : false);
 	m_buttonEnableRE0Fix->SetValue(g_Config.m_EnableRE0Fix ? true : false);
-	m_buttonEnableLoopFix->SetValue(g_Config.m_EnableLoopFix ? true : false);
 
 	// Add tooltips
-	m_buttonEnableHLEAudio->SetToolTip(wxT("This is the most common sound type"));
-	m_buttonEnableDTKMusic->SetToolTip(wxT("This is sometimes used to play music tracks from the disc"));
-	m_buttonEnableThrottle->SetToolTip(wxT("This is sometimes used together with pre-rendered movies.\n")
-		wxT("Disabling this also disables the speed throttle which this causes,\n")
-		wxT("meaning that there will be no upper limit on your FPS."));
+	m_buttonEnableHLEAudio->SetToolTip(wxT("This is usually used to play voice and sound effects."));
+	m_buttonEnableDTKMusic->SetToolTip(wxT("This is used to play music tracks, like BGM."));
+	m_buttonEnableThrottle->SetToolTip(wxT("This is used to control game speed by sound throttle.\n")
+		wxT("Disabling this could cause abnormal game speed, such as too fast.\n")
+		wxT("But sometimes enabling this causes constant noise."));
+
 	m_buttonEnableRE0Fix->SetToolTip(wxT("This fixes audio in Resident Evil Zero and maybe some other games."));
-	m_buttonEnableLoopFix->SetToolTip(wxT("This fixes audio loops in some games, by default it should be disabled.\n")
-		wxT("Unless you are experiencing strange sound loops, don't enable it,\n")
-		wxT("or it will cause some games to hang up."));
+
 	m_BackendSelection->SetToolTip(wxT("Changing this will have no effect while the emulator is running!"));
 
 	// Create sizer and add items to dialog
@@ -79,7 +75,6 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wx
 	sbSettings->Add(m_buttonEnableDTKMusic, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableThrottle, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableRE0Fix, 0, wxALL, 5);
-	sbSettings->Add(m_buttonEnableLoopFix, 0, wxALL, 5);
 	sBackend->Add(BackendText, 0, wxALIGN_CENTER|wxALL, 5);
 	sBackend->Add(m_BackendSelection, 0, wxALL, 1);
 	sbSettings->Add(sBackend, 0, wxALL, 2);
@@ -139,7 +134,6 @@ void DSPConfigDialogHLE::SettingsChanged(wxCommandEvent& event)
 	ac_Config.m_EnableDTKMusic = m_buttonEnableDTKMusic->GetValue();
 	ac_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
 	g_Config.m_EnableRE0Fix = m_buttonEnableRE0Fix->GetValue();
-	g_Config.m_EnableLoopFix = m_buttonEnableLoopFix->GetValue();
 
 #ifdef __APPLE__
 	strncpy(ac_Config.sBackend, m_BackendSelection->GetValue().mb_str(), 128);

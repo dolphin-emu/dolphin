@@ -28,7 +28,7 @@ public:
 
 	virtual ~CWII_IPC_HLE_Device_FileIO();
 
-	bool Close(u32 _CommandAddress);
+	bool Close(u32 _CommandAddress, bool _bForce);
     bool Open(u32 _CommandAddress, u32 _Mode);
 	bool Seek(u32 _CommandAddress);
 	bool Read(u32 _CommandAddress);

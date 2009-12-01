@@ -44,19 +44,15 @@ CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std:
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false)	// not a real hardware
     , m_pFileHandle(NULL)
     , m_FileLength(0)
-{
-}
+{}
 
 CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
-{
-
-}
+{}
 
 bool 
-CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
+CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bForce)
 {
-	u32 DeviceID = Memory::Read_U32(_CommandAddress + 8);
-	INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", GetDeviceName().c_str(), DeviceID);	
+	INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_Name.c_str(), m_DeviceID);	
 
 	if (m_pFileHandle != NULL)
 	{
@@ -65,7 +61,8 @@ CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress)
 	}
 
 	// Close always return 0 for success
-	Memory::Write_U32(0, _CommandAddress + 4);
+	if (!_bForce)
+		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
 	return true;
 }
