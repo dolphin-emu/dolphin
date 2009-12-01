@@ -894,11 +894,6 @@ void CFrame::UpdateGUI()
 		m_ToolBar->EnableTool(wxID_REFRESH, !Initialized); // Don't allow refresh when we don't show the list
 		m_ToolBar->EnableTool(IDM_STOP, Running || Paused);
 		m_ToolBar->EnableTool(IDM_SCREENSHOT, Running || Paused);
-		m_ToolBar->EnableTool(IDM_CONFIG_MAIN, !Running);
-		m_ToolBar->EnableTool(IDM_CONFIG_GFX_PLUGIN, !Running);
-		m_ToolBar->EnableTool(IDM_CONFIG_DSP_PLUGIN, !Running);
-		m_ToolBar->EnableTool(IDM_CONFIG_PAD_PLUGIN, !Running);
-		m_ToolBar->EnableTool(IDM_CONFIG_WIIMOTE_PLUGIN, !Running);
 	}
 
 	// File
@@ -914,12 +909,7 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(!Initialized);
 	GetMenuBar()->FindItem(IDM_FRAMESTEP)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(Running || Paused);
-	GetMenuBar()->FindItem(IDM_CONFIG_MAIN)->Enable(!Running);
-	GetMenuBar()->FindItem(IDM_CONFIG_GFX_PLUGIN)->Enable(!Running);
-	GetMenuBar()->FindItem(IDM_CONFIG_DSP_PLUGIN)->Enable(!Running);
-	GetMenuBar()->FindItem(IDM_CONFIG_PAD_PLUGIN)->Enable(!Running);
-	GetMenuBar()->FindItem(IDM_CONFIG_WIIMOTE_PLUGIN)->Enable(!Running);
-
+	
 	m_pSubMenuLoad->Enable(Initialized);
 	m_pSubMenuSave->Enable(Initialized);
 
