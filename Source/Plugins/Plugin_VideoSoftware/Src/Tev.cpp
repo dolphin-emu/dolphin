@@ -583,7 +583,15 @@ void Tev::Draw()
         float scaleS = bpmem.texscale[stageNum2].getScaleS(stageOdd);
         float scaleT = bpmem.texscale[stageNum2].getScaleT(stageOdd);
 
-        TextureSampler::Sample(Uv[texcoordSel][0] * scaleS, Uv[texcoordSel][1] * scaleT, Lod[texcoordSel], texmap, IndirectTex[stageNum]);        
+        TextureSampler::Sample(Uv[texcoordSel][0] * scaleS, Uv[texcoordSel][1] * scaleT, Lod[texcoordSel], texmap, IndirectTex[stageNum]);
+
+#ifdef _DEBUG
+        if (g_Config.bDumpTevStages)
+        {
+            u8 stage[4] = {(u8)IndirectTex[stageNum][3], (u8)IndirectTex[stageNum][2], (u8)IndirectTex[stageNum][1], 255};
+            DebugUtil::DrawObjectBuffer(Position[0], Position[1], stage, 16+stageNum, "Ind");
+        }
+#endif
     }
 
     for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages; stageNum++)

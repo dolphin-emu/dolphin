@@ -611,19 +611,32 @@ void WriteZ16Encoder(char* p,bool HLSL)
 {
     WriteSwizzler(p, GX_TF_Z16,HLSL);
 
-    WRITE(p, " float depth;\n");
+    WRITE(p, "  float depth;\n");
+    WRITE(p, "  float3 expanded;\n");
 
     // byte order is reversed
 
     WriteSampleColor(p, "b", "depth",HLSL);
-    WRITE(p, "  ocol0.b = frac(depth * 256.0f);\n");
-    WRITE(p, "  ocol0.g = depth;\n");
+
+    WRITE(p, "  depth *= 16777215.0f;\n");
+    WRITE(p, "  expanded.r = floor(depth / (256 * 256));\n");
+    WRITE(p, "  depth -= expanded.r * 256 * 256;\n");
+    WRITE(p, "  expanded.g = floor(depth / 256);\n");
+
+    WRITE(p, "  ocol0.b = expanded.g / 255;\n");
+    WRITE(p, "  ocol0.g = expanded.r / 255;\n");
 
     WriteIncrementSampleX(p,HLSL);
 
     WriteSampleColor(p, "b", "depth",HLSL);
-    WRITE(p, "  ocol0.r = frac(depth * 256.0f);\n");
-    WRITE(p, "  ocol0.a = depth;\n");    
+
+    WRITE(p, "  depth *= 16777215.0f;\n");
+    WRITE(p, "  expanded.r = floor(depth / (256 * 256));\n");
+    WRITE(p, "  depth -= expanded.r * 256 * 256;\n");
+    WRITE(p, "  expanded.g = floor(depth / 256);\n");
+
+    WRITE(p, "  ocol0.r = expanded.g / 255;\n");
+    WRITE(p, "  ocol0.a = expanded.r / 255;\n");    
 
     WriteEncoderEnd(p);
 }
@@ -632,19 +645,36 @@ void WriteZ16LEncoder(char* p,bool HLSL)
 {
     WriteSwizzler(p, GX_CTF_Z16L,HLSL);
 
-    WRITE(p, " float depth;\n");
+    WRITE(p, "  float depth;\n");
+    WRITE(p, "  float3 expanded;\n");
 
     // byte order is reversed
 
     WriteSampleColor(p, "b", "depth",HLSL);
-    WRITE(p, "  ocol0.b = frac(depth * 65536.0f);\n");
-    WRITE(p, "  ocol0.g = frac(depth * 256.0f);\n");
+
+    WRITE(p, "  depth *= 16777215.0f;\n");
+    WRITE(p, "  expanded.r = floor(depth / (256 * 256));\n");
+    WRITE(p, "  depth -= expanded.r * 256 * 256;\n");
+    WRITE(p, "  expanded.g = floor(depth / 256);\n");
+    WRITE(p, "  depth -= expanded.g * 256;\n");
+    WRITE(p, "  expanded.b = depth;\n");
+
+    WRITE(p, "  ocol0.b = expanded.b / 255;\n");
+    WRITE(p, "  ocol0.g = expanded.g / 255;\n");
 
     WriteIncrementSampleX(p,HLSL);
 
     WriteSampleColor(p, "b", "depth",HLSL);
-    WRITE(p, "  ocol0.r = frac(depth * 65536.0f);\n");
-    WRITE(p, "  ocol0.a = frac(depth * 256.0f);\n");    
+
+    WRITE(p, "  depth *= 16777215.0f;\n");
+    WRITE(p, "  expanded.r = floor(depth / (256 * 256));\n");
+    WRITE(p, "  depth -= expanded.r * 256 * 256;\n");
+    WRITE(p, "  expanded.g = floor(depth / 256);\n");
+    WRITE(p, "  depth -= expanded.g * 256;\n");
+    WRITE(p, "  expanded.b = depth;\n");
+
+    WRITE(p, "  ocol0.r = expanded.b;\n");
+    WRITE(p, "  ocol0.a = expanded.g;\n");    
 
     WriteEncoderEnd(p);
 }
@@ -657,24 +687,38 @@ void WriteZ24Encoder(char* p, bool HLSL)
 
 	WRITE(p, "  float depth0;\n");
     WRITE(p, "  float depth1;\n");
+    WRITE(p, "  float3 expanded0;\n");
+    WRITE(p, "  float3 expanded1;\n");
 
 	WriteSampleColor(p, "b", "depth0",HLSL);
     WriteIncrementSampleX(p,HLSL);
     WriteSampleColor(p, "b", "depth1",HLSL);
 
+    for (int i = 0; i < 2; i++)
+    {
+        WRITE(p, "  depth%i *= 16777215.0f;\n", i);
+
+        WRITE(p, "  expanded%i.r = floor(depth%i / (256 * 256));\n", i, i);
+        WRITE(p, "  depth%i -= expanded%i.r * 256 * 256;\n", i, i);
+        WRITE(p, "  expanded%i.g = floor(depth%i / 256);\n", i, i);
+        WRITE(p, "  depth%i -= expanded%i.g * 256;\n", i, i);
+        WRITE(p, "  expanded%i.b = depth%i;\n", i, i);
+    }
+
     WRITE(p, "  if(cl > 0.5f) {\n");
     // upper 16
-    WRITE(p, "     ocol0.b = frac(depth0 * 256.0f);\n");
-    WRITE(p, "     ocol0.g = depth0;\n");
-    WRITE(p, "     ocol0.r = frac(depth1 * 256.0f);\n");
-    WRITE(p, "     ocol0.a = depth1;\n");
+    WRITE(p, "     ocol0.b = expanded0.g / 255;\n");
+    WRITE(p, "     ocol0.g = expanded0.b / 255;\n");
+    WRITE(p, "     ocol0.r = expanded1.g / 255;\n");
+    WRITE(p, "     ocol0.a = expanded1.b / 255;\n");
     WRITE(p, "  } else {\n");
     // lower 8
     WRITE(p, "     ocol0.b = 1.0f;\n");
-    WRITE(p, "     ocol0.g = frac(depth0 * 65536.0f);\n");
+    WRITE(p, "     ocol0.g = expanded0.r / 255;\n");
     WRITE(p, "     ocol0.r = 1.0f;\n");
-    WRITE(p, "     ocol0.a = frac(depth0 * 65536.0f);\n");
+    WRITE(p, "     ocol0.a = expanded1.r / 255;\n");
     WRITE(p, "  }\n");
+
     WriteEncoderEnd(p);
 }
 

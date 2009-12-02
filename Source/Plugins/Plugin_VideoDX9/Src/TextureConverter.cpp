@@ -176,7 +176,7 @@ void Shutdown()
 	s_texConvFrameBuffer = NULL;*/
 }
 
-void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 srcTexture,int srcTextureWidth,int srcTextureHeight, const TargetRectangle& sourceRc,
+void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc,
 				            u8* destAddr, int dstWidth, int dstHeight, int readStride, bool toTexture, bool linearFilter)
 {
 	HRESULT hr;
@@ -227,7 +227,7 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 
 
 	// Draw...
-	D3D::drawShadedTexQuad(srcTexture,&SrcRect,srcTextureWidth,srcTextureHeight,&DstRect,shader,VertexShaderCache::GetSimpleVertexShader());
+	D3D::drawShadedTexQuad(srcTexture,&SrcRect,1,1,&DstRect,shader,VertexShaderCache::GetSimpleVertexShader());
 	hr = D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
 	hr = D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
 	Renderer::RestoreAPIState();	
@@ -258,20 +258,20 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 			// writing to a texture of a different size
 
 			int readHeight = readStride / dstWidth;
-			//readHeight /= 4; // 4 bytes per pixel
 
 			int readStart = 0;
-			int readLoops = dstHeight / (readHeight/4);
+			int readLoops = dstHeight / (readHeight/4); // 4 bytes per pixel
 			u8 *Source = (u8*)drect.pBits;
 			for (int i = 0; i < readLoops; i++)
 			{
-				memcpy(destAddr,Source,dstWidth*readHeight);
-				Source += readHeight;
+				int readDist = dstWidth*readHeight;
+                memcpy(destAddr,Source,readDist);
+				Source += readDist;
 				destAddr += writeStride;
 			}
 		}
 		else
-			memcpy(destAddr,drect.pBits,dstWidth*dstHeight*4);
+			memcpy(destAddr,drect.pBits,dstWidth*dstHeight*4);// 4 bytes per pixel
 		
 		hr = s_tempConvReadSurface->UnlockRect();
 	}
@@ -330,8 +330,8 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	TextureConversionShader::SetShaderParameters(
 		(float)expandedWidth, 
 		expandedHeight * MValueY, 
-		source.left * MValueX, 
-		top, 
+		source.left * MValueX + 0.5f, 
+		top + 0.5f, 
 		sampleStride * MValueX, 
 		sampleStride * MValueY,
 		(float)Renderer::GetTargetWidth(),
@@ -347,7 +347,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
         cacheBytes = 64;
 
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
-	EncodeToRamUsingShader(texconv_shader, source_texture,1,1, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight,readStride, true, bScaleByHalf > 0);
+	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight,readStride, true, bScaleByHalf > 0);
 }
 
 /*void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc,

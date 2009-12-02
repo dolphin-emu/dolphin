@@ -180,7 +180,7 @@ int TexDecoder_GetBlockHeightInTexels(u32 format)
     case GX_CTF_GB8: return 4;
 	case GX_TF_Z8: return 4;
 	case GX_TF_Z16: return 4;
-	case GX_TF_Z24X8: return 1;
+	case GX_TF_Z24X8: return 4;
 	case GX_CTF_Z4: return 8;
 	case GX_CTF_Z8M: return 4;
 	case GX_CTF_Z8L: return 4;

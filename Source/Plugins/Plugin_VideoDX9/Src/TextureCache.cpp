@@ -474,20 +474,16 @@ have_texture:
 	sourcerect.left = targetSource.left;
 	sourcerect.right = targetSource.right;
 	sourcerect.top = targetSource.top;
-	if(bFromZBuffer)
-	{
+
+	if(bScaleByHalf)
+		D3D::dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+    else
 		D3D::dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-		D3D::dev->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-		D3D::dev->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_POINT);		
-	}
+
 	D3DFORMAT bformat = FBManager::GetEFBDepthRTSurfaceFormat();
 	D3D::drawShadedTexQuad(read_texture,&sourcerect, Renderer::GetTargetWidth() , Renderer::GetTargetHeight(),&destrect,((bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8) && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(): PixelShaderCache::GetColorMatrixProgram(),VertexShaderCache::GetSimpleVertexShader());	
-	if(bFromZBuffer)
-	{		
-		D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
-		D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
-		D3D::RefreshSamplerState(0, D3DSAMP_MIPFILTER);
-	}
+	
+	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());	

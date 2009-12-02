@@ -68,7 +68,7 @@ void SaveTexture(const char* filename, u32 texmap)
 
     TexImage0& ti0 = texUnit.texImage0[subTexmap];
 
-    SaveTexture(filename, texmap, ti0.width, ti0.height);
+    SaveTexture(filename, texmap, ti0.width + 1, ti0.height + 1);
 }
 
 void GetTextureBGRA(u8 *dst, u32 texmap, int width, int height)
