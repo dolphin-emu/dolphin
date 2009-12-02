@@ -179,21 +179,21 @@ if not env['verbose']:
 # build flavor
 flavour = ARGUMENTS.get('flavor')
 if (flavour == 'debug'):
-    compileFlags.append('-g')
+    compileFlags.append('-ggdb')
     cppDefines.append('_DEBUG') #enables LOGGING
     # FIXME: this disable wx debugging how do we make it work?
     cppDefines.append('NDEBUG') 
 elif (flavour == 'devel'):
-    compileFlags.append('-g')
+    compileFlags.append('-ggdb')
 elif (flavour == 'fastlog'):
     compileFlags.append('-O3')
     cppDefines.append('DEBUGFAST')
 elif (flavour == 'prof'):
     compileFlags.append('-O3')
-    compileFlags.append('-g')
+    compileFlags.append('-ggdb')
 elif (flavour == 'release'):
     compileFlags.append('-O3')
-
+    compileFlags.append('-fomit-frame-pointer');
 # more warnings
 if env['lint']:
     warnings.append('error')
