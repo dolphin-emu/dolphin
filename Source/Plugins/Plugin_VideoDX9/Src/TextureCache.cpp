@@ -295,7 +295,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 
 	int tex_w = (abs(source_rect.GetWidth()) >> bScaleByHalf);
 	int tex_h = (abs(source_rect.GetHeight()) >> bScaleByHalf);
-
 	TexCache::iterator iter;
 	LPDIRECT3DTEXTURE9 tex;
 	iter = textures.find(address);
@@ -476,14 +475,22 @@ have_texture:
 	sourcerect.top = targetSource.top;
 
 	if(bScaleByHalf)
+	{
 		D3D::dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+		D3D::dev->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);		
+	}
     else
+	{
 		D3D::dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+		D3D::dev->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+	}
+		
 
 	D3DFORMAT bformat = FBManager::GetEFBDepthRTSurfaceFormat();
 	D3D::drawShadedTexQuad(read_texture,&sourcerect, Renderer::GetTargetWidth() , Renderer::GetTargetHeight(),&destrect,((bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8) && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(): PixelShaderCache::GetColorMatrixProgram(),VertexShaderCache::GetSimpleVertexShader());	
 	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
+	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
 
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());	

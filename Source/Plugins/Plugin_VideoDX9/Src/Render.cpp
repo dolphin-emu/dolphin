@@ -258,10 +258,10 @@ void dumpMatrix(D3DXMATRIX &mtx)
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
 	TargetRectangle result;
-	result.left   = (int)ceilf((((float)rc.left   * s_target_width)  / (float)EFB_WIDTH)-0.5f) ;
-	result.top    = (int)ceilf((((float)rc.top    * s_target_height) / (float)EFB_HEIGHT)-0.5f);
-	result.right  = (int)floorf((((float)rc.right  * s_target_width)  / (float)EFB_WIDTH)+0.5f) ;
-	result.bottom = (int)floorf((((float)rc.bottom * s_target_height) / (float)EFB_HEIGHT)+0.5f);
+	result.left   = (int)((rc.left) * xScale) ;
+	result.top    = (int)((rc.top) * yScale);
+	result.right  = (int)((rc.right) * xScale) ;
+	result.bottom = (int)((rc.bottom) * yScale);
 	return result;
 }
 
@@ -636,15 +636,11 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		EFBRectangle source_rect;
 		LPDIRECT3DTEXTURE9 read_texture = FBManager::GetEFBDepthTexture(source_rect);
 		
-		D3D::dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-		D3D::dev->SetSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-		D3D::dev->SetSamplerState(0, D3DSAMP_MIPFILTER, D3DTEXF_POINT);
+		D3D::dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);		
 
 		D3D::drawShadedTexQuad(read_texture,&RectToLock, Renderer::GetTargetWidth() , Renderer::GetTargetHeight(),&PixelRect,(BufferFormat == FOURCC_RAWZ)?PixelShaderCache::GetColorMatrixProgram():PixelShaderCache::GetDepthMatrixProgram(),VertexShaderCache::GetSimpleVertexShader());	
 
 		D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
-		D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
-		D3D::RefreshSamplerState(0, D3DSAMP_MIPFILTER);
 
 		hr = D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
 		hr = D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
@@ -785,9 +781,9 @@ void UpdateViewport()
 	vp.Width = Width;
 	vp.Height = Height;
 	//some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
-	vp.MinZ = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
-	vp.MaxZ = xfregs.rawViewport[5] / 16777216.0f;
-	if(vp.MinZ < 0.0f)
+	vp.MinZ = 0.0f;//(xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
+	vp.MaxZ =1.0f;// xfregs.rawViewport[5] / 16777216.0f;
+	/*if(vp.MinZ < 0.0f)
 		vp.MinZ = 0.0f;
 	if(vp.MinZ > 1.0f)
 		vp.MinZ = 1.0f;
@@ -800,7 +796,7 @@ void UpdateViewport()
 		float temp = vp.MinZ;
 		vp.MinZ = vp.MaxZ;
 		vp.MaxZ = temp;
-	}
+	}*/
 	D3D::dev->SetViewport(&vp);
 }
 

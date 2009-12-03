@@ -424,25 +424,40 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			gl_type = GL_UNSIGNED_SHORT_5_6_5;
 			break;
 		}
-
-		if (!entry.isRectangle && ((tm0.min_filter & 3) == 1 || (tm0.min_filter & 3) == 2)) 
+		bool GenerateMipmaps = !entry.isRectangle && ((tm0.min_filter & 3) == 1 || (tm0.min_filter & 3) == 2);
+		if (GenerateMipmaps) 
 		{
-			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-			glTexImage2D(GL_TEXTURE_2D, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
-
-			glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-			entry.bHaveMipMaps = true;
+			glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
+		}
+		if(skip_texture_create)
+		{
+			glTexSubImage2D(target, 0,0,0,width, height, gl_format, gl_type, temp);
 		}
 		else
+		{
 			glTexImage2D(target, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
+		}
+		if (GenerateMipmaps) 
+		{
+			glTexParameteri(target, GL_GENERATE_MIPMAP, GL_FALSE);
+			entry.bHaveMipMaps = true;
+		}
 
 		if (expandedWidth != width) // reset
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 	}
 	else
 	{
-		glCompressedTexImage2D(target, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
-			expandedWidth, expandedHeight, 0, expandedWidth*expandedHeight/2, temp);
+		if(skip_texture_create)
+		{
+			glCompressedTexSubImage2D(target, 0,0,0,expandedWidth, expandedHeight, 
+				GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,expandedWidth*expandedHeight/2, temp);
+		}
+		else
+		{
+			glCompressedTexImage2D(target, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
+				expandedWidth, expandedHeight, 0, expandedWidth*expandedHeight/2, temp);
+		}		
 	}
 
     entry.frameCount = frameCount;
@@ -496,9 +511,9 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	// IA4,RA4 - IA4
 	// Z8M,G8,I8,A8,Z8,R8,B8,Z8L - I8
 	// Z16,GB8,RG8,Z16L,IA8,RA8 - IA8
-	int gl_format;
-	int gl_iformat;
-	int gl_type;
+	GLenum gl_format = GL_RGBA;
+	GLenum gl_iformat = 4;
+	GLenum gl_type = GL_UNSIGNED_BYTE;
 	float colmat[16];
 	float fConstAdd[4] = {0};
 	memset(colmat, 0, sizeof(colmat));
@@ -507,60 +522,31 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	{
         switch(copyfmt) 
 		{
-            case 0: // Z4
-				colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
-				gl_format = GL_LUMINANCE;
-				gl_iformat = GL_INTENSITY4;
-				gl_type = GL_UNSIGNED_BYTE;
-                break;
+            case 0: // Z4				
             case 1: // Z8
-				gl_format = GL_LUMINANCE;
-				gl_iformat = GL_INTENSITY8;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
+				colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
                 break;            
             case 3: // Z16 //?
-				gl_format = GL_LUMINANCE_ALPHA;
-				gl_iformat = GL_LUMINANCE8_ALPHA8;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
+				colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
 				break;
             case 11: // Z16 (reverse order)
-				gl_format = GL_LUMINANCE_ALPHA;
-				gl_iformat = GL_LUMINANCE8_ALPHA8;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1;
+				colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1;
                 break;
             case 6: // Z24X8
-				gl_format = GL_RGBA;
-				gl_iformat = 4;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[2] = colmat[5] = colmat[8] = colmat[15] = 1;
+				colmat[2] = colmat[5] = colmat[8] = colmat[15] = 1;
                 break;
             case 9: // Z8M
-				gl_format = GL_LUMINANCE;
-				gl_iformat = GL_INTENSITY8;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
+				colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
                 break;
             case 10: // Z8L
-				gl_format = GL_LUMINANCE;
-				gl_iformat = GL_INTENSITY8;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
+				colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
                 break;
             case 12: // Z16L
-				gl_format = GL_LUMINANCE_ALPHA;
-				gl_iformat = GL_LUMINANCE8_ALPHA8;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
+				colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
                 break;
             default:
                 ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", copyfmt);
-				gl_format = GL_RGBA;
-				gl_iformat = 4;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+				colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
                 break;
         }
     }
@@ -577,33 +563,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
             colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
         }
         else// alpha
-            colmat[15] = 1;
-        switch (copyfmt) 
-		{
-            case 0: // I4
-				gl_format = GL_LUMINANCE;
-				gl_iformat = GL_INTENSITY4;
-				gl_type = GL_UNSIGNED_BYTE;
-				break;
-            case 1: // I8
-				gl_format = GL_LUMINANCE;
-				gl_iformat = GL_INTENSITY8;
-				gl_type = GL_UNSIGNED_BYTE;
-				break;
-            case 2: // IA4
-				gl_format = GL_LUMINANCE_ALPHA;
-				gl_iformat = GL_LUMINANCE4_ALPHA4;
-				gl_type = GL_UNSIGNED_BYTE;
-				break;
-            case 3: // IA8
-				gl_format = GL_LUMINANCE_ALPHA;
-				gl_iformat = GL_LUMINANCE8_ALPHA8;
-				gl_type = GL_UNSIGNED_BYTE;
-                break;
-            default:
-                ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", copyfmt);                
-                break;
-        }
+            colmat[15] = 1;        
     }
     else 
 	{
@@ -611,83 +571,44 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 		{
             case 0: // R4
 				colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
-				gl_format = GL_LUMINANCE;
-				gl_iformat = GL_INTENSITY4;
-				gl_type = GL_UNSIGNED_BYTE;
 				break;
             case 8: // R8
-				gl_format = GL_LUMINANCE;
-				gl_iformat = GL_INTENSITY8;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
+				colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
                 break;
             case 2: // RA4
-				gl_format = GL_LUMINANCE_ALPHA;
-				gl_iformat = GL_LUMINANCE4_ALPHA4;
-				gl_type = GL_UNSIGNED_BYTE;
 				colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1;
                 break;
             case 3: // RA8
-				gl_format = GL_LUMINANCE_ALPHA;
-				gl_iformat = GL_LUMINANCE8_ALPHA8;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1;
+				colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1;
                 break;
             case 7: // A8
-				gl_format = GL_ALPHA;
-				gl_iformat = GL_ALPHA8;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1; 
+				colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1; 
                 break;
             case 9: // G8
-				gl_format = GL_LUMINANCE;
-				gl_iformat = GL_INTENSITY8;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
+				colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
                 break;
             case 10: // B8
-				gl_format = GL_LUMINANCE;
-				gl_iformat = GL_INTENSITY8;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
+				colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
                 break;
             case 11: // RG8
-				gl_format = GL_RGBA;
-				gl_iformat = 4;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
+				colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
                 break;
             case 12: // GB8
-				gl_format = GL_RGBA;
-				gl_iformat = 4;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
+				colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
                 break;
             case 4: // RGB565
-				gl_format = GL_RGB;
-				gl_iformat = GL_RGB;
-				gl_type = GL_UNSIGNED_SHORT_5_6_5;
-                colmat[0] = colmat[5] = colmat[10] = 1;
+				colmat[0] = colmat[5] = colmat[10] = 1;
                 fConstAdd[3] = 1; // set alpha to 1
                 break;
             case 5: // RGB5A3
-				gl_format = GL_RGBA;
-				gl_iformat = 4;
-				gl_type = GL_UNSIGNED_BYTE;
 				colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
                 break;
             case 6: // RGBA8
-				gl_format = GL_RGBA;
-				gl_iformat = 4;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+				colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
                 break;
             default:
                 ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", copyfmt);
-				gl_format = GL_RGBA;
-				gl_iformat = 4;
-				gl_type = GL_UNSIGNED_BYTE;
-                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+				colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
                 break;
         }
     }
