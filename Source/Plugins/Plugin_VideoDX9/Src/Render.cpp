@@ -930,8 +930,7 @@ void Renderer::RestoreAPIState()
 {
 	// Gets us back into a more game-like state.
 
-	UpdateViewport();
-	D3D::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
+	UpdateViewport();	
     if (bpmem.zmode.testenable) D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
     if (bpmem.zmode.updateenable)   D3D::SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 
