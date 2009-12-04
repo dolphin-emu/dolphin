@@ -444,31 +444,19 @@ void SingleShake(u8 &_x, u8 &_y, u8 &_z, int wm)
 	switch(Shake[wm])
 	{
 	case 1:
-	case 3:
 		_x = g_wm.cal_zero.x / 2;
 		_y = g_wm.cal_zero.y / 2;
 		_z = g_wm.cal_zero.z / 2;
 		break;
-	case 5:
-	case 7:
-		_x = (0xFF - g_wm.cal_zero.x ) / 2;
-		_y = (0xFF - g_wm.cal_zero.y ) / 2;
-		_z = (0xFF - g_wm.cal_zero.z ) / 2;
-		break;
 	case 2:
-		_x = 0x00;
-		_y = 0x00;
-		_z = 0x00;
-		break;
-	case 6:
-		_x = 0xFF;
-		_y = 0xFF;
-		_z = 0xFF;
-		break;
-	case 4:
 		_x = 0x80;
 		_y = 0x80;
 		_z = 0x80;
+		break;
+	case 3:
+		_x = (0xFF - g_wm.cal_zero.x ) / 2;
+		_y = (0xFF - g_wm.cal_zero.y ) / 2;
+		_z = (0xFF - g_wm.cal_zero.z ) / 2;
 		break;
 	default:
 		Shake[wm] = -1;
@@ -501,7 +489,7 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 	   adjustment. And instead for example upsize the XInput trigger from 0x80
 	   to 0x8000. */
 	int Lx, Ly, Rx, Ry, Tl, Tr;
-	PadStateAdjustments(Lx, Ly, Rx, Ry, Tl, Tr);;
+	PadStateAdjustments(Lx, Ly, Rx, Ry, Tl, Tr);
 
 	// Save the Range in degrees, 45 and 90 are good values in some games
 	int RollRange = g_Config.Trigger.Range.Roll;
@@ -555,16 +543,27 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 void TiltWiimoteKeyboard(int &Roll, int &Pitch)
 {
 #ifdef _WIN32
-	if(IsKey(g_Wiimote_kbd.PITCH_L))
+	// Direct map keyboard pitch to roll
+	if (g_Config.Trigger.Range.Roll == 0 && g_Config.Trigger.Range.Pitch == 0)
+	{
+		if (IsKey(g_Wiimote_kbd.PITCH_L))
+			Roll = -128 / 2;
+		else if (IsKey(g_Wiimote_kbd.PITCH_R))
+			Roll = 128 / 2;
+
+		return;
+	}
+
+	if (IsKey(g_Wiimote_kbd.PITCH_L))
 	{
 		// Stop at the upper end of the range
-		if(KbDegree < g_Config.Trigger.Range.Pitch)
+		if (KbDegree < g_Config.Trigger.Range.Pitch)
 			KbDegree += 3; // aim left
 	}
-	else if(IsKey(g_Wiimote_kbd.PITCH_R))
+	else if (IsKey(g_Wiimote_kbd.PITCH_R))
 	{
 		// Stop at the lower end of the range
-		if(KbDegree > -g_Config.Trigger.Range.Pitch)
+		if (KbDegree > -g_Config.Trigger.Range.Pitch)
 			KbDegree -= 3; // aim right
 	}
 
@@ -611,7 +610,8 @@ void Tilt(u8 &_x, u8 &_y, u8 &_z)
 		TiltWiimoteGamepad(Roll, Pitch);
 
 	// Adjust angles, it's only needed if both roll and pitch is used together
-	if (g_Config.Trigger.Range.Roll != 0 && g_Config.Trigger.Range.Pitch != 0) AdjustAngles(Roll, Pitch);
+	if (g_Config.Trigger.Range.Roll != 0 && g_Config.Trigger.Range.Pitch != 0)
+		AdjustAngles(Roll, Pitch);
 
 	// Calculate the accelerometer value from this tilt angle
 	//PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z, g_Config.Trigger.Roll, g_Config.Trigger.Pitch);
