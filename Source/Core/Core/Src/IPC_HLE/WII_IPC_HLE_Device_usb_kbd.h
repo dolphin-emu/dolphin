@@ -8,6 +8,7 @@ public:
 	virtual ~CWII_IPC_HLE_Device_usb_kbd();
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode);
+	virtual bool Close(u32 _CommandAddress, bool _bForce);
 	virtual bool Write(u32 _CommandAddress);
 	virtual bool IOCtl(u32 _CommandAddress);
 	virtual u32 Update();
