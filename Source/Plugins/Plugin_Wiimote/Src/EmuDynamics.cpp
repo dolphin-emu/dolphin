@@ -44,7 +44,7 @@ namespace WiiMoteEmu
 // Accelerometer functions
 //******************************************************************************
 
-
+/*
 // Test the calculations
 void TiltTest(u8 x, u8 y, u8 z)
 {
@@ -61,20 +61,20 @@ void TiltTest(u8 x, u8 y, u8 z)
 		(_Pitch >= 0) ? StringFromFormat(" %03i", (int)_Pitch).c_str() : StringFromFormat("%04i", (int)_Pitch).c_str());
 	NOTICE_LOG(CONSOLE, "\n%s", To.c_str());
 }
-
+*/
 
 /* Angles adjustment for the upside down state when both roll and pitch is
    used. When the absolute values of the angles go over 90 the Wiimote is
    upside down and these adjustments are needed. */
-void AdjustAngles(float &Roll, float &Pitch)
+void AdjustAngles(int &Roll, int &Pitch)
 {
-	float OldPitch = Pitch;
+	int OldPitch = Pitch;
 
 	if (abs(Roll) > 90)
 	{
 		if (Pitch >= 0)
 			Pitch = 180 - Pitch; // 15 to 165
-		else if (Pitch < 0)	
+		else
 			Pitch = -180 - Pitch; // -15 to -165
 	}	
 
@@ -82,18 +82,44 @@ void AdjustAngles(float &Roll, float &Pitch)
 	{
 		if (Roll >= 0)
 			Roll = 180 - Roll; // 15 to 165
-		else if (Roll < 0)			
+		else		
 			Roll = -180 - Roll; // -15 to -165
 	}	
 }
 
 
 // Angles to accelerometer values
-void PitchDegreeToAccelerometer(float _Roll, float _Pitch, u8 &_x, u8 &_y, u8 &_z)
+void PitchDegreeToAccelerometer(int Roll, int Pitch, u8 &_x, u8 &_y, u8 &_z)
 {
+	// Direct mapping from analog stick to x/y accelerometer
+	if (g_Config.Trigger.Range.Pitch == 0 && g_Config.Trigger.Range.Roll == 0)
+	{
+		if (abs(Roll) <= abs(g_wm.cal_g.x))
+			Roll = 0;
+		if (abs(Pitch) <= abs(g_wm.cal_g.y))
+			Pitch = 0;
+		int ix = g_wm.cal_zero.x + Roll;
+		int iy = g_wm.cal_zero.y + Pitch;
+		if (ix > 0xFF)	ix = 0xFF;
+		if (ix < 0x00)	ix = 0x00;
+		if (iy > 0xFF)	iy = 0xFF;
+		if (iy < 0x00)	iy = 0x00;
+		if (!g_Config.Trigger.Upright)
+		{
+			_x = ix;
+			_y = iy;
+		}
+		else
+		{
+			_x = ix;
+			_z = iy;
+		}
+		return;
+	}
+
 	// We need radiands for the math functions
-	_Roll = InputCommon::Deg2Rad(_Roll);
-	_Pitch = InputCommon::Deg2Rad(_Pitch);
+	float _Roll = InputCommon::Deg2Rad((float)Roll);
+	float _Pitch = InputCommon::Deg2Rad((float)Pitch);
 	// We need decimal values
 	float x = (float)_x, y = (float)_y, z = (float)_z;
 

@@ -363,9 +363,11 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 	StrTilt.Add(wxString::FromAscii("Triggers"));
 	// The range is in degrees and are set at even 5 degrees values
 	wxArrayString StrTiltRangeRoll, StrTiltRangePitch;
-	for (int i = 0; i < 37; i++)
+	StrTiltRangeRoll.Add(wxString::Format(wxT("Free Swing")));
+	for (int i = 1; i < 37; i++)
 		StrTiltRangeRoll.Add(wxString::Format(wxT("%i"), i*5));
-	for (int i = 0; i < 37; i++)
+	StrTiltRangePitch.Add(wxString::Format(wxT("Free Swing")));
+	for (int i = 1; i < 37; i++)
 		StrTiltRangePitch.Add(wxString::Format(wxT("%i"), i*5));
 
 	// The Trigger type list
@@ -1004,10 +1006,22 @@ void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.Trigger.Type = m_TiltComboInput[Page]->GetSelection();
 		break;
 	case ID_TILT_RANGE_ROLL:
-		m_TiltComboRangeRoll[Page]->GetValue().ToLong(&TmpValue); g_Config.Trigger.Range.Roll = TmpValue;
+		if (m_TiltComboRangeRoll[Page]->GetSelection() == 0)
+			g_Config.Trigger.Range.Roll = 0;
+		else
+		{
+			m_TiltComboRangeRoll[Page]->GetValue().ToLong(&TmpValue);
+			g_Config.Trigger.Range.Roll = TmpValue;
+		}
 		break;
 	case ID_TILT_RANGE_PITCH:
-		m_TiltComboRangePitch[Page]->GetValue().ToLong(&TmpValue); g_Config.Trigger.Range.Pitch = TmpValue;
+		if (m_TiltComboRangePitch[Page]->GetSelection() == 0)
+			g_Config.Trigger.Range.Pitch = 0;
+		else
+		{
+			m_TiltComboRangePitch[Page]->GetValue().ToLong(&TmpValue);
+			g_Config.Trigger.Range.Pitch = TmpValue;
+		}
 		break;
 	case IDC_JOYNAME:
 		DoChangeJoystick();

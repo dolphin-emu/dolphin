@@ -428,7 +428,8 @@ u8 g_x, g_y, g_z, g_X, g_Y, g_Z;
 int Shake[] = {0, 0};
 
 // For the tilt function, the size of this list determines how fast Y returns to its neutral value
-std::vector<u8> yhist(15, 0); float KbDegree;
+std::vector<u8> yhist(15, 0);
+int KbDegree;
 
 
 // Single shake of all three directions
@@ -485,7 +486,7 @@ void SingleShake(u8 &_x, u8 &_y, u8 &_z, int wm)
 /* Tilting Wiimote with gamepad. We can guess that the game will calculate a
    Wiimote pitch and use it as a measure of the tilting of the Wiimote. We are
    interested in this tilting range 90 to -90*/
-void TiltWiimoteGamepad(float &Roll, float &Pitch)
+void TiltWiimoteGamepad(int &Roll, int &Pitch)
 {
 	// Return if we have no pads
 	if (NumGoodPads == 0) return;
@@ -499,18 +500,12 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 	   lose any precision by doing this we could consider not doing this
 	   adjustment. And instead for example upsize the XInput trigger from 0x80
 	   to 0x8000. */
-	int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
-	PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
-	float Lx = (float)_Lx;
-	float Ly = (float)_Ly;
-	float Rx = (float)_Rx;
-	float Ry = (float)_Ry;
-	float Tl = (float)_Tl;
-	float Tr = (float)_Tr;
+	int Lx, Ly, Rx, Ry, Tl, Tr;
+	PadStateAdjustments(Lx, Ly, Rx, Ry, Tl, Tr);;
 
 	// Save the Range in degrees, 45 and 90 are good values in some games
-	float RollRange = (float)g_Config.Trigger.Range.Roll;
-	float PitchRange = (float)g_Config.Trigger.Range.Pitch;
+	int RollRange = g_Config.Trigger.Range.Roll;
+	int PitchRange = g_Config.Trigger.Range.Pitch;
 
 	// The trigger currently only controls pitch
 	if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER)
@@ -521,47 +516,43 @@ void TiltWiimoteGamepad(float &Roll, float &Pitch)
 		// Invert
 		if (PadMapping[Page].bPitchInvert) { Tl = -Tl; Tr = -Tr; }
 		// The final value
-		Pitch = Tl * (PitchRange / 128.0)
-			- Tr * (PitchRange / 128.0);
+		Pitch = Tl * ((float)PitchRange / 128.0)
+			- Tr * ((float)PitchRange / 128.0);
 	}
 
-	/* For the analog stick roll us by default set to the X-axis, pitch is by
+	/* For the analog stick roll is by default set to the X-axis, pitch is by
 	   default set to the Y-axis.  By changing the axis mapping and the invert
 	   options this can be altered in any way */
 	else if (g_Config.Trigger.Type == g_Config.Trigger.ANALOG1)
 	{
 		// Adjust the trigger to go between negative and positive values
-		Lx = Lx - 128.0;
-		Ly = Ly - 128.0;
+		Lx = Lx - 128;
+		Ly = Ly - 128;
 		// Invert
 		if (PadMapping[Page].bRollInvert) Lx = -Lx; // else Tr = -Tr;
 		if (PadMapping[Page].bPitchInvert) Ly = -Ly; // else Tr = -Tr;
 		// Produce the final value
-		Roll = Lx * (RollRange / 128.0);
-		Pitch = Ly * (PitchRange / 128.0);
+		Roll = (RollRange) ? RollRange * ((float)Lx / 128.0) : Lx;
+		Pitch = (PitchRange) ? PitchRange * ((float)Ly / 128.0) : Ly;
 	}
 	// Otherwise we are using ANALOG2
 	else
 	{
 		// Adjust the trigger to go between negative and positive values
-		Rx = Rx - 128.0;
-		Ry = Ry - 128.0;
+		Rx = Rx - 128;
+		Ry = Ry - 128;
 		// Invert
 		if (PadMapping[Page].bRollInvert) Rx = -Rx; // else Tr = -Tr;
 		if (PadMapping[Page].bPitchInvert) Ry = -Ry; // else Tr = -Tr;
 		// Produce the final value
-		Roll = Rx * (RollRange / 128.0);
-		Pitch = Ry * (PitchRange / 128.0);
+		Roll = (RollRange) ? RollRange * ((float)Rx / 128.0) : Rx;
+		Pitch = (PitchRange) ? PitchRange * ((float)Ry / 128.0) : Ry;
 	}
-
-	// Adjustment to prevent a slightly to high angle
-	if (Pitch >= PitchRange) Pitch = PitchRange - 0.1;
-	if (Roll >= RollRange) Roll = RollRange - 0.1;
 }
 
 
 // Tilting Wiimote with keyboard
-void TiltWiimoteKeyboard(float &Roll, float &Pitch)
+void TiltWiimoteKeyboard(int &Roll, int &Pitch)
 {
 #ifdef _WIN32
 	if(IsKey(g_Wiimote_kbd.PITCH_L))
@@ -599,7 +590,7 @@ void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 	else
 	{
 		Pitch = KbDegree;
-		//DEBUG_LOG(WIIMOTE, "Degree: %2.1f", KbDegree);
+		//DEBUG_LOG(WIIMOTE, "Degree: %i", KbDegree);
 	}
 #endif
 }
@@ -607,11 +598,11 @@ void TiltWiimoteKeyboard(float &Roll, float &Pitch)
 // Tilting Wiimote (Wario Land aiming, Mario Kart steering and other things)
 void Tilt(u8 &_x, u8 &_y, u8 &_z)
 {
-	// Ceck if it's on
+	// Check if it's on
 	if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER_OFF) return;
 
 	// Set to zero
-	float Roll = 0, Pitch = 0;
+	int Roll = 0, Pitch = 0;
 
 	// Select input method and return the x, y, x values
 	if (g_Config.Trigger.Type == g_Config.Trigger.KEYBOARD)
@@ -626,12 +617,7 @@ void Tilt(u8 &_x, u8 &_y, u8 &_z)
 	//PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z, g_Config.Trigger.Roll, g_Config.Trigger.Pitch);
 	PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z);
 
-	if (g_DebugData)
-	{
-		/*DEBUG_LOG(WIIMOTE, "L:%2.1f R:%2.1f Lx:%2.1f Range:%2.1f Degree:%2.1f L:%i R:%i",
-			Tl, Tr, Lx, Range, Degree, PadState[Page].Axis.Tl, PadState[Page].Axis.Tr);*/
-		/*DEBUG_LOG(WIIMOTE, "Roll:%2.1f Pitch:%2.1f", Roll, Pitch);*/
-	}
+	//DEBUG_LOG(WIIMOTE, "Roll:%i, Pitch:%i, _x:%i, _y:%i, _z:%i", Roll, Pitch, _x, _y, _z);
 }
 
 void FillReportAcc(wm_accel& _acc)
