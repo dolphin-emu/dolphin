@@ -85,8 +85,6 @@ WiimoteRecordingConfigDialog::WiimoteRecordingConfigDialog(wxWindow *parent, wxW
 
 void WiimoteRecordingConfigDialog::OnClose(wxCloseEvent& event)
 {
-	event.Skip();
-	g_FrameOpen = false;
 	SaveFile();
 	EndModal(wxID_CLOSE);
 }

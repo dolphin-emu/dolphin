@@ -214,10 +214,10 @@ void WiimotePadConfigDialog::OnButtonClick(wxCommandEvent& event)
 
 void WiimotePadConfigDialog::OnClose(wxCloseEvent& event)
 {
-	event.Skip();
-	g_FrameOpen = false;
-	if(m_UpdatePad)
+	if (m_UpdatePad)
 		m_UpdatePad->Stop();
+	if (m_ButtonMappingTimer)
+		m_ButtonMappingTimer->Stop();
 	SaveButtonMappingAll(Page);
 	EndModal(wxID_CLOSE);
 }
@@ -681,9 +681,9 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 			wxT("Right"),
 			wxT("Up"),
 			wxT("Down"),
-			wxT("Shake"),
 			wxT("Pitch Left"),
 			wxT("Pitch Right"),
+			wxT("Shake"),
 		};
 
 		

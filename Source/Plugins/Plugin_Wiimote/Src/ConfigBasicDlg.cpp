@@ -67,21 +67,8 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 
 void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
 {
-	event.Skip();
 	g_FrameOpen = false;
 	g_Config.Save();
-	if (m_PadConfigFrame)
-	{
-		delete m_PadConfigFrame;
-		m_PadConfigFrame = NULL;
-	}
-	if (m_RecordingConfigFrame)
-	{
-		delete m_RecordingConfigFrame;
-		m_RecordingConfigFrame = NULL;
-	}
-	if (!g_EmulatorRunning)
-		Shutdown();
 	EndModal(wxID_CLOSE);
 }
 
@@ -90,13 +77,10 @@ void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
    We must therefore shut down the thread from here and wait for that before we can call ShutDown(). */
 void WiimoteBasicConfigDialog::ShutDown(wxTimerEvent& WXUNUSED(event))
 {
-	// Wait for the Wiimote thread to stop, then close and shutdown
-	WiiMoteReal::g_Shutdown = true;
-	m_ShutDownTimer->Start(10);
-	
 	if(!WiiMoteReal::g_ThreadGoing)
 	{
 		m_ShutDownTimer->Stop();
+		Close();
 	}
 }
 
@@ -105,24 +89,32 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 	switch(event.GetId())
 	{
 	case ID_CLOSE:
-		// Close() is a wxWidgets function that will trigger EVT_CLOSE() and then call this->Destroy().
-		Close();
+		// Wait for the Wiimote thread to stop, then close and shutdown
+		if(!g_EmulatorRunning)
+		{
+			WiiMoteReal::g_Shutdown = true;
+			m_ShutDownTimer->Start(10);
+		}
+		// Close directly
+		else
+		{
+			Close();
+		}
 		break;
 	case ID_APPLY:
 		g_Config.Save();
 		break;
 	case ID_BUTTONMAPPING:
-		if (!m_PadConfigFrame)
-			m_PadConfigFrame = new WiimotePadConfigDialog(this);
-		if (!m_PadConfigFrame->IsShown())
-			m_PadConfigFrame->ShowModal();
+		m_PadConfigFrame = new WiimotePadConfigDialog(this);
+		m_PadConfigFrame->ShowModal();
+		m_PadConfigFrame->Destroy();
+		m_PadConfigFrame = NULL;
 		break;
 	case ID_BUTTONRECORDING:
-		if (!m_RecordingConfigFrame)
-			m_RecordingConfigFrame = new WiimoteRecordingConfigDialog(this);
-
-		if (!m_RecordingConfigFrame->IsShown())
-			m_RecordingConfigFrame->ShowModal();
+		m_RecordingConfigFrame = new WiimoteRecordingConfigDialog(this);
+		m_RecordingConfigFrame->ShowModal();
+		m_RecordingConfigFrame->Destroy();
+		m_RecordingConfigFrame = NULL;
 		break;
 	}
 }

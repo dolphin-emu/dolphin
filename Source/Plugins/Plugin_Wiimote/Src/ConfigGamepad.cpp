@@ -445,8 +445,9 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	// Check for buttons
 
 	// If there is a timer but we should not create a new one
-	else
+	else if (WiiMoteEmu::NumGoodPads >0)
 	{
+
 		InputCommon::GetButton(
 			WiiMoteEmu::joyinfo[PadID].joy, PadID, WiiMoteEmu::joyinfo[PadID].NumButtons, WiiMoteEmu::joyinfo[PadID].NumAxes, WiiMoteEmu::joyinfo[PadID].NumHats, 
 			g_Pressed, value, type, pressed, Succeed, Stop,

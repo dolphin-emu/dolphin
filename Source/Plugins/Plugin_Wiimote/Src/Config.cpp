@@ -44,9 +44,9 @@ static const char* wmControlNames[] =
 	"WmR",
 	"WmU",
 	"WmD",
-	"WmShake",
 	"WmPitchL",
 	"WmPitchR",
+	"WmShake",
 };
 static int wmDefaultControls[] = 
 {
@@ -62,17 +62,17 @@ static int wmDefaultControls[] =
 	VK_RIGHT,
 	VK_UP,
 	VK_DOWN,
-	VK_OEM_2, // /?
 	VK_OEM_COMMA,
-	VK_OEM_PERIOD
+	VK_OEM_PERIOD,
+	VK_OEM_2	// /
 #elif defined(HAVE_X11) && HAVE_X11
 	XK_Left,
 	XK_Right,
 	XK_Up,
 	XK_Down,
-	XK_slash,
 	XK_comma,
-	XK_period
+	XK_period,
+	XK_slash
 #else
 	0,0,0,0,0,0,0
 #endif

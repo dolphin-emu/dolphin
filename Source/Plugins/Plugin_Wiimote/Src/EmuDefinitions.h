@@ -181,8 +181,8 @@ struct KeyboardWiimote
 		ONE, TWO,
 		P, M, H,
 		L, R, U, D,
-		SHAKE,
 		PITCH_L, PITCH_R,
+		SHAKE,
 		MA, MB,
 		LAST_CONSTANT
 	};
