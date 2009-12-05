@@ -444,19 +444,31 @@ void SingleShake(u8 &_x, u8 &_y, u8 &_z, int wm)
 	switch(Shake[wm])
 	{
 	case 1:
+	case 3:
 		_x = g_wm.cal_zero.x / 2;
 		_y = g_wm.cal_zero.y / 2;
 		_z = g_wm.cal_zero.z / 2;
 		break;
-	case 2:
-		_x = 0x80;
-		_y = 0x80;
-		_z = 0x80;
-		break;
-	case 3:
+	case 5:
+	case 7:
 		_x = (0xFF - g_wm.cal_zero.x ) / 2;
 		_y = (0xFF - g_wm.cal_zero.y ) / 2;
 		_z = (0xFF - g_wm.cal_zero.z ) / 2;
+		break;
+	case 2:
+		_x = 0x00;
+		_y = 0x00;
+		_z = 0x00;
+		break;
+	case 6:
+		_x = 0xFF;
+		_y = 0xFF;
+		_z = 0xFF;
+		break;
+	case 4:
+		_x = 0x80;
+		_y = 0x80;
+		_z = 0x80;
 		break;
 	default:
 		Shake[wm] = -1;
