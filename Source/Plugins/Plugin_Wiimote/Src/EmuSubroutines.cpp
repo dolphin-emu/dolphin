@@ -55,6 +55,10 @@ namespace WiiMoteEmu
 
    1. Wiimote_InterruptChannel > InterruptChannel > HidOutputReport
    2. Wiimote_ControlChannel > ControlChannel > HidOutputReport
+
+   The IR lights and speaker enable/disable and mute/unmute values are
+		0x2 = Disable
+		0x6 = Enable
 */
 void HidOutputReport(u16 _channelID, wm_report* sr)
 {
@@ -62,8 +66,8 @@ void HidOutputReport(u16 _channelID, wm_report* sr)
 
 	switch(sr->wm)
 	{
-	case 0x10:
-		// Unknown
+	case WM_RUMBLE: // 0x10
+		// TODO: Implement rumble
 		break;
 
 	case WM_LEDS: // 0x11
@@ -104,6 +108,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr)
 		break;
 
 	case WM_WRITE_SPEAKER_DATA: // 0x18
+		// TODO: Does this need an ack?
 		break;
 
 	case WM_SPEAKER_MUTE: // 0x19
@@ -170,7 +175,7 @@ void WmSendAck(u16 _channelID, u8 _reportID)
 	u32 Offset = WriteWmReportHdr(DataFrame, WM_ACK_DATA);
 
 	wm_acknowledge* pData = (wm_acknowledge*)(DataFrame + Offset);
-	pData->buttons = 0;
+	FillReportInfo(pData->buttons);
 	pData->reportID = _reportID;
 	pData->errorID = 0;
 	Offset += sizeof(wm_acknowledge);
@@ -311,7 +316,7 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, int _Size)
 		wm_read_data_reply* pReply = (wm_read_data_reply*)(DataFrame + Offset);	
 		Offset += sizeof(wm_read_data_reply);
 
-		pReply->buttons = 0;
+		FillReportInfo(pReply->buttons);
 		pReply->error = 0;
 		// 0x1 means two bytes, 0xf means 16 bytes
 		pReply->size = copySize - 1;
@@ -465,6 +470,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 	memset(pStatus, 0, sizeof(wm_status_report)); // fill the status report with zeroes
 
 	// Status values
+	FillReportInfo(pStatus->buttons);
 	pStatus->leds = g_Leds; // leds are 4 bit
 	pStatus->ir = g_IR; // 1 bit
 	pStatus->speaker = g_Speaker; // 1 bit

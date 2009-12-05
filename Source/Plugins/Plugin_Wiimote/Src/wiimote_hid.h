@@ -44,93 +44,6 @@ struct hid_packet {
 
 //source: http://wiibrew.org/wiki/Wiimote
 
-struct wm_report {
-	u8 wm;
-	u8 data[0];
-};
-
-#define WM_LEDS 0x11
-struct wm_leds {
-	u8 rumble : 1;
-	u8 : 3;
-	u8 leds : 4;
-};
-
-#define WM_REPORT_MODE 0x12
-struct wm_report_mode {
-	u8 rumble : 1;
-	u8 continuous : 1;
-	u8 all_the_time : 1;
-	u8 : 5;
-	u8 mode;
-};
-
-#define WM_IR_PIXEL_CLOCK 0x13
-#define WM_IR_LOGIC 0x1A
-
-#define WM_REQUEST_STATUS 0x15
-struct wm_request_status {
-	u8 rumble : 1;
-	u8 : 7;
-};
-
-#define WM_STATUS_REPORT 0x20
-struct wm_status_report {
-	u8 padding1[2]; // two 00
-	u8 battery_low : 1;
-	u8 extension : 1;
-	u8 speaker : 1;
-	u8 ir : 1;
-	u8 leds : 4;
-	u8 padding2[2]; // two 00
-	u8 battery;
-};
-
-#define WM_WRITE_DATA 0x16
-struct wm_write_data 
-{
-	u8 rumble : 1;
-	u8 space : 2;	//see WM_SPACE_*
-	u8 : 5;
-	u8 address[3];
-	u8 size;
-	u8 data[16];
-};
-
-#define WM_ACK_DATA 0x22
-struct wm_acknowledge 
-{
-	u16 buttons;
-	u8 reportID;
-	u8 errorID;
-};
-
-#define WM_READ_DATA 0x17
-struct wm_read_data {
-	u8 rumble : 1;
-	u8 space : 2;	//see WM_SPACE_*
-	u8 : 5;
-	u8 address[3];
-	u8 size[2];
-};
-
-#define WM_SPACE_EEPROM 0
-#define WM_SPACE_REGS1 1
-#define WM_SPACE_REGS2 2
-#define WM_SPACE_INVALID 3
-
-#define WM_READ_DATA_REPLY 0x21
-struct wm_read_data_reply {
-	u16 buttons;
-	u8 error : 4;	//see WM_RDERR_*
-	u8 size : 4;
-	u16 address;
-	u8 data[16];
-};
-
-#define WM_RDERR_WOREG 7
-#define WM_RDERR_NOMEM 8
-
 struct wm_core {
 	u8 left : 1;
 	u8 right : 1;
@@ -254,7 +167,96 @@ struct wm_GH3_extension
 	u8 Orange : 1;
 };
 
-	
+
+struct wm_report {
+	u8 wm;
+	u8 data[0];
+};
+
+#define WM_RUMBLE 0x10
+
+#define WM_LEDS 0x11
+struct wm_leds {
+	u8 rumble : 1;
+	u8 : 3;
+	u8 leds : 4;
+};
+
+#define WM_REPORT_MODE 0x12
+struct wm_report_mode {
+	u8 rumble : 1;
+	u8 continuous : 1;
+	u8 all_the_time : 1;
+	u8 : 5;
+	u8 mode;
+};
+
+#define WM_IR_PIXEL_CLOCK 0x13
+#define WM_IR_LOGIC 0x1A
+
+#define WM_REQUEST_STATUS 0x15
+struct wm_request_status {
+	u8 rumble : 1;
+	u8 : 7;
+};
+
+#define WM_STATUS_REPORT 0x20
+struct wm_status_report {
+	wm_core buttons;
+	u8 battery_low : 1;
+	u8 extension : 1;
+	u8 speaker : 1;
+	u8 ir : 1;
+	u8 leds : 4;
+	u8 padding2[2]; // two 00, TODO: this needs more investigation
+	u8 battery;
+};
+
+#define WM_WRITE_DATA 0x16
+struct wm_write_data 
+{
+	u8 rumble : 1;
+	u8 space : 2;	//see WM_SPACE_*
+	u8 : 5;
+	u8 address[3];
+	u8 size;
+	u8 data[16];
+};
+
+#define WM_ACK_DATA 0x22
+struct wm_acknowledge 
+{
+	wm_core buttons;
+	u8 reportID;
+	u8 errorID;
+};
+
+#define WM_READ_DATA 0x17
+struct wm_read_data {
+	u8 rumble : 1;
+	u8 space : 2;	//see WM_SPACE_*
+	u8 : 5;
+	u8 address[3];
+	u8 size[2];
+};
+
+#define WM_SPACE_EEPROM 0
+#define WM_SPACE_REGS1 1
+#define WM_SPACE_REGS2 2
+#define WM_SPACE_INVALID 3
+
+#define WM_READ_DATA_REPLY 0x21
+struct wm_read_data_reply {
+	wm_core buttons;
+	u8 error : 4;	//see WM_RDERR_*
+	u8 size : 4;
+	u16 address;
+	u8 data[16];
+};
+
+#define WM_RDERR_WOREG 7
+#define WM_RDERR_NOMEM 8
+
 	
 // Data reports
 

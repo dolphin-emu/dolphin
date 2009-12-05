@@ -553,37 +553,14 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 					wm_report* sr = (wm_report*)hidp->data;
 					HidOutputReport(_channelID, sr);
 
-					/* This is the 0x22 answer to all Inputs. In most games it
-					   didn't matter if it was written before or after
-					   HidOutputReport(), but Wii Sports and Mario Galaxy would
-					   stop working if it was placed before
-					   HidOutputReport(). Zelda - TP is even more sensitive and
-					   require a delay after the Input for the Nunchuck to
-					   work. It seemed to be enough to delay only the Nunchuck
-					   registry reads and writes but for now I'm delaying all
-					   inputs. Both for status changes and Eeprom and registry
-					   reads and writes. */
+					/* This is the 0x22 answer to all Inputs.*/
 
 					// There are no 0x22 replys to these report from the real
 					// wiimote from what I could see Report 0x10 that seems to
 					// be only used for rumble, and we don't need to answer
-					// that, also if we do *we should update the 0x22 to have
-					// the core keys* otherwise the game will think we release
-					// the key every time it rumbles
-					
-					// AyuanX: Since I've rewritten the whole WII_IPC & WII_IPC_HLE & USB & BT
-					// finally we can get rid of this AckDelay issue, HAHA!
-					//
-					/*
-					const u8* data = (const u8*)_pData;
-					if(!(data[1] == WM_READ_DATA && data[2] == 0x00)
-						&& !(data[1] == WM_REQUEST_STATUS)
-						&& !(data[1] == WM_WRITE_SPEAKER_DATA)
-						&& !(data[1] == WM_RUMBLE))						
-						if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
-							CreateAckDelay((u8)_channelID, (u16)sr->wm);
-					*/
-					
+					// that
+
+					// The rumble report still needs more investigation
 				}
 				break;
 

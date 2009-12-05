@@ -468,11 +468,13 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		}
 	}
 
+// This seems not necessary at all or at least not helping to avoid de-sync at all??? 
+/*
 	// AyuanX: This event should be sent periodically after ACL connection is accepted
 	// or CPU will disconnect WiiMote automatically
 	// but don't send too many or it will jam the bus and cost extra CPU time
 	//
-	if (m_HCIBuffer.m_address && m_WiiMotes[0].IsConnected())
+	if (m_HCIBuffer.m_address && !WII_IPCInterface::GetAddress() && m_WiiMotes[0].IsConnected())
 	{
 		m_FreqDividerSync++;
 		if ((m_PacketCount > 0) || (m_FreqDividerSync > 60))	// Feel free to tweak it
@@ -483,6 +485,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 			return true;
 		}
 	}
+*/
 
 	// AyuanX: If we let this Wiimote_Update function running freely
 	// it will exaust all the HLE time slots and block further CPU commands
