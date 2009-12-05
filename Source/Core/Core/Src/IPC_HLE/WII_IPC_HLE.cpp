@@ -470,26 +470,18 @@ void Update()
 
 void UpdateDevices()
 {
-	// This is called frequently so better make this route simple
-	// currently we only have one device: USB that needs update and its ID is fixed to IPC_FIRST_HARDWARE_ID
-	// So let's skip the query and call it directly, which will speed up a lot
-	//
-	IWII_IPC_HLE_Device* pDevice = g_DeviceMap[IPC_FIRST_HARDWARE_ID];
-	if (pDevice->IsOpened())
-		pDevice->Update();
-	/*
 	// check if a device must be updated
 	TDeviceMap::const_iterator itr = g_DeviceMap.begin();
 
-	while(itr != g_DeviceMap.end())
+	while(itr != g_DeviceMap.find(IPC_FIRST_FILEIO_ID))
 	{
-		if (itr->second->Update())
+		if (itr->second->IsOpened())
 		{
-			break;
+			if (itr->second->Update())
+				break;
 		}
 		++itr;
 	}
-	*/
 }
 
 

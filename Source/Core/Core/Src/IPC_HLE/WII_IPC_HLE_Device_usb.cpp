@@ -472,10 +472,10 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// or CPU will disconnect WiiMote automatically
 	// but don't send too many or it will jam the bus and cost extra CPU time
 	//
-	if (m_HCIBuffer.m_address && !WII_IPCInterface::GetAddress() && m_WiiMotes[0].IsConnected())
+	if (m_HCIBuffer.m_address && m_WiiMotes[0].IsConnected())
 	{
 		m_FreqDividerSync++;
-		if ((m_PacketCount > 0) || (m_FreqDividerSync > 30))	// Feel free to tweak it
+		if ((m_PacketCount > 0) || (m_FreqDividerSync > 60))	// Feel free to tweak it
 		{
 			m_FreqDividerSync = 0;
 			SendEventNumberOfCompletedPackets(m_WiiMotes[0].GetConnectionHandle(), m_PacketCount);
@@ -490,7 +490,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// Besides, decreasing its reporting frequency also brings us great FPS boost
 	// Now I am making it running at 1/100 frequency of IPC which is already fast enough for human input
 	// 
-	if (m_ACLBuffer.m_address && !WII_IPCInterface::GetAddress() && !m_LastCmd && m_WiiMotes[0].IsLinked())
+	if (m_ACLBuffer.m_address && !m_LastCmd && m_WiiMotes[0].IsLinked())
 	{
 		m_FreqDividerMote++;
 		if(m_FreqDividerMote > 99)	// Feel free to tweak it

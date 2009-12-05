@@ -76,7 +76,6 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress, bool _bForce)
 		fclose(m_Card);
 		m_Card = NULL;
 	}
-	m_Status = CARD_INSERTED;
 	m_BlockLength = 0;
 	m_BusWidth = 0;
 
@@ -167,7 +166,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 
 	case IOCTL_GETSTATUS:
 		INFO_LOG(WII_IPC_SD, "IOCTL_GETSTATUS. Replying that SD card is %s%s",
-			(m_Status & CARD_INSERTED) ? "inserted" : "",
+			(m_Status & CARD_INSERTED) ? "inserted" : "not exitsting",
 			(m_Status & CARD_INITIALIZED) ? " and initialized" : "");
 		Memory::Write_U32(m_Status, BufferOut);
 		break;
@@ -407,9 +406,12 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 			DEBUG_LOG(WII_IPC_SD, "SDHC_CAPABILITIES");
 			// SDHC 1.0 supports only 10-63 MHz.
 			// So of course we reply 63MHz :)
-			u8 mhz_units = 1 << 7;
-			u16 freq = 63 << 8;
-			u32 caps = freq | mhz_units;
+			u32 freq = (63 << 8) + (1 << 7) + 63;
+			// Only support 3.3V
+			u32 voltage = 1 << 24;
+			// High Speed support
+			u32 speed = 1 << 21;
+			u32 caps = freq | voltage | speed;
 			Memory::Write_U32(caps, _BufferOut);
 			break;
 		}

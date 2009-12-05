@@ -46,7 +46,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_usb_kbd::Close(u32 _CommandAddress, bool _bForce)
 {
-    INFO_LOG(WII_IPC_NET, "USB_KBD: Close");
+    INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Close");
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;

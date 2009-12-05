@@ -70,6 +70,7 @@ private:
 	// Status
 	enum
 	{
+		CARD_NOT_EXIST		= 0,
 		CARD_INSERTED		= 1,
 		CARD_INITIALIZED	= 0x10000,
 	};
