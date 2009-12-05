@@ -4,7 +4,6 @@ Import('env')
 
 files = [
 	'VideoConfig.cpp',
-	'GlobalControl.cpp',
 	'BPMemory.cpp',
 	'CPMemory.cpp',
 	'XFMemory.cpp',

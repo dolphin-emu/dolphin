@@ -23,7 +23,6 @@
 #include "Atomic.h"
 #include "Thread.h"
 #include "LogManager.h"
-#include "GlobalControl.h"
 #include "debugger/debugger.h"
 
 #if defined(HAVE_WX) && HAVE_WX

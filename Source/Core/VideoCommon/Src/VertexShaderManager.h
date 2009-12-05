@@ -20,6 +20,30 @@
 
 #include "VertexShaderGen.h"
 
+enum
+{
+	PROJECTION_HACK_NONE = 0,
+	PROJECTION_HACK_ZELDA_TP_BLOOM_HACK = 1,
+	PROJECTION_HACK_SONIC_AND_THE_BLACK_KNIGHT = 2,
+	PROJECTION_HACK_BLEACH_VERSUS_CRUSADE = 3,
+	PROJECTION_HACK_FINAL_FANTASY_CC_ECHO_OF_TIME = 4,
+	PROJECTION_HACK_HARVESTMOON_MM = 5,
+	PROJECTION_HACK_BATEN_KAITOS = 6,
+	PROJECTION_HACK_BATEN_KAITOS_ORIGIN = 7,
+	PROJECTION_HACK_SKIES_OF_ARCADIA = 8
+};
+
+struct ProjectionHack
+{
+	bool enabled;
+	float value;
+	ProjectionHack() { }
+	ProjectionHack(bool new_enabled, float new_value)
+		: enabled(new_enabled), value(new_value) {}
+};
+
+void UpdateProjectionHack(int hackIdx);
+
 // The non-API dependent parts.
 class VertexShaderManager
 {

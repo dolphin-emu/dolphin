@@ -28,7 +28,7 @@
 #include "../TextureMngr.h"
 #include "VertexShaderManager.h"
 #include "../PostProcessing.h"
-#include "GlobalControl.h"
+//#include "GlobalControl.h"
 #include "Render.h"
 
 #include "FileUtil.h"
