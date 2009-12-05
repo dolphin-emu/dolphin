@@ -55,16 +55,6 @@ static float s_fViewRotation[2];
 
 void UpdateViewport();
 
-// Projection Hacks
-void Projection_SetHack0(bool value);
-void Projection_SetHack1(ProjectionHack value);
-void Projection_SetHack2(ProjectionHack value);
-
-bool Projection_GetHack0();
-ProjectionHack Projection_GetHack1();
-ProjectionHack Projection_GetHack2();
-
-
 namespace
 {
 // Control Variables
@@ -73,41 +63,10 @@ static ProjectionHack g_ProjHack1;
 static ProjectionHack g_ProjHack2;
 } // Namespace
 
-
-void Projection_SetHack0(bool value)
-{
-	g_ProjHack0 = value;
-}
-
-void Projection_SetHack1(ProjectionHack value)
-{
-	g_ProjHack1 = value;
-}
-
-void Projection_SetHack2(ProjectionHack value)
-{
-	g_ProjHack2 = value;
-}
-
-bool Projection_GetHack0()
-{
-	return g_ProjHack0;
-}
-
-ProjectionHack Projection_GetHack1()
-{
-	return g_ProjHack1;
-}
-
-ProjectionHack Projection_GetHack2()
-{
-	return g_ProjHack2;
-}
-
 void UpdateProjectionHack(int iPhackvalue)
 {
-	bool bProjHack1=0, bPhackvalue1=0, bPhackvalue2=0;
-	float fhackvalue1=0, fhackvalue2=0;
+	bool bProjHack1 = 0, bPhackvalue1 = 0, bPhackvalue2 = 0;
+	float fhackvalue1 = 0, fhackvalue2 = 0;
 	switch(iPhackvalue)
 	{
 	case PROJECTION_HACK_NONE:
@@ -167,9 +126,9 @@ void UpdateProjectionHack(int iPhackvalue)
 	}
 
 	// Set the projections hacks
-	Projection_SetHack0(bProjHack1);
-	Projection_SetHack1(ProjectionHack(bPhackvalue1 == 0 ? false : true, fhackvalue1));
-	Projection_SetHack2(ProjectionHack(bPhackvalue2 == 0 ? false : true, fhackvalue2));
+	g_ProjHack0 = bProjHack1;
+	g_ProjHack1 = ProjectionHack(bPhackvalue1 == 0 ? false : true, fhackvalue1);
+	g_ProjHack2 = ProjectionHack(bPhackvalue2 == 0 ? false : true, fhackvalue2);
 }
 
 void VertexShaderManager::Init()
@@ -327,8 +286,9 @@ void VertexShaderManager::SetConstants()
         if (xfregs.rawProjection[6] == 0) 
 		{   
 			// Perspective
-			g_fProjectionMatrix[0] = (g_ActiveConfig.bWidescreenHack ? xfregs.rawProjection[0]*0.75f : xfregs.rawProjection[0]);
-            g_fProjectionMatrix[1] = 0.0f;
+			
+			g_fProjectionMatrix[0] = xfregs.rawProjection[0] * (g_ActiveConfig.bWidescreenHack ? 0.75f : 1.0f);
+			g_fProjectionMatrix[1] = 0.0f;
             g_fProjectionMatrix[2] = xfregs.rawProjection[1];
             g_fProjectionMatrix[3] = 0.0f;
 
@@ -369,11 +329,6 @@ void VertexShaderManager::SetConstants()
         }
         else 
 		{ 
-			// Get the hacks
-			ProjectionHack hack1 = Projection_GetHack1();
-			ProjectionHack hack2 = Projection_GetHack2();
-			bool hack0 = Projection_GetHack0();
-
 			// Orthographic Projection
             g_fProjectionMatrix[0] = xfregs.rawProjection[0];
             g_fProjectionMatrix[1] = 0.0f;
@@ -387,8 +342,8 @@ void VertexShaderManager::SetConstants()
 
             g_fProjectionMatrix[8] = 0.0f;
             g_fProjectionMatrix[9] = 0.0f;
-            g_fProjectionMatrix[10] = (hack1.enabled ? -(hack1.value + xfregs.rawProjection[4]) : xfregs.rawProjection[4]);   
-            g_fProjectionMatrix[11] = (hack2.enabled ? -(hack2.value + xfregs.rawProjection[5]) : xfregs.rawProjection[5]) + (hack0 ? 0.1f : 0.0f);
+            g_fProjectionMatrix[10] = (g_ProjHack1.enabled ? -(g_ProjHack1.value + xfregs.rawProjection[4]) : xfregs.rawProjection[4]);   
+            g_fProjectionMatrix[11] = (g_ProjHack2.enabled ? -(g_ProjHack2.value + xfregs.rawProjection[5]) : xfregs.rawProjection[5]) + (g_ProjHack0 ? 0.1f : 0.0f);
             
             g_fProjectionMatrix[12] = 0.0f;
             g_fProjectionMatrix[13] = 0.0f;
