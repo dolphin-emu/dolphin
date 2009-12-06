@@ -555,7 +555,7 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 void TiltWiimoteKeyboard(int &Roll, int &Pitch)
 {
 #ifdef _WIN32
-	// Direct map keyboard pitch to roll
+	// Direct map keyboard pitch left/right to swing left/right
 	if (g_Config.Trigger.Range.Roll == 0 && g_Config.Trigger.Range.Pitch == 0)
 	{
 		if (IsKey(g_Wiimote_kbd.PITCH_L))

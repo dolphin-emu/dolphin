@@ -92,27 +92,27 @@ void AdjustAngles(int &Roll, int &Pitch)
 void PitchDegreeToAccelerometer(int Roll, int Pitch, u8 &_x, u8 &_y, u8 &_z)
 {
 	// Direct mapping from analog stick to x/y accelerometer
-	if (g_Config.Trigger.Range.Pitch == 0 && g_Config.Trigger.Range.Roll == 0)
+	if (g_Config.Trigger.Range.Roll == 0 && g_Config.Trigger.Range.Pitch == 0)
 	{
 		if (abs(Roll) <= abs(g_wm.cal_g.x))
 			Roll = 0;
-		if (abs(Pitch) <= abs(g_wm.cal_g.y))
+		if (abs(Pitch) <= abs(g_wm.cal_g.z))
 			Pitch = 0;
 		int ix = g_wm.cal_zero.x + Roll;
-		int iy = g_wm.cal_zero.y + Pitch;
+		int iz = g_wm.cal_zero.z + g_wm.cal_g.z + Pitch;
 		if (ix > 0xFF)	ix = 0xFF;
 		if (ix < 0x00)	ix = 0x00;
-		if (iy > 0xFF)	iy = 0xFF;
-		if (iy < 0x00)	iy = 0x00;
+		if (iz > 0xFF)	iz = 0xFF;
+		if (iz < 0x00)	iz = 0x00;
 		if (!g_Config.Trigger.Upright)
 		{
 			_x = ix;
-			_y = iy;
+			_z = iz;
 		}
 		else
 		{
 			_x = ix;
-			_z = iy;
+			_y = iz;
 		}
 		return;
 	}

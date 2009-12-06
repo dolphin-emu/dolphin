@@ -137,6 +137,8 @@ void WiimotePadConfigDialog::UpdateGUIButtonMapping(int controller)
 	m_ComboDeadZoneRight[controller]->SetSelection(WiiMoteEmu::PadMapping[controller].DeadZoneR);
 	m_ComboDiagonal[controller]->SetValue(wxString::FromAscii(WiiMoteEmu::PadMapping[controller].SDiagonal.c_str()));
 	m_CheckC2S[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bCircle2Square);
+	m_CheckRumble[controller]->SetValue(WiiMoteEmu::PadMapping[controller].Rumble);
+	m_RumbleStrength[controller]->SetSelection(WiiMoteEmu::PadMapping[controller].RumbleStrength);
 	m_TiltInvertRoll[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bRollInvert);
 	m_TiltInvertPitch[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bPitchInvert);
 
@@ -224,6 +226,8 @@ void WiimotePadConfigDialog::SaveButtonMapping(int controller, bool DontChangeId
 		WiiMoteEmu::PadMapping[controller].enabled = true; //m_Joyattach[FromSlot]->GetValue(); // Only enable one
 	// Set other settings
 	//WiiMoteEmu::PadMapping[controller].controllertype = m_ControlType[FromSlot]->GetSelection();
+	WiiMoteEmu::PadMapping[controller].Rumble = m_CheckRumble[FromSlot]->IsChecked();
+	WiiMoteEmu::PadMapping[controller].RumbleStrength = m_RumbleStrength[FromSlot]->GetSelection();
 	WiiMoteEmu::PadMapping[controller].triggertype = m_TriggerType[FromSlot]->GetSelection();
 	WiiMoteEmu::PadMapping[controller].DeadZoneL = m_ComboDeadZoneLeft[FromSlot]->GetSelection();
 	WiiMoteEmu::PadMapping[controller].DeadZoneR = m_ComboDeadZoneRight[FromSlot]->GetSelection();

@@ -34,7 +34,9 @@ BEGIN_EVENT_TABLE(WiimotePadConfigDialog,wxDialog)
 	EVT_BUTTON(ID_CLOSE, WiimotePadConfigDialog::CloseClick)
 	EVT_BUTTON(ID_APPLY, WiimotePadConfigDialog::CloseClick)
 
-	EVT_COMBOBOX(IDC_JOYNAME, WiimotePadConfigDialog::GeneralSettingsChanged)	
+	EVT_COMBOBOX(IDC_JOYNAME, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(IDC_RUMBLE, WiimotePadConfigDialog::GeneralSettingsChanged)
+	EVT_COMBOBOX(IDC_RUMBLE_STRENGTH, WiimotePadConfigDialog::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_TRIGGER_TYPE, WiimotePadConfigDialog::GeneralSettingsChanged)	
 	EVT_COMBOBOX(ID_TILT_INPUT, WiimotePadConfigDialog::GeneralSettingsChanged)	
 	EVT_COMBOBOX(ID_TILT_RANGE_ROLL, WiimotePadConfigDialog::GeneralSettingsChanged)
@@ -370,6 +372,21 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 	for (int i = 1; i < 37; i++)
 		StrTiltRangePitch.Add(wxString::Format(wxT("%i"), i*5));
 
+	wxArrayString TextDeadZone;
+	for (int i = 0; i <= 50; i++)
+		TextDeadZone.Add(wxString::Format(wxT("%i%%"), i));
+
+	wxArrayString StrRumble;
+	for (int i = 0; i <= 10; i++)
+		StrRumble.Add(wxString::Format(wxT("%i%%"), i*10));
+
+	wxArrayString asStatusInSet;
+		asStatusInSet.Add(wxT("100%"));
+		asStatusInSet.Add(wxT("95%"));
+		asStatusInSet.Add(wxT("90%"));
+		asStatusInSet.Add(wxT("85%"));
+		asStatusInSet.Add(wxT("80%"));
+
 	// The Trigger type list
 	wxArrayString StrTriggerType;
 	StrTriggerType.Add(wxString::FromAscii("SDL")); // -0x8000 to 0x7fff
@@ -400,7 +417,6 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		// Configuration controls sizes
 		static const int TxtW = 50, TxtH = 19, BtW = 75, BtH = 20;
 
-
 		// Controller
 		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(200, -1), StrJoyname, wxCB_READONLY);
 	
@@ -409,20 +425,17 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 
 		// The drop down menu for the circle to square adjustment
 		m_CheckC2SLabel[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Diagonal"));
-		wxArrayString asStatusInSet;
-			asStatusInSet.Add(wxT("100%"));
-			asStatusInSet.Add(wxT("95%"));
-			asStatusInSet.Add(wxT("90%"));
-			asStatusInSet.Add(wxT("85%"));
-			asStatusInSet.Add(wxT("80%"));
-		m_ComboDiagonal[i] = new wxComboBox(m_Controller[i], IDCB_LEFT_DIAGONAL, asStatusInSet[0], wxDefaultPosition, wxSize(75, -1), asStatusInSet, wxCB_READONLY);
+
+		m_ComboDiagonal[i] = new wxComboBox(m_Controller[i], IDCB_LEFT_DIAGONAL, asStatusInSet[0], wxDefaultPosition, wxSize(50, -1), asStatusInSet, wxCB_READONLY);
+
+		m_CheckRumble[i] = new wxCheckBox(m_Controller[i], IDC_RUMBLE, wxT("Rumble"));
+		m_RumbleStrengthLabel[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Strength"));
+		m_RumbleStrength[i] = new wxComboBox(m_Controller[i], IDC_RUMBLE_STRENGTH, StrRumble[0], wxDefaultPosition, wxSize(50, -1), StrRumble, wxCB_READONLY);
 
 		// Dead zone
 		m_ComboDeadZoneLabel[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Dead Zone"));
-		wxArrayString TextDeadZone;
-		for (int j = 0; j <= 50; j++) TextDeadZone.Add(wxString::Format(wxT("%i%%"), j));
-		m_ComboDeadZoneLeft[i] = new wxComboBox(m_Controller[i], IDCB_DEAD_ZONE_LEFT, TextDeadZone[0], wxDefaultPosition,  wxSize(70, -1), TextDeadZone, wxCB_READONLY);
-		m_ComboDeadZoneRight[i] = new wxComboBox(m_Controller[i], IDCB_DEAD_ZONE_RIGHT, TextDeadZone[0], wxDefaultPosition,  wxSize(70, -1), TextDeadZone, wxCB_READONLY);
+		m_ComboDeadZoneLeft[i] = new wxComboBox(m_Controller[i], IDCB_DEAD_ZONE_LEFT, TextDeadZone[0], wxDefaultPosition,  wxSize(50, -1), TextDeadZone, wxCB_READONLY);
+		m_ComboDeadZoneRight[i] = new wxComboBox(m_Controller[i], IDCB_DEAD_ZONE_RIGHT, TextDeadZone[0], wxDefaultPosition,  wxSize(50, -1), TextDeadZone, wxCB_READONLY);
 
 		// Tooltips
 		m_Joyname[i]->SetToolTip(wxT("Save your settings and configure another joypad"));
@@ -433,10 +446,11 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 			wxT("\nyour diagonal values here from what is shown in the 'In' window."));
 
 		// Sizers
-		m_gDeadZone[i] = new wxBoxSizer(wxVERTICAL);
 		m_gDeadZoneHoriz[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_gDeadZoneHoriz[i]->Add(m_ComboDeadZoneLeft[i], 0, (wxUP), 0);
 		m_gDeadZoneHoriz[i]->Add(m_ComboDeadZoneRight[i], 0, (wxUP), 0);
+
+		m_gDeadZone[i] = new wxBoxSizer(wxVERTICAL);
 		m_gDeadZone[i]->Add(m_ComboDeadZoneLabel[i], 0, wxALIGN_CENTER | (wxUP), 0);	
 		m_gDeadZone[i]->Add(m_gDeadZoneHoriz[i], 0, wxALIGN_CENTER | (wxUP), 2);
 
@@ -452,12 +466,20 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_gC2SDeadZone[i]->Add(m_gDeadZone[i], 0, (wxUP), 0);
 		m_gC2SDeadZone[i]->Add(m_gCircle2SquareVert[i], 0, (wxLEFT), 8);
 
-		m_gJoyname[i] = new wxStaticBoxSizer (wxVERTICAL, m_Controller[i], wxT("Gamepad"));
-		m_gJoyname[i]->AddStretchSpacer();
-		m_gJoyname[i]->Add(m_Joyname[i], 0, wxALIGN_CENTER | (wxLEFT | wxRIGHT | wxDOWN), 5);
-		m_gJoyname[i]->Add(m_gC2SDeadZone[i], 0, wxALIGN_CENTER | (wxLEFT | wxRIGHT | wxDOWN), 5);
-		m_gJoyname[i]->AddStretchSpacer();
+		m_gJoyname[i] = new wxBoxSizer(wxVERTICAL);
+		m_gJoyname[i]->Add(m_Joyname[i], 0, wxALIGN_CENTER | (wxUP | wxDOWN), 4);
+		m_gJoyname[i]->Add(m_gC2SDeadZone[i], 0, (wxUP | wxDOWN), 4);
 
+		m_gRumble[i] = new wxBoxSizer(wxVERTICAL);
+		m_gRumble[i]->Add(m_CheckRumble[i], 0, wxALIGN_CENTER | (wxUP | wxDOWN), 8);
+		m_gRumble[i]->Add(m_RumbleStrengthLabel[i], 0, wxALIGN_CENTER | (wxUP), 4);
+		m_gRumble[i]->Add(m_RumbleStrength[i], 0, (wxUP | wxDOWN), 2);
+
+		m_gJoyPad[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Gamepad"));
+		m_gJoyPad[i]->AddStretchSpacer();
+		m_gJoyPad[i]->Add(m_gJoyname[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+		m_gJoyPad[i]->Add(m_gRumble[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+		m_gJoyPad[i]->AddStretchSpacer();
 
 		// Tilt Wiimote
 
@@ -520,7 +542,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_bAnalogTriggerL[i] = new wxButton(m_Controller[i], IDB_TRIGGER_L, wxEmptyString, wxDefaultPosition, wxSize(21, 14));
 		m_bAnalogTriggerR[i] = new wxButton(m_Controller[i], IDB_TRIGGER_R, wxEmptyString, wxDefaultPosition, wxSize(21, 14));
 
-		m_TriggerType[i] = new wxComboBox(m_Controller[i], ID_TRIGGER_TYPE, StrTriggerType[0], wxDefaultPosition,  wxSize(75, -1), StrTriggerType, wxCB_READONLY);
+		m_TriggerType[i] = new wxComboBox(m_Controller[i], ID_TRIGGER_TYPE, StrTriggerType[0], wxDefaultPosition,  wxSize(70, -1), StrTriggerType, wxCB_READONLY);
 
 		m_SizeAnalogTriggerStatusBox[i] = new wxGridBagSizer(0, 0);
 		m_SizeAnalogTriggerHorizConfig[i] = new wxGridBagSizer(0, 0);	
@@ -559,7 +581,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 
 		// Row 2 Sizers: Connected pads, tilt, triggers
 		m_HorizControllerTilt[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_HorizControllerTilt[i]->Add(m_gJoyname[i], 0, wxALIGN_CENTER | wxEXPAND, 0);
+		m_HorizControllerTilt[i]->Add(m_gJoyPad[i], 0, wxEXPAND | (wxLEFT), 5);
 		m_HorizControllerTilt[i]->Add(m_gTilt[i], 0, wxEXPAND | (wxLEFT), 5);
 		m_HorizControllerTilt[i]->Add(m_gTrigger[i], 0, wxEXPAND | (wxLEFT), 5);
 
@@ -1022,7 +1044,7 @@ void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 			m_TiltComboRangePitch[Page]->GetValue().ToLong(&TmpValue);
 			g_Config.Trigger.Range.Pitch = TmpValue;
 		}
-		break;
+		break;;
 	case IDC_JOYNAME:
 		DoChangeJoystick();
 		break;
@@ -1043,6 +1065,8 @@ void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 
 	// These are defined in PadMapping and we can run the same function to update all of them
+	case IDC_RUMBLE:
+	case IDC_RUMBLE_STRENGTH:
 	case IDCB_LEFT_DIAGONAL:
 	case IDC_LEFT_C2S:
 	case ID_TILT_INVERT_ROLL:
@@ -1073,6 +1097,8 @@ void WiimotePadConfigDialog::UpdateGUI(int Slot)
 		#ifdef _WIN32
 			for(int i = IDB_ANALOG_LEFT_X; i <= IDB_TRIGGER_R; i++) m_Notebook->FindItem(i)->Enable(PadEnabled);
 			m_Notebook->FindItem(IDC_JOYNAME)->Enable(PadEnabled);
+			m_Notebook->FindItem(IDC_RUMBLE)->Enable(PadEnabled);
+			m_Notebook->FindItem(IDC_RUMBLE_STRENGTH)->Enable(PadEnabled);
 			m_Notebook->FindItem(IDC_LEFT_C2S)->Enable(PadEnabled);
 			m_Notebook->FindItem(IDCB_LEFT_DIAGONAL)->Enable(PadEnabled);
 			m_Notebook->FindItem(IDCB_DEAD_ZONE_LEFT)->Enable(PadEnabled);

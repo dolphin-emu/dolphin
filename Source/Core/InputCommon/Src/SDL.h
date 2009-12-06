@@ -217,6 +217,8 @@ struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 	PadClassicController Cc;
 	PadGH3Controller GH3c;
 	bool enabled;			// Pad attached?
+	bool Rumble;
+	int RumbleStrength;
 	int DeadZoneL;			// Analog 1 Deadzone
 	int DeadZoneR;			// Analog 2 Deadzone
 	int ID;					// SDL joystick device ID

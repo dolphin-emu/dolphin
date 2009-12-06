@@ -315,6 +315,8 @@ void Config::Load(bool ChangePad)
 		// Create a section name			
 		std::string joySectionName = WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name;
 
+		iniFile.Get(joySectionName.c_str(), "Rumble", &WiiMoteEmu::PadMapping[i].Rumble, true);
+		iniFile.Get(joySectionName.c_str(), "RumbleStrength", &WiiMoteEmu::PadMapping[i].RumbleStrength, 10);
 		iniFile.Get(joySectionName.c_str(), "left_x", &WiiMoteEmu::PadMapping[i].Axis.Lx, 0);
 		iniFile.Get(joySectionName.c_str(), "left_y", &WiiMoteEmu::PadMapping[i].Axis.Ly, 1);
 		iniFile.Get(joySectionName.c_str(), "right_x", &WiiMoteEmu::PadMapping[i].Axis.Rx, 2);
@@ -374,7 +376,7 @@ void Config::Save(int Slot)
 		sprintf(SectionName, "Wiimote%i", i + 1);
 
 		iniFile.Set(SectionName, "Enabled", WiiMoteEmu::PadMapping[i].enabled);
-		iniFile.Set(SectionName, "NoTriggerFilter", bNoTriggerFilter);		
+		iniFile.Set(SectionName, "NoTriggerFilter", bNoTriggerFilter);
 		iniFile.Set(SectionName, "TriggerType", Trigger.Type);
 		iniFile.Set(SectionName, "TriggerUpright", Trigger.Upright);
 		iniFile.Set(SectionName, "TriggerRollRange", Trigger.Range.Roll);
@@ -414,6 +416,8 @@ void Config::Save(int Slot)
 		// Create a new section name after the joypad name
 		std::string joySectionName = WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name;
 
+		iniFile.Set(joySectionName.c_str(), "Rumble", WiiMoteEmu::PadMapping[i].Rumble);
+		iniFile.Set(joySectionName.c_str(), "RumbleStrength", WiiMoteEmu::PadMapping[i].RumbleStrength);
 		iniFile.Set(joySectionName.c_str(), "left_x", WiiMoteEmu::PadMapping[i].Axis.Lx);
 		iniFile.Set(joySectionName.c_str(), "left_y", WiiMoteEmu::PadMapping[i].Axis.Ly);
 		iniFile.Set(joySectionName.c_str(), "right_x", WiiMoteEmu::PadMapping[i].Axis.Rx);

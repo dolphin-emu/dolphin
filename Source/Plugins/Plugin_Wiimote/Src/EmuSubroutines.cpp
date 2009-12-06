@@ -46,6 +46,8 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 namespace WiiMoteEmu
 {
 
+extern void PAD_Rumble(u8 _numPAD, unsigned int _uType);
+
 /* Here we process the Output Reports that the Wii sends. Our response will be
    an Input Report back to the Wii. Input and Output is from the Wii's
    perspective, Output means data to the Wiimote (from the Wii), Input means
@@ -67,9 +69,12 @@ void HidOutputReport(u16 _channelID, wm_report* sr)
 	switch(sr->wm)
 	{
 	case WM_RUMBLE: // 0x10
-		// TODO: Implement rumble
+	{
+		// TODO: need more accurate rumble
+		const int Page = 0;
+		PAD_Rumble(Page, sr->data[0]);
 		break;
-
+	}
 	case WM_LEDS: // 0x11
 		WmLeds(_channelID, (wm_leds*)sr->data);
 		break;
