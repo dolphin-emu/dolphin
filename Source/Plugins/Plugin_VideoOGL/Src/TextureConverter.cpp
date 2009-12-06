@@ -28,6 +28,7 @@
 #include "VideoConfig.h"
 #include "ImageWrite.h"
 #include "Render.h"
+#include <math.h>
 
 namespace TextureConverter
 {
