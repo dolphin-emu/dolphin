@@ -153,10 +153,6 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_UseRealWiimote[i]->SetToolTip(wxT("Use the real Wiimote in the game. This can be changed during gameplay. This can not be selected")
 			wxT(" when a recording is to be done. No status in this window will be updated when this is checked."));
 
-		m_SizeReal[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Real Wiimote"));
-		m_SizeReal[i]->Add(m_ConnectRealWiimote[i], 0, wxEXPAND | wxALL, 5);
-		m_SizeReal[i]->Add(m_UseRealWiimote[i], 0, wxEXPAND | wxALL, 5);
-
 		m_WiiMotionPlusConnected[i] = new wxCheckBox(m_Controller[i], ID_MOTIONPLUSCONNECTED, wxT("Wii Motion Plus Connected"));
 		m_WiiMotionPlusConnected[i]->SetValue(g_Config.bMotionPlusConnected);
 		m_WiiMotionPlusConnected[i]->Enable(false);
@@ -173,29 +169,19 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		extensionChoice[i] = new wxChoice(m_Controller[i], ID_EXTCONNECTED, wxDefaultPosition, wxDefaultSize, arrayStringFor_extension, 0, wxDefaultValidator);
 		extensionChoice[i]->SetSelection(0);
 
-		m_SizeExtensions[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Extension(s)"));
-		m_SizeExtensions[i]->Add(m_WiiMotionPlusConnected[i], 0, wxEXPAND | wxALL, 5);
-		m_SizeExtensions[i]->Add(extensionChoice[i], 0, wxEXPAND | wxALL, 5);
-
-		m_SizeBasicGeneralLeft[i] = new wxBoxSizer(wxVERTICAL);
-		m_SizeBasicGeneralLeft[i]->Add(m_SizeReal[i], 0, wxEXPAND | wxALL, 5);
-		m_SizeBasicGeneralLeft[i]->Add(m_SizeExtensions[i], 0, wxEXPAND | wxALL, 5);
-
 		// Basic Settings
 		m_WiimoteOnline[i] = new wxCheckBox(m_Controller[i], IDC_WIMOTE_ON, wxT("Wiimote On"));
 		m_WiimoteOnline[i]->SetValue(true);
 		m_WiimoteOnline[i]->Enable(false);
 		m_WiimoteOnline[i]->SetToolTip(wxString::Format(wxT("Decide if Wiimote %i shall be detected by the game"), i));
 
-		m_SizeBasic[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("General Settings"));
-		m_SizeBasic[i]->Add(m_WiimoteOnline[i], 0, wxEXPAND | wxALL, 5);
-
 		// Emulated Wiimote
-		m_SidewaysDPad[i] = new wxCheckBox(m_Controller[i], ID_SIDEWAYSDPAD, wxT("Sideways D-Pad"));
+		m_SidewaysDPad[i] = new wxCheckBox(m_Controller[i], ID_SIDEWAYSDPAD, wxT("Sideways Wiimote"));
 		m_SidewaysDPad[i]->SetValue(g_Config.bSidewaysDPad);
+		m_SidewaysDPad[i]->SetToolTip(wxT("Treat the sideways position as neutral"));
 		m_UprightWiimote[i] = new wxCheckBox(m_Controller[i], ID_UPRIGHTWIIMOTE, wxT("Upright Wiimote"));
 		m_UprightWiimote[i]->SetValue(g_Config.Trigger.Upright);
-		m_UprightWiimote[i]->SetToolTip(wxT("Treat the upright position as neutral for roll and pitch"));
+		m_UprightWiimote[i]->SetToolTip(wxT("Treat the upright position as neutral"));
 
 		//IR Pointer
 		m_TextScreenWidth[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Width: 000"));
@@ -207,17 +193,6 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_SliderHeight[i] = new wxSlider(m_Controller[i], IDS_HEIGHT, 0, 0, 727, wxDefaultPosition, wxSize(75, -1));
 		m_SliderLeft[i] = new wxSlider(m_Controller[i], IDS_LEFT, 0, 100, 500, wxDefaultPosition, wxSize(75, -1));
 		m_SliderTop[i] = new wxSlider(m_Controller[i], IDS_TOP, 0, 0, 500, wxDefaultPosition, wxSize(75, -1));
-
-		m_SizerIRPointerWidth[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_SizerIRPointerWidth[i]->Add(m_TextScreenLeft[i], 0, wxEXPAND | (wxTOP), 3);
-		m_SizerIRPointerWidth[i]->Add(m_SliderLeft[i], 0, wxEXPAND | (wxRIGHT), 0);
-		m_SizerIRPointerWidth[i]->Add(m_TextScreenWidth[i], 0, wxEXPAND | (wxTOP), 3);
-		m_SizerIRPointerWidth[i]->Add(m_SliderWidth[i], 0, wxEXPAND | (wxLEFT), 0);
-		m_SizerIRPointerHeight[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_SizerIRPointerHeight[i]->Add(m_TextScreenTop[i], 0, wxEXPAND | (wxTOP), 3);
-		m_SizerIRPointerHeight[i]->Add(m_SliderTop[i], 0, wxEXPAND | (wxRIGHT), 0);
-		m_SizerIRPointerHeight[i]->Add(m_TextScreenHeight[i], 0, wxEXPAND | (wxTOP), 3);
-		m_SizerIRPointerHeight[i]->Add(m_SliderHeight[i], 0, wxEXPAND | (wxLEFT), 0);
 
 		//m_ScreenSize = new wxCheckBox(m_Controller[i], IDC_SCREEN_SIZE, wxT("Adjust screen size and position"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 		//m_ScreenSize[i]->SetToolTip(wxT("Use the adjusted screen size."));
@@ -232,16 +207,36 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_CheckAR169[i]->SetValue(g_Config.bKeepAR169);
 		m_Crop[i]->SetValue(g_Config.bCrop);
 
-		m_TextAR[i]->Enable(false);
 		m_CheckAR43[i]->Enable(false);
 		m_CheckAR169[i]->Enable(false);
 		m_Crop[i]->Enable(false);
 
 		// Sizers
+		m_SizeBasic[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("General Settings"));
+		m_SizeBasic[i]->Add(m_WiimoteOnline[i], 0, wxEXPAND | wxALL, 5);
 
-		m_SizeEmu[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Wiimote"));
+		m_SizeEmu[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Position"));
 		m_SizeEmu[i]->Add(m_SidewaysDPad[i], 0, wxEXPAND | wxALL, 5);
 		m_SizeEmu[i]->Add(m_UprightWiimote[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+
+		m_SizeExtensions[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Extension"));
+		m_SizeExtensions[i]->Add(m_WiiMotionPlusConnected[i], 0, wxEXPAND | wxALL, 5);
+		m_SizeExtensions[i]->Add(extensionChoice[i], 0, wxEXPAND | wxALL, 5);
+
+		m_SizeReal[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Real Wiimote"));
+		m_SizeReal[i]->Add(m_ConnectRealWiimote[i], 0, wxEXPAND | wxALL, 5);
+		m_SizeReal[i]->Add(m_UseRealWiimote[i], 0, wxEXPAND | wxALL, 5);
+
+		m_SizerIRPointerWidth[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SizerIRPointerWidth[i]->Add(m_TextScreenLeft[i], 0, wxEXPAND | (wxTOP), 3);
+		m_SizerIRPointerWidth[i]->Add(m_SliderLeft[i], 0, wxEXPAND | (wxRIGHT), 0);
+		m_SizerIRPointerWidth[i]->Add(m_TextScreenWidth[i], 0, wxEXPAND | (wxTOP), 3);
+		m_SizerIRPointerWidth[i]->Add(m_SliderWidth[i], 0, wxEXPAND | (wxLEFT), 0);
+		m_SizerIRPointerHeight[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SizerIRPointerHeight[i]->Add(m_TextScreenTop[i], 0, wxEXPAND | (wxTOP), 3);
+		m_SizerIRPointerHeight[i]->Add(m_SliderTop[i], 0, wxEXPAND | (wxRIGHT), 0);
+		m_SizerIRPointerHeight[i]->Add(m_TextScreenHeight[i], 0, wxEXPAND | (wxTOP), 3);
+		m_SizerIRPointerHeight[i]->Add(m_SliderHeight[i], 0, wxEXPAND | (wxLEFT), 0);
 
 		m_SizerIRPointerScreen[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SizerIRPointerScreen[i]->Add(m_TextAR[i], 0, wxEXPAND | (wxTOP), 0);
@@ -249,15 +244,18 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_SizerIRPointerScreen[i]->Add(m_CheckAR169[i], 0, wxEXPAND | (wxLEFT), 5);
 		m_SizerIRPointerScreen[i]->Add(m_Crop[i], 0, wxEXPAND | (wxLEFT), 5);
 
-		m_SizerIRPointer[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("IR pointer"));
-		//m_SizerIRPointer[i]->Add(m_ScreenSize[i], 0, wxEXPAND | (wxALL), 5);
+		m_SizerIRPointer[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("IR Pointer"));
 		m_SizerIRPointer[i]->Add(m_SizerIRPointerWidth[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
 		m_SizerIRPointer[i]->Add(m_SizerIRPointerHeight[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
-		m_SizerIRPointer[i]->Add(m_SizerIRPointerScreen[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+		m_SizerIRPointer[i]->Add(m_SizerIRPointerScreen[i], 0, wxALIGN_CENTER | (wxUP | wxDOWN), 10);
+
+		m_SizeBasicGeneralLeft[i] = new wxBoxSizer(wxVERTICAL);
+		m_SizeBasicGeneralLeft[i]->Add(m_SizeBasic[i], 0, wxEXPAND | (wxUP), 5);
+		m_SizeBasicGeneralLeft[i]->Add(m_SizeEmu[i], 0, wxEXPAND | (wxUP), 5);
+		m_SizeBasicGeneralLeft[i]->Add(m_SizeExtensions[i], 0, wxEXPAND | (wxUP), 5);
 
 		m_SizeBasicGeneralRight[i] = new wxBoxSizer(wxVERTICAL);
-		m_SizeBasicGeneralRight[i]->Add(m_SizeBasic[i], 0, wxEXPAND | (wxUP), 0);
-		m_SizeBasicGeneralRight[i]->Add(m_SizeEmu[i], 0, wxEXPAND | (wxUP), 5);
+		m_SizeBasicGeneralRight[i]->Add(m_SizeReal[i], 0, wxEXPAND | (wxUP), 5);
 		m_SizeBasicGeneralRight[i]->Add(m_SizerIRPointer[i], 0, wxEXPAND | (wxUP), 5);
 
 		m_SizeBasicGeneral[i] = new wxBoxSizer(wxHORIZONTAL);

@@ -38,6 +38,9 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu
 {
+
+extern void PAD_Rumble(u8 _numPAD, unsigned int _uType);
+
 /* Bit shift conversions */
 u32 convert24bit(const u8* src) {
 	return (src[0] << 16) | (src[1] << 8) | src[2];
@@ -513,6 +516,7 @@ void Shutdown(void)
 			if (joyinfo.at(PadMapping[i].ID).Good)
 			{
 				INFO_LOG(WIIMOTE, "ShutDown: %i", PadState[i].joy);
+				PAD_Rumble(i, false);
 				/* SDL_JoystickClose() crashes for some reason so I avoid this
 				   for now, SDL_Quit() should close the pads to I think */
 				//if(SDL_JoystickOpened(PadMapping[i].ID)) SDL_JoystickClose(PadState[i].joy);

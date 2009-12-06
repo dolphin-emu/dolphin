@@ -129,7 +129,9 @@ void HidOutputReport(u16 _channelID, wm_report* sr)
 	
 	// Send general feedback except the following types
 	// as these ones generate their own feedbacks
-	if ((sr->wm != WM_READ_DATA)
+	// or don't send feedbacks
+	if ((sr->wm != WM_RUMBLE)
+			&& (sr->wm != WM_READ_DATA) 
 			&& (sr->wm != WM_REQUEST_STATUS)
 			&& (sr->wm != WM_WRITE_SPEAKER_DATA)
 		)

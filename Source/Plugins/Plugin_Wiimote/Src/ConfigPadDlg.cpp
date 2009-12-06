@@ -487,8 +487,8 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_TiltComboInput[i] = new wxComboBox(m_Controller[i], ID_TILT_INPUT, StrTilt[0], wxDefaultPosition,  wxSize(100, -1), StrTilt, wxCB_READONLY);
 		m_TiltComboRangeRoll[i] = new wxComboBox(m_Controller[i], ID_TILT_RANGE_ROLL, StrTiltRangeRoll[0], wxDefaultPosition,  wxSize(75, -1), StrTiltRangeRoll, wxCB_READONLY);
 		m_TiltComboRangePitch[i] = new wxComboBox(m_Controller[i], ID_TILT_RANGE_PITCH, StrTiltRangePitch[0], wxDefaultPosition,  wxSize(75, -1), StrTiltRangePitch, wxCB_READONLY);
-		m_TiltTextRoll[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Roll"));
-		m_TiltTextPitch[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Pitch"));
+		m_TiltTextRoll[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Roll L/R"));
+		m_TiltTextPitch[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Pitch U/D"));
 		m_TiltInvertRoll[i] = new wxCheckBox(m_Controller[i], ID_TILT_INVERT_ROLL, wxT("Invert"));
 		m_TiltInvertPitch[i] = new wxCheckBox(m_Controller[i], ID_TILT_INVERT_PITCH, wxT("Invert"));
 
@@ -505,7 +505,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		// For additional padding options if needed
 		//m_TiltHoriz[i] = new wxBoxSizer(wxHORIZONTAL);
 
-		m_gTilt[i] = new wxStaticBoxSizer (wxVERTICAL, m_Controller[i], wxT("Roll and pitch"));
+		m_gTilt[i] = new wxStaticBoxSizer (wxVERTICAL, m_Controller[i], wxT("Tilt and Swing"));
 		m_gTilt[i]->AddStretchSpacer();
 		m_gTilt[i]->Add(m_TiltComboInput[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 		m_gTilt[i]->Add(m_TiltGrid[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);

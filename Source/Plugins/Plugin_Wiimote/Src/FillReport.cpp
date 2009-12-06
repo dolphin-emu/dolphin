@@ -414,15 +414,26 @@ void FillReportInfo(wm_core& _core)
    source. The extremes are 0x00 for (-) and 0xff for (+). It's important that
    all values are not 0x80, the mouse pointer can disappear from the screen
    permanently then, until z is adjusted back. This is because the game detects
-   a steep pitch of the Wiimote then. */
+   a steep pitch of the Wiimote then.
 
+Wiimote Accelerometer Axes
+
++ (- -- X -- +)
+|      ___  
+|     |   |\  -
+|     | + ||   \ 
+      | . ||    \
+Y     |. .||     Z
+      | . ||      \
+|     | . ||       \
+|     |___||        +
+-       ---
+
+*/
 
 // Global declarations for FillReportAcc: These variables are global so they
 //can be changed during debugging int A = 0, B = 128, C = 64; // for debugging
 //int a = 1, b = 1, c = 2, d = -2; // for debugging int consoleDisplay = 0;
-
-// For all functions
-u8 g_x, g_y, g_z, g_X, g_Y, g_Z;
 
 // For the shake function, Wiimote: wm = 0, Nunchuck: wm = 1
 int Shake[] = {0, 0};
@@ -431,9 +442,8 @@ int Shake[] = {0, 0};
 std::vector<u8> yhist(15, 0);
 int KbDegree;
 
-
 // Single shake of all three directions
-void SingleShake(u8 &_x, u8 &_y, u8 &_z, int wm)
+void SingleShake(int &_x, int &_y, int &_z, int wm)
 {
 #ifdef _WIN32
 	if (Shake[wm] == 0)
@@ -472,9 +482,6 @@ void SingleShake(u8 &_x, u8 &_y, u8 &_z, int wm)
 		break;
 	default:
 		Shake[wm] = -1;
-		_x = g_wm.cal_zero.x;
-		_y = g_wm.cal_zero.y;
-		_z = g_wm.cal_zero.z + g_wm.cal_g.z;
 		break;
 	}
 	Shake[wm]++;
@@ -504,8 +511,8 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 	PadStateAdjustments(Lx, Ly, Rx, Ry, Tl, Tr);
 
 	// Save the Range in degrees, 45 and 90 are good values in some games
-	int RollRange = g_Config.Trigger.Range.Roll;
-	int PitchRange = g_Config.Trigger.Range.Pitch;
+	int &RollRange = g_Config.Trigger.Range.Roll;
+	int &PitchRange = g_Config.Trigger.Range.Pitch;
 
 	// The trigger currently only controls pitch
 	if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER)
@@ -516,8 +523,7 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 		// Invert
 		if (PadMapping[Page].bPitchInvert) { Tl = -Tl; Tr = -Tr; }
 		// The final value
-		Pitch = Tl * ((float)PitchRange / 128.0)
-			- Tr * ((float)PitchRange / 128.0);
+		Pitch = PitchRange * ((float)(Tl - Tr) / 128.0);
 	}
 
 	/* For the analog stick roll is by default set to the X-axis, pitch is by
@@ -526,8 +532,8 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 	else if (g_Config.Trigger.Type == g_Config.Trigger.ANALOG1)
 	{
 		// Adjust the trigger to go between negative and positive values
-		Lx = Lx - 128;
-		Ly = Ly - 128;
+		Lx = Lx - 0x80;
+		Ly = Ly - 0x80;
 		// Invert
 		if (PadMapping[Page].bRollInvert) Lx = -Lx; // else Tr = -Tr;
 		if (PadMapping[Page].bPitchInvert) Ly = -Ly; // else Tr = -Tr;
@@ -539,8 +545,8 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 	else
 	{
 		// Adjust the trigger to go between negative and positive values
-		Rx = Rx - 128;
-		Ry = Ry - 128;
+		Rx = Rx - 0x80;
+		Ry = Ry - 0x80;
 		// Invert
 		if (PadMapping[Page].bRollInvert) Rx = -Rx; // else Tr = -Tr;
 		if (PadMapping[Page].bPitchInvert) Ry = -Ry; // else Tr = -Tr;
@@ -559,10 +565,9 @@ void TiltWiimoteKeyboard(int &Roll, int &Pitch)
 	if (g_Config.Trigger.Range.Roll == 0 && g_Config.Trigger.Range.Pitch == 0)
 	{
 		if (IsKey(g_Wiimote_kbd.PITCH_L))
-			Roll = -128 / 2;
+			Roll = -0x80 / 2;
 		else if (IsKey(g_Wiimote_kbd.PITCH_R))
-			Roll = 128 / 2;
-
+			Roll = 0x80 / 2;
 		return;
 	}
 
@@ -607,7 +612,7 @@ void TiltWiimoteKeyboard(int &Roll, int &Pitch)
 }
 
 // Tilting Wiimote (Wario Land aiming, Mario Kart steering and other things)
-void Tilt(u8 &_x, u8 &_y, u8 &_z)
+void Tilt(int &_x, int &_y, int &_z)
 {
 	// Check if it's on
 	if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER_OFF) return;
@@ -626,10 +631,9 @@ void Tilt(u8 &_x, u8 &_y, u8 &_z)
 		AdjustAngles(Roll, Pitch);
 
 	// Calculate the accelerometer value from this tilt angle
-	//PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z, g_Config.Trigger.Roll, g_Config.Trigger.Pitch);
 	PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z);
 
-	//DEBUG_LOG(WIIMOTE, "Roll:%i, Pitch:%i, _x:%i, _y:%i, _z:%i", Roll, Pitch, _x, _y, _z);
+	//DEBUG_LOG(WIIMOTE, "Roll:%i, Pitch:%i, _x:%u, _y:%u, _z:%u", Roll, Pitch, _x, _y, _z);
 }
 
 void FillReportAcc(wm_accel& _acc)
@@ -643,24 +647,42 @@ void FillReportAcc(wm_accel& _acc)
 	else
 	{
 		// If the recording reached the end or failed somehow we will not return
-		if (RecordingPlay(_acc.x, _acc.y, _acc.z, 0)) return;
+		if (RecordingPlay(_acc.x, _acc.y, _acc.z, 0))
+			return;
 		//DEBUG_LOG(WIIMOTE, "X, Y, Z: %u %u %u", _acc.x, _acc.y, _acc.z);
 	}
 
+	// Initial value
+	int acc_x = g_wm.cal_zero.x;
+	int acc_y = g_wm.cal_zero.y;
+	int acc_z = g_wm.cal_zero.z;
+
+	if (!g_Config.Trigger.Upright)
+		acc_z += g_wm.cal_g.z;
+	else	// Upright wiimote
+		acc_y -= g_wm.cal_g.y;
+
 	// Check that Dolphin is in focus
-	if (!IsFocus())
+	if (IsFocus())
 	{
-		_acc.x = g_wm.cal_zero.x;
-		_acc.y = g_wm.cal_zero.y;
-		_acc.z = g_wm.cal_zero.z + g_wm.cal_g.z;
-		return;
+		// Shake the Wiimote
+		SingleShake(acc_x, acc_y, acc_z, 0);
+
+		// Tilt Wiimote, allow the shake function to interrupt it
+		if (Shake[0] == 0)	Tilt(acc_x, acc_y, acc_z);
+	
+		// Boundary check
+		if (acc_x > 0xFF)	acc_x = 0xFF;
+		else if (_acc.x < 0x00)	acc_x = 0x00;
+		if (acc_y > 0xFF)	acc_y = 0xFF;
+		else if (acc_y < 0x00)	acc_y = 0x00;
+		if (acc_z > 0xFF)	acc_z = 0xFF;
+		else if (acc_z < 0x00)	acc_z = 0x00;
 	}
 
-	// Shake the Wiimote
-	SingleShake(_acc.x, _acc.y, _acc.z, 0);
-
-	// Tilt Wiimote, allow the shake function to interrupt it
-	if (Shake[0] == 0) Tilt(_acc.x, _acc.y, _acc.z);
+	_acc.x = acc_x;
+	_acc.y = acc_y;
+	_acc.z = acc_z;
 
 	// Debugging for translating Wiimote to Keyboard (or Gamepad)
 	/*
@@ -723,7 +745,6 @@ void FillReportAcc(wm_accel& _acc)
 	else if(GetAsyncKeyState(VK_NUMPAD8))
 		Z-=1;
 
-	
 	//if(consoleDisplay == 0)
 	DEBUG_LOG(WIIMOTE, "x: %03i | y: %03i | z: %03i  |  A:%i B:%i C:%i  a:%i b:%i c:%i d:%i  X:%i Y:%i Z:%i",
 		_acc.x, _acc.y, _acc.z,
@@ -918,19 +939,28 @@ void FillReportExtension(wm_extension& _ext)
 {
 	// Recorded movements
 	// Check for a playback command
-	if(g_RecordingPlaying[1] < 0) g_RecordingPlaying[1] = RecordingCheckKeys(1);
-
-	// We should not play back the accelerometer values
-	if (!(g_RecordingPlaying[1] >= 0 && RecordingPlay(_ext.ax, _ext.ay, _ext.az, 1)))
+	if(g_RecordingPlaying[1] < 0)
 	{
-		// Use the neutral values
-		_ext.ax = g_nu.cal_zero.x;
-		_ext.ay = g_nu.cal_zero.y;
-		_ext.az = g_nu.cal_zero.z + g_nu.cal_g.z;
+		g_RecordingPlaying[1] = RecordingCheckKeys(1);
+	}
+	else
+	{
+		// We should not play back the accelerometer values
+		if (RecordingPlay(_ext.ax, _ext.ay, _ext.az, 1))
+			return;
 	}
 
+	// Use the neutral values
+	int ext_ax = g_nu.cal_zero.x;
+	int ext_ay = g_nu.cal_zero.y;
+	int ext_az = g_nu.cal_zero.z + g_nu.cal_g.z;
+
 	// Shake the Wiimote
-	SingleShake(_ext.ax, _ext.ay, _ext.az, 1);
+	SingleShake(ext_ax, ext_ay, ext_az, 1);
+
+	_ext.ax = ext_ax;
+	_ext.ay = ext_ay;
+	_ext.az = ext_az;
 
 	// The default joystick and button values unless we use them
 	_ext.jx = g_nu.jx.center;

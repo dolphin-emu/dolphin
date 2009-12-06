@@ -89,30 +89,26 @@ void AdjustAngles(int &Roll, int &Pitch)
 
 
 // Angles to accelerometer values
-void PitchDegreeToAccelerometer(int Roll, int Pitch, u8 &_x, u8 &_y, u8 &_z)
+void PitchDegreeToAccelerometer(int Roll, int Pitch, int &_x, int &_y, int &_z)
 {
-	// Direct mapping from analog stick to x/y accelerometer
+	// Direct mapping for swing, from analog stick to accelerometer
 	if (g_Config.Trigger.Range.Roll == 0 && g_Config.Trigger.Range.Pitch == 0)
 	{
+		// Make a deadzone to avoid trouble
 		if (abs(Roll) <= abs(g_wm.cal_g.x))
 			Roll = 0;
 		if (abs(Pitch) <= abs(g_wm.cal_g.z))
 			Pitch = 0;
-		int ix = g_wm.cal_zero.x + Roll;
-		int iz = g_wm.cal_zero.z + g_wm.cal_g.z + Pitch;
-		if (ix > 0xFF)	ix = 0xFF;
-		if (ix < 0x00)	ix = 0x00;
-		if (iz > 0xFF)	iz = 0xFF;
-		if (iz < 0x00)	iz = 0x00;
+
 		if (!g_Config.Trigger.Upright)
 		{
-			_x = ix;
-			_z = iz;
+			_x -= Roll;
+			_z -= Pitch;
 		}
-		else
+		else	// Upright wiimote
 		{
-			_x = ix;
-			_y = iz;
+			_x -= Roll;
+			_y += Pitch;
 		}
 		return;
 	}
@@ -126,29 +122,13 @@ void PitchDegreeToAccelerometer(int Roll, int Pitch, u8 &_x, u8 &_y, u8 &_z)
 	// In these cases we can use the simple and accurate formula
 	if(g_Config.Trigger.Range.Pitch == 0)
 	{
-		if (!g_Config.Trigger.Upright)
-		{
-			x = sin(_Roll);
-			z = cos(_Roll);
-		}
-		else
-		{
-			z = sin(_Roll);
-			y = -cos(_Roll);
-		}
+		x = sin(_Roll);
+		z = cos(_Roll);
 	}
 	else if (g_Config.Trigger.Range.Roll == 0)
 	{
-		if (!g_Config.Trigger.Upright)
-		{
-			y = sin(_Pitch);
-			z = cos(_Pitch);
-		}
-		else
-		{
-			x = -sin(_Pitch);
-			y = -cos(_Pitch);
-		}
+		y = sin(_Pitch);
+		z = cos(_Pitch);
 	}
 	else
 	{
@@ -159,56 +139,39 @@ void PitchDegreeToAccelerometer(int Roll, int Pitch, u8 &_x, u8 &_y, u8 &_z)
 		   and Pitch. But if we select a Z from the smallest of the absolute
 		   value of cos(Roll) and cos (Pitch) we get the right values. */
 		// ---------	
-		if (!g_Config.Trigger.Upright)
-		{
-			if (abs(cos(_Roll)) < abs(cos(_Pitch))) z = cos(_Roll); else z = cos(_Pitch);
-			/* I got these from reversing the calculation in
-			   PitchAccelerometerToDegree() in a math program. */
-			float x_num = 2 * tanf(0.5f * _Roll) * z;
-			float x_den = pow2f(tanf(0.5f * _Roll)) - 1;
-			x = - (x_num / x_den);
-			float y_num = 2 * tanf(0.5f * _Pitch) * z;
-			float y_den = pow2f(tanf(0.5f * _Pitch)) - 1;
-			y = - (y_num / y_den);
-		}
+		if (abs(cos(_Roll)) < abs(cos(_Pitch)))
+			z = cos(_Roll);
 		else
-		{
-			if (abs(-cos(_Roll)) < abs(-cos(_Pitch))) y = -cos(_Roll); else y = -cos(_Pitch);
-			float z_num = 2 * tanf(0.5f * _Roll) * y;
-			float z_den = pow2f(tanf(0.5f * _Roll)) - 1;
-			z = (z_num / z_den);
-			float x_num = 2 * tanf(0.5f * _Pitch) * y;
-			float x_den = pow2f(tanf(0.5f * _Pitch)) - 1;
-			x = - (x_num / x_den);
-		}
+			z = cos(_Pitch);
+		/* I got these from reversing the calculation in
+		   PitchAccelerometerToDegree() in a math program. */
+		float x_num = 2 * tanf(0.5f * _Roll) * z;
+		float x_den = pow2f(tanf(0.5f * _Roll)) - 1;
+		x = - (x_num / x_den);
+		float y_num = 2 * tanf(0.5f * _Pitch) * z;
+		float y_den = pow2f(tanf(0.5f * _Pitch)) - 1;
+		y = - (y_num / y_den);
 	}
 
-	// Multiply with the neutral of z and its g
+	// Multiply with neutral value and its g
 	float xg = g_wm.cal_g.x;
 	float yg = g_wm.cal_g.y;
 	float zg = g_wm.cal_g.z;
-	float x_zero = g_wm.cal_zero.x;
-	float y_zero = g_wm.cal_zero.y;
-	float z_zero = g_wm.cal_zero.z;
-	int ix = (int) (x_zero + xg * x);
-	int iy = (int) (y_zero + yg * y);
-	int iz = (int) (z_zero + zg * z);
+	int ix = g_wm.cal_zero.x + (int)(xg * x);
+	int iy = g_wm.cal_zero.y + (int)(yg * y);
+	int iz = g_wm.cal_zero.z + (int)(zg * z);
 
-	// Boundaries
-	if (ix < 0) ix = 0; if (ix > 255) ix = 255;
-	if (iy < 0) iy = 0; if (iy > 255) iy = 255;
-	if (iz < 0) iz = 0; if (iz > 255) iz = 255;
 	if (!g_Config.Trigger.Upright)
 	{
 		if(g_Config.Trigger.Range.Roll != 0) _x = ix;
 		if(g_Config.Trigger.Range.Pitch != 0) _y = iy;
 		_z = iz;
 	}
-	else
+	else	// Upright wiimote
 	{
-		if(g_Config.Trigger.Range.Roll != 0) _z = iz;
-		if(g_Config.Trigger.Range.Pitch != 0) _x = ix;
-		_y = iy;
+		if(g_Config.Trigger.Range.Roll != 0) _x = ix;
+		if(g_Config.Trigger.Range.Pitch != 0) _z = iy;
+		_y = 0xFF - iz;
 	}
 }
 
