@@ -472,7 +472,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 
 	wm_status_report* pStatus = (wm_status_report*)(DataFrame + Offset);
 	Offset += sizeof(wm_status_report);
-	memset(pStatus, 0, sizeof(wm_status_report)); // fill the status report with zeroes
+	memset(pStatus, 0, sizeof(wm_status_report)); // fill the status report with zeros
 
 	// Status values
 	FillReportInfo(pStatus->buttons);
@@ -506,7 +506,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 
 	INFO_LOG(WIIMOTE, "Request Status");
 	DEBUG_LOG(WIIMOTE, "  Extension: %x", pStatus->extension);
-	DEBUG_LOG(WIIMOTE, "  Flags: 0x%02x", pStatus->padding1[2]);
+	DEBUG_LOG(WIIMOTE, "  Buttons: 0x%04x", pStatus->buttons);
 
 	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
 

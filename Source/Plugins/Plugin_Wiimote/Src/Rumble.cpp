@@ -228,7 +228,7 @@ void SetDeviceForcesXY(int npad, int nXYForce)
 	{
 		rglDirection[0] = nXYForce;
 		rglDirection[1] = nXYForce;
-		cf.lMagnitude = 1.4142f*nXYForce;
+		cf.lMagnitude = static_cast<LONG>(1.4142f*nXYForce);
 	}
 
 	ZeroMemory(&pRumble[npad].eff, sizeof(pRumble[npad].eff));
