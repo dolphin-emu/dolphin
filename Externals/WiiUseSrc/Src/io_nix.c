@@ -200,6 +200,7 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address) {
 	if (wm->out_sock == -1)
 		return 0;
 
+	addr.l2_cid = 0;
 	addr.l2_psm = htobs(WM_OUTPUT_CHANNEL);
 
 	/* connect to wiimote */
