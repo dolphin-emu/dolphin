@@ -477,7 +477,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	if (m_HCIBuffer.m_address && !WII_IPCInterface::GetAddress() && m_WiiMotes[0].IsConnected())
 	{
 		m_FreqDividerSync++;
-		if ((m_PacketCount > 0) || (m_FreqDividerSync > 60))	// Feel free to tweak it
+		if ((m_PacketCount > 0) || (m_FreqDividerSync > 100))	// Feel free to tweak it
 		{
 			m_FreqDividerSync = 0;
 			SendEventNumberOfCompletedPackets(m_WiiMotes[0].GetConnectionHandle(), m_PacketCount);
@@ -487,16 +487,13 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	}
 */
 
-	// AyuanX: If we let this Wiimote_Update function running freely
-	// it will exaust all the HLE time slots and block further CPU commands
-	// so we have to make sure CPU and other things get the privilege to bypass this
-	// Besides, decreasing its reporting frequency also brings us great FPS boost
-	// Now I am making it running at 1/100 frequency of IPC which is already fast enough for human input
-	// 
+	// The Real Wiimote sends report at a fixed frequency of 100Hz
+	// So let's make it also 100Hz here
+	// Calculation: 15000Hz (IPC_HLE) / 100Hz (WiiMote) = 150
 	if (m_ACLBuffer.m_address && !m_LastCmd && m_WiiMotes[0].IsLinked())
 	{
 		m_FreqDividerMote++;
-		if(m_FreqDividerMote > 99)	// Feel free to tweak it
+		if(m_FreqDividerMote >= 150)
 		{
 			m_FreqDividerMote = 0;
 			CPluginManager::GetInstance().GetWiimote(0)->Wiimote_Update();

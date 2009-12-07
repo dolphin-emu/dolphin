@@ -177,8 +177,7 @@ void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 {
 	if (Core::GetStartupParameter().bWii)
 		WII_IPC_HLE_Interface::Update();
-
-	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine()-cyclesLate, et_IPC_HLE);
+	CoreTiming::ScheduleEvent(IPC_HLE_PERIOD - cyclesLate, et_IPC_HLE);
 }
 
 void VICallback(u64 userdata, int cyclesLate)
@@ -253,9 +252,12 @@ void Init()
 			DSP_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
 
 		// AyuanX: TO BE TWEAKED
-		// If this update frequency is too high, WiiMote could easily jam the IPC Bus
-		// but if it is too low, sometimes IPC gets overflown by CPU :~~~(
-		IPC_HLE_PERIOD = (int)(GetTicksPerSecond() * 0.003f);
+		// Now the 15000 is a pure assumption
+		// We need to figure out the real frequency though
+		// PS: When this period is tweaked, the FreqDividerMote
+		// in WII_IPC_HLE_Device_usb.cpp should also be tweaked accordingly
+		// to guarantee WiiMote updates at a fixed 100Hz
+		IPC_HLE_PERIOD = GetTicksPerSecond() / 15000;
 	}
 	else
 	{

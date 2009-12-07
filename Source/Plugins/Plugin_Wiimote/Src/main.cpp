@@ -313,10 +313,10 @@ void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 	}
 
 	// Decice where to send the message
-	//if (!g_RealWiiMotePresent)
+	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
 		WiiMoteEmu::InterruptChannel(_channelID, _pData, _Size);		
 #if HAVE_WIIUSE
-	if (g_RealWiiMotePresent)
+	else if (g_RealWiiMotePresent)
 		WiiMoteReal::InterruptChannel(_channelID, _pData, _Size);
 #endif
 }
@@ -348,10 +348,10 @@ void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 		DEBUG_LOG(WIIMOTE, "    Data: %s", Temp.c_str());
 	}
 
-	//if (!g_RealWiiMotePresent)
+	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
 		WiiMoteEmu::ControlChannel(_channelID, _pData, _Size);
 #if HAVE_WIIUSE
-	if (g_RealWiiMotePresent)
+	else if (g_RealWiiMotePresent)
 		WiiMoteReal::ControlChannel(_channelID, _pData, _Size);
 #endif
 }
