@@ -442,6 +442,8 @@ int Shake[] = {0, 0};
 std::vector<u8> yhist(15, 0);
 int KbDegree;
 
+int Roll, Pitch;
+
 // Single shake of all three directions
 void SingleShake(int &_x, int &_y, int &_z, int wm)
 {
@@ -618,7 +620,8 @@ void Tilt(int &_x, int &_y, int &_z)
 	if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER_OFF) return;
 
 	// Set to zero
-	int Roll = 0, Pitch = 0;
+	Roll = 0;
+	Pitch = 0;
 
 	// Select input method and return the x, y, x values
 	if (g_Config.Trigger.Type == g_Config.Trigger.KEYBOARD)
@@ -759,7 +762,26 @@ void FillReportAcc(wm_accel& _acc)
 		);*/	
 }
 
+// Rotate IR dot when rolling Wiimote
+void RotateIR(int _Roll, int& _x, int& _y)
+{
+	if (_Roll == 0)
+		return;
 
+	// The IR camera resolution is 1024x768
+	float dot_x = _x - 1024 / 2;
+	float dot_y = _y - 768 / 2;
+
+	float radius = sqrt(pow(dot_x, 2)+pow(dot_y, 2));
+	float radian = atan(dot_y / dot_x);
+
+	_x = radius * cos(radian + InputCommon::Deg2Rad(float(_Roll))) + 1024 / 2;
+	_y = radius * sin(radian + InputCommon::Deg2Rad(float(_Roll))) + 768 / 2;
+
+	// Out of sight check
+	if (_x < 0 || _x > 1023) _x = 0xFFFF;
+	if (_y < 0 || _y > 767) _y = 0xFFFF;
+}
 
 
 /*
@@ -829,19 +851,23 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 		x0, x1, y0, y1, Top, Left, Right, Bottom, SensorBarRadius
 		);*/
 
-
 	// Converted to IR data
 	// The width is 0 to 1023
 	// The height is 0 to 767
 	x0 = 1023 - x0;
+	x1 = 1023 - x1;
+
+	RotateIR(Roll, x0, y0);
+	RotateIR(Roll, x1, y1);
+
 	_ir0.x = x0 & 0xff; _ir0.xHi = x0 >> 8;
 	_ir0.y = y0 & 0xff; _ir0.yHi = y0 >> 8;
-	// The size can be between 0 and 15 and is probably not important
-	_ir0.size = 10;
-	
-	x1 = 1023 - x1;
+
 	_ir1.x = x1 & 0xff; _ir1.xHi = x1 >> 8;
 	_ir1.y = y1 & 0xff; _ir1.yHi = y1 >> 8;
+
+	// The size can be between 0 and 15 and is probably not important
+	_ir0.size = 10;
 	_ir1.size = 10;
 }
 
@@ -882,10 +908,15 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	   possible objects the only difference is that we don't report any size of
 	   the tracked object here */
 	x1 = 1023 - x1;
+	x2 = 1023 - x2;
+
+	RotateIR(Roll, x1, y1);
+	RotateIR(Roll, x2, y2);
+
 	_ir0.x1 = x1 & 0xff; _ir0.x1Hi = (x1 >> 8); // we are dealing with 2 bit values here
 	_ir0.y1 = y1 & 0xff; _ir0.y1Hi = (y1 >> 8);
 
-	x2 = 1023 - x2;
+
 	_ir0.x2 = x2 & 0xff; _ir0.x2Hi = (x2 >> 8);
 	_ir0.y2 = y2 & 0xff; _ir0.y2Hi = (y2 >> 8);
 
