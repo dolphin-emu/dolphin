@@ -40,7 +40,9 @@ public:
 		
 		int frameCount;
 		int w, h, fmt;
-		
+
+		float scaleX, scaleY; // Hires texutres need this
+
 		bool isRenderTarget;
 		bool isNonPow2;
 
@@ -51,6 +53,12 @@ public:
 			hash = 0;
 			paletteHash = 0;
 			oldpixel = 0;
+			addr = 0;
+			size_in_bytes = 0;
+			frameCount = 0;
+			scaleX = 1.0f;
+			scaleY = 1.0f;
+			isNonPow2 = true;
 		}
 		void Destroy(bool shutdown);
 		bool IntersectsMemoryRange(u32 range_address, u32 range_size);

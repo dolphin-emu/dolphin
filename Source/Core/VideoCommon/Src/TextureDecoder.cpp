@@ -418,6 +418,219 @@ static PC_TexFormat GetPCFormatFromTLUTFormat(int tlutfmt)
 	return PC_TEX_FMT_NONE; // Error
 }
 
+PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
+{
+    switch (texformat)
+    {
+    case GX_TF_C4:
+		return GetPCFormatFromTLUTFormat(tlutfmt);
+    case GX_TF_I4:
+		return PC_TEX_FMT_I4_AS_I8;
+	case GX_TF_I8:  // speed critical
+		return PC_TEX_FMT_I8;
+    case GX_TF_C8:
+		return GetPCFormatFromTLUTFormat(tlutfmt);
+    case GX_TF_IA4:
+        return PC_TEX_FMT_IA4_AS_IA8;
+    case GX_TF_IA8:
+        return PC_TEX_FMT_IA8;
+    case GX_TF_C14X2: 
+		return GetPCFormatFromTLUTFormat(tlutfmt);
+    case GX_TF_RGB565:
+		return PC_TEX_FMT_RGB565;
+    case GX_TF_RGB5A3:
+        return PC_TEX_FMT_BGRA32;
+    case GX_TF_RGBA8:  // speed critical
+        return PC_TEX_FMT_BGRA32;
+    case GX_TF_CMPR:  // speed critical
+        // The metroid games use this format almost exclusively.
+		{
+			return PC_TEX_FMT_BGRA32;
+		}
+    }
+
+	// The "copy" texture formats, too?
+    return PC_TEX_FMT_NONE;
+}
+
+
+PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int height,int Pitch, int texformat, int tlutaddr, int tlutfmt)
+{
+   switch (texformat)
+    {
+    case GX_TF_C4:
+		if (tlutfmt == 2)
+        {
+			// Special decoding is required for TLUT format 5A3
+            for (int y = 0; y < height; y += 8)
+                for (int x = 0; x < width; x += 8)
+                    for (int iy = 0; iy < 8; iy++, src += 4)
+                        decodebytesC4_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, src, tlutaddr);
+        }
+		else
+		{
+            for (int y = 0; y < height; y += 8)
+                for (int x = 0; x < width; x += 8)
+                    for (int iy = 0; iy < 8; iy++, src += 4)
+                        decodebytesC4_To_Raw16((u16*)dst + (y + iy) * width + x, src, tlutaddr);
+		}
+        return GetPCFormatFromTLUTFormat(tlutfmt);
+    case GX_TF_I4:
+		{
+			for (int y = 0; y < height; y += 8)
+				for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 8; iy++, src += 4)
+						for (int ix = 0; ix < 4; ix++)
+						{
+							int val = src[ix];
+							dst[(y + iy) * width + x + ix * 2] = Convert4To8(val >> 4);
+							dst[(y + iy) * width + x + ix * 2 + 1] = Convert4To8(val & 0xF);
+						}
+        }
+       return PC_TEX_FMT_I4_AS_I8;
+	case GX_TF_I8:  // speed critical
+		{
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+						memcpy(dst + (y + iy)*width+x, src, 8);
+		}
+		return PC_TEX_FMT_I8;
+    case GX_TF_C8:
+		if (tlutfmt == 2)
+        {
+			// Special decoding is required for TLUT format 5A3
+            for (int y = 0; y < height; y += 4)
+                for (int x = 0; x < width; x += 8)
+                    for (int iy = 0; iy < 4; iy++, src += 8)
+                        decodebytesC8_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, src, tlutaddr);
+        }
+		else
+		{
+            for (int y = 0; y < height; y += 4)
+                for (int x = 0; x < width; x += 8)
+                    for (int iy = 0; iy < 4; iy++, src += 8)
+                        decodebytesC8_To_Raw16((u16*)dst + (y + iy) * width + x, src, tlutaddr);
+		}
+        return GetPCFormatFromTLUTFormat(tlutfmt);
+    case GX_TF_IA4:
+        {
+            for (int y = 0; y < height; y += 4)
+                for (int x = 0; x < width; x += 8)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+                        decodebytesIA4((u16*)dst + (y + iy) * width + x, src);
+        }
+		return PC_TEX_FMT_IA4_AS_IA8;
+    case GX_TF_IA8:
+        {
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+					{
+						u16 *ptr = (u16 *)dst + (y + iy) * width + x;
+						u16 *s = (u16 *)src;
+						for(int j = 0; j < 4; j++)
+							*ptr++ = Common::swap16(*s++);
+					}
+
+        }
+		return PC_TEX_FMT_IA8;
+    case GX_TF_C14X2: 
+		if (tlutfmt == 2)
+        {
+			// Special decoding is required for TLUT format 5A3
+            for (int y = 0; y < height; y += 4)
+                for (int x = 0; x < width; x += 4)
+                    for (int iy = 0; iy < 4; iy++, src += 8)
+                        decodebytesC14X2_5A3_To_BGRA32((u32*)dst + (y + iy) * width + x, (u16*)src, tlutaddr);
+        }
+		else
+		{
+            for (int y = 0; y < height; y += 4)
+                for (int x = 0; x < width; x += 4)
+                    for (int iy = 0; iy < 4; iy++, src += 8)
+                        decodebytesC14X2_To_Raw16((u16*)dst + (y + iy) * width + x, (u16*)src, tlutaddr);
+		}
+		return GetPCFormatFromTLUTFormat(tlutfmt);
+    case GX_TF_RGB565:
+		{
+			for (int y = 0; y < height; y += 4)
+				for (int x = 0; x < width; x += 4)
+					for (int iy = 0; iy < 4; iy++, src += 8)
+					{
+						u16 *ptr = (u16 *)dst + (y + iy) * width + x;
+						u16 *s = (u16 *)src;
+						for(int j = 0; j < 4; j++)
+							*ptr++ = Common::swap16(*s++);
+					}
+		}
+		return PC_TEX_FMT_RGB565;
+    case GX_TF_RGB5A3:
+        {
+            for (int y = 0; y < height; y += 4)
+                for (int x = 0; x < width; x += 4)
+                    for (int iy = 0; iy < 4; iy++, src += 8)
+                        //decodebytesRGB5A3((u32*)dst+(y+iy)*width+x, (u16*)src, 4);
+                        decodebytesRGB5A3((u32*)dst+(y+iy)*width+x, (u16*)src);
+        }
+        return PC_TEX_FMT_BGRA32;
+    case GX_TF_RGBA8:  // speed critical
+        {
+			for (int y = 0; y < height; y += 4)
+                for (int x = 0; x < width; x += 4)
+                {
+					for (int iy = 0; iy < 4; iy++)
+                        decodebytesARGB8_4((u32*)dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
+					src += 64;
+                }
+        }
+        return PC_TEX_FMT_BGRA32;
+    case GX_TF_CMPR:  // speed critical
+        // The metroid games use this format almost exclusively.
+		{
+#if 0   // TODO - currently does not handle transparency correctly and causes problems when texture dimensions are not multiples of 8
+            // 11111111 22222222 55555555 66666666
+            // 33333333 44444444 77777777 88888888
+			for (int y = 0; y < height; y += 8)
+			{
+                for (int x = 0; x < width; x += 8)
+                {
+					copyDXTBlock(dst+(y/2)*width+x*2, src);
+					src += 8;
+					copyDXTBlock(dst+(y/2)*width+x*2+8, src);
+					src += 8;
+					copyDXTBlock(dst+(y/2+2)*width+x*2, src);
+					src += 8;
+					copyDXTBlock(dst+(y/2+2)*width+x*2+8, src);
+					src += 8;
+				}
+			}
+			return PC_TEX_FMT_DXT1;
+#else
+			for (int y = 0; y < height; y += 8)
+			{
+                for (int x = 0; x < width; x += 8)
+                {
+                    decodeDXTBlock((u32*)dst + y * width + x, (DXTBlock*)src, width);
+                                        src += sizeof(DXTBlock);
+                    decodeDXTBlock((u32*)dst + y * width + x + 4, (DXTBlock*)src, width);
+                                        src += sizeof(DXTBlock);
+                    decodeDXTBlock((u32*)dst + (y + 4) * width + x, (DXTBlock*)src, width);
+                                        src += sizeof(DXTBlock);
+                    decodeDXTBlock((u32*)dst + (y + 4) * width + x + 4, (DXTBlock*)src, width);
+                                        src += sizeof(DXTBlock);
+                }
+			}
+#endif
+			return PC_TEX_FMT_BGRA32;
+		}
+    }
+
+	// The "copy" texture formats, too?
+    return PC_TEX_FMT_NONE;
+}
+
+
 
 //switch endianness, unswizzle
 //TODO: to save memory, don't blindly convert everything to argb8888
@@ -599,11 +812,90 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
     return PC_TEX_FMT_NONE;
 }
 
+
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center)
 {
 	TexFmt_Overlay_Enable = enable;
 	TexFmt_Overlay_Center = center;
 }
+
+void TexDecoder_DirectDecode(u8 *dst, const u8 *src, int width, int height,int Pitch, int texformat, int tlutaddr, int tlutfmt)
+{
+	PC_TexFormat  retval = TexDecoder_DirectDecode_real(dst,src,width,height,Pitch,texformat,tlutaddr,tlutfmt);
+
+	if ((!TexFmt_Overlay_Enable)|| (retval == PC_TEX_FMT_NONE))
+		return;
+
+	int w = min(width, 40);
+	int h = min(height, 10);
+
+	int xoff = (width - w) >> 1;
+	int yoff = (height - h) >> 1;
+
+	if (!TexFmt_Overlay_Center)
+	{
+		xoff=0;
+		yoff=0;
+	}
+
+	const char* fmt = texfmt[texformat&15];
+	while (*fmt)
+	{
+		int xcnt = 0;
+		int nchar = sfont_map[(int)*fmt];
+		
+		const unsigned char *ptr = sfont_raw[nchar]; // each char is up to 9x10
+
+		for (int x = 0; x < 9;x++)
+		{
+			if (ptr[x] == 0x78)
+				break;
+			xcnt++;
+		}
+
+		for (int y=0; y < 10; y++)
+		{
+			for (int x=0; x < xcnt; x++)
+			{
+				switch(retval)
+				{
+				case PC_TEX_FMT_I8:
+					{
+						// TODO: Is this an acceptable way to draw in I8?
+						u8  *dtp = (u8*)dst;
+						dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFF : 0x88;
+						break;
+					}
+				case PC_TEX_FMT_IA8:
+				case PC_TEX_FMT_IA4_AS_IA8:
+					{
+						u16  *dtp = (u16*)dst;
+						dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFFFF : 0xFF00;
+						break;
+					}
+				case PC_TEX_FMT_RGB565:
+					{
+						u16  *dtp = (u16*)dst;
+						dtp[(y + yoff)*width + x + xoff] = ptr[x] ? 0xFFFF : 0x0000;
+						break;
+					}
+				default:				
+				case PC_TEX_FMT_BGRA32:
+					{
+						int  *dtp = (int*)dst;
+						dtp[(y + yoff) * width + x + xoff] = ptr[x] ? 0xFFFFFFFF : 0xFF000000;
+						break;
+					}
+				}
+			}
+			ptr += 9;
+		}
+		xoff += xcnt;
+		fmt++;
+	}
+}
+
+
 
 PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {

@@ -363,8 +363,8 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	TextureConversionShader::SetShaderParameters(
 		(float)expandedWidth, 
 		expandedHeight * MValueY, 
-		ceilf(source.left * MValueX + 1.0f), 
-		ceilf(source.top * MValueY + 1.0f), 
+		source.left * MValueX, 
+		source.top * MValueY, 
 		sampleStride * MValueX, 
 		sampleStride * MValueY,
 		(float)Renderer::GetTargetWidth(),

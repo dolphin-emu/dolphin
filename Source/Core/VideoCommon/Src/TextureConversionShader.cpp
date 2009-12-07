@@ -107,12 +107,16 @@ void WriteSwizzler(char*& p, u32 format,bool HLSL)
 	if(!HLSL)
 		WRITE(p,"  sampleUv.y = textureDims.y - sampleUv.y;\n");
 	
-	WRITE(p, "  sampleUv.x = sampleUv.x + textureDims.z;\n"
-	         "  sampleUv.y = sampleUv.y + textureDims.w;\n");
+	WRITE(p, "  sampleUv = sampleUv + textureDims.zw;\n");
+
 	if(HLSL)
 	{
-		WRITE(p, "  sampleUv.x = sampleUv.x / blkDims.z;\n"
-				"  sampleUv.y = sampleUv.y / blkDims.w;\n");
+		WRITE(p, "  sampleUv = sampleUv + float2(1.0f,1.0f);\n"
+				 "  sampleUv = sampleUv / blkDims.zw;\n");
+	}
+	else
+	{
+		WRITE(p, "  sampleUv = sampleUv + float2(1.0f,-1.0f);\n");
 	}	
 }
 
@@ -158,15 +162,18 @@ void Write32BitSwizzler(char*& p, u32 format, bool HLSL)
 	WRITE(p, "  sampleUv = sampleUv * blkDims.xy;\n");
 	
 	if(!HLSL)
-		WRITE(p, "  sampleUv.y = textureDims.y - sampleUv.y;\n");
+		WRITE(p,"  sampleUv.y = textureDims.y - sampleUv.y;\n");
 	
-	WRITE(p, "  sampleUv.x = sampleUv.x + textureDims.z;\n");
-	WRITE(p, "  sampleUv.y = sampleUv.y + textureDims.w;\n");
+	WRITE(p, "  sampleUv = sampleUv + textureDims.zw;\n");
 
 	if(HLSL)
 	{
-		WRITE(p, "  sampleUv.x = sampleUv.x / blkDims.z;\n"
-				"  sampleUv.y = sampleUv.y / blkDims.w;\n");
+		WRITE(p, "  sampleUv = sampleUv + float2(1.0f,1.0f);\n"
+				 "  sampleUv = sampleUv / blkDims.zw;\n");
+	}
+	else
+	{
+		WRITE(p, "  sampleUv = sampleUv + float2(1.0f,-1.0f);\n");
 	}
 }
 

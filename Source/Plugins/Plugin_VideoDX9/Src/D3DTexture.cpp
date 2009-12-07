@@ -103,13 +103,20 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 		break;
 	case D3DFMT_A8R8G8B8:
 		{
-			u32* pIn = pBuffer;
-			for (int y = 0; y < height; y++)
+			/*if(Lock.Pitch == width * 4)
 			{
-				u32* pBits = (u32*)((u8*)Lock.pBits + (y * Lock.Pitch));
-				memcpy(pBits, pIn, width * 4);
-				pIn += pitch;
+				memcpy(Lock.pBits,buffer,width*height*4);
 			}
+			else
+			{*/
+				u32* pIn = pBuffer;
+				for (int y = 0; y < height; y++)
+				{
+					u32* pBits = (u32*)((u8*)Lock.pBits + (y * Lock.Pitch));
+					memcpy(pBits, pIn, width * 4);
+					pIn += pitch;
+				}
+			//}
 		}
 		break;
 	case D3DFMT_DXT1:
@@ -119,6 +126,25 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 		PanicAlert("D3D: Invalid texture format %i", fmt);
 	}
 	pTexture->UnlockRect(level); 
+	return pTexture;
+}
+
+LPDIRECT3DTEXTURE9 CreateOnlyTexture2D(const int width, const int height, D3DFORMAT fmt)
+{
+	LPDIRECT3DTEXTURE9 pTexture;
+	// crazy bitmagic, sorry :)
+	bool isPow2 = !((width&(width-1)) || (height&(height-1)));
+	bool bExpand = false;
+	HRESULT hr;
+	// TODO(ector): Allow mipmaps for non-pow textures on newer cards?
+	// TODO(ector): Use the game-specified mipmaps?
+	if (!isPow2)
+		hr = dev->CreateTexture(width, height, 1, 0, fmt, D3DPOOL_MANAGED, &pTexture, NULL);
+	else
+		hr = dev->CreateTexture(width, height, 0, D3DUSAGE_AUTOGENMIPMAP, fmt, D3DPOOL_MANAGED, &pTexture, NULL);
+
+	if (FAILED(hr))
+		return 0;
 	return pTexture;
 }
 

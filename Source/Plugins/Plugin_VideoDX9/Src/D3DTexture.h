@@ -25,4 +25,5 @@ namespace D3D
 	void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int width, const int height,const int pitch,  D3DFORMAT fmt);
 	LPDIRECT3DTEXTURE9 CreateRenderTarget(const int width, const int height);
 	LPDIRECT3DSURFACE9 CreateDepthStencilSurface(const int width, const int height);
+	LPDIRECT3DTEXTURE9 CreateOnlyTexture2D(const int width, const int height, D3DFORMAT fmt);
 }

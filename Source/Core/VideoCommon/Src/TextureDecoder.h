@@ -84,8 +84,10 @@ enum PC_TexFormat
 };
 
 PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt);
-
+void TexDecoder_DirectDecode(u8 *dst, const u8 *src, int width, int height,int Pitch, int texformat, int tlutaddr, int tlutfmt);
+PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt);
 void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, int tlutaddr, int tlutfmt);
+
 
 u32 TexDecoder_GetSafeTextureHash(const u8 *src, int width, int height, int texformat, u32 seed=0);
 u32 TexDecoder_GetTlutHash(const u8* src, int len);

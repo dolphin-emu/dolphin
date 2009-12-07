@@ -545,7 +545,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, u32 HLSL)
         // alpha test will always fail, so restart the shader and just make it an empty function
         p = pmainstart;
         WRITE(p, "ocol0 = 0;\n");
-		WRITE(p, HLSL ? "clip(-1);" : "discard;\n");
+		WRITE(p, "discard;return;\n");
     }
     else
 	{
@@ -582,9 +582,9 @@ static const char *TEVCMPColorOPTable[16] =
 	"float3(0.0f,0.0f,0.0f)",//7
 	"   %s + ((%s.r > %s.r + (1.0f/510.0f)) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_R8_GT 8
 	"   %s + ((abs(%s.r - %s.r) < (1.0f/255.0f)) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_R8_EQ 9
-	"   %s + (( dot(%s.rgb, comp16) >= (dot(%s.rgb, comp16) + (1.0f/510.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_GR16_GT 10
+	"   %s + (( dot(%s.rgb, comp16) > (dot(%s.rgb, comp16) + (1.0f/510.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_GR16_GT 10
 	"   %s + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (1.0f/255.0f) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_GR16_EQ 11
-	"   %s + (( dot(%s.rgb, comp24) >= (dot(%s.rgb, comp24) + (1.0f/510.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_BGR24_GT 12
+	"   %s + (( dot(%s.rgb, comp24) > (dot(%s.rgb, comp24) + (1.0f/510.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_BGR24_GT 12
 	"   %s + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (1.0f/255.0f) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_BGR24_EQ 13
 	"   %s + (max(sign(%s.rgb - %s.rgb - (1.0f/510.0f)),float3(0.0f,0.0f,0.0f)) * %s)",//#define TEVCMP_RGB8_GT  14
 	"   %s + ((float3(1.0f,1.0f,1.0f) - max(sign(abs(%s.rgb - %s.rgb) - (1.0f/255.0f)),float3(0.0f,0.0f,0.0f))) * %s)"//#define TEVCMP_RGB8_EQ  15
@@ -601,13 +601,13 @@ static const char *TEVCMPAlphaOPTable[16] =
 	"0.0f",//5
 	"0.0f",//6
 	"0.0f",//7
-	"   %s + ((%s.r >= (%s.r + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_R8_GT 8
+	"   %s + ((%s.r > (%s.r + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_R8_GT 8
 	"   %s + (abs(%s.r - %s.r) < (1.0f/255.0f) ? %s : 0.0f)",//#define TEVCMP_R8_EQ 9
-	"   %s + ((dot(%s.rgb, comp16) >= (dot(%s.rgb, comp16) + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_GR16_GT 10
+	"   %s + ((dot(%s.rgb, comp16) > (dot(%s.rgb, comp16) + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_GR16_GT 10
 	"   %s + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (1.0f/255.0f) ? %s : 0.0f)",//#define TEVCMP_GR16_EQ 11
-	"   %s + ((dot(%s.rgb, comp24) >= (dot(%s.rgb, comp24) + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_BGR24_GT 12
+	"   %s + ((dot(%s.rgb, comp24) > (dot(%s.rgb, comp24) + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_BGR24_GT 12
 	"   %s + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (1.0f/255.0f) ? %s : 0.0f)",//#define TEVCMP_BGR24_EQ 13	
-	"   %s + ((%s.a >= (%s.a + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_A8_GT 14
+	"   %s + ((%s.a > (%s.a + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_A8_GT 14
 	"   %s + (abs(%s.a - %s.a) < (1.0f/255.0f) ? %s : 0.0f)"//#define TEVCMP_A8_EQ 15
 
 };
@@ -862,6 +862,8 @@ static const char *tevAlphaFuncsTable[] =
 	"(true)"									//ALPHACMP_ALWAYS 7
 };
 
+
+
 static const char *tevAlphaFunclogicTable[] =
 {
 	" && ", // and
@@ -903,10 +905,7 @@ static bool WriteAlphaTest(char *&p, u32 HLSL)
 
 
 	// Seems we need discard for Cg and clip for d3d. sigh.
-	if (HLSL) 
-		WRITE(p, "clip( (");
-	else 
-		WRITE(p, "discard(!( ");
+	WRITE(p, "if(!( ");
 
 	int compindex = bpmem.alphaFunc.comp0 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[0]);//lookup the first component from the alpha function table
@@ -916,12 +915,8 @@ static bool WriteAlphaTest(char *&p, u32 HLSL)
     compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table    
 
-	if (HLSL) {
-		// clip works differently than discard - discard takes a bool, clip takes a value that kills the pixel on negative
-		WRITE(p, ") ? 1 : -1);\n");
-	} else {
-		WRITE(p, "));\n");
-	}
+	WRITE(p, ")){ocol0 = 0;discard;return;}\n");
+	
     return true;
 }
 
@@ -967,6 +962,6 @@ static void WriteFog(char *&p)
 			WARN_LOG(VIDEO, "Unknown Fog Type! %08x", bpmem.fog.c_proj_fsel.fsel);
 	}		
 
-    WRITE(p, "  prev.rgb = (1.0f - fog) * prev.rgb + (fog * "I_FOG"[0].rgb);\n");
+    WRITE(p, "  prev.rgb = lerp(prev.rgb,"I_FOG"[0].rgb,fog);\n");
     
 }

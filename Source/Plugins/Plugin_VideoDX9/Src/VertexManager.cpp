@@ -252,12 +252,15 @@ void Flush()
 
 			if (tentry) {
 				PixelShaderManager::SetTexDims(i, tentry->w, tentry->h, 0, 0);
+				if (tentry->scaleX != 1.0f || tentry->scaleY != 1.0f)
+					PixelShaderManager::SetCustomTexScale(i, tentry->scaleX, tentry->scaleY);
 			}
 			else
 			{
 				DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to load texture\n");});
 				ERROR_LOG(VIDEO, "error loading texture");
 			}
+
 		}
 	}
 	PixelShaderManager::SetTexturesUsed(0);

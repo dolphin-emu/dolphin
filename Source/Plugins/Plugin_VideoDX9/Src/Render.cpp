@@ -91,6 +91,86 @@ static const D3DBLEND d3dDestFactors[8] =
 	D3DBLEND_INVDESTALPHA
 };
 
+//		0	0x00
+//		1	Source & destination
+//		2	Source & ~destination
+//		3	Source
+//		4	~Source & destination
+//		5	Destination
+//		6	Source ^ destination =  Source & ~destination | ~Source & destination
+//		7	Source | destination
+
+//		8	~(Source | destination)
+//		9	~(Source ^ destination) = ~Source & ~destination | Source & destination
+//		10	~Destination
+//		11	Source | ~destination
+//		12	~Source
+//		13	~Source | destination
+//		14	~(Source & destination)
+//		15	0xff
+
+static const D3DBLENDOP d3dLogincOPop[16] =
+{
+	D3DBLENDOP_ADD,
+    D3DBLENDOP_ADD,
+    D3DBLENDOP_ADD,
+    D3DBLENDOP_ADD,
+    D3DBLENDOP_ADD,
+	D3DBLENDOP_ADD,
+	D3DBLENDOP_ADD,
+	D3DBLENDOP_ADD,
+	
+	D3DBLENDOP_REVSUBTRACT,
+	D3DBLENDOP_REVSUBTRACT,
+	D3DBLENDOP_SUBTRACT,
+	D3DBLENDOP_SUBTRACT,
+	D3DBLENDOP_REVSUBTRACT,
+	D3DBLENDOP_REVSUBTRACT,
+	D3DBLENDOP_SUBTRACT,
+	D3DBLENDOP_ADD
+};
+
+static const D3DBLEND d3dLogicOpSrcFactors[16] =
+{
+	D3DBLEND_ZERO,
+	D3DBLEND_DESTCOLOR,
+	D3DBLEND_INVDESTCOLOR,
+	D3DBLEND_ONE,
+	D3DBLEND_ZERO,
+	D3DBLEND_ZERO,
+	D3DBLEND_INVDESTCOLOR,
+	D3DBLEND_ONE,
+
+	D3DBLEND_ONE,
+	D3DBLEND_INVDESTCOLOR,
+	D3DBLEND_ONE,
+	D3DBLEND_ONE,
+	D3DBLEND_ONE,
+	D3DBLEND_ONE, 
+	D3DBLEND_ONE,
+	D3DBLEND_ONE
+};
+
+static const D3DBLEND d3dLogicOpDestFactors[16] =
+{
+	D3DBLEND_ZERO,
+	D3DBLEND_ZERO,
+	D3DBLEND_ZERO,
+	D3DBLEND_ZERO,
+	D3DBLEND_INVSRCCOLOR,
+	D3DBLEND_ONE,
+	D3DBLEND_INVSRCCOLOR,
+	D3DBLEND_ONE,
+
+	D3DBLEND_ONE,
+	D3DBLEND_SRCCOLOR,
+	D3DBLEND_ONE,
+	D3DBLEND_ONE,
+	D3DBLEND_ONE,
+	D3DBLEND_ONE, 
+	D3DBLEND_SRCCOLOR,
+	D3DBLEND_ONE
+};
 
 static const D3DCULL d3dCullModes[4] = 
 {
@@ -160,7 +240,7 @@ bool Renderer::Init()
 {
 	UpdateActiveConfig();
 	int fullScreenRes, w_temp, h_temp;
-	s_blendMode = 0;
+	s_blendMode = 0;	
 	int backbuffer_ms_mode = 0;  // g_ActiveConfig.iMultisampleMode;
 
 	sscanf(g_Config.cFSResolution, "%dx%d", &w_temp, &h_temp);
@@ -823,10 +903,10 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	D3D::dev->SetScissorRect(&sirc);	
 	if(zEnable)
 		D3D::SetRenderState(D3DRS_ZFUNC, D3DCMP_ALWAYS);
-	D3D::drawClearQuad(&sirc,color,(z & 0xFFFFFF) / float(0xFFFFFF),PixelShaderCache::GetClearProgram(),VertexShaderCache::GetSimpleVertexShader());	
+	D3D::drawClearQuad(&sirc,color ,(z & 0xFFFFFF) / float(0xFFFFFF),PixelShaderCache::GetClearProgram(),VertexShaderCache::GetSimpleVertexShader());	
 	if(zEnable)
 		D3D::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);
-	//D3D::dev->Clear(0, NULL, (colorEnable ? D3DCLEAR_TARGET : 0)| ( zEnable ? D3DCLEAR_ZBUFFER : 0), color,(z & 0xFFFFFF) / float(0xFFFFFF), 0);			
+	//D3D::dev->Clear(0, NULL, (colorEnable ? D3DCLEAR_TARGET : 0)| ( zEnable ? D3DCLEAR_ZBUFFER : 0), color | ((alphaEnable)?0:0xFF000000),(z & 0xFFFFFF) / float(0xFFFFFF), 0);			
 	SetScissorRect();
 	UpdateViewport();
 }
@@ -838,7 +918,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	// 2 - reverse subtract enable (else add)
 	// 3-5 - srcRGB function
 	// 6-8 - dstRGB function
-
+	if(bpmem.blendmode.logicopenable)
+		return;
 	u32 newval = bpmem.blendmode.subtract << 2;
 
     if (bpmem.blendmode.subtract) {
@@ -937,27 +1018,12 @@ void Renderer::RestoreAPIState()
     D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
 	SetScissorRect();
     SetColorMask();
-	SetBlendMode(true);	
+	SetLogicOpMode();	
 }
 
 void Renderer::SetGenerationMode()
 {
-	D3D::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
-
-	if (bpmem.genMode.cullmode == 3)
-	{
-		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, 0);
-	}
-	else
-	{
-		DWORD write = 0;
-		if (bpmem.blendmode.alphaupdate) 
-			write = D3DCOLORWRITEENABLE_ALPHA;
-		if (bpmem.blendmode.colorupdate) 
-			write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
-		
-		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
-	}
+	D3D::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);	
 }
 
 void Renderer::SetDepthMode()
@@ -977,7 +1043,17 @@ void Renderer::SetDepthMode()
 
 void Renderer::SetLogicOpMode()
 {
-	//TODO
+	if (bpmem.blendmode.logicopenable) 
+	{
+        D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, 1);
+		D3D::SetRenderState(D3DRS_BLENDOP, d3dLogincOPop[bpmem.blendmode.logicmode]);
+		D3D::SetRenderState(D3DRS_SRCBLEND, d3dLogicOpSrcFactors[bpmem.blendmode.logicmode]);
+		D3D::SetRenderState(D3DRS_DESTBLEND, d3dLogicOpDestFactors[bpmem.blendmode.logicmode]);
+	}
+	else
+	{
+		SetBlendMode(true);
+	}
 }
 
 void Renderer::SetDitherMode()

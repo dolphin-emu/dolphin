@@ -310,7 +310,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
             // Let's reload the new texture data into the same texture,
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
-			if (width == entry.w && height == entry.h && tex_format == entry.fmt)
+			if (width == entry.w && height == entry.h && (tex_format | (tlutfmt << 16)) == entry.fmt)
             {
 				glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
 				if (entry.mode.hex != tm0.hex)
@@ -463,7 +463,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     entry.frameCount = frameCount;
     entry.w = width;
     entry.h = height;
-    entry.fmt = tex_format;
+    entry.fmt = (tex_format | (tlutfmt << 16));
     entry.SetTextureParameters(tm0);
 
     if (g_ActiveConfig.bDumpTextures) // dump texture to file
@@ -623,6 +623,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
 	int w = (abs(source_rect.GetWidth()) >> bScaleByHalf);
 	int h = (abs(source_rect.GetHeight()) >> bScaleByHalf);
+
+
 
 	GL_REPORT_ERRORD();
 

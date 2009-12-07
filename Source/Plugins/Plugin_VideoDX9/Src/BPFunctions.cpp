@@ -71,7 +71,7 @@ void SetDitherMode(const BPCmd &bp)
 }
 void SetLogicOpMode(const BPCmd &bp)
 {
-	// Logic op blending. D3D can't do this but can fake some modes.
+	Renderer::SetLogicOpMode();
 }
 
 void SetColorMask(const BPCmd &bp)
