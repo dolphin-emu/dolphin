@@ -207,7 +207,9 @@ class WiimotePadConfigDialog : public wxDialog
 			IDB_WM_1, IDB_WM_2,
 			IDB_WM_P, IDB_WM_M, IDB_WM_H,
 			IDB_WM_L, IDB_WM_R, IDB_WM_U, IDB_WM_D,
-			IDB_WM_SHAKE, IDB_WM_PITCH_L, IDB_WM_PITCH_R,
+			IDB_WM_ROLL_L, IDB_WM_ROLL_R,
+			IDB_WM_PITCH_U, IDB_WM_PITCH_D,
+			IDB_WM_SHAKE,
 
 			// Nunchuck
 			IDB_NC_Z,

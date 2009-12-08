@@ -99,8 +99,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr)
 		break;
 
 	case WM_REQUEST_STATUS: // 0x15
-		if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
-			WmRequestStatus(_channelID, (wm_request_status*)sr->data);
+		WmRequestStatus(_channelID, (wm_request_status*)sr->data);
 		break;
 
 	case WM_WRITE_DATA: // 0x16
@@ -108,8 +107,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr)
 		break;
 
 	case WM_READ_DATA: // 0x17
-		if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
-			WmReadData(_channelID, (wm_read_data*)sr->data);
+		WmReadData(_channelID, (wm_read_data*)sr->data);
 		break;
 
 	case WM_WRITE_SPEAKER_DATA: // 0x18

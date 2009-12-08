@@ -44,37 +44,50 @@ static const char* wmControlNames[] =
 	"WmR",
 	"WmU",
 	"WmD",
-	"WmPitchL",
-	"WmPitchR",
+	"WmRollL",
+	"WmRollR",
+	"WmPitchU",
+	"WmPitchD",
 	"WmShake",
 };
 static int wmDefaultControls[] = 
 {
+#ifdef _WIN32
 	'Z',
 	'X',
 	'C',
 	'V',
-	'M',
-	'B',
-	'N',
-#ifdef _WIN32
+	VK_OEM_PLUS,
+	VK_OEM_MINUS,
+	VK_BACK,
 	VK_LEFT,
 	VK_RIGHT,
 	VK_UP,
 	VK_DOWN,
+	'N',
+	'M',
 	VK_OEM_COMMA,
 	VK_OEM_PERIOD,
 	VK_OEM_2	// /
 #elif defined(HAVE_X11) && HAVE_X11
+	'Z',
+	'X',
+	'C',
+	'V',
+	XK_Equal,
+	XK_Minus,
+	XK_BackSpace,
 	XK_Left,
 	XK_Right,
 	XK_Up,
 	XK_Down,
+	'N',
+	'M',
 	XK_comma,
 	XK_period,
 	XK_slash
 #else
-	0,0,0,0,0,0,0
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 #endif
 };
 
@@ -143,51 +156,51 @@ static int ccDefaultControls[] =
 {
 // A, B, X, Y
 #ifdef _WIN32
-	VK_OEM_6, // ]
-	VK_OEM_7, // '
 	VK_OEM_4, // [
+	VK_OEM_6, // ]
 	VK_OEM_1, // ;
+	VK_OEM_7, // '
 #elif defined(HAVE_X11) && HAVE_X11
-	XK_bracketright,
-	XK_quoteright,
 	XK_bracketleft,
+	XK_bracketright,
 	XK_semicolon,
+	XK_quoteright,
 #else
 	0,0,0,0,
 #endif
 // +, -, Home
-	'L',
-	'J',
-	'K',
+	'H',
+	'F',
+	'G',
 // Triggers, Zs
 	'E',
-	'U',
-	'R',
 	'Y',
-// Digital pad
-	'A',
-	'D',
-	'W',
-	'S',
-// Left analog
-	'F',
-	'H',
+	'R',
 	'T',
-	'G',
-// Right analog
+// Digital pad
 #ifdef _WIN32
 	VK_NUMPAD4,
 	VK_NUMPAD6,
 	VK_NUMPAD8,
-	VK_NUMPAD5
+	VK_NUMPAD5,
 #elif defined(HAVE_X11) && HAVE_X11
 	XK_KP_4,
 	XK_KP_6,
 	XK_KP_8,
-	XK_KP_5
+	XK_KP_5,
 #else
-	0,0,0,0
+	0,0,0,0,
 #endif
+// Left analog
+	'A',
+	'D',
+	'W',
+	'S',
+// Right analog
+	'J',
+	'L',
+	'I',
+	'K'
 };
 
 // GH3 Default controls
@@ -257,7 +270,7 @@ void Config::Load(bool ChangePad)
 
 	// Real Wiimote
 	iniFile.Get("Real", "Connect", &bConnectRealWiimote, true);
-	iniFile.Get("Real", "Use", &bUseRealWiimote, true);
+	iniFile.Get("Real", "Use", &bUseRealWiimote, false);
 	iniFile.Get("Real", "UpdateStatus", &bUpdateRealWiimote, true);
 	iniFile.Get("Real", "AccNeutralX", &iAccNeutralX, 0);
 	iniFile.Get("Real", "AccNeutralY", &iAccNeutralY, 0);

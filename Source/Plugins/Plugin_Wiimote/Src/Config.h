@@ -22,7 +22,7 @@
 	#include <X11/keysym.h>
 #endif
 
-#define WM_CONTROLS 14
+#define WM_CONTROLS 16
 #define NC_CONTROLS 7
 #define CC_CONTROLS 23
 #define GH3_CONTROLS 14

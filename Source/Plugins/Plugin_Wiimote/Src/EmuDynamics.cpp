@@ -94,12 +94,6 @@ void PitchDegreeToAccelerometer(int Roll, int Pitch, int &_x, int &_y, int &_z)
 	// Direct mapping for swing, from analog stick to accelerometer
 	if (g_Config.Trigger.Range.Roll == 0 && g_Config.Trigger.Range.Pitch == 0)
 	{
-		// Make a deadzone to avoid trouble
-		if (abs(Roll) <= abs(g_wm.cal_g.x))
-			Roll = 0;
-		if (abs(Pitch) <= abs(g_wm.cal_g.z))
-			Pitch = 0;
-
 		if (!g_Config.Trigger.Upright)
 		{
 			_x -= Roll;
@@ -117,16 +111,18 @@ void PitchDegreeToAccelerometer(int Roll, int Pitch, int &_x, int &_y, int &_z)
 	float _Roll = InputCommon::Deg2Rad((float)Roll);
 	float _Pitch = InputCommon::Deg2Rad((float)Pitch);
 	// We need decimal values
-	float x = (float)_x, y = (float)_y, z = (float)_z;
+	float x, y, z;
 
 	// In these cases we can use the simple and accurate formula
 	if(g_Config.Trigger.Range.Pitch == 0)
 	{
 		x = sin(_Roll);
+		y = 0.0f;
 		z = cos(_Roll);
 	}
 	else if (g_Config.Trigger.Range.Roll == 0)
 	{
+		x = 0.0f;
 		y = sin(_Pitch);
 		z = cos(_Pitch);
 	}

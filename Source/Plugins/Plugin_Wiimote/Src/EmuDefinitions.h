@@ -52,7 +52,7 @@ namespace WiiMoteEmu
    given how small most sensor bars are compared to the total TV width. When I tried the distance with
    my Wiimote from around three meters distance from the sensor bar (that has around 15 cm beteen the
    IR lights) I got a dot distance of around 110 (and a dot size of between 1 and 2). */
-#define SENSOR_BAR_RADIUS 100
+#define SENSOR_BAR_WIDTH 200
 
 // Movement recording
 extern int g_RecordingPlaying[3]; 
@@ -181,7 +181,8 @@ struct KeyboardWiimote
 		ONE, TWO,
 		P, M, H,
 		L, R, U, D,
-		PITCH_L, PITCH_R,
+		ROLL_L, ROLL_R,
+		PITCH_U, PITCH_D,
 		SHAKE,
 		MA, MB,
 		LAST_CONSTANT
@@ -199,7 +200,7 @@ struct KeyboardNunchuck
 		#ifdef _WIN32
 			Z = g_Wiimote_kbd.LAST_CONSTANT,
 		#else
-			Z = 16,
+			Z = 18,
 		#endif
 		C,
 		L, R, U, D,
@@ -216,7 +217,7 @@ struct KeyboardClassicController
 		#ifdef _WIN32
 			A = g_NunchuckExt.LAST_CONSTANT,
 		#else
-			A = 23,
+			A = 25,
 		#endif
 		B, X, Y,
 		P, M, H,
@@ -224,7 +225,6 @@ struct KeyboardClassicController
 		Dl, Dr, Du, Dd,
 		Ll, Lr, Lu, Ld,
 		Rl, Rr, Ru, Rd,
-		SHAKE,
 		LAST_CONSTANT
 	};
 };
@@ -238,14 +238,13 @@ struct KeyboardGH3GLP
 		#ifdef _WIN32
 			Green = g_ClassicContExt.LAST_CONSTANT,
 		#else
-			Green = 47,
+			Green = 48,
 		#endif
 		Red, Yellow, Blue,
 		Orange,Plus, Minus,
 		Whammy,
 		Al, Ar, Au, Ad,
 		StrumUp, StrumDown,
-		SHAKE,
 		LAST_CONSTANT
 	};
 };

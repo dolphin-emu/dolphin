@@ -324,11 +324,6 @@ int GetMapKeyState(int _MapKey, int Key)
 // Multi System Input Status Check
 int IsKey(int Key)
 {
-
-	if (g_Wiimote_kbd.A <= Key && Key <= g_Wiimote_kbd.PITCH_R)
-	{
-		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A], Key);
-	}
 	if (Key == g_Wiimote_kbd.SHAKE)
 	{
 #ifdef _WIN32
@@ -336,6 +331,10 @@ int IsKey(int Key)
 #else
 		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A], Key);
 #endif
+	}
+	if (g_Wiimote_kbd.A <= Key && Key <= g_Wiimote_kbd.PITCH_D)
+	{
+		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A], Key);
 	}
 	if (g_NunchuckExt.Z <= Key && Key <= g_NunchuckExt.SHAKE)
 	{
@@ -431,18 +430,10 @@ Y     |. .||     Z
 
 */
 
-// Global declarations for FillReportAcc: These variables are global so they
-//can be changed during debugging int A = 0, B = 128, C = 64; // for debugging
-//int a = 1, b = 1, c = 2, d = -2; // for debugging int consoleDisplay = 0;
-
+// Global declarations for FillReportAcc: These variables are global
 // For the shake function, Wiimote: wm = 0, Nunchuck: wm = 1
 int Shake[] = {0, 0};
-
-// For the tilt function, the size of this list determines how fast Y returns to its neutral value
-std::vector<u8> yhist(15, 0);
-int KbDegree;
-
-int Roll, Pitch;
+int Roll = 0, Pitch = 0;
 
 // Single shake of all three directions
 void SingleShake(int &_x, int &_y, int &_z, int wm)
@@ -525,7 +516,7 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 		// Invert
 		if (PadMapping[Page].bPitchInvert) { Tl = -Tl; Tr = -Tr; }
 		// The final value
-		Pitch = PitchRange * ((float)(Tl - Tr) / 128.0);
+		Pitch = (float)PitchRange * ((float)(Tl - Tr) / 128.0f);
 	}
 
 	/* For the analog stick roll is by default set to the X-axis, pitch is by
@@ -540,8 +531,8 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 		if (PadMapping[Page].bRollInvert) Lx = -Lx; // else Tr = -Tr;
 		if (PadMapping[Page].bPitchInvert) Ly = -Ly; // else Tr = -Tr;
 		// Produce the final value
-		Roll = (RollRange) ? RollRange * ((float)Lx / 128.0) : Lx;
-		Pitch = (PitchRange) ? PitchRange * ((float)Ly / 128.0) : Ly;
+		Roll = (RollRange) ? (float)RollRange * ((float)Lx / 128.0f) : Lx;
+		Pitch = (PitchRange) ? (float)PitchRange * ((float)Ly / 128.0f) : Ly;
 	}
 	// Otherwise we are using ANALOG2
 	else
@@ -553,8 +544,8 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 		if (PadMapping[Page].bRollInvert) Rx = -Rx; // else Tr = -Tr;
 		if (PadMapping[Page].bPitchInvert) Ry = -Ry; // else Tr = -Tr;
 		// Produce the final value
-		Roll = (RollRange) ? RollRange * ((float)Rx / 128.0) : Rx;
-		Pitch = (PitchRange) ? PitchRange * ((float)Ry / 128.0) : Ry;
+		Roll = (RollRange) ? (float)RollRange * ((float)Rx / 128.0f) : Rx;
+		Pitch = (PitchRange) ? (float)PitchRange * ((float)Ry / 128.0f) : Ry;
 	}
 }
 
@@ -562,55 +553,57 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 // Tilting Wiimote with keyboard
 void TiltWiimoteKeyboard(int &Roll, int &Pitch)
 {
-#ifdef _WIN32
-	// Direct map keyboard pitch left/right to swing left/right
+	// Direct map roll/pitch to swing
 	if (g_Config.Trigger.Range.Roll == 0 && g_Config.Trigger.Range.Pitch == 0)
 	{
-		if (IsKey(g_Wiimote_kbd.PITCH_L))
+		if (IsKey(g_Wiimote_kbd.ROLL_L))
 			Roll = -0x80 / 2;
-		else if (IsKey(g_Wiimote_kbd.PITCH_R))
+		else if (IsKey(g_Wiimote_kbd.ROLL_R))
 			Roll = 0x80 / 2;
+		else
+			Roll = 0;
+		if (IsKey(g_Wiimote_kbd.PITCH_U))
+			Pitch = -0x80 / 2;
+		else if (IsKey(g_Wiimote_kbd.PITCH_D))
+			Pitch = 0x80 / 2;
+		else
+			Pitch = 0;
 		return;
 	}
 
-	if (IsKey(g_Wiimote_kbd.PITCH_L))
+	// Otherwise do roll/pitch
+	if (IsKey(g_Wiimote_kbd.ROLL_L))
 	{
 		// Stop at the upper end of the range
-		if (KbDegree < g_Config.Trigger.Range.Pitch)
-			KbDegree += 3; // aim left
+		if (Roll < g_Config.Trigger.Range.Roll)
+			Roll += 3; // aim left
 	}
-	else if (IsKey(g_Wiimote_kbd.PITCH_R))
+	else if (IsKey(g_Wiimote_kbd.ROLL_R))
 	{
 		// Stop at the lower end of the range
-		if (KbDegree > -g_Config.Trigger.Range.Pitch)
-			KbDegree -= 3; // aim right
-	}
-
-	// Check for inactivity in the tilting, the Y value will be reset after ten inactive updates
-	// Check for activity
-	yhist[yhist.size() - 1] = (
-		IsKey(g_Wiimote_kbd.PITCH_L)
-		||IsKey(g_Wiimote_kbd.PITCH_R)
-		);	
-
-	// Move all items back, and check if any of them are true
-	bool ypressed = false;
-	for (int i = 1; i < (int)yhist.size(); i++)
-	{
-		yhist[i-1] = yhist[i];
-		if(yhist[i]) ypressed = true;
-	}
-	// Tilting was not used a single time, reset the angle to zero
-	if(!ypressed)
-	{
-		KbDegree = 0;
+		if (Roll > -g_Config.Trigger.Range.Roll)
+			Roll -= 3; // aim right
 	}
 	else
 	{
-		Pitch = KbDegree;
-		//DEBUG_LOG(WIIMOTE, "Degree: %i", KbDegree);
+		Roll = 0;
 	}
-#endif
+	if (IsKey(g_Wiimote_kbd.PITCH_U))
+	{
+		// Stop at the upper end of the range
+		if (Pitch < g_Config.Trigger.Range.Pitch)
+			Pitch += 3; // aim up
+	}
+	else if (IsKey(g_Wiimote_kbd.PITCH_D))
+	{
+		// Stop at the lower end of the range
+		if (Pitch > -g_Config.Trigger.Range.Pitch)
+			Pitch -= 3; // aim down
+	}
+	else
+	{
+		Pitch = 0;
+	}
 }
 
 // Tilting Wiimote (Wario Land aiming, Mario Kart steering and other things)
@@ -618,10 +611,6 @@ void Tilt(int &_x, int &_y, int &_z)
 {
 	// Check if it's on
 	if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER_OFF) return;
-
-	// Set to zero
-	Roll = 0;
-	Pitch = 0;
 
 	// Select input method and return the x, y, x values
 	if (g_Config.Trigger.Type == g_Config.Trigger.KEYBOARD)
@@ -763,26 +752,25 @@ void FillReportAcc(wm_accel& _acc)
 }
 
 // Rotate IR dot when rolling Wiimote
-void RotateIR(int _Roll, int& _x, int& _y)
+void RotateIRDot(int _Roll, int& _x, int& _y)
 {
-	if (_Roll == 0)
+	if (g_Config.Trigger.Range.Roll == 0 || _Roll == 0)
 		return;
 
-	// The IR camera resolution is 1024x768
-	float dot_x = _x - 1024 / 2;
-	float dot_y = _y - 768 / 2;
+	// The IR camera resolution is 1023x767
+	float dot_x = _x - 1023.0f / 2;
+	float dot_y = _y - 767.0f / 2;
 
-	float radius = sqrt(pow(dot_x, 2)+pow(dot_y, 2));
-	float radian = atan(dot_y / dot_x);
+	float radius = sqrt(pow(dot_x, 2) + pow(dot_y, 2));
+	float radian = atan2(dot_y, dot_x);
 
-	_x = radius * cos(radian + InputCommon::Deg2Rad(float(_Roll))) + 1024 / 2;
-	_y = radius * sin(radian + InputCommon::Deg2Rad(float(_Roll))) + 768 / 2;
+	_x = radius * cos(radian + InputCommon::Deg2Rad((float)_Roll)) + 1023.0f / 2;
+	_y = radius * sin(radian + InputCommon::Deg2Rad((float)_Roll)) + 767.0f / 2;
 
 	// Out of sight check
 	if (_x < 0 || _x > 1023) _x = 0xFFFF;
 	if (_y < 0 || _y > 767) _y = 0xFFFF;
 }
-
 
 /*
 		int Top = TOP, Left = LEFT, Right = RIGHT,
@@ -817,11 +805,27 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	if(MouseX > 1 || MouseX < 0 || MouseY > 1 || MouseY < 0) return;
 
 	// Position calculation
-	int y0 = g_Config.iIRTop + (MouseY * g_Config.iIRHeight);
+	int y0 = g_Config.iIRTop + g_Config.iIRHeight * MouseY;
 	int y1 = y0;
+
 	// The distance between the x positions are two sensor bar radii
-	int x0 = g_Config.iIRLeft + (MouseX * g_Config.iIRWidth) - SENSOR_BAR_RADIUS;
-	int x1 = g_Config.iIRLeft + (MouseX * g_Config.iIRWidth) + SENSOR_BAR_RADIUS;
+	int x0 = 1023 - g_Config.iIRLeft - g_Config.iIRWidth * MouseX - SENSOR_BAR_WIDTH / 2;
+	int x1 = x0 + SENSOR_BAR_WIDTH;
+
+	RotateIRDot(Roll, x0, y0);
+	RotateIRDot(Roll, x1, y1);
+
+	// Converted to IR data
+	_ir0.x = x0 & 0xff; _ir0.xHi = x0 >> 8;
+	_ir0.y = y0 & 0xff; _ir0.yHi = y0 >> 8;
+
+	_ir1.x = x1 & 0xff; _ir1.xHi = x1 >> 8;
+	_ir1.y = y1 & 0xff; _ir1.yHi = y1 >> 8;
+
+	// The size can be between 0 and 15 and is probably not important
+	_ir0.size = 10;
+	_ir1.size = 10;
+
 	// Debugging for calibration
 	/*
 	if(!GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_RIGHT))
@@ -850,25 +854,6 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	DEBUG_LOG(WIIMOTE, "x0:%03i x1:%03i  y0:%03i y1:%03i | T:%i L:%i R:%i B:%i S:%i",
 		x0, x1, y0, y1, Top, Left, Right, Bottom, SensorBarRadius
 		);*/
-
-	// Converted to IR data
-	// The width is 0 to 1023
-	// The height is 0 to 767
-	x0 = 1023 - x0;
-	x1 = 1023 - x1;
-
-	RotateIR(Roll, x0, y0);
-	RotateIR(Roll, x1, y1);
-
-	_ir0.x = x0 & 0xff; _ir0.xHi = x0 >> 8;
-	_ir0.y = y0 & 0xff; _ir0.yHi = y0 >> 8;
-
-	_ir1.x = x1 & 0xff; _ir1.xHi = x1 >> 8;
-	_ir1.y = y1 & 0xff; _ir1.yHi = y1 >> 8;
-
-	// The size can be between 0 and 15 and is probably not important
-	_ir0.size = 10;
-	_ir1.size = 10;
 }
 
 // The 10 byte reporting used when an extension is connected
@@ -898,28 +883,24 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	// If we are outside the screen leave the values at 0xff
 	if(MouseX > 1 || MouseX < 0 || MouseY > 1 || MouseY < 0) return;
 
-	int y1 = g_Config.iIRTop + (MouseY * g_Config.iIRHeight);
-	int y2 = g_Config.iIRTop + (MouseY * g_Config.iIRHeight);
+	int y1 = g_Config.iIRTop + g_Config.iIRHeight * MouseY;
+	int y2 = y1;
 
-	int x1 = g_Config.iIRLeft + (MouseX * g_Config.iIRWidth) - SENSOR_BAR_RADIUS;
-	int x2 = g_Config.iIRLeft + (MouseX * g_Config.iIRWidth) + SENSOR_BAR_RADIUS;
+	int x1 = 1023 - g_Config.iIRLeft - g_Config.iIRWidth * MouseX - SENSOR_BAR_WIDTH / 2;
+	int x2 = x1 + SENSOR_BAR_WIDTH;
+
+	RotateIRDot(Roll, x1, y1);
+	RotateIRDot(Roll, x2, y2);
 
 	/* As with the extented report we settle with emulating two out of four
 	   possible objects the only difference is that we don't report any size of
 	   the tracked object here */
-	x1 = 1023 - x1;
-	x2 = 1023 - x2;
-
-	RotateIR(Roll, x1, y1);
-	RotateIR(Roll, x2, y2);
 
 	_ir0.x1 = x1 & 0xff; _ir0.x1Hi = (x1 >> 8); // we are dealing with 2 bit values here
 	_ir0.y1 = y1 & 0xff; _ir0.y1Hi = (y1 >> 8);
 
-
 	_ir0.x2 = x2 & 0xff; _ir0.x2Hi = (x2 >> 8);
 	_ir0.y2 = y2 & 0xff; _ir0.y2Hi = (y2 >> 8);
-
 
 	// Debugging for calibration
 	/*

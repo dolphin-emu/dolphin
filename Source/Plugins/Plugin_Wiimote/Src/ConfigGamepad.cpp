@@ -256,7 +256,7 @@ void WiimotePadConfigDialog::SaveButtonMapping(int controller, bool DontChangeId
 // Save keyboard key mapping
 void WiimotePadConfigDialog::SaveKeyboardMapping(int Controller, int Id, int Key)
 {
-	if (IDB_WM_A <= Id && Id <= IDB_WM_PITCH_R)
+	if (IDB_WM_A <= Id && Id <= IDB_WM_SHAKE)
 	{
 		WiiMoteEmu::PadMapping[Controller].Wm.keyForControls[Id - IDB_WM_A] = Key;
 	}
@@ -309,7 +309,7 @@ void WiimotePadConfigDialog::SetButtonText(int id, const char text[128], int _Pa
 	int controller;	
 	if (_Page == -1) controller = Page; else controller = _Page;
 
-	if (IDB_WM_A <= id && id <= IDB_WM_PITCH_R)
+	if (IDB_WM_A <= id && id <= IDB_WM_SHAKE)
 		m_Button_Wiimote[id - IDB_WM_A][controller]->SetLabel(wxString::FromAscii(text)); 
 	else if (IDB_NC_Z <= id && id <= IDB_NC_SHAKE)
 		m_Button_NunChuck[id - IDB_NC_Z][controller]->SetLabel(wxString::FromAscii(text)); 

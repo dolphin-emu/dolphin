@@ -180,9 +180,9 @@ struct PadAxis
 };
 struct PadWiimote
 {
-	int keyForControls[14];
+	int keyForControls[16];
 	// Order is A, B, 1, 2, +, -, Home
-	// L, R, U, D, Shake, PitchL, PitchR
+	// L, R, U, D, RollL, RollR, PitchU, PitchD, Shake
 };
 
 struct PadNunchuck
@@ -194,8 +194,8 @@ struct PadClassicController
 {
  	int keyForControls[23];
 	// Order is A, B, X, Y, +, -, Home
-	// Tl, Zl, Zr, Tr, Dl, Du, Dr, Dd
-	// Ll, Lu, Lr, Ld, Rl, Ru, Rr, Rd
+	// Tl, Zl, Zr, Tr, Dl, Dr, Du, Dd
+	// Ll, Lr, Lu, Ld, Rl, Rr, Ru, Rd
 }; 
 struct PadGH3Controller
 {

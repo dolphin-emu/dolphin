@@ -55,15 +55,12 @@ namespace InputCommon
 // -------------
 float Deg2Rad(float Deg)
 {
-	return Deg * ((float)M_PI / 180.0f);
+	return Deg * (float)M_PI / 180.0f;
 }
 float Rad2Deg(float Rad)
 {
-	return (Rad * 180.0f) / (float)M_PI;
+	return Rad * 180.0f / (float)M_PI;
 }
-
-
-
 
 // Check if the pad is within the dead zone, we assume the range is 0x8000
 // ----------------
@@ -107,7 +104,7 @@ int Pad_Convert(int _val)
 	// Convert the range (-0x8000 to 0x7fff) to (0 to 0xffff)
 	_val = 0x8000 +_val;
 
-	// Convert the range (-32768 to 32767) to (-128 to 127)
+	// Convert the range (0 to 0xffff) to (0 to 0xff)
 	_val = _val >> 8;
 
 	//Console::Print("0x%04x  %06i\n\n", _val, _val);
@@ -196,7 +193,7 @@ void Square2Circle(int &_x, int &_y, int _pad, std::string SDiagonal, bool Circl
 
 	/* Calculate the actual distance between the maxium diagonal values, and the outer edges of the
 	   square. A diagonal of 85% means a maximum distance of 0.85 * sqrt(2) ~1.2 in the diagonals. */
-	float corner_circle_dist = ( Diagonal / sin(Deg2Rad(45)) );
+	float corner_circle_dist = ( Diagonal / sin(Deg2Rad(45.0f)) );
 	float SquareDist = Square2CircleDistance(deg);
 	// The original-to-square distance adjustment
 	float adj_ratio1;

@@ -55,11 +55,13 @@ BEGIN_EVENT_TABLE(WiimotePadConfigDialog,wxDialog)
 	// Wiimote
 	EVT_BUTTON(IDB_WM_A, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_B, WiimotePadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_WM_1, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_2, WiimotePadConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_P, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_M, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_H, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_P, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_M, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_H, WiimotePadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_WM_L, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_R, WiimotePadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_WM_U, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_D, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_ROLL_L, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_ROLL_R, WiimotePadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_WM_PITCH_U, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_PITCH_D, WiimotePadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_WM_SHAKE, WiimotePadConfigDialog::OnButtonClick)
-	EVT_BUTTON(IDB_WM_PITCH_L, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_PITCH_R, WiimotePadConfigDialog::OnButtonClick)
 
 	// Nunchuck
 	EVT_BUTTON(IDB_NC_Z, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_NC_C, WiimotePadConfigDialog::OnButtonClick)
@@ -415,7 +417,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 
 		// Configuration controls sizes
-		static const int TxtW = 50, TxtH = 19, BtW = 75, BtH = 20;
+		static const int TxtW = 50, TxtH = 20, BtW = 70, BtH = 20;
 
 		// Controller
 		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(200, -1), StrJoyname, wxCB_READONLY);
@@ -705,8 +707,10 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 			wxT("Right"),
 			wxT("Up"),
 			wxT("Down"),
-			wxT("Pitch Left"),
-			wxT("Pitch Right"),
+			wxT("Roll Left"),
+			wxT("Roll Right"),
+			wxT("Pitch Up"),
+			wxT("Pitch Down"),
 			wxT("Shake"),
 		};
 
@@ -722,7 +726,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 				m_Sizer_Wiimote[x][i] = new wxBoxSizer(wxHORIZONTAL);
 				m_Sizer_Wiimote[x][i]->Add(m_statictext_Wiimote[x][i], 0, (wxUP), 4);
 				m_Sizer_Wiimote[x][i]->Add(m_Button_Wiimote[x][i], 0, (wxLEFT), 2);
-				if (x < 7)
+				if (x < 7 || x == WM_CONTROLS -1) // Make some balance
 					m_SWmVertLeft[i]->Add(m_Sizer_Wiimote[x][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 				else
 					m_SWmVertRight[i]->Add(m_Sizer_Wiimote[x][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
@@ -776,11 +780,11 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		{
 			// Stick controls
 			m_CcTextLeftStick[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left stick"));
-			m_CcComboLeftStick[i] = new wxComboBox(m_Controller[i], IDCB_CC_LEFT_STICK, StrNunchuck[0], wxDefaultPosition,  wxSize(100, -1), StrNunchuck, wxCB_READONLY);
+			m_CcComboLeftStick[i] = new wxComboBox(m_Controller[i], IDCB_CC_LEFT_STICK, StrNunchuck[0], wxDefaultPosition,  wxSize(70, -1), StrNunchuck, wxCB_READONLY);
 			m_CcTextRightStick[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Right stick"));
-			m_CcComboRightStick[i] = new wxComboBox(m_Controller[i], IDCB_CC_RIGHT_STICK, StrNunchuck[0], wxDefaultPosition,  wxSize(100, -1), StrNunchuck, wxCB_READONLY);
+			m_CcComboRightStick[i] = new wxComboBox(m_Controller[i], IDCB_CC_RIGHT_STICK, StrNunchuck[0], wxDefaultPosition,  wxSize(70, -1), StrNunchuck, wxCB_READONLY);
 			m_CcTextTriggers[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Triggers"));
-			m_CcComboTriggers[i] = new wxComboBox(m_Controller[i], IDCB_CC_TRIGGERS, StrCcTriggers[0], wxDefaultPosition,  wxSize(100, -1), StrCcTriggers, wxCB_READONLY);
+			m_CcComboTriggers[i] = new wxComboBox(m_Controller[i], IDCB_CC_TRIGGERS, StrCcTriggers[0], wxDefaultPosition,  wxSize(70, -1), StrCcTriggers, wxCB_READONLY);
 
 			static const wxChar* classicText[] =
 			{
@@ -834,30 +838,33 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 			// The left parent
 			m_SCcVertLeft[i] = new wxBoxSizer(wxVERTICAL);
 			m_SCcVertLeft[i]->Add(m_SCcLeftStick[i], 0, wxALIGN_RIGHT | (wxALL), 2);
-			m_SCcVertLeft[i]->Add(m_SCcRightStick[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 2);
 			m_SCcVertLeft[i]->AddSpacer(2);
-			// Left and right stick
-			for ( int x = IDB_CC_LL; x <= IDB_CC_RD; x++)
+			// Left stick
+			for ( int x = IDB_CC_LL; x <= IDB_CC_LD; x++)
+				m_SCcVertLeft[i]->Add(m_Sizer_Classic[x - IDB_CC_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+			// Digital l,r,u,d
+			for ( int x = IDB_CC_DL; x <= IDB_CC_DD; x++)
 				m_SCcVertLeft[i]->Add(m_Sizer_Classic[x - IDB_CC_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 
 			// The middle parent
 			m_SCcVertMiddle[i] = new wxBoxSizer(wxVERTICAL);
-			m_SCcVertMiddle[i]->Add(m_SCcTriggers[i], 0, wxALIGN_RIGHT | (wxALL), 1);
+			m_SCcVertMiddle[i]->Add(m_SCcRightStick[i], 0, wxALIGN_RIGHT | (wxALL), 2);
 			m_SCcVertMiddle[i]->AddSpacer(2);
-			// Shoulder buttons
-			for ( int x = IDB_CC_TL; x <= IDB_CC_ZR; x++)
+			// Right stick
+			for ( int x = IDB_CC_RL; x <= IDB_CC_RD; x++)
 				m_SCcVertMiddle[i]->Add(m_Sizer_Classic[x - IDB_CC_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-			// Digital l,r,u,d
-			for ( int x = IDB_CC_DL; x <= IDB_CC_DD; x++)
+			for ( int x = IDB_CC_A; x <= IDB_CC_Y; x++)
 				m_SCcVertMiddle[i]->Add(m_Sizer_Classic[x - IDB_CC_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 
 			// The right parent
 			m_SCcVertRight[i] = new wxBoxSizer(wxVERTICAL);
-			for ( int x = 0; x <= IDB_CC_ZR - IDB_CC_A; x++)
-			{
-				if (x != IDB_CC_TL - IDB_CC_A)
-					m_SCcVertRight[i]->Add(m_Sizer_Classic[x][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-			}
+			m_SCcVertRight[i]->Add(m_SCcTriggers[i], 0, wxALIGN_RIGHT | (wxALL), 2);
+			m_SCcVertRight[i]->AddSpacer(2);
+			// Shoulder buttons
+			for ( int x = IDB_CC_TL; x <= IDB_CC_ZR; x++)
+				m_SCcVertRight[i]->Add(m_Sizer_Classic[x - IDB_CC_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+			for ( int x = IDB_CC_P; x <= IDB_CC_H; x++)
+				m_SCcVertRight[i]->Add(m_Sizer_Classic[x - IDB_CC_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 
 			// The parent sizer
 			m_gClassicController[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Classic Controller"));
