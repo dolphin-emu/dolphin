@@ -185,7 +185,7 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
 
 	switch( iMsg )
 	{
-	
+	case WM_USER_KEYDOWN:
 	case WM_KEYDOWN:
 		switch( LOWORD( wParam ))
 		{
@@ -338,8 +338,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			else
 				SetCursor(hCursorBlank);
 		}
-		if (wParam == WM_USER_KEYDOWN)
+		if (wParam == WM_USER_KEYDOWN) {
 			OnKeyDown(lParam);
+			FreeLookInput(wParam, lParam);
+		}
 		if (wParam == TOGGLE_FULLSCREEN)
 			ToggleFullscreen(m_hWnd);
 		break;
