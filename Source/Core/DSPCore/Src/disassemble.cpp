@@ -111,7 +111,7 @@ char *DSPDisassembler::DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, ch
 		if (type & P_REG)
 		{
 			// Check for _D parameter - if so flip.
-			if (type == P_ACC_D)  // Used to be P_ACCM_D TODO verify
+			if ((type == P_ACC_D) || (type == P_ACCM_D))  // Used to be P_ACCM_D TODO verify
 				val = (~val & 0x1) | ((type & P_REGS_MASK) >> 8);
 			else
 				val |= (type & P_REGS_MASK) >> 8;

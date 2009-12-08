@@ -615,6 +615,8 @@ void addi(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// shifts
+
 // LSL16 $acR
 // 1111 000r xxxx xxxx
 // Logically shifts left accumulator $acR by 16.
@@ -771,40 +773,65 @@ void asrn(const UDSPInstruction& opc)
 
 // LSRNRX
 // 0011 01sd 1xxx xxxx
-// 0011 10sd 1xxx xxxx
-// Logically shifts right accumulator $ACC[D] by signed 16-bit value $AX[S].H
-// Not described by Duddie's doc.
+// Logically shifts left/right accumulator $ACC[D] by signed 16-bit value $AX[S].H
 // x = extension (7 bits!!)
 void lsrnrx(const UDSPInstruction& opc)
 {
-  u8 dreg = (opc.hex >> 8) & 0x1; //accD
-  u8 sreg = (opc.hex >> 9) & 0x1; //axhS 
-  u64 acc = dsp_get_long_acc(dreg);
-  s16 shift = g_dsp.r[DSP_REG_AXH0 + sreg];
-  acc &= 0x000000FFFFFFFFFFULL;
-  if (shift > 0) {
-    acc <<= shift;
-  } else if (shift < 0) {
-    acc >>= -shift;
-  }
+	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 sreg = (opc.hex >> 9) & 0x1;
 
-  zeroWriteBackLog();
-  
-  dsp_set_long_acc(dreg, acc);
-  Update_SR_Register64(acc);
+	s16 shift = g_dsp.r[DSP_REG_AXH0 + sreg];
+	u64 acc = dsp_get_long_acc(dreg);
+	acc &= 0x000000FFFFFFFFFFULL;
+
+	if (shift > 0) {
+		acc <<= shift;
+	} else if (shift < 0) {
+		acc >>= -shift;
+	}
+
+	zeroWriteBackLog();
+
+	dsp_set_long_acc(dreg, (s64)acc);
+	Update_SR_Register64((s64)acc);
 }
 
-// LSRNR  $acR
-// 0011 11?d 1xxx xxxx
-// Logically shifts right accumulator $ACC[D] by signed 16-bit value $AC[1-D].M
-// Not described by Duddie's doc - at least not as a separate instruction.
+// ASRNRX
+// 0011 10sd 1xxx xxxx
+// Arithmetically shifts left/right accumulator $ACC[D] by signed 16-bit value $AX[S].H
+// x = extension (7 bits!!)
+void asrnrx(const UDSPInstruction& opc)
+{
+	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 sreg = (opc.hex >> 9) & 0x1;
+
+	s16 shift = g_dsp.r[DSP_REG_AXH0 + sreg];
+	s64 acc = dsp_get_long_acc(dreg);
+
+	if (shift > 0) {
+		acc <<= shift;
+	} else if (shift < 0) {
+		acc >>= -shift;
+	}
+
+	zeroWriteBackLog();
+
+	dsp_set_long_acc(dreg, acc);
+	Update_SR_Register64(acc);
+}
+
+// LSRNR  $acD
+// 0011 110d 1xxx xxxx
+// Logically shifts left/right accumulator $ACC[D] by signed 16-bit value $AC[1-D].M
 // x = extension (7 bits!!)
 void lsrnr(const UDSPInstruction& opc)
 {
-  u8 D = (opc.hex >> 8) & 0x1;
-  s16 shift = dsp_get_acc_m(1-D);
-  u64 acc = dsp_get_long_acc(D);
+  u8 dreg = (opc.hex >> 8) & 0x1;
+
+  s16 shift = dsp_get_acc_m(1 - dreg);
+  u64 acc = dsp_get_long_acc(dreg);
   acc &= 0x000000FFFFFFFFFFULL;
+  
   if (shift > 0) {
     acc <<= shift;
   } else if (shift < 0) {
@@ -813,7 +840,30 @@ void lsrnr(const UDSPInstruction& opc)
 
   zeroWriteBackLog();
  
-  dsp_set_long_acc(D, acc);
+  dsp_set_long_acc(dreg, (s64)acc);
+  Update_SR_Register64((s64)acc);
+}
+
+// ASRNR  $acD
+// 0011 111d 1xxx xxxx
+// Arithmeticaly shift left/right accumulator $ACC[D] by signed 16-bit value $AC[1-D].M
+// x = extension (7 bits!!)
+void asrnr(const UDSPInstruction& opc)
+{
+  u8 dreg = (opc.hex >> 8) & 0x1;
+
+  s16 shift = dsp_get_acc_m(1 - dreg);
+  s64 acc = dsp_get_long_acc(dreg);
+
+  if (shift > 0) {
+    acc <<= shift;
+  } else if (shift < 0) {
+    acc >>= -shift;
+  }
+
+  zeroWriteBackLog();
+ 
+  dsp_set_long_acc(dreg, acc);
   Update_SR_Register64(acc);
 }
 
@@ -835,7 +885,6 @@ void cmpar(const UDSPInstruction& opc)
 	Update_SR_Register64(sr - rr);
 	zeroWriteBackLog();
 }
-
 	
 // CMP
 // 1000 0010 xxxx xxxx
@@ -854,7 +903,7 @@ void cmp(const UDSPInstruction& opc)
 // Test accumulator %acR.
 void tst(const UDSPInstruction& opc)
 {
-	s8 reg = (opc.hex >> 11) & 0x1;
+	u8 reg = (opc.hex >> 11) & 0x1;
 	s64 acc = dsp_get_long_acc(reg);
 
 	Update_SR_Register64(acc);

@@ -417,10 +417,16 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case AUDIO_DMA_CONTROL_LEN:			// called by AIStartDMA()
+		{
+		UAudioDMAControl old_control = g_audioDMA.AudioDMAControl;
 		g_audioDMA.AudioDMAControl.Hex = _Value;
-		g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
-		g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
-		INFO_LOG(DSPINTERFACE, "AID DMA started - source address %08x, length %i blocks", g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks);
+		if (!old_control.Enabled && g_audioDMA.AudioDMAControl.Enabled) //needed for some AX games under LLE (Crazy Taxi)
+		{
+			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
+			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
+			INFO_LOG(DSPINTERFACE, "AID DMA started - source address %08x, length %i blocks", g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks);
+		}
+		}
 		break;
 
 	case AUDIO_DMA_BYTES_LEFT:

@@ -182,16 +182,17 @@ const DSPOPCTemplate opcodes[] =
 // extended opcodes, note size of opcode will be set to 0
 
 	//3 - main opcode defined by 9 bits, extension defined by last 7 bits!!
-	{"XORR",    0x3000, 0xfc80, DSPInterpreter::xorr,	nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, true},
-	{"ANDR",    0x3400, 0xfc80, DSPInterpreter::andr,	nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, true},
-	{"ORR",		0x3800, 0xfc80, DSPInterpreter::orr,	nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 9, 0x0200}}, true},
-	{"ANDC",    0x3c00, 0xfe80, DSPInterpreter::andc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true},
-	{"ORC",     0x3e00, 0xfe80, DSPInterpreter::orc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true},
-	{"XORC",	0x3080, 0xfe80, DSPInterpreter::xorc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true}, //new
-	{"NOT",		0x3280, 0xfe80, DSPInterpreter::notc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true}, //new
-	{"LSRNRX",	0x3480, 0xfc80, DSPInterpreter::lsrnrx,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true}, //new
-	{"LSRNRX",	0x3880, 0xfc80, DSPInterpreter::lsrnrx,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true}, //new
-	{"LSRNR",	0x3c80, 0xfc80, DSPInterpreter::lsrnr,	nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 8, 0x0100}}, true},	// discovered by luigi!
+	{"XORR",    0x3000, 0xfc80, DSPInterpreter::xorr,	nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100},{P_REG1A,  1, 0, 9, 0x0200}}, true},
+	{"ANDR",    0x3400, 0xfc80, DSPInterpreter::andr,	nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100},{P_REG1A,  1, 0, 9, 0x0200}}, true},
+	{"ORR",		0x3800, 0xfc80, DSPInterpreter::orr,	nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100},{P_REG1A,  1, 0, 9, 0x0200}}, true},
+	{"ANDC",    0x3c00, 0xfe80, DSPInterpreter::andc,	nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100},{P_ACCM_D, 1, 0, 8, 0x0100}}, true},
+	{"ORC",     0x3e00, 0xfe80, DSPInterpreter::orc,	nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100},{P_ACCM_D, 1, 0, 8, 0x0100}}, true},
+	{"XORC",	0x3080, 0xfe80, DSPInterpreter::xorc,	nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 8, 0x0100},{P_ACCM_D, 1, 0, 8, 0x0100}}, true}, 
+	{"NOT",		0x3280, 0xfe80, DSPInterpreter::notc,	nop, 1 | P_EXT, 1, {{P_ACCM, 1, 0, 8, 0x0100}}, true},
+	{"LSRNRX",	0x3480, 0xfc80, DSPInterpreter::lsrnrx,	nop, 1 | P_EXT, 2, {{P_ACC,  1, 0, 8, 0x0100},{P_REG1A,  1, 0, 9, 0x0200}}, true}, 
+	{"ASRNRX",	0x3880, 0xfc80, DSPInterpreter::asrnrx,	nop, 1 | P_EXT, 2, {{P_ACC,  1, 0, 8, 0x0100},{P_REG1A,  1, 0, 9, 0x0200}}, true}, 
+	{"LSRNR",	0x3c80, 0xfe80, DSPInterpreter::lsrnr,	nop, 1 | P_EXT, 2, {{P_ACC,  1, 0, 8, 0x0100},{P_ACCM_D, 1, 0, 8, 0x0100}}, true}, 
+	{"ASRNR",	0x3e80, 0xfe80, DSPInterpreter::asrnr,	nop, 1 | P_EXT, 2, {{P_ACC,  1, 0, 8, 0x0100},{P_ACCM_D, 1, 0, 8, 0x0100}}, true}, 
 
 	//4
 	{"ADDR",    0x4000, 0xf800, DSPInterpreter::addr,	nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_REG18, 1, 0, 9, 0x0600}}, true},
