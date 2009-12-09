@@ -15,6 +15,7 @@ files = [
         "EmuPad.cpp",
         "EmuSubroutines.cpp",
         "Encryption.cpp",
+	"FakeAccelerometer.cpp",
         "main.cpp",
 	"Rumble.cpp",
 	]
