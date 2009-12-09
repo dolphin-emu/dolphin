@@ -431,7 +431,7 @@ Y     |. .||     Z
 */
 
 void StartShake(ShakeData &shakeData) {
-	shakeData.Shake = 1;
+	if (shakeData.Shake <= 0) shakeData.Shake = 1;
 }
 
 // Single shake step of all three directions
