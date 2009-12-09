@@ -390,7 +390,7 @@ void FillReportInfo(wm_core& _core)
 	_core.home = IsKey(g_Wiimote_kbd.H) ? 1 : 0;
 
 	/* Sideways controls (for example for Wario Land) if the Wiimote is intended to be held sideways */
-	if(g_Config.bSidewaysDPad)
+	if(g_Config.bSideways)
 	{
 		_core.left = IsKey(g_Wiimote_kbd.D) ? 1 : 0;
 		_core.up = IsKey(g_Wiimote_kbd.L) ? 1 : 0;
@@ -504,11 +504,11 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 	PadStateAdjustments(Lx, Ly, Rx, Ry, Tl, Tr);
 
 	// Save the Range in degrees, 45 and 90 are good values in some games
-	int &RollRange = g_Config.Trigger.Range.Roll;
-	int &PitchRange = g_Config.Trigger.Range.Pitch;
+	int &RollRange = g_Config.Tilt.Range.Roll;
+	int &PitchRange = g_Config.Tilt.Range.Pitch;
 
 	// The trigger currently only controls pitch
-	if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER)
+	if (g_Config.Tilt.Type == g_Config.Tilt.TRIGGER)
 	{
 		// Make the range the same dimension as the analog stick
 		Tl = Tl / 2;
@@ -522,7 +522,7 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 	/* For the analog stick roll is by default set to the X-axis, pitch is by
 	   default set to the Y-axis.  By changing the axis mapping and the invert
 	   options this can be altered in any way */
-	else if (g_Config.Trigger.Type == g_Config.Trigger.ANALOG1)
+	else if (g_Config.Tilt.Type == g_Config.Tilt.ANALOG1)
 	{
 		// Adjust the trigger to go between negative and positive values
 		Lx = Lx - 0x80;
@@ -554,7 +554,7 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 void TiltWiimoteKeyboard(int &Roll, int &Pitch)
 {
 	// Direct map roll/pitch to swing
-	if (g_Config.Trigger.Range.Roll == 0 && g_Config.Trigger.Range.Pitch == 0)
+	if (g_Config.Tilt.Range.Roll == 0 && g_Config.Tilt.Range.Pitch == 0)
 	{
 		if (IsKey(g_Wiimote_kbd.ROLL_L))
 			Roll = -0x80 / 2;
@@ -575,13 +575,13 @@ void TiltWiimoteKeyboard(int &Roll, int &Pitch)
 	if (IsKey(g_Wiimote_kbd.ROLL_L))
 	{
 		// Stop at the upper end of the range
-		if (Roll < g_Config.Trigger.Range.Roll)
+		if (Roll < g_Config.Tilt.Range.Roll)
 			Roll += 3; // aim left
 	}
 	else if (IsKey(g_Wiimote_kbd.ROLL_R))
 	{
 		// Stop at the lower end of the range
-		if (Roll > -g_Config.Trigger.Range.Roll)
+		if (Roll > -g_Config.Tilt.Range.Roll)
 			Roll -= 3; // aim right
 	}
 	else
@@ -591,13 +591,13 @@ void TiltWiimoteKeyboard(int &Roll, int &Pitch)
 	if (IsKey(g_Wiimote_kbd.PITCH_U))
 	{
 		// Stop at the upper end of the range
-		if (Pitch < g_Config.Trigger.Range.Pitch)
+		if (Pitch < g_Config.Tilt.Range.Pitch)
 			Pitch += 3; // aim up
 	}
 	else if (IsKey(g_Wiimote_kbd.PITCH_D))
 	{
 		// Stop at the lower end of the range
-		if (Pitch > -g_Config.Trigger.Range.Pitch)
+		if (Pitch > -g_Config.Tilt.Range.Pitch)
 			Pitch -= 3; // aim down
 	}
 	else
@@ -610,16 +610,16 @@ void TiltWiimoteKeyboard(int &Roll, int &Pitch)
 void Tilt(int &_x, int &_y, int &_z)
 {
 	// Check if it's on
-	if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER_OFF) return;
+	if (g_Config.Tilt.Type == g_Config.Tilt.OFF) return;
 
 	// Select input method and return the x, y, x values
-	if (g_Config.Trigger.Type == g_Config.Trigger.KEYBOARD)
+	if (g_Config.Tilt.Type == g_Config.Tilt.KEYBOARD)
 		TiltWiimoteKeyboard(Roll, Pitch);
-	else if (g_Config.Trigger.Type == g_Config.Trigger.TRIGGER || g_Config.Trigger.Type == g_Config.Trigger.ANALOG1 || g_Config.Trigger.Type == g_Config.Trigger.ANALOG2)
+	else if (g_Config.Tilt.Type == g_Config.Tilt.TRIGGER || g_Config.Tilt.Type == g_Config.Tilt.ANALOG1 || g_Config.Tilt.Type == g_Config.Tilt.ANALOG2)
 		TiltWiimoteGamepad(Roll, Pitch);
 
 	// Adjust angles, it's only needed if both roll and pitch is used together
-	if (g_Config.Trigger.Range.Roll != 0 && g_Config.Trigger.Range.Pitch != 0)
+	if (g_Config.Tilt.Range.Roll != 0 && g_Config.Tilt.Range.Pitch != 0)
 		AdjustAngles(Roll, Pitch);
 
 	// Calculate the accelerometer value from this tilt angle
@@ -649,7 +649,7 @@ void FillReportAcc(wm_accel& _acc)
 	int acc_y = g_wm.cal_zero.y;
 	int acc_z = g_wm.cal_zero.z;
 
-	if (!g_Config.Trigger.Upright)
+	if (!g_Config.bUpright)
 		acc_z += g_wm.cal_g.z;
 	else	// Upright wiimote
 		acc_y -= g_wm.cal_g.y;
@@ -754,7 +754,7 @@ void FillReportAcc(wm_accel& _acc)
 // Rotate IR dot when rolling Wiimote
 void RotateIRDot(int _Roll, int& _x, int& _y)
 {
-	if (g_Config.Trigger.Range.Roll == 0 || _Roll == 0)
+	if (g_Config.Tilt.Range.Roll == 0 || _Roll == 0)
 		return;
 
 	// The IR camera resolution is 1023x767

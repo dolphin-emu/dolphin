@@ -240,9 +240,8 @@ struct KeyboardGH3GLP
 		#else
 			Green = 48,
 		#endif
-		Red, Yellow, Blue,
-		Orange,Plus, Minus,
-		Whammy,
+		Red, Yellow, Blue, Orange,
+		Plus, Minus, Whammy,
 		Al, Ar, Au, Ad,
 		StrumUp, StrumDown,
 		LAST_CONSTANT

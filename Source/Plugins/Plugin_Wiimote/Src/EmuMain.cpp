@@ -636,7 +636,7 @@ void Update()
 	readKeyboard();
 
 	// Check if the pad state should be updated
-	if ((g_Config.Trigger.Type == g_Config.Trigger.TRIGGER || g_Config.Trigger.Type == g_Config.Trigger.ANALOG1 || g_Config.Trigger.Type == g_Config.Trigger.ANALOG2
+	if ((g_Config.Tilt.Type == g_Config.Tilt.TRIGGER || g_Config.Tilt.Type == g_Config.Tilt.ANALOG1 || g_Config.Tilt.Type == g_Config.Tilt.ANALOG2
 		|| g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG1 || g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG2
 		|| g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG2
 		|| g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG2)

@@ -22,6 +22,7 @@
 	#include <X11/keysym.h>
 #endif
 
+#define AN_CONTROLS 6
 #define WM_CONTROLS 16
 #define NC_CONTROLS 7
 #define CC_CONTROLS 23
@@ -33,7 +34,6 @@ enum
 	EXT_NUNCHUCK,
 	EXT_CLASSIC_CONTROLLER,
 	EXT_GUITARHERO3_CONTROLLER,
-	EXT_GUITARHEROWT_DRUMS,
 };
 
 struct Config
@@ -42,25 +42,24 @@ struct Config
 	void Load(bool ChangePad = false);
 	void Save(int Slot = -1);
 
-	struct PadRange
+	struct TiltRange
 	{
 		int Roll;
 		int Pitch;
 	};
 
-	struct PadTrigger
+	struct PadTilt
 	{
-		enum ETriggerType
+		enum ETiltType
 		{
-			TRIGGER_OFF = 0,
+			OFF = 0,
 			KEYBOARD,
 			ANALOG1,
 			ANALOG2,
 			TRIGGER
 		};
 		int Type;
-		bool Upright;
-		PadRange Range;
+		TiltRange Range;
 	};
 	struct PadNunchuck
 	{
@@ -90,7 +89,7 @@ struct Config
 	{
 		enum EGH3Stick
 		{
-	//		KEYBOARD,
+//			KEYBOARD,
 			ANALOG1,
 			ANALOG2
 		};
@@ -99,10 +98,11 @@ struct Config
 	};
 
 	// Emulated Wiimote
-	bool bSidewaysDPad;
+	bool bSideways;
+	bool bUpright;
 	bool bWideScreen;
-	int iExtensionConnected;
 	bool bMotionPlusConnected;
+	int iExtensionConnected;
 
 	// Real Wiimote
 	bool bConnectRealWiimote, bUseRealWiimote, bUpdateRealWiimote;
@@ -112,7 +112,7 @@ struct Config
 
 	// Gamepad
 	bool bNoTriggerFilter;
-	PadTrigger Trigger;
+	PadTilt Tilt;
 	PadNunchuck Nunchuck;
 	PadClassicController ClassicController;
 	PadGH3 GH3Controller;

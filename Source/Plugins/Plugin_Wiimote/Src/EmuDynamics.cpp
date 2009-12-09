@@ -92,9 +92,9 @@ void AdjustAngles(int &Roll, int &Pitch)
 void PitchDegreeToAccelerometer(int Roll, int Pitch, int &_x, int &_y, int &_z)
 {
 	// Direct mapping for swing, from analog stick to accelerometer
-	if (g_Config.Trigger.Range.Roll == 0 && g_Config.Trigger.Range.Pitch == 0)
+	if (g_Config.Tilt.Range.Roll == 0 && g_Config.Tilt.Range.Pitch == 0)
 	{
-		if (!g_Config.Trigger.Upright)
+		if (!g_Config.bUpright)
 		{
 			_x -= Roll;
 			_z -= Pitch;
@@ -114,13 +114,13 @@ void PitchDegreeToAccelerometer(int Roll, int Pitch, int &_x, int &_y, int &_z)
 	float x, y, z;
 
 	// In these cases we can use the simple and accurate formula
-	if(g_Config.Trigger.Range.Pitch == 0)
+	if(g_Config.Tilt.Range.Pitch == 0)
 	{
 		x = sin(_Roll);
 		y = 0.0f;
 		z = cos(_Roll);
 	}
-	else if (g_Config.Trigger.Range.Roll == 0)
+	else if (g_Config.Tilt.Range.Roll == 0)
 	{
 		x = 0.0f;
 		y = sin(_Pitch);
@@ -157,16 +157,16 @@ void PitchDegreeToAccelerometer(int Roll, int Pitch, int &_x, int &_y, int &_z)
 	int iy = g_wm.cal_zero.y + (int)(yg * y);
 	int iz = g_wm.cal_zero.z + (int)(zg * z);
 
-	if (!g_Config.Trigger.Upright)
+	if (!g_Config.bUpright)
 	{
-		if(g_Config.Trigger.Range.Roll != 0) _x = ix;
-		if(g_Config.Trigger.Range.Pitch != 0) _y = iy;
+		if(g_Config.Tilt.Range.Roll != 0) _x = ix;
+		if(g_Config.Tilt.Range.Pitch != 0) _y = iy;
 		_z = iz;
 	}
 	else	// Upright wiimote
 	{
-		if(g_Config.Trigger.Range.Roll != 0) _x = ix;
-		if(g_Config.Trigger.Range.Pitch != 0) _z = iy;
+		if(g_Config.Tilt.Range.Roll != 0) _x = ix;
+		if(g_Config.Tilt.Range.Pitch != 0) _z = iy;
 		_y = 0xFF - iz;
 	}
 }
@@ -188,7 +188,7 @@ void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, in
 	float y = AccelerometerToG((float)_y, (float)g_wm.cal_zero.y, (float)g_wm.cal_g.y);
 	float z = AccelerometerToG((float)_z, (float)g_wm.cal_zero.z, (float)g_wm.cal_g.z);
 
-	if (!g_Config.Trigger.Upright)
+	if (!g_Config.bUpright)
 	{
 		// If it is over 1g then it is probably accelerating and may not reliable
 		//if (abs(accel->x - ac->cal_zero.x) <= ac->cal_g.x)
@@ -225,7 +225,7 @@ void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, in
 	if (x < -1.0) x = -1.0; else if (x > 1.0) x = 1.0;
 	if (y < -1.0) y = -1.0; else if (y > 1.0) y = 1.0;
 	if (z < -1.0) z = -1.0; else if (z > 1.0) z = 1.0;
-	if (!g_Config.Trigger.Upright)
+	if (!g_Config.bUpright)
 	{
 		Roll = InputCommon::Rad2Deg(atan2(x, z));
 		Pitch = InputCommon::Rad2Deg(atan2(y, z));

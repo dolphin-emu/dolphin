@@ -264,7 +264,8 @@ void Config::Load(bool ChangePad)
 	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
 
 	// General
-	iniFile.Get("Settings", "SidewaysDPad", &bSidewaysDPad, false);
+	iniFile.Get("Settings", "Sideways", &bSideways, false);
+	iniFile.Get("Settings", "Upright", &bUpright, false);
 	iniFile.Get("Settings", "ExtensionConnected", &iExtensionConnected, EXT_NONE);
 	iniFile.Get("Settings", "MotionPlusConnected", &bMotionPlusConnected, false);
 
@@ -285,10 +286,10 @@ void Config::Load(bool ChangePad)
 		char SectionName[32];
 		sprintf(SectionName, "Wiimote%i", i + 1);
 		iniFile.Get(SectionName, "NoTriggerFilter", &bNoTriggerFilter, false);
-		iniFile.Get(SectionName, "TriggerType", &Trigger.Type, Trigger.TRIGGER_OFF);
-		iniFile.Get(SectionName, "TriggerUpright", &Trigger.Upright, false);
-		iniFile.Get(SectionName, "TriggerRollRange", &Trigger.Range.Roll, 0);
-		iniFile.Get(SectionName, "TriggerPitchRange", &Trigger.Range.Pitch, 0);
+
+		iniFile.Get(SectionName, "TiltType", &Tilt.Type, Tilt.OFF);
+		iniFile.Get(SectionName, "TiltRollRange", &Tilt.Range.Roll, 0);
+		iniFile.Get(SectionName, "TiltPitchRange", &Tilt.Range.Pitch, 0);
 
 		// Wiimote
 		for (int x = 0; x < WM_CONTROLS; x++)
@@ -304,6 +305,7 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(SectionName, "CcTriggers", &ClassicController.TType, ClassicController.KEYBOARD);
 		for (int x = 0; x < CC_CONTROLS; x++)
 			iniFile.Get(SectionName, ccControlNames[x], &WiiMoteEmu::PadMapping[i].Cc.keyForControls[x], ccDefaultControls[x]);
+
 		iniFile.Get(SectionName, "GH3Analog", &GH3Controller.AType, GH3Controller.ANALOG1);
 		for (int x = 0; x < GH3_CONTROLS; x++)
 			iniFile.Get(SectionName, gh3ControlNames[x], &WiiMoteEmu::PadMapping[i].GH3c.keyForControls[x], GH3DefaultControls[x]);
@@ -328,8 +330,6 @@ void Config::Load(bool ChangePad)
 		// Create a section name			
 		std::string joySectionName = WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name;
 
-		iniFile.Get(joySectionName.c_str(), "Rumble", &WiiMoteEmu::PadMapping[i].Rumble, true);
-		iniFile.Get(joySectionName.c_str(), "RumbleStrength", &WiiMoteEmu::PadMapping[i].RumbleStrength, 10);
 		iniFile.Get(joySectionName.c_str(), "left_x", &WiiMoteEmu::PadMapping[i].Axis.Lx, 0);
 		iniFile.Get(joySectionName.c_str(), "left_y", &WiiMoteEmu::PadMapping[i].Axis.Ly, 1);
 		iniFile.Get(joySectionName.c_str(), "right_x", &WiiMoteEmu::PadMapping[i].Axis.Rx, 2);
@@ -338,11 +338,13 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(joySectionName.c_str(), "r_trigger", &WiiMoteEmu::PadMapping[i].Axis.Tr, 1005);
 		iniFile.Get(joySectionName.c_str(), "DeadZoneL", &WiiMoteEmu::PadMapping[i].DeadZoneL, 0);
 		iniFile.Get(joySectionName.c_str(), "DeadZoneR", &WiiMoteEmu::PadMapping[i].DeadZoneR, 0);
-		iniFile.Get(joySectionName.c_str(), "TriggerType", &WiiMoteEmu::PadMapping[i].triggertype, 0);
 		iniFile.Get(joySectionName.c_str(), "Diagonal", &WiiMoteEmu::PadMapping[i].SDiagonal, "100%");
 		iniFile.Get(joySectionName.c_str(), "Circle2Square", &WiiMoteEmu::PadMapping[i].bCircle2Square, false);
+		iniFile.Get(joySectionName.c_str(), "Rumble", &WiiMoteEmu::PadMapping[i].Rumble, true);
+		iniFile.Get(joySectionName.c_str(), "RumbleStrength", &WiiMoteEmu::PadMapping[i].RumbleStrength, 10);
 		iniFile.Get(joySectionName.c_str(), "RollInvert", &WiiMoteEmu::PadMapping[i].bRollInvert, false);
 		iniFile.Get(joySectionName.c_str(), "PitchInvert", &WiiMoteEmu::PadMapping[i].bPitchInvert, false);
+		iniFile.Get(joySectionName.c_str(), "TriggerType", &WiiMoteEmu::PadMapping[i].triggertype, 0);
 	}
 	// Load the IR cursor settings if it's avaliable for the GameId, if not load the default settings
 	iniFile.Load(FULL_CONFIG_DIR "IR Pointer.ini");
@@ -368,9 +370,10 @@ void Config::Save(int Slot)
 {
 	IniFile iniFile;
 	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
-	iniFile.Set("Settings", "SidewaysDPad", bSidewaysDPad);
-	iniFile.Set("Settings", "ExtensionConnected", iExtensionConnected);
+	iniFile.Set("Settings", "Sideways", bSideways);
+	iniFile.Set("Settings", "Upright", bUpright);
 	iniFile.Set("Settings", "MotionPlusConnected", bMotionPlusConnected);
+	iniFile.Set("Settings", "ExtensionConnected", iExtensionConnected);
 
 	iniFile.Set("Real", "Connect", bConnectRealWiimote);	
 	iniFile.Set("Real", "Use", bUseRealWiimote);
@@ -390,10 +393,9 @@ void Config::Save(int Slot)
 
 		iniFile.Set(SectionName, "Enabled", WiiMoteEmu::PadMapping[i].enabled);
 		iniFile.Set(SectionName, "NoTriggerFilter", bNoTriggerFilter);
-		iniFile.Set(SectionName, "TriggerType", Trigger.Type);
-		iniFile.Set(SectionName, "TriggerUpright", Trigger.Upright);
-		iniFile.Set(SectionName, "TriggerRollRange", Trigger.Range.Roll);
-		iniFile.Set(SectionName, "TriggerPitchRange", Trigger.Range.Pitch);
+		iniFile.Set(SectionName, "TiltType", Tilt.Type);;
+		iniFile.Set(SectionName, "TiltRollRange", Tilt.Range.Roll);
+		iniFile.Set(SectionName, "TiltPitchRange", Tilt.Range.Pitch);
 
 		// Wiimote
 		for (int x = 0; x < WM_CONTROLS; x++)
@@ -410,6 +412,7 @@ void Config::Save(int Slot)
 		iniFile.Set(SectionName, "CcTriggers", ClassicController.TType);
 		for (int x = 0; x < CC_CONTROLS; x++)
 			iniFile.Set(SectionName, ccControlNames[x], WiiMoteEmu::PadMapping[i].Cc.keyForControls[x]);
+
 		// GH3
 		iniFile.Set(SectionName, "GH3Analog", GH3Controller.AType);
 		for (int x = 0; x < GH3_CONTROLS; x++)
@@ -429,23 +432,21 @@ void Config::Save(int Slot)
 		// Create a new section name after the joypad name
 		std::string joySectionName = WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name;
 
-		iniFile.Set(joySectionName.c_str(), "Rumble", WiiMoteEmu::PadMapping[i].Rumble);
-		iniFile.Set(joySectionName.c_str(), "RumbleStrength", WiiMoteEmu::PadMapping[i].RumbleStrength);
 		iniFile.Set(joySectionName.c_str(), "left_x", WiiMoteEmu::PadMapping[i].Axis.Lx);
 		iniFile.Set(joySectionName.c_str(), "left_y", WiiMoteEmu::PadMapping[i].Axis.Ly);
 		iniFile.Set(joySectionName.c_str(), "right_x", WiiMoteEmu::PadMapping[i].Axis.Rx);
 		iniFile.Set(joySectionName.c_str(), "right_y", WiiMoteEmu::PadMapping[i].Axis.Ry);
 		iniFile.Set(joySectionName.c_str(), "l_trigger", WiiMoteEmu::PadMapping[i].Axis.Tl);
 		iniFile.Set(joySectionName.c_str(), "r_trigger", WiiMoteEmu::PadMapping[i].Axis.Tr);
-
 		iniFile.Set(joySectionName.c_str(), "DeadZoneL", WiiMoteEmu::PadMapping[i].DeadZoneL);
 		iniFile.Set(joySectionName.c_str(), "DeadZoneR", WiiMoteEmu::PadMapping[i].DeadZoneR);
-		//iniFile.Set(joySectionName.c_str(), "controllertype", WiiMoteEmu::PadMapping[i].controllertype);
-		iniFile.Set(joySectionName.c_str(), "TriggerType", WiiMoteEmu::PadMapping[i].triggertype);
 		iniFile.Set(joySectionName.c_str(), "Diagonal", WiiMoteEmu::PadMapping[i].SDiagonal);
 		iniFile.Set(joySectionName.c_str(), "Circle2Square", WiiMoteEmu::PadMapping[i].bCircle2Square);
+		iniFile.Set(joySectionName.c_str(), "Rumble", WiiMoteEmu::PadMapping[i].Rumble);
+		iniFile.Set(joySectionName.c_str(), "RumbleStrength", WiiMoteEmu::PadMapping[i].RumbleStrength);
 		iniFile.Set(joySectionName.c_str(), "RollInvert", WiiMoteEmu::PadMapping[i].bRollInvert);
 		iniFile.Set(joySectionName.c_str(), "PitchInvert", WiiMoteEmu::PadMapping[i].bPitchInvert);
+		iniFile.Set(joySectionName.c_str(), "TriggerType", WiiMoteEmu::PadMapping[i].triggertype);
 	}
 
 	iniFile.Save(FULL_CONFIG_DIR "Wiimote.ini");

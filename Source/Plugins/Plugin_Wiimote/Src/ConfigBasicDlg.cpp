@@ -33,7 +33,7 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_BUTTON(ID_BUTTONRECORDING, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_CHECKBOX(ID_CONNECT_REAL, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USE_REAL, WiimoteBasicConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_SIDEWAYSDPAD, WiimoteBasicConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_SIDEWAYSWIIMOTE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_UPRIGHTWIIMOTE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_MOTIONPLUSCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)	
 	EVT_CHOICE(ID_EXTCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
@@ -176,11 +176,11 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_WiimoteOnline[i]->SetToolTip(wxString::Format(wxT("Decide if Wiimote %i shall be detected by the game"), i));
 
 		// Emulated Wiimote
-		m_SidewaysDPad[i] = new wxCheckBox(m_Controller[i], ID_SIDEWAYSDPAD, wxT("Sideways Wiimote"));
-		m_SidewaysDPad[i]->SetValue(g_Config.bSidewaysDPad);
-		m_SidewaysDPad[i]->SetToolTip(wxT("Treat the sideways position as neutral"));
+		m_SidewaysWiimote[i] = new wxCheckBox(m_Controller[i], ID_SIDEWAYSWIIMOTE, wxT("Sideways Wiimote"));
+		m_SidewaysWiimote[i]->SetValue(g_Config.bSideways);
+		m_SidewaysWiimote[i]->SetToolTip(wxT("Treat the sideways position as neutral"));
 		m_UprightWiimote[i] = new wxCheckBox(m_Controller[i], ID_UPRIGHTWIIMOTE, wxT("Upright Wiimote"));
-		m_UprightWiimote[i]->SetValue(g_Config.Trigger.Upright);
+		m_UprightWiimote[i]->SetValue(g_Config.bUpright);
 		m_UprightWiimote[i]->SetToolTip(wxT("Treat the upright position as neutral"));
 
 		//IR Pointer
@@ -216,7 +216,7 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_SizeBasic[i]->Add(m_WiimoteOnline[i], 0, wxEXPAND | wxALL, 5);
 
 		m_SizeEmu[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Position"));
-		m_SizeEmu[i]->Add(m_SidewaysDPad[i], 0, wxEXPAND | wxALL, 5);
+		m_SizeEmu[i]->Add(m_SidewaysWiimote[i], 0, wxEXPAND | wxALL, 5);
 		m_SizeEmu[i]->Add(m_UprightWiimote[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
 
 		m_SizeExtensions[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Extension"));
@@ -379,11 +379,11 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		if (g_Config.bUseRealWiimote) DoUseReal();		
 		break;
 
-	case ID_SIDEWAYSDPAD:
-		g_Config.bSidewaysDPad = m_SidewaysDPad[Page]->IsChecked();
+	case ID_SIDEWAYSWIIMOTE:
+		g_Config.bSideways = m_SidewaysWiimote[Page]->IsChecked();
 		break;		
 	case ID_UPRIGHTWIIMOTE:
-		g_Config.Trigger.Upright = m_UprightWiimote[Page]->IsChecked();
+		g_Config.bUpright = m_UprightWiimote[Page]->IsChecked();
 		break;
 
 	case ID_MOTIONPLUSCONNECTED:

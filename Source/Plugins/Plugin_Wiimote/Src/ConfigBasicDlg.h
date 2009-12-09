@@ -78,7 +78,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 				 *m_SliderTop[4];
 
 		// Emulated Wiimote settings
-		wxCheckBox  *m_SidewaysDPad[4],
+		wxCheckBox  *m_SidewaysWiimote[4],
 					*m_UprightWiimote[4],
 					*m_WiimoteOnline[4],
 					*m_WiiMotionPlusConnected[4],
@@ -126,7 +126,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 			ID_CONTROLLERPAGE4,
 			
 			// Emulated Wiimote
-			ID_SIDEWAYSDPAD,
+			ID_SIDEWAYSWIIMOTE,
 			ID_UPRIGHTWIIMOTE,
 			ID_MOTIONPLUSCONNECTED,
 			ID_EXTCONNECTED,
