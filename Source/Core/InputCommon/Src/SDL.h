@@ -169,14 +169,18 @@ enum
 };
 
 
-struct PadAxis
+union PadAxis
 {
-	int Lx;
-	int Ly;
-	int Rx;
-	int Ry;
-	int Tl; // Triggers
-	int Tr;
+	int keyForControls[6];
+	struct
+	{
+		int Lx;
+		int Ly;
+		int Rx;
+		int Ry;
+		int Tl; // Trigger
+		int Tr; // Trigger
+	};
 };
 struct PadWiimote
 {
@@ -184,7 +188,6 @@ struct PadWiimote
 	// Order is A, B, 1, 2, +, -, Home
 	// L, R, U, D, RollL, RollR, PitchU, PitchD, Shake
 };
-
 struct PadNunchuck
 {
 	int keyForControls[7];
@@ -201,7 +204,8 @@ struct PadGH3Controller
 {
 	int keyForControls[14];
 	// Order is Green, Red, Yellow, Blue, Orange,
-	// +, -, Whammy, Al, Au, Ar, Ad,
+	// +, -, Whammy, 
+	// Al, Ar, Au, Ad,
 	// StrumUp, StrumDown
 };
 struct CONTROLLER_STATE_NEW		// GC PAD INFO/STATE

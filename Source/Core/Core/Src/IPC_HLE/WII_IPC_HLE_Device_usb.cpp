@@ -468,25 +468,6 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		}
 	}
 
-// This seems not necessary at all or at least not helping to avoid de-sync at all??? 
-/*
-	// AyuanX: This event should be sent periodically after ACL connection is accepted
-	// or CPU will disconnect WiiMote automatically
-	// but don't send too many or it will jam the bus and cost extra CPU time
-	//
-	if (m_HCIBuffer.m_address && !WII_IPCInterface::GetAddress() && m_WiiMotes[0].IsConnected())
-	{
-		m_FreqDividerSync++;
-		if ((m_PacketCount > 0) || (m_FreqDividerSync > 100))	// Feel free to tweak it
-		{
-			m_FreqDividerSync = 0;
-			SendEventNumberOfCompletedPackets(m_WiiMotes[0].GetConnectionHandle(), m_PacketCount);
-			m_PacketCount = 0;
-			return true;
-		}
-	}
-*/
-
 	// The Real Wiimote sends report at a fixed frequency of 100Hz
 	// So let's make it also 100Hz here
 	// Calculation: 15000Hz (IPC_HLE) / 100Hz (WiiMote) = 150
@@ -497,6 +478,22 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		{
 			m_FreqDividerMote = 0;
 			CPluginManager::GetInstance().GetWiimote(0)->Wiimote_Update();
+			return true;
+		}
+	}
+
+	// This event should be sent periodically after ACL connection is accepted
+	// or CPU will disconnect WiiMote automatically
+	// but don't send too many or it will jam the bus and cost extra CPU time
+	// TODO: Figure out the correct frequency to send this thing
+	if (m_HCIBuffer.m_address && !WII_IPCInterface::GetAddress() && m_WiiMotes[0].IsConnected())
+	{
+		m_FreqDividerSync++;
+		if ((m_PacketCount > 0) || (m_FreqDividerSync >= 100))	// Feel free to tweak it
+		{
+			m_FreqDividerSync = 0;
+			SendEventNumberOfCompletedPackets(m_WiiMotes[0].GetConnectionHandle(), m_PacketCount);
+			m_PacketCount = 0;
 			return true;
 		}
 	}
