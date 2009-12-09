@@ -171,6 +171,15 @@ struct SIR
 	int Distance;
 };
 
+class ShakeData
+{
+	public:
+	ShakeData();
+	int Shake;
+	int Roll, Pitch;
+};
+
+
 // Keyboard input
 struct KeyboardWiimote
 {
@@ -190,6 +199,7 @@ struct KeyboardWiimote
 
 	// Raw X and Y coordinate and processed X and Y coordinates
 	SIR IR;
+	ShakeData shakeData;
 };
 	extern KeyboardWiimote g_Wiimote_kbd;
 struct KeyboardNunchuck
@@ -207,6 +217,7 @@ struct KeyboardNunchuck
 		SHAKE,
 		LAST_CONSTANT
 	};
+	ShakeData shakeData;
 };
 extern KeyboardNunchuck g_NunchuckExt;
 struct KeyboardClassicController

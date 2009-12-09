@@ -430,21 +430,19 @@ Y     |. .||     Z
 
 */
 
-// Global declarations for FillReportAcc: These variables are global
-// For the shake function, Wiimote: wm = 0, Nunchuck: wm = 1
-int Shake[] = {0, 0};
-int Roll = 0, Pitch = 0;
+void StartShake(ShakeData &shakeData) {
+	shakeData.Shake = 1;
+}
 
-// Single shake of all three directions
-void SingleShake(int &_x, int &_y, int &_z, int wm)
+// Single shake step of all three directions
+void SingleShake(int &_x, int &_y, int &_z, ShakeData &shakeData)
 {
-#ifdef _WIN32
-	if (Shake[wm] == 0)
-	{
-		if((wm == 0 && IsKey(g_Wiimote_kbd.SHAKE)) || (wm == 1 && IsKey(g_NunchuckExt.SHAKE)))
-			Shake[wm] = 1;
-	}
-	switch(Shake[wm])
+// 	if (shakeData.Shake == 0)
+// 	{
+// 		if((wm == 0 && IsKey(g_Wiimote_kbd.SHAKE)) || (wm == 1 && IsKey(g_NunchuckExt.SHAKE)))
+// 			Shake[wm] = 1;
+// 	}
+	switch(shakeData.Shake)
 	{
 	case 1:
 	case 3:
@@ -474,11 +472,10 @@ void SingleShake(int &_x, int &_y, int &_z, int wm)
 		_z = 0x80;
 		break;
 	default:
-		Shake[wm] = -1;
+		shakeData.Shake = -1;
 		break;
 	}
-	Shake[wm]++;
-#endif
+	shakeData.Shake++;
 	//if (Shake[wm] != 0) DEBUG_LOG(WIIMOTE, "Shake: %i - 0x%02x, 0x%02x, 0x%02x", Shake[wm], _x, _y, _z);
 }
 
@@ -614,16 +611,16 @@ void Tilt(int &_x, int &_y, int &_z)
 
 	// Select input method and return the x, y, x values
 	if (g_Config.Tilt.Type == g_Config.Tilt.KEYBOARD)
-		TiltWiimoteKeyboard(Roll, Pitch);
+		TiltWiimoteKeyboard(g_Wiimote_kbd.shakeData.Roll, g_Wiimote_kbd.shakeData.Pitch);
 	else if (g_Config.Tilt.Type == g_Config.Tilt.TRIGGER || g_Config.Tilt.Type == g_Config.Tilt.ANALOG1 || g_Config.Tilt.Type == g_Config.Tilt.ANALOG2)
-		TiltWiimoteGamepad(Roll, Pitch);
+		TiltWiimoteGamepad(g_Wiimote_kbd.shakeData.Roll, g_Wiimote_kbd.shakeData.Pitch);
 
 	// Adjust angles, it's only needed if both roll and pitch is used together
 	if (g_Config.Tilt.Range.Roll != 0 && g_Config.Tilt.Range.Pitch != 0)
-		AdjustAngles(Roll, Pitch);
+		AdjustAngles(g_Wiimote_kbd.shakeData.Roll, g_Wiimote_kbd.shakeData.Pitch);
 
 	// Calculate the accelerometer value from this tilt angle
-	PitchDegreeToAccelerometer(Roll, Pitch, _x, _y, _z);
+	PitchDegreeToAccelerometer(g_Wiimote_kbd.shakeData.Roll, g_Wiimote_kbd.shakeData.Pitch, _x, _y, _z);
 
 	//DEBUG_LOG(WIIMOTE, "Roll:%i, Pitch:%i, _x:%u, _y:%u, _z:%u", Roll, Pitch, _x, _y, _z);
 }
@@ -657,15 +654,17 @@ void FillReportAcc(wm_accel& _acc)
 	// Check that Dolphin is in focus
 	if (IsFocus())
 	{
-		// Shake the Wiimote
-		SingleShake(acc_x, acc_y, acc_z, 0);
+		// Check for shake button
+		if(IsKey(g_Wiimote_kbd.SHAKE)) StartShake(g_Wiimote_kbd.shakeData);
+		// Step the shake simulation one step
+		SingleShake(acc_x, acc_y, acc_z, g_Wiimote_kbd.shakeData);
 
 		// Tilt Wiimote, allow the shake function to interrupt it
-		if (Shake[0] == 0)	Tilt(acc_x, acc_y, acc_z);
+		if (g_Wiimote_kbd.shakeData.Shake == 0)	Tilt(acc_x, acc_y, acc_z);
 	
 		// Boundary check
 		if (acc_x > 0xFF)	acc_x = 0xFF;
-		else if (_acc.x < 0x00)	acc_x = 0x00;
+		else if (acc_x < 0x00)	acc_x = 0x00;
 		if (acc_y > 0xFF)	acc_y = 0xFF;
 		else if (acc_y < 0x00)	acc_y = 0x00;
 		if (acc_z > 0xFF)	acc_z = 0xFF;
@@ -812,8 +811,8 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	int x0 = 1023 - g_Config.iIRLeft - g_Config.iIRWidth * MouseX - SENSOR_BAR_WIDTH / 2;
 	int x1 = x0 + SENSOR_BAR_WIDTH;
 
-	RotateIRDot(Roll, x0, y0);
-	RotateIRDot(Roll, x1, y1);
+	RotateIRDot(g_Wiimote_kbd.shakeData.Roll, x0, y0);
+	RotateIRDot(g_Wiimote_kbd.shakeData.Roll, x1, y1);
 
 	// Converted to IR data
 	_ir0.x = x0 & 0xff; _ir0.xHi = x0 >> 8;
@@ -889,8 +888,8 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	int x1 = 1023 - g_Config.iIRLeft - g_Config.iIRWidth * MouseX - SENSOR_BAR_WIDTH / 2;
 	int x2 = x1 + SENSOR_BAR_WIDTH;
 
-	RotateIRDot(Roll, x1, y1);
-	RotateIRDot(Roll, x2, y2);
+	RotateIRDot(g_Wiimote_kbd.shakeData.Roll, x1, y1);
+	RotateIRDot(g_Wiimote_kbd.shakeData.Roll, x2, y2);
 
 	/* As with the extented report we settle with emulating two out of four
 	   possible objects the only difference is that we don't report any size of
@@ -967,8 +966,9 @@ void FillReportExtension(wm_extension& _ext)
 	int ext_ay = g_nu.cal_zero.y;
 	int ext_az = g_nu.cal_zero.z + g_nu.cal_g.z;
 
-	// Shake the Wiimote
-	SingleShake(ext_ax, ext_ay, ext_az, 1);
+	if(IsKey(g_NunchuckExt.SHAKE)) StartShake(g_NunchuckExt.shakeData);
+	// Shake the Nunchuk one frame
+	SingleShake(ext_ax, ext_ay, ext_az, g_NunchuckExt.shakeData);
 
 	_ext.ax = ext_ax;
 	_ext.ay = ext_ay;

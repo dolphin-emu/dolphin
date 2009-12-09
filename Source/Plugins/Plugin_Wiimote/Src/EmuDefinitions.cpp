@@ -63,6 +63,13 @@ std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 InputCommon::CONTROLLER_STATE_NEW PadState[4];
 InputCommon::CONTROLLER_MAPPING_NEW PadMapping[4];
 
+// Shake emulation
+ShakeData::ShakeData() {
+	Shake = 0;
+	Roll = 0;
+	Pitch = 0;
+}
+
 // Keyboard input
 KeyboardWiimote g_Wiimote_kbd;
 KeyboardNunchuck g_NunchuckExt;
