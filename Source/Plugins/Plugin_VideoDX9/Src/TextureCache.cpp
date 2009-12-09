@@ -219,7 +219,7 @@ void TextureCache::Cleanup()
 		d3d_fmt = D3DFMT_A8L8;
 		break;
 	case PC_TEX_FMT_I8:
-	case PC_TEX_FMT_I4_AS_I8:
+	case PC_TEX_FMT_I4_AS_I8:		
 		d3d_fmt = D3DFMT_A8L8; 
 		break;
 	case PC_TEX_FMT_IA8:
@@ -251,6 +251,7 @@ void TextureCache::Cleanup()
 	}
 	D3DLOCKED_RECT Lock;
 	entry.texture->LockRect(0, &Lock, NULL, 0);
+	if(pcfmt != PC_TEX_FMT_I8 && pcfmt != PC_TEX_FMT_I4_AS_I8)
 	TexDecoder_DirectDecode((u8*)Lock.pBits,ptr,expandedWidth,height,Lock.Pitch,tex_format,tlutaddr,tlutfmt);
 	entry.texture->UnlockRect(0); 
 	entry.frameCount = frameCount;
@@ -442,7 +443,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 	DEBUGGER_PAUSE_LOG_AT(NEXT_NEW_TEXTURE,true,{printf("A new texture (%d x %d) is loaded", width, height);});
 	return &entry;
-} 
+}
 void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source_rect)
 {
 	int efb_w = source_rect.GetWidth();

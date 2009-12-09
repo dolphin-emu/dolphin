@@ -835,7 +835,6 @@ void UpdateViewport()
 	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY);
 	int Width  = (int)ceil((int)(2 * xfregs.rawViewport[0]) * MValueX);
 	int Height = (int)ceil((int)(-2 * xfregs.rawViewport[1]) * MValueY);
-
 	if(Width < 0)
 	{
 		X += Width;
@@ -863,20 +862,6 @@ void UpdateViewport()
 	//some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
 	vp.MinZ = 0.0f;//(xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
 	vp.MaxZ =1.0f;// xfregs.rawViewport[5] / 16777216.0f;
-	/*if(vp.MinZ < 0.0f)
-		vp.MinZ = 0.0f;
-	if(vp.MinZ > 1.0f)
-		vp.MinZ = 1.0f;
-	if(vp.MaxZ < 0.0f)
-		vp.MaxZ = 0.0f;
-	if(vp.MaxZ > 1.0f)
-		vp.MaxZ = 1.0f;
-	if(vp.MinZ > vp.MaxZ)
-	{
-		float temp = vp.MinZ;
-		vp.MinZ = vp.MaxZ;
-		vp.MaxZ = temp;
-	}*/
 	D3D::dev->SetViewport(&vp);
 }
 
@@ -918,7 +903,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	// 2 - reverse subtract enable (else add)
 	// 3-5 - srcRGB function
 	// 6-8 - dstRGB function
-	if(bpmem.blendmode.logicopenable)
+	if(bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
 		return;
 	u32 newval = bpmem.blendmode.subtract << 2;
 
@@ -1043,8 +1028,9 @@ void Renderer::SetDepthMode()
 
 void Renderer::SetLogicOpMode()
 {
-	if (bpmem.blendmode.logicopenable) 
+	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3) 
 	{
+		s_blendMode = 0;
         D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, 1);
 		D3D::SetRenderState(D3DRS_BLENDOP, d3dLogincOPop[bpmem.blendmode.logicmode]);
 		D3D::SetRenderState(D3DRS_SRCBLEND, d3dLogicOpSrcFactors[bpmem.blendmode.logicmode]);

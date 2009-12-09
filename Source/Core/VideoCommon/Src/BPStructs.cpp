@@ -281,7 +281,8 @@ void BPWritten(const BPCmd& bp)
 			PixelShaderManager::SetFogParamChanged();
 		break;
 	case BPMEM_FOGCOLOR: // Fog Color
-		PixelShaderManager::SetFogColorChanged();
+		if (!GetConfig(CONFIG_DISABLEFOG))
+			PixelShaderManager::SetFogColorChanged();
 		break;
 	case BPMEM_ALPHACOMPARE: // Compare Alpha Values
 		PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d", bpmem.alphaFunc.ref0,

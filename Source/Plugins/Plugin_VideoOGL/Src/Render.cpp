@@ -1413,7 +1413,7 @@ void Renderer::SetDepthMode()
 
 void Renderer::SetLogicOpMode()
 {
-	if (bpmem.blendmode.logicopenable) 
+	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3) 
 	{
 		glEnable(GL_COLOR_LOGIC_OP);
 		glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
