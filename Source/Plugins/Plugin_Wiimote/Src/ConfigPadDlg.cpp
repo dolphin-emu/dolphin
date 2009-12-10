@@ -892,7 +892,6 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 
 	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"));
 	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"));
-	m_Close->SetToolTip(wxT("Apply and Close"));
 
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->AddStretchSpacer();

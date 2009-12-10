@@ -276,7 +276,6 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 	m_Recording		= new wxButton(this, ID_BUTTONRECORDING, wxT("Recording"));
 	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"));
 	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"));
-	m_Close->SetToolTip(wxT("Apply and Close"));
 
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->Add(m_ButtonMapping, 0, (wxALL), 0);
