@@ -247,7 +247,8 @@ inline void MixAddVoice(ParamBlockType &pb, int *templbuffer, int *temprbuffer, 
 				else
 				{
 					pb.running = 0;
-					samplePos = samplePos - sampleEnd + loopPos;
+					samplePos = loopPos;
+					//samplePos = samplePos - sampleEnd + loopPos;
 					memset(&pb.updates, 0, sizeof(pb.updates));
 					memset(pb.src.last_samples, 0, 8);
 					break;
