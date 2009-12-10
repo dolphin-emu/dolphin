@@ -252,7 +252,6 @@ void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 					fwrite(Memory::m_pRAM, Memory::REALRAM_SIZE, 1, pDumpFile);
 				}
 				fclose(pDumpFile);
-				delete pDumpFile;
 			}
 		}
 		break;
@@ -268,7 +267,6 @@ void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 					fwrite(aram, DSP::ARAM_SIZE, 1, pDumpFile);
 				}
 				fclose(pDumpFile);
-				delete pDumpFile;
 			}
 		}
 		break;
