@@ -2435,6 +2435,15 @@ struct SHCIEventReadClockOffsetComplete
     u16 ClockOffset;
 };
 
+struct SHCIEventConPacketTypeChange
+{
+	u8 EventType;
+	u8 PayloadLength;
+	u8 Status;
+	u16 ConnectionHandle;
+	u16 PacketType;
+};
+
 struct SHCIEventReadRemoteVerInfo
 {
     u8 EventType;

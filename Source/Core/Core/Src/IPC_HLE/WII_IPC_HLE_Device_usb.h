@@ -56,6 +56,11 @@ struct SQueuedEvent
 	}
 };
 
+
+// Important to remember that this class is for /dev/usb/oh1/57e/305 ONLY
+// /dev/usb/oh1 -> internal usb bus
+// 57e/305 -> VendorID/ProductID of device on usb bus
+// This device is ONLY the internal bluetooth module (based on BCM2045 chip)
 class CWII_IPC_HLE_Device_usb_oh1_57e_305 : public IWII_IPC_HLE_Device
 {
 public:
@@ -200,6 +205,7 @@ private:
 	bool SendEventRequestConnection(CWII_IPC_HLE_WiiMote& _rWiiMote);
 	bool SendEventConnectionComplete(bdaddr_t _bd);
 	bool SendEventReadClockOffsetComplete(u16 _connectionHandle);
+	bool SendEventConPacketTypeChange(u16 _connectionHandle, u16 _packetType);
 	bool SendEventReadRemoteVerInfo(u16 _connectionHandle);
 	bool SendEventReadRemoteFeatures(u16 _connectionHandle);
 	bool SendEventRoleChange(bdaddr_t _bd, bool _master);
@@ -230,6 +236,7 @@ private:
 	void CommandLinkKeyNegRep(u8* _Input);
 	void CommandLinkKeyRep(u8* _Input);
     void CommandDeleteStoredLinkKey(u8* _Input);
+	void CommandChangeConPacketType(u8* _Input);
 
 	// OGF 0x02	Link policy commands and return parameters
 	void CommandWriteLinkPolicy(u8* _Input);
@@ -277,6 +284,24 @@ public:
 	virtual bool IOCtl(u32 _CommandAddress);
 
 //	virtual u32 Update();
+};
+
+
+// Addresses Human Interface Devices via the Wii's USB 2.0 ports.
+// Used by Rock Band 1 + 2 instruments.
+class CWII_IPC_HLE_Device_usb_hid : public IWII_IPC_HLE_Device
+{
+public:
+	CWII_IPC_HLE_Device_usb_hid(u32 _DeviceID, const std::string& _rDeviceName);
+	virtual ~CWII_IPC_HLE_Device_usb_hid();
+
+	virtual bool Open(u32 _CommandAddress, u32 _Mode);
+	virtual bool Close(u32 _CommandAddress, bool _bForce);
+
+	virtual bool IOCtlV(u32 _CommandAddress);
+	virtual bool IOCtl(u32 _CommandAddress);
+
+	//	virtual u32 Update();
 };
 
 #endif
