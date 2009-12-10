@@ -64,6 +64,8 @@ public:
 	
 	virtual void Update();
 
+	virtual void Mute(bool bMute);
+
 #else
 public:
 	AOSound(CMixer *mixer) : SoundStream(mixer) {}

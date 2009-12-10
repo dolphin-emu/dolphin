@@ -192,3 +192,16 @@ void DSound::Stop()
 	soundSyncEvent.Shutdown();
 	thread = NULL;
 }
+
+void DSound::Mute(bool bMute) {
+	if((bMute && g_muted) || (!bMute && !g_muted))
+		return;
+		
+	if(bMute)
+		dsBuffer->Stop();
+	else
+		dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
+
+	g_muted = bMute;
+}
+

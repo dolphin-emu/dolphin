@@ -51,7 +51,8 @@ void AOSound::SoundLoop()
 	{
         soundCriticalSection.Enter();
         m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
-        ao_play(device, (char*)realtimeBuffer, numBytesToRender);
+		if(!g_muted)
+			ao_play(device, (char*)realtimeBuffer, numBytesToRender);
         soundCriticalSection.Leave();
 
 		if (! threadData)
@@ -105,4 +106,12 @@ AOSound::~AOSound() {
 	//   FIXME: crashes dolphin
 	//   ao_shutdown();
 }
+
+void AOSound::Mute(bool bMute) {
+	if((bMute && g_muted) || (!bMute && !g_muted))
+		return;
+
+	g_muted = bMute;
+}
+
 #endif

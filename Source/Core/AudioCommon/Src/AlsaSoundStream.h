@@ -47,6 +47,8 @@ public:
 
 	virtual void Update();
 
+	virtual void Mute(bool bMute);
+
 private:
 	bool AlsaInit();
 	void AlsaShutdown();

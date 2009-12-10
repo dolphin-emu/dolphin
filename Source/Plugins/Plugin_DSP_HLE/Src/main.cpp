@@ -42,6 +42,7 @@ PLUGIN_GLOBALS* globals = NULL;
 DSPInitialize g_dspInitialize;
 u8* g_pMemory;
 extern std::vector<std::string> sMailLog, sMailTime;
+bool g_bMuted = false;
 
 SoundStream *soundStream = NULL;
 
@@ -204,6 +205,8 @@ void Initialize(void *init)
 {
 	g_dspInitialize = *(DSPInitialize*)init;
 
+	g_bMuted = false;
+
 	g_Config.Load();
 	g_pMemory = g_dspInitialize.pGetMemoryPointer(0);
 
@@ -314,6 +317,10 @@ unsigned short DSP_ReadControlRegister()
 
 void DSP_Update(int cycles)
 {
+	// Handle muting
+	if(g_bMuted && !*g_dspInitialize.pEmulatorState && soundStream)
+		soundStream->Mute(g_bMuted = false);
+
 	// This is called OFTEN - better not do anything expensive!
 	CDSPHandler::GetInstance().Update(cycles);
 }
@@ -365,4 +372,6 @@ void DSP_ClearAudioBuffer()
 {
 	if (soundStream)
 		soundStream->Clear();
+	if(*g_dspInitialize.pEmulatorState && soundStream && !g_bMuted)
+		soundStream->Mute(g_bMuted = true);
 }

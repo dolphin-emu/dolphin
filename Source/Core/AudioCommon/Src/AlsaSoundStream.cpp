@@ -67,7 +67,7 @@ void AlsaSound::SoundLoop()
 		// nakee: What is the optimal value?
 		int frames_to_deliver = 4096;
 		m_mixer->Mix(reinterpret_cast<short *>(mix_buffer), frames_to_deliver);
-		int rc = snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
+		int rc = g_muted ? 1337 : snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
 		if (rc == -EPIPE)
 		{
 			// Underrun
@@ -179,6 +179,13 @@ bool AlsaSound::AlsaInit()
 	}
 	NOTICE_LOG(AUDIO, "ALSA successfully initialized.\n");
 	return true;
+}
+
+void AlsaSound::Mute(bool bMute) {
+	if((bMute && g_muted) || (!bMute && !g_muted))
+		return;
+
+	g_muted = bMute;
 }
 
 void AlsaSound::AlsaShutdown()

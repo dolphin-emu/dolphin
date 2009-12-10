@@ -30,6 +30,8 @@ bool OpenALStream::Start()
 	ALCdevice *pDevice = NULL;
 	bool bReturn = false;
 	
+	g_uiSource = 0;
+
 	pDeviceList = new ALDeviceList();
 	if ((pDeviceList) && (pDeviceList->GetNumDevices()))
 	{
@@ -125,6 +127,9 @@ void OpenALStream::SoundLoop()
 		alSourceQueueBuffers(uiSource, 1, &uiBuffers[iLoop]);
 	}
 //*/
+
+	g_uiSource = uiSource;
+
 	alSourcePlay(uiSource);
 	err = alGetError();
 
@@ -171,6 +176,18 @@ void OpenALStream::SoundLoop()
 	alDeleteSources(1, &uiSource);
 	alDeleteBuffers(AUDIO_NUMBUFFERS, (ALuint *)uiBuffers);
 
+}
+
+void OpenALStream::Mute(bool bMute) {
+	if((bMute && g_muted) || (!bMute && !g_muted))
+		return;
+		
+	if(bMute && g_uiSource)
+		alSourceStop(g_uiSource);
+	else if(g_uiSource)
+		alSourcePlay(g_uiSource);
+
+	g_muted = bMute;
 }
 
 #endif //HAVE_OPENAL
