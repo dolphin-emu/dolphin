@@ -125,7 +125,7 @@ union UAudioDMAControl
     struct  
     {        
         unsigned NumBlocks  : 15;
-		unsigned Enabled    : 1;
+		unsigned Reload     : 1;
     };
 
     UAudioDMAControl(u16 _Hex = 0) : Hex(_Hex)
@@ -417,16 +417,10 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case AUDIO_DMA_CONTROL_LEN:			// called by AIStartDMA()
-		{
-		UAudioDMAControl old_control = g_audioDMA.AudioDMAControl;
 		g_audioDMA.AudioDMAControl.Hex = _Value;
-		if (!old_control.Enabled && g_audioDMA.AudioDMAControl.Enabled) //needed for some AX games under LLE (Crazy Taxi)
-		{
-			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
-			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
-			INFO_LOG(DSPINTERFACE, "AID DMA started - source address %08x, length %i blocks", g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks);
-		}
-		}
+		g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
+		g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
+		INFO_LOG(DSPINTERFACE, "AID DMA started - source address %08x, length %i blocks", g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks);
 		break;
 
 	case AUDIO_DMA_BYTES_LEFT:
@@ -442,25 +436,28 @@ void Write16(const u16 _Value, const u32 _Address)
 // This happens at 4 khz, since 32 bytes at 4khz = 4 bytes at 32 khz (16bit stereo pcm)
 void UpdateAudioDMA()
 {
-	if (g_audioDMA.AudioDMAControl.Enabled && g_audioDMA.BlocksLeft) {
+	if (g_audioDMA.BlocksLeft)
+	{
 		// Read audio at g_audioDMA.ReadAddress in RAM and push onto an
 		// external audio fifo in the emulator, to be mixed with the disc
 		// streaming output. If that audio queue fills up, we delay the
 		// emulator.
-		// TO RESTORE OLD BEHAVIOUR, COMMENT OUT THIS LINE
 		dsp_plugin->DSP_SendAIBuffer(g_audioDMA.ReadAddress, AudioInterface::GetDSPSampleRate());
-
 		g_audioDMA.ReadAddress += 32;
 		g_audioDMA.BlocksLeft--;
-		if (!g_audioDMA.BlocksLeft) {
-			// Latch new parameters
-			// This is mainly used by NGC games which do auto loops
-			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
-			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
+		if (g_audioDMA.BlocksLeft == 0)
+		{
+			if (g_audioDMA.AudioDMAControl.Reload)
+			{
+				g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
+				g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
+			}
 			// DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
 			GenerateDSPInterrupt(DSP::INT_AID);
 		}
-	} else {
+	}
+	else
+	{
 		// Send silence. Yeah, it's a bit of a waste to sample rate convert
 		// silence.  or hm. Maybe we shouldn't do this :)
 		// dsp->DSP_SendAIBuffer(0, AudioInterface::GetDSPSampleRate());
