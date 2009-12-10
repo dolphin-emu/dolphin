@@ -97,6 +97,7 @@ void Init()
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_net_ip_top(i, std::string("/dev/net/ip/top")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_oh0(i, std::string("/dev/usb/oh0")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_kbd(i, std::string("/dev/usb/kbd")); i++;
+	g_DeviceMap[i] = new CWII_IPC_HLE_Device_usb_hid(i, std::string("/dev/usb/hid")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_sdio_slot0(i, std::string("/dev/sdio/slot0")); i++;
 	g_DeviceMap[i] = new CWII_IPC_HLE_Device_Error(i, std::string("_Unknown_Device_")); i++;
 
@@ -110,6 +111,7 @@ void Reset(bool _bHard)
     {
 		if (itr->second)
 		{
+			// Force close
 			itr->second->Close(NULL, true);
 			// Hardware should not be deleted unless it is a hard reset
 			if (_bHard || !itr->second->IsHardware())
@@ -117,8 +119,9 @@ void Reset(bool _bHard)
 		}
 		++itr;
     }
-	// Erase invalid device
-	itr = g_DeviceMap.find((_bHard)? IPC_FIRST_HARDWARE_ID : IPC_FIRST_FILEIO_ID);
+	// Skip hardware devices if not a hard reset
+	itr = (_bHard) ? g_DeviceMap.begin() : g_DeviceMap.lower_bound(IPC_FIRST_FILEIO_ID);
+	// Erase devices
 	g_DeviceMap.erase(itr, g_DeviceMap.end());
 	g_FileNameMap.clear();
 
@@ -470,10 +473,10 @@ void Update()
 
 void UpdateDevices()
 {
-	// check if a device must be updated
+	// Check if a hardware device must be updated
 	TDeviceMap::const_iterator itr = g_DeviceMap.begin();
 
-	while(itr != g_DeviceMap.find(IPC_FIRST_FILEIO_ID))
+	while (itr != g_DeviceMap.lower_bound(IPC_FIRST_FILEIO_ID))
 	{
 		if (itr->second->IsOpened())
 		{
