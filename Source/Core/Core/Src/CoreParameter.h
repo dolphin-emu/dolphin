@@ -110,6 +110,7 @@ struct SCoreStartupParameter
 	std::string m_strSRAM;
 	std::string m_strDefaultGCM;
 	std::string m_strDVDRoot;
+	std::string m_strApploader;
 	std::string m_strUniqueID;
 	std::string m_strName;
 	std::string m_strGameIni;

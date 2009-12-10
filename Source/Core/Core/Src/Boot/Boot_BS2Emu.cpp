@@ -47,7 +47,7 @@ void CBoot::RunFunction(u32 _iAddr)
 // GameCube Bootstrap 2 HLE: 
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
-void CBoot::EmulatedBS2(bool _bDebug)
+bool CBoot::EmulatedBS2_GC()
 {
 	INFO_LOG(BOOT, "Faking GC BS2...");
 
@@ -87,10 +87,13 @@ void CBoot::EmulatedBS2(bool _bDebug)
 	// Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
 	// but the size can differ between discs. Compare with yagcd chap 13.
 	u32 iAppLoaderOffset = 0x2440;
-	u32 iAppLoaderEntry = VolumeHandler::Read32(iAppLoaderOffset + 0x10);
-	u32 iAppLoaderSize  = VolumeHandler::Read32(iAppLoaderOffset + 0x14);
+	u32 iAppLoaderEntry	= VolumeHandler::Read32(iAppLoaderOffset + 0x10);
+	u32 iAppLoaderSize	= VolumeHandler::Read32(iAppLoaderOffset + 0x14) + VolumeHandler::Read32(iAppLoaderOffset + 0x18);
 	if ((iAppLoaderEntry == (u32)-1) || (iAppLoaderSize == (u32)-1))
-		return;
+	{
+		INFO_LOG(BOOT, "GC BS2: Not running apploader!");
+		return false;
+	}
 	VolumeHandler::ReadToPtr(Memory::GetPointer(0x81200000), iAppLoaderOffset + 0x20, iAppLoaderSize);
 
 	// Setup pointers like real BS2 does
@@ -161,6 +164,8 @@ void CBoot::EmulatedBS2(bool _bDebug)
 
 	// If we have any patches that need to be applied very early, here's a good place
 	PatchEngine::ApplyFramePatches();
+
+	return true;
 }
 
 
@@ -287,7 +292,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 // Wii Bootstrap 2 HLE: 
 // copy the apploader to 0x81200000
 // execute the apploader
-bool CBoot::EmulatedBS2_Wii(bool _bDebug)
+bool CBoot::EmulatedBS2_Wii()
 {	
 	INFO_LOG(BOOT, "Faking Wii BS2...");
 
@@ -390,4 +395,9 @@ bool CBoot::EmulatedBS2_Wii(bool _bDebug)
 	PowerPC::ppcState.DebugCount = 0;
 
 	return true;
+}
+
+bool CBoot::EmulatedBS2(bool _bIsWii)
+{
+	return _bIsWii ? EmulatedBS2_Wii() : EmulatedBS2_GC();
 }

@@ -53,7 +53,7 @@ bool SetVolumeName(const std::string& _rFullPath)
 	return g_pVolume != NULL;
 }
 
-void SetVolumeDirectory(const std::string& _rFullPath, bool _bIsWii)
+void SetVolumeDirectory(const std::string& _rFullPath, bool _bIsWii, const std::string& _rApploader, const std::string& _rDOL)
 {
     if (g_pVolume)
     {
@@ -61,7 +61,7 @@ void SetVolumeDirectory(const std::string& _rFullPath, bool _bIsWii)
         g_pVolume = NULL;
     }
 
-    g_pVolume = DiscIO::CreateVolumeFromDirectory(_rFullPath, _bIsWii);
+    g_pVolume = DiscIO::CreateVolumeFromDirectory(_rFullPath, _bIsWii, _rApploader, _rDOL);
 }
 
 u32 Read32(u64 _Offset)

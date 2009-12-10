@@ -111,10 +111,10 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionG
 	return NULL;
 }
 
-IVolume* CreateVolumeFromDirectory(const std::string& _rDirectory, bool _bIsWii)
+IVolume* CreateVolumeFromDirectory(const std::string& _rDirectory, bool _bIsWii, const std::string& _rApploader, const std::string& _rDOL)
 {
 	if (CVolumeDirectory::IsValidDirectory(_rDirectory))
-		return new CVolumeDirectory(_rDirectory, _bIsWii);
+		return new CVolumeDirectory(_rDirectory, _bIsWii, _rApploader, _rDOL);
 	
 	return NULL;
 }

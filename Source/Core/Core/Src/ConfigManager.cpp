@@ -102,6 +102,7 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "LockThreads",		m_LocalCoreStartupParameter.bLockThreads);
 		ini.Set("Core", "DefaultGCM",		m_LocalCoreStartupParameter.m_strDefaultGCM);
 		ini.Set("Core", "DVDRoot",			m_LocalCoreStartupParameter.m_strDVDRoot);
+		ini.Set("Core", "Apploader",		m_LocalCoreStartupParameter.m_strApploader);
 		ini.Set("Core", "OptimizeQuantizers", m_LocalCoreStartupParameter.bOptimizeQuantizers);
 		ini.Set("Core", "EnableCheats",		m_LocalCoreStartupParameter.bEnableCheats);
 		ini.Set("Core", "SelectedLanguage",	m_LocalCoreStartupParameter.SelectedLanguage);
@@ -213,6 +214,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "LockThreads",	&m_LocalCoreStartupParameter.bLockThreads,	false);
 		ini.Get("Core", "DefaultGCM",	&m_LocalCoreStartupParameter.m_strDefaultGCM);
 		ini.Get("Core", "DVDRoot",		&m_LocalCoreStartupParameter.m_strDVDRoot);
+		ini.Get("Core", "Apploader",	&m_LocalCoreStartupParameter.m_strApploader);
 		ini.Get("Core", "OptimizeQuantizers", &m_LocalCoreStartupParameter.bOptimizeQuantizers,	true);
 		ini.Get("Core", "EnableCheats",	&m_LocalCoreStartupParameter.bEnableCheats,				false);
 		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage,		0);

@@ -131,6 +131,8 @@ private:
 	wxFilePickerCtrl* DefaultISO;
 	wxStaticText* DVDRootText;
 	wxDirPickerCtrl* DVDRoot;
+	wxStaticText* ApploaderPathText;
+	wxFilePickerCtrl* ApploaderPath;
 
 	wxStaticText* PADText;
 	wxButton* PADConfig;
@@ -206,6 +208,8 @@ private:
 		ID_DEFAULTISO,
 		ID_DVDROOT_TEXT,
 		ID_DVDROOT,
+		ID_APPLOADERPATH_TEXT,
+		ID_APPLOADERPATH,
 
 		ID_WIIMOTE_ABOUT,
 		ID_WIIMOTE_CONFIG,
@@ -239,6 +243,7 @@ private:
 	void AddRemoveISOPaths(wxCommandEvent& event);
 	void DefaultISOChanged(wxFileDirPickerEvent& event);
 	void DVDRootChanged(wxFileDirPickerEvent& event);
+	void ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event));
 
 	void FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::string& _SelectFilename);
 	void CallConfig(wxChoice* _pChoice);

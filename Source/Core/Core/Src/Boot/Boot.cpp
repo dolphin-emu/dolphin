@@ -160,7 +160,6 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 // Third boot step after BootManager and Core. See Call schedule in BootManager.cpp
 bool CBoot::BootUp()
 {
-    const bool bDebugIsoBootup = false;
     SCoreStartupParameter& _StartupPara = 
 	SConfig::GetInstance().m_LocalCoreStartupParameter;
 
@@ -195,30 +194,17 @@ bool CBoot::BootUp()
 
             DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 
+			_StartupPara.bWii = VolumeHandler::IsWii();
+
 			// HLE BS2 or not
             if (_StartupPara.bHLE_BS2)
             {
-                if (!VolumeHandler::IsWii())
-		            EmulatedBS2(bDebugIsoBootup);
-				else
-				{
-					_StartupPara.bWii = true;
-					EmulatedBS2_Wii(bDebugIsoBootup);
-				}
+				EmulatedBS2(_StartupPara.bWii);
             } 
-            else
+            else if (!Load_BS2(_StartupPara.m_strBootROM))
             {
 				// If we can't load the bootrom file we HLE it instead
-                if (!Load_BS2(_StartupPara.m_strBootROM))
-                {
-                    if (!VolumeHandler::IsWii())
-						EmulatedBS2(bDebugIsoBootup);
-					else
-					{
-						_StartupPara.bWii = true;
-						EmulatedBS2_Wii(bDebugIsoBootup);
-					}
-                }
+                EmulatedBS2(_StartupPara.bWii);
             }
 
 			/* Try to load the symbol map if there is one, and then scan it for
@@ -240,32 +226,37 @@ bool CBoot::BootUp()
 			if (dolWii != _StartupPara.bWii)
 			{
 				PanicAlert("Warning - starting DOL in wrong console mode!");
-			}
+			}			
 
-			// stop apploader from running when the BS2 HLE funcs run
-			VolumeHandler::SetVolumeName("");			
+			bool BS2Success = false;
 
 			if (dolWii)
 			{                              
-				EmulatedBS2_Wii(false);
+				BS2Success = EmulatedBS2(dolWii);
 			}
-			else
+			else if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultGCM.empty())
 			{
-				if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultGCM.empty())
-				{
-					VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM.c_str());
-					EmulatedBS2(false);
-				}
+				VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM.c_str());
+				BS2Success = EmulatedBS2(dolWii);
 			}
+
+			if (!_StartupPara.m_strDVDRoot.empty())
+			{
+				NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
+				VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, dolWii, _StartupPara.m_strApploader, _StartupPara.m_strFilename);
+				BS2Success = EmulatedBS2(dolWii);
+			} 
 
 			DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 
-            CDolLoader dolLoader(_StartupPara.m_strFilename.c_str());
-            PC = dolLoader.GetEntryPoint();
-#ifdef _DEBUG
+			if (!BS2Success)
+			{
+				CDolLoader dolLoader(_StartupPara.m_strFilename.c_str());
+				PC = dolLoader.GetEntryPoint();
+			}
+
             if (LoadMapFromFilename(_StartupPara.m_strFilename))
 				HLE::PatchFunctions();
-#endif
         }
         break;
 
@@ -285,28 +276,26 @@ bool CBoot::BootUp()
 			if (elfWii != _StartupPara.bWii)
 			{
 				PanicAlert("Warning - starting ELF in wrong console mode!");
-			}
+			}			
 
-			// stop apploader from running when the BS2 HLE funcs run
-			VolumeHandler::SetVolumeName("");			
+			bool BS2Success = false;
 
 			if (elfWii)
 			{                              
-				EmulatedBS2_Wii(false);
+				BS2Success = EmulatedBS2(elfWii);
 			}
-			else
+			else if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultGCM.empty())
 			{
-				if (!VolumeHandler::IsWii() && !_StartupPara.m_strDefaultGCM.empty())
-				{
-					VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM.c_str());
-					EmulatedBS2(false);
-				}
+				VolumeHandler::SetVolumeName(_StartupPara.m_strDefaultGCM.c_str());
+				BS2Success = EmulatedBS2(elfWii);
 			}
 
 			// load image or create virtual drive from directory
 			if (!_StartupPara.m_strDVDRoot.empty()) {
-				NOTICE_LOG(BOOT, "Setting DVDroot %s", _StartupPara.m_strDefaultGCM.c_str());
+				NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
+				// TODO: auto-convert elf to dol, so we can load them :)
 				VolumeHandler::SetVolumeDirectory(_StartupPara.m_strDVDRoot, elfWii);
+				BS2Success = EmulatedBS2(elfWii);
 			} 
 			else if (!_StartupPara.m_strDefaultGCM.empty()) {
 				NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultGCM.c_str());
@@ -317,14 +306,17 @@ bool CBoot::BootUp()
 
 			DVDInterface::SetDiscInside(VolumeHandler::IsValid());
 
-			Load_FST(elfWii);			
-			
-            Boot_ELF(_StartupPara.m_strFilename.c_str()); 
+			if (BS2Success)
+			{
+				HLE::PatchFunctions();
+			}
+			else // Poor man's bootup
+			{
+				Load_FST(elfWii);
+				Boot_ELF(_StartupPara.m_strFilename.c_str()); 
+			}
             UpdateDebugger_MapLoaded();
 			Dolphin_Debugger::AddAutoBreakpoints();
-
-			
-            HLE::PatchFunctions();
         }
         break;
 

@@ -25,11 +25,20 @@ namespace DiscIO
 static const u8 ENTRY_SIZE = 0x0c;
 static const u8 FILE_ENTRY = 0;
 static const u8 DIRECTORY_ENTRY = 1;
-static const u64 FST_ADDRESS = 0x440;
+static const u64 DISKHEADER_ADDRESS = 0;
+static const u64 DISKHEADERINFO_ADDRESS = 0x440;
+static const u64 APPLOADER_ADDRESS = 0x2440;
 static const u32 MAX_NAME_LENGTH = 0x3df;
+// relocatable
+static u64 FST_ADDRESS = 0x440;
+static u64 DOL_ADDRESS = 0;
 
-CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii)
-	: m_totalNameSize(0)
+CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii, const std::string& _rApploader, const std::string& _rDOL)
+	: m_apploaderSize(0)
+	, m_apploader(NULL)
+	, m_DOLSize(0)
+	, m_DOL(NULL)
+	, m_totalNameSize(0)
 	, m_dataStartAddress(-1)
 	, m_fstSize(0)
 	, m_FSTData(NULL)
@@ -51,16 +60,31 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii)
 		SetDiskTypeGC();
 	}
 
+	m_diskHeaderInfo = new SDiskHeaderInfo();
+
+	// Don't load the dol if we've no apploader...
+	if (SetApploader(_rApploader))
+		SetDOL(_rDOL);
+
 	BuildFST();
 }
 
 CVolumeDirectory::~CVolumeDirectory()
 {
-	delete m_FSTData;
+	delete[] m_FSTData;
 	m_FSTData = NULL;
 
-	delete m_diskHeader;
+	delete[] m_diskHeader;
 	m_diskHeader = NULL;
+
+	delete m_diskHeaderInfo;
+	m_diskHeaderInfo = NULL;
+
+	delete[] m_DOL;
+	m_DOL = NULL;
+
+	delete[] m_apploader;
+	m_apploader = NULL;
 }
 
 bool CVolumeDirectory::IsValidDirectory(const std::string& _rDirectory)
@@ -76,14 +100,35 @@ bool CVolumeDirectory::RAWRead( u64 _Offset, u64 _Length, u8* _pBuffer ) const
 
 bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 {
-	if(_Offset < FST_ADDRESS)
+	// header
+	if(_Offset < DISKHEADERINFO_ADDRESS)
 	{
-		WriteToBuffer(0, FST_ADDRESS, m_diskHeader, _Offset, _Length, _pBuffer);
+		WriteToBuffer(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_diskHeader, _Offset, _Length, _pBuffer);
+		return true;
 	}
-
+	// header info
+	if(_Offset < APPLOADER_ADDRESS)
+	{
+		WriteToBuffer(DISKHEADERINFO_ADDRESS, sizeof(m_diskHeaderInfo), (u8*)m_diskHeaderInfo, _Offset, _Length, _pBuffer);
+		return true;
+	}
+	// apploader
+	if(_Offset >= APPLOADER_ADDRESS && _Offset <= APPLOADER_ADDRESS + m_apploaderSize)
+	{
+		WriteToBuffer(APPLOADER_ADDRESS, m_apploaderSize, m_apploader, _Offset, _Length, _pBuffer);
+		return true;
+	}
+	// dol
+	if(_Offset >= DOL_ADDRESS && _Offset <= DOL_ADDRESS + m_DOLSize)
+	{
+		WriteToBuffer(DOL_ADDRESS, m_DOLSize, m_DOL, _Offset, _Length, _pBuffer);
+		return true;
+	}
+	// fst
 	if(_Offset < m_dataStartAddress)
 	{
-		WriteToBuffer(FST_ADDRESS, m_fstSize, m_FSTData, _Offset, _Length, _pBuffer);		
+		WriteToBuffer(FST_ADDRESS, m_fstSize, m_FSTData, _Offset, _Length, _pBuffer);
+		return true;
 	}
 	
 	if(m_virtualDisk.size() == 0)
@@ -255,6 +300,52 @@ void CVolumeDirectory::SetDiskTypeGC()
 	m_diskHeader[0x1f] = 0x3d;
 
 	m_addressShift = 0;
+}
+
+bool CVolumeDirectory::SetApploader(const std::string& _rApploader)
+{
+	if (!_rApploader.empty())
+	{
+		std::string data;
+		File::ReadFileToString(false, _rApploader.c_str(), data);
+		m_apploaderSize = 0x20 + Common::swap32(*(u32*)&data.data()[0x14]) + Common::swap32(*(u32*)&data.data()[0x18]);
+		if (m_apploaderSize != data.size())
+		{
+			PanicAlert("Apploader is the wrong size...is it really an apploader?");
+			return false;
+		}
+		m_apploader = new u8[m_apploaderSize];
+		copy(data.begin(), data.end(), m_apploader);
+
+		// 32byte aligned (plus 0x20 padding)
+		DOL_ADDRESS = (APPLOADER_ADDRESS + m_apploaderSize + 0x20 + 31) & ~31ULL;
+		return true;
+	}
+	else
+	{
+		m_apploaderSize = 0x20;
+		m_apploader = new u8[m_apploaderSize];
+		// Make sure BS2 HLE doesn't try to run the apploader
+		*(u32*)&m_apploader[0x10] = (u32)-1;
+		return false;
+	}
+}
+
+void CVolumeDirectory::SetDOL(const std::string& _rDOL)
+{
+	if (!_rDOL.empty())
+	{
+		std::string data;
+		File::ReadFileToString(false, _rDOL.c_str(), data);
+		m_DOLSize = data.size();
+		m_DOL = new u8[m_DOLSize];
+		copy(data.begin(), data.end(), m_DOL);
+
+		Write32((u32)(DOL_ADDRESS >> m_addressShift), 0x0420, m_diskHeader);
+
+		// 32byte aligned (plus 0x20 padding)
+		FST_ADDRESS = (DOL_ADDRESS + m_DOLSize + 0x20 + 31) & ~31ULL;
+	}
 }
 
 void CVolumeDirectory::BuildFST()

@@ -95,6 +95,7 @@ EVT_BUTTON(ID_REMOVEISOPATH, CConfigMain::AddRemoveISOPaths)
 EVT_CHECKBOX(ID_RECERSIVEISOPATH, CConfigMain::RecursiveDirectoryChanged)
 EVT_FILEPICKER_CHANGED(ID_DEFAULTISO, CConfigMain::DefaultISOChanged)
 EVT_DIRPICKER_CHANGED(ID_DVDROOT, CConfigMain::DVDRootChanged)
+EVT_FILEPICKER_CHANGED(ID_APPLOADERPATH, CConfigMain::ApploaderPathChanged)
 
 EVT_CHOICE(ID_GRAPHIC_CB, CConfigMain::OnSelectionChanged)
 EVT_BUTTON(ID_GRAPHIC_CONFIG, CConfigMain::OnConfig)
@@ -525,6 +526,11 @@ void CConfigMain::CreateGUIControls()
 	DVDRootText = new wxStaticText(PathsPage, ID_DVDROOT_TEXT, wxT("DVD Root:"), wxDefaultPosition, wxDefaultSize);
 	DVDRoot = new wxDirPickerCtrl(PathsPage, ID_DVDROOT, wxEmptyString, wxT("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
 	DVDRoot->SetPath(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot.c_str()));
+	ApploaderPathText = new wxStaticText(PathsPage, ID_APPLOADERPATH_TEXT, wxT("Apploader:"), wxDefaultPosition, wxDefaultSize);
+	ApploaderPath = new wxFilePickerCtrl(PathsPage, ID_APPLOADERPATH, wxEmptyString, wxT("Choose file to use as apploader: (applies to discs constructed from directories only)"),
+		wxString::Format(wxT("apploader (.img)|*.img|All files (%s)|%s"), wxFileSelectorDefaultWildcardStr, wxFileSelectorDefaultWildcardStr),
+		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
+	ApploaderPath->SetPath(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strApploader.c_str()));
 
 	sPaths = new wxBoxSizer(wxVERTICAL);
 
@@ -544,6 +550,8 @@ void CConfigMain::CreateGUIControls()
 	sOtherPaths->Add(DefaultISO, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sOtherPaths->Add(DVDRootText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sOtherPaths->Add(DVDRoot, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sOtherPaths->Add(ApploaderPathText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sOtherPaths->Add(ApploaderPath, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sPaths->Add(sOtherPaths, 0, wxEXPAND|wxALL, 5);
 	PathsPage->SetSizer(sPaths);
 	sPaths->Layout();
@@ -929,6 +937,11 @@ void CConfigMain::DefaultISOChanged(wxFileDirPickerEvent& WXUNUSED (event))
 void CConfigMain::DVDRootChanged(wxFileDirPickerEvent& WXUNUSED (event))
 {
 	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot = DVDRoot->GetPath().mb_str();
+}
+
+void CConfigMain::ApploaderPathChanged(wxFileDirPickerEvent& WXUNUSED (event))
+{
+	SConfig::GetInstance().m_LocalCoreStartupParameter.m_strApploader = ApploaderPath->GetPath().mb_str();
 }
 
 

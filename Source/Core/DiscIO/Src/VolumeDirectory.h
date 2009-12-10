@@ -33,75 +33,114 @@ namespace DiscIO
 
 class CVolumeDirectory : public IVolume
 {
-	public:
+public:
 
-		CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii);
+	CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
+		const std::string& _rApploader = "", const std::string& _rDOL = "");
 
-		~CVolumeDirectory();
+	~CVolumeDirectory();
 
-		static bool IsValidDirectory(const std::string& _rDirectory);
+	static bool IsValidDirectory(const std::string& _rDirectory);
 
-		bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
-		bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const;
+	bool Read(u64 _Offset, u64 _Length, u8* _pBuffer) const;
+	bool RAWRead(u64 _Offset, u64 _Length, u8* _pBuffer) const;
 
-		std::string GetUniqueID() const;
-		void SetUniqueID(std::string _ID);
+	std::string GetUniqueID() const;
+	void SetUniqueID(std::string _ID);
 
-		std::string GetMakerID() const;
+	std::string GetMakerID() const;
 
-		std::string GetName() const;
-		void SetName(std::string);
+	std::string GetName() const;
+	void SetName(std::string);
 
-		u32 GetFSTSize() const;
+	u32 GetFSTSize() const;
 
-		std::string GetApploaderDate() const;
+	std::string GetApploaderDate() const;
 
-		ECountry GetCountry() const;
+	ECountry GetCountry() const;
 
-		u64 GetSize() const;		
+	u64 GetSize() const;		
 
-		void BuildFST();
+	void BuildFST();
 
-	private:
-		static std::string ExtractDirectoryName(const std::string& _rDirectory);
+private:
+	static std::string ExtractDirectoryName(const std::string& _rDirectory);
 
-		void SetDiskTypeWii();
-		void SetDiskTypeGC();
+	void SetDiskTypeWii();
+	void SetDiskTypeGC();
 
-		// writing to read buffer
-		void WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, u8* _Src,
-						   u64& _Address, u64& _Length, u8*& _pBuffer) const;
+	bool SetApploader(const std::string& _rApploader);
 
-		void PadToAddress(u64 _StartAddress, u64& _Address, u64& _Length, u8*& _pBuffer) const;
+	void SetDOL(const std::string& _rDOL);
 
-		void Write32(u32 data, u32 offset, u8* buffer);
+	// writing to read buffer
+	void WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, u8* _Src,
+					   u64& _Address, u64& _Length, u8*& _pBuffer) const;
 
-		// FST creation
-		void WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset, u64 dataOffset, u32 length);
-		void WriteEntryName(u32& nameOffset, const std::string& name);
-		void WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u32& nameOffset, u64& dataOffset, u32 parentEntryNum);
+	void PadToAddress(u64 _StartAddress, u64& _Address, u64& _Length, u8*& _pBuffer) const;
 
-		// returns number of entries found in _Directory
-		u32 AddDirectoryEntries(const std::string& _Directory, File::FSTEntry& parentEntry);
+	void Write32(u32 data, u32 offset, u8* buffer);
 
-		std::string m_rootDirectory;
+	// FST creation
+	void WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset, u64 dataOffset, u32 length);
+	void WriteEntryName(u32& nameOffset, const std::string& name);
+	void WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u32& nameOffset, u64& dataOffset, u32 parentEntryNum);
 
-		std::map<u64, std::string> m_virtualDisk;
+	// returns number of entries found in _Directory
+	u32 AddDirectoryEntries(const std::string& _Directory, File::FSTEntry& parentEntry);
 
-		u32 m_totalNameSize;
+	std::string m_rootDirectory;
 
-		// gc has no shift, wii has 2 bit shift
-		u32 m_addressShift;
+	std::map<u64, std::string> m_virtualDisk;
 
-		// first address on disk containing file data
-		u64 m_dataStartAddress;
+	u32 m_totalNameSize;
 
-		u64 m_fstNameOffset;
+	// gc has no shift, wii has 2 bit shift
+	u32 m_addressShift;
 
-		u64 m_fstSize;
+	// first address on disk containing file data
+	u64 m_dataStartAddress;
 
-		u8* m_FSTData;
-		u8* m_diskHeader;
+	u64 m_fstNameOffset;
+	u64 m_fstSize;
+	u8* m_FSTData;
+
+	u8* m_diskHeader;
+
+	#pragma pack(push, 1)
+	struct SDiskHeaderInfo 
+	{
+		u32 debug_mntr_size;
+		u32 simulated_mem_size;
+		u32 arg_offset;
+		u32 debug_flag;
+		u32 track_location;
+		u32 track_size;
+		u32 countrycode;
+		u32 unknown;
+		u32 unknown2;
+
+		// All the data is byteswapped
+		SDiskHeaderInfo() {
+			debug_mntr_size = 0;
+			simulated_mem_size = 0;
+			arg_offset = 0;
+			debug_flag = 0;
+			track_location = 0;
+			track_size = 0;
+			countrycode = 0;
+			unknown = 0;
+			unknown2 = 0;
+		}
+	};
+	#pragma pack(pop)
+	SDiskHeaderInfo* m_diskHeaderInfo;
+
+	u64 m_apploaderSize;
+	u8* m_apploader;
+
+	u64 m_DOLSize;
+	u8* m_DOL;
 };
 
 } // namespace
