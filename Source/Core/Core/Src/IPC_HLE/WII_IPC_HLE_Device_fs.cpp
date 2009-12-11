@@ -135,15 +135,17 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 			if (!File::Exists(Filename.c_str()))
 			{
-				WARN_LOG(WII_IPC_FILEIO, "    directory does not exist - return FS_DIRFILE_NOT_FOUND", Filename.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "FS: Search not found: %s", Filename.c_str());
 				ReturnValue = FS_DIRFILE_NOT_FOUND;
 				break;
 			}
 			/* Okay, maybe it is a file but not a directory, then we should return -101?
 			   I have not seen any example of this. */
+
+			// AyuanX: what if we return "found one successfully" if it is a file?
 			else if (!File::IsDirectory(Filename.c_str()))
 			{
-				WARN_LOG(WII_IPC_FILEIO, "    Not a directory - return FS_INVALID_ARGUMENT", Filename.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "FS: Cannot search on file yet", Filename.c_str());
 				ReturnValue = FS_INVALID_ARGUMENT;
 				break;
 			}
@@ -161,7 +163,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			if ((CommandBuffer.InBuffer.size() == 1) && (CommandBuffer.PayloadBuffer.size() == 1))
 			{
 				size_t numFile = FileSearch.GetFileNames().size();
-				INFO_LOG(WII_IPC_FILEIO, "    Files in directory: %i", numFile);
+				INFO_LOG(WII_IPC_FILEIO, "    %i Files found", numFile);
 
 				Memory::Write_U32((u32)numFile, CommandBuffer.PayloadBuffer[0].m_Address);
 			}
@@ -188,7 +190,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 					*pFilename++ = 0x00;  // termination
 					numFiles++;
 
-					INFO_LOG(WII_IPC_FILEIO, "    %s", CompleteFilename.c_str());					
+					INFO_LOG(WII_IPC_FILEIO, "    Found: %s", CompleteFilename.c_str());
 				}
 
 				Memory::Write_U32((u32)numFiles, CommandBuffer.PayloadBuffer[1].m_Address);
@@ -223,14 +225,14 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 				ReturnValue = FS_RESULT_OK;
 
-				INFO_LOG(WII_IPC_FILEIO, "\tfsBlock: %i, iNodes: %i", fsBlocks, iNodes);
+				INFO_LOG(WII_IPC_FILEIO, "FS: fsBlock: %i, iNodes: %i", fsBlocks, iNodes);
 			}
 			else
 			{
 				fsBlocks = 0;
 				iNodes = 0;
 				ReturnValue = FS_RESULT_OK;
-				WARN_LOG(WII_IPC_FILEIO, "\tError: not executed on a valid directoy: %s", path.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "FS: fsBlock failed, cannot find directoy: %s", path.c_str());
 			}
 
 			Memory::Write_U32(fsBlocks, CommandBuffer.PayloadBuffer[0].m_Address);
