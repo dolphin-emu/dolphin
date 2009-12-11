@@ -721,7 +721,7 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 	{
 		if (subitem == COLUMN_EMULATION_STATE)
 		{
-			if (toolTip || lastItem == item) {
+			if (toolTip || lastItem == item || this != FindFocus()) {
 				event.Skip();
 				return;
 			}

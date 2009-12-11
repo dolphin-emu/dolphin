@@ -1049,6 +1049,7 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 		break;
 	case ID_REMOVEPATCH:
 		onFrame.erase(onFrame.begin() + Patches->GetSelection());
+		Patches->Delete(Cheats->GetSelection());
 		break;
 	}
 
