@@ -52,13 +52,13 @@ class WiimoteBasicConfigDialog : public wxDialog
 		// Timers
 		wxTimer	*m_TimeoutOnce,
 				*m_ShutDownTimer;
+
 		wxCheckBox *m_UseRealWiimote[4];
 
 	private:
 		DECLARE_EVENT_TABLE();
 
-		bool ControlsCreated,
-			 m_bEnableUseRealWiimote;
+		bool ControlsCreated, m_bEnableUseRealWiimote;
 		int Page;
 
 		wxNotebook *m_Notebook;
@@ -68,19 +68,17 @@ class WiimoteBasicConfigDialog : public wxDialog
 				 *m_ButtonMapping,
 				 *m_Recording;
 
-		wxBoxSizer  *m_MainSizer,
-					*m_sMain[4],
-					*m_SizeParent[4];
+		wxChoice* extensionChoice[4];
 
 		wxSlider *m_SliderWidth[4],
 				 *m_SliderHeight[4],
 				 *m_SliderLeft[4],
 				 *m_SliderTop[4];
 
-		// Emulated Wiimote settings
-		wxCheckBox  *m_SidewaysWiimote[4],
+		wxCheckBox  *m_InputActive[4],
+					*m_SidewaysWiimote[4],
 					*m_UprightWiimote[4],
-					*m_WiimoteOnline[4],
+					*m_ConnectRealWiimote[4],
 					*m_WiiMotionPlusConnected[4],
 					*m_CheckAR43[4],
 					*m_CheckAR169[4],
@@ -91,7 +89,11 @@ class WiimoteBasicConfigDialog : public wxDialog
 					 *m_TextScreenLeft[4],
 					 *m_TextScreenTop[4],
 					 *m_TextAR[4];
-		wxBoxSizer  *m_SizeBasicGeneral[4],
+
+		wxBoxSizer  *m_MainSizer,
+					*m_sMain[4],
+					*m_SizeParent[4],
+					*m_SizeBasicGeneral[4],
 					*m_SizeBasicGeneralLeft[4],
 					*m_SizeBasicGeneralRight[4],			
 					*m_SizerIRPointerWidth[4],
@@ -103,11 +105,6 @@ class WiimoteBasicConfigDialog : public wxDialog
 						 *m_SizeReal[4],
 						 *m_SizeExtensions[4],
 						 *m_SizerIRPointer[4];
-
-		wxChoice* extensionChoice[4];
-
-		// Real Wiimote settings
-		wxCheckBox  *m_ConnectRealWiimote[4];
 
 		enum
 		{
@@ -126,20 +123,20 @@ class WiimoteBasicConfigDialog : public wxDialog
 			ID_CONTROLLERPAGE4,
 			
 			// Emulated Wiimote
-			ID_SIDEWAYSWIIMOTE,
-			ID_UPRIGHTWIIMOTE,
-			ID_MOTIONPLUSCONNECTED,
-			ID_EXTCONNECTED,
-			IDC_WIMOTE_ON,
-			
+			IDC_INPUT_ACTIVE,
+			IDC_SIDEWAYSWIIMOTE,
+			IDC_UPRIGHTWIIMOTE,
+			IDC_MOTIONPLUSCONNECTED,
+			IDC_EXTCONNECTED,
+
+			// Real
+			IDC_CONNECT_REAL,
+			IDC_USE_REAL,
+
 			IDS_WIDTH,			
 			IDS_HEIGHT, 
 			IDS_LEFT,
 			IDS_TOP,
-
-			// Real
-			ID_CONNECT_REAL,
-			ID_USE_REAL,
 		};
 
 		void OnClose(wxCloseEvent& event);

@@ -914,7 +914,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 
 	// Center the window if there is room for it
 	#ifdef _WIN32
-		if (GetSystemMetrics(SM_CYFULLSCREEN) > 800)
+		if (GetSystemMetrics(SM_CYFULLSCREEN) > 600)
 			Center();
 	#endif
 

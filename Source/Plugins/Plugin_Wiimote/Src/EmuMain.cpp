@@ -633,17 +633,22 @@ void Update()
 	if(g_ReportingAuto == false)
 		return;
 
-	readKeyboard();
+	// Read input or not
 
-	// Check if the pad state should be updated
+	if (g_Config.bInputActive)
+	{
+		ReadLinuxKeyboard();
+/*
 	if ((g_Config.Tilt.Type == g_Config.Tilt.TRIGGER || g_Config.Tilt.Type == g_Config.Tilt.ANALOG1 || g_Config.Tilt.Type == g_Config.Tilt.ANALOG2
 		|| g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG1 || g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG2
 		|| g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG2
 		|| g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG2)
 		&& NumGoodPads > 0 && joyinfo.size() > (u32)PadMapping[0].ID)
-	{
+*/
+		// Check if the pad state should be updated
 		const int Page = 0;
-		WiiMoteEmu::GetJoyState(PadState[Page], PadMapping[Page], Page, joyinfo[PadMapping[Page].ID].NumButtons);
+		if (NumGoodPads > 0 && joyinfo.size() > (u32)PadMapping[Page].ID)
+			WiiMoteEmu::GetJoyState(PadState[Page], PadMapping[Page], Page, joyinfo[PadMapping[Page].ID].NumButtons);
 	}
 
 	switch(g_ReportingMode)
@@ -669,7 +674,7 @@ void Update()
 }
 
 
-void readKeyboard()
+void ReadLinuxKeyboard()
 {
 #if defined(HAVE_X11) && HAVE_X11
 	XEvent E;

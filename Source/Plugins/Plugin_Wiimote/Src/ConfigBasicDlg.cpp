@@ -31,12 +31,13 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_BUTTON(ID_APPLY, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_BUTTON(ID_BUTTONMAPPING, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_BUTTON(ID_BUTTONRECORDING, WiimoteBasicConfigDialog::ButtonClick)
-	EVT_CHECKBOX(ID_CONNECT_REAL, WiimoteBasicConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_USE_REAL, WiimoteBasicConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_SIDEWAYSWIIMOTE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_UPRIGHTWIIMOTE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_MOTIONPLUSCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)	
-	EVT_CHOICE(ID_EXTCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(IDC_INPUT_ACTIVE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(IDC_CONNECT_REAL, WiimoteBasicConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(IDC_USE_REAL, WiimoteBasicConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(IDC_SIDEWAYSWIIMOTE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(IDC_UPRIGHTWIIMOTE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(IDC_MOTIONPLUSCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)	
+	EVT_CHOICE(IDC_EXTCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	// IR cursor
 	EVT_COMMAND_SCROLL(IDS_WIDTH, WiimoteBasicConfigDialog::IRCursorChanged)
 	EVT_COMMAND_SCROLL(IDS_HEIGHT, WiimoteBasicConfigDialog::IRCursorChanged)
@@ -143,8 +144,8 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_Controller[i] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE1 + i, wxDefaultPosition, wxDefaultSize);
 		m_Notebook->AddPage(m_Controller[i], wxString::Format(wxT("Wiimote %d"), i+1));
 
-		m_ConnectRealWiimote[i] = new wxCheckBox(m_Controller[i], ID_CONNECT_REAL, wxT("Connect Real Wiimote"));
-		m_UseRealWiimote[i] = new wxCheckBox(m_Controller[i], ID_USE_REAL, wxT("Use Real Wiimote"));
+		m_ConnectRealWiimote[i] = new wxCheckBox(m_Controller[i], IDC_CONNECT_REAL, wxT("Connect Real Wiimote"));
+		m_UseRealWiimote[i] = new wxCheckBox(m_Controller[i], IDC_USE_REAL, wxT("Use Real Wiimote"));
 
 		m_ConnectRealWiimote[0]->SetValue(g_Config.bConnectRealWiimote);
 		m_UseRealWiimote[0]->SetValue(g_Config.bUseRealWiimote);
@@ -153,7 +154,7 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_UseRealWiimote[i]->SetToolTip(wxT("Use the real Wiimote in the game. This can be changed during gameplay. This can not be selected")
 			wxT(" when a recording is to be done. No status in this window will be updated when this is checked."));
 
-		m_WiiMotionPlusConnected[i] = new wxCheckBox(m_Controller[i], ID_MOTIONPLUSCONNECTED, wxT("Wii Motion Plus Connected"));
+		m_WiiMotionPlusConnected[i] = new wxCheckBox(m_Controller[i], IDC_MOTIONPLUSCONNECTED, wxT("Wii Motion Plus Connected"));
 		m_WiiMotionPlusConnected[i]->SetValue(g_Config.bMotionPlusConnected);
 		m_WiiMotionPlusConnected[i]->Enable(false);
 
@@ -166,20 +167,19 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		// Prolly needs to be a separate plugin
 		//arrayStringFor_extension.Add(wxT("Balance Board"));
 
-		extensionChoice[i] = new wxChoice(m_Controller[i], ID_EXTCONNECTED, wxDefaultPosition, wxDefaultSize, arrayStringFor_extension, 0, wxDefaultValidator);
+		extensionChoice[i] = new wxChoice(m_Controller[i], IDC_EXTCONNECTED, wxDefaultPosition, wxDefaultSize, arrayStringFor_extension, 0, wxDefaultValidator);
 		extensionChoice[i]->SetSelection(0);
 
 		// Basic Settings
-		m_WiimoteOnline[i] = new wxCheckBox(m_Controller[i], IDC_WIMOTE_ON, wxT("Wiimote On"));
-		m_WiimoteOnline[i]->SetValue(true);
-		m_WiimoteOnline[i]->Enable(false);
-		m_WiimoteOnline[i]->SetToolTip(wxString::Format(wxT("Decide if Wiimote %i shall be detected by the game"), i));
+		m_InputActive[i] = new wxCheckBox(m_Controller[i], IDC_INPUT_ACTIVE, wxT("Wiimote Input Active"));
+		m_InputActive[i]->SetValue(true);
+		m_InputActive[i]->SetToolTip(wxString::Format(wxT("Decide if Wiimote button events shall be sent to game"), i));
 
 		// Emulated Wiimote
-		m_SidewaysWiimote[i] = new wxCheckBox(m_Controller[i], ID_SIDEWAYSWIIMOTE, wxT("Sideways Wiimote"));
+		m_SidewaysWiimote[i] = new wxCheckBox(m_Controller[i], IDC_SIDEWAYSWIIMOTE, wxT("Sideways Wiimote"));
 		m_SidewaysWiimote[i]->SetValue(g_Config.bSideways);
 		m_SidewaysWiimote[i]->SetToolTip(wxT("Treat the sideways position as neutral"));
-		m_UprightWiimote[i] = new wxCheckBox(m_Controller[i], ID_UPRIGHTWIIMOTE, wxT("Upright Wiimote"));
+		m_UprightWiimote[i] = new wxCheckBox(m_Controller[i], IDC_UPRIGHTWIIMOTE, wxT("Upright Wiimote"));
 		m_UprightWiimote[i]->SetValue(g_Config.bUpright);
 		m_UprightWiimote[i]->SetToolTip(wxT("Treat the upright position as neutral"));
 
@@ -212,8 +212,8 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_Crop[i]->Enable(false);
 
 		// Sizers
-		m_SizeBasic[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("General Settings"));
-		m_SizeBasic[i]->Add(m_WiimoteOnline[i], 0, wxEXPAND | wxALL, 5);
+		m_SizeBasic[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Wiimote"));
+		m_SizeBasic[i]->Add(m_InputActive[i], 0, wxEXPAND | wxALL, 5);
 
 		m_SizeEmu[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Position"));
 		m_SizeEmu[i]->Add(m_SidewaysWiimote[i], 0, wxEXPAND | wxALL, 5);
@@ -294,7 +294,7 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 
 	// Center the window if there is room for it
 	#ifdef _WIN32
-		if (GetSystemMetrics(SM_CYFULLSCREEN) > 800)
+		if (GetSystemMetrics(SM_CYFULLSCREEN) > 600)
 			Center();
 	#endif
 	ControlsCreated = true;
@@ -369,26 +369,29 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case ID_CONNECT_REAL:
+	case IDC_CONNECT_REAL:
 		DoConnectReal();
 		break;
-	case ID_USE_REAL:
+	case IDC_USE_REAL:
 		// Enable the Wiimote thread
 		g_Config.bUseRealWiimote = m_UseRealWiimote[Page]->IsChecked();
 		if (g_Config.bUseRealWiimote) DoUseReal();		
 		break;
 
-	case ID_SIDEWAYSWIIMOTE:
+	case IDC_INPUT_ACTIVE:
+		g_Config.bInputActive = m_InputActive[Page]->IsChecked();
+		break;
+	case IDC_SIDEWAYSWIIMOTE:
 		g_Config.bSideways = m_SidewaysWiimote[Page]->IsChecked();
-		break;		
-	case ID_UPRIGHTWIIMOTE:
+		break;
+	case IDC_UPRIGHTWIIMOTE:
 		g_Config.bUpright = m_UprightWiimote[Page]->IsChecked();
 		break;
 
-	case ID_MOTIONPLUSCONNECTED:
+	case IDC_MOTIONPLUSCONNECTED:
 		g_Config.bMotionPlusConnected = m_WiiMotionPlusConnected[Page]->IsChecked();
 		break;
-	case ID_EXTCONNECTED:
+	case IDC_EXTCONNECTED:
 		g_Config.iExtensionConnected = EXT_NONE;
 		// Disconnect the extension so that the game recognize the change
 		DoExtensionConnectedDisconnected();

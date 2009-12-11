@@ -98,6 +98,7 @@ struct Config
 	};
 
 	// Emulated Wiimote
+	bool bInputActive;
 	bool bSideways;
 	bool bUpright;
 	bool bWideScreen;

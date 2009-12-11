@@ -299,24 +299,27 @@ int RecordingCheckKeys(int WmNuIr)
 
 int GetMapKeyState(int _MapKey, int Key)
 {
-	const int Page = 0;
-
-	if (_MapKey < 256)
-#ifdef _WIN32
-		return GetAsyncKeyState(_MapKey);	// Keyboard (Windows)
-#else
-		return KeyStatus[Key];			// Keyboard (Linux)
-#endif
-	if (_MapKey < 0x1100)
-		return SDL_JoystickGetButton(PadState[Page].joy, _MapKey - 0x1000);	// Pad button
-	else	// Pad hat
+	if (g_Config.bInputActive)
 	{
-		u8 HatCode, HatKey;
-		HatCode = SDL_JoystickGetHat(PadState[Page].joy, (_MapKey - 0x1100) / 0x0010);
-		HatKey = (_MapKey - 0x1100) % 0x0010;
+		const int Page = 0;
 
-		if (HatCode & HatKey)
-			return HatKey;
+		if (_MapKey < 256)
+#ifdef _WIN32
+			return GetAsyncKeyState(_MapKey);	// Keyboard (Windows)
+#else
+			return KeyStatus[Key];			// Keyboard (Linux)
+#endif
+		if (_MapKey < 0x1100)
+			return SDL_JoystickGetButton(PadState[Page].joy, _MapKey - 0x1000);	// Pad button
+		else	// Pad hat
+		{
+			u8 HatCode, HatKey;
+			HatCode = SDL_JoystickGetHat(PadState[Page].joy, (_MapKey - 0x1100) / 0x0010);
+			HatKey = (_MapKey - 0x1100) % 0x0010;
+
+			if (HatCode & HatKey)
+				return HatKey;
+		}
 	}
 	return NULL;
 }

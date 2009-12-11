@@ -264,6 +264,7 @@ void Config::Load(bool ChangePad)
 	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
 
 	// General
+	iniFile.Get("Settings", "InputActive", &bInputActive, true);
 	iniFile.Get("Settings", "Sideways", &bSideways, false);
 	iniFile.Get("Settings", "Upright", &bUpright, false);
 	iniFile.Get("Settings", "ExtensionConnected", &iExtensionConnected, EXT_NONE);
@@ -370,6 +371,7 @@ void Config::Save(int Slot)
 {
 	IniFile iniFile;
 	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
+	iniFile.Set("Settings", "InputActive", bInputActive);
 	iniFile.Set("Settings", "Sideways", bSideways);
 	iniFile.Set("Settings", "Upright", bUpright);
 	iniFile.Set("Settings", "MotionPlusConnected", bMotionPlusConnected);
@@ -391,7 +393,6 @@ void Config::Save(int Slot)
 		char SectionName[32];
 		sprintf(SectionName, "Wiimote%i", i + 1);
 
-		iniFile.Set(SectionName, "Enabled", WiiMoteEmu::PadMapping[i].enabled);
 		iniFile.Set(SectionName, "NoTriggerFilter", bNoTriggerFilter);
 		iniFile.Set(SectionName, "TiltType", Tilt.Type);;
 		iniFile.Set(SectionName, "TiltRollRange", Tilt.Range.Roll);
@@ -419,6 +420,7 @@ void Config::Save(int Slot)
 			iniFile.Set(SectionName, gh3ControlNames[x], WiiMoteEmu::PadMapping[i].GH3c.keyForControls[x]);
 
 		// Save the physical device ID number
+		iniFile.Set(SectionName, "Enabled", WiiMoteEmu::PadMapping[i].enabled);
 		iniFile.Set(SectionName, "DeviceID", WiiMoteEmu::PadMapping[i].ID);
 
 		// Joypad specific settings
