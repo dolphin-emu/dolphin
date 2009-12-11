@@ -246,8 +246,9 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     case ISFS_IOCTL_GETFILESTATS:
         {
             u64 Position = ftell(m_pFileHandle);
-            m_FileLength = fseek(m_pFileHandle, SEEK_END, 0);
-			fseek(m_pFileHandle, Position, 0);
+            fseek(m_pFileHandle, 0, SEEK_END);
+			m_FileLength = ftell(m_pFileHandle);
+			fseek(m_pFileHandle, Position, SEEK_SET);
 
             u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
             INFO_LOG(WII_IPC_FILEIO, "FileIO: ISFS_IOCTL_GETFILESTATS");
