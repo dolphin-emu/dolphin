@@ -19,6 +19,17 @@
 
 #include "WII_IPC_HLE_Device.h"
 
+struct NANDStat
+{
+	u32 BlockSize;
+	u32 FreeBlocks;
+	u32 UsedBlocks;
+	u32 unk3;
+	u32 unk4;
+	u32 Free_INodes;
+	u32 unk5; // Used INodes?
+};
+
 enum {
 	FS_RESULT_OK			= 0,
 	FS_DIRFILE_NOT_FOUND	= -6,

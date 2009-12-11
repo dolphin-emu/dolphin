@@ -73,7 +73,7 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_fs::Close(u32 _CommandAddress, bool _bForce)
 {
-	INFO_LOG(WII_IPC_NET, "/dev/fs: Close");
+	INFO_LOG(WII_IPC_FILEIO, "Close");
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
@@ -102,7 +102,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 	u32 ReturnValue = FS_RESULT_OK;
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 	
-	// Prepare the out buffer(s) with zeroes as a safety precaution
+	// Prepare the out buffer(s) with zeros as a safety precaution
 	// to avoid returning bad values
 	for(u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
 	{
@@ -120,32 +120,19 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
 			INFO_LOG(WII_IPC_FILEIO, "FS: IOCTL_READ_DIR %s", Filename.c_str());
 
-			/* Check if this is really a directory. Or a file, because it seems like Mario Kart
-			   did a IOCTL_READ_DIR on the save file to check if it existed before deleting it,
-			   and if I didn't returned a -something it never deleted the file presumably because
-			   it thought it didn't exist. So this solution worked for Mario Kart. 
-			   
-			   F|RES: i dont have mkart but -6 is a wrong return value if you try to read from a 
-			   directory which doesnt exist
-			   
-			   JP: Okay, but Mario Kart calls this for files and if I return 0 here it never
-			   creates a new file in any event, it just calls a DELETE_FILE and never close
-			   the handle, so perhaps this is better
-			   */
-
 			if (!File::Exists(Filename.c_str()))
 			{
 				WARN_LOG(WII_IPC_FILEIO, "FS: Search not found: %s", Filename.c_str());
 				ReturnValue = FS_DIRFILE_NOT_FOUND;
 				break;
 			}
-			/* Okay, maybe it is a file but not a directory, then we should return -101?
-			   I have not seen any example of this. */
 
 			// AyuanX: what if we return "found one successfully" if it is a file?
 			else if (!File::IsDirectory(Filename.c_str()))
 			{
-				WARN_LOG(WII_IPC_FILEIO, "FS: Cannot search on file yet", Filename.c_str());
+				// It's not a directory, so error.
+				// Games don't usually seem to care WHICH error they get, as long as it's <0
+				WARN_LOG(WII_IPC_FILEIO, "\tNot a directory - return FS_INVALID_ARGUMENT");
 				ReturnValue = FS_INVALID_ARGUMENT;
 				break;
 			}
@@ -279,22 +266,23 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 	{
 	case IOCTL_GET_STATS:
 		{
-			_dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 28);
+			if (_BufferOutSize < 0x1c)
+				return -1017;
 
-			WARN_LOG(WII_IPC_FILEIO, "FS: GET STATS - no idea what we have to return here, prolly the free memory etc:)");
-			WARN_LOG(WII_IPC_FILEIO, "    InBufferSize: %i OutBufferSize: %i", _BufferInSize, _BufferOutSize);
+			WARN_LOG(WII_IPC_FILEIO, "FS: GET STATS - returning static values for now");
 
-			// This happens in Tatsonuko vs Capcom., Transformers
-            // The buffer out values are ripped form a real WII and i dont know the meaning
-            // of them. Prolly it is some kind of small statistic like number of iblocks, free iblocks etc
-            u32 Addr = _BufferOut;
-            Memory::Write_U32(0x00004000, Addr); Addr += 4;
-            Memory::Write_U32(0x00005717, Addr); Addr += 4;
-            Memory::Write_U32(0x000024a9, Addr); Addr += 4;
-            Memory::Write_U32(0x00000000, Addr); Addr += 4;
-            Memory::Write_U32(0x00000300, Addr); Addr += 4;
-            Memory::Write_U32(0x0000163e, Addr); Addr += 4;
-            Memory::Write_U32(0x000001c1, Addr);
+			NANDStat fs;
+
+			//TODO: scrape the real amounts from somewhere...
+			fs.BlockSize	= 0x4000;
+			fs.FreeBlocks	= 0x5DEC;
+			fs.UsedBlocks	= 0x1DD4;
+			fs.unk3			= 0x10;
+			fs.unk4			= 0x02F0;
+			fs.Free_INodes	= 0x146B;
+			fs.unk5			= 0x0394;
+
+			*(NANDStat*)Memory::GetPointer(_BufferOut) = fs;
 
 			return FS_RESULT_OK;
 		}
@@ -431,7 +419,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			// try to make the basis directory
 			File::CreateFullPath(FilenameRename.c_str());
 
-			// if there is already a filedelete it
+			// if there is already a file, delete it
 			if (File::Exists(FilenameRename.c_str()))
 			{
 				File::Delete(FilenameRename.c_str());
@@ -490,7 +478,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 				return FS_RESULT_FATAL;
 			}
 
-			INFO_LOG(WII_IPC_FILEIO, "    result = FS_RESULT_OK", Filename.c_str());
+			INFO_LOG(WII_IPC_FILEIO, "\tresult = FS_RESULT_OK");
 			return FS_RESULT_OK;
 		}
 		break;

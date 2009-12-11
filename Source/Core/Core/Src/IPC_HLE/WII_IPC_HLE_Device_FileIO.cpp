@@ -23,9 +23,7 @@
 #include "WII_IPC_HLE_Device_FileIO.h"
 
 
-// ===================================================
-/* This is used by several of the FileIO and /dev/fs/ functions */
-// ----------------
+// This is used by several of the FileIO and /dev/fs/ functions 
 std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 {
 	char Buffer[128];
@@ -33,7 +31,7 @@ std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 
 	std::string Filename(FULL_WII_ROOT_DIR);
 	if (Buffer[1] == '0')
-		Filename += std::string("/title");     // this looks and feel like an hack...
+		Filename += std::string("/title");     // this looks and feel like a hack...
 
 	Filename += Buffer;
 
@@ -44,13 +42,14 @@ CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std:
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false)	// not a real hardware
     , m_pFileHandle(NULL)
     , m_FileLength(0)
-{}
+{
+}
 
 CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
-{}
+{
+}
 
-bool 
-CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bForce)
+bool CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bForce)
 {
 	INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_Name.c_str(), m_DeviceID);	
 
@@ -67,8 +66,7 @@ CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bForce)
 	return true;
 }
 
-bool 
-CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)  
+bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)  
 { 
 	u32 ReturnValue = 0;
 
@@ -95,21 +93,23 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s), File exists", m_Name.c_str(), Modes[_Mode]);
 		switch(_Mode)
 		{
-		case 0x01:	m_pFileHandle = fopen(m_Filename.c_str(), "rb"); break;
-		case 0x02:	// m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
+		case ISFS_OPEN_READ:	m_pFileHandle = fopen(m_Filename.c_str(), "rb"); break;
+		case ISFS_OPEN_WRITE:	// m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
 			// MK Wii gets here corrupting its saves, however using rb+ mode works fine
 			// TODO : figure it properly...
-		case 0x03:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
+		case ISFS_OPEN_RW:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
 		default: PanicAlert("CWII_IPC_HLE_Device_FileIO: unknown open mode : 0x%02x", _Mode); break;
 		}
 	}
 	else
 	{
-		if (_Mode == 0x02) {
+		if (_Mode == ISFS_OPEN_WRITE)
+		{
 			INFO_LOG(WII_IPC_FILEIO, "FileIO: Open new %s (%s)", m_Name.c_str(), Modes[_Mode]);
 			m_pFileHandle = fopen(m_Filename.c_str(), "wb");
 		}
-		else {
+		else
+		{
 			ERROR_LOG(WII_IPC_FILEIO, " FileIO failed open for reading: %s - File doesn't exist", m_Filename.c_str());
 			ReturnValue = FS_FILE_NOT_EXIST;
 		}
@@ -120,7 +120,7 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		m_FileLength = File::GetSize(m_Filename.c_str());
 		ReturnValue = GetDeviceID();
 	}
-	else if(ReturnValue == 0)
+	else if (ReturnValue == 0)
 	{
 		ERROR_LOG(WII_IPC_FILEIO, " FileIO failed open: %s(%s) - I/O Error", m_Filename.c_str(), Modes[_Mode]);
 		ReturnValue = FS_INVALID_ARGUMENT;
@@ -131,12 +131,11 @@ CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 	return true;
 }
 
-bool 
-CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress) 
+bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress) 
 {
 	u32 ReturnValue = 0;
-	u32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
-	u32 Mode = Memory::Read_U32(_CommandAddress +0x10);  
+	u32 SeekPosition	= Memory::Read_U32(_CommandAddress + 0xC);
+	u32 Mode			= Memory::Read_U32(_CommandAddress + 0x10);  
 
 	INFO_LOG(WII_IPC_FILEIO, "FileIO: Old Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition, Mode, m_Name.c_str(), m_FileLength);	
 
@@ -183,12 +182,11 @@ CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
     return true;
 }
 
-bool 
-CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress) 
+bool CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress) 
 {    
     u32 ReturnValue = 0;
-    u32 Address = Memory::Read_U32(_CommandAddress +0xC); // Read to this memory address
-    u32 Size = Memory::Read_U32(_CommandAddress +0x10);
+    u32 Address	= Memory::Read_U32(_CommandAddress + 0xC); // Read to this memory address
+    u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
 
     if (m_pFileHandle != NULL)
     {
@@ -206,12 +204,11 @@ CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
     return true;
 }
 
-bool 
-CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress) 
+bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress) 
 {        
 	u32 ReturnValue = 0;
-	u32 Address = Memory::Read_U32(_CommandAddress +0xC); // Write data from this memory address
-	u32 Size = Memory::Read_U32(_CommandAddress +0x10);
+	u32 Address	= Memory::Read_U32(_CommandAddress + 0xC); // Write data from this memory address
+	u32 Size	= Memory::Read_U32(_CommandAddress + 0x10);
 
 	INFO_LOG(WII_IPC_FILEIO, "FileIO: Write 0x%04x bytes from 0x%08x to %s", Size, Address, m_Name.c_str());
 
@@ -227,8 +224,7 @@ CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
     return true;
 }
 
-bool 
-CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress) 
+bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress) 
 {
     INFO_LOG(WII_IPC_FILEIO, "FileIO: IOCtl (Device=%s)", m_Name.c_str());
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -236,10 +232,10 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 #endif
     u32 Parameter =  Memory::Read_U32(_CommandAddress + 0xC);
 
-    //    u32 BufferIn =  Memory::Read_U32(_CommandAddress + 0x10);
-    //    u32 BufferInSize =  Memory::Read_U32(_CommandAddress + 0x14);
-    //    u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-    //    u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
+    //u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
+    //u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
+    //u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+    //u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 
     switch(Parameter)
     {
@@ -274,8 +270,7 @@ CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     return true;
 }
 
-bool
-CWII_IPC_HLE_Device_FileIO::ReturnFileHandle()
+bool CWII_IPC_HLE_Device_FileIO::ReturnFileHandle()
 {
 	if(m_pFileHandle == NULL)
 		return false;
