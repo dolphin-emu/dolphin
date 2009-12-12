@@ -19,8 +19,11 @@
 
 #include "AOSoundStream.h"
 #include "Mixer.h"
+#include "../../../PluginSpecs/pluginspecs_dsp.h"
 
 #if defined(HAVE_AO) && HAVE_AO
+
+extern DSPInitialize g_dspInitialize;
 
 void AOSound::SoundLoop()
 {
@@ -85,8 +88,14 @@ void AOSound::Update()
 
 void AOSound::Clear()
 {
-	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
-
+	if(!*g_dspInitialize.pEmulatorState)
+	{
+		g_muted = false;
+	}
+	else
+	{
+		g_muted = true;
+	}
 	Update();
 }
 
@@ -105,13 +114,6 @@ void AOSound::Stop()
 AOSound::~AOSound() {
 	//   FIXME: crashes dolphin
 	//   ao_shutdown();
-}
-
-void AOSound::Mute(bool bMute) {
-	if((bMute && g_muted) || (!bMute && !g_muted))
-		return;
-
-	g_muted = bMute;
 }
 
 #endif

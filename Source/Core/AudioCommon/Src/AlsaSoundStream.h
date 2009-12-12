@@ -37,6 +37,7 @@ public:
 	virtual bool Start();
 	virtual void SoundLoop();
 	virtual void Stop(); 
+	virtual void Clear();
 
 	static bool isValid() {
 		return true;
@@ -46,8 +47,6 @@ public:
 	}
 
 	virtual void Update();
-
-	virtual void Mute(bool bMute);
 
 private:
 	bool AlsaInit();

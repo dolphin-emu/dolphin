@@ -579,6 +579,7 @@ void SetState(EState _State)
 		break;
 	case CORE_RUN:
 		CCPU::EnableStepping(false);
+		CPluginManager::GetInstance().GetDSP()->DSP_ClearAudioBuffer();
 		break;
 	default:
 		PanicAlert("Invalid state");

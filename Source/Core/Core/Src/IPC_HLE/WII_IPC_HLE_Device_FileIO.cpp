@@ -145,13 +145,11 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	// AyuanX: this is still dubious because m_FileLength
 	// isn't updated on the fly when write happens
 	s32 NewSeekPosition = SeekPosition;
-/*
-	if (m_FileLength > 0 && SeekPosition > m_FileLength && Mode == 0)
+	if (m_FileLength > 0 && SeekPosition > (s32)m_FileLength && Mode == 0)
 	{
 		NewSeekPosition = SeekPosition % m_FileLength;
 	}
 	INFO_LOG(WII_IPC_FILEIO, "FileIO: New Seek Pos: 0x%08x, Mode: %i (%s)", NewSeekPosition, Mode, m_Name.c_str());	
-*/
 
 	// Set seek mode
 	int seek_mode[3] = {SEEK_SET, SEEK_CUR, SEEK_END};

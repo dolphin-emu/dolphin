@@ -317,10 +317,6 @@ unsigned short DSP_ReadControlRegister()
 
 void DSP_Update(int cycles)
 {
-	// Handle muting
-	if(g_bMuted && !*g_dspInitialize.pEmulatorState && soundStream)
-		soundStream->Mute(g_bMuted = false);
-
 	// This is called OFTEN - better not do anything expensive!
 	CDSPHandler::GetInstance().Update(cycles);
 }
@@ -372,6 +368,4 @@ void DSP_ClearAudioBuffer()
 {
 	if (soundStream)
 		soundStream->Clear();
-	if(*g_dspInitialize.pEmulatorState && soundStream && !g_bMuted)
-		soundStream->Mute(g_bMuted = true);
 }

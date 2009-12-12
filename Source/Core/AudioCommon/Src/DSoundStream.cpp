@@ -19,7 +19,6 @@
 #include <cmath>
 #include <dxerr.h>
 #include "DSoundStream.h"
-
 #include "../../../PluginSpecs/pluginspecs_dsp.h"
 
 extern DSPInitialize g_dspInitialize;
@@ -172,9 +171,14 @@ void DSound::Update()
 
 void DSound::Clear()
 {
-	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
-
-	Update();
+	if(!*g_dspInitialize.pEmulatorState)
+	{
+		dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
+	}
+	else
+	{
+		dsBuffer->Stop();
+	}
 }
 
 void DSound::Stop()
@@ -191,17 +195,5 @@ void DSound::Stop()
 
 	soundSyncEvent.Shutdown();
 	thread = NULL;
-}
-
-void DSound::Mute(bool bMute) {
-	if((bMute && g_muted) || (!bMute && !g_muted))
-		return;
-		
-	if(bMute)
-		dsBuffer->Stop();
-	else
-		dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
-
-	g_muted = bMute;
 }
 

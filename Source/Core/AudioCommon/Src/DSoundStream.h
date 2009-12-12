@@ -79,7 +79,6 @@ public:
 	virtual void SetVolume(int volume);
     virtual void Stop();
 	virtual void Clear();
-	virtual void Mute(bool bMute);
     static bool isValid() { return true; }
     virtual bool usesMixer() const { return true; }
     virtual void Update();

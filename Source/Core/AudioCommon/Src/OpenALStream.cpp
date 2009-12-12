@@ -17,11 +17,14 @@
 
 #include "aldlist.h"
 #include "OpenALStream.h"
+#include "../../../PluginSpecs/pluginspecs_dsp.h"
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 
 #define AUDIO_NUMBUFFERS			(4)
 //#define	AUDIO_SERVICE_UPDATE_PERIOD	(20)
+
+extern DSPInitialize g_dspInitialize;
 
 bool OpenALStream::Start()
 {
@@ -96,9 +99,14 @@ void OpenALStream::Update()
 
 void OpenALStream::Clear()
 {
-	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
-
-	Update();
+	if(!*g_dspInitialize.pEmulatorState)
+	{
+		alSourcePlay(g_uiSource);
+	}
+	else
+	{
+		alSourceStop(g_uiSource);
+	}
 }
 
 THREAD_RETURN OpenALStream::ThreadFunc(void* args)
@@ -176,18 +184,6 @@ void OpenALStream::SoundLoop()
 	alDeleteSources(1, &uiSource);
 	alDeleteBuffers(AUDIO_NUMBUFFERS, (ALuint *)uiBuffers);
 
-}
-
-void OpenALStream::Mute(bool bMute) {
-	if((bMute && g_muted) || (!bMute && !g_muted))
-		return;
-		
-	if(bMute && g_uiSource)
-		alSourceStop(g_uiSource);
-	else if(g_uiSource)
-		alSourcePlay(g_uiSource);
-
-	g_muted = bMute;
 }
 
 #endif //HAVE_OPENAL

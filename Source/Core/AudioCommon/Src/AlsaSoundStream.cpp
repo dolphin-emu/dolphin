@@ -17,11 +17,13 @@
 
 #include "Common.h"
 #include "Thread.h"
-
+#include "../../../PluginSpecs/pluginspecs_dsp.h"
 #include "AlsaSoundStream.h"
 
 #define BUFFER_SIZE 4096
 #define BUFFER_SIZE_BYTES (BUFFER_SIZE*2*2)
+
+extern DSPInitialize g_dspInitialize;
 
 AlsaSound::AlsaSound(CMixer *mixer) : SoundStream(mixer), thread_data(0), handle(NULL)
 {
@@ -51,6 +53,18 @@ void AlsaSound::Stop()
 	thread_data = 1;
 	delete thread;
 	thread = NULL;
+}
+
+void AlsaSound::Clear()
+{
+	if(!*g_dspInitialize.pEmulatorState)
+	{
+		g_muted = false;
+	}
+	else
+	{
+		g_muted = true;
+	}
 }
 
 void AlsaSound::Update()
@@ -179,13 +193,6 @@ bool AlsaSound::AlsaInit()
 	}
 	NOTICE_LOG(AUDIO, "ALSA successfully initialized.\n");
 	return true;
-}
-
-void AlsaSound::Mute(bool bMute) {
-	if((bMute && g_muted) || (!bMute && !g_muted))
-		return;
-
-	g_muted = bMute;
 }
 
 void AlsaSound::AlsaShutdown()

@@ -51,7 +51,6 @@ public:
 	virtual void SoundLoop();
 	virtual void Stop();
 	virtual void Clear();
-	virtual void Mute(bool bMute);
 	static bool isValid() { return true; }
 	virtual bool usesMixer() const { return true; }
 	virtual void Update();
