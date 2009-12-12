@@ -150,7 +150,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 			if ((CommandBuffer.InBuffer.size() == 1) && (CommandBuffer.PayloadBuffer.size() == 1))
 			{
 				size_t numFile = FileSearch.GetFileNames().size();
-				INFO_LOG(WII_IPC_FILEIO, "    %i Files found", numFile);
+				INFO_LOG(WII_IPC_FILEIO, "\t%i Files found", numFile);
 
 				Memory::Write_U32((u32)numFile, CommandBuffer.PayloadBuffer[0].m_Address);
 			}
@@ -177,7 +177,7 @@ bool CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 					*pFilename++ = 0x00;  // termination
 					numFiles++;
 
-					INFO_LOG(WII_IPC_FILEIO, "    Found: %s", CompleteFilename.c_str());
+					INFO_LOG(WII_IPC_FILEIO, "\tFound: %s", CompleteFilename.c_str());
 				}
 
 				Memory::Write_U32((u32)numFiles, CommandBuffer.PayloadBuffer[1].m_Address);
@@ -464,7 +464,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			// check if the file already exist
 			if (File::Exists(Filename.c_str()))
 			{
-				WARN_LOG(WII_IPC_FILEIO, "    result = FS_RESULT_EXISTS", Filename.c_str());
+				WARN_LOG(WII_IPC_FILEIO, "\tresult = FS_RESULT_EXISTS");
 				return FS_FILE_EXIST;
 			}
 
