@@ -507,7 +507,7 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 	int &RollRange = g_Config.Tilt.Range.Roll;
 	int &PitchRange = g_Config.Tilt.Range.Pitch;
 
-	// The trigger currently only controls pitch
+	// The trigger currently only controls pitch, no roll, no free swing
 	if (g_Config.Tilt.Type == g_Config.Tilt.TRIGGER)
 	{
 		// Make the range the same dimension as the analog stick
@@ -553,36 +553,32 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 // Tilting Wiimote with keyboard
 void TiltWiimoteKeyboard(int &Roll, int &Pitch)
 {
-	// Direct map roll/pitch to swing
-	if (g_Config.Tilt.Range.Roll == 0 && g_Config.Tilt.Range.Pitch == 0)
-	{
-		if (IsKey(g_Wiimote_kbd.ROLL_L))
-			Roll = -0x80 / 2;
-		else if (IsKey(g_Wiimote_kbd.ROLL_R))
-			Roll = 0x80 / 2;
-		else
-			Roll = 0;
-		if (IsKey(g_Wiimote_kbd.PITCH_U))
-			Pitch = -0x80 / 2;
-		else if (IsKey(g_Wiimote_kbd.PITCH_D))
-			Pitch = 0x80 / 2;
-		else
-			Pitch = 0;
-		return;
-	}
-
-	// Otherwise do roll/pitch
+	// Do roll/pitch or free swing
 	if (IsKey(g_Wiimote_kbd.ROLL_L))
 	{
-		// Stop at the upper end of the range
-		if (Roll < g_Config.Tilt.Range.Roll)
-			Roll += 3; // aim left
+		if (g_Config.Tilt.Range.Roll)
+		{
+			// Stop at the upper end of the range
+			if (Roll < g_Config.Tilt.Range.Roll)
+				Roll += 3; // aim left
+		}
+		else // Free swing
+		{
+			Roll = -0x80 / 2;
+		}
 	}
 	else if (IsKey(g_Wiimote_kbd.ROLL_R))
 	{
-		// Stop at the lower end of the range
-		if (Roll > -g_Config.Tilt.Range.Roll)
-			Roll -= 3; // aim right
+		if (g_Config.Tilt.Range.Roll)
+		{
+			// Stop at the lower end of the range
+			if (Roll > -g_Config.Tilt.Range.Roll)
+				Roll -= 3; // aim right
+		}
+		else // Free swing
+		{
+			Roll = 0x80 / 2;
+		}
 	}
 	else
 	{
@@ -590,15 +586,29 @@ void TiltWiimoteKeyboard(int &Roll, int &Pitch)
 	}
 	if (IsKey(g_Wiimote_kbd.PITCH_U))
 	{
-		// Stop at the upper end of the range
-		if (Pitch < g_Config.Tilt.Range.Pitch)
-			Pitch += 3; // aim up
+		if (g_Config.Tilt.Range.Pitch)
+		{
+			// Stop at the upper end of the range
+			if (Pitch < g_Config.Tilt.Range.Pitch)
+				Pitch += 3; // aim up
+		}
+		else // Free swing
+		{
+			Pitch = -0x80 / 2;
+		}
 	}
 	else if (IsKey(g_Wiimote_kbd.PITCH_D))
 	{
-		// Stop at the lower end of the range
-		if (Pitch > -g_Config.Tilt.Range.Pitch)
-			Pitch -= 3; // aim down
+		if (g_Config.Tilt.Range.Pitch)
+		{
+			// Stop at the lower end of the range
+			if (Pitch > -g_Config.Tilt.Range.Pitch)
+				Pitch -= 3; // aim down
+		}
+		else // Free swing
+		{
+			Pitch = 0x80 / 2;
+		}
 	}
 	else
 	{

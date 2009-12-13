@@ -89,44 +89,26 @@ void AdjustAngles(int &Roll, int &Pitch)
 
 
 // Angles to accelerometer values
-void PitchDegreeToAccelerometer(int Roll, int Pitch, int &_x, int &_y, int &_z)
+void PitchDegreeToAccelerometer(int _Roll, int _Pitch, int &_x, int &_y, int &_z)
 {
-	// Direct mapping for swing, from analog stick to accelerometer
-	if (g_Config.Tilt.Range.Roll == 0 && g_Config.Tilt.Range.Pitch == 0)
-	{
-		if (!g_Config.bUpright)
-		{
-			_x -= Roll;
-			_z -= Pitch;
-		}
-		else	// Upright wiimote
-		{
-			_x -= Roll;
-			_y += Pitch;
-		}
-		return;
-	}
-
 	// We need radiands for the math functions
-	float _Roll = InputCommon::Deg2Rad((float)Roll);
-	float _Pitch = InputCommon::Deg2Rad((float)Pitch);
-	// We need decimal values
-	float x, y, z;
+	float Roll = InputCommon::Deg2Rad((float)_Roll);
+	float Pitch = InputCommon::Deg2Rad((float)_Pitch);
+	// We need float values
+	float x = 0.0f, y = 0.0f, z = 0.0f;
 
 	// In these cases we can use the simple and accurate formula
-	if(g_Config.Tilt.Range.Pitch == 0)
+	if(g_Config.Tilt.Range.Roll && g_Config.Tilt.Range.Pitch == 0)
 	{
-		x = sin(_Roll);
-		y = 0.0f;
-		z = cos(_Roll);
+		x = sin(Roll);
+		z = cos(Roll);
 	}
-	else if (g_Config.Tilt.Range.Roll == 0)
+	else if (g_Config.Tilt.Range.Pitch && g_Config.Tilt.Range.Roll == 0)
 	{
-		x = 0.0f;
-		y = sin(_Pitch);
-		z = cos(_Pitch);
+		y = sin(Pitch);
+		z = cos(Pitch);
 	}
-	else
+	else if(g_Config.Tilt.Range.Roll && g_Config.Tilt.Range.Pitch)
 	{
 		// ====================================================
 		/* This seems to always produce the exact same combination of x, y, z
@@ -135,17 +117,17 @@ void PitchDegreeToAccelerometer(int Roll, int Pitch, int &_x, int &_y, int &_z)
 		   and Pitch. But if we select a Z from the smallest of the absolute
 		   value of cos(Roll) and cos (Pitch) we get the right values. */
 		// ---------	
-		if (abs(cos(_Roll)) < abs(cos(_Pitch)))
-			z = cos(_Roll);
+		if (abs(cos(Roll)) < abs(cos(Pitch)))
+			z = cos(Roll);
 		else
-			z = cos(_Pitch);
+			z = cos(Pitch);
 		/* I got these from reversing the calculation in
 		   PitchAccelerometerToDegree() in a math program. */
-		float x_num = 2 * tanf(0.5f * _Roll) * z;
-		float x_den = pow2f(tanf(0.5f * _Roll)) - 1;
+		float x_num = 2 * tanf(0.5f * Roll) * z;
+		float x_den = pow2f(tanf(0.5f * Roll)) - 1;
 		x = - (x_num / x_den);
-		float y_num = 2 * tanf(0.5f * _Pitch) * z;
-		float y_den = pow2f(tanf(0.5f * _Pitch)) - 1;
+		float y_num = 2 * tanf(0.5f * Pitch) * z;
+		float y_den = pow2f(tanf(0.5f * Pitch)) - 1;
 		y = - (y_num / y_den);
 	}
 
@@ -168,6 +150,19 @@ void PitchDegreeToAccelerometer(int Roll, int Pitch, int &_x, int &_y, int &_z)
 		if(g_Config.Tilt.Range.Roll != 0) _x = ix;
 		if(g_Config.Tilt.Range.Pitch != 0) _z = iy;
 		_y = 0xFF - iz;
+	}
+
+	// Direct mapping for swing, from analog stick to accelerometer
+	if (g_Config.Tilt.Range.Roll == 0)
+	{
+		_x -= _Roll;
+	}
+	if (g_Config.Tilt.Range.Pitch == 0)
+	{
+		if (!g_Config.bUpright)
+			_z -= _Pitch;
+		else	// Upright wiimote
+			_y += _Pitch;
 	}
 }
 
