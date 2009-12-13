@@ -22,7 +22,6 @@
 #include "SoundStream.h"
 #include "Thread.h"
 
-
 #if defined HAVE_OPENAL && HAVE_OPENAL
 #ifdef _WIN32
 #include "../../../../Externals/OpenAL/include/al.h"
@@ -39,7 +38,6 @@
 #define OAL_BUFFER_SIZE 1024*1024
 #endif
 
-
 class OpenALStream: public SoundStream
 {
 #if defined HAVE_OPENAL && HAVE_OPENAL
@@ -50,7 +48,7 @@ public:
 	virtual bool Start();
 	virtual void SoundLoop();
 	virtual void Stop();
-	virtual void Clear();
+	virtual void Clear(bool mute);
 	static bool isValid() { return true; }
 	virtual bool usesMixer() const { return true; }
 	virtual void Update();
@@ -69,8 +67,5 @@ public:
 	OpenALStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {}
 #endif // HAVE_OPENAL
 };
-
-
-
 
 #endif // OPENALSTREAM

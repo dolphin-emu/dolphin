@@ -17,13 +17,10 @@
 
 #include "Common.h"
 #include "Thread.h"
-#include "../../../PluginSpecs/pluginspecs_dsp.h"
 #include "AlsaSoundStream.h"
 
 #define BUFFER_SIZE 4096
 #define BUFFER_SIZE_BYTES (BUFFER_SIZE*2*2)
-
-extern DSPInitialize g_dspInitialize;
 
 AlsaSound::AlsaSound(CMixer *mixer) : SoundStream(mixer), thread_data(0), handle(NULL)
 {
@@ -55,18 +52,6 @@ void AlsaSound::Stop()
 	thread = NULL;
 }
 
-void AlsaSound::Clear()
-{
-	if(!*g_dspInitialize.pEmulatorState)
-	{
-		g_muted = false;
-	}
-	else
-	{
-		g_muted = true;
-	}
-}
-
 void AlsaSound::Update()
 {
 	// don't need to do anything here.
@@ -76,12 +61,12 @@ void AlsaSound::Update()
 void AlsaSound::SoundLoop()
 {
 	AlsaInit();
+	// nakee: What is the optimal value?
+	int frames_to_deliver = BUFFER_SIZE;
 	while (!thread_data)
 	{
-		// nakee: What is the optimal value?
-		int frames_to_deliver = 4096;
 		m_mixer->Mix(reinterpret_cast<short *>(mix_buffer), frames_to_deliver);
-		int rc = g_muted ? 1337 : snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
+		int rc = m_muted ? 1337 : snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
 		if (rc == -EPIPE)
 		{
 			// Underrun

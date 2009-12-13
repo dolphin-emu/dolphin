@@ -17,14 +17,11 @@
 
 #include "aldlist.h"
 #include "OpenALStream.h"
-#include "../../../PluginSpecs/pluginspecs_dsp.h"
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 
 #define AUDIO_NUMBUFFERS			(4)
 //#define	AUDIO_SERVICE_UPDATE_PERIOD	(20)
-
-extern DSPInitialize g_dspInitialize;
 
 bool OpenALStream::Start()
 {
@@ -97,15 +94,16 @@ void OpenALStream::Update()
 	}
 }
 
-void OpenALStream::Clear()
+void OpenALStream::Clear(bool mute)
 {
-	if(!*g_dspInitialize.pEmulatorState)
+	m_muted = mute;
+	if(m_muted)
 	{
-		alSourcePlay(g_uiSource);
+		alSourceStop(g_uiSource);
 	}
 	else
 	{
-		alSourceStop(g_uiSource);
+		alSourcePlay(g_uiSource);
 	}
 }
 

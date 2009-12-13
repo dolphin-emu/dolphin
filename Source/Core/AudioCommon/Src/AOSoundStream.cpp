@@ -19,11 +19,8 @@
 
 #include "AOSoundStream.h"
 #include "Mixer.h"
-#include "../../../PluginSpecs/pluginspecs_dsp.h"
 
 #if defined(HAVE_AO) && HAVE_AO
-
-extern DSPInitialize g_dspInitialize;
 
 void AOSound::SoundLoop()
 {
@@ -54,8 +51,7 @@ void AOSound::SoundLoop()
 	{
         soundCriticalSection.Enter();
         m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
-		if(!g_muted)
-			ao_play(device, (char*)realtimeBuffer, numBytesToRender);
+		ao_play(device, (char*)realtimeBuffer, numBytesToRender);
         soundCriticalSection.Leave();
 
 		if (! threadData)
@@ -84,19 +80,6 @@ bool AOSound::Start()
 void AOSound::Update()
 {
     soundSyncEvent.Set();
-}
-
-void AOSound::Clear()
-{
-	if(!*g_dspInitialize.pEmulatorState)
-	{
-		g_muted = false;
-	}
-	else
-	{
-		g_muted = true;
-	}
-	Update();
 }
 
 void AOSound::Stop()

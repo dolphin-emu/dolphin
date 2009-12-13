@@ -36,8 +36,7 @@ public:
 
 	virtual bool Start();
 	virtual void SoundLoop();
-	virtual void Stop(); 
-	virtual void Clear();
+	virtual void Stop();
 
 	static bool isValid() {
 		return true;

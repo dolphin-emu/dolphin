@@ -370,6 +370,6 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 void DSP_ClearAudioBuffer()
 {
 	if(soundStream)
-		soundStream->Clear();
+		soundStream->Clear(*g_dspInitialize.pEmulatorState);
 }
 

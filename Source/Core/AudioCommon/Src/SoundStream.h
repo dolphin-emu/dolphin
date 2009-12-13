@@ -32,10 +32,10 @@ protected:
     volatile int threadData;
     bool m_logAudio;
 	WaveFileWriter g_wave_writer;
-	bool g_muted;
+	bool m_muted;
 
 public:   
-	SoundStream(CMixer *mixer) : m_mixer(mixer), threadData(0), g_muted(false) {}
+	SoundStream(CMixer *mixer) : m_mixer(mixer), threadData(0), m_muted(false) {}
 	virtual ~SoundStream() { delete m_mixer;}
     
 	static  bool isValid() { return false; }  
@@ -45,7 +45,7 @@ public:
 	virtual void SoundLoop() {}
 	virtual void Stop() {}
 	virtual void Update() {}
-	virtual void Clear() {}
+	virtual void Clear(bool mute) { m_muted = mute; }
 	virtual void StartLogAudio(const char *filename) {
 		if (! m_logAudio) {
 			m_logAudio = true;

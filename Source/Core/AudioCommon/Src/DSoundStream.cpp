@@ -18,10 +18,8 @@
 #include <windows.h>
 #include <cmath>
 #include <dxerr.h>
+#include "AudioCommon.h"
 #include "DSoundStream.h"
-#include "../../../PluginSpecs/pluginspecs_dsp.h"
-
-extern DSPInitialize g_dspInitialize;
 
 bool DSound::CreateBuffer()
 {
@@ -169,15 +167,16 @@ void DSound::Update()
 	soundSyncEvent.Set();
 }
 
-void DSound::Clear()
+void DSound::Clear(bool mute)
 {
-	if(!*g_dspInitialize.pEmulatorState)
+	m_muted = mute;
+	if (m_muted)
 	{
-		dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
+		dsBuffer->Stop();
 	}
 	else
 	{
-		dsBuffer->Stop();
+		dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
 	}
 }
 

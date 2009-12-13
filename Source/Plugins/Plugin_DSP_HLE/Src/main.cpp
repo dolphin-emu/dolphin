@@ -205,8 +205,6 @@ void Initialize(void *init)
 {
 	g_dspInitialize = *(DSPInitialize*)init;
 
-	g_bMuted = false;
-
 	g_Config.Load();
 	g_pMemory = g_dspInitialize.pGetMemoryPointer(0);
 
@@ -367,5 +365,5 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 void DSP_ClearAudioBuffer()
 {
 	if (soundStream)
-		soundStream->Clear();
+		soundStream->Clear(*g_dspInitialize.pEmulatorState);
 }

@@ -78,7 +78,7 @@ public:
     virtual void SoundLoop();
 	virtual void SetVolume(int volume);
     virtual void Stop();
-	virtual void Clear();
+	virtual void Clear(bool mute);
     static bool isValid() { return true; }
     virtual bool usesMixer() const { return true; }
     virtual void Update();
