@@ -60,10 +60,13 @@ enum
 	DSP_MAIL_FROM_DSP_LO	= 0x5006,
 	DSP_CONTROL				= 0x500A,
 	DSP_INTERRUPT_CONTROL   = 0x5010,
+	AR_SIZE					= 0x5012, // These names are a good guess at best
+	AR_MODE					= 0x5016, //
+	AR_REFRESH				= 0x501a, //
 	AUDIO_DMA_START_HI		= 0x5030,
 	AUDIO_DMA_START_LO		= 0x5032,
 	AUDIO_DMA_CONTROL_LEN	= 0x5036,
-	AUDIO_DMA_BYTES_LEFT	= 0x503A,
+	AUDIO_DMA_BLOCKS_LEFT	= 0x503A,
 	AR_DMA_MMADDR_H			= 0x5020,
 	AR_DMA_MMADDR_L			= 0x5022,
 	AR_DMA_ARADDR_H			= 0x5024,
@@ -186,13 +189,12 @@ struct ARAMInfo
 
 // STATE_TO_SAVE
 static ARAMInfo g_ARAM;
-DSPState g_dspState;
-AudioDMA g_audioDMA;
-ARDMA g_arDMA;
-u16 g_AR_READY_FLAG = 0x01;
-u16 g_AR_MODE = 0x43;		// 0x23 -> Zelda standard mode (standard ARAM access ??)
-							// 0x43 -> written by OSAudioInit at the UCode upload (upload UCode)
-							// 0x63 -> ARCheckSize Mode (access AR-registers ??) or no exception ??
+static DSPState g_dspState;
+static AudioDMA g_audioDMA;
+static ARDMA g_arDMA;
+static u16 g_AR_SIZE;
+static u16 g_AR_MODE;
+static u16 g_AR_REFRESH;
 
 
 Common::PluginDSP *dsp_plugin;
@@ -205,8 +207,9 @@ void DoState(PointerWrap &p)
 	p.Do(g_dspState);
 	p.Do(g_audioDMA);
 	p.Do(g_arDMA);
-	p.Do(g_AR_READY_FLAG);
+	p.Do(g_AR_SIZE);
 	p.Do(g_AR_MODE);
+	p.Do(g_AR_REFRESH);
 }
 
 
@@ -239,9 +242,16 @@ void Init()
 	{
 		g_ARAM.ptr = (u8 *)AllocateMemoryPages(g_ARAM.size);
 	}
+
 	g_audioDMA.AudioDMAControl.Hex = 0;
+
 	g_dspState.DSPControl.Hex = 0;
     g_dspState.DSPControl.DSPHalt = 1;
+	
+	g_AR_SIZE = 0;
+	g_AR_MODE = 1; // Means that aram controller has finished initializing the mem
+	g_AR_REFRESH = 0;
+
 	et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt_Wrapper);
 }
 
@@ -281,16 +291,16 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 		break;
 
 		// AR_REGS 0x501x+
-	case 0x5012:
+	case AR_SIZE:
+		_uReturnValue = g_AR_SIZE;
+		break;
+
+	case AR_MODE:
 		_uReturnValue = g_AR_MODE;
 		break;
 
-	case 0x5016:		// ready flag?
-		_uReturnValue = g_AR_READY_FLAG;			
-		break;
-
-	case 0x501a:
-		_uReturnValue = 0x000;
+	case AR_REFRESH:
+		_uReturnValue = g_AR_REFRESH;
 		break;
 
 	case AR_DMA_MMADDR_H: _uReturnValue = g_arDMA.MMAddr >> 16; return;
@@ -301,9 +311,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	case AR_DMA_CNT_L:    _uReturnValue = g_arDMA.Cnt.Hex & 0xFFFF; return;
 
 		// DMA_REGS 0x5030+
-	case AUDIO_DMA_BYTES_LEFT:
-		// Hmm. Would be stupid to ask for bytes left. Assume it wants
-		// blocks left.
+	case AUDIO_DMA_BLOCKS_LEFT:
 		_uReturnValue = g_audioDMA.BlocksLeft;
 		break;
 
@@ -393,15 +401,22 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	// AR_REGS 0x501x+
 	// DMA back and forth between ARAM and RAM
-	case 0x5012:
+	case AR_SIZE:
+		g_AR_SIZE = _Value;
+		// __OSInitAudioSystem sets to 0x43
+		// __OSCheckSize sets = 0x20 | 3 (keeps upper bits)
+		// 0x23 -> Zelda standard mode (standard ARAM access ??)
+		// 0x63 -> ARCheckSize Mode (access AR-registers ??) or no exception ??
+		// probably bitfield for: CAS latency/burst length/addressing mode/write mode
+		// In any case, the aram driver should set it up :}
+		break;
+
+	case AR_MODE:
 		g_AR_MODE = _Value;
 		break;
 
-	case 0x5016:
-		g_AR_READY_FLAG = 0x01;		// write what ya want we set 0x01 (rdy flag ??)
-		break;
-
-	case 0x501a:
+	case AR_REFRESH:
+		g_AR_REFRESH = _Value;
 		break;
 
 	case AR_DMA_MMADDR_H:
@@ -443,7 +458,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		INFO_LOG(DSPINTERFACE, "AID DMA started - source address %08x, length %i blocks", g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks);
 		break;
 
-	case AUDIO_DMA_BYTES_LEFT:
+	case AUDIO_DMA_BLOCKS_LEFT:
 		_dbg_assert_(DSPINTERFACE,0);
 		break;
 
@@ -622,22 +637,20 @@ void Update_ARAM_DMA()
 }
 
 
-// This is how it works: The game has written sound to RAM, the DSP will read
-// it with this function. SamplePos in the plugin is double the value given
-// here because it works on a nibble level. In Wii addresses can either be for
-// MEM1 or MEM2, when it wants to read from MEM2 it adds 0x2000000 (in nibble
-// terms) to get up to the MEM2 hardware address. But in our case we use a
-// second pointer and adjust the value down to 0x00...
-// ^^^^Old comment, if it still applies, the R/W ARAM funcs below need to be changed
+// (shuffle2) I still don't believe that this hack is actually needed... :(
+// Maybe the wii sports ucode is processed incorrectly?
 u8 ReadARAM(u32 _iAddress)
 {
-	//DEBUG_LOG(DSPINTERFACE, 0, "ARAM (r) 0x%08x", _iAddress);
-	//_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
-	return g_ARAM.ptr[_iAddress & g_ARAM.mask];
+	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x (0x%08x)", _iAddress, _iAddress & g_ARAM.mask);
+	if (g_ARAM.wii_mode && _iAddress < Memory::RAM_SIZE)
+		return Memory::Read_U8(_iAddress & Memory::RAM_MASK);
+	else
+		return g_ARAM.ptr[_iAddress & g_ARAM.mask];
 }
 
 void WriteARAM(u8 value, u32 _uAddress)
 {
+	//NOTICE_LOG(DSPINTERFACE, "WriteARAM 0x%08x (0x%08x)", _uAddress, _uAddress & g_ARAM.mask);
 	g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
 }
 
