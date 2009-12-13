@@ -167,9 +167,25 @@ struct ARDMA
 	}
 };
 
+// So we may abstract gc/wii differences a little
+struct ARAMInfo
+{
+	bool wii_mode; // wii EXRAM is managed in Memory:: so we need to skip statesaving, etc
+	u32 size;
+	u32 mask;
+	u8* ptr; // aka audio ram, auxiliary ram, MEM2, EXRAM, etc...
+
+	// Default to GC mode
+	ARAMInfo() {
+		wii_mode = false;
+		size = ARAM_SIZE;
+		mask = ARAM_MASK;
+		ptr = NULL;
+	}
+};
 
 // STATE_TO_SAVE
-u8 *g_ARAM = NULL, *g_MEM2 = NULL;
+static ARAMInfo g_ARAM;
 DSPState g_dspState;
 AudioDMA g_audioDMA;
 ARDMA g_arDMA;
@@ -181,10 +197,11 @@ u16 g_AR_MODE = 0x43;		// 0x23 -> Zelda standard mode (standard ARAM access ??)
 
 Common::PluginDSP *dsp_plugin;
 
+
 void DoState(PointerWrap &p)
 {
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-		p.DoArray(g_ARAM, ARAM_SIZE);
+	if (!g_ARAM.wii_mode)
+		p.DoArray(g_ARAM.ptr, g_ARAM.size);
 	p.Do(g_dspState);
 	p.Do(g_audioDMA);
 	p.Do(g_arDMA);
@@ -213,12 +230,14 @@ void Init()
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		// On the Wii, ARAM is simply mapped to EXRAM.
-		g_ARAM = Memory::GetPointer(0x00000000);
-		g_MEM2 = Memory::GetPointer(0x10000000);
+		g_ARAM.wii_mode = true;
+		g_ARAM.size = Memory::EXRAM_SIZE;
+		g_ARAM.mask = Memory::EXRAM_MASK;
+		g_ARAM.ptr = Memory::GetPointer(0x10000000);
 	}
 	else
 	{
-		g_ARAM = (u8 *)AllocateMemoryPages(ARAM_SIZE);
+		g_ARAM.ptr = (u8 *)AllocateMemoryPages(g_ARAM.size);
 	}
 	g_audioDMA.AudioDMAControl.Hex = 0;
 	g_dspState.DSPControl.Hex = 0;
@@ -228,9 +247,10 @@ void Init()
 
 void Shutdown()
 {
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-		FreeMemoryPages(g_ARAM, ARAM_SIZE);
-	g_ARAM = NULL;
+	if (!g_ARAM.wii_mode)
+		FreeMemoryPages(g_ARAM.ptr, g_ARAM.size);
+	g_ARAM.ptr = NULL;
+
 	dsp_plugin = NULL;
 }
 
@@ -466,24 +486,37 @@ void UpdateAudioDMA()
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
-	INFO_LOG(DSPINTERFACE, "DSPInterface(r) 0x%08x", _iAddress);
+	INFO_LOG(DSPINTERFACE, "DSPInterface(r32) 0x%08x", _iAddress);
 	switch (_iAddress & 0xFFFF)
 	{
-		default:
-			_dbg_assert_(DSPINTERFACE,0);
-			break;
+	case DSP_MAIL_TO_DSP_HI:
+		_uReturnValue = (dsp_plugin->DSP_ReadMailboxHigh(true) << 16) | dsp_plugin->DSP_ReadMailboxLow(true);
+		break;
+
+	default:
+		_dbg_assert_(DSPINTERFACE,0);
+		break;
 	}
 	_uReturnValue = 0;
 }
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	INFO_LOG(DSPINTERFACE, "DSPInterface(w) 0x%08x 0x%08x", _iValue, _iAddress);
+	INFO_LOG(DSPINTERFACE, "DSPInterface(w32) 0x%08x 0x%08x", _iValue, _iAddress);
 
 	switch (_iAddress & 0xFFFF)
 	{
+	case DSP_MAIL_TO_DSP_HI:
+		dsp_plugin->DSP_WriteMailboxHigh(true, _iValue >> 16);
+		dsp_plugin->DSP_WriteMailboxLow(true, (u16)_iValue);
+		break;
+
+	case AUDIO_DMA_START_HI:
+		g_audioDMA.SourceAddress = _iValue;
+		break;
 
 	// AR_REGS - i dont know why they are accessed 32 bit too ...
+	// Answer: simply because they can be
 	case AR_DMA_MMADDR_H:
 		g_arDMA.MMAddr = _iValue;
 		break;
@@ -559,7 +592,7 @@ void Update_ARAM_DMA()
 		// TODO(??): sanity check instead of writing bogus data?
 		for (u32 i = 0; i < g_arDMA.Cnt.count; i++)
 		{
-			u32 tmp = (iARAMAddress < ARAM_SIZE) ? g_ARAM[iARAMAddress] : 0x05050505;
+			u32 tmp = (iARAMAddress < g_ARAM.size) ? g_ARAM.ptr[iARAMAddress] : 0x05050505;
 			Memory::Write_U8(tmp, iMemAddress);				
 
 			iMemAddress++;
@@ -576,8 +609,8 @@ void Update_ARAM_DMA()
 			g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr);
 		for (u32 i = 0; i < g_arDMA.Cnt.count; i++)
 		{
-			if (iARAMAddress < ARAM_SIZE)
-				g_ARAM[iARAMAddress] = Memory::Read_U8(iMemAddress);
+			if (iARAMAddress < g_ARAM.size)
+				g_ARAM.ptr[iARAMAddress] = Memory::Read_U8(iMemAddress);
 
 			iMemAddress++;
 			iARAMAddress++;
@@ -591,74 +624,27 @@ void Update_ARAM_DMA()
 
 // This is how it works: The game has written sound to RAM, the DSP will read
 // it with this function. SamplePos in the plugin is double the value given
-// here because it works on a nibble level. In Wii addresses can eather be for
+// here because it works on a nibble level. In Wii addresses can either be for
 // MEM1 or MEM2, when it wants to read from MEM2 it adds 0x2000000 (in nibble
 // terms) to get up to the MEM2 hardware address. But in our case we use a
 // second pointer and adjust the value down to 0x00...
+// ^^^^Old comment, if it still applies, the R/W ARAM funcs below need to be changed
 u8 ReadARAM(u32 _iAddress)
 {
 	//DEBUG_LOG(DSPINTERFACE, 0, "ARAM (r) 0x%08x", _iAddress);
-
-//	_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-	{
-		//DEBUG_LOG(DSPINTERFACE, 0, "ARAM (r) 0x%08x 0x%08x 0x%08x", WII_MASK, _iAddress, (_iAddress & WII_MASK));
-
-		// Does this make any sense?
-		if (_iAddress > WII_MASK)
-		{
-			if (_iAddress > WII_MEM2)
-				_iAddress = (_iAddress & WII_MEM2);
-			return g_MEM2[_iAddress];
-		}
-		else
-		{
-			return g_ARAM[_iAddress];
-		}		
-	}
-	else
-		return g_ARAM[_iAddress & ARAM_MASK];
+	//_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
+	return g_ARAM.ptr[_iAddress & g_ARAM.mask];
 }
 
 void WriteARAM(u8 value, u32 _uAddress)
 {
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-	{
-		//DEBUG_LOG(DSPINTERFACE, 0, "ARAM (w) 0x%08x 0x%08x 0x%08x", WII_MASK, _iAddress, (_iAddress & WII_MASK));
-
-		// Does this make any sense?
-		if (_uAddress > WII_MASK)
-		{
-			if (_uAddress > WII_MEM2)
-				_uAddress = (_uAddress & WII_MEM2);
-			g_MEM2[_uAddress] = value;
-		}
-		else
-		{
-			g_ARAM[_uAddress] = value;
-		}		
-	}
-	else
-		g_ARAM[_uAddress & ARAM_MASK] = value;
+	g_ARAM.ptr[_uAddress & g_ARAM.mask] = value;
 }
-
 
 u8 *GetARAMPtr()
 {
-	return g_ARAM;
+	return g_ARAM.ptr;
 }
-
-/*
-// Should this really be a function? The hardware only supports block DMA.
-void WriteARAM(u8 _iValue, u32 _iAddress)
-{
-	// LOGV(DSPINTERFACE, 0, "ARAM (w)  0x%08x = 0x%08x", _iAddress, (_iAddress & ARAM_MASK));
-
-	//	_dbg_assert_(DSPINTERFACE,(_iAddress) < ARAM_SIZE);
-	// rouge leader writes WAY outside
-	// not really surprising since it uses a totally different memory model :P
-	g_ARAM[_iAddress & ARAM_MASK] = _iValue;
-}*/
 
 } // end of namespace DSP
 

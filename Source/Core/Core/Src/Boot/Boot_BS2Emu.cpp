@@ -272,8 +272,6 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 	Memory::Write_U32(0x00000000, 0x00003160);		// Init semaphore (sysmenu waits for this to clear)
 
 	Memory::Write_U8(0x80, 0x0000315c);				// OSInit
-	Memory::Write_U8(0x00, 0x00000006);				// DVDInit
-	Memory::Write_U8(0x00, 0x00000007);				// DVDInit
 	Memory::Write_U16(0x0000, 0x000030e0);			// PADInit
 	Memory::Write_U32(0x80000000, 0x00003184);		// GameID Address
 

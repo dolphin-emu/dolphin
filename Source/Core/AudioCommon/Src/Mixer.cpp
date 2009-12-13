@@ -108,7 +108,7 @@ void CMixer::PushSamples(short *samples, int num_stereo_samples, int core_sample
 				return;
 		}
 		soundStream->Update();
-		Common::YieldCPU();
+		SLEEP(1);
 	}
 	// -----------------------------------------------------------------------
 
