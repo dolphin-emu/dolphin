@@ -202,10 +202,6 @@ class WiimotePadConfigDialog : public wxDialog
 			ID_CONTROLLERPAGE3,
 			ID_CONTROLLERPAGE4,
 
-			ID_ANALOG_LEFT_X, ID_ANALOG_LEFT_Y,
-			ID_ANALOG_RIGHT_X, ID_ANALOG_RIGHT_Y,
-			ID_TRIGGER_L, ID_TRIGGER_R,
-
 			// Gamepad <It's important that the internal ordering of these are unchanged>
 			IDB_ANALOG_LEFT_X, IDB_ANALOG_LEFT_Y,
 			IDB_ANALOG_RIGHT_X, IDB_ANALOG_RIGHT_Y,
@@ -280,8 +276,8 @@ class WiimotePadConfigDialog : public wxDialog
 		// Gamepad configuration
 		void SetButtonText(int id, const char text[128], int _Page = -1);
 		void SetButtonTextAll(int id, char text[128]);
-		void GetButtons(wxCommandEvent& event);
-		void DoGetButtons(int);
+		void GetButtons(wxCommandEvent& btn_event);
+		void DoGetButtons(int id);
 		void SaveButtonMapping(int controller, bool DontChangeId = false, int FromSlot = -1);
 		void SaveButtonMappingAll(int Slot);
 		void SaveKeyboardMapping(int Controller, int Id, int Key);

@@ -39,7 +39,7 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 namespace WiiMoteEmu
 {
 
-extern void PAD_Rumble(u8 _numPAD, unsigned int _uType);
+extern void PAD_RumbleClose();
 
 /* Bit shift conversions */
 u32 convert24bit(const u8* src) {
@@ -508,19 +508,18 @@ void Shutdown(void)
 
 	ResetVariables();
 
+	PAD_RumbleClose();
 	/* Close all devices carefully. We must check that we are not accessing any
 	   undefined vector elements or any bad devices */
 	for (int i = 0; i < 1; i++)
 	{
-		if (PadMapping[i].enabled && joyinfo.size() > (u32)PadMapping[i].ID)
-			if (joyinfo.at(PadMapping[i].ID).Good)
+		if (SDL_WasInit(0) && joyinfo.size() > (u32)PadMapping[i].ID)
+			if (PadState[i].joy && joyinfo.at(PadMapping[i].ID).Good)
 			{
 				INFO_LOG(WIIMOTE, "ShutDown: %i", PadState[i].joy);
-				PAD_Rumble(i, false);
-				/* SDL_JoystickClose() crashes for some reason so I avoid this
-				   for now, SDL_Quit() should close the pads to I think */
-				//if(SDL_JoystickOpened(PadMapping[i].ID)) SDL_JoystickClose(PadState[i].joy);
-				//PadState[i].joy = NULL;
+				if(SDL_JoystickOpened(PadMapping[i].ID))
+					SDL_JoystickClose(PadState[i].joy);
+				PadState[i].joy = NULL;
 			}
 	}
 
@@ -530,7 +529,8 @@ void Shutdown(void)
 	NumGoodPads = 0;
 
 	// Finally close SDL
-	if (SDL_WasInit(0)) SDL_Quit();
+	if (SDL_WasInit(0))
+		SDL_Quit();
 }
 
 /* This function produce Wiimote Input, i.e. reports from the Wiimote in

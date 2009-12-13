@@ -120,7 +120,7 @@ WiimotePadConfigDialog::WiimotePadConfigDialog(wxWindow *parent, wxWindowID id, 
 
 	// Start the permanent timer
 	const int TimesPerSecond = 10;
-	m_UpdatePadTimer->Start( floor((double)(1000 / TimesPerSecond)) );
+	m_UpdatePadTimer->Start(1000 / TimesPerSecond);
 #endif
 
 	ControlsCreated = false;
@@ -254,7 +254,7 @@ void WiimotePadConfigDialog::DoSave(bool ChangePad, int Slot)
 	if(ChangePad)
 	{
 		// Since we are selecting the pad to save to by the Id we can't update it when we change the pad
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < 1; i++)	// Only got 1 wiimote yet
 			SaveButtonMapping(i, true);
 		// Save the settings for the current pad
 		g_Config.Save(Slot);
@@ -264,7 +264,7 @@ void WiimotePadConfigDialog::DoSave(bool ChangePad, int Slot)
 	else
 	{
 		// Update PadMapping[] from the GUI controls
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < 1; i++) // Only got 1 wiimote yet
 			SaveButtonMapping(i);
 		g_Config.Save(Slot);
 	}		
@@ -975,6 +975,7 @@ void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case IDC_RUMBLE_STRENGTH:
 	case IDC_TILT_INVERT_ROLL:
 	case IDC_TILT_INVERT_PITCH:
+	case IDC_TRIGGER_TYPE:
 		SaveButtonMappingAll(Page);
 		break;
 	}

@@ -204,7 +204,7 @@ void Initialize(void *init)
    Called from: The Dolphin Core, PADConfigDialognJoy::OnClose() */
 void Shutdown()
 {
-	INFO_LOG(PAD, "Shutdown: %i\n", SDL_WasInit(0));
+	INFO_LOG(PAD, "Shutdown: %i", SDL_WasInit(0));
 
 	// Always change this variable
 	g_EmulatorRunning = false;
@@ -220,8 +220,8 @@ void Shutdown()
 	   vector elements or any bad devices */
 	for (int i = 0; i < 4; i++)
 	{
-		if (joyinfo.size() > (u32)PadMapping[i].ID)
-			if (joyinfo.at(PadMapping[i].ID).Good)
+		if (SDL_WasInit(0) && joyinfo.size() > (u32)PadMapping[i].ID)
+			if (PadState[i].joy && joyinfo.at(PadMapping[i].ID).Good)
 				if(SDL_JoystickOpened(PadMapping[i].ID))
 				{
 					SDL_JoystickClose(PadState[i].joy);
@@ -235,7 +235,8 @@ void Shutdown()
 	NumGoodPads = 0;
 
 	// Finally close SDL
-	SDL_Quit();
+	if (SDL_WasInit(0))
+		SDL_Quit();
 
 	// Remove the pointer to the initialize data
 	g_PADInitialize = NULL;

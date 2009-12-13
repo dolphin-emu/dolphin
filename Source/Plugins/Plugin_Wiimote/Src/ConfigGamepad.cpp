@@ -31,7 +31,7 @@
 void WiimotePadConfigDialog::DoChangeJoystick()
 {
 	// Close the current pad, unless it's used by another slot
-	//if (PadMapping[notebookpage].enabled) PadClose(notebookpage);
+	//if (PadMapping[Page].enabled) PadClose(Page);
 
 	// Before changing the pad we save potential changes to the current pad
 	DoSave(true);
@@ -42,7 +42,7 @@ void WiimotePadConfigDialog::DoChangeJoystick()
 	UpdateGUI(Page); // Update the GUI
 
 	// Open the new pad
-	if (WiiMoteEmu::PadMapping[Page].enabled) PadOpen(Page);
+	//if (WiiMoteEmu::PadMapping[Page].enabled) PadOpen(Page);
 }
 void WiimotePadConfigDialog::PadOpen(int Open) // Open for slot 1, 2, 3 or 4
 {
@@ -306,15 +306,15 @@ void WiimotePadConfigDialog::SetButtonText(int id, const char text[128], int _Pa
 	else controller = _Page;
 
 	if (IDB_ANALOG_LEFT_X <= id && id <= IDB_TRIGGER_R)
-		m_Button_Analog[id - IDB_ANALOG_LEFT_X][controller]->SetLabel(wxString::FromAscii(text)); 
+		m_Button_Analog[id - IDB_ANALOG_LEFT_X][controller]->SetLabel(wxString::FromAscii(text));
 	else if (IDB_WM_A <= id && id <= IDB_WM_SHAKE)
-		m_Button_Wiimote[id - IDB_WM_A][controller]->SetLabel(wxString::FromAscii(text)); 
+		m_Button_Wiimote[id - IDB_WM_A][controller]->SetLabel(wxString::FromAscii(text));
 	else if (IDB_NC_Z <= id && id <= IDB_NC_SHAKE)
-		m_Button_NunChuck[id - IDB_NC_Z][controller]->SetLabel(wxString::FromAscii(text)); 
+		m_Button_NunChuck[id - IDB_NC_Z][controller]->SetLabel(wxString::FromAscii(text));
 	else if (IDB_CC_A <= id && id <= IDB_CC_RD)
-		m_Button_Classic[id - IDB_CC_A][controller]->SetLabel(wxString::FromAscii(text)); 
+		m_Button_Classic[id - IDB_CC_A][controller]->SetLabel(wxString::FromAscii(text));
 	else if (IDB_GH3_GREEN <= id && id <= IDB_GH3_STRUM_DOWN)
-		m_Button_GH3[id - IDB_GH3_GREEN][controller]->SetLabel(wxString::FromAscii(text)); 
+		m_Button_GH3[id - IDB_GH3_GREEN][controller]->SetLabel(wxString::FromAscii(text));
 
 	//DEBUG_LOG(WIIMOTE, "SetButtonText: %s", text);
 }
@@ -364,9 +364,10 @@ void WiimotePadConfigDialog::GetButtons(wxCommandEvent& event)
 	if (m_ButtonMappingTimer->IsRunning())
 		return;
 
-	OldLabel = ((wxButton *)event.GetEventObject())->GetLabel();
-	SetButtonText(event.GetId(), "<Move Axis>");
-	DoGetButtons(event.GetId());
+	wxButton* pButton = (wxButton *)event.GetEventObject();
+	OldLabel = pButton->GetLabel();
+	pButton->SetLabel(wxT("<Move Axis>"));
+	DoGetButtons(pButton->GetId());
 }
 
 void WiimotePadConfigDialog::DoGetButtons(int _GetId)
@@ -425,20 +426,19 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 
 		// Start the timer
 		#if wxUSE_TIMER
-			m_ButtonMappingTimer->Start( floor((double)(1000 / TimesPerSecond)) );
+		m_ButtonMappingTimer->Start(1000 / TimesPerSecond);
 		#endif
-		DEBUG_LOG(WIIMOTE, "Timer Started for Pad:%i _GetId:%i"
-			"Allowed input is Axis:%i LeftRight:%i XInput:%i Button:%i Hat:%i\n",
+		DEBUG_LOG(WIIMOTE, "Timer Started: Pad:%i _GetId:%i "
+			"Allowed input is Axis:%i LeftRight:%i XInput:%i Button:%i Hat:%i",
 			WiiMoteEmu::PadMapping[Controller].ID, _GetId,
 			Axis, LeftRight, XInput, Button, Hat);
 	}
 
 	// Check for buttons
 
-	// If there is a timer but we should not create a new one
+	// If there is a timer we should not create a new one
 	else if (WiiMoteEmu::NumGoodPads >0)
 	{
-
 		InputCommon::GetButton(
 			WiiMoteEmu::joyinfo[PadID].joy, PadID, WiiMoteEmu::joyinfo[PadID].NumButtons, WiiMoteEmu::joyinfo[PadID].NumAxes, WiiMoteEmu::joyinfo[PadID].NumHats, 
 			g_Pressed, value, type, pressed, Succeed, Stop,
@@ -449,7 +449,6 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 
 	// Count each time
 	GetButtonWaitingTimer++;
-
 
 	// This is run every second
 	if(GetButtonWaitingTimer % TimesPerSecond == 0)
