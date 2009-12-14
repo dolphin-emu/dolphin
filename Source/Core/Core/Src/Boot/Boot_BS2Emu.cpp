@@ -308,6 +308,7 @@ bool CBoot::EmulatedBS2_Wii()
 	VolumeHandler::ReadToPtr(Memory::GetPointer(0x3180), 0, 4);
 
 	// Execute the apploader
+	bool apploaderRan = false;
 	if (VolumeHandler::IsValid() && VolumeHandler::IsWii())	
 	{
 		UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
@@ -376,6 +377,8 @@ bool CBoot::EmulatedBS2_Wii()
 		DEBUG_LOG(BOOT, "Run iAppLoaderClose");
 		RunFunction(iAppLoaderClose);
 
+		apploaderRan = true;
+
 		// Pass the "#002 check"
 		// Apploader writes the IOS version and revision here, we copy it
 		// Fake IOSv9 r2.4 if no version is found (elf loading)
@@ -392,9 +395,10 @@ bool CBoot::EmulatedBS2_Wii()
 
 	PowerPC::ppcState.DebugCount = 0;
 
-	return true;
+	return apploaderRan;
 }
 
+// Returns true if apploader has run successfully
 bool CBoot::EmulatedBS2(bool _bIsWii)
 {
 	return _bIsWii ? EmulatedBS2_Wii() : EmulatedBS2_GC();
