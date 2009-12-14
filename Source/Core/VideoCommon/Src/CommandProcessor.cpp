@@ -77,65 +77,16 @@
 #include "ChunkFile.h"
 #include "CommandProcessor.h"
 
-
 namespace CommandProcessor
 {
+
+int et_UpdateInterrupts;
 
 // look for 1002 verts, breakpoint there, see why next draw is flushed
 // TODO(ector): Warn on bbox read/write
 
-// Fifo Status Register
-union UCPStatusReg
-{
-	struct
-	{
-		unsigned OverflowHiWatermark	:	1;
-		unsigned UnderflowLoWatermark	:	1;
-		unsigned ReadIdle				:	1;
-		unsigned CommandIdle			:	1;
-		unsigned Breakpoint				:	1;
-		unsigned						:	11;
-	};
-	u16 Hex;
-	UCPStatusReg() {Hex = 0; }
-	UCPStatusReg(u16 _hex) {Hex = _hex; }
-};
-
-// Fifo Control Register
-union UCPCtrlReg
-{
-	struct
-	{
-		unsigned GPReadEnable			:	1;
-		unsigned CPIntEnable			:	1;
-		unsigned FifoOverflowIntEnable	:	1;
-		unsigned FifoUnderflowIntEnable	:	1;
-		unsigned GPLinkEnable			:	1;
-		unsigned BPEnable				:	1;
-		unsigned						:	10;
-	};
-	u16 Hex;
-	UCPCtrlReg() {Hex = 0; }
-	UCPCtrlReg(u16 _hex) {Hex = _hex; }
-};
-
-// Fifo Control Register
-union UCPClearReg
-{
-	struct
-	{
-		unsigned ClearFifoOverflow		:	1;
-		unsigned ClearFifoUnderflow		:	1;
-		unsigned ClearMetrices			:	1;
-		unsigned						:	13;
-	};
-	u16 Hex;
-	UCPClearReg() {Hex = 0; }
-	UCPClearReg(u16 _hex) {Hex = _hex; }
-};
-
 // STATE_TO_SAVE
-// variables
+SCPFifoStruct fifo;
 UCPStatusReg m_CPStatusReg;
 UCPCtrlReg	m_CPCtrlReg;
 UCPClearReg	m_CPClearReg;
@@ -146,15 +97,8 @@ int m_bboxright;
 int m_bboxbottom;
 u16 m_tokenReg;
 
-SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread
 static u32 fake_GPWatchdogLastToken = 0;
 static Common::Event s_fifoIdleEvent;
-
-enum
-{
-	GATHER_PIPE_SIZE = 32,
-    INT_CAUSE_CP =  0x800
-};
 
 void DoState(PointerWrap &p)
 {
@@ -169,10 +113,6 @@ void DoState(PointerWrap &p)
 	p.Do(fifo);
 }
 
-// function
-void UpdateFifoRegister();
-void UpdateInterrupts();
-
 //inline void WriteLow (u32& _reg, u16 lowbits)  {_reg = (_reg & 0xFFFF0000) | lowbits;}
 //inline void WriteHigh(u32& _reg, u16 highbits) {_reg = (_reg & 0x0000FFFF) | ((u32)highbits << 16);}
 inline void WriteLow (volatile u32& _reg, u16 lowbits)  {Common::AtomicStore(_reg,(_reg & 0xFFFF0000) | lowbits);}
@@ -180,8 +120,6 @@ inline void WriteHigh(volatile u32& _reg, u16 highbits) {Common::AtomicStore(_re
 
 inline u16 ReadLow  (u32 _reg)  {return (u16)(_reg & 0xFFFF);}
 inline u16 ReadHigh (u32 _reg)  {return (u16)(_reg >> 16);}
-
-int et_UpdateInterrupts;
 
 // for GP watchdog hack
 void IncrementGPWDToken()
@@ -199,6 +137,10 @@ void WaitForFrameFinish()
 	fake_GPWatchdogLastToken = fifo.Fake_GPWDToken;
 }
 
+bool AllowIdleSkipping()
+{
+	return !g_VideoInitialize.bOnThread || (!m_CPCtrlReg.CPIntEnable && !m_CPCtrlReg.BPEnable);
+}
 
 void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
 {
@@ -230,8 +172,6 @@ void Init()
 
     et_UpdateInterrupts = g_VideoInitialize.pRegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
 }
-
-
 
 void Shutdown()
 {
@@ -342,11 +282,6 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 	}
 }
 
-bool AllowIdleSkipping()
-{
-	return !g_VideoInitialize.bOnThread || (!m_CPCtrlReg.CPIntEnable && !m_CPCtrlReg.BPEnable);
-}
-
 void Write16(const u16 _Value, const u32 _Address)
 {
 	INFO_LOG(COMMANDPROCESSOR, "(write16): 0x%04x @ 0x%08x",_Value,_Address);
@@ -423,10 +358,6 @@ void Write16(const u16 _Value, const u32 _Address)
 		{
 			UCPCtrlReg tmpCtrl(_Value);
 
-			Common::AtomicStore(fifo.bFF_GPReadEnable,	tmpCtrl.GPReadEnable);
-			Common::AtomicStore(fifo.bFF_GPLinkEnable,	tmpCtrl.GPLinkEnable);
-			Common::AtomicStore(fifo.bFF_BPEnable,		tmpCtrl.BPEnable);
-
 			// TOCHECK (mb2): could BP irq be cleared with w16 to STATUS_REGISTER?
 			// funny hack: eg in MP1 if we disable the clear breakpoint ability by commenting this block
 			// the game is of course faster but looks stable too.
@@ -437,16 +368,27 @@ void Write16(const u16 _Value, const u32 _Address)
 			
 			// BP interrupt is cleared here
 
-			//if (m_CPCtrlReg.CPIntEnable && !tmpCtrl.Hex) // falling edge
+			// Why do we need the rising edge? Making it falling egde fixes Silent Hill Shattered Memories
+			// It seems the clear on rising edge makes a dead lock between CPU & GPU
+			// Don't we need a Thread Synchronization Mechanism here?
+			// Otherwise how do we guarantee the fifo access (on a whole entry) is atomic?
+			//
+			if (m_CPCtrlReg.CPIntEnable && !tmpCtrl.Hex) // falling edge
 			// raising edge or falling egde
-			if ((!m_CPCtrlReg.CPIntEnable && tmpCtrl.CPIntEnable) || (m_CPCtrlReg.CPIntEnable && !tmpCtrl.Hex)) 
+			//if ((!m_CPCtrlReg.CPIntEnable && tmpCtrl.CPIntEnable) || (m_CPCtrlReg.CPIntEnable && !tmpCtrl.Hex)) 
 			{
 				m_CPStatusReg.Breakpoint = 0;
 				Common::AtomicStore(fifo.bFF_Breakpoint, 0);
 			}
 
+			Common::AtomicStore(fifo.bFF_GPReadEnable,	tmpCtrl.GPReadEnable);
+			Common::AtomicStore(fifo.bFF_GPLinkEnable,	tmpCtrl.GPLinkEnable);
+			Common::AtomicStore(fifo.bFF_BPEnable,		tmpCtrl.BPEnable);
+
 			m_CPCtrlReg.Hex = tmpCtrl.Hex;
+
 			UpdateInterrupts();
+
 			DEBUG_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
 			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | CPULINK %s | BP %s || CPIntEnable %s | OvF %s | UndF %s"
 				, fifo.bFF_GPReadEnable ?				"ON" : "OFF"
@@ -456,7 +398,6 @@ void Write16(const u16 _Value, const u32 _Address)
 				, m_CPCtrlReg.FifoOverflowIntEnable ?	"ON" : "OFF"
 				, m_CPCtrlReg.FifoUnderflowIntEnable ?	"ON" : "OFF"
 				);
-
 		}
 		break;
 
@@ -640,7 +581,6 @@ void STACKALIGN GatherPipeBursted()
 		UpdateFifoRegister();
 	}
 }
-
 
 // This is mostly used in single core mode
 void CatchUpGPU()

@@ -23,8 +23,12 @@
 class PointerWrap;
 
 extern bool MT;
+
 namespace CommandProcessor
 {
+
+extern SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread
+
 // internal hardware addresses
 enum
 {
@@ -63,7 +67,61 @@ enum
 	CP_PERF3_H                  = 0x4e,
 };
 
-extern SCPFifoStruct fifo;
+enum
+{
+	GATHER_PIPE_SIZE = 32,
+    INT_CAUSE_CP =  0x800
+};
+
+// Fifo Status Register
+union UCPStatusReg
+{
+	struct
+	{
+		unsigned OverflowHiWatermark	:	1;
+		unsigned UnderflowLoWatermark	:	1;
+		unsigned ReadIdle				:	1;
+		unsigned CommandIdle			:	1;
+		unsigned Breakpoint				:	1;
+		unsigned						:	11;
+	};
+	u16 Hex;
+	UCPStatusReg() {Hex = 0; }
+	UCPStatusReg(u16 _hex) {Hex = _hex; }
+};
+
+// Fifo Control Register
+union UCPCtrlReg
+{
+	struct
+	{
+		unsigned GPReadEnable			:	1;
+		unsigned CPIntEnable			:	1;
+		unsigned FifoOverflowIntEnable	:	1;
+		unsigned FifoUnderflowIntEnable	:	1;
+		unsigned GPLinkEnable			:	1;
+		unsigned BPEnable				:	1;
+		unsigned						:	10;
+	};
+	u16 Hex;
+	UCPCtrlReg() {Hex = 0; }
+	UCPCtrlReg(u16 _hex) {Hex = _hex; }
+};
+
+// Fifo Control Register
+union UCPClearReg
+{
+	struct
+	{
+		unsigned ClearFifoOverflow		:	1;
+		unsigned ClearFifoUnderflow		:	1;
+		unsigned ClearMetrices			:	1;
+		unsigned						:	13;
+	};
+	u16 Hex;
+	UCPClearReg() {Hex = 0; }
+	UCPClearReg(u16 _hex) {Hex = _hex; }
+};
 
 // Init
 void Init();
@@ -79,6 +137,7 @@ void Write32(const u32 _Data, const u32 _Address);
 // for CGPFIFO
 void CatchUpGPU();
 void GatherPipeBursted();
+void UpdateFifoRegister();
 void UpdateInterrupts();
 void UpdateInterruptsFromVideoPlugin();
 void SetFifoIdleFromVideoPlugin();
