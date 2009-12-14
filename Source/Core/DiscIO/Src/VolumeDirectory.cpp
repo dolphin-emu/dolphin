@@ -33,7 +33,8 @@ static const u32 MAX_NAME_LENGTH = 0x3df;
 static u64 FST_ADDRESS = 0x440;
 static u64 DOL_ADDRESS = 0;
 
-CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii, const std::string& _rApploader, const std::string& _rDOL)
+CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
+								   const std::string& _rApploader, const std::string& _rDOL)
 	: m_apploaderSize(0)
 	, m_apploader(NULL)
 	, m_DOLSize(0)
@@ -46,8 +47,8 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 	m_rootDirectory = ExtractDirectoryName(_rDirectory);	
 
 	// create the default disk header
-	m_diskHeader = new u8[FST_ADDRESS];
-	memset(m_diskHeader, 0, (size_t)FST_ADDRESS);
+	m_diskHeader = new u8[DISKHEADERINFO_ADDRESS];
+	memset(m_diskHeader, 0, (size_t)DISKHEADERINFO_ADDRESS);
 	SetUniqueID("RZDE01");	
 	SetName("Default name");
 
@@ -104,31 +105,26 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 	if(_Offset < DISKHEADERINFO_ADDRESS)
 	{
 		WriteToBuffer(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_diskHeader, _Offset, _Length, _pBuffer);
-		return true;
 	}
 	// header info
-	if(_Offset < APPLOADER_ADDRESS)
+	if(_Offset >= DISKHEADERINFO_ADDRESS && _Offset < APPLOADER_ADDRESS)
 	{
 		WriteToBuffer(DISKHEADERINFO_ADDRESS, sizeof(m_diskHeaderInfo), (u8*)m_diskHeaderInfo, _Offset, _Length, _pBuffer);
-		return true;
 	}
 	// apploader
-	if(_Offset >= APPLOADER_ADDRESS && _Offset <= APPLOADER_ADDRESS + m_apploaderSize)
+	if(_Offset >= APPLOADER_ADDRESS && _Offset < APPLOADER_ADDRESS + m_apploaderSize)
 	{
 		WriteToBuffer(APPLOADER_ADDRESS, m_apploaderSize, m_apploader, _Offset, _Length, _pBuffer);
-		return true;
 	}
 	// dol
-	if(_Offset >= DOL_ADDRESS && _Offset <= DOL_ADDRESS + m_DOLSize)
+	if(_Offset >= DOL_ADDRESS && _Offset < DOL_ADDRESS + m_DOLSize)
 	{
 		WriteToBuffer(DOL_ADDRESS, m_DOLSize, m_DOL, _Offset, _Length, _pBuffer);
-		return true;
 	}
 	// fst
-	if(_Offset < m_dataStartAddress)
+	if(_Offset >= FST_ADDRESS && _Offset < m_dataStartAddress)
 	{
 		WriteToBuffer(FST_ADDRESS, m_fstSize, m_FSTData, _Offset, _Length, _pBuffer);
-		return true;
 	}
 	
 	if(m_virtualDisk.size() == 0)
@@ -307,7 +303,11 @@ bool CVolumeDirectory::SetApploader(const std::string& _rApploader)
 	if (!_rApploader.empty())
 	{
 		std::string data;
-		File::ReadFileToString(false, _rApploader.c_str(), data);
+		if (!File::ReadFileToString(false, _rApploader.c_str(), data))
+		{
+			PanicAlert("Apploader unable to load from file");
+			return false;
+		}
 		m_apploaderSize = 0x20 + Common::swap32(*(u32*)&data.data()[0x14]) + Common::swap32(*(u32*)&data.data()[0x18]);
 		if (m_apploaderSize != data.size())
 		{
