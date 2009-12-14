@@ -240,6 +240,10 @@ void Init()
 	}
 	else
 	{
+		// On the GC, ARAM is accessible only through this interface (unless you're doing mmu tricks?...)
+		g_ARAM.wii_mode = false;
+		g_ARAM.size = ARAM_SIZE;
+		g_ARAM.mask = ARAM_MASK;
 		g_ARAM.ptr = (u8 *)AllocateMemoryPages(g_ARAM.size);
 	}
 
@@ -642,8 +646,8 @@ void Update_ARAM_DMA()
 u8 ReadARAM(u32 _iAddress)
 {
 	//NOTICE_LOG(DSPINTERFACE, "ReadARAM 0x%08x (0x%08x)", _iAddress, _iAddress & g_ARAM.mask);
-	if (g_ARAM.wii_mode && _iAddress < Memory::RAM_SIZE)
-		return Memory::Read_U8(_iAddress & Memory::RAM_MASK);
+	if (g_ARAM.wii_mode && _iAddress < Memory::REALRAM_SIZE)
+		return Memory::Read_U8(_iAddress);
 	else
 		return g_ARAM.ptr[_iAddress & g_ARAM.mask];
 }
