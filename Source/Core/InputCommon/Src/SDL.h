@@ -100,6 +100,7 @@ struct CONTROLLER_MAPPING	// GC PAD MAPPING
 	std::string SRadius, SDiagonal, SRadiusC, SDiagonalC;
 	bool bRadiusOnOff, bSquareToCircle, bRadiusOnOffC, bSquareToCircleC;
 	bool rumble;
+	bool enable;
 	int eventnum;			// Linux Event Number, Can't be found dynamically yet
 };
 
@@ -231,8 +232,6 @@ struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
 	std::string SDiagonal;
 	bool bSquareToCircle;
 	bool bCircle2Square;
-	bool bRollInvert;
-	bool bPitchInvert;
 };
 
 

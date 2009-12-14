@@ -101,6 +101,7 @@
 
 // Custom Functions
 // ----------------
+void Close_Devices();
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads);
 void DEBUG_INIT();
 void DEBUG_QUIT();

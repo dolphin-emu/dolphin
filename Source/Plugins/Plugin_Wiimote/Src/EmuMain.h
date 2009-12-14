@@ -37,7 +37,7 @@ void GetMousePos(float& x, float& y);
 // General functions
 void Initialize();
 void DoState(PointerWrap &p);
-void Shutdown(void);
+void Shutdown();
 void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
 void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) ;
 void Update();
@@ -52,6 +52,7 @@ void UpdateEeprom();
 void UpdateExtRegisterBlocks();
 
 // Gamepad
+void Close_Devices();
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads);
 void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONTROLLER_MAPPING_NEW _PadMapping, int controller, int NumButtons);
 void PadStateAdjustments(int &Lx, int &Ly, int &Rx, int &Ry, int &Tl, int &Tr);

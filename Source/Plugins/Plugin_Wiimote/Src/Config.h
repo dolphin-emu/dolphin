@@ -44,10 +44,13 @@ struct Config
 
 	struct TiltRange
 	{
+		int RollDegree;
+		bool RollSwing;
 		int Roll;
+		int PitchDegree;
+		bool PitchSwing;
 		int Pitch;
 	};
-
 	struct PadTilt
 	{
 		enum ETiltType
@@ -59,6 +62,8 @@ struct Config
 			TRIGGER
 		};
 		int Type;
+		bool RollInvert;
+		bool PitchInvert;
 		TiltRange Range;
 	};
 	struct PadNunchuck

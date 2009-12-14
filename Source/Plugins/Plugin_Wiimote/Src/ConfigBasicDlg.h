@@ -63,8 +63,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 
 		wxNotebook *m_Notebook;
 		wxPanel *m_Controller[4];
-		wxButton *m_Close,
-				 *m_Apply,
+		wxButton *m_OK,
+				 *m_Cancel,
 				 *m_ButtonMapping,
 				 *m_Recording;
 
@@ -108,8 +108,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 
 		enum
 		{
-			ID_CLOSE = 1000,
-			ID_APPLY,
+			ID_OK = 1000,
+			ID_CANCEL,
 			ID_BUTTONMAPPING,
 			ID_BUTTONRECORDING,
 			IDTM_SHUTDOWN,

@@ -185,9 +185,13 @@ void DllDebugger(HWND _hParent, bool Show) {}
 
 void DllConfig(HWND _hParent)
 {
-#if defined(HAVE_WX) && HAVE_WX
+	// We do a pad search before creating the dialog
+	WiiMoteEmu::Search_Devices(WiiMoteEmu::joyinfo, WiiMoteEmu::NumPads, WiiMoteEmu::NumGoodPads);
 
-	DoInitialize();
+	// Load settings
+	g_Config.Load();
+
+#if defined(HAVE_WX) && HAVE_WX
 
 	if (!m_BasicConfigFrame)
 		m_BasicConfigFrame = new WiimoteBasicConfigDialog(GetParentedWxWindow(_hParent));
@@ -202,6 +206,7 @@ void DllConfig(HWND _hParent)
 #endif
 }
 
+// Start emulation
 void Initialize(void *init)
 {
 	// Declarations

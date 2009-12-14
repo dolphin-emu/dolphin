@@ -39,8 +39,6 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 namespace WiiMoteEmu
 {
 
-extern void PAD_RumbleClose();
-
 /* Bit shift conversions */
 u32 convert24bit(const u8* src) {
 	return (src[0] << 16) | (src[1] << 8) | src[2];
@@ -424,11 +422,12 @@ void UpdateExtRegisterBlocks()
 	UpdateEeprom();
 }
 
-
-/* Write initial values to Eeprom and registers. */
+// Start emulation
 void Initialize()
 {
-	if (g_EmulatedWiiMoteInitialized) return;
+	INFO_LOG(WIIMOTE, "Initialize"); 
+
+	//if (g_EmulatedWiiMoteInitialized) return;
 
 	// Reset variables
 	ResetVariables();
@@ -442,10 +441,10 @@ void Initialize()
 	/* Populate joyinfo for all attached devices and do g_Config.Load() if the
 	   configuration window is not already open, if it's already open we
 	   continue with the settings we have */
-	if(!g_FrameOpen)
-	{
-		Search_Devices(joyinfo, NumPads, NumGoodPads);
-	}
+	//if(!g_FrameOpen)
+	Search_Devices(joyinfo, NumPads, NumGoodPads);
+
+	g_Config.Load();
 
 	// Copy extension id and calibration to its register, g_Config.Load() is needed before this
 	UpdateExtRegisterBlocks();
@@ -502,32 +501,13 @@ void DoState(PointerWrap &p)
 
 /* This is not needed if we call FreeLibrary() when we stop a game, but if it's
    not called we need to reset these variables. */
-void Shutdown(void) 
+void Shutdown() 
 {
 	INFO_LOG(WIIMOTE, "ShutDown");
 
 	ResetVariables();
-
-	PAD_RumbleClose();
-	/* Close all devices carefully. We must check that we are not accessing any
-	   undefined vector elements or any bad devices */
-	for (int i = 0; i < 1; i++)
-	{
-		if (SDL_WasInit(0) && joyinfo.size() > (u32)PadMapping[i].ID)
-			if (PadState[i].joy && joyinfo.at(PadMapping[i].ID).Good)
-			{
-				INFO_LOG(WIIMOTE, "ShutDown: %i", PadState[i].joy);
-				if(SDL_JoystickOpened(PadMapping[i].ID))
-					SDL_JoystickClose(PadState[i].joy);
-				PadState[i].joy = NULL;
-			}
-	}
-
-	// Clear the physical device info
-	joyinfo.clear();
-	NumPads = 0;
-	NumGoodPads = 0;
-
+	// Close joypads
+	Close_Devices();
 	// Finally close SDL
 	if (SDL_WasInit(0))
 		SDL_Quit();

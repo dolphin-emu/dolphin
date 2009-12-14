@@ -288,9 +288,15 @@ void Config::Load(bool ChangePad)
 		sprintf(SectionName, "Wiimote%i", i + 1);
 		iniFile.Get(SectionName, "NoTriggerFilter", &bNoTriggerFilter, false);
 
-		iniFile.Get(SectionName, "TiltType", &Tilt.Type, Tilt.OFF);
-		iniFile.Get(SectionName, "TiltRollRange", &Tilt.Range.Roll, 0);
-		iniFile.Get(SectionName, "TiltPitchRange", &Tilt.Range.Pitch, 0);
+		iniFile.Get(SectionName, "TiltType", &Tilt.Type, Tilt.KEYBOARD);
+		iniFile.Get(SectionName, "TiltRollSwing", &Tilt.Range.RollSwing, false);
+		iniFile.Get(SectionName, "TiltRollDegree", &Tilt.Range.RollDegree, 60);
+		Tilt.Range.Roll = (Tilt.Range.RollSwing) ? 0 : Tilt.Range.RollDegree;
+		iniFile.Get(SectionName, "TiltRollInvert", &Tilt.RollInvert, false);
+		iniFile.Get(SectionName, "TiltPitchSwing", &Tilt.Range.PitchSwing, false);
+		iniFile.Get(SectionName, "TiltPitchDegree", &Tilt.Range.PitchDegree, 60);
+		Tilt.Range.Pitch = (Tilt.Range.PitchSwing) ? 0 : Tilt.Range.PitchDegree;
+		iniFile.Get(SectionName, "TiltPitchInvert", &Tilt.PitchInvert, false);
 
 		// Wiimote
 		for (int x = 0; x < WM_CONTROLS; x++)
@@ -342,9 +348,7 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(joySectionName.c_str(), "Diagonal", &WiiMoteEmu::PadMapping[i].SDiagonal, "100%");
 		iniFile.Get(joySectionName.c_str(), "Circle2Square", &WiiMoteEmu::PadMapping[i].bCircle2Square, false);
 		iniFile.Get(joySectionName.c_str(), "Rumble", &WiiMoteEmu::PadMapping[i].Rumble, true);
-		iniFile.Get(joySectionName.c_str(), "RumbleStrength", &WiiMoteEmu::PadMapping[i].RumbleStrength, 10);
-		iniFile.Get(joySectionName.c_str(), "RollInvert", &WiiMoteEmu::PadMapping[i].bRollInvert, false);
-		iniFile.Get(joySectionName.c_str(), "PitchInvert", &WiiMoteEmu::PadMapping[i].bPitchInvert, false);
+		iniFile.Get(joySectionName.c_str(), "RumbleStrength", &WiiMoteEmu::PadMapping[i].RumbleStrength, 9);
 		iniFile.Get(joySectionName.c_str(), "TriggerType", &WiiMoteEmu::PadMapping[i].triggertype, 0);
 	}
 	// Load the IR cursor settings if it's avaliable for the GameId, if not load the default settings
@@ -371,7 +375,7 @@ void Config::Save(int Slot)
 {
 	IniFile iniFile;
 	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
-	iniFile.Set("Settings", "InputActive", bInputActive);
+//	iniFile.Set("Settings", "InputActive", bInputActive);
 	iniFile.Set("Settings", "Sideways", bSideways);
 	iniFile.Set("Settings", "Upright", bUpright);
 	iniFile.Set("Settings", "MotionPlusConnected", bMotionPlusConnected);
@@ -395,9 +399,12 @@ void Config::Save(int Slot)
 
 		iniFile.Set(SectionName, "NoTriggerFilter", bNoTriggerFilter);
 		iniFile.Set(SectionName, "TiltType", Tilt.Type);;
-		iniFile.Set(SectionName, "TiltRollRange", Tilt.Range.Roll);
-		iniFile.Set(SectionName, "TiltPitchRange", Tilt.Range.Pitch);
-
+		iniFile.Set(SectionName, "TiltRollDegree", Tilt.Range.RollDegree);
+		iniFile.Set(SectionName, "TiltRollSwing", Tilt.Range.RollSwing);
+		iniFile.Set(SectionName, "TiltRollInvert", Tilt.RollInvert);
+		iniFile.Set(SectionName, "TiltPitchDegree", Tilt.Range.PitchDegree);
+		iniFile.Set(SectionName, "TiltPitchSwing", Tilt.Range.PitchSwing);
+		iniFile.Set(SectionName, "TiltPitchInvert", Tilt.PitchInvert);
 		// Wiimote
 		for (int x = 0; x < WM_CONTROLS; x++)
 			iniFile.Set(SectionName, wmControlNames[x], WiiMoteEmu::PadMapping[i].Wm.keyForControls[x]);
@@ -446,8 +453,6 @@ void Config::Save(int Slot)
 		iniFile.Set(joySectionName.c_str(), "Circle2Square", WiiMoteEmu::PadMapping[i].bCircle2Square);
 		iniFile.Set(joySectionName.c_str(), "Rumble", WiiMoteEmu::PadMapping[i].Rumble);
 		iniFile.Set(joySectionName.c_str(), "RumbleStrength", WiiMoteEmu::PadMapping[i].RumbleStrength);
-		iniFile.Set(joySectionName.c_str(), "RollInvert", WiiMoteEmu::PadMapping[i].bRollInvert);
-		iniFile.Set(joySectionName.c_str(), "PitchInvert", WiiMoteEmu::PadMapping[i].bPitchInvert);
 		iniFile.Set(joySectionName.c_str(), "TriggerType", WiiMoteEmu::PadMapping[i].triggertype);
 	}
 

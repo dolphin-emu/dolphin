@@ -181,7 +181,7 @@ void DllDebugger(HWND _hParent, bool Show) {}
 // --------------------------
 void Initialize(void *init)
 {
-	INFO_LOG(PAD, "Initialize: %i\n", SDL_WasInit(0));
+	INFO_LOG(PAD, "Initialize: %i", SDL_WasInit(0));
     g_PADInitialize = (SPADInitialize*)init;
 	g_EmulatorRunning = true;
 	
@@ -195,6 +195,30 @@ void Initialize(void *init)
 
 	// Populate joyinfo for all attached devices
 	Search_Devices(joyinfo, NumPads, NumGoodPads);
+
+	g_Config.Load();	// load settings
+}
+
+void Close_Devices()
+{
+	PAD_RumbleClose();
+	/* Close all devices carefully. We must check that we are not accessing any undefined
+	   vector elements or any bad devices */
+	for (int i = 0; i < 4; i++)
+	{
+		if (SDL_WasInit(0) && joyinfo.size() > (u32)PadMapping[i].ID)
+			if (PadState[i].joy && joyinfo.at(PadMapping[i].ID).Good)
+				if(SDL_JoystickOpened(PadMapping[i].ID))
+				{
+					SDL_JoystickClose(PadState[i].joy);
+					PadState[i].joy = NULL;
+				}
+	}
+
+	// Clear the physical device info
+	joyinfo.clear();
+	NumPads = 0;
+	NumGoodPads = 0;
 }
 
 // Shutdown PAD (stop emulation)
@@ -214,25 +238,7 @@ void Shutdown()
 		DEBUG_QUIT();
 	#endif
 
-	PAD_RumbleClose();
-
-	/* Close all devices carefully. We must check that we are not accessing any undefined
-	   vector elements or any bad devices */
-	for (int i = 0; i < 4; i++)
-	{
-		if (SDL_WasInit(0) && joyinfo.size() > (u32)PadMapping[i].ID)
-			if (PadState[i].joy && joyinfo.at(PadMapping[i].ID).Good)
-				if(SDL_JoystickOpened(PadMapping[i].ID))
-				{
-					SDL_JoystickClose(PadState[i].joy);
-					PadState[i].joy = NULL;
-				}
-	}
-
-	// Clear the physical device info
-	joyinfo.clear();
-	NumPads = 0;
-	NumGoodPads = 0;
+	Close_Devices();
 
 	// Finally close SDL
 	if (SDL_WasInit(0))
@@ -286,7 +292,8 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	// Check if the pad is avaliable, currently we don't disable pads just because they are
 	// disconnected
-	if (!PadState[_numPAD].joy) return;
+	if (!PadState[_numPAD].joy || !PadMapping[_numPAD].enable)
+		return;
 
 	// Clear pad status
 	memset(_pPADStatus, 0, sizeof(SPADStatus));
@@ -442,6 +449,9 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 // ----------------
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
 {
+	// Close opened devices first
+	Close_Devices();
+
 	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
 
 	// Warn the user if no gamepads are detected
@@ -450,9 +460,6 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 		PanicAlert("nJoy: No Gamepad Detected");
 		return false;
 	}
-
-	// Load PadMapping[] etc
-	g_Config.Load();
 
 	// Update the PadState[].joy handle
 	for (int i = 0; i < 4; i++)
@@ -486,9 +493,3 @@ return true;
 	return true;
 #endif
 }
-
-
-
-
- 
-

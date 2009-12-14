@@ -514,7 +514,7 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 		Tl = Tl / 2;
 		Tr = Tr / 2;
 		// Invert
-		if (PadMapping[Page].bPitchInvert) { Tl = -Tl; Tr = -Tr; }
+		if (g_Config.Tilt.PitchInvert) { Tl = -Tl; Tr = -Tr; }
 		// The final value
 		Pitch = (float)PitchRange * ((float)(Tl - Tr) / 128.0f);
 	}
@@ -528,8 +528,8 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 		Lx = Lx - 0x80;
 		Ly = Ly - 0x80;
 		// Invert
-		if (PadMapping[Page].bRollInvert) Lx = -Lx; // else Tr = -Tr;
-		if (PadMapping[Page].bPitchInvert) Ly = -Ly; // else Tr = -Tr;
+		if (g_Config.Tilt.RollInvert) Lx = -Lx; // else Tr = -Tr;
+		if (g_Config.Tilt.PitchInvert) Ly = -Ly; // else Tr = -Tr;
 		// Produce the final value
 		Roll = (RollRange) ? (float)RollRange * ((float)Lx / 128.0f) : Lx;
 		Pitch = (PitchRange) ? (float)PitchRange * ((float)Ly / 128.0f) : Ly;
@@ -541,8 +541,8 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 		Rx = Rx - 0x80;
 		Ry = Ry - 0x80;
 		// Invert
-		if (PadMapping[Page].bRollInvert) Rx = -Rx; // else Tr = -Tr;
-		if (PadMapping[Page].bPitchInvert) Ry = -Ry; // else Tr = -Tr;
+		if (g_Config.Tilt.RollInvert) Rx = -Rx; // else Tr = -Tr;
+		if (g_Config.Tilt.PitchInvert) Ry = -Ry; // else Tr = -Tr;
 		// Produce the final value
 		Roll = (RollRange) ? (float)RollRange * ((float)Rx / 128.0f) : Rx;
 		Pitch = (PitchRange) ? (float)PitchRange * ((float)Ry / 128.0f) : Ry;

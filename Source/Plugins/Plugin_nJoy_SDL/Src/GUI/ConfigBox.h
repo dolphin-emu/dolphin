@@ -99,6 +99,7 @@ class PADConfigDialognJoy : public wxDialog
 		// ---------
 
 		wxComboBox *m_Joyname[4];
+		wxCheckBox *m_Enable[4];
 		wxComboBox *m_ControlType[4], *m_TriggerType[4];
 		wxComboBox *m_Deadzone[4];
 
@@ -212,7 +213,7 @@ class PADConfigDialognJoy : public wxDialog
 
 			ID_KEYSPANEL1, ID_KEYSPANEL2, ID_KEYSPANEL3, ID_KEYSPANEL4,
 
-			IDG_JOYSTICK, IDC_JOYNAME,
+			IDG_JOYSTICK, IDC_JOYNAME, IDC_ENABLE,
 
 			IDG_EXTRASETTINGS, IDC_DEADZONE, // Extra settings
 
@@ -312,6 +313,7 @@ class PADConfigDialognJoy : public wxDialog
 		};
 	
 	private:
+		void OnClose(wxCloseEvent& event);
 		void AboutClick(wxCommandEvent& event);
 		void OKClick(wxCommandEvent& event);
 		void CancelClick(wxCommandEvent& event);
@@ -324,7 +326,6 @@ class PADConfigDialognJoy : public wxDialog
 		void ChangeSettings(wxCommandEvent& event);
 		void ComboChange(wxCommandEvent& event);
 
-		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
 		void CreateAdvancedControls(int i);
 		wxBitmap CreateBitmap(); 

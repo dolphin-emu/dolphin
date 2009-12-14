@@ -127,6 +127,7 @@ void Config::Save(int Slot)
 
 		// Save the physical device ID
 		file.Set(SectionName.c_str(), "joy_id", PadMapping[i].ID);
+		file.Set(SectionName.c_str(), "enable", PadMapping[i].enable);
 		// ===================
 		
 		// ==================================================================
@@ -190,7 +191,8 @@ void Config::Save(int Slot)
 void Config::Load(bool ChangePad, bool ChangeSaveByID)
 {
 	// If there are no good pads don't load
-	if (NumGoodPads == 0) return;
+	if (NumGoodPads == 0)
+		return;
 
 	// Load file
 	IniFile file;
@@ -219,6 +221,7 @@ void Config::Load(bool ChangePad, bool ChangeSaveByID)
 		if (!ChangePad)
 		{
 			file.Get(SectionName.c_str(), "joy_id", &PadMapping[i].ID, 0);
+			file.Get(SectionName.c_str(), "enable", &PadMapping[i].enable, false);
 		}
 
 		// ==================================================================

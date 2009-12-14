@@ -95,8 +95,10 @@ class WiimotePadConfigDialog : public wxDialog
 
 		wxCheckBox *m_CheckC2S[4],
 			*m_CheckRumble[4],
-			*m_TiltInvertRoll[4],
-			*m_TiltInvertPitch[4];
+			*m_TiltRollSwing[4],
+			*m_TiltPitchSwing[4],
+			*m_TiltRollInvert[4],
+			*m_TiltPitchInvert[4];
 
 		wxButton *m_Close, *m_Apply, *ClickedButton,
 			*m_Button_Analog[AN_CONTROLS][4],
@@ -256,8 +258,9 @@ class WiimotePadConfigDialog : public wxDialog
 			IDC_DEAD_ZONE_LEFT, IDC_DEAD_ZONE_RIGHT,
 			IDC_STICK_DIAGONAL, IDC_STICK_C2S,
 			IDC_TILT_INPUT,
-			IDC_TILT_RANGE_ROLL, IDC_TILT_RANGE_PITCH,
-			IDC_TILT_INVERT_ROLL, IDC_TILT_INVERT_PITCH,
+			IDC_TILT_ROLL, IDC_TILT_ROLL_SWING,
+			IDC_TILT_PITCH, IDC_TILT_PITCH_SWING,
+			IDC_TILT_ROLL_INVERT, IDC_TILT_PITCH_INVERT,
 			IDC_TRIGGER_TYPE, 
 			IDC_NUNCHUCK_STICK,
 			IDC_CC_LEFT_STICK, IDC_CC_RIGHT_STICK, IDC_CC_TRIGGERS,

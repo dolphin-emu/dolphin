@@ -27,8 +27,8 @@
 
 BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_CLOSE(WiimoteBasicConfigDialog::OnClose)
-	EVT_BUTTON(ID_CLOSE, WiimoteBasicConfigDialog::ButtonClick)
-	EVT_BUTTON(ID_APPLY, WiimoteBasicConfigDialog::ButtonClick)
+	EVT_BUTTON(ID_OK, WiimoteBasicConfigDialog::ButtonClick)
+	EVT_BUTTON(ID_CANCEL, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_BUTTON(ID_BUTTONMAPPING, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_BUTTON(ID_BUTTONRECORDING, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_CHECKBOX(IDC_INPUT_ACTIVE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
@@ -61,7 +61,7 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 	ControlsCreated = false;
 	m_bEnableUseRealWiimote = true;
 	Page = 0;
-	g_Config.Load();
+	//g_Config.Load();
 	CreateGUIControls();
 	UpdateGUI();
 }
@@ -69,7 +69,6 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
 {
 	g_FrameOpen = false;
-	g_Config.Save();
 	EndModal(wxID_CLOSE);
 }
 
@@ -89,7 +88,9 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 {
 	switch(event.GetId())
 	{
-	case ID_CLOSE:
+	case ID_OK:
+		g_Config.Save();
+/*
 		// Wait for the Wiimote thread to stop, then close and shutdown
 		if(!g_EmulatorRunning)
 		{
@@ -101,9 +102,12 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 		{
 			Close();
 		}
+*/
+		Close();
 		break;
-	case ID_APPLY:
-		g_Config.Save();
+	case ID_CANCEL:
+		g_Config.Load();
+		Close();
 		break;
 	case ID_BUTTONMAPPING:
 		m_PadConfigFrame = new WiimotePadConfigDialog(this);
@@ -172,7 +176,7 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 
 		// Basic Settings
 		m_InputActive[i] = new wxCheckBox(m_Controller[i], IDC_INPUT_ACTIVE, wxT("Wiimote Input Active"));
-		m_InputActive[i]->SetValue(true);
+		m_InputActive[i]->SetValue(g_Config.bInputActive);
 		m_InputActive[i]->SetToolTip(wxString::Format(wxT("Decide if Wiimote button events shall be sent to game"), i));
 
 		// Emulated Wiimote
@@ -274,52 +278,55 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 
 	m_ButtonMapping = new wxButton(this, ID_BUTTONMAPPING, wxT("Button Mapping"));
 	m_Recording		= new wxButton(this, ID_BUTTONRECORDING, wxT("Recording"));
-	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"));
-	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"));
+	m_OK = new wxButton(this, ID_OK, wxT("OK"));
+	m_OK->SetToolTip(wxT("Save changes and close"));
+	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"));
+	m_Cancel->SetToolTip(wxT("Discard changes and close"));
 
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->Add(m_ButtonMapping, 0, (wxALL), 0);
 	sButtons->Add(m_Recording, 0, (wxALL), 0);
 	sButtons->AddStretchSpacer();
-	sButtons->Add(m_Apply, 0, (wxALL), 0);
-	sButtons->Add(m_Close, 0, (wxLEFT), 5);	
+	sButtons->Add(m_OK, 0, (wxALL), 0);
+	sButtons->Add(m_Cancel, 0, (wxLEFT), 5);	
 
 	m_MainSizer = new wxBoxSizer(wxVERTICAL);
 	m_MainSizer->Add(m_Notebook, 1, wxEXPAND | wxALL, 5);
 	m_MainSizer->Add(sButtons, 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 
-	this->SetSizer(m_MainSizer);
-	this->Layout();
+	SetSizer(m_MainSizer);
+	Layout();
 	Fit();
-
 	// Center the window if there is room for it
 	#ifdef _WIN32
 		if (GetSystemMetrics(SM_CYFULLSCREEN) > 600)
 			Center();
 	#endif
+
 	ControlsCreated = true;
 }
 
 void WiimoteBasicConfigDialog::DoConnectReal()
 {
-	g_Config.bConnectRealWiimote = m_ConnectRealWiimote[Page]->IsChecked();
-
 	if(g_Config.bConnectRealWiimote)
 	{
-		if (!g_RealWiiMoteInitialized) WiiMoteReal::Initialize();
+		if (!g_RealWiiMoteInitialized)
+			WiiMoteReal::Initialize();
 	}
 	else
 	{
 		DEBUG_LOG(WIIMOTE, "Post Message: %i", g_RealWiiMoteInitialized);
+
 		if (g_RealWiiMoteInitialized)
-		{
 			WiiMoteReal::Shutdown();
-		}
 	}
 }
 
 void WiimoteBasicConfigDialog::DoUseReal()
 {
+	if (!g_Config.bUseRealWiimote)
+		return;
+
 	// Clear any eventual events in the Wiimote queue
 	WiiMoteReal::ClearEvents();
 
@@ -370,14 +377,14 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case IDC_CONNECT_REAL:
+		g_Config.bConnectRealWiimote = m_ConnectRealWiimote[Page]->IsChecked();
 		DoConnectReal();
 		break;
 	case IDC_USE_REAL:
 		// Enable the Wiimote thread
 		g_Config.bUseRealWiimote = m_UseRealWiimote[Page]->IsChecked();
-		if (g_Config.bUseRealWiimote) DoUseReal();		
+		DoUseReal();		
 		break;
-
 	case IDC_INPUT_ACTIVE:
 		g_Config.bInputActive = m_InputActive[Page]->IsChecked();
 		break;
@@ -387,7 +394,6 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	case IDC_UPRIGHTWIIMOTE:
 		g_Config.bUpright = m_UprightWiimote[Page]->IsChecked();
 		break;
-
 	case IDC_MOTIONPLUSCONNECTED:
 		g_Config.bMotionPlusConnected = m_WiiMotionPlusConnected[Page]->IsChecked();
 		break;
@@ -409,7 +415,6 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		DoExtensionConnectedDisconnected();
 		break;
 	}
-	g_Config.Save();
 	UpdateGUI();
 }
 
@@ -430,7 +435,6 @@ void WiimoteBasicConfigDialog::IRCursorChanged(wxScrollEvent& event)
 		g_Config.iIRTop = m_SliderTop[Page]->GetValue();
 		break;
 	}
-
 	UpdateGUI();
 }
 

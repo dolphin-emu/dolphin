@@ -58,6 +58,7 @@ BEGIN_EVENT_TABLE(PADConfigDialognJoy,wxDialog)
 
 	// Change gamepad
 	EVT_COMBOBOX(IDC_JOYNAME, PADConfigDialognJoy::ChangeSettings)
+	EVT_CHECKBOX(IDC_ENABLE, PADConfigDialognJoy::ChangeSettings)
 
 	 // Other settings
 	EVT_CHECKBOX(IDC_SAVEBYID, PADConfigDialognJoy::ChangeSettings)
@@ -130,8 +131,8 @@ PADConfigDialognJoy::PADConfigDialognJoy(wxWindow *parent, wxWindowID id, const 
 		GetButtonWaitingID = 0; GetButtonWaitingTimer = 0;
 
 		// Start the constant timer
-		int TimesPerSecond = 30;
-		m_ConstantTimer->Start( floor((double)(1000 / TimesPerSecond)) );
+		int TimesPerSecond = 10;
+		m_ConstantTimer->Start(1000 / TimesPerSecond);
 	#endif
 
 	// wxEVT_KEY_DOWN is blocked for enter, tab and the directional keys
@@ -157,13 +158,15 @@ void PADConfigDialognJoy::OnKeyDown(wxKeyEvent& event)
 void PADConfigDialognJoy::OnClose(wxCloseEvent& event)
 {
 	// Allow wxWidgets to close the window
-	event.Skip();
+	//event.Skip();
 
 	// Stop the timer
 	m_ConstantTimer->Stop();
 
 	// Close pads, unless we are running a game
-	if (!g_EmulatorRunning) Shutdown();
+	//if (!g_EmulatorRunning)	Shutdown();
+
+	EndModal(wxID_CLOSE);
 }
 
 // Call about dialog
@@ -252,7 +255,8 @@ void PADConfigDialognJoy::DoSave(bool ChangePad, int Slot)
 	if (ChangePad)
 	{
 		// Since we are selecting the pad to save to by the Id we can't update it when we change the pad
-		for(int i = 0; i < 4; i++) SaveButtonMapping(i, true);
+		for(int i = 0; i < 4; i++)
+			SaveButtonMapping(i, true);
 		
 		g_Config.Save(Slot);
 		// Now we can update the ID
@@ -261,7 +265,9 @@ void PADConfigDialognJoy::DoSave(bool ChangePad, int Slot)
 	else
 	{
 		// Update PadMapping[] from the GUI controls
-		for(int i = 0; i < 4; i++) SaveButtonMapping(i);
+		for(int i = 0; i < 4; i++)
+			SaveButtonMapping(i);
+
 		g_Config.Save(Slot);
 	}		
 
@@ -301,13 +307,15 @@ void PADConfigDialognJoy::DoChangeJoystick()
 void PADConfigDialognJoy::NotebookPageChanged(wxNotebookEvent& event)
 {	
 	// Save current settings now, don't wait for OK
-	if (ControlsCreated && !g_Config.bSaveByID) DoSave(false, notebookpage);
+	if (ControlsCreated && !g_Config.bSaveByID)
+		DoSave(false, notebookpage);
 
 	// Update the global variable
 	notebookpage = event.GetSelection();
 
 	// Update GUI
-	if (ControlsCreated) UpdateGUI(notebookpage);
+	if (ControlsCreated)
+		UpdateGUI(notebookpage);
 }
 
 // Replace the harder to understand -1 with "" for the sake of user friendliness
@@ -362,7 +370,8 @@ void PADConfigDialognJoy::UpdateGUIAll(int Slot)
 {
 	if (Slot == -1)
 	{
-		for (int i = 0; i < 4; i++) UpdateGUI(i);
+		for (int i = 0; i < 4; i++)
+			UpdateGUI(i);
 	}
 	else
 	{
@@ -387,11 +396,8 @@ void PADConfigDialognJoy::ChangeSettings( wxCommandEvent& event )
 		case IDC_SHOWADVANCED:
 			g_Config.bShowAdvanced = m_CBShowAdvanced[notebookpage]->IsChecked();			
 			for(int i = 0; i < 4; i++)
-			{
-				UpdateGUI(i);
 				m_CBShowAdvanced[i]->SetValue(g_Config.bShowAdvanced);
-				m_sMainRight[i]->Show(g_Config.bShowAdvanced);
-			}
+			UpdateGUI(notebookpage);
 			// Resize the window without the need of any weird hack 
 			SetSizerAndFit(m_MainSizer);
 			break;
@@ -400,34 +406,30 @@ void PADConfigDialognJoy::ChangeSettings( wxCommandEvent& event )
 		case IDCB_CHECKFOCUS:
 			g_Config.bCheckFocus = m_CBCheckFocus[notebookpage]->IsChecked();
 			for(int i = 0; i < 4; i++)
-			{
 				m_CBCheckFocus[i]->SetValue(g_Config.bCheckFocus);
-			}
 			break;
 		case IDCB_FILTER_SETTINGS:
 			g_Config.bNoTriggerFilter = m_AdvancedMapFilter[notebookpage]->IsChecked();
 			for(int i = 0; i < 4; i++)
-			{
 				m_AdvancedMapFilter[i]->SetValue(g_Config.bNoTriggerFilter);
-			}
 			break;
 
 		case IDC_CONTROLTYPE:
 			if(!g_Config.bSaveByID)
 			{
 				PadMapping[notebookpage].controllertype = m_ControlType[notebookpage]->GetSelection();
-				UpdateGUI(notebookpage);
+				//UpdateGUI(notebookpage);
 			}
 		case IDC_TRIGGERTYPE:
 			if(!g_Config.bSaveByID)
 			{
 				PadMapping[notebookpage].triggertype = m_TriggerType[notebookpage]->GetSelection();
-				UpdateGUI(notebookpage);
+				//UpdateGUI(notebookpage);
 			}
 			break;
 		case IDC_ENABLERUMBLE:
 			PadMapping[notebookpage].rumble = m_Rumble[notebookpage]->IsChecked();
-			UpdateGUI(notebookpage);
+			//UpdateGUI(notebookpage);
 			break;
 		case IDC_RUMBLESTRENGTH:
 			g_Config.RumbleStrength = m_RStrength[notebookpage]->GetSelection();
@@ -435,11 +437,17 @@ void PADConfigDialognJoy::ChangeSettings( wxCommandEvent& event )
 		case IDC_JOYNAME: 
 			DoChangeJoystick();
 			break;
+		case IDC_ENABLE:
+			PadMapping[notebookpage].enable = m_Enable[notebookpage]->IsChecked();
+			UpdateGUI(notebookpage);
+			// Resize the window without the need of any weird hack 
+			SetSizerAndFit(m_MainSizer);
+			break;
 	}
 
 	// Update all slots that use this device
 	if(g_Config.bSaveByID) SaveButtonMappingAll(notebookpage);
-	if(g_Config.bSaveByID) UpdateGUIAll(notebookpage);
+	//if(g_Config.bSaveByID) UpdateGUIAll(notebookpage);
 }
 
 
@@ -507,7 +515,11 @@ void PADConfigDialognJoy::UpdateGUI(int _notebookpage)
 			else m_CoBDiagonalC[_notebookpage]->Enable(false);
 	}
 
-	 // Repaint the background
+	m_sKeys[_notebookpage]->Show(PadMapping[_notebookpage].enable);
+	m_sSettings[_notebookpage]->Show(PadMapping[_notebookpage].enable);
+	m_sMainRight[_notebookpage]->Show(g_Config.bShowAdvanced && PadMapping[_notebookpage].enable);
+
+	// Repaint the background
 	m_Controller[_notebookpage]->Refresh();
 }
 
@@ -525,7 +537,7 @@ void PADConfigDialognJoy::OnPaint(wxPaintEvent &event)
 // Populate the config window
 void PADConfigDialognJoy::CreateGUIControls()
 {
-	INFO_LOG(PAD, "CreateGUIControls()\n");
+	INFO_LOG(PAD, "CreateGUIControls()");
 
 	#ifndef _DEBUG		
 		SetTitle(wxT("Configure: nJoy Input Plugin"));
@@ -721,17 +733,18 @@ void PADConfigDialognJoy::CreateGUIControls()
 		// Populate Controller sizer
 		// Groups
 		#ifdef _WIN32
-		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, arrayStringFor_Joyname[0], wxDefaultPosition, wxSize(476, 21), arrayStringFor_Joyname, wxCB_READONLY);
+		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, arrayStringFor_Joyname[0], wxDefaultPosition, wxSize(300, 25), arrayStringFor_Joyname, wxCB_READONLY);
 		#else
-		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, arrayStringFor_Joyname[0], wxDefaultPosition, wxSize(450, 25), arrayStringFor_Joyname, 0, wxDefaultValidator, wxT("m_Joyname"));
+		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, arrayStringFor_Joyname[0], wxDefaultPosition, wxSize(300, 25), arrayStringFor_Joyname, 0, wxDefaultValidator, wxT("m_Joyname"));
 		#endif
-
-		m_gJoyname[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Controller"));
-		m_gJoyname[i]->Add(m_Joyname[i], 0, (wxLEFT | wxRIGHT), 5);
-
 		m_Joyname[i]->SetToolTip(wxT("Save your settings and configure another joypad"));
 
+		m_Enable[i] = new wxCheckBox(m_Controller[i], IDC_ENABLE, wxT("Pad Enabled"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+		m_Enable[i]->SetToolTip(wxT("Enable this pad to send input events to game"));
 
+		m_gJoyname[i] = new wxStaticBoxSizer (wxHORIZONTAL, m_Controller[i], wxT("Controller"));
+		m_gJoyname[i]->Add(m_Joyname[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
+		m_gJoyname[i]->Add(m_Enable[i], 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
 
 		// General settings
 
@@ -979,7 +992,14 @@ void PADConfigDialognJoy::CreateGUIControls()
 	#endif
 
 	// Set window size
-	Center();
+	SetSizer(m_MainSizer);
+	Layout();
+	Fit();
+	// Center the window if there is room for it
+	#ifdef _WIN32
+		if (GetSystemMetrics(SM_CYFULLSCREEN) > 600)
+			Center();
+	#endif
 
 	// All done
 	ControlsCreated = true;

@@ -130,8 +130,6 @@ void WiimotePadConfigDialog::UpdateGUIButtonMapping(int controller)
 	m_CheckC2S[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bCircle2Square);
 	m_CheckRumble[controller]->SetValue(WiiMoteEmu::PadMapping[controller].Rumble);
 	m_RumbleStrength[controller]->SetSelection(WiiMoteEmu::PadMapping[controller].RumbleStrength);
-	m_TiltInvertRoll[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bRollInvert);
-	m_TiltInvertPitch[controller]->SetValue(WiiMoteEmu::PadMapping[controller].bPitchInvert);
 	m_TriggerType[controller]->SetSelection(WiiMoteEmu::PadMapping[controller].triggertype);
 
 	for (int i = 0; i < AN_CONTROLS; i++)
@@ -231,8 +229,6 @@ void WiimotePadConfigDialog::SaveButtonMapping(int controller, bool DontChangeId
 	WiiMoteEmu::PadMapping[controller].bCircle2Square = m_CheckC2S[FromSlot]->IsChecked();
 	WiiMoteEmu::PadMapping[controller].Rumble = m_CheckRumble[FromSlot]->IsChecked();
 	WiiMoteEmu::PadMapping[controller].RumbleStrength = m_RumbleStrength[FromSlot]->GetSelection();
-	WiiMoteEmu::PadMapping[controller].bRollInvert = m_TiltInvertRoll[FromSlot]->IsChecked();
-	WiiMoteEmu::PadMapping[controller].bPitchInvert = m_TiltInvertPitch[FromSlot]->IsChecked();
 	WiiMoteEmu::PadMapping[controller].triggertype = m_TriggerType[FromSlot]->GetSelection();
 
 	for (int i = 0; i < AN_CONTROLS; i++)

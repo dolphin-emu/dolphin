@@ -81,6 +81,9 @@ void Pad_Use_Rumble(u8 _numPAD)
 
 void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
+	if (!PadMapping[_numPAD].enable)
+		return;
+
 	Pad_Use_Rumble(_numPAD);
 
 	int Strenght = 0;

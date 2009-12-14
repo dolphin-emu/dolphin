@@ -52,6 +52,7 @@ void PADConfigDialognJoy::UpdateGUIButtonMapping(int controller)
 
 	// Update selected gamepad
 	m_Joyname[controller]->SetSelection(PadMapping[controller].ID);
+	m_Enable[controller]->SetValue(PadMapping[controller].enable);
 
 	tmp << PadMapping[controller].buttons[InputCommon::CTL_L_SHOULDER]; m_JoyShoulderL[controller]->SetValue(tmp); tmp.clear();
 	tmp << PadMapping[controller].buttons[InputCommon::CTL_R_SHOULDER]; m_JoyShoulderR[controller]->SetValue(tmp); tmp.clear();
@@ -336,12 +337,12 @@ void PADConfigDialognJoy::DoGetButtons(int GetId)
 		g_Pressed = 0;
 
 		// Update the text box
-		sprintf(format, "[%d]", Seconds);
+		sprintf(format, "[ %d ]", Seconds);
 		SetButtonText(GetId, format);
 
 		// Start the timer
 		#if wxUSE_TIMER
-			m_ButtonMappingTimer->Start( floor((double)(1000 / TimesPerSecond)) );
+			m_ButtonMappingTimer->Start(1000 / TimesPerSecond);
 		#endif
 	}
 
@@ -374,7 +375,7 @@ void PADConfigDialognJoy::DoGetButtons(int GetId)
 		int TmpTime = Seconds - (GetButtonWaitingTimer / TimesPerSecond);
 
 		// Update text
-		sprintf(format, "[%d]", TmpTime);
+		sprintf(format, "[ %d ]", TmpTime);
 		SetButtonText(GetId, format);
 	}
 

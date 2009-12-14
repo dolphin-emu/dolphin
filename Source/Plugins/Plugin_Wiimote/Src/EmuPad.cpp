@@ -40,25 +40,50 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 namespace WiiMoteEmu
 {
 
+extern void PAD_RumbleClose();
+
+// Close joypads
+void Close_Devices()
+{
+	PAD_RumbleClose();
+	/* Close all devices carefully. We must check that we are not accessing any
+	   undefined vector elements or any bad devices */
+	for (int i = 0; i < 1; i++)
+	{
+		if (SDL_WasInit(0) && joyinfo.size() > (u32)PadMapping[i].ID)
+			if (PadState[i].joy && joyinfo.at(PadMapping[i].ID).Good)
+			{
+				INFO_LOG(WIIMOTE, "ShutDown: %i", PadState[i].joy);
+				if(SDL_JoystickOpened(PadMapping[i].ID))
+				{
+					SDL_JoystickClose(PadState[i].joy);
+					PadState[i].joy = NULL;
+				}
+			}
+	}
+
+	// Clear the physical device info
+	joyinfo.clear();
+	NumPads = 0;
+	NumGoodPads = 0;
+}
+
 // Fill joyinfo with the current connected devices
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads)
 {
+	// Close opened pad first
+	Close_Devices();
+
 	bool WasGotten = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
 
 	// Warn the user if no gamepads are detected
-	if (_NumGoodPads == 0 && g_EmulatorRunning)
-	{
-		//PanicAlert("nJoy: No Gamepad Detected");
-		//return false;
-	}
-
-	// Load PadMapping[] etc
-	g_Config.Load();
+	if (_NumGoodPads == 0)
+		return false;
 
 	// Update the PadState[].joy handle
 	for (int i = 0; i < 1; i++)
 	{
-		if (PadMapping[i].enabled && joyinfo.size() > (u32)PadMapping[i].ID)
+		if (joyinfo.size() > (u32)PadMapping[i].ID)
 			if(joyinfo.at(PadMapping[i].ID).Good)
 				PadState[i].joy = SDL_JoystickOpen(PadMapping[i].ID);
 	}
