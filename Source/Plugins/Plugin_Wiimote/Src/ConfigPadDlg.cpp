@@ -33,7 +33,7 @@ BEGIN_EVENT_TABLE(WiimotePadConfigDialog,wxDialog)
 
 	EVT_CLOSE(WiimotePadConfigDialog::OnClose)
 	EVT_BUTTON(ID_CLOSE, WiimotePadConfigDialog::CloseClick)
-	EVT_BUTTON(ID_APPLY, WiimotePadConfigDialog::CloseClick)
+//	EVT_BUTTON(ID_APPLY, WiimotePadConfigDialog::CloseClick)
 
 	EVT_TIMER(IDTM_BUTTON, WiimotePadConfigDialog::OnButtonTimer)
 	EVT_TIMER(IDTM_UPDATE_PAD, WiimotePadConfigDialog::UpdatePad)
@@ -898,12 +898,12 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_Controller[i]->SetSizer(m_sMain[i]);
 	}
 
-	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"));
+//	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"));
 	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"));
 
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->AddStretchSpacer();
-	sButtons->Add(m_Apply, 0, (wxALL), 0);
+//	sButtons->Add(m_Apply, 0, (wxALL), 0);
 	sButtons->Add(m_Close, 0, (wxLEFT), 5);	
 
 	m_MainSizer = new wxBoxSizer(wxVERTICAL);

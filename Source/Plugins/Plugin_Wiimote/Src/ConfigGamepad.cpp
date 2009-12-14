@@ -132,6 +132,14 @@ void WiimotePadConfigDialog::UpdateGUIButtonMapping(int controller)
 	m_RumbleStrength[controller]->SetSelection(WiiMoteEmu::PadMapping[controller].RumbleStrength);
 	m_TriggerType[controller]->SetSelection(WiiMoteEmu::PadMapping[controller].triggertype);
 
+	m_TiltComboInput[controller]->SetSelection(g_Config.Tilt.Type);
+	m_TiltComboRangeRoll[controller]->SetSelection(g_Config.Tilt.Range.RollDegree / 5 - 1); // 5 to 180, step 5
+	m_TiltComboRangePitch[controller]->SetSelection(g_Config.Tilt.Range.PitchDegree / 5 - 1); // 5 to 180, step 5
+	m_TiltRollSwing[controller]->SetValue(g_Config.Tilt.Range.RollSwing);
+	m_TiltPitchSwing[controller]->SetValue(g_Config.Tilt.Range.PitchSwing);
+	m_TiltRollInvert[controller]->SetValue(g_Config.Tilt.RollInvert);
+	m_TiltPitchInvert[controller]->SetValue(g_Config.Tilt.PitchInvert);
+
 	for (int i = 0; i < AN_CONTROLS; i++)
 	{
 		tmp << WiiMoteEmu::PadMapping[controller].Axis.keyForControls[i];

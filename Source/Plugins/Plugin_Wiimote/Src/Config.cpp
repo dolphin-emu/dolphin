@@ -348,7 +348,7 @@ void Config::Load(bool ChangePad)
 		iniFile.Get(joySectionName.c_str(), "Diagonal", &WiiMoteEmu::PadMapping[i].SDiagonal, "100%");
 		iniFile.Get(joySectionName.c_str(), "Circle2Square", &WiiMoteEmu::PadMapping[i].bCircle2Square, false);
 		iniFile.Get(joySectionName.c_str(), "Rumble", &WiiMoteEmu::PadMapping[i].Rumble, true);
-		iniFile.Get(joySectionName.c_str(), "RumbleStrength", &WiiMoteEmu::PadMapping[i].RumbleStrength, 9);
+		iniFile.Get(joySectionName.c_str(), "RumbleStrength", &WiiMoteEmu::PadMapping[i].RumbleStrength, 9); // x10
 		iniFile.Get(joySectionName.c_str(), "TriggerType", &WiiMoteEmu::PadMapping[i].triggertype, 0);
 	}
 	// Load the IR cursor settings if it's avaliable for the GameId, if not load the default settings
