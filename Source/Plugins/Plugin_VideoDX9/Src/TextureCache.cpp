@@ -451,12 +451,15 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 
 	int tex_w = (abs(source_rect.GetWidth()) >> bScaleByHalf);
 	int tex_h = (abs(source_rect.GetHeight()) >> bScaleByHalf);
+
+	int Scaledtex_w = (g_ActiveConfig.bCopyEFBScaled)?((int)(Renderer::GetTargetScaleX() * tex_w)):tex_w;
+	int Scaledtex_h = (g_ActiveConfig.bCopyEFBScaled)?((int)(Renderer::GetTargetScaleY() * tex_h)):tex_h;
 	TexCache::iterator iter;
 	LPDIRECT3DTEXTURE9 tex;
 	iter = textures.find(address);
 	if (iter != textures.end())
 	{
-		if (iter->second.isRenderTarget && iter->second.w == tex_w && iter->second.h == tex_h)
+		if (iter->second.isRenderTarget && iter->second.Scaledw == Scaledtex_w && iter->second.Scaledh == Scaledtex_h)
 		{
 			
 			tex = iter->second.texture;
@@ -479,9 +482,11 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		entry.frameCount = frameCount;
 		entry.w = tex_w;
 		entry.h = tex_h;
+		entry.Scaledw = Scaledtex_w;
+		entry.Scaledh = Scaledtex_h;
 		entry.fmt = copyfmt;
 		
-		D3D::dev->CreateTexture(tex_w, tex_h, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
+		D3D::dev->CreateTexture(Scaledtex_w, Scaledtex_h, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
 		textures[address] = entry;
 		tex = entry.texture;
 	}
@@ -610,15 +615,15 @@ have_texture:
 	// Stretch picture with increased internal resolution
 	vp.X = 0;
 	vp.Y = 0;
-	vp.Width  = tex_w;
-	vp.Height = tex_h;
+	vp.Width  = Scaledtex_w;
+	vp.Height = Scaledtex_h;
 	vp.MinZ = 0.0f;
 	vp.MaxZ = 1.0f;
 	D3D::dev->SetViewport(&vp);
 	RECT destrect;
-	destrect.bottom = tex_h;
+	destrect.bottom = Scaledtex_h;
 	destrect.left = 0;
-	destrect.right = tex_w;
+	destrect.right = Scaledtex_w;
 	destrect.top = 0;
 	
 

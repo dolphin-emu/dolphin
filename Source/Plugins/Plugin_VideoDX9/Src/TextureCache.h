@@ -40,6 +40,7 @@ public:
 		
 		int frameCount;
 		int w, h, fmt;
+		int Scaledw, Scaledh;
 
 		float scaleX, scaleY; // Hires texutres need this
 
@@ -59,6 +60,10 @@ public:
 			scaleX = 1.0f;
 			scaleY = 1.0f;
 			isNonPow2 = true;
+			w = 0;
+			h = 0;
+			Scaledw = 0;
+			Scaledh = 0;
 		}
 		void Destroy(bool shutdown);
 		bool IntersectsMemoryRange(u32 range_address, u32 range_size);

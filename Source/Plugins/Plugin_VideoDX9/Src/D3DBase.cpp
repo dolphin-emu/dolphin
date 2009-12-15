@@ -457,6 +457,11 @@ void SetTexture(DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture)
 	}
 }
 
+void RefreshRenderState(D3DRENDERSTATETYPE State)
+{
+	D3D::dev->SetRenderState(State, m_RenderStates[State]);	
+}
+
 void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value)
 {
 	if (m_RenderStates[State] != Value)

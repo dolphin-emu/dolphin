@@ -75,6 +75,7 @@ void ShowD3DError(HRESULT err);
 // The following are "filtered" versions of the corresponding D3Ddev-> functions.
 void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
 void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);
+void RefreshRenderState(D3DRENDERSTATETYPE State);
 void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
 void RefreshSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type);
 void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
