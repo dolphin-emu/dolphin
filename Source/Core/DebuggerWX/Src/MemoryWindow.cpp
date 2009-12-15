@@ -360,7 +360,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event){
 		//sprintf(tmpstr,"%s%s",tmpstr,rawData.c_str());
 		 //strcpy(&tmpstr[1],rawData.ToAscii());
 		//memcpy(&tmpstr[1],&rawData.c_str()[0],rawData.size());
-		sprintf(tmpstr,"%s%s",tmpstr,rawData.To8BitData());
+		sprintf(tmpstr,"%s%s",tmpstr,(const char *)rawData.mb_str());
           tmp2=&Dest.front();
 		  count=0;
 		  for(i=0;i<strlen(tmpstr);i++){
@@ -382,7 +382,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event){
 					
 					
 				tmp2=&Dest.front();
-				sprintf(tmpstr,"%s",rawData.To8BitData());
+				sprintf(tmpstr,"%s",(const char *)rawData.mb_str());
 				for(i=0;i<size;i++){
                   tmp2[i]=tmpstr[i];
 				}

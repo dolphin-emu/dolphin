@@ -10,21 +10,20 @@ files = [
         "Config.cpp",
         "DataReports.cpp",
         "EmuDefinitions.cpp",
-	"EmuDynamics.cpp",
+		"EmuDynamics.cpp",
         "EmuMain.cpp",
         "EmuPad.cpp",
         "EmuSubroutines.cpp",
         "Encryption.cpp",
-	"FakeAccelerometer.cpp",
         "main.cpp",
-	"Rumble.cpp",
+		"Rumble.cpp",
 	]
 if wmenv['HAVE_WX']:
     files += [
         "ConfigBasicDlg.cpp",
         "ConfigPadDlg.cpp",
         "ConfigRecordingDlg.cpp",
-	"ConfigGamepad.cpp",
+		"ConfigGamepad.cpp",
         "ConfigRecording.cpp",
         "FillReport.cpp",
         ]
