@@ -611,6 +611,7 @@ enum
 	SPR_TU    = 269,
 	SPR_TL_W  = 284,
 	SPR_TU_W  = 285,
+	SPR_PVR   = 287,
 	SPR_SPRG0 = 272,
 	SPR_SPRG1 = 273,
 	SPR_SPRG2 = 274,
@@ -637,7 +638,11 @@ enum
 	SPR_HID2  = 920,
 	SPR_WPAR  = 921,
 	SPR_DMAU  = 922,
-	SPR_DMAL  = 923
+	SPR_DMAL  = 923,
+	SPR_ECID_U = 924,
+	SPR_ECID_M = 925,
+	SPR_ECID_L = 926,
+	SPR_L2CR  = 1017
 };
 
 // Exceptions

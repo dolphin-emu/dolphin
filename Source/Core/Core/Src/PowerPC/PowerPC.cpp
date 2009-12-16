@@ -79,6 +79,21 @@ void ResetRegisters()
 	}
 
 	memset(ppcState.spr, 0, sizeof(ppcState.spr));
+	/*
+	0x00080200 = lonestar 2.0
+	0x00088202 = lonestar 2.2
+	0x70000100 = gekko 1.0
+	0x00080100 = gekko 2.0
+	0x00083203 = gekko 2.3a
+	0x00083213 = gekko 2.3b
+	0x00083204 = gekko 2.4
+	0x00083214 = gekko 2.4e (8SE) - retail HW2
+	*/
+	ppcState.spr[SPR_PVR] = 0x00083214;
+	ppcState.spr[SPR_HID1] = 0x80000000; // We're running at 3x the bus clock
+	ppcState.spr[SPR_ECID_U] = 0x0d96e200;
+	ppcState.spr[SPR_ECID_M] = 0x1840c00d;
+	ppcState.spr[SPR_ECID_L] = 0x82bb08e8;
 
 	ppcState.cr = 0;
 	ppcState.fpscr = 0;
@@ -89,6 +104,7 @@ void ResetRegisters()
 	TL = 0;
 	TU = 0;
 
+	// MSR should be 0x40, but we don't emulate BS1, so it would never be turned off :}
 	ppcState.msr = 0;
 	rDEC = 0xFFFFFFFF;
 }

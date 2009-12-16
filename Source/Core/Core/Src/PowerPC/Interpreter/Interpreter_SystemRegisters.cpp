@@ -370,6 +370,7 @@ void mtspr(UGeckoInstruction _inst)
 		GPFifo::ResetGatherPipe();
 		break;
 
+	// Graphics Quantization Registers
 	case SPR_GQR0:
 	case SPR_GQR0 + 1:
 	case SPR_GQR0 + 2:
@@ -397,6 +398,10 @@ void mtspr(UGeckoInstruction _inst)
 				Memory::DMA_LCToMemory(dwMemAddress, dwCacheAddress, iLength);
 		}
 		DMAL.DMA_T = 0;
+		break;
+
+	case SPR_L2CR:
+		//PanicAlert("mtspr( L2CR )!");
 		break;
 
 	case SPR_DEC:

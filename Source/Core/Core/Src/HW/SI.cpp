@@ -252,7 +252,7 @@ void Init()
 	g_ComCSR.Hex = 0;
 	g_StatusReg.Hex = 0;
 	g_EXIClockCount.Hex = 0;
-	memset(g_SIBuffer, 0xce, 128); // This could be the cause of "WII something" in GCController
+	memset(g_SIBuffer, 0, 128);
 
 	changeDevice = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
 }

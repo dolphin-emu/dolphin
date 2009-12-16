@@ -38,7 +38,7 @@ enum
 	PI_FIFO_WPTR            = 0x14,
 	PI_FIFO_RESET           = 0x18, // ??? - GXAbortFrame writes to it
 	PI_RESET_CODE           = 0x24,
-	PI_MB_REV               = 0x2C,
+	PI_FLIPPER_REV          = 0x2C,
 	PI_UNKNOWN				= 0x30 // ??? - BS1 writes to it
 };
 
@@ -53,7 +53,7 @@ u32 Fifo_CPUWritePointer;
 
 u32 m_Fifo_Reset;
 u32 m_ResetCode;
-u32 m_MBRev;
+u32 m_FlipperRev;
 u32 m_Unknown;
 
 
@@ -74,7 +74,7 @@ void DoState(PointerWrap &p)
 	p.Do(Fifo_CPUWritePointer);
  	p.Do(m_Fifo_Reset);
  	p.Do(m_ResetCode);
- 	p.Do(m_MBRev);
+ 	p.Do(m_FlipperRev);
 	p.Do(m_Unknown);
 }
 
@@ -86,13 +86,17 @@ void Init()
 	Fifo_CPUBase = 0;
 	Fifo_CPUEnd = 0;
 	Fifo_CPUWritePointer = 0;
-
-	m_MBRev = 2 << 28; // HW2 production board
+	/*
+	Previous Flipper IDs:
+	0x046500B0 = A
+	0x146500B1 = B
+	*/
+	m_FlipperRev = 0x246500B1; // revision C
 	m_Unknown = 0;
 
 	// Bleh, why?
 	//m_ResetCode |= 0x80000000;
-	//m_InterruptCause |= INT_CAUSE_RST_BUTTON;
+	m_InterruptCause = INT_CAUSE_RST_BUTTON | INT_CAUSE_VI;
 
 	toggleResetButton = CoreTiming::RegisterEvent("ToggleResetButton", &ToggleResetButtonCallback);
 }
@@ -132,9 +136,9 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		_uReturnValue = m_ResetCode;
 		return;
 
-	case PI_MB_REV:
-		INFO_LOG(PROCESSORINTERFACE, "read board rev, 0x%08x", m_MBRev);
-		_uReturnValue = m_MBRev;
+	case PI_FLIPPER_REV:
+		INFO_LOG(PROCESSORINTERFACE, "read flipper rev, 0x%08x", m_FlipperRev);
+		_uReturnValue = m_FlipperRev;
 		return;
 		
 	default:
