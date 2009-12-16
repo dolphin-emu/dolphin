@@ -20,6 +20,7 @@
 
 #include "Common.h"
 #include "pluginspecs_video.h"
+
 class PointerWrap;
 
 extern bool MT;
@@ -65,6 +66,15 @@ enum
 	CP_PERF2_H                  = 0x4a,
 	CP_PERF3_L                  = 0x4c,
 	CP_PERF3_H                  = 0x4e,
+	VCACHE_METRIC_CHECK_LO	= 0x50,
+	VCACHE_METRIC_CHECK_HI	= 0x52,
+	VCACHE_METRIC_MISS_LO	= 0x54,
+	VCACHE_METRIC_MISS_HI	= 0x56,
+	VCACHE_METRIC_STALL_LO	= 0x58,
+	VCACHE_METRIC_STALL_HI	= 0x5A,
+	CLKS_PER_VTX_IN0		= 0x60,
+	CLKS_PER_VTX_IN1		= 0x62,
+	CLKS_PER_VTX_OUT		= 0x64,
 };
 
 enum
@@ -108,7 +118,7 @@ union UCPCtrlReg
 	UCPCtrlReg(u16 _hex) {Hex = _hex; }
 };
 
-// Fifo Control Register
+// Fifo Clear Register
 union UCPClearReg
 {
 	struct
@@ -147,6 +157,9 @@ bool AllowIdleSkipping();
 // for DC GP watchdog hack
 void IncrementGPWDToken();
 void WaitForFrameFinish();
+
+void FifoCriticalEnter();
+void FifoCriticalLeave();
 
 } // namespace CommandProcessor
 

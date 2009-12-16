@@ -19,9 +19,9 @@
 #define _FIFO_H
 
 #include "pluginspecs_video.h"
-
 #include "Common.h"
-#include "ChunkFile.h"
+
+class PointerWrap;
 
 #define FIFO_SIZE (1024*1024)
 
