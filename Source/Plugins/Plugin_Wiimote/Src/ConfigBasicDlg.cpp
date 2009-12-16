@@ -68,6 +68,8 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 
 void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
 {
+	// necessary as this dialog is only showed/hided
+	UpdateGUI();
 	g_FrameOpen = false;
 	EndModal(wxID_CLOSE);
 }
@@ -123,7 +125,6 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 		break;
 	}
 }
-
 
 // Execute a delayed function
 void WiimoteBasicConfigDialog::UpdateOnce(wxTimerEvent& event)
@@ -455,20 +456,30 @@ void WiimoteBasicConfigDialog::UpdateIRCalibration()
 
 void WiimoteBasicConfigDialog::UpdateGUI(int Slot)
 {
-	// Update the Wiimote IR pointer calibration
-	UpdateIRCalibration();
-
-	/* We only allow a change of extension if we are not currently using the real Wiimote, if it's in use the status will be updated
-	   from the data scanning functions in main.cpp */
-	bool AllowExtensionChange = !(g_RealWiiMotePresent && g_Config.bConnectRealWiimote && g_Config.bUseRealWiimote && g_EmulatorRunning);
-	extensionChoice[Page]->SetSelection(g_Config.iExtensionConnected);
-	extensionChoice[Page]->Enable(AllowExtensionChange);
-
 	/* I have disabled this option during a running game because it's enough to be able to switch
 	   between using and not using then. To also use the connect option during a running game would
 	   mean that the wiimote must be sent the current reporting mode and the channel ID after it
 	   has been initialized. Functions for that are basically already in place so these two options
 	   could possibly be simplified to one option. */
+	m_ConnectRealWiimote[Page]->SetValue(g_Config.bConnectRealWiimote);
 	m_ConnectRealWiimote[Page]->Enable(!g_EmulatorRunning);
+
+	m_UseRealWiimote[Page]->SetValue(g_Config.bUseRealWiimote);
 	m_UseRealWiimote[Page]->Enable((m_bEnableUseRealWiimote && g_RealWiiMotePresent && g_Config.bConnectRealWiimote) || (!g_EmulatorRunning && g_Config.bConnectRealWiimote));
+
+	m_InputActive[Page]->SetValue(g_Config.bInputActive);
+	m_SidewaysWiimote[Page]->SetValue(g_Config.bSideways);
+	m_UprightWiimote[Page]->SetValue(g_Config.bUpright);
+	m_WiiMotionPlusConnected[Page]->SetValue(g_Config.bMotionPlusConnected);
+
+	/* We only allow a change of extension if we are not currently using the real Wiimote, if it's in use the status will be updated
+	   from the data scanning functions in main.cpp */
+	bool AllowExtensionChange = !(g_RealWiiMotePresent && g_Config.bConnectRealWiimote && g_Config.bUseRealWiimote && g_EmulatorRunning);
+
+	extensionChoice[Page]->SetSelection(g_Config.iExtensionConnected);
+	extensionChoice[Page]->Enable(AllowExtensionChange);
+
+	// Update the Wiimote IR pointer calibration
+	UpdateIRCalibration();
 }
+

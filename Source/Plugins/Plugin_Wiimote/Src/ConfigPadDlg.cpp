@@ -260,7 +260,7 @@ void WiimotePadConfigDialog::DoSave(bool ChangePad, int Slot)
 		for(int i = 0; i < 1; i++)	// Only got 1 wiimote yet
 			SaveButtonMapping(i, true);
 		// Save the settings for the current pad
-		g_Config.Save(Slot);
+//		g_Config.Save(Slot);
 		// Now we can update the ID
 		WiiMoteEmu::PadMapping[Page].ID = m_Joyname[Page]->GetSelection();
 	}
@@ -269,7 +269,7 @@ void WiimotePadConfigDialog::DoSave(bool ChangePad, int Slot)
 		// Update PadMapping[] from the GUI controls
 		for(int i = 0; i < 1; i++) // Only got 1 wiimote yet
 			SaveButtonMapping(i);
-		g_Config.Save(Slot);
+//		g_Config.Save(Slot);
 	}		
 
 	// Then change it back to ""
@@ -987,7 +987,7 @@ void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		SaveButtonMappingAll(Page);
 		break;
 	}
-	g_Config.Save();
+//	g_Config.Save();
 	UpdateGUI();
 }
 
