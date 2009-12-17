@@ -75,7 +75,7 @@ class WiimotePadConfigDialog : public wxDialog
 		DECLARE_EVENT_TABLE();
 
 		bool ControlsCreated;
-		int Page, g_Pressed, BoxW, BoxH;
+		int Page, BoxW, BoxH;
 
 		wxString OldLabel;
 
@@ -300,7 +300,7 @@ class WiimotePadConfigDialog : public wxDialog
 		void OnButtonClick(wxCommandEvent& event);
 
 		// Configure buttons
-		int GetButtonWaitingID, GetButtonWaitingTimer;
+		int GetButtonWaitingID, GetButtonWaitingTimer, g_Pressed;
 		wxString GetButtonText(int id, int Page = -1);
 };
 extern WiimotePadConfigDialog *m_PadConfigFrame;

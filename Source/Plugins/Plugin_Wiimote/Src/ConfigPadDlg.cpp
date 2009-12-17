@@ -120,6 +120,8 @@ WiimotePadConfigDialog::WiimotePadConfigDialog(wxWindow *parent, wxWindowID id, 
 	m_UpdatePadTimer = new wxTimer(this, IDTM_UPDATE_PAD);
 
 	// Reset values
+	g_Pressed = 0;
+	ClickedButton = NULL;
 	GetButtonWaitingID = 0;
 	GetButtonWaitingTimer = 0;
 
@@ -130,11 +132,10 @@ WiimotePadConfigDialog::WiimotePadConfigDialog(wxWindow *parent, wxWindowID id, 
 
 	ControlsCreated = false;
 	Page = 0;
-	ClickedButton = NULL;
 
 	//g_Config.Load();
 	CreatePadGUIControls();
-	SetBackgroundColour(m_Notebook->GetBackgroundColour());
+	//SetBackgroundColour(m_Notebook->GetBackgroundColour());
 	
 	// Set control values
 	UpdateGUI();
@@ -195,10 +196,10 @@ void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 				}
 			}
 		#elif defined(HAVE_X11) && HAVE_X11
-			g_Pressed = InputCommon::wxCharCodeWXToX(g_Pressed);
-			InputCommon::XKeyToString(g_Pressed, keyStr);
+			int XKey = InputCommon::wxCharCodeWXToX(g_Pressed);
+			InputCommon::XKeyToString(XKey, keyStr);
 			SetButtonText(ClickedButton->GetId(), keyStr);
-			SaveKeyboardMapping(Page, ClickedButton->GetId(), g_Pressed);
+			SaveKeyboardMapping(Page, ClickedButton->GetId(), XKey);
 		#endif
 		}
 		m_ButtonMappingTimer->Stop();
@@ -211,12 +212,12 @@ void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 // Input button clicked
 void WiimotePadConfigDialog::OnButtonClick(wxCommandEvent& event)
 {
-	//DEBUG_LOG(WIIMOTE, "OnButtonClick: %i", g_Pressed);
-
-	if (m_ButtonMappingTimer->IsRunning()) return;
+	event.Skip();
 
 	// Don't allow space to start a new Press Key option, that will interfer with setting a key to space
 	if (g_Pressed == WXK_SPACE) { g_Pressed = 0; return; }
+
+	if (m_ButtonMappingTimer->IsRunning()) return;
 
 	// Create the button object
 	ClickedButton = (wxButton *)event.GetEventObject();

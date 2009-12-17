@@ -410,6 +410,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	int value; // Axis value or Hat value
 	int type; // Button type
 
+	int KeyPressed = 0;
 	int pressed = 0;
 	bool Succeed = false;
 	bool Stop = false; // Stop the timer
@@ -426,8 +427,6 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 		 // Save the button Id
 		GetButtonWaitingID = _GetId;
 		GetButtonWaitingTimer = 0;
-		// Reset the key in case we happen to have an old one
-		g_Pressed = 0;
 
 		// Start the timer
 		#if wxUSE_TIMER
@@ -446,7 +445,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	{
 		InputCommon::GetButton(
 			WiiMoteEmu::joyinfo[PadID].joy, PadID, WiiMoteEmu::joyinfo[PadID].NumButtons, WiiMoteEmu::joyinfo[PadID].NumAxes, WiiMoteEmu::joyinfo[PadID].NumHats, 
-			g_Pressed, value, type, pressed, Succeed, Stop,
+			KeyPressed, value, type, pressed, Succeed, Stop,
 			LeftRight, Axis, XInput, Button, Hat, NoTriggerFilter);
 	}
 
@@ -523,7 +522,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	}
 
 	// If we got a bad button
-	if(g_Pressed == -1)
+	if(KeyPressed == -1)
 	{
 		// Update text
 		SetButtonTextAll(_GetId, (char *)"PAD: -1");
