@@ -328,7 +328,7 @@ void ExecuteCommand(u32 _Address)
 				{
 					// We have already opened this device, return -6
 					if(pDevice->IsOpened())
-						Memory::Write_U32(u32(-6), _Address + 4);
+						Memory::Write_U32(/*u32(-6)*/DeviceID, _Address + 4);
 					else
 						pDevice->Open(_Address, Mode);
 				}
