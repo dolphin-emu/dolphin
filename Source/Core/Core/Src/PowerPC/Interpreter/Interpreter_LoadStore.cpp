@@ -318,20 +318,58 @@ void dcbz(UGeckoInstruction _inst)
 	// HACK but works... we think
 	Memory::Memset(Helper_Get_EA_X(_inst) & (~31), 0, 32);
 }
- 
+
+// eciwx/ecowx technically should access the specified device
+// We just do it instantly from ppc...and hey, it works! :D
 void eciwx(UGeckoInstruction _inst)
 {
-	_assert_msg_(POWERPC,0,"eciwx - Not implemented"); 
+	u32 EA, b;
+	if (_inst.RA == 0)
+		b = 0;
+	else
+		b = m_GPR[_inst.RA];
+	EA = b + m_GPR[_inst.RB];
+
+	if (!PowerPC::ppcState.spr[SPR_EAR] & 0x80000000)
+		PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
+	//else if?
+	if (EA & 3)
+		PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
+
+// 	_assert_msg_(POWERPC,0,"eciwx - fill r%i with word @ %08x from device %02x",
+// 		_inst.RS, EA, PowerPC::ppcState.spr[SPR_EAR] & 0x1f);
+
+	m_GPR[_inst.RS] = Memory::Read_U32(EA);
 }
 
 void ecowx(UGeckoInstruction _inst)
 {
-	_assert_msg_(POWERPC,0,"ecowx - Not implemented"); 
+	u32 EA, b;
+	if (_inst.RA == 0)
+		b = 0;
+	else
+		b = m_GPR[_inst.RA];
+	EA = b + m_GPR[_inst.RB];
+
+	if (!PowerPC::ppcState.spr[SPR_EAR] & 0x80000000)
+		PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
+	//else if?
+	if (EA & 3)
+		PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
+	
+// 	_assert_msg_(POWERPC,0,"ecowx - send stw request (%08x@%08x) to device %02x",
+// 		m_GPR[_inst.RS], EA, PowerPC::ppcState.spr[SPR_EAR] & 0x1f);
+
+	Memory::Write_U32(m_GPR[_inst.RS], EA);
 }
 
 void eieio(UGeckoInstruction _inst)
 {
-	_assert_msg_(POWERPC,0,"eieio - Not implemented"); 
+	// Basically ensures that loads/stores before this instruction
+	// have completed (in order) before executing the next op.
+	// Prevents real ppc from "smartly" reordering loads/stores
+	// But (at least in interpreter) we do everything realtime anyways.
+	//_assert_msg_(POWERPC,0,"eieio - Not implemented"); 
 }
 
 void icbi(UGeckoInstruction _inst)
