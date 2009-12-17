@@ -484,9 +484,11 @@ void Write16(const u16 _Value, const u32 _Address)
 	// TODO(mb2): better. Check if it help: avoid CPReadPointer overwrites when stupidly done like in Super Monkey Ball
 	if ((!fifo.bFF_GPReadEnable && fifo.CPReadIdle) || !g_VideoInitialize.bOnThread) // TOCHECK(mb2): check again if thread safe?
 	{
-		if (g_VideoInitialize.bOnThread) FifoCriticalEnter();	// This may not be necessary, just for safety
+// Disabling this thread synchronization check does boost the speed
+// Hope it is safe to skip this check
+//		if (g_VideoInitialize.bOnThread) FifoCriticalEnter();	// This may not be necessary, just for safety
 		UpdateFifoRegister();
-		if (g_VideoInitialize.bOnThread) FifoCriticalLeave();
+//		if (g_VideoInitialize.bOnThread) FifoCriticalLeave();
 	}
 }
 
@@ -536,9 +538,7 @@ void STACKALIGN GatherPipeBursted()
         else
 		    fifo.CPWritePointer += GATHER_PIPE_SIZE;
 
-		FifoCriticalEnter();	// This may not be necessary, just for safety
         Common::AtomicAdd(fifo.CPReadWriteDistance, GATHER_PIPE_SIZE);
-		FifoCriticalLeave();
 
 		// High watermark overflow handling (hacked way)
 		if (fifo.CPReadWriteDistance > fifo.CPHiWatermark)

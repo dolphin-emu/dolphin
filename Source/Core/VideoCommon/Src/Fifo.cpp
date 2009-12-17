@@ -137,8 +137,6 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			VideoFifo_CheckEFBAccess();
 		VideoFifo_CheckSwapRequest();
 
-		CommandProcessor::FifoCriticalEnter();
-
         // check if we are able to run this buffer
 		if (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance && !_fifo.bFF_Breakpoint)
 		{
@@ -152,6 +150,8 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				// Create pointer to video data and send it to the VideoPlugin
 				u32 readPtr = _fifo.CPReadPointer;
 				u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
+
+				CommandProcessor::FifoCriticalEnter();
 
 // It looks like even in BP mode, we still can send all the chunks we have
 /*
@@ -194,6 +194,9 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 
 				Common::AtomicStore(_fifo.CPReadPointer, readPtr);
 				Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);
+
+				CommandProcessor::FifoCriticalLeave();
+
 /*
 				video_initialize.pPeekMessages();
 				if (g_ActiveConfig.bEFBAccessEnable)
@@ -208,8 +211,6 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		{
 			Common::YieldCPU();
 		}
-
-		CommandProcessor::FifoCriticalLeave();
     }
 	fifo_exit_event.Set();
 }
