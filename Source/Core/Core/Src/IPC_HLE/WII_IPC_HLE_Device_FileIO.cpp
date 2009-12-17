@@ -130,7 +130,7 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	s32 SeekPosition	= Memory::Read_U32(_CommandAddress + 0xC);
 	s32 Mode			= Memory::Read_U32(_CommandAddress + 0x10);  
 
-	INFO_LOG(WII_IPC_FILEIO, "FileIO: Old Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition, Mode, m_Name.c_str(), m_FileLength);	
+	INFO_LOG(WII_IPC_FILEIO, "FileIO: Old Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition, Mode, m_Name.c_str(), m_FileLength);
 
 	// TODO : The following hack smells bad 
 	/* Zelda - TP Fix: It doesn't make much sense but it works in Zelda - TP and
@@ -208,6 +208,10 @@ bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 		size_t Result = fwrite(Memory::GetPointer(Address), Size, 1, m_pFileHandle);
         _dbg_assert_msg_(WII_IPC_FILEIO, Result == 1, "fwrite failed");   
         ReturnValue = Size;
+
+		u32 NewPosition = (u32)ftell(m_pFileHandle);
+		if (NewPosition > m_FileLength)		// Oops, we made the file longer... let's update m_FileLength then
+			m_FileLength = NewPosition;
 	}
 
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
