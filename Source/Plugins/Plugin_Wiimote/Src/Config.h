@@ -24,7 +24,7 @@
 
 #define AN_CONTROLS 6
 #define WM_CONTROLS 16
-#define NC_CONTROLS 7
+#define NC_CONTROLS 11
 #define CC_CONTROLS 23
 #define GH3_CONTROLS 14
 
@@ -61,7 +61,8 @@ struct Config
 			ANALOG2,
 			TRIGGER
 		};
-		int Type;
+		int TypeWM;
+		int TypeNC;
 		bool RollInvert;
 		bool PitchInvert;
 		TiltRange Range;

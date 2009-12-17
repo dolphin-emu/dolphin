@@ -89,13 +89,16 @@ void AdjustAngles(int &Roll, int &Pitch)
 
 
 // Angles to accelerometer values
-void PitchDegreeToAccelerometer(int _Roll, int _Pitch, int &_x, int &_y, int &_z)
+void TiltToAccelerometer(int &_x, int &_y, int &_z, STiltData &_TiltData)
 {
+	if (_TiltData.Roll == 0 && _TiltData.Pitch == 0)
+		return;
+
 	// We need radiands for the math functions
-	float Roll = InputCommon::Deg2Rad((float)_Roll);
-	float Pitch = InputCommon::Deg2Rad((float)_Pitch);
+	float Roll = InputCommon::Deg2Rad((float)_TiltData.Roll);
+	float Pitch = InputCommon::Deg2Rad((float)_TiltData.Pitch);
 	// We need float values
-	float x = 0.0f, y = 0.0f, z = 0.0f;
+	float x = 0.0f, y = 0.0f, z = 1.0f; // Gravity
 
 	// In these cases we can use the simple and accurate formula
 	if(g_Config.Tilt.Range.Roll && g_Config.Tilt.Range.Pitch == 0)
@@ -155,14 +158,14 @@ void PitchDegreeToAccelerometer(int _Roll, int _Pitch, int &_x, int &_y, int &_z
 	// Direct mapping for swing, from analog stick to accelerometer
 	if (g_Config.Tilt.Range.Roll == 0)
 	{
-		_x -= _Roll;
+		_x -= _TiltData.Roll;
 	}
 	if (g_Config.Tilt.Range.Pitch == 0)
 	{
 		if (!g_Config.bUpright)
-			_z -= _Pitch;
+			_z -= _TiltData.Pitch;
 		else	// Upright wiimote
-			_y += _Pitch;
+			_y += _TiltData.Pitch;
 	}
 }
 

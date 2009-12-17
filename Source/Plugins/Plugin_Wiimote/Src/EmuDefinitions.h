@@ -171,12 +171,20 @@ struct SIR
 	int Distance;
 };
 
-class ShakeData
+struct STiltData
 {
-	public:
-	ShakeData();
+	// FakeNoise is used to prevent disconnection
+	// when there is no input for a long time
+	int FakeNoise;
 	int Shake;
 	int Roll, Pitch;
+	STiltData()
+	{
+		FakeNoise = 1;
+		Shake = 0;
+		Roll = 0;
+		Pitch = 0;
+	}
 };
 
 
@@ -199,9 +207,10 @@ struct KeyboardWiimote
 
 	// Raw X and Y coordinate and processed X and Y coordinates
 	SIR IR;
-	ShakeData shakeData;
+	STiltData TiltData;
 };
-	extern KeyboardWiimote g_Wiimote_kbd;
+extern KeyboardWiimote g_Wiimote_kbd;
+
 struct KeyboardNunchuck
 {
 	enum EKeyboardNunchuck
@@ -214,12 +223,16 @@ struct KeyboardNunchuck
 		#endif
 		C,
 		L, R, U, D,
+		ROLL_L, ROLL_R,
+		PITCH_U, PITCH_D,
 		SHAKE,
 		LAST_CONSTANT
 	};
-	ShakeData shakeData;
+
+	STiltData TiltData;
 };
 extern KeyboardNunchuck g_NunchuckExt;
+
 struct KeyboardClassicController
 {
 	enum EKeyboardClassicController
@@ -228,7 +241,7 @@ struct KeyboardClassicController
 		#ifdef _WIN32
 			A = g_NunchuckExt.LAST_CONSTANT,
 		#else
-			A = 25,
+			A = 29,
 		#endif
 		B, X, Y,
 		P, M, H,
@@ -249,7 +262,7 @@ struct KeyboardGH3GLP
 		#ifdef _WIN32
 			Green = g_ClassicContExt.LAST_CONSTANT,
 		#else
-			Green = 48,
+			Green = 52,
 		#endif
 		Red, Yellow, Blue, Orange,
 		Plus, Minus, Whammy,

@@ -191,8 +191,8 @@ struct PadWiimote
 };
 struct PadNunchuck
 {
-	int keyForControls[7];
-	// Order is Z, C, L, R, U, D, Shake
+	int keyForControls[11];
+	// Order is Z, C, L, R, U, D, RollL, RollR, PitchU, PitchD, Shake
 };
 struct PadClassicController
 {

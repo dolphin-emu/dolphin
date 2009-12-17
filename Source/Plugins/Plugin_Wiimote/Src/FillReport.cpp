@@ -433,20 +433,14 @@ Y     |. .||     Z
 
 */
 
-void StartShake(ShakeData &shakeData) {
-	if (shakeData.Shake <= 0) shakeData.Shake = 1;
-}
-
 // Single shake step of all three directions
-void SingleShake(int &_x, int &_y, int &_z, ShakeData &shakeData)
+void ShakeToAccelerometer(int &_x, int &_y, int &_z, STiltData &_TiltData)
 {
-// 	if (shakeData.Shake == 0)
-// 	{
-// 		if((wm == 0 && IsKey(g_Wiimote_kbd.SHAKE)) || (wm == 1 && IsKey(g_NunchuckExt.SHAKE)))
-// 			Shake[wm] = 1;
-// 	}
-	switch(shakeData.Shake)
+	switch(_TiltData.Shake)
 	{
+	case 0:
+		_TiltData.Shake = -1;
+		break;
 	case 1:
 	case 3:
 		_x = g_wm.cal_zero.x / 2;
@@ -475,18 +469,21 @@ void SingleShake(int &_x, int &_y, int &_z, ShakeData &shakeData)
 		_z = 0x80;
 		break;
 	default:
-		shakeData.Shake = -1;
+		_TiltData.Shake = -1;
 		break;
 	}
-	shakeData.Shake++;
-	//if (Shake[wm] != 0) DEBUG_LOG(WIIMOTE, "Shake: %i - 0x%02x, 0x%02x, 0x%02x", Shake[wm], _x, _y, _z);
+	_TiltData.Shake++;
+	
+	if (_TiltData.Shake != 0)
+	{
+		DEBUG_LOG(WIIMOTE, "Shake: %i - 0x%02x, 0x%02x, 0x%02x", _TiltData.Shake, _x, _y, _z);
+	}
 }
 
-
-/* Tilting Wiimote with gamepad. We can guess that the game will calculate a
-   Wiimote pitch and use it as a measure of the tilting of the Wiimote. We are
+/* Tilting by gamepad. We can guess that the game will calculate
+   roll and pitch and use them as measures of the tilting. We are
    interested in this tilting range 90 to -90*/
-void TiltWiimoteGamepad(int &Roll, int &Pitch)
+void TiltByGamepad(STiltData &_TiltData, int Type)
 {
 	// Return if we have no pads
 	if (NumGoodPads == 0) return;
@@ -508,7 +505,7 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 	int &PitchRange = g_Config.Tilt.Range.Pitch;
 
 	// The trigger currently only controls pitch, no roll, no free swing
-	if (g_Config.Tilt.Type == g_Config.Tilt.TRIGGER)
+	if (Type == g_Config.Tilt.TRIGGER)
 	{
 		// Make the range the same dimension as the analog stick
 		Tl = Tl / 2;
@@ -516,13 +513,13 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 		// Invert
 		if (g_Config.Tilt.PitchInvert) { Tl = -Tl; Tr = -Tr; }
 		// The final value
-		Pitch = (float)PitchRange * ((float)(Tl - Tr) / 128.0f);
+		_TiltData.Pitch = (float)PitchRange * ((float)(Tl - Tr) / 128.0f);
 	}
 
 	/* For the analog stick roll is by default set to the X-axis, pitch is by
 	   default set to the Y-axis.  By changing the axis mapping and the invert
 	   options this can be altered in any way */
-	else if (g_Config.Tilt.Type == g_Config.Tilt.ANALOG1)
+	else if (Type == g_Config.Tilt.ANALOG1)
 	{
 		// Adjust the trigger to go between negative and positive values
 		Lx = Lx - 0x80;
@@ -531,8 +528,8 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 		if (g_Config.Tilt.RollInvert) Lx = -Lx; // else Tr = -Tr;
 		if (g_Config.Tilt.PitchInvert) Ly = -Ly; // else Tr = -Tr;
 		// Produce the final value
-		Roll = (RollRange) ? (float)RollRange * ((float)Lx / 128.0f) : Lx;
-		Pitch = (PitchRange) ? (float)PitchRange * ((float)Ly / 128.0f) : Ly;
+		_TiltData.Roll = (RollRange) ? (float)RollRange * ((float)Lx / 128.0f) : Lx;
+		_TiltData.Pitch = (PitchRange) ? (float)PitchRange * ((float)Ly / 128.0f) : Ly;
 	}
 	// Otherwise we are using ANALOG2
 	else
@@ -544,105 +541,192 @@ void TiltWiimoteGamepad(int &Roll, int &Pitch)
 		if (g_Config.Tilt.RollInvert) Rx = -Rx; // else Tr = -Tr;
 		if (g_Config.Tilt.PitchInvert) Ry = -Ry; // else Tr = -Tr;
 		// Produce the final value
-		Roll = (RollRange) ? (float)RollRange * ((float)Rx / 128.0f) : Rx;
-		Pitch = (PitchRange) ? (float)PitchRange * ((float)Ry / 128.0f) : Ry;
+		_TiltData.Roll = (RollRange) ? (float)RollRange * ((float)Rx / 128.0f) : Rx;
+		_TiltData.Pitch = (PitchRange) ? (float)PitchRange * ((float)Ry / 128.0f) : Ry;
 	}
 }
 
-
-// Tilting Wiimote with keyboard
-void TiltWiimoteKeyboard(int &Roll, int &Pitch)
+// Tilting Wiimote by keyboard
+void TiltByKeyboardWM(STiltData &_TiltData)
 {
 	// Do roll/pitch or free swing
 	if (IsKey(g_Wiimote_kbd.ROLL_L))
 	{
 		if (g_Config.Tilt.Range.Roll)
 		{
-			// Stop at the upper end of the range
-			if (Roll < g_Config.Tilt.Range.Roll)
-				Roll += 3; // aim left
+			// Stop at the lower end of the range
+			if (_TiltData.Roll > -g_Config.Tilt.Range.Roll)
+				_TiltData.Roll -= 3; // aim left
 		}
 		else // Free swing
 		{
-			Roll = -0x80 / 2;
+			_TiltData.Roll = -0x80 / 2;
 		}
 	}
 	else if (IsKey(g_Wiimote_kbd.ROLL_R))
 	{
 		if (g_Config.Tilt.Range.Roll)
 		{
-			// Stop at the lower end of the range
-			if (Roll > -g_Config.Tilt.Range.Roll)
-				Roll -= 3; // aim right
+			// Stop at the upper end of the range
+			if (_TiltData.Roll < g_Config.Tilt.Range.Roll)
+				_TiltData.Roll += 3; // aim right
 		}
 		else // Free swing
 		{
-			Roll = 0x80 / 2;
+			_TiltData.Roll = 0x80 / 2;
 		}
 	}
 	else
 	{
-		Roll = 0;
+		_TiltData.Roll = 0;
 	}
 	if (IsKey(g_Wiimote_kbd.PITCH_U))
 	{
 		if (g_Config.Tilt.Range.Pitch)
 		{
-			// Stop at the upper end of the range
-			if (Pitch < g_Config.Tilt.Range.Pitch)
-				Pitch += 3; // aim up
+			// Stop at the lower end of the range
+			if (_TiltData.Pitch > -g_Config.Tilt.Range.Pitch)
+				_TiltData.Pitch -= 3; // aim down
 		}
 		else // Free swing
 		{
-			Pitch = -0x80 / 2;
+			_TiltData.Pitch = -0x80 / 2;
 		}
 	}
 	else if (IsKey(g_Wiimote_kbd.PITCH_D))
 	{
 		if (g_Config.Tilt.Range.Pitch)
 		{
-			// Stop at the lower end of the range
-			if (Pitch > -g_Config.Tilt.Range.Pitch)
-				Pitch -= 3; // aim down
+			// Stop at the upper end of the range
+			if (_TiltData.Pitch < g_Config.Tilt.Range.Pitch)
+				_TiltData.Pitch += 3; // aim up
 		}
 		else // Free swing
 		{
-			Pitch = 0x80 / 2;
+			_TiltData.Pitch = 0x80 / 2;
 		}
 	}
 	else
 	{
-		Pitch = 0;
+		_TiltData.Pitch = 0;
+	}
+}
+
+// Tilting Nunchuck by keyboard
+void TiltByKeyboardNC(STiltData &_TiltData)
+{
+	// Do roll/pitch or free swing
+	if (IsKey(g_NunchuckExt.ROLL_L))
+	{
+		if (g_Config.Tilt.Range.Roll)
+		{
+			// Stop at the lower end of the range
+			if (_TiltData.Roll > -g_Config.Tilt.Range.Roll)
+				_TiltData.Roll -= 3; // aim left
+		}
+		else // Free swing
+		{
+			_TiltData.Roll = -0x80 / 2;
+		}
+	}
+	else if (IsKey(g_NunchuckExt.ROLL_R))
+	{
+		if (g_Config.Tilt.Range.Roll)
+		{
+			// Stop at the upper end of the range
+			if (_TiltData.Roll < g_Config.Tilt.Range.Roll)
+				_TiltData.Roll += 3; // aim right
+		}
+		else // Free swing
+		{
+			_TiltData.Roll = 0x80 / 2;
+		}
+	}
+	else
+	{
+		_TiltData.Roll = 0;
+	}
+	if (IsKey(g_NunchuckExt.PITCH_U))
+	{
+		if (g_Config.Tilt.Range.Pitch)
+		{
+			// Stop at the lower end of the range
+			if (_TiltData.Pitch > -g_Config.Tilt.Range.Pitch)
+				_TiltData.Pitch -= 3; // aim up
+		}
+		else // Free swing
+		{
+			_TiltData.Pitch = -0x80 / 2;
+		}
+	}
+	else if (IsKey(g_NunchuckExt.PITCH_D))
+	{
+		if (g_Config.Tilt.Range.Pitch)
+		{
+			// Stop at the upper end of the range
+			if (_TiltData.Pitch < g_Config.Tilt.Range.Pitch)
+				_TiltData.Pitch += 3; // aim down
+		}
+		else // Free swing
+		{
+			_TiltData.Pitch = 0x80 / 2;
+		}
+	}
+	else
+	{
+		_TiltData.Pitch = 0;
 	}
 }
 
 // Tilting Wiimote (Wario Land aiming, Mario Kart steering and other things)
-void Tilt(int &_x, int &_y, int &_z)
+void TiltWiimote(int &_x, int &_y, int &_z)
 {
 	// Check if it's on
-	if (g_Config.Tilt.Type == g_Config.Tilt.OFF) return;
-
+	if (g_Config.Tilt.TypeWM == g_Config.Tilt.OFF)
+		return;
 	// Select input method and return the x, y, x values
-	if (g_Config.Tilt.Type == g_Config.Tilt.KEYBOARD)
-		TiltWiimoteKeyboard(g_Wiimote_kbd.shakeData.Roll, g_Wiimote_kbd.shakeData.Pitch);
-	else if (g_Config.Tilt.Type == g_Config.Tilt.TRIGGER || g_Config.Tilt.Type == g_Config.Tilt.ANALOG1 || g_Config.Tilt.Type == g_Config.Tilt.ANALOG2)
-		TiltWiimoteGamepad(g_Wiimote_kbd.shakeData.Roll, g_Wiimote_kbd.shakeData.Pitch);
+	else if (g_Config.Tilt.TypeWM == g_Config.Tilt.KEYBOARD)
+		TiltByKeyboardWM(g_Wiimote_kbd.TiltData);
+	else
+		TiltByGamepad(g_Wiimote_kbd.TiltData, g_Config.Tilt.TypeWM);
 
 	// Adjust angles, it's only needed if both roll and pitch is used together
 	if (g_Config.Tilt.Range.Roll != 0 && g_Config.Tilt.Range.Pitch != 0)
-		AdjustAngles(g_Wiimote_kbd.shakeData.Roll, g_Wiimote_kbd.shakeData.Pitch);
+		AdjustAngles(g_Wiimote_kbd.TiltData.Roll, g_Wiimote_kbd.TiltData.Pitch);
 
 	// Calculate the accelerometer value from this tilt angle
-	PitchDegreeToAccelerometer(g_Wiimote_kbd.shakeData.Roll, g_Wiimote_kbd.shakeData.Pitch, _x, _y, _z);
+	TiltToAccelerometer(_x, _y, _z, g_Wiimote_kbd.TiltData);
 
-	//DEBUG_LOG(WIIMOTE, "Roll:%i, Pitch:%i, _x:%u, _y:%u, _z:%u", Roll, Pitch, _x, _y, _z);
+	//DEBUG_LOG(WIIMOTE, "Roll:%i, Pitch:%i, _x:%u, _y:%u, _z:%u", g_Wiimote_kbd.TiltData.Roll, g_Wiimote_kbd.TiltData.Pitch, _x, _y, _z);
+}
+
+// Tilting Nunchuck (Mad World, Dead Space and other things)
+void TiltNunchuck(int &_x, int &_y, int &_z)
+{
+	// Check if it's on
+	if (g_Config.Tilt.TypeNC == g_Config.Tilt.OFF)
+		return;
+	// Select input method and return the x, y, x values
+	else if (g_Config.Tilt.TypeNC == g_Config.Tilt.KEYBOARD)
+		TiltByKeyboardNC(g_NunchuckExt.TiltData);
+	else
+		TiltByGamepad(g_NunchuckExt.TiltData, g_Config.Tilt.TypeNC);
+
+	// Adjust angles, it's only needed if both roll and pitch is used together
+	if (g_Config.Tilt.Range.Roll != 0 && g_Config.Tilt.Range.Pitch != 0)
+		AdjustAngles(g_NunchuckExt.TiltData.Roll, g_NunchuckExt.TiltData.Pitch);
+
+	// Calculate the accelerometer value from this tilt angle
+	TiltToAccelerometer(_x, _y, _z, g_NunchuckExt.TiltData);
+
+	//DEBUG_LOG(WIIMOTE, "Roll:%i, Pitch:%i, _x:%u, _y:%u, _z:%u", g_NunchuckExt.TiltData.Roll, g_NunchuckExt.TiltData.Pitch, _x, _y, _z);
 }
 
 void FillReportAcc(wm_accel& _acc)
 {
 	// Recorded movements
 	// Check for a playback command
-	if(g_RecordingPlaying[0] < 0)
+	if (g_RecordingPlaying[0] < 0)
 	{
 		g_RecordingPlaying[0] = RecordingCheckKeys(0);
 	}
@@ -655,26 +739,34 @@ void FillReportAcc(wm_accel& _acc)
 	}
 
 	// Initial value
-	int acc_x = g_wm.cal_zero.x;
-	int acc_y = g_wm.cal_zero.y;
-	int acc_z = g_wm.cal_zero.z;
+	_acc.x = g_wm.cal_zero.x;
+	_acc.y = g_wm.cal_zero.y;
+	_acc.z = g_wm.cal_zero.z;
 
+	// Adjust position, also add some noise to prevent disconnection
 	if (!g_Config.bUpright)
-		acc_z += g_wm.cal_g.z;
+		_acc.z += g_wm.cal_g.z + g_Wiimote_kbd.TiltData.FakeNoise;
 	else	// Upright wiimote
-		acc_y -= g_wm.cal_g.y;
+		_acc.y -= g_wm.cal_g.y + g_Wiimote_kbd.TiltData.FakeNoise;
 
-	// Check that Dolphin is in focus
+	g_Wiimote_kbd.TiltData.FakeNoise = -g_Wiimote_kbd.TiltData.FakeNoise;
+
 	if (IsFocus())
 	{
-		// Check for shake button
-		if(IsKey(g_Wiimote_kbd.SHAKE)) StartShake(g_Wiimote_kbd.shakeData);
+		int acc_x = _acc.x;
+		int acc_y = _acc.y;
+		int acc_z = _acc.z;
+
+		if (IsKey(g_Wiimote_kbd.SHAKE) && g_Wiimote_kbd.TiltData.Shake == 0)
+			g_Wiimote_kbd.TiltData.Shake = 1;
+
 		// Step the shake simulation one step
-		SingleShake(acc_x, acc_y, acc_z, g_Wiimote_kbd.shakeData);
+		ShakeToAccelerometer(acc_x, acc_y, acc_z, g_Wiimote_kbd.TiltData);
 
 		// Tilt Wiimote, allow the shake function to interrupt it
-		if (g_Wiimote_kbd.shakeData.Shake == 0)	Tilt(acc_x, acc_y, acc_z);
-	
+		if (g_Wiimote_kbd.TiltData.Shake == 0)
+			TiltWiimote(acc_x, acc_y, acc_z);
+
 		// Boundary check
 		if (acc_x > 0xFF)	acc_x = 0xFF;
 		else if (acc_x < 0x00)	acc_x = 0x00;
@@ -682,11 +774,11 @@ void FillReportAcc(wm_accel& _acc)
 		else if (acc_y < 0x00)	acc_y = 0x00;
 		if (acc_z > 0xFF)	acc_z = 0xFF;
 		else if (acc_z < 0x00)	acc_z = 0x00;
-	}
 
-	_acc.x = acc_x;
-	_acc.y = acc_y;
-	_acc.z = acc_z;
+		_acc.x = acc_x;
+		_acc.y = acc_y;
+		_acc.z = acc_z;
+	}
 
 	// Debugging for translating Wiimote to Keyboard (or Gamepad)
 	/*
@@ -764,9 +856,9 @@ void FillReportAcc(wm_accel& _acc)
 }
 
 // Rotate IR dot when rolling Wiimote
-void RotateIRDot(int _Roll, int& _x, int& _y)
+void RotateIRDot(int &_x, int &_y, STiltData &_TiltData)
 {
-	if (g_Config.Tilt.Range.Roll == 0 || _Roll == 0)
+	if (g_Config.Tilt.Range.Roll == 0 || _TiltData.Roll == 0)
 		return;
 
 	// The IR camera resolution is 1023x767
@@ -776,8 +868,8 @@ void RotateIRDot(int _Roll, int& _x, int& _y)
 	float radius = sqrt(pow(dot_x, 2) + pow(dot_y, 2));
 	float radian = atan2(dot_y, dot_x);
 
-	_x = radius * cos(radian + InputCommon::Deg2Rad((float)_Roll)) + 1023.0f / 2;
-	_y = radius * sin(radian + InputCommon::Deg2Rad((float)_Roll)) + 767.0f / 2;
+	_x = radius * cos(radian + InputCommon::Deg2Rad((float)_TiltData.Roll)) + 1023.0f / 2;
+	_y = radius * sin(radian + InputCommon::Deg2Rad((float)_TiltData.Roll)) + 767.0f / 2;
 
 	// Out of sight check
 	if (_x < 0 || _x > 1023) _x = 0xFFFF;
@@ -824,8 +916,8 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	int x0 = 1023 - g_Config.iIRLeft - g_Config.iIRWidth * MouseX - SENSOR_BAR_WIDTH / 2;
 	int x1 = x0 + SENSOR_BAR_WIDTH;
 
-	RotateIRDot(g_Wiimote_kbd.shakeData.Roll, x0, y0);
-	RotateIRDot(g_Wiimote_kbd.shakeData.Roll, x1, y1);
+	RotateIRDot(x0, y0, g_Wiimote_kbd.TiltData);
+	RotateIRDot(x1, y1, g_Wiimote_kbd.TiltData);
 
 	// Converted to IR data
 	_ir0.x = x0 & 0xff; _ir0.xHi = x0 >> 8;
@@ -901,8 +993,8 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	int x1 = 1023 - g_Config.iIRLeft - g_Config.iIRWidth * MouseX - SENSOR_BAR_WIDTH / 2;
 	int x2 = x1 + SENSOR_BAR_WIDTH;
 
-	RotateIRDot(g_Wiimote_kbd.shakeData.Roll, x1, y1);
-	RotateIRDot(g_Wiimote_kbd.shakeData.Roll, x2, y2);
+	RotateIRDot(x1, y1, g_Wiimote_kbd.TiltData);
+	RotateIRDot(x2, y2, g_Wiimote_kbd.TiltData);
 
 	/* As with the extented report we settle with emulating two out of four
 	   possible objects the only difference is that we don't report any size of
@@ -974,23 +1066,43 @@ void FillReportExtension(wm_extension& _ext)
 			return;
 	}
 
-	// Use the neutral values
-	int ext_ax = g_nu.cal_zero.x;
-	int ext_ay = g_nu.cal_zero.y;
-	int ext_az = g_nu.cal_zero.z + g_nu.cal_g.z;
-
-	if(IsKey(g_NunchuckExt.SHAKE)) StartShake(g_NunchuckExt.shakeData);
-	// Shake the Nunchuk one frame
-	SingleShake(ext_ax, ext_ay, ext_az, g_NunchuckExt.shakeData);
-
-	_ext.ax = ext_ax;
-	_ext.ay = ext_ay;
-	_ext.az = ext_az;
-
 	// The default joystick and button values unless we use them
 	_ext.jx = g_nu.jx.center;
 	_ext.jy = g_nu.jy.center;
 	_ext.bt = 0x03; // 0x03 means no button pressed, the button is zero active
+
+	// Use the neutral values
+	_ext.ax = g_nu.cal_zero.x;
+	_ext.ay = g_nu.cal_zero.y;
+	_ext.az = g_nu.cal_zero.z + g_nu.cal_g.z;
+
+if (IsFocus())
+{
+	int acc_x = _ext.ax;
+	int acc_y = _ext.ay;
+	int acc_z = _ext.az;
+
+	if (IsKey(g_NunchuckExt.SHAKE) && g_NunchuckExt.TiltData.Shake == 0)
+			g_NunchuckExt.TiltData.Shake = 1;
+
+	// Step the shake simulation one step
+	ShakeToAccelerometer(acc_x, acc_y, acc_z, g_NunchuckExt.TiltData);
+
+	// Tilt Nunchuck, allow the shake function to interrupt it
+	if (g_NunchuckExt.TiltData.Shake == 0)
+		TiltNunchuck(acc_x, acc_y, acc_z);
+
+	// Boundary check
+	if (acc_x > 0xFF)	acc_x = 0xFF;
+	else if (acc_x < 0x00)	acc_x = 0x00;
+	if (acc_y > 0xFF)	acc_y = 0xFF;
+	else if (acc_y < 0x00)	acc_y = 0x00;
+	if (acc_z > 0xFF)	acc_z = 0xFF;
+	else if (acc_z < 0x00)	acc_z = 0x00;
+	
+	_ext.ax = acc_x;
+	_ext.ay = acc_y;
+	_ext.az = acc_z;
 
 	// Update the analog stick
 	if (g_Config.Nunchuck.Type == g_Config.Nunchuck.KEYBOARD)
@@ -1076,6 +1188,8 @@ void FillReportExtension(wm_extension& _ext)
 		_ext.bt = 0x02;	
 	if(IsKey(g_NunchuckExt.C) && IsKey(g_NunchuckExt.Z))
 		_ext.bt = 0x00;
+
+}
 
 	/* Here we encrypt the report */
 
@@ -1337,7 +1451,6 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		//	{ _ext.b2.bA = 0x01; _ext.b2.bB = 0x01; }
 	}
 
-
 	// Convert data for reporting
 	_ext.Lx = (Lx >> 2);
 	_ext.Ly = (Ly >> 2);
@@ -1354,7 +1467,6 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	// 5 bit to the highest two bits
 	_ext.lT2 = (lT >> 3) >> 3;
 	_ext.rT = (rT >> 3);
-
 
 	/* Here we encrypt the report */
 

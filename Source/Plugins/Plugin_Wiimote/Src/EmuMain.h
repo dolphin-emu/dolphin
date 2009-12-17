@@ -58,13 +58,14 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 void PadStateAdjustments(int &Lx, int &Ly, int &Rx, int &Ry, int &Tl, int &Tr);
 
 // Accelerometer
-void PitchDegreeToAccelerometer(int _Roll, int _Pitch, int &_x, int &_y, int &_z);
 void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, int&, int&);
 float AccelerometerToG(float Current, float Neutral, float G);
-void Tilt(int &_x, int &_y, int &_z);
+void ShakeToAccelerometer(int  &_x, int &_y, int &_z, STiltData &_TiltData);
+void TiltToAccelerometer(int &_x, int &_y, int &_z, STiltData &_TiltData);
 void AdjustAngles(int &Roll, int &Pitch);
 
 // IR data
+void RotateIRDots(int &_x, int &_y, STiltData &_TiltData);
 void IRData2Dots(u8 *Data);
 void IRData2DotsBasic(u8 *Data);
 void ReorderIRDots();

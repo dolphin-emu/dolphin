@@ -100,6 +100,10 @@ static const char* ncControlNames[] =
 	"NcR",
 	"NcU",
 	"NcD",
+	"NcRollL",
+	"NcRollR",
+	"NcPitchU",
+	"NcPitchD",
 	"NcShake",
 };
 static int nCDefaultControls[] =
@@ -111,7 +115,11 @@ static int nCDefaultControls[] =
 	VK_NUMPAD6,
 	VK_NUMPAD8,
 	VK_NUMPAD5,
-	VK_ADD
+	VK_NUMPAD7,
+	VK_NUMPAD9,
+	VK_NUMPAD1,
+	VK_NUMPAD3,
+	VK_NUMPAD2
 #elif defined(HAVE_X11) && HAVE_X11
 	XK_KP_0,
 	XK_KP_Decimal,
@@ -119,9 +127,13 @@ static int nCDefaultControls[] =
 	XK_KP_6,
 	XK_KP_8,
 	XK_KP_5,
-	XK_KP_Add
+	XK_KP_7,
+	XK_KP_9,
+	XK_KP_1,
+	XK_KP_3,
+	XK_KP_2
 #else
-	0,0,0,0,0,0,0
+	0,0,0,0,0,0,0,0,0,0,0
 #endif
 };
 
@@ -288,7 +300,8 @@ void Config::Load(bool ChangePad)
 		sprintf(SectionName, "Wiimote%i", i + 1);
 		iniFile.Get(SectionName, "NoTriggerFilter", &bNoTriggerFilter, false);
 
-		iniFile.Get(SectionName, "TiltType", &Tilt.Type, Tilt.KEYBOARD);
+		iniFile.Get(SectionName, "TiltTypeWM", &Tilt.TypeWM, Tilt.KEYBOARD);
+		iniFile.Get(SectionName, "TiltTypeNC", &Tilt.TypeNC, Tilt.KEYBOARD);
 		iniFile.Get(SectionName, "TiltRollSwing", &Tilt.Range.RollSwing, false);
 		iniFile.Get(SectionName, "TiltRollDegree", &Tilt.Range.RollDegree, 60);
 		Tilt.Range.Roll = (Tilt.Range.RollSwing) ? 0 : Tilt.Range.RollDegree;
@@ -375,7 +388,7 @@ void Config::Save(int Slot)
 {
 	IniFile iniFile;
 	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
-//	iniFile.Set("Settings", "InputActive", bInputActive);
+	iniFile.Set("Settings", "InputActive", bInputActive);
 	iniFile.Set("Settings", "Sideways", bSideways);
 	iniFile.Set("Settings", "Upright", bUpright);
 	iniFile.Set("Settings", "MotionPlusConnected", bMotionPlusConnected);
@@ -398,7 +411,8 @@ void Config::Save(int Slot)
 		sprintf(SectionName, "Wiimote%i", i + 1);
 
 		iniFile.Set(SectionName, "NoTriggerFilter", bNoTriggerFilter);
-		iniFile.Set(SectionName, "TiltType", Tilt.Type);;
+		iniFile.Set(SectionName, "TiltTypeWM", Tilt.TypeWM);
+		iniFile.Set(SectionName, "TiltTypeNC", Tilt.TypeNC);
 		iniFile.Set(SectionName, "TiltRollDegree", Tilt.Range.RollDegree);
 		iniFile.Set(SectionName, "TiltRollSwing", Tilt.Range.RollSwing);
 		iniFile.Set(SectionName, "TiltRollInvert", Tilt.RollInvert);
