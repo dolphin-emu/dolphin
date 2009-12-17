@@ -95,7 +95,7 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		switch(_Mode)
 		{
 		case ISFS_OPEN_READ:	m_pFileHandle = fopen(m_Filename.c_str(), "rb"); break;
-		case ISFS_OPEN_WRITE:	m_pFileHandle = fopen(m_Filename.c_str(), "wb"); break;
+		case ISFS_OPEN_WRITE:	m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
 			// MK Wii gets here corrupting its saves, however using rb+ mode works fine
 			// TODO : figure it properly...
 		case ISFS_OPEN_RW:		m_pFileHandle = fopen(m_Filename.c_str(), "r+b"); break;
