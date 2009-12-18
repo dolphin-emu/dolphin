@@ -101,8 +101,8 @@ void DSound::SoundLoop()
 {
 	currentPos = 0;
 	lastPos = 0;
+	dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
 
-	HRESULT hr = dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
 	while (!threadData)
 	{
 		// No blocking inside the csection
@@ -119,19 +119,15 @@ void DSound::SoundLoop()
 			totalRenderedBytes += numBytesToRender;
 			lastPos = currentPos;
 		}
-
 		soundCriticalSection.Leave();
-		if (threadData)
-			break;
 		soundSyncEvent.Wait();
 	}
-
-	dsBuffer->Stop();
 }
 
 bool DSound::Start()
 {
 	soundSyncEvent.Init();
+
 	if (FAILED(DirectSoundCreate8(0, &ds, 0)))
         return false;
 	if (g_dspInitialize.hWnd)
@@ -170,6 +166,8 @@ void DSound::Update()
 void DSound::Clear(bool mute)
 {
 	m_muted = mute;
+
+	soundCriticalSection.Enter();
 	if (m_muted)
 	{
 		dsBuffer->Stop();
@@ -178,21 +176,23 @@ void DSound::Clear(bool mute)
 	{
 		dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
 	}
+	soundCriticalSection.Leave();
 }
 
 void DSound::Stop()
 {
-	soundCriticalSection.Enter();
 	threadData = 1;
 	// kick the thread if it's waiting
 	soundSyncEvent.Set();
-	soundCriticalSection.Leave();
-	delete thread;
 
+	soundCriticalSection.Enter();
+	delete thread;
+	thread = NULL;
+	dsBuffer->Stop();
 	dsBuffer->Release();
 	ds->Release();
+	soundCriticalSection.Leave();
 
 	soundSyncEvent.Shutdown();
-	thread = NULL;
 }
 

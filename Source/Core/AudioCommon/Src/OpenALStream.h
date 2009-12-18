@@ -61,7 +61,8 @@ private:
 	Common::Event soundSyncEvent;
 	
 	short realtimeBuffer[OAL_BUFFER_SIZE];
-	ALuint		    g_uiSource;
+	ALuint g_uiSource;
+	ALuint *g_uiBuffers;
 #else
 public:
 	OpenALStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {}

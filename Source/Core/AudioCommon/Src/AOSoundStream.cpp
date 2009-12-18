@@ -49,16 +49,13 @@ void AOSound::SoundLoop()
 
     while (!threadData)
 	{
-        soundCriticalSection.Enter();
         m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
+	    soundCriticalSection.Enter();
 		ao_play(device, (char*)realtimeBuffer, numBytesToRender);
         soundCriticalSection.Leave();
 
-		if (! threadData)
-			soundSyncEvent.Wait();
+		soundSyncEvent.Wait();
 	}
-	ao_close(device);
-	device = NULL;
 }
 
 void *soundThread(void *args)
@@ -84,19 +81,23 @@ void AOSound::Update()
 
 void AOSound::Stop()
 {
-    soundCriticalSection.Enter();
     threadData = 1;
     soundSyncEvent.Set();
-    soundCriticalSection.Leave();
 
-    delete thread;
+    soundCriticalSection.Enter();
+	delete thread;
 	thread = NULL;
+
+	ao_shutdown();
+	ao_close(device);
+	device = NULL;
+	soundCriticalSection.Leave();
+
     soundSyncEvent.Shutdown();
 }
 
-AOSound::~AOSound() {
-	//   FIXME: crashes dolphin
-	//   ao_shutdown();
+AOSound::~AOSound()
+{
 }
 
 #endif
