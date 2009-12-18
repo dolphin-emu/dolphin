@@ -328,9 +328,8 @@ void ExecuteCommand(u32 _Address)
 				{
 					if(pDevice->IsOpened())
 					{
-						if (pDevice->GetDeviceName().find("/dev/net/") != std::string::npos)
-							// AyuanX: /dev/net/XXX are more like events which don't need close so they can be reopened
-							// At least it is so for /dev/net/kd/request & /dev/net/ncd/manage
+						if (pDevice->GetDeviceName().find("/dev/net/kd/request") != std::string::npos)
+							// AyuanX: /dev/net/kd/request is more like event which doesn't need close so it can be reopened
 							pDevice->Open(_Address, Mode);
 						else
 							// We have already opened this hardware, return -6
