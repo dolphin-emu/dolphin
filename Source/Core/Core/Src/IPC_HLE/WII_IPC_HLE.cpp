@@ -326,11 +326,24 @@ void ExecuteCommand(u32 _Address)
 
 				if(pDevice->IsHardware())
 				{
-					// We have already opened this device, return -6
 					if(pDevice->IsOpened())
-						Memory::Write_U32(/*u32(-6)*/DeviceID, _Address + 4);
+					{
+						if (pDevice->GetDeviceName().find("/dev/net/") != std::string::npos)
+							// AyuanX: /dev/net/XXX are more like events which don't need close so they can be reopened
+							// At least it is so for /dev/net/kd/request & /dev/net/ncd/manage
+							pDevice->Open(_Address, Mode);
+						else
+							// We have already opened this hardware, return -6
+
+							// AyuanX: TO_BE_VERIFIED
+							// -6 seems to be a bad number as in NET it means "Retry Again"(?)
+							// I guess -4 stands for "Already Opened"(?)
+							Memory::Write_U32(u32(-6), _Address + 4);
+					}
 					else
+					{
 						pDevice->Open(_Address, Mode);
+					}
 				}
 				else
 				{

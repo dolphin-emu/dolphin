@@ -61,6 +61,9 @@ private:
         IOCTL_NWC24_SET_SCRIPT_MODE                 = 0x22,
         IOCTL_NWC24_REQUEST_SHUTDOWN                = 0x28,
     };
+
+	// Max size 32 Bytes
+	std::string m_UserID;
 };
 
 // **********************************************************************************

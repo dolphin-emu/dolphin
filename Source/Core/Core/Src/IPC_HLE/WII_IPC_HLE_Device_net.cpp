@@ -59,15 +59,18 @@ it failed)
 
 extern std::queue<std::pair<u32,std::string> > g_ReplyQueueLater;
 
-
 // **********************************************************************************
 // Handle /dev/net/kd/request requests
 CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName) 
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-{}
+	, m_UserID("Dolphin-EMU")
+	// TODO: Dump the true ID from real Wii
+{
+}
 
 CWII_IPC_HLE_Device_net_kd_request::~CWII_IPC_HLE_Device_net_kd_request()
-{}
+{
+}
 
 bool CWII_IPC_HLE_Device_net_kd_request::Open(u32 _CommandAddress, u32 _Mode)
 {
@@ -123,7 +126,8 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
         break;
 
     case IOCTL_NWC24_REQUEST_GENERATED_USER_ID: // (Input: none, Output: 32 bytes)
-        PanicAlert("IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
+        INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
+		memcpy(Memory::GetPointer(BufferOut), m_UserID.c_str(), m_UserID.length() + 1);
         break;
 
     case IOCTL_NWC24_GET_SCHEDULAR_STAT:
@@ -156,10 +160,12 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 // Handle /dev/net/ncd/manage requests
 CWII_IPC_HLE_Device_net_ncd_manage::CWII_IPC_HLE_Device_net_ncd_manage(u32 _DeviceID, const std::string& _rDeviceName) 
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-{}
+{
+}
 
 CWII_IPC_HLE_Device_net_ncd_manage::~CWII_IPC_HLE_Device_net_ncd_manage() 
-{}
+{
+}
 
 bool CWII_IPC_HLE_Device_net_ncd_manage::Open(u32 _CommandAddress, u32 _Mode)
 {
