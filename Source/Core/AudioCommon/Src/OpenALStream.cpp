@@ -20,18 +20,12 @@
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 
-#define AUDIO_NUMBUFFERS			(4)
-//#define	AUDIO_SERVICE_UPDATE_PERIOD	(20)
-
 bool OpenALStream::Start()
 {
 	ALDeviceList *pDeviceList = NULL;
 	ALCcontext *pContext = NULL;
 	ALCdevice *pDevice = NULL;
 	bool bReturn = false;
-	
-	g_uiSource = 0;
-	g_uiBuffers = NULL;
 
 	soundSyncEvent.Init();
 
@@ -53,13 +47,15 @@ bool OpenALStream::Start()
 				alcCloseDevice(pDevice);
 				PanicAlert("OpenAL: can't create context for device %s", pDevice);
 			}
-		} else {
+		}
+		else
+		{
 			PanicAlert("OpenAL: can't open device %s", pDevice);
 		}
-
-		
 		delete pDeviceList;
-	} else {
+	}
+	else
+	{
 		PanicAlert("OpenAL: can't find sound devices");
 	}
 
@@ -68,57 +64,52 @@ bool OpenALStream::Start()
 
 void OpenALStream::Stop()
 {
-	ALCcontext *pContext;
-	ALCdevice *pDevice;
-
 	threadData = 1;
 	// kick the thread if it's waiting
 	soundSyncEvent.Set();
 
-	soundCriticalSection.Enter();
+// AyuanX: Spec says OpenAL1.1 is thread safe already
+//	soundCriticalSection.Enter();
 	delete thread;
 	thread = NULL;
 
-	alSourceStop(g_uiSource);
-	alSourcei(g_uiSource, AL_BUFFER, 0);
+	alSourceStop(uiSource);
+	alSourcei(uiSource, AL_BUFFER, 0);
 
 	// Clean up buffers and sources
-	alDeleteSources(1, &g_uiSource);
-	alDeleteBuffers(AUDIO_NUMBUFFERS, g_uiBuffers);
+	alDeleteSources(1, &uiSource);
+	alDeleteBuffers(OAL_NUM_BUFFERS, uiBuffers);
 
-	pContext = alcGetCurrentContext();
-	pDevice = alcGetContextsDevice(pContext);
+	ALCcontext *pContext = alcGetCurrentContext();
+	ALCdevice *pDevice = alcGetContextsDevice(pContext);
 
 	alcMakeContextCurrent(NULL);
 	alcDestroyContext(pContext);
 	alcCloseDevice(pDevice);
-	soundCriticalSection.Leave();
+//	soundCriticalSection.Leave();
 
 	soundSyncEvent.Shutdown();
 }
 
 void OpenALStream::Update()
 {
-	//if (m_mixer->GetDataSize())	//here need debug
-	{
-		soundSyncEvent.Set();
-	}
+	soundSyncEvent.Set();
 }
 
 void OpenALStream::Clear(bool mute)
 {
 	m_muted = mute;
 
-	soundCriticalSection.Enter();
+//	soundCriticalSection.Enter();
 	if(m_muted)
 	{
-		alSourceStop(g_uiSource);
+		alSourceStop(uiSource);
 	}
 	else
 	{
-		alSourcePlay(g_uiSource);
+		alSourcePlay(uiSource);
 	}
-	soundCriticalSection.Leave();
+//	soundCriticalSection.Leave();
 }
 
 THREAD_RETURN OpenALStream::ThreadFunc(void* args)
@@ -129,64 +120,64 @@ THREAD_RETURN OpenALStream::ThreadFunc(void* args)
 
 void OpenALStream::SoundLoop()
 {
-	ALuint uiBuffers[AUDIO_NUMBUFFERS] = {0};
-	ALuint uiSource = 0;
 	ALenum err;
 	u32 ulFrequency = m_mixer->GetSampleRate();
+
+	memset(uiBuffers, 0, OAL_NUM_BUFFERS * sizeof(ALuint));
+	uiSource = 0;
+
 	// Generate some AL Buffers for streaming
-	alGenBuffers(AUDIO_NUMBUFFERS, (ALuint *)uiBuffers);
+	alGenBuffers(OAL_NUM_BUFFERS, (ALuint *)uiBuffers);
 	// Generate a Source to playback the Buffers
 	alGenSources(1, &uiSource);
 
-	memset(realtimeBuffer, 0, OAL_BUFFER_SIZE * sizeof(short));
-//*
-	for (int iLoop = 0; iLoop < AUDIO_NUMBUFFERS; iLoop++)
-	{
-		// pay load fake data
-		alBufferData(uiBuffers[iLoop], AL_FORMAT_STEREO16, realtimeBuffer, 1024, ulFrequency);
-		alSourceQueueBuffers(uiSource, 1, &uiBuffers[iLoop]);
-	}
-//*/
+	memset(realtimeBuffer, 0, OAL_BUFFER_SIZE);
+	for (int i = 0; i < OAL_NUM_BUFFERS; i++)
+		alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, OAL_BUFFER_SIZE, ulFrequency);
 
-	g_uiSource = uiSource;
-	g_uiBuffers = (ALuint *)uiBuffers;
-
+	alSourceQueueBuffers(uiSource, OAL_NUM_BUFFERS, uiBuffers);
 	alSourcePlay(uiSource);
 	err = alGetError();
+	// TODO: Error handling
+
+	ALint iBuffersFilled = 0;
+	ALint iBuffersProcessed = 0;
+	ALuint uiBufferTemp[OAL_NUM_BUFFERS] = {0};
 
 	while (!threadData) 
 	{
-		int numBytesToRender = 32768;	//ya, this is a hack, we need real data count
-		/*int numBytesRender =*/ m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
-
-		//if (numBytesRender)	//here need debug
+//		soundCriticalSection.Enter();
+		if (iBuffersProcessed == iBuffersFilled)
 		{
-			soundCriticalSection.Enter();
-			ALint iBuffersProcessed = 0;
 			alGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &iBuffersProcessed);
-
-			if (iBuffersProcessed)
-			{
-				// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
-				ALuint uiTempBuffer = 0;
-				alSourceUnqueueBuffers(uiSource, 1, &uiTempBuffer);
-/*
-				soundCriticalSection.Enter();
-				int numBytesToRender = 32768;	//ya, this is a hack, we need real data count
-				 m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
-				soundCriticalSection.Leave();
-
-				unsigned long	ulBytesWritten = 0;
-*/
-				//if (numBytesRender)
-				{
-					alBufferData(uiTempBuffer, AL_FORMAT_STEREO16, realtimeBuffer, numBytesToRender, ulFrequency);
-				}
-				alSourceQueueBuffers(uiSource, 1, &uiTempBuffer);
-			}
-			soundCriticalSection.Leave();
+			iBuffersFilled = 0;
 		}
-		
+		int numSamples = m_mixer->GetNumSamples();
+		numSamples &= ~0x400;
+
+		if (iBuffersProcessed && numSamples)
+		{
+			numSamples = (numSamples > OAL_BUFFER_SIZE / 4) ? OAL_BUFFER_SIZE / 4 : numSamples;
+			// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
+			if (iBuffersFilled == 0)
+				alSourceUnqueueBuffers(uiSource, iBuffersProcessed, uiBufferTemp);
+
+			m_mixer->Mix(realtimeBuffer, numSamples);
+			alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, realtimeBuffer, numSamples * 4, ulFrequency);
+			alSourceQueueBuffers(uiSource, 1, &uiBufferTemp[iBuffersFilled]);
+			iBuffersFilled++;
+
+			if (iBuffersFilled == OAL_NUM_BUFFERS)
+				alSourcePlay(uiSource);
+		}
+		else
+		{
+			ALint state = 0;
+			alGetSourcei(uiSource, AL_SOURCE_STATE, &state);
+			if (state != AL_PLAYING)
+				alSourcePlay(uiSource);
+		}
+//		soundCriticalSection.Leave();
 		soundSyncEvent.Wait();
 	}
 }

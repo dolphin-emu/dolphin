@@ -34,8 +34,9 @@
 #include "AL/alc.h"
 #endif // WIN32
 // public use
-#define SFX_MAX_SOURCE	1
-#define OAL_BUFFER_SIZE 1024*1024
+#define SFX_MAX_SOURCE		1
+#define OAL_NUM_BUFFERS		2
+#define OAL_BUFFER_SIZE		(1024 * 8)
 #endif
 
 class OpenALStream: public SoundStream
@@ -60,9 +61,9 @@ private:
 	Common::CriticalSection soundCriticalSection;
 	Common::Event soundSyncEvent;
 	
-	short realtimeBuffer[OAL_BUFFER_SIZE];
-	ALuint g_uiSource;
-	ALuint *g_uiBuffers;
+	short realtimeBuffer[OAL_BUFFER_SIZE/sizeof(short)];
+	ALuint uiBuffers[OAL_NUM_BUFFERS];
+	ALuint uiSource;
 #else
 public:
 	OpenALStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {}

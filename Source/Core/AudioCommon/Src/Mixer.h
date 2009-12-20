@@ -33,15 +33,14 @@ public:
 
 	// Called from audio threads
 	virtual int Mix(short *sample, int numSamples);
-	
+	virtual int GetNumSamples();
+
 	// Called from main thread
 	virtual void PushSamples(short* samples, int num_stereo_samples, int core_sample_rate);
 	
 	virtual void Premix(short *samples, int numSamples) {}
 
 	int GetSampleRate() {return m_sampleRate;}
-
-	int GetDataSize() {return m_queueSize;}
 
 	void SetThrottle(bool use) { m_throttle = use;}
 	void SetDTKMusic(bool use) { m_EnableDTKMusic = use;}

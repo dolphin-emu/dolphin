@@ -171,3 +171,12 @@ void CMixer::PushSamples(short *samples, int num_stereo_samples, int core_sample
 	}
 	push_sync.Leave();
 }
+
+int CMixer::GetNumSamples()
+{
+	return m_queueSize / 2;
+	//int ret = (m_queueSize - queue_minlength) / 2;
+	//ret = (ret > 0) ? ret : 0;
+	//return ret;
+}
+
