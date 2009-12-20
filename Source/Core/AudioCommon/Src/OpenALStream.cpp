@@ -20,6 +20,9 @@
 
 #if defined HAVE_OPENAL && HAVE_OPENAL
 
+//
+// AyuanX: Spec says OpenAL1.1 is thread safe already
+//
 bool OpenALStream::Start()
 {
 	ALDeviceList *pDeviceList = NULL;
@@ -68,8 +71,6 @@ void OpenALStream::Stop()
 	// kick the thread if it's waiting
 	soundSyncEvent.Set();
 
-// AyuanX: Spec says OpenAL1.1 is thread safe already
-//	soundCriticalSection.Enter();
 	delete thread;
 	thread = NULL;
 
@@ -78,6 +79,7 @@ void OpenALStream::Stop()
 
 	// Clean up buffers and sources
 	alDeleteSources(1, &uiSource);
+	uiSource = 0;
 	alDeleteBuffers(OAL_NUM_BUFFERS, uiBuffers);
 
 	ALCcontext *pContext = alcGetCurrentContext();
@@ -86,9 +88,16 @@ void OpenALStream::Stop()
 	alcMakeContextCurrent(NULL);
 	alcDestroyContext(pContext);
 	alcCloseDevice(pDevice);
-//	soundCriticalSection.Leave();
 
 	soundSyncEvent.Shutdown();
+}
+
+void OpenALStream::SetVolume(int volume)
+{
+	fVolume = (float)volume / 100.0f;
+
+	if (uiSource)
+		alSourcef(uiSource, AL_GAIN, fVolume); 
 }
 
 void OpenALStream::Update()
@@ -100,7 +109,6 @@ void OpenALStream::Clear(bool mute)
 {
 	m_muted = mute;
 
-//	soundCriticalSection.Enter();
 	if(m_muted)
 	{
 		alSourceStop(uiSource);
@@ -109,7 +117,6 @@ void OpenALStream::Clear(bool mute)
 	{
 		alSourcePlay(uiSource);
 	}
-//	soundCriticalSection.Leave();
 }
 
 THREAD_RETURN OpenALStream::ThreadFunc(void* args)
@@ -146,14 +153,13 @@ void OpenALStream::SoundLoop()
 
 	while (!threadData) 
 	{
-//		soundCriticalSection.Enter();
 		if (iBuffersProcessed == iBuffersFilled)
 		{
 			alGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &iBuffersProcessed);
 			iBuffersFilled = 0;
 		}
 		int numSamples = m_mixer->GetNumSamples();
-		numSamples &= ~0x400;
+		numSamples &= ~0x100;
 
 		if (iBuffersProcessed && numSamples)
 		{
@@ -177,7 +183,6 @@ void OpenALStream::SoundLoop()
 			if (state != AL_PLAYING)
 				alSourcePlay(uiSource);
 		}
-//		soundCriticalSection.Leave();
 		soundSyncEvent.Wait();
 	}
 }

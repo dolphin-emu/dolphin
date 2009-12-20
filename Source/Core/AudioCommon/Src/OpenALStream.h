@@ -35,19 +35,24 @@
 #endif // WIN32
 // public use
 #define SFX_MAX_SOURCE		1
-#define OAL_NUM_BUFFERS		2
-#define OAL_BUFFER_SIZE		(1024 * 8)
+#define OAL_NUM_BUFFERS		8
+#define OAL_BUFFER_SIZE		(512 * 4)
 #endif
 
 class OpenALStream: public SoundStream
 {
 #if defined HAVE_OPENAL && HAVE_OPENAL
 public:
-	OpenALStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {};
+	OpenALStream(CMixer *mixer, void *hWnd = NULL)
+		: SoundStream(mixer)
+		, uiSource(0)
+	{};
+
 	virtual ~OpenALStream() {};
 
 	virtual bool Start();
 	virtual void SoundLoop();
+	virtual void SetVolume(int volume);
 	virtual void Stop();
 	virtual void Clear(bool mute);
 	static bool isValid() { return true; }
@@ -64,6 +69,7 @@ private:
 	short realtimeBuffer[OAL_BUFFER_SIZE/sizeof(short)];
 	ALuint uiBuffers[OAL_NUM_BUFFERS];
 	ALuint uiSource;
+	ALfloat fVolume;
 #else
 public:
 	OpenALStream(CMixer *mixer, void *hWnd = NULL): SoundStream(mixer) {}
