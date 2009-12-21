@@ -7,7 +7,7 @@ ifeq ($(strip $(DEVKITPPC)),)
 $(error "Please set DEVKITPPC in your environment. export DEVKITPPC=<path to>devkitPPC")
 endif
 
-include $(DEVKITPPC)/gamecube_rules
+include $(DEVKITPPC)/wii_rules
 
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
@@ -33,7 +33,7 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:=	-logc -lm
+LIBS	:=	-lfat -logc -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

@@ -228,7 +228,7 @@ void SConfig::LoadSettings()
 		for (int i = 0; i < 4; ++i)
 		{
 			sprintf(sidevicenum, "SIDevice%i", i);
-			ini.Get("Core", sidevicenum,	(u32*)&m_SIDevice[i], i==0 ? SI_GC_CONTROLLER:SI_DUMMY);
+			ini.Get("Core", sidevicenum,	(u32*)&m_SIDevice[i], i==0 ? SI_GC_CONTROLLER:SI_NONE);
 		}
 
 		ini.Get("Core", "RunCompareServer",	&m_LocalCoreStartupParameter.bRunCompareServer,	false);

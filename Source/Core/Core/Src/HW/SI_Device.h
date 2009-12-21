@@ -20,7 +20,7 @@
 
 #include "Common.h"
 
-// Devices can reply with these, but idk if we'll ever use them...
+// Devices can reply with these
 #define SI_ERROR_NO_RESPONSE    0x0008 // Nothing is attached
 #define SI_ERROR_UNKNOWN        0x0040 // Unknown device is attached
 #define SI_ERROR_BUSY           0x0080 // Still detecting
@@ -60,7 +60,7 @@ public:
 // SI Device IDs
 enum TSIDevices
 {
-	SI_DUMMY			= 0,
+	SI_NONE				= SI_ERROR_NO_RESPONSE,
 	SI_N64_MIC			= 0x00010000,
 	SI_N64_KEYBOARD		= 0x00020000,
 	SI_N64_MOUSE		= 0x02000000,

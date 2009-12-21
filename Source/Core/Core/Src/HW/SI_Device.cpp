@@ -48,30 +48,22 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 };
 
 
-// --- class CSIDummy ---
-// Just a dummy that logs reads and writes
-// to be used for SI devices we haven't emulated
-// DOES NOT FUNCTION AS "NO DEVICE INSERTED" -> Appears as unknown device
-class CSIDevice_Dummy : public ISIDevice
+// Stub class for saying nothing is attached, and not having to deal with null pointers :)
+class CSIDevice_Null : public ISIDevice
 {
 public:
-	CSIDevice_Dummy(int _iDeviceNumber) :
-	  ISIDevice(_iDeviceNumber)
-	{}
+	CSIDevice_Null(int _iDeviceNumber) : ISIDevice(_iDeviceNumber) {}
+	virtual ~CSIDevice_Null() {}
 
-	virtual ~CSIDevice_Dummy(){}
-
-	int RunBuffer(u8* _pBuffer, int _iLength)
-	{
-		// Debug logging
-		ISIDevice::RunBuffer(_pBuffer, _iLength);
-
-		reinterpret_cast<u32*>(_pBuffer)[0] = 0x00000000;
+	int RunBuffer(u8* _pBuffer, int _iLength) {
+		reinterpret_cast<u32*>(_pBuffer)[0] = SI_ERROR_NO_RESPONSE;
 		return 4;
 	}
-
-	bool GetData(u32& _Hi, u32& _Low)	{DEBUG_LOG(SERIALINTERFACE, "SI DUMMY %i GetData", this->m_iDeviceNumber); return false;}
-	void SendCommand(u32 _Cmd, u8 _Poll){DEBUG_LOG(SERIALINTERFACE, "SI DUMMY %i SendCommand: %08x", this->m_iDeviceNumber, _Cmd);}
+	bool GetData(u32& _Hi, u32& _Low) {
+		_Hi = 0x80000000;
+		return true;
+	}
+	void SendCommand(u32 _Cmd, u8 _Poll) {}
 };
 
 
@@ -80,10 +72,6 @@ ISIDevice* SIDevice_Create(TSIDevices _SIDevice, int _iDeviceNumber)
 {
 	switch(_SIDevice)
 	{
-	case SI_DUMMY:
-		return new CSIDevice_Dummy(_iDeviceNumber);
-		break;
-
 	case SI_GC_CONTROLLER:
 		return new CSIDevice_GCController(_iDeviceNumber);
 		break;
@@ -96,10 +84,9 @@ ISIDevice* SIDevice_Create(TSIDevices _SIDevice, int _iDeviceNumber)
 		return new CSIDevice_AMBaseboard(_iDeviceNumber);
 		break;
 
+	case SI_NONE:
 	default:
-		return new CSIDevice_Dummy(_iDeviceNumber);
+		return new CSIDevice_Null(_iDeviceNumber);
 		break;
 	}
-
-	return NULL;
 }

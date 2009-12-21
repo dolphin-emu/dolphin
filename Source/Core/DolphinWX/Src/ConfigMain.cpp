@@ -411,7 +411,7 @@ void CConfigMain::CreateGUIControls()
 	GCSIDeviceText[1] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 2"), wxDefaultPosition, wxDefaultSize);
 	GCSIDeviceText[2] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 3"), wxDefaultPosition, wxDefaultSize);
 	GCSIDeviceText[3] = new wxStaticText(GamecubePage, ID_GC_SIDEVICE_TEXT, wxT("Port 4"), wxDefaultPosition, wxDefaultSize);
-	const wxString SIDevices[] = {wxT(DEV_DUMMY_STR),wxT(SIDEV_STDCONT_STR),wxT(SIDEV_GBA_STR),wxT(SIDEV_AM_BB_STR)};
+	const wxString SIDevices[] = {wxT(DEV_NONE_STR),wxT(SIDEV_STDCONT_STR),wxT(SIDEV_GBA_STR),wxT(SIDEV_AM_BB_STR)};
 	static const int numSIDevices = sizeof(SIDevices)/sizeof(wxString);
 	GCSIDevice[0] = new wxChoice(GamecubePage, ID_GC_SIDEVICE0, wxDefaultPosition, wxDefaultSize, numSIDevices, SIDevices, 0, wxDefaultValidator);
 	GCSIDevice[1] = new wxChoice(GamecubePage, ID_GC_SIDEVICE1, wxDefaultPosition, wxDefaultSize, numSIDevices, SIDevices, 0, wxDefaultValidator);
@@ -793,7 +793,7 @@ void CConfigMain::ChooseSIDevice(std::string deviceName, int deviceNum)
 	else if (!deviceName.compare(SIDEV_AM_BB_STR))
 		tempType = SI_AM_BASEBOARD;
 	else
-		tempType = SI_DUMMY;
+		tempType = SI_NONE;
 
 	SConfig::GetInstance().m_SIDevice[deviceNum] = tempType;
 

@@ -75,10 +75,10 @@ union USIChannelOut
 	u32 Hex;
 	struct  
 	{		
-		unsigned OUTPUT1	:	8;
-		unsigned OUTPUT0	:	8;
-		unsigned CMD		:	8;
-		unsigned			:	8;
+		u32 OUTPUT1	:	8;
+		u32 OUTPUT0	:	8;
+		u32 CMD		:	8;
+		u32			:	8;
 	};
 };
 
@@ -88,12 +88,12 @@ union USIChannelIn_Hi
 	u32 Hex;
 	struct  
 	{		
-		unsigned INPUT3		:	8;
-		unsigned INPUT2		:	8;
-		unsigned INPUT1		:	8;
-		unsigned INPUT0		:	6;
-		unsigned ERRLATCH	:	1; // 0: no error  1: Error latched. Check SISR.
-		unsigned ERRSTAT	:	1; // 0: no error  1: error on last transfer
+		u32 INPUT3		:	8;
+		u32 INPUT2		:	8;
+		u32 INPUT1		:	8;
+		u32 INPUT0		:	6;
+		u32 ERRLATCH	:	1; // 0: no error  1: Error latched. Check SISR.
+		u32 ERRSTAT		:	1; // 0: no error  1: error on last transfer
 	};
 };
 
@@ -103,10 +103,10 @@ union USIChannelIn_Lo
 	u32 Hex;
 	struct  
 	{
-		unsigned INPUT7		:	8;
-		unsigned INPUT6		:	8;
-		unsigned INPUT5		:	8;
-		unsigned INPUT4		:	8;
+		u32 INPUT7		:	8;
+		u32 INPUT6		:	8;
+		u32 INPUT5		:	8;
+		u32 INPUT4		:	8;
 	};
 };
 
@@ -125,17 +125,17 @@ union USIPoll
 	u32 Hex;
 	struct
 	{
-		unsigned VBCPY3		:	1; // 1: write to output buffer only on vblank
-		unsigned VBCPY2		:	1;
-		unsigned VBCPY1		:	1;
-		unsigned VBCPY0		:	1;
-		unsigned EN3		:	1; // Enable polling of channel
-		unsigned EN2		:	1; //  does not affect communication RAM transfers
-		unsigned EN1		:	1;
-		unsigned EN0		:	1;
-		unsigned Y			:   8; // Polls per frame
-		unsigned X			:  10; // Polls per X lines. begins at vsync, min 7, max depends on video mode
-		unsigned			:	6;
+		u32 VBCPY3	:	1; // 1: write to output buffer only on vblank
+		u32 VBCPY2	:	1;
+		u32 VBCPY1	:	1;
+		u32 VBCPY0	:	1;
+		u32 EN3		:	1; // Enable polling of channel
+		u32 EN2		:	1; //  does not affect communication RAM transfers
+		u32 EN1		:	1;
+		u32 EN0		:	1;
+		u32 Y		:   8; // Polls per frame
+		u32 X		:  10; // Polls per X lines. begins at vsync, min 7, max depends on video mode
+		u32			:	6;
 	};
 };
 
@@ -145,22 +145,22 @@ union USIComCSR
 	u32 Hex;
 	struct
 	{
-		unsigned TSTART		:	1; // write: start transfer  read: transfer status
-		unsigned CHANNEL    :	2; // determines which SI channel will be used on the communication interface.
-		unsigned			:	3;
-		unsigned CALLBEN	:	1; // Callback enable
-		unsigned CMDEN		:	1; // Command enable?
-		unsigned INLNGTH	:	7;
-		unsigned			:	1;
-		unsigned OUTLNGTH	:	7; // Communication Channel Output Length in bytes
-		unsigned			:	1;
-		unsigned CHANEN		:	1; // Channel enable?
-		unsigned CHANNUM	:	2; // Channel number?
-		unsigned RDSTINTMSK	:	1; // Read Status Interrupt Status Mask
-		unsigned RDSTINT	:	1; // Read Status Interrupt Status
-		unsigned COMERR		:	1; // Communication Error (set 0)
-		unsigned TCINTMSK	:	1; // Transfer Complete Interrupt Mask
-		unsigned TCINT		:	1; // Transfer Complete Interrupt
+		u32 TSTART		:	1; // write: start transfer  read: transfer status
+		u32 CHANNEL		:	2; // determines which SI channel will be used on the communication interface.
+		u32				:	3;
+		u32 CALLBEN		:	1; // Callback enable
+		u32 CMDEN		:	1; // Command enable?
+		u32 INLNGTH		:	7;
+		u32				:	1;
+		u32 OUTLNGTH	:	7; // Communication Channel Output Length in bytes
+		u32				:	1;
+		u32 CHANEN		:	1; // Channel enable?
+		u32 CHANNUM		:	2; // Channel number?
+		u32 RDSTINTMSK	:	1; // Read Status Interrupt Status Mask
+		u32 RDSTINT		:	1; // Read Status Interrupt Status
+		u32 COMERR		:	1; // Communication Error (set 0)
+		u32 TCINTMSK	:	1; // Transfer Complete Interrupt Mask
+		u32 TCINT		:	1; // Transfer Complete Interrupt
 	};
 	USIComCSR() {Hex = 0;}
 	USIComCSR(u32 _hex) {Hex = _hex;}
@@ -172,35 +172,35 @@ union USIStatusReg
 	u32 Hex;
 	struct
 	{
-		unsigned UNRUN3	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
-		unsigned OVRUN3	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
-		unsigned COLL3	:	1; // (RWC) write 1: bit cleared  read 1: collision error
-		unsigned NOREP3	:	1; // (RWC) write 1: bit cleared  read 1: response error
-		unsigned WRST3	:	1; // (R) 1: buffer channel0 not copied
-		unsigned RDST3	:	1; // (R) 1: new Data available
-		unsigned		:	2; // 7:6
-		unsigned UNRUN2	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
-		unsigned OVRUN2	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
-		unsigned COLL2	:	1; // (RWC) write 1: bit cleared  read 1: collision error
-		unsigned NOREP2	:	1; // (RWC) write 1: bit cleared  read 1: response error
-		unsigned WRST2	:	1; // (R) 1: buffer channel0 not copied
-		unsigned RDST2	:	1; // (R) 1: new Data available
-		unsigned		:	2; // 15:14
-		unsigned UNRUN1	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
-		unsigned OVRUN1	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
-		unsigned COLL1	:	1; // (RWC) write 1: bit cleared  read 1: collision error
-		unsigned NOREP1	:	1; // (RWC) write 1: bit cleared  read 1: response error
-		unsigned WRST1	:	1; // (R) 1: buffer channel0 not copied
-		unsigned RDST1	:	1; // (R) 1: new Data available
-		unsigned		:	2; // 23:22
-		unsigned UNRUN0	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
-		unsigned OVRUN0	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
-		unsigned COLL0	:	1; // (RWC) write 1: bit cleared  read 1: collision error
-		unsigned NOREP0	:	1; // (RWC) write 1: bit cleared  read 1: response error
-		unsigned WRST0	:	1; // (R) 1: buffer channel0 not copied
-		unsigned RDST0	:	1; // (R) 1: new Data available
-		unsigned		:	1;
-		unsigned WR		:	1; // (RW) write 1 start copy, read 0 copy done
+		u32 UNRUN3	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
+		u32 OVRUN3	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
+		u32 COLL3	:	1; // (RWC) write 1: bit cleared  read 1: collision error
+		u32 NOREP3	:	1; // (RWC) write 1: bit cleared  read 1: response error
+		u32 WRST3	:	1; // (R) 1: buffer channel0 not copied
+		u32 RDST3	:	1; // (R) 1: new Data available
+		u32			:	2; // 7:6
+		u32 UNRUN2	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
+		u32 OVRUN2	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
+		u32 COLL2	:	1; // (RWC) write 1: bit cleared  read 1: collision error
+		u32 NOREP2	:	1; // (RWC) write 1: bit cleared  read 1: response error
+		u32 WRST2	:	1; // (R) 1: buffer channel0 not copied
+		u32 RDST2	:	1; // (R) 1: new Data available
+		u32			:	2; // 15:14
+		u32 UNRUN1	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
+		u32 OVRUN1	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
+		u32 COLL1	:	1; // (RWC) write 1: bit cleared  read 1: collision error
+		u32 NOREP1	:	1; // (RWC) write 1: bit cleared  read 1: response error
+		u32 WRST1	:	1; // (R) 1: buffer channel0 not copied
+		u32 RDST1	:	1; // (R) 1: new Data available
+		u32			:	2; // 23:22
+		u32 UNRUN0	:	1; // (RWC) write 1: bit cleared  read 1: main proc underrun error
+		u32 OVRUN0	:	1; // (RWC) write 1: bit cleared  read 1: overrun error
+		u32 COLL0	:	1; // (RWC) write 1: bit cleared  read 1: collision error
+		u32 NOREP0	:	1; // (RWC) write 1: bit cleared  read 1: response error
+		u32 WRST0	:	1; // (R) 1: buffer channel0 not copied
+		u32 RDST0	:	1; // (R) 1: new Data available
+		u32			:	1;
+		u32 WR		:	1; // (RW) write 1 start copy, read 0 copy done
 	};
 	USIStatusReg() {Hex = 0;}
 	USIStatusReg(u32 _hex) {Hex = _hex;}
@@ -212,8 +212,8 @@ union USIEXIClockCount
 	u32 Hex;
 	struct
 	{
-		unsigned LOCK	:	1; // 1: prevents CPU from setting EXI clock to 32MHz
-		unsigned		:  30;
+		u32 LOCK	:	1; // 1: prevents CPU from setting EXI clock to 32MHz
+		u32			:	0;
 	};
 };
 
@@ -249,9 +249,13 @@ void Init()
 
 	g_Poll.Hex = 0;
 	g_Poll.X = 7;
+
 	g_ComCSR.Hex = 0;
+
 	g_StatusReg.Hex = 0;
+
 	g_EXIClockCount.Hex = 0;
+	g_EXIClockCount.LOCK = 1;
 	memset(g_SIBuffer, 0, 128);
 
 	changeDevice = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
@@ -286,13 +290,11 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		return;
 
 	case SI_CHANNEL_0_IN_HI:
-		g_StatusReg.RDST0 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[0].m_InHi.Hex;
 		return;
 
 	case SI_CHANNEL_0_IN_LO:
-		g_StatusReg.RDST0 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[0].m_InLo.Hex;
 		return;
@@ -305,13 +307,11 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		return;
 
 	case SI_CHANNEL_1_IN_HI:
-		g_StatusReg.RDST1 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[1].m_InHi.Hex;
 		return;
 
 	case SI_CHANNEL_1_IN_LO:
-		g_StatusReg.RDST1 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[1].m_InLo.Hex;
 		return;
@@ -324,13 +324,11 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		return;
 
 	case SI_CHANNEL_2_IN_HI:
-		g_StatusReg.RDST2 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[2].m_InHi.Hex;
 		return;
 
 	case SI_CHANNEL_2_IN_LO:
-		g_StatusReg.RDST2 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[2].m_InLo.Hex;
 		return;
@@ -343,13 +341,11 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		return;
 
 	case SI_CHANNEL_3_IN_HI:
-		g_StatusReg.RDST3 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[3].m_InHi.Hex;
 		return;
 
 	case SI_CHANNEL_3_IN_LO:
-		g_StatusReg.RDST3 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[3].m_InLo.Hex;
 		return;
@@ -402,7 +398,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	case SI_CHANNEL_3_IN_LO:	g_Channel[3].m_InLo.Hex = _iValue; break;
 
 	case SI_POLL:
-		INFO_LOG(SERIALINTERFACE, "Poll: X=%03d Y=%03d %s%s%s%s%s%s%s%s",
+		INFO_LOG(SERIALINTERFACE, "Wrote Poll: X=%03d Y=%03d %s%s%s%s%s%s%s%s",
 			g_Poll.X, g_Poll.Y,
 			g_Poll.EN0 ? "EN0 ":" ", g_Poll.EN1 ? "EN1 ":" ",
 			g_Poll.EN2 ? "EN2 ":" ", g_Poll.EN3 ? "EN3 ":" ",
@@ -478,12 +474,12 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		g_EXIClockCount.Hex = _iValue;
 		break;
 
-	case 0x80:
+	case 0x80: // Bogus? never seen it with ma own eyes
 		INFO_LOG(SERIALINTERFACE, "WII something at 0xCD006480");
 		break;
 
 	default:
-		_dbg_assert_(SERIALINTERFACE,0);
+		_dbg_assert_(SERIALINTERFACE, 0);
 		break;
 	}
 }
@@ -522,11 +518,8 @@ void GenerateSIInterrupt(SIInterruptType _SIInterrupt)
 
 void RemoveDevice(int _iDeviceNumber)
 {
-	if (g_Channel[_iDeviceNumber].m_pDevice != NULL)
-	{
-		delete g_Channel[_iDeviceNumber].m_pDevice;
-		g_Channel[_iDeviceNumber].m_pDevice = NULL;
-	}
+	delete g_Channel[_iDeviceNumber].m_pDevice;
+	g_Channel[_iDeviceNumber].m_pDevice = NULL;
 }
 
 void AddDevice(const TSIDevices _device, int _iDeviceNumber)
@@ -538,54 +531,50 @@ void AddDevice(const TSIDevices _device, int _iDeviceNumber)
 
 	// create the new one
 	g_Channel[_iDeviceNumber].m_pDevice = SIDevice_Create(_device, _iDeviceNumber);
-	_dbg_assert_(SERIALINTERFACE, g_Channel[_iDeviceNumber].m_pDevice != NULL);
+}
+
+void SetNoResponse(u32 channel)
+{
+	// raise the NO RESPONSE error
+	switch (channel)
+	{
+	case 0: g_StatusReg.NOREP0 = 1; break;
+	case 1: g_StatusReg.NOREP1 = 1; break;
+	case 2: g_StatusReg.NOREP2 = 1; break;
+	case 3: g_StatusReg.NOREP3 = 1; break;
+	}
+	g_ComCSR.COMERR = 1;
 }
 
 void ChangeDeviceCallback(u64 userdata, int cyclesLate)
 {
 	u8 channel = (u8)(userdata >> 32);
-	// doubt this matters...
+
 	g_Channel[channel].m_Out.Hex = 0;
 	g_Channel[channel].m_InHi.Hex = 0;
 	g_Channel[channel].m_InLo.Hex = 0;
 
-	// raise the NO RESPONSE error
-	switch (channel)
-	{
-	case 0:
-		g_StatusReg.NOREP0 = 1;
-		break;
-	case 1:
-		g_StatusReg.NOREP1 = 1;
-		break;
-	case 2:
-		g_StatusReg.NOREP2 = 1;
-		break;
-	case 3:
-		g_StatusReg.NOREP3 = 1;
-		break;
-	}
+	SetNoResponse(channel);
 
 	AddDevice((TSIDevices)(u32)userdata, channel);
 }
 
-void ChangeDevice(TSIDevices device, int deviceNumber)
+void ChangeDevice(TSIDevices device, int channel)
 {
 	// Called from GUI, so we need to make it thread safe.
 	// Let the hardware see no device for .5b cycles
-	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, (SI_DUMMY | (u64)deviceNumber << 32));
-	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, (device | (u64)deviceNumber << 32));
+	CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | SI_NONE);
+	CoreTiming::ScheduleEvent_Threadsafe(500000000, changeDevice, ((u64)channel << 32) | device);
 }
 
 void UpdateDevices()
 {
-	// Update channels
-	g_StatusReg.RDST0 = g_Channel[0].m_pDevice->GetData(g_Channel[0].m_InHi.Hex, g_Channel[0].m_InLo.Hex) ? 1 : 0;
-	g_StatusReg.RDST1 = g_Channel[1].m_pDevice->GetData(g_Channel[1].m_InHi.Hex, g_Channel[1].m_InLo.Hex) ? 1 : 0;
-	g_StatusReg.RDST2 = g_Channel[2].m_pDevice->GetData(g_Channel[2].m_InHi.Hex, g_Channel[2].m_InLo.Hex) ? 1 : 0;
-	g_StatusReg.RDST3 = g_Channel[3].m_pDevice->GetData(g_Channel[3].m_InHi.Hex, g_Channel[3].m_InLo.Hex) ? 1 : 0;
+	// Update channels and set the status bit if there's new data
+	g_StatusReg.RDST0 = !!g_Channel[0].m_pDevice->GetData(g_Channel[0].m_InHi.Hex, g_Channel[0].m_InLo.Hex);
+	g_StatusReg.RDST1 = !!g_Channel[1].m_pDevice->GetData(g_Channel[1].m_InHi.Hex, g_Channel[1].m_InLo.Hex);
+	g_StatusReg.RDST2 = !!g_Channel[2].m_pDevice->GetData(g_Channel[2].m_InHi.Hex, g_Channel[2].m_InLo.Hex);
+	g_StatusReg.RDST3 = !!g_Channel[3].m_pDevice->GetData(g_Channel[3].m_InHi.Hex, g_Channel[3].m_InLo.Hex);
 
-	// Update interrupts
 	UpdateInterrupts();
 }
 

@@ -230,7 +230,7 @@ bool NetPlay::GetNetPads(u8 padnb, SPADStatus PadStatus, u32 *netValues)
 
 				// Better disable unused ports 
 				for (int i = m_numClients+1; i < 4; i++)
-					SerialInterface::ChangeDevice(SI_DUMMY, i);
+					SerialInterface::ChangeDevice(SI_NONE, i);
 			}
 			
 			if (m_timer.GetTimeDifference() > 1000)

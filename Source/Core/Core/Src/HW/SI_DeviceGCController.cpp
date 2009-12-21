@@ -214,6 +214,7 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	}
 
 	// Keep track of the special button combos (embedded in controller hardware... :( )
+	// Should technically be in "gc time", but we just use host system time :)
 	EButtonCombo tempCombo;
 	if ((PadStatus.button & 0xff00) == (PAD_BUTTON_Y|PAD_BUTTON_X|PAD_BUTTON_START))
 		tempCombo = COMBO_ORIGIN;
