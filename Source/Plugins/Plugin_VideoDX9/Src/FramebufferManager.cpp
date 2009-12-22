@@ -96,6 +96,7 @@ void Create()
 	// Simplest possible setup to start with.
 	int target_width = Renderer::GetTargetWidth();
 	int target_height = Renderer::GetTargetHeight();
+
 	s_efb_color_surface_Format = D3DFMT_A8R8G8B8;
 	//get the framebuffer texture
 	HRESULT hr = D3D::dev->CreateTexture(target_width, target_height, 1, D3DUSAGE_RENDERTARGET, s_efb_color_surface_Format,

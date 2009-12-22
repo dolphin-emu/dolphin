@@ -19,15 +19,21 @@
 	#define WIN32_LEAN_AND_MEAN
 	#include <windows.h>
 	#include <wingdi.h>
-	#include <GL/gl.h>
+	#if 0
+		#include <GL/gl.h>
+	#endif
 #elif defined(__APPLE__) || defined(__APPLE_CC__)
 	/*	I can't test this Apple stuff!	*/
-	#include <OpenGL/gl.h>
+	#if 0
+		#include <OpenGL/gl.h>
+	#endif
 	#include <Carbon/Carbon.h>
 	#define APIENTRY
 #else
-	#include <GL/gl.h>
-	#include <GL/glx.h>
+	#if 0
+		#include <GL/gl.h>
+		#include <GL/glx.h>
+	#endif
 #endif
 
 #include "SOIL.h"
@@ -47,6 +53,7 @@ enum{
 	SOIL_CAPABILITY_NONE = 0,
 	SOIL_CAPABILITY_PRESENT = 1
 };
+
 static int has_cubemap_capability = SOIL_CAPABILITY_UNKNOWN;
 int query_cubemap_capability( void );
 #define SOIL_TEXTURE_WRAP_R					0x8072
@@ -78,13 +85,17 @@ int query_DXT_capability( void );
 #define SOIL_RGBA_S3TC_DXT1		0x83F1
 #define SOIL_RGBA_S3TC_DXT3		0x83F2
 #define SOIL_RGBA_S3TC_DXT5		0x83F3
+
+#if 0
 typedef void (APIENTRY * P_SOIL_GLCOMPRESSEDTEXIMAGE2DPROC) (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const GLvoid * data);
 P_SOIL_GLCOMPRESSEDTEXIMAGE2DPROC soilGlCompressedTexImage2D = NULL;
+
 unsigned int SOIL_direct_load_DDS(
 		const char *filename,
 		unsigned int reuse_texture_ID,
 		int flags,
 		int loading_as_cubemap );
+
 unsigned int SOIL_direct_load_DDS_from_memory(
 		const unsigned char *const buffer,
 		int buffer_length,
@@ -92,6 +103,7 @@ unsigned int SOIL_direct_load_DDS_from_memory(
 		int flags,
 		int loading_as_cubemap );
 /*	other functions	*/
+
 unsigned int
 	SOIL_internal_create_OGL_texture
 	(
@@ -1420,6 +1432,7 @@ int
     SOIL_free_image_data( pixel_data );
 	return save_result;
 }
+#endif
 
 unsigned char*
 	SOIL_load_image
@@ -1529,6 +1542,7 @@ const char*
 	return result_string_pointer;
 }
 
+#if 0
 unsigned int SOIL_direct_load_DDS_from_memory(
 		const unsigned char *const buffer,
 		int buffer_length,
@@ -1870,6 +1884,7 @@ unsigned int SOIL_direct_load_DDS(
 	return tex_ID;
 }
 
+
 int query_NPOT_capability( void )
 {
 	/*	check for the capability	*/
@@ -1948,6 +1963,7 @@ int query_cubemap_capability( void )
 	return has_cubemap_capability;
 }
 
+
 int query_DXT_capability( void )
 {
 	/*	check for the capability	*/
@@ -2022,3 +2038,4 @@ int query_DXT_capability( void )
 	/*	let the user know if we can do DXT or not	*/
 	return has_DXT_capability;
 }
+#endif

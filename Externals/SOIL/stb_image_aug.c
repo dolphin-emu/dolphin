@@ -1,4 +1,4 @@
-/* stbi-1.16 - public domain JPEG/PNG reader - http://nothings.org/stb_image.c
+/* stbi-1.18 - public domain JPEG/PNG reader - http://nothings.org/stb_image.c
                       when you control the images you're loading
 
    QUICK NOTES:
@@ -6,7 +6,7 @@
           avoid problematic images and only need the trivial interface
 
       JPEG baseline (no JPEG progressive, no oddball channel decimations)
-      PNG non-interlaced
+      PNG 8-bit only
       BMP non-1bpp, non-RLE
       TGA (not sure what subset, if a subset)
       PSD (composited view only, no extra channels)
@@ -14,11 +14,13 @@
       writes BMP,TGA (define STBI_NO_WRITE to remove code)
       decoded from memory or through stdio FILE (define STBI_NO_STDIO to remove code)
       supports installable dequantizing-IDCT, YCbCr-to-RGB conversion (define STBI_SIMD)
-
+        
    TODO:
       stbi_info_*
-
+  
    history:
+      1.18   fix a threading bug (local mutable static)
+      1.17   support interlaced PNG
       1.16   major bugfix - convert_format converted one too many pixels
       1.15   initialize some fields for thread safety
       1.14   fix threadsafe conversion bug; header-file-only version (#define STBI_HEADER_FILE_ONLY before including)
@@ -397,7 +399,7 @@ __forceinline static int at_eof(stbi *s)
    if (s->img_file)
       return feof(s->img_file);
 #endif
-   return s->img_buffer >= s->img_buffer_end;
+   return s->img_buffer >= s->img_buffer_end;   
 }
 
 __forceinline static uint8 get8u(stbi *s)
@@ -1116,7 +1118,7 @@ static int process_marker(jpeg *z, int m)
                z->dequant[t][dezigzag[i]] = get8u(&z->s);
             #if STBI_SIMD
             for (i=0; i < 64; ++i)
-               z->dequant2[t][i] = dequant[t][i];
+               z->dequant2[t][i] = z->dequant[t][i];
             #endif
             L -= 65;
          }
@@ -1382,7 +1384,7 @@ static uint8 *resample_row_generic(uint8 *out, uint8 *in_near, uint8 *in_far, in
 
 // 0.38 seconds on 3*anemones.jpg   (0.25 with processor = Pro)
 // VC6 without processor=Pro is generating multiple LEAs per multiply!
-static void YCbCr_to_RGB_row(uint8 *out, uint8 *y, uint8 *pcb, uint8 *pcr, int count, int step)
+static void YCbCr_to_RGB_row(uint8 *out, const uint8 *y, const uint8 *pcb, const uint8 *pcr, int count, int step)
 {
    int i;
    for (i=0; i < count; ++i) {
@@ -1438,7 +1440,7 @@ typedef struct
    resample_row_func resample;
    uint8 *line0,*line1;
    int hs,vs;   // expansion factor in each axis
-   int w_lores; // horizontal pixels pre-expansion
+   int w_lores; // horizontal pixels pre-expansion 
    int ystep;   // how far through vertical expansion we are
    int ypos;    // which pre-expansion row we're on
 } stbi_resample;
@@ -1616,7 +1618,7 @@ typedef struct
    int maxcode[17];
    uint16 firstsymbol[16];
    uint8  size[288];
-   uint16 value[288];
+   uint16 value[288]; 
 } zhuffman;
 
 __forceinline static int bitreverse16(int n)
@@ -1723,7 +1725,7 @@ __forceinline static unsigned int zreceive(zbuf *z, int n)
    k = z->code_buffer & ((1 << n) - 1);
    z->code_buffer >>= n;
    z->num_bits -= n;
-   return k;
+   return k;   
 }
 
 __forceinline static int zhuffman_decode(zbuf *a, zhuffman *z)
@@ -1815,7 +1817,7 @@ static int parse_huffman_block(zbuf *a)
 static int compute_huffman_codes(zbuf *a)
 {
    static uint8 length_dezigzag[19] = { 16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15 };
-   static zhuffman z_codelength; // static just to save stack space
+   zhuffman z_codelength;
    uint8 lencodes[286+32+137];//padding for maximum single op
    uint8 codelength_sizes[19];
    int i,n;
@@ -1913,6 +1915,7 @@ static void init_defaults(void)
    for (i=0; i <=  31; ++i)     default_distance[i] = 5;
 }
 
+int stbi_png_partial; // a quick hack to only allow decoding some of a PNG... I should implement real streaming support instead
 static int parse_zlib(zbuf *a, int parse_header)
 {
    int final, type;
@@ -1938,6 +1941,8 @@ static int parse_zlib(zbuf *a, int parse_header)
          }
          if (!parse_huffman_block(a)) return 0;
       }
+      if (stbi_png_partial && a->zout - a->zout_start > 65536)
+         break;
    } while (!final);
    return 1;
 }
@@ -2076,17 +2081,23 @@ static int paeth(int a, int b, int c)
 }
 
 // create the png data from post-deflated data
-static int create_png_image(png *a, uint8 *raw, uint32 raw_len, int out_n)
+static int create_png_image_raw(png *a, uint8 *raw, uint32 raw_len, int out_n, uint32 x, uint32 y)
 {
    stbi *s = &a->s;
-   uint32 i,j,stride = s->img_x*out_n;
+   uint32 i,j,stride = x*out_n;
    int k;
    int img_n = s->img_n; // copy it into a local for later
    assert(out_n == s->img_n || out_n == s->img_n+1);
-   a->out = (uint8 *) malloc(s->img_x * s->img_y * out_n);
+   if (stbi_png_partial) y = 1;
+   a->out = (uint8 *) malloc(x * y * out_n);
    if (!a->out) return e("outofmem", "Out of memory");
-   if (raw_len != (img_n * s->img_x + 1) * s->img_y) return e("not enough pixels","Corrupt PNG");
-   for (j=0; j < s->img_y; ++j) {
+   if (!stbi_png_partial) {
+      if (s->img_x == x && s->img_y == y)
+         if (raw_len != (img_n * x + 1) * y) return e("not enough pixels","Corrupt PNG");
+      else // interlaced:
+         if (raw_len < (img_n * x + 1) * y) return e("not enough pixels","Corrupt PNG");
+   }
+   for (j=0; j < y; ++j) {
       uint8 *cur = a->out + stride*j;
       uint8 *prior = cur - stride;
       int filter = *raw++;
@@ -2113,7 +2124,7 @@ static int create_png_image(png *a, uint8 *raw, uint32 raw_len, int out_n)
       if (img_n == out_n) {
          #define CASE(f) \
              case f:     \
-                for (i=s->img_x-1; i >= 1; --i, raw+=img_n,cur+=img_n,prior+=img_n) \
+                for (i=x-1; i >= 1; --i, raw+=img_n,cur+=img_n,prior+=img_n) \
                    for (k=0; k < img_n; ++k)
          switch(filter) {
             CASE(F_none)  cur[k] = raw[k]; break;
@@ -2129,7 +2140,7 @@ static int create_png_image(png *a, uint8 *raw, uint32 raw_len, int out_n)
          assert(img_n+1 == out_n);
          #define CASE(f) \
              case f:     \
-                for (i=s->img_x-1; i >= 1; --i, cur[img_n]=255,raw+=img_n,cur+=out_n,prior+=out_n) \
+                for (i=x-1; i >= 1; --i, cur[img_n]=255,raw+=img_n,cur+=out_n,prior+=out_n) \
                    for (k=0; k < img_n; ++k)
          switch(filter) {
             CASE(F_none)  cur[k] = raw[k]; break;
@@ -2143,6 +2154,47 @@ static int create_png_image(png *a, uint8 *raw, uint32 raw_len, int out_n)
          #undef CASE
       }
    }
+   return 1;
+}
+
+static int create_png_image(png *a, uint8 *raw, uint32 raw_len, int out_n, int interlaced)
+{
+   uint8 *final;
+   int p;
+   int save;
+   if (!interlaced)
+      return create_png_image_raw(a, raw, raw_len, out_n, a->s.img_x, a->s.img_y);
+   save = stbi_png_partial;
+   stbi_png_partial = 0;
+
+   // de-interlacing
+   final = (uint8 *) malloc(a->s.img_x * a->s.img_y * out_n);
+   for (p=0; p < 7; ++p) {
+      int xorig[] = { 0,4,0,2,0,1,0 };
+      int yorig[] = { 0,0,4,0,2,0,1 };
+      int xspc[]  = { 8,8,4,4,2,2,1 };
+      int yspc[]  = { 8,8,8,4,4,2,2 };
+      int i,j,x,y;
+      // pass1_x[4] = 0, pass1_x[5] = 1, pass1_x[12] = 1
+      x = (a->s.img_x - xorig[p] + xspc[p]-1) / xspc[p];
+      y = (a->s.img_y - yorig[p] + yspc[p]-1) / yspc[p];
+      if (x && y) {
+         if (!create_png_image_raw(a, raw, raw_len, out_n, x, y)) {
+            free(final);
+            return 0;
+         }
+         for (j=0; j < y; ++j)
+            for (i=0; i < x; ++i)
+               memcpy(final + (j*yspc[p]+yorig[p])*a->s.img_x*out_n + (i*xspc[p]+xorig[p])*out_n,
+                      a->out + (j*x+i)*out_n, out_n);
+         free(a->out);
+         raw += (x*out_n+1)*y;
+         raw_len -= (x*out_n+1)*y;
+      }
+   }
+   a->out = final;
+
+   stbi_png_partial = save;
    return 1;
 }
 
@@ -2210,7 +2262,7 @@ static int parse_png_file(png *z, int scan, int req_comp)
    uint8 palette[1024], pal_img_n=0;
    uint8 has_trans=0, tc[3];
    uint32 ioff=0, idata_limit=0, i, pal_len=0;
-   int first=1,k;
+   int first=1,k,interlace=0;
    stbi *s = &z->s;
 
    if (!check_png_header(s)) return 0;
@@ -2223,7 +2275,7 @@ static int parse_png_file(png *z, int scan, int req_comp)
          return e("first not IHDR","Corrupt PNG");
       switch (c.type) {
          case PNG_TYPE('I','H','D','R'): {
-            int depth,color,interlace,comp,filter;
+            int depth,color,comp,filter;
             if (!first) return e("multiple IHDR","Corrupt PNG");
             if (c.length != 13) return e("bad IHDR len","Corrupt PNG");
             s->img_x = get32(s); if (s->img_x > (1 << 24)) return e("too large","Very large image (corrupt?)");
@@ -2233,7 +2285,7 @@ static int parse_png_file(png *z, int scan, int req_comp)
             if (color == 3) pal_img_n = 3; else if (color & 1) return e("bad ctype","Corrupt PNG");
             comp  = get8(s);  if (comp) return e("bad comp method","Corrupt PNG");
             filter= get8(s);  if (filter) return e("bad filter method","Corrupt PNG");
-            interlace = get8(s); if (interlace) return e("interlaced","PNG not supported: interlaced mode");
+            interlace = get8(s); if (interlace>1) return e("bad interlace method","Corrupt PNG");
             if (!s->img_x || !s->img_y) return e("0-pixel image","Corrupt PNG");
             if (!pal_img_n) {
                s->img_n = (color & 2 ? 3 : 1) + (color & 4 ? 1 : 0);
@@ -2318,7 +2370,7 @@ static int parse_png_file(png *z, int scan, int req_comp)
                s->img_out_n = s->img_n+1;
             else
                s->img_out_n = s->img_n;
-            if (!create_png_image(z, z->expanded, raw_len, s->img_out_n)) return 0;
+            if (!create_png_image(z, z->expanded, raw_len, s->img_out_n, interlace)) return 0;
             if (has_trans)
                if (!compute_transparency(z, tc, s->img_out_n)) return 0;
             if (pal_img_n) {
@@ -2428,7 +2480,23 @@ int stbi_png_test_memory(stbi_uc const *buffer, int len)
 
 // TODO: load header from png
 #ifndef STBI_NO_STDIO
-extern int      stbi_png_info             (char const *filename,           int *x, int *y, int *comp);
+int      stbi_png_info             (char const *filename,           int *x, int *y, int *comp)
+{
+   png p;
+   FILE *f = fopen(filename, "rb");
+   if (!f) return 0;
+   start_file(&p.s, f);
+   if (parse_png_file(&p, SCAN_header, 0)) {
+      if(x) *x = p.s.img_x;
+      if(y) *y = p.s.img_y;
+      if (comp) *comp = p.s.img_n;
+      fclose(f);
+      return 1;
+   }
+   fclose(f);
+   return 0;
+}
+
 extern int      stbi_png_info_from_file   (FILE *f,                  int *x, int *y, int *comp);
 #endif
 extern int      stbi_png_info_from_memory (stbi_uc const *buffer, int len, int *x, int *y, int *comp);
@@ -2511,7 +2579,7 @@ static int shiftsigned(int v, int shift, int bits)
 static stbi_uc *bmp_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 {
    uint8 *out;
-   unsigned int mr=0,mg=0,mb=0,ma=0;
+   unsigned int mr=0,mg=0,mb=0,ma=0, fake_a=0;
    stbi_uc pal[256][4];
    int psize=0,i,j,compress=0,width;
    int bpp, flip_vertically, pad, target, offset, hsz;
@@ -2560,6 +2628,8 @@ static stbi_uc *bmp_load(stbi *s, int *x, int *y, int *comp, int req_comp)
                   mr = 0xff << 16;
                   mg = 0xff <<  8;
                   mb = 0xff <<  0;
+                  ma = 0xff << 24;
+                  fake_a = 1; // @TODO: check for cases like alpha value is all 0 and switch it to 255
                } else {
                   mr = 31 << 10;
                   mg = 31 <<  5;
@@ -2674,7 +2744,7 @@ static stbi_uc *bmp_load(stbi *s, int *x, int *y, int *comp, int req_comp)
                out[z++] = shiftsigned(v & mg, gshift, gcount);
                out[z++] = shiftsigned(v & mb, bshift, bcount);
                a = (ma ? shiftsigned(v & ma, ashift, acount) : 255);
-               if (target == 4) out[z++] = a;
+               if (target == 4) out[z++] = a; 
             }
          }
          skip(s, pad);
@@ -2791,7 +2861,7 @@ static stbi_uc *tga_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 	unsigned char *tga_palette = NULL;
 	int i, j;
 	unsigned char raw_data[4];
-	unsigned char trans_data[] = { 0,0,0,0 };
+	unsigned char trans_data[4];
 	int RLE_count = 0;
 	int RLE_repeating = 0;
 	int read_next_pixel = 1;
@@ -3070,7 +3140,7 @@ static stbi_uc *psd_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 	// Read the rows and columns of the image.
    h = get32(s);
    w = get32(s);
-
+	
 	// Make sure the depth is 8 bits.
 	if (get16(s) != 8)
 		return epuc("unsupported bit depth", "PSD bit depth is not 8 bit");
@@ -3112,7 +3182,7 @@ static stbi_uc *psd_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 
 	// Initialize the data to zero.
 	//memset( out, 0, pixelCount * 4 );
-
+	
 	// Finally, the image data.
 	if (compression) {
 		// RLE as used by .PSD and .TIFF
@@ -3130,7 +3200,7 @@ static stbi_uc *psd_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 		// Read the RLE data by channel.
 		for (channel = 0; channel < 4; channel++) {
 			uint8 *p;
-
+			
          p = out+channel;
 			if (channel >= channelCount) {
 				// Fill this channel with default data.
@@ -3168,15 +3238,15 @@ static stbi_uc *psd_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 				}
 			}
 		}
-
+		
 	} else {
 		// We're at the raw image data.  It's each channel in order (Red, Green, Blue, Alpha, ...)
 		// where each channel consists of an 8-bit value for each pixel in the image.
-
+		
 		// Read the data by channel.
 		for (channel = 0; channel < 4; channel++) {
 			uint8 *p;
-
+			
          p = out + channel;
 			if (channel > channelCount) {
 				// Fill this channel with default data.
@@ -3198,7 +3268,7 @@ static stbi_uc *psd_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 	if (comp) *comp = channelCount;
 	*y = h;
 	*x = w;
-
+	
 	return out;
 }
 
@@ -3266,8 +3336,7 @@ int stbi_hdr_test_file(FILE *f)
 static char *hdr_gettoken(stbi *z, char *buffer)
 {
    int len=0;
-	//char *s = buffer,
-	char c = '\0';
+	char *s = buffer, c = '\0';
 
    c = get8(z);
 
@@ -3330,7 +3399,7 @@ static float *hdr_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 	// Check identifier
 	if (strcmp(hdr_gettoken(s,buffer), "#?RADIANCE") != 0)
 		return epf("not HDR", "Corrupt HDR image");
-
+	
 	// Parse header
 	while(1) {
 		token = hdr_gettoken(s,buffer);
@@ -3394,7 +3463,7 @@ static float *hdr_load(stbi *s, int *x, int *y, int *comp, int req_comp)
          len |= get8(s);
          if (len != width) { free(hdr_data); free(scanline); return epf("invalid decoded scanline length", "corrupt HDR"); }
          if (scanline == NULL) scanline = (stbi_uc *) malloc(width * 4);
-
+				
 			for (k = 0; k < 4; ++k) {
 				i = 0;
 				while (i < width) {
@@ -3606,7 +3675,7 @@ static void write_pixels(FILE *f, int rgb_dir, int vdir, int x, int y, int comp,
    uint32 zero = 0;
    int i,j,k, j_end;
 
-   if (vdir < 0)
+   if (vdir < 0) 
       j_end = -1, j = y-1;
    else
       j_end =  y, j = 0;

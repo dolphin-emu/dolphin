@@ -38,6 +38,7 @@
 
 #include "TextureDecoder.h"
 #include "TextureCache.h"
+#include "HiresTextures.h"
 
 #include "debugger/debugger.h"
 
@@ -66,6 +67,7 @@ void TextureCache::Init()
 {
 	temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
+	HiresTextures::Init(globals->unique_id);
 }
 
 void TextureCache::Invalidate(bool shutdown)
@@ -73,6 +75,7 @@ void TextureCache::Invalidate(bool shutdown)
 	for (TexCache::iterator iter = textures.begin(); iter != textures.end(); iter++)
 		iter->second.Destroy(shutdown);
 	textures.clear();
+	HiresTextures::Shutdown();
 }
 
 void TextureCache::InvalidateRange(u32 start_address, u32 size)
@@ -305,7 +308,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	u32 texID = address;
 	u32 texHash;
 
-	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bDumpTextures)
+	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
 	{
 		texHash = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, expandedHeight, tex_format, 0);
 		if (g_ActiveConfig.bSafeTextureCache)
@@ -359,8 +362,32 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			}
 		}
 	}
-	
-	PC_TexFormat pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth, height, tex_format, tlutaddr, tlutfmt);
+
+	//Make an entry in the table
+	TCacheEntry& entry = textures[texID];
+	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
+
+	if (g_ActiveConfig.bHiresTextures)
+	{
+		//Load Custom textures
+		char texPathTemp[MAX_PATH];
+		int oldWidth = width;
+		int oldHeight = height;
+
+		sprintf(texPathTemp, "%s_%08x_%i", globals->unique_id, texHash, tex_format);
+		pcfmt = HiresTextures::GetHiresTex(texPathTemp, &width, &height, tex_format, temp);
+
+		if (pcfmt != PC_TEX_FMT_NONE)
+		{
+			expandedWidth = width;
+			expandedHeight = height;
+			entry.scaleX = (float) width / oldWidth;
+			entry.scaleY = (float) height / oldHeight;
+		}
+	}
+
+	if(pcfmt == PC_TEX_FMT_NONE)
+		pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt);
 
 	D3DFORMAT d3d_fmt;
 	switch (pcfmt) {
@@ -387,9 +414,6 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		d3d_fmt = D3DFMT_DXT1;
 		break;
 	}
-	
-	//Make an entry in the table
-	TCacheEntry& entry = textures[texID];
 
 	entry.oldpixel = ((u32 *)ptr)[0];
 	if (g_ActiveConfig.bSafeTextureCache)
@@ -421,7 +445,9 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		char szDir[MAX_PATH];
 		const char* uniqueId = globals->unique_id;
 		bool bCheckedDumpDir = false;
+
 		sprintf(szDir, "%s/%s", FULL_DUMP_TEXTURES_DIR, uniqueId);
+
 		if (!bCheckedDumpDir)
 		{
 			if (!File::Exists(szDir) || !File::IsDirectory(szDir))
@@ -429,8 +455,9 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 			bCheckedDumpDir = true;
 		}
+
 		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir, uniqueId, texHash, tex_format);
-		//sprintf(szTemp, "%s\\txt_%04i_%i.png", g_Config.texDumpPath.c_str(), counter++, format); <-- Old method
+
 		if (!File::Exists(szTemp))
 			D3DXSaveTextureToFileA(szTemp,D3DXIFF_BMP,entry.texture,0);
 	}
@@ -503,7 +530,6 @@ have_texture:
             case 1: // Z8
                 colmat[0] = colmat[4] = colmat[8] = colmat[12] =1.0f;
                 break;
-            
             case 3: // Z16 //?
                 colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;
             case 11: // Z16 (reverse order)

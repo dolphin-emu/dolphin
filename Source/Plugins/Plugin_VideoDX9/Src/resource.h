@@ -35,6 +35,8 @@
 #define IDC_TEXFMT_CENTER               1025
 #define IDC_FORCEFILTERING              1026
 #define IDC_FORCEANISOTROPY             1027
+#define IDC_LOADHIRESTEXTURE			1028
+#define IDC_EFBSCALEDCOPY				1029
 
 #define IDC_CHECK1                      1100
 #define IDC_LIST1                       1101

@@ -104,11 +104,16 @@ IDD_ENHANCEMENTS DIALOGEX 0, 0, 224, 175
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    GROUPBOX        "Texture &filtering",IDC_STATIC,7,7,210,50
+    GROUPBOX        "Texture &filtering",IDC_STATIC,7,7,210,60
     CONTROL         "Force &bi/trilinear (breaks video in several Wii games)",IDC_FORCEFILTERING,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,192,9
     CONTROL         "Enable 16x &anisotropy filtering",IDC_FORCEANISOTROPY,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,35,110,10
+	CONTROL			"Enable hires texture loading", IDC_LOADHIRESTEXTURE,
+					"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,50,110,11
+	GROUPBOX		"EFB Hacks",IDC_STATIC,7,70,210,60
+	CONTROL         "EFB Scaled Copy",IDC_EFBSCALEDCOPY,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,80,110,12
 END
 
 

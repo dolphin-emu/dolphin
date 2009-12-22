@@ -152,11 +152,13 @@ struct TabAdvanced : public W32Util::Tab
 		Button_SetCheck(GetDlgItem(hDlg,IDC_SHOWSHADERERRORS), g_Config.bShowShaderErrors);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_DISABLEFOG), g_Config.bDisableFog);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY), !g_Config.bEFBCopyDisable);
+			
 		if(g_Config.bCopyEFBToRAM)
 			Button_SetCheck(GetDlgItem(hDlg,IDC_EFBTORAM), TRUE);
 		else
 			Button_SetCheck(GetDlgItem(hDlg,IDC_EFBTOTEX), TRUE);
 
+		
 		Button_SetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY), g_Config.bTexFmtOverlayEnable);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_TEXFMT_CENTER),  g_Config.bTexFmtOverlayCenter);
 		Button_GetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY)) ? Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), true) : Button_Enable(GetDlgItem(hDlg,IDC_TEXFMT_CENTER), false);
@@ -167,12 +169,6 @@ struct TabAdvanced : public W32Util::Tab
 	{
 		switch (LOWORD(wParam))
 		{
-	//	case IDC_BROWSETEXDUMPPATH:  <-- Old method
-	//		{
-	//			std::string path = W32Util::BrowseForFolder(hDlg,"Choose texture dump path:"); 
-	//			SetWindowText(GetDlgItem(hDlg,IDC_TEXDUMPPATH),path.c_str());
-	//		}
-	//		break;
 		case IDC_ENABLEEFBCOPY:
 			{
 				Button_GetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY)) ? Button_Enable(GetDlgItem(hDlg,IDC_EFBTORAM), true) : Button_Enable(GetDlgItem(hDlg,IDC_EFBTORAM), false);
@@ -203,9 +199,7 @@ struct TabAdvanced : public W32Util::Tab
 		g_Config.bDisableFog = Button_GetCheck(GetDlgItem(hDlg,IDC_DISABLEFOG)) ? true : false;
 		g_Config.bEFBCopyDisable = Button_GetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY)) ? false : true;
 		g_Config.bCopyEFBToRAM = Button_GetCheck(GetDlgItem(hDlg,IDC_EFBTORAM)) ? true : false;
-		//char temp[MAX_PATH];
-		//GetWindowText(GetDlgItem(hDlg,IDC_TEXDUMPPATH), temp, MAX_PATH);  <-- Old method
-		//g_Config.texDumpPath = temp;
+
 		g_Config.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
 
 		if( D3D::dev != NULL ) {
@@ -220,6 +214,9 @@ struct TabEnhancements : public W32Util::Tab
 	{
 		Button_SetCheck(GetDlgItem(hDlg,IDC_FORCEFILTERING),g_Config.bForceFiltering);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_FORCEANISOTROPY),g_Config.iMaxAnisotropy > 1);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_LOADHIRESTEXTURE), g_Config.bHiresTextures);
+		Button_SetCheck(GetDlgItem(hDlg,IDC_EFBSCALEDCOPY), g_Config.bCopyEFBScaled);
+
 		/*
 		Temporarily disabled the old postprocessing code since it wasn't working anyway.
 		New postprocessing code will come sooner or later, sharing shaders and framework with
@@ -254,6 +251,8 @@ struct TabEnhancements : public W32Util::Tab
 	{
 		g_Config.iMaxAnisotropy = Button_GetCheck(GetDlgItem(hDlg, IDC_FORCEANISOTROPY)) ? 8 : 1;
 		g_Config.bForceFiltering = Button_GetCheck(GetDlgItem(hDlg, IDC_FORCEFILTERING)) ? true : false;
+		g_Config.bHiresTextures = Button_GetCheck(GetDlgItem(hDlg, IDC_LOADHIRESTEXTURE)) ? true : false;
+		g_Config.bCopyEFBScaled = Button_GetCheck(GetDlgItem(hDlg,IDC_EFBSCALEDCOPY)) ? true : false;
 		g_Config.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
 	}
 };
