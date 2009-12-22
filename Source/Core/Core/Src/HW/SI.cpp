@@ -255,7 +255,7 @@ void Init()
 	g_StatusReg.Hex = 0;
 
 	g_EXIClockCount.Hex = 0;
-	g_EXIClockCount.LOCK = 1;
+	//g_EXIClockCount.LOCK = 1; // Supposedly set on reset, but logs from real wii don't look like it is...
 	memset(g_SIBuffer, 0, 128);
 
 	changeDevice = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
@@ -269,8 +269,6 @@ void Shutdown()
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
 {
-	DEBUG_LOG(SERIALINTERFACE, "(r32): 0x%08x", _iAddress);
-
 	// SIBuffer
 	if ((_iAddress >= 0xCC006480 && _iAddress < 0xCC006500) ||
 		(_iAddress >= 0xCD006480 && _iAddress < 0xCD006500))
@@ -278,6 +276,9 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		_uReturnValue = *(u32*)&g_SIBuffer[_iAddress & 0x7F];
 		return;
 	}
+
+	// error if not changed in the switch
+	_uReturnValue = 0xdeadbeef;
 
 	// registers
 	switch (_iAddress & 0x3FF)
@@ -287,77 +288,85 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	//////////////////////////////////////////////////////////////////////////
 	case SI_CHANNEL_0_OUT:		
 		_uReturnValue = g_Channel[0].m_Out.Hex;
-		return;
+		break;
 
 	case SI_CHANNEL_0_IN_HI:
+		g_StatusReg.RDST0 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[0].m_InHi.Hex;
-		return;
+		break;
 
 	case SI_CHANNEL_0_IN_LO:
+		g_StatusReg.RDST0 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[0].m_InLo.Hex;
-		return;
+		break;
 
 	//////////////////////////////////////////////////////////////////////////
 	// Channel 1
 	//////////////////////////////////////////////////////////////////////////
 	case SI_CHANNEL_1_OUT:		
 		_uReturnValue = g_Channel[1].m_Out.Hex;
-		return;
+		break;
 
 	case SI_CHANNEL_1_IN_HI:
+		g_StatusReg.RDST1 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[1].m_InHi.Hex;
-		return;
+		break;
 
 	case SI_CHANNEL_1_IN_LO:
+		g_StatusReg.RDST1 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[1].m_InLo.Hex;
-		return;
+		break;
 
 	//////////////////////////////////////////////////////////////////////////
 	// Channel 2
 	//////////////////////////////////////////////////////////////////////////
 	case SI_CHANNEL_2_OUT:		
 		_uReturnValue = g_Channel[2].m_Out.Hex;
-		return;
+		break;
 
 	case SI_CHANNEL_2_IN_HI:
+		g_StatusReg.RDST2 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[2].m_InHi.Hex;
-		return;
+		break;
 
 	case SI_CHANNEL_2_IN_LO:
+		g_StatusReg.RDST2 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[2].m_InLo.Hex;
-		return;
+		break;
 
 	//////////////////////////////////////////////////////////////////////////
 	// Channel 3
 	//////////////////////////////////////////////////////////////////////////
 	case SI_CHANNEL_3_OUT:		
 		_uReturnValue = g_Channel[3].m_Out.Hex;
-		return;
+		break;
 
 	case SI_CHANNEL_3_IN_HI:
+		g_StatusReg.RDST3 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[3].m_InHi.Hex;
-		return;
+		break;
 
 	case SI_CHANNEL_3_IN_LO:
+		g_StatusReg.RDST3 = 0;
 		UpdateInterrupts();
 		_uReturnValue = g_Channel[3].m_InLo.Hex;
-		return;
+		break;
 
 	//////////////////////////////////////////////////////////////////////////
 	// Other
 	//////////////////////////////////////////////////////////////////////////
-	case SI_POLL:				_uReturnValue = g_Poll.Hex; return;
-	case SI_COM_CSR:			_uReturnValue = g_ComCSR.Hex; return;
-	case SI_STATUS_REG:			_uReturnValue = g_StatusReg.Hex; return;
+	case SI_POLL:				_uReturnValue = g_Poll.Hex; break;
+	case SI_COM_CSR:			_uReturnValue = g_ComCSR.Hex; break;
+	case SI_STATUS_REG:			_uReturnValue = g_StatusReg.Hex; break;
 
-	case SI_EXI_CLOCK_COUNT:	_uReturnValue = g_EXIClockCount.Hex; return;
+	case SI_EXI_CLOCK_COUNT:	_uReturnValue = g_EXIClockCount.Hex; break;
 
 	default:
 		INFO_LOG(SERIALINTERFACE, "(r32-unk): 0x%08x", _iAddress);
@@ -365,13 +374,12 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 		break;
 	}
 
-	// error
-	_uReturnValue = 0xdeadbeef;
+	DEBUG_LOG(SERIALINTERFACE, "(r32) 0x%08x - 0x%08x", _iAddress, _uReturnValue);
 }
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-	DEBUG_LOG(SERIALINTERFACE, "(w32): 0x%08x 0x%08x", _iValue,_iAddress);
+	DEBUG_LOG(SERIALINTERFACE, "(w32) 0x%08x @ 0x%08x", _iValue, _iAddress);
 
 	// SIBuffer
 	if ((_iAddress >= 0xCC006480 && _iAddress < 0xCC006500) ||
