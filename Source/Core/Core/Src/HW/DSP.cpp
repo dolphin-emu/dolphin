@@ -63,16 +63,17 @@ enum
 	AR_SIZE					= 0x5012, // These names are a good guess at best
 	AR_MODE					= 0x5016, //
 	AR_REFRESH				= 0x501a, //
-	AUDIO_DMA_START_HI		= 0x5030,
-	AUDIO_DMA_START_LO		= 0x5032,
-	AUDIO_DMA_CONTROL_LEN	= 0x5036,
-	AUDIO_DMA_BLOCKS_LEFT	= 0x503A,
 	AR_DMA_MMADDR_H			= 0x5020,
 	AR_DMA_MMADDR_L			= 0x5022,
 	AR_DMA_ARADDR_H			= 0x5024,
 	AR_DMA_ARADDR_L			= 0x5026,
 	AR_DMA_CNT_H			= 0x5028,
-	AR_DMA_CNT_L			= 0x502A
+	AR_DMA_CNT_L			= 0x502A,
+	AUDIO_DMA_START_HI		= 0x5030,
+	AUDIO_DMA_START_LO		= 0x5032,
+	AUDIO_DMA_BLOCKS_LENGTH	= 0x5034, // Ever used?
+	AUDIO_DMA_CONTROL_LEN	= 0x5036,
+	AUDIO_DMA_BLOCKS_LEFT	= 0x503A,
 };
 
 // UARAMCount
@@ -128,7 +129,7 @@ union UAudioDMAControl
     struct  
     {        
         unsigned NumBlocks  : 15;
-		unsigned Reload     : 1;
+		unsigned Enable     : 1;
     };
 
     UAudioDMAControl(u16 _Hex = 0) : Hex(_Hex)
@@ -378,6 +379,27 @@ void Write16(const u16 _Value, const u32 _Address)
 			g_dspState.DSPControl.DSPHalt		= tmpControl.DSPHalt;
 			g_dspState.DSPControl.DSPInit       = tmpControl.DSPInit;
 
+			// AyuanX: WTF, sample rate between AI & DSP can be different?
+			// This is a big problem especially when our mixer is fixed to 32000
+			// TODO: Try to support these!
+			// More info: AudioCommon/Mixer.h, HW/AudioInterface.cpp
+			static bool FirstTimeWarning = false;
+			if (!FirstTimeWarning)
+			{
+				if (!g_dspState.DSPControl.DSPHalt && g_dspState.DSPControl.DSPInit)
+				{
+					// It's time to check now, and we do this only once
+					FirstTimeWarning = true;
+					if (AudioInterface::GetAISampleRate() != 32000 || AudioInterface::GetDSPSampleRate() != 32000)
+					{
+						WARN_LOG(DSPINTERFACE, "Unsupported Sample Rate, AI:%i, DSP:%i", AudioInterface::GetAISampleRate(), AudioInterface::GetDSPSampleRate());
+						if (AudioInterface::GetDSPSampleRate() != 32000)
+							PanicAlert("DSPINTERFACE: Unsupported Sample Rate, AI:%i, DSP:%i\n"
+								"You may get incorrect sound output, please report!", AudioInterface::GetAISampleRate(), AudioInterface::GetDSPSampleRate());
+					}
+				}
+			}
+
 			// Interrupt (mask)
 			g_dspState.DSPControl.AID_mask	= tmpControl.AID_mask;
 			g_dspState.DSPControl.ARAM_mask	= tmpControl.ARAM_mask;
@@ -457,8 +479,8 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	case AUDIO_DMA_CONTROL_LEN:			// called by AIStartDMA()
 		g_audioDMA.AudioDMAControl.Hex = _Value;
-		g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
 		g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
+		g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
 		INFO_LOG(DSPINTERFACE, "AID DMA started - source address %08x, length %i blocks", g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks);
 		break;
 
@@ -475,7 +497,7 @@ void Write16(const u16 _Value, const u32 _Address)
 // This happens at 4 khz, since 32 bytes at 4khz = 4 bytes at 32 khz (16bit stereo pcm)
 void UpdateAudioDMA()
 {
-	if (g_audioDMA.BlocksLeft)
+	if (g_audioDMA.AudioDMAControl.Enable && g_audioDMA.BlocksLeft)
 	{
 		// Read audio at g_audioDMA.ReadAddress in RAM and push onto an
 		// external audio fifo in the emulator, to be mixed with the disc
@@ -486,11 +508,8 @@ void UpdateAudioDMA()
 		g_audioDMA.BlocksLeft--;
 		if (g_audioDMA.BlocksLeft == 0)
 		{
-			if (g_audioDMA.AudioDMAControl.Reload)
-			{
-				g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
-				g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
-			}
+			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
+			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
 			// DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
 			GenerateDSPInterrupt(DSP::INT_AID);
 		}

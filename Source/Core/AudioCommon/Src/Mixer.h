@@ -29,7 +29,17 @@
 class CMixer {
 	
 public:
-	CMixer() : m_sampleRate(48000),m_bits(16),m_channels(2), m_mode(2), m_HLEready(false),m_queueSize(0) {}
+	// AyuanX: Mixer sample rate is fixed to 32khz for now
+	// if any game sets DSP sample rate to 48khz, we are doomed
+	// TODO: Fix this somehow!
+	CMixer(unsigned int SampleRate = 32000)
+		: m_sampleRate(SampleRate)
+		, m_bits(16)
+		, m_channels(2)
+		, m_mode(2)
+		, m_HLEready(false)
+		, m_queueSize(0)
+	{}
 
 	// Called from audio threads
 	virtual int Mix(short *sample, int numSamples);

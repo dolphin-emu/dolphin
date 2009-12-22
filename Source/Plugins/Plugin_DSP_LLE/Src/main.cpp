@@ -145,6 +145,7 @@ void DllConfig(HWND _hParent)
 	else if (!m_ConfigFrame->GetParent()->IsShown())
 		m_ConfigFrame->Close(true);
 
+	m_ConfigFrame->ClearBackends();
 	// add backends
 	std::vector<std::string> backends = AudioCommon::GetSoundBackends();
 

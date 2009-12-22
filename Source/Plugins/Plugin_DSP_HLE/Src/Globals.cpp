@@ -58,3 +58,9 @@ float Memory_Read_Float(u32 _uAddress)
 	u32 uTemp = Memory_Read_U32(_uAddress);
 	return *(float*)&uTemp;
 }
+
+void* Memory_Get_Pointer(u32 _uAddress)
+{
+	_uAddress &= RAM_MASK;
+	return &g_pMemory[_uAddress];
+}

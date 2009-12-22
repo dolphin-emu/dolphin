@@ -332,8 +332,10 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 	}
 
 	CMixer* pMixer = soundStream->GetMixer();
-	if (pMixer)
+	if (pMixer && address)
 	{
+		short* samples = (short*)Memory_Get_Pointer(address);
+/*
 		short samples[16] = {0};  // interleaved stereo
 		if (address)
 		{
@@ -346,7 +348,7 @@ void DSP_SendAIBuffer(unsigned int address, int sample_rate)
 			//if (log_ai)
 			//				g_wave_writer.AddStereoSamples(samples, 8);
 		}
-
+*/
 		// sample_rate is usually 32k here,
 		// see Core/DSP/DSP.cpp for better information
 		pMixer->PushSamples(samples, 32 / 4, sample_rate);

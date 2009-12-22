@@ -60,7 +60,7 @@ union AICR
 		unsigned AIINTVLD	: 1;  // This bit controls whether AIINT is affected by the AIIT register 
                                   // matching AISLRCNT. Once set, AIINT will hold
 		unsigned SCRESET	: 1;  // write to reset counter
-        unsigned DSPFR  	: 1;  // DSP Frequency (0=32khz 1=48khz)
+        unsigned DSPFR  	: 1;  // DSP Frequency (0=48khz 1=32khz) WTF, who designed this?
 		unsigned			:25;
 	};
 	u32 hex;
@@ -181,9 +181,8 @@ void Write32(const u32 _Value, const u32 _Address)
                 g_AudioRegister.m_Control.DSPFR = tmpAICtrl.DSPFR;
             }
 
-			g_SampleRate = tmpAICtrl.AFR ? 32000 : 48000;
+			g_SampleRate = tmpAICtrl.AFR ? 48000 : 32000;
 			g_DSPSampleRate = tmpAICtrl.DSPFR ? 32000 : 48000;
-//			PanicAlert("Sample rate %i %i", g_Aui, g_SampleRate);
 
 			g_CPUCyclesPerSample = SystemTimers::GetTicksPerSecond() / g_SampleRate;
 
@@ -276,29 +275,49 @@ u32 Callback_GetStreaming(short* _pDestBuffer, u32 _numSamples)
 		const int lvolume = g_AudioRegister.m_Volume.leftVolume;
 		const int rvolume = g_AudioRegister.m_Volume.rightVolume;
 
+		// AyuanX: I hate this, but for now we have to do down-sampling to support 48khz
+		if (g_SampleRate == 48000)
+		{
+			_dbg_assert_msg_(AUDIO_INTERFACE, !(_numSamples % 2), "Number of Samples: %i must be even!", _numSamples);
+			_numSamples = _numSamples * 3 / 2;
+		}
+
+		short pcm_l = 0;
+		short pcm_r = 0;
 		for (unsigned int i = 0; i < _numSamples; i++)
 		{
 			if (pos == 0)
-			{
 				ReadStreamBlock(pcm);
-			}
 
-			*_pDestBuffer++ = (pcm[pos*2] * lvolume) >> 8;
-			*_pDestBuffer++ = (pcm[pos*2+1] * rvolume) >> 8;
-
-			pos++;
-			if (pos == 28) 
+			if (g_SampleRate == 48000)
 			{
-				pos = 0;
+				if (i % 3)
+				{
+					*_pDestBuffer++ = ((pcm_l / 2 + pcm[pos*2] / 2) * lvolume) >> 8;
+					*_pDestBuffer++ = ((pcm_r / 2 + pcm[pos*2+1] / 2) * rvolume) >> 8;
+				}
+				pcm_l = pcm[pos*2];
+				pcm_r = pcm[pos*2+1];
 			}
+			else
+			{
+				*_pDestBuffer++ = (pcm[pos*2] * lvolume) >> 8;
+				*_pDestBuffer++ = (pcm[pos*2+1] * rvolume) >> 8;
+			}
+
+			if (++pos == 28) 
+				pos = 0;
 		}
 	}
 	else
 	{
+		// AyuanX: We have already preset those bytes, no need to do this again
+		/*
 		for (unsigned int i = 0; i < _numSamples * 2; i++)
 		{
 			_pDestBuffer[i] = 0; //silence!
 		}
+		*/
 	}
 
 	return _numSamples;

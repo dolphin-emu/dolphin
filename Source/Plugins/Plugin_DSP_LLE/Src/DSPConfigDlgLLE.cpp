@@ -105,6 +105,11 @@ void DSPConfigDialogLLE::AddBackend(const char* backend)
 #endif
 }
 
+void DSPConfigDialogLLE::ClearBackends()
+{
+	m_BackendSelection->Clear();
+}
+
 DSPConfigDialogLLE::~DSPConfigDialogLLE()
 {
 }

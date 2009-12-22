@@ -35,6 +35,7 @@ public:
 		     long style = wxDEFAULT_DIALOG_STYLE);
     virtual ~DSPConfigDialogLLE();
     void AddBackend(const char *backend);
+	void ClearBackends();
 
 private:
     DECLARE_EVENT_TABLE();

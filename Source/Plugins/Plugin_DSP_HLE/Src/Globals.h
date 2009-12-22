@@ -43,6 +43,7 @@ u8 Memory_Read_U8(u32 _uAddress);
 u16 Memory_Read_U16(u32 _uAddress);
 u32 Memory_Read_U32(u32 _uAddress);
 float Memory_Read_Float(u32 _uAddress);
+void* Memory_Get_Pointer(u32 _uAddress);
 
 extern PLUGIN_GLOBALS* globals;
 

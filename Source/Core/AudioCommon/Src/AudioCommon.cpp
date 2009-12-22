@@ -34,19 +34,19 @@ namespace AudioCommon
 			mixer = new CMixer();
 
 		std::string backend = ac_Config.sBackend;
-		if (backend == BACKEND_COREAUDIO   && CoreAudioSound::isValid()) 
-			soundStream = new CoreAudioSound(mixer);
-		if (backend == BACKEND_DIRECTSOUND && DSound::isValid()) 
-			soundStream = new DSound(mixer, g_dspInitialize.hWnd);
-		if (backend == BACKEND_AOSOUND     && AOSound::isValid()) 
-			soundStream = new AOSound(mixer);
-		if (backend == BACKEND_OPENAL      && OpenALStream::isValid()) 
+		if (backend == BACKEND_OPENAL           && OpenALStream::isValid()) 
 			soundStream = new OpenALStream(mixer);
-		if (backend == BACKEND_ALSA        && AlsaSound::isValid())
+		else if (backend == BACKEND_DIRECTSOUND && DSound::isValid()) 
+			soundStream = new DSound(mixer, g_dspInitialize.hWnd);
+		else if (backend == BACKEND_AOSOUND     && AOSound::isValid()) 
+			soundStream = new AOSound(mixer);
+		else if (backend == BACKEND_ALSA        && AlsaSound::isValid())
 			soundStream = new AlsaSound(mixer);
-		if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
+		else if (backend == BACKEND_COREAUDIO   && CoreAudioSound::isValid()) 
+			soundStream = new CoreAudioSound(mixer);
+		else if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
 			soundStream = new PulseAudio(mixer);
-		if (backend == BACKEND_NULL        && NullSound::isValid()) 
+		else if (backend == BACKEND_NULL        && NullSound::isValid()) 
 			soundStream = new NullSound(mixer);
 
 		if (soundStream != NULL)
@@ -60,12 +60,10 @@ namespace AudioCommon
 				  soundStream->StartLogAudio(FULL_DUMP_DIR g_Config.recordFile);
 				  }
 				*/
-
 				return soundStream;
 			}
 			PanicAlert("Could not initialize backend %s, falling back to NULL", backend.c_str());
 		}
-			
 		PanicAlert("Sound backend %s is not valid, falling back to NULL", backend.c_str());
 
 		delete soundStream;
@@ -77,7 +75,7 @@ namespace AudioCommon
 
 	void ShutdownSoundStream() 
 	{
-		NOTICE_LOG(DSPHLE, "Shutting down sound stream");
+		INFO_LOG(DSPHLE, "Shutting down sound stream");
 
 		if (soundStream) 
 		{
@@ -94,16 +92,16 @@ namespace AudioCommon
 	{
 		std::vector<std::string> backends;
 
-		if (CoreAudioSound::isValid())       
-			backends.push_back(BACKEND_COREAUDIO);
 		if (DSound::isValid())  
 			backends.push_back(BACKEND_DIRECTSOUND);
-		if (AOSound::isValid())   
-			backends.push_back(BACKEND_AOSOUND);
 		if (OpenALStream::isValid())
 			backends.push_back(BACKEND_OPENAL);
+		if (AOSound::isValid())   
+			backends.push_back(BACKEND_AOSOUND);
 		if (AlsaSound::isValid()) 
 			backends.push_back(BACKEND_ALSA);
+		if (CoreAudioSound::isValid())       
+			backends.push_back(BACKEND_COREAUDIO);
 		if (PulseAudio::isValid()) 
 			backends.push_back(BACKEND_PULSEAUDIO);
 		if (NullSound::isValid()) 

@@ -81,9 +81,6 @@ void CMixer::PushSamples(short *samples, int num_stereo_samples, int core_sample
 			sample_queue.push((s16)0);
 	}
 	push_sync.Leave();
-	static int PV1l=0,PV2l=0,PV3l=0,PV4l=0;
-	static int PV1r=0,PV2r=0,PV3r=0,PV4r=0;
-	static int acc=0;     
  
 #ifdef _WIN32
 	if (GetAsyncKeyState(VK_TAB))
@@ -113,6 +110,23 @@ void CMixer::PushSamples(short *samples, int num_stereo_samples, int core_sample
 	// -----------------------------------------------------------------------
 
 	push_sync.Enter();
+	while (num_stereo_samples)
+	{
+		sample_queue.push(Common::swap16(*samples));
+		samples++;
+		sample_queue.push(Common::swap16(*samples));
+		samples++;
+		m_queueSize += 2;
+		num_stereo_samples--;
+	}
+	push_sync.Leave();
+	return;
+
+/*
+	static int PV1l=0,PV2l=0,PV3l=0,PV4l=0;
+	static int PV1r=0,PV2r=0,PV3r=0,PV4r=0;
+	static int acc=0;
+
 	while (num_stereo_samples) {
 		acc += core_sample_rate;
 		while (num_stereo_samples && (acc >= 48000)) {
@@ -170,6 +184,8 @@ void CMixer::PushSamples(short *samples, int num_stereo_samples, int core_sample
 		m_queueSize += 2;
 	}
 	push_sync.Leave();
+*/
+
 }
 
 int CMixer::GetNumSamples()
