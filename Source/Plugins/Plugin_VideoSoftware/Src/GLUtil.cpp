@@ -167,7 +167,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
     GLWin.width = s_backbuffer_width;
     GLWin.height = s_backbuffer_height;
     GLWin.cocoaWin = cocoaGLCreateWindow(GLWin.width, GLWin.height);
-    GLWin.cocoaCtx = cocoaGLInit(g_Config.iMultisampleMode);
+    GLWin.cocoaCtx = cocoaGLInit(0);
 
 #elif defined(_WIN32)
 	// ---------------------------------------------------------------------------------------

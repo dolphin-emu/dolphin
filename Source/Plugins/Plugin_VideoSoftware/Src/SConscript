@@ -56,6 +56,8 @@ conf = gfxenv.Configure(custom_tests = tests,
 
 if sys.platform == 'darwin':
 	gfxenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'OpenGL', 'Cocoa', 'Cg']
+	compileFlags += ['-x','objective-c++',]
+	files += [ 'cocoaGL.m', ]
 
 	conf.CheckPKG('OpenGL')
 
