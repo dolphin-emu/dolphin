@@ -60,6 +60,8 @@ if sys.platform == 'darwin':
 	files += [ 'cocoaGL.m', ]
 
 	conf.CheckPKG('OpenGL')
+	if gfxenv['HAVE_OPENCL']:
+		gfxenv['FRAMEWORKS'] += ['OpenCL']
 
 elif sys.platform == 'win32':
         print name + " is assuming that you have opengl, glu, cg, and cggl"
