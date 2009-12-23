@@ -30,6 +30,31 @@ extern DSPInitialize g_dspInitialize;
 extern SoundStream *soundStream;
 extern AudioCommonConfig ac_Config;
 
+// UDSPControl
+union UDSPControl
+{
+	u16 Hex;
+	struct
+	{
+		unsigned DSPReset       : 1; // Write 1 to reset and waits for 0
+		unsigned DSPAssertInt   : 1;
+		unsigned DSPHalt        : 1;
+
+		unsigned AI             : 1;
+		unsigned AI_mask        : 1;
+		unsigned ARAM           : 1;
+		unsigned ARAM_mask      : 1;
+		unsigned DSP            : 1;
+		unsigned DSP_mask       : 1;
+
+		unsigned ARAM_DMAState  : 1; // DSPGetDMAStatus() uses this flag
+		unsigned DSPInitCode    : 1;
+		unsigned DSPInit        : 1; // DSPInit() writes to this flag
+		unsigned pad            : 4;
+	};
+	UDSPControl(u16 _Hex = 0) : Hex(_Hex) {}
+};
+
 namespace AudioCommon 
 {
 	SoundStream *InitSoundStream(CMixer *mixer = NULL);

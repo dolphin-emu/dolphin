@@ -590,7 +590,7 @@ void GenerateISIException()
 	//	segment (N bit set in segment descriptor), or to guarded memory
 	//	when MSR[IR] = 1. Otherwise, cleared.
 	// Bit 4: Set if a memory access is not permitted by the page or IBAT protection
-	//	mechanism, described in Chapter 7, “Memory Management”; otherwise cleared.
+	//	mechanism, described in Chapter 7, "Memory Management" otherwise cleared.
 	// Only one of 1,3, or 4 may be set at a time
 
 	// For now let's just say that hash lookup failed

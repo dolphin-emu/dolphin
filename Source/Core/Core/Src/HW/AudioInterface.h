@@ -34,14 +34,15 @@ void DoState(PointerWrap &p);
 void Update();
 
 // Called by DSP plugin
-u32 Callback_GetStreaming(short* _pDestBuffer, u32 _numSamples);
+void Callback_GetSampleRate(unsigned int &_AISampleRate, unsigned int &_DSPSampleRate);
+unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples, unsigned int _sampleRate = 48000);
 
 void Read32(u32& _uReturnValue, const u32 _iAddress);
 void Write32(const u32 _iValue, const u32 _iAddress);
 
 // Get the audio rates (48000 or 32000 only)
-u32 GetAISampleRate();
-u32 GetDSPSampleRate();
+unsigned int GetAISampleRate();
+unsigned int GetDSPSampleRate();
 
 }  // namespace
 

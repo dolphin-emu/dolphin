@@ -289,7 +289,7 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 			m_addressPBs = Memory_Read_U32(uAddress);
 			lCUCode_AX->m_addressPBs = m_addressPBs; // for the sake of logging
 			soundStream->GetMixer()->SetHLEReady(true);
-			soundStream->Update();
+//			soundStream->Update();
 			uAddress += 4;
 		    break;
 

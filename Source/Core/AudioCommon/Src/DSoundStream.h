@@ -25,8 +25,7 @@
 #include <mmsystem.h>
 #include <dsound.h>
 
-#define BUFSIZE 32768
-#define MAXWAIT 70   // miliseconds
+#define BUFSIZE (1024 * 8 * 4)
 #endif
 
 class DSound : public SoundStream
@@ -41,31 +40,30 @@ class DSound : public SoundStream
     IDirectSoundBuffer* dsBuffer;
     
     int bufferSize;     //i bytes
-    int totalRenderedBytes;
 	int m_volume;
     
     // playback position
     int currentPos;
     int lastPos;
-    short realtimeBuffer[1024 * 1024];
+    short realtimeBuffer[BUFSIZE / sizeof(short)];
     
-    inline int FIX128(int x) {
+    inline int FIX128(int x)
+	{
 		return x & (~127);
     }
 
-    inline int ModBufferSize(int x) {
+    inline int ModBufferSize(int x)
+	{
 		return (x + bufferSize) % bufferSize;
     }
 
     bool CreateBuffer();
-    bool WriteDataToBuffer(DWORD dwOffset, char* soundData,
-			   DWORD dwSoundBytes);
+    bool WriteDataToBuffer(DWORD dwOffset, char* soundData, DWORD dwSoundBytes);
 
 public:
 	DSound(CMixer *mixer, void *hWnd = NULL)
 		: SoundStream(mixer)
 		, bufferSize(0)
-		, totalRenderedBytes(0)
 		, currentPos(0)
 		, lastPos(0)
 		, dsBuffer(0)

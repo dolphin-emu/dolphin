@@ -386,6 +386,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.pDebuggerBreak			= Callback_DebuggerBreak;
 	dspInit.pGenerateDSPInterrupt	= Callback_DSPInterrupt;
 	dspInit.pGetAudioStreaming		= AudioInterface::Callback_GetStreaming;
+	dspInit.pGetSampleRate			= AudioInterface::Callback_GetSampleRate;
 	dspInit.pEmulatorState			= (int *)PowerPC::GetStatePtr();
 	dspInit.bWii					= _CoreParameter.bWii;
 	dspInit.bOnThread				= _CoreParameter.bDSPThread;

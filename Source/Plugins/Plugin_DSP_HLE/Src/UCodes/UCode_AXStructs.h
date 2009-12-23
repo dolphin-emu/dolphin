@@ -156,7 +156,7 @@ struct AXParamBlock
 /* 63 */	PBADPCMInfo adpcm;
 /* 83 */    PBSampleRateConverter src;
 /* 90 */	PBADPCMLoopInfo adpcm_loop_info;
-/* 93 */	u16 unknown_maybe_padding[3];
+/* 93 */	//u16 unknown_maybe_padding[3];		// Comment this out to get some speedup
 };
 
 struct PBLpf
@@ -201,7 +201,7 @@ struct AXParamBlockWii
 /*  95 */	PBADPCMLoopInfo adpcm_loop_info;
 /*  98 */	PBLpf lpf;
 /* 102 */	PBHpf hpf;
-/* 106 */	u16 pad[22];
+/* 106 */	//u16 pad[22];	// Comment this out to get some speedup
 };
 
 struct AXParamBlockWii_ // new CRC version
@@ -226,7 +226,7 @@ struct AXParamBlockWii_ // new CRC version
 /* 0x0B4 */	PBADPCMLoopInfo adpcm_loop_info;
 /* 0x0BA */	PBLpf lpf;
 /* 0x0C2 */	PBHpf hpf;
-/* 0x0CA */	u16 pad[27];
+/* 0x0CA */	//u16 pad[27];	// Comment this out to get some speedup
 /* 0x100 */
 };
 

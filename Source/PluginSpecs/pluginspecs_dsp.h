@@ -16,7 +16,8 @@ typedef void            (*TLogv)(const char* _szMessage, int _v);
 typedef const char*     (*TName)(void);
 typedef void            (*TDebuggerBreak)(void);
 typedef void            (*TGenerateDSPInt)(void);
-typedef unsigned int    (*TAudioGetStreaming)(short* _pDestBuffer, unsigned int _numSamples);
+typedef unsigned int    (*TAudioGetStreaming)(short* _pDestBuffer, unsigned int _numSamples, unsigned int _sampleRate);
+typedef void			(*TGetSampleRate)(unsigned int &AISampleRate, unsigned int &DSPSampleRate);
 
 typedef struct
 {
@@ -30,6 +31,7 @@ typedef struct
 	TDebuggerBreak			pDebuggerBreak;
 	TGenerateDSPInt			pGenerateDSPInterrupt;
 	TAudioGetStreaming		pGetAudioStreaming;
+	TGetSampleRate			pGetSampleRate;
 	int                    *pEmulatorState;
 	bool					bWii;
 	bool                    bOnThread;
@@ -95,9 +97,10 @@ EXPORT void CALL DSP_Update(int cycles);
 // Function: DSP_SendAIBuffer
 // Purpose:  This function sends the current AI Buffer to the DSP plugin
 // input:    _Address : Memory-Address
-// input:    _Size : Size of the Buffer (always 32)
+// input:    _Number  : Number of the Samples
+// input:    _Rate    : Sample Rate 32000/48000
 // 
-EXPORT void CALL DSP_SendAIBuffer(unsigned int address, int sample_rate);
+EXPORT void CALL DSP_SendAIBuffer(unsigned int address, unsigned int num_samples, unsigned int sample_rate);
 
 // __________________________________________________________________________________________________
 // Function: DSP_StopSoundStream

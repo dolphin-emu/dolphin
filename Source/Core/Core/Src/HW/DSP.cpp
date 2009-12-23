@@ -197,7 +197,6 @@ static u16 g_AR_SIZE;
 static u16 g_AR_MODE;
 static u16 g_AR_REFRESH;
 
-
 Common::PluginDSP *dsp_plugin;
 
 
@@ -379,27 +378,6 @@ void Write16(const u16 _Value, const u32 _Address)
 			g_dspState.DSPControl.DSPHalt		= tmpControl.DSPHalt;
 			g_dspState.DSPControl.DSPInit       = tmpControl.DSPInit;
 
-			// AyuanX: WTF, sample rate between AI & DSP can be different?
-			// This is a big problem especially when our mixer is fixed to 32000
-			// TODO: Try to support these!
-			// More info: AudioCommon/Mixer.h, HW/AudioInterface.cpp
-			static bool FirstTimeWarning = false;
-			if (!FirstTimeWarning)
-			{
-				if (!g_dspState.DSPControl.DSPHalt && g_dspState.DSPControl.DSPInit)
-				{
-					// It's time to check now, and we do this only once
-					FirstTimeWarning = true;
-					if (AudioInterface::GetAISampleRate() != 32000 || AudioInterface::GetDSPSampleRate() != 32000)
-					{
-						WARN_LOG(DSPINTERFACE, "Unsupported Sample Rate, AI:%i, DSP:%i", AudioInterface::GetAISampleRate(), AudioInterface::GetDSPSampleRate());
-						if (AudioInterface::GetDSPSampleRate() != 32000)
-							PanicAlert("DSPINTERFACE: Unsupported Sample Rate, AI:%i, DSP:%i\n"
-								"You may get incorrect sound output, please report!", AudioInterface::GetAISampleRate(), AudioInterface::GetDSPSampleRate());
-					}
-				}
-			}
-
 			// Interrupt (mask)
 			g_dspState.DSPControl.AID_mask	= tmpControl.AID_mask;
 			g_dspState.DSPControl.ARAM_mask	= tmpControl.ARAM_mask;
@@ -503,12 +481,17 @@ void UpdateAudioDMA()
 		// external audio fifo in the emulator, to be mixed with the disc
 		// streaming output. If that audio queue fills up, we delay the
 		// emulator.
-		dsp_plugin->DSP_SendAIBuffer(g_audioDMA.ReadAddress, AudioInterface::GetDSPSampleRate());
-		g_audioDMA.ReadAddress += 32;
+
+		// AyuanX: let's do it in a bundle to speed up
+		if (g_audioDMA.BlocksLeft == g_audioDMA.AudioDMAControl.NumBlocks)
+			dsp_plugin->DSP_SendAIBuffer(g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks * 8, AudioInterface::GetDSPSampleRate());
+
+//		g_audioDMA.ReadAddress += 32;
 		g_audioDMA.BlocksLeft--;
+
 		if (g_audioDMA.BlocksLeft == 0)
 		{
-			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
+//			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
 			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
 			// DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
 			GenerateDSPInterrupt(DSP::INT_AID);

@@ -54,13 +54,13 @@ union AICR
 	struct 
 	{
 		unsigned PSTAT		: 1;  // sample counter/playback enable
-		unsigned AFR		: 1;  // 0=32khz 1=48khz
+		unsigned AFR		: 1;  // AI Frequency (0=32khz 1=48khz)
 		unsigned AIINTMSK	: 1;  // 0=interrupt masked 1=interrupt enabled
 		unsigned AIINT		: 1;  // audio interrupt status
 		unsigned AIINTVLD	: 1;  // This bit controls whether AIINT is affected by the AIIT register 
                                   // matching AISLRCNT. Once set, AIINT will hold
 		unsigned SCRESET	: 1;  // write to reset counter
-        unsigned DSPFR  	: 1;  // DSP Frequency (0=48khz 1=32khz) WTF, who designed this?
+        unsigned DSPFR  	: 1;  // DSP Frequency (0=48khz 1=32khz)
 		unsigned			:25;
 	};
 	u32 hex;
@@ -90,8 +90,8 @@ struct SAudioRegister
 // STATE_TO_SAVE
 static SAudioRegister g_AudioRegister;	
 static u64 g_LastCPUTime = 0;
-static int g_SampleRate = 32000;
-static int g_DSPSampleRate = 32000;
+static unsigned int g_SampleRate = 32000;
+static unsigned int g_DSPSampleRate = 32000;
 static u64 g_CPUCyclesPerSample = 0xFFFFFFFFFFFULL;
 
 void DoState(PointerWrap &p)
@@ -264,9 +264,15 @@ void GenerateAudioInterrupt()
 	UpdateInterrupts();
 }
 
+void Callback_GetSampleRate(unsigned int &_AISampleRate, unsigned int &_DSPSampleRate)
+{
+	_AISampleRate = g_SampleRate;
+	_DSPSampleRate = g_DSPSampleRate;
+}
+
 // Callback for the disc streaming
 // WARNING - called from audio thread
-u32 Callback_GetStreaming(short* _pDestBuffer, u32 _numSamples)
+unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples, unsigned int _sampleRate)
 {
 	if (g_AudioRegister.m_Control.PSTAT && !CCPU::IsStepping())
 	{		
@@ -275,34 +281,60 @@ u32 Callback_GetStreaming(short* _pDestBuffer, u32 _numSamples)
 		const int lvolume = g_AudioRegister.m_Volume.leftVolume;
 		const int rvolume = g_AudioRegister.m_Volume.rightVolume;
 
-		// AyuanX: I hate this, but for now we have to do down-sampling to support 48khz
-		if (g_SampleRate == 48000)
+
+		if (g_SampleRate == 48000 && _sampleRate == 32000)
 		{
 			_dbg_assert_msg_(AUDIO_INTERFACE, !(_numSamples % 2), "Number of Samples: %i must be even!", _numSamples);
 			_numSamples = _numSamples * 3 / 2;
 		}
+		else if (g_SampleRate == 32000 && _sampleRate == 48000)
+		{
+			// AyuanX: Up-sampling is not implemented yet
+			PanicAlert("AUDIO_INTERFACE: Up-sampling is not implemented yet!");
+		}
 
-		short pcm_l = 0;
-		short pcm_r = 0;
+		int pcm_l, pcm_r;
 		for (unsigned int i = 0; i < _numSamples; i++)
 		{
 			if (pos == 0)
 				ReadStreamBlock(pcm);
 
-			if (g_SampleRate == 48000)
+			if (g_SampleRate == 48000 && _sampleRate == 32000)
 			{
 				if (i % 3)
 				{
-					*_pDestBuffer++ = ((pcm_l / 2 + pcm[pos*2] / 2) * lvolume) >> 8;
-					*_pDestBuffer++ = ((pcm_r / 2 + pcm[pos*2+1] / 2) * rvolume) >> 8;
+					pcm_l = (((pcm_l + (int)pcm[pos*2]) / 2  * lvolume) >> 8) + (int)(*_pDestBuffer);
+					if (pcm_l > 32767)
+						pcm_l = 32767;
+					else if (pcm_l < -32767)
+						pcm_l = -32767;
+					*_pDestBuffer++ = pcm_l;
+
+					pcm_r = (((pcm_r + (int)pcm[pos*2+1]) / 2 * rvolume) >> 8) + (int)(*_pDestBuffer);
+ 					if (pcm_r > 32767)
+						pcm_r = 32767;
+					else if (pcm_r < -32767)
+						pcm_r = -32767;
+					*_pDestBuffer++ = pcm_r;
 				}
 				pcm_l = pcm[pos*2];
 				pcm_r = pcm[pos*2+1];
 			}
 			else
 			{
-				*_pDestBuffer++ = (pcm[pos*2] * lvolume) >> 8;
-				*_pDestBuffer++ = (pcm[pos*2+1] * rvolume) >> 8;
+				pcm_l = (((int)pcm[pos*2] * lvolume) >> 8) + (int)(*_pDestBuffer);
+				if (pcm_l > 32767)
+					pcm_l = 32767;
+				else if (pcm_l < -32767)
+					pcm_l = -32767;
+				*_pDestBuffer++ = pcm_l;
+
+				pcm_r = (((int)pcm[pos*2+1] * rvolume) >> 8) + (int)(*_pDestBuffer);
+				if (pcm_r > 32767)
+					pcm_r = 32767;
+				else if (pcm_r < -32767)
+					pcm_r = -32767;
+				*_pDestBuffer++ = pcm_r;
 			}
 
 			if (++pos == 28) 
@@ -311,7 +343,7 @@ u32 Callback_GetStreaming(short* _pDestBuffer, u32 _numSamples)
 	}
 	else
 	{
-		// AyuanX: We have already preset those bytes, no need to do this again
+		// Don't overwrite existed sample data
 		/*
 		for (unsigned int i = 0; i < _numSamples * 2; i++)
 		{
@@ -361,12 +393,12 @@ void IncreaseSampleCount(const u32 _iAmount)
 	}
 }
 
-u32 GetAISampleRate()
+unsigned int GetAISampleRate()
 {
 	return g_SampleRate;
 }
 
-u32 GetDSPSampleRate()
+unsigned int GetDSPSampleRate()
 {
 	return g_DSPSampleRate;
 }

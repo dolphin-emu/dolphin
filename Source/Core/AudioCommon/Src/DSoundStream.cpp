@@ -111,13 +111,11 @@ void DSound::SoundLoop()
 		int numBytesToRender = FIX128(ModBufferSize(currentPos - lastPos));
 		if (numBytesToRender >= 256)
 		{
-			if (numBytesToRender > sizeof(realtimeBuffer))
+			if (numBytesToRender > sizeof(realtimeBuffer) * sizeof(short))
 				PanicAlert("soundThread: too big render call");
-			m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
+			m_mixer->Mix(realtimeBuffer, numBytesToRender / 4);
 			WriteDataToBuffer(lastPos, (char*)realtimeBuffer, numBytesToRender);
-			currentPos = ModBufferSize(lastPos + numBytesToRender);
-			totalRenderedBytes += numBytesToRender;
-			lastPos = currentPos;
+			lastPos = ModBufferSize(lastPos + numBytesToRender);
 		}
 		soundCriticalSection.Leave();
 		soundSyncEvent.Wait();
@@ -142,7 +140,6 @@ bool DSound::Start()
 	dsBuffer->Lock(0, bufferSize, (void* *)&p1, &num1, 0, 0, 0);
 	memset(p1, 0, num1);
 	dsBuffer->Unlock(p1, num1, 0, 0);
-	totalRenderedBytes = -bufferSize;
 	thread = new Common::Thread(soundThread, (void *)this);
 	return true;
 }

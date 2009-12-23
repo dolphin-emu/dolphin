@@ -138,12 +138,13 @@ void OpenALStream::SoundLoop()
 	// Generate a Source to playback the Buffers
 	alGenSources(1, &uiSource);
 
-	memset(realtimeBuffer, 0, OAL_BUFFER_SIZE);
+	// Short Silence
+	memset(realtimeBuffer, 0, OAL_MAX_SAMPLES * 4);
 	for (int i = 0; i < OAL_NUM_BUFFERS; i++)
-		alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, OAL_BUFFER_SIZE, ulFrequency);
-
+		alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, OAL_MAX_SAMPLES, ulFrequency);
 	alSourceQueueBuffers(uiSource, OAL_NUM_BUFFERS, uiBuffers);
 	alSourcePlay(uiSource);
+
 	err = alGetError();
 	// TODO: Error handling
 
@@ -158,12 +159,12 @@ void OpenALStream::SoundLoop()
 			alGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &iBuffersProcessed);
 			iBuffersFilled = 0;
 		}
-		int numSamples = m_mixer->GetNumSamples();
-		numSamples &= ~0x100;
 
-		if (iBuffersProcessed && numSamples)
+		unsigned int numSamples = m_mixer->GetNumSamples();
+
+		if (iBuffersProcessed && (numSamples >= OAL_THRESHOLD))
 		{
-			numSamples = (numSamples > OAL_BUFFER_SIZE / 4) ? OAL_BUFFER_SIZE / 4 : numSamples;
+			numSamples = (numSamples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : numSamples;
 			// Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued Buffer)
 			if (iBuffersFilled == 0)
 				alSourceUnqueueBuffers(uiSource, iBuffersProcessed, uiBufferTemp);
@@ -176,11 +177,11 @@ void OpenALStream::SoundLoop()
 			if (iBuffersFilled == OAL_NUM_BUFFERS)
 				alSourcePlay(uiSource);
 		}
-		else
+		else if (numSamples >= OAL_THRESHOLD)
 		{
 			ALint state = 0;
 			alGetSourcei(uiSource, AL_SOURCE_STATE, &state);
-			if (state != AL_PLAYING)
+			if (state == AL_STOPPED)
 				alSourcePlay(uiSource);
 		}
 		soundSyncEvent.Wait();

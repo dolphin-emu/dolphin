@@ -16,112 +16,65 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-// This queue solution is temporary. I'll implement something more efficient later.
-#include <queue> // System
-
-#include "Thread.h" // Common
+#include "Atomic.h"
 
 #include "Mixer.h"
-#include "FixedSizeQueue.h"
 #include "AudioCommon.h"
 
-int CMixer::Mix(short *samples, int numSamples)
+// Executed from sound stream thread
+unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 {
-	if (! samples) {
-		Premix(NULL, 0);
+	if (!samples)
 		return 0;
-	}
-	// silence
-	memset(samples, 0, numSamples * 2 * sizeof(short));
 
-	if (g_dspInitialize.pEmulatorState) {
+	if (g_dspInitialize.pEmulatorState)
+	{
 		if (*g_dspInitialize.pEmulatorState != 0)
-			return 0;
-	}
-
-	// first get the DTK Music
-	if (m_EnableDTKMusic) {
-		g_dspInitialize.pGetAudioStreaming(samples, numSamples);
-	}
-
-	Premix(samples, numSamples);
-	
-	int count = 0;
-
-	push_sync.Enter();
-	while (m_queueSize > queue_minlength && count < numSamples * 2) 
-	{
-		int x = samples[count];
-		x += sample_queue.front();
-		if (x > 32767) x = 32767;
-		if (x < -32767) x = -32767;
-		samples[count++] = x;
-		sample_queue.pop();
-		x = samples[count];
-		x += sample_queue.front();
-		if (x > 32767) x = 32767;
-		if (x < -32767) x = -32767;
-		samples[count++] = x;
-		sample_queue.pop();
-		m_queueSize-=2;
-	}
-	push_sync.Leave();
-
-	return count;
-}
-
-
-void CMixer::PushSamples(short *samples, int num_stereo_samples, int core_sample_rate)
-{
-	push_sync.Enter();
-	if (m_queueSize == 0)
-	{
-		m_queueSize = queue_minlength;
-		for (int i = 0; i < queue_minlength; i++)
-			sample_queue.push((s16)0);
-	}
-	push_sync.Leave();
- 
-#ifdef _WIN32
-	if (GetAsyncKeyState(VK_TAB))
-		return;
-#endif
-
-	// Write Other Audio
-	if (!m_throttle)
-		return;	
-	
-	// -----------------------------------------------------------------------	
-	// The auto throttle function. This loop will put a ceiling on the CPU MHz.
-	// ----------------------------
-	/* This is only needed for non-AX sound, currently directly
-	   streamed and DTK sound. For AX we call SoundStream::Update in
-	   AXTask() for example. */
-	while (m_queueSize > queue_maxlength / 2)
-	{
-		// Urgh.
-		if (g_dspInitialize.pEmulatorState) {
-			if (*g_dspInitialize.pEmulatorState != 0) 
-				return;
+		{
+			// Silence
+			memset(samples, 0, numSamples * 4);
+			return numSamples;
 		}
-		soundStream->Update();
-		SLEEP(1);
 	}
-	// -----------------------------------------------------------------------
 
-	push_sync.Enter();
-	while (num_stereo_samples)
+	unsigned int numLeft = Common::AtomicLoad(m_numSamples);
+	numLeft = (numLeft > numSamples) ? numSamples : numLeft;
+
+	// Do re-sampling if needed
+	if (m_sampleRate == m_dspSampleRate)
 	{
-		sample_queue.push(Common::swap16(*samples));
-		samples++;
-		sample_queue.push(Common::swap16(*samples));
-		samples++;
-		m_queueSize += 2;
-		num_stereo_samples--;
+		for (unsigned int i = 0; i < numLeft * 2; i++)
+			samples[i] = Common::swap16(m_buffer[(m_indexR + i) & INDEX_MASK]);
+		m_indexR += numLeft * 2;
 	}
-	push_sync.Leave();
-	return;
+	else if (m_sampleRate < m_dspSampleRate) // If down-sampling needed
+	{
+		_dbg_assert_msg_(DSPHLE, !(numSamples % 2), "Number of Samples: %i must be even!", numSamples);
 
+		short *pDest = samples;
+		int last_l, last_r, cur_l, cur_r;
+
+		for (unsigned int i = 0; i < numLeft * 3 / 2; i++)
+		{
+			cur_l = Common::swap16(m_buffer[(m_indexR + i * 2) & INDEX_MASK]);
+			cur_r = Common::swap16(m_buffer[(m_indexR + i * 2 + 1) & INDEX_MASK]);
+
+			if (i % 3)
+			{
+				*pDest++ = (last_l + cur_r) / 2;
+				*pDest++ = (last_r + cur_r) / 2;
+			}
+
+			last_l = cur_l;
+			last_r = cur_r;
+		}
+
+		m_indexR += numLeft * 2 * 3 / 2;
+	}
+	else if (m_sampleRate > m_dspSampleRate)
+	{
+		// AyuanX: Up-sampling is not implemented yet
+		PanicAlert("Mixer: Up-sampling is not implemented yet!");
 /*
 	static int PV1l=0,PV2l=0,PV3l=0,PV4l=0;
 	static int PV1r=0,PV2r=0,PV3r=0,PV4r=0;
@@ -183,16 +136,93 @@ void CMixer::PushSamples(short *samples, int num_stereo_samples, int core_sample
 		sample_queue.push(r);
 		m_queueSize += 2;
 	}
-	push_sync.Leave();
 */
+	}
 
+	// Padding
+	if (numSamples > numLeft)
+		memset(&samples[numLeft * 2], 0, (numSamples - numLeft) * 4);
+
+	// Add the HLE sound
+	if (m_sampleRate < m_dspSampleRate)
+	{
+		PanicAlert("Mixer: DSPHLE down-sampling is not implemented yet!\n"
+			"Usually no game should require this, please report!");
+	}
+	else
+	{
+		Premix(samples, numSamples, m_sampleRate);
+	}
+
+	// Add the DTK Music
+	if (m_EnableDTKMusic)
+	{
+		// Re-sampling is done inside
+		g_dspInitialize.pGetAudioStreaming(samples, numSamples, m_sampleRate);
+	}
+
+	Common::AtomicAdd(m_numSamples, -(int)numLeft);
+
+	return numSamples;
 }
 
-int CMixer::GetNumSamples()
+
+void CMixer::PushSamples(short *samples, unsigned int num_samples, unsigned int sample_rate)
 {
-	return m_queueSize / 2;
-	//int ret = (m_queueSize - queue_minlength) / 2;
-	//ret = (ret > 0) ? ret : 0;
-	//return ret;
+	// The auto throttle function. This loop will put a ceiling on the CPU MHz.
+	if (m_throttle)
+	{
+		// AyuanX: Remember to reserve "num_samples * 1.5" free sample space at least!
+		// Becuse we may do re-sampling later
+		while (Common::AtomicLoad(m_numSamples) >= MAX_SAMPLES - RESERVED_SAMPLES)
+		{
+			if (g_dspInitialize.pEmulatorState)
+			{
+				if (*g_dspInitialize.pEmulatorState != 0) 
+					break;
+			}
+			soundStream->Update();
+			SLEEP(1);
+		}
+	}
+
+	// Check if we have enough free space
+	if (num_samples > MAX_SAMPLES - Common::AtomicLoad(m_numSamples))
+		return;
+
+	// AyuanX: Actual re-sampling work has been moved to sound thread
+	// to alleviates the workload on main thread
+	// and we simply store raw data here to make fast mem copy
+	int over_bytes = num_samples * 4 - (MAX_SAMPLES * 2 - (m_indexW & INDEX_MASK)) * sizeof(short);
+	if (over_bytes > 0)
+	{
+		memcpy(&m_buffer[m_indexW & INDEX_MASK], samples, num_samples * 4 - over_bytes);
+		memcpy(&m_buffer[0], samples + (num_samples * 4 - over_bytes) / sizeof(short), over_bytes);
+	}
+	else
+	{
+		memcpy(&m_buffer[m_indexW & INDEX_MASK], samples, num_samples * 4);
+	}
+
+	m_indexW += num_samples * 2;
+
+	if (m_sampleRate < m_dspSampleRate)
+	{
+		// This is kind of tricky :P  
+		num_samples = num_samples * 2 / 3;
+	}
+	else if (m_sampleRate > m_dspSampleRate)
+	{
+		PanicAlert("Mixer: Up-sampling is not implemented yet!");
+	}
+
+	Common::AtomicAdd(m_numSamples, num_samples);
+
+	return;
+}
+
+unsigned int CMixer::GetNumSamples()
+{
+	return Common::AtomicLoad(m_numSamples);
 }
 

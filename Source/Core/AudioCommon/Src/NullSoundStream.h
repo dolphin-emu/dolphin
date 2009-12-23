@@ -22,10 +22,10 @@
 #include "Mixer.h"
 
 class NullMixer : public CMixer {
+
 public:
-	virtual int Mix(short *sample, int numSamples) {return 0;}
-	virtual void PushSamples(short* samples, int num_stereo_samples, 
-							 int core_sample_rate) {}
+	virtual unsigned int Mix(short *samples, unsigned int numSamples) { return 0; }
+	virtual void PushSamples(short* samples, unsigned int num_samples, unsigned int sample_rate) {}
 };
 
 class NullSound : public SoundStream
@@ -35,7 +35,6 @@ public:
 	{
 		delete m_mixer;
 		m_mixer = new NullMixer();
-	   
 	}
     
     virtual ~NullSound() {}
@@ -47,7 +46,7 @@ public:
 	virtual bool Start() { return true; }
 
 	virtual void Update() { 
-		m_mixer->Mix(NULL, 256 >> 2);
+		//m_mixer->Mix(NULL, 256 >> 2);
 		//(*callback)(NULL, 256 >> 2, 16, sampleRate, 2); 
 	}
 };

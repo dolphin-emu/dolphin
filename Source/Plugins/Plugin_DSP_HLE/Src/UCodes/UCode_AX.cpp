@@ -498,7 +498,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		    SaveLog("%08x : AXLIST PB address: %08x", uAddress, m_addressPBs);
 
 		    SaveLog("Update the SoundThread to be in sync");
-            soundStream->Update(); //do it in this thread to avoid sync problems
+//          soundStream->Update(); //do it in this thread to avoid sync problems
 
 		    }
 		    break;

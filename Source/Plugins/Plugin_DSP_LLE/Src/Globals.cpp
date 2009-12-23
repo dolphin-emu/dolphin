@@ -40,6 +40,11 @@ u32 Memory_Read_U32(u32 _uAddress)
 	return Common::swap32(*(u32*)&g_dsp.cpu_ram[_uAddress & RAM_MASK]);
 }
 
+void* Memory_Get_Pointer(u32 _uAddress)
+{
+	return &g_dsp.cpu_ram[_uAddress & RAM_MASK];
+}
+
 #if PROFILE
 
 #define PROFILE_MAP_SIZE 0x10000

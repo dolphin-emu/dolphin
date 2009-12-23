@@ -147,7 +147,7 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 
 			soundStream->GetMixer()->SetHLEReady(true);
 			DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-			soundStream->Update(); //do it in this thread to avoid sync problems
+//			soundStream->Update(); //do it in this thread to avoid sync problems
 
 			m_bSyncCmdPending = false;
 		}
@@ -216,7 +216,7 @@ void CUCode_Zelda::HandleMail_SMSVersion(u32 _uMail)
 
 					soundStream->GetMixer()->SetHLEReady(true);
 					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-					soundStream->Update(); //do it in this thread to avoid sync problems
+//					soundStream->Update(); //do it in this thread to avoid sync problems
 
 					m_bSyncCmdPending = false;
 				}
@@ -339,7 +339,7 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 
 					soundStream->GetMixer()->SetHLEReady(true);
 					DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-					soundStream->Update(); //do it in this thread to avoid sync problems
+//					soundStream->Update(); //do it in this thread to avoid sync problems
 
 					m_bSyncCmdPending = false;
 				}

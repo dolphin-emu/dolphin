@@ -33,7 +33,6 @@ DSPDebuggerHLE* m_DebuggerFrame = NULL;
 #include "Config.h"
 #include "Setup.h"
 #include "StringUtil.h"
-#include "AudioCommon.h"
 #include "LogManager.h"
 
 
@@ -42,8 +41,8 @@ PLUGIN_GLOBALS* globals = NULL;
 DSPInitialize g_dspInitialize;
 u8* g_pMemory;
 extern std::vector<std::string> sMailLog, sMailTime;
-bool g_bMuted = false;
 
+bool g_InitMixer = false;
 SoundStream *soundStream = NULL;
 
 // Mailbox utility
@@ -203,6 +202,7 @@ void DllConfig(HWND _hParent)
 
 void Initialize(void *init)
 {
+	g_InitMixer = false;
 	g_dspInitialize = *(DSPInitialize*)init;
 
 	g_Config.Load();
@@ -211,10 +211,6 @@ void Initialize(void *init)
 	g_dspState.Reset();
 
 	CDSPHandler::CreateInstance();
-
-	soundStream = AudioCommon::InitSoundStream(new HLEMixer()); 
-        if(!soundStream)
-            PanicAlert("Error starting up sound stream");
 }
 
 void DSP_StopSoundStream()
@@ -245,6 +241,7 @@ void Shutdown()
 void DoState(unsigned char **ptr, int mode)
 {
 	PointerWrap p(ptr, mode);
+	p.Do(g_InitMixer);
 	CDSPHandler::GetInstance().GetUCode()->DoState(p);
 }
 
@@ -305,6 +302,19 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, unsigned short _Value)
 // Other DSP fuctions
 unsigned short DSP_WriteControlRegister(unsigned short _Value)
 {
+	UDSPControl Temp(_Value);
+	if (!g_InitMixer)
+	{
+		if (!Temp.DSPHalt && Temp.DSPInit)
+		{
+			unsigned int AISampleRate, DSPSampleRate;
+			g_dspInitialize.pGetSampleRate(AISampleRate, DSPSampleRate);
+			soundStream = AudioCommon::InitSoundStream(new HLEMixer(AISampleRate, DSPSampleRate)); 
+			if(!soundStream) PanicAlert("Error starting up sound stream");
+			// Mixer is initialized
+			g_InitMixer = true;
+		}
+	}
 	return CDSPHandler::GetInstance().WriteControlRegister(_Value);
 }
 
@@ -324,44 +334,26 @@ void DSP_Update(int cycles)
    inside Mixer_PushSamples(), the reason that we don't disable this entire
    function when Other Audio is disabled is that then we can't turn it back on
    again once the game has started. */
-void DSP_SendAIBuffer(unsigned int address, int sample_rate)
+void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples, unsigned int sample_rate)
 {
-	// TODO: This is not yet fully threadsafe.
-	if (!soundStream) {
+	if (!soundStream)
 		return;
-	}
 
 	CMixer* pMixer = soundStream->GetMixer();
+
 	if (pMixer && address)
 	{
 		short* samples = (short*)Memory_Get_Pointer(address);
-/*
-		short samples[16] = {0};  // interleaved stereo
-		if (address)
-		{
-			for (int i = 0; i < 16; i++)
-			{
-				samples[i] = Memory_Read_U16(address + i * 2);
-			}
-
-			// FIXME: Write the audio to a file
-			//if (log_ai)
-			//				g_wave_writer.AddStereoSamples(samples, 8);
-		}
-*/
-		// sample_rate is usually 32k here,
+		// sample_rate could be 32khz/48khz here,
 		// see Core/DSP/DSP.cpp for better information
-		pMixer->PushSamples(samples, 32 / 4, sample_rate);
+		pMixer->PushSamples(samples, num_samples, sample_rate);
+
+		// FIXME: Write the audio to a file
+		//if (log_ai)
+		//	g_wave_writer.AddStereoSamples(samples, 8);
 	}
 
-	// SoundStream is updated only when necessary (there is no 70 ms limit
-	// so each sample now triggers the sound stream)
-	
-	// TODO: think about this.
-	static int counter = 0;
-	counter++;
-	if ((counter & 31) == 0 && soundStream)
-		soundStream->Update();
+	soundStream->Update();
 }
 
 void DSP_ClearAudioBuffer()

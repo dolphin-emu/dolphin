@@ -33,10 +33,11 @@
 #include "AL/al.h"
 #include "AL/alc.h"
 #endif // WIN32
-// public use
+// 16 bit Stereo
 #define SFX_MAX_SOURCE		1
 #define OAL_NUM_BUFFERS		8
-#define OAL_BUFFER_SIZE		(512 * 4)
+#define OAL_MAX_SAMPLES		512		// AyuanX: Don't make it too large, as larger buffer means longer delay
+#define OAL_THRESHOLD		128
 #endif
 
 class OpenALStream: public SoundStream
@@ -66,7 +67,7 @@ private:
 	Common::CriticalSection soundCriticalSection;
 	Common::Event soundSyncEvent;
 	
-	short realtimeBuffer[OAL_BUFFER_SIZE/sizeof(short)];
+	short realtimeBuffer[OAL_MAX_SAMPLES * 2];
 	ALuint uiBuffers[OAL_NUM_BUFFERS];
 	ALuint uiSource;
 	ALfloat fVolume;

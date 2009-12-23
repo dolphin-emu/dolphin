@@ -47,6 +47,7 @@ PLUGIN_GLOBALS* globals = NULL;
 DSPInitialize g_dspInitialize;
 Common::Thread *g_hDSPThread = NULL;
 SoundStream *soundStream = NULL;
+bool g_InitMixer = false;
 
 bool bIsRunning = false;
 
@@ -166,6 +167,7 @@ void DllConfig(HWND _hParent)
 void DoState(unsigned char **ptr, int mode)
 {
 	PointerWrap p(ptr, mode);
+	p.Do(g_InitMixer);
 }
 
 void DllDebugger(HWND _hParent, bool Show)
@@ -202,6 +204,7 @@ void DSP_DebugBreak()
 
 void Initialize(void *init)
 {
+	g_InitMixer = false;
     bool bCanWork = true;
     g_dspInitialize = *(DSPInitialize*)init;
 
@@ -229,7 +232,6 @@ void Initialize(void *init)
 	{
 		g_hDSPThread = new Common::Thread(dsp_thread, NULL);
 	}
-	soundStream = AudioCommon::InitSoundStream();
 
 #if defined(HAVE_WX) && HAVE_WX
 	if (m_DebuggerFrame)
@@ -256,6 +258,19 @@ void Shutdown()
 
 u16 DSP_WriteControlRegister(u16 _uFlag)
 {
+	UDSPControl Temp(_uFlag);
+	if (!g_InitMixer)
+	{
+		if (!Temp.DSPHalt && Temp.DSPInit)
+		{
+			unsigned int AISampleRate, DSPSampleRate;
+			g_dspInitialize.pGetSampleRate(AISampleRate, DSPSampleRate);
+			soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DSPSampleRate)); 
+			if(!soundStream) PanicAlert("Error starting up sound stream");
+			// Mixer is initialized
+			g_InitMixer = true;
+		}
+	}
 	DSPInterpreter::WriteCR(_uFlag);
 	return DSPInterpreter::ReadCR();
 }
@@ -343,29 +358,21 @@ void DSP_Update(int cycles)
 	}
 }
 
-void DSP_SendAIBuffer(unsigned int address, int sample_rate)
+void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples, unsigned int sample_rate)
 {
-	if (soundStream->GetMixer())
+	if (!soundStream)
+		return;
+
+	CMixer* pMixer = soundStream->GetMixer();
+
+	if (pMixer && address)
 	{
-		short samples[16] = {0};  // interleaved stereo
-		if (address)
-		{
-			for (int i = 0; i < 16; i++)
-			{
-				samples[i] = Memory_Read_U16(address + i * 2);
-			}
-		}
-		soundStream->GetMixer()->PushSamples(samples, 32 / 4, sample_rate);
+		short* samples = (short*)Memory_Get_Pointer(address);
+
+		pMixer->PushSamples(samples, num_samples, sample_rate);
 	}
 
-	// SoundStream is updated only when necessary (there is no 70 ms limit
-	// so each sample now triggers the sound stream)
-	
-	// TODO: think about this.
-	// static int counter = 0;
-	// counter++;
-	if (/*(counter & 31) == 0 &&*/ soundStream)
-		soundStream->Update();
+	soundStream->Update();
 }
 
 void DSP_ClearAudioBuffer()

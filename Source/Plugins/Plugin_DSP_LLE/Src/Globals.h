@@ -26,6 +26,7 @@
 
 u16 Memory_Read_U16(u32 _uAddress); // For PB address detection
 u32 Memory_Read_U32(u32 _uAddress);
+void* Memory_Get_Pointer(u32 _uAddress);
 
 #if PROFILE	
 	void ProfilerDump(u64 _count);
