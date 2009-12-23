@@ -180,7 +180,9 @@ void WmSendAck(u16 _channelID, u8 _reportID)
 	u32 Offset = WriteWmReportHdr(DataFrame, WM_ACK_DATA);
 
 	wm_acknowledge* pData = (wm_acknowledge*)(DataFrame + Offset);
+#if defined(HAVE_WX) && HAVE_WX
 	FillReportInfo(pData->buttons);
+#endif
 	pData->reportID = _reportID;
 	pData->errorID = 0;
 	Offset += sizeof(wm_acknowledge);
@@ -321,7 +323,9 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, int _Size)
 		wm_read_data_reply* pReply = (wm_read_data_reply*)(DataFrame + Offset);	
 		Offset += sizeof(wm_read_data_reply);
 
+#if defined(HAVE_WX) && HAVE_WX
 		FillReportInfo(pReply->buttons);
+#endif
 		pReply->error = 0;
 		// 0x1 means two bytes, 0xf means 16 bytes
 		pReply->size = copySize - 1;
@@ -475,7 +479,9 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 	memset(pStatus, 0, sizeof(wm_status_report)); // fill the status report with zeros
 
 	// Status values
+#if defined(HAVE_WX) && HAVE_WX
 	FillReportInfo(pStatus->buttons);
+#endif
 	pStatus->leds = g_Leds; // leds are 4 bit
 	pStatus->ir = g_IR; // 1 bit
 	pStatus->speaker = g_Speaker; // 1 bit
