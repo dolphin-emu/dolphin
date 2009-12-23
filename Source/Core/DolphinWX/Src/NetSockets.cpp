@@ -167,8 +167,8 @@ void *ServerSide::Entry()
 						m_numplayers--;
 
 						std::string player_left = m_client[socket_nb].nick;
-						Event->AppendText( wxString::Format(wxT("*Player : %s left the game.\n\n"),
-							player_left.c_str()) );
+						Event->AppendText( wxString::FromAscii(StringFromFormat("*Player : %s left the game.\n\n",
+							player_left.c_str()).c_str()) );
 
 						// We need to adjust the struct...
 						for (int j = socket_nb; j < m_numplayers; j++)
@@ -412,8 +412,8 @@ void *ClientSide::Entry()
 		if (value == 0x16)	// UDP connection successful
 		{
 			Event->AppendText(_("Connection successful !\n"));
-			Event->AppendText( wxString::Format( wxT("*Connection established to %s (%s)\n*Game is : %s\n "),
-												 m_hostnick.c_str(), m_addr.c_str(), m_selectedgame.c_str()));
+			Event->AppendText( wxString::FromAscii( StringFromFormat("*Connection established to %s (%s)\n*Game is : %s\n",
+												 m_hostnick.c_str(), m_addr.c_str(), m_selectedgame.c_str()).c_str()));
 		}
 		else
 		{

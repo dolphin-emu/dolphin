@@ -36,7 +36,7 @@ void ClientSide::OnClientData(unsigned char data)
 			m_socket.Receive((char*)&buffer_size, 4, recv_size);
 				buffer = new char[buffer_size+1];
 			m_socket.Receive(buffer, buffer_size+1, recv_size);
-			Event->AppendText(wxString::Format(wxT("*Player : %s is now connected to Host...\n"), buffer));
+			Event->AppendText(wxString::FromAscii(StringFromFormat("*Player : %s is now connected to Host...\n", buffer).c_str()));
 
 			if (sent != 0x1F)
 				for (int i = 0; i < 4; i++)
@@ -53,7 +53,7 @@ void ClientSide::OnClientData(unsigned char data)
 				buffer = new char[buffer_size+1];
 			m_socket.Receive(buffer, buffer_size+1, recv_size);
 
-			Event->AppendText(wxString::Format(wxT("*Player : %s left the game\n\n"), buffer));
+			Event->AppendText(wxString::FromAscii(StringFromFormat("*Player : %s left the game\n\n", buffer).c_str()));
 
 			m_numplayers--;
 			Event->SendEvent(HOST_PLAYERLEFT);
@@ -99,7 +99,7 @@ void ClientSide::OnClientData(unsigned char data)
 			m_socket.Receive(buffer, buffer_size+1, recv_size);
 
 			m_selectedgame = std::string(buffer);
-			Event->AppendText(wxString::Format(wxT("*Host changed Game to : %s\n"), buffer));
+			Event->AppendText(wxString::FromAscii(StringFromFormat("*Host changed Game to : %s\n", buffer).c_str()));
 
 			// Tell the server if the game's been found
 			m_socket.Send((const char*)&data, 1);
@@ -174,7 +174,7 @@ void ServerSide::OnServerData(int sock, unsigned char data)
 			// Read IP Address
 			m_client[sock].socket.Receive(buffer, 24, recv_size);
 
-			Event->AppendText(wxString::Format(wxT("> Your IP is : %s\n"), buffer));
+			Event->AppendText(wxString::FromAscii(StringFromFormat("> Your IP is : %s\n", buffer).c_str()));
 
 			break;
 		}
@@ -219,8 +219,8 @@ void ServerSide::OnServerData(int sock, unsigned char data)
 			{
 				sent = 0x30;
 
-				wxString error_str = wxString::Format(
-					wxT("WARNING : Player %s does Not have this Game !\n"), m_client[sock].nick.c_str());
+				wxString error_str = wxString::FromAscii(
+					StringFromFormat("WARNING : Player %s does Not have this Game !\n", m_client[sock].nick.c_str()).c_str());
 				four_bytes = (int)error_str.size();
 
 				for (int i=0; i < 2; i++)

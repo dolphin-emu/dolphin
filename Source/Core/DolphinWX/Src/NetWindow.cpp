@@ -359,9 +359,9 @@ void NetPlay::UpdateNetWindow(bool update_infos, wxString infos)
 		SplitString(std::string(infos.mb_str()), "x", str_arr);
 
 		m_ConInfo_text->SetLabel
-			(wxString::Format(wxT("  Fps : %s | Ping : %s | Frame Delay : %s"),
+			(wxString::FromAscii(StringFromFormat("  Fps : %s | Ping : %s | Frame Delay : %s",
 							  str_arr[0].c_str(), str_arr[1].c_str(), 
-							  str_arr[2].c_str()) );
+							  str_arr[2].c_str()).c_str()) );
 	}
 	else
 	{
@@ -468,7 +468,7 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 		{
 			value = 0x30;
 			// TODO : there seems to be a random bug here that i can't reproduce... looked like a loop bug :/
-			wxString chat_str = wxString::Format(wxT("> %s : %s\n"), wxString(m_nick.c_str(), wxConvUTF8).c_str() , m_Chat->GetValue().c_str() );
+			wxString chat_str = wxString::FromAscii(StringFromFormat("> %s : %s\n", m_nick.c_str(), m_Chat->GetValue().c_str()).c_str() );
 			int chat_size = (int)chat_str.size(); 
 			if(chat_size-m_nick.size()-6 > 0)
 			{
