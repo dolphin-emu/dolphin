@@ -300,9 +300,7 @@ THREAD_RETURN CpuThread(void *pArg)
 	{
 		#ifdef _M_X64
 			// Let's run under memory watch
-			#ifndef JITTEST
 			EMM::InstallExceptionHandler();
-			#endif
 		#else
 			PanicAlert("32-bit platforms do not support fastmem yet. Report this bug.");
 		#endif

@@ -37,6 +37,10 @@ void Jit64::mtspr(UGeckoInstruction inst)
 		JITDISABLE(SystemRegisters)
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	switch(iIndex) {
+		case SPR_TL:
+		case SPR_TU:
+			Default(inst);
+			return;
 		case SPR_LR:
 			ibuild.EmitStoreLink(ibuild.EmitLoadGReg(inst.RD));
 			return;
@@ -70,6 +74,10 @@ void Jit64::mfspr(UGeckoInstruction inst)
 		u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 	switch (iIndex)
 	{
+	case SPR_TL:
+	case SPR_TU:
+		Default(inst);
+		return;
 	case SPR_LR:
 		ibuild.EmitStoreGReg(ibuild.EmitLoadLink(), inst.RD);
 		return;

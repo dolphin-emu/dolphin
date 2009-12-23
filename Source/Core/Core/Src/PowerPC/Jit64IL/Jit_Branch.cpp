@@ -84,7 +84,7 @@ static IREmitter::InstLoc TestBranch(IREmitter::IRBuilder& ibuild, UGeckoInstruc
 		IREmitter::InstLoc CRCmp = ibuild.EmitIntConst(8 >> (inst.BI & 3));
 		CRTest = ibuild.EmitAnd(CRReg, CRCmp);
 		if (!(inst.BO & 8))
-			CRTest = ibuild.EmitXor(CRTest, CRCmp);
+			CRTest = ibuild.EmitXor(CRCmp, CRTest);
 	}
 
 	if ((inst.BO & 4) == 0) {

@@ -61,7 +61,7 @@ void Jit64::lXz(UGeckoInstruction inst)
 	{
 	case 32: val = ibuild.EmitLoad32(addr); break; //lwz	
 	case 40: val = ibuild.EmitLoad16(addr); break; //lhz
-	case 34: val = ibuild.EmitLoad8(addr);  break; //lbz
+	case 34: val = ibuild.EmitLoad8(addr);  break; //lbz - lbzu crashes GFZP01 @ 0x8008575C
 	default: PanicAlert("lXz: invalid access size");
 	}
 	ibuild.EmitStoreGReg(val, inst.RD);
@@ -164,7 +164,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 	}
 }
 
-// A few games use these heavily in video codecs.
+// A few games use these heavily in video codecs. (GFZP01 @ 0x80020E18)
 void Jit64::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
