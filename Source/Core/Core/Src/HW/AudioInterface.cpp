@@ -250,11 +250,11 @@ void UpdateInterrupts()
 {
 	if (g_AudioRegister.m_Control.AIINT & g_AudioRegister.m_Control.AIINTMSK)
 	{
-		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_AUDIO, true);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_AI, true);
 	}
 	else
 	{
-		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_AUDIO, false);
+		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_AI, false);
 	}
 }
 

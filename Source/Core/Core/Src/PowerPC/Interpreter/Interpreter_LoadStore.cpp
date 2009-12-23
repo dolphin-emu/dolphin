@@ -330,9 +330,8 @@ void eciwx(UGeckoInstruction _inst)
 		b = m_GPR[_inst.RA];
 	EA = b + m_GPR[_inst.RB];
 
-	if (!PowerPC::ppcState.spr[SPR_EAR] & 0x80000000)
+	if (!(PowerPC::ppcState.spr[SPR_EAR] & 0x80000000))
 		PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
-	//else if?
 	if (EA & 3)
 		PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
 
@@ -351,9 +350,8 @@ void ecowx(UGeckoInstruction _inst)
 		b = m_GPR[_inst.RA];
 	EA = b + m_GPR[_inst.RB];
 
-	if (!PowerPC::ppcState.spr[SPR_EAR] & 0x80000000)
+	if (!(PowerPC::ppcState.spr[SPR_EAR] & 0x80000000))
 		PowerPC::ppcState.Exceptions |= EXCEPTION_DSI;
-	//else if?
 	if (EA & 3)
 		PowerPC::ppcState.Exceptions |= EXCEPTION_ALIGNMENT;
 	

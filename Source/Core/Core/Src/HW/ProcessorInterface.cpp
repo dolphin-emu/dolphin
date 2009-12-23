@@ -210,12 +210,12 @@ static const char *Debug_GetInterruptName(u32 _causemask)
 {
 	switch (_causemask)
 	{
-	case INT_CAUSE_ERROR:			return "INT_CAUSE_ERROR";
+	case INT_CAUSE_PI:				return "INT_CAUSE_PI";
 	case INT_CAUSE_DI:				return "INT_CAUSE_DI";
 	case INT_CAUSE_RSW:				return "INT_CAUSE_RSW";
 	case INT_CAUSE_SI:				return "INT_CAUSE_SI";
 	case INT_CAUSE_EXI:				return "INT_CAUSE_EXI";
-	case INT_CAUSE_AUDIO:			return "INT_CAUSE_AUDIO";
+	case INT_CAUSE_AI:				return "INT_CAUSE_AI";
 	case INT_CAUSE_DSP:				return "INT_CAUSE_DSP";
 	case INT_CAUSE_MEMORY:			return "INT_CAUSE_MEMORY";
 	case INT_CAUSE_VI:				return "INT_CAUSE_VI";
