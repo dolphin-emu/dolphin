@@ -468,7 +468,7 @@ void NetPlay::OnGUIEvent(wxCommandEvent& event)
 		{
 			value = 0x30;
 			// TODO : there seems to be a random bug here that i can't reproduce... looked like a loop bug :/
-			wxString chat_str = wxString::FromAscii(StringFromFormat("> %s : %s\n", m_nick.c_str(), m_Chat->GetValue().c_str()).c_str() );
+			wxString chat_str = wxString::Format(wxT("> %s : %s\n"), wxString(m_nick.c_str(), wxConvUTF8).c_str() , m_Chat->GetValue().c_str() );
 			int chat_size = (int)chat_str.size(); 
 			if(chat_size-m_nick.size()-6 > 0)
 			{
