@@ -443,7 +443,7 @@ InstLoc IRBuilder::FoldXor(InstLoc Op1, InstLoc Op2) {
 			return FoldXor(getOp1(Op1), EmitIntConst(RHS));
 		}
 	}
-	if (Op1 == Op2) return Op1;
+	if (Op1 == Op2) return EmitIntConst(0);
 
 	return EmitBiOp(Xor, Op1, Op2);
 }

@@ -146,13 +146,6 @@ void Jit64::xorx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
-	if (inst.RB == inst.RS)
-	{
-		IREmitter::InstLoc val = ibuild.EmitStoreGReg(ibuild.EmitIntConst(0), inst.RA);
-		if (inst.Rc)
-			ComputeRC(ibuild, val);
-		return;
-	}
 	IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RB);
 	val = ibuild.EmitXor(ibuild.EmitLoadGReg(inst.RS), val);
 	ibuild.EmitStoreGReg(val, inst.RA);
