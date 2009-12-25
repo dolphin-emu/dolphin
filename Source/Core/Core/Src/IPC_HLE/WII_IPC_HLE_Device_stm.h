@@ -54,7 +54,7 @@ public:
 
 	virtual bool Open(u32 _CommandAddress, u32 _Mode)
 	{
-		ERROR_LOG(WII_IPC_STM, "STM immediate: Open");
+		INFO_LOG(WII_IPC_STM, "STM immediate: Open");
 		Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 		m_Active = true;
 		return true;
@@ -62,7 +62,7 @@ public:
 
 	virtual bool Close(u32 _CommandAddress, bool _bForce)
 	{
-		ERROR_LOG(WII_IPC_STM, "STM immediate: Close");
+		INFO_LOG(WII_IPC_STM, "STM immediate: Close");
 		if (!_bForce)
 			Memory::Write_U32(0, _CommandAddress+4);
 		m_Active = false;

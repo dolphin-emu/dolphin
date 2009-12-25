@@ -686,16 +686,16 @@ void TiltWiimote(int &_x, int &_y, int &_z)
 		return;
 	// Select input method and return the x, y, x values
 	else if (g_Config.Tilt.TypeWM == g_Config.Tilt.KEYBOARD)
-		TiltByKeyboardWM(g_Wiimote_kbd.TiltData);
+		TiltByKeyboardWM(g_WiimoteData[g_RefreshWiimote].TiltWM);
 	else
-		TiltByGamepad(g_Wiimote_kbd.TiltData, g_Config.Tilt.TypeWM);
+		TiltByGamepad(g_WiimoteData[g_RefreshWiimote].TiltWM, g_Config.Tilt.TypeWM);
 
 	// Adjust angles, it's only needed if both roll and pitch is used together
 	if (g_Config.Tilt.Range.Roll != 0 && g_Config.Tilt.Range.Pitch != 0)
-		AdjustAngles(g_Wiimote_kbd.TiltData.Roll, g_Wiimote_kbd.TiltData.Pitch);
+		AdjustAngles(g_WiimoteData[g_RefreshWiimote].TiltWM.Roll, g_WiimoteData[g_RefreshWiimote].TiltWM.Pitch);
 
 	// Calculate the accelerometer value from this tilt angle
-	TiltToAccelerometer(_x, _y, _z, g_Wiimote_kbd.TiltData);
+	TiltToAccelerometer(_x, _y, _z, g_WiimoteData[g_RefreshWiimote].TiltWM);
 
 	//DEBUG_LOG(WIIMOTE, "Roll:%i, Pitch:%i, _x:%u, _y:%u, _z:%u", g_Wiimote_kbd.TiltData.Roll, g_Wiimote_kbd.TiltData.Pitch, _x, _y, _z);
 }
@@ -708,16 +708,16 @@ void TiltNunchuck(int &_x, int &_y, int &_z)
 		return;
 	// Select input method and return the x, y, x values
 	else if (g_Config.Tilt.TypeNC == g_Config.Tilt.KEYBOARD)
-		TiltByKeyboardNC(g_NunchuckExt.TiltData);
+		TiltByKeyboardNC(g_WiimoteData[g_RefreshWiimote].TiltNC);
 	else
-		TiltByGamepad(g_NunchuckExt.TiltData, g_Config.Tilt.TypeNC);
+		TiltByGamepad(g_WiimoteData[g_RefreshWiimote].TiltNC, g_Config.Tilt.TypeNC);
 
 	// Adjust angles, it's only needed if both roll and pitch is used together
 	if (g_Config.Tilt.Range.Roll != 0 && g_Config.Tilt.Range.Pitch != 0)
-		AdjustAngles(g_NunchuckExt.TiltData.Roll, g_NunchuckExt.TiltData.Pitch);
+		AdjustAngles(g_WiimoteData[g_RefreshWiimote].TiltNC.Roll, g_WiimoteData[g_RefreshWiimote].TiltNC.Pitch);
 
 	// Calculate the accelerometer value from this tilt angle
-	TiltToAccelerometer(_x, _y, _z, g_NunchuckExt.TiltData);
+	TiltToAccelerometer(_x, _y, _z, g_WiimoteData[g_RefreshWiimote].TiltNC);
 
 	//DEBUG_LOG(WIIMOTE, "Roll:%i, Pitch:%i, _x:%u, _y:%u, _z:%u", g_NunchuckExt.TiltData.Roll, g_NunchuckExt.TiltData.Pitch, _x, _y, _z);
 }
@@ -745,11 +745,11 @@ void FillReportAcc(wm_accel& _acc)
 
 	// Adjust position, also add some noise to prevent disconnection
 	if (!g_Config.bUpright)
-		_acc.z += g_wm.cal_g.z + g_Wiimote_kbd.TiltData.FakeNoise;
+		_acc.z += g_wm.cal_g.z + g_WiimoteData[g_RefreshWiimote].TiltWM.FakeNoise;
 	else	// Upright wiimote
-		_acc.y -= g_wm.cal_g.y + g_Wiimote_kbd.TiltData.FakeNoise;
+		_acc.y -= g_wm.cal_g.y + g_WiimoteData[g_RefreshWiimote].TiltWM.FakeNoise;
 
-	g_Wiimote_kbd.TiltData.FakeNoise = -g_Wiimote_kbd.TiltData.FakeNoise;
+	g_WiimoteData[g_RefreshWiimote].TiltWM.FakeNoise = -g_WiimoteData[g_RefreshWiimote].TiltWM.FakeNoise;
 
 	if (IsFocus())
 	{
@@ -757,14 +757,14 @@ void FillReportAcc(wm_accel& _acc)
 		int acc_y = _acc.y;
 		int acc_z = _acc.z;
 
-		if (IsKey(g_Wiimote_kbd.SHAKE) && g_Wiimote_kbd.TiltData.Shake == 0)
-			g_Wiimote_kbd.TiltData.Shake = 1;
+		if (IsKey(g_Wiimote_kbd.SHAKE) && g_WiimoteData[g_RefreshWiimote].TiltWM.Shake == 0)
+			g_WiimoteData[g_RefreshWiimote].TiltWM.Shake = 1;
 
 		// Step the shake simulation one step
-		ShakeToAccelerometer(acc_x, acc_y, acc_z, g_Wiimote_kbd.TiltData);
+		ShakeToAccelerometer(acc_x, acc_y, acc_z, g_WiimoteData[g_RefreshWiimote].TiltWM);
 
 		// Tilt Wiimote, allow the shake function to interrupt it
-		if (g_Wiimote_kbd.TiltData.Shake == 0)
+		if (g_WiimoteData[g_RefreshWiimote].TiltWM.Shake == 0)
 			TiltWiimote(acc_x, acc_y, acc_z);
 
 		// Boundary check
@@ -916,8 +916,8 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	int x0 = 1023 - g_Config.iIRLeft - g_Config.iIRWidth * MouseX - SENSOR_BAR_WIDTH / 2;
 	int x1 = x0 + SENSOR_BAR_WIDTH;
 
-	RotateIRDot(x0, y0, g_Wiimote_kbd.TiltData);
-	RotateIRDot(x1, y1, g_Wiimote_kbd.TiltData);
+	RotateIRDot(x0, y0, g_WiimoteData[g_RefreshWiimote].TiltWM);
+	RotateIRDot(x1, y1, g_WiimoteData[g_RefreshWiimote].TiltWM);
 
 	// Converted to IR data
 	_ir0.x = x0 & 0xff; _ir0.xHi = x0 >> 8;
@@ -993,8 +993,8 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	int x1 = 1023 - g_Config.iIRLeft - g_Config.iIRWidth * MouseX - SENSOR_BAR_WIDTH / 2;
 	int x2 = x1 + SENSOR_BAR_WIDTH;
 
-	RotateIRDot(x1, y1, g_Wiimote_kbd.TiltData);
-	RotateIRDot(x2, y2, g_Wiimote_kbd.TiltData);
+	RotateIRDot(x1, y1, g_WiimoteData[g_RefreshWiimote].TiltWM);
+	RotateIRDot(x2, y2, g_WiimoteData[g_RefreshWiimote].TiltWM);
 
 	/* As with the extented report we settle with emulating two out of four
 	   possible objects the only difference is that we don't report any size of
@@ -1082,14 +1082,14 @@ if (IsFocus())
 	int acc_y = _ext.ay;
 	int acc_z = _ext.az;
 
-	if (IsKey(g_NunchuckExt.SHAKE) && g_NunchuckExt.TiltData.Shake == 0)
-			g_NunchuckExt.TiltData.Shake = 1;
+	if (IsKey(g_NunchuckExt.SHAKE) && g_WiimoteData[g_RefreshWiimote].TiltNC.Shake == 0)
+			g_WiimoteData[g_RefreshWiimote].TiltNC.Shake = 1;
 
 	// Step the shake simulation one step
-	ShakeToAccelerometer(acc_x, acc_y, acc_z, g_NunchuckExt.TiltData);
+	ShakeToAccelerometer(acc_x, acc_y, acc_z, g_WiimoteData[g_RefreshWiimote].TiltNC);
 
 	// Tilt Nunchuck, allow the shake function to interrupt it
-	if (g_NunchuckExt.TiltData.Shake == 0)
+	if (g_WiimoteData[g_RefreshWiimote].TiltNC.Shake == 0)
 		TiltNunchuck(acc_x, acc_y, acc_z);
 
 	// Boundary check

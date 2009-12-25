@@ -164,7 +164,7 @@ void WmLeds(u16 _channelID, wm_leds* leds)
 {
 	INFO_LOG(WIIMOTE, "Set LEDs: %x, Rumble: %x", leds->leds, leds->rumble);
 
-	g_Leds = leds->leds;
+	g_Leds[g_RefreshWiimote] = leds->leds;
 }
 
 
@@ -190,7 +190,7 @@ void WmSendAck(u16 _channelID, u8 _reportID)
 	DEBUG_LOG(WIIMOTE,  "WMSendAck");
 	DEBUG_LOG(WIIMOTE,  "  Report ID: %02x", _reportID);
 
-	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
@@ -360,11 +360,11 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, int _Size)
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 		std::string Temp = ArrayToString(DataFrame, Offset);
-		ERROR_LOG(WIIMOTE, "Data: %s", Temp.c_str());
+		DEBUG_LOG(WIIMOTE, "Data: %s", Temp.c_str());
 #endif
 
 		// Send a piece
-		g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+		g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
 
 		// Update the size that is left
 		_Size -= copySize;
@@ -482,7 +482,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 #if defined(HAVE_WX) && HAVE_WX
 	FillReportInfo(pStatus->buttons);
 #endif
-	pStatus->leds = g_Leds; // leds are 4 bit
+	pStatus->leds = g_Leds[g_RefreshWiimote]; // leds are 4 bit
 	pStatus->ir = g_IR; // 1 bit
 	pStatus->speaker = g_Speaker; // 1 bit
 	pStatus->battery_low = 0; // battery is okay
@@ -514,7 +514,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 	DEBUG_LOG(WIIMOTE, "  Extension: %x", pStatus->extension);
 	DEBUG_LOG(WIIMOTE, "  Buttons: 0x%04x", pStatus->buttons);
 
-	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);

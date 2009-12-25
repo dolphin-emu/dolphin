@@ -77,7 +77,7 @@ void WmReportMode(u16 _channelID, wm_report_mode* dr)
 	DEBUG_LOG(WIIMOTE, "  All The Time: %x (not only on data change)", dr->all_the_time);
 	DEBUG_LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
 
-	g_ReportingAuto = dr->all_the_time;
+	g_ReportingAuto[g_RefreshWiimote] = dr->all_the_time;
 	g_ReportingMode = dr->mode;
 	g_ReportingChannel = _channelID;
 
@@ -114,8 +114,7 @@ void SendReportCore(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
-	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
-
+	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
 }
@@ -140,7 +139,7 @@ void SendReportCoreAccel(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
-	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
@@ -170,7 +169,7 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
-	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
@@ -215,7 +214,7 @@ void SendReportCoreAccelExt16(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
-	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
@@ -269,7 +268,7 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 	
-	g_WiimoteInitialize.pWiimoteInput(_channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);

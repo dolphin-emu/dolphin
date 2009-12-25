@@ -42,12 +42,11 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	, m_ACLBuffer(NULL)
 	, m_ACLPool(0)
 	, m_LastCmd(0)
-	, m_PacketCount(0)
 	, m_FreqDividerSync(0)
-	, m_FreqDividerMote(0)
 {
-	// Connect one Wiimote by default
-	m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, 0));
+	// Activate the first one Wiimote by default
+	m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, 0, true));
+//	m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, 1));
 
 	// The BCM2045's btaddr:
 	m_ControllerBD.b[0] = 0x11;
@@ -63,6 +62,8 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	m_ClassOfDevice[2] = 0x00;
 
 	memset(m_LocalName, 0, HCI_UNIT_NAME_SIZE);
+	memset(m_PacketCount, 0, sizeof(m_PacketCount));
+	memset(m_FreqDividerMote, 0, sizeof(m_FreqDividerMote));
 
 	Host_SetWiiMoteConnectionState(0);
 }
@@ -75,14 +76,18 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 {
 	p.Do(m_LastCmd);
-	p.Do(m_PacketCount);
 	p.Do(m_CtrlSetup);
 	p.Do(m_HCIBuffer);
 	p.Do(m_HCIPool);
 	p.Do(m_ACLBuffer);
 	p.Do(m_ACLPool);
 	p.Do(m_FreqDividerSync);
-	p.Do(m_FreqDividerMote);
+
+	for (int i = 0; i < 4; i++)
+	{
+		p.Do(m_PacketCount[i]);
+		p.Do(m_FreqDividerMote[i]);
+	}
 }
 
 // ===================================================
@@ -108,9 +113,9 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress, bool _bForc
 	m_HostNumSCOPackets = 0;
 
 	m_LastCmd = 0;
-	m_PacketCount = 0;
 	m_FreqDividerSync = 0;
-	m_FreqDividerMote = 0;
+	memset(m_FreqDividerMote, 0, sizeof(m_FreqDividerMote));
+	memset(m_PacketCount, 0, sizeof(m_PacketCount));
 
 	m_HCIBuffer.m_address = NULL;
 	m_HCIPool.m_number = 0;
@@ -208,7 +213,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 					_dbg_assert_(WII_IPC_WIIMOTE, pACLHeader->PBFlag == 2);
 
 					SendToDevice(pACLHeader->ConnectionHandle, Memory::GetPointer(BulkBuffer.m_buffer + 4), pACLHeader->Size);
-					m_PacketCount++;
+					m_PacketCount[pACLHeader->ConnectionHandle & 0x1]++;
 
 					// If ACLPool is not used, we can send a reply immediately
 					// or else we have to delay this reply
@@ -297,6 +302,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8
 	if (pWiiMote == NULL)
 		return;
 
+	INFO_LOG(WII_IPC_WIIMOTE, "++++++++++++++++++++++++++++++++++++++");
+	INFO_LOG(WII_IPC_WIIMOTE, "Execute ACL Command: ConnectionHandle 0x%04x", _ConnectionHandle);
 	pWiiMote->ExecuteL2capCmd(_pData, _Size);
 }
 
@@ -316,7 +323,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 {
 	if(m_ACLBuffer.m_address != NULL)
 	{
-		INFO_LOG(WII_IPC_WIIMOTE, "Sending ACL Packet: 0x%08x ....", m_ACLBuffer.m_address);
+		INFO_LOG(WII_IPC_WIIMOTE, "Sending ACL Packet: 0x%08x .... (ConnectionHandle 0x%04x)", m_ACLBuffer.m_address, _ConnectionHandle);
 
 		UACLHeader* pHeader = (UACLHeader*)Memory::GetPointer(m_ACLBuffer.m_buffer);
 		pHeader->ConnectionHandle = _ConnectionHandle;
@@ -337,10 +344,10 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 		m_ACLBuffer.m_address = NULL;
 		m_ACLBuffer.m_buffer = NULL;
 	}
-	else if ((sizeof(UACLHeader) + _Size) > 64 )
+	else if ((sizeof(UACLHeader) + _Size) > ACL_MAX_SIZE )
 	{
-		ERROR_LOG(WII_IPC_HLE, "ACL Packet size is too big! (>64B)");
-		PanicAlert("WII_IPC_HLE: ACL Packet size is too big! (>64B)");
+		ERROR_LOG(WII_IPC_HLE, "ACL Packet size is too big!");
+		PanicAlert("WII_IPC_HLE: ACL Packet size is too big!");
 	}
 	else if (m_ACLPool.m_number >= 16)
 	{
@@ -349,7 +356,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 	}
 	else
 	{
-		UACLHeader* pHeader = (UACLHeader*)(m_ACLPool.m_data + m_ACLPool.m_number * 64); // I believe 64B is enough
+		UACLHeader* pHeader = (UACLHeader*)(m_ACLPool.m_data + m_ACLPool.m_number * ACL_MAX_SIZE);
 		pHeader->ConnectionHandle = _ConnectionHandle;
 		pHeader->BCFlag = 0;
 		pHeader->PBFlag = 2;
@@ -378,8 +385,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeACLPool()
 		{
 			m_ACLPool.m_number--;
 			// Fill the buffer
-			u8* _Address = m_ACLPool.m_data + m_ACLPool.m_number * 64;
-			memcpy(Memory::GetPointer(m_ACLBuffer.m_buffer), _Address, 64);
+			u8* _Address = m_ACLPool.m_data + m_ACLPool.m_number * ACL_MAX_SIZE;
+			memcpy(Memory::GetPointer(m_ACLBuffer.m_buffer), _Address, ACL_MAX_SIZE);
 			// Write the packet size as return value
 			Memory::Write_U32(sizeof(UACLHeader) + ((UACLHeader*)_Address)->Size, m_ACLBuffer.m_address + 0x4);
 			// Send a reply to indicate ACL buffer is sent
@@ -395,7 +402,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeACLPool()
 // ----------------
 u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 {
-
 	// Check if HCI Pool is not purged
 	if (m_HCIPool.m_number > 0)
 	{
@@ -440,14 +446,16 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	{
 		counter--;
 		if (counter < 0)
-			for (size_t i=0; i < m_WiiMotes.size(); i++)
-				if (m_WiiMotes[i].EventPagingChanged(2))
+		{
+			for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+				if (m_WiiMotes[i].EventPagingChanged(m_ScanEnable))
 				{
 					Host_SetWiiMoteConnectionState(1);
 					// Create ACL connection
 					SendEventRequestConnection(m_WiiMotes[i]);
 					return true;
 				}
+		}
 	}
 
 	// AyuanX: Actually we don't need to link channels so early
@@ -457,7 +465,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// But ... whatever, either way works
 	//
 	// Link channels when connected
-	if (m_ACLBuffer.m_address)
+	if (m_ACLBuffer.m_address && !m_LastCmd && !WII_IPCInterface::GetAddress())
 	{
 		for (size_t i = 0; i < m_WiiMotes.size(); i++)
 		{
@@ -469,14 +477,17 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// The Real Wiimote sends report at a fixed frequency of 100Hz
 	// So let's make it also 100Hz here
 	// Calculation: 15000Hz (IPC_HLE) / 100Hz (WiiMote) = 150
-	if (m_ACLBuffer.m_address && !m_LastCmd && m_WiiMotes[0].IsLinked())
+	if (m_ACLBuffer.m_address && !m_LastCmd)
 	{
-		m_FreqDividerMote++;
-		if(m_FreqDividerMote >= 150)
+		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
 		{
-			m_FreqDividerMote = 0;
-			CPluginManager::GetInstance().GetWiimote(0)->Wiimote_Update();
-			return true;
+			m_FreqDividerMote[i]++;
+			if (m_WiiMotes[i].IsLinked() && m_FreqDividerMote[i] >= 150)
+			{
+				m_FreqDividerMote[i] = 0;
+				CPluginManager::GetInstance().GetWiimote(0)->Wiimote_Update(i);
+				return true;
+			}
 		}
 	}
 
@@ -487,11 +498,11 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	if (m_HCIBuffer.m_address && !WII_IPCInterface::GetAddress() && m_WiiMotes[0].IsConnected())
 	{
 		m_FreqDividerSync++;
-		if ((m_PacketCount > 0) || (m_FreqDividerSync >= 100))	// Feel free to tweak it
+		if (m_FreqDividerSync >= 500)	// Feel free to tweak it
 		{
 			m_FreqDividerSync = 0;
-			SendEventNumberOfCompletedPackets(m_WiiMotes[0].GetConnectionHandle(), m_PacketCount);
-			m_PacketCount = 0;
+			SendEventNumberOfCompletedPackets();
+			memset(m_PacketCount, 0, sizeof(m_PacketCount));
 			return true;
 		}
 	}
@@ -528,10 +539,10 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 		m_HCIBuffer.m_address = NULL;
 		m_HCIBuffer.m_buffer = NULL;
 	}
-	else if (_event.m_size > 64)
+	else if (_event.m_size > HCI_MAX_SIZE)
 	{
-		ERROR_LOG(WII_IPC_HLE, "HCI Packet size too big! (>64B)");
-		PanicAlert("WII_IPC_HLE: HCI Packet size too big! (>64B)");
+		ERROR_LOG(WII_IPC_HLE, "HCI Packet size too big!");
+		PanicAlert("WII_IPC_HLE: HCI Packet size too big!");
 	}
 	else if (m_HCIPool.m_number >= 16)
 	{
@@ -540,7 +551,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 	}
 	else
 	{
-		memcpy(m_HCIPool.m_data + m_HCIPool.m_number * 64, _event.m_buffer, _event.m_size);
+		memcpy(m_HCIPool.m_data + m_HCIPool.m_number * HCI_MAX_SIZE, _event.m_buffer, _event.m_size);
 		// HCI Packet doesn't contain size info inside, so we have to store it somewhere
 		m_HCIPool.m_size[m_HCIPool.m_number] = _event.m_size;
 		m_HCIPool.m_number++;
@@ -636,7 +647,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryResponse()
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConnectionComplete(bdaddr_t _bd)
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConnectionComplete(const bdaddr_t& _bd)
 {    
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_bd);
 	if (pWiiMote == NULL)
@@ -650,15 +661,11 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConnectionComplete(bdaddr_t _
 	pConnectionComplete->PayloadLength = sizeof(SHCIEventConnectionComplete) - 2;
 	pConnectionComplete->Status = 0x00;
 	pConnectionComplete->Connection_Handle = pWiiMote->GetConnectionHandle();
-	pConnectionComplete->bdaddr = pWiiMote->GetBD();
+	pConnectionComplete->bdaddr = _bd;
 	pConnectionComplete->LinkType = HCI_LINK_ACL;
 	pConnectionComplete->EncryptionEnabled = HCI_ENCRYPTION_MODE_NONE;
 
 	AddEventToQueue(Event);
-
-	CWII_IPC_HLE_WiiMote* pWiimote = AccessWiiMote(_bd);
-	if (pWiimote)
-		pWiimote->EventConnectionAccepted();
 
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
 	static char s_szLinkType[][128] =
@@ -683,9 +690,6 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConnectionComplete(bdaddr_t _
 /* This is called from Update() after ScanEnable has been enabled. */
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HLE_WiiMote& _rWiiMote)
 {
-	// We have to disable scan now to avoid running this function over and over again
-	m_ScanEnable = 0;
-
 	SQueuedEvent Event(sizeof(SHCIEventRequestConnection), 0);
 
 	SHCIEventRequestConnection* pEventRequestConnection = (SHCIEventRequestConnection*)Event.m_buffer;
@@ -697,8 +701,6 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HL
 	pEventRequestConnection->uclass[1] = _rWiiMote.GetClass()[1];
 	pEventRequestConnection->uclass[2] = _rWiiMote.GetClass()[2];
 	pEventRequestConnection->LinkType = HCI_LINK_ACL;
-
-	AddEventToQueue(Event);
 
 	// Log
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
@@ -719,6 +721,8 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HL
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  COD[1]: 0x%02x", pEventRequestConnection->uclass[1]);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  COD[2]: 0x%02x", pEventRequestConnection->uclass[2]);
 	//DEBUG_LOG(WII_IPC_WIIMOTE, "  LinkType: %s", LinkType[pEventRequestConnection->LinkType]);
+
+	AddEventToQueue(Event);
 
 	return true;
 }
@@ -771,7 +775,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventAuthenticationCompleted(u16 _
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRemoteNameReq(bdaddr_t _bd)
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRemoteNameReq(const bdaddr_t& _bd)
 {    
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_bd);
 	if (pWiiMote == NULL)
@@ -784,7 +788,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRemoteNameReq(bdaddr_t _bd)
 	pRemoteNameReq->EventType = HCI_EVENT_REMOTE_NAME_REQ_COMPL;
 	pRemoteNameReq->PayloadLength = sizeof(SHCIEventRemoteNameReq) - 2;
 	pRemoteNameReq->Status = 0x00;
-	pRemoteNameReq->bdaddr = pWiiMote->GetBD();
+	pRemoteNameReq->bdaddr = _bd;
 	strcpy((char*)pRemoteNameReq->RemoteName, pWiiMote->GetName());
 
 	AddEventToQueue(Event);
@@ -807,10 +811,8 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadRemoteFeatures(u16 _conne
 	SQueuedEvent Event(sizeof(SHCIEventReadRemoteFeatures), _connectionHandle);
 
 	SHCIEventReadRemoteFeatures* pReadRemoteFeatures = (SHCIEventReadRemoteFeatures*)Event.m_buffer;
-	// WTF CAN'T WE USE THE CORRECT VALUE HERE?!
-	// If you set EventType to HCI_EVENT_READ_REMOTE_FEATURES_COMPL, nintendo's BT stack will take a different path
-	// try it and see :)
-	pReadRemoteFeatures->EventType = 0x0c; //HCI_EVENT_READ_REMOTE_FEATURES_COMPL;
+
+	pReadRemoteFeatures->EventType = HCI_EVENT_READ_REMOTE_FEATURES_COMPL;
 	pReadRemoteFeatures->PayloadLength = sizeof(SHCIEventReadRemoteFeatures) - 2;
 	pReadRemoteFeatures->Status = 0x00;
 	pReadRemoteFeatures->ConnectionHandle = pWiiMote->GetConnectionHandle();
@@ -955,25 +957,29 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRoleChange(bdaddr_t _bd, bool
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets(u16 _connectionHandle, u16 _count)
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
 {
-	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_connectionHandle);
-	if (pWiiMote == NULL)
+	int Num = m_WiiMotes.size();
+	if (Num == NULL)
 		return false;
 
-	SQueuedEvent Event(sizeof(SHCIEventNumberOfCompletedPackets), 0); // zero, so this packet isn't counted
+	SQueuedEvent Event(sizeof(SHCIEventNumberOfCompletedPackets) + Num * 4, 0);
 
 	SHCIEventNumberOfCompletedPackets* pNumberOfCompletedPackets = (SHCIEventNumberOfCompletedPackets*)Event.m_buffer;
 	pNumberOfCompletedPackets->EventType = HCI_EVENT_NUM_COMPL_PKTS;
-	pNumberOfCompletedPackets->PayloadLength = sizeof(SHCIEventNumberOfCompletedPackets) - 2;
-	pNumberOfCompletedPackets->NumberOfHandles = 1;
-	pNumberOfCompletedPackets->Connection_Handle = _connectionHandle;
-	pNumberOfCompletedPackets->Number_Of_Completed_Packets = _count;
+	pNumberOfCompletedPackets->PayloadLength = sizeof(SHCIEventNumberOfCompletedPackets) + Num * 4 - 2;
+	pNumberOfCompletedPackets->NumberOfHandles = Num;
+
+	u16 *pData = (u16 *)(Event.m_buffer + sizeof(SHCIEventNumberOfCompletedPackets));
+	for (int i = 0; i < Num; i++)
+	{
+		pData[i] = m_WiiMotes[i].GetConnectionHandle();
+		pData[Num + i] = m_PacketCount[i];
+	}
 
 	// Log
 	INFO_LOG(WII_IPC_WIIMOTE, "Event: SendEventNumberOfCompletedPackets");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "  Connection_Handle: 0x%04x", pNumberOfCompletedPackets->Connection_Handle);
-	DEBUG_LOG(WII_IPC_WIIMOTE, "  Number_Of_Completed_Packets: %i", pNumberOfCompletedPackets->Number_Of_Completed_Packets);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "  NumberOfConnectionHandle: 0x%04x", pNumberOfCompletedPackets->NumberOfHandles);
 
 	AddEventToQueue(Event);
 
@@ -1032,7 +1038,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventLinkKeyNotification(const CWI
 	return true;
 };
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestLinkKey(bdaddr_t _bd)
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestLinkKey(const bdaddr_t& _bd)
 {
 	SQueuedEvent Event(sizeof(SHCIEventRequestLinkKey), 0);
 
@@ -1042,12 +1048,12 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestLinkKey(bdaddr_t _bd)
 	pEventRequestLinkKey->PayloadLength = sizeof(SHCIEventRequestLinkKey) - 2;
 	pEventRequestLinkKey->bdaddr = _bd;
 
-	AddEventToQueue(Event);
-
 	INFO_LOG(WII_IPC_WIIMOTE, "Event: SendEventRequestLinkKey");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x",
 		pEventRequestLinkKey->bdaddr.b[0], pEventRequestLinkKey->bdaddr.b[1], pEventRequestLinkKey->bdaddr.b[2],
 		pEventRequestLinkKey->bdaddr.b[3], pEventRequestLinkKey->bdaddr.b[4], pEventRequestLinkKey->bdaddr.b[5]);
+
+	AddEventToQueue(Event);
 
 	return true;
 };
@@ -1121,7 +1127,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 	if(m_LastCmd == NULL)
 	{
 		INFO_LOG(WII_IPC_WIIMOTE, "**************************************************");
-		INFO_LOG(WII_IPC_WIIMOTE, "ExecuteHCICommandMessage(0x%04x)(ocf: 0x%02x, ogf: 0x%02x)", pMsg->Opcode, ocf, ogf);
+		INFO_LOG(WII_IPC_WIIMOTE, "Execute HCI Command: 0x%04x (ocf: 0x%02x, ogf: 0x%02x)", pMsg->Opcode, ocf, ogf);
 	}
 
 	switch(pMsg->Opcode)
@@ -1508,7 +1514,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandChangeConPacketType(u8* _Input)
 	hci_change_con_pkt_type_cp* pChangePacketType = (hci_change_con_pkt_type_cp*)_Input;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_CHANGE_CON_PACKET_TYPE");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "Input:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  ConnectionHandle: 0x%04x", pChangePacketType->con_handle);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  PacketType: 0x%04x", pChangePacketType->pkt_type);
 
@@ -1524,7 +1529,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandAuthenticationRequested(u8* _In
 	hci_auth_req_cp* pAuthReq = (hci_auth_req_cp*)_Input;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_AUTH_REQ");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "Input:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  ConnectionHandle: 0x%04x", pAuthReq->con_handle);
 
 	SendEventAuthenticationCompleted(pAuthReq->con_handle);
@@ -1539,7 +1543,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandRemoteNameReq(u8* _Input)
 	hci_remote_name_req_cp* pRemoteNameReq = (hci_remote_name_req_cp*)_Input;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_REMOTE_NAME_REQ");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "Input:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x",
 		pRemoteNameReq->bdaddr.b[0], pRemoteNameReq->bdaddr.b[1], pRemoteNameReq->bdaddr.b[2],
 		pRemoteNameReq->bdaddr.b[3], pRemoteNameReq->bdaddr.b[4], pRemoteNameReq->bdaddr.b[5]);
@@ -1559,7 +1562,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadRemoteFeatures(u8* _Input)
 	hci_read_remote_features_cp* pReadRemoteFeatures = (hci_read_remote_features_cp*)_Input;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_READ_REMOTE_FEATURES");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "Input:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  ConnectionHandle: 0x%04x", pReadRemoteFeatures->con_handle);
 
 	SendEventReadRemoteFeatures(pReadRemoteFeatures->con_handle);
@@ -1574,7 +1576,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadRemoteVerInfo(u8* _Input)
 	hci_read_remote_ver_info_cp* pReadRemoteVerInfo = (hci_read_remote_ver_info_cp*)_Input;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_READ_REMOTE_VER_INFO");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "Input:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  ConnectionHandle: 0x%02x", pReadRemoteVerInfo->con_handle);
 
 	SendEventReadRemoteVerInfo(pReadRemoteVerInfo->con_handle);
@@ -1589,7 +1590,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadClockOffset(u8* _Input)
 	hci_read_clock_offset_cp* pReadClockOffset = (hci_read_clock_offset_cp*)_Input;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_READ_CLOCK_OFFSET");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "Input:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  ConnectionHandle: 0x%02x", pReadClockOffset->con_handle);
 
 	SendEventReadClockOffsetComplete(pReadClockOffset->con_handle);
@@ -1607,34 +1607,38 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandSniffMode(u8* _Input)
 	hci_sniff_mode_cp* pSniffMode = (hci_sniff_mode_cp*)_Input;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_SNIFF_MODE");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "Input:");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "  ConnectionHandle: 0x%04x", pSniffMode->con_handle);
+	INFO_LOG(WII_IPC_WIIMOTE, "  ConnectionHandle: 0x%04x", pSniffMode->con_handle);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  max_interval: 0x%04x", pSniffMode->max_interval);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  min_interval: 0x%04x", pSniffMode->min_interval);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  attempt: 0x%04x", pSniffMode->attempt);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  timeout: 0x%04x", pSniffMode->timeout);
 
 	SendEventModeChange(pSniffMode->con_handle, 0x02, pSniffMode->max_interval);  // 0x02 - sniff mode
+
+	// Now is a good time to activate next wiimote
+	u16 NextHandle = pSniffMode->con_handle + 1;
+	if ((NextHandle & 0x1u) < m_WiiMotes.size())
+	{
+		CWII_IPC_HLE_WiiMote* pWiimote = AccessWiiMote(NextHandle);
+		if (pWiimote)
+			pWiimote->Activate(true);
+	}
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkPolicy(u8* _Input)
 {
-	if(SendEventCommandStatus(HCI_CMD_WRITE_LINK_POLICY_SETTINGS))
-		return;
-
 	// command parameters
 	hci_write_link_policy_settings_cp* pLinkPolicy = (hci_write_link_policy_settings_cp*)_Input;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_LINK_POLICY_SETTINGS");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "Input:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  ConnectionHandle: 0x%04x", pLinkPolicy->con_handle);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  Policy: 0x%04x", pLinkPolicy->settings);
 
-	CWII_IPC_HLE_WiiMote* pWiimote = AccessWiiMote(pLinkPolicy->con_handle);
-	if (pWiimote)
-	{
-		pWiimote->EventCommandWriteLinkPolicy();
-	}
+	hci_write_link_policy_settings_rp Reply;
+	Reply.status = 0x00;
+	Reply.con_handle = pLinkPolicy->con_handle;
+
+	SendEventCommandComplete(HCI_CMD_WRITE_LINK_POLICY_SETTINGS, &Reply, sizeof(hci_write_link_policy_settings_rp));
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReset(u8* _Input)
@@ -1660,7 +1664,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandSetEventFilter(u8* _Input)
 	Reply.status = 0x00;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_SET_EVENT_FILTER:");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "write:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  filter_type: %i", pSetEventFilter->filter_type);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  filter_condition_type: %i", pSetEventFilter->filter_condition_type);
 
@@ -1678,7 +1681,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePinType(u8* _Input)
 	Reply.status = 0x00;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_PIN_TYPE:");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "write:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  pin_type: %x", pWritePinType->pin_type);
 
 	SendEventCommandComplete(HCI_CMD_WRITE_PIN_TYPE, &Reply, sizeof(hci_write_pin_type_rp));
@@ -1735,7 +1737,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDeleteStoredLinkKey(u8* _Input)
 	hci_delete_stored_link_key_cp* pDeleteStoredLinkKey = (hci_delete_stored_link_key_cp*)_Input;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_OCF_DELETE_STORED_LINK_KEY");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "Input:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x",
 		pDeleteStoredLinkKey->bdaddr.b[0], pDeleteStoredLinkKey->bdaddr.b[1], pDeleteStoredLinkKey->bdaddr.b[2],
 		pDeleteStoredLinkKey->bdaddr.b[3], pDeleteStoredLinkKey->bdaddr.b[4], pDeleteStoredLinkKey->bdaddr.b[5]);
@@ -1767,7 +1768,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLocalName(u8* _Input)
 	Reply.status = 0x00;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_LOCAL_NAME:");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "write:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  local_name: %s", pWriteLocalName->name);
 
 	SendEventCommandComplete(HCI_CMD_WRITE_LOCAL_NAME, &Reply, sizeof(hci_write_local_name_rp));
@@ -1787,7 +1787,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageTimeOut(u8* _Input)
 	Reply.status = 0x00;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_PAGE_TIMEOUT:");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "write:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  timeout: %i", pWritePageTimeOut->timeout);
 
 	SendEventCommandComplete(HCI_CMD_WRITE_PAGE_TIMEOUT, &Reply, sizeof(hci_host_buffer_size_rp));
@@ -1815,7 +1814,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 #endif
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_SCAN_ENABLE:");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "write:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  scan_enable: %s", Scanning[pWriteScanEnable->scan_enable]);
 
 	SendEventCommandComplete(HCI_CMD_WRITE_SCAN_ENABLE, &Reply, sizeof(hci_write_scan_enable_rp));
@@ -1834,7 +1832,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteUnitClass(u8* _Input)
 	Reply.status = 0x00;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_UNIT_CLASS:");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "write:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  COD[0]: 0x%02x", pWriteUnitClass->uclass[0]);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  COD[1]: 0x%02x", pWriteUnitClass->uclass[1]);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  COD[2]: 0x%02x", pWriteUnitClass->uclass[2]);
@@ -1856,8 +1853,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandHostBufferSize(u8* _Input)
 	Reply.status = 0x00;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_HOST_BUFFER_SIZE:");
-
-	DEBUG_LOG(WII_IPC_WIIMOTE, "write:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  max_acl_size: %i", pHostBufferSize->max_acl_size);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  max_sco_size: %i", pHostBufferSize->max_sco_size);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  num_acl_pkts: %i", pHostBufferSize->num_acl_pkts);
@@ -1871,8 +1866,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkSupervisionTimeout(u8*
 	// command parameters
 	hci_write_link_supervision_timeout_cp* pSuperVision = (hci_write_link_supervision_timeout_cp*)_Input;
 
-	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_OCF_WRITE_LINK_SUPERVISION_TIMEOUT");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "Input:");
+	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_LINK_SUPERVISION_TIMEOUT");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  con_handle: 0x%04x", pSuperVision->con_handle);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  timeout: 0x%02x", pSuperVision->timeout);
 
@@ -1880,7 +1874,12 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkSupervisionTimeout(u8*
 	Reply.status = 0x00;
 	Reply.con_handle = pSuperVision->con_handle;
 
-	SendEventCommandComplete(HCI_OCF_WRITE_LINK_SUPERVISION_TIMEOUT, &Reply, sizeof(hci_write_link_supervision_timeout_rp));
+	SendEventCommandComplete(HCI_CMD_WRITE_LINK_SUPERVISION_TIMEOUT, &Reply, sizeof(hci_write_link_supervision_timeout_rp));
+
+	// Now is a good time to link channels
+	CWII_IPC_HLE_WiiMote* pWiimote = AccessWiiMote(pSuperVision->con_handle);
+	if (pWiimote)
+		pWiimote->EventConnectionAccepted();
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryScanType(u8* _Input)
@@ -1894,7 +1893,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryScanType(u8* _Input
 	Reply.status = 0x00;
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_INQUIRY_SCAN_TYPE:");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "write:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  type: %i", pSetEventFilter->type);
 
 	SendEventCommandComplete(HCI_CMD_WRITE_INQUIRY_SCAN_TYPE, &Reply, sizeof(hci_write_inquiry_scan_type_rp));
@@ -1920,7 +1918,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryMode(u8* _Input)
 	};
 #endif
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_INQUIRY_MODE:");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "write:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  mode: %s", InquiryMode[pInquiryMode->mode]);
 
 	SendEventCommandComplete(HCI_CMD_WRITE_INQUIRY_MODE, &Reply, sizeof(hci_write_inquiry_mode_rp));
@@ -1946,7 +1943,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageScanType(u8* _Input)
 #endif
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_PAGE_SCAN_TYPE:");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "write:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  type: %s", PageScanType[pWritePageScanType->type]);
 
 	SendEventCommandComplete(HCI_CMD_WRITE_PAGE_SCAN_TYPE, &Reply, sizeof(hci_write_page_scan_type_rp));

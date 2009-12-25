@@ -41,7 +41,7 @@ public:
 		// I perfer speed so let's do down-sampling instead of up-sampling
 		// If you like better sound than speed, feel free to implement the up-sampling code
 		m_sampleRate = 32000;
-		NOTICE_LOG(AUDIO_INTERFACE, "Mixer is initialized (AISampleRate:%i, DACSampleRate:%i)", AISampleRate, DACSampleRate);
+		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized (AISampleRate:%i, DACSampleRate:%i)", AISampleRate, DACSampleRate);
 	}
 
 	// Called from audio threads

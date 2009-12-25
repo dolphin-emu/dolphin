@@ -38,9 +38,9 @@ void GetMousePos(float& x, float& y);
 void Initialize();
 void DoState(PointerWrap &p);
 void Shutdown();
-void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
-void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) ;
-void Update();
+void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
+void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size) ;
+void Update(int _number);
 void ReadLinuxKeyboard();
 
 // Recordings
@@ -68,8 +68,8 @@ void AdjustAngles(int &Roll, int &Pitch);
 void RotateIRDots(int &_x, int &_y, STiltData &_TiltData);
 void IRData2Dots(u8 *Data);
 void IRData2DotsBasic(u8 *Data);
-void ReorderIRDots();
-void IRData2Distance();
+//void ReorderIRDots();
+//void IRData2Distance();
 
 // Classic Controller data
 std::string CCData2Values(u8 *Data);

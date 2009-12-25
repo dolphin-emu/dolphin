@@ -13,7 +13,7 @@ typedef void (*TLogv)(const char* _pMessage, int _v);
 
 // This is called when the Wiimote sends input reports to the Core.
 // Payload: an L2CAP packet.
-typedef void (*TWiimoteInput)(u16 _channelID, const void* _pData, u32 _Size);
+typedef void (*TWiimoteInput)(int _number, u16 _channelID, const void* _pData, u32 _Size);
 
 // This data is passed from the core on initialization.
 typedef struct
@@ -35,7 +35,7 @@ typedef struct
 // input:    Da pakket.
 // output:   none
 //
-EXPORT void CALL Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size);
+EXPORT void CALL Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 
 // __________________________________________________________________________________________________
 // Function: Wiimote_Input
@@ -44,7 +44,7 @@ EXPORT void CALL Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 
 // input:    Da pakket.
 // output:   none
 //
-EXPORT void CALL Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
+EXPORT void CALL Wiimote_InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 
 // __________________________________________________________________________________________________
 // Function: Wiimote_Update
@@ -52,7 +52,7 @@ EXPORT void CALL Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u3
 // input:    none
 // output:   none
 //
-EXPORT void CALL Wiimote_Update();
+EXPORT void CALL Wiimote_Update(int _number);
 
 // __________________________________________________________________________________________________
 // Function: PAD_GetAttachedPads

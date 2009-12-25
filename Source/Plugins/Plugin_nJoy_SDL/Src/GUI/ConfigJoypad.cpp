@@ -119,6 +119,7 @@ void PADConfigDialognJoy::SaveButtonMapping(int controller, bool DontChangeId, i
 
 	// Set other settings
 	if(!DontChangeId) PadMapping[controller].ID = m_Joyname[FromSlot]->GetSelection();
+	PadMapping[controller].enable = m_Enable[FromSlot]->IsChecked();
 	PadMapping[controller].controllertype = m_ControlType[FromSlot]->GetSelection();
 	PadMapping[controller].triggertype = m_TriggerType[FromSlot]->GetSelection();
 	PadMapping[controller].deadzone = m_Deadzone[FromSlot]->GetSelection();

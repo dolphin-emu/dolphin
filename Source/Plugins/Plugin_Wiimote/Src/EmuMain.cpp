@@ -374,10 +374,16 @@ void ExtensionChecksum(u8 * Calibration)
 // Set initial valuesm this done both in Init and Shutdown
 void ResetVariables()
 {
-	g_ReportingAuto = false;
+	g_RefreshWiimote = 0;
 	g_ReportingMode = 0;
 	g_ReportingChannel = 0;
 	g_Encryption = false;
+
+	for (int i = 0; i < 4; i++)
+	{
+		g_ReportingAuto[i] = false;
+		memset(&g_WiimoteData[i], 0, sizeof(g_WiimoteData));
+	}
 
 	// Set default recording values
 #if defined(HAVE_WX) && HAVE_WX
@@ -469,7 +475,6 @@ void Initialize()
 void DoState(PointerWrap &p) 
 {
 	// TODO: Shorten the list
-	p.Do(g_Leds);
 	p.Do(g_Speaker);
 	p.Do(g_SpeakerVoice);
 	p.Do(g_IR);
@@ -480,7 +485,6 @@ void DoState(PointerWrap &p)
 	p.DoArray(g_RegExtTmp, WIIMOTE_REG_EXT_SIZE);
 	p.DoArray(g_RegIr, WIIMOTE_REG_IR_SIZE);
 
-	p.Do(g_ReportingAuto);
 	p.Do(g_ReportingMode);
 	p.Do(g_ReportingChannel);
 
@@ -492,10 +496,16 @@ void DoState(PointerWrap &p)
 	//p.Do(joyinfo);
 	//p.DoArray(PadState, 4);
 	//p.DoArray(PadMapping, 4);
-
 	//p.Do(g_Wiimote_kbd);
 	//p.Do(g_NunchuckExt);
 	//p.Do(g_ClassicContExt);
+
+	for (int i = 0; i < 4; i++)
+	{
+		p.Do(g_ReportingAuto[i]);
+		p.Do(g_Leds[i]);
+		p.Do(g_WiimoteData[i]);
+	}
 	return;
 }
 
@@ -515,8 +525,9 @@ void Shutdown()
 
 /* This function produce Wiimote Input, i.e. reports from the Wiimote in
    response to Output from the Wii. */
-void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size) 
+void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size) 
 {
+	g_RefreshWiimote = _number;
 	/* Debugging. We have not yet decided how much of 'data' we will use, it's
 	   not determined by sizeof(data). We have to determine it by looking at
 	   the data cases. */
@@ -524,7 +535,7 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 
 	hid_packet* hidp = (hid_packet*)_pData;
 
-	INFO_LOG(WIIMOTE, "Emu InterruptChannel (type: 0x%02x, param: 0x%02x)", hidp->type, hidp->param);
+	INFO_LOG(WIIMOTE, "Emu InterruptChannel (page: %i, type: 0x%02x, param: 0x%02x)", _number, hidp->type, hidp->param);
 
 	switch(hidp->type)
 	{
@@ -562,11 +573,13 @@ void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 }
 
 
-void ControlChannel(u16 _channelID, const void* _pData, u32 _Size) 
+void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size) 
 {
+	g_RefreshWiimote = _number;
+
 	hid_packet* hidp = (hid_packet*)_pData;
 
-	INFO_LOG(WIIMOTE, "Emu ControlChannel (type: 0x%02x, param: 0x%02x)", hidp->type, hidp->param);
+	INFO_LOG(WIIMOTE, "Emu ControlChannel (page: %i, type: 0x%02x, param: 0x%02x)", _number, hidp->type, hidp->param);
 
 	switch(hidp->type)
 	{
@@ -586,7 +599,7 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 			// (TO_BE_VERIFIED)
 			//
 			u8 handshake = 0;
-			g_WiimoteInitialize.pWiimoteInput(_channelID, &handshake, 1);
+			g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, &handshake, 1);
 
 			PanicAlert("HID_TYPE_DATA - OUTPUT: Ambiguous Control Channel Report!");
 		}
@@ -608,13 +621,14 @@ void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
    documentation. I'm not sure exactly how often this function is called but I
    think it's tied to the frame rate of the game rather than a certain amount
    of times per second. */
-void Update() 
+void Update(int _number) 
 {
-	if(g_ReportingAuto == false)
+	if (g_ReportingAuto[_number] == false)
 		return;
 
-	// Read input or not
+	g_RefreshWiimote = _number;
 
+	// Read input or not
 	if (g_Config.bInputActive)
 	{
 		ReadLinuxKeyboard();
@@ -626,9 +640,8 @@ void Update()
 		&& NumGoodPads > 0 && joyinfo.size() > (u32)PadMapping[0].ID)
 */
 		// Check if the pad state should be updated
-		const int Page = 0;
-		if (NumGoodPads > 0 && joyinfo.size() > (u32)PadMapping[Page].ID)
-			WiiMoteEmu::GetJoyState(PadState[Page], PadMapping[Page], Page, joyinfo[PadMapping[Page].ID].NumButtons);
+		if (NumGoodPads > 0 && joyinfo.size() > (u32)PadMapping[g_RefreshWiimote].ID)
+			WiiMoteEmu::GetJoyState(PadState[g_RefreshWiimote], PadMapping[g_RefreshWiimote], g_RefreshWiimote, joyinfo[PadMapping[g_RefreshWiimote].ID].NumButtons);
 	}
 
 	switch(g_ReportingMode)

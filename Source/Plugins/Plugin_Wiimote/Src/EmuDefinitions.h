@@ -68,7 +68,7 @@ extern double g_RecordingCurrentTime[3];
 #define WIIMOTE_REG_EXT_SIZE 0x100
 #define WIIMOTE_REG_IR_SIZE 0x34
 
-extern u8 g_Leds;
+extern u8 g_Leds[4];
 extern u8 g_Speaker;
 extern u8 g_SpeakerVoice;
 extern u8 g_IR;
@@ -80,7 +80,8 @@ extern u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
-extern bool g_ReportingAuto;
+extern int g_RefreshWiimote;
+extern bool g_ReportingAuto[4];
 extern u8 g_ReportingMode;
 extern u16 g_ReportingChannel;
 
@@ -187,6 +188,14 @@ struct STiltData
 	}
 };
 
+struct SWiimoteData
+{
+	// Raw X and Y coordinate and processed X and Y coordinates
+	SIR IR;
+	STiltData TiltWM;
+	STiltData TiltNC;
+};
+extern SWiimoteData g_WiimoteData[4];
 
 // Keyboard input
 struct KeyboardWiimote
@@ -204,10 +213,6 @@ struct KeyboardWiimote
 		MA, MB,
 		LAST_CONSTANT
 	};
-
-	// Raw X and Y coordinate and processed X and Y coordinates
-	SIR IR;
-	STiltData TiltData;
 };
 extern KeyboardWiimote g_Wiimote_kbd;
 
@@ -215,12 +220,7 @@ struct KeyboardNunchuck
 {
 	enum EKeyboardNunchuck
 	{
-		// This is not allowed in Linux so we have to set the starting value manually
-		#ifdef _WIN32
-			Z = g_Wiimote_kbd.LAST_CONSTANT,
-		#else
-			Z = 18,
-		#endif
+		Z = 18,
 		C,
 		L, R, U, D,
 		ROLL_L, ROLL_R,
@@ -228,8 +228,6 @@ struct KeyboardNunchuck
 		SHAKE,
 		LAST_CONSTANT
 	};
-
-	STiltData TiltData;
 };
 extern KeyboardNunchuck g_NunchuckExt;
 
@@ -237,12 +235,7 @@ struct KeyboardClassicController
 {
 	enum EKeyboardClassicController
 	{
-		// This is not allowed in Linux so we have to set the starting value manually
-		#ifdef _WIN32
-			A = g_NunchuckExt.LAST_CONSTANT,
-		#else
-			A = 29,
-		#endif
+		A = 29,
 		B, X, Y,
 		P, M, H,
 		Tl, Tr, Zl, Zr,
@@ -258,12 +251,7 @@ struct KeyboardGH3GLP
 {
 	enum EKeyboardGH3GLP
 	{
-		// This is not allowed in Linux so we have to set the starting value manually
-		#ifdef _WIN32
-			Green = g_ClassicContExt.LAST_CONSTANT,
-		#else
-			Green = 52,
-		#endif
+		Green = 52,
 		Red, Yellow, Blue, Orange,
 		Plus, Minus, Whammy,
 		Al, Ar, Au, Ad,

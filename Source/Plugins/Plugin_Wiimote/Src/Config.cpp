@@ -21,7 +21,7 @@
 #include "Common.h"
 #include "IniFile.h"
 #include "StringUtil.h"
-
+#include "wiimote_hid.h"
 #include "Config.h"
 #include "EmuDefinitions.h" // for PadMapping
 #include "main.h"
@@ -293,7 +293,7 @@ void Config::Load(bool ChangePad)
 	iniFile.Get("Real", "AccNunNeutralY", &iAccNunNeutralY, 0);
 	iniFile.Get("Real", "AccNunNeutralZ", &iAccNunNeutralZ, 0);
 
-	for (int i = 0; i < 1; i++) // Only got 1 wiimote yet
+	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
 		// Slot specific settings
 		char SectionName[32];
@@ -404,7 +404,7 @@ void Config::Save(int Slot)
 	iniFile.Set("Real", "AccNunNeutralY", iAccNunNeutralY);
 	iniFile.Set("Real", "AccNunNeutralZ", iAccNunNeutralZ);
 
-	for (int i = 0; i < 1; i++) // Only got 1 wiimote yet
+	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
 		// Slot specific settings
 		char SectionName[32];

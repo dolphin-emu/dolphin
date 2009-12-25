@@ -36,7 +36,7 @@ namespace WiiMoteEmu
 // Definitions and variable declarations
 //******************************************************************************
 
-u8 g_Leds;
+u8 g_Leds[4];
 u8 g_Speaker;
 u8 g_SpeakerVoice;
 u8 g_IR;
@@ -48,7 +48,8 @@ u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
 u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
 u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
-bool g_ReportingAuto; // Auto report or passive report
+int g_RefreshWiimote; // Current refreshing Wiimote
+bool g_ReportingAuto[4]; // Auto report or passive report
 u8 g_ReportingMode; // The reporting mode and channel id
 u16 g_ReportingChannel;
 
@@ -69,6 +70,7 @@ KeyboardNunchuck g_NunchuckExt;
 KeyboardClassicController g_ClassicContExt;
 KeyboardGH3GLP g_GH3Ext;
 bool KeyStatus[64];
+SWiimoteData g_WiimoteData[4];
 } // namespace
 
 #endif	//_EMU_DECLARATIONS_

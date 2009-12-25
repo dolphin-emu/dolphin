@@ -183,7 +183,7 @@ class CWII_IPC_HLE_WiiMote
 {
 public:
 
-	CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number);
+	CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number, bool ready = false);
 
 	virtual ~CWII_IPC_HLE_WiiMote()
 	{}
@@ -193,7 +193,9 @@ public:
 	// we really have to clean all this code
 
 	bool LinkChannel();
-	bool IsConnected() const { return m_Connected; }
+	void ResetChannels();
+	void Activate(bool ready);
+	bool IsConnected() const { return (m_Connected > 0) ? true : false; }
 	bool IsLinked() const { return m_Linked; }
 	void ShowStatus(const void* _pData); // Show status
 	void UpdateStatus(); // Update status
@@ -203,11 +205,10 @@ public:
 	void EventConnectionAccepted();
 	void EventDisconnect();
 	bool EventPagingChanged(u8 _pageMode);
-	void EventCommandWriteLinkPolicy();
 
 	const bdaddr_t& GetBD() const { return m_BD; }
 	const uint8_t* GetClass() const { return uclass; }
-	u16 GetConnectionHandle() const { return m_ControllerConnectionHandle; }
+	u16 GetConnectionHandle() const { return m_ConnectionHandle; }
 	const u8* GetFeatures() const { return features; }
 	const char* GetName() const { return m_Name.c_str(); }
 	u8 GetLMPVersion() const { return lmp_version; }
@@ -218,7 +219,7 @@ public:
 private:
 
 	// state machine
-	bool m_Connected;
+	int m_Connected; // 0: ready, -1: inactive/connecting, 1: connected
 	bool m_Linked;
 	bool m_HIDControlChannel_Connected;
 	bool m_HIDControlChannel_ConnectedWait;
@@ -231,7 +232,7 @@ private:
 
 	// STATE_TO_SAVE
 	bdaddr_t m_BD;
-	u16 m_ControllerConnectionHandle;
+	u16 m_ConnectionHandle;
 	uint8_t uclass[HCI_CLASS_SIZE];
 	u8 features[HCI_FEATURES_SIZE];
 	u8 lmp_version;
@@ -263,7 +264,7 @@ private:
 	void SignalChannel(u8* _pData, u32 _Size);
 
 	void SendConnectionRequest(u16 _SCID, u16 _PSM);
-	void SendConfigurationRequest(u16 _SCID, u16* _pMTU = NULL, u16* _pFlushTimeOut = NULL);
+	void SendConfigurationRequest(u16 _SCID, u16 _pMTU = NULL, u16 _pFlushTimeOut = NULL);
 	void SendDisconnectRequest(u16 _SCID);
 
 	void ReceiveConnectionReq(u8 _Ident, u8* _pData, u32 _Size);

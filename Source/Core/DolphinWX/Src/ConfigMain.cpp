@@ -286,7 +286,7 @@ void CConfigMain::CreateGUIControls()
 		wxT("\nIt can be convenient in a Wii game that already has a cursor."));
 	WiimoteStatusLEDs->SetToolTip(wxT("Show which wiimotes are connected in the statusbar."));
 	WiimoteStatusSpeakers->SetToolTip(wxT("Show wiimote speaker status in the statusbar."));
-	DSPThread->SetToolTip(wxT("Run DSPLLE on a dedicate thread, this has no affect on DSPHLE."));
+	DSPThread->SetToolTip(wxT("Run DSPLLE on a dedicate thread, this has no effects on DSPHLE."));
 	CPUThread->SetToolTip(wxT("This splits the Video and CPU threads, so they can be run on separate cores.")
 		wxT("\nCauses major speed improvements on PCs with more than one core,")
 		wxT("\nbut can also cause occasional crashes/glitches."));

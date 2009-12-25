@@ -25,6 +25,8 @@
 #endif
 #pragma pack(push, 1)
 
+#define MAX_WIIMOTES 2
+
 // Source: HID_010_SPC_PFL/1.0 (official HID specification)
 
 struct hid_packet {

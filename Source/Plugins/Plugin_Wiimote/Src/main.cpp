@@ -305,7 +305,7 @@ void DoState(unsigned char **ptr, int mode)
    Switch between real and emulated wiimote: We send all this Input to WiiMoteEmu::InterruptChannel()
    so that it knows the channel ID and the data reporting mode at all times.
    */
-void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
+void Wiimote_InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
 	const u8* data = (const u8*)_pData;
 
@@ -319,17 +319,17 @@ void Wiimote_InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
 
 	// Decice where to send the message
 	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
-		WiiMoteEmu::InterruptChannel(_channelID, _pData, _Size);		
+		WiiMoteEmu::InterruptChannel(_number, _channelID, _pData, _Size);
 #if HAVE_WIIUSE
 	else if (g_RealWiiMotePresent)
-		WiiMoteReal::InterruptChannel(_channelID, _pData, _Size);
+		WiiMoteReal::InterruptChannel(_channelID, _pData, _Size);	// TODO: Multi-Wiimote
 #endif
 }
 
 
 // Function: Used for the initial Bluetooth HID handshake.
 
-void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
+void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
 	const u8* data = (const u8*)_pData;
 
@@ -354,17 +354,17 @@ void Wiimote_ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 	}
 
 	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
-		WiiMoteEmu::ControlChannel(_channelID, _pData, _Size);
+		WiiMoteEmu::ControlChannel(_number, _channelID, _pData, _Size);
 #if HAVE_WIIUSE
 	else if (g_RealWiiMotePresent)
-		WiiMoteReal::ControlChannel(_channelID, _pData, _Size);
+		WiiMoteReal::ControlChannel(_channelID, _pData, _Size);	// TODO: Multi-Wiimote
 #endif
 }
 
 
 /* This sends a Data Report from the Wiimote. See SystemTimers.cpp for the documentation of this
    update. */
-void Wiimote_Update()
+void Wiimote_Update(int _number)
 {
 	// Tell us about the update rate, but only about once every second to avoid a major slowdown
 #if defined(HAVE_WX) && HAVE_WX
@@ -384,10 +384,10 @@ void Wiimote_Update()
 	//		Emulated Wiimote: Only data reports 0x30-0x37
 	//		Real Wiimote: Both data reports 0x30-0x37 and all other read reports
 	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
-		WiiMoteEmu::Update();
+		WiiMoteEmu::Update(_number);
 #if HAVE_WIIUSE
 	else if (g_RealWiiMotePresent)
-		WiiMoteReal::Update();
+		WiiMoteReal::Update();	// TODO: Multi-Wiimote
 #endif
 
 	// Debugging
@@ -445,7 +445,7 @@ void DisableExtensions()
 	g_Config.iExtensionConnected = EXT_NONE;
 }
 
-
+/*
 void ReadDebugging(bool Emu, const void* _pData, int Size)
 {
 	//
@@ -484,8 +484,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 				//(pStatus->leds >> 3),
 				pStatus->battery_low
 				);
-			/* Update the global (for both the real and emulated) extension settings from whatever
-			   the real Wiimote use. We will enable the extension from the 0x21 report. */
+			// Update the global (for both the real and emulated) extension settings from whatever
+			// the real Wiimote use. We will enable the extension from the 0x21 report.
 			if(!Emu && !pStatus->extension)
 			{
 				DisableExtensions();
@@ -518,8 +518,8 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 					wiimote_decrypt(&WiiMoteEmu::g_ExtKey, &data[0x07], 0x02, (data[4] >> 0x04) + 1);
 			}
 
-			/* Update the global extension settings. Enable the emulated extension from reading
-			   what the real Wiimote has connected. To keep the emulated and real Wiimote in sync. */
+			// Update the global extension settings. Enable the emulated extension from reading
+			// what the real Wiimote has connected. To keep the emulated and real Wiimote in sync.
 			if(data[4] == 0x10)
 			{
 				if (!Emu) DisableExtensions();
@@ -553,9 +553,9 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		}
 
 		// Show the Wiimote neutral values
-		/* The only difference between the Nunchuck and Wiimote that we go
-		   after is calibration here is the offset in memory. If needed we can
-		   check the preceding 0x17 request to. */
+		// The only difference between the Nunchuck and Wiimote that we go
+		// after is calibration here is the offset in memory. If needed we can
+		// check the preceding 0x17 request to.
 		if(data[4] == 0xf0 && data[5] == 0x00 && data[6] == 0x10)
 		{
 			if(data[6] == 0x10)
@@ -763,7 +763,6 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		// ---------------------------------------------
 		// Test the angles to x, y, z values formula by calculating the values back and forth
 		// -----------
-		/*
 		ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
 		Console->ClearScreen();
 		// Show a test of our calculations
@@ -771,7 +770,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		u8 x, y, z;
 		//WiiMoteEmu::Tilt(x, y, z);
 		//WiiMoteEmu::TiltTest(x, y, z);	
-		*/
+
 		// -------------------------
 
 		// ---------------------------------------------
@@ -825,7 +824,7 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		DEBUG_LOG(WIIMOTE, "Accel x, y, z: %03u %03u %03u", data[4], data[5], data[6]);
 	}
 }
-
+*/
 
 void InterruptDebugging(bool Emu, const void* _pData)
 {

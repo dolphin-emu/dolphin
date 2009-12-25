@@ -235,7 +235,7 @@ void SendEvent(SEvent& _rEvent)
     Offset += sizeof(_rEvent.m_PayLoad); 
 
 	// Send it
-	g_WiimoteInitialize.pWiimoteInput(m_channelID, Buffer, Offset);
+	g_WiimoteInitialize.pWiimoteInput(0, m_channelID, Buffer, Offset); // TODO: Multi-Wiimote
 
 	// Debugging
 	// ReadDebugging(false, Buffer, Offset);  

@@ -25,6 +25,8 @@
 #include "WII_IPC_HLE_Device.h"
 #include "WII_IPC_HLE_WiiMote.h"
 
+#define HCI_MAX_SIZE	128
+#define ACL_MAX_SIZE	128
 
 union UACLHeader
 {
@@ -129,7 +131,7 @@ private:
 	struct ACLPool 
 	{
 		u32 m_number;
-		u8 m_data[1024];	// Capacity: 64B x 16
+		u8 m_data[ACL_MAX_SIZE * 16];
 
 		ACLPool(int num)
 			: m_number(num)
@@ -140,7 +142,7 @@ private:
 	struct HCIPool 
 	{
 		u32 m_number;
-		u8 m_data[1024];	// Capacity: 64B x 16
+		u8 m_data[HCI_MAX_SIZE * 16];
 		u8 m_size[16];
 
 		HCIPool(int num)
@@ -191,9 +193,9 @@ private:
 	CtrlBuffer m_ACLBuffer;
 	ACLPool m_ACLPool;
 	u32 m_LastCmd;
-	int m_PacketCount;
+	u32 m_PacketCount[4];
+	u32 m_FreqDividerMote[4];
 	u32 m_FreqDividerSync;
-	u32 m_FreqDividerMote;
 
 	// Events
 	void AddEventToQueue(const SQueuedEvent& _event);
@@ -201,19 +203,19 @@ private:
 	void SendEventCommandComplete(u16 _OpCode, void* _pData, u32 _DataSize);
 	bool SendEventInquiryResponse();
 	bool SendEventInquiryComplete();
-	bool SendEventRemoteNameReq(bdaddr_t _bd);
+	bool SendEventRemoteNameReq(const bdaddr_t& _bd);
 	bool SendEventRequestConnection(CWII_IPC_HLE_WiiMote& _rWiiMote);
-	bool SendEventConnectionComplete(bdaddr_t _bd);
+	bool SendEventConnectionComplete(const bdaddr_t& _bd);
 	bool SendEventReadClockOffsetComplete(u16 _connectionHandle);
 	bool SendEventConPacketTypeChange(u16 _connectionHandle, u16 _packetType);
 	bool SendEventReadRemoteVerInfo(u16 _connectionHandle);
 	bool SendEventReadRemoteFeatures(u16 _connectionHandle);
 	bool SendEventRoleChange(bdaddr_t _bd, bool _master);
-	bool SendEventNumberOfCompletedPackets(u16 _connectionHandle, u16 _count);
+	bool SendEventNumberOfCompletedPackets();
 	bool SendEventAuthenticationCompleted(u16 _connectionHandle);	
 	bool SendEventModeChange(u16 _connectionHandle, u8 _mode, u16 _value);
 	bool SendEventDisconnect(u16 _connectionHandle, u8 _Reason);
-	bool SendEventRequestLinkKey(bdaddr_t _bd);
+	bool SendEventRequestLinkKey(const bdaddr_t& _bd);
 	bool SendEventLinkKeyNotification(const CWII_IPC_HLE_WiiMote& _rWiiMote);
 
 	// Execute HCI Message

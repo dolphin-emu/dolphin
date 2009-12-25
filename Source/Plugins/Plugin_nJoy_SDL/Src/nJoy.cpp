@@ -259,6 +259,9 @@ void PAD_Input(u16 _Key, u8 _UpDown)
 	// Check if the keys are interesting, and then update it
 	for(int i = 0; i < 4; i++)
 	{
+		if (!PadMapping[i].enable)
+			continue;
+
 		for(int j = InputCommon::CTL_L_SHOULDER; j <= InputCommon::CTL_START; j++)
 		{
 			if (PadMapping[i].buttons[j] == _Key)
@@ -292,7 +295,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	// Check if the pad is avaliable, currently we don't disable pads just because they are
 	// disconnected
-	if (!PadState[_numPAD].joy || !PadMapping[_numPAD].enable)
+	if (!PadState[_numPAD].joy)
 		return;
 
 	// Clear pad status

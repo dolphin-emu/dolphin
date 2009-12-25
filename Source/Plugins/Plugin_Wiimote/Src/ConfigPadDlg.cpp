@@ -261,7 +261,7 @@ void WiimotePadConfigDialog::DoSave(bool ChangePad, int Slot)
 	if(ChangePad)
 	{
 		// Since we are selecting the pad to save to by the Id we can't update it when we change the pad
-		for(int i = 0; i < 1; i++)	// Only got 1 wiimote yet
+		for(int i = 0; i < MAX_WIIMOTES; i++)
 			SaveButtonMapping(i, true);
 		// Save the settings for the current pad
 //		g_Config.Save(Slot);
@@ -271,7 +271,7 @@ void WiimotePadConfigDialog::DoSave(bool ChangePad, int Slot)
 	else
 	{
 		// Update PadMapping[] from the GUI controls
-		for(int i = 0; i < 1; i++) // Only got 1 wiimote yet
+		for(int i = 0; i < MAX_WIIMOTES; i++) 
 			SaveButtonMapping(i);
 //		g_Config.Save(Slot);
 	}		
