@@ -19,16 +19,16 @@
 #define _MIXER_H_
 
 // 16 bit Stereo
-#define MAX_SAMPLES			(1024 * 4)
+#define MAX_SAMPLES			(1024 * 8)
 #define INDEX_MASK			(MAX_SAMPLES * 2 - 1)
-#define RESERVED_SAMPLES	(MAX_SAMPLES / 8)
+#define RESERVED_SAMPLES	(256)
 
 class CMixer {
 	
 public:
-	CMixer(unsigned int AISampleRate = 48000, unsigned int DSPSampleRate = 48000)
+	CMixer(unsigned int AISampleRate = 48000, unsigned int DACSampleRate = 48000)
 		: m_aiSampleRate(AISampleRate)
-		, m_dspSampleRate(DSPSampleRate)
+		, m_dacSampleRate(DACSampleRate)
 		, m_bits(16)
 		, m_channels(2)
 		, m_HLEready(false)
@@ -36,19 +36,21 @@ public:
 		, m_indexW(0)
 		, m_indexR(0)
 	{
-		// AyuanX: When sample rate differs, we have to do re-sampling
+		// AyuanX: The internal (Core & DSP) sample rate is fixed at 32KHz
+		// So when AI/DAC sample rate differs than 32KHz, we have to do re-sampling
 		// I perfer speed so let's do down-sampling instead of up-sampling
 		// If you like better sound than speed, feel free to implement the up-sampling code
-		m_sampleRate = (m_aiSampleRate < m_dspSampleRate) ? m_aiSampleRate : m_dspSampleRate;
+		m_sampleRate = 32000;
+		NOTICE_LOG(AUDIO_INTERFACE, "Mixer is initialized (AISampleRate:%i, DACSampleRate:%i)", AISampleRate, DACSampleRate);
 	}
 
 	// Called from audio threads
 	virtual unsigned int Mix(short* samples, unsigned int numSamples);
-	virtual void Premix(short *samples, unsigned int numSamples, unsigned int sampleRate) {}
+	virtual void Premix(short *samples, unsigned int numSamples) {}
 	unsigned int GetNumSamples();
 
 	// Called from main thread
-	virtual void PushSamples(short* samples, unsigned int num_samples, unsigned int sample_rate);
+	virtual void PushSamples(short* samples, unsigned int num_samples);
 	unsigned int GetSampleRate() {return m_sampleRate;}
 
 	void SetThrottle(bool use) { m_throttle = use;}
@@ -62,7 +64,7 @@ public:
 protected:
 	unsigned int m_sampleRate;
 	unsigned int m_aiSampleRate;
-	unsigned int m_dspSampleRate;
+	unsigned int m_dacSampleRate;
 	int m_bits;
 	int m_channels;
 	

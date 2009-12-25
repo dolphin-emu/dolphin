@@ -700,7 +700,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
 
 		while (Timer.GetTimeDifference() < wait_frametime * frames)
 		{
-			if (no_framelimit==0)
+			if (no_framelimit == 0)
 				Common::SleepCurrentThread(1);
 		}
 	}

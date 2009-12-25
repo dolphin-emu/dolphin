@@ -307,9 +307,9 @@ unsigned short DSP_WriteControlRegister(unsigned short _Value)
 	{
 		if (!Temp.DSPHalt && Temp.DSPInit)
 		{
-			unsigned int AISampleRate, DSPSampleRate;
-			g_dspInitialize.pGetSampleRate(AISampleRate, DSPSampleRate);
-			soundStream = AudioCommon::InitSoundStream(new HLEMixer(AISampleRate, DSPSampleRate)); 
+			unsigned int AISampleRate, DACSampleRate;
+			g_dspInitialize.pGetSampleRate(AISampleRate, DACSampleRate);
+			soundStream = AudioCommon::InitSoundStream(new HLEMixer(AISampleRate, DACSampleRate)); 
 			if(!soundStream) PanicAlert("Error starting up sound stream");
 			// Mixer is initialized
 			g_InitMixer = true;
@@ -334,7 +334,7 @@ void DSP_Update(int cycles)
    inside Mixer_PushSamples(), the reason that we don't disable this entire
    function when Other Audio is disabled is that then we can't turn it back on
    again once the game has started. */
-void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples, unsigned int sample_rate)
+void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
 {
 	if (!soundStream)
 		return;
@@ -344,9 +344,8 @@ void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples, unsigned i
 	if (pMixer && address)
 	{
 		short* samples = (short*)Memory_Get_Pointer(address);
-		// sample_rate could be 32khz/48khz here,
-		// see Core/DSP/DSP.cpp for better information
-		pMixer->PushSamples(samples, num_samples, sample_rate);
+		// Internal sample rate is always 32khz
+		pMixer->PushSamples(samples, num_samples);
 
 		// FIXME: Write the audio to a file
 		//if (log_ai)

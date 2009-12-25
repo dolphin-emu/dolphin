@@ -141,6 +141,7 @@
 // cr (Not g_dsp.r[CR]) bits
 // See HW/DSP.cpp.
 #define CR_HALT         0x0004
+#define CR_INIT			0x0400
 #define CR_EXTERNAL_INT 0x0002
 
 

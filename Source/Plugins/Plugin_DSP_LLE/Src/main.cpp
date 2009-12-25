@@ -263,9 +263,9 @@ u16 DSP_WriteControlRegister(u16 _uFlag)
 	{
 		if (!Temp.DSPHalt && Temp.DSPInit)
 		{
-			unsigned int AISampleRate, DSPSampleRate;
-			g_dspInitialize.pGetSampleRate(AISampleRate, DSPSampleRate);
-			soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DSPSampleRate)); 
+			unsigned int AISampleRate, DACSampleRate;
+			g_dspInitialize.pGetSampleRate(AISampleRate, DACSampleRate);
+			soundStream = AudioCommon::InitSoundStream(new CMixer(AISampleRate, DACSampleRate)); 
 			if(!soundStream) PanicAlert("Error starting up sound stream");
 			// Mixer is initialized
 			g_InitMixer = true;
@@ -334,6 +334,8 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 
 void DSP_Update(int cycles)
 {
+// Sound stream update job has been handled by AudioDMA routine, which is more efficient
+/*
 	// This gets called VERY OFTEN. The soundstream update might be expensive so only do it 200 times per second or something.
 	int cycles_between_ss_update;
 
@@ -350,7 +352,7 @@ void DSP_Update(int cycles)
 			cycle_count -= cycles_between_ss_update;
 		soundStream->Update();
 	}
-
+*/
 	// If we're not on a thread, run cycles here.
 	if (!g_dspInitialize.bOnThread)
 	{
@@ -358,7 +360,7 @@ void DSP_Update(int cycles)
 	}
 }
 
-void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples, unsigned int sample_rate)
+void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
 {
 	if (!soundStream)
 		return;
@@ -369,7 +371,7 @@ void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples, unsigned i
 	{
 		short* samples = (short*)Memory_Get_Pointer(address);
 
-		pMixer->PushSamples(samples, num_samples, sample_rate);
+		pMixer->PushSamples(samples, num_samples);
 	}
 
 	soundStream->Update();

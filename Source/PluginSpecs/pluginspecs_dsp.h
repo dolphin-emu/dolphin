@@ -17,7 +17,7 @@ typedef const char*     (*TName)(void);
 typedef void            (*TDebuggerBreak)(void);
 typedef void            (*TGenerateDSPInt)(void);
 typedef unsigned int    (*TAudioGetStreaming)(short* _pDestBuffer, unsigned int _numSamples, unsigned int _sampleRate);
-typedef void			(*TGetSampleRate)(unsigned int &AISampleRate, unsigned int &DSPSampleRate);
+typedef void			(*TGetSampleRate)(unsigned int &AISampleRate, unsigned int &DACSampleRate);
 
 typedef struct
 {
@@ -98,9 +98,8 @@ EXPORT void CALL DSP_Update(int cycles);
 // Purpose:  This function sends the current AI Buffer to the DSP plugin
 // input:    _Address : Memory-Address
 // input:    _Number  : Number of the Samples
-// input:    _Rate    : Sample Rate 32000/48000
 // 
-EXPORT void CALL DSP_SendAIBuffer(unsigned int address, unsigned int num_samples, unsigned int sample_rate);
+EXPORT void CALL DSP_SendAIBuffer(unsigned int address, unsigned int num_samples);
 
 // __________________________________________________________________________________________________
 // Function: DSP_StopSoundStream

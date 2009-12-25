@@ -484,17 +484,17 @@ void UpdateAudioDMA()
 
 		// AyuanX: let's do it in a bundle to speed up
 		if (g_audioDMA.BlocksLeft == g_audioDMA.AudioDMAControl.NumBlocks)
-			dsp_plugin->DSP_SendAIBuffer(g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks * 8, AudioInterface::GetDSPSampleRate());
+			dsp_plugin->DSP_SendAIBuffer(g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks * 8);
 
 //		g_audioDMA.ReadAddress += 32;
 		g_audioDMA.BlocksLeft--;
 
 		if (g_audioDMA.BlocksLeft == 0)
 		{
+			GenerateDSPInterrupt(DSP::INT_AID);
 //			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
 			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
 			// DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
-			GenerateDSPInterrupt(DSP::INT_AID);
 		}
 	}
 	else

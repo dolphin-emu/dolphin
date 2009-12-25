@@ -6,10 +6,10 @@
 class HLEMixer : public CMixer 
 {
 public:
-	HLEMixer(unsigned int AISampleRate = 48000, unsigned int DSPSampleRate = 48000)
-		: CMixer(AISampleRate, DSPSampleRate) {};
+	HLEMixer(unsigned int AISampleRate = 48000, unsigned int DACSampleRate = 48000)
+		: CMixer(AISampleRate, DACSampleRate) {};
 	
-	virtual void Premix(short *samples, unsigned int numSamples, unsigned int sampleRate);	
+	virtual void Premix(short *samples, unsigned int numSamples);
 };
 
 #endif // HLEMIXER_H

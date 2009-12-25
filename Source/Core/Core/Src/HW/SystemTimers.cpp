@@ -112,7 +112,7 @@ int et_Dec;
 int et_VI;
 int et_SI;
 int et_AI;
-int et_AudioFifo;
+int et_AudioDMA;
 int et_DSP;
 int et_IPC_HLE;
 int et_FakeGPWD;	// DC watchdog hack
@@ -126,6 +126,9 @@ int
 
 	// These shouldn't be period controlled either, most likely.
 	DSP_PERIOD,
+
+	// This is a fixed value, don't change it 
+	AUDIO_DMA_PERIOD,
 
 	// This is completely arbitrary. If we find that we need lower latency, we can just
 	// increase this number.
@@ -165,12 +168,10 @@ void DSPCallback(u64 userdata, int cyclesLate)
 	CoreTiming::ScheduleEvent(DSP_PERIOD - cyclesLate, et_DSP);
 }
 
-void AudioFifoCallback(u64 userdata, int cyclesLate)
+void AudioDMACallback(u64 userdata, int cyclesLate)
 {
-	int period = CPU_CORE_CLOCK / (AudioInterface::GetDSPSampleRate() * 4 / 32);
 	DSP::UpdateAudioDMA();  // Push audio to speakers.
-
-	CoreTiming::ScheduleEvent(period - cyclesLate, et_AudioFifo);
+	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD - cyclesLate, et_AudioDMA);
 }
 
 void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
@@ -275,6 +276,9 @@ void Init()
 	// This is the biggest question mark.
 	AI_PERIOD = GetTicksPerSecond() / 80;
 
+	// System internal sample rate is fixed at 32KHz
+	AUDIO_DMA_PERIOD = CPU_CORE_CLOCK / (32000 * 4 / 32);
+
 	Common::Timer::IncreaseResolution();
 	// store and convert localtime at boot to timebase ticks
 	startTimeBaseTicks = (u64)(CPU_CORE_CLOCK / TIMER_RATIO) * (u64)CEXIIPL::GetGCTime();
@@ -284,7 +288,7 @@ void Init()
 	et_VI = CoreTiming::RegisterEvent("VICallback", VICallback);
 	et_SI = CoreTiming::RegisterEvent("SICallback", SICallback);
 	et_DSP = CoreTiming::RegisterEvent("DSPCallback", DSPCallback);
-	et_AudioFifo = CoreTiming::RegisterEvent("AudioFifoCallback", AudioFifoCallback);
+	et_AudioDMA = CoreTiming::RegisterEvent("AudioDMACallback", AudioDMACallback);
 	et_IPC_HLE = CoreTiming::RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
 	// Always register this. Increases chances of DC/SC save state compatibility.
 	et_FakeGPWD = CoreTiming::RegisterEvent("FakeGPWatchdogCallback", FakeGPWatchdogCallback);
@@ -294,7 +298,7 @@ void Init()
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerLine(), et_VI);
 	CoreTiming::ScheduleEvent(DSP_PERIOD, et_DSP);
 	CoreTiming::ScheduleEvent(GetTicksPerSecond() / 60, et_SI);
-	CoreTiming::ScheduleEvent(CPU_CORE_CLOCK / (32000 * 4 / 32), et_AudioFifo);
+	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD, et_AudioDMA);
 
 	// For DC watchdog hack
 	if (Core::GetStartupParameter().bCPUThread)

@@ -58,10 +58,9 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wx
 	m_buttonEnableDTKMusic->SetToolTip(wxT("This is used to play music tracks, like BGM."));
 	m_buttonEnableThrottle->SetToolTip(wxT("This is used to control game speed by sound throttle.\n")
 		wxT("Disabling this could cause abnormal game speed, such as too fast.\n")
-		wxT("But sometimes enabling this causes constant noise."));
-
+		wxT("But sometimes enabling this could cause constant noise.\n")
+		wxT("\nKeyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."));
 	m_buttonEnableRE0Fix->SetToolTip(wxT("This fixes audio in Resident Evil Zero and maybe some other games."));
-
 	m_BackendSelection->SetToolTip(wxT("Changing this will have no effect while the emulator is running!"));
 
 	// Create sizer and add items to dialog

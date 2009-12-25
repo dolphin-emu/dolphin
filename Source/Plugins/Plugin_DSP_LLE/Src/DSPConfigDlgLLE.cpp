@@ -39,7 +39,7 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 
 	// Create items
 	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, wxT("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Other Audio (Throttle)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Audio Throttle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
 	m_BackendSelection = new wxComboBox(this, ID_BACKEND, wxEmptyString, wxDefaultPosition, wxSize(90, 20), wxArrayBackends, wxCB_READONLY, wxDefaultValidator);
 
@@ -51,10 +51,11 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	m_buttonEnableThrottle->SetValue(ac_Config.m_EnableThrottle ? true : false);
 
 	// Add tooltips
-	m_buttonEnableDTKMusic->SetToolTip(wxT("This is sometimes used to play music tracks from the disc"));
-	m_buttonEnableThrottle->SetToolTip(wxT("This is sometimes used together with pre-rendered movies.\n")
-		wxT("Disabling this also disables the speed throttle which this causes,\n")
-		wxT("meaning that there will be no upper limit on your FPS."));
+	m_buttonEnableDTKMusic->SetToolTip(wxT("This is used to play music tracks, like BGM."));
+	m_buttonEnableThrottle->SetToolTip(wxT("This is used to control game speed by sound throttle.\n")
+		wxT("Disabling this could cause abnormal game speed, such as too fast.\n")
+		wxT("But sometimes enabling this could cause constant noise.\n")
+		wxT("\nKeyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."));
 	m_BackendSelection->SetToolTip(wxT("Changing this will have no effect while the emulator is running!"));
 
 	// Create sizer and add items to dialog

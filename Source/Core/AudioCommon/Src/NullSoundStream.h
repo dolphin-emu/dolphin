@@ -25,7 +25,7 @@ class NullMixer : public CMixer {
 
 public:
 	virtual unsigned int Mix(short *samples, unsigned int numSamples) { return 0; }
-	virtual void PushSamples(short* samples, unsigned int num_samples, unsigned int sample_rate) {}
+	virtual void PushSamples(short* samples, unsigned int num_samples) {}
 };
 
 class NullSound : public SoundStream

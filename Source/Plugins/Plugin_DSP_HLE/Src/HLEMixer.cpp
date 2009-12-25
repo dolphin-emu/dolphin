@@ -20,7 +20,7 @@
 #include "DSPHandler.h"
 #include "HLEMixer.h"
 
-void HLEMixer::Premix(short *samples, unsigned int numSamples, unsigned int sampleRate)
+void HLEMixer::Premix(short *samples, unsigned int numSamples)
 {
 	// if this was called directly from the HLE
 	if (g_Config.m_EnableHLEAudio && IsHLEReady())

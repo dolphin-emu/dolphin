@@ -111,7 +111,7 @@ void DSound::SoundLoop()
 		int numBytesToRender = FIX128(ModBufferSize(currentPos - lastPos));
 		if (numBytesToRender >= 256)
 		{
-			if (numBytesToRender > sizeof(realtimeBuffer) * sizeof(short))
+			if (numBytesToRender > sizeof(realtimeBuffer))
 				PanicAlert("soundThread: too big render call");
 			m_mixer->Mix(realtimeBuffer, numBytesToRender / 4);
 			WriteDataToBuffer(lastPos, (char*)realtimeBuffer, numBytesToRender);

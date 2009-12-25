@@ -54,13 +54,13 @@ union AICR
 	struct 
 	{
 		unsigned PSTAT		: 1;  // sample counter/playback enable
-		unsigned AFR		: 1;  // AI Frequency (0=32khz 1=48khz)
+		unsigned AIFR		: 1;  // AI Frequency (0=32khz 1=48khz)
 		unsigned AIINTMSK	: 1;  // 0=interrupt masked 1=interrupt enabled
 		unsigned AIINT		: 1;  // audio interrupt status
 		unsigned AIINTVLD	: 1;  // This bit controls whether AIINT is affected by the AIIT register 
                                   // matching AISLRCNT. Once set, AIINT will hold
 		unsigned SCRESET	: 1;  // write to reset counter
-        unsigned DSPFR  	: 1;  // DSP Frequency (0=48khz 1=32khz)
+        unsigned DACFR  	: 1;  // DAC Frequency (0=48khz 1=32khz)
 		unsigned			:25;
 	};
 	u32 hex;
@@ -90,16 +90,16 @@ struct SAudioRegister
 // STATE_TO_SAVE
 static SAudioRegister g_AudioRegister;	
 static u64 g_LastCPUTime = 0;
-static unsigned int g_SampleRate = 32000;
-static unsigned int g_DSPSampleRate = 32000;
+static unsigned int g_AISampleRate = 32000;
+static unsigned int g_DACSampleRate = 32000;
 static u64 g_CPUCyclesPerSample = 0xFFFFFFFFFFFULL;
 
 void DoState(PointerWrap &p)
 {
 	p.Do(g_AudioRegister);
 	p.Do(g_LastCPUTime);
-	p.Do(g_SampleRate);
-	p.Do(g_DSPSampleRate);
+	p.Do(g_AISampleRate);
+	p.Do(g_DACSampleRate);
 	p.Do(g_CPUCyclesPerSample);
 }
 
@@ -111,7 +111,7 @@ void ReadStreamBlock(short* _pPCM);
 void Init()
 {
 	g_AudioRegister.m_SampleCounter	= 0;
-	g_AudioRegister.m_Control.AFR	= 1;
+	g_AudioRegister.m_Control.AIFR	= 1;
 }
 
 void Shutdown()
@@ -169,22 +169,22 @@ void Write32(const u32 _Value, const u32 _Address)
 			g_AudioRegister.m_Control.AIINTVLD	= tmpAICtrl.AIINTVLD;
 
             // Set frequency
-            if (tmpAICtrl.AFR != g_AudioRegister.m_Control.AFR)
+            if (tmpAICtrl.AIFR != g_AudioRegister.m_Control.AIFR)
             {	
-                INFO_LOG(AUDIO_INTERFACE, "Change Freq to %s", tmpAICtrl.AFR ? "48khz":"32khz");
-                g_AudioRegister.m_Control.AFR = tmpAICtrl.AFR;
+                INFO_LOG(AUDIO_INTERFACE, "Change Freq to %s", tmpAICtrl.AIFR ? "48khz":"32khz");
+                g_AudioRegister.m_Control.AIFR = tmpAICtrl.AIFR;
             }
 			// Set DSP frequency
-            if (tmpAICtrl.DSPFR != g_AudioRegister.m_Control.DSPFR)
+            if (tmpAICtrl.DACFR != g_AudioRegister.m_Control.DACFR)
             {	
-                INFO_LOG(AUDIO_INTERFACE, "AI_CONTROL_REGISTER: Change DSPFR Freq to %s", tmpAICtrl.DSPFR ? "48khz":"32khz");
-                g_AudioRegister.m_Control.DSPFR = tmpAICtrl.DSPFR;
+                INFO_LOG(AUDIO_INTERFACE, "AI_CONTROL_REGISTER: Change DSPFR Freq to %s", tmpAICtrl.DACFR ? "48khz":"32khz");
+                g_AudioRegister.m_Control.DACFR = tmpAICtrl.DACFR;
             }
 
-			g_SampleRate = tmpAICtrl.AFR ? 48000 : 32000;
-			g_DSPSampleRate = tmpAICtrl.DSPFR ? 32000 : 48000;
+			g_AISampleRate = tmpAICtrl.AIFR ? 48000 : 32000;
+			g_DACSampleRate = tmpAICtrl.DACFR ? 32000 : 48000;
 
-			g_CPUCyclesPerSample = SystemTimers::GetTicksPerSecond() / g_SampleRate;
+			g_CPUCyclesPerSample = SystemTimers::GetTicksPerSecond() / g_AISampleRate;
 
             // Streaming counter
             if (tmpAICtrl.PSTAT != g_AudioRegister.m_Control.PSTAT)
@@ -264,10 +264,10 @@ void GenerateAudioInterrupt()
 	UpdateInterrupts();
 }
 
-void Callback_GetSampleRate(unsigned int &_AISampleRate, unsigned int &_DSPSampleRate)
+void Callback_GetSampleRate(unsigned int &_AISampleRate, unsigned int &_DACSampleRate)
 {
-	_AISampleRate = g_SampleRate;
-	_DSPSampleRate = g_DSPSampleRate;
+	_AISampleRate = g_AISampleRate;
+	_DACSampleRate = g_DACSampleRate;
 }
 
 // Callback for the disc streaming
@@ -282,12 +282,12 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 		const int rvolume = g_AudioRegister.m_Volume.rightVolume;
 
 
-		if (g_SampleRate == 48000 && _sampleRate == 32000)
+		if (g_AISampleRate == 48000 && _sampleRate == 32000)
 		{
 			_dbg_assert_msg_(AUDIO_INTERFACE, !(_numSamples % 2), "Number of Samples: %i must be even!", _numSamples);
 			_numSamples = _numSamples * 3 / 2;
 		}
-		else if (g_SampleRate == 32000 && _sampleRate == 48000)
+		else if (g_AISampleRate == 32000 && _sampleRate == 48000)
 		{
 			// AyuanX: Up-sampling is not implemented yet
 			PanicAlert("AUDIO_INTERFACE: Up-sampling is not implemented yet!");
@@ -299,7 +299,7 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 			if (pos == 0)
 				ReadStreamBlock(pcm);
 
-			if (g_SampleRate == 48000 && _sampleRate == 32000)
+			if (g_AISampleRate == 48000 && _sampleRate == 32000)
 			{
 				if (i % 3)
 				{
@@ -391,16 +391,6 @@ void IncreaseSampleCount(const u32 _iAmount)
 			GenerateAudioInterrupt();
 		}
 	}
-}
-
-unsigned int GetAISampleRate()
-{
-	return g_SampleRate;
-}
-
-unsigned int GetDSPSampleRate()
-{
-	return g_DSPSampleRate;
 }
 
 void Update()

@@ -35,9 +35,9 @@
 #endif // WIN32
 // 16 bit Stereo
 #define SFX_MAX_SOURCE		1
-#define OAL_NUM_BUFFERS		8
+#define OAL_NUM_BUFFERS		16
 #define OAL_MAX_SAMPLES		512		// AyuanX: Don't make it too large, as larger buffer means longer delay
-#define OAL_THRESHOLD		128
+#define OAL_THRESHOLD		128		// Some games are quite sensitive to delay
 #endif
 
 class OpenALStream: public SoundStream

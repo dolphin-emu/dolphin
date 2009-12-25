@@ -17,7 +17,6 @@
 
 
 #include "Atomic.h"
-
 #include "Mixer.h"
 #include "AudioCommon.h"
 
@@ -41,37 +40,13 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	numLeft = (numLeft > numSamples) ? numSamples : numLeft;
 
 	// Do re-sampling if needed
-	if (m_sampleRate == m_dspSampleRate)
+	if (m_sampleRate == 32000)
 	{
 		for (unsigned int i = 0; i < numLeft * 2; i++)
 			samples[i] = Common::swap16(m_buffer[(m_indexR + i) & INDEX_MASK]);
 		m_indexR += numLeft * 2;
 	}
-	else if (m_sampleRate < m_dspSampleRate) // If down-sampling needed
-	{
-		_dbg_assert_msg_(DSPHLE, !(numSamples % 2), "Number of Samples: %i must be even!", numSamples);
-
-		short *pDest = samples;
-		int last_l, last_r, cur_l, cur_r;
-
-		for (unsigned int i = 0; i < numLeft * 3 / 2; i++)
-		{
-			cur_l = Common::swap16(m_buffer[(m_indexR + i * 2) & INDEX_MASK]);
-			cur_r = Common::swap16(m_buffer[(m_indexR + i * 2 + 1) & INDEX_MASK]);
-
-			if (i % 3)
-			{
-				*pDest++ = (last_l + cur_r) / 2;
-				*pDest++ = (last_r + cur_r) / 2;
-			}
-
-			last_l = cur_l;
-			last_r = cur_r;
-		}
-
-		m_indexR += numLeft * 2 * 3 / 2;
-	}
-	else if (m_sampleRate > m_dspSampleRate)
+	else
 	{
 		// AyuanX: Up-sampling is not implemented yet
 		PanicAlert("Mixer: Up-sampling is not implemented yet!");
@@ -143,16 +118,8 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 	if (numSamples > numLeft)
 		memset(&samples[numLeft * 2], 0, (numSamples - numLeft) * 4);
 
-	// Add the HLE sound
-	if (m_sampleRate < m_dspSampleRate)
-	{
-		PanicAlert("Mixer: DSPHLE down-sampling is not implemented yet!\n"
-			"Usually no game should require this, please report!");
-	}
-	else
-	{
-		Premix(samples, numSamples, m_sampleRate);
-	}
+	// Add the DSPHLE sound, re-sampling is done inside
+	Premix(samples, numSamples);
 
 	// Add the DTK Music
 	if (m_EnableDTKMusic)
@@ -161,19 +128,17 @@ unsigned int CMixer::Mix(short* samples, unsigned int numSamples)
 		g_dspInitialize.pGetAudioStreaming(samples, numSamples, m_sampleRate);
 	}
 
-	Common::AtomicAdd(m_numSamples, -(int)numLeft);
+	Common::AtomicAdd(m_numSamples, -(s32)numLeft);
 
 	return numSamples;
 }
 
 
-void CMixer::PushSamples(short *samples, unsigned int num_samples, unsigned int sample_rate)
+void CMixer::PushSamples(short *samples, unsigned int num_samples)
 {
 	// The auto throttle function. This loop will put a ceiling on the CPU MHz.
 	if (m_throttle)
 	{
-		// AyuanX: Remember to reserve "num_samples * 1.5" free sample space at least!
-		// Becuse we may do re-sampling later
 		while (Common::AtomicLoad(m_numSamples) >= MAX_SAMPLES - RESERVED_SAMPLES)
 		{
 			if (g_dspInitialize.pEmulatorState)
@@ -181,8 +146,12 @@ void CMixer::PushSamples(short *samples, unsigned int num_samples, unsigned int 
 				if (*g_dspInitialize.pEmulatorState != 0) 
 					break;
 			}
-			soundStream->Update();
+			// Shortcut key for Throttle Skipping
+			#ifdef _WIN32
+			if (GetAsyncKeyState(VK_TAB)) break;;
+			#endif
 			SLEEP(1);
+			soundStream->Update();
 		}
 	}
 
@@ -191,7 +160,7 @@ void CMixer::PushSamples(short *samples, unsigned int num_samples, unsigned int 
 		return;
 
 	// AyuanX: Actual re-sampling work has been moved to sound thread
-	// to alleviates the workload on main thread
+	// to alleviate the workload on main thread
 	// and we simply store raw data here to make fast mem copy
 	int over_bytes = num_samples * 4 - (MAX_SAMPLES * 2 - (m_indexW & INDEX_MASK)) * sizeof(short);
 	if (over_bytes > 0)
@@ -206,12 +175,7 @@ void CMixer::PushSamples(short *samples, unsigned int num_samples, unsigned int 
 
 	m_indexW += num_samples * 2;
 
-	if (m_sampleRate < m_dspSampleRate)
-	{
-		// This is kind of tricky :P  
-		num_samples = num_samples * 2 / 3;
-	}
-	else if (m_sampleRate > m_dspSampleRate)
+	 if (m_sampleRate != 32000)
 	{
 		PanicAlert("Mixer: Up-sampling is not implemented yet!");
 	}
