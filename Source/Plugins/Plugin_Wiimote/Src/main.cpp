@@ -70,7 +70,6 @@ bool g_FrameOpen = false;
 bool g_RealWiiMotePresent = false;
 bool g_RealWiiMoteInitialized = false;
 bool g_EmulatedWiiMoteInitialized = false;
-bool g_WiimoteUnexpectedDisconnect = false;
 
 // Settings
 accel_cal g_wm;
@@ -283,7 +282,6 @@ void DoState(unsigned char **ptr, int mode)
 	p.Do(g_RealWiiMotePresent);
 	p.Do(g_RealWiiMoteInitialized);
 	p.Do(g_EmulatedWiiMoteInitialized);
-	p.Do(g_WiimoteUnexpectedDisconnect);
 	//p.Do(g_UpdateCounter);
 	//p.Do(g_UpdateTime);
 	//p.Do(g_UpdateRate);
@@ -331,27 +329,12 @@ void Wiimote_InterruptChannel(int _number, u16 _channelID, const void* _pData, u
 
 void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	const u8* data = (const u8*)_pData;
-
-	// Check for custom communication
-	if(_channelID == 99 && data[0] == WIIMOTE_RECONNECT)
-	{
-		DEBUG_LOG(WIIMOTE, "Wiimote Disconnected");
-		g_EmulatorRunning = false;
-		g_WiimoteUnexpectedDisconnect = true;
-
-#if defined(HAVE_WX) && HAVE_WX
-		if (m_BasicConfigFrame) m_BasicConfigFrame->UpdateGUI();
-#endif
-		return;
-	}
-
 	// Debugging
-	{
-		DEBUG_LOG(WIIMOTE, "Wiimote_ControlChannel");
-		std::string Temp = ArrayToString(data, _Size);
-		DEBUG_LOG(WIIMOTE, "    Data: %s", Temp.c_str());
-	}
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	DEBUG_LOG(WIIMOTE, "Wiimote_ControlChannel");
+	std::string Temp = ArrayToString((const u8*)_pData, _Size);
+	DEBUG_LOG(WIIMOTE, "    Data: %s", Temp.c_str());
+#endif
 
 	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
 		WiiMoteEmu::ControlChannel(_number, _channelID, _pData, _Size);

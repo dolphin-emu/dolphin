@@ -46,7 +46,7 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 
 
 {
-	INFO_LOG(WII_IPC_WIIMOTE, "Wiimote #%i constructed", _Number);
+	INFO_LOG(WII_IPC_WIIMOTE, "Wiimote: #%i Constructed", _Number);
 
 	s_Usb = _pHost;
 
@@ -235,7 +235,7 @@ void CWII_IPC_HLE_WiiMote::EventConnectionAccepted()
 
 void CWII_IPC_HLE_WiiMote::EventDisconnect()
 {
-	m_Connected = 0;
+	m_Connected = -1;
 	m_Linked = false;
 	// Clear channel flags
 	ResetChannels();
@@ -321,13 +321,13 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 					break;
 
 				case HID_CONTROL_CHANNEL:
-					mote->Wiimote_ControlChannel(m_ConnectionHandle & 0x1, pHeader->CID, pData, DataSize);
+					mote->Wiimote_ControlChannel(m_ConnectionHandle & 0xFF, pHeader->CID, pData, DataSize);
 					// Call Wiimote Plugin
 					break;
 
 				case HID_INTERRUPT_CHANNEL:
 					ShowStatus(pData);
-					mote->Wiimote_InterruptChannel(m_ConnectionHandle & 0x1, pHeader->CID, pData, DataSize);
+					mote->Wiimote_InterruptChannel(m_ConnectionHandle & 0xFF, pHeader->CID, pData, DataSize);
 					// Call Wiimote Plugin
 					break;
 
@@ -612,7 +612,7 @@ void CWII_IPC_HLE_WiiMote::SendConnectionRequest(u16 scid, u16 psm)
 	cr.psm = psm;
 	cr.scid = scid;
 
-	INFO_LOG(WII_IPC_WIIMOTE, "-------------------------------------");
+	INFO_LOG(WII_IPC_WIIMOTE, "-----------------------------------------");
 	INFO_LOG(WII_IPC_WIIMOTE, "[L2CAP] SendConnectionRequest");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Psm: 0x%04x", cr.psm);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "    Scid: 0x%04x", cr.scid);
@@ -945,8 +945,8 @@ namespace Core
 	{
 		const u8* pData = (const u8*)_pData;
 
-		INFO_LOG(WIIMOTE, "==========================");
-		INFO_LOG(WIIMOTE, "Callback_WiimoteInput: (Page: %i)", _number);
+		INFO_LOG(WIIMOTE, "====================");
+		INFO_LOG(WIIMOTE, "Callback_WiimoteInput: (Wiimote: #%i)", _number);
 		DEBUG_LOG(WIIMOTE, "   Data: %s", ArrayToString(pData, _Size, 0, 50).c_str());
 		DEBUG_LOG(WIIMOTE, "   Channel: %u", _channelID);
 

@@ -2507,8 +2507,6 @@ struct SHCIEventNumberOfCompletedPackets
 	u8 EventType;
 	u8 PayloadLength;
 	u8 NumberOfHandles;
-	u16 Connection_Handle;
-	u16 Number_Of_Completed_Packets;
 };
 
 struct SHCIEventAuthenticationCompleted

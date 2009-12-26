@@ -213,7 +213,7 @@ public:
 	const char* GetName() const { return m_Name.c_str(); }
 	u8 GetLMPVersion() const { return lmp_version; }
 	u16 GetLMPSubVersion() const { return lmp_subversion; }
-	u8 GetManufactorID() const { return 0xF; }  // Broadcom Corporation
+	u16 GetManufactorID() const { return 0x000F; }  // Broadcom Corporation
 	const u8* GetLinkKey() const { return m_LinkKey; }
 
 private:

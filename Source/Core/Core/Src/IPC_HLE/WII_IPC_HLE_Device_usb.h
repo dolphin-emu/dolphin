@@ -188,6 +188,7 @@ private:
 
 	// STATE_TO_SAVE
 	SHCICommandMessage m_CtrlSetup;
+	u32 m_ACLSetup;
 	CtrlBuffer m_HCIBuffer;
 	HCIPool m_HCIPool;
 	CtrlBuffer m_ACLBuffer;
