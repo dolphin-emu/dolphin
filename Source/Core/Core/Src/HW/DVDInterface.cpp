@@ -24,8 +24,8 @@
 #include "DVDInterface.h"
 #include "../PowerPC/PowerPC.h"
 #include "ProcessorInterface.h"
-#include "Memmap.h"
 #include "Thread.h"
+#include "Memmap.h"
 #include "../VolumeHandler.h"
 
 namespace DVDInterface
@@ -48,7 +48,7 @@ enum
 
 
 // DVD IntteruptTypes
-enum DVDInterruptType
+enum DI_InterruptType
 {
 	INT_DEINT		= 0,
 	INT_TCINT		= 1,
@@ -204,14 +204,17 @@ bool g_bStream = false;
 // GC-AM only
 static unsigned char media_buffer[0x40];
 
+// Needed because data and streaming audio access needs to be managed by the "drive"
+// (both requests can happen at the same time, audio takes precedence)
 Common::CriticalSection dvdread_section;
-
-static bool g_dvdQuitSignal = false;
-static Common::Event g_dvdAlert;
-static Common::Thread* g_dvdThread = NULL;
 
 static int changeDisc;
 void ChangeDiscCallback(u64 userdata, int cyclesLate);
+
+void UpdateInterrupts();
+void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt);
+void ExecuteCommand(UDICR& _DICR);
+
 
 void DoState(PointerWrap &p)
 {
@@ -232,38 +235,6 @@ void DoState(PointerWrap &p)
 	p.Do(g_bDiscInside);
 }
 
-void UpdateInterrupts();
-void GenerateDVDInterrupt(DVDInterruptType _DVDInterrupt);
-void ExecuteCommand(UDICR& _DICR);
-
-static int et_GenerateDVDInterrupt;
-
-static void GenerateDVDInterruptCallback(u64 userdata, int cyclesLate)
-{
-	GenerateDVDInterrupt((DVDInterruptType)userdata);
-}
-
-static void GenerateDVDInterrupt_Threadsafe(DVDInterruptType type)
-{
-	CoreTiming::ScheduleEvent_Threadsafe(0, et_GenerateDVDInterrupt, type);
-}
-
-static THREAD_RETURN DVDThreadFunc(void* arg)
-{
-	for (;;)
-	{
-		g_dvdAlert.Wait();
-
-		if (g_dvdQuitSignal)
-			break;
-
-		if (m_DICR.TSTART)
-			ExecuteCommand(m_DICR);
-	}
-
-	return 0;
-}
-
 void Init()
 {
 	m_DISR.Hex		= 0;
@@ -282,32 +253,11 @@ void Init()
 	AudioPos		= 0;
 	AudioLength		= 0;
 
-	et_GenerateDVDInterrupt = CoreTiming::RegisterEvent("DVDint", GenerateDVDInterruptCallback);
-
-	g_dvdAlert.Init();
-	g_dvdThread = new Common::Thread(DVDThreadFunc, NULL);
-
 	changeDisc = CoreTiming::RegisterEvent("ChangeDisc", ChangeDiscCallback);
 }
 
 void Shutdown()
 {
-	if (g_dvdThread)
-	{
-		g_dvdQuitSignal = true;
-		g_dvdAlert.Set();
-#ifdef _WIN32
-		g_dvdThread->WaitForDeath(3000);
-#else
-		g_dvdThread->WaitForDeath();
-#endif
-
-		delete g_dvdThread;
-		g_dvdThread = NULL;
-
-		g_dvdAlert.Shutdown();
-		g_dvdQuitSignal = false;
-	}
 }
 
 void SetDiscInside(bool _DiscInside)
@@ -369,7 +319,7 @@ void SetLidOpen(bool _bOpen)
 {
 	m_DICVR.CVR = _bOpen ? 1 : 0;
 
-	GenerateDVDInterrupt_Threadsafe(INT_CVRINT);
+	GenerateDIInterrupt(INT_CVRINT);
 }
 
 bool IsLidOpen()
@@ -456,16 +406,17 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 			m_DISR.DEINITMASK	= tmpStatusReg.DEINITMASK;
 			m_DISR.TCINTMASK	= tmpStatusReg.TCINTMASK;
 			m_DISR.BRKINTMASK	= tmpStatusReg.BRKINTMASK;
+			m_DISR.BREAK		= tmpStatusReg.BREAK;
 
 			if (tmpStatusReg.DEINT)		m_DISR.DEINT = 0;
 			if (tmpStatusReg.TCINT)		m_DISR.TCINT = 0;
 			if (tmpStatusReg.BRKINT)	m_DISR.BRKINT = 0;
 
-			if (tmpStatusReg.BREAK) 
+			if (m_DISR.BREAK)
 			{
 				_dbg_assert_(DVDINTERFACE, 0);
 			}
-
+			
 			UpdateInterrupts();
 		}
 		break;
@@ -501,8 +452,8 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 	case DI_DMA_CONTROL_REGISTER:	
 		{
 			m_DICR.Hex = _iValue;
-			// The thread loop checks if TSTART is set, don't need to check here
-			g_dvdAlert.Set();
+			if (m_DICR.TSTART)
+				ExecuteCommand(m_DICR);
 		}
 		break;
 
@@ -537,7 +488,7 @@ void UpdateInterrupts()
 	}
 }
 
-void GenerateDVDInterrupt(DVDInterruptType _DVDInterrupt)
+void GenerateDIInterrupt(DI_InterruptType _DVDInterrupt)
 {
 	switch(_DVDInterrupt) 
 	{
@@ -694,7 +645,7 @@ void ExecuteCommand(UDICR& _DICR)
 			_DICR.TSTART = 0;
 			m_DILENGTH.Length = 0;
 			g_ErrorCode = ERROR_NO_DISK | ERROR_COVER_H;
-			GenerateDVDInterrupt_Threadsafe(INT_DEINT);
+			GenerateDIInterrupt(INT_DEINT);
 			return;
 		}
 		break;
@@ -928,7 +879,7 @@ void ExecuteCommand(UDICR& _DICR)
 	// transfer is done
 	_DICR.TSTART = 0;
 	m_DILENGTH.Length = 0;
-	GenerateDVDInterrupt_Threadsafe(INT_TCINT);
+	GenerateDIInterrupt(INT_TCINT);
 	g_ErrorCode = 0;
 }
 
