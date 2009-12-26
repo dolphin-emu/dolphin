@@ -116,8 +116,6 @@ void LoadBufferStateCallback(u64 userdata, int cyclesLate)
 	PointerWrap p(&ptr, PointerWrap::MODE_READ);
 	DoState(p);
 
-	cur_buffer = NULL;
-
 	Core::DisplayMessage("Loaded state", 2000);
 	state_op_in_progress = false;
 }
@@ -147,7 +145,6 @@ void SaveBufferStateCallback(u64 userdata, int cyclesLate)
 	p.SetMode(PointerWrap::MODE_WRITE);
 	DoState(p);
 
-	cur_buffer = NULL;
 	state_op_in_progress = false;
 }
 
