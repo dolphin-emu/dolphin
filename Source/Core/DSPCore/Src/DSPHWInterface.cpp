@@ -263,12 +263,6 @@ void gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
 // TODO: These should eat clock cycles.
 void gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 {
-	if ((addr & 0x7FFFFFFF) > 0x01FFFFFF)
-	{
-		ERROR_LOG(DSPLLE, "*** ddma_in read from invalid addr (0x%08x)", addr);
-		return;
-	}
-
 	u8* dst = ((u8*)g_dsp.dram);
 
 	for (u32 i = 0; i < size; i += 2)
@@ -282,12 +276,6 @@ void gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 
 void gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 {
-	if ((addr & 0x7FFFFFFF) > 0x01FFFFFF)
-	{
-		ERROR_LOG(DSPLLE, "*** gdsp_ddma_out to invalid addr (0x%08x)", addr);
-		return;
-	}
-
 	const u8* src = ((const u8*)g_dsp.dram);
 
 	for (u32 i = 0; i < size; i += 2)
