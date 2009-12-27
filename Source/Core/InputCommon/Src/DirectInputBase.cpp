@@ -40,6 +40,24 @@ void DInput::DIKToString(unsigned int keycode, char *keyStr)
 		case DIK_RETURN:
 			sprintf(keyStr, "Enter");
 			break;
+		case DIK_LCONTROL:
+			sprintf(keyStr, "Left Ctrl");
+			break;
+		case DIK_RCONTROL:
+			strcpy(keyStr, "Right Ctrl");
+			break;
+		case DIK_LSHIFT:
+			sprintf(keyStr, "Left Shift");
+			break;
+		case DIK_RSHIFT:
+			sprintf(keyStr, "Right Shift");
+			break;
+		case DIK_LMENU:
+			sprintf(keyStr, "Left Alt");
+			break;
+		case DIK_RMENU:
+			strcpy(keyStr, "Right Alt");
+			break;
 		case DIK_UP:
 			sprintf(keyStr, "Up");
 			break;
@@ -69,6 +87,9 @@ void DInput::DIKToString(unsigned int keycode, char *keyStr)
 			break;
 		case DIK_PGDN:
 			strcpy(keyStr, "PgDn");
+			break;
+		case DIK_NUMLOCK:
+			strcpy(keyStr, "Num Lock");
 			break;
 		case DIK_NUMPAD0:
 			strcpy(keyStr, "Num 0");
@@ -100,8 +121,17 @@ void DInput::DIKToString(unsigned int keycode, char *keyStr)
 		case DIK_NUMPAD9:
 			strcpy(keyStr, "Num 9");
 			break;
-		case DIK_NUMPADSLASH:
+		case DIK_DIVIDE:
 			strcpy(keyStr, "Num /");
+			break;
+		case DIK_NUMPADENTER:
+			strcpy(keyStr, "Num Enter");
+			break;
+		case DIK_DECIMAL:
+			strcpy(keyStr, "Num Decimal");
+			break;
+		case DIK_NUMPADCOMMA:
+			strcpy(keyStr, "Num Separator");
 			break;
 		default:
 			// TODO: Switch to unicode GetKeyNameText?

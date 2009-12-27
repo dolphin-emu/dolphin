@@ -260,10 +260,20 @@ std::string VKToString(int keycode)
 		case VK_LEFT: return "LEFT";
 		case VK_RIGHT: return "RIGHT";
 
-		case VK_LSHIFT: return "LEFT SHIFT";
-		case VK_LCONTROL: return "LEFT CTRL";
-		case VK_RCONTROL: return "RIGHT CTRL";
-		case VK_LMENU: return "LEFT ALT";
+		case VK_LSHIFT: return "Left Shift";
+		case VK_RSHIFT: return "Right Shift";
+		case VK_LCONTROL: return "Left Ctrl";
+		case VK_RCONTROL: return "Right Ctrl";
+		case VK_LMENU: return "Left Alt";
+		case VK_RMENU: return "Right Alt";
+
+		case VK_NUMLOCK: return "Num Lock";
+		case VK_MULTIPLY: return "Num *";
+		case VK_ADD: return "Num +";
+		case VK_SEPARATOR: return "Num Separator";
+		case VK_SUBTRACT: return "Num -";
+		case VK_DECIMAL: return "Num Decimal";
+		case VK_DIVIDE: return "Num /";
 
 		default: return KeyString = KeyStr;
 	}
