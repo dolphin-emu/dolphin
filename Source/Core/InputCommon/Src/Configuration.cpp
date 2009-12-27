@@ -251,6 +251,7 @@ std::string VKToString(int keycode)
 		case VK_END: return "END";
 		case VK_INSERT: return "INS";
 		case VK_DELETE: return "DEL";
+		case VK_HOME: return "HOME";
 		case VK_PRIOR: return "PGUP";
 		case VK_NEXT: return "PGDN";
 
