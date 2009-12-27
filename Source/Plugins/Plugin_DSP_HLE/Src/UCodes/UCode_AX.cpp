@@ -54,7 +54,6 @@ CUCode_AX::CUCode_AX(CMailHandler& _rMailHandler)
 {
 	// we got loaded
 	m_rMailHandler.PushMail(0xDCD10000);
-	m_rMailHandler.PushMail(0x80000000);  // handshake ??? only (crc == 0xe2136399) needs it ...
 
 	templbuffer = new int[1024 * 1024];
 	temprbuffer = new int[1024 * 1024];
@@ -337,24 +336,32 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 #endif
 
 	AXParamBlock PB;
-	u32 blockAddr = m_addressPBs;
-	if (!blockAddr)
-		return;
 
-	// ------------
-	for (int i = 0; i < NUMBER_OF_PBS; i++)
+	for (int x = 0; x < numPBaddr; x++) 
 	{
-		if (!ReadOutPB(blockAddr, PB))
-			break;
-		ProcessUpdates(PB);
-		MixAddVoice(PB, templbuffer, temprbuffer, _iSize, false);
-		if (!WriteBackPB(blockAddr, PB))
-			break;
+		//u32 blockAddr = m_addressPBs;
+		u32 blockAddr = PBaddr[x];
+		
+		if (!blockAddr)
+			return;
 
-		blockAddr = (PB.next_pb_hi << 16) | PB.next_pb_lo;
-		if (!blockAddr) {
+		// ------------
+		for (int i = 0; i < NUMBER_OF_PBS; i++)
+		{
+			if (!ReadOutPB(blockAddr, PB))
+				break;
+
+			ProcessUpdates(PB);
+			MixAddVoice(PB, templbuffer, temprbuffer, _iSize, false);
+			
+			if (!WriteBackPB(blockAddr, PB))
+				break;
+
+			blockAddr = (PB.next_pb_hi << 16) | PB.next_pb_lo;
+
 			// Guess we're out of blocks
-			break;
+			if (!blockAddr)
+				break;
 		}
 	}
 
@@ -392,6 +399,13 @@ void CUCode_AX::HandleMail(u32 _uMail)
 	{
 		// a new List
 		DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : General Mail (%08x)", _uMail);
+	}
+	else if (_uMail == 0xCDD10000) // Action 0 - restart
+	{
+		m_rMailHandler.PushMail(0xDCD10001);
+	}
+	else if ((_uMail & 0xFFFF0000) == 0xCDD10000) // Action 1/2/3
+	{
 	}
 	else
 	{
@@ -454,6 +468,8 @@ bool CUCode_AX::AXTask(u32& _uMail)
 
 	bool bExecuteList = true;
 
+	numPBaddr = 0;
+
 #if defined(HAVE_WX) && HAVE_WX
 	if (m_DebuggerFrame) SaveMail(false, _uMail); // Save mail for debugging
 #endif
@@ -462,6 +478,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		static int last_valid_command = 0;
 		u16 iCommand = Memory_Read_U16(uAddress);
 		uAddress += 2;
+
 		switch (iCommand)
 		{
 	    case AXLIST_STUDIOADDR: //00
@@ -491,15 +508,15 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	    //
 	    case AXLIST_PBADDR: //02
 		    {
-		    m_addressPBs = Memory_Read_U32(uAddress);
-		    uAddress += 4;
+			PBaddr[numPBaddr] = Memory_Read_U32(uAddress);
+			numPBaddr++;
 
+		    m_addressPBs = Memory_Read_U32(uAddress); // left in for now
+		    uAddress += 4;
 		    soundStream->GetMixer()->SetHLEReady(true);
 		    SaveLog("%08x : AXLIST PB address: %08x", uAddress, m_addressPBs);
-
 		    SaveLog("Update the SoundThread to be in sync");
 //          soundStream->Update(); //do it in this thread to avoid sync problems
-
 		    }
 		    break;
 
@@ -617,6 +634,6 @@ bool CUCode_AX::AXTask(u32& _uMail)
 	SaveLog("End");
 
 	// i hope resume is okay AX
-	m_rMailHandler.PushMail(0xDCD10001);
+	m_rMailHandler.PushMail(0xDCD10002);
 	return true;
 }
