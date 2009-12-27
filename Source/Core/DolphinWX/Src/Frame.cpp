@@ -157,12 +157,6 @@ int abc = 0;
 				else
 					main_frame->bRenderToMain = true;
 				return 0;
-
-			case WIIMOTE_RECONNECT:
-				// The Wiimote plugin has been shut down, now reconnect the Wiimote
-				//INFO_LOG(CONSOLE, "WIIMOTE_RECONNECT\n");
-				Core::ReconnectWiimote();
-				return 0;
 			}
 			break;
 		}
@@ -233,6 +227,10 @@ EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
 EVT_MENU(IDM_CHANGEDISC, CFrame::OnChangeDisc)
 EVT_MENU(IDM_LOAD_WII_MENU, CFrame::OnLoadWiiMenu)
+EVT_MENU(IDM_CONNECT_WIIMOTE1, CFrame::OnConnectWiimote)
+EVT_MENU(IDM_CONNECT_WIIMOTE2, CFrame::OnConnectWiimote)
+EVT_MENU(IDM_CONNECT_WIIMOTE3, CFrame::OnConnectWiimote)
+EVT_MENU(IDM_CONNECT_WIIMOTE4, CFrame::OnConnectWiimote)
 EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
 EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_SKIPIDLE, CFrame::OnToggleSkipIdle)

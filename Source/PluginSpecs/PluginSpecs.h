@@ -30,7 +30,7 @@ enum PLUGIN_COMM
 	TOGGLE_FULLSCREEN,
 	VIDEO_DESTROY, // The video debugging window was destroyed
 	AUDIO_DESTROY, // The audio debugging window was destroyed
-	WIIMOTE_RECONNECT, // Reconnect the Wiimote if it has disconnected
+	WIIMOTE_DISCONNECT, // Disconnect Wiimote
 	INPUT_FRAME_COUNTER // Wind back the frame counter for rerecording
 };
 

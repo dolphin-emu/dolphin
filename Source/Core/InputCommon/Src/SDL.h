@@ -59,7 +59,6 @@
 namespace InputCommon
 {
 
-
 // Settings
 // ----------
 // Show a status window with the detected axes, buttons and so on
@@ -88,6 +87,7 @@ struct CONTROLLER_STATE		// GC PAD INFO/STATE
 
 struct CONTROLLER_MAPPING	// GC PAD MAPPING
 {
+	bool enable;
 	int buttons[8];			// (See above)
 	int dpad;				// (See above)
 	int dpad2[4];			// (See above)
@@ -100,7 +100,6 @@ struct CONTROLLER_MAPPING	// GC PAD MAPPING
 	std::string SRadius, SDiagonal, SRadiusC, SDiagonalC;
 	bool bRadiusOnOff, bSquareToCircle, bRadiusOnOffC, bSquareToCircleC;
 	bool rumble;
-	bool enable;
 	int eventnum;			// Linux Event Number, Can't be found dynamically yet
 };
 
@@ -168,74 +167,6 @@ enum
 	XI_TRIGGER_L = 0,
 	XI_TRIGGER_R
 };
-
-
-union PadAxis
-{
-	int keyForControls[6];
-	struct
-	{
-		int Lx;
-		int Ly;
-		int Rx;
-		int Ry;
-		int Tl; // Trigger
-		int Tr; // Trigger
-	};
-};
-struct PadWiimote
-{
-	int keyForControls[16];
-	// Order is A, B, 1, 2, +, -, Home
-	// L, R, U, D, RollL, RollR, PitchU, PitchD, Shake
-};
-struct PadNunchuck
-{
-	int keyForControls[11];
-	// Order is Z, C, L, R, U, D, RollL, RollR, PitchU, PitchD, Shake
-};
-struct PadClassicController
-{
- 	int keyForControls[23];
-	// Order is A, B, X, Y, +, -, Home
-	// Tl, Zl, Zr, Tr, Dl, Dr, Du, Dd
-	// Ll, Lr, Lu, Ld, Rl, Rr, Ru, Rd
-}; 
-struct PadGH3Controller
-{
-	int keyForControls[14];
-	// Order is Green, Red, Yellow, Blue, Orange,
-	// +, -, Whammy, 
-	// Al, Ar, Au, Ad,
-	// StrumUp, StrumDown
-};
-struct CONTROLLER_STATE_NEW		// GC PAD INFO/STATE
-{
-	PadAxis Axis;			// 6 Axes (Main, Sub, Triggers)
-	SDL_Joystick *joy;		// SDL joystick device
-};
-struct CONTROLLER_MAPPING_NEW	// GC PAD MAPPING
-{
-	PadAxis Axis;			// (See above)
-	PadWiimote Wm;
-	PadNunchuck Nc;
-	PadClassicController Cc;
-	PadGH3Controller GH3c;
-	bool enabled;			// Pad attached?
-	bool Rumble;
-	int RumbleStrength;
-	int DeadZoneL;			// Analog 1 Deadzone
-	int DeadZoneR;			// Analog 2 Deadzone
-	int ID;					// SDL joystick device ID
-	int controllertype;		// D-Pad type: Hat or custom buttons
-	int triggertype;		// SDL or XInput trigger
-	std::string SDiagonal;
-	bool bSquareToCircle;
-	bool bCircle2Square;
-};
-
-
-
 
 // Declarations
 // ---------

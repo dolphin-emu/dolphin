@@ -44,9 +44,11 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	, m_LastCmd(0)
 	, m_FreqDividerSync(0)
 {
-	// Activate the first one Wiimote by default
+	// Activate only first Wiimote by default
 	m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, 0, true));
 	m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, 1));
+	m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, 2));
+	m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, 3));
 
 	// The BCM2045's btaddr:
 	m_ControllerBD.b[0] = 0x11;
@@ -89,6 +91,14 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 		p.Do(m_PacketCount[i]);
 		p.Do(m_FreqDividerMote[i]);
 	}
+
+	for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+		m_WiiMotes[i].DoState(p);
+}
+
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::RemoteDisconnect(u16 _connectionHandle)
+{
+	return SendEventDisconnect(_connectionHandle, 0x13);
 }
 
 // ===================================================
@@ -483,7 +493,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
 		{
 			m_FreqDividerMote[i]++;
-			if (m_WiiMotes[i].IsLinked() && m_FreqDividerMote[i] >= 150)
+			if (m_WiiMotes[i].IsConnected() == 3 && m_FreqDividerMote[i] >= 150)
 			{
 				m_FreqDividerMote[i] = 0;
 				CPluginManager::GetInstance().GetWiimote(0)->Wiimote_Update(i);
@@ -1390,13 +1400,13 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDisconnect(u8* _Input)
 
 	SendEventDisconnect(pDiscon->con_handle, pDiscon->reason);
 	
+	PanicAlert("Wiimote (%i) has been disconnected by system due to idle time out.\n"
+		"Don't panic, this is quite a normal behavior for power saving.\n\n"
+		"To reconnect, Pasue game and Click \"Menu -> Tools -> Connect Wiimote\"", (pDiscon->con_handle & 0xFF) + 1);
+
 	CWII_IPC_HLE_WiiMote* pWiimote = AccessWiiMote(pDiscon->con_handle);
 	if (pWiimote)
-	pWiimote->EventDisconnect();
-
-	// Send disconnect message to plugin
-	u8 Message = WIIMOTE_RECONNECT;
-	CPluginManager::GetInstance().GetWiimote(0)->Wiimote_ControlChannel(pDiscon->con_handle & 0xFF, 99, &Message, 0);
+		pWiimote->EventDisconnect();
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandAcceptCon(u8* _Input)
@@ -1582,15 +1592,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandSniffMode(u8* _Input)
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  timeout: 0x%04x", pSniffMode->timeout);
 
 	SendEventModeChange(pSniffMode->con_handle, 0x02, pSniffMode->max_interval);  // 0x02 - sniff mode
-
-	// Now it is a good time to activate next wiimote
-	u16 NextHandle = pSniffMode->con_handle + 1;
-	if ((NextHandle & 0xFFu) < m_WiiMotes.size())
-	{
-		CWII_IPC_HLE_WiiMote* pWiimote = AccessWiiMote(NextHandle);
-		if (pWiimote)
-			pWiimote->Activate(true);
-	}
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkPolicy(u8* _Input)

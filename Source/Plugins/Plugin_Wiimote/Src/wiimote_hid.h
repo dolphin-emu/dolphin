@@ -25,7 +25,7 @@
 #endif
 #pragma pack(push, 1)
 
-#define MAX_WIIMOTES 2
+#define MAX_WIIMOTES 4
 
 // Source: HID_010_SPC_PFL/1.0 (official HID specification)
 

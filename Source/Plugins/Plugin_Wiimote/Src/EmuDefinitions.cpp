@@ -36,24 +36,23 @@ namespace WiiMoteEmu
 // Definitions and variable declarations
 //******************************************************************************
 
+u8 g_IR[4];
 u8 g_Leds[4];
 u8 g_Speaker;
 u8 g_SpeakerVoice;
-u8 g_IR;
+
+u8 g_RegExt[MAX_WIIMOTES][WIIMOTE_REG_EXT_SIZE];
 
 u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
 u8 g_RegSpeaker[WIIMOTE_REG_SPEAKER_SIZE];
 u8 g_RegMotionPlus[WIIMOTE_REG_EXT_SIZE];
-u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
 u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
 u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
-int g_RefreshWiimote; // Current refreshing Wiimote
-bool g_ReportingAuto[4]; // Auto report or passive report
-u8 g_ReportingMode; // The reporting mode and channel id
-u16 g_ReportingChannel;
-
-std::vector<wm_ackdelay> AckDelay; // Ackk delay
+int g_ID; // Current refreshing Wiimote
+bool g_ReportingAuto[MAX_WIIMOTES]; // Auto report or passive report
+u8 g_ReportingMode[MAX_WIIMOTES]; // The reporting mode and channel id
+u16 g_ReportingChannel[MAX_WIIMOTES];
 
 wiimote_key g_ExtKey; // The extension encryption key
 bool g_Encryption; // Encryption on or off
@@ -61,16 +60,11 @@ bool g_Encryption; // Encryption on or off
 // Gamepad input
 int NumPads = 0, NumGoodPads = 0; // Number of goods pads
 std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
-InputCommon::CONTROLLER_STATE_NEW PadState[4];
-InputCommon::CONTROLLER_MAPPING_NEW PadMapping[4];
+CONTROLLER_MAPPING_WII WiiMapping[MAX_WIIMOTES];
 
 // Keyboard input
-KeyboardWiimote g_Wiimote_kbd;
-KeyboardNunchuck g_NunchuckExt;
-KeyboardClassicController g_ClassicContExt;
-KeyboardGH3GLP g_GH3Ext;
-bool KeyStatus[64];
-SWiimoteData g_WiimoteData[4];
+bool KeyStatus[LAST_CONSTANT];
+
 } // namespace
 
 #endif	//_EMU_DECLARATIONS_

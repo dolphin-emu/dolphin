@@ -66,7 +66,6 @@ namespace WiiMoteEmu
 
 // Subroutines
 
-
 // Update the data reporting mode 
 
 void WmReportMode(u16 _channelID, wm_report_mode* dr) 
@@ -77,9 +76,9 @@ void WmReportMode(u16 _channelID, wm_report_mode* dr)
 	DEBUG_LOG(WIIMOTE, "  All The Time: %x (not only on data change)", dr->all_the_time);
 	DEBUG_LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
 
-	g_ReportingAuto[g_RefreshWiimote] = dr->all_the_time;
-	g_ReportingMode = dr->mode;
-	g_ReportingChannel = _channelID;
+	g_ReportingAuto[g_ID] = dr->all_the_time;
+	g_ReportingMode[g_ID] = dr->mode;
+	g_ReportingChannel[g_ID] = _channelID;
 
 	// Validation check
 	switch(dr->mode)
@@ -94,7 +93,6 @@ void WmReportMode(u16 _channelID, wm_report_mode* dr)
 		PanicAlert("Wiimote: Unsupported reporting mode 0x%x", dr->mode);
 	}
 }
-
 
 
 /* Case 0x30: Core Buttons */
@@ -114,7 +112,7 @@ void SendReportCore(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
-	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
 }
@@ -139,7 +137,7 @@ void SendReportCoreAccel(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
-	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
@@ -158,7 +156,6 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 #if defined(HAVE_WX) && HAVE_WX
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
-
 	// We settle with emulating two objects, not all four. We leave object 2 and 3 with 0xff.
 	FillReportIR(pReport->ir[0], pReport->ir[1]);
 #endif
@@ -169,7 +166,7 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
-	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
@@ -195,13 +192,13 @@ void SendReportCoreAccelExt16(u16 _channelID)
 	FillReportAcc(pReport->a);
 #endif
 
-	if(g_Config.iExtensionConnected == EXT_NUNCHUCK)
+	if(WiiMapping[g_ID].iExtensionConnected == EXT_NUNCHUCK)
 	{
 #if defined(HAVE_WX) && HAVE_WX
 		FillReportExtension(pReport->ext);
 #endif
 	}
-	else if(g_Config.iExtensionConnected == EXT_CLASSIC_CONTROLLER)
+	else if(WiiMapping[g_ID].iExtensionConnected == EXT_CLASSIC_CONTROLLER)
 	{
 #if defined(HAVE_WX) && HAVE_WX
 		FillReportClassicExtension(_ext);
@@ -214,7 +211,7 @@ void SendReportCoreAccelExt16(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
-	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
@@ -242,13 +239,13 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	FillReportAcc(pReport->a);
 	FillReportIRBasic(pReport->ir[0], pReport->ir[1]);
 #endif
-	if(g_Config.iExtensionConnected == EXT_NUNCHUCK)
+	if(WiiMapping[g_ID].iExtensionConnected == EXT_NUNCHUCK)
 	{
 #if defined(HAVE_WX) && HAVE_WX
 		FillReportExtension(pReport->ext);
 #endif
 	}
-	else if(g_Config.iExtensionConnected == EXT_CLASSIC_CONTROLLER)
+	else if(WiiMapping[g_ID].iExtensionConnected == EXT_CLASSIC_CONTROLLER)
 	{
 #if defined(HAVE_WX) && HAVE_WX
 		FillReportClassicExtension(_ext);
@@ -256,7 +253,7 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 		// Copy _ext to pReport->ext
 		memcpy(&pReport->ext, &_ext, sizeof(_ext));
 	}
-	else if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
+	else if(WiiMapping[g_ID].iExtensionConnected == EXT_GUITARHERO)
 	{
 #if defined(HAVE_WX) && HAVE_WX
 		FillReportGuitarHero3Extension(_GH3_ext);
@@ -268,7 +265,7 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 	
-	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);

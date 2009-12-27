@@ -311,6 +311,7 @@ class CFrame : public wxFrame
 
 		void OnShow_CheatsWindow(wxCommandEvent& event);
 		void OnLoadWiiMenu(wxCommandEvent& event);
+		void OnConnectWiimote(wxCommandEvent& event);
 		void GameListChanged(wxCommandEvent& event);
 
 		void OnGameListCtrl_ItemActivated(wxListEvent& event);

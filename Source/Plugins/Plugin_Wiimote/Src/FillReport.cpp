@@ -37,7 +37,6 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 namespace WiiMoteEmu
 {
 
-
 // Recorded movements
 // Variables: 0 = Wiimote, 1 = Nunchuck
 int g_RecordingPlaying[3]; //g_RecordingPlaying[0] = -1; g_RecordingPlaying[1] = -1;
@@ -134,8 +133,8 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 
 	// Return if the IR mode is wrong
 	if (Wm == WM_RECORDING_IR
-		&& (   (IRBytes == 12 && !(g_ReportingMode == 0x33))
-			|| (IRBytes == 10 && !(g_ReportingMode == 0x36 || g_ReportingMode == 0x37))
+		&& (   (IRBytes == 12 && !(g_ReportingMode[g_ID] == 0x33))
+			|| (IRBytes == 10 && !(g_ReportingMode[g_ID] == 0x36 || g_ReportingMode[g_ID] == 0x37))
 			)
 		)
 	{
@@ -203,6 +202,7 @@ bool RecordingPlayAccIR(u8 &_x, u8 &_y, u8 &_z, IRReportType &_IR, int Wm)
 
 	return true;
 }
+
 /* Because the playback is neatly controlled by RecordingPlayAccIR() we use these functions to be able to
    use RecordingPlayAccIR() for both accelerometer and IR recordings */
 bool RecordingPlay(u8 &_x, u8 &_y, u8 &_z, int Wm)
@@ -210,6 +210,7 @@ bool RecordingPlay(u8 &_x, u8 &_y, u8 &_z, int Wm)
 	wm_ir_basic IR;
 	return RecordingPlayAccIR(_x, _y, _z, IR, Wm);
 }
+
 template<class IRReportType>
 bool RecordingPlayIR(IRReportType &_IR)
 {
@@ -282,8 +283,6 @@ int RecordingCheckKeys(int WmNuIr)
 		}
 	}
 
-
-
 	// Return nothing if we don't have a match
 	if (!Match) return -1;
 
@@ -295,80 +294,48 @@ int RecordingCheckKeys(int WmNuIr)
 }
 
 
-// Subroutines
-
-int GetMapKeyState(int _MapKey, int Key)
+// Multi System Input Status Check
+bool IsKey(int Key)
 {
-	if (g_Config.bInputActive)
-	{
-		const int Page = 0;
+	int Ret = NULL;
 
-		if (_MapKey < 256)
+	if (WiiMapping[g_ID].Source > 0)
+	{
+		int MapKey = WiiMapping[g_ID].Button[Key];
+
+		if (MapKey < 256)
+		{
 #ifdef _WIN32
-			return GetAsyncKeyState(_MapKey);	// Keyboard (Windows)
+			Ret = GetAsyncKeyState(MapKey);		// Keyboard (Windows)
 #else
-			return KeyStatus[Key];			// Keyboard (Linux)
+			Ret = KeyStatus[MapKey];			// Keyboard (Linux)
 #endif
-		if (_MapKey < 0x1100)
-			return SDL_JoystickGetButton(PadState[Page].joy, _MapKey - 0x1000);	// Pad button
+		}
+		else if (MapKey < 0x1100)
+		{
+			Ret = SDL_JoystickGetButton(WiiMapping[g_ID].joy, MapKey - 0x1000);	// Pad button
+		}
 		else	// Pad hat
 		{
 			u8 HatCode, HatKey;
-			HatCode = SDL_JoystickGetHat(PadState[Page].joy, (_MapKey - 0x1100) / 0x0010);
-			HatKey = (_MapKey - 0x1100) % 0x0010;
+			HatCode = SDL_JoystickGetHat(WiiMapping[g_ID].joy, (MapKey - 0x1100) / 0x0010);
+			HatKey = (MapKey - 0x1100) % 0x0010;
 
 			if (HatCode & HatKey)
-				return HatKey;
+				Ret = HatKey;
 		}
-	}
-	return NULL;
-}
 
-// Multi System Input Status Check
-int IsKey(int Key)
-{
-	if (Key == g_Wiimote_kbd.SHAKE)
-	{
 #ifdef _WIN32
-		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A], Key) || GetAsyncKeyState(VK_MBUTTON);
-#else
-		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A], Key);
+		if ((Key == EWM_SHAKE && GetAsyncKeyState(VK_MBUTTON))
+			|| (Key == EWM_A && GetAsyncKeyState(VK_LBUTTON))
+			|| (Key == EWM_B && GetAsyncKeyState(VK_RBUTTON)))
+			Ret = 1;
 #endif
-	}
-	if (g_Wiimote_kbd.A <= Key && Key <= g_Wiimote_kbd.PITCH_D)
-	{
-		return GetMapKeyState(PadMapping[0].Wm.keyForControls[Key - g_Wiimote_kbd.A], Key);
-	}
-	if (g_NunchuckExt.Z <= Key && Key <= g_NunchuckExt.SHAKE)
-	{
-		return GetMapKeyState(PadMapping[0].Nc.keyForControls[Key - g_NunchuckExt.Z], Key);
-	}
-	if (g_ClassicContExt.A <= Key && Key <= g_ClassicContExt.Rd)
-	{
-		return GetMapKeyState(PadMapping[0].Cc.keyForControls[Key - g_ClassicContExt.A], Key);
-	}
-	if (g_GH3Ext.Green <= Key && Key <= g_GH3Ext.StrumDown)
-	{
-		return GetMapKeyState(PadMapping[0].GH3c.keyForControls[Key - g_GH3Ext.Green], Key);
-	}
-#ifdef _WIN32
-	switch(Key)
-	{
-	// Wiimote
-	case g_Wiimote_kbd.MA:
-		return GetAsyncKeyState(VK_LBUTTON);
-	case g_Wiimote_kbd.MB:
-		return GetAsyncKeyState(VK_RBUTTON);
-	// This should not happen
-	default:
-		PanicAlert("There is syntax error in a function that is calling IsKey(%i)", Key);
-		return false;
-	}
-#else
-	return KeyStatus[Key];
-#endif
-}
 
+	}
+
+	return (Ret) ? true : false;
+}
 
 // Wiimote core buttons
 void FillReportInfo(wm_core& _core)
@@ -376,350 +343,30 @@ void FillReportInfo(wm_core& _core)
 	// Check that Dolphin is in focus
 	if (!IsFocus()) return;
 
-	// Check the mouse position. Don't allow mouse clicks from outside the window.
-	float x, y; GetMousePos(x, y);
-	bool InsideScreen = !(x < 0 || x > 1 || y < 0 || y > 1);
-
 	// Allow both mouse buttons and keyboard to press a and b
-	if((IsKey(g_Wiimote_kbd.MA) && InsideScreen) || IsKey(g_Wiimote_kbd.A))
-		_core.a = 1;
-	if((IsKey(g_Wiimote_kbd.MB) && InsideScreen) || IsKey(g_Wiimote_kbd.B))
-		_core.b = 1;
-
-	_core.one = IsKey(g_Wiimote_kbd.ONE) ? 1 : 0;
-	_core.two = IsKey(g_Wiimote_kbd.TWO) ? 1 : 0;
-	_core.plus = IsKey(g_Wiimote_kbd.P) ? 1 : 0;
-	_core.minus = IsKey(g_Wiimote_kbd.M) ? 1 : 0;
-	_core.home = IsKey(g_Wiimote_kbd.H) ? 1 : 0;
+	_core.a = IsKey(EWM_A);
+	_core.b = IsKey(EWM_B);
+	_core.one = IsKey(EWM_ONE);
+	_core.two = IsKey(EWM_TWO);
+	_core.plus = IsKey(EWM_P);
+	_core.minus = IsKey(EWM_M);
+	_core.home = IsKey(EWM_H);
 
 	/* Sideways controls (for example for Wario Land) if the Wiimote is intended to be held sideways */
-	if(g_Config.bSideways)
+	if(WiiMapping[g_ID].bSideways)
 	{
-		_core.left = IsKey(g_Wiimote_kbd.D) ? 1 : 0;
-		_core.up = IsKey(g_Wiimote_kbd.L) ? 1 : 0;
-		_core.right = IsKey(g_Wiimote_kbd.U) ? 1 : 0;
-		_core.down = IsKey(g_Wiimote_kbd.R) ? 1 : 0;
+		_core.left = IsKey(EWM_D);
+		_core.up = IsKey(EWM_L);
+		_core.right = IsKey(EWM_U);
+		_core.down = IsKey(EWM_R);
 	}
 	else
 	{
-		_core.left = IsKey(g_Wiimote_kbd.L) ? 1 : 0;
-		_core.up = IsKey(g_Wiimote_kbd.U) ? 1 : 0;
-		_core.right = IsKey(g_Wiimote_kbd.R) ? 1 : 0;
-		_core.down = IsKey(g_Wiimote_kbd.D) ? 1 : 0;
+		_core.left = IsKey(EWM_L);
+		_core.up = IsKey(EWM_U);
+		_core.right = IsKey(EWM_R);
+		_core.down = IsKey(EWM_D);
 	}
-}
-
-
-// Wiimote accelerometer
-/* The accelerometer x, y and z values range from 0x00 to 0xff with the default
-   netural values being [y = 0x84, x = 0x84, z = 0x9f] according to a
-   source. The extremes are 0x00 for (-) and 0xff for (+). It's important that
-   all values are not 0x80, the mouse pointer can disappear from the screen
-   permanently then, until z is adjusted back. This is because the game detects
-   a steep pitch of the Wiimote then.
-
-Wiimote Accelerometer Axes
-
-+ (- -- X -- +)
-|      ___  
-|     |   |\  -
-|     | + ||   \ 
-      | . ||    \
-Y     |. .||     Z
-      | . ||      \
-|     | . ||       \
-|     |___||        +
--       ---
-
-*/
-
-// Single shake step of all three directions
-void ShakeToAccelerometer(int &_x, int &_y, int &_z, STiltData &_TiltData)
-{
-	switch(_TiltData.Shake)
-	{
-	case 0:
-		_TiltData.Shake = -1;
-		break;
-	case 1:
-	case 3:
-		_x = g_wm.cal_zero.x / 2;
-		_y = g_wm.cal_zero.y / 2;
-		_z = g_wm.cal_zero.z / 2;
-		break;
-	case 5:
-	case 7:
-		_x = (0xFF - g_wm.cal_zero.x ) / 2;
-		_y = (0xFF - g_wm.cal_zero.y ) / 2;
-		_z = (0xFF - g_wm.cal_zero.z ) / 2;
-		break;
-	case 2:
-		_x = 0x00;
-		_y = 0x00;
-		_z = 0x00;
-		break;
-	case 6:
-		_x = 0xFF;
-		_y = 0xFF;
-		_z = 0xFF;
-		break;
-	case 4:
-		_x = 0x80;
-		_y = 0x80;
-		_z = 0x80;
-		break;
-	default:
-		_TiltData.Shake = -1;
-		break;
-	}
-	_TiltData.Shake++;
-	
-	if (_TiltData.Shake != 0)
-	{
-		DEBUG_LOG(WIIMOTE, "Shake: %i - 0x%02x, 0x%02x, 0x%02x", _TiltData.Shake, _x, _y, _z);
-	}
-}
-
-/* Tilting by gamepad. We can guess that the game will calculate
-   roll and pitch and use them as measures of the tilting. We are
-   interested in this tilting range 90 to -90*/
-void TiltByGamepad(STiltData &_TiltData, int Type)
-{
-	// Return if we have no pads
-	if (NumGoodPads == 0) return;
-
-	// This has to be changed if multiple Wiimotes are to be supported later
-	const int Page = 0;
-
-	/* Adjust the pad state values, including a downscaling from the original
-	   0x8000 size values to 0x80. The only reason we do this is that the code
-	   below crrently assume that the range is 0 to 255 for all axes. If we
-	   lose any precision by doing this we could consider not doing this
-	   adjustment. And instead for example upsize the XInput trigger from 0x80
-	   to 0x8000. */
-	int Lx, Ly, Rx, Ry, Tl, Tr;
-	PadStateAdjustments(Lx, Ly, Rx, Ry, Tl, Tr);
-
-	// Save the Range in degrees, 45 and 90 are good values in some games
-	int &RollRange = g_Config.Tilt.Range.Roll;
-	int &PitchRange = g_Config.Tilt.Range.Pitch;
-
-	// The trigger currently only controls pitch, no roll, no free swing
-	if (Type == g_Config.Tilt.TRIGGER)
-	{
-		// Make the range the same dimension as the analog stick
-		Tl = Tl / 2;
-		Tr = Tr / 2;
-		// Invert
-		if (g_Config.Tilt.PitchInvert) { Tl = -Tl; Tr = -Tr; }
-		// The final value
-		_TiltData.Pitch = (float)PitchRange * ((float)(Tl - Tr) / 128.0f);
-	}
-
-	/* For the analog stick roll is by default set to the X-axis, pitch is by
-	   default set to the Y-axis.  By changing the axis mapping and the invert
-	   options this can be altered in any way */
-	else if (Type == g_Config.Tilt.ANALOG1)
-	{
-		// Adjust the trigger to go between negative and positive values
-		Lx = Lx - 0x80;
-		Ly = Ly - 0x80;
-		// Invert
-		if (g_Config.Tilt.RollInvert) Lx = -Lx; // else Tr = -Tr;
-		if (g_Config.Tilt.PitchInvert) Ly = -Ly; // else Tr = -Tr;
-		// Produce the final value
-		_TiltData.Roll = (RollRange) ? (float)RollRange * ((float)Lx / 128.0f) : Lx;
-		_TiltData.Pitch = (PitchRange) ? (float)PitchRange * ((float)Ly / 128.0f) : Ly;
-	}
-	// Otherwise we are using ANALOG2
-	else
-	{
-		// Adjust the trigger to go between negative and positive values
-		Rx = Rx - 0x80;
-		Ry = Ry - 0x80;
-		// Invert
-		if (g_Config.Tilt.RollInvert) Rx = -Rx; // else Tr = -Tr;
-		if (g_Config.Tilt.PitchInvert) Ry = -Ry; // else Tr = -Tr;
-		// Produce the final value
-		_TiltData.Roll = (RollRange) ? (float)RollRange * ((float)Rx / 128.0f) : Rx;
-		_TiltData.Pitch = (PitchRange) ? (float)PitchRange * ((float)Ry / 128.0f) : Ry;
-	}
-}
-
-// Tilting Wiimote by keyboard
-void TiltByKeyboardWM(STiltData &_TiltData)
-{
-	// Do roll/pitch or free swing
-	if (IsKey(g_Wiimote_kbd.ROLL_L))
-	{
-		if (g_Config.Tilt.Range.Roll)
-		{
-			// Stop at the lower end of the range
-			if (_TiltData.Roll > -g_Config.Tilt.Range.Roll)
-				_TiltData.Roll -= 3; // aim left
-		}
-		else // Free swing
-		{
-			_TiltData.Roll = -0x80 / 2;
-		}
-	}
-	else if (IsKey(g_Wiimote_kbd.ROLL_R))
-	{
-		if (g_Config.Tilt.Range.Roll)
-		{
-			// Stop at the upper end of the range
-			if (_TiltData.Roll < g_Config.Tilt.Range.Roll)
-				_TiltData.Roll += 3; // aim right
-		}
-		else // Free swing
-		{
-			_TiltData.Roll = 0x80 / 2;
-		}
-	}
-	else
-	{
-		_TiltData.Roll = 0;
-	}
-	if (IsKey(g_Wiimote_kbd.PITCH_U))
-	{
-		if (g_Config.Tilt.Range.Pitch)
-		{
-			// Stop at the lower end of the range
-			if (_TiltData.Pitch > -g_Config.Tilt.Range.Pitch)
-				_TiltData.Pitch -= 3; // aim down
-		}
-		else // Free swing
-		{
-			_TiltData.Pitch = -0x80 / 2;
-		}
-	}
-	else if (IsKey(g_Wiimote_kbd.PITCH_D))
-	{
-		if (g_Config.Tilt.Range.Pitch)
-		{
-			// Stop at the upper end of the range
-			if (_TiltData.Pitch < g_Config.Tilt.Range.Pitch)
-				_TiltData.Pitch += 3; // aim up
-		}
-		else // Free swing
-		{
-			_TiltData.Pitch = 0x80 / 2;
-		}
-	}
-	else
-	{
-		_TiltData.Pitch = 0;
-	}
-}
-
-// Tilting Nunchuck by keyboard
-void TiltByKeyboardNC(STiltData &_TiltData)
-{
-	// Do roll/pitch or free swing
-	if (IsKey(g_NunchuckExt.ROLL_L))
-	{
-		if (g_Config.Tilt.Range.Roll)
-		{
-			// Stop at the lower end of the range
-			if (_TiltData.Roll > -g_Config.Tilt.Range.Roll)
-				_TiltData.Roll -= 3; // aim left
-		}
-		else // Free swing
-		{
-			_TiltData.Roll = -0x80 / 2;
-		}
-	}
-	else if (IsKey(g_NunchuckExt.ROLL_R))
-	{
-		if (g_Config.Tilt.Range.Roll)
-		{
-			// Stop at the upper end of the range
-			if (_TiltData.Roll < g_Config.Tilt.Range.Roll)
-				_TiltData.Roll += 3; // aim right
-		}
-		else // Free swing
-		{
-			_TiltData.Roll = 0x80 / 2;
-		}
-	}
-	else
-	{
-		_TiltData.Roll = 0;
-	}
-	if (IsKey(g_NunchuckExt.PITCH_U))
-	{
-		if (g_Config.Tilt.Range.Pitch)
-		{
-			// Stop at the lower end of the range
-			if (_TiltData.Pitch > -g_Config.Tilt.Range.Pitch)
-				_TiltData.Pitch -= 3; // aim up
-		}
-		else // Free swing
-		{
-			_TiltData.Pitch = -0x80 / 2;
-		}
-	}
-	else if (IsKey(g_NunchuckExt.PITCH_D))
-	{
-		if (g_Config.Tilt.Range.Pitch)
-		{
-			// Stop at the upper end of the range
-			if (_TiltData.Pitch < g_Config.Tilt.Range.Pitch)
-				_TiltData.Pitch += 3; // aim down
-		}
-		else // Free swing
-		{
-			_TiltData.Pitch = 0x80 / 2;
-		}
-	}
-	else
-	{
-		_TiltData.Pitch = 0;
-	}
-}
-
-// Tilting Wiimote (Wario Land aiming, Mario Kart steering and other things)
-void TiltWiimote(int &_x, int &_y, int &_z)
-{
-	// Check if it's on
-	if (g_Config.Tilt.TypeWM == g_Config.Tilt.OFF)
-		return;
-	// Select input method and return the x, y, x values
-	else if (g_Config.Tilt.TypeWM == g_Config.Tilt.KEYBOARD)
-		TiltByKeyboardWM(g_WiimoteData[g_RefreshWiimote].TiltWM);
-	else
-		TiltByGamepad(g_WiimoteData[g_RefreshWiimote].TiltWM, g_Config.Tilt.TypeWM);
-
-	// Adjust angles, it's only needed if both roll and pitch is used together
-	if (g_Config.Tilt.Range.Roll != 0 && g_Config.Tilt.Range.Pitch != 0)
-		AdjustAngles(g_WiimoteData[g_RefreshWiimote].TiltWM.Roll, g_WiimoteData[g_RefreshWiimote].TiltWM.Pitch);
-
-	// Calculate the accelerometer value from this tilt angle
-	TiltToAccelerometer(_x, _y, _z, g_WiimoteData[g_RefreshWiimote].TiltWM);
-
-	//DEBUG_LOG(WIIMOTE, "Roll:%i, Pitch:%i, _x:%u, _y:%u, _z:%u", g_Wiimote_kbd.TiltData.Roll, g_Wiimote_kbd.TiltData.Pitch, _x, _y, _z);
-}
-
-// Tilting Nunchuck (Mad World, Dead Space and other things)
-void TiltNunchuck(int &_x, int &_y, int &_z)
-{
-	// Check if it's on
-	if (g_Config.Tilt.TypeNC == g_Config.Tilt.OFF)
-		return;
-	// Select input method and return the x, y, x values
-	else if (g_Config.Tilt.TypeNC == g_Config.Tilt.KEYBOARD)
-		TiltByKeyboardNC(g_WiimoteData[g_RefreshWiimote].TiltNC);
-	else
-		TiltByGamepad(g_WiimoteData[g_RefreshWiimote].TiltNC, g_Config.Tilt.TypeNC);
-
-	// Adjust angles, it's only needed if both roll and pitch is used together
-	if (g_Config.Tilt.Range.Roll != 0 && g_Config.Tilt.Range.Pitch != 0)
-		AdjustAngles(g_WiimoteData[g_RefreshWiimote].TiltNC.Roll, g_WiimoteData[g_RefreshWiimote].TiltNC.Pitch);
-
-	// Calculate the accelerometer value from this tilt angle
-	TiltToAccelerometer(_x, _y, _z, g_WiimoteData[g_RefreshWiimote].TiltNC);
-
-	//DEBUG_LOG(WIIMOTE, "Roll:%i, Pitch:%i, _x:%u, _y:%u, _z:%u", g_NunchuckExt.TiltData.Roll, g_NunchuckExt.TiltData.Pitch, _x, _y, _z);
 }
 
 void FillReportAcc(wm_accel& _acc)
@@ -744,12 +391,12 @@ void FillReportAcc(wm_accel& _acc)
 	_acc.z = g_wm.cal_zero.z;
 
 	// Adjust position, also add some noise to prevent disconnection
-	if (!g_Config.bUpright)
-		_acc.z += g_wm.cal_g.z + g_WiimoteData[g_RefreshWiimote].TiltWM.FakeNoise;
+	if (!WiiMapping[g_ID].bUpright)
+		_acc.z += g_wm.cal_g.z + WiiMapping[g_ID].Motion.TiltWM.FakeNoise;
 	else	// Upright wiimote
-		_acc.y -= g_wm.cal_g.y + g_WiimoteData[g_RefreshWiimote].TiltWM.FakeNoise;
+		_acc.y -= g_wm.cal_g.y + WiiMapping[g_ID].Motion.TiltWM.FakeNoise;
 
-	g_WiimoteData[g_RefreshWiimote].TiltWM.FakeNoise = -g_WiimoteData[g_RefreshWiimote].TiltWM.FakeNoise;
+	WiiMapping[g_ID].Motion.TiltWM.FakeNoise = -WiiMapping[g_ID].Motion.TiltWM.FakeNoise;
 
 	if (IsFocus())
 	{
@@ -757,14 +404,14 @@ void FillReportAcc(wm_accel& _acc)
 		int acc_y = _acc.y;
 		int acc_z = _acc.z;
 
-		if (IsKey(g_Wiimote_kbd.SHAKE) && g_WiimoteData[g_RefreshWiimote].TiltWM.Shake == 0)
-			g_WiimoteData[g_RefreshWiimote].TiltWM.Shake = 1;
+		if (IsKey(EWM_SHAKE) && !WiiMapping[g_ID].Motion.TiltWM.Shake)
+			WiiMapping[g_ID].Motion.TiltWM.Shake = 1;
 
 		// Step the shake simulation one step
-		ShakeToAccelerometer(acc_x, acc_y, acc_z, g_WiimoteData[g_RefreshWiimote].TiltWM);
+		ShakeToAccelerometer(acc_x, acc_y, acc_z, WiiMapping[g_ID].Motion.TiltWM);
 
 		// Tilt Wiimote, allow the shake function to interrupt it
-		if (g_WiimoteData[g_RefreshWiimote].TiltWM.Shake == 0)
+		if (!WiiMapping[g_ID].Motion.TiltWM.Shake)
 			TiltWiimote(acc_x, acc_y, acc_z);
 
 		// Boundary check
@@ -855,32 +502,6 @@ void FillReportAcc(wm_accel& _acc)
 		);*/	
 }
 
-// Rotate IR dot when rolling Wiimote
-void RotateIRDot(int &_x, int &_y, STiltData &_TiltData)
-{
-	if (g_Config.Tilt.Range.Roll == 0 || _TiltData.Roll == 0)
-		return;
-
-	// The IR camera resolution is 1023x767
-	float dot_x = _x - 1023.0f / 2;
-	float dot_y = _y - 767.0f / 2;
-
-	float radius = sqrt(pow(dot_x, 2) + pow(dot_y, 2));
-	float radian = atan2(dot_y, dot_x);
-
-	_x = radius * cos(radian + InputCommon::Deg2Rad((float)_TiltData.Roll)) + 1023.0f / 2;
-	_y = radius * sin(radian + InputCommon::Deg2Rad((float)_TiltData.Roll)) + 767.0f / 2;
-
-	// Out of sight check
-	if (_x < 0 || _x > 1023) _x = 0xFFFF;
-	if (_y < 0 || _y > 767) _y = 0xFFFF;
-}
-
-/*
-		int Top = TOP, Left = LEFT, Right = RIGHT,
-		Bottom = BOTTOM, SensorBarRadius = SENSOR_BAR_RADIUS;		
-*/
-
 // The extended 12 byte (3 byte per object) reporting
 void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 {
@@ -916,8 +537,8 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	int x0 = 1023 - g_Config.iIRLeft - g_Config.iIRWidth * MouseX - SENSOR_BAR_WIDTH / 2;
 	int x1 = x0 + SENSOR_BAR_WIDTH;
 
-	RotateIRDot(x0, y0, g_WiimoteData[g_RefreshWiimote].TiltWM);
-	RotateIRDot(x1, y1, g_WiimoteData[g_RefreshWiimote].TiltWM);
+	RotateIRDot(x0, y0, WiiMapping[g_ID].Motion.TiltWM);
+	RotateIRDot(x1, y1, WiiMapping[g_ID].Motion.TiltWM);
 
 	// Converted to IR data
 	_ir0.x = x0 & 0xff; _ir0.xHi = x0 >> 8;
@@ -963,7 +584,6 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 // The 10 byte reporting used when an extension is connected
 void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 {
-
 	// Recorded movements
 	// Check for a playback command
 	if(g_RecordingPlaying[2] < 0)
@@ -993,8 +613,8 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	int x1 = 1023 - g_Config.iIRLeft - g_Config.iIRWidth * MouseX - SENSOR_BAR_WIDTH / 2;
 	int x2 = x1 + SENSOR_BAR_WIDTH;
 
-	RotateIRDot(x1, y1, g_WiimoteData[g_RefreshWiimote].TiltWM);
-	RotateIRDot(x2, y2, g_WiimoteData[g_RefreshWiimote].TiltWM);
+	RotateIRDot(x1, y1, WiiMapping[g_ID].Motion.TiltWM);
+	RotateIRDot(x2, y2, WiiMapping[g_ID].Motion.TiltWM);
 
 	/* As with the extented report we settle with emulating two out of four
 	   possible objects the only difference is that we don't report any size of
@@ -1046,9 +666,6 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 }
 
 
-// Extensions
-
-
 /* Generate the 6 byte extension report for the Nunchuck, encrypted. The bytes
    are JX JY AX AY AZ BT. */
 void FillReportExtension(wm_extension& _ext)
@@ -1076,120 +693,118 @@ void FillReportExtension(wm_extension& _ext)
 	_ext.ay = g_nu.cal_zero.y;
 	_ext.az = g_nu.cal_zero.z + g_nu.cal_g.z;
 
-if (IsFocus())
-{
-	int acc_x = _ext.ax;
-	int acc_y = _ext.ay;
-	int acc_z = _ext.az;
-
-	if (IsKey(g_NunchuckExt.SHAKE) && g_WiimoteData[g_RefreshWiimote].TiltNC.Shake == 0)
-			g_WiimoteData[g_RefreshWiimote].TiltNC.Shake = 1;
-
-	// Step the shake simulation one step
-	ShakeToAccelerometer(acc_x, acc_y, acc_z, g_WiimoteData[g_RefreshWiimote].TiltNC);
-
-	// Tilt Nunchuck, allow the shake function to interrupt it
-	if (g_WiimoteData[g_RefreshWiimote].TiltNC.Shake == 0)
-		TiltNunchuck(acc_x, acc_y, acc_z);
-
-	// Boundary check
-	if (acc_x > 0xFF)	acc_x = 0xFF;
-	else if (acc_x < 0x00)	acc_x = 0x00;
-	if (acc_y > 0xFF)	acc_y = 0xFF;
-	else if (acc_y < 0x00)	acc_y = 0x00;
-	if (acc_z > 0xFF)	acc_z = 0xFF;
-	else if (acc_z < 0x00)	acc_z = 0x00;
-	
-	_ext.ax = acc_x;
-	_ext.ay = acc_y;
-	_ext.az = acc_z;
-
-	// Update the analog stick
-	if (g_Config.Nunchuck.Type == g_Config.Nunchuck.KEYBOARD)
+	if (IsFocus())
 	{
-		// Set the max values to the current calibration values
-		if(IsKey(g_NunchuckExt.L)) // x
-			_ext.jx = g_nu.jx.min;
-		if(IsKey(g_NunchuckExt.R))
-			_ext.jx = g_nu.jx.max;
+		int acc_x = _ext.ax;
+		int acc_y = _ext.ay;
+		int acc_z = _ext.az;
 
-		if(IsKey(g_NunchuckExt.D)) // y
-			_ext.jy = g_nu.jy.min;
-		if(IsKey(g_NunchuckExt.U))
-			_ext.jy = g_nu.jy.max;
+		if (IsKey(ENC_SHAKE) && !WiiMapping[g_ID].Motion.TiltNC.Shake)
+			WiiMapping[g_ID].Motion.TiltNC.Shake = 1;
 
-		// On a real stick, the initialization value of center is 0x80,
-		// but after a first time touch, the center value automatically changes to 0x7F
-		if(_ext.jx != g_nu.jx.center)
-			g_nu.jx.center = 0x7F;
-		if(_ext.jy != g_nu.jy.center)
-			g_nu.jy.center = 0x7F;
+		// Step the shake simulation one step
+		ShakeToAccelerometer(acc_x, acc_y, acc_z, WiiMapping[g_ID].Motion.TiltNC);
+
+		// Tilt Nunchuck, allow the shake function to interrupt it
+		if (!WiiMapping[g_ID].Motion.TiltNC.Shake)
+			TiltNunchuck(acc_x, acc_y, acc_z);
+
+		// Boundary check
+		if (acc_x > 0xFF)	acc_x = 0xFF;
+		else if (acc_x < 0x00)	acc_x = 0x00;
+		if (acc_y > 0xFF)	acc_y = 0xFF;
+		else if (acc_y < 0x00)	acc_y = 0x00;
+		if (acc_z > 0xFF)	acc_z = 0xFF;
+		else if (acc_z < 0x00)	acc_z = 0x00;
+
+		_ext.ax = acc_x;
+		_ext.ay = acc_y;
+		_ext.az = acc_z;
+
+		// Update the analog stick
+		if (WiiMapping[g_ID].Stick.NC == FROM_KEYBOARD)
+		{
+			// Set the max values to the current calibration values
+			if(IsKey(ENC_L)) // x
+				_ext.jx = g_nu.jx.min;
+			if(IsKey(ENC_R))
+				_ext.jx = g_nu.jx.max;
+
+			if(IsKey(ENC_D)) // y
+				_ext.jy = g_nu.jy.min;
+			if(IsKey(ENC_U))
+				_ext.jy = g_nu.jy.max;
+
+			// On a real stick, the initialization value of center is 0x80,
+			// but after a first time touch, the center value automatically changes to 0x7F
+			if(_ext.jx != g_nu.jx.center)
+				g_nu.jx.center = 0x7F;
+			if(_ext.jy != g_nu.jy.center)
+				g_nu.jy.center = 0x7F;
+		}
+		else
+		{
+			// Get adjusted pad state values
+			int _Lx = WiiMapping[g_ID].AxisState.Lx;
+			int _Ly = WiiMapping[g_ID].AxisState.Ly;
+			int _Rx = WiiMapping[g_ID].AxisState.Rx;
+			int _Ry = WiiMapping[g_ID].AxisState.Ry;
+
+			// The Y-axis is inverted
+			_Ly = 0xff - _Ly;
+			_Ry = 0xff - _Ry;
+
+			/* This is if we are also using a real Nunchuck that we are sharing the
+			calibration with. It's not needed if we are using our default
+			values. We adjust the values to the configured range, we even allow
+			the center to not be 0x80. */
+			if(g_nu.jx.max != 0xff || g_nu.jy.max != 0xff
+				|| g_nu.jx.min != 0 || g_nu.jy.min != 0
+				|| g_nu.jx.center != 0x80 || g_nu.jy.center != 0x80)
+			{
+				float Lx = (float)_Lx;
+				float Ly = (float)_Ly;
+				float Rx = (float)_Rx;
+				float Ry = (float)_Ry;
+				//float Tl = (float)_Tl;
+				//float Tr = (float)_Tr;
+
+				float XRangePos = (float) (g_nu.jx.max - g_nu.jx.center);
+				float XRangeNeg = (float) (g_nu.jx.center - g_nu.jx.min);
+				float YRangePos = (float) (g_nu.jy.max - g_nu.jy.center);
+				float YRangeNeg = (float) (g_nu.jy.center - g_nu.jy.min);
+				if (Lx > 0x80) Lx = Lx * (XRangePos / 128.0);
+				if (Lx < 0x80) Lx = Lx * (XRangeNeg / 128.0);
+				if (Lx == 0x80) Lx = (float)g_nu.jx.center;
+				if (Ly > 0x80) Ly = Ly * (YRangePos / 128.0);
+				if (Ly < 0x80) Ly = Ly * (YRangeNeg / 128.0);
+				if (Ly == 0x80) Lx = (float)g_nu.jy.center;
+				// Boundaries
+				_Lx = (int)Lx;
+				_Ly = (int)Ly;
+				_Rx = (int)Rx;
+				_Ry = (int)Ry;
+				if (_Lx > 0xff) _Lx = 0xff; if (_Lx < 0) _Lx = 0;
+				if (_Rx > 0xff) _Rx = 0xff; if (_Rx < 0) _Rx = 0;
+				if (_Ly > 0xff) _Ly = 0xff; if (_Ly < 0) _Ly = 0;
+				if (_Ry > 0xff) _Ry = 0xff; if (_Ry < 0) _Ry = 0;
+			}
+
+			if (WiiMapping[g_ID].Stick.NC == FROM_ANALOG1)
+			{
+				_ext.jx = _Lx;
+				_ext.jy = _Ly;
+			}
+			else // ANALOG2
+			{
+				_ext.jx = _Rx;
+				_ext.jy = _Ry;
+			}
+		}
+
+		if(IsKey(ENC_C)) _ext.bt &= ~0x02;
+		if(IsKey(ENC_Z)) _ext.bt &= ~0x01;
 	}
-	else
-	{
-		// Get adjusted pad state values
-		int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
-		PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
-		// The Y-axis is inverted
-		_Ly = 0xff - _Ly;
-		_Ry = 0xff - _Ry;
-
-		/* This is if we are also using a real Nunchuck that we are sharing the
-		   calibration with. It's not needed if we are using our default
-		   values. We adjust the values to the configured range, we even allow
-		   the center to not be 0x80. */
-		if(g_nu.jx.max != 0xff || g_nu.jy.max != 0xff
-			|| g_nu.jx.min != 0 || g_nu.jy.min != 0
-			|| g_nu.jx.center != 0x80 || g_nu.jy.center != 0x80)
-		{
-			float Lx = (float)_Lx;
-			float Ly = (float)_Ly;
-			float Rx = (float)_Rx;
-			float Ry = (float)_Ry;
-			//float Tl = (float)_Tl;
-			//float Tr = (float)_Tr;
-
-			float XRangePos = (float) (g_nu.jx.max - g_nu.jx.center);
-			float XRangeNeg = (float) (g_nu.jx.center - g_nu.jx.min);
-			float YRangePos = (float) (g_nu.jy.max - g_nu.jy.center);
-			float YRangeNeg = (float) (g_nu.jy.center - g_nu.jy.min);
-			if (Lx > 0x80) Lx = Lx * (XRangePos / 128.0);
-			if (Lx < 0x80) Lx = Lx * (XRangeNeg / 128.0);
-			if (Lx == 0x80) Lx = (float)g_nu.jx.center;
-			if (Ly > 0x80) Ly = Ly * (YRangePos / 128.0);
-			if (Ly < 0x80) Ly = Ly * (YRangeNeg / 128.0);
-			if (Ly == 0x80) Lx = (float)g_nu.jy.center;
-			// Boundaries
-			_Lx = (int)Lx;
-			_Ly = (int)Ly;
-			_Rx = (int)Rx;
-			_Ry = (int)Ry;
-			if (_Lx > 0xff) _Lx = 0xff; if (_Lx < 0) _Lx = 0;
-			if (_Rx > 0xff) _Rx = 0xff; if (_Rx < 0) _Rx = 0;
-			if (_Ly > 0xff) _Ly = 0xff; if (_Ly < 0) _Ly = 0;
-			if (_Ry > 0xff) _Ry = 0xff; if (_Ry < 0) _Ry = 0;
-		}
-
-		if (g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG1)
-		{
-			_ext.jx = _Lx;
-			_ext.jy = _Ly;
-		}
-		else // ANALOG2
-		{
-			_ext.jx = _Rx;
-			_ext.jy = _Ry;
-		}
-	}
-
-	if(IsKey(g_NunchuckExt.C))
-		_ext.bt = 0x01;
-	if(IsKey(g_NunchuckExt.Z))
-		_ext.bt = 0x02;	
-	if(IsKey(g_NunchuckExt.C) && IsKey(g_NunchuckExt.Z))
-		_ext.bt = 0x00;
-
-}
 
 	/* Here we encrypt the report */
 
@@ -1254,15 +869,15 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		*/
 
 		// Update the left analog stick
-		if (g_Config.ClassicController.LType == g_Config.ClassicController.KEYBOARD)
+		if (WiiMapping[g_ID].Stick.CCL == FROM_KEYBOARD)
 		{
-			if(IsKey(g_ClassicContExt.Ll)) // Left analog left
+			if(IsKey(ECC_Ll)) // Left analog left
 				Lx = g_ClassicContCalibration.Lx.min;
-			if(IsKey(g_ClassicContExt.Lu)) // up
-				Ly = g_ClassicContCalibration.Ly.max;
-			if(IsKey(g_ClassicContExt.Lr)) // right
+			if(IsKey(ECC_Lr)) // right
 				Lx = g_ClassicContCalibration.Lx.max;
-			if(IsKey(g_ClassicContExt.Ld)) // down
+			if(IsKey(ECC_Lu)) // up
+				Ly = g_ClassicContCalibration.Ly.max;
+			if(IsKey(ECC_Ld)) // down
 				Ly = g_ClassicContCalibration.Ly.min;
 
 			// On a real stick, the initialization value of center is 0x80,
@@ -1275,8 +890,11 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		else
 		{
 			// Get adjusted pad state values
-			int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
-			PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
+			int _Lx = WiiMapping[g_ID].AxisState.Lx;
+			int _Ly = WiiMapping[g_ID].AxisState.Ly;
+			int _Rx = WiiMapping[g_ID].AxisState.Rx;
+			int _Ry = WiiMapping[g_ID].AxisState.Ry;
+
 			// The Y-axis is inverted
 			_Ly = 0xff - _Ly;
 			_Ry = 0xff - _Ry;
@@ -1290,7 +908,7 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 			   with the real Classic Controller
 			   */
 
-			if (g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG1)
+			if (WiiMapping[g_ID].Stick.CCL == FROM_ANALOG1)
 			{
 				Lx = _Lx;
 				Ly = _Ly;
@@ -1303,15 +921,15 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		}
 
 		// Update the right analog stick
-		if (g_Config.ClassicController.RType == g_Config.ClassicController.KEYBOARD)
+		if (WiiMapping[g_ID].Stick.CCR == FROM_KEYBOARD)
 		{
-			if(IsKey(g_ClassicContExt.Rl)) // Right analog left
+			if(IsKey(ECC_Rl)) // Right analog left
 				Rx = g_ClassicContCalibration.Rx.min;
-			if(IsKey(g_ClassicContExt.Ru)) // up
-				Ry = g_ClassicContCalibration.Ry.max;
-			if(IsKey(g_ClassicContExt.Rr)) // right
+			if(IsKey(ECC_Rr)) // right
 				Rx = g_ClassicContCalibration.Rx.max;
-			if(IsKey(g_ClassicContExt.Rd)) // down
+			if(IsKey(ECC_Ru)) // up
+				Ry = g_ClassicContCalibration.Ry.max;
+			if(IsKey(ECC_Rd)) // down
 				Ry = g_ClassicContCalibration.Ry.min;
 
 			// On a real stick, the initialization value of center is 0x80,
@@ -1324,8 +942,11 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		else
 		{
 			// Get adjusted pad state values
-			int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
-			PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
+			int _Lx = WiiMapping[g_ID].AxisState.Lx;
+			int _Ly = WiiMapping[g_ID].AxisState.Ly;
+			int _Rx = WiiMapping[g_ID].AxisState.Rx;
+			int _Ry = WiiMapping[g_ID].AxisState.Ry;
+
 			// The Y-axis is inverted
 			_Ly = 0xff - _Ly;
 			_Ry = 0xff - _Ry;
@@ -1339,7 +960,7 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 			   with the real Classic Controller
 			   */
 
-			if (g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG1)
+			if (WiiMapping[g_ID].Stick.CCR == FROM_ANALOG1)
 			{
 				Rx = _Lx;
 				Ry = _Ly;
@@ -1352,18 +973,18 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 		}
 
 		// Update the left and right analog triggers
-		if (g_Config.ClassicController.TType == g_Config.ClassicController.KEYBOARD)
+		if (WiiMapping[g_ID].Stick.CCT == FROM_KEYBOARD)
 		{
-			if(IsKey(g_ClassicContExt.Tl)) // analog left trigger
+			if(IsKey(ECC_Tl)) // analog left trigger
 				{ _ext.b1.bLT = 0x00; lT = 0x1f; }
-			if(IsKey(g_ClassicContExt.Tr)) // analog right trigger
+			if(IsKey(ECC_Tr)) // analog right trigger
 				{ _ext.b1.bRT = 0x00; rT = 0x1f; }
 		}
 		else // g_Config.ClassicController.TRIGGER
 		{
 			// Get adjusted pad state values
-			int _Lx, _Ly, _Rx, _Ry, _Tl, _Tr;
-			PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
+			int _Tl = WiiMapping[g_ID].AxisState.Tl;
+			int _Tr = WiiMapping[g_ID].AxisState.Tr;
 
 			/* This is if we are also using a real Classic Controller that we
 			   are sharing the calibration with.  It's not needed if we are
@@ -1385,8 +1006,6 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 			rT = _Tr;
 		}
 
-
-
 		/* D-Pad
 		
 		u8 b1;
@@ -1398,10 +1017,10 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 			0: bdU
 			1: bdL	
 		*/
-		if(IsKey(g_ClassicContExt.Dl)) _ext.b2.bdL = 0x00; // Digital left
-		if(IsKey(g_ClassicContExt.Du)) _ext.b2.bdU = 0x00; // Up
-		if(IsKey(g_ClassicContExt.Dr)) _ext.b1.bdR = 0x00; // Right
-		if(IsKey(g_ClassicContExt.Dd)) _ext.b1.bdD = 0x00; // Down		
+		if(IsKey(ECC_Dl)) _ext.b2.bdL = 0x00; // Digital left
+		if(IsKey(ECC_Du)) _ext.b2.bdU = 0x00; // Up
+		if(IsKey(ECC_Dr)) _ext.b1.bdR = 0x00; // Right
+		if(IsKey(ECC_Dd)) _ext.b1.bdD = 0x00; // Down		
 
 		/* Buttons
 			u8 b1;
@@ -1419,32 +1038,15 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 				6: bB
 				7: bZl
 		*/
-		if(IsKey(g_ClassicContExt.A))
-			_ext.b2.bA = 0x00;
-
-		if(IsKey(g_ClassicContExt.B))
-			_ext.b2.bB = 0x00;
-
-		if(IsKey(g_ClassicContExt.Y))
-			_ext.b2.bY = 0x00;
-
-		if(IsKey(g_ClassicContExt.X))
-			_ext.b2.bX = 0x00;
-
-		if(IsKey(g_ClassicContExt.P))
-			_ext.b1.bP = 0x00;
-
-		if(IsKey(g_ClassicContExt.M))
-			_ext.b1.bM = 0x00;
-
-		if(IsKey(g_ClassicContExt.H))
-			_ext.b1.bH = 0x00;
-
-		if(IsKey(g_ClassicContExt.Zl))
-			_ext.b2.bZL = 0x00;
-
-		if(IsKey(g_ClassicContExt.Zr))
-			_ext.b2.bZR = 0x00;
+		if(IsKey(ECC_A)) _ext.b2.bA = 0x00;
+		if(IsKey(ECC_B)) _ext.b2.bB = 0x00;
+		if(IsKey(ECC_Y)) _ext.b2.bY = 0x00;
+		if(IsKey(ECC_X)) _ext.b2.bX = 0x00;
+		if(IsKey(ECC_P)) _ext.b1.bP = 0x00;
+		if(IsKey(ECC_M)) _ext.b1.bM = 0x00;
+		if(IsKey(ECC_H)) _ext.b1.bH = 0x00;
+		if(IsKey(ECC_Zl)) _ext.b2.bZL = 0x00;
+		if(IsKey(ECC_Zr)) _ext.b2.bZR = 0x00;
 		
 		// All buttons pressed
 		//if(GetAsyncKeyState('C') && GetAsyncKeyState('Z'))
@@ -1461,7 +1063,6 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	// 5 bit to the next 2 bit
 	_ext.Rx3 = ((Rx >> 3) >> 3) & 0x03;
 	_ext.Ry = (Ry >> 3);
-
 	// 5 bit to 3 bit
 	_ext.lT = (lT >> 3) & 0x07;
 	// 5 bit to the highest two bits
@@ -1469,7 +1070,6 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	_ext.rT = (rT >> 3);
 
 	/* Here we encrypt the report */
-
 	// Create a temporary storage for the data
 	u8 Tmp[sizeof(_ext)];
 	// Clear the array by copying zeroes to it
@@ -1484,13 +1084,11 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 
 /* Generate the 6 byte extension report for the GH3 Controller, encrypted.
    The bytes are ... */
-
 void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 {
 	//	u8 TB   : 5; // not used in GH3
 	//	u8 WB   : 5;
-	u8 SX = g_GH3Calibration.Lx.center,
-		SY = g_GH3Calibration.Ly.center;
+	u8 SX = g_GH3Calibration.Lx.center, SY = g_GH3Calibration.Ly.center;
 
 	_ext.pad1 = 3;
 	_ext.pad2 = 3;
@@ -1512,38 +1110,34 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 	_ext.Red = 1;
 	_ext.Orange = 1;
 
-
 	// Check that Dolphin is in focus
 	if (IsFocus())
 	{
-
 		// Update the left analog stick
-		// TODO: Fix using the keyboard for the joystick
-		// only seems to work if there is a PanicAlert after setting the value
-/*		if (g_Config.GH3Controller.AType == g_Config.GH3Controller.KEYBOARD)
+		if (WiiMapping[g_ID].Stick.GH == FROM_KEYBOARD)
 		{
-			if(IsKey(g_GH3Ext.Al)) // Left analog left
+			if(IsKey(EGH_Al)) // Left analog left
 				_ext.SX = g_GH3Calibration.Lx.min;
-			if(IsKey(g_GH3Ext.Au)) // up
-				_ext.SY = g_GH3Calibration.Ly.max;
-			if(IsKey(g_GH3Ext.Ar)) // right
+			if(IsKey(EGH_Ar)) // right
 				_ext.SX = g_GH3Calibration.Lx.max;
-			if(IsKey(g_GH3Ext.Ad)) // down
+			if(IsKey(EGH_Au)) // up
+				_ext.SY = g_GH3Calibration.Ly.max;
+			if(IsKey(EGH_Ad)) // down
 				_ext.SY = g_GH3Calibration.Ly.min;
-
 		}
 		else
-*/		{
+		{
 			// Get adjusted pad state values
-			int _Lx, _Ly, _Rx, _Ry,
-				_Tl, _Tr; // Not used
-			PadStateAdjustments(_Lx, _Ly, _Rx, _Ry, _Tl, _Tr);
+			int _Lx = WiiMapping[g_ID].AxisState.Lx;
+			int _Ly = WiiMapping[g_ID].AxisState.Ly;
+			int _Rx = WiiMapping[g_ID].AxisState.Rx;
+			int _Ry = WiiMapping[g_ID].AxisState.Ry;
+
 			// The Y-axis is inverted
 			_Ly = 0xff - _Ly;
 			_Ry = 0xff - _Ry;
 
-
-			if (g_Config.GH3Controller.AType == g_Config.GH3Controller.ANALOG1)
+			if (WiiMapping[g_ID].Stick.GH == FROM_ANALOG1)
 			{
 				SX = _Lx;
 				SY = _Ly;
@@ -1555,24 +1149,15 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 			}
 		}
 
-		if(IsKey(g_GH3Ext.StrumUp)) _ext.StrumUp = 0; // Strum Up
-		if(IsKey(g_GH3Ext.StrumDown)) _ext.StrumDown= 0; // Strum Down
-
-		if(IsKey(g_GH3Ext.Plus))
-			_ext.Plus = 0;
-		if(IsKey(g_GH3Ext.Minus))
-			_ext.Minus = 0;
-
-		if(IsKey(g_GH3Ext.Yellow))
-			_ext.Yellow = 0;
-		if(IsKey(g_GH3Ext.Green))
-			_ext.Green = 0;
-		if(IsKey(g_GH3Ext.Blue))
-			_ext.Blue = 0;
-		if(IsKey(g_GH3Ext.Red))
-			_ext.Red = 0;
-		if(IsKey(g_GH3Ext.Orange))
-			_ext.Orange = 0;
+		if(IsKey(EGH_Yellow)) _ext.Yellow = 0;
+		if(IsKey(EGH_Green)) _ext.Green = 0;
+		if(IsKey(EGH_Blue)) _ext.Blue = 0;
+		if(IsKey(EGH_Red)) _ext.Red = 0;
+		if(IsKey(EGH_Orange)) _ext.Orange = 0;
+		if(IsKey(EGH_Plus)) _ext.Plus = 0;
+		if(IsKey(EGH_Minus)) _ext.Minus = 0;
+		if(IsKey(EGH_StrumUp)) _ext.StrumUp = 0; // Strum Up
+		if(IsKey(EGH_StrumDown)) _ext.StrumDown= 0; // Strum Down
 	}
 
 	// Convert data for reporting
@@ -1580,7 +1165,6 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 	_ext.SY = (SY >> 2);
 
 	/* Here we encrypt the report */
-
 	// Create a temporary storage for the data
 	u8 Tmp[sizeof(_ext)];
 	// Clear the array by copying zeroes to it
@@ -1591,7 +1175,6 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 	wiimote_encrypt(&g_ExtKey, Tmp, 0x00, sizeof(_ext));
 	// Write it back to the struct
 	memcpy(&_ext, Tmp, sizeof(_ext));
-	
 }
 
 } // end of namespace

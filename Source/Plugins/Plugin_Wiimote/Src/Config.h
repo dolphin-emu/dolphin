@@ -22,94 +22,14 @@
 	#include <X11/keysym.h>
 #endif
 
-#define AN_CONTROLS 6
-#define WM_CONTROLS 16
-#define NC_CONTROLS 11
-#define CC_CONTROLS 23
-#define GH3_CONTROLS 14
-
-enum
-{
-	EXT_NONE = 0,
-	EXT_NUNCHUCK,
-	EXT_CLASSIC_CONTROLLER,
-	EXT_GUITARHERO3_CONTROLLER,
-};
-
 struct Config
 {
 	Config();
-	void Load(bool ChangePad = false);
-	void Save(int Slot = -1);
+	void Load();
+	void Save();
 
-	struct TiltRange
-	{
-		int RollDegree;
-		bool RollSwing;
-		int Roll;
-		int PitchDegree;
-		bool PitchSwing;
-		int Pitch;
-	};
-	struct PadTilt
-	{
-		enum ETiltType
-		{
-			OFF = 0,
-			KEYBOARD,
-			ANALOG1,
-			ANALOG2,
-			TRIGGER
-		};
-		int TypeWM;
-		int TypeNC;
-		bool RollInvert;
-		bool PitchInvert;
-		TiltRange Range;
-	};
-	struct PadNunchuck
-	{
-		enum ENunchuckStick
-		{
-			KEYBOARD,
-			ANALOG1,
-			ANALOG2
-		};
-		int Type;
-	};
-	struct PadClassicController
-	{
-		enum ECcStick
-		{
-			KEYBOARD,
-			ANALOG1,
-			ANALOG2,
-			TRIGGER
-		};
-		int LType;
-		int RType;
-		int TType;
-	};
-
-	struct PadGH3
-	{
-		enum EGH3Stick
-		{
-//			KEYBOARD,
-			ANALOG1,
-			ANALOG2
-		};
-		int AType; // Analog Stick
-		int TType; // Whammy bar
-	};
-
-	// Emulated Wiimote
-	bool bInputActive;
-	bool bSideways;
-	bool bUpright;
-	bool bWideScreen;
-	bool bMotionPlusConnected;
-	int iExtensionConnected;
+	// For dialog sync
+	int CurrentPage;
 
 	// Real Wiimote
 	bool bConnectRealWiimote, bUseRealWiimote, bUpdateRealWiimote;
@@ -117,12 +37,6 @@ struct Config
 	int iAccNeutralX, iAccNeutralY, iAccNeutralZ;
 	int iAccNunNeutralX, iAccNunNeutralY, iAccNunNeutralZ;
 
-	// Gamepad
-	bool bNoTriggerFilter;
-	PadTilt Tilt;
-	PadNunchuck Nunchuck;
-	PadClassicController ClassicController;
-	PadGH3 GH3Controller;
 	// Screen size settings
 	bool bKeepAR43, bKeepAR169, bCrop;
 };

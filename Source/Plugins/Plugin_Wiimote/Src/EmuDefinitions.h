@@ -34,7 +34,7 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu
 {
-	
+
 //******************************************************************************
 // Definitions and variable declarations
 //******************************************************************************
@@ -68,32 +68,23 @@ extern double g_RecordingCurrentTime[3];
 #define WIIMOTE_REG_EXT_SIZE 0x100
 #define WIIMOTE_REG_IR_SIZE 0x34
 
+extern u8 g_IR[4];
 extern u8 g_Leds[4];
 extern u8 g_Speaker;
 extern u8 g_SpeakerVoice;
-extern u8 g_IR;
+
+extern u8 g_RegExt[MAX_WIIMOTES][WIIMOTE_REG_EXT_SIZE];
 
 extern u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
 extern u8 g_RegSpeaker[WIIMOTE_REG_SPEAKER_SIZE];
 extern u8 g_RegMotionPlus[WIIMOTE_REG_EXT_SIZE];
-extern u8 g_RegExt[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
-extern int g_RefreshWiimote;
-extern bool g_ReportingAuto[4];
-extern u8 g_ReportingMode;
-extern u16 g_ReportingChannel;
-
-// Ack delay
-struct wm_ackdelay
-{
-	u8 Delay;
-	u8 ReportID;
-	u16 ChannelID;
-	bool Sent;
-};
-extern std::vector<wm_ackdelay> AckDelay;
+extern int g_ID;
+extern bool g_ReportingAuto[MAX_WIIMOTES];
+extern u8 g_ReportingMode[MAX_WIIMOTES];
+extern u16 g_ReportingChannel[MAX_WIIMOTES];
 
 extern wiimote_key g_ExtKey; // extension encryption key
 extern bool g_Encryption;
@@ -151,13 +142,95 @@ static const u8 nothing_id[]	= { 0x00, 0x00, 0x00, 0x00, 0x2e, 0x2e };
 // The id for a partially inserted extension
 static const u8 partially_id[]	= { 0x00, 0x00, 0x00, 0x00, 0xff, 0xff };
 
-// Gamepad input
-extern int NumPads, NumGoodPads; // Number of goods pads
-extern std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
-extern InputCommon::CONTROLLER_STATE_NEW PadState[4];
-extern InputCommon::CONTROLLER_MAPPING_NEW PadMapping[4];
 
-// Wiimote status
+enum EExtensionType
+{
+	EXT_NONE = 0,
+	EXT_NUNCHUCK,
+	EXT_CLASSIC_CONTROLLER,
+	EXT_GUITARHERO,
+};
+
+enum EInputType
+{
+	FROM_KEYBOARD,
+	FROM_ANALOG1,
+	FROM_ANALOG2,
+	FROM_TRIGGER,
+};
+
+enum EButtonCode
+{
+	EWM_A = 0, // Keyboard A and Mouse A
+	EWM_B,
+	EWM_ONE, EWM_TWO,
+	EWM_P, EWM_M, EWM_H,
+	EWM_L, EWM_R, EWM_U, EWM_D,
+	EWM_ROLL_L, EWM_ROLL_R,
+	EWM_PITCH_U, EWM_PITCH_D,
+	EWM_SHAKE,
+
+	ENC_Z, ENC_C,
+	ENC_L, ENC_R, ENC_U, ENC_D,
+	ENC_ROLL_L, ENC_ROLL_R,
+	ENC_PITCH_U, ENC_PITCH_D,
+	ENC_SHAKE,
+
+	ECC_A, ECC_B, ECC_X, ECC_Y,
+	ECC_P, ECC_M, ECC_H,
+	ECC_Tl, ECC_Tr, ECC_Zl, ECC_Zr,
+	ECC_Dl, ECC_Dr, ECC_Du, ECC_Dd,
+	ECC_Ll, ECC_Lr, ECC_Lu, ECC_Ld,
+	ECC_Rl, ECC_Rr, ECC_Ru, ECC_Rd,
+
+	EGH_Green, EGH_Red, EGH_Yellow, EGH_Blue, EGH_Orange,
+	EGH_Plus, EGH_Minus, EGH_Whammy,
+	EGH_Al, EGH_Ar, EGH_Au, EGH_Ad,
+	EGH_StrumUp, EGH_StrumDown,
+
+	LAST_CONSTANT,
+};
+
+
+union UAxis
+{
+	int Code[6];
+	struct
+	{
+		int Lx;
+		int Ly;
+		int Rx;
+		int Ry;
+		int Tl; // Trigger
+		int Tr; // Trigger
+	};
+};
+
+struct SStickMapping
+{
+	int NC;
+	int CCL;
+	int CCR;
+	int CCT; //Trigger
+	int GH; // Analog Stick
+	int GHB; // Whammy bar
+};
+
+struct STiltMapping
+{
+	int InputWM;
+	int InputNC;
+	bool RollInvert;
+	bool PitchInvert;
+	int RollDegree;
+	bool RollSwing;
+	int RollRange;
+	int PitchDegree;
+	bool PitchSwing;
+	int PitchRange;
+};
+
+
 struct SDot
 {
 	int Rx, Ry, X, Y;
@@ -188,80 +261,47 @@ struct STiltData
 	}
 };
 
-struct SWiimoteData
+struct SMotion
 {
 	// Raw X and Y coordinate and processed X and Y coordinates
 	SIR IR;
 	STiltData TiltWM;
 	STiltData TiltNC;
 };
-extern SWiimoteData g_WiimoteData[4];
 
-// Keyboard input
-struct KeyboardWiimote
+
+struct CONTROLLER_MAPPING_WII	// WII PAD MAPPING
 {
-	enum EKeyboardWiimote
-	{
-		A = 0, // Keyboard A and Mouse A
-		B,
-		ONE, TWO,
-		P, M, H,
-		L, R, U, D,
-		ROLL_L, ROLL_R,
-		PITCH_U, PITCH_D,
-		SHAKE,
-		MA, MB,
-		LAST_CONSTANT
-	};
-};
-extern KeyboardWiimote g_Wiimote_kbd;
+	SDL_Joystick *joy;		// SDL joystick device
+	UAxis AxisState;
+	UAxis AxisMapping;		// 6 Axes (Main, Sub, Triggers)
+	int TriggerType;		// SDL or XInput trigger
+	int ID;					// SDL joystick device ID
+	bool Rumble;
+	int RumbleStrength;
+	int DeadZoneL;			// Analog 1 Deadzone
+	int DeadZoneR;			// Analog 2 Deadzone
+	bool bCircle2Square;
+	std::string Diagonal;
 
-struct KeyboardNunchuck
-{
-	enum EKeyboardNunchuck
-	{
-		Z = 18,
-		C,
-		L, R, U, D,
-		ROLL_L, ROLL_R,
-		PITCH_U, PITCH_D,
-		SHAKE,
-		LAST_CONSTANT
-	};
-};
-extern KeyboardNunchuck g_NunchuckExt;
+	int Source; // 0: none, 1: emu, -1: real
+	bool bSideways;
+	bool bUpright;
+	bool bMotionPlusConnected;
+	int iExtensionConnected;
 
-struct KeyboardClassicController
-{
-	enum EKeyboardClassicController
-	{
-		A = 29,
-		B, X, Y,
-		P, M, H,
-		Tl, Tr, Zl, Zr,
-		Dl, Dr, Du, Dd,
-		Ll, Lr, Lu, Ld,
-		Rl, Rr, Ru, Rd,
-		LAST_CONSTANT
-	};
+	STiltMapping Tilt;
+	SStickMapping Stick;
+	int Button[LAST_CONSTANT];
+	SMotion Motion;
 };
-extern KeyboardClassicController g_ClassicContExt;
 
-struct KeyboardGH3GLP
-{
-	enum EKeyboardGH3GLP
-	{
-		Green = 52,
-		Red, Yellow, Blue, Orange,
-		Plus, Minus, Whammy,
-		Al, Ar, Au, Ad,
-		StrumUp, StrumDown,
-		LAST_CONSTANT
-	};
-};
-extern KeyboardGH3GLP g_GH3Ext;
-
+// Gamepad input
+extern int NumPads, NumGoodPads; // Number of goods pads
+extern std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
+extern CONTROLLER_MAPPING_WII WiiMapping[4];
 extern bool KeyStatus[64];
+
 } // namespace
 
 #endif	//_EMU_DEFINITIONS_

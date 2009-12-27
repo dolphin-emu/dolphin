@@ -125,7 +125,7 @@ void ReadData()
 		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, rEvent._Size);
 		m_EventWriteQueue.pop();
 		
-		InterruptDebugging(false, rEvent.m_PayLoad);
+//		InterruptDebugging(false, rEvent.m_PayLoad);
     }
 
     m_pCriticalSection->Leave();

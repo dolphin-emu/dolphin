@@ -325,7 +325,7 @@ void ReadWiimote()
 						Temp = ArrayToString(g_WiiMotesFromWiiUse[i]->read_req->buf, sizeof(WiiMoteEmu::EepromData_0), 0, 30);
 						memcpy(WiiMoteEmu::g_Eeprom, g_WiiMotesFromWiiUse[i]->read_req->buf, sizeof(WiiMoteEmu::EepromData_0));
 						DEBUG_LOG(WIIMOTE, "EEPROM: %s", Temp.c_str());
-						WiiMoteEmu::UpdateEeprom();
+						WiiMoteEmu::InitCalibration();
 						g_RunTemporary = false;
 					}
 					break;

@@ -30,10 +30,13 @@
 
 static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb;
 
+CWII_IPC_HLE_Device_usb_oh1_57e_305* GetUsbPointer()
+{
+	return s_Usb;
+}
 
 CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number, bool ready)
-	: m_Linked(false)
-	, m_HIDControlChannel_Connected(false)
+	: m_HIDControlChannel_Connected(false)
 	, m_HIDControlChannel_ConnectedWait(false)
 	, m_HIDControlChannel_Config(false)
 	, m_HIDControlChannel_ConfigWait(false)
@@ -43,7 +46,6 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	, m_HIDInterruptChannel_ConfigWait(false)
 	, m_Name("Nintendo RVL-CNT-01")
 	, m_pHost(_pHost)
-
 
 {
 	INFO_LOG(WII_IPC_WIIMOTE, "Wiimote: #%i Constructed", _Number);
@@ -78,6 +80,10 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 	lmp_subversion = 0x229;
 }
 
+void CWII_IPC_HLE_WiiMote::DoState(PointerWrap &p)
+{
+	p.Do(m_Connected);
+}
 
 //
 //
@@ -92,7 +98,7 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 
 bool CWII_IPC_HLE_WiiMote::LinkChannel()
 {
-	if ((m_Connected <= 0) || (m_Linked == true))
+	if (m_Connected != 2)
 		return false;
 
 	// try to connect HID_CONTROL_CHANNEL
@@ -139,7 +145,7 @@ bool CWII_IPC_HLE_WiiMote::LinkChannel()
 		return true;
 	}
 
-	m_Linked = true;
+	m_Connected = 3;
 	UpdateStatus();
 
 	return false;
@@ -221,22 +227,29 @@ void CWII_IPC_HLE_WiiMote::UpdateStatus()
 //
 void CWII_IPC_HLE_WiiMote::Activate(bool ready)
 {
-	if (ready)
+	if (ready && m_Connected == -1)
+	{
 		m_Connected = 0;
-	else
-		m_Connected = -1;
+	}
+	else if (!ready)
+	{
+		m_pHost->RemoteDisconnect(m_ConnectionHandle);
+		EventDisconnect();
+	}
 }
 
 void CWII_IPC_HLE_WiiMote::EventConnectionAccepted()
 {
-	m_Connected = 1;
-	m_Linked = false;
+	m_Connected = 2;
 }
 
 void CWII_IPC_HLE_WiiMote::EventDisconnect()
 {
+	// Send disconnect message to plugin
+	u8 Message = WIIMOTE_DISCONNECT;
+	CPluginManager::GetInstance().GetWiimote(0)->Wiimote_ControlChannel(m_ConnectionHandle & 0xFF, 99, &Message, 0);
+
 	m_Connected = -1;
-	m_Linked = false;
 	// Clear channel flags
 	ResetChannels();
 }
@@ -249,7 +262,7 @@ bool CWII_IPC_HLE_WiiMote::EventPagingChanged(u8 _pageMode)
 	if ((_pageMode & 0x2) == 0)
 		return false;
 
-	m_Connected = -1;
+	m_Connected = 1;
 	return true;
 }
 

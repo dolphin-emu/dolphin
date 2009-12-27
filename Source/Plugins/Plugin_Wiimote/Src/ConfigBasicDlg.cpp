@@ -31,9 +31,9 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_BUTTON(ID_CANCEL, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_BUTTON(ID_BUTTONMAPPING, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_BUTTON(ID_BUTTONRECORDING, WiimoteBasicConfigDialog::ButtonClick)
-	EVT_CHECKBOX(IDC_INPUT_ACTIVE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
+	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, WiimoteBasicConfigDialog::NotebookPageChanged)
+	EVT_CHOICE(IDC_INPUT_SOURCE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_CONNECT_REAL, WiimoteBasicConfigDialog::GeneralSettingsChanged)
-	EVT_CHECKBOX(IDC_USE_REAL, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_SIDEWAYSWIIMOTE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_UPRIGHTWIIMOTE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_MOTIONPLUSCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)	
@@ -59,9 +59,10 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 	#endif
 
 	ControlsCreated = false;
+	m_Page = 0;
+
 	m_bEnableUseRealWiimote = true;
-	Page = 0;
-	//g_Config.Load();
+
 	CreateGUIControls();
 	UpdateGUI();
 }
@@ -112,10 +113,14 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 		Close();
 		break;
 	case ID_BUTTONMAPPING:
+		g_Config.CurrentPage = m_Page;
 		m_PadConfigFrame = new WiimotePadConfigDialog(this);
 		m_PadConfigFrame->ShowModal();
 		m_PadConfigFrame->Destroy();
 		m_PadConfigFrame = NULL;
+		m_Page = g_Config.CurrentPage;
+		m_Notebook->ChangeSelection(g_Config.CurrentPage);
+		UpdateGUI();
 		break;
 	case ID_BUTTONRECORDING:
 		m_RecordingConfigFrame = new WiimoteRecordingConfigDialog(this);
@@ -126,22 +131,19 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 	}
 }
 
-// Execute a delayed function
-void WiimoteBasicConfigDialog::UpdateOnce(wxTimerEvent& event)
-{
-	switch(event.GetId())
-	{
-	case IDTM_UPDATE_ONCE:
-		// Reenable the checkbox
-		m_bEnableUseRealWiimote = true;
-		SetCursor(wxCursor(wxCURSOR_ARROW));
-		UpdateGUI();
-		break;
-	}
-}
-
 void WiimoteBasicConfigDialog::CreateGUIControls()
 {
+	wxArrayString arrayStringFor_source;
+	arrayStringFor_source.Add(wxT("Inactive"));
+	arrayStringFor_source.Add(wxT("Emulated Wiimote"));
+	arrayStringFor_source.Add(wxT("Real Wiimote"));
+
+	wxArrayString arrayStringFor_extension;
+	arrayStringFor_extension.Add(wxT("None"));
+	arrayStringFor_extension.Add(wxT("Nunchuck"));
+	arrayStringFor_extension.Add(wxT("Classic Controller"));
+	arrayStringFor_extension.Add(wxT("Guitar Hero 3 Guitar"));
+
 	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 
 	for (int i = 0; i < MAX_WIIMOTES; i++)
@@ -149,44 +151,22 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_Controller[i] = new wxPanel(m_Notebook, ID_CONTROLLERPAGE1 + i, wxDefaultPosition, wxDefaultSize);
 		m_Notebook->AddPage(m_Controller[i], wxString::Format(wxT("Wiimote %d"), i+1));
 
-		m_ConnectRealWiimote[i] = new wxCheckBox(m_Controller[i], IDC_CONNECT_REAL, wxT("Connect Real Wiimote"));
-		m_UseRealWiimote[i] = new wxCheckBox(m_Controller[i], IDC_USE_REAL, wxT("Use Real Wiimote"));
-
-		m_ConnectRealWiimote[0]->SetValue(g_Config.bConnectRealWiimote);
-		m_UseRealWiimote[0]->SetValue(g_Config.bUseRealWiimote);
-
-		m_ConnectRealWiimote[i]->SetToolTip(wxT("Connected to the real wiimote. This can not be changed during gameplay."));
-		m_UseRealWiimote[i]->SetToolTip(wxT("Use the real Wiimote in the game. This can be changed during gameplay. This can not be selected")
-			wxT(" when a recording is to be done. No status in this window will be updated when this is checked."));
-
-		m_WiiMotionPlusConnected[i] = new wxCheckBox(m_Controller[i], IDC_MOTIONPLUSCONNECTED, wxT("Wii Motion Plus Connected"));
-		m_WiiMotionPlusConnected[i]->SetValue(g_Config.bMotionPlusConnected);
-		m_WiiMotionPlusConnected[i]->Enable(false);
-
-		wxArrayString arrayStringFor_extension;
-		arrayStringFor_extension.Add(wxT("None"));
-		arrayStringFor_extension.Add(wxT("Nunchuck"));
-		arrayStringFor_extension.Add(wxT("Classic Controller"));
-		arrayStringFor_extension.Add(wxT("Guitar Hero 3 Guitar"));
-		//arrayStringFor_extension.Add(wxT("Guitar Hero World Tour Drums Connected"));
-		// Prolly needs to be a separate plugin
-		//arrayStringFor_extension.Add(wxT("Balance Board"));
-
-		extensionChoice[i] = new wxChoice(m_Controller[i], IDC_EXTCONNECTED, wxDefaultPosition, wxDefaultSize, arrayStringFor_extension, 0, wxDefaultValidator);
-		extensionChoice[i]->SetSelection(0);
-
 		// Basic Settings
-		m_InputActive[i] = new wxCheckBox(m_Controller[i], IDC_INPUT_ACTIVE, wxT("Wiimote Input Active"));
-		m_InputActive[i]->SetValue(g_Config.bInputActive);
-		m_InputActive[i]->SetToolTip(wxString::Format(wxT("Decide if Wiimote button events shall be sent to game"), i));
+		m_InputSource[i] = new wxChoice(m_Controller[i], IDC_INPUT_SOURCE, wxDefaultPosition, wxDefaultSize, arrayStringFor_source, 0, wxDefaultValidator);
 
 		// Emulated Wiimote
 		m_SidewaysWiimote[i] = new wxCheckBox(m_Controller[i], IDC_SIDEWAYSWIIMOTE, wxT("Sideways Wiimote"));
-		m_SidewaysWiimote[i]->SetValue(g_Config.bSideways);
 		m_SidewaysWiimote[i]->SetToolTip(wxT("Treat the sideways position as neutral"));
 		m_UprightWiimote[i] = new wxCheckBox(m_Controller[i], IDC_UPRIGHTWIIMOTE, wxT("Upright Wiimote"));
-		m_UprightWiimote[i]->SetValue(g_Config.bUpright);
 		m_UprightWiimote[i]->SetToolTip(wxT("Treat the upright position as neutral"));
+
+		m_WiiMotionPlusConnected[i] = new wxCheckBox(m_Controller[i], IDC_MOTIONPLUSCONNECTED, wxT("Wii Motion Plus Connected"));
+		m_WiiMotionPlusConnected[i]->Enable(false);
+
+		m_Extension[i] = new wxChoice(m_Controller[i], IDC_EXTCONNECTED, wxDefaultPosition, wxDefaultSize, arrayStringFor_extension, 0, wxDefaultValidator);
+
+		m_ConnectRealWiimote[i] = new wxCheckBox(m_Controller[i], IDC_CONNECT_REAL, wxT("Connect Real Wiimote"));
+		m_ConnectRealWiimote[i]->SetToolTip(wxT("Connected to the real wiimote. This can not be changed during gameplay."));
 
 		//IR Pointer
 		m_TextScreenWidth[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Width: 000"));
@@ -199,26 +179,18 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_SliderLeft[i] = new wxSlider(m_Controller[i], IDS_LEFT, 0, 100, 500, wxDefaultPosition, wxSize(75, -1));
 		m_SliderTop[i] = new wxSlider(m_Controller[i], IDS_TOP, 0, 0, 500, wxDefaultPosition, wxSize(75, -1));
 
-		//m_ScreenSize = new wxCheckBox(m_Controller[i], IDC_SCREEN_SIZE, wxT("Adjust screen size and position"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		//m_ScreenSize[i]->SetToolTip(wxT("Use the adjusted screen size."));
-
 		// These are changed from the graphics plugin settings, so they are just here to show the loaded status
 		m_TextAR[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Aspect Ratio"));
 		m_CheckAR43[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("4:3"), wxDefaultPosition, wxSize(-1, -1), 0, wxDefaultValidator);
-		m_CheckAR169[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("16:9"), wxDefaultPosition, wxSize(-1, -1), 0, wxDefaultValidator);
-		m_Crop[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Crop"), wxDefaultPosition, wxSize(-1, -1), 0, wxDefaultValidator);
-
-		m_CheckAR43[i]->SetValue(g_Config.bKeepAR43);
-		m_CheckAR169[i]->SetValue(g_Config.bKeepAR169);
-		m_Crop[i]->SetValue(g_Config.bCrop);
-
 		m_CheckAR43[i]->Enable(false);
+		m_CheckAR169[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("16:9"), wxDefaultPosition, wxSize(-1, -1), 0, wxDefaultValidator);
 		m_CheckAR169[i]->Enable(false);
+		m_Crop[i] = new wxCheckBox(m_Controller[i], wxID_ANY, wxT("Crop"), wxDefaultPosition, wxSize(-1, -1), 0, wxDefaultValidator);
 		m_Crop[i]->Enable(false);
 
 		// Sizers
-		m_SizeBasic[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Wiimote"));
-		m_SizeBasic[i]->Add(m_InputActive[i], 0, wxEXPAND | wxALL, 5);
+		m_SizeBasic[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Input Source"));
+		m_SizeBasic[i]->Add(m_InputSource[i], 0, wxEXPAND | wxALL, 5);
 
 		m_SizeEmu[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Position"));
 		m_SizeEmu[i]->Add(m_SidewaysWiimote[i], 0, wxEXPAND | wxALL, 5);
@@ -226,17 +198,17 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 
 		m_SizeExtensions[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated Extension"));
 		m_SizeExtensions[i]->Add(m_WiiMotionPlusConnected[i], 0, wxEXPAND | wxALL, 5);
-		m_SizeExtensions[i]->Add(extensionChoice[i], 0, wxEXPAND | wxALL, 5);
+		m_SizeExtensions[i]->Add(m_Extension[i], 0, wxEXPAND | wxALL, 5);
 
 		m_SizeReal[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Real Wiimote"));
 		m_SizeReal[i]->Add(m_ConnectRealWiimote[i], 0, wxEXPAND | wxALL, 5);
-		m_SizeReal[i]->Add(m_UseRealWiimote[i], 0, wxEXPAND | wxALL, 5);
 
 		m_SizerIRPointerWidth[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SizerIRPointerWidth[i]->Add(m_TextScreenLeft[i], 0, wxEXPAND | (wxTOP), 3);
 		m_SizerIRPointerWidth[i]->Add(m_SliderLeft[i], 0, wxEXPAND | (wxRIGHT), 0);
 		m_SizerIRPointerWidth[i]->Add(m_TextScreenWidth[i], 0, wxEXPAND | (wxTOP), 3);
 		m_SizerIRPointerWidth[i]->Add(m_SliderWidth[i], 0, wxEXPAND | (wxLEFT), 0);
+
 		m_SizerIRPointerHeight[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SizerIRPointerHeight[i]->Add(m_TextScreenTop[i], 0, wxEXPAND | (wxTOP), 3);
 		m_SizerIRPointerHeight[i]->Add(m_SliderTop[i], 0, wxEXPAND | (wxRIGHT), 0);
@@ -264,17 +236,11 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_SizeBasicGeneralRight[i]->Add(m_SizerIRPointer[i], 0, wxEXPAND | (wxUP), 5);
 
 		m_SizeBasicGeneral[i] = new wxBoxSizer(wxHORIZONTAL);
-		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralLeft[i], 0, wxEXPAND | (wxUP), 0);
-		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralRight[i], 0, wxEXPAND | (wxLEFT), 5);
-
-		m_SizeParent[i] = new wxBoxSizer(wxVERTICAL);
-		m_SizeParent[i]->Add(m_SizeBasicGeneral[i], 0, wxBORDER_STATIC | wxEXPAND | (wxALL), 5);
-		// The sizer m_sMain will be expanded inside m_Controller, m_SizeParent will not
-		m_sMain[i] = new wxBoxSizer(wxVERTICAL);
-		m_sMain[i]->Add(m_SizeParent[i]);
+		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralLeft[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
+		m_SizeBasicGeneral[i]->Add(m_SizeBasicGeneralRight[i], 0, wxEXPAND | (wxLEFT | wxRIGHT | wxDOWN), 5);
 
 		// Set the main sizer
-		m_Controller[i]->SetSizer(m_sMain[i]);
+		m_Controller[i]->SetSizer(m_SizeBasicGeneral[i]);
 	}
 
 	m_ButtonMapping = new wxButton(this, ID_BUTTONMAPPING, wxT("Button Mapping"));
@@ -307,6 +273,20 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 	ControlsCreated = true;
 }
 
+// Execute a delayed function
+void WiimoteBasicConfigDialog::UpdateOnce(wxTimerEvent& event)
+{
+	switch(event.GetId())
+	{
+	case IDTM_UPDATE_ONCE:
+		// Reenable the checkbox
+		m_bEnableUseRealWiimote = true;
+		SetCursor(wxCursor(wxCURSOR_ARROW));
+		UpdateGUI();
+		break;
+	}
+}
+
 void WiimoteBasicConfigDialog::DoConnectReal()
 {
 	if(g_Config.bConnectRealWiimote)
@@ -325,7 +305,7 @@ void WiimoteBasicConfigDialog::DoConnectReal()
 
 void WiimoteBasicConfigDialog::DoUseReal()
 {
-	if (!g_Config.bUseRealWiimote)
+	if (!g_RealWiiMotePresent || !g_Config.bConnectRealWiimote)
 		return;
 
 	// Clear any eventual events in the Wiimote queue
@@ -333,7 +313,7 @@ void WiimoteBasicConfigDialog::DoUseReal()
 
 	// Are we using an extension now? The report that it's removed, then reconnected.
 	bool UsingExtension = false;
-	if (g_Config.iExtensionConnected != EXT_NONE)
+	if (WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected != WiiMoteEmu::EXT_NONE)
 		UsingExtension = true;
 
 	DEBUG_LOG(WIIMOTE, "DoUseReal()  Connect extension: %i", !UsingExtension);
@@ -362,56 +342,71 @@ void WiimoteBasicConfigDialog::DoUseReal()
 void WiimoteBasicConfigDialog::DoExtensionConnectedDisconnected(int Extension)
 {
 	// There is no need for this if no game is running
-	if(!g_EmulatorRunning) return; 
+	if(!g_EmulatorRunning || WiiMoteEmu::WiiMapping[m_Page].Source <= 0)
+		return;
 
-	u8 DataFrame[8]; // make a blank report for it
+	u8 DataFrame[8] = {0}; // make a blank report for it
 	wm_request_status *rs = (wm_request_status*)DataFrame;
 
 	// Check if a game is running, in that case change the status
-	if(WiiMoteEmu::g_ReportingChannel > 0)
-		WiiMoteEmu::WmRequestStatus(WiiMoteEmu::g_ReportingChannel, rs, Extension);
+	if(WiiMoteEmu::g_ReportingChannel[m_Page] > 0)
+	{
+		WiiMoteEmu::g_ID = m_Page;
+		WiiMoteEmu::WmRequestStatus(WiiMoteEmu::g_ReportingChannel[m_Page], rs, Extension);
+	}
 }
 
+// Notebook page changed
+void WiimoteBasicConfigDialog::NotebookPageChanged(wxNotebookEvent& event)
+{	
+	// Update the global variable
+	m_Page = event.GetSelection();
+
+	// Update GUI
+	if (ControlsCreated)
+		UpdateGUI();
+}
 
 void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
 	case IDC_CONNECT_REAL:
-		g_Config.bConnectRealWiimote = m_ConnectRealWiimote[Page]->IsChecked();
+		g_Config.bConnectRealWiimote = m_ConnectRealWiimote[m_Page]->IsChecked();
 		DoConnectReal();
 		break;
-	case IDC_USE_REAL:
-		// Enable the Wiimote thread
-		g_Config.bUseRealWiimote = m_UseRealWiimote[Page]->IsChecked();
-		DoUseReal();		
-		break;
-	case IDC_INPUT_ACTIVE:
-		g_Config.bInputActive = m_InputActive[Page]->IsChecked();
+	case IDC_INPUT_SOURCE:
+		if (m_InputSource[m_Page]->GetSelection() == 2)
+		{
+			g_Config.bUseRealWiimote = true;
+			WiiMoteEmu::WiiMapping[m_Page].Source = -1;
+			DoUseReal();
+		}
+		else
+		{
+			g_Config.bUseRealWiimote = false;
+			WiiMoteEmu::WiiMapping[m_Page].Source = m_InputSource[m_Page]->GetSelection();
+		}
 		break;
 	case IDC_SIDEWAYSWIIMOTE:
-		g_Config.bSideways = m_SidewaysWiimote[Page]->IsChecked();
+		WiiMoteEmu::WiiMapping[m_Page].bSideways = m_SidewaysWiimote[m_Page]->IsChecked();
 		break;
 	case IDC_UPRIGHTWIIMOTE:
-		g_Config.bUpright = m_UprightWiimote[Page]->IsChecked();
+		WiiMoteEmu::WiiMapping[m_Page].bUpright = m_UprightWiimote[m_Page]->IsChecked();
 		break;
 	case IDC_MOTIONPLUSCONNECTED:
-		g_Config.bMotionPlusConnected = m_WiiMotionPlusConnected[Page]->IsChecked();
+		WiiMoteEmu::WiiMapping[m_Page].bMotionPlusConnected = m_WiiMotionPlusConnected[m_Page]->IsChecked();
 		break;
 	case IDC_EXTCONNECTED:
-		g_Config.iExtensionConnected = EXT_NONE;
 		// Disconnect the extension so that the game recognize the change
-		DoExtensionConnectedDisconnected();
+		DoExtensionConnectedDisconnected(WiiMoteEmu::EXT_NONE);
 		// It doesn't seem to be needed but shouldn't it at least take 25 ms to
 		// reconnect an extension after we disconnected another?
 		if(g_EmulatorRunning) SLEEP(25);
-
 		// Update status
-		g_Config.iExtensionConnected = extensionChoice[Page]->GetSelection();
-
+		WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected = m_Extension[m_Page]->GetSelection();
 		// Copy the calibration data
-		WiiMoteEmu::UpdateExtRegisterBlocks();
-
+		WiiMoteEmu::UpdateExtRegisterBlocks(m_Page);
 		// Generate connect/disconnect status event
 		DoExtensionConnectedDisconnected();
 		break;
@@ -424,62 +419,55 @@ void WiimoteBasicConfigDialog::IRCursorChanged(wxScrollEvent& event)
 	switch (event.GetId())
 	{
 	case IDS_WIDTH:
-		g_Config.iIRWidth = m_SliderWidth[Page]->GetValue();
+		g_Config.iIRWidth = m_SliderWidth[m_Page]->GetValue();
 		break;
 	case IDS_HEIGHT:
-		g_Config.iIRHeight = m_SliderHeight[Page]->GetValue();
+		g_Config.iIRHeight = m_SliderHeight[m_Page]->GetValue();
 		break;
 	case IDS_LEFT:
-		g_Config.iIRLeft = m_SliderLeft[Page]->GetValue();
+		g_Config.iIRLeft = m_SliderLeft[m_Page]->GetValue();
 		break;
 	case IDS_TOP:
-		g_Config.iIRTop = m_SliderTop[Page]->GetValue();
+		g_Config.iIRTop = m_SliderTop[m_Page]->GetValue();
 		break;
 	}
 	UpdateGUI();
 }
 
-void WiimoteBasicConfigDialog::UpdateIRCalibration()
-{
-	// Update the slider position if a configuration has been loaded
-	m_SliderWidth[Page]->SetValue(g_Config.iIRWidth);
-	m_SliderHeight[Page]->SetValue(g_Config.iIRHeight);
-	m_SliderLeft[Page]->SetValue(g_Config.iIRLeft);
-	m_SliderTop[Page]->SetValue(g_Config.iIRTop);
-
-	// Update the labels
-	m_TextScreenWidth[Page]->SetLabel(wxString::Format(wxT("Width: %i"), g_Config.iIRWidth));
-	m_TextScreenHeight[Page]->SetLabel(wxString::Format(wxT("Height: %i"), g_Config.iIRHeight));
-	m_TextScreenLeft[Page]->SetLabel(wxString::Format(wxT("Left: %i"), g_Config.iIRLeft));
-	m_TextScreenTop[Page]->SetLabel(wxString::Format(wxT("Top: %i"), g_Config.iIRTop));
-}
-
-void WiimoteBasicConfigDialog::UpdateGUI(int Slot)
+void WiimoteBasicConfigDialog::UpdateGUI()
 {
 	/* I have disabled this option during a running game because it's enough to be able to switch
 	   between using and not using then. To also use the connect option during a running game would
 	   mean that the wiimote must be sent the current reporting mode and the channel ID after it
 	   has been initialized. Functions for that are basically already in place so these two options
 	   could possibly be simplified to one option. */
-	m_ConnectRealWiimote[Page]->SetValue(g_Config.bConnectRealWiimote);
-	m_ConnectRealWiimote[Page]->Enable(!g_EmulatorRunning);
+	m_ConnectRealWiimote[m_Page]->SetValue(g_Config.bConnectRealWiimote);
+	m_ConnectRealWiimote[m_Page]->Enable(!g_EmulatorRunning);
 
-	m_UseRealWiimote[Page]->SetValue(g_Config.bUseRealWiimote);
-	m_UseRealWiimote[Page]->Enable((m_bEnableUseRealWiimote && g_RealWiiMotePresent && g_Config.bConnectRealWiimote) || (!g_EmulatorRunning && g_Config.bConnectRealWiimote));
+	if (WiiMoteEmu::WiiMapping[m_Page].Source < 0)
+		m_InputSource[m_Page]->SetSelection(2);
+	else
+		m_InputSource[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Source);
 
-	m_InputActive[Page]->SetValue(g_Config.bInputActive);
-	m_SidewaysWiimote[Page]->SetValue(g_Config.bSideways);
-	m_UprightWiimote[Page]->SetValue(g_Config.bUpright);
-	m_WiiMotionPlusConnected[Page]->SetValue(g_Config.bMotionPlusConnected);
+	m_SidewaysWiimote[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bSideways);
+	m_UprightWiimote[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bUpright);
+	m_WiiMotionPlusConnected[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bMotionPlusConnected);
 
-	/* We only allow a change of extension if we are not currently using the real Wiimote, if it's in use the status will be updated
-	   from the data scanning functions in main.cpp */
-	bool AllowExtensionChange = !(g_RealWiiMotePresent && g_Config.bConnectRealWiimote && g_Config.bUseRealWiimote && g_EmulatorRunning);
-
-	extensionChoice[Page]->SetSelection(g_Config.iExtensionConnected);
-	extensionChoice[Page]->Enable(AllowExtensionChange);
+	m_Extension[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected);
 
 	// Update the Wiimote IR pointer calibration
-	UpdateIRCalibration();
+	m_TextScreenWidth[m_Page]->SetLabel(wxString::Format(wxT("Width: %i"), g_Config.iIRWidth));
+	m_TextScreenHeight[m_Page]->SetLabel(wxString::Format(wxT("Height: %i"), g_Config.iIRHeight));
+	m_TextScreenLeft[m_Page]->SetLabel(wxString::Format(wxT("Left: %i"), g_Config.iIRLeft));
+	m_TextScreenTop[m_Page]->SetLabel(wxString::Format(wxT("Top: %i"), g_Config.iIRTop));
+	// Update the slider position if a configuration has been loaded
+	m_SliderWidth[m_Page]->SetValue(g_Config.iIRWidth);
+	m_SliderHeight[m_Page]->SetValue(g_Config.iIRHeight);
+	m_SliderLeft[m_Page]->SetValue(g_Config.iIRLeft);
+	m_SliderTop[m_Page]->SetValue(g_Config.iIRTop);
+
+	m_CheckAR43[m_Page]->SetValue(g_Config.bKeepAR43);
+	m_CheckAR169[m_Page]->SetValue(g_Config.bKeepAR169);
+	m_Crop[m_Page]->SetValue(g_Config.bCrop);
 }
 

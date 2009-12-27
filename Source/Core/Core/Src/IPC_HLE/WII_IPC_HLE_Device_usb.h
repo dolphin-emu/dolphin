@@ -83,6 +83,8 @@ public:
 	void PurgeACLPool();
 	void PurgeHCIPool();
 
+	bool RemoteDisconnect(u16 _connectionHandle);
+
 	//hack for wiimote plugin
 
 public:	

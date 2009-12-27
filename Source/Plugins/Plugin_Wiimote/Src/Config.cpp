@@ -30,7 +30,6 @@
 // Do not change the order unless you change the related arrays
 // Directionals are ordered as L, R, U, D
 
-// Wiimote
 static const char* wmControlNames[] =
 { 
 	"WmA",
@@ -49,51 +48,7 @@ static const char* wmControlNames[] =
 	"WmPitchU",
 	"WmPitchD",
 	"WmShake",
-};
-static int wmDefaultControls[] = 
-{
-#ifdef _WIN32
-	'Z',
-	'X',
-	'C',
-	'V',
-	VK_OEM_PLUS,
-	VK_OEM_MINUS,
-	VK_BACK,
-	VK_LEFT,
-	VK_RIGHT,
-	VK_UP,
-	VK_DOWN,
-	'N',
-	'M',
-	VK_OEM_COMMA,
-	VK_OEM_PERIOD,
-	VK_OEM_2	// /
-#elif defined(HAVE_X11) && HAVE_X11
-	'Z',
-	'X',
-	'C',
-	'V',
-	XK_equal,
-	XK_minus,
-	XK_BackSpace,
-	XK_Left,
-	XK_Right,
-	XK_Up,
-	XK_Down,
-	'N',
-	'M',
-	XK_comma,
-	XK_period,
-	XK_slash
-#else
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-#endif
-};
 
-// Nunchuk
-static const char* ncControlNames[] =
-{
 	"NcZ",
 	"NcC",
 	"NcL",
@@ -105,41 +60,7 @@ static const char* ncControlNames[] =
 	"NcPitchU",
 	"NcPitchD",
 	"NcShake",
-};
-static int nCDefaultControls[] =
-{
-#ifdef _WIN32
-	VK_NUMPAD0,
-	VK_DECIMAL,
-	VK_NUMPAD4,
-	VK_NUMPAD6,
-	VK_NUMPAD8,
-	VK_NUMPAD5,
-	VK_NUMPAD7,
-	VK_NUMPAD9,
-	VK_NUMPAD1,
-	VK_NUMPAD3,
-	VK_NUMPAD2
-#elif defined(HAVE_X11) && HAVE_X11
-	XK_KP_0,
-	XK_KP_Decimal,
-	XK_KP_4,
-	XK_KP_6,
-	XK_KP_8,
-	XK_KP_5,
-	XK_KP_7,
-	XK_KP_9,
-	XK_KP_1,
-	XK_KP_3,
-	XK_KP_2
-#else
-	0,0,0,0,0,0,0,0,0,0,0
-#endif
-};
 
-// Classic Controller
-static const char* ccControlNames[] =
-{
 	"CcA",
 	"CcB",
 	"CcX",
@@ -163,9 +84,94 @@ static const char* ccControlNames[] =
 	"CcRr",
 	"CcRu",
 	"CcRd",
+
+	"GH3Green",
+	"GH3Red",
+	"GH3Yellow",
+	"GH3Blue",
+	"GH3Orange",
+	"GH3Plus",
+	"GH3Minus",
+	"GH3Whammy",
+	"GH3Al",
+	"GH3Ar",
+	"GH3Au",
+	"GH3Ad",
+	"GH3StrumUp",
+	"GH3StrumDown",
 };
-static int ccDefaultControls[] =
+
+static int wmDefaultControls[] = 
 {
+// Wiimote
+#ifdef _WIN32
+	'Z',
+	'X',
+	'C',
+	'V',
+	VK_OEM_PLUS,
+	VK_OEM_MINUS,
+	VK_BACK,
+	VK_LEFT,
+	VK_RIGHT,
+	VK_UP,
+	VK_DOWN,
+	'N',
+	'M',
+	VK_OEM_COMMA,
+	VK_OEM_PERIOD,
+	VK_OEM_2,	// /
+#elif defined(HAVE_X11) && HAVE_X11
+	'Z',
+	'X',
+	'C',
+	'V',
+	XK_equal,
+	XK_minus,
+	XK_BackSpace,
+	XK_Left,
+	XK_Right,
+	XK_Up,
+	XK_Down,
+	'N',
+	'M',
+	XK_comma,
+	XK_period,
+	XK_slash,
+#else
+	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+#endif
+
+// Nunchuck
+#ifdef _WIN32
+	VK_NUMPAD0,
+	VK_DECIMAL,
+	VK_NUMPAD4,
+	VK_NUMPAD6,
+	VK_NUMPAD8,
+	VK_NUMPAD5,
+	VK_NUMPAD7,
+	VK_NUMPAD9,
+	VK_NUMPAD1,
+	VK_NUMPAD3,
+	VK_NUMPAD2,
+#elif defined(HAVE_X11) && HAVE_X11
+	XK_KP_0,
+	XK_KP_Decimal,
+	XK_KP_4,
+	XK_KP_6,
+	XK_KP_8,
+	XK_KP_5,
+	XK_KP_7,
+	XK_KP_9,
+	XK_KP_1,
+	XK_KP_3,
+	XK_KP_2,
+#else
+	0,0,0,0,0,0,0,0,0,0,0,
+#endif
+
+// Classic Controller
 // A, B, X, Y
 #ifdef _WIN32
 	VK_OEM_4, // [
@@ -212,29 +218,9 @@ static int ccDefaultControls[] =
 	'J',
 	'L',
 	'I',
-	'K'
-};
+	'K',
 
-// GH3 Default controls
-static const char* gh3ControlNames[] =
-{
-	"GH3Green",
-	"GH3Red",
-	"GH3Yellow",
-	"GH3Blue",
-	"GH3Orange",
-	"GH3Plus",
-	"GH3Minus",
-	"GH3Whammy",
-	"GH3Al",
-	"GH3Ar",
-	"GH3Au",
-	"GH3Ad",
-	"GH3StrumUp",
-	"GH3StrumDown",
-};
-static int GH3DefaultControls[] =
-{
+// Guttar Hero
 	'A',
 	'S',
 	'D',
@@ -269,22 +255,14 @@ Config::Config()
 	memset(this, 0, sizeof(Config));
 }
 
-void Config::Load(bool ChangePad)
+void Config::Load()
 {
 	std::string temp;
 	IniFile iniFile;
 	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
 
-	// General
-	iniFile.Get("Settings", "InputActive", &bInputActive, true);
-	iniFile.Get("Settings", "Sideways", &bSideways, false);
-	iniFile.Get("Settings", "Upright", &bUpright, false);
-	iniFile.Get("Settings", "ExtensionConnected", &iExtensionConnected, EXT_NONE);
-	iniFile.Get("Settings", "MotionPlusConnected", &bMotionPlusConnected, false);
-
 	// Real Wiimote
 	iniFile.Get("Real", "Connect", &bConnectRealWiimote, true);
-	iniFile.Get("Real", "Use", &bUseRealWiimote, false);
 	iniFile.Get("Real", "UpdateStatus", &bUpdateRealWiimote, true);
 	iniFile.Get("Real", "AccNeutralX", &iAccNeutralX, 0);
 	iniFile.Get("Real", "AccNeutralY", &iAccNeutralY, 0);
@@ -298,72 +276,55 @@ void Config::Load(bool ChangePad)
 		// Slot specific settings
 		char SectionName[32];
 		sprintf(SectionName, "Wiimote%i", i + 1);
-		iniFile.Get(SectionName, "NoTriggerFilter", &bNoTriggerFilter, false);
 
-		iniFile.Get(SectionName, "TiltTypeWM", &Tilt.TypeWM, Tilt.KEYBOARD);
-		iniFile.Get(SectionName, "TiltTypeNC", &Tilt.TypeNC, Tilt.KEYBOARD);
-		iniFile.Get(SectionName, "TiltRollSwing", &Tilt.Range.RollSwing, false);
-		iniFile.Get(SectionName, "TiltRollDegree", &Tilt.Range.RollDegree, 60);
-		Tilt.Range.Roll = (Tilt.Range.RollSwing) ? 0 : Tilt.Range.RollDegree;
-		iniFile.Get(SectionName, "TiltRollInvert", &Tilt.RollInvert, false);
-		iniFile.Get(SectionName, "TiltPitchSwing", &Tilt.Range.PitchSwing, false);
-		iniFile.Get(SectionName, "TiltPitchDegree", &Tilt.Range.PitchDegree, 60);
-		Tilt.Range.Pitch = (Tilt.Range.PitchSwing) ? 0 : Tilt.Range.PitchDegree;
-		iniFile.Get(SectionName, "TiltPitchInvert", &Tilt.PitchInvert, false);
+		// General
+		iniFile.Get(SectionName, "Source", &WiiMoteEmu::WiiMapping[i].Source, (i) ? 0 : 1);
+		iniFile.Get(SectionName, "Sideways", &WiiMoteEmu::WiiMapping[i].bSideways, false);
+		iniFile.Get(SectionName, "Upright", &WiiMoteEmu::WiiMapping[i].bUpright, false);
+		iniFile.Get(SectionName, "ExtensionConnected", &WiiMoteEmu::WiiMapping[i].iExtensionConnected, WiiMoteEmu::EXT_NONE);
+		iniFile.Get(SectionName, "MotionPlusConnected", &WiiMoteEmu::WiiMapping[i].bMotionPlusConnected, false);
 
-		// Wiimote
-		for (int x = 0; x < WM_CONTROLS; x++)
-			iniFile.Get(SectionName, wmControlNames[x], &WiiMoteEmu::PadMapping[i].Wm.keyForControls[x], wmDefaultControls[x]);
-		// Nunchuck
-		iniFile.Get(SectionName, "NunchuckStick", &Nunchuck.Type, Nunchuck.KEYBOARD);
-		for (int x = 0; x < NC_CONTROLS; x++)
-			iniFile.Get(SectionName, ncControlNames[x], &WiiMoteEmu::PadMapping[i].Nc.keyForControls[x], nCDefaultControls[x]);
+		iniFile.Get(SectionName, "TiltInputWM", &WiiMoteEmu::WiiMapping[i].Tilt.InputWM, WiiMoteEmu::FROM_KEYBOARD);
+		iniFile.Get(SectionName, "TiltInputNC", &WiiMoteEmu::WiiMapping[i].Tilt.InputNC, WiiMoteEmu::FROM_KEYBOARD);
+		iniFile.Get(SectionName, "TiltRollDegree", &WiiMoteEmu::WiiMapping[i].Tilt.RollDegree, 60);
+		iniFile.Get(SectionName, "TiltRollSwing", &WiiMoteEmu::WiiMapping[i].Tilt.RollSwing, false);
+		iniFile.Get(SectionName, "TiltRollInvert", &WiiMoteEmu::WiiMapping[i].Tilt.RollInvert, false);
+		WiiMoteEmu::WiiMapping[i].Tilt.RollRange = (WiiMoteEmu::WiiMapping[i].Tilt.RollSwing) ? 0 : WiiMoteEmu::WiiMapping[i].Tilt.RollDegree;
+		iniFile.Get(SectionName, "TiltPitchDegree", &WiiMoteEmu::WiiMapping[i].Tilt.PitchDegree, 60);
+		iniFile.Get(SectionName, "TiltPitchSwing", &WiiMoteEmu::WiiMapping[i].Tilt.PitchSwing, false);
+		iniFile.Get(SectionName, "TiltPitchInvert", &WiiMoteEmu::WiiMapping[i].Tilt.PitchInvert, false);
+		WiiMoteEmu::WiiMapping[i].Tilt.PitchRange = (WiiMoteEmu::WiiMapping[i].Tilt.PitchSwing) ? 0 : WiiMoteEmu::WiiMapping[i].Tilt.PitchDegree;
 
-		// Classic Controller
-		iniFile.Get(SectionName, "CcLeftStick", &ClassicController.LType, ClassicController.KEYBOARD);
-		iniFile.Get(SectionName, "CcRightStick", &ClassicController.RType, ClassicController.KEYBOARD);
-		iniFile.Get(SectionName, "CcTriggers", &ClassicController.TType, ClassicController.KEYBOARD);
-		for (int x = 0; x < CC_CONTROLS; x++)
-			iniFile.Get(SectionName, ccControlNames[x], &WiiMoteEmu::PadMapping[i].Cc.keyForControls[x], ccDefaultControls[x]);
+		// StickMapping
+		iniFile.Get(SectionName, "NCStick", &WiiMoteEmu::WiiMapping[i].Stick.NC, WiiMoteEmu::FROM_KEYBOARD);
+		iniFile.Get(SectionName, "CCStickLeft", &WiiMoteEmu::WiiMapping[i].Stick.CCL, WiiMoteEmu::FROM_KEYBOARD);
+		iniFile.Get(SectionName, "CCStickRight", &WiiMoteEmu::WiiMapping[i].Stick.CCR, WiiMoteEmu::FROM_KEYBOARD);
+		iniFile.Get(SectionName, "CCTriggers", &WiiMoteEmu::WiiMapping[i].Stick.CCT, WiiMoteEmu::FROM_KEYBOARD);
+		iniFile.Get(SectionName, "GHStick", &WiiMoteEmu::WiiMapping[i].Stick.GH, WiiMoteEmu::FROM_KEYBOARD);
 
-		iniFile.Get(SectionName, "GH3Analog", &GH3Controller.AType, GH3Controller.ANALOG1);
-		for (int x = 0; x < GH3_CONTROLS; x++)
-			iniFile.Get(SectionName, gh3ControlNames[x], &WiiMoteEmu::PadMapping[i].GH3c.keyForControls[x], GH3DefaultControls[x]);
+		// ButtonMapping
+		for (int x = 0; x < WiiMoteEmu::LAST_CONSTANT; x++)
+			iniFile.Get(SectionName, wmControlNames[x], &WiiMoteEmu::WiiMapping[i].Button[x], wmDefaultControls[x]);
 
-		// Don't update this when we are loading settings from the ConfigBox
-		if(!ChangePad)
-		{
-			// This pad Id could possibly be higher than the number of pads that are connected,
-			// but we check later, when needed, that that is not the case
-			iniFile.Get(SectionName, "DeviceID", &WiiMoteEmu::PadMapping[i].ID, 0);
-			iniFile.Get(SectionName, "Enabled", &WiiMoteEmu::PadMapping[i].enabled, true);
-		}
+		// This pad Id could possibly be higher than the number of pads that are connected,
+		// but we check later, when needed, that that is not the case
+		iniFile.Get(SectionName, "DeviceID", &WiiMoteEmu::WiiMapping[i].ID, 0);
 
-		// Joypad specific settings
-			// Current joypad device ID: PadMapping[i].ID
-			// Current joypad name: joyinfo[PadMapping[i].ID].Name
-
-		// Prevent a crash from illegal access to joyinfo that will only have values for
-		// the current amount of connected PadMapping
-		if((u32)WiiMoteEmu::PadMapping[i].ID >= WiiMoteEmu::joyinfo.size()) continue;
-
-		// Create a section name			
-		std::string joySectionName = WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name;
-
-		iniFile.Get(joySectionName.c_str(), "left_x", &WiiMoteEmu::PadMapping[i].Axis.Lx, 0);
-		iniFile.Get(joySectionName.c_str(), "left_y", &WiiMoteEmu::PadMapping[i].Axis.Ly, 1);
-		iniFile.Get(joySectionName.c_str(), "right_x", &WiiMoteEmu::PadMapping[i].Axis.Rx, 2);
-		iniFile.Get(joySectionName.c_str(), "right_y", &WiiMoteEmu::PadMapping[i].Axis.Ry, 3);
-		iniFile.Get(joySectionName.c_str(), "l_trigger", &WiiMoteEmu::PadMapping[i].Axis.Tl, 1004);
-		iniFile.Get(joySectionName.c_str(), "r_trigger", &WiiMoteEmu::PadMapping[i].Axis.Tr, 1005);
-		iniFile.Get(joySectionName.c_str(), "DeadZoneL", &WiiMoteEmu::PadMapping[i].DeadZoneL, 0);
-		iniFile.Get(joySectionName.c_str(), "DeadZoneR", &WiiMoteEmu::PadMapping[i].DeadZoneR, 0);
-		iniFile.Get(joySectionName.c_str(), "Diagonal", &WiiMoteEmu::PadMapping[i].SDiagonal, "100%");
-		iniFile.Get(joySectionName.c_str(), "Circle2Square", &WiiMoteEmu::PadMapping[i].bCircle2Square, false);
-		iniFile.Get(joySectionName.c_str(), "Rumble", &WiiMoteEmu::PadMapping[i].Rumble, true);
-		iniFile.Get(joySectionName.c_str(), "RumbleStrength", &WiiMoteEmu::PadMapping[i].RumbleStrength, 9); // x10
-		iniFile.Get(joySectionName.c_str(), "TriggerType", &WiiMoteEmu::PadMapping[i].triggertype, 0);
+		iniFile.Get(SectionName, "Axis_Lx", &WiiMoteEmu::WiiMapping[i].AxisMapping.Lx, 0);
+		iniFile.Get(SectionName, "Axis_Ly", &WiiMoteEmu::WiiMapping[i].AxisMapping.Ly, 1);
+		iniFile.Get(SectionName, "Axis_Rx", &WiiMoteEmu::WiiMapping[i].AxisMapping.Rx, 2);
+		iniFile.Get(SectionName, "Axis_Ry", &WiiMoteEmu::WiiMapping[i].AxisMapping.Ry, 3);
+		iniFile.Get(SectionName, "Trigger_L", &WiiMoteEmu::WiiMapping[i].AxisMapping.Tl, 1004);
+		iniFile.Get(SectionName, "Trigger_R", &WiiMoteEmu::WiiMapping[i].AxisMapping.Tr, 1005);
+		iniFile.Get(SectionName, "DeadZoneL", &WiiMoteEmu::WiiMapping[i].DeadZoneL, 0);
+		iniFile.Get(SectionName, "DeadZoneR", &WiiMoteEmu::WiiMapping[i].DeadZoneR, 0);
+		iniFile.Get(SectionName, "Diagonal", &WiiMoteEmu::WiiMapping[i].Diagonal, "100%");
+		iniFile.Get(SectionName, "Circle2Square", &WiiMoteEmu::WiiMapping[i].bCircle2Square, false);
+		iniFile.Get(SectionName, "Rumble", &WiiMoteEmu::WiiMapping[i].Rumble, true);
+		iniFile.Get(SectionName, "RumbleStrength", &WiiMoteEmu::WiiMapping[i].RumbleStrength, 8); // x10
+		iniFile.Get(SectionName, "TriggerType", &WiiMoteEmu::WiiMapping[i].TriggerType, 0);
 	}
+
 	// Load the IR cursor settings if it's avaliable for the GameId, if not load the default settings
 	iniFile.Load(FULL_CONFIG_DIR "IR Pointer.ini");
 	char TmpSection[32];
@@ -375,7 +336,6 @@ void Config::Load(bool ChangePad)
 
 	// Load a few screen settings to. If these are added to the DirectX plugin it's probably
 	// better to place them in the main Dolphin.ini file
-
 	iniFile.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
 	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, false);
 	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);
@@ -384,18 +344,12 @@ void Config::Load(bool ChangePad)
 	//DEBUG_LOG(WIIMOTE, "Load()");
 }
 
-void Config::Save(int Slot)
+void Config::Save()
 {
 	IniFile iniFile;
 	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
-	iniFile.Set("Settings", "InputActive", bInputActive);
-	iniFile.Set("Settings", "Sideways", bSideways);
-	iniFile.Set("Settings", "Upright", bUpright);
-	iniFile.Set("Settings", "MotionPlusConnected", bMotionPlusConnected);
-	iniFile.Set("Settings", "ExtensionConnected", iExtensionConnected);
 
 	iniFile.Set("Real", "Connect", bConnectRealWiimote);	
-	iniFile.Set("Real", "Use", bUseRealWiimote);
 	iniFile.Set("Real", "UpdateStatus", bUpdateRealWiimote);
 	iniFile.Set("Real", "AccNeutralX", iAccNeutralX);
 	iniFile.Set("Real", "AccNeutralY", iAccNeutralY);
@@ -410,64 +364,48 @@ void Config::Save(int Slot)
 		char SectionName[32];
 		sprintf(SectionName, "Wiimote%i", i + 1);
 
-		iniFile.Set(SectionName, "NoTriggerFilter", bNoTriggerFilter);
-		iniFile.Set(SectionName, "TiltTypeWM", Tilt.TypeWM);
-		iniFile.Set(SectionName, "TiltTypeNC", Tilt.TypeNC);
-		iniFile.Set(SectionName, "TiltRollDegree", Tilt.Range.RollDegree);
-		iniFile.Set(SectionName, "TiltRollSwing", Tilt.Range.RollSwing);
-		iniFile.Set(SectionName, "TiltRollInvert", Tilt.RollInvert);
-		iniFile.Set(SectionName, "TiltPitchDegree", Tilt.Range.PitchDegree);
-		iniFile.Set(SectionName, "TiltPitchSwing", Tilt.Range.PitchSwing);
-		iniFile.Set(SectionName, "TiltPitchInvert", Tilt.PitchInvert);
-		// Wiimote
-		for (int x = 0; x < WM_CONTROLS; x++)
-			iniFile.Set(SectionName, wmControlNames[x], WiiMoteEmu::PadMapping[i].Wm.keyForControls[x]);
+		iniFile.Set(SectionName, "Source", WiiMoteEmu::WiiMapping[i].Source);
+		iniFile.Set(SectionName, "Sideways", WiiMoteEmu::WiiMapping[i].bSideways);
+		iniFile.Set(SectionName, "Upright", WiiMoteEmu::WiiMapping[i].bUpright);
+		iniFile.Set(SectionName, "ExtensionConnected", WiiMoteEmu::WiiMapping[i].iExtensionConnected);
+		iniFile.Set(SectionName, "MotionPlusConnected", WiiMoteEmu::WiiMapping[i].bMotionPlusConnected);
 
-		// Nunchuck
-		iniFile.Set(SectionName, "NunchuckStick", Nunchuck.Type);
-		for (int x = 0; x < NC_CONTROLS; x++)
-			iniFile.Set(SectionName, ncControlNames[x], WiiMoteEmu::PadMapping[i].Nc.keyForControls[x]);
+		iniFile.Set(SectionName, "TiltInputWM", WiiMoteEmu::WiiMapping[i].Tilt.InputWM);
+		iniFile.Set(SectionName, "TiltInputNC", WiiMoteEmu::WiiMapping[i].Tilt.InputNC);
+		iniFile.Set(SectionName, "TiltRollDegree", WiiMoteEmu::WiiMapping[i].Tilt.RollDegree);
+		iniFile.Set(SectionName, "TiltRollSwing", WiiMoteEmu::WiiMapping[i].Tilt.RollSwing);
+		iniFile.Set(SectionName, "TiltRollInvert", WiiMoteEmu::WiiMapping[i].Tilt.RollInvert);
+		iniFile.Set(SectionName, "TiltPitchDegree", WiiMoteEmu::WiiMapping[i].Tilt.PitchDegree);
+		iniFile.Set(SectionName, "TiltPitchSwing", WiiMoteEmu::WiiMapping[i].Tilt.PitchSwing);
+		iniFile.Set(SectionName, "TiltPitchInvert", WiiMoteEmu::WiiMapping[i].Tilt.PitchInvert);
 
-		// Classic Controller
-		iniFile.Set(SectionName, "CcLeftStick", ClassicController.LType);
-		iniFile.Set(SectionName, "CcRightStick", ClassicController.RType);
-		iniFile.Set(SectionName, "CcTriggers", ClassicController.TType);
-		for (int x = 0; x < CC_CONTROLS; x++)
-			iniFile.Set(SectionName, ccControlNames[x], WiiMoteEmu::PadMapping[i].Cc.keyForControls[x]);
+		// StickMapping
+		iniFile.Set(SectionName, "NCStick", WiiMoteEmu::WiiMapping[i].Stick.NC);
+		iniFile.Set(SectionName, "CCStickLeft", WiiMoteEmu::WiiMapping[i].Stick.CCL);
+		iniFile.Set(SectionName, "CCStickRight", WiiMoteEmu::WiiMapping[i].Stick.CCR);
+		iniFile.Set(SectionName, "CCTriggers", WiiMoteEmu::WiiMapping[i].Stick.CCT);
+		iniFile.Set(SectionName, "GHStick", WiiMoteEmu::WiiMapping[i].Stick.GH);
 
-		// GH3
-		iniFile.Set(SectionName, "GH3Analog", GH3Controller.AType);
-		for (int x = 0; x < GH3_CONTROLS; x++)
-			iniFile.Set(SectionName, gh3ControlNames[x], WiiMoteEmu::PadMapping[i].GH3c.keyForControls[x]);
+		// ButtonMapping
+		for (int x = 0; x < WiiMoteEmu::LAST_CONSTANT; x++)
+			iniFile.Set(SectionName, wmControlNames[x], WiiMoteEmu::WiiMapping[i].Button[x]);
 
 		// Save the physical device ID number
-		iniFile.Set(SectionName, "Enabled", WiiMoteEmu::PadMapping[i].enabled);
-		iniFile.Set(SectionName, "DeviceID", WiiMoteEmu::PadMapping[i].ID);
+		iniFile.Set(SectionName, "DeviceID", WiiMoteEmu::WiiMapping[i].ID);
 
-		// Joypad specific settings
-		// Current joypad device ID: PadMapping[i].ID
-		// Current joypad name: joyinfo[PadMapping[i].ID].Name	
-
-		// Save joypad specific settings. Check for "PadMapping[i].ID < SDL_NumJoysticks()" to
-		// avoid reading a joyinfo that does't exist
-		if((u32)WiiMoteEmu::PadMapping[i].ID >= WiiMoteEmu::joyinfo.size()) continue;
-
-		// Create a new section name after the joypad name
-		std::string joySectionName = WiiMoteEmu::joyinfo[WiiMoteEmu::PadMapping[i].ID].Name;
-
-		iniFile.Set(joySectionName.c_str(), "left_x", WiiMoteEmu::PadMapping[i].Axis.Lx);
-		iniFile.Set(joySectionName.c_str(), "left_y", WiiMoteEmu::PadMapping[i].Axis.Ly);
-		iniFile.Set(joySectionName.c_str(), "right_x", WiiMoteEmu::PadMapping[i].Axis.Rx);
-		iniFile.Set(joySectionName.c_str(), "right_y", WiiMoteEmu::PadMapping[i].Axis.Ry);
-		iniFile.Set(joySectionName.c_str(), "l_trigger", WiiMoteEmu::PadMapping[i].Axis.Tl);
-		iniFile.Set(joySectionName.c_str(), "r_trigger", WiiMoteEmu::PadMapping[i].Axis.Tr);
-		iniFile.Set(joySectionName.c_str(), "DeadZoneL", WiiMoteEmu::PadMapping[i].DeadZoneL);
-		iniFile.Set(joySectionName.c_str(), "DeadZoneR", WiiMoteEmu::PadMapping[i].DeadZoneR);
-		iniFile.Set(joySectionName.c_str(), "Diagonal", WiiMoteEmu::PadMapping[i].SDiagonal);
-		iniFile.Set(joySectionName.c_str(), "Circle2Square", WiiMoteEmu::PadMapping[i].bCircle2Square);
-		iniFile.Set(joySectionName.c_str(), "Rumble", WiiMoteEmu::PadMapping[i].Rumble);
-		iniFile.Set(joySectionName.c_str(), "RumbleStrength", WiiMoteEmu::PadMapping[i].RumbleStrength);
-		iniFile.Set(joySectionName.c_str(), "TriggerType", WiiMoteEmu::PadMapping[i].triggertype);
+		iniFile.Set(SectionName, "Axis_Lx", WiiMoteEmu::WiiMapping[i].AxisMapping.Lx);
+		iniFile.Set(SectionName, "Axis_Ly", WiiMoteEmu::WiiMapping[i].AxisMapping.Ly);
+		iniFile.Set(SectionName, "Axis_Rx", WiiMoteEmu::WiiMapping[i].AxisMapping.Rx);
+		iniFile.Set(SectionName, "Axis_Ry", WiiMoteEmu::WiiMapping[i].AxisMapping.Ry);
+		iniFile.Set(SectionName, "Trigger_L", WiiMoteEmu::WiiMapping[i].AxisMapping.Tl);
+		iniFile.Set(SectionName, "Trigger_R", WiiMoteEmu::WiiMapping[i].AxisMapping.Tr);
+		iniFile.Set(SectionName, "DeadZoneL", WiiMoteEmu::WiiMapping[i].DeadZoneL);
+		iniFile.Set(SectionName, "DeadZoneR", WiiMoteEmu::WiiMapping[i].DeadZoneR);
+		iniFile.Set(SectionName, "Diagonal", WiiMoteEmu::WiiMapping[i].Diagonal);
+		iniFile.Set(SectionName, "Circle2Square", WiiMoteEmu::WiiMapping[i].bCircle2Square);
+		iniFile.Set(SectionName, "Rumble", WiiMoteEmu::WiiMapping[i].Rumble);
+		iniFile.Set(SectionName, "RumbleStrength", WiiMoteEmu::WiiMapping[i].RumbleStrength); // x10
+		iniFile.Set(SectionName, "TriggerType", WiiMoteEmu::WiiMapping[i].TriggerType);
 	}
 
 	iniFile.Save(FULL_CONFIG_DIR "Wiimote.ini");

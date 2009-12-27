@@ -46,18 +46,18 @@ extern void PAD_RumbleClose();
 void Close_Devices()
 {
 	PAD_RumbleClose();
-	/* Close all devices carefully. We must check that we are not accessing any
-	   undefined vector elements or any bad devices */
-	for (int i = 0; i < 1; i++)
+	// Close all devices carefully. We must check that we are not accessing any
+	// undefined vector elements or any bad devices
+	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
-		if (SDL_WasInit(0) && joyinfo.size() > (u32)PadMapping[i].ID)
-			if (PadState[i].joy && joyinfo.at(PadMapping[i].ID).Good)
+		if (SDL_WasInit(0) && joyinfo.size() > (u32)WiiMapping[i].ID)
+			if (WiiMapping[i].joy && joyinfo.at(WiiMapping[i].ID).Good)
 			{
-				INFO_LOG(WIIMOTE, "ShutDown: %i", PadState[i].joy);
-				if(SDL_JoystickOpened(PadMapping[i].ID))
+				INFO_LOG(WIIMOTE, "ShutDown: %i", WiiMapping[i].ID);
+				if(SDL_JoystickOpened(WiiMapping[i].ID))
 				{
-					SDL_JoystickClose(PadState[i].joy);
-					PadState[i].joy = NULL;
+					SDL_JoystickClose(WiiMapping[i].joy);
+					WiiMapping[i].joy = NULL;
 				}
 			}
 	}
@@ -81,61 +81,14 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 		return false;
 
 	// Update the PadState[].joy handle
-	for (int i = 0; i < 1; i++)
+	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
-		if (joyinfo.size() > (u32)PadMapping[i].ID)
-			if(joyinfo.at(PadMapping[i].ID).Good)
-				PadState[i].joy = SDL_JoystickOpen(PadMapping[i].ID);
+		if (joyinfo.size() > (u32)WiiMapping[i].ID)
+			if(joyinfo.at(WiiMapping[i].ID).Good)
+				WiiMapping[i].joy = SDL_JoystickOpen(WiiMapping[i].ID);
 	}
 
 	return WasGotten;
-}
-
-// Return adjusted input values
-void PadStateAdjustments(int &Lx, int &Ly, int &Rx, int &Ry, int &Tl, int &Tr)
-{
-	// This has to be changed if multiple Wiimotes are to be supported later
-	const int Page = 0;
-
-	// Copy all states to a local variable
-	Lx = PadState[Page].Axis.Lx;
-	Ly = PadState[Page].Axis.Ly;
-	Rx = PadState[Page].Axis.Rx;
-	Ry = PadState[Page].Axis.Ry;
-	Tl = PadState[Page].Axis.Tl;
-	Tr = PadState[Page].Axis.Tr;
-
-	// Check the circle to square option
-	if(PadMapping[Page].bCircle2Square)
-	{
-		InputCommon::Square2Circle(Lx, Ly, Page, PadMapping[Page].SDiagonal, true);
-	}
-
-	// Dead zone adjustment
-	float DeadZoneLeft = (float)PadMapping[Page].DeadZoneL / 100.0f;
-	float DeadZoneRight = (float)PadMapping[Page].DeadZoneR / 100.0f;
-	if (InputCommon::IsDeadZone(DeadZoneLeft, Lx, Ly))
-	{
-		Lx = 0;
-		Ly = 0;
-	}
-	if (InputCommon::IsDeadZone(DeadZoneRight, Rx, Ry))
-	{
-		Rx = 0;
-		Ry = 0;
-	}
-
-	// Downsize the values from 0x8000 to 0x80
-	Lx = InputCommon::Pad_Convert(Lx);
-	Ly = InputCommon::Pad_Convert(Ly);
-	Rx = InputCommon::Pad_Convert(Rx);
-	Ry = InputCommon::Pad_Convert(Ry);
-	// The XInput range is already 0 to 0x80
-	if (PadMapping[Page].triggertype == InputCommon::CTL_TRIGGER_SDL)
-	{
-		Tl = InputCommon::Pad_Convert(PadState[Page].Axis.Tl);
-		Tr = InputCommon::Pad_Convert(PadState[Page].Axis.Tr);
-	}
 }
 
 
@@ -143,37 +96,35 @@ void PadStateAdjustments(int &Lx, int &Ly, int &Rx, int &Ry, int &Tl, int &Tr)
 /* Called from: PAD_GetStatus() Input: The virtual device 0, 1, 2 or 3
    Function: Updates the PadState struct with the current pad status. The input
    value "controller" is for a virtual controller 0 to 3. */
-
-void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONTROLLER_MAPPING_NEW _PadMapping, int controller, int NumButtons)
+void GetAxisState(CONTROLLER_MAPPING_WII &_WiiMapping)
 {
-	// Return if we have no pads
-	if (NumGoodPads == 0) return;
-
 	// Update the gamepad status
 	SDL_JoystickUpdate();
 
 	// Update axis states. It doesn't hurt much if we happen to ask for nonexisting axises here.
-	_PadState.Axis.Lx = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.Axis.Lx);
-	_PadState.Axis.Ly = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.Axis.Ly);
-	_PadState.Axis.Rx = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.Axis.Rx);
-	_PadState.Axis.Ry = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.Axis.Ry);
+	_WiiMapping.AxisState.Lx = SDL_JoystickGetAxis(_WiiMapping.joy, _WiiMapping.AxisMapping.Lx);
+	_WiiMapping.AxisState.Ly = SDL_JoystickGetAxis(_WiiMapping.joy, _WiiMapping.AxisMapping.Ly);
+	_WiiMapping.AxisState.Rx = SDL_JoystickGetAxis(_WiiMapping.joy, _WiiMapping.AxisMapping.Rx);
+	_WiiMapping.AxisState.Ry = SDL_JoystickGetAxis(_WiiMapping.joy, _WiiMapping.AxisMapping.Ry);
 
 	// Update the analog trigger axis values
 #ifdef _WIN32
-	if (_PadMapping.triggertype == InputCommon::CTL_TRIGGER_SDL)
+	if (_WiiMapping.TriggerType == InputCommon::CTL_TRIGGER_SDL)
 	{
 #endif
 		// If we are using SDL analog triggers the buttons have to be mapped as 1000 or up, otherwise they are not used
 		// We must also check that we are not asking for a negative axis number because SDL_JoystickGetAxis() has
 		// no good way of handling that
-		if ((_PadMapping.Axis.Tl - 1000) >= 0) _PadState.Axis.Tl = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.Axis.Tl - 1000);
-		if ((_PadMapping.Axis.Tr - 1000) >= 0) _PadState.Axis.Tr = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.Axis.Tr - 1000);
+		if ((_WiiMapping.AxisMapping.Tl - 1000) >= 0)
+			_WiiMapping.AxisState.Tl = SDL_JoystickGetAxis(_WiiMapping.joy, _WiiMapping.AxisMapping.Tl - 1000);
+		if ((_WiiMapping.AxisMapping.Tr - 1000) >= 0)
+			_WiiMapping.AxisState.Tr = SDL_JoystickGetAxis(_WiiMapping.joy, _WiiMapping.AxisMapping.Tr - 1000);
 #ifdef _WIN32
 	}
 	else
 	{
-		_PadState.Axis.Tl = XInput::GetXI(0, _PadMapping.Axis.Tl - 1000);
-		_PadState.Axis.Tr = XInput::GetXI(0, _PadMapping.Axis.Tr - 1000);
+		_WiiMapping.AxisState.Tl = XInput::GetXI(0, _WiiMapping.AxisMapping.Tl - 1000);
+		_WiiMapping.AxisState.Tr = XInput::GetXI(0, _WiiMapping.AxisMapping.Tr - 1000);
 	}
 #endif
 
@@ -194,6 +145,54 @@ void GetJoyState(InputCommon::CONTROLLER_STATE_NEW &_PadState, InputCommon::CONT
 
 		_PadState.Axis.Lx, _PadState.Axis.Ly
 		);*/
+}
+
+void UpdatePadState(CONTROLLER_MAPPING_WII &_WiiMapping)
+{
+	// Return if we have no pads
+	if (NumGoodPads == 0) return;
+
+	GetAxisState(_WiiMapping);
+
+	int &Lx = _WiiMapping.AxisState.Lx;
+	int &Ly = _WiiMapping.AxisState.Ly;
+	int &Rx = _WiiMapping.AxisState.Rx;
+	int &Ry = _WiiMapping.AxisState.Ry;
+	int &Tl = _WiiMapping.AxisState.Tl;
+	int &Tr = _WiiMapping.AxisState.Tr;
+
+	// Check the circle to square option
+	if(_WiiMapping.bCircle2Square)
+	{
+		InputCommon::Square2Circle(Lx, Ly, 0, _WiiMapping.Diagonal, true);
+		InputCommon::Square2Circle(Rx, Ry, 0, _WiiMapping.Diagonal, true);
+	}
+
+	// Dead zone adjustment
+	float DeadZoneLeft = (float)_WiiMapping.DeadZoneL / 100.0f;
+	float DeadZoneRight = (float)_WiiMapping.DeadZoneR / 100.0f;
+	if (InputCommon::IsDeadZone(DeadZoneLeft, Lx, Ly))
+	{
+		Lx = 0;
+		Ly = 0;
+	}
+	if (InputCommon::IsDeadZone(DeadZoneRight, Rx, Ry))
+	{
+		Rx = 0;
+		Ry = 0;
+	}
+
+	// Downsize the values from 0x8000 to 0x80
+	Lx = InputCommon::Pad_Convert(Lx);
+	Ly = InputCommon::Pad_Convert(Ly);
+	Rx = InputCommon::Pad_Convert(Rx);
+	Ry = InputCommon::Pad_Convert(Ry);
+	// The XInput range is already 0 to 0x80
+	if (_WiiMapping.TriggerType == InputCommon::CTL_TRIGGER_SDL)
+	{
+		Tl = InputCommon::Pad_Convert(Tl);
+		Tr = InputCommon::Pad_Convert(Tr);
+	}
 }
 
 

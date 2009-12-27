@@ -62,6 +62,7 @@ Core::GetWindowHandle().
 #include "OnFrame.h"
 #include "HW/DVDInterface.h"
 #include "HW/ProcessorInterface.h"
+#include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "State.h"
 #include "VolumeHandler.h"
 #include "NANDContentLoader.h"
@@ -89,6 +90,7 @@ extern "C" {
 #include "../resources/X-Plastik.h"
 #include "../resources/KDE.h"
 };
+
 
 // Other Windows
 wxCheatsWindow* CheatsWindow;
@@ -194,6 +196,11 @@ void CFrame::CreateMenu()
 	{
 		toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
 	}
+	toolsMenu->AppendSeparator();
+	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE1, _T("Connect Wiimote 1"));
+	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE2, _T("Connect Wiimote 2"));
+	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE3, _T("Connect Wiimote 3"));
+	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE4, _T("Connect Wiimote 4"));
 
 	m_MenuBar->Append(toolsMenu, _T("&Tools"));
 
@@ -780,6 +787,12 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
 	BootManager::BootCore(FULL_WII_MENU_DIR);
 }
 
+void CFrame::OnConnectWiimote(wxCommandEvent& event)
+{
+	int Id = event.GetId() - IDM_CONNECT_WIIMOTE1;
+	GetUsbPointer()->AccessWiiMote(Id | 0x100)->Activate(event.IsChecked());
+}
+
 // Toogle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to cover
 // the entire screen (when we render to the main window).
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
@@ -917,6 +930,18 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_CHANGEDISC)->Enable(Initialized);
 	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
 		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
+
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(Paused && Core::GetStartupParameter().bWii);
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(Paused && Core::GetStartupParameter().bWii);
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(Paused && Core::GetStartupParameter().bWii);
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Enable(Paused && Core::GetStartupParameter().bWii);
+	if (Initialized && Core::GetStartupParameter().bWii)
+	{
+		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Check(GetUsbPointer()->AccessWiiMote(0x0100)->IsConnected() == 3);
+		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Check(GetUsbPointer()->AccessWiiMote(0x0101)->IsConnected() == 3);
+		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Check(GetUsbPointer()->AccessWiiMote(0x0102)->IsConnected() == 3);
+		GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Check(GetUsbPointer()->AccessWiiMote(0x0103)->IsConnected() == 3);
+	}
 
 	if (Running)
 	{

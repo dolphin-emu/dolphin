@@ -16,22 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-
-// Current issues
-/*
-The real Wiimote fails to answer the core correctly sometmes. Leading to an
-unwanted disconnection. And there is currenty no functions to reconnect with
-the game. There are two ways to solve this:
-
-1. Make a reconnect function in the IOS emulation
-
-2. Detect failed answers in this plugin and solve it by replacing them with
-emulated answers.
-
-The first solution seems easier, if I knew a little better how the /dev/usb/oh1
-and Wiimote functions worked.
-*/
-
 #include "Common.h" // Common
 #include "LogManager.h"
 #include "StringUtil.h"
@@ -80,8 +64,8 @@ gh3_cal g_GH3Calibration;
 // Debugging
 bool g_DebugAccelerometer = false;
 bool g_DebugData = false;
-bool g_DebugComm = true;
-bool g_DebugSoundData = true;
+bool g_DebugComm = false;
+bool g_DebugSoundData = false;
 bool g_DebugCustom = false;
 
 // Update speed
@@ -184,11 +168,11 @@ void DllDebugger(HWND _hParent, bool Show) {}
 
 void DllConfig(HWND _hParent)
 {
-	// We do a pad search before creating the dialog
-	WiiMoteEmu::Search_Devices(WiiMoteEmu::joyinfo, WiiMoteEmu::NumPads, WiiMoteEmu::NumGoodPads);
-
 	// Load settings
 	g_Config.Load();
+
+	// We do a pad search before creating the dialog
+	WiiMoteEmu::Search_Devices(WiiMoteEmu::joyinfo, WiiMoteEmu::NumPads, WiiMoteEmu::NumGoodPads);
 
 #if defined(HAVE_WX) && HAVE_WX
 
@@ -198,9 +182,15 @@ void DllConfig(HWND _hParent)
 		m_BasicConfigFrame->Close(true);
 	// Only allow one open at a time
 	if (!m_BasicConfigFrame->IsShown())
+	{
+		g_FrameOpen = true;
 		m_BasicConfigFrame->ShowModal();
+	}
 	else
+	{
+		g_FrameOpen = false;
 		m_BasicConfigFrame->Hide();
+	}
 
 #endif
 }
@@ -208,11 +198,8 @@ void DllConfig(HWND _hParent)
 // Start emulation
 void Initialize(void *init)
 {
-	// Declarations
-	SWiimoteInitialize _WiimoteInitialize = *(SWiimoteInitialize *)init;
-	g_WiimoteInitialize = _WiimoteInitialize;
-
 	g_EmulatorRunning = true;
+	g_WiimoteInitialize =  *(SWiimoteInitialize *)init;
 
 	// Update the GUI if the configuration window is already open
 	#if defined(HAVE_WX) && HAVE_WX
@@ -220,7 +207,7 @@ void Initialize(void *init)
 	{
 		// Save the settings
 		g_Config.Save();
-		// Save the ISO Id
+		// Load the ISO Id
 		g_ISOId = g_WiimoteInitialize.ISOId;
 		// Load the settings
 		g_Config.Load();
@@ -228,15 +215,25 @@ void Initialize(void *init)
 	}
 	#endif
 	#if defined(HAVE_X11) && HAVE_X11
-		WMdisplay = (Display*)_WiimoteInitialize.hWnd;
+		WMdisplay = (Display*)g_WiimoteInitialize.hWnd;
 	#endif
 
-	// Save the ISO Id, again if we had a window open
 	g_ISOId = g_WiimoteInitialize.ISOId;
-
-	DoInitialize();	
-
 	DEBUG_LOG(WIIMOTE, "ISOId: %08x %s", g_WiimoteInitialize.ISOId, Hex2Ascii(g_WiimoteInitialize.ISOId).c_str());
+
+	// Run this first so that WiiMoteReal::Initialize() overwrites g_Eeprom
+	WiiMoteEmu::Initialize();
+
+	/* We will run WiiMoteReal::Initialize() even if we are not using a real
+	   wiimote, to check if there is a real wiimote connected. We will initiate
+	   wiiuse.dll, but we will return before creating a new thread for it if we
+	   find no real Wiimotes.  Then g_RealWiiMotePresent will also be
+	   false. This function call will be done instantly whether there is a real
+	   Wiimote connected or not. It takes no time for Wiiuse to check for
+	   connected Wiimotes. */
+	#if HAVE_WIIUSE
+		if (g_Config.bConnectRealWiimote) WiiMoteReal::Initialize();
+	#endif
 }
 
 // If a game is not running this is called by the Configuration window when it's closed
@@ -254,13 +251,6 @@ void Shutdown(void)
 		#if defined(HAVE_WX) && HAVE_WX
 			if(m_BasicConfigFrame) m_BasicConfigFrame->UpdateGUI();
 		#endif
-
-		// Reset the variables
-		WiiMoteEmu::ResetVariables();
-
-		/* Don't shut down the wiimote when we still have the config window open, we may still want
-		   want to use the Wiimote in the config window. */
-		return;
 	}
 
 #if HAVE_WIIUSE
@@ -278,10 +268,10 @@ void DoState(unsigned char **ptr, int mode)
 
 	//p.Do(g_EmulatorRunning);
 	//p.Do(g_ISOId);
-	p.Do(g_FrameOpen);
-	p.Do(g_RealWiiMotePresent);
-	p.Do(g_RealWiiMoteInitialized);
-	p.Do(g_EmulatedWiiMoteInitialized);
+	//p.Do(g_FrameOpen);
+	//p.Do(g_RealWiiMotePresent);
+	//p.Do(g_RealWiiMoteInitialized);
+	//p.Do(g_EmulatedWiiMoteInitialized);
 	//p.Do(g_UpdateCounter);
 	//p.Do(g_UpdateTime);
 	//p.Do(g_UpdateRate);
@@ -305,18 +295,16 @@ void DoState(unsigned char **ptr, int mode)
    */
 void Wiimote_InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	const u8* data = (const u8*)_pData;
-
 	// Debugging
-	{
-		DEBUG_LOG(WIIMOTE, "Wiimote_InterruptChannel");
-		DEBUG_LOG(WIIMOTE, "   Channel ID: %04x", _channelID);
-		std::string Temp = ArrayToString(data, _Size);
-		DEBUG_LOG(WIIMOTE, "   Data: %s", Temp.c_str());
-	}
+#if defined(_DEBUG) || defined(DEBUGFAST)
+	DEBUG_LOG(WIIMOTE, "Wiimote_InterruptChannel");
+	DEBUG_LOG(WIIMOTE, "    Channel ID: %04x", _channelID);
+	std::string Temp = ArrayToString((const u8*)_pData, _Size);
+	DEBUG_LOG(WIIMOTE, "    Data: %s", Temp.c_str());
+#endif
 
 	// Decice where to send the message
-	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
+	if (WiiMoteEmu::WiiMapping[_number].Source >= 0)
 		WiiMoteEmu::InterruptChannel(_number, _channelID, _pData, _Size);
 #if HAVE_WIIUSE
 	else if (g_RealWiiMotePresent)
@@ -326,17 +314,17 @@ void Wiimote_InterruptChannel(int _number, u16 _channelID, const void* _pData, u
 
 
 // Function: Used for the initial Bluetooth HID handshake.
-
 void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
 	// Debugging
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	DEBUG_LOG(WIIMOTE, "Wiimote_ControlChannel");
+	DEBUG_LOG(WIIMOTE, "    Channel ID: %04x", _channelID);
 	std::string Temp = ArrayToString((const u8*)_pData, _Size);
 	DEBUG_LOG(WIIMOTE, "    Data: %s", Temp.c_str());
 #endif
 
-	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
+	if (WiiMoteEmu::WiiMapping[_number].Source >= 0)
 		WiiMoteEmu::ControlChannel(_number, _channelID, _pData, _Size);
 #if HAVE_WIIUSE
 	else if (g_RealWiiMotePresent)
@@ -345,8 +333,7 @@ void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32
 }
 
 
-/* This sends a Data Report from the Wiimote. See SystemTimers.cpp for the documentation of this
-   update. */
+// This sends a Data Report from the Wiimote. See SystemTimers.cpp for the documentation of this update.
 void Wiimote_Update(int _number)
 {
 	// Tell us about the update rate, but only about once every second to avoid a major slowdown
@@ -366,13 +353,14 @@ void Wiimote_Update(int _number)
 	// This functions will send:
 	//		Emulated Wiimote: Only data reports 0x30-0x37
 	//		Real Wiimote: Both data reports 0x30-0x37 and all other read reports
-	if (!g_Config.bUseRealWiimote || !g_RealWiiMotePresent)
+	if (WiiMoteEmu::WiiMapping[_number].Source >= 0)
 		WiiMoteEmu::Update(_number);
 #if HAVE_WIIUSE
 	else if (g_RealWiiMotePresent)
 		WiiMoteReal::Update();	// TODO: Multi-Wiimote
 #endif
 
+/*
 	// Debugging
 #ifdef _WIN32
 	if( GetAsyncKeyState(VK_HOME) && g_DebugComm ) g_DebugComm = false; // Page Down
@@ -387,6 +375,8 @@ void Wiimote_Update(int _number)
 	if( GetAsyncKeyState(VK_END) && g_DebugCustom ) { g_DebugCustom = false; DEBUG_LOG(WIIMOTE, "Custom Debug: Off");} // End
 		else if (GetAsyncKeyState(VK_END) && !g_DebugCustom ) {g_DebugCustom = true; DEBUG_LOG(WIIMOTE, "Custom Debug: Off");}
 #endif
+*/
+
 }
 
 unsigned int Wiimote_GetAttachedControllers()
@@ -397,8 +387,6 @@ unsigned int Wiimote_GetAttachedControllers()
 
 
 // Supporting functions
-
-
 
 // Check if Dolphin is in focus
 
@@ -422,13 +410,55 @@ bool IsFocus()
 #endif
 }
 
+/* Returns a timestamp with three decimals for precise time comparisons. The return format is
+   of the form seconds.milleseconds for example 1234.123. The leding seconds have no particular meaning
+   but are just there to enable use to tell if we have entered a new second or now. */
+// -----------------
+
+/* Calculate the current update frequency. Calculate the time between ten updates, and average
+   five such rates. If we assume there are 60 updates per second if the game is running at full
+   speed then we get this measure on average once every second. The reason to have a few updates
+   between each measurement is becase the milliseconds may not be perfectly accurate and may return
+   the same time even when a milliseconds has actually passed, for example.*/
+int GetUpdateRate()
+{
+#if defined(HAVE_WX) && HAVE_WX
+	if(g_UpdateCounter == 10)
+	{
+		// Erase the old ones
+		if(g_UpdateTimeList.size() == 5) g_UpdateTimeList.erase(g_UpdateTimeList.begin() + 0);
+
+		// Calculate the time and save it
+		int Time = (int)(10 / (Common::Timer::GetDoubleTime() - g_UpdateTime));
+		g_UpdateTimeList.push_back(Time);
+		//DEBUG_LOG(WIIMOTE, "Time: %i %f", Time, Common::Timer::GetDoubleTime());
+
+		int TotalTime = 0;
+		for (int i = 0; i < (int)g_UpdateTimeList.size(); i++)
+			TotalTime += g_UpdateTimeList.at(i);
+		g_UpdateRate = TotalTime / 5;
+
+		// Write the new update time
+		g_UpdateTime = Common::Timer::GetDoubleTime();
+
+		g_UpdateCounter = 0;
+	}
+
+	g_UpdateCounter++;
+
+	return g_UpdateRate;
+#else
+	return 0;
+#endif
+}
+
+/*
 // Turn off all extensions
 void DisableExtensions()
 {
 	g_Config.iExtensionConnected = EXT_NONE;
 }
 
-/*
 void ReadDebugging(bool Emu, const void* _pData, int Size)
 {
 	//
@@ -807,7 +837,6 @@ void ReadDebugging(bool Emu, const void* _pData, int Size)
 		DEBUG_LOG(WIIMOTE, "Accel x, y, z: %03u %03u %03u", data[4], data[5], data[6]);
 	}
 }
-*/
 
 void InterruptDebugging(bool Emu, const void* _pData)
 {
@@ -951,75 +980,16 @@ void InterruptDebugging(bool Emu, const void* _pData)
 	{
 		std::string Temp = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		DEBUG_LOG(WIIMOTE, "%s: %s", Name.c_str(), Temp.c_str()); // No timestamp
-		//DEBUG_LOG(WIIMOTE, " (%s): %s", Tm(true).c_str(), Temp.c_str()); // Timestamp
+		DEBUG_LOG(WIIMOTE, "%s: %s", Name.c_str(), Temp.c_str());
+		//DEBUG_LOG(WIIMOTE, " (%s): %s", Tm(true).c_str(), Temp.c_str());
 	}
 	if (g_DebugSoundData && SoundData)
 	{
 		std::string Temp = ArrayToString(data, size + 2, 0, 30);
 		//LOGV(WIIMOTE, 3, "   Data: %s", Temp.c_str());
-		DEBUG_LOG(WIIMOTE, "%s: %s", Name.c_str(), Temp.c_str()); // No timestamp
-		//DEBUG_LOG(WIIMOTE, " (%s): %s", Tm(true).c_str(), Temp.c_str()); // Timestamp
+		DEBUG_LOG(WIIMOTE, "%s: %s", Name.c_str(), Temp.c_str());
+		//DEBUG_LOG(WIIMOTE, " (%s): %s", Tm(true).c_str(), Temp.c_str());
 	}
 	
 }
-
-
-/* Returns a timestamp with three decimals for precise time comparisons. The return format is
-   of the form seconds.milleseconds for example 1234.123. The leding seconds have no particular meaning
-   but are just there to enable use to tell if we have entered a new second or now. */
-// -----------------
-
-/* Calculate the current update frequency. Calculate the time between ten updates, and average
-   five such rates. If we assume there are 60 updates per second if the game is running at full
-   speed then we get this measure on average once every second. The reason to have a few updates
-   between each measurement is becase the milliseconds may not be perfectly accurate and may return
-   the same time even when a milliseconds has actually passed, for example.*/
-int GetUpdateRate()
-{
-#if defined(HAVE_WX) && HAVE_WX
-	if(g_UpdateCounter == 10)
-	{
-		// Erase the old ones
-		if(g_UpdateTimeList.size() == 5) g_UpdateTimeList.erase(g_UpdateTimeList.begin() + 0);
-
-		// Calculate the time and save it
-		int Time = (int)(10 / (Common::Timer::GetDoubleTime() - g_UpdateTime));
-		g_UpdateTimeList.push_back(Time);
-		//DEBUG_LOG(WIIMOTE, "Time: %i %f", Time, Common::Timer::GetDoubleTime());
-
-		int TotalTime = 0;
-		for (int i = 0; i < (int)g_UpdateTimeList.size(); i++)
-			TotalTime += g_UpdateTimeList.at(i);
-		g_UpdateRate = TotalTime / 5;
-
-		// Write the new update time
-		g_UpdateTime = Common::Timer::GetDoubleTime();
-
-		g_UpdateCounter = 0;
-	}
-
-	g_UpdateCounter++;
-
-	return g_UpdateRate;
-#else
-	return 0;
-#endif
-}
-
-void DoInitialize()
-{
-	// Run this first so that WiiMoteReal::Initialize() overwrites g_Eeprom
-	WiiMoteEmu::Initialize();
-
-	/* We will run WiiMoteReal::Initialize() even if we are not using a real
-	   wiimote, to check if there is a real wiimote connected. We will initiate
-	   wiiuse.dll, but we will return before creating a new thread for it if we
-	   find no real Wiimotes.  Then g_RealWiiMotePresent will also be
-	   false. This function call will be done instantly whether there is a real
-	   Wiimote connected or not. It takes no time for Wiiuse to check for
-	   connected Wiimotes. */
-	#if HAVE_WIIUSE
-		if (g_Config.bConnectRealWiimote) WiiMoteReal::Initialize();
-	#endif
-}
+*/

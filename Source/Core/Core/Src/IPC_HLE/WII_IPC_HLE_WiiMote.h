@@ -18,10 +18,13 @@
 #define _WII_IPC_HLE_WII_MOTE_
 
 #include <map>
-#include "hci.h"
 #include <string>
+#include "hci.h"
+#include "ChunkFile.h"
 
 class CWII_IPC_HLE_Device_usb_oh1_57e_305;
+
+CWII_IPC_HLE_Device_usb_oh1_57e_305* GetUsbPointer();
 
 enum
 {
@@ -188,15 +191,15 @@ public:
 	virtual ~CWII_IPC_HLE_WiiMote()
 	{}
 
-	
+	void DoState(PointerWrap &p);
+
 	// ugly Host handling....
 	// we really have to clean all this code
 
+	int IsConnected() const { return m_Connected; }
 	bool LinkChannel();
 	void ResetChannels();
 	void Activate(bool ready);
-	bool IsConnected() const { return (m_Connected > 0) ? true : false; }
-	bool IsLinked() const { return m_Linked; }
 	void ShowStatus(const void* _pData); // Show status
 	void UpdateStatus(); // Update status
 	void ExecuteL2capCmd(u8* _pData, u32 _Size);	// From CPU
@@ -218,9 +221,9 @@ public:
 
 private:
 
-	// state machine
-	int m_Connected; // 0: ready, -1: inactive/connecting, 1: connected
-	bool m_Linked;
+	// -1: inactive, 0: ready, 1: connecting 2: linking 3: connected & linked
+	int m_Connected;
+
 	bool m_HIDControlChannel_Connected;
 	bool m_HIDControlChannel_ConnectedWait;
 	bool m_HIDControlChannel_Config;

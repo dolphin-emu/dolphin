@@ -69,12 +69,9 @@ void HidOutputReport(u16 _channelID, wm_report* sr)
 	switch(sr->wm)
 	{
 	case WM_RUMBLE: // 0x10
-	{
-		// TODO: need more accurate rumble
-		const int Page = 0;
-		PAD_Rumble(Page, sr->data[0]);
+		PAD_Rumble(g_ID, sr->data[0]);
 		break;
-	}
+
 	case WM_LEDS: // 0x11
 		WmLeds(_channelID, (wm_leds*)sr->data);
 		break;
@@ -88,8 +85,8 @@ void HidOutputReport(u16 _channelID, wm_report* sr)
 		// This enables or disables the IR lights, we update the global variable g_IR
 	    // so that WmRequestStatus() knows about it
 		INFO_LOG(WIIMOTE, "WM IR Enable: 0x%02x", sr->data[0]);
-		if(sr->data[0] == 0x02) g_IR = 0;
-			else if(sr->data[0] == 0x06) g_IR = 1;
+		if(sr->data[0] == 0x02) g_IR[g_ID] = 0;
+			else if(sr->data[0] == 0x06) g_IR[g_ID] = 1;
 		break;
 
 	case WM_SPEAKER_ENABLE: // 0x14
@@ -163,8 +160,7 @@ int WriteWmReportHdr(u8* dst, u8 wm)
 void WmLeds(u16 _channelID, wm_leds* leds)
 {
 	INFO_LOG(WIIMOTE, "Set LEDs: %x, Rumble: %x", leds->leds, leds->rumble);
-
-	g_Leds[g_RefreshWiimote] = leds->leds;
+	g_Leds[g_ID] = leds->leds;
 }
 
 
@@ -190,7 +186,7 @@ void WmSendAck(u16 _channelID, u8 _reportID)
 	DEBUG_LOG(WIIMOTE,  "WMSendAck");
 	DEBUG_LOG(WIIMOTE,  "  Report ID: %02x", _reportID);
 
-	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
@@ -233,7 +229,7 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			DEBUG_LOG(WIIMOTE, "  Case 0xa2: g_RegSpeaker");
 			break;
 		case 0xA4:
-			block = g_RegExt;
+			block = g_RegExt[g_ID];
 			blockSize = WIIMOTE_REG_EXT_SIZE;
 			DEBUG_LOG(WIIMOTE, "  Case 0xa4: ExtReg");
 			break;
@@ -264,11 +260,11 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 		if(((address >> 16) & 0xfe) == 0xa4)
 		{
 			// Check if encrypted reads is on
-			if(g_RegExt[0xf0] == 0xaa)
+			if(g_RegExt[g_ID][0xf0] == 0xaa)
 			{
 				/* Copy the registry to a temporary space. We don't want to change the unencrypted
 				   data in the registry */
-				memcpy(g_RegExtTmp, g_RegExt, sizeof(g_RegExt));
+				memcpy(g_RegExtTmp, g_RegExt[g_ID], sizeof(g_RegExt[0]));
 
 				// Encrypt g_RegExtTmp at that location
 				wiimote_encrypt(&g_ExtKey, &g_RegExtTmp[address & 0xffff], (address & 0xffff), (u8)size);
@@ -364,7 +360,7 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, int _Size)
 #endif
 
 		// Send a piece
-		g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
+		g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
 
 		// Update the size that is left
 		_Size -= copySize;
@@ -408,7 +404,7 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 				DEBUG_LOG(WIIMOTE, "  Case 0xa2: RegSpeaker");
 				break;
 			case 0xA4:
-				block = g_RegExt; // Extension Controller register
+				block = g_RegExt[g_ID]; // Extension Controller register
 				blockSize = WIIMOTE_REG_EXT_SIZE;
 				DEBUG_LOG(WIIMOTE, "  Case 0xa4: ExtReg");
 				break;
@@ -450,7 +446,7 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 			   that we send it parts of a key, only the last full key will have an
 			   effect */
 			if(address >= 0x40 && address <= 0x4c)
-				wiimote_gen_key(&g_ExtKey, &g_RegExt[0x40]);
+				wiimote_gen_key(&g_ExtKey, &g_RegExt[g_ID][0x40]);
 		}
 
 	}
@@ -482,8 +478,8 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 #if defined(HAVE_WX) && HAVE_WX
 	FillReportInfo(pStatus->buttons);
 #endif
-	pStatus->leds = g_Leds[g_RefreshWiimote]; // leds are 4 bit
-	pStatus->ir = g_IR; // 1 bit
+	pStatus->leds = g_Leds[g_ID]; // leds are 4 bit
+	pStatus->ir = g_IR[g_ID]; // 1 bit
 	pStatus->speaker = g_Speaker; // 1 bit
 	pStatus->battery_low = 0; // battery is okay
 	pStatus->battery = 0x5f; // fully charged
@@ -497,24 +493,18 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 	if (Extension == -1)
 	{
 		// Read config value for the first time
-		if(g_Config.iExtensionConnected == EXT_NONE)
-			pStatus->extension = 0;
-		else
-			pStatus->extension = 1;
+		pStatus->extension = (WiiMapping[g_ID].iExtensionConnected == EXT_NONE) ? 0 : 1;
 	}
 	else
 	{
-		if(Extension)
-			pStatus->extension = 1;
-		else
-			pStatus->extension = 0;
+		pStatus->extension = (Extension) ? 1 : 0;
 	}
 
 	INFO_LOG(WIIMOTE, "Request Status");
 	DEBUG_LOG(WIIMOTE, "  Extension: %x", pStatus->extension);
 	DEBUG_LOG(WIIMOTE, "  Buttons: 0x%04x", pStatus->buttons);
 
-	g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);

@@ -148,16 +148,6 @@ bool GetRealWiimote()
     return g_bRealWiimote;
 }
 
-// This doesn't work yet, I don't understand how the connection work yet
-void ReconnectWiimote()
-{
-	// This seems to be a hack that just sets some IPC registers to zero. Dubious.
-	/* JP: Yes, it's basically nothing right now, I could not figure out how to reset the Wiimote
-	   for reconnection */
-	HW::InitWiimote();
-	INFO_LOG(CONSOLE, "ReconnectWiimote()\n");
-}
-
 bool isRunning()
 {
 	return (GetState() != CORE_UNINITIALIZED) || g_bHwInit;

@@ -39,117 +39,6 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 namespace WiiMoteEmu
 {
 
-/* Bit shift conversions */
-u32 convert24bit(const u8* src) {
-	return (src[0] << 16) | (src[1] << 8) | src[2];
-}
-
-u16 convert16bit(const u8* src) {
-	return (src[0] << 8) | src[1];
-}
-
-
-/* Calibrate the mouse position to the emulation window. g_WiimoteInitialize.hWnd is the rendering window handle. */
-void GetMousePos(float& x, float& y)
-{
-#ifdef _WIN32
-	POINT point;
-	// Get the cursor position for the entire screen
-	GetCursorPos(&point);
-	// Get the cursor position relative to the upper left corner of the rendering window
-	ScreenToClient(g_WiimoteInitialize.hWnd, &point);
-
-	// Get the size of the rendering window. (In my case Rect.top and Rect.left was zero.)
-	RECT Rect;
-	GetClientRect(g_WiimoteInitialize.hWnd, &Rect);
-	// Width and height is the size of the rendering window
-	float WinWidth = (float)(Rect.right - Rect.left);
-	float WinHeight = (float)(Rect.bottom - Rect.top);
-	float XOffset = 0, YOffset = 0;
-	float PictureWidth = WinWidth, PictureHeight = WinHeight;
-
-	/* Calculate the actual picture size and location */
-	//		Output: PictureWidth, PictureHeight, XOffset, YOffset
-	if (g_Config.bKeepAR43 || g_Config.bKeepAR169)
-	{
-		// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
-		float Ratio = WinWidth / WinHeight / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
-
-		// Check if height or width is the limiting factor. If ratio > 1 the picture is to wide and have to limit the width.
-		if (Ratio > 1)
-		{
-			// Calculate the new width and height for glViewport, this is not the actual size of either the picture or the screen
-			PictureWidth = WinWidth / Ratio;
-
-			// Calculate the new X offset
-
-			// Move the left of the picture to the middle of the screen
-			XOffset = XOffset + WinWidth / 2.0f;
-			// Then remove half the picture height to move it to the horizontal center
-			XOffset = XOffset - PictureWidth / 2.0f;
-		}
-		// The window is to high, we have to limit the height
-		else
-		{
-			// Calculate the new width and height for glViewport, this is not the actual size of either the picture or the screen
-			// Invert the ratio to make it > 1
-			Ratio = 1.0f / Ratio;
-			PictureHeight = WinHeight / Ratio;
-
-			// Calculate the new Y offset
-			// Move the top of the picture to the middle of the screen
-			YOffset = YOffset + WinHeight / 2.0f;
-			// Then remove half the picture height to move it to the vertical center
-			YOffset = YOffset - PictureHeight / 2.0f;
-		}
-		/*
-		INFO_LOG(WIIMOTE, "Screen         Width:%4.0f Height:%4.0f Ratio:%1.2f", WinWidth, WinHeight, Ratio);
-		INFO_LOG(WIIMOTE, "Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f", PictureWidth, PictureHeight, YOffset, XOffset);
-		*/
-	}
-
-	// Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.
-	//		Output: PictureWidth, PictureHeight, XOffset, YOffset
-	if ((g_Config.bKeepAR43 || g_Config.bKeepAR169) && g_Config.bCrop)
-	{
-		float Ratio = g_Config.bKeepAR43 ? ((4.0f / 3.0f) / (5.0f / 4.0f)) : (((16.0f / 9.0f) / (16.0f / 10.0f)));
-		
-		// The width and height we will add  (calculate this before PictureWidth and PictureHeight is adjusted)
-		float IncreasedWidth = (Ratio - 1.0f) * PictureWidth;
-		float IncreasedHeight = (Ratio - 1.0f) * PictureHeight;
-
-		// The new width and height
-		PictureWidth = PictureWidth * Ratio;
-		PictureHeight = PictureHeight * Ratio;
-
-		// Adjust the X and Y offset
-		XOffset = float(XOffset - (IncreasedWidth / 2.0));
-		YOffset = float(YOffset - (IncreasedHeight / 2.0));
-
-		/*
-		INFO_LOG(WIIMOTE, "Crop           Ratio:%1.2f IncrWidth:%3.0f IncrHeight:%3.0f", Ratio, IncreasedWidth, IncreasedHeight);
-		INFO_LOG(WIIMOTE, "Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f", PictureWidth, PictureHeight, YOffset, XOffset);
-		*/
-	}
-	
-	// Return the mouse position as a fraction of one, inside the picture, with (0.0, 0.0) being the upper left corner of the picture
-	x = ((float)point.x - XOffset) / PictureWidth;
-	y = ((float)point.y - YOffset) / PictureHeight;
-	
-	/*
-	INFO_LOG(WIIMOTE, "GetCursorPos:  %i %i", point.x, point.y);
-	INFO_LOG(WIIMOTE, "GetClientRect: %i %i  %i %i", Rect.left, Rect.right, Rect.top, Rect.bottom);
-	INFO_LOG(WIIMOTE, "Position       X:%1.2f Y:%1.2f", x, y);
-	*/
-	
-#else
-    // TODO fix on linux
-	x = 0.5f;
-	y = 0.5f;
-#endif
-}
-
-
 /* Homebrew encryption for 16 byte zero keys. */
 void CryptBuffer(u8* _buffer, u8 _size)
 {
@@ -167,7 +56,6 @@ void WriteCrypted16(u8* _baseBlock, u16 _address, u16 _value)
 	*(u16*)(_baseBlock + _address) = cryptedValue;
 }
 
-
 /* Calculate Extenstion Regisister Calibration Checksum */
 // This function is not currently used, it's just here to show how the values
 // in EmuDefinitions.h are calculated.
@@ -180,6 +68,27 @@ void GetCalibrationChecksum()
 	INFO_LOG(WIIMOTE, "0x%02x 0x%02x",  (sum + 0x55), (sum + 0xaa));
 }
 
+// Calculate checksum for the nunchuck calibration. The last two bytes.
+void ExtensionChecksum(u8 * Calibration)
+{
+	u8 sum = 0; //u8 Byte15, Byte16;
+	for (u32 i = 0; i < sizeof(Calibration) - 2; i++)
+	{
+		sum += Calibration[i];
+		//INFO_LOG(WIIMOTE, "Plus 0x%02x", Calibration[i]);
+	}
+	//	Byte15 = sum + 0x55; // Byte 15
+	//	Byte16 = sum + 0xaa; // Byte 16
+}
+
+/* Bit shift conversions */
+u32 convert24bit(const u8* src) {
+	return (src[0] << 16) | (src[1] << 8) | src[2];
+}
+
+u16 convert16bit(const u8* src) {
+	return (src[0] << 8) | src[1];
+}
 
 /* Load pre-recorded movements */
 void LoadRecordedMovements()
@@ -290,142 +199,118 @@ void LoadRecordedMovements()
 	}
 }
 
-// Update the accelerometer neutral values
-void UpdateEeprom()
+/* Calibrate the mouse position to the emulation window. g_WiimoteInitialize.hWnd is the rendering window handle. */
+void GetMousePos(float& x, float& y)
 {
-	g_wm.cal_zero.x = g_Eeprom[22];
-	g_wm.cal_zero.y = g_Eeprom[23];
-	g_wm.cal_zero.z = g_Eeprom[24];
-	g_wm.cal_g.x = g_Eeprom[26] - g_Eeprom[22];
-	g_wm.cal_g.y = g_Eeprom[27] - g_Eeprom[23];
-	g_wm.cal_g.z = g_Eeprom[28] - g_Eeprom[24];
+#ifdef _WIN32
+	POINT point;
+	// Get the cursor position for the entire screen
+	GetCursorPos(&point);
+	// Get the cursor position relative to the upper left corner of the rendering window
+	ScreenToClient(g_WiimoteInitialize.hWnd, &point);
 
-	INFO_LOG(WIIMOTE, "UpdateEeprom: %i %i %i",
-		WiiMoteEmu::g_Eeprom[22], WiiMoteEmu::g_Eeprom[23], WiiMoteEmu::g_Eeprom[28]);
+	// Get the size of the rendering window. (In my case Rect.top and Rect.left was zero.)
+	RECT Rect;
+	GetClientRect(g_WiimoteInitialize.hWnd, &Rect);
+	// Width and height is the size of the rendering window
+	float WinWidth = (float)(Rect.right - Rect.left);
+	float WinHeight = (float)(Rect.bottom - Rect.top);
+	float XOffset = 0, YOffset = 0;
+	float PictureWidth = WinWidth, PictureHeight = WinHeight;
 
-	if(g_Config.iExtensionConnected == EXT_NUNCHUCK)
+	/* Calculate the actual picture size and location */
+	//		Output: PictureWidth, PictureHeight, XOffset, YOffset
+	if (g_Config.bKeepAR43 || g_Config.bKeepAR169)
 	{
-		g_nu.cal_zero.x = g_RegExt[0x20];
-		g_nu.cal_zero.y = g_RegExt[0x21];
-		g_nu.cal_zero.z = g_RegExt[0x22];
-		g_nu.cal_g.x = g_RegExt[0x24] - g_RegExt[0x20];
-		g_nu.cal_g.y = g_RegExt[0x25] - g_RegExt[0x21];
-		g_nu.cal_g.z = g_RegExt[0x26] - g_RegExt[0x22];
-		g_nu.jx.max = g_RegExt[0x28];
-		g_nu.jx.min = g_RegExt[0x29];
-		g_nu.jx.center = g_RegExt[0x2a];
-		g_nu.jy.max = g_RegExt[0x2b];
-		g_nu.jy.min = g_RegExt[0x2c];
-		g_nu.jy.center = g_RegExt[0x2d];
+		// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
+		float Ratio = WinWidth / WinHeight / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
 
-		INFO_LOG(WIIMOTE, "UpdateNunchuck: %i %i   %i %i %i",
-			WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
-			WiiMoteEmu::g_RegExt[0x20], WiiMoteEmu::g_RegExt[0x21], WiiMoteEmu::g_RegExt[0x26]);
-	}
-	else if(g_Config.iExtensionConnected == EXT_CLASSIC_CONTROLLER)
-	{
-		g_ClassicContCalibration.Lx.max = g_RegExt[0x20];
-		g_ClassicContCalibration.Lx.min = g_RegExt[0x21];
-		g_ClassicContCalibration.Lx.center = g_RegExt[0x22];
-		g_ClassicContCalibration.Ly.max = g_RegExt[0x23];
-		g_ClassicContCalibration.Ly.min = g_RegExt[0x24];
-		g_ClassicContCalibration.Ly.center = g_RegExt[0x25];
+		// Check if height or width is the limiting factor. If ratio > 1 the picture is to wide and have to limit the width.
+		if (Ratio > 1)
+		{
+			// Calculate the new width and height for glViewport, this is not the actual size of either the picture or the screen
+			PictureWidth = WinWidth / Ratio;
 
-		g_ClassicContCalibration.Rx.max = g_RegExt[0x26];
-		g_ClassicContCalibration.Rx.min = g_RegExt[0x27];
-		g_ClassicContCalibration.Rx.center = g_RegExt[0x28];
-		g_ClassicContCalibration.Ry.max = g_RegExt[0x29];
-		g_ClassicContCalibration.Ry.min = g_RegExt[0x2a];
-		g_ClassicContCalibration.Ry.center = g_RegExt[0x2b];
+			// Calculate the new X offset
 
-		g_ClassicContCalibration.Tl.neutral = g_RegExt[0x2c];
-		g_ClassicContCalibration.Tr.neutral = g_RegExt[0x2d];
+			// Move the left of the picture to the middle of the screen
+			XOffset = XOffset + WinWidth / 2.0f;
+			// Then remove half the picture height to move it to the horizontal center
+			XOffset = XOffset - PictureWidth / 2.0f;
+		}
+		// The window is to high, we have to limit the height
+		else
+		{
+			// Calculate the new width and height for glViewport, this is not the actual size of either the picture or the screen
+			// Invert the ratio to make it > 1
+			Ratio = 1.0f / Ratio;
+			PictureHeight = WinHeight / Ratio;
 
-		INFO_LOG(WIIMOTE, "UpdateCC: %i %i   %i %i %i",
-			WiiMoteEmu::g_RegExt[0x2a], WiiMoteEmu::g_RegExt[0x2d],
-			WiiMoteEmu::g_RegExt[0x20], WiiMoteEmu::g_RegExt[0x21], WiiMoteEmu::g_RegExt[0x26]);
-	}
-	else if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
-	{
-		// TODO get the correct values here
-		g_GH3Calibration.Lx.max = g_RegExt[0x20];
-		g_GH3Calibration.Lx.min = g_RegExt[0x21];
-		g_GH3Calibration.Lx.center = g_RegExt[0x22];
-		g_GH3Calibration.Ly.max = g_RegExt[0x23];
-		g_GH3Calibration.Ly.min = g_RegExt[0x24];
-		g_GH3Calibration.Ly.center = g_RegExt[0x25];
+			// Calculate the new Y offset
+			// Move the top of the picture to the middle of the screen
+			YOffset = YOffset + WinHeight / 2.0f;
+			// Then remove half the picture height to move it to the vertical center
+			YOffset = YOffset - PictureHeight / 2.0f;
+		}
+		/*
+		INFO_LOG(WIIMOTE, "Screen         Width:%4.0f Height:%4.0f Ratio:%1.2f", WinWidth, WinHeight, Ratio);
+		INFO_LOG(WIIMOTE, "Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f", PictureWidth, PictureHeight, YOffset, XOffset);
+		*/
 	}
 
-}
-
-// Calculate checksum for the nunchuck calibration. The last two bytes.
-void ExtensionChecksum(u8 * Calibration)
-{
-	u8 sum = 0; //u8 Byte15, Byte16;
-	for (u32 i = 0; i < sizeof(Calibration) - 2; i++)
+	// Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.
+	//		Output: PictureWidth, PictureHeight, XOffset, YOffset
+	if ((g_Config.bKeepAR43 || g_Config.bKeepAR169) && g_Config.bCrop)
 	{
-		sum += Calibration[i];
-		//INFO_LOG(WIIMOTE, "Plus 0x%02x", Calibration[i]);
-	}
-	//	Byte15 = sum + 0x55; // Byte 15
-	//	Byte16 = sum + 0xaa; // Byte 16
-}
+		float Ratio = g_Config.bKeepAR43 ? ((4.0f / 3.0f) / (5.0f / 4.0f)) : (((16.0f / 9.0f) / (16.0f / 10.0f)));
+		
+		// The width and height we will add  (calculate this before PictureWidth and PictureHeight is adjusted)
+		float IncreasedWidth = (Ratio - 1.0f) * PictureWidth;
+		float IncreasedHeight = (Ratio - 1.0f) * PictureHeight;
 
-// Set initial valuesm this done both in Init and Shutdown
-void ResetVariables()
-{
-	g_RefreshWiimote = 0;
-	g_ReportingMode = 0;
-	g_ReportingChannel = 0;
-	g_Encryption = false;
+		// The new width and height
+		PictureWidth = PictureWidth * Ratio;
+		PictureHeight = PictureHeight * Ratio;
 
-	for (int i = 0; i < 4; i++)
-	{
-		g_ReportingAuto[i] = false;
-		memset(&g_WiimoteData[i], 0, sizeof(g_WiimoteData));
-	}
+		// Adjust the X and Y offset
+		XOffset = float(XOffset - (IncreasedWidth / 2.0));
+		YOffset = float(YOffset - (IncreasedHeight / 2.0));
 
-	// Set default recording values
-#if defined(HAVE_WX) && HAVE_WX
-	for (int i = 0; i < 3; i++)
-	{
-		g_RecordingPlaying[i] = -1;
-		g_RecordingCounter[i] = 0;
-		g_RecordingPoint[i] = 0;
-		g_RecordingStart[i] = 0;
-		g_RecordingCurrentTime[i] = 0;
+		/*
+		INFO_LOG(WIIMOTE, "Crop           Ratio:%1.2f IncrWidth:%3.0f IncrHeight:%3.0f", Ratio, IncreasedWidth, IncreasedHeight);
+		INFO_LOG(WIIMOTE, "Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f", PictureWidth, PictureHeight, YOffset, XOffset);
+		*/
 	}
+	
+	// Return the mouse position as a fraction of one, inside the picture, with (0.0, 0.0) being the upper left corner of the picture
+	x = ((float)point.x - XOffset) / PictureWidth;
+	y = ((float)point.y - YOffset) / PictureHeight;
+	
+	/*
+	INFO_LOG(WIIMOTE, "GetCursorPos:  %i %i", point.x, point.y);
+	INFO_LOG(WIIMOTE, "GetClientRect: %i %i  %i %i", Rect.left, Rect.right, Rect.top, Rect.bottom);
+	INFO_LOG(WIIMOTE, "Position       X:%1.2f Y:%1.2f", x, y);
+	*/
+	
+#else
+    // TODO fix on linux
+	x = 0.5f;
+	y = 0.5f;
 #endif
-	g_EmulatedWiiMoteInitialized = false;
 }
 
-// Update the extension calibration values with our default values
-void UpdateExtRegisterBlocks()
+/* This is not needed if we call FreeLibrary() when we stop a game, but if it's
+   not called we need to reset these variables. */
+void Shutdown() 
 {
-	// Copy extension id and calibration to its register	
-	if(g_Config.iExtensionConnected == EXT_NUNCHUCK)
-	{
-		memcpy(g_RegExt + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
-		memcpy(g_RegExt + 0x30, nunchuck_calibration, sizeof(nunchuck_calibration));
-		memcpy(g_RegExt + 0xfa, nunchuck_id, sizeof(nunchuck_id));
-	}
-	else if(g_Config.iExtensionConnected == EXT_CLASSIC_CONTROLLER)
-	{
-		memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
-		memcpy(g_RegExt + 0x30, classic_calibration, sizeof(classic_calibration));
-		memcpy(g_RegExt + 0xfa, classic_id, sizeof(classic_id));
-	}
-	else if(g_Config.iExtensionConnected == EXT_GUITARHERO3_CONTROLLER)
-	{
-		// TODO get the correct values here
-		memcpy(g_RegExt + 0x20, classic_calibration, sizeof(classic_calibration));
-		memcpy(g_RegExt + 0x30, classic_calibration, sizeof(classic_calibration));
-		memcpy(g_RegExt + 0xfa, gh3glp_id, sizeof(gh3glp_id));
-	}
+	INFO_LOG(WIIMOTE, "ShutDown");
 
-	INFO_LOG(WIIMOTE, "UpdateExtRegisterBlocks()");
-
-	UpdateEeprom();
+	ResetVariables();
+	// Close joypads
+	Close_Devices();
+	// Finally close SDL
+	if (SDL_WasInit(0))
+		SDL_Quit();
 }
 
 // Start emulation
@@ -433,27 +318,28 @@ void Initialize()
 {
 	INFO_LOG(WIIMOTE, "Initialize"); 
 
-	//if (g_EmulatedWiiMoteInitialized) return;
-
 	// Reset variables
 	ResetVariables();
+
+	/* Populate joyinfo for all attached devices and do g_Config.Load() if the
+	   configuration window is not already open, if it's already open we
+	   continue with the settings we have */
+	if(!g_FrameOpen)
+	{
+		g_Config.Load();
+		Search_Devices(joyinfo, NumPads, NumGoodPads);
+	}
 
 	// Write default Eeprom data to g_Eeprom[], this may be overwritten by
 	// WiiMoteReal::Initialize() after this function.
 	memset(g_Eeprom, 0, WIIMOTE_EEPROM_SIZE);
 	memcpy(g_Eeprom, EepromData_0, sizeof(EepromData_0));
 	memcpy(g_Eeprom + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
-
-	/* Populate joyinfo for all attached devices and do g_Config.Load() if the
-	   configuration window is not already open, if it's already open we
-	   continue with the settings we have */
-	//if(!g_FrameOpen)
-	Search_Devices(joyinfo, NumPads, NumGoodPads);
-
-	g_Config.Load();
+	InitCalibration();
 
 	// Copy extension id and calibration to its register, g_Config.Load() is needed before this
-	UpdateExtRegisterBlocks();
+	for (int i = 0; i < MAX_WIIMOTES; i++)
+		UpdateExtRegisterBlocks(i);
 
 	// The emulated Wiimote is initialized
 	g_EmulatedWiiMoteInitialized = true;
@@ -471,22 +357,128 @@ void Initialize()
 	//	g_RegExt[0xfc] = 0x9a;
 }
 
+// Set initial valuesm this done both in Init and Shutdown
+void ResetVariables()
+{
+	g_EmulatedWiiMoteInitialized = false;
+
+	g_ID = 0;
+	g_Encryption = false;
+
+	for (int i = 0; i < MAX_WIIMOTES; i++)
+	{
+		g_ReportingAuto[i] = false;
+		g_ReportingMode[i] = 0;
+		g_ReportingChannel[i] = 0;
+		WiiMapping[i].Motion.TiltWM.Shake = 0;
+		WiiMapping[i].Motion.TiltWM.Roll = 0;
+		WiiMapping[i].Motion.TiltWM.Pitch = 0;
+		WiiMapping[i].Motion.TiltNC.Shake = 0;
+		WiiMapping[i].Motion.TiltNC.Roll = 0;
+		WiiMapping[i].Motion.TiltNC.Pitch = 0;
+	}
+
+	// Set default recording values
+#if defined(HAVE_WX) && HAVE_WX
+	for (int i = 0; i < 3; i++)
+	{
+		g_RecordingPlaying[i] = -1;
+		g_RecordingCounter[i] = 0;
+		g_RecordingPoint[i] = 0;
+		g_RecordingStart[i] = 0;
+		g_RecordingCurrentTime[i] = 0;
+	}
+#endif
+}
+
+// Initiate the accelerometer neutral values
+void InitCalibration()
+{
+	g_wm.cal_zero.x = g_Eeprom[22];
+	g_wm.cal_zero.y = g_Eeprom[23];
+	g_wm.cal_zero.z = g_Eeprom[24];
+	g_wm.cal_g.x = g_Eeprom[26] - g_Eeprom[22];
+	g_wm.cal_g.y = g_Eeprom[27] - g_Eeprom[23];
+	g_wm.cal_g.z = g_Eeprom[28] - g_Eeprom[24];
+
+	g_nu.cal_zero.x = nunchuck_calibration[0x00];
+	g_nu.cal_zero.y = nunchuck_calibration[0x01];
+	g_nu.cal_zero.z = nunchuck_calibration[0x02];
+	g_nu.cal_g.x = nunchuck_calibration[0x04] - nunchuck_calibration[0x00];
+	g_nu.cal_g.y = nunchuck_calibration[0x05] - nunchuck_calibration[0x01];
+	g_nu.cal_g.z = nunchuck_calibration[0x06] - nunchuck_calibration[0x02];
+
+	g_nu.jx.max = nunchuck_calibration[0x08];
+	g_nu.jx.min = nunchuck_calibration[0x09];
+	g_nu.jx.center = nunchuck_calibration[0x0a];
+	g_nu.jy.max = nunchuck_calibration[0x0b];
+	g_nu.jy.min = nunchuck_calibration[0x0c];
+	g_nu.jy.center = nunchuck_calibration[0x0d];
+
+	g_ClassicContCalibration.Lx.max = classic_calibration[0x00];
+	g_ClassicContCalibration.Lx.min = classic_calibration[0x01];
+	g_ClassicContCalibration.Lx.center = classic_calibration[0x02];
+	g_ClassicContCalibration.Ly.max = classic_calibration[0x03];
+	g_ClassicContCalibration.Ly.min = classic_calibration[0x04];
+	g_ClassicContCalibration.Ly.center = classic_calibration[0x05];
+
+	g_ClassicContCalibration.Rx.max = classic_calibration[0x06];
+	g_ClassicContCalibration.Rx.min = classic_calibration[0x07];
+	g_ClassicContCalibration.Rx.center = classic_calibration[0x08];
+	g_ClassicContCalibration.Ry.max = classic_calibration[0x09];
+	g_ClassicContCalibration.Ry.min = classic_calibration[0x0a];
+	g_ClassicContCalibration.Ry.center = classic_calibration[0x0b];
+
+	g_ClassicContCalibration.Tl.neutral = classic_calibration[0x0c];
+	g_ClassicContCalibration.Tr.neutral = classic_calibration[0x0d];
+
+	// TODO get the correct values here
+	g_GH3Calibration.Lx.max = classic_calibration[0x00];
+	g_GH3Calibration.Lx.min = classic_calibration[0x01];
+	g_GH3Calibration.Lx.center = classic_calibration[0x02];
+	g_GH3Calibration.Ly.max = classic_calibration[0x03];
+	g_GH3Calibration.Ly.min = classic_calibration[0x04];
+	g_GH3Calibration.Ly.center = classic_calibration[0x05];
+}
+
+// Update the extension calibration values with our default values
+void UpdateExtRegisterBlocks(int Slot)
+{
+	// Copy extension id and calibration to its register	
+	if(WiiMapping[Slot].iExtensionConnected == EXT_NUNCHUCK)
+	{
+		memcpy(g_RegExt[Slot] + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
+		memcpy(g_RegExt[Slot] + 0x30, nunchuck_calibration, sizeof(nunchuck_calibration));
+		memcpy(g_RegExt[Slot] + 0xfa, nunchuck_id, sizeof(nunchuck_id));
+	}
+	else if(WiiMapping[Slot].iExtensionConnected == EXT_CLASSIC_CONTROLLER)
+	{
+		memcpy(g_RegExt[Slot] + 0x20, classic_calibration, sizeof(classic_calibration));
+		memcpy(g_RegExt[Slot] + 0x30, classic_calibration, sizeof(classic_calibration));
+		memcpy(g_RegExt[Slot] + 0xfa, classic_id, sizeof(classic_id));
+	}
+	else if(WiiMapping[Slot].iExtensionConnected == EXT_GUITARHERO)
+	{
+		// TODO get the correct values here
+		memcpy(g_RegExt[Slot] + 0x20, classic_calibration, sizeof(classic_calibration));
+		memcpy(g_RegExt[Slot] + 0x30, classic_calibration, sizeof(classic_calibration));
+		memcpy(g_RegExt[Slot] + 0xfa, gh3glp_id, sizeof(gh3glp_id));
+	}
+
+	INFO_LOG(WIIMOTE, "UpdateExtRegisterBlocks()");
+}
 
 void DoState(PointerWrap &p) 
 {
 	// TODO: Shorten the list
 	p.Do(g_Speaker);
 	p.Do(g_SpeakerVoice);
-	p.Do(g_IR);
 	p.DoArray(g_Eeprom, WIIMOTE_EEPROM_SIZE);
 	p.DoArray(g_RegSpeaker, WIIMOTE_REG_SPEAKER_SIZE);
-	p.DoArray(g_RegExt, WIIMOTE_REG_EXT_SIZE);
+	p.DoArray(&g_RegExt[0][0], WIIMOTE_REG_EXT_SIZE * MAX_WIIMOTES);
 	p.DoArray(g_RegMotionPlus, WIIMOTE_REG_EXT_SIZE);
 	p.DoArray(g_RegExtTmp, WIIMOTE_REG_EXT_SIZE);
 	p.DoArray(g_RegIr, WIIMOTE_REG_IR_SIZE);
-
-	p.Do(g_ReportingMode);
-	p.Do(g_ReportingChannel);
 
 	p.Do(g_ExtKey);
 	p.Do(g_Encryption);
@@ -500,38 +492,27 @@ void DoState(PointerWrap &p)
 	//p.Do(g_NunchuckExt);
 	//p.Do(g_ClassicContExt);
 
-	for (int i = 0; i < 4; i++)
+	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
 		p.Do(g_ReportingAuto[i]);
+		p.Do(g_ReportingMode[i]);
+		p.Do(g_ReportingChannel[i]);
+		//p.Do(g_IR[i]);
 		p.Do(g_Leds[i]);
-		p.Do(g_WiimoteData[i]);
 	}
 	return;
-}
-
-/* This is not needed if we call FreeLibrary() when we stop a game, but if it's
-   not called we need to reset these variables. */
-void Shutdown() 
-{
-	INFO_LOG(WIIMOTE, "ShutDown");
-
-	ResetVariables();
-	// Close joypads
-	Close_Devices();
-	// Finally close SDL
-	if (SDL_WasInit(0))
-		SDL_Quit();
 }
 
 /* This function produce Wiimote Input, i.e. reports from the Wiimote in
    response to Output from the Wii. */
 void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size) 
 {
-	g_RefreshWiimote = _number;
 	/* Debugging. We have not yet decided how much of 'data' we will use, it's
 	   not determined by sizeof(data). We have to determine it by looking at
 	   the data cases. */
 	//InterruptDebugging(true, (const void*)_pData);
+
+	g_ID = _number;
 
 	hid_packet* hidp = (hid_packet*)_pData;
 
@@ -572,18 +553,17 @@ void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size
 	}
 }
 
-
 void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size) 
 {
 	// Check for custom communication
-	if(_channelID == 99 && *(const u8*)_pData == WIIMOTE_RECONNECT)
+	if(_channelID == 99 && *(const u8*)_pData == WIIMOTE_DISCONNECT)
 	{
 		WARN_LOG(WIIMOTE, "Wiimote: #%i Disconnected", _number);
 		g_ReportingAuto[_number] = false;
 		return;
 	}
 		
-	g_RefreshWiimote = _number;
+	g_ID = _number;
 
 	hid_packet* hidp = (hid_packet*)_pData;
 
@@ -606,8 +586,8 @@ void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 			// In case it happens, we will send back a handshake which means report failed/rejected
 			// (TO_BE_VERIFIED)
 			//
-			u8 handshake = 0;
-			g_WiimoteInitialize.pWiimoteInput(g_RefreshWiimote, _channelID, &handshake, 1);
+			u8 handshake = HID_HANDSHAKE_SUCCESS;
+			g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, &handshake, 1);
 
 			PanicAlert("HID_TYPE_DATA - OUTPUT: Ambiguous Control Channel Report!");
 		}
@@ -624,7 +604,6 @@ void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 
 }
 
-
 /* This is called from Wiimote_Update(). See SystemTimers.cpp for a
    documentation. I'm not sure exactly how often this function is called but I
    think it's tied to the frame rate of the game rather than a certain amount
@@ -634,42 +613,36 @@ void Update(int _number)
 	if (g_ReportingAuto[_number] == false)
 		return;
 
-	g_RefreshWiimote = _number;
+	g_ID = _number;
 
 	// Read input or not
-	if (g_Config.bInputActive)
+	if (WiiMapping[g_ID].Source > 0)
 	{
 		ReadLinuxKeyboard();
-/*
-	if ((g_Config.Tilt.Type == g_Config.Tilt.TRIGGER || g_Config.Tilt.Type == g_Config.Tilt.ANALOG1 || g_Config.Tilt.Type == g_Config.Tilt.ANALOG2
-		|| g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG1 || g_Config.Nunchuck.Type == g_Config.Nunchuck.ANALOG2
-		|| g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.LType == g_Config.ClassicController.ANALOG2
-		|| g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG1 || g_Config.ClassicController.RType == g_Config.ClassicController.ANALOG2)
-		&& NumGoodPads > 0 && joyinfo.size() > (u32)PadMapping[0].ID)
-*/
+
 		// Check if the pad state should be updated
-		if (NumGoodPads > 0 && joyinfo.size() > (u32)PadMapping[g_RefreshWiimote].ID)
-			WiiMoteEmu::GetJoyState(PadState[g_RefreshWiimote], PadMapping[g_RefreshWiimote], g_RefreshWiimote, joyinfo[PadMapping[g_RefreshWiimote].ID].NumButtons);
+		if (NumGoodPads > 0 && joyinfo.size() > (u32)WiiMapping[g_ID].ID)
+			UpdatePadState(WiiMapping[g_ID]);
 	}
 
-	switch(g_ReportingMode)
+	switch(g_ReportingMode[g_ID])
 	{
 	case 0:
 		break;
 	case WM_REPORT_CORE:
-		SendReportCore(g_ReportingChannel);
+		SendReportCore(g_ReportingChannel[g_ID]);
 		break;
 	case WM_REPORT_CORE_ACCEL:
-		SendReportCoreAccel(g_ReportingChannel);
+		SendReportCoreAccel(g_ReportingChannel[g_ID]);
 		break;
 	case WM_REPORT_CORE_ACCEL_IR12:
-		SendReportCoreAccelIr12(g_ReportingChannel);
+		SendReportCoreAccelIr12(g_ReportingChannel[g_ID]);
 		break;
 	case WM_REPORT_CORE_ACCEL_EXT16:
-		SendReportCoreAccelExt16(g_ReportingChannel);
+		SendReportCoreAccelExt16(g_ReportingChannel[g_ID]);
 		break;
 	case WM_REPORT_CORE_ACCEL_IR10_EXT6:
-		SendReportCoreAccelIr10Ext(g_ReportingChannel);
+		SendReportCoreAccelIr10Ext(g_ReportingChannel[g_ID]);
 		break;
 	}
 }
@@ -699,36 +672,10 @@ void ReadLinuxKeyboard()
 				break;
 			}
 
-			for (int i = g_Wiimote_kbd.A; i < g_Wiimote_kbd.LAST_CONSTANT; i++)
+			for (int i = 0; i < LAST_CONSTANT; i++)
 			{
-				if (key == PadMapping[0].Wm.keyForControls[i - g_Wiimote_kbd.A])
+				if (key == WiiMapping[g_ID].Button[i])
 					KeyStatus[i] = true;
-			}
-			switch (g_Config.iExtensionConnected)
-			{
-			case EXT_NUNCHUCK:
-				for (int i = g_NunchuckExt.Z; i < g_NunchuckExt.LAST_CONSTANT; i++)
-				{
-					if (key == PadMapping[0].Nc.keyForControls[i - g_NunchuckExt.Z])
-						 KeyStatus[i] = true;
-				}
-				break;
-			case EXT_CLASSIC_CONTROLLER:
-				for (int i = g_ClassicContExt.A; i < g_ClassicContExt.LAST_CONSTANT; i++)
-				{
-					if (key == PadMapping[0].Cc.keyForControls[i - g_ClassicContExt.A])
-						 KeyStatus[i] = true;
-				}
-				break;
-			case EXT_GUITARHERO3_CONTROLLER:
-				for (int i = g_GH3Ext.Green; i < g_GH3Ext.LAST_CONSTANT; i++)
-				{
-					if (key == PadMapping[0].GH3c.keyForControls[i - g_GH3Ext.Green])
-						 KeyStatus[i] = true;
-				}
-				break;
-			default:
-				break;
 			}
 			break;
 		}
@@ -743,38 +690,11 @@ void ReadLinuxKeyboard()
 				break;
 			}
 
-			for (int i = g_Wiimote_kbd.A; i < g_Wiimote_kbd.LAST_CONSTANT; i++)
+			for (int i = 0; i < LAST_CONSTANT; i++)
 			{
-				if (key == PadMapping[0].Wm.keyForControls[i - g_Wiimote_kbd.A])
+				if (key == WiiMapping[g_ID].Button[i])
 					KeyStatus[i] = false;
 			}
-			switch (g_Config.iExtensionConnected)
-			{
-			case EXT_NUNCHUCK:
-				for (int i = g_NunchuckExt.Z; i < g_NunchuckExt.LAST_CONSTANT; i++)
-				{
-					if (key == PadMapping[0].Nc.keyForControls[i - g_NunchuckExt.Z])
-						 KeyStatus[i] = false;
-				}
-				break;
-			case EXT_CLASSIC_CONTROLLER:
-				for (int i = g_ClassicContExt.A; i < g_ClassicContExt.LAST_CONSTANT; i++)
-				{
-					if (key == PadMapping[0].Cc.keyForControls[i - g_ClassicContExt.A])
-						 KeyStatus[i] = false;
-				}
-				break;
-			case EXT_GUITARHERO3_CONTROLLER:
-				for (int i = g_GH3Ext.Green; i < g_GH3Ext.LAST_CONSTANT; i++)
-				{
-					if (key == PadMapping[0].GH3c.keyForControls[i - g_GH3Ext.Green])
-						 KeyStatus[i] = false;
-				}
-				break;
-			default:
-				break;
-			}
-  
 			break;
 		}
 		default:

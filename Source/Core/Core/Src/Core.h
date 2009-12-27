@@ -61,7 +61,6 @@ namespace Core
 
     void* GetWindowHandle();
     bool GetRealWiimote();
-	void ReconnectWiimote();
 
     extern bool bReadTrace;
     extern bool bWriteTrace;

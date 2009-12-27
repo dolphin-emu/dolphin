@@ -30,12 +30,10 @@
 	extern Display* WMdisplay;
 #endif
 // Definitions and declarations
-void DoInitialize();
-int GetUpdateRate();
-void InterruptDebugging(bool Emu, const void* _pData);
-void ReadDebugging(bool Emu, const void* _pData, int Size);
 bool IsFocus();
-
+int GetUpdateRate();
+//void InterruptDebugging(bool Emu, const void* _pData);
+//void ReadDebugging(bool Emu, const void* _pData, int Size);
 
 // Movement recording
 #define RECORDING_ROWS 15

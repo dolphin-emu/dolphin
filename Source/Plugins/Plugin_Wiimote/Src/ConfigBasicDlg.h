@@ -30,6 +30,7 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/gbsizer.h>
+#include "wiimote_hid.h"
 
 class WiimoteBasicConfigDialog : public wxDialog
 {
@@ -43,9 +44,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 		virtual ~WiimoteBasicConfigDialog(){;}
 
 		// General open, close and event functions
+		void UpdateGUI();
 		void ButtonClick(wxCommandEvent& event);
-		void UpdateGUI(int Slot = 0);
-		void UpdateIRCalibration();
 		void ShutDown(wxTimerEvent& WXUNUSED(event));
 		void UpdateOnce(wxTimerEvent& event);
 		
@@ -53,58 +53,55 @@ class WiimoteBasicConfigDialog : public wxDialog
 		wxTimer	*m_TimeoutOnce,
 				*m_ShutDownTimer;
 
-		wxCheckBox *m_UseRealWiimote[4];
-
 	private:
 		DECLARE_EVENT_TABLE();
 
 		bool ControlsCreated, m_bEnableUseRealWiimote;
-		int Page;
+		int m_Page;
 
 		wxNotebook *m_Notebook;
-		wxPanel *m_Controller[4];
+		wxPanel *m_Controller[MAX_WIIMOTES];
+
 		wxButton *m_OK,
 				 *m_Cancel,
 				 *m_ButtonMapping,
 				 *m_Recording;
 
-		wxChoice* extensionChoice[4];
+		wxChoice *m_InputSource[MAX_WIIMOTES],
+				 *m_Extension[MAX_WIIMOTES];
 
-		wxSlider *m_SliderWidth[4],
-				 *m_SliderHeight[4],
-				 *m_SliderLeft[4],
-				 *m_SliderTop[4];
+		wxSlider *m_SliderWidth[MAX_WIIMOTES],
+				 *m_SliderHeight[MAX_WIIMOTES],
+				 *m_SliderLeft[MAX_WIIMOTES],
+				 *m_SliderTop[MAX_WIIMOTES];
 
-		wxCheckBox  *m_InputActive[4],
-					*m_SidewaysWiimote[4],
-					*m_UprightWiimote[4],
-					*m_ConnectRealWiimote[4],
-					*m_WiiMotionPlusConnected[4],
-					*m_CheckAR43[4],
-					*m_CheckAR169[4],
-					*m_Crop[4];
+		wxCheckBox  *m_ConnectRealWiimote[MAX_WIIMOTES],
+					*m_SidewaysWiimote[MAX_WIIMOTES],
+					*m_UprightWiimote[MAX_WIIMOTES],
+					*m_WiiMotionPlusConnected[MAX_WIIMOTES],
+					*m_CheckAR43[MAX_WIIMOTES],
+					*m_CheckAR169[MAX_WIIMOTES],
+					*m_Crop[MAX_WIIMOTES];
 
-		wxStaticText *m_TextScreenWidth[4],
-					 *m_TextScreenHeight[4],
-					 *m_TextScreenLeft[4],
-					 *m_TextScreenTop[4],
-					 *m_TextAR[4];
+		wxStaticText *m_TextScreenWidth[MAX_WIIMOTES],
+					 *m_TextScreenHeight[MAX_WIIMOTES],
+					 *m_TextScreenLeft[MAX_WIIMOTES],
+					 *m_TextScreenTop[MAX_WIIMOTES],
+					 *m_TextAR[MAX_WIIMOTES];
 
 		wxBoxSizer  *m_MainSizer,
-					*m_sMain[4],
-					*m_SizeParent[4],
-					*m_SizeBasicGeneral[4],
-					*m_SizeBasicGeneralLeft[4],
-					*m_SizeBasicGeneralRight[4],			
-					*m_SizerIRPointerWidth[4],
-					*m_SizerIRPointerHeight[4],
-					*m_SizerIRPointerScreen[4];
+					*m_SizeBasicGeneral[MAX_WIIMOTES],
+					*m_SizeBasicGeneralLeft[MAX_WIIMOTES],
+					*m_SizeBasicGeneralRight[MAX_WIIMOTES],			
+					*m_SizerIRPointerWidth[MAX_WIIMOTES],
+					*m_SizerIRPointerHeight[MAX_WIIMOTES],
+					*m_SizerIRPointerScreen[MAX_WIIMOTES];
 
-		wxStaticBoxSizer *m_SizeBasic[4],
-						 *m_SizeEmu[4],
-						 *m_SizeReal[4],
-						 *m_SizeExtensions[4],
-						 *m_SizerIRPointer[4];
+		wxStaticBoxSizer *m_SizeBasic[MAX_WIIMOTES],
+						 *m_SizeEmu[MAX_WIIMOTES],
+						 *m_SizeReal[MAX_WIIMOTES],
+						 *m_SizeExtensions[MAX_WIIMOTES],
+						 *m_SizerIRPointer[MAX_WIIMOTES];
 
 		enum
 		{
@@ -123,7 +120,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 			ID_CONTROLLERPAGE4,
 			
 			// Emulated Wiimote
-			IDC_INPUT_ACTIVE,
+			IDC_INPUT_SOURCE,
 			IDC_SIDEWAYSWIIMOTE,
 			IDC_UPRIGHTWIIMOTE,
 			IDC_MOTIONPLUSCONNECTED,
@@ -131,7 +128,6 @@ class WiimoteBasicConfigDialog : public wxDialog
 
 			// Real
 			IDC_CONNECT_REAL,
-			IDC_USE_REAL,
 
 			IDS_WIDTH,			
 			IDS_HEIGHT, 
@@ -139,8 +135,9 @@ class WiimoteBasicConfigDialog : public wxDialog
 			IDS_TOP,
 		};
 
-		void OnClose(wxCloseEvent& event);
 		void CreateGUIControls();
+		void OnClose(wxCloseEvent& event);
+		void NotebookPageChanged(wxNotebookEvent& event);
 		void GeneralSettingsChanged(wxCommandEvent& event);
 		void IRCursorChanged(wxScrollEvent& event);
 

@@ -31,6 +31,7 @@
 #include <wx/panel.h>
 #include <wx/gbsizer.h>
 #include "Config.h"
+#include "wiimote_hid.h"
 
 #if defined(HAVE_X11) && HAVE_X11
 	#include <X11/Xlib.h>
@@ -51,169 +52,24 @@ class WiimotePadConfigDialog : public wxDialog
 			long style = wxDEFAULT_DIALOG_STYLE | wxWANTS_CHARS);
 		virtual ~WiimotePadConfigDialog();
 
-		void CloseClick(wxCommandEvent& event);
-		void UpdateGUI(int Slot = 0);
-		void UpdateGUIButtonMapping(int controller);
-		void UpdateControls();
-		void OnKeyDown(wxKeyEvent& event);
 		void Convert2Box(int &x);
-		void ConvertToString();
-		void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
-		void UpdatePad(wxTimerEvent& WXUNUSED(event));
 
 		wxTimer *m_UpdatePadTimer,
 				*m_ButtonMappingTimer;
 
-		wxStaticBitmap *m_bmpDotLeftIn[4],
-			*m_bmpDotLeftOut[4],
-			*m_bmpDotRightIn[4],
-			*m_bmpDotRightOut[4],
-			*m_bmpDeadZoneLeftIn[4],
-			*m_bmpDeadZoneRightIn[4];
+		wxStaticBitmap *m_bmpDotLeftIn[MAX_WIIMOTES],
+			*m_bmpDotLeftOut[MAX_WIIMOTES],
+			*m_bmpDotRightIn[MAX_WIIMOTES],
+			*m_bmpDotRightOut[MAX_WIIMOTES],
+			*m_bmpDeadZoneLeftIn[MAX_WIIMOTES],
+			*m_bmpDeadZoneRightIn[MAX_WIIMOTES];
 
 	private:
 		DECLARE_EVENT_TABLE();
 
-		bool ControlsCreated;
-		int Page, BoxW, BoxH;
-
-		wxString OldLabel;
-
-		wxNotebook *m_Notebook;
-
-		wxPanel *m_Controller[4],
-			*m_pLeftInStatus[4],
-			*m_pLeftOutStatus[4],
-			*m_pRightInStatus[4],
-			*m_pRightOutStatus[4];
-
-		wxStaticBitmap *m_bmpSquareLeftIn[4],
-			*m_bmpSquareLeftOut[4],
-			*m_bmpSquareRightIn[4],
-			*m_bmpSquareRightOut[4];
-	
-
-		wxCheckBox *m_CheckC2S[4],
-			*m_CheckRumble[4],
-			*m_TiltRollSwing[4],
-			*m_TiltPitchSwing[4],
-			*m_TiltRollInvert[4],
-			*m_TiltPitchInvert[4];
-
-		wxButton *m_Close, *m_Apply, *ClickedButton,
-			*m_Button_Analog[AN_CONTROLS][4],
-			*m_Button_Wiimote[WM_CONTROLS][4],
-			*m_Button_NunChuck[NC_CONTROLS][4],
-			*m_Button_Classic[CC_CONTROLS][4],
-			*m_Button_GH3[GH3_CONTROLS][4];
-
-		wxComboBox *m_Joyname[4],
-			*m_ComboDeadZoneLeft[4],
-			*m_ComboDeadZoneRight[4],
-			*m_ComboDiagonal[4],
-			*m_RumbleStrength[4],
-			*m_TiltTypeWM[4],
-			*m_TiltTypeNC[4],
-			*m_TiltComboRangeRoll[4],
-			*m_TiltComboRangePitch[4],
-			*m_TriggerType[4],
-			*m_NunchuckComboStick[4],
-			*m_CcComboLeftStick[4],
-			*m_CcComboRightStick[4],
-			*m_CcComboTriggers[4],
-			*m_GH3ComboAnalog[4];
-
-		wxGridBagSizer *m_sGridTilt[4], 
-			*m_sGridStickLeft[4],
-			*m_sGridStickRight[4],
-			*m_sGridTrigger[4];
-
-		wxBoxSizer  *m_MainSizer,
-					*m_sMain[4],
-					*m_sDeadZoneHoriz[4],
-					*m_sDeadZone[4],
-					*m_sDiagonal[4],
-					*m_sCircle2Square[4],
-					*m_sC2SDeadZone[4],
-					*m_sJoyname[4],
-					*m_sRumble[4],
-					*m_sTiltType[4],
-					*m_sHorizController[4],
-					*m_sHorizStatus[4],
-					*m_Sizer_Analog[AN_CONTROLS][4],
-					*m_sAnalogLeft[4],
-					*m_sAnalogMiddle[4],
-					*m_sAnalogRight[4],
-					*m_sHorizAnalogMapping[4],
-					*m_Sizer_Wiimote[WM_CONTROLS][4],
-					*m_sWmVertLeft[4],
-					*m_sWmVertRight[4],
-					*m_Sizer_NunChuck[NC_CONTROLS][4],
-					*m_sNunchuckStick[4],
-					*m_sNCVertLeft[4],
-					*m_sNCVertRight[4],
-					*m_Sizer_Classic[CC_CONTROLS][4],
-					*m_sCcLeftStick[4],
-					*m_sCcRightStick[4],
-					*m_sCcTriggers[4],
-					*m_sCcVertLeft[4],
-					*m_sCcVertMiddle[4],
-					*m_sCcVertRight[4],
-					*m_Sizer_GH3[GH3_CONTROLS][4],
-					*m_sGH3Analog[4],
-					*m_sGH3VertLeft[4],
-					*m_sGH3VertRight[4],
-					*m_sHorizControllerMapping[4];
-
-		wxStaticBoxSizer *m_gJoyPad[4],
-			*m_gTilt[4],
-			*m_gStickLeft[4],
-			*m_gStickRight[4],
-			*m_gTriggers[4],
-			*m_gAnalog[4],
-			*m_gWiimote[4],
-			*m_gNunchuck[4],
-			*m_gClassicController[4],
-			*m_gGuitarHero3Controller[4];
-
-		wxStaticText *m_ComboDeadZoneLabel[4],
-			*m_DiagonalLabel[4],
-			*m_RumbleStrengthLabel[4],
-			*m_tTiltTypeWM[4], *m_tTiltTypeNC[4],
-			*m_TiltTextRoll[4], *m_TiltTextPitch[4],
-			*m_tStatusLeftIn[4], *m_tStatusLeftOut[4], *m_tStatusRightIn[4], *m_tStatusRightOut[4],
-			*m_TriggerL[4], *m_TriggerR[4],
-			*m_TriggerStatusL[4], *m_TriggerStatusR[4],
-			*m_tTriggerSource[4],
-			*m_statictext_Analog[AN_CONTROLS][4],
-			*m_statictext_Wiimote[WM_CONTROLS][4],
-			*m_statictext_NunChuck[NC_CONTROLS][4],
-			*m_statictext_Classic[CC_CONTROLS][4],
-			*m_statictext_GH3[GH3_CONTROLS][4],
-			*m_NunchuckTextStick[5],
-			*m_CcTextLeftStick[4],
-			*m_CcTextRightStick[4],
-			*m_CcTextTriggers[4],
-			*m_tGH3Analog[4];
-
 		enum
 		{
-			ID_CLOSE = 1000,
-			ID_APPLY,
-			IDTM_BUTTON, // Timer
-			IDTM_UPDATE_PAD, // Timer
-
-			ID_NOTEBOOK,
-			ID_CONTROLLERPAGE1,
-			ID_CONTROLLERPAGE2,
-			ID_CONTROLLERPAGE3,
-			ID_CONTROLLERPAGE4,
-
-			// Gamepad <It's important that the internal ordering of these are unchanged>
-			IDB_ANALOG_LEFT_X, IDB_ANALOG_LEFT_Y,
-			IDB_ANALOG_RIGHT_X, IDB_ANALOG_RIGHT_Y,
-			IDB_TRIGGER_L, IDB_TRIGGER_R,
-
+			// <It's important that the internal ordering of these are unchanged>
 			// Wiimote
 			IDB_WM_A, IDB_WM_B,
 			IDB_WM_1, IDB_WM_2,
@@ -259,6 +115,22 @@ class WiimotePadConfigDialog : public wxDialog
 			IDB_GH3_STRUM_UP,
 			IDB_GH3_STRUM_DOWN,
 
+			// Gamepad
+			IDB_ANALOG_LEFT_X, IDB_ANALOG_LEFT_Y,
+			IDB_ANALOG_RIGHT_X, IDB_ANALOG_RIGHT_Y,
+			IDB_TRIGGER_L, IDB_TRIGGER_R,
+
+			ID_CLOSE = 1000,
+			ID_APPLY,
+			IDTM_BUTTON, // Timer
+			IDTM_UPDATE_PAD, // Timer
+
+			ID_NOTEBOOK,
+			ID_CONTROLLERPAGE1,
+			ID_CONTROLLERPAGE2,
+			ID_CONTROLLERPAGE3,
+			ID_CONTROLLERPAGE4,
+
 			// Gamepad settings
 			IDC_JOYNAME,
 			IDC_RUMBLE, IDC_RUMBLE_STRENGTH,
@@ -274,34 +146,155 @@ class WiimotePadConfigDialog : public wxDialog
 			IDC_GH3_ANALOG,
 		};
 
+		bool ControlsCreated;
+		int m_Page, BoxW, BoxH;
+
+		wxString OldLabel;
+
+		wxNotebook *m_Notebook;
+
+		wxPanel *m_Controller[MAX_WIIMOTES],
+			*m_pLeftInStatus[MAX_WIIMOTES],
+			*m_pLeftOutStatus[MAX_WIIMOTES],
+			*m_pRightInStatus[MAX_WIIMOTES],
+			*m_pRightOutStatus[MAX_WIIMOTES];
+
+		wxStaticBitmap *m_bmpSquareLeftIn[MAX_WIIMOTES],
+			*m_bmpSquareLeftOut[MAX_WIIMOTES],
+			*m_bmpSquareRightIn[MAX_WIIMOTES],
+			*m_bmpSquareRightOut[MAX_WIIMOTES];
+	
+		wxCheckBox *m_CheckC2S[MAX_WIIMOTES],
+			*m_CheckRumble[MAX_WIIMOTES],
+			*m_TiltRollSwing[MAX_WIIMOTES],
+			*m_TiltPitchSwing[MAX_WIIMOTES],
+			*m_TiltRollInvert[MAX_WIIMOTES],
+			*m_TiltPitchInvert[MAX_WIIMOTES];
+
+		wxButton *m_Close, *m_Apply, *ClickedButton,
+			*m_Button_Analog[IDB_TRIGGER_R - IDB_ANALOG_LEFT_X + 1][MAX_WIIMOTES],
+			*m_Button_Wiimote[IDB_WM_SHAKE - IDB_WM_A + 1][MAX_WIIMOTES],
+			*m_Button_NunChuck[IDB_NC_SHAKE - IDB_NC_Z + 1][MAX_WIIMOTES],
+			*m_Button_Classic[IDB_CC_RD - IDB_CC_A + 1][MAX_WIIMOTES],
+			*m_Button_GH3[IDB_GH3_STRUM_DOWN - IDB_GH3_GREEN + 1][MAX_WIIMOTES];
+
+		wxComboBox *m_Joyname[MAX_WIIMOTES],
+			*m_ComboDeadZoneLeft[MAX_WIIMOTES],
+			*m_ComboDeadZoneRight[MAX_WIIMOTES],
+			*m_ComboDiagonal[MAX_WIIMOTES],
+			*m_RumbleStrength[MAX_WIIMOTES],
+			*m_TiltTypeWM[MAX_WIIMOTES],
+			*m_TiltTypeNC[MAX_WIIMOTES],
+			*m_TiltComboRangeRoll[MAX_WIIMOTES],
+			*m_TiltComboRangePitch[MAX_WIIMOTES],
+			*m_TriggerType[MAX_WIIMOTES],
+			*m_NunchuckComboStick[MAX_WIIMOTES],
+			*m_CcComboLeftStick[MAX_WIIMOTES],
+			*m_CcComboRightStick[MAX_WIIMOTES],
+			*m_CcComboTriggers[MAX_WIIMOTES],
+			*m_GH3ComboAnalog[MAX_WIIMOTES];
+
+		wxGridBagSizer *m_sGridTilt[MAX_WIIMOTES], 
+			*m_sGridStickLeft[MAX_WIIMOTES],
+			*m_sGridStickRight[MAX_WIIMOTES],
+			*m_sGridTrigger[MAX_WIIMOTES];
+
+		wxBoxSizer  *m_MainSizer,
+					*m_sMain[MAX_WIIMOTES],
+					*m_sDeadZoneHoriz[MAX_WIIMOTES],
+					*m_sDeadZone[MAX_WIIMOTES],
+					*m_sDiagonal[MAX_WIIMOTES],
+					*m_sCircle2Square[MAX_WIIMOTES],
+					*m_sC2SDeadZone[MAX_WIIMOTES],
+					*m_sJoyname[MAX_WIIMOTES],
+					*m_sRumble[MAX_WIIMOTES],
+					*m_sTiltType[MAX_WIIMOTES],
+					*m_sHorizController[MAX_WIIMOTES],
+					*m_sHorizStatus[MAX_WIIMOTES],
+					*m_Sizer_Analog[IDB_TRIGGER_R - IDB_ANALOG_LEFT_X + 1][MAX_WIIMOTES],
+					*m_sAnalogLeft[MAX_WIIMOTES],
+					*m_sAnalogMiddle[MAX_WIIMOTES],
+					*m_sAnalogRight[MAX_WIIMOTES],
+					*m_sHorizAnalogMapping[MAX_WIIMOTES],
+					*m_Sizer_Wiimote[IDB_WM_SHAKE - IDB_WM_A + 1][MAX_WIIMOTES],
+					*m_sWmVertLeft[MAX_WIIMOTES],
+					*m_sWmVertRight[MAX_WIIMOTES],
+					*m_Sizer_NunChuck[IDB_NC_SHAKE - IDB_NC_Z + 1][MAX_WIIMOTES],
+					*m_sNunchuckStick[MAX_WIIMOTES],
+					*m_sNCVertLeft[MAX_WIIMOTES],
+					*m_sNCVertRight[MAX_WIIMOTES],
+					*m_Sizer_Classic[IDB_CC_RD - IDB_CC_A + 1][MAX_WIIMOTES],
+					*m_sCcLeftStick[MAX_WIIMOTES],
+					*m_sCcRightStick[MAX_WIIMOTES],
+					*m_sCcTriggers[MAX_WIIMOTES],
+					*m_sCcVertLeft[MAX_WIIMOTES],
+					*m_sCcVertMiddle[MAX_WIIMOTES],
+					*m_sCcVertRight[MAX_WIIMOTES],
+					*m_Sizer_GH3[IDB_GH3_STRUM_DOWN - IDB_GH3_GREEN + 1][MAX_WIIMOTES],
+					*m_sGH3Analog[MAX_WIIMOTES],
+					*m_sGH3VertLeft[MAX_WIIMOTES],
+					*m_sGH3VertRight[MAX_WIIMOTES],
+					*m_sHorizControllerMapping[MAX_WIIMOTES];
+
+		wxStaticBoxSizer *m_gJoyPad[MAX_WIIMOTES],
+			*m_gTilt[MAX_WIIMOTES],
+			*m_gStickLeft[MAX_WIIMOTES],
+			*m_gStickRight[MAX_WIIMOTES],
+			*m_gTriggers[MAX_WIIMOTES],
+			*m_gAnalog[MAX_WIIMOTES],
+			*m_gWiimote[MAX_WIIMOTES],
+			*m_gNunchuck[MAX_WIIMOTES],
+			*m_gClassicController[MAX_WIIMOTES],
+			*m_gGuitarHero3Controller[MAX_WIIMOTES];
+
+		wxStaticText *m_ComboDeadZoneLabel[MAX_WIIMOTES],
+			*m_DiagonalLabel[MAX_WIIMOTES],
+			*m_RumbleStrengthLabel[MAX_WIIMOTES],
+			*m_tTiltTypeWM[MAX_WIIMOTES], *m_tTiltTypeNC[MAX_WIIMOTES],
+			*m_TiltTextRoll[MAX_WIIMOTES], *m_TiltTextPitch[MAX_WIIMOTES],
+			*m_tStatusLeftIn[MAX_WIIMOTES], *m_tStatusLeftOut[MAX_WIIMOTES],
+			*m_tStatusRightIn[MAX_WIIMOTES], *m_tStatusRightOut[MAX_WIIMOTES],
+			*m_TriggerL[MAX_WIIMOTES], *m_TriggerR[MAX_WIIMOTES],
+			*m_TriggerStatusL[MAX_WIIMOTES], *m_TriggerStatusR[MAX_WIIMOTES],
+			*m_tTriggerSource[MAX_WIIMOTES],
+			*m_statictext_Analog[IDB_TRIGGER_R - IDB_ANALOG_LEFT_X + 1][MAX_WIIMOTES],
+			*m_statictext_Wiimote[IDB_WM_SHAKE - IDB_WM_A + 1][MAX_WIIMOTES],
+			*m_statictext_NunChuck[IDB_NC_SHAKE - IDB_NC_Z + 1][MAX_WIIMOTES],
+			*m_statictext_Classic[IDB_CC_RD - IDB_CC_A + 1][MAX_WIIMOTES],
+			*m_statictext_GH3[IDB_GH3_STRUM_DOWN - IDB_GH3_GREEN + 1][MAX_WIIMOTES],
+			*m_NunchuckTextStick[5],
+			*m_CcTextLeftStick[MAX_WIIMOTES],
+			*m_CcTextRightStick[MAX_WIIMOTES],
+			*m_CcTextTriggers[MAX_WIIMOTES],
+			*m_tGH3Analog[MAX_WIIMOTES];
+
 		wxBitmap CreateBitmap();
 		wxBitmap CreateBitmapDot();
 		wxBitmap CreateBitmapDeadZone(int Radius);
 		wxBitmap CreateBitmapClear();
 
 		void OnClose(wxCloseEvent& event);
+		void CloseClick(wxCommandEvent& event);
 		void CreatePadGUIControls();
+		void UpdateGUI();
+		void NotebookPageChanged(wxNotebookEvent& event);
+		void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
+		void OnKeyDown(wxKeyEvent& event);
+		void OnButtonClick(wxCommandEvent& event);
 		void GeneralSettingsChanged(wxCommandEvent& event);
+		void SaveButtonMapping(int Id, int Key);
 
 		// Gamepad configuration
-		void SetButtonText(int id, const char text[128], int _Page = -1);
-		void SetButtonTextAll(int id, char text[128]);
+		void SetButtonText(int id,const wxString &str);
+		wxString GetButtonText(int id);
 		void GetButtons(wxCommandEvent& btn_event);
 		void DoGetButtons(int id);
-		void SaveButtonMapping(int controller, bool DontChangeId = false, int FromSlot = -1);
-		void SaveButtonMappingAll(int Slot);
-		void SaveKeyboardMapping(int Controller, int Id, int Key);
-		void ToBlank(bool ToBlank = true);
-		void PadGetStatus();
-		void DoSave(bool ChangePad = false, int Slot = -1);
-		void DoChangeJoystick();
-		void PadOpen(int Open); void PadClose(int Close);
-		void DoChangeDeadZone(bool Left);
-		void OnButtonClick(wxCommandEvent& event);
+		void UpdatePadInfo(wxTimerEvent& WXUNUSED(event));
+		void ToBlank(bool ToBlank, int Id);
+		void DoChangeDeadZone();
 
 		// Configure buttons
 		int GetButtonWaitingID, GetButtonWaitingTimer, g_Pressed;
-		wxString GetButtonText(int id, int Page = -1);
 };
 extern WiimotePadConfigDialog *m_PadConfigFrame;
 #endif
