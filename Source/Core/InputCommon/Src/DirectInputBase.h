@@ -19,16 +19,11 @@
 #define _DIRECTINPUTBASE_H
 
 
-
-// Include
-// -------------------
 #include <windows.h> // System
 #include <stdio.h>
 
 #define DIRECTINPUT_VERSION 0x0800 // DirectInput
 #include <dinput.h>
-
-//#include "ConsoleWindow.h" // Common
 
 
 

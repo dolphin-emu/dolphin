@@ -55,7 +55,7 @@ void BPWritten(const BPCmd& bp)
 	             some bp cases check the changes variable, because they might not have to be updated all the time
    NOTE: it seems not all bp cases like checking changes, so calling if (bp.changes == 0 ? false : true)
 	     had to be ditched and the games seem to work fine with out it.
-   NOTE2: Yet Another Gamecube Documentation calls them Bypass Registers but possibly completely wrong
+   NOTE2: Yet Another Gamecube Documentation calls them Bypass Raster State Registers but possibly completely wrong
    NOTE3: This controls the register groups: RAS1/2, SU, TF, TEV, C/Z, PEC
    TODO: Turn into function table. The (future) DisplayList (DL) jit can then call the functions directly,
 		getting rid of dynamic dispatch. Unfortunately, few games use DLs properly - most\
@@ -247,8 +247,9 @@ void BPWritten(const BPCmd& bp)
 		        
 			break;
 		}
-	case BPMEM_LOADTLUT0: // Load a Texture Look Up Table
-	case BPMEM_LOADTLUT1:
+	case BPMEM_LOADTLUT0: // This one updates bpmem.tlutXferSrc, no need to do anything here.
+		break;
+	case BPMEM_LOADTLUT1: // Load a Texture Look Up Table
         {
             DVSTARTSUBPROFILE("LoadBPReg:GXLoadTlut");
 

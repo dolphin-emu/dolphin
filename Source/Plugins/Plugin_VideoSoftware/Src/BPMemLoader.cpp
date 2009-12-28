@@ -93,8 +93,9 @@ void BPWritten(int address, int newvalue)
         PixelEngine::pereg.boxBottom = newvalue >> 10;
         PixelEngine::pereg.boxTop = newvalue & 0x3ff;
         break;
-    case BPMEM_LOADTLUT0: // Load a Texture Look Up Table
-	case BPMEM_LOADTLUT1:
+    case BPMEM_LOADTLUT0: // This one updates bpmem.tlutXferSrc, no need to do anything here.
+		break;
+	case BPMEM_LOADTLUT1: // Load a Texture Look Up Table
         {
             u32 tlutTMemAddr = (newvalue & 0x3FF) << 9;
             u32 tlutXferCount = (newvalue & 0x1FFC00) >> 5; 

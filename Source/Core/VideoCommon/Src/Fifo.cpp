@@ -133,8 +133,8 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
     while (fifoStateRun)
     {
 		video_initialize.pPeekMessages();
-		if (g_ActiveConfig.bEFBAccessEnable)
-			VideoFifo_CheckEFBAccess();
+
+		VideoFifo_CheckEFBAccess();
 		VideoFifo_CheckSwapRequest();
 
         // check if we are able to run this buffer
@@ -197,12 +197,11 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 
 				CommandProcessor::FifoCriticalLeave();
 
-/*
-				video_initialize.pPeekMessages();
-				if (g_ActiveConfig.bEFBAccessEnable)
-					VideoFifo_CheckEFBAccess();
+				// Those two are pretty important and must be called in the FIFO Loop.
+				// If we don't, s_swapRequested (OGL only) or s_efbAccessRequested won't be set to false
+				// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
+				VideoFifo_CheckEFBAccess();
 				VideoFifo_CheckSwapRequest();
-*/
 			}
 			Common::AtomicStore(_fifo.CPReadIdle, 1);
             CommandProcessor::SetFifoIdleFromVideoPlugin();
@@ -211,7 +210,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		{
 			Common::YieldCPU();
 		}
-    }
+	}
 	fifo_exit_event.Set();
 }
 

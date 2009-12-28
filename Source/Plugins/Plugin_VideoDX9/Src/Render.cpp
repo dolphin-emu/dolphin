@@ -630,6 +630,9 @@ void Renderer::SetColorMask()
 
 u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 {
+	if(!g_ActiveConfig.bEFBAccessEnable)
+		return 0;
+
 	//Get the working buffer
 	LPDIRECT3DSURFACE9 pBuffer = (type == PEEK_Z || type == POKE_Z) ? 
 		FBManager::GetEFBDepthRTSurface() : FBManager::GetEFBColorRTSurface();
@@ -645,9 +648,10 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	D3DFORMAT ReadBufferFormat = (type == PEEK_Z || type == POKE_Z) ? 
 		FBManager::GetEFBDepthReadSurfaceFormat() : BufferFormat;
 	
-	D3DLOCKED_RECT drect;
-	if(!g_ActiveConfig.bEFBAccessEnable || BufferFormat == D3DFMT_D24X8)
+	if(BufferFormat == D3DFMT_D24X8)
 		return 0;
+
+	D3DLOCKED_RECT drect;
 	
 	//Buffer not found alert
 	if(!pBuffer) {
