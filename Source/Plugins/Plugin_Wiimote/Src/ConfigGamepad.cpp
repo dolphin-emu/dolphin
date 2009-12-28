@@ -244,7 +244,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	if(Stop)
 	{
 		DEBUG_LOG(WIIMOTE, "Timer Stopped for Pad:%i _GetId:%i",
-			WiiMoteEmu::WiiMapping[Controller].ID, _GetId);
+			WiiMoteEmu::WiiMapping[m_Page].ID, _GetId);
 
 		m_ButtonMappingTimer->Stop();
 		GetButtonWaitingTimer = 0;
