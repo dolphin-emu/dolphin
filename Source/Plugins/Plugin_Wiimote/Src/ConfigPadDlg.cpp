@@ -241,7 +241,7 @@ void WiimotePadConfigDialog::OnButtonClick(wxCommandEvent& event)
 	ClickedButton = (wxButton *)event.GetEventObject();
 	// Save old label so we can revert back
 	OldLabel = ClickedButton->GetLabel();
-	//ClickedButton->SetWindowStyle(wxWANTS_CHARS);
+	ClickedButton->SetWindowStyle(wxWANTS_CHARS);
 	ClickedButton->SetLabel(wxT("<Press Key>"));
 	DoGetButtons(ClickedButton->GetId());
 }
