@@ -44,7 +44,7 @@ BEGIN_EVENT_TABLE(CLogWindow, wxPanel)
 	EVT_TIMER(IDTM_UPDATELOG, CLogWindow::OnLogTimer)
 END_EVENT_TABLE()
 
-CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
+CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxString &, const wxPoint &position, const wxSize& size, long style)
 	: wxPanel(parent, id, position, size, style)
     , Parent(parent), m_LogSection(1), m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
 	, m_LogAccess(true)

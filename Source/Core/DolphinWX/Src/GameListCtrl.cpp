@@ -77,8 +77,13 @@ bool operator < (const GameListItem &one, const GameListItem &other)
 	switch(currentColumn)
 	{
 	case CGameListCtrl::COLUMN_TITLE:		return strcasecmp(one.GetName(indexOne).c_str(),        other.GetName(indexOther).c_str()) < 0;
-	case CGameListCtrl::COLUMN_COMPANY:		return strcasecmp(one.GetCompany().c_str(),		other.GetCompany().c_str()) < 0;
-	case CGameListCtrl::COLUMN_NOTES:		return strcasecmp(one.GetDescription(indexOne).c_str(), other.GetDescription(indexOther).c_str()) < 0;
+	case CGameListCtrl::COLUMN_NOTES:
+	{
+		// On Gamecube we show the company string, while it's empty on other platforms, so we show the description instead
+		std::string cmp1 = (one.GetPlatform() == GameListItem::GAMECUBE_DISC) ? one.GetCompany() : one.GetDescription(indexOne);
+		std::string cmp2 = (other.GetPlatform() == GameListItem::GAMECUBE_DISC) ? other.GetCompany() : other.GetDescription(indexOther);
+		return strcasecmp(cmp1.c_str(), cmp2.c_str()) < 0;
+	}
 	case CGameListCtrl::COLUMN_COUNTRY:		return (one.GetCountry() < other.GetCountry());
 	case CGameListCtrl::COLUMN_SIZE:		return (one.GetFileSize() < other.GetFileSize());
 	case CGameListCtrl::COLUMN_PLATFORM:	return (one.GetPlatform() < other.GetPlatform());
@@ -227,8 +232,10 @@ void CGameListCtrl::Update()
 		InsertColumn(COLUMN_PLATFORM, _(""));
 		InsertColumn(COLUMN_BANNER, _("Banner"));
 		InsertColumn(COLUMN_TITLE, _("Title"));
-		InsertColumn(COLUMN_COMPANY, _("Company"));
-		InsertColumn(COLUMN_NOTES, _("Notes"));
+		
+		// Instead of showing the notes + the company, which is unknown with wii titles
+		// We show in the same column : company for GC games and description for wii/wad games
+		InsertColumn(COLUMN_NOTES, _(" "));
 		InsertColumn(COLUMN_COUNTRY, _(""));
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("State"));
@@ -238,8 +245,7 @@ void CGameListCtrl::Update()
 		SetColumnWidth(COLUMN_PLATFORM, 35);
 		SetColumnWidth(COLUMN_BANNER, 96);
 		SetColumnWidth(COLUMN_TITLE, 150);
-		SetColumnWidth(COLUMN_COMPANY, 130);
-		SetColumnWidth(COLUMN_NOTES, 150);
+		SetColumnWidth(COLUMN_NOTES, 130);
 		SetColumnWidth(COLUMN_COUNTRY, 32);
 		SetColumnWidth(COLUMN_EMULATION_STATE, 50);
 
@@ -325,66 +331,72 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// title: 0xFF0000
 	// company: 0x007030
 
-	wxString name, description;
-	GameListItem& rISOFile = m_ISOFiles[_Index];
-	m_gamePath.append(std::string(rISOFile.GetFileName()) + '\n');
-	
 	int ImageIndex = -1;
-	if (rISOFile.GetImage().IsOk())
-		ImageIndex = m_imageListSmall->Add(rISOFile.GetImage());
-
+	wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+	GameListItem& rISOFile = m_ISOFiles[_Index];
+	
 	// Insert a row with the platform image, that will be used as the Index
 	long ItemIndex = InsertItem(_Index, wxEmptyString, m_PlatformImageIndex[rISOFile.GetPlatform()]);
+
+	if (rISOFile.GetImage().IsOk())
+		ImageIndex = m_imageListSmall->Add(rISOFile.GetImage());
 
 	// Set the game's banner in the second column
 	SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
 
-	switch (rISOFile.GetCountry())
+	if (rISOFile.GetPlatform() != GameListItem::WII_WAD)
 	{
-	case DiscIO::IVolume::COUNTRY_TAIWAN:
-	case DiscIO::IVolume::COUNTRY_JAPAN:
-		// keep these codes, when we move to wx unicode...
-		//wxCSConv convFrom(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
-		//wxCSConv convTo(wxFontMapper::GetEncodingName(wxFONTENCODING_DEFAULT));
-		//SetItem(_Index, COLUMN_TITLE, wxString(wxString(rISOFile.GetName()).wc_str(convFrom) , convTo), -1);
-		//SetItem(_Index, COLUMN_NOTES, wxString(wxString(rISOFile.GetDescription()).wc_str(convFrom) , convTo), -1);
+		std::string company;
+		m_gamePath.append(rISOFile.GetFileName() + '\n');
 
-		if (WxUtils::CopySJISToString(name, rISOFile.GetName(0).c_str()))
-			SetItem(_Index, COLUMN_TITLE, name, -1);
-		if (WxUtils::CopySJISToString(description, rISOFile.GetDescription(0).c_str()))
-			SetItem(_Index, COLUMN_NOTES, description, -1);
-		m_gameList.append(StringFromFormat("%s (J)\n", (const char*)name.mb_str(wxConvUTF8)));
-		break;
-	case DiscIO::IVolume::COUNTRY_USA:
-		if (WxUtils::CopySJISToString(name, rISOFile.GetName(0).c_str()))
-			SetItem(_Index, COLUMN_TITLE, name, -1);
-		if (WxUtils::CopySJISToString(description, rISOFile.GetDescription(0).c_str()))
-			SetItem(_Index, COLUMN_NOTES, description, -1);
-		m_gameList.append(StringFromFormat("%s (U)\n", (const char*)name.mb_str(wxConvUTF8)));
-		break;
-	default:
-		m_gameList.append(StringFromFormat("%s (E)\n", rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()));
-		SetItem(_Index, COLUMN_TITLE, 
-			wxString::From8BitData(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
-		SetItem(_Index, COLUMN_NOTES, 
-			wxString::From8BitData(rISOFile.GetDescription((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
-		break;
+		// We show the company string on Gamecube only
+		// On Wii we show the description instead as the company string is empty
+		if (rISOFile.GetPlatform() == GameListItem::GAMECUBE_DISC)
+			company = rISOFile.GetCompany().c_str();
+
+		switch (rISOFile.GetCountry())
+		{
+		case DiscIO::IVolume::COUNTRY_TAIWAN:
+		case DiscIO::IVolume::COUNTRY_JAPAN:
+			{
+				wxString name = wxString(rISOFile.GetName(0).c_str(), SJISConv);
+				m_gameList.append(StringFromFormat("%s (J)\n", (const char*)name.mb_str()));
+				SetItem(_Index, COLUMN_TITLE, name, -1);
+				SetItem(_Index, COLUMN_NOTES, wxString(company.size() ? company.c_str() : rISOFile.GetDescription(0).c_str(), SJISConv), -1);
+			}
+			break;
+		case DiscIO::IVolume::COUNTRY_USA:
+			m_gameList.append(StringFromFormat("%s (U)\n", rISOFile.GetName(0).c_str()));
+			SetItem(_Index, COLUMN_TITLE, 
+				wxString::From8BitData(rISOFile.GetName(0).c_str()), -1);
+			SetItem(_Index, COLUMN_NOTES, 
+				wxString::From8BitData(company.size() ? company.c_str() : rISOFile.GetDescription(0).c_str()), -1);
+			break;
+		default:
+			m_gameList.append(StringFromFormat("%s (E)\n", rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()));
+			SetItem(_Index, COLUMN_TITLE, 
+				wxString::From8BitData(rISOFile.GetName((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
+			SetItem(_Index, COLUMN_NOTES, wxString::From8BitData(
+				company.size() ? company.c_str() : rISOFile.GetDescription((int)SConfig::GetInstance().m_InterfaceLanguage).c_str()), -1);
+			break;
+		}
 	}
-
-	SetItem(_Index, COLUMN_COMPANY, wxString::From8BitData(rISOFile.GetCompany().c_str()), -1);
-	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
+	else // It's a Wad file
+	{
+		SetItem(_Index, COLUMN_TITLE, wxString(rISOFile.GetName(0).c_str(), SJISConv), -1);
+		SetItem(_Index, COLUMN_NOTES, wxString(rISOFile.GetDescription(0).c_str(), SJISConv), -1);
+	}
 
 	// Load the INI file for columns that read from it
 	IniFile ini;
-	std::string GameIni = FULL_GAMECONFIG_DIR + (rISOFile.GetUniqueID()) + ".ini";
-	ini.Load(GameIni.c_str());
+	ini.Load(std::string(FULL_GAMECONFIG_DIR + (rISOFile.GetUniqueID()) + ".ini").c_str());
 
 	// Emulation status
 	int nState;
-
 	ini.Get("EmuState", "EmulationStateId", &nState);
 
-	// Emulation state
+	// File size + Emulation state
+	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
 	SetItemColumnImage(_Index, COLUMN_EMULATION_STATE, m_EmuStateImageIndex[nState]);
 
 	// Country
@@ -557,8 +569,7 @@ void CGameListCtrl::ScanForISOs()
 
 void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 {
-	if (event.GetColumn() != COLUMN_TITLE && event.GetColumn() != COLUMN_COMPANY
-		&& event.GetColumn() != COLUMN_NOTES)
+	if (event.GetColumn() != COLUMN_TITLE && event.GetColumn() != COLUMN_NOTES)
 		event.Veto();
 }
 
@@ -605,10 +616,12 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 	{
 	case CGameListCtrl::COLUMN_TITLE:
 		return strcasecmp(iso1->GetName(indexOne).c_str(),iso2->GetName(indexOther).c_str()) *t;
-	case CGameListCtrl::COLUMN_COMPANY:
-		return strcasecmp(iso1->GetCompany().c_str(),iso2->GetCompany().c_str()) *t;
 	case CGameListCtrl::COLUMN_NOTES:
-		return strcasecmp(iso1->GetDescription(indexOne).c_str(),iso2->GetDescription(indexOther).c_str()) *t;
+	{
+		std::string cmp1 = (iso1->GetPlatform() == GameListItem::GAMECUBE_DISC) ? iso1->GetCompany() : iso1->GetDescription(indexOne);
+		std::string cmp2 = (iso2->GetPlatform() == GameListItem::GAMECUBE_DISC) ? iso2->GetCompany() : iso2->GetDescription(indexOther);
+		return strcasecmp(cmp1.c_str(), cmp2.c_str()) *t;
+	}
 	case CGameListCtrl::COLUMN_COUNTRY:
 		if(iso1->GetCountry() > iso2->GetCountry()) return  1 *t;
 		if(iso1->GetCountry() < iso2->GetCountry()) return -1 *t;
@@ -1144,16 +1157,13 @@ void CGameListCtrl::AutomaticColumnWidth()
 		if (0.66*resizable > 200)
 		{
 			SetColumnWidth(COLUMN_TITLE, 0.66*resizable);
-			SetColumnWidth(COLUMN_COMPANY, 0.34*resizable);
+			SetColumnWidth(COLUMN_NOTES, 0.34*resizable);
 		}
 		else
 		{
 			SetColumnWidth(COLUMN_TITLE, resizable);
-			SetColumnWidth(COLUMN_COMPANY, 0);
+			SetColumnWidth(COLUMN_NOTES, 0);
 		}
-
-		// We currently always hide the notes column
-		SetColumnWidth(COLUMN_NOTES, 0);
 	}
 }
 

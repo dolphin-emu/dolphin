@@ -74,7 +74,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 	OpenISO = DiscIO::CreateVolumeFromFilename(fileName);
 	if (DiscIO::IsVolumeWiiDisc(OpenISO))
 	{
-		for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be that many partitions...
+		for (u32 i = 0; i < 0xFFFFFFFF; i++) // yes, technically there can be OVER NINE THOUSAND partitions...
 		{
 			WiiPartition temp;
 			if ((temp.Partition = DiscIO::CreateVolumeFromFilename(fileName, 0, i)) != NULL)
@@ -140,15 +140,21 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		break;
 	case DiscIO::IVolume::COUNTRY_USA:
 		m_Country->SetValue(wxT("USA"));
+		m_Lang->SetSelection(0);
+		m_Lang->Disable(); // For NTSC Games, there's no multi lang
 		break;
 	case DiscIO::IVolume::COUNTRY_JAPAN:
 		m_Country->SetValue(wxT("JAPAN"));
+		m_Lang->SetSelection(-1);
+		m_Lang->Disable(); // For NTSC Games, there's no multi lang
 		break;
 	case DiscIO::IVolume::COUNTRY_KOREA:
 		m_Country->SetValue(wxT("KOREA"));
 		break;
 	case DiscIO::IVolume::COUNTRY_TAIWAN:
 		m_Country->SetValue(wxT("TAIWAN"));
+		m_Lang->SetSelection(-1);
+		m_Lang->Disable(); // For NTSC Games, there's no multi lang
 		break;
 	case DiscIO::IVolume::COUNTRY_SDK:
 		m_Country->SetValue(wxT("No Country (SDK)"));
@@ -157,13 +163,12 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		m_Country->SetValue(wxT("UNKNOWN"));
 		break;
 	}
-	wxString temp;
-	temp = _T("0x") + wxString::FromAscii(OpenISO->GetMakerID().c_str());
+	wxString temp = _T("0x") + wxString::FromAscii(OpenISO->GetMakerID().c_str());
 	m_MakerID->SetValue(temp);
 	m_Date->SetValue(wxString::FromAscii(OpenISO->GetApploaderDate().c_str()));
 	m_FST->SetValue(wxString::Format(_T("%u"), OpenISO->GetFSTSize()));
 
-	// Banner
+	// Here we set all the info to be shown (be it SJIS or Ascii) + we set the window title
 	ChangeBannerDetails((int)SConfig::GetInstance().m_InterfaceLanguage);
 	m_Banner->SetBitmap(OpenGameListItem->GetImage());
 	m_Banner->Connect(wxID_ANY, wxEVT_RIGHT_DOWN,
@@ -190,17 +195,6 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		}
 	}
 	m_Treectrl->Expand(RootId);
-
-	std::string filename, extension;
-	SplitPath(fileName, 0, &filename, &extension);
-
-	// hyperiris: temp fix, need real work
-	wxString name;
-	WxUtils::CopySJISToString(name, OpenGameListItem->GetName(0).c_str());
-
-	SetTitle(wxString::Format(wxT("%s%s"),
-		wxString::FromAscii(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()).c_str(),
-		name.c_str()).c_str());
 }
 
 CISOProperties::~CISOProperties()
@@ -1139,13 +1133,39 @@ void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
 
 void CISOProperties::ChangeBannerDetails(int lang)
 {
-	wxString name,
-			 description;
+	if (OpenGameListItem->GetCountry() == DiscIO::IVolume::COUNTRY_JAPAN
+		|| OpenGameListItem->GetCountry() == DiscIO::IVolume::COUNTRY_TAIWAN
+		|| OpenGameListItem->GetPlatform() == GameListItem::WII_WAD)
+	{
+		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+		wxString name = wxString(OpenGameListItem->GetName(0).c_str(), SJISConv);
 
-	WxUtils::CopySJISToString(name, OpenGameListItem->GetName(lang).c_str());
-	WxUtils::CopySJISToString(description, OpenGameListItem->GetDescription(lang).c_str());
+		// Updates the informations shown in the window
+		m_ShortName->SetValue(name);
+		m_Comment->SetValue(wxString(OpenGameListItem->GetDescription(0).c_str(), SJISConv));
+		m_Maker->SetValue(wxString::FromAscii(OpenGameListItem->GetCompany().c_str()));//dev too
 
-	m_ShortName->SetValue(name);
-	m_Maker->SetValue(wxString::FromAscii(OpenGameListItem->GetCompany().c_str()));//dev too
-	m_Comment->SetValue(description);
+		std::string filename, extension;
+		SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);
+
+		// Also sets the window's title
+		SetTitle(wxString::Format(wxT("%s%s"),
+			wxString::FromAscii(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()).c_str(),
+			name.c_str()));
+	}
+	else // Do the same for PAL/US Games using Ascii
+	{
+		wxString name = wxString::FromAscii(OpenGameListItem->GetName(lang).c_str());
+
+		m_ShortName->SetValue(name);
+		m_Comment->SetValue(wxString::FromAscii(OpenGameListItem->GetDescription(lang).c_str()));
+		m_Maker->SetValue(wxString::FromAscii(OpenGameListItem->GetCompany().c_str()));//dev too
+
+		std::string filename, extension;
+		SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);
+
+		SetTitle(wxString::Format(wxT("%s%s"),
+			wxString::FromAscii(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()).c_str(),
+			name.c_str()));
+	}
 }

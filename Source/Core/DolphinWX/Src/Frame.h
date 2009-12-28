@@ -52,11 +52,11 @@ class CFrame : public wxFrame
 		CFrame(wxFrame* parent,
 			wxWindowID id = wxID_ANY,
 			const wxString& title = wxT("Dolphin"),
-		const wxPoint& pos = wxDefaultPosition,
-		const wxSize& size = wxDefaultSize,
-		bool _UseDebugger = false,
-		bool ShowLogWindow = false,
-		long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
+			const wxPoint& pos = wxDefaultPosition,
+			const wxSize& size = wxDefaultSize,
+			bool _UseDebugger = false,
+			bool ShowLogWindow = false,
+			long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
 		void* GetRenderHandle()
 		{
@@ -146,12 +146,12 @@ class CFrame : public wxFrame
 		void DoRemovePage(wxWindow *, bool Hide = true);
 		void DoRemovePageId(wxWindowID Id, bool Hide = true, bool Destroy = false);
 		void DoRemovePageString(wxString, bool Hide = true, bool Destroy = false);
-		void HidePane();
+		void TogglePane();
 		void SetSimplePaneSize();
 		void SetPaneSize();
 		void ResetToolbarStyle();
-		void TogglePaneStyle(bool,int);
-		void ToggleNotebookStyle(long);
+		void TogglePaneStyle(bool On, int EventId);
+		void ToggleNotebookStyle(bool On, long Style);
 		void ResizeConsole();
 		// Float window
 		void DoUnfloatPage(int Id);
@@ -344,3 +344,4 @@ class CFrame : public wxFrame
 
 
 #endif  // __FRAME_H_
+

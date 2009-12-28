@@ -79,72 +79,71 @@ class CPluginManager;
 
 BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)   
 
-// Menu bar
-EVT_MENU(IDM_AUTOMATICSTART,       CCodeWindow::OnCPUMode) // Options
-EVT_MENU(IDM_BOOTTOPAUSE,       CCodeWindow::OnCPUMode)
-EVT_MENU(IDM_FONTPICKER,		CCodeWindow::OnChangeFont)
+	// Menu bar
+	EVT_MENU(IDM_AUTOMATICSTART,       CCodeWindow::OnCPUMode) // Options
+	EVT_MENU(IDM_BOOTTOPAUSE,       CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_FONTPICKER,		CCodeWindow::OnChangeFont)
 
-EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnCPUMode) // Jit
-EVT_MENU(IDM_JITUNLIMITED,	 CCodeWindow::OnCPUMode)
-EVT_MENU(IDM_JITOFF,			CCodeWindow::OnCPUMode)
-EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITLSLXZOFF,		CCodeWindow::OnCPUMode)
-		EVT_MENU(IDM_JITLSLWZOFF,		CCodeWindow::OnCPUMode)
-	EVT_MENU(IDM_JITLSLBZXOFF,		CCodeWindow::OnCPUMode)
-EVT_MENU(IDM_JITLSFOFF,			CCodeWindow::OnCPUMode)
-EVT_MENU(IDM_JITLSPOFF,			CCodeWindow::OnCPUMode)
-EVT_MENU(IDM_JITFPOFF,			CCodeWindow::OnCPUMode)
-EVT_MENU(IDM_JITIOFF,			CCodeWindow::OnCPUMode)
-EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnCPUMode)
-EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnCPUMode)
-EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
-EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
-EVT_MENU(IDM_SEARCHINSTRUCTION, CCodeWindow::OnJitMenu)
+	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnCPUMode) // Jit
+	EVT_MENU(IDM_JITUNLIMITED,	 CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITOFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnCPUMode)
+		EVT_MENU(IDM_JITLSLXZOFF,		CCodeWindow::OnCPUMode)
+			EVT_MENU(IDM_JITLSLWZOFF,		CCodeWindow::OnCPUMode)
+		EVT_MENU(IDM_JITLSLBZXOFF,		CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITLSFOFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITLSPOFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITFPOFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITIOFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnCPUMode)
+	EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
+	EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
+	EVT_MENU(IDM_SEARCHINSTRUCTION, CCodeWindow::OnJitMenu)
 
-EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleWindow) // View
-EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleWindow)
-EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleWindow)
-EVT_MENU(IDM_JITWINDOW,			CCodeWindow::OnToggleWindow)
-EVT_MENU(IDM_SOUNDWINDOW,		CCodeWindow::OnToggleWindow)
-EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleWindow)
+	EVT_MENU(IDM_REGISTERWINDOW,    CCodeWindow::OnToggleWindow) // View
+	EVT_MENU(IDM_BREAKPOINTWINDOW,  CCodeWindow::OnToggleWindow)
+	EVT_MENU(IDM_MEMORYWINDOW,      CCodeWindow::OnToggleWindow)
+	EVT_MENU(IDM_JITWINDOW,			CCodeWindow::OnToggleWindow)
+	EVT_MENU(IDM_SOUNDWINDOW,		CCodeWindow::OnToggleWindow)
+	EVT_MENU(IDM_VIDEOWINDOW,		CCodeWindow::OnToggleWindow)
 
-EVT_MENU(IDM_CLEARSYMBOLS,      CCodeWindow::OnSymbolsMenu)
-EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
-EVT_MENU(IDM_SCANFUNCTIONS,     CCodeWindow::OnSymbolsMenu)
-EVT_MENU(IDM_SAVEMAPFILE,       CCodeWindow::OnSymbolsMenu)
-EVT_MENU(IDM_SAVEMAPFILEWITHCODES, CCodeWindow::OnSymbolsMenu)
-EVT_MENU(IDM_CREATESIGNATUREFILE, CCodeWindow::OnSymbolsMenu)
-EVT_MENU(IDM_USESIGNATUREFILE,  CCodeWindow::OnSymbolsMenu)
-EVT_MENU(IDM_PATCHHLEFUNCTIONS, CCodeWindow::OnSymbolsMenu)
-EVT_MENU(IDM_RENAME_SYMBOLS, CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_CLEARSYMBOLS,      CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_LOADMAPFILE,       CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_SCANFUNCTIONS,     CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_SAVEMAPFILE,       CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_SAVEMAPFILEWITHCODES, CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_CREATESIGNATUREFILE, CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_USESIGNATUREFILE,  CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_PATCHHLEFUNCTIONS, CCodeWindow::OnSymbolsMenu)
+	EVT_MENU(IDM_RENAME_SYMBOLS, CCodeWindow::OnSymbolsMenu)
 
-EVT_MENU(IDM_PROFILEBLOCKS,     CCodeWindow::OnProfilerMenu)
-EVT_MENU(IDM_WRITEPROFILE,      CCodeWindow::OnProfilerMenu)
+	EVT_MENU(IDM_PROFILEBLOCKS,     CCodeWindow::OnProfilerMenu)
+	EVT_MENU(IDM_WRITEPROFILE,      CCodeWindow::OnProfilerMenu)
 
-// Menu tooltips
-//EVT_MENU_HIGHLIGHT_ALL(	CCodeWindow::OnStatusBar)
-// Do this to to avoid that the ToolTips get stuck when only the wxMenu is changed
-// and not any wxMenuItem that is required by EVT_MENU_HIGHLIGHT_ALL
-//EVT_UPDATE_UI(wxID_ANY, CCodeWindow::OnStatusBar_)
+	// Menu tooltips
+	//EVT_MENU_HIGHLIGHT_ALL(	CCodeWindow::OnStatusBar)
+	// Do this to to avoid that the ToolTips get stuck when only the wxMenu is changed
+	// and not any wxMenuItem that is required by EVT_MENU_HIGHLIGHT_ALL
+	//EVT_UPDATE_UI(wxID_ANY, CCodeWindow::OnStatusBar_)
 
-// Toolbar
-EVT_MENU(IDM_DEBUG_GO,			CCodeWindow::OnCodeStep)
-EVT_MENU(IDM_STEP,				CCodeWindow::OnCodeStep)
-EVT_MENU(IDM_STEPOVER,			CCodeWindow::OnCodeStep)
-EVT_MENU(IDM_SKIP,				CCodeWindow::OnCodeStep)
-EVT_MENU(IDM_SETPC,				CCodeWindow::OnCodeStep)
-EVT_MENU(IDM_GOTOPC,			CCodeWindow::OnCodeStep)
-EVT_TEXT(IDM_ADDRBOX,           CCodeWindow::OnAddrBoxChange)
+	// Toolbar
+	EVT_MENU(IDM_STEP,				CCodeWindow::OnCodeStep)
+	EVT_MENU(IDM_STEPOVER,			CCodeWindow::OnCodeStep)
+	EVT_MENU(IDM_SKIP,				CCodeWindow::OnCodeStep)
+	EVT_MENU(IDM_SETPC,				CCodeWindow::OnCodeStep)
+	EVT_MENU(IDM_GOTOPC,			CCodeWindow::OnCodeStep)
+	EVT_TEXT(IDM_ADDRBOX,           CCodeWindow::OnAddrBoxChange)
 
-// Other
-EVT_LISTBOX(ID_SYMBOLLIST,     CCodeWindow::OnSymbolListChange)
-EVT_LISTBOX(ID_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
-EVT_LISTBOX(ID_CALLERSLIST,    CCodeWindow::OnCallersListChange)
-EVT_LISTBOX(ID_CALLSLIST,      CCodeWindow::OnCallsListChange)
+	// Other
+	EVT_LISTBOX(ID_SYMBOLLIST,     CCodeWindow::OnSymbolListChange)
+	EVT_LISTBOX(ID_CALLSTACKLIST,  CCodeWindow::OnCallstackListChange)
+	EVT_LISTBOX(ID_CALLERSLIST,    CCodeWindow::OnCallersListChange)
+	EVT_LISTBOX(ID_CALLSLIST,      CCodeWindow::OnCallsListChange)
 
-EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)	
+	EVT_HOST_COMMAND(wxID_ANY,      CCodeWindow::OnHostMessage)	
 
-//EVT_COMMAND(ID_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
+	//EVT_COMMAND(ID_CODEVIEW, wxEVT_CODEVIEW_CHANGE, CCodeWindow::OnCodeViewChange)
 
 END_EVENT_TABLE()
 
@@ -202,11 +201,11 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 	    case IDM_NOTIFYMAPLOADED:
 		    NotifyMapLoaded();
 		    break;
-		/*
-		case IDM_UPDATELOGDISPLAY:
-			if (m_LogWindow) m_LogWindow->NotifyUpdate();
-			break;
-		*/
+		// Is this still necessary ?
+		//case IDM_UPDATELOGDISPLAY:
+		//	if (m_LogWindow) m_LogWindow->NotifyUpdate();
+		//	break;
+
 	    case IDM_UPDATEDISASMDIALOG:
 		    Update();
 		    if (m_RegisterWindow) m_RegisterWindow->NotifyUpdate();
@@ -235,24 +234,6 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	    case IDM_DEBUG_GO:
-	    {
-		    // [F|RES] prolly we should disable the other buttons in go mode too ...
-		    if (CCPU::IsStepping())
-		    {
-			    CCPU::EnableStepping(false);
-		    }
-		    else
-		    {
-			    CCPU::EnableStepping(true);  // Break
-			    Host_UpdateLogDisplay();
-		    }
-			wxThread::Sleep(20);
-		    JumpToAddress(PC);
-		    Update();
-	    }
-		break;
-
 	    case IDM_STEP:
 			SingleCPUStep();
 		    break;
@@ -647,7 +628,6 @@ void CCodeWindow::PopulateToolbar(wxAuiToolBar* toolBar)
 		h = m_Bitmaps[Toolbar_DebugGo].GetHeight();
 
 	toolBar->SetToolBitmapSize(wxSize(w, h));
-	toolBar->AddTool(IDM_DEBUG_GO,	_T("Play"),			m_Bitmaps[Toolbar_DebugGo]);
 	toolBar->AddTool(IDM_STEP,		_T("Step"),			m_Bitmaps[Toolbar_Step]);
 	toolBar->AddTool(IDM_STEPOVER,	_T("Step Over"),    m_Bitmaps[Toolbar_StepOver]);
 	toolBar->AddTool(IDM_SKIP,		_T("Skip"),			m_Bitmaps[Toolbar_Skip]);
@@ -690,7 +670,6 @@ void CCodeWindow::UpdateButtonStates()
 
 	if (!Initialized)
 	{
-		ToolBar->EnableTool(IDM_DEBUG_GO, false);
 		ToolBar->EnableTool(IDM_STEPOVER, false);
 		ToolBar->EnableTool(IDM_SKIP, false);
 	}
@@ -698,19 +677,11 @@ void CCodeWindow::UpdateButtonStates()
 	{
 		if (!Stepping)
 		{
-			ToolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Pause"));
-			ToolBar->SetToolLabel(IDM_DEBUG_GO, _("Pause"));
-			ToolBar->SetToolBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_DebugPause]);
-			ToolBar->EnableTool(IDM_DEBUG_GO, true);
 			ToolBar->EnableTool(IDM_STEPOVER, false);
 			ToolBar->EnableTool(IDM_SKIP, false);
 		}
 		else
 		{
-			ToolBar->SetToolShortHelp(IDM_DEBUG_GO, _T("&Play"));
-			ToolBar->SetToolLabel(IDM_DEBUG_GO, _("Play"));
-			ToolBar->SetToolBitmap(IDM_DEBUG_GO, m_Bitmaps[Toolbar_DebugGo]);
-			ToolBar->EnableTool(IDM_DEBUG_GO, true);
 			ToolBar->EnableTool(IDM_STEPOVER, true);
 			ToolBar->EnableTool(IDM_SKIP, true);
 		}
@@ -755,24 +726,6 @@ void CCodeWindow::UpdateButtonStates()
 	symbols->SetFont(DebuggerFont);
 	callers->SetFont(DebuggerFont);
 	calls->SetFont(DebuggerFont);
-}
-
-void CCodeWindow::RecreateToolbar(wxAuiToolBar * toolBar)
-{
-	/*
-	// delete and recreate the toolbar
-	wxToolBarBase* toolBar = GetToolBar();
-	delete toolBar;
-	SetToolBar(NULL);
-	
-
-	long style = wxTB_FLAT | wxTB_DOCKABLE | wxTB_TEXT;
-	style &= ~(wxTB_HORIZONTAL | wxTB_VERTICAL | wxTB_BOTTOM | wxTB_RIGHT | wxTB_HORZ_LAYOUT | wxTB_TOP);
-	wxToolBar* theToolBar = CreateToolBar(style, ID_TOOLBAR_DEBUG);
-
-	PopulateToolbar(theToolBar);
-	SetToolBar(theToolBar);
-	*/
 }
 
 

@@ -174,7 +174,6 @@ enum
 	// Debugger Toolbar
 	// --------------------
 	ID_TOOLBAR_DEBUG,
-	IDM_DEBUG_GO,
 	IDM_STEP,
 	IDM_STEPOVER,
 	IDM_SKIP,

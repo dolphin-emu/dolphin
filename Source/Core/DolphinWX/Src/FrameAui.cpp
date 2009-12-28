@@ -70,22 +70,26 @@ void CFrame::OnPaneClose(wxAuiManagerEvent& event)
 
 	wxAuiNotebook * nb = (wxAuiNotebook*)event.pane->window;
 	if (!nb) return;
-	if (! (nb->GetPageCount() == 0 || (nb->GetPageCount() == 1 && nb->GetPageText(0).IsSameAs(wxT("<>")))))
+
+	if ((nb->GetPageText(0).IsSameAs(wxT("Log")) || nb->GetPageText(0).IsSameAs(wxT("Console"))))
+	{
+		// Closing a pane containing the logwindow or a console closes both
+		GetMenuBar()->FindItem(IDM_CONSOLEWINDOW)->Check(false);
+		GetMenuBar()->FindItem(IDM_LOGWINDOW)->Check(false);
+		SConfig::GetInstance().m_InterfaceConsole = false;
+		SConfig::GetInstance().m_InterfaceLogWindow = false;
+		ToggleConsole(false);
+		ToggleLogWindow(false);
+	}
+	else if (nb->GetPageCount() != 0 && !nb->GetPageText(0).IsSameAs(wxT("<>")))
 	{
 		wxMessageBox(wxT("You can't close panes that have pages in them."), wxT("Notice"), wxOK, this);		
 	}
 	else
 	{
-		/*
-		ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-		Console->Log(LogTypes::LNOTICE, StringFromFormat("GetNotebookCount before: %i\n", GetNotebookCount()).c_str());
-		*/
-
 		// Detach and delete the empty notebook
 		event.pane->DestroyOnClose(true);
 		m_Mgr->ClosePane(*event.pane);
-
-		//Console->Log(LogTypes::LNOTICE, StringFromFormat("GetNotebookCount after: %i\n", GetNotebookCount()).c_str());
 	}
 
 	m_Mgr->Update();
@@ -110,8 +114,9 @@ void CFrame::ToggleLogWindow(bool bShow, int i)
 		DoRemovePage(m_LogWindow);
 	}
 
-	// Hide pane
-	if (!g_pCodeWindow) HidePane();
+	// Hide or Show the pane
+	if (!g_pCodeWindow)
+		TogglePane();
 }
 
 // Enable and disable the console
@@ -123,48 +128,47 @@ void CFrame::OnToggleConsole(wxCommandEvent& event)
 
 void CFrame::ToggleConsole(bool bShow, int i)
 {
+// Can anyone check this code under Linux ? commenting the windows console Hide/show
+// should be enough to make it work.
 #ifdef _WIN32
-	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();	
+	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
 
 	if (bShow)
 	{
-		//Console->Log(LogTypes::LNOTICE, StringFromFormat(" >>> Show\n").c_str());
-
-		if (GetNotebookCount() == 0) return;
 		if (i < 0 || i > GetNotebookCount()-1) i = 0;
 
-		wxWindow *Win = GetWxWindowHwnd(GetConsoleWindow());
-		if (Win && GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
-		{
-			if(!GetConsoleWindow()) Console->Open(); else ShowWindow(GetConsoleWindow(),SW_SHOW);
-		}
-		Win = GetWxWindowHwnd(GetConsoleWindow());
-		if (!Win) return;
-		// Create parent window
-		wxPanel * ConsoleParent = CreateEmptyPanel(IDM_CONSOLEWINDOW);
-		Win->Reparent(ConsoleParent);
-		if (!bFloatConsoleWindow)
-			GetNotebookFromId(i)->AddPage(ConsoleParent, wxT("Console"), true, aNormalFile);
+		// If the window and its page already exist, there's a bug :p
+		if (GetNotebookFromId(i)->GetPageIndex(GetWxWindowHwnd(GetConsoleWindow())) != wxNOT_FOUND)
+			return;
+
+		// If the console doesn't exist, we create it
+		if (!GetConsoleWindow())
+			Console->Open();
 		else
-			CreateParentFrame(WindowParentIdFromChildId(ConsoleParent->GetId()), WindowNameFromId(ConsoleParent->GetId()), ConsoleParent);
+			ShowWindow(GetConsoleWindow(), SW_SHOW); // WIN32
+
+		// We retrieve our wxWindow to access our console + its parent (which is the page)
+		wxWindow *ConsoleWin = GetWxWindowHwnd(GetConsoleWindow());
+		wxPanel *ConsoleParent = (wxPanel*)FindWindowById(IDM_CONSOLEWINDOW);
+
+		// Create the parent window if it doesn't exist, and put the console in it
+		if (!ConsoleParent) ConsoleParent = CreateEmptyPanel(IDM_CONSOLEWINDOW);
+		ConsoleWin->Reparent(ConsoleParent);
+
+		DoAddPage(ConsoleParent, i, wxT("Console"), bFloatConsoleWindow);
 	}
-	else // hide
+	else // Hide
 	{
-		//Console->Log(LogTypes::LNOTICE, StringFromFormat(" >>> Show\n").c_str());
+		if(GetConsoleWindow())
+			ShowWindow(GetConsoleWindow(), SW_HIDE); // WIN32
 
-		// Hide
-		if(GetConsoleWindow()) ShowWindow(GetConsoleWindow(),SW_HIDE);
-		// Release the console to Windows
-		::SetParent(GetConsoleWindow(), NULL);
-		// Destroy the empty parent of the console
-		if (FindWindowById(WindowParentIdFromChildId(IDM_CONSOLEWINDOW)))
-			FindWindowById(WindowParentIdFromChildId(IDM_CONSOLEWINDOW))->Destroy();
-		else
-			DoRemovePageId(IDM_CONSOLEWINDOW, true, true);
+		// Then close the page
+		DoRemovePageId(IDM_CONSOLEWINDOW, true, true);
 	}
 
-	// Hide pane
-	if (!g_pCodeWindow) HidePane();
+	// Hide or Show the pane
+	if (!g_pCodeWindow)
+		TogglePane();
 #endif
 }
 
@@ -326,7 +330,7 @@ void CFrame::OnAllowNotebookDnD(wxAuiNotebookEvent& event)
 	event.Allow();
 	ResizeConsole();
 }
-void CFrame::HidePane()
+void CFrame::TogglePane()
 {
 	// Get the first notebook
 	wxAuiNotebook * NB = NULL;
@@ -377,7 +381,6 @@ void CFrame::DoRemovePageString(wxString Str, bool /*_Hide*/, bool _Destroy)
 					{
 						NB->DeletePage(j);
 					}
-					//if (_Hide) Win->Hide();
 					break;
 				}	
 			}
@@ -450,19 +453,10 @@ void CFrame::DoAddPage(wxWindow * Win, int i, wxString Name, bool Float)
 		GetNotebookFromId(i)->AddPage(Win, Name, true, aNormalFile );
 	else
 		CreateParentFrame(WindowParentIdFromChildId(Win->GetId()), WindowNameFromId(Win->GetId()), Win);
-
-	//NOTICE_LOG(CONSOLE, "DoAddPage: %i", Win->GetId());
-
-	/*
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	Console->Log(LogTypes::LNOTICE, StringFromFormat("Add: %s\n", Name.c_str()).c_str());
-	*/
 }
 
 void CFrame::DoUnfloatPage(int Id)
 {
-	//NOTICE_LOG(CONSOLE, "DoUnfloatPage: %i", Id);
-
 	wxFrame * Win = (wxFrame*)this->FindWindowById(Id);
 	if (!Win) return;
 
@@ -473,20 +467,16 @@ void CFrame::DoUnfloatPage(int Id)
 }
 void CFrame::OnFloatingPageClosed(wxCloseEvent& event)
 {
-	//NOTICE_LOG(CONSOLE, "OnFloatingPageClosed: %i", event.GetId());
 	DoUnfloatPage(event.GetId());
 }
 void CFrame::OnFloatingPageSize(wxSizeEvent& event)
 {
 	event.Skip();
-	//NOTICE_LOG(CONSOLE, "OnFloatingPageClosed: %i", event.GetId());
 	ResizeConsole();
 }
 
-
 void CFrame::DoFloatNotebookPage(wxWindowID Id)
 {
-	//NOTICE_LOG(CONSOLE, "DoFloatNotebookPage: %i %s", Win->GetId(), WindowNameFromId(Win->GetId()).mb_str());
 	wxFrame * Win = (wxFrame*)this->FindWindowById(Id);
 	if (!Win) return;
 
@@ -631,7 +621,6 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 					else
 						DlgOk = true;
 				}
-				//wxID_CANCEL
 
 				SPerspectives Tmp;
 				Tmp.Name = dlg.GetValue().mb_str();
@@ -639,8 +628,8 @@ void CFrame::OnDropDownToolbarSelect(wxCommandEvent& event)
 			}
 			break;
 		case IDM_TAB_SPLIT:
-			 m_bTabSplit = event.IsChecked();
-			ToggleNotebookStyle(wxAUI_NB_TAB_SPLIT);
+			m_bTabSplit = event.IsChecked();
+			ToggleNotebookStyle(m_bTabSplit, wxAUI_NB_TAB_SPLIT);
 			break;
 		case IDM_NO_DOCKING:
 			m_bNoDocking = event.IsChecked();
@@ -693,11 +682,6 @@ void CFrame::TogglePaneStyle(bool On, int EventId)
 					Pane.Floatable(On);
 					Pane.Dockable(On);					
 					break;
-					/*
-				case IDM_NO_DOCKING:				
-					Pane.Dockable(!On);
-					break;
-					*/
 			}
 			Pane.Dockable(!m_bNoDocking);
 		}
@@ -705,7 +689,7 @@ void CFrame::TogglePaneStyle(bool On, int EventId)
 	m_Mgr->Update();
 }
 
-void CFrame::ToggleNotebookStyle(long Style)
+void CFrame::ToggleNotebookStyle(bool On, long Style)
 {
     wxAuiPaneInfoArray& AllPanes = m_Mgr->GetAllPanes();
     for (int i = 0, Count = (int)AllPanes.GetCount(); i < Count; ++i)
@@ -714,7 +698,12 @@ void CFrame::ToggleNotebookStyle(long Style)
         if (Pane.window->IsKindOf(CLASSINFO(wxAuiNotebook)))
         {
             wxAuiNotebook* NB = (wxAuiNotebook*)Pane.window;
-            NB->SetWindowStyleFlag(NB->GetWindowStyleFlag() ^ Style);
+
+			if (On)
+				NB->SetWindowStyleFlag(NB->GetWindowStyleFlag() | Style);
+			else
+				NB->SetWindowStyleFlag(NB->GetWindowStyleFlag() &~ Style);
+
             NB->Refresh();
         }
     }
@@ -838,10 +827,6 @@ void CFrame::ReloadPanes()
 	// Keep settings
 	bool bConsole = SConfig::GetInstance().m_InterfaceConsole;
 
-	//ListChildren();
-	//ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	//Console->Log(LogTypes::LNOTICE, StringFromFormat("ReloadPanes begin: Sound %i\n", FindWindowByName(wxT("Sound"))).c_str());
-
 	if (ActivePerspective >= Perspectives.size()) ActivePerspective = 0;
 
 	// Check that there is a perspective
@@ -903,13 +888,6 @@ void CFrame::DoLoadPerspective()
 	SetPaneSize();
 	// Show
 	ShowAllNotebooks(true);
-
-	/*
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	Console->Log(LogTypes::LNOTICE, StringFromFormat(
-		"Loaded: %s (%i panes, %i NBs)\n",
-		Perspectives.at(ActivePerspective).Name.c_str(), m_Mgr->GetAllPanes().GetCount(), GetNotebookCount()).c_str());
-	*/
 }
 
 // Update the local perspectives array
@@ -1009,12 +987,6 @@ void CFrame::Save()
 	// Update the local vector
 	SaveLocal();
 
-	/*
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	Console->Log(LogTypes::LNOTICE, StringFromFormat(
-		"Saved: %s (%s, %i panes, %i NBs)\n",
-		Perspectives.at(ActivePerspective).Name.c_str(), STmp.c_str(), m_Mgr->GetAllPanes().GetCount(), GetNotebookCount()).c_str());
-	*/
 	
 	TogglePaneStyle(m_bEdit, IDM_EDIT_PERSPECTIVES); 
 }
@@ -1207,14 +1179,9 @@ void CFrame::CloseAllNotebooks()
 			//m_Mgr->DetachPane(m_Mgr->GetAllPanes().Item(i).window);
 			
 			i = 0;
-			//Console->Log(LogTypes::LNOTICE, StringFromFormat("    %i Pane\n", i).c_str());
 		}
 		else
-		{
 			i++;
-			//Console->Log(LogTypes::LNOTICE, StringFromFormat("    %i No pane\n", i).c_str());
-		}
-		
 	}
 }
 int CFrame::GetNotebookCount()

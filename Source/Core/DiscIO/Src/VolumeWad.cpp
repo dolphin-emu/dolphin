@@ -110,12 +110,12 @@ std::string CVolumeWAD::GetName() const
 	u32 footer_size;
 
 	if (!Read(0x1C, 4, (u8*)&footer_size))
-		return "Unknown";
+		return false;
 
 	// Offset to the english title
 	char temp[84];
 	if (!Read(0xF1 + OpeningBnrOffset, 84, (u8*)&temp) || Common::swap32(footer_size) < 0xF1)
-		return "Unknown";
+		return false;
 
 	// Remove the null bytes due to 16bit char length
 	std::string out_temp;

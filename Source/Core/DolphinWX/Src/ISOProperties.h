@@ -23,11 +23,11 @@
 #include <wx/filepicker.h>
 #include <wx/statbmp.h>
 #include <wx/imaglist.h>
+#include <wx/fontmap.h>
 #include <wx/treectrl.h>
 #include <wx/gbsizer.h>
 #include <wx/notebook.h>
 #include <wx/mimetype.h>
-#include "WxUtils.h"
 #include <string>
 
 #include "ISOFile.h"

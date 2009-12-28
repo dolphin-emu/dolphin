@@ -60,6 +60,8 @@ Core::GetWindowHandle().
 #include "ConfigManager.h" // Core
 #include "Core.h"
 #include "OnFrame.h"
+#include "HW/CPU.h"
+#include "PowerPC/PowerPC.h"
 #include "HW/DVDInterface.h"
 #include "HW/ProcessorInterface.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
@@ -293,6 +295,7 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 	// the changes
 	ToolBar->Realize();
 }
+
 void CFrame::PopulateToolbarAui(wxAuiToolBar* ToolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
@@ -319,6 +322,7 @@ void CFrame::RecreateToolbar()
 	}
 
 	m_ToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
+
 	PopulateToolbar(m_ToolBar);
 	
 	m_Mgr->AddPane(m_ToolBar, wxAuiPaneInfo().
@@ -353,7 +357,7 @@ void CFrame::InitBitmaps()
 	int Theme = SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme;
 
 	// Save memory by only having one set of bitmaps loaded at any time. I mean, they are still
-	// in the exe, which is in memory, but at least we wont make another copy of all of them. */
+	// in the exe, which is in memory, but at least we wont make another copy of all of them. 
 	switch (Theme)
 	{
 	case BOOMY:
@@ -458,19 +462,9 @@ void CFrame::InitBitmaps()
 // Start the game or change the disc
 void CFrame::BootGame()
 {
-	// Rerecording
-#ifdef RERECORDING
-	Core::RerecordingStart();
-#endif
-
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
-	{
-		if (Core::GetState() == Core::CORE_RUN)
-			Core::SetState(Core::CORE_PAUSE);
-		else
-			Core::SetState(Core::CORE_RUN);
-		UpdateGUI();
-	}
+		return;
+
 	// Start the selected ISO, or try one of the saved paths.
 	// If all that fails, ask to add a dir and don't boot
 	else if (m_GameListCtrl->GetSelectedISO() != NULL)
@@ -606,6 +600,30 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
+	{
+		if (UseDebugger)
+		{
+			if (CCPU::IsStepping())
+				CCPU::EnableStepping(false);
+			else
+				CCPU::EnableStepping(true);  // Break
+
+			wxThread::Sleep(20);
+			g_pCodeWindow->JumpToAddress(PC);
+			g_pCodeWindow->Update();
+		}
+		else
+		{
+			if (Core::GetState() == Core::CORE_RUN)
+				Core::SetState(Core::CORE_PAUSE);
+			else
+				Core::SetState(Core::CORE_RUN);
+		}
+		
+		UpdateGUI();
+	}
+
 	BootGame();
 }
 
