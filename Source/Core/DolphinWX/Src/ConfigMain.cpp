@@ -119,7 +119,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 	// Update selected ISO paths
 	for(u32 i = 0; i < SConfig::GetInstance().m_ISOFolder.size(); i++)
 	{
-		ISOPaths->Append(wxString::FromAscii(SConfig::GetInstance().m_ISOFolder[i].c_str()));
+		ISOPaths->Append(wxString(SConfig::GetInstance().m_ISOFolder[i].c_str(), *wxConvCurrent));
 	}
 }
 
