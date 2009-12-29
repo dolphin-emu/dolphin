@@ -459,8 +459,8 @@ void fnmsubx(UGeckoInstruction _inst)
 }
 void fnmsubsx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = rPS1(_inst.FD) = 
-		ForceSingle(0.0-NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	rPS0(_inst.FD) = rPS1(_inst.FD) =
+		ForceSingle(-NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
  	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
