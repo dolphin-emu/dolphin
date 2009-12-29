@@ -521,16 +521,16 @@ void CConfigMain::CreateGUIControls()
 	DefaultISO = new wxFilePickerCtrl(PathsPage, ID_DEFAULTISO, wxEmptyString, wxT("Choose a default ISO:"),
 		wxString::Format(wxT("All GC/Wii images (gcm, iso, gcz)|*.gcm;*.iso;*.gcz|All files (%s)|%s"), wxFileSelectorDefaultWildcardStr, wxFileSelectorDefaultWildcardStr),
 		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
-	DefaultISO->SetPath(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.c_str()));
+	DefaultISO->SetPath(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.c_str(), *wxConvCurrent));
 
 	DVDRootText = new wxStaticText(PathsPage, ID_DVDROOT_TEXT, wxT("DVD Root:"), wxDefaultPosition, wxDefaultSize);
 	DVDRoot = new wxDirPickerCtrl(PathsPage, ID_DVDROOT, wxEmptyString, wxT("Choose a DVD root directory:"), wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL);
-	DVDRoot->SetPath(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot.c_str()));
+	DVDRoot->SetPath(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDVDRoot.c_str(), *wxConvCurrent));
 	ApploaderPathText = new wxStaticText(PathsPage, ID_APPLOADERPATH_TEXT, wxT("Apploader:"), wxDefaultPosition, wxDefaultSize);
 	ApploaderPath = new wxFilePickerCtrl(PathsPage, ID_APPLOADERPATH, wxEmptyString, wxT("Choose file to use as apploader: (applies to discs constructed from directories only)"),
 		wxString::Format(wxT("apploader (.img)|*.img|All files (%s)|%s"), wxFileSelectorDefaultWildcardStr, wxFileSelectorDefaultWildcardStr),
 		wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
-	ApploaderPath->SetPath(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strApploader.c_str()));
+	ApploaderPath->SetPath(wxString(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strApploader.c_str(), *wxConvCurrent));
 
 	sPaths = new wxBoxSizer(wxVERTICAL);
 
