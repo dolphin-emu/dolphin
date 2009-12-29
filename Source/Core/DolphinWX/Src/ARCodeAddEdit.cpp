@@ -48,7 +48,7 @@ void CARCodeAddEdit::CreateGUIControls(int _selection)
 	}
 	else
 	{
-	    currentName = wxString::FromAscii(arCodes.at(_selection).name.c_str());
+	    currentName = wxString(arCodes.at(_selection).name.c_str(), *wxConvCurrent);
 	    tempEntries = arCodes.at(_selection);
 	}
 
@@ -94,7 +94,7 @@ void CARCodeAddEdit::OnClose(wxCloseEvent& WXUNUSED (event))
 void CARCodeAddEdit::ChangeEntry(wxSpinEvent& event)
 {
 	ActionReplay::ARCode currentCode = arCodes.at((int)arCodes.size() - event.GetPosition());
-	EditCheatName->SetValue(wxString::FromAscii(currentCode.name.c_str()));
+	EditCheatName->SetValue(wxString(currentCode.name.c_str(), *wxConvCurrent));
 	UpdateTextCtrl(currentCode);
 }
 

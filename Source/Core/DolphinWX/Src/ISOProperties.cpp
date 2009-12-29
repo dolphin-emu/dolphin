@@ -865,7 +865,7 @@ void CISOProperties::LoadGameConfig()
 	GameIni.Get("EmuState", "EmulationIssues", &sTemp);
 	if (!sTemp.empty())
 	{
-		EmuIssues->SetValue(wxString::FromAscii(sTemp.c_str()));
+		EmuIssues->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
 		bRefreshList = true;
 	}
 	EmuIssues->Enable(EmuState->GetSelection() != 0);
@@ -951,7 +951,7 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
 
-	GameIni.Set("EmuState", "EmulationIssues", (const char*)EmuIssues->GetValue().mb_str(wxConvUTF8));
+	GameIni.Set("EmuState", "EmulationIssues", (const char*)EmuIssues->GetValue().mb_str(*wxConvCurrent));
 
 	PatchList_Save();
 	ActionReplayList_Save();
@@ -1024,7 +1024,7 @@ void CISOProperties::PatchList_Load()
 	for (std::vector<PatchEngine::Patch>::const_iterator it = onFrame.begin(); it != onFrame.end(); ++it)
 	{
 		PatchEngine::Patch p = *it;
-		Patches->Append(wxString::FromAscii(p.name.c_str()));
+		Patches->Append(wxString(p.name.c_str(), *wxConvCurrent));
 		Patches->Check(index, p.active);
 		++index;
 	}
@@ -1068,7 +1068,7 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 		CPatchAddEdit dlg(-1, this, 1, _("Add Patch"));
 		if (dlg.ShowModal() == wxID_OK)
 		{
-			Patches->Append(wxString::FromAscii(onFrame.back().name.c_str()));
+			Patches->Append(wxString(onFrame.back().name.c_str(), *wxConvCurrent));
 			Patches->Check((unsigned int)(onFrame.size() - 1), onFrame.back().active);
 		}
 		}
@@ -1097,7 +1097,7 @@ void CISOProperties::ActionReplayList_Load()
 	for (std::vector<ActionReplay::ARCode>::const_iterator it = arCodes.begin(); it != arCodes.end(); ++it)
 	{
 		ActionReplay::ARCode arCode = *it;
-		Cheats->Append(wxString::FromAscii(arCode.name.c_str()));
+		Cheats->Append(wxString(arCode.name.c_str(), *wxConvCurrent));
 		Cheats->Check(index, arCode.active);
 		++index;
 	}

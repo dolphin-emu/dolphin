@@ -499,7 +499,7 @@ void CGameListCtrl::ScanForISOs()
 			wxString msg;
 			char tempstring[128];
 			sprintf(tempstring,"Scanning %s", FileName.c_str());
-			msg = wxString::FromAscii(tempstring);
+			msg = wxString(tempstring, *wxConvCurrent);
 
 			// Update with the progress (i) and the message (msg)
 			bool Cont = dialog.Update(i, msg);
@@ -763,7 +763,7 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 			{
 				char temp[2048];
 				sprintf(temp, "^ %s%s%s", emuState[nState -1].c_str(), issues.size() > 0 ? " :\n" : "", issues.c_str());
-				toolTip = new wxEmuStateTip(this, wxString::FromAscii(temp), &toolTip);
+				toolTip = new wxEmuStateTip(this, wxString(temp, *wxConvCurrent), &toolTip);
 			}
 			else
 				toolTip = new wxEmuStateTip(this, wxT("Not Set"), &toolTip);
@@ -1050,7 +1050,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
 
 void CGameListCtrl::CompressCB(const char* text, float percent, void* arg)
 {
-	((wxProgressDialog*)arg)->Update((int)(percent*1000), wxString::FromAscii(text));
+	((wxProgressDialog*)arg)->Update((int)(percent*1000), wxString(text, *wxConvCurrent));
 }
 
 void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event)) 
@@ -1068,7 +1068,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 	{
 		 path = wxFileSelector(
 			_T("Save decompressed ISO"),
-			wxEmptyString, wxString::FromAscii(FileName.c_str()), wxEmptyString,
+			wxEmptyString, wxString(FileName.c_str(), *wxConvCurrent), wxEmptyString,
 			wxString::Format
 			(
 			_T("All GC/Wii ISO files (gcm)|*.gcm|All files (%s)|%s"),
@@ -1087,7 +1087,7 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 	{
 		path = wxFileSelector(
 			_T("Save compressed ISO"),
-			wxEmptyString, wxString::FromAscii(FileName.c_str()), wxEmptyString,
+			wxEmptyString, wxString(FileName.c_str(), *wxConvCurrent), wxEmptyString,
 			wxString::Format
 			(
 			_T("All compressed GC/Wii ISO files (gcz)|*.gcz|All files (%s)|%s"),

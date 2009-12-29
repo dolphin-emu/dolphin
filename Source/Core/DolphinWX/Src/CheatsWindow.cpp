@@ -147,7 +147,7 @@ void wxCheatsWindow::Load_ARCodes()
 	{
 		ARCode code = GetARCode(i);
 		ARCodeIndex ind;
-		u32 index = m_CheckListBox_CheatsList->Append(wxString::FromAscii(code.name.c_str()));
+		u32 index = m_CheckListBox_CheatsList->Append(wxString(code.name.c_str(), *wxConvCurrent));
 		m_CheckListBox_CheatsList->Check(index, code.active);
 		ind.index = i;
 		ind.uiIndex = index;
@@ -162,7 +162,7 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 		if ((int)indexList[i].uiIndex == index)
 		{
 			ARCode code = GetARCode(i);
-			m_Label_Codename->SetLabel(wxT("Name: ") + wxString::FromAscii(code.name.c_str()));
+			m_Label_Codename->SetLabel(wxT("Name: ") + wxString(code.name.c_str(), *wxConvCurrent));
 			char text[CHAR_MAX];
 			char* numcodes = text;
 			sprintf(numcodes, "Number of Codes: %lu", (unsigned long)code.ops.size());

@@ -49,7 +49,7 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	}
 	else
 	{
-	    currentName = wxString::FromAscii(onFrame.at(_selection).name.c_str());
+	    currentName = wxString(onFrame.at(_selection).name.c_str(), *wxConvCurrent);
 	    tempEntries = onFrame.at(_selection).entries;
 	}
 
