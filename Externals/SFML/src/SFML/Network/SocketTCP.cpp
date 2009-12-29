@@ -131,11 +131,22 @@ Socket::Status SocketTCP::Connect(unsigned short Port, const IPAddress& HostAddr
             Time.tv_sec  = static_cast<long>(Timeout);
             Time.tv_usec = (static_cast<long>(Timeout * 1000) % 1000) * 1000;
 
-            // Wait for something to write on our socket (would mean the connection has been accepted)
+            // Wait for something to write on our socket (which means that the connection request has returned)
             if (select(static_cast<int>(mySocket + 1), NULL, &Selector, NULL, &Time) > 0)
             {
-                // Connection succeeded
-                Status = Socket::Done;
+                // At this point the connection may have been either accepted or refused.
+				// To know whether it's a success or a failure, we try to retrieve the name of the connected peer
+                SocketHelper::LengthType Size = sizeof(SockAddr);
+				if (getpeername(mySocket, reinterpret_cast<sockaddr*>(&SockAddr), &Size) != -1)
+				{
+					// Connection accepted
+					Status = Socket::Done;
+				}
+				else
+				{
+					// Connection failed
+					Status = SocketHelper::GetErrorStatus();
+				}
             }
             else
             {
