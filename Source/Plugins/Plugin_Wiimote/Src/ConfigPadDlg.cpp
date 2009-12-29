@@ -216,8 +216,9 @@ void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 		#elif defined(HAVE_X11) && HAVE_X11
 			int XKey = InputCommon::wxCharCodeWXToX(g_Pressed);
 			InputCommon::XKeyToString(XKey, keyStr);
-			SetButtonText(ClickedButton->GetId(), keyStr);
-			SaveKeyboardMapping(m_Page, ClickedButton->GetId(), XKey);
+			SetButtonText(ClickedButton->GetId(),
+                                      wxString::FromAscii(keyStr));
+			SaveButtonMapping(ClickedButton->GetId(), XKey);
 		#endif
 		}
 		m_ButtonMappingTimer->Stop();
@@ -1103,7 +1104,7 @@ void WiimotePadConfigDialog::UpdateGUI()
 		for (int x = 0; x <= IDB_GH3_STRUM_DOWN - IDB_GH3_GREEN; x++)
 		{
 			InputCommon::XKeyToString(WiiMoteEmu::WiiMapping[m_Page].Button[x + WiiMoteEmu::EGH_Green], keyStr);
-			m_Button_GH3[x][slot]->SetLabel(wxString::FromAscii(keyStr));
+			m_Button_GH3[x][m_Page]->SetLabel(wxString::FromAscii(keyStr));
 		}
 	}
 #endif
