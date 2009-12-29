@@ -118,9 +118,9 @@ bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFi
 
 bool CFileSystemGCWii::ExportApploader(const char* _rExportFolder) const
 {
-	u32 AppSize = Read32(0x2440 + 0x14) << m_OffsetShift;// apploader size
-	AppSize += Read32(0x2440 + 0x18) << m_OffsetShift;	// + trailer size
-	AppSize += 0x20;									// + header size
+	u32 AppSize = Read32(0x2440 + 0x14);// apploader size
+	AppSize += Read32(0x2440 + 0x18);	// + trailer size
+	AppSize += 0x20;					// + header size
 	DEBUG_LOG(DISCIO,"AppSize -> %x", AppSize);
 
 	u8* buffer = new u8[AppSize];

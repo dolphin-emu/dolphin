@@ -65,6 +65,8 @@ BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 	EVT_MENU(IDM_EXTRACTFILE, CISOProperties::OnExtractFile)
 	EVT_MENU(IDM_EXTRACTDIR, CISOProperties::OnExtractDir)
 	EVT_MENU(IDM_EXTRACTALL, CISOProperties::OnExtractDir)
+	EVT_MENU(IDM_EXTRACTAPPLOADER, CISOProperties::OnExtractDataFromHeader)
+	EVT_MENU(IDM_EXTRACTDOL, CISOProperties::OnExtractDataFromHeader)
 	EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
 END_EVENT_TABLE()
 
@@ -565,6 +567,9 @@ void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
 		popupMenu->Append(IDM_EXTRACTFILE, _("Extract File..."));
 
 	popupMenu->Append(IDM_EXTRACTALL, _("Extract All Files..."));
+	popupMenu->AppendSeparator();
+	popupMenu->Append(IDM_EXTRACTAPPLOADER, _("Extract Apploader..."));
+	popupMenu->Append(IDM_EXTRACTDOL, _("Extract DOL..."));
 
 	PopupMenu(popupMenu);
 
@@ -634,7 +639,6 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		index[0] = 0;
 		index[1] = (u32)fst.size();
 
-		// Add buttons to do this without dumping whole disc, sometime
 		FS->ExportApploader(_rExportFolder);
 		if (!DiscIO::IsVolumeWiiDisc(OpenISO))
 			FS->ExportDOL(_rExportFolder);
@@ -743,6 +747,34 @@ void CISOProperties::OnExtractDir(wxCommandEvent& event)
 	}
 	else
 		ExportDir(Directory.mb_str(), Path.mb_str());
+}
+
+void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
+{
+	std::vector<const DiscIO::SFileInfo *> fst;
+	DiscIO::IFileSystem *FS = 0;
+	wxString Path = wxDirSelector(wxT("Choose the folder to extract to"));
+
+	if (Path.empty())
+		return;
+
+	if (DiscIO::IsVolumeWiiDisc(OpenISO))
+		FS = WiiDisc.at(1).FileSystem;
+	else
+		FS = pFileSystem;
+
+	bool ret = false;
+	if (event.GetId() == IDM_EXTRACTAPPLOADER)
+	{
+		ret = FS->ExportApploader(Path.mb_str());
+	}
+	else if (event.GetId() == IDM_EXTRACTDOL)
+	{
+		ret = FS->ExportDOL(Path.mb_str());
+	}
+
+	if (!ret)
+		PanicAlert("Failed to extract to %s!", Path.mb_str());
 }
 
 void CISOProperties::SetRefresh(wxCommandEvent& event)
