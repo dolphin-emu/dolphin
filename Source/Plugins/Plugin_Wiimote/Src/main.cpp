@@ -168,11 +168,13 @@ void DllDebugger(HWND _hParent, bool Show) {}
 
 void DllConfig(HWND _hParent)
 {
-	// Load settings
-	g_Config.Load();
-
-	// We do a pad search before creating the dialog
-	WiiMoteEmu::Search_Devices(WiiMoteEmu::joyinfo, WiiMoteEmu::NumPads, WiiMoteEmu::NumGoodPads);
+	if (!g_EmulatorRunning)
+	{
+		// Load settings
+		g_Config.Load();
+		// We do a pad search before creating the dialog
+		WiiMoteEmu::Search_Devices(WiiMoteEmu::joyinfo, WiiMoteEmu::NumPads, WiiMoteEmu::NumGoodPads);
+	}
 
 #if defined(HAVE_WX) && HAVE_WX
 

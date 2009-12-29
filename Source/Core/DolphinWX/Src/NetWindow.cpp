@@ -170,7 +170,7 @@ void NetPlay::DrawGUI()
 		if (str_end == (int)std::string::npos || buffer.size() < 1)
 			break; // we reached the end of the string
 
-		m_GameList_str.Add(wxString::FromAscii(buffer.c_str()));
+		m_GameList_str.Add(wxString(buffer.c_str(), *wxConvCurrent));
 	}
 
 	netmodes_str.Add(wxT("P2P Versus (2 players, faster)"));
