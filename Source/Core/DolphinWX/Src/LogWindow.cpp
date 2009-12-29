@@ -21,6 +21,7 @@
 #include <wx/textctrl.h>
 #include <wx/listbox.h>
 #include <wx/checklst.h>
+#include <wx/strconv.h>
 
 #include "Core.h" // for Core::GetState()
 #include "LogWindow.h"
@@ -48,6 +49,7 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxString &, const wx
 	: wxPanel(parent, id, position, size, style)
     , Parent(parent), m_LogSection(1), m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
 	, m_LogAccess(true)
+	, m_SJISConv(wxFONTENCODING_SHIFT_JIS)
 {
 	m_LogManager = LogManager::GetInstance();
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
@@ -522,6 +524,6 @@ void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)
 	m_LogSection.Enter();
 	if (msgQueue.size() >= 100)
 		msgQueue.pop();
-	msgQueue.push(std::pair<u8, wxString>((u8)level, wxString::FromAscii(text)));
+	msgQueue.push(std::pair<u8, wxString>((u8)level, wxString(text, m_SJISConv)));
 	m_LogSection.Leave();
 }
