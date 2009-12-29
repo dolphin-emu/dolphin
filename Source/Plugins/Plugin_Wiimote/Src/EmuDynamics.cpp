@@ -189,6 +189,8 @@ void TiltByKeyboard(STiltData &_TiltData, int Type)
 	int _PITCH_DOWN_ = (Type) ? ENC_PITCH_D : EWM_PITCH_D;
 
 	// Do roll/pitch or free swing
+#if defined(HAVE_WX) && HAVE_WX
+
 	if (IsKey(_ROLL_LEFT_))
 	{
 		if (WiiMapping[g_ID].Tilt.RollRange)
@@ -249,6 +251,7 @@ void TiltByKeyboard(STiltData &_TiltData, int Type)
 	{
 		_TiltData.Pitch = 0;
 	}
+#endif
 }
 
 // Tilting Wiimote (Wario Land aiming, Mario Kart steering and other things)
