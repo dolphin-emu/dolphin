@@ -213,19 +213,15 @@ void Stop()  // - Hammertime!
 	PowerPC::Stop();
 	CCPU::StepOpcode();  // Kick it if it's waiting (code stepping wait loop)
 
-	// Wait until the CPU finishes exiting the main run loop
-	cpuRunloopQuit.Wait();
-	cpuRunloopQuit.Shutdown();
-	// At this point, we must be out of the CPU:s runloop.
-
-	// Stop audio thread.
-	CPluginManager::GetInstance().GetDSP()->DSP_StopSoundStream();
- 
 	// If dual core mode, the CPU thread should immediately exit here.
 	if (_CoreParameter.bCPUThread) {
 		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Wait for Video Loop to exit ...").c_str());
 		CPluginManager::GetInstance().GetVideo()->Video_ExitLoop();
 	}
+	// Wait until the CPU finishes exiting the main run loop
+	cpuRunloopQuit.Wait();
+	cpuRunloopQuit.Shutdown();
+	// At this point, we must be out of the CPU:s runloop.
 
 	// Video_EnterLoop() should now exit so that EmuThread() will continue concurrently with the rest
 	// of the commands in this function. We no longer rely on Postmessage. 
@@ -296,7 +292,6 @@ THREAD_RETURN CpuThread(void *pArg)
  
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();
-	cpuRunloopQuit.Set();
 
  	return 0;
 }
@@ -369,30 +364,13 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.bOnThread				= _CoreParameter.bDSPThread;
 
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
-
-	// Load and Init PadPlugin
-	for (int i = 0; i < MAXPADS; i++)
-	{			
-		SPADInitialize PADInitialize;
-		PADInitialize.hWnd		= g_pWindowHandle;
-		PADInitialize.pLog		= Callback_PADLog;
-		PADInitialize.padNumber	= i;
-		// This is may be needed to avoid a SDL problem
-		//Plugins.FreeWiimote();
-		// Check if we should init the plugin
-		if (Plugins.OkayToInitPlugin(i))
-		{
-			Plugins.GetPad(i)->Initialize(&PADInitialize);
-
-			// Check if joypad open failed, in that case try again
-			if (PADInitialize.padNumber == -1)
-			{
-				Plugins.GetPad(i)->Shutdown();
-				Plugins.FreePad(i);
-				Plugins.GetPad(i)->Initialize(&PADInitialize);
-			}
-		}
-	}
+	
+	SPADInitialize PADInitialize;
+	PADInitialize.hWnd		= g_pWindowHandle;
+	PADInitialize.pLog		= Callback_PADLog;
+	// This is may be needed to avoid a SDL problem
+	//Plugins.FreeWiimote();
+	Plugins.GetPad(0)->Initialize(&PADInitialize);
 
 	// Load and Init WiimotePlugin - only if we are booting in wii mode	
 	if (_CoreParameter.bWii)
@@ -459,7 +437,6 @@ THREAD_RETURN EmuThread(void *pArg)
 		// then we lose the powerdown check. ... unless powerdown sends a message :P
 		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 		{
-			Host_UpdateMainFrame();
 			if (Callback_PeekMessages)
 				Callback_PeekMessages();
 			Common::SleepCurrentThread(20);
@@ -507,6 +484,8 @@ THREAD_RETURN EmuThread(void *pArg)
 	// We have now exited the Video Loop and will shut down
 
 	g_bHwInit = false;
+	// Stop audio thread.
+	Plugins.GetDSP()->DSP_StopSoundStream();
 
 	WARN_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down plugins").c_str());
 	Plugins.ShutdownVideoPlugin();
@@ -521,8 +500,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	NOTICE_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
 
 	g_bStopping = false;
-
-	Host_UpdateMainFrame();
+	cpuRunloopQuit.Set();
 
 	return 0;
 }

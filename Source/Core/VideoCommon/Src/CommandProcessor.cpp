@@ -133,11 +133,6 @@ inline void WriteHigh(volatile u32& _reg, u16 highbits) {Common::AtomicStore(_re
 inline u16 ReadLow  (u32 _reg)  {return (u16)(_reg & 0xFFFF);}
 inline u16 ReadHigh (u32 _reg)  {return (u16)(_reg >> 16);}
 
-void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
-{
-	UpdateInterrupts();
-}
-
 void Init()
 {
 	m_CPStatusReg.Hex = 0;
@@ -161,7 +156,7 @@ void Init()
 
 	s_fifoIdleEvent.Init();
 
-    et_UpdateInterrupts = g_VideoInitialize.pRegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
+//    et_UpdateInterrupts = g_VideoInitialize.pRegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
 }
 
 void Shutdown()
@@ -187,7 +182,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		m_CPStatusReg.ReadIdle = fifo.CPReadIdle; // This seems not necessary though
 		m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
 		// Clear on Read
-		g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, false);
+		UpdateInterrupts(false);
 		
 		_rReturnValue = m_CPStatusReg.Hex;
 
@@ -358,14 +353,22 @@ void Write16(const u16 _Value, const u32 _Address)
 			{
 				// Instant Breakpoint and Interrupt, since we haven't implemented accurate BP on dual core
 				// Most likely the Read thread has already exceeded BP here, but it seems we are still cool
-				Common::AtomicStore(fifo.bFF_Breakpoint, tmpCtrl.BPEnable && tmpCtrl.CPIntEnable && tmpCtrl.GPReadEnable);
-				UpdateInterrupts();
+				if (tmpCtrl.BPEnable && tmpCtrl.CPIntEnable && tmpCtrl.GPReadEnable && tmpCtrl.GPLinkEnable)
+				{
+					Common::AtomicStore(fifo.bFF_Breakpoint, 1);
+					UpdateInterrupts(true);
+				}
+				else
+				{
+					Common::AtomicStore(fifo.bFF_Breakpoint, 0);
+				}
+				
 			}
 			else
 			{
 				// fifo.bFF_BPEnable is only used in single core
-				Common::AtomicStore(fifo.bFF_BPEnable, tmpCtrl.BPEnable && tmpCtrl.CPIntEnable && tmpCtrl.GPReadEnable);
-				if (!tmpCtrl.BPEnable || !tmpCtrl.CPIntEnable || !tmpCtrl.GPReadEnable)
+				Common::AtomicStore(fifo.bFF_BPEnable, tmpCtrl.BPEnable && tmpCtrl.CPIntEnable && tmpCtrl.GPReadEnable && tmpCtrl.GPLinkEnable);
+				if (!tmpCtrl.BPEnable || !tmpCtrl.CPIntEnable || !tmpCtrl.GPReadEnable || !tmpCtrl.GPLinkEnable)
 					Common::AtomicStore(fifo.bFF_Breakpoint, 0);
 			}
 
@@ -608,7 +611,7 @@ void CatchUpGPU()
 				{
 					//_assert_msg_(POWERPC,0,"BP: %08x",fifo.CPBreakpoint);
 					fifo.bFF_Breakpoint = 1;
-					UpdateInterrupts();
+					UpdateInterrupts(true);
 					break;
 				}
 			}
@@ -669,16 +672,23 @@ void UpdateFifoRegister()
 		CatchUpGPU();
 }
 
-void UpdateInterrupts()
+void UpdateInterrupts(bool active)
 {
-	DEBUG_LOG(COMMANDPROCESSOR, "Fifo Breakpoint Interrupt triggered");
-	g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, true);
+	DEBUG_LOG(COMMANDPROCESSOR, "Fifo Breakpoint Interrupt: %s", (active)? "Asserted" : "Deasserted");
+	g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, active);
 }
 
+/*
 void UpdateInterruptsFromVideoPlugin()
 {
 	g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, 0);
 }
+
+void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
+{
+	UpdateInterrupts();
+}
+*/
 
 void SetFifoIdleFromVideoPlugin()
 {

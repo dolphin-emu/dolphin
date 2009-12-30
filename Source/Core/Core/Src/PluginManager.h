@@ -60,7 +60,6 @@ public:
 	bool InitPlugins();
 	void ShutdownPlugins();
 	void ShutdownVideoPlugin();
-	int OkayToInitPlugin(int Plugin);
 	void ScanForPlugins();
 	void OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type);
 	void OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show);

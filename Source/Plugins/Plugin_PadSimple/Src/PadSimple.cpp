@@ -714,7 +714,6 @@ void Shutdown()
 	g_EmulatorRunning = false;
 
 #ifdef _WIN32
-	dinput.Free();
 	// Kill xpad rumble
 	XINPUT_VIBRATION vib;
 	vib.wLeftMotorSpeed  = 0;
@@ -722,6 +721,7 @@ void Shutdown()
 	for (int i = 0; i < 4; i++)
 		if (pad[i].bRumble)
 			XInputSetState(pad[i].XPadPlayer, &vib);
+	dinput.Free();
 #endif
 	SaveConfig();
 }

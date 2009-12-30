@@ -25,7 +25,7 @@
 #include "IniFile.h"
 #include <string>
 
-#define MAXPADS 4
+#define MAXPADS 1
 #define MAXWIIMOTES 1
 
 struct SCoreStartupParameter

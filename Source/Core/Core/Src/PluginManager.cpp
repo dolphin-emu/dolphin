@@ -76,17 +76,21 @@ CPluginManager::~CPluginManager()
 
 	for (int i = 0; i < MAXPADS; i++)
 	{
-		if (m_pad[i] && (OkayToInitPlugin(i) == -1))
+		if (m_pad[i])
 		{
-			INFO_LOG(CONSOLE, "Delete: %i\n", i);
 			delete m_pad[i];
+			m_pad[i] = NULL;
 		}
-		m_pad[i] = NULL;
 	}
 
 	for (int i = 0; i < MAXWIIMOTES; i++)
+	{
 		if (m_wiimote[i])
+		{
 			delete m_wiimote[i];
+			m_wiimote[i] = NULL;
+		}
+	}
 
 	delete m_video;
 }
@@ -139,15 +143,18 @@ bool CPluginManager::InitPlugins()
 	}
 
 	// Init wiimote
-	if (m_params->bWii) {
-		for (int i = 0; i < MAXWIIMOTES; i++) {
+	if (m_params->bWii)
+	{
+		for (int i = 0; i < MAXWIIMOTES; i++)
+		{
 			if (!m_params->m_strWiimotePlugin[i].empty())
 				GetWiimote(i);
 
 			if (m_wiimote[i] != NULL)
 				wiimote = true;
 		}
-		if (!wiimote) {
+		if (!wiimote)
+		{
 			PanicAlert("Can't init any Wiimote Plugins");
 			return false;
 		}
@@ -161,13 +168,13 @@ bool CPluginManager::InitPlugins()
 // for an explanation about the current LoadLibrary() and FreeLibrary() behavior.
 void CPluginManager::ShutdownPlugins()
 {
-	for (int i = 0; i < MAXPADS; i++) {
+	for (int i = 0; i < MAXPADS; i++)
+	{
 		if (m_pad[i])
 		{
 			m_pad[i]->Shutdown();
-			//delete m_pad[i];
+			FreePad(i);
 		}
-		//m_pad[i] = NULL;
 	}
 
 	for (int i = 0; i < MAXWIIMOTES; i++)
@@ -175,9 +182,8 @@ void CPluginManager::ShutdownPlugins()
 		if (m_wiimote[i])
 		{
 			m_wiimote[i]->Shutdown();
-			//delete m_wiimote[i];
+			FreeWiimote(i);
 		}
-		//m_wiimote[i] = NULL;
 	}
 
 	if (m_dsp)
@@ -224,7 +230,9 @@ CPluginInfo::CPluginInfo(const char *_rFilename)
 			PanicAlert("Could not get info about plugin %s", _rFilename);
 		// We are now done with this plugin and will call FreeLibrary()
 		delete plugin;
-	} else {
+	}
+	else
+	{
 		WARN_LOG(CONSOLE, "PluginInfo: %s is not a valid Dolphin plugin. Ignoring.", _rFilename);
 	}
 }
@@ -308,19 +316,6 @@ void *CPluginManager::LoadPlugin(const char *_rFilename, int Number)
 	return plugin;
 }
 
-/* Check if the plugin has already been initialized. If so, return the Id of
-   the duplicate pad so we can point the new m_pad[] to that */
-int CPluginManager::OkayToInitPlugin(int Plugin)
-{
-	// Compare it to the earlier plugins
-	for (int i = 0; i < Plugin; i++)
-		if (m_params->m_strPadPlugin[Plugin] == m_params->m_strPadPlugin[i])
-			return i;
-	
-	// No there is no duplicate plugin
-	return -1;	
-}
-
 PLUGIN_GLOBALS* CPluginManager::GetGlobals()
 {
 	return m_PluginGlobals;
@@ -386,15 +381,8 @@ Common::PluginPAD *CPluginManager::GetPad(int controller)
 		if (m_pad[controller]->GetFilename() == m_params->m_strPadPlugin[controller])
 			return m_pad[controller];
 	
-	// Else do this
-	if (OkayToInitPlugin(controller) == -1) {
-		m_pad[controller] = (Common::PluginPAD*)LoadPlugin(m_params->m_strPadPlugin[controller].c_str(), controller);
-		INFO_LOG(CONSOLE, "LoadPlugin: %i", controller);
-	}
-	else {
-		INFO_LOG(CONSOLE, "Pointed: %i to %i", controller, OkayToInitPlugin(controller));
-		m_pad[controller] = m_pad[OkayToInitPlugin(controller)];
-	}	
+	// Else load a new plugin
+	m_pad[controller] = (Common::PluginPAD*)LoadPlugin(m_params->m_strPadPlugin[controller].c_str());
 	return m_pad[controller];
 }
 
@@ -458,7 +446,8 @@ void CPluginManager::FreeDSP()
 
 void CPluginManager::FreePad(u32 Pad)
 {
-	if (Pad < MAXPADS) {
+	if (Pad < MAXPADS)
+	{
 		delete m_pad[Pad];
 		m_pad[Pad] = NULL;	
 	}

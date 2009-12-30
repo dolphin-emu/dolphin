@@ -148,8 +148,8 @@ void Write32(const u32 _Data, const u32 _Address);
 void CatchUpGPU();
 void GatherPipeBursted();
 void UpdateFifoRegister();
-void UpdateInterrupts();
-void UpdateInterruptsFromVideoPlugin();
+void UpdateInterrupts(bool active);
+//void UpdateInterruptsFromVideoPlugin();
 void SetFifoIdleFromVideoPlugin();
 
 bool AllowIdleSkipping();
