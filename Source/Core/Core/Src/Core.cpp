@@ -102,7 +102,8 @@ SCoreStartupParameter g_CoreStartupParameter;
 // This event is set when the emuthread starts.
 Common::Event emuThreadGoing;
 Common::Event cpuRunloopQuit;
- 
+Common::Event gpuRunloopQuit;
+
 // Display messages and return values
 
 // Formatted stop message
@@ -214,14 +215,11 @@ void Stop()  // - Hammertime!
 	CCPU::StepOpcode();  // Kick it if it's waiting (code stepping wait loop)
 
 	// If dual core mode, the CPU thread should immediately exit here.
-	if (_CoreParameter.bCPUThread) {
+	if (_CoreParameter.bCPUThread)
+	{
 		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Wait for Video Loop to exit ...").c_str());
 		CPluginManager::GetInstance().GetVideo()->Video_ExitLoop();
 	}
-	// Wait until the CPU finishes exiting the main run loop
-	cpuRunloopQuit.Wait();
-	cpuRunloopQuit.Shutdown();
-	// At this point, we must be out of the CPU:s runloop.
 
 	// Video_EnterLoop() should now exit so that EmuThread() will continue concurrently with the rest
 	// of the commands in this function. We no longer rely on Postmessage. 
@@ -293,6 +291,16 @@ THREAD_RETURN CpuThread(void *pArg)
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();
 
+	// The shutdown function of OpenGL is not thread safe
+	// So we have to do it here
+	if (!_CoreParameter.bCPUThread)
+	{
+		// Wait for GPU loop to exit
+		gpuRunloopQuit.Wait();
+		Plugins.ShutdownVideoPlugin();
+	}
+
+	cpuRunloopQuit.Set();
  	return 0;
 }
 
@@ -302,6 +310,7 @@ THREAD_RETURN CpuThread(void *pArg)
 THREAD_RETURN EmuThread(void *pArg)
 {
 	cpuRunloopQuit.Init();
+	gpuRunloopQuit.Init();
 
 	Common::SetCurrentThreadName("Emuthread - starting");
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
@@ -448,12 +457,15 @@ THREAD_RETURN EmuThread(void *pArg)
 #endif
 	}
 
-	// Write message
-	if (g_pUpdateFPSDisplay != NULL) g_pUpdateFPSDisplay("Stopping...");
+	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Stop() and Video Loop Ended").c_str());
+	// We have now exited the Video Loop
+	gpuRunloopQuit.Set();
+	// Wait for cpu loop to exit
+	cpuRunloopQuit.Wait();
 
 	if (cpuThread)
 	{
-		WARN_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU thread ...").c_str());
+		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU thread ...").c_str());
 		// There is a CPU thread - join it.
 #ifdef _WIN32		
 		DWORD Wait = cpuThread->WaitForDeath(3000);
@@ -479,16 +491,18 @@ THREAD_RETURN EmuThread(void *pArg)
 		// Returns after game exited
 		cpuThread = NULL;
 	}
-
-	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Stop() and Video Loop Ended").c_str());
-	// We have now exited the Video Loop and will shut down
-
+	
+	// We must set up this flag before executing HW::Shutdown()
 	g_bHwInit = false;
+
 	// Stop audio thread.
 	Plugins.GetDSP()->DSP_StopSoundStream();
 
-	WARN_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down plugins").c_str());
+	// For single core mode, video plugin is already shut down
+	// but doing it again doesn't hurt
 	Plugins.ShutdownVideoPlugin();
+
+	WARN_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down plugins").c_str());
 	Plugins.ShutdownPlugins();
 	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Plugins shutdown").c_str());
 
@@ -499,9 +513,9 @@ THREAD_RETURN EmuThread(void *pArg)
 	NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Main thread stopped").c_str());
 	NOTICE_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
 
+	cpuRunloopQuit.Shutdown();
+	gpuRunloopQuit.Shutdown();
 	g_bStopping = false;
-	cpuRunloopQuit.Set();
-
 	return 0;
 }
  
