@@ -342,7 +342,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			OnKeyDown(lParam);
 			FreeLookInput(wParam, lParam);
 		}
-		if (wParam == TOGGLE_FULLSCREEN)
+		if (wParam == TOGGLE_FULLSCREEN && !g_Config.RenderToMainframe)
 			ToggleFullscreen(m_hWnd);
 		break;
 
@@ -479,7 +479,7 @@ void ToggleFullscreen(HWND hParent)
 				SetWindowPos(hParent, NULL, X, Y, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
 
 			// Set new window style FS -> Windowed
-			SetWindowLong(hParent, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+			SetWindowLongPtr(hParent, GWL_STYLE, WS_OVERLAPPEDWINDOW);
 
 			// Eventually show the window!
 			EmuWindow::Show();
@@ -497,18 +497,18 @@ void ToggleFullscreen(HWND hParent)
 			dmScreenSettings.dmSize			= sizeof(dmScreenSettings);
 			dmScreenSettings.dmPelsWidth	= w_fs;
 			dmScreenSettings.dmPelsHeight	= h_fs;
-			dmScreenSettings.dmBitsPerPel	= 32;
-			dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
-			if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
+			dmScreenSettings.dmFields = DM_PELSWIDTH|DM_PELSHEIGHT;
+			if (ChangeDisplaySettings(&dmScreenSettings, 0) != DISP_CHANGE_SUCCESSFUL)
 				return;
 			
 			// Set new window style -> PopUp
-			SetWindowLong(hParent, GWL_STYLE, WS_POPUP);
-			g_Config.bFullscreen = true;
-			ShowCursor(FALSE);
+			SetWindowLongPtr(hParent, GWL_STYLE, WS_POPUP);
 
 			// SetWindowPos to the upper-left corner of the screen
-			SetWindowPos(hParent, NULL, 0, 0, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
+			SetWindowPos(hParent, HWND_TOP, 0, 0, w_fs, h_fs, SWP_NOREPOSITION);
+
+			g_Config.bFullscreen = true;
+			ShowCursor(FALSE);
 
 			// Eventually show the window!
 			EmuWindow::Show();

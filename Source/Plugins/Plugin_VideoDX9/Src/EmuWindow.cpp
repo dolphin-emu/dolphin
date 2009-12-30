@@ -84,13 +84,14 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 				}
 				break;
 		}
+		// Tell the hotkey function that this key was pressed
 		g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 		break;
 /*
 	case WM_SYSKEYDOWN:
 		switch( LOWORD( wParam ))
 		{
-			case VK_RETURN:   // Pressing Esc switch FullScreen/Windowed
+			case VK_RETURN:   // Pressing Alt+Enter switch FullScreen/Windowed
 				if (g_ActiveConfig.bFullscreen)
 				{
 					DestroyWindow(hWnd);
@@ -112,26 +113,15 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	break;
 
 	case WM_CLOSE:
-		Fifo_ExitLoopNonBlocking();
-		//Shutdown();
-		// Simple hack to easily exit without stopping. Hope to fix the stopping errors soon.
-		//ExitProcess(0);
+		// When the user closes the window, we post an event to the main window to call Stop()
+		// Which then handles all the necessary steps to Shutdown the core + the plugins
+		PostMessage( m_hMain, WM_USER, WM_USER_STOP, 0 );
 		return 0;
-
-	case WM_DESTROY:
-		//Shutdown();
-		//PostQuitMessage( 0 );
-		break;
 
 	case WM_USER:
 		// if (wParam == TOGGLE_FULLSCREEN)
 		// TODO : Insert some toggle fullscreen code here, kthx :d
-		break;
-	
-	case WM_SIZE:
-		// Reset the D3D Device here
-		// Also make damn sure that this is not called from inside rendering a frame :P
-		// Renderer::ReinitView();
+		// see TODO ^ upper
 		break;
 
 	case WM_SYSCOMMAND:

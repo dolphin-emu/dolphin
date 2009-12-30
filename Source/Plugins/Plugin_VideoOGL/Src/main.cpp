@@ -410,6 +410,7 @@ void Video_Prepare(void)
 void Shutdown(void)
 {
 	s_PluginInitialized = false;
+	ForceSwap = true;
 
 	s_efbAccessRequested = FALSE;
 	s_swapRequested = FALSE;
@@ -516,7 +517,7 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		// Make sure previous swap request has made it to the screen
 		if (g_VideoInitialize.bOnThread)
 		{
-			while (Common::AtomicLoadAcquire(s_swapRequested))
+			while (Common::AtomicLoadAcquire(s_swapRequested) && s_PluginInitialized)
 				Common::YieldCPU();
 		}
 		else
@@ -569,7 +570,7 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 
 		if (g_VideoInitialize.bOnThread)
 		{
-			while (Common::AtomicLoadAcquire(s_efbAccessRequested))
+			while (Common::AtomicLoadAcquire(s_efbAccessRequested) && s_PluginInitialized)
 				Common::YieldCPU();
 		}
 		else

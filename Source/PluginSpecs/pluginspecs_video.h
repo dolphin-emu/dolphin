@@ -21,7 +21,7 @@ typedef void			(*TRequestWindowSize)(int _iWidth, int _iHeight, bool _bFullscree
 typedef void			(*TCopiedToXFB)(bool video_update);
 typedef unsigned int	(*TPeekMessages)(void);
 typedef void			(*TUpdateFPSDisplay)(const char* text); // sets the window title
-typedef void			(*TKeyPressed)(int keycode, bool shift, bool control); // sets the window title
+typedef void			(*TKeyPressed)(int keycode, bool shift, bool control); // passes keys to the hotkey function
 
 enum FieldType
 {

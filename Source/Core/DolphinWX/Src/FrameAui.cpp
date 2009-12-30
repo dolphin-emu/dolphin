@@ -661,10 +661,10 @@ void CFrame::ResetToolbarStyle()
 
 void CFrame::TogglePaneStyle(bool On, int EventId)
 {
-    wxAuiPaneInfoArray& AllPanes = m_Mgr->GetAllPanes();
-    for (u32 i = 0; i < AllPanes.GetCount(); ++i)
-    {
-        wxAuiPaneInfo& Pane = AllPanes.Item(i);
+	wxAuiPaneInfoArray& AllPanes = m_Mgr->GetAllPanes();
+	for (u32 i = 0; i < AllPanes.GetCount(); ++i)
+	{
+		wxAuiPaneInfo& Pane = AllPanes.Item(i);
 		if (Pane.window->IsKindOf(CLASSINFO(wxAuiNotebook)))
 		{
 			// Default
@@ -685,28 +685,28 @@ void CFrame::TogglePaneStyle(bool On, int EventId)
 			}
 			Pane.Dockable(!m_bNoDocking);
 		}
-    }
+	}
 	m_Mgr->Update();
 }
 
 void CFrame::ToggleNotebookStyle(bool On, long Style)
 {
-    wxAuiPaneInfoArray& AllPanes = m_Mgr->GetAllPanes();
-    for (int i = 0, Count = (int)AllPanes.GetCount(); i < Count; ++i)
-    {
-        wxAuiPaneInfo& Pane = AllPanes.Item(i);
-        if (Pane.window->IsKindOf(CLASSINFO(wxAuiNotebook)))
-        {
-            wxAuiNotebook* NB = (wxAuiNotebook*)Pane.window;
+	wxAuiPaneInfoArray& AllPanes = m_Mgr->GetAllPanes();
+	for (int i = 0, Count = (int)AllPanes.GetCount(); i < Count; ++i)
+	{
+		wxAuiPaneInfo& Pane = AllPanes.Item(i);
+		if (Pane.window->IsKindOf(CLASSINFO(wxAuiNotebook)))
+		{
+			wxAuiNotebook* NB = (wxAuiNotebook*)Pane.window;
 
 			if (On)
 				NB->SetWindowStyleFlag(NB->GetWindowStyleFlag() | Style);
 			else
 				NB->SetWindowStyleFlag(NB->GetWindowStyleFlag() &~ Style);
 
-            NB->Refresh();
-        }
-    }
+			NB->Refresh();
+		}
+	}
 }
 void CFrame::OnSelectPerspective(wxCommandEvent& event)
 {
