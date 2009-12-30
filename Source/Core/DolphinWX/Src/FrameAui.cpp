@@ -409,7 +409,7 @@ void CFrame::DoRemovePage(wxWindow * Win, bool _Hide)
 			{
 				GetNotebookFromId(i)->RemovePage(GetNotebookFromId(i)->GetPageIndex(Win));
 				// Reparent to avoid destruction if the notebook is closed and destroyed
-				Win->Reparent(this);
+				if (!Win->IsBeingDeleted()) Win->Reparent(this);
 				if (_Hide) Win->Hide();
 			}
 		}
