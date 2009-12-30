@@ -131,7 +131,11 @@ void DInput::DIKToString(unsigned int keycode, char *keyStr)
 			strcpy(keyStr, "Num Decimal");
 			break;
 		case DIK_NUMPADCOMMA:
+		case DIK_ABNT_C2:
 			strcpy(keyStr, "Num Separator");
+			break;
+		case DIK_NUMPADEQUALS:
+			strcpy(keyStr, "Num =");
 			break;
 		default:
 			// TODO: Switch to unicode GetKeyNameText?

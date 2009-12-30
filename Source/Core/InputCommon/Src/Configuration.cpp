@@ -234,16 +234,9 @@ void Square2Circle(int &_x, int &_y, int _pad, std::string SDiagonal, bool Circl
 #ifdef _WIN32
 std::string VKToString(int keycode)
 {
-#ifdef _WIN32
 	// Default value
 	char KeyStr[64] = {0};
 	std::string KeyString;
-
-	// TODO: Switch to unicode GetKeyNameText?
-	if (keycode < 256)	// Keyboard
-		GetKeyNameTextA(MapVirtualKey(keycode, MAPVK_VK_TO_VSC) << 16, KeyStr, 64);
-	else	// Pad
-		sprintf(KeyStr, "PAD: %d", keycode - 0x1000);
 
 	switch(keycode)
 	{
@@ -270,17 +263,26 @@ std::string VKToString(int keycode)
 		case VK_NUMLOCK: return "Num Lock";
 		case VK_MULTIPLY: return "Num *";
 		case VK_ADD: return "Num +";
-		case VK_SEPARATOR: return "Num Separator";
+		case VK_SEPARATOR: case 0xC2: return "Num Separator";
 		case VK_SUBTRACT: return "Num -";
 		case VK_DECIMAL: return "Num Decimal";
 		case VK_DIVIDE: return "Num /";
 
-		default: return KeyString = KeyStr;
+		case VK_OEM_PLUS: return "=";
+		case VK_OEM_MINUS: return "-";
+		case VK_OEM_COMMA: return ",";
+		case VK_OEM_PERIOD: return ".";
+
+		//default: return KeyString = KeyStr;
 	}
-#else
-	// An equivalent name translation can probably be used on other systems to?
-	return "";
-#endif
+	
+	// TODO: Switch to unicode GetKeyNameText?
+	if (keycode < 256)	// Keyboard
+		GetKeyNameTextA(MapVirtualKey(keycode, MAPVK_VK_TO_VSC) << 16, KeyStr, 64);
+	else	// Pad
+		sprintf(KeyStr, "PAD: %d", keycode - 0x1000);
+	
+	return KeyString = KeyStr;
 }
 #endif
 
