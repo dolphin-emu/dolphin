@@ -260,6 +260,7 @@ EVT_MENU_RANGE(IDM_FRAMESKIP0, IDM_FRAMESKIP9, CFrame::OnFrameSkip)
 EVT_MENU_RANGE(IDM_DRIVE1, IDM_DRIVE24, CFrame::OnBootDrive)
 
 // Other
+EVT_ACTIVATE(CFrame::OnActive)
 EVT_CLOSE(CFrame::OnClose)
 EVT_SIZE(CFrame::OnResize)
 EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CFrame::OnGameListCtrl_ItemActivated)
@@ -493,6 +494,12 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 
 // --------
 // Events
+void CFrame::OnActive(wxActivateEvent& event)
+{
+	event.Skip();
+	if (event.GetActive())
+		UpdateGUI();
+}
 
 void CFrame::OnClose(wxCloseEvent& event)
 {

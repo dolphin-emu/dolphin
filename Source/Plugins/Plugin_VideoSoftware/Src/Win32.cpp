@@ -165,6 +165,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			{
 				// And stops the emulation when already in Windowed mode
 				PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
+				return 0;
 			}
 			break;
         }

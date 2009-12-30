@@ -267,6 +267,7 @@ class CFrame : public wxFrame
 		void OnPlayRecording(wxCommandEvent& event);
 		void OnChangeDisc(wxCommandEvent& event);
 		void OnScreenshot(wxCommandEvent& event);
+		void OnActive(wxActivateEvent& event);
 		void OnClose(wxCloseEvent &event);	
 		void OnLoadState(wxCommandEvent& event);
 		void OnSaveState(wxCommandEvent& event);

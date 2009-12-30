@@ -61,11 +61,32 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		switch (LOWORD(wParam))
 		{
 			case VK_ESCAPE:
-				SendMessage(m_hWnd, WM_CLOSE, 0, 0);
+				// Toggle full screen doesn't work yet
+				/*
+				if (g_ActiveConfig.bFullscreen)
+				{
+					// Pressing Esc switch to Windowed in Fullscreen mode
+					ToggleFullscreen(hWnd);
+					return 0;
+				}
+				else
+				{
+					// And stops the emulation when already in Windowed mode
+					PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
+					return 0;
+				}
+				*/
+				if (g_ActiveConfig.bFullscreen)
+				{
+					DestroyWindow(hWnd);
+					PostQuitMessage(0);
+					ExitProcess(0);
+				}
 				break;
 		}
 		g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 		break;
+/*
 	case WM_SYSKEYDOWN:
 		switch( LOWORD( wParam ))
 		{
@@ -75,64 +96,12 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 					DestroyWindow(hWnd);
 					PostQuitMessage(0);
 					ExitProcess(0);
-					/* Get out of fullscreen
-					g_Config.bFullscreen = false;
-
-					// FullScreen - > Desktop
-					ChangeDisplaySettings(NULL, 0);
-
-					// Re-Enable the cursor
-					ShowCursor(TRUE);
-				
-					RECT rcdesktop;
-					RECT rc = {0, 0, 640, 480};
-					GetWindowRect(GetDesktopWindow(), &rcdesktop);
-
-					int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
-					int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
-					// SetWindowPos to the center of the screen
-					SetWindowPos(hWnd, NULL, X, Y, 640, 480, SWP_NOREPOSITION | SWP_NOZORDER);
-
-					// Set new window style FS -> Windowed
-					SetWindowLong(hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
-
-					// Eventually show the window!
-					EmuWindow::Show();*/
 				}
-				/*
-				else
-				{
-					// Get into fullscreen
-					g_Config.bFullscreen = true;
-					DEVMODE dmScreenSettings;
-					memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
-					RECT rcdesktop;
-					GetWindowRect(GetDesktopWindow(), &rcdesktop);
-
-					// Desktop -> FullScreen
-					dmScreenSettings.dmSize			= sizeof(dmScreenSettings);
-					dmScreenSettings.dmPelsWidth	= rcdesktop.right;
-					dmScreenSettings.dmPelsHeight	= rcdesktop.bottom;
-					dmScreenSettings.dmBitsPerPel	= 32;
-					dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
-					if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
-						return 0;
-					// Disable the cursor
-					ShowCursor(FALSE);
-
-					// SetWindowPos to the upper-left corner of the screen
-					SetWindowPos(hWnd, NULL, 0, 0, rcdesktop.right, rcdesktop.bottom, SWP_NOREPOSITION | SWP_NOZORDER);
-					
-					// Set new window style -> PopUp
-					SetWindowLong(hWnd, GWL_STYLE, WS_POPUP);
-					
-					// Eventually show the window!
-					EmuWindow::Show();
-				}*/
 				break;
 		}
 		//g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 		break;
+*/
 
 	/* Post thes mouse events to the main window, it's nessesary because in difference to the
 	   keyboard inputs these events only appear here, not in the parent window or any other WndProc()*/
@@ -145,7 +114,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	case WM_CLOSE:
 		Fifo_ExitLoopNonBlocking();
 		//Shutdown();
-		PostMessage( m_hMain, WM_USER, WM_USER_STOP, 0 );
 		// Simple hack to easily exit without stopping. Hope to fix the stopping errors soon.
 		//ExitProcess(0);
 		return 0;
@@ -268,6 +236,69 @@ void SetSize(int width, int height)
 	rc.top = (1024 - h)/2;
 	rc.bottom = rc.top + h;
 	::MoveWindow(m_hWnd, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top, TRUE);
+}
+
+void ToggleFullscreen(HWND hParent)
+{
+	if (m_hParent == NULL)
+	{ 
+		int	w_fs = 640, h_fs = 480;
+		if (g_Config.bFullscreen)
+		{
+			//Get out of fullscreen
+			g_ActiveConfig.bFullscreen = false;
+
+			// FullScreen - > Desktop
+			ChangeDisplaySettings(NULL, 0);
+
+			// Re-Enable the cursor
+			ShowCursor(TRUE);
+
+			RECT rcdesktop;
+			RECT rc = {0, 0, 640, 480};
+			GetWindowRect(GetDesktopWindow(), &rcdesktop);
+
+			int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
+			int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
+			// SetWindowPos to the center of the screen
+			SetWindowPos(hParent, NULL, X, Y, 640, 480, SWP_NOREPOSITION | SWP_NOZORDER);
+
+			// Set new window style FS -> Windowed
+			SetWindowLong(hParent, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+
+			// Eventually show the window!
+			EmuWindow::Show();
+		}
+		else
+		{
+			// Get into fullscreen
+			g_ActiveConfig.bFullscreen = true;
+			DEVMODE dmScreenSettings;
+			memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
+			RECT rcdesktop;
+			GetWindowRect(GetDesktopWindow(), &rcdesktop);
+
+			// Desktop -> FullScreen
+			dmScreenSettings.dmSize			= sizeof(dmScreenSettings);
+			dmScreenSettings.dmPelsWidth	= rcdesktop.right;
+			dmScreenSettings.dmPelsHeight	= rcdesktop.bottom;
+			dmScreenSettings.dmBitsPerPel	= 32;
+			dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
+			if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
+				return ;
+			// Disable the cursor
+			ShowCursor(FALSE);
+
+			// SetWindowPos to the upper-left corner of the screen
+			SetWindowPos(hParent, NULL, 0, 0, rcdesktop.right, rcdesktop.bottom, SWP_NOREPOSITION | SWP_NOZORDER);
+
+			// Set new window style -> PopUp
+			SetWindowLong(hParent, GWL_STYLE, WS_POPUP);
+
+			// Eventually show the window!
+			EmuWindow::Show();
+		}
+	}
 }
 
 }

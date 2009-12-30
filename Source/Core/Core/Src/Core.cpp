@@ -102,9 +102,7 @@ SCoreStartupParameter g_CoreStartupParameter;
 // This event is set when the emuthread starts.
 Common::Event emuThreadGoing;
 Common::Event cpuRunloopQuit;
-Common::Event gpuShutdownCall;
  
-
 // Display messages and return values
 
 // Formatted stop message
@@ -300,16 +298,6 @@ THREAD_RETURN CpuThread(void *pArg)
 	CCPU::Run();
 	cpuRunloopQuit.Set();
 
-#ifdef _WIN32
-	gpuShutdownCall.Wait();
-
-	// Call video shutdown from the video thread in single core mode, which is the cpuThread
-	if (!_CoreParameter.bCPUThread)
-		Plugins.ShutdownVideoPlugin();
-#endif
-
-	gpuShutdownCall.Shutdown();
-
  	return 0;
 }
 
@@ -319,7 +307,6 @@ THREAD_RETURN CpuThread(void *pArg)
 THREAD_RETURN EmuThread(void *pArg)
 {
 	cpuRunloopQuit.Init();
-	gpuShutdownCall.Init();
 
 	Common::SetCurrentThreadName("Emuthread - starting");
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
@@ -472,6 +459,7 @@ THREAD_RETURN EmuThread(void *pArg)
 		// then we lose the powerdown check. ... unless powerdown sends a message :P
 		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
 		{
+			Host_UpdateMainFrame();
 			if (Callback_PeekMessages)
 				Callback_PeekMessages();
 			Common::SleepCurrentThread(20);
@@ -483,32 +471,8 @@ THREAD_RETURN EmuThread(void *pArg)
 #endif
 	}
 
-	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Stop() and Video Loop Ended").c_str());
-	WARN_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
-
-	// We have now exited the Video Loop and will shut down
-
 	// Write message
 	if (g_pUpdateFPSDisplay != NULL) g_pUpdateFPSDisplay("Stopping...");
-
-	HW::Shutdown();
-
-	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
-	WARN_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down plugins").c_str());
-	Plugins.ShutdownPlugins();
-	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Plugins shutdown").c_str());
-
-#ifdef _WIN32
-	gpuShutdownCall.Set();
-
-	// Call video shutdown from the video thread, in dual core mode it's the EmuThread
-	// Or set an event in Single Core mode, to call the shutdown from the cpuThread
-	if (_CoreParameter.bCPUThread)
-		Plugins.ShutdownVideoPlugin();
-#else
-	// On unix platforms, the EmuThread is ALWAYS the video thread
-	Plugins.ShutdownVideoPlugin();
-#endif
 
 	if (cpuThread)
 	{
@@ -539,12 +503,24 @@ THREAD_RETURN EmuThread(void *pArg)
 		cpuThread = NULL;
 	}
 
-	// The hardware is uninitialized
+	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Stop() and Video Loop Ended").c_str());
+	// We have now exited the Video Loop and will shut down
+
 	g_bHwInit = false;
-	g_bStopping = false;
-	
+
+	WARN_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down plugins").c_str());
+	Plugins.ShutdownVideoPlugin();
+	Plugins.ShutdownPlugins();
+	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Plugins shutdown").c_str());
+
+	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
+	HW::Shutdown();
+	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
+
 	NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Main thread stopped").c_str());
 	NOTICE_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
+
+	g_bStopping = false;
 
 	Host_UpdateMainFrame();
 
