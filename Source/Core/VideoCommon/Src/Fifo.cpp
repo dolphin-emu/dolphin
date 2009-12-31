@@ -126,19 +126,19 @@ void Fifo_SendFifoData(u8* _uData, u32 len)
 // Purpose: Keep the Core HW updated about the CPU-GPU distance
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 {
-    fifoStateRun = true;
-    SCPFifoStruct &_fifo = CommandProcessor::fifo;
+	fifoStateRun = true;
+	SCPFifoStruct &_fifo = CommandProcessor::fifo;
 	s32 distToSend;
 
-    while (fifoStateRun)
-    {
+	while (fifoStateRun)
+	{
 		video_initialize.pPeekMessages();
 
 		VideoFifo_CheckEFBAccess();
 		VideoFifo_CheckSwapRequest();
 
-        // check if we are able to run this buffer
-		while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint))
+		// check if we are able to run this buffer
+		while (_fifo.bFF_GPReadEnable && ((!_fifo.bFF_BPEnable && _fifo.CPReadWriteDistance) || (_fifo.bFF_BPEnable && !_fifo.bFF_Breakpoint)))
 		{
 			if (!fifoStateRun)
 				break;
@@ -157,7 +157,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				if (
 					(readPtr == _fifo.CPBreakpoint) ||
 					(readPtr == _fifo.CPWritePointer) ||
-					(_fifo.CPWritePointer < _fifo.CPBreakpoint)
+					(readPtr > _fifo.CPBreakpoint && _fifo.CPBreakpoint > _fifo.CPWritePointer)
 					)
 				{
 					Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
@@ -172,6 +172,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				else
 					readPtr += 32;
 			}
+			// If we are not in BP mode we send all the chunk we have to speed up
 			else
 			{
 				distToSend = _fifo.CPReadWriteDistance;
@@ -202,8 +203,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			VideoFifo_CheckSwapRequest();
 
 			CommandProcessor::SetFifoIdleFromVideoPlugin();
-        }
-
+		}
 		Common::YieldCPU();
 	}
 	fifo_exit_event.Set();

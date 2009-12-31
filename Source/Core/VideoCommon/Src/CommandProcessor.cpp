@@ -184,7 +184,6 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		//m_CPStatusReg.ReadIdle = 1;
 		//m_CPStatusReg.CommandIdle = 1;
 
-		//m_CPStatusReg.ReadIdle = fifo.CPReadIdle; // This seems not necessary though
 		m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
 		_rReturnValue = m_CPStatusReg.Hex;
 
@@ -198,6 +197,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 			, m_CPStatusReg.OverflowHiWatermark ?	"ON" : "OFF"
 			, m_CPStatusReg.UnderflowLoWatermark ?	"ON" : "OFF"
 				);
+
 		return;
 
 	case CTRL_REGISTER:		_rReturnValue = m_CPCtrlReg.Hex; return;
@@ -411,11 +411,11 @@ void Write16(const u16 _Value, const u32 _Address)
 			}
 
 			DEBUG_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
-			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | LINK %s | BP %s || Int %s | OvF %s | UndF %s"
+			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | LINK %s | BP %s || Init %s | OvF %s | UndF %s"
 				, fifo.bFF_GPReadEnable ?				"ON" : "OFF"
 				, fifo.bFF_GPLinkEnable ?				"ON" : "OFF"
 				, fifo.bFF_BPEnable ?					"ON" : "OFF"
-				, m_CPCtrlReg.CPIntEnable ?				"ON" : "OFF"
+				, m_CPCtrlReg.BPInit ?					"ON" : "OFF"
 				, m_CPCtrlReg.FifoOverflowIntEnable ?	"ON" : "OFF"
 				, m_CPCtrlReg.FifoUnderflowIntEnable ?	"ON" : "OFF"
 				);
@@ -649,7 +649,7 @@ void CatchUpGPU()
 				if (
 					(fifo.CPReadPointer == fifo.CPBreakpoint) ||
 					(fifo.CPReadPointer == fifo.CPWritePointer) ||
-					(fifo.CPWritePointer < fifo.CPBreakpoint)
+					(fifo.CPReadPointer > fifo.CPBreakpoint && fifo.CPBreakpoint > fifo.CPWritePointer)
 					)
 				{
 					//_assert_msg_(POWERPC,0,"BP: %08x",fifo.CPBreakpoint);
