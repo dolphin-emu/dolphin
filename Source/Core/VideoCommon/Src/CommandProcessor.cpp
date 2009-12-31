@@ -83,6 +83,11 @@ namespace CommandProcessor
 
 int et_UpdateInterrupts;
 
+void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
+{
+	UpdateInterrupts((userdata) ? true : false);
+}
+
 // look for 1002 verts, breakpoint there, see why next draw is flushed
 // TODO(ector): Warn on bbox read/write
 
@@ -151,12 +156,12 @@ void Init()
 	fake_GPWatchdogLastToken = 0;
 
 	memset(&fifo,0,sizeof(fifo));
-	//fifo.CPCmdIdle  = 1 ;
+	fifo.CPCmdIdle  = 1 ;
 	fifo.CPReadIdle = 1;
 
 	s_fifoIdleEvent.Init();
 
-//    et_UpdateInterrupts = g_VideoInitialize.pRegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
+    et_UpdateInterrupts = g_VideoInitialize.pRegisterEvent("UpdateInterrupts", UpdateInterrupts_Wrapper);
 }
 
 void Shutdown()
@@ -179,14 +184,14 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		//m_CPStatusReg.ReadIdle = 1;
 		//m_CPStatusReg.CommandIdle = 1;
 
-		m_CPStatusReg.ReadIdle = fifo.CPReadIdle; // This seems not necessary though
+		//m_CPStatusReg.ReadIdle = fifo.CPReadIdle; // This seems not necessary though
 		m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
-		// Clear on Read
-		UpdateInterrupts(false);
-		
 		_rReturnValue = m_CPStatusReg.Hex;
 
-		DEBUG_LOG(COMMANDPROCESSOR, "\t iBP %s | fREADIDLE %s | fCMDIDLE %s | iOvF %s | iUndF %s"
+		// Clear on read
+		UpdateInterrupts(false);
+
+		DEBUG_LOG(COMMANDPROCESSOR, "(r) status: iBP %s | fReadIdle %s | fCmdIdle %s | iOvF %s | iUndF %s"
 			, m_CPStatusReg.Breakpoint ?			"ON" : "OFF"
 			, m_CPStatusReg.ReadIdle ?				"ON" : "OFF"
 			, m_CPStatusReg.CommandIdle ?			"ON" : "OFF"
@@ -196,7 +201,10 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		return;
 
 	case CTRL_REGISTER:		_rReturnValue = m_CPCtrlReg.Hex; return;
-	case CLEAR_REGISTER:	_rReturnValue = m_CPClearReg.Hex; return;
+	case CLEAR_REGISTER:
+		_rReturnValue = m_CPClearReg.Hex;
+		DEBUG_LOG(COMMANDPROCESSOR, "(r) clear: 0x%04x", _rReturnValue);
+		return;
 
 	case FIFO_TOKEN_REGISTER:		_rReturnValue = m_tokenReg; return;
 	case FIFO_BOUNDING_BOX_LEFT:	_rReturnValue = m_bboxleft; return;
@@ -256,32 +264,86 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 	case FIFO_BP_LO: _rReturnValue = ReadLow (fifo.CPBreakpoint); return;
 	case FIFO_BP_HI: _rReturnValue = ReadHigh(fifo.CPBreakpoint); return;
 
-	case CP_PERF0_L: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF0_L: %04x", _rReturnValue); break;  // XF counters
-	case CP_PERF0_H: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF0_H: %04x", _rReturnValue); break;
+	// AyuanX: Lots of games read the followings (e.g. Mario Power Tennis)
+	case XF_RASBUSY_L:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_RASBUSY_L: %04x", _rReturnValue);
+		return;
+	case XF_RASBUSY_H:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_RASBUSY_H: %04x", _rReturnValue);
+		return;
 
-	case CP_PERF1_L: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF1_L: %04x", _rReturnValue); break;
-	case CP_PERF1_H: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF1_H: %04x", _rReturnValue); break;
+	case XF_CLKS_L:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_CLKS_L: %04x", _rReturnValue);
+		return;
+	case XF_CLKS_H:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_CLKS_H: %04x", _rReturnValue);
+		return;
 
-	case CP_PERF2_L: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF2_L: %04x", _rReturnValue); break;
-	case CP_PERF2_H: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF2_H: %04x", _rReturnValue); break;
+	case XF_WAIT_IN_L:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_WAIT_IN_L: %04x", _rReturnValue);
+		return;
+	case XF_WAIT_IN_H:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_WAIT_IN_H: %04x", _rReturnValue);
+		return;
 
-	case CP_PERF3_L: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF3_L: %04x", _rReturnValue); break;
-	case CP_PERF3_H: _rReturnValue = 0; WARN_LOG(COMMANDPROCESSOR, "Read from PERF3_H: %04x", _rReturnValue); break;
+	case XF_WAIT_OUT_L:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_WAIT_OUT_L: %04x", _rReturnValue);
+		return;
+	case XF_WAIT_OUT_H:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from XF_WAIT_OUT_H: %04x", _rReturnValue);
+		return;
+
+	case VCACHE_METRIC_CHECK_L:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from VCACHE_METRIC_CHECK_L: %04x", _rReturnValue);
+		return;
+	case VCACHE_METRIC_CHECK_H:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from VCACHE_METRIC_CHECK_H: %04x", _rReturnValue);
+		return;
+
+	case VCACHE_METRIC_MISS_L:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from VCACHE_METRIC_MISS_L: %04x", _rReturnValue);
+		return;
+	case VCACHE_METRIC_MISS_H:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from VCACHE_METRIC_MISS_H: %04x", _rReturnValue);
+		return;
+
+	case VCACHE_METRIC_STALL_L:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from VCACHE_METRIC_STALL_L: %04x", _rReturnValue);
+		return;
+	case VCACHE_METRIC_STALL_H:
+		_rReturnValue = 0;	// TODO: Figure out the true value
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from VCACHE_METRIC_STALL_H: %04x", _rReturnValue);
+		return;
 
 	case CLKS_PER_VTX_OUT:
 		_rReturnValue = 4; //Number of clocks per vertex.. TODO: Calculate properly
 		WARN_LOG(COMMANDPROCESSOR, "Read from CLKS_PER_VTX_OUT: %04x", _rReturnValue);
-		break;
+		return;
 		//add all the other regs here? are they ever read?
 	default:
 		_rReturnValue = 0;
 		WARN_LOG(COMMANDPROCESSOR, "(r16) unknown CP reg @ %08x", _Address);
+		return;
 	}
 	return;
 }
 
 void Write16(const u16 _Value, const u32 _Address)
 {
+	bool bUpdate = false;
 	INFO_LOG(COMMANDPROCESSOR, "(write16): 0x%04x @ 0x%08x",_Value,_Address);
 
 	//Spin until queue is empty - it WILL become empty because this is the only thread
@@ -335,41 +397,17 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	case CTRL_REGISTER:
 		{
-			// TOCHECK (mb2): could BP irq be cleared with w16 to STATUS_REGISTER?
-			// funny hack: eg in MP1 if we disable the clear breakpoint ability by commenting this block
-			// the game is of course faster but looks stable too.
-			// Well, the hack is more stable than the "proper" way actualy :p ... it breaks MP2 when ship lands
-			// So I let the hack for now.
-			// Checkmate re-enabled it, so please test
-			// TODO (mb2): fix this!
-
 			UCPCtrlReg tmpCtrl(_Value);
 			m_CPCtrlReg.Hex = tmpCtrl.Hex;
 
 			Common::AtomicStore(fifo.bFF_GPLinkEnable, tmpCtrl.GPLinkEnable);
 			Common::AtomicStore(fifo.bFF_GPReadEnable, tmpCtrl.GPReadEnable);
+			Common::AtomicStore(fifo.bFF_BPEnable, tmpCtrl.BPEnable);
 
-			if (g_VideoInitialize.bOnThread)
+			if (tmpCtrl.BPInit && tmpCtrl.BPEnable && tmpCtrl.GPReadEnable)
 			{
-				// Instant Breakpoint and Interrupt, since we haven't implemented accurate BP on dual core
-				// Most likely the Read thread has already exceeded BP here, but it seems we are still cool
-				if (tmpCtrl.BPEnable && tmpCtrl.CPIntEnable && tmpCtrl.GPReadEnable && tmpCtrl.GPLinkEnable)
-				{
-					Common::AtomicStore(fifo.bFF_Breakpoint, 1);
-					UpdateInterrupts(true);
-				}
-				else
-				{
-					Common::AtomicStore(fifo.bFF_Breakpoint, 0);
-				}
-				
-			}
-			else
-			{
-				// fifo.bFF_BPEnable is only used in single core
-				Common::AtomicStore(fifo.bFF_BPEnable, tmpCtrl.BPEnable && tmpCtrl.CPIntEnable && tmpCtrl.GPReadEnable && tmpCtrl.GPLinkEnable);
-				if (!tmpCtrl.BPEnable || !tmpCtrl.CPIntEnable || !tmpCtrl.GPReadEnable || !tmpCtrl.GPLinkEnable)
-					Common::AtomicStore(fifo.bFF_Breakpoint, 0);
+				// Clear old BP and initiate new BP
+				Common::AtomicStore(fifo.bFF_Breakpoint, 0);
 			}
 
 			DEBUG_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
@@ -385,8 +423,8 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case PERF_SELECT:
-		// Seems to select which set of perf counters should be exposed.
-		WARN_LOG(COMMANDPROCESSOR, "write to PERF_SELECT: %04x", _Value);
+		// Seems to select which set of perf registers should be exposed.
+		DEBUG_LOG(COMMANDPROCESSOR, "write to PERF_SELECT: %04x", _Value);
 		break;
 
 	case CLEAR_REGISTER:
@@ -404,38 +442,46 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case FIFO_BASE_LO:
-		// Oh hell, somtimes this value is not aligned with 32B, like New Super Mario Bros. Wii
+		bUpdate = true;
 		WriteLow ((u32 &)fifo.CPBase, _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_BASE_LO : %04x", _Value);
 		break;
 	case FIFO_BASE_HI:
+		bUpdate = true;
 		WriteHigh((u32 &)fifo.CPBase, _Value);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_BASE_HI : %04x", _Value);
 		break;
 
 	case FIFO_END_LO:
+		bUpdate = true;
+		// Somtimes this value is not aligned with 32B, e.g. New Super Mario Bros. Wii
 		WriteLow ((u32 &)fifo.CPEnd,  _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_END_LO : %04x", _Value);
 		break;
 	case FIFO_END_HI:
+		bUpdate = true;
 		WriteHigh((u32 &)fifo.CPEnd,  _Value);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_END_HI : %04x", _Value);
 		break;
 
 	case FIFO_WRITE_POINTER_LO:
+		bUpdate = true;
 		WriteLow ((u32 &)fifo.CPWritePointer, _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_WRITE_POINTER_LO : %04x", _Value);
 		break;
 	case FIFO_WRITE_POINTER_HI:
+		bUpdate = true;
 		WriteHigh((u32 &)fifo.CPWritePointer, _Value);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_WRITE_POINTER_HI : %04x", _Value);
 		break;
 
 	case FIFO_READ_POINTER_LO:
+		bUpdate = true;
 		WriteLow ((u32 &)fifo.CPReadPointer, _Value & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_READ_POINTER_LO : %04x", _Value);
 		break;
 	case FIFO_READ_POINTER_HI:
+		bUpdate = true;
 		WriteHigh((u32 &)fifo.CPReadPointer, _Value);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_READ_POINTER_HI : %04x", _Value);
 		break;
@@ -484,14 +530,11 @@ void Write16(const u16 _Value, const u32 _Address)
 		WARN_LOG(COMMANDPROCESSOR, "(w16) unknown CP reg write %04x @ %08x", _Value, _Address);
 	}
 
-	// TODO(mb2): better. Check if it help: avoid CPReadPointer overwrites when stupidly done like in Super Monkey Ball
-	if ((!fifo.bFF_GPReadEnable && fifo.CPReadIdle) || !g_VideoInitialize.bOnThread) // TOCHECK(mb2): check again if thread safe?
+	if (bUpdate || !g_VideoInitialize.bOnThread) // TOCHECK(mb2): check again if thread safe?
 	{
-// Disabling this thread synchronization check does boost the speed
-// Hope it is safe to skip this check
-//		if (g_VideoInitialize.bOnThread) FifoCriticalEnter();	// This may not be necessary, just for safety
+		if (g_VideoInitialize.bOnThread) FifoCriticalEnter(); // This may not be necessary, just for safety
 		UpdateFifoRegister();
-//		if (g_VideoInitialize.bOnThread) FifoCriticalLeave();
+		if (g_VideoInitialize.bOnThread) FifoCriticalLeave();
 	}
 }
 
@@ -514,7 +557,7 @@ void IncrementGPWDToken()
 
 bool AllowIdleSkipping()
 {
-	return !g_VideoInitialize.bOnThread || (!m_CPCtrlReg.CPIntEnable && !m_CPCtrlReg.BPEnable);
+	return !g_VideoInitialize.bOnThread || !m_CPCtrlReg.BPEnable;
 }
 
 // Check every FAKE_GP_WATCHDOG_PERIOD if a PE-frame-finish occured
@@ -562,7 +605,7 @@ void STACKALIGN GatherPipeBursted()
 			//		- CPU can write to fifo
 			//		- disable Underflow interrupt
 
-			INFO_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark reached");
+			INFO_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark reached, 0x%04X, 0x%04X", fifo.CPReadWriteDistance, fifo.CPLoWatermark);
 			// Wait for GPU to catch up
 			while (fifo.CPReadWriteDistance > fifo.CPLoWatermark && !fifo.bFF_Breakpoint)
 				s_fifoIdleEvent.MsgWait();
@@ -591,7 +634,7 @@ void STACKALIGN GatherPipeBursted()
 void CatchUpGPU()
 {
 	// check if we are able to run this buffer
-	if (fifo.bFF_GPReadEnable && !fifo.bFF_Breakpoint)
+	if (fifo.bFF_GPReadEnable && !(fifo.bFF_BPEnable && fifo.bFF_Breakpoint))
 	{
 		// HyperIris: Memory_GetPtr is an expensive call, call it less, run faster
 		u8 *ptr = Memory_GetPtr(fifo.CPReadPointer);
@@ -678,17 +721,10 @@ void UpdateInterrupts(bool active)
 	g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, active);
 }
 
-/*
-void UpdateInterruptsFromVideoPlugin()
+void UpdateInterruptsFromVideoPlugin(bool active)
 {
-	g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, 0);
+	g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, active);
 }
-
-void UpdateInterrupts_Wrapper(u64 userdata, int cyclesLate)
-{
-	UpdateInterrupts();
-}
-*/
 
 void SetFifoIdleFromVideoPlugin()
 {

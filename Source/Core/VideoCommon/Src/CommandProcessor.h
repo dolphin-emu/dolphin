@@ -36,7 +36,7 @@ enum
 	STATUS_REGISTER				= 0x00,
 	CTRL_REGISTER				= 0x02,
 	CLEAR_REGISTER				= 0x04,
-	PERF_SELECT                 = 0x06,
+	PERF_SELECT					= 0x06,
 	FIFO_TOKEN_REGISTER			= 0x0E,
 	FIFO_BOUNDING_BOX_LEFT		= 0x10,
 	FIFO_BOUNDING_BOX_RIGHT		= 0x12,
@@ -58,23 +58,23 @@ enum
 	FIFO_READ_POINTER_HI		= 0x3A,
 	FIFO_BP_LO					= 0x3C,
 	FIFO_BP_HI					= 0x3E,
-	CP_PERF0_L                  = 0x40,
-	CP_PERF0_H                  = 0x42,
-	CP_PERF1_L                  = 0x44,
-	CP_PERF1_H                  = 0x46,
-	CP_PERF2_L                  = 0x48,
-	CP_PERF2_H                  = 0x4a,
-	CP_PERF3_L                  = 0x4c,
-	CP_PERF3_H                  = 0x4e,
-	VCACHE_METRIC_CHECK_LO	= 0x50,
-	VCACHE_METRIC_CHECK_HI	= 0x52,
-	VCACHE_METRIC_MISS_LO	= 0x54,
-	VCACHE_METRIC_MISS_HI	= 0x56,
-	VCACHE_METRIC_STALL_LO	= 0x58,
-	VCACHE_METRIC_STALL_HI	= 0x5A,
-	CLKS_PER_VTX_IN0		= 0x60,
-	CLKS_PER_VTX_IN1		= 0x62,
-	CLKS_PER_VTX_OUT		= 0x64,
+	XF_RASBUSY_L				= 0x40,
+	XF_RASBUSY_H				= 0x42,
+	XF_CLKS_L					= 0x44,
+	XF_CLKS_H					= 0x46,
+	XF_WAIT_IN_L				= 0x48,
+	XF_WAIT_IN_H				= 0x4a,
+	XF_WAIT_OUT_L				= 0x4c,
+	XF_WAIT_OUT_H				= 0x4e,
+	VCACHE_METRIC_CHECK_L		= 0x50,
+	VCACHE_METRIC_CHECK_H		= 0x52,
+	VCACHE_METRIC_MISS_L		= 0x54,
+	VCACHE_METRIC_MISS_H		= 0x56,
+	VCACHE_METRIC_STALL_L		= 0x58,
+	VCACHE_METRIC_STALL_H		= 0x5A,
+	CLKS_PER_VTX_IN_L			= 0x60,
+	CLKS_PER_VTX_IN_H			= 0x62,
+	CLKS_PER_VTX_OUT			= 0x64,
 };
 
 enum
@@ -106,11 +106,11 @@ union UCPCtrlReg
 	struct
 	{
 		unsigned GPReadEnable			:	1;
-		unsigned CPIntEnable			:	1;
+		unsigned BPEnable				:	1;
 		unsigned FifoOverflowIntEnable	:	1;
 		unsigned FifoUnderflowIntEnable	:	1;
 		unsigned GPLinkEnable			:	1;
-		unsigned BPEnable				:	1;
+		unsigned BPInit					:	1;
 		unsigned						:	10;
 	};
 	u16 Hex;
@@ -149,7 +149,7 @@ void CatchUpGPU();
 void GatherPipeBursted();
 void UpdateFifoRegister();
 void UpdateInterrupts(bool active);
-//void UpdateInterruptsFromVideoPlugin();
+void UpdateInterruptsFromVideoPlugin(bool active);
 void SetFifoIdleFromVideoPlugin();
 
 bool AllowIdleSkipping();

@@ -915,6 +915,9 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 // Update the enabled/disabled status
 void CFrame::UpdateGUI()
 {
+	if (!m_bControlsCreated)
+		return;
+
 	// Save status
 	bool Initialized = Core::isRunning();
 	bool Running = Core::GetState() == Core::CORE_RUN;

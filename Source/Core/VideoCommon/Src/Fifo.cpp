@@ -138,78 +138,73 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		VideoFifo_CheckSwapRequest();
 
         // check if we are able to run this buffer
-		if (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance && !_fifo.bFF_Breakpoint)
+		while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance && !(_fifo.bFF_BPEnable && _fifo.bFF_Breakpoint))
 		{
-			Common::AtomicStore(_fifo.CPReadIdle, 0);
+			if (!fifoStateRun)
+				break;
 
-			while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance)
+			CommandProcessor::FifoCriticalEnter();
+
+			// Create pointer to video data and send it to the VideoPlugin
+			u32 readPtr = _fifo.CPReadPointer;
+			u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
+
+			// If we are in BP mode we only send 32B chunks to Video plugin for BP checking
+			if (_fifo.bFF_BPEnable)
 			{
-				if (!fifoStateRun)
-					break;
-
-				// Create pointer to video data and send it to the VideoPlugin
-				u32 readPtr = _fifo.CPReadPointer;
-				u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
-
-				CommandProcessor::FifoCriticalEnter();
-
-// It looks like even in BP mode, we still can send all the chunks we have
-/*
-				// if we are on BP mode we must send 32B chunks to Video plugin for BP checking
-				// TODO (mb2): test & check if MP1/MP2 realy need this now.
-				if (_fifo.bFF_BPEnable)
+				// Sometimes we have already exceeded the BP even before it is set
+				// so careful check is required
+				if (
+					(readPtr == _fifo.CPBreakpoint) ||
+					(readPtr == _fifo.CPWritePointer) ||
+					(_fifo.CPWritePointer < _fifo.CPBreakpoint)
+					)
 				{
-					if (readPtr == _fifo.CPBreakpoint)
-					{
-						Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
-						CommandProcessor::UpdateInterruptsFromVideoPlugin();
-						break;
-					}
+					Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
+					CommandProcessor::UpdateInterruptsFromVideoPlugin(true);
+					break;
+				}
 
-					distToSend = 32;
-					
-					if ( readPtr >= _fifo.CPEnd) 
-						readPtr = _fifo.CPBase;
-                    else
-                        readPtr += 32;
+				distToSend = 32;
+
+				if ( readPtr >= _fifo.CPEnd) 
+					readPtr = _fifo.CPBase;
+				else
+					readPtr += 32;
+			}
+			else
+			{
+				distToSend = _fifo.CPReadWriteDistance;
+				// send 1024B chunk max length to have better control over PeekMessages' period
+				distToSend = distToSend > 1024 ? 1024 : distToSend;
+				// add 32 bytes because the cp end points to the start of the last 32 byte chunk
+				if ((distToSend + readPtr) >= (_fifo.CPEnd + 32)) // TODO: better?
+				{
+					distToSend =(_fifo.CPEnd + 32) - readPtr;
+					readPtr = _fifo.CPBase;
 				}
 				else
-*/
-				{
-					distToSend = _fifo.CPReadWriteDistance;
-					// send 1024B chunk max length to have better control over PeekMessages' period
-					distToSend = distToSend > 1024 ? 1024 : distToSend;
-                    // add 32 bytes because the cp end points to the start of the last 32 byte chunk
-					if ((distToSend + readPtr) >= (_fifo.CPEnd + 32)) // TODO: better?
-					{
-						distToSend =(_fifo.CPEnd + 32) - readPtr;
-						readPtr = _fifo.CPBase;
-					}
-					else
-						readPtr += distToSend;
-				}
-
-				// Execute new instructions found in uData
-				Fifo_SendFifoData(uData, distToSend);
-
-				Common::AtomicStore(_fifo.CPReadPointer, readPtr);
-				Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);
-
-				CommandProcessor::FifoCriticalLeave();
-
-				// Those two are pretty important and must be called in the FIFO Loop.
-				// If we don't, s_swapRequested (OGL only) or s_efbAccessRequested won't be set to false
-				// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
-				VideoFifo_CheckEFBAccess();
-				VideoFifo_CheckSwapRequest();
+					readPtr += distToSend;
 			}
-			Common::AtomicStore(_fifo.CPReadIdle, 1);
-            CommandProcessor::SetFifoIdleFromVideoPlugin();
+
+			// Execute new instructions found in uData
+			Fifo_SendFifoData(uData, distToSend);
+
+			Common::AtomicStore(_fifo.CPReadPointer, readPtr);
+			Common::AtomicAdd(_fifo.CPReadWriteDistance, -distToSend);
+
+			CommandProcessor::FifoCriticalLeave();
+
+			// Those two are pretty important and must be called in the FIFO Loop.
+			// If we don't, s_swapRequested (OGL only) or s_efbAccessRequested won't be set to false
+			// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
+			VideoFifo_CheckEFBAccess();
+			VideoFifo_CheckSwapRequest();
+
+			CommandProcessor::SetFifoIdleFromVideoPlugin();
         }
-		else
-		{
-			Common::YieldCPU();
-		}
+
+		Common::YieldCPU();
 	}
 	fifo_exit_event.Set();
 }

@@ -309,6 +309,8 @@ CFrame::CFrame(wxFrame* parent,
 	#endif
           
 {
+	m_bControlsCreated = false;
+
 	if (ShowLogWindow) SConfig::GetInstance().m_InterfaceLogWindow = true;
 
 	// Give it a console early to show potential messages from this onward
@@ -461,6 +463,7 @@ CFrame::CFrame(wxFrame* parent,
 	// ----------
 
 	// Update controls
+	m_bControlsCreated = true;
 	UpdateGUI();
 
 	//if we are ever going back to optional iso caching:
@@ -477,6 +480,8 @@ CFrame::CFrame(wxFrame* parent,
 // Destructor
 CFrame::~CFrame()
 {
+	m_bControlsCreated = false;
+
 	cdio_free_device_list(drives);
 	/* The statbar sample has this so I add this to, but I guess timer will be deleted after
 	   this anyway */
