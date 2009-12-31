@@ -1024,6 +1024,20 @@ void WiimotePadConfigDialog::UpdateGUI()
 	if(!ControlsCreated)
 		return;
 
+	// Disable all pad items if no pads are detected
+	bool PadEnabled = WiiMoteEmu::NumGoodPads != 0;
+
+	m_Joyname[m_Page]->Enable(PadEnabled);
+	m_ComboDeadZoneLeft[m_Page]->Enable(PadEnabled);
+	m_ComboDeadZoneRight[m_Page]->Enable(PadEnabled);
+	m_CheckC2S[m_Page]->Enable(PadEnabled);
+	m_ComboDiagonal[m_Page]->Enable(PadEnabled);
+	m_CheckRumble[m_Page]->Enable(PadEnabled);
+	m_RumbleStrength[m_Page]->Enable(PadEnabled);
+	m_TriggerType[m_Page]->Enable(PadEnabled);
+	for(int i = 0; i <= IDB_TRIGGER_R - IDB_ANALOG_LEFT_X; i++)
+		m_Button_Analog[i][m_Page]->Enable(PadEnabled);
+
 	wxString tmp;
 
 	m_Joyname[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].ID);
@@ -1055,23 +1069,28 @@ void WiimotePadConfigDialog::UpdateGUI()
 #ifdef _WIN32
 	for (int x = 0; x <= IDB_WM_SHAKE - IDB_WM_A; x++)
 	{
-			m_Button_Wiimote[x][m_Page]->SetLabel(wxString::FromAscii(
-				InputCommon::VKToString(WiiMoteEmu::WiiMapping[m_Page].Button[x + WiiMoteEmu::EWM_A]).c_str()));
+		m_Button_Wiimote[x][m_Page]->SetLabel(wxString::FromAscii(
+		InputCommon::VKToString(WiiMoteEmu::WiiMapping[m_Page].Button[x + WiiMoteEmu::EWM_A]).c_str()));
 	}
 	if(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected == WiiMoteEmu::EXT_NUNCHUCK)
 	{
+		m_NunchuckComboStick[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.NC);
 		for (int x = 0; x <= IDB_NC_SHAKE - IDB_NC_Z; x++)
 			m_Button_NunChuck[x][m_Page]->SetLabel(wxString::FromAscii(
 			InputCommon::VKToString(WiiMoteEmu::WiiMapping[m_Page].Button[x + WiiMoteEmu::ENC_Z]).c_str()));
 	}
 	else if(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected == WiiMoteEmu::EXT_CLASSIC_CONTROLLER)
 	{
+		m_CcComboLeftStick[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.CCL);
+		m_CcComboRightStick[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.CCR);
+		m_CcComboTriggers[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.CCT);
 		for (int x = 0; x <= IDB_CC_RD - IDB_CC_A; x++)
 			m_Button_Classic[x][m_Page]->SetLabel(wxString::FromAscii(
 			InputCommon::VKToString(WiiMoteEmu::WiiMapping[m_Page].Button[x + WiiMoteEmu::ECC_A]).c_str()));
 	}
 	else if(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected == WiiMoteEmu::EXT_GUITARHERO)
 	{
+		m_GH3ComboAnalog[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.GH);
 		for (int x = 0; x <= IDB_GH3_STRUM_DOWN - IDB_GH3_GREEN; x++)
 			m_Button_GH3[x][m_Page]->SetLabel(wxString::FromAscii(
 			InputCommon::VKToString(WiiMoteEmu::WiiMapping[m_Page].Button[x + WiiMoteEmu::EGH_Green]).c_str()));
@@ -1085,6 +1104,7 @@ void WiimotePadConfigDialog::UpdateGUI()
 	}
 	if(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected == WiiMoteEmu::EXT_NUNCHUCK)
 	{
+		m_NunchuckComboStick[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.NC);
 		for (int x = 0; x <= IDB_NC_SHAKE - IDB_NC_Z; x++)
 		{
 			InputCommon::XKeyToString(WiiMoteEmu::WiiMapping[m_Page].Button[x + WiiMoteEmu::ENC_Z], keyStr);
@@ -1093,6 +1113,9 @@ void WiimotePadConfigDialog::UpdateGUI()
 	}
 	else if(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected == WiiMoteEmu::EXT_CLASSIC_CONTROLLER)
 	{
+		m_CcComboLeftStick[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.CCL);
+		m_CcComboRightStick[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.CCR);
+		m_CcComboTriggers[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.CCT);
 		for (int x = 0; x <= IDB_CC_RD - IDB_CC_A; x++)
 		{
 			InputCommon::XKeyToString(WiiMoteEmu::WiiMapping[m_Page].Button[x + WiiMoteEmu::ECC_A], keyStr);
@@ -1101,6 +1124,7 @@ void WiimotePadConfigDialog::UpdateGUI()
 	}
 	else if(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected == WiiMoteEmu::EXT_GUITARHERO)
 	{
+		m_GH3ComboAnalog[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.GH);
 		for (int x = 0; x <= IDB_GH3_STRUM_DOWN - IDB_GH3_GREEN; x++)
 		{
 			InputCommon::XKeyToString(WiiMoteEmu::WiiMapping[m_Page].Button[x + WiiMoteEmu::EGH_Green], keyStr);
@@ -1110,21 +1134,6 @@ void WiimotePadConfigDialog::UpdateGUI()
 #endif
 
 	DoChangeDeadZone();
-
-	// Disable all pad items if no pads are detected
-	bool PadEnabled = WiiMoteEmu::NumGoodPads != 0;
-
-	m_Joyname[m_Page]->Enable(PadEnabled);
-	m_ComboDeadZoneLeft[m_Page]->Enable(PadEnabled);
-	m_ComboDeadZoneRight[m_Page]->Enable(PadEnabled);
-	m_CheckC2S[m_Page]->Enable(PadEnabled);
-	m_ComboDiagonal[m_Page]->Enable(PadEnabled);
-	m_CheckRumble[m_Page]->Enable(PadEnabled);
-	m_RumbleStrength[m_Page]->Enable(PadEnabled);
-	m_TriggerType[m_Page]->Enable(PadEnabled);
-
-	for(int i = 0; i <= IDB_TRIGGER_R - IDB_ANALOG_LEFT_X; i++)
-		m_Button_Analog[i][m_Page]->Enable(PadEnabled);
 
 }
 
