@@ -330,8 +330,8 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	else
 	{
 		fseek(f, 0, SEEK_END);
-		sz = (int)(ftell(f) - sizeof(int));
-		fseek(f, sizeof(int), SEEK_SET);
+		sz = (int)(ftell(f) - sizeof(state_header));
+		fseek(f, sizeof(state_header), SEEK_SET);
 		buffer = new u8[sz];
 		int x;
 		if ((x = (int)fread(buffer, 1, sz, f)) != (int)sz)
