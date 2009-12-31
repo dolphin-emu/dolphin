@@ -129,10 +129,12 @@ PADConfigDialognJoy::PADConfigDialognJoy(wxWindow *parent, wxWindowID id, const 
 
 		// Reset values
 		GetButtonWaitingID = 0; GetButtonWaitingTimer = 0;
-
-		// Start the constant timer
-		int TimesPerSecond = 10;
-		m_ConstantTimer->Start(1000 / TimesPerSecond);
+		if (NumGoodPads)
+		{
+			// Start the constant timer
+			int TimesPerSecond = 10;
+			m_ConstantTimer->Start(1000 / TimesPerSecond);
+		}
 	#endif
 
 	// wxEVT_KEY_DOWN is blocked for enter, tab and the directional keys
@@ -166,6 +168,7 @@ void PADConfigDialognJoy::OnClose(wxCloseEvent& event)
 	// Close pads, unless we are running a game
 	//if (!g_EmulatorRunning)	Shutdown();
 
+	g_FrameOpen = false;
 	EndModal(wxID_CLOSE);
 }
 

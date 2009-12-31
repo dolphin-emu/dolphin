@@ -187,7 +187,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 	else if (WiiMoteEmu::NumGoodPads > 0)
 	{
 		InputCommon::GetButton(
-			WiiMoteEmu::joyinfo[PadID].joy, PadID, WiiMoteEmu::joyinfo[PadID].NumButtons, WiiMoteEmu::joyinfo[PadID].NumAxes, WiiMoteEmu::joyinfo[PadID].NumHats, 
+			WiiMoteEmu::WiiMapping[m_Page].joy, PadID, WiiMoteEmu::joyinfo[PadID].NumButtons, WiiMoteEmu::joyinfo[PadID].NumAxes, WiiMoteEmu::joyinfo[PadID].NumHats, 
 			KeyPressed, value, type, pressed, Succeed, Stop,
 			LeftRight, Axis, XInput, Button, Hat, NoTriggerFilter);
 	}

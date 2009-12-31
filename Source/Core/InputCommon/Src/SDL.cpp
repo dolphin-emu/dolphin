@@ -164,8 +164,8 @@ void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, in
 	else
 	{
 		// XInput triggers for Xbox360 pads
-		_PadState.axis[CTL_L_SHOULDER] = XInput::GetXI(0, _PadMapping.buttons[CTL_L_SHOULDER] - 1000);
-		_PadState.axis[CTL_R_SHOULDER] = XInput::GetXI(0, _PadMapping.buttons[CTL_R_SHOULDER] - 1000);
+		_PadState.axis[CTL_L_SHOULDER] = XInput::GetXI(Controller, _PadMapping.buttons[CTL_L_SHOULDER] - 1000);
+		_PadState.axis[CTL_R_SHOULDER] = XInput::GetXI(Controller, _PadMapping.buttons[CTL_R_SHOULDER] - 1000);
 	}
 #endif
 
@@ -326,7 +326,7 @@ void GetButton(SDL_Joystick *joy, int ControllerID, int buttons, int axes, int h
 		{
 			for(int i = 0; i <= InputCommon::XI_TRIGGER_R; i++)
 			{			
-				if(XInput::GetXI(0, i))
+				if(XInput::GetXI(ControllerID, i))
 				{
 					pressed = i + 1000;
 					type = InputCommon::CTL_AXIS;

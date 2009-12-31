@@ -48,6 +48,7 @@ std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 InputCommon::CONTROLLER_STATE PadState[4];
 InputCommon::CONTROLLER_MAPPING PadMapping[4];
 bool g_EmulatorRunning = false;
+bool g_FrameOpen = false;
 int NumPads = 0, NumGoodPads = 0, LastPad = 0;
 #ifdef _WIN32
 	HWND m_hWnd = NULL, m_hConsole = NULL; // Handle to window
@@ -154,11 +155,13 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 // ------------------
 void DllConfig(HWND _hParent)
 {
-	// Init Joystick + Haptic (force feedback) subsystem on SDL 1.3
-	// Populate joyinfo for all attached devices
-	Search_Devices(joyinfo, NumPads, NumGoodPads);
-
-	g_Config.Load();	// load settings
+	if (!g_EmulatorRunning)
+	{
+		g_Config.Load();	// load settings
+		// Init Joystick + Haptic (force feedback) subsystem on SDL 1.3
+		// Populate joyinfo for all attached devices
+		Search_Devices(joyinfo, NumPads, NumGoodPads);
+	}
 
 #if defined(HAVE_WX) && HAVE_WX
 	if (!m_ConfigFrame)
@@ -168,9 +171,15 @@ void DllConfig(HWND _hParent)
 
 	// Only allow one open at a time
 	if (!m_ConfigFrame->IsShown())
+	{
+		g_FrameOpen = true;
 		m_ConfigFrame->ShowModal();
+	}
 	else
+	{
+		g_FrameOpen = false;
 		m_ConfigFrame->Hide();
+	}
 #endif
 }
 
@@ -185,18 +194,20 @@ void Initialize(void *init)
     g_PADInitialize = (SPADInitialize*)init;
 	g_EmulatorRunning = true;
 	
-	#ifdef _WIN32
-		m_hWnd = (HWND)g_PADInitialize->hWnd;
-	#endif
+#ifdef _WIN32
+	m_hWnd = (HWND)g_PADInitialize->hWnd;
+#endif
 
-	#ifdef _DEBUG
-		DEBUG_INIT();
-	#endif
+#ifdef _DEBUG
+	DEBUG_INIT();
+#endif
 
-	// Populate joyinfo for all attached devices
-	Search_Devices(joyinfo, NumPads, NumGoodPads);
-
-	g_Config.Load();	// load settings
+	if (!g_FrameOpen)
+	{
+		g_Config.Load();	// load settings
+		// Populate joyinfo for all attached devices
+		Search_Devices(joyinfo, NumPads, NumGoodPads);
+	}
 }
 
 void Close_Devices()
