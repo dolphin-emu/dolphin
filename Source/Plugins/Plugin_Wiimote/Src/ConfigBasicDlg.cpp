@@ -29,6 +29,7 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_CLOSE(WiimoteBasicConfigDialog::OnClose)
 	EVT_BUTTON(ID_OK, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_BUTTON(ID_CANCEL, WiimoteBasicConfigDialog::ButtonClick)
+	EVT_BUTTON(ID_REFRESH_REAL, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_BUTTON(ID_BUTTONMAPPING, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_BUTTON(ID_BUTTONRECORDING, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, WiimoteBasicConfigDialog::NotebookPageChanged)
@@ -62,7 +63,7 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 
 	m_bEnableUseRealWiimote = true;
 	// Initialize the Real WiiMotes here, so we get a count of how many were found and set everything properly
-	if (!g_RealWiiMoteInitialized && g_Config.bConnectRealWiimote)
+	if (!g_RealWiiMoteInitialized)
 		WiiMoteReal::Initialize();
 
 	CreateGUIControls();
@@ -75,10 +76,6 @@ void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
 	UpdateGUI();
 	g_FrameOpen = false;
 	EndModal(wxID_CLOSE);
-
-	// Shutdown Real WiiMotes so everything is set properly before the game starts
-	if (g_RealWiiMoteInitialized && !g_EmulatorRunning)	
-		WiiMoteReal::Shutdown();
 }
 
 void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
@@ -86,6 +83,7 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 	switch(event.GetId())
 	{
 	case ID_OK:
+		WiiMoteReal::Allocate();
 		g_Config.Save();
 		Close();
 		break;
@@ -108,6 +106,9 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 		m_RecordingConfigFrame->ShowModal();
 		m_RecordingConfigFrame->Destroy();
 		m_RecordingConfigFrame = NULL;
+		break;
+	case ID_REFRESH_REAL:
+		DoRefreshReal();
 		break;
 	}
 }
@@ -147,7 +148,10 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_Extension[i] = new wxChoice(m_Controller[i], IDC_EXTCONNECTED, wxDefaultPosition, wxDefaultSize, arrayStringFor_extension, 0, wxDefaultValidator);
 
 		m_ConnectRealWiimote[i] = new wxCheckBox(m_Controller[i], IDC_CONNECT_REAL, wxT("Connect Real Wiimote"));
-		m_ConnectRealWiimote[i]->SetToolTip(wxT("Connected to the real wiimote. This can not be changed during gameplay."));
+		m_ConnectRealWiimote[i]->SetToolTip(wxT("Connected to the Real WiiMote(s). This can not be changed during gameplay."));
+		m_FoundWiimote[i] = new wxStaticText(m_Controller[i], ID_FOUND_REAL, wxT("Found 0 WiiMotes"));
+		m_RefreshRealWiiMote[i] = new wxButton(m_Controller[i], ID_REFRESH_REAL, wxT("Refresh Real WiiMotes"));
+		m_RefreshRealWiiMote[i]->SetToolTip(wxT("Reconnect to all Real WiiMotes. This is useful if you recently connected another one."));
 
 		//IR Pointer
 		m_TextScreenWidth[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Width: 000"));
@@ -183,6 +187,8 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 
 		m_SizeReal[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Real Wiimote"));
 		m_SizeReal[i]->Add(m_ConnectRealWiimote[i], 0, wxEXPAND | wxALL, 5);
+		m_SizeReal[i]->Add(m_FoundWiimote[i], 0, wxEXPAND | wxALL, 5);
+		m_SizeReal[i]->Add(m_RefreshRealWiiMote[i], 0, wxEXPAND | wxALL, 5);
 
 		m_SizerIRPointerWidth[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SizerIRPointerWidth[i]->Add(m_TextScreenLeft[i], 0, wxEXPAND | (wxTOP), 3);
@@ -273,7 +279,10 @@ void WiimoteBasicConfigDialog::DoConnectReal()
 	if(g_Config.bConnectRealWiimote)
 	{
 		if (!g_RealWiiMoteInitialized)
+		{
 			WiiMoteReal::Initialize();
+			UpdateGUI();
+		}
 	}
 	else
 	{
@@ -284,9 +293,22 @@ void WiimoteBasicConfigDialog::DoConnectReal()
 	}
 }
 
+void WiimoteBasicConfigDialog::DoRefreshReal()
+{
+	if(!g_Config.bConnectRealWiimote || g_EmulatorRunning)
+		return;
+	if (g_RealWiiMoteInitialized)
+		WiiMoteReal::Shutdown();
+	if (!g_RealWiiMoteInitialized)
+	{
+		WiiMoteReal::Initialize();
+		UpdateGUI();;
+	}
+}
+
 void WiimoteBasicConfigDialog::DoUseReal()
 {
-	if (!g_RealWiiMotePresent || !g_Config.bConnectRealWiimote)
+	if (!g_RealWiiMotePresent)
 		return;
 
 	// Clear any eventual events in the Wiimote queue
@@ -353,27 +375,28 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 		case IDC_CONNECT_REAL:
-			g_Config.bConnectRealWiimote = m_ConnectRealWiimote[m_Page]->IsChecked();
-			DoConnectReal();
+			if(!g_EmulatorRunning)
+			{
+				g_Config.bConnectRealWiimote = m_ConnectRealWiimote[m_Page]->IsChecked();
+				DoConnectReal();
+			}
 			break;
 		case IDC_INPUT_SOURCE:
-			WiiMoteEmu::WiiMapping[m_Page].Source = m_InputSource[m_Page]->GetSelection();
-			if (WiiMoteEmu::WiiMapping[m_Page].Source == 2)
+			if (m_InputSource[m_Page]->GetSelection() == 2)
 			{
-				int current_real = 0;
-				for (int i = 0; i < MAX_WIIMOTES; i++)
-					if (WiiMoteEmu::WiiMapping[i].Source == 2)
-						current_real++;
-				if (current_real > WiiMoteReal::g_NumberOfWiiMotes)
+				if(!g_EmulatorRunning)
 				{
-					PanicAlert("You've already assigned all your %i Real WiiMote(s) connected!", WiiMoteReal::g_NumberOfWiiMotes);
-					WiiMoteEmu::WiiMapping[m_Page].Source = 0;
+					WiiMoteEmu::WiiMapping[m_Page].Source = 2;
+					DoUseReal();
 				}
 				else
 				{
-					DoUseReal();
+					PanicAlert("You can't change to Real WiiMote when a game is running!");
+					WiiMoteEmu::WiiMapping[m_Page].Source = 0;
 				}
 			}
+			else
+				WiiMoteEmu::WiiMapping[m_Page].Source = m_InputSource[m_Page]->GetSelection();
 			break;
 		case IDC_SIDEWAYSWIIMOTE:
 			WiiMoteEmu::WiiMapping[m_Page].bSideways = m_SidewaysWiimote[m_Page]->IsChecked();
@@ -431,6 +454,13 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	   could possibly be simplified to one option. */
 	m_ConnectRealWiimote[m_Page]->SetValue(g_Config.bConnectRealWiimote);
 	m_ConnectRealWiimote[m_Page]->Enable(!g_EmulatorRunning);
+	m_RefreshRealWiiMote[m_Page]->Enable(!g_EmulatorRunning && g_Config.bConnectRealWiimote);
+	wxString Found;
+	if(g_Config.bConnectRealWiimote)
+		Found.Printf(wxT("Connected to %i Real WiiMote(s)"), WiiMoteReal::g_NumberOfWiiMotes);
+	else
+		Found.Printf(wxT("Not connected to Real WiiMotes"));
+	m_FoundWiimote[m_Page]->SetLabel(Found);
 
 	m_InputSource[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Source);
 	if (WiiMoteEmu::WiiMapping[m_Page].Source == 2)

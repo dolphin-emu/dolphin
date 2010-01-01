@@ -27,6 +27,7 @@ namespace WiiMoteReal
 {
 
 int Initialize();
+void Allocate();
 void DoState(PointerWrap &p);
 void Shutdown(void);
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);

@@ -54,6 +54,7 @@ bool g_FrameOpen = false;
 bool g_SearchDeviceDone = false;
 bool g_RealWiiMotePresent = false;
 bool g_RealWiiMoteInitialized = false;
+bool g_RealWiiMoteAllocated = false;
 bool g_EmulatedWiiMoteInitialized = false;
 
 // Settings
@@ -236,7 +237,11 @@ void Initialize(void *init)
 	   Wiimote connected or not. It takes no time for Wiiuse to check for
 	   connected Wiimotes. */
 	#if HAVE_WIIUSE
-		if (g_Config.bConnectRealWiimote) WiiMoteReal::Initialize();
+		//if (g_Config.bConnectRealWiimote) WiiMoteReal::Initialize();
+		if(!g_RealWiiMoteInitialized)
+			WiiMoteReal::Initialize();
+		if(!g_RealWiiMoteAllocated)
+			WiiMoteReal::Allocate();
 	#endif
 }
 

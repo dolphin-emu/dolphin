@@ -65,7 +65,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 		wxButton *m_OK,
 				 *m_Cancel,
 				 *m_ButtonMapping,
-				 *m_Recording;
+				 *m_Recording,
+				 *m_RefreshRealWiiMote[MAX_WIIMOTES];
 
 		wxChoice *m_InputSource[MAX_WIIMOTES],
 				 *m_Extension[MAX_WIIMOTES];
@@ -87,7 +88,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 					 *m_TextScreenHeight[MAX_WIIMOTES],
 					 *m_TextScreenLeft[MAX_WIIMOTES],
 					 *m_TextScreenTop[MAX_WIIMOTES],
-					 *m_TextAR[MAX_WIIMOTES];
+					 *m_TextAR[MAX_WIIMOTES],
+					 *m_FoundWiimote[MAX_WIIMOTES];
 
 		wxBoxSizer  *m_MainSizer,
 					*m_SizeBasicGeneral[MAX_WIIMOTES],
@@ -128,6 +130,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 
 			// Real
 			IDC_CONNECT_REAL,
+			ID_FOUND_REAL,
+			ID_REFRESH_REAL,
 
 			IDS_WIDTH,			
 			IDS_HEIGHT, 
@@ -142,6 +146,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 		void IRCursorChanged(wxScrollEvent& event);
 
 		void DoConnectReal(); // Real
+		void DoRefreshReal();
 		void DoUseReal();
 
 		void DoExtensionConnectedDisconnected(int Extension = -1); // Emulated

@@ -64,6 +64,7 @@ struct SRecordingAll
 	extern bool g_SearchDeviceDone;
 	extern bool g_RealWiiMotePresent;
 	extern bool g_RealWiiMoteInitialized;
+	extern bool g_RealWiiMoteAllocated;
 	extern bool g_EmulatedWiiMoteInitialized;
 
 	// Settings
