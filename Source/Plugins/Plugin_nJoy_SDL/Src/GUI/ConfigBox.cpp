@@ -168,7 +168,6 @@ void PADConfigDialognJoy::OnClose(wxCloseEvent& event)
 	// Close pads, unless we are running a game
 	//if (!g_EmulatorRunning)	Shutdown();
 
-	g_FrameOpen = false;
 	EndModal(wxID_CLOSE);
 }
 

@@ -280,10 +280,10 @@ void Config::Load()
 		sprintf(SectionName, "Wiimote%i", i + 1);
 
 		// General
-		iniFile.Get(SectionName, "Source", &WiiMoteEmu::WiiMapping[i].Source, (i) ? 0 : 1);
-		if(WiiMoteEmu::WiiMapping[i].Source == 1)
+		iniFile.Get(SectionName, "Source", &WiiMoteEmu::WiiMapping[i].Source, (i == 0) ? 1 : 0);
+		if (WiiMoteEmu::WiiMapping[i].Source == 1)
 			g_Config.bNumberEmuWiimotes++;
-		else if((WiiMoteEmu::WiiMapping[i].Source == 2) || (WiiMoteEmu::WiiMapping[i].Source == -1))
+		else if (WiiMoteEmu::WiiMapping[i].Source == 2)
 			g_Config.bNumberRealWiimotes++;
 
 		iniFile.Get(SectionName, "Sideways", &WiiMoteEmu::WiiMapping[i].bSideways, false);

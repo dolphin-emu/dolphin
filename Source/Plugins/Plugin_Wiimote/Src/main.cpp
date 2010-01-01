@@ -51,6 +51,7 @@ PLUGIN_GLOBALS* globals = NULL;
 bool g_EmulatorRunning = false;
 u32 g_ISOId = 0;
 bool g_FrameOpen = false;
+bool g_SearchDeviceDone = false;
 bool g_RealWiiMotePresent = false;
 bool g_RealWiiMoteInitialized = false;
 bool g_EmulatedWiiMoteInitialized = false;
@@ -168,12 +169,13 @@ void DllDebugger(HWND _hParent, bool Show) {}
 
 void DllConfig(HWND _hParent)
 {
-	if (!g_EmulatorRunning)
+	if (!g_SearchDeviceDone)
 	{
 		// Load settings
 		g_Config.Load();
 		// We do a pad search before creating the dialog
 		WiiMoteEmu::Search_Devices(WiiMoteEmu::joyinfo, WiiMoteEmu::NumPads, WiiMoteEmu::NumGoodPads);
+		g_SearchDeviceDone = true;
 	}
 
 #if defined(HAVE_WX) && HAVE_WX
@@ -306,7 +308,7 @@ void Wiimote_InterruptChannel(int _number, u16 _channelID, const void* _pData, u
 #endif
 
 	// Decice where to send the message
-	if (WiiMoteEmu::WiiMapping[_number].Source >= 0)
+	if (WiiMoteEmu::WiiMapping[_number].Source <= 1)
 		WiiMoteEmu::InterruptChannel(_number, _channelID, _pData, _Size);
 #if HAVE_WIIUSE
 	else if (g_RealWiiMotePresent)
@@ -326,7 +328,7 @@ void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32
 	DEBUG_LOG(WIIMOTE, "    Data: %s", Temp.c_str());
 #endif
 
-	if (WiiMoteEmu::WiiMapping[_number].Source >= 0)
+	if (WiiMoteEmu::WiiMapping[_number].Source <= 1)
 		WiiMoteEmu::ControlChannel(_number, _channelID, _pData, _Size);
 #if HAVE_WIIUSE
 	else if (g_RealWiiMotePresent)
@@ -355,7 +357,7 @@ void Wiimote_Update(int _number)
 	// This functions will send:
 	//		Emulated Wiimote: Only data reports 0x30-0x37
 	//		Real Wiimote: Both data reports 0x30-0x37 and all other read reports
-	if (WiiMoteEmu::WiiMapping[_number].Source >= 0)
+	if (WiiMoteEmu::WiiMapping[_number].Source <= 1)
 		WiiMoteEmu::Update(_number);
 #if HAVE_WIIUSE
 	else if (g_RealWiiMotePresent)

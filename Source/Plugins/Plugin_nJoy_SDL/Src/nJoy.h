@@ -95,7 +95,6 @@
 	#ifdef _WIN32
 		extern HWND m_hWnd, m_hConsole; // Handle to window
 	#endif
-	extern bool g_FrameOpen;
 	extern int NumPads, NumGoodPads, LastPad; // Number of goods pads
 #endif
 

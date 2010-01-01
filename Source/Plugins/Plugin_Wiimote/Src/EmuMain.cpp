@@ -324,10 +324,11 @@ void Initialize()
 	/* Populate joyinfo for all attached devices and do g_Config.Load() if the
 	   configuration window is not already open, if it's already open we
 	   continue with the settings we have */
-	if(!g_FrameOpen)
+	if(!g_SearchDeviceDone)
 	{
 		g_Config.Load();
 		Search_Devices(joyinfo, NumPads, NumGoodPads);
+		g_SearchDeviceDone = true;
 	}
 
 	// Write default Eeprom data to g_Eeprom[], this may be overwritten by
@@ -616,7 +617,7 @@ void Update(int _number)
 	g_ID = _number;
 
 	// Read input or not
-	if (WiiMapping[g_ID].Source > 0)
+	if (WiiMapping[g_ID].Source == 1)
 	{
 		ReadLinuxKeyboard();
 

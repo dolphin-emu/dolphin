@@ -327,7 +327,7 @@ int Initialize() // None of this code is intelligible, oh well...
 		int tmp = 0;
 		for(int i = 0; i < MAX_WIIMOTES; i++)
 		{
-			if (WiiMoteEmu::WiiMapping[i].Source < 0)
+			if (WiiMoteEmu::WiiMapping[i].Source == 2)
 				tmp++;
 			if (tmp > g_NumberOfWiiMotes)
 				WiiMoteEmu::WiiMapping[i].Source = 0;
@@ -365,8 +365,7 @@ int Initialize() // None of this code is intelligible, oh well...
 	// Create Wiimote classes
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
 	{
-		// Why the fuck are there 2 values for "real wiimote"??? NOBODY KNOWS
-		if ((WiiMoteEmu::WiiMapping[i].Source == -1) || (WiiMoteEmu::WiiMapping[i].Source == 2))
+		if (WiiMoteEmu::WiiMapping[i].Source == 2)
 		{
 			g_WiimoteInUse[i] = true;
 			switch (i)

@@ -299,7 +299,7 @@ bool IsKey(int Key)
 {
 	int Ret = NULL;
 
-	if (WiiMapping[g_ID].Source > 0)
+	if (WiiMapping[g_ID].Source == 1)
 	{
 		int MapKey = WiiMapping[g_ID].Button[Key];
 

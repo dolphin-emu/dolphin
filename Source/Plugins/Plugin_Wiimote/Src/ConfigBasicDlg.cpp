@@ -45,7 +45,6 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_COMMAND_SCROLL(IDS_TOP, WiimoteBasicConfigDialog::IRCursorChanged)
 
 	EVT_TIMER(IDTM_UPDATE_ONCE, WiimoteBasicConfigDialog::UpdateOnce)
-	EVT_TIMER(IDTM_SHUTDOWN, WiimoteBasicConfigDialog::ShutDown)
 END_EVENT_TABLE()
 
 
@@ -62,6 +61,9 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 	m_Page = 0;
 
 	m_bEnableUseRealWiimote = true;
+	// Initialize the Real WiiMotes here, so we get a count of how many were found and set everything properly
+	if (!g_RealWiiMoteInitialized && g_Config.bConnectRealWiimote)
+		WiiMoteReal::Initialize();
 
 	CreateGUIControls();
 	UpdateGUI();
@@ -79,37 +81,12 @@ void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
 		WiiMoteReal::Shutdown();
 }
 
-/* Timeout the shutdown. In Windows at least the g_pReadThread execution will hang at any attempt to
-   call a frame function after the main thread has entered WaitForSingleObject() or any other loop.
-   We must therefore shut down the thread from here and wait for that before we can call ShutDown(). */
-void WiimoteBasicConfigDialog::ShutDown(wxTimerEvent& WXUNUSED(event))
-{
-	if (!WiiMoteReal::g_ThreadGoing)
-	{
-		m_ShutDownTimer->Stop();
-		Close();
-	}
-}
-
 void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 {
 	switch(event.GetId())
 	{
 	case ID_OK:
 		g_Config.Save();
-/*
-		// Wait for the Wiimote thread to stop, then close and shutdown
-		if(!g_EmulatorRunning)
-		{
-			WiiMoteReal::g_Shutdown = true;
-			m_ShutDownTimer->Start(10);
-		}
-		// Close directly
-		else
-		{
-			Close();
-		}
-*/
 		Close();
 		break;
 	case ID_CANCEL:
@@ -275,10 +252,6 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 	#endif
 
 	ControlsCreated = true;
-
-	// Initialize the Real WiiMotes here, so we get a count of how many were found and set everything properly
-	if (!g_RealWiiMoteInitialized && g_Config.bConnectRealWiimote)
-		WiiMoteReal::Initialize();
 }
 
 // Execute a delayed function
@@ -350,7 +323,7 @@ void WiimoteBasicConfigDialog::DoUseReal()
 void WiimoteBasicConfigDialog::DoExtensionConnectedDisconnected(int Extension)
 {
 	// There is no need for this if no game is running
-	if (!g_EmulatorRunning || WiiMoteEmu::WiiMapping[m_Page].Source <= 0)
+	if (!g_EmulatorRunning || WiiMoteEmu::WiiMapping[m_Page].Source != 1)
 		return;
 
 	u8 DataFrame[8] = {0}; // make a blank report for it
@@ -384,25 +357,23 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 			DoConnectReal();
 			break;
 		case IDC_INPUT_SOURCE:
-			if (m_InputSource[m_Page]->GetSelection() == 2)
+			WiiMoteEmu::WiiMapping[m_Page].Source = m_InputSource[m_Page]->GetSelection();
+			if (WiiMoteEmu::WiiMapping[m_Page].Source == 2)
 			{
 				int current_real = 0;
 				for (int i = 0; i < MAX_WIIMOTES; i++)
-					if (WiiMoteEmu::WiiMapping[i].Source < 0)
+					if (WiiMoteEmu::WiiMapping[i].Source == 2)
 						current_real++;
-				if (current_real >= WiiMoteReal::g_NumberOfWiiMotes)
+				if (current_real > WiiMoteReal::g_NumberOfWiiMotes)
 				{
 					PanicAlert("You've already assigned all your %i Real WiiMote(s) connected!", WiiMoteReal::g_NumberOfWiiMotes);
-					m_InputSource[m_Page]->SetSelection(1);
+					WiiMoteEmu::WiiMapping[m_Page].Source = 0;
 				}
 				else
 				{
-					WiiMoteEmu::WiiMapping[m_Page].Source = -1;
 					DoUseReal();
 				}
 			}
-			else
-				WiiMoteEmu::WiiMapping[m_Page].Source = m_InputSource[m_Page]->GetSelection();
 			break;
 		case IDC_SIDEWAYSWIIMOTE:
 			WiiMoteEmu::WiiMapping[m_Page].bSideways = m_SidewaysWiimote[m_Page]->IsChecked();
@@ -460,14 +431,9 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	   could possibly be simplified to one option. */
 	m_ConnectRealWiimote[m_Page]->SetValue(g_Config.bConnectRealWiimote);
 	m_ConnectRealWiimote[m_Page]->Enable(!g_EmulatorRunning);
-	m_InputSource[m_Page]->Enable(!g_EmulatorRunning);
 
-	if (WiiMoteEmu::WiiMapping[m_Page].Source < 0)
-		m_InputSource[m_Page]->SetSelection(2);
-	else
-		m_InputSource[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Source);
-	
-	if (m_InputSource[m_Page]->GetSelection() == 2)
+	m_InputSource[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Source);
+	if (WiiMoteEmu::WiiMapping[m_Page].Source == 2)
 	{
 		m_SidewaysWiimote[m_Page]->Enable(false);
 		m_UprightWiimote[m_Page]->Enable(false);
@@ -483,7 +449,6 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	m_SidewaysWiimote[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bSideways);
 	m_UprightWiimote[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bUpright);
 	m_WiiMotionPlusConnected[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bMotionPlusConnected);
-
 	m_Extension[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected);
 
 	// Update the Wiimote IR pointer calibration

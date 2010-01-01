@@ -284,7 +284,7 @@ struct CONTROLLER_MAPPING_WII	// WII PAD MAPPING
 	bool bCircle2Square;
 	std::string Diagonal;
 
-	int Source; // 0: none, 1: emu, -1: real
+	int Source; // 0: inactive, 1: emu, 2: real
 	bool bSideways;
 	bool bUpright;
 	bool bMotionPlusConnected;

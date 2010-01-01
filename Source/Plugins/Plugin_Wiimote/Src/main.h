@@ -61,6 +61,7 @@ struct SRecordingAll
 	extern bool g_EmulatorRunning;
 	extern u32 g_ISOId;
 	extern bool g_FrameOpen;
+	extern bool g_SearchDeviceDone;
 	extern bool g_RealWiiMotePresent;
 	extern bool g_RealWiiMoteInitialized;
 	extern bool g_EmulatedWiiMoteInitialized;
