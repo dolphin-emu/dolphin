@@ -271,7 +271,8 @@ void SendAcc(u8 _ReportID)
 void ClearEvents()
 {
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
-		g_WiiMotes[i]->ClearEvents();
+		if (g_WiimoteInUse[i])
+			g_WiiMotes[i]->ClearEvents();
 }
 
 // Flash lights, and if connecting, also rumble
@@ -296,7 +297,7 @@ void FlashLights(bool Connect)
 	}
 }
 
-int Initialize()
+int Initialize() // None of this code is intelligible, oh well...
 {
 	// Return if already initialized
 	if (g_RealWiiMoteInitialized)
@@ -362,21 +363,14 @@ int Initialize()
 		FlashLights(true);
 
 	// Create Wiimote classes
-	int current_number = 0;
-	for (int i = 0; i < g_NumberOfWiiMotes; i++) {
-
-			// Determine the number of the current WiiMote
-			for (; current_number < MAX_WIIMOTES; current_number++)
-			{
-				if (g_WiimoteInUse[current_number] == true)
-					continue;
-				if (WiiMoteEmu::WiiMapping[current_number].Source < 0)
-					break;
-			}
-		g_WiiMotes[current_number] = new CWiiMote(current_number, g_WiiMotesFromWiiUse[i]);
-		g_WiimoteInUse[current_number] = true;
-		switch (current_number)
+	for (int i = 0; i < g_NumberOfWiiMotes; i++)
+	{
+		// Why the fuck are there 2 values for "real wiimote"??? NOBODY KNOWS
+		if ((WiiMoteEmu::WiiMapping[i].Source == -1) || (WiiMoteEmu::WiiMapping[i].Source == 2))
 		{
+			g_WiimoteInUse[i] = true;
+			switch (i)
+			{
 			case 0:
 				wiiuse_set_leds(g_WiiMotesFromWiiUse[i], WIIMOTE_LED_1);
 				break;
@@ -387,11 +381,14 @@ int Initialize()
 				wiiuse_set_leds(g_WiiMotesFromWiiUse[i], WIIMOTE_LED_3);
 				break;
 			case 3:
-			default:
-				wiiuse_set_leds(g_WiiMotesFromWiiUse[i], WIIMOTE_LED_NONE);
+				wiiuse_set_leds(g_WiiMotesFromWiiUse[i], WIIMOTE_LED_4);
 				break;
+			default:
+				PanicAlert("Trying to create real wiimote %i WTF", i);
+				break;
+			}
+			g_WiiMotes[i] = new CWiiMote(i, g_WiiMotesFromWiiUse[i]);
 		}
-		DEBUG_LOG(WIIMOTE, "Real WiiMote allocated as WiiMote #%i", current_number);
 	}
 
 	// Create a new thread and start listening for Wiimote data
