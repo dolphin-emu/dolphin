@@ -91,8 +91,6 @@ LONG WINAPI MyUnhandledExceptionFilter(LPEXCEPTION_POINTERS e) {
 
 bool DolphinApp::OnInit()
 {
-
-	NOTICE_LOG(BOOT, "Starting application");
 	// Declarations and definitions
 	bool UseDebugger = false;
 	bool UseLogger = false;

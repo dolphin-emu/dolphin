@@ -144,7 +144,6 @@ void SConfig::SaveSettings()
 
 void SConfig::LoadSettings()
 {
-	NOTICE_LOG(BOOT, "Loading Settings from %s", CONFIG_FILE);
 	IniFile ini;
 #if defined(__APPLE__)
 	ini.Load(File::GetConfigDirectory());
