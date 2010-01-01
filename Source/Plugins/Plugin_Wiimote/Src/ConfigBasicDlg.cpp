@@ -75,7 +75,7 @@ void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
 	EndModal(wxID_CLOSE);
 
 	// Shutdown Real WiiMotes so everything is set properly before the game starts
-	if (g_RealWiiMoteInitialized)	
+	if (g_RealWiiMoteInitialized && !g_EmulatorRunning)	
 		WiiMoteReal::Shutdown();
 }
 
