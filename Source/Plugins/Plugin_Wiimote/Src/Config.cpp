@@ -271,6 +271,8 @@ void Config::Load()
 	iniFile.Get("Real", "AccNunNeutralY", &iAccNunNeutralY, 0);
 	iniFile.Get("Real", "AccNunNeutralZ", &iAccNunNeutralZ, 0);
 
+	g_Config.bNumberEmuWiimotes = g_Config.bNumberRealWiimotes = 0;
+
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
 		// Slot specific settings
@@ -279,6 +281,11 @@ void Config::Load()
 
 		// General
 		iniFile.Get(SectionName, "Source", &WiiMoteEmu::WiiMapping[i].Source, (i) ? 0 : 1);
+		if(WiiMoteEmu::WiiMapping[i].Source == 1)
+			g_Config.bNumberEmuWiimotes++;
+		else if((WiiMoteEmu::WiiMapping[i].Source == 2) || (WiiMoteEmu::WiiMapping[i].Source == -1))
+			g_Config.bNumberRealWiimotes++;
+
 		iniFile.Get(SectionName, "Sideways", &WiiMoteEmu::WiiMapping[i].bSideways, false);
 		iniFile.Get(SectionName, "Upright", &WiiMoteEmu::WiiMapping[i].bUpright, false);
 		iniFile.Get(SectionName, "ExtensionConnected", &WiiMoteEmu::WiiMapping[i].iExtensionConnected, WiiMoteEmu::EXT_NONE);

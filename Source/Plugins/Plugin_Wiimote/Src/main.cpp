@@ -310,7 +310,7 @@ void Wiimote_InterruptChannel(int _number, u16 _channelID, const void* _pData, u
 		WiiMoteEmu::InterruptChannel(_number, _channelID, _pData, _Size);
 #if HAVE_WIIUSE
 	else if (g_RealWiiMotePresent)
-		WiiMoteReal::InterruptChannel(_channelID, _pData, _Size);	// TODO: Multi-Wiimote
+		WiiMoteReal::InterruptChannel(_number, _channelID, _pData, _Size);
 #endif
 }
 
@@ -330,7 +330,7 @@ void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32
 		WiiMoteEmu::ControlChannel(_number, _channelID, _pData, _Size);
 #if HAVE_WIIUSE
 	else if (g_RealWiiMotePresent)
-		WiiMoteReal::ControlChannel(_channelID, _pData, _Size);	// TODO: Multi-Wiimote
+		WiiMoteReal::ControlChannel(_number, _channelID, _pData, _Size);
 #endif
 }
 
@@ -359,7 +359,7 @@ void Wiimote_Update(int _number)
 		WiiMoteEmu::Update(_number);
 #if HAVE_WIIUSE
 	else if (g_RealWiiMotePresent)
-		WiiMoteReal::Update();	// TODO: Multi-Wiimote
+		WiiMoteReal::Update(_number);
 #endif
 
 /*

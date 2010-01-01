@@ -1402,7 +1402,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDisconnect(u8* _Input)
 	
 	PanicAlert("Wiimote (%i) has been disconnected by system due to idle time out.\n"
 		"Don't panic, this is quite a normal behavior for power saving.\n\n"
-		"To reconnect, Pasue game and Click \"Menu -> Tools -> Connect Wiimote\"", (pDiscon->con_handle & 0xFF) + 1);
+		"To reconnect, Click \"Menu -> Tools -> Connect Wiimote\"", (pDiscon->con_handle & 0xFF) + 1);
 
 	CWII_IPC_HLE_WiiMote* pWiimote = AccessWiiMote(pDiscon->con_handle);
 	if (pWiimote)

@@ -73,6 +73,10 @@ void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
 	UpdateGUI();
 	g_FrameOpen = false;
 	EndModal(wxID_CLOSE);
+
+	// Shutdown Real WiiMotes so everything is set properly before the game starts
+	if (g_RealWiiMoteInitialized)	
+		WiiMoteReal::Shutdown();
 }
 
 /* Timeout the shutdown. In Windows at least the g_pReadThread execution will hang at any attempt to
@@ -80,7 +84,7 @@ void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
    We must therefore shut down the thread from here and wait for that before we can call ShutDown(). */
 void WiimoteBasicConfigDialog::ShutDown(wxTimerEvent& WXUNUSED(event))
 {
-	if(!WiiMoteReal::g_ThreadGoing)
+	if (!WiiMoteReal::g_ThreadGoing)
 	{
 		m_ShutDownTimer->Stop();
 		Close();
@@ -271,6 +275,10 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 	#endif
 
 	ControlsCreated = true;
+
+	// Initialize the Real WiiMotes here, so we get a count of how many were found and set everything properly
+	if (!g_RealWiiMoteInitialized && g_Config.bConnectRealWiimote)
+		WiiMoteReal::Initialize();
 }
 
 // Execute a delayed function
@@ -323,7 +331,7 @@ void WiimoteBasicConfigDialog::DoUseReal()
 	DEBUG_LOG(WIIMOTE, "DoUseReal()  Connect extension: %i", !UsingExtension);
 	DoExtensionConnectedDisconnected(UsingExtension ? 1 : 0);
 
-	if(g_EmulatorRunning)
+	if (g_EmulatorRunning)
 	{
 		// Disable the checkbox for a moment
 		SetCursor(wxCursor(wxCURSOR_WAIT));
@@ -342,14 +350,14 @@ void WiimoteBasicConfigDialog::DoUseReal()
 void WiimoteBasicConfigDialog::DoExtensionConnectedDisconnected(int Extension)
 {
 	// There is no need for this if no game is running
-	if(!g_EmulatorRunning || WiiMoteEmu::WiiMapping[m_Page].Source <= 0)
+	if (!g_EmulatorRunning || WiiMoteEmu::WiiMapping[m_Page].Source <= 0)
 		return;
 
 	u8 DataFrame[8] = {0}; // make a blank report for it
 	wm_request_status *rs = (wm_request_status*)DataFrame;
 
 	// Check if a game is running, in that case change the status
-	if(WiiMoteEmu::g_ReportingChannel[m_Page] > 0)
+	if (WiiMoteEmu::g_ReportingChannel[m_Page] > 0)
 	{
 		WiiMoteEmu::g_ID = m_Page;
 		WiiMoteEmu::WmRequestStatus(WiiMoteEmu::g_ReportingChannel[m_Page], rs, Extension);
@@ -371,45 +379,54 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case IDC_CONNECT_REAL:
-		g_Config.bConnectRealWiimote = m_ConnectRealWiimote[m_Page]->IsChecked();
-		DoConnectReal();
-		break;
-	case IDC_INPUT_SOURCE:
-		if (m_InputSource[m_Page]->GetSelection() == 2)
-		{
-			g_Config.bUseRealWiimote = true;
-			WiiMoteEmu::WiiMapping[m_Page].Source = -1;
-			DoUseReal();
-		}
-		else
-		{
-			g_Config.bUseRealWiimote = false;
-			WiiMoteEmu::WiiMapping[m_Page].Source = m_InputSource[m_Page]->GetSelection();
-		}
-		break;
-	case IDC_SIDEWAYSWIIMOTE:
-		WiiMoteEmu::WiiMapping[m_Page].bSideways = m_SidewaysWiimote[m_Page]->IsChecked();
-		break;
-	case IDC_UPRIGHTWIIMOTE:
-		WiiMoteEmu::WiiMapping[m_Page].bUpright = m_UprightWiimote[m_Page]->IsChecked();
-		break;
-	case IDC_MOTIONPLUSCONNECTED:
-		WiiMoteEmu::WiiMapping[m_Page].bMotionPlusConnected = m_WiiMotionPlusConnected[m_Page]->IsChecked();
-		break;
-	case IDC_EXTCONNECTED:
-		// Disconnect the extension so that the game recognize the change
-		DoExtensionConnectedDisconnected(WiiMoteEmu::EXT_NONE);
-		// It doesn't seem to be needed but shouldn't it at least take 25 ms to
-		// reconnect an extension after we disconnected another?
-		if(g_EmulatorRunning) SLEEP(25);
-		// Update status
-		WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected = m_Extension[m_Page]->GetSelection();
-		// Copy the calibration data
-		WiiMoteEmu::UpdateExtRegisterBlocks(m_Page);
-		// Generate connect/disconnect status event
-		DoExtensionConnectedDisconnected();
-		break;
+		case IDC_CONNECT_REAL:
+			g_Config.bConnectRealWiimote = m_ConnectRealWiimote[m_Page]->IsChecked();
+			DoConnectReal();
+			break;
+		case IDC_INPUT_SOURCE:
+			if (m_InputSource[m_Page]->GetSelection() == 2)
+			{
+				int current_real = 0;
+				for (int i = 0; i < MAX_WIIMOTES; i++)
+					if (WiiMoteEmu::WiiMapping[i].Source < 0)
+						current_real++;
+				if (current_real >= WiiMoteReal::g_NumberOfWiiMotes)
+				{
+					PanicAlert("You've already assigned all your %i Real WiiMote(s) connected!", WiiMoteReal::g_NumberOfWiiMotes);
+					m_InputSource[m_Page]->SetSelection(1);
+				}
+				else
+				{
+					WiiMoteEmu::WiiMapping[m_Page].Source = -1;
+					DoUseReal();
+				}
+			}
+			else
+				WiiMoteEmu::WiiMapping[m_Page].Source = m_InputSource[m_Page]->GetSelection();
+			break;
+		case IDC_SIDEWAYSWIIMOTE:
+			WiiMoteEmu::WiiMapping[m_Page].bSideways = m_SidewaysWiimote[m_Page]->IsChecked();
+			break;
+		case IDC_UPRIGHTWIIMOTE:
+			WiiMoteEmu::WiiMapping[m_Page].bUpright = m_UprightWiimote[m_Page]->IsChecked();
+			break;
+		case IDC_MOTIONPLUSCONNECTED:
+			WiiMoteEmu::WiiMapping[m_Page].bMotionPlusConnected = m_WiiMotionPlusConnected[m_Page]->IsChecked();
+			break;
+		case IDC_EXTCONNECTED:
+			// Disconnect the extension so that the game recognize the change
+			DoExtensionConnectedDisconnected(WiiMoteEmu::EXT_NONE);
+			// It doesn't seem to be needed but shouldn't it at least take 25 ms to
+			// reconnect an extension after we disconnected another?
+			if(g_EmulatorRunning)
+				SLEEP(25);
+			// Update status
+			WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected = m_Extension[m_Page]->GetSelection();
+			// Copy the calibration data
+			WiiMoteEmu::UpdateExtRegisterBlocks(m_Page);
+			// Generate connect/disconnect status event
+			DoExtensionConnectedDisconnected();
+			break;
 	}
 	UpdateGUI();
 }
@@ -443,11 +460,25 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	   could possibly be simplified to one option. */
 	m_ConnectRealWiimote[m_Page]->SetValue(g_Config.bConnectRealWiimote);
 	m_ConnectRealWiimote[m_Page]->Enable(!g_EmulatorRunning);
+	m_InputSource[m_Page]->Enable(!g_EmulatorRunning);
 
 	if (WiiMoteEmu::WiiMapping[m_Page].Source < 0)
 		m_InputSource[m_Page]->SetSelection(2);
 	else
 		m_InputSource[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Source);
+	
+	if (m_InputSource[m_Page]->GetSelection() == 2)
+	{
+		m_SidewaysWiimote[m_Page]->Enable(false);
+		m_UprightWiimote[m_Page]->Enable(false);
+		m_Extension[m_Page]->Enable(false);
+	}
+	else
+	{
+		m_SidewaysWiimote[m_Page]->Enable(true);
+		m_UprightWiimote[m_Page]->Enable(true);
+		m_Extension[m_Page]->Enable(true);
+	}
 
 	m_SidewaysWiimote[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bSideways);
 	m_UprightWiimote[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bUpright);

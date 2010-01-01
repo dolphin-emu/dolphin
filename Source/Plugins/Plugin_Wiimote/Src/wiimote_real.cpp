@@ -62,6 +62,7 @@ int					g_UpdateCounter = 0;
 bool				g_RunTemporary = false;
 int					g_RunTemporaryCountdown = 0;
 u8					g_EventBuffer[32];
+bool				g_WiimoteInUse[MAX_WIIMOTES];
 
 // Probably this class should be in its own file
 
@@ -171,7 +172,8 @@ void Update()
     if (m_EventReadQueue.empty())
     {
 		// Send the data report
-        if (m_LastReportValid) SendEvent(m_LastReport);
+        if (m_LastReportValid)
+			SendEvent(m_LastReport);
     }
     else
     {
@@ -219,7 +221,8 @@ private:
 void SendEvent(SEvent& _rEvent)
 {
     // We don't have an answer channel
-    if (m_channelID == 0) return;
+    if (m_channelID == 0)
+		return;
 
     // Check event buffer
     u8 Buffer[1024];
@@ -235,7 +238,7 @@ void SendEvent(SEvent& _rEvent)
     Offset += sizeof(_rEvent.m_PayLoad); 
 
 	// Send it
-	g_WiimoteInitialize.pWiimoteInput(0, m_channelID, Buffer, Offset); // TODO: Multi-Wiimote
+	g_WiimoteInitialize.pWiimoteInput(m_WiimoteNumber, m_channelID, Buffer, Offset);
 
 	// Debugging
 	// ReadDebugging(false, Buffer, Offset);  
@@ -255,8 +258,8 @@ void SendAcc(u8 _ReportID)
 	DataAcc[2] = 0x00;
 	DataAcc[3] = _ReportID; // Reporting mode
 
-	// TODO: Update for multiple wiimotes?
-	wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[0], (byte*)DataAcc, MAX_PAYLOAD);
+	for (int i = 0; i < g_NumberOfWiiMotes; i++)
+		wiiuse_io_write(WiiMoteReal::g_WiiMotesFromWiiUse[i], (byte*)DataAcc, MAX_PAYLOAD);
 
 	std::string Temp = ArrayToString(DataAcc, 28, 0, 30);
 	DEBUG_LOG(WIIMOTE, "SendAcc: %s", Temp.c_str());
@@ -277,37 +280,59 @@ void FlashLights(bool Connect)
 
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
 	{
-		if(Connect)	wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[i], 1);
+		if (Connect)
+			wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[i], 1);
 		wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[i], WIIMOTE_LED_1 | WIIMOTE_LED_2 | WIIMOTE_LED_3 | WIIMOTE_LED_4);
 	}
 	SLEEP(100);
 	
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
 	{
-		if(Connect)
-		{
+		if (Connect)
 			wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[i], 0);
-
-			// End with light 1 or 4
-			wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[i], WIIMOTE_LED_1);
-		}
-		else wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[i], WIIMOTE_LED_4);
+		// We are not connecting, so turn off all the LEDs
+		else
+			wiiuse_set_leds(WiiMoteReal::g_WiiMotesFromWiiUse[i], WIIMOTE_LED_NONE);
 	}
 }
 
 int Initialize()
 {
 	// Return if already initialized
-	if (g_RealWiiMoteInitialized) return g_NumberOfWiiMotes;
+	if (g_RealWiiMoteInitialized)
+		return g_NumberOfWiiMotes;
 
 	// Clear the wiimote classes
     memset(g_WiiMotes, 0, sizeof(CWiiMote*) * MAX_WIIMOTES);
+	for (int i = 0; i < MAX_WIIMOTES; i++)
+		g_WiimoteInUse[i] = false;
+
+	g_RealWiiMotePresent = false;
+
+	if (!g_Config.bConnectRealWiimote)
+		return 0;
 
 	// Call Wiiuse.dll
     g_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
 	g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
-	if (g_NumberOfWiiMotes > 0) g_RealWiiMotePresent = true;
+	if (g_NumberOfWiiMotes > 0)
+		g_RealWiiMotePresent = true;
 	DEBUG_LOG(WIIMOTE, "Found No of Wiimotes: %i", g_NumberOfWiiMotes);
+	DEBUG_LOG(WIIMOTE, "Using %i Real Wiimote(s) and %i Emu Wiimote(s)", g_Config.bNumberRealWiimotes, g_Config.bNumberEmuWiimotes);
+	
+	// We want to use more Real WiiMotes than we really have, so we disable some...
+	if (g_Config.bNumberRealWiimotes > g_NumberOfWiiMotes)
+	{
+		int tmp = 0;
+		for(int i = 0; i < MAX_WIIMOTES; i++)
+		{
+			if (WiiMoteEmu::WiiMapping[i].Source < 0)
+				tmp++;
+			if (tmp > g_NumberOfWiiMotes)
+				WiiMoteEmu::WiiMapping[i].Source = 0;
+		}
+	}
+
 
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
 	{
@@ -332,19 +357,50 @@ int Initialize()
 		DEBUG_LOG(WIIMOTE, "Connected: %i", Connect);
 	#endif
 
-	// If we are connecting from the config window without a game running we flash the lights
-	if (!g_EmulatorRunning && g_RealWiiMotePresent) FlashLights(true);
+	// If we are connecting from the config window without a game running we set the LEDs
+	if (!g_EmulatorRunning && g_RealWiiMotePresent)
+		FlashLights(true);
 
 	// Create Wiimote classes
-	for (int i = 0; i < g_NumberOfWiiMotes; i++)
-		g_WiiMotes[i] = new CWiiMote(i + 1, g_WiiMotesFromWiiUse[i]);
+	int current_number = 0;
+	for (int i = 0; i < g_NumberOfWiiMotes; i++) {
+
+			// Determine the number of the current WiiMote
+			for (; current_number < MAX_WIIMOTES; current_number++)
+			{
+				if (g_WiimoteInUse[current_number] == true)
+					continue;
+				if (WiiMoteEmu::WiiMapping[current_number].Source < 0)
+					break;
+			}
+		g_WiiMotes[current_number] = new CWiiMote(current_number, g_WiiMotesFromWiiUse[i]);
+		g_WiimoteInUse[current_number] = true;
+		switch (current_number)
+		{
+			case 0:
+				wiiuse_set_leds(g_WiiMotesFromWiiUse[i], WIIMOTE_LED_1);
+				break;
+			case 1:
+				wiiuse_set_leds(g_WiiMotesFromWiiUse[i], WIIMOTE_LED_2);
+				break;
+			case 2:
+				wiiuse_set_leds(g_WiiMotesFromWiiUse[i], WIIMOTE_LED_3);
+				break;
+			case 3:
+			default:
+				wiiuse_set_leds(g_WiiMotesFromWiiUse[i], WIIMOTE_LED_NONE);
+				break;
+		}
+		DEBUG_LOG(WIIMOTE, "Real WiiMote allocated as WiiMote #%i", current_number);
+	}
 
 	// Create a new thread and start listening for Wiimote data
 	if (g_NumberOfWiiMotes > 0)
 		g_pReadThread = new Common::Thread(ReadWiimote_ThreadFunc, NULL);
 
-	// If we are not using the emulated wiimote we can run the thread temporary until the data has beeen copied
-	if(g_Config.bUseRealWiimote) g_RunTemporary = true;
+	// If we are not using any emulated wiimotes we can run the thread temporary until the data has beeen copied
+	if (g_Config.bNumberEmuWiimotes == 0)
+		g_RunTemporary = true;
 
 	/* Allocate memory and copy the Wiimote eeprom accelerometer neutral values
 	   to g_Eeprom. Unlike with and extension we have to do this here, because
@@ -353,12 +409,15 @@ int Initialize()
 	   we update its eeprom? In any case it's probably better to let the
 	   current calibration be where it is and adjust the global values after
 	   that to avoid overwriting critical data on any Wiimote. */
-	// TODO: Update for multiple wiimotes?
-	byte *data = (byte*)malloc(sizeof(byte) * sizeof(WiiMoteEmu::EepromData_0));
-	wiiuse_read_data(g_WiiMotesFromWiiUse[0], data, 0, sizeof(WiiMoteEmu::EepromData_0));
+	for (int i = 0; i < g_NumberOfWiiMotes; i++)
+	{
+		byte *data = (byte*)malloc(sizeof(byte) * sizeof(WiiMoteEmu::EepromData_0));
+		wiiuse_read_data(g_WiiMotesFromWiiUse[i], data, 0, sizeof(WiiMoteEmu::EepromData_0));
+	}
 
 	// Don't run the Wiimote thread if no wiimotes were found
-	if (g_NumberOfWiiMotes > 0) g_Shutdown = false;
+	if (g_NumberOfWiiMotes > 0)
+		g_Shutdown = false;
 
 	// Initialized, even if we didn't find a Wiimote
 	g_RealWiiMoteInitialized = true;
@@ -402,28 +461,24 @@ void Shutdown(void)
 	g_RealWiiMotePresent = false;
 }
 
-void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
+void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
-	//DEBUG_LOG(WIIMOTE, "Real InterruptChannel");
-	// TODO: Update for multiple Wiimotes
-	g_WiiMotes[0]->SendData(_channelID, (const u8*)_pData, _Size);
+	//DEBUG_LOG(WIIMOTE, "Real InterruptChannel on WiiMote #%i", _WiimoteNumber);
+	g_WiiMotes[_WiimoteNumber]->SendData(_channelID, (const u8*)_pData, _Size);
 }
 
-void ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
+void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
-	//DEBUG_LOG(WIIMOTE, "Real ControlChannel");
-    g_WiiMotes[0]->SendData(_channelID, (const u8*)_pData, _Size);
+	//DEBUG_LOG(WIIMOTE, "Real ControlChannel on WiiMote #%i", _WiimoteNumber);
+	g_WiiMotes[_WiimoteNumber]->SendData(_channelID, (const u8*)_pData, _Size);
 }
 
 
 // Read the Wiimote once
-void Update()
+void Update(int _WiimoteNumber)
 {
-	//DEBUG_LOG(WIIMOTE, "Real Update");
-	for (int i = 0; i < g_NumberOfWiiMotes; i++)
-	{
-		g_WiiMotes[i]->Update();
-	}
+	//DEBUG_LOG(WIIMOTE, "Real Update on WiiMote #%i", _WiimoteNumber);
+	g_WiiMotes[_WiimoteNumber]->Update();
 }
 
 /* Continuously read the Wiimote status. However, the actual sending of data
@@ -436,8 +491,13 @@ THREAD_RETURN ReadWiimote_ThreadFunc(void* arg)
 	{
 		// We need g_ThreadGoing to do a manual WaitForSingleObject() from the configuration window
 		g_ThreadGoing = true;
-		if(g_Config.bUseRealWiimote && !g_RunTemporary)
-			for (int i = 0; i < g_NumberOfWiiMotes; i++) g_WiiMotes[i]->ReadData();
+		// There is at least one Real Wiimote in use
+		if (g_Config.bNumberRealWiimotes > 0 && !g_RunTemporary)
+		{
+			for (int i = 0; i < MAX_WIIMOTES; i++)
+				if (g_WiimoteInUse[i] == true)
+					g_WiiMotes[i]->ReadData();
+		}
 		else
 			ReadWiimote();
 		g_ThreadGoing = false;
