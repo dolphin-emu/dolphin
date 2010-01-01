@@ -654,11 +654,6 @@ void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED (event))
 // Stop the emulation
 void CFrame::DoStop()
 {
-	// Rerecording
-	#ifdef RERECORDING
-		Core::RerecordingStop();
-	#endif
-
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		// Ask for confirmation in case the user accidently clicked Stop / Escape
@@ -674,6 +669,9 @@ void CFrame::DoStop()
 	
 		Core::Stop();
 		UpdateGUI();
+
+		// Clean framerate indications from the status bar.
+		m_pStatusBar->SetStatusText(wxT(" "), 0);
 	}
 }
 

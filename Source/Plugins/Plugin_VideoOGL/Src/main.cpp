@@ -107,6 +107,7 @@ static bool s_PluginInitialized = false;
 
 static u32 s_swapRequested = FALSE;
 static u32 s_efbAccessRequested = FALSE;
+static u32 s_FifoShuttingDown = FALSE;
 static bool ForceSwap = true;
 
 bool IsD3D()
@@ -295,8 +296,9 @@ void DllConfig(HWND _hParent)
 	g_Config.UpdateProjectionHack();
 	UpdateActiveConfig();
 #if defined(HAVE_WX) && HAVE_WX
-// Prevent user to show more than 1 config window at same time
-	if (allowConfigShow) {
+	// Prevent user to show more than 1 config window at same time
+	if (allowConfigShow)
+	{
 		m_ConfigFrame = new GFXConfigDialogOGL(GetParentedWxWindow(_hParent));
 
 #if defined(_WIN32)
@@ -307,15 +309,18 @@ void DllConfig(HWND _hParent)
 		CocaAddResolutions();
 #endif
 
-	// CreateGUIControls() will crash because the array is empty.
-	if (m_ConfigFrame->arrayStringFor_FullscreenCB.size() == 0) {
-		m_ConfigFrame->AddFSReso("<No resolutions found>");
-		m_ConfigFrame->AddWindowReso("<No resolutions found>");
-	}
-	
-	allowConfigShow = false;
-	m_ConfigFrame->CreateGUIControls();
-	allowConfigShow = m_ConfigFrame->ShowModal() == 1 ? true : false;
+		// CreateGUIControls() will crash because the array is empty.
+		if (m_ConfigFrame->arrayStringFor_FullscreenCB.size() == 0) {
+			m_ConfigFrame->AddFSReso("<No resolutions found>");
+			m_ConfigFrame->AddWindowReso("<No resolutions found>");
+		}
+		
+		allowConfigShow = false;
+		m_ConfigFrame->CreateGUIControls();
+		allowConfigShow = m_ConfigFrame->ShowModal() == 1 ? true : false;
+
+		delete m_ConfigFrame;
+		m_ConfigFrame = 0;
 	}
 #endif
 }
@@ -382,6 +387,10 @@ void Video_Prepare(void)
         exit(1);
     }
 
+	s_swapRequested = FALSE;
+	s_efbAccessRequested = FALSE;
+	s_FifoShuttingDown = FALSE;
+
     CommandProcessor::Init();
     PixelEngine::Init();
 
@@ -400,8 +409,6 @@ void Video_Prepare(void)
     VertexLoaderManager::Init();
     TextureConverter::Init();
 	DLCache::Init();
-	s_swapRequested = FALSE;
-	s_efbAccessRequested = FALSE;
 
 	s_PluginInitialized = true;
 	INFO_LOG(VIDEO, "Video plugin initialized.");
@@ -414,6 +421,7 @@ void Shutdown(void)
 
 	s_efbAccessRequested = FALSE;
 	s_swapRequested = FALSE;
+	s_FifoShuttingDown = FALSE;
 
 	DLCache::Shutdown();
 	Fifo_Shutdown();
@@ -443,6 +451,8 @@ void Video_EnterLoop()
 void Video_ExitLoop()
 {
 	Fifo_ExitLoop();
+
+	s_FifoShuttingDown = TRUE;
 }
 
 // Screenshot and screen message
@@ -517,7 +527,7 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		// Make sure previous swap request has made it to the screen
 		if (g_VideoInitialize.bOnThread)
 		{
-			while (Common::AtomicLoadAcquire(s_swapRequested) && s_PluginInitialized)
+			while (Common::AtomicLoadAcquire(s_swapRequested) && !s_FifoShuttingDown)
 				Common::YieldCPU();
 		}
 		else
@@ -570,7 +580,7 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 
 		if (g_VideoInitialize.bOnThread)
 		{
-			while (Common::AtomicLoadAcquire(s_efbAccessRequested) && s_PluginInitialized)
+			while (Common::AtomicLoadAcquire(s_efbAccessRequested) && !s_FifoShuttingDown)
 				Common::YieldCPU();
 		}
 		else

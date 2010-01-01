@@ -102,7 +102,6 @@ SCoreStartupParameter g_CoreStartupParameter;
 // This event is set when the emuthread starts.
 Common::Event emuThreadGoing;
 Common::Event cpuRunloopQuit;
-Common::Event gpuRunloopQuit;
 
 // Display messages and return values
 
@@ -208,32 +207,32 @@ void Stop()  // - Hammertime!
 	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 		return;
 
-	WARN_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
-
 	// Stop the CPU
+	WARN_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
 	PowerPC::Stop();
 	CCPU::StepOpcode();  // Kick it if it's waiting (code stepping wait loop)
 
-	// If dual core mode, the CPU thread should immediately exit here.
 	if (_CoreParameter.bCPUThread)
 	{
+		// Video_EnterLoop() should now exit so that EmuThread() will continue concurrently with the rest
+		// of the commands in this function. We no longer rely on Postmessage. 
 		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Wait for Video Loop to exit ...").c_str());
 		CPluginManager::GetInstance().GetVideo()->Video_ExitLoop();
-	}
 
-	// Video_EnterLoop() should now exit so that EmuThread() will continue concurrently with the rest
-	// of the commands in this function. We no longer rely on Postmessage. 
+		// Wait until the CPU finishes exiting the main run loop
+		cpuRunloopQuit.Wait();
+	}
 
 	// Close the trace file
 	Core::StopTrace();
-	WARN_LOG(CONSOLE, "%s", StopMessage(true, "Shutting down core").c_str());
 
 	// Update mouse pointer
 	Host_SetWaitCursor(false);
 
 	WARN_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
 #ifdef _WIN32
-	DWORD Wait = g_EmuThread->WaitForDeath(5000);
+	// The whole shutdown process shouldn't take more than ~200ms. 2000ms timeout is more than enough.
+	DWORD Wait = g_EmuThread->WaitForDeath(2000);
 	switch(Wait)
 	{
 		case WAIT_ABANDONED:
@@ -292,11 +291,9 @@ THREAD_RETURN CpuThread(void *pArg)
 	CCPU::Run();
 
 	// The shutdown function of OpenGL is not thread safe
-	// So we have to do it here
+	// So we have to call the shutdown from the thread that started it.
 	if (!_CoreParameter.bCPUThread)
 	{
-		// Wait for GPU loop to exit
-		gpuRunloopQuit.Wait();
 		Plugins.ShutdownVideoPlugin();
 	}
 
@@ -310,7 +307,6 @@ THREAD_RETURN CpuThread(void *pArg)
 THREAD_RETURN EmuThread(void *pArg)
 {
 	cpuRunloopQuit.Init();
-	gpuRunloopQuit.Init();
 
 	Common::SetCurrentThreadName("Emuthread - starting");
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
@@ -320,7 +316,7 @@ THREAD_RETURN EmuThread(void *pArg)
 		Common::Thread::SetCurrentThreadAffinity(2);  // Force to second core
  
 	INFO_LOG(OSREPORT, "Starting core = %s mode", _CoreParameter.bWii ? "Wii" : "Gamecube");
-	INFO_LOG(OSREPORT, "CPU Thread seperate = %s", _CoreParameter.bCPUThread ? "Yes" : "No");
+	INFO_LOG(OSREPORT, "CPU Thread separate = %s", _CoreParameter.bCPUThread ? "Yes" : "No");
 
 	HW::Init();	
 
@@ -450,6 +446,11 @@ THREAD_RETURN EmuThread(void *pArg)
 				Callback_PeekMessages();
 			Common::SleepCurrentThread(20);
 		}
+
+		// Wait for CpuThread to exit
+		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU-GPU thread ...").c_str());
+		cpuRunloopQuit.Wait();
+		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
 #else
 		// On unix platforms, the Emulation main thread IS the CPU & video thread
 		// So there's only one thread, imho, that's much better than on windows :P
@@ -457,18 +458,16 @@ THREAD_RETURN EmuThread(void *pArg)
 #endif
 	}
 
-	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Stop() and Video Loop Ended").c_str());
 	// We have now exited the Video Loop
-	gpuRunloopQuit.Set();
-	// Wait for cpu loop to exit
-	cpuRunloopQuit.Wait();
+	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Stop() and Video Loop Ended").c_str());
 
+	// At this point, the CpuThread has already returned in SC mode.
+	// But it may still be waiting in Dual Core mode.
 	if (cpuThread)
 	{
-		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU thread ...").c_str());
 		// There is a CPU thread - join it.
-#ifdef _WIN32		
-		DWORD Wait = cpuThread->WaitForDeath(3000);
+#ifdef _WIN32           
+		DWORD Wait = cpuThread->WaitForDeath(1000);
 		switch(Wait)
 		{
 			case WAIT_ABANDONED:
@@ -479,7 +478,7 @@ THREAD_RETURN EmuThread(void *pArg)
 				break;
 			case WAIT_TIMEOUT:
 				ERROR_LOG(CONSOLE, "%s", StopMessage(true, "CPU wait returned: WAIT_TIMEOUT").c_str());
-				break;				
+				break;                          
 			case WAIT_FAILED:
 				ERROR_LOG(CONSOLE, "%s", StopMessage(true, "CPU wait returned: WAIT_FAILED").c_str());
 				break;
@@ -491,30 +490,29 @@ THREAD_RETURN EmuThread(void *pArg)
 		// Returns after game exited
 		cpuThread = NULL;
 	}
+
+	// Stop audio thread - Actually this does nothing on HLE plugin.
+	// But stops the DSP Interpreter on LLE plugin.
+	Plugins.GetDSP()->DSP_StopSoundStream();
 	
 	// We must set up this flag before executing HW::Shutdown()
 	g_bHwInit = false;
-
-	// Stop audio thread.
-	Plugins.GetDSP()->DSP_StopSoundStream();
-
-	// For single core mode, video plugin is already shut down
-	// but doing it again doesn't hurt
-	Plugins.ShutdownVideoPlugin();
-
-	WARN_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down plugins").c_str());
-	Plugins.ShutdownPlugins();
-	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Plugins shutdown").c_str());
-
 	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
 	HW::Shutdown();
 	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
+
+	WARN_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down plugins").c_str());
+	// In single core mode, this has already been called.
+	if (_CoreParameter.bCPUThread)
+		Plugins.ShutdownVideoPlugin();
+
+	Plugins.ShutdownPlugins();
+	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Plugins shutdown").c_str());
 
 	NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Main thread stopped").c_str());
 	NOTICE_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutdown complete ----");
 
 	cpuRunloopQuit.Shutdown();
-	gpuRunloopQuit.Shutdown();
 	g_bStopping = false;
 	return 0;
 }

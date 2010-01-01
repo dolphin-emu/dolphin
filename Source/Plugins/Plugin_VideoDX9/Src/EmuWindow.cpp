@@ -115,8 +115,12 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	case WM_CLOSE:
 		// When the user closes the window, we post an event to the main window to call Stop()
 		// Which then handles all the necessary steps to Shutdown the core + the plugins
-		PostMessage( m_hMain, WM_USER, WM_USER_STOP, 0 );
-		return 0;
+		if (m_hParent == NULL)
+		{
+			PostMessage( m_hMain, WM_USER, WM_USER_STOP, 0 );
+			return 0;
+		}
+		break;
 
 	case WM_USER:
 		// if (wParam == TOGGLE_FULLSCREEN)
@@ -170,6 +174,7 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	else
 	{
 		m_hMain = parent;
+		m_hParent = NULL;
 
 		DWORD style = g_Config.bFullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW;
 
@@ -208,8 +213,11 @@ HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
 
 void Close()
 {
-	DestroyWindow(m_hWnd);
-	UnregisterClass(m_szClassName, m_hInstance);
+	if (m_hWnd && !g_Config.RenderToMainframe)
+	{
+		DestroyWindow(m_hWnd);
+		UnregisterClass(m_szClassName, m_hInstance);
+	}
 }
 
 void SetSize(int width, int height)

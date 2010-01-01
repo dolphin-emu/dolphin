@@ -176,26 +176,24 @@ void DllConfig(HWND _hParent)
 	g_Config.GameIniLoad(globals->game_ini);
 
 	if (!m_ConfigFrame)
-		m_ConfigFrame = new DSPConfigDialogHLE(GetParentedWxWindow(_hParent));
-	else if (!m_ConfigFrame->GetParent()->IsShown())
-		m_ConfigFrame->Close(true);
-
-	m_ConfigFrame->ClearBackends();
-
-	// add backends
-	std::vector<std::string> backends = AudioCommon::GetSoundBackends();
-
-	for (std::vector<std::string>::const_iterator iter = backends.begin(); 
-		 iter != backends.end(); ++iter)
 	{
-		m_ConfigFrame->AddBackend((*iter).c_str());
-	}
+		m_ConfigFrame = new DSPConfigDialogHLE(GetParentedWxWindow(_hParent));
 
-	// Only allow one open at a time
-	if (!m_ConfigFrame->IsShown())
+		// add backends
+		std::vector<std::string> backends = AudioCommon::GetSoundBackends();
+
+		for (std::vector<std::string>::const_iterator iter = backends.begin(); 
+			 iter != backends.end(); ++iter)
+		{
+			m_ConfigFrame->AddBackend((*iter).c_str());
+		}
+
+		// Only allow one open at a time
 		m_ConfigFrame->ShowModal();
-	else
-		m_ConfigFrame->Hide();
+
+		delete m_ConfigFrame;
+		m_ConfigFrame = 0;
+	}
 #endif
 }
 
@@ -358,5 +356,5 @@ void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
 void DSP_ClearAudioBuffer()
 {
 	if (soundStream)
-		soundStream->Clear(*g_dspInitialize.pEmulatorState);
+		soundStream->Clear(!!*g_dspInitialize.pEmulatorState);
 }

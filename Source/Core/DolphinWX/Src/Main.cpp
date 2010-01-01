@@ -661,11 +661,7 @@ void Host_SetWiiMoteConnectionState(int _State)
 	case 2: event.SetString(wxString::FromAscii("Wiimote Connected")); break;
 	}
 	// Update field 1 or 2
-	#ifdef RERECORDING
-		event.SetInt(2);
-	#else
-		event.SetInt(1);
-	#endif
+	event.SetInt(1);
 
 	main_frame->AddPendingEvent(event);
 }

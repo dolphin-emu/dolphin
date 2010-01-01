@@ -68,7 +68,9 @@ PLUGIN_GLOBALS* globals = NULL;
 bool s_initialized;
 
 static u32 s_efbAccessRequested = FALSE;
+static u32 s_FifoShuttingDown = FALSE;
 static bool s_swapRequested = false;
+
 static volatile struct
 {
 	u32 xfbAddr;
@@ -261,6 +263,10 @@ void Initialize(void *init)
 
 void Video_Prepare()
 {
+	// Better be safe...
+	s_efbAccessRequested = FALSE;
+	s_FifoShuttingDown = FALSE;
+
 	Renderer::Init();
 	TextureCache::Init();
 	BPInit();
@@ -279,6 +285,7 @@ void Video_Prepare()
 void Shutdown()
 {
 	s_efbAccessRequested = FALSE;
+	s_FifoShuttingDown = FALSE;
 
 	Fifo_Shutdown();
 	VertexManager::Shutdown();
@@ -311,6 +318,8 @@ void Video_EnterLoop()
 void Video_ExitLoop()
 {
 	Fifo_ExitLoop();
+
+	s_FifoShuttingDown = TRUE;
 }
 
 void Video_SetRendering(bool bEnabled) {
@@ -451,7 +460,7 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 
 	if (g_VideoInitialize.bOnThread)
 	{
-		while (Common::AtomicLoadAcquire(s_efbAccessRequested) && s_initialized)
+		while (Common::AtomicLoadAcquire(s_efbAccessRequested) && !s_FifoShuttingDown)
 			Common::YieldCPU();
 	}
 	else
