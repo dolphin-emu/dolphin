@@ -420,18 +420,17 @@ void PADConfigDialognJoy::ChangeSettings( wxCommandEvent& event )
 			if(!g_Config.bSaveByID)
 			{
 				PadMapping[notebookpage].controllertype = m_ControlType[notebookpage]->GetSelection();
-				//UpdateGUI(notebookpage);
+				UpdateGUI(notebookpage);
 			}
 		case IDC_TRIGGERTYPE:
 			if(!g_Config.bSaveByID)
 			{
 				PadMapping[notebookpage].triggertype = m_TriggerType[notebookpage]->GetSelection();
-				//UpdateGUI(notebookpage);
+				UpdateGUI(notebookpage);
 			}
 			break;
 		case IDC_ENABLERUMBLE:
 			PadMapping[notebookpage].rumble = m_Rumble[notebookpage]->IsChecked();
-			//UpdateGUI(notebookpage);
 			break;
 		case IDC_RUMBLESTRENGTH:
 			g_Config.RumbleStrength = m_RStrength[notebookpage]->GetSelection();
@@ -474,7 +473,7 @@ void PADConfigDialognJoy::UpdateGUI(int _notebookpage)
 	m_JoyShoulderR[_notebookpage]->GetValue().ToLong(&Right);
 	bool AnalogTrigger = (Left >= 1000 || Right >= 1000);
 	#ifdef _WIN32
-		bool XInput = XInput::IsConnected(0);	
+		bool XInput = XInput::IsConnected(PadMapping[_notebookpage].ID);
 	#endif
 
 	// Hat type selection
