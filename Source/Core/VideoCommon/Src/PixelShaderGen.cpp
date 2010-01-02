@@ -537,6 +537,7 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, u32 HLSL)
     }
     
     WRITE(p, "depth = zCoord;\n");
+	WRITE(p, "prev = saturate(prev);\n");
 
     //if (bpmem.genMode.numindstages ) WRITE(p, "prev.rg = indtex0.xy;\nprev.b = 0;\n");
 
@@ -733,7 +734,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
     // combine the color channel
     if (cc.bias != 3) // if not compare
 	{
-        //normal color combiner goes here
+		//normal color combiner goes here        
 		if (cc.shift>0)
 			WRITE(p, "   %s*(%s%s",tevScaleTable[cc.shift],tevCInputTable[cc.d],tevOpTable[cc.op]);
 		else
@@ -775,7 +776,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 
     if (ac.bias != 3) // if not compare
 	{
-        //normal alpha combiner goes here
+        //normal alpha combiner goes here		
 		if (ac.shift>0)
 			WRITE(p, "   %s*(%s%s",tevScaleTable[ac.shift],tevAInputTable[ac.d],tevOpTable[ac.op]);
 		else
@@ -853,16 +854,14 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
 static const char *tevAlphaFuncsTable[] = 
 {
     "(false)",									//ALPHACMP_NEVER 0
-	"(prev.a < %s - (1.0f/510.0f))",			//ALPHACMP_LESS 1
+	"(prev.a < %s - (0.5f/255.0f))",			//ALPHACMP_LESS 1
 	"(abs( prev.a - %s ) < (1.0f/255.0f))",		//ALPHACMP_EQUAL 2
-	"(prev.a < %s + (1.0f/510.0f))",			//ALPHACMP_LEQUAL 3
-	"(prev.a > %s + (1.0f/510.0f))",			//ALPHACMP_GREATER 4
+	"(prev.a < %s + (0.5f/255.0f))",			//ALPHACMP_LEQUAL 3
+	"(prev.a > %s + (0.5f/255.0f))",			//ALPHACMP_GREATER 4
 	"(abs( prev.a - %s ) > (1.0f/255.0f))",		//ALPHACMP_NEQUAL 5
-	"(prev.a > %s - (1.0f/510.0f))",			//ALPHACMP_GEQUAL 6
+	"(prev.a > %s - (0.5f/255.0f))",			//ALPHACMP_GEQUAL 6
 	"(true)"									//ALPHACMP_ALWAYS 7
 };
-
-
 
 static const char *tevAlphaFunclogicTable[] =
 {
