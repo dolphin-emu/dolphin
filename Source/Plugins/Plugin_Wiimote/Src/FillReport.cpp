@@ -815,7 +815,7 @@ void FillReportExtension(wm_extension& _ext)
 	// Copy the data to it
 	memcpy(Tmp, &_ext, sizeof(_ext));
 	// Encrypt it
-	wiimote_encrypt(&g_ExtKey, Tmp, 0x00, sizeof(_ext));
+	wiimote_encrypt(&g_ExtKey[g_ID], Tmp, 0x00, sizeof(_ext));
 	// Write it back to the struct
 	memcpy(&_ext, Tmp, sizeof(_ext));
 }
@@ -1077,7 +1077,7 @@ void FillReportClassicExtension(wm_classic_extension& _ext)
 	// Copy the data to it
 	memcpy(Tmp, &_ext, sizeof(_ext));
 	// Encrypt it
-	wiimote_encrypt(&g_ExtKey, Tmp, 0x00, sizeof(_ext));
+	wiimote_encrypt(&g_ExtKey[g_ID], Tmp, 0x00, sizeof(_ext));
 	// Write it back to the struct
 	memcpy(&_ext, Tmp, sizeof(_ext));
 }
@@ -1172,7 +1172,7 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 	// Copy the data to it
 	memcpy(Tmp, &_ext, sizeof(_ext));
 	// Encrypt it
-	wiimote_encrypt(&g_ExtKey, Tmp, 0x00, sizeof(_ext));
+	wiimote_encrypt(&g_ExtKey[g_ID], Tmp, 0x00, sizeof(_ext));
 	// Write it back to the struct
 	memcpy(&_ext, Tmp, sizeof(_ext));
 }

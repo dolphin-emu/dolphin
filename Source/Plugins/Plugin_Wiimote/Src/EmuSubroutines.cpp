@@ -267,7 +267,7 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 				memcpy(g_RegExtTmp, g_RegExt[g_ID], sizeof(g_RegExt[0]));
 
 				// Encrypt g_RegExtTmp at that location
-				wiimote_encrypt(&g_ExtKey, &g_RegExtTmp[address & 0xffff], (address & 0xffff), (u8)size);
+				wiimote_encrypt(&g_ExtKey[g_ID], &g_RegExtTmp[address & 0xffff], (address & 0xffff), (u8)size);
 
 				// Update the block that SendReadDataReply will eventually send to the Wii
 				block = g_RegExtTmp;
@@ -446,7 +446,7 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 			   that we send it parts of a key, only the last full key will have an
 			   effect */
 			if(address >= 0x40 && address <= 0x4c)
-				wiimote_gen_key(&g_ExtKey, &g_RegExt[g_ID][0x40]);
+				wiimote_gen_key(&g_ExtKey[g_ID], &g_RegExt[g_ID][0x40]);
 		}
 
 	}

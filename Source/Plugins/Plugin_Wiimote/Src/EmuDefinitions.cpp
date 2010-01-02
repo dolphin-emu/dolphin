@@ -54,7 +54,7 @@ bool g_ReportingAuto[MAX_WIIMOTES]; // Auto report or passive report
 u8 g_ReportingMode[MAX_WIIMOTES]; // The reporting mode and channel id
 u16 g_ReportingChannel[MAX_WIIMOTES];
 
-wiimote_key g_ExtKey; // The extension encryption key
+wiimote_key g_ExtKey[MAX_WIIMOTES]; // The extension encryption key
 bool g_Encryption; // Encryption on or off
 
 // Gamepad input

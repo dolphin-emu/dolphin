@@ -481,7 +481,6 @@ void DoState(PointerWrap &p)
 	p.DoArray(g_RegExtTmp, WIIMOTE_REG_EXT_SIZE);
 	p.DoArray(g_RegIr, WIIMOTE_REG_IR_SIZE);
 
-	p.Do(g_ExtKey);
 	p.Do(g_Encryption);
 
 	//p.Do(NumPads);
@@ -500,6 +499,7 @@ void DoState(PointerWrap &p)
 		p.Do(g_ReportingChannel[i]);
 		//p.Do(g_IR[i]);
 		p.Do(g_Leds[i]);
+		p.Do(g_ExtKey[i]);
 	}
 	return;
 }

@@ -86,7 +86,7 @@ extern bool g_ReportingAuto[MAX_WIIMOTES];
 extern u8 g_ReportingMode[MAX_WIIMOTES];
 extern u16 g_ReportingChannel[MAX_WIIMOTES];
 
-extern wiimote_key g_ExtKey; // extension encryption key
+extern wiimote_key g_ExtKey[MAX_WIIMOTES]; // extension encryption key
 extern bool g_Encryption;
 
 /* An example of a factory default first bytes of the Eeprom memory. There are differences between

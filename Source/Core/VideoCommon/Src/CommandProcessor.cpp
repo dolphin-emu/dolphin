@@ -158,6 +158,7 @@ void Init()
 	memset(&fifo,0,sizeof(fifo));
 	fifo.CPCmdIdle  = 1 ;
 	fifo.CPReadIdle = 1;
+	fifo.bFF_Breakpoint = 1;
 
 	s_fifoIdleEvent.Init();
 
@@ -564,7 +565,7 @@ bool AllowIdleSkipping()
 // if not then lock CPUThread until GP finish a frame.
 void WaitForFrameFinish()
 {
-	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !fifo.bFF_Breakpoint)
+	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && ((!fifo.bFF_BPEnable && fifo.CPReadWriteDistance) || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)));
 		s_fifoIdleEvent.MsgWait();
 	
 	fake_GPWatchdogLastToken = fifo.Fake_GPWDToken;
@@ -605,7 +606,7 @@ void STACKALIGN GatherPipeBursted()
 			//		- CPU can write to fifo
 			//		- disable Underflow interrupt
 
-			INFO_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark reached, 0x%04X, 0x%04X", fifo.CPReadWriteDistance, fifo.CPLoWatermark);
+			INFO_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark (Hi: 0x%04x, Lo: 0x%04x) reached (RWDistance: 0x%04x)", fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance);
 			// Wait for GPU to catch up
 			while (fifo.CPReadWriteDistance > fifo.CPLoWatermark && !fifo.bFF_Breakpoint)
 				s_fifoIdleEvent.MsgWait();

@@ -164,7 +164,6 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 					CommandProcessor::UpdateInterruptsFromVideoPlugin(true);
 					break;
 				}
-
 				distToSend = 32;
 
 				if ( readPtr >= _fifo.CPEnd) 
@@ -201,9 +200,9 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
 			VideoFifo_CheckEFBAccess();
 			VideoFifo_CheckSwapRequest();
-
-			CommandProcessor::SetFifoIdleFromVideoPlugin();
 		}
+
+		CommandProcessor::SetFifoIdleFromVideoPlugin();
 		Common::YieldCPU();
 	}
 	fifo_exit_event.Set();
