@@ -210,7 +210,12 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		}
 
 		CommandProcessor::SetFifoIdleFromVideoPlugin();
-		fifo_run_event.MsgWait();
+		// "VideoFifo_CheckEFBAccess()" & "VideoFifo_CheckSwapRequest()" should be
+		// moved to a more suitable place than inside function "Fifo_EnterLoop()"
+		if (g_ActiveConfig.bEFBAccessEnable || g_ActiveConfig.bUseXFB)
+			Common::YieldCPU();
+		else
+			fifo_run_event.MsgWait();
 	}
 }
 
