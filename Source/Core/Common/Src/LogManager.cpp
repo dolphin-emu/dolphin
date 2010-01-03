@@ -17,12 +17,12 @@
 
 #include "LogManager.h"
 #include "Timer.h"
-
-void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* fmt, ...)
+void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
+				const char *file, int line, const char* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
-	LogManager::GetInstance()->Log(level, type, fmt, args);
+	LogManager::GetInstance()->Log(level, type, file, line, fmt, args);
 	va_end(args);
 }
 
@@ -95,7 +95,8 @@ LogManager::~LogManager() {
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
-					 const char *format, va_list args) {
+					 const char *file, int line, const char *format, 
+					 va_list args) {
 
 	char temp[MAX_MSGLEN];
 	char msg[MAX_MSGLEN + 512];
@@ -107,11 +108,10 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 	CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
 	static const char level_to_char[7] = "-NEWID";
-	sprintf(msg, "%s %c[%s]: %s\n",
+	sprintf(msg, "%s %s:%u %c[%s]: %s\n",
 			Common::Timer::GetTimeFormatted().c_str(),
-			level_to_char[(int)level],
-			log->getShortName(),
-			temp);
+			file, line, level_to_char[(int)level],
+			log->getShortName(), temp);
 
 	logMutex.Enter();
 	log->trigger(level, msg);

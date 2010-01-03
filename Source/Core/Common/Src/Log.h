@@ -105,14 +105,15 @@ enum LOG_LEVELS {
 #define INFO_LOG(...) {}
 #define DEBUG_LOG(...) {}
 
-void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char *fmt, ...);
+void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
+				const char *file, int line, const char *fmt, ...);
 
 #ifdef GEKKO
 #define GENERIC_LOG(t, v, ...)
 #else
 
 // Let the compiler optimize this out
-#define GENERIC_LOG(t, v, ...) {if (v <= MAX_LOGLEVEL) {GenericLog(v, t,  __VA_ARGS__);}}
+#define GENERIC_LOG(t, v, ...) {if (v <= MAX_LOGLEVEL) {GenericLog(v, t, __FILE__, __LINE__, __VA_ARGS__);}}
 #endif
 
 #if MAX_LOGLEVEL >= ERROR_LEVEL
