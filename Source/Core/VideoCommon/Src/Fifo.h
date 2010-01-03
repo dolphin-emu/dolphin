@@ -36,6 +36,7 @@ void Fifo_SendFifoData(u8* _uData, u32 len);
 void Fifo_EnterLoop(const SVideoInitialize &video_initialize);
 void Fifo_ExitLoop();
 void Fifo_ExitLoopNonBlocking();
+void Fifo_RunLoop();
 
 void Fifo_DoState(PointerWrap &f);
 

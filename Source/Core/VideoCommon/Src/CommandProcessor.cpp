@@ -381,8 +381,11 @@ void Write16(const u16 _Value, const u32 _Address)
 			DEBUG_LOG(COMMANDPROCESSOR, "*********************** GXSetGPFifo very soon? ***********************");
 			// (mb2) We don't sleep here since it could be a perf issue for super monkey ball (yup only this game IIRC)
 			// Touching that game is a no-go so I don't want to take the risk :p
-			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !fifo.bFF_Breakpoint)
+			while (fifo.bFF_GPReadEnable && ((!fifo.bFF_BPEnable && fifo.CPReadWriteDistance) || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
+			{
+				Fifo_RunLoop();
 				s_fifoIdleEvent.MsgWait();
+			}
 		}
 	}
 
@@ -410,6 +413,8 @@ void Write16(const u16 _Value, const u32 _Address)
 				// Clear old BP and initiate new BP
 				Common::AtomicStore(fifo.bFF_Breakpoint, 0);
 			}
+
+			Fifo_RunLoop();
 
 			DEBUG_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
 			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | LINK %s | BP %s || Init %s | OvF %s | UndF %s"
@@ -566,7 +571,10 @@ bool AllowIdleSkipping()
 void WaitForFrameFinish()
 {
 	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && ((!fifo.bFF_BPEnable && fifo.CPReadWriteDistance) || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)));
+	{
+		Fifo_RunLoop();
 		s_fifoIdleEvent.MsgWait();
+	}
 	
 	fake_GPWatchdogLastToken = fifo.Fake_GPWDToken;
 }
@@ -586,6 +594,7 @@ void STACKALIGN GatherPipeBursted()
 		    fifo.CPWritePointer += GATHER_PIPE_SIZE;
 
         Common::AtomicAdd(fifo.CPReadWriteDistance, GATHER_PIPE_SIZE);
+		Fifo_RunLoop();
 
 		// High watermark overflow handling (hacked way)
 		if (fifo.CPReadWriteDistance > fifo.CPHiWatermark)
@@ -608,8 +617,11 @@ void STACKALIGN GatherPipeBursted()
 
 			INFO_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark (Hi: 0x%04x, Lo: 0x%04x) reached (RWDistance: 0x%04x)", fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance);
 			// Wait for GPU to catch up
-			while (fifo.CPReadWriteDistance > fifo.CPLoWatermark && !fifo.bFF_Breakpoint)
+			while (fifo.CPReadWriteDistance > fifo.CPLoWatermark && fifo.bFF_GPReadEnable && (!fifo.bFF_BPEnable || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
+			{
+				Fifo_RunLoop();
 				s_fifoIdleEvent.MsgWait();
+			}
 		}
 		// check if we are in sync
 		_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== *(g_VideoInitialize.Fifo_CPUWritePointer), "FIFOs linked but out of sync");
@@ -649,7 +661,9 @@ void CatchUpGPU()
 			{
 				if (
 					(fifo.CPReadPointer == fifo.CPBreakpoint) ||
-					(fifo.CPReadPointer == fifo.CPWritePointer) ||
+					//(fifo.CPReadPointer <= fifo.CPBreakpoint && fifo.CPReadPointer + 32 > fifo.CPBreakpoint) ||
+					(fifo.CPReadPointer <= fifo.CPWritePointer && fifo.CPWritePointer < fifo.CPBreakpoint) ||
+					(fifo.CPReadPointer <= fifo.CPWritePointer && fifo.CPReadPointer > fifo.CPBreakpoint) ||
 					(fifo.CPReadPointer > fifo.CPBreakpoint && fifo.CPBreakpoint > fifo.CPWritePointer)
 					)
 				{
@@ -711,6 +725,7 @@ void UpdateFifoRegister()
 		dist = (wp - fifo.CPBase) + ((fifo.CPEnd + GATHER_PIPE_SIZE) - rp);
 
 	Common::AtomicStore(fifo.CPReadWriteDistance, dist);
+	Fifo_RunLoop();
 
 	if (!g_VideoInitialize.bOnThread)
 		CatchUpGPU();

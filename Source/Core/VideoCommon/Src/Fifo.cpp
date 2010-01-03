@@ -35,7 +35,7 @@ namespace
 {
 static volatile bool fifoStateRun = false;
 static u8 *videoBuffer;
-static Common::Event fifo_exit_event;
+static Common::Event fifo_run_event;
 // STATE_TO_SAVE
 static int size = 0;
 }  // namespace
@@ -56,14 +56,14 @@ void Fifo_DoState(PointerWrap &p)
 void Fifo_Init()
 {
     videoBuffer = (u8*)AllocateMemoryPages(FIFO_SIZE);
-	fifo_exit_event.Init();
+	fifo_run_event.Init();
 	fifoStateRun = false;
 }
 
 void Fifo_Shutdown()
 {
-	if (fifoStateRun)
-		PanicAlert("Fifo shutting down while active");
+	if (fifoStateRun) PanicAlert("Fifo shutting down while active");
+	fifo_run_event.Shutdown();
     FreeMemoryPages(videoBuffer, FIFO_SIZE);
 }
 
@@ -89,10 +89,7 @@ void Fifo_SetRendering(bool enabled)
 // the loop. Switch to the video thread and investigate.
 void Fifo_ExitLoop()
 {
-    fifoStateRun = false;
-
-	fifo_exit_event.MsgWait();
-	fifo_exit_event.Shutdown();
+	Fifo_ExitLoopNonBlocking();
 }
 
 // May be executed from any thread, even the graphics thread.
@@ -100,6 +97,12 @@ void Fifo_ExitLoop()
 void Fifo_ExitLoopNonBlocking()
 {
 	fifoStateRun = false;
+	fifo_run_event.Set();
+}
+
+void Fifo_RunLoop()
+{
+	fifo_run_event.Set();
 }
 
 // Description: Fifo_EnterLoop() sends data through this function.
@@ -156,7 +159,9 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				// so careful check is required
 				if (
 					(readPtr == _fifo.CPBreakpoint) ||
-					(readPtr == _fifo.CPWritePointer) ||
+					//(readPtr <= _fifo.CPBreakpoint && readPtr + 32 > _fifo.CPBreakpoint) ||	
+					(readPtr <= _fifo.CPWritePointer && _fifo.CPWritePointer < _fifo.CPBreakpoint) ||
+					(readPtr <= _fifo.CPWritePointer && readPtr > _fifo.CPBreakpoint) ||
 					(readPtr > _fifo.CPBreakpoint && _fifo.CPBreakpoint > _fifo.CPWritePointer)
 					)
 				{
@@ -200,11 +205,12 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
 			VideoFifo_CheckEFBAccess();
 			VideoFifo_CheckSwapRequest();
+			
+			CommandProcessor::SetFifoIdleFromVideoPlugin();
 		}
 
 		CommandProcessor::SetFifoIdleFromVideoPlugin();
-		Common::YieldCPU();
+		fifo_run_event.MsgWait();
 	}
-	fifo_exit_event.Set();
 }
 
