@@ -333,6 +333,17 @@ void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32
 	DEBUG_LOG(WIIMOTE, "    Data: %s", Temp.c_str());
 #endif
 
+	// Check for custom communication
+	if(_channelID == 99 && *(const u8*)_pData == WIIMOTE_DISCONNECT)
+	{
+		WiiMoteEmu::g_ReportingAuto[_number] = false;
+		WARN_LOG(WIIMOTE, "Wiimote: #%i Disconnected", _number);
+#ifdef _WIN32
+		PostMessage(g_WiimoteInitialize.hWnd, WM_USER, WIIMOTE_DISCONNECT, _number);
+#endif
+		return;
+	}
+
 	if (WiiMoteEmu::WiiMapping[_number].Source <= 1)
 		WiiMoteEmu::ControlChannel(_number, _channelID, _pData, _Size);
 #if HAVE_WIIUSE

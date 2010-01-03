@@ -506,15 +506,20 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// or CPU will disconnect WiiMote automatically
 	// but don't send too many or it will jam the bus and cost extra CPU time
 	// TODO: Figure out the correct frequency to send this thing
-	if (m_HCIBuffer.m_address && !WII_IPCInterface::GetAddress() && m_WiiMotes[0].IsConnected())
+	if (m_HCIBuffer.m_address && !WII_IPCInterface::GetAddress())
 	{
 		m_FreqDividerSync++;
 		if (m_FreqDividerSync >= 500)	// Feel free to tweak it
 		{
 			m_FreqDividerSync = 0;
-			SendEventNumberOfCompletedPackets();
-			memset(m_PacketCount, 0, sizeof(m_PacketCount));
-			return true;
+			for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+			{
+				if (m_WiiMotes[i].IsConnected() == 3)
+				{
+					SendEventNumberOfCompletedPackets();
+					return true;
+				}
+			}
 		}
 	}
 
@@ -629,7 +634,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryResponse()
 	pInquiryResult->PayloadLength = (u8)(sizeof(SHCIEventInquiryResult) - 2 + (m_WiiMotes.size() * sizeof(hci_inquiry_response)));
 	pInquiryResult->num_responses = (u8)m_WiiMotes.size();
 
-	for (size_t i=0; i<m_WiiMotes.size(); i++)
+	for (size_t i=0; i < m_WiiMotes.size(); i++)
 	{
 		if (m_WiiMotes[i].IsConnected())
 			continue;
@@ -968,7 +973,13 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRoleChange(bdaddr_t _bd, bool
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
 {
-	int Num = m_WiiMotes.size();
+	int Num = 0;
+	for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+	{
+		if (m_WiiMotes[i].IsConnected() == 3)
+			Num++;
+	}
+
 	if (Num == NULL)
 		return false;
 
@@ -980,10 +991,13 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
 	pNumberOfCompletedPackets->NumberOfHandles = Num;
 
 	u16 *pData = (u16 *)(Event.m_buffer + sizeof(SHCIEventNumberOfCompletedPackets));
-	for (int i = 0; i < Num; i++)
+	for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
 	{
-		pData[i] = m_WiiMotes[i].GetConnectionHandle();
-		pData[Num + i] = m_PacketCount[i];
+		if (m_WiiMotes[i].IsConnected() != 3) continue;
+		pData[0] = m_WiiMotes[i].GetConnectionHandle();
+		pData[Num] = m_PacketCount[i];
+		m_PacketCount[i] = 0;
+		pData++;
 	}
 
 	// Log
@@ -1325,6 +1339,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 //
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandInquiry(u8* _Input)
 {
+	// Inquiry should not be called normally
+	PanicAlert("HCI_CMD_INQUIRY is called, please report!");
+
 	if (SendEventCommandStatus(HCI_CMD_INQUIRY))
 		return;
 
@@ -1399,10 +1416,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandDisconnect(u8* _Input)
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  Reason: 0x%02x", pDiscon->reason);
 
 	SendEventDisconnect(pDiscon->con_handle, pDiscon->reason);
-	
-	PanicAlert("Wiimote (%i) has been disconnected by system due to idle time out.\n"
-		"Don't panic, this is quite a normal behavior for power saving.\n\n"
-		"To reconnect, Click \"Menu -> Tools -> Connect Wiimote\"", (pDiscon->con_handle & 0xFF) + 1);
 
 	CWII_IPC_HLE_WiiMote* pWiimote = AccessWiiMote(pDiscon->con_handle);
 	if (pWiimote)

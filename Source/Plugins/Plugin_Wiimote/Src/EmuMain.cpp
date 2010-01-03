@@ -311,6 +311,8 @@ void Shutdown()
 	// Finally close SDL
 	if (SDL_WasInit(0))
 		SDL_Quit();
+
+	g_SearchDeviceDone = false;
 }
 
 // Start emulation
@@ -555,15 +557,7 @@ void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size
 }
 
 void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size) 
-{
-	// Check for custom communication
-	if(_channelID == 99 && *(const u8*)_pData == WIIMOTE_DISCONNECT)
-	{
-		WARN_LOG(WIIMOTE, "Wiimote: #%i Disconnected", _number);
-		g_ReportingAuto[_number] = false;
-		return;
-	}
-		
+{		
 	g_ID = _number;
 
 	hid_packet* hidp = (hid_packet*)_pData;

@@ -191,15 +191,10 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	    only let it pass through Dolphin > Frame.cpp to determine if it should be on or off
 		and coordinate it with the other settings if nessesary */
 	case WM_USER:
-		/* I set wParam to 10 just in case there are other WM_USER events. If we want more
-		   WM_USER cases we would start making wParam or lParam cases */
-		if (wParam == 10)
-		{
-			if (lParam)
-				SetCursor(hCursor);
-			else
-				SetCursor(hCursorBlank);
-		}
+		if (wParam == WM_USER_STOP)
+			SetCursor((lParam) ? hCursor : hCursorBlank);
+		else if (wParam == WIIMOTE_DISCONNECT)
+			PostMessage(m_hMain, WM_USER, wParam, lParam);
 		break;
 
 	/* Post thes mouse events to the main window, it's nessesary becase in difference to the

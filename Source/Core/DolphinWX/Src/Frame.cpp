@@ -43,6 +43,7 @@
 #include "ConfigManager.h" // Core
 #include "Core.h"
 #include "HW/DVDInterface.h"
+#include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "State.h"
 #include "VolumeHandler.h"
 
@@ -135,7 +136,7 @@ CPanel::CPanel(
 	: wxPanel(parent, id)
 {
 }
-int abc = 0;
+
 #ifdef _WIN32
 	WXLRESULT CPanel::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 	{
@@ -156,6 +157,15 @@ int abc = 0;
 					main_frame->bRenderToMain = false;
 				else
 					main_frame->bRenderToMain = true;
+				return 0;
+
+			case WIIMOTE_DISCONNECT:
+				// The Wiimote has been disconnect, we offer reconnect here
+				if(AskYesNo("Wiimote %i has been disconnected by system.\n"
+					"Maybe this game doesn't support multi-wiimote,\n"
+					"or maybe it is due to idle time out or other reason.\n\n"
+					"Do you want to reconnect immediately?", lParam + 1, "Confirm", wxYES_NO))
+					GetUsbPointer()->AccessWiiMote(lParam | 0x100)->Activate(true);
 				return 0;
 			}
 			break;

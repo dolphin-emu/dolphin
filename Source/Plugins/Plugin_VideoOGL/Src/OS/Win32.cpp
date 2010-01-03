@@ -332,18 +332,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		and coordinate it with the other settings if nessesary */
 	case WM_USER:
 		if (wParam == WM_USER_STOP)
+			SetCursor((lParam) ? hCursor : hCursorBlank);
+		else if (wParam == WM_USER_KEYDOWN)
 		{
-			if (lParam)
-				SetCursor(hCursor);
-			else
-				SetCursor(hCursorBlank);
-		}
-		if (wParam == WM_USER_KEYDOWN) {
 			OnKeyDown(lParam);
 			FreeLookInput(wParam, lParam);
 		}
-		if (wParam == TOGGLE_FULLSCREEN && !g_Config.RenderToMainframe)
-			ToggleFullscreen(m_hWnd);
+		else if (wParam == TOGGLE_FULLSCREEN)
+		{
+			 if(!g_Config.RenderToMainframe)
+				ToggleFullscreen(m_hWnd);
+		}
+		else if (wParam == WIIMOTE_DISCONNECT)
+			PostMessage(m_hMain, WM_USER, wParam, lParam);
 		break;
 
 	// This is called when we close the window when we render to a separate window

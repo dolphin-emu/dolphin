@@ -34,6 +34,20 @@ const TCHAR m_szClassName[] = _T("DolphinEmuWnd");
 int g_winstyle;
 static volatile bool s_sizing;
 
+// ---------------------------------------------------------------------
+/* Invisible cursor option. In the lack of a predefined IDC_BLANK we make
+   an empty transparent cursor */
+// ------------------
+HCURSOR hCursor = NULL, hCursorBlank = NULL;
+void CreateCursors(HINSTANCE hInstance)
+{
+	BYTE ANDmaskCursor[] = { 0xff };
+	BYTE XORmaskCursor[] = { 0x00 };
+	hCursorBlank = CreateCursor(hInstance, 0,0, 1,1, ANDmaskCursor,XORmaskCursor);
+
+	hCursor = LoadCursor(NULL, IDC_ARROW);
+}
+
 bool IsSizing()
 {
 	return s_sizing;
@@ -117,14 +131,18 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		// Which then handles all the necessary steps to Shutdown the core + the plugins
 		if (m_hParent == NULL)
 		{
-			PostMessage( m_hMain, WM_USER, WM_USER_STOP, 0 );
+			PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
 			return 0;
 		}
 		break;
 
 	case WM_USER:
-		if (wParam == TOGGLE_FULLSCREEN)
+		if (wParam == WM_USER_STOP)
+			SetCursor((lParam) ? hCursor : hCursorBlank);
+		else if (wParam == TOGGLE_FULLSCREEN)
 			ToggleFullscreen(hWnd);
+		else if (wParam == WIIMOTE_DISCONNECT)
+			PostMessage(m_hMain, WM_USER, wParam, lParam);
 		break;
 
 	case WM_SYSCOMMAND:
@@ -158,6 +176,8 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 
 	m_hInstance = hInstance;
 	RegisterClassEx( &wndClass );
+
+	CreateCursors(m_hInstance);
 
 	if (g_Config.RenderToMainframe)
 	{

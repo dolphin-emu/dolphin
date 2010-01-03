@@ -253,6 +253,7 @@ void Shutdown()
 
 	// Remove the pointer to the initialize data
 	g_PADInitialize = NULL;
+	g_SearchDeviceDone = false;
 }
 
 
