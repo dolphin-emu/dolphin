@@ -449,20 +449,22 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 void ToggleFullscreen(HWND hParent)
 {
 	if (m_hParent == NULL)
-	{ 
+	{
 		int	w_fs = 640, h_fs = 480;
 		if (g_Config.bFullscreen)
 		{
-			// Get out of fullscreen
-			g_Config.bFullscreen = false;
-			RECT rc = {0, 0, w_fs, h_fs};
-
 			if (strlen(g_Config.cInternalRes) > 1)
 				sscanf(g_Config.cInternalRes, "%dx%d", &w_fs, &h_fs);
+
+			// Get out of fullscreen
+			g_Config.bFullscreen = false;
+
 			// FullScreen -> Desktop
 			ChangeDisplaySettings(NULL, 0);
 
-			RECT rcdesktop;	// Get desktop resolution
+			// Get desktop resolution
+			RECT rcdesktop;
+			RECT rc = {0, 0, w_fs, h_fs};
 			GetWindowRect(GetDesktopWindow(), &rcdesktop);
 
 			ShowCursor(TRUE);
@@ -470,13 +472,7 @@ void ToggleFullscreen(HWND hParent)
 			// SetWindowPos to the center of the screen
 			int X = (rcdesktop.right - rcdesktop.left)/2 - (rc.right - rc.left)/2;
 			int Y = (rcdesktop.bottom - rcdesktop.top)/2 - (rc.bottom - rc.top)/2;
-
-			// Note: we now use the same res for fullscreen and windowed, so we need to check if the window
-			// is not too big here
-			if (w_fs == rcdesktop.right-rcdesktop.left)
-				SetWindowPos(hParent, NULL, X*0.75, Y*0.75, w_fs*0.75, h_fs*0.75, SWP_NOREPOSITION | SWP_NOZORDER);
-			else
-				SetWindowPos(hParent, NULL, X, Y, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
+			SetWindowPos(hParent, NULL, X, Y, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
 
 			// Set new window style FS -> Windowed
 			SetWindowLongPtr(hParent, GWL_STYLE, WS_OVERLAPPEDWINDOW);

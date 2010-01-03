@@ -68,7 +68,7 @@ PLUGIN_GLOBALS* globals = NULL;
 bool s_initialized;
 
 static u32 s_efbAccessRequested = FALSE;
-static u32 s_FifoShuttingDown = FALSE;
+static volatile u32 s_FifoShuttingDown = FALSE;
 static bool s_swapRequested = false;
 
 static volatile struct

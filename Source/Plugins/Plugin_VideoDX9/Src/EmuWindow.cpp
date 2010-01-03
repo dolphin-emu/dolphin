@@ -1,10 +1,26 @@
+// Copyright (C) 2003 Dolphin Project.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, version 2.0.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License 2.0 for more details.
+
+// A copy of the GPL 2.0 should have been included with the program.
+// If not, see http://www.gnu.org/licenses/
+
+// Official SVN repository and contact information can be found at
+// http://code.google.com/p/dolphin-emu/
 
 #include <windows.h>
 
-#include "../../Core/Src/Core.h"
 #include "VideoConfig.h"
 #include "main.h"
 #include "EmuWindow.h"
+#include "D3DBase.h"
 #include "Fifo.h"
 
 namespace EmuWindow
@@ -61,11 +77,9 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		switch (LOWORD(wParam))
 		{
 			case VK_ESCAPE:
-				// Toggle full screen doesn't work yet
-				/*
-				if (g_ActiveConfig.bFullscreen)
+				if (g_Config.bFullscreen)
 				{
-					// Pressing Esc switch to Windowed in Fullscreen mode
+					// Pressing Esc switches to Windowed in Fullscreen mode
 					ToggleFullscreen(hWnd);
 					return 0;
 				}
@@ -75,34 +89,20 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 					PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
 					return 0;
 				}
-				*/
-				if (g_ActiveConfig.bFullscreen)
-				{
-					DestroyWindow(hWnd);
-					PostQuitMessage(0);
-					ExitProcess(0);
-				}
 				break;
 		}
 		// Tell the hotkey function that this key was pressed
 		g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 		break;
-/*
+
 	case WM_SYSKEYDOWN:
 		switch( LOWORD( wParam ))
 		{
 			case VK_RETURN:   // Pressing Alt+Enter switch FullScreen/Windowed
-				if (g_ActiveConfig.bFullscreen)
-				{
-					DestroyWindow(hWnd);
-					PostQuitMessage(0);
-					ExitProcess(0);
-				}
+				ToggleFullscreen(hWnd);
 				break;
 		}
-		//g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 		break;
-*/
 
 	/* Post thes mouse events to the main window, it's nessesary because in difference to the
 	   keyboard inputs these events only appear here, not in the parent window or any other WndProc()*/
@@ -123,9 +123,8 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		break;
 
 	case WM_USER:
-		// if (wParam == TOGGLE_FULLSCREEN)
-		// TODO : Insert some toggle fullscreen code here, kthx :d
-		// see TODO ^ upper
+		if (wParam == TOGGLE_FULLSCREEN)
+			ToggleFullscreen(hWnd);
 		break;
 
 	case WM_SYSCOMMAND:
@@ -239,12 +238,21 @@ void SetSize(int width, int height)
 void ToggleFullscreen(HWND hParent)
 {
 	if (m_hParent == NULL)
-	{ 
+	{
+		if (D3D::IsFullscreen()) {
+			PostMessage( m_hMain, WM_USER, WM_USER_STOP, 0 );
+			return;
+		}
+
+		RECT rcdesktop;
 		int	w_fs = 640, h_fs = 480;
 		if (g_Config.bFullscreen)
 		{
+			if (strlen(g_Config.cInternalRes) > 1)
+				sscanf(g_Config.cInternalRes, "%dx%d", &w_fs, &h_fs);
+
 			//Get out of fullscreen
-			g_ActiveConfig.bFullscreen = false;
+			g_Config.bFullscreen = false;
 
 			// FullScreen - > Desktop
 			ChangeDisplaySettings(NULL, 0);
@@ -252,14 +260,13 @@ void ToggleFullscreen(HWND hParent)
 			// Re-Enable the cursor
 			ShowCursor(TRUE);
 
-			RECT rcdesktop;
-			RECT rc = {0, 0, 640, 480};
+			RECT rc = {0, 0, w_fs, h_fs};
 			GetWindowRect(GetDesktopWindow(), &rcdesktop);
 
+			// SetWindowPos to the center of the screen
 			int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
 			int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
-			// SetWindowPos to the center of the screen
-			SetWindowPos(hParent, NULL, X, Y, 640, 480, SWP_NOREPOSITION | SWP_NOZORDER);
+			SetWindowPos(hParent, NULL, X, Y, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
 
 			// Set new window style FS -> Windowed
 			SetWindowLong(hParent, GWL_STYLE, WS_OVERLAPPEDWINDOW);
@@ -269,26 +276,26 @@ void ToggleFullscreen(HWND hParent)
 		}
 		else
 		{
+			if (strlen(g_Config.cFSResolution) > 1)
+				sscanf(g_Config.cFSResolution, "%dx%d", &w_fs, &h_fs);
+
 			// Get into fullscreen
-			g_ActiveConfig.bFullscreen = true;
+			g_Config.bFullscreen = true;
 			DEVMODE dmScreenSettings;
 			memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
-			RECT rcdesktop;
-			GetWindowRect(GetDesktopWindow(), &rcdesktop);
 
 			// Desktop -> FullScreen
 			dmScreenSettings.dmSize			= sizeof(dmScreenSettings);
-			dmScreenSettings.dmPelsWidth	= rcdesktop.right;
-			dmScreenSettings.dmPelsHeight	= rcdesktop.bottom;
-			dmScreenSettings.dmBitsPerPel	= 32;
-			dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
-			if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
-				return ;
+			dmScreenSettings.dmPelsWidth	= w_fs;
+			dmScreenSettings.dmPelsHeight	= h_fs;
+			dmScreenSettings.dmFields = DM_PELSWIDTH|DM_PELSHEIGHT;
+			if (ChangeDisplaySettings(&dmScreenSettings, 0) != DISP_CHANGE_SUCCESSFUL)
+				return;
 			// Disable the cursor
 			ShowCursor(FALSE);
 
 			// SetWindowPos to the upper-left corner of the screen
-			SetWindowPos(hParent, NULL, 0, 0, rcdesktop.right, rcdesktop.bottom, SWP_NOREPOSITION | SWP_NOZORDER);
+			SetWindowPos(hParent, NULL, 0, 0, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
 
 			// Set new window style -> PopUp
 			SetWindowLong(hParent, GWL_STYLE, WS_POPUP);

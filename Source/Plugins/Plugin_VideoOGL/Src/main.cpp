@@ -107,7 +107,7 @@ static bool s_PluginInitialized = false;
 
 static u32 s_swapRequested = FALSE;
 static u32 s_efbAccessRequested = FALSE;
-static u32 s_FifoShuttingDown = FALSE;
+static volatile u32 s_FifoShuttingDown = FALSE;
 static bool ForceSwap = true;
 
 bool IsD3D()
