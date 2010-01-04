@@ -119,7 +119,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 					return 0;
 				}
 				break;
-			case VK_F1: case VK_F2: case VK_F3: case VK_F4:
+			case VK_F5: case VK_F6: case VK_F7: case VK_F8:
 				PostMessage(m_hMain, WM_SYSKEYDOWN, wParam, lParam);
 				return 0;
 		}

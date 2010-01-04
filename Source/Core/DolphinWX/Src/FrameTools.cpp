@@ -199,10 +199,10 @@ void CFrame::CreateMenu()
 		toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
 	}
 	toolsMenu->AppendSeparator();
-	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE1, _T("Connect Wiimote 1\tAlt+F1"));
-	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE2, _T("Connect Wiimote 2\tAlt+F2"));
-	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE3, _T("Connect Wiimote 3\tAlt+F3"));
-	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE4, _T("Connect Wiimote 4\tAlt+F4"));
+	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE1, _T("Connect Wiimote 1\tAlt+F5"));
+	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE2, _T("Connect Wiimote 2\tAlt+F6"));
+	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE3, _T("Connect Wiimote 3\tAlt+F7"));
+	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE4, _T("Connect Wiimote 4\tAlt+F8"));
 
 	m_MenuBar->Append(toolsMenu, _T("&Tools"));
 
