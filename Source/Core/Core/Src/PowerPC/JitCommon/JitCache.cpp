@@ -300,7 +300,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 
 	CompiledCode JitBlockCache::GetCompiledCodeFromBlock(int blockNumber)
 	{		
-		return (CompiledCode)blocks[blockNumber].normalEntry;
+		return (CompiledCode)blockCodePointers[blockNumber];
 	}
 
 	//Block linker
