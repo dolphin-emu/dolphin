@@ -160,12 +160,17 @@ CPanel::CPanel(
 				return 0;
 
 			case WIIMOTE_DISCONNECT:
-				// The Wiimote has been disconnect, we offer reconnect here
-				if(AskYesNo("Wiimote %i has been disconnected by system.\n"
-					"Maybe this game doesn't support multi-wiimote,\n"
-					"or maybe it is due to idle time out or other reason.\n\n"
-					"Do you want to reconnect immediately?", lParam + 1, "Confirm", wxYES_NO))
-					GetUsbPointer()->AccessWiiMote(lParam | 0x100)->Activate(true);
+				if (main_frame->bNoWiimoteMsg)
+					main_frame->bNoWiimoteMsg = false;
+				else
+				{
+					// The Wiimote has been disconnect, we offer reconnect here
+					if(AskYesNo("Wiimote %i has been disconnected by system.\n"
+						"Maybe this game doesn't support multi-wiimote,\n"
+						"or maybe it is due to idle time out or other reason.\n\n"
+						"Do you want to reconnect immediately?", lParam + 1, "Confirm", wxYES_NO))
+						GetUsbPointer()->AccessWiiMote(lParam | 0x100)->Activate(true);
+				}
 				return 0;
 			}
 			break;
@@ -314,13 +319,12 @@ CFrame::CFrame(wxFrame* parent,
 	, bRenderToMain(false), bFloatLogWindow(false), bFloatConsoleWindow(false)
 	, HaveLeds(false), HaveSpeakers(false)
 	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
+	, m_bControlsCreated(false), bNoWiimoteMsg(false)
 	#if wxUSE_TIMER
 		, m_timer(this)
 	#endif
           
 {
-	m_bControlsCreated = false;
-
 	if (ShowLogWindow) SConfig::GetInstance().m_InterfaceLogWindow = true;
 
 	// Give it a console early to show potential messages from this onward

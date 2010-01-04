@@ -113,8 +113,15 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		switch( LOWORD( wParam ))
 		{
 			case VK_RETURN:   // Pressing Alt+Enter switch FullScreen/Windowed
-				ToggleFullscreen(hWnd);
+				if (m_hParent == NULL && !g_Config.RenderToMainframe)
+				{
+					ToggleFullscreen(hWnd);
+					return 0;
+				}
 				break;
+			case VK_F1: case VK_F2: case VK_F3: case VK_F4:
+				PostMessage(m_hMain, WM_SYSKEYDOWN, wParam, lParam);
+				return 0;
 		}
 		break;
 
@@ -168,7 +175,9 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	wndClass.cbWndExtra = 0;
 	wndClass.hInstance = hInstance;
 	wndClass.hIcon = LoadIcon( NULL, IDI_APPLICATION );
-	wndClass.hCursor = LoadCursor( NULL, IDC_ARROW );
+	// To interfer less with SetCursor() later we set this to NULL
+	//wndClass.hCursor = LoadCursor( NULL, IDC_ARROW );
+	wndClass.hCursor = NULL;
 	wndClass.hbrBackground = (HBRUSH)GetStockObject( BLACK_BRUSH );
 	wndClass.lpszMenuName = NULL;
 	wndClass.lpszClassName = m_szClassName;
@@ -218,7 +227,7 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 
 void Show()
 {
-	ShowWindow(m_hWnd, SW_SHOWNORMAL);
+	ShowWindow(m_hWnd, SW_SHOW);
 	BringWindowToTop(m_hWnd);
 	UpdateWindow(m_hWnd);
 }
@@ -259,7 +268,8 @@ void ToggleFullscreen(HWND hParent)
 {
 	if (m_hParent == NULL)
 	{
-		if (D3D::IsFullscreen()) {
+		if (D3D::IsFullscreen())
+		{
 			PostMessage( m_hMain, WM_USER, WM_USER_STOP, 0 );
 			return;
 		}
@@ -300,7 +310,6 @@ void ToggleFullscreen(HWND hParent)
 				sscanf(g_Config.cFSResolution, "%dx%d", &w_fs, &h_fs);
 
 			// Get into fullscreen
-			g_Config.bFullscreen = true;
 			DEVMODE dmScreenSettings;
 			memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
 
@@ -311,14 +320,16 @@ void ToggleFullscreen(HWND hParent)
 			dmScreenSettings.dmFields = DM_PELSWIDTH|DM_PELSHEIGHT;
 			if (ChangeDisplaySettings(&dmScreenSettings, 0) != DISP_CHANGE_SUCCESSFUL)
 				return;
-			// Disable the cursor
-			ShowCursor(FALSE);
-
-			// SetWindowPos to the upper-left corner of the screen
-			SetWindowPos(hParent, NULL, 0, 0, w_fs, h_fs, SWP_NOREPOSITION | SWP_NOZORDER);
 
 			// Set new window style -> PopUp
 			SetWindowLong(hParent, GWL_STYLE, WS_POPUP);
+
+			// SetWindowPos to the upper-left corner of the screen
+			SetWindowPos(hParent, HWND_TOP, 0, 0, w_fs, h_fs, SWP_NOREPOSITION);
+
+			// Disable the cursor
+			ShowCursor(FALSE);
+			g_Config.bFullscreen = true;
 
 			// Eventually show the window!
 			EmuWindow::Show();
