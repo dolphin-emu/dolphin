@@ -66,6 +66,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 				 *m_Cancel,
 				 *m_ButtonMapping,
 				 *m_Recording,
+				 *m_ButtonPairUp,
 				 *m_RefreshRealWiiMote[MAX_WIIMOTES];
 
 		wxChoice *m_InputSource[MAX_WIIMOTES],
@@ -137,6 +138,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 			IDS_HEIGHT, 
 			IDS_LEFT,
 			IDS_TOP,
+
+			ID_BUTTONPAIRUP,
 		};
 
 		void CreateGUIControls();

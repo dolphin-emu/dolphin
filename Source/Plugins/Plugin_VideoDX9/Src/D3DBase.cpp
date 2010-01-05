@@ -121,7 +121,8 @@ void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
 		pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
 		pp->Windowed = FALSE;
 		//if(g_Config.bHideCursor)
-			ShowCursor(false);
+		if(!g_Config.RenderToMainframe)
+			ShowCursor(FALSE);
 	}
 	else
 	{
@@ -132,7 +133,7 @@ void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
 		pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
 		pp->PresentationInterval = g_Config.bVSync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
 		pp->Windowed = TRUE;
-		ShowCursor(true);
+		ShowCursor(TRUE);
 	}
 }
 

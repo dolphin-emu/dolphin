@@ -34,7 +34,12 @@
 #include "EmuDefinitions.h"
 #define EXCLUDE_H // Avoid certain declarations in wiimote_real.h
 #include "wiimote_real.h"
+#ifdef WIN32
+#include <bthdef.h>
+#include <BluetoothAPIs.h>
 
+#pragma comment(lib, "Bthprops.lib")
+#endif
 extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteReal
@@ -284,13 +289,7 @@ void FlashLights(bool Connect)
 		if (Connect)
 			wiiuse_rumble(WiiMoteReal::g_WiiMotesFromWiiUse[i], 1);
 	}
-
-	#ifndef WIN32
-		usleep(200000);
-	#else
-		Sleep(200);
-	#endif
-
+		SLEEP(200);
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
 	{
 		if (Connect) {
@@ -532,28 +531,153 @@ THREAD_RETURN ReadWiimote_ThreadFunc(void* arg)
 	{
 		// We need g_ThreadGoing to do a manual WaitForSingleObject() from the configuration window
 		g_ThreadGoing = true;
-		/*if(g_RealWiiMoteAllocated)
-		{*/
-			// There is at least one Real Wiimote in use
-			if (g_Config.bNumberRealWiimotes > 0 && !g_RunTemporary)
-			{
-				for (int i = 0; i < MAX_WIIMOTES; i++)
-					if (g_WiimoteInUse[i])
-						g_WiiMotes[i]->ReadData();
-			}
-			else
-				ReadWiimote();
-		/*}
+		// There is at least one Real Wiimote in use
+		if (g_Config.bNumberRealWiimotes > 0 && !g_RunTemporary)
+		{
+			for (int i = 0; i < MAX_WIIMOTES; i++)
+				if (g_WiimoteInUse[i])
+					g_WiiMotes[i]->ReadData();
+		}
 		else
-			#ifndef WIN32
-				usleep(1000000);
-			#else
-				Sleep(1000);
-			#endif*/
+			ReadWiimote();
 		g_ThreadGoing = false;
 	}
 	return 0;
 }
+
+
+// WiiMote Pair-Up
+#ifdef WIN32
+int WiimotePairUp(void)
+{
+	HANDLE hRadios[256];
+	int nRadios;
+	int nPaired = 0;
+
+	// Enumerate BT radios
+	HBLUETOOTH_RADIO_FIND hFindRadio;
+	BLUETOOTH_FIND_RADIO_PARAMS radioParam;
+
+	radioParam.dwSize = sizeof(BLUETOOTH_FIND_RADIO_PARAMS);
+	nRadios = 0;
+
+	hFindRadio = BluetoothFindFirstRadio(&radioParam, &hRadios[nRadios++]);
+	if (hFindRadio)
+	{
+		while (BluetoothFindNextRadio(&radioParam, &hRadios[nRadios++]));
+		BluetoothFindRadioClose(hFindRadio);
+	}
+	else
+	{
+		ERROR_LOG(WIIMOTE, "Pair-Up: Error enumerating radios", GetLastError());
+		return -1;
+	}
+	nRadios--;
+	// DEBUG_LOG(WIIMOTE, "Pair-Up: Found %d radios\n", nRadios);
+
+	// Pair with Wii device(s)
+	int radio = 0;
+
+
+		for (radio = 0; radio < nRadios; radio++)
+		{
+			BLUETOOTH_RADIO_INFO radioInfo;
+			HBLUETOOTH_DEVICE_FIND hFind;
+
+			BLUETOOTH_DEVICE_INFO btdi;
+			BLUETOOTH_DEVICE_SEARCH_PARAMS srch;
+
+			radioInfo.dwSize = sizeof(radioInfo);
+			btdi.dwSize = sizeof(btdi);
+			srch.dwSize = sizeof(BLUETOOTH_DEVICE_SEARCH_PARAMS);
+
+			BluetoothGetRadioInfo(hRadios[radio], &radioInfo);
+
+			srch.fReturnAuthenticated = TRUE;
+			srch.fReturnRemembered = TRUE;
+			srch.fReturnConnected = TRUE; // does not filter properly somehow, so we 've to do an additional check on fConnected BT Devices
+			srch.fReturnUnknown = TRUE;
+			srch.fIssueInquiry = FALSE;
+			srch.cTimeoutMultiplier = 1;
+			srch.hRadio = hRadios[radio];
+
+			//DEBUG_LOG(WIIMOTE, _T("Pair-Up: Scanning for BT Device(s)"));
+
+			hFind = BluetoothFindFirstDevice(&srch, &btdi);
+
+			if (hFind == NULL)
+			{
+				ERROR_LOG(WIIMOTE, "Pair-Up: Error enumerating devices: %08x", GetLastError());  
+				return -1;
+			}
+
+			//DWORD pcServices = 16;
+			//GUID guids[16];
+			do
+			{
+				if ((!wcscmp(btdi.szName, L"Nintendo RVL-WBC-01") || !wcscmp(btdi.szName, L"Nintendo RVL-CNT-01")) && !btdi.fConnected)
+				{
+					// Wiimote found and not paired up yet
+					
+					// Wiimote unpaired(no driver installed yet): Name: Nintendo RVL-CNT-01 ClassOfDevice: 9476 fConnected: 0 fRemembered: 0 fAuthenicated: 0
+					// Wiimote already paired(driver installed): Name: Nintendo RVL-CNT-01 ClassOfDevice: 9476 fConnected: 32 fRemembered: 16 fAuthenicated: 0
+					// Wiimote paired but disc.(driver still active): Name: Nintendo RVL-CNT-01 ClassOfDevice: 9476 fConnected: 0 fRemembered: 16 fAuthenicated: 0
+					//TODO: improve the readd of the BT driver, esp. when batteries of the wiimote are removed while beeing fConnected
+					if (btdi.fRemembered) 
+					{
+						// Make Windows forget old expired pairing 
+						// we can pretty much ignore the return value here.
+						// it either worked (ERROR_SUCCESS), or the device did not exist (ERROR_NOT_FOUND)
+						// in both cases, there is nothing left.
+						BluetoothRemoveDevice(&btdi.Address);
+					}
+
+					// If this is not done, the Wii device will not remember the pairing
+					// same thing here, it should return ERROR_SUCCESS, or ERROR_MORE_DATA if the wiimote
+					// offers more than 16 services (pcServices).
+					//BluetoothEnumerateInstalledServices(hRadios[radio], &btdi, &pcServices, guids);
+
+					// Activate service
+					DWORD hr = BluetoothSetServiceState(hRadios[radio], &btdi, &HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
+
+					////authentication not directly neeeded, read it w/o getting corrupted driver installation.
+					////MAC address is passphrase;
+					//WCHAR pass[6];
+					//pass[0] = radioInfo.address.rgBytes[0];
+					//pass[1] = radioInfo.address.rgBytes[1];
+					//pass[2] = radioInfo.address.rgBytes[2];
+					//pass[3] = radioInfo.address.rgBytes[3];
+					//pass[4] = radioInfo.address.rgBytes[4];
+					//pass[5] = radioInfo.address.rgBytes[5];
+
+					//// Pair with Wii device; Pairing before enumerating and setting service state will result mostly in unsuccessfull pairing.
+					//if (BluetoothAuthenticateDevice(NULL, hRadios[radio], &btdi, pass, 6) != ERROR_SUCCESS)
+					//	error = TRUE;
+					if (!hr == ERROR_SUCCESS) 
+					{
+						nPaired++;
+					}
+					else 
+					{
+						ERROR_LOG(WIIMOTE, "Pair-Up: BluetoothSetServiceState() returned %08x", hr);
+					}
+					
+				}
+			} while (BluetoothFindNextDevice(hFind, &btdi));
+		}
+
+		SLEEP(10);
+	
+
+	// Clean up
+	for (radio = 0; radio < nRadios; radio++)
+	{
+		CloseHandle(hRadios[radio]);
+	}
+
+	return nPaired;
+}
+#endif
 
 }; // end of namespace
 

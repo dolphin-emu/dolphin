@@ -25,6 +25,8 @@
 #include "EmuMain.h" // for SetDefaultExtensionRegistry
 #include "EmuSubroutines.h" // for WmRequestStatus
 
+
+
 BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_CLOSE(WiimoteBasicConfigDialog::OnClose)
 	EVT_BUTTON(ID_OK, WiimoteBasicConfigDialog::ButtonClick)
@@ -32,6 +34,7 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_BUTTON(ID_REFRESH_REAL, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_BUTTON(ID_BUTTONMAPPING, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_BUTTON(ID_BUTTONRECORDING, WiimoteBasicConfigDialog::ButtonClick)
+	EVT_BUTTON(ID_BUTTONPAIRUP, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, WiimoteBasicConfigDialog::NotebookPageChanged)
 	EVT_CHOICE(IDC_INPUT_SOURCE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_CONNECT_REAL, WiimoteBasicConfigDialog::GeneralSettingsChanged)
@@ -107,6 +110,19 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 		m_RecordingConfigFrame->Destroy();
 		m_RecordingConfigFrame = NULL;
 		break;
+#ifdef WIN32
+	case ID_BUTTONPAIRUP:
+		if(!g_EmulatorRunning) {
+			m_ButtonPairUp->Enable(false);
+			if (WiiMoteReal::WiimotePairUp() > 0) { //Only temporay solution TODO: 2nd step: threaded. 
+				// sleep would be required (but not best way to solve that cuz 3000ms~ would be needed, which is not convenient),cuz BT device is not ready yet when calling DoRefreshReal() 
+
+				DoRefreshReal();
+			}
+			m_ButtonPairUp->Enable(true);
+		}
+		break;
+#endif
 	case ID_REFRESH_REAL:
 		DoRefreshReal();
 		break;
@@ -232,6 +248,14 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 
 	m_ButtonMapping = new wxButton(this, ID_BUTTONMAPPING, wxT("Button Mapping"));
 	m_Recording		= new wxButton(this, ID_BUTTONRECORDING, wxT("Recording"));
+	m_ButtonPairUp	= new wxButton(this, ID_BUTTONPAIRUP, wxT("Pair Up Wiimote(s)"));
+	
+	#ifdef WIN32
+	m_ButtonPairUp->SetToolTip(wxT("Pair up your Wiimote(s) with your system.\nPress the Buttons 1 and 2 on your Wiimote before pairing up.\nThis might take a few seconds.\nIt only works if you're using Microsoft's Bluetooth stack.")); // Only working with MS BT Stack.
+	#else
+	m_ButtonPairUp->Enable(false);
+    #endif
+
 	m_OK = new wxButton(this, ID_OK, wxT("OK"));
 	m_OK->SetToolTip(wxT("Save changes and close"));
 	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"));
@@ -240,6 +264,7 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->Add(m_ButtonMapping, 0, (wxALL), 0);
 	sButtons->Add(m_Recording, 0, (wxALL), 0);
+	sButtons->Add(m_ButtonPairUp, 0, (wxALL), 0);
 	sButtons->AddStretchSpacer();
 	sButtons->Add(m_OK, 0, (wxALL), 0);
 	sButtons->Add(m_Cancel, 0, (wxLEFT), 5);	
@@ -455,6 +480,7 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	m_ConnectRealWiimote[m_Page]->SetValue(g_Config.bConnectRealWiimote);
 	m_ConnectRealWiimote[m_Page]->Enable(!g_EmulatorRunning);
 	m_RefreshRealWiiMote[m_Page]->Enable(!g_EmulatorRunning && g_Config.bConnectRealWiimote);
+	m_ButtonPairUp->Enable(!g_EmulatorRunning);
 	wxString Found;
 	if(g_Config.bConnectRealWiimote)
 		Found.Printf(wxT("Connected to %i Real WiiMote(s)"), WiiMoteReal::g_NumberOfWiiMotes);
@@ -496,4 +522,3 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	m_CheckAR169[m_Page]->SetValue(g_Config.bKeepAR169);
 	m_Crop[m_Page]->SetValue(g_Config.bCrop);
 }
-

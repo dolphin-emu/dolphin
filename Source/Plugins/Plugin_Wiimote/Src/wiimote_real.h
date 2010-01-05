@@ -23,10 +23,13 @@
 #include "wiiuse.h"
 #include "ChunkFile.h"
 
+
 namespace WiiMoteReal
 {
 
 int Initialize();
+int WiimotePairUp();
+
 void Allocate();
 void DoState(PointerWrap &p);
 void Shutdown(void);
