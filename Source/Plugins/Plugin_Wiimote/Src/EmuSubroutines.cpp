@@ -423,21 +423,23 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 				return;
 		}
 
+		// Remove for example 0xa40000 from the address
+		address &= 0xFFFF;
+
 		// Check if the address is within bounds
-		if((address & 0xFFFF) + wd->size > blockSize) {
+		if(address + wd->size > blockSize) {
 			PanicAlert("WmWriteData: address + size out of bounds!");
 			return;
 		}
 
 		// Finally write the registers to the right structure
-		memcpy(block + (address & 0xFFFF), wd->data, wd->size);
-		
+		memcpy(block + address, wd->data, wd->size);
+
 		// Generate key for the Wiimote Extension
-		if(((address >> 16) & 0xfe) == 0xa4)
+		if(blockSize == WIIMOTE_REG_EXT_SIZE)
 		{
-			/* Run the key generation on all writes in the key area, it doesn't matter 
-			   that we send it parts of a key, only the last full key will have an
-			   effect */
+			// Run the key generation on all writes in the key area, it doesn't matter 
+			// that we send it parts of a key, only the last full key will have an effect
 			if(address >= 0x40 && address <= 0x4c)
 				wiimote_gen_key(&g_ExtKey[g_ID], &g_RegExt[g_ID][0x40]);
 		}
