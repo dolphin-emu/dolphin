@@ -58,22 +58,23 @@ extern void PAD_Rumble(u8 _numPAD, unsigned int _uType);
    1. Wiimote_InterruptChannel > InterruptChannel > HidOutputReport
    2. Wiimote_ControlChannel > ControlChannel > HidOutputReport
 
-   The IR lights and speaker enable/disable and mute/unmute values are
-		0x2 = Disable
-		0x6 = Enable
+   The IR enable/disable and speaker enable/disable and mute/unmute values are
+		bit2: 0 = Disable (0x02), 1 = Enable (0x06)
 */
 void HidOutputReport(u16 _channelID, wm_report* sr)
 {
-	INFO_LOG(WIIMOTE, "HidOutputReport (cid: 0x%02x, wm: 0x%02x)", _channelID, sr->wm);
+	INFO_LOG(WIIMOTE, "HidOutputReport (page: %i, cid: 0x%02x, wm: 0x%02x)", g_ID, _channelID, sr->wm);
 
 	switch(sr->wm)
 	{
 	case WM_RUMBLE: // 0x10
-		PAD_Rumble(g_ID, sr->data[0]);
+		if (WiiMapping[g_ID].Rumble && WiiMapping[g_ID].ID < NumGoodPads)
+			PAD_Rumble(g_ID, sr->data[0]);
 		break;
 
 	case WM_LEDS: // 0x11
-		WmLeds(_channelID, (wm_leds*)sr->data);
+		INFO_LOG(WIIMOTE, "Set LEDs: 0x%02x", sr->data[0]);
+		g_Leds[g_ID] = sr->data[0] >> 4;
 		break;
 
 	case WM_REPORT_MODE:  // 0x12
@@ -81,18 +82,13 @@ void HidOutputReport(u16 _channelID, wm_report* sr)
 		break;
 
 	case WM_IR_PIXEL_CLOCK: // 0x13
-	case WM_IR_LOGIC: // 0x1a
-		// This enables or disables the IR lights, we update the global variable g_IR
-	    // so that WmRequestStatus() knows about it
-		INFO_LOG(WIIMOTE, "WM IR Enable: 0x%02x", sr->data[0]);
-		if(sr->data[0] == 0x02) g_IR[g_ID] = 0;
-			else if(sr->data[0] == 0x06) g_IR[g_ID] = 1;
+		INFO_LOG(WIIMOTE, "WM IR Clock: 0x%02x", sr->data[0]);
+		//g_IRClock[g_ID] = (sr->data[0] & 0x04) ? 1 : 0;
 		break;
 
 	case WM_SPEAKER_ENABLE: // 0x14
 		INFO_LOG(WIIMOTE, "WM Speaker Enable: 0x%02x", sr->data[0]);
-		if(sr->data[0] == 0x02) g_Speaker = 0;
-			else if(sr->data[0] == 0x06) g_Speaker = 1;
+		g_Speaker[g_ID] = (sr->data[0] & 0x04) ? 1 : 0;
 		break;
 
 	case WM_REQUEST_STATUS: // 0x15
@@ -112,9 +108,15 @@ void HidOutputReport(u16 _channelID, wm_report* sr)
 		break;
 
 	case WM_SPEAKER_MUTE: // 0x19
-		INFO_LOG(WIIMOTE, "WM Mute Enable: 0x%02x", sr->data[0]);
-		if(sr->data[0] == 0x02) g_SpeakerVoice = 0; // g_SpeakerVoice
-			else if(sr->data[0] == 0x06) g_SpeakerVoice = 1;
+		INFO_LOG(WIIMOTE, "WM Speaker Mute: 0x%02x", sr->data[0]);
+		//g_SpeakerMute[g_ID] = (sr->data[0] & 0x04) ? 1 : 0;
+		break;
+
+	case WM_IR_LOGIC: // 0x1a
+		// This enables or disables the IR lights, we update the global variable g_IR
+	    // so that WmRequestStatus() knows about it
+		INFO_LOG(WIIMOTE, "WM IR Enable: 0x%02x", sr->data[0]);
+		g_IR[g_ID] = (sr->data[0] & 0x04) ? 1 : 0;
 		break;
 
 	default:
@@ -154,15 +156,6 @@ int WriteWmReportHdr(u8* dst, u8 wm)
 	pReport->wm = wm;
 	return Offset;
 }
-
-
-/* LED (blue lights) report. */
-void WmLeds(u16 _channelID, wm_leds* leds)
-{
-	INFO_LOG(WIIMOTE, "Set LEDs: %x, Rumble: %x", leds->leds, leds->rumble);
-	g_Leds[g_ID] = leds->leds;
-}
-
 
 /* This will generate the 0x22 acknowledgement for most Input reports.
    It has the form of "a1 22 00 00 _reportID 00".
@@ -213,7 +206,7 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			PanicAlert("WmReadData: address + size out of bounds");
 			return;
 		}
-		SendReadDataReply(_channelID, g_Eeprom + address, address, (int)size);
+		SendReadDataReply(_channelID, g_Eeprom[g_ID] + address, address, (int)size);
 		/*DEBUG_LOG(WIIMOTE, "Read RegEeprom: Size: %i, Address: %08x,  Offset: %08x",
 				size, address, (address & 0xffff));*/
 	} 
@@ -224,10 +217,11 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 		switch((address >> 16) & 0xFE) 
 		{
 		case 0xA2:
-			block = g_RegSpeaker;
+			block = g_RegSpeaker[g_ID];
 			blockSize = WIIMOTE_REG_SPEAKER_SIZE;
 			DEBUG_LOG(WIIMOTE, "  Case 0xa2: g_RegSpeaker");
 			break;
+
 		case 0xA4:
 			block = g_RegExt[g_ID];
 			blockSize = WIIMOTE_REG_EXT_SIZE;
@@ -236,7 +230,7 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 
 			// MotionPlus is pretty much just a dummy atm :p
 		case 0xA6:
-			block = g_RegMotionPlus;
+			block = g_RegMotionPlus[g_ID];
 			block[0xFC] = 0xA6;
 			block[0xFD] = 0x20;
 			block[0xFE] = 0x00;
@@ -246,13 +240,14 @@ void WmReadData(u16 _channelID, wm_read_data* rd)
 			break;
 
 		case 0xB0:
-			block = g_RegIr;
+			block = g_RegIr[g_ID];
 			blockSize = WIIMOTE_REG_IR_SIZE;
 			DEBUG_LOG(WIIMOTE,  "  Case 0xb0: g_RegIr");
 			break;
 
 		default:
 			ERROR_LOG(WIIMOTE, "WmReadData: bad register block!");
+			PanicAlert("WmReadData: bad register block!");
 			return;
 		}
 
@@ -389,7 +384,7 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 			PanicAlert("WmWriteData: address + size out of bounds!");
 			return;
 		}
-		memcpy(g_Eeprom + address, wd->data, wd->size);
+		memcpy(g_Eeprom[g_ID] + address, wd->data, wd->size);
 	}
 	// Write to registers
 	else if(wd->size <= 16 && (wd->space == WM_SPACE_REGS1 || wd->space == WM_SPACE_REGS2))
@@ -399,10 +394,11 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 		switch((address >> 16) & 0xFE)
 		{
 			case 0xA2:
-				block = g_RegSpeaker;
+				block = g_RegSpeaker[g_ID];
 				blockSize = WIIMOTE_REG_SPEAKER_SIZE;
 				DEBUG_LOG(WIIMOTE, "  Case 0xa2: RegSpeaker");
 				break;
+
 			case 0xA4:
 				block = g_RegExt[g_ID]; // Extension Controller register
 				blockSize = WIIMOTE_REG_EXT_SIZE;
@@ -410,13 +406,13 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 				break;
 
 			case 0xA6:
-				block = g_RegMotionPlus;
+				block = g_RegMotionPlus[g_ID];
 				blockSize = WIIMOTE_REG_EXT_SIZE;
 				DEBUG_LOG(WIIMOTE, "  Case 0xa6: MotionPlusReg [%x]", address);
 				break;
 
 			case 0xB0:
-				block = g_RegIr;
+				block = g_RegIr[g_ID];
 				blockSize = WIIMOTE_REG_IR_SIZE;
 				INFO_LOG(WIIMOTE, "  Case 0xb0: RegIr");
 				break;
@@ -426,21 +422,18 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 				PanicAlert("WmWriteData: bad register block!");
 				return;
 		}
-		
-		 // Remove for example 0xa40000 from the address
-		 address &= 0xFFFF;
 
 		// Check if the address is within bounds
-		if(address + wd->size > blockSize) {
+		if((address & 0xFFFF) + wd->size > blockSize) {
 			PanicAlert("WmWriteData: address + size out of bounds!");
 			return;
 		}
 
 		// Finally write the registers to the right structure
-		memcpy(block + address, wd->data, wd->size);
+		memcpy(block + (address & 0xFFFF), wd->data, wd->size);
 		
 		// Generate key for the Wiimote Extension
-		if(blockSize == WIIMOTE_REG_EXT_SIZE)
+		if(((address >> 16) & 0xfe) == 0xa4)
 		{
 			/* Run the key generation on all writes in the key area, it doesn't matter 
 			   that we send it parts of a key, only the last full key will have an
@@ -480,7 +473,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 #endif
 	pStatus->leds = g_Leds[g_ID]; // leds are 4 bit
 	pStatus->ir = g_IR[g_ID]; // 1 bit
-	pStatus->speaker = g_Speaker; // 1 bit
+	pStatus->speaker = g_Speaker[g_ID]; // 1 bit
 	pStatus->battery_low = 0; // battery is okay
 	pStatus->battery = 0x5f; // fully charged
 	/* Battery levels in voltage
@@ -501,8 +494,11 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 	}
 
 	INFO_LOG(WIIMOTE, "Request Status");
-	DEBUG_LOG(WIIMOTE, "  Extension: %x", pStatus->extension);
 	DEBUG_LOG(WIIMOTE, "  Buttons: 0x%04x", pStatus->buttons);
+	DEBUG_LOG(WIIMOTE, "  Extension: %x", pStatus->extension);
+	DEBUG_LOG(WIIMOTE, "  Speaker: %x", pStatus->speaker);
+	DEBUG_LOG(WIIMOTE, "  IR: %x", pStatus->ir);
+	DEBUG_LOG(WIIMOTE, "  LEDs: %x", pStatus->leds);
 
 	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
 

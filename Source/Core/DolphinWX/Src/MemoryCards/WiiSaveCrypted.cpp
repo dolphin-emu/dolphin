@@ -17,9 +17,6 @@
 
 // Based off of tachtig http://git.infradead.org/?p=users/segher/wii.git
 
-#ifdef _WIN32
-#include "stdafx.h"
-#endif
 
 #include "WiiSaveCrypted.h"
 #include "FileUtil.h"

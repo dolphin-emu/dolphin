@@ -333,16 +333,18 @@ void Initialize()
 		g_SearchDeviceDone = true;
 	}
 
-	// Write default Eeprom data to g_Eeprom[], this may be overwritten by
-	// WiiMoteReal::Initialize() after this function.
-	memset(g_Eeprom, 0, WIIMOTE_EEPROM_SIZE);
-	memcpy(g_Eeprom, EepromData_0, sizeof(EepromData_0));
-	memcpy(g_Eeprom + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
 	InitCalibration();
 
-	// Copy extension id and calibration to its register, g_Config.Load() is needed before this
 	for (int i = 0; i < MAX_WIIMOTES; i++)
+	{
+		// Write default Eeprom data to g_Eeprom[], this may be overwritten by
+		// WiiMoteReal::Initialize() after this function.
+		memset(g_Eeprom[i], 0, WIIMOTE_EEPROM_SIZE);
+		memcpy(g_Eeprom[i], EepromData_0, sizeof(EepromData_0));
+		memcpy(g_Eeprom[i] + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
+		// Copy extension id and calibration to its register, g_Config.Load() is needed before this
 		UpdateExtRegisterBlocks(i);
+	}
 
 	// The emulated Wiimote is initialized
 	g_EmulatedWiiMoteInitialized = true;
@@ -397,12 +399,12 @@ void ResetVariables()
 // Initiate the accelerometer neutral values
 void InitCalibration()
 {
-	g_wm.cal_zero.x = g_Eeprom[22];
-	g_wm.cal_zero.y = g_Eeprom[23];
-	g_wm.cal_zero.z = g_Eeprom[24];
-	g_wm.cal_g.x = g_Eeprom[26] - g_Eeprom[22];
-	g_wm.cal_g.y = g_Eeprom[27] - g_Eeprom[23];
-	g_wm.cal_g.z = g_Eeprom[28] - g_Eeprom[24];
+	g_wm.cal_zero.x = EepromData_0[22];
+	g_wm.cal_zero.y = EepromData_0[23];
+	g_wm.cal_zero.z = EepromData_0[24];
+	g_wm.cal_g.x = EepromData_0[26] - EepromData_0[22];
+	g_wm.cal_g.y = EepromData_0[27] - EepromData_0[23];
+	g_wm.cal_g.z = EepromData_0[28] - EepromData_0[24];
 
 	g_nu.cal_zero.x = nunchuck_calibration[0x00];
 	g_nu.cal_zero.y = nunchuck_calibration[0x01];
@@ -474,14 +476,12 @@ void UpdateExtRegisterBlocks(int Slot)
 void DoState(PointerWrap &p) 
 {
 	// TODO: Shorten the list
-	p.Do(g_Speaker);
-	p.Do(g_SpeakerVoice);
-	p.DoArray(g_Eeprom, WIIMOTE_EEPROM_SIZE);
-	p.DoArray(g_RegSpeaker, WIIMOTE_REG_SPEAKER_SIZE);
+	p.DoArray(&g_Eeprom[0][0], WIIMOTE_EEPROM_SIZE * MAX_WIIMOTES);
 	p.DoArray(&g_RegExt[0][0], WIIMOTE_REG_EXT_SIZE * MAX_WIIMOTES);
-	p.DoArray(g_RegMotionPlus, WIIMOTE_REG_EXT_SIZE);
-	p.DoArray(g_RegExtTmp, WIIMOTE_REG_EXT_SIZE);
-	p.DoArray(g_RegIr, WIIMOTE_REG_IR_SIZE);
+	p.DoArray(&g_RegMotionPlus[0][0], WIIMOTE_REG_EXT_SIZE * MAX_WIIMOTES);
+	p.DoArray(&g_RegSpeaker[0][0], WIIMOTE_REG_SPEAKER_SIZE * MAX_WIIMOTES);
+	p.DoArray(&g_RegIr[0][0], WIIMOTE_REG_IR_SIZE * MAX_WIIMOTES);
+	//p.DoArray(g_RegExtTmp, WIIMOTE_REG_EXT_SIZE);
 
 	p.Do(g_Encryption);
 
@@ -499,8 +499,11 @@ void DoState(PointerWrap &p)
 		p.Do(g_ReportingAuto[i]);
 		p.Do(g_ReportingMode[i]);
 		p.Do(g_ReportingChannel[i]);
-		//p.Do(g_IR[i]);
+		//p.Do(g_IRClock[i]);
+		p.Do(g_IR[i]);
 		p.Do(g_Leds[i]);
+		p.Do(g_Speaker[i]);
+		//p.Do(g_SpeakerMute[i]);
 		p.Do(g_ExtKey[i]);
 	}
 	return;

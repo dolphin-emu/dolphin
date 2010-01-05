@@ -68,18 +68,18 @@ extern double g_RecordingCurrentTime[3];
 #define WIIMOTE_REG_EXT_SIZE 0x100
 #define WIIMOTE_REG_IR_SIZE 0x34
 
-extern u8 g_IR[4];
-extern u8 g_Leds[4];
-extern u8 g_Speaker;
-extern u8 g_SpeakerVoice;
-
+extern u8 g_Eeprom[MAX_WIIMOTES][WIIMOTE_EEPROM_SIZE];
 extern u8 g_RegExt[MAX_WIIMOTES][WIIMOTE_REG_EXT_SIZE];
+extern u8 g_RegMotionPlus[MAX_WIIMOTES][WIIMOTE_REG_EXT_SIZE];
+extern u8 g_RegSpeaker[MAX_WIIMOTES][WIIMOTE_REG_SPEAKER_SIZE];
+extern u8 g_RegIr[MAX_WIIMOTES][WIIMOTE_REG_IR_SIZE];
+extern u8 g_IRClock[MAX_WIIMOTES];
+extern u8 g_IR[MAX_WIIMOTES];
+extern u8 g_Leds[MAX_WIIMOTES];
+extern u8 g_Speaker[MAX_WIIMOTES];
+extern u8 g_SpeakerMute[MAX_WIIMOTES];
 
-extern u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
-extern u8 g_RegSpeaker[WIIMOTE_REG_SPEAKER_SIZE];
-extern u8 g_RegMotionPlus[WIIMOTE_REG_EXT_SIZE];
 extern u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
-extern u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
 extern int g_ID;
 extern bool g_ReportingAuto[MAX_WIIMOTES];

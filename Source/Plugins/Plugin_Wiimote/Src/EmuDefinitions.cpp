@@ -35,19 +35,18 @@ namespace WiiMoteEmu
 //******************************************************************************
 // Definitions and variable declarations
 //******************************************************************************
-
-u8 g_IR[4];
-u8 g_Leds[4];
-u8 g_Speaker;
-u8 g_SpeakerVoice;
-
+u8 g_Eeprom[MAX_WIIMOTES][WIIMOTE_EEPROM_SIZE];
 u8 g_RegExt[MAX_WIIMOTES][WIIMOTE_REG_EXT_SIZE];
+u8 g_RegMotionPlus[MAX_WIIMOTES][WIIMOTE_REG_EXT_SIZE];
+u8 g_RegSpeaker[MAX_WIIMOTES][WIIMOTE_REG_SPEAKER_SIZE];
+u8 g_RegIr[MAX_WIIMOTES][WIIMOTE_REG_IR_SIZE];
+u8 g_IRClock[MAX_WIIMOTES];
+u8 g_IR[MAX_WIIMOTES];
+u8 g_Leds[MAX_WIIMOTES];
+u8 g_Speaker[MAX_WIIMOTES];
+u8 g_SpeakerMute[MAX_WIIMOTES];
 
-u8 g_Eeprom[WIIMOTE_EEPROM_SIZE];
-u8 g_RegSpeaker[WIIMOTE_REG_SPEAKER_SIZE];
-u8 g_RegMotionPlus[WIIMOTE_REG_EXT_SIZE];
 u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
-u8 g_RegIr[WIIMOTE_REG_IR_SIZE];
 
 int g_ID; // Current refreshing Wiimote
 bool g_ReportingAuto[MAX_WIIMOTES]; // Auto report or passive report

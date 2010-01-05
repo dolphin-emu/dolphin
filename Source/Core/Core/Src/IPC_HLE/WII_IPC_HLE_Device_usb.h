@@ -163,7 +163,7 @@ private:
 		{
 			if(_Address == 0)
 			{
-				m_buffer = NULL;
+				m_buffer = 0;
 			}
 			else
 			{
@@ -197,7 +197,7 @@ private:
 	ACLPool m_ACLPool;
 	u32 m_LastCmd;
 	u32 m_PacketCount[4];
-	u32 m_FreqDividerMote[4];
+	u32 m_FreqDividerMote;
 	u32 m_FreqDividerSync;
 
 	// Events
@@ -214,7 +214,7 @@ private:
 	bool SendEventReadRemoteVerInfo(u16 _connectionHandle);
 	bool SendEventReadRemoteFeatures(u16 _connectionHandle);
 	bool SendEventRoleChange(bdaddr_t _bd, bool _master);
-	bool SendEventNumberOfCompletedPackets();
+	bool SendEventNumberOfCompletedPackets(u16 _connectionHandle, u16 _count);
 	bool SendEventAuthenticationCompleted(u16 _connectionHandle);	
 	bool SendEventModeChange(u16 _connectionHandle, u8 _mode, u16 _value);
 	bool SendEventDisconnect(u16 _connectionHandle, u8 _Reason);

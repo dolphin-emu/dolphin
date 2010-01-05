@@ -73,12 +73,17 @@ void WmReportMode(u16 _channelID, wm_report_mode* dr)
 	INFO_LOG(WIIMOTE, "Set data report mode");
 	DEBUG_LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
 	DEBUG_LOG(WIIMOTE, "  Continuous: %x", dr->continuous);
-	DEBUG_LOG(WIIMOTE, "  All The Time: %x (not only on data change)", dr->all_the_time);
+	DEBUG_LOG(WIIMOTE, "  All The Time: %x", dr->all_the_time);
 	DEBUG_LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
 
 	g_ReportingAuto[g_ID] = dr->all_the_time;
 	g_ReportingMode[g_ID] = dr->mode;
 	g_ReportingChannel[g_ID] = _channelID;
+
+	if (dr->all_the_time == 0)
+	{
+		PanicAlert("Wiimote: Reporting Always is set to OFF!");
+	}
 
 	// Validation check
 	switch(dr->mode)

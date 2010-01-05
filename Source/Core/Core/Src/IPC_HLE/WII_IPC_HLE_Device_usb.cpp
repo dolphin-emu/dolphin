@@ -42,6 +42,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	, m_ACLBuffer(NULL)
 	, m_ACLPool(0)
 	, m_LastCmd(0)
+	, m_FreqDividerMote(0)
 	, m_FreqDividerSync(0)
 {
 	// Activate only first Wiimote by default
@@ -65,7 +66,6 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 
 	memset(m_LocalName, 0, HCI_UNIT_NAME_SIZE);
 	memset(m_PacketCount, 0, sizeof(m_PacketCount));
-	memset(m_FreqDividerMote, 0, sizeof(m_FreqDividerMote));
 
 	Host_SetWiiMoteConnectionState(0);
 }
@@ -85,11 +85,11 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap &p)
 	p.Do(m_ACLBuffer);
 	p.Do(m_ACLPool);
 	p.Do(m_FreqDividerSync);
+	p.Do(m_FreqDividerMote);
 
 	for (int i = 0; i < 4; i++)
 	{
 		p.Do(m_PacketCount[i]);
-		p.Do(m_FreqDividerMote[i]);
 	}
 
 	for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
@@ -105,6 +105,25 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::RemoteDisconnect(u16 _connectionHandle
 // Open
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Open(u32 _CommandAddress, u32 _Mode)
 {
+	m_PINType = 0;
+	m_ScanEnable = 0;
+	m_EventFilterType = 0;
+	m_EventFilterCondition = 0;
+	m_HostMaxACLSize = 0;
+	m_HostMaxSCOSize = 0;
+	m_HostNumACLPackets = 0;
+	m_HostNumSCOPackets = 0;
+
+	m_LastCmd = 0;
+	m_FreqDividerSync = 0;
+	m_FreqDividerMote = 0;
+	memset(m_PacketCount, 0, sizeof(m_PacketCount));
+
+	m_HCIBuffer.m_address = 0;
+	m_HCIPool.m_number = 0;
+	m_ACLBuffer.m_address = 0;
+	m_ACLPool.m_number = 0;
+
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	m_Active = true;
 	return true;
@@ -125,7 +144,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress, bool _bForc
 
 	m_LastCmd = 0;
 	m_FreqDividerSync = 0;
-	memset(m_FreqDividerMote, 0, sizeof(m_FreqDividerMote));
+	m_FreqDividerMote = 0;
 	memset(m_PacketCount, 0, sizeof(m_PacketCount));
 
 	m_HCIBuffer.m_address = 0;
@@ -469,12 +488,6 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		}
 	}
 
-	// AyuanX: Actually we don't need to link channels so early
-	// We can wait until HCI command: CommandReadRemoteFeatures is finished
-	// Because at this moment, CPU is busy handling HCI commands
-	// and have no time to respond ACL requests shortly
-	// But ... whatever, either way works
-	//
 	// Link channels when connected
 	if (m_ACLBuffer.m_address && !m_LastCmd && !WII_IPCInterface::GetAddress())
 	{
@@ -490,12 +503,12 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// Calculation: 15000Hz (IPC_HLE) / 100Hz (WiiMote) = 150
 	if (m_ACLBuffer.m_address && !m_LastCmd)
 	{
+		if (++m_FreqDividerMote > 150)
+			m_FreqDividerMote = 0;
 		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
 		{
-			m_FreqDividerMote[i]++;
-			if (m_WiiMotes[i].IsConnected() == 3 && m_FreqDividerMote[i] >= 150)
+			if (m_WiiMotes[i].IsConnected() == 3 && m_FreqDividerMote == 150 / (i + 1))
 			{
-				m_FreqDividerMote[i] = 0;
 				CPluginManager::GetInstance().GetWiimote(0)->Wiimote_Update(i);
 				return true;
 			}
@@ -508,17 +521,15 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// TODO: Figure out the correct frequency to send this thing
 	if (m_HCIBuffer.m_address && !WII_IPCInterface::GetAddress())
 	{
-		m_FreqDividerSync++;
-		if (m_FreqDividerSync >= 500)	// Feel free to tweak it
-		{
+		if (++m_FreqDividerSync > 500)
 			m_FreqDividerSync = 0;
-			for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+		for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+		{
+			if (m_WiiMotes[i].IsConnected() == 3 && m_FreqDividerSync == 500 / (i + 1))
 			{
-				if (m_WiiMotes[i].IsConnected() == 3)
-				{
-					SendEventNumberOfCompletedPackets();
-					return true;
-				}
+				SendEventNumberOfCompletedPackets(m_WiiMotes[i].GetConnectionHandle(), m_PacketCount[i]);
+				m_PacketCount[i] = 0;
+				return true;
 			}
 		}
 	}
@@ -971,38 +982,29 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRoleChange(bdaddr_t _bd, bool
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
+bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets(u16 _connectionHandle, u16 _count)
 {
-	int Num = 0;
-	for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
+	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_connectionHandle);
+	if (pWiiMote == NULL)
 	{
-		if (m_WiiMotes[i].IsConnected() == 3)
-			Num++;
+		ERROR_LOG(WII_IPC_WIIMOTE, "SendEventNumberOfCompletedPackets: Cant find WiiMote by connection handle %02x", _connectionHandle);
+		PanicAlert("SendEventNumberOfCompletedPackets: Cant find WiiMote by connection handle %02x", _connectionHandle);
+		return false;
 	}
 
-	if (Num == 0)
-		return false;
-
-	SQueuedEvent Event(sizeof(SHCIEventNumberOfCompletedPackets) + Num * 4, 0);
+	SQueuedEvent Event(sizeof(SHCIEventNumberOfCompletedPackets), 0); // zero, so this packet isnt counted
 
 	SHCIEventNumberOfCompletedPackets* pNumberOfCompletedPackets = (SHCIEventNumberOfCompletedPackets*)Event.m_buffer;
-	pNumberOfCompletedPackets->EventType = HCI_EVENT_NUM_COMPL_PKTS;
-	pNumberOfCompletedPackets->PayloadLength = sizeof(SHCIEventNumberOfCompletedPackets) + Num * 4 - 2;
-	pNumberOfCompletedPackets->NumberOfHandles = Num;
-
-	u16 *pData = (u16 *)(Event.m_buffer + sizeof(SHCIEventNumberOfCompletedPackets));
-	for (unsigned int i = 0; i < m_WiiMotes.size(); i++)
-	{
-		if (m_WiiMotes[i].IsConnected() != 3) continue;
-		pData[0] = m_WiiMotes[i].GetConnectionHandle();
-		pData[Num] = m_PacketCount[i];
-		m_PacketCount[i] = 0;
-		pData++;
-	}
+	pNumberOfCompletedPackets->EventType = 0x13;
+	pNumberOfCompletedPackets->PayloadLength = sizeof(SHCIEventNumberOfCompletedPackets) - 2;
+	pNumberOfCompletedPackets->NumberOfHandles = 1;
+	pNumberOfCompletedPackets->Connection_Handle = _connectionHandle;
+	pNumberOfCompletedPackets->Number_Of_Completed_Packets = _count;
 
 	// Log
 	INFO_LOG(WII_IPC_WIIMOTE, "Event: SendEventNumberOfCompletedPackets");
-	DEBUG_LOG(WII_IPC_WIIMOTE, "  NumberOfConnectionHandle: 0x%04x", pNumberOfCompletedPackets->NumberOfHandles);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "  Connection_Handle: 0x%04x", pNumberOfCompletedPackets->Connection_Handle);
+	DEBUG_LOG(WII_IPC_WIIMOTE, "  Number_Of_Completed_Packets: %i", pNumberOfCompletedPackets->Number_Of_Completed_Packets);
 
 	AddEventToQueue(Event);
 
