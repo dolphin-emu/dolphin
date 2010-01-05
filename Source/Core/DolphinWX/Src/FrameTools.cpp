@@ -49,6 +49,7 @@ Core::GetWindowHandle().
 #include "ConfigMain.h"
 #include "PluginManager.h"
 #include "MemcardManager.h"
+#include "MemoryCards/WiiSaveCrypted.h"
 #include "CheatsWindow.h"
 #include "LuaWindow.h"
 #include "AboutDolphin.h"
@@ -187,7 +188,8 @@ void CFrame::CreateMenu()
 	// Tools menu
 	wxMenu* toolsMenu = new wxMenu;
 	toolsMenu->Append(IDM_LUA, _T("New &Lua Console"));
-	toolsMenu->Append(IDM_MEMCARD, _T("&Memcard Manager"));
+	toolsMenu->Append(IDM_MEMCARD, _T("&Memcard Manager (GC)"));
+	toolsMenu->Append(IDM_IMPORTSAVE, _T("Wii Save Import (experimental)"));
 	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
 
 #if defined(HAVE_SFML) && HAVE_SFML
@@ -782,10 +784,30 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 {
-m_bModalDialogOpen = true;
+	m_bModalDialogOpen = true;
 	CMemcardManager MemcardManager(this);
 	MemcardManager.ShowModal();
-m_bModalDialogOpen = false;
+	m_bModalDialogOpen = false;
+}
+
+void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event)) 
+{
+	wxString path = wxFileSelector(_T("Select the save file"),
+			wxEmptyString, wxEmptyString, wxEmptyString,
+			wxString::Format
+			(
+					_T("Wii save files|data.bin|All files (%s)|%s"),
+					wxFileSelectorDefaultWildcardStr,
+					wxFileSelectorDefaultWildcardStr
+			),
+			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
+			this);
+
+	if (!path.IsEmpty())
+	{
+		CWiiSaveCrypted saveFile(path.ToUTF8().data());
+		saveFile.Extract();
+	}
 }
 
 void CFrame::OnOpenLuaWindow(wxCommandEvent& WXUNUSED (event))

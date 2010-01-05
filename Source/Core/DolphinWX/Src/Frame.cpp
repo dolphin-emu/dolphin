@@ -239,6 +239,7 @@ EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
 
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
+EVT_MENU(IDM_IMPORTSAVE, CFrame::OnImportSave)
 EVT_MENU(IDM_CHEATS, CFrame::OnShow_CheatsWindow)
 EVT_MENU(IDM_CHANGEDISC, CFrame::OnChangeDisc)
 EVT_MENU(IDM_LOAD_WII_MENU, CFrame::OnLoadWiiMenu)

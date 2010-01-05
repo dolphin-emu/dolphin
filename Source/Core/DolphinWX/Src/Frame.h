@@ -308,6 +308,7 @@ class CFrame : public wxFrame
 		void OnHostMessage(wxCommandEvent& event);
 
 		void OnMemcard(wxCommandEvent& event); // Misc
+		void OnImportSave(wxCommandEvent& event);
 		void OnOpenLuaWindow(wxCommandEvent& event);
 
 		void OnNetPlay(wxCommandEvent& event);

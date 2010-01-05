@@ -1098,46 +1098,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\src\MemoryCards\GCMemcard.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WarnAsError="false"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WarnAsError="false"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="DebugFast|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WarnAsError="false"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release_JITIL|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						WarnAsError="false"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath=".\src\MemoryCards\GCMemcard.h"
-				>
-			</File>
-			<File
 				RelativePath=".\src\Globals.cpp"
 				>
 			</File>
@@ -1502,6 +1462,58 @@
 				</File>
 				<File
 					RelativePath=".\Src\NetWindow.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="Saves"
+				>
+				<File
+					RelativePath=".\src\MemoryCards\GCMemcard.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							WarnAsError="false"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							WarnAsError="false"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="DebugFast|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							WarnAsError="false"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Release_JITIL|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							WarnAsError="false"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath=".\src\MemoryCards\GCMemcard.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\MemoryCards\WiiSaveCrypted.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\MemoryCards\WiiSaveCrypted.h"
 					>
 				</File>
 			</Filter>
