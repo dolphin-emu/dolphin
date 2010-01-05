@@ -36,6 +36,7 @@ if wxenv['HAVE_WX']:
 		'CheatsWindow.cpp',
 		'stdafx.cpp',
 		'WxUtils.cpp',
+		'MemoryCards/WiiSaveCrypted.cpp',
 		]
 
         CPPDEFINES = [

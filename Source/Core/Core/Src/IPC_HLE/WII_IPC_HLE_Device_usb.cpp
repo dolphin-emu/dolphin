@@ -128,9 +128,9 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::Close(u32 _CommandAddress, bool _bForc
 	memset(m_FreqDividerMote, 0, sizeof(m_FreqDividerMote));
 	memset(m_PacketCount, 0, sizeof(m_PacketCount));
 
-	m_HCIBuffer.m_address = NULL;
+	m_HCIBuffer.m_address = 0;
 	m_HCIPool.m_number = 0;
-	m_ACLBuffer.m_address = NULL;
+	m_ACLBuffer.m_address = 0;
 	m_ACLPool.m_number = 0;
 
 	if (!_bForce)
@@ -332,7 +332,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8
 //
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
-	if(m_ACLBuffer.m_address != NULL)
+	if(m_ACLBuffer.m_address != 0)
 	{
 		INFO_LOG(WII_IPC_WIIMOTE, "Sending ACL Packet: 0x%08x .... (ConnectionHandle 0x%04x)", m_ACLBuffer.m_address, _ConnectionHandle);
 
@@ -352,7 +352,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 		WII_IPCInterface::EnqReply(m_ACLBuffer.m_address);
 
 		// Invalidate ACL buffer
-		m_ACLBuffer.m_address = NULL;
+		m_ACLBuffer.m_address = 0;
 		m_ACLBuffer.m_buffer = NULL;
 	}
 	else if ((sizeof(UACLHeader) + _Size) > ACL_MAX_SIZE )
@@ -387,7 +387,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 //
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeACLPool()
 {
-	if(m_ACLBuffer.m_address == NULL)
+	if(m_ACLBuffer.m_address == 0)
 		return;
 
 		INFO_LOG(WII_IPC_WIIMOTE, "Purging ACL Pool: 0x%08x ....", m_ACLBuffer.m_address);
@@ -403,7 +403,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeACLPool()
 			// Send a reply to indicate ACL buffer is sent
 			WII_IPCInterface::EnqReply(m_ACLBuffer.m_address);
 			// Invalidate ACL buffer
-			m_ACLBuffer.m_address = NULL;
+			m_ACLBuffer.m_address = 0;
 			m_ACLBuffer.m_buffer = NULL;
 		}
 }
@@ -539,7 +539,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 //
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _event)
 {
-	if (m_HCIBuffer.m_address != NULL)
+	if (m_HCIBuffer.m_address != 0)
 	{
 		INFO_LOG(WII_IPC_WIIMOTE, "Sending HCI Packet to Address: 0x%08x ....", m_HCIBuffer.m_address);
 
@@ -552,7 +552,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 		WII_IPCInterface::EnqReply(m_HCIBuffer.m_address);
 
 		// Invalidate HCI buffer
-		m_HCIBuffer.m_address = NULL;
+		m_HCIBuffer.m_address = 0;
 		m_HCIBuffer.m_buffer = NULL;
 	}
 	else if (_event.m_size > HCI_MAX_SIZE)
@@ -582,7 +582,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 //
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeHCIPool()
 {
-	if(m_HCIBuffer.m_address == NULL)
+	if(m_HCIBuffer.m_address == 0)
 		return;
 
 		INFO_LOG(WII_IPC_WIIMOTE, "Purging HCI Pool: 0x%08x ....", m_HCIBuffer.m_address);
@@ -598,7 +598,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeHCIPool()
 			// Send a reply to indicate ACL buffer is sent
 			WII_IPCInterface::EnqReply(m_HCIBuffer.m_address);
 			// Invalidate ACL buffer
-			m_HCIBuffer.m_address = NULL;
+			m_HCIBuffer.m_address = 0;
 			m_HCIBuffer.m_buffer = NULL;
 		}
 }
@@ -911,7 +911,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventCommandStatus(u16 _Opcode)
 {
 	// If we haven't sent this event or other events before, we will send it
 	// If we have, then skip it
-	if (m_LastCmd == NULL)
+	if (m_LastCmd == 0)
 	{
 		// Let's make a mark to show further events are scheduled
 		// besides this should also guarantee we won't send this event twice
@@ -938,7 +938,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventCommandStatus(u16 _Opcode)
 		// If the mark matches, clear it
 		// if not, keep it untouched
 		if (m_LastCmd==0xFFFF)
-			m_LastCmd = NULL;
+			m_LastCmd = 0;
 
 		return false;
 	}
@@ -980,7 +980,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventNumberOfCompletedPackets()
 			Num++;
 	}
 
-	if (Num == NULL)
+	if (Num == 0)
 		return false;
 
 	SQueuedEvent Event(sizeof(SHCIEventNumberOfCompletedPackets) + Num * 4, 0);
@@ -1147,7 +1147,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 
 	// Only show info if this is a new HCI command
 	// or else we are continuing to execute last command
-	if(m_LastCmd == NULL)
+	if(m_LastCmd == 0)
 	{
 		INFO_LOG(WII_IPC_WIIMOTE, "**************************************************");
 		INFO_LOG(WII_IPC_WIIMOTE, "Execute HCI Command: 0x%04x (ocf: 0x%02x, ogf: 0x%02x)", pMsg->Opcode, ocf, ogf);
@@ -1324,7 +1324,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 		break;
 	}
 
-	if ((m_LastCmd == NULL) && (m_HCIPool.m_number == 0))
+	if ((m_LastCmd == 0) && (m_HCIPool.m_number == 0))
 	{
 		// If HCI command is finished and HCI pool is empty, send a reply to command
 		WII_IPCInterface::EnqReply(_rHCICommandMessage.m_Address);
@@ -1345,7 +1345,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandInquiry(u8* _Input)
 	if (SendEventCommandStatus(HCI_CMD_INQUIRY))
 		return;
 
-	if (m_LastCmd == NULL)
+	if (m_LastCmd == 0)
 	{
 		SendEventInquiryResponse();
 		// Now let's set up a mark
@@ -1355,7 +1355,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandInquiry(u8* _Input)
 	{
 		SendEventInquiryComplete();
 		// Clean up
-		m_LastCmd = NULL;
+		m_LastCmd = 0;
 	}
 
 	hci_inquiry_cp* pInquiry = (hci_inquiry_cp*)_Input;
@@ -1431,7 +1431,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandAcceptCon(u8* _Input)
 	hci_accept_con_cp* pAcceptCon = (hci_accept_con_cp*)_Input;
 
 	// this connection wants to be the master
-	if ((m_LastCmd == NULL)&&(pAcceptCon->role == 0))
+	if ((m_LastCmd == 0)&&(pAcceptCon->role == 0))
 	{
 		SendEventRoleChange(pAcceptCon->bdaddr, true);
 		// Now let us set up a mark
@@ -1442,7 +1442,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandAcceptCon(u8* _Input)
 	{
 		SendEventConnectionComplete(pAcceptCon->bdaddr);
 		// Clean up
-		m_LastCmd = NULL;
+		m_LastCmd = 0;
 	}
 
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
@@ -1698,7 +1698,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandReadStoredLinkKey(u8* _Input)
 	else
 	{
 		SendEventCommandComplete(HCI_CMD_READ_STORED_LINK_KEY, &Reply, sizeof(hci_read_stored_link_key_rp));
-		m_LastCmd = NULL;
+		m_LastCmd = 0;
 	}
 
 	// logging

@@ -161,7 +161,7 @@ private:
 		CtrlBuffer(u32 _Address)
 			: m_address(_Address)
 		{
-			if(_Address == NULL)
+			if(_Address == 0)
 			{
 				m_buffer = NULL;
 			}
