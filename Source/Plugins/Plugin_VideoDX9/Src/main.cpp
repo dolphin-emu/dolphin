@@ -310,6 +310,10 @@ void DoState(unsigned char **ptr, int mode) {
 	VideoCommon_DoState(p);
 }
 
+void EmuStateChange(PLUGIN_EMUSTATE newState)
+{
+}
+
 void Video_EnterLoop()
 {
 	Fifo_EnterLoop(g_VideoInitialize);

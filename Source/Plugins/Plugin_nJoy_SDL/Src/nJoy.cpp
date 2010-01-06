@@ -294,6 +294,9 @@ void DoState(unsigned char **ptr, int mode)
 #endif
 }
 
+void EmuStateChange(PLUGIN_EMUSTATE newState)
+{
+}
 
 // Set PAD status
 // --------------

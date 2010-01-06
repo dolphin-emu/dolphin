@@ -83,6 +83,12 @@ enum PLUGIN_TYPE {
 #define STATE_MODE_WRITE   2
 #define STATE_MODE_MEASURE 3
 
+// used for notification on emulation state
+enum PLUGIN_EMUSTATE {
+	PLUGIN_EMUSTATE_PLAY = 1,
+	PLUGIN_EMUSTATE_PAUSE,
+	PLUGIN_EMUSTATE_STOP,
+};
 
 // Export structs
 // ------------
@@ -169,6 +175,13 @@ EXPORT void CALL Shutdown(void);
 //
 EXPORT void CALL DoState(unsigned char **ptr, int mode);
 
+// ___________________________________________________________________________
+// Function: EmuStateChange
+// Purpose: Notifies the plugin of a change in emulation state
+// input:    newState
+// output:   none
+//
+EXPORT void CALL EmuStateChange(PLUGIN_EMUSTATE newState);
 
 
 #if defined(__cplusplus)

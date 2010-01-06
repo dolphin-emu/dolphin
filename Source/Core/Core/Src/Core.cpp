@@ -196,6 +196,7 @@ void Stop()  // - Hammertime!
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	g_bStopping = true;
+	CPluginManager::GetInstance().EmuStateChange(PLUGIN_EMUSTATE_STOP);
 
 	WARN_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");	
 
@@ -531,10 +532,12 @@ void SetState(EState _State)
 	case CORE_PAUSE:
 		CCPU::EnableStepping(true);  // Break
 		CPluginManager::GetInstance().GetDSP()->DSP_ClearAudioBuffer();
+		CPluginManager::GetInstance().EmuStateChange(PLUGIN_EMUSTATE_PAUSE);
 		break;
 	case CORE_RUN:
 		CCPU::EnableStepping(false);
 		CPluginManager::GetInstance().GetDSP()->DSP_ClearAudioBuffer();
+		CPluginManager::GetInstance().EmuStateChange(PLUGIN_EMUSTATE_PLAY);
 		break;
 	default:
 		PanicAlert("Invalid state");

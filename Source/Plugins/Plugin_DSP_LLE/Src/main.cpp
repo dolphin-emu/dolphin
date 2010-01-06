@@ -170,6 +170,10 @@ void DoState(unsigned char **ptr, int mode)
 	p.Do(g_InitMixer);
 }
 
+void EmuStateChange(PLUGIN_EMUSTATE newState)
+{
+}
+
 void DllDebugger(HWND _hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX

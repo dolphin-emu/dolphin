@@ -40,6 +40,7 @@ CPlugin::CPlugin(const char* _szName) : valid(false)
 	m_Initialize = NULL;
 	m_Shutdown = NULL;
 	m_DoState = NULL;
+	m_EmuStateChange = NULL;
 		
 	if (m_hInstLib.Load(_szName))
 	{        
@@ -57,6 +58,8 @@ CPlugin::CPlugin(const char* _szName) : valid(false)
 			(m_hInstLib.Get("Shutdown"));
 		m_DoState = reinterpret_cast<TDoState>
 			(m_hInstLib.Get("DoState"));
+		m_EmuStateChange = reinterpret_cast<TEmuStateChange>
+			(m_hInstLib.Get("EmuStateChange"));
 		
 		// Check if the plugin has all the functions it shold have
 		if (m_GetDllInfo != 0 &&
@@ -65,7 +68,8 @@ CPlugin::CPlugin(const char* _szName) : valid(false)
 			m_SetDllGlobals != 0 &&
 			m_Initialize != 0 &&
 			m_Shutdown != 0 &&
-			m_DoState != 0)
+			m_DoState != 0 &&
+			m_EmuStateChange != 0)
 			valid = true;
 	} 
 
@@ -110,6 +114,11 @@ void CPlugin::SetGlobals(PLUGIN_GLOBALS* _pluginGlobals) {
 void CPlugin::DoState(unsigned char **ptr, int mode) {
 	if (m_DoState != NULL)
 		m_DoState(ptr, mode);
+}
+
+void CPlugin::EmuStateChange(PLUGIN_EMUSTATE newState) {
+	if (m_EmuStateChange != NULL)
+		m_EmuStateChange(newState);
 }
 
 void CPlugin::Initialize(void *init)

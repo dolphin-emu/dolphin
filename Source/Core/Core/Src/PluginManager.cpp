@@ -462,6 +462,17 @@ void CPluginManager::FreeWiimote(u32 Wiimote)
 	}
 }
 
+void CPluginManager::EmuStateChange(PLUGIN_EMUSTATE newState)
+{
+	GetVideo()->EmuStateChange(newState);
+	GetDSP()->EmuStateChange(newState);
+	//TODO: OpenConfig below only uses GetXxx(0) aswell
+	//      Would we need to call all plugins?
+	//      If yes, how would one check if the plugin was not 
+	//      just created by GetXxx(idx) because there was none?
+	GetPad(0)->EmuStateChange(newState);
+	GetWiimote(0)->EmuStateChange(newState);
+}
 
 
 

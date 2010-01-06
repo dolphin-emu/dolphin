@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "CommonTypes.h"
+#include "pluginspecs_wiimote.h"
 #if defined(HAVE_X11) && HAVE_X11
 	#include <X11/Xlib.h>
 	#include <X11/Xutil.h>
@@ -89,6 +90,9 @@ struct SRecordingAll
 	
 	// Movement recording
 	extern std::vector<SRecordingAll> VRecording;
+
+	extern PLUGIN_EMUSTATE g_EmulatorState;
+
 #endif
 
 

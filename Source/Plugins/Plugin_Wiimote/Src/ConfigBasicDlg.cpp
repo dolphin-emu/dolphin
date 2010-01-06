@@ -112,7 +112,7 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 		break;
 #ifdef WIN32
 	case ID_BUTTONPAIRUP:
-		if(!g_EmulatorRunning) {
+		if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY) {
 			m_ButtonPairUp->Enable(false);
 			if (WiiMoteReal::WiimotePairUp() > 0) { //Only temporay solution TODO: 2nd step: threaded. 
 				// sleep would be required (but not best way to solve that cuz 3000ms~ would be needed, which is not convenient),cuz BT device is not ready yet when calling DoRefreshReal() 
@@ -151,6 +151,7 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 
 		// Basic Settings
 		m_InputSource[i] = new wxChoice(m_Controller[i], IDC_INPUT_SOURCE, wxDefaultPosition, wxDefaultSize, arrayStringFor_source, 0, wxDefaultValidator);
+		m_InputSource[i]->SetToolTip(wxT("This can only be changed when the emulator is paused or stopped."));
 
 		// Emulated Wiimote
 		m_SidewaysWiimote[i] = new wxCheckBox(m_Controller[i], IDC_SIDEWAYSWIIMOTE, wxT("Sideways Wiimote"));
@@ -164,10 +165,10 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_Extension[i] = new wxChoice(m_Controller[i], IDC_EXTCONNECTED, wxDefaultPosition, wxDefaultSize, arrayStringFor_extension, 0, wxDefaultValidator);
 
 		m_ConnectRealWiimote[i] = new wxCheckBox(m_Controller[i], IDC_CONNECT_REAL, wxT("Connect Real Wiimote"));
-		m_ConnectRealWiimote[i]->SetToolTip(wxT("Connected to the Real WiiMote(s). This can not be changed during gameplay."));
+		m_ConnectRealWiimote[i]->SetToolTip(wxT("Connected to the Real WiiMote(s).\nThis can only be changed when the emulator is paused or stopped."));
 		m_FoundWiimote[i] = new wxStaticText(m_Controller[i], ID_FOUND_REAL, wxT("Found 0 WiiMotes"));
 		m_RefreshRealWiiMote[i] = new wxButton(m_Controller[i], ID_REFRESH_REAL, wxT("Refresh Real WiiMotes"));
-		m_RefreshRealWiiMote[i]->SetToolTip(wxT("Reconnect to all Real WiiMotes. This is useful if you recently connected another one."));
+		m_RefreshRealWiiMote[i]->SetToolTip(wxT("Reconnect to all Real WiiMotes.\nThis is useful if you recently connected another one.\nThis can only be done when the emulator is paused or stopped."));
 
 		//IR Pointer
 		m_TextScreenWidth[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Width: 000"));
@@ -301,7 +302,7 @@ void WiimoteBasicConfigDialog::UpdateOnce(wxTimerEvent& event)
 
 void WiimoteBasicConfigDialog::DoConnectReal()
 {
-	if(g_Config.bConnectRealWiimote)
+	if (g_Config.bConnectRealWiimote)
 	{
 		if (!g_RealWiiMoteInitialized)
 		{
@@ -320,15 +321,14 @@ void WiimoteBasicConfigDialog::DoConnectReal()
 
 void WiimoteBasicConfigDialog::DoRefreshReal()
 {
-	if(!g_Config.bConnectRealWiimote || g_EmulatorRunning)
-		return;
-	if (g_RealWiiMoteInitialized)
-		WiiMoteReal::Shutdown();
-	if (!g_RealWiiMoteInitialized)
+	if (g_Config.bConnectRealWiimote && g_EmulatorState != PLUGIN_EMUSTATE_PLAY)
 	{
-		WiiMoteReal::Initialize();
-		UpdateGUI();;
+		if (g_RealWiiMoteInitialized)
+			WiiMoteReal::Shutdown();
+		if (!g_RealWiiMoteInitialized)
+			WiiMoteReal::Initialize();
 	}
+	UpdateGUI();
 }
 
 void WiimoteBasicConfigDialog::DoUseReal()
@@ -351,7 +351,7 @@ void WiimoteBasicConfigDialog::DoUseReal()
 	DEBUG_LOG(WIIMOTE, "DoUseReal()  Connect extension: %i", !UsingExtension);
 	DoExtensionConnectedDisconnected(UsingExtension ? 1 : 0);
 
-	if (g_EmulatorRunning)
+	if (g_EmulatorState == PLUGIN_EMUSTATE_PLAY)
 	{
 		// Disable the checkbox for a moment
 		SetCursor(wxCursor(wxCURSOR_WAIT));
@@ -400,28 +400,30 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 		case IDC_CONNECT_REAL:
-			if(!g_EmulatorRunning)
+			// If the config dialog was open when the user click on Play/Pause, the GUI was not updated, so this could crash everything!
+			if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY)
 			{
 				g_Config.bConnectRealWiimote = m_ConnectRealWiimote[m_Page]->IsChecked();
 				DoConnectReal();
 			}
 			break;
 		case IDC_INPUT_SOURCE:
-			if (m_InputSource[m_Page]->GetSelection() == 2)
+			// If the config dialog was open when the user click on Play/Pause, the GUI was not updated, so this could crash everything!
+			if (g_EmulatorState == PLUGIN_EMUSTATE_PLAY)
 			{
-				if(!g_EmulatorRunning)
+				PanicAlert("This can only be changed when the emulator is paused or stopped!");
+				WiiMoteEmu::WiiMapping[m_Page].Source = 0;
+			}
+			else
+			{
+				if (m_InputSource[m_Page]->GetSelection() == 2)
 				{
 					WiiMoteEmu::WiiMapping[m_Page].Source = 2;
 					DoUseReal();
 				}
 				else
-				{
-					PanicAlert("You can't change to Real WiiMote when a game is running!");
-					WiiMoteEmu::WiiMapping[m_Page].Source = 0;
-				}
+					WiiMoteEmu::WiiMapping[m_Page].Source = m_InputSource[m_Page]->GetSelection();
 			}
-			else
-				WiiMoteEmu::WiiMapping[m_Page].Source = m_InputSource[m_Page]->GetSelection();
 			break;
 		case IDC_SIDEWAYSWIIMOTE:
 			WiiMoteEmu::WiiMapping[m_Page].bSideways = m_SidewaysWiimote[m_Page]->IsChecked();
@@ -437,7 +439,7 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 			DoExtensionConnectedDisconnected(WiiMoteEmu::EXT_NONE);
 			// It doesn't seem to be needed but shouldn't it at least take 25 ms to
 			// reconnect an extension after we disconnected another?
-			if(g_EmulatorRunning)
+			if (g_EmulatorRunning)
 				SLEEP(25);
 			// Update status
 			WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected = m_Extension[m_Page]->GetSelection();
@@ -477,12 +479,13 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	   mean that the wiimote must be sent the current reporting mode and the channel ID after it
 	   has been initialized. Functions for that are basically already in place so these two options
 	   could possibly be simplified to one option. */
+	m_InputSource[m_Page]->Enable(g_EmulatorState != PLUGIN_EMUSTATE_PLAY);
 	m_ConnectRealWiimote[m_Page]->SetValue(g_Config.bConnectRealWiimote);
-	m_ConnectRealWiimote[m_Page]->Enable(!g_EmulatorRunning);
-	m_RefreshRealWiiMote[m_Page]->Enable(!g_EmulatorRunning && g_Config.bConnectRealWiimote);
-	m_ButtonPairUp->Enable(!g_EmulatorRunning);
+	m_ConnectRealWiimote[m_Page]->Enable(g_EmulatorState != PLUGIN_EMUSTATE_PLAY);
+	m_RefreshRealWiiMote[m_Page]->Enable(g_EmulatorState != PLUGIN_EMUSTATE_PLAY && g_Config.bConnectRealWiimote);
+	m_ButtonPairUp->Enable(g_EmulatorState != PLUGIN_EMUSTATE_PLAY);
 	wxString Found;
-	if(g_Config.bConnectRealWiimote)
+	if (g_Config.bConnectRealWiimote)
 		Found.Printf(wxT("Connected to %i Real WiiMote(s)"), WiiMoteReal::g_NumberOfWiiMotes);
 	else
 		Found.Printf(wxT("Not connected to Real WiiMotes"));

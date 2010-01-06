@@ -78,7 +78,9 @@ int g_UpdateWriteScreen = 0;
 std::vector<int> g_UpdateTimeList (5, 0);
 
 // Movement recording
-std::vector<SRecordingAll> VRecording(RECORDING_ROWS); 
+std::vector<SRecordingAll> VRecording(RECORDING_ROWS);
+
+PLUGIN_EMUSTATE g_EmulatorState = PLUGIN_EMUSTATE_STOP;
 
 // Standard crap to make wxWidgets happy
 #ifdef _WIN32
@@ -185,6 +187,8 @@ void DllConfig(HWND _hParent)
 		m_BasicConfigFrame = new WiimoteBasicConfigDialog(GetParentedWxWindow(_hParent));
 	else if (!m_BasicConfigFrame->GetParent()->IsShown())
 		m_BasicConfigFrame->Close(true);
+	// Update the GUI (because it was not updated when it had been already open before...)
+	m_BasicConfigFrame->UpdateGUI();
 	// Only allow one open at a time
 	if (!m_BasicConfigFrame->IsShown())
 	{
@@ -294,7 +298,10 @@ void DoState(unsigned char **ptr, int mode)
 
 	return;
 }
-
+void EmuStateChange(PLUGIN_EMUSTATE newState)
+{
+	g_EmulatorState = newState;
+}
 
 /* This function produce Wiimote Input (reports from the Wiimote) in response
    to Output from the Wii. It's called from WII_IPC_HLE_WiiMote.cpp.

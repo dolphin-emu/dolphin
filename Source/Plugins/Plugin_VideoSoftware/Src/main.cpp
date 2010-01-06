@@ -92,6 +92,10 @@ void DoState(unsigned char **ptr, int mode)
 {
 }
 
+void EmuStateChange(PLUGIN_EMUSTATE newState)
+{
+}
+
 void Shutdown(void)
 {
 }

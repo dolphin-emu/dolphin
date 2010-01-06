@@ -121,8 +121,8 @@ void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
 		pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
 		pp->Windowed = FALSE;
 		//if(g_Config.bHideCursor)
-		if(!g_Config.RenderToMainframe)
-			ShowCursor(FALSE);
+		//if(!g_Config.RenderToMainframe)
+		ShowCursor(FALSE);
 	}
 	else
 	{

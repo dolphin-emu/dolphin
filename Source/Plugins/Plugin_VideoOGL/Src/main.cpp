@@ -377,6 +377,10 @@ void DoState(unsigned char **ptr, int mode) {
 	}
 }
 
+void EmuStateChange(PLUGIN_EMUSTATE newState)
+{
+}
+
 // This is called after Video_Initialize() from the Core
 void Video_Prepare(void)
 {

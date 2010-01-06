@@ -315,7 +315,7 @@ int Initialize()
 	g_RealWiiMotePresent = false;
 	g_RealWiiMoteAllocated = false;
 
-	if(g_Config.bConnectRealWiimote)
+	if (g_Config.bConnectRealWiimote)
 	{
 		// Call Wiiuse.dll
 		g_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
@@ -356,7 +356,7 @@ int Initialize()
 	#endif
 
 	// If we are connecting from the config window without a game running we set the LEDs
-	if (!g_EmulatorRunning && g_RealWiiMotePresent)
+	if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY && g_RealWiiMotePresent)
 		FlashLights(true);
 
 	// Create a new thread and start listening for Wiimote data
@@ -389,7 +389,7 @@ int Initialize()
 // Allocate each Real WiiMote found to a WiiMote slot with Source set to "WiiMote Real"
 void Allocate()
 {
-	if(!g_RealWiiMoteInitialized)
+	if (!g_RealWiiMoteInitialized)
 		Initialize();
 
 	// Clear the wiimote classes
@@ -419,9 +419,8 @@ void Allocate()
 			}
 		}
 		// If we found a valid slot for this WiiMote...
-		if(current_number < MAX_WIIMOTES)
+		if (current_number < MAX_WIIMOTES)
 		{
-
 			g_WiiMotes[current_number] = new CWiiMote(current_number, g_WiiMotesFromWiiUse[i]);
 			g_WiimoteInUse[current_number] = true;
 			switch (current_number)
@@ -490,7 +489,7 @@ void Shutdown(void)
 	}
 
 	// Flash flights
-	if (!g_EmulatorRunning && g_RealWiiMotePresent)
+	if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY && g_RealWiiMotePresent)
 		FlashLights(false);
 
 	// Clean up wiiuse

@@ -31,6 +31,7 @@ namespace Common
     typedef void (__cdecl * TInitialize)(void *);
     typedef void (__cdecl * TShutdown)();
     typedef void (__cdecl * TDoState)(unsigned char**, int);
+    typedef void (__cdecl * TEmuStateChange)(PLUGIN_EMUSTATE);
 
 class CPlugin
 {
@@ -50,6 +51,7 @@ public:
 	void About(HWND _hwnd);
 	void Debug(HWND _hwnd, bool Show);
 	void DoState(unsigned char **ptr, int mode);
+	void EmuStateChange(PLUGIN_EMUSTATE newState);
 	void Initialize(void *init);
 	void Shutdown();
 
@@ -66,6 +68,7 @@ private:
 	TInitialize m_Initialize;
 	TShutdown m_Shutdown;
 	TDoState m_DoState;
+	TEmuStateChange m_EmuStateChange;
 };
 } // Namespace
 

@@ -700,6 +700,10 @@ void DoState(unsigned char **ptr, int mode)
 #endif
 }
 
+void EmuStateChange(PLUGIN_EMUSTATE newState)
+{
+}
+
 void Shutdown()
 {
 	// Save the recording and reset the counter

@@ -243,6 +243,9 @@ void DoState(unsigned char **ptr, int mode)
 	CDSPHandler::GetInstance().GetUCode()->DoState(p);
 }
 
+void EmuStateChange(PLUGIN_EMUSTATE newState)
+{
+}
 
 // Mailbox fuctions
 unsigned short DSP_ReadMailboxHigh(bool _CPUMailbox)

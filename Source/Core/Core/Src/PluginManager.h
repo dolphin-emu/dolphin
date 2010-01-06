@@ -57,6 +57,8 @@ public:
 	void FreePad(u32 Pad);
 	void FreeWiimote(u32 Wiimote);
 
+	void EmuStateChange(PLUGIN_EMUSTATE newState);
+
 	bool InitPlugins();
 	void ShutdownPlugins();
 	void ShutdownVideoPlugin();
