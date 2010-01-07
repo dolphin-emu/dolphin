@@ -383,7 +383,6 @@ void Write16(const u16 _Value, const u32 _Address)
 			// Touching that game is a no-go so I don't want to take the risk :p
 			while (fifo.bFF_GPReadEnable && ((!fifo.bFF_BPEnable && fifo.CPReadWriteDistance) || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
 			{
-				Fifo_RunLoop();
 				s_fifoIdleEvent.MsgWait();
 			}
 		}
@@ -413,8 +412,6 @@ void Write16(const u16 _Value, const u32 _Address)
 				// Clear old BP and initiate new BP
 				Common::AtomicStore(fifo.bFF_Breakpoint, 0);
 			}
-
-			Fifo_RunLoop();
 
 			DEBUG_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
 			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | LINK %s | BP %s || Init %s | OvF %s | UndF %s"
@@ -572,10 +569,9 @@ void WaitForFrameFinish()
 {
 	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && ((!fifo.bFF_BPEnable && fifo.CPReadWriteDistance) || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)));
 	{
-		Fifo_RunLoop();
 		s_fifoIdleEvent.MsgWait();
 	}
-	
+
 	fake_GPWatchdogLastToken = fifo.Fake_GPWDToken;
 }
 
@@ -594,7 +590,6 @@ void STACKALIGN GatherPipeBursted()
 		    fifo.CPWritePointer += GATHER_PIPE_SIZE;
 
         Common::AtomicAdd(fifo.CPReadWriteDistance, GATHER_PIPE_SIZE);
-		Fifo_RunLoop();
 
 		// High watermark overflow handling (hacked way)
 		if (fifo.CPReadWriteDistance > fifo.CPHiWatermark)
@@ -619,7 +614,6 @@ void STACKALIGN GatherPipeBursted()
 			// Wait for GPU to catch up
 			while (fifo.CPReadWriteDistance > fifo.CPLoWatermark && fifo.bFF_GPReadEnable && (!fifo.bFF_BPEnable || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
 			{
-				Fifo_RunLoop();
 				s_fifoIdleEvent.MsgWait();
 			}
 		}
@@ -725,7 +719,6 @@ void UpdateFifoRegister()
 		dist = (wp - fifo.CPBase) + ((fifo.CPEnd + GATHER_PIPE_SIZE) - rp);
 
 	Common::AtomicStore(fifo.CPReadWriteDistance, dist);
-	Fifo_RunLoop();
 
 	if (!g_VideoInitialize.bOnThread)
 		CatchUpGPU();

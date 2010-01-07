@@ -312,6 +312,7 @@ void DoState(unsigned char **ptr, int mode) {
 
 void EmuStateChange(PLUGIN_EMUSTATE newState)
 {
+	Fifo_RunLoop((newState == PLUGIN_EMUSTATE_PLAY) ? true : false);
 }
 
 void Video_EnterLoop()
@@ -333,7 +334,7 @@ void Video_SetRendering(bool bEnabled) {
 // Run from the graphics thread
 void VideoFifo_CheckSwapRequest()
 {
-	// CPU swap, not finished, seems to be working fine for dual-core for now
+	// swap unimplemented
 	return;
 
 	if (s_swapRequested)
@@ -351,12 +352,15 @@ void VideoFifo_CheckSwapRequest()
 // Run from the graphics thread
 void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-	// CPU swap unimplemented
+	// swap unimplemented
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
 void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
+	// swap unimplemented
+	return;
+
 	s_beginFieldArgs.xfbAddr = xfbAddr;
 	s_beginFieldArgs.field = field;
 	s_beginFieldArgs.fbWidth = fbWidth;
@@ -365,14 +369,11 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	if (s_initialized)
 	{
-
 		// Make sure previous swap request has made it to the screen
 		if (g_VideoInitialize.bOnThread)
 		{
-			// It seems to be working fine in this way for now without using AtomicLoadAcquire
-			// ector, please check here
 			//while (Common::AtomicLoadAcquire(s_swapRequested))
-			//	Common::YieldCPU();
+				//Common::YieldCPU();
 		}
 		else
 			VideoFifo_CheckSwapRequest();

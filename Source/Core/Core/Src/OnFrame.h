@@ -51,7 +51,9 @@ extern bool g_bFrameStep, g_bAutoFire, g_bFirstKey, g_bPolled;
 extern u32 g_autoFirstKey, g_autoSecondKey;
 extern PlayMode g_playMode;
 
-extern int g_framesToSkip, g_frameSkipCounter, g_numPads;
+extern unsigned int g_framesToSkip, g_frameSkipCounter;
+
+extern int g_numPads;
 extern ControllerState *g_padStates;
 extern FILE *g_recordfd;
 extern std::string g_recordFile;

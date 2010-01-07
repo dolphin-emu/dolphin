@@ -22,6 +22,31 @@ class PointerWrap;
 
 namespace VideoInterface
 {
+// NTSC is 60 FPS, right?
+// Wrong, it's about 59.94 FPS. The NTSC engineers had to slightly lower
+// the field rate from 60 FPS when they added color to the standard.
+// This was done to prevent analog interference between the video and
+// audio signals. PAL has no similar reduction; it is exactly 50 FPS.
+//#define NTSC_FIELD_RATE		(60.0f / 1.001f)
+#define NTSC_FIELD_RATE		60
+#define NTSC_LINE_COUNT		525
+// These line numbers indicate the beginning of the "active video" in a frame.
+// An NTSC frame has the lower field first followed by the upper field.
+// TODO: Is this true for PAL-M? Is this true for EURGB60?
+#define NTSC_LOWER_BEGIN		21
+#define NTSC_UPPER_BEGIN		283
+
+//#define PAL_FIELD_RATE		50.0f
+#define PAL_FIELD_RATE		50
+#define PAL_LINE_COUNT		625
+// These line numbers indicate the beginning of the "active video" in a frame.
+// A PAL frame has the upper field first followed by the lower field.
+#define PAL_UPPER_BEGIN		23	// TODO: Actually 23.5!
+#define PAL_LOWER_BEGIN		336
+
+	// urgh, ugly externs.
+	extern u32 TargetRefreshRate;
+
 	// For BS2 HLE
 	void PreInit(bool _bNTSC);
 	void SetRegionReg(char _region);
@@ -42,11 +67,6 @@ namespace VideoInterface
 
     // Update and draw framebuffer(s)
     void Update();
-
-	// urgh, ugly externs.
-	extern float ActualRefreshRate;
-	extern float TargetRefreshRate;
-	extern s64 SyncTicksProgress;
 
 	// UpdateInterrupts: check if we have to generate a new VI Interrupt
 	void UpdateInterrupts();

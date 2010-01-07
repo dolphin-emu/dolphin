@@ -535,6 +535,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 		DEBUGGER_PAUSE_LOG_AT(NEXT_XFB_CMD,false,{printf("RenderToXFB - disabled");});
 		return;
 	}
+
 	Renderer::ResetAPIState();
 	// Set the backbuffer as the rendering target
 	D3D::dev->SetDepthStencilSurface(NULL);
@@ -543,7 +544,6 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	D3DDumpFrame();
 	EFBTextureToD3DBackBuffer(sourceRc);
 	D3D::EndFrame();
-	
 
 	DEBUGGER_LOG_AT((NEXT_XFB_CMD|NEXT_EFB_CMD|NEXT_FRAME),
 		{printf("StretchRect, EFB->XFB\n");});
@@ -553,6 +553,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 		xfbAddr, fbWidth, fbHeight, 
 		sourceRc.left, sourceRc.top, sourceRc.right, sourceRc.bottom);}
 	);
+
 	Swap(0,FIELD_PROGRESSIVE,0,0);	// we used to swap the buffer here, now we will wait
 										// until the XFB pointer is updated by VI	
 	D3D::BeginFrame();
@@ -959,9 +960,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// Make any new configuration settings active.
 	UpdateActiveConfig();
 
-	//TODO: Resize backbuffer if window size has changed. This code crashes, debug it.
 	g_VideoInitialize.pCopiedToXFB(false);
 
+	//TODO: Resize backbuffer if window size has changed. This code crashes, debug it.
 	CheckForResize();
 
 	// ---------------------------------------------------------------------

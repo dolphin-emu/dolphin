@@ -21,6 +21,7 @@
 #endif
 
 #include "Setup.h" // Common
+#include "Atomic.h"
 #include "Thread.h"
 #include "Timer.h"
 #include "Common.h"
@@ -64,11 +65,9 @@
 namespace Core
 {
  
-
 // Declarations and definitions
 Common::Timer Timer;
-u32 frames = 0;
-
+volatile u32 DrawnFrame = 0;
  
 // Function forwarding
 //void Callback_VideoRequestWindowSize(int _iWidth, int _iHeight, BOOL _bFullscreen);
@@ -587,102 +586,29 @@ void ScreenShot()
 {
 	ScreenShot(GenerateScreenshotName());
 }
- 
-// --- Callbacks for plugins / engine ---
- 
 
-// Callback_VideoLog
-// WARNING - THIS IS EXECUTED FROM VIDEO THREAD
-void Callback_VideoLog(const TCHAR *_szMessage, int _bDoBreak)
+// Apply Frame Limit and Display FPS info
+// This should only be called from VI
+void FrameThrottle()
 {
-	INFO_LOG(VIDEO, _szMessage);
-}
- 
-// reports if a frame should be skipped or not
-// depending on the framelimit set
-bool report_slow(int skipped)
-{
-	u32 targetfps = SConfig::GetInstance().m_Framelimit * 5;
-	double wait_frametime;
+	u32 TargetFPS = (SConfig::GetInstance().m_Framelimit > 1) ? SConfig::GetInstance().m_Framelimit * 5
+		: VideoInterface::TargetRefreshRate;
+	u32 frames = Common::AtomicLoad(DrawnFrame);
 
-	if (targetfps < 5)
-		wait_frametime = (1000.0 / VideoInterface::TargetRefreshRate);
-	else
-		wait_frametime = (1000.0 / targetfps);
-
-	bool fps_slow;
-
-	if (Timer.GetTimeDifference() < wait_frametime * (frames + skipped))
-		fps_slow=false;
-	else
-		fps_slow=true;
-
-	if (targetfps == 5)
-		fps_slow=true;
-
-	return fps_slow;
-}
-
-// Callback_VideoCopiedToXFB
-// WARNING - THIS IS EXECUTED FROM VIDEO THREAD
-// We do not write to anything outside this function here
-void Callback_VideoCopiedToXFB(bool video_update)
-{ 
-	if(!video_update)
-		Frame::FrameUpdate();
-
-    SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
-	
-	//count FPS and VPS
-	static u32 videoupd = 0;
-	static u32 no_framelimit = 0;
-	
-
-	if (video_update)
-		videoupd++;
-	else
-		frames++;
-
-	if (no_framelimit>0)
-		no_framelimit--;
-
-	// Custom frame limiter
-	// --------------------
-	u32 targetfps = SConfig::GetInstance().m_Framelimit * 5;
-
-	if (targetfps > 5)
+	// When frame limit is NOT off
+	if (frames && SConfig::GetInstance().m_Framelimit != 1)
 	{
-		double wait_frametime = (1000.0 / targetfps);
-
-		if (Timer.GetTimeDifference() >= wait_frametime * frames)
-			no_framelimit = (u32)Timer.GetTimeDifference();
-
-		while (Timer.GetTimeDifference() < wait_frametime * frames)
-		{
-			if (no_framelimit == 0)
-				Common::SleepCurrentThread(1);
-		}
-	}
-	else if (targetfps < 5)
-	{
-		double wait_frametime = (1000.0 / VideoInterface::TargetRefreshRate);
-
-		if (Timer.GetTimeDifference() >= wait_frametime * frames)
-			no_framelimit = (u32)Timer.GetTimeDifference();
-
-		while (Timer.GetTimeDifference() < wait_frametime * videoupd)
-		{
-			// TODO : This is wrong, the sleep shouldn't be there but rather in cputhread
-			// as it's not based on the fps but on the refresh rate...
-			if (no_framelimit == 0)
-				Common::SleepCurrentThread(1);
-		}
+		u32 frametime = frames * 1000 / TargetFPS;
+		while (Timer.GetTimeDifference() < frametime)
+			//Common::YieldCPU();
+			Common::SleepCurrentThread(1);
 	}
 
-	if (Timer.GetTimeDifference() >= 1000)
+	// Update info per second
+	u32 ElapseTime = (u32)Timer.GetTimeDifference();
+	if (ElapseTime >= 1000)
 	{
-		// Time passed
-		float t = (float)(Timer.GetTimeDifference()) / 1000.f;
+	    SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 		// Use extended or summary information. The summary information does not print the ticks data,
 		// that's more of a debugging interest, it can always be optional of course if someone is interested.
@@ -691,8 +617,8 @@ void Callback_VideoCopiedToXFB(bool video_update)
 			u64 newTicks = CoreTiming::GetTicks();
 			u64 newIdleTicks = CoreTiming::GetIdleTicks();
 	 
-			s64 diff = (newTicks - ticks) / 1000000;
-			s64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
+			u64 diff = (newTicks - ticks) / 1000000;
+			u64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
 	 
 			ticks = newTicks;
 			idleTicks = newIdleTicks;	 
@@ -700,13 +626,9 @@ void Callback_VideoCopiedToXFB(bool video_update)
 			float TicksPercentage = (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
 		#endif
 
-		float FPS = (float)frames / t;
-		// for some reasons "VideoInterface::ActualRefreshRate" gives some odd results :(
-		float VPS = (float)videoupd / t;
+		u32 FPS = frames * 1000 / ElapseTime;
 
-		int TargetVPS = (int)(VideoInterface::TargetRefreshRate + 0.5);
-
-		float Speed = ((VPS > 0.0f ? VPS : VideoInterface::ActualRefreshRate) / TargetVPS) * 100.0f;
+		float Speed = (float)FPS / (float)TargetFPS * 100.0f;
 		
 		// Settings are shown the same for both extended and summary info
 		std::string SSettings = StringFromFormat(" | Core: %s %s",
@@ -726,8 +648,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
 		_CoreParameter.bCPUThread ? "DC" : "SC");
 
 		#ifdef EXTENDED_INFO
-			std::string SFPS = StringFromFormat("FPS: %4.1f - VPS: %i/%i (%3.0f%%)",
-					FPS, VPS > 0 ? (int)VPS : (int)VideoInterface::ActualRefreshRate, TargetVPS, Speed);
+			std::string SFPS = StringFromFormat("FPS: %i/%i (%3.0f%%)", FPS, TargetFPS, Speed);
 			SFPS += StringFromFormat(" | CPU: %s%i MHz [Real: %i + IdleSkip: %i] / %i MHz (%s%3.0f%%)",
 					_CoreParameter.bSkipIdle ? "~" : "",
 					(int)(diff),
@@ -738,8 +659,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
 					TicksPercentage);
 		
 		#else	// Summary information
-			std::string SFPS = StringFromFormat("FPS: %4.1f - VPS: %i/%i (%3.0f%%)",
-					FPS, VPS > 0 ? (int)VPS : (int)VideoInterface::ActualRefreshRate, TargetVPS, Speed);
+			std::string SFPS = StringFromFormat("FPS: %i/%i (%3.0f%%)", FPS, TargetFPS, Speed);
 		#endif
 
 		// This is our final "frame counter" string
@@ -752,12 +672,39 @@ void Callback_VideoCopiedToXFB(bool video_update)
 		Host_UpdateStatusBar(SMessage.c_str());
 
 		// Reset frame counter
-		frames = 0;
-		videoupd = 0;
         Timer.Update();
+		Common::AtomicStore(DrawnFrame, 0);
 	}
 }
 
+// Executed from GPU thread
+// reports if a frame should be skipped or not
+// depending on the framelimit set
+bool report_slow(int skipped)
+{
+	u32 TargetFPS = (SConfig::GetInstance().m_Framelimit > 1) ? SConfig::GetInstance().m_Framelimit * 5
+		: VideoInterface::TargetRefreshRate;
+	u32 frames = Common::AtomicLoad(DrawnFrame);
+	bool fps_slow = (Timer.GetTimeDifference() < (frames + skipped) * 1000 / TargetFPS) ? false : true;
+
+	return fps_slow;
+}
+
+// --- Callbacks for plugins / engine ---
+
+// Callback_VideoLog
+// WARNING - THIS IS EXECUTED FROM VIDEO THREAD
+void Callback_VideoLog(const TCHAR *_szMessage, int _bDoBreak)
+{
+	INFO_LOG(VIDEO, _szMessage);
+}
+
+// Should be called from GPU thread when a frame is drawn
+void Callback_VideoCopiedToXFB(bool video_update)
+{
+	Common::AtomicIncrement(DrawnFrame);
+	Frame::FrameUpdate();
+}
 
 // Callback_DSPLog
 // WARNING - THIS MAY BE EXECUTED FROM DSP THREAD
@@ -835,7 +782,8 @@ void Callback_WiimoteLog(const TCHAR* _szMessage, int _v)
 }
  
 // TODO: Get rid of at some point
-const SCoreStartupParameter& GetStartupParameter() {
+const SCoreStartupParameter& GetStartupParameter()
+{
     return SConfig::GetInstance().m_LocalCoreStartupParameter;
 }
 

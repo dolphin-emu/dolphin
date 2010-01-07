@@ -379,6 +379,7 @@ void DoState(unsigned char **ptr, int mode) {
 
 void EmuStateChange(PLUGIN_EMUSTATE newState)
 {
+	Fifo_RunLoop((newState == PLUGIN_EMUSTATE_PLAY) ? true : false);
 }
 
 // This is called after Video_Initialize() from the Core
@@ -493,9 +494,6 @@ void VideoFifo_CheckSwapRequest()
 			Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 			g_VideoInitialize.pCopiedToXFB(false);
 		}
-
-		// TODO : This just updates the frame counter, so we may change this func's name as well
-		g_VideoInitialize.pCopiedToXFB(true);
 
 		Common::AtomicStoreRelease(s_swapRequested, FALSE);
 	}

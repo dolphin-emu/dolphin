@@ -32,7 +32,7 @@ u32 g_autoFirstKey = 0, g_autoSecondKey = 0;
 bool g_bFirstKey = true;
 PlayMode g_playMode = MODE_NONE;
 
-int g_framesToSkip = 0, g_frameSkipCounter = 0;
+unsigned int g_framesToSkip = 0, g_frameSkipCounter = 0;
 
 int g_numPads = 0;
 ControllerState *g_padStates;
@@ -70,14 +70,13 @@ void FrameUpdate() {
 			EndPlayInput();
 	}
 
-
 	g_bPolled = false;
 }
 
 void SetFrameSkipping(unsigned int framesToSkip) {
 	cs_frameSkip.Enter();
 
-	g_framesToSkip = (int)framesToSkip;
+	g_framesToSkip = framesToSkip;
 	g_frameSkipCounter = 0;
 
 	// Don't forget to re-enable rendering in case it wasn't...

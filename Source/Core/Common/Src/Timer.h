@@ -36,7 +36,7 @@ public:
 	void Update();
 
 	// The time difference is always returned in milliseconds, regardless of alternative internal representation
-	s64 GetTimeDifference();
+	u64 GetTimeDifference();
 	void AddTimeDifference();
 	void WindBackStartingTime(u64 WindBack);
 

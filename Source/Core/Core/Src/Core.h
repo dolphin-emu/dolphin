@@ -74,6 +74,7 @@ namespace Core
     void StopTrace();
 
 	bool report_slow(int skipped);
+	void FrameThrottle();
 
 	// -----------------------------------------
 	#ifdef RERECORDING

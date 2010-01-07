@@ -19,8 +19,7 @@
 #include "ChunkFile.h"
 
 #include "../PowerPC/PowerPC.h"
-
-#include "../Core.h"			// <- for Core::GetStartupParameter().bUseDualCore
+#include "../Core.h"
 #include "ProcessorInterface.h"
 #include "VideoInterface.h"
 #include "Memmap.h"
@@ -28,7 +27,6 @@
 #include "../CoreTiming.h"
 #include "../HW/SystemTimers.h"
 #include "StringUtil.h"
-#include "Timer.h"
 
 namespace VideoInterface
 {
@@ -53,7 +51,7 @@ enum
 	VI_FB_LEFT_TOP_LO					= 0x1e,
 	VI_FB_RIGHT_TOP_HI					= 0x20, // FB_RIGHT_TOP is only used in 3D mode
 	VI_FB_RIGHT_TOP_LO					= 0x22,
-	VI_FB_LEFT_BOTTOM_HI				= 0x24, // FB_LEFT_TOP is second half of XFB info
+	VI_FB_LEFT_BOTTOM_HI				= 0x24, // FB_LEFT_BOTTOM is second half of XFB info
 	VI_FB_LEFT_BOTTOM_LO				= 0x26,
 	VI_FB_RIGHT_BOTTOM_HI				= 0x28, // FB_RIGHT_BOTTOM is only used in 3D mode
 	VI_FB_RIGHT_BOTTOM_LO				= 0x2a,
@@ -268,6 +266,7 @@ union UVIFilterCoefTable3
 		unsigned			:	 2;
 	};
 };
+
 // Used for tables 3-6
 union UVIFilterCoefTable4
 {
@@ -281,6 +280,7 @@ union UVIFilterCoefTable4
 		unsigned Tap3		:	 8;
 	};
 };
+
 struct SVIFilterCoefTables
 {
 	UVIFilterCoefTable3 Tables02[3];
@@ -331,15 +331,12 @@ static UVIBorderBlankRegister		m_BorderHBlank;
 // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
 // 0xcc002080 - 0xcc002100 even more unknown
 
+u32 TargetRefreshRate = 0;
 
 static u32 TicksPerFrame = 0;
 static u32 s_lineCount = 0;
 static u32 s_upperFieldBegin = 0;
 static u32 s_lowerFieldBegin = 0;
-
-float TargetRefreshRate = 0.0;
-float ActualRefreshRate = 0.0;
-s64 SyncTicksProgress = 0;
 
 void DoState(PointerWrap &p)
 {
@@ -367,7 +364,7 @@ void DoState(PointerWrap &p)
 	p.Do(m_DTVStatus);
 	p.Do(m_FBWidth);
 	p.Do(m_BorderHBlank);
-
+	p.Do(TargetRefreshRate);
 	p.Do(TicksPerFrame);
 	p.Do(s_lineCount);
 	p.Do(s_upperFieldBegin);
@@ -376,11 +373,6 @@ void DoState(PointerWrap &p)
 
 void PreInit(bool _bNTSC)
 {
-	TicksPerFrame = 0;
-	s_lineCount = 0;
-	s_upperFieldBegin = 0;
-	s_lowerFieldBegin = 0;
-
 	m_VerticalTimingRegister.EQU = 6;
 
 	m_DisplayControlRegister.ENB = 1;
@@ -439,9 +431,7 @@ void Init()
 
 	m_DisplayControlRegister.Hex = 0;
 
-	s_lineCount = 0;
-	s_upperFieldBegin = 0;
-	s_lowerFieldBegin = 0;
+	UpdateTiming();
 }
 
 void Read8(u8& _uReturnValue, const u32 _iAddress)
@@ -711,9 +701,12 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 			{
 				// shuffle2 clear all data, reset to default vals, and enter idle mode
 				m_DisplayControlRegister.RST = 0;
+				for (int i = 0; i < 4; i++)
+					m_InterruptRegister[i].Hex = 0;
+				UpdateInterrupts();
 			}
 
-            UpdateTiming();
+			UpdateTiming();
 		}		
 		break;
 
@@ -802,38 +795,38 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		// RETRACE STUFF ...
 	case VI_PRERETRACE_HI:
 		m_InterruptRegister[0].Hi = _iValue;
+		m_InterruptRegister[0].IR_INT = 0;
 		UpdateInterrupts();
 		break;
 	case VI_PRERETRACE_LO:
 		m_InterruptRegister[0].Lo = _iValue;
-		UpdateInterrupts();
 		break;
 
 	case VI_POSTRETRACE_HI:
 		m_InterruptRegister[1].Hi = _iValue;
+		m_InterruptRegister[1].IR_INT = 0;
 		UpdateInterrupts();
 		break;
 	case VI_POSTRETRACE_LO:
 		m_InterruptRegister[1].Lo = _iValue;
-		UpdateInterrupts();
 		break;
 
 	case VI_DISPLAY_INTERRUPT_2_HI:
 		m_InterruptRegister[2].Hi = _iValue;
+		m_InterruptRegister[2].IR_INT = 0;
 		UpdateInterrupts();
 		break;
 	case VI_DISPLAY_INTERRUPT_2_LO:
 		m_InterruptRegister[2].Lo = _iValue;
-		UpdateInterrupts();
 		break;
 
 	case VI_DISPLAY_INTERRUPT_3_HI:
 		m_InterruptRegister[3].Hi = _iValue;
+		m_InterruptRegister[3].IR_INT = 0;
 		UpdateInterrupts();
 		break;
 	case VI_DISPLAY_INTERRUPT_3_LO:
 		m_InterruptRegister[3].Lo = _iValue;
-		UpdateInterrupts();
 		break;
 
 	case VI_DISPLAY_LATCH_0_HI:
@@ -988,46 +981,22 @@ u32 GetXFBAddressBottom()
 		return m_XFBInfoBottom.FBB;
 }
 
-
-// NTSC is 60 FPS, right?
-// Wrong, it's about 59.94 FPS. The NTSC engineers had to slightly lower
-// the field rate from 60 FPS when they added color to the standard.
-// This was done to prevent analog interference between the video and
-// audio signals. PAL has no similar reduction; it is exactly 50 FPS.
-const double NTSC_FIELD_RATE = 60.0 / 1.001;
-const u32 NTSC_LINE_COUNT = 525;
-// These line numbers indicate the beginning of the "active video" in a frame.
-// An NTSC frame has the lower field first followed by the upper field.
-// TODO: Is this true for PAL-M? Is this true for EURGB60?
-const u32 NTSC_LOWER_BEGIN = 21;
-const u32 NTSC_UPPER_BEGIN = 283;
-
-const double PAL_FIELD_RATE = 50.0;
-const u32 PAL_LINE_COUNT = 625;
-// These line numbers indicate the beginning of the "active video" in a frame.
-// A PAL frame has the upper field first followed by the lower field.
-const u32 PAL_UPPER_BEGIN = 23; // TODO: Actually 23.5!
-const u32 PAL_LOWER_BEGIN = 336;
-
-// Screenshot and screen message
 void UpdateTiming()
 {
     switch (m_DisplayControlRegister.FMT)
     {
-
     case 0: // NTSC
     case 2: // PAL-M
-
-        TicksPerFrame = (u32)(SystemTimers::GetTicksPerSecond() / (NTSC_FIELD_RATE / 2.0));
+		TargetRefreshRate = NTSC_FIELD_RATE;
+        TicksPerFrame = SystemTimers::GetTicksPerSecond() / (NTSC_FIELD_RATE / 2);
 		s_lineCount = m_DisplayControlRegister.NIN ? (NTSC_LINE_COUNT+1)/2 : NTSC_LINE_COUNT;
-		// TODO: The game may have some control over these parameters (not that it's useful).
 		s_upperFieldBegin = NTSC_UPPER_BEGIN;
 		s_lowerFieldBegin = NTSC_LOWER_BEGIN;
         break;
 
     case 1: // PAL
-
-        TicksPerFrame = (u32)(SystemTimers::GetTicksPerSecond() / (PAL_FIELD_RATE / 2.0));
+		TargetRefreshRate = PAL_FIELD_RATE;
+        TicksPerFrame = SystemTimers::GetTicksPerSecond() / (PAL_FIELD_RATE / 2);
 		s_lineCount = m_DisplayControlRegister.NIN ? (PAL_LINE_COUNT+1)/2 : PAL_LINE_COUNT;
 		s_upperFieldBegin = PAL_UPPER_BEGIN;
 		s_lowerFieldBegin = PAL_LOWER_BEGIN;
@@ -1040,7 +1009,6 @@ void UpdateTiming()
     default:
         PanicAlert("Unknown Video Format - CVideoInterface");
         break;
-
     }
 }
 
@@ -1055,7 +1023,6 @@ int GetTicksPerFrame()
 {
 	return TicksPerFrame;
 }
-
 
 static void BeginField(FieldType field)
 {
@@ -1088,45 +1055,24 @@ static void EndField()
 }
 
 
-// Purpose 1: Send VI interrupt for every screen refresh
-// Purpose 2: Execute XFB copy in homebrew games
-// Run when: This is run 15700 times per second on full speed
+// Purpose: Send VI interrupt when triggered
+// Run when: When every line is scaned
 void Update()
 {
-	// Update the target refresh rate
-	TargetRefreshRate = (float)((m_DisplayControlRegister.FMT == 0 || m_DisplayControlRegister.FMT == 2)
-		? NTSC_FIELD_RATE : PAL_FIELD_RATE);
-
-	// Calculate actual refresh rate
-	static u64 LastTick = 0;
-	static s64 UpdateCheck = timeGetTime() + 1000, TickProgress = 0;
-	s64 curTime = timeGetTime();
-	if (UpdateCheck < (int)curTime)
-	{
-		UpdateCheck = curTime + 1000;
-		TickProgress = CoreTiming::GetTicks() - LastTick;
-		// Calculated CPU-GPU synced ticks for the dual core mode too
-		// NOTICE_LOG(VIDEO, "Removed: %s Mhz", ThS(SyncTicksProgress / 1000000, false).c_str());
-		SyncTicksProgress += TickProgress;
-		// Multipled by two because of the way TicksPerFrame is calculated (divided by 25 and 30
-		// rather than 50 and 60)
-
-		ActualRefreshRate = (float)(((double)SyncTicksProgress / (double)TicksPerFrame) * 2.0);		
-		LastTick = CoreTiming::GetTicks();
-		SyncTicksProgress = 0;
-	}
 
 	// TODO: What's the correct behavior for progressive mode?
-
 	if (m_VBeamPos == s_upperFieldBegin + m_VerticalTimingRegister.ACV)
 		EndField();
-
-	if (m_VBeamPos == s_lowerFieldBegin + m_VerticalTimingRegister.ACV)
+	else if (m_VBeamPos == s_lowerFieldBegin + m_VerticalTimingRegister.ACV)
 		EndField();
 
-    m_VBeamPos++;
-    if (m_VBeamPos > s_lineCount)
+
+    if (++m_VBeamPos > s_lineCount)
+	{
         m_VBeamPos = 1;
+		// Apply frame throttle wheneven a full screen scan finishes
+		Core::FrameThrottle();
+	}
 
 	for (int i = 0; i < 4; ++i)
 	{
@@ -1135,11 +1081,12 @@ void Update()
 	}
 	UpdateInterrupts();
 
+
 	if (m_VBeamPos == s_upperFieldBegin)
 		BeginField(m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_UPPER);
-
-	if (m_VBeamPos == s_lowerFieldBegin)
+	else if (m_VBeamPos == s_lowerFieldBegin)
 		BeginField(m_DisplayControlRegister.NIN ? FIELD_PROGRESSIVE : FIELD_LOWER);
+
 }
 
 } // namespace

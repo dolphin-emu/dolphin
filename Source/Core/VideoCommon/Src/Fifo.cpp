@@ -34,6 +34,7 @@ extern u8* g_pVideoData;
 namespace
 {
 static volatile bool fifoStateRun = false;
+static volatile bool EmuRunning = false;
 static u8 *videoBuffer;
 static Common::Event fifo_run_event;
 // STATE_TO_SAVE
@@ -100,9 +101,11 @@ void Fifo_ExitLoopNonBlocking()
 	fifo_run_event.Set();
 }
 
-void Fifo_RunLoop()
+void Fifo_RunLoop(bool run)
 {
-	fifo_run_event.Set();
+	EmuRunning = run;
+	if (run)
+		fifo_run_event.Set();
 }
 
 // Description: Fifo_EnterLoop() sends data through this function.
@@ -210,9 +213,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		}
 
 		CommandProcessor::SetFifoIdleFromVideoPlugin();
-		// "VideoFifo_CheckEFBAccess()" & "VideoFifo_CheckSwapRequest()" should be
-		// moved to a more suitable place than inside function "Fifo_EnterLoop()"
-		if (g_ActiveConfig.bEFBAccessEnable || g_ActiveConfig.bUseXFB)
+		if (EmuRunning)
 			Common::YieldCPU();
 		else
 			fifo_run_event.MsgWait();

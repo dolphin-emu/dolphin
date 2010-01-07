@@ -597,6 +597,9 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 {
+	if(!g_ActiveConfig.bEFBAccessEnable)
+		return 0;
+
 	// Get the rectangular target region covered by the EFB pixel.
 	EFBRectangle efbPixelRc;
 	efbPixelRc.left = x;

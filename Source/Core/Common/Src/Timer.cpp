@@ -78,7 +78,7 @@ void Timer::Update()
 // -------------------------------------
 
 // Get the number of milliseconds since the last Update()
-s64 Timer::GetTimeDifference()
+u64 Timer::GetTimeDifference()
 {
 	return(timeGetTime() - m_LastTime);
 }
