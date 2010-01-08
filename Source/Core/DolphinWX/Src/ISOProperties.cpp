@@ -1175,14 +1175,14 @@ void CISOProperties::ChangeBannerDetails(int lang)
 		// Updates the informations shown in the window
 		m_ShortName->SetValue(name);
 		m_Comment->SetValue(wxString(OpenGameListItem->GetDescription(0).c_str(), SJISConv));
-		m_Maker->SetValue(wxString::FromAscii(OpenGameListItem->GetCompany().c_str()));//dev too
+		m_Maker->SetValue(wxString(OpenGameListItem->GetCompany().c_str(), SJISConv));//dev too
 
 		std::string filename, extension;
 		SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);
 
 		// Also sets the window's title
 		SetTitle(wxString::Format(wxT("%s%s"),
-			wxString::FromAscii(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()).c_str(),
+			wxString(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str(), *wxConvCurrent).c_str(),
 			name.c_str()));
 	}
 	else // Do the same for PAL/US Games using Ascii

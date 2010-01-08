@@ -235,7 +235,7 @@ void CGameListCtrl::Update()
 		
 		// Instead of showing the notes + the company, which is unknown with wii titles
 		// We show in the same column : company for GC games and description for wii/wad games
-		InsertColumn(COLUMN_NOTES, _(" "));
+		InsertColumn(COLUMN_NOTES, _("Notes"));
 		InsertColumn(COLUMN_COUNTRY, _(""));
 		InsertColumn(COLUMN_SIZE, _("Size"));
 		InsertColumn(COLUMN_EMULATION_STATE, _("State"));
@@ -244,8 +244,8 @@ void CGameListCtrl::Update()
 		// set initial sizes for columns
 		SetColumnWidth(COLUMN_PLATFORM, 35);
 		SetColumnWidth(COLUMN_BANNER, 96);
-		SetColumnWidth(COLUMN_TITLE, 150);
-		SetColumnWidth(COLUMN_NOTES, 130);
+		SetColumnWidth(COLUMN_TITLE, 200);
+		SetColumnWidth(COLUMN_NOTES, 200);
 		SetColumnWidth(COLUMN_COUNTRY, 32);
 		SetColumnWidth(COLUMN_EMULATION_STATE, 50);
 
@@ -360,7 +360,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		case DiscIO::IVolume::COUNTRY_JAPAN:
 			{
 				wxString name = wxString(rISOFile.GetName(0).c_str(), SJISConv);
-				m_gameList.append(StringFromFormat("%s (J)\n", (const char*)name.mb_str()));
+				m_gameList.append(StringFromFormat("%s (J)\n", (const char*)name.c_str()));
 				SetItem(_Index, COLUMN_TITLE, name, -1);
 				SetItem(_Index, COLUMN_NOTES, wxString(company.size() ? company.c_str() : rISOFile.GetDescription(0).c_str(), SJISConv), -1);
 			}
@@ -1154,10 +1154,10 @@ void CGameListCtrl::AutomaticColumnWidth()
 			+ 5); // some pad to keep the horizontal scrollbar away :)
 
 		// We hide the Company column if the window is too small
-		if (0.66*resizable > 200)
+		if (0.5*resizable > 200)
 		{
-			SetColumnWidth(COLUMN_TITLE, 0.66*resizable);
-			SetColumnWidth(COLUMN_NOTES, 0.34*resizable);
+			SetColumnWidth(COLUMN_TITLE, 0.5*resizable);
+			SetColumnWidth(COLUMN_NOTES, 0.5*resizable);
 		}
 		else
 		{
