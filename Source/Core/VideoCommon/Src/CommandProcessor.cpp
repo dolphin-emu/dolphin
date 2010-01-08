@@ -172,7 +172,7 @@ void Shutdown()
 
 void Read16(u16& _rReturnValue, const u32 _Address)
 {
-	DEBUG_LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
+	INFO_LOG(COMMANDPROCESSOR, "(r): 0x%08x", _Address);
 	switch (_Address & 0xFFF)
 	{
 	case STATUS_REGISTER:
@@ -185,12 +185,6 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		//m_CPStatusReg.ReadIdle = 1;
 		//m_CPStatusReg.CommandIdle = 1;
 
-		m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
-		_rReturnValue = m_CPStatusReg.Hex;
-
-		// Clear on read
-		UpdateInterrupts(false);
-
 		DEBUG_LOG(COMMANDPROCESSOR, "(r) status: iBP %s | fReadIdle %s | fCmdIdle %s | iOvF %s | iUndF %s"
 			, m_CPStatusReg.Breakpoint ?			"ON" : "OFF"
 			, m_CPStatusReg.ReadIdle ?				"ON" : "OFF"
@@ -199,6 +193,9 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 			, m_CPStatusReg.UnderflowLoWatermark ?	"ON" : "OFF"
 				);
 
+		_rReturnValue = m_CPStatusReg.Hex;
+		// Clear on read
+		UpdateInterrupts(false);
 		return;
 
 	case CTRL_REGISTER:		_rReturnValue = m_CPCtrlReg.Hex; return;
@@ -331,7 +328,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 
 	case CLKS_PER_VTX_OUT:
 		_rReturnValue = 4; //Number of clocks per vertex.. TODO: Calculate properly
-		WARN_LOG(COMMANDPROCESSOR, "Read from CLKS_PER_VTX_OUT: %04x", _rReturnValue);
+		DEBUG_LOG(COMMANDPROCESSOR, "Read from CLKS_PER_VTX_OUT: %04x", _rReturnValue);
 		return;
 		//add all the other regs here? are they ever read?
 	default:
@@ -411,9 +408,14 @@ void Write16(const u16 _Value, const u32 _Address)
 			{
 				// Clear old BP and initiate new BP
 				Common::AtomicStore(fifo.bFF_Breakpoint, 0);
+				// AyuanX: The following is a hack
+				// There is definitely some initialization problem with Dolphin (not found exact location yet)
+				// Which prevents Metroid Prime 2 from first time booting (If you boot some other GC game first then MP2 can boot)
+				// But somehow this instant BP hack can make MP2 boot even at first time
+				UpdateInterrupts(true);
 			}
 
-			DEBUG_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
+			INFO_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
 			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | LINK %s | BP %s || Init %s | OvF %s | UndF %s"
 				, fifo.bFF_GPReadEnable ?				"ON" : "OFF"
 				, fifo.bFF_GPLinkEnable ?				"ON" : "OFF"
@@ -425,17 +427,17 @@ void Write16(const u16 _Value, const u32 _Address)
 		}
 		break;
 
-	case PERF_SELECT:
-		// Seems to select which set of perf registers should be exposed.
-		DEBUG_LOG(COMMANDPROCESSOR, "write to PERF_SELECT: %04x", _Value);
-		break;
-
 	case CLEAR_REGISTER:
 		// We don't care since we don't implement Watermark
 		//m_CPClearReg.Hex = 0;
 		//m_CPStatusReg.OverflowHiWatermark = 0;
 		//m_CPStatusReg.UnderflowHiWatermark = 0;
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to CLEAR_REGISTER : %04x", _Value);	
+		break;
+
+	case PERF_SELECT:
+		// Seems to select which set of perf registers should be exposed.
+		DEBUG_LOG(COMMANDPROCESSOR, "write to PERF_SELECT: %04x", _Value);
 		break;
 
 	// Fifo Registers
@@ -726,7 +728,8 @@ void UpdateFifoRegister()
 
 void UpdateInterrupts(bool active)
 {
-	DEBUG_LOG(COMMANDPROCESSOR, "Fifo Breakpoint Interrupt: %s", (active)? "Asserted" : "Deasserted");
+	INFO_LOG(COMMANDPROCESSOR, "Fifo Breakpoint Interrupt: %s", (active)? "Asserted" : "Deasserted");
+	m_CPStatusReg.Breakpoint = active;
 	g_VideoInitialize.pSetInterrupt(INT_CAUSE_CP, active);
 }
 

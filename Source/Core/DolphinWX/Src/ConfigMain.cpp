@@ -176,19 +176,10 @@ void CConfigMain::CreateGUIControls()
 	// GUI
 	arrayStringFor_InterfaceLang = arrayStringFor_GCSystemLang;
 	// Framelimit
-	arrayStringFor_Framelimit.Add(wxT("auto"));
-	arrayStringFor_Framelimit.Add(wxT("off"));
-	arrayStringFor_Framelimit.Add(wxT("10"));
-	arrayStringFor_Framelimit.Add(wxT("15"));
-	arrayStringFor_Framelimit.Add(wxT("20"));
-	arrayStringFor_Framelimit.Add(wxT("25"));
-	arrayStringFor_Framelimit.Add(wxT("30"));
-	arrayStringFor_Framelimit.Add(wxT("35"));
-	arrayStringFor_Framelimit.Add(wxT("40"));
-	arrayStringFor_Framelimit.Add(wxT("45"));
-	arrayStringFor_Framelimit.Add(wxT("50"));
-	arrayStringFor_Framelimit.Add(wxT("55"));
-	arrayStringFor_Framelimit.Add(wxT("60"));
+	arrayStringFor_Framelimit.Add(wxT("Off"));
+	arrayStringFor_Framelimit.Add(wxT("Auto"));
+	for (int i = 20; i <= 120; i+=10)	// from 20 to 120
+		arrayStringFor_Framelimit.Add(wxString::Format(wxT("%i"), i));
 		
 	// Create the notebook and pages
 	Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
@@ -219,6 +210,7 @@ void CConfigMain::CreateGUIControls()
 	// Framelimit
 	wxStaticText *FramelimitText = new wxStaticText(GeneralPage, ID_FRAMELIMIT_TEXT, wxT("Framelimit :"), wxDefaultPosition, wxDefaultSize);
 	Framelimit = new wxChoice(GeneralPage, ID_FRAMELIMIT, wxDefaultPosition, wxDefaultSize, arrayStringFor_Framelimit, 0, wxDefaultValidator);
+	Framelimit->SetToolTip(wxT("If you set Framelimit higher than game full speed (NTSC:60, PAL:50),\nyou also have to disable Audio Throttle in DSP to make it effective."));
 	Framelimit->SetSelection(SConfig::GetInstance().m_Framelimit);
 
 	// Core Settings - Advanced

@@ -211,7 +211,7 @@ union UVIInterruptRegister
 		unsigned			:	 1;
 		unsigned IR_MASK	:	 1; // Interrupt Enable Bit
 		unsigned			:	 2;
-		unsigned IR_INT		:	 1; // Interrupt Status (1=Active) (Write to clear)
+		unsigned IR_INT		:	 1; // Interrupt Status (1=Active) (Read to clear)
 	};
 };
 
@@ -547,6 +547,8 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	// RETRACE STUFF ...
 	case VI_PRERETRACE_HI:
 		_uReturnValue =	m_InterruptRegister[0].Hi;
+		m_InterruptRegister[0].IR_INT = 0;
+		UpdateInterrupts();
 		return;
 	case VI_PRERETRACE_LO:
 		_uReturnValue =	m_InterruptRegister[0].Lo;
@@ -554,6 +556,8 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	case VI_POSTRETRACE_HI:
 		_uReturnValue =	m_InterruptRegister[1].Hi;
+		m_InterruptRegister[1].IR_INT = 0;
+		UpdateInterrupts();
 		return;
 	case VI_POSTRETRACE_LO:
 		_uReturnValue =	m_InterruptRegister[1].Lo;
@@ -561,6 +565,8 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	case VI_DISPLAY_INTERRUPT_2_HI:
 		_uReturnValue =	m_InterruptRegister[2].Hi;
+		m_InterruptRegister[2].IR_INT = 0;
+		UpdateInterrupts();
 		return;
 	case VI_DISPLAY_INTERRUPT_2_LO:
 		_uReturnValue =	m_InterruptRegister[2].Lo;
@@ -568,6 +574,8 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 	case VI_DISPLAY_INTERRUPT_3_HI:
 		_uReturnValue =	m_InterruptRegister[3].Hi;
+		m_InterruptRegister[3].IR_INT = 0;
+		UpdateInterrupts();
 		return;
 	case VI_DISPLAY_INTERRUPT_3_LO:
 		_uReturnValue =	m_InterruptRegister[3].Lo;
@@ -795,8 +803,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 		// RETRACE STUFF ...
 	case VI_PRERETRACE_HI:
 		m_InterruptRegister[0].Hi = _iValue;
-		m_InterruptRegister[0].IR_INT = 0;
-		UpdateInterrupts();
 		break;
 	case VI_PRERETRACE_LO:
 		m_InterruptRegister[0].Lo = _iValue;
@@ -804,8 +810,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 	case VI_POSTRETRACE_HI:
 		m_InterruptRegister[1].Hi = _iValue;
-		m_InterruptRegister[1].IR_INT = 0;
-		UpdateInterrupts();
 		break;
 	case VI_POSTRETRACE_LO:
 		m_InterruptRegister[1].Lo = _iValue;
@@ -813,8 +817,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 	case VI_DISPLAY_INTERRUPT_2_HI:
 		m_InterruptRegister[2].Hi = _iValue;
-		m_InterruptRegister[2].IR_INT = 0;
-		UpdateInterrupts();
 		break;
 	case VI_DISPLAY_INTERRUPT_2_LO:
 		m_InterruptRegister[2].Lo = _iValue;
@@ -822,8 +824,6 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 	case VI_DISPLAY_INTERRUPT_3_HI:
 		m_InterruptRegister[3].Hi = _iValue;
-		m_InterruptRegister[3].IR_INT = 0;
-		UpdateInterrupts();
 		break;
 	case VI_DISPLAY_INTERRUPT_3_LO:
 		m_InterruptRegister[3].Lo = _iValue;

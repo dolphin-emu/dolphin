@@ -244,12 +244,13 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 	u32 max_base_addr = 0x7FFF0000 - 0x31000000;
 	u8 *base = NULL;
 	int base_attempts = 1;
-	for (u32 base_addr = 0; base_addr < max_base_addr; base_addr += 0x40000)
+	for (u32 base_addr = 0x40000; base_addr < max_base_addr; base_addr += 0x40000)
 	{
 		base = (u8 *)base_addr;
 		if (Memory_TryBase(base, views, num_views, flags, arena)) 
 		{
 			INFO_LOG(MEMMAP, "Found valid memory base at %p after %i tries.", base, base_attempts);
+			base_attempts = 0;
 			break;
 		}
 		base_attempts++;
@@ -266,7 +267,7 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 #endif
 
 #endif
-	if (!base)
+	if (base_attempts)
 		PanicAlert("No possible memory base pointer found!");
 	return base;
 }
