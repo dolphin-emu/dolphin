@@ -717,7 +717,12 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     case IOCTL_ES_GETDEVICECERT: // (Input: none, Output: 384 bytes)
         WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT: this looks really wrong...");
         break;
-
+	case IOCTL_ES_CHECKKOREAREGION: //note by DacoTaco : name is unknown, i just tried to name it SOMETHING
+		//IOS70 has this to let system menu 4.2 check if the console is region changed. it returns -1017
+		//if the IOS didn't find the korean keys and 0 if it does. 0 leads to a error 003
+		WARN_LOG(WII_IPC_ES,"IOCTL_ES_CHECKKOREAREGION: Title Checked for korean Keys");
+		Memory::Write_U32(ES_PARAMTER_SIZE_OR_ALIGNMENT , _CommandAddress + 0x4);
+		return true;
     default:
         WARN_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
 

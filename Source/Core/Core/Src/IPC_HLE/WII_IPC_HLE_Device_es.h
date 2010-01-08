@@ -97,6 +97,7 @@ private:
         IOCTL_ES_GETSTOREDTMD			= 0x35,
         IOCTL_ES_GETSHAREDCONTENTCNT	= 0x36,
         IOCTL_ES_GETSHAREDCONTENTS		= 0x37,
+		IOCTL_ES_CHECKKOREAREGION		= 0x45,
     };
 
     enum EErrorCodes
