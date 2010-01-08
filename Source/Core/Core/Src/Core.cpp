@@ -68,6 +68,7 @@ namespace Core
 // Declarations and definitions
 Common::Timer Timer;
 volatile u32 DrawnFrame = 0;
+u32 DrawnVideo = 0;
  
 // Function forwarding
 //void Callback_VideoRequestWindowSize(int _iWidth, int _iHeight, BOOL _bFullscreen);
@@ -589,17 +590,16 @@ void ScreenShot()
 
 // Apply Frame Limit and Display FPS info
 // This should only be called from VI
-void FrameThrottle()
+void VideoThrottle()
 {
-	u32 TargetFPS = (SConfig::GetInstance().m_Framelimit > 1) ? SConfig::GetInstance().m_Framelimit * 5
+	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 1) ? SConfig::GetInstance().m_Framelimit * 5
 		: VideoInterface::TargetRefreshRate;
-	u32 frames = Common::AtomicLoad(DrawnFrame);
 
 	// When frame limit is NOT off
-	if (frames && SConfig::GetInstance().m_Framelimit != 1)
+	if (SConfig::GetInstance().m_Framelimit != 1)
 	{
-		u32 frametime = frames * 1000 / TargetFPS;
-		while (Timer.GetTimeDifference() < frametime)
+		u32 frametime = DrawnVideo * 2 * 1000 / TargetVPS;
+		while ((u32)Timer.GetTimeDifference() < frametime)
 			//Common::YieldCPU();
 			Common::SleepCurrentThread(1);
 	}
@@ -608,30 +608,14 @@ void FrameThrottle()
 	u32 ElapseTime = (u32)Timer.GetTimeDifference();
 	if (ElapseTime >= 1000)
 	{
-	    SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
+		SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-		// Use extended or summary information. The summary information does not print the ticks data,
-		// that's more of a debugging interest, it can always be optional of course if someone is interested.
-		//#define EXTENDED_INFO
-		#ifdef EXTENDED_INFO
-			u64 newTicks = CoreTiming::GetTicks();
-			u64 newIdleTicks = CoreTiming::GetIdleTicks();
-	 
-			u64 diff = (newTicks - ticks) / 1000000;
-			u64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
-	 
-			ticks = newTicks;
-			idleTicks = newIdleTicks;	 
-			
-			float TicksPercentage = (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
-		#endif
-
-		u32 FPS = frames * 1000 / ElapseTime;
-
-		float Speed = (float)FPS / (float)TargetFPS * 100.0f;
+		u32 FPS = Common::AtomicLoad(DrawnFrame) * 1000 / ElapseTime;
+		u32 VPS = DrawnVideo * 2 * 1000 / ElapseTime;
+		u32 Speed = VPS * 100 / TargetVPS;
 		
 		// Settings are shown the same for both extended and summary info
-		std::string SSettings = StringFromFormat(" | Core: %s %s",
+		std::string SSettings = StringFromFormat("Core: %s %s",
 		#if defined(JITTEST) && JITTEST
 			#ifdef _M_IX86
 						_CoreParameter.bUseJIT ? "JIT32IL" : "Int32", 
@@ -647,8 +631,22 @@ void FrameThrottle()
 		#endif
 		_CoreParameter.bCPUThread ? "DC" : "SC");
 
+		// Use extended or summary information. The summary information does not print the ticks data,
+		// that's more of a debugging interest, it can always be optional of course if someone is interested.
+		//#define EXTENDED_INFO
 		#ifdef EXTENDED_INFO
-			std::string SFPS = StringFromFormat("FPS: %i/%i (%3.0f%%)", FPS, TargetFPS, Speed);
+			u64 newTicks = CoreTiming::GetTicks();
+			u64 newIdleTicks = CoreTiming::GetIdleTicks();
+	 
+			u64 diff = (newTicks - ticks) / 1000000;
+			u64 idleDiff = (newIdleTicks - idleTicks) / 1000000;
+	 
+			ticks = newTicks;
+			idleTicks = newIdleTicks;	 
+			
+			float TicksPercentage = (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
+
+			std::string SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
 			SFPS += StringFromFormat(" | CPU: %s%i MHz [Real: %i + IdleSkip: %i] / %i MHz (%s%3.0f%%)",
 					_CoreParameter.bSkipIdle ? "~" : "",
 					(int)(diff),
@@ -659,11 +657,11 @@ void FrameThrottle()
 					TicksPercentage);
 		
 		#else	// Summary information
-			std::string SFPS = StringFromFormat("FPS: %i/%i (%3.0f%%)", FPS, TargetFPS, Speed);
+		std::string SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
 		#endif
 
 		// This is our final "frame counter" string
-		std::string SMessage = StringFromFormat("%s%s", SFPS.c_str(), SSettings.c_str());
+		std::string SMessage = StringFromFormat(" %s | %s", SSettings.c_str(), SFPS.c_str());
 
 		// Show message
 		if (g_pUpdateFPSDisplay != NULL)
@@ -671,10 +669,13 @@ void FrameThrottle()
 
 		Host_UpdateStatusBar(SMessage.c_str());
 
-		// Reset frame counter
+		// Reset counter
         Timer.Update();
 		Common::AtomicStore(DrawnFrame, 0);
+		DrawnVideo = 0;
 	}
+
+	DrawnVideo++;
 }
 
 // Executed from GPU thread

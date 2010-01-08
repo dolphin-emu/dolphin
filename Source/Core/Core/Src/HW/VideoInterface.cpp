@@ -1056,7 +1056,7 @@ static void EndField()
 
 
 // Purpose: Send VI interrupt when triggered
-// Run when: When every line is scaned
+// Run when: When a line is scaned
 void Update()
 {
 
@@ -1070,8 +1070,8 @@ void Update()
     if (++m_VBeamPos > s_lineCount)
 	{
         m_VBeamPos = 1;
-		// Apply frame throttle wheneven a full screen scan finishes
-		Core::FrameThrottle();
+		// Apply video throttle whenever a full screen scan finishes
+		Core::VideoThrottle();
 	}
 
 	for (int i = 0; i < 4; ++i)
