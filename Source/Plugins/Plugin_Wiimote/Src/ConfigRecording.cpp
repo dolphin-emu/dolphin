@@ -137,6 +137,13 @@ void WiimoteRecordingConfigDialog::CreateGUIControlsRecording()
 	m_GaugeAccel[1] = new wxGauge( m_PageRecording, wxID_ANY, 255, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
 	m_GaugeAccel[2] = new wxGauge( m_PageRecording, wxID_ANY, 255, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
 
+	m_GaugeAccelNunchuk[0] = new wxGauge( m_PageRecording, wxID_ANY, 255, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+	m_GaugeAccelNunchuk[1] = new wxGauge( m_PageRecording, wxID_ANY, 255, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+	m_GaugeAccelNunchuk[2] = new wxGauge( m_PageRecording, wxID_ANY, 255, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+	m_GaugeGForceNunchuk[0] = new wxGauge( m_PageRecording, wxID_ANY, 255, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+	m_GaugeGForceNunchuk[1] = new wxGauge( m_PageRecording, wxID_ANY, 255, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+	m_GaugeGForceNunchuk[2] = new wxGauge( m_PageRecording, wxID_ANY, 255, wxDefaultPosition, wxSize(Gw, Gh), wxGA_VERTICAL | wxNO_BORDER | wxGA_SMOOTH);
+
 	// The text controls
 	m_TextIR = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Cursor: 000 000\nDistance: 0000"));
 
@@ -152,14 +159,22 @@ void WiimoteRecordingConfigDialog::CreateGUIControlsRecording()
 	sBoxAccel[0] = new wxBoxSizer(wxVERTICAL);
 	sBoxAccel[1] = new wxBoxSizer(wxVERTICAL);
 	sBoxAccel[2] = new wxBoxSizer(wxVERTICAL);
-
+	wxBoxSizer * sBoxAccelNunchuk[3];
+	sBoxAccelNunchuk[0] = new wxBoxSizer(wxVERTICAL);
+	sBoxAccelNunchuk[1] = new wxBoxSizer(wxVERTICAL);
+	sBoxAccelNunchuk[2] = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer * sBoxGForceNunchuk[3];
+	sBoxGForceNunchuk[0] = new wxBoxSizer(wxVERTICAL);
+	sBoxGForceNunchuk[1] = new wxBoxSizer(wxVERTICAL);
+	sBoxGForceNunchuk[2] = new wxBoxSizer(wxVERTICAL);
+	
 	wxStaticText * m_TextBattery = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Batt."), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 	wxStaticText * m_TextRoll = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Roll"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 	wxStaticText * m_TextPitch = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Pitch"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
-	wxStaticText *m_TextX[2], *m_TextY[2], *m_TextZ[2];
-	m_TextX[0] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextX[1] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
-	m_TextY[0] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextY[1] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
-	m_TextZ[0] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextZ[1] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
+	wxStaticText *m_TextX[4], *m_TextY[4], *m_TextZ[4];
+	m_TextX[0] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextX[1] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextX[2] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextX[3] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("X"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
+	m_TextY[0] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextY[1] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextY[2] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextY[3] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Y"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
+	m_TextZ[0] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextZ[1] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextZ[2] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE); m_TextZ[3] = new wxStaticText(m_PageRecording, wxID_ANY, wxT("Z"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE);
 
 	sBoxBattery->Add(m_GaugeBattery, 0, wxEXPAND | (wxALL), 0); sBoxBattery->Add(m_TextBattery, 0, wxEXPAND | (wxUP), 5);
 
@@ -174,12 +189,27 @@ void WiimoteRecordingConfigDialog::CreateGUIControlsRecording()
 	sBoxAccel[1]->Add(m_GaugeAccel[1], 0, wxEXPAND | (wxUP | wxDOWN), 0); sBoxAccel[1]->Add(m_TextY[1], 0, wxEXPAND | (wxUP), 5);
 	sBoxAccel[2]->Add(m_GaugeAccel[2], 0, wxEXPAND | (wxUP | wxDOWN | wxRIGHT), 0); sBoxAccel[2]->Add(m_TextZ[1], 0, wxEXPAND | (wxUP), 5);
 
+	sBoxGForceNunchuk[0]->Add(m_GaugeGForceNunchuk[0], 0, wxEXPAND | (wxUP | wxDOWN | wxLEFT), 0); sBoxGForceNunchuk[0]->Add(m_TextX[2], 0, wxEXPAND | (wxUP), 5);
+	sBoxGForceNunchuk[1]->Add(m_GaugeGForceNunchuk[1], 0, wxEXPAND | (wxUP | wxDOWN), 0); sBoxGForceNunchuk[1]->Add(m_TextY[2], 0, wxEXPAND | (wxUP), 5);
+	sBoxGForceNunchuk[2]->Add(m_GaugeGForceNunchuk[2], 0, wxEXPAND | (wxUP | wxDOWN | wxRIGHT), 0); sBoxGForceNunchuk[2]->Add(m_TextZ[2], 0, wxEXPAND | (wxUP), 5);
+
+	sBoxAccelNunchuk[0]->Add(m_GaugeAccelNunchuk[0], 0, wxEXPAND | (wxUP | wxDOWN | wxLEFT), 0); sBoxAccelNunchuk[0]->Add(m_TextX[3], 0, wxEXPAND | (wxUP), 5);
+	sBoxAccelNunchuk[1]->Add(m_GaugeAccelNunchuk[1], 0, wxEXPAND | (wxUP | wxDOWN), 0); sBoxAccelNunchuk[1]->Add(m_TextY[3], 0, wxEXPAND | (wxUP), 5);
+	sBoxAccelNunchuk[2]->Add(m_GaugeAccelNunchuk[2], 0, wxEXPAND | (wxUP | wxDOWN | wxRIGHT), 0); sBoxAccelNunchuk[2]->Add(m_TextZ[3], 0, wxEXPAND | (wxUP), 5);
+	
+
+
 	wxStaticBoxSizer * sbRealStatus = new wxStaticBoxSizer(wxVERTICAL, m_PageRecording, wxT("Status"));
 	wxStaticBoxSizer * sbRealIR = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("IR"));
 	wxStaticBoxSizer * sbRealBattery = new wxStaticBoxSizer(wxVERTICAL, m_PageRecording, wxT("Battery"));
 	wxStaticBoxSizer * sbRealRoll = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("Roll and Pitch"));
 	wxStaticBoxSizer * sbRealGForce = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("G-Force"));
 	wxStaticBoxSizer * sbRealAccel = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("Accelerometer"));
+	wxStaticBoxSizer * sbRealGForceNunchuk = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("G-Force NC"));
+	wxStaticBoxSizer * sbRealAccelNunchuk = new wxStaticBoxSizer(wxHORIZONTAL, m_PageRecording, wxT("Accelerometer NC"));
+	
+	
+
 
 	// Status
 	sbRealStatus->Add(m_TextUpdateRate, 0, wxEXPAND | (wxALL), 5);
@@ -190,6 +220,8 @@ void WiimoteRecordingConfigDialog::CreateGUIControlsRecording()
 	sbRealRoll->Add(sBoxRoll[0], 0, wxEXPAND | (wxALL), 5); sbRealRoll->Add(sBoxRoll[1], 0, wxEXPAND | (wxALL), 5);
 	sbRealGForce->Add(sBoxGForce[0], 0, wxEXPAND | (wxALL), 5); sbRealGForce->Add(sBoxGForce[1], 0, wxEXPAND | (wxALL), 5); sbRealGForce->Add(sBoxGForce[2], 0, wxEXPAND | (wxALL), 5);
 	sbRealAccel->Add(sBoxAccel[0], 0, wxEXPAND | (wxALL), 5); sbRealAccel->Add(sBoxAccel[1], 0, wxEXPAND | (wxALL), 5); sbRealAccel->Add(sBoxAccel[2], 0, wxEXPAND | (wxALL), 5);
+	sbRealAccelNunchuk->Add(sBoxAccelNunchuk[0], 0, wxEXPAND | (wxALL), 5); sbRealAccelNunchuk->Add(sBoxAccelNunchuk[1], 0, wxEXPAND | (wxALL), 5); sbRealAccelNunchuk->Add(sBoxAccelNunchuk[2], 0, wxEXPAND | (wxALL), 5);
+	sbRealGForceNunchuk->Add(sBoxGForceNunchuk[0], 0, wxEXPAND | (wxALL), 5); sbRealGForceNunchuk->Add(sBoxGForceNunchuk[1], 0, wxEXPAND | (wxALL), 5); sbRealGForceNunchuk->Add(sBoxGForceNunchuk[2], 0, wxEXPAND | (wxALL), 5);
 
 	// Vertical leftmost status
 	wxBoxSizer * sbStatusLeft = new wxBoxSizer(wxVERTICAL);
@@ -202,6 +234,8 @@ void WiimoteRecordingConfigDialog::CreateGUIControlsRecording()
 	sbRealWiimoteStatus->Add(sbRealRoll, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealWiimoteStatus->Add(sbRealGForce, 0, wxEXPAND | (wxLEFT), 5);
 	sbRealWiimoteStatus->Add(sbRealAccel, 0, wxEXPAND | (wxLEFT), 5);
+	sbRealWiimoteStatus->Add(sbRealAccelNunchuk, 0, wxEXPAND | (wxLEFT), 5);
+	sbRealWiimoteStatus->Add(sbRealGForceNunchuk, 0, wxEXPAND | (wxLEFT), 5);
 
 	m_GaugeBattery->SetToolTip(wxT("Press '+' to show the current status. Press '-' to stop recording the status."));
 
@@ -346,7 +380,7 @@ void WiimoteRecordingConfigDialog::ConvertToString()
 		TmpStr += StringFromFormat("%s", m_vRecording.at(i).z >= 0 ? StringFromFormat("+%03i", m_vRecording.at(i).z).c_str() : StringFromFormat("%04i", m_vRecording.at(i).z).c_str());
 		if (i < ((int)m_vRecording.size() - 1)) TmpStr += ",";
 
-		//DEBUG_LOG(WIIMOTE, "%s", TmpStr.c_str());
+		DEBUG_LOG(WIIMOTE, "%s", TmpStr.c_str());
 
 		// Write the IR data
 		TmpIR += ArrayToString(m_vRecording.at(i).IR, IRBytes, 0, 30, false);

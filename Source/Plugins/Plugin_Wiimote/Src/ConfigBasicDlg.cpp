@@ -109,6 +109,7 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 		m_RecordingConfigFrame->ShowModal();
 		m_RecordingConfigFrame->Destroy();
 		m_RecordingConfigFrame = NULL;
+		m_Page = g_Config.CurrentPage;
 		break;
 #ifdef WIN32
 	case ID_BUTTONPAIRUP:

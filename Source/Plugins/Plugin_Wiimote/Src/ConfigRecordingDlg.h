@@ -28,6 +28,7 @@
 #include <wx/combobox.h>
 #include <wx/checkbox.h>
 #include <wx/panel.h>
+#include "Thread.h"
 
 class WiimoteRecordingConfigDialog : public wxDialog
 {
@@ -39,7 +40,6 @@ class WiimoteRecordingConfigDialog : public wxDialog
 			const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE | wxWANTS_CHARS);
 		virtual ~WiimoteRecordingConfigDialog(){;}
-
 
 		void UpdateRecordingGUI(int Slot = 0);
 		void LoadFile();
@@ -67,12 +67,16 @@ class WiimoteRecordingConfigDialog : public wxDialog
 		wxGauge *m_GaugeBattery,
 				*m_GaugeRoll[2],
 				*m_GaugeGForce[3],
-				*m_GaugeAccel[3];
+				*m_GaugeAccel[3],
+				*m_GaugeAccelNunchuk[3],
+				*m_GaugeGForceNunchuk[3];
 
 	private:
 		DECLARE_EVENT_TABLE();
 
 		bool ControlsCreated;
+		THREAD_RETURN SafeCloseReadWiimote_ThreadFunc2(void* arg);
+		Common::Thread*		g_pReadThread2;
 
 		wxPanel *m_PageRecording;
 		wxButton *m_Close,

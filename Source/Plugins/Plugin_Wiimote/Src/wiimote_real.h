@@ -48,7 +48,8 @@ bool IRDataOK(struct wiimote_t* wm);
 #ifndef EXCLUDE_H
 	extern wiimote_t**		g_WiiMotesFromWiiUse;
 	extern bool				g_Shutdown;
-	extern bool				g_ThreadGoing;
+	extern HANDLE			g_StopThreadTemporary;
+	extern HANDLE			g_StartThread;
 	extern int				g_NumberOfWiiMotes;
 	extern bool				g_MotionSensing;
 	extern bool				g_IRSensing;

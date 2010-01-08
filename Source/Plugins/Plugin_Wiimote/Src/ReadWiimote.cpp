@@ -85,6 +85,21 @@ void handle_event(struct wiimote_t* wm)
 	//if (IS_PRESSED(wm, WIIMOTE_BUTTON_ONE))		g_Run = false;
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_TWO))		DEBUG_LOG(WIIMOTE, "TWO pressed");
 	if (IS_PRESSED(wm, WIIMOTE_BUTTON_HOME))	DEBUG_LOG(WIIMOTE, "HOME pressed");
+	// Create shortcut to the nunchuck
+
+	struct nunchuk_t* nc = NULL;
+
+	if (wm->exp.type == EXP_NUNCHUK) {
+		
+		nc = (nunchuk_t*)&wm->exp.nunchuk;
+		if (IS_PRESSED(nc, NUNCHUK_BUTTON_C))
+			DEBUG_LOG(WIIMOTE, "C pressed");
+		if (IS_PRESSED(nc, NUNCHUK_BUTTON_Z))
+			DEBUG_LOG(WIIMOTE, "Z pressed");
+	}
+
+
+
 
 
 	// Pressing minus will tell the wiimote we are no longer interested in movement.
@@ -95,6 +110,7 @@ void handle_event(struct wiimote_t* wm)
 		wiiuse_set_ir(wm, 0);
 		g_MotionSensing = false;
 	}
+
 	// Turn aceelerometer and IR reporting on, there is some kind of bug that prevents us from turing these on
 	// directly after each other, so we have to wait for another wiiuse_poll() this way
 	if (IS_JUST_PRESSED(wm, WIIMOTE_BUTTON_PLUS))
@@ -106,25 +122,24 @@ void handle_event(struct wiimote_t* wm)
 	if (g_MotionSensing && !WIIUSE_USING_IR(wm))
 		wiiuse_set_ir(wm, 1);
 
-	// Print battery status
+    if (!m_RecordingConfigFrame) return;
+
+	// Print battery status 
 #if defined(HAVE_WX) && HAVE_WX
 	if(m_RecordingConfigFrame && g_Config.bUpdateRealWiimote)
 		m_RecordingConfigFrame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
 #endif
-	// Create shortcut to the nunchuck
-	struct nunchuk_t* nc = NULL;
-	if (wm->exp.type == EXP_NUNCHUK)
-		nc = (nunchuk_t*)&wm->exp.nunchuk;
 
 	// If the accelerometer is turned on then print angles
 	if (WIIUSE_USING_ACC(wm) && WIIUSE_USING_IR(wm))
 	{
+		/*
 		std::string Tmp;
 		Tmp += StringFromFormat("Roll: %2.1f  ", wm->orient.roll);
 		Tmp += StringFromFormat("Pitch: %2.1f  ", wm->orient.pitch);
 		Tmp += StringFromFormat("Battery: %1.2f\n", wm->battery_level);
 		Tmp += StringFromFormat("G-Force x, y, z: %1.2f %1.2f %1.2f\n", wm->gforce.x, wm->gforce.y, wm->gforce.z);
-		Tmp += StringFromFormat("Accel x, y, z: %03i %03i %03i\n", wm->accel.x, wm->accel.y, wm->accel.z);
+		Tmp += StringFromFormat("Accel x, y, z: %03i %03i %03i\n", wm->accel.x, wm->accel.y, wm->accel.z); */
 
 		// wm->event_buf is cleared at the end of all wiiuse_poll(), so wm->event_buf will always be zero
 		// after that. To get the raw IR data we need to read the wiimote again. This seems to work most of the time,
@@ -132,7 +147,7 @@ void handle_event(struct wiimote_t* wm)
 		if (wiiuse_io_read(wm))
 			if (IRDataOK(wm))
 				memcpy(g_EventBuffer, wm->event_buf, GetIRDataSize(wm));
-
+/*
 		// Go through each of the 4 possible IR sources
 		for (int i = 0; i < 4; ++i)
 		{
@@ -149,7 +164,7 @@ void handle_event(struct wiimote_t* wm)
 		{
 			Tmp += "\n";
 			Tmp += StringFromFormat("Nunchuck accel x, y, z: %03i %03i %03i\n", nc->accel.x, nc->accel.y, nc->accel.z);
-		}
+		} */
 
 		//Tmp += "\n";
 		//std::string TmpData = ArrayToString(g_EventBuffer, ReportSize, 0, 30);
@@ -158,7 +173,7 @@ void handle_event(struct wiimote_t* wm)
 		//DEBUG_LOG(WIIMOTE, "%s", Tmp.c_str());
 
 #if defined(HAVE_WX) && HAVE_WX
-		if(m_RecordingConfigFrame)
+		if(m_RecordingConfigFrame && g_Config.bUpdateRealWiimote)
 		{
 			// Produce adjusted accelerometer values		
 			float _Gx = (float)(wm->accel.x - wm->accel_calib.cal_zero.x) / (float)wm->accel_calib.cal_g.x;
@@ -170,18 +185,9 @@ void handle_event(struct wiimote_t* wm)
 			int Gy = (int)(_Gy * 100);
 			int Gz = (int)(_Gz * 100);
 
-			// And for the Nunchuck
-			u8 AccelNX = 0, AccelNY = 0, AccelNZ = 0;
-			if(wm->exp.type == EXP_NUNCHUK)
-			{
-				if((nc->accel.x + g_Config.iAccNunNeutralX) <= 255) AccelNX = nc->accel.x + g_Config.iAccNunNeutralX;
-				if((nc->accel.y + g_Config.iAccNunNeutralY) <= 255) AccelNY = nc->accel.y + g_Config.iAccNunNeutralY;
-				if((nc->accel.z + g_Config.iAccNunNeutralZ) <= 255) AccelNZ = nc->accel.z + g_Config.iAccNunNeutralZ;
-			}
-
-			if(g_Config.bUpdateRealWiimote)
-			{
-				// Update gauges
+			
+			{ //Updating Wiimote Gauges.
+				
 				m_RecordingConfigFrame->m_GaugeRoll[0]->SetValue(wm->orient.roll + 180);
 				m_RecordingConfigFrame->m_GaugeRoll[1]->SetValue(wm->orient.pitch + 180);
 
@@ -194,17 +200,47 @@ void handle_event(struct wiimote_t* wm)
 				m_RecordingConfigFrame->m_GaugeAccel[1]->SetValue(wm->accel.y);
 				m_RecordingConfigFrame->m_GaugeAccel[2]->SetValue(wm->accel.z);
 
+				if(wm->exp.type == EXP_NUNCHUK) // Updating Nunchuck Gauges
+				{
+								
+					m_RecordingConfigFrame->m_GaugeGForceNunchuk[0]->SetValue((int)floor((nc->gforce.x * 100) + 300.5));
+					m_RecordingConfigFrame->m_GaugeGForceNunchuk[1]->SetValue((int)floor((nc->gforce.y * 100) + 300.5));
+					m_RecordingConfigFrame->m_GaugeGForceNunchuk[2]->SetValue((int)floor((nc->gforce.z * 100) + 300.5));	
+
+					m_RecordingConfigFrame->m_GaugeAccelNunchuk[0]->SetValue(nc->accel.x);
+					m_RecordingConfigFrame->m_GaugeAccelNunchuk[1]->SetValue(nc->accel.y);
+					m_RecordingConfigFrame->m_GaugeAccelNunchuk[2]->SetValue(nc->accel.z);
+					
+					//Produce valid data for recording
+					float _GNCx = (float)(nc->accel.x - nc->accel_calib.cal_zero.x) / (float)nc->accel_calib.cal_g.x;
+					float _GNCy = (float)(nc->accel.y - nc->accel_calib.cal_zero.y) / (float)nc->accel_calib.cal_g.y;
+					float _GNCz = (float)(nc->accel.z - nc->accel_calib.cal_zero.z) / (float)nc->accel_calib.cal_g.z;
+			
+					// Conver the data to integers
+					int GNCx = (int)(_GNCx * 100);
+					int GNCy = (int)(_GNCy * 100);
+					int GNCz = (int)(_GNCz * 100);
+
+				}
+
 				m_RecordingConfigFrame->m_TextIR->SetLabel(wxString::Format(
 					wxT("Cursor: %03u %03u\nDistance:%4.0f"), wm->ir.x, wm->ir.y, wm->ir.z));
 
 				//m_RecordingConfigFrame->m_TextAccNeutralCurrent->SetLabel(wxString::Format(
 				//	wxT("Current: %03u %03u %03u"), Gx, Gy, Gz));
 
-				if(m_RecordingConfigFrame->m_bRecording)
-					DEBUG_LOG(WIIMOTE, "Wiiuse Recorded accel x, y, z: %03i %03i %03i", Gx, Gy, Gz);
+				if(m_RecordingConfigFrame->m_bRecording) {
+					if(wm->exp.type == EXP_NUNCHUK) {
+						DEBUG_LOG(WIIMOTE, "Wiiuse Recorded accel x, y, z: %03i %03i %03i", Gx, Gy, Gz);
+					}
+					else {
+						DEBUG_LOG(WIIMOTE, "Wiiuse Recorded accel x, y, z: %03i %03i %03i;  NCx, NCy, NCz: %03i %03i %03i",Gx,Gy,Gz, GNCx, GNCy, GNCz);
+					}
+				}
 			}
 
-			// Send the data to be saved
+
+			// Send the data to be saved //todo: passing nunchuck x,y,z vars as well
 			m_RecordingConfigFrame->DoRecordMovement(Gx, Gy, Gz, g_EventBuffer + 6, GetIRDataSize(wm));
 
 			// Turn recording on and off
@@ -238,6 +274,7 @@ void handle_event(struct wiimote_t* wm)
 #if defined(HAVE_WX) && HAVE_WX
 		if (m_RecordingConfigFrame)
 		{
+			NOTICE_LOG(BOOT, "readwiimote, reset bars to zero");
 			m_RecordingConfigFrame->m_GaugeRoll[0]->SetValue(0);
 			m_RecordingConfigFrame->m_GaugeRoll[1]->SetValue(0);
 
@@ -248,6 +285,14 @@ void handle_event(struct wiimote_t* wm)
 			m_RecordingConfigFrame->m_GaugeAccel[0]->SetValue(0);
 			m_RecordingConfigFrame->m_GaugeAccel[1]->SetValue(0);
 			m_RecordingConfigFrame->m_GaugeAccel[2]->SetValue(0);
+
+			m_RecordingConfigFrame->m_GaugeAccelNunchuk[0]->SetValue(0);
+			m_RecordingConfigFrame->m_GaugeAccelNunchuk[1]->SetValue(0);
+			m_RecordingConfigFrame->m_GaugeAccelNunchuk[2]->SetValue(0);
+
+			m_RecordingConfigFrame->m_GaugeGForceNunchuk[0]->SetValue(0);
+			m_RecordingConfigFrame->m_GaugeGForceNunchuk[1]->SetValue(0);
+			m_RecordingConfigFrame->m_GaugeGForceNunchuk[2]->SetValue(0);
 
 			m_RecordingConfigFrame->m_TextIR->SetLabel(wxT("Cursor:\nDistance:"));
 		}
@@ -266,7 +311,6 @@ void ReadWiimote()
 	{
 		handle_event(g_WiiMotesFromWiiUse[i]);
 	}
-
 	// Declaration
 	std::string Temp;
 
@@ -336,9 +380,8 @@ void ReadWiimote()
 					 *	threshold values.  By default they are the same
 					 *	as the wiimote.
 					 */
-					 //wiiuse_set_nunchuk_orient_threshold((struct nunchuk_t*)&wiimotes[i]->exp.nunchuk, 90.0f);
-					 //wiiuse_set_nunchuk_accel_threshold((struct nunchuk_t*)&wiimotes[i]->exp.nunchuk, 100);
-					DEBUG_LOG(WIIMOTE, "Nunchuk inserted.");
+					 //wiiuse_set_nunchuk_orient_threshold(g_WiiMotesFromWiiUse[i], 90.0f);
+					 //wiiuse_set_nunchuk_accel_threshold(g_WiiMotesFromWiiUse[i], 100);
 					break;
 
 				case WIIUSE_CLASSIC_CTRL_INSERTED:
@@ -352,6 +395,9 @@ void ReadWiimote()
 					break;
 
 				case WIIUSE_NUNCHUK_REMOVED:
+					DEBUG_LOG(WIIMOTE, "Nunchuck was removed.");
+					break;
+
 				case WIIUSE_CLASSIC_CTRL_REMOVED:
 				case WIIUSE_GUITAR_HERO_3_CTRL_REMOVED:
 					// some expansion was removed

@@ -34,6 +34,8 @@
 #include "EmuDefinitions.h"
 #define EXCLUDE_H // Avoid certain declarations in wiimote_real.h
 #include "wiimote_real.h"
+#include "ConfigRecordingDlg.h"
+
 #ifdef WIN32
 #include <bthdef.h>
 #include <BluetoothAPIs.h>
@@ -50,6 +52,7 @@ namespace WiiMoteReal
 class CWiiMote;
 
 THREAD_RETURN ReadWiimote_ThreadFunc(void* arg);
+THREAD_RETURN SafeCloseReadWiimote_ThreadFunc(void* arg);
 
 // Variable declarations
 
@@ -58,7 +61,8 @@ Common::Thread*		g_pReadThread = NULL;
 int					g_NumberOfWiiMotes;
 CWiiMote*			g_WiiMotes[MAX_WIIMOTES];	
 bool				g_Shutdown = false;
-bool				g_ThreadGoing = false;
+HANDLE				g_StartThread = false;
+HANDLE				g_StopThreadTemporary;
 bool				g_LocalThread = true;
 bool				g_IRSensing = false;
 bool				g_MotionSensing = false;
@@ -472,12 +476,12 @@ void DoState(PointerWrap &p)
 void Shutdown(void)
 {
 	// Stop the loop in the thread
-	g_Shutdown = true;
+	g_Shutdown = true; // not safe .. might crash when still @ReadWiimote
 
 	// Stop the thread
 	if (g_pReadThread != NULL)
 	{
-		delete g_pReadThread;
+		delete g_pReadThread; 
 		g_pReadThread = NULL;
 	}
 
@@ -526,25 +530,53 @@ void Update(int _WiimoteNumber)
    time to avoid a potential collision. */
 THREAD_RETURN ReadWiimote_ThreadFunc(void* arg)
 {
+	WiiMoteReal::g_StopThreadTemporary = CreateEvent(NULL, TRUE, FALSE, NULL); 
+	WiiMoteReal::g_StartThread =  CreateEvent(NULL, TRUE, FALSE, NULL);
+		
 	while (!g_Shutdown)
 	{
-		// We need g_ThreadGoing to do a manual WaitForSingleObject() from the configuration window
-		g_ThreadGoing = true;
 		// There is at least one Real Wiimote in use
+		
 		if (g_Config.bNumberRealWiimotes > 0 && !g_RunTemporary)
 		{
 			for (int i = 0; i < MAX_WIIMOTES; i++)
 				if (g_WiimoteInUse[i])
 					g_WiiMotes[i]->ReadData();
 		}
-		else
-			ReadWiimote();
-		g_ThreadGoing = false;
+		else {
+			    
+			switch (WaitForSingleObject(WiiMoteReal::g_StopThreadTemporary,0)) 
+			{
+			// Event object was signaled, exiting thread to close ConfigRecordingDlg
+			case WAIT_OBJECT_0: 
+
+				new Common::Thread(SafeCloseReadWiimote_ThreadFunc, NULL);
+				SetEvent(WiiMoteReal::g_StartThread); //tell the new thread to get going
+				return 0;
+
+				default:
+				ReadWiimote();
+			}
+
+
+		}
+		
 	}
 	return 0;
 }
-
-
+THREAD_RETURN SafeCloseReadWiimote_ThreadFunc(void* arg) // Thread to avoid racing conditions by directly closing of ReadWiimote_ThreadFunc() resp. ReadWiimote() // shutting down the Dlg while still beeing @ReadWiimote will result in a crash;
+{
+	WiiMoteReal::g_Shutdown = true;
+	WaitForSingleObject(WiiMoteReal::g_StartThread,INFINITE); //Ready to start cleaning
+	
+		if (g_RealWiiMoteInitialized)
+			WiiMoteReal::Shutdown();
+		m_RecordingConfigFrame->Close(true);
+		if (!g_RealWiiMoteInitialized)
+			WiiMoteReal::Initialize();
+	
+		return 0;
+}
 // WiiMote Pair-Up
 #ifdef WIN32
 int WiimotePairUp(void)

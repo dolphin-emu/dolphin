@@ -21,6 +21,8 @@
 #include "ConfigBasicDlg.h"
 #include "Config.h"
 #include "EmuMain.h" // for LoadRecordedMovements()
+#include "wiimote_real.h"
+
 
 BEGIN_EVENT_TABLE(WiimoteRecordingConfigDialog,wxDialog)
 	EVT_CLOSE(WiimoteRecordingConfigDialog::OnClose)
@@ -95,7 +97,8 @@ void WiimoteRecordingConfigDialog::CloseClick(wxCommandEvent& event)
 	switch(event.GetId())
 	{
 	case ID_CLOSE:
-		Close();
+		SetEvent(WiiMoteReal::g_StopThreadTemporary); //direct closing will result in crash @ReadWiimote, also dont try to waitforobject here, it will result in deadlock! because this thread is still needed to progress in the Readwiimote to get to the waitingobject @readwiimote itself.....
+													  //Problem lies mainly  in Readwiimote(), closing here leaves the thread readWiimote thread, trying to access vars which aint there anymore.
 		break;
 	case ID_APPLY:
 		SaveFile();
@@ -141,4 +144,3 @@ void WiimoteRecordingConfigDialog::UpdateRecordingGUI(int Slot)
 			if(ControlsCreated) m_PageRecording->FindItem(i)->Enable(ActiveRecording);
 	#endif
 }
-
