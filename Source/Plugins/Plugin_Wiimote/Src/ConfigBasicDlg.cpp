@@ -109,7 +109,6 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 		m_RecordingConfigFrame->ShowModal();
 		m_RecordingConfigFrame->Destroy();
 		m_RecordingConfigFrame = NULL;
-		m_Page = g_Config.CurrentPage;
 		break;
 #ifdef WIN32
 	case ID_BUTTONPAIRUP:
@@ -250,10 +249,10 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 
 	m_ButtonMapping = new wxButton(this, ID_BUTTONMAPPING, wxT("Button Mapping"));
 	m_Recording		= new wxButton(this, ID_BUTTONRECORDING, wxT("Recording"));
-	m_ButtonPairUp	= new wxButton(this, ID_BUTTONPAIRUP, wxT("Pair Up Wiimote(s)"));
+	m_ButtonPairUp	= new wxButton(this, ID_BUTTONPAIRUP, wxT("Wiimotes PairUp"));
 	
 	#ifdef WIN32
-	m_ButtonPairUp->SetToolTip(wxT("Pair up your Wiimote(s) with your system.\nPress the Buttons 1 and 2 on your Wiimote before pairing up.\nThis might take a few seconds.\nIt only works if you're using Microsoft's Bluetooth stack.")); // Only working with MS BT Stack.
+	m_ButtonPairUp->SetToolTip(wxT("Pair up your Wiimotes with your system.\nPress the Buttons 1 and 2 on your Wiimote before pairing up.\nThis might take a few seconds.\nIt only works if you're using Microsoft's Bluetooth stack.")); // Only working with MS BT Stack.
 	#else
 	m_ButtonPairUp->Enable(false);
     #endif

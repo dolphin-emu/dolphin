@@ -408,11 +408,11 @@ void Write16(const u16 _Value, const u32 _Address)
 			{
 				// Clear old BP and initiate new BP
 				Common::AtomicStore(fifo.bFF_Breakpoint, 0);
-				// AyuanX: The following is a hack
+				// AyuanX: The following is a hack for dual core
 				// There is definitely some initialization problem with Dolphin (not found exact location yet)
 				// Which prevents Metroid Prime 2 from first time booting (If you boot some other GC game first then MP2 can boot)
 				// But somehow this instant BP hack can make MP2 boot even at first time
-				UpdateInterrupts(true);
+				if (g_VideoInitialize.bOnThread) UpdateInterrupts(true);
 			}
 
 			INFO_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);

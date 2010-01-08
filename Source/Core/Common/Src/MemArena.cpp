@@ -218,6 +218,8 @@ bail:
 u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena *arena)
 {
 	u32 total_mem = 0;
+	int base_attempts = 0;
+
 	for (int i = 0; i < num_views; i++)
 	{
 		SKIP(flags, views[i].flags);
@@ -243,9 +245,10 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 	// Try a whole range of possible bases. Return once we got a valid one.
 	u32 max_base_addr = 0x7FFF0000 - 0x31000000;
 	u8 *base = NULL;
-	int base_attempts = 1;
+
 	for (u32 base_addr = 0x40000; base_addr < max_base_addr; base_addr += 0x40000)
 	{
+		base_attempts++;
 		base = (u8 *)base_addr;
 		if (Memory_TryBase(base, views, num_views, flags, arena)) 
 		{
@@ -253,7 +256,7 @@ u8 *MemoryMap_Setup(const MemoryView *views, int num_views, u32 flags, MemArena 
 			base_attempts = 0;
 			break;
 		}
-		base_attempts++;
+		
 	}
 #else
 	// Linux32 is fine with the x64 method, although limited to 32-bit with no automirrors.

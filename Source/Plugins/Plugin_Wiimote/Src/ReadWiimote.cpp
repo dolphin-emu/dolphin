@@ -203,9 +203,9 @@ void handle_event(struct wiimote_t* wm)
 				if(wm->exp.type == EXP_NUNCHUK) // Updating Nunchuck Gauges
 				{
 								
-					m_RecordingConfigFrame->m_GaugeGForceNunchuk[0]->SetValue((int)floor((nc->gforce.x * 100) + 300.5));
-					m_RecordingConfigFrame->m_GaugeGForceNunchuk[1]->SetValue((int)floor((nc->gforce.y * 100) + 300.5));
-					m_RecordingConfigFrame->m_GaugeGForceNunchuk[2]->SetValue((int)floor((nc->gforce.z * 100) + 300.5));	
+					m_RecordingConfigFrame->m_GaugeGForceNunchuk[0]->SetValue((int)floor((nc->gforce.x * 300) + 100.5));
+					m_RecordingConfigFrame->m_GaugeGForceNunchuk[1]->SetValue((int)floor((nc->gforce.y * 300) + 100.5));
+					m_RecordingConfigFrame->m_GaugeGForceNunchuk[2]->SetValue((int)floor((nc->gforce.z * 300) + 100.5));	
 
 					m_RecordingConfigFrame->m_GaugeAccelNunchuk[0]->SetValue(nc->accel.x);
 					m_RecordingConfigFrame->m_GaugeAccelNunchuk[1]->SetValue(nc->accel.y);
