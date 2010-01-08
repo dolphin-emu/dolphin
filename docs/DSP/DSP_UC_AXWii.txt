@@ -1,6 +1,22 @@
 // Memory map:
 //  0x0C00: current AXList
 
+
+// Voice PB structure:
+//  the current PB is stored at 0x02D0
+//  offsets and sizes are counted in words
+//
+//	Offset		Size	Desription
+//	0x000		2		Address of the next PB
+//	0x002		2		Address of this PB
+//	0x004		1		Sample rate converter (0-2)
+//	0x005		1		Coef select (0-2: 0x1000, 0x1200, 0x1400)
+//	0x006		2		Selects entries in 4 tables (19 bits used)
+//	0x008		1		Play/stop flag (1=play, 0=stop)
+//	0x022		1		Initial time delay enable
+//	0x023		2		Initial time delay data
+
+
  0000 0000      nop         
  0001 0000      nop         
 
@@ -81,7 +97,7 @@ void 0037_Unk_Restart() {
  0065 16cd 0c00 si          @DSPA, #0x0c00
  0067 8100      clr         $ACC0
  0068 2ec9      srs         @DSCR, $AC0.M
- 0069 1ffb      mrr         $AC1.M, $AX1.H			// Transfer the AXList
+ 0069 1ffb      mrr         $AC1.M, $AX1.H			// Transfer the AXList (DMA)
  006a 2fcb      srs         @DSBL, $AC1.M			// DMA transfer from main memory (addr = second mail) to 0x0C00, len = low part of first mail
  006b 02bf 0084 call        0084_WaitForDMACompletion()
  006d 0080 0c00 lri         $AR0, #0x0c00			// AR0 = 0x0C00
@@ -101,7 +117,9 @@ void 006f_MailHandler() {
  007c 1c7e      mrr         $AR3, $AC0.M
  007d 0213      ilrr        $AC0.M, @$AR3
  007e 1c7e      mrr         $AR3, $AC0.M			// func at [0x0D04 + cmd_num]
- 007f 176f      jmpr        $AR3					// Jump to command func; AR0 = 0x0C01
+ 007f 176f      jmpr        $AR3					// Jump to command func:	AR0 = 0x0C01. Okay.
+																				AC0.M = <nothing interesting>
+																				AC1.M = 0x0D04. Not interesting either.
 }
 
 void 0080_Die() {
@@ -516,64 +534,71 @@ void 024f_Cmd_2() {
  027c 029f 006f jmp         006f_MailHandler()
 }
 
-// Command 0x4 - set PBs address
+// Command 0x4 - Mixer
 // Parameters: AR0 -> 0x0C01
 // AXList data: command (2), PBs address (4)
+// Stores 0x140 bytes of data from the PBs address to 0x02D0. Suspicious.
+
 void 027e_Cmd_4_SetPBsAddress() {
- 027e 8100      clr         $ACC0
- 027f 8970      clr'l       $ACC1 : $AC0.M, @$AR0
- 0280 8e60      set16'l     : $AC0.L, @$AR0
- 0281 00e0 0cd2 sr          @0x0cd2, $AR0
+ 027e 8100      clr         $ACC0							// ACC0 = 0, ACC1 = 0
+ 027f 8970      clr'l       $ACC1 : $AC0.M, @$AR0			// ACC0 = mem32[0x0C01] (the new PBs address is there)
+ 0280 8e60      set16'l     : $AC0.L, @$AR0					// 
+ 0281 00e0 0cd2 sr          @0x0cd2, $AR0					// mem16[0x0CD2] = 0x0C03;
+ 
+ 
+// Mixing loop - stops when the pointer to the next PB in the current PB is NULL
  0283 2ece      srs         @DSMAH, $AC0.M
  0284 2ccf      srs         @DSMAL, $AC0.L
  0285 16cd 02d0 si          @DSPA, #0x02d0
  0287 16c9 0000 si          @DSCR, #0x0000
- 0289 16cb 0140 si          @DSBL, #0x0140					// transfer 0x140 bytes from the PBs address to 0x02D0
+ 0289 16cb 0140 si          @DSBL, #0x0140					// transfer 0x140 bytes from the current PB address to 0x02D0. aka Transfer the current PB
  028b 02bf 0084 call        0084_WaitForDMACompletion()
+ 
+// Load some values to memory [0x0CDX / 0x0CEX]
  028d 8100      clr         $ACC0
  028e 8900      clr         $ACC1
- 028f 00de 02d4 lr          $AC0.M, @0x02d4
+ 028f 00de 02d4 lr          $AC0.M, @0x02d4					// 
  0291 009f 0db7 lri         $AC1.M, #0x0db7
- 0293 4c00      add         $ACC0, $ACC1
+ 0293 4c00      add         $ACC0, $ACC1					// mem16[0x02D4] + 0xDB7;
  0294 1c7e      mrr         $AR3, $AC0.M
- 0295 0213      ilrr        $AC0.M, @$AR3
- 0296 00fe 0cdf sr          @0x0cdf, $AC0.M
+ 0295 0213      ilrr        $AC0.M, @$AR3					// Sample rate converter
+ 0296 00fe 0cdf sr          @0x0cdf, $AC0.M					// mem16[0x0CDF] = iram16[0x0DB7 + mem16[0x02D4]];
  0298 00de 02d5 lr          $AC0.M, @0x02d5
  029a 009f 0dba lri         $AC1.M, #0x0dba
  029c 4c00      add         $ACC0, $ACC1
  029d 1c7e      mrr         $AR3, $AC0.M
- 029e 0213      ilrr        $AC0.M, @$AR3
- 029f 00fe 0ce0 sr          @0x0ce0, $AC0.M
+ 029e 0213      ilrr        $AC0.M, @$AR3					// Coef select
+ 029f 00fe 0ce0 sr          @0x0ce0, $AC0.M					// mem16[0x0CE0] = iram16[0x0DBA + mem16[0x02D5]];
  02a1 009a 001f lri         $AX0.H, #0x001f
  02a3 00de 02d7 lr          $AC0.M, @0x02d7
  02a5 009f 0d13 lri         $AC1.M, #0x0d13
  02a7 3400      andr        $AC0.M, $AX0.H
  02a8 4c00      add         $ACC0, $ACC1
  02a9 1c7e      mrr         $AR3, $AC0.M
- 02aa 0213      ilrr        $AC0.M, @$AR3
- 02ab 00fe 0cd3 sr          @0x0cd3, $AC0.M
+ 02aa 0213      ilrr        $AC0.M, @$AR3					// probably a volume coef table
+ 02ab 00fe 0cd3 sr          @0x0cd3, $AC0.M					// mem16[0x0CD3] = iram16[0x0D13 + (mem16[0x02D7] & 0x001F)]; (5 bits)
  02ad 00de 02d6 lr          $AC0.M, @0x02d6
  02af 009f 0d33 lri         $AC1.M, #0x0d33
  02b1 3400      andr        $AC0.M, $AX0.H
  02b2 4c00      add         $ACC0, $ACC1
  02b3 1c7e      mrr         $AR3, $AC0.M
- 02b4 0213      ilrr        $AC0.M, @$AR3
- 02b5 00fe 0cd4 sr          @0x0cd4, $AC0.M
+ 02b4 0213      ilrr        $AC0.M, @$AR3					// probably a volume coef table
+ 02b5 00fe 0cd4 sr          @0x0cd4, $AC0.M					// mem16[0x0CD4] = iram16[0x0D33 + (mem16[0x02D6] & 0x001F)]; (5 bits)
  02b7 00de 02d6 lr          $AC0.M, @0x02d6
  02b9 009f 0d53 lri         $AC1.M, #0x0d53
  02bb 14fb      asr         $ACC0, #-5
  02bc 3400      andr        $AC0.M, $AX0.H
  02bd 4c00      add         $ACC0, $ACC1
  02be 1c7e      mrr         $AR3, $AC0.M
- 02bf 0213      ilrr        $AC0.M, @$AR3
- 02c0 00fe 0cd5 sr          @0x0cd5, $AC0.M
+ 02bf 0213      ilrr        $AC0.M, @$AR3					// probably a volume coef table
+ 02c0 00fe 0cd5 sr          @0x0cd5, $AC0.M					// mem16[0x0CD5] = iram16[0x0D53 + ((mem16[0x02D6] >> 5) & 0x001F)]; (5 bits)
  02c2 00de 02d6 lr          $AC0.M, @0x02d6
  02c4 009f 0d73 lri         $AC1.M, #0x0d73
  02c6 14f6      asr         $ACC0, #-10
  02c7 4c00      add         $ACC0, $ACC1
  02c8 1c7e      mrr         $AR3, $AC0.M
- 02c9 0213      ilrr        $AC0.M, @$AR3
- 02ca 00fe 0cd6 sr          @0x0cd6, $AC0.M
+ 02c9 0213      ilrr        $AC0.M, @$AR3					// probably a volume coef table
+ 02ca 00fe 0cd6 sr          @0x0cd6, $AC0.M					// mem16[0x0CD6] = iram16[0x0D73 + (mem16[0x02D6] >> 10)]; (6 bits)
  02cc 8100      clr         $ACC0
  02cd 00de 033c lr          $AC0.M, @0x033c
  02cf 009a 0003 lri         $AX0.H, #0x0003
@@ -583,279 +608,307 @@ void 027e_Cmd_4_SetPBsAddress() {
  02d5 4700      addr        $ACC1, $AX1.H
  02d6 1c7f      mrr         $AR3, $AC1.M
  02d7 0313      ilrr        $AC1.M, @$AR3
- 02d8 00ff 0cd7 sr          @0x0cd7, $AC1.M
+ 02d8 00ff 0cd7 sr          @0x0cd7, $AC1.M					// mem16[0x0CD7] = iram16[0x0DB3 + (mem16[0x033C] & 0x0003)];
  02da 147e      lsr         $ACC0, #-2
  02db 1ffe      mrr         $AC1.M, $AC0.M
  02dc 3500      andr        $AC1.M, $AX0.H
  02dd 4700      addr        $ACC1, $AX1.H
  02de 1c7f      mrr         $AR3, $AC1.M
  02df 0313      ilrr        $AC1.M, @$AR3
- 02e0 00ff 0cd8 sr          @0x0cd8, $AC1.M
+ 02e0 00ff 0cd8 sr          @0x0cd8, $AC1.M					// mem16[0x0CD8] = iram16[0x0DB3 + ((mem16[0x033C] >> 2) & 0x0003)];
  02e2 147e      lsr         $ACC0, #-2
  02e3 1ffe      mrr         $AC1.M, $AC0.M
  02e4 3500      andr        $AC1.M, $AX0.H
  02e5 4700      addr        $ACC1, $AX1.H
  02e6 1c7f      mrr         $AR3, $AC1.M
  02e7 0313      ilrr        $AC1.M, @$AR3
- 02e8 00ff 0cd9 sr          @0x0cd9, $AC1.M
+ 02e8 00ff 0cd9 sr          @0x0cd9, $AC1.M					// mem16[0x0CD9] = iram16[0x0DB3 + ((mem16[0x033C] >> 4) & 0x0003)];
  02ea 147e      lsr         $ACC0, #-2
  02eb 1ffe      mrr         $AC1.M, $AC0.M
  02ec 3500      andr        $AC1.M, $AX0.H
  02ed 4700      addr        $ACC1, $AX1.H
  02ee 1c7f      mrr         $AR3, $AC1.M
  02ef 0313      ilrr        $AC1.M, @$AR3
- 02f0 00ff 0cda sr          @0x0cda, $AC1.M
+ 02f0 00ff 0cda sr          @0x0cda, $AC1.M					// mem16[0x0CDA] = iram16[0x0DB3 + ((mem16[0x033C] >> 6) & 0x0003)];
  02f2 147e      lsr         $ACC0, #-2
  02f3 1ffe      mrr         $AC1.M, $AC0.M
  02f4 3500      andr        $AC1.M, $AX0.H
  02f5 4700      addr        $ACC1, $AX1.H
  02f6 1c7f      mrr         $AR3, $AC1.M
  02f7 0313      ilrr        $AC1.M, @$AR3
- 02f8 00ff 0cdb sr          @0x0cdb, $AC1.M
+ 02f8 00ff 0cdb sr          @0x0cdb, $AC1.M					// mem16[0x0CDB] = iram16[0x0DB3 + ((mem16[0x033C] >> 8) & 0x0003)];
  02fa 147e      lsr         $ACC0, #-2
  02fb 1ffe      mrr         $AC1.M, $AC0.M
  02fc 3500      andr        $AC1.M, $AX0.H
  02fd 4700      addr        $ACC1, $AX1.H
  02fe 1c7f      mrr         $AR3, $AC1.M
  02ff 0313      ilrr        $AC1.M, @$AR3
- 0300 00ff 0cdc sr          @0x0cdc, $AC1.M
+ 0300 00ff 0cdc sr          @0x0cdc, $AC1.M					// mem16[0x0CDC] = iram16[0x0DB3 + ((mem16[0x033C] >> 10) & 0x0003)];
  0302 147e      lsr         $ACC0, #-2
  0303 1ffe      mrr         $AC1.M, $AC0.M
  0304 3500      andr        $AC1.M, $AX0.H
  0305 4700      addr        $ACC1, $AX1.H
  0306 1c7f      mrr         $AR3, $AC1.M
  0307 0313      ilrr        $AC1.M, @$AR3
- 0308 00ff 0cdd sr          @0x0cdd, $AC1.M
+ 0308 00ff 0cdd sr          @0x0cdd, $AC1.M					// mem16[0x0CDD] = iram16[0x0DB3 + ((mem16[0x033C] >> 12) & 0x0003)];
  030a 147e      lsr         $ACC0, #-2
  030b 1ffe      mrr         $AC1.M, $AC0.M
  030c 3500      andr        $AC1.M, $AX0.H
  030d 4700      addr        $ACC1, $AX1.H
  030e 1c7f      mrr         $AR3, $AC1.M
  030f 0313      ilrr        $AC1.M, @$AR3
- 0310 00ff 0cde sr          @0x0cde, $AC1.M
+ 0310 00ff 0cde sr          @0x0cde, $AC1.M					// mem16[0x0CDE] = iram16[0x0DB3 + (mem16[0x033C] >> 14)];
+ 
  0312 8100      clr         $ACC0
  0313 00de 02f2 lr          $AC0.M, @0x02f2
  0315 b100      tst         $ACC0
  0316 0295 0339 jz          0x0339
- 0318 8900      clr         $ACC1
- 0319 00df 02f5 lr          $AC1.M, @0x02f5
- 031b 0300 0c40 addi        $AC1.M, #0x0c40
- 031d 00ff 0ce2 sr          @0x0ce2, $AC1.M
- 031f 00df 02f6 lr          $AC1.M, @0x02f6
- 0321 0300 0c40 addi        $AC1.M, #0x0c40
- 0323 00ff 0ce3 sr          @0x0ce3, $AC1.M
- 0325 009f 0c60 lri         $AC1.M, #0x0c60
- 0327 00ff 0ce1 sr          @0x0ce1, $AC1.M
- 0329 00de 02f3 lr          $AC0.M, @0x02f3
- 032b 2ece      srs         @DSMAH, $AC0.M
- 032c 00de 02f4 lr          $AC0.M, @0x02f4
- 032e 2ecf      srs         @DSMAL, $AC0.M
- 032f 16cd 0c40 si          @DSPA, #0x0c40
- 0331 16c9 0000 si          @DSCR, #0x0000
- 0333 16cb 0040 si          @DSBL, #0x0040
- 0335 02bf 0084 call        0084_WaitForDMACompletion()
- 0337 029f 0341 jmp         0x0341
- 0339 009f 0c60 lri         $AC1.M, #0x0c60
- 033b 00ff 0ce2 sr          @0x0ce2, $AC1.M
- 033d 00ff 0ce3 sr          @0x0ce3, $AC1.M
- 033f 00ff 0ce1 sr          @0x0ce1, $AC1.M
+ 
+ // Initial time delay - aka echo aka reverb
+ // The buffer is 64 bytes
+ // That thing may be hard to implement in HLE because the HLE sound buffer size is variable
+ if (mem16[0x02F2] != 0)
+ {
+	 0318 8900      clr         $ACC1
+	 0319 00df 02f5 lr          $AC1.M, @0x02f5
+	 031b 0300 0c40 addi        $AC1.M, #0x0c40
+	 031d 00ff 0ce2 sr          @0x0ce2, $AC1.M
+	 031f 00df 02f6 lr          $AC1.M, @0x02f6
+	 0321 0300 0c40 addi        $AC1.M, #0x0c40
+	 0323 00ff 0ce3 sr          @0x0ce3, $AC1.M
+	 0325 009f 0c60 lri         $AC1.M, #0x0c60
+	 0327 00ff 0ce1 sr          @0x0ce1, $AC1.M
+	 0329 00de 02f3 lr          $AC0.M, @0x02f3
+	 032b 2ece      srs         @DSMAH, $AC0.M
+	 032c 00de 02f4 lr          $AC0.M, @0x02f4
+	 032e 2ecf      srs         @DSMAL, $AC0.M
+	 032f 16cd 0c40 si          @DSPA, #0x0c40
+	 0331 16c9 0000 si          @DSCR, #0x0000
+	 0333 16cb 0040 si          @DSBL, #0x0040
+	 0335 02bf 0084 call        0084_WaitForDMACompletion()			// so yet another DMA... from mem32[0x02F3] to 0x0C40, 64 bytes
+	 0337 029f 0341 jmp         0x0341
+ }
+ else
+ {
+	 0339 009f 0c60 lri         $AC1.M, #0x0c60
+	 033b 00ff 0ce2 sr          @0x0ce2, $AC1.M
+	 033d 00ff 0ce3 sr          @0x0ce3, $AC1.M
+	 033f 00ff 0ce1 sr          @0x0ce1, $AC1.M
+ }
+
  0341 8c00      clr15       
  0342 8b00      m0          
  0343 8100      clr         $ACC0
  0344 00de 02d8 lr          $AC0.M, @0x02d8
  0346 0601      cmpis       $ACC0, #0x01
  0347 0294 046a jnz         0x046a
- 0349 00c3 0cdf lr          $AR3, @0x0cdf
- 034b 177f      callr       $AR3
- 034c 8a00      m2          
- 034d 8100      clr         $ACC0
- 034e 8900      clr         $ACC1
- 034f 00de 0306 lr          $AC0.M, @0x0306
- 0351 00df 0305 lr          $AC1.M, @0x0305
- 0353 1f1f      mrr         $AX0.L, $AC1.M
- 0354 4d00      add         $ACC1, $ACC0
- 0355 1481      asl         $ACC0, #1
- 0356 8d1e      set15'mv    : $AX1.H, $AC0.M
- 0357 1fd8      mrr         $AC0.M, $AX0.L
- 0358 0098 8000 lri         $AX0.L, #0x8000
- 035a 0080 0d08 lri         $AR0, #0x0d08
- 035c a830      mulx's      $AX0.L, $AX1.H : @$AR0, $AC0.M
- 035d 112f 0360 bloopi      #0x2f, 0x0360
-  035f ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
-  0360 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
- 0361 ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
- 0362 00fe 0305 sr          @0x0305, $AC0.M
- 0364 8f00      set40       
- 0365 0080 0d08 lri         $AR0, #0x0d08
- 0367 00c1 0ce1 lr          $AR1, @0x0ce1
- 0369 1c61      mrr         $AR3, $AR1
- 036a 193a      lrri        $AX0.H, @$AR1
- 036b 1919      lrri        $AX1.L, @$AR0
- 036c b051      mulx'l      $AX0.H, $AX1.L : $AX0.H, @$AR1
- 036d 1919      lrri        $AX1.L, @$AR0
- 036e 115e 0371 bloopi      #0x5e, 0x0371
-  0370 b651      mulxmv'l    $AX0.H, $AX1.L, $ACC0 : $AX0.H, @$AR1
-  0371 8090      nx'ls       : $AX1.L, $AC0.M
- 0372 b600      mulxmv      $AX0.H, $AX1.L, $ACC0
- 0373 6e33      movp's      $ACC0 : @$AR3, $AC0.M
- 0374 1b7e      srri        @$AR3, $AC0.M
- 0375 00de 032d lr          $AC0.M, @0x032d
- 0377 b100      tst         $ACC0
- 0378 0295 0381 jz          0x0381
- 037a 00c0 0ce1 lr          $AR0, @0x0ce1
- 037c 1c20      mrr         $AR1, $AR0
- 037d 0083 032e lri         $AR3, #0x032e
- 037f 02bf 06ab call        0x06ab
- 0381 00de 0331 lr          $AC0.M, @0x0331
- 0383 b100      tst         $ACC0
- 0384 0295 038d jz          0x038d
- 0386 0080 0332 lri         $AR0, #0x0332
- 0388 00c1 0ce1 lr          $AR1, @0x0ce1
- 038a 1c41      mrr         $AR2, $AR1
- 038b 02bf 06c3 call        06c3_Unknown()
- 038d 0080 02f9 lri         $AR0, #0x02f9
- 038f 8100      clr         $ACC0
- 0390 100c      loopi       #0x0c
-  0391 1b1e      srri        @$AR0, $AC0.M
- 0392 0080 034d lri         $AR0, #0x034d
- 0394 1008      loopi       #0x08
-  0395 1b1e      srri        @$AR0, $AC0.M
- 0396 00c3 0cd3 lr          $AR3, @0x0cd3
- 0398 177f      callr       $AR3
- 0399 00c3 0cd4 lr          $AR3, @0x0cd4
- 039b 177f      callr       $AR3
- 039c 00c3 0cd5 lr          $AR3, @0x0cd5
- 039e 177f      callr       $AR3
- 039f 00c3 0cd6 lr          $AR3, @0x0cd6
- 03a1 177f      callr       $AR3
- 03a2 00de 033b lr          $AC0.M, @0x033b
- 03a4 b100      tst         $ACC0
- 03a5 0295 0447 jz          0x0447
- 03a7 00de 035a lr          $AC0.M, @0x035a
- 03a9 b100      tst         $ACC0
- 03aa 0295 03c4 jz          0x03c4
- 03ac 0a02      lris        $AX0.H, #0x02
- 03ad c100      cmpar       $ACC0, $AX0.H
- 03ae 0294 03ba jnz         0x03ba
- 03b0 0080 035b lri         $AR0, #0x035b
- 03b2 00c1 0ce1 lr          $AR1, @0x0ce1
- 03b4 0082 0d0c lri         $AR2, #0x0d0c
- 03b6 02bf 06c3 call        06c3_Unknown()
- 03b8 029f 03cc jmp         0x03cc
- 03ba 0080 0d0c lri         $AR0, #0x0d0c
- 03bc 00c1 0ce1 lr          $AR1, @0x0ce1
- 03be 0083 035b lri         $AR3, #0x035b
- 03c0 02bf 06ab call        0x06ab
- 03c2 029f 03cc jmp         0x03cc
- 03c4 0080 0d0c lri         $AR0, #0x0d0c
- 03c6 00c1 0ce1 lr          $AR1, @0x0ce1
- 03c8 1160 03cb bloopi      #0x60, 0x03cb
-  03ca 193f      lrri        $AC1.M, @$AR1
-  03cb 1b1f      srri        @$AR0, $AC1.M
- 03cc 0082 0355 lri         $AR2, #0x0355
- 03ce 8c00      clr15       
- 03cf 8100      clr         $ACC0
- 03d0 195c      lrri        $AC0.L, @$AR2
- 03d1 009b 0005 lri         $AX1.H, #0x0005
- 03d3 0099 5555 lri         $AX1.L, #0x5555
- 03d5 0080 0d08 lri         $AR0, #0x0d08
- 03d7 1104 03da bloopi      #0x04, 0x03da
-  03d9 195f      lrri        $AC1.M, @$AR2
-  03da 1b1f      srri        @$AR0, $AC1.M
- 03db 0081 0cc0 lri         $AR1, #0x0cc0
- 03dd 0084 0d08 lri         $IX0, #0x0d08
- 03df 0087 1000 lri         $IX3, #0x1000
- 03e1 1112 03f2 bloopi      #0x12, 0x03f2
-  03e3 4a00      addax       $ACC0, $AX1.L
-  03e4 1c1e      mrr         $AR0, $AC0.M
-  03e5 0010      addarn      $AR0, $IX0
-  03e6 8900      clr         $ACC1
-  03e7 1fbc      mrr         $AC1.L, $AC0.L
-  03e8 1577      lsr         $ACC1, #-9
-  03e9 1512      lsl         $ACC1, #18
-  03ea 1c7f      mrr         $AR3, $AC1.M
-  03eb 001f      addarn      $AR3, $IX3
-  03ec 80c3      nx'ld       : $AX0.L, $AX1.L, @$AR3
-  03ed 90c3      mul'ld      $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
-  03ee 97c3      mulmv'ld    $AX0.L, $AX0.H, $ACC1 : $AX0.L, $AX1.L, @$AR3
-  03ef 95c3      mulac'ld    $AX0.L, $AX0.H, $ACC1 : $AX0.L, $AX1.L, @$AR3
-  03f0 9500      mulac       $AX0.L, $AX0.H, $ACC1
-  03f1 4f00      addp        $ACC1
-  03f2 1b3f      srri        @$AR1, $AC1.M
- 03f3 0004      dar         $AR0
- 03f4 0006      dar         $AR2
- 03f5 189f      lrrd        $AC1.M, @$AR0
- 03f6 1adf      srrd        @$AR2, $AC1.M
- 03f7 189f      lrrd        $AC1.M, @$AR0
- 03f8 1adf      srrd        @$AR2, $AC1.M
- 03f9 189f      lrrd        $AC1.M, @$AR0
- 03fa 1adf      srrd        @$AR2, $AC1.M
- 03fb 189f      lrrd        $AC1.M, @$AR0
- 03fc 1adf      srrd        @$AR2, $AC1.M
- 03fd 1adc      srrd        @$AR2, $AC0.L
- 03fe 8d00      set15       
- 03ff 0081 033d lri         $AR1, #0x033d
- 0401 0082 0240 lri         $AR2, #0x0240
- 0403 00c3 0cd7 lr          $AR3, @0x0cd7
- 0405 177f      callr       $AR3
- 0406 00f8 034d sr          @0x034d, $AX0.L
- 0408 0081 033f lri         $AR1, #0x033f
- 040a 0082 0ac0 lri         $AR2, #0x0ac0
- 040c 00c3 0cd8 lr          $AR3, @0x0cd8
- 040e 177f      callr       $AR3
- 040f 00f8 0351 sr          @0x0351, $AX0.L
- 0411 0081 0341 lri         $AR1, #0x0341
- 0413 0082 0264 lri         $AR2, #0x0264
- 0415 00c3 0cd9 lr          $AR3, @0x0cd9
- 0417 177f      callr       $AR3
- 0418 00f8 034e sr          @0x034e, $AX0.L
- 041a 0081 0343 lri         $AR1, #0x0343
- 041c 0082 0ae4 lri         $AR2, #0x0ae4
- 041e 00c3 0cda lr          $AR3, @0x0cda
- 0420 177f      callr       $AR3
- 0421 00f8 0352 sr          @0x0352, $AX0.L
- 0423 0081 0345 lri         $AR1, #0x0345
- 0425 0082 0288 lri         $AR2, #0x0288
- 0427 00c3 0cdb lr          $AR3, @0x0cdb
- 0429 177f      callr       $AR3
- 042a 00f8 034f sr          @0x034f, $AX0.L
- 042c 0081 0347 lri         $AR1, #0x0347
- 042e 0082 0b08 lri         $AR2, #0x0b08
- 0430 00c3 0cdc lr          $AR3, @0x0cdc
- 0432 177f      callr       $AR3
- 0433 00f8 0353 sr          @0x0353, $AX0.L
- 0435 0081 0349 lri         $AR1, #0x0349
- 0437 0082 02ac lri         $AR2, #0x02ac
- 0439 00c3 0cdd lr          $AR3, @0x0cdd
- 043b 177f      callr       $AR3
- 043c 00f8 0350 sr          @0x0350, $AX0.L
- 043e 0081 034b lri         $AR1, #0x034b
- 0440 0082 0b2c lri         $AR2, #0x0b2c
- 0442 00c3 0cde lr          $AR3, @0x0cde
- 0444 177f      callr       $AR3
- 0445 00f8 0354 sr          @0x0354, $AX0.L
- 0447 00de 02f2 lr          $AC0.M, @0x02f2
- 0449 b100      tst         $ACC0
- 044a 0295 046a jz          0x046a
- 044c 00de 02f5 lr          $AC0.M, @0x02f5
- 044e 00df 02f7 lr          $AC1.M, @0x02f7
- 0450 8200      cmp         
- 0451 0293 0456 jle         0x0456
- 0453 7800      decm        $AC0.M
- 0454 029f 0459 jmp         0x0459
- 0456 0295 0459 jz          0x0459
- 0458 7400      incm        $AC0.M
- 0459 00fe 02f5 sr          @0x02f5, $AC0.M
- 045b 00de 02f6 lr          $AC0.M, @0x02f6
- 045d 00df 02f8 lr          $AC1.M, @0x02f8
- 045f 8200      cmp         
- 0460 0293 0465 jle         0x0465
- 0462 7800      decm        $AC0.M
- 0463 029f 0468 jmp         0x0468
- 0465 0295 0468 jz          0x0468
- 0467 7400      incm        $AC0.M
- 0468 00fe 02f6 sr          @0x02f6, $AC0.M
- 046a 8e00      set16       
+ 
+if (mem16[0x02D8] == 1) // if the voice is playing
+{
+	 0349 00c3 0cdf lr          $AR3, @0x0cdf
+	 034b 177f      callr       $AR3								// call the sample rate converter
+	 034c 8a00      m2												// MULTIPLICATION x2 MODE ENABLED!
+	 034d 8100      clr         $ACC0
+	 034e 8900      clr         $ACC1
+	 034f 00de 0306 lr          $AC0.M, @0x0306						// pb[0x36]
+	 0351 00df 0305 lr          $AC1.M, @0x0305						// pb[0x35]
+	 0353 1f1f      mrr         $AX0.L, $AC1.M
+	 0354 4d00      add         $ACC1, $ACC0
+	 0355 1481      asl         $ACC0, #1
+	 0356 8d1e      set15'mv    : $AX1.H, $AC0.M
+	 0357 1fd8      mrr         $AC0.M, $AX0.L
+	 0358 0098 8000 lri         $AX0.L, #0x8000
+	 035a 0080 0d08 lri         $AR0, #0x0d08
+	 035c a830      mulx's      $AX0.L, $AX1.H : @$AR0, $AC0.M
+	 035d 112f 0360 bloopi      #0x2f, 0x0360
+	  035f ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	  0360 ad30      mulxac's    $AX0.L, $AX1.H, $ACC1 : @$AR0, $AC0.M
+	 0361 ac38      mulxac's    $AX0.L, $AX1.H, $ACC0 : @$AR0, $AC1.M
+	 0362 00fe 0305 sr          @0x0305, $AC0.M
+	 0364 8f00      set40       
+	 0365 0080 0d08 lri         $AR0, #0x0d08
+	 0367 00c1 0ce1 lr          $AR1, @0x0ce1
+	 0369 1c61      mrr         $AR3, $AR1
+	 036a 193a      lrri        $AX0.H, @$AR1
+	 036b 1919      lrri        $AX1.L, @$AR0
+	 036c b051      mulx'l      $AX0.H, $AX1.L : $AX0.H, @$AR1
+	 036d 1919      lrri        $AX1.L, @$AR0
+	 036e 115e 0371 bloopi      #0x5e, 0x0371
+	  0370 b651      mulxmv'l    $AX0.H, $AX1.L, $ACC0 : $AX0.H, @$AR1
+	  0371 8090      nx'ls       : $AX1.L, $AC0.M
+	 0372 b600      mulxmv      $AX0.H, $AX1.L, $ACC0
+	 0373 6e33      movp's      $ACC0 : @$AR3, $AC0.M
+	 0374 1b7e      srri        @$AR3, $AC0.M
+	 0375 00de 032d lr          $AC0.M, @0x032d
+	 0377 b100      tst         $ACC0
+	 0378 0295 0381 jz          0x0381
+	 037a 00c0 0ce1 lr          $AR0, @0x0ce1
+	 037c 1c20      mrr         $AR1, $AR0
+	 037d 0083 032e lri         $AR3, #0x032e
+	 037f 02bf 06ab call        0x06ab
+	 0381 00de 0331 lr          $AC0.M, @0x0331
+	 0383 b100      tst         $ACC0
+	 0384 0295 038d jz          0x038d
+	 0386 0080 0332 lri         $AR0, #0x0332
+	 0388 00c1 0ce1 lr          $AR1, @0x0ce1
+	 038a 1c41      mrr         $AR2, $AR1
+	 038b 02bf 06c3 call        06c3_Unknown()
+	 038d 0080 02f9 lri         $AR0, #0x02f9
+	 038f 8100      clr         $ACC0
+	 0390 100c      loopi       #0x0c
+	  0391 1b1e      srri        @$AR0, $AC0.M			// zero out the updates field
+	 0392 0080 034d lri         $AR0, #0x034d
+	 0394 1008      loopi       #0x08
+	  0395 1b1e      srri        @$AR0, $AC0.M
+	 0396 00c3 0cd3 lr          $AR3, @0x0cd3			// perform volume stuff
+	 0398 177f      callr       $AR3					// what a complicated volume control!
+	 0399 00c3 0cd4 lr          $AR3, @0x0cd4
+	 039b 177f      callr       $AR3
+	 039c 00c3 0cd5 lr          $AR3, @0x0cd5
+	 039e 177f      callr       $AR3
+	 039f 00c3 0cd6 lr          $AR3, @0x0cd6
+	 03a1 177f      callr       $AR3
+	 
+	 03a2 00de 033b lr          $AC0.M, @0x033b
+	 03a4 b100      tst         $ACC0
+	 03a5 0295 0447 jz          0x0447
+	 if (mem16[0x033B] != 0)
+	 {
+		 03a7 00de 035a lr          $AC0.M, @0x035a
+		 03a9 b100      tst         $ACC0
+		 03aa 0295 03c4 jz          0x03c4
+		 if (mem16[0x035A] != 0)
+		 {
+			 03ac 0a02      lris        $AX0.H, #0x02
+			 03ad c100      cmpar       $ACC0, $AX0.H
+			 03ae 0294 03ba jnz         0x03ba
+			 03b0 0080 035b lri         $AR0, #0x035b
+			 03b2 00c1 0ce1 lr          $AR1, @0x0ce1
+			 03b4 0082 0d0c lri         $AR2, #0x0d0c
+			 03b6 02bf 06c3 call        06c3_Unknown()
+			 03b8 029f 03cc jmp         0x03cc
+			 03ba 0080 0d0c lri         $AR0, #0x0d0c
+			 03bc 00c1 0ce1 lr          $AR1, @0x0ce1
+			 03be 0083 035b lri         $AR3, #0x035b
+			 03c0 02bf 06ab call        0x06ab
+			 03c2 029f 03cc jmp         0x03cc
+		 }
+		 else
+		 {
+			 03c4 0080 0d0c lri         $AR0, #0x0d0c
+			 03c6 00c1 0ce1 lr          $AR1, @0x0ce1
+			 03c8 1160 03cb bloopi      #0x60, 0x03cb
+			  03ca 193f      lrri        $AC1.M, @$AR1
+			  03cb 1b1f      srri        @$AR0, $AC1.M
+		 }
+		 03cc 0082 0355 lri         $AR2, #0x0355
+		 03ce 8c00      clr15       
+		 03cf 8100      clr         $ACC0
+		 03d0 195c      lrri        $AC0.L, @$AR2
+		 03d1 009b 0005 lri         $AX1.H, #0x0005
+		 03d3 0099 5555 lri         $AX1.L, #0x5555
+		 03d5 0080 0d08 lri         $AR0, #0x0d08
+		 03d7 1104 03da bloopi      #0x04, 0x03da
+		  03d9 195f      lrri        $AC1.M, @$AR2
+		  03da 1b1f      srri        @$AR0, $AC1.M
+		 03db 0081 0cc0 lri         $AR1, #0x0cc0
+		 03dd 0084 0d08 lri         $IX0, #0x0d08
+		 03df 0087 1000 lri         $IX3, #0x1000
+		 03e1 1112 03f2 bloopi      #0x12, 0x03f2
+		  03e3 4a00      addax       $ACC0, $AX1.L
+		  03e4 1c1e      mrr         $AR0, $AC0.M
+		  03e5 0010      addarn      $AR0, $IX0
+		  03e6 8900      clr         $ACC1
+		  03e7 1fbc      mrr         $AC1.L, $AC0.L
+		  03e8 1577      lsr         $ACC1, #-9
+		  03e9 1512      lsl         $ACC1, #18
+		  03ea 1c7f      mrr         $AR3, $AC1.M
+		  03eb 001f      addarn      $AR3, $IX3
+		  03ec 80c3      nx'ld       : $AX0.L, $AX1.L, @$AR3
+		  03ed 90c3      mul'ld      $AX0.L, $AX0.H : $AX0.L, $AX1.L, @$AR3
+		  03ee 97c3      mulmv'ld    $AX0.L, $AX0.H, $ACC1 : $AX0.L, $AX1.L, @$AR3
+		  03ef 95c3      mulac'ld    $AX0.L, $AX0.H, $ACC1 : $AX0.L, $AX1.L, @$AR3
+		  03f0 9500      mulac       $AX0.L, $AX0.H, $ACC1
+		  03f1 4f00      addp        $ACC1
+		  03f2 1b3f      srri        @$AR1, $AC1.M
+		 03f3 0004      dar         $AR0
+		 03f4 0006      dar         $AR2
+		 03f5 189f      lrrd        $AC1.M, @$AR0
+		 03f6 1adf      srrd        @$AR2, $AC1.M
+		 03f7 189f      lrrd        $AC1.M, @$AR0
+		 03f8 1adf      srrd        @$AR2, $AC1.M
+		 03f9 189f      lrrd        $AC1.M, @$AR0
+		 03fa 1adf      srrd        @$AR2, $AC1.M
+		 03fb 189f      lrrd        $AC1.M, @$AR0
+		 03fc 1adf      srrd        @$AR2, $AC1.M
+		 03fd 1adc      srrd        @$AR2, $AC0.L
+		 03fe 8d00      set15       
+		 03ff 0081 033d lri         $AR1, #0x033d
+		 0401 0082 0240 lri         $AR2, #0x0240
+		 0403 00c3 0cd7 lr          $AR3, @0x0cd7
+		 0405 177f      callr       $AR3
+		 0406 00f8 034d sr          @0x034d, $AX0.L
+		 0408 0081 033f lri         $AR1, #0x033f
+		 040a 0082 0ac0 lri         $AR2, #0x0ac0
+		 040c 00c3 0cd8 lr          $AR3, @0x0cd8
+		 040e 177f      callr       $AR3
+		 040f 00f8 0351 sr          @0x0351, $AX0.L
+		 0411 0081 0341 lri         $AR1, #0x0341
+		 0413 0082 0264 lri         $AR2, #0x0264
+		 0415 00c3 0cd9 lr          $AR3, @0x0cd9
+		 0417 177f      callr       $AR3
+		 0418 00f8 034e sr          @0x034e, $AX0.L
+		 041a 0081 0343 lri         $AR1, #0x0343
+		 041c 0082 0ae4 lri         $AR2, #0x0ae4
+		 041e 00c3 0cda lr          $AR3, @0x0cda
+		 0420 177f      callr       $AR3
+		 0421 00f8 0352 sr          @0x0352, $AX0.L
+		 0423 0081 0345 lri         $AR1, #0x0345
+		 0425 0082 0288 lri         $AR2, #0x0288
+		 0427 00c3 0cdb lr          $AR3, @0x0cdb
+		 0429 177f      callr       $AR3
+		 042a 00f8 034f sr          @0x034f, $AX0.L
+		 042c 0081 0347 lri         $AR1, #0x0347
+		 042e 0082 0b08 lri         $AR2, #0x0b08
+		 0430 00c3 0cdc lr          $AR3, @0x0cdc
+		 0432 177f      callr       $AR3
+		 0433 00f8 0353 sr          @0x0353, $AX0.L
+		 0435 0081 0349 lri         $AR1, #0x0349
+		 0437 0082 02ac lri         $AR2, #0x02ac
+		 0439 00c3 0cdd lr          $AR3, @0x0cdd
+		 043b 177f      callr       $AR3
+		 043c 00f8 0350 sr          @0x0350, $AX0.L
+		 043e 0081 034b lri         $AR1, #0x034b
+		 0440 0082 0b2c lri         $AR2, #0x0b2c
+		 0442 00c3 0cde lr          $AR3, @0x0cde
+		 0444 177f      callr       $AR3
+		 0445 00f8 0354 sr          @0x0354, $AX0.L
+	 }
+	 0447 00de 02f2 lr          $AC0.M, @0x02f2
+	 0449 b100      tst         $ACC0
+	 044a 0295 046a jz          0x046a
+	 044c 00de 02f5 lr          $AC0.M, @0x02f5
+	 044e 00df 02f7 lr          $AC1.M, @0x02f7
+	 0450 8200      cmp         
+	 0451 0293 0456 jle         0x0456
+	 0453 7800      decm        $AC0.M
+	 0454 029f 0459 jmp         0x0459
+	 0456 0295 0459 jz          0x0459
+	 0458 7400      incm        $AC0.M
+	 0459 00fe 02f5 sr          @0x02f5, $AC0.M
+	 045b 00de 02f6 lr          $AC0.M, @0x02f6
+	 045d 00df 02f8 lr          $AC1.M, @0x02f8
+	 045f 8200      cmp         
+	 0460 0293 0465 jle         0x0465
+	 0462 7800      decm        $AC0.M
+	 0463 029f 0468 jmp         0x0468
+	 0465 0295 0468 jz          0x0468
+	 0467 7400      incm        $AC0.M
+	 
+	 0468 00fe 02f6 sr          @0x02f6, $AC0.M
+	 046a 8e00      set16       
+}
+
  046b 8100      clr         $ACC0
  046c 00de 02f2 lr          $AC0.M, @0x02f2
  046e b100      tst         $ACC0
@@ -867,7 +920,8 @@ void 027e_Cmd_4_SetPBsAddress() {
  0477 16cd 0ca0 si          @DSPA, #0x0ca0
  0479 16c9 0001 si          @DSCR, #0x0001
  047b 16cb 0040 si          @DSBL, #0x0040
- 047d 02bf 0084 call        0084_WaitForDMACompletion()
+ 047d 02bf 0084 call        0084_WaitForDMACompletion()		// from 0x0CA0 to mem32[0x02F3], 64 bytes
+ 
  047f 8100      clr         $ACC0
  0480 8900      clr         $ACC1
  0481 00de 02d2 lr          $AC0.M, @0x02d2
@@ -877,15 +931,17 @@ void 027e_Cmd_4_SetPBsAddress() {
  0487 16cd 02d0 si          @DSPA, #0x02d0
  0489 16c9 0001 si          @DSCR, #0x0001
  048b 16cb 0140 si          @DSBL, #0x0140
- 048d 02bf 0084 call        0084_WaitForDMACompletion()
+ 048d 02bf 0084 call        0084_WaitForDMACompletion()		// from 0x02D0 to mem32[0x02D2], 0x140 bytes
  048f 8100      clr         $ACC0
  0490 00de 02d0 lr          $AC0.M, @0x02d0
  0492 00dc 02d1 lr          $AC0.L, @0x02d1
  0494 b100      tst         $ACC0
- 0495 0294 0283 jnz         0x0283
- 0497 00c0 0cd2 lr          $AR0, @0x0cd2
+ 0495 0294 0283 jnz         0x0283							// if (mem32[0x02D0] != 0) do the whole thing again;
+ 
+ 0497 00c0 0cd2 lr          $AR0, @0x0cd2					// restore AR0;
  0499 029f 006f jmp         006f_MailHandler()
 }
+
 
 void 049b_Cmd_5() {
  049b 8e00      set16       
@@ -927,12 +983,18 @@ void 04b4_Cmd_6() {
  04cb 029f 006f jmp         006f_MailHandler()
 }
 
-// set out buffer
+// Command #7 - Set output buffer address
+// AXList data:
+//	- command (2)
+//	- something (2)
+//	- Left/Right(?) output buffer address (4)
+//	- Right/Left(?) output buffer address (4)
+// 
 void 04cd_Cmd_7() {
  04cd 8e00      set16       
  04ce 00c4 0ce8 lr          $IX0, @0x0ce8
  04d0 1905      lrri        $IX1, @$AR0
- 04d1 00e5 0ce8 sr          @0x0ce8, $IX1
+ 04d1 00e5 0ce8 sr          @0x0ce8, $IX1				// mem16[0x0CE8] = mem16[0x0C01];
  04d3 0086 0880 lri         $IX2, #0x0880
  04d5 8100      clr         $ACC0
  04d6 8970      clr'l       $ACC1 : $AC0.M, @$AR0
@@ -942,7 +1004,7 @@ void 04cd_Cmd_7() {
  04da 1fc6      mrr         $AC0.M, $IX2
  04db 2ecd      srs         @DSPA, $AC0.M
  04dc 16c9 0001 si          @DSCR, #0x0001
- 04de 16cb 0480 si          @DSBL, #0x0480
+ 04de 16cb 0480 si          @DSBL, #0x0480				// dma from 0x0880 to mem32[0x0C02], 1152 bytes.
  04e0 02bf 0084 call        0084_WaitForDMACompletion()
  04e2 02bf 04e6 call        0x04e6
  04e4 029f 006f jmp         006f_MailHandler()
@@ -1424,17 +1486,22 @@ void 06c3_Unknown() {
  0718 8a00      m2          
  0719 02df      ret 
 }
-        
- 071a 02bf 07e6 call        0x07e6
+
+// Sample rate converter #0 - None
+//
+ 071a 02bf 07e6 call        0x07e6_SetupAccelerator()
  071c 8c00      clr15       
  071d 8a00      m2          
  071e 8f00      set40       
+ // Read ratio
  071f 195b      lrri        $AX1.H, @$AR2
  0720 1959      lrri        $AX1.L, @$AR2
  0721 8100      clr         $ACC0
+ // Read cur_addr fractional part
  0722 195c      lrri        $AC0.L, @$AR2
  0723 0080 0d08 lri         $AR0, #0x0d08
  0725 0088 0003 lri         $WR0, #0x0003
+ // Read the last samples, copy them to 0x0D08
  0727 195f      lrri        $AC1.M, @$AR2
  0728 1b1f      srri        @$AR0, $AC1.M
  0729 195f      lrri        $AC1.M, @$AR2
@@ -1443,6 +1510,7 @@ void 06c3_Unknown() {
  072c 1b1f      srri        @$AR0, $AC1.M
  072d 195f      lrri        $AC1.M, @$AR2
  072e 1b1f      srri        @$AR0, $AC1.M
+ 
  072f 0081 0c60 lri         $AR1, #0x0c60
  0731 0082 ffdd lri         $AR2, #0xffdd
  0733 00c7 0ce0 lr          $IX3, @0x0ce0
@@ -1495,7 +1563,9 @@ void 06c3_Unknown() {
  0769 8b00      m0          
  076a 02df      ret         
 
- 076b 02bf 07e6 call        0x07e6
+// Sample rate converter #1 - ?
+//
+ 076b 02bf 07e6 call        0x07e6_SetupAccelerator()
  076d 8d00      set15       
  076e 8b00      m0          
  076f 8f00      set40       
@@ -1567,15 +1637,19 @@ void 06c3_Unknown() {
  07be 8c00      clr15       
  07bf 02df      ret         
 
- 07c0 02bf 07e6 call        0x07e6
+// Sample rate converter #2 - No sample rate conversion
+// Just copies 96 bytes of data to the output buffer
+//
+ 07c0 02bf 07e6 call        0x07e6_SetupAccelerator()
  07c2 0080 0c60 lri         $AR0, #0x0c60
- 07c4 0082 ffdd lri         $AR2, #0xffdd
+ 07c4 0082 ffdd lri         $AR2, #0xffdd				// 0xFFDD: ACDAT
  07c6 1160 07cb bloopi      #0x60, 0x07cb
-  07c8 1844      lrr         $IX0, @$AR2
-  07c9 1b04      srri        @$AR0, $IX0
+  07c8 1844      lrr         $IX0, @$AR2				// Load a sample from accelerator
+  07c9 1b04      srri        @$AR0, $IX0				// and store it to 0x0C60+
   07ca 0000      nop         
   07cb 0000      nop         
  07cc 0004      dar         $AR0
+ // Save the 4 last samples in the PB
  07cd 0082 0329 lri         $AR2, #0x0329
  07cf 189f      lrrd        $AC1.M, @$AR0
  07d0 1adf      srrd        @$AR2, $AC1.M
@@ -1585,36 +1659,56 @@ void 06c3_Unknown() {
  07d4 1adf      srrd        @$AR2, $AC1.M
  07d5 189f      lrrd        $AC1.M, @$AR0
  07d6 1adf      srrd        @$AR2, $AC1.M
+ // Save the accelerator regs in the PB
  07d7 0082 0322 lri         $AR2, #0x0322
+ // YN1 and YN2
  07d9 27dc      lrs         $AC1.M, @yn2
  07da 1adf      srrd        @$AR2, $AC1.M
  07db 27db      lrs         $AC1.M, @yn1
  07dc 1adf      srrd        @$AR2, $AC1.M
+ // Pred scale
  07dd 27da      lrs         $AC1.M, @pred_scale
  07de 1adf      srrd        @$AR2, $AC1.M
  07df 0082 030e lri         $AR2, #0x030e
+ // Current address
  07e1 27d9      lrs         $AC1.M, @ACCAL
  07e2 1adf      srrd        @$AR2, $AC1.M
  07e3 27d8      lrs         $AC1.M, @ACCAH
  07e4 1adf      srrd        @$AR2, $AC1.M
  07e5 02df      ret         
 
-07e6_Sample() {
+// Called by the three sample rate converters above.
+// Sets up the accelerator so that it can be used to
+// read the audio data.
+// The accelerator area is set to be the same length
+// as the sound data being played, so that looping
+// will be handled by exception vector #5 (ACCOV).
+// Parameters: None
+// Return: AR0 = 0x0328
+//
+07e6_SetupAccelerator()
+{
+ // Set the accelerator regs from the PB
  07e6 0082 0308 lri         $AR2, #0x0308
+ // Sample format
  07e8 195e      lrri        $AC0.M, @$AR2
  07e9 2ed1      srs         @SampleFormat, $AC0.M
+ // Start address
  07ea 195e      lrri        $AC0.M, @$AR2
  07eb 2ed4      srs         @ACSAH, $AC0.M
  07ec 195e      lrri        $AC0.M, @$AR2
  07ed 2ed5      srs         @ACSAL, $AC0.M
+ // End address
  07ee 195e      lrri        $AC0.M, @$AR2
  07ef 2ed6      srs         @ACEAH, $AC0.M
  07f0 195e      lrri        $AC0.M, @$AR2
  07f1 2ed7      srs         @ACEAL, $AC0.M
+ // Current address
  07f2 195e      lrri        $AC0.M, @$AR2
  07f3 2ed8      srs         @ACCAH, $AC0.M
  07f4 195e      lrri        $AC0.M, @$AR2
  07f5 2ed9      srs         @ACCAL, $AC0.M
+ // 16 coefs
  07f6 195e      lrri        $AC0.M, @$AR2
  07f7 2ea0      srs         @COEF_A1_0, $AC0.M
  07f8 195e      lrri        $AC0.M, @$AR2
@@ -1647,23 +1741,30 @@ void 06c3_Unknown() {
  0813 2eae      srs         @COEF_A1_7, $AC0.M
  0814 195e      lrri        $AC0.M, @$AR2
  0815 2eaf      srs         @COEF_A2_7, $AC0.M
+ // Gain
  0816 195e      lrri        $AC0.M, @$AR2
  0817 2ede      srs         @GAIN, $AC0.M
+ // Pred scale
  0818 195e      lrri        $AC0.M, @$AR2
  0819 2eda      srs         @pred_scale, $AC0.M
+ // YN1 and YN2
  081a 195e      lrri        $AC0.M, @$AR2
  081b 2edb      srs         @yn1, $AC0.M
  081c 195e      lrri        $AC0.M, @$AR2
  081d 2edc      srs         @yn2, $AC0.M
  081e 02df      ret         
+}
+
+// Volume_0_0
  081f 02df      ret         
  
+// Volume_0_1
  0820 00c0 0ce2 lr          $AR0, @0x0ce2
  0822 0081 02da lri         $AR1, #0x02da
  0824 0082 0000 lri         $AR2, #0x0000
  0826 1c62      mrr         $AR3, $AR2
- 0827 02bf 0bd1 call        0bd1_Unknown()
- 0829 00f8 02f9 sr          @0x02f9, $AX0.L
+ 0827 02bf 0bd1 call        0bd1_ApplyVolume1(mem16[0x0ce2], 0x02da, 0x0000, 0x0000)
+ 0829 00f8 02f9 sr          @0x02f9, $AX0.L		// uh? the last <PROD> is saved in updates field?
  082b 02df      ret  
         
  082c 00c0 0ce3 lr          $AR0, @0x0ce3
@@ -2193,32 +2294,46 @@ void 0b52_Maybe_Mixer() {
  0bcf 029f 0b52 jmp         0x0b52
 }
 
-// Mixer loop??
-void 0bd1_Unknown() { 
- 0bd1 191a      lrri        $AX0.H, @$AR0
- 0bd2 1939      lrri        $AX1.L, @$AR1
- 0bd3 b072      mulx'l      $AX0.H, $AX1.L : $AC0.M, @$AR2
- 0bd4 195c      lrri        $AC0.L, @$AR2
- 0bd5 f07a      lsl16'l     $ACC0 : $AC1.M, @$AR2
- 0bd6 191a      lrri        $AX0.H, @$AR0
- 0bd7 b46a      mulxac'l    $AX0.H, $AX1.L, $ACC0 : $AC1.L, @$AR2
- 0bd8 9100      asr16       $ACC0
- 0bd9 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
- 0bda 112f 0be3 bloopi      #0x2f, 0x0be3
-  0bdc b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L
-  0bdd 9972      asr16'l     $ACC1 : $AC0.M, @$AR2
-  0bde 195c      lrri        $AC0.L, @$AR2
-  0bdf f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M
-  0be0 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L
-  0be1 917a      asr16'l     $ACC0 : $AC1.M, @$AR2
-  0be2 195d      lrri        $AC1.L, @$AR2
-  0be3 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M
- 0be4 1b7c      srri        @$AR3, $AC0.L
- 0be5 6e00      movp        $ACC0
- 0be6 4f12      addp'mv     $ACC1 : $AX0.L, $AC0.M
- 0be7 9900      asr16       $ACC1
- 0be8 1b7f      srri        @$AR3, $AC1.M
- 0be9 812b      clr's       $ACC0 : @$AR3, $AC1.L
+// Volume
+// AR0: factor table?
+// AR1: factor
+// AR2: input
+// AR3: output
+// returns: last <PROD> in AX0.L (16 highest bits)
+//
+// basically:
+//		for (i = 0; i < 96; i++)
+//			out[i] = ((in[i*2+1] << 16) + (ar0[i] * factor)) >> 16;
+//
+// so that you don't bang your head against your keyboard trying to figure 
+// out those awful pipelined loops (I had to get myself a new head to finish
+// this one). :P
+//
+void 0bd1_ApplyVolume1() { 
+ 0bd1 191a      lrri        $AX0.H, @$AR0							// ax0.h = mem[ar0++]
+ 0bd2 1939      lrri        $AX1.L, @$AR1							// ax1.l = mem[ar1++]
+ 0bd3 b072      mulx'l      $AX0.H, $AX1.L : $AC0.M, @$AR2			// <PROD> = ax0.h * ax1.l; ac0.m = mem[ar2++]
+ 0bd4 195c      lrri        $AC0.L, @$AR2							// ac0.l = mem[ar2++]
+ 0bd5 f07a      lsl16'l     $ACC0 : $AC1.M, @$AR2					// acc0 <<= 16; ac1.m = mem[ar2++]
+ 0bd6 191a      lrri        $AX0.H, @$AR0							// ax0.h = mem[ar0++]
+ 0bd7 b46a      mulxac'l    $AX0.H, $AX1.L, $ACC0 : $AC1.L, @$AR2	// acc0 += <PROD>; <PROD> = ax0.h * ax1.l; ac1.l = mem[ar2++]
+ 0bd8 9100      asr16       $ACC0									// acc0 >>= 16
+ 0bd9 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M					// acc1 <<= 16; ax0.h = mem[ar0++]; mem[ar3++] = ac0.m
+ 0bda 112f 0be3 bloopi      #0x2f, 0x0be3							// for (i = 0; i < 0x2f; i++)
+  0bdc b523      mulxac's    $AX0.H, $AX1.L, $ACC1 : @$AR3, $AC0.L	//		acc1 += <PROD>; <PROD> = ax0.h * ax1.l; mem[ar3++] = ac0.l;
+  0bdd 9972      asr16'l     $ACC1 : $AC0.M, @$AR2					//		acc1 >>= 16; ac0.m = mem[ar2++]
+  0bde 195c      lrri        $AC0.L, @$AR2							//		ac0.l = mem[ar2++];
+  0bdf f0a1      lsl16'ls    $ACC0 : $AX0.H, $AC1.M					//		acc0 <<= 16; ax0.h = mem[ar0++]; mem[ar3++] = ac1.m
+  0be0 b42b      mulxac's    $AX0.H, $AX1.L, $ACC0 : @$AR3, $AC1.L	//		acc0 += <PROD>; <PROD> = ax0.h * ax1.l; mem[ar3++] = ac1.l;
+  0be1 917a      asr16'l     $ACC0 : $AC1.M, @$AR2					//		acc0 >>= 16; ac1.m = mem[ar2++]
+  0be2 195d      lrri        $AC1.L, @$AR2							//		ac1.l = mem[ar2++];
+  0be3 f1a0      lsl16'ls    $ACC1 : $AX0.H, $AC0.M					//		acc1 <<= 16; ax0.h = mem[ar0++]; mem[ar3++] = ac0.m
+ 0be4 1b7c      srri        @$AR3, $AC0.L							// mem[ar3++] = ac0.l;
+ 0be5 6e00      movp        $ACC0									// acc0 = <PROD>;
+ 0be6 4f12      addp'mv     $ACC1 : $AX0.L, $AC0.M					// acc1 += <PROD>; ax0.l = ac0.m;
+ 0be7 9900      asr16       $ACC1									// acc1 >>= 16;
+ 0be8 1b7f      srri        @$AR3, $AC1.M							// mem[ar3++] = ac1.m;
+ 0be9 812b      clr's       $ACC0 : @$AR3, $AC1.L					// acc0 = 0; mem[ar3++] = ac1.l;
  0bea 02df      ret         
 }
 
@@ -2510,8 +2625,8 @@ void 0c21_Unknown() {
  0d11 067c  // 0xD - ???
  0d12 0672  // 0xE - The End
  
-// coef table?
- 0d13 081f      lris        $AX0.L, #0x1f
+// Table #1 - entry selected by PB[0x007] bits 0-4
+ 0d13 081f      lris        $AX0.L, #0x1f				// 0: Do nothing
  0d14 0820      lris        $AX0.L, #0x20
  0d15 082c      lris        $AX0.L, #0x2c
  0d16 0838      lris        $AX0.L, #0x38
@@ -2543,7 +2658,9 @@ void 0c21_Unknown() {
  0d30 08d4      lris        $AX0.L, #0xd4
  0d31 08d4      lris        $AX0.L, #0xd4
  0d32 08d4      lris        $AX0.L, #0xd4
- 0d33 081f      lris        $AX0.L, #0x1f
+ 
+// Table #2 - entry selected by PB[0x006] bits 0-4
+ 0d33 081f      lris        $AX0.L, #0x1f				// 0: Do nothing
  0d34 08e2      lris        $AX0.L, #0xe2
  0d35 08ee      lris        $AX0.L, #0xee
  0d36 08fa      lris        $AX0.L, #0xfa
@@ -2575,7 +2692,9 @@ void 0c21_Unknown() {
  0d50 0996      lris        $AX1.L, #0x96
  0d51 0996      lris        $AX1.L, #0x96
  0d52 0996      lris        $AX1.L, #0x96
- 0d53 081f      lris        $AX0.L, #0x1f
+ 
+// Table #3 - entry selected by PB[0x006] bits 5-9
+ 0d53 081f      lris        $AX0.L, #0x1f				// 0: Do nothing
  0d54 09a4      lris        $AX1.L, #0xa4
  0d55 09b0      lris        $AX1.L, #0xb0
  0d56 09bc      lris        $AX1.L, #0xbc
@@ -2607,7 +2726,10 @@ void 0c21_Unknown() {
  0d70 0a58      lris        $AX0.H, #0x58
  0d71 0a58      lris        $AX0.H, #0x58
  0d72 0a58      lris        $AX0.H, #0x58
- 0d73 081f      lris        $AX0.L, #0x1f
+ 
+// Table #4 - entry selected by PB[0x006] bits 10-15
+// (twice longer than the three previous ones!)
+ 0d73 081f      lris        $AX0.L, #0x1f				// 0: Do nothing
  0d74 0a66      lris        $AX0.H, #0x66
  0d75 0a72      lris        $AX0.H, #0x72
  0d76 0a7e      lris        $AX0.H, #0x7e
@@ -2671,13 +2793,20 @@ void 0c21_Unknown() {
  0db0 0bc3      lris        $AX1.H, #0xc3
  0db1 0bc3      lris        $AX1.H, #0xc3
  0db2 0bc3      lris        $AX1.H, #0xc3
+ 
+ 
  0db3 0cb0      lris        $AC0.L, #0xb0
  0db4 0cb3      lris        $AC0.L, #0xb3
  0db5 0cd0      lris        $AC0.L, #0xd0
  0db6 0cd0      lris        $AC0.L, #0xd0
- 0db7 071a      cmpis       $ACC1, #0x1a
- 0db8 076b      cmpis       $ACC1, #0x6b
- 0db9 07c0      cmpis       $ACC1, #0xc0
+ 
+// Jump table for sample rate converters
+ 0db7 071a      cmpis       $ACC1, #0x1a		// none
+ 0db8 076b      cmpis       $ACC1, #0x6b		// ?
+ 0db9 07c0      cmpis       $ACC1, #0xc0		// linear
+ 
+// Table for coef_select
+// addresses into COEF ROM
  0dba 1000      loopi       #0x00
  0dbb 1200      sbclr       #0x00
  0dbc 1400      lsl         $ACC0, #0
@@ -3028,26 +3157,32 @@ void 0f5c_Int4_Handler() {
  0f60 02ff      rti
 }
 
-void 0f61_Int5_Handler() {         
+// Handles ACCOV exception
+// ACCOV exception will be triggered when a sound being played
+// reaches end and needs to be reloaded or stopped.
+//
+void 0f61_Int5_Handler() 
+{        
  0f61 8e00      set16       
  0f62 1dbc      mrr         $ST1, $AC0.L
  0f63 1dbe      mrr         $ST1, $AC0.M
  0f64 8100      clr         $ACC0
  0f65 00de 0307 lr          $AC0.M, @0x0307
  0f67 0601      cmpis       $ACC0, #0x01
- 0f68 0295 0f72 jz          0x0f72
+ 0f68 0295 0f72 jz          0x0f72					// if (mem16[0x0307] == 1) handle looping;
  0f6a 0e00      lris        $AC0.M, #0x00
- 0f6b 00fe 02d8 sr          @0x02d8, $AC0.M
+ 0f6b 00fe 02d8 sr          @0x02d8, $AC0.M			// else stop the sound;
  0f6d 0082 0ce9 lri         $AR2, #0x0ce9
  0f6f 1fcd      mrr         $AC0.M, $ST1
  0f70 1f8d      mrr         $AC0.L, $ST1
  0f71 02ff      rti        
-}
- 
-void 0f72_Int5_Handler() {
+
+ // Looping handling
  0f72 00de 02d9 lr          $AC0.M, @0x02d9
  0f74 0601      cmpis       $ACC0, #0x01
- 0f75 0295 0f83 jz          0x0f83
+ 0f75 0295 0f83 jz          0x0f83					// if (mem16[0x02D9] == 1) handle stream;
+ // reload pred scale, yn1 and yn2 from the PB
+ // the address will be automatically reloaded by the accelerator
  0f77 00de 032a lr          $AC0.M, @0x032a
  0f79 2eda      srs         @pred_scale, $AC0.M
  0f7a 00de 032b lr          $AC0.M, @0x032b
@@ -3057,8 +3192,12 @@ void 0f72_Int5_Handler() {
  0f80 1fcd      mrr         $AC0.M, $ST1
  0f81 1f8d      mrr         $AC0.L, $ST1
  0f82 02ff      rti 
+ 
+ // Stream handling
+ // reload pred_scale from the PB
  0f83 00de 032a lr          $AC0.M, @0x032a
  0f85 2eda      srs         @pred_scale, $AC0.M
+ // ??? - reload the yn1 and yn2 from... themselves
  0f86 26db      lrs         $AC0.M, @yn1
  0f87 2edb      srs         @yn1, $AC0.M
  0f88 26dc      lrs         $AC0.M, @yn2
