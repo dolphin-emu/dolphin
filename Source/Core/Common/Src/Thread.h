@@ -59,6 +59,10 @@
 	#ifndef INFINITE
 	#define INFINITE 0xffffffff
 	#endif
+
+//for gettimeofday and struct time(val|spec)
+#include <sys/time.h>
+#include <time.h>
 #endif
 
 
@@ -144,7 +148,8 @@ public:
 	void Shutdown();
 
 	void Set();
-	void Wait();
+	//returns whether the wait timed out
+	bool Wait(const u32 timeout = INFINITE);
 #ifdef _WIN32
 	void MsgWait();
 #else

@@ -61,8 +61,8 @@ Common::Thread*		g_pReadThread = NULL;
 int					g_NumberOfWiiMotes;
 CWiiMote*			g_WiiMotes[MAX_WIIMOTES];	
 bool				g_Shutdown = false;
-HANDLE				g_StartThread = false;
-HANDLE				g_StopThreadTemporary;
+Common::Event		g_StartThread;
+Common::Event		g_StopThreadTemporary;
 bool				g_LocalThread = true;
 bool				g_IRSensing = false;
 bool				g_MotionSensing = false;
@@ -530,8 +530,8 @@ void Update(int _WiimoteNumber)
    time to avoid a potential collision. */
 THREAD_RETURN ReadWiimote_ThreadFunc(void* arg)
 {
-	WiiMoteReal::g_StopThreadTemporary = CreateEvent(NULL, TRUE, FALSE, NULL); 
-	WiiMoteReal::g_StartThread =  CreateEvent(NULL, TRUE, FALSE, NULL);
+	g_StopThreadTemporary.Init();
+	g_StartThread.Init();
 		
 	while (!g_Shutdown)
 	{
@@ -545,37 +545,34 @@ THREAD_RETURN ReadWiimote_ThreadFunc(void* arg)
 		}
 		else {
 			    
-			switch (WaitForSingleObject(WiiMoteReal::g_StopThreadTemporary,0)) 
+			if (!g_StopThreadTemporary.Wait(0)) 
 			{
-			// Event object was signaled, exiting thread to close ConfigRecordingDlg
-			case WAIT_OBJECT_0: 
-
+				// Event object was signaled, exiting thread to close ConfigRecordingDlg
 				new Common::Thread(SafeCloseReadWiimote_ThreadFunc, NULL);
-				SetEvent(WiiMoteReal::g_StartThread); //tell the new thread to get going
+				g_StartThread.Set(); //tell the new thread to get going
 				return 0;
-
-				default:
-				ReadWiimote();
 			}
-
-
+			else
+				ReadWiimote();
 		}
 		
 	}
 	return 0;
 }
-THREAD_RETURN SafeCloseReadWiimote_ThreadFunc(void* arg) // Thread to avoid racing conditions by directly closing of ReadWiimote_ThreadFunc() resp. ReadWiimote() // shutting down the Dlg while still beeing @ReadWiimote will result in a crash;
+// Thread to avoid racing conditions by directly closing of ReadWiimote_ThreadFunc() resp. ReadWiimote() 
+// shutting down the Dlg while still beeing @ReadWiimote will result in a crash;
+THREAD_RETURN SafeCloseReadWiimote_ThreadFunc(void* arg)
 {
-	WiiMoteReal::g_Shutdown = true;
-	WaitForSingleObject(WiiMoteReal::g_StartThread,INFINITE); //Ready to start cleaning
+	g_Shutdown = true;
+	g_StartThread.Wait(); //Ready to start cleaning
 	
-		if (g_RealWiiMoteInitialized)
-			WiiMoteReal::Shutdown();
-		m_RecordingConfigFrame->Close(true);
-		if (!g_RealWiiMoteInitialized)
-			WiiMoteReal::Initialize();
-	
-		return 0;
+	if (g_RealWiiMoteInitialized)
+		Shutdown();
+	m_RecordingConfigFrame->Close(true);
+	if (!g_RealWiiMoteInitialized)
+		Initialize();
+
+	return 0;
 }
 // WiiMote Pair-Up
 #ifdef WIN32

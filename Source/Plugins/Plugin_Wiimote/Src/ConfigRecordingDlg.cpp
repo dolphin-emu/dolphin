@@ -98,7 +98,7 @@ void WiimoteRecordingConfigDialog::CloseClick(wxCommandEvent& event)
 	{
 	case ID_CLOSE:
 		if (g_RealWiiMoteInitialized)
-			SetEvent(WiiMoteReal::g_StopThreadTemporary);	//WiiMoteReal::SafecloseRemoteFunc over takes the closing of the Dlg
+			WiiMoteReal::g_StopThreadTemporary.Set();	//WiiMoteReal::SafecloseRemoteFunc over takes the closing of the Dlg
 		else
 			Close();
 		break;

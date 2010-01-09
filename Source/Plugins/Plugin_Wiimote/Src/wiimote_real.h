@@ -23,6 +23,10 @@
 #include "wiiuse.h"
 #include "ChunkFile.h"
 
+#ifndef EXCLUDE_H
+//this one is required for Common::Event
+#include "Thread.h"
+#endif
 
 namespace WiiMoteReal
 {
@@ -48,8 +52,8 @@ bool IRDataOK(struct wiimote_t* wm);
 #ifndef EXCLUDE_H
 	extern wiimote_t**		g_WiiMotesFromWiiUse;
 	extern bool				g_Shutdown;
-	extern HANDLE			g_StopThreadTemporary;
-	extern HANDLE			g_StartThread;
+	extern Common::Event	g_StartThread;
+	extern Common::Event	g_StopThreadTemporary;
 	extern int				g_NumberOfWiiMotes;
 	extern bool				g_MotionSensing;
 	extern bool				g_IRSensing;
