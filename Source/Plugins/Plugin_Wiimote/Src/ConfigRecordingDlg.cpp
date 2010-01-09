@@ -97,8 +97,10 @@ void WiimoteRecordingConfigDialog::CloseClick(wxCommandEvent& event)
 	switch(event.GetId())
 	{
 	case ID_CLOSE:
-		SetEvent(WiiMoteReal::g_StopThreadTemporary); //direct closing will result in crash @ReadWiimote, also dont try to waitforobject here, it will result in deadlock! because this thread is still needed to progress in the Readwiimote to get to the waitingobject @readwiimote itself.....
-		Close();									  //Problem lies mainly  in Readwiimote(), closing here leaves the thread readWiimote thread, trying to access vars which aint there anymore.
+		if (g_RealWiiMoteInitialized)
+			SetEvent(WiiMoteReal::g_StopThreadTemporary);	//WiiMoteReal::SafecloseRemoteFunc over takes the closing of the Dlg
+		else
+			Close();
 		break;
 	case ID_APPLY:
 		SaveFile();

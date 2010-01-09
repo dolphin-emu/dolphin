@@ -200,9 +200,10 @@ void handle_event(struct wiimote_t* wm)
 				m_RecordingConfigFrame->m_GaugeAccel[1]->SetValue(wm->accel.y);
 				m_RecordingConfigFrame->m_GaugeAccel[2]->SetValue(wm->accel.z);
 
+				int GNCx, GNCy, GNCz;
+
 				if(wm->exp.type == EXP_NUNCHUK) // Updating Nunchuck Gauges
-				{
-								
+				{	
 					m_RecordingConfigFrame->m_GaugeGForceNunchuk[0]->SetValue((int)floor((nc->gforce.x * 300) + 100.5));
 					m_RecordingConfigFrame->m_GaugeGForceNunchuk[1]->SetValue((int)floor((nc->gforce.y * 300) + 100.5));
 					m_RecordingConfigFrame->m_GaugeGForceNunchuk[2]->SetValue((int)floor((nc->gforce.z * 300) + 100.5));	
@@ -217,9 +218,9 @@ void handle_event(struct wiimote_t* wm)
 					float _GNCz = (float)(nc->accel.z - nc->accel_calib.cal_zero.z) / (float)nc->accel_calib.cal_g.z;
 			
 					// Conver the data to integers
-					int GNCx = (int)(_GNCx * 100);
-					int GNCy = (int)(_GNCy * 100);
-					int GNCz = (int)(_GNCz * 100);
+					GNCx = (int)(_GNCx * 100);
+					GNCy = (int)(_GNCy * 100);
+					GNCz = (int)(_GNCz * 100);
 
 				}
 
@@ -230,7 +231,7 @@ void handle_event(struct wiimote_t* wm)
 				//	wxT("Current: %03u %03u %03u"), Gx, Gy, Gz));
 
 				if(m_RecordingConfigFrame->m_bRecording) {
-					if(wm->exp.type == EXP_NUNCHUK) {
+					if(wm->exp.type != EXP_NUNCHUK) {
 						DEBUG_LOG(WIIMOTE, "Wiiuse Recorded accel x, y, z: %03i %03i %03i", Gx, Gy, Gz);
 					}
 					else {

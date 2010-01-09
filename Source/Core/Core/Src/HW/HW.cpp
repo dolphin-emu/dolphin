@@ -106,11 +106,4 @@ namespace HW
 			WII_IPC_HLE_Interface::DoState(p);
 		}
 	}
-
-	// Restart Wiimote
-	void InitWiimote()
-	{
-		WII_IPCInterface::Init();
-		WII_IPC_HLE_Interface::Init();
-	}
 }

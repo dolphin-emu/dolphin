@@ -166,7 +166,7 @@ bool CBoot::BootUp()
 	NOTICE_LOG(BOOT, "Booting %s", _StartupPara.m_strFilename.c_str());
 
 	g_symbolDB.Clear();
-    VideoInterface::PreInit(_StartupPara.bNTSC);
+    VideoInterface::Preset(_StartupPara.bNTSC);
     switch (_StartupPara.m_BootType)
     {
     // GCM and Wii

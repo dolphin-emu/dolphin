@@ -598,8 +598,7 @@ void VideoThrottle()
 	// When frame limit is NOT off
 	if (SConfig::GetInstance().m_Framelimit)
 	{
-		// a full screen scan consists of 2 fields
-		u32 frametime = DrawnVideo * 2  * 1000 / TargetVPS;
+		u32 frametime = DrawnVideo * 1000 / TargetVPS;
 		while ((u32)Timer.GetTimeDifference() < frametime)
 			Common::YieldCPU();
 			//Common::SleepCurrentThread(1);
@@ -612,7 +611,7 @@ void VideoThrottle()
 		SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 		u32 FPS = Common::AtomicLoad(DrawnFrame) * 1000 / ElapseTime;
-		u32 VPS = DrawnVideo * 2 * 1000 / ElapseTime;
+		u32 VPS = DrawnVideo * 1000 / ElapseTime;
 		u32 Speed = VPS * 100 / VideoInterface::TargetRefreshRate;
 		
 		// Settings are shown the same for both extended and summary info
@@ -675,10 +674,8 @@ void VideoThrottle()
 		Common::AtomicStore(DrawnFrame, 0);
 		DrawnVideo = 0;
 	}
-	else
-	{
-		DrawnVideo++;
-	}
+	
+	DrawnVideo++;
 }
 
 // Executed from GPU thread
