@@ -152,14 +152,14 @@ std::string CVolumeWiiCrypted::GetName() const
 {
 	if (m_pReader == NULL)
 	{
-		return(false);
+		return("");
 	}
 
 	char name[0xFF];
 
 	if (!Read(0x20, 0x60, (u8*)&name))
 	{
-		return(false);
+		return("");
 	}
 
 	return(name);

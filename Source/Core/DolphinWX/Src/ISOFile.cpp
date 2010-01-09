@@ -66,8 +66,13 @@ GameListItem::GameListItem(const std::string& _rFileName)
 			m_Company = "N/A";
 			for (int i = 0; i < 6; i++)
 			{
-				m_Name[i] = _rFileName;                 // Give an init value
 				m_Name[i] = pVolume->GetName();
+				if(m_Name[i] == "") // Couldn't find the name in the WAD...
+				{
+					std::string FileName;
+					SplitPath(_rFileName, NULL, &FileName, NULL);
+					m_Name[i] = FileName; // Then just display the filename... Better than something like "No Name"
+				}
 				m_Description[i] = "No Description";
 			}
 			m_Country  = pVolume->GetCountry();

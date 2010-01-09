@@ -1342,7 +1342,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandInquiry(u8* _Input)
 {
 	// Inquiry should not be called normally
-	PanicAlert("HCI_CMD_INQUIRY is called, please report!");
+	// FGFEmperor: It's called from the MiiChannel, when you try to upload your Miis to the WiiMote... And nothing bad happens after that...
+	// PanicAlert("HCI_CMD_INQUIRY is called, please report!");
 
 	if (SendEventCommandStatus(HCI_CMD_INQUIRY))
 		return;

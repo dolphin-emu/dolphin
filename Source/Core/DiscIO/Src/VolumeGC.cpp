@@ -91,11 +91,11 @@ std::string CVolumeGC::GetMakerID() const
 std::string CVolumeGC::GetName() const
 {
 	if (m_pReader == NULL)
-		return false;
+		return "";
 
 	char name[128];
 	if (!Read(0x20, 0x60, (u8*)&name))
-		return false;
+		return "";
 
 	return name;
 }
