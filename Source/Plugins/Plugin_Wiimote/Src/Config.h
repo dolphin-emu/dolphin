@@ -32,8 +32,8 @@ struct Config
 	int CurrentPage;
 
 	// Real Wiimote
-	bool bConnectRealWiimote, bUpdateRealWiimote;
-	int bFoundRealWiimotes, bNumberRealWiimotes, bNumberEmuWiimotes;
+	bool bUpdateRealWiimote;
+	int bNumberRealWiimotes, bNumberEmuWiimotes;
 	int iIRLeft, iIRTop, iIRWidth, iIRHeight;
 	int iAccNeutralX, iAccNeutralY, iAccNeutralZ;
 	int iAccNunNeutralX, iAccNunNeutralY, iAccNunNeutralZ;

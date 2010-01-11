@@ -319,22 +319,14 @@ int Initialize()
 	g_RealWiiMotePresent = false;
 	g_RealWiiMoteAllocated = false;
 
-	if (g_Config.bConnectRealWiimote)
-	{
-		// Call Wiiuse.dll
-		g_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
-		g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
-		DEBUG_LOG(WIIMOTE, "Found No of Wiimotes: %i", g_NumberOfWiiMotes);
-		if (g_NumberOfWiiMotes > 0)
-			g_RealWiiMotePresent = true;
-		else
-			return 0;
-	}
+	// Call Wiiuse.dll
+	g_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
+	g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
+	DEBUG_LOG(WIIMOTE, "Found No of Wiimotes: %i", g_NumberOfWiiMotes);
+	if (g_NumberOfWiiMotes > 0)
+		g_RealWiiMotePresent = true;
 	else
-	{
-		g_NumberOfWiiMotes = 0;
 		return 0;
-	}
 
 	for (int i = 0; i < g_NumberOfWiiMotes; i++)
 	{

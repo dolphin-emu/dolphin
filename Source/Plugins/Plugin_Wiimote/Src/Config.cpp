@@ -262,7 +262,6 @@ void Config::Load()
 	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
 
 	// Real Wiimote
-	iniFile.Get("Real", "Connect", &bConnectRealWiimote, true);
 	iniFile.Get("Real", "UpdateStatus", &bUpdateRealWiimote, true);
 	iniFile.Get("Real", "AccNeutralX", &iAccNeutralX, 0);
 	iniFile.Get("Real", "AccNeutralY", &iAccNeutralY, 0);
@@ -349,8 +348,7 @@ void Config::Save()
 {
 	IniFile iniFile;
 	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
-
-	iniFile.Set("Real", "Connect", bConnectRealWiimote);	
+	
 	iniFile.Set("Real", "UpdateStatus", bUpdateRealWiimote);
 	iniFile.Set("Real", "AccNeutralX", iAccNeutralX);
 	iniFile.Set("Real", "AccNeutralY", iAccNeutralY);

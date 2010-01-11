@@ -66,8 +66,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 				 *m_Cancel,
 				 *m_ButtonMapping,
 				 *m_Recording,
-				 *m_ButtonPairUp,
-				 *m_RefreshRealWiiMote[MAX_WIIMOTES];
+				 *m_PairUpRealWiimote[MAX_WIIMOTES],
+				 *m_ConnectRealWiimote[MAX_WIIMOTES];
 
 		wxChoice *m_InputSource[MAX_WIIMOTES],
 				 *m_Extension[MAX_WIIMOTES];
@@ -77,8 +77,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 				 *m_SliderLeft[MAX_WIIMOTES],
 				 *m_SliderTop[MAX_WIIMOTES];
 
-		wxCheckBox  *m_ConnectRealWiimote[MAX_WIIMOTES],
-					*m_SidewaysWiimote[MAX_WIIMOTES],
+		wxCheckBox  *m_SidewaysWiimote[MAX_WIIMOTES],
 					*m_UprightWiimote[MAX_WIIMOTES],
 					*m_WiiMotionPlusConnected[MAX_WIIMOTES],
 					*m_CheckAR43[MAX_WIIMOTES],
@@ -90,7 +89,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 					 *m_TextScreenLeft[MAX_WIIMOTES],
 					 *m_TextScreenTop[MAX_WIIMOTES],
 					 *m_TextAR[MAX_WIIMOTES],
-					 *m_FoundWiimote[MAX_WIIMOTES];
+					 *m_TextFoundRealWiimote[MAX_WIIMOTES];
 
 		wxBoxSizer  *m_MainSizer,
 					*m_SizeBasicGeneral[MAX_WIIMOTES],
@@ -130,16 +129,13 @@ class WiimoteBasicConfigDialog : public wxDialog
 			IDC_EXTCONNECTED,
 
 			// Real
-			IDC_CONNECT_REAL,
-			ID_FOUND_REAL,
-			ID_REFRESH_REAL,
+			IDB_PAIRUP_REAL,
+			IDB_REFRESH_REAL,
 
 			IDS_WIDTH,			
 			IDS_HEIGHT, 
 			IDS_LEFT,
 			IDS_TOP,
-
-			ID_BUTTONPAIRUP,
 		};
 
 		void CreateGUIControls();
@@ -148,8 +144,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 		void GeneralSettingsChanged(wxCommandEvent& event);
 		void IRCursorChanged(wxScrollEvent& event);
 
-		void DoConnectReal(); // Real
-		void DoRefreshReal();
+		void DoRefreshReal();	// Real
 		void DoUseReal();
 
 		void DoExtensionConnectedDisconnected(int Extension = -1); // Emulated
