@@ -32,7 +32,6 @@
 #include <mmsystem.h>
 #endif
 
-//#include "GlobalControl.h"
 #include "CommonPaths.h"
 #include "VideoConfig.h"
 #include "Profiler.h"
