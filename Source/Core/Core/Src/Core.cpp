@@ -231,27 +231,7 @@ void Stop()  // - Hammertime!
 	Host_SetWaitCursor(false);
 
 	WARN_LOG(CONSOLE, "%s", StopMessage(true, "Stopping Emu thread ...").c_str());
-#ifdef _WIN32
-	// The whole shutdown process shouldn't take more than ~200ms. 2000ms timeout is more than enough.
-	DWORD Wait = g_EmuThread->WaitForDeath(2000);
-	switch(Wait)
-	{
-		case WAIT_ABANDONED:
-			ERROR_LOG(CONSOLE, "%s", StopMessage(true, "Emu wait returned: WAIT_ABANDONED").c_str());
-			break;
-		case WAIT_OBJECT_0:
-			NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Emu wait returned: WAIT_OBJECT_0").c_str());
-			break;
-		case WAIT_TIMEOUT:
-			ERROR_LOG(CONSOLE, "%s", StopMessage(true, "Emu wait returned: WAIT_TIMEOUT").c_str());
-			break;				
-		case WAIT_FAILED:
-			ERROR_LOG(CONSOLE, "%s", StopMessage(true, "Emu wait returned: WAIT_FAILED").c_str());
-			break;
-	}
-#else
 	g_EmuThread->WaitForDeath();
-#endif
 	delete g_EmuThread;  // Wait for emuthread to close.
 	g_EmuThread = 0;
 }
@@ -430,11 +410,10 @@ THREAD_RETURN EmuThread(void *pArg)
 	}
 	else // SingleCore mode
 	{
-#ifdef _WIN32
-		// the spawned CPU Thread is the... CPU thread but it also does the graphics.
-		// the EmuThread is thus an idle thread, which sleeps and wait for the emu to terminate.
-		// Without this extra thread, the video plugin window hangs in single core mode since
-		// noone is pumping messages.
+		// the spawned CPU Thread also does the graphics.  the EmuThread is
+		// thus an idle thread, which sleep wait for the program to terminate.
+		// Without this extra thread, the video plugin window hangs in single
+		// core mode since noone is pumping messages.
 
 		cpuThread = new Common::Thread(CpuThread, pArg);
 		Common::SetCurrentThreadName("Emuthread - Idle");
@@ -452,11 +431,10 @@ THREAD_RETURN EmuThread(void *pArg)
 		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Stopping CPU-GPU thread ...").c_str());
 		cpuRunloopQuit.Wait();
 		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
-#else
-		// On unix platforms, the Emulation main thread IS the CPU & video thread
-		// So there's only one thread, imho, that's much better than on windows :P
-		CpuThread(pArg);
-#endif
+		// On unix platforms, the Emulation main thread IS the CPU & video
+		// thread So there's only one thread, imho, that's much better than on
+		// windows :P
+		//CpuThread(pArg);
 	}
 
 	// We have now exited the Video Loop
@@ -467,26 +445,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	if (cpuThread)
 	{
 		// There is a CPU thread - join it.
-#ifdef _WIN32           
-		DWORD Wait = cpuThread->WaitForDeath(1000);
-		switch(Wait)
-		{
-			case WAIT_ABANDONED:
-				ERROR_LOG(CONSOLE, "%s", StopMessage(true, "CPU wait returned: WAIT_ABANDONED").c_str());
-				break;
-			case WAIT_OBJECT_0:
-				NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "CPU wait returned: WAIT_OBJECT_0").c_str());
-				break;
-			case WAIT_TIMEOUT:
-				ERROR_LOG(CONSOLE, "%s", StopMessage(true, "CPU wait returned: WAIT_TIMEOUT").c_str());
-				break;                          
-			case WAIT_FAILED:
-				ERROR_LOG(CONSOLE, "%s", StopMessage(true, "CPU wait returned: WAIT_FAILED").c_str());
-				break;
-		}
-#else
 		cpuThread->WaitForDeath();
-#endif
 		delete cpuThread;
 		// Returns after game exited
 		cpuThread = NULL;
