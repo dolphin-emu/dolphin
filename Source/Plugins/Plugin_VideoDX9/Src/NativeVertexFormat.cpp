@@ -59,6 +59,9 @@ D3DVertexFormat::~D3DVertexFormat()
 
 D3DDECLTYPE VarToD3D(VarType t, int size)
 {
+	if (t < 0 || t > 4) {
+		PanicAlert("VarToD3D: Invalid VarType %i", t);
+	}
 	static const D3DDECLTYPE lookup1[5] = {
 		D3DDECLTYPE_UNUSED, D3DDECLTYPE_UNUSED, D3DDECLTYPE_UNUSED, D3DDECLTYPE_UNUSED, D3DDECLTYPE_FLOAT1,
 	};
@@ -78,6 +81,7 @@ D3DDECLTYPE VarToD3D(VarType t, int size)
 	case 2: retval = lookup2[t]; break;
 	case 3: retval = lookup3[t]; break;
 	case 4: retval = lookup4[t]; break;
+	default: PanicAlert("VarToD3D: size wrong (%i)", size); break;
 	}
 	if (retval == D3DDECLTYPE_UNUSED) {
 		PanicAlert("VarToD3D: Invalid type/size combo %i , %i", (int)t, size);
@@ -157,6 +161,7 @@ void D3DVertexFormat::Initialize(const PortableVertexDeclaration &_vtx_decl)
 		PanicAlert("Failed to create D3D vertex declaration!");
 		return;
 	}
+	delete [] elems;
 }
 
 void D3DVertexFormat::SetupVertexPointers() const
