@@ -29,6 +29,8 @@
 #define COMPRESSED_BLOB_H_
 
 #include <stdio.h>
+#include <string>
+
 #include "Blob.h"
 
 namespace DiscIO
@@ -56,18 +58,6 @@ struct CompressedBlobHeader // 32 bytes
 
 class CompressedBlobReader : public SectorReader
 {
-private:
-	CompressedBlobHeader header;
-	u64 *block_pointers;
-	u32 *hashes;
-	int data_offset;
-	FILE *file;
-	u64 file_size;
-	u8 *zlib_buffer;
-	int zlib_buffer_size;
-
-	CompressedBlobReader(const char *filename);
-
 public:
 	static CompressedBlobReader* Create(const char *filename);
 	~CompressedBlobReader();
@@ -76,6 +66,18 @@ public:
 	u64 GetRawSize() const { return file_size; }
 	u64 GetBlockCompressedSize(u64 block_num) const;
 	void GetBlock(u64 block_num, u8 *out_ptr);
+private:
+	CompressedBlobReader(const char *filename);
+
+	CompressedBlobHeader header;
+	u64 *block_pointers;
+	u32 *hashes;
+	int data_offset;
+	FILE *file;
+	u64 file_size;
+	u8 *zlib_buffer;
+	int zlib_buffer_size;
+	std::string file_name;
 };
 
 }  // namespace
