@@ -31,16 +31,20 @@ CBannerLoaderGC::CBannerLoaderGC(DiscIO::IFileSystem& _rFileSystem)
 {
 	// load the opening.bnr
 	size_t FileSize = (size_t) _rFileSystem.GetFileSize("opening.bnr");
-
-	if (FileSize > 0)
+	if (FileSize == sizeof(DVDBanner) || FileSize == sizeof(DVDBanner2))
 	{
 		m_pBannerFile = new u8[FileSize];
 		if (m_pBannerFile)
 		{
 			_rFileSystem.ReadFile("opening.bnr", m_pBannerFile, FileSize);
-			m_IsValid = true;
+			m_BNRType = getBannerType();
+			if (m_BNRType == BANNER_UNKNOWN)
+				PanicAlert("Invalid opening.bnr found in gcm:\n%s\n You may need to redump this game.",
+					_rFileSystem.GetVolume()->GetName().c_str());
+			else m_IsValid = true;
 		}
 	}
+	else WARN_LOG(DISCIO, "Invalid opening.bnr size: %0x", FileSize);
 }
 
 
@@ -54,15 +58,13 @@ CBannerLoaderGC::~CBannerLoaderGC()
 }
 
 
-bool
-CBannerLoaderGC::IsValid()
+bool CBannerLoaderGC::IsValid()
 {
 	return m_IsValid;
 }
 
 
-bool
-CBannerLoaderGC::GetBanner(u32* _pBannerImage)
+bool CBannerLoaderGC::GetBanner(u32* _pBannerImage)
 {
 	if (!IsValid())
 	{
@@ -76,8 +78,7 @@ CBannerLoaderGC::GetBanner(u32* _pBannerImage)
 }
 
 
-bool
-CBannerLoaderGC::GetName(std::string _rName[])
+bool CBannerLoaderGC::GetName(std::string _rName[])
 {
 	bool returnCode = false;
 
@@ -87,7 +88,7 @@ CBannerLoaderGC::GetName(std::string _rName[])
 	}
 
 	// find Banner type
-	switch (getBannerType())
+	switch (m_BNRType)
 	{
 	case CBannerLoaderGC::BANNER_BNR1:
 		{
@@ -139,8 +140,7 @@ CBannerLoaderGC::GetName(std::string _rName[])
 }
 
 
-bool
-CBannerLoaderGC::GetCompany(std::string& _rCompany)
+bool CBannerLoaderGC::GetCompany(std::string& _rCompany)
 {
 	_rCompany = "N/A";
 
@@ -157,8 +157,7 @@ CBannerLoaderGC::GetCompany(std::string& _rCompany)
 }
 
 
-bool
-CBannerLoaderGC::GetDescription(std::string* _rDescription)
+bool CBannerLoaderGC::GetDescription(std::string* _rDescription)
 {
 	bool returnCode = false;
 
@@ -168,7 +167,7 @@ CBannerLoaderGC::GetDescription(std::string* _rDescription)
 	}
 
 	// find Banner type
-	switch (getBannerType())
+	switch (m_BNRType)
 	{
 	case CBannerLoaderGC::BANNER_BNR1:
 		{
@@ -202,8 +201,7 @@ CBannerLoaderGC::GetDescription(std::string* _rDescription)
 }
 
 
-void
-CBannerLoaderGC::decode5A3image(u32* dst, u16* src, int width, int height)
+void CBannerLoaderGC::decode5A3image(u32* dst, u16* src, int width, int height)
 {
 	for (int y = 0; y < height; y += 4)
 	{

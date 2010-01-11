@@ -80,6 +80,7 @@ class CBannerLoaderGC
 
 		u8* m_pBannerFile;
 		bool m_IsValid;
+		BANNER_TYPE m_BNRType;
 
 		void decode5A3image(u32* dst, u16* src, int width, int height);
 		BANNER_TYPE getBannerType();

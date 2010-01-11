@@ -252,13 +252,6 @@ EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
 EVT_MENU(IDM_LOGWINDOW, CFrame::OnToggleLogWindow)
 EVT_MENU(IDM_CONSOLEWINDOW, CFrame::OnToggleConsole)
 
-EVT_MENU(IDM_LISTDRIVES, CFrame::GameListChanged)
-EVT_MENU(IDM_LISTWII,	 CFrame::GameListChanged)
-EVT_MENU(IDM_LISTGC,	 CFrame::GameListChanged)
-EVT_MENU(IDM_LISTWAD,	 CFrame::GameListChanged)
-EVT_MENU(IDM_LISTJAP,	 CFrame::GameListChanged)
-EVT_MENU(IDM_LISTPAL,	 CFrame::GameListChanged)
-EVT_MENU(IDM_LISTUSA,	 CFrame::GameListChanged)
 EVT_MENU(IDM_PURGECACHE, CFrame::GameListChanged)
 
 EVT_MENU(IDM_LOADLASTSTATE, CFrame::OnLoadLastState)
@@ -272,6 +265,7 @@ EVT_MENU_RANGE(IDM_SAVESLOT1, IDM_SAVESLOT8, CFrame::OnSaveState)
 EVT_MENU_RANGE(IDM_FRAMESKIP0, IDM_FRAMESKIP9, CFrame::OnFrameSkip)
 EVT_MENU_RANGE(IDM_DRIVE1, IDM_DRIVE24, CFrame::OnBootDrive)
 EVT_MENU_RANGE(IDM_CONNECT_WIIMOTE1, IDM_CONNECT_WIIMOTE4, CFrame::OnConnectWiimote)
+EVT_MENU_RANGE(IDM_LISTWAD, IDM_LISTDRIVES, CFrame::GameListChanged)
 
 // Other
 EVT_ACTIVATE(CFrame::OnActive)
@@ -659,11 +653,19 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		SConfig::GetInstance().m_ListWad) &&
 		(SConfig::GetInstance().m_ListJap &&
 		SConfig::GetInstance().m_ListUsa  &&
-		SConfig::GetInstance().m_ListPal)))
+		SConfig::GetInstance().m_ListPal  &&
+		SConfig::GetInstance().m_ListFrance &&
+		SConfig::GetInstance().m_ListItaly &&
+		SConfig::GetInstance().m_ListKorea &&
+		SConfig::GetInstance().m_ListTaiwan &&
+		SConfig::GetInstance().m_ListUnknown)))
 	{
-		SConfig::GetInstance().m_ListGC  =	SConfig::GetInstance().m_ListWii =
-		SConfig::GetInstance().m_ListWad =	SConfig::GetInstance().m_ListJap =
-		SConfig::GetInstance().m_ListUsa =	SConfig::GetInstance().m_ListPal = true;
+		SConfig::GetInstance().m_ListGC		= SConfig::GetInstance().m_ListWii =
+		SConfig::GetInstance().m_ListWad	= SConfig::GetInstance().m_ListJap =
+		SConfig::GetInstance().m_ListUsa	= SConfig::GetInstance().m_ListPal =
+		SConfig::GetInstance().m_ListFrance	= SConfig::GetInstance().m_ListItaly =
+		SConfig::GetInstance().m_ListKorea	= SConfig::GetInstance().m_ListTaiwan = 
+		SConfig::GetInstance().m_ListUnknown= true;
 
 		GetMenuBar()->FindItem(IDM_LISTGC)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTWII)->Check(true);
@@ -671,6 +673,11 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		GetMenuBar()->FindItem(IDM_LISTJAP)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTUSA)->Check(true);
 		GetMenuBar()->FindItem(IDM_LISTPAL)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTFRANCE)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTITALY)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTKOREA)->Check(true);
+		GetMenuBar()->FindItem(IDM_LISTTAIWAN)->Check(true);
+		GetMenuBar()->FindItem(IDM_LIST_UNK)->Check(true);
 
 		m_GameListCtrl->Update();
 	}			

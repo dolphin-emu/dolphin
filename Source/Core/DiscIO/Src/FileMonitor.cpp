@@ -83,6 +83,7 @@ void ReadGC(std::string FileName)
 	if (!DiscIO::IsVolumeWiiDisc(OpenISO) && !DiscIO::IsVolumeWadFile(OpenISO))
 	{
 		pFileSystem = DiscIO::CreateFileSystem(OpenISO);
+		if(!pFileSystem) return;
 		pFileSystem->GetFileList(GCFiles);
 	}
 	FileAccess = true;

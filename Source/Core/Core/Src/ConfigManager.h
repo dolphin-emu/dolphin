@@ -73,6 +73,7 @@ struct SConfig
 	bool m_InterfaceStatusbar;
 	bool m_InterfaceLogWindow;
 	bool m_InterfaceConsole;
+
 	bool m_ListDrives;
 	bool m_ListWad;
 	bool m_ListWii;
@@ -80,6 +81,11 @@ struct SConfig
 	bool m_ListPal;
 	bool m_ListUsa;
 	bool m_ListJap;
+	bool m_ListFrance;
+	bool m_ListItaly;
+	bool m_ListKorea;
+	bool m_ListTaiwan;
+	bool m_ListUnknown;
 
 	SysConf* m_SYSCONF;
 

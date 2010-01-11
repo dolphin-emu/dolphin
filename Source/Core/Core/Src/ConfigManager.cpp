@@ -92,6 +92,11 @@ void SConfig::SaveSettings()
 		ini.Set("GameList", "ListJap",		m_ListJap);
 		ini.Set("GameList", "ListPal",		m_ListPal);
 		ini.Set("GameList", "ListUsa",		m_ListUsa);
+		ini.Set("GameList", "ListFrance",	m_ListFrance);
+		ini.Set("GameList", "ListItaly",	m_ListItaly);
+		ini.Set("GameList", "ListKorea",	m_ListKorea);
+		ini.Set("GameList", "ListTaiwan",	m_ListTaiwan);
+		ini.Set("GameList", "ListUnknown",	m_ListUnknown);
 
 		// Core
 		ini.Set("Core", "HLE_BS2",			m_LocalCoreStartupParameter.bHLE_BS2);
@@ -201,6 +206,12 @@ void SConfig::LoadSettings()
 		ini.Get("GameList", "ListJap",		&m_ListJap,		true);
 		ini.Get("GameList", "ListPal",		&m_ListPal,		true);
 		ini.Get("GameList", "ListUsa",		&m_ListUsa,		true);
+
+		ini.Get("GameList", "ListFrance",		&m_ListFrance, true);
+		ini.Get("GameList", "ListItaly",		&m_ListItaly, true);
+		ini.Get("GameList", "ListKorea",		&m_ListKorea, true);
+		ini.Get("GameList", "ListTaiwan",		&m_ListTaiwan, true);
+		ini.Get("GameList", "ListUnknown",		&m_ListUnknown, true);
 
 		// Core
 		ini.Get("Core", "HLE_BS2",		&m_LocalCoreStartupParameter.bHLE_BS2,		true);

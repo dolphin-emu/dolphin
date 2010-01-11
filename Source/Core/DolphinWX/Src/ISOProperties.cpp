@@ -98,7 +98,8 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		{
 			GCFiles.clear();
 			pFileSystem = DiscIO::CreateFileSystem(OpenISO);
-			pFileSystem->GetFileList(GCFiles);
+			if (pFileSystem)
+				pFileSystem->GetFileList(GCFiles);
 		}
 	}
 
@@ -193,7 +194,8 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		// TODO : Should we add a way to browse the wad file ?
 		if (!DiscIO::IsVolumeWadFile(OpenISO))
 		{
-			CreateDirectoryTree(RootId, GCFiles, 1, GCFiles.at(0)->m_FileSize);	
+			if (!GCFiles.empty())
+				CreateDirectoryTree(RootId, GCFiles, 1, GCFiles.at(0)->m_FileSize);	
 		}
 	}
 	m_Treectrl->Expand(RootId);
@@ -212,7 +214,8 @@ CISOProperties::~CISOProperties()
 	}
 	else
 		if (!IsVolumeWadFile(OpenISO))
-			delete pFileSystem;
+			if(pFileSystem)
+				delete pFileSystem;
 
 	delete OpenISO;
 }
@@ -672,9 +675,9 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 	// Extraction
 	for (u32 i = index[0]; i < index[1]; i++)
 	{
-		dialog.SetTitle(wxString::Format(_T("%s : %d%%"), (const char *)dialogTitle.mb_str(),
+		dialog.SetTitle(wxString::Format(_T("%s : %d%%"), dialogTitle.c_str(),
 			(u32)(((float)(i - index[0]) / (float)(index[1] - index[0])) * 100)));
-		if (!dialog.Update(i, wxString::Format(_T("Extracting %s"), fst[i]->m_FullPath)))
+		if (!dialog.Update(i, wxString::Format(_T("Extracting %s"), wxString(fst[i]->m_FullPath, *wxConvCurrent).c_str())))
 			break;
 
 		if (fst[i]->IsDirectory())

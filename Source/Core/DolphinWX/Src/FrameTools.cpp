@@ -243,10 +243,19 @@ void CFrame::CreateMenu()
 	regionMenu->Check(IDM_LISTPAL, SConfig::GetInstance().m_ListPal);
 	regionMenu->AppendCheckItem(IDM_LISTUSA, _T("Show USA"));
 	regionMenu->Check(IDM_LISTUSA, SConfig::GetInstance().m_ListUsa);
-
+	regionMenu->AppendSeparator();
+	regionMenu->AppendCheckItem(IDM_LISTFRANCE, _T("Show France"));
+	regionMenu->Check(IDM_LISTFRANCE, SConfig::GetInstance().m_ListFrance);
+	regionMenu->AppendCheckItem(IDM_LISTITALY, _T("Show Italy"));
+	regionMenu->Check(IDM_LISTITALY, SConfig::GetInstance().m_ListItaly);
+	regionMenu->AppendCheckItem(IDM_LISTKOREA, _T("Show Korea"));
+	regionMenu->Check(IDM_LISTKOREA, SConfig::GetInstance().m_ListKorea);
+	regionMenu->AppendCheckItem(IDM_LISTTAIWAN, _T("Show Taiwan"));
+	regionMenu->Check(IDM_LISTTAIWAN, SConfig::GetInstance().m_ListTaiwan);
+	regionMenu->AppendCheckItem(IDM_LIST_UNK, _T("Show unknown"));
+	regionMenu->Check(IDM_LIST_UNK, SConfig::GetInstance().m_ListUnknown);
 	viewMenu->AppendCheckItem(IDM_LISTDRIVES, _T("Show Drives"));
 	viewMenu->Check(IDM_LISTDRIVES, SConfig::GetInstance().m_ListDrives);
-	viewMenu->AppendSeparator();
 	viewMenu->Append(IDM_PURGECACHE, _T("Purge Cache"));
 	m_MenuBar->Append(viewMenu, _T("&View"));	
 
@@ -1065,6 +1074,21 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		break;
 	case IDM_LISTUSA:
 		SConfig::GetInstance().m_ListUsa = event.IsChecked();
+		break;
+	case IDM_LISTFRANCE:
+		SConfig::GetInstance().m_ListFrance = event.IsChecked();
+		break;
+	case IDM_LISTITALY:
+		SConfig::GetInstance().m_ListItaly = event.IsChecked();
+		break;
+	case IDM_LISTKOREA:
+		SConfig::GetInstance().m_ListKorea = event.IsChecked();
+		break;
+	case IDM_LISTTAIWAN:
+		SConfig::GetInstance().m_ListTaiwan = event.IsChecked();
+		break;
+	case IDM_LIST_UNK:
+		SConfig::GetInstance().m_ListUnknown = event.IsChecked();
 		break;
 	case IDM_LISTDRIVES:
 		SConfig::GetInstance().m_ListDrives = event.IsChecked();

@@ -28,6 +28,7 @@
 #include "VolumeWad.h"
 
 #include "Hash.h"
+#include "StringUtil.h"
 
 namespace DiscIO
 {
@@ -103,6 +104,11 @@ IVolume* CreateVolumeFromFilename(const std::string& _rFilename, u32 _PartitionG
 
 		case DISC_TYPE_UNK:
 		default:
+			std::string Filename, ext;
+			SplitPath(_rFilename, NULL, &Filename, &ext);
+			Filename += ext;
+			NOTICE_LOG(DISCIO, "%s does not have the Magic word for a gcm, wiidisc or wad file\n"
+						"Set Log Verbosity to Warning and attempt to load the game again to view the values", Filename.c_str());
 			delete pReader;
 			return NULL;
 	}
@@ -220,6 +226,7 @@ EDiscType GetDiscType(IBlobReader& _rReader)
 			else
 				return(DISC_TYPE_WII_CONTAINER);
 		}
+		WARN_LOG(DISCIO, "Wiidisc magicword not found.\n Offset: 0x18 value: %04x", MagicWord);
 	}
 
 	// check for WAD
@@ -229,6 +236,7 @@ EDiscType GetDiscType(IBlobReader& _rReader)
 		// 0x206962 for boot2 wads
 		if (MagicWord == 0x00204973 || MagicWord == 0x00206962)
 			return(DISC_TYPE_WAD);
+		WARN_LOG(DISCIO, "Wad magicword not found.\n Offset: 0x02 value: %04x", MagicWord);
 	}
 
 	// check for GC
@@ -237,6 +245,7 @@ EDiscType GetDiscType(IBlobReader& _rReader)
 
 		if (MagicWord == 0xC2339F3D)
 			return(DISC_TYPE_GC);
+		WARN_LOG(DISCIO, "GCM magicword not found.\n Offset: 0x1C value: %04x", MagicWord);
 	}
 
 	return DISC_TYPE_UNK;

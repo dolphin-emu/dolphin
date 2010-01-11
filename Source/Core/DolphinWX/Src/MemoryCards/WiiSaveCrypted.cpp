@@ -114,7 +114,7 @@ void CWiiSaveCrypted::Extract()
 
 	sprintf(dir, FULL_WII_USER_DIR "title/%08x/%08x/data/", (u32)(_saveGameTitle>>32), (u32)_saveGameTitle);
 
-	if (!PanicYesNo("Warning! it is advised to backup all files in the folder:\n%s\nDo you wish to continue?", dir))
+	if (!AskYesNo("Warning! it is advised to backup all files in the folder:\n%s\nDo you wish to continue?", dir))
 		return;
 	
 	INFO_LOG(CONSOLE, "%s", dir);
@@ -141,7 +141,7 @@ void CWiiSaveCrypted::Extract()
 	File::Copy(path, tmpPath);
 	//
 
-	if (!File::Exists(path) || PanicYesNo("%s already exists, overwrite?", path))
+	if (!File::Exists(path) || AskYesNo("%s already exists, overwrite?", path))
 	{
 		INFO_LOG(CONSOLE, "creating file %s", path);
 		outFileP = fopen(path, "wb");
@@ -199,7 +199,7 @@ void CWiiSaveCrypted::Extract()
 				sprintf(tmpPath, "%s.bak", path); 
 				File::Copy(path, tmpPath);
 				//
-				if (!File::Exists(path) || PanicYesNo("%s already exists, overwrite?", path))
+				if (!File::Exists(path) || AskYesNo("%s already exists, overwrite?", path))
 				{
 					INFO_LOG(CONSOLE, "creating file %s", path);
 	

@@ -83,6 +83,8 @@ u64 CFileSystemGCWii::ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _Max
 	if (pFileInfo->m_FileSize > _MaxBufferSize)
 		return 0;
 
+	DEBUG_LOG(DISCIO, "Filename: %s. Offset: %0x. Size: %0x",_rFullPath,  pFileInfo->m_Offset, pFileInfo->m_FileSize);
+
 	m_rVolume->Read(pFileInfo->m_Offset, pFileInfo->m_FileSize, _pBuffer);
 	return pFileInfo->m_FileSize;
 }
