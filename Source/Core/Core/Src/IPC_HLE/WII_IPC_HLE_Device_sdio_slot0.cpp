@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "../ConfigManager.h"
 
 #include "SDCardUtil.h"
 
@@ -28,7 +29,7 @@
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 	, m_Card(NULL)
-	, m_Status(CARD_INSERTED)
+	, m_Status(CARD_NOT_EXIST)
 	, m_BlockLength(0)
 	, m_BusWidth(0)
 {}
@@ -165,6 +166,10 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		break;
 
 	case IOCTL_GETSTATUS:
+		if (SConfig::GetInstance().m_WiiSDCard)
+			m_Status |= CARD_INSERTED;
+		else
+			m_Status = CARD_NOT_EXIST;
 		INFO_LOG(WII_IPC_SD, "IOCTL_GETSTATUS. Replying that SD card is %s%s",
 			(m_Status & CARD_INSERTED) ? "inserted" : "not exitsting",
 			(m_Status & CARD_INITIALIZED) ? " and initialized" : "");

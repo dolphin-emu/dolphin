@@ -41,7 +41,11 @@ enum INTERFACE_LANGUAGE
 
 struct SConfig
 {
-	//DSP HLE Audio fix
+	// Wii Devices
+	bool m_WiiSDCard;
+	bool m_WiiKeyboard;
+
+	// DSP HLE Audio fix
 	bool m_EnableRE0Fix;
 
 	// hard coded default plugins ...

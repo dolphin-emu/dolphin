@@ -88,6 +88,8 @@ EVT_CHECKBOX(ID_WII_IPL_PGS, CConfigMain::WiiSettingsChanged)
 EVT_CHECKBOX(ID_WII_IPL_E60, CConfigMain::WiiSettingsChanged)
 EVT_CHOICE(ID_WII_IPL_AR, CConfigMain::WiiSettingsChanged)
 EVT_CHOICE(ID_WII_IPL_LNG, CConfigMain::WiiSettingsChanged)
+EVT_CHECKBOX(ID_WII_SD_CARD, CConfigMain::WiiSettingsChanged)
+EVT_CHECKBOX(ID_WII_KEYBOARD, CConfigMain::WiiSettingsChanged)
 
 EVT_LISTBOX(ID_ISOPATHS, CConfigMain::ISOPathsSelectionChanged)
 EVT_BUTTON(ID_ADDISOPATH, CConfigMain::AddRemoveISOPaths)
@@ -146,7 +148,12 @@ void CConfigMain::UpdateGUI()
 		
 		GCSystemLang->Disable();
 		
-		WiiPage->Disable();
+		WiiSensBarPos->Disable();
+		WiiScreenSaver->Disable();
+		WiiProgressiveScan->Disable();
+		WiiEuRGB60->Disable();
+		WiiAspectRatio->Disable();
+		WiiSystemLang->Disable();
 
 		PathsPage->Disable();
 
@@ -478,6 +485,15 @@ void CConfigMain::CreateGUIControls()
 	WiiSystemLang = new wxChoice(WiiPage, ID_WII_IPL_LNG, wxDefaultPosition, wxDefaultSize, arrayStringFor_WiiSystemLang, 0, wxDefaultValidator);
 	WiiSystemLang->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG"));
 
+	// Devices
+	sbWiiDeviceSettings = new wxStaticBoxSizer(wxVERTICAL, WiiPage, wxT("Device Settings"));
+
+	WiiSDCard = new wxCheckBox(WiiPage, ID_WII_SD_CARD, wxT("Insert SD Card"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiiSDCard->SetValue(SConfig::GetInstance().m_WiiSDCard);
+	WiiKeyboard = new wxCheckBox(WiiPage, ID_WII_KEYBOARD, wxT("Connect USB Keyboard"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	WiiKeyboard->SetToolTip(wxT("This could cause slow down in Wii Menu and some games."));
+	WiiKeyboard->SetValue(SConfig::GetInstance().m_WiiKeyboard);
+
 	// Populate sbWiimoteSettings
 	sWii = new wxBoxSizer(wxVERTICAL);
 	sWiimoteSettings = new wxGridBagSizer(0, 0);
@@ -496,6 +512,10 @@ void CConfigMain::CreateGUIControls()
 	sWiiIPLSettings->Add(WiiSystemLang, wxGBPosition(4, 1), wxGBSpan(1, 1), wxALL, 5);
 	sbWiiIPLSettings->Add(sWiiIPLSettings);
 	sWii->Add(sbWiiIPLSettings, 0, wxEXPAND|wxALL, 5);
+
+	sbWiiDeviceSettings->Add(WiiSDCard, 0, wxALL, 5);
+	sbWiiDeviceSettings->Add(WiiKeyboard, 0, wxALL, 5);
+	sWii->Add(sbWiiDeviceSettings, 0, wxEXPAND|wxALL, 5);
 	WiiPage->SetSizer(sWii);
 	sWii->Layout();
 
@@ -858,6 +878,12 @@ void CConfigMain::WiiSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_WII_IPL_E60:
 		SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", WiiEuRGB60->IsChecked());
+		break;
+	case ID_WII_SD_CARD:
+		SConfig::GetInstance().m_WiiSDCard = WiiSDCard->IsChecked();
+		break;
+	case ID_WII_KEYBOARD:
+		SConfig::GetInstance().m_WiiKeyboard = WiiKeyboard->IsChecked();
 		break;
 	}
 }

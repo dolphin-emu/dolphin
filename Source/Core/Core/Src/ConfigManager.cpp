@@ -123,6 +123,8 @@ void SConfig::SaveSettings()
 			ini.Set("Core", sidevicenum,	m_SIDevice[i]);
 		}
 
+		ini.Set("Core", "WiiSDCard", m_WiiSDCard);
+		ini.Set("Core", "WiiKeyboard", m_WiiKeyboard);
 		ini.Set("Core", "RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
 		ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
 		ini.Set("Core", "FrameLimit",		m_Framelimit);
@@ -131,7 +133,7 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "GFXPlugin",	m_LocalCoreStartupParameter.m_strVideoPlugin);
 		ini.Set("Core", "DSPPlugin",	m_LocalCoreStartupParameter.m_strDSPPlugin);
 		ini.Set("Core", "PadPlugin",	m_LocalCoreStartupParameter.m_strPadPlugin[0]);
-		ini.Set("Core", "WiiMote1Plugin",m_LocalCoreStartupParameter.m_strWiimotePlugin[0]);
+		ini.Set("Core", "WiiMotePlugin",m_LocalCoreStartupParameter.m_strWiimotePlugin[0]);
 	}
 
 #if defined(__APPLE__)
@@ -239,6 +241,8 @@ void SConfig::LoadSettings()
 			ini.Get("Core", sidevicenum,	(u32*)&m_SIDevice[i], i==0 ? SI_GC_CONTROLLER:SI_NONE);
 		}
 
+		ini.Get("Core", "WiiSDCard", &m_WiiSDCard, false);
+		ini.Get("Core", "WiiKeyboard", &m_WiiKeyboard, false);
 		ini.Get("Core", "RunCompareServer",	&m_LocalCoreStartupParameter.bRunCompareServer,	false);
 		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
@@ -248,7 +252,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin,	m_DefaultGFXPlugin.c_str());
 		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin,		m_DefaultDSPPlugin.c_str());
 		ini.Get("Core", "PadPlugin", &m_LocalCoreStartupParameter.m_strPadPlugin[0], m_DefaultPADPlugin.c_str());
-		ini.Get("Core", "WiiMote1Plugin", &m_LocalCoreStartupParameter.m_strWiimotePlugin[0], m_DefaultWiiMotePlugin.c_str());
+		ini.Get("Core", "WiiMotePlugin", &m_LocalCoreStartupParameter.m_strWiimotePlugin[0], m_DefaultWiiMotePlugin.c_str());
 	}
 
 	m_SYSCONF = new SysConf();

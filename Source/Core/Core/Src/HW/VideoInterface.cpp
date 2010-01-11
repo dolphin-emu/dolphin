@@ -715,21 +715,21 @@ void UpdateParameters()
     switch (m_DisplayControlRegister.FMT)
     {
     case 0: // NTSC
-    case 2: // PAL-M  // AyuanX: LineCount doesn't look right for PAL-M
+    case 2: // PAL-M
 		TargetRefreshRate = NTSC_FIELD_RATE;
-        TicksPerFrame = SystemTimers::GetTicksPerSecond() / NTSC_FIELD_RATE;
+		TicksPerFrame = SystemTimers::GetTicksPerSecond() / NTSC_FIELD_RATE;
 		s_lineCount = m_DisplayControlRegister.NIN ? NTSC_LINE_COUNT : (NTSC_LINE_COUNT+1)/2;
 		//s_upperFieldBegin = NTSC_UPPER_BEGIN;
 		//s_lowerFieldBegin = NTSC_LOWER_BEGIN;
-        break;
+		break;
 
     case 1: // PAL
 		TargetRefreshRate = PAL_FIELD_RATE;
-        TicksPerFrame = SystemTimers::GetTicksPerSecond() / PAL_FIELD_RATE;
+		TicksPerFrame = SystemTimers::GetTicksPerSecond() / PAL_FIELD_RATE;
 		s_lineCount = m_DisplayControlRegister.NIN ? PAL_LINE_COUNT : (PAL_LINE_COUNT+1)/2;
 		//s_upperFieldBegin = PAL_UPPER_BEGIN;
 		//s_lowerFieldBegin = PAL_LOWER_BEGIN;
-        break;
+		break;
 
 	case 3: // Debug
 		PanicAlert("Debug video mode not implemented");
@@ -804,7 +804,7 @@ void Update()
 	else
 	{
 		// Interlace Lower
-        NewVBeamPos = s_lineCount;
+		NewVBeamPos = s_lineCount;
 		BeginField(FIELD_LOWER);
 	}
 

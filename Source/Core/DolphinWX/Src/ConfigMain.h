@@ -87,6 +87,7 @@ private:
 	wxGridBagSizer* sWiimoteSettings;
 	wxStaticBoxSizer* sbWiiIPLSettings;
 	wxGridBagSizer* sWiiIPLSettings;
+	wxStaticBoxSizer* sbWiiDeviceSettings;
 	wxBoxSizer* sPaths;
 	wxStaticBoxSizer* sbISOPaths;		
 	wxBoxSizer* sISOButtons;
@@ -121,6 +122,8 @@ private:
 	wxArrayString arrayStringFor_WiiSystemLang;
 	wxStaticText* WiiSystemLangText;
 	wxChoice* WiiSystemLang;
+	wxCheckBox* WiiSDCard;
+	wxCheckBox* WiiKeyboard;
 
 	wxArrayString arrayStringFor_ISOPaths;
 	wxListBox* ISOPaths;
@@ -199,6 +202,8 @@ private:
 		ID_WII_IPL_AR,
 		ID_WII_IPL_LNG_TEXT,
 		ID_WII_IPL_LNG,
+		ID_WII_SD_CARD,
+		ID_WII_KEYBOARD,
 
 		ID_ISOPATHS,
 		ID_ADDISOPATH,

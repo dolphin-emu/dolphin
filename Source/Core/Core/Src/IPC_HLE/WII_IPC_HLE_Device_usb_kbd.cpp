@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include "../ConfigManager.h"
 #include "../Core.h" // Local core functions
 #include "WII_IPC_HLE_Device_usb.h"
 #include "WII_IPC_HLE_Device_usb_kbd.h"
@@ -29,8 +30,7 @@ CWII_IPC_HLE_Device_usb_kbd::~CWII_IPC_HLE_Device_usb_kbd()
 
 bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 {
-    Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
-
+	INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Open");
 	IniFile ini;
 	ini.Load(CONFIG_FILE);
 	ini.Get("USB Keyboard", "Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
@@ -39,7 +39,8 @@ bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 		m_OldKeyBuffer[i] = false;
 	m_OldModifiers = 0x00;
 
-	m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, NULL));
+	//m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, NULL));
+	Memory::Write_U32(m_DeviceID, _CommandAddress+4);
 	m_Active = true;
     return true;
 }
@@ -47,6 +48,8 @@ bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 bool CWII_IPC_HLE_Device_usb_kbd::Close(u32 _CommandAddress, bool _bForce)
 {
     INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Close");
+	while (!m_MessageQueue.empty())
+		m_MessageQueue.pop();
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
@@ -55,8 +58,10 @@ bool CWII_IPC_HLE_Device_usb_kbd::Close(u32 _CommandAddress, bool _bForce)
 
 bool CWII_IPC_HLE_Device_usb_kbd::Write(u32 _CommandAddress)
 {
-	WARN_LOG(WII_IPC_STM, "Ignoring write to CWII_IPC_HLE_Device_usb_kbd");
+	INFO_LOG(WII_IPC_STM, "Ignoring write to CWII_IPC_HLE_Device_usb_kbd");
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	DumpCommands(_CommandAddress, 10, LogTypes::WII_IPC_STM, LogTypes::LDEBUG);
+#endif
 	return true;
 }
 
@@ -68,7 +73,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
     u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
     u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 
-	if (!m_MessageQueue.empty())
+	if (SConfig::GetInstance().m_WiiKeyboard && !m_MessageQueue.empty())
 	{
 		*(SMessageData*)Memory::GetPointer(BufferOut) = m_MessageQueue.front();
 		m_MessageQueue.pop();
@@ -93,6 +98,9 @@ bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
 
 u32 CWII_IPC_HLE_Device_usb_kbd::Update()
 {
+	if (!SConfig::GetInstance().m_WiiKeyboard || !m_Active)
+		return false;
+
 	u8 Modifiers = 0x00;
 	u8 PressedKeys[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 	bool GotEvent = false;
