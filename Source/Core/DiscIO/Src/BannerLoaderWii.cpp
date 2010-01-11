@@ -116,21 +116,33 @@ bool CBannerLoaderWii::IsValid()
 	return m_IsValid;
 }
 
+static inline u32 Average32(u32 a, u32 b) {
+	return ((a >> 1) & 0x7f7f7f7f) + ((b >> 1) & 0x7f7f7f7f);
+}
+
+static inline u32 GetPixel(u32 *buffer, unsigned int x, unsigned int y) {
+	// thanks to unsignedness, these also check for <0 automatically.
+	if (x > 191) return 0;
+	if (y > 63) return 0;
+	return buffer[y * 192 + x];
+}
+
 bool CBannerLoaderWii::GetBanner(u32* _pBannerImage)
 {
 	if (IsValid())
 	{
 		SWiiBanner* pBanner = (SWiiBanner*)m_pBannerFile;
-
 		u32* Buffer = new u32[192 * 64];
 		decode5A3image(Buffer, (u16*)pBanner->m_BannerTexture, 192, 64);
-
-		// ugly scaling :) TODO: at least a 2x2 box filter, preferably a 3x3 gaussian :)
 		for (int y = 0; y < 32; y++)
 		{
 			for (int x = 0; x < 96; x++)
 			{
-				_pBannerImage[y*96+x] = Buffer[(y*192*2) + (x*2)];
+				// simplified plus-shaped "gaussian"
+				u32 surround = Average32(
+					Average32(GetPixel(Buffer, x*2 - 1, y*2), GetPixel(Buffer, x*2 + 1, y*2)),
+					Average32(GetPixel(Buffer, x*2, y*2 - 1), GetPixel(Buffer, x*2, y*2 + 1)));
+				_pBannerImage[y * 96 + x] = Average32(GetPixel(Buffer, x*2, y*2), surround);
 			}
 		}
 		delete[] Buffer;
