@@ -109,7 +109,7 @@ void TransformNormal(const InputVertexData *src, bool nbt, OutputVertexData *dst
     }    
 }
 
-inline void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, const InputVertexData *srcVertex, OutputVertexData *dstVertex)
+inline void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bool specialCase, const InputVertexData *srcVertex, OutputVertexData *dstVertex)
 {
     const float *src;
     switch (texinfo.sourcerow)
@@ -150,23 +150,39 @@ inline void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, co
 
         // normalize
         const PostMtxInfo &postInfo = xfregs.postMtxInfo[coordNum];
-        if (postInfo.normalize)
-        {
-            float length = sqrtf(dst[0] * dst[0] + dst[1] * dst[1] + dst[2] * dst[2]);
-            float invL = 1.0f / length;
-            tempCoord[0] = invL * dst[0];
-            tempCoord[1] = invL * dst[1];
-            tempCoord[2] = invL * dst[2];
-        }
-        else
-        {
-            tempCoord[0] = dst[0];
-            tempCoord[1] = dst[1];
-            tempCoord[2] = dst[2];
-        }
+		const float *postMat = (const float*)&xfregs.postMatrices[postInfo.index * 4];
 
-        const float *postMat = (const float*)&xfregs.postMatrices[postInfo.index * 4];
-        MultiplyVec3Mat34(tempCoord, postMat, dst);        
+		if (specialCase)
+		{
+			// no normalization
+			// q of input is 1
+			// q of output is unknown
+			tempCoord[0] = dst[0];
+			tempCoord[1] = dst[1];
+
+			dst[0] = postMat[0] * tempCoord[0] + postMat[1] * tempCoord[1] + postMat[2] + postMat[3];
+			dst[1] = postMat[4] * tempCoord[0] + postMat[5] * tempCoord[1] + postMat[6] + postMat[7];
+			dst[2] = 0.0f;
+		}
+		else
+		{		
+			if (postInfo.normalize)
+			{
+				float length = sqrtf(dst[0] * dst[0] + dst[1] * dst[1] + dst[2] * dst[2]);
+				float invL = 1.0f / length;
+				tempCoord[0] = invL * dst[0];
+				tempCoord[1] = invL * dst[1];
+				tempCoord[2] = invL * dst[2];
+			}
+			else
+			{
+				tempCoord[0] = dst[0];
+				tempCoord[1] = dst[1];
+				tempCoord[2] = dst[2];
+			}
+
+			MultiplyVec3Mat34(tempCoord, postMat, dst);
+		}
     }
 }
 
@@ -443,7 +459,7 @@ void TransformColor(const InputVertexData *src, OutputVertexData *dst)
     }
 }
 
-void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst)
+void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool specialCase)
 {
     for (u32 coordNum = 0; coordNum < xfregs.numTexGens; coordNum++)
     {
@@ -452,7 +468,7 @@ void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst)
         switch (texinfo.texgentype)
         {
         case XF_TEXGEN_REGULAR:
-            TransformTexCoordRegular(texinfo, coordNum, src, dst);
+            TransformTexCoordRegular(texinfo, coordNum, specialCase, src, dst);
             break;
         case XF_TEXGEN_EMBOSS_MAP:
             {

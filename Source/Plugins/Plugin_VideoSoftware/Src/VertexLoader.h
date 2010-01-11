@@ -61,6 +61,8 @@ class VertexLoader
 
     SetupUnit *m_SetupUnit;
 
+	bool m_TexGenSpecialCase;
+
 public:
     VertexLoader();
     ~VertexLoader();

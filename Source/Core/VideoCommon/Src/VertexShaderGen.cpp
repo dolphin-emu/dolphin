@@ -22,6 +22,7 @@
 #include "NativeVertexFormat.h"
 
 #include "BPMemory.h"
+#include "CPMemory.h"
 #include "VertexShaderGen.h"
 
 VERTEXSHADERUID  last_vertex_shader_uid;
@@ -323,6 +324,12 @@ const char *GenerateVertexShader(u32 components, bool D3D)
     for (int i = xfregs.nNumChans; i < 2; ++i)
 		WRITE(p, "o.colors[%d] = float4(0.0f,0.0f,0.0f,0.0f);\n", i);
 
+	// special case if only pos and tex coord 0 and tex coord input is AB11	
+	bool texGenSpecialCase =
+		((g_VtxDesc.Hex & 0x60600L) == g_VtxDesc.Hex) && // only pos and tex coord 0
+		(g_VtxDesc.Tex0Coord != NOT_PRESENT) &&
+		(xfregs.texcoords[0].texmtxinfo.inputform == XF_TEXINPUT_AB11);
+
     // transform texcoords
     for (int i = 0; i < xfregs.numTexGens; ++i) {
         TexMtxInfo& texinfo = xfregs.texcoords[i].texmtxinfo;
@@ -404,16 +411,27 @@ const char *GenerateVertexShader(u32 components, bool D3D)
         }
 
         if(xfregs.bEnableDualTexTransform && texinfo.texgentype == XF_TEXGEN_REGULAR) { // only works for regular tex gen types?
-            if (xfregs.texcoords[i].postmtxinfo.normalize)
-                WRITE(p, "o.tex%d.xyz = normalize(o.tex%d.xyz);\n", i, i);
+			int postidx = xfregs.texcoords[i].postmtxinfo.index;
+			WRITE(p, "float4 P0 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n"
+				"float4 P1 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n"
+				"float4 P2 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n",
+				postidx&0x3f, (postidx+1)&0x3f, (postidx+2)&0x3f);
 
-            //multiply by postmatrix
-            int postidx = xfregs.texcoords[i].postmtxinfo.index;
-            WRITE(p, "float4 P0 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n"
-                "float4 P1 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n"
-                "float4 P2 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n",
-                postidx&0x3f, (postidx+1)&0x3f, (postidx+2)&0x3f);
-            WRITE(p, "o.tex%d.xyz = float3(dot(P0.xyz, o.tex%d.xyz) + P0.w, dot(P1.xyz, o.tex%d.xyz) + P1.w, dot(P2.xyz, o.tex%d.xyz) + P2.w);\n", i, i, i, i);
+			if (texGenSpecialCase) {
+				// no normalization
+				// q of input is 1
+				// q of output is unknown
+
+				//multiply by postmatrix				
+				WRITE(p, "o.tex%d.xyz = float3(dot(P0.xy, o.tex%d.xy) + P0.z + P0.w, dot(P1.xy, o.tex%d.xy) + P1.z + P1.w, 0.0f);\n", i, i, i);
+			}
+			else {
+				if (xfregs.texcoords[i].postmtxinfo.normalize)
+					WRITE(p, "o.tex%d.xyz = normalize(o.tex%d.xyz);\n", i, i);
+
+				//multiply by postmatrix				
+				WRITE(p, "o.tex%d.xyz = float3(dot(P0.xyz, o.tex%d.xyz) + P0.w, dot(P1.xyz, o.tex%d.xyz) + P1.w, dot(P2.xyz, o.tex%d.xyz) + P2.w);\n", i, i, i, i);
+			}
         }
 
         WRITE(p, "}\n");

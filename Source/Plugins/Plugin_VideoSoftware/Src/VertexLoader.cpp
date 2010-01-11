@@ -320,6 +320,13 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 		}
     }
 
+	// special case if only pos and tex coord 0 and tex coord input is AB11
+	m_TexGenSpecialCase =
+		((g_VtxDesc.Hex & 0x60600L) == g_VtxDesc.Hex) && // only pos and tex coord 0
+		(g_VtxDesc.Tex0Coord != NOT_PRESENT) &&
+		(xfregs.texMtxInfo[0].inputform == XF_TEXINPUT_AB11);
+
+
     m_SetupUnit->Init(primitiveType);
 }
 
@@ -341,7 +348,7 @@ void VertexLoader::LoadVertex()
 
     TransformUnit::TransformColor(&m_Vertex, outVertex);
 
-    TransformUnit::TransformTexCoord(&m_Vertex, outVertex);
+    TransformUnit::TransformTexCoord(&m_Vertex, outVertex, m_TexGenSpecialCase);
 
     m_SetupUnit->SetupVertex();
 
