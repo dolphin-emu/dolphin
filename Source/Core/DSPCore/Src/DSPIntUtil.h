@@ -140,6 +140,21 @@ inline void dsp_op_write_reg(int reg, u16 val)
 		g_dsp.r[reg] = (u16)(s16)(s8)(u8)val;
 		break;
 
+	case DSP_REG_ACM0:
+	case DSP_REG_ACM1:
+		g_dsp.r[reg] = val;
+		// Enabling the below sign extension code breaks things.
+		// There's probably some condition that enable it, maybe one of 
+		// the status flags like M2.
+		// Or maybe it only happens when this call is a result of 'l and similar extended opcodes.
+		
+		// Sign extend the loaded register. ACM0
+		// g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACH0] = ((s16)val < 0 ? 0xFFFF : 0);
+		// g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACL0] = 0;  // ?
+		break;
+
+		// There might also be something similar for AX.L but I'm not at all sure about that.
+
 	// Stack registers.
 	case DSP_REG_ST0:
 	case DSP_REG_ST1:
