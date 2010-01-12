@@ -283,7 +283,7 @@ void Flush()
 
 	int stride = g_nativeVertexFmt->GetVertexStride();
 	g_nativeVertexFmt->SetupVertexPointers();
-
+	
 	Draw(stride);
 
 	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
@@ -296,19 +296,13 @@ void Flush()
 		}
 
 		// update alpha only
-		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
-		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, false);
-
+		D3D::dev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
+		D3D::dev->SetRenderState(D3DRS_ALPHABLENDENABLE, false);
+		
 		Draw(stride);
 
-		if (bpmem.blendmode.alphaupdate) 
-			write = D3DCOLORWRITEENABLE_ALPHA;
-		if (bpmem.blendmode.colorupdate) 
-			write |= D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
-		if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract)
-			D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, true);
-
-		D3D::SetRenderState(D3DRS_COLORWRITEENABLE, write);
+		D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
+		D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);		
 	}
 	DEBUGGER_PAUSE_AT(NEXT_FLUSH,true);
 

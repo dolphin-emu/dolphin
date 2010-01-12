@@ -331,6 +331,7 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 		(xfregs.texcoords[0].texmtxinfo.inputform == XF_TEXINPUT_AB11);
 
     // transform texcoords
+	WRITE(p, "float4 coord = float4(0.0f,0.0f,1.0f,1.0f);\n"); 
     for (int i = 0; i < xfregs.numTexGens; ++i) {
         TexMtxInfo& texinfo = xfregs.texcoords[i].texmtxinfo;
 
@@ -338,14 +339,13 @@ const char *GenerateVertexShader(u32 components, bool D3D)
         switch (texinfo.sourcerow) {
         case XF_SRCGEOM_INROW:
             _assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
-            WRITE(p, "float4 coord = rawpos;\n"); // pos.w is 1
+            WRITE(p, "coord = rawpos;\n"); // pos.w is 1
             break;
         case XF_SRCNORMAL_INROW:
             if (components & VB_HAS_NRM0) {
                 _assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
-                WRITE(p, "float4 coord = float4(rawnorm0.xyz, 1.0f);\n");
-            }
-            else WRITE(p, "float4 coord = float4(0.0f, 0.0f, 1.0f, 1.0f);\n");  // avoid errors
+                WRITE(p, "coord = float4(rawnorm0.xyz, 1.0f);\n");
+            }            
             break;
         case XF_SRCCOLORS_INROW:
             _assert_( texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC0 || texinfo.texgentype == XF_TEXGEN_COLOR_STRGBC1 );
@@ -353,23 +353,19 @@ const char *GenerateVertexShader(u32 components, bool D3D)
         case XF_SRCBINORMAL_T_INROW:
             if (components & VB_HAS_NRM1) {
                 _assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
-                WRITE(p, "float4 coord = float4(rawnorm1.xyz, 1.0f);\n");
-            }
-            else WRITE(p, "float4 coord = float4(0.0f, 0.0f, 1.0f, 1.0f);\n");  // avoid errors
+                WRITE(p, "coord = float4(rawnorm1.xyz, 1.0f);\n");
+            }            
             break;
         case XF_SRCBINORMAL_B_INROW:
             if (components & VB_HAS_NRM2) {
                 _assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
-                WRITE(p, "float4 coord = float4(rawnorm2.xyz, 1.0f);\n");
-            }
-            else WRITE(p, "float4 coord = float4(0.0f, 0.0f, 1.0f, 1.0f);\n");  // avoid errors
+                WRITE(p, "coord = float4(rawnorm2.xyz, 1.0f);\n");
+            }            
             break;
         default:
             _assert_(texinfo.sourcerow <= XF_SRCTEX7_INROW);
             if (components & (VB_HAS_UV0<<(texinfo.sourcerow - XF_SRCTEX0_INROW)) )
-                WRITE(p, "float4 coord = float4(tex%d.x, tex%d.y, 1.0f, 1.0f);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);
-            else
-                WRITE(p, "float4 coord = float4(0.0f, 0.0f, 1.0f, 1.0f);\n");  // avoid errors
+                WRITE(p, "coord = float4(tex%d.x, tex%d.y, 1.0f, 1.0f);\n", texinfo.sourcerow - XF_SRCTEX0_INROW, texinfo.sourcerow - XF_SRCTEX0_INROW);            
             break;
         }
 
@@ -497,7 +493,7 @@ char* GenerateLightShader(char* p, int index, const LitChannel& chan, const char
             WRITE(p, "attn = max(0.0f, dot("I_LIGHTS".lights[%d].cosatt.xyz, float3(1.0f, attn, attn*attn))) / dot("I_LIGHTS".lights[%d].distatt.xyz, float3(1.0f,dist,dist2));\n", index, index);
         }
         else if (chan.attnfunc == 1) { // specular
-            WRITE(p, "attn = dot(_norm0, "I_LIGHTS".lights[%d].pos.xyz) > 0.0f ? max(0.0f, dot(_norm0, "I_LIGHTS".lights[%d].dir.xyz)) : 0.0f;\n", index, index);
+            WRITE(p, "attn = (dot(_norm0, "I_LIGHTS".lights[%d].pos.xyz) > 0.0f) ? max(0.0f, dot(_norm0, "I_LIGHTS".lights[%d].dir.xyz)) : 0.0f;\n", index, index);
             WRITE(p, "ldir = float3(1,attn,attn*attn);\n");
             WRITE(p, "attn = max(0.0f, dot("I_LIGHTS".lights[%d].cosatt.xyz, ldir)) / dot("I_LIGHTS".lights[%d].distatt.xyz, ldir);\n", index, index);
         }

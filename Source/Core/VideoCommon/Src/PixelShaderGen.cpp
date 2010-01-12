@@ -481,15 +481,23 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, u32 HLSL)
             "  float3 tevcoord;\n"
             "  float2 wrappedcoord, tempcoord;\n\n");
 
-    for (int i = 0; i < numTexgen; ++i) 
+	// HACK to handle cases where the tex gen is not enabled
+    if (numTexgen == 0)
 	{
-        // optional perspective divides
-        if (xfregs.texcoords[i].texmtxinfo.projection == XF_TEXPROJ_STQ)
-            WRITE(p, "uv%d.xy = uv%d.xy/uv%d.z;\n", i, i, i);
+        WRITE(p, "float3 uv0 = float3(0.0f,0.0f,0.0f);\n");
+	}
+	else
+	{
+		for (int i = 0; i < numTexgen; ++i) 
+		{
+			// optional perspective divides
+			if (xfregs.texcoords[i].texmtxinfo.projection == XF_TEXPROJ_STQ)
+				WRITE(p, "uv%d.xy = uv%d.xy/uv%d.z;\n", i, i, i);
 
-        // scale texture coordinates
-        WRITE(p, "uv%d.xy = uv%d.xy * "I_TEXDIMS"[%d].zw;\n", i, i, i);        
-    }
+			// scale texture coordinates
+			WRITE(p, "uv%d.xy = uv%d.xy * "I_TEXDIMS"[%d].zw;\n", i, i, i);        
+		}
+	}
 
     // indirect texture map lookup
     for(u32 i = 0; i < bpmem.genMode.numindstages; ++i) 
@@ -509,38 +517,13 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, u32 HLSL)
         }
     }
 
-    // HACK to handle cases where the tex gen is not enabled
-    if (numTexgen == 0)
-        WRITE(p, "float3 uv0 = float3(0.0f,0.0f,0.0f);\n");
-
-    for (int i = 0; i < numStages; i++)
-        WriteStage(p, i, texture_mask,HLSL); //build the equation for this stage
-
-	if (numTexgen >= 7)
-		WRITE(p, "float4 clipPos = float4(uv0.w, uv1.w, uv2.w, uv3.w);\n");
-
-	// the screen space depth value = far z + (clip z / clip w) * z range
-	WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
-
-    if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)
-    {
-        // use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
-        if (bpmem.ztex2.op == ZTEXTURE_ADD)
-            WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord;\n");
-        else
-            WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w;\n");
-
-        // scale to make result from frac correct
-        WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
-        WRITE(p, "zCoord = frac(zCoord);\n");
-        WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
-    }
     
-    WRITE(p, "depth = zCoord;\n");
+
+	for (int i = 0; i < numStages; i++)
+        WriteStage(p, i, texture_mask,HLSL); //build the equation for this stage
 	WRITE(p, "prev = saturate(prev);\n");
-
-    //if (bpmem.genMode.numindstages ) WRITE(p, "prev.rg = indtex0.xy;\nprev.b = 0;\n");
-
+	
+		
     if (!WriteAlphaTest(p, HLSL))
 	{
         // alpha test will always fail, so restart the shader and just make it an empty function
@@ -550,8 +533,30 @@ const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, u32 HLSL)
     }
     else
 	{
-        if (dstAlphaEnable) 
-            WRITE(p, "  ocol0 = float4(prev.rgb,"I_ALPHA"[0].w);\n");
+		if (numTexgen >= 7)
+			WRITE(p, "float4 clipPos = float4(uv0.w, uv1.w, uv2.w, uv3.w);\n");
+
+		// the screen space depth value = far z + (clip z / clip w) * z range
+		WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
+
+		if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)
+		{
+			// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
+			if (bpmem.ztex2.op == ZTEXTURE_ADD)
+				WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w + zCoord;\n");
+			else
+				WRITE(p, "zCoord = dot("I_ZBIAS"[0].xyzw, textemp.xyzw) + "I_ZBIAS"[1].w;\n");
+
+			// scale to make result from frac correct
+			WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
+			WRITE(p, "zCoord = frac(zCoord);\n");
+			WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
+		}
+	    
+		WRITE(p, "depth = zCoord;\n");
+        
+		if (dstAlphaEnable) 
+            WRITE(p, "  ocol0 = float4(prev.rgb,"I_ALPHA"[0].a);\n");
 		else
 		{
             WriteFog(p);
@@ -581,14 +586,14 @@ static const char *TEVCMPColorOPTable[16] =
 	"float3(0.0f,0.0f,0.0f)",//5
 	"float3(0.0f,0.0f,0.0f)",//6
 	"float3(0.0f,0.0f,0.0f)",//7
-	"   %s + ((%s.r > %s.r + (1.0f/510.0f)) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_R8_GT 8
-	"   %s + ((abs(%s.r - %s.r) < (1.0f/255.0f)) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_R8_EQ 9
-	"   %s + (( dot(%s.rgb, comp16) > (dot(%s.rgb, comp16) + (1.0f/510.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_GR16_GT 10
-	"   %s + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (1.0f/255.0f) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_GR16_EQ 11
-	"   %s + (( dot(%s.rgb, comp24) > (dot(%s.rgb, comp24) + (1.0f/510.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_BGR24_GT 12
-	"   %s + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (1.0f/255.0f) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_BGR24_EQ 13
-	"   %s + (max(sign(%s.rgb - %s.rgb - (1.0f/510.0f)),float3(0.0f,0.0f,0.0f)) * %s)",//#define TEVCMP_RGB8_GT  14
-	"   %s + ((float3(1.0f,1.0f,1.0f) - max(sign(abs(%s.rgb - %s.rgb) - (1.0f/255.0f)),float3(0.0f,0.0f,0.0f))) * %s)"//#define TEVCMP_RGB8_EQ  15
+	"   %s + ((%s.r > %s.r + (0.25f/255.0f)) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_R8_GT 8
+	"   %s + ((abs(%s.r - %s.r) < (0.5f/255.0f)) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_R8_EQ 9
+	"   %s + (( dot(%s.rgb, comp16) > (dot(%s.rgb, comp16) + (0.25f/255.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_GR16_GT 10
+	"   %s + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (0.5f/255.0f) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_GR16_EQ 11
+	"   %s + (( dot(%s.rgb, comp24) > (dot(%s.rgb, comp24) + (0.25f/255.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_BGR24_GT 12
+	"   %s + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (0.5f/255.0f) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_BGR24_EQ 13
+	"   %s + (max(sign(%s.rgb - %s.rgb - (0.25f/255.0f)),float3(0.0f,0.0f,0.0f)) * %s)",//#define TEVCMP_RGB8_GT  14
+	"   %s + ((float3(1.0f,1.0f,1.0f) - max(sign(abs(%s.rgb - %s.rgb) - (0.5f/255.0f)),float3(0.0f,0.0f,0.0f))) * %s)"//#define TEVCMP_RGB8_EQ  15
 };
 
 //table with the alpha compare operations
@@ -602,14 +607,14 @@ static const char *TEVCMPAlphaOPTable[16] =
 	"0.0f",//5
 	"0.0f",//6
 	"0.0f",//7
-	"   %s + ((%s.r > (%s.r + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_R8_GT 8
-	"   %s + (abs(%s.r - %s.r) < (1.0f/255.0f) ? %s : 0.0f)",//#define TEVCMP_R8_EQ 9
-	"   %s + ((dot(%s.rgb, comp16) > (dot(%s.rgb, comp16) + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_GR16_GT 10
-	"   %s + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (1.0f/255.0f) ? %s : 0.0f)",//#define TEVCMP_GR16_EQ 11
-	"   %s + ((dot(%s.rgb, comp24) > (dot(%s.rgb, comp24) + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_BGR24_GT 12
-	"   %s + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (1.0f/255.0f) ? %s : 0.0f)",//#define TEVCMP_BGR24_EQ 13	
-	"   %s + ((%s.a > (%s.a + (1.0f/510.0f))) ? %s : 0.0f)",//#define TEVCMP_A8_GT 14
-	"   %s + (abs(%s.a - %s.a) < (1.0f/255.0f) ? %s : 0.0f)"//#define TEVCMP_A8_EQ 15
+	"   %s + ((%s.r > (%s.r + (0.25f/255.0f))) ? %s : 0.0f)",//#define TEVCMP_R8_GT 8
+	"   %s + (abs(%s.r - %s.r) < (0.5f/255.0f) ? %s : 0.0f)",//#define TEVCMP_R8_EQ 9
+	"   %s + ((dot(%s.rgb, comp16) > (dot(%s.rgb, comp16) + (0.25f/255.0f))) ? %s : 0.0f)",//#define TEVCMP_GR16_GT 10
+	"   %s + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (0.5f/255.0f) ? %s : 0.0f)",//#define TEVCMP_GR16_EQ 11
+	"   %s + ((dot(%s.rgb, comp24) > (dot(%s.rgb, comp24) + (0.25f/255.0f))) ? %s : 0.0f)",//#define TEVCMP_BGR24_GT 12
+	"   %s + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (0.5f/255.0f) ? %s : 0.0f)",//#define TEVCMP_BGR24_EQ 13	
+	"   %s + ((%s.a > (%s.a + (0.25f/255.0f))) ? %s : 0.0f)",//#define TEVCMP_A8_GT 14
+	"   %s + (abs(%s.a - %s.a) < (0.5f/255.0f) ? %s : 0.0f)"//#define TEVCMP_A8_EQ 15
 
 };
 
@@ -727,34 +732,39 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
         WRITE(p, "konsttemp=float4(%s,%s);\n",tevKSelTableC[kc],tevKSelTableA[ka]);  
 
     if (cc.clamp)
-		WRITE(p, "%s= saturate(", tevCOutputTable[cc.dest]);
+		WRITE(p, "%s=saturate(", tevCOutputTable[cc.dest]);
 	else
-		WRITE(p, "%s= (", tevCOutputTable[cc.dest]);
+		WRITE(p, "%s=", tevCOutputTable[cc.dest]);
 
     // combine the color channel
     if (cc.bias != 3) // if not compare
 	{
 		//normal color combiner goes here        
 		if (cc.shift>0)
-			WRITE(p, "   %s*(%s%s",tevScaleTable[cc.shift],tevCInputTable[cc.d],tevOpTable[cc.op]);
-		else
-			WRITE(p, "   (%s%s",tevCInputTable[cc.d],tevOpTable[cc.op]);
+			WRITE(p, "%s*(",tevScaleTable[cc.shift]);		
+
+		if(!(cc.d == 15 && cc.op == 0))
+			WRITE(p, "%s%s",tevCInputTable[cc.d],tevOpTable[cc.op]);
 
 		if (cc.a == 15 && cc.b == 15)
-			WRITE(p, "0.0f");
+			WRITE(p, "float3(0.0f,0.0f,0.0f)");
 		else if (cc.a == 15 && cc.c == 15)
-			WRITE(p, "0.0f");
+			WRITE(p, "float3(0.0f,0.0f,0.0f)");
 		else if (cc.b == 15 && cc.c == 15)
 			WRITE(p,"%s",tevCInputTable[cc.a]);
 		else if (cc.a == 15)
-			WRITE(p,"(%s)*(%s)",tevCInputTable[cc.b],tevCInputTable[cc.c]);
+			WRITE(p,"%s*%s",tevCInputTable[cc.b],tevCInputTable[cc.c]);
 		else if (cc.b == 15)
-			WRITE(p,"(%s)*(1-%s)",tevCInputTable[cc.a],tevCInputTable[cc.c]);
+			WRITE(p,"%s*(float3(1.0f,1.0f,1.0f)-%s)",tevCInputTable[cc.a],tevCInputTable[cc.c]);
 		else if (cc.c == 15)
 			WRITE(p,"%s",tevCInputTable[cc.a]);
 		else
 			WRITE(p, "lerp(%s,%s,%s)",tevCInputTable[cc.a], tevCInputTable[cc.b],tevCInputTable[cc.c]);
-		WRITE(p, " %s)",tevBiasTable[cc.bias]);
+		
+		WRITE(p, "%s",tevBiasTable[cc.bias]);
+		
+		if(cc.shift>0)
+			WRITE(p, ")");
     }
     else 
 	{
@@ -765,22 +775,24 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 				tevCInputTable2[cc.b],
 				tevCInputTable[cc.c]);       
     }
-
-	WRITE(p,");\n");
+	if (cc.clamp)
+		WRITE(p,")");
+	WRITE(p,";\n");
     
     // combine the alpha channel
     if (ac.clamp)
-	    WRITE(p, "%s= saturate(", tevAOutputTable[ac.dest]);
+	    WRITE(p, "%s=saturate(", tevAOutputTable[ac.dest]);
 	else
-		WRITE(p, "%s= (", tevAOutputTable[ac.dest]);
+		WRITE(p, "%s=", tevAOutputTable[ac.dest]);
 
     if (ac.bias != 3) // if not compare
 	{
-        //normal alpha combiner goes here		
+        //normal alpha combiner goes here
 		if (ac.shift>0)
-			WRITE(p, "   %s*(%s%s",tevScaleTable[ac.shift],tevAInputTable[ac.d],tevOpTable[ac.op]);
-		else
-			WRITE(p, "   (%s%s",tevAInputTable[ac.d],tevOpTable[ac.op]);
+			WRITE(p, "%s*(",tevScaleTable[ac.shift]);		
+
+		if(!(ac.d == 7 && ac.op == 0))
+			WRITE(p, "%s%s",tevAInputTable[ac.d],tevOpTable[ac.op]);		
 
 		if (ac.a == 7 && ac.b == 7)
 			WRITE(p, "0.0f");
@@ -789,14 +801,18 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 		else if (ac.b == 7 && ac.c == 7)
 			WRITE(p,"%s",tevAInputTable[ac.a]);
 		else if (ac.a == 7)
-			WRITE(p,"(%s)*(%s)",tevAInputTable[ac.b],tevAInputTable[ac.c]);
+			WRITE(p,"%s*%s",tevAInputTable[ac.b],tevAInputTable[ac.c]);
 		else if (ac.b == 7)
-			WRITE(p,"(%s)*(1-%s)",tevAInputTable[ac.a],tevAInputTable[ac.c]);
+			WRITE(p,"%s*(1.0f-%s)",tevAInputTable[ac.a],tevAInputTable[ac.c]);
 		else if (ac.c == 7)
 			WRITE(p,"%s",tevAInputTable[ac.a]);
 		else
 	        WRITE(p, "lerp(%s,%s,%s)",tevAInputTable[ac.a],tevAInputTable[ac.b],tevAInputTable[ac.c]);
-		WRITE(p, " %s)",tevBiasTable[ac.bias]);
+		
+		WRITE(p, "%s",tevBiasTable[ac.bias]);
+		
+		if (ac.shift>0)
+			WRITE(p, ")");
     }
     else 
 	{
@@ -808,8 +824,9 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 				tevAInputTable2[ac.b],
 				tevAInputTable[ac.c]);       		
     }
-
-    WRITE(p, ");\n\n");
+	if (ac.clamp)
+		WRITE(p, ")");
+	WRITE(p, ";\n\n");
 }
 
 void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, u32 HLSL)
@@ -854,12 +871,12 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
 static const char *tevAlphaFuncsTable[] = 
 {
     "(false)",									//ALPHACMP_NEVER 0
-	"(prev.a < %s - (0.5f/255.0f))",			//ALPHACMP_LESS 1
-	"(abs( prev.a - %s ) < (1.0f/255.0f))",		//ALPHACMP_EQUAL 2
-	"(prev.a < %s + (0.5f/255.0f))",			//ALPHACMP_LEQUAL 3
-	"(prev.a > %s + (0.5f/255.0f))",			//ALPHACMP_GREATER 4
-	"(abs( prev.a - %s ) > (1.0f/255.0f))",		//ALPHACMP_NEQUAL 5
-	"(prev.a > %s - (0.5f/255.0f))",			//ALPHACMP_GEQUAL 6
+	"(prev.a <= %s - (0.25f/255.0f))",			//ALPHACMP_LESS 1
+	"(abs( prev.a - %s ) < (0.5f/255.0f))",		//ALPHACMP_EQUAL 2
+	"(prev.a < %s + (0.25f/255.0f))",			//ALPHACMP_LEQUAL 3
+	"(prev.a >= %s + (0.25f/255.0f))",			//ALPHACMP_GREATER 4
+	"(abs( prev.a - %s ) >= (0.5f/255.0f))",	//ALPHACMP_NEQUAL 5
+	"(prev.a > %s - (0.25f/255.0f))",			//ALPHACMP_GEQUAL 6
 	"(true)"									//ALPHACMP_ALWAYS 7
 };
 
@@ -903,7 +920,7 @@ static bool WriteAlphaTest(char *&p, u32 HLSL)
     }
 
 
-	// Seems we need discard for Cg and clip for d3d. sigh.
+	// using discard then return works the same in cg and hlsl
 	WRITE(p, "if(!( ");
 
 	int compindex = bpmem.alphaFunc.comp0 % 8;
@@ -948,7 +965,6 @@ static void WriteFog(char *&p)
         WRITE (p, "  float ze = "I_FOG"[1].x * depth;\n");
     }
 
-    //WRITE (p, "  float fog = clamp(ze - "I_FOG"[1].z, 0.0f, 1.0f);\n");
 	WRITE (p, "  float fog = saturate(ze - "I_FOG"[1].z);\n");
 
 	if(bpmem.fog.c_proj_fsel.fsel > 3)
