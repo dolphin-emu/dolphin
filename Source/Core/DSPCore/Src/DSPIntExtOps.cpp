@@ -427,11 +427,15 @@ void nop(const UDSPInstruction& opc)
 } // end namespace ext
 } // end namespace DSPInterpeter
 
+
+// The Writebacklog needs more commenting. It seems to be a way of writing values from the
+// "beginning" of the execution of an instruction, at the end of the execution.
+
 void applyWriteBackLog()
 {
-	//always make sure to have an extra entry at the end w/ -1 to avoid
-	//infinitive loops
-	for (int i=0;writeBackLogIdx[i]!=-1;i++) {
+	// always make sure to have an extra entry at the end w/ -1 to avoid
+	// infinitive loops
+	for (int i = 0; writeBackLogIdx[i] != -1; i++) {
 		dsp_op_write_reg(writeBackLogIdx[i], g_dsp.r[writeBackLogIdx[i]] | writeBackLog[i]);
 		// Clear back log
 		writeBackLogIdx[i] = -1;
@@ -440,9 +444,13 @@ void applyWriteBackLog()
 
 void zeroWriteBackLog() 
 {
-	//always make sure to have an extra entry at the end w/ -1 to avoid
-	//infinitive loops
-	for (int i=0;writeBackLogIdx[i]!=-1;i++) 
+	// always make sure to have an extra entry at the end w/ -1 to avoid
+	// infinitive loops
+
+	// What does this actually do? It just writes zeroes to registers that are
+	// mentioned in the write back log, without checking that the indexes aren't -1.
+	// Doesn't really seem sane - shouldn't it check for -1, at least?
+	for (int i = 0; writeBackLogIdx[i] != -1; i++) 
 		dsp_op_write_reg(writeBackLogIdx[i], 0);
 }
 

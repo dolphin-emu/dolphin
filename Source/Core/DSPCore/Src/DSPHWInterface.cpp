@@ -40,21 +40,17 @@ void gdsp_do_dma();
 
 Common::CriticalSection g_CriticalSection;
 
-static volatile u16 gdsp_mbox[2][2];
-
-u16 gdsp_ifx_regs[256];
-
 void gdsp_ifx_init()
 {
 	for (int i = 0; i < 256; i++)
 	{
-		gdsp_ifx_regs[i] = 0;
+		g_dsp.ifx_regs[i] = 0;
 	}
 
-	gdsp_mbox[0][0] = 0;
-	gdsp_mbox[0][1] = 0;
-	gdsp_mbox[1][0] = 0;
-	gdsp_mbox[1][1] = 0;
+	g_dsp.mbox[0][0] = 0;
+	g_dsp.mbox[0][1] = 0;
+	g_dsp.mbox[1][0] = 0;
+	g_dsp.mbox[1][1] = 0;
 }
 
 
@@ -62,7 +58,7 @@ u32 gdsp_mbox_peek(u8 mbx)
 {
 	if (DSPHost_OnThread())
 		g_CriticalSection.Enter();
-	u32 value = ((gdsp_mbox[mbx][0] << 16) | gdsp_mbox[mbx][1]);
+	u32 value = ((g_dsp.mbox[mbx][0] << 16) | g_dsp.mbox[mbx][1]);
 	if (DSPHost_OnThread())
 		g_CriticalSection.Leave();
 	return value;
@@ -72,7 +68,7 @@ void gdsp_mbox_write_h(u8 mbx, u16 val)
 {
 	if (DSPHost_OnThread())
 		g_CriticalSection.Enter();
-	gdsp_mbox[mbx][0] = val & 0x7fff;
+	g_dsp.mbox[mbx][0] = val & 0x7fff;
 	if (DSPHost_OnThread())
 		g_CriticalSection.Leave();
 }
@@ -82,8 +78,8 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 {
 	if (DSPHost_OnThread())
 		g_CriticalSection.Enter();
-	gdsp_mbox[mbx][1]  = val;
-	gdsp_mbox[mbx][0] |= 0x8000;
+	g_dsp.mbox[mbx][1]  = val;
+	g_dsp.mbox[mbx][0] |= 0x8000;
 	if (DSPHost_OnThread())
 		g_CriticalSection.Leave();
 
@@ -100,7 +96,7 @@ void gdsp_mbox_write_l(u8 mbx, u16 val)
 
 u16 gdsp_mbox_read_h(u8 mbx)
 {
-	return gdsp_mbox[mbx][0];  // TODO: mask away the top bit?
+	return g_dsp.mbox[mbx][0];  // TODO: mask away the top bit?
 }
 
 
@@ -109,8 +105,8 @@ u16 gdsp_mbox_read_l(u8 mbx)
 	if (DSPHost_OnThread())
 		g_CriticalSection.Enter();
 
-	u16 val = gdsp_mbox[mbx][1];
-	gdsp_mbox[mbx][0] &= ~0x8000;
+	u16 val = g_dsp.mbox[mbx][1];
+	g_dsp.mbox[mbx][0] &= ~0x8000;
 
 
 	if (DSPHost_OnThread())
@@ -155,9 +151,9 @@ void gdsp_ifx_write(u16 addr, u16 val)
 		    return gdsp_mbox_write_l(GDSP_MBOX_CPU, val);
 
 	    case 0xcb: // DSBL
-		    gdsp_ifx_regs[addr & 0xFF] = val;
+		    g_dsp.ifx_regs[addr & 0xFF] = val;
 		    gdsp_do_dma();
-		    gdsp_ifx_regs[DSP_DSCR] &= ~0x0004;
+		    g_dsp.ifx_regs[DSP_DSCR] &= ~0x0004;
 		    break;
 
 		case 0xd3:   // ZeldaUnk (accelerator WRITE)
@@ -172,7 +168,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 	    case 0xce:
 	    case 0xcf:
 	    case 0xc9:
-		    gdsp_ifx_regs[addr & 0xFF] = val;
+		    g_dsp.ifx_regs[addr & 0xFF] = val;
 		    break;
 
 	    default:
@@ -187,7 +183,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 			else {
 		   	    ERROR_LOG(DSPLLE, "%04x MW %04x (%04x)", g_dsp.pc, addr, val);
 			}
-		    gdsp_ifx_regs[addr & 0xFF] = val;
+		    g_dsp.ifx_regs[addr & 0xFF] = val;
 		    break;
 	}
 }
@@ -209,7 +205,7 @@ u16 gdsp_ifx_read(u16 addr)
 		    return gdsp_mbox_read_l(GDSP_MBOX_CPU);
 
 	    case 0xc9:
-		    return gdsp_ifx_regs[addr & 0xFF];
+		    return g_dsp.ifx_regs[addr & 0xFF];
 
 	    case 0xdd:  // ADPCM Accelerator reads
 		    return dsp_read_accelerator();
@@ -221,16 +217,16 @@ u16 gdsp_ifx_read(u16 addr)
 	    default:
 			if ((addr & 0xff) >= 0xa0) {
 				if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description) {
-	   				INFO_LOG(DSPLLE, "%04x MR %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, gdsp_ifx_regs[addr & 0xFF]);
+	   				INFO_LOG(DSPLLE, "%04x MR %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, g_dsp.ifx_regs[addr & 0xFF]);
 				}
 				else {
-	   				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, gdsp_ifx_regs[addr & 0xFF]);
+	   				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, g_dsp.ifx_regs[addr & 0xFF]);
 				}
 			}
 			else {
-   				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, gdsp_ifx_regs[addr & 0xFF]);
+   				ERROR_LOG(DSPLLE, "%04x MR %04x (%04x)", g_dsp.pc, addr, g_dsp.ifx_regs[addr & 0xFF]);
 			}
-		    return gdsp_ifx_regs[addr & 0xFF];
+		    return g_dsp.ifx_regs[addr & 0xFF];
 	}
 }
 
@@ -293,10 +289,10 @@ void gdsp_do_dma()
 	u16 dsp_addr;
 	u16 len;
 
-	addr = (gdsp_ifx_regs[DSP_DSMAH] << 16) | gdsp_ifx_regs[DSP_DSMAL];
-	ctl = gdsp_ifx_regs[DSP_DSCR];
-	dsp_addr = gdsp_ifx_regs[DSP_DSPA] * 2;
-	len = gdsp_ifx_regs[DSP_DSBL];
+	addr = (g_dsp.ifx_regs[DSP_DSMAH] << 16) | g_dsp.ifx_regs[DSP_DSMAL];
+	ctl = g_dsp.ifx_regs[DSP_DSCR];
+	dsp_addr = g_dsp.ifx_regs[DSP_DSPA] * 2;
+	len = g_dsp.ifx_regs[DSP_DSBL];
 
 	if ((ctl > 3) || (len > 0x4000))
 	{

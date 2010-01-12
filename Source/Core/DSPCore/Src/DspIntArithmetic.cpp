@@ -296,7 +296,6 @@ void cmpi(const UDSPInstruction& opc)
 	s64 imm = (s64)(s16)dsp_fetch_code() << 16;
 	s64 val = dsp_get_long_acc(reg);
 	Update_SR_Register64(val - imm);
-
 }
 
 // XORI $acD.m, #I

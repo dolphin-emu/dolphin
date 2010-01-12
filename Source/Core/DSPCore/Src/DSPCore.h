@@ -26,6 +26,8 @@
 #ifndef _DSPCORE_H
 #define _DSPCORE_H
 
+#include "Thread.h"
+
 #include "DSPBreakpoints.h"
 
 #define DSP_IRAM_BYTE_SIZE   0x2000
@@ -172,6 +174,8 @@
 #define EXP_6     6 // 0x000c
 #define EXP_INT   7 // 0x000e external int (message from cpu)
 
+// All the state of the DSP should be in this struct. Any DSP state that is not filled on init
+// should be moved here.
 struct SDSP
 {
 	u16 r[32];
@@ -190,14 +194,26 @@ struct SDSP
 	u8 exceptions;   // pending exceptions
 	int exception_in_progress;  // inside exp flag
 
-	// Let's make stack depth 32 for now. The real DSP has different depths
-	// for the different stacks, but it would be strange if any ucode relied on stack
-	// overflows since on the DSP, when the stack overflows, you're screwed.
+	// DSP hardware stacks. They're mapped to a bunch of registers, such that writes
+	// to them push and reads pop.
+	// Let's make stack depth 32 for now, which is way more than what's needed.
+	// The real DSP has different depths for the different stacks, but it would
+	// be strange if any ucode relied on stack overflows since on the DSP, when
+	// the stack overflows, you're screwed.
 	u16 reg_stack[4][DSP_STACK_DEPTH];
 
 	// For debugging.
 	u32 iram_crc;
 	u64 step_counter;
+
+	// Mailbox.
+	volatile u16 mbox[2][2];
+
+	// Mutex protecting the mailbox.
+	Common::CriticalSection g_CriticalSection;
+
+	// Accelerator / DMA / other hardware registers. Not GPRs.
+	u16 ifx_regs[256];
 
 	// When state saving, all of the above can just be memcpy'd into the save state.
 	// The below needs special handling.

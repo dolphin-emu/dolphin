@@ -163,11 +163,32 @@ void DllConfig(HWND _hParent)
 #endif
 }
 
-
 void DoState(unsigned char **ptr, int mode)
 {
 	PointerWrap p(ptr, mode);
 	p.Do(g_InitMixer);
+
+// Enable this when the HLE is fixed to save/load the same amount of data,
+// no matter how bogus, so that one can switch LLE->HLE. The other way is unlikely to work very well.
+#if 0
+	p.Do(g_dsp.r);
+	p.Do(g_dsp.pc);
+	p.Do(g_dsp.err_pc);
+	p.Do(g_dsp.cr);
+	p.Do(g_dsp.reg_stack_ptr);
+	p.Do(g_dsp.exceptions);
+	p.Do(g_dsp.exceptions_in_progress);
+	for (int i = 0; i < 4; i++) {
+		p.Do(g_dsp.reg_stack[i]);
+	}
+	p.Do(g_dsp.iram_crc);
+	p.Do(g_dsp.step_counter);
+	p.Do(g_dsp.ifx_regs);
+	p.Do(g_dsp.mbox[0]);
+	p.Do(g_dsp.mbox[1]);
+	p.DoArray(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
+	p.DoArray(g_dsp.dram, DSP_DRAM_BYTE_SIZE);
+#endif
 }
 
 void EmuStateChange(PLUGIN_EMUSTATE newState)
@@ -369,12 +390,11 @@ void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
 	if (!soundStream)
 		return;
 
-	CMixer* pMixer = soundStream->GetMixer();
+	CMixer *pMixer = soundStream->GetMixer();
 
-	if (pMixer && address)
+	if (pMixer != 0 && address != 0)
 	{
-		short* samples = (short*)Memory_Get_Pointer(address);
-
+		short *samples = (short *)Memory_Get_Pointer(address);
 		pMixer->PushSamples(samples, num_samples);
 	}
 
@@ -383,7 +403,7 @@ void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
 
 void DSP_ClearAudioBuffer()
 {
-	if(soundStream)
-		soundStream->Clear(*g_dspInitialize.pEmulatorState);
+	if (soundStream)
+		soundStream->Clear((*g_dspInitialize.pEmulatorState) ? true : false);
 }
 
