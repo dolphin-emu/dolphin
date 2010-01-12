@@ -34,7 +34,9 @@
 #include "EmuDefinitions.h"
 #define EXCLUDE_H // Avoid certain declarations in wiimote_real.h
 #include "wiimote_real.h"
+#if defined(HAVE_WX) && HAVE_WX
 #include "ConfigRecordingDlg.h"
+#endif
 
 #ifdef WIN32
 #include <bthdef.h>
@@ -560,7 +562,9 @@ THREAD_RETURN SafeCloseReadWiimote_ThreadFunc(void* arg)
 	
 	if (g_RealWiiMoteInitialized)
 		Shutdown();
+#if defined(HAVE_WX) && HAVE_WX
 	m_RecordingConfigFrame->Close(true);
+#endif
 	if (!g_RealWiiMoteInitialized)
 		Initialize();
 

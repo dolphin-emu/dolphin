@@ -122,10 +122,10 @@ void handle_event(struct wiimote_t* wm)
 	if (g_MotionSensing && !WIIUSE_USING_IR(wm))
 		wiiuse_set_ir(wm, 1);
 
+#if defined(HAVE_WX) && HAVE_WX
     if (!m_RecordingConfigFrame) return;
 
 	// Print battery status 
-#if defined(HAVE_WX) && HAVE_WX
 	if(m_RecordingConfigFrame && g_Config.bUpdateRealWiimote)
 		m_RecordingConfigFrame->m_GaugeBattery->SetValue((int)floor((wm->battery_level * 100) + 0.5));
 #endif

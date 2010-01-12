@@ -26,18 +26,14 @@ typedef struct internal
 
 OSStatus callback(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData) {
 
-    	UInt32 remaining, len;
-    	void *ptr;
-    	AudioBuffer *data;
-
 	internal *soundStruct = (internal *)inRefCon;
 
-	data = &ioData->mBuffers[0];
-    	len = data->mDataByteSize;
-    	ptr = data->mData;
 
-	memcpy(ptr, soundStruct->realtimeBuffer, len);
+	for (int i=0; i < (int)ioData->mNumberBuffers; i++)
+	{
+        	memcpy(ioData->mBuffers[i].mData, &soundStruct->realtimeBuffer, ioData->mBuffers[i].mDataByteSize);
 	
+	}
 	return 0;
 }
 
@@ -62,13 +58,16 @@ bool CoreAudioSound::CoreAudioInit()
 	OSStatus err;
 	UInt32 enableIO;
 	AURenderCallbackStruct callback_struct;
-	UInt32 shouldAllocateBuffer = 1;
 	AudioStreamBasicDescription format;
+	UInt32 numBytesToRender = 512;
 	
 	internal *soundStruct = (internal *)malloc(sizeof(internal));
-
+	memset(soundStruct->realtimeBuffer, 0, sizeof(soundStruct->realtimeBuffer));
+	
 	desc.componentType = kAudioUnitType_Output;
 	desc.componentSubType = kAudioUnitSubType_HALOutput;
+  	desc.componentFlags = 0;
+  	desc.componentFlagsMask = 0;
 	desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 
 	Component component = FindNextComponent(NULL, &desc);
@@ -88,22 +87,18 @@ bool CoreAudioSound::CoreAudioInit()
 						 &enableIO,
 						 sizeof(enableIO));
 	
-	AudioUnitSetProperty(soundStruct->audioUnit, kAudioUnitProperty_ShouldAllocateBuffer, kAudioUnitScope_Global, 1, &shouldAllocateBuffer, sizeof(shouldAllocateBuffer));
-	if (err)
-		printf("error while allocate audiounit buffer\n");
-	
 	
 	format.mBitsPerChannel = 16;
 	format.mChannelsPerFrame = 2;
-	format.mBytesPerPacket = sizeof(float);
-	format.mBytesPerFrame = sizeof(float);
-	format.mFormatFlags = kAudioFormatFlagsNativeFloatPacked | kLinearPCMFormatFlagIsNonInterleaved;
+	format.mBytesPerPacket = 4;
+	format.mBytesPerFrame = 4;
+	format.mFormatFlags = kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked;
 	format.mFormatID = kAudioFormatLinearPCM;
 	format.mFramesPerPacket = 1;
 	format.mSampleRate = m_mixer->GetSampleRate();
 	
 	//set format to output scope
-    	err = AudioUnitSetProperty(soundStruct->audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &format, sizeof(AudioStreamBasicDescription));
+    	err = AudioUnitSetProperty(soundStruct->audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &format, sizeof(AudioStreamBasicDescription));
 	if (err)
 		printf("error when setting output format\n");
 
@@ -113,7 +108,7 @@ bool CoreAudioSound::CoreAudioInit()
 	
 	err = AudioUnitSetProperty(soundStruct->audioUnit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Global, 0, &callback_struct, sizeof(callback_struct));
 	if (err)
-		printf("error when setting output callback\n");
+		printf("error when setting input callback\n");
 
 	err = AudioUnitInitialize(soundStruct->audioUnit);
 	if (err)
@@ -125,9 +120,11 @@ bool CoreAudioSound::CoreAudioInit()
 
 	while(!threadData)
 	{
-		m_mixer->Mix(soundStruct->realtimeBuffer, 2048);
+		soundCriticalSection.Enter();	
+		m_mixer->Mix(soundStruct->realtimeBuffer, numBytesToRender);
+		soundCriticalSection.Leave();
+		soundSyncEvent.Wait();
 	}
-
 	return true;
 	
 }
@@ -144,9 +141,7 @@ bool CoreAudioSound::Start()
 {
 
         soundSyncEvent.Init();
-
         thread = new Common::Thread(coreAudioThread, (void *)this);
-
 	return true;
 }
 
@@ -161,6 +156,6 @@ void CoreAudioSound::Stop()
 }
 void CoreAudioSound::Update()
 {
-	return;
+	soundSyncEvent.Set();
 	
 }
