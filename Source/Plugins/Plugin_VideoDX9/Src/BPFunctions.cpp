@@ -140,10 +140,9 @@ u8 *GetPointer(const u32 &address)
 	return g_VideoInitialize.pGetMemoryPointer(address);
 }
 
-void SetSamplerState(const BPCmd &bp)
+void SetTextureMode(const BPCmd &bp)
 {
-	int stage = (bp.address & 3);//(addr>>4)&2;
-	Renderer::SetSamplerState(stage,(bp.address & 0xE0) == 0xA0);
+	Renderer::SetSamplerState(bp.address & 3, (bp.address & 0xE0) == 0xA0);
 }
 
 void SetInterlacingMode(const BPCmd &bp)

@@ -129,7 +129,7 @@ u8 *GetPointer(const u32 &address)
 	return g_VideoInitialize.pGetMemoryPointer(address);
 }
 
-void SetSamplerState(const BPCmd &bp)
+void SetTextureMode(const BPCmd &bp)
 {
 	// TODO
 }

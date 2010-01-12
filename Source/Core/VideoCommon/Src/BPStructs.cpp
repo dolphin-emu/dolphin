@@ -430,13 +430,7 @@ void BPWritten(const BPCmd& bp)
 		// Texture Environment Order
 		// -------------------------
 		case BPMEM_TREF:
-		case BPMEM_TREF+1:
-		case BPMEM_TREF+2:
-		case BPMEM_TREF+3:
 		case BPMEM_TREF+4:
-		case BPMEM_TREF+5:
-		case BPMEM_TREF+6:
-		case BPMEM_TREF+7:
 			break;
 		// ----------------------
 		// Set wrap size
@@ -464,22 +458,13 @@ void BPWritten(const BPCmd& bp)
 		// BPMEM_TX_SETMODE1 - (LOD Stuff) - Max LOD, Min LOD
 	    // ------------------------
 		case BPMEM_TX_SETMODE0: // (0x90 for linear)
-		case BPMEM_TX_SETMODE0+1:
-		case BPMEM_TX_SETMODE0+2:
-		case BPMEM_TX_SETMODE0+3:
-			SetSamplerState(bp);
-		case BPMEM_TX_SETMODE1:
-		case BPMEM_TX_SETMODE1+1:
-		case BPMEM_TX_SETMODE1+2:
-		case BPMEM_TX_SETMODE1+3:
 		case BPMEM_TX_SETMODE0_4:
-		case BPMEM_TX_SETMODE0_4+1:
-		case BPMEM_TX_SETMODE0_4+2:
-		case BPMEM_TX_SETMODE0_4+3:
+			// Shouldn't need to call this here, we call it for each active texture right before rendering
+			SetTextureMode(bp);
+			break;
+
+		case BPMEM_TX_SETMODE1:
 		case BPMEM_TX_SETMODE1_4:
-		case BPMEM_TX_SETMODE1_4+1:
-		case BPMEM_TX_SETMODE1_4+2:
-		case BPMEM_TX_SETMODE1_4+3:
 			break;
 		// --------------------------------------------
 		// BPMEM_TX_SETIMAGE0 - Texture width, height, format
@@ -488,51 +473,22 @@ void BPWritten(const BPCmd& bp)
 		// BPMEM_TX_SETIMAGE3 - Address of Texture in main memory
 	    // --------------------------------------------
 		case BPMEM_TX_SETIMAGE0:
-		case BPMEM_TX_SETIMAGE0+1:
-		case BPMEM_TX_SETIMAGE0+2:
-		case BPMEM_TX_SETIMAGE0+3:
 		case BPMEM_TX_SETIMAGE0_4:
-		case BPMEM_TX_SETIMAGE0_4+1:
-		case BPMEM_TX_SETIMAGE0_4+2:
-		case BPMEM_TX_SETIMAGE0_4+3:
 		case BPMEM_TX_SETIMAGE1:
-		case BPMEM_TX_SETIMAGE1+1:
-		case BPMEM_TX_SETIMAGE1+2:
-		case BPMEM_TX_SETIMAGE1+3:
 		case BPMEM_TX_SETIMAGE1_4:
-		case BPMEM_TX_SETIMAGE1_4+1:
-		case BPMEM_TX_SETIMAGE1_4+2:
-		case BPMEM_TX_SETIMAGE1_4+3:
 		case BPMEM_TX_SETIMAGE2:
-		case BPMEM_TX_SETIMAGE2+1:
-		case BPMEM_TX_SETIMAGE2+2:
-		case BPMEM_TX_SETIMAGE2+3:
 		case BPMEM_TX_SETIMAGE2_4:
-		case BPMEM_TX_SETIMAGE2_4+1:
-		case BPMEM_TX_SETIMAGE2_4+2:
-		case BPMEM_TX_SETIMAGE2_4+3:
 		case BPMEM_TX_SETIMAGE3:
-		case BPMEM_TX_SETIMAGE3+1:
-		case BPMEM_TX_SETIMAGE3+2:
-		case BPMEM_TX_SETIMAGE3+3:
 		case BPMEM_TX_SETIMAGE3_4:
-		case BPMEM_TX_SETIMAGE3_4+1:
-		case BPMEM_TX_SETIMAGE3_4+2:
-		case BPMEM_TX_SETIMAGE3_4+3:
 			break;
 		// -------------------------------
 		// Set a TLUT
 		// BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)
 	    // -------------------------------
 		case BPMEM_TX_SETTLUT:
-		case BPMEM_TX_SETTLUT+1:
-		case BPMEM_TX_SETTLUT+2:
-		case BPMEM_TX_SETTLUT+3:
 		case BPMEM_TX_SETLUT_4:
-		case BPMEM_TX_SETLUT_4+1:
-		case BPMEM_TX_SETLUT_4+2:
-		case BPMEM_TX_SETLUT_4+3:
 			break;
+
 		// ---------------------------------------------------
 		// Set the TEV Color
 	    // ---------------------------------------------------
@@ -544,15 +500,14 @@ void BPWritten(const BPCmd& bp)
 		case BPMEM_TEV_REGISTER_H+4:
 		case BPMEM_TEV_REGISTER_L+6: // Reg 4
 		case BPMEM_TEV_REGISTER_H+6:
+			if (bp.address & 1)  // only run this code for the _H! is this right? what if L is set independently?
 			{
-				if (bp.address & 1) 
-				{ 
-					// don't compare with changes!
-					int num = (bp.address >> 1 ) & 0x3;
-					PixelShaderManager::SetColorChanged(bpmem.tevregs[num].high.type, num);
-				}
-				break;
+				// don't compare with changes!
+				int num = (bp.address >> 1) & 0x3;
+				PixelShaderManager::SetColorChanged(bpmem.tevregs[num].high.type, num);
 			}
+			break;
+
 		// ------------------------------------------------
 		// On Default, we try to look for other things
 		// before we give up and say its an unknown opcode

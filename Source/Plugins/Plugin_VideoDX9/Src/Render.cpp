@@ -1059,7 +1059,7 @@ void Renderer::SetLineWidth()
 	D3D::SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&psize));
 }
 
-void Renderer::SetSamplerState(int stage,int texindex)
+void Renderer::SetSamplerState(int stage, int texindex)
 {
 	const FourTexUnits &tex = bpmem.tex[texindex];	
 	const TexMode0 &tm0 = tex.texMode0[stage];

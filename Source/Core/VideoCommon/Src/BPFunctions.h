@@ -50,7 +50,7 @@ void ClearScreen(const BPCmd &bp, const EFBRectangle &rc);
 void RestoreRenderState(const BPCmd &bp);
 u8 *GetPointer(const u32 &address);
 bool GetConfig(const int &type);
-void SetSamplerState(const BPCmd &bp);
+void SetTextureMode(const BPCmd &bp);
 void SetInterlacingMode(const BPCmd &bp);
 };
 
