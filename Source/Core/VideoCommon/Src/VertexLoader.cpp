@@ -157,13 +157,13 @@ void LOADERDECL TexMtx_Write_Float2()
 	VertexManager::s_pCurBufferPointer += 8;
 }
 
-void LOADERDECL TexMtx_Write_Short4()
+void LOADERDECL TexMtx_Write_Float4()
 {
-	((s16*)VertexManager::s_pCurBufferPointer)[0] = 0;
-	((s16*)VertexManager::s_pCurBufferPointer)[1] = 0;
-	((s16*)VertexManager::s_pCurBufferPointer)[2] = s_curtexmtx[s_texmtxwrite++];
-	((s16*)VertexManager::s_pCurBufferPointer)[3] = 0;  // Just to fill out with 0.
-	VertexManager::s_pCurBufferPointer += 8;
+	((float*)VertexManager::s_pCurBufferPointer)[0] = 0;
+	((float*)VertexManager::s_pCurBufferPointer)[1] = 0;
+	((float*)VertexManager::s_pCurBufferPointer)[2] = s_curtexmtx[s_texmtxwrite++];
+	((float*)VertexManager::s_pCurBufferPointer)[3] = 0;  // Just to fill out with 0.
+	VertexManager::s_pCurBufferPointer += 16;
 }
 
 VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr) 
@@ -498,10 +498,10 @@ void VertexLoader::CompileVertexTranslator()
 			else {
 				m_NativeFmt->m_components |= VB_HAS_UV0 << i; // have to include since using now
 				vtx_decl.texcoord_offset[i] = nat_offset;
-				vtx_decl.texcoord_gl_type[i] = VAR_SHORT;
+				vtx_decl.texcoord_gl_type[i] = VAR_FLOAT;
 				vtx_decl.texcoord_size[i] = 4;
-				nat_offset += 8; // still include the texture coordinate, but this time as 6 + 2 bytes
-				WriteCall(TexMtx_Write_Short4);
+				nat_offset += 16; // still include the texture coordinate, but this time as 6 + 2 bytes
+				WriteCall(TexMtx_Write_Float4);
 			}
 		}
 		else {
