@@ -36,30 +36,27 @@ BEGIN
     LTEXT           "Will not work correctly on older GPU:s.",IDC_STATIC,7,47,170,8
 END
 
-IDD_SETTINGS DIALOGEX 0, 0, 244, 217
+IDD_SETTINGS DIALOGEX 0, 0, 244, 183
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_BORDER | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "&Graphics card:",IDC_STATIC,7,9,61,8
-    COMBOBOX        IDC_ADAPTER,68,7,169,84,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_ADAPTER,68,7,169,48,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "&Fullscreen",IDC_FULLSCREENENABLE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,25,56,8
     CONTROL         "&V-Sync",IDC_VSYNC,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,38,141,8
     CONTROL         "&Render to main window",IDC_RENDER_TO_MAINWINDOW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,50,141,8
-    LTEXT           "Full&screen resolution:",IDC_STATIC,7,98,69,8
-    COMBOBOX        IDC_RESOLUTION,87,98,150,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Windowed resolution:",IDC_STATIC,7,117,74,8
-    COMBOBOX        IDC_RESOLUTIONWINDOWED,87,116,150,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "Rotate windowed mode 90 degrees (for &Ikaruga)",IDC_CHECK1,
-                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_DISABLED | WS_TABSTOP,87,132,150,17
-    LTEXT           "&Anti-alias mode:",IDC_STATIC,7,157,61,8
-    COMBOBOX        IDC_ANTIALIASMODE,68,155,169,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Full&screen resolution:",IDC_STATIC,7,86,69,8
+    COMBOBOX        IDC_RESOLUTION,87,85,150,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Windowed resolution:",IDC_STATIC,7,106,74,8
+    COMBOBOX        IDC_RESOLUTIONWINDOWED,87,104,150,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "&Anti-alias mode:",IDC_STATIC,7,127,56,8
+    COMBOBOX        IDC_ANTIALIASMODE,68,125,169,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "&Aspect Ratio:",IDC_STATIC,7,66,52,8
-    CONTROL         "4:3",IDC_ASPECT_4_3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,66,59,11
-    CONTROL         "16:9",IDC_ASPECT_16_9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,80,49,11
-    CONTROL         "&Widescreen Hack",IDC_WIDESCREEN_HACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,128,81,73,10
-    CONTROL         "&Safe Texture Cache",IDC_SAFE_TEXTURE_CACHE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,172,85,11
+    CONTROL         "&Widescreen Hack",IDC_WIDESCREEN_HACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,170,66,67,10
+    CONTROL         "&Safe Texture Cache",IDC_SAFE_TEXTURE_CACHE,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,68,143,85,11
     CONTROL         "&Enable CPU->EFB access (can cause slowdowns, enables pull stars in SMG and lens flare in Zeldas)",IDC_EFB_ACCESS_ENABLE,
-                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,68,187,169,23
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,68,153,169,23
+    COMBOBOX        IDC_ASPECTRATIO,68,64,97,57,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
 END
 
 IDD_DEBUGGER DIALOGEX 0, 0, 234, 254
@@ -109,11 +106,10 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,20,192,9
     CONTROL         "Enable 16x &anisotropy filtering",IDC_FORCEANISOTROPY,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,35,110,10
-	CONTROL			"Enable hires texture loading", IDC_LOADHIRESTEXTURE,
-					"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,50,110,11
-	GROUPBOX		"EFB Hacks",IDC_STATIC,7,70,210,60
-	CONTROL         "EFB Scaled Copy",IDC_EFBSCALEDCOPY,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,80,110,12
+    CONTROL         "Enable hires texture loading",IDC_LOADHIRESTEXTURE,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,50,110,11
+    GROUPBOX        "EFB Hacks",IDC_STATIC,7,70,210,60
+    CONTROL         "EFB Scaled Copy",IDC_EFBSCALEDCOPY,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,16,80,110,12
 END
 
 
@@ -142,7 +138,7 @@ BEGIN
         VERTGUIDE, 81
         VERTGUIDE, 87
         TOPMARGIN, 7
-        BOTTOMMARGIN, 210
+        BOTTOMMARGIN, 176
     END
 
     IDD_DEBUGGER, DIALOG
@@ -193,9 +189,26 @@ BEGIN
     "#include <windows.h\0"
 END
 
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
 #endif    // APSTUDIO_INVOKED
 
 #endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
 

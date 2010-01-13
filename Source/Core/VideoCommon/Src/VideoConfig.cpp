@@ -54,8 +54,7 @@ void VideoConfig::Load(const char *ini_file)
     iniFile.Get("Settings", "StretchToFit", &bNativeResolution, true);
 	iniFile.Get("Settings", "2xResolution", &b2xResolution, false);
 	iniFile.Get("Settings", "wideScreenHack", &bWidescreenHack, false);
-	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, true);
-	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);
+	iniFile.Get("Settings", "AspectRatio", &iAspectRatio, (int)ASPECT_AUTO);
 	iniFile.Get("Settings", "Crop", &bCrop, false);
     iniFile.Get("Settings", "HideCursor", &bHideCursor, false);
     iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
@@ -149,8 +148,7 @@ void VideoConfig::Save(const char *ini_file)
     iniFile.Set("Hardware", "RenderToMainframe", RenderToMainframe);
     iniFile.Set("Settings", "StretchToFit", bNativeResolution);
 	iniFile.Set("Settings", "2xResolution", b2xResolution);
-    iniFile.Set("Settings", "KeepAR_4_3", bKeepAR43);
-	iniFile.Set("Settings", "KeepAR_16_9", bKeepAR169);
+	iniFile.Set("Settings", "AspectRatio", iAspectRatio);
 	iniFile.Set("Settings", "Crop", bCrop);
 	iniFile.Set("Settings", "wideScreenHack", bWidescreenHack);
     iniFile.Set("Settings", "HideCursor", bHideCursor);
@@ -210,10 +208,19 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 	const float WinHeight = FloatGLHeight;
 
 	// Handle aspect ratio.
-	if (g_ActiveConfig.bKeepAR43 || g_ActiveConfig.bKeepAR169)
+	// Default to auto.
+	bool use16_9 = g_VideoInitialize.bAutoAspectIs16_9;
+	
+	// Check for force-settings and override.
+	if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_16_9)
+		use16_9 = true;
+	else if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_4_3)
+		use16_9 = false;
+
+	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
 	{
 		// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
-		float Ratio = (WinWidth / WinHeight) / (g_Config.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
+		float Ratio = (WinWidth / WinHeight) / (!use16_9 ? (4.0f / 3.0f) : (16.0f / 9.0f));
 		// Check if height or width is the limiting factor. If ratio > 1 the picture is too wide and have to limit the width.
 		if (Ratio > 1.0f)
 		{
@@ -234,9 +241,9 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 	// Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.
 	//		Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
 	// ------------------
-	if ((g_ActiveConfig.bKeepAR43 || g_ActiveConfig.bKeepAR169) && g_ActiveConfig.bCrop)
+	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH && g_ActiveConfig.bCrop)
 	{
-		float Ratio = g_Config.bKeepAR43 ? ((4.0f / 3.0f) / (5.0f / 4.0f)) : (((16.0f / 9.0f) / (16.0f / 10.0f)));
+		float Ratio = !use16_9 ? ((4.0f / 3.0f) / (5.0f / 4.0f)) : (((16.0f / 9.0f) / (16.0f / 10.0f)));
 		// The width and height we will add (calculate this before FloatGLWidth and FloatGLHeight is adjusted)
 		float IncreasedWidth = (Ratio - 1.0f) * FloatGLWidth;
 		float IncreasedHeight = (Ratio - 1.0f) * FloatGLHeight;

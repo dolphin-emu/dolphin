@@ -49,7 +49,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_USEXFB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_FORCEFILTERING, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_AUTOSCALE, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_CHOICE(ID_KEEPAR, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHOICE(ID_ASPECT, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_CROP, GFXConfigDialogOGL::GeneralSettingsChanged)
 	#ifndef _WIN32
 		EVT_CHECKBOX(ID_HIDECURSOR, GFXConfigDialogOGL::GeneralSettingsChanged)
@@ -175,9 +175,9 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_RenderToMainWindow->SetValue(g_Config.RenderToMainframe);
 	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_2xResolution = new wxCheckBox(m_PageGeneral, ID_2X_RESOLUTION, wxT("2x"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	wxStaticText *IRText = new wxStaticText(m_PageGeneral, ID_IRTEXT, wxT("Resolution :"), wxDefaultPosition, wxDefaultSize, 0);
-	wxStaticText *RText = new wxStaticText(m_PageGeneral, ID_RTEXT, wxT("Custom resolution :"), wxDefaultPosition, wxDefaultSize, 0);
-	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Windowed :"), wxDefaultPosition, wxDefaultSize , 0 );
+	wxStaticText *IRText = new wxStaticText(m_PageGeneral, ID_IRTEXT, wxT("Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticText *RText = new wxStaticText(m_PageGeneral, ID_RTEXT, wxT("Custom resolution:"), wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Windowed:"), wxDefaultPosition, wxDefaultSize , 0 );
 	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
 	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.cInternalRes));
 	m_WindowFSResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWFSRESOLUTIONCB, arrayStringFor_FullscreenCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, wxCB_READONLY, wxDefaultValidator);
@@ -185,27 +185,27 @@ void GFXConfigDialogOGL::CreateGUIControls()
 
 	// Aspect ratio / positioning controls
 	wxStaticText *KeepARText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Keep aspect ratio:"), wxDefaultPosition, wxDefaultSize, 0);
-	m_KeepAR = new wxChoice(m_PageGeneral, ID_KEEPAR, wxDefaultPosition, wxDefaultSize);
-	m_KeepAR->Append(wxT("Disabled"));
-	m_KeepAR->Append(wxT("4:3"));
-	m_KeepAR->Append(wxT("16:9"));
-	m_KeepAR->Append(wxT("WideScreen Hack"));
+	m_KeepAR = new wxChoice(m_PageGeneral, ID_ASPECT, wxDefaultPosition, wxDefaultSize);
+	m_KeepAR->Append(wxT("Auto Aspect (recommended)"));
+	m_KeepAR->Append(wxT("Force 16:9 Widescreen"));
+	m_KeepAR->Append(wxT("Force 4:3 Standard"));
+	m_KeepAR->Append(wxT("Stretch to Window"));
 	m_Crop = new wxCheckBox(m_PageGeneral, ID_CROP, wxT("Crop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Fullscreen = new wxCheckBox(m_PageGeneral, ID_FULLSCREEN, wxT("Fullscreen :"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Fullscreen->SetValue(g_Config.bFullscreen);
 	m_UseXFB = new wxCheckBox(m_PageGeneral, ID_USEXFB, wxT("Use Real XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_AutoScale = new wxCheckBox(m_PageGeneral, ID_AUTOSCALE, wxT("Auto scale (try to remove borders)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_WidescreenHack = new wxCheckBox(m_PageGeneral, ID_WIDESCREENHACK, wxT("Wide screen hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Default values
 	m_NativeResolution->SetValue(g_Config.bNativeResolution);
 	m_2xResolution->SetValue(g_Config.b2xResolution);
-	if (g_Config.bKeepAR43)				m_KeepAR->SetSelection(1);
-	else if (g_Config.bWidescreenHack)	m_KeepAR->SetSelection(3);
-	else if (g_Config.bKeepAR169)		m_KeepAR->SetSelection(2);
-	else								m_KeepAR->SetSelection(0);
+	m_KeepAR->SetSelection(g_Config.iAspectRatio);
+	
 	m_Crop->SetValue(g_Config.bCrop);
 	m_UseXFB->SetValue(g_Config.bUseXFB);
 	m_AutoScale->SetValue(g_Config.bAutoScale);
+	m_WidescreenHack->SetValue(g_Config.bWidescreenHack);
 
 	#ifndef _WIN32
 		m_HideCursor = new wxCheckBox(m_PageGeneral, ID_HIDECURSOR, wxT("Hide mouse cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -348,6 +348,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasicAdvanced->Add(m_VSync,				wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_UseXFB,				wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_AutoScale,			wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_WidescreenHack,		wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL, 5);
 
 	sbBasicAdvanced->Add(sBasicAdvanced);
 	sGeneral->Add(sbBasicAdvanced, 0, wxEXPAND|wxALL, 5);
@@ -598,29 +599,18 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_AUTOSCALE:
 		g_Config.bAutoScale = m_AutoScale->IsChecked();
 		break;
-	case ID_KEEPAR:
-
-		g_Config.bKeepAR169 = false;
-		g_Config.bKeepAR43 = false;
-		g_Config.bWidescreenHack = false;
-
-		if (m_KeepAR->GetSelection() == 1)		// 4:3
-			g_Config.bKeepAR43 = true;
-		else if (m_KeepAR->GetSelection() == 2)	// 16:9
-			g_Config.bKeepAR169 = true;
-		else if (m_KeepAR->GetSelection() == 3) {	// WideScreen hack / 16:9
-			g_Config.bKeepAR169 = true;
-			g_Config.bWidescreenHack = true;
-		}	
+	case ID_ASPECT:
+		g_Config.iAspectRatio = m_KeepAR->GetSelection();
+		break;
+	case ID_WIDESCREENHACK:
+		g_Config.bWidescreenHack = m_WidescreenHack->IsChecked();
 		break;
 	case ID_CROP:
 		g_Config.bCrop = m_Crop->IsChecked();	
 		break;
-
 	case ID_FORCEFILTERING:
 		g_Config.bForceFiltering = m_ForceFiltering->IsChecked();	
 		break;
-
 	#ifndef _WIN32
 	case ID_HIDECURSOR:
 		g_Config.bHideCursor = m_HideCursor->IsChecked();
@@ -754,7 +744,7 @@ void GFXConfigDialogOGL::CloseWindow()
 void GFXConfigDialogOGL::UpdateGUI()
 {
 	// This is only used together with the aspect ratio options
-	m_Crop->Enable(g_Config.bKeepAR43 || g_Config.bKeepAR169);
+	m_Crop->Enable(g_Config.iAspectRatio != ASPECT_STRETCH);
 	if (g_Config.bUseXFB)
 	{
 		// XFB looks much better if the copy comes from native resolution.

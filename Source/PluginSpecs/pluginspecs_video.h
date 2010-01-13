@@ -88,7 +88,7 @@ typedef struct
     u32 *Fifo_CPUBase;
     u32 *Fifo_CPUEnd;
     u32 *Fifo_CPUWritePointer;
-
+	bool bAutoAspectIs16_9; 
 } SVideoInitialize;
 
 

@@ -48,6 +48,13 @@ enum MultisampleMode {
 	MULTISAMPLE_CSAA_16XQ,
 };
 
+enum AspectMode {
+	ASPECT_AUTO = 0,
+	ASPECT_FORCE_16_9 = 1,
+	ASPECT_FORCE_4_3 = 2,
+	ASPECT_STRETCH = 3,
+};
+
 class IniFile;
 
 // NEVER inherit from this class.
@@ -71,7 +78,8 @@ struct VideoConfig
 
     bool bNativeResolution, b2xResolution, bRunning;  // Should possibly be augmented with 2x, 4x native.
 	bool bWidescreenHack;
-    bool bKeepAR43, bKeepAR169, bCrop;   // Aspect ratio controls.
+	int iAspectRatio;
+    bool bCrop;   // Aspect ratio controls.
     bool bUseXFB;
     bool bAutoScale;  // Removes annoying borders without using XFB. Doesn't always work perfectly.
     

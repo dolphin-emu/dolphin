@@ -110,16 +110,8 @@ void OSDMenu(WPARAM wParam)
 	case '4':
 		OSDChoice = 2;
 		// Toggle aspect ratio
-		if (!(g_Config.bKeepAR43 || g_Config.bKeepAR169))
-			{ g_Config.bKeepAR43 = true; g_Config.bCrop = false; }
-		else if (g_Config.bKeepAR43 && !g_Config.bCrop)
-			g_Config.bCrop = true;
-		else if (g_Config.bKeepAR43)
-			{ g_Config.bKeepAR43 = false; g_Config.bCrop = false; g_Config.bKeepAR169 = true; }
-		else if (g_Config.bKeepAR169 && !g_Config.bCrop)
-			g_Config.bCrop = true;
-		else
-			{ g_Config.bKeepAR43 = false; g_Config.bKeepAR169 = false; g_Config.bCrop = false; }
+		g_Config.iAspectRatio++;
+		g_Config.iAspectRatio &= 3;
 		break;
 	case '5':
 		OSDChoice = 3;

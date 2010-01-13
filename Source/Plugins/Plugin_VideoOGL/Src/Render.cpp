@@ -1182,8 +1182,8 @@ void Renderer::DrawDebugText()
 				StringFromFormat("%i x %i (native)", OSDInternalW, OSDInternalH)
 				: StringFromFormat("%i x %i (2x)", OSDInternalW, OSDInternalH))
 				: StringFromFormat("%i x %i (custom)", W, H);
-			std::string OSDM21 =
-				!(g_ActiveConfig.bKeepAR43 || g_ActiveConfig.bKeepAR169) ? "-": (g_ActiveConfig.bKeepAR43 ? "4:3" : "16:9");
+			std::string OSDM21 = "";
+				// !(g_ActiveConfig.bKeepAR43 || g_ActiveConfig.bKeepAR169) ? "-": (g_ActiveConfig.bKeepAR43 ? "4:3" : "16:9");
 			std::string OSDM22 =
 				g_ActiveConfig.bCrop ? " (crop)" : "";			
 			std::string OSDM31 =
@@ -1256,9 +1256,17 @@ THREAD_RETURN TakeScreenshot(void *pArgs)
 	float FloatH = (float)threadStruct->H;
 
 	// Handle aspect ratio for the final ScrStrct to look exactly like what's on screen.
-	if (g_ActiveConfig.bKeepAR43 || g_ActiveConfig.bKeepAR169)
+	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
 	{
-		float Ratio = (FloatW / FloatH) / (g_ActiveConfig.bKeepAR43 ? (4.0f / 3.0f) : (16.0f / 9.0f));
+		bool use16_9 = g_VideoInitialize.bAutoAspectIs16_9;
+		
+		// Check for force-settings and override.
+		if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_16_9)
+			use16_9 = true;
+		else if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_4_3)
+			use16_9 = false;
+
+		float Ratio = (FloatW / FloatH) / (!use16_9 ? (4.0f / 3.0f) : (16.0f / 9.0f));
 		
 		// If ratio > 1 the picture is too wide and we have to limit the width.
 		if (Ratio > 1)
