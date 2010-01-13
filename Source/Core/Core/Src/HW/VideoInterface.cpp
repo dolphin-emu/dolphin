@@ -717,7 +717,9 @@ void UpdateParameters()
     case 0: // NTSC
     case 2: // PAL-M
 		TargetRefreshRate = NTSC_FIELD_RATE;
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / NTSC_FIELD_RATE;
+		// AyuanX: Some games are pretty sensitive to this value
+		// So we have to make it run a little faster to prevent potential time out
+		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (NTSC_FIELD_RATE + 1);
 		s_lineCount = m_DisplayControlRegister.NIN ? NTSC_LINE_COUNT : (NTSC_LINE_COUNT+1)/2;
 		//s_upperFieldBegin = NTSC_UPPER_BEGIN;
 		//s_lowerFieldBegin = NTSC_LOWER_BEGIN;
@@ -725,7 +727,9 @@ void UpdateParameters()
 
     case 1: // PAL
 		TargetRefreshRate = PAL_FIELD_RATE;
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / PAL_FIELD_RATE;
+		// AyuanX: Some games are pretty sensitive to this value
+		// So we have to make it run a little faster to prevent potential time out
+		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (PAL_FIELD_RATE + 1);
 		s_lineCount = m_DisplayControlRegister.NIN ? PAL_LINE_COUNT : (PAL_LINE_COUNT+1)/2;
 		//s_upperFieldBegin = PAL_UPPER_BEGIN;
 		//s_lowerFieldBegin = PAL_LOWER_BEGIN;

@@ -169,9 +169,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 					)
 				{
 					Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
-					// Replaced by instant BP hack
-					// TODO: figure out why the correct trigger method doesn't work for MP2
-					//CommandProcessor::UpdateInterruptsFromVideoPlugin(true);
+					CommandProcessor::UpdateInterruptsFromVideoPlugin(true);
 					break;
 				}
 				distToSend = 32;
