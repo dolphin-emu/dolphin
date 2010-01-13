@@ -23,11 +23,13 @@
 // opcode). Extended opcodes do not modify program counter $pc register.
 
 // Most of the suffixes increment or decrement one or more addressing registers
-// (the first four, ARx). The increment/decrement is either 1, or the corresponding 
-// "index" register (the second four, IXx). The addressing registers will wrap
-// in odd ways, dictated by the corresponding wrapping register, WP0-3.
+// (the first four, ARx). The increment/decrement is either 1, or the
+// corresponding "index" register (the second four, IXx). The addressing
+// registers will wrap in odd ways, dictated by the corresponding wrapping
+// register, WP0-3.
 
-// The following should be applied as a decrement (and is applied by dsp_decrement_addr_reg):
+// The following should be applied as a decrement (and is applied by
+// dsp_decrement_addr_reg):
 // ar[i] = (ar[i] & wp[i]) == 0 ? ar[i] | wp[i] : ar[i] - 1;
 // I have not found the corresponding algorithms for increments yet.
 // It's gotta be fairly simple though. See R3123, R3125 in Google Code.
@@ -428,9 +430,14 @@ void nop(const UDSPInstruction& opc)
 } // end namespace DSPInterpeter
 
 
-// The Writebacklog needs more commenting. It seems to be a way of writing values from the
-// "beginning" of the execution of an instruction, at the end of the execution.
+// The ext ops are calculated in parallel with the actual op. That means that
+// both the main op and the ext op see the same register state as input. The
+// output is simple as long as the main and ext ops don't change the same
+// register. If they do the output is the bitwise or of the result of both the
+// main and ext ops.
 
+// The ext op are writing their output into the backlog which is
+// being applied to the real registers after the main op was executed
 void applyWriteBackLog()
 {
 	// always make sure to have an extra entry at the end w/ -1 to avoid
@@ -442,14 +449,15 @@ void applyWriteBackLog()
 	}
 }
 
+// This function is being called in the main op after all input regs were read
+// and before it writes into any regs. This way we can always use bitwise or to
+// apply the ext command output, because if the main op didn't change the value
+// then 0 | ext output = ext output and if it did then bitwise or is still the
+// right thing to do
 void zeroWriteBackLog() 
 {
 	// always make sure to have an extra entry at the end w/ -1 to avoid
 	// infinitive loops
-
-	// What does this actually do? It just writes zeroes to registers that are
-	// mentioned in the write back log, without checking that the indexes aren't -1.
-	// Doesn't really seem sane - shouldn't it check for -1, at least?
 	for (int i = 0; writeBackLogIdx[i] != -1; i++) 
 		dsp_op_write_reg(writeBackLogIdx[i], 0);
 }
