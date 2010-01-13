@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "Hash.h"
 #include "DSPHost.h"
 #include "DSPSymbols.h"
 #include "Tools.h"
@@ -70,21 +71,15 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 	u32 crc = GenerateCRC(ptr, size);
 	DumpDSPCode(ptr, size, crc);
 
-	// this crc is comparable with the HLE plugin
-	u32 ector_crc = 0;
-	for (int i = 0; i < size; i++)
-	{
-		ector_crc ^= ptr[i];
-		//let's rol
-		ector_crc = (ector_crc << 3) | (ector_crc >> 29);
-	}
+	// HLE plugin uses this crc method
+	u32 ector_crc = HashEctor(ptr, size);
 
 	DSPSymbols::Clear();
 
 	// Auto load text file - if none just disassemble.
 	
 	// TODO: Don't hardcode for Zelda.
-	NOTICE_LOG(DSPLLE, "CRC: %08x", ector_crc);
+	NOTICE_LOG(DSPLLE, "ector_crc: %08x", ector_crc);
 
 	DSPSymbols::Clear();
 	bool success = false;
@@ -92,7 +87,11 @@ u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 	{
 		case 0x86840740: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_Zelda.txt"); break;
 		case 0x42f64ac4: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_Luigi.txt"); break;
-		case 0x4e8a8b21: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_AX1.txt"); break;
+		case 0x07f88145: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_4CB8233B.txt"); break;
+		case 0x3ad3b7ac: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_8A7A05E2.txt"); break;
+		case 0x3daf59b9: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_D9D066EA.txt"); break;
+		case 0x4e8a8b21: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_6A696CE7.txt"); break;
+		case 0xe2136399: success = DSPSymbols::ReadAnnotatedAssembly("../../docs/DSP/DSP_UC_EB79C705.txt"); break;
 		default: success = false; break;
 	}
 

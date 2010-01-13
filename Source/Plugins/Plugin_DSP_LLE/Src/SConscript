@@ -17,10 +17,7 @@ files = [
 	"Globals.cpp",
 	"main.cpp",
 	"Tools.cpp",
-        "DSPHost.cpp",
-	"Logging/AXTask.cpp",
-	"Logging/Logging.cpp",
-	"Logging/ReadPBs.cpp",
+	"DSPHost.cpp",
 	]
 
 if env['HAVE_WX']:
