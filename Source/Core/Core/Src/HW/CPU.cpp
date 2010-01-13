@@ -18,6 +18,7 @@
 #include "Common.h"
 #include "Thread.h"
 
+#include "../PluginManager.h"
 #include "../PowerPC/PowerPC.h"
 #include "../Host.h"
 #include "../Core.h"
@@ -117,12 +118,14 @@ void CCPU::EnableStepping(const bool _bStepping)
 		PowerPC::Pause();
 		// TODO(ector): why a sleep?
 		Host_SetDebugMode(true);
+		CPluginManager::GetInstance().EmuStateChange(PLUGIN_EMUSTATE_PAUSE);
 	}
 	else
 	{
 		Host_SetDebugMode(false);
 		PowerPC::Start();
 		m_StepEvent.Set();
+		CPluginManager::GetInstance().EmuStateChange(PLUGIN_EMUSTATE_PLAY);
 	}
 }
 

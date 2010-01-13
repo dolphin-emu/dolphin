@@ -192,6 +192,7 @@ void DoState(unsigned char **ptr, int mode)
 
 void EmuStateChange(PLUGIN_EMUSTATE newState)
 {
+	DSP_ClearAudioBuffer((newState == PLUGIN_EMUSTATE_PLAY) ? false : true);
 }
 
 void DllDebugger(HWND _hParent, bool Show)
@@ -400,9 +401,9 @@ void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
 	soundStream->Update();
 }
 
-void DSP_ClearAudioBuffer()
+void DSP_ClearAudioBuffer(bool mute)
 {
 	if (soundStream)
-		soundStream->Clear((*g_dspInitialize.pEmulatorState) ? true : false);
+		soundStream->Clear(mute);
 }
 

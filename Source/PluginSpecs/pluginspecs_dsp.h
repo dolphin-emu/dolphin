@@ -109,7 +109,7 @@ EXPORT void CALL DSP_StopSoundStream();
 // __________________________________________________________________________________________________
 // Function: DSP_ClearAudioBuffer
 // Purpose:  Stops audio. Called while pausing to stop the annoying noises.
-EXPORT void CALL DSP_ClearAudioBuffer();
+EXPORT void CALL DSP_ClearAudioBuffer(bool mute);
 
 #include "ExportEpilog.h"
 #endif

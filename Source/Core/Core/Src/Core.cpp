@@ -490,13 +490,9 @@ void SetState(EState _State)
 		break;
 	case CORE_PAUSE:
 		CCPU::EnableStepping(true);  // Break
-		CPluginManager::GetInstance().GetDSP()->DSP_ClearAudioBuffer();
-		CPluginManager::GetInstance().EmuStateChange(PLUGIN_EMUSTATE_PAUSE);
 		break;
 	case CORE_RUN:
 		CCPU::EnableStepping(false);
-		CPluginManager::GetInstance().GetDSP()->DSP_ClearAudioBuffer();
-		CPluginManager::GetInstance().EmuStateChange(PLUGIN_EMUSTATE_PLAY);
 		break;
 	default:
 		PanicAlert("Invalid state");
