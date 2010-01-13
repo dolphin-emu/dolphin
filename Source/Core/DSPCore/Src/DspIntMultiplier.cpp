@@ -84,10 +84,11 @@ void clrp(const UDSPInstruction& opc)
 	// Magic numbers taken from duddie's doc
 	// These are probably a bad idea to put here.
 	zeroWriteBackLog();
-	g_dsp.r[0x14] = 0x0000;
-	g_dsp.r[0x15] = 0xfff0;
-	g_dsp.r[0x16] = 0x00ff;
-	g_dsp.r[0x17] = 0x0010;
+	g_dsp.r[DSP_REG_PRODL] = 0x0000;
+	g_dsp.r[DSP_REG_PRODM] = 0xfff0;
+	g_dsp.r[DSP_REG_PRODH] = 0x00ff;
+	g_dsp.r[DSP_REG_PRODM2] = 0x0010;
+	// 00ff_(fff0 + 0010)_0000 = 0100_0000_0000, conveniently, lower 40bits = 0
 }
 
 // MOVP $acD
