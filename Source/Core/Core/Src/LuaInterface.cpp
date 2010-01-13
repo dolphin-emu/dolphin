@@ -1459,7 +1459,7 @@ DEFINE_LUA_FUNCTION(memory_readqword, "address")
 	int address = (int)luaL_checkinteger(L,1);
 	unsigned long long value = Memory::Read_U64(address);
 	lua_settop(L,0);
-	lua_pushinteger(L, value);
+	lua_pushinteger(L, (lua_Integer)value);
 	return 1;
 }
 DEFINE_LUA_FUNCTION(memory_readqwordsigned, "address")
@@ -1467,7 +1467,7 @@ DEFINE_LUA_FUNCTION(memory_readqwordsigned, "address")
 	int address = (int)luaL_checkinteger(L,1);
 	signed long long value = (signed long long)(Memory::Read_U64(address));
 	lua_settop(L,0);
-	lua_pushinteger(L, value);
+	lua_pushinteger(L, (lua_Integer)value);
 	return 1;
 }
 

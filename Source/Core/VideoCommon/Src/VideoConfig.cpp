@@ -92,6 +92,7 @@ void VideoConfig::Load(const char *ini_file)
     iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bOSDHotKey, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToRAM, true);
 	iniFile.Get("Hacks", "EFBScaledCopy", &bCopyEFBScaled, true);
+	iniFile.Get("Hacks", "FIFOBPHack", &bFIFOBPhack, false);
 	iniFile.Get("Hacks", "ProjectionHack", &iPhackvalue, 0);
 
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
@@ -131,6 +132,8 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 		iniFile.Get("Video", "DstAlphaPass", &bDstAlphaPass, false);
 	if (iniFile.Exists("Video", "UseXFB"))
 		iniFile.Get("Video", "UseXFB", &bUseXFB, 0);
+	if (iniFile.Exists("Video", "FIFOBPHack"))
+		iniFile.Get("Video", "FIFOBPHack", &bFIFOBPhack, false);
 	if (iniFile.Exists("Video", "ProjectionHack"))
 		iniFile.Get("Video", "ProjectionHack", &iPhackvalue, 0);
 }
@@ -185,6 +188,7 @@ void VideoConfig::Save(const char *ini_file)
     iniFile.Set("Hacks", "EFBCopyDisableHotKey", bOSDHotKey);
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToRAM);
 	iniFile.Set("Hacks", "EFBScaledCopy", bCopyEFBScaled);
+	iniFile.Set("Hacks", "FIFOBPHack", bFIFOBPhack);
 	iniFile.Set("Hacks", "ProjectionHack", iPhackvalue);
 
 	iniFile.Set("Hardware", "Adapter", iAdapter);

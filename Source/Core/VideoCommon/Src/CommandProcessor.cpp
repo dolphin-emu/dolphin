@@ -69,6 +69,7 @@
 
 #include "Common.h"
 #include "VideoCommon.h"
+#include "VideoConfig.h"
 #include "MathUtil.h"
 #include "Thread.h"
 #include "Atomic.h"
@@ -408,6 +409,12 @@ void Write16(const u16 _Value, const u32 _Address)
 			{
 				// Clear old BP and initiate new BP
 				Common::AtomicStore(fifo.bFF_Breakpoint, 0);
+
+				// The following is a hack of Synchronized Breakpoint for dual core mode
+				// Some games only waits a finite N cycles for FIFO interrupts, then hangs up on time out
+				// e.g. Metriod Prime 2
+				if (g_VideoInitialize.bOnThread && g_ActiveConfig.bFIFOBPhack)
+					UpdateInterrupts(true);
 			}
 
 			INFO_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
@@ -730,7 +737,10 @@ void UpdateInterrupts(bool active)
 
 void UpdateInterruptsFromVideoPlugin(bool active)
 {
-	g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, active);
+	if (g_ActiveConfig.bFIFOBPhack)
+		return;
+	else
+		g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, active);
 }
 
 void SetFifoIdleFromVideoPlugin()

@@ -111,6 +111,7 @@ struct VideoConfig
 	bool bCopyEFBToRAM;
 	bool bCopyEFBScaled;
     bool bSafeTextureCache;
+	bool bFIFOBPhack;
 	int iPhackvalue;
 	bool bPhackvalue1, bPhackvalue2;
 	float fhackvalue1, fhackvalue2;
