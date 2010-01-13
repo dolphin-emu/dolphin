@@ -26,7 +26,6 @@ void Launch(const char *filename);
 // Launch an file explorer window on a certain path
 void Explore(const char *path);
 
-bool CopySJISToString(wxString& _rDestination, const char* _src);
 }  // namespace
 
 #endif // WXUTILS
