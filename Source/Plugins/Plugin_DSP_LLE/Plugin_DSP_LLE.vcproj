@@ -598,10 +598,6 @@
 				Name="AX_GC"
 				>
 				<File
-					RelativePath="..\..\..\docs\DSP\Crazy Taxi.txt"
-					>
-				</File>
-				<File
 					RelativePath="..\..\..\docs\DSP\DSP_UC_6A696CE7.txt"
 					>
 				</File>
