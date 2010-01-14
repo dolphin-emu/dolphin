@@ -139,8 +139,11 @@ Section "Complete" SEC01
   File "${BASE_DIR}\Dolphin.exe"
   File "..\Externals\Cg64\cg.dll"
   File "..\Externals\Cg64\cgGL.dll"
+  ; File "..\Externals\Cg64\cgD3D9.dll"
   File "..\Externals\WiiUse\X64\wiiuse.dll"
   File "..\Externals\SDL\x64\SDL.dll"
+  File "..\Externals\OpenAL\win64\OpenAL32.dll"
+  File "..\Externals\OpenAL\win64\wrap_oal.dll"
   ; This needs to be done after Dolphin.exe is copied
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
   CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(^Name).lnk" "$INSTDIR\Dolphin.exe"
@@ -157,6 +160,7 @@ Section "Complete" SEC01
   File "${BASE_DIR}\Plugins\Plugin_VideoDX9.dll"
   File "${BASE_DIR}\Plugins\Plugin_VideoOGL.dll"
   File "${BASE_DIR}\Plugins\Plugin_Wiimote.dll"
+  File "${BASE_DIR}\Plugins\Plugin_VideoSW.dll"
 
   ; GC/Wii static settings
   SetOutPath "$INSTDIR\Sys\GC"
