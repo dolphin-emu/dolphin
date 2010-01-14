@@ -127,6 +127,7 @@ Section "Base" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File "${BASE_DIR}\Dolphin.exe"
+  File "${BASE_DIR}\DolphinIL.exe"
   File "..\Externals\Cg\cg.dll"
   File "..\Externals\Cg\cgGL.dll"
   ; File "..\Externals\Cg\cgD3D9.dll"
@@ -136,8 +137,10 @@ Section "Base" SEC01
   File "..\Externals\OpenAL\win32\wrap_oal.dll"
   ; This needs to be done after Dolphin.exe is copied
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
-  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\$(^Name).lnk" "$INSTDIR\Dolphin.exe"
-  CreateShortCut "$DESKTOP\$(^Name).lnk" "$INSTDIR\Dolphin.exe"
+  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\Dolphin.lnk" "$INSTDIR\Dolphin.exe"
+  CreateShortCut "$DESKTOP\Dolphin.lnk" "$INSTDIR\Dolphin.exe"
+  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\DolphinIL.lnk" "$INSTDIR\DolphinIL.exe"
+  CreateShortCut "$DESKTOP\DolphinIL.lnk" "$INSTDIR\DolphinIL.exe"
 
   ; Plugins
   SetOutPath "$INSTDIR\Plugins"
@@ -223,8 +226,10 @@ Section Uninstall
   Delete "$INSTDIR\Dolphin.exe"
 
   Delete "$SMPROGRAMS\${PRODUCT_NAME}\${UN_NAME}.lnk"
-  Delete "$DESKTOP\$(^Name).lnk"
-  Delete "$SMPROGRAMS\${PRODUCT_NAME}\$(^Name).lnk"
+  Delete "$DESKTOP\Dolphin.lnk"
+  Delete "$SMPROGRAMS\${PRODUCT_NAME}\Dolphin.lnk"
+  Delete "$DESKTOP\DolphinIL.lnk"
+  Delete "$SMPROGRAMS\${PRODUCT_NAME}\DolphinIL.lnk"
 
   RMDir "$SMPROGRAMS\${PRODUCT_NAME}"
   RMDir "$INSTDIR\Sys\GC"
