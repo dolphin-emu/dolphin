@@ -221,38 +221,45 @@ void mfmsr(UGeckoInstruction _inst)
 	m_GPR[_inst.RD] = MSR;
 }
 
-// segment register
-// We can probably ignore all this junk
 void mfsr(UGeckoInstruction _inst)
 {
 	m_GPR[_inst.RD] = PowerPC::ppcState.sr[_inst.SR];
 }
 
-// segment register
 void mfsrin(UGeckoInstruction _inst)
 {
-	int index = m_GPR[_inst.RB] & 0xF;
+	int index = (m_GPR[_inst.RB] >> 28) & 0xF;
 	m_GPR[_inst.RD] = PowerPC::ppcState.sr[index];
 }
 
 void mtmsr(UGeckoInstruction _inst)
 {
-	//Privileged?
+	// Privileged?
 	MSR = m_GPR[_inst.RS];
 }
 
-// segment register
-void mtsr(UGeckoInstruction _inst)
-{
-	PowerPC::ppcState.sr[_inst.SR] = m_GPR[_inst.RS];
+// Segment registers. MMU control.
+
+void SetSR(int index, u32 value) {
+	DEBUG_LOG(POWERPC, "%08x: MMU: Segment register %i set to %08x", PowerPC::ppcState.pc, index, value);
+	PowerPC::ppcState.sr[index] = value;
 }
 
-// segment register
+void mtsr(UGeckoInstruction _inst)
+{
+	int index = _inst.SR;
+	u32 value = m_GPR[_inst.RS];
+	SetSR(index, value);
+}
+
 void mtsrin(UGeckoInstruction _inst)
 {
-	int index = m_GPR[_inst.RB] & 0xF;
-	PowerPC::ppcState.sr[index] = m_GPR[_inst.RS];
+	int index = (m_GPR[_inst.RB] >> 28) & 0xF;
+	u32 value = m_GPR[_inst.RS];
+	SetSR(index, value);
 }
+
+
 
 void mftb(UGeckoInstruction _inst)
 {
@@ -349,13 +356,13 @@ void mtspr(UGeckoInstruction _inst)
 			//	PanicAlert("Locked cache enabled!");
 
 			if (HID2.PSE == 0)
-				PanicAlert("WARNING: PSE in HID2 isnt set");
+				PanicAlert("WARNING: PSE (paired single enable) in HID2 was unset");
 
-                        //			bool WriteGatherPipeEnable = (bool)HID2.WPE; //TODO?
-                        //			bool LockedCacheEnable = (bool)HID2.LCE;
-                        //			int DMAQueueLength = HID2.DMAQL; // Ignore - our DMA:s are instantaneous
-                        //			bool PairedSingleEnable = HID2.PSE;
-                        //			bool QuantizeEnable = HID2.LSQE;
+			//	bool WriteGatherPipeEnable = (bool)HID2.WPE; //TODO?
+			//	bool LockedCacheEnable = (bool)HID2.LCE;
+			//	int DMAQueueLength = HID2.DMAQL; // Ignore - our DMA:s are instantaneous
+			//	bool PairedSingleEnable = HID2.PSE;
+			//	bool QuantizeEnable = HID2.LSQE;
 			//TODO(ector): Protect LC memory if LCE is false.
 			//TODO(ector): Honor PSE.
 
@@ -389,7 +396,7 @@ void mtspr(UGeckoInstruction _inst)
 			u32 dwMemAddress = DMAU.MEM_ADDR << 5;
 			u32 dwCacheAddress = DMAL.LC_ADDR << 5;
 			u32 iLength = ((DMAU.DMA_LEN_U << 2) | DMAL.DMA_LEN_L);
-			//INFO_LOG(POWERPC, "DMA: mem = %x, cache = %x, len = %u, LD = %d, PC=%x", dwMemAddress, dwCacheAddress, iLength, (int)DMAL.DMA_LD, PC);
+			// INFO_LOG(POWERPC, "DMA: mem = %x, cache = %x, len = %u, LD = %d, PC=%x", dwMemAddress, dwCacheAddress, iLength, (int)DMAL.DMA_LD, PC);
 			if (iLength == 0) 
 				iLength = 128;
 			if (DMAL.DMA_LD)
@@ -416,6 +423,7 @@ void mtspr(UGeckoInstruction _inst)
 		}
 		break;
 
+	// Page table base etc
 	case SPR_SDR:
 		Memory::SDRUpdated();
 		break;
@@ -481,7 +489,7 @@ void mcrfs(UGeckoInstruction _inst)
 	//	PanicAlert("msrfs at %x, CRFS = %d, CRFD = %d", PC, (int)_inst.CRFS, (int)_inst.CRFD);
 
 	UpdateFPSCR();
-	u32 fpflags = ((FPSCR.Hex >> (4*(7 - _inst.CRFS))) & 0xF);
+	u32 fpflags = ((FPSCR.Hex >> (4 * (7 - _inst.CRFS))) & 0xF);
 	switch (_inst.CRFS) {
 	case 0:
 		FPSCR.FX = 0;
