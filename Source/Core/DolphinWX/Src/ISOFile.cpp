@@ -24,7 +24,6 @@
 #include "ISOFile.h"
 #include "StringUtil.h"
 
-#include "VolumeCreator.h"
 #include "Filesystem.h"
 #include "BannerLoader.h"
 #include "FileSearch.h"
@@ -216,6 +215,7 @@ const std::string GameListItem::GetWiiFSPath() const
 {
 	DiscIO::IVolume *Iso = DiscIO::CreateVolumeFromFilename(m_FileName);
 
+	std::string ret("NULL");
 	if (Iso != NULL)
 	{
 		if (DiscIO::IsVolumeWiiDisc(Iso) || DiscIO::IsVolumeWadFile(Iso))
@@ -223,11 +223,7 @@ const std::string GameListItem::GetWiiFSPath() const
 			char Path[250];
 			u64 Title;
 
-			if (DiscIO::IsVolumeWiiDisc(Iso))
-				Iso->RAWRead((u64)0x0F8001DC, 8, (u8*)&Title);
-			else
-				Iso->GetTitleID((u8*)&Title);
-
+			Iso->GetTitleID((u8*)&Title);
 			Title = Common::swap64(Title);
 
 			sprintf(Path, FULL_WII_USER_DIR "title/%08x/%08x/data/", (u32)(Title>>32), (u32)Title);
@@ -235,10 +231,11 @@ const std::string GameListItem::GetWiiFSPath() const
 			if (!File::Exists(Path))
 				File::CreateFullPath(Path);
 
-			return std::string(wxGetCwd().mb_str()) + std::string(Path).substr(strlen(ROOT_DIR));
+			ret = std::string(wxGetCwd().mb_str()) + std::string(Path).substr(strlen(ROOT_DIR));
 		}
+		delete Iso;
 	}
 
-	return "NULL";
+	return ret;
 }
 

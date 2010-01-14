@@ -37,6 +37,10 @@ if wxenv['HAVE_WX']:
 		'stdafx.cpp',
 		'WxUtils.cpp',
 		'MemoryCards/WiiSaveCrypted.cpp',
+		'MemoryCards/Crypto/bn.cpp'
+		'MemoryCards/Crypto/ec.cpp'
+		'MemoryCards/Crypto/md5.cpp'
+		'MemoryCards/Crypto/sha1.cpp'
 		]
 
         CPPDEFINES = [

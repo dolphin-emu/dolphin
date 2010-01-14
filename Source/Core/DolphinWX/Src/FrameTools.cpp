@@ -49,7 +49,6 @@ Core::GetWindowHandle().
 #include "ConfigMain.h"
 #include "PluginManager.h"
 #include "MemcardManager.h"
-#include "MemoryCards/WiiSaveCrypted.h"
 #include "CheatsWindow.h"
 #include "LuaWindow.h"
 #include "AboutDolphin.h"
@@ -814,8 +813,8 @@ void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event))
 
 	if (!path.IsEmpty())
 	{
-		CWiiSaveCrypted saveFile(path.ToUTF8().data());
-		saveFile.Extract();
+		CWiiSaveCrypted* saveFile = new CWiiSaveCrypted(path.ToUTF8().data());
+		delete saveFile;
 	}
 }
 

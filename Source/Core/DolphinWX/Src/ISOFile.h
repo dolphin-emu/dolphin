@@ -19,6 +19,7 @@
 #define __ISOFILE_H_
 
 #include "Volume.h"
+#include "VolumeCreator.h"
 
 class PointerWrap;
 class GameListItem

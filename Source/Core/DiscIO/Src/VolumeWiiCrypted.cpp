@@ -98,6 +98,11 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer) const
 	return(true);
 }
 
+bool CVolumeWiiCrypted::GetTitleID(u8* _pBuffer) const
+{
+	return RAWRead((u64)0x0F8001DC, 8, _pBuffer);
+}
+
 std::string CVolumeWiiCrypted::GetUniqueID() const
 {
 	if (m_pReader == NULL)

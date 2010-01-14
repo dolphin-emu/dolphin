@@ -106,6 +106,7 @@ BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 	EVT_MENU(IDM_PROPERTIES, CGameListCtrl::OnProperties)
 	EVT_MENU(IDM_OPENCONTAININGFOLDER, CGameListCtrl::OnOpenContainingFolder)
 	EVT_MENU(IDM_OPENSAVEFOLDER, CGameListCtrl::OnOpenSaveFolder)
+	EVT_MENU(IDM_EXPORTSAVE, CGameListCtrl::OnExportSave)
 	EVT_MENU(IDM_SETDEFAULTGCM, CGameListCtrl::OnSetDefaultGCM)
 	EVT_MENU(IDM_COMPRESSGCM, CGameListCtrl::OnCompressGCM)
 	EVT_MENU(IDM_MULTICOMPRESSGCM, CGameListCtrl::OnMultiCompressGCM)
@@ -803,8 +804,10 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 			popupMenu->AppendSeparator();
 
 			if (selected_iso->GetPlatform() != GameListItem::GAMECUBE_DISC)
+			{
 				popupMenu->Append(IDM_OPENSAVEFOLDER, _("Open Wii &save folder"));
-
+				popupMenu->Append(IDM_EXPORTSAVE, _("Export Wii save (Experimental)"));
+			}
 			popupMenu->Append(IDM_OPENCONTAININGFOLDER, _("Open &containing folder"));
 			popupMenu->AppendCheckItem(IDM_SETDEFAULTGCM, _("Set as &default ISO"));
 			
@@ -883,6 +886,24 @@ void CGameListCtrl::OnOpenSaveFolder(wxCommandEvent& WXUNUSED (event))
 		WxUtils::Explore(iso->GetWiiFSPath().c_str());
 }
 
+void CGameListCtrl::OnExportSave(wxCommandEvent& WXUNUSED (event))
+{
+	const GameListItem *iso =  GetSelectedISO();
+	if (!iso)
+		return;
+	u64 title;
+	DiscIO::IVolume *Iso = DiscIO::CreateVolumeFromFilename(iso->GetFileName());
+	if (Iso)
+	{
+		if (Iso->GetTitleID((u8*)&title))
+		{
+			title = Common::swap64(title);
+			CWiiSaveCrypted* exportSave = new CWiiSaveCrypted("", title);
+			delete exportSave;
+		}
+		delete Iso;
+	}
+}
 
 // =======================================================
 // Save this file as the default file

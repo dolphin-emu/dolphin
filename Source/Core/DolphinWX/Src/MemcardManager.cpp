@@ -757,9 +757,10 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		if (!memoryCard[card]->DEntry_Comment1(j, title)) title[0]=0;
 		if (!memoryCard[card]->DEntry_Comment2(j, comment)) comment[0]=0;
 
+		bool ascii = memoryCard[card]->IsAsciiEncoding();
 		wxCSConv SJISConv(wxT("SHIFT_JIS"));
-		wxTitle = wxString(title, SJISConv);
-		wxComment = wxString(comment, SJISConv);
+		wxTitle  =  wxString(title, ascii ? *wxConvCurrent : SJISConv);
+		wxComment = wxString(comment, ascii ? *wxConvCurrent : SJISConv);
 
 		m_MemcardList[card]->SetItem(index, COLUMN_TITLE, wxTitle);
 		m_MemcardList[card]->SetItem(index, COLUMN_COMMENT, wxComment);

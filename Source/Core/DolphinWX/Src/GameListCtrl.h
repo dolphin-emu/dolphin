@@ -24,7 +24,7 @@
 #include <wx/tipwin.h>
 
 #include "ISOFile.h"
-
+#include "MemoryCards/WiiSaveCrypted.h"
 
 class wxEmuStateTip : public wxTipWindow
 {
@@ -98,6 +98,7 @@ private:
 	void OnProperties(wxCommandEvent& event);
 	void OnOpenContainingFolder(wxCommandEvent& event);
 	void OnOpenSaveFolder(wxCommandEvent& event);
+	void OnExportSave(wxCommandEvent& event);
 	void OnSetDefaultGCM(wxCommandEvent& event);
 	void OnDeleteGCM(wxCommandEvent& event);
 	void OnCompressGCM(wxCommandEvent& event);
