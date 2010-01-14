@@ -244,5 +244,5 @@ Section Uninstall
 SectionEnd
 
 Function LaunchDolphin
-  ExecShell "" "$DESKTOP\$(^Name).lnk"
+  ExecShell "" "$DESKTOP\Dolphin.lnk"
 FunctionEnd
