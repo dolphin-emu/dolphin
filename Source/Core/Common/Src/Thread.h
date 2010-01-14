@@ -137,7 +137,31 @@ private:
 #endif
 };
 
-
+#ifdef _WIN32
+// Event(WaitForSingleObject) is too expensive
+// as it always enters Ring0 regardless of the state of lock
+// This EventEx will try to stay in Ring3 as much as possible
+// If the lock can be obtained in the first time, Ring0 won't be entered at all
+class EventEx
+{
+public:
+	EventEx();
+	void Init();
+	void Shutdown();
+	void Set();
+	// Infinite wait
+	void Spin();
+	// Infinite wait with sleep
+	void Wait();
+	// Wait with message processing and sleep
+	bool MsgWait();
+private:
+	volatile long m_Lock;
+};
+#else
+// TODO: implement for Linux
+#define EventEx	Event
+#endif
 
 class Event
 {
@@ -182,9 +206,10 @@ private:
 void InitThreading();
 void SleepCurrentThread(int ms);
 
-// YieldCPU: Use this function during a spin-wait to make the current thread
-// relax while another thread is working. This may be more efficient than using
-// events because event functions use kernel calls.
+// YieldCPU: This function is only effective on HyperThreading CPU
+// Use this function during a spin-wait to make the current thread
+// relax while another thread is working. This may be more efficient
+// than using events because event functions use kernel calls.
 inline void YieldCPU()
 {
 #ifdef _WIN32

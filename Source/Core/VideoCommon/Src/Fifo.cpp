@@ -36,7 +36,7 @@ namespace
 static volatile bool fifoStateRun = false;
 static volatile bool EmuRunning = false;
 static u8 *videoBuffer;
-static Common::Event fifo_run_event;
+static Common::EventEx fifo_run_event;
 // STATE_TO_SAVE
 static int size = 0;
 }  // namespace
@@ -170,6 +170,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				{
 					Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
 					CommandProcessor::UpdateInterruptsFromVideoPlugin(true);
+					CommandProcessor::FifoCriticalLeave();
 					break;
 				}
 				distToSend = 32;
@@ -208,10 +209,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
 			VideoFifo_CheckEFBAccess();
 			VideoFifo_CheckSwapRequest();
-			
-			CommandProcessor::SetFifoIdleFromVideoPlugin();
 		}
-
 		CommandProcessor::SetFifoIdleFromVideoPlugin();
 		if (EmuRunning)
 			Common::YieldCPU();

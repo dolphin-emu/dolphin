@@ -32,8 +32,7 @@ class DSound : public SoundStream
 {
 #ifdef _WIN32
     Common::Thread *thread;
-    Common::CriticalSection soundCriticalSection;
-    Common::Event soundSyncEvent;
+    Common::EventEx soundSyncEvent;
     void  *hWnd;
 
     IDirectSound8* ds;

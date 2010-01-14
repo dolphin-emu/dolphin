@@ -132,13 +132,7 @@ int
 
 	// This is completely arbitrary. If we find that we need lower latency, we can just
 	// increase this number.
-	IPC_HLE_PERIOD,
-
-	// For DC watchdog hack
-	// Once every 4 frame-period seems to be enough (arbitrary taking 60fps as the ref).
-	// TODO: make it VI output frame rate compliant (30/60 and 25/50)
-	// Assuming game's frame-finish-watchdog wait more than 4 emulated frame-period before starting its mess.
-	FAKE_GP_WATCHDOG_PERIOD;
+	IPC_HLE_PERIOD;
 
 
 
@@ -227,7 +221,7 @@ void AdvanceCallback(int cyclesExecuted)
 void FakeGPWatchdogCallback(u64 userdata, int cyclesLate)
 {
 	CPluginManager::GetInstance().GetVideo()->Video_WaitForFrameFinish();  // lock CPUThread until frame finish
-	CoreTiming::ScheduleEvent(FAKE_GP_WATCHDOG_PERIOD-cyclesLate, et_FakeGPWD);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame() - cyclesLate, et_FakeGPWD);
 }
 
 void PatchEngineCallback(u64 userdata, int cyclesLate)
@@ -235,7 +229,7 @@ void PatchEngineCallback(u64 userdata, int cyclesLate)
 	// Patch mem and run the Action Replay
 	PatchEngine::ApplyFramePatches();
 	PatchEngine::ApplyARPatches();
-	CoreTiming::ScheduleEvent((GetTicksPerSecond() / 5000) - cyclesLate, et_PatchEngine);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame() - cyclesLate, et_PatchEngine);
 }
 
 void Init()
@@ -271,8 +265,6 @@ void Init()
 	if (UsingDSPLLE)
 		DSP_PERIOD = 12000; // TO BE TWEAKED
 
-	FAKE_GP_WATCHDOG_PERIOD = GetTicksPerSecond() / 60;
-
 	// This is the biggest question mark.
 	AI_PERIOD = GetTicksPerSecond() / 80;
 
@@ -297,16 +289,14 @@ void Init()
 	CoreTiming::ScheduleEvent(AI_PERIOD, et_AI);
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_VI);
 	CoreTiming::ScheduleEvent(DSP_PERIOD, et_DSP);
-	CoreTiming::ScheduleEvent(GetTicksPerSecond() / 60, et_SI);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_SI);
 	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD, et_AudioDMA);
 
 	// For DC watchdog hack
 	if (Core::GetStartupParameter().bCPUThread)
-	{
-		CoreTiming::ScheduleEvent(FAKE_GP_WATCHDOG_PERIOD, et_FakeGPWD);
-	}
+		CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_FakeGPWD);
 
-	CoreTiming::ScheduleEvent(GetTicksPerSecond() / 60, et_PatchEngine);
+	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_PatchEngine);
 
 	if (Core::GetStartupParameter().bWii)
 		CoreTiming::ScheduleEvent(IPC_HLE_PERIOD, et_IPC_HLE);

@@ -187,7 +187,7 @@ void CLogWindow::LoadSettings()
 	m_verbosity->SetSelection(verbosity - 1);
 	ini.Get("Options", "Font", &font, 0);
 	m_FontChoice->SetSelection(font);
-	if (m_FontChoice->GetSelection() < Font.size())
+	if (m_FontChoice->GetSelection() < (int)Font.size())
 		m_Log->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, Font.at(m_FontChoice->GetSelection())));
 	ini.Get("Options", "WriteToFile", &m_writeFile, true);
 	m_writeFileCB->SetValue(m_writeFile);
@@ -303,7 +303,7 @@ wxTextCtrl* CLogWindow::CreateTextCtrl(wxPanel* parent, wxWindowID id, long Styl
 	TC->SetBackgroundColour(*wxBLACK);
 	if (m_FontChoice)
 	{
-		if (m_FontChoice->GetSelection() < Font.size())
+		if (m_FontChoice->GetSelection() < (int)Font.size())
 			TC->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, Font.at(m_FontChoice->GetSelection())));
 	}
 	return TC;

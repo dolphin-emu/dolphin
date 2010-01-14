@@ -64,8 +64,7 @@ public:
 
 private:
 	Common::Thread *thread;
-	Common::CriticalSection soundCriticalSection;
-	Common::Event soundSyncEvent;
+	Common::EventEx soundSyncEvent;
 	
 	short realtimeBuffer[OAL_MAX_SAMPLES * 2];
 	ALuint uiBuffers[OAL_NUM_BUFFERS];

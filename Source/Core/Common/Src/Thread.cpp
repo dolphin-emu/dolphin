@@ -117,6 +117,60 @@ void Thread::SetCurrentThreadAffinity(int mask)
 	SetThreadAffinityMask(GetCurrentThread(), mask);
 }
 
+#ifdef _WIN32
+EventEx::EventEx()
+{
+	InterlockedExchange(&m_Lock, 1);
+}
+
+void EventEx::Init()
+{
+	InterlockedExchange(&m_Lock, 1);
+}
+
+void EventEx::Shutdown()
+{
+	InterlockedExchange(&m_Lock, 0);
+}
+
+void EventEx::Set()
+{
+	InterlockedExchange(&m_Lock, 0);
+}
+
+void EventEx::Spin()
+{
+	while (InterlockedCompareExchange(&m_Lock, 1, 0))
+		// This only yields when there is a runnable thread on this core
+		// If not, spin
+		SwitchToThread();
+}
+
+void EventEx::Wait()
+{
+	while (InterlockedCompareExchange(&m_Lock, 1, 0))
+		// This directly enters Ring0 and enforces a sleep about 15ms
+		SleepCurrentThread(1);
+}
+
+bool EventEx::MsgWait()
+{
+	while (InterlockedCompareExchange(&m_Lock, 1, 0))
+	{
+		MSG msg;
+		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+		{
+			if (msg.message == WM_QUIT) return false;
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		// This directly enters Ring0 and enforces a sleep about 15ms
+		SleepCurrentThread(1);
+	}
+	return true;
+}
+#endif
+
 // Regular same thread loop based waiting
 Event::Event()
 {
@@ -164,6 +218,7 @@ void Event::MsgWait()
 			if (msg.message == WM_QUIT)  
 				return; 
 			// Otherwise, dispatch the message.
+			TranslateMessage(&msg);
 			DispatchMessage(&msg); 
 		}
 

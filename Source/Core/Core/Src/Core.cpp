@@ -548,13 +548,14 @@ void ScreenShot()
 // This should only be called from VI
 void VideoThrottle()
 {
-	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 1) ? SConfig::GetInstance().m_Framelimit * 10
-		: VideoInterface::TargetRefreshRate;
+	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 1) ?
+		SConfig::GetInstance().m_Framelimit * 10 : VideoInterface::TargetRefreshRate;
 
 	// When frame limit is NOT off
 	if (SConfig::GetInstance().m_Framelimit)
 	{
-		u32 frametime = DrawnVideo * 1000 / TargetVPS;
+		// Make the limiter a bit loose
+		u32 frametime = DrawnVideo * 1000 / ++TargetVPS;
 		while ((u32)Timer.GetTimeDifference() < frametime)
 			Common::YieldCPU();
 			//Common::SleepCurrentThread(1);
@@ -567,7 +568,7 @@ void VideoThrottle()
 		SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 		u32 FPS = Common::AtomicLoad(DrawnFrame) * 1000 / ElapseTime;
-		u32 VPS = DrawnVideo * 1000 / ElapseTime;
+		u32 VPS = --DrawnVideo * 1000 / ElapseTime;
 		u32 Speed = VPS * 100 / VideoInterface::TargetRefreshRate;
 		
 		// Settings are shown the same for both extended and summary info
@@ -611,7 +612,7 @@ void VideoThrottle()
 					SystemTimers::GetTicksPerSecond() / 1000000,
 					_CoreParameter.bSkipIdle ? "~" : "",
 					TicksPercentage);
-		
+
 		#else	// Summary information
 		std::string SFPS = StringFromFormat("FPS: %u - VPS: %u - SPEED: %u%%", FPS, VPS, Speed);
 		#endif
@@ -630,7 +631,7 @@ void VideoThrottle()
 		Common::AtomicStore(DrawnFrame, 0);
 		DrawnVideo = 0;
 	}
-	
+
 	DrawnVideo++;
 }
 

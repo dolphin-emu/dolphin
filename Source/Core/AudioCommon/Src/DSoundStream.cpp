@@ -106,7 +106,6 @@ void DSound::SoundLoop()
 	while (!threadData)
 	{
 		// No blocking inside the csection
-		soundCriticalSection.Enter();
 		dsBuffer->GetCurrentPosition((DWORD*)&currentPos, 0);
 		int numBytesToRender = FIX128(ModBufferSize(currentPos - lastPos));
 		if (numBytesToRender >= 256)
@@ -117,7 +116,6 @@ void DSound::SoundLoop()
 			WriteDataToBuffer(lastPos, (char*)realtimeBuffer, numBytesToRender);
 			lastPos = ModBufferSize(lastPos + numBytesToRender);
 		}
-		soundCriticalSection.Leave();
 		soundSyncEvent.Wait();
 	}
 }
@@ -149,10 +147,8 @@ void DSound::SetVolume(int volume)
 	// This is in "dBA attenuation" from 0 to -10000, logarithmic
 	m_volume = (int)floor(log10((float)volume) * 5000.0f) - 10000;
 
-	soundCriticalSection.Enter();
 	if (dsBuffer != NULL)
 		dsBuffer->SetVolume(m_volume);
-	soundCriticalSection.Leave();
 }
 
 void DSound::Update()
@@ -164,7 +160,6 @@ void DSound::Clear(bool mute)
 {
 	m_muted = mute;
 
-	soundCriticalSection.Enter();
 	if (m_muted)
 	{
 		dsBuffer->Stop();
@@ -173,7 +168,6 @@ void DSound::Clear(bool mute)
 	{
 		dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
 	}
-	soundCriticalSection.Leave();
 }
 
 void DSound::Stop()
@@ -182,13 +176,11 @@ void DSound::Stop()
 	// kick the thread if it's waiting
 	soundSyncEvent.Set();
 
-	soundCriticalSection.Enter();
 	delete thread;
 	thread = NULL;
 	dsBuffer->Stop();
 	dsBuffer->Release();
 	ds->Release();
-	soundCriticalSection.Leave();
 
 	soundSyncEvent.Shutdown();
 }

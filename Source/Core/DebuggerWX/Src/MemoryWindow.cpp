@@ -391,7 +391,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event){
 	}
 	if(size){ 
     unsigned char* pnt=&Dest.front();
-    int k=0;
+    unsigned int k=0;
 	//grab 
 
 	wxString txt = addrbox->GetValue();

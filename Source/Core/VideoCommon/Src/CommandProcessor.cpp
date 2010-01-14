@@ -105,7 +105,7 @@ int m_bboxbottom;
 u16 m_tokenReg;
 
 static u32 fake_GPWatchdogLastToken = 0;
-static Common::Event s_fifoIdleEvent;
+static Common::EventEx s_fifoIdleEvent;
 static Common::CriticalSection sFifoCritical;
 
 void FifoCriticalEnter()
@@ -381,7 +381,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			// Touching that game is a no-go so I don't want to take the risk :p
 			while (fifo.bFF_GPReadEnable && ((!fifo.bFF_BPEnable && fifo.CPReadWriteDistance) || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
 			{
-				s_fifoIdleEvent.MsgWait();
+				s_fifoIdleEvent.Wait();
 			}
 		}
 	}
@@ -573,7 +573,7 @@ void WaitForFrameFinish()
 {
 	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && ((!fifo.bFF_BPEnable && fifo.CPReadWriteDistance) || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)));
 	{
-		s_fifoIdleEvent.MsgWait();
+		s_fifoIdleEvent.Wait();
 	}
 
 	fake_GPWatchdogLastToken = fifo.Fake_GPWDToken;
@@ -618,7 +618,7 @@ void STACKALIGN GatherPipeBursted()
 			// Wait for GPU to catch up
 			while (fifo.CPReadWriteDistance > fifo.CPLoWatermark && fifo.bFF_GPReadEnable && (!fifo.bFF_BPEnable || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
 			{
-				s_fifoIdleEvent.MsgWait();
+				s_fifoIdleEvent.Wait();
 			}
 		}
 		// check if we are in sync
