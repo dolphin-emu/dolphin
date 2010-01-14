@@ -35,6 +35,10 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 	                inst.SUBOP5 != 21 && inst.SUBOP5 != 26)) {
 		Default(inst); return;
 	}
+	// Only the interpreter has "proper" support for (some) FP flags
+	if (inst.SUBOP5 == 25 && Core::g_CoreStartupParameter.bEnableFPRF) {
+		Default(inst); return;
+	}
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	switch (inst.SUBOP5)
 	{
@@ -73,7 +77,10 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	if (inst.Rc) {
 		Default(inst); return;
 	}
-
+	// Only the interpreter has "proper" support for (some) FP flags
+	if (inst.SUBOP5 == 29 && Core::g_CoreStartupParameter.bEnableFPRF) {
+		Default(inst); return;
+	}
 	IREmitter::InstLoc val = ibuild.EmitLoadFReg(inst.FA);
 	val = ibuild.EmitFDMul(val, ibuild.EmitLoadFReg(inst.FC));
 	if (inst.SUBOP5 & 1)
