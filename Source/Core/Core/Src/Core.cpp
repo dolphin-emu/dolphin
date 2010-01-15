@@ -519,10 +519,17 @@ static inline std::string GenerateScreenshotName()
 {
 	int index = 1;
 	std::string tempname, name;
-	tempname = FULL_SCREENSHOTS_DIR + GetStartupParameter().GetUniqueID();
+	std::string gameId = GetStartupParameter().GetUniqueID();
+	tempname = FULL_SCREENSHOTS_DIR + gameId + DIR_SEP_CHR;
+
+	if (!File::CreateFullPath(tempname.c_str())) {
+		//fallback to old-style screenshots, without folder.
+		tempname = FULL_SCREENSHOTS_DIR;
+	}
+	//append gameId, tempname only contains the folder here.
+	tempname += gameId;
 
 	name = StringFromFormat("%s-%d.png", tempname.c_str(), index);
-
 	while(File::Exists(name.c_str()))
 		name = StringFromFormat("%s-%d.png", tempname.c_str(), ++index);
 
