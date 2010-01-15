@@ -5,7 +5,8 @@ import platform
 def filterWarnings(self, flags):
     return ' '.join(
         flag
-        for flag in flags
+        # flags might contain tuples, like ('-arch','i386')
+        for flag in map(lambda x:(x,'='.join(x))[isinstance(x,tuple)],flags)
         if not flag.startswith('-W')
         )
 
