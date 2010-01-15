@@ -358,13 +358,16 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
     float MValueX = Renderer::GetTargetScaleX();
 	float MValueY = Renderer::GetTargetScaleY();
 
+	float Xstride = (float)((Renderer::GetFullTargetWidth() - Renderer::GetTargetWidth()) / 2);
+	float Ystride = (float)((Renderer::GetFullTargetHeight() - Renderer::GetTargetHeight()) / 2);
+
 	float sampleStride = bScaleByHalf?2.0f:1.0f;
 
 	TextureConversionShader::SetShaderParameters(
 		(float)expandedWidth, 
 		expandedHeight * MValueY, 
-		source.left * MValueX, 
-		source.top * MValueY, 
+		source.left * MValueX + Xstride , 
+		source.top * MValueY + Ystride, 
 		sampleStride * MValueX, 
 		sampleStride * MValueY,
 		(float)Renderer::GetTargetWidth(),
