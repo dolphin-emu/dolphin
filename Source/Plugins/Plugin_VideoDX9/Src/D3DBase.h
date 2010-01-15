@@ -44,6 +44,7 @@ namespace D3D
 // Null render target to do Z-only shadow maps: (probably not useful for Dolphin)
 #define FOURCC_NULL ((D3DFORMAT)(MAKEFOURCC('N','U','L','L')))
 
+bool IsATIDevice();
 HRESULT Init();
 HRESULT Create(int adapter, HWND wnd, bool fullscreen, int resolution, int aa_mode, bool auto_depth);
 void Close();
@@ -76,11 +77,25 @@ void ShowD3DError(HRESULT err);
 void SetTexture(DWORD Stage, IDirect3DBaseTexture9 *pTexture);
 void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value);
 void RefreshRenderState(D3DRENDERSTATETYPE State);
+void ChangeRenderState(D3DRENDERSTATETYPE State, DWORD Value);
+
 void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
-void RefreshSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type);
+void RefreshTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type);
+void ChangeTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value);
+
 void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
+void RefreshSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type);
+void ChangeSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value);
+
 void RefreshVertexDeclaration();
 void SetVertexDeclaration(LPDIRECT3DVERTEXDECLARATION9 decl);
+
+void RefreshVertexShader();
+void SetVertexShader(LPDIRECT3DVERTEXSHADER9 shader);
+
+void RefreshPixelShader();
+void SetPixelShader(LPDIRECT3DPIXELSHADER9 shader);
+
 void ApplyCachedState();
 
 // Utility functions for vendor specific hacks. So far, just the one.

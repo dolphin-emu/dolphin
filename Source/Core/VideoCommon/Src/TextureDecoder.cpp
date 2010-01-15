@@ -425,9 +425,9 @@ PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
     case GX_TF_C4:
 		return GetPCFormatFromTLUTFormat(tlutfmt);
     case GX_TF_I4:
-		return PC_TEX_FMT_I4_AS_I8;
+		return PC_TEX_FMT_IA8;
 	case GX_TF_I8:  // speed critical
-		return PC_TEX_FMT_I8;
+		return PC_TEX_FMT_IA8;
     case GX_TF_C8:
 		return GetPCFormatFromTLUTFormat(tlutfmt);
     case GX_TF_IA4:
@@ -456,6 +456,7 @@ PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt)
 
 PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int height,int Pitch, int texformat, int tlutaddr, int tlutfmt)
 {
+	int TexLen = height * Pitch;
    switch (texformat)
     {
     case GX_TF_C4:
@@ -465,37 +466,81 @@ PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int
             for (int y = 0; y < height; y += 8)
                 for (int x = 0; x < width; x += 8)
                     for (int iy = 0; iy < 8; iy++, src += 4)
-                        decodebytesC4_5A3_To_BGRA32(((u32*)((u8*)dst + (y + iy) * Pitch)) + x, src, tlutaddr);
+					{
+                        //decodebytesC4_5A3_To_BGRA32(((u32*)((u8*)dst + (y + iy) * Pitch)) + x, src, tlutaddr);
+						u16 *tlut = (u16*)(texMem + tlutaddr);
+						for (int ix = 0; ix < 4; ix++)
+						{
+							int stride = (y + iy) * Pitch + (x + ix * 2) * 4;
+							if(stride < TexLen)
+							{
+								u8 val = src[ix];
+								((u32*)(dst+stride))[0] = decode5A3(Common::swap16(tlut[val >> 4]));
+								((u32*)(dst+stride))[1] = decode5A3(Common::swap16(tlut[val & 0xF]));
+							}
+							else
+								break;
+						}
+					}
         }
 		else
 		{
             for (int y = 0; y < height; y += 8)
                 for (int x = 0; x < width; x += 8)
                     for (int iy = 0; iy < 8; iy++, src += 4)
-                        decodebytesC4_To_Raw16(((u16*)((u8*)dst + (y + iy) * Pitch)) + x, src, tlutaddr);
+					{
+                        //decodebytesC4_To_Raw16(((u16*)((u8*)dst + (y + iy) * Pitch)) + x, src, tlutaddr);
+						u16* tlut = (u16*)(texMem+tlutaddr);
+						for (int ix = 0; ix < 4; ix++)
+						{
+							int stride = (y + iy) * Pitch + (x + ix * 2) * 2;
+							if(stride < TexLen)
+							{
+								u8 val = src[ix];
+								((u16*)(dst+stride))[0] = Common::swap16(tlut[val >> 4]);
+								((u16*)(dst+stride))[1] = Common::swap16(tlut[val & 0xF]);
+							}
+							else
+								break;
+
+						}
+					}
 		}
         return GetPCFormatFromTLUTFormat(tlutfmt);
     case GX_TF_I4:
 		{
 			for (int y = 0; y < height; y += 8)
 				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 8; iy++, src += 4)
+					for (int iy = 0; iy < 8 && (y + iy) < height ; iy++, src += 4)
 						for (int ix = 0; ix < 4; ix++)
 						{
 							int val = src[ix];
-							dst[(y + iy) * Pitch + x + ix * 2] = Convert4To8(val >> 4);
-							dst[(y + iy) * Pitch + x + ix * 2 + 1] = Convert4To8(val & 0xF);
+							int stride = (y + iy) * Pitch + (x + ix * 2) * 2;
+							dst[stride] = Convert4To8(val >> 4);
+							dst[stride + 1] = dst[stride];
+							dst[stride + 2] = Convert4To8(val & 0xF);
+							dst[stride + 3] = dst[stride + 2];
 						}
         }
-       return PC_TEX_FMT_I4_AS_I8;
+		return PC_TEX_FMT_IA8;
 	case GX_TF_I8:  // speed critical
 		{
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 8)
-					for (int iy = 0; iy < 4; iy++, src += 8)
-						memcpy((u8*)dst + (y + iy)*Pitch+x, src, 8);
+					for (int iy = 0; iy < 4 && (y + iy) < height; iy++)
+						for (int ix = 0; ix < 8; ix++,src++)
+						{
+							int stride = (y + iy)*Pitch+(x + ix) * 2;
+							if(stride < TexLen)
+							{
+								dst[stride] = src[0];
+								dst[stride + 1] = src[0];
+							}
+							else
+								break;
+						}						
 		}
-		return PC_TEX_FMT_I8;
+		return PC_TEX_FMT_IA8;
     case GX_TF_C8:
 		if (tlutfmt == 2)
         {
@@ -503,14 +548,42 @@ PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int
             for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 8)
                     for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesC8_5A3_To_BGRA32(((u32*)((u8*)dst + (y + iy) * Pitch)) + x, src, tlutaddr);
+					{
+                        //decodebytesC8_5A3_To_BGRA32(((u32*)((u8*)dst + (y + iy) * Pitch)) + x, src, tlutaddr);
+						u16 *tlut = (u16*)(texMem + tlutaddr);
+						for (int ix = 0; ix < 8; ix++)
+						{
+							u8 val = src[ix];
+							int stride = (y + iy) * Pitch + (x + ix) * 4;
+							if(stride < TexLen)
+							{
+								((u32*)(dst+stride))[0] = decode5A3(Common::swap16(tlut[val]));
+							}
+							else
+								break;
+						}
+					}
         }
 		else
 		{
             for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 8)
                     for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesC8_To_Raw16(((u16*)((u8*)dst + (y + iy) * Pitch)) + x, src, tlutaddr);
+					{
+                        //decodebytesC8_To_Raw16(((u16*)((u8*)dst + (y + iy) * Pitch)) + x, src, tlutaddr);
+						u16* tlut = (u16*)(texMem + tlutaddr);
+						for (int ix = 0; ix < 8; ix++)
+						{
+							u8 val = src[ix];
+							int stride = (y + iy) * Pitch + (x + ix) * 2;
+							if(stride < TexLen)
+							{
+								((u16*)(dst+stride))[0] = Common::swap16(tlut[val]);
+							}
+							else
+								break;
+						}
+					}
 		}
         return GetPCFormatFromTLUTFormat(tlutfmt);
     case GX_TF_IA4:
@@ -518,7 +591,22 @@ PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int
             for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 8)
 					for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesIA4(((u16*)((u8*)dst + (y + iy) * Pitch)) + x, src);
+					{
+                        //decodebytesIA4(((u16*)((u8*)dst + (y + iy) * Pitch)) + x, src);
+						for (int ix = 0; ix < 8; ix++)
+						{
+							int stride = (y + iy) * Pitch + (x + ix) * 2;
+							if(stride < TexLen)
+							{
+								const u8 val = src[ix];
+								u8 a = Convert4To8(val >> 4);
+								u8 l = Convert4To8(val & 0xF);
+								((u16*)(dst+stride))[0] = (a << 8) | l;
+							}
+							else
+								break;
+						}
+					}
         }
 		return PC_TEX_FMT_IA4_AS_IA8;
     case GX_TF_IA8:
@@ -527,10 +615,17 @@ PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int
 				for (int x = 0; x < width; x += 4)
 					for (int iy = 0; iy < 4; iy++, src += 8)
 					{
-						u16 *ptr = ((u16 *)((u8*)dst + (y + iy) * Pitch)) + x;
 						u16 *s = (u16 *)src;
 						for(int j = 0; j < 4; j++)
-							*ptr++ = Common::swap16(*s++);
+						{
+							int stride = (y + iy) * Pitch + (x + j) * 2;
+							if(stride < TexLen)
+							{
+								((u16*)(dst+stride))[0] = Common::swap16(*s++);
+							}
+							else
+								break;
+						}	
 					}
 
         }
@@ -542,26 +637,62 @@ PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int
             for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 4)
                     for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesC14X2_5A3_To_BGRA32(((u32*)((u8*)dst + (y + iy) * Pitch)) + x, (u16*)src, tlutaddr);
+					{
+                        //decodebytesC14X2_5A3_To_BGRA32(((u32*)((u8*)dst + (y + iy) * Pitch)) + x, (u16*)src, tlutaddr);
+						u16 *tlut = (u16*)(texMem + tlutaddr);
+						for (int ix = 0; ix < 4; ix++)
+						{
+							int stride = (y + iy) * Pitch +( x + ix) * 4;
+							if(stride < TexLen)
+							{
+								u16 val = Common::swap16(src[ix]);
+								((u32*)(dst+stride))[0] = decode5A3(Common::swap16(tlut[(val & 0x3FFF)]));
+							}
+							else
+								break;
+						}
+					}
         }
 		else
 		{
             for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 4)
                     for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesC14X2_To_Raw16(((u16*)((u8*)dst + (y + iy) * Pitch)) + x, (u16*)src, tlutaddr);
+					{
+                        //decodebytesC14X2_To_Raw16(((u16*)((u8*)dst + (y + iy) * Pitch)) + x, (u16*)src, tlutaddr);
+						u16* tlut = (u16*)(texMem + tlutaddr);
+						for (int ix = 0; ix < 4; ix++)
+						{
+							int stride = (y + iy) * Pitch + (x + ix) * 2;
+							if(stride < TexLen)
+							{
+								u16 val = Common::swap16(src[ix]);
+								((u16*)(dst+stride))[0] = Common::swap16(tlut[(val & 0x3FFF)]);
+							}
+							else
+								break;
+						}
+					}
 		}
 		return GetPCFormatFromTLUTFormat(tlutfmt);
     case GX_TF_RGB565:
 		{
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 4)
-					for (int iy = 0; iy < 4; iy++, src += 8)
+					for (int iy = 0; iy < 4 && (y + iy) < height; iy++, src += 8)
 					{
-						u16 *ptr = ((u16 *)(dst + (y + iy) * Pitch)) + x;
+						//u16 *ptr = ((u16 *)(dst + (y + iy) * Pitch)) + x;
 						u16 *s = (u16 *)src;
 						for(int j = 0; j < 4; j++)
-							*ptr++ = Common::swap16(*s++);
+						{
+							int stride = (y + iy) * Pitch + (x + j) * 2;
+							if(stride < height * Pitch)
+							{
+								((u16*)(dst+stride))[0] = Common::swap16(*s++);
+							}
+							else
+								break;
+						}
 					}
 		}
 		return PC_TEX_FMT_RGB565;
@@ -570,8 +701,14 @@ PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int
             for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 4)
                     for (int iy = 0; iy < 4; iy++, src += 8)
-                        //decodebytesRGB5A3((u32*)dst+(y+iy)*width+x, (u16*)src, 4);
-                        decodebytesRGB5A3(((u32*)((u8*)dst+(y+iy)*Pitch))+x, (u16*)src);
+						for (int ix = 0; ix < 4; ix++)
+						{
+							int stride = (y+iy)*Pitch + (x + ix) * 4;
+							if(stride < height * Pitch)
+								((u32*)(dst+stride))[0] = decode5A3(Common::swap16(((u16 *)src)[ix]));
+						}
+					
+					
         }
         return PC_TEX_FMT_BGRA32;
     case GX_TF_RGBA8:  // speed critical
@@ -579,8 +716,22 @@ PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int
 			for (int y = 0; y < height; y += 4)
                 for (int x = 0; x < width; x += 4)
                 {
-					for (int iy = 0; iy < 4; iy++)
-                        decodebytesARGB8_4(((u32*)((u8*)dst + (y+iy)*Pitch)) + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
+					for (int iy = 0; iy < 4 && (y + iy) < height; iy++)
+					{
+                        //decodebytesARGB8_4(((u32*)((u8*)dst + (y+iy)*Pitch)) + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
+						u16 *src1 =  (u16*)src + 4 * iy;
+						u16 *src2 =  (u16*)src + 4 * iy + 16;
+						for (int ix = 0; ix < 4; ix++) 
+						{
+							int stride = (y+iy)*Pitch + (x + ix) * 4;
+							if(stride < height * Pitch)
+							{
+								((u32*)(dst+ stride))[0] = Common::swap32((src2[ix] << 16) | src1[ix]);
+							}
+							else
+								break;
+						}
+					}
 					src += 64;
                 }
         }

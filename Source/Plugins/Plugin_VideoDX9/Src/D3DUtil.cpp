@@ -187,50 +187,24 @@ const int TS[6][2] =
 	{D3DTSS_ALPHAARG2, D3DTA_DIFFUSE },
 };
 
-static DWORD RS_old[6];
-static DWORD TS_old[6];
-static LPDIRECT3DBASETEXTURE9 texture_old = NULL;
 static LPDIRECT3DPIXELSHADER9 ps_old = NULL;
 static LPDIRECT3DVERTEXSHADER9 vs_old = NULL;
 
-void SaveRenderStates()
+void RestoreShaders()
 {
-	// TODO: Get rid of these Gets so we can potentially switch to Pure Device
-	for (int i = 0; i < 6; i++)
-	{
-		dev->GetRenderState((_D3DRENDERSTATETYPE)RS[i][0], &(RS_old[i]));
-		dev->GetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), &(TS_old[i]));
-	}
-	dev->GetTexture(0, &texture_old);
-	dev->GetPixelShader(&ps_old);
-	dev->GetVertexShader(&vs_old);
+	D3D::SetTexture(0, 0);
+	D3D::RefreshVertexDeclaration();
+	D3D::RefreshPixelShader();
+	D3D::RefreshVertexShader();	
 }
 
 void RestoreRenderStates()
 {
-	if(texture_old)
-	{
-		D3D::SetTexture(0, texture_old);
-		texture_old->Release();
-		texture_old = NULL;
-	}
-	if(ps_old)
-	{
-		dev->SetPixelShader(ps_old);
-		ps_old->Release();
-		ps_old = NULL;
-	}
-	if(vs_old)
-	{
-		dev->SetVertexShader(vs_old);
-		vs_old->Release();
-		vs_old = NULL;
-	}
-	
+	RestoreShaders();
 	for (int i = 0; i < 6; i++)
 	{
-		D3D::SetRenderState((_D3DRENDERSTATETYPE)RS[i][0], RS_old[i]);
-		D3D::SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS_old[i]);
+		D3D::RefreshRenderState((_D3DRENDERSTATETYPE)RS[i][0]);
+		D3D::RefreshTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]));
 	}
 }
 
@@ -241,13 +215,12 @@ void CD3DFont::SetRenderStates()
 	dev->SetPixelShader(0);
 	dev->SetVertexShader(0);
 	
-	D3D::SetVertexDeclaration(NULL);  // throw away cached vtx decl
 	dev->SetFVF(D3DFVF_FONT2DVERTEX);
 
 	for (int i = 0; i < 6; i++)
 	{
-		D3D::SetRenderState((_D3DRENDERSTATETYPE)RS[i][0], RS[i][1]);
-		D3D::SetTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS[i][1]);
+		D3D::ChangeRenderState((_D3DRENDERSTATETYPE)RS[i][0], RS[i][1]);
+		D3D::ChangeTextureStageState(0, (_D3DTEXTURESTAGESTATETYPE)int(TS[i][0]), TS[i][1]);
 	}
 }
 
@@ -257,7 +230,6 @@ int CD3DFont::DrawTextScaled(float x, float y, float fXScale, float fYScale, flo
 	if (!m_pVB)
 		return 0;
 
-	SaveRenderStates();
 	SetRenderStates();
 	dev->SetStreamSource(0, m_pVB, 0, sizeof(FONT2DVERTEX));
 
@@ -369,8 +341,7 @@ int CD3DFont::DrawTextScaled(float x, float y, float fXScale, float fYScale, flo
 }
 
 void quad2d(float x1, float y1, float x2, float y2, u32 color, float u1, float v1, float u2, float v2)
-{
-	SaveRenderStates();	
+{ 
 	struct Q2DVertex { float x,y,z,rhw; u32 color; float u, v; } coords[4] = {
 		{x1-0.5f, y1-0.5f, 0, 1, color, u1, v1},
 		{x2-0.5f, y1-0.5f, 0, 1, color, u2, v1},
@@ -379,13 +350,9 @@ void quad2d(float x1, float y1, float x2, float y2, u32 color, float u1, float v
 	};
 	dev->SetPixelShader(0);
 	dev->SetVertexShader(0);
-	dev->SetVertexDeclaration(0);
-	
-	D3D::SetVertexDeclaration(NULL);  // throw away cached vtx decl
 	dev->SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE | D3DFVF_TEX1);
 	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));
-	
-	RestoreRenderStates();
+	RestoreShaders();
 }
 
 void drawShadedTexQuad(IDirect3DTexture9 *texture,
@@ -396,8 +363,6 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 					   IDirect3DPixelShader9 *PShader,
 					   IDirect3DVertexShader9 *Vshader)
 {
-	SaveRenderStates();
-	D3D::SetTexture(0, 0);
 	float u1=((float)rSource->left)/(float) SourceWidth;
 	float u2=((float)rSource->right)/(float) SourceWidth;
 	float v1=((float)rSource->top)/(float) SourceHeight;
@@ -409,30 +374,18 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 		{(float)rDest->right- 0.5f, (float)rDest->bottom- 0.5f, 0.0f,1.0f, u2, v2},
 		{(float)rDest->left- 0.5f, (float)rDest->bottom- 0.5f, 0.0f,1.0f, u1, v2}
 	};
-	HRESULT hr  = 0;
-	hr = dev->SetFVF(D3DFVF_XYZRHW | D3DFVF_TEX1);
-	hr = dev->SetVertexShader(Vshader);
-	hr = dev->SetPixelShader(PShader);	
-	hr = dev->SetTexture(0, texture);
-	if(FAILED(hr))
-	{
-		PanicAlert("unable to set pixel shader");	
-	}
-	hr = dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));	
-	if(FAILED(hr))
-	{
-		PanicAlert("unable to draw");
-	}
-	D3D::RefreshVertexDeclaration();
-	RestoreRenderStates();
-
+	dev->SetFVF(D3DFVF_XYZRHW | D3DFVF_TEX1);
+	dev->SetVertexShader(Vshader);
+	dev->SetPixelShader(PShader);	
+	D3D::SetTexture(0, texture);
+	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));	
+	RestoreShaders();
 }
 
 void drawClearQuad(const RECT *rDest, u32 Color,float z,
 				   IDirect3DPixelShader9 *PShader,
 				   IDirect3DVertexShader9 *Vshader)
 {
-	SaveRenderStates();
 	struct Q2DVertex { float x,y,z,rhw;u32 Color; } coords[4] = {
 		{(float)rDest->left-0.5f, (float)rDest->top-0.5f, z, 1.0f, Color},
 		{(float)rDest->right-0.5f, (float)rDest->top-0.5f, z,1.0f, Color},
@@ -442,9 +395,9 @@ void drawClearQuad(const RECT *rDest, u32 Color,float z,
 	dev->SetFVF(D3DFVF_XYZRHW | D3DFVF_DIFFUSE);
 	dev->SetVertexShader(Vshader);
 	dev->SetPixelShader(PShader);	
+	D3D::SetTexture(0, 0);
 	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));	
-	D3D::RefreshVertexDeclaration();
-	RestoreRenderStates();
+	RestoreShaders();
 }
 
 

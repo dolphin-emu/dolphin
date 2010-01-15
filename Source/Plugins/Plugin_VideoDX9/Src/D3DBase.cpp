@@ -55,16 +55,32 @@ const int MaxSamplerSize = 13;
 const int MaxSamplerTypes = 15;
 static bool m_RenderStatesSet[MaxRenderStates];
 static DWORD m_RenderStates[MaxRenderStates];
+static bool m_RenderStatesChanged[MaxRenderStates];
+
 static DWORD m_TextureStageStates[MaxTextureStages][MaxTextureTypes];
+static bool m_TextureStageStatesSet[MaxTextureStages][MaxTextureTypes];
+static bool m_TextureStageStatesChanged[MaxTextureStages][MaxTextureTypes];
+
 static DWORD m_SamplerStates[MaxSamplerSize][MaxSamplerTypes];
+static bool m_SamplerStatesSet[MaxSamplerSize][MaxSamplerTypes];
+static bool m_SamplerStatesChanged[MaxSamplerSize][MaxSamplerTypes];
+
 LPDIRECT3DBASETEXTURE9 m_Textures[16];
 LPDIRECT3DVERTEXDECLARATION9 m_VtxDecl;
+LPDIRECT3DPIXELSHADER9 m_PixelShader;
+LPDIRECT3DVERTEXSHADER9 m_VertexShader;
 
 void Enumerate();
 
 int GetNumAdapters() { return numAdapters; }
 const Adapter &GetAdapter(int i) { return adapters[i]; }
 const Adapter &GetCurAdapter() { return adapters[cur_adapter]; }
+
+bool IsATIDevice()
+{
+	return GetCurAdapter().ident.VendorId == VENDOR_ATI;
+}
+
 
 HRESULT Init()
 {
@@ -148,7 +164,7 @@ void Enumerate()
 		a.resolutions.clear();
 		D3D::D3D->GetAdapterIdentifier(i, 0, &a.ident);
 		bool isNvidia = a.ident.VendorId == VENDOR_NVIDIA;
-
+		
 		// Add multisample modes
 		a.aa_levels.push_back(AALevel("None", D3DMULTISAMPLE_NONE, 0));
 
@@ -264,7 +280,7 @@ HRESULT Create(int adapter, HWND wnd, bool _fullscreen, int _resolution, int aa_
 		adapter, 
 		D3DDEVTYPE_HAL, 
 		wnd,
-		D3DCREATE_HARDWARE_VERTEXPROCESSING, // | D3DCREATE_PUREDEVICE,  doesn't seem to make a difference
+		D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_PUREDEVICE,  //doesn't seem to make a difference
 		&d3dpp, &dev)))
 	{
 		if (FAILED(D3D->CreateDevice( 
@@ -285,10 +301,18 @@ HRESULT Create(int adapter, HWND wnd, bool _fullscreen, int _resolution, int aa_
 	dev->GetRenderTarget(0, &back_buffer);
 	if (dev->GetDepthStencilSurface(&back_buffer_z) == D3DERR_NOTFOUND)
 		back_buffer_z = NULL;
-	dev->SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE );
-	
-	dev->SetRenderState(D3DRS_FILLMODE, g_Config.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
-
+	D3D::SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE );	
+	D3D::SetRenderState(D3DRS_FILLMODE, g_Config.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
+	memset(m_Textures, 0, sizeof(m_Textures));
+	memset(m_TextureStageStatesSet, 0, sizeof(m_TextureStageStatesSet));
+	memset(m_RenderStatesSet, 0, sizeof(m_RenderStatesSet));
+	memset(m_SamplerStatesSet, 0, sizeof(m_SamplerStatesSet));
+	memset(m_TextureStageStatesChanged, 0, sizeof(m_TextureStageStatesChanged));
+	memset(m_RenderStatesChanged, 0, sizeof(m_RenderStatesChanged));
+	memset(m_SamplerStatesChanged, 0, sizeof(m_SamplerStatesChanged));
+	m_VtxDecl = NULL;
+	m_PixelShader = NULL;
+	m_VertexShader = NULL;
 	// Device state would normally be set here
 	return S_OK;
 }
@@ -435,7 +459,8 @@ void ApplyCachedState()
 	{
 		for (int type = 0; type < MaxSamplerTypes; type++)
 		{
-			D3D::dev->SetSamplerState(sampler, (D3DSAMPLERSTATETYPE)type, m_SamplerStates[sampler][type]);
+			if(m_SamplerStatesSet[sampler][type])
+				D3D::dev->SetSamplerState(sampler, (D3DSAMPLERSTATETYPE)type, m_SamplerStates[sampler][type]);
 		}
 	}
 
@@ -448,8 +473,11 @@ void ApplyCachedState()
 	// We don't bother restoring these so let's just wipe the state copy
 	// so no stale state is around.
 	memset(m_Textures, 0, sizeof(m_Textures));
-	memset(m_TextureStageStates, 0xFF, sizeof(m_TextureStageStates));
+	memset(m_TextureStageStatesSet, 0, sizeof(m_TextureStageStatesSet));
+	memset(m_TextureStageStatesChanged, 0, sizeof(m_TextureStageStatesChanged));	
 	m_VtxDecl = NULL;
+	m_PixelShader = NULL;
+	m_VertexShader = NULL;
 }
 
 void SetTexture(DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture)
@@ -463,39 +491,100 @@ void SetTexture(DWORD Stage, LPDIRECT3DBASETEXTURE9 pTexture)
 
 void RefreshRenderState(D3DRENDERSTATETYPE State)
 {
-	D3D::dev->SetRenderState(State, m_RenderStates[State]);	
+	if(m_RenderStatesSet[State] && m_RenderStatesChanged[State])
+	{
+		D3D::dev->SetRenderState(State, m_RenderStates[State]);	
+		m_RenderStatesChanged[State] = false;
+	}
 }
 
 void SetRenderState(D3DRENDERSTATETYPE State, DWORD Value)
 {
-	if (m_RenderStates[State] != Value)
+	if (m_RenderStates[State] != Value || !m_RenderStatesSet[State])
 	{
 		m_RenderStates[State] = Value;
 		m_RenderStatesSet[State] = true;
+		m_RenderStatesChanged[State] = false;
 		D3D::dev->SetRenderState(State, Value);
+	}
+}
+
+void ChangeRenderState(D3DRENDERSTATETYPE State, DWORD Value)
+{
+	if (m_RenderStates[State] != Value || !m_RenderStatesSet[State])
+	{
+		m_RenderStatesChanged[State] = m_RenderStatesSet[State];
+		D3D::dev->SetRenderState(State, Value);
+	}
+	else
+	{
+		m_RenderStatesChanged[State] = false;
 	}
 }
 
 void SetTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value)
 {
-	if (m_TextureStageStates[Stage][Type] != Value)
+	if (m_TextureStageStates[Stage][Type] != Value || !m_TextureStageStatesSet[Stage][Type])
 	{
 		m_TextureStageStates[Stage][Type] = Value;
+		m_TextureStageStatesSet[Stage][Type]=true;
+		m_TextureStageStatesChanged[Stage][Type]=false;
 		D3D::dev->SetTextureStageState(Stage, Type, Value);
+	}
+}
+
+void RefreshTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type)
+{
+	if(m_TextureStageStatesSet[Stage][Type] && m_TextureStageStatesChanged[Stage][Type])
+	{
+		D3D::dev->SetTextureStageState(Stage, Type, m_TextureStageStates[Stage][Type]);
+		m_TextureStageStatesChanged[Stage][Type] = false;
+	}
+}
+
+void ChangeTextureStageState(DWORD Stage, D3DTEXTURESTAGESTATETYPE Type, DWORD Value)
+{
+	if (m_TextureStageStates[Stage][Type] != Value || !m_TextureStageStatesSet[Stage][Type])
+	{
+		m_TextureStageStatesChanged[Stage][Type] = m_TextureStageStatesSet[Stage][Type];
+		D3D::dev->SetTextureStageState(Stage, Type, Value);
+	}
+	else
+	{
+		m_TextureStageStatesChanged[Stage][Type] = false;
+	}
+}
+
+void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
+{
+	if (m_SamplerStates[Sampler][Type] != Value || !m_SamplerStatesSet[Sampler][Type])
+	{
+		m_SamplerStates[Sampler][Type] = Value;
+		m_SamplerStatesSet[Sampler][Type] = true;
+		m_SamplerStatesChanged[Sampler][Type] = false;
+		D3D::dev->SetSamplerState(Sampler, Type, Value);
 	}
 }
 
 void RefreshSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type)
 {
-	D3D::dev->SetSamplerState(Sampler, Type, m_SamplerStates[Sampler][Type]);	
+	if(m_SamplerStatesSet[Sampler][Type] && m_SamplerStatesChanged[Sampler][Type])
+	{
+		D3D::dev->SetSamplerState(Sampler, Type, m_SamplerStates[Sampler][Type]);	
+		m_SamplerStatesChanged[Sampler][Type] = false;
+	}
 }
 
-void SetSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
+void ChangeSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type, DWORD Value)
 {
-	if (m_SamplerStates[Sampler][Type] != Value)
+	if (m_SamplerStates[Sampler][Type] != Value || !m_SamplerStatesSet[Sampler][Type])
 	{
-		m_SamplerStates[Sampler][Type] = Value;
+		m_SamplerStatesChanged[Sampler][Type] = m_SamplerStatesSet[Sampler][Type];
 		D3D::dev->SetSamplerState(Sampler, Type, Value);
+	}
+	else
+	{
+		m_SamplerStatesChanged[Sampler][Type] = false;
 	}
 }
 
@@ -519,5 +608,48 @@ void SetVertexDeclaration(LPDIRECT3DVERTEXDECLARATION9 decl)
 		m_VtxDecl = decl;
 	}
 }
+
+void RefreshVertexShader()
+{
+	if (m_VertexShader)
+	{
+		D3D::dev->SetVertexShader(m_VertexShader);		
+	}
+}
+
+void SetVertexShader(LPDIRECT3DVERTEXSHADER9 shader)
+{
+	if (!shader) {
+		m_VertexShader = NULL;
+		return;
+	}
+	if (shader != m_VertexShader)
+	{
+		D3D::dev->SetVertexShader(shader);
+		m_VertexShader = shader;
+	}
+}
+
+void RefreshPixelShader()
+{
+	if (m_PixelShader)
+	{
+		D3D::dev->SetPixelShader(m_PixelShader);		
+	}
+}
+
+void SetPixelShader(LPDIRECT3DPIXELSHADER9 shader)
+{
+	if (!shader) {
+		m_PixelShader = NULL;
+		return;
+	}
+	if (shader != m_PixelShader)
+	{
+		D3D::dev->SetPixelShader(shader);
+		m_PixelShader = shader;
+	}
+}
+
 
 }  // namespace

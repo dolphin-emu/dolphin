@@ -243,7 +243,7 @@ void Flush()
 	for (int i = 0; i < 8; i++)
 	{
 		if (usedtextures & (1 << i)) {
-			Renderer::SetSamplerState(i & 3, i >> 2);
+			//Renderer::SetSamplerState(i & 3, i >> 2);
 			FourTexUnits &tex = bpmem.tex[i >> 2];
 			TextureCache::TCacheEntry* tentry = TextureCache::Load(i, 
 				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
@@ -297,8 +297,8 @@ void Flush()
 		}
 
 		// update alpha only
-		D3D::dev->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
-		D3D::dev->SetRenderState(D3DRS_ALPHABLENDENABLE, false);
+		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
+		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
 		
 		Draw(stride);
 

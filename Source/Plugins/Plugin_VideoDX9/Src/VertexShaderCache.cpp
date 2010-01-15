@@ -195,7 +195,7 @@ bool VertexShaderCache::SetShader(u32 components)
 		DEBUGGER_PAUSE_AT(NEXT_VERTEX_SHADER_CHANGE,true);
 		if (entry.shader)
 		{
-			D3D::dev->SetVertexShader(entry.shader);
+			D3D::SetVertexShader(entry.shader);
 			return true;
 		}
 		else
@@ -218,7 +218,7 @@ bool VertexShaderCache::SetShader(u32 components)
 	SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
 	if (shader)
 	{
-		D3D::dev->SetVertexShader(shader);
+		D3D::SetVertexShader(shader);
 		return true;
 	}
 	

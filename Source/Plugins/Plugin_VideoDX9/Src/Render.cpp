@@ -49,11 +49,17 @@
 static int s_target_width;
 static int s_target_height;
 
+static int s_Fulltarget_width;
+static int s_Fulltarget_height;
+
 static int s_backbuffer_width;
 static int s_backbuffer_height;
 
 static float xScale;
 static float yScale;
+
+static int FULL_EFB_WIDTH = EFB_WIDTH;
+static int FULL_EFB_HEIGHT = EFB_HEIGHT;
 
 static int s_recordWidth;
 static int s_recordHeight;
@@ -262,10 +268,24 @@ bool Renderer::Init()
 
 	// TODO: Grab target width from configured resolution?
 	s_target_width  = s_backbuffer_width * EFB_WIDTH / 640;
-	s_target_height = s_backbuffer_height * EFB_HEIGHT / 480;
+	s_target_height = s_backbuffer_height * EFB_HEIGHT / 480;	
 
 	xScale = (float)s_target_width / (float)EFB_WIDTH;
 	yScale = (float)s_target_height / (float)EFB_HEIGHT;
+	if(!D3D::IsATIDevice())
+	{
+		FULL_EFB_WIDTH = 2 * EFB_WIDTH;
+		FULL_EFB_HEIGHT = 2 * EFB_HEIGHT;
+		s_Fulltarget_width  = FULL_EFB_WIDTH * xScale;
+		s_Fulltarget_height = FULL_EFB_HEIGHT * yScale;
+	}
+	else
+	{
+		s_Fulltarget_width = s_target_width;
+		s_Fulltarget_height = s_target_height;
+	}
+
+	
 
 	s_LastFrameDumped = false;
 	s_AVIDumping = false;
@@ -293,6 +313,8 @@ bool Renderer::Init()
 	
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+	vp.X = (s_Fulltarget_width - s_target_width) / 2;
+	vp.Y = (s_Fulltarget_height - s_target_height) / 2;
 	vp.Width  = s_target_width;
 	vp.Height = s_target_height;
 	D3D::dev->SetViewport(&vp);
@@ -317,6 +339,8 @@ void Renderer::Shutdown()
 
 int Renderer::GetTargetWidth() { return s_target_width; }
 int Renderer::GetTargetHeight() { return s_target_height; }
+int Renderer::GetFullTargetWidth() { return s_Fulltarget_width; }
+int Renderer::GetFullTargetHeight() { return s_Fulltarget_height; }
 float Renderer::GetTargetScaleX() { return xScale; }
 float Renderer::GetTargetScaleY() { return yScale; }
 
@@ -337,11 +361,13 @@ void dumpMatrix(D3DXMATRIX &mtx)
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
+	int Xstride = (s_Fulltarget_width - s_target_width) / 2;
+	int Ystride = (s_Fulltarget_height - s_target_height) / 2;
 	TargetRectangle result;
-	result.left   = (int)((rc.left) * xScale) ;
-	result.top    = (int)((rc.top) * yScale);
-	result.right  = (int)((rc.right) * xScale) ;
-	result.bottom = (int)((rc.bottom) * yScale);
+	result.left   = (int)(rc.left * xScale) + Xstride ;
+	result.top    = (int)(rc.top * yScale) + Ystride;
+	result.right  = (int)(rc.right * xScale) + Xstride ;
+	result.bottom = (int)(rc.bottom * yScale) + Ystride;
 	return result;
 }
 
@@ -438,7 +464,7 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 	sourcerect.right = src_rect.right;
 	sourcerect.top = src_rect.top;
 
-	D3D::drawShadedTexQuad(read_texture,&sourcerect,Renderer::GetTargetWidth(),Renderer::GetTargetHeight(),&destinationrect,PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader());	
+	D3D::drawShadedTexQuad(read_texture,&sourcerect,Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),&destinationrect,PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader());	
 	
 	// Finish up the current frame, print some stats
 	if (g_ActiveConfig.bShowFPS)
@@ -575,19 +601,22 @@ bool Renderer::SetScissorRect()
 	rc.right  = (int)((float)bpmem.scissorBR.x - xoff - 341);
 	rc.bottom = (int)((float)bpmem.scissorBR.y - yoff - 341);
 
-	rc.left   = (int)(rc.left   * xScale);
-	rc.top    = (int)(rc.top    * yScale);
-	rc.right  = (int)(rc.right  * xScale);
-	rc.bottom = (int)(rc.bottom * yScale);
+	int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
+	int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
+
+	rc.left   = (int)(rc.left * xScale) + Xstride;
+	rc.top    = (int)(rc.top    * yScale) + Ystride;
+	rc.right  = (int)(rc.right * xScale) + Xstride;
+	rc.bottom = (int)(rc.bottom * yScale) + Ystride;
 
 	if (rc.left < 0) rc.left = 0;
 	if (rc.right < 0) rc.right = 0;
-	if (rc.left > s_target_width) rc.left = s_target_width;
-	if (rc.right > s_target_width) rc.right = s_target_width;	
+	if (rc.left > s_Fulltarget_width) rc.left = s_Fulltarget_width;
+	if (rc.right > s_Fulltarget_width) rc.right = s_Fulltarget_width;	
 	if (rc.top < 0) rc.top = 0;
 	if (rc.bottom < 0) rc.bottom = 0;
-	if (rc.top > s_target_height) rc.top = s_target_height;
-	if (rc.bottom > s_target_height) rc.bottom = s_target_height;
+	if (rc.top > s_Fulltarget_height) rc.top = s_Fulltarget_height;
+	if (rc.bottom > s_Fulltarget_height) rc.bottom = s_Fulltarget_height;
 	if(rc.left > rc.right)
 	{
 		int temp = rc.right;
@@ -609,8 +638,8 @@ bool Renderer::SetScissorRect()
 	else
 	{
 		//WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
-		rc.left   = 0;
-		rc.top    = 0;
+		rc.left   = Xstride;
+		rc.top    = Ystride;
 		rc.right  = GetTargetWidth();
 		rc.bottom = GetTargetHeight();
 		D3D::dev->SetScissorRect(&rc);
@@ -721,9 +750,9 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		EFBRectangle source_rect;
 		LPDIRECT3DTEXTURE9 read_texture = FBManager::GetEFBDepthTexture(source_rect);
 		
-		D3D::dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);		
+		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);		
 
-		D3D::drawShadedTexQuad(read_texture,&RectToLock, Renderer::GetTargetWidth() , Renderer::GetTargetHeight(),&PixelRect,(BufferFormat == FOURCC_RAWZ)?PixelShaderCache::GetColorMatrixProgram():PixelShaderCache::GetDepthMatrixProgram(),VertexShaderCache::GetSimpleVertexShader());	
+		D3D::drawShadedTexQuad(read_texture,&RectToLock, Renderer::GetFullTargetWidth() , Renderer::GetFullTargetHeight(),&PixelRect,(BufferFormat == FOURCC_RAWZ)?PixelShaderCache::GetColorMatrixProgram():PixelShaderCache::GetDepthMatrixProgram(),VertexShaderCache::GetSimpleVertexShader());	
 
 		D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 
@@ -832,38 +861,33 @@ void UpdateViewport()
 
 	float MValueX = Renderer::GetTargetScaleX();
 	float MValueY = Renderer::GetTargetScaleY();
+	
+	int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
+	int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
 
 	D3DVIEWPORT9 vp;
 
 	// Stretch picture with increased internal resolution
-	int X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * MValueX); 	
-	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY);
+	int X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * MValueX) + Xstride; 	
+	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY) + Ystride;
 	int Width  = (int)ceil((int)(2 * xfregs.rawViewport[0]) * MValueX);
 	int Height = (int)ceil((int)(-2 * xfregs.rawViewport[1]) * MValueY);
 	if(Width < 0)
 	{
 		X += Width;
-		Width*=-1;
-		if( X < 0)
-		{
-			Width +=X;
-		}
+		Width*=-1;		
 	}
 	if(Height < 0)
 	{
 		Y += Height;
-		Height *= -1;
-		if(Y < 0)
-		{
-			Height+=Y;
-		}
+		Height *= -1;		
 	}
-	if(X < 0) X = 0;
-	if(Y < 0) Y = 0;	
+
 	vp.X = X;
 	vp.Y = Y;
 	vp.Width = Width;
 	vp.Height = Height;
+	
 	//some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
 	vp.MinZ = 0.0f;//(xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
 	vp.MaxZ =1.0f;// xfregs.rawViewport[5] / 16777216.0f;
@@ -873,11 +897,12 @@ void UpdateViewport()
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {	
 	// Update the view port for clearing the picture
+
 	D3DVIEWPORT9 vp;	
 	vp.X = 0;
 	vp.Y = 0;	
-	vp.Width  = Renderer::GetTargetWidth();
-	vp.Height = Renderer::GetTargetHeight();
+	vp.Width  = Renderer::GetFullTargetWidth();
+	vp.Height = Renderer::GetFullTargetHeight();
 	vp.MinZ = 0.0;
 	vp.MaxZ = 1.0;
 	D3D::dev->SetViewport(&vp);	
@@ -988,27 +1013,25 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 void Renderer::ResetAPIState()
 {
-	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-    D3D::SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-    D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-    D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
-	D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+	D3D::ChangeRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+    D3D::ChangeRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+    D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+    D3D::ChangeRenderState(D3DRS_ZENABLE, FALSE);
+	D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, FALSE);
     DWORD color_mask = D3DCOLORWRITEENABLE_ALPHA| D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
-	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
+	D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, color_mask);
 }
 
 void Renderer::RestoreAPIState()
 {
 	// Gets us back into a more game-like state.
-
-	UpdateViewport();	
-    if (bpmem.zmode.testenable) D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
-    if (bpmem.zmode.updateenable)   D3D::SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
-
-    D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
-	SetScissorRect();
-    SetColorMask();
-	SetLogicOpMode();	
+	D3D::RefreshRenderState(D3DRS_SCISSORTESTENABLE);
+    D3D::RefreshRenderState(D3DRS_CULLMODE);
+    D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
+    D3D::RefreshRenderState(D3DRS_ZENABLE);
+	D3D::RefreshRenderState(D3DRS_ZWRITEENABLE);
+    D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
+	UpdateViewport();
 }
 
 void Renderer::SetGenerationMode()

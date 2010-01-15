@@ -27,6 +27,7 @@
 #include "VertexLoader.h"
 #include "BPMemory.h"
 #include "XFMemory.h"
+#include "ImageWrite.h"
 
 #include "debugger/debugger.h"
 
@@ -190,14 +191,23 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 
 		if (entry.shader)
 		{
-			D3D::dev->SetPixelShader(entry.shader);
+			D3D::SetPixelShader(entry.shader);
 			return true;
 		}
 		else
 			return false;
 	}
 
-	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), dstAlpha, /*(D3D::GetCaps().NumSimultaneousRTs > 1)? 1 :*/ 2);
+	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(), dstAlpha, 2);
+	#if defined(_DEBUG) || defined(DEBUGFAST)
+	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
+		static int counter = 0;
+		char szTemp[MAX_PATH];
+		sprintf(szTemp, "%s/ps_%04i.txt", FULL_DUMP_DIR, counter++);
+		
+		SaveData(szTemp, code);
+	}
+	#endif
 	LPDIRECT3DPIXELSHADER9 shader = D3D::CompilePixelShader(code, (int)strlen(code));
 
 	// Make an entry in the table
@@ -214,7 +224,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 	SETSTAT(stats.numPixelShadersAlive, (int)PixelShaders.size());
 	if (shader)
 	{
-		D3D::dev->SetPixelShader(shader);
+		D3D::SetPixelShader(shader);
 		return true;
 	}
 	

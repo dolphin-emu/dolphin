@@ -212,7 +212,7 @@ struct TabAdvanced : public W32Util::Tab
 		g_Config.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
 
 		if( D3D::dev != NULL ) {
-			D3D::dev->SetRenderState( D3DRS_FILLMODE, g_Config.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID );
+			D3D::SetRenderState( D3DRS_FILLMODE, g_Config.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID );
 		}
 	}
 };

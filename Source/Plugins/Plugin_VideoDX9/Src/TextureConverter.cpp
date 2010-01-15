@@ -240,11 +240,11 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 	
 	if (linearFilter)
 	{
-		D3D::dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);		
+		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);		
 	}
 	else
 	{
-		D3D::dev->SetSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 	}
 
 	D3DVIEWPORT9 vp;

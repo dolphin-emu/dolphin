@@ -94,8 +94,8 @@ LPDIRECT3DTEXTURE9 GetEFBDepthTexture(const EFBRectangle &sourceRc)
 void Create()
 {	
 	// Simplest possible setup to start with.
-	int target_width = Renderer::GetTargetWidth();
-	int target_height = Renderer::GetTargetHeight();
+	int target_width = Renderer::GetFullTargetWidth();
+	int target_height = Renderer::GetFullTargetHeight();
 
 	s_efb_color_surface_Format = D3DFMT_A8R8G8B8;
 	//get the framebuffer texture

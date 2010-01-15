@@ -74,6 +74,8 @@ public:
 	static int GetCustomHeight();
 	static int GetTargetWidth();
 	static int GetTargetHeight();
+	static int GetFullTargetWidth();
+	static int GetFullTargetHeight();
 
 	// Multiply any 2D EFB coordinates by these when rendering.
 	static float GetTargetScaleX();
