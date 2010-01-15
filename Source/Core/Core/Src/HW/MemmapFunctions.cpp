@@ -178,23 +178,27 @@ void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Memory::XC
 	{
 		PanicAlert("READ: Invalid address: %08x", em_address);
 	}
-
-	/* If we get this far we may be in the TLB area */
+	else if (bFakeVMEM && ((em_address &0xF0000000) == 0x70000000))
+	{
+		// fake VMEM
+		_var = bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
+	}
 	else
 	{
-		/*if (bFakeVMEM && ((em_address & 0xFE000000) == 0x7e000000) )*/
-		/*F-Zero:*/if (bFakeVMEM)
+		// MMU
+		u32 tlb_addr = TranslateBlockAddress(em_address);
+		if (tlb_addr == 0)
 		{
-			_var = bswap((*(const T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK]));
+			tlb_addr = TranslatePageAddress(em_address, flag);
+			if (tlb_addr != 0)
+				_var = bswap((*(const T*)&m_pRAM[tlb_addr & RAM_MASK]));
+			else
+				PanicAlert("READ: Invalid address: %08x", em_address);
 		}
-		else {/* LOG(MEMMAP,"READ (unknown): %08x (PC: %08x)",em_address,PC);*/
-			/*PanicAlert("READ: Unknown Address", "1", MB_OK);*/
-			u32 TmpAddress = CheckDTLB(effective_address, flag);
-			TmpAddress = (TmpAddress & 0xFFFFFFF0) | (em_address & 0xF);
-			if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
-				_var = bswap((*(const T*)&m_pRAM[TmpAddress & RAM_MASK]));
-		}
+		else
+			_var = bswap((*(const T*)&m_pRAM[tlb_addr & RAM_MASK]));
 	}
+
 	/* Debugging: CheckForBadAddresses##_type(em_address, _var, true);*/
 }
 
@@ -263,19 +267,26 @@ void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory
 		ERROR_LOG(MEMMAP,"WRITE: Cache address out of bounds (addr: %08x data: %08x)", em_address, data);
 		/* PanicAlert("WRITE: Cache address %08x out of bounds", em_address); */
 	}
+	else if (bFakeVMEM && ((em_address &0xF0000000) == 0x70000000))
+	{
+		// fake VMEM
+		*(T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK] = bswap(data);
+	}
 	else
 	{
-		/*if (bFakeVMEM && ((em_address & 0xFE000000) == 0x7e000000))*/
-		/*F-Zero: */ if (bFakeVMEM)
+		// MMU
+		u32 tlb_addr = TranslateBlockAddress(em_address);
+		if (tlb_addr == 0)
 		{
-			*(T*)&m_pFakeVMEM[em_address & FAKEVMEM_MASK] = bswap(data);
-			return;
+			tlb_addr = TranslatePageAddress(em_address, flag);
+			if (tlb_addr != 0)
+				*(T*)&m_pRAM[tlb_addr & RAM_MASK] = bswap(data);
+			else
+				PanicAlert("WRITE: Invalid address: %08x", em_address);
 		}
-		/* LOG(MEMMAP,"WRITE: %08x (PC: %08x)",em_address,PC);*/
-		/*MessageBox(NULL, "WRITE: unknown Address", "1", MB_OK);*/
-		u32 tmpAddress = CheckDTLB(effective_address, flag);
-		tmpAddress = (tmpAddress & 0xFFFFFFF0) | (em_address & 0xF);
-		*(T*)&m_pRAM[tmpAddress & RAM_MASK] = bswap(data);
+		else
+			*(T*)&m_pRAM[tlb_addr & RAM_MASK] = bswap(data);
+
 	}
 }
 // =====================
@@ -460,12 +471,6 @@ void WriteUnchecked_U32(const u32 _iValue, const u32 _Address)
 {
 	WriteToHardware<u32>(_Address, _iValue, _Address, FLAG_NO_EXCEPTION);
 }
-// =====================
-
-
-
-
-
 
 // *********************************************************************************
 // Warning: Test Area
@@ -625,29 +630,16 @@ void SDRUpdated()
 	pagetable_hashmask = ((xx<<10)|0x3ff);
 } 
 
-
-u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag)
+// Page Address Translation
+u32 TranslatePageAddress(u32 _Address, XCheckTLBFlag _Flag)
 {
-	// Don't show the warnings if we are testing this code
-	if(!bFakeVMEM)
-	{
-		if (Core::GetStartupParameter().bWii) {
-			// TLB is never used on Wii (except linux and stuff, but we don't care about that)
-			PanicAlert("%s invalid memory region (0x%08x)\n\n"
-				"There is no way to recover from this error,"
-				"so Dolphin will now exit. Sorry!",
-				_Flag == FLAG_WRITE ? "Write to" : "Read from", _Address);
+	// TLB cache
+	for (int i = 0; i < 16; i++) {
+		if ((_Address & ~0xfff) == (PowerPC::ppcState.tlb_va[(PowerPC::ppcState.tlb_last + i) & 15])) {
+			u32 result = PowerPC::ppcState.tlb_pa[(PowerPC::ppcState.tlb_last + i) & 15] | (_Address & 0xfff);
+			PowerPC::ppcState.tlb_last = i;
+			return result;
 		}
-		else {
-			PanicAlert("%s invalid memory region (0x%08x)\n\n"
-				"This is either the game crashing randomly, or a TLB write."
-				"Several games uses the TLB to map memory. This\n"
-				"function is not supported in Dolphin. "
-				"Unfortunately there is no way to recover from this error,"
-				"so Dolphin will now exit abruptly. Sorry!",
-				 _Flag == FLAG_WRITE ? "Write to" : "Read from", _Address);
-		}
-		exit(0);
 	}
 
 	u32 sr = PowerPC::ppcState.sr[EA_SR(_Address)]; 
@@ -661,7 +653,7 @@ u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag)
 
 	// hash function no 1 "xor" .360
 	u32 hash1 = (VSID ^ page_index);
-	u32 pteg_addr = ((hash1 & pagetable_hashmask)<<6) | pagetable_base; 
+	u32 pteg_addr = ((hash1 & pagetable_hashmask)<<6) | pagetable_base;
 
 	// hash1
 	for (int i = 0; i < 8; i++) 
@@ -675,6 +667,12 @@ u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag)
 			{
 				UPTE2 PTE2;
 				PTE2.Hex = bswap((*(u32*)&pRAM[(pteg_addr + 4)]));
+
+				// TLB cache
+				PowerPC::ppcState.tlb_last++;
+				PowerPC::ppcState.tlb_last &= 15;
+				PowerPC::ppcState.tlb_pa[PowerPC::ppcState.tlb_last] = PTE2.RPN << 12;
+				PowerPC::ppcState.tlb_va[PowerPC::ppcState.tlb_last] = _Address & ~0xfff;	
 
 				// set the access bits
 				switch (_Flag)
@@ -702,15 +700,25 @@ u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag)
 		{
 			if (VSID == PTE1_VSID(pte) && (api == PTE1_API(pte))) 
 			{
-				PanicAlert("TLB: Address found at the second hash function.\n"
-						   "i have never seen this before");
+				UPTE2 PTE2;
+				PTE2.Hex = bswap((*(u32*)&pRAM[(pteg_addr + 4)]));
 
-				pte = bswap(*(u32*)&pRAM[(pteg_addr+4)]);
+				// TLB cache
+				PowerPC::ppcState.tlb_last++;
+				PowerPC::ppcState.tlb_last &= 15;
+				PowerPC::ppcState.tlb_pa[PowerPC::ppcState.tlb_last] = PTE2.RPN;
+				PowerPC::ppcState.tlb_va[PowerPC::ppcState.tlb_last] = _Address & ~0xfff;	
 
-				u32 physAddress = PTE2_RPN(pte) | offset; 
+				switch (_Flag)
+				{
+				case FLAG_READ:     PTE2.R = 1; break;
+				case FLAG_WRITE:    PTE2.C = 1; break;
+				case FLAG_NO_EXCEPTION: break;
+				case FLAG_OPCODE: break;
+				}              
+				*(u32*)&pRAM[(pteg_addr + 4)] = bswap(PTE2.Hex);
 
-				// missing access bits
-				return physAddress;
+				return ((PTE2.RPN << 12) | offset);
 			}
 		}
 		pteg_addr+=8; 
@@ -738,7 +746,63 @@ u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag)
 
 	return 0;
 }
-// ***********************
+
+#define BATU_BEPI(v) ((v)&0xfffe0000)
+#define BATU_BL(v)   (((v)&0x1ffc)>>2)
+#define BATU_Vs      (1<<1)
+#define BATU_Vp      (1)
+#define BATL_BRPN(v) ((v)&0xfffe0000)
+
+#define BAT_EA_OFFSET(v) ((v)&0x1ffff)
+#define BAT_EA_11(v)     ((v)&0x0ffe0000)
+#define BAT_EA_4(v)      ((v)&0xf0000000)
+
+// Block Address Translation
+u32 TranslateBlockAddress(u32 addr)
+{
+	u32 result = 0;
+	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
+
+	for (int i=0; i<4; i++) {
+		u32 bl17 = ~(BATU_BL(PowerPC::ppcState.spr[SPR_DBAT0U + i * 2])<<17);
+		u32 addr2 = addr & (bl17 | 0xf001ffff);
+		u32 batu = (m_MSR.PR ? BATU_Vp : BATU_Vs);
+
+		if (BATU_BEPI(addr2) == BATU_BEPI(PowerPC::ppcState.spr[SPR_DBAT0U + i * 2])) {
+			// bat applies to this address
+			if (PowerPC::ppcState.spr[SPR_DBAT0U + i * 2] & batu) {
+				// bat entry valid
+				u32 offset = BAT_EA_OFFSET(addr);
+				u32 page = BAT_EA_11(addr);
+				page &= ~bl17;
+				page |= BATL_BRPN(PowerPC::ppcState.spr[SPR_DBAT0L + i * 2]);
+				// fixme: check access rights
+				result = page | offset;
+				return result;
+			}
+		}
+
+		bl17 = ~(BATU_BL(PowerPC::ppcState.spr[SPR_IBAT0U + i * 2])<<17);
+		addr2 = addr & (bl17 | 0xf001ffff);
+		batu = (m_MSR.PR ? BATU_Vp : BATU_Vs);
+
+		if (BATU_BEPI(addr2) == BATU_BEPI(PowerPC::ppcState.spr[SPR_IBAT0U + i * 2])) {
+			// bat applies to this address
+			if (PowerPC::ppcState.spr[SPR_IBAT0U + i * 2] & batu) {
+				// bat entry valid
+				u32 offset = BAT_EA_OFFSET(addr);
+				u32 page = BAT_EA_11(addr);
+				page &= ~bl17;
+				page |= BATL_BRPN(PowerPC::ppcState.spr[SPR_IBAT0L + i * 2]);
+				// fixme: check access rights
+				result = page | offset;
+				return result;
+			}
+		}
+	}
+	return 0;
+}
+
 
 
 } // namespace

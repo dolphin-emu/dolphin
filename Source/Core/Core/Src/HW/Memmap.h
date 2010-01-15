@@ -161,7 +161,8 @@ enum XCheckTLBFlag
 	FLAG_WRITE,
 	FLAG_OPCODE,
 };
-u32 CheckDTLB(u32 _Address, XCheckTLBFlag _Flag);
+u32 TranslatePageAddress(u32 _Address, XCheckTLBFlag _Flag);
+u32 TranslateBlockAddress(u32 _Address);
 extern u32 pagetable_base;
 extern u32 pagetable_hashmask;
 
