@@ -55,7 +55,7 @@ void Console_Submit(const char *cmd)
 		{
 #if MAX_LOGLEVEL >= INFO_LEVEL
 			u32 EA =
-				Memory::CheckDTLB(addr, Memory::FLAG_NO_EXCEPTION);
+				Memory::TranslatePageAddress(addr, Memory::FLAG_NO_EXCEPTION);
 			INFO_LOG(CONSOLE, "EA 0x%08x to 0x%08x", addr, EA);
 #endif
 		}
