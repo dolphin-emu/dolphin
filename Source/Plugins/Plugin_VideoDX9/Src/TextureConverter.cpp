@@ -370,8 +370,8 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 		source.top * MValueY + Ystride, 
 		sampleStride * MValueX, 
 		sampleStride * MValueY,
-		(float)Renderer::GetTargetWidth(),
-		(float)Renderer::GetTargetHeight());
+		(float)Renderer::GetFullTargetWidth(),
+		(float)Renderer::GetFullTargetHeight());
 
 	TargetRectangle scaledSource;
 	scaledSource.top = 0;
