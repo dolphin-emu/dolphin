@@ -364,9 +364,9 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 	int Xstride = (s_Fulltarget_width - s_target_width) / 2;
 	int Ystride = (s_Fulltarget_height - s_target_height) / 2;
 	TargetRectangle result;
-	result.left   = (int)(rc.left * xScale) + Xstride ;
-	result.top    = (int)(rc.top * yScale) + Ystride;
-	result.right  = (int)(rc.right * xScale) + Xstride ;
+	result.left   = (int)(rc.left   * xScale) + Xstride ;
+	result.top    = (int)(rc.top    * yScale) + Ystride;
+	result.right  = (int)(rc.right  * xScale) + Xstride ;
 	result.bottom = (int)(rc.bottom * yScale) + Ystride;
 	return result;
 }
@@ -604,9 +604,9 @@ bool Renderer::SetScissorRect()
 	int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
 	int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
 
-	rc.left   = (int)(rc.left * xScale) + Xstride;
+	rc.left   = (int)(rc.left   * xScale) + Xstride;
 	rc.top    = (int)(rc.top    * yScale) + Ystride;
-	rc.right  = (int)(rc.right * xScale) + Xstride;
+	rc.right  = (int)(rc.right  * xScale) + Xstride;
 	rc.bottom = (int)(rc.bottom * yScale) + Ystride;
 
 	if (rc.left < 0) rc.left = 0;
@@ -640,8 +640,8 @@ bool Renderer::SetScissorRect()
 		//WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
 		rc.left   = Xstride;
 		rc.top    = Ystride;
-		rc.right  = GetTargetWidth();
-		rc.bottom = GetTargetHeight();
+		rc.right  = Xstride + GetTargetWidth();
+		rc.bottom = Ystride + GetTargetHeight();
 		D3D::dev->SetScissorRect(&rc);
 		return false;
 	}
@@ -917,13 +917,13 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	sirc.bottom = targetRc.bottom;
 	D3D::dev->SetScissorRect(&sirc);	
 	if(zEnable)
-		D3D::SetRenderState(D3DRS_ZFUNC, D3DCMP_ALWAYS);
+		D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_ALWAYS);
 	D3D::drawClearQuad(&sirc,color ,(z & 0xFFFFFF) / float(0xFFFFFF),PixelShaderCache::GetClearProgram(),VertexShaderCache::GetSimpleVertexShader());	
 	if(zEnable)
-		D3D::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);
+		D3D::RefreshRenderState(D3DRS_ZFUNC);
 	//D3D::dev->Clear(0, NULL, (colorEnable ? D3DCLEAR_TARGET : 0)| ( zEnable ? D3DCLEAR_ZBUFFER : 0), color | ((alphaEnable)?0:0xFF000000),(z & 0xFFFFFF) / float(0xFFFFFF), 0);			
-	SetScissorRect();
 	UpdateViewport();
+	SetScissorRect();
 }
 
 void Renderer::SetBlendMode(bool forceUpdate)
@@ -1013,25 +1013,25 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 void Renderer::ResetAPIState()
 {
-	D3D::ChangeRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-    D3D::ChangeRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-    D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-    D3D::ChangeRenderState(D3DRS_ZENABLE, FALSE);
-	D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, FALSE);
+	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+    D3D::SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+    D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+    D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
+	D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
     DWORD color_mask = D3DCOLORWRITEENABLE_ALPHA| D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
-	D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, color_mask);
+	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
 }
 
 void Renderer::RestoreAPIState()
 {
 	// Gets us back into a more game-like state.
-	D3D::RefreshRenderState(D3DRS_SCISSORTESTENABLE);
-    D3D::RefreshRenderState(D3DRS_CULLMODE);
-    D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
-    D3D::RefreshRenderState(D3DRS_ZENABLE);
-	D3D::RefreshRenderState(D3DRS_ZWRITEENABLE);
-    D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
+	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, TRUE);
 	UpdateViewport();
+	SetScissorRect();
+	if (bpmem.zmode.testenable) D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
+    if (bpmem.zmode.updateenable)   D3D::SetRenderState(D3DRS_ZWRITEENABLE, TRUE);    
+    SetColorMask();
+	SetLogicOpMode();
 }
 
 void Renderer::SetGenerationMode()
