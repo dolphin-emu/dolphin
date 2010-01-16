@@ -40,7 +40,6 @@
 // ugly that this lib included code from the main
 #include "../../DolphinWX/Src/Globals.h"
 
-
 enum
 {
 	IDM_MEM_ADDRBOX = 350,
@@ -57,22 +56,22 @@ enum
 };
 
 BEGIN_EVENT_TABLE(CMemoryWindow, wxPanel)
-    EVT_TEXT(IDM_MEM_ADDRBOX,           CMemoryWindow::OnAddrBoxChange)
-    EVT_LISTBOX(IDM_SYMBOLLIST,      CMemoryWindow::OnSymbolListChange)
-    EVT_HOST_COMMAND(wxID_ANY,       CMemoryWindow::OnHostMessage)
-	EVT_BUTTON(IDM_SETVALBUTTON,     CMemoryWindow::SetMemoryValue)
-	EVT_BUTTON(IDM_DUMP_MEMORY,      CMemoryWindow::OnDumpMemory)
-	EVT_CHECKBOX(IDM_U8        ,     CMemoryWindow::U8)
-	EVT_CHECKBOX(IDM_U16       ,     CMemoryWindow::U16)
-	EVT_CHECKBOX(IDM_U32       ,     CMemoryWindow::U32)
-	EVT_BUTTON(IDM_SEARCH      ,     CMemoryWindow::onSearch)
-	EVT_CHECKBOX(IDM_ASCII     ,     CMemoryWindow::onAscii)
-	EVT_CHECKBOX(IDM_HEX       ,	 CMemoryWindow::onHex)
+EVT_TEXT(IDM_MEM_ADDRBOX,           CMemoryWindow::OnAddrBoxChange)
+EVT_LISTBOX(IDM_SYMBOLLIST,      CMemoryWindow::OnSymbolListChange)
+EVT_HOST_COMMAND(wxID_ANY,       CMemoryWindow::OnHostMessage)
+EVT_BUTTON(IDM_SETVALBUTTON,     CMemoryWindow::SetMemoryValue)
+EVT_BUTTON(IDM_DUMP_MEMORY,      CMemoryWindow::OnDumpMemory)
+EVT_CHECKBOX(IDM_U8        ,     CMemoryWindow::U8)
+EVT_CHECKBOX(IDM_U16       ,     CMemoryWindow::U16)
+EVT_CHECKBOX(IDM_U32       ,     CMemoryWindow::U32)
+EVT_BUTTON(IDM_SEARCH      ,     CMemoryWindow::onSearch)
+EVT_CHECKBOX(IDM_ASCII     ,     CMemoryWindow::onAscii)
+EVT_CHECKBOX(IDM_HEX       ,	 CMemoryWindow::onHex)
 END_EVENT_TABLE()
 
 CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
-		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
-: wxPanel(parent, id, pos, size, style)
+							 const wxString& title, const wxPoint& pos, const wxSize& size, long style)
+							 : wxPanel(parent, id, pos, size, style)
 {    
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizerRight = new wxBoxSizer(wxVERTICAL);
@@ -90,7 +89,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerRight->Add(addrbox = new wxTextCtrl(this, IDM_MEM_ADDRBOX, _T("")));
 	sizerRight->Add(valbox = new wxTextCtrl(this, IDM_VALBOX, _T("")));
 	sizerRight->Add(new wxButton(this, IDM_SETVALBUTTON, _T("Set &Value")));
-	
+
 	sizerRight->AddSpacer(5);
 	sizerRight->Add(new wxButton(this, IDM_DUMP_MEMORY, _T("&Dump Memory")));
 
@@ -99,13 +98,13 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerSearchType->Add(btnSearch=new wxButton(this,IDM_SEARCH,_T("Search")));
 	sizerSearchType->Add(chkAscii=new wxCheckBox(this,IDM_ASCII,_T("&Ascii ")));
 	sizerSearchType->Add(chkHex=new wxCheckBox(this,IDM_HEX,_T("&Hex")));
-    sizerRight->Add(sizerSearchType);
+	sizerRight->Add(sizerSearchType);
 	wxStaticBoxSizer* sizerDataTypes = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Data Type"));
-	
+
 	sizerDataTypes->Add(chk8=new wxCheckBox(this,IDM_U8,_T("&U8        ")));//Excesss spaces are to get the DataType to show properly
 	sizerDataTypes->Add(chk16=new wxCheckBox(this,IDM_U16,_T("&U16     ")));
 	sizerDataTypes->Add(chk32=new wxCheckBox(this,IDM_U32,_T("&U32     ")));
-    sizerRight->Add(sizerDataTypes);
+	sizerRight->Add(sizerDataTypes);
 	SetSizer(sizerBig);
 	chkHex->SetValue(1);//Set defaults
 	chk8->SetValue(1);
@@ -150,7 +149,7 @@ void CMemoryWindow::Load(IniFile& _IniFile)
 
 void CMemoryWindow::JumpToAddress(u32 _Address)
 {
-    memview->Center(_Address);
+	memview->Center(_Address);
 }
 
 
@@ -162,13 +161,13 @@ void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
 	u32 val;
 
 	if (!TryParseUInt(std::string("0x") + str_addr, &addr)) {
-            PanicAlert("Invalid Address: %s", str_addr.c_str());
-            return;
+		PanicAlert("Invalid Address: %s", str_addr.c_str());
+		return;
 	}
 
 	if (!TryParseUInt(std::string("0x") + str_val, &val)) {
-            PanicAlert("Invalid Value: %s", str_val.c_str());
-            return;
+		PanicAlert("Invalid Value: %s", str_val.c_str());
+		return;
 	}
 
 	Memory::Write_U32(val, addr);
@@ -199,17 +198,17 @@ void CMemoryWindow::NotifyMapLoaded()
 	symbols->Show(false); // hide it for faster filling
 	symbols->Clear();
 	/*
-#ifdef _WIN32
+	#ifdef _WIN32
 	const FunctionDB::XFuncMap &syms = g_symbolDB.Symbols();
 	for (FuntionDB::XFuncMap::iterator iter = syms.begin(); iter != syms.end(); ++iter)
 	{
-		int idx = symbols->Append(iter->second.name.c_str());
-		symbols->SetClientData(idx, (void*)&iter->second);
+	int idx = symbols->Append(iter->second.name.c_str());
+	symbols->SetClientData(idx, (void*)&iter->second);
 	}
 
 	//
-#endif
-*/
+	#endif
+	*/
 	symbols->Show(true);
 	Update();
 }
@@ -230,9 +229,9 @@ void CMemoryWindow::OnHostMessage(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	    case IDM_NOTIFYMAPLOADED:
-		    NotifyMapLoaded();
-		    break;
+	case IDM_NOTIFYMAPLOADED:
+		NotifyMapLoaded();
+		break;
 	}
 }
 
@@ -274,136 +273,121 @@ void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 }
 
 
-void CMemoryWindow::U8(wxCommandEvent& event){
-         chk16->SetValue(0);
-		 chk32->SetValue(0);
-		 memview->dataType =0;
-		 memview->Refresh();
+void CMemoryWindow::U8(wxCommandEvent& event) {
+	chk16->SetValue(0);
+	chk32->SetValue(0);
+	memview->dataType = 0;
+	memview->Refresh();
 }
-void CMemoryWindow::U16(wxCommandEvent& event){
-		 chk8->SetValue(0);
-		 chk32->SetValue(0);
-         memview->dataType =1;
-		memview->Refresh(); 
+void CMemoryWindow::U16(wxCommandEvent& event) {
+	chk8->SetValue(0);
+	chk32->SetValue(0);
+	memview->dataType = 1;
+	memview->Refresh(); 
 }
-void CMemoryWindow::U32(wxCommandEvent& event){
-		 chk16->SetValue(0);
-		 chk8->SetValue(0);
-         memview->dataType =2;
-		 memview->Refresh();
+void CMemoryWindow::U32(wxCommandEvent& event) {
+	chk16->SetValue(0);
+	chk8->SetValue(0);
+	memview->dataType = 2;
+	memview->Refresh();
 }
 
-void CMemoryWindow::onSearch(wxCommandEvent& event){
-
+void CMemoryWindow::onSearch(wxCommandEvent& event) {
 	u8* TheRAM=0;
 	u32 szRAM=0;
 	switch (memview->GetMemoryType())
 	{
 	case 0:
 	default:
+		if (Memory::m_pRAM)
 		{
-			
-				if (Memory::m_pRAM)
-				{
-					TheRAM=Memory::m_pRAM;
-					szRAM=Memory::REALRAM_SIZE;
-					
-				}
-		
+			TheRAM=Memory::m_pRAM;
+			szRAM=Memory::REALRAM_SIZE;
 		}
 		break;
-
 	case 1:
 		{
-			
-				u8* aram = DSP::GetARAMPtr();
-				if (aram)
-				{
-					
-					TheRAM=aram;
-					szRAM=DSP::ARAM_SIZE;
-					
-				}
-			
-			
+			u8* aram = DSP::GetARAMPtr();
+			if (aram)
+			{
+				TheRAM=aram;
+				szRAM=DSP::ARAM_SIZE;
+			}
 		}
 		break;
 	}
 	//Now we have memory to look in
 	//Are we looking for ASCII string, or hex?
 	//memview->cu
-	 wxString rawData=valbox->GetValue();
-	 std::vector<u8> Dest;//May need a better name
-	 u32 size=0;
-	 int pad=rawData.size()%2;//If it's uneven
-	 unsigned long i=0;
-	 long count=0;
-	 char copy[3]={0};
-	 long newsize=0;
-	 unsigned char *tmp2=0;
-	 char* tmpstr=0;
-	switch(chkHex->GetValue()){
+	wxString rawData=valbox->GetValue();
+	std::vector<u8> Dest;//May need a better name
+	u32 size=0;
+	int pad=rawData.size()%2;//If it's uneven
+	unsigned long i=0;
+	long count=0;
+	char copy[3]={0};
+	long newsize=0;
+	unsigned char *tmp2=0;
+	char* tmpstr=0;
+	switch (chkHex->GetValue()){
 	case 1://We are looking for hex
-       //If it's uneven
+		//If it's uneven
 		size=(rawData.size()/2) + pad;
-	        Dest.resize(size+32);
-                 newsize=rawData.size();
-                 
-		if(pad){
-                    tmpstr=new char[newsize+2];
-					memset(tmpstr,0,newsize+2);
-                    tmpstr[0]='0';
-		}else{
-		    tmpstr=new char[newsize+1];
-			memset(tmpstr,0,newsize+1);
+		Dest.resize(size+32);
+		newsize=rawData.size();
+
+		if (pad) {
+			tmpstr = new char[newsize + 2];
+			memset(tmpstr, 0, newsize + 2);
+			tmpstr[0]='0';
+		} else {
+			tmpstr = new char[newsize + 1];
+			memset(tmpstr, 0, newsize + 1);
 		}
 		//sprintf(tmpstr,"%s%s",tmpstr,rawData.c_str());
-		 //strcpy(&tmpstr[1],rawData.ToAscii());
+		//strcpy(&tmpstr[1],rawData.ToAscii());
 		//memcpy(&tmpstr[1],&rawData.c_str()[0],rawData.size());
 		sprintf(tmpstr,"%s%s",tmpstr,(const char *)rawData.mb_str());
-          tmp2=&Dest.front();
-		  count=0;
-		  for(i=0;i<strlen(tmpstr);i++){
-			  copy[0]=tmpstr[i];
-		      copy[1]=tmpstr[i+1];
-			  copy[2]=0;
-			  int tmpint;
-              sscanf(copy, "%02x", &tmpint);
-              tmp2[count++] = tmpint;
-			  //sscanf(copy,"%02x",&tmp2[count++]);//Dest[count] should now be the hex of what the two chars were! Also should add a check to make sure it's A-F only
-			  i+=1;//
-		  }
-                 delete[] tmpstr;
+		tmp2=&Dest.front();
+		count=0;
+		for(i=0;i<strlen(tmpstr);i++){
+			copy[0]=tmpstr[i];
+			copy[1]=tmpstr[i+1];
+			copy[2]=0;
+			int tmpint;
+			sscanf(copy, "%02x", &tmpint);
+			tmp2[count++] = tmpint;
+			//sscanf(copy,"%02x",&tmp2[count++]);//Dest[count] should now be the hex of what the two chars were! Also should add a check to make sure it's A-F only
+			i+=1;//
+		}
+		delete[] tmpstr;
 		break;
-	        case 0://Looking for an ascii string
-                size=rawData.size();
-		        Dest.resize(size+1);
-				tmpstr=new char[size+1];
-					
-					
-				tmp2=&Dest.front();
-				sprintf(tmpstr,"%s",(const char *)rawData.mb_str());
-				for(i=0;i<size;i++){
-                  tmp2[i]=tmpstr[i];
-				}
-				delete[] tmpstr;
-            break;
+	case 0://Looking for an ascii string
+		size=rawData.size();
+		Dest.resize(size+1);
+		tmpstr=new char[size+1];
+
+
+		tmp2=&Dest.front();
+		sprintf(tmpstr,"%s",(const char *)rawData.mb_str());
+		for(i=0;i<size;i++){
+			tmp2[i]=tmpstr[i];
+		}
+		delete[] tmpstr;
+		break;
 	}
 	if(size){ 
-    unsigned char* pnt=&Dest.front();
-    unsigned int k=0;
-	//grab 
-
-	wxString txt = addrbox->GetValue();
-	u32 addr=0;
-	if (txt.size())
-	{
-		
-		sscanf(txt.mb_str(), "%08x", &addr);
-		
-	}
-	i=addr+4;
-	for(;szRAM;i++){
+		unsigned char* pnt=&Dest.front();
+		unsigned int k=0;
+		//grab 
+		wxString txt = addrbox->GetValue();
+		u32 addr=0;
+		if (txt.size())
+		{
+			sscanf(txt.mb_str(), "%08x", &addr);
+		}
+		i=addr+4;
+		for(;szRAM;i++){
 			for(k=0;k<size;k++){
 				if(i+k>szRAM) break;
 				if(k>size) break;
@@ -411,8 +395,6 @@ void CMemoryWindow::onSearch(wxCommandEvent& event){
 					k=0;
 					break;
 				}
-
-
 			}
 			if(k==size){
 				//Match was found
@@ -426,20 +408,15 @@ void CMemoryWindow::onSearch(wxCommandEvent& event){
 				OnAddrBoxChange(event);
 				return;
 			}
-		
 		}
-
-			wxMessageBox(_T("No match was found."));
+		wxMessageBox(_T("No match was found."));
 	}
-
 }
-void CMemoryWindow::onAscii(wxCommandEvent& event){
-chkHex->SetValue(0);
 
-
+void CMemoryWindow::onAscii(wxCommandEvent& event) {
+	chkHex->SetValue(0);
 }
-void CMemoryWindow::onHex(wxCommandEvent& event){
-chkAscii->SetValue(0);
 
-
+void CMemoryWindow::onHex(wxCommandEvent& event) {
+	chkAscii->SetValue(0);
 }

@@ -44,13 +44,13 @@ public:
 	const std::string& GetDeviceName() const { return m_Name; } 
     u32 GetDeviceID() const { return m_DeviceID; } 
 
-    virtual bool Open(u32 _CommandAddress, u32 _Mode)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Open()", m_Name.c_str()); m_Active = true; return true; }
-    virtual bool Close(u32 _CommandAddress, bool _bForce = false)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Close()", m_Name.c_str()); m_Active = false; return true; }
-    virtual bool Seek(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Seek()", m_Name.c_str()); return true; }
-	virtual bool Read(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Read()", m_Name.c_str()); return true; }
-	virtual bool Write(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run Write()", m_Name.c_str()); return true; }
-	virtual bool IOCtl(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run IOCtl()", m_Name.c_str()); return true; }
-	virtual bool IOCtlV(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s is not able to run IOCtlV()", m_Name.c_str()); return true; }
+    virtual bool Open(u32 _CommandAddress, u32 _Mode)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Open()", m_Name.c_str()); m_Active = true; return true; }
+    virtual bool Close(u32 _CommandAddress, bool _bForce = false)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Close()", m_Name.c_str()); m_Active = false; return true; }
+    virtual bool Seek(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Seek()", m_Name.c_str()); return true; }
+	virtual bool Read(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Read()", m_Name.c_str()); return true; }
+	virtual bool Write(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Write()", m_Name.c_str()); return true; }
+	virtual bool IOCtl(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support IOCtl()", m_Name.c_str()); return true; }
+	virtual bool IOCtlV(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support IOCtlV()", m_Name.c_str()); return true; }
 
 	virtual u32 Update() { return 0; }
 
@@ -146,10 +146,10 @@ protected:
 		GENERIC_LOG(LogType, Verbosity, "CommandDump of %s", 
 					GetDeviceName().c_str());
 		for (u32 i = 0; i < _NumberOfCommands; i++)
-			{            
-				GENERIC_LOG(LogType, Verbosity, "    Command%02i: 0x%08x", i,
-							Memory::Read_U32(_CommandAddress + i*4));	
-			}
+		{            
+			GENERIC_LOG(LogType, Verbosity, "    Command%02i: 0x%08x", i,
+						Memory::Read_U32(_CommandAddress + i*4));	
+		}
     }
 
 	
@@ -160,7 +160,6 @@ protected:
 		GENERIC_LOG(LogType, Verbosity, "======= DumpAsync ======");
 
         u32 BufferOffset = BufferVector;
-
         for (u32 i = 0; i < NumberInBuffer; i++)
         {            
             u32 InBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;

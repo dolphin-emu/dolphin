@@ -458,6 +458,11 @@ public:
 	// SSE/SSE2: Useful alternative to shuffle in some cases.
 	void MOVDDUP(X64Reg regOp, OpArg arg);
 
+	// THESE TWO ARE NEW AND UNTESTED
+	void UNPCKLPS(X64Reg dest, OpArg src);
+	void UNPCKHPS(X64Reg dest, OpArg src);
+
+	// These are OK.
 	void UNPCKLPD(X64Reg dest, OpArg src);
 	void UNPCKHPD(X64Reg dest, OpArg src);
 
