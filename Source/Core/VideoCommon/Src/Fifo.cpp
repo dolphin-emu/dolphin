@@ -97,6 +97,10 @@ void Fifo_ExitLoop()
 // Created to allow for self shutdown.
 void Fifo_ExitLoopNonBlocking()
 {
+	// This should break the wait loop in CPU thread
+	CommandProcessor::fifo.bFF_GPReadEnable = false;
+	CommandProcessor::SetFifoIdleFromVideoPlugin();
+	// Terminate GPU thread loop
 	fifoStateRun = false;
 	fifo_run_event.Set();
 }

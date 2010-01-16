@@ -571,7 +571,7 @@ bool AllowIdleSkipping()
 // if not then lock CPUThread until GP finish a frame.
 void WaitForFrameFinish()
 {
-	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && ((!fifo.bFF_BPEnable && fifo.CPReadWriteDistance) || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)));
+	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && ((!fifo.bFF_BPEnable && fifo.CPReadWriteDistance) || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
 	{
 		s_fifoIdleEvent.Wait();
 	}
