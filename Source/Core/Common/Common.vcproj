@@ -548,6 +548,38 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Crypto"
+			>
+			<File
+				RelativePath=".\Src\Crypto\bn.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Crypto\ec.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Crypto\md5.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Crypto\md5.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Crypto\sha1.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Crypto\sha1.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Crypto\tools.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\ABI.cpp"
 			>

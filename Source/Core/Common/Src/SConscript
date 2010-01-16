@@ -39,6 +39,10 @@ files = [
 	"Thread.cpp",
 	"x64Emitter.cpp",
 	"x64Analyzer.cpp",
+	"Crypto/bn.cpp",
+	"Crypto/ec.cpp",
+	"Crypto/md5.cpp",
+	"Crypto/sha1.cpp",
 	]
 
 if sys.platform == 'win32':

@@ -4,7 +4,7 @@
 
 #include <string.h>
 #include <stdio.h>
-#include "Common.h"
+#include "../Common.h"
 #include "tools.h"
 
 /*static void bn_print(char *name, u8 *a, u32 n)

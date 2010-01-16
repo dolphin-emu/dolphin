@@ -4,10 +4,11 @@
 
 #include <string.h>
 #include <stdio.h>
-#include "Common.h"
+#include <time.h>
+#include <stdlib.h>
+
+#include "../Common.h"
 #include "tools.h"
-#include "time.h"
-#include "stdlib.h"
 // y**2 + x*y = x**3 + x + b
 static u8 ec_b[30] =
 	{0x00,0x66,0x64,0x7e,0xde,0x6c,0x33,0x2c,0x7f,0x8c,0x09,0x23,0xbb,0x58,0x21

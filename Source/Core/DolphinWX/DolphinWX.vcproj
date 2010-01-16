@@ -1542,38 +1542,6 @@
 				>
 			</File>
 		</Filter>
-		<Filter
-			Name="Crypto"
-			>
-			<File
-				RelativePath=".\Src\MemoryCards\Crypto\bn.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\MemoryCards\Crypto\ec.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\MemoryCards\Crypto\md5.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\MemoryCards\Crypto\md5.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\MemoryCards\Crypto\sha1.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\MemoryCards\Crypto\sha1.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\MemoryCards\Crypto\tools.h"
-				>
-			</File>
-		</Filter>
 		<File
 			RelativePath=".\src\main.cpp"
 			>
