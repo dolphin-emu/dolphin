@@ -245,6 +245,7 @@ void AsmRoutineManager::GenerateCommon()
 
 	GenQuantizedLoads();
 	GenQuantizedStores();
+	GenQuantizedSingleStores();
 
 	//CMPSD(R(XMM0), M(&zero), 
 	// TODO

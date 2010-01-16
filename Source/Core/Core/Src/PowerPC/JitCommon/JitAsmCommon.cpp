@@ -137,8 +137,12 @@ static const float GC_ALIGNED16(m_dequantizeTableS[]) =
 
 static float GC_ALIGNED16(psTemp[4]);
 
-static const float m_65535 = 65535.0f;
-
+static const float GC_ALIGNED16(m_65535) = 65535.0f;
+static const float GC_ALIGNED16(m_32767) = 32767.0f;
+static const float GC_ALIGNED16(m_m32768) = -32768.0f;
+static const float GC_ALIGNED16(m_255) = 255.0f;
+static const float GC_ALIGNED16(m_127) = 127.0f;
+static const float GC_ALIGNED16(m_m128) = -128.0f;
 
 #define QUANTIZE_OVERFLOW_SAFE
 
@@ -205,7 +209,7 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MINPS(XMM0, R(XMM1));
 #endif
-	CVTPS2DQ(XMM0, R(XMM0));
+	CVTTPS2DQ(XMM0, R(XMM0));
 	PACKSSDW(XMM0, R(XMM0));
 	PACKUSWB(XMM0, R(XMM0));
 	MOVD_xmm(R(EAX), XMM0);
@@ -223,7 +227,7 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MINPS(XMM0, R(XMM1));
 #endif
-	CVTPS2DQ(XMM0, R(XMM0));
+	CVTTPS2DQ(XMM0, R(XMM0));
 	PACKSSDW(XMM0, R(XMM0));
 	PACKSSWB(XMM0, R(XMM0));
 	MOVD_xmm(R(EAX), XMM0);
@@ -245,7 +249,7 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MINPS(XMM0, R(XMM1));
 
-	CVTPS2DQ(XMM0, R(XMM0));
+	CVTTPS2DQ(XMM0, R(XMM0));
 	MOVQ_xmm(M(psTemp), XMM0);
 	// place ps[0] into the higher word, ps[1] into the lower
 	// so no need in ROL after BSWAP
@@ -269,7 +273,7 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	PUNPCKLDQ(XMM1, R(XMM1));
 	MINPS(XMM0, R(XMM1));
 #endif
-	CVTPS2DQ(XMM0, R(XMM0));
+	CVTTPS2DQ(XMM0, R(XMM0));
 	PACKSSDW(XMM0, R(XMM0));
 	MOVD_xmm(R(EAX), XMM0);
 	BSWAP(32, EAX);
@@ -286,6 +290,79 @@ void CommonAsmRoutines::GenQuantizedStores() {
 	pairedStoreQuantized[5] = storePairedU16;
 	pairedStoreQuantized[6] = storePairedS8;
 	pairedStoreQuantized[7] = storePairedS16;
+}
+
+// See comment in header for in/outs.
+void CommonAsmRoutines::GenQuantizedSingleStores() {
+	const u8* storeSingleIllegal = AlignCode4();
+	UD2();
+
+	// Easy!
+	const u8* storeSingleFloat = AlignCode4();
+	if (cpu_info.bSSSE3) {
+		PSHUFB(XMM0, M((void *)pbswapShuffle2x4));
+		// TODO: SafeWriteFloat
+		MOVSS(M(&psTemp[0]), XMM0);
+		MOV(32, R(EAX), M(&psTemp[0]));
+		SafeWriteRegToReg(EAX, ECX, 32, 0, false);
+	} else {
+		MOVSS(M(&psTemp[0]), XMM0);
+		MOV(32, R(EAX), M(&psTemp[0]));
+		SafeWriteRegToReg(EAX, ECX, 32, 0, true);
+	}
+	RET();
+
+	const u8* storeSingleU8 = AlignCode4();  // Used by MKWii
+	SHR(32, R(EAX), Imm8(6));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
+	MULSS(XMM0, R(XMM1));
+	PXOR(XMM1, R(XMM1));
+	MAXSS(XMM0, R(XMM1));
+	MINSS(XMM0, M((void *)&m_255));
+	CVTTSS2SI(EAX, R(XMM0));
+	SafeWriteRegToReg(AL, ECX, 8, 0, true);
+	RET();
+
+	const u8* storeSingleS8 = AlignCode4();
+	SHR(32, R(EAX), Imm8(6));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
+	MULSS(XMM0, R(XMM1));
+	MAXSS(XMM0, M((void *)&m_m128));
+	MINSS(XMM0, M((void *)&m_127));
+	CVTTSS2SI(EAX, R(XMM0));
+	SafeWriteRegToReg(AL, ECX, 8, 0, true);
+	RET();
+
+	const u8* storeSingleU16 = AlignCode4();  // Used by MKWii
+	SHR(32, R(EAX), Imm8(6));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
+	PUNPCKLDQ(XMM1, R(XMM1));
+	MULPS(XMM0, R(XMM1));
+	PXOR(XMM1, R(XMM1));
+	MAXSS(XMM0, R(XMM1));
+	MINSS(XMM0, M((void *)&m_65535));
+	CVTTSS2SI(EAX, R(XMM0));
+	SafeWriteRegToReg(EAX, ECX, 16, 0, true);
+	RET();
+
+	const u8* storeSingleS16 = AlignCode4();
+	SHR(32, R(EAX), Imm8(6));
+	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
+	MULSS(XMM0, R(XMM1));
+	MAXSS(XMM0, M((void *)&m_m32768));
+	MINSS(XMM0, M((void *)&m_32767));
+	CVTTSS2SI(EAX, R(XMM0));
+	SafeWriteRegToReg(EAX, ECX, 16, 0, true);
+	RET();
+
+	singleStoreQuantized[0] = storeSingleFloat;
+	singleStoreQuantized[1] = storeSingleIllegal;
+	singleStoreQuantized[2] = storeSingleIllegal;
+	singleStoreQuantized[3] = storeSingleIllegal;
+	singleStoreQuantized[4] = storeSingleU8;
+	singleStoreQuantized[5] = storeSingleU16;
+	singleStoreQuantized[6] = storeSingleS8;
+	singleStoreQuantized[7] = storeSingleS16;
 }
 
 void CommonAsmRoutines::GenQuantizedLoads() {

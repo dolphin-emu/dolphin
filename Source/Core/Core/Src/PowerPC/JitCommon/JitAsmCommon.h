@@ -24,6 +24,8 @@ class CommonAsmRoutines : public EmuCodeBlock {
 protected:
 	void GenQuantizedLoads();
 	void GenQuantizedStores();
+	void GenQuantizedSingleStores();
+
 public:
 	void GenFifoWrite(int size);
 	void GenFifoXmm64Write();
@@ -42,6 +44,11 @@ public:
 	// Out: Nothing.
 	// Trashes: EAX ECX EDX
 	const u8 GC_ALIGNED16(*pairedStoreQuantized[8]);
+
+	// In: array index: GQR to use.
+	// In: ECX: Address to write to.
+	// In: XMM0: Bottom 32-bit slot holds the float to be written.
+	const u8 GC_ALIGNED16(*singleStoreQuantized[8]);
 };
 
 #endif

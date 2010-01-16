@@ -324,7 +324,7 @@ THREAD_RETURN EmuThread(void *pArg)
     VideoInitialize.Fifo_CPUBase                = &ProcessorInterface::Fifo_CPUBase;
     VideoInitialize.Fifo_CPUEnd                 = &ProcessorInterface::Fifo_CPUEnd;
     VideoInitialize.Fifo_CPUWritePointer        = &ProcessorInterface::Fifo_CPUWritePointer;
-	VideoInitialize.bAutoAspectIs16_9           = _CoreParameter.bWii ? SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR") : false;
+	VideoInitialize.bAutoAspectIs16_9           = _CoreParameter.bWii ? (SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR") ? true : false) : false;
 
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
  

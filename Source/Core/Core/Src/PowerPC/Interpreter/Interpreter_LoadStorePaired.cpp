@@ -74,9 +74,9 @@ inline T CLAMP(T a, T bottom, T top) {
 }
 
 void Helper_Quantize(const u32 _Addr, const double _fValue, 
-							  const EQuantizeType _quantizeType, const unsigned int _uScale)
+					 const EQuantizeType _quantizeType, const unsigned int _uScale)
 {
-	switch(_quantizeType) 
+	switch (_quantizeType) 
 	{
 	case QUANTIZE_FLOAT:		
 		Memory::Write_U32( ConvertToSingleFTZ( *(u64*)&_fValue ), _Addr );
@@ -222,7 +222,7 @@ void psq_st(UGeckoInstruction _inst)
 	}
 	else
 	{
-		Helper_Quantize( EA,   (float)rPS0(_inst.RS), stType, stScale );
+		Helper_Quantize( EA,   rPS0(_inst.RS), stType, stScale );
 	}
 }
 

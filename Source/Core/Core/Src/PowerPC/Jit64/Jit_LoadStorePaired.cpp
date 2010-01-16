@@ -72,71 +72,6 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
 	int stScale = gqr.ST_SCALE;
 
-
-	if (inst.W) {
-		Default(inst);
-		return;
-
-		// PanicAlert("W=1: stType %i stScale %i update %i", (int)stType, (int)stScale, (int)update); 
-		// It's fairly common that games write stuff to the pipe using this. Then, it's pretty much only
-		// floats so that's what we'll work on.
-		switch (stType)
-		{
-		case QUANTIZE_FLOAT:
-			{
-			// This one has quite a bit of optimization potential.
-			if (gpr.R(a).IsImm())
-			{
-				PanicAlert("Imm: %08x", gpr.R(a).offset);
-			}
-			gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
-			gpr.Lock(a);
-			fpr.Lock(s);
-			// Check that the quantizer is set the way we expect.
-			INT3();
-			CMP(16, M(&rSPR(SPR_GQR0 + inst.I)), Imm16(store_gqr));
-			FixupBranch skip_opt = J_CC(CC_NE);
-
-			if (update)
-				gpr.LoadToX64(a, true, true);
-			MOV(32, R(ABI_PARAM2), gpr.R(a));
-			if (offset)
-				ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
-			TEST(32, R(ABI_PARAM2), Imm32(0x0C000000));
-			if (update && offset)
-				MOV(32, gpr.R(a), R(ABI_PARAM2));
-			CVTSD2SS(XMM0, fpr.R(s));
-			MOVD_xmm(M(&temp64), XMM0);
-			MOV(32, R(ABI_PARAM1), M(&temp64));
-			FixupBranch argh = J_CC(CC_NZ);
-			BSWAP(32, ABI_PARAM1);
-#ifdef _M_X64
-			MOV(32, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
-#else
-			MOV(32, R(EAX), R(ABI_PARAM2));
-			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-			MOV(32, MDisp(EAX, (u32)Memory::base), R(ABI_PARAM1));
-#endif
-			FixupBranch skip_call = J();
-			SetJumpTarget(argh);
-			ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
-			SetJumpTarget(skip_call);
-			gpr.UnlockAll();
-			gpr.UnlockAllX();
-			fpr.UnlockAll();
-
-			FixupBranch skip_slow = J();
-			SetJumpTarget(skip_opt);
-			Default(inst);
-			SetJumpTarget(skip_slow);
-			return;
-			}
-		default:
-			Default(inst);
-			return;
-		}
-	}
-
 #if 0
 	// Is this specialization still worth it? Let's keep it for now. It's probably
 	// not very risky since a game most likely wouldn't use the same code to process
@@ -176,8 +111,16 @@ void Jit64::psq_st(UGeckoInstruction inst)
 #else
 	SHL(32, R(EDX), Imm8(3));
 #endif
-	CVTPD2PS(XMM0, fpr.R(s));
-	CALLptr(MDisp(EDX, (u32)(u64)asm_routines.pairedStoreQuantized));
+	if (inst.W) {
+		// One value
+		XORPS(XMM0, R(XMM0));  // TODO: See if we can get rid of this cheaply by tweaking the code in the singleStore* functions.
+		CVTSD2SS(XMM0, fpr.R(s));
+		CALLptr(MDisp(EDX, (u32)(u64)asm_routines.singleStoreQuantized));
+	} else {
+		// Pair of values
+		CVTPD2PS(XMM0, fpr.R(s));
+		CALLptr(MDisp(EDX, (u32)(u64)asm_routines.pairedStoreQuantized));
+	}
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 }

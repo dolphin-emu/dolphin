@@ -142,6 +142,10 @@ void Write_U16(const u16 _Data, const u32 _Address);
 void Write_U32(const u32 _Data, const u32 _Address);
 void Write_U64(const u64 _Data, const u32 _Address);
 
+void Write_U16_Swap(const u16 _Data, const u32 _Address);
+void Write_U32_Swap(const u32 _Data, const u32 _Address);
+void Write_U64_Swap(const u64 _Data, const u32 _Address);
+
 void WriteHW_U32(const u32 _Data, const u32 _Address);
 void GetString(std::string& _string, const u32 _Address);
 

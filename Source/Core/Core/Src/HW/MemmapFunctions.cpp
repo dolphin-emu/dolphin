@@ -409,6 +409,9 @@ void Write_U16(const u16 _Data, const u32 _Address)
 
 	WriteToHardware<u16>(_Address, _Data, _Address, FLAG_WRITE);
 }
+void Write_U16_Swap(const u16 _Data, const u32 _Address) {
+	Write_U16(Common::swap16(_Data), _Address);
+}
 
 
 void Write_U32(const u32 _Data, const u32 _Address)
@@ -423,7 +426,9 @@ void Write_U32(const u32 _Data, const u32 _Address)
 #endif
 	WriteToHardware<u32>(_Address, _Data, _Address, FLAG_WRITE);
 }
-
+void Write_U32_Swap(const u32 _Data, const u32 _Address) {
+	Write_U32(Common::swap32(_Data), _Address);
+}
 
 void Write_U64(const u64 _Data, const u32 _Address)
 {
@@ -437,6 +442,9 @@ void Write_U64(const u64 _Data, const u32 _Address)
 #endif
 
 	WriteToHardware<u64>(_Address, _Data, _Address + 4, FLAG_WRITE);
+}
+void Write_U64_Swap(const u32 _Data, const u32 _Address) {
+	Write_U64(Common::swap64(_Data), _Address);
 }
 
 u8 ReadUnchecked_U8(const u32 _Address)
