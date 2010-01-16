@@ -67,10 +67,16 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	int s = inst.RS; // Fp numbers
 
 	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
+	u16 store_gqr = gqr.Hex & 0xFFFF;
+
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
 	int stScale = gqr.ST_SCALE;
 
+
 	if (inst.W) {
+		Default(inst);
+		return;
+
 		// PanicAlert("W=1: stType %i stScale %i update %i", (int)stType, (int)stScale, (int)update); 
 		// It's fairly common that games write stuff to the pipe using this. Then, it's pretty much only
 		// floats so that's what we'll work on.
@@ -86,6 +92,11 @@ void Jit64::psq_st(UGeckoInstruction inst)
 			gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
 			gpr.Lock(a);
 			fpr.Lock(s);
+			// Check that the quantizer is set the way we expect.
+			INT3();
+			CMP(16, M(&rSPR(SPR_GQR0 + inst.I)), Imm16(store_gqr));
+			FixupBranch skip_opt = J_CC(CC_NE);
+
 			if (update)
 				gpr.LoadToX64(a, true, true);
 			MOV(32, R(ABI_PARAM2), gpr.R(a));
@@ -113,6 +124,11 @@ void Jit64::psq_st(UGeckoInstruction inst)
 			gpr.UnlockAll();
 			gpr.UnlockAllX();
 			fpr.UnlockAll();
+
+			FixupBranch skip_slow = J();
+			SetJumpTarget(skip_opt);
+			Default(inst);
+			SetJumpTarget(skip_slow);
 			return;
 			}
 		default:
@@ -121,6 +137,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 		}
 	}
 
+#if 0
 	// Is this specialization still worth it? Let's keep it for now. It's probably
 	// not very risky since a game most likely wouldn't use the same code to process
 	// floats as integers (but you never know....).
@@ -139,6 +156,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 			}
 		}
 	}
+#endif
 
 	gpr.FlushLockX(EAX, EDX);
 	gpr.FlushLockX(ECX);
