@@ -130,12 +130,12 @@ public:
 	// This one is slow so should only be used for one-shots from the debugger UI, not for anything during runtime.
 	void GetBlockNumbersFromAddress(u32 em_address, std::vector<int> *block_numbers);
 
-	u32 GetOriginalFirstOp(u32 block_num);
-	CompiledCode GetCompiledCodeFromBlock(int blockNumber);
+	u32 GetOriginalFirstOp(int block_num);
+	CompiledCode GetCompiledCodeFromBlock(int block_num);
 
 	// DOES NOT WORK CORRECTLY WITH INLINING
 	void InvalidateICache(u32 em_address);
-	void DestroyBlock(int blocknum, bool invalidate);
+	void DestroyBlock(int block_num, bool invalidate);
 
 	// Not currently used
 	//void DestroyBlocksWithFlag(BlockFlag death_flag);

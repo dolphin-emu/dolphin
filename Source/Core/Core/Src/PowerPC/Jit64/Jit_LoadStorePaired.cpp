@@ -39,7 +39,7 @@ const u8 GC_ALIGNED16(pbswapShuffleNoop[16]) = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
 
 static double GC_ALIGNED16(psTemp[2]) = {1.0, 1.0};
 static u64 GC_ALIGNED16(temp64);
-
+ 
 // TODO(ector): Improve 64-bit version
 static void WriteDual32(u64 value, u32 address)
 {
@@ -95,26 +95,22 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	JITDISABLE(LoadStorePaired)
 	js.block_flags |= BLOCK_USE_GQR0 << inst.I;
 
-	if (js.blockSetsQuantizers || !Core::GetStartupParameter().bOptimizeQuantizers)
+	if (js.blockSetsQuantizers || !inst.RA)
 	{
-		Default(inst);
-		return;
-	}
-	if (!inst.RA)
-	{
-		// This really should never happen. Unless we change this to also support stwux
+		// TODO: Support these cases if it becomes necessary.
 		Default(inst);
 		return;
 	}
 
-	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
-	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
-	int stScale = gqr.ST_SCALE;
 	bool update = inst.OPCD == 61;
 
 	int offset = inst.SIMM_12;
 	int a = inst.RA;
 	int s = inst.RS; // Fp numbers
+
+	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
+	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
+	int stScale = gqr.ST_SCALE;
 
 	if (inst.W) {
 		// PanicAlert("W=1: stType %i stScale %i update %i", (int)stType, (int)stScale, (int)update); 
@@ -165,9 +161,11 @@ void Jit64::psq_st(UGeckoInstruction inst)
 			Default(inst);
 			return;
 		}
-		return;
 	}
 
+	// Is this specialization still worth it? Let's keep it for now. It's probably
+	// not very risky since a game most likely wouldn't use the same code to process
+	// floats as integers (but you never know....).
 	if (stType == QUANTIZE_FLOAT)
 	{
 		if (gpr.R(a).IsImm() && !update && cpu_info.bSSSE3)
@@ -182,115 +180,30 @@ void Jit64::psq_st(UGeckoInstruction inst)
 				return;
 			}
 		}
+	}
 
-		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
-		gpr.Lock(a);
-		fpr.Lock(s);
-		if (update)
-			gpr.LoadToX64(a, true, true);
-		MOV(32, R(ABI_PARAM2), gpr.R(a));
-		if (offset)
-			ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
-		TEST(32, R(ABI_PARAM2), Imm32(0x0C000000));
-		if (update && offset)
-			MOV(32, gpr.R(a), R(ABI_PARAM2));
-		CVTPD2PS(XMM0, fpr.R(s));
-		SHUFPS(XMM0, R(XMM0), 1);
-		MOVQ_xmm(M(&temp64), XMM0);
-#ifdef _M_X64
-		MOV(64, R(ABI_PARAM1), M(&temp64));
-		FixupBranch argh = J_CC(CC_NZ);
-		BSWAP(64, ABI_PARAM1);
-		MOV(64, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
-		FixupBranch arg2 = J();
-		SetJumpTarget(argh);
-		CALL(thunks.ProtectFunction((void *)&WriteDual32, 0));
+	gpr.FlushLockX(EAX, EDX);
+	gpr.FlushLockX(ECX);
+	if (update)
+		gpr.LoadToX64(inst.RA, true, true);
+	fpr.LoadToX64(inst.RS, true);
+	MOV(32, R(ECX), gpr.R(inst.RA));
+	if (offset)
+		ADD(32, R(ECX), Imm32((u32)offset));
+	if (update && offset)
+		MOV(32, gpr.R(a), R(ECX));
+	MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + inst.I]));
+	MOVZX(32, 8, EDX, R(AL));
+	// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32]!
+#ifdef _M_IX86
+	SHL(32, R(EDX), Imm8(2));
 #else
-		FixupBranch argh = J_CC(CC_NZ);
-		MOV(32, R(ABI_PARAM1), M(((char*)&temp64) + 4));
-		BSWAP(32, ABI_PARAM1);
-		AND(32, R(ABI_PARAM2), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(32, MDisp(ABI_PARAM2, (u32)Memory::base), R(ABI_PARAM1));
-		MOV(32, R(ABI_PARAM1), M(&temp64));
-		BSWAP(32, ABI_PARAM1);
-		MOV(32, MDisp(ABI_PARAM2, 4+(u32)Memory::base), R(ABI_PARAM1));
-		FixupBranch arg2 = J();
-		SetJumpTarget(argh);
-		MOV(32, R(ABI_PARAM1), M(((char*)&temp64) + 4));
-		ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
-		MOV(32, R(ABI_PARAM1), M(((char*)&temp64)));
-		ADD(32, R(ABI_PARAM2), Imm32(4));
-		ABI_CallFunctionRR(thunks.ProtectFunction((void *)&Memory::Write_U32, 2), ABI_PARAM1, ABI_PARAM2); 
+	SHL(32, R(EDX), Imm8(3));
 #endif
-		SetJumpTarget(arg2);
-		gpr.UnlockAll();
-		gpr.UnlockAllX();
-		fpr.UnlockAll();
-	}
-	else if (stType == QUANTIZE_U8)
-	{
-		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
-		gpr.Lock(a);
-		fpr.Lock(s);
-		if (update)
-			gpr.LoadToX64(a, true, update);
-		MOV(32, R(ABI_PARAM2), gpr.R(a));
-		if (offset)
-			ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
-		if (update && offset)
-			MOV(32, gpr.R(a), R(ABI_PARAM2));
-		MOVAPD(XMM0, fpr.R(s));
-		MOVDDUP(XMM1, M((void*)&m_quantizeTableD[stScale]));
-		MULPD(XMM0, R(XMM1));
-		CVTPD2DQ(XMM0, R(XMM0));
-		PACKSSDW(XMM0, R(XMM0));
-		PACKUSWB(XMM0, R(XMM0));
-		MOVD_xmm(M(&temp64), XMM0);
-		MOV(16, R(ABI_PARAM1), M(&temp64));
-#ifdef _M_X64
-		MOV(16, MComplex(RBX, ABI_PARAM2, SCALE_1, 0), R(ABI_PARAM1));
-#else
-		MOV(32, R(EAX), R(ABI_PARAM2));
-		AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-		MOV(16, MDisp(EAX, (u32)Memory::base), R(ABI_PARAM1));
-#endif
-		if (update)
-			MOV(32, gpr.R(a), R(ABI_PARAM2));
-		gpr.UnlockAll();
-		gpr.UnlockAllX();
-		fpr.UnlockAll();
-	} 
-	else if (stType == QUANTIZE_S16)
-	{
-		gpr.FlushLockX(ABI_PARAM1, ABI_PARAM2);
-		gpr.Lock(a);
-		fpr.Lock(s);
-		if (update)
-			gpr.LoadToX64(a, true, update);
-		MOV(32, R(ABI_PARAM2), gpr.R(a));
-		if (offset)
-			ADD(32, R(ABI_PARAM2), Imm32((u32)offset));
-		if (update)
-			MOV(32, gpr.R(a), R(ABI_PARAM2));
-		MOVAPD(XMM0, fpr.R(s));
-		MOVDDUP(XMM1, M((void*)&m_quantizeTableD[stScale]));
-		MULPD(XMM0, R(XMM1));
-		SHUFPD(XMM0, R(XMM0), 1);
-		CVTPD2DQ(XMM0, R(XMM0));
-		PACKSSDW(XMM0, R(XMM0));
-		MOVD_xmm(M(&temp64), XMM0);
-		MOV(32, R(ABI_PARAM1), M(&temp64));
-		SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, 32, 0);
-		gpr.UnlockAll();
-		gpr.UnlockAllX();
-		fpr.UnlockAll();
-	}
-	else {
-		// Dodger uses this.
-        // mario tennis
-		//PanicAlert("st %i:%i", stType, inst.W);
-		Default(inst);
-	}
+	CVTPD2PS(XMM0, fpr.R(s));
+	CALLptr(MDisp(EDX, (u32)(u64)asm_routines.pairedStoreQuantized));
+	gpr.UnlockAll();
+	gpr.UnlockAllX();
 }
 
 void Jit64::psq_l(UGeckoInstruction inst)
@@ -300,144 +213,35 @@ void Jit64::psq_l(UGeckoInstruction inst)
 
 	js.block_flags |= BLOCK_USE_GQR0 << inst.I;
 
-	if (js.blockSetsQuantizers || !Core::GetStartupParameter().bOptimizeQuantizers)
+	if (js.blockSetsQuantizers || !inst.RA || inst.W)
 	{
 		Default(inst);
 		return;
 	}
 
-	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
-	const EQuantizeType ldType = static_cast<EQuantizeType>(gqr.LD_TYPE);
-	int ldScale = gqr.LD_SCALE;
 	bool update = inst.OPCD == 57;
-	if (!inst.RA || inst.W)
-	{
-		// 0 1 during load
-		//PanicAlert("ld:%i %i", ldType, (int)inst.W);
-		Default(inst);
-		return;
-	}
 	int offset = inst.SIMM_12;
-	switch (ldType) {
-		case QUANTIZE_FLOAT:  // We know this is from RAM, so we don't need to check the address.
-			{
-#ifdef _M_X64
-			gpr.LoadToX64(inst.RA, true, update);
-			fpr.LoadToX64(inst.RS, false);
-			if (cpu_info.bSSSE3) {
-				X64Reg xd = fpr.R(inst.RS).GetSimpleReg();
-				MOVQ_xmm(xd, MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
-				PSHUFB(xd, M((void *)pbswapShuffle2x4));
-				CVTPS2PD(xd, R(xd));
-			} else {
-				MOV(64, R(RAX), MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
-				BSWAP(64, RAX);
-				MOV(64, M(&psTemp[0]), R(RAX));
-				X64Reg r = fpr.R(inst.RS).GetSimpleReg();
-				CVTPS2PD(r, M(&psTemp[0]));
-				SHUFPD(r, R(r), 1);
-			}
-			if (update && offset != 0)
-				ADD(32, gpr.R(inst.RA), Imm32(offset));
-			break;
-#else
-			if (cpu_info.bSSSE3) {
-				gpr.LoadToX64(inst.RA, true, update);
-				fpr.LoadToX64(inst.RS, false);
-				X64Reg xd = fpr.R(inst.RS).GetSimpleReg();
-				MOV(32, R(EAX), gpr.R(inst.RA));
-				AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-				MOVQ_xmm(xd, MDisp(EAX, (u32)Memory::base + offset));
-				PSHUFB(xd, M((void *)pbswapShuffle2x4));
-				CVTPS2PD(xd, R(xd));
-			} else {
-				gpr.FlushLockX(ECX);
-				gpr.LoadToX64(inst.RA, true, update);
-				// This can probably be optimized somewhat.
-				LEA(32, ECX, MDisp(gpr.R(inst.RA).GetSimpleReg(), offset));
-				AND(32, R(ECX), Imm32(Memory::MEMVIEW32_MASK));
-				MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base));
-				BSWAP(32, RAX);
-				MOV(32, M(&psTemp[0]), R(RAX));
-				MOV(32, R(EAX), MDisp(ECX, (u32)Memory::base + 4));
-				BSWAP(32, RAX);
-				MOV(32, M(((float *)&psTemp[0]) + 1), R(RAX));
-				fpr.LoadToX64(inst.RS, false, true);
-				X64Reg r = fpr.R(inst.RS).GetSimpleReg();
-				CVTPS2PD(r, M(&psTemp[0]));
-				gpr.UnlockAllX();
-			}
-			if (update && offset != 0)
-				ADD(32, gpr.R(inst.RA), Imm32(offset));
-			break;
-#endif
-			}
-		case QUANTIZE_U8:
-			{
-			gpr.LoadToX64(inst.RA, true, update);
-#ifdef _M_X64
-			MOVZX(32, 16, EAX, MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
-#else
-			LEA(32, EAX, MDisp(gpr.R(inst.RA).GetSimpleReg(), offset));
-			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-			MOVZX(32, 16, EAX, MDisp(EAX, (u32)Memory::base));
-#endif
-			MOV(32, M(&temp64), R(EAX));
-			MOVD_xmm(XMM0, M(&temp64));
-			// SSE4 optimization opportunity here.
-			PXOR(XMM1, R(XMM1));
-			PUNPCKLBW(XMM0, R(XMM1));
-			PUNPCKLWD(XMM0, R(XMM1));
-			CVTDQ2PD(XMM0, R(XMM0));
-			fpr.LoadToX64(inst.RS, false, true);
-			X64Reg r = fpr.R(inst.RS).GetSimpleReg();
-			MOVDDUP(r, M((void *)&m_dequantizeTableD[ldScale]));
-			MULPD(r, R(XMM0));
-			if (update && offset != 0)
-				ADD(32, gpr.R(inst.RA), Imm32(offset));
-			}
-			break;
-		case QUANTIZE_S16:
-			{
-			gpr.LoadToX64(inst.RA, true, update);
-#ifdef _M_X64
-			MOV(32, R(EAX), MComplex(RBX, gpr.R(inst.RA).GetSimpleReg(), 1, offset));
-#else
-			LEA(32, EAX, MDisp(gpr.R(inst.RA).GetSimpleReg(), offset));
-			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));
-			MOV(32, R(EAX), MDisp(EAX, (u32)Memory::base));
-#endif
-			BSWAP(32, EAX);
-			MOV(32, M(&temp64), R(EAX));
-			fpr.LoadToX64(inst.RS, false, true);
-			X64Reg r = fpr.R(inst.RS).GetSimpleReg();
-			MOVD_xmm(XMM0, M(&temp64));
-			PUNPCKLWD(XMM0, R(XMM0)); // unpack to higher word in each dword..
-			PSRAD(XMM0, 16);          // then use this signed shift to sign extend. clever eh? :P
-			CVTDQ2PD(XMM0, R(XMM0));
-			MOVDDUP(r, M((void*)&m_dequantizeTableD[ldScale]));
-			MULPD(r, R(XMM0));
-			SHUFPD(r, R(r), 1);
-			if (update && offset != 0)
-				ADD(32, gpr.R(inst.RA), Imm32(offset));
-			}
-			break;
 
-			/*
-			Dynamic quantizer. Todo when we have a test set.
-			MOVZX(32, 8, EAX, M(((char *)&PowerPC::ppcState.spr[SPR_GQR0 + inst.I]) + 3));  // it's in the high byte.
-			AND(32, R(EAX), Imm8(0x3F));
-			MOV(32, R(ECX), Imm32((u32)&m_dequantizeTableD));
-			MOVDDUP(r, MComplex(RCX, EAX, 8, 0));
-			*/
-		default:
-			// 4 0
-			// 6 0 //power tennis
-			// 5 0 
-			// PanicAlert("ld:%i %i", ldType, (int)inst.W);
-			Default(inst);
-			return;
-	}
-
-	//u32 EA = (m_GPR[_inst.RA] + _inst.SIMM_12) : _inst.SIMM_12;
+	gpr.FlushLockX(EAX, EDX);
+	gpr.FlushLockX(ECX);
+	gpr.LoadToX64(inst.RA, true, true);
+	fpr.LoadToX64(inst.RS, false, true);
+	if (offset)
+		LEA(32, ECX, MDisp(gpr.RX(inst.RA), offset));
+	else
+		MOV(32, R(ECX), gpr.R(inst.RA));
+	if (update && offset)
+		MOV(32, gpr.R(inst.RA), R(ECX));
+	MOVZX(32, 16, EAX, M(((char *)&GQR(inst.I)) + 2));
+	MOVZX(32, 8, EDX, R(AL));
+	// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32]! (MComplex can do this, no?)
+#ifdef _M_IX86
+	SHL(32, R(EDX), Imm8(2));
+#else
+	SHL(32, R(EDX), Imm8(3));
+#endif
+	CALLptr(MDisp(EDX, (u32)(u64)asm_routines.pairedLoadQuantized));
+	CVTPS2PD(fpr.RX(inst.RS), R(XMM0));
+	gpr.UnlockAll();
+	gpr.UnlockAllX();
 }

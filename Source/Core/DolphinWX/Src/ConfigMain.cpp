@@ -60,13 +60,12 @@ EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_LEDS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_SPEAKERS, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::CoreSettingsChanged)
 
-EVT_CHECKBOX(ID_ALLWAYS_HLE_BS2, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_ALWAYS_HLE_BS2, CConfigMain::CoreSettingsChanged)
 EVT_RADIOBUTTON(ID_RADIOJIT, CConfigMain::CoreSettingsChanged)
 EVT_RADIOBUTTON(ID_RADIOINT, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_CPUTHREAD, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_DSPTHREAD, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::CoreSettingsChanged)
-EVT_CHECKBOX(ID_OPTIMIZEQUANTIZERS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_IDLESKIP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_ENABLECHEATS, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_FRAMELIMIT, CConfigMain::CoreSettingsChanged)
@@ -142,7 +141,6 @@ void CConfigMain::UpdateGUI()
 		CPUThread->Disable();
 		DSPThread->Disable();
 		LockThreads->Disable();
-		OptimizeQuantizers->Disable();
 		SkipIdle->Disable();
 		EnableCheats->Disable();
 		
@@ -222,15 +220,13 @@ void CConfigMain::CreateGUIControls()
 
 	// Core Settings - Advanced
 	//
-	AlwaysHLE_BS2 = new wxCheckBox(GeneralPage, ID_ALLWAYS_HLE_BS2, wxT("HLE the IPL (recommended)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	AlwaysHLE_BS2 = new wxCheckBox(GeneralPage, ID_ALWAYS_HLE_BS2, wxT("HLE the IPL (recommended)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	AlwaysHLE_BS2->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2);
 	m_RadioJIT = new wxRadioButton(GeneralPage, ID_RADIOJIT, wxT("JIT Recompiler (recommended)"));
 	m_RadioInt = new wxRadioButton(GeneralPage, ID_RADIOINT, wxT("Interpreter (very slow)"));
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT ? m_RadioJIT->SetValue(true) : m_RadioInt->SetValue(true);
 	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	LockThreads->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads);
-	OptimizeQuantizers = new wxCheckBox(GeneralPage, ID_OPTIMIZEQUANTIZERS, wxT("Optimize Quantizers (speedup)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	OptimizeQuantizers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers);
 	DSPThread = new wxCheckBox(GeneralPage, ID_DSPTHREAD, wxT("DSP on thread (recommended)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	DSPThread->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread);
 
@@ -317,7 +313,6 @@ void CConfigMain::CreateGUIControls()
 	sizerCoreType->Add(m_RadioInt, 0, wxALL | wxEXPAND, 5);
 	sbAdvanced->Add(sizerCoreType, 0, wxALL, 5);
 	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
-	sbAdvanced->Add(OptimizeQuantizers, 0, wxALL, 5);
 	sbAdvanced->Add(DSPThread, 0, wxALL, 5);
 	sCore->Add(sbBasic, 0, wxEXPAND);
 	sCore->AddStretchSpacer();
@@ -690,7 +685,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	case ID_FRAMELIMIT:
 		SConfig::GetInstance().m_Framelimit = (u32)Framelimit->GetSelection();
 		break;
-	case ID_ALLWAYS_HLE_BS2: // Core
+	case ID_ALWAYS_HLE_BS2: // Core
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2 = AlwaysHLE_BS2->IsChecked();
 		break;
 	case ID_RADIOJIT:
@@ -709,9 +704,6 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_LOCKTHREADS:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads = LockThreads->IsChecked();
-		break;
-	case ID_OPTIMIZEQUANTIZERS:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bOptimizeQuantizers = OptimizeQuantizers->IsChecked();
 		break;
 	case ID_IDLESKIP:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = SkipIdle->IsChecked();

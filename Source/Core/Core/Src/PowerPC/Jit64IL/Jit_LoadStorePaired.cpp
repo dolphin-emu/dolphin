@@ -15,9 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-// TODO(ector): Tons of pshufb optimization of the loads/stores, for SSSE3+, possibly SSE4, only.
-// Should give a very noticable speed boost to paired single heavy code.
-
 #include "Common.h"
 
 #include "Thunk.h"
@@ -39,9 +36,8 @@
 void Jit64::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	DISABLE64
 	JITDISABLE(LoadStorePaired)
-	if (inst.W || !Core::GetStartupParameter().bOptimizeQuantizers) {Default(inst); return;}
+	if (inst.W) {Default(inst); return;}
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12), val;
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));
@@ -55,9 +51,8 @@ void Jit64::psq_st(UGeckoInstruction inst)
 void Jit64::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
-	DISABLE64
 	JITDISABLE(LoadStorePaired)
-	if (inst.W || !Core::GetStartupParameter().bOptimizeQuantizers) {Default(inst); return;}
+	if (inst.W) {Default(inst); return;}
 	IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12), val;
 	if (inst.RA)
 		addr = ibuild.EmitAdd(addr, ibuild.EmitLoadGReg(inst.RA));

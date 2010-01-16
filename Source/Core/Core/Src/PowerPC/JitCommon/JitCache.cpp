@@ -288,7 +288,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 				block_numbers->push_back(i);
 	}
 
-	u32 JitBlockCache::GetOriginalFirstOp(u32 block_num)
+	u32 JitBlockCache::GetOriginalFirstOp(int block_num)
 	{
 		if (block_num >= num_blocks)
 		{
@@ -298,9 +298,9 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		return blocks[block_num].originalFirstOpcode;
 	}
 
-	CompiledCode JitBlockCache::GetCompiledCodeFromBlock(int blockNumber)
+	CompiledCode JitBlockCache::GetCompiledCodeFromBlock(int block_num)
 	{		
-		return (CompiledCode)blockCodePointers[blockNumber];
+		return (CompiledCode)blockCodePointers[block_num];
 	}
 
 	//Block linker
@@ -351,25 +351,25 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		}
 	}
 
-	void JitBlockCache::DestroyBlock(int blocknum, bool invalidate)
+	void JitBlockCache::DestroyBlock(int block_num, bool invalidate)
 	{
-		if (blocknum < 0 || blocknum >= num_blocks)
+		if (block_num < 0 || block_num >= num_blocks)
 		{
-			PanicAlert("DestroyBlock: Invalid block number %d", blocknum);
+			PanicAlert("DestroyBlock: Invalid block number %d", block_num);
 			return;
 		}
-		JitBlock &b = blocks[blocknum];
+		JitBlock &b = blocks[block_num];
 		if (b.invalid)
 		{
 			if (invalidate)
-				PanicAlert("Invalidating invalid block %d", blocknum);
+				PanicAlert("Invalidating invalid block %d", block_num);
 			return;
 		}
 		b.invalid = true;
 #ifdef JIT_UNLIMITED_ICACHE
 		Memory::Write_Opcode_JIT(b.originalAddress, b.originalFirstOpcode);
 #else
-		if (Memory::ReadFast32(b.originalAddress) == blocknum)
+		if (Memory::ReadFast32(b.originalAddress) == block_num)
 			Memory::WriteUnchecked_U32(b.originalFirstOpcode, b.originalAddress);
 #endif
 

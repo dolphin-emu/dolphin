@@ -39,17 +39,17 @@
 
 using namespace Gen;
 
-void Jit64::JitClearCA()
+void EmuCodeBlock::JitClearCA()
 {
 	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~XER_CA_MASK)); //XER.CA = 0
 }
 
-void Jit64::JitSetCA()
+void EmuCodeBlock::JitSetCA()
 {
 	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(XER_CA_MASK)); //XER.CA = 1
 }
 
-void Jit64::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
+void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset, bool signExtend)
 {
 #ifdef _M_IX86
 	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
@@ -74,7 +74,17 @@ void Jit64::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize
 	}
 }
 
-void Jit64::SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signExtend)
+void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset)
+{
+#ifdef _M_IX86
+	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
+	MOVZX(32, accessSize, reg_value, MDisp(reg_addr, (u32)Memory::base + offset));
+#else
+	MOVZX(32, accessSize, reg_value, MComplex(RBX, reg_addr, SCALE_1, offset));
+#endif
+}
+
+void EmuCodeBlock::SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signExtend)
 {
 	if (offset)
 		ADD(32, R(reg), Imm32((u32)offset));
@@ -96,12 +106,12 @@ void Jit64::SafeLoadRegToEAX(X64Reg reg, int accessSize, s32 offset, bool signEx
 	SetJumpTarget(arg2);
 }
 
-void Jit64::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
+void EmuCodeBlock::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
 {
 	if (accessSize == 8 && reg_value >= 4) {
 		PanicAlert("WARNING: likely incorrect use of UnsafeWriteRegToReg!");
 	}
-	BSWAP(accessSize, reg_value);
+	if (swap) BSWAP(accessSize, reg_value);
 #ifdef _M_IX86
 	AND(32, R(reg_addr), Imm32(Memory::MEMVIEW32_MASK));
 	MOV(accessSize, MDisp(reg_addr, (u32)Memory::base + offset), R(reg_value));
@@ -111,7 +121,7 @@ void Jit64::UnsafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSiz
 }
 
 // Destroys both arg registers
-void Jit64::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset)
+void EmuCodeBlock::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize, s32 offset, bool swap)
 {
 	if (offset)
 		ADD(32, R(reg_addr), Imm32(offset));
@@ -125,11 +135,11 @@ void Jit64::SafeWriteRegToReg(X64Reg reg_value, X64Reg reg_addr, int accessSize,
 	}
 	FixupBranch arg2 = J();
 	SetJumpTarget(argh);
-	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0);
+	UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
 	SetJumpTarget(arg2);
 }
 
-void Jit64::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address)
+void EmuCodeBlock::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address)
 {
 #ifdef _M_X64
  	MOV(accessSize, MDisp(RBX, address & 0x3FFFFFFF), arg);
@@ -138,7 +148,7 @@ void Jit64::WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 ad
 #endif
 }
 
-void Jit64::WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
+void EmuCodeBlock::WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
 {
 #ifdef _M_X64
 	MOV(32, R(RAX), Imm32(address));
@@ -148,18 +158,18 @@ void Jit64::WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address)
 #endif
 }
 
-void Jit64::ForceSinglePrecisionS(X64Reg xmm) {
+void EmuCodeBlock::ForceSinglePrecisionS(X64Reg xmm) {
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
-	if (jo.accurateSinglePrecision)
+	if (jit.jo.accurateSinglePrecision)
 	{
 		CVTSD2SS(xmm, R(xmm));
 		CVTSS2SD(xmm, R(xmm));
 	}
 }
 
-void Jit64::ForceSinglePrecisionP(X64Reg xmm) {
+void EmuCodeBlock::ForceSinglePrecisionP(X64Reg xmm) {
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
-	if (jo.accurateSinglePrecision)
+	if (jit.jo.accurateSinglePrecision)
 	{
 		CVTPD2PS(xmm, R(xmm));
 		CVTPS2PD(xmm, R(xmm));

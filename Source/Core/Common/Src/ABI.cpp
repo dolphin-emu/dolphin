@@ -107,6 +107,7 @@ void XEmitter::ABI_CallFunctionR(void *func, X64Reg reg1) {
 	ABI_RestoreStack(1 * 4);
 }
 
+// Pass two registers as parameters.
 void XEmitter::ABI_CallFunctionRR(void *func, Gen::X64Reg reg1, Gen::X64Reg reg2)
 {
 	ABI_AlignStack(2 * 4);
@@ -216,18 +217,18 @@ void XEmitter::ABI_CallFunctionR(void *func, X64Reg reg1) {
 	CALL(func);
 }
 
-// Pass a register as a paremeter.
+// Pass two registers as paremeters.
 void XEmitter::ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2) {
 	if (reg2 != ABI_PARAM1) {
 		if (reg1 != ABI_PARAM1)
-			MOV(32, R(ABI_PARAM1), R(reg1));
+			MOV(64, R(ABI_PARAM1), R(reg1));
 		if (reg2 != ABI_PARAM2)
-			MOV(32, R(ABI_PARAM2), R(reg2));
+			MOV(64, R(ABI_PARAM2), R(reg2));
 	} else {
 		if (reg2 != ABI_PARAM2)
-			MOV(32, R(ABI_PARAM2), R(reg2));
+			MOV(64, R(ABI_PARAM2), R(reg2));
 		if (reg1 != ABI_PARAM1)
-			MOV(32, R(ABI_PARAM1), R(reg1));
+			MOV(64, R(ABI_PARAM1), R(reg1));
 	}
 	CALL(func);
 }

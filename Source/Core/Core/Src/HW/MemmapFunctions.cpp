@@ -126,7 +126,7 @@ inline void hwWriteIOBridge(u32 var, u32 addr) {WII_IOBridge::Write32(var, addr)
 inline void hwWriteIOBridge(u64 var, u32 addr) {PanicAlert("hwWriteIOBridge: There's no 64-bit HW write. %08x", addr);}
 
 template <class T>
-void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Memory::XCheckTLBFlag flag)
+inline void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Memory::XCheckTLBFlag flag)
 {
 	// TODO: Figure out the fastest order of tests for both read and write (they are probably different).
 	if ((em_address & 0xC8000000) == 0xC8000000)
@@ -204,7 +204,7 @@ void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Memory::XC
 
 
 template <class T>
-void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory::XCheckTLBFlag flag)
+inline void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory::XCheckTLBFlag flag)
 {
 	/* Debugging: CheckForBadAddresses##_type(em_address, data, false);*/
 	if ((em_address & 0xC8000000) == 0xC8000000)
@@ -343,13 +343,6 @@ u16 Read_U16(const u32 _Address)
 
 u32 Read_U32(const u32 _Address)
 {
-	/*#if MAX_LOGLEVEL >= 4
-	if (_Address == 0x00000000)
-	{
-		//PanicAlert("Program tried to read from [00000000]");
-		//return 0x00000000;
-	}
-	#endif*/
 	u32 _var = 0;	
 	ReadFromHardware<u32>(_var, _Address, _Address, FLAG_READ);
 #ifdef ENABLE_MEM_CHECK

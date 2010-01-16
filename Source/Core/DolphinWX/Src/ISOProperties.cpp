@@ -290,7 +290,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Core"));
 	CPUThread = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	OptimizeQuantizers = new wxCheckBox(m_GameConfig, ID_OPTIMIZEQUANTIZERS, _("Optimize Quantizers"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("TLB Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	// Wii Console
 	sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
@@ -347,7 +346,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides->Add(CPUThread, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(SkipIdle, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
-	sbCoreOverrides->Add(OptimizeQuantizers, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(ForceFiltering, 0, wxEXPAND|wxLEFT, 5);
@@ -806,11 +804,6 @@ void CISOProperties::LoadGameConfig()
 	else
 		SkipIdle->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Core", "OptimizeQuantizers", &bTemp))
-		OptimizeQuantizers->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		OptimizeQuantizers->Set3StateValue(wxCHK_UNDETERMINED);
-	
 	if (GameIni.Get("Core", "TLBHack", &bTemp))
 		TLBHack->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -895,11 +888,6 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Core", "SkipIdle");
 	else
 		GameIni.Set("Core", "SkipIdle", SkipIdle->Get3StateValue());
-
-	if (OptimizeQuantizers->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Core", "OptimizeQuantizers");
-	else
-		GameIni.Set("Core", "OptimizeQuantizers", OptimizeQuantizers->Get3StateValue());
 
 	if (TLBHack->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Core", "TLBHack");

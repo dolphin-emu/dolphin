@@ -216,61 +216,6 @@ void AsmRoutineManager::Generate()
 	GenerateCommon();
 }
 
-
-void AsmRoutineManager::GenFifoWrite(int size) 
-{
-	// Assume value in ABI_PARAM1
-	PUSH(ESI);
-	if (size != 32)
-		PUSH(EDX);
-	BSWAP(size, ABI_PARAM1);
-	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
-	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
-	if (size != 32) {
-		MOV(32, R(EDX), R(ABI_PARAM1));
-		MOV(size, MComplex(RAX, RSI, 1, 0), R(EDX));
-	} else {
-		MOV(size, MComplex(RAX, RSI, 1, 0), R(ABI_PARAM1));
-	}
-	ADD(32, R(ESI), Imm8(size >> 3));
-	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
-	if (size != 32)
-		POP(EDX);
-	POP(ESI);
-	RET();
-}
-
-void AsmRoutineManager::GenFifoFloatWrite() 
-{
-	// Assume value in XMM0
-	PUSH(ESI);
-	PUSH(EDX);
-	MOVSS(M(&temp32), XMM0);
-	MOV(32, R(EDX), M(&temp32));
-	BSWAP(32, EDX);
-	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
-	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
-	MOV(32, MComplex(RAX, RSI, 1, 0), R(EDX));
-	ADD(32, R(ESI), Imm8(4));
-	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
-	POP(EDX);
-	POP(ESI);
-	RET();
-}
-
-void AsmRoutineManager::GenFifoXmm64Write() 
-{
-	// Assume value in XMM0. Assume pre-byteswapped (unlike the others here!)
-	PUSH(ESI);
-	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
-	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
-	MOVQ_xmm(MComplex(RAX, RSI, 1, 0), XMM0);
-	ADD(32, R(ESI), Imm8(8));
-	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
-	POP(ESI);
-	RET();
-}
-
 void AsmRoutineManager::GenerateCommon()
 {
 	// USES_CR
@@ -298,7 +243,9 @@ void AsmRoutineManager::GenerateCommon()
 	fifoDirectWriteXmm64 = AlignCode4(); 
 	GenFifoXmm64Write();
 
-	computeRcFp = AlignCode16();
+	GenQuantizedLoads();
+	GenQuantizedStores();
+
 	//CMPSD(R(XMM0), M(&zero), 
 	// TODO
 

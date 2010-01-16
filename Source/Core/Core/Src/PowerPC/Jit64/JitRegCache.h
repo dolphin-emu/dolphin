@@ -70,7 +70,6 @@ protected:
 	PPCCachedReg saved_regs[32];
 	X64CachedReg saved_xregs[NUMXREGS];
 
-	void DiscardRegContentsIfCached(int preg);
 	virtual const int *GetAllocationOrder(int &count) = 0;
 	
 	XEmitter *emit;
@@ -79,6 +78,7 @@ public:
 	virtual ~RegCache() {}
 	virtual void Start(PPCAnalyst::BlockRegStats &stats) = 0;
 
+	void DiscardRegContentsIfCached(int preg);
 	void SetEmitter(XEmitter *emitter) {emit = emitter;}
 
 	void FlushR(X64Reg reg); 

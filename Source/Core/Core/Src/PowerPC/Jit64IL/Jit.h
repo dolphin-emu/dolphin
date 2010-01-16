@@ -32,6 +32,7 @@
 
 #include "../PPCAnalyst.h"
 #include "../JitCommon/JitCache.h"
+#include "../JitCommon/Jit_Util.h"
 #include "x64Emitter.h"
 #include "x64Analyzer.h"
 #include "IR.h"
@@ -85,7 +86,7 @@ public:
 };
 
 
-class Jit64 : public Gen::XCodeBlock
+class Jit64 : public EmuCodeBlock
 {
 private:
 	struct JitState
@@ -175,19 +176,10 @@ public:
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();
 	
-	void UnsafeLoadRegToReg(Gen::X64Reg reg_addr, Gen::X64Reg reg_value, int accessSize, s32 offset = 0, bool signExtend = false);
-	void UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset = 0);
-	void SafeLoadRegToEAX(Gen::X64Reg reg, int accessSize, s32 offset, bool signExtend = false);
-	void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset);
-
 	void WriteToConstRamAddress(int accessSize, const Gen::OpArg& arg, u32 address);
 	void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
 	void GenerateCarry(Gen::X64Reg temp_reg);
 
-	void ForceSinglePrecisionS(Gen::X64Reg xmm);
-	void ForceSinglePrecisionP(Gen::X64Reg xmm);
-	void JitClearCA();
-	void JitSetCA();
 	void tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 	typedef u32 (*Operation)(u32 a, u32 b);
 	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);

@@ -2751,7 +2751,6 @@ DEFINE_LUA_FUNCTION(emulua_loadrom, "filename")
 		// General settings
 		game_ini.Get("Core", "CPUOnThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
 		game_ini.Get("Core", "SkipIdle",			&StartUp.bSkipIdle, StartUp.bSkipIdle);
-		game_ini.Get("Core", "OptimizeQuantizers",	&StartUp.bOptimizeQuantizers, StartUp.bOptimizeQuantizers);
 		game_ini.Get("Core", "EnableFPRF",			&StartUp.bEnableFPRF, StartUp.bEnableFPRF);
 		game_ini.Get("Core", "TLBHack",				&StartUp.iTLBHack, StartUp.iTLBHack);
 		// Wii settings

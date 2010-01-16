@@ -19,6 +19,7 @@
 #define _JITASM_H
 
 #include "x64Emitter.h"
+#include "../JitCommon/JitAsmCommon.h"
 
 // In Dolphin, we don't use inline assembly. Instead, we generate all machine-near
 // code at runtime. In the case of fixed code like this, after writing it, we write
@@ -34,16 +35,11 @@
 // To add a new asm routine, just add another const here, and add the code to Generate.
 // Also, possibly increase the size of the code buffer.
 
-class AsmRoutineManager : public Gen::XCodeBlock
+class AsmRoutineManager : public CommonAsmRoutines
 {
 private:
 	void Generate();
 	void GenerateCommon();
-	void GenFifoWrite(int size);
-	void GenFifoFloatWrite();
-	void GenFifoXmm64Write();  // yes, 32 & 64-bit compatible
-	void GenQuantizedLoads();
-	void GenQuantizedStores();
 
 public:
 	void Init() {
@@ -67,7 +63,6 @@ public:
 
 	const u8 *fpException;
 	const u8 *computeRc;
-	const u8 *computeRcFp;
 	const u8 *testExceptions;
 	const u8 *dispatchPcInEAX;
 	const u8 *doTiming;
@@ -82,8 +77,6 @@ public:
 
 	const u8 *doReJit;
 
-	const u8 *pairedLoadQuantized[8];
-	const u8 *pairedStoreQuantized[8];
 
 	bool compareEnabled;
 };

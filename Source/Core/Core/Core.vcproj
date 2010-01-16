@@ -1939,6 +1939,18 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Src\PowerPC\JitCommon\Jit_Util.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\PowerPC\JitCommon\JitAsmCommon.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\PowerPC\JitCommon\JitAsmCommon.h"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\PowerPC\JitCommon\JitBackpatch.cpp"
 					>
 				</File>

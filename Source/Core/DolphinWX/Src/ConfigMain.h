@@ -68,7 +68,6 @@ private:
 	wxCheckBox* CPUThread;
 	wxCheckBox* DSPThread;
 	wxCheckBox* LockThreads;
-	wxCheckBox* OptimizeQuantizers;
 	wxCheckBox* SkipIdle;
 	wxCheckBox* EnableCheats;
 
@@ -159,13 +158,12 @@ private:
 		ID_PATHSPAGE,
 		ID_PLUGINPAGE,
 
-		ID_ALLWAYS_HLE_BS2,
+		ID_ALWAYS_HLE_BS2,
 		ID_RADIOJIT,
 		ID_RADIOINT,
 		ID_CPUTHREAD,
 		ID_DSPTHREAD,
 		ID_LOCKTHREADS,
-		ID_OPTIMIZEQUANTIZERS,
 		ID_IDLESKIP,
 		ID_ENABLECHEATS,
 
