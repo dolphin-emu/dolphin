@@ -706,7 +706,7 @@ u32 TranslatePageAddress(u32 _Address, XCheckTLBFlag _Flag)
 				// TLB cache
 				PowerPC::ppcState.tlb_last++;
 				PowerPC::ppcState.tlb_last &= 15;
-				PowerPC::ppcState.tlb_pa[PowerPC::ppcState.tlb_last] = PTE2.RPN;
+				PowerPC::ppcState.tlb_pa[PowerPC::ppcState.tlb_last] = PTE2.RPN << 12;
 				PowerPC::ppcState.tlb_va[PowerPC::ppcState.tlb_last] = _Address & ~0xfff;	
 
 				switch (_Flag)
