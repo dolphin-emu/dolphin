@@ -26,6 +26,7 @@ struct Config
 {
 	Config();
 	void Load();
+	void LoadIR();
 	void Save();
 
 	// For dialog sync

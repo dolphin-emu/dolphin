@@ -325,12 +325,7 @@ void Config::Load()
 		iniFile.Get(SectionName, "TriggerType", &WiiMoteEmu::WiiMapping[i].TriggerType, 0);
 	}
 
-	// Load the IR cursor settings
-	iniFile.Load(FULL_CONFIG_DIR "IR Pointer.ini");
-	iniFile.Get("Default", "IRLeft", &iIRLeft, LEFT);
-	iniFile.Get("Default", "IRTop", &iIRTop, TOP);
-	iniFile.Get("Default", "IRWidth", &iIRWidth, RIGHT - LEFT);
-	iniFile.Get("Default", "IRHeight", &iIRHeight, BOTTOM - TOP);
+	Config::LoadIR();
 
 	// Load a few screen settings to. If these are added to the DirectX plugin it's probably
 	// better to place them in the main Dolphin.ini file
@@ -340,6 +335,19 @@ void Config::Load()
 	iniFile.Get("Settings", "Crop", &bCrop, false);
 
 	//DEBUG_LOG(WIIMOTE, "Load()");
+}
+
+void Config::LoadIR()
+{
+	// Load the IR cursor settings if it's avaliable for the GameId, if not load the default settings
+	IniFile iniFile;
+	char TmpSection[32];
+	sprintf(TmpSection, "%s", g_ISOId ? Hex2Ascii(g_ISOId).c_str() : "Default");
+	iniFile.Load(FULL_CONFIG_DIR "IR Pointer.ini");
+	iniFile.Get(TmpSection, "IRLeft", &iIRLeft, LEFT);
+	iniFile.Get(TmpSection, "IRTop", &iIRTop, TOP);
+	iniFile.Get(TmpSection, "IRWidth", &iIRWidth, RIGHT - LEFT);
+	iniFile.Get(TmpSection, "IRHeight", &iIRHeight, BOTTOM - TOP);
 }
 
 void Config::Save()

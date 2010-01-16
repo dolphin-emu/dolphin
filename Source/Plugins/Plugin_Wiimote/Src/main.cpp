@@ -227,6 +227,9 @@ void Initialize(void *init)
 		WMdisplay = (Display*)g_WiimoteInitialize.hWnd;
 	#endif
 
+	// Load IR settings, as this is a per-game setting and the user might have loaded a different game
+	g_Config.LoadIR();
+
 	g_ISOId = g_WiimoteInitialize.ISOId;
 	DEBUG_LOG(WIIMOTE, "ISOId: %08x %s", g_WiimoteInitialize.ISOId, Hex2Ascii(g_WiimoteInitialize.ISOId).c_str());
 
