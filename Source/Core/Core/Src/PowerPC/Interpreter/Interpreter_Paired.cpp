@@ -296,16 +296,16 @@ void ps_madd(UGeckoInstruction _inst)
 
 void ps_nmsub(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceSingle( 0.0-NI_msub( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ) );
-	rPS1(_inst.FD) = ForceSingle( 0.0-NI_msub( rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB) ) );
+	rPS0(_inst.FD) = ForceSingle( -NI_msub( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ) );
+	rPS1(_inst.FD) = ForceSingle( -NI_msub( rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB) ) );
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
 void ps_nmadd(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceSingle( 0.0-NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ) );
-	rPS1(_inst.FD) = ForceSingle( 0.0-NI_madd( rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB) ) );
+	rPS0(_inst.FD) = ForceSingle( -NI_madd( rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB) ) );
+	rPS1(_inst.FD) = ForceSingle( -NI_madd( rPS1(_inst.FA), rPS1(_inst.FC), rPS1(_inst.FB) ) );
 	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }

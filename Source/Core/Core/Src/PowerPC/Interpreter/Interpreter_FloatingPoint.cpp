@@ -232,7 +232,7 @@ void fnabsx(UGeckoInstruction _inst)
 {
 	riPS0(_inst.FD) = riPS0(_inst.FB) | (1ULL << 63);
 	// This is a binary instruction. Does not alter FPSCR
-	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
+	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));	
 }	
 
 void fnegx(UGeckoInstruction _inst)
@@ -436,27 +436,28 @@ void fmsubsx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
-
 void fnmaddx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceDouble(0.0-NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	rPS0(_inst.FD) = ForceDouble(-NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
  	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 void fnmaddsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = 
-		ForceSingle(0.0-NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+		ForceSingle(-NI_madd(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
  	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
 void fnmsubx(UGeckoInstruction _inst)
 {
-	rPS0(_inst.FD) = ForceDouble(0.0-NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
+	rPS0(_inst.FD) = ForceDouble(-NI_msub(rPS0(_inst.FA), rPS0(_inst.FC), rPS0(_inst.FB)));
  	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
+
+// fnmsubsx does not handle QNAN properly - see NI_msub
 void fnmsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) =
@@ -465,13 +466,13 @@ void fnmsubsx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD)); 
 }
 
-
 void fsubx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = ForceDouble(NI_sub(rPS0(_inst.FA), rPS0(_inst.FB)));
  	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
+
 void fsubsx(UGeckoInstruction _inst)
 {
 	rPS0(_inst.FD) = rPS1(_inst.FD) = ForceSingle(NI_sub(rPS0(_inst.FA), rPS0(_inst.FB)));
