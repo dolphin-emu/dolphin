@@ -364,6 +364,19 @@ conf.Finish()
 #wx windows flags
 if env['HAVE_WX']:
     wxconfig.ParseWXConfig(env)
+    #this smells like a hack, but i dont know any other way to fix this
+    #right now. ParseWXConfig calls wx-config --libs, which returns
+    #"-arch i386" on my box (and probably also tmator's).
+    #SCons.ParseConfig makes this a tuple, which is
+    # 1) a problem for utils.filterWarnings
+    # 2) a duplicate (and conflicting) set of arch specifiers
+    #this mainly affects MacOSX, since darwin builds explicitly get
+    #those set around line 280.
+    if sys.platform == 'darwin':
+	env['CCFLAGS'] = [ 
+	    f 
+	    for f in filter(lambda x:isinstance(x, basestring), env['CCFLAGS'])
+	    ]
 else:
     print "WX not found or disabled, not building GUI"
 
