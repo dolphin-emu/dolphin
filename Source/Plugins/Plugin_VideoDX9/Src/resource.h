@@ -2,7 +2,6 @@
 // Microsoft Visual C++ generated include file.
 // Used by Resource.rc
 //
-#define IDD_DEBUGGER                    101
 #define IDD_ABOUT                       102
 #define IDD_SETTINGS                    103
 #define IDD_ENHANCEMENTS                104
@@ -39,11 +38,6 @@
 #define IDC_COMBO2                      1040
 #define IDC_ASPECTRATIO                 1040
 #define IDC_CHECK1                      1100
-#define IDC_LIST1                       1101
-#define IDC_DEBUGSTEP                   1102
-#define IDC_REGISTERS                   1103
-#define IDC_ENABLEDEBUGGING             1104
-#define IDC_REGISTERSELECT              1105
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
