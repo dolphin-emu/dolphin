@@ -236,6 +236,7 @@ void mtmsr(UGeckoInstruction _inst)
 {
 	// Privileged?
 	MSR = m_GPR[_inst.RS];
+	m_EndBlock = true;
 }
 
 // Segment registers. MMU control.
@@ -264,8 +265,8 @@ void mtsrin(UGeckoInstruction _inst)
 void mftb(UGeckoInstruction _inst)
 {
 	int iIndex = (_inst.TBR >> 5) | ((_inst.TBR & 0x1F) << 5);
-	if (iIndex == 268)		m_GPR[_inst.RD] = TL;
-	else if (iIndex == 269)	m_GPR[_inst.RD] = TU;
+	if (iIndex == SPR_TL)		m_GPR[_inst.RD] = TL;
+	else if (iIndex == SPR_TU)	m_GPR[_inst.RD] = TU;
 	else					_dbg_assert_(POWERPC, 0);
 }
 
