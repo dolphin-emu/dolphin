@@ -443,7 +443,7 @@ void Write_U64(const u64 _Data, const u32 _Address)
 
 	WriteToHardware<u64>(_Address, _Data, _Address + 4, FLAG_WRITE);
 }
-void Write_U64_Swap(const u32 _Data, const u32 _Address) {
+void Write_U64_Swap(const u64 _Data, const u32 _Address) {
 	Write_U64(Common::swap64(_Data), _Address);
 }
 

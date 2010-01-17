@@ -82,8 +82,8 @@ union UARAMCount
 	u32 Hex;
 	struct
 	{
-		unsigned count	: 31;
-		unsigned dir	: 1;
+		u32 count	: 31;
+		u32 dir	: 1; // 0: MRAM -> ARAM 1: ARAM -> MRAM
 	};
 };
 
@@ -94,21 +94,21 @@ union UDSPControl
 	u16 Hex;
 	struct  
 	{
-		unsigned DSPReset		: 1;	// Write 1 to reset and waits for 0
-		unsigned DSPAssertInt	: 1;
-		unsigned DSPHalt		: 1;
+		u16 DSPReset		: 1;	// Write 1 to reset and waits for 0
+		u16 DSPAssertInt	: 1;
+		u16 DSPHalt			: 1;
 
-		unsigned AID			: 1;
-		unsigned AID_mask   	: 1;
-		unsigned ARAM			: 1;
-		unsigned ARAM_mask		: 1;
-		unsigned DSP			: 1;
-		unsigned DSP_mask		: 1;
+		u16 AID				: 1;
+		u16 AID_mask		: 1;
+		u16 ARAM			: 1;
+		u16 ARAM_mask		: 1;
+		u16 DSP				: 1;
+		u16 DSP_mask		: 1;
 
-		unsigned ARAM_DMAState	: 1;	// DSPGetDMAStatus() uses this flag
-		unsigned unk3			: 1;
-		unsigned DSPInit		: 1;	// DSPInit() writes to this flag (1 as long as dsp PC is in IROM?)
-		unsigned pad			: 4;
+		u16 ARAM_DMAState	: 1;	// DSPGetDMAStatus() uses this flag
+		u16 unk3			: 1;
+		u16 DSPInit			: 1;	// DSPInit() writes to this flag (1 as long as dsp PC is in IROM?)
+		u16 pad				: 4;
 	};
 };
 
@@ -128,8 +128,8 @@ union UAudioDMAControl
     u16 Hex;
     struct  
     {        
-        unsigned NumBlocks  : 15;
-		unsigned Enable     : 1;
+        u16 NumBlocks  : 15;
+		u16 Enable     : 1;
     };
 
     UAudioDMAControl(u16 _Hex = 0) : Hex(_Hex)
@@ -153,21 +153,18 @@ struct AudioDMA
 	}
 };
 
-// ARDMA
-struct ARDMA
+// ARAM_DMA
+struct ARAM_DMA
 {
 	u32 MMAddr;
 	u32 ARAddr;		
 	UARAMCount Cnt;
-	bool CntValid[2];
 
-	ARDMA()
+	ARAM_DMA()
 	{
 		MMAddr = 0;
 		ARAddr = 0;
 		Cnt.Hex = 0;
-		CntValid[0] = false;
-		CntValid[1] = false;
 	}
 };
 
@@ -192,7 +189,7 @@ struct ARAMInfo
 static ARAMInfo g_ARAM;
 static DSPState g_dspState;
 static AudioDMA g_audioDMA;
-static ARDMA g_arDMA;
+static ARAM_DMA g_arDMA;
 static u16 g_AR_SIZE;
 static u16 g_AR_MODE;
 static u16 g_AR_REFRESH;
@@ -214,7 +211,7 @@ void DoState(PointerWrap &p)
 
 
 void UpdateInterrupts();
-void Update_ARAM_DMA();
+void Do_ARAM_DMA();
 void WriteARAM(u8 _iValue, u32 _iAddress);
 bool Update_DSP_ReadRegister();
 void Update_DSP_WriteRegister();
@@ -433,16 +430,13 @@ void Write16(const u16 _Value, const u32 _Address)
 	case AR_DMA_ARADDR_L:
 		g_arDMA.ARAddr = (g_arDMA.ARAddr & 0xFFFF0000) | (_Value); break;
 
-	case AR_DMA_CNT_H:  
+	case AR_DMA_CNT_H:
 		g_arDMA.Cnt.Hex = (g_arDMA.Cnt.Hex & 0xFFFF) | (_Value<<16);
-		g_arDMA.CntValid[0] = true;
-		Update_ARAM_DMA();
 		break;
 
-	case AR_DMA_CNT_L:   
-		g_arDMA.Cnt.Hex = (g_arDMA.Cnt.Hex & 0xFFFF0000) | (_Value);    		
-		g_arDMA.CntValid[1] = true;
-		Update_ARAM_DMA();
+	case AR_DMA_CNT_L:
+		g_arDMA.Cnt.Hex = (g_arDMA.Cnt.Hex & 0xFFFF0000) | (_Value);
+		Do_ARAM_DMA();
 		break;
 
 	// Audio DMA_REGS 0x5030+
@@ -469,39 +463,6 @@ void Write16(const u16 _Value, const u32 _Address)
 	default:
 		_dbg_assert_(DSPINTERFACE,0);
 		break;
-	}
-}
-
-// This happens at 4 khz, since 32 bytes at 4khz = 4 bytes at 32 khz (16bit stereo pcm)
-void UpdateAudioDMA()
-{
-	if (g_audioDMA.AudioDMAControl.Enable && g_audioDMA.BlocksLeft)
-	{
-		// Read audio at g_audioDMA.ReadAddress in RAM and push onto an
-		// external audio fifo in the emulator, to be mixed with the disc
-		// streaming output. If that audio queue fills up, we delay the
-		// emulator.
-
-		// AyuanX: let's do it in a bundle to speed up
-		if (g_audioDMA.BlocksLeft == g_audioDMA.AudioDMAControl.NumBlocks)
-			dsp_plugin->DSP_SendAIBuffer(g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks * 8);
-
-//		g_audioDMA.ReadAddress += 32;
-		g_audioDMA.BlocksLeft--;
-
-		if (g_audioDMA.BlocksLeft == 0)
-		{
-			GenerateDSPInterrupt(DSP::INT_AID);
-//			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
-			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
-			// DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
-		}
-	}
-	else
-	{
-		// Send silence. Yeah, it's a bit of a waste to sample rate convert
-		// silence.  or hm. Maybe we shouldn't do this :)
-		// dsp->DSP_SendAIBuffer(0, AudioInterface::GetDSPSampleRate());
 	}
 }
 
@@ -547,9 +508,8 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		break;
 
 	case AR_DMA_CNT_H:   
-		g_arDMA.Cnt.Hex = _iValue;
-		g_arDMA.CntValid[0] = g_arDMA.CntValid[1] = true;		
-		Update_ARAM_DMA();
+		g_arDMA.Cnt.Hex = _iValue;		
+		Do_ARAM_DMA();
 		break;
 
 	default:
@@ -593,52 +553,74 @@ void GenerateDSPInterruptFromPlugin(DSPInterruptType type, bool _bSet)
 		0, et_GenerateDSPInterrupt, type | (_bSet<<16));
 }
 
-void Update_ARAM_DMA()
+// This happens at 4 khz, since 32 bytes at 4khz = 4 bytes at 32 khz (16bit stereo pcm)
+void UpdateAudioDMA()
 {
-	// check if the count reg is valid
-	if (!g_arDMA.CntValid[0] || !g_arDMA.CntValid[1])
-		return;
-	g_arDMA.CntValid[0] = g_arDMA.CntValid[1] = false;
-
-	INFO_LOG(DSPINTERFACE, "ARAM DMA triggered");
-
-	//TODO: speedup
-	if (g_arDMA.Cnt.dir)
+	if (g_audioDMA.AudioDMAControl.Enable && g_audioDMA.BlocksLeft)
 	{
-		//read from ARAM
-		INFO_LOG(DSPINTERFACE, "DMA copy %08x bytes from ARAM %08x to Mem: %08x",g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr);
-		u32 iMemAddress = g_arDMA.MMAddr;
-		u32 iARAMAddress = g_arDMA.ARAddr;
-		
-		// TODO(??): sanity check instead of writing bogus data?
-		for (u32 i = 0; i < g_arDMA.Cnt.count; i++)
-		{
-			u32 tmp = (iARAMAddress < g_ARAM.size) ? g_ARAM.ptr[iARAMAddress] : 0x05050505;
-			Memory::Write_U8(tmp, iMemAddress);				
+		// Read audio at g_audioDMA.ReadAddress in RAM and push onto an
+		// external audio fifo in the emulator, to be mixed with the disc
+		// streaming output. If that audio queue fills up, we delay the
+		// emulator.
 
-			iMemAddress++;
-			iARAMAddress++;
+		// AyuanX: let's do it in a bundle to speed up
+		if (g_audioDMA.BlocksLeft == g_audioDMA.AudioDMAControl.NumBlocks)
+			dsp_plugin->DSP_SendAIBuffer(g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks * 8);
+
+		//		g_audioDMA.ReadAddress += 32;
+		g_audioDMA.BlocksLeft--;
+
+		if (g_audioDMA.BlocksLeft == 0)
+		{
+			GenerateDSPInterrupt(DSP::INT_AID);
+			//			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
+			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
+			// DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
 		}
 	}
 	else
 	{
-		u32 iMemAddress = g_arDMA.MMAddr;
-		u32 iARAMAddress = g_arDMA.ARAddr;
+		// Send silence. Yeah, it's a bit of a waste to sample rate convert
+		// silence.  or hm. Maybe we shouldn't do this :)
+		// dsp->DSP_SendAIBuffer(0, AudioInterface::GetDSPSampleRate());
+	}
+}
 
-		//write to g_ARAM
-		INFO_LOG(DSPINTERFACE, "DMA copy %08x bytes from Mem %08x to ARAM %08x (sound data loaded)",
-			g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr);
-		for (u32 i = 0; i < g_arDMA.Cnt.count; i++)
+void Do_ARAM_DMA()
+{
+	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
+	if (g_arDMA.Cnt.dir)
+	{
+		// ARAM -> MRAM
+		INFO_LOG(DSPINTERFACE, "DMA %08x bytes from ARAM %08x to MRAM %08x",
+			g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr);
+
+		while (g_arDMA.Cnt.count)
 		{
-			if (iARAMAddress < g_ARAM.size)
-				g_ARAM.ptr[iARAMAddress] = Memory::Read_U8(iMemAddress);
+			Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr], g_arDMA.MMAddr);
+			g_arDMA.MMAddr += 8;
+			g_arDMA.ARAddr += 8;
+			g_arDMA.Cnt.count -= 8;
+		}
+	}
+	else
+	{
+		// MRAM -> ARAM
+		INFO_LOG(DSPINTERFACE, "DMA %08x bytes from MRAM %08x to ARAM %08x",
+			g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr);
 
-			iMemAddress++;
-			iARAMAddress++;
+		while (g_arDMA.Cnt.count)
+		{
+			if (g_arDMA.ARAddr < g_ARAM.size)
+			{
+				*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr] = Common::swap64(Memory::Read_U64(g_arDMA.MMAddr));
+				g_arDMA.MMAddr += 8;
+				g_arDMA.ARAddr += 8;
+			}
+			g_arDMA.Cnt.count -= 8;
 		}
 	}
 
-	g_arDMA.Cnt.count = 0;
 	GenerateDSPInterrupt(INT_ARAM);
 }
 
