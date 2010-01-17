@@ -232,8 +232,8 @@ inline u32 ConvertToSingle(u64 x)
 	}
 	else
 	{
-		// this is said to be undefined
-		// based on hardware tests
+		// This is said to be undefined.
+		// The code is based on hardware tests.
 		return ((x >> 32) & 0xc0000000) | ((x >> 29) & 0x3fffffff);
 	}
 }

@@ -42,6 +42,7 @@
 #define C_COLORMATRIX  (C_FOG + 2)
 #define PIXELSHADERUID_MAX_VALUES (5 + 32 + 6 + 11)
 
+// DO NOT make anything in this class virtual.
 class PIXELSHADERUID
 {
 public:
@@ -100,8 +101,9 @@ public:
 	}
 };
 
-const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, u32 HLSL = 0);
-void GetPixelShaderId(PIXELSHADERUID &, u32 texturemask, u32 dstAlphaEnable);
+const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 HLSL = 0);
+void GetPixelShaderId(PIXELSHADERUID *uid, u32 texturemask, u32 dstAlphaEnable);
+
 extern PIXELSHADERUID last_pixel_shader_uid;
 
 #endif // GCOGL_PIXELSHADER_H

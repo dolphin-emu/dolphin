@@ -47,7 +47,7 @@ static float GC_ALIGNED16(lastVSconstants[C_FOGPARAMS+8][4]);
 
 void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 {
-	if( lastVSconstants[const_number][0] != f1 || 
+	if ( lastVSconstants[const_number][0] != f1 || 
 		lastVSconstants[const_number][1] != f2 ||
 		lastVSconstants[const_number][2] != f3 ||
 		lastVSconstants[const_number][3] != f4)
@@ -114,9 +114,9 @@ void SetMultiVSConstant3fv(int const_number, int count, const float *f)
 
 void VertexShaderCache::Init()
 {
-	for( int i=0;i<(C_FOGPARAMS+8)*4;i++)
-		lastVSconstants[i/4][i%4] = -100000000.0f;
-	memset(&last_vertex_shader_uid,0xFF,sizeof(last_vertex_shader_uid));
+	for (int i = 0; i < (C_FOGPARAMS + 8) * 4; i++)
+		lastVSconstants[i / 4][i % 4] = -100000000.0f;
+	memset(&last_vertex_shader_uid, 0xFF, sizeof(last_vertex_shader_uid));
 
 	s_displayCompileAlert = true;
 
@@ -138,7 +138,7 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 {
 	DVSTARTPROFILE();
 	VERTEXSHADERUID uid;
-	GetVertexShaderId(uid, components);
+	GetVertexShaderId(&uid, components);
 
 	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)
 	{
@@ -163,7 +163,7 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 	VSCacheEntry& entry = vshaders[uid];
 	entry.frameCount = frameCount;
 	pShaderLast = &entry.shader;
-	const char *code = GenerateVertexShader(components, false);
+	const char *code = GenerateVertexShaderCode(components, false);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {
@@ -183,29 +183,6 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 	INCSTAT(stats.numVertexShadersCreated);
 	SETSTAT(stats.numVertexShadersAlive, vshaders.size());
 	return pShaderLast;
-}
-
-void VertexShaderCache::ProgressiveCleanup()
-{
-	/*
-	VSCache::iterator iter = vshaders.begin();
-	while (iter != vshaders.end()) {
-		VSCacheEntry &entry = iter->second;
-		if (entry.frameCount < frameCount - 200) {
-			entry.Destroy();
-#ifdef _WIN32
-			iter = vshaders.erase(iter);
-#else
-			vshaders.erase(iter++);
-#endif
-		}
-		else {
-			++iter;
-		}
-	}
-
-	SETSTAT(stats.numVertexShadersAlive, vshaders.size());
-	*/
 }
 
 bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrprogram)
@@ -232,7 +209,7 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 		return false;
 	}
 
-	if(cgGetError() != CG_NO_ERROR)
+	if (cgGetError() != CG_NO_ERROR)
 	{
 		WARN_LOG(VIDEO, "Failed to load vs %s:", cgGetLastListing(g_cgcontext));
 		WARN_LOG(VIDEO, pstrprogram);
@@ -249,8 +226,7 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	}
 	glGenProgramsARB(1, &vs.glprogid);
 	EnableShader(vs.glprogid);
-	//glBindProgramARB(GL_VERTEX_PROGRAM_ARB, vs.glprogid);
-	//CurrentShader = vs.glprogid;
+
 	glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);	
 	err = GL_REPORT_ERROR();
 	if (err != GL_NO_ERROR) {
@@ -263,13 +239,13 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	vs.strprog = pstrprogram;
 #endif
-	
+
 	return true;
 }
 
 void VertexShaderCache::DisableShader()
 {
-	//if(ShaderEnabled)
+	//if (ShaderEnabled)
 	{
 		CurrentShader = 0;
 		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);
@@ -278,9 +254,11 @@ void VertexShaderCache::DisableShader()
 	}
 }
 
+// TODO: Why are these if statements commented out?
+
 void VertexShaderCache::SetCurrentShader(GLuint Shader)
 {
-	//if(ShaderEnabled && CurrentShader != Shader)
+	//if (ShaderEnabled && CurrentShader != Shader)
 	{
 		CurrentShader = Shader;
 		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);
@@ -289,13 +267,13 @@ void VertexShaderCache::SetCurrentShader(GLuint Shader)
 
 void VertexShaderCache::EnableShader(GLuint Shader)
 {
-	//if(!ShaderEnabled)
+	//if (!ShaderEnabled)
 	{
 		glEnable(GL_VERTEX_PROGRAM_ARB);
 		ShaderEnabled= true;
 		CurrentShader = 0;
 	}
-	//if(CurrentShader != Shader)
+	//if (CurrentShader != Shader)
 	{
 		CurrentShader = Shader;
 		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);

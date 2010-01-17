@@ -18,6 +18,8 @@
 #ifndef _PIXELSHADERCACHE_H
 #define _PIXELSHADERCACHE_H
 
+#include "Common.h"
+#include "LinearDiskCache.h"
 #include "D3DBase.h"
 
 #include <map>
@@ -53,12 +55,13 @@ private:
 	static PSCache PixelShaders;
 	static const PSCacheEntry *last_entry;
 
+
 public:
 	static void Init();
-	static void Cleanup();
 	static void Clear();
 	static void Shutdown();
 	static bool SetShader(bool dstAlpha);
+	static bool InsertByteCode(const PIXELSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate);
 	static LPDIRECT3DPIXELSHADER9 GetColorMatrixProgram();
 	static LPDIRECT3DPIXELSHADER9 GetColorCopyProgram();
 	static LPDIRECT3DPIXELSHADER9 GetDepthMatrixProgram();

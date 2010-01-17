@@ -75,7 +75,7 @@ void CreateRgbToYuyvProgram()
 	"  float3 c01 = (c0 + c1) * 0.5f;\n"  
 	"  ocol0 = float4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"	  	
 	"}\n";
-	s_rgbToYuyvProgram = D3D::CompilePixelShader(FProgram, (int)strlen(FProgram));
+	s_rgbToYuyvProgram = D3D::CompileAndCreatePixelShader(FProgram, (int)strlen(FProgram));
 	if (!s_rgbToYuyvProgram) {
         ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program");
     }
@@ -102,7 +102,7 @@ void CreateYuyvToRgbProgram()
 	"                 yComp + (2.018f * uComp),\n"
 	"                 1.0f);\n"
 	"}\n";
-	s_yuyvToRgbProgram = D3D::CompilePixelShader(FProgram, (int)strlen(FProgram));
+	s_yuyvToRgbProgram = D3D::CompileAndCreatePixelShader(FProgram, (int)strlen(FProgram));
 	if (!s_yuyvToRgbProgram) {
         ERROR_LOG(VIDEO, "Failed to create YUYV to RGB fragment program");
     }
@@ -129,7 +129,7 @@ LPDIRECT3DPIXELSHADER9 GetOrCreateEncodingShader(u32 format)
 			SaveData(szTemp, shader);
 		}
 #endif
-		s_encodingPrograms[format] = D3D::CompilePixelShader(shader, (int)strlen(shader));
+		s_encodingPrograms[format] = D3D::CompileAndCreatePixelShader(shader, (int)strlen(shader));
 		if (!s_encodingPrograms[format]) {
 			ERROR_LOG(VIDEO, "Failed to create encoding fragment program");
 		}

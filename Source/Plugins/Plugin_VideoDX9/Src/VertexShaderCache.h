@@ -53,10 +53,10 @@ private:
 public:
 	static void Init();
 	static void Clear();
-	static void Cleanup();
 	static void Shutdown();
 	static bool SetShader(u32 components);
 	static LPDIRECT3DVERTEXSHADER9 GetSimpleVertexShader();
+	static bool InsertByteCode(const VERTEXSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate);
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	static std::string GetCurrentShaderCode();
 #endif

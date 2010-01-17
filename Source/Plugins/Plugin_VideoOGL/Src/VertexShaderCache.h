@@ -59,7 +59,6 @@ class VertexShaderCache
 
 public:
 	static void Init();
-	static void ProgressiveCleanup();
 	static void Shutdown();
 
 	static VERTEXSHADER* GetShader(u32 components);

@@ -31,7 +31,7 @@ PIXELSHADERUID last_pixel_shader_uid;
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
 // It would likely be a lot more efficient to build this incrementally as the attributes
 // are set...
-void GetPixelShaderId(PIXELSHADERUID &uid, u32 texturemask, u32 dstAlphaEnable)
+void GetPixelShaderId(PIXELSHADERUID *uid, u32 texturemask, u32 dstAlphaEnable)
 {
 	u32 projtexcoords = 0;
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; i++) 
@@ -43,7 +43,7 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 texturemask, u32 dstAlphaEnable)
 				projtexcoords |= 1 << texcoord;
 		}
 	}
-	uid.values[0] = (u32)bpmem.genMode.numtevstages |
+	uid->values[0] = (u32)bpmem.genMode.numtevstages |
 				   ((u32)bpmem.genMode.numindstages << 4) |
 				   ((u32)bpmem.genMode.numtexgens << 7) |
 				   ((u32)dstAlphaEnable << 11) |
@@ -51,21 +51,21 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 texturemask, u32 dstAlphaEnable)
 				   (projtexcoords << 20) |
 				   ((u32)bpmem.ztex2.op << 28);
 
-	uid.values[0] = (uid.values[0] & ~0x0ff00000) | (projtexcoords << 20);
+	uid->values[0] = (uid->values[0] & ~0x0ff00000) | (projtexcoords << 20);
 	// swap table
 	for (int i = 0; i < 8; i += 2)
-		((u8*)&uid.values[1])[i / 2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
+		((u8*)&uid->values[1])[i / 2] = (bpmem.tevksel[i].hex & 0xf) | ((bpmem.tevksel[i + 1].hex & 0xf) << 4);
 
-	uid.values[2] = texturemask;
+	uid->values[2] = texturemask;
 
     u32 enableZTexture = (!bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)?1:0;
 
-    uid.values[3] = (u32)bpmem.fog.c_proj_fsel.fsel |
+    uid->values[3] = (u32)bpmem.fog.c_proj_fsel.fsel |
                    ((u32)bpmem.fog.c_proj_fsel.proj << 3) |
                    ((u32)enableZTexture << 4);
 
 	int hdr = 4;
-	u32* pcurvalue = &uid.values[hdr];
+	u32 *pcurvalue = &uid->values[hdr];
 	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i) 
 	{
 		TevStageCombiner::ColorCombiner &cc = bpmem.combiners[i].colorC;
@@ -119,7 +119,7 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 texturemask, u32 dstAlphaEnable)
 	if ((bpmem.genMode.numtevstages % 3) != 2)
 		++pcurvalue;
 
-	uid.tevstages = (u32)(pcurvalue - &uid.values[0] - hdr);
+	uid->tevstages = (u32)(pcurvalue - &uid->values[0] - hdr);
 
 	for (u32 i = 0; i < bpmem.genMode.numindstages; ++i) 
 	{
@@ -134,7 +134,7 @@ void GetPixelShaderId(PIXELSHADERUID &uid, u32 texturemask, u32 dstAlphaEnable)
 	}
 
 	// yeah, well ....
-	uid.indstages = (u32)(pcurvalue - &uid.values[0] - (hdr - 1) - uid.tevstages);
+	uid->indstages = (u32)(pcurvalue - &uid->values[0] - (hdr - 1) - uid->tevstages);
 }
 
 //   old tev->pixelshader notes
@@ -385,7 +385,7 @@ static void BuildSwapModeTable()
     }
 }
 
-const char *GeneratePixelShader(u32 texture_mask, bool dstAlphaEnable, u32 HLSL)
+const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 HLSL)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary

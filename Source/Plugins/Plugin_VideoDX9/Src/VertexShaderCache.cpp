@@ -17,6 +17,11 @@
 
 #include <map>
 
+#include "Common.h"
+#include "FileUtil.h"
+#include "LinearDiskCache.h"
+
+#include "Globals.h"
 #include "D3DBase.h"
 #include "D3DShader.h"
 #include "Statistics.h"
@@ -33,9 +38,10 @@
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 
-static float GC_ALIGNED16(lastVSconstants[C_FOGPARAMS+8][4]);
+static float GC_ALIGNED16(lastVSconstants[C_FOGPARAMS + 8][4]);
 
 static LPDIRECT3DVERTEXSHADER9 SimpleVertexShader;
+LinearDiskCache g_vs_disk_cache;
 
 LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetSimpleVertexShader()
 {
@@ -126,9 +132,23 @@ void SetMultiVSConstant4fv(int const_number, int count, const float *f)
 	}
 }
 
+class VertexShaderCacheInserter : public LinearDiskCacheReader {
+public:
+	void Read(const u8 *key, int key_size, const u8 *value, int value_size)
+	{
+		VERTEXSHADERUID uid;
+		if (key_size != sizeof(uid)) {
+			ERROR_LOG(VIDEO, "Wrong key size in vertex shader cache");
+			return;
+		}
+		memcpy(&uid, key, key_size);
+		VertexShaderCache::InsertByteCode(uid, value, value_size, false);
+	}
+};
+
 void VertexShaderCache::Init()
 {
-	char vSimpleProg[1024];
+	char *vSimpleProg = new char[2048];
 	sprintf(vSimpleProg,"struct VSOUTPUT\n"
 						"{\n"
 						   "float4 vPosition   : POSITION;\n"
@@ -146,8 +166,17 @@ void VertexShaderCache::Init()
 						   "return OUT;\n"
 						"}\n");
 
-	SimpleVertexShader = D3D::CompileVertexShader(vSimpleProg, (int)strlen(vSimpleProg));
+	SimpleVertexShader = D3D::CompileAndCreateVertexShader(vSimpleProg, (int)strlen(vSimpleProg));
 	Clear();
+	delete [] vSimpleProg;
+
+	if (!File::Exists(FULL_SHADERCACHE_DIR))
+		File::CreateDir(FULL_SHADERCACHE_DIR);
+
+	char cache_filename[MAX_PATH];
+	sprintf(cache_filename, "%s%s-vs.cache", FULL_SHADERCACHE_DIR, globals->unique_id);
+	VertexShaderCacheInserter inserter;
+	int read_items = g_vs_disk_cache.OpenAndRead(cache_filename, &inserter);
 }
 
 void VertexShaderCache::Clear()
@@ -164,9 +193,11 @@ void VertexShaderCache::Clear()
 
 void VertexShaderCache::Shutdown()
 {
-	if(SimpleVertexShader)
+	if (SimpleVertexShader)
 		SimpleVertexShader->Release();
 	Clear();
+	g_vs_disk_cache.Sync();
+	g_vs_disk_cache.Close();
 }
 
 bool VertexShaderCache::SetShader(u32 components)
@@ -174,7 +205,7 @@ bool VertexShaderCache::SetShader(u32 components)
 	DVSTARTPROFILE();
 
 	VERTEXSHADERUID uid;
-	GetVertexShaderId(uid, components);
+	GetVertexShaderId(&uid, components);
 	if (uid == last_vertex_shader_uid && vshaders[uid].frameCount == frameCount)
 	{
 		if (vshaders[uid].shader)
@@ -202,8 +233,27 @@ bool VertexShaderCache::SetShader(u32 components)
 			return false;
 	}
 
-	const char *code = GenerateVertexShader(components, true);
-	LPDIRECT3DVERTEXSHADER9 shader = D3D::CompileVertexShader(code, (int)strlen(code));
+	const char *code = GenerateVertexShaderCode(components, true);
+	u8 *bytecode;
+	int bytecodelen;
+	if (!D3D::CompileVertexShader(code, (int)strlen(code), &bytecode, &bytecodelen))
+	{
+		if (g_ActiveConfig.bShowShaderErrors)
+		{
+			PanicAlert("Failed to compile Vertex Shader:\n\n%s", code);
+		}
+		return false;
+	}
+	g_vs_disk_cache.Append((u8 *)&uid, sizeof(uid), bytecode, bytecodelen);
+	g_vs_disk_cache.Sync();
+
+	bool result = InsertByteCode(uid, bytecode, bytecodelen, true);
+	delete [] bytecode;
+	return result;
+}
+
+bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate) {
+	LPDIRECT3DVERTEXSHADER9 shader = D3D::CreateVertexShaderFromByteCode(bytecode, bytecodelen);
 
 	// Make an entry in the table
 	VSCacheEntry entry;
@@ -214,39 +264,17 @@ bool VertexShaderCache::SetShader(u32 components)
 #endif
 	vshaders[uid] = entry;
 	last_entry = &vshaders[uid];
+	if (!shader)
+		return false;
+
 	INCSTAT(stats.numVertexShadersCreated);
 	SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());
-	if (shader)
+	if (activate)
 	{
 		D3D::SetVertexShader(shader);
 		return true;
 	}
-	
-	if (g_ActiveConfig.bShowShaderErrors)
-	{
-		PanicAlert("Failed to compile Vertex Shader:\n\n%s", code);
-	}
 	return false;
-}
-
-void VertexShaderCache::Cleanup()
-{
-	/*
-	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end();)
-	{
-		VSCacheEntry &entry = iter->second;
-		if (entry.frameCount < frameCount - 1400)
-		{
-			entry.Destroy();
-			iter = vshaders.erase(iter);
-		}
-		else
-		{
-			++iter;
-		}
-	}
-	SETSTAT(stats.numVertexShadersAlive, (int)vshaders.size());*/
-
 }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)

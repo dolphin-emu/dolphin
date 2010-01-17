@@ -29,27 +29,27 @@ VERTEXSHADERUID  last_vertex_shader_uid;
 
 // Mash together all the inputs that contribute to the code of a generated vertex shader into
 // a unique identifier, basically containing all the bits. Yup, it's a lot ....
-void GetVertexShaderId(VERTEXSHADERUID& vid, u32 components)
+void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components)
 {
-	vid.values[0] = components |
+	uid->values[0] = components |
 		(xfregs.numTexGens << 23) |
 		(xfregs.nNumChans << 27) |
 		((u32)xfregs.bEnableDualTexTransform << 29);
 
 	for (int i = 0; i < 2; ++i) {
-		vid.values[1+i] = xfregs.colChans[i].color.enablelighting ?
+		uid->values[1+i] = xfregs.colChans[i].color.enablelighting ?
 			(u32)xfregs.colChans[i].color.hex :
 			(u32)xfregs.colChans[i].color.matsource;
-		vid.values[1+i] |= (xfregs.colChans[i].alpha.enablelighting ?
+		uid->values[1+i] |= (xfregs.colChans[i].alpha.enablelighting ?
 			(u32)xfregs.colChans[i].alpha.hex :
 			(u32)xfregs.colChans[i].alpha.matsource) << 15;
 	}
 
 	// fog
-	vid.values[1] |= (((u32)bpmem.fog.c_proj_fsel.fsel & 3) << 30);
-	vid.values[2] |= (((u32)bpmem.fog.c_proj_fsel.fsel >> 2) << 30);
+	uid->values[1] |= (((u32)bpmem.fog.c_proj_fsel.fsel & 3) << 30);
+	uid->values[2] |= (((u32)bpmem.fog.c_proj_fsel.fsel >> 2) << 30);
 
-	u32* pcurvalue = &vid.values[3];
+	u32 *pcurvalue = &uid->values[3];
 	for (int i = 0; i < xfregs.numTexGens; ++i) {
 		TexMtxInfo tinfo = xfregs.texcoords[i].texmtxinfo;
 		if (tinfo.texgentype != XF_TEXGEN_EMBOSS_MAP)
@@ -78,16 +78,16 @@ static char text[16384];
 
 #define LIGHTS_POS ""
 
-char *GenerateLightShader(char* p, int index, const LitChannel& chan, const char* dest, int coloralpha);
+char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char *dest, int coloralpha);
 
-const char *GenerateVertexShader(u32 components, bool D3D)
+const char *GenerateVertexShaderCode(u32 components, bool D3D)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
     DVSTARTPROFILE();
 
-    _assert_( bpmem.genMode.numtexgens == xfregs.numTexGens);
-    _assert_( bpmem.genMode.numcolchans == xfregs.nNumChans);
+    _assert_(bpmem.genMode.numtexgens == xfregs.numTexGens);
+    _assert_(bpmem.genMode.numcolchans == xfregs.nNumChans);
     
     u32 lightMask = 0;
     if (xfregs.nNumChans > 0)
@@ -125,9 +125,8 @@ const char *GenerateVertexShader(u32 components, bool D3D)
     WRITE(p, "};\n");
 
     // uniforms
-    // bool bTexMtx = ((components & VB_HAS_TEXMTXIDXALL)<<VB_HAS_UVTEXMTXSHIFT)!=0; unused TODO: keep?
 
-    WRITE(p, "uniform s_"I_TRANSFORMMATRICES" "I_TRANSFORMMATRICES" : register(c%d);\n", C_TRANSFORMMATRICES);
+	WRITE(p, "uniform s_"I_TRANSFORMMATRICES" "I_TRANSFORMMATRICES" : register(c%d);\n", C_TRANSFORMMATRICES);
     WRITE(p, "uniform s_"I_TEXMATRICES" "I_TEXMATRICES" : register(c%d);\n", C_TEXMATRICES); // also using tex matrices
     WRITE(p, "uniform s_"I_NORMALMATRICES" "I_NORMALMATRICES" : register(c%d);\n", C_NORMALMATRICES);
     WRITE(p, "uniform s_"I_POSNORMALMATRIX" "I_POSNORMALMATRIX" : register(c%d);\n", C_POSNORMALMATRIX);
@@ -406,7 +405,7 @@ const char *GenerateVertexShader(u32 components, bool D3D)
                 break;
         }
 
-        if(xfregs.bEnableDualTexTransform && texinfo.texgentype == XF_TEXGEN_REGULAR) { // only works for regular tex gen types?
+        if (xfregs.bEnableDualTexTransform && texinfo.texgentype == XF_TEXGEN_REGULAR) { // only works for regular tex gen types?
 			int postidx = xfregs.texcoords[i].postmtxinfo.index;
 			WRITE(p, "float4 P0 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n"
 				"float4 P1 = "I_POSTTRANSFORMMATRICES".T[%d].t;\n"
@@ -461,7 +460,7 @@ const char *GenerateVertexShader(u32 components, bool D3D)
 }
 
 // coloralpha - 1 if color, 2 if alpha
-char* GenerateLightShader(char* p, int index, const LitChannel& chan, const char* dest, int coloralpha)
+char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char *dest, int coloralpha)
 {
     const char* swizzle = "xyzw";
     if (coloralpha == 1 ) swizzle = "xyz";

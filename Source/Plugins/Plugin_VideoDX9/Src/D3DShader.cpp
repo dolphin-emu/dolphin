@@ -24,12 +24,22 @@
 namespace D3D
 {
 
-LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len)
+// Bytecode->shader.
+LPDIRECT3DVERTEXSHADER9 CreateVertexShaderFromByteCode(const u8 *bytecode, int len)
+{
+	LPDIRECT3DVERTEXSHADER9 v_shader;
+	HRESULT hr = D3D::dev->CreateVertexShader((DWORD *)bytecode, &v_shader);
+	if (FAILED(hr))
+		v_shader = 0;
+	return v_shader;
+}
+
+// Code->bytecode.
+bool CompileVertexShader(const char *code, int len, u8 **bytecode, int *bytecodelen)
 {
 	//try to compile
 	LPD3DXBUFFER shaderBuffer = 0;
 	LPD3DXBUFFER errorBuffer = 0;
-	LPDIRECT3DVERTEXSHADER9 vShader = 0;
  	HRESULT hr = D3DXCompileShader(code, len, 0, 0, "main", D3D::VertexShaderVersionString(),
 						           0, &shaderBuffer, &errorBuffer, 0);
 	if (FAILED(hr))
@@ -39,20 +49,16 @@ LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len)
 			std::string hello = (char*)errorBuffer->GetBufferPointer();
 			hello += "\n\n";
 			hello += code;
-			MessageBoxA(0, hello.c_str(), "Error assembling vertex shader", MB_ICONERROR);
+			MessageBoxA(0, hello.c_str(), "Error compiling vertex shader", MB_ICONERROR);
 		}
-		vShader = 0;
+		*bytecode = 0;
+		*bytecodelen = 0;
 	}
 	else if (SUCCEEDED(hr))
 	{
-		//create it
-		HRESULT hr = E_FAIL;
-		if (shaderBuffer)
-			hr = D3D::dev->CreateVertexShader((DWORD *)shaderBuffer->GetBufferPointer(), &vShader);
-		if ((FAILED(hr) || vShader == 0) && g_ActiveConfig.bShowShaderErrors)
-		{
-			MessageBoxA(0, code, (char*)errorBuffer->GetBufferPointer(), MB_ICONERROR);
-		}
+		*bytecodelen = shaderBuffer->GetBufferSize();
+		*bytecode = new u8[*bytecodelen];
+		memcpy(*bytecode, shaderBuffer->GetBufferPointer(), *bytecodelen);
 	}
 
 	//cleanup
@@ -60,14 +66,25 @@ LPDIRECT3DVERTEXSHADER9 CompileVertexShader(const char *code, int len)
 		shaderBuffer->Release();
 	if (errorBuffer)
 		errorBuffer->Release();
-	return vShader;
+	return SUCCEEDED(hr) ? true : false;
 }
 
-LPDIRECT3DPIXELSHADER9 CompilePixelShader(const char *code, int len)
+
+// Bytecode->shader.
+LPDIRECT3DPIXELSHADER9 CreatePixelShaderFromByteCode(const u8 *bytecode, int len)
+{
+	LPDIRECT3DPIXELSHADER9 p_shader;
+	HRESULT hr = D3D::dev->CreatePixelShader((DWORD *)bytecode, &p_shader);
+	if (FAILED(hr))
+		p_shader = 0;
+	return p_shader;
+}
+
+
+bool CompilePixelShader(const char *code, int len, u8 **bytecode, int *bytecodelen)
 {
 	LPD3DXBUFFER shaderBuffer = 0;
 	LPD3DXBUFFER errorBuffer = 0;
-	LPDIRECT3DPIXELSHADER9 pShader = 0;
 
 	// Someone:
 	// For some reason, I had this kind of errors : "Shader uses texture addressing operations
@@ -81,18 +98,16 @@ LPDIRECT3DPIXELSHADER9 CompilePixelShader(const char *code, int len)
 			std::string hello = (char*)errorBuffer->GetBufferPointer();
 			hello += "\n\n";
 			hello += code;
-			MessageBoxA(0, hello.c_str(), "Error assembling pixel shader", MB_ICONERROR);
+			MessageBoxA(0, hello.c_str(), "Error compiling pixel shader", MB_ICONERROR);
 		}
-		pShader = 0;
+		*bytecode = 0;
+		*bytecodelen = 0;
 	}
-	else 
+	else if (SUCCEEDED(hr))
 	{
-		//create it
-		HRESULT hr = D3D::dev->CreatePixelShader((DWORD *)shaderBuffer->GetBufferPointer(), &pShader);
-		if ((FAILED(hr) || pShader == 0) && g_ActiveConfig.bShowShaderErrors)
-		{
-			MessageBoxA(0, "damn", "error creating pixelshader", MB_ICONERROR);
-		}
+		*bytecodelen = shaderBuffer->GetBufferSize();
+		*bytecode = new u8[*bytecodelen];
+		memcpy(*bytecode, shaderBuffer->GetBufferPointer(), *bytecodelen);
 	}
 
 	//cleanup
@@ -100,7 +115,31 @@ LPDIRECT3DPIXELSHADER9 CompilePixelShader(const char *code, int len)
 		shaderBuffer->Release();
 	if (errorBuffer)
 		errorBuffer->Release();
-	return pShader;
+	return SUCCEEDED(hr) ? true : false;
+}
+
+LPDIRECT3DVERTEXSHADER9 CompileAndCreateVertexShader(const char *code, int len) {
+	u8 *bytecode;
+	int bytecodelen;
+	if (CompileVertexShader(code, len, &bytecode, &bytecodelen)) {
+		LPDIRECT3DVERTEXSHADER9 v_shader = CreateVertexShaderFromByteCode(bytecode, len);
+		delete [] bytecode;
+		return v_shader;
+	} else {
+		return 0;
+	}
+}
+
+LPDIRECT3DPIXELSHADER9 CompileAndCreatePixelShader(const char *code, int len) {
+	u8 *bytecode;
+	int bytecodelen;
+	if (CompilePixelShader(code, len, &bytecode, &bytecodelen)) {
+		LPDIRECT3DPIXELSHADER9 p_shader = CreatePixelShaderFromByteCode(bytecode, len);
+		delete [] bytecode;
+		return p_shader;
+	} else {
+		return 0;
+	}
 }
 
 }  // namespace

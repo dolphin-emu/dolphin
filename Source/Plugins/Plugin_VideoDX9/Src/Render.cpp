@@ -272,7 +272,7 @@ bool Renderer::Init()
 
 	xScale = (float)s_target_width / (float)EFB_WIDTH;
 	yScale = (float)s_target_height / (float)EFB_HEIGHT;
-	if(!D3D::IsATIDevice())
+	if (!D3D::IsATIDevice())
 	{
 		FULL_EFB_WIDTH = 2 * EFB_WIDTH;
 		FULL_EFB_HEIGHT = 2 * EFB_HEIGHT;
@@ -301,6 +301,7 @@ bool Renderer::Init()
 
 	for (int stage = 0; stage < 8; stage++)
 		D3D::SetSamplerState(stage, D3DSAMP_MAXANISOTROPY, g_ActiveConfig.iMaxAnisotropy);
+
 	D3DVIEWPORT9 vp;
 	vp.X = 0;
 	vp.Y = 0;
@@ -354,7 +355,7 @@ void dumpMatrix(D3DXMATRIX &mtx)
 	for (int y = 0; y < 4; y++)
 	{
 		char temp[256];
-		sprintf(temp,"%4.4f %4.4f %4.4f %4.4f",mtx.m[y][0],mtx.m[y][1],mtx.m[y][2],mtx.m[y][3]);
+		sprintf(temp,"%4.4f %4.4f %4.4f %4.4f", mtx.m[y][0], mtx.m[y][1], mtx.m[y][2], mtx.m[y][3]);
 		g_VideoInitialize.pLog(temp, FALSE);
 	}
 }
@@ -364,9 +365,9 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 	int Xstride = (s_Fulltarget_width - s_target_width) / 2;
 	int Ystride = (s_Fulltarget_height - s_target_height) / 2;
 	TargetRectangle result;
-	result.left   = (int)(rc.left   * xScale) + Xstride ;
+	result.left   = (int)(rc.left   * xScale) + Xstride;
 	result.top    = (int)(rc.top    * yScale) + Ystride;
-	result.right  = (int)(rc.right  * xScale) + Xstride ;
+	result.right  = (int)(rc.right  * xScale) + Xstride;
 	result.bottom = (int)(rc.bottom * yScale) + Ystride;
 	return result;
 }
@@ -433,14 +434,14 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 	int Width  = dst_rect.right - dst_rect.left;
 	int Height = dst_rect.bottom - dst_rect.top;
 	
-	if(X < 0) X = 0;
-	if(Y < 0) Y = 0;
-	if(X > s_backbuffer_width) X = s_backbuffer_width;
-	if(Y > s_backbuffer_height) Y = s_backbuffer_height;
-	if(Width < 0) Width = 0;
-	if(Height < 0) Height = 0;
-	if(Width > (s_backbuffer_width - X)) Width = s_backbuffer_width - X;
-	if(Height > (s_backbuffer_height - Y)) Height = s_backbuffer_height - Y;
+	if (X < 0) X = 0;
+	if (Y < 0) Y = 0;
+	if (X > s_backbuffer_width) X = s_backbuffer_width;
+	if (Y > s_backbuffer_height) Y = s_backbuffer_height;
+	if (Width < 0) Width = 0;
+	if (Height < 0) Height = 0;
+	if (Width > (s_backbuffer_width - X)) Width = s_backbuffer_width - X;
+	if (Height > (s_backbuffer_height - Y)) Height = s_backbuffer_height - Y;
 	vp.X = X;
 	vp.Y = Y;
 	vp.Width = Width;
@@ -617,13 +618,13 @@ bool Renderer::SetScissorRect()
 	if (rc.bottom < 0) rc.bottom = 0;
 	if (rc.top > s_Fulltarget_height) rc.top = s_Fulltarget_height;
 	if (rc.bottom > s_Fulltarget_height) rc.bottom = s_Fulltarget_height;
-	if(rc.left > rc.right)
+	if (rc.left > rc.right)
 	{
 		int temp = rc.right;
 		rc.right = rc.left;
 		rc.left = temp;
 	}
-	if(rc.top > rc.bottom)
+	if (rc.top > rc.bottom)
 	{
 		int temp = rc.bottom;
 		rc.bottom = rc.top;
@@ -660,7 +661,7 @@ void Renderer::SetColorMask()
 
 u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 {
-	if(!g_ActiveConfig.bEFBAccessEnable)
+	if (!g_ActiveConfig.bEFBAccessEnable)
 		return 0;
 
 	//Get the working buffer
@@ -678,13 +679,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	D3DFORMAT ReadBufferFormat = (type == PEEK_Z || type == POKE_Z) ? 
 		FBManager::GetEFBDepthReadSurfaceFormat() : BufferFormat;
 	
-	if(BufferFormat == D3DFMT_D24X8)
+	if (BufferFormat == D3DFMT_D24X8)
 		return 0;
 
 	D3DLOCKED_RECT drect;
 	
 	//Buffer not found alert
-	if(!pBuffer) {
+	if (!pBuffer) {
 		PanicAlert("No %s!", (type == PEEK_Z || type == POKE_Z) ? "Z-Buffer" : "Color EFB");
 		return 0;
 	}
@@ -706,7 +707,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	RectToLock.left = targetPixelRc.left;
 	RectToLock.right = targetPixelRc.right;
 	RectToLock.top = targetPixelRc.top;	
-	if(type == PEEK_Z)
+	if (type == PEEK_Z)
 	{
 		RECT PixelRect;
 		PixelRect.bottom = 4;
@@ -717,14 +718,14 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		RectToLock.right+=1;
 		RectToLock.top-=1;
 		RectToLock.left-=2;
-		if((RectToLock.bottom - RectToLock.top) > 4)
+		if ((RectToLock.bottom - RectToLock.top) > 4)
 			RectToLock.bottom--;
-		if((RectToLock.right - RectToLock.left) > 4)
+		if ((RectToLock.right - RectToLock.left) > 4)
 			RectToLock.left++;
 		ResetAPIState(); // reset any game specific settings
 		hr =D3D::dev->SetDepthStencilSurface(NULL);
 		hr = D3D::dev->SetRenderTarget(0, RBuffer);
-		if(FAILED(hr))
+		if (FAILED(hr))
 		{
 			PanicAlert("unable to set pixel render buffer");
 			return 0;
@@ -738,7 +739,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		vp.MinZ = 0.0f;
 		vp.MaxZ = 1.0f;
 		hr = D3D::dev->SetViewport(&vp);
-		if(FAILED(hr))
+		if (FAILED(hr))
 		{
 			PanicAlert("unable to set pixel viewport");
 			return 0;
@@ -774,14 +775,14 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		RectToLock.right = 1;
 		RectToLock.top = 0;
 	}
-	if(FAILED(hr))
+	if (FAILED(hr))
 	{
 		PanicAlert("Unable to stretch data to buffer");
 		return 0;
 	}
 	//retriebe the pixel data to the local memory buffer
 	D3D::dev->GetRenderTargetData(RBuffer,pOffScreenBuffer);
-	if(FAILED(hr))
+	if (FAILED(hr))
 	{
 		PanicAlert("Unable to copy data to mem buffer");
 		return 0;
@@ -791,7 +792,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	
 		
 	//the surface is good.. lock it
-	if((hr = pOffScreenBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
+	if ((hr = pOffScreenBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
 	{
 		PanicAlert("ERROR: %s", hr == D3DERR_WASSTILLDRAWING ? "Still drawing" :
 											  hr == D3DERR_INVALIDCALL     ? "Invalid call" : "w00t");	
@@ -872,12 +873,12 @@ void UpdateViewport()
 	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY) + Ystride;
 	int Width  = (int)ceil((int)(2 * xfregs.rawViewport[0]) * MValueX);
 	int Height = (int)ceil((int)(-2 * xfregs.rawViewport[1]) * MValueY);
-	if(Width < 0)
+	if (Width < 0)
 	{
 		X += Width;
 		Width*=-1;		
 	}
-	if(Height < 0)
+	if (Height < 0)
 	{
 		Y += Height;
 		Height *= -1;		
@@ -916,10 +917,10 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	sirc.right  = targetRc.right;
 	sirc.bottom = targetRc.bottom;
 	D3D::dev->SetScissorRect(&sirc);	
-	if(zEnable)
+	if (zEnable)
 		D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_ALWAYS);
 	D3D::drawClearQuad(&sirc,color ,(z & 0xFFFFFF) / float(0xFFFFFF),PixelShaderCache::GetClearProgram(),VertexShaderCache::GetSimpleVertexShader());	
-	if(zEnable)
+	if (zEnable)
 		D3D::RefreshRenderState(D3DRS_ZFUNC);
 	//D3D::dev->Clear(0, NULL, (colorEnable ? D3DCLEAR_TARGET : 0)| ( zEnable ? D3DCLEAR_ZBUFFER : 0), color | ((alphaEnable)?0:0xFF000000),(z & 0xFFFFFF) / float(0xFFFFFF), 0);			
 	UpdateViewport();
@@ -933,7 +934,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	// 2 - reverse subtract enable (else add)
 	// 3-5 - srcRGB function
 	// 6-8 - dstRGB function
-	if(bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
+	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
 		return;
 	u32 newval = bpmem.blendmode.subtract << 2;
 
@@ -978,8 +979,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// D3D frame is now over
 	// Clean out old stuff from caches.
 	frameCount++;
-	PixelShaderCache::Cleanup();
-	VertexShaderCache::Cleanup();
 	TextureCache::Cleanup();
 
 	// Make any new configuration settings active.

@@ -78,9 +78,9 @@ void PixelShaderCache::Init()
 {
 	GL_REPORT_ERRORD();
 
-	for( int i=0;i<(C_COLORMATRIX+16)*4;i++)
+	for (int i = 0; i < (C_COLORMATRIX+16) * 4; i++)
 		lastPSconstants[i/4][i%4] = -100000000.0f;
-	memset(&last_pixel_shader_uid,0xFF,sizeof(last_pixel_shader_uid));
+	memset(&last_pixel_shader_uid, 0xFF, sizeof(last_pixel_shader_uid));
 
     s_displayCompileAlert = true;
 
@@ -172,8 +172,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 {
 	DVSTARTPROFILE();
 	PIXELSHADERUID uid;
-    u32 dstAlpha = dstAlphaEnable ? 1 : 0;
-	GetPixelShaderId(uid, PixelShaderManager::GetTextureMask(), dstAlpha);
+	GetPixelShaderId(&uid, PixelShaderManager::GetTextureMask(), dstAlphaEnable ? 1 : 0);
 	if (uid == last_pixel_shader_uid && pshaders[uid].frameCount == frameCount)
 	{
 		return pShaderLast;
@@ -194,14 +193,12 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 		return pShaderLast;
 	}
 
-
 	//Make an entry in the table
 	PSCacheEntry& newentry = pshaders[uid];
 	newentry.frameCount = frameCount;
 	pShaderLast = &newentry.shader;
-
-	const char *code = GeneratePixelShader(PixelShaderManager::GetTextureMask(),
-                                           dstAlphaEnable);
+	const char *code = GeneratePixelShaderCode(PixelShaderManager::GetTextureMask(),
+                                               dstAlphaEnable);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
@@ -218,32 +215,10 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 		ERROR_LOG(VIDEO, "failed to create pixel shader");
 		return NULL;
 	}
-
 	
 	INCSTAT(stats.numPixelShadersCreated);
 	SETSTAT(stats.numPixelShadersAlive, pshaders.size());
 	return pShaderLast;
-}
-
-void PixelShaderCache::ProgressiveCleanup()
-{
-	/*
-	PSCache::iterator iter = pshaders.begin();
-	while (iter != pshaders.end()) {
-		PSCacheEntry &entry = iter->second;
-		if (entry.frameCount < frameCount - 400) {
-			entry.Destroy();
-#ifdef _WIN32
-			iter = pshaders.erase(iter);
-#else
-			pshaders.erase(iter++);  // (this is gcc standard!)
-#endif
-		}
-		else
-			iter++;
-	}
-	SETSTAT(stats.numPixelShadersAlive, (int)pshaders.size());
-	*/
 }
 
 bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrprogram)
@@ -268,7 +243,7 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 	}
 
 	// handle warnings
-	if(cgGetError() != CG_NO_ERROR)
+	if (cgGetError() != CG_NO_ERROR)
 	{
 			WARN_LOG(VIDEO, "Warnings on compile ps %s:", cgGetLastListing(g_cgcontext));
 			WARN_LOG(VIDEO, pstrprogram);

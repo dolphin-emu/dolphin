@@ -1054,10 +1054,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	GL_REPORT_ERRORD();
 
-	// Clean out old stuff from caches
+	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
 	DLCache::ProgressiveCleanup();
-    VertexShaderCache::ProgressiveCleanup();
-    PixelShaderCache::ProgressiveCleanup();
     TextureMngr::ProgressiveCleanup();
 
     frameCount++;

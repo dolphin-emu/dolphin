@@ -69,7 +69,6 @@ class PixelShaderCache
 
 public:
 	static void Init();
-	static void ProgressiveCleanup();
 	static void Shutdown();
 
 	static FRAGMENTSHADER* GetShader(bool dstAlphaEnable);

@@ -721,6 +721,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\LinearDiskCache.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\LinearDiskCache.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\MathUtil.cpp"
 			>
 		</File>
