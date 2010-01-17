@@ -46,25 +46,44 @@ void cocoaCreateApp()
 
 }
 
-void cocoaKeyCode(NSEvent *event)
+bool cocoaKeyCode(NSEvent *event)
 {
-
+	static bool CMDDown = false, QDown = false;
+	bool Return = false;
 	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 
 	NSConnection *connec = [NSConnection defaultConnection];
 
-        [connec setRootObject: event];
-        if ([connec registerName: @"DolphinCocoaEvent"] == NO)
-        {
-                //printf("error creating nsconnection\n");
-        }
+	[connec setRootObject: event];
+	if ([connec registerName: @"DolphinCocoaEvent"] == NO)
+	{
+			//printf("error creating nsconnection\n");
+	}
+	
+	if( [event type] != NSFlagsChanged )
+	{
+		NSString *NewString = [event characters];
+		char *Keys = [NewString UTF8String];
+
+		if( Keys[0] == 'q' && [event type] == NSKeyDown )
+			QDown = true;
+		if( Keys[0] == 'q' && [event type] == NSKeyUp )
+			QDown = false;
+	}
+	else 
+		if( [event modifierFlags] & NSCommandKeyMask )
+			CMDDown = true;
+		else 
+			CMDDown = false;
+		
+	if( QDown && CMDDown )
+		Return = true;
 
 	[pool release];
-
-
+	return Return;
 }
 
-void cocoaSendEvent(NSEvent *event)
+bool cocoaSendEvent(NSEvent *event)
 {
 
 	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
@@ -73,7 +92,8 @@ void cocoaSendEvent(NSEvent *event)
 		switch ([event type]) {
 			case NSKeyDown:
 			case NSKeyUp:
-				cocoaKeyCode(event);
+			case NSFlagsChanged: // For Command
+				return cocoaKeyCode(event);
 				break;
 			default:
 				[NSApp sendEvent:event];
@@ -83,6 +103,7 @@ void cocoaSendEvent(NSEvent *event)
 
 
 	[pool release];
+	return false;
 
 }
 

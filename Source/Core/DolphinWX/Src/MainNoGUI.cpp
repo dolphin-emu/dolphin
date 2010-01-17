@@ -186,7 +186,11 @@ int main(int argc, char *argv[])
 	while(true)
 	{
 		event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES ];
-		cocoaSendEvent(event);
+		if(cocoaSendEvent(event))
+		{
+			PowerPC::Shutdown();
+			break;
+		}
 	}	
 
 

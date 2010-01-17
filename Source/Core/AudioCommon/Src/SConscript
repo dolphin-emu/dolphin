@@ -28,6 +28,6 @@ if acenv['HAVE_PULSEAUDIO']:
 
 if sys.platform == 'darwin':
     files += [ 'CoreAudioSoundStream.cpp' ]
-    acenv['FRAMEWORKS'] = [ 'CoreAudio' ]
+    acenv['FRAMEWORKS'] = [ 'CoreAudio', 'AudioUnit' ]
     
 acenv.StaticLibrary(env['local_libs'] + 'audiocommon', files)

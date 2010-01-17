@@ -5,7 +5,7 @@ extern "C"
 {
 #endif
 
-void cocoaSendEvent(NSEvent *event);
+bool cocoaSendEvent(NSEvent *event);
 
 void cocoaCreateApp();
 
