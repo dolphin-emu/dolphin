@@ -259,9 +259,7 @@ bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, const u8 *byt
 	VSCacheEntry entry;
 	entry.shader = shader;
 	entry.frameCount = frameCount;
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	entry.code = code;
-#endif
+
 	vshaders[uid] = entry;
 	last_entry = &vshaders[uid];
 	if (!shader)
@@ -280,9 +278,6 @@ bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, const u8 *byt
 #if defined(_DEBUG) || defined(DEBUGFAST)
 std::string VertexShaderCache::GetCurrentShaderCode()
 {
-	if (last_entry)
-		return last_entry->code;
-	else
-		return "(no shader)\n";
+	return "(N/A)\n";
 }
 #endif
