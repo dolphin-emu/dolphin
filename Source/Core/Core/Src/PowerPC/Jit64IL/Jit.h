@@ -98,10 +98,8 @@ private:
 		UGeckoInstruction next_inst;  // for easy peephole opt.
 		int instructionNumber;
 		int downcountAmount;
-		int block_flags;
 
 		bool isLastInstruction;
-		bool blockSetsQuantizers;
 		bool forceUnsafeLoad;
 
 		int fifoBytesThisBlock;

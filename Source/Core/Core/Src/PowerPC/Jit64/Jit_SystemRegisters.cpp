@@ -52,7 +52,6 @@ void Jit64::mtspr(UGeckoInstruction inst)
 	case SPR_GQR0 + 5:
 	case SPR_GQR0 + 6:
 	case SPR_GQR0 + 7:
-		js.blockSetsQuantizers = true;
 		// Prevent recompiler from compiling in old quantizer values.
 		// If the value changed, destroy all blocks using this quantizer
 		// This will create a little bit of block churn, but hopefully not too bad.

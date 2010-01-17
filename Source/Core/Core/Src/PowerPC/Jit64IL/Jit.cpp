@@ -397,8 +397,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitB
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
-	js.blockSetsQuantizers = false;
-	js.block_flags = 0;
 	js.cancel = false;
 
 	//Analyze the block, collect all instructions it is made of (including inlining,
@@ -464,7 +462,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitB
 	// Perform actual code generation
 	WriteCode();
 
-	b->flags = js.block_flags;
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);
 	b->originalSize = size;
 	return normalEntry;

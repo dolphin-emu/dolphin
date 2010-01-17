@@ -51,9 +51,8 @@ void Jit64::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStorePaired)
-	js.block_flags |= BLOCK_USE_GQR0 << inst.I;
 
-	if (js.blockSetsQuantizers || !inst.RA)
+	if (!inst.RA)
 	{
 		// TODO: Support these cases if it becomes necessary.
 		Default(inst);
@@ -105,12 +104,13 @@ void Jit64::psq_st(UGeckoInstruction inst)
 		MOV(32, gpr.R(a), R(ECX));
 	MOVZX(32, 16, EAX, M(&PowerPC::ppcState.spr[SPR_GQR0 + inst.I]));
 	MOVZX(32, 8, EDX, R(AL));
-	// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32]!
+	// FIXME: Fix ModR/M encoding to allow [EDX*4+disp32] without a base register!
 #ifdef _M_IX86
-	SHL(32, R(EDX), Imm8(2));
+	int addr_shift = 2;
 #else
-	SHL(32, R(EDX), Imm8(3));
+	int addr_shift = 3;
 #endif
+	SHL(32, R(EDX), Imm8(addr_shift));
 	if (inst.W) {
 		// One value
 		XORPS(XMM0, R(XMM0));  // TODO: See if we can get rid of this cheaply by tweaking the code in the singleStore* functions.
@@ -130,10 +130,16 @@ void Jit64::psq_l(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(LoadStorePaired)
 
-	js.block_flags |= BLOCK_USE_GQR0 << inst.I;
-
-	if (js.blockSetsQuantizers || !inst.RA || inst.W)
+	if (!inst.RA)
 	{
+		Default(inst);
+		return;
+	}
+
+	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
+
+	if (inst.W) {
+		// PanicAlert("Single ps load: %i %i", gqr.ST_TYPE, gqr.ST_SCALE);
 		Default(inst);
 		return;
 	}

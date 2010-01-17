@@ -275,9 +275,7 @@ void Jit64::stfs(UGeckoInstruction inst)
 		MOV(32, gpr.R(a), R(ABI_PARAM2));
 	}
 	CVTSD2SS(XMM0, fpr.R(s));
-	MOVSS(M(&temp32), XMM0);
-	MOV(32, R(ABI_PARAM1), M(&temp32));
-	SafeWriteRegToReg(ABI_PARAM1, ABI_PARAM2, 32, 0);
+	SafeWriteFloatToReg(XMM0, ABI_PARAM2);
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	fpr.UnlockAll();

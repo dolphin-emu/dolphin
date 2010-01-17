@@ -110,7 +110,6 @@ private:
 		int block_flags;
 
 		bool isLastInstruction;
-		bool blockSetsQuantizers;
 
 		int fifoBytesThisBlock;
 
@@ -247,6 +246,7 @@ public:
 	void ps_muls(UGeckoInstruction inst);
 
 	void fp_arith_s(UGeckoInstruction inst);
+	void frsqrtex(UGeckoInstruction inst);
 
 	void fcmpx(UGeckoInstruction inst);
 	void fmrx(UGeckoInstruction inst);

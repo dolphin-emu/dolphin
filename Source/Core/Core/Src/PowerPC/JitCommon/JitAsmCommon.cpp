@@ -299,6 +299,9 @@ void CommonAsmRoutines::GenQuantizedSingleStores() {
 
 	// Easy!
 	const u8* storeSingleFloat = AlignCode4();
+	SafeWriteFloatToReg(XMM0, ECX);
+	RET();
+	/*
 	if (cpu_info.bSSSE3) {
 		PSHUFB(XMM0, M((void *)pbswapShuffle2x4));
 		// TODO: SafeWriteFloat
@@ -309,8 +312,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores() {
 		MOVSS(M(&psTemp[0]), XMM0);
 		MOV(32, R(EAX), M(&psTemp[0]));
 		SafeWriteRegToReg(EAX, ECX, 32, 0, true);
-	}
-	RET();
+	}*/
 
 	const u8* storeSingleU8 = AlignCode4();  // Used by MKWii
 	SHR(32, R(EAX), Imm8(6));
@@ -336,8 +338,7 @@ void CommonAsmRoutines::GenQuantizedSingleStores() {
 	const u8* storeSingleU16 = AlignCode4();  // Used by MKWii
 	SHR(32, R(EAX), Imm8(6));
 	MOVSS(XMM1, MDisp(EAX, (u32)(u64)m_quantizeTableS));
-	PUNPCKLDQ(XMM1, R(XMM1));
-	MULPS(XMM0, R(XMM1));
+	MULSS(XMM0, R(XMM1));
 	PXOR(XMM1, R(XMM1));
 	MAXSS(XMM0, R(XMM1));
 	MINSS(XMM0, M((void *)&m_65535));

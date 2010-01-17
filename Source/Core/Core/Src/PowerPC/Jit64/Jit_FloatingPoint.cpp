@@ -71,6 +71,9 @@ void Jit64::fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEm
 	fpr.UnlockAll();
 }
 
+
+static const double one_const = 1.0f;
+
 void Jit64::fp_arith_s(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
@@ -79,9 +82,23 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 		Default(inst); return;
 	}
 
+	if (inst.SUBOP5 == 26) {
+		// frsqrtex
+		int d = inst.FD;
+		int b = inst.FB;
+		fpr.Lock(b, d);
+		fpr.LoadToX64(d, true, true);
+		MOVSD(XMM0, M((void *)&one_const));
+		SQRTSD(XMM1, fpr.R(b));
+		DIVSD(XMM0, R(XMM1));
+		MOVSD(fpr.R(d), XMM0);
+		fpr.UnlockAll();
+		return;
+	}
+
 	if (inst.SUBOP5 != 18 && inst.SUBOP5 != 20 && inst.SUBOP5 != 21 &&
 	    inst.SUBOP5 != 25) {
-	  Default(inst); return;
+		Default(inst); return;
 	}
 
 	// Only the interpreter has "proper" support for (some) FP flags
@@ -253,3 +270,5 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	SetJumpTarget(continue3);
 	fpr.UnlockAll();
 }
+
+

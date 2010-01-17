@@ -443,7 +443,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
 	js.curBlock = b;
-	js.blockSetsQuantizers = false;
 	js.block_flags = 0;
 	js.cancel = false;
 
