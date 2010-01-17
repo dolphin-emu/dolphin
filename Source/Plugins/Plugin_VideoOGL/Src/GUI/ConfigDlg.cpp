@@ -49,6 +49,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_USEXFB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_FORCEFILTERING, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_AUTOSCALE, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_WIDESCREENHACK, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_ASPECT, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_CROP, GFXConfigDialogOGL::GeneralSettingsChanged)
 	#ifndef _WIN32
@@ -750,6 +751,9 @@ void GFXConfigDialogOGL::UpdateGUI()
 		// XFB looks much better if the copy comes from native resolution.
 		g_Config.bNativeResolution = true;
 		m_NativeResolution->SetValue(true);
+		//also disable 2x, since it might leave both checked.
+		g_Config.b2xResolution = false; 
+		m_2xResolution->SetValue(false);
 	}
 	m_AutoScale->Enable(!g_Config.bUseXFB);
 
@@ -758,7 +762,10 @@ void GFXConfigDialogOGL::UpdateGUI()
 	if (g_Config.RenderToMainframe) m_Fullscreen->SetValue(false);
 
 	// Resolution settings
-	m_2xResolution->Enable(!g_Config.bRunning || Renderer::Allow2x());
+	//disable native/2x choice when real xfb is on. native simply looks best, as ector noted above.
+	//besides, it would look odd if one disabled native, and it came back on again.
+	m_NativeResolution->Enable(!g_Config.bUseXFB);
+	m_2xResolution->Enable(!g_Config.bUseXFB && (!g_Config.bRunning || Renderer::Allow2x()));
 	m_WindowResolutionCB->Enable(!g_Config.bRunning);
 	m_WindowFSResolutionCB->Enable(!g_Config.bRunning && !g_Config.RenderToMainframe);
 
