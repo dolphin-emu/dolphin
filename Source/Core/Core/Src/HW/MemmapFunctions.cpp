@@ -125,6 +125,26 @@ inline void hwWriteIOBridge(u16 var, u32 addr) {WII_IOBridge::Write16(var, addr)
 inline void hwWriteIOBridge(u32 var, u32 addr) {WII_IOBridge::Write32(var, addr);}
 inline void hwWriteIOBridge(u64 var, u32 addr) {PanicAlert("hwWriteIOBridge: There's no 64-bit HW write. %08x", addr);}
 
+// Nasty but necessary. Super Mario Galaxy pointer relies on this stuff.
+u32 EFB_Read(const u32 addr) 
+{
+	u32 var = 0;
+	// Convert address to coordinates. It's possible that this should be done
+	// differently depending on color depth, especially regarding PEEK_COLOR.
+	int x = (addr & 0xfff) >> 2;
+	int y = (addr >> 12) & 0x3ff;
+
+	if (addr & 0x00400000) {
+		var = CPluginManager::GetInstance().GetVideo()->Video_AccessEFB(PEEK_Z, x, y);
+		DEBUG_LOG(MEMMAP, "EFB Z Read @ %i, %i\t= 0x%08x", x, y, var);
+	} else {
+		var = CPluginManager::GetInstance().GetVideo()->Video_AccessEFB(PEEK_COLOR, x, y);
+		DEBUG_LOG(MEMMAP, "EFB Color Read @ %i, %i\t= 0x%08x", x, y, var);
+	}
+
+	return var;
+}
+
 template <class T>
 inline void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Memory::XCheckTLBFlag flag)
 {
@@ -132,17 +152,7 @@ inline void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Mem
 	if ((em_address & 0xC8000000) == 0xC8000000)
 	{
 		if (em_address < 0xcc000000)
-		{
-			int x = (em_address & 0xfff) >> 2;
-			int y = (em_address >> 12) & 0x3ff;
-			if (em_address & 0x00400000) {
-				_var = CPluginManager::GetInstance().GetVideo()->Video_AccessEFB(PEEK_Z, x, y);
-				DEBUG_LOG(MEMMAP, "EFB Z Read @ %i, %i\t= 0x%08x", x, y, _var);
-			} else {
-				_var = CPluginManager::GetInstance().GetVideo()->Video_AccessEFB(PEEK_COLOR, x, y);
-				DEBUG_LOG(MEMMAP, "EFB Color Read @ %i, %i\t= 0x%08x", x, y, _var);
-			}
-		}
+			_var = EFB_Read(em_address);
 		else if (em_address <= 0xcc009000)
 			hwRead(_var, em_address);
 		/* WIIMODE */
@@ -355,7 +365,6 @@ u32 Read_U32(const u32 _Address)
 #endif
 	return _var;
 }
-
 
 u64 Read_U64(const u32 _Address)
 {

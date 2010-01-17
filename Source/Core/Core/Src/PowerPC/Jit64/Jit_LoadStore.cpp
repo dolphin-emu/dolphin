@@ -193,7 +193,7 @@ void Jit64::lXz(UGeckoInstruction inst)
 	}
 
 	//Still here? Do regular path.
-#if defined(_M_X64) && 0 // This is disabled, it's unaccurate
+#if defined(_M_X64)
 	if (accessSize == 8 || accessSize == 16 || !jo.enableFastMem) {
 #else
 	if (true) {

@@ -405,8 +405,6 @@ void fresx(UGeckoInstruction _inst)
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));
 }
 
-// #define USE_ACCURATE_FRSQRTEX
-
 void frsqrtex(UGeckoInstruction _inst)
 {
 	double b = rPS0(_inst.FB);
@@ -417,7 +415,7 @@ void frsqrtex(UGeckoInstruction _inst)
 	} 
 	else 
 	{
-#ifdef USE_ACCURATE_FRSQRTEX
+#ifdef VERY_ACCURATE_FP
 		if (b == 0.0) {
 			SetFPException(FPSCR_ZX);
 			riPS0(_inst.FD) = 0x7ff0000000000000;

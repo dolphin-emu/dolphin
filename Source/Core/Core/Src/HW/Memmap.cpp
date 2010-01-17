@@ -78,7 +78,6 @@ bool m_IsInitialized = false; // Save the Init(), Shutdown() state
 // 64-bit: Pointers to low-mem (sub-0x10000000) mirror
 // 32-bit: Same as the corresponding physical/virtual pointers.
 u8 *m_pRAM;
-u8 *m_pEFB; 
 u8 *m_pL1Cache;
 u8 *m_pEXRAM;
 u8 *m_pFakeVMEM;
@@ -329,7 +328,9 @@ static const MemoryView views[] =
 	{NULL,         &m_pVirtualCachedRAM,     0x80000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
 	{NULL,         &m_pVirtualUncachedRAM,   0xC0000000, RAM_SIZE, MV_MIRROR_PREVIOUS},
 
-	{&m_pEFB,      &m_pVirtualEFB,           0xC8000000, EFB_SIZE, 0},
+//  Don't map any memory for the EFB. We want all access to this area to go
+//  through the hardware access handlers.
+//	{&m_pEFB,      &m_pVirtualEFB,           0xC8000000, EFB_SIZE, 0},
 	{&m_pL1Cache,  &m_pVirtualL1Cache,       0xE0000000, L1_CACHE_SIZE, 0},
 
 	{&m_pFakeVMEM, &m_pVirtualFakeVMEM,      0x7E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
@@ -390,8 +391,6 @@ void Clear()
 		memset(m_pRAM, 0, RAM_SIZE);
 	if (m_pL1Cache)
 		memset(m_pL1Cache, 0, L1_CACHE_SIZE);
-	if (m_pEFB)
-		memset(m_pEFB, 0, EFB_SIZE);
 	if (Core::GetStartupParameter().bWii && m_pEXRAM)
 		memset(m_pEXRAM, 0, EXRAM_SIZE);
 }
@@ -777,7 +776,8 @@ u8 *GetPointer(const u32 _Address)
 			return 0;
 
 	case 0xC8:
-		return m_pEFB + (_Address & 0xFFFFFF);
+		return 0;  // EFB. We don't want to return a pointer here since we have no memory mapped for it.
+
 	case 0xCC:
 	case 0xCD:
 		_dbg_assert_msg_(MEMMAP, 0, "Memory", "GetPointer from IO Bridge doesnt work");
