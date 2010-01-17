@@ -36,6 +36,7 @@
 #include "Interpreter.h"
 #include "MathUtil.h"
 #include "Interpreter_FPUtils.h"
+#include "../LUT_frsqrtex.h"
 
 using namespace MathUtil;
 
@@ -414,8 +415,27 @@ void frsqrtex(UGeckoInstruction _inst)
 	} 
 	else 
 	{
-		if (b == 0.0) SetFPException(FPSCR_ZX);
-		rPS0(_inst.FD) = ForceDouble(1.0 / sqrt(b));
+		if (b == 0.0) {
+			SetFPException(FPSCR_ZX);
+			riPS0(_inst.FD) = 0x7ff0000000000000;
+		}
+		else
+		{
+			u32 fsa = Common::swap32(Common::swap64(riPS0(_inst.FB)));
+			u32 fsb = Common::swap32(Common::swap64(riPS0(_inst.FB)) >> 32);
+			u32 idx=(fsa >> 5) % (sizeof(frsqrtex_lut) / sizeof(frsqrtex_lut[0]));
+
+			s32 e = fsa >> (32-12);
+			e &= 2047;
+			e -= 1023;
+			s32 oe =- ((e + 1) / 2);
+			oe -= ((e + 1) & 1);
+
+			u32 outb = frsqrtex_lut[idx] << 20;
+			u32 outa = ((oe + 1023) & 2047) << 20;
+			outa |= frsqrtex_lut[idx] >> 12;
+			riPS0(_inst.FD) = ((u64)outa << 32) + (u64)outb;
+		}
 	}
  	UpdateFPRF(rPS0(_inst.FD));
 	if (_inst.Rc) Helper_UpdateCR1(rPS0(_inst.FD));

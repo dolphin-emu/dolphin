@@ -940,6 +940,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\PowerPC\LUT_frsqrtex.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\PowerPC\LUT_frsqrtex.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\PowerPC\PowerPC.cpp"
 				>
 			</File>
@@ -1023,6 +1031,14 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Release_JITIL|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							AssemblerOutput="4"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug_JITIL|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
