@@ -264,9 +264,6 @@ bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, const u8 *bytec
 	PSCacheEntry newentry;
 	newentry.shader = shader;
 	newentry.frameCount = frameCount;
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	newentry.code = code;
-#endif
 	PixelShaders[uid] = newentry;
 	last_entry = &PixelShaders[uid];
 
