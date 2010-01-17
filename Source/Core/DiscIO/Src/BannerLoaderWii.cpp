@@ -36,10 +36,7 @@ CBannerLoaderWii::CBannerLoaderWii(DiscIO::IVolume *pVolume)
 	char Filename[260];
 	u64 TitleID;
 
-	if (DiscIO::IsVolumeWadFile(pVolume))
-		pVolume->GetTitleID((u8*)&TitleID);
-	else
-		pVolume->RAWRead((u64)0x0F8001DC, 8, (u8*)&TitleID);
+	pVolume->GetTitleID((u8*)&TitleID);
 
 	TitleID = Common::swap64(TitleID);
 

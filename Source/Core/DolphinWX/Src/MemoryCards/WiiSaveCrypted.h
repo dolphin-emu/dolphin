@@ -47,6 +47,7 @@ public:
 
 private:
 	AES_KEY m_AES_KEY;
+	u8 SD_IV[0x10];
 	std::vector<std::string> FilesList; 
 
 	FILE *fpData_bin,
