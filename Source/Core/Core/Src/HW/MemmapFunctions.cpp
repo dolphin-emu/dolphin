@@ -164,9 +164,9 @@ inline void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Mem
 	{
 		_var = bswap((*(const T*)&m_pRAM[em_address & RAM_MASK]));
 	}
-	else if (((em_address & 0xF0000000) == 0x90000000) ||
+	else if (m_pEXRAM && (((em_address & 0xF0000000) == 0x90000000) ||
 		((em_address & 0xF0000000) == 0xD0000000) ||
-		((em_address & 0xF0000000) == 0x10000000))
+		((em_address & 0xF0000000) == 0x10000000)))
 	{
 		_var = bswap((*(const T*)&m_pEXRAM[em_address & EXRAM_MASK]));
 	}

@@ -53,6 +53,7 @@ extern u8 *base;
 
 // These are guarenteed to point to "low memory" addresses (sub-32-bit).
 extern u8 *m_pRAM;
+extern u8 *m_pEXRAM;
 extern u8 *m_pL1Cache;
 
 enum
