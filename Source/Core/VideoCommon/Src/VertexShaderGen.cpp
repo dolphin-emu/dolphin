@@ -324,10 +324,13 @@ const char *GenerateVertexShaderCode(u32 components, bool D3D)
 		WRITE(p, "o.colors[%d] = float4(0.0f,0.0f,0.0f,0.0f);\n", i);
 
 	// special case if only pos and tex coord 0 and tex coord input is AB11	
-	bool texGenSpecialCase =
+	// donko - this has caused problems in some games. removed for now.
+	bool texGenSpecialCase = false;
+	/*bool texGenSpecialCase =
 		((g_VtxDesc.Hex & 0x60600L) == g_VtxDesc.Hex) && // only pos and tex coord 0
 		(g_VtxDesc.Tex0Coord != NOT_PRESENT) &&
 		(xfregs.texcoords[0].texmtxinfo.inputform == XF_TEXINPUT_AB11);
+		*/	
 
     // transform texcoords
 	WRITE(p, "float4 coord = float4(0.0f,0.0f,1.0f,1.0f);\n"); 
