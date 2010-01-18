@@ -342,12 +342,21 @@ void Config::LoadIR()
 	// Load the IR cursor settings if it's avaliable for the GameId, if not load the default settings
 	IniFile iniFile;
 	char TmpSection[32];
+	int defaultLeft, defaultTop, defaultWidth, defaultHeight;
+
 	sprintf(TmpSection, "%s", g_ISOId ? Hex2Ascii(g_ISOId).c_str() : "Default");
 	iniFile.Load(FULL_CONFIG_DIR "IR Pointer.ini");
-	iniFile.Get(TmpSection, "IRLeft", &iIRLeft, LEFT);
-	iniFile.Get(TmpSection, "IRTop", &iIRTop, TOP);
-	iniFile.Get(TmpSection, "IRWidth", &iIRWidth, RIGHT - LEFT);
-	iniFile.Get(TmpSection, "IRHeight", &iIRHeight, BOTTOM - TOP);
+	//Load defaults first...
+	iniFile.Get("Default", "IRLeft", &defaultLeft, LEFT);
+	iniFile.Get("Default", "IRTop", &defaultTop, TOP);
+	iniFile.Get("Default", "IRWidth", &defaultWidth, RIGHT - LEFT);
+	iniFile.Get("Default", "IRHeight", &defaultHeight, BOTTOM - TOP);
+	//...and fall back to them if the GameId is not found.
+	//It shouldn't matter if we read Default twice, its in memory anyways.
+	iniFile.Get(TmpSection, "IRLeft", &iIRLeft, defaultLeft);
+	iniFile.Get(TmpSection, "IRTop", &iIRTop, defaultTop);
+	iniFile.Get(TmpSection, "IRWidth", &iIRWidth, defaultWidth);
+	iniFile.Get(TmpSection, "IRHeight", &iIRHeight, defaultHeight);
 }
 
 void Config::Save()
