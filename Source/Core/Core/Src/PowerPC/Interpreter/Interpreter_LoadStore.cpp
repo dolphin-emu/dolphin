@@ -665,10 +665,16 @@ void tlbia(UGeckoInstruction _inst)
 
 void tlbie(UGeckoInstruction _inst)
 {
-	// invalid entry
-        // int entry = _inst.RB;
-
-	//MessageBox(0,"TLBIE","TLBIE",0);
+	// Invalidate TLB entry
+	u32 _Address = m_GPR[_inst.RB];
+	for (int i = 0; i < 16; i++)
+	{
+		if ((_Address & ~0xfff) == (PowerPC::ppcState.tlb_va[(PowerPC::ppcState.tlb_last + i) & 15]))
+		{
+			PowerPC::ppcState.tlb_pa[(PowerPC::ppcState.tlb_last + i) & 15] = 0;
+			PowerPC::ppcState.tlb_va[(PowerPC::ppcState.tlb_last + i) & 15] = 0;
+		}
+	}
 }
 
 void tlbsync(UGeckoInstruction _inst)
