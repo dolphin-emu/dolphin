@@ -208,6 +208,8 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 
 	    case IDM_UPDATEDISASMDIALOG:
 		    Update();
+			if (codeview) codeview->Center(PC);
+//			if (m_JitWindow) Host_ShowJitResults(PC);
 		    if (m_RegisterWindow) m_RegisterWindow->NotifyUpdate();
 		    break;
 
@@ -266,6 +268,7 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 void CCodeWindow::JumpToAddress(u32 _Address)
 {
     codeview->Center(_Address);
+	if (m_JitWindow) Host_ShowJitResults(_Address);
 	UpdateLists();
 }
 
@@ -617,7 +620,7 @@ void CCodeWindow::InitBitmaps()
 	// scale to 16x16 for toolbar
 	for (size_t n = Toolbar_DebugGo; n < ToolbarDebugBitmapMax; n++)
 	{
-		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(16, 16));
+		m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(24, 24));
 	}
 }
 
