@@ -467,12 +467,11 @@ void CFrame::InitBitmaps()
 
 
 // Menu items
-// ---------------------
 
 // Start the game or change the disc.
 // Boot priority:
-// 1. Default ISO
-// 2. Show the game list and boot the selected game.
+// 1. Show the game list and boot the selected game.
+// 2. Default ISO
 // 3. Boot last selected game
 void CFrame::BootGame()
 {
@@ -481,17 +480,17 @@ void CFrame::BootGame()
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		return;
 
+	// Start the selected ISO, or try one of the saved paths.
+	// If all that fails, ask to add a dir and don't boot
+	if (m_GameListCtrl->GetSelectedISO() != NULL)
+	{
+		if (m_GameListCtrl->GetSelectedISO()->IsValid())
+			BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
+	}
 	else if (!StartUp.m_strDefaultGCM.empty()
 		&&	wxFileExists(wxString(StartUp.m_strDefaultGCM.c_str(), wxConvUTF8)))
 	{
 		BootManager::BootCore(StartUp.m_strDefaultGCM);
-	}
-	// Start the selected ISO, or try one of the saved paths.
-	// If all that fails, ask to add a dir and don't boot
-	else if (m_GameListCtrl->GetSelectedISO() != NULL)
-	{
-		if (m_GameListCtrl->GetSelectedISO()->IsValid())
-			BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
 	}
 	else
 	{

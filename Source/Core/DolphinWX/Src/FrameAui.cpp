@@ -16,11 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-// Why doesn't it work on windows?
-#ifndef _WIN32
-#include "Common.h"
-#endif
-
 #include "Setup.h" // Common
 
 #if defined(HAVE_SFML) && HAVE_SFML || defined(_WIN32)

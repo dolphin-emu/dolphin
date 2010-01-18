@@ -777,7 +777,7 @@ void CISOProperties::OnExtractDataFromHeader(wxCommandEvent& event)
 	}
 
 	if (!ret)
-		PanicAlert("Failed to extract to %s!", Path.mb_str());
+		PanicAlert("Failed to extract to %s!", (const char *)Path.mb_str());
 }
 
 void CISOProperties::SetRefresh(wxCommandEvent& event)

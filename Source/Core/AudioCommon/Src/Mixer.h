@@ -74,9 +74,9 @@ protected:
 	bool m_throttle;
 
 	short m_buffer[MAX_SAMPLES * 2];
+	volatile u32 m_numSamples;
 	u32 m_indexW;
 	u32 m_indexR;
-	volatile u32 m_numSamples;
 
 private:
 
