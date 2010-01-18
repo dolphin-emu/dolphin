@@ -301,7 +301,7 @@ bool Renderer::Init()
         glDrawBuffers = glDrawBuffersARB;
 	
 	if (!GLEW_ARB_texture_non_power_of_two) {
-		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported. This extension is not yet used, though.");
+		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported.");
 	}
 
 	// Decide frambuffer size
