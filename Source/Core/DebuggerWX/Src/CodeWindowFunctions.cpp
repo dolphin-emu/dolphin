@@ -172,12 +172,6 @@ void CCodeWindow::Save()
 	ini.Set("Float", "Sound", !!FindWindowById(IDM_SOUNDWINDOW_PARENT));
 	ini.Set("Float", "Video", !!FindWindowById(IDM_VIDEOWINDOW_PARENT));	
 
-	// Save window settings
-	ini.Set("MainWindow", "x", Parent->GetPosition().x);
-	ini.Set("MainWindow", "y", Parent->GetPosition().y);
-	ini.Set("MainWindow", "w", Parent->GetSize().GetWidth());
-	ini.Set("MainWindow", "h", Parent->GetSize().GetHeight());
-
 	ini.Save(DEBUGGER_CONFIG_FILE);
 }
 

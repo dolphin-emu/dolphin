@@ -294,6 +294,7 @@ class CFrame : public wxFrame
 		void OnToggleSkipIdle(wxCommandEvent& event);
 		void OnToggleThrottle(wxCommandEvent& event);
 		void OnManagerResize(wxAuiManagerEvent& event);
+		void OnMove(wxMoveEvent& event);
 		void OnResize(wxSizeEvent& event);
 		void OnResizeAll(wxSizeEvent& event);
 		void OnToggleToolbar(wxCommandEvent& event);

@@ -271,6 +271,7 @@ EVT_MENU_RANGE(IDM_LISTWAD, IDM_LISTDRIVES, CFrame::GameListChanged)
 EVT_ACTIVATE(CFrame::OnActive)
 EVT_CLOSE(CFrame::OnClose)
 EVT_SIZE(CFrame::OnResize)
+EVT_MOVE(CFrame::OnMove)
 EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CFrame::OnGameListCtrl_ItemActivated)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 #if wxUSE_TIMER
@@ -553,9 +554,19 @@ void CFrame::PostUpdateUIEvent(wxUpdateUIEvent& event)
 	if (g_pCodeWindow) g_pCodeWindow->AddPendingEvent(event);
 }
 
+void CFrame::OnMove(wxMoveEvent& event)
+{
+	event.Skip();
+
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX = GetPosition().x;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY = GetPosition().y;
+}
 void CFrame::OnResize(wxSizeEvent& event)
 {
 	event.Skip();
+
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
+	SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
 
 	DoMoveIcons();  // In FrameWiimote.cpp
 }

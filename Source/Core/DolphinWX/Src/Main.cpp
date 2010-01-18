@@ -394,28 +394,13 @@ bool DolphinApp::OnInit()
 		#endif
 	#endif
 
+	int x = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX;
+	int y = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY;
+	int w = SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth;
+	int h = SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight;
 
-
-	if (UseDebugger)
-	{
-		// If we are debugging let user save the main window position and size
-		IniFile ini;
-		ini.Load(DEBUGGER_CONFIG_FILE);
-		int x, y, w, h;
-
-		ini.Get("MainWindow", "x", &x, 100);
-		ini.Get("MainWindow", "y", &y, 100);
-		ini.Get("MainWindow", "w", &w, 800);
-		ini.Get("MainWindow", "h", &h, 600);
-
-		main_frame = new CFrame((wxFrame*)NULL, wxID_ANY, wxString::FromAscii(title),
-				wxPoint(x, y), wxSize(w, h), true, UseLogger);
-	}
-	else
-	{
-		main_frame = new CFrame((wxFrame*)NULL, wxID_ANY, wxString::FromAscii(title),
-				wxPoint(100, 100), wxSize(800, 600), false, UseLogger);
-	}
+	main_frame = new CFrame((wxFrame*)NULL, wxID_ANY, wxString::FromAscii(title),
+		wxPoint(x, y), wxSize(w, h), UseDebugger, UseLogger);
 
 	// ------------
 	// Check the autoboot options. 

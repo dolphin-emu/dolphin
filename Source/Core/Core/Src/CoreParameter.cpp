@@ -48,6 +48,11 @@ void SCoreStartupParameter::LoadDefaults()
 	SelectedLanguage = 0;
 	iTLBHack = 0;
 
+	iPosX = 100;
+	iPosY = 100;
+	iWidth = 800;
+	iHeight = 600;
+
 	bJITOff = false; // debugger only settings
 	bJITLoadStoreOff = false;
 	bJITLoadStoreFloatingOff = false;

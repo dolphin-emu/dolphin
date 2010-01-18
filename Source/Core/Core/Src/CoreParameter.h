@@ -79,6 +79,7 @@ struct SCoreStartupParameter
 	// Interface settings
 	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers;
 	int iTheme; 
+	int iPosX, iPosY, iWidth, iHeight;
 	
 	enum EBootBS2
 	{
