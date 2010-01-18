@@ -509,8 +509,6 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnActive(wxActivateEvent& event)
 {
 	event.Skip();
-	if (event.GetActive())
-		UpdateGUI();
 }
 
 void CFrame::OnClose(wxCloseEvent& event)
@@ -681,7 +679,9 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 		m_GameListCtrl->Update();
 	}			
-	else BootGame();
+	else
+		// Game started by double click
+		StartGame();
 }
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
@@ -795,6 +795,10 @@ void CFrame::OnMotion(wxMouseEvent& event)
 #if wxUSE_TIMER
 void CFrame::Update()
 {
+	// Update the GUI while a game has not yet been loaded
+	if (!Core::isRunning())
+		UpdateGUI();
+
 	// Check if auto hide is on, or if we are already hiding the cursor all the time
 	if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor
 		|| SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor) return;

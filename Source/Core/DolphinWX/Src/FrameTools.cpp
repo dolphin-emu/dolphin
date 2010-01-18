@@ -469,12 +469,23 @@ void CFrame::InitBitmaps()
 // Menu items
 // ---------------------
 
-// Start the game or change the disc
+// Start the game or change the disc.
+// Boot priority:
+// 1. Default ISO
+// 2. Show the game list and boot the selected game.
+// 3. Boot last selected game
 void CFrame::BootGame()
 {
+	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
+
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		return;
 
+	else if (!StartUp.m_strDefaultGCM.empty()
+		&&	wxFileExists(wxString(StartUp.m_strDefaultGCM.c_str(), wxConvUTF8)))
+	{
+		BootManager::BootCore(StartUp.m_strDefaultGCM);
+	}
 	// Start the selected ISO, or try one of the saved paths.
 	// If all that fails, ask to add a dir and don't boot
 	else if (m_GameListCtrl->GetSelectedISO() != NULL)
@@ -484,14 +495,7 @@ void CFrame::BootGame()
 	}
 	else
 	{
-		SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
-
-		if (!StartUp.m_strDefaultGCM.empty()
-			&&	wxFileExists(wxString(StartUp.m_strDefaultGCM.c_str(), wxConvUTF8)))
-		{
-			BootManager::BootCore(StartUp.m_strDefaultGCM);
-		}
-		else if (!SConfig::GetInstance().m_LastFilename.empty()
+		if (!SConfig::GetInstance().m_LastFilename.empty()
 			&& wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
 		{
 			BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
@@ -608,10 +612,14 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 		BootGame();
 }
 
+// Game loading state
+bool game_started = false;
+
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
+		// Core is initialized and emulator is running
 		if (UseDebugger)
 		{
 			if (CCPU::IsStepping())
@@ -630,8 +638,28 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 			else
 				Core::SetState(Core::CORE_RUN);
 		}
-		
+		// Update toolbar with Play/Pause status
 		UpdateGUI();
+	}
+	else
+		// Core is uninitialized, start the game
+		StartGame();
+}
+
+// Prepare the GUI to start the game.
+void CFrame::StartGame()
+{
+	game_started = true;
+
+	if (m_ToolBar)
+		m_ToolBar->EnableTool(IDM_PLAY, false);
+	GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
+
+	// Game has been started, hide the game list
+	if (m_GameListCtrl->IsShown())
+	{
+		m_GameListCtrl->Disable();
+		m_GameListCtrl->Hide();
 	}
 
 	BootGame();
@@ -687,6 +715,7 @@ void CFrame::DoStop()
 
 void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
+	game_started = false;
 	DoStop();
 }
 
@@ -1016,14 +1045,39 @@ void CFrame::UpdateGUI()
 			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Play"));
 			m_ToolBar->SetToolLabel(IDM_PLAY, wxT(" Play "));
 		}
-		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Play\tF10"));
-		
+		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Play\tF10"));		
 	}
-
+	
 	if (!Initialized)
 	{
-		if (m_GameListCtrl)
+		if (Core::GetStartupParameter().m_strFilename.empty())
 		{
+			// Prepare to load Default ISO, enable play button
+			if (!Core::GetStartupParameter().m_strDefaultGCM.empty())
+			{
+				if (m_ToolBar)
+					m_ToolBar->EnableTool(IDM_PLAY, true);					
+				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
+			}
+			else
+			{
+				// No game has been selected yet, disable play button
+				if (m_ToolBar)
+					m_ToolBar->EnableTool(IDM_PLAY, false);
+				GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
+			}
+		}
+		else
+		{
+			// Loading Default ELF automatically, disable play button
+			if (m_ToolBar)
+				m_ToolBar->EnableTool(IDM_PLAY, false);
+			GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
+		}
+
+		if (m_GameListCtrl && !game_started)
+		{
+			// Game has not started, show game list
 			if (!m_GameListCtrl->IsShown())
 			{
 				m_GameListCtrl->Reparent(m_Panel);
@@ -1031,18 +1085,21 @@ void CFrame::UpdateGUI()
 				m_GameListCtrl->Show();
 				sizerPanel->FitInside(m_Panel);
 			}
+			// Game has been selected but not started, enable play button
+			if (m_GameListCtrl->GetSelectedISO() != NULL && m_GameListCtrl->IsEnabled() && !game_started)
+			{
+				if (m_ToolBar)
+					m_ToolBar->EnableTool(IDM_PLAY, true);
+				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
+			}
 		}
 	}
 	else
 	{
-		if (m_GameListCtrl)
-		{
-			if (m_GameListCtrl->IsShown())
-			{
-				m_GameListCtrl->Disable();
-				m_GameListCtrl->Hide();
-			}
-		}
+		// Game has been loaded, enable the play button
+		if (m_ToolBar)
+			m_ToolBar->EnableTool(IDM_PLAY, true);
+		GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
 	}
 
 	if (m_ToolBar) m_ToolBar->Refresh();

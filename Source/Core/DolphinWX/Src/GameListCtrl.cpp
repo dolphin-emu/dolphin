@@ -848,6 +848,10 @@ const GameListItem * CGameListCtrl::GetSelectedISO()
 	{
 		return NULL;
 	}
+	else if (GetSelectedItemCount() == 0)
+	{
+		return NULL;
+	}
 	else
 	{
 		long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED); 

@@ -287,6 +287,8 @@ THREAD_RETURN CpuThread(void *pArg)
 // Call browser: Init():g_EmuThread(). See the BootManager.cpp file description for a complete call schedule.
 THREAD_RETURN EmuThread(void *pArg)
 {
+	Host_UpdateMainFrame(); // Disable any menus or buttons at boot
+
 	cpuRunloopQuit.Init();
 
 	Common::SetCurrentThreadName("Emuthread - starting");
@@ -389,10 +391,6 @@ THREAD_RETURN EmuThread(void *pArg)
 		PowerPC::SetMode(PowerPC::MODE_JIT);
 	else
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
- 
-	// Update the window again because all stuff is initialized
-	Host_UpdateDisasmDialog();
-	Host_UpdateMainFrame();
 
 	// Spawn the CPU thread
 	Common::Thread *cpuThread = NULL;
@@ -407,6 +405,13 @@ THREAD_RETURN EmuThread(void *pArg)
 		cpuThread = new Common::Thread(CpuThread, pArg);
 		Common::SetCurrentThreadName("Video thread");
 
+		if (g_pUpdateFPSDisplay != NULL)
+			g_pUpdateFPSDisplay(("Loaded " + _CoreParameter.m_strFilename).c_str());
+
+		// Update the window again because all stuff is initialized
+		Host_UpdateDisasmDialog();
+		Host_UpdateMainFrame();
+
 		Plugins.GetVideo()->Video_EnterLoop();
 	}
 	else // SingleCore mode
@@ -418,6 +423,13 @@ THREAD_RETURN EmuThread(void *pArg)
 
 		cpuThread = new Common::Thread(CpuThread, pArg);
 		Common::SetCurrentThreadName("Emuthread - Idle");
+
+		if (g_pUpdateFPSDisplay != NULL)
+			g_pUpdateFPSDisplay(("Loaded " + _CoreParameter.m_strFilename).c_str());
+
+		// Update the window again because all stuff is initialized
+		Host_UpdateDisasmDialog();
+		Host_UpdateMainFrame();
 
 		// TODO(ector) : investigate using GetMessage instead .. although
 		// then we lose the powerdown check. ... unless powerdown sends a message :P
