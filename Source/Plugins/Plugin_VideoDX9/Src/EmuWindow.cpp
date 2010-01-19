@@ -234,9 +234,45 @@ void Show()
 
 HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
 {
+	// TODO:
+	// 1. Remove redundant window manipulation,
+	// 2. Make DX9 in fullscreen can be overlapped by other dialogs
+	HWND Ret;
 	int width=640, height=480;
 	sscanf( g_Config.bFullscreen ? g_Config.cFSResolution : g_Config.cInternalRes, "%dx%d", &width, &height );
-	return OpenWindow(hParent, hInstance, width, height, title);
+//	SetSize(width, height);
+	Ret = OpenWindow(hParent, hInstance, width, height, title);
+
+	if (Ret)
+	{
+		DWORD dwStyle = 0;                // Window Style
+		DWORD dwExStyle = 0;              // Window Extended Style
+		RECT rc = {0, 0, width, height};
+		RECT rcdesktop;
+		GetWindowRect(GetDesktopWindow(), &rcdesktop);
+		int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
+		int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
+
+		if (g_Config.bFullscreen && !g_Config.RenderToMainframe)
+		{
+			// Hide the cursor
+			ShowCursor(FALSE);
+		}
+		else
+		{
+			dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+			dwStyle = WS_OVERLAPPEDWINDOW;
+		}
+
+//		AdjustWindowRectEx(&rc, dwStyle, FALSE, dwExStyle);
+
+		if (g_Config.bFullscreen)
+			// We put the window at the upper left corner of the screen, so x = y = 0
+			SetWindowPos(EmuWindow::GetWnd(), NULL, 0, 0, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
+		else if (!g_Config.RenderToMainframe)
+			SetWindowPos(EmuWindow::GetWnd(), NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
+	}
+	return Ret;
 }
 
 void Close()
@@ -261,7 +297,7 @@ void SetSize(int width, int height)
 	rc.right = rc.left + w;
 	rc.top = (1024 - h)/2;
 	rc.bottom = rc.top + h;
-	::MoveWindow(m_hWnd, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top, TRUE);
+	MoveWindow(m_hWnd, rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top, TRUE);
 }
 
 void ToggleFullscreen(HWND hParent)

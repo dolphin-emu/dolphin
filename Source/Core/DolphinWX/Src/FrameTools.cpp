@@ -698,14 +698,16 @@ void CFrame::DoStop()
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 		{
-			wxMessageDialog dlg(
+			wxMessageDialog *dlg = new wxMessageDialog(
 				this,
-				wxString::FromAscii("Do want to stop the current emulation?"),
-				wxString::FromAscii("Please confirm..."),
-				wxYES_NO | wxSTAY_ON_TOP | wxCENTRE,
+				wxT("Do you want to stop the current emulation?"),
+				wxT("Please confirm..."),
+				wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION,
 				wxDefaultPosition);
 
-			if (dlg.ShowModal() == wxID_NO)
+			int Ret = dlg->ShowModal();
+			delete dlg;
+			if (Ret == wxID_NO)
 				return;
 		}
 
