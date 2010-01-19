@@ -693,10 +693,19 @@ void CFrame::DoStop()
 {
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		// Ask for confirmation in case the user accidently clicked Stop / Escape
-		if(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
-			if(!AskYesNo("Do want to stop the current emulation?", "Confirm", wxYES_NO))
+		// Ask for confirmation in case the user accidentally clicked Stop / Escape
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
+		{
+			wxMessageDialog dlg(
+				this,
+				wxString::FromAscii("Do want to stop the current emulation?"),
+				wxString::FromAscii("Please confirm..."),
+				wxYES_NO | wxSTAY_ON_TOP | wxCENTRE,
+				wxDefaultPosition);
+
+			if (dlg.ShowModal() == wxID_NO)
 				return;
+		}
 
 		// TODO: Show the author/description dialog here
 		if(Frame::IsRecordingInput())
