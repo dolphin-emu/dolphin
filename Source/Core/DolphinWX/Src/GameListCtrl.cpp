@@ -33,7 +33,7 @@
 #include "FileUtil.h"
 #include "CDUtils.h"
 #include "WxUtils.h"
-#include "main.h"
+#include "Main.h"
 
 #if USE_XPM_BITMAPS
 	#include "../resources/Flag_Europe.xpm"
