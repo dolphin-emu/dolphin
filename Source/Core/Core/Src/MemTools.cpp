@@ -45,6 +45,7 @@
 #include "HW/Memmap.h"
 #include "PowerPC/PowerPC.h"
 #include "PowerPC/JitCommon/JitBase.h"
+#include "PowerPC/JitCommon/JitBackpatch.h"
 #include "x64Analyzer.h"
 
 namespace EMM

@@ -34,23 +34,6 @@
 	#include <windows.h>
 #endif
 
-#ifndef _WIN32
-
-	// A bit of a hack to get things building under linux. We manually fill in this structure as needed
-	// from the real context.
-	struct CONTEXT
-	{
-	#ifdef _M_X64
-		u64 Rip;
-		u64 Rax;
-	#else
-		u32 Eip;
-		u32 Eax;
-	#endif 
-	};
-
-#endif
-
 
 using namespace Gen;
 
