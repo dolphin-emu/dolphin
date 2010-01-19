@@ -806,10 +806,6 @@ void CFrame::OnMotion(wxMouseEvent& event)
 #if wxUSE_TIMER
 void CFrame::Update()
 {
-	// Update the GUI while a game has not yet been loaded
-	if (!Core::isRunning())
-		UpdateGUI();
-
 	// Check if auto hide is on, or if we are already hiding the cursor all the time
 	if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor
 		|| SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor) return;

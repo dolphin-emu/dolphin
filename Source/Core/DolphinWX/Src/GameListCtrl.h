@@ -89,6 +89,7 @@ private:
 	DECLARE_EVENT_TABLE()
 
 	// events
+	void OnLeftClick(wxMouseEvent& event);
 	void OnRightClick(wxMouseEvent& event);
 	void OnMouseMotion(wxMouseEvent& event);
 	void OnColumnClick(wxListEvent& event);

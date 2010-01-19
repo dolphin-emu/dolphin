@@ -33,6 +33,7 @@
 #include "FileUtil.h"
 #include "CDUtils.h"
 #include "WxUtils.h"
+#include "main.h"
 
 #if USE_XPM_BITMAPS
 	#include "../resources/Flag_Europe.xpm"
@@ -99,6 +100,7 @@ END_EVENT_TABLE()
 BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
 	EVT_SIZE(CGameListCtrl::OnSize)
 	EVT_RIGHT_DOWN(CGameListCtrl::OnRightClick)
+//	EVT_LEFT_DOWN(CGameListCtrl::OnLeftClick) // Disabled as stops multi-selection in the game list
 	EVT_LIST_KEY_DOWN(LIST_CTRL, CGameListCtrl::OnKeyPress)
 	EVT_MOTION(CGameListCtrl::OnMouseMotion)
 	EVT_LIST_COL_BEGIN_DRAG(LIST_CTRL, CGameListCtrl::OnColBeginDrag)
@@ -777,6 +779,24 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 	}
 
 	event.Skip();
+}
+
+void CGameListCtrl::OnLeftClick(wxMouseEvent& event)
+{
+	// Focus the clicked item.
+	int flags;
+    long item = HitTest(event.GetPosition(), flags);
+	if (item != wxNOT_FOUND) 
+	{
+		if (GetItemState(item, wxLIST_STATE_SELECTED) != wxLIST_STATE_SELECTED)
+		{
+			UnselectAll();
+			SetItemState(item, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED );
+		}
+		SetItemState(item, wxLIST_STATE_FOCUSED, wxLIST_STATE_FOCUSED);
+	}
+	
+	wxGetApp().GetCFrame()->UpdateGUI();
 }
 
 void CGameListCtrl::OnRightClick(wxMouseEvent& event)

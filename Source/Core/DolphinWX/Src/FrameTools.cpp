@@ -1067,6 +1067,14 @@ void CFrame::UpdateGUI()
 					m_ToolBar->EnableTool(IDM_PLAY, true);					
 				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
 			}
+			// Prepare to load last selected file, enable play button
+			else if (!SConfig::GetInstance().m_LastFilename.empty()
+			&& wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
+			{
+				if (m_ToolBar)
+					m_ToolBar->EnableTool(IDM_PLAY, true);					
+				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
+			}
 			else
 			{
 				// No game has been selected yet, disable play button
