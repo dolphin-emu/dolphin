@@ -79,21 +79,12 @@ static GekkoOPTemplate primarytable[] =
 	{28, &JitIL::reg_imm}, //"andi_rc",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 	{29, &JitIL::reg_imm}, //"andis_rc", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 
-#if JITTEST
 	{32, &JitIL::lXz}, //"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{33, &JitIL::lXz}, //"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 	{34, &JitIL::lXz}, //"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{35, &JitIL::Default}, //"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 	{40, &JitIL::lXz}, //"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{41, &JitIL::lXz}, //"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-#else
-	{32, &JitIL::lXz}, //"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{33, &JitIL::Default}, //"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{34, &JitIL::lXz}, //"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{35, &JitIL::Default}, //"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{40, &JitIL::lXz}, //"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{41, &JitIL::Default}, //"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-#endif
 	{42, &JitIL::lha}, //"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{43, &JitIL::Default}, //"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 

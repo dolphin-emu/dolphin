@@ -109,9 +109,8 @@ vars.AddVariables(
     BoolVariable('openal', 'Build with OpenAL', False),
     BoolVariable('noao', 'Build without AO', False),
     BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
-    BoolVariable('jittest', 'temp don\'t use (WIP)', False),
     BoolVariable('opencl', 'Build with OpenCL', False),
-	BoolVariable('nojit', 'Remove entire jit cores', False),
+    BoolVariable('nojit', 'Remove entire jit cores', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
                  allowed_values = ('release', 'devel', 'debug', 'fastlog', 'prof'),
                  ignorecase = 2
@@ -309,15 +308,10 @@ if env['nowx']:
 else:
     env['HAVE_WX'] = conf.CheckWXConfig('2.8', wxmods, 0) 
 
-env['JITTEST'] = 0
-if env['jittest']:
-    env['JITTEST'] = 1
-	
 env['NOJIT'] = 0
 if env['nojit']:
 	env['NOJIT'] = 1
 
-conf.Define('JITTEST', env['JITTEST'])
 conf.Define('NOJIT', env['NOJIT'])
 
 # Creating config.h defines
