@@ -502,8 +502,10 @@ void CFrame::BootGame()
 		else
 		{
 			m_GameListCtrl->BrowseForDirectory();
+			m_GameListCtrl->Enable();
+			m_GameListCtrl->Show();
 			return;
-		}
+    }
 	}
 }
 
