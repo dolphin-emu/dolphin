@@ -283,7 +283,6 @@ inline void decodebytesC8_To_Raw16(u16* dst, const u8* src, int tlutaddr)
 }
 
 
-//inline void decodebytesC14X2(u32 *dst, const u16 *src, int numpixels, int tlutaddr, int tlutfmt)
 inline void decodebytesC14X2_5A3_To_BGRA32(u32 *dst, const u16 *src, int tlutaddr)
 {
     u16 *tlut = (u16*)(texMem + tlutaddr);
@@ -304,7 +303,7 @@ inline void decodebytesC14X2_To_Raw16(u16* dst, const u16* src, int tlutaddr)
 	}
 }
 
-//inline void decodebytesIA4(u16 *dst, const u8 *src, int numbytes)
+// Needs more speed.
 inline void decodebytesIA4(u16 *dst, const u8 *src)
 {
 	for (int x = 0; x < 8; x++)
@@ -316,7 +315,6 @@ inline void decodebytesIA4(u16 *dst, const u8 *src)
 	}
 }
 
-//inline void decodebytesRGB5A3(u32 *dst, const u16 *src, int numpixels)
 inline void decodebytesRGB5A3(u32 *dst, const u16 *src)
 {
     for (int x = 0; x < 4; x++)
@@ -324,6 +322,7 @@ inline void decodebytesRGB5A3(u32 *dst, const u16 *src)
 }
 
 // This one is used by many video formats. It'd therefore be good if it was fast.
+// Needs more speed.
 inline void decodebytesARGB8_4(u32 *dst, const u16 *src, const u16 *src2)
 {
     for (int x = 0; x < 4; x++) {
@@ -352,6 +351,7 @@ inline u32 makeRGBA(int r, int g, int b, int a)
 void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 {
 	// S3TC Decoder (Note: GCN decodes differently from PC so we can't use native support)
+	// Needs more speed.
     u16 c1 = Common::swap16(src->color1);
     u16 c2 = Common::swap16(src->color2);
 	int blue1 = Convert5To8(c1 & 0x1F);
@@ -523,7 +523,7 @@ PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int
 						}
         }
 		return PC_TEX_FMT_IA8;
-	case GX_TF_I8:  // speed critical
+	case GX_TF_I8:  // speed critical. Needs speed.
 		{
 			for (int y = 0; y < height; y += 4)
 				for (int x = 0; x < width; x += 8)
@@ -531,7 +531,7 @@ PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int
 						for (int ix = 0; ix < 8; ix++,src++)
 						{
 							int stride = (y + iy)*Pitch+(x + ix) * 2;
-							if(stride < TexLen)
+							if (stride < TexLen)
 							{
 								dst[stride] = src[0];
 								dst[stride + 1] = src[0];
@@ -714,13 +714,14 @@ PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int
     case GX_TF_RGBA8:  // speed critical
         {
 			for (int y = 0; y < height; y += 4)
+			{
                 for (int x = 0; x < width; x += 4)
                 {
 					for (int iy = 0; iy < 4 && (y + iy) < height; iy++)
 					{
                         //decodebytesARGB8_4(((u32*)((u8*)dst + (y+iy)*Pitch)) + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
-						u16 *src1 =  (u16*)src + 4 * iy;
-						u16 *src2 =  (u16*)src + 4 * iy + 16;
+						u16 *src1 = (u16*)src + 4 * iy;
+						u16 *src2 = (u16*)src + 4 * iy + 16;
 						for (int ix = 0; ix < 4; ix++) 
 						{
 							int stride = (y+iy)*Pitch + (x + ix) * 4;
@@ -734,8 +735,10 @@ PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int
 					}
 					src += 64;
                 }
+			}
         }
         return PC_TEX_FMT_BGRA32;
+
     case GX_TF_CMPR:  // speed critical
         // The metroid games use this format almost exclusively.
 		{
@@ -760,17 +763,17 @@ PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int
 #else
 			for (int y = 0; y < height; y += 8)
 			{
-                for (int x = 0; x < width; x += 8)
-                {
-                    decodeDXTBlock(((u32*)((u8*)dst + y * Pitch)) + x, (DXTBlock*)src, width);
-                                        src += sizeof(DXTBlock);
-                    decodeDXTBlock(((u32*)((u8*)dst + y * Pitch)) + x + 4, (DXTBlock*)src, width);
-                                        src += sizeof(DXTBlock);
-                    decodeDXTBlock(((u32*)((u8*)dst + (y + 4) * Pitch)) + x, (DXTBlock*)src, width);
-                                        src += sizeof(DXTBlock);
-                    decodeDXTBlock(((u32*)((u8*)dst + (y + 4) * Pitch)) + x + 4, (DXTBlock*)src, width);
-                                        src += sizeof(DXTBlock);
-                }
+				for (int x = 0; x < width; x += 8)
+				{
+					decodeDXTBlock(((u32*)((u8*)dst + y * Pitch)) + x, (DXTBlock *)src, width);
+					src += sizeof(DXTBlock);
+					decodeDXTBlock(((u32*)((u8*)dst + y * Pitch)) + x + 4, (DXTBlock *)src, width);
+					src += sizeof(DXTBlock);
+					decodeDXTBlock(((u32*)((u8*)dst + (y + 4) * Pitch)) + x, (DXTBlock *)src, width);
+					src += sizeof(DXTBlock);
+					decodeDXTBlock(((u32*)((u8*)dst + (y + 4) * Pitch)) + x + 4, (DXTBlock *)src, width);
+					src += sizeof(DXTBlock);
+				}
 			}
 #endif
 			return PC_TEX_FMT_BGRA32;

@@ -20,6 +20,9 @@
 #include "WII_IPC_HLE_Device_usb.h"
 #include "WII_IPC_HLE_Device_usb_kbd.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 CWII_IPC_HLE_Device_usb_kbd::CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const std::string& _rDeviceName)
 : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)

@@ -29,13 +29,13 @@
 #include "x64Emitter.h"
 #include "ABI.h"
 
-#include "Jit.h"
-#include "JitAsm.h"
+#include "JitIL.h"
+#include "JitILAsm.h"
 
 //#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-void Jit64::lhax(UGeckoInstruction inst)
+void JitIL::lhax(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
@@ -47,7 +47,7 @@ void Jit64::lhax(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void Jit64::lXz(UGeckoInstruction inst)
+void JitIL::lXz(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)	
@@ -67,7 +67,7 @@ void Jit64::lXz(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void Jit64::lha(UGeckoInstruction inst)
+void JitIL::lha(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
@@ -80,7 +80,7 @@ void Jit64::lha(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void Jit64::lXzx(UGeckoInstruction inst)
+void JitIL::lXzx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
@@ -102,7 +102,7 @@ void Jit64::lXzx(UGeckoInstruction inst)
 }
 
 // Zero cache line.
-void Jit64::dcbz(UGeckoInstruction inst)
+void JitIL::dcbz(UGeckoInstruction inst)
 {
 	Default(inst); return;
 
@@ -127,7 +127,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 #endif
 }
 
-void Jit64::stX(UGeckoInstruction inst)
+void JitIL::stX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
@@ -146,7 +146,7 @@ void Jit64::stX(UGeckoInstruction inst)
 	}
 }
 
-void Jit64::stXx(UGeckoInstruction inst)
+void JitIL::stXx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
@@ -165,7 +165,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 }
 
 // A few games use these heavily in video codecs. (GFZP01 @ 0x80020E18)
-void Jit64::lmw(UGeckoInstruction inst)
+void JitIL::lmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
@@ -180,7 +180,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 	}
 }
 
-void Jit64::stmw(UGeckoInstruction inst)
+void JitIL::stmw(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStore)
@@ -195,7 +195,7 @@ void Jit64::stmw(UGeckoInstruction inst)
 	}
 }
 
-void Jit64::icbi(UGeckoInstruction inst)
+void JitIL::icbi(UGeckoInstruction inst)
 {
 	Default(inst);
 	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));

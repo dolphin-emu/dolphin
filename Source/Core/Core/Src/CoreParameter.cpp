@@ -37,7 +37,7 @@ SCoreStartupParameter::SCoreStartupParameter()
 void SCoreStartupParameter::LoadDefaults()
 {
 	bEnableDebugging = false;
-	bUseJIT = false;
+	iCPUCore = 1;
 	bCPUThread = false;
 	bSkipIdle = false;
 	bRunCompareServer = false;

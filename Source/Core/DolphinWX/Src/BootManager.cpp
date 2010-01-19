@@ -82,7 +82,7 @@ bool BootCore(const std::string& _rFilename)
 		if (main_frame->g_pCodeWindow)
 		{
 			//StartUp.bCPUThread = code_frame->UseDualCore();
-			StartUp.bUseJIT = !main_frame->g_pCodeWindow->UseInterpreter();
+			StartUp.iCPUCore = !main_frame->g_pCodeWindow->UseInterpreter();
 			StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
 			StartUp.bAutomaticStart = main_frame->g_pCodeWindow->AutomaticStart();
 			StartUp.bJITUnlimitedCache = main_frame->g_pCodeWindow->UnlimitedJITCache();

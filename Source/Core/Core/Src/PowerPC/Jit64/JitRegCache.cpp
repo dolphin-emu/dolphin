@@ -25,6 +25,17 @@
 using namespace Gen;
 using namespace PowerPC;
 
+RegCache::RegCache() : emit(0) {
+	memset(locks, 0, sizeof(locks));
+	memset(xlocks, 0, sizeof(xlocks));
+	memset(saved_locks, 0, sizeof(saved_locks));
+	memset(saved_xlocks, 0, sizeof(saved_xlocks));
+	memset(regs, 0, sizeof(regs));
+	memset(xregs, 0, sizeof(xregs));
+	memset(saved_regs, 0, sizeof(saved_regs));
+	memset(saved_xregs, 0, sizeof(saved_xregs));
+}
+
 void RegCache::Start(PPCAnalyst::BlockRegStats &stats)
 {
 	for (int i = 0; i < NUMXREGS; i++)

@@ -54,7 +54,7 @@
 #include "PowerPC/PPCSymbolDB.h"
 #include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCTables.h"
-#include "PowerPC/Jit64/Jit.h"
+#include "PowerPC/JitCommon/JitBase.h"
 #include "PowerPC/JitCommon/JitCache.h" // for ClearCache()
 
 #include "PluginManager.h"
@@ -435,7 +435,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		" and stepping to work as explained in the Developer Documentation. But it can be very"
 		" slow, perhaps slower than 1 fps.")
 		, wxITEM_CHECK);
-	interpreter->Check(!_LocalCoreStartupParameter.bUseJIT);
+	interpreter->Check(_LocalCoreStartupParameter.iCPUCore == 0);
 	pCoreMenu->AppendSeparator();
 
 	jitblocklinking = pCoreMenu->Append(IDM_JITBLOCKLINKING, _T("&JIT Block Linking off"),
@@ -551,7 +551,7 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 	}
 
 	// Clear the JIT cache to enable these changes
-	jit.ClearCache();
+	jit->ClearCache();
 	// Update
 	UpdateButtonStates();
 }
@@ -563,7 +563,7 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 			PPCTables::LogCompiledInstructions(); break;
 
 		case IDM_CLEARCODECACHE:
-			jit.ClearCache(); break;
+			jit->ClearCache(); break;
 
 		case IDM_SEARCHINSTRUCTION:
 		{

@@ -69,7 +69,7 @@ int LinearDiskCache::OpenAndRead(const char *filename, LinearDiskCacheReader *re
 			fclose(file_);
 			unlink(filename);
 
-			PanicAlert("LinearDiskCache file header broken.");
+			// PanicAlert("LinearDiskCache file header broken.");
 
 			file_ = fopen(filename, "wb");
 			WriteHeader();
@@ -86,8 +86,8 @@ int LinearDiskCache::OpenAndRead(const char *filename, LinearDiskCacheReader *re
 					break;
 				}
 				if (key_size <= 0 || value_size < 0 || key_size_size != 4 || value_size_size != 4) {
-					PanicAlert("Disk cache file %s corrupted/truncated! ks: %i vs %i kss %i vss %i", filename,
-						key_size, value_size, key_size_size, value_size_size);
+					// PanicAlert("Disk cache file %s corrupted/truncated! ks: %i vs %i kss %i vss %i", filename,
+					//	key_size, value_size, key_size_size, value_size_size);
 					file_corrupt = true;
 					break;
 				}
@@ -96,8 +96,8 @@ int LinearDiskCache::OpenAndRead(const char *filename, LinearDiskCacheReader *re
 				int actual_key_size = (int)fread(key, 1, key_size, file_);
 				int actual_value_size = (int)fread(value, 1, value_size, file_);
 				if (actual_key_size != key_size || actual_value_size != value_size) {
-					PanicAlert("Disk cache file %s corrupted/truncated! ks: %i  actual ks: %i   vs: %i  actual vs: %i", filename,
-						key_size, actual_key_size, value_size, actual_value_size);
+					// PanicAlert("Disk cache file %s corrupted/truncated! ks: %i  actual ks: %i   vs: %i  actual vs: %i", filename,
+					// 	key_size, actual_key_size, value_size, actual_value_size);
 					file_corrupt = true;
 				} else {
 					reader->Read(key, key_size, value, value_size);

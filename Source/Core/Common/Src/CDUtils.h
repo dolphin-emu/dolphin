@@ -5,30 +5,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#define PATH_MAX MAX_PATH
-
-#elif __APPLE__
-#include <paths.h>
-#include <Carbon/Carbon.h>
-#include <IOKit/IOKitLib.h>
-#include <IOKit/storage/IOCDMedia.h>
-#include <IOKit/storage/IOMedia.h>
-#include <IOKit/IOBSD.h>
-
-#elif __linux__
-#include <mntent.h>
-#include <unistd.h> 
-#include <fcntl.h>
-#include <limits.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <sys/ioctl.h>
- 
-#include <linux/cdrom.h>
-#endif // WIN32
-
 // Returns a pointer to an array of strings with the device names
 char **cdio_get_devices();
 

@@ -27,36 +27,19 @@
 //   * A flush simply does a conditional write to the appropriate CRx.
 //   * If flag available, branch code can become absolutely trivial.
 
-#ifndef _JIT_H
-#define _JIT_H
+#ifndef _JITIL_H
+#define _JITIL_H
 
 #include "../PPCAnalyst.h"
+#include "../JitCommon/JitBase.h"
 #include "../JitCommon/JitCache.h"
+#include "../JitCommon/JitBackpatch.h"
 #include "../JitCommon/Jit_Util.h"
 #include "x64Emitter.h"
 #include "x64Analyzer.h"
 #include "IR.h"
-
-#ifdef _WIN32
-
-#include <windows.h>
-
-#else
-
-// A bit of a hack to get things building under linux. We manually fill in this structure as needed
-// from the real context.
-struct CONTEXT
-{
-#ifdef _M_X64
-	u64 Rip;
-	u64 Rax;
-#else
-	u32 Eip;
-	u32 Eax;
-#endif 
-};
-
-#endif
+#include "../JitCommon/JitBase.h"
+#include "JitILAsm.h"
 
 // #define INSTRUCTION_START Default(inst); return;
 // #define INSTRUCTION_START PPCTables::CountInstruction(inst);
@@ -74,70 +57,21 @@ struct CONTEXT
 #define DISABLE64
 #endif
 
-
-class TrampolineCache : public Gen::XCodeBlock
-{
-public:
-	void Init();
-	void Shutdown();
-
-	const u8 *GetReadTrampoline(const InstructionInfo &info);
-	const u8 *GetWriteTrampoline(const InstructionInfo &info);
-};
-
-
-class Jit64 : public EmuCodeBlock
+class JitIL : public JitBase
 {
 private:
-	struct JitState
-	{
-		u32 compilerPC;
-		u32 next_compilerPC;
-		u32 blockStart;
-		bool cancel;
-		UGeckoInstruction next_inst;  // for easy peephole opt.
-		int instructionNumber;
-		int downcountAmount;
 
-		bool isLastInstruction;
-		bool forceUnsafeLoad;
-
-		int fifoBytesThisBlock;
-
-		PPCAnalyst::BlockStats st;
-		PPCAnalyst::BlockRegStats gpa;
-		PPCAnalyst::BlockRegStats fpa;
-		PPCAnalyst::CodeOp *op;
-		u8* rewriteStart;
-
-		JitBlock *curBlock;
-	};
-
-	struct JitOptions
-	{
-		bool optimizeStack;
-		bool assumeFPLoadFromMem;
-		bool enableBlocklink;
-		bool fpAccurateFcmp;
-		bool enableFastMem;
-		bool optimizeGatherPipe;
-		bool fastInterrupts;
-		bool accurateSinglePrecision;
-	};
-
-	JitBlockCache blocks;
-	TrampolineCache trampolines;
 
 	// The default code buffer. We keep it around to not have to alloc/dealloc a
 	// large chunk of memory for each recompiled block.
 	PPCAnalyst::CodeBuffer code_buffer;
 
 public:
-	Jit64() : code_buffer(32000) {}
-	~Jit64() {}
+	JitILAsmRoutineManager asm_routines;
 
-	JitState js;
-	JitOptions jo;
+	JitIL() : code_buffer(32000) {}
+	~JitIL() {}
+
 	IREmitter::IRBuilder ibuild;
 
 	// Initialization, etc
@@ -150,20 +84,28 @@ public:
 	void Jit(u32 em_address);
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b);
 
-	JitBlockCache *GetBlockCache() { return &blocks; }
-
 	void NotifyBreakpoint(u32 em_address, bool set);
 
 	void ClearCache();
+	const u8 *GetDispatcher() {
+		return asm_routines.dispatcher;  // asm_routines.dispatcher
+	}
+	const CommonAsmRoutines *GetAsmRoutines() {
+		return &asm_routines;
+	}
+
+	const char *GetName() {
+#ifdef _M_X64
+		return "JIT64IL";
+#else
+		return "JIT32IL";
+#endif
+	}
 
 	// Run!
 
 	void Run();
 	void SingleStep();
-
-	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, CONTEXT *ctx);
-
-#define JIT_OPCODE 0
 
 	// Utilities for use by opcodes
 
@@ -178,10 +120,10 @@ public:
 	void WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 address);
 	void GenerateCarry(Gen::X64Reg temp_reg);
 
-	void tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
+	void tri_op(int d, int a, int b, bool reversible, void (Gen::XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 	typedef u32 (*Operation)(u32 a, u32 b);
-	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
-	void fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
+	void regimmop(int d, int a, bool binary, u32 value, Operation doop, void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&), bool Rc = false, bool carry = false);
+	void fp_tri_op(int d, int a, int b, bool reversible, bool dupe, void (Gen::XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 
 	void WriteCode();
 
@@ -288,10 +230,8 @@ public:
 	void icbi(UGeckoInstruction inst);
 };
 
-extern Jit64 jit;
-
 void Jit(u32 em_address);
 
 void ProfiledReJit();
 
-#endif
+#endif  // _JITIL_H

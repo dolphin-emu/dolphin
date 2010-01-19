@@ -24,8 +24,8 @@
 #include "../PPCTables.h"
 #include "x64Emitter.h"
 
-#include "Jit.h"
-#include "JitAsm.h"
+#include "JitIL.h"
+#include "JitILAsm.h"
 
 //#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
@@ -37,7 +37,7 @@ static void ComputeRC(IREmitter::IRBuilder& ibuild,
 	ibuild.EmitStoreCR(res, 0);
 }
 
-void Jit64::reg_imm(UGeckoInstruction inst)
+void JitIL::reg_imm(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -105,7 +105,7 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 	}
 }
 
-void Jit64::cmpXX(UGeckoInstruction inst)
+void JitIL::cmpXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -129,7 +129,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 	ibuild.EmitStoreCR(res, inst.CRFD);
 }
 
-void Jit64::orx(UGeckoInstruction inst)
+void JitIL::orx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -142,7 +142,7 @@ void Jit64::orx(UGeckoInstruction inst)
 
 
 // m_GPR[_inst.RA] = m_GPR[_inst.RS] ^ m_GPR[_inst.RB];
-void Jit64::xorx(UGeckoInstruction inst)
+void JitIL::xorx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -153,7 +153,7 @@ void Jit64::xorx(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::andx(UGeckoInstruction inst)
+void JitIL::andx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -164,7 +164,7 @@ void Jit64::andx(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::extsbx(UGeckoInstruction inst)
+void JitIL::extsbx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -175,7 +175,7 @@ void Jit64::extsbx(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::extshx(UGeckoInstruction inst)
+void JitIL::extshx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -186,7 +186,7 @@ void Jit64::extshx(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::subfic(UGeckoInstruction inst)
+void JitIL::subfic(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -205,7 +205,7 @@ void Jit64::subfic(UGeckoInstruction inst)
 	ibuild.EmitStoreCarry(test);
 }
 
-void Jit64::subfcx(UGeckoInstruction inst) 
+void JitIL::subfcx(UGeckoInstruction inst) 
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -222,7 +222,7 @@ void Jit64::subfcx(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::subfex(UGeckoInstruction inst) 
+void JitIL::subfex(UGeckoInstruction inst) 
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -243,7 +243,7 @@ void Jit64::subfex(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::subfx(UGeckoInstruction inst)
+void JitIL::subfx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -255,7 +255,7 @@ void Jit64::subfx(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::mulli(UGeckoInstruction inst)
+void JitIL::mulli(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -264,7 +264,7 @@ void Jit64::mulli(UGeckoInstruction inst)
 	ibuild.EmitStoreGReg(val, inst.RD);
 }
 
-void Jit64::mullwx(UGeckoInstruction inst)
+void JitIL::mullwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -275,7 +275,7 @@ void Jit64::mullwx(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::mulhwux(UGeckoInstruction inst)
+void JitIL::mulhwux(UGeckoInstruction inst)
 {
 	Default(inst); return;
 #if 0
@@ -310,7 +310,7 @@ void Jit64::mulhwux(UGeckoInstruction inst)
 }
 
 // skipped some of the special handling in here - if we get crashes, let the interpreter handle this op
-void Jit64::divwux(UGeckoInstruction inst) {
+void JitIL::divwux(UGeckoInstruction inst) {
 	Default(inst); return;
 #if 0
 	int a = inst.RA, b = inst.RB, d = inst.RD;
@@ -334,16 +334,7 @@ void Jit64::divwux(UGeckoInstruction inst) {
 #endif
 }
 
-u32 Helper_Mask(u8 mb, u8 me)
-{
-	return (((mb > me) ?
-		~(((u32)-1 >> mb) ^ ((me >= 31) ? 0 : (u32) -1 >> (me + 1)))
-		:
-		(((u32)-1 >> mb) ^ ((me >= 31) ? 0 : (u32) -1 >> (me + 1))))
-		);
-}
-
-void Jit64::addx(UGeckoInstruction inst)
+void JitIL::addx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -354,7 +345,7 @@ void Jit64::addx(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::addzex(UGeckoInstruction inst)
+void JitIL::addzex(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -368,7 +359,7 @@ void Jit64::addzex(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 // This can be optimized
-void Jit64::addex(UGeckoInstruction inst)
+void JitIL::addex(UGeckoInstruction inst)
 {
 	Default(inst); return;
 #if 0
@@ -399,7 +390,7 @@ void Jit64::addex(UGeckoInstruction inst)
 #endif
 }
 
-void Jit64::rlwinmx(UGeckoInstruction inst)
+void JitIL::rlwinmx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -413,7 +404,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 }
 
 
-void Jit64::rlwimix(UGeckoInstruction inst)
+void JitIL::rlwimix(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -429,7 +420,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::rlwnmx(UGeckoInstruction inst)
+void JitIL::rlwnmx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -442,7 +433,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::negx(UGeckoInstruction inst)
+void JitIL::negx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -453,7 +444,7 @@ void Jit64::negx(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::srwx(UGeckoInstruction inst)
+void JitIL::srwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -472,7 +463,7 @@ void Jit64::srwx(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::slwx(UGeckoInstruction inst)
+void JitIL::slwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -491,7 +482,7 @@ void Jit64::slwx(UGeckoInstruction inst)
 		ComputeRC(ibuild, val);
 }
 
-void Jit64::srawx(UGeckoInstruction inst)
+void JitIL::srawx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -514,7 +505,7 @@ void Jit64::srawx(UGeckoInstruction inst)
 	ibuild.EmitStoreCarry(test);
 }
 
-void Jit64::srawix(UGeckoInstruction inst)
+void JitIL::srawix(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
@@ -531,7 +522,7 @@ void Jit64::srawix(UGeckoInstruction inst)
 }
 
 // count leading zeroes
-void Jit64::cntlzwx(UGeckoInstruction inst)
+void JitIL::cntlzwx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)

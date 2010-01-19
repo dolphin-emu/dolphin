@@ -29,7 +29,6 @@
 #include "SysConf.h"
 #include "Frame.h"
 
-
 extern CFrame* main_frame;
 
 // Strings for Device Selections
@@ -44,7 +43,6 @@ extern CFrame* main_frame;
 #define EXIDEV_MIC_STR		"Mic"
 #define EXIDEV_BBA_STR		"BBA"
 #define EXIDEV_AM_BB_STR	"AM-Baseboard"
-
 
 BEGIN_EVENT_TABLE(CConfigMain, wxDialog)
 
@@ -62,6 +60,7 @@ EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::CoreSettingsChanged)
 
 EVT_CHECKBOX(ID_ALWAYS_HLE_BS2, CConfigMain::CoreSettingsChanged)
 EVT_RADIOBUTTON(ID_RADIOJIT, CConfigMain::CoreSettingsChanged)
+EVT_RADIOBUTTON(ID_RADIOJITIL, CConfigMain::CoreSettingsChanged)
 EVT_RADIOBUTTON(ID_RADIOINT, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_CPUTHREAD, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_DSPTHREAD, CConfigMain::CoreSettingsChanged)
@@ -128,7 +127,6 @@ CConfigMain::~CConfigMain()
 {
 }
 
-
 // Used to restrict changing of some options while emulator is running
 void CConfigMain::UpdateGUI()
 {
@@ -183,7 +181,7 @@ void CConfigMain::CreateGUIControls()
 	// Framelimit
 	arrayStringFor_Framelimit.Add(wxT("Off"));
 	arrayStringFor_Framelimit.Add(wxT("Auto"));
-	for (int i = 20; i <= 120; i+=10)	// from 20 to 120
+	for (int i = 20; i <= 120; i += 10)	// from 20 to 120
 		arrayStringFor_Framelimit.Add(wxString::Format(wxT("%i"), i));
 		
 	// Create the notebook and pages
@@ -200,8 +198,6 @@ void CConfigMain::CreateGUIControls()
 	Notebook->AddPage(PathsPage, wxT("Paths"));
 	Notebook->AddPage(PluginPage, wxT("Plugins"));
 
-
-	
 	// General page
 
 	// Core Settings - Basic
@@ -222,9 +218,14 @@ void CConfigMain::CreateGUIControls()
 	//
 	AlwaysHLE_BS2 = new wxCheckBox(GeneralPage, ID_ALWAYS_HLE_BS2, wxT("HLE the IPL (recommended)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	AlwaysHLE_BS2->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2);
-	m_RadioJIT = new wxRadioButton(GeneralPage, ID_RADIOJIT, wxT("JIT Recompiler (recommended)"));
-	m_RadioInt = new wxRadioButton(GeneralPage, ID_RADIOINT, wxT("Interpreter (very slow)"));
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT ? m_RadioJIT->SetValue(true) : m_RadioInt->SetValue(true);
+	m_RadioJIT = new wxRadioButton(GeneralPage, ID_RADIOJIT, wxT("JIT recompiler (recommended)"));
+	m_RadioJITIL = new wxRadioButton(GeneralPage, ID_RADIOJITIL, wxT("JitIL experimental recompiler"));
+	m_RadioInt = new wxRadioButton(GeneralPage, ID_RADIOINT, wxT("Interpreter (VERY slow)"));
+	switch (SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore) {
+		case 0: m_RadioInt->SetValue(true); break;
+		case 1: m_RadioJIT->SetValue(true); break;
+		case 2: m_RadioJITIL->SetValue(true); break;
+	}
 	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	LockThreads->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads);
 	DSPThread = new wxCheckBox(GeneralPage, ID_DSPTHREAD, wxT("DSP on thread (recommended)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -310,6 +311,7 @@ void CConfigMain::CreateGUIControls()
 	sbAdvanced->Add(AlwaysHLE_BS2, 0, wxALL, 5);
 	wxStaticBoxSizer* sizerCoreType = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("CPU Emulator Engine"));
 	sizerCoreType->Add(m_RadioJIT, 0, wxALL | wxEXPAND, 5);
+	sizerCoreType->Add(m_RadioJITIL, 0, wxALL | wxEXPAND, 5);
 	sizerCoreType->Add(m_RadioInt, 0, wxALL | wxEXPAND, 5);
 	sbAdvanced->Add(sizerCoreType, 0, wxALL, 5);
 	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
@@ -689,11 +691,15 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2 = AlwaysHLE_BS2->IsChecked();
 		break;
 	case ID_RADIOJIT:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT = true;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore = 1;
+		if (main_frame->g_pCodeWindow) main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER, false);
+		break;
+	case ID_RADIOJITIL:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore = 2;
 		if (main_frame->g_pCodeWindow) main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER, false);
 		break;
 	case ID_RADIOINT:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bUseJIT = false;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore = 0;
 		if (main_frame->g_pCodeWindow) main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER, true);
 		break;
 	case ID_CPUTHREAD:
@@ -974,15 +980,12 @@ void CConfigMain::OnConfig(wxCommandEvent& event)
 	    case ID_GRAPHIC_CONFIG:
 		    CallConfig(GraphicSelection);
 		    break;
-
 		case ID_DSP_CONFIG:
 		    CallConfig(DSPSelection);
 		    break;
-
 		case ID_PAD_CONFIG:
 		    CallConfig(PADSelection);
 		    break;
-
 		case ID_WIIMOTE_CONFIG:
 		    CallConfig(WiimoteSelection);
 		    break;
@@ -993,11 +996,9 @@ void CConfigMain::CallConfig(wxChoice* _pChoice)
 {
 	int Index = _pChoice->GetSelection();
 	INFO_LOG(CONSOLE, "CallConfig: %i\n", Index);
-
 	if (Index >= 0)
 	{
 		const CPluginInfo* pInfo = static_cast<CPluginInfo*>(_pChoice->GetClientData(Index));
-
 		if (pInfo != NULL)
 			CPluginManager::GetInstance().OpenConfig((HWND) this->GetHandle(), pInfo->GetFilename().c_str(), pInfo->GetPluginInfo().Type);
 	}
@@ -1034,7 +1035,6 @@ bool CConfigMain::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
 {	
 	_rFilename.clear();
 	int Index = _pChoice->GetSelection();
-
 	if (Index >= 0)
 	{
 		const CPluginInfo* pInfo = static_cast<CPluginInfo*>(_pChoice->GetClientData(Index));

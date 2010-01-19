@@ -27,13 +27,13 @@
 #include "x64Emitter.h"
 #include "ABI.h"
 
-#include "Jit.h"
-#include "JitAsm.h"
+#include "JitIL.h"
+#include "JitILAsm.h"
 
 //#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-void Jit64::psq_st(UGeckoInstruction inst)
+void JitIL::psq_st(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStorePaired)
@@ -48,7 +48,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	ibuild.EmitStorePaired(val, addr, inst.I);
 }
 
-void Jit64::psq_l(UGeckoInstruction inst)
+void JitIL::psq_l(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStorePaired)

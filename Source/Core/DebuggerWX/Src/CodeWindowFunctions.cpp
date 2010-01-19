@@ -61,7 +61,7 @@
 #include "PowerPC/PPCSymbolDB.h"
 #include "PowerPC/SignatureDB.h"
 #include "PowerPC/PPCTables.h"
-#include "PowerPC/Jit64/Jit.h"
+#include "PowerPC/JitCommon/JitBase.h"
 #include "PowerPC/JitCommon/JitCache.h" // for ClearCache()
 
 #include "PluginManager.h"
@@ -221,7 +221,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 	switch (event.GetId())
 	{
 	case IDM_PROFILEBLOCKS:
-		jit.ClearCache();
+		jit->ClearCache();
 		Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILEBLOCKS);
 		break;
 	case IDM_WRITEPROFILE:

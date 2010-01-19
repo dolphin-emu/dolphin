@@ -134,8 +134,8 @@ Fix profiled loads/stores to work safely.  On 32-bit, one solution is to
 #include "../../CoreTiming.h"
 #include "Thunk.h"
 #include "../../HW/Memmap.h"
-#include "JitAsm.h"
-#include "Jit.h"
+#include "JitILAsm.h"
+#include "JitIL.h"
 #include "../../HW/GPFifo.h"
 #include "../../Core.h"
 using namespace Gen;

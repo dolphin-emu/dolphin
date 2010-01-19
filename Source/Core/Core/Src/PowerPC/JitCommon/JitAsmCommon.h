@@ -31,6 +31,26 @@ public:
 	void GenFifoXmm64Write();
 	void GenFifoFloatWrite();
 
+	const u8 *fifoDirectWrite8;
+	const u8 *fifoDirectWrite16;
+	const u8 *fifoDirectWrite32;
+	const u8 *fifoDirectWriteFloat;
+	const u8 *fifoDirectWriteXmm64;
+
+	const u8 *enterCode;
+
+	const u8 *dispatcher;
+	const u8 *dispatcherNoCheck;
+	const u8 *dispatcherPcInEAX;
+
+	const u8 *fpException;
+	const u8 *computeRc;
+	const u8 *testExceptions;
+	const u8 *dispatchPcInEAX;
+	const u8 *doTiming;
+
+	const u8 *breakpointBailout;
+
 	// In: array index: GQR to use.
 	// In: ECX: Address to read from.
 	// Out: XMM0: Bottom two 32-bit slots hold the read value,

@@ -47,6 +47,7 @@
 #include "HW/SystemTimers.h"
  
 #include "PowerPC/PowerPC.h"
+#include "PowerPC/JitCommon/JitBase.h"
  
 #include "PluginManager.h"
 #include "ConfigManager.h"
@@ -387,7 +388,7 @@ THREAD_RETURN EmuThread(void *pArg)
         g_pUpdateFPSDisplay(("Loading " + _CoreParameter.m_strFilename).c_str());
  
 	// Setup our core, but can't use dynarec if we are compare server
-	if (_CoreParameter.bUseJIT && (!_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient))
+	if (_CoreParameter.iCPUCore && (!_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient))
 		PowerPC::SetMode(PowerPC::MODE_JIT);
 	else
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
@@ -592,18 +593,10 @@ void VideoThrottle()
 		
 		// Settings are shown the same for both extended and summary info
 		std::string SSettings = StringFromFormat("%s %s",
-		#if defined(JITTEST) && JITTEST
-			#ifdef _M_IX86
-						_CoreParameter.bUseJIT ? "JIT32IL" : "Int32", 
-			#else
-						_CoreParameter.bUseJIT ? "JIT64IL" : "Int64", 
-			#endif
+		#ifdef _M_IX86
+					_CoreParameter.iCPUCore ? jit->GetName() : "Int32", 
 		#else
-			#ifdef _M_IX86
-						_CoreParameter.bUseJIT ? "JIT32" : "Int32",
-			#else
-						_CoreParameter.bUseJIT ? "JIT64" : "Int64",
-			#endif
+					_CoreParameter.iCPUCore ? jit->GetName() : "Int64", 
 		#endif
 		_CoreParameter.bCPUThread ? "DC" : "SC");
 

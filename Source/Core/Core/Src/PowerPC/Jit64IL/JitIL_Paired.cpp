@@ -23,29 +23,29 @@
 #include "x64Emitter.h"
 #include "../../HW/GPFifo.h"
 
-#include "Jit.h"
+#include "JitIL.h"
 
-void Jit64::ps_mr(UGeckoInstruction inst)
+void JitIL::ps_mr(UGeckoInstruction inst)
 {
 	Default(inst); return;
 }
 
-void Jit64::ps_sel(UGeckoInstruction inst)
+void JitIL::ps_sel(UGeckoInstruction inst)
 {
 	Default(inst); return;
 }
 
-void Jit64::ps_sign(UGeckoInstruction inst)
+void JitIL::ps_sign(UGeckoInstruction inst)
 {
 	Default(inst); return;
 }
 
-void Jit64::ps_rsqrte(UGeckoInstruction inst)
+void JitIL::ps_rsqrte(UGeckoInstruction inst)
 {
 	Default(inst); return;
 }
 
-void Jit64::ps_arith(UGeckoInstruction inst)
+void JitIL::ps_arith(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Paired)
@@ -74,7 +74,7 @@ void Jit64::ps_arith(UGeckoInstruction inst)
 	ibuild.EmitStoreFReg(val, inst.FD);
 }
 
-void Jit64::ps_sum(UGeckoInstruction inst)
+void JitIL::ps_sum(UGeckoInstruction inst)
 {
 	// FIXME: This operation strikes me as a bit strange...
 	// perhaps we can optimize it depending on the users?
@@ -95,7 +95,7 @@ void Jit64::ps_sum(UGeckoInstruction inst)
 }
 
 
-void Jit64::ps_muls(UGeckoInstruction inst)
+void JitIL::ps_muls(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Paired)
@@ -120,7 +120,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
 
 
 //TODO: find easy cases and optimize them, do a breakout like ps_arith
-void Jit64::ps_mergeXX(UGeckoInstruction inst)
+void JitIL::ps_mergeXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Paired)
@@ -153,7 +153,7 @@ void Jit64::ps_mergeXX(UGeckoInstruction inst)
 }
 
 
-void Jit64::ps_maddXX(UGeckoInstruction inst)
+void JitIL::ps_maddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Paired)

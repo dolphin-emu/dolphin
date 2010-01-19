@@ -2,23 +2,18 @@
 //________________________________________________________________________________________
 // File description: Common plugin spec, version #1.0 maintained by F|RES
 
-
 #ifndef _PLUGINS_H_INCLUDED__
 #define _PLUGINS_H_INCLUDED__
 
-
-
 // Includes
 // ------------
+// TODO: See if we can get rid of the windows.h include.
 #ifdef _WIN32
 	#include <windows.h>
 #endif
 #include "CommonTypes.h"
 
-
-
-
-/* Plugin communication. I place this here rather in Common.h to rebuild less if any of this is changed */
+// Plugin communication. I place this here rather in Common.h to rebuild less if any of this is changed
 // -----------------
 enum PLUGIN_COMM
 {
@@ -33,9 +28,6 @@ enum PLUGIN_COMM
 	WIIMOTE_DISCONNECT, // Disconnect Wiimote
 	INPUT_FRAME_COUNTER // Wind back the frame counter for rerecording
 };
-
-
-
 
 // System specific declarations and definitions
 // ------------
@@ -61,7 +53,6 @@ enum PLUGIN_COMM
 #if defined(__cplusplus)
 	extern "C" {
 #endif
-
 
 
 

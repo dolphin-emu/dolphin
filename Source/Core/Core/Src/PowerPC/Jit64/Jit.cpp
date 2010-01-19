@@ -17,6 +17,11 @@
 
 #include <map>
 
+// for the PROFILER stuff
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "Common.h"
 #include "x64Emitter.h"
 #include "ABI.h"
@@ -35,16 +40,10 @@
 #include "Jit.h"
 #include "JitAsm.h"
 #include "JitRegCache.h"
-#include "../JitCommon/Jit_Tables.h"
-
-#if defined JITTEST && JITTEST
-#error Jit64 cannot have JITTEST define
-#endif
+#include "Jit64_Tables.h"
 
 using namespace Gen;
 using namespace PowerPC;
-
-extern int blocksExecuted;
 
 // Dolphin's PowerPC->x86 JIT dynamic recompiler
 // (Nearly) all code by ector (hrydgard)
@@ -110,7 +109,7 @@ extern int blocksExecuted;
 /*
   * Assume SP is in main RAM (in Wii mode too?) - partly done
   * Assume all floating point loads and double precision loads+stores are to/from main ram
-    (single precision can be used in write gather pipe, specialized fast check added)
+    (single precision stores can be used in write gather pipe, specialized fast check added)
   * AMD only - use movaps instead of movapd when loading ps from memory?
   * HLE functions like floorf, sin, memcpy, etc - they can be much faster
   * ABI optimizations - drop F0-F13 on blr, for example. Watch out for context switching.
@@ -161,42 +160,15 @@ ps_adds1
 
 */
 
-//#define NAN_CHECK
-
-static void CheckForNans()
-{
-	static bool lastNan[32];
-	for (int i = 0; i < 32; i++) {
-		double v = rPS0(i);
-		if (v != v) {
-			if (!lastNan[i]) {
-				lastNan[i] = true;
-				PanicAlert("PC = %08x Got NAN in R%i", PC, i);
-			}
-		} else {
-			lastNan[i] = false;
-		}
-	}
-}
-
-Jit64 jit;
-
-int CODE_SIZE = 1024*1024*16;
+static int CODE_SIZE = 1024*1024*16;
 
 namespace CPUCompare
 {
 	extern u32 m_BlockStart;
 }
 
-void Jit(u32 em_address)
-{
-	jit.Jit(em_address);
-}
-
 void Jit64::Init()
 {
-	asm_routines.compareEnabled = ::Core::g_CoreStartupParameter.bRunCompareClient;
-
 	jo.optimizeStack = true;
 	/* This will enable block linking in JitBlockCache::FinalizeBlock(), it gives faster execution but may not
 	   be as stable as the alternative (to not link the blocks). However, I have not heard about any good examples
@@ -274,7 +246,6 @@ void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 
 void Jit64::unknown_instruction(UGeckoInstruction inst)
 {
-	//	CCPU::Break();
 	PanicAlert("unknown_instruction %08x - Fix me ;)", inst.hex);
 }
 
@@ -310,7 +281,7 @@ static const bool ImHereDebug = false;
 static const bool ImHereLog = false;
 static std::map<u32, int> been_here;
 
-void ImHere()
+static void ImHere()
 {
 	static FILE *f = 0;
 	if (ImHereLog) {
@@ -338,13 +309,6 @@ void Jit64::Cleanup()
 {
 	if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
 		ABI_CallFunction((void *)&GPFifo::CheckGatherPipe);
-
-#ifdef NAN_CHECK
-#ifdef _WIN32
-	if (GetAsyncKeyState(VK_LSHIFT))
-		ABI_CallFunction(thunks.ProtectFunction((void *)&CheckForNans, 0));
-#endif
-#endif
 }
 
 void Jit64::WriteExit(u32 destination, int exit_num)
@@ -490,9 +454,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (Profiler::g_ProfileBlocks) {
 		ADD(32, M(&b->runCount), Imm8(1));
 #ifdef _WIN32
-		b->ticCounter.QuadPart = 0;
-		b->ticStart.QuadPart = 0;
-		b->ticStop.QuadPart = 0;
+		b->ticCounter = 0;
+		b->ticStart = 0;
+		b->ticStop = 0;
 #else
 //TODO
 #endif
@@ -555,7 +519,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 
 		if (!ops[i].skip)
-			JitTables::CompileInstruction(ops[i].inst);
+			Jit64Tables::CompileInstruction(ops[i].inst);
 
 		gpr.SanityCheck();
 		fpr.SanityCheck();

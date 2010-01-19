@@ -88,7 +88,7 @@ extern BreakPoints breakpoints;
 extern MemChecks memchecks;
 extern PPCDebugInterface debug_interface;
 
-void Init();
+void Init(int cpu_core);
 void Shutdown();
 void DoState(PointerWrap &p);
 

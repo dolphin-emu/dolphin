@@ -24,9 +24,6 @@
 #include "../Gekko.h"
 #include "../PPCAnalyst.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 // emulate CPU with unlimited instruction cache
 // the only way to invalidate a region is the "icbi" instruction
@@ -59,9 +56,9 @@ struct JitBlock
 #ifdef _WIN32
 	// we don't really need to save start and stop
 	// TODO (mb2): ticStart and ticStop -> "local var" mean "in block" ... low priority ;)
-	LARGE_INTEGER ticStart;		// for profiling - time.
-	LARGE_INTEGER ticStop;		// for profiling - time.
-	LARGE_INTEGER ticCounter;	// for profiling - time.
+	u64 ticStart;		// for profiling - time.
+	u64 ticStop;		// for profiling - time.
+	u64 ticCounter;	// for profiling - time.
 #endif
 	const u8 *checkedEntry;
 	const u8 *normalEntry;
@@ -92,8 +89,9 @@ class JitBlockCache
 	void LinkBlock(int i);
 
 public:
-	JitBlockCache() {}
-
+	JitBlockCache() :
+		blockCodePointers(0), blocks(0), num_blocks(0),
+		iCache(0), iCacheEx(0), iCacheVMEM(0), MAX_NUM_BLOCKS(0) { }
 	int AllocateBlock(u32 em_address);
 	void FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr);
 

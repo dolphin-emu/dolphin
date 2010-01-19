@@ -26,19 +26,16 @@
 #include "CPUDetect.h"
 
 #include "ABI.h"
-#include "Jit.h"
 #include "Thunk.h"
 
 #include "../../HW/GPFifo.h"
 #include "../../Core.h"
-#include "JitAsm.h"
+#include "JitIL.h"
+#include "JitILAsm.h"
 
 using namespace Gen;
-int blocksExecuted;
 
 static int temp32;
-
-bool compareEnabled = false;
 
 //TODO - make an option
 //#if _DEBUG
@@ -57,20 +54,20 @@ static bool enableStatistics = false;
 //RBX - Base pointer of memory
 //R15 - Pointer to array of block pointers 
 
-AsmRoutineManager asm_routines;
+JitILAsmRoutineManager jitil_asm_routines;
 
 // PLAN: no more block numbers - crazy opcodes just contain offset within
 // dynarec buffer
 // At this offset - 4, there is an int specifying the block number.
 
-void AsmRoutineManager::Generate()
+void JitILAsmRoutineManager::Generate()
 {
 	enterCode = AlignCode16();
 	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 #ifndef _M_IX86
 	// Two statically allocated registers.
 	MOV(64, R(RBX), Imm64((u64)Memory::base));
-	MOV(64, R(R15), Imm64((u64)jit.GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
+	MOV(64, R(R15), Imm64((u64)jit->GetBlockCache()->GetCodePointers())); //It's below 2GB so 32 bits are good enough
 #endif
 //	INT3();
 
@@ -96,17 +93,13 @@ void AsmRoutineManager::Generate()
 			FixupBranch notfound = J_CC(CC_NZ);
 				BSWAP(32, EAX);
 				//IDEA - we have 26 bits, why not just use offsets from base of code?
-				if (enableStatistics)
-				{
-					ADD(32, M(&blocksExecuted), Imm8(1));
-				}
 				if (enableDebug)
 				{
 					ADD(32, M(&PowerPC::ppcState.DebugCount), Imm8(1));
 				}
 				//grab from list and jump to it
 #ifdef _M_IX86
-				MOV(32, R(EDX), ImmPtr(jit.GetBlockCache()->GetCodePointers()));
+				MOV(32, R(EDX), ImmPtr(jit->GetBlockCache()->GetCodePointers()));
 				JMPptr(MComplex(EDX, EAX, 4, 0));
 #else
 				JMPptr(MComplex(R15, RAX, 8, 0));
@@ -171,9 +164,9 @@ void AsmRoutineManager::Generate()
 
 			AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
 #ifdef _M_IX86
-			MOV(32, R(EAX), MDisp(EAX, (u32)jit.GetBlockCache()->GetICache()));
+			MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICache()));
 #else
-			MOV(64, R(RSI), Imm64((u64)jit.GetBlockCache()->GetICache()));
+			MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICache()));
 			MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
 #endif
 
@@ -182,9 +175,9 @@ void AsmRoutineManager::Generate()
 						
 			AND(32, R(EAX), Imm32(JIT_ICACHEEX_MASK));
 #ifdef _M_IX86
-			MOV(32, R(EAX), MDisp(EAX, (u32)jit.GetBlockCache()->GetICacheEx()));
+			MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICacheEx()));
 #else
-			MOV(64, R(RSI), Imm64((u64)jit.GetBlockCache()->GetICacheEx()));
+			MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICacheEx()));
 			MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
 #endif
 
@@ -193,9 +186,9 @@ void AsmRoutineManager::Generate()
 						
 			AND(32, R(EAX), Imm32(JIT_ICACHE_MASK));
 #ifdef _M_IX86
-			MOV(32, R(EAX), MDisp(EAX, (u32)jit.GetBlockCache()->GetICacheVMEM()));
+			MOV(32, R(EAX), MDisp(EAX, (u32)jit->GetBlockCache()->GetICacheVMEM()));
 #else
-			MOV(64, R(RSI), Imm64((u64)jit.GetBlockCache()->GetICacheVMEM()));
+			MOV(64, R(RSI), Imm64((u64)jit->GetBlockCache()->GetICacheVMEM()));
 			MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
 #endif
 
@@ -215,7 +208,7 @@ void AsmRoutineManager::Generate()
 	GenerateCommon();
 }
 
-void AsmRoutineManager::GenerateCommon()
+void JitILAsmRoutineManager::GenerateCommon()
 {
 	// USES_CR
 	computeRc = AlignCode16();

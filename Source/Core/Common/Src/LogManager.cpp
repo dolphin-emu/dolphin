@@ -16,7 +16,10 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "LogManager.h"
+#include "ConsoleListener.h"
 #include "Timer.h"
+#include "Thread.h"
+
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
 				const char *file, int line, const char* fmt, ...)
 {
@@ -28,7 +31,9 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 
 LogManager *LogManager::m_logManager = NULL;
 
-LogManager::LogManager() : logMutex(1) {
+LogManager::LogManager() {
+	logMutex = new Common::CriticalSection(1);
+
 	// create log files
 	m_Log[LogTypes::MASTER_LOG]			= new LogContainer("*",				"Master Log");
 	m_Log[LogTypes::BOOT]				= new LogContainer("BOOT",			"Boot");
@@ -92,6 +97,7 @@ LogManager::~LogManager() {
 	}
 	delete m_fileLog;
 	delete m_consoleLog;
+	delete logMutex;
 }
 
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
@@ -113,15 +119,15 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 			file, line, level_to_char[(int)level],
 			log->getShortName(), temp);
 
-	logMutex.Enter();
+	logMutex->Enter();
 	log->trigger(level, msg);
-	logMutex.Leave();
+	logMutex->Leave();
 }
 
 void LogManager::removeListener(LogTypes::LOG_TYPE type, LogListener *listener) {
-	logMutex.Enter();
+	logMutex->Enter();
 	m_Log[type]->removeListener(listener);
-	logMutex.Leave();
+	logMutex->Leave();
 }
 
 LogContainer::LogContainer(const char* shortName, const char* fullName, bool enable)

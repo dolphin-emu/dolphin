@@ -30,10 +30,10 @@ namespace
 	static Common::Event *m_SyncEvent;
 }
 
-void CCPU::Init()
+void CCPU::Init(int cpu_core)
 {
 	m_StepEvent.Init();
-	PowerPC::Init();
+	PowerPC::Init(cpu_core);
 	m_SyncEvent = 0;
 }
 

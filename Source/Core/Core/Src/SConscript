@@ -90,13 +90,13 @@ files = ["ActionReplay.cpp",
          "PowerPC/JitCommon/JitAsmCommon.cpp",
          "PowerPC/JitCommon/JitCache.cpp",
          "PowerPC/JitCommon/JitBackpatch.cpp",
+         "PowerPC/JitCommon/JitBase.cpp",
          "PowerPC/JitCommon/Jit_Util.cpp",
          "HLE/HLE.cpp",
          "HLE/HLE_Misc.cpp",
          "HLE/HLE_OS.cpp",
         ]
 if not env['NOJIT']:
-	if env['JITTEST']:
 		files += ["PowerPC/Jit64IL/Jit.cpp",
 				  "PowerPC/Jit64IL/JitAsm.cpp",
 				  "PowerPC/Jit64IL/Jit_Branch.cpp",
@@ -109,9 +109,8 @@ if not env['NOJIT']:
 				  "PowerPC/Jit64IL/Jit_SystemRegisters.cpp",
 				  "PowerPC/Jit64IL/IR.cpp",
 				  "PowerPC/Jit64IL/IR_X86.cpp",
-				  "PowerPC/JitCommon//Jit_Tables.cpp",
+				  "PowerPC/Jit64IL/JitIL_Tables.cpp",
 				 ]
-	else:
 		files += ["PowerPC/Jit64/Jit.cpp",
 				  "PowerPC/Jit64/JitRegCache.cpp",
 				  "PowerPC/Jit64/JitAsm.cpp",
@@ -123,7 +122,7 @@ if not env['NOJIT']:
 				  "PowerPC/Jit64/Jit_LoadStore.cpp",
 				  "PowerPC/Jit64/Jit_LoadStoreFloating.cpp",
 				  "PowerPC/Jit64/Jit_SystemRegisters.cpp",
-				  "PowerPC/JitCommon/Jit_Tables.cpp",
+				  "PowerPC/Jit64/Jit64_Tables.cpp",
 				 ]
 
 if sys.platform == 'win32':

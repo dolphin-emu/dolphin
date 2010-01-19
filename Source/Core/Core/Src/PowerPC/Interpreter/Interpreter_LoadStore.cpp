@@ -23,7 +23,7 @@
 #include "Interpreter.h"
 #include "../../Core.h"
 
-#include "../Jit64/Jit.h"
+#include "../JitCommon/JitBase.h"
 #include "../JitCommon/JitCache.h"
 
 #include "Interpreter_FPUtils.h"
@@ -374,7 +374,7 @@ void icbi(UGeckoInstruction _inst)
 {	
 	u32 address = Helper_Get_EA_X(_inst);	
 	PowerPC::ppcState.iCache.Invalidate(address);
-	jit.GetBlockCache()->InvalidateICache(address);
+	jit->GetBlockCache()->InvalidateICache(address);
 }
 
 void lbzux(UGeckoInstruction _inst)

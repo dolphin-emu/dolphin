@@ -39,6 +39,7 @@
 #include "AboutDolphin.h"
 #include "GameListCtrl.h"
 #include "BootManager.h"
+#include "ConsoleListener.h"
 
 #include "ConfigManager.h" // Core
 #include "Core.h"

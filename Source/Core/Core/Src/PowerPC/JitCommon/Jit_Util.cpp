@@ -26,17 +26,8 @@
 #include "../PPCTables.h"
 #include "x64Emitter.h"
 #include "ABI.h"
-
-#ifdef JITTEST
-#include "../Jit64IL/Jit.h"
-#include "JitCache.h"
-#include "../Jit64IL/JitAsm.h"
-#else
-#include "../Jit64/Jit.h"
-#include "JitCache.h"
-#include "../Jit64/JitAsm.h"
-#include "../Jit64/JitRegCache.h"
-#endif
+#include "JitBase.h"
+#include "Jit_Util.h"
 
 using namespace Gen;
 
@@ -191,7 +182,7 @@ void EmuCodeBlock::WriteFloatToConstRamAddress(const Gen::X64Reg& xmm_reg, u32 a
 
 void EmuCodeBlock::ForceSinglePrecisionS(X64Reg xmm) {
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
-	if (jit.jo.accurateSinglePrecision)
+	if (jit->jo.accurateSinglePrecision)
 	{
 		CVTSD2SS(xmm, R(xmm));
 		CVTSS2SD(xmm, R(xmm));
@@ -200,7 +191,7 @@ void EmuCodeBlock::ForceSinglePrecisionS(X64Reg xmm) {
 
 void EmuCodeBlock::ForceSinglePrecisionP(X64Reg xmm) {
 	// Most games don't need these. Zelda requires it though - some platforms get stuck without them.
-	if (jit.jo.accurateSinglePrecision)
+	if (jit->jo.accurateSinglePrecision)
 	{
 		CVTPD2PS(xmm, R(xmm));
 		CVTPS2PD(xmm, R(xmm));

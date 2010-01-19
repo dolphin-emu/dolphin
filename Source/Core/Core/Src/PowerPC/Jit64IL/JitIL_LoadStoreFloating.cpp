@@ -29,8 +29,8 @@
 #include "x64Emitter.h"
 #include "ABI.h"
 
-#include "Jit.h"
-#include "JitAsm.h"
+#include "JitIL.h"
+#include "JitILAsm.h"
 
 //#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
@@ -39,7 +39,7 @@
 // and pshufb could help a lot.
 // Also add hacks for things like lfs/stfs the same reg consecutively, that is, simple memory moves.
 
-void Jit64::lfs(UGeckoInstruction inst)
+void JitIL::lfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
@@ -52,7 +52,7 @@ void Jit64::lfs(UGeckoInstruction inst)
 }
 
 
-void Jit64::lfd(UGeckoInstruction inst)
+void JitIL::lfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
@@ -66,7 +66,7 @@ void Jit64::lfd(UGeckoInstruction inst)
 }
 
 
-void Jit64::stfd(UGeckoInstruction inst)
+void JitIL::stfd(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
@@ -81,7 +81,7 @@ void Jit64::stfd(UGeckoInstruction inst)
 }
 
 
-void Jit64::stfs(UGeckoInstruction inst)
+void JitIL::stfs(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
@@ -97,7 +97,7 @@ void Jit64::stfs(UGeckoInstruction inst)
 }
 
 
-void Jit64::stfsx(UGeckoInstruction inst)
+void JitIL::stfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)
@@ -111,7 +111,7 @@ void Jit64::stfsx(UGeckoInstruction inst)
 }
 
 
-void Jit64::lfsx(UGeckoInstruction inst)
+void JitIL::lfsx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(LoadStoreFloating)

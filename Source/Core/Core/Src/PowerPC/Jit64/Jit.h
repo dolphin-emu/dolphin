@@ -31,14 +31,8 @@
 // ----------
 #define JIT_OFF_OPTIONS // Compile with JIT off options
 
-// Include
-// ----------
-#if JITTEST
-	#include "../Jit64IL/Jit.h"
-#else
-
-#ifndef _JIT_H
-#define _JIT_H
+#ifndef _JIT64_H
+#define _JIT64_H
 
 #include "../PPCAnalyst.h"
 #include "../JitCommon/JitCache.h"
@@ -46,32 +40,9 @@
 #include "JitRegCache.h"
 #include "x64Emitter.h"
 #include "x64Analyzer.h"
-
-#ifdef _WIN32
-	#include <windows.h>
-#endif
-
-// Declarations and definitions
-// ----------
-
-void Jit(u32 em_address);
-
-#ifndef _WIN32
-
-	// A bit of a hack to get things building under linux. We manually fill in this structure as needed
-	// from the real context.
-	struct CONTEXT
-	{
-	#ifdef _M_X64
-		u64 Rip;
-		u64 Rax;
-	#else
-		u32 Eip;
-		u32 Eax;
-	#endif 
-	};
-
-#endif
+#include "../JitCommon/JitBackpatch.h"
+#include "../JitCommon/JitBase.h"
+#include "JitAsm.h"
 
 // Use these to control the instruction selection
 // #define INSTRUCTION_START Default(inst); return;
@@ -83,18 +54,7 @@ void Jit(u32 em_address);
 	Core::g_CoreStartupParameter.bJIT##type##Off) \
 	{Default(inst); return;}
 
-class TrampolineCache : public Gen::XCodeBlock
-{
-public:
-	void Init();
-	void Shutdown();
-
-	const u8 *GetReadTrampoline(const InstructionInfo &info);
-	const u8 *GetWriteTrampoline(const InstructionInfo &info);
-};
-
-
-class Jit64 : public EmuCodeBlock
+class Jit64 : public JitBase
 {
 private:
 	struct JitState
@@ -121,35 +81,19 @@ private:
 		JitBlock *curBlock;
 	};
 
-	struct JitOptions
-	{
-		bool optimizeStack;
-		bool assumeFPLoadFromMem;
-		bool enableBlocklink;
-		bool fpAccurateFcmp;
-		bool enableFastMem;
-		bool optimizeGatherPipe;
-		bool fastInterrupts;
-		bool accurateSinglePrecision;
-	};
-
-	JitBlockCache blocks;
-	TrampolineCache trampolines;
 	GPRRegCache gpr;
 	FPURegCache fpr;
 
 	// The default code buffer. We keep it around to not have to alloc/dealloc a
 	// large chunk of memory for each recompiled block.
 	PPCAnalyst::CodeBuffer code_buffer;
+	Jit64AsmRoutineManager asm_routines;
 
 public:
 	Jit64() : code_buffer(32000) {}
 	~Jit64() {}
 
 	JitState js;
-	JitOptions jo;
-
-	// Initialization, etc
 
 	void Init();
 	void Shutdown();
@@ -165,14 +109,24 @@ public:
 
 	void ClearCache();
 
+	const u8 *GetDispatcher() {
+		return asm_routines.dispatcher;  // asm_routines.dispatcher
+	}
+	const CommonAsmRoutines *GetAsmRoutines() {
+		return &asm_routines;
+	}
+
+	const char *GetName() {
+#ifdef _M_X64
+		return "JIT64";
+#else
+		return "JIT32";
+#endif
+	}
 	// Run!
 
 	void Run();
 	void SingleStep();
-
-	const u8 *BackPatch(u8 *codePtr, int accessType, u32 em_address, CONTEXT *ctx);
-
-#define JIT_OPCODE 0
 
 	// Utilities for use by opcodes
 
@@ -296,7 +250,6 @@ public:
 	void icbi(UGeckoInstruction inst);
 };
 
-extern Jit64 jit;
+void ProfiledReJit();
 
-#endif // _JIT_H
-#endif // JITTEST
+#endif // _JIT64_H

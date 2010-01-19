@@ -29,7 +29,7 @@ may be redirected here (for example to Read_U32()).
 #include "Memmap.h"
 #include "../Core.h"
 #include "../PowerPC/PowerPC.h"
-#include "../PowerPC/Jit64/Jit.h"
+#include "../PowerPC/JitCommon/JitBase.h"
 #include "../HLE/HLE.h"
 #include "CPU.h"
 #include "ProcessorInterface.h"
@@ -81,6 +81,7 @@ u8 *m_pRAM;
 u8 *m_pL1Cache;
 u8 *m_pEXRAM;
 u8 *m_pFakeVMEM;
+u8 *m_pEFB;
 
 // 64-bit: Pointers to high-mem mirrors
 // 32-bit: Same as above
@@ -330,7 +331,9 @@ static const MemoryView views[] =
 
 //  Don't map any memory for the EFB. We want all access to this area to go
 //  through the hardware access handlers.
+#ifndef _M_X64
 //	{&m_pEFB,      &m_pVirtualEFB,           0xC8000000, EFB_SIZE, 0},
+#endif
 	{&m_pL1Cache,  &m_pVirtualL1Cache,       0xE0000000, L1_CACHE_SIZE, 0},
 
 	{&m_pFakeVMEM, &m_pVirtualFakeVMEM,      0x7E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
@@ -427,17 +430,17 @@ u32 Read_Opcode_JIT(const u32 _Address)
 	u32 addr;
 	if (_Address & JIT_ICACHE_VMEM_BIT)
 	{		
-		iCache = jit.GetBlockCache()->GetICacheVMEM();
+		iCache = jit->GetBlockCache()->GetICacheVMEM();
 		addr = _Address & JIT_ICACHE_MASK;
 	}
 	else if (_Address & JIT_ICACHE_EXRAM_BIT)
 	{		
-		iCache = jit.GetBlockCache()->GetICacheEx();
+		iCache = jit->GetBlockCache()->GetICacheEx();
 		addr = _Address & JIT_ICACHEEX_MASK;
 	}
 	else
 	{
-		iCache = jit.GetBlockCache()->GetICache();
+		iCache = jit->GetBlockCache()->GetICache();
 		addr = _Address & JIT_ICACHE_MASK;
 	}
 	u32 inst = *(u32*)(iCache + addr);
@@ -455,7 +458,7 @@ u32 Read_Opcode_JIT(const u32 _Address)
 #endif
 	if ((inst & 0xfc000000) == 0)
 	{
-		inst = jit.GetBlockCache()->GetOriginalFirstOp(inst);
+		inst = jit->GetBlockCache()->GetOriginalFirstOp(inst);
 	}
 	
 	// if a crash occured after that message
@@ -481,17 +484,17 @@ u32 Read_Opcode_JIT_LC(const u32 _Address)
 	u32 addr;
 	if (_Address & JIT_ICACHE_VMEM_BIT)
 	{		
-		iCache = jit.GetBlockCache()->GetICacheVMEM();
+		iCache = jit->GetBlockCache()->GetICacheVMEM();
 		addr = _Address & JIT_ICACHE_MASK;
 	}
 	else if (_Address & JIT_ICACHE_EXRAM_BIT)
 	{		
-		iCache = jit.GetBlockCache()->GetICacheEx();
+		iCache = jit->GetBlockCache()->GetICacheEx();
 		addr = _Address & JIT_ICACHEEX_MASK;
 	}
 	else
 	{
-		iCache = jit.GetBlockCache()->GetICache();
+		iCache = jit->GetBlockCache()->GetICache();
 		addr = _Address & JIT_ICACHE_MASK;
 	}
 	u32 inst = *(u32*)(iCache + addr);
@@ -504,7 +507,7 @@ u32 Read_Opcode_JIT_LC(const u32 _Address)
 #endif
 	if ((inst & 0xfc000000) == 0)
 	{
-		inst = jit.GetBlockCache()->GetOriginalFirstOp(inst);
+		inst = jit->GetBlockCache()->GetOriginalFirstOp(inst);
 	}	
 	return inst;
 }
@@ -516,14 +519,14 @@ void Write_Opcode_JIT(const u32 _Address, const u32 _Value)
 #ifdef JIT_UNLIMITED_ICACHE
 	if (_Address & JIT_ICACHE_VMEM_BIT)
 	{
-		*(u32*)(jit.GetBlockCache()->GetICacheVMEM() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);		
+		*(u32*)(jit->GetBlockCache()->GetICacheVMEM() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);		
 	}
 	else if (_Address & JIT_ICACHE_EXRAM_BIT)
 	{
-		*(u32*)(jit.GetBlockCache()->GetICacheEx() + (_Address & JIT_ICACHEEX_MASK)) = Common::swap32(_Value);		
+		*(u32*)(jit->GetBlockCache()->GetICacheEx() + (_Address & JIT_ICACHEEX_MASK)) = Common::swap32(_Value);		
 	}
 	else
-		*(u32*)(jit.GetBlockCache()->GetICache() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);
+		*(u32*)(jit->GetBlockCache()->GetICache() + (_Address & JIT_ICACHE_MASK)) = Common::swap32(_Value);
 #else
 	Memory::WriteUnchecked_U32(_Value, _Address);
 #endif	

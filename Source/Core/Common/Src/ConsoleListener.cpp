@@ -28,6 +28,7 @@
 
 #include "Common.h"
 #include "LogManager.h" // Common
+#include "ConsoleListener.h" // Common
 
 ConsoleListener::ConsoleListener()
 {

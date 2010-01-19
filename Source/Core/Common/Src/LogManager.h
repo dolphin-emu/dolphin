@@ -19,11 +19,8 @@
 #define _LOGMANAGER_H_
 
 #include "Log.h"
-#include "Thread.h"
 #include "StringUtil.h"
-#ifdef _WIN32
-#include <windows.h>
-#endif
+
 #include <vector>
 #include <string.h>
 #include <stdio.h>
@@ -67,34 +64,6 @@ private:
 	bool m_enable;
 };
 
-class ConsoleListener : public LogListener
-{
-public:
-	ConsoleListener();
-	~ConsoleListener();
-
-	void Open(bool Hidden = false, int Width = 100, int Height = 100, const char * Name = "Console");
-	void UpdateHandle();
-	void Close();
-	bool IsOpen();
-	void LetterSpace(int Width, int Height);
-	void BufferWidthHeight(int BufferWidth, int BufferHeight, int ScreenWidth, int ScreenHeight, bool BufferFirst);
-	void PixelSpace(int Left, int Top, int Width, int Height, bool);
-	#ifdef _WIN32
-	COORD GetCoordinates(int BytesRead, int BufferWidth);
-	#endif
-	void Log(LogTypes::LOG_LEVELS, const char *Text);
-	void ClearScreen(bool Cursor = true);
-
-	const char *getName() const { return "Console"; }
-
-private:
-#ifdef _WIN32
-	HWND GetHwnd(void);
-	HANDLE hConsole;
-#endif
-};
-
 class LogContainer {
 public:
 	LogContainer(const char* shortName, const char* fullName, bool enable = false);
@@ -130,16 +99,26 @@ private:
 	std::vector<LogListener *> listeners;
 };
 
+class ConsoleListener;
+
+// Avoid <windows.h> include through Thread.h
+namespace Common {
+	class CriticalSection;
+}
+
 class LogManager 
 {
 private:
 	LogContainer* m_Log[LogTypes::NUMBER_OF_LOGS];
-	Common::CriticalSection logMutex;
+	Common::CriticalSection *logMutex;
 	FileLogListener *m_fileLog;
 	ConsoleListener *m_consoleLog;
 	static LogManager *m_logManager;  // Singleton. Ugh.
 
 public:
+	LogManager();
+	~LogManager();
+
 	static u32 GetMaxLevel() { return MAX_LOGLEVEL;	}
 
 	void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
@@ -192,9 +171,6 @@ public:
 	static void SetInstance(LogManager *logManager) {
 		m_logManager = logManager;
 	}
-
-	LogManager();
-	~LogManager();
 };
 
 #endif // _LOGMANAGER_H_

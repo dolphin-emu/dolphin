@@ -23,6 +23,11 @@
 // locating performance issues.
 
 #include "Common.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "../../Core.h"
 #include "MemoryUtil.h"
 
@@ -36,15 +41,8 @@
 #include "x64Emitter.h"
 #include "x64Analyzer.h"
 
-#ifdef JITTEST
-#include "../Jit64IL/Jit.h"
-#include "../Jit64IL/JitAsm.h"
-#else
-#include "../Jit64/Jit.h"
-#include "../Jit64/JitAsm.h"
-#endif
-
 #include "JitCache.h"
+#include "JitBase.h"
 
 #include "disasm.h"
 
@@ -378,7 +376,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 		// Spurious entrances from previously linked blocks can only come through checkedEntry
 		XEmitter emit((u8 *)b.checkedEntry);
 		emit.MOV(32, M(&PC), Imm32(b.originalAddress));
-		emit.JMP(asm_routines.dispatcher, true);
+		emit.JMP(jit->GetAsmRoutines()->dispatcher, true);
 		// this is not needed really
 		/*
 		emit.SetCodePtr((u8 *)blockCodePointers[blocknum]);

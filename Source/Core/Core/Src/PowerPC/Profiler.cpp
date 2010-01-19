@@ -15,10 +15,14 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Jit64/Jit.h"
+#include "JitCommon/JitBase.h"
 
 #include <vector>
 #include <algorithm>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #include "PPCSymbolDB.h"
 
@@ -41,19 +45,19 @@ struct BlockStat
 
 void WriteProfileResults(const char *filename) {
 	std::vector<BlockStat> stats;
-	stats.reserve(jit.GetBlockCache()->GetNumBlocks());
+	stats.reserve(jit->GetBlockCache()->GetNumBlocks());
 	u64 cost_sum = 0;
 #ifdef _WIN32
 	u64 timecost_sum = 0;
-	LARGE_INTEGER countsPerSec;
-	QueryPerformanceFrequency(&countsPerSec);
+	u64 countsPerSec;
+	QueryPerformanceFrequency((LARGE_INTEGER *)&countsPerSec);
 #endif
-	for (int i = 0; i < jit.GetBlockCache()->GetNumBlocks(); i++)
+	for (int i = 0; i < jit->GetBlockCache()->GetNumBlocks(); i++)
 	{
-		const JitBlock *block = jit.GetBlockCache()->GetBlock(i);
+		const JitBlock *block = jit->GetBlockCache()->GetBlock(i);
 		u64 cost = (block->originalSize / 4) * block->runCount;		// rough heuristic. mem instructions should cost more.
 #ifdef _WIN32
-		u64 timecost = block->ticCounter.QuadPart;					// Indeed ;)
+		u64 timecost = block->ticCounter;					// Indeed ;)
 #endif
 		if (block->runCount >= 1) {  // Todo: tweak.
 			stats.push_back(BlockStat(i, cost));
@@ -73,15 +77,15 @@ void WriteProfileResults(const char *filename) {
 	fprintf(f, "origAddr\tblkName\tcost\ttimeCost\tpercent\ttimePercent\tOvAllinBlkTime(ms)\tblkCodeSize\n");
 	for (unsigned int i = 0; i < stats.size(); i++)
 	{
-		const JitBlock *block = jit.GetBlockCache()->GetBlock(stats[i].blockNum);
+		const JitBlock *block = jit->GetBlockCache()->GetBlock(stats[i].blockNum);
 		if (block)
 		{
 			std::string name = g_symbolDB.GetDescription(block->originalAddress);
 			double percent = 100.0 * (double)stats[i].cost / (double)cost_sum;
 #ifdef _WIN32 
-			double timePercent = 100.0 * (double)block->ticCounter.QuadPart / (double)timecost_sum;
+			double timePercent = 100.0 * (double)block->ticCounter / (double)timecost_sum;
 			fprintf(f, "%08x\t%s\t%llu\t%llu\t%.2lf\t%llf\t%lf\t%i\n", 
-				block->originalAddress, name.c_str(), stats[i].cost, block->ticCounter.QuadPart, percent, timePercent, (double)block->ticCounter.QuadPart*1000.0/(double)countsPerSec.QuadPart, block->codeSize);
+				block->originalAddress, name.c_str(), stats[i].cost, block->ticCounter, percent, timePercent, (double)block->ticCounter*1000.0/(double)countsPerSec, block->codeSize);
 #else
 			fprintf(f, "%08x\t%s\t%llu\t???\t%.2lf\t???\t???\t%i\n", 
 				block->originalAddress, name.c_str(), stats[i].cost,  /*block->ticCounter.QuadPart,*/ percent, /*timePercent, (double)block->ticCounter.QuadPart*1000.0/(double)countsPerSec.QuadPart,*/ block->codeSize);

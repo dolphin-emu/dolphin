@@ -22,12 +22,12 @@
 #include "../PPCTables.h"
 #include "x64Emitter.h"
 
-#include "Jit.h"
+#include "JitIL.h"
 
 //#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-void Jit64::fp_arith_s(UGeckoInstruction inst)
+void JitIL::fp_arith_s(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
@@ -70,7 +70,7 @@ void Jit64::fp_arith_s(UGeckoInstruction inst)
 	ibuild.EmitStoreFReg(val, inst.FD);
 }
 
-void Jit64::fmaddXX(UGeckoInstruction inst)
+void JitIL::fmaddXX(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
@@ -98,7 +98,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 	ibuild.EmitStoreFReg(val, inst.FD);
 }
 
-void Jit64::fmrx(UGeckoInstruction inst)
+void JitIL::fmrx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
@@ -110,7 +110,7 @@ void Jit64::fmrx(UGeckoInstruction inst)
 	ibuild.EmitStoreFReg(val, inst.FD);
 }
 
-void Jit64::fcmpx(UGeckoInstruction inst)
+void JitIL::fcmpx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)
@@ -122,7 +122,7 @@ void Jit64::fcmpx(UGeckoInstruction inst)
 	ibuild.EmitStoreCR(res, inst.CRFD);
 }
 
-void Jit64::fsign(UGeckoInstruction inst)
+void JitIL::fsign(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(FloatingPoint)

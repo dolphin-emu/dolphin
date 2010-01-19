@@ -27,11 +27,7 @@
 #include "JitWindow.h"
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
-#if JITTEST
-#include "PowerPC/Jit64/Jit.h"
-#else
-#include "PowerPC/Jit64IL/Jit.h"
-#endif
+#include "PowerPC/JitCommon/JitBase.h"
 #include "PowerPC/JitCommon/JitCache.h"
 #include "PowerPC/PPCAnalyst.h"
 #include "PowerPCDisasm.h"
@@ -130,16 +126,16 @@ void CJitWindow::Compare(u32 em_address)
 	disassembler x64disasm;
 	x64disasm.set_syntax_intel();
 
-	int block_num = jit.GetBlockCache()->GetBlockNumberFromStartAddress(em_address);
+	int block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(em_address);
 	if (block_num < 0)
 	{
 		for (int i = 0; i < 500; i++) {
-			block_num = jit.GetBlockCache()->GetBlockNumberFromStartAddress(em_address - 4 * i);
+			block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(em_address - 4 * i);
 			if (block_num >= 0)
 				break;
 		}
 		if (block_num >= 0) {
-			JitBlock *block = jit.GetBlockCache()->GetBlock(block_num);
+			JitBlock *block = jit->GetBlockCache()->GetBlock(block_num);
 			if (!(block->originalAddress <= em_address && block->originalSize + block->originalAddress >= em_address))
 				block_num = -1;
 		}
@@ -150,12 +146,12 @@ void CJitWindow::Compare(u32 em_address)
 			return;
 		}
 	}
-	JitBlock *block = jit.GetBlockCache()->GetBlock(block_num);
+	JitBlock *block = jit->GetBlockCache()->GetBlock(block_num);
 	
 	// 800031f0
 	// == Fill in x86 box
 
-	const u8 *code = (const u8 *)jit.GetBlockCache()->GetCompiledCodeFromBlock(block_num);
+	const u8 *code = (const u8 *)jit->GetBlockCache()->GetCompiledCodeFromBlock(block_num);
 	u64 disasmPtr = (u64)code;
 	int size = block->codeSize;
 	const u8 *end = code + size;

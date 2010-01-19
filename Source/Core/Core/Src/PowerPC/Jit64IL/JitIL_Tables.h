@@ -15,20 +15,17 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef JIT_TABLES_H
-#define JIT_TABLES_H
+#ifndef JITIL_TABLES_H
+#define JITIL_TABLES_H
+
 #include "../Gekko.h"
 #include "../PPCTables.h"
-#if defined JITTEST && JITTEST
-#include "../Jit64IL/Jit.h"
-#else
-#include "../Jit64/Jit.h"
-#endif
+#include "../Jit64IL/JitIL.h"
 
-
-namespace JitTables
+namespace JitILTables
 {
-	void CompileInstruction(UGeckoInstruction _inst);
-	void InitTables();
+void CompileInstruction(UGeckoInstruction _inst);
+void InitTables();
 }
+
 #endif

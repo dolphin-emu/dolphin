@@ -35,7 +35,7 @@
 // To add a new asm routine, just add another const here, and add the code to Generate.
 // Also, possibly increase the size of the code buffer.
 
-class AsmRoutineManager : public CommonAsmRoutines
+class JitILAsmRoutineManager : public CommonAsmRoutines
 {
 private:
 	void Generate();
@@ -52,35 +52,9 @@ public:
 		FreeCodeSpace();
 	}
 
-
-	// Public generated functions. Just CALL(M((void*)func)) them.
-
-	const u8 *enterCode;
-
-	const u8 *dispatcher;
-	const u8 *dispatcherNoCheck;
-	const u8 *dispatcherPcInEAX;
-
-	const u8 *fpException;
-	const u8 *computeRc;
-	const u8 *testExceptions;
-	const u8 *dispatchPcInEAX;
-	const u8 *doTiming;
-
-	const u8 *fifoDirectWrite8;
-	const u8 *fifoDirectWrite16;
-	const u8 *fifoDirectWrite32;
-	const u8 *fifoDirectWriteFloat;
-	const u8 *fifoDirectWriteXmm64;
-
-	const u8 *breakpointBailout;
-
 	const u8 *doReJit;
-
-
-	bool compareEnabled;
 };
 
-extern AsmRoutineManager asm_routines;
+extern JitILAsmRoutineManager jitil_asm_routines;
 
 #endif

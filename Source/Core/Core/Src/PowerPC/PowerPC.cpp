@@ -27,6 +27,8 @@
 #include "../CoreTiming.h"
 
 #include "Interpreter/Interpreter.h"
+#include "JitCommon/JitBase.h"
+#include "Jit64IL/JitIL.h"
 #include "Jit64/Jit.h"
 #include "PowerPC.h"
 #include "PPCTables.h"
@@ -109,7 +111,7 @@ void ResetRegisters()
 	rDEC = 0xFFFFFFFF;
 }
 
-void Init()
+void Init(int cpu_core)
 {
 	enum {
 		FPU_PREC_24 = 0 << 8,
@@ -139,7 +141,12 @@ void Init()
 
 	// Initialize both execution engines ... 
 	Interpreter::Init();
-	jit.Init();
+
+	if (cpu_core == 1)
+		jit = new Jit64;
+	else
+		jit = new JitIL;
+	jit->Init();
 	// ... but start as interpreter by default.
 	mode = MODE_INTERPRETER;
 	state = CPU_STEPPING;
@@ -150,7 +157,9 @@ void Init()
 void Shutdown()
 {
 	// Shutdown both execution engines. Doesn't matter which one is active.
-	jit.Shutdown();
+	jit->Shutdown();
+	delete jit;
+	jit = 0;
 	Interpreter::Shutdown();
 }
 
@@ -163,7 +172,7 @@ void SetMode(CoreMode new_mode)
 	switch (mode)
 	{
 	case MODE_INTERPRETER:  // Switching from JIT to interpreter
-		jit.ClearCache();  // Remove all those nasty JIT patches.
+		jit->ClearCache();  // Remove all those nasty JIT patches.
 		break;
 
 	case MODE_JIT:  // Switching from interpreter to JIT.
@@ -180,7 +189,7 @@ void SingleStep()
 		Interpreter::SingleStep();
 		break;
 	case MODE_JIT:
-		jit.SingleStep();
+		jit->SingleStep();
 		break;
 	}
 }
@@ -194,7 +203,7 @@ void RunLoop()
 		Interpreter::Run();
 		break;
 	case MODE_JIT:
-		jit.Run();
+		jit->Run();
 		break;
 	}
 	Host_UpdateDisasmDialog();

@@ -527,15 +527,6 @@ void Jit64::divwux(UGeckoInstruction inst) {
 	}
 }
 
-u32 Helper_Mask(u8 mb, u8 me)
-{
-	return (((mb > me) ?
-		~(((u32)-1 >> mb) ^ ((me >= 31) ? 0 : (u32) -1 >> (me + 1)))
-		:
-		(((u32)-1 >> mb) ^ ((me >= 31) ? 0 : (u32) -1 >> (me + 1))))
-		);
-}
-
 void Jit64::addx(UGeckoInstruction inst)
 {
 	INSTRUCTION_START

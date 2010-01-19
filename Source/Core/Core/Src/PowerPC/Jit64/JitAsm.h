@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _JITASM_H
-#define _JITASM_H
+#ifndef _JIT64ASM_H
+#define _JIT64ASM_H
 
 #include "x64Emitter.h"
 #include "../JitCommon/JitAsmCommon.h"
@@ -35,7 +35,7 @@
 // To add a new asm routine, just add another const here, and add the code to Generate.
 // Also, possibly increase the size of the code buffer.
 
-class AsmRoutineManager : public CommonAsmRoutines
+class Jit64AsmRoutineManager : public CommonAsmRoutines
 {
 private:
 	void Generate();
@@ -51,33 +51,8 @@ public:
 	void Shutdown() {
 		FreeCodeSpace();
 	}
-
-
-	// Public generated functions. Just CALL(M((void*)func)) them.
-
-	const u8 *enterCode;
-
-	const u8 *dispatcher;
-	const u8 *dispatcherNoCheck;
-	const u8 *dispatcherPcInEAX;
-
-	const u8 *fpException;
-	const u8 *computeRc;
-	const u8 *testExceptions;
-	const u8 *dispatchPcInEAX;
-	const u8 *doTiming;
-
-	const u8 *fifoDirectWrite8;
-	const u8 *fifoDirectWrite16;
-	const u8 *fifoDirectWrite32;
-	const u8 *fifoDirectWriteFloat;
-	const u8 *fifoDirectWriteXmm64;
-
-	const u8 *breakpointBailout;
-
-	bool compareEnabled;
 };
 
-extern AsmRoutineManager asm_routines;
+extern Jit64AsmRoutineManager asm_routines;
 
-#endif
+#endif  // _JIT64ASM_H

@@ -26,12 +26,12 @@
 #include "ABI.h"
 #include "Thunk.h"
 
-#include "Jit.h"
+#include "JitIL.h"
 
 //#define INSTRUCTION_START Default(inst); return;
 #define INSTRUCTION_START
 
-void Jit64::mtspr(UGeckoInstruction inst)
+void JitIL::mtspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 		JITDISABLE(SystemRegisters)
@@ -67,7 +67,7 @@ void Jit64::mtspr(UGeckoInstruction inst)
 	}
 }
 
-void Jit64::mfspr(UGeckoInstruction inst)
+void JitIL::mfspr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 		JITDISABLE(SystemRegisters)
@@ -104,7 +104,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 // =======================================================================================
 // Don't interpret this, if we do we get thrown out
 // --------------
-void Jit64::mtmsr(UGeckoInstruction inst)
+void JitIL::mtmsr(UGeckoInstruction inst)
 {
 	ibuild.EmitStoreMSR(ibuild.EmitLoadGReg(inst.RS));
 	ibuild.EmitBranchUncond(ibuild.EmitIntConst(js.compilerPC + 4));
@@ -112,21 +112,21 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 // ==============
 
 
-void Jit64::mfmsr(UGeckoInstruction inst)
+void JitIL::mfmsr(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 		JITDISABLE(SystemRegisters)
 		ibuild.EmitStoreGReg(ibuild.EmitLoadMSR(), inst.RD);
 }
 
-void Jit64::mftb(UGeckoInstruction inst)
+void JitIL::mftb(UGeckoInstruction inst)
 {
 	INSTRUCTION_START;
 	JITDISABLE(SystemRegisters)
 		mfspr(inst);
 }
 
-void Jit64::mfcr(UGeckoInstruction inst)
+void JitIL::mfcr(UGeckoInstruction inst)
 {
 	Default(inst); return;
 #if 0
@@ -147,7 +147,7 @@ void Jit64::mfcr(UGeckoInstruction inst)
 #endif
 }
 
-void Jit64::mtcrf(UGeckoInstruction inst)
+void JitIL::mtcrf(UGeckoInstruction inst)
 {
 	Default(inst); return;
 #if 0

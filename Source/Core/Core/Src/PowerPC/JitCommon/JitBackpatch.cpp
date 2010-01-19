@@ -19,13 +19,9 @@
 
 #include "Common.h"
 #include "disasm.h"
-#ifdef JITTEST
-#include "../Jit64IL/Jit.h"
-#include "../Jit64IL/JitAsm.h"
-#else
-#include "../Jit64/Jit.h"
-#include "../Jit64/JitAsm.h"
-#endif
+#include "../JitCommon/JitBase.h"
+#include "../JitCommon/JitBackpatch.h"
+
 #include "../../HW/Memmap.h"
 
 #include "x64Emitter.h"
@@ -34,6 +30,27 @@
 #include "x64Analyzer.h"
 
 #include "StringUtil.h"
+#ifdef _WIN32
+	#include <windows.h>
+#endif
+
+#ifndef _WIN32
+
+	// A bit of a hack to get things building under linux. We manually fill in this structure as needed
+	// from the real context.
+	struct CONTEXT
+	{
+	#ifdef _M_X64
+		u64 Rip;
+		u64 Rax;
+	#else
+		u32 Eip;
+		u32 Eax;
+	#endif 
+	};
+
+#endif
+
 
 using namespace Gen;
 
@@ -118,7 +135,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 	CMP(32, R(addrReg), Imm32(0xCC008000));
 	FixupBranch skip_fast = J_CC(CC_NE, false);
 	MOV(32, R(ABI_PARAM1), R((X64Reg)dataReg));
-	CALL((void*)asm_routines.fifoDirectWrite32);
+	CALL((void*)jit->GetAsmRoutines()->fifoDirectWrite32);
 	RET();
 	SetJumpTarget(skip_fast);
 	ABI_PushAllCallerSavedRegsAndAdjustStack();
@@ -149,10 +166,12 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 // 1) It's really necessary. We don't know anything about the context.
 // 2) It doesn't really hurt. Only instructions that access I/O will get these, and there won't be 
 //    that many of them in a typical program/game.
-const u8 *Jit64::BackPatch(u8 *codePtr, int accessType, u32 emAddress, CONTEXT *ctx)
+const u8 *JitBase::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *ctx_void)
 {
+	CONTEXT *ctx = (CONTEXT *)ctx_void;
+
 #ifdef _M_X64
-	if (!jit.IsInCodeSpace(codePtr))
+	if (!jit->IsInCodeSpace(codePtr))
 		return 0;  // this will become a regular crash real soon after this
 	
 	InstructionInfo info;

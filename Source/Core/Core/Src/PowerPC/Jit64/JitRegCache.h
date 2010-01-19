@@ -15,8 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _JITREGCACHE_H
-#define _JITREGCACHE_H
+#ifndef _JIT64REGCACHE_H
+#define _JIT64REGCACHE_H
 
 #include "x64Emitter.h"
 
@@ -75,6 +75,8 @@ protected:
 	XEmitter *emit;
 
 public:
+	RegCache();
+
 	virtual ~RegCache() {}
 	virtual void Start(PPCAnalyst::BlockRegStats &stats) = 0;
 
@@ -147,4 +149,4 @@ public:
 	OpArg GetDefaultLocation(int reg) const;
 };
 
-#endif
+#endif  // _JIT64REGCACHE_H

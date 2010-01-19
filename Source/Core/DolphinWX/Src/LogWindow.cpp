@@ -25,7 +25,9 @@
 
 #include "Core.h" // for Core::GetState()
 #include "LogWindow.h"
+#include "ConsoleListener.h"
 #include "Console.h"
+
 
 // Milliseconds between msgQueue flushes to wxTextCtrl
 #define UPDATETIME 200

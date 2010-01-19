@@ -18,10 +18,6 @@
 #ifndef _COREPARAMETER_H
 #define _COREPARAMETER_H
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
 #include "IniFile.h"
 #include <string>
 
@@ -30,18 +26,22 @@
 
 struct SCoreStartupParameter
 {
-#ifdef _WIN32
-	HINSTANCE hInstance;
-#endif
+	void * hInstance;  // HINSTANCE but we don't want to include <windows.h>
 
 	// Windows/GUI related
 	void* hMainWindow;
 
 	// Settings
-	bool bEnableDebugging; bool bAutomaticStart; bool bBootToPause;
-	bool bUseJIT;
+	bool bEnableDebugging;
+	bool bAutomaticStart;
+	bool bBootToPause;
 
-	// JIT
+	// 0 = Interpreter
+	// 1 = Jit
+	// 2 = JitIL
+	int iCPUCore;
+
+	// JIT (shared between JIT and JITIL)
 	bool bJITUnlimitedCache, bJITBlockLinking;
 	bool bJITOff;
 	bool bJITLoadStoreOff, bJITLoadStorelXzOff, bJITLoadStorelwzOff, bJITLoadStorelbzxOff;

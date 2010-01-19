@@ -536,6 +536,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\ConsoleListener.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\Log.h"
 				>
 			</File>

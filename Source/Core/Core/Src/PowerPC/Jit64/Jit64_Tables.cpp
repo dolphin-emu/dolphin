@@ -15,24 +15,23 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Jit_Tables.h"
+#include "Jit.h"
+#include "Jit64_Tables.h"
 
 // Should be moved in to the Jit class
 typedef void (Jit64::*_Instruction) (UGeckoInstruction instCode);
 
-_Instruction dynaOpTable[64];
-_Instruction dynaOpTable4[1024];
-_Instruction dynaOpTable19[1024];
-_Instruction dynaOpTable31[1024];
-_Instruction dynaOpTable59[32];
-_Instruction dynaOpTable63[1024];
+static _Instruction dynaOpTable[64];
+static _Instruction dynaOpTable4[1024];
+static _Instruction dynaOpTable19[1024];
+static _Instruction dynaOpTable31[1024];
+static _Instruction dynaOpTable59[32];
+static _Instruction dynaOpTable63[1024];
 void Jit64::DynaRunTable4(UGeckoInstruction _inst)  {(this->*dynaOpTable4 [_inst.SUBOP10])(_inst);}
 void Jit64::DynaRunTable19(UGeckoInstruction _inst) {(this->*dynaOpTable19[_inst.SUBOP10])(_inst);}
 void Jit64::DynaRunTable31(UGeckoInstruction _inst) {(this->*dynaOpTable31[_inst.SUBOP10])(_inst);}
 void Jit64::DynaRunTable59(UGeckoInstruction _inst) {(this->*dynaOpTable59[_inst.SUBOP5 ])(_inst);}
 void Jit64::DynaRunTable63(UGeckoInstruction _inst) {(this->*dynaOpTable63[_inst.SUBOP10])(_inst);}
-
-
 
 struct GekkoOPTemplate
 {
@@ -78,21 +77,12 @@ static GekkoOPTemplate primarytable[] =
 	{28, &Jit64::reg_imm}, //"andi_rc",  OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 	{29, &Jit64::reg_imm}, //"andis_rc", OPTYPE_INTEGER, FL_OUT_A | FL_IN_S | FL_SET_CR0}},
 
-#if JITTEST
-	{32, &Jit64::lXz}, //"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{33, &Jit64::lXz}, //"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{34, &Jit64::lXz}, //"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{35, &Jit64::Default}, //"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-	{40, &Jit64::lXz}, //"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
-	{41, &Jit64::lXz}, //"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-#else
 	{32, &Jit64::lXz}, //"lwz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{33, &Jit64::Default}, //"lwzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 	{34, &Jit64::lXz}, //"lbz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{35, &Jit64::Default}, //"lbzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 	{40, &Jit64::lXz}, //"lhz",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{41, &Jit64::Default}, //"lhzu", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
-#endif
 	{42, &Jit64::lha}, //"lha",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A}},
 	{43, &Jit64::Default}, //"lhau", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A}},
 
@@ -228,23 +218,7 @@ static GekkoOPTemplate table31[] =
 	{470,  &Jit64::Default}, //"dcbi",   OPTYPE_DCACHE, 0, 4}},
 	{758,  &Jit64::Default}, //"dcba",   OPTYPE_DCACHE, 0, 4}},
 	{1014, &Jit64::dcbz}, //"dcbz",   OPTYPE_DCACHE, 0, 4}},
-#if JITTEST
-	//load word
-	{23,  &Jit64::lXzx}, //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{55,  &Jit64::lXzx}, //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
 
-	//load halfword
-	{279, &Jit64::lXzx}, //"lhzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{311, &Jit64::lXzx}, //"lhzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
-
-	//load halfword signextend
-	{343, &Jit64::lhax}, //"lhax",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{375, &Jit64::Default}, //"lhaux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
-
-	//load byte
-	{87,  &Jit64::lXzx}, //"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
-	{119, &Jit64::lXzx}, //"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
-#else
 	//load word
 	{23,  &Jit64::lwzx}, //"lwzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{55,  &Jit64::lwzux}, //"lwzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
@@ -260,7 +234,7 @@ static GekkoOPTemplate table31[] =
 	//load byte
 	{87,  &Jit64::lbzx}, //"lbzx",  OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{119, &Jit64::Default}, //"lbzux", OPTYPE_LOAD, FL_OUT_D | FL_OUT_A | FL_IN_A | FL_IN_B}},
-#endif
+
 	//load byte reverse
 	{534, &Jit64::Default}, //"lwbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
 	{790, &Jit64::Default}, //"lhbrx", OPTYPE_LOAD, FL_OUT_D | FL_IN_A0 | FL_IN_B}},
@@ -336,11 +310,7 @@ static GekkoOPTemplate table31_2[] =
 	{10,  &Jit64::Default}, //"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_SET_CA | FL_RC_BIT}},
 	{138, &Jit64::addex}, //"addex",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
 	{234, &Jit64::Default}, //"addmex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
-#if JITTEST
-	{202, &Jit64::addzex}, //"addzex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
-#else
 	{202, &Jit64::Default}, //"addzex",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_READ_CA | FL_SET_CA | FL_RC_BIT}},
-#endif
 	{491, &Jit64::Default}, //"divwx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
 	{459, &Jit64::divwux}, //"divwux",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 39}},
 	{75,  &Jit64::Default}, //"mulhwx",  OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT, 4}},
@@ -403,11 +373,13 @@ static GekkoOPTemplate table63_2[] =
 	{31, &Jit64::fmaddXX}, //"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
 };
 
-namespace JitTables
+namespace Jit64Tables
 {
+
 void CompileInstruction(UGeckoInstruction _inst)
 {
-	(jit.*dynaOpTable[_inst.OPCD])(_inst);
+	Jit64 *jit64 = (Jit64 *)jit;
+	(jit64->*dynaOpTable[_inst.OPCD])(_inst);
 	GekkoOPInfo *info = GetOpInfo(_inst);
 	if (info) {
 #ifdef OPLOG
@@ -416,11 +388,12 @@ void CompileInstruction(UGeckoInstruction _inst)
 		}
 #endif
 		info->compileCount++;
-		info->lastUse = jit.js.compilerPC;
+		info->lastUse = jit->js.compilerPC;
 	} else {
-		PanicAlert("Tried to compile illegal (or unknown) instruction %08x, at %08x", _inst.hex, jit.js.compilerPC);
+		PanicAlert("Tried to compile illegal (or unknown) instruction %08x, at %08x", _inst.hex, jit->js.compilerPC);
 	}
 }
+
 void InitTables()
 {
 	//clear
@@ -512,4 +485,5 @@ void InitTables()
 		}
 	}
 }
-}
+
+}  // namespace

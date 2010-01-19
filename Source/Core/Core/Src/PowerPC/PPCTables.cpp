@@ -24,13 +24,11 @@
 #include "Interpreter/Interpreter.h"
 #include "Interpreter/Interpreter_Tables.h"
 #if !(defined(NOJIT) && NOJIT)
-#include "JitCommon/Jit_Tables.h"
+#include "Jit64IL/JitIL_Tables.h"
+#include "Jit64/Jit64_Tables.h"
 
-#if defined(_M_IX86) || defined(_M_X64)
+#include "Jit64IL/JitIL.h"
 #include "Jit64/Jit.h"
-#else
-#error Unknown architecture!
-#endif
 #endif
 
 struct op_inf
@@ -156,13 +154,15 @@ bool UsesFPU(UGeckoInstruction _inst)
 		return false;
 	}
 }
+
 void InitTables()
 {
 	// Interpreter ALWAYS needs to be initialized
 	InterpreterTables::InitTables();
 	#if !(defined(NOJIT) && NOJIT)
 	// Should be able to do this a better way than defines in this function
-	JitTables::InitTables();
+	Jit64Tables::InitTables();
+	JitILTables::InitTables();
 	#endif
 }
 

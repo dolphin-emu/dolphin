@@ -20,7 +20,6 @@
 #include <string>
 #include <queue>
 #include "../HW/Memmap.h"
-#include "../HW/CPU.h"
 
 class PointerWrap;
 

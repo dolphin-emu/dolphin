@@ -40,6 +40,7 @@
 #include "WxUtils.h"
 
 #include "ConfigManager.h" // Core
+#include "ConsoleListener.h"
 #include "Core.h"
 #include "OnFrame.h"
 #include "HW/DVDInterface.h"

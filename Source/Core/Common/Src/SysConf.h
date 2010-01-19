@@ -18,6 +18,9 @@
 #ifndef __SYSCONF_MANAGER_h__
 #define __SYSCONF_MANAGER_h__
 
+#include <string>
+#include <vector>
+
 // This class is meant to edit the values in a given Wii SYSCONF file
 // It currently does not add/remove/rearrange sections,
 // instead only modifies exiting sections' data
