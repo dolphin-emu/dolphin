@@ -426,12 +426,8 @@ bool IsFocus()
 	HWND RenderingWindow = g_WiimoteInitialize.hWnd;
 	HWND Parent = GetParent(RenderingWindow);
 	HWND TopLevel = GetParent(Parent);
-	// Allow updates when the config window is in focus to
-	HWND Config = NULL;
-	if (m_BasicConfigFrame)
-		Config = (HWND)m_BasicConfigFrame->GetHWND();
 	// Support both rendering to main window and not
-	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == RenderingWindow || GetForegroundWindow() == Config)
+	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == RenderingWindow)
 		return true;
 	else
 		return false;

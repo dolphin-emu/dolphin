@@ -329,7 +329,11 @@ bool IsKey(int Key)
 		if ((Key == EWM_SHAKE && GetAsyncKeyState(VK_MBUTTON))
 			|| (Key == EWM_A && GetAsyncKeyState(VK_LBUTTON))
 			|| (Key == EWM_B && GetAsyncKeyState(VK_RBUTTON)))
-			Ret = 1;
+		{
+			float x, y;
+			GetMousePos(x, y);
+			Ret = !(x < 0 || x > 1 || y < 0 || y > 1);
+		}
 #endif
 
 	}
