@@ -116,7 +116,7 @@ void WriteSwizzler(char*& p, u32 format,bool HLSL)
 	}
 	else
 	{
-		WRITE(p, "  sampleUv = sampleUv + float2(1.0f,-1.0f);\n");
+		WRITE(p, "  sampleUv = sampleUv;\n");
 	}	
 }
 

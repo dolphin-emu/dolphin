@@ -871,12 +871,12 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
 static const char *tevAlphaFuncsTable[] = 
 {
     "(false)",									//ALPHACMP_NEVER 0
-	"(prev.a <= %s - (0.5f/255.0f))",			//ALPHACMP_LESS 1
-	"(abs( prev.a - %s ) < (1.0f/255.0f))",		//ALPHACMP_EQUAL 2
-	"(prev.a < %s + (0.5f/255.0f))",			//ALPHACMP_LEQUAL 3
-	"(prev.a >= %s + (0.5f/255.0f))",			//ALPHACMP_GREATER 4
-	"(abs( prev.a - %s ) >= (1.0f/255.0f))",	//ALPHACMP_NEQUAL 5
-	"(prev.a > %s - (0.5f/255.0f))",			//ALPHACMP_GEQUAL 6
+	"(prev.a <= %s - (0.25f/255.0f))",			//ALPHACMP_LESS 1
+	"(abs( prev.a - %s ) < (0.5f/255.0f))",		//ALPHACMP_EQUAL 2
+	"(prev.a < %s + (0.25f/255.0f))",			//ALPHACMP_LEQUAL 3
+	"(prev.a >= %s + (0.25f/255.0f))",			//ALPHACMP_GREATER 4
+	"(abs( prev.a - %s ) >= (0.5f/255.0f))",	//ALPHACMP_NEQUAL 5
+	"(prev.a > %s - (0.25f/255.0f))",			//ALPHACMP_GEQUAL 6
 	"(true)"									//ALPHACMP_ALWAYS 7
 };
 

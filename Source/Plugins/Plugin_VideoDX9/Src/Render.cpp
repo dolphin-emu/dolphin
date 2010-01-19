@@ -58,8 +58,7 @@ static int s_backbuffer_height;
 static float xScale;
 static float yScale;
 
-static int FULL_EFB_WIDTH = EFB_WIDTH;
-static int FULL_EFB_HEIGHT = EFB_HEIGHT;
+static bool AUTO_ADJUST_RENDERTARGET_SIZE = false;
 
 static int s_recordWidth;
 static int s_recordHeight;
@@ -272,21 +271,11 @@ bool Renderer::Init()
 
 	xScale = (float)s_target_width / (float)EFB_WIDTH;
 	yScale = (float)s_target_height / (float)EFB_HEIGHT;
-	if (!D3D::IsATIDevice())
-	{
-		FULL_EFB_WIDTH = 2 * EFB_WIDTH;
-		FULL_EFB_HEIGHT = 2 * EFB_HEIGHT;
-		s_Fulltarget_width  = FULL_EFB_WIDTH * xScale;
-		s_Fulltarget_height = FULL_EFB_HEIGHT * yScale;
-	}
-	else
-	{
-		s_Fulltarget_width = s_target_width;
-		s_Fulltarget_height = s_target_height;
-	}
-
+	s_Fulltarget_width  = s_backbuffer_width;
+	s_Fulltarget_height = s_backbuffer_height;
+	//apply automatic resizing only is not an ati card, ati can handle large viewports :)
+	AUTO_ADJUST_RENDERTARGET_SIZE  = true;//!D3D::IsATIDevice();
 	
-
 	s_LastFrameDumped = false;
 	s_AVIDumping = false;
 
@@ -843,10 +832,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	
 }
 
-//		mtx.m[0][3] = pMatrix[1]; // -0.5f/s_target_width;  <-- fix d3d pixel center?
-//		mtx.m[1][3] = pMatrix[3]; // +0.5f/s_target_height; <-- fix d3d pixel center?
-
-// Called from VertexShaderManager
 // Called from VertexShaderManager
 void UpdateViewport()
 {
@@ -883,7 +868,41 @@ void UpdateViewport()
 		Y += Height;
 		Height *= -1;		
 	}
-
+	if(AUTO_ADJUST_RENDERTARGET_SIZE)
+	{
+		bool sizeChanged = false;
+		if(X < 0)
+		{
+			s_Fulltarget_width -= 2 * X;
+			X = 0;
+			sizeChanged=true;
+		}
+		if(Y < 0)
+		{
+			s_Fulltarget_height -= 2 * Y;
+			Y = 0;
+			sizeChanged=true;
+		}
+		if(X + Width > s_Fulltarget_width)
+		{
+			s_Fulltarget_width += (X + Width - s_Fulltarget_width) * 2;
+			sizeChanged=true;
+		}
+		if(Y + Height > s_Fulltarget_height)
+		{
+			s_Fulltarget_height += (Y + Height - s_Fulltarget_height) * 2;
+			sizeChanged=true;
+		}
+		if(sizeChanged)
+		{
+			D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
+			D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
+			FBManager::Destroy();
+			FBManager::Create();
+			D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
+			D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+		}
+	}
 	vp.X = X;
 	vp.Y = Y;
 	vp.Width = Width;
