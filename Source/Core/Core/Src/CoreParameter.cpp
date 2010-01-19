@@ -61,6 +61,13 @@ void SCoreStartupParameter::LoadDefaults()
 	bJITIntegerOff = false;
 	bJITPairedOff = false;
 	bJITSystemRegistersOff = false;
+#ifdef __APPLE__
+	// These are required for the JIT cores to work in OSX
+	// Older revs (~4854) Only required LoadStorePaired to be turned off
+	// Newer revs (~4890) require both turned off
+	bJITLoadStoreOff = true;
+	bJITLoadStorePairedOff = true;
+#endif
 
 	m_strName = "NONE";
 	m_strUniqueID = "00000000";
