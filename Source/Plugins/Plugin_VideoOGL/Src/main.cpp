@@ -343,7 +343,8 @@ void Initialize(void *init)
 #endif
 	UpdateActiveConfig();
 
-    if (!OpenGL_Create(g_VideoInitialize, 640, 480)) {
+    if (!OpenGL_Create(g_VideoInitialize, 640, 480))
+	{
         g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
         return;
     }

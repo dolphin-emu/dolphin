@@ -151,10 +151,6 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         }
     }
 
-	#if defined(_WIN32)
-		EmuWindow::SetSize(_twidth, _theight);
-	#endif
-
 	// Control window size and picture scaling
     s_backbuffer_width = _twidth;
     s_backbuffer_height = _theight;
@@ -190,37 +186,18 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
     GLWin.cocoaCtx = cocoaGLInit(g_Config.iMultisampleMode);
 
 #elif defined(_WIN32)
-	// Create rendering window in Windows
-    // Create a separate window
-    /*if (!g_Config.RenderToMainframe || g_VideoInitialize.pWindowHandle == NULL)
-		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, _T("Please wait..."));
-	// Create a child window
-    else*/
-        g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Please wait..."));
-
-	// Show the window
-	EmuWindow::Show();
-
+	g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Please wait..."));
 	if (g_VideoInitialize.pWindowHandle == NULL)
 	{
 		g_VideoInitialize.pSysMessage("failed to create window");
 		return false;
 	}
-
-    GLuint      PixelFormat;            // Holds The Results After Searching For A Match
-    DWORD       dwExStyle;              // Window Extended Style
-    DWORD       dwStyle;                // Window Style
-
-    RECT rcdesktop;
-    GetWindowRect(GetDesktopWindow(), &rcdesktop);
         
-    if (g_Config.bFullscreen) {
-        //s_backbuffer_width = rcdesktop.right - rcdesktop.left;
-        //s_backbuffer_height = rcdesktop.bottom - rcdesktop.top;
-
+    if (g_Config.bFullscreen)
+	{
         DEVMODE dmScreenSettings;
         memset(&dmScreenSettings,0,sizeof(dmScreenSettings));
-        dmScreenSettings.dmSize=sizeof(dmScreenSettings);
+        dmScreenSettings.dmSize			= sizeof(dmScreenSettings);
         dmScreenSettings.dmPelsWidth    = s_backbuffer_width;
         dmScreenSettings.dmPelsHeight   = s_backbuffer_height;
         dmScreenSettings.dmBitsPerPel   = 32;
@@ -230,10 +207,15 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
         {
             if (MessageBox(NULL, _T("The Requested Fullscreen Mode Is Not Supported By\nYour Video Card. Use Windowed Mode Instead?"), _T("NeHe GL"),MB_YESNO|MB_ICONEXCLAMATION)==IDYES)
-                g_Config.bFullscreen = false;
+				EmuWindow::ToggleFullscreen(EmuWindow::GetWnd());
             else
                 return false;
         }
+		else
+		{
+			// SetWindowPos to the upper-left corner of the screen
+			SetWindowPos(EmuWindow::GetWnd(), HWND_TOP, 0, 0, _twidth, _theight, SWP_NOREPOSITION | SWP_NOZORDER);
+		}
     }
     else
 	{
@@ -241,29 +223,8 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         ChangeDisplaySettings(NULL, 0);
     }
 
-    if (g_Config.bFullscreen && !g_Config.RenderToMainframe)
-	{
-		// Hide the cursor
-        ShowCursor(FALSE);
-    }
-    else
-	{
-        dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-        dwStyle = WS_OVERLAPPEDWINDOW;
-    }
-
-    RECT rc = {0, 0, s_backbuffer_width, s_backbuffer_height};
-    AdjustWindowRectEx(&rc, dwStyle, FALSE, dwExStyle);
-
-    int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
-    int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
-
-    // EmuWindow::GetWnd() is either the new child window or the new separate window
-    if (g_Config.bFullscreen)
-        // We put the window at the upper left corner of the screen, so x = y = 0
-        SetWindowPos(EmuWindow::GetWnd(), NULL, 0, 0, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
-    else
-        SetWindowPos(EmuWindow::GetWnd(), NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
+	// Show the window
+	EmuWindow::Show();
 
     PIXELFORMATDESCRIPTOR pfd =              // pfd Tells Windows How We Want Things To Be
     {
@@ -286,22 +247,21 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
         0,                                          // Reserved
         0, 0, 0                                     // Layer Masks Ignored
     };
-    
+
+	GLuint      PixelFormat;            // Holds The Results After Searching For A Match
+
     if (!(hDC=GetDC(EmuWindow::GetWnd()))) {
 		PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
         return false;
     }
-    
     if (!(PixelFormat = ChoosePixelFormat(hDC,&pfd))) {
         PanicAlert("(2) Can't find a suitable PixelFormat.");
         return false;
     }
-
     if (!SetPixelFormat(hDC, PixelFormat, &pfd)) {
 		PanicAlert("(3) Can't set the PixelFormat.");
         return false;
     }
-
     if (!(hRC = wglCreateContext(hDC))) {
 		PanicAlert("(4) Can't create an OpenGL rendering context.");
         return false;
