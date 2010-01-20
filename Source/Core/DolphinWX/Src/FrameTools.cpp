@@ -614,7 +614,7 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 }
 
 // Game loading state
-bool game_started = false;
+bool game_loading = false;
 
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
@@ -650,7 +650,7 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 // Prepare the GUI to start the game.
 void CFrame::StartGame()
 {
-	game_started = true;
+	game_loading = true;
 
 	if (m_ToolBar)
 		m_ToolBar->EnableTool(IDM_PLAY, false);
@@ -732,7 +732,7 @@ void CFrame::DoStop()
 
 void CFrame::OnStop(wxCommandEvent& WXUNUSED (event))
 {
-	game_started = false;
+	game_loading = false;
 	DoStop();
 }
 
@@ -1100,7 +1100,7 @@ void CFrame::UpdateGUI()
 			GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
 		}
 
-		if (m_GameListCtrl && !game_started)
+		if (m_GameListCtrl && !game_loading)
 		{
 			// Game has not started, show game list
 			if (!m_GameListCtrl->IsShown())
@@ -1111,11 +1111,11 @@ void CFrame::UpdateGUI()
 				sizerPanel->FitInside(m_Panel);
 			}
 			// Game has been selected but not started, enable play button
-			if (m_GameListCtrl->GetSelectedISO() != NULL && m_GameListCtrl->IsEnabled() && !game_started)
+			if (m_GameListCtrl->GetSelectedISO() != NULL && m_GameListCtrl->IsEnabled() && !game_loading)
 			{
 				if (m_ToolBar)
 					m_ToolBar->EnableTool(IDM_PLAY, true);
-				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
+				GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);				
 			}
 		}
 	}
@@ -1125,6 +1125,9 @@ void CFrame::UpdateGUI()
 		if (m_ToolBar)
 			m_ToolBar->EnableTool(IDM_PLAY, true);
 		GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
+
+		// Reset game loading flag
+		game_loading = false;
 	}
 
 	if (m_ToolBar) m_ToolBar->Refresh();
