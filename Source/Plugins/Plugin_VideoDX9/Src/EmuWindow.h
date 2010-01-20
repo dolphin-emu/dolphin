@@ -12,7 +12,7 @@ HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title);
 void Show();
 void Close();
 void SetSize(int displayWidth, int displayHeight);
-void ToggleFullscreen(HWND hParent);
+void ToggleFullscreen(HWND hParent, bool bForceFull = false);
 bool IsSizing();
 
 }

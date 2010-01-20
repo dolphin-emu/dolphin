@@ -698,15 +698,20 @@ void CFrame::DoStop()
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 		{
-			wxMessageDialog *dlg = new wxMessageDialog(
+			// Supress duplicate dialog boxes
+			if (m_StopDlg)
+				return;
+
+			m_StopDlg = new wxMessageDialog(
 				this,
 				wxT("Do you want to stop the current emulation?"),
 				wxT("Please confirm..."),
 				wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION,
 				wxDefaultPosition);
 
-			int Ret = dlg->ShowModal();
-			delete dlg;
+			int Ret = m_StopDlg->ShowModal();
+			m_StopDlg->Destroy();
+			m_StopDlg = NULL;
 			if (Ret == wxID_NO)
 				return;
 		}

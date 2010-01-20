@@ -227,37 +227,36 @@ void DllConfig(HWND _hParent)
 
 void Initialize(void *init)
 {
-    SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
 	frameCount = 0;
+	SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
 	g_VideoInitialize = *_pVideoInitialize;
+	InitXFBConvTables();
 
 	g_Config.Load(FULL_CONFIG_DIR "gfx_dx9.ini");
 	g_Config.GameIniLoad(globals->game_ini);
 	UpdateProjectionHack(g_Config.iPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
-
-    // create the window
-	/*if (!g_Config.RenderToMainframe || g_VideoInitialize.pWindowHandle == NULL) // ignore parent for this plugin
-		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create(NULL, g_hInstance, _T("Loading - Please wait."));
-	else*/
-		g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Loading - Please wait."));
+	UpdateActiveConfig();
+	
+	g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Loading - Please wait."));
 	if (g_VideoInitialize.pWindowHandle == NULL)
 	{
 		ERROR_LOG(VIDEO, "An error has occurred while trying to create the window.");
 		return;
 	}
-	EmuWindow::Show();
-	g_VideoInitialize.pPeekMessages = Callback_PeekMessages;
-	g_VideoInitialize.pUpdateFPSDisplay = UpdateFPSDisplay;
-	if (FAILED(D3D::Init()))
+	else if (FAILED(D3D::Init()))
 	{
 		MessageBox(GetActiveWindow(), _T("Unable to initialize Direct3D. Please make sure that you have the latest version of DirectX 9.0c correctly installed."), _T("Fatal Error"), MB_OK);
 		return;
 	}
-	InitXFBConvTables();
-	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.", 5000);
+
+	g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
+	g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
+
     _pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
     _pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
     _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
+
+	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.", 5000);
 	s_initialized = true;
 }
 

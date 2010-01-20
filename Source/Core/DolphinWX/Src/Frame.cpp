@@ -179,7 +179,7 @@ CPanel::CPanel(
 					if (dlg->ShowModal() == wxID_YES)
 						GetUsbPointer()->AccessWiiMote(lParam | 0x100)->Activate(true);
 
-					delete dlg;
+					dlg->Destroy();
 				}
 				return 0;
 			}
@@ -323,7 +323,7 @@ CFrame::CFrame(wxFrame* parent,
 	, bRenderToMain(false), bFloatLogWindow(false), bFloatConsoleWindow(false)
 	, HaveLeds(false), HaveSpeakers(false)
 	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
-	, m_bControlsCreated(false), bNoWiimoteMsg(false)
+	, m_bControlsCreated(false), bNoWiimoteMsg(false), m_StopDlg(NULL)
 	#if wxUSE_TIMER
 		, m_timer(this)
 	#endif

@@ -259,7 +259,7 @@ bool Renderer::Init()
 	if (fullScreenRes == D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions.size())
 		fullScreenRes = 0;
 
-	D3D::Create(g_ActiveConfig.iAdapter, EmuWindow::GetWnd(), g_ActiveConfig.bFullscreen,
+	D3D::Create(g_ActiveConfig.iAdapter, EmuWindow::GetWnd(), false,
 				fullScreenRes, backbuffer_ms_mode, false);
 
 	s_backbuffer_width = D3D::GetBackBufferWidth();

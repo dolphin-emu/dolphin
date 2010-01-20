@@ -135,6 +135,7 @@ void CConfigMain::UpdateGUI()
 		// Disable the Core stuff on GeneralPage
 		AlwaysHLE_BS2->Disable();
 		m_RadioJIT->Disable();
+		m_RadioJITIL->Disable();
 		m_RadioInt->Disable();
 		CPUThread->Disable();
 		DSPThread->Disable();

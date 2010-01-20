@@ -197,6 +197,7 @@ class CFrame : public wxFrame
 		bool m_bNoDocking;
 		bool m_bModalDialogOpen;
 		bool m_bControlsCreated;
+		wxMessageDialog *m_StopDlg;
 
 		char **drives;
 
