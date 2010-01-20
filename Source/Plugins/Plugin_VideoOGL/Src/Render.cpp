@@ -926,7 +926,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(0, Renderer::GetTargetHeight() - h + yOffset, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
-		if (glGetError() == GL_NO_ERROR) 
+		if (glGetError() == GL_NO_ERROR && w > 0 && h > 0) 
 		{
 			if (!s_bLastFrameDumped) 
 			{
