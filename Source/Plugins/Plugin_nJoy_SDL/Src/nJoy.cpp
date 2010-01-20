@@ -211,16 +211,23 @@ void Close_Devices()
 	PAD_RumbleClose();
 	/* Close all devices carefully. We must check that we are not accessing any undefined
 	   vector elements or any bad devices */
-	for (int i = 0; i < 4; i++)
+	if (SDL_WasInit(0))
 	{
-		if (SDL_WasInit(0) && joyinfo.size() > (u32)PadMapping[i].ID)
-			if (PadState[i].joy && joyinfo.at(PadMapping[i].ID).Good)
-				if(SDL_JoystickOpened(PadMapping[i].ID))
+		for (int i = 0; i < NumPads; i++)
+		{
+			if (joyinfo.at(i).joy)
+			{
+				if(SDL_JoystickOpened(i))
 				{
-					SDL_JoystickClose(PadState[i].joy);
-					PadState[i].joy = NULL;
+					INFO_LOG(WIIMOTE, "Shut down Joypad: %i", i);
+					SDL_JoystickClose(joyinfo.at(i).joy);
 				}
+			}
+		}
 	}
+
+	for (int i = 0; i < 4; i++)
+		PadState[i].joy = NULL;
 
 	// Clear the physical device info
 	joyinfo.clear();
@@ -478,9 +485,9 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 	// Update the PadState[].joy handle
 	for (int i = 0; i < 4; i++)
 	{
-		if (joyinfo.size() > (u32)PadMapping[i].ID)
+		if (_NumPads > (u32)PadMapping[i].ID)
 			if(joyinfo.at(PadMapping[i].ID).Good)
-				PadState[i].joy = SDL_JoystickOpen(PadMapping[i].ID);
+				PadState[i].joy = joyinfo.at(PadMapping[i].ID).joy;
 	}
 
 	return Success;

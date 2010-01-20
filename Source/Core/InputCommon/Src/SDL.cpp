@@ -103,7 +103,7 @@ bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_
 		_joyinfo.push_back(Tmp);
 
 		// We have now read the values we need so we close the device
-		if (SDL_JoystickOpened(i)) SDL_JoystickClose(_joyinfo[i].joy);
+//		if (SDL_JoystickOpened(i)) SDL_JoystickClose(_joyinfo[i].joy);
 	}
 
 	_NumPads = (int)_joyinfo.size();
