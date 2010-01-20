@@ -3,7 +3,7 @@
 import sys
 Import('env')
 
-if not (env['HAVE_BLUEZ'] or sys.platform == 'darwin'):
+if not (env['HAVE_BLUEZ'] and sys.platform != 'darwin'):
     env['HAVE_WIIUSE'] = 0
     Return()
 
