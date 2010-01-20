@@ -85,6 +85,7 @@ extern "C" {
 #include "../resources/toolbar_plugin_gfx.c"
 #include "../resources/toolbar_plugin_options.c"
 #include "../resources/toolbar_plugin_pad.c"
+#include "../resources/toolbar_plugin_wiimote.c"
 #include "../resources/toolbar_refresh.c"
 #include "../resources/toolbar_stop.c"
 #include "../resources/Boomy.h" // Theme packages
@@ -173,7 +174,7 @@ void CFrame::CreateMenu()
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_CONFIG_GFX_PLUGIN, _T("&Graphics Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP Settings"));
-	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&Pad Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&Gamecube Pad Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _T("&Wiimote Settings"));
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));	
@@ -287,18 +288,18 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 		
 
 	ToolBar->AddTool(wxID_OPEN,    _T("Open"),    m_Bitmaps[Toolbar_FileOpen], _T("Open file..."));
-	ToolBar->AddTool(wxID_REFRESH, _T("Refresh"), m_Bitmaps[Toolbar_Refresh], _T("Refresh"));
+	ToolBar->AddTool(wxID_REFRESH, _T("Refresh"), m_Bitmaps[Toolbar_Refresh], _T("Refresh game list"));
 	ToolBar->AddTool(IDM_BROWSE, _T("Browse"),   m_Bitmaps[Toolbar_Browse], _T("Browse for an ISO directory..."));
 	ToolBar->AddSeparator();
 	ToolBar->AddTool(IDM_PLAY, wxT("Play"),   m_Bitmaps[Toolbar_Play], _T("Play"));
 	ToolBar->AddTool(IDM_STOP, _T("Stop"),   m_Bitmaps[Toolbar_Stop], _T("Stop"));
-	ToolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _T("Fullscr."),  m_Bitmaps[Toolbar_FullScreen], _T("Toggle Fullscreen"));
-	ToolBar->AddTool(IDM_SCREENSHOT, _T("Scr.Shot"),   m_Bitmaps[Toolbar_FullScreen], _T("Take Screenshot"));
+	ToolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _T("FullScr"),  m_Bitmaps[Toolbar_FullScreen], _T("Toggle Fullscreen"));
+	ToolBar->AddTool(IDM_SCREENSHOT, _T("ScrShot"),   m_Bitmaps[Toolbar_FullScreen], _T("Take Screenshot"));
 	ToolBar->AddSeparator();
 	ToolBar->AddTool(IDM_CONFIG_MAIN, _T("Config"), m_Bitmaps[Toolbar_PluginOptions], _T("Configure..."));
 	ToolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("Graphics"),  m_Bitmaps[Toolbar_PluginGFX], _T("Graphics settings"));
 	ToolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
-	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("Pad"),  m_Bitmaps[Toolbar_PluginPAD], _T("Pad settings"));
+	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("GC Pad"),  m_Bitmaps[Toolbar_PluginPAD], _T("Gamecube Pad settings"));
 	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _T("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _T("Wiimote settings"));
 
 	// after adding the buttons to the toolbar, must call Realize() to reflect
@@ -383,7 +384,7 @@ void CFrame::InitBitmaps()
 		m_Bitmaps[Toolbar_PluginGFX]	= wxGetBitmapFromMemory(toolbar_plugin_gfx_png);
 		m_Bitmaps[Toolbar_PluginDSP]	= wxGetBitmapFromMemory(toolbar_plugin_dsp_png);
 		m_Bitmaps[Toolbar_PluginPAD]	= wxGetBitmapFromMemory(toolbar_plugin_pad_png);
-		m_Bitmaps[Toolbar_Wiimote]		= wxGetBitmapFromMemory(toolbar_plugin_pad_png);
+		m_Bitmaps[Toolbar_Wiimote]		= wxGetBitmapFromMemory(toolbar_plugin_wiimote_png);
 		m_Bitmaps[Toolbar_Screenshot]	= wxGetBitmapFromMemory(toolbar_fullscreen_png);
 		m_Bitmaps[Toolbar_FullScreen]	= wxGetBitmapFromMemory(toolbar_fullscreen_png);
 		m_Bitmaps[Toolbar_Help]			= wxGetBitmapFromMemory(toolbar_help_png);
@@ -698,7 +699,7 @@ void CFrame::DoStop()
 		// Ask for confirmation in case the user accidentally clicked Stop / Escape
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop)
 		{
-			// Supress duplicate dialog boxes
+			// Suppress duplicate dialog boxes
 			if (m_StopDlg)
 				return;
 
