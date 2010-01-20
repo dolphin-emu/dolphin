@@ -46,9 +46,10 @@ void AboutDolphin::CreateGUIControls()
 	DolphinLogo = new wxBitmap(iDolphinLogo);
 	sbDolphinLogo = new wxStaticBitmap(this, ID_LOGO, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
 	sbDolphinLogo->SetBitmap(*DolphinLogo);
-	std::string Text = std::string("Dolphin SVN revision ") +  SVN_REV_STR +"\n" "Copyright (c) 2003\n" 
+	std::string Text = std::string("Dolphin SVN revision ") +  SVN_REV_STR +"\n" "Copyright (c) 2003-2010+ Dolphin Team\n"
 		"Dolphin is a Gamecube/Wii emulator, which was originally written by F|RES and ector.\n" 
-		"Today Dolphin is an open source project with many contributors.\n\n"
+		"Today Dolphin is an open source project with many contributors, too many to list.\n"
+		"If interested, just go check out the project page at http://code.google.com/p/dolphin-emu.\n\n"
 		"Special thanks to Bushing, Costis, CrowTRobo, Marcan, Segher, Titanik, or9 and Hotquik for their reverse engineering and docs/demos.\n\n"
 		"Big thanks to Gilles Mouchard whose Microlib PPC emulator gave our development a kickstart.\n\n"
 		"Thanks to Frank Wille for his PowerPC disassembler, which or9 and we modified to include Gekko specifics.\n\n"
