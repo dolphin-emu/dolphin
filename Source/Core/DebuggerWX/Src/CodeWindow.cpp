@@ -86,6 +86,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
 
 	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnCPUMode) // Jit
 	EVT_MENU(IDM_JITUNLIMITED,	 CCodeWindow::OnCPUMode)
+#ifdef JIT_OFF_OPTIONS
 	EVT_MENU(IDM_JITOFF,			CCodeWindow::OnCPUMode)
 	EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnCPUMode)
 		EVT_MENU(IDM_JITLSLXZOFF,		CCodeWindow::OnCPUMode)
@@ -97,6 +98,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
 	EVT_MENU(IDM_JITIOFF,			CCodeWindow::OnCPUMode)
 	EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnCPUMode)
 	EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnCPUMode)
+#endif
 	EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
 	EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
 	EVT_MENU(IDM_SEARCHINSTRUCTION, CCodeWindow::OnJitMenu)
@@ -526,6 +528,7 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 		case IDM_AUTOMATICSTART:
 			bAutomaticStart = !bAutomaticStart; return;
 
+#ifdef JIT_OFF_OPTIONS
 		case IDM_JITOFF:
 			Core::g_CoreStartupParameter.bJITOff = event.IsChecked(); break;
 		case IDM_JITLSOFF:
@@ -547,7 +550,8 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 		case IDM_JITPOFF:
 			Core::g_CoreStartupParameter.bJITPairedOff = event.IsChecked(); break;
 		case IDM_JITSROFF:
-			Core::g_CoreStartupParameter.bJITSystemRegistersOff = event.IsChecked(); break;		
+			Core::g_CoreStartupParameter.bJITSystemRegistersOff = event.IsChecked(); break;	
+#endif
 	}
 
 	// Clear the JIT cache to enable these changes
@@ -697,6 +701,7 @@ void CCodeWindow::UpdateButtonStates()
 	GetMenuBar()->Enable(IDM_INTERPRETER, Pause); // CPU Mode
 
 	GetMenuBar()->Enable(IDM_JITUNLIMITED, !Initialized);
+#ifdef JIT_OFF_OPTIONS
 	GetMenuBar()->Enable(IDM_JITOFF, Pause);
 	GetMenuBar()->Enable(IDM_JITLSOFF, Pause);
 	GetMenuBar()->Enable(IDM_JITLSLXZOFF, Pause);
@@ -708,6 +713,7 @@ void CCodeWindow::UpdateButtonStates()
 	GetMenuBar()->Enable(IDM_JITIOFF, Pause);
 	GetMenuBar()->Enable(IDM_JITPOFF, Pause);
 	GetMenuBar()->Enable(IDM_JITSROFF, Pause);
+#endif
 
 	GetMenuBar()->Enable(IDM_CLEARCODECACHE, Pause); // JIT Menu
 	GetMenuBar()->Enable(IDM_SEARCHINSTRUCTION, Initialized);
