@@ -38,7 +38,7 @@ namespace WiiMoteEmu
 
 // SDL Haptic fails on windows, it just doesn't work (even the sample doesn't work)
 // So until i can make it work, this is all disabled >:(
-#if SDL_VERSION_ATLEAST(1, 3, 0) && !defined(_WIN32)
+#if SDL_VERSION_ATLEAST(1, 3, 0) && !defined(_WIN32) && !defined(__APPLE__)
 	#define SDL_RUMBLE
 #else
 	#ifdef _WIN32

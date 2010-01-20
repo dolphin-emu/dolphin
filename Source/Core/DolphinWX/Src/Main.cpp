@@ -490,11 +490,11 @@ void Host_Message(int Id)
 void Host_NotifyMapLoaded()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_NOTIFYMAPLOADED);
-	main_frame->AddPendingEvent(event);
+	main_frame->GetEventHandler()->AddPendingEvent(event);
 
 	if (main_frame->g_pCodeWindow)
 	{
-		main_frame->g_pCodeWindow->AddPendingEvent(event);
+		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 	}
 }
 
@@ -502,11 +502,11 @@ void Host_NotifyMapLoaded()
 void Host_UpdateLogDisplay()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATELOGDISPLAY);
-	main_frame->AddPendingEvent(event);
+	main_frame->GetEventHandler()->AddPendingEvent(event);
 
 	if (main_frame->g_pCodeWindow)
 	{
-		main_frame->g_pCodeWindow->AddPendingEvent(event);
+		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 	}
 }
 
@@ -514,11 +514,11 @@ void Host_UpdateLogDisplay()
 void Host_UpdateDisasmDialog()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEDISASMDIALOG);
-	main_frame->AddPendingEvent(event);
+	main_frame->GetEventHandler()->AddPendingEvent(event);
 
 	if (main_frame->g_pCodeWindow)
 	{
-		main_frame->g_pCodeWindow->AddPendingEvent(event);
+		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 	}
 }
 
@@ -531,22 +531,22 @@ void Host_ShowJitResults(unsigned int address)
 void Host_UpdateMainFrame()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEGUI);
-	main_frame->AddPendingEvent(event);
+	main_frame->GetEventHandler()->AddPendingEvent(event);
 
 	if (main_frame->g_pCodeWindow)
 	{
-		main_frame->g_pCodeWindow->AddPendingEvent(event);
+		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 	}
 }
 
 void Host_UpdateBreakPointView()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);
-	main_frame->AddPendingEvent(event);
+	main_frame->GetEventHandler()->AddPendingEvent(event);
 
 	if (main_frame->g_pCodeWindow)
 	{
-		main_frame->g_pCodeWindow->AddPendingEvent(event);
+		main_frame->g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 	}
 }
 
@@ -623,7 +623,7 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 	// Post message
 	// TODO : this has been said to cause hang (??) how is that even possible ? :d
 	event.StopPropagation();
-	main_frame->AddPendingEvent(event);
+	main_frame->GetEventHandler()->AddPendingEvent(event);
 	// Process the event before continue
 	wxGetApp().ProcessPendingEvents();
 }
@@ -646,6 +646,6 @@ void Host_SetWiiMoteConnectionState(int _State)
 	// Update field 1 or 2
 	event.SetInt(1);
 
-	main_frame->AddPendingEvent(event);
+	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 #endif // HAVE_WX

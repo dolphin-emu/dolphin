@@ -31,7 +31,6 @@
  *	@brief Handles device I/O for *nix.
  */
 
-#ifndef WIN32
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -89,9 +88,8 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 #pragma mark -
 #pragma mark Bluetooth
 
-- (void) l2capChannelOpenComplete:(IOBluetoothL2CAPChannel*) l2capChannel status:(IOReturn) error
-{
-        //channel opened
+- (void) l2capChannelOpenComplete:(IOBluetoothL2CAPChannel*) l2capChannel status:(IOReturn) error {
+	//channel opened
 	//something to do here ?
 }
 
@@ -99,10 +97,7 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 - (void)l2capChannelData:(IOBluetoothL2CAPChannel *) l2capChannel data:(byte *)BtData length:(NSUInteger)length {
 		
 	//here we got data from wiimote
-	for (int o=0; o<MAX_PAYLOAD; o++)
-	{
-		DataFromWiimote[o] = BtData[o]; 
-	}
+	memcpy(DataFromWiimote, BtData, MAX_PAYLOAD);
 	
 	//stop the main loop after reading
 	CFRunLoopStop( CFRunLoopGetCurrent() );
@@ -110,8 +105,7 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 
 
 
-- (void) l2capChannelClosed:(IOBluetoothL2CAPChannel*) l2capChannel
-{
+- (void) l2capChannelClosed:(IOBluetoothL2CAPChannel*) l2capChannel {
         //channel closed
         printf("Bt channel closed\n");
         if (l2capChannel == _cchan)
@@ -122,14 +116,13 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 }
 
 #pragma mark -
-- (IOBluetoothL2CAPChannel *) openL2CAPChannelWithPSM:(BluetoothL2CAPPSM) psm delegate:(id) delegate
-{
+- (IOBluetoothL2CAPChannel *) openL2CAPChannelWithPSM:(BluetoothL2CAPPSM) psm delegate:(id) delegate {
         IOBluetoothL2CAPChannel * channel = nil;
         IOReturn ret = kIOReturnSuccess;
 
-        printf("Open channel (PSM:%i) ...", psm);
+        WIIUSE_INFO("Open channel (PSM:%i) ...", psm);
         if ((ret = (IOReturn)[btd openL2CAPChannelSync:&channel withPSM:psm delegate:delegate]) != kIOReturnSuccess) {
-                printf("Could not open L2CAP channel (psm:%i)", psm);
+                WIIUSE_INFO("Could not open L2CAP channel (psm:%i)", psm);
                 channel = nil;
                                 //TODO : close the connection
         }
@@ -138,8 +131,7 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 }
 
 
--(void) connectToWiimotes
-{
+-(void) connectToWiimotes {
 
         NSEnumerator * en = [[bti foundDevices] objectEnumerator];
 
@@ -150,14 +142,14 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
                 [btd openL2CAPChannelSync:&_cchan withPSM:kBluetoothL2CAPPSMHIDControl delegate:self];
 
         	if (!_cchan)
-                	printf("error when initialised cchan\n");
+                	WIIUSE_INFO("error when initialised cchan");
 
         	usleep (20000);
 
 		[btd openL2CAPChannelSync:&_ichan withPSM:kBluetoothL2CAPPSMHIDInterrupt delegate:self];
 
         	if (!_ichan)
-                	printf("error when initialised ichan\n");
+                	WIIUSE_INFO("error when initialised ichan");
 
         	usleep (20000);
 
@@ -180,7 +172,7 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 -(void) deviceInquiryDeviceFound: (IOBluetoothDeviceInquiry*) sender
                             device: (IOBluetoothDevice*) device
 {
-    printf("discovered one wiimote%s\n", [[device getAddressString] UTF8String]);
+    WIIUSE_INFO("discovered one wiimote: %s", [[device getAddressString] UTF8String]);
         [bti stop];
 }
 
@@ -191,8 +183,7 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 SearchBT *sbt;
 ConnectBT *cbt;
 
-void detectWiimote()
-{
+void detectWiimote() {
 
     [bti setDelegate: sbt];
     [bti setInquiryLength:20];
@@ -201,14 +192,12 @@ void detectWiimote()
 
     IOReturn ret = [bti start];
     if (ret == kIOReturnSuccess)
-    {
             [bti retain];
-    }
     else
     {
-            printf("error when detecting wiimote\n");
+            WIIUSE_INFO("error when detecting wiimote");
             [bti setDelegate: nil];
-            bti= nil;
+            bti = nil;
     }
 
 
@@ -251,10 +240,10 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 	
 	WIIMOTE_ENABLE_STATE(wm[found_wiimotes], WIIMOTE_STATE_DEV_FOUND);
 
-        [bti release];
+	[bti release];
 	[sbt release];
 
-        [pool release];
+	[pool release];
 
 
 	return 1;
@@ -312,19 +301,19 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address) {
 		return 0;
 
 	//connect to the wiimote
-        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-        cbt = [[ConnectBT alloc] init];
-        //start to connect to the wiimotes
-        [cbt connectToWiimotes];
-	
+	cbt = [[ConnectBT alloc] init];
+	//start to connect to the wiimotes
+	[cbt connectToWiimotes];
+
 	WIIUSE_INFO("Connected to wiimote [id %i].", wm->unid);
 
-	        /* do the handshake */
-        WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_CONNECTED);
-        wiiuse_handshake(wm, NULL, 0);
+		/* do the handshake */
+	WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_CONNECTED);
+	wiiuse_handshake(wm, NULL, 0);
 
-        wiiuse_set_report_type(wm);
+	wiiuse_set_report_type(wm);
 
 
 
@@ -359,15 +348,15 @@ int wiiuse_io_read(struct wiimote_t* wm) {
                 return 0;
 
 
-        /* if this wiimote is not connected, skip it */
-        if (!WIIMOTE_IS_CONNECTED(wm))
-                return 0;
+	/* if this wiimote is not connected, skip it */
+	if (!WIIMOTE_IS_CONNECTED(wm))
+			return 0;
 
-        //run the main loop to get bt data
-        CFRunLoopRun();
+	//run the main loop to get bt data
+	CFRunLoopRun();
 
-        memcpy(wm->event_buf,DataFromWiimote,sizeof(wm->event_buf));
-        return 1;
+	memcpy(wm->event_buf,DataFromWiimote,sizeof(wm->event_buf));
+	return 1;
 
 }
 
@@ -378,5 +367,3 @@ int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int len) {
 }
 
 
-
-#endif /* ifndef WIN32 */

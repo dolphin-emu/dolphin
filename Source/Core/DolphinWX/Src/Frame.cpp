@@ -550,18 +550,18 @@ void CFrame::PostEvent(wxCommandEvent& event)
 		)
 	{
 		event.StopPropagation();
-		g_pCodeWindow->AddPendingEvent(event);
+		g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 	}
 	else
 		event.Skip();
 }
 void CFrame::PostMenuEvent(wxMenuEvent& event)
 {
-	if (g_pCodeWindow) g_pCodeWindow->AddPendingEvent(event);
+	if (g_pCodeWindow) g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 }
 void CFrame::PostUpdateUIEvent(wxUpdateUIEvent& event)
 {
-	if (g_pCodeWindow) g_pCodeWindow->AddPendingEvent(event);
+	if (g_pCodeWindow) g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 }
 
 void CFrame::OnMove(wxMoveEvent& event)

@@ -1,6 +1,7 @@
 # -*- python -*-
 
 Import('env')
+import sys
 
 if not env['HAVE_WX']:
 	Return()
