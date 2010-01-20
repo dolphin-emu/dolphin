@@ -137,7 +137,6 @@ Section "Complete" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite ifnewer
   File "${BASE_DIR}\Dolphin.exe"
-  File "${BASE_DIR}\DolphinIL.exe"
   File "..\Externals\Cg64\cg.dll"
   File "..\Externals\Cg64\cgGL.dll"
   ; File "..\Externals\Cg64\cgD3D9.dll"
@@ -149,8 +148,6 @@ Section "Complete" SEC01
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
   CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\Dolphin x64.lnk" "$INSTDIR\Dolphin.exe"
   CreateShortCut "$DESKTOP\Dolphin x64.lnk" "$INSTDIR\Dolphin.exe"
-  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\DolphinIL x64.lnk" "$INSTDIR\DolphinIL.exe"
-  CreateShortCut "$DESKTOP\DolphinIL x64.lnk" "$INSTDIR\DolphinIL.exe"
 
   ; Plugins
   SetOutPath "$INSTDIR\Plugins"
@@ -238,8 +235,6 @@ Section Uninstall
   Delete "$SMPROGRAMS\${PRODUCT_NAME}\${UN_NAME}.lnk"
   Delete "$DESKTOP\Dolphin x64.lnk"
   Delete "$SMPROGRAMS\${PRODUCT_NAME}\Dolphin x64.lnk"
-  Delete "$DESKTOP\DolphinIL x64.lnk"
-  Delete "$SMPROGRAMS\${PRODUCT_NAME}\DolphinIL x64.lnk"
 
   RMDir "$SMPROGRAMS\${PRODUCT_NAME}"
   RMDir "$INSTDIR\Sys\GC"
