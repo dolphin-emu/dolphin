@@ -20,7 +20,6 @@
 #include "DSoundStream.h"
 #include "AOSoundStream.h"
 #include "AlsaSoundStream.h"
-#include "NullSoundStream.h"
 #include "CoreAudioSoundStream.h"
 #include "OpenALStream.h"
 #include "PulseAudioStream.h"
@@ -46,8 +45,6 @@ namespace AudioCommon
 			soundStream = new CoreAudioSound(mixer);
 		else if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
 			soundStream = new PulseAudio(mixer);
-		else if (backend == BACKEND_NULL        && NullSound::isValid()) 
-			soundStream = new NullSound(mixer);
 
 		if (soundStream != NULL)
 		{
@@ -62,14 +59,12 @@ namespace AudioCommon
 				*/
 				return soundStream;
 			}
-			PanicAlert("Could not initialize backend %s, falling back to NULL", backend.c_str());
+			PanicAlert("Could not initialize backend %s.", backend.c_str());
 		}
-		PanicAlert("Sound backend %s is not valid, falling back to NULL", backend.c_str());
+		PanicAlert("Sound backend %s is not valid.", backend.c_str());
 
 		delete soundStream;
-		soundStream = new NullSound(mixer);
-		soundStream->Start();
-		
+		soundStream = NULL;
 		return NULL;
 	}
 
@@ -104,8 +99,6 @@ namespace AudioCommon
 			backends.push_back(BACKEND_COREAUDIO);
 		if (PulseAudio::isValid()) 
 			backends.push_back(BACKEND_PULSEAUDIO);
-		if (NullSound::isValid()) 
-			backends.push_back(BACKEND_NULL);
 	   
 		return backends;
 	}

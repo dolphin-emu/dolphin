@@ -429,10 +429,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\NullSoundStream.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\OpenALStream.cpp"
 				>
 			</File>

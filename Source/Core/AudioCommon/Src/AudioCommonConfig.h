@@ -28,7 +28,6 @@
 #define BACKEND_OPENAL      "OpenAL"
 #define BACKEND_ALSA        "ALSA"
 #define BACKEND_PULSEAUDIO  "Pulse"
-#define BACKEND_NULL        "NullSound"
 
 struct AudioCommonConfig 
 {
