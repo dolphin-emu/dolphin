@@ -42,7 +42,7 @@ static std::list<MESSAGE> s_listMsgs;
 
 void AddMessage(const char* pstr, u32 ms)
 {
-	s_listMsgs.push_back(MESSAGE(pstr, timeGetTime() + ms));
+	s_listMsgs.push_back(MESSAGE(pstr, Common::Timer::GetTimeMs() + ms));
 }
 
 void DrawMessages()
@@ -53,7 +53,7 @@ void DrawMessages()
 		std::list<MESSAGE>::iterator it = s_listMsgs.begin();
 		while (it != s_listMsgs.end()) 
 		{
-			int time_left = (int)(it->dwTimeStamp - timeGetTime());
+			int time_left = (int)(it->dwTimeStamp - Common::Timer::GetTimeMs());
 			int alpha = 255;
 
 			if (time_left < 1024)

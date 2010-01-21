@@ -132,7 +132,7 @@ cl_command_queue GetCommandQueue()
 
 cl_program CompileProgram(const char *Kernel)
 {
-	u32 compileStart = timeGetTime();
+	u32 compileStart = Common::Timer::GetTimeMs();
 	int err;
 	cl_program program;
 	program = clCreateProgramWithSource(OpenCL::g_context, 1, (const char **) & Kernel, NULL, &err);
@@ -152,13 +152,13 @@ cl_program CompileProgram(const char *Kernel)
 		return NULL;
 	}
 
-	NOTICE_LOG(COMMON, "OpenCL CompileProgram took %.3f seconds", (float)(timeGetTime() - compileStart) / 1000.0);
+	NOTICE_LOG(COMMON, "OpenCL CompileProgram took %.3f seconds", (float)(Common::Timer::GetTimeMs() - compileStart) / 1000.0);
 	return program;
 }
 
 cl_kernel CompileKernel(cl_program program, const char *Function)
 {
-	u32 compileStart = timeGetTime();
+	u32 compileStart = Common::Timer::GetTimeMs();
 	int err;
 
 	// Create the compute kernel in the program we wish to run
@@ -168,7 +168,7 @@ cl_kernel CompileKernel(cl_program program, const char *Function)
 		HandleCLError(err, "Failed to create compute kernel!");
 		return NULL;
 	}
-	NOTICE_LOG(COMMON, "OpenCL CompileKernel took %.3f seconds", (float)(timeGetTime() - compileStart) / 1000.0);
+	NOTICE_LOG(COMMON, "OpenCL CompileKernel took %.3f seconds", (float)(Common::Timer::GetTimeMs() - compileStart) / 1000.0);
 	return kernel;
 }
 #endif

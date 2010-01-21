@@ -1011,9 +1011,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	static int fpscount = 0;
     static unsigned long lasttime;
     ++fpscount;
-    if (timeGetTime() - lasttime > 1000) 
+    if (Common::Timer::GetTimeMs() - lasttime > 1000) 
     {
-        lasttime = timeGetTime();
+        lasttime = Common::Timer::GetTimeMs();
         s_fps = fpscount - 1;
         fpscount = 0;
     }
@@ -1163,10 +1163,10 @@ void Renderer::DrawDebugText()
 	{
 		if (OSDChoice > 0)
 		{
-			OSDTime = timeGetTime() + 3000;
+			OSDTime = Common::Timer::GetTimeMs() + 3000;
 			OSDChoice = -OSDChoice;
 		}
-		if ((u32)OSDTime > timeGetTime())
+		if ((u32)OSDTime > Common::Timer::GetTimeMs())
 		{
 			std::string T1 = "", T2 = "";
 			std::vector<std::string> T0;

@@ -20,6 +20,7 @@
 #include <strsafe.h>
 
 #include "Common.h"
+#include "Timer.h"
 #include "Statistics.h"
 
 #include "VideoConfig.h"
@@ -1017,9 +1018,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	static int fpscount = 0;
     static unsigned long lasttime;
     ++fpscount;
-    if (timeGetTime() - lasttime > 1000) 
+	if (Common::Timer::GetTimeMs() - lasttime > 1000) 
     {
-        lasttime = timeGetTime();
+        lasttime = Common::Timer::GetTimeMs();
         s_fps = fpscount - 1;
         fpscount = 0;
     }

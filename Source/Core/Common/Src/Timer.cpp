@@ -128,7 +128,7 @@ std::string Timer::GetTimeElapsedFormatted() const
 	// The number of milliseconds since the start, use a different value if the timer is stopped
 	u64 Milliseconds;
 	if (m_Running)
-		Milliseconds = timeGetTime() - m_StartTime;
+		Milliseconds = GetTimeMs() - m_StartTime;
 	else
 		Milliseconds = m_LastTime - m_StartTime;
 	// Seconds

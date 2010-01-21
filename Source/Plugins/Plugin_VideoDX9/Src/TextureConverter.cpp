@@ -203,23 +203,23 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 	LPDIRECT3DSURFACE9  s_texConvReadSurface = NULL;
 	LPDIRECT3DSURFACE9 Rendersurf = NULL;
 	
-	if(index >= WorkingBuffers)
+	if (index >= WorkingBuffers)
 	{
-		if(WorkingBuffers < NUM_TRANSFORM_BUFFERS)
+		if (WorkingBuffers < NUM_TRANSFORM_BUFFERS)
 			WorkingBuffers++;
-		if(index >= WorkingBuffers)
+		if (index >= WorkingBuffers)
 			index--;
-		if(TrnBuffers[index].RenderSurface != NULL)
+		if (TrnBuffers[index].RenderSurface != NULL)
 		{
 			TrnBuffers[index].RenderSurface->Release();
 			TrnBuffers[index].RenderSurface = NULL;
 		}
-		if(TrnBuffers[index].ReadSurface != NULL)
+		if (TrnBuffers[index].ReadSurface != NULL)
 		{
 			TrnBuffers[index].ReadSurface->Release();
 			TrnBuffers[index].ReadSurface = NULL;
 		}
-		if(TrnBuffers[index].FBTexture != NULL)
+		if (TrnBuffers[index].FBTexture != NULL)
 		{
 			TrnBuffers[index].FBTexture->Release();
 			TrnBuffers[index].FBTexture = NULL;		

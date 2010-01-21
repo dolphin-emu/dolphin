@@ -137,7 +137,7 @@ void DVProfRegister(const char *pname)
 //  while(it != g_listAllProfilers.end() ) {
 //
 //      if( _tcscmp(pname, (*it)->pname) == 0 ) {
-//          (*it)->listTimes.push_back(timeGetTime());
+//          (*it)->listTimes.push_back(Common::Timer::GetTimeMs());
 //          DVPROFTRACK dvtrack;
 //          dvtrack.pdwTime = &(*it)->listTimes.back();
 //          dvtrack.pprof = *it;
