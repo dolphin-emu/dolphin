@@ -454,7 +454,11 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 	sourcerect.right = src_rect.right;
 	sourcerect.top = src_rect.top;
 
+	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);		
+	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 	D3D::drawShadedTexQuad(read_texture,&sourcerect,Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),&destinationrect,PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader());	
+	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);		
+	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
 	
 	// Finish up the current frame, print some stats
 	if (g_ActiveConfig.bShowFPS)
@@ -578,7 +582,6 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());	
 	UpdateViewport();	
     VertexShaderManager::SetViewportChanged();
-	
 }
 
 bool Renderer::SetScissorRect()
