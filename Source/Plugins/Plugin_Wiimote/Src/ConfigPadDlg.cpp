@@ -952,6 +952,7 @@ void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 	{
 	case IDC_JOYNAME:
 		WiiMoteEmu::WiiMapping[m_Page].ID = m_Joyname[m_Page]->GetSelection();
+		WiiMoteEmu::WiiMapping[m_Page].joy = WiiMoteEmu::joyinfo.at(WiiMoteEmu::WiiMapping[m_Page].ID).joy;
 		break;
 	case IDC_DEAD_ZONE_LEFT:
 		WiiMoteEmu::WiiMapping[m_Page].DeadZoneL = m_ComboDeadZoneLeft[m_Page]->GetSelection();

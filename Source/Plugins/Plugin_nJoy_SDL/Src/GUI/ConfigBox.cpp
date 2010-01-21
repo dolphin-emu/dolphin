@@ -260,9 +260,11 @@ void PADConfigDialognJoy::DoSave(bool ChangePad, int Slot)
 		for(int i = 0; i < 4; i++)
 			SaveButtonMapping(i, true);
 		
-		g_Config.Save(Slot);
 		// Now we can update the ID
 		PadMapping[notebookpage].ID = m_Joyname[notebookpage]->GetSelection();
+		PadState[notebookpage].joy = joyinfo.at(PadMapping[notebookpage].ID).joy;
+
+		g_Config.Save(Slot);
 	}
 	else
 	{
