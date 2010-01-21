@@ -101,7 +101,7 @@ PC_TexFormat GetHiresTex(const char *fileName, int *pWidth, int *pHeight, int te
 {
 	std::string key(fileName);
 
-	if(textureMap.find(key) == textureMap.end())
+	if (textureMap.find(key) == textureMap.end())
 		return PC_TEX_FMT_NONE;
 
 	int width;
@@ -142,7 +142,7 @@ PC_TexFormat GetHiresTex(const char *fileName, int *pWidth, int *pHeight, int te
 		returnTex = PC_TEX_FMT_IA8;
 		break;
 	default:
-		memcpy(data, temp, width*height*4);
+		memcpy(data, temp, width * height * 4);
 		returnTex = PC_TEX_FMT_RGBA32;
 		break;
 	}

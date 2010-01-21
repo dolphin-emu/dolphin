@@ -21,7 +21,7 @@
 namespace D3D
 {
 
-LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int height, const int pitch, D3DFORMAT fmt)
+LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int height, const int pitch, D3DFORMAT fmt, bool swap_r_b)
 {
 	u32* pBuffer = (u32*)buffer;
 	LPDIRECT3DTEXTURE9 pTexture;
@@ -148,7 +148,7 @@ LPDIRECT3DTEXTURE9 CreateOnlyTexture2D(const int width, const int height, D3DFOR
 	return pTexture;
 }
 
-void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int width, const int height,const int pitch,  D3DFORMAT fmt)
+void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int width, const int height, const int pitch, D3DFORMAT fmt, bool swap_r_b)
 {
 	u32* pBuffer = (u32*)buffer;
 	int level = 0;
@@ -162,14 +162,27 @@ void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int w
 		fmt = D3DFMT_A8L8;
 		bExpand = true;
 	}
-	switch(fmt) 
+	switch (fmt) 
 	{
 	case D3DFMT_A8R8G8B8:
-		{
+		if (!swap_r_b) {
 			for (int y = 0; y < height; y++)
 			{
-				u32* pBits = (u32*)((u8*)Lock.pBits + (y * Lock.Pitch));
+				u32 *pBits = (u32*)((u8*)Lock.pBits + (y * Lock.Pitch));
 				memcpy(pBits, pIn, width * 4);
+				pIn += pitch;
+			}
+		} else {
+			for (int y = 0; y < height; y++)
+			{
+				u8 *pIn8 = (u8 *)pIn;
+				u8 *pBits = (u8 *)((u8*)Lock.pBits + (y * Lock.Pitch));
+				for (int x = 0; x < width * 4; x += 4) {
+					pBits[x + 0] = pIn8[x + 2];
+					pBits[x + 1] = pIn8[x + 1];
+					pBits[x + 2] = pIn8[x + 0];
+					pBits[x + 3] = pIn8[x + 3];
+				}
 				pIn += pitch;
 			}
 		}
