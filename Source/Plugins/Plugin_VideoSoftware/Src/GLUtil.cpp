@@ -148,10 +148,10 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 
     wxSize size(_twidth, _theight);
     if ( g_VideoInitialize.pWindowHandle == NULL) {
-        GLWin.frame = new wxFrame((wxWindow *)g_VideoInitialize.pWindowHandle,
+        GLWin.frame = new wxFrame((wxWindow *)NULL,
                                   -1, _("Dolphin"), wxPoint(50,50), size);
     } else {
-        GLWin.frame = new wxFrame((wxWindow *)NULL,
+        GLWin.frame = new wxFrame((wxWindow *)g_VideoInitialize.pWindowHandle,
                                   -1, _("Dolphin"), wxPoint(50,50), size);
     }
 
