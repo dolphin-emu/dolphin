@@ -453,10 +453,10 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			bCheckedDumpDir = true;
 		}
 
-		sprintf(szTemp, "%s/%s_%08x_%i.bmp", szDir, uniqueId, texHash, tex_format);
+		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir, uniqueId, texHash, tex_format);
 
 		if (!File::Exists(szTemp))
-			D3DXSaveTextureToFileA(szTemp,D3DXIFF_BMP,entry.texture,0);
+			D3DXSaveTextureToFileA(szTemp,D3DXIFF_PNG,entry.texture,0);
 	}
 
 	INCSTAT(stats.numTexturesCreated);
