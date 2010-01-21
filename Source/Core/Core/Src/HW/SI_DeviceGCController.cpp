@@ -226,11 +226,11 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	{
 		m_LastButtonCombo = tempCombo;
 		if (m_LastButtonCombo != COMBO_NONE)
-			m_TButtonComboStart = timeGetTime();
+			m_TButtonComboStart = Common::Timer::GetTimeMs();
 	}
 	if (m_LastButtonCombo != COMBO_NONE)
 	{
-		m_TButtonCombo = timeGetTime();
+		m_TButtonCombo = Common::Timer::GetTimeMs();
 		if ((m_TButtonCombo - m_TButtonComboStart) > 3000)
 		{
 			if (m_LastButtonCombo == COMBO_RESET)

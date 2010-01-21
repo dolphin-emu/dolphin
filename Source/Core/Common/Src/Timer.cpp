@@ -18,21 +18,31 @@
 #include <time.h>
 #include <sys/timeb.h>
 
+#ifdef _WIN32
+#include <Windows.h>
+#include <mmsystem.h>
+#endif
+
 #include "Common.h"
 #include "Timer.h"
 #include "StringUtil.h"
 
+namespace Common
+{
+
 #ifdef __GNUC__
-u32 timeGetTime()
+u32 Timer::GetTimeMs()
 {
 	struct timeb t;
 	ftime(&t);
-	return((u32)(t.time * 1000 + t.millitm));
+	return ((u32)(t.time * 1000 + t.millitm));
+}
+#else
+u32 Timer::GetTimeMs() {
+	return timeGetTime();
 }
 #endif
 
-namespace Common
-{
 
 // --------------------------------------------
 // Initiate, Start, Stop, and Update the time

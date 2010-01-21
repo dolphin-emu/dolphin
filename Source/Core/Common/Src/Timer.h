@@ -20,10 +20,7 @@
 
 #include "Common.h"
 #include <string>
-#ifdef _WIN32
-#include <Windows.h>
-#include <mmsystem.h>
-#endif
+
 namespace Common
 {
 class Timer
@@ -50,7 +47,9 @@ public:
 	std::string GetTimeElapsedFormatted() const;
 	u64 GetTimeElapsed();
 
-public:
+	static u32 GetTimeMs();
+
+private:
 	u64 m_LastTime;
 	u64 m_StartTime;
 	u64 m_frequency;
@@ -58,9 +57,5 @@ public:
 };
 
 } // Namespace Common
-
-#ifdef __GNUC__
-u32 timeGetTime();
-#endif // GNUC
 
 #endif // _TIMER_H_
