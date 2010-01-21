@@ -267,15 +267,15 @@ bool Renderer::Init()
 	s_backbuffer_height = D3D::GetBackBufferHeight();
 
 	// TODO: Grab target width from configured resolution?
-	s_target_width  = s_backbuffer_width * EFB_WIDTH / 640;
-	s_target_height = s_backbuffer_height * EFB_HEIGHT / 480;	
+	s_target_width  = s_backbuffer_width;
+	s_target_height = s_backbuffer_height * ((float)EFB_HEIGHT / 480.0f);	
 
 	xScale = (float)s_target_width / (float)EFB_WIDTH;
 	yScale = (float)s_target_height / (float)EFB_HEIGHT;
-	s_Fulltarget_width  = s_backbuffer_width;
-	s_Fulltarget_height = s_backbuffer_height;
+	s_Fulltarget_width  = s_target_width;
+	s_Fulltarget_height = s_target_height;
 	//apply automatic resizing only is not an ati card, ati can handle large viewports :)
-	AUTO_ADJUST_RENDERTARGET_SIZE  = true;//!D3D::IsATIDevice();
+	AUTO_ADJUST_RENDERTARGET_SIZE  = !D3D::IsATIDevice();
 	
 	s_LastFrameDumped = false;
 	s_AVIDumping = false;

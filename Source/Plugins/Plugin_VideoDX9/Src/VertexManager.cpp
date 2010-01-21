@@ -243,7 +243,7 @@ void Flush()
 	for (int i = 0; i < 8; i++)
 	{
 		if (usedtextures & (1 << i)) {
-			//Renderer::SetSamplerState(i & 3, i >> 2);
+			Renderer::SetSamplerState(i & 3, i >> 2);
 			FourTexUnits &tex = bpmem.tex[i >> 2];
 			TextureCache::TCacheEntry* tentry = TextureCache::Load(i, 
 				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
