@@ -437,10 +437,8 @@ void CEXIMemoryCard::TransferByte(u8 &byte)
 
 void CEXIMemoryCard::DoState(PointerWrap &p)
 {
-#if 0 // Makes savestates worse for 1st party games (SMS, ZWW) but better for third party games
 	int slot = 0;
 	if (GetFileName() == SConfig::GetInstance().m_strMemoryCardA)
 		slot = 1;
 	ExpansionInterface::ChangeDevice(slot, slot ? EXIDEVICE_MEMORYCARD_B : EXIDEVICE_MEMORYCARD_A, 0);
-#endif
 }
