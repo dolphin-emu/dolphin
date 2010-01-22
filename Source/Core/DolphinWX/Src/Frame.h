@@ -86,6 +86,7 @@ class CFrame : public wxFrame
 		void StatusBarMessage(const char * Text, ...);
 		void ClearStatusBar();
 		void OnCustomHostMessage(int Id);
+		void StartGame(const std::string& filename);
 
 		// ---------------------------------------
 		// Wiimote leds
@@ -252,7 +253,6 @@ class CFrame : public wxFrame
 		WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 #endif
 		// Event functions
-		void StartGame();
 		void OnQuit(wxCommandEvent& event);
 		void OnHelp(wxCommandEvent& event);
 		void OnToolBar(wxCommandEvent& event);
@@ -333,7 +333,7 @@ class CFrame : public wxFrame
 		wxMenuItem* m_pSubMenuSave;
 		wxMenuItem* m_pSubMenuFrameSkipping;
 
-		void BootGame();
+		void BootGame(const std::string& filename);
 
 		// Double click and mouse move options
 		double m_fLastClickTime, m_iLastMotionTime;

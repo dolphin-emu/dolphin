@@ -464,8 +464,8 @@ void CFrame::InitBitmaps()
 	aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 }
 
-
-
+// Game loading state
+bool game_loading = false;
 
 // Menu items
 
@@ -474,16 +474,19 @@ void CFrame::InitBitmaps()
 // 1. Show the game list and boot the selected game.
 // 2. Default ISO
 // 3. Boot last selected game
-void CFrame::BootGame()
+void CFrame::BootGame(const std::string& filename)
 {
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 		return;
 
+	// Start filename if non empty.
 	// Start the selected ISO, or try one of the saved paths.
 	// If all that fails, ask to add a dir and don't boot
-	if (m_GameListCtrl->GetSelectedISO() != NULL)
+	if (!filename.empty())
+		BootManager::BootCore(filename);
+	else if (m_GameListCtrl->GetSelectedISO() != NULL)
 	{
 		if (m_GameListCtrl->GetSelectedISO()->IsValid())
 			BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
@@ -503,6 +506,7 @@ void CFrame::BootGame()
 		else
 		{
 			m_GameListCtrl->BrowseForDirectory();
+			game_loading = false;
 			m_GameListCtrl->Enable();
 			m_GameListCtrl->Show();
 			return;
@@ -590,7 +594,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED (event))
 
 	// TODO: Take controller settings from Gamecube Configuration menu
 	if(Frame::BeginRecordingInput(path.mb_str(), 1))
-		BootGame();
+		BootGame(std::string(""));
 }
 
 void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
@@ -611,11 +615,8 @@ void CFrame::OnPlayRecording(wxCommandEvent& WXUNUSED (event))
 		return;
 
 	if(Frame::PlayInput(path.mb_str()))
-		BootGame();
+		BootGame(std::string(""));
 }
-
-// Game loading state
-bool game_loading = false;
 
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 {
@@ -645,11 +646,11 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 	}
 	else
 		// Core is uninitialized, start the game
-		StartGame();
+		StartGame(std::string(""));
 }
 
 // Prepare the GUI to start the game.
-void CFrame::StartGame()
+void CFrame::StartGame(const std::string& filename)
 {
 	game_loading = true;
 
@@ -664,7 +665,7 @@ void CFrame::StartGame()
 		m_GameListCtrl->Hide();
 	}
 
-	BootGame();
+	BootGame(filename);
 }
 
 void CFrame::OnBootDrive(wxCommandEvent& event)
@@ -1068,7 +1069,7 @@ void CFrame::UpdateGUI()
 	
 	if (!Initialized)
 	{
-		if (Core::GetStartupParameter().m_strFilename.empty())
+		if (m_GameListCtrl->IsEnabled())
 		{
 			// Prepare to load Default ISO, enable play button
 			if (!Core::GetStartupParameter().m_strDefaultGCM.empty())
@@ -1092,13 +1093,6 @@ void CFrame::UpdateGUI()
 					m_ToolBar->EnableTool(IDM_PLAY, false);
 				GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
 			}
-		}
-		else
-		{
-			// Loading Default ELF automatically, disable play button
-			if (m_ToolBar)
-				m_ToolBar->EnableTool(IDM_PLAY, false);
-			GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
 		}
 
 		if (m_GameListCtrl && !game_loading)

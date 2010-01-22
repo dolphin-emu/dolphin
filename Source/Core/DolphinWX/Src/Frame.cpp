@@ -702,7 +702,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 	}			
 	else
 		// Game started by double click
-		StartGame();
+		StartGame(std::string(""));
 }
 
 void CFrame::OnKeyDown(wxKeyEvent& event)

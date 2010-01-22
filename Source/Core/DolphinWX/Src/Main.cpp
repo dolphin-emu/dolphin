@@ -44,7 +44,7 @@
 #include "JitWindow.h"
 #include "ExtendedTrace.h"
 #include "BootManager.h"
-
+#include "Frame.h"
 
 // ------------
 //  Main window
@@ -408,7 +408,7 @@ bool DolphinApp::OnInit()
 	// First check if we have a elf command line. Todo: Should we place this under #if wxUSE_CMDLINE_PARSER?
 	if (LoadElf && ElfFile != wxEmptyString)
 	{
-		BootManager::BootCore(std::string(ElfFile.mb_str()));
+		main_frame->StartGame(std::string(ElfFile.mb_str()));
 	}
 	/* If we have selected Automatic Start, start the default ISO, or if no default
 	   ISO exists, start the last loaded ISO */
@@ -420,13 +420,13 @@ bool DolphinApp::OnInit()
 				&& File::Exists(SConfig::GetInstance().m_LocalCoreStartupParameter.
 					m_strDefaultGCM.c_str()))
 			{
-				BootManager::BootCore(SConfig::GetInstance().m_LocalCoreStartupParameter.
+				main_frame->StartGame(SConfig::GetInstance().m_LocalCoreStartupParameter.
 					m_strDefaultGCM);
 			}
 			else if(!SConfig::GetInstance().m_LastFilename.empty()
 				&& File::Exists(SConfig::GetInstance().m_LastFilename.c_str()))
 			{
-				BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
+				main_frame->StartGame(SConfig::GetInstance().m_LastFilename);
 			}	
 		}
 	}
