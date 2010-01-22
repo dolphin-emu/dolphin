@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
-	Name="Plugin_nJoy_SDL"
-	ProjectGUID="{521498BE-6089-4780-8223-E67C22F4E068}"
+	Version="9.00"
+	Name="Plugin_GCPad"
+	ProjectGUID="{9FF603F8-B3BB-4144-9688-B2B802FA0F16}"
 	RootNamespace="Plugin_nJoy_SDL"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
@@ -73,6 +73,168 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="2"
+			CharacterSet="1"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_NJOY_SDL_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
+				RuntimeLibrary="0"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				WarnAsError="false"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="SDL.lib comctl32.lib xinput.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
+				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName).dll"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
+				GenerateManifest="false"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
+				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="DebugFast|Win32"
+			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
+			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			ConfigurationType="2"
+			CharacterSet="1"
+			WholeProgramOptimization="1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;DEBUGFAST;_WINDOWS;_USRDLL;PLUGIN_NJOY_SDL_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
+				RuntimeLibrary="0"
+				UsePrecompiledHeader="0"
+				WarningLevel="3"
+				WarnAsError="false"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalDependencies="SDL.lib comctl32.lib rpcrt4.lib xinput.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
+				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName)DF.dll"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
+				GenerateManifest="false"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
+				SubSystem="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
@@ -182,87 +344,6 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
-			CharacterSet="1"
-			WholeProgramOptimization="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_NJOY_SDL_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
-				RuntimeLibrary="0"
-				UsePrecompiledHeader="0"
-				WarningLevel="3"
-				WarnAsError="false"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib comctl32.lib xinput.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
-				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName).dll"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
-				GenerateManifest="false"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
 			Name="Release|x64"
 			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
@@ -320,87 +401,6 @@
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="DebugFast|Win32"
-			OutputDirectory="$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
-			ConfigurationType="2"
-			CharacterSet="1"
-			WholeProgramOptimization="1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
-				PreprocessorDefinitions="WIN32;NDEBUG;DEBUGFAST;_WINDOWS;_USRDLL;PLUGIN_NJOY_SDL_EXPORTS;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
-				RuntimeLibrary="0"
-				UsePrecompiledHeader="0"
-				WarningLevel="3"
-				WarnAsError="false"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib comctl32.lib rpcrt4.lib xinput.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib"
-				OutputFile="..\..\..\Binary\Win32\Plugins\$(ProjectName)DF.dll"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
-				GenerateManifest="false"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
-				SubSystem="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
-				TargetMachine="1"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -510,69 +510,47 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			Name="Config"
 			>
 			<File
-				RelativePath=".\Src\Config.cpp"
+				RelativePath=".\Config.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\Config.h"
+				RelativePath=".\Config.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\nJoy.cpp"
+				RelativePath=".\ConfigBox.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\nJoy.h"
+				RelativePath=".\ConfigBox.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\ReRecording.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Rumble.cpp"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="GUI"
-			>
-			<File
-				RelativePath=".\Src\GUI\AboutBox.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\GUI\AboutBox.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\GUI\ConfigAdvanced.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\GUI\ConfigBox.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\GUI\ConfigBox.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\GUI\ConfigJoypad.cpp"
+				RelativePath=".\ConfigJoypad.cpp"
 				>
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\readme.txt"
+			RelativePath=".\GCPad.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\SConscript"
+			RelativePath=".\GCPad.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\PluginSpecs\pluginspecs_pad.h"
+			>
+		</File>
+		<File
+			RelativePath=".\ReRecording.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Rumble.cpp"
 			>
 		</File>
 	</Files>

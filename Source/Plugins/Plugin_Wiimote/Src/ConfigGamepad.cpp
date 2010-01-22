@@ -29,7 +29,7 @@
 // Replace the harder to understand -1 with "" for the sake of user friendliness
 void WiimotePadConfigDialog::ToBlank(bool ToBlank, int Id)
 {
-	if (!ControlsCreated)
+	if (!m_ControlsCreated)
 		return;
 
 	if(ToBlank)
@@ -96,30 +96,6 @@ wxString WiimotePadConfigDialog::GetButtonText(int id)
 		return m_Button_GH3[id - IDB_GH3_GREEN][m_Page]->GetLabel();
 		
 	return wxString();
-}
-
-// Configure button mapping
-// Wait for button press
-/* Loop or timer: There are basically two ways to do this. With a while() or
-   for() loop, or with a timer. The downside with the while() or for() loop is
-   that there is no way to stop it if the user should select to configure
-   another button while we are still in an old loop. What will happen then is
-   that we start another parallel loop (at least in Windows) that blocks the
-   old loop. And our only option to wait for the old loop to finish is with a
-   new loop, and that will block the old loop for as long as it's going
-   on. Therefore a timer is easier to control. */
-void WiimotePadConfigDialog::GetButtons(wxCommandEvent& event)
-{
-	if (event.GetEventType() != wxEVT_COMMAND_BUTTON_CLICKED)
-		return;
-
-	if (m_ButtonMappingTimer->IsRunning())
-		return;
-
-	wxButton* pButton = (wxButton *)event.GetEventObject();
-	OldLabel = pButton->GetLabel();
-	pButton->SetLabel(wxT("<Move Axis>"));
-	DoGetButtons(pButton->GetId());
 }
 
 void WiimotePadConfigDialog::DoGetButtons(int _GetId)
@@ -309,7 +285,7 @@ void WiimotePadConfigDialog::UpdatePadInfo(wxTimerEvent& WXUNUSED(event))
 
 	// Produce square
 	if(WiiMoteEmu::WiiMapping[m_Page].bCircle2Square)
-		InputCommon::Square2Circle(main_x_after, main_y_after, 0, WiiMoteEmu::WiiMapping[m_Page].Diagonal, true);
+		InputCommon::Square2Circle(main_x_after, main_y_after, WiiMoteEmu::WiiMapping[m_Page].Diagonal, true);
 
 	// Check dead zone
 	float DeadZoneLeft = (float)WiiMoteEmu::WiiMapping[m_Page].DeadZoneL / 100.0;
@@ -325,38 +301,15 @@ void WiimotePadConfigDialog::UpdatePadInfo(wxTimerEvent& WXUNUSED(event))
 		right_y_after = 0;
 	}
 
-	// Show the adjusted angles in the status box
-	// Change 0x8000 to 180
-	/*
-	float x8000 = 0x8000;
-	main_x_after = main_x_after * (180 / x8000);
-	main_y_after = main_y_after * (180 / x8000);
-	float f_main_x_after = (float)main_x_after;
-	float f_main_y_after = (float)main_y_after;
-	WiiMoteEmu::AdjustAngles(f_main_x_after, f_main_y_after);
-	//WiiMoteEmu::AdjustAngles(f_main_x_after, f_main_y_after, true);
-	main_x_after = (int)f_main_x_after;
-	main_y_after = (int)f_main_y_after;
-	// Change back 180 to 0x8000 
-	main_x_after = main_x_after * (x8000 / 180);
-	main_y_after = main_y_after * (x8000 / 180);
-	*/
+	int Lx = InputCommon::Pad_Convert(main_x); int Ly = InputCommon::Pad_Convert(main_y);
+	int Rx = InputCommon::Pad_Convert(right_x); int Ry = InputCommon::Pad_Convert(right_y);
+	int Lx_after = InputCommon::Pad_Convert(main_x_after); int Ly_after = InputCommon::Pad_Convert(main_y_after);
+	int Rx_after = InputCommon::Pad_Convert(right_x_after); int Ry_after = InputCommon::Pad_Convert(right_y_after);
 
-	// Convert the values to fractions
-	float f_x = main_x / 32767.0;
-	float f_y = main_y / 32767.0;
-	float f_x_aft = main_x_after / 32767.0;
-	float f_y_aft = main_y_after / 32767.0;
-
-	float f_Rx = right_x / 32767.0;
-	float f_Ry = right_y / 32767.0;
-	float f_Rx_aft = right_x_after / 32767.0;
-	float f_Ry_aft = right_y_after / 32767.0;
-
-	m_tStatusLeftIn[m_Page]->SetLabel(wxString::Format(wxT("x:%1.2f y:%1.2f"), f_x, f_y	));
-	m_tStatusLeftOut[m_Page]->SetLabel(wxString::Format(wxT("x:%1.2f y:%1.2f"), f_x_aft, f_y_aft));
-	m_tStatusRightIn[m_Page]->SetLabel(wxString::Format(wxT("x:%1.2f y:%1.2f"), f_Rx, f_Ry));
-	m_tStatusRightOut[m_Page]->SetLabel(wxString::Format(wxT("x:%1.2f y:%1.2f"), f_Rx_aft, f_Ry_aft));
+	m_tStatusLeftIn[m_Page]->SetLabel(wxString::Format(wxT("X:%03i   Y:%03i"), Lx, Ly));
+	m_tStatusLeftOut[m_Page]->SetLabel(wxString::Format(wxT("X:%03i   Y:%03i"), Lx_after, Ly_after));
+	m_tStatusRightIn[m_Page]->SetLabel(wxString::Format(wxT("X:%03i   Y:%03i"), Rx, Ry));
+	m_tStatusRightOut[m_Page]->SetLabel(wxString::Format(wxT("X:%03i   Y:%03i"), Rx_after, Ry_after));
 
 	// Adjust the values for the plot
 	Convert2Box(main_x); Convert2Box(main_y);

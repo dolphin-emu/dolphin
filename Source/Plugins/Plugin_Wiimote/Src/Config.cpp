@@ -318,7 +318,7 @@ void Config::Load()
 		iniFile.Get(SectionName, "Trigger_R", &WiiMoteEmu::WiiMapping[i].AxisMapping.Tr, 1005);
 		iniFile.Get(SectionName, "DeadZoneL", &WiiMoteEmu::WiiMapping[i].DeadZoneL, 0);
 		iniFile.Get(SectionName, "DeadZoneR", &WiiMoteEmu::WiiMapping[i].DeadZoneR, 0);
-		iniFile.Get(SectionName, "Diagonal", &WiiMoteEmu::WiiMapping[i].Diagonal, "100%");
+		iniFile.Get(SectionName, "Diagonal", &WiiMoteEmu::WiiMapping[i].Diagonal, 100);
 		iniFile.Get(SectionName, "Circle2Square", &WiiMoteEmu::WiiMapping[i].bCircle2Square, false);
 		iniFile.Get(SectionName, "Rumble", &WiiMoteEmu::WiiMapping[i].Rumble, false);
 		iniFile.Get(SectionName, "RumbleStrength", &WiiMoteEmu::WiiMapping[i].RumbleStrength, 8); // x10

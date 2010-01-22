@@ -146,7 +146,7 @@ class WiimotePadConfigDialog : public wxDialog
 			IDC_GH3_ANALOG,
 		};
 
-		bool ControlsCreated;
+		bool m_ControlsCreated;
 		int m_Page, BoxW, BoxH;
 
 		wxString OldLabel;
@@ -281,13 +281,14 @@ class WiimotePadConfigDialog : public wxDialog
 		void OnButtonTimer(wxTimerEvent& WXUNUSED(event)) { DoGetButtons(GetButtonWaitingID); }
 		void OnKeyDown(wxKeyEvent& event);
 		void OnButtonClick(wxCommandEvent& event);
+		void OnAxisClick(wxCommandEvent& event);
 		void GeneralSettingsChanged(wxCommandEvent& event);
 		void SaveButtonMapping(int Id, int Key);
 
 		// Gamepad configuration
 		void SetButtonText(int id,const wxString &str);
 		wxString GetButtonText(int id);
-		void GetButtons(wxCommandEvent& btn_event);
+
 		void DoGetButtons(int id);
 		void UpdatePadInfo(wxTimerEvent& WXUNUSED(event));
 		void ToBlank(bool ToBlank, int Id);

@@ -665,7 +665,8 @@ void ReadLinuxKeyboard()
 			
 			if ((key >= XK_F1 && key <= XK_F9) ||
 			   key == XK_Shift_L || key == XK_Shift_R ||
-			   key == XK_Control_L || key == XK_Control_R) {
+			   key == XK_Control_L || key == XK_Control_R)
+			{
 				XPutBackEvent(WMdisplay, &E);
 				break;
 			}

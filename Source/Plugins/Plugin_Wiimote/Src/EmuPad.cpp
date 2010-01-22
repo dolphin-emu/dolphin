@@ -80,14 +80,12 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 
 	bool WasGotten = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
 
-	// Warn the user if no gamepads are detected
 	if (_NumGoodPads == 0)
 		return false;
 
-	// Update the PadState[].joy handle
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
-		if (_NumPads > (u32)WiiMapping[i].ID)
+		if (_NumPads > WiiMapping[i].ID)
 			if(_joyinfo.at(WiiMapping[i].ID).Good)
 				WiiMapping[i].joy = _joyinfo.at(WiiMapping[i].ID).joy;
 	}
@@ -127,8 +125,8 @@ void GetAxisState(CONTROLLER_MAPPING_WII &_WiiMapping)
 	}
 	else
 	{
-		_WiiMapping.AxisState.Tl = XInput::GetXI(0, _WiiMapping.AxisMapping.Tl - 1000);
-		_WiiMapping.AxisState.Tr = XInput::GetXI(0, _WiiMapping.AxisMapping.Tr - 1000);
+		_WiiMapping.AxisState.Tl = XInput::GetXI(_WiiMapping.ID, _WiiMapping.AxisMapping.Tl - 1000);
+		_WiiMapping.AxisState.Tr = XInput::GetXI(_WiiMapping.ID, _WiiMapping.AxisMapping.Tr - 1000);
 	}
 #endif
 
@@ -168,8 +166,8 @@ void UpdatePadState(CONTROLLER_MAPPING_WII &_WiiMapping)
 	// Check the circle to square option
 	if(_WiiMapping.bCircle2Square)
 	{
-		InputCommon::Square2Circle(Lx, Ly, 0, _WiiMapping.Diagonal, true);
-		InputCommon::Square2Circle(Rx, Ry, 0, _WiiMapping.Diagonal, true);
+		InputCommon::Square2Circle(Lx, Ly, _WiiMapping.Diagonal, true);
+		InputCommon::Square2Circle(Rx, Ry, _WiiMapping.Diagonal, true);
 	}
 
 	// Dead zone adjustment

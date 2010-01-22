@@ -28,32 +28,12 @@
 //
 
 
-
-
-// Include
-// -------------------
 #define _SDL_MAIN_ // Avoid certain declarations in SDL.h
 #include "SDL.h" // Local
 #include "XInput.h"
 
-
-
-
-// Definitions
-// -------------------
-int g_LastPad = 0;
-
-
-
 namespace InputCommon
 {
-
-
-// Definitions
-// -------------------
-
-
-
 
 
 // Search attached devices. Populate joyinfo for all attached physical devices.
@@ -111,140 +91,6 @@ bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_
 	return true;
 }
 
-
-
-
-// Supporting functions
-// ----------------
-
-// Read current joystick status
-/* ----------------
-	The value PadMapping[].buttons[] is the number of the assigned joypad button,
-	PadState[].buttons[] is the status of the button, it becomes 0 (no pressed) or 1 (pressed) */
-
-
-// Read buttons status. Called from GetJoyState().
-// ----------------------
-void ReadButton(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int button, int NumButtons)
-{
-	int ctl_button = _PadMapping.buttons[button];
-	if (ctl_button < NumButtons)
-	{
-		_PadState.buttons[button] = SDL_JoystickGetButton(_PadState.joy, ctl_button);
-	}
-}
-
-// Request joystick state.
-// ----------------------
-/* Called from: PAD_GetStatus()
-   Input: The virtual device 0, 1, 2 or 3
-   Function: Updates the PadState struct with the current pad status. The input value "controller" is
-   for a virtual controller 0 to 3. */
-void GetJoyState(CONTROLLER_STATE &_PadState, CONTROLLER_MAPPING _PadMapping, int Controller, int NumButtons)
-{
-	// Update the gamepad status
-	SDL_JoystickUpdate();
-
-	// Update axis states. It doesn't hurt much if we happen to ask for nonexisting axises here.
-	_PadState.axis[CTL_MAIN_X] = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.axis[CTL_MAIN_X]);
-	_PadState.axis[CTL_MAIN_Y] = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.axis[CTL_MAIN_Y]);
-	_PadState.axis[CTL_SUB_X] = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.axis[CTL_SUB_X]);
-	_PadState.axis[CTL_SUB_Y] = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.axis[CTL_SUB_Y]);
-
-	// Update the analog trigger axis values
-#ifdef _WIN32
-	if (_PadMapping.triggertype == CTL_TRIGGER_SDL)
-	{
-#endif
-		// If we are using SDL analog triggers the buttons have to be mapped as 1000 or up, otherwise they are not used
-		if(_PadMapping.buttons[CTL_L_SHOULDER] >= 1000) _PadState.axis[CTL_L_SHOULDER] = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.buttons[CTL_L_SHOULDER] - 1000); else _PadState.axis[CTL_L_SHOULDER] = 0;
-		if(_PadMapping.buttons[CTL_R_SHOULDER] >= 1000) _PadState.axis[CTL_R_SHOULDER] = SDL_JoystickGetAxis(_PadState.joy, _PadMapping.buttons[CTL_R_SHOULDER] - 1000); else _PadState.axis[CTL_R_SHOULDER] = 0;
-#ifdef _WIN32
-	}
-	else
-	{
-		// XInput triggers for Xbox360 pads
-		_PadState.axis[CTL_L_SHOULDER] = XInput::GetXI(Controller, _PadMapping.buttons[CTL_L_SHOULDER] - 1000);
-		_PadState.axis[CTL_R_SHOULDER] = XInput::GetXI(Controller, _PadMapping.buttons[CTL_R_SHOULDER] - 1000);
-	}
-#endif
-
-	// Update button states to on or off
-	ReadButton(_PadState, _PadMapping, CTL_L_SHOULDER, NumButtons);
-	ReadButton(_PadState, _PadMapping, CTL_R_SHOULDER, NumButtons);
-	ReadButton(_PadState, _PadMapping, CTL_A_BUTTON, NumButtons);
-	ReadButton(_PadState, _PadMapping, CTL_B_BUTTON, NumButtons);
-	ReadButton(_PadState, _PadMapping, CTL_X_BUTTON, NumButtons);
-	ReadButton(_PadState, _PadMapping, CTL_Y_BUTTON, NumButtons);
-	ReadButton(_PadState, _PadMapping, CTL_Z_TRIGGER, NumButtons);
-	ReadButton(_PadState, _PadMapping, CTL_START, NumButtons);
-
-	// Update Halfpress state, this one is not in the standard _PadState.buttons array
-	if (_PadMapping.halfpress < NumButtons && _PadMapping.halfpress >= 0)
-		_PadState.halfpress = SDL_JoystickGetButton(_PadState.joy, _PadMapping.halfpress);
-	else
-		_PadState.halfpress = 0;
-
-
-	// Check if we have an analog or digital joypad
-	if (_PadMapping.controllertype == CTL_DPAD_HAT)
-	{
-		_PadState.dpad = SDL_JoystickGetHat(_PadState.joy, _PadMapping.dpad);
-	}
-	else
-	{
-		// Only do this if the assigned button is in range (to allow for the current way of saving keyboard
-		// keys in the same array) 
-		if(_PadMapping.dpad2[CTL_D_PAD_UP] <= NumButtons)
-			_PadState.dpad2[CTL_D_PAD_UP] = SDL_JoystickGetButton(_PadState.joy, _PadMapping.dpad2[CTL_D_PAD_UP]);
-		if(_PadMapping.dpad2[CTL_D_PAD_DOWN] <= NumButtons)
-			_PadState.dpad2[CTL_D_PAD_DOWN] = SDL_JoystickGetButton(_PadState.joy, _PadMapping.dpad2[CTL_D_PAD_DOWN]);
-		if(_PadMapping.dpad2[CTL_D_PAD_LEFT] <= NumButtons)
-			_PadState.dpad2[CTL_D_PAD_LEFT] = SDL_JoystickGetButton(_PadState.joy, _PadMapping.dpad2[CTL_D_PAD_LEFT]);
-		if(_PadMapping.dpad2[CTL_D_PAD_RIGHT] <= NumButtons)
-			_PadState.dpad2[CTL_D_PAD_RIGHT] = SDL_JoystickGetButton(_PadState.joy, _PadMapping.dpad2[CTL_D_PAD_RIGHT]);
-	}
-
-#ifdef SHOW_PAD_STATUS
-	// Show the status of all connected pads
-	//ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	//if ((g_LastPad == 0 && Controller == 0) || Controller < g_LastPad) Console->ClearScreen();	
-	g_LastPad = Controller;
-	NOTICE_LOG(CONSOLE, 
-		"Pad        | Number:%i Enabled:%i Handle:%i\n"
-		"Main Stick | X:%03i  Y:%03i\n"
-		"C Stick    | X:%03i  Y:%03i\n"
-		"Trigger    | Type:%s DigitalL:%i DigitalR:%i AnalogL:%03i AnalogR:%03i HalfPress:%i\n"
-		"Buttons    | A:%i X:%i\n"
-		"D-Pad      | Type:%s Hat:%i U:%i D:%i\n"
-		"======================================================\n",
-
-		Controller, _PadMapping.enabled, _PadState.joy,
-
-		_PadState.axis[InputCommon::CTL_MAIN_X], _PadState.axis[InputCommon::CTL_MAIN_Y],
-		_PadState.axis[InputCommon::CTL_SUB_X], _PadState.axis[InputCommon::CTL_SUB_Y],
-
-		(_PadMapping.triggertype ? "CTL_TRIGGER_XINPUT" : "CTL_TRIGGER_SDL"),
-		_PadState.buttons[InputCommon::CTL_L_SHOULDER], _PadState.buttons[InputCommon::CTL_R_SHOULDER],
-		_PadState.axis[InputCommon::CTL_L_SHOULDER], _PadState.axis[InputCommon::CTL_R_SHOULDER],
-		_PadState.halfpress,
-
-		_PadState.buttons[InputCommon::CTL_A_BUTTON], _PadState.buttons[InputCommon::CTL_X_BUTTON],
-
-		(_PadMapping.controllertype ? "CTL_DPAD_CUSTOM" : "CTL_DPAD_HAT"),
-			_PadState.dpad,
-			_PadState.dpad2[InputCommon::CTL_D_PAD_UP], _PadState.dpad2[InputCommon::CTL_D_PAD_DOWN]
-		);
-#endif
-}
-
-
-
-
-
-
-// Configure button mapping
-// ----------
 
 // Avoid extreme axis values
 // ---------------------
@@ -367,8 +213,6 @@ void GetButton(SDL_Joystick *joy, int ControllerID, int buttons, int axes, int h
 		}
 	}
 }
-/////////////////////////////////////////////////////////// Configure button mapping
-
 
 
 } // InputCommon

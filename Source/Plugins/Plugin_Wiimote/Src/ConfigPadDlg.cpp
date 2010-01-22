@@ -62,9 +62,9 @@ BEGIN_EVENT_TABLE(WiimotePadConfigDialog,wxDialog)
 	EVT_COMBOBOX(IDC_GH3_ANALOG, WiimotePadConfigDialog::GeneralSettingsChanged)
 
 	// Analog
-	EVT_BUTTON(IDB_ANALOG_LEFT_X, WiimotePadConfigDialog::GetButtons) EVT_BUTTON(IDB_ANALOG_LEFT_Y, WiimotePadConfigDialog::GetButtons)
-	EVT_BUTTON(IDB_ANALOG_RIGHT_X, WiimotePadConfigDialog::GetButtons) EVT_BUTTON(IDB_ANALOG_RIGHT_Y, WiimotePadConfigDialog::GetButtons)
-	EVT_BUTTON(IDB_TRIGGER_L, WiimotePadConfigDialog::GetButtons) EVT_BUTTON(IDB_TRIGGER_R, WiimotePadConfigDialog::GetButtons)
+	EVT_BUTTON(IDB_ANALOG_LEFT_X, WiimotePadConfigDialog::OnAxisClick) EVT_BUTTON(IDB_ANALOG_LEFT_Y, WiimotePadConfigDialog::OnAxisClick)
+	EVT_BUTTON(IDB_ANALOG_RIGHT_X, WiimotePadConfigDialog::OnAxisClick) EVT_BUTTON(IDB_ANALOG_RIGHT_Y, WiimotePadConfigDialog::OnAxisClick)
+	EVT_BUTTON(IDB_TRIGGER_L, WiimotePadConfigDialog::OnAxisClick) EVT_BUTTON(IDB_TRIGGER_R, WiimotePadConfigDialog::OnAxisClick)
 
 	// Wiimote
 	EVT_BUTTON(IDB_WM_A, WiimotePadConfigDialog::OnButtonClick) EVT_BUTTON(IDB_WM_B, WiimotePadConfigDialog::OnButtonClick)
@@ -116,6 +116,11 @@ WiimotePadConfigDialog::WiimotePadConfigDialog(wxWindow *parent, wxWindowID id, 
 						   const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
+	m_ControlsCreated = false;;
+	m_Page = g_Config.CurrentPage;
+	CreatePadGUIControls();
+	m_Notebook->ChangeSelection(m_Page);
+
 #if wxUSE_TIMER
 	m_ButtonMappingTimer = new wxTimer(this, IDTM_BUTTON);
 	m_UpdatePadTimer = new wxTimer(this, IDTM_UPDATE_PAD);
@@ -133,14 +138,6 @@ WiimotePadConfigDialog::WiimotePadConfigDialog(wxWindow *parent, wxWindowID id, 
 		m_UpdatePadTimer->Start(1000 / TimesPerSecond);
 	}
 #endif
-
-	ControlsCreated = false;
-
-	//g_Config.Load();
-	CreatePadGUIControls();
-
-	m_Page = g_Config.CurrentPage;
-	m_Notebook->ChangeSelection(m_Page);
 
 	// Set control values
 	UpdateGUI();
@@ -161,6 +158,41 @@ WiimotePadConfigDialog::~WiimotePadConfigDialog()
 	{
 		delete m_UpdatePadTimer;
 		m_UpdatePadTimer = NULL;
+	}
+}
+
+// Notebook page changed
+void WiimotePadConfigDialog::NotebookPageChanged(wxNotebookEvent& event)
+{	
+	// Update the global variable
+	m_Page = event.GetSelection();
+
+	// Update GUI
+	if (m_ControlsCreated)
+		UpdateGUI();
+}
+
+void WiimotePadConfigDialog::OnClose(wxCloseEvent& event)
+{
+	if (m_UpdatePadTimer)
+		m_UpdatePadTimer->Stop();
+	if (m_ButtonMappingTimer)
+		m_ButtonMappingTimer->Stop();
+
+	g_Config.CurrentPage = m_Page;
+
+	EndModal(wxID_CLOSE);
+}
+
+void WiimotePadConfigDialog::CloseClick(wxCommandEvent& event)
+{
+	switch(event.GetId())
+	{
+	case ID_CLOSE:
+		Close();
+		break;
+	case ID_APPLY:
+		break;
 	}
 }
 
@@ -247,28 +279,18 @@ void WiimotePadConfigDialog::OnButtonClick(wxCommandEvent& event)
 	DoGetButtons(ClickedButton->GetId());
 }
 
-void WiimotePadConfigDialog::OnClose(wxCloseEvent& event)
+void WiimotePadConfigDialog::OnAxisClick(wxCommandEvent& event)
 {
-	if (m_UpdatePadTimer)
-		m_UpdatePadTimer->Stop();
-	if (m_ButtonMappingTimer)
-		m_ButtonMappingTimer->Stop();
+	event.Skip();
 
-	g_Config.CurrentPage = m_Page;
+	if (m_ButtonMappingTimer->IsRunning()) return;
 
-	EndModal(wxID_CLOSE);
-}
-
-void WiimotePadConfigDialog::CloseClick(wxCommandEvent& event)
-{
-	switch(event.GetId())
-	{
-	case ID_CLOSE:
-		Close();
-		break;
-	case ID_APPLY:
-		break;
-	}
+	ClickedButton = NULL;
+	wxButton* pButton = (wxButton *)event.GetEventObject();
+	OldLabel = pButton->GetLabel();
+	pButton->SetWindowStyle(wxWANTS_CHARS);
+	pButton->SetLabel(wxT("<Move Axis>"));
+	DoGetButtons(pButton->GetId());
 }
 
 // Bitmap box and dot
@@ -354,11 +376,8 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		TextDeadZone.Add(wxString::Format(wxT("%i%%"), i));
 
 	wxArrayString StrDiagonal;
-		StrDiagonal.Add(wxT("100%"));
-		StrDiagonal.Add(wxT("95%"));
-		StrDiagonal.Add(wxT("90%"));
-		StrDiagonal.Add(wxT("85%"));
-		StrDiagonal.Add(wxT("80%"));
+	for (int i = 0; i <= 10; i++)
+		StrDiagonal.Add(wxString::Format(wxT("%i%%"), 100 - i * 5));
 
 	wxArrayString StrRumble;
 	for (int i = 0; i <= 10; i++)
@@ -929,18 +948,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 			Center();
 	#endif
 
-	ControlsCreated = true;
-}
-
-// Notebook page changed
-void WiimotePadConfigDialog::NotebookPageChanged(wxNotebookEvent& event)
-{	
-	// Update the global variable
-	m_Page = event.GetSelection();
-
-	// Update GUI
-	if (ControlsCreated)
-		UpdateGUI();
+	m_ControlsCreated = true;
 }
 
 void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
@@ -961,7 +969,7 @@ void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		WiiMoteEmu::WiiMapping[m_Page].DeadZoneR = m_ComboDeadZoneRight[m_Page]->GetSelection();
 		break;
 	case IDC_STICK_DIAGONAL:
-		WiiMoteEmu::WiiMapping[m_Page].Diagonal = m_ComboDiagonal[m_Page]->GetLabel().mb_str();
+		WiiMoteEmu::WiiMapping[m_Page].Diagonal = 100 - m_ComboDiagonal[m_Page]->GetSelection() * 5;
 		break;
 	case IDC_STICK_C2S:
 		WiiMoteEmu::WiiMapping[m_Page].bCircle2Square = m_CheckC2S[m_Page]->IsChecked();
@@ -1022,7 +1030,7 @@ void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 
 void WiimotePadConfigDialog::UpdateGUI()
 {
-	if(!ControlsCreated)
+	if(!m_ControlsCreated)
 		return;
 
 	// Disable all pad items if no pads are detected
@@ -1044,7 +1052,7 @@ void WiimotePadConfigDialog::UpdateGUI()
 	m_Joyname[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].ID);
 	m_ComboDeadZoneLeft[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].DeadZoneL);
 	m_ComboDeadZoneRight[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].DeadZoneR);
-	m_ComboDiagonal[m_Page]->SetValue(wxString::FromAscii(WiiMoteEmu::WiiMapping[m_Page].Diagonal.c_str()));
+	m_ComboDiagonal[m_Page]->SetSelection((100 - WiiMoteEmu::WiiMapping[m_Page].Diagonal) / 5);
 	m_CheckC2S[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bCircle2Square);
 	m_CheckRumble[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].Rumble);
 	m_RumbleStrength[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].RumbleStrength);

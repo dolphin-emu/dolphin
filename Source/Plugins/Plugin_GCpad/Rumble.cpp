@@ -14,31 +14,9 @@
 
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
-//
 
 
-#include "../../../Core/InputCommon/Src/SDL.h" // Core
-#include "EmuDefinitions.h"
-
-namespace WiiMoteEmu
-{
-
-// SDL Haptic fails on windows, it just doesn't work (even the sample doesn't work)
-// So until i can make it work, this is all disabled >:(
-#if SDL_VERSION_ATLEAST(1, 3, 0) && !defined(_WIN32) && !defined(__APPLE__)
-	#define SDL_RUMBLE
-#else
-	#ifdef _WIN32
-		#define RUMBLE_HACK
-		#define DIRECTINPUT_VERSION 0x0800
-		#define WIN32_LEAN_AND_MEAN
-
-		#pragma comment(lib, "dxguid.lib")
-		#pragma comment(lib, "dinput8.lib")
-		#pragma comment(lib, "winmm.lib")
-		#include <dinput.h>
-	#endif
-#endif
+#include "GCpad.h"
 
 
 #ifdef RUMBLE_HACK
@@ -59,7 +37,7 @@ void SetDeviceForcesXY(int pad, int nXYForce);
 HRESULT InitRumble(HWND hWnd);
 
 LPDIRECTINPUT8		g_Rumble;		// DInput Rumble object
-RUMBLE				pRumble[MAX_WIIMOTES];
+RUMBLE				pRumble[4];		// 4 GC Rumble Pads
 
 //////////////////////
 // Use PAD rumble
@@ -84,19 +62,19 @@ void Pad_Use_Rumble(u8 _numPAD)
 // Set PAD rumble. Explanation: Stop = 0, Rumble = 1
 // ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-void PAD_Rumble(u8 _numPAD, unsigned int _uType)
+void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
-	if (WiiMapping[_numPAD].ID >= NumPads || !WiiMapping[_numPAD].Rumble)
+	if (GCMapping[_numPAD].ID >= NumPads || !GCMapping[_numPAD].Rumble)
 		return;
 
 	Pad_Use_Rumble(_numPAD);
 
 	int Strenght = 0;
 
-	if (_uType == 1) 
+	if (_uType == 1 && _uStrength > 2) 
 	{
 		// it looks like _uStrength is equal to 3 everytime anyway...
-		Strenght = 1000 * (WiiMapping[_numPAD].RumbleStrength);
+		Strenght = 1000 * GCMapping[_numPAD].RumbleStrength;
 		Strenght = Strenght > 10000 ? 10000 : Strenght;
 	}
 	else
@@ -122,10 +100,10 @@ HRESULT InitRumble(HWND hWnd)
 	if (FAILED(hr = g_Rumble->EnumDevices( DI8DEVCLASS_GAMECTRL, EnumFFDevicesCallback, NULL, DIEDFL_ATTACHEDONLY | DIEDFL_FORCEFEEDBACK)))
 		return hr;
 
-	for (int i = 0; i < MAX_WIIMOTES; i++)
+	for (int i=0; i<4; i++)
 	{
 		if (NULL == pRumble[i].g_pDevice)
-			WiiMapping[i].Rumble = false; // Disable Rumble for this pad only.
+			GCMapping[i].Rumble = false; // Disable Rumble for this pad only.
 		else
 		{
 			pRumble[i].g_pDevice->SetDataFormat(&c_dfDIJoystick);
@@ -145,7 +123,7 @@ HRESULT InitRumble(HWND hWnd)
 			{
 				PanicAlert("Device %d doesn't seem to work ! \nRumble for device %d is now Disabled !", i+1);
 
-				WiiMapping[i].Rumble = false; // Disable Rumble for this pad
+				GCMapping[i].Rumble = false; // Disable Rumble for this pad
 
 				continue;	// Next pad
 			}
@@ -212,7 +190,7 @@ void SetDeviceForcesXY(int npad, int nXYForce)
 	{
 		rglDirection[0] = nXYForce;
 		rglDirection[1] = nXYForce;
-		cf.lMagnitude = static_cast<LONG>(1.4142f*nXYForce);
+		cf.lMagnitude = (long)(1.4142f*nXYForce);
 	}
 
 	ZeroMemory(&pRumble[npad].eff, sizeof(pRumble[npad].eff));
@@ -252,15 +230,15 @@ BOOL CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContex
 	else 
 		return DIENUM_CONTINUE;
 
-	//PanicAlert("DInput ID : %d \nSDL ID (1-4) : %d / %d / %d / %d\n", JoystickID, WiiMapping[0].ID, WiiMapping[1].ID, WiiMapping[2].ID, WiiMapping[3].ID);
+	//PanicAlert("DInput ID : %d \nSDL ID (1-4) : %d / %d / %d / %d\n", JoystickID, GCMapping[0].ID, GCMapping[1].ID, GCMapping[2].ID, GCMapping[3].ID);
 
 	for (int i=0; i<4; i++) 
 	{
-		if (WiiMapping[i].ID == JoystickID) // if SDL ID = DInput ID -> we're dealing with the same device
+		if (GCMapping[i].ID == JoystickID) // if SDL ID = DInput ID -> we're dealing with the same device
 		{
 			// a DInput device is created even if rumble is disabled on startup
 			// this way, you can toggle the rumble setting while in game
-			//if (WiiMapping[i].enabled) // && WiiMapping[i].Rumble
+			//if (GCMapping[i].enabled) // && GCMapping[i].rumble
 				pRumble[i].g_pDevice = pDevice; // everything looks good, save the DInput device
 		}
 	}
@@ -282,7 +260,7 @@ void PAD_RumbleClose()
     // It may look weird, but we don't free anything here, it was the cause of crashes
 	// on stop, and the DLL isn't unloaded anyway, so the pointers stay
 	// We just stop the rumble in case it's still playing an effect.
-	for (int i = 0; i < MAX_WIIMOTES; i++)
+	for (int i=0; i<4; i++)
 	{
 		if (pRumble[i].g_pDevice && pRumble[i].g_pEffect)
 			pRumble[i].g_pEffect->Stop();
@@ -321,12 +299,12 @@ bool PAD_Init_Rumble(u8 _numPAD, SDL_Joystick *SDL_Device)
 	{
 		SDL_HapticClose(pRumble[_numPAD].g_pDevice); // No effect
 		pRumble[_numPAD].g_pDevice = 0;
-		WiiMapping[_numPAD].Rumble = false;
+		GCMapping[_numPAD].rumble = false;
 		return false;
 	}
 
 	// Set the strength of the rumble effect
-	int Strenght = 3276 * (pRumble[_numPAD].RumbleStrength);
+	int Strenght = 3276 * (g_Config.RumbleStrength + 1);
 	Strenght = Strenght > 32767 ? 32767 : Strenght;
 
 	// Create the effect
@@ -348,17 +326,17 @@ bool PAD_Init_Rumble(u8 _numPAD, SDL_Joystick *SDL_Device)
 
 // Set PAD rumble. Explanation: Stop = 0, Rumble = 1
 // --------------
-void PAD_Rumble(u8 _numPAD, unsigned int _uType)
+void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
 	int Strenght = 0;
 
 #ifdef SDL_RUMBLE
-	if (WiiMapping[_numPAD].Rumble)  // rumble activated
+	if (GCMapping[_numPAD].rumble)  // rumble activated
 	{
 		if (!pRumble[_numPAD].g_pDevice)
 			return;
 
-		if (_uType == 1)
+		if (_uType == 1 && _uStrength > 2)
 			SDL_HapticRunEffect( pRumble[_numPAD].g_pDevice, pRumble[_numPAD].effect_id, 1 );
 		else
 			SDL_HapticStopAll(pRumble[_numPAD].g_pDevice);
@@ -380,5 +358,3 @@ void PAD_RumbleClose()
 }
 
 #endif // RUMBLE_HACK
-
-} // end of namespace

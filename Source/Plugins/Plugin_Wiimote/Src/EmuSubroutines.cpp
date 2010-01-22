@@ -68,8 +68,7 @@ void HidOutputReport(u16 _channelID, wm_report* sr)
 	switch(sr->wm)
 	{
 	case WM_RUMBLE: // 0x10
-		if (WiiMapping[g_ID].Rumble && WiiMapping[g_ID].ID < NumGoodPads)
-			PAD_Rumble(g_ID, sr->data[0]);
+		PAD_Rumble(g_ID, sr->data[0]);
 		break;
 
 	case WM_LEDS: // 0x11

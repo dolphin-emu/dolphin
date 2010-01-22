@@ -27,10 +27,6 @@
 // http://code.google.com/p/dolphin-emu/
 //
 
-
-
-
-
 // Include
 // -------------------
 #if defined HAVE_WX && HAVE_WX
@@ -45,11 +41,8 @@
 #include "SDL.h" // Local
 
 
-
 namespace InputCommon
 {
-
-
 
 // Degree to radian and back
 // -------------
@@ -83,9 +76,6 @@ bool IsDeadZone(float DeadZone, int x, int y)
 		return false;
 }
 
-
-
-
 // Scale down stick values from 0x8000 to 0x80
 /* ----------------
    The value returned by SDL_JoystickGetAxis is a signed integer s16
@@ -112,32 +102,18 @@ int Pad_Convert(int _val)
 	return _val;
 }
 
-
-
-
 // Adjust the radius
 // ----------------
-void RadiusAdjustment(int &_x, int &_y, int _pad, std::string SRadius)
+void RadiusAdjustment(s8 &_x, s8 &_y, int _Radius)
 {
 	// Get the radius setting
-	int Tmp = atoi (SRadius.substr(0, SRadius.length() - 1).c_str());
-	float RadiusSetting = Tmp / 100.0f;
-
-	// Get current angle
-	float Deg = Rad2Deg(atan2((float)_y, (float)_x));
-	// Get the current radius
-	float Radius = sqrt((float)(_x*_x + _y*_y));
-	// Adjust radius
-	Radius = Radius * RadiusSetting;
-	// Produce new coordinates
-	float x = Radius * cos(Deg2Rad(Deg));
-	float y = Radius * sin(Deg2Rad(Deg));
+	float RadiusSetting = (float)_Radius / 100.0f;
+	float x = (float)_x * RadiusSetting;
+	float y = (float)_y * RadiusSetting;
 	// Update values
-	_x = (int)x, _y = (int)y;
+	_x = (s8)x;
+	_y = (s8)y;
 }
-
-
-
 
 /* Convert the stick raidus from a square or rounded box to a circular radius. I don't know what
    input values the actual GC controller produce for the GC, it may be a square, a circle or
@@ -173,8 +149,9 @@ float Square2CircleDistance(float deg)
 
 	return Distance;
 }
+
 // Produce a perfect circle from an original square or rounded box
-void Square2Circle(int &_x, int &_y, int _pad, std::string SDiagonal, bool Circle2Square)
+void Square2Circle(int &_x, int &_y, int _Diagonal, bool Circle2Square)
 {
 	// Do we need to do this check?
 	if(_x >  32767) _x =  32767; if(_y >  32767) _y =  32767; // upper limit
@@ -184,8 +161,7 @@ void Square2Circle(int &_x, int &_y, int _pad, std::string SDiagonal, bool Circl
 	// Convert to circle
 	// -----------
 	// Get the manually configured diagonal distance
-	int Tmp = atoi (SDiagonal.substr(0, SDiagonal.length() - 1).c_str());
-	float Diagonal = Tmp / 100.0f;
+	float Diagonal = (float)_Diagonal / 100.0f;
 
 	// First make a perfect square in case we don't have one already
 	float OrigDist = sqrt(  pow((float)_y, 2) + pow((float)_x, 2)  ); // Get current distance
@@ -225,9 +201,6 @@ void Square2Circle(int &_x, int &_y, int _pad, std::string SDiagonal, bool Circl
 	// Debugging
 	//Console::Print("%f  %f  %i", corner_circle_dist, Diagonal, Tmp));
 }
-
-
-
 
 // Windows Virtual Key Codes Names
 // ---------------------
