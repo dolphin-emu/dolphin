@@ -110,12 +110,12 @@ void AddIndices(int primitive, int numVertices)
 {
 	switch (primitive)
 	{
-		case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(numVertices);      break;
-		case GX_DRAW_QUADS:          IndexGenerator::AddQuads(numVertices);     break;
+		case GX_DRAW_QUADS:          if ((numVertices % 4) == 0 ) {IndexGenerator::AddQuads(numVertices);} else {IndexGenerator::AddFan(numVertices);}     break;    
+		case GX_DRAW_TRIANGLES:      if ((numVertices % 3) == 0 ) {IndexGenerator::AddList(numVertices);} else {IndexGenerator::AddStrip(numVertices);}    break;
 		case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(numVertices);     break;
 		case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(numVertices);       break;
 		case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(numVertices); break;
-		case GX_DRAW_LINES:		     IndexGenerator::AddLineList(numVertices);  break;
+		case GX_DRAW_LINES:		     if ((numVertices % 2) == 0 ) {IndexGenerator::AddLineList(numVertices);} else {IndexGenerator::AddLineStrip(numVertices);}  break;
 		case GX_DRAW_POINTS:         IndexGenerator::AddPoints(numVertices);    break;
 	}
 }

@@ -101,13 +101,13 @@ void AddIndices(int _primitive, int _numVertices)
 {
 	switch (_primitive)
 	{
-	case GX_DRAW_QUADS:          IndexGenerator::AddQuads(_numVertices);     return;    
-	case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(_numVertices);      return;    
-	case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(_numVertices);     return;
-	case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(_numVertices);       return;
-	case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(_numVertices); return;
-	case GX_DRAW_LINES:		     IndexGenerator::AddLineList(_numVertices);  return;
-	case GX_DRAW_POINTS:         IndexGenerator::AddPoints(_numVertices);    return;
+	case GX_DRAW_QUADS:          if ((_numVertices % 4) == 0 ) {IndexGenerator::AddQuads(_numVertices);} else {IndexGenerator::AddFan(_numVertices);}     break;    
+	case GX_DRAW_TRIANGLES:      if ((_numVertices % 3) == 0 ) {IndexGenerator::AddList(_numVertices);} else {IndexGenerator::AddStrip(_numVertices);}    break;
+	case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(_numVertices);     break;
+	case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(_numVertices);       break;
+	case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(_numVertices); break;
+	case GX_DRAW_LINES:		     if ((_numVertices % 2) == 0 ) {IndexGenerator::AddLineList(_numVertices);} else {IndexGenerator::AddLineStrip(_numVertices);}  break;
+	case GX_DRAW_POINTS:         IndexGenerator::AddPoints(_numVertices);    break;
 	}
 }
 
