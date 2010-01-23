@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-#include "GCpad.h"
+#include "GCPad.h"
 #include "Config.h"
 #include "LogManager.h"
 #if defined(HAVE_WX) && HAVE_WX
@@ -42,6 +42,9 @@ std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 int NumPads = 0, NumGoodPads = 0, g_ID = 0;
 #ifdef _WIN32
 	HWND m_hWnd = NULL; // Handle to window
+#endif
+#if defined(HAVE_X11) && HAVE_X11
+   Display* WMdisplay;
 #endif
 SPADInitialize *g_PADInitialize = NULL;
 PLUGIN_GLOBALS* globals = NULL;
@@ -178,6 +181,9 @@ void Initialize(void *init)
 	
 #ifdef _WIN32
 	m_hWnd = (HWND)g_PADInitialize->hWnd;
+#endif
+#if defined(HAVE_X11) && HAVE_X11
+   WMdisplay = (Display*)g_PADInitialize->hWnd; 
 #endif
 
 	if (!g_SearchDeviceDone)
@@ -452,7 +458,7 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 	// Close opened devices first
 	Close_Devices();
 
-	bool Success = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
+	bool success = InputCommon::SearchDevices(_joyinfo, _NumPads, _NumGoodPads);
 
 	if (_NumGoodPads == 0)
 		return false;
@@ -472,7 +478,7 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 			}
 	}
 
-	return Success;
+	return success;
 }
 
 void GetAxisState(CONTROLLER_MAPPING_GC &_GCMapping)

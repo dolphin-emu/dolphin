@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-#include "GCpad.h"
+#include "GCPad.h"
 #include "FileUtil.h"
 #include "ChunkFile.h"
 

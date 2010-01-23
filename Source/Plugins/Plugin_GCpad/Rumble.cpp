@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-#include "GCpad.h"
+#include "GCPad.h"
 
 #ifdef _WIN32
 #include "XInput.h"

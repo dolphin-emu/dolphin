@@ -17,7 +17,7 @@
 
 #include "Config.h"
 #include "ConfigBox.h"
-#include "GCpad.h"
+#include "GCPad.h"
 
 
 // Replace the harder to understand -1 with "" for the sake of user friendliness

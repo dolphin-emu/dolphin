@@ -29,7 +29,7 @@
 #include <wx/panel.h>
 #include <wx/gbsizer.h>
 
-#include "GCpad.h"
+#include "GCPad.h"
 
 class GCPadConfigDialog : public wxDialog
 {	

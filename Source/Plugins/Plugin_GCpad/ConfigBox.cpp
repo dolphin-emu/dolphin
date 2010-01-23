@@ -19,7 +19,7 @@
 #include "math.h" // System
 #include "ConfigBox.h"
 #include "Config.h"
-#include "GCpad.h"
+#include "GCPad.h"
 #if defined(HAVE_X11) && HAVE_X11
 	#include <X11/Xlib.h>
 	#include <X11/Xutil.h>
@@ -363,7 +363,7 @@ void GCPadConfigDialog::UpdateGUI()
 	}
 #elif defined(HAVE_X11) && HAVE_X11
 	char keyStr[10] = {0};
-	for (int x = 0; x <= IDB_TGR_SEMI_R - IDB_BTN_A; x++)
+	for (int x = 0; x <= IDB_SHDR_SEMI_R - IDB_BTN_A; x++)
 	{
 		InputCommon::XKeyToString(GCMapping[m_Page].Button[x + EGC_A], keyStr);
 		m_Button_GC[x][m_Page]->SetLabel(wxString::FromAscii(keyStr));

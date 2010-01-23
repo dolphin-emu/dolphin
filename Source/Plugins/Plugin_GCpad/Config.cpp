@@ -21,7 +21,7 @@
 #include "Common.h"
 #include "IniFile.h"
 #include "Config.h"
-#include "GCpad.h"
+#include "GCPad.h"
 
 static const char* gcControlNames[] =
 { 

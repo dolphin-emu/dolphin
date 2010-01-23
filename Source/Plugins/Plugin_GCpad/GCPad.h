@@ -23,7 +23,17 @@
 #include <vector> // System
 #include <cstdio>
 #include "../../Core/InputCommon/Src/SDL.h" // Core
-#include "../../Core/InputCommon/Src/XInput.h"
+#ifdef _WIN32
+   #include "../../Core/InputCommon/Src/XInput.h"
+#elif defined(HAVE_X11) && HAVE_X11
+   #include <X11/Xlib.h>
+   #include <X11/Xutil.h>
+   #include <X11/keysym.h>
+   #include <X11/XKBlib.h>
+//no need for Cocoa yet, but I guess ayuanx isn't done yet.
+//#elif defined(HAVE_COCOA) && HAVE_COCOA
+//   #include <Cocoa/Cocoa.h>
+#endif
 #include "pluginspecs_pad.h"
 
 
@@ -136,6 +146,9 @@ extern SPADInitialize *g_PADInitialize;
 extern std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 #ifdef _WIN32
 extern HWND m_hWnd; // Handle to window
+#endif
+#if defined(HAVE_X11) && HAVE_X11
+extern Display* WMdisplay;
 #endif
 
 
