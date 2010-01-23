@@ -81,6 +81,7 @@ struct VideoConfig
 	int iAspectRatio;
     bool bCrop;   // Aspect ratio controls.
     bool bUseXFB;
+	bool bUseFIFOThread;
     bool bAutoScale;  // Removes annoying borders without using XFB. Doesn't always work perfectly.
     
 	// Enhancements
