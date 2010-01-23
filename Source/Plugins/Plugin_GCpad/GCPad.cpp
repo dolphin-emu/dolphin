@@ -403,13 +403,13 @@ void EmulateAnalogStick(unsigned char &stickX, unsigned char &stickY, bool butto
 
 	if ((mainX == 0) || (mainY == 0))
 	{
-		stickX = mainX;
-		stickY = mainY;
+		stickX += mainX;
+		stickY += mainY;
 	}
 	else
 	{
-		stickX = mainX * DIAGONAL_SCALE;
-		stickY = mainY * DIAGONAL_SCALE;
+		stickX += mainX * DIAGONAL_SCALE;
+		stickY += mainY * DIAGONAL_SCALE;
 	}
 }
 
