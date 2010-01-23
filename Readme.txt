@@ -38,9 +38,7 @@ Plugin_DSP_HLE.dll: High Level DSP Emulation (only emulates AX UCodes)
 Plugin_VideoDX9.dll: Render with Direct3D 9 (outdated video plugin)
 Plugin_VideoOGL.dll: Render with OpenGL + Cg Shader Language
 [Gamecube Controller Plugins]
-Plugin_PadSimple.dll: Use keyboard or XBOX 360 Controller
-Plugin_nJoy_SDL_Test.dll: Test nJoy DLL
-Plugin_nJoy_SDL.dll: Use Joypads
+Plugin_GCPad.dll: Use keyboard or joypads
 [Wiimote plugins]
 Plugin_Wiimote.dll: Use native wiimote or keyboard
 
