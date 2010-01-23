@@ -57,8 +57,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "AspectRatio", &iAspectRatio, (int)ASPECT_AUTO);
 	iniFile.Get("Settings", "Crop", &bCrop, false);
     iniFile.Get("Settings", "HideCursor", &bHideCursor, false);
-    iniFile.Get("Settings", "UseXFB", &bUseXFB, false);
-	iniFile.Get("Settings", "UseFIFOThread", &bUseFIFOThread, false);
+    iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
     iniFile.Get("Settings", "AutoScale", &bAutoScale, true);
     
     iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false); // Settings
@@ -131,7 +130,7 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	if (iniFile.Exists("Video", "DstAlphaPass"))
 		iniFile.Get("Video", "DstAlphaPass", &bDstAlphaPass, false);
 	if (iniFile.Exists("Video", "UseXFB"))
-		iniFile.Get("Video", "UseXFB", &bUseXFB, false);
+		iniFile.Get("Video", "UseXFB", &bUseXFB, 0);
 	if (iniFile.Exists("Video", "FIFOBPHack"))
 		iniFile.Get("Video", "FIFOBPHack", &bFIFOBPhack, false);
 	if (iniFile.Exists("Video", "ProjectionHack"))
@@ -154,7 +153,6 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "wideScreenHack", bWidescreenHack);
     iniFile.Set("Settings", "HideCursor", bHideCursor);
     iniFile.Set("Settings", "UseXFB", bUseXFB);
-	iniFile.Set("Settings", "UseFIFOThread", bUseFIFOThread);
     iniFile.Set("Settings", "AutoScale", bAutoScale);
 
     iniFile.Set("Settings", "SafeTextureCache", bSafeTextureCache);
