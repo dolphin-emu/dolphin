@@ -218,7 +218,7 @@ void Config::Load()
 		file.Get(SectionName.c_str(), "Diagonal", &GCMapping[i].Diagonal, 100);
 		file.Get(SectionName.c_str(), "Square2Circle", &GCMapping[i].bSquare2Circle, false);
 		file.Get(SectionName.c_str(), "Rumble", &GCMapping[i].Rumble, false);
-		file.Get(SectionName.c_str(), "RumbleStrength", &GCMapping[i].RumbleStrength, 8); // x10
+		file.Get(SectionName.c_str(), "RumbleStrength", &GCMapping[i].RumbleStrength, 80);
 		file.Get(SectionName.c_str(), "TriggerType", &GCMapping[i].TriggerType, 0);
 
 		file.Get(SectionName.c_str(), "Source_Stick", &GCMapping[i].Stick.Main, 0);

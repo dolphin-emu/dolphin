@@ -978,7 +978,7 @@ void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		WiiMoteEmu::WiiMapping[m_Page].Rumble = m_CheckRumble[m_Page]->IsChecked();
 		break;
 	case IDC_RUMBLE_STRENGTH:
-		WiiMoteEmu::WiiMapping[m_Page].RumbleStrength = m_RumbleStrength[m_Page]->GetSelection();
+		WiiMoteEmu::WiiMapping[m_Page].RumbleStrength = m_RumbleStrength[m_Page]->GetSelection() * 10;
 		break;
 	case IDC_TILT_TYPE_WM:
 		WiiMoteEmu::WiiMapping[m_Page].Tilt.InputWM = m_TiltTypeWM[m_Page]->GetSelection();
@@ -1055,7 +1055,7 @@ void WiimotePadConfigDialog::UpdateGUI()
 	m_ComboDiagonal[m_Page]->SetSelection((100 - WiiMoteEmu::WiiMapping[m_Page].Diagonal) / 5);
 	m_CheckC2S[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bCircle2Square);
 	m_CheckRumble[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].Rumble);
-	m_RumbleStrength[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].RumbleStrength);
+	m_RumbleStrength[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].RumbleStrength / 10);
 	m_TriggerType[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].TriggerType);
 	m_TiltTypeWM[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Tilt.InputWM);
 	m_TiltTypeNC[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Tilt.InputNC);

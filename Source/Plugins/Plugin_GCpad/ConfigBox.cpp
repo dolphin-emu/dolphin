@@ -295,7 +295,7 @@ void GCPadConfigDialog::ChangeSettings(wxCommandEvent& event)
 		GCMapping[m_Page].Rumble = m_CheckRumble[m_Page]->IsChecked();
 		break;
 	case IDC_RUMBLE_STRENGTH:
-		GCMapping[m_Page].RumbleStrength = m_RumbleStrength[m_Page]->GetSelection();
+		GCMapping[m_Page].RumbleStrength = m_RumbleStrength[m_Page]->GetSelection() * 10;
 		break;
 	case IDC_TRIGGER_TYPE:
 		GCMapping[m_Page].TriggerType = m_TriggerType[m_Page]->GetSelection();
@@ -341,7 +341,7 @@ void GCPadConfigDialog::UpdateGUI()
 	m_ComboDiagonal[m_Page]->SetSelection((100 - GCMapping[m_Page].Diagonal) / 5);
 	m_CheckS2C[m_Page]->SetValue(GCMapping[m_Page].bSquare2Circle);
 	m_CheckRumble[m_Page]->SetValue(GCMapping[m_Page].Rumble);
-	m_RumbleStrength[m_Page]->SetSelection(GCMapping[m_Page].RumbleStrength);
+	m_RumbleStrength[m_Page]->SetSelection(GCMapping[m_Page].RumbleStrength / 10);
 	m_TriggerType[m_Page]->SetSelection(GCMapping[m_Page].TriggerType);
 
 	m_Combo_StickSrc[m_Page]->SetSelection(GCMapping[m_Page].Stick.Main);

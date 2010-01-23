@@ -55,8 +55,8 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 	unsigned int Strength = 0;
 	if (_uType == 1 && _uStrength > 2) 
 	{
-		Strength = 1000 * GCMapping[_numPAD].RumbleStrength;
-		Strength = Strength > 10000 ? 10000 : Strength;
+		Strength = GCMapping[_numPAD].RumbleStrength;
+		Strength = Strength > 100 ? 100 : Strength;
 	}
 
 	if (GCMapping[_numPAD].TriggerType == InputCommon::CTL_TRIGGER_XINPUT)
@@ -71,8 +71,8 @@ void Rumble_XInput(int _ID, unsigned int _Strength)
 {
 #ifdef _WIN32
 	XINPUT_VIBRATION vib;
-	vib.wLeftMotorSpeed  = _Strength;
-	vib.wRightMotorSpeed = _Strength;
+	vib.wLeftMotorSpeed  = 0xFFFF / 100 * _Strength;
+	vib.wRightMotorSpeed = 0xFFFF / 100 * _Strength;
 	XInputSetState(_ID, &vib);
 #endif
 }
@@ -94,7 +94,7 @@ void Rumble_DInput(int _ID, unsigned int _Strength)
 			pRumble[_ID].g_pDevice->Acquire();
 	}
 
-	SetDeviceForcesXY(_ID, _Strength);
+	SetDeviceForcesXY(_ID, _Strength * 100);
 }
 
 HRESULT InitRumble(HWND hWnd)

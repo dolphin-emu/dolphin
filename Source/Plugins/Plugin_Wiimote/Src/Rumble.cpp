@@ -80,8 +80,8 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType)
 	unsigned int Strength = 0;
 	if (_uType == 1) 
 	{
-		Strength = 1000 * (WiiMapping[_numPAD].RumbleStrength);
-		Strength = Strength > 10000 ? 10000 : Strength;
+		Strength = WiiMapping[_numPAD].RumbleStrength;
+		Strength = Strength > 100 ? 100 : Strength;
 	}
 
 	if (WiiMapping[_numPAD].TriggerType == InputCommon::CTL_TRIGGER_XINPUT)
@@ -96,8 +96,8 @@ void Rumble_XInput(int _ID, unsigned int _Strength)
 {
 #ifdef _WIN32
 	XINPUT_VIBRATION vib;
-	vib.wLeftMotorSpeed  = _Strength;
-	vib.wRightMotorSpeed = _Strength;
+	vib.wLeftMotorSpeed  = 0xFFFF / 100 * _Strength;
+	vib.wRightMotorSpeed = 0xFFFF / 100 * _Strength;
 	XInputSetState(_ID, &vib);
 #endif
 }
@@ -119,7 +119,7 @@ void Rumble_DInput(int _ID, unsigned int _Strength)
 			pRumble[_ID].g_pDevice->Acquire();
 	}
 
-	SetDeviceForcesXY(_ID, _Strength);
+	SetDeviceForcesXY(_ID, _Strength * 100);
 }
 
 HRESULT InitRumble(HWND hWnd)
@@ -273,8 +273,7 @@ BOOL CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContex
 		{
 			// a DInput device is created even if rumble is disabled on startup
 			// this way, you can toggle the rumble setting while in game
-			//if (WiiMapping[i].enabled) // && WiiMapping[i].Rumble
-				pRumble[i].g_pDevice = pDevice; // everything looks good, save the DInput device
+			pRumble[i].g_pDevice = pDevice; // everything looks good, save the DInput device
 		}
 	}
 

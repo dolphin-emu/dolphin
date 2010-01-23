@@ -321,7 +321,7 @@ void Config::Load()
 		iniFile.Get(SectionName, "Diagonal", &WiiMoteEmu::WiiMapping[i].Diagonal, 100);
 		iniFile.Get(SectionName, "Circle2Square", &WiiMoteEmu::WiiMapping[i].bCircle2Square, false);
 		iniFile.Get(SectionName, "Rumble", &WiiMoteEmu::WiiMapping[i].Rumble, false);
-		iniFile.Get(SectionName, "RumbleStrength", &WiiMoteEmu::WiiMapping[i].RumbleStrength, 8); // x10
+		iniFile.Get(SectionName, "RumbleStrength", &WiiMoteEmu::WiiMapping[i].RumbleStrength, 80);
 		iniFile.Get(SectionName, "TriggerType", &WiiMoteEmu::WiiMapping[i].TriggerType, 0);
 	}
 
@@ -418,7 +418,7 @@ void Config::Save()
 		iniFile.Set(SectionName, "Diagonal", WiiMoteEmu::WiiMapping[i].Diagonal);
 		iniFile.Set(SectionName, "Circle2Square", WiiMoteEmu::WiiMapping[i].bCircle2Square);
 		iniFile.Set(SectionName, "Rumble", WiiMoteEmu::WiiMapping[i].Rumble);
-		iniFile.Set(SectionName, "RumbleStrength", WiiMoteEmu::WiiMapping[i].RumbleStrength); // x10
+		iniFile.Set(SectionName, "RumbleStrength", WiiMoteEmu::WiiMapping[i].RumbleStrength);
 		iniFile.Set(SectionName, "TriggerType", WiiMoteEmu::WiiMapping[i].TriggerType);
 	}
 
