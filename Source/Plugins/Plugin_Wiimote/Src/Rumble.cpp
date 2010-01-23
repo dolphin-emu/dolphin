@@ -20,6 +20,10 @@
 #include "../../../Core/InputCommon/Src/SDL.h" // Core
 #include "EmuDefinitions.h"
 
+#ifdef _WIN32
+#include "XInput.h"
+#endif
+
 namespace WiiMoteEmu
 {
 
@@ -57,57 +61,66 @@ BOOL CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContex
 BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext);
 void SetDeviceForcesXY(int pad, int nXYForce);
 HRESULT InitRumble(HWND hWnd);
+void Rumble_DInput(int _ID, unsigned int _Strength);
+void Rumble_XInput(int _ID, unsigned int _Strength);
+
 
 LPDIRECTINPUT8		g_Rumble;		// DInput Rumble object
 RUMBLE				pRumble[MAX_WIIMOTES];
 
-//////////////////////
-// Use PAD rumble
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
-void Pad_Use_Rumble(u8 _numPAD)
+
+////////////////////////////////////////////////////
+// Set PAD rumble. Explanation: Stop = 0, Rumble = 1
+void PAD_Rumble(u8 _numPAD, unsigned int _uType)
+{
+	if (WiiMapping[_numPAD].ID >= NumPads || !WiiMapping[_numPAD].Rumble)
+		return;
+
+	unsigned int Strength = 0;
+	if (_uType == 1) 
+	{
+		Strength = 1000 * (WiiMapping[_numPAD].RumbleStrength);
+		Strength = Strength > 10000 ? 10000 : Strength;
+	}
+
+	if (WiiMapping[_numPAD].TriggerType == InputCommon::CTL_TRIGGER_XINPUT)
+		Rumble_XInput(WiiMapping[_numPAD].ID, Strength);
+	else
+		Rumble_DInput(WiiMapping[_numPAD].ID, Strength);
+}
+
+////////////////////////////////////////////////////
+// Set rumble with XInput.
+void Rumble_XInput(int _ID, unsigned int _Strength)
+{
+#ifdef _WIN32
+	XINPUT_VIBRATION vib;
+	vib.wLeftMotorSpeed  = _Strength;
+	vib.wRightMotorSpeed = _Strength;
+	XInputSetState(_ID, &vib);
+#endif
+}
+
+////////////////////////////////////////////////////
+// Set rumble with DInput.¯¯¯¯¯¯¯¯¯¯¯¯
+void Rumble_DInput(int _ID, unsigned int _Strength)
 {
 	if (!g_Rumble)
 	{
 		// GetForegroundWindow() always sends the good HWND
 		if (FAILED(InitRumble(GetForegroundWindow())))
 			PanicAlert("Could not initialize Rumble!");
-	} else
-	{
-		// Acquire gamepad
-		if (pRumble[_numPAD].g_pDevice != NULL)
-			pRumble[_numPAD].g_pDevice->Acquire();
-	}
-}
-
-////////////////////////////////////////////////////
-// Set PAD rumble. Explanation: Stop = 0, Rumble = 1
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-
-void PAD_Rumble(u8 _numPAD, unsigned int _uType)
-{
-	if (WiiMapping[_numPAD].ID >= NumPads || !WiiMapping[_numPAD].Rumble)
-		return;
-
-	Pad_Use_Rumble(_numPAD);
-
-	int Strenght = 0;
-
-	if (_uType == 1) 
-	{
-		// it looks like _uStrength is equal to 3 everytime anyway...
-		Strenght = 1000 * (WiiMapping[_numPAD].RumbleStrength);
-		Strenght = Strenght > 10000 ? 10000 : Strenght;
 	}
 	else
-		Strenght = 0;
+	{
+		// Acquire gamepad
+		if (pRumble[_ID].g_pDevice != NULL)
+			pRumble[_ID].g_pDevice->Acquire();
+	}
 
-	SetDeviceForcesXY(_numPAD, Strenght);
+	SetDeviceForcesXY(_ID, _Strength);
 }
-
-// Rumble stuff :D!
-// ----------------
-//
 
 HRESULT InitRumble(HWND hWnd)
 {
@@ -279,13 +292,27 @@ BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pCont
 
 void PAD_RumbleClose()
 {
-    // It may look weird, but we don't free anything here, it was the cause of crashes
-	// on stop, and the DLL isn't unloaded anyway, so the pointers stay
-	// We just stop the rumble in case it's still playing an effect.
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
-		if (pRumble[i].g_pDevice && pRumble[i].g_pEffect)
-			pRumble[i].g_pEffect->Stop();
+		if (WiiMapping[i].ID < NumPads)
+			if (WiiMapping[i].TriggerType == InputCommon::CTL_TRIGGER_XINPUT)
+			{
+#ifdef _WIN32
+				// Kill Xpad rumble
+				XINPUT_VIBRATION vib;
+				vib.wLeftMotorSpeed  = 0;
+				vib.wRightMotorSpeed = 0;
+				XInputSetState(WiiMapping[i].ID, &vib);
+#endif
+			}
+			else
+			{
+				// It may look weird, but we don't free anything here, it was the cause of crashes
+				// on stop, and the DLL isn't unloaded anyway, so the pointers stay
+				// We just stop the rumble in case it's still playing an effect.
+				if (pRumble[WiiMapping[i].ID].g_pDevice && pRumble[WiiMapping[i].ID].g_pEffect)
+					pRumble[WiiMapping[i].ID].g_pEffect->Stop();
+			}
 	}
 }
 

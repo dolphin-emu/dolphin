@@ -97,17 +97,17 @@ int GetXI(int Controller, int Button)
 {
 	// Update the internal status
     DWORD dwResult;
-	dwResult = XInputGetState( Controller, &g_Controllers[Controller].state );
+	dwResult = XInputGetState(Controller, &g_Controllers[Controller].state);
 
-	if( dwResult != ERROR_SUCCESS ) return -1;
+	if (dwResult != ERROR_SUCCESS) return -1;
 
-	switch(Button)
+	switch (Button)
 	{
 	case InputCommon::XI_TRIGGER_L:
-		return g_Controllers[0].state.Gamepad.bLeftTrigger;
+		return g_Controllers[Controller].state.Gamepad.bLeftTrigger;
 
 	case InputCommon::XI_TRIGGER_R:
-		return g_Controllers[0].state.Gamepad.bRightTrigger;
+		return g_Controllers[Controller].state.Gamepad.bRightTrigger;
 
 	default:
 		return 0;

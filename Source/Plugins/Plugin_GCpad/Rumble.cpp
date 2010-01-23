@@ -18,6 +18,10 @@
 
 #include "GCpad.h"
 
+#ifdef _WIN32
+#include "XInput.h"
+#endif
+
 
 #ifdef RUMBLE_HACK
 
@@ -35,57 +39,63 @@ BOOL CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContex
 BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext);
 void SetDeviceForcesXY(int pad, int nXYForce);
 HRESULT InitRumble(HWND hWnd);
+void Rumble_DInput(int _ID, unsigned int _Strength);
+void Rumble_XInput(int _ID, unsigned int _Strength);
+
 
 LPDIRECTINPUT8		g_Rumble;		// DInput Rumble object
 RUMBLE				pRumble[4];		// 4 GC Rumble Pads
 
-//////////////////////
-// Use PAD rumble
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
-
-void Pad_Use_Rumble(u8 _numPAD)
-{
-	if (!g_Rumble)
-	{
-		// GetForegroundWindow() always sends the good HWND
-		if (FAILED(InitRumble(GetForegroundWindow())))
-			PanicAlert("Could not initialize Rumble!");
-	} else
-	{
-		// Acquire gamepad
-		if (pRumble[_numPAD].g_pDevice != NULL)
-			pRumble[_numPAD].g_pDevice->Acquire();
-	}
-}
-
-////////////////////////////////////////////////////
-// Set PAD rumble. Explanation: Stop = 0, Rumble = 1
-// ¯¯¯¯¯¯¯¯¯¯¯¯¯¯
 
 void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
 	if (GCMapping[_numPAD].ID >= NumPads || !GCMapping[_numPAD].Rumble)
 		return;
 
-	Pad_Use_Rumble(_numPAD);
-
-	int Strenght = 0;
-
+	unsigned int Strength = 0;
 	if (_uType == 1 && _uStrength > 2) 
 	{
-		// it looks like _uStrength is equal to 3 everytime anyway...
-		Strenght = 1000 * GCMapping[_numPAD].RumbleStrength;
-		Strenght = Strenght > 10000 ? 10000 : Strenght;
+		Strength = 1000 * GCMapping[_numPAD].RumbleStrength;
+		Strength = Strength > 10000 ? 10000 : Strength;
 	}
-	else
-		Strenght = 0;
 
-	SetDeviceForcesXY(_numPAD, Strenght);
+	if (GCMapping[_numPAD].TriggerType == InputCommon::CTL_TRIGGER_XINPUT)
+		Rumble_XInput(GCMapping[_numPAD].ID, Strength);
+	else
+		Rumble_DInput(GCMapping[_numPAD].ID, Strength);
 }
 
-// Rumble stuff :D!
-// ----------------
-//
+////////////////////////////////////////////////////
+// Set rumble with XInput.
+void Rumble_XInput(int _ID, unsigned int _Strength)
+{
+#ifdef _WIN32
+	XINPUT_VIBRATION vib;
+	vib.wLeftMotorSpeed  = _Strength;
+	vib.wRightMotorSpeed = _Strength;
+	XInputSetState(_ID, &vib);
+#endif
+}
+
+////////////////////////////////////////////////////
+// Set rumble with DInput.¯¯¯¯¯¯¯¯¯¯¯¯
+void Rumble_DInput(int _ID, unsigned int _Strength)
+{
+	if (!g_Rumble)
+	{
+		// GetForegroundWindow() always sends the good HWND
+		if (FAILED(InitRumble(GetForegroundWindow())))
+			PanicAlert("Could not initialize Rumble!");
+	}
+	else
+	{
+		// Acquire gamepad
+		if (pRumble[_ID].g_pDevice != NULL)
+			pRumble[_ID].g_pDevice->Acquire();
+	}
+
+	SetDeviceForcesXY(_ID, _Strength);
+}
 
 HRESULT InitRumble(HWND hWnd)
 {
@@ -238,8 +248,7 @@ BOOL CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContex
 		{
 			// a DInput device is created even if rumble is disabled on startup
 			// this way, you can toggle the rumble setting while in game
-			//if (GCMapping[i].enabled) // && GCMapping[i].rumble
-				pRumble[i].g_pDevice = pDevice; // everything looks good, save the DInput device
+			pRumble[i].g_pDevice = pDevice; // everything looks good, save the DInput device
 		}
 	}
 
@@ -257,13 +266,27 @@ BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pCont
 
 void PAD_RumbleClose()
 {
-    // It may look weird, but we don't free anything here, it was the cause of crashes
-	// on stop, and the DLL isn't unloaded anyway, so the pointers stay
-	// We just stop the rumble in case it's still playing an effect.
-	for (int i=0; i<4; i++)
+	for (int i = 0; i < 4; i++)
 	{
-		if (pRumble[i].g_pDevice && pRumble[i].g_pEffect)
-			pRumble[i].g_pEffect->Stop();
+		if (GCMapping[i].ID < NumPads)
+			if (GCMapping[i].TriggerType == InputCommon::CTL_TRIGGER_XINPUT)
+			{
+#ifdef _WIN32
+				// Kill Xpad rumble
+				XINPUT_VIBRATION vib;
+				vib.wLeftMotorSpeed  = 0;
+				vib.wRightMotorSpeed = 0;
+				XInputSetState(GCMapping[i].ID, &vib);
+#endif
+			}
+			else
+			{
+				// It may look weird, but we don't free anything here, it was the cause of crashes
+				// on stop, and the DLL isn't unloaded anyway, so the pointers stay
+				// We just stop the rumble in case it's still playing an effect.
+				if (pRumble[GCMapping[i].ID].g_pDevice && pRumble[GCMapping[i].ID].g_pEffect)
+					pRumble[GCMapping[i].ID].g_pEffect->Stop();
+			}
 	}
 }
 

@@ -35,6 +35,10 @@
 #include "Encryption.h" // for extension encryption
 #include "Config.h" // for g_Config
 
+#ifdef _WIN32
+#include "XInput.h"
+#endif
+
 extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu
@@ -87,9 +91,16 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 	{
 		if (_NumPads > WiiMapping[i].ID)
 			if(_joyinfo.at(WiiMapping[i].ID).Good)
+			{
 				WiiMapping[i].joy = _joyinfo.at(WiiMapping[i].ID).joy;
+#ifdef _WIN32
+				XINPUT_STATE xstate;
+				DWORD xresult = XInputGetState(WiiMapping[i].ID, &xstate);
+				if (xresult == ERROR_SUCCESS)
+					WiiMapping[i].TriggerType = InputCommon::CTL_TRIGGER_XINPUT;
+#endif
+			}
 	}
-
 	return WasGotten;
 }
 

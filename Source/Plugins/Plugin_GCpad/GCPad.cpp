@@ -23,6 +23,10 @@
 	#include "ConfigBox.h"
 #endif
 
+#ifdef _WIN32
+#include "XInput.h"
+#endif
+
 // Declare config window so that we can write debugging info to it from functions in this file
 #if defined(HAVE_WX) && HAVE_WX
 	GCPadConfigDialog* m_ConfigFrame = NULL;
@@ -457,7 +461,15 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 	{
 		if (_NumPads > GCMapping[i].ID)
 			if(joyinfo.at(GCMapping[i].ID).Good)
+			{
 				GCMapping[i].joy = joyinfo.at(GCMapping[i].ID).joy;
+#ifdef _WIN32
+				XINPUT_STATE xstate;
+				DWORD xresult = XInputGetState(GCMapping[i].ID, &xstate);
+				if (xresult == ERROR_SUCCESS)
+					GCMapping[i].TriggerType = InputCommon::CTL_TRIGGER_XINPUT;
+#endif
+			}
 	}
 
 	return Success;
