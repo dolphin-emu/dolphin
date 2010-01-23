@@ -526,6 +526,10 @@ void CFrame::OnActive(wxActivateEvent& event)
 
 void CFrame::OnClose(wxCloseEvent& event)
 {
+	//Stop Dolphin from saving the minimized Xpos and Ypos
+	if(main_frame->IsIconized())
+		main_frame->Iconize(false);
+
 	// Don't forget the skip or the window won't be destroyed
 	event.Skip();
 	// Save GUI settings
