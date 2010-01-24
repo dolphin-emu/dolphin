@@ -76,7 +76,6 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 
 void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
 {
-	g_FrameOpen = false;
 	EndModal(wxID_CLOSE);
 }
 

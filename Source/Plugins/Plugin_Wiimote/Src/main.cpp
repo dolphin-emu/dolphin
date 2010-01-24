@@ -50,7 +50,6 @@ PLUGIN_GLOBALS* globals = NULL;
 // General
 bool g_EmulatorRunning = false;
 u32 g_ISOId = 0;
-bool g_FrameOpen = false;
 bool g_SearchDeviceDone = false;
 bool g_RealWiiMotePresent = false;
 bool g_RealWiiMoteInitialized = false;
@@ -184,9 +183,10 @@ void DllConfig(HWND _hParent)
 #if defined(HAVE_WX) && HAVE_WX
 
 	m_BasicConfigFrame = new WiimoteBasicConfigDialog(GetParentedWxWindow(_hParent));
-	g_FrameOpen = true;
 	m_BasicConfigFrame->ShowModal();
 	m_BasicConfigFrame->Destroy();
+	delete m_BasicConfigFrame;
+	m_BasicConfigFrame = NULL;
 
 #endif
 }
@@ -199,7 +199,7 @@ void Initialize(void *init)
 
 	// Update the GUI if the configuration window is already open
 	#if defined(HAVE_WX) && HAVE_WX
-	if (g_FrameOpen)
+	if (m_BasicConfigFrame)
 	{
 		// Save the settings
 		g_Config.Save();
@@ -263,7 +263,6 @@ void DoState(unsigned char **ptr, int mode)
 
 	//p.Do(g_EmulatorRunning);
 	//p.Do(g_ISOId);
-	//p.Do(g_FrameOpen);
 	//p.Do(g_RealWiiMotePresent);
 	//p.Do(g_RealWiiMoteInitialized);
 	//p.Do(g_EmulatedWiiMoteInitialized);

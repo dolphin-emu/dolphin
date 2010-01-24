@@ -161,8 +161,9 @@ void DllConfig(HWND _hParent)
 	{
 		m_ConfigFrame = new GCPadConfigDialog(GetParentedWxWindow(_hParent));
 		m_ConfigFrame->ShowModal();
+		m_ConfigFrame->Destroy();
 		delete m_ConfigFrame;
-		m_ConfigFrame = 0;
+		m_ConfigFrame = NULL;
 	}
 #endif
 }
