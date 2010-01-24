@@ -34,22 +34,33 @@ public:
 		m_Active(false)
 	{}
 
-	virtual ~IWII_IPC_HLE_Device()
-	{}
+	virtual ~IWII_IPC_HLE_Device() { }
 
-	virtual void DoState(PointerWrap &p)
-	{}
+	virtual void DoState(PointerWrap&) { }
 
-	const std::string& GetDeviceName() const { return m_Name; } 
-    u32 GetDeviceID() const { return m_DeviceID; } 
+	const std::string& GetDeviceName() const { return m_Name; }
+    u32 GetDeviceID() const { return m_DeviceID; }
 
-    virtual bool Open(u32 _CommandAddress, u32 _Mode)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Open()", m_Name.c_str()); m_Active = true; return true; }
-    virtual bool Close(u32 _CommandAddress, bool _bForce = false)  { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Close()", m_Name.c_str()); m_Active = false; return true; }
-    virtual bool Seek(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Seek()", m_Name.c_str()); return true; }
-	virtual bool Read(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Read()", m_Name.c_str()); return true; }
-	virtual bool Write(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Write()", m_Name.c_str()); return true; }
-	virtual bool IOCtl(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support IOCtl()", m_Name.c_str()); return true; }
-	virtual bool IOCtlV(u32 _CommandAddress) { _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support IOCtlV()", m_Name.c_str()); return true; }
+    virtual bool Open(u32 _CommandAddress, u32 _Mode) {
+		(void)_CommandAddress; (void)_Mode;
+		_dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Open()", m_Name.c_str());
+		m_Active = true;
+		return true;
+	}
+    virtual bool Close(u32 _CommandAddress, bool _bForce = false) {
+		(void)_CommandAddress; (void)_bForce;
+		_dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support Close()", m_Name.c_str());
+		m_Active = false;
+		return true;
+	}
+
+#define UNIMPLEMENTED_CMD(cmd) _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support "##cmd##"()", m_Name.c_str()); return true;
+	virtual bool Seek	(u32) { UNIMPLEMENTED_CMD("Seek") }
+	virtual bool Read	(u32) { UNIMPLEMENTED_CMD("Read") }
+	virtual bool Write	(u32) { UNIMPLEMENTED_CMD("Write") }
+	virtual bool IOCtl	(u32) { UNIMPLEMENTED_CMD("IOCtl") }
+	virtual bool IOCtlV	(u32) { UNIMPLEMENTED_CMD("IOCtlV") }
+#undef UNIMPLEMENTED_CMD
 
 	virtual u32 Update() { return 0; }
 
@@ -152,8 +163,8 @@ protected:
     }
 
 	
-    void DumpAsync(u32 BufferVector, u32 _CommandAddress, u32 NumberInBuffer, u32 NumberOutBuffer
-		,LogTypes::LOG_TYPE LogType = LogTypes::WII_IPC_HLE,
+    void DumpAsync(u32 BufferVector, u32 NumberInBuffer, u32 NumberOutBuffer,
+		LogTypes::LOG_TYPE LogType = LogTypes::WII_IPC_HLE,
 		LogTypes::LOG_LEVELS Verbosity = LogTypes::LDEBUG)
     {
 		GENERIC_LOG(LogType, Verbosity, "======= DumpAsync ======");

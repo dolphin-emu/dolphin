@@ -233,7 +233,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 					m_ACLSetup = CommandBuffer.m_Address;
 
 					#if defined(_DEBUG) || defined(DEBUGFAST)
-					DumpAsync(CommandBuffer.BufferVector, _CommandAddress, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
+					DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
 					#endif
 
 					CtrlBuffer BulkBuffer(_CommandAddress);
@@ -308,7 +308,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 			DEBUG_LOG(WII_IPC_WIIMOTE, "    PayloadAddr: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Address);
 			DEBUG_LOG(WII_IPC_WIIMOTE, "    PayloadSize: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Size);
 			#if defined(_DEBUG) || defined(DEBUGFAST)
-			DumpAsync(CommandBuffer.BufferVector, _CommandAddress, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
+			DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
 			#endif
 		}
 		break;

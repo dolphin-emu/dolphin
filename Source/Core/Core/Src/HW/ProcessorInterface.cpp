@@ -39,7 +39,7 @@ enum
 	PI_FIFO_RESET           = 0x18, // ??? - GXAbortFrame writes to it
 	PI_RESET_CODE           = 0x24,
 	PI_FLIPPER_REV          = 0x2C,
-	PI_UNKNOWN				= 0x30 // ??? - BS1 writes to it
+	PI_UNKNOWN				= 0x30 // BS1 writes 0x0245248A to it - prolly some bootstrap thing
 };
 
 

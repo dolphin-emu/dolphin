@@ -13,7 +13,7 @@ public:
 	PPCDebugInterface(){} 
 	virtual void disasm(unsigned int address, char *dest, int max_size);
 	virtual void getRawMemoryString(int memory, unsigned int address, char *dest, int max_size);
-	virtual int getInstructionSize(int instruction) {return 4;}
+	virtual int getInstructionSize(int inst_size = 4) {return inst_size;}
 	virtual bool isAlive();
 	virtual bool isBreakpoint(unsigned int address);
 	virtual void setBreakpoint(unsigned int address);

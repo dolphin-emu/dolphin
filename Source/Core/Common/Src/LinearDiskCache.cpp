@@ -79,8 +79,8 @@ int LinearDiskCache::OpenAndRead(const char *filename, LinearDiskCacheReader *re
 			// We're past the header already thanks to ValidateHeader.
 			while (!feof(file_)) {
 				int key_size, value_size;
-				int key_size_size = fread(&key_size, 1, sizeof(key_size), file_);
-				int value_size_size = fread(&value_size, 1, sizeof(value_size), file_);
+				size_t key_size_size = fread(&key_size, 1, sizeof(key_size), file_);
+				size_t value_size_size = fread(&value_size, 1, sizeof(value_size), file_);
 				if (key_size_size == 0 && value_size_size == 0) {
 					// I guess feof isn't doing it's job - we're at the end.
 					break;
