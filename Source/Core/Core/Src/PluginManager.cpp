@@ -87,6 +87,7 @@ CPluginManager::~CPluginManager()
 	{
 		if (m_wiimote[i])
 		{
+			m_wiimote[i]->Shutdown();
 			delete m_wiimote[i];
 			m_wiimote[i] = NULL;
 		}
