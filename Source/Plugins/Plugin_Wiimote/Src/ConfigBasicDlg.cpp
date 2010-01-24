@@ -76,8 +76,6 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 
 void WiimoteBasicConfigDialog::OnClose(wxCloseEvent& event)
 {
-	// necessary as this dialog is only showed/hided
-	UpdateGUI();
 	g_FrameOpen = false;
 	EndModal(wxID_CLOSE);
 }

@@ -183,23 +183,10 @@ void DllConfig(HWND _hParent)
 
 #if defined(HAVE_WX) && HAVE_WX
 
-	if (!m_BasicConfigFrame)
-		m_BasicConfigFrame = new WiimoteBasicConfigDialog(GetParentedWxWindow(_hParent));
-	else if (!m_BasicConfigFrame->GetParent()->IsShown())
-		m_BasicConfigFrame->Close(true);
-	// Update the GUI (because it was not updated when it had been already open before...)
-	m_BasicConfigFrame->UpdateGUI();
-	// Only allow one open at a time
-	if (!m_BasicConfigFrame->IsShown())
-	{
-		g_FrameOpen = true;
-		m_BasicConfigFrame->ShowModal();
-	}
-	else
-	{
-		g_FrameOpen = false;
-		m_BasicConfigFrame->Hide();
-	}
+	m_BasicConfigFrame = new WiimoteBasicConfigDialog(GetParentedWxWindow(_hParent));
+	g_FrameOpen = true;
+	m_BasicConfigFrame->ShowModal();
+	m_BasicConfigFrame->Destroy();
 
 #endif
 }
@@ -260,14 +247,6 @@ void Shutdown(void)
 
 	// Reset the game ID in all cases
 	g_ISOId = 0;
-
-	// We will only shutdown when both a game and the m_ConfigFrame is closed
-	if (g_FrameOpen)
-	{
-		#if defined(HAVE_WX) && HAVE_WX
-			if(m_BasicConfigFrame) m_BasicConfigFrame->UpdateGUI();
-		#endif
-	}
 
 #if HAVE_WIIUSE
 	if (g_RealWiiMoteInitialized) WiiMoteReal::Shutdown();
