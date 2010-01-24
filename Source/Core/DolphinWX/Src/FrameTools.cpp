@@ -556,12 +556,8 @@ void CFrame::DoOpen(bool Boot)
 	}
 	else
 	{
-		if (!fileChosen)
-			path = wxT("");
-		// temp is deleted by changediscCallback
-		char * temp = new char[strlen(path.mb_str())];
-		strncpy(temp, path.mb_str(), strlen(path.mb_str()));
-		DVDInterface::ChangeDisc(temp);
+		strncpy(newDiscpath, path.mb_str(), strlen(path.mb_str())+1);
+		DVDInterface::ChangeDisc(newDiscpath);
 	}
 }
 

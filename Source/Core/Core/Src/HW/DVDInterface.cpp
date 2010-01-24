@@ -289,7 +289,6 @@ void ChangeDiscCallback(u64 userdata, int cyclesLate)
 	}
 	else
 	{
-		delete [] (char *) userdata;
 		if (VolumeHandler::SetVolumeName(FileName))
 		{
 			// Save the new ISO file name
