@@ -574,7 +574,7 @@ bool IsKey(int Key)
 #ifdef _WIN32
 		Ret = GetAsyncKeyState(MapKey);		// Keyboard (Windows)
 #else
-		Ret = KeyStatus[MapKey];			// Keyboard (Linux)
+		Ret = KeyStatus[Key];			// Keyboard (Linux)
 #endif
 	}
 	else if (MapKey < 0x1100)
@@ -621,7 +621,7 @@ void ReadLinuxKeyboard()
 
 			for (int i = 0; i < LAST_CONSTANT; i++)
 			{
-				if (key == GCMapping[g_ID].Button[i])
+				if (((int) key) == GCMapping[g_ID].Button[i])
 					KeyStatus[i] = true;
 			}
 			break;
@@ -639,7 +639,7 @@ void ReadLinuxKeyboard()
 
 			for (int i = 0; i < LAST_CONSTANT; i++)
 			{
-				if (key == GCMapping[g_ID].Button[i])
+				if (((int) key) == GCMapping[g_ID].Button[i])
 					KeyStatus[i] = false;
 			}
 			break;
