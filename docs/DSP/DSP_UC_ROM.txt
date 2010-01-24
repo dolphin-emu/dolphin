@@ -1,4 +1,4 @@
-// The DSP ROM
+// The DSP ROM  
 8000 0092 00ff lri         $CR, #0x00ff
 8002 1206      sbclr       #0x06
 8003 1202      sbclr       #0x02
@@ -9,180 +9,223 @@
 8008 8c00      clr15       
 8009 8b00      m0          
 800a 16fc 8071 si          @DMBH, #0x8071
-800c 16fd feed si          @DMBL, #0xfeed
+800c 16fd feed si          @DMBL, #0xfeed // sendmail 0x8071feed (INIT)
 
-// hm. Lots of JMPs to here.
+void 800e_MainLoop()
+{
 800e 8100      clr         $ACC0
 800f 8900      clr         $ACC1
-8010 02bf 8078 call        0x8078						// wait for CPU mailbox & 0x8000
+8010 02bf 8078 call        0x8078 // wait till there is mail for DSP from CPU 
 8012 009f 80f3 lri         $AC1.M, #0x80f3
-8014 8200      cmp         
-8015 0295 801f jz          0x801f						// skip below dsp mailbox write...
+8014 8200      cmp         // $AC0.M = @CMBH 
+8015 0295 801f jz          0x801f
 8017 27ff      lrs         $AC1.M, @CMBL
-8018 16fc feee si          @DMBH, #0xfeee				// Write to dsp mailbox
-801a 2efd      srs         @DMBL, $AC0.M
-801b 02bf 807e call        0x807e
+8018 16fc feee si          @DMBH, #0xfeee
+801a 2efd      srs         @DMBL, $AC0.M // sendmail 0xfeee???? (????=@CMBH - !0x80f3)
+801b 02bf 807e call        0x807e // wait for mail-to-be-received-by-CPU
 801d 029f 800e jmp         0x800e
+}
 
-801f 26ff      lrs         $AC0.M, @CMBL				// ...and end up here (skip above)
-
-// if equal to a001 ...
+// if mail was equal to 0x80f3a001 ... 
+// m_CurrentUCode.m_RAMAddress
+// $IX0-$IX1
+{
+801f 26ff      lrs         $AC0.M, @CMBL
 8020 009f a001 lri         $AC1.M, #0xa001
 8022 8200      cmp         
 8023 0294 802c jnz         0x802c
-8025 02bf 8078 call        0x8078						// wait for CPU mailbox & 0x8000
+8025 02bf 8078 call        0x8078
 8027 27ff      lrs         $AC1.M, @CMBL
 8028 1c9e      mrr         $IX0, $AC0.M
 8029 1cbf      mrr         $IX1, $AC1.M
 802a 029f 800e jmp         0x800e
+}
 
-// elseif a002 ...
+// else if mail was equal to 0x80f3a002 ...
+// m_CurrentUCode.m_Length
+// $IX3
+{
 802c 009f a002 lri         $AC1.M, #0xa002
 802e 8200      cmp         
 802f 0294 8037 jnz         0x8037
-8031 02bf 8078 call        0x8078						// wait for CPU mailbox & 0x8000
+8031 02bf 8078 call        0x8078
 8033 27ff      lrs         $AC1.M, @CMBL
 8034 1cff      mrr         $IX3, $AC1.M
 8035 029f 800e jmp         0x800e
+}
 
-// elseif c002 ...
+// else if mail was equal to 0x80f3c002 ...
+// m_CurrentUCode.m_IMEMAddress
+// $IX2
+{
 8037 009f c002 lri         $AC1.M, #0xc002
 8039 8200      cmp         
 803a 0294 8042 jnz         0x8042
-803c 02bf 8078 call        0x8078						// wait for CPU mailbox & 0x8000
+803c 02bf 8078 call        0x8078
 803e 27ff      lrs         $AC1.M, @CMBL
 803f 1cdf      mrr         $IX2, $AC1.M
 8040 029f 800e jmp         0x800e
+}
 
-// elseif b001 ...
+// else if mail was equal to 0x80f3b001 ...
+// DMEM.m_RAMAddress
+// $AX0.H-$AX0.L
+{
 8042 009f b001 lri         $AC1.M, #0xb001
 8044 8200      cmp         
 8045 0294 804e jnz         0x804e
-8047 02bf 8078 call        0x8078						// wait for CPU mailbox & 0x8000
+8047 02bf 8078 call        0x8078
 8049 27ff      lrs         $AC1.M, @CMBL
 804a 1f5e      mrr         $AX0.H, $AC0.M
 804b 1f1f      mrr         $AX0.L, $AC1.M
 804c 029f 800e jmp         0x800e
+}
 
-// elseif b002 ...
+// else if mail was equal to 0x80f3b002 ...
+// DMEM.m_Length
+// $AX1.L
+{
 804e 009f b002 lri         $AC1.M, #0xb002
 8050 8200      cmp         
 8051 0294 8059 jnz         0x8059
-8053 02bf 8078 call        0x8078						// wait for CPU mailbox & 0x8000
+8053 02bf 8078 call        0x8078
 8055 27ff      lrs         $AC1.M, @CMBL
 8056 1f3f      mrr         $AX1.L, $AC1.M
 8057 029f 800e jmp         0x800e
+}
 
-// elseif c001 ...
+// else if mail was equal to 0x80f3c001 ...
+// DMEM.m_DMEMAddress
+// $AX1.H 
+{
 8059 009f c001 lri         $AC1.M, #0xc001
 805b 8200      cmp         
 805c 0294 8064 jnz         0x8064
-805e 02bf 8078 call        0x8078						// wait for CPU mailbox & 0x8000
+805e 02bf 8078 call        0x8078
 8060 27ff      lrs         $AC1.M, @CMBL
 8061 1f7f      mrr         $AX1.H, $AC1.M
 8062 029f 800e jmp         0x800e
+}
 
-// elseif d001 ...
+// else if mail was equal to 0x80f3d001 ...
+// m_CurrentUCode.m_StartPC
+// $AR0
+{
 8064 009f d001 lri         $AC1.M, #0xd001
 8066 8200      cmp         
 8067 0294 8071 jnz         0x8071
-8069 02bf 8078 call        0x8078						// wait for CPU mailbox & 0x8000
+8069 02bf 8078 call        0x8078
 806b 8100      clr         $ACC0
 806c 26ff      lrs         $AC0.M, @CMBL
 806d 1c1e      mrr         $AR0, $AC0.M
-806e 029f 80b5 jmp         0x80b5						// Do DMA, probably
-
-// endif - never reaches here.
+806e 029f 80b5 jmp         80b5_BootUcode()
 8070 0021      halt        
+}
 
-// default:
+// else ... 
+{
 8071 16fc faaa si          @DMBH, #0xfaaa
-8073 2efd      srs         @DMBL, $AC0.M
+8073 2efd      srs         @DMBL, $AC0.M // sendmail 0xfaaa???? (????=@CMBL) 
 8074 02bf 807e call        0x807e
 8076 029f 800e jmp         0x800e
-8078 26fe      lrs         $AC0.M, @CMBH
+}
 
 // wait for CMBH & 0x8000
+{
+8078 26fe      lrs         $AC0.M, @CMBH
 8079 02c0 8000 andcf       $AC0.M, #0x8000
 807b 029c 8078 jlnz        0x8078
-807d 02df      ret         
+807d 02df      ret   
+}
 
-// wait for DMBH & 0x8000
+// wait for DMBH & 0x8000       
+void 807e_WaitForDSPMail
+{
 807e 26fc      lrs         $AC0.M, @DMBH
 807f 02a0 8000 andf        $AC0.M, #0x8000
 8081 029c 807e jlnz        0x807e
-8083 02df      ret         
-8084 0021      halt        
+8083 02df      ret    
+8084 0021      halt   
+}
 
-
+//dump DRAM/IRAM to mainmem
+{      
 8085 8e00      set16       
 8086 8100      clr         $ACC0
 8087 1fd9      mrr         $AC0.M, $AX1.L
 8088 b100      tst         $ACC0
 8089 0295 809d jz          0x809d
-808b 00fa ffce sr          @DSMAH, $AX0.H
-808d 00f8 ffcf sr          @DSMAL, $AX0.L
-808f 009e 0001 lri         $AC0.M, #0x0001
-8091 00fe ffc9 sr          @DSCR, $AC0.M
-8093 00fb ffcd sr          @DSPA, $AX1.H
-8095 00f9 ffcb sr          @DSBL, $AX1.L
-8097 00de ffc9 lr          $AC0.M, @DSCR
-8099 02a0 0004 andf        $AC0.M, #0x0004
-809b 029c 8097 jlnz        0x8097
+{ // DRAM
+	808b 00fa ffce sr          @DSMAH, $AX0.H
+	808d 00f8 ffcf sr          @DSMAL, $AX0.L
+	808f 009e 0001 lri         $AC0.M, #0x0001
+	8091 00fe ffc9 sr          @DSCR, $AC0.M // DMEM->CPU
+	8093 00fb ffcd sr          @DSPA, $AX1.H
+	8095 00f9 ffcb sr          @DSBL, $AX1.L
+	8097 00de ffc9 lr          $AC0.M, @DSCR
+	8099 02a0 0004 andf        $AC0.M, #0x0004
+	809b 029c 8097 jlnz        0x8097
+}
 809d 8100      clr         $ACC0
 809e 1fc7      mrr         $AC0.M, $IX3
 809f b100      tst         $ACC0
 80a0 0295 80b4 jz          0x80b4
-80a2 00e4 ffce sr          @DSMAH, $IX0
-80a4 00e5 ffcf sr          @DSMAL, $IX1
-80a6 009e 0003 lri         $AC0.M, #0x0003
-80a8 00fe ffc9 sr          @DSCR, $AC0.M
-80aa 00e6 ffcd sr          @DSPA, $IX2
-80ac 00e7 ffcb sr          @DSBL, $IX3
-80ae 00de ffc9 lr          $AC0.M, @DSCR
-80b0 02a0 0004 andf        $AC0.M, #0x0004
-80b2 029c 80ae jlnz        0x80ae
+{ // IRAM
+	80a2 00e4 ffce sr          @DSMAH, $IX0
+	80a4 00e5 ffcf sr          @DSMAL, $IX1
+	80a6 009e 0003 lri         $AC0.M, #0x0003
+	80a8 00fe ffc9 sr          @DSCR, $AC0.M // IMEM->CPU
+	80aa 00e6 ffcd sr          @DSPA, $IX2
+	80ac 00e7 ffcb sr          @DSBL, $IX3
+	80ae 00de ffc9 lr          $AC0.M, @DSCR
+	80b0 02a0 0004 andf        $AC0.M, #0x0004
+	80b2 029c 80ae jlnz        0x80ae
+}
 80b4 02df      ret         
+}
 
-
-// DMA utility function - maybe 2 modes, read, write?
+//direct jump here from /ZeldaUcode (normal,sms,dma(wii) type)/AX/AXWII/ -> all except Zelda Light (Luigi/IPL)
+void 80b5_BootUcode()()
+{
 80b5 8e00      set16       
 80b6 8100      clr         $ACC0
 80b7 8900      clr         $ACC1
 80b8 1ff9      mrr         $AC1.M, $AX1.L
 80b9 b900      tst         $ACC1
 80ba 0295 80ce jz          0x80ce
-80bc 00fa ffce sr          @DSMAH, $AX0.H
-80be 00f8 ffcf sr          @DSMAL, $AX0.L
-80c0 009e 0000 lri         $AC0.M, #0x0000
-80c2 00fe ffc9 sr          @DSCR, $AC0.M
-80c4 00fb ffcd sr          @DSPA, $AX1.H
-80c6 00f9 ffcb sr          @DSBL, $AX1.L
-80c8 00de ffc9 lr          $AC0.M, @DSCR
-80ca 02a0 0004 andf        $AC0.M, #0x0004
-80cc 029c 80c8 jlnz        0x80c8
+{ // DRAM upload
+	80bc 00fa ffce sr          @DSMAH, $AX0.H
+	80be 00f8 ffcf sr          @DSMAL, $AX0.L
+	80c0 009e 0000 lri         $AC0.M, #0x0000
+	80c2 00fe ffc9 sr          @DSCR, $AC0.M // CPU->DMEM
+	80c4 00fb ffcd sr          @DSPA, $AX1.H
+	80c6 00f9 ffcb sr          @DSBL, $AX1.L
+	80c8 00de ffc9 lr          $AC0.M, @DSCR // wait for DMA completion
+	80ca 02a0 0004 andf        $AC0.M, #0x0004
+	80cc 029c 80c8 jlnz        0x80c8
+}
 80ce 8900      clr         $ACC1
-// jump destionation from 00ba
 80cf 1fe7      mrr         $AC1.M, $IX3
 80d0 b900      tst         $ACC1
 80d1 0295 80e5 jz          0x80e5
-80d3 00e4 ffce sr          @DSMAH, $IX0
-80d5 00e5 ffcf sr          @DSMAL, $IX1
-80d7 009e 0002 lri         $AC0.M, #0x0002
-80d9 00fe ffc9 sr          @DSCR, $AC0.M
-80db 00e6 ffcd sr          @DSPA, $IX2
-80dd 00e7 ffcb sr          @DSBL, $IX3
-80df 00de ffc9 lr          $AC0.M, @DSCR		// tiny loop here, wait for DMA completion
-80e1 02a0 0004 andf        $AC0.M, #0x0004
-80e3 029c 80df jlnz        0x80df
-80e5 170f      jmpr        $AR0					// Jump through register? jump table?
-
-
-80e6 0021      halt        
-
+{ // IRAM upload
+	80d3 00e4 ffce sr          @DSMAH, $IX0
+	80d5 00e5 ffcf sr          @DSMAL, $IX1
+	80d7 009e 0002 lri         $AC0.M, #0x0002
+	80d9 00fe ffc9 sr          @DSCR, $AC0.M // CPU->IMEM (ucode upload)
+	80db 00e6 ffcd sr          @DSPA, $IX2
+	80dd 00e7 ffcb sr          @DSBL, $IX3
+	80df 00de ffc9 lr          $AC0.M, @DSCR // wait for DMA completion
+	80e1 02a0 0004 andf        $AC0.M, #0x0004
+	80e3 029c 80df jlnz        0x80df
+}
+80e5 170f      jmpr        $AR0	// m_CurrentUCode.m_StartPC
+80e6 0021      halt   
+}
 
 // Large mixer function - called a lot by AX
-// Prolly simple Stereo Mixer
+// Prolly simple Stereo Mixer   
+{
 80e7 8150      clr'l       $ACC0 : $AX0.H, @$AR0
 80e8 8949      clr'l       $ACC1 : $AX1.L, @$AR1
 80e9 b072      mulx'l      $AX0.H, $AX1.L : $AC0.M, @$AR2
@@ -456,11 +499,11 @@
 81f5 9909      asr16'ir    $ACC1 : $AR1
 81f6 1b7f      srri        @$AR3, $AC1.M
 81f7 812b      clr's       $ACC0 : @$AR3, $AC1.L
-81f8 02df      ret         
-// End of 1st big mixer function
+81f8 02df      ret    
+}
 
-
-// Second big mixer function?
+// Second big mixer function?     
+{ 
 81f9 8150      clr'l       $ACC0 : $AX0.H, @$AR0
 81fa 8949      clr'l       $ACC1 : $AX1.L, @$AR1
 81fb b072      mulx'l      $AX0.H, $AX1.L : $AC0.M, @$AR2
@@ -597,147 +640,147 @@
 827e 1b7f      srri        @$AR3, $AC1.M
 827f 812b      clr's       $ACC0 : @$AR3, $AC1.L
 8280 1f63      mrr         $AX1.H, $AR3
-8281 02df      ret         
-// End of 2nd big mixer function
+8281 02df      ret      
+}
 
-
-// 3rd big mixer function
+// 3rd big mixer function  
+{  
 8282 1ce3      mrr         $IX3, $AR3
 8283 8100      clr         $ACC0
 8284 8971      clr'l       $ACC1 : $AC0.M, @$AR1
 8285 18bf      lrrd        $AC1.M, @$AR1
 8286 1b7e      srri        @$AR3, $AC0.M
-8287 4c00      add         $ACC0, $AC1.L
+8287 4c00      add         $ACC0, $ACC1
 8288 1b7e      srri        @$AR3, $AC0.M
-8289 4c00      add         $ACC0, $AC1.L
+8289 4c00      add         $ACC0, $ACC1
 828a 1b7e      srri        @$AR3, $AC0.M
-828b 4c00      add         $ACC0, $AC1.L
+828b 4c00      add         $ACC0, $ACC1
 828c 1b7e      srri        @$AR3, $AC0.M
-828d 4c00      add         $ACC0, $AC1.L
+828d 4c00      add         $ACC0, $ACC1
 828e 1b7e      srri        @$AR3, $AC0.M
-828f 4c00      add         $ACC0, $AC1.L
+828f 4c00      add         $ACC0, $ACC1
 8290 1b7e      srri        @$AR3, $AC0.M
-8291 4c00      add         $ACC0, $AC1.L
+8291 4c00      add         $ACC0, $ACC1
 8292 1b7e      srri        @$AR3, $AC0.M
-8293 4c00      add         $ACC0, $AC1.L
+8293 4c00      add         $ACC0, $ACC1
 8294 1b7e      srri        @$AR3, $AC0.M
-8295 4c00      add         $ACC0, $AC1.L
+8295 4c00      add         $ACC0, $ACC1
 8296 1b7e      srri        @$AR3, $AC0.M
-8297 4c00      add         $ACC0, $AC1.L
+8297 4c00      add         $ACC0, $ACC1
 8298 1b7e      srri        @$AR3, $AC0.M
-8299 4c00      add         $ACC0, $AC1.L
+8299 4c00      add         $ACC0, $ACC1
 829a 1b7e      srri        @$AR3, $AC0.M
-829b 4c00      add         $ACC0, $AC1.L
+829b 4c00      add         $ACC0, $ACC1
 829c 1b7e      srri        @$AR3, $AC0.M
-829d 4c00      add         $ACC0, $AC1.L
+829d 4c00      add         $ACC0, $ACC1
 829e 1b7e      srri        @$AR3, $AC0.M
-829f 4c00      add         $ACC0, $AC1.L
+829f 4c00      add         $ACC0, $ACC1
 82a0 1b7e      srri        @$AR3, $AC0.M
-82a1 4c00      add         $ACC0, $AC1.L
+82a1 4c00      add         $ACC0, $ACC1
 82a2 1b7e      srri        @$AR3, $AC0.M
-82a3 4c00      add         $ACC0, $AC1.L
+82a3 4c00      add         $ACC0, $ACC1
 82a4 1b7e      srri        @$AR3, $AC0.M
-82a5 4c00      add         $ACC0, $AC1.L
+82a5 4c00      add         $ACC0, $ACC1
 82a6 1b7e      srri        @$AR3, $AC0.M
-82a7 4c00      add         $ACC0, $AC1.L
+82a7 4c00      add         $ACC0, $ACC1
 82a8 1b7e      srri        @$AR3, $AC0.M
-82a9 4c00      add         $ACC0, $AC1.L
+82a9 4c00      add         $ACC0, $ACC1
 82aa 1b7e      srri        @$AR3, $AC0.M
-82ab 4c00      add         $ACC0, $AC1.L
+82ab 4c00      add         $ACC0, $ACC1
 82ac 1b7e      srri        @$AR3, $AC0.M
-82ad 4c00      add         $ACC0, $AC1.L
+82ad 4c00      add         $ACC0, $ACC1
 82ae 1b7e      srri        @$AR3, $AC0.M
-82af 4c00      add         $ACC0, $AC1.L
+82af 4c00      add         $ACC0, $ACC1
 82b0 1b7e      srri        @$AR3, $AC0.M
-82b1 4c00      add         $ACC0, $AC1.L
+82b1 4c00      add         $ACC0, $ACC1
 82b2 1b7e      srri        @$AR3, $AC0.M
-82b3 4c00      add         $ACC0, $AC1.L
+82b3 4c00      add         $ACC0, $ACC1
 82b4 1b7e      srri        @$AR3, $AC0.M
-82b5 4c00      add         $ACC0, $AC1.L
+82b5 4c00      add         $ACC0, $ACC1
 82b6 1b7e      srri        @$AR3, $AC0.M
-82b7 4c00      add         $ACC0, $AC1.L
+82b7 4c00      add         $ACC0, $ACC1
 82b8 1b7e      srri        @$AR3, $AC0.M
-82b9 4c00      add         $ACC0, $AC1.L
+82b9 4c00      add         $ACC0, $ACC1
 82ba 1b7e      srri        @$AR3, $AC0.M
-82bb 4c00      add         $ACC0, $AC1.L
+82bb 4c00      add         $ACC0, $ACC1
 82bc 1b7e      srri        @$AR3, $AC0.M
-82bd 4c00      add         $ACC0, $AC1.L
+82bd 4c00      add         $ACC0, $ACC1
 82be 1b7e      srri        @$AR3, $AC0.M
-82bf 4c00      add         $ACC0, $AC1.L
+82bf 4c00      add         $ACC0, $ACC1
 82c0 1b7e      srri        @$AR3, $AC0.M
-82c1 4c00      add         $ACC0, $AC1.L
+82c1 4c00      add         $ACC0, $ACC1
 82c2 1b7e      srri        @$AR3, $AC0.M
-82c3 4c00      add         $ACC0, $AC1.L
+82c3 4c00      add         $ACC0, $ACC1
 82c4 1b7e      srri        @$AR3, $AC0.M
-82c5 4c00      add         $ACC0, $AC1.L
+82c5 4c00      add         $ACC0, $ACC1
 82c6 8931      clr's       $ACC1 : @$AR1, $AC0.M
 82c7 8109      clr'ir      $ACC0 : $AR1
 82c8 193e      lrri        $AC0.M, @$AR1
 82c9 18bf      lrrd        $AC1.M, @$AR1
 82ca 1b7e      srri        @$AR3, $AC0.M
-82cb 4c00      add         $ACC0, $AC1.L
+82cb 4c00      add         $ACC0, $ACC1
 82cc 1b7e      srri        @$AR3, $AC0.M
-82cd 4c00      add         $ACC0, $AC1.L
+82cd 4c00      add         $ACC0, $ACC1
 82ce 1b7e      srri        @$AR3, $AC0.M
-82cf 4c00      add         $ACC0, $AC1.L
+82cf 4c00      add         $ACC0, $ACC1
 82d0 1b7e      srri        @$AR3, $AC0.M
-82d1 4c00      add         $ACC0, $AC1.L
+82d1 4c00      add         $ACC0, $ACC1
 82d2 1b7e      srri        @$AR3, $AC0.M
-82d3 4c00      add         $ACC0, $AC1.L
+82d3 4c00      add         $ACC0, $ACC1
 82d4 1b7e      srri        @$AR3, $AC0.M
-82d5 4c00      add         $ACC0, $AC1.L
+82d5 4c00      add         $ACC0, $ACC1
 82d6 1b7e      srri        @$AR3, $AC0.M
-82d7 4c00      add         $ACC0, $AC1.L
+82d7 4c00      add         $ACC0, $ACC1
 82d8 1b7e      srri        @$AR3, $AC0.M
-82d9 4c00      add         $ACC0, $AC1.L
+82d9 4c00      add         $ACC0, $ACC1
 82da 1b7e      srri        @$AR3, $AC0.M
-82db 4c00      add         $ACC0, $AC1.L
+82db 4c00      add         $ACC0, $ACC1
 82dc 1b7e      srri        @$AR3, $AC0.M
-82dd 4c00      add         $ACC0, $AC1.L
+82dd 4c00      add         $ACC0, $ACC1
 82de 1b7e      srri        @$AR3, $AC0.M
-82df 4c00      add         $ACC0, $AC1.L
+82df 4c00      add         $ACC0, $ACC1
 82e0 1b7e      srri        @$AR3, $AC0.M
-82e1 4c00      add         $ACC0, $AC1.L
+82e1 4c00      add         $ACC0, $ACC1
 82e2 1b7e      srri        @$AR3, $AC0.M
-82e3 4c00      add         $ACC0, $AC1.L
+82e3 4c00      add         $ACC0, $ACC1
 82e4 1b7e      srri        @$AR3, $AC0.M
-82e5 4c00      add         $ACC0, $AC1.L
+82e5 4c00      add         $ACC0, $ACC1
 82e6 1b7e      srri        @$AR3, $AC0.M
-82e7 4c00      add         $ACC0, $AC1.L
+82e7 4c00      add         $ACC0, $ACC1
 82e8 1b7e      srri        @$AR3, $AC0.M
-82e9 4c00      add         $ACC0, $AC1.L
+82e9 4c00      add         $ACC0, $ACC1
 82ea 1b7e      srri        @$AR3, $AC0.M
-82eb 4c00      add         $ACC0, $AC1.L
+82eb 4c00      add         $ACC0, $ACC1
 82ec 1b7e      srri        @$AR3, $AC0.M
-82ed 4c00      add         $ACC0, $AC1.L
+82ed 4c00      add         $ACC0, $ACC1
 82ee 1b7e      srri        @$AR3, $AC0.M
-82ef 4c00      add         $ACC0, $AC1.L
+82ef 4c00      add         $ACC0, $ACC1
 82f0 1b7e      srri        @$AR3, $AC0.M
-82f1 4c00      add         $ACC0, $AC1.L
+82f1 4c00      add         $ACC0, $ACC1
 82f2 1b7e      srri        @$AR3, $AC0.M
-82f3 4c00      add         $ACC0, $AC1.L
+82f3 4c00      add         $ACC0, $ACC1
 82f4 1b7e      srri        @$AR3, $AC0.M
-82f5 4c00      add         $ACC0, $AC1.L
+82f5 4c00      add         $ACC0, $ACC1
 82f6 1b7e      srri        @$AR3, $AC0.M
-82f7 4c00      add         $ACC0, $AC1.L
+82f7 4c00      add         $ACC0, $ACC1
 82f8 1b7e      srri        @$AR3, $AC0.M
-82f9 4c00      add         $ACC0, $AC1.L
+82f9 4c00      add         $ACC0, $ACC1
 82fa 1b7e      srri        @$AR3, $AC0.M
-82fb 4c00      add         $ACC0, $AC1.L
+82fb 4c00      add         $ACC0, $ACC1
 82fc 1b7e      srri        @$AR3, $AC0.M
-82fd 4c00      add         $ACC0, $AC1.L
+82fd 4c00      add         $ACC0, $ACC1
 82fe 1b7e      srri        @$AR3, $AC0.M
-82ff 4c00      add         $ACC0, $AC1.L
+82ff 4c00      add         $ACC0, $ACC1
 8300 1b7e      srri        @$AR3, $AC0.M
-8301 4c00      add         $ACC0, $AC1.L
+8301 4c00      add         $ACC0, $ACC1
 8302 1b7e      srri        @$AR3, $AC0.M
-8303 4c00      add         $ACC0, $AC1.L
+8303 4c00      add         $ACC0, $ACC1
 8304 1b7e      srri        @$AR3, $AC0.M
-8305 4c00      add         $ACC0, $AC1.L
+8305 4c00      add         $ACC0, $ACC1
 8306 1b7e      srri        @$AR3, $AC0.M
-8307 4c00      add         $ACC0, $AC1.L
+8307 4c00      add         $ACC0, $ACC1
 8308 1b7e      srri        @$AR3, $AC0.M
-8309 4c00      add         $ACC0, $AC1.L
+8309 4c00      add         $ACC0, $ACC1
 830a 1b3e      srri        @$AR1, $AC0.M
 830b 1c27      mrr         $AR1, $IX3
 830c 1c62      mrr         $AR3, $AR2
@@ -1076,78 +1119,79 @@
 8459 9900      asr16       $ACC1
 845a 1b7f      srri        @$AR3, $AC1.M
 845b 812b      clr's       $ACC0 : @$AR3, $AC1.L
-845c 02df      ret         
+845c 02df      ret    
+}     
 
-
-// Don't know what this is, looks like more mixing
+// Don't know what this is, looks like more mixing 
+{
 845d 1ce3      mrr         $IX3, $AR3
 845e 8100      clr         $ACC0
 845f 8971      clr'l       $ACC1 : $AC0.M, @$AR1
 8460 18bf      lrrd        $AC1.M, @$AR1
 8461 1b7e      srri        @$AR3, $AC0.M
-8462 4c00      add         $ACC0, $AC1.L
+8462 4c00      add         $ACC0, $ACC1
 8463 1b7e      srri        @$AR3, $AC0.M
-8464 4c00      add         $ACC0, $AC1.L
+8464 4c00      add         $ACC0, $ACC1
 8465 1b7e      srri        @$AR3, $AC0.M
-8466 4c00      add         $ACC0, $AC1.L
+8466 4c00      add         $ACC0, $ACC1
 8467 1b7e      srri        @$AR3, $AC0.M
-8468 4c00      add         $ACC0, $AC1.L
+8468 4c00      add         $ACC0, $ACC1
 8469 1b7e      srri        @$AR3, $AC0.M
-846a 4c00      add         $ACC0, $AC1.L
+846a 4c00      add         $ACC0, $ACC1
 846b 1b7e      srri        @$AR3, $AC0.M
-846c 4c00      add         $ACC0, $AC1.L
+846c 4c00      add         $ACC0, $ACC1
 846d 1b7e      srri        @$AR3, $AC0.M
-846e 4c00      add         $ACC0, $AC1.L
+846e 4c00      add         $ACC0, $ACC1
 846f 1b7e      srri        @$AR3, $AC0.M
-8470 4c00      add         $ACC0, $AC1.L
+8470 4c00      add         $ACC0, $ACC1
 8471 1b7e      srri        @$AR3, $AC0.M
-8472 4c00      add         $ACC0, $AC1.L
+8472 4c00      add         $ACC0, $ACC1
 8473 1b7e      srri        @$AR3, $AC0.M
-8474 4c00      add         $ACC0, $AC1.L
+8474 4c00      add         $ACC0, $ACC1
 8475 1b7e      srri        @$AR3, $AC0.M
-8476 4c00      add         $ACC0, $AC1.L
+8476 4c00      add         $ACC0, $ACC1
 8477 1b7e      srri        @$AR3, $AC0.M
-8478 4c00      add         $ACC0, $AC1.L
+8478 4c00      add         $ACC0, $ACC1
 8479 1b7e      srri        @$AR3, $AC0.M
-847a 4c00      add         $ACC0, $AC1.L
+847a 4c00      add         $ACC0, $ACC1
 847b 1b7e      srri        @$AR3, $AC0.M
-847c 4c00      add         $ACC0, $AC1.L
+847c 4c00      add         $ACC0, $ACC1
 847d 1b7e      srri        @$AR3, $AC0.M
-847e 4c00      add         $ACC0, $AC1.L
+847e 4c00      add         $ACC0, $ACC1
 847f 1b7e      srri        @$AR3, $AC0.M
-8480 4c00      add         $ACC0, $AC1.L
+8480 4c00      add         $ACC0, $ACC1
 8481 1b7e      srri        @$AR3, $AC0.M
-8482 4c00      add         $ACC0, $AC1.L
+8482 4c00      add         $ACC0, $ACC1
 8483 1b7e      srri        @$AR3, $AC0.M
-8484 4c00      add         $ACC0, $AC1.L
+8484 4c00      add         $ACC0, $ACC1
 8485 1b7e      srri        @$AR3, $AC0.M
-8486 4c00      add         $ACC0, $AC1.L
+8486 4c00      add         $ACC0, $ACC1
 8487 1b7e      srri        @$AR3, $AC0.M
-8488 4c00      add         $ACC0, $AC1.L
+8488 4c00      add         $ACC0, $ACC1
 8489 1b7e      srri        @$AR3, $AC0.M
-848a 4c00      add         $ACC0, $AC1.L
+848a 4c00      add         $ACC0, $ACC1
 848b 1b7e      srri        @$AR3, $AC0.M
-848c 4c00      add         $ACC0, $AC1.L
+848c 4c00      add         $ACC0, $ACC1
 848d 1b7e      srri        @$AR3, $AC0.M
-848e 4c00      add         $ACC0, $AC1.L
+848e 4c00      add         $ACC0, $ACC1
 848f 1b7e      srri        @$AR3, $AC0.M
-8490 4c00      add         $ACC0, $AC1.L
+8490 4c00      add         $ACC0, $ACC1
 8491 1b7e      srri        @$AR3, $AC0.M
-8492 4c00      add         $ACC0, $AC1.L
+8492 4c00      add         $ACC0, $ACC1
 8493 1b7e      srri        @$AR3, $AC0.M
-8494 4c00      add         $ACC0, $AC1.L
+8494 4c00      add         $ACC0, $ACC1
 8495 1b7e      srri        @$AR3, $AC0.M
-8496 4c00      add         $ACC0, $AC1.L
+8496 4c00      add         $ACC0, $ACC1
 8497 1b7e      srri        @$AR3, $AC0.M
-8498 4c00      add         $ACC0, $AC1.L
+8498 4c00      add         $ACC0, $ACC1
 8499 1b7e      srri        @$AR3, $AC0.M
-849a 4c00      add         $ACC0, $AC1.L
+849a 4c00      add         $ACC0, $ACC1
 849b 1b7e      srri        @$AR3, $AC0.M
-849c 4c00      add         $ACC0, $AC1.L
+849c 4c00      add         $ACC0, $ACC1
 849d 1b7e      srri        @$AR3, $AC0.M
-849e 4c00      add         $ACC0, $AC1.L
+849e 4c00      add         $ACC0, $ACC1
 849f 1b7e      srri        @$AR3, $AC0.M
-84a0 4c00      add         $ACC0, $AC1.L
+84a0 4c00      add         $ACC0, $ACC1
 84a1 8931      clr's       $ACC1 : @$AR1, $AC0.M
 84a2 1c27      mrr         $AR1, $IX3
 84a3 1c62      mrr         $AR3, $AR2
@@ -1317,16 +1361,17 @@
 8547 9900      asr16       $ACC1
 8548 1b7f      srri        @$AR3, $AC1.M
 8549 812b      clr's       $ACC0 : @$AR3, $AC1.L
-854a 02df      ret         
+854a 02df      ret  
+}     
 
-
-// Don't know what this is. There's deadbeef and 1234 in it. Suspicious.
+// Don't know what this is. There's deadbeef and 1234 in it. Suspicious.   
+{
 854b 8e00      set16       
 854c 0080 0800 lri         $AR0, #0x0800
 854e 0092 00ff lri         $CR, #0x00ff
 8550 00c4 0403 lr          $IX0, @0x0403
 8552 1fe4      mrr         $AC1.M, $IX0
-8553 0503      addis       $ACC1, #0x03
+8553 0503      addis       $AC1.M, #0x03
 8554 156e      lsr         $ACC1, #-18
 8555 1502      lsl         $ACC1, #2
 8556 29c9      srs         @DSCR, $AX1.L
@@ -1358,20 +1403,20 @@
 857d 009b 0018 lri         $AX1.H, #0x0018
 857f 8178      clr'l       $ACC0 : $AC1.M, @$AR0
 8580 0065 8586 bloop       $IX1, 0x8586
-8582 35be      andr'slnm   $AC1.M, $AX0.H : $AC0.M, $AX1.H
-8583 3793      andr'sl     $AC1.M, $AX1.H : $AC1.M, $AX1.L
+8582 35be      lsrnrx'sn   $ACC1, $AX0.H : @$AR2, $AC1.M
+8583 3793      lsrnrx'mv   $ACC1, $AX1.H : $AX0.L, $AC1.M
 8584 f500      lsr16       $ACC1
 8585 7017      addaxl'mv   $ACC0, $AX0.L : $AX1.L, $AC1.M
 8586 7278      addaxl'l    $ACC0, $AX1.L : $AC1.M, @$AR0
 8587 029c 858c jlnz        0x858c
-8589 35be      andr'slnm   $AC1.M, $AX0.H : $AC0.M, $AX1.H
+8589 35be      lsrnrx'sn   $ACC1, $AX0.H : @$AR2, $AC1.M
 858a 1f1f      mrr         $AX0.L, $AC1.M
 858b 7000      addaxl      $ACC0, $AX0.L
-858c 6d00      mov         $ACC1, $AC0.L
+858c 6d00      mov         $ACC1, $ACC0
 858d 0080 0408 lri         $AR0, #0x0408
 858f 009a 12df lri         $AX0.H, #0x12df
 8591 0098 acbd lri         $AX0.L, #0xacbd
-8593 4800      addax       $ACC0, $AX0.L
+8593 4800      addax       $ACC0, $AX0
 8594 1b1e      srri        @$AR0, $AC0.M
 8595 1b1c      srri        @$AR0, $AC0.L
 8596 009e fbca lri         $AC0.M, #0xfbca
@@ -1446,7 +1491,7 @@
 85fd 1b3e      srri        @$AR1, $AC0.M
 85fe 029d 8602 jlz         0x8602
 8600 02bf 8611 call        0x8611
-8602 16c9 0001 si          @DSCR, #0x0001
+8602 16c9 0001 si          @DSCR, #0x0001 // DMEM->CPU
 8604 00de 0406 lr          $AC0.M, @0x0406
 8606 2ece      srs         @DSMAH, $AC0.M
 8607 00de 0407 lr          $AC0.M, @0x0407
@@ -1454,15 +1499,16 @@
 860a 16cd 040a si          @DSPA, #0x040a
 860c 16cb 0004 si          @DSBL, #0x0004
 860e 02bf 863d call        0x863d
-8610 02df      ret         
+8610 02df      ret  
+}
 
-
-// No idea what this is either.
+// No idea what this is either.  
+{      
 8611 18da      lrrd        $AX0.H, @$AR2
 8612 18db      lrrd        $AX1.H, @$AR2
 8613 18dd      lrrd        $AC1.L, @$AR2
 8614 18df      lrrd        $AC1.M, @$AR2
-8615 4c04      add'dr      $ACC0, $AC1.L : $AR0
+8615 4c04      add'dr      $ACC0, $ACC1 : $AR0
 8616 1ffc      mrr         $AC1.M, $AC0.L
 8617 3143      xorr'l      $AC1.M, $AX0.H : $AX0.L, @$AR3
 8618 f563      lsr16'l     $ACC1 : $AC0.L, @$AR3
@@ -1473,18 +1519,18 @@
 861d 1423      lsl         $ACC0, #-29
 861e 146d      lsr         $ACC0, #-19
 861f 1f5e      mrr         $AX0.H, $AC0.M
-8620 04e0      addis       $ACC0, #0xe0
-8621 6c1e      mov'mv      $ACC0, $AC1.L : $AX1.H, $AC0.M
+8620 04e0      addis       $AC0.M, #0xe0
+8621 6c1e      mov'mv      $ACC0, $ACC1 : $AX1.H, $AC0.M
 8622 1c66      mrr         $AR3, $IX2
-8623 3486      andr'sln    $AC0.M, $AX0.H : $AC0.M, $AX0.L
-8624 3786      andr'sln    $AC1.M, $AX1.H : $AC0.M, $AX0.L
-8625 4c52      add'l       $ACC0, $AC1.L : $AX0.H, @$AR2
-8626 486b      addax'l     $ACC0, $AX0.L : $AC1.L, @$AR3
+8623 3486      lsrnrx'dr   $ACC0, $AX0.H : $AR2
+8624 3786      lsrnrx'dr   $ACC1, $AX1.H : $AR2
+8625 4c52      add'l       $ACC0, $ACC1 : $AX0.H, @$AR2
+8626 486b      addax'l     $ACC0, $AX0 : $AC1.L, @$AR3
 8627 1adc      srrd        @$AR2, $AC0.L
 8628 1a5e      srr         @$AR2, $AC0.M
 8629 183e      lrr         $AC0.M, @$AR1
 862a 18bf      lrrd        $AC1.M, @$AR1
-862b 33d2      xorr'ld     $AC1.M, $AX1.H : $AX0.L, $AX1.H, @$AR2
+862b 33d2      not'l       $AC1.M : $AX0.H, @$AR2
 862c 195b      lrri        $AX1.H, @$AR2
 862d 365f      andr'ln     $AC0.M, $AX1.H : $AX1.H, @$AR3
 862e 371e      andr'mv     $AC1.M, $AX1.H : $AX1.H, $AC0.M
@@ -1492,7 +1538,7 @@
 8630 1aff      srrd        @$AR3, $AC1.M
 8631 183e      lrr         $AC0.M, @$AR1
 8632 3479      andr'l      $AC0.M, $AX0.H : $AC1.M, @$AR1
-8633 339a      xorr'slm    $AC1.M, $AX1.H : $AC0.M, $AX1.L
+8633 339a      not'mv      $AC1.M : $AX0.H, $AC0.M
 8634 3705      andr'dr     $AC1.M, $AX1.H : $AR1
 8635 390a      orr'ir      $AC1.M, $AX0.H : $AR2
 8636 1bff      srrn        @$AR3, $AC1.M
@@ -1502,21 +1548,26 @@
 863a f557      lsr16'ln    $ACC1 : $AX0.H, @$AR3
 863b 197f      lrri        $AC1.M, @$AR3
 863c 02df      ret         
+}
 
-
-// waits for DMA control reg - probably completion.	
+// waits for DMA completion.	 
+void 863d_WaitForDMAend()
+{
 863d 00df ffc9 lr          $AC1.M, @DSCR
 863f 03c0 0004 andcf       $AC1.M, #0x0004
 8641 029d 863d jlz         0x863d
-8643 02df      ret         
+8643 02df      ret        
+}
 
-
-// This one does some DMA-ing.
+// This one does some DMA-ing. 
+// jump here from  ZeldaLightTypeUcode (light type... Luigi Mansion, Pikmin 1 (U), IPL ucode)
+void 8644_Irom()
+{
 8644 8e00      set16       
 8645 0081 0800 lri         $AR1, #0x0800
 8647 0092 00ff lri         $CR, #0x00ff
 8649 00df 0403 lr          $AC1.M, @0x0403
-864b 0503      addis       $ACC1, #0x03
+864b 0503      addis       $AC1.M, #0x03
 864c 156e      lsr         $ACC1, #-18
 864d 1502      lsl         $ACC1, #2
 864e 29c9      srs         @DSCR, $AX1.L
@@ -1526,6 +1577,7 @@
 8654 2ecf      srs         @DSMAL, $AC0.M
 8655 00e1 ffcd sr          @DSPA, $AR1
 8657 2dcb      srs         @DSBL, $AC1.L
+
 8658 02bf 863d call        0x863d
 865a 29d1      srs         @SampleFormat, $AX1.L
 865b 29d4      srs         @ACSAH, $AX1.L
@@ -1548,20 +1600,22 @@
 8676 009b 0018 lri         $AX1.H, #0x0018
 8678 8179      clr'l       $ACC0 : $AC1.M, @$AR1
 8679 0066 867f bloop       $IX2, 0x867f
-867b 35bc      andr'lsnm   $AC1.M, $AX0.H : $AX1.H, $AC0.M
-867c 3793      andr'sl     $AC1.M, $AX1.H : $AC1.M, $AX1.L
-867d f500      lsr16       $ACC1
-867e 7017      addaxl'mv   $ACC0, $AX0.L : $AX1.L, $AC1.M
-867f 7279      addaxl'l    $ACC0, $AX1.L : $AC1.M, @$AR1
+{
+	867b 35bc      lsrnrx'sn   $ACC1, $AX0.H : @$AR0, $AC1.M
+	867c 3793      lsrnrx'mv   $ACC1, $AX1.H : $AX0.L, $AC1.M
+	867d f500      lsr16       $ACC1
+	867e 7017      addaxl'mv   $ACC0, $AX0.L : $AX1.L, $AC1.M
+	867f 7279      addaxl'l    $ACC0, $AX1.L : $AC1.M, @$AR1
+}
 8680 029c 8685 jlnz        0x8685
-8682 35bc      andr'lsnm   $AC1.M, $AX0.H : $AX1.H, $AC0.M
+8682 35bc      lsrnrx'sn   $ACC1, $AX0.H : @$AR0, $AC1.M
 8683 1f1f      mrr         $AX0.L, $AC1.M
 8684 7000      addaxl      $ACC0, $AX0.L
-8685 6d00      mov         $ACC1, $AC0.L
+8685 6d00      mov         $ACC1, $ACC0
 8686 0081 0408 lri         $AR1, #0x0408
 8688 009a 170a lri         $AX0.H, #0x170a
 868a 0098 7489 lri         $AX0.L, #0x7489
-868c 4800      addax       $ACC0, $AX0.L
+868c 4800      addax       $ACC0, $AX0
 868d 1b3e      srri        @$AR1, $AC0.M
 868e 1b3c      srri        @$AR1, $AC0.L
 868f 009e 05ef lri         $AC0.M, #0x05ef
@@ -1602,18 +1656,20 @@
 86c2 199a      lrrn        $AX0.H, @$AR0
 86c3 1c65      mrr         $AR3, $IX1
 86c4 0079 86cf bloop       $AX1.L, 0x86cf
-86c6 02bf 86e5 call        0x86e5
-86c8 1fb9      mrr         $AC1.L, $AX1.L
-86c9 1f46      mrr         $AX0.H, $IX2
-86ca 1c65      mrr         $AR3, $IX1
-86cb 02bf 86e5 call        0x86e5
-86cd 1fb9      mrr         $AC1.L, $AX1.L
-86ce 1f46      mrr         $AX0.H, $IX2
-86cf 1c65      mrr         $AR3, $IX1
+{
+	86c6 02bf 86e5 call        0x86e5
+	86c8 1fb9      mrr         $AC1.L, $AX1.L
+	86c9 1f46      mrr         $AX0.H, $IX2
+	86ca 1c65      mrr         $AR3, $IX1
+	86cb 02bf 86e5 call        0x86e5
+	86cd 1fb9      mrr         $AC1.L, $AX1.L
+	86ce 1f46      mrr         $AX0.H, $IX2
+	86cf 1c65      mrr         $AR3, $IX1
+}
 86d0 029d 86d4 jlz         0x86d4
 86d2 02bf 86e5 call        0x86e5
 86d4 0088 ffff lri         $WR0, #0xffff
-86d6 16c9 0001 si          @DSCR, #0x0001
+86d6 16c9 0001 si          @DSCR, #0x0001 // DMEM->CPU
 86d8 00de 0406 lr          $AC0.M, @0x0406
 86da 2ece      srs         @DSMAH, $AC0.M
 86db 00de 0407 lr          $AC0.M, @0x0407
@@ -1622,6 +1678,10 @@
 86e0 16cb 0004 si          @DSBL, #0x0004
 86e2 02bf 863d call        0x863d
 86e4 02df      ret         
+}
+
+//used by 8644_Irom() (Zelda Light)
+{
 86e5 1999      lrrn        $AX1.L, @$AR0
 86e6 199c      lrrn        $AC0.L, @$AR0
 86e7 1cdc      mrr         $IX2, $AC0.L
@@ -1630,10 +1690,10 @@
 86ea f052      lsl16'l     $ACC0 : $AX0.H, @$AR2
 86eb 9106      asr16'dr    $ACC0 : $AR2
 86ec 1518      lsl         $ACC1, #24
-86ed 3086      xorr'sln    $AC0.M, $AX0.H : $AC0.M, $AX0.L
+86ed 3086      xorc'dr     $AC0.M, $AC1.M : $AR2
 86ee 1ff9      mrr         $AC1.M, $AX1.L
 86ef 150c      lsl         $ACC1, #12
-86f0 3086      xorr'sln    $AC0.M, $AX0.H : $AC0.M, $AX0.L
+86f0 3086      xorc'dr     $AC0.M, $AC1.M : $AR2
 86f1 1f1e      mrr         $AX0.L, $AC0.M
 86f2 18bc      lrrd        $AC0.L, @$AR1
 86f3 193e      lrri        $AC0.M, @$AR1
@@ -1644,7 +1704,7 @@
 86f8 f543      lsr16'l     $ACC1 : $AX0.L, @$AR3
 86f9 18df      lrrd        $AC1.M, @$AR2
 86fa 3300      xorr        $AC1.M, $AX1.H
-86fb 4d63      add'l       $ACC1, $AC0.L : $AC0.L, @$AR3
+86fb 4d63      add'l       $ACC1, $ACC0 : $AC0.L, @$AR3
 86fc 7607      inc'dr      $ACC0 : $AR3
 86fd 1b7c      srri        @$AR3, $AC0.L
 86fe 7042      addaxl'l    $ACC0, $AX0.L : $AX0.L, @$AR2
@@ -1652,21 +1712,21 @@
 8700 145d      lsr         $ACC0, #29
 8701 7c00      neg         $ACC0
 8702 f000      lsl16       $ACC0
-8703 04f8      addis       $ACC0, #0xf8
+8703 04f8      addis       $AC0.M, #0xf8
 8704 1f5e      mrr         $AX0.H, $AC0.M
-8705 0428      addis       $ACC0, #0x28
-8706 6c1e      mov'mv      $ACC0, $AC1.L : $AX1.H, $AC0.M
+8705 0428      addis       $AC0.M, #0x28
+8706 6c1e      mov'mv      $ACC0, $ACC1 : $AX1.H, $AC0.M
 8707 1408      lsl         $ACC0, #8
 8708 1c68      mrr         $AR3, $WR0
-8709 3486      andr'sln    $AC0.M, $AX0.H : $AC0.M, $AX0.L
-870a 3786      andr'sln    $AC1.M, $AX1.H : $AC0.M, $AX0.L
-870b 4c52      add'l       $ACC0, $AC1.L : $AX0.H, @$AR2
-870c 486b      addax'l     $ACC0, $AX0.L : $AC1.L, @$AR3
+8709 3486      lsrnrx'dr   $ACC0, $AX0.H : $AR2
+870a 3786      lsrnrx'dr   $ACC1, $AX1.H : $AR2
+870b 4c52      add'l       $ACC0, $ACC1 : $AX0.H, @$AR2
+870c 486b      addax'l     $ACC0, $AX0 : $AC1.L, @$AR3
 870d 1adc      srrd        @$AR2, $AC0.L
 870e 1a5e      srr         @$AR2, $AC0.M
 870f 183e      lrr         $AC0.M, @$AR1
 8710 18bf      lrrd        $AC1.M, @$AR1
-8711 33d2      xorr'ld     $AC1.M, $AX1.H : $AX0.L, $AX1.H, @$AR2
+8711 33d2      not'l       $AC1.M : $AX0.H, @$AR2
 8712 19fb      lrrn        $AX1.H, @$AR3
 8713 365a      andr'l      $AC0.M, $AX1.H : $AX1.H, @$AR2
 8714 371e      andr'mv     $AC1.M, $AX1.H : $AX1.H, $AC0.M
@@ -1674,7 +1734,7 @@
 8716 1aff      srrd        @$AR3, $AC1.M
 8717 183e      lrr         $AC0.M, @$AR1
 8718 3679      andr'l      $AC0.M, $AX1.H : $AC1.M, @$AR1
-8719 339e      xorr'slnm   $AC1.M, $AX1.H : $AC0.M, $AX1.L
+8719 339e      not'mv      $AC1.M : $AX1.H, $AC0.M
 871a 3505      andr'dr     $AC1.M, $AX0.H : $AR1
 871b 3b0a      orr'ir      $AC1.M, $AX1.H : $AR2
 871c 1bff      srrn        @$AR3, $AC1.M
@@ -1686,7 +1746,10 @@
 8722 312a      xorr's      $AC1.M, $AX0.H : @$AR2, $AC1.L
 8723 3300      xorr        $AC1.M, $AX1.H
 8724 1adf      srrd        @$AR2, $AC1.M
-8725 02df      ret         
+8725 02df      ret       
+}
+
+{  
 8726 8e00      set16       
 8727 0081 0800 lri         $AR1, #0x0800
 8729 0092 00ff lri         $CR, #0x00ff
@@ -1720,16 +1783,18 @@
 8754 009b 0018 lri         $AX1.H, #0x0018
 8756 8179      clr'l       $ACC0 : $AC1.M, @$AR1
 8757 0066 875d bloop       $IX2, 0x875d
-8759 35bc      andr'lsnm   $AC1.M, $AX0.H : $AX1.H, $AC0.M
-875a 3793      andr'sl     $AC1.M, $AX1.H : $AC1.M, $AX1.L
-875b f500      lsr16       $ACC1
-875c 7017      addaxl'mv   $ACC0, $AX0.L : $AX1.L, $AC1.M
-875d 7279      addaxl'l    $ACC0, $AX1.L : $AC1.M, @$AR1
-875e 6d00      mov         $ACC1, $AC0.L
+{
+	8759 35bc      lsrnrx'sn   $ACC1, $AX0.H : @$AR0, $AC1.M
+	875a 3793      lsrnrx'mv   $ACC1, $AX1.H : $AX0.L, $AC1.M
+	875b f500      lsr16       $ACC1
+	875c 7017      addaxl'mv   $ACC0, $AX0.L : $AX1.L, $AC1.M
+	875d 7279      addaxl'l    $ACC0, $AX1.L : $AC1.M, @$AR1
+}
+875e 6d00      mov         $ACC1, $ACC0
 875f 0081 0408 lri         $AR1, #0x0408
 8761 009a 298f lri         $AX0.H, #0x298f
 8763 0098 0b7f lri         $AX0.L, #0x0b7f
-8765 4800      addax       $ACC0, $AX0.L
+8765 4800      addax       $ACC0, $AX0
 8766 1b3e      srri        @$AR1, $AC0.M
 8767 1b3c      srri        @$AR1, $AC0.L
 8768 009e 4bf9 lri         $AC0.M, #0x4bf9
@@ -1792,22 +1857,24 @@
 87bb 19da      lrrn        $AX0.H, @$AR2
 87bc 1c65      mrr         $AR3, $IX1
 87bd 199f      lrrn        $AC1.M, @$AR0
-87be 4c5e      add'ln      $ACC0, $AC1.L : $AX1.H, @$AR2
+87be 4c5e      add'ln      $ACC0, $ACC1 : $AX1.H, @$AR2
 87bf 1abc      srrd        @$AR1, $AC0.L
 87c0 1b3e      srri        @$AR1, $AC0.M
 87c1 0079 87cd bloop       $AX1.L, 0x87cd
-87c3 02bf 87df call        0x87df
-87c5 199d      lrrn        $AC1.L, @$AR0
-87c6 18bc      lrrd        $AC0.L, @$AR1
-87c7 193e      lrri        $AC0.M, @$AR1
-87c8 19da      lrrn        $AX0.H, @$AR2
-87c9 1c65      mrr         $AR3, $IX1
-87ca 199f      lrrn        $AC1.M, @$AR0
-87cb 4c5e      add'ln      $ACC0, $AC1.L : $AX1.H, @$AR2
-87cc 1abc      srrd        @$AR1, $AC0.L
-87cd 1b3e      srri        @$AR1, $AC0.M
+{
+	87c3 02bf 87df call        0x87df
+	87c5 199d      lrrn        $AC1.L, @$AR0
+	87c6 18bc      lrrd        $AC0.L, @$AR1
+	87c7 193e      lrri        $AC0.M, @$AR1
+	87c8 19da      lrrn        $AX0.H, @$AR2
+	87c9 1c65      mrr         $AR3, $IX1
+	87ca 199f      lrrn        $AC1.M, @$AR0
+	87cb 4c5e      add'ln      $ACC0, $ACC1 : $AX1.H, @$AR2
+	87cc 1abc      srrd        @$AR1, $AC0.L
+	87cd 1b3e      srri        @$AR1, $AC0.M
+}
 87ce 02bf 87df call        0x87df
-87d0 16c9 0001 si          @DSCR, #0x0001
+87d0 16c9 0001 si          @DSCR, #0x0001 // DMEM->CPU
 87d2 00de 0406 lr          $AC0.M, @0x0406
 87d4 2ece      srs         @DSMAH, $AC0.M
 87d5 00de 0407 lr          $AC0.M, @0x0407
@@ -1816,12 +1883,15 @@
 87da 16cb 0004 si          @DSBL, #0x0004
 87dc 02bf 863d call        0x863d
 87de 02df      ret         
+}
+
+{
 87df 1ffc      mrr         $AC1.M, $AC0.L
 87e0 3166      xorr'ln     $AC1.M, $AX0.H : $AC0.L, @$AR2
 87e1 f543      lsr16'l     $ACC1 : $AX0.L, @$AR3
 87e2 1ffe      mrr         $AC1.M, $AC0.M
 87e3 3376      xorr'ln     $AC1.M, $AX1.H : $AC0.M, @$AR2
-87e4 4d63      add'l       $ACC1, $AC0.L : $AC0.L, @$AR3
+87e4 4d63      add'l       $ACC1, $ACC0 : $AC0.L, @$AR3
 87e5 7607      inc'dr      $ACC0 : $AR3
 87e6 1b7c      srri        @$AR3, $AC0.L
 87e7 7046      addaxl'ln   $ACC0, $AX0.L : $AX0.L, @$AR2
@@ -1829,15 +1899,15 @@
 87e9 145d      lsr         $ACC0, #29
 87ea 7c0f      neg'nr      $ACC0 : $AR3
 87eb f00f      lsl16'nr    $ACC0 : $AR3
-87ec 04f8      addis       $ACC0, #0xf8
+87ec 04f8      addis       $AC0.M, #0xf8
 87ed 1f5e      mrr         $AX0.H, $AC0.M
-87ee 0428      addis       $ACC0, #0x28
-87ef 6c1e      mov'mv      $ACC0, $AC1.L : $AX1.H, $AC0.M
+87ee 0428      addis       $AC0.M, #0x28
+87ef 6c1e      mov'mv      $ACC0, $ACC1 : $AX1.H, $AC0.M
 87f0 1408      lsl         $ACC0, #8
-87f1 3485      andr'lsn    $AC0.M, $AX0.H : $AX0.L, $AC1.M
-87f2 37d9      andr'ldm    $AC1.M, $AX1.H : $AX0.L, $AX1.H, @$AR1
-87f3 4c52      add'l       $ACC0, $AC1.L : $AX0.H, @$AR2
-87f4 4853      addax'l     $ACC0, $AX0.L : $AX0.H, @$AR3
+87f1 3485      lsrnrx'dr   $ACC0, $AX0.H : $AR1
+87f2 37d9      lsrnrx'l    $ACC1, $AX1.H : $AX1.H, @$AR1
+87f3 4c52      add'l       $ACC0, $ACC1 : $AX0.H, @$AR2
+87f4 4853      addax'l     $ACC0, $AX0 : $AX0.H, @$AR3
 87f5 1bdc      srrn        @$AR2, $AC0.L
 87f6 1b5e      srri        @$AR2, $AC0.M
 87f7 325f      xorr'ln     $AC0.M, $AX1.H : $AX1.H, @$AR3
@@ -1850,22 +1920,25 @@
 87fe 183b      lrr         $AX1.H, @$AR1
 87ff 3653      andr'l      $AC0.M, $AX1.H : $AX0.H, @$AR3
 8800 18bf      lrrd        $AC1.M, @$AR1
-8801 339e      xorr'slnm   $AC1.M, $AX1.H : $AC0.M, $AX1.L
+8801 339e      not'mv      $AC1.M : $AX1.H, $AC0.M
 8802 3571      andr'l      $AC1.M, $AX0.H : $AC0.M, @$AR1
 8803 3b05      orr'dr      $AC1.M, $AX1.H : $AR1
 8804 f557      lsr16'ln    $ACC1 : $AX0.H, @$AR3
 8805 193f      lrri        $AC1.M, @$AR1
 8806 345f      andr'ln     $AC0.M, $AX0.H : $AX1.H, @$AR3
-8807 339a      xorr'slm    $AC1.M, $AX1.H : $AC0.M, $AX1.L
+8807 339a      not'mv      $AC1.M : $AX0.H, $AC0.M
 8808 370a      andr'ir     $AC1.M, $AX1.H : $AR2
 8809 392e      orr'sn      $AC1.M, $AX0.H : @$AR2, $AC1.L
 880a 1b5f      srri        @$AR2, $AC1.M
 880b 02df      ret         
+}
+
+{
 880c 8e00      set16       
 880d 0081 0800 lri         $AR1, #0x0800
 880f 0092 00ff lri         $CR, #0x00ff
 8811 00df 0403 lr          $AC1.M, @0x0403
-8813 0503      addis       $ACC1, #0x03
+8813 0503      addis       $AC1.M, #0x03
 8814 156e      lsr         $ACC1, #-18
 8815 1502      lsl         $ACC1, #2
 8816 29c9      srs         @DSCR, $AX1.L
@@ -1897,20 +1970,20 @@
 883e 009b 0018 lri         $AX1.H, #0x0018
 8840 8179      clr'l       $ACC0 : $AC1.M, @$AR1
 8841 0066 8847 bloop       $IX2, 0x8847
-8843 35bc      andr'lsnm   $AC1.M, $AX0.H : $AX1.H, $AC0.M
-8844 3793      andr'sl     $AC1.M, $AX1.H : $AC1.M, $AX1.L
+8843 35bc      lsrnrx'sn   $ACC1, $AX0.H : @$AR0, $AC1.M
+8844 3793      lsrnrx'mv   $ACC1, $AX1.H : $AX0.L, $AC1.M
 8845 f500      lsr16       $ACC1
 8846 7017      addaxl'mv   $ACC0, $AX0.L : $AX1.L, $AC1.M
 8847 7279      addaxl'l    $ACC0, $AX1.L : $AC1.M, @$AR1
 8848 029c 884d jlnz        0x884d
-884a 35bc      andr'lsnm   $AC1.M, $AX0.H : $AX1.H, $AC0.M
+884a 35bc      lsrnrx'sn   $ACC1, $AX0.H : @$AR0, $AC1.M
 884b 1f1f      mrr         $AX0.L, $AC1.M
 884c 7000      addaxl      $ACC0, $AX0.L
-884d 6d00      mov         $ACC1, $AC0.L
+884d 6d00      mov         $ACC1, $ACC0
 884e 0081 0408 lri         $AR1, #0x0408
 8850 009a 4ea2 lri         $AX0.H, #0x4ea2
 8852 0098 1e71 lri         $AX0.L, #0x1e71
-8854 4800      addax       $ACC0, $AX0.L
+8854 4800      addax       $ACC0, $AX0
 8855 1b3e      srri        @$AR1, $AC0.M
 8856 1b3c      srri        @$AR1, $AC0.L
 8857 009e cc0a lri         $AC0.M, #0xcc0a
@@ -1959,22 +2032,24 @@
 8897 19da      lrrn        $AX0.H, @$AR2
 8898 1c65      mrr         $AR3, $IX1
 8899 199d      lrrn        $AC1.L, @$AR0
-889a 4c5a      add'l       $ACC0, $AC1.L : $AX1.H, @$AR2
+889a 4c5a      add'l       $ACC0, $ACC1 : $AX1.H, @$AR2
 889b 1abc      srrd        @$AR1, $AC0.L
 889c 1b3e      srri        @$AR1, $AC0.M
 889d 0079 88a9 bloop       $AX1.L, 0x88a9
-889f 02bf 88bb call        0x88bb
-88a1 199f      lrrn        $AC1.M, @$AR0
-88a2 18bc      lrrd        $AC0.L, @$AR1
-88a3 193e      lrri        $AC0.M, @$AR1
-88a4 19da      lrrn        $AX0.H, @$AR2
-88a5 1c65      mrr         $AR3, $IX1
-88a6 199d      lrrn        $AC1.L, @$AR0
-88a7 4c5a      add'l       $ACC0, $AC1.L : $AX1.H, @$AR2
-88a8 1abc      srrd        @$AR1, $AC0.L
-88a9 1b3e      srri        @$AR1, $AC0.M
+{
+	889f 02bf 88bb call        0x88bb
+	88a1 199f      lrrn        $AC1.M, @$AR0
+	88a2 18bc      lrrd        $AC0.L, @$AR1
+	88a3 193e      lrri        $AC0.M, @$AR1
+	88a4 19da      lrrn        $AX0.H, @$AR2
+	88a5 1c65      mrr         $AR3, $IX1
+	88a6 199d      lrrn        $AC1.L, @$AR0
+	88a7 4c5a      add'l       $ACC0, $ACC1 : $AX1.H, @$AR2
+	88a8 1abc      srrd        @$AR1, $AC0.L
+	88a9 1b3e      srri        @$AR1, $AC0.M
+}
 88aa 02bf 88bb call        0x88bb
-88ac 16c9 0001 si          @DSCR, #0x0001
+88ac 16c9 0001 si          @DSCR, #0x0001 // DMEM->CPU
 88ae 00de 0406 lr          $AC0.M, @0x0406
 88b0 2ece      srs         @DSMAH, $AC0.M
 88b1 00de 0407 lr          $AC0.M, @0x0407
@@ -1982,10 +2057,13 @@
 88b4 16cd 040a si          @DSPA, #0x040a
 88b6 16cb 0004 si          @DSBL, #0x0004
 88b8 02bf 863d call        0x863d
-88ba 02df      ret         
+88ba 02df      ret      
+}
+
+{   
 88bb 19d8      lrrn        $AX0.L, @$AR2
 88bc 19da      lrrn        $AX0.H, @$AR2
-88bd 4856      addax'ln    $ACC0, $AX0.L : $AX0.H, @$AR2
+88bd 4856      addax'ln    $ACC0, $AX0 : $AX0.H, @$AR2
 88be 1ffc      mrr         $AC1.M, $AC0.L
 88bf 3156      xorr'ln     $AC1.M, $AX0.H : $AX0.H, @$AR2
 88c0 f543      lsr16'l     $ACC1 : $AX0.L, @$AR3
@@ -1997,13 +2075,13 @@
 88c6 1423      lsl         $ACC0, #-29
 88c7 146d      lsr         $ACC0, #-19
 88c8 1f5e      mrr         $AX0.H, $AC0.M
-88c9 04e0      addis       $ACC0, #0xe0
+88c9 04e0      addis       $AC0.M, #0xe0
 88ca 001f      addarn      $AR3, $IX3
-88cb 6c1e      mov'mv      $ACC0, $AC1.L : $AX1.H, $AC0.M
-88cc 3485      andr'lsn    $AC0.M, $AX0.H : $AX0.L, $AC1.M
-88cd 37d9      andr'ldm    $AC1.M, $AX1.H : $AX0.L, $AX1.H, @$AR1
-88ce 4c52      add'l       $ACC0, $AC1.L : $AX0.H, @$AR2
-88cf 4853      addax'l     $ACC0, $AX0.L : $AX0.H, @$AR3
+88cb 6c1e      mov'mv      $ACC0, $ACC1 : $AX1.H, $AC0.M
+88cc 3485      lsrnrx'dr   $ACC0, $AX0.H : $AR1
+88cd 37d9      lsrnrx'l    $ACC1, $AX1.H : $AX1.H, @$AR1
+88ce 4c52      add'l       $ACC0, $ACC1 : $AX0.H, @$AR2
+88cf 4853      addax'l     $ACC0, $AX0 : $AX0.H, @$AR3
 88d0 1bdc      srrn        @$AR2, $AC0.L
 88d1 1b5e      srri        @$AR2, $AC0.M
 88d2 325f      xorr'ln     $AC0.M, $AX1.H : $AX1.H, @$AR3
@@ -2014,33 +2092,32 @@
 88d7 3200      xorr        $AC0.M, $AX1.H
 88d8 1b5e      srri        @$AR2, $AC0.M
 88d9 183f      lrr         $AC1.M, @$AR1
-88da 339e      xorr'slnm   $AC1.M, $AX1.H : $AC0.M, $AX1.L
+88da 339e      not'mv      $AC1.M : $AX1.H, $AC0.M
 88db 18be      lrrd        $AC0.M, @$AR1
 88dc 3753      andr'l      $AC1.M, $AX1.H : $AX0.H, @$AR3
 88dd 341f      andr'mv     $AC0.M, $AX0.H : $AX1.H, $AC1.M
 88de 3a79      orr'l       $AC0.M, $AX1.H : $AC1.M, @$AR1
 88df f405      lsr16'dr    $ACC0 : $AR1
-88e0 33d3      xorr'ld     $AC1.M, $AX1.H : $AX0.L, $AX1.H, @$AR3
+88e0 33d3      not'l       $AC1.M : $AX0.H, @$AR3
 88e1 3571      andr'l      $AC1.M, $AX0.H : $AC0.M, @$AR1
 88e2 0009      iar         $AR1
 88e3 183b      lrr         $AX1.H, @$AR1
 88e4 361b      andr'mv     $AC0.M, $AX1.H : $AX0.H, $AC1.M
 88e5 387a      orr'l       $AC0.M, $AX0.H : $AC1.M, @$AR2
 88e6 18dd      lrrd        $AC1.L, @$AR2
-88e7 4c05      add'dr      $ACC0, $AC1.L : $AR1
+88e7 4c05      add'dr      $ACC0, $ACC1 : $AR1
 88e8 1b5e      srri        @$AR2, $AC0.M
 88e9 1a5c      srr         @$AR2, $AC0.L
 88ea 02df      ret         
-
+}
 
 88eb 0000      nop         
 88ec 0000      nop         
 88ed 0000      nop         
 88ee 0000      nop         
-88ef 0000      nop        
+88ef 0000      nop   
 
- // 08f0 to 0ffd = invalid data
-
+// 08f0 to 0ffd = invalid data  
 
 8ffe 06e2      cmpis       $ACC0, #0xe2
 8fff 8845      nx'ln       : $AX0.L, @$AR1

@@ -129,6 +129,16 @@ void iar(const UDSPInstruction& opc)
 	g_dsp.r[opc.hex & 0x3] = dsp_increment_addr_reg(opc.hex & 0x3);
 }
 
+// XAR $arD  ?
+// 0000 0000 0000 11dd
+// $arD result somehow depends on $wrD
+// unknown atm
+// used in IPL ucode
+void xar(const UDSPInstruction& opc)
+{
+//	u8 dreg = opc.hex & 0x3;
+}
+
 // SBCLR #I
 // 0001 0011 0000 0iii
 // bit of status register $sr. Bit number is calculated by adding 6 to

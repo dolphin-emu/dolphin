@@ -126,6 +126,7 @@ void lsrn(const UDSPInstruction& opc);
 void asrn(const UDSPInstruction& opc);
 void dar(const UDSPInstruction& opc);
 void iar(const UDSPInstruction& opc);
+void xar(const UDSPInstruction& opc);
 void sbclr(const UDSPInstruction& opc);
 void sbset(const UDSPInstruction& opc);
 void mov(const UDSPInstruction& opc);

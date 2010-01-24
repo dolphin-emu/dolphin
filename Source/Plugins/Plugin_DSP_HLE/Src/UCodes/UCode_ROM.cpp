@@ -68,7 +68,10 @@ void CUCode_Rom::HandleMail(u32 _uMail)
 			    break;
 
 		    case 0x80F3B002:
-			    m_CurrentUCode.m_Unk = _uMail;
+			    m_CurrentUCode.m_DMEMLength = _uMail;
+				if (_uMail) {
+					NOTICE_LOG(DSPHLE,"Game wanted to DMA sth to DSP DRAM.");
+				}
 			    break;
 
 		    case 0x80F3D001:
@@ -78,6 +81,9 @@ void CUCode_Rom::HandleMail(u32 _uMail)
 				return;  // Important! BootUCode indirectly does "delete this;". Must exit immediately.
 		    }
 		    break;
+
+			default:
+			break;
 		}
 
 		// THE GODDAMN OVERWRITE WAS HERE. Without the return above, since BootUCode may delete "this", well ...
@@ -100,7 +106,7 @@ void CUCode_Rom::BootUCode()
 	DEBUG_LOG(DSPHLE, "CurrentUCode SOURCE Addr: 0x%08x", m_CurrentUCode.m_RAMAddress);
 	DEBUG_LOG(DSPHLE, "CurrentUCode Length:      0x%08x", m_CurrentUCode.m_Length);
 	DEBUG_LOG(DSPHLE, "CurrentUCode DEST Addr:   0x%08x", m_CurrentUCode.m_IMEMAddress);
-	DEBUG_LOG(DSPHLE, "CurrentUCode ???:         0x%08x", m_CurrentUCode.m_Unk);
+	DEBUG_LOG(DSPHLE, "CurrentUCode DMEM Length: 0x%08x", m_CurrentUCode.m_DMEMLength);
 	DEBUG_LOG(DSPHLE, "CurrentUCode init_vector: 0x%08x", m_CurrentUCode.m_StartPC);
 	DEBUG_LOG(DSPHLE, "CurrentUCode CRC:         0x%08x", crc);
 	DEBUG_LOG(DSPHLE, "BootTask - done");

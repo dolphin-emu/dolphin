@@ -41,6 +41,7 @@ const DSPOPCTemplate opcodes[] =
 
 	{"DAR",		0x0004, 0xfffc, DSPInterpreter::dar, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false},
 	{"IAR",		0x0008, 0xfffc, DSPInterpreter::iar, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false},
+	{"XAR",		0x000c, 0xfffc, DSPInterpreter::xar, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false},
 
 	{"ADDARN",  0x0010, 0xfff0, DSPInterpreter::addarn, nop, 1, 2, {{P_REG, 1, 0, 0, 0x0003}, {P_REG04, 1, 0, 2, 0x000c}}, false},
 

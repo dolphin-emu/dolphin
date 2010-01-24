@@ -404,7 +404,11 @@ void CUCode_AX::HandleMail(u32 _uMail)
 	{
 		m_rMailHandler.PushMail(0xDCD10001);
 	}
-	else if ((_uMail & 0xFFFF0000) == 0xCDD10000) // Action 1/2/3
+	else if (_uMail == 0xCDD10001) // Action 1 - new ucode upload
+	{
+		NOTICE_LOG(DSPHLE,"Game wanted to upload new ucode!");
+	}
+	else if ((_uMail & 0xFFFF0000) == 0xCDD10000) // Action 2/3
 	{
 	}
 	else

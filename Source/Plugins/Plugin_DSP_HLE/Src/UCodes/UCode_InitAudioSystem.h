@@ -36,7 +36,7 @@ private:
 		u32 m_RAMAddress;
 		u32 m_Length;
 		u32 m_IMEMAddress;
-		u32 m_Unk;
+		u32 m_DMEMLength;
 		u32 m_StartPC;
 	};
 
