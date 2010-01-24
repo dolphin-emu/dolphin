@@ -623,11 +623,14 @@ void DllConfig(HWND _hParent)
 
 	// Show wxDialog
 #if defined(HAVE_WX) && HAVE_WX
-	m_ConfigFrame = new PADConfigDialogSimple(GetParentedWxWindow(_hParent));
-	m_ConfigFrame->ShowModal();
-	m_ConfigFrame->Destroy();
-	delete m_ConfigFrame;
-	m_ConfigFrame = NULL;
+	if (!m_ConfigFrame)
+	{
+		m_ConfigFrame = new PADConfigDialogSimple(GetParentedWxWindow(_hParent));
+		m_ConfigFrame->ShowModal();
+		m_ConfigFrame->Destroy();
+		delete m_ConfigFrame;
+		m_ConfigFrame = NULL;
+	}
 #endif
 
 	// Save configuration

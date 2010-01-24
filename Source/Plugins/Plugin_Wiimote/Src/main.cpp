@@ -181,13 +181,14 @@ void DllConfig(HWND _hParent)
 	}
 
 #if defined(HAVE_WX) && HAVE_WX
-
-	m_BasicConfigFrame = new WiimoteBasicConfigDialog(GetParentedWxWindow(_hParent));
-	m_BasicConfigFrame->ShowModal();
-	m_BasicConfigFrame->Destroy();
-	delete m_BasicConfigFrame;
-	m_BasicConfigFrame = NULL;
-
+	if (!m_BasicConfigFrame)
+	{
+		m_BasicConfigFrame = new WiimoteBasicConfigDialog(GetParentedWxWindow(_hParent));
+		m_BasicConfigFrame->ShowModal();
+		m_BasicConfigFrame->Destroy();
+		delete m_BasicConfigFrame;
+		m_BasicConfigFrame = NULL;
+	}
 #endif
 }
 
