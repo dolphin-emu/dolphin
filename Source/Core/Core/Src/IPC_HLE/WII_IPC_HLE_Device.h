@@ -54,12 +54,12 @@ public:
 		return true;
 	}
 
-#define UNIMPLEMENTED_CMD(cmd) _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support "##cmd##"()", m_Name.c_str()); return true;
-	virtual bool Seek	(u32) { UNIMPLEMENTED_CMD("Seek") }
-	virtual bool Read	(u32) { UNIMPLEMENTED_CMD("Read") }
-	virtual bool Write	(u32) { UNIMPLEMENTED_CMD("Write") }
-	virtual bool IOCtl	(u32) { UNIMPLEMENTED_CMD("IOCtl") }
-	virtual bool IOCtlV	(u32) { UNIMPLEMENTED_CMD("IOCtlV") }
+#define UNIMPLEMENTED_CMD(cmd) _dbg_assert_msg_(WII_IPC_HLE, 0, "%s does not support "#cmd"()", m_Name.c_str()); return true;
+	virtual bool Seek	(u32) { UNIMPLEMENTED_CMD(Seek) }
+	virtual bool Read	(u32) { UNIMPLEMENTED_CMD(Read) }
+	virtual bool Write	(u32) { UNIMPLEMENTED_CMD(Write) }
+	virtual bool IOCtl	(u32) { UNIMPLEMENTED_CMD(IOCtl) }
+	virtual bool IOCtlV	(u32) { UNIMPLEMENTED_CMD(IOCtlV) }
 #undef UNIMPLEMENTED_CMD
 
 	virtual u32 Update() { return 0; }
