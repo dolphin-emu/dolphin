@@ -99,7 +99,15 @@ KeySym wxCharCodeWXToX(int id)
         case WXK_F24:           keySym = XK_F24; break;
         case WXK_NUMLOCK:       keySym = XK_Num_Lock; break;
         case WXK_SCROLL:        keySym = XK_Scroll_Lock; break;
-        default:                keySym = id <= 255 ? (KeySym)id : 0;
+				// Input fix: Config dialogs read all alphabetic characters as UPPERCASE and
+				// saves the UPPERCASE keycodes. X11 reads these as lowercase by default.
+				default:
+									if (id >= 65 && id <= 90)
+										// Standard uppercase letter: return lowercase keycode
+										keySym = (KeySym)id + 32;
+									else 
+										// All other keyboard characters
+										keySym = id <= 255 ? (KeySym)id : 0;
     }
 
     return keySym;

@@ -673,7 +673,7 @@ void ReadLinuxKeyboard()
 
 			for (int i = 0; i < LAST_CONSTANT; i++)
 			{
-				if (key == WiiMapping[g_ID].Button[i])
+				if (((int) key) == WiiMapping[g_ID].Button[i])
 					KeyStatus[i] = true;
 			}
 			break;
@@ -691,7 +691,7 @@ void ReadLinuxKeyboard()
 
 			for (int i = 0; i < LAST_CONSTANT; i++)
 			{
-				if (key == WiiMapping[g_ID].Button[i])
+				if (((int) key) == WiiMapping[g_ID].Button[i])
 					KeyStatus[i] = false;
 			}
 			break;

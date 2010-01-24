@@ -509,7 +509,8 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 	};
 
 	// Configuration controls sizes
-	static const int TxtW = 50, TxtH = 20, BtW = 70, BtH = 20;
+	static const int BtW = 70, BtH = 20;
+//	static const int TxtW = 50, TxtH = 20; // These are never used.  Will they ever be?
 	// A small type font
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 

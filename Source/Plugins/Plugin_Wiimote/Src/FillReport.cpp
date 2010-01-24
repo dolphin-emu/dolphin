@@ -308,7 +308,7 @@ bool IsKey(int Key)
 #ifdef _WIN32
 			Ret = GetAsyncKeyState(MapKey);		// Keyboard (Windows)
 #else
-			Ret = KeyStatus[MapKey];			// Keyboard (Linux)
+			Ret = KeyStatus[Key];			// Keyboard (Linux)
 #endif
 		}
 		else if (MapKey < 0x1100)
