@@ -22,7 +22,7 @@ if padenv['HAVE_WX']:
         ]
 
 padenv.Append(
-	LIBS = [ 'common', 'inputcommon' ],
+	LIBS = [ 'inputcommon', 'common', ],
 	)
 
 padenv.SharedLibrary(env['plugin_dir']+name, files)
