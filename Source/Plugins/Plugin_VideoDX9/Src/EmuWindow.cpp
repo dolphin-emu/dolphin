@@ -154,8 +154,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		}
 		else if (wParam == WIIMOTE_DISCONNECT)
 		{
-			if (g_Config.bFullscreen)
-				ToggleFullscreen(hWnd);
 			PostMessage(m_hMain, WM_USER, wParam, lParam);
 		}
 		break;
@@ -305,7 +303,7 @@ void ToggleFullscreen(HWND hParent, bool bForceFull)
 			dmScreenSettings.dmPelsWidth	= w_fs;
 			dmScreenSettings.dmPelsHeight	= h_fs;
 			dmScreenSettings.dmFields = DM_PELSWIDTH|DM_PELSHEIGHT;
-			if (ChangeDisplaySettings(&dmScreenSettings, 0) != DISP_CHANGE_SUCCESSFUL)
+			if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
 				return;
 
 			// Set new window style -> PopUp
@@ -335,13 +333,13 @@ void ToggleFullscreen(HWND hParent, bool bForceFull)
 			RECT rcdesktop;
 			GetWindowRect(GetDesktopWindow(), &rcdesktop);		
 
+			// Set new window style FS -> Windowed
+			SetWindowLong(hParent, GWL_STYLE, style);
+
 			// SetWindowPos to the center of the screen
 			int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
 			int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
 			SetWindowPos(hParent, NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
-
-			// Set new window style FS -> Windowed
-			SetWindowLong(hParent, GWL_STYLE, style);
 
 			// Re-Enable the cursor
 			ShowCursor(TRUE);

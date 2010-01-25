@@ -161,7 +161,8 @@ CPanel::CPanel(
 				return 0;
 
 			case WIIMOTE_DISCONNECT:
-				if( SConfig::GetInstance().m_LocalCoreStartupParameter.bWii ){ //Only Alerts if the game is a wii game.
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
+				{
 					if (main_frame->bNoWiimoteMsg)
 						main_frame->bNoWiimoteMsg = false;
 					else
