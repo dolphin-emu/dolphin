@@ -399,6 +399,16 @@ bool DolphinApp::OnInit()
 	int w = SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth;
 	int h = SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight;
 
+// TODO: Do the same check for Linux
+#ifdef _WIN32
+	// Out of desktop check
+	HWND hDesktop = GetDesktopWindow();
+	RECT rc;
+	GetWindowRect(hDesktop, &rc);
+	if (rc.right < x + w || rc.bottom < y + h)
+		x = y = -1;
+#endif
+
 	main_frame = new CFrame((wxFrame*)NULL, wxID_ANY, wxString::FromAscii(title),
 		wxPoint(x, y), wxSize(w, h), UseDebugger, UseLogger);
 

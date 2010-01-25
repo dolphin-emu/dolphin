@@ -534,7 +534,6 @@ void CFrame::OnClose(wxCloseEvent& event)
 	// Don't forget the skip or the window won't be destroyed
 	event.Skip();
 	// Save GUI settings
-	if (g_pCodeWindow) g_pCodeWindow->Save();
 	if (g_pCodeWindow) Save();
 	// Uninit
 	m_Mgr->UnInit();
