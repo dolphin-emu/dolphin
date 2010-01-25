@@ -310,7 +310,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 
 		// ARAM
 	case AR_INFO:
-		PanicAlert("read %x %x", g_ARAM_Info.Hex,PowerPC::ppcState.pc);
+		//PanicAlert("read %x %x", g_ARAM_Info.Hex,PowerPC::ppcState.pc);
 		_uReturnValue = g_ARAM_Info.Hex;
 		break;
 
@@ -421,7 +421,7 @@ void Write16(const u16 _Value, const u32 _Address)
 	// ARAM
 	// DMA back and forth between ARAM and RAM
 	case AR_INFO:
-		PanicAlert("write %x %x", _Value,PowerPC::ppcState.pc);
+		//PanicAlert("write %x %x", _Value,PowerPC::ppcState.pc);
 		g_ARAM_Info.Hex = _Value;
 		// __OSInitAudioSystem sets to 0x43 -> expects 16bit adressing and mapping to dsp iram?
 		// __OSCheckSize sets = 0x20 | 3 (keeps upper bits)
