@@ -436,7 +436,13 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	case AR_DMA_CNT_L:
 		g_arDMA.Cnt.Hex = (g_arDMA.Cnt.Hex & 0xFFFF0000) | (_Value);
-		Do_ARAM_DMA();
+		if (g_arDMA.Cnt.count % 8)
+		{
+			PanicAlert("DSPINTERFACE: ARAM DMA count: %08x not aligned to 8 bytes!", g_arDMA.Cnt.Hex);
+			ERROR_LOG(DSPINTERFACE, "ARAM DMA count: %08x not aligned to 8 bytes!", g_arDMA.Cnt.Hex);
+		}
+		else
+			Do_ARAM_DMA();
 		break;
 
 	// Audio DMA_REGS 0x5030+
@@ -508,8 +514,14 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 		break;
 
 	case AR_DMA_CNT_H:   
-		g_arDMA.Cnt.Hex = _iValue;		
-		Do_ARAM_DMA();
+		g_arDMA.Cnt.Hex = _iValue;
+		if (g_arDMA.Cnt.count % 8)
+		{
+			PanicAlert("DSPINTERFACE: ARAM DMA count: %08x not aligned to 8 bytes!", g_arDMA.Cnt.Hex);
+			ERROR_LOG(DSPINTERFACE, "ARAM DMA count: %08x not aligned to 8 bytes!", g_arDMA.Cnt.Hex);
+		}
+		else
+			Do_ARAM_DMA();
 		break;
 
 	default:
