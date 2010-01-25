@@ -60,9 +60,9 @@ enum
 	DSP_MAIL_FROM_DSP_LO	= 0x5006,
 	DSP_CONTROL				= 0x500A,
 	DSP_INTERRUPT_CONTROL   = 0x5010,
-	AR_SIZE					= 0x5012, // These names are a good guess at best
+	AR_INFO					= 0x5012, // These names are a good guess at best
 	AR_MODE					= 0x5016, //
-	AR_REFRESH				= 0x501a, //
+	AR_REFRESH				= 0x501a,
 	AR_DMA_MMADDR_H			= 0x5020,
 	AR_DMA_MMADDR_L			= 0x5022,
 	AR_DMA_ARADDR_H			= 0x5024,
@@ -83,7 +83,7 @@ union UARAMCount
 	struct
 	{
 		u32 count	: 31;
-		u32 dir	: 1; // 0: MRAM -> ARAM 1: ARAM -> MRAM
+		u32 dir		: 1; // 0: MRAM -> ARAM 1: ARAM -> MRAM
 	};
 };
 
@@ -92,22 +92,25 @@ union UARAMCount
 union UDSPControl
 {
 	u16 Hex;
-	struct  
+	struct
 	{
+		// DSP Control
 		u16 DSPReset		: 1;	// Write 1 to reset and waits for 0
 		u16 DSPAssertInt	: 1;
 		u16 DSPHalt			: 1;
-
+		// Interrupt for DMA to the AI/speakers
 		u16 AID				: 1;
 		u16 AID_mask		: 1;
+		// ARAM DMA interrupt
 		u16 ARAM			: 1;
 		u16 ARAM_mask		: 1;
+		// DSP DMA interrupt
 		u16 DSP				: 1;
 		u16 DSP_mask		: 1;
-
-		u16 ARAM_DMAState	: 1;	// DSPGetDMAStatus() uses this flag
+		// Other ???
+		u16 DMAState		: 1;	// DSPGetDMAStatus() uses this flag. __ARWaitForDMA() uses it too...maybe it's just general DMA flag
 		u16 unk3			: 1;
-		u16 DSPInit			: 1;	// DSPInit() writes to this flag (1 as long as dsp PC is in IROM?)
+		u16 DSPInit			: 1;	// DSPInit() writes to this flag
 		u16 pad				: 4;
 	};
 };
@@ -190,7 +193,21 @@ static ARAMInfo g_ARAM;
 static DSPState g_dspState;
 static AudioDMA g_audioDMA;
 static ARAM_DMA g_arDMA;
-static u16 g_AR_SIZE;
+
+union ARAM_Info
+{
+	u16 Hex;
+	struct
+	{
+		u16 size	: 6;
+		u16 unk		: 1;
+		u16			: 9;
+	};
+};
+static ARAM_Info g_ARAM_Info;
+// Contains bitfields for some stuff we don't care about (and nothing ever reads):
+//  CAS latency/burst length/addressing mode/write mode
+// We care about the LSB tho. It indicates that the ARAM controller has finished initializing
 static u16 g_AR_MODE;
 static u16 g_AR_REFRESH;
 
@@ -204,7 +221,7 @@ void DoState(PointerWrap &p)
 	p.Do(g_dspState);
 	p.Do(g_audioDMA);
 	p.Do(g_arDMA);
-	p.Do(g_AR_SIZE);
+	p.Do(g_ARAM_Info);
 	p.Do(g_AR_MODE);
 	p.Do(g_AR_REFRESH);
 }
@@ -249,9 +266,9 @@ void Init()
 	g_dspState.DSPControl.Hex = 0;
     g_dspState.DSPControl.DSPHalt = 1;
 	
-	g_AR_SIZE = 0;
-	g_AR_MODE = 1; // Means that aram controller has finished initializing the mem
-	g_AR_REFRESH = 0;
+	g_ARAM_Info.Hex = 0;
+	g_AR_MODE = 1; // ARAM Controller has init'd
+	g_AR_REFRESH = 156; // 156MHz
 
 	et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt_Wrapper);
 }
@@ -269,7 +286,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 {
 	switch (_iAddress & 0xFFFF)
 	{
-		// AI_REGS 0x5000+
+		// DSP
 	case DSP_MAIL_TO_DSP_HI:
 		_uReturnValue = dsp_plugin->DSP_ReadMailboxHigh(true);
 		break;
@@ -291,9 +308,10 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 			(dsp_plugin->DSP_ReadControlRegister() & DSP_CONTROL_MASK);
 		break;
 
-		// AR_REGS 0x501x+
-	case AR_SIZE:
-		_uReturnValue = g_AR_SIZE;
+		// ARAM
+	case AR_INFO:
+		PanicAlert("read %x %x", g_ARAM_Info.Hex,PowerPC::ppcState.pc);
+		_uReturnValue = g_ARAM_Info.Hex;
 		break;
 
 	case AR_MODE:
@@ -311,7 +329,7 @@ void Read16(u16& _uReturnValue, const u32 _iAddress)
 	case AR_DMA_CNT_H:    _uReturnValue = g_arDMA.Cnt.Hex >> 16; return;
 	case AR_DMA_CNT_L:    _uReturnValue = g_arDMA.Cnt.Hex & 0xFFFF; return;
 
-		// DMA_REGS 0x5030+
+		// AI
 	case AUDIO_DMA_BLOCKS_LEFT:
 		_uReturnValue = g_audioDMA.BlocksLeft;
 		break;
@@ -345,7 +363,7 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	switch (_Address & 0xFFFF)
 	{
-	// DSP Regs 0x5000+
+	// DSP
 	case DSP_MAIL_TO_DSP_HI:
 		dsp_plugin->DSP_WriteMailboxHigh(true, _Value);
 		break;
@@ -386,7 +404,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			if (tmpControl.DSP)  g_dspState.DSPControl.DSP  = 0;
 
 			// g_ARAM
-			g_dspState.DSPControl.ARAM_DMAState = 0;	// keep g_ARAM DMA State zero
+			g_dspState.DSPControl.DMAState = 0;	// keep g_ARAM DMA State zero
 
 			// unknown					
 			g_dspState.DSPControl.unk3	= tmpControl.unk3;
@@ -400,16 +418,15 @@ void Write16(const u16 _Value, const u32 _Address)
 		}			
 		break;
 
-	// AR_REGS 0x501x+
+	// ARAM
 	// DMA back and forth between ARAM and RAM
-	case AR_SIZE:
-		g_AR_SIZE = _Value;
-		// __OSInitAudioSystem sets to 0x43
+	case AR_INFO:
+		PanicAlert("write %x %x", _Value,PowerPC::ppcState.pc);
+		g_ARAM_Info.Hex = _Value;
+		// __OSInitAudioSystem sets to 0x43 -> expects 16bit adressing and mapping to dsp iram?
 		// __OSCheckSize sets = 0x20 | 3 (keeps upper bits)
 		// 0x23 -> Zelda standard mode (standard ARAM access ??)
 		// 0x63 -> ARCheckSize Mode (access AR-registers ??) or no exception ??
-		// probably bitfield for: CAS latency/burst length/addressing mode/write mode
-		// In any case, the aram driver should set it up :}
 		break;
 
 	case AR_MODE:
@@ -436,16 +453,10 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	case AR_DMA_CNT_L:
 		g_arDMA.Cnt.Hex = (g_arDMA.Cnt.Hex & 0xFFFF0000) | (_Value);
-		if (g_arDMA.Cnt.count % 8)
-		{
-			PanicAlert("DSPINTERFACE: ARAM DMA count: %08x not aligned to 8 bytes!", g_arDMA.Cnt.Hex);
-			ERROR_LOG(DSPINTERFACE, "ARAM DMA count: %08x not aligned to 8 bytes!", g_arDMA.Cnt.Hex);
-		}
-		else
-			Do_ARAM_DMA();
+		Do_ARAM_DMA();
 		break;
 
-	// Audio DMA_REGS 0x5030+
+	// AI
 	// This is the DMA that goes straight out the speaker.
 	case AUDIO_DMA_START_HI:
 		g_audioDMA.SourceAddress = (g_audioDMA.SourceAddress & 0xFFFF) | (_Value<<16);
@@ -477,6 +488,7 @@ void Read32(u32& _uReturnValue, const u32 _iAddress)
 	INFO_LOG(DSPINTERFACE, "DSPInterface(r32) 0x%08x", _iAddress);
 	switch (_iAddress & 0xFFFF)
 	{
+		// DSP
 	case DSP_MAIL_TO_DSP_HI:
 		_uReturnValue = (dsp_plugin->DSP_ReadMailboxHigh(true) << 16) | dsp_plugin->DSP_ReadMailboxLow(true);
 		break;
@@ -494,17 +506,18 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 	switch (_iAddress & 0xFFFF)
 	{
+		// DSP
 	case DSP_MAIL_TO_DSP_HI:
 		dsp_plugin->DSP_WriteMailboxHigh(true, _iValue >> 16);
 		dsp_plugin->DSP_WriteMailboxLow(true, (u16)_iValue);
 		break;
 
+		// AI
 	case AUDIO_DMA_START_HI:
 		g_audioDMA.SourceAddress = _iValue;
 		break;
 
-	// AR_REGS - i dont know why they are accessed 32 bit too ...
-	// Answer: simply because they can be
+		// ARAM
 	case AR_DMA_MMADDR_H:
 		g_arDMA.MMAddr = _iValue;
 		break;
@@ -515,13 +528,7 @@ void Write32(const u32 _iValue, const u32 _iAddress)
 
 	case AR_DMA_CNT_H:   
 		g_arDMA.Cnt.Hex = _iValue;
-		if (g_arDMA.Cnt.count % 8)
-		{
-			PanicAlert("DSPINTERFACE: ARAM DMA count: %08x not aligned to 8 bytes!", g_arDMA.Cnt.Hex);
-			ERROR_LOG(DSPINTERFACE, "ARAM DMA count: %08x not aligned to 8 bytes!", g_arDMA.Cnt.Hex);
-		}
-		else
-			Do_ARAM_DMA();
+		Do_ARAM_DMA();
 		break;
 
 	default:
@@ -579,15 +586,15 @@ void UpdateAudioDMA()
 		if (g_audioDMA.BlocksLeft == g_audioDMA.AudioDMAControl.NumBlocks)
 			dsp_plugin->DSP_SendAIBuffer(g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks * 8);
 
-		//		g_audioDMA.ReadAddress += 32;
+		//g_audioDMA.ReadAddress += 32;
 		g_audioDMA.BlocksLeft--;
 
 		if (g_audioDMA.BlocksLeft == 0)
 		{
 			GenerateDSPInterrupt(DSP::INT_AID);
-			//			g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
+			//g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
 			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
-			// DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
+			//DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
 		}
 	}
 	else
@@ -609,9 +616,12 @@ void Do_ARAM_DMA()
 
 		while (g_arDMA.Cnt.count)
 		{
-			Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr], g_arDMA.MMAddr);
-			g_arDMA.MMAddr += 8;
-			g_arDMA.ARAddr += 8;
+			if (g_arDMA.ARAddr < g_ARAM.size)
+			{
+				Memory::Write_U64_Swap(*(u64*)&g_ARAM.ptr[g_arDMA.ARAddr], g_arDMA.MMAddr);
+				g_arDMA.MMAddr += 8;
+				g_arDMA.ARAddr += 8;
+			}
 			g_arDMA.Cnt.count -= 8;
 		}
 	}
