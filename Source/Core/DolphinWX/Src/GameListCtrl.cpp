@@ -386,6 +386,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	}
 	else // It's a Wad file
 	{
+		m_gameList.append(StringFromFormat("%s (WAD)\n", rISOFile.GetName(0).c_str()));
 		SetItem(_Index, COLUMN_TITLE, wxString(rISOFile.GetName(0).c_str(), SJISConv), -1);
 		SetItem(_Index, COLUMN_NOTES, wxString(rISOFile.GetDescription(0).c_str(), SJISConv), -1);
 	}
