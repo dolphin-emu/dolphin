@@ -155,6 +155,7 @@ extern Display* WMdisplay;
 // Custom Functions
 // ----------------
 void EmulateAnalogStick(unsigned char &stickX, unsigned char &stickY, bool buttonUp, bool buttonDown, bool buttonLeft, bool buttonRight, int magnitude);
+void EmulateAnalogTrigger(unsigned char &trL, unsigned char &trR);
 void Close_Devices();
 bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_NumGoodPads);
 void GetAxisState(CONTROLLER_MAPPING_GC &_GCMapping);

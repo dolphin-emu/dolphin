@@ -364,6 +364,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	{
 		_pPADStatus->triggerLeft = GCMapping[_numPAD].AxisState.Lx;
 		_pPADStatus->triggerRight = GCMapping[_numPAD].AxisState.Ly;
+		EmulateAnalogTrigger(_pPADStatus->triggerLeft, _pPADStatus->triggerRight);
 		if (_pPADStatus->triggerLeft > DEF_TRIGGER_THRESHOLD)
 			_pPADStatus->button |= PAD_TRIGGER_L;
 		if (_pPADStatus->triggerRight > DEF_TRIGGER_THRESHOLD)
@@ -373,6 +374,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	{
 		_pPADStatus->triggerLeft = GCMapping[_numPAD].AxisState.Rx;
 		_pPADStatus->triggerRight = GCMapping[_numPAD].AxisState.Ry;
+		EmulateAnalogTrigger(_pPADStatus->triggerLeft, _pPADStatus->triggerRight);
 		if (_pPADStatus->triggerLeft > DEF_TRIGGER_THRESHOLD)
 			_pPADStatus->button |= PAD_TRIGGER_L;
 		if (_pPADStatus->triggerRight > DEF_TRIGGER_THRESHOLD)
@@ -382,6 +384,7 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	{
 		_pPADStatus->triggerLeft = GCMapping[_numPAD].AxisState.Tl;
 		_pPADStatus->triggerRight = GCMapping[_numPAD].AxisState.Tr;
+		EmulateAnalogTrigger(_pPADStatus->triggerLeft, _pPADStatus->triggerRight);
 		if (_pPADStatus->triggerLeft > DEF_TRIGGER_THRESHOLD)
 			_pPADStatus->button |= PAD_TRIGGER_L;
 		if (_pPADStatus->triggerRight > DEF_TRIGGER_THRESHOLD)
@@ -421,6 +424,17 @@ void EmulateAnalogStick(unsigned char &stickX, unsigned char &stickY, bool butto
 	{
 		stickX += mainX * DIAGONAL_SCALE;
 		stickY += mainY * DIAGONAL_SCALE;
+	}
+}
+
+void EmulateAnalogTrigger(unsigned char &trL, unsigned char &trR)
+{
+	if (GCMapping[g_ID].TriggerType == InputCommon::CTL_TRIGGER_SDL)
+	{
+		int triggerL = abs((int)trL - 0x80) * 2;
+		int triggerR = abs((int)trR - 0x80) * 2;
+		trL = (triggerL > 0xFF) ? 0xFF : triggerL;
+		trR = (triggerR > 0xFF) ? 0xFF : triggerR;
 	}
 }
 
