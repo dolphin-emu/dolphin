@@ -21,5 +21,6 @@
 #include "pluginspecs_video.h"
 
 extern SVideoInitialize g_VideoInitialize;
+extern volatile u32 s_swapRequested;
 
 #endif // _MAIN_H_

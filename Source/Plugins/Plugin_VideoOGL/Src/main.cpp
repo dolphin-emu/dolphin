@@ -105,7 +105,7 @@ int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 
 static bool s_PluginInitialized = false;
 
-static u32 s_swapRequested = FALSE;
+volatile u32 s_swapRequested = FALSE;
 static u32 s_efbAccessRequested = FALSE;
 static volatile u32 s_FifoShuttingDown = FALSE;
 static bool ForceSwap = true;
@@ -493,10 +493,11 @@ void VideoFifo_CheckSwapRequest()
 		if (ForceSwap || g_ActiveConfig.bUseXFB)
 		{
 			Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
-			g_VideoInitialize.pCopiedToXFB(false);
 		}
-
-		Common::AtomicStoreRelease(s_swapRequested, FALSE);
+		else
+		{
+			Common::AtomicStoreRelease(s_swapRequested, FALSE);
+		}
 	}
 }
 
@@ -531,7 +532,8 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		if (g_VideoInitialize.bOnThread)
 		{
 			while (Common::AtomicLoadAcquire(s_swapRequested) && !s_FifoShuttingDown)
-				Common::YieldCPU();
+				Common::SleepCurrentThread(1);
+				//Common::YieldCPU();
 		}
 		else
 			VideoFifo_CheckSwapRequest();
@@ -582,7 +584,8 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 		if (g_VideoInitialize.bOnThread)
 		{
 			while (Common::AtomicLoadAcquire(s_efbAccessRequested) && !s_FifoShuttingDown)
-				Common::YieldCPU();
+				Common::SleepCurrentThread(1);
+				//Common::YieldCPU();
 		}
 		else
 			VideoFifo_CheckEFBAccess();

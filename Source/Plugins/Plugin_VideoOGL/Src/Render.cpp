@@ -18,6 +18,7 @@
 
 #include "Globals.h"
 #include "Thread.h"
+#include "Atomic.h"
 
 #include <vector>
 #include <cmath>
@@ -775,6 +776,8 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 {
 	s_skipSwap = g_bSkipCurrentFrame;
 
+	VideoFifo_CheckEFBAccess();
+
 	// If we're about to write to a requested XFB, make sure the previous
 	// contents make it to the screen first.
 	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
@@ -784,9 +787,6 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	// just use progressive.
 	if (!g_ActiveConfig.bUseXFB)
 	{
-		// TODO: Find better name for this because I don't know if it means what it says.
-		g_VideoInitialize.pCopiedToXFB(false);
-
 		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight);
 	}
 }
@@ -794,6 +794,8 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
+	Common::AtomicStoreRelease(s_swapRequested, FALSE);
+
 	if (s_skipSwap)
 		return;
 	const XFBSource* xfbSource = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight);
@@ -1081,6 +1083,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// For testing zbuffer targets.
     // Renderer::SetZBufferRender();
     // SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
+
+	g_VideoInitialize.pCopiedToXFB(false);
 }
 
 // Create On-Screen-Messages
