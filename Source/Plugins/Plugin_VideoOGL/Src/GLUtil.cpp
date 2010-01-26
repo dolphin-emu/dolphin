@@ -431,7 +431,7 @@ bool OpenGL_MakeCurrent()
     
     // better for pad plugin key input (thc)
     XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | ButtonPressMask | KeyReleaseMask | ButtonReleaseMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask |
-                 FocusChangeMask );
+                 FocusChangeMask | PointerMotionMask );
 #endif
 	return true;
 }

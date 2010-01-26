@@ -64,6 +64,15 @@ void TiltToAccelerometer(int &_x, int &_y, int &_z, STiltData &_TiltData);
 void AdjustAngles(int &Roll, int &Pitch);
 void RotateIRDot(int &_x, int &_y, STiltData &_TiltData);
 
+#if defined(HAVE_X11) && HAVE_X11
+struct MousePosition
+{
+	int x, y;
+	int WinWidth, WinHeight;
+};
+extern MousePosition MousePos;
+#endif
+
 // Accelerometer
 //void PitchAccelerometerToDegree(u8 _x, u8 _y, u8 _z, int &_Roll, int &_Pitch, int&, int&);
 //float AccelerometerToG(float Current, float Neutral, float G);

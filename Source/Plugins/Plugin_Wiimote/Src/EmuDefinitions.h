@@ -30,6 +30,10 @@
 #include "wiimote_hid.h" // Local
 #include "Encryption.h"
 
+#if defined(HAVE_X11) && HAVE_X11
+#include <X11/X.h>
+#endif
+
 extern SWiimoteInitialize g_WiimoteInitialize;
 
 namespace WiiMoteEmu

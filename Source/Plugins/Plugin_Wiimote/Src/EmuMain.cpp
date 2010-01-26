@@ -199,6 +199,10 @@ void LoadRecordedMovements()
 	}
 }
 
+#if defined(HAVE_X11) && HAVE_X11
+MousePosition MousePos;
+#endif
+
 /* Calibrate the mouse position to the emulation window. g_WiimoteInitialize.hWnd is the rendering window handle. */
 void GetMousePos(float& x, float& y)
 {
@@ -217,6 +221,14 @@ void GetMousePos(float& x, float& y)
 	float WinHeight = (float)(Rect.bottom - Rect.top);
 	float XOffset = 0, YOffset = 0;
 	float PictureWidth = WinWidth, PictureHeight = WinHeight;
+#else
+#if defined(HAVE_X11) && HAVE_X11
+	float WinWidth = (float)MousePos.WinWidth;
+	float WinHeight = (float)MousePos.WinHeight;
+	float XOffset = 0, YOffset = 0;
+	float PictureWidth = WinWidth, PictureHeight = WinHeight;
+#endif
+#endif
 
 	/* Calculate the actual picture size and location */
 	//		Output: PictureWidth, PictureHeight, XOffset, YOffset
@@ -283,6 +295,7 @@ void GetMousePos(float& x, float& y)
 	}
 	
 	// Return the mouse position as a fraction of one, inside the picture, with (0.0, 0.0) being the upper left corner of the picture
+#ifdef _WIN32
 	x = ((float)point.x - XOffset) / PictureWidth;
 	y = ((float)point.y - YOffset) / PictureHeight;
 	
@@ -291,11 +304,11 @@ void GetMousePos(float& x, float& y)
 	INFO_LOG(WIIMOTE, "GetClientRect: %i %i  %i %i", Rect.left, Rect.right, Rect.top, Rect.bottom);
 	INFO_LOG(WIIMOTE, "Position       X:%1.2f Y:%1.2f", x, y);
 	*/
-	
 #else
-    // TODO fix on linux
-	x = 0.5f;
-	y = 0.5f;
+#if defined(HAVE_X11) && HAVE_X11
+	x = ((float)MousePos.x - XOffset) / PictureWidth;
+	y = ((float)MousePos.y - YOffset) / PictureHeight;
+#endif
 #endif
 }
 
@@ -695,6 +708,37 @@ void ReadLinuxKeyboard()
 					KeyStatus[i] = false;
 			}
 			break;
+		}
+		case ButtonPress:
+		{
+			int button = ((XButtonEvent*)&E)->button;
+			if (button == 1)
+				KeyStatus[EWM_A] = true;
+			else if (button == 3)
+				KeyStatus[EWM_B] = true;
+			else
+				XPutBackEvent(WMdisplay, &E);
+			break;
+		}
+		case ButtonRelease:
+		{
+			int button = ((XButtonEvent*)&E)->button;
+			if (button == 1)
+				KeyStatus[EWM_A] = false;
+			else if (button == 3)
+				KeyStatus[EWM_B] = false;
+			else
+				XPutBackEvent(WMdisplay, &E);
+			break;
+		}
+		case MotionNotify:
+		{
+			MousePos.x = E.xmotion.x;
+			MousePos.y = E.xmotion.y;
+			XWindowAttributes WinAttribs;
+			XGetWindowAttributes (E.xmotion.display, E.xmotion.window, &WinAttribs);
+			MousePos.WinWidth = WinAttribs.width;
+			MousePos.WinHeight = WinAttribs.height;
 		}
 		default:
 			break;

@@ -50,7 +50,7 @@ double g_RecordingCurrentTime[3]; //g_RecordingCurrentTime[0] = 0; g_RecordingCu
 int G2Accelerometer(int _G, int XYZ, int Wm)
 {
 	float G = (float)_G / 100.0;
-	float Neutral, OneG, Accelerometer;
+	float Neutral = 0.0, OneG = 0.0, Accelerometer;
 
 	switch(XYZ)
 	{
