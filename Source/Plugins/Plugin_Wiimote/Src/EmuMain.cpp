@@ -230,6 +230,7 @@ void GetMousePos(float& x, float& y)
 #endif
 #endif
 
+#if defined(_WIN32) || (defined(HAVE_X11) && HAVE_X11)
 	/* Calculate the actual picture size and location */
 	//		Output: PictureWidth, PictureHeight, XOffset, YOffset
 	if (g_Config.bKeepAR43 || g_Config.bKeepAR169)
@@ -293,6 +294,7 @@ void GetMousePos(float& x, float& y)
 		INFO_LOG(WIIMOTE, "Picture        Width:%4.1f Height:%4.1f YOffset:%4.0f XOffset:%4.0f", PictureWidth, PictureHeight, YOffset, XOffset);
 		*/
 	}
+#endif
 	
 	// Return the mouse position as a fraction of one, inside the picture, with (0.0, 0.0) being the upper left corner of the picture
 #ifdef _WIN32
