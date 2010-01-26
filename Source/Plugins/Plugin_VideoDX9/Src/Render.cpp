@@ -461,6 +461,13 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);		
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
 	
+	vp.X = 0;
+	vp.Y = 0;
+	vp.Width  = s_backbuffer_width;
+	vp.Height = s_backbuffer_height;
+	vp.MinZ = 0.0f;
+	vp.MaxZ = 1.0f;
+	D3D::dev->SetViewport(&vp);
 	// Finish up the current frame, print some stats
 	if (g_ActiveConfig.bShowFPS)
 	{
