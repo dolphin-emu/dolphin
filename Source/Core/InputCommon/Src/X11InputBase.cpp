@@ -121,6 +121,9 @@ KeySym wxCharCodeWXToX(int id)
 void XKeyToString(unsigned int keycode, char *keyStr) {
   switch (keycode) {
     
+  case XK_Home:
+    sprintf(keyStr, "HOME");
+    break;
   case XK_Left:
     sprintf(keyStr, "LEFT");
     break;

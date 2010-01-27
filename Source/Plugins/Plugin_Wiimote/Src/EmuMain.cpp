@@ -741,6 +741,7 @@ void ReadLinuxKeyboard()
 			XGetWindowAttributes (E.xmotion.display, E.xmotion.window, &WinAttribs);
 			MousePos.WinWidth = WinAttribs.width;
 			MousePos.WinHeight = WinAttribs.height;
+			break;
 		}
 		default:
 			break;

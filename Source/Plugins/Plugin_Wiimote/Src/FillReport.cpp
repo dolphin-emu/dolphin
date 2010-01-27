@@ -303,11 +303,13 @@ bool IsKey(int Key)
 	{
 		int MapKey = WiiMapping[g_ID].Button[Key];
 
+#ifdef _WIN32
 		if (MapKey < 256)
 		{
-#ifdef _WIN32
 			Ret = GetAsyncKeyState(MapKey);		// Keyboard (Windows)
 #else
+		if (MapKey < 256 || (MapKey >= 0xff50 && MapKey <= 0xff54))
+		{
 			Ret = KeyStatus[Key];			// Keyboard (Linux)
 #endif
 		}
