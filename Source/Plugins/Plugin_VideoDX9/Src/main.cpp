@@ -392,32 +392,7 @@ void Video_AddMessage(const char* pstr, u32 milliseconds)
 
 HRESULT ScreenShot(const char *File)
 {
-	if (D3D::dev == NULL)
-		return S_FALSE;
-
-	D3DDISPLAYMODE DisplayMode;
-	if (FAILED(D3D::dev->GetDisplayMode(0, &DisplayMode)))
-		return S_FALSE;
-
-	LPDIRECT3DSURFACE9 surf;
-	if (FAILED(D3D::dev->CreateOffscreenPlainSurface(DisplayMode.Width, DisplayMode.Height, D3DFMT_A8R8G8B8, D3DPOOL_SYSTEMMEM, &surf, NULL)))
-		return S_FALSE;
-
-	if (FAILED(D3D::dev->GetFrontBufferData(0, surf)))
-	{
-		surf->Release();
-		return S_FALSE;
-	}
-
-	RECT rect;
-    ::GetWindowRect(EmuWindow::GetWnd(), &rect);
-	if (FAILED(D3DXSaveSurfaceToFileA(File, D3DXIFF_PNG, surf, NULL, &rect)))
-	{
-		surf->Release();
-		return S_FALSE;
-	}
-
-	surf->Release();
+	Renderer::SetScreenshot(File);
 	return S_OK;
 }
 
