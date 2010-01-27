@@ -308,7 +308,7 @@ bool IsKey(int Key)
 		{
 			Ret = GetAsyncKeyState(MapKey);		// Keyboard (Windows)
 #else
-		if (MapKey < 256 || (MapKey >= 0xff50 && MapKey <= 0xff54))
+		if (MapKey < 256 || MapKey >= 0xf000)
 		{
 			Ret = KeyStatus[Key];			// Keyboard (Linux)
 #endif
