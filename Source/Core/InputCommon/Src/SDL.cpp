@@ -168,7 +168,7 @@ void GetButton(SDL_Joystick *joy, int ControllerID, int buttons, int axes, int h
 
 	// Check for a XInput trigger
 	#ifdef _WIN32
-		if(XInput)
+		if(XInput && LeftRight)
 		{
 			for(int i = 0; i <= InputCommon::XI_TRIGGER_R; i++)
 			{			
