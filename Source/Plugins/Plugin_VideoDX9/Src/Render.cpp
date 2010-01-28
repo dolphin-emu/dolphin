@@ -238,6 +238,15 @@ void SetupDeviceObjects()
 // Kill off all POOL_DEFAULT device objects.
 void TeardownDeviceObjects()
 {
+	if(ScreenShootMEMSurface)
+		ScreenShootMEMSurface->Release();
+	ScreenShootMEMSurface = NULL;
+	if(ScreenShootSurface)
+		ScreenShootSurface->Release();
+	ScreenShootSurface = NULL;
+	if(ScreenShootTexture)
+		ScreenShootTexture->Release();
+	ScreenShootTexture = NULL;
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 	D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
 	FBManager::Destroy();
@@ -335,15 +344,6 @@ void Renderer::Shutdown()
 {
 	
 	
-	if(ScreenShootMEMSurface)
-		ScreenShootMEMSurface->Release();
-	ScreenShootMEMSurface = NULL;
-	if(ScreenShootSurface)
-		ScreenShootSurface->Release();
-	ScreenShootSurface = NULL;
-	if(ScreenShootTexture)
-		ScreenShootTexture->Release();
-	ScreenShootTexture = NULL;
 	TeardownDeviceObjects();
 	D3D::EndFrame();
 	D3D::Present();
@@ -412,6 +412,17 @@ void CheckForResize()
 		Sleep(10);
 	}
 
+	
+	if (EmuWindow::GetParentWnd())
+	{
+		// Re-stretch window to parent window size again, if it has a parent window.
+		RECT rcParentWindow;
+		GetWindowRect(EmuWindow::GetParentWnd(), &rcParentWindow);
+		int width = rcParentWindow.right - rcParentWindow.left;
+		int height = rcParentWindow.bottom - rcParentWindow.top;
+		if (width != s_backbuffer_width || height != s_backbuffer_height)
+			::MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
+	}
 	RECT rcWindow;
 	GetClientRect(EmuWindow::GetWnd(), &rcWindow);
 	int client_width = rcWindow.right - rcWindow.left;
@@ -588,6 +599,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());	
 	
 	EFBTextureToD3DBackBuffer(sourceRc);
+	
 	D3D::EndFrame();
 
 	DEBUGGER_LOG_AT((NEXT_XFB_CMD|NEXT_EFB_CMD|NEXT_FRAME),
@@ -1033,7 +1045,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	g_VideoInitialize.pCopiedToXFB(false);
 
-	//TODO: Resize backbuffer if window size has changed. This code crashes, debug it.
 	CheckForResize();
 
 	// ---------------------------------------------------------------------
