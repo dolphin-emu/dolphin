@@ -34,6 +34,7 @@ public:
 	bool Write(u32 _CommandAddress);
     bool IOCtl(u32 _CommandAddress);
 	bool ReturnFileHandle();
+	void DoState(PointerWrap &p);
 
 private:
 	enum
@@ -71,6 +72,8 @@ private:
 
     FILE* m_pFileHandle;
     u32 m_FileLength;
+	u32 m_Mode;
+	s32 m_Seek;
 
 	std::string m_Filename;
 };

@@ -221,10 +221,11 @@ void DoState(PointerWrap &p)
 	else
 		PanicAlert("WII_IPC_HLE: Save/Load State failed, Device /dev/usb/oh1/57e/305 doesn't exist!");
 
+	TFileNameMap::const_iterator itr;
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{	
 		// Delete file Handles
-		TFileNameMap::const_iterator itr = g_FileNameMap.begin();
+		itr = g_FileNameMap.begin();
 		while (itr != g_FileNameMap.end())
 		{
 			if (g_DeviceMap[itr->first])
@@ -245,6 +246,13 @@ void DoState(PointerWrap &p)
 	else
 	{
 		p.Do(g_FileNameMap);
+	}
+
+	itr = g_FileNameMap.begin();
+	while (itr != g_FileNameMap.end())
+	{
+		g_DeviceMap[itr->first]->DoState(p);
+		++itr;
 	}
 }
 

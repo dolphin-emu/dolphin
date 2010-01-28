@@ -18,6 +18,7 @@
 #include "Common.h"
 #include "FileUtil.h"
 #include "StringUtil.h"
+#include "ChunkFile.h"
 
 #include "WII_IPC_HLE_Device_fs.h"
 #include "WII_IPC_HLE_Device_FileIO.h"
@@ -42,6 +43,8 @@ CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std:
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false)	// not a real hardware
     , m_pFileHandle(NULL)
     , m_FileLength(0)
+	, m_Mode(0)
+	, m_Seek(0)
 {
 }
 
@@ -59,6 +62,10 @@ bool CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bForce)
 		m_pFileHandle = NULL;
 	}
 
+	m_FileLength = 0;
+	m_Mode = 0;
+	m_Seek = 0;
+
 	// Close always return 0 for success
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
@@ -68,6 +75,7 @@ bool CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bForce)
 
 bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)  
 { 
+	m_Mode = _Mode;
 	u32 ReturnValue = 0;
 
 	// close the file handle if we get a reopen
@@ -111,7 +119,7 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 	if (m_pFileHandle != NULL)
 	{
 		m_FileLength = (u32)File::GetSize(m_Filename.c_str());
-		ReturnValue = GetDeviceID();
+		ReturnValue = m_DeviceID;
 	}
 	else if (ReturnValue == 0)
 	{
@@ -119,7 +127,8 @@ bool CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		ReturnValue = FS_INVALID_ARGUMENT;
 	}
 
-	Memory::Write_U32(ReturnValue, _CommandAddress+4);
+	if (_CommandAddress)
+		Memory::Write_U32(ReturnValue, _CommandAddress+4);
 	m_Active = true;
 	return true;
 }
@@ -142,8 +151,6 @@ bool CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 	   the filesize then? - No, that didn't work either, it seeks to 0x6000 even if I return
 	   0x4000 from the first seek. */
 
-	// AyuanX: this is still dubious because m_FileLength
-	// isn't updated on the fly when write happens
 	s32 NewSeekPosition = SeekPosition;
 	if (m_FileLength > 0 && SeekPosition > (s32)m_FileLength && Mode == 0)
 	{
@@ -208,10 +215,6 @@ bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 		size_t Result = fwrite(Memory::GetPointer(Address), Size, 1, m_pFileHandle);
         _dbg_assert_msg_(WII_IPC_FILEIO, Result == 1, "fwrite failed");   
         ReturnValue = Size;
-
-		u32 NewPosition = (u32)ftell(m_pFileHandle);
-		if (NewPosition > m_FileLength)		// Oops, we made the file longer... let's update m_FileLength then
-			m_FileLength = NewPosition;
 	}
 
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
@@ -265,4 +268,25 @@ bool CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 bool CWII_IPC_HLE_Device_FileIO::ReturnFileHandle()
 {
 	return (m_pFileHandle) ? true : false;
+}
+
+void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
+{
+	if (p.GetMode() == PointerWrap::MODE_WRITE)
+	{
+		m_Seek = (m_pFileHandle) ? (s32)ftell(m_pFileHandle) : 0;
+	}
+
+	p.Do(m_Mode);
+	p.Do(m_Seek);
+
+	if (p.GetMode() == PointerWrap::MODE_READ)
+	{
+		if (m_Mode)
+		{
+			Open(NULL, m_Mode);
+			if (m_pFileHandle)
+				fseek(m_pFileHandle, m_Seek, SEEK_SET);
+		}
+	}
 }
