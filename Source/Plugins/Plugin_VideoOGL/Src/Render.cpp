@@ -797,7 +797,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	Common::AtomicStoreRelease(s_swapRequested, FALSE);
 
 	if (s_skipSwap)
+	{
+		g_VideoInitialize.pCopiedToXFB(false);
 		return;
+	}
+
 	const XFBSource* xfbSource = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight);
 	if (!xfbSource)
 	{
