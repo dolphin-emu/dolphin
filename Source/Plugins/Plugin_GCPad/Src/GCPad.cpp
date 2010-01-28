@@ -660,6 +660,10 @@ void ReadLinuxKeyboard()
 			}
 			break;
 		}
+		case ConfigureNotify:
+		case ClientMessage:
+			XPutBackEvent(WMdisplay, &E);
+			break
 		default:
 			break;
 		}

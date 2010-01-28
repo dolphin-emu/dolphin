@@ -486,6 +486,13 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
 				}
 			}
 			break;
+		case ConfigureNotify:
+		case ClientMessage:
+			XPutBackEvent(WMdisplay, &E);
+			break;
+		default:
+			break;
+
 		}
 	}
 #elif defined(HAVE_COCOA) && HAVE_COCOA

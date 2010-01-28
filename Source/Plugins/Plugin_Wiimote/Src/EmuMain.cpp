@@ -743,6 +743,10 @@ void ReadLinuxKeyboard()
 			MousePos.WinHeight = WinAttribs.height;
 			break;
 		}
+		case ConfigureNotify:
+		case ClientMessage:
+			XPutBackEvent(WMdisplay, &E);
+			break;
 		default:
 			break;
 		}
