@@ -488,7 +488,7 @@ void X11_Read(int _numPAD, SPADStatus* _pPADStatus)
 			break;
 		case ConfigureNotify:
 		case ClientMessage:
-			XPutBackEvent(WMdisplay, &E);
+			XPutBackEvent(GXdsp, &E);
 			break;
 		default:
 			break;
