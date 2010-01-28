@@ -263,8 +263,9 @@ bool Renderer::Init()
 {
 	UpdateActiveConfig();
 	int fullScreenRes, w_temp, h_temp;
-	s_blendMode = 0;	
-	int backbuffer_ms_mode = g_ActiveConfig.iMultisampleMode;
+	s_blendMode = 0;
+	// Anti-aliasing hasn't been implemented yet
+	int backbuffer_ms_mode = 0;  // g_ActiveConfig.iMultisampleMode;
 
 	sscanf(g_Config.cFSResolution, "%dx%d", &w_temp, &h_temp);
 
