@@ -19,6 +19,7 @@
 #include <d3dx9.h>
 #include <strsafe.h>
 
+#include "StringUtil.h"
 #include "Common.h"
 #include "Thread.h"
 #include "Timer.h"
@@ -363,6 +364,88 @@ int Renderer::GetFullTargetHeight() { return s_Fulltarget_height; }
 float Renderer::GetTargetScaleX() { return xScale; }
 float Renderer::GetTargetScaleY() { return yScale; }
 
+// Create On-Screen-Messages
+void Renderer::DrawDebugText()
+{
+	// OSD Menu messages
+	if (g_ActiveConfig.bOSDHotKey)
+	{
+		if (OSDChoice > 0)
+		{
+			OSDTime = Common::Timer::GetTimeMs() + 3000;
+			OSDChoice = -OSDChoice;
+		}
+		if ((u32)OSDTime > Common::Timer::GetTimeMs())
+		{
+			std::string T1 = "", T2 = "";
+			std::vector<std::string> T0;
+
+/*
+			int W, H;
+			sscanf(g_ActiveConfig.cInternalRes, "%dx%d", &W, &H);
+			std::string OSDM1 = 
+				g_ActiveConfig.bNativeResolution || g_ActiveConfig.b2xResolution ?
+				(g_ActiveConfig.bNativeResolution ? 
+				StringFromFormat("%i x %i (native)", OSDInternalW, OSDInternalH)
+				: StringFromFormat("%i x %i (2x)", OSDInternalW, OSDInternalH))
+				: StringFromFormat("%i x %i (custom)", W, H);
+*/
+			std::string OSDM1 = StringFromFormat("%i x %i", OSDInternalW, OSDInternalH);
+			std::string OSDM21;
+			switch(g_ActiveConfig.iAspectRatio)
+			{
+			case ASPECT_AUTO:
+				OSDM21 = "Auto";
+				break;
+			case ASPECT_FORCE_16_9:
+				OSDM21 = "16:9";
+				break;
+			case ASPECT_FORCE_4_3:
+				OSDM21 = "4:3";
+				break;
+			case ASPECT_STRETCH:
+				OSDM21 = "Stretch";
+				break;
+			}
+			std::string OSDM22 =
+				g_ActiveConfig.bCrop ? " (crop)" : "";			
+			std::string OSDM3 = g_ActiveConfig.bEFBCopyDisable ? "Disabled" :
+				g_ActiveConfig.bCopyEFBToTexture ? "To Texture" : "To RAM";
+
+			// If there is more text than this we will have a collission
+			if (g_ActiveConfig.bShowFPS)
+				{ T1 += "\n\n"; T2 += "\n\n"; }
+
+			// The rows
+			T0.push_back(StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()));
+			T0.push_back(StringFromFormat("4: Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()));
+			T0.push_back(StringFromFormat("5: Copy EFB: %s\n", OSDM3.c_str()));
+			T0.push_back(StringFromFormat("6: Fog: %s\n", g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"));
+			T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"));	
+
+			// The latest changed setting in yellow
+			T1 += (OSDChoice == -1) ? T0.at(0) : "\n";
+			T1 += (OSDChoice == -2) ? T0.at(1) : "\n";
+			T1 += (OSDChoice == -3) ? T0.at(2) : "\n";
+			T1 += (OSDChoice == -4) ? T0.at(3) : "\n";
+			T1 += (OSDChoice == -5) ? T0.at(4) : "\n";		
+
+			// The other settings in cyan
+			T2 += (OSDChoice != -1) ? T0.at(0) : "\n";
+			T2 += (OSDChoice != -2) ? T0.at(1) : "\n";
+			T2 += (OSDChoice != -3) ? T0.at(2) : "\n";
+			T2 += (OSDChoice != -4) ? T0.at(3) : "\n";
+			T2 += (OSDChoice != -5) ? T0.at(4) : "\n";		
+
+			// Render a shadow, and then the text
+			Renderer::RenderText(T1.c_str(), 21, 21, 0xDD000000);
+			Renderer::RenderText(T1.c_str(), 20, 20, 0xFFffff00);
+			Renderer::RenderText(T2.c_str(), 21, 21, 0xDD000000);
+			Renderer::RenderText(T2.c_str(), 20, 20, 0xFF00FFFF);
+		}
+	}
+}
+
 void Renderer::RenderText(const char *text, int left, int top, u32 color)
 {
 	D3D::font.DrawTextScaled((float)left, (float)top, 20, 20, 0.0f, color, text, false);
@@ -569,6 +652,8 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 		StringCchPrintfA(fps, 20, "FPS: %d\n", s_fps);
 		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,fps,false);
 	}
+	Renderer::DrawDebugText();
+
 	if (g_ActiveConfig.bOverlayStats)
 	{
 		Statistics::ToString(st);

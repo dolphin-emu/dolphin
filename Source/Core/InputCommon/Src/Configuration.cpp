@@ -16,6 +16,11 @@
 // http://code.google.com/p/dolphin-emu/
 //
 
+#include <iostream> // System
+#include <vector>
+#include <cmath>
+#include "Common.h" // Common
+
 #if defined HAVE_WX && HAVE_WX
 	#include <wx/wx.h>
 #endif
@@ -24,9 +29,6 @@
 #define NOMINMAX
 #include <Windows.h>
 #endif
-
-#include "SDL_Util.h" // Local
-
 
 namespace InputCommon
 {

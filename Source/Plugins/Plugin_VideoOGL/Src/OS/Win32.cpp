@@ -110,13 +110,20 @@ void OSDMenu(WPARAM wParam)
 	case '4':
 		OSDChoice = 2;
 		// Toggle aspect ratio
-		g_Config.iAspectRatio++;
-		g_Config.iAspectRatio &= 3;
+		g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
 		break;
 	case '5':
 		OSDChoice = 3;
 		// Toggle EFB copy
-		g_Config.bEFBCopyDisable = !g_Config.bEFBCopyDisable;
+		if (g_Config.bEFBCopyDisable || g_Config.bCopyEFBToTexture)
+		{
+			g_Config.bEFBCopyDisable = !g_Config.bEFBCopyDisable;
+			g_Config.bCopyEFBToTexture = false;
+		}
+		else
+		{
+			g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
+		}
 		break;
 	case '6':
 		OSDChoice = 4;

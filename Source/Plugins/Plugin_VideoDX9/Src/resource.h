@@ -35,6 +35,7 @@
 #define IDC_FORCEANISOTROPY             1027
 #define IDC_LOADHIRESTEXTURE            1028
 #define IDC_EFBSCALEDCOPY               1029
+#define IDC_OSDHOTKEY					1030
 #define IDC_COMBO2                      1040
 #define IDC_ASPECTRATIO                 1040
 #define IDC_CHECK1                      1100

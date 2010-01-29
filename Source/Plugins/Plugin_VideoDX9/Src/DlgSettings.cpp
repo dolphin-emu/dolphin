@@ -152,6 +152,7 @@ struct TabAdvanced : public W32Util::Tab
 		//ComboBox_AddString(opt,"Recompile to vbuffers and shaders");
 //		ComboBox_SetCurSel(opt,g_Config.iCompileDLsLevel);
 
+		Button_SetCheck(GetDlgItem(hDlg,IDC_OSDHOTKEY), g_Config.bOSDHotKey);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_OVERLAYFPS), g_Config.bShowFPS);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_OVERLAYSTATS), g_Config.bOverlayStats);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_OVERLAYPROJSTATS), g_Config.bOverlayProjStats);
@@ -162,10 +163,10 @@ struct TabAdvanced : public W32Util::Tab
 		Button_SetCheck(GetDlgItem(hDlg,IDC_DISABLEFOG), g_Config.bDisableFog);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY), !g_Config.bEFBCopyDisable);
 			
-		if(g_Config.bCopyEFBToRAM)
-			Button_SetCheck(GetDlgItem(hDlg,IDC_EFBTORAM), TRUE);
+		if(g_Config.bCopyEFBToTexture)
+			Button_SetCheck(GetDlgItem(hDlg,IDC_EFBTOTEX), true);
 		else
-			Button_SetCheck(GetDlgItem(hDlg,IDC_EFBTOTEX), TRUE);
+			Button_SetCheck(GetDlgItem(hDlg,IDC_EFBTORAM), true);
 
 		
 		Button_SetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY), g_Config.bTexFmtOverlayEnable);
@@ -198,6 +199,7 @@ struct TabAdvanced : public W32Util::Tab
 		g_Config.bTexFmtOverlayEnable = Button_GetCheck(GetDlgItem(hDlg,IDC_TEXFMT_OVERLAY)) ? true : false;
 		g_Config.bTexFmtOverlayCenter = Button_GetCheck(GetDlgItem(hDlg,IDC_TEXFMT_CENTER)) ? true : false;
 
+		g_Config.bOSDHotKey = Button_GetCheck(GetDlgItem(hDlg,IDC_OSDHOTKEY)) ? true : false;
 		g_Config.bShowFPS = Button_GetCheck(GetDlgItem(hDlg,IDC_OVERLAYFPS)) ? true : false;
 		g_Config.bOverlayStats = Button_GetCheck(GetDlgItem(hDlg,IDC_OVERLAYSTATS)) ? true : false;
 		g_Config.bOverlayProjStats = Button_GetCheck(GetDlgItem(hDlg,IDC_OVERLAYPROJSTATS)) ? true : false;
@@ -207,7 +209,7 @@ struct TabAdvanced : public W32Util::Tab
 		g_Config.bShowShaderErrors = Button_GetCheck(GetDlgItem(hDlg,IDC_SHOWSHADERERRORS)) ? true : false;
 		g_Config.bDisableFog = Button_GetCheck(GetDlgItem(hDlg,IDC_DISABLEFOG)) ? true : false;
 		g_Config.bEFBCopyDisable = Button_GetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY)) ? false : true;
-		g_Config.bCopyEFBToRAM = Button_GetCheck(GetDlgItem(hDlg,IDC_EFBTORAM)) ? true : false;
+		g_Config.bCopyEFBToTexture = Button_GetCheck(GetDlgItem(hDlg,IDC_EFBTORAM)) ? false : true;
 
 		g_Config.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
 

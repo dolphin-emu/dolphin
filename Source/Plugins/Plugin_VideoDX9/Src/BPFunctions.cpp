@@ -84,14 +84,15 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 	if (!g_ActiveConfig.bEFBCopyDisable)
 	{
 		//uncomment this to see the efb to ram work in progress
-		if (g_ActiveConfig.bCopyEFBToRAM)
+		if (g_ActiveConfig.bCopyEFBToTexture)
+		{
+			// To D3D Texture
+			TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);			
+		}
+		else 
 		{
 			//ToRam
 			TextureConverter::EncodeToRam(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
-		}
-		else // To D3D Texture
-		{
-			TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);			
 		}
 	}
 }

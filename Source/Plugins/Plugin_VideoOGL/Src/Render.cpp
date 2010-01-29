@@ -1079,9 +1079,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	GL_REPORT_ERRORD();
     g_Config.iSaveTargetId = 0;
 
-	bool last_copy_efb_to_ram = g_ActiveConfig.bCopyEFBToRAM;
+	bool last_copy_efb_to_ram = !g_ActiveConfig.bCopyEFBToTexture;
 	UpdateActiveConfig();
-	if (last_copy_efb_to_ram != g_ActiveConfig.bCopyEFBToRAM)
+	if (last_copy_efb_to_ram != g_ActiveConfig.bCopyEFBToTexture)
 		TextureMngr::ClearRenderTargets();
 
 	// For testing zbuffer targets.
@@ -1188,14 +1188,26 @@ void Renderer::DrawDebugText()
 				StringFromFormat("%i x %i (native)", OSDInternalW, OSDInternalH)
 				: StringFromFormat("%i x %i (2x)", OSDInternalW, OSDInternalH))
 				: StringFromFormat("%i x %i (custom)", W, H);
-			std::string OSDM21 = "";
-				// !(g_ActiveConfig.bKeepAR43 || g_ActiveConfig.bKeepAR169) ? "-": (g_ActiveConfig.bKeepAR43 ? "4:3" : "16:9");
+			std::string OSDM21;
+			switch(g_ActiveConfig.iAspectRatio)
+			{
+			case ASPECT_AUTO:
+				OSDM21 = "Auto";
+				break;
+			case ASPECT_FORCE_16_9:
+				OSDM21 = "16:9";
+				break;
+			case ASPECT_FORCE_4_3:
+				OSDM21 = "4:3";
+				break;
+			case ASPECT_STRETCH:
+				OSDM21 = "Stretch";
+				break;
+			}
 			std::string OSDM22 =
 				g_ActiveConfig.bCrop ? " (crop)" : "";			
-			std::string OSDM31 =
-				g_ActiveConfig.bCopyEFBToRAM ? "RAM" : "Texture";
-			std::string OSDM32 =
-				g_ActiveConfig.bEFBCopyDisable ? "No" : "Yes";
+			std::string OSDM3 = g_ActiveConfig.bEFBCopyDisable ? "Disabled" :
+				g_ActiveConfig.bCopyEFBToTexture ? "To Texture" : "To RAM";
 
 			// If there is more text than this we will have a collission
 			if (g_ActiveConfig.bShowFPS)
@@ -1203,8 +1215,8 @@ void Renderer::DrawDebugText()
 
 			// The rows
 			T0.push_back(StringFromFormat("3: Internal Resolution: %s\n", OSDM1.c_str()));
-			T0.push_back(StringFromFormat("4: Lock Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()));
-			T0.push_back(StringFromFormat("5: Copy Embedded Framebuffer to %s: %s\n", OSDM31.c_str(), OSDM32.c_str()));
+			T0.push_back(StringFromFormat("4: Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()));
+			T0.push_back(StringFromFormat("5: Copy EFB: %s\n", OSDM3.c_str()));
 			T0.push_back(StringFromFormat("6: Fog: %s\n", g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"));
 			T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"));	
 

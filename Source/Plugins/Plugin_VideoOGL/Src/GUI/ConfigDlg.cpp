@@ -415,7 +415,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_Radio_CopyEFBToRAM->SetToolTip(wxT("[This option will apply immediately and does not require a restart to take effect.]"));
 	m_Radio_CopyEFBToGL = new wxRadioButton(m_PageAdvanced, ID_RADIO_COPYEFBTOGL, wxT("Copy EFB to GL texture (hack)"));
 	m_Radio_CopyEFBToGL->SetToolTip(wxT("[This option will apply immediately and does not require a restart to take effect.]"));
-	g_Config.bCopyEFBToRAM ? m_Radio_CopyEFBToRAM->SetValue(true) : m_Radio_CopyEFBToGL->SetValue(true);
+	g_Config.bCopyEFBToTexture ? m_Radio_CopyEFBToGL->SetValue(true) : m_Radio_CopyEFBToRAM->SetValue(true);
 
 	// Utility
 	sbUtilities = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Utilities"));
@@ -718,10 +718,10 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 		g_Config.bHack = m_Hack->IsChecked();
 		break;
 	case ID_RADIO_COPYEFBTORAM:
-		g_Config.bCopyEFBToRAM = true;
+		g_Config.bCopyEFBToTexture = false;
 		break;
 	case ID_RADIO_COPYEFBTOGL:
-		g_Config.bCopyEFBToRAM = false;
+		g_Config.bCopyEFBToTexture = true;
 		break;
 	case ID_PROJSTATS:
 		g_Config.bOverlayProjStats = m_ProjStats->IsChecked();
