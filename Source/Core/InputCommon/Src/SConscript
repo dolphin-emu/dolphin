@@ -6,7 +6,7 @@ files = [
 	'Configuration.cpp',
 	'EventHandler.cpp',
 	'InputCommon.cpp',
-	'SDL.cpp',
+	'SDL_Util.cpp',
 	]
 
 if env['HAVE_X11']:

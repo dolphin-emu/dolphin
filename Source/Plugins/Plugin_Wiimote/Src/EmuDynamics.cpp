@@ -18,8 +18,6 @@
 #include <vector>
 #include <string>
 
-#include "../../../Core/InputCommon/Src/SDL.h" // Core
-#include "../../../Core/InputCommon/Src/XInput.h"
 
 #include "Common.h" // Common
 #include "MathUtil.h"

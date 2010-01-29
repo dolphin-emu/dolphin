@@ -22,9 +22,10 @@
 
 #include <vector> // System
 #include <cstdio>
-#include "../../../Core/InputCommon/Src/SDL.h" // Core
+#include "../../../Core/InputCommon/Src/InputCommon.h" // Core
+#include "../../../Core/InputCommon/Src/SDL_Util.h"
 #ifdef _WIN32
-   #include "../../../Core/InputCommon/Src/XInput.h"
+   #include "../../../Core/InputCommon/Src/XInput_Util.h"
 #elif defined(HAVE_X11) && HAVE_X11
    #include <X11/Xlib.h>
    #include <X11/Xutil.h>

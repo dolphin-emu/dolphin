@@ -16,10 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 //
 
-
-#include "../../../Core/InputCommon/Src/SDL.h" // Core
 #include "EmuDefinitions.h"
-
 #ifdef _WIN32
 #include "XInput.h"
 #endif

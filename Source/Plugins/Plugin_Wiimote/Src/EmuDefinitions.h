@@ -21,8 +21,11 @@
 #include <vector>
 #include <string>
 
-#include "../../../Core/InputCommon/Src/SDL.h" // Core
-#include "../../../Core/InputCommon/Src/XInput.h"
+#include "../../../Core/InputCommon/Src/InputCommon.h" // Core
+#include "../../../Core/InputCommon/Src/SDL_Util.h"
+#ifdef _WIN32
+#include "../../../Core/InputCommon/Src/XInput_Util.h"
+#endif
 
 #include "Common.h"
 #include "pluginspecs_wiimote.h"

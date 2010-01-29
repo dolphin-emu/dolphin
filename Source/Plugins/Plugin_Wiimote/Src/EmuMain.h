@@ -21,8 +21,6 @@
 
 #include <string>
 
-#include "../../../Core/InputCommon/Src/SDL.h" // Core
-
 #include "wiimote_hid.h"
 #include "EmuDefinitions.h"
 #include "ChunkFile.h"

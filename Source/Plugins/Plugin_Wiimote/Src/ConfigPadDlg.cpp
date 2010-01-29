@@ -23,12 +23,6 @@
 #include "Config.h"
 #include "EmuDefinitions.h" // for joyinfo
 
-enum TriggerType
-{
-	CTL_TRIGGER_SDL = 0,
-	CTL_TRIGGER_XINPUT
-};
-
 BEGIN_EVENT_TABLE(WiimotePadConfigDialog,wxDialog)
 
 	EVT_CLOSE(WiimotePadConfigDialog::OnClose)

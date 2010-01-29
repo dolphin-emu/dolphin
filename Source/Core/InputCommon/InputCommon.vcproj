@@ -441,23 +441,19 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\SConscript"
+			RelativePath=".\Src\SDL_Util.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\SDL.cpp"
+			RelativePath=".\Src\SDL_Util.h"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\SDL.h"
+			RelativePath=".\Src\XInput_Util.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\XInput.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\XInput.h"
+			RelativePath=".\Src\XInput_Util.h"
 			>
 		</File>
 	</Files>
