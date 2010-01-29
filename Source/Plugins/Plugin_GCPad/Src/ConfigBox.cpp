@@ -100,6 +100,7 @@ GCPadConfigDialog::GCPadConfigDialog(wxWindow *parent, wxWindowID id, const wxSt
 
 	// Reset values
 	g_Pressed = 0;
+	ClickedButton = NULL;
 	GetButtonWaitingID = 0;
 	GetButtonWaitingTimer = 0;
 
@@ -186,7 +187,7 @@ void GCPadConfigDialog::SaveButtonMapping(int Id, int Key)
 
 void GCPadConfigDialog::OnKeyDown(wxKeyEvent& event)
 {
-	event.Skip();
+	//event.Skip();
 
 	if(ClickedButton != NULL)
 	{
