@@ -94,7 +94,8 @@ std::string GetSysDirectory();
 
 #ifdef __APPLE__
 
-char *GetConfigDirectory();
+const char *GetConfigDirectory();
+const char *GetSysConfDirectory();
 
 std::string GetBundleDirectory();
 #endif

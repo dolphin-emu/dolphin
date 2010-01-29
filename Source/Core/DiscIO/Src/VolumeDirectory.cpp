@@ -35,14 +35,14 @@ static u64 DOL_ADDRESS = 0;
 
 CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 								   const std::string& _rApploader, const std::string& _rDOL)
-	: m_apploaderSize(0)
-	, m_apploader(NULL)
-	, m_DOLSize(0)
-	, m_DOL(NULL)
-	, m_totalNameSize(0)
+	: m_totalNameSize(0)
 	, m_dataStartAddress(-1)
 	, m_fstSize(0)
 	, m_FSTData(NULL)
+	, m_apploaderSize(0)
+	, m_apploader(NULL)
+	, m_DOLSize(0)
+	, m_DOL(NULL)
 {
 	m_rootDirectory = ExtractDirectoryName(_rDirectory);	
 

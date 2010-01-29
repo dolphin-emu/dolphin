@@ -512,13 +512,22 @@ bool SetCurrentDir(const char *_rDirectory)
 #if defined(__APPLE__)
 
 //get the full config dir
-char *GetConfigDirectory()
+const char *GetConfigDirectory()
 {
-
 	static char path[MAX_PATH] = {0};
 	if (strlen(path) > 0)
 		return path;
 	snprintf(path, sizeof(path), "%s" DIR_SEP CONFIG_FILE, GetUserDirectory());
+	return path;
+}
+
+//get the full SYSCONF dir
+const char *GetSysConfDirectory()
+{
+	static char path[MAX_PATH] = {0};
+	if (strlen(path) > 0)
+		return path;
+	snprintf(path, sizeof(path), "%s" DIR_SEP WII_SYSCONF_FILE, GetUserDirectory());
 	return path;
 
 }

@@ -21,7 +21,11 @@
 SysConf::SysConf()
 : m_IsValid(false)
 {
+#if defined(__APPLE__)
+	if (LoadFromFile(File::GetSysConfDirectory()))
+#else
 	if (LoadFromFile(WII_SYSCONF_FILE))
+#endif
 		m_IsValid = true;
 }
 
