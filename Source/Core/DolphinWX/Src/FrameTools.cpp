@@ -510,7 +510,7 @@ void CFrame::BootGame(const std::string& filename)
 			m_GameListCtrl->Enable();
 			m_GameListCtrl->Show();
 			return;
-    }
+		}
 	}
 }
 
@@ -874,7 +874,7 @@ void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
 {
-	BootManager::BootCore(FULL_WII_MENU_DIR);
+	StartGame(FULL_WII_MENU_DIR);
 }
 
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
