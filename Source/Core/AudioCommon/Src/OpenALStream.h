@@ -30,8 +30,8 @@
 #include "openal/al.h"
 #include "openal/alc.h"
 #else
-#include "AL/al.h"
-#include "AL/alc.h"
+#include <AL/al.h>
+#include <AL/alc.h>
 #endif // WIN32
 // 16 bit Stereo
 #define SFX_MAX_SOURCE		1
