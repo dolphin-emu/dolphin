@@ -621,7 +621,7 @@ int WiimotePairUp(void)
 			srch.fReturnRemembered = TRUE;
 			srch.fReturnConnected = TRUE; // does not filter properly somehow, so we 've to do an additional check on fConnected BT Devices
 			srch.fReturnUnknown = TRUE;
-			srch.fIssueInquiry = FALSE;
+			srch.fIssueInquiry = TRUE;
 			srch.cTimeoutMultiplier = 1;
 			srch.hRadio = hRadios[radio];
 

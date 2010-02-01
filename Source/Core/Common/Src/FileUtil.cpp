@@ -68,10 +68,10 @@ inline char *StripTailDirSlashes(char *fname)
 // Returns true if file filename exists
 bool Exists(const char *filename)
 {
-	struct stat file_info;
+	struct stat64 file_info;
 		
 	char *copy = StripTailDirSlashes(__strdup(filename));
-	int result = stat(copy, &file_info);
+	int result = stat64(copy, &file_info);
 	free(copy);
 
 	return (result == 0);
