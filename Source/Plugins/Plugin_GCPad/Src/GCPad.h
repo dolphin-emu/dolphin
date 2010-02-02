@@ -38,26 +38,11 @@
 #include "pluginspecs_pad.h"
 
 
-// SDL Haptic fails on windows, it just doesn't work (even the sample doesn't work)
-// So until i can make it work, this is all disabled >:(
-#if SDL_VERSION_ATLEAST(1, 3, 0) && !defined(_WIN32)
-	#define SDL_RUMBLE
-#else
-	#ifdef _WIN32
-		#define RUMBLE_HACK
-		#define DIRECTINPUT_VERSION 0x0800
-		#define WIN32_LEAN_AND_MEAN
-
-		#pragma comment(lib, "dxguid.lib")
-		#pragma comment(lib, "dinput8.lib")
-		#pragma comment(lib, "winmm.lib")
-		#include <dinput.h>
-	#endif
-#endif
-
 #define DEF_BUTTON_FULL			255
 #define DEF_STICK_FULL			100
+#define DEF_STICK_HALF			50
 #define DEF_TRIGGER_FULL		255
+#define DEF_TRIGGER_HALF		128
 #define DEF_TRIGGER_THRESHOLD	230
 
 // GC Pad Buttons
@@ -79,11 +64,13 @@ enum EGCPad
 	EGC_STICK_DOWN,
 	EGC_STICK_LEFT,
 	EGC_STICK_RIGHT,
+	EGC_STICK_SEMI,
 
 	EGC_CSTICK_UP,
 	EGC_CSTICK_DOWN,
 	EGC_CSTICK_LEFT,
 	EGC_CSTICK_RIGHT,
+	EGC_CSTICK_SEMI,
 
 	EGC_TGR_L,
 	EGC_TGR_R,
@@ -137,6 +124,7 @@ struct CONTROLLER_MAPPING_GC	// PAD MAPPING GC
 	int Diagonal;
 
 	SStickMapping Stick;
+	SStickMapping Pressure;
 	int Button[LAST_CONSTANT];
 };
 

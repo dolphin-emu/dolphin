@@ -22,6 +22,23 @@
 #include "XInput.h"
 #endif
 
+// SDL Haptic fails on windows, it just doesn't work (even the sample doesn't work)
+// So until i can make it work, this is all disabled >:(
+#if SDL_VERSION_ATLEAST(1, 3, 0) && !defined(_WIN32) && !defined(__APPLE__)
+	#define SDL_RUMBLE
+#else
+	#ifdef _WIN32
+		#define RUMBLE_HACK
+		#define DIRECTINPUT_VERSION 0x0800
+		#define WIN32_LEAN_AND_MEAN
+
+		#pragma comment(lib, "dxguid.lib")
+		#pragma comment(lib, "dinput8.lib")
+		#pragma comment(lib, "winmm.lib")
+		#include <dinput.h>
+	#endif
+#endif
+
 
 #ifdef RUMBLE_HACK
 
@@ -32,8 +49,6 @@ struct RUMBLE // GC Pad rumble DIDevice
 	DWORD					g_dwNumForceFeedbackAxis;
 	DIEFFECT				eff;
 };
-
-#define SAFE_RELEASE(p) { if (p) { (p)->Release(); (p)=NULL; } }
 
 BOOL CALLBACK EnumFFDevicesCallback(const DIDEVICEINSTANCE* pInst, VOID* pContext);
 BOOL CALLBACK EnumAxesCallback(const DIDEVICEOBJECTINSTANCE* pdidoi, VOID* pContext);

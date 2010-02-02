@@ -41,11 +41,13 @@ static const char* gcControlNames[] =
 	"Stick_Down",
 	"Stick_Left",
 	"Stick_Right",
+	"Stick_Semi",
 
 	"CStick_Up",
 	"CStick_Down",
 	"CStick_Left",
 	"CStick_Right",
+	"CStick_Semi",
 
 	"Shoulder_L",
 	"Shoulder_R",
@@ -70,10 +72,12 @@ static const int gcDefaultControls[] =
 		VK_DOWN,
 		VK_LEFT,
 		VK_RIGHT,
+		VK_LSHIFT,
 		'I',
 		'K',
 		'J',
 		'L',
+		VK_LCONTROL,
 		'Q',
 		'W',
 		0x00,
@@ -95,10 +99,12 @@ static const int gcDefaultControls[] =
 		XK_Down, // Main stick down
 		XK_Left, // Main stick left
 		XK_Right, // Main stick right
+		XK_Shift_L, // Main stick semi
 		XK_i, // C-stick up
 		XK_k, // C-stick down
 		XK_j, // C-stick left
 		XK_l, // C-stick right
+		XK_Control_L, // C-stick semi
 		XK_q, // L
 		XK_w, // R
 		0x00, // L semi-press
@@ -122,10 +128,12 @@ static const int gcDefaultControls[] =
 		125, // Main stick down (down)
 		123, // Main stick left (left)
 		124, // Main stick right (right)
+		56, // Main stick semi (left shift)
 		34, // C-stick up (i)
 		40, // C-stick down (k)
 		38, // C-stick left (j)
 		37, // C-stick right (l)
+		59, // C-stick semi (left control)
 		12, // L (q)
 		13, // R (w)
 		-1, // L semi-press (none)
@@ -182,6 +190,10 @@ void Config::Save()
 		file.Set(SectionName.c_str(), "Source_CStick", GCMapping[i].Stick.Sub);
 		file.Set(SectionName.c_str(), "Source_Shoulder", GCMapping[i].Stick.Shoulder);
 
+		file.Set(SectionName.c_str(), "Pressure_Stick", GCMapping[i].Pressure.Main);
+		file.Set(SectionName.c_str(), "Pressure_CStick", GCMapping[i].Pressure.Sub);
+		file.Set(SectionName.c_str(), "Pressure_Shoulder", GCMapping[i].Pressure.Shoulder);
+
 		// ButtonMapping
 		for (int x = 0; x < LAST_CONSTANT; x++)
 			file.Set(SectionName.c_str(), gcControlNames[x], GCMapping[i].Button[x]);
@@ -224,6 +236,10 @@ void Config::Load()
 		file.Get(SectionName.c_str(), "Source_Stick", &GCMapping[i].Stick.Main, 0);
 		file.Get(SectionName.c_str(), "Source_CStick", &GCMapping[i].Stick.Sub, 0);
 		file.Get(SectionName.c_str(), "Source_Shoulder", &GCMapping[i].Stick.Shoulder, 0);
+
+		file.Get(SectionName.c_str(), "Pressure_Stick", &GCMapping[i].Pressure.Main, DEF_STICK_HALF);
+		file.Get(SectionName.c_str(), "Pressure_CStick", &GCMapping[i].Pressure.Sub, DEF_STICK_HALF);
+		file.Get(SectionName.c_str(), "Pressure_Shoulder", &GCMapping[i].Pressure.Shoulder, DEF_TRIGGER_HALF);
 
 		// ButtonMapping
 		for (int x = 0; x < LAST_CONSTANT; x++)

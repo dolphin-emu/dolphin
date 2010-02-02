@@ -205,7 +205,9 @@ void Shutdown()
 
 	// Finally close SDL
 	if (SDL_WasInit(0))
+	{
 		SDL_Quit();
+	}
 
 	// Remove the pointer to the initialize data
 	g_PADInitialize = NULL;
@@ -280,15 +282,17 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 	if (GCMapping[_numPAD].Stick.Main == FROM_KEYBOARD)
 	{
+		int iMagnitude = DEF_STICK_FULL;
 		bool bUp = false;
 		bool bDown = false;
 		bool bLeft = false;
 		bool bRight = false;
+		if (IsKey(EGC_STICK_SEMI)) iMagnitude = GCMapping[_numPAD].Pressure.Main;
 		if (IsKey(EGC_STICK_UP)) bUp = true;
 		else if (IsKey(EGC_STICK_DOWN)) bDown = true;
 		if (IsKey(EGC_STICK_LEFT)) bLeft = true;
 		else if (IsKey(EGC_STICK_RIGHT)) bRight = true;
-		EmulateAnalogStick(_pPADStatus->stickX, _pPADStatus->stickY, bUp, bDown, bLeft, bRight, DEF_STICK_FULL);
+		EmulateAnalogStick(_pPADStatus->stickX, _pPADStatus->stickY, bUp, bDown, bLeft, bRight, iMagnitude);
 	}
 	else if (GCMapping[_numPAD].Stick.Main == FROM_ANALOG1)
 	{
@@ -310,15 +314,17 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 	if (GCMapping[_numPAD].Stick.Sub == FROM_KEYBOARD)
 	{
+		int iMagnitude = DEF_STICK_FULL;
 		bool bUp = false;
 		bool bDown = false;
 		bool bLeft = false;
 		bool bRight = false;
+		if (IsKey(EGC_CSTICK_SEMI)) iMagnitude = GCMapping[_numPAD].Pressure.Sub;
 		if (IsKey(EGC_CSTICK_UP)) bUp = true;
 		else if (IsKey(EGC_CSTICK_DOWN)) bDown = true;
 		if (IsKey(EGC_CSTICK_LEFT)) bLeft = true;
 		else if (IsKey(EGC_CSTICK_RIGHT)) bRight = true;
-		EmulateAnalogStick(_pPADStatus->substickX, _pPADStatus->substickY, bUp, bDown, bLeft, bRight, DEF_STICK_FULL);
+		EmulateAnalogStick(_pPADStatus->substickX, _pPADStatus->substickY, bUp, bDown, bLeft, bRight, iMagnitude);
 	}
 	else if (GCMapping[_numPAD].Stick.Sub == FROM_ANALOG1)
 	{
@@ -342,22 +348,26 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	{
 		if (IsKey(EGC_TGR_L))
 		{
-			_pPADStatus->button |= PAD_TRIGGER_L;
 			_pPADStatus->triggerLeft = DEF_TRIGGER_FULL;
+			_pPADStatus->button |= PAD_TRIGGER_L;
 		}
 		else if (IsKey(EGC_TGR_SEMI_L))
 		{
-			_pPADStatus->triggerLeft = DEF_TRIGGER_FULL / 2;
+			_pPADStatus->triggerLeft = GCMapping[_numPAD].Pressure.Shoulder;
+			if (_pPADStatus->triggerLeft > DEF_TRIGGER_THRESHOLD)
+				_pPADStatus->button |= PAD_TRIGGER_L;
 		}
 
 		if (IsKey(EGC_TGR_R))
 		{
-			_pPADStatus->button |= PAD_TRIGGER_R;
 			_pPADStatus->triggerRight = DEF_TRIGGER_FULL;
+			_pPADStatus->button |= PAD_TRIGGER_R;
 		}
 		else if (IsKey(EGC_TGR_SEMI_R))
 		{
-			_pPADStatus->triggerRight = DEF_TRIGGER_FULL / 2;
+			_pPADStatus->triggerRight = GCMapping[_numPAD].Pressure.Shoulder;
+			if (_pPADStatus->triggerRight > DEF_TRIGGER_THRESHOLD)
+				_pPADStatus->button |= PAD_TRIGGER_R;
 		}
 	}
 	else if (GCMapping[_numPAD].Stick.Shoulder == FROM_ANALOG1)

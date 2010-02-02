@@ -62,11 +62,13 @@ class GCPadConfigDialog : public wxDialog
 			IDB_MAIN_DOWN,
 			IDB_MAIN_LEFT,
 			IDB_MAIN_RIGHT,
+			IDB_MAIN_SEMI,
 
 			IDB_SUB_UP,
 			IDB_SUB_DOWN,
 			IDB_SUB_LEFT,
 			IDB_SUB_RIGHT,
+			IDB_SUB_SEMI,
 
 			IDB_SHDR_L,
 			IDB_SHDR_R,
@@ -97,6 +99,7 @@ class GCPadConfigDialog : public wxDialog
 			IDC_RUMBLE, IDC_RUMBLE_STRENGTH,
 			IDC_TRIGGER_TYPE, 
 			IDC_STICK_SOURCE, IDC_CSTICK_SOURCE, IDC_TRIGGER_SOURCE,
+			IDS_STICK_PRESS, IDS_CSTICK_PRESS, IDS_TRIGGER_PRESS,
 		};
 
 		wxNotebook *m_Notebook;
@@ -111,7 +114,11 @@ class GCPadConfigDialog : public wxDialog
 			*m_bmpSquareLeftOut[4],
 			*m_bmpSquareRightIn[4],
 			*m_bmpSquareRightOut[4];
-	
+
+		wxSlider *m_Slider_Stick[4],
+			*m_Slider_CStick[4],
+			*m_Slider_Trigger[4];
+
 		wxCheckBox *m_CheckS2C[4],
 			*m_CheckRumble[4];
 
@@ -176,9 +183,9 @@ class GCPadConfigDialog : public wxDialog
 			*m_tTriggerSource[4],
 			*m_Text_Analog[IDB_TRIGGER_R - IDB_ANALOG_LEFT_X + 1][4],
 			*m_Text_Pad[IDB_SHDR_SEMI_R - IDB_BTN_A + 1][4],
-			*m_Text_StickSrc[5],
-			*m_Text_CStickSrc[5],
-			*m_Text_TriggerSrc[5];
+			*m_Text_StickSrc[4],
+			*m_Text_CStickSrc[4],
+			*m_Text_TriggerSrc[4];
 
 		wxStaticBitmap *m_bmpDotLeftIn[4],
 			*m_bmpDotLeftOut[4],

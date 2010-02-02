@@ -46,6 +46,9 @@ BEGIN_EVENT_TABLE(GCPadConfigDialog,wxDialog)
 	EVT_COMBOBOX(IDC_STICK_SOURCE, GCPadConfigDialog::ChangeSettings)
 	EVT_COMBOBOX(IDC_CSTICK_SOURCE, GCPadConfigDialog::ChangeSettings)
 	EVT_COMBOBOX(IDC_TRIGGER_SOURCE, GCPadConfigDialog::ChangeSettings)
+	EVT_SLIDER(IDS_STICK_PRESS, GCPadConfigDialog::ChangeSettings)
+	EVT_SLIDER(IDS_CSTICK_PRESS, GCPadConfigDialog::ChangeSettings)
+	EVT_SLIDER(IDS_TRIGGER_PRESS, GCPadConfigDialog::ChangeSettings)
 
 	EVT_BUTTON(IDB_ANALOG_LEFT_X, GCPadConfigDialog::OnAxisClick)
 	EVT_BUTTON(IDB_ANALOG_LEFT_Y, GCPadConfigDialog::OnAxisClick)
@@ -68,10 +71,12 @@ BEGIN_EVENT_TABLE(GCPadConfigDialog,wxDialog)
 	EVT_BUTTON(IDB_MAIN_DOWN, GCPadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_MAIN_LEFT, GCPadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_MAIN_RIGHT, GCPadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_MAIN_SEMI, GCPadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_SUB_UP, GCPadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_SUB_DOWN, GCPadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_SUB_LEFT, GCPadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_SUB_RIGHT, GCPadConfigDialog::OnButtonClick)
+	EVT_BUTTON(IDB_SUB_SEMI, GCPadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_SHDR_L, GCPadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_SHDR_R, GCPadConfigDialog::OnButtonClick)
 	EVT_BUTTON(IDB_SHDR_SEMI_L, GCPadConfigDialog::OnButtonClick)
@@ -310,6 +315,15 @@ void GCPadConfigDialog::ChangeSettings(wxCommandEvent& event)
 	case IDC_TRIGGER_SOURCE:
 		GCMapping[m_Page].Stick.Shoulder = m_Combo_TriggerSrc[m_Page]->GetSelection();
 		break;
+	case IDS_STICK_PRESS:
+		GCMapping[m_Page].Pressure.Main = m_Slider_Stick[m_Page]->GetValue();
+		break;
+	case IDS_CSTICK_PRESS:
+		GCMapping[m_Page].Pressure.Sub = m_Slider_CStick[m_Page]->GetValue();
+		break;
+	case IDS_TRIGGER_PRESS:
+		GCMapping[m_Page].Pressure.Shoulder = m_Slider_Trigger[m_Page]->GetValue();
+		break;
 	}
 
 	UpdateGUI();
@@ -348,6 +362,9 @@ void GCPadConfigDialog::UpdateGUI()
 	m_Combo_StickSrc[m_Page]->SetSelection(GCMapping[m_Page].Stick.Main);
 	m_Combo_CStickSrc[m_Page]->SetSelection(GCMapping[m_Page].Stick.Sub);
 	m_Combo_TriggerSrc[m_Page]->SetSelection(GCMapping[m_Page].Stick.Shoulder);
+	m_Slider_Stick[m_Page]->SetValue(GCMapping[m_Page].Pressure.Main);
+	m_Slider_CStick[m_Page]->SetValue(GCMapping[m_Page].Pressure.Sub);
+	m_Slider_Trigger[m_Page]->SetValue(GCMapping[m_Page].Pressure.Shoulder);
 
 	for (int i = 0; i <= IDB_TRIGGER_R - IDB_ANALOG_LEFT_X; i++)
 	{
@@ -439,11 +456,13 @@ void GCPadConfigDialog::CreateGUIControls()
 		wxT("Down"),
 		wxT("Left"),
 		wxT("Right"),
+		wxT("Semi"),
 
 		wxT("Up"),	// C-Stick
 		wxT("Down"),
 		wxT("Left"),
 		wxT("Right"),
+		wxT("Semi"),
 
 		wxT("L"),	// Triggers
 		wxT("R"),
@@ -671,13 +690,20 @@ void GCPadConfigDialog::CreateGUIControls()
 				m_gButton[i]->Add(m_Sizer_Pad[x - IDB_BTN_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 			else if (x <= IDB_DPAD_RIGHT)
 				m_gDPad[i]->Add(m_Sizer_Pad[x - IDB_BTN_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-			else if (x <= IDB_MAIN_RIGHT)
+			else if (x <= IDB_MAIN_SEMI)
 				m_gStick[i]->Add(m_Sizer_Pad[x - IDB_BTN_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
-			else if (x <= IDB_SUB_RIGHT)
+			else if (x <= IDB_SUB_SEMI)
 				m_gCStick[i]->Add(m_Sizer_Pad[x - IDB_BTN_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 			else
 				m_gTrigger[i]->Add(m_Sizer_Pad[x - IDB_BTN_A][i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 		}
+
+		m_Slider_Stick[i] = new wxSlider(m_Controller[i], IDS_STICK_PRESS, DEF_STICK_HALF, 0, DEF_STICK_FULL, wxDefaultPosition, wxSize(100,-1), wxSL_LABELS | wxSL_TOP);
+		m_gStick[i]->Add(m_Slider_Stick[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_Slider_CStick[i] = new wxSlider(m_Controller[i], IDS_CSTICK_PRESS, DEF_STICK_HALF, 0, DEF_STICK_FULL, wxDefaultPosition, wxSize(100,-1), wxSL_LABELS | wxSL_TOP);
+		m_gCStick[i]->Add(m_Slider_CStick[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
+		m_Slider_Trigger[i] = new wxSlider(m_Controller[i], IDS_TRIGGER_PRESS, DEF_TRIGGER_HALF, 0, DEF_TRIGGER_FULL, wxDefaultPosition, wxSize(100,-1), wxSL_LABELS | wxSL_TOP);
+		m_gTrigger[i]->Add(m_Slider_Trigger[i], 0, wxALIGN_RIGHT | (wxLEFT | wxRIGHT | wxDOWN), 1);
 
 		// Row 4 Sizers: Button Mapping
 		m_sHorizMapping[i] = new wxBoxSizer(wxHORIZONTAL);
