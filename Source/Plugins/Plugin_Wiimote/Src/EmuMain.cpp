@@ -318,12 +318,17 @@ void Shutdown()
 	INFO_LOG(WIIMOTE, "ShutDown");
 
 	ResetVariables();
+// We can't close it here or it might crash
+// because the joystick could have been closed already in GCPad
+// But there is no easy way to know the situation of another DLL
+// So we just skip the close procedure here
+/*
 	// Close joypads
 	Close_Devices();
 	// Finally close SDL
 	if (SDL_WasInit(0))
 		SDL_Quit();
-
+*/
 	g_SearchDeviceDone = false;
 }
 
