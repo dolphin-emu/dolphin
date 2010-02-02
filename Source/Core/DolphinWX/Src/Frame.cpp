@@ -50,7 +50,6 @@
 
 #include <wx/datetime.h> // wxWidgets
 
-// ----------
 // Resources
 
 extern "C" {
@@ -74,9 +73,9 @@ extern "C" {
 };
 
 
-// ---------------
-// Windows functions. Setting the cursor with wxSetCursor() did not work in this instance.
-// Probably because it's somehow reset from the WndProc() in the child window 
+// Windows functions. Setting the cursor with wxSetCursor() did not work in
+// this instance.  Probably because it's somehow reset from the WndProc() in
+// the child window
 #ifdef _WIN32
 // Declare a blank icon and one that will be the normal cursor
 HCURSOR hCursor = NULL, hCursorBlank = NULL;
@@ -194,7 +193,6 @@ CPanel::CPanel(
 	}
 #endif
 
-//-----------------
 // event tables
 // Notice that wxID_HELP will be processed for the 'About' menu and the toolbar
 // help button.

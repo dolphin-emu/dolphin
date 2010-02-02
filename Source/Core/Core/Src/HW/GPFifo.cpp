@@ -77,7 +77,7 @@ void STACKALIGN CheckGatherPipe()
 		m_gatherPipeCount -= GATHER_PIPE_SIZE;
 		
 		// HyperIris: dunno why, but I use memcpy. TODO: See if a custom copy can be faster, like 4x MOVAPD
-		memcpy(m_gatherPipe, m_gatherPipe + GATHER_PIPE_SIZE, m_gatherPipeCount);
+		memmove(m_gatherPipe, m_gatherPipe + GATHER_PIPE_SIZE, m_gatherPipeCount);
 		
 		// increase the CPUWritePointer
 		if (ProcessorInterface::Fifo_CPUWritePointer == ProcessorInterface::Fifo_CPUEnd)

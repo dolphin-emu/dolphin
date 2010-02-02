@@ -59,10 +59,6 @@
 #include "State.h"
 #include "OnFrame.h"
  
-#ifndef _WIN32
-#define WINAPI
-#endif
-
 namespace Core
 {
  
@@ -153,46 +149,45 @@ bool isRunning()
 }
 
 
-// This is called from the GUI thread. See the booting call schedule in BootManager.cpp
-
+// This is called from the GUI thread. See the booting call schedule in
+// BootManager.cpp
 bool Init()
 {
 	if (g_EmuThread != NULL)
 	{
-		PanicAlert("ERROR: Emu Thread already running. Report this bug.");
+		PanicAlert("Emu Thread already running");
 		return false;
 	}
-
-	Common::InitThreading();
 
 	// Get a handle to the current instance of the plugin manager
 	CPluginManager &pManager = CPluginManager::GetInstance();
 	SCoreStartupParameter &_CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
+	Common::InitThreading();
+
 	g_CoreStartupParameter = _CoreParameter;
 	// FIXME DEBUG_LOG(BOOT, dump_params());
 	Host_SetWaitCursor(true);
 
-	// Start the thread again
-	_dbg_assert_(HLE, g_EmuThread == NULL);
-
-	// Check that all plugins exist, potentially call LoadLibrary() for unloaded plugins
+	// Load all needed plugins 
 	if (!pManager.InitPlugins())
 		return false;
 
 	emuThreadGoing.Init();
-	// This will execute EmuThread() further down in this file
+
+	// Start the emu thread 
 	g_EmuThread = new Common::Thread(EmuThread, NULL);
-	
+
+	// Wait until the emu thread is running
 	emuThreadGoing.MsgWait();
 	emuThreadGoing.Shutdown();
 
-	// All right, the event is set and killed. We are now running.
 	Host_SetWaitCursor(false);
 	return true;
 }
 
-// Called from GUI thread or VI thread (why VI??? That must be bad. Window close? TODO: Investigate.)
+// Called from GUI thread or VI thread (why VI??? That must be bad. Window
+// close? TODO: Investigate.)
 void Stop()  // - Hammertime!
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
@@ -201,7 +196,8 @@ void Stop()  // - Hammertime!
 
 	WARN_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");	
 
-	// This must be done a while before freeing the dll to not crash wx around MSWWindowProc and DefWindowProc, will investigate further
+	// This must be done a while before freeing the dll to not crash wx around
+	// MSWWindowProc and DefWindowProc, will investigate further
 	Host_Message(AUDIO_DESTROY);
 	Host_Message(VIDEO_DESTROY);
 
@@ -216,8 +212,9 @@ void Stop()  // - Hammertime!
 
 	if (_CoreParameter.bCPUThread)
 	{
-		// Video_EnterLoop() should now exit so that EmuThread() will continue concurrently with the rest
-		// of the commands in this function. We no longer rely on Postmessage. 
+		// Video_EnterLoop() should now exit so that EmuThread() will continue
+		// concurrently with the rest of the commands in this function. We no
+		// longer rely on Postmessage.
 		NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Wait for Video Loop to exit ...").c_str());
 		CPluginManager::GetInstance().GetVideo()->Video_ExitLoop();
 

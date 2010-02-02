@@ -38,18 +38,13 @@
 namespace FileMon
 {
 
-// -----------
-// Declarations and definitions
-
 DiscIO::IVolume *OpenISO;
 DiscIO::IFileSystem *pFileSystem = NULL;
 std::vector<const DiscIO::SFileInfo *> GCFiles;
-std::string ISOFile, CurrentFile;
+std::string ISOFile = "", CurrentFile = "";
 bool FileAccess = true;
 
-// -----------
 // Filtered files
-
 bool ShowSound(std::string FileName)
 {
 	std::string Ending;
@@ -72,9 +67,7 @@ bool ShowSound(std::string FileName)
 }
 
 
-// -----------
 // Read the GC file system
-
 void ReadGC(std::string FileName)
 {
 	GCFiles.clear();
@@ -89,9 +82,7 @@ void ReadGC(std::string FileName)
 	FileAccess = true;
 }
 
-// -----------
 // Check if we should play this file
-
 void CheckFile(std::string File, int Size)
 {
 	// Don't do anything if the log is unselected
@@ -114,7 +105,7 @@ void CheckFile(std::string File, int Size)
 	CurrentFile = File;
 }
 
-// -----------
+
 // Find the GC filename
 void FindFilename(u64 offset)
 {
@@ -133,15 +124,13 @@ void FindFilename(u64 offset)
 		return;
 	}
 
-	// File
-	if (!pFileSystem->GetFileName(offset)) return;
-	std::string File = std::string(pFileSystem->GetFileName(offset));
+	const char *fname = pFileSystem->GetFileName(offset);
+
 	// There's something wrong with the paths
-	if (File.length() == 512) return;
-
-	int Size = (int)pFileSystem->GetFileSize(File.c_str());
-
-	CheckFile(File, Size);
+	if (!fname || (strlen(fname) == 512))
+		return;
+	
+	CheckFile(fname, pFileSystem->GetFileSize(fname));
 }
 
 
