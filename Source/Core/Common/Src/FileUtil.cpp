@@ -487,6 +487,41 @@ bool DeleteDirRecursively(const char *directory)
 	return true;
 }
 
+#ifdef __linux__
+//Create directory and copy contents (does not overwrite existing files)
+void CopyDir(const char *source_path, const char *dest_path)
+{
+  if (!File::Exists(source_path))
+    return;
+
+  if (!File::Exists(dest_path)) File::CreateFullPath(dest_path);
+  char *virtualName;
+  struct dirent dirent, *result = NULL;
+  DIR *dirp = opendir(source_path);
+  if (!dirp)
+    return;
+  while (!readdir_r(dirp, &dirent, &result) && result) {
+    virtualName = result->d_name;
+    // check for "." and ".."
+    if (((virtualName[0] == '.') && (virtualName[1] == '\0')) ||
+        ((virtualName[0] == '.') && (virtualName[1] == '.') && 
+         (virtualName[2] == '\0')))
+      continue;
+    char source[300], dest[300];
+    sprintf(source, "%s%s", source_path, virtualName);
+    sprintf(dest, "%s%s", dest_path, virtualName);
+    if (IsDirectory(source)) {
+      sprintf(source, "%s/", source);
+      sprintf(dest, "%s/", dest);
+      if (!File::Exists(dest)) File::CreateFullPath(dest);
+      CopyDir(source, dest);
+    } else 
+      if (!File::Exists(dest)) File::Copy(source, dest);
+  }
+  closedir(dirp);
+}
+#endif
+
 // Returns the current directory
 std::string GetCurrentDir()
 {
@@ -510,28 +545,6 @@ bool SetCurrentDir(const char *_rDirectory)
 }
 
 #if defined(__APPLE__)
-
-//get the full config dir
-const char *GetConfigDirectory()
-{
-	static char path[MAX_PATH] = {0};
-	if (strlen(path) > 0)
-		return path;
-	snprintf(path, sizeof(path), "%s" DIR_SEP CONFIG_FILE, GetUserDirectory());
-	return path;
-}
-
-//get the full SYSCONF dir
-const char *GetSysConfDirectory()
-{
-	static char path[MAX_PATH] = {0};
-	if (strlen(path) > 0)
-		return path;
-	snprintf(path, sizeof(path), "%s" DIR_SEP WII_SYSCONF_FILE, GetUserDirectory());
-	return path;
-
-}
-
 std::string GetBundleDirectory() 
 {
 	// Plugin path will be Dolphin.app/Contents/PlugIns
@@ -599,28 +612,149 @@ std::string GetSysDirectory()
 	return sysDir;
 }
 
-// Returns a pointer to a string with a Dolphin data dir in the user's home
+// Returns a pointer to a string with a Dolphin data dir or file in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
-const char *GetUserDirectory()
+const char *GetUserPath(int DirIDX)
 {
-	// Make sure we only need to do it once
-	static char path[MAX_PATH] = {0};
-	if (strlen(path) > 0)
-		return path;
+	static char UserDir[MAX_PATH] = {0};
+	static char GCUserDir[MAX_PATH] = {0};
+	static char WiiUserDir[MAX_PATH] = {0};
+	static char ConfigDir[MAX_PATH] = {0};
+	static char GameConfigDir[MAX_PATH] = {0};
+	static char MapsDir[MAX_PATH] = {0};
+	static char CacheDir[MAX_PATH] = {0};
+	static char ShaderCacheDir[MAX_PATH] = {0};
+	static char ShadersDir[MAX_PATH] = {0};
+	static char StateSavesDir[MAX_PATH] = {0};
+	static char ScreenShotsDir[MAX_PATH] = {0};
+	static char HiresTexturesDir[MAX_PATH] = {0};
+	static char DumpDir[MAX_PATH] = {0};
+	static char DumpFramesDir[MAX_PATH] = {0};
+	static char DumpTexturesDir[MAX_PATH] = {0};
+	static char DumpDSPDir[MAX_PATH] = {0};
+	static char LogsDir[MAX_PATH] = {0};
+	static char MailLogsDir[MAX_PATH] = {0};
+	static char WiiSYSCONFDir[MAX_PATH] = {0};
+	static char WiiMenuDir[MAX_PATH] = {0};
+	static char DolphinConfig[MAX_PATH] = {0};
+	static char DebuggerConfig[MAX_PATH] = {0};
+	static char LoggerConfig[MAX_PATH] = {0};
+	static char MainLog[MAX_PATH] = {0};
+	static char WiiSYSCONF[MAX_PATH] = {0};
+	static char RamDump[MAX_PATH] = {0};
+	static char ARamDump[MAX_PATH] = {0};
+	static char GCSRam[MAX_PATH] = {0};
 
-#ifdef WIN32
-	char homedir[MAX_PATH];
-	if (!SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, path)))
-		return NULL;
+	// Set up all paths and files on the first run
+	if (strlen(UserDir) == 0)
+	{
+#ifdef _WIN32
+		// Keep the directory setup the way it was on windows
+		snprintf(UserDir, sizeof(UserDir), ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP);
+		//char homedir[MAX_PATH];
+		//if (!SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, path)))
+		//	return NULL;
 #else
-	char *homedir = getenv("HOME");
-	if (!homedir)
-		return NULL;
+		if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
+			snprintf(UserDir, sizeof(UserDir), ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP);
+		else
+		{
+			char *homedir = getenv("HOME");
+			if (homedir)
+				snprintf(UserDir, sizeof(UserDir), "%s" DIR_SEP DOLPHIN_DATA_DIR DIR_SEP, homedir);
+		}
 #endif
+		INFO_LOG(COMMON, "GetUserPath: Setting user directory to %s:", UserDir);
 
-	snprintf(path, sizeof(path), "%s" DIR_SEP DOLPHIN_DATA_DIR, homedir);
-	INFO_LOG(COMMON, "GetUserDirectory: Setting to %s:", path);
-	return path;
+		snprintf(GCUserDir, sizeof(GCUserDir), "%s" GC_USER_DIR DIR_SEP, UserDir);
+		snprintf(WiiUserDir, sizeof(WiiUserDir), "%s" WII_USER_DIR DIR_SEP, UserDir);
+		snprintf(ConfigDir, sizeof(ConfigDir), "%s" CONFIG_DIR DIR_SEP, UserDir);
+		snprintf(GameConfigDir, sizeof(GameConfigDir), "%s" GAMECONFIG_DIR DIR_SEP, UserDir);
+		snprintf(MapsDir, sizeof(MapsDir), "%s" MAPS_DIR DIR_SEP, UserDir);
+		snprintf(CacheDir, sizeof(CacheDir), "%s" CACHE_DIR DIR_SEP, UserDir);
+		snprintf(ShaderCacheDir, sizeof(ShaderCacheDir), "%s" SHADERCACHE_DIR DIR_SEP, UserDir);
+		snprintf(ShadersDir, sizeof(ShadersDir), "%s" SHADERS_DIR DIR_SEP, UserDir);
+		snprintf(StateSavesDir, sizeof(StateSavesDir), "%s" STATESAVES_DIR DIR_SEP, UserDir);
+		snprintf(ScreenShotsDir, sizeof(ScreenShotsDir), "%s" SCREENSHOTS_DIR DIR_SEP, UserDir);
+		snprintf(HiresTexturesDir, sizeof(HiresTexturesDir), "%s" HIRES_TEXTURES_DIR DIR_SEP, UserDir);
+		snprintf(DumpDir, sizeof(DumpDir), "%s" DUMP_DIR DIR_SEP, UserDir);
+		snprintf(DumpFramesDir, sizeof(DumpFramesDir), "%s" DUMP_FRAMES_DIR DIR_SEP, UserDir);
+		snprintf(DumpTexturesDir, sizeof(DumpTexturesDir), "%s" DUMP_TEXTURES_DIR DIR_SEP, UserDir);
+		snprintf(DumpDSPDir, sizeof(DumpDSPDir), "%s" DUMP_DSP_DIR DIR_SEP, UserDir);
+		snprintf(LogsDir, sizeof(LogsDir), "%s" LOGS_DIR DIR_SEP, UserDir);
+		snprintf(MailLogsDir, sizeof(MailLogsDir), "%s" MAIL_LOGS_DIR DIR_SEP, UserDir);
+		snprintf(WiiSYSCONFDir, sizeof(WiiSYSCONFDir), "%s" WII_SYSCONF_DIR DIR_SEP, UserDir);
+		snprintf(WiiMenuDir, sizeof(WiiMenuDir), "%s" WII_MENU_DIR DIR_SEP, UserDir);
+		snprintf(DolphinConfig, sizeof(DolphinConfig), "%s" DOLPHIN_CONFIG, ConfigDir);
+		snprintf(DebuggerConfig, sizeof(DebuggerConfig), "%s" DEBUGGER_CONFIG, ConfigDir);
+		snprintf(LoggerConfig, sizeof(LoggerConfig), "%s" LOGGER_CONFIG, ConfigDir);
+		snprintf(MainLog, sizeof(MainLog), "%s" MAIN_LOG, LogsDir);
+		snprintf(WiiSYSCONF, sizeof(WiiSYSCONF), "%s" WII_SYSCONF, WiiSYSCONFDir);
+		snprintf(RamDump, sizeof(RamDump), "%s" RAM_DUMP, DumpDir);
+		snprintf(ARamDump, sizeof(ARamDump), "%s" ARAM_DUMP, DumpDir);
+		snprintf(GCSRam, sizeof(GCSRam), "%s" GC_SRAM, GCUserDir);
+	}
+	switch (DirIDX)
+	{
+		case D_USER_IDX:
+			return UserDir;
+		case D_GCUSER_IDX:
+			return GCUserDir;
+		case D_WIIUSER_IDX:
+			return WiiUserDir;
+		case D_CONFIG_IDX:
+			return ConfigDir;
+		case D_GAMECONFIG_IDX:
+			return GameConfigDir;
+		case D_MAPS_IDX:
+			return MapsDir;
+		case D_CACHE_IDX:
+			return CacheDir;
+		case D_SHADERCACHE_IDX:
+			return ShaderCacheDir;
+		case D_SHADERS_IDX:
+			return ShadersDir;
+		case D_STATESAVES_IDX:
+			return StateSavesDir;
+		case D_SCREENSHOTS_IDX:
+			return ScreenShotsDir;
+		case D_HIRESTEXTURES_IDX:
+			return HiresTexturesDir;
+		case D_DUMP_IDX:
+			return DumpDir;
+		case D_DUMPFRAMES_IDX:
+			return DumpFramesDir;
+		case D_DUMPTEXTURES_IDX:
+			return DumpTexturesDir;
+		case D_DUMPDSP_IDX:
+			return DumpDSPDir;
+		case D_LOGS_IDX:
+			return LogsDir;
+		case D_MAILLOGS_IDX:
+			return MailLogsDir;
+		case D_WIISYSCONF_IDX:
+			return WiiSYSCONFDir;
+		case D_WIIMENU_IDX:
+			return WiiMenuDir;
+		case F_DOLPHINCONFIG_IDX:
+			return DolphinConfig;
+		case F_DEBUGGERCONFIG_IDX:
+			return DebuggerConfig;
+		case F_LOGGERCONFIG_IDX:
+			return LoggerConfig;
+		case F_MAINLOG_IDX:
+			return MainLog;
+		case F_WIISYSCONF_IDX:
+			return WiiSYSCONF;
+		case F_RAMDUMP_IDX:
+			return RamDump;
+		case F_ARAMDUMP_IDX:
+			return ARamDump;
+		case F_GCSRAM_IDX:
+			return GCSRam;
+		default:
+			return NULL;
+	}
 }
 
 bool WriteStringToFile(bool text_file, const std::string &str, const char *filename)

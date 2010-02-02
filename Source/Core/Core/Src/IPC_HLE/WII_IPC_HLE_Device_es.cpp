@@ -764,7 +764,7 @@ bool CWII_IPC_HLE_Device_es::IsValid(u64 _TitleID) const
 std::string CWII_IPC_HLE_Device_es::CreateTicketFileName(u64 _TitleID) const
 {
     char TicketFilename[1024];
-    sprintf(TicketFilename, "%sticket/%08x/%08x.tik", FULL_WII_USER_DIR, (u32)(_TitleID >> 32), (u32)_TitleID);
+    sprintf(TicketFilename, "%sticket/%08x/%08x.tik", File::GetUserPath(D_WIIUSER_IDX), (u32)(_TitleID >> 32), (u32)_TitleID);
 
     return TicketFilename;
 }
@@ -772,7 +772,7 @@ std::string CWII_IPC_HLE_Device_es::CreateTicketFileName(u64 _TitleID) const
 std::string CWII_IPC_HLE_Device_es::CreateTitleContentPath(u64 _TitleID) const
 {
     char TicketFilename[1024];
-    sprintf(TicketFilename, "%stitle/%08x/%08x/content", FULL_WII_USER_DIR, (u32)(_TitleID >> 32), (u32)_TitleID);
+    sprintf(TicketFilename, "%stitle/%08x/%08x/content", File::GetUserPath(D_WIIUSER_IDX), (u32)(_TitleID >> 32), (u32)_TitleID);
 
     return TicketFilename;
 }
@@ -780,10 +780,11 @@ std::string CWII_IPC_HLE_Device_es::CreateTitleContentPath(u64 _TitleID) const
 void CWII_IPC_HLE_Device_es::FindValidTitleIDs()
 {
     m_TitleIDs.clear();
+    char TitlePath[1024];
 
-    std::string TitlePath(FULL_WII_USER_DIR + std::string("title"));
+    sprintf(TitlePath, "%stitle", File::GetUserPath(D_WIIUSER_IDX));
     File::FSTEntry ParentEntry;
-    u32 NumEntries = ScanDirectoryTree(TitlePath.c_str(), ParentEntry);  
+    u32 NumEntries = ScanDirectoryTree(TitlePath, ParentEntry);  
     for(std::vector<File::FSTEntry>::iterator Level1 = ParentEntry.children.begin(); Level1 != ParentEntry.children.end(); ++Level1)
     {
         if (Level1->isDirectory)

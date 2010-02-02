@@ -27,6 +27,7 @@
 #include "HW/CPU.h"
 #include "PowerPC/PowerPC.h"
 #include "Host.h"
+#include "FileUtil.h"
 
 #include "Debugger/PPCDebugInterface.h"
 #include "PowerPC/PPCSymbolDB.h"
@@ -243,7 +244,7 @@ void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 	case 0:
 	default:
 		{
-			FILE* pDumpFile = fopen(MAINRAM_DUMP_FILE, "wb");
+			FILE* pDumpFile = fopen(File::GetUserPath(F_RAMDUMP_IDX), "wb");
 			if (pDumpFile)
 			{
 				if (Memory::m_pRAM)
@@ -257,7 +258,7 @@ void CMemoryWindow::OnDumpMemory( wxCommandEvent& event )
 
 	case 1:
 		{
-			FILE* pDumpFile = fopen(ARAM_DUMP_FILE, "wb");
+			FILE* pDumpFile = fopen(File::GetUserPath(F_ARAMDUMP_IDX), "wb");
 			if (pDumpFile)
 			{
 				u8* aram = DSP::GetARAMPtr();

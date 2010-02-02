@@ -104,8 +104,8 @@ if sys.platform == 'darwin':
 			))
 		)
 else:
-	exeGUI = env['binary_dir'] + 'Dolphin'
-	exeNoGUI = env['binary_dir'] + 'DolphinNoGUI'
+	exeGUI = env['binary_dir'] + 'dolphin-emu'
+	exeNoGUI = env['binary_dir'] + 'dolphin-emu-nogui'
 
 #objects = [ wxenv.Object(srcFile) for srcFile in files ]
 

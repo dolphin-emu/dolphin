@@ -96,7 +96,7 @@ DSPDebuggerHLE::DSPDebuggerHLE(wxWindow *parent, wxWindowID id, const wxString &
 
 	// load ini...
 	IniFile file;
-	file.Load(DEBUGGER_CONFIG_FILE);
+	file.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 	this->Load(file);
 
 	// append block names
@@ -150,9 +150,9 @@ DSPDebuggerHLE::~DSPDebuggerHLE()
 	/*
 	// empty
 	IniFile file;
-	file.Load(DEBUGGER_CONFIG_FILE);
+	file.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 	this->Save(file);
-	file.Save(DEBUGGER_CONFIG_FILE);
+	file.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 	*/
 
 	// Reset
@@ -173,9 +173,9 @@ void DSPDebuggerHLE::OnClose(wxCloseEvent& event)
 
 	// Save the window position
 	IniFile file;
-	file.Load(DEBUGGER_CONFIG_FILE);
+	file.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 	this->Save(file);
-	file.Save(DEBUGGER_CONFIG_FILE);
+	file.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
 	//EndModal(0);
 	//Close(true);

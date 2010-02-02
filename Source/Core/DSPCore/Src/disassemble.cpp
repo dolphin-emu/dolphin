@@ -50,7 +50,7 @@ DSPDisassembler::~DSPDisassembler()
 {
 	// Some old code for logging unknown ops.
 	char filename[MAX_PATH];
-	sprintf(filename, "%sUnkOps.txt", FULL_DSP_DUMP_DIR);
+	sprintf(filename, "%sUnkOps.txt", File::GetUserPath(D_DUMPDSP_IDX));
 	FILE *uo = fopen(filename, "w");
 	if (!uo)
 		return;

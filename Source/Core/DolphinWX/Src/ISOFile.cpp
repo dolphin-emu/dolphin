@@ -152,9 +152,9 @@ bool GameListItem::LoadFromCache()
 
 void GameListItem::SaveToCache()
 {
-	if (!File::IsDirectory(FULL_CACHE_DIR))
+	if (!File::IsDirectory(File::GetUserPath(D_CACHE_IDX)))
 	{
-		File::CreateDir(FULL_CACHE_DIR);
+		File::CreateDir(File::GetUserPath(D_CACHE_IDX));
 	}
 
 	CChunkFileReader::Save<GameListItem>(CreateCacheFilename(), CACHE_REVISION, *this);
@@ -188,7 +188,7 @@ std::string GameListItem::CreateCacheFilename()
 		Filename.append(".gcz");
 	Filename.append(".cache");
 
-	std::string fullname(FULL_CACHE_DIR);
+	std::string fullname(std::string(File::GetUserPath(D_CACHE_IDX)));
 	fullname += Filename;
 	return fullname;
 }
@@ -226,12 +226,12 @@ const std::string GameListItem::GetWiiFSPath() const
 			Iso->GetTitleID((u8*)&Title);
 			Title = Common::swap64(Title);
 
-			sprintf(Path, FULL_WII_USER_DIR "title/%08x/%08x/data/", (u32)(Title>>32), (u32)Title);
+			sprintf(Path, "%stitle/%08x/%08x/data/", File::GetUserPath(D_WIIUSER_IDX), (u32)(Title>>32), (u32)Title);
 
 			if (!File::Exists(Path))
 				File::CreateFullPath(Path);
 
-			ret = std::string(wxGetCwd().mb_str()) + std::string(Path).substr(strlen(ROOT_DIR));
+			ret = std::string(Path);
 		}
 		delete Iso;
 	}

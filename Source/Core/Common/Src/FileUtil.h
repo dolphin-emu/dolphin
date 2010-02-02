@@ -24,6 +24,38 @@
 
 #include "Common.h"
 
+// User directory indices for GetUserPath
+enum {
+	D_USER_IDX,
+	D_GCUSER_IDX,
+	D_WIIUSER_IDX,
+	D_CONFIG_IDX,
+	D_GAMECONFIG_IDX,
+	D_MAPS_IDX,
+	D_CACHE_IDX,
+	D_SHADERCACHE_IDX,
+	D_SHADERS_IDX,
+	D_STATESAVES_IDX,
+	D_SCREENSHOTS_IDX,
+	D_HIRESTEXTURES_IDX,
+	D_DUMP_IDX,
+	D_DUMPFRAMES_IDX,
+	D_DUMPTEXTURES_IDX,
+	D_DUMPDSP_IDX,
+	D_LOGS_IDX,
+	D_MAILLOGS_IDX,
+	D_WIISYSCONF_IDX,
+	D_WIIMENU_IDX,
+	F_DOLPHINCONFIG_IDX,
+	F_DEBUGGERCONFIG_IDX,
+	F_LOGGERCONFIG_IDX,
+	F_MAINLOG_IDX,
+	F_WIISYSCONF_IDX,
+	F_RAMDUMP_IDX,
+	F_ARAMDUMP_IDX,
+	F_GCSRAM_IDX,
+};
+
 namespace File
 {
 
@@ -78,13 +110,15 @@ bool DeleteDirRecursively(const char *directory);
 // Returns the current directory
 std::string GetCurrentDir();
 
+//Create directory and copy contents (does not overwrite existing files)
+void CopyDir(const char *source_path, const char *dest_path);
+
 // Set the current directory to given directory
 bool SetCurrentDir(const char *directory);
 
-
 // Returns a pointer to a string with a Dolphin data dir in the user's home
 // directory. To be used in "multi-user" mode (that is, installed).
-const char *GetUserDirectory();
+const char *GetUserPath(int DirIDX);
 
 // Returns the path to where the plugins are
 std::string GetPluginsDirectory();
@@ -93,10 +127,6 @@ std::string GetPluginsDirectory();
 std::string GetSysDirectory();
 
 #ifdef __APPLE__
-
-const char *GetConfigDirectory();
-const char *GetSysConfDirectory();
-
 std::string GetBundleDirectory();
 #endif
 

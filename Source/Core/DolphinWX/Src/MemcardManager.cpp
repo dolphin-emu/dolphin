@@ -108,7 +108,7 @@ CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString
 {
 	memoryCard[SLOT_A]=NULL;
 	memoryCard[SLOT_B]=NULL;
-	if (MemcardManagerIni.Load(CONFIG_FILE))
+	if (MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)))
 	{
 		MemcardManagerIni.Get("MemcardManager", "Items per page",  &itemsPerPage, 16);
 		MemcardManagerIni.Get("MemcardManager", "DefaultMemcardA", &(DefaultMemcard[SLOT_A]), ".");
@@ -143,7 +143,7 @@ CMemcardManager::~CMemcardManager()
 		MemcardManagerDebug = NULL;
 	}
 #endif
-	MemcardManagerIni.Load(CONFIG_FILE);
+	MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	MemcardManagerIni.Set("MemcardManager", "Items per page",  itemsPerPage);
 
 	if (!DefaultMemcard[SLOT_A].empty() && (strcmp(DefaultMemcard[SLOT_A].c_str(), ".")))
@@ -154,13 +154,13 @@ CMemcardManager::~CMemcardManager()
 		MemcardManagerIni.Set("MemcardManager", "DefaultMemcardB", DefaultMemcard[SLOT_B]);
 	else
 		MemcardManagerIni.DeleteKey("MemcardManager", "DefaultMemcardB");
-	MemcardManagerIni.Save(CONFIG_FILE);
+	MemcardManagerIni.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 }
 
 CMemcardManager::CMemcardListCtrl::CMemcardListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size, long style)
 	: wxListCtrl(parent, id, pos, size, style)
 {
-	if (MemcardManagerIni.Load(CONFIG_FILE))
+	if (MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)))
 	{
 		MemcardManagerIni.Get("MemcardManager", "Use Pages", &usePages, true);
 		MemcardManagerIni.Get("MemcardManager", "cBanner", &column[COLUMN_BANNER], true);
@@ -196,7 +196,7 @@ CMemcardManager::CMemcardListCtrl::CMemcardListCtrl(wxWindow* parent, const wxWi
 
 CMemcardManager::CMemcardListCtrl::~CMemcardListCtrl()
 {
-	MemcardManagerIni.Load(CONFIG_FILE);
+	MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
 	MemcardManagerIni.Set("MemcardManager", "Use Pages", usePages);
 	MemcardManagerIni.Set("MemcardManager", "cBanner", column[COLUMN_BANNER]);
@@ -208,7 +208,7 @@ CMemcardManager::CMemcardListCtrl::~CMemcardListCtrl()
 #ifdef DEBUG_MCM
 	MemcardManagerIni.Set("MemcardManager", "cDebug", column[NUMBER_OF_COLUMN]);
 #endif
-	MemcardManagerIni.Save(CONFIG_FILE);
+	MemcardManagerIni.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 }
 
 void CMemcardManager::CreateGUIControls()
@@ -242,7 +242,8 @@ void CMemcardManager::CreateGUIControls()
 		sPages[slot]->Add(0, 0, 1, wxEXPAND|wxALL, 0);
 		sPages[slot]->Add(m_NextPage[slot], 0, wxEXPAND|wxALL, 1);
 
-		m_MemcardPath[slot] = new wxFilePickerCtrl(this, ID_MEMCARDPATH_A + slot, T_FULL_GC_USER_DIR, wxT("Choose a memory card:"),
+		m_MemcardPath[slot] = new wxFilePickerCtrl(this, ID_MEMCARDPATH_A + slot,
+			 wxString::FromAscii(File::GetUserPath(D_GCUSER_IDX)), wxT("Choose a memory card:"),
 		wxT("Gamecube Memory Cards (*.raw,*.gcp)|*.raw;*.gcp"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
 	
 		m_MemcardList[slot] = new CMemcardListCtrl(this, ID_MEMCARDLIST_A + slot, wxDefaultPosition, wxSize(350,400),

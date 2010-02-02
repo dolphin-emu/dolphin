@@ -28,6 +28,7 @@
 #include "StringUtil.h"
 #include "CommandProcessor.h"
 #include "../../../Core/VideoCommon/Src/ImageWrite.h"
+#include "FileUtil.h"
 
 namespace DebugUtil
 {
@@ -92,7 +93,7 @@ void DumpActiveTextures()
     {
         u32 texmap = bpmem.tevindref.getTexMap(stageNum);
 
-        SaveTexture(StringFromFormat("%s/tar%i_ind%i_map%i.tga", FULL_DUMP_TEXTURES_DIR, stats.thisFrame.numDrawnObjects, stageNum, texmap).c_str(), texmap);     
+        SaveTexture(StringFromFormat("%star%i_ind%i_map%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX), stats.thisFrame.numDrawnObjects, stageNum, texmap).c_str(), texmap);     
     }
 
     for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages; stageNum++)
@@ -103,7 +104,7 @@ void DumpActiveTextures()
 
         int texmap = order.getTexMap(stageOdd);
 
-        SaveTexture(StringFromFormat("%s/tar%i_stage%i_map%i.tga", FULL_DUMP_TEXTURES_DIR, stats.thisFrame.numDrawnObjects, stageNum, texmap).c_str(), texmap);           
+        SaveTexture(StringFromFormat("%star%i_stage%i_map%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX), stats.thisFrame.numDrawnObjects, stageNum, texmap).c_str(), texmap);           
     }
 }
 
@@ -178,7 +179,7 @@ void OnObjectEnd()
     if (!g_bSkipCurrentFrame)
     {
         if (g_Config.bDumpObjects && stats.thisFrame.numDrawnObjects >= g_Config.drawStart && stats.thisFrame.numDrawnObjects < g_Config.drawEnd)
-            DumpEfb(StringFromFormat("%s/object%i.tga", FULL_FRAMES_DIR, stats.thisFrame.numDrawnObjects).c_str());
+            DumpEfb(StringFromFormat("%sobject%i.tga", File::GetUserPath(D_DUMPFRAMES_IDX), stats.thisFrame.numDrawnObjects).c_str());
 
         if (g_Config.bHwRasterizer)
             HwRasterizer::EndTriangles();
@@ -188,7 +189,7 @@ void OnObjectEnd()
             if (DrawnToBuffer[i])
             {
                 DrawnToBuffer[i] = false;
-                SaveTGA(StringFromFormat("%s/object%i_%s(%i).tga", FULL_FRAMES_DIR,
+                SaveTGA(StringFromFormat("%sobject%i_%s(%i).tga", File::GetUserPath(D_DUMPFRAMES_IDX),
                     stats.thisFrame.numDrawnObjects, ObjectBufferName[i], i).c_str(), EFB_WIDTH, EFB_HEIGHT, ObjectBuffer[i]);
                 memset(ObjectBuffer[i], 0, sizeof(ObjectBuffer[i]));
             }
@@ -204,8 +205,8 @@ void OnFrameEnd()
     {
         if (g_Config.bDumpFrames)
         {
-            DumpEfb(StringFromFormat("%s/frame%i_color.tga", FULL_FRAMES_DIR, stats.frameCount).c_str());
-            DumpDepth(StringFromFormat("%s/frame%i_depth.tga", FULL_FRAMES_DIR, stats.frameCount).c_str());
+            DumpEfb(StringFromFormat("%sframe%i_color.tga", File::GetUserPath(D_DUMPFRAMES_IDX), stats.frameCount).c_str());
+            DumpDepth(StringFromFormat("%sframe%i_depth.tga", File::GetUserPath(D_DUMPFRAMES_IDX), stats.frameCount).c_str());
         }
     }
 }

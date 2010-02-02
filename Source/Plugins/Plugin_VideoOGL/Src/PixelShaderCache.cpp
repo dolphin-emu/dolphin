@@ -33,6 +33,7 @@
 #include "VertexShaderGen.h"
 #include "PixelShaderCache.h"
 #include "PixelShaderManager.h"
+#include "FileUtil.h"
 
 static int s_nMaxPixelInstructions;
 static GLuint s_ColorMatrixProgram = 0;
@@ -204,7 +205,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
 		static int counter = 0;
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%s/ps_%04i.txt", FULL_DUMP_DIR, counter++);
+		sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX), counter++);
 		
 		SaveData(szTemp, code);
 	}

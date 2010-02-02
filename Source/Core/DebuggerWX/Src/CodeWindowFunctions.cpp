@@ -84,7 +84,7 @@ extern "C"  // Bitmaps
 void CCodeWindow::Load()
 {
 	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
+	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
 	// The font to override DebuggerFont with
 	std::string fontDesc;
@@ -133,7 +133,7 @@ void CCodeWindow::Load()
 void CCodeWindow::Save()
 {
 	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
+	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
 	ini.Set("ShowOnStart", "DebuggerFont", std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str()));
 
@@ -172,7 +172,7 @@ void CCodeWindow::Save()
 	ini.Set("Float", "Sound", !!FindWindowById(IDM_SOUNDWINDOW_PARENT));
 	ini.Set("Float", "Video", !!FindWindowById(IDM_VIDEOWINDOW_PARENT));	
 
-	ini.Save(DEBUGGER_CONFIG_FILE);
+	ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 }
 
 

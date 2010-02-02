@@ -19,6 +19,7 @@
 #include "IniFile.h"
 #include "Config.h"
 #include "AudioCommon.h"
+#include "FileUtil.h"
 
 #define LLE_CONFIG_FILE "DSPLLE.ini"
 
@@ -33,15 +34,15 @@ void CConfig::Load()
 {
 	// first load defaults
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR LLE_CONFIG_FILE);
+	file.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + LLE_CONFIG_FILE).c_str());
 	ac_Config.Load(file);
 }
 
 void CConfig::Save()
 {
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR LLE_CONFIG_FILE);
+	file.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + LLE_CONFIG_FILE).c_str());
 	ac_Config.Set(file);
 
-	file.Save(FULL_CONFIG_DIR LLE_CONFIG_FILE);
+	file.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + LLE_CONFIG_FILE).c_str());
 }

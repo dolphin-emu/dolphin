@@ -414,7 +414,7 @@ CFrame::CFrame(wxFrame* parent,
 	else
 	{
 		IniFile ini; int pos;
-		ini.Load(LOGGER_CONFIG_FILE);
+		ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
 		ini.Get("LogWindow", "pos", &pos, 2);
 
 		m_Mgr->GetPane(wxT("Pane 0")).Show().PaneBorder(false).CaptionVisible(false).Layer(0).Center();

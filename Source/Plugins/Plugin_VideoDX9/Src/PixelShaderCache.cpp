@@ -150,11 +150,11 @@ void PixelShaderCache::Init()
 	s_DepthMatrixProgram = D3D::CompileAndCreatePixelShader(pprog, (int)strlen(pprog));	
 	Clear();
 
-	if (!File::Exists(FULL_SHADERCACHE_DIR))
-		File::CreateDir(FULL_SHADERCACHE_DIR);
+	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
+		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
 	char cache_filename[MAX_PATH];
-	sprintf(cache_filename, "%s%s-ps.cache", FULL_SHADERCACHE_DIR, globals->unique_id);
+  sprintf(cache_filename, "%s%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	PixelShaderCacheInserter inserter;
 	int read_items = g_ps_disk_cache.OpenAndRead(cache_filename, &inserter);
 }
@@ -231,7 +231,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
 		static int counter = 0;
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%s/ps_%04i.txt", FULL_DUMP_DIR, counter++);
+		sprintf(szTemp, "%sps_%04i.txt", File::GetUserPath(D_DUMP_IDX), counter++);
 		
 		SaveData(szTemp, code);
 	}

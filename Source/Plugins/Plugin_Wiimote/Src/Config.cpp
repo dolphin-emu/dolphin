@@ -25,6 +25,7 @@
 #include "Config.h"
 #include "EmuDefinitions.h" // for PadMapping
 #include "main.h"
+#include "FileUtil.h"
 
 // Configuration file control names
 // Do not change the order unless you change the related arrays
@@ -259,7 +260,7 @@ void Config::Load()
 {
 	std::string temp;
 	IniFile iniFile;
-	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
+	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Wiimote.ini").c_str());
 
 	// Real Wiimote
 	iniFile.Get("Real", "UpdateStatus", &bUpdateRealWiimote, true);
@@ -329,7 +330,7 @@ void Config::Load()
 
 	// Load a few screen settings to. If these are added to the DirectX plugin it's probably
 	// better to place them in the main Dolphin.ini file
-	iniFile.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
+	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
 	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, false);
 	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);
 	iniFile.Get("Settings", "Crop", &bCrop, false);
@@ -345,7 +346,7 @@ void Config::LoadIR()
 	int defaultLeft, defaultTop, defaultWidth, defaultHeight;
 
 	sprintf(TmpSection, "%s", g_ISOId ? Hex2Ascii(g_ISOId).c_str() : "Default");
-	iniFile.Load(FULL_CONFIG_DIR "IR Pointer.ini");
+	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IR Pointer.ini").c_str());
 	//Load defaults first...
 	iniFile.Get("Default", "IRLeft", &defaultLeft, LEFT);
 	iniFile.Get("Default", "IRTop", &defaultTop, TOP);
@@ -362,7 +363,7 @@ void Config::LoadIR()
 void Config::Save()
 {
 	IniFile iniFile;
-	iniFile.Load(FULL_CONFIG_DIR "Wiimote.ini");
+	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Wiimote.ini").c_str());
 	
 	iniFile.Set("Real", "UpdateStatus", bUpdateRealWiimote);
 	iniFile.Set("Real", "AccNeutralX", iAccNeutralX);
@@ -422,17 +423,17 @@ void Config::Save()
 		iniFile.Set(SectionName, "TriggerType", WiiMoteEmu::WiiMapping[i].TriggerType);
 	}
 
-	iniFile.Save(FULL_CONFIG_DIR "Wiimote.ini");
+	iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Wiimote.ini").c_str());
 
 	// Save the IR cursor settings if it's avaliable for the GameId, if not save the default settings
-	iniFile.Load(FULL_CONFIG_DIR "IR Pointer.ini");
+	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IR Pointer.ini").c_str());
 	char TmpSection[32];
 	sprintf(TmpSection, "%s", g_ISOId ? Hex2Ascii(g_ISOId).c_str() : "Default");
 	iniFile.Set(TmpSection, "IRLeft", iIRLeft);
 	iniFile.Set(TmpSection, "IRTop", iIRTop);
 	iniFile.Set(TmpSection, "IRWidth", iIRWidth);
 	iniFile.Set(TmpSection, "IRHeight", iIRHeight);
-	iniFile.Save(FULL_CONFIG_DIR "IR Pointer.ini");
+	iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IR Pointer.ini").c_str());
 
 	//DEBUG_LOG(WIIMOTE, "Save()");
 }

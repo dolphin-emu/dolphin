@@ -47,7 +47,8 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
 {
 	INFO_LOG(WII_IPC_SD, "Open");
 
-	char filename[16] = "sd.raw";
+	char filename[300];
+	sprintf(filename, "%ssd.raw", File::GetUserPath(D_WIIUSER_IDX));
 	m_Card = fopen(filename, "r+b");
 	if(!m_Card)
 	{

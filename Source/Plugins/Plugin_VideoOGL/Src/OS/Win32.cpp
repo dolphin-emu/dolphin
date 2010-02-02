@@ -528,7 +528,7 @@ void Show()
 	/*
 	bool bVideoWindow = false;
 	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
+	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 	ini.Get("ShowOnStart", "VideoWindow", &bVideoWindow, false);
 	if(bVideoWindow) DoDllDebugger();
 	*/

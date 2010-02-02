@@ -23,7 +23,7 @@
 #include "MemoryCheckDlg.h"
 #include "Host.h"
 #include "PowerPC/PowerPC.h"
-
+#include "FileUtil.h"
 
 BEGIN_EVENT_TABLE(CBreakPointWindow, wxPanel)
 	EVT_CLOSE(CBreakPointWindow::OnClose)
@@ -137,7 +137,7 @@ void CBreakPointWindow::OnAddBreakPointMany()
 {
 	// load ini
 	IniFile ini;
-	std::string filename = std::string(FULL_GAMECONFIG_DIR "BreakPoints.ini");
+	std::string filename = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + "BreakPoints.ini";
 
 	if (ini.Load(filename.c_str())) // check if there is any file there
 	{
@@ -163,7 +163,7 @@ void CBreakPointWindow::OnAddBreakPointMany()
 	}
 	else
 	{
-		wxMessageBox(_T("Couldn't find User/GameConfig/BreakPoints.ini file"));
+		wxMessageBox(_T("Couldn't find GameConfig/BreakPoints.ini file"));
 	}
 
 }
@@ -183,7 +183,7 @@ void CBreakPointWindow::OnAddMemoryCheckMany()
 {
 	// load ini
 	IniFile ini;
-	std::string filename = std::string(FULL_GAMECONFIG_DIR "MemoryChecks.ini");
+	std::string filename = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + "MemoryChecks.ini";
 
 	if (ini.Load(filename.c_str()))
 	{
@@ -262,7 +262,7 @@ void CBreakPointWindow::OnAddMemoryCheckMany()
 	}
 	else
 	{
-		wxMessageBox(_T("You have no ") T_FULL_GAMECONFIG_DIR _T("MemoryChecks.ini file"));
+		wxMessageBox(_T("You have no ") + wxString::FromAscii(File::GetUserPath(D_GAMECONFIG_IDX)) + _T("MemoryChecks.ini file"));
 	}
 }
 

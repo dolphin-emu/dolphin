@@ -196,7 +196,7 @@ void CFrame::CreateMenu()
 	toolsMenu->Append(IDM_NETPLAY, _T("Start &NetPlay"));
 #endif
 
-	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
+	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(std::string (File::GetUserPath(D_WIIMENU_IDX))).IsValid())
 	{
 		toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
 	}
@@ -874,7 +874,7 @@ void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
 {
-	StartGame(FULL_WII_MENU_DIR);
+	StartGame(std::string (File::GetUserPath(D_WIIMENU_IDX)));
 }
 
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
@@ -1027,7 +1027,7 @@ void CFrame::UpdateGUI()
 
 	// Misc
 	GetMenuBar()->FindItem(IDM_CHANGEDISC)->Enable(Initialized);
-	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(FULL_WII_MENU_DIR).IsValid())
+	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(std::string(File::GetUserPath(D_WIIMENU_IDX))).IsValid())
 		GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->Enable(!Initialized);
 
 	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(Initialized  && Core::GetStartupParameter().bWii);
@@ -1170,7 +1170,7 @@ void CFrame::GameListChanged(wxCommandEvent& event)
 		break;
 	case IDM_PURGECACHE:
 		CFileSearch::XStringVector Directories;
-		Directories.push_back(FULL_CACHE_DIR);
+		Directories.push_back(File::GetUserPath(D_CACHE_IDX));
 		CFileSearch::XStringVector Extensions;
 		Extensions.push_back("*.cache");
 		

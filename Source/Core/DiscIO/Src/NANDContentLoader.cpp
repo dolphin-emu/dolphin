@@ -60,7 +60,7 @@ CSharedContent CSharedContent::m_Instance;
 CSharedContent::CSharedContent()
 {
 	char szFilename[1024];
-	sprintf(szFilename, "%sshared1/content.map", FULL_WII_USER_DIR);
+	sprintf(szFilename, "%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX));
 	if (File::Exists(szFilename))
 	{
 		FILE* pFile = fopen(szFilename, "rb");
@@ -86,7 +86,7 @@ std::string CSharedContent::GetFilenameFromSHA1(u8* _pHash)
 		if (memcmp(_pHash, m_Elements[i].SHA1Hash, 20) == 0)
 		{
 			char szFilename[1024];
-			sprintf(szFilename,  "%sshared1/%c%c%c%c%c%c%c%c.app", FULL_WII_USER_DIR, 
+			sprintf(szFilename,  "%sshared1/%c%c%c%c%c%c%c%c.app", File::GetUserPath(D_WIIUSER_IDX),
 				m_Elements[i].FileName[0], m_Elements[i].FileName[1], m_Elements[i].FileName[2], m_Elements[i].FileName[3],
 				m_Elements[i].FileName[4], m_Elements[i].FileName[5], m_Elements[i].FileName[6], m_Elements[i].FileName[7]);
 			return szFilename;

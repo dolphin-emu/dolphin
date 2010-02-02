@@ -503,7 +503,7 @@ bool CWiiSaveCrypted::getPaths(bool _export)
 {
 	if (_saveGameTitle)
 	{	
-		sprintf(pathSavedir, FULL_WII_USER_DIR "title/%08x/%08x/data/", (u32)(_saveGameTitle>>32), (u32)_saveGameTitle);
+		sprintf(pathSavedir, "%stitle/%08x/%08x/data/", File::GetUserPath(D_WIIUSER_IDX), (u32)(_saveGameTitle>>32), (u32)_saveGameTitle);
 		sprintf(pathBanner_bin, "%sbanner.bin", pathSavedir);
 		sprintf(_saveGameString, "%c%c%c%c",
 			(u8)(_saveGameTitle >> 24) & 0xFF, (u8)(_saveGameTitle >> 16) & 0xFF,

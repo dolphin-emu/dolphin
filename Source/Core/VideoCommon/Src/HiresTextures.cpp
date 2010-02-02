@@ -36,9 +36,9 @@ void Init(const char *gameCode)
 	static bool bCheckedDir;
 
 	CFileSearch::XStringVector Directories;
-	//Directories.push_back(std::string(FULL_HIRES_TEXTURES_DIR));
+	//Directories.push_back(std::string(File::GetUserPath(D_HIRESTEXTURES_IDX)));
 	char szDir[MAX_PATH];
-	sprintf(szDir,"%s/%s",FULL_HIRES_TEXTURES_DIR,gameCode);
+	sprintf(szDir,"%s%s",File::GetUserPath(D_HIRESTEXTURES_IDX),gameCode);
 	Directories.push_back(std::string(szDir));
 	
 

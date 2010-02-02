@@ -170,11 +170,11 @@ void VertexShaderCache::Init()
 	Clear();
 	delete [] vSimpleProg;
 
-	if (!File::Exists(FULL_SHADERCACHE_DIR))
-		File::CreateDir(FULL_SHADERCACHE_DIR);
+	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
+		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
 	char cache_filename[MAX_PATH];
-	sprintf(cache_filename, "%s%s-vs.cache", FULL_SHADERCACHE_DIR, globals->unique_id);
+	sprintf(cache_filename, "%s%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	VertexShaderCacheInserter inserter;
 	int read_items = g_vs_disk_cache.OpenAndRead(cache_filename, &inserter);
 }

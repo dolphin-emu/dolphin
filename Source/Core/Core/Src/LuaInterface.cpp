@@ -2745,7 +2745,7 @@ DEFINE_LUA_FUNCTION(emulua_loadrom, "filename")
 	// Load game specific settings
 	IniFile game_ini;
 	std::string unique_id = StartUp.GetUniqueID();
-	StartUp.m_strGameIni = FULL_GAMECONFIG_DIR + unique_id + ".ini";
+	StartUp.m_strGameIni = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + unique_id + ".ini";
 	if (unique_id.size() == 6 && game_ini.Load(StartUp.m_strGameIni.c_str()))
 	{
 		// General settings

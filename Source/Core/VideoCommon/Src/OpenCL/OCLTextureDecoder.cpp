@@ -62,7 +62,8 @@ void TexDecoder_OpenCL_Initialize() {
 			return;
 
         std::string code;
-        char* filename = "User/OpenCL/TextureDecoder.cl";
+        char filename[1024];
+        sprintf(filename, "%sOpenCL/TextureDecoder.cl", File::GetUserPath(D_USER_IDX));
 		if (!File::ReadFileToString(true, filename, code))
 		{
 			ERROR_LOG(VIDEO, "Failed to load OpenCL code %s - file is missing?", filename);

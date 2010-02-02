@@ -21,12 +21,16 @@
 SysConf::SysConf()
 : m_IsValid(false)
 {
-#if defined(__APPLE__)
-	if (LoadFromFile(File::GetSysConfDirectory()))
-#else
-	if (LoadFromFile(WII_SYSCONF_FILE))
-#endif
+	if (LoadFromFile(File::GetUserPath(F_WIISYSCONF_IDX)))
 		m_IsValid = true;
+}
+
+void SysConf::Reload()
+{
+  if (m_IsValid)
+    return;
+  if (LoadFromFile(File::GetUserPath(F_WIISYSCONF_IDX)))
+    m_IsValid = true;
 }
 
 SysConf::~SysConf()

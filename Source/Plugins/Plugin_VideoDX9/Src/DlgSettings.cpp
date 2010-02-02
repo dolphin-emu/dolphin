@@ -20,6 +20,7 @@
 #include "resource.h"
 #include "W32Util/PropertySheet.h"
 #include "W32Util/ShellUtil.h"
+#include "FileUtil.h"
 
 #include "D3DBase.h"
 
@@ -137,7 +138,7 @@ struct TabDirect3D : public W32Util::Tab
 		g_Config.bFullscreen = Button_GetCheck(GetDlgItem(hDlg, IDC_FULLSCREENENABLE)) ? true : false;
 		g_Config.bVSync = Button_GetCheck(GetDlgItem(hDlg, IDC_VSYNC)) ? true : false;
 		g_Config.RenderToMainframe = Button_GetCheck(GetDlgItem(hDlg, IDC_RENDER_TO_MAINWINDOW)) ? true : false;
-		g_Config.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
+		g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 	}
 };
 
@@ -211,7 +212,7 @@ struct TabAdvanced : public W32Util::Tab
 		g_Config.bEFBCopyDisable = Button_GetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY)) ? false : true;
 		g_Config.bCopyEFBToTexture = Button_GetCheck(GetDlgItem(hDlg,IDC_EFBTORAM)) ? false : true;
 
-		g_Config.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
+		g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 
 		if( D3D::dev != NULL ) {
 			D3D::SetRenderState( D3DRS_FILLMODE, g_Config.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID );
@@ -264,7 +265,7 @@ struct TabEnhancements : public W32Util::Tab
 		g_Config.bForceFiltering = Button_GetCheck(GetDlgItem(hDlg, IDC_FORCEFILTERING)) ? true : false;
 		g_Config.bHiresTextures = Button_GetCheck(GetDlgItem(hDlg, IDC_LOADHIRESTEXTURE)) ? true : false;
 		g_Config.bCopyEFBScaled = Button_GetCheck(GetDlgItem(hDlg,IDC_EFBSCALEDCOPY)) ? true : false;
-		g_Config.Save(FULL_CONFIG_DIR "gfx_dx9.ini");
+		g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 	}
 };
 
@@ -274,7 +275,7 @@ void DlgSettings_Show(HINSTANCE hInstance, HWND _hParent)
 	bool tfoe = g_Config.bTexFmtOverlayEnable;
 	bool tfoc = g_Config.bTexFmtOverlayCenter;
 
-	g_Config.Load(FULL_CONFIG_DIR "gfx_dx9.ini");
+	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 	W32Util::PropSheet sheet;
 	sheet.Add(new TabDirect3D, (LPCTSTR)IDD_SETTINGS,_T("Direct3D"));
 	sheet.Add(new TabEnhancements, (LPCTSTR)IDD_ENHANCEMENTS,_T("Enhancements"));

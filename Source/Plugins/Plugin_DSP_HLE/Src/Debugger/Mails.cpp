@@ -95,7 +95,7 @@ void DSPDebuggerHLE::ReadDir()
 {
 	CFileSearch::XStringVector Directories;
 	//Directories.push_back("Logs/Mail");
-	Directories.push_back(FULL_MAIL_LOGS_DIR);	
+	Directories.push_back(File::GetUserPath(D_MAILLOGS_IDX));	
 
 	CFileSearch::XStringVector Extensions;
 	Extensions.push_back("*.log");
@@ -241,8 +241,8 @@ void DSPDebuggerHLE::Readfile(std::string FileName, bool GC)
 		std::string sz = "";
                 std::ostringstream ci;
                 ci << i;
-		std::string f0 = FULL_MAIL_LOGS_DIR + FileName + "_sep" + ci.str() + "_sep" + "0_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
-		std::string f1 = FULL_MAIL_LOGS_DIR + FileName + "_sep" + ci.str() + "_sep" + "1_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
+		std::string f0 = std::string(File::GetUserPath(D_MAILLOGS_IDX)) + FileName + "_sep" + ci.str() + "_sep" + "0_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
+		std::string f1 = std::string(File::GetUserPath(D_MAILLOGS_IDX)) + FileName + "_sep" + ci.str() + "_sep" + "1_sep" + (GC ? "GC" : "Wii") +  "_sep.log";
 
 		//Console::Print("ifstream  %s  %s\n", f0.c_str(), f1.c_str());
 

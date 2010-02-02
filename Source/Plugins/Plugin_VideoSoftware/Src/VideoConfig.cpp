@@ -44,7 +44,7 @@ void Config::Load()
 {
     std::string temp;
     IniFile iniFile;
-    iniFile.Load(FULL_CONFIG_DIR "gfx_software.ini");
+    iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_software.ini").c_str());
     
     iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
     iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
@@ -55,11 +55,11 @@ void Config::Load()
 void Config::Save()
 {
     IniFile iniFile;
-    iniFile.Load(FULL_CONFIG_DIR "gfx_software.ini");
+    iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_software.ini").c_str());
 
     iniFile.Set("Hardware", "Fullscreen", bFullscreen);
     iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
     
-    iniFile.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
+    iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
 }
 

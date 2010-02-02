@@ -292,10 +292,10 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_ReloadShader = new wxButton(m_PageGeneral, ID_RELOADSHADER, wxT("&Reload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_EditShader = new wxButton(m_PageGeneral, ID_EDITSHADER, wxT("&Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	if (File::IsDirectory("User/Shaders"))
+	if (File::IsDirectory(File::GetUserPath(D_SHADERS_IDX)))
 	{
 		File::FSTEntry entry;
-		File::ScanDirectoryTree("User/Shaders", entry);
+		File::ScanDirectoryTree(File::GetUserPath(D_SHADERS_IDX), entry);
 		for (u32 i = 0; i < entry.children.size(); i++) 
 		{
 			std::string name = entry.children[i].virtualName.c_str();
@@ -306,7 +306,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	}
 	else
 	{
-		File::CreateDir("User/Shaders");
+		File::CreateDir(File::GetUserPath(D_SHADERS_IDX));
 	}
 
 	wxString shader= wxString::FromAscii(g_Config.sPostProcessingShader.c_str());
@@ -547,7 +547,7 @@ void GFXConfigDialogOGL::EditShaderClick(wxCommandEvent& WXUNUSED (event))
 {
 	if (m_PostShaderCB->GetStringSelection() == wxT("(off)"))
 		return;
-	wxString shader = wxT("User/Shaders/") + m_PostShaderCB->GetStringSelection() + _(".txt");
+	wxString shader = wxString::FromAscii(File::GetUserPath(D_SHADERS_IDX)) + m_PostShaderCB->GetStringSelection() + _(".txt");
 	if (wxFileExists(shader))
 	{
 		wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_("txt"));
@@ -737,7 +737,7 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 void GFXConfigDialogOGL::CloseWindow()
 {
 	// Save the config to INI
-	g_Config.Save(FULL_CONFIG_DIR "gfx_opengl.ini");
+	g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
 
 	EndModal(1);
 }

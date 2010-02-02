@@ -34,6 +34,7 @@
 #include "D3DShader.h"
 #include "TextureCache.h"
 #include "Math.h"
+#include "FileUtil.h"
 
 namespace TextureConverter
 {
@@ -124,7 +125,7 @@ LPDIRECT3DPIXELSHADER9 GetOrCreateEncodingShader(u32 format)
 		if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader) {
 			static int counter = 0;
 			char szTemp[MAX_PATH];
-			sprintf(szTemp, "%s/enc_%04i.txt", FULL_DUMP_DIR, counter++);
+			sprintf(szTemp, "%senc_%04i.txt", File::GetUserPath(D_DUMP_IDX), counter++);
 
 			SaveData(szTemp, shader);
 		}

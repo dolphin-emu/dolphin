@@ -21,6 +21,7 @@
 #include "Common.h"
 #include "PPCTables.h"
 #include "StringUtil.h"
+#include "FileUtil.h"
 #include "Interpreter/Interpreter.h"
 #include "Interpreter/Interpreter_Tables.h"
 #if !(defined(NOJIT) && NOJIT)
@@ -217,7 +218,7 @@ void PrintInstructionRunCounts()
 void LogCompiledInstructions()
 {
 	static int time = 0;
-	FILE *f = fopen(StringFromFormat(FULL_LOGS_DIR "inst_log%i.txt", time).c_str(), "w");
+	FILE *f = fopen(StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX), time).c_str(), "w");
 	for (int i = 0; i < m_numInstructions; i++)
 	{
 		if (m_allInstructions[i]->compileCount > 0) {
@@ -225,7 +226,7 @@ void LogCompiledInstructions()
 		}
 	}
 	fclose(f);
-	f = fopen(StringFromFormat(FULL_LOGS_DIR "inst_not%i.txt", time).c_str(), "w");
+	f = fopen(StringFromFormat("%sinst_not%i.txt", File::GetUserPath(D_LOGS_IDX), time).c_str(), "w");
 	for (int i = 0; i < m_numInstructions; i++)
 	{
 		if (m_allInstructions[i]->compileCount == 0) {
@@ -234,7 +235,7 @@ void LogCompiledInstructions()
 	}
 	fclose(f);
 #ifdef OPLOG
-	f = fopen(StringFromFormat(FULL_LOGS_DIR OP_TO_LOG "_at.txt", time).c_str(), "w");
+	f = fopen(StringFromFormat("%s" OP_TO_LOG "_at.txt", File::GetUserPath(D_LOGS_IDX), time).c_str(), "w");
 	for (size_t i = 0; i < rsplocations.size(); i++) {
 		fprintf(f, OP_TO_LOG ": %08x\n", rsplocations[i]);
 	}

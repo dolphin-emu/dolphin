@@ -93,7 +93,7 @@ void LoadRecordedMovements()
 	INFO_LOG(WIIMOTE, "LoadRecordedMovements()");
 
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR "WiimoteMovement.ini");
+	file.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "WiimoteMovement.ini").c_str());
 
 	for(int i = 0; i < RECORDING_ROWS; i++)
 	{

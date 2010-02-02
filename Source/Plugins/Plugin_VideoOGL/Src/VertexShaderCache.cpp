@@ -35,6 +35,7 @@
 #include "VertexLoader.h"
 #include "XFMemory.h"
 #include "ImageWrite.h"
+#include "FileUtil.h"
 
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 bool VertexShaderCache::s_displayCompileAlert;
@@ -169,7 +170,7 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {
 		static int counter = 0;
 		char szTemp[MAX_PATH];
-		sprintf(szTemp, "%s/vs_%04i.txt", FULL_DUMP_DIR, counter++);
+		sprintf(szTemp, "%svs_%04i.txt", File::GetUserPath(D_DUMP_IDX), counter++);
 
 		SaveData(szTemp, code);
 	}

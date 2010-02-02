@@ -21,6 +21,7 @@
 
 #include "StringUtil.h"
 #include "Common.h"
+#include "FileUtil.h"
 #include "Thread.h"
 #include "Timer.h"
 #include "Statistics.h"
@@ -616,7 +617,7 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 				else 
 				{
 					char msg [255];
-					sprintf(msg, "Dumping Frames to \"%s/framedump0.avi\" (%dx%d RGB24)", FULL_FRAMES_DIR, s_recordWidth, s_recordHeight);
+					sprintf(msg, "Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)", File::GetUserPath(D_DUMPFRAMES_IDX), s_recordWidth, s_recordHeight);
 					OSD::AddMessage(msg, 2000);
 				}
 			}

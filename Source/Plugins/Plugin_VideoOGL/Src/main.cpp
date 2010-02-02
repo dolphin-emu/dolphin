@@ -291,7 +291,7 @@ void CocaAddResolutions() {
 
 void DllConfig(HWND _hParent)
 {
-	g_Config.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
+	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
 	g_Config.GameIniLoad(globals->game_ini);
 	g_Config.UpdateProjectionHack();
 	UpdateActiveConfig();
@@ -333,7 +333,7 @@ void Initialize(void *init)
     g_VideoInitialize = *(_pVideoInitialize); 
 	InitXFBConvTables();
 
-    g_Config.Load(FULL_CONFIG_DIR "gfx_opengl.ini");
+    g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
 	g_Config.GameIniLoad(globals->game_ini);
 
 	g_Config.UpdateProjectionHack();

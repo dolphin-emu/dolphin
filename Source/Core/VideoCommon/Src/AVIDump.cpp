@@ -58,7 +58,7 @@ bool AVIDump::CreateFile()
 	m_totalBytes = 0;
 	m_frameCount = 0;
 	char movie_file_name[255];
-	sprintf(movie_file_name, "%s/framedump%d.avi", FULL_FRAMES_DIR, m_fileCount);
+	sprintf(movie_file_name, "%sframedump%d.avi", File::GetUserPath(D_DUMPFRAMES_IDX), m_fileCount);
 	// Create path
 	File::CreateFullPath(movie_file_name);
 

@@ -32,8 +32,8 @@ bool DumpDSPCode(const u8 *code_be, int size_in_bytes, u32 crc)
 {
 	char binFile[MAX_PATH];
 	char txtFile[MAX_PATH];
-	sprintf(binFile, "%sDSP_UC_%08X.bin", FULL_DSP_DUMP_DIR, crc);
-	sprintf(txtFile, "%sDSP_UC_%08X.txt", FULL_DSP_DUMP_DIR, crc);
+	sprintf(binFile, "%sDSP_UC_%08X.bin", File::GetUserPath(D_DUMPDSP_IDX), crc);
+	sprintf(txtFile, "%sDSP_UC_%08X.txt", File::GetUserPath(D_DUMPDSP_IDX), crc);
 
 	FILE* pFile = fopen(binFile, "wb");
 	if (pFile)
@@ -93,7 +93,7 @@ u32 GenerateCRC(const unsigned char* _pBuffer, int _pLength)
 bool DumpCWCode(u32 _Address, u32 _Length)
 {
 	char filename[256];
-	sprintf(filename, "%sDSP_UCode.bin", FULL_DSP_DUMP_DIR);
+	sprintf(filename, "%sDSP_UCode.bin", File::GetUserPath(D_DUMPDSP_IDX));
 	FILE* pFile = fopen(filename, "wb");
 
 	if (pFile != NULL)

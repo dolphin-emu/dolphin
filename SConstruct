@@ -110,6 +110,13 @@ vars.AddVariables(
     BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
     BoolVariable('opencl', 'Build with OpenCL', False),
     BoolVariable('nojit', 'Remove entire jit cores', False),
+    PathVariable('userdir', 'Set the name of the user data directory in home', '.dolphin-emu', PathVariable.PathAccept),
+    EnumVariable('install', 'Choose a local or global installation', 'local',
+                 allowed_values = ('local', 'global'),
+                 ignorecase = 2
+                 ),
+    PathVariable('prefix', 'Installation prefix (only used for a global build)', '/usr', PathVariable.PathAccept),
+    PathVariable('destdir', 'Temporary install location (for package building)', None, PathVariable.PathAccept),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
                  allowed_values = ('release', 'devel', 'debug', 'fastlog', 'prof'),
                  ignorecase = 2
@@ -225,6 +232,56 @@ env['build_dir'] = os.path.join(basedir, 'Build', platform.system() + '-' + plat
 
 VariantDir(env['build_dir'], '.', duplicate=0)
 
+# Where do we run from
+env['base_dir'] = os.getcwd()+ '/'
+
+# install paths
+extra=''
+if flavour == 'debug':
+    extra = '-debug'
+elif flavour == 'prof':
+    extra = '-prof'
+
+# TODO: support global install
+if (ARGUMENTS.get('install') == 'global'):
+    env['prefix'] = os.path.join(env['prefix'] + os.sep)
+else:
+    env['prefix'] = os.path.join(env['base_dir'] + 'Binary', platform.system() + '-' + platform.machine() + extra +os.sep)
+#TODO add lib
+if (ARGUMENTS.get('install') == 'global'):
+    env['plugin_dir'] = env['prefix'] + 'lib/dolphin-emu/' 
+else:
+    if sys.platform == 'darwin':
+        env['plugin_dir'] = env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
+    else:
+        env['plugin_dir'] = env['prefix'] + 'Plugins/' 
+#TODO add bin
+if (ARGUMENTS.get('install') == 'global'):
+    env['binary_dir'] = env['prefix'] + 'bin/'
+else:
+    env['binary_dir'] = env['prefix']
+#TODO add bin
+if (ARGUMENTS.get('install') == 'global'):
+    env['libs_dir'] = env['prefix'] + 'lib/'
+else:
+    env['libs_dir'] = env['prefix'] + 'Libs/'
+#TODO where should this go?
+if (ARGUMENTS.get('install') == 'global'):
+    env['data_dir'] = env['prefix'] + "share/dolphin-emu/"
+else:
+    if sys.platform == 'darwin':
+        env['data_dir'] = env['prefix'] + 'Dolphin.app/Contents/'
+    else:
+        env['data_dir'] = env['prefix']
+
+env['RPATH'].append(env['libs_dir'])
+
+# static libs goes here
+env['local_libs'] =  env['build_dir'] + os.sep + 'libs' + os.sep
+
+env['LIBPATH'].append(env['local_libs']) 
+env['LIBPATH'].append(env['libs_dir']) 
+
 conf = env.Configure(custom_tests = tests, 
                      config_h="Source/Core/Common/Src/Config.h")
 
@@ -326,6 +383,10 @@ conf.Define('HAVE_X11', env['HAVE_X11'])
 conf.Define('HAVE_COCOA', env['HAVE_COCOA'])
 conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
 conf.Define('HAVE_SFML', env['HAVE_SFML'])
+conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
+if (ARGUMENTS.get('install') == 'global'):
+    conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
+    conf.Define('LIBS_DIR', "\"" + env['libs_dir'] + "\"")
 
 # lua
 env['LUA_USE_MACOSX'] = 0
@@ -376,47 +437,21 @@ else:
 # add methods from utils to env
 env.AddMethod(utils.filterWarnings)
 
-# Where do we run from
-env['base_dir'] = os.getcwd()+ '/'
-
-# install paths
-extra=''
-if flavour == 'debug':
-    extra = '-debug'
-elif flavour == 'prof':
-    extra = '-prof'
-
-# TODO: support global install
-env['prefix'] = os.path.join(env['base_dir'] + 'Binary', platform.system() + '-' + platform.machine() + extra +os.sep)
-#TODO add lib
-if sys.platform == 'darwin':
-    env['plugin_dir'] = env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
-else:
-    env['plugin_dir'] = env['prefix'] + 'Plugins/' 
-#TODO add bin
-env['binary_dir'] = env['prefix']
-#TODO add bin
-env['libs_dir'] = env['prefix'] + 'Libs/'
-#TODO where should this go?
-if sys.platform == 'darwin':
-    env['data_dir'] = env['prefix'] + 'Dolphin.app/Contents/'
-else:
-    env['data_dir'] = env['prefix']
-
-env['RPATH'].append(env['libs_dir'])
-
-# static libs goes here
-env['local_libs'] =  env['build_dir'] + os.sep + 'libs' + os.sep
-
-env['LIBPATH'].append(env['local_libs']) 
-env['LIBPATH'].append(env['libs_dir']) 
-
-
 rev = utils.GenerateRevFile(env['flavor'], 
                             "Source/Core/Common/Src/svnrev_template.h",
                             "Source/Core/Common/Src/svnrev.h")
 # print a nice progress indication when not compiling
 Progress(['-\r', '\\\r', '|\r', '/\r'], interval = 5)
+
+# Setup destdir for package building
+# Warning:  The program will not run from this location.  It is assumed the
+# package will later install it to the prefix as it was defined before this.
+if env.has_key('destdir'):
+    env['prefix'] = env['destdir'] + env['prefix']
+    env['plugin_dir'] = env['destdir'] + env['plugin_dir']
+    env['binary_dir'] = env['destdir'] + env['binary_dir']
+    env['libs_dir'] = env['destdir'] + env['libs_dir']
+    env['data_dir'] = env['destdir'] + env['data_dir']
 
 # die on unknown variables
 unknown = vars.UnknownVariables()
@@ -437,12 +472,16 @@ for subdir in dirs:
         )
 
 # Data install
-env.Install(env['data_dir'], 'Data/Sys')
-env.Install(env['data_dir'], 'Data/User')
-
 if sys.platform == 'darwin':
+    env.Install(env['data_dir'], 'Data/Sys')
+    env.Install(env['data_dir'], 'Data/User')
     env.Install(env['binary_dir'] + 'Dolphin.app/Contents/Resources/', 
                 'Source/Core/DolphinWX/resources/Dolphin.icns')
+else:
+    env.InstallAs(env['data_dir'] + 'sys', 'Data/Sys')
+    env.InstallAs(env['data_dir'] + 'user', 'Data/User')
+
+env.Alias('install', env['prefix'])
 
 if env['bundle']:
     # Make tar ball (TODO put inside normal dir)

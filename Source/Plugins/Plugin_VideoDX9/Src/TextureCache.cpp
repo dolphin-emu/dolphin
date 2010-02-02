@@ -293,7 +293,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		const char* uniqueId = globals->unique_id;
 		bool bCheckedDumpDir = false;
 
-		sprintf(szDir, "%s/%s", FULL_DUMP_TEXTURES_DIR, uniqueId);
+		sprintf(szDir, "%s%s", File::GetUserPath(D_DUMPTEXTURES_IDX), uniqueId);
 
 		if (!bCheckedDumpDir)
 		{

@@ -39,6 +39,7 @@
 #include "VertexManager.h"
 #include "IndexGenerator.h"
 #include "OpcodeDecoding.h"
+#include "FileUtil.h"
 
 // internal state for loading vertices
 extern NativeVertexFormat *g_nativeVertexFmt;
@@ -278,7 +279,7 @@ void Flush()
 				{
 					// save the textures
 					char strfile[255];
-					sprintf(strfile, "%sframes/tex%.3d_%d.tga", FULL_DUMP_DIR, g_Config.iSaveTargetId, i);
+					sprintf(strfile, "%stex%.3d_%d.tga", File::GetUserPath(D_DUMPFRAMES_IDX), g_Config.iSaveTargetId, i);
 					SaveTexture(strfile, tentry->isRectangle?GL_TEXTURE_RECTANGLE_ARB:GL_TEXTURE_2D, tentry->texture, tentry->w, tentry->h);
 				}
 			}
@@ -332,10 +333,10 @@ void Flush()
 	{
 		// save the shaders
 		char strfile[255];
-		sprintf(strfile, "%sframes/ps%.3d.txt", FULL_DUMP_DIR, g_ActiveConfig.iSaveTargetId);
+		sprintf(strfile, "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX), g_ActiveConfig.iSaveTargetId);
 		std::ofstream fps(strfile);
 		fps << ps->strprog.c_str();
-		sprintf(strfile, "%sframes/vs%.3d.txt", FULL_DUMP_DIR, g_ActiveConfig.iSaveTargetId);
+		sprintf(strfile, "%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX), g_ActiveConfig.iSaveTargetId);
 		std::ofstream fvs(strfile);
 		fvs << vs->strprog.c_str();
 	}
@@ -343,7 +344,7 @@ void Flush()
 	if (g_ActiveConfig.iLog & CONF_SAVETARGETS) 
 	{
 		char str[128];
-		sprintf(str, "%sframes/targ%.3d.tga", FULL_DUMP_DIR, g_ActiveConfig.iSaveTargetId);
+		sprintf(str, "%starg%.3d.tga", File::GetUserPath(D_DUMPFRAMES_IDX), g_ActiveConfig.iSaveTargetId);
 		Renderer::SaveRenderTarget(str, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
 	}
 #endif

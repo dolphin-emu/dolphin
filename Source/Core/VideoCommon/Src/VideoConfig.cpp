@@ -21,6 +21,7 @@
 #include "IniFile.h"
 #include "VideoConfig.h"
 #include "VideoCommon.h"
+#include "FileUtil.h"
 
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
@@ -100,7 +101,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Hardware", "SimpleFB", &bSimpleFB, false);
 
 	// Load common settings
-	iniFile.Load(CONFIG_FILE);
+	iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	bool bTmp;
 	iniFile.Get("Interface", "UsePanicHandlers", &bTmp, true);
 	SetEnableAlert(bTmp);

@@ -19,6 +19,7 @@
 #include "ConsoleListener.h"
 #include "Timer.h"
 #include "Thread.h"
+#include "FileUtil.h"
 
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
 				const char *file, int line, const char* fmt, ...)
@@ -79,7 +80,7 @@ LogManager::LogManager() {
 	m_Log[LogTypes::MEMCARD_MANAGER]	= new LogContainer("MemCard Manger", "MemCard Manger");
 	m_Log[LogTypes::NETPLAY]			= new LogContainer("NETPLAY",		"Netplay");
 
-	m_fileLog = new FileLogListener(MAIN_LOG_FILE);
+	m_fileLog = new FileLogListener(File::GetUserPath(F_MAINLOG_IDX));
 	m_consoleLog = new ConsoleListener();
 
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i) {
@@ -174,6 +175,10 @@ FileLogListener::FileLogListener(const char *filename) {
 	m_filename = strndup(filename, 255);
 	m_logfile = fopen(filename, "a+");
 	setEnable(true);
+}
+
+void FileLogListener::Reload() {
+  m_logfile = fopen(m_filename, "a+");
 }
 
 FileLogListener::~FileLogListener() {

@@ -17,7 +17,7 @@
 
 #include "NetSockets.h"
 #include "NetWindow.h"
-
+#include "FileUtil.h"
 
 // Main Frame window
 
@@ -52,13 +52,13 @@ NetPlay::NetPlay(wxWindow* parent, std::string GamePaths, std::string GameNames)
 
 NetPlay::~NetPlay()
 {
-	ConfigIni.Load(CONFIG_FILE);
+	ConfigIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
 	ConfigIni.Set("Netplay", "Nickname", m_nick);
 	ConfigIni.Set("Netplay", "UsedPort", (int)m_port);
 	ConfigIni.Set("Netplay", "LastIP", m_address);
 
-	ConfigIni.Save(CONFIG_FILE);
+	ConfigIni.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 }
 
 void NetPlay::OnJoin(wxCommandEvent& WXUNUSED(event))
@@ -255,7 +255,7 @@ void NetPlay::DrawGUI()
 	panel->SetSizerAndFit(sMain);
 	sMain->SetSizeHints((wxWindow*)this);
 
-	if (ConfigIni.Load(CONFIG_FILE))
+	if (ConfigIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)))
 	{
 		ConfigIni.Get("Netplay", "Nickname", &m_nick, "Unnamed");
 		ConfigIni.Get("Netplay", "UsedPort", (int*)&m_port, 12345);

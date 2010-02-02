@@ -21,6 +21,7 @@
 
 #include "VideoConfig.h"
 #include "../Globals.h"
+#include "FileUtil.h"
 
 extern int g_Preset;
 
@@ -65,7 +66,7 @@ void GFXDebuggerOGL::OnClose(wxCloseEvent& event)
 void GFXDebuggerOGL::SaveSettings() const
 {
 	IniFile file;
-	file.Load(DEBUGGER_CONFIG_FILE);
+	file.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
 	// TODO: make this work when we close the entire program too, currently on total close we get
 	// weird values, perhaps because of some conflict with the rendering window
@@ -90,13 +91,13 @@ void GFXDebuggerOGL::SaveSettings() const
 
 	file.Set("VideoWindow", "ConfBits", g_Config.iLog);
 
-	file.Save(DEBUGGER_CONFIG_FILE);
+	file.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 }
 
 void GFXDebuggerOGL::LoadSettings()
 {
 	IniFile file;
-	file.Load(DEBUGGER_CONFIG_FILE);
+	file.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
 	int x = 100, y = 100, w = 100, h = 100;
 	file.Get("VideoWindow", "x", &x, GetPosition().x);

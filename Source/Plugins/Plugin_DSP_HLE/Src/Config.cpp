@@ -20,6 +20,7 @@
 #include "IniFile.h"
 #include "Config.h"
 #include "AudioCommon.h"
+#include "FileUtil.h"
 
 CConfig g_Config;
 
@@ -32,7 +33,7 @@ void CConfig::Load()
 {
 	// first load defaults
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR "DSP.ini");
+	file.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "DSP.ini").c_str());
 	file.Get("Config", "EnableHLEAudio", &m_EnableHLEAudio, true); // Sound Settings
 	file.Get("Config", "EnableRE0AudioFix", &m_EnableRE0Fix, false); // RE0 Hack
 	ac_Config.Load(file);
@@ -41,12 +42,12 @@ void CConfig::Load()
 void CConfig::Save()
 {
 	IniFile file;
-	file.Load(FULL_CONFIG_DIR "DSP.ini");
+	file.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "DSP.ini").c_str());
 	file.Set("Config", "EnableHLEAudio", m_EnableHLEAudio); // Sound Settings
 	file.Set("Config", "EnableRE0AudioFix", m_EnableRE0Fix); // RE0 Hack
 	ac_Config.Set(file);
 
-	file.Save(FULL_CONFIG_DIR "DSP.ini");
+	file.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "DSP.ini").c_str());
 }
 
 void CConfig::GameIniLoad(const char *game_ini)

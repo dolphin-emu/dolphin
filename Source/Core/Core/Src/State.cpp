@@ -157,10 +157,10 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 
 	// Moving to last overwritten save-state
 	if (File::Exists(cur_filename.c_str())) {
-		if (File::Exists(FULL_STATESAVES_DIR "lastState.sav"))
-			File::Delete(FULL_STATESAVES_DIR "lastState.sav");
+		if (File::Exists((std::string(File::GetUserPath(D_STATESAVES_IDX)) + "lastState.sav").c_str()))
+			File::Delete((std::string(File::GetUserPath(D_STATESAVES_IDX)) + "lastState.sav").c_str());
 
-		if (!File::Rename(cur_filename.c_str(), FULL_STATESAVES_DIR "lastState.sav"))
+		if (!File::Rename(cur_filename.c_str(), (std::string(File::GetUserPath(D_STATESAVES_IDX)) + "lastState.sav").c_str()))
 			Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
 	}
 
@@ -378,7 +378,7 @@ void State_Shutdown()
 
 std::string MakeStateFilename(int state_number)
 {
-	return StringFromFormat(FULL_STATESAVES_DIR "%s.s%02i", Core::GetStartupParameter().GetUniqueID().c_str(), state_number);
+	return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX), Core::GetStartupParameter().GetUniqueID().c_str(), state_number);
 }
 
 void State_SaveAs(const std::string &filename)
@@ -445,7 +445,7 @@ void State_UndoLoadState()
 // Load the state that the last save state overwritten on
 void State_UndoSaveState()
 {
-	State_LoadAs(FULL_STATESAVES_DIR "lastState.sav");
+	State_LoadAs((std::string(File::GetUserPath(D_STATESAVES_IDX)) + "lastState.sav").c_str());
 }
 
 size_t State_GetSize()

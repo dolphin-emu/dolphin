@@ -42,6 +42,8 @@ public:
 	FileLogListener(const char *filename);
 	~FileLogListener();
 
+  void Reload();
+
 	void Log(LogTypes::LOG_LEVELS, const char *msg);
 
 	bool isValid() {

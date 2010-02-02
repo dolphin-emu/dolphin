@@ -77,7 +77,7 @@ void CUCode_AX::SaveLogFile(std::string f, int resizeTo, bool type, bool Wii)
 	ci << (resizeTo - 1); // write ci
 	cType << type; // write cType
 	
-	std::string FileName = FULL_MAIL_LOGS_DIR + std::string(globals->unique_id);
+	std::string FileName = std::string(File::GetUserPath(D_MAILLOGS_IDX)) + std::string(globals->unique_id);
 	FileName += "_sep"; FileName += ci.str(); FileName += "_sep"; FileName += cType.str();
 	FileName += Wii ? "_sepWii_sep" : "_sepGC_sep"; FileName += ".log";
 	

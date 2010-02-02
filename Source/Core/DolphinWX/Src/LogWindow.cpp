@@ -27,6 +27,7 @@
 #include "LogWindow.h"
 #include "ConsoleListener.h"
 #include "Console.h"
+#include "FileUtil.h"
 
 
 // Milliseconds between msgQueue flushes to wxTextCtrl
@@ -175,13 +176,13 @@ void CLogWindow::SaveSettings()
 	ini.Set("Options", "WriteToWindow", m_writeWindow);
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 		ini.Set("Logs", m_LogManager->getShortName((LogTypes::LOG_TYPE)i), m_checks->IsChecked(i));
-	ini.Save(LOGGER_CONFIG_FILE);
+	ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
 }
 
 void CLogWindow::LoadSettings()
 {
 	IniFile ini;
-	ini.Load(LOGGER_CONFIG_FILE);
+	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
 	int verbosity,font;
 	ini.Get("Options", "Verbosity", &verbosity, 0);
 	if (verbosity < 1) verbosity = 1;

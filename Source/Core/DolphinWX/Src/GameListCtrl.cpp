@@ -393,7 +393,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	// Load the INI file for columns that read from it
 	IniFile ini;
-	ini.Load(std::string(FULL_GAMECONFIG_DIR + (rISOFile.GetUniqueID()) + ".ini").c_str());
+	ini.Load((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + (rISOFile.GetUniqueID()) + ".ini").c_str());
 
 	// Emulation status
 	int nState;
@@ -640,8 +640,8 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 		return 0;
 	case CGameListCtrl::COLUMN_EMULATION_STATE:
 		IniFile ini; int nState1 = 0, nState2 = 0;
-		std::string GameIni1 = FULL_GAMECONFIG_DIR + iso1->GetUniqueID() + ".ini";
-		std::string GameIni2 = FULL_GAMECONFIG_DIR + iso2->GetUniqueID() + ".ini";
+		std::string GameIni1 = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + iso1->GetUniqueID() + ".ini";
+		std::string GameIni2 = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + iso2->GetUniqueID() + ".ini";
 		
 		ini.Load(GameIni1.c_str());
 		ini.Get("EmuState", "EmulationStateId", &nState1);
@@ -746,7 +746,7 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 			const GameListItem& rISO = m_ISOFiles[GetItemData(item)];
 
 			IniFile ini;
-			ini.Load(std::string(FULL_GAMECONFIG_DIR + (rISO.GetUniqueID()) + ".ini").c_str());
+			ini.Load((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + (rISO.GetUniqueID()) + ".ini").c_str());
 
 			// Emulation status
 			std::string emuState[5] = {"Broken", "Intro", "In-Game", "Playable", "Perfect"}, issues;

@@ -19,6 +19,7 @@
 #include "../Core.h" // Local core functions
 #include "WII_IPC_HLE_Device_usb.h"
 #include "WII_IPC_HLE_Device_usb_kbd.h"
+#include "FileUtil.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -35,7 +36,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 {
 	INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Open");
 	IniFile ini;
-	ini.Load(CONFIG_FILE);
+	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	ini.Get("USB Keyboard", "Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
 
 	for(int i = 0; i < 256; i++)

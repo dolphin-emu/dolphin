@@ -46,7 +46,7 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
     char Path[260+1];
     u64 TitleID = ContentLoader.GetTitleID();
     char* pTitleID = (char*)&TitleID;
-    sprintf(Path, FULL_WII_USER_DIR "title//%02x%02x%02x%02x/%02x%02x%02x%02x/data/nocopy/",
+    sprintf(Path, "%stitle/%02x%02x%02x%02x/%02x%02x%02x%02x/data/nocopy/", File::GetUserPath(D_WIIUSER_IDX),
         (u8)pTitleID[7], (u8)pTitleID[6], (u8)pTitleID[5], (u8)pTitleID[4],
         (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
     File::CreateFullPath(Path);
@@ -99,7 +99,7 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 	//copy WAD's tmd header and contents to content directory
 
 	char ContentPath[260+1];
-	sprintf(ContentPath, FULL_WII_USER_DIR "title/%08x/%08x/content/", TitleID_HI, TitleID_LO);
+	sprintf(ContentPath, "%stitle/%08x/%08x/content/", File::GetUserPath(D_WIIUSER_IDX), TitleID_HI, TitleID_LO);
 	File::CreateFullPath(ContentPath);
 
     std::string TMDFileName(ContentPath);
@@ -137,11 +137,11 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 	//Extract and copy WAD's ticket to ticket directory
 
 	char TicketPath[260+1];
-	sprintf(TicketPath, FULL_WII_USER_DIR "ticket/%08x/", TitleID_HI);
+	sprintf(TicketPath, "%sticket/%08x/", File::GetUserPath(D_WIIUSER_IDX), TitleID_HI);
 	File::CreateFullPath(TicketPath);
 
 	char TicketFileName[260+1];
-	sprintf(TicketFileName, FULL_WII_USER_DIR "ticket/%08x/%08x.tik", TitleID_HI, TitleID_LO);
+	sprintf(TicketFileName, "%sticket/%08x/%08x.tik", File::GetUserPath(D_WIIUSER_IDX), TitleID_HI, TitleID_LO);
 
 	FILE* pTicketFile = fopen(TicketFileName, "wb");
     if (pTicketFile == NULL) {

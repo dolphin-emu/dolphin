@@ -34,6 +34,7 @@
 #include "PatchEngine.h"
 #include "HW/Memmap.h"
 #include "ActionReplay.h"
+#include "FileUtil.h"
 
 using namespace Common;
 
@@ -149,7 +150,7 @@ int GetSpeedhackCycles(u32 addr)
 void LoadPatches(const char *gameID)
 {
 	IniFile ini;
-	std::string filename = std::string(FULL_GAMECONFIG_DIR) + gameID + ".ini";
+	std::string filename = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + gameID + ".ini";
 	if (ini.Load(filename.c_str())) {
 		LoadPatchSection("OnFrame", onFrame, ini);
 		ActionReplay::LoadCodes(ini, false);

@@ -232,7 +232,7 @@ void Initialize(void *init)
 	g_VideoInitialize = *_pVideoInitialize;
 	InitXFBConvTables();
 
-	g_Config.Load(FULL_CONFIG_DIR "gfx_dx9.ini");
+	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 	g_Config.GameIniLoad(globals->game_ini);
 	UpdateProjectionHack(g_Config.iPhackvalue);	// DX9 projection hack could be disabled by commenting out this line
 	UpdateActiveConfig();

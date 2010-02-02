@@ -41,10 +41,10 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 {
 	// clear tmp folder
 	{
-	    //std::string WiiTempFolder = File::GetUserDirectory() + FULL_WII_USER_DIR + std::string("tmp");
-	    std::string WiiTempFolder = FULL_WII_USER_DIR + std::string("tmp");
-	    File::DeleteDirRecursively(WiiTempFolder.c_str());
-	    File::CreateDir(WiiTempFolder.c_str());
+      char Path[260];
+      snprintf(Path, sizeof(Path), "%stmp", File::GetUserPath(D_WIIUSER_IDX));
+	    File::DeleteDirRecursively(Path);
+	    File::CreateDir(Path);
 	}
 
 	// create home directory
@@ -61,7 +61,7 @@ bool CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
 		if (GameID == 0) GameID = 0xF00DBEEF;
 		if (TitleID == 0) TitleID = 0x00010000;
 
-		sprintf(Path, FULL_WII_USER_DIR "title/%08x/%08x/data/nocopy/", TitleID, GameID);
+		snprintf(Path, sizeof(Path), "%stitle/%08x/%08x/data/nocopy/", File::GetUserPath(D_WIIUSER_IDX), TitleID, GameID);
 
 		File::CreateFullPath(Path);
 	}

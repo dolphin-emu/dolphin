@@ -474,7 +474,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		const char* uniqueId = globals->unique_id;
 		bool bCheckedDumpDir = false;
 
-		sprintf(szDir,"%s/%s",FULL_DUMP_TEXTURES_DIR,uniqueId);
+		sprintf(szDir,"%s%s",File::GetUserPath(D_DUMPTEXTURES_IDX), uniqueId);
 
 		if(!bCheckedDumpDir)
 		{
@@ -728,7 +728,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	if (g_ActiveConfig.bDumpEFBTarget)
 	{
 		static int count = 0;
-		SaveTexture(StringFromFormat("%s/efb_frame_%i.tga", FULL_DUMP_TEXTURES_DIR, count++).c_str(), GL_TEXTURE_RECTANGLE_ARB, entry.texture, entry.w, entry.h);
+		SaveTexture(StringFromFormat("%sefb_frame_%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX), count++).c_str(), GL_TEXTURE_RECTANGLE_ARB, entry.texture, entry.w, entry.h);
 	}
 }
 

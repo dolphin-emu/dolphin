@@ -772,7 +772,7 @@ void CFrame::SetSimplePaneSize()
 	int Size = PercentageToPixels(50, this->GetSize().GetX());
 
 	IniFile ini;
-	ini.Load(LOGGER_CONFIG_FILE);
+	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
 	ini.Get("LogWindow", "x", &x, Size);
 	ini.Get("LogWindow", "y", &y, Size);
 
@@ -894,7 +894,7 @@ void CFrame::SaveLocal()
 	std::string _Perspectives;
 
 	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
+	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 	ini.Get("Perspectives", "Perspectives", &_Perspectives, "");
 	ini.Get("Perspectives", "Active", &ActivePerspective, 5);
 	SplitString(_Perspectives, ",", VPerspectives);
@@ -945,7 +945,7 @@ void CFrame::Save()
 	int iClientX = this->GetSize().GetX(), iClientY = this->GetSize().GetY();
 
 	IniFile ini;
-	ini.Load(DEBUGGER_CONFIG_FILE);
+	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
 	std::string _Section = StringFromFormat("P - %s", Perspectives.at(ActivePerspective).Name.c_str());
 	ini.Set(_Section.c_str(), "Perspective", m_Mgr->SavePerspective().mb_str());
@@ -975,7 +975,7 @@ void CFrame::Save()
 	STmp = STmp.substr(0, STmp.length()-1);
 	ini.Set("Perspectives", "Perspectives", STmp.c_str());
 	ini.Set("Perspectives", "Active", ActivePerspective);
-	ini.Save(DEBUGGER_CONFIG_FILE);
+	ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
 	// Save notebook affiliations
 	g_pCodeWindow->Save();

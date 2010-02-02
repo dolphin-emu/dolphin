@@ -44,13 +44,9 @@ SConfig::~SConfig()
 
 void SConfig::SaveSettings()
 {
-	NOTICE_LOG(BOOT, "Saving Settings to %s", CONFIG_FILE);
+	NOTICE_LOG(BOOT, "Saving Settings to %s", File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	IniFile ini;
-#if defined(__APPLE__)
-	ini.Load(File::GetConfigDirectory()); // yes we must load first to not kill unknown stuff
-#else
-	ini.Load(CONFIG_FILE); // yes we must load first to not kill unknown stuff
-#endif
+	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)); // yes we must load first to not kill unknown stuff
 
 	// General
 	{
@@ -139,11 +135,7 @@ void SConfig::SaveSettings()
 		ini.Set("Core", "WiiMotePlugin",m_LocalCoreStartupParameter.m_strWiimotePlugin[0]);
 	}
 
-#if defined(__APPLE__)
-	ini.Save(File::GetConfigDirectory());
-#else
-	ini.Save(CONFIG_FILE);
-#endif
+	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
 	m_SYSCONF->Save();
 }
@@ -151,13 +143,10 @@ void SConfig::SaveSettings()
 
 void SConfig::LoadSettings()
 {
-	INFO_LOG(BOOT, "Loading Settings from %s", CONFIG_FILE);
+	INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	IniFile ini;
-#if defined(__APPLE__)
-	ini.Load(File::GetConfigDirectory());
-#else
-	ini.Load(CONFIG_FILE);
-#endif
+	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+
 	std::string PluginsDir = File::GetPluginsDirectory();
 	
 	// Hard coded default
@@ -267,6 +256,6 @@ void SConfig::LoadSettings()
 void SConfig::LoadSettingsHLE()
 {
 	IniFile ini;
-	ini.Load(FULL_CONFIG_DIR "DSP.ini");
+	ini.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "DSP.ini").c_str());
 	ini.Get("Config", "EnableRE0AudioFix", &m_EnableRE0Fix, false); // RE0 Hack
 }

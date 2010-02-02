@@ -135,9 +135,9 @@ bool DolphinApp::OnInit()
 						 "Sayonara!\n");
 		return false;
 	}
-#ifndef __APPLE__
+#if ! defined(__APPLE__) && ! defined(__linux__)
 	// Keep the user config dir free unless user wants to save the working dir
-	if (!File::Exists(FULL_CONFIG_DIR "portable"))
+	if (!File::Exists((std::string(File::GetUserPath(D_CONFIG_IDX)) + "portable").c_str()))
 	{
 		char tmp[1024];
 		sprintf(tmp, "%s/.dolphin%swd", (const char*)wxStandardPaths::Get().GetUserConfigDir().mb_str(),
@@ -151,7 +151,7 @@ bool DolphinApp::OnInit()
 		{
 			if (PanicYesNo("Dolphin has not been configured with an install location,\nKeep Dolphin portable?"))
 			{
-				FILE* portable = fopen(FULL_CONFIG_DIR "portable", "w");
+				FILE* portable = fopen((std::string(File::GetUserPath(D_CONFIG_IDX)) + "portable").c_str(), "w");
 				if (!portable)
 				{
 					PanicAlert("Portable Setting could not be saved\n Are you running Dolphin from read only media or from a directory that dolphin is not located in?");
@@ -296,19 +296,23 @@ bool DolphinApp::OnInit()
 			chdir(AppSupportDir);
 
 			//create all necessary dir in user directory
-			if (!File::Exists(FULL_GC_USER_DIR)) File::CreateFullPath(FULL_GC_USER_DIR);
-			if (!File::Exists(FULL_WII_SYSCONF_DIR)) File::CreateFullPath(FULL_WII_SYSCONF_DIR);
-			if (!File::Exists(FULL_CONFIG_DIR)) File::CreateDir(FULL_CONFIG_DIR);
-			if (!File::Exists(FULL_CACHE_DIR)) File::CreateDir(FULL_CACHE_DIR);
-			if (!File::Exists(FULL_DSP_DUMP_DIR)) File::CreateFullPath(FULL_DSP_DUMP_DIR);
-			if (!File::Exists(FULL_DUMP_TEXTURES_DIR)) File::CreateFullPath(FULL_DUMP_TEXTURES_DIR);
-			if (!File::Exists(FULL_HIRES_TEXTURES_DIR)) File::CreateFullPath(FULL_HIRES_TEXTURES_DIR);
-			if (!File::Exists(FULL_MAIL_LOGS_DIR)) File::CreateFullPath(FULL_MAIL_LOGS_DIR);
-			if (!File::Exists(FULL_SCREENSHOTS_DIR)) File::CreateFullPath(FULL_SCREENSHOTS_DIR);
-			if (!File::Exists(FULL_STATESAVES_DIR)) File::CreateFullPath(FULL_STATESAVES_DIR);
+			char user_path[500];
+			if (!File::Exists(File::GetUserPath(D_CONFIG_IDX))) File::CreateDir(File::GetUserPath(D_CONFIG_IDX));
+			if (!File::Exists(File::GetUserPath(D_GCUSER_IDX))) File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
+			if (!File::Exists(File::GetUserPath(D_WIISYSCONF_IDX))) File::CreateFullPath(File::GetUserPath(D_WIISYSCONF_IDX));
+			if (!File::Exists(File::GetUserPath(D_CACHE_IDX))) File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
+			if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX))) File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+			if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX))) File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+			if (!File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX))) File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+			if (!File::Exists(File::GetUserPath(D_MAILLOGS_IDX))) File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+			if (!File::Exists(File::GetUserPath(D_SCREENSHOTS_IDX))) File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
+			if (!File::Exists(File::GetUserPath(D_STATESAVES_IDX))) File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
 
 			//copy user wii shared2 SYSCONF if not exist
-			if (!File::Exists(WII_SYSCONF_FILE)) File::Copy((File::GetBundleDirectory() + DIR_SEP + "Contents" + DIR_SEP + WII_SYSCONF_FILE).c_str(),WII_SYSCONF_FILE);
+			if (!File::Exists(File::GetUserPath(F_WIISYSCONF_IDX)))
+				File::Copy((File::GetBundleDirectory() + DIR_SEP + "Contents" + DIR_SEP + USERDATA_DIR + DIR_SEP + WII_SYSCONF_DIR).c_str(),
+						File::GetUserPath(F_WIISYSCONF_IDX));
+			SConfig::GetInstance().m_SYSCONF->Reload();
 			//TODO : if not exist copy game config dir in user dir and detect the revision to upgrade if necessary
 			//TODO : if not exist copy maps dir in user dir and detect revision to upgrade if necessary
 			
@@ -321,6 +325,30 @@ bool DolphinApp::OnInit()
 			}        
 #endif
 		#endif
+
+#ifdef __linux__
+			//create all necessary directories in user directory
+      //TODO : detect the revision and upgrade where necessary
+      File::CopyDir(SHARED_USER_DIR CONFIG_DIR DIR_SEP, File::GetUserPath(D_CONFIG_IDX));
+      File::CopyDir(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP, File::GetUserPath(D_GAMECONFIG_IDX));
+      File::CopyDir(SHARED_USER_DIR MAPS_DIR DIR_SEP, File::GetUserPath(D_MAPS_IDX));
+      File::CopyDir(SHARED_USER_DIR SHADERS_DIR DIR_SEP, File::GetUserPath(D_SHADERS_IDX));
+      File::CopyDir(SHARED_USER_DIR WII_USER_DIR DIR_SEP, File::GetUserPath(D_WIIUSER_IDX));
+      SConfig::GetInstance().m_SYSCONF->Reload();
+
+      if (!File::Exists(File::GetUserPath(D_GCUSER_IDX))) File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
+      if (!File::Exists(File::GetUserPath(D_CACHE_IDX))) File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
+			if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX))) File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+			if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX))) File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+			if (!File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX))) File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+      if (!File::Exists(File::GetUserPath(D_SCREENSHOTS_IDX))) File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
+      if (!File::Exists(File::GetUserPath(D_STATESAVES_IDX))) File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+      if (!File::Exists(File::GetUserPath(D_LOGS_IDX))) {
+        File::CreateFullPath(File::GetUserPath(D_LOGS_IDX));
+        LogManager::GetInstance()->getFileListener()->Reload();
+      }
+			if (!File::Exists(File::GetUserPath(D_MAILLOGS_IDX))) File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+#endif
 
 		// Gets the passed media files from command line
 		wxCmdLineParser parser(cmdLineDesc, argc, argv);
