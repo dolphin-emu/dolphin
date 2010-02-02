@@ -67,6 +67,11 @@ void SCoreStartupParameter::LoadDefaults()
 	// Newer revs (~4890) require both turned off
 	bJITLoadStoreOff = true;
 	bJITLoadStorePairedOff = true;
+#elif defined(__linux__)
+	// Similar to OSX, something with LoadStorePaired seems to cause
+	// crashes on linux. Only Win32 seems to be forgiving enough to 
+	// not do anything funny...(FIXME)
+	bJITLoadStorePairedOff = true;
 #endif
 
 	m_strName = "NONE";
