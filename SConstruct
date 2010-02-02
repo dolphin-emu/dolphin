@@ -242,37 +242,24 @@ if flavour == 'debug':
 elif flavour == 'prof':
     extra = '-prof'
 
-# TODO: support global install
+# Set up the install locations
 if (ARGUMENTS.get('install') == 'global'):
     env['prefix'] = os.path.join(env['prefix'] + os.sep)
-else:
-    env['prefix'] = os.path.join(env['base_dir'] + 'Binary', platform.system() + '-' + platform.machine() + extra +os.sep)
-#TODO add lib
-if (ARGUMENTS.get('install') == 'global'):
-    env['plugin_dir'] = env['prefix'] + 'lib/dolphin-emu/' 
-else:
-    if sys.platform == 'darwin':
-        env['plugin_dir'] = env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
-    else:
-        env['plugin_dir'] = env['prefix'] + 'Plugins/' 
-#TODO add bin
-if (ARGUMENTS.get('install') == 'global'):
     env['binary_dir'] = env['prefix'] + 'bin/'
-else:
-    env['binary_dir'] = env['prefix']
-#TODO add bin
-if (ARGUMENTS.get('install') == 'global'):
     env['libs_dir'] = env['prefix'] + 'lib/'
-else:
-    env['libs_dir'] = env['prefix'] + 'Libs/'
-#TODO where should this go?
-if (ARGUMENTS.get('install') == 'global'):
+    env['plugin_dir'] = env['prefix'] + 'lib/dolphin-emu/' 
     env['data_dir'] = env['prefix'] + "share/dolphin-emu/"
 else:
+    env['prefix'] = os.path.join(env['base_dir'] + 'Binary', platform.system() + '-' + platform.machine() + extra + os.sep)
+    env['binary_dir'] = env['prefix']
     if sys.platform == 'darwin':
+        env['plugin_dir'] = env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
         env['data_dir'] = env['prefix'] + 'Dolphin.app/Contents/'
+        env['libs_dir'] = env['prefix'] + 'Libs/'
     else:
+        env['plugin_dir'] = env['prefix'] + 'plugins/' 
         env['data_dir'] = env['prefix']
+        env['libs_dir'] = env['prefix'] + 'lib/'
 
 env['RPATH'].append(env['libs_dir'])
 

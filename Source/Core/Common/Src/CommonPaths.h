@@ -24,14 +24,14 @@
 
 // Library suffix/prefix
 #ifdef _WIN32
-#define PLUGIN_PREFIX ""
-#define PLUGIN_SUFFIX ".dll"
+	#define PLUGIN_PREFIX ""
+	#define PLUGIN_SUFFIX ".dll"
 #elif defined __APPLE__
-#define PLUGIN_PREFIX "lib"
-#define PLUGIN_SUFFIX ".dylib"
-#else
-#define PLUGIN_PREFIX "lib"
-#define PLUGIN_SUFFIX ".so"
+	#define PLUGIN_PREFIX "lib"
+	#define PLUGIN_SUFFIX ".dylib"
+#elif defined __linux__
+	#define PLUGIN_PREFIX "lib"
+	#define PLUGIN_SUFFIX ".so"
 #endif
 
 // Directory seperators, do we need this?
@@ -39,42 +39,48 @@
 #define DIR_SEP_CHR '/'
 
 // Location of the plugins
-#ifdef LIBS_DIR
-#define PLUGINS_DIR LIBS_DIR "dolphin-emu"
+#ifdef _WIN32
+	#define PLUGINS_DIR "Plugins"
 #elif defined __APPLE__
-#define PLUGINS_DIR "Contents/PlugIns"
-#else
-#define PLUGINS_DIR "Plugins"
+	#define PLUGINS_DIR "Contents/PlugIns"
+#elif defined __linux__
+	#ifdef LIBS_DIR
+		#define PLUGINS_DIR LIBS_DIR "dolphin-emu"
+	#else
+		#define PLUGINS_DIR "plugins"
+	#endif
 #endif
 
 // The user data dir
 #define ROOT_DIR "."
-#ifdef __linux__
-#define USERDATA_DIR "user"
-#else
-#define USERDATA_DIR "User"
-#endif
-#ifdef USER_DIR
-#define DOLPHIN_DATA_DIR USER_DIR
-#elif defined _WIN32
-#define DOLPHIN_DATA_DIR "Dolphin"
+#ifdef _WIN32
+	#define USERDATA_DIR "User"
+	#define DOLPHIN_DATA_DIR "Dolphin"
 #elif defined __APPLE__
-#define DOLPHIN_DATA_DIR "Library/Application Support/Dolphin"
-#else
-#define DOLPHIN_DATA_DIR ".dolphin"
+	#define USERDATA_DIR "User"
+	#define DOLPHIN_DATA_DIR "Library/Application Support/Dolphin"
+#elif defined __linux__
+	#define USERDATA_DIR "user"
+	#ifdef USER_DIR
+		#define DOLPHIN_DATA_DIR USER_DIR
+	#else
+		#define DOLPHIN_DATA_DIR ".dolphin"
+	#endif
 #endif
 
 // Shared data dirs (Sys and shared User for linux)
-#ifdef DATA_DIR
-#define SYSDATA_DIR DATA_DIR "Sys"
-#define SHARED_USER_DIR  DATA_DIR USERDATA_DIR DIR_SEP
+#ifdef _WIN32
+	#define SYSDATA_DIR "Sys"
 #elif defined __APPLE__
-#define SYSDATA_DIR "Contents/Sys"
+	#define SYSDATA_DIR "Contents/Sys"
 #elif defined __linux__
-#define SYSDATA_DIR "sys"
-#define SHARED_USER_DIR  ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP
-#else
-#define SYSDATA_DIR "Sys"
+	#ifdef DATA_DIR
+		#define SYSDATA_DIR DATA_DIR "sys"
+		#define SHARED_USER_DIR  DATA_DIR USERDATA_DIR DIR_SEP
+	#else
+		#define SYSDATA_DIR "sys"
+		#define SHARED_USER_DIR  ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP
+	#endif
 #endif
 
 // Dirs in both User and Sys
