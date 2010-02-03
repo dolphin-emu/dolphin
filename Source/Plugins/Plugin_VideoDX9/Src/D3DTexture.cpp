@@ -17,6 +17,7 @@
 
 #include "D3DBase.h"
 #include "D3DTexture.h"
+#include "Math.h"
 
 namespace D3D
 {
@@ -120,7 +121,7 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 		}
 		break;
 	case D3DFMT_DXT1:
-		memcpy(Lock.pBits,buffer,(width/4)*(height/4)*8);
+		memcpy(Lock.pBits,buffer,(size_t)(ceilf(((float)width)/4.0f) * ceilf(((float)height)/4.0f) * 8));
 		break;
 	default:
 		PanicAlert("D3D: Invalid texture format %i", fmt);
@@ -239,7 +240,7 @@ void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int w
 		}
 		break;
 	case D3DFMT_DXT1:
-		memcpy(Lock.pBits, buffer, (width/4) * (height/4) * 8);
+		memcpy(Lock.pBits, buffer, (size_t)(ceilf(((float)width)/4.0f) * ceilf(((float)height)/4.0f) * 8));
 		break;
 	}
 	pTexture->UnlockRect(level); 

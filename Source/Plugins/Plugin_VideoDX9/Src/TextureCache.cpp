@@ -147,15 +147,16 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	int expandedWidth  = (width + bsw)  & (~bsw);
 	int expandedHeight = (height + bsh) & (~bsh);
 
-	u32 hash_value;
+	u64 hash_value;
 	u32 texID = address;
-	u32 texHash;
+	u64 texHash;
+	u32 FullFormat = tex_format;
+	if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
+		u32 FullFormat = (tex_format | (tlutfmt << 16));
 
 	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
 	{
 		texHash = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, expandedHeight, tex_format, 0);
-		if (g_ActiveConfig.bSafeTextureCache)
-			hash_value = texHash;
 		if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
 		{
 			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
@@ -165,11 +166,13 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			// each other stored in a single texture, and uses the palette to make different characters
 			// visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
 			// we must make sure that texture with different tluts get different IDs.
- 			u32 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], (tex_format == GX_TF_C4) ? 32 : 128);
+ 			u64 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(tex_format));
 			texHash ^= tlutHash;
 			if (g_ActiveConfig.bSafeTextureCache)
 				texID ^= tlutHash;
 		}
+		if (g_ActiveConfig.bSafeTextureCache)
+			hash_value = texHash;
 	}
 
 	bool skip_texture_create = false;
@@ -182,7 +185,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		if (!g_ActiveConfig.bSafeTextureCache)
 			hash_value = ((u32 *)ptr)[0];
 
-		if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash)))
+		if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash) && FullFormat == entry.fmt))
 		{
 			entry.frameCount = frameCount;
 			D3D::SetTexture(stage, entry.texture);
@@ -194,7 +197,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
 
-			if (width == entry.w && height==entry.h &&(tex_format | (tlutfmt << 16)) == entry.fmt)
+			if (width == entry.w && height==entry.h && FullFormat == entry.fmt)
 			{
 				skip_texture_create = true;
 			}
@@ -283,7 +286,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	entry.frameCount = frameCount;
 	entry.w = width;
 	entry.h = height;
-	entry.fmt = tex_format | (tlutfmt << 16);
+	entry.fmt = FullFormat;
 	
 	if (g_ActiveConfig.bDumpTextures)
 	{
@@ -522,10 +525,35 @@ have_texture:
 		
 
 	D3DFORMAT bformat = FBManager::GetEFBDepthRTSurfaceFormat();
-	D3D::drawShadedTexQuad(read_texture,&sourcerect, Renderer::GetFullTargetWidth() , Renderer::GetFullTargetHeight(),&destrect,((bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8) && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(): PixelShaderCache::GetColorMatrixProgram(),VertexShaderCache::GetSimpleVertexShader());	
+	if(!bFromZBuffer && g_ActiveConfig.iMultisampleMode != 0)
+	{
+		D3D::ChangeSamplerState(1, D3DSAMP_MINFILTER, D3DTEXF_POINT);		
+		D3D::ChangeSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+		D3D::drawFSAATexQuad(
+			read_texture,
+			FBManager::GetEFBDepthTexture(source_rect),
+			&sourcerect, 
+			Renderer::GetFullTargetWidth() ,
+			Renderer::GetFullTargetHeight(),
+			PixelShaderCache::GetFSAAColorMatrixProgram(),
+			VertexShaderCache::GetFSAAVertexShader(),
+			g_ActiveConfig.iMultisampleMode,1.0f);
+		D3D::RefreshSamplerState(1, D3DSAMP_MINFILTER);		
+		D3D::RefreshSamplerState(1, D3DSAMP_MAGFILTER);
+		D3D::SetTexture(1,NULL);
+	}
+	else
+	{
+		D3D::drawShadedTexQuad(read_texture,&sourcerect, 
+		Renderer::GetFullTargetWidth() , 
+		Renderer::GetFullTargetHeight(),
+		((bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8) && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(): PixelShaderCache::GetColorMatrixProgram(),
+		VertexShaderCache::GetSimpleVertexShader());			
+	}
+	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
-
+	D3D::SetTexture(0,NULL);
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());	
 	Renderer::RestoreAPIState();	

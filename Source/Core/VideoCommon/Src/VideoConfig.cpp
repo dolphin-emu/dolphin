@@ -258,8 +258,12 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 
 	int XOffset = (int)(FloatXOffset + 0.5f);
 	int YOffset = (int)(FloatYOffset + 0.5f);
+	int iWhidth = (int)ceil(FloatGLWidth);
+	int iHeight = (int)ceil(FloatGLHeight);
+	iWhidth -= iWhidth % 4;
+	iHeight -= iHeight % 4;
 	rc->left = XOffset;
-	rc->top = flip ? (int)(YOffset + ceil(FloatGLHeight)) : YOffset;
-	rc->right = XOffset + (int)ceil(FloatGLWidth);
-	rc->bottom = flip ? YOffset : (int)(YOffset + ceil(FloatGLHeight));
+	rc->top = flip ? (int)(YOffset + iHeight) : YOffset;
+	rc->right = XOffset + iWhidth;
+	rc->bottom = flip ? YOffset : (int)(YOffset + iHeight);
 }

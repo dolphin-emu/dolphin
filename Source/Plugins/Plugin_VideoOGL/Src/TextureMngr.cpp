@@ -257,15 +257,15 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     int expandedWidth = (width + bsw) & (~bsw);
 	int expandedHeight = (height + bsh) & (~bsh);
 
-	u32 hash_value;
+	u64 hash_value;
     u32 texID = address;
-	u32 texHash;
-
+	u64 texHash;
+	u32 FullFormat = tex_format;
+	if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
+		u32 FullFormat = (tex_format | (tlutfmt << 16));
 	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
 	{
 		texHash = TexDecoder_GetSafeTextureHash(ptr, expandedWidth, expandedHeight, tex_format, 0); // remove last arg
-		if (g_ActiveConfig.bSafeTextureCache)
-			hash_value = texHash;
 		if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
 		{
 			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
@@ -275,12 +275,14 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			// each other stored in a single texture, and uses the palette to make different characters
 			// visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
 			// we must make sure that texture with different tluts get different IDs.
- 			u32 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], (tex_format == GX_TF_C4) ? 32 : 128);
+ 			u64 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(tex_format));
 			texHash ^= tlutHash;
 			if (g_ActiveConfig.bSafeTextureCache)
 				texID ^= tlutHash;
 			//DebugLog("addr: %08x | texID: %08x | texHash: %08x", address, texID, hash_value);
 		}
+		if (g_ActiveConfig.bSafeTextureCache)
+			hash_value = texHash;
 	}
 
 	bool skip_texture_create = false;
@@ -293,7 +295,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		if (!g_ActiveConfig.bSafeTextureCache)
 			hash_value = ((u32 *)ptr)[0];
 
-        if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash)))
+        if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash) && FullFormat == entry.fmt))
 		{
             entry.frameCount = frameCount;
 			glEnable(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D);
@@ -310,7 +312,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
             // Let's reload the new texture data into the same texture,
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
-			if (width == entry.w && height == entry.h && (tex_format | (tlutfmt << 16)) == entry.fmt)
+			if (width == entry.w && height == entry.h && FullFormat == entry.fmt)
             {
 				glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
 				if (entry.mode.hex != tm0.hex)
@@ -450,20 +452,20 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	{
 		if(skip_texture_create)
 		{
-			glCompressedTexSubImage2D(target, 0,0,0,expandedWidth, expandedHeight, 
+			glCompressedTexSubImage2D(target, 0,0,0,width, height, 
 				GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,expandedWidth*expandedHeight/2, temp);
 		}
 		else
 		{
 			glCompressedTexImage2D(target, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,
-				expandedWidth, expandedHeight, 0, expandedWidth*expandedHeight/2, temp);
+				width, height, 0, expandedWidth*expandedHeight/2, temp);
 		}		
 	}
 
     entry.frameCount = frameCount;
     entry.w = width;
     entry.h = height;
-    entry.fmt = (tex_format | (tlutfmt << 16));
+    entry.fmt = FullFormat;
     entry.SetTextureParameters(tm0);
 
     if (g_ActiveConfig.bDumpTextures) // dump texture to file

@@ -88,32 +88,27 @@ int TexDecoder_GetTextureSizeInBytes(int width, int height, int format)
 	return (width * height * TexDecoder_GetTexelSizeInNibbles(format)) / 2;
 }
 
-u32 TexDecoder_GetTlutHash(const u8* src, int len)
+u64 TexDecoder_GetTlutHash(const u8* src, int len)
 {
 	//char str[40000], st[20]; str[0]='\0';for (int i=0;i<len;i++){sprintf(st,"%02x ",src[i]);strcat(str,st);}
-	u32 hash = 0xbeefbabe;
-	for (int i = 0; i < len / 4; i ++) {
-		hash = _rotl(hash, 7) ^ ((u32 *)src)[i];
-		hash += 7;	// to add a bit more entropy/mess in here
+	u64 hash = 0xbeefbabe1337c0de;
+	int step = len / 29 / 8;
+	if (!step) step = 1;
+	for (int i = 0; i < len/8; i += step) {
+		hash = _rotl64(hash, 17) ^ ((u64 *)(src + i))[0];
 	}
 	return hash;
 }
 
-u32 TexDecoder_GetSafeTextureHash(const u8 *src, int width, int height, int texformat, u32 seed)
+u64 TexDecoder_GetSafeTextureHash(const u8 *src, int width, int height, int texformat, u32 seed)
 {
-	int sz = TexDecoder_GetTextureSizeInBytes(width, height, texformat);
-	u32 hash = seed ? seed : 0x1337c0de;
-	if (sz < 2048) {
-		for (int i = 0; i < sz / 4; i += 13) {
-			hash = _rotl(hash, 19) ^ ((u32 *)src)[i];
-		}
-		return hash;
-	} else {
-		int step = sz / 23 / 4;
-		for (int i = 0; i < sz / 4; i += step) {
-			hash = _rotl(hash, 19) ^ ((u32 *)src)[i];
-		}
-	}
+	int len = TexDecoder_GetTextureSizeInBytes(width, height, texformat);
+	u64 hash = seed ? seed : 0xbeefbabe1337c0de;
+	int step = len / 29 / 8;
+	if (!step) step = 1;
+	for (int i = 0; i < len / 8; i += step) {
+		hash = _rotl(hash, 17) ^ ((u64 *)src)[i];
+	}	
 	return hash;
 }
 
@@ -361,20 +356,18 @@ void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
 	int red1 = Convert5To8((c1 >> 11) & 0x1F);
 	int red2 = Convert5To8((c2 >> 11) & 0x1F);
     int colors[4];
+	colors[0] = makecol(red1, green1, blue1, 255);
+    colors[1] = makecol(red2, green2, blue2, 255);
     if (c1 > c2)
     {
         int blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
         int green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
-        int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);
-        colors[0] = makecol(red1, green1, blue1, 255);
-        colors[1] = makecol(red2, green2, blue2, 255);
+        int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);        
         colors[2] = makecol(red1 + red3, green1 + green3, blue1 + blue3, 255);
         colors[3] = makecol(red2 - red3, green2 - green3, blue2 - blue3, 255); 
     }
     else
     {
-        colors[0] = makecol(red1, green1, blue1, 255); // Color 1
-        colors[1] = makecol(red2, green2, blue2, 255); // Color 2
         colors[2] = makecol((red1 + red2 + 1) / 2, // Average
                             (green1 + green2 + 1) / 2,
                             (blue1 + blue2 + 1) / 2, 255);

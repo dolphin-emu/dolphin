@@ -34,7 +34,7 @@ public:
 
 		u32 addr;
 		u32 size_in_bytes;
-		u32 hash;
+		u64 hash;
 		u32 paletteHash;
 		u32 oldpixel;
 		

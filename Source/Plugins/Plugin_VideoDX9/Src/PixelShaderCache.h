@@ -66,6 +66,8 @@ public:
 	static LPDIRECT3DPIXELSHADER9 GetColorCopyProgram();
 	static LPDIRECT3DPIXELSHADER9 GetDepthMatrixProgram();
 	static LPDIRECT3DPIXELSHADER9 GetClearProgram();
+	static LPDIRECT3DPIXELSHADER9 GetFSAAProgram();
+	static LPDIRECT3DPIXELSHADER9 GetFSAAColorMatrixProgram();
 	
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	static std::string GetCurrentShaderCode();
