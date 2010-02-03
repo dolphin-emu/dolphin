@@ -88,7 +88,7 @@ int TexDecoder_GetTextureSizeInBytes(int width, int height, int format)
 	return (width * height * TexDecoder_GetTexelSizeInNibbles(format)) / 2;
 }
 
-u64 TexDecoder_GetTlutHash(const u8* src, int len)
+/*u64 TexDecoder_GetTlutHash(const u8* src, int len)
 {
 	//char str[40000], st[20]; str[0]='\0';for (int i=0;i<len;i++){sprintf(st,"%02x ",src[i]);strcat(str,st);}
 	u64 hash = 0xbeefbabe1337c0de;
@@ -109,6 +109,36 @@ u64 TexDecoder_GetSafeTextureHash(const u8 *src, int width, int height, int texf
 	for (int i = 0; i < len / 8; i += step) {
 		hash = _rotl(hash, 17) ^ ((u64 *)src)[i];
 	}	
+	return hash;
+}
+*/
+
+u32 TexDecoder_GetTlutHash(const u8* src, int len)
+{
+	//char str[40000], st[20]; str[0]='\0';for (int i=0;i<len;i++){sprintf(st,"%02x ",src[i]);strcat(str,st);}
+	u32 hash = 0xbeefbabe;
+	for (int i = 0; i < len / 4; i ++) {
+		hash = _rotl(hash, 7) ^ ((u32 *)src)[i];
+		hash += 7;	// to add a bit more entropy/mess in here
+	}
+	return hash;
+}
+
+u32 TexDecoder_GetSafeTextureHash(const u8 *src, int width, int height, int texformat, u32 seed)
+{
+	int sz = TexDecoder_GetTextureSizeInBytes(width, height, texformat);
+	u32 hash = seed ? seed : 0x1337c0de;
+	if (sz < 2048) {
+		for (int i = 0; i < sz / 4; i += 13) {
+			hash = _rotl(hash, 19) ^ ((u32 *)src)[i];
+		}
+		return hash;
+	} else {
+		int step = sz / 23 / 4;
+		for (int i = 0; i < sz / 4; i += step) {
+			hash = _rotl(hash, 19) ^ ((u32 *)src)[i];
+		}
+	}
 	return hash;
 }
 

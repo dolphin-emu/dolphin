@@ -539,9 +539,9 @@ static inline std::string GenerateScreenshotName()
 	//append gameId, tempname only contains the folder here.
 	tempname += gameId;
 
-	name = StringFromFormat("%s-%d.png", tempname.c_str(), index);
+	name = StringFromFormat("%s-%d.bmp", tempname.c_str(), index);
 	while(File::Exists(name.c_str()))
-		name = StringFromFormat("%s-%d.png", tempname.c_str(), ++index);
+		name = StringFromFormat("%s-%d.bmp", tempname.c_str(), ++index);
 
 	return name;
 }

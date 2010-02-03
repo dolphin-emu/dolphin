@@ -590,7 +590,7 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 	if(s_bScreenshot)
 	{
 		s_criticalScreenshot.Enter();
-		D3DXSaveSurfaceToFileA(s_sScreenshotName, D3DXIFF_JPG, D3D::GetBackBufferSurface(), NULL, &destinationrect);
+		D3DXSaveSurfaceToFileA(s_sScreenshotName, D3DXIFF_BMP, D3D::GetBackBufferSurface(), NULL, &destinationrect);
 		s_bScreenshot = false;
 		s_criticalScreenshot.Leave();
 	}

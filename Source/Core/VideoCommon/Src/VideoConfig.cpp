@@ -260,7 +260,7 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 	int YOffset = (int)(FloatYOffset + 0.5f);
 	int iWhidth = (int)ceil(FloatGLWidth);
 	int iHeight = (int)ceil(FloatGLHeight);
-	iWhidth -= iWhidth % 4;
+	iWhidth -= iWhidth % 4; // ensure divisibility by 4 to make it compatible with all the video encoders
 	iHeight -= iHeight % 4;
 	rc->left = XOffset;
 	rc->top = flip ? (int)(YOffset + iHeight) : YOffset;

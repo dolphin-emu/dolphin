@@ -380,7 +380,6 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 	dev->SetVertexShader(Vshader);
 	dev->SetPixelShader(PShader);	
 	D3D::SetTexture(0, texture);
-	dev->SetVertexDeclaration(NULL);
 	dev->SetFVF(D3DFVF_XYZW | D3DFVF_TEX2);
 	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));	
 	RestoreShaders();
@@ -415,7 +414,6 @@ void drawFSAATexQuad(IDirect3DTexture9 *texture,
 	dev->SetPixelShader(PShader);	
 	D3D::SetTexture(0, texture);
 	D3D::SetTexture(1, Depthtexture);
-	dev->SetVertexDeclaration(NULL);
 	dev->SetFVF(D3DFVF_XYZW | D3DFVF_TEX3);
 	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));	
 	RestoreShaders();
@@ -431,8 +429,6 @@ void drawClearQuad(u32 Color,float z,IDirect3DPixelShader9 *PShader,IDirect3DVer
 	};
 	dev->SetVertexShader(Vshader);
 	dev->SetPixelShader(PShader);	
-	D3D::SetTexture(0, 0);
-	dev->SetVertexDeclaration(NULL);
 	dev->SetFVF(D3DFVF_XYZW | D3DFVF_DIFFUSE);
 	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));	
 	RestoreShaders();
