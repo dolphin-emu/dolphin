@@ -229,9 +229,12 @@ public:
 	u32 DEntry_GetSaveData(u8 index, u8* buffer, bool old);
 
 	// adds the file to the directory and copies its contents
-	// if remove > 0 it will pad bat.map with 0's sifeof remove
+	// if remove > 0 it will pad bat.map with 0's sizeof remove
 	u32 ImportFile(DEntry& direntry, u8* contents, int remove);
+private:
+	u32 ImportGciInternal(FILE *gci, const char *inputFile, std::string outputFile);
 
+public:
 	// delete a file from the directory
 	u32 RemoveFile(u8 index);
 

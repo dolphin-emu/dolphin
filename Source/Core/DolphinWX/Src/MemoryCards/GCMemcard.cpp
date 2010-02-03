@@ -565,7 +565,7 @@ u32 GCMemcard::DEntry_GetSaveData(u8 index, u8* dest, bool old)
 }
 // End DEntry functions
 
-u32  GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
+u32 GCMemcard::ImportFile(DEntry& direntry, u8* contents, int remove)
 {
 	if (!mcdFile) return NOMEMCARD;
 
@@ -670,7 +670,6 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 {
 	if (!mcdFile) return NOMEMCARD;
 
-
 	//error checking
 	u16 startingblock = 0;
 	for (int i = 0; i < DIRLEN; i++)
@@ -713,11 +712,12 @@ u32 GCMemcard::RemoveFile(u8 index) //index in the directory array
 				{
 				case NOMEMCARD:
 					delete[] tempSaveData;
+					tempSaveData = NULL;
 					break;
 				case FAIL:
 					delete[] tempSaveData;
+					delete tempDEntry;
 					return FAIL;
-					break;
 				}
 			}
 		}
@@ -781,12 +781,20 @@ u32 GCMemcard::ImportGci(const char *inputFile, std::string outputFile)
 	FILE *gci = fopen(inputFile, "rb");
 	if (!gci) return OPENFAIL;
 
+	u32 result = ImportGciInternal(gci, inputFile, outputFile);
+	fclose(gci);
+
+	return result;
+}
+
+u32 GCMemcard::ImportGciInternal(FILE *gci, const char *inputFile, std::string outputFile)
+{
 	int offset;
-	char * tmp = new char[0xD];
+	char tmp[0xD];
 	std::string fileType;
 	SplitPath(inputFile, NULL, NULL, &fileType);
 
-	if( !strcasecmp(fileType.c_str(), ".gci"))
+	if (!strcasecmp(fileType.c_str(), ".gci"))
 		offset = GCI;
 	else
 	{
@@ -796,29 +804,19 @@ u32 GCMemcard::ImportGci(const char *inputFile, std::string outputFile)
 			if (!memcmp(tmp, "GCSAVE", 6))	// Header must be uppercase
 				offset = GCS;
 			else
-			{
 				return GCSFAIL;
-			}
 		}
-		else{
-			if (!strcasecmp(fileType.c_str(), ".sav"))
-			{
-				if (!memcmp(tmp, "DATELGC_SAVE", 0xC)) // Header must be uppercase
-					offset = SAV;
-				else
-				{
-					return SAVFAIL;
-				}
-			}
+		else if (!strcasecmp(fileType.c_str(), ".sav"))
+		{
+			if (!memcmp(tmp, "DATELGC_SAVE", 0xC)) // Header must be uppercase
+				offset = SAV;
 			else
-			{
-				return OPENFAIL;
-			}
+				return SAVFAIL;
 		}
+		else
+			return OPENFAIL;
 	}
-	delete []tmp;
 	fseek(gci, offset, SEEK_SET);
-
 
 	DEntry *tempDEntry = new DEntry;
 	fread(tempDEntry, 1, DENTRY_SIZE, gci);
@@ -830,13 +828,10 @@ u32 GCMemcard::ImportGci(const char *inputFile, std::string outputFile)
 	Gcs_SavConvert(tempDEntry, offset, length);
 
 	if (length != BE16(tempDEntry->BlockCount) * BLOCK_SIZE)
-	{
 		return LENGTHFAIL;
-	}
 	if (ftell(gci)  != offset + DENTRY_SIZE) // Verify correct file position
-	{
 		return OPENFAIL;
-	}
+	
 	u32 size = BE16((tempDEntry->BlockCount)) * BLOCK_SIZE;
 	u8 *tempSaveData = new u8[size];
 	fread(tempSaveData, 1, size, gci);
@@ -844,24 +839,31 @@ u32 GCMemcard::ImportGci(const char *inputFile, std::string outputFile)
 	u32 ret;
 	if(!outputFile.empty())
 	{
-		FILE * gci2 = fopen(outputFile.c_str(), "wb");
+		FILE *gci2 = fopen(outputFile.c_str(), "wb");
 		bool completeWrite = true;
-		if (!gci2) return OPENFAIL;
+		if (!gci2)
+		{
+			delete[] tempSaveData;
+			delete tempDEntry;
+			return OPENFAIL;
+		}
 		fseek(gci2, 0, SEEK_SET);
 
-		if (fwrite(tempDEntry, 1, DENTRY_SIZE, gci2) != DENTRY_SIZE) completeWrite = false;
+		if (fwrite(tempDEntry, 1, DENTRY_SIZE, gci2) != DENTRY_SIZE) 
+			completeWrite = false;
 		int fileBlocks = BE16(tempDEntry->BlockCount);
 		fseek(gci2, DENTRY_SIZE, SEEK_SET);
 
-		if (fwrite(tempSaveData, 1, BLOCK_SIZE * fileBlocks, gci2) != (unsigned) (BLOCK_SIZE * fileBlocks))
+		if (fwrite(tempSaveData, 1, BLOCK_SIZE * fileBlocks, gci2) != (unsigned)(BLOCK_SIZE * fileBlocks))
 			completeWrite = false;
 		fclose(gci2);
 		if (completeWrite) ret = GCS;
 		else ret = WRITEFAIL;
 	}
-	else ret= ImportFile(*tempDEntry, tempSaveData,0);
+	else 
+		ret = ImportFile(*tempDEntry, tempSaveData, 0);
 
-	delete []tempSaveData;
+	delete[] tempSaveData;
 	delete tempDEntry;
 	return ret;
 }
@@ -870,7 +872,7 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 {
 	FILE *gci;
 	int offset = GCI;
-	if (!strcasecmp(fileName,"."))
+	if (!strcasecmp(fileName, "."))
 	{
 		if (BE32(dir.Dir[index].Gamecode) == 0xFFFFFFFF) return SUCCESS;
 
@@ -882,6 +884,7 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 		
 		sprintf(filename, "%s/%s_%s.gci", fileName2->c_str(), GameCode, dir.Dir[index].Filename);
 		gci = fopen((const char *)filename, "wb");
+		delete[] filename;
 	}
 	else
 	{
@@ -907,34 +910,36 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 	switch(offset)
 	{
 	case GCS:
-	{
 		u8 gcsHDR[GCS];
 		memset(gcsHDR, 0, GCS);
 		memcpy(gcsHDR, "GCSAVE", 6);
 		if (fwrite(gcsHDR, 1, GCS, gci) != GCS)	completeWrite = false;
 		break;
-	}
 	case SAV:
-	{
 		u8 savHDR[SAV];
 		memset(savHDR, 0, SAV);
 		memcpy(savHDR, "DATELGC_SAVE", 0xC);
 		if (fwrite(savHDR, 1, SAV, gci) != SAV)	completeWrite = false;
-	}
-		break;
-	default:
 		break;
 	}
 
 	DEntry tempDEntry;
-	if (!DEntry_Copy(index, tempDEntry)) return NOMEMCARD;
+	if (!DEntry_Copy(index, tempDEntry))
+	{
+		fclose(gci);
+		return NOMEMCARD;
+	}
 
 
 	Gcs_SavConvert(&tempDEntry, offset);
 	if (fwrite(&tempDEntry, 1, DENTRY_SIZE, gci) != DENTRY_SIZE) completeWrite = false;
 
 	u32 size = DEntry_BlockCount(index);
-	if (size == 0xFFFF) return FAIL;
+	if (size == 0xFFFF)
+	{
+		fclose(gci);
+		return FAIL;
+	}
 	size *= BLOCK_SIZE;
 	u8 *tempSaveData = new u8[size];
 
@@ -942,26 +947,23 @@ u32 GCMemcard::ExportGci(u8 index, const char *fileName, std::string *fileName2)
 	{
 	case FAIL:
 		fclose(gci);
-		delete []tempSaveData;
+		delete[] tempSaveData;
 		return FAIL;
 	case NOMEMCARD:
 		fclose(gci);
-		delete []tempSaveData;
+		delete[] tempSaveData;
 		return NOMEMCARD;
-	default:
-		break;
 	}
 	fseek(gci, DENTRY_SIZE + offset, SEEK_SET);
 	if (fwrite(tempSaveData, 1, size, gci) != size)
 		completeWrite = false;
 	fclose(gci);
-	delete [] tempSaveData;
+	delete[] tempSaveData;
 	if (completeWrite) return SUCCESS;
 	else return WRITEFAIL;
-	
 }
 
-void  GCMemcard::Gcs_SavConvert(DEntry* tempDEntry, int saveType, int length)
+void GCMemcard::Gcs_SavConvert(DEntry* tempDEntry, int saveType, int length)
 {
 	switch(saveType)
 	{

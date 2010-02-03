@@ -481,6 +481,7 @@ bool DeleteDirRecursively(const char *directory)
 	FindClose(hFind);
 #else
 	}
+	closedir(dirp);
 #endif
 	File::DeleteDir(directory);
 		

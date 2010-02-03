@@ -49,18 +49,32 @@ SysConf::~SysConf()
 
 bool SysConf::LoadFromFile(const char *filename)
 {
+	// Basic check
+	u64 size = File::GetSize(filename);
+	if (size == 0)
+		return false; //most likely: file does not exist
+	if (size != SYSCONF_SIZE)
+	{
+		PanicAlert("Your SYSCONF file is the wrong size - should be 0x%04x (but is 0x%04x)", 
+			SYSCONF_SIZE, size);
+		return false;
+	}
 	FILE* f = fopen(filename, "rb");
 
 	if (f == NULL)
 		return false;
-
-	// Basic check
-	if (File::GetSize(filename) != SYSCONF_SIZE)
+	bool result = LoadFromFileInternal(f);
+	if (result)
 	{
-		PanicAlert("Your SYSCONF file is the wrong size - should be 0x%04x", SYSCONF_SIZE);
-		return false;
+		// OK, done!
+		m_Filename = filename;
 	}
+	fclose(f);
+	return result;
+}
 
+bool SysConf::LoadFromFileInternal(FILE *f)
+{
 	// Fill in infos
 	if (fread(&m_Header.version, sizeof(m_Header.version), 1, f) != 1) return false;
 	if (fread(&m_Header.numEntries, sizeof(m_Header.numEntries), 1, f) != 1) return false;
@@ -123,9 +137,6 @@ bool SysConf::LoadFromFile(const char *filename)
 		}
 	}
 
-	// OK!, done!
-	m_Filename = filename;
-	fclose(f);
 	return true;
 }
 

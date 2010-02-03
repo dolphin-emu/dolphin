@@ -151,7 +151,10 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 
 	DiscIO::WiiWAD Wad(_pFilename);
 	if (!Wad.IsValid())
+	{
+		fclose(pTicketFile);
 		return false;
+	}
 
 	fwrite(Wad.GetTicket(), Wad.GetTicketSize(), 1, pTicketFile);
 

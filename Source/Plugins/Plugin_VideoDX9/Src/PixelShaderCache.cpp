@@ -123,10 +123,10 @@ public:
 
 void PixelShaderCache::Init()
 {
-	char pprog[1024];
+	char pprog[2048];
 	sprintf(pprog, "void main(\n"
 						"out float4 ocol0 : COLOR0,\n"
-						" in float4 incol0 : COLOR0){\n"
+						"in float4 incol0 : COLOR0){\n"
 						"ocol0 = incol0;\n"
 						"}\n");
 	s_ClearProgram = D3D::CompileAndCreatePixelShader(pprog, (int)strlen(pprog));	
@@ -143,7 +143,7 @@ void PixelShaderCache::Init()
 						"uniform float4 cColMatrix[5] : register(c%d);\n"
 						"void main(\n"
 						"out float4 ocol0 : COLOR0,\n"
-						" in float4 uv0 : TEXCOORD0){\n"
+						"in float4 uv0 : TEXCOORD0){\n"
 						"float4 texcol = tex2D(samp0,uv0.xy);\n"
 						"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"						
 						"}\n",C_COLORMATRIX);
@@ -153,7 +153,7 @@ void PixelShaderCache::Init()
 						"uniform float4 cColMatrix[5] : register(c%d);\n"
 						"void main(\n"
 						"out float4 ocol0 : COLOR0,\n"
-						" in float4 uv0 : TEXCOORD0){\n"
+						"in float4 uv0 : TEXCOORD0){\n"
 						"float4 texcol = tex2D(samp0,uv0.xy);\n"
 						"float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,255.0f,255.0f*255.0f,255.0f*255.0f*255.0f));\n"
 						"texcol = float4((EncodedDepth.rgb * (16777216.0f/16777215.0f)),1.0f);\n"
@@ -165,7 +165,7 @@ void PixelShaderCache::Init()
 					"uniform sampler samp1 : register(s1);\n"
 					"void main(\n"
 					"out float4 ocol0 : COLOR0,\n"
-					" in float4 incol0 : COLOR0,\n"
+					"in float4 incol0 : COLOR0,\n"
 					"in float4 uv0 : TEXCOORD0,\n"
 					"in float4 uv1 : TEXCOORD1,\n"
 					"in float4 uv2 : TEXCOORD2,\n"
@@ -194,7 +194,7 @@ void PixelShaderCache::Init()
 					"uniform float4 cColMatrix[5] : register(c%d);\n"
 					"void main(\n"
 					"out float4 ocol0 : COLOR0,\n"
-					" in float4 incol0 : COLOR0,\n"
+					"in float4 incol0 : COLOR0,\n"
 					"in float4 uv0 : TEXCOORD0,\n"
 					"in float4 uv1 : TEXCOORD1,\n"
 					"in float4 uv2 : TEXCOORD2,\n"

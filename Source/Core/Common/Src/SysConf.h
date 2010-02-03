@@ -71,7 +71,7 @@ public:
 
 	bool IsValid() { return m_IsValid; }
 
-  void Reload();
+	void Reload();
 
 	template<class T>
 	T GetData(const char* sectionName)
@@ -122,6 +122,8 @@ public:
 	bool Save();
 	bool SaveToFile(const char* filename);
 	bool LoadFromFile(const char* filename);
+private:
+	bool LoadFromFileInternal(FILE *f);
 };
 
 #endif // __SYSCONF_MANAGER_h__

@@ -75,11 +75,10 @@ inline void CON_BlankRow(const int y)
 {
 	int columns = 0, rows = 0;
 	CON_GetMetrics(&columns, &rows);
-	char* blank = new char[columns];
+	char blank[columns];
 	std::fill(blank, blank + columns, ' ');
 	blank[columns-1] = '\0';
 	CON_Printf(0, y, "%s", blank);
-	delete blank;
 }
 
 #define CON_PrintRow(x, y, ...) \

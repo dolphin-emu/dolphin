@@ -176,7 +176,7 @@ bool FifoCommandRunnable()
 			{
                 SCPFifoStruct &fifo = CommandProcessor::fifo;
 
-				char szTmp[256];
+				char szTmp[512];
 				// sprintf(szTmp, "Illegal command %02x (at %08x)",cmd_byte,g_pDataReader->GetPtr());
 				sprintf(szTmp, "Illegal command %02x\n"
 					"CPBase: 0x%08x\n"
