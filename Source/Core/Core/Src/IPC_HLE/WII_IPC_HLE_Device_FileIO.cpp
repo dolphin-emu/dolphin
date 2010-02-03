@@ -30,14 +30,11 @@ std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 	char Buffer[128];
 	memcpy(Buffer, _pFilename, _size);
 
-	std::string Filename = std::string(File::GetUserPath(D_WIIUSER_IDX));
+	std::string Filename = std::string(File::GetUserPath(D_WIIROOT_IDX));
 	if (Buffer[1] == '0')
-		Filename += std::string("title/");     // this looks and feel like a hack...
+		Filename += std::string("/title");     // this looks and feel like a hack...
 
-	if (Buffer[0] == '/')
-		Filename += Buffer + 1;
-	else
-		Filename += Buffer;
+	Filename += Buffer;
 
 	return Filename;
 }

@@ -619,6 +619,7 @@ const char *GetUserPath(int DirIDX)
 	static char UserDir[MAX_PATH] = {0};
 	static char GCUserDir[MAX_PATH] = {0};
 	static char WiiUserDir[MAX_PATH] = {0};
+	static char WiiRootDir[MAX_PATH] = {0};
 	static char ConfigDir[MAX_PATH] = {0};
 	static char GameConfigDir[MAX_PATH] = {0};
 	static char MapsDir[MAX_PATH] = {0};
@@ -668,6 +669,7 @@ const char *GetUserPath(int DirIDX)
 
 		snprintf(GCUserDir, sizeof(GCUserDir), "%s" GC_USER_DIR DIR_SEP, UserDir);
 		snprintf(WiiUserDir, sizeof(WiiUserDir), "%s" WII_USER_DIR DIR_SEP, UserDir);
+		snprintf(WiiRootDir, sizeof(WiiRootDir), "%s" WII_USER_DIR, UserDir);
 		snprintf(ConfigDir, sizeof(ConfigDir), "%s" CONFIG_DIR DIR_SEP, UserDir);
 		snprintf(GameConfigDir, sizeof(GameConfigDir), "%s" GAMECONFIG_DIR DIR_SEP, UserDir);
 		snprintf(MapsDir, sizeof(MapsDir), "%s" MAPS_DIR DIR_SEP, UserDir);
@@ -702,6 +704,8 @@ const char *GetUserPath(int DirIDX)
 			return GCUserDir;
 		case D_WIIUSER_IDX:
 			return WiiUserDir;
+		case D_WIIROOT_IDX:
+			return WiiRootDir;
 		case D_CONFIG_IDX:
 			return ConfigDir;
 		case D_GAMECONFIG_IDX:
