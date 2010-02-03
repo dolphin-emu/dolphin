@@ -231,7 +231,10 @@ const std::string GameListItem::GetWiiFSPath() const
 			if (!File::Exists(Path))
 				File::CreateFullPath(Path);
 
-			ret = std::string(Path);
+			if (Path[0] == '.')
+				ret = std::string(wxGetCwd().mb_str()) + std::string(Path).substr(strlen(ROOT_DIR));
+			else
+				ret = std::string(Path);
 		}
 		delete Iso;
 	}
