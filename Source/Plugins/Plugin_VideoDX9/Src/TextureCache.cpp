@@ -525,22 +525,14 @@ have_texture:
 		
 
 	D3DFORMAT bformat = FBManager::GetEFBDepthRTSurfaceFormat();
-	if(!bFromZBuffer && g_ActiveConfig.iMultisampleMode != 0)
+	if(!bFromZBuffer && g_ActiveConfig.iMultisampleMode > 2)
 	{
-		D3D::ChangeSamplerState(1, D3DSAMP_MINFILTER, D3DTEXF_POINT);		
-		D3D::ChangeSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-		D3D::drawFSAATexQuad(
-			read_texture,
-			FBManager::GetEFBDepthTexture(source_rect),
+		D3D::drawShadedTexQuad(read_texture,
 			&sourcerect, 
 			Renderer::GetFullTargetWidth() ,
 			Renderer::GetFullTargetHeight(),
 			PixelShaderCache::GetFSAAColorMatrixProgram(),
-			VertexShaderCache::GetFSAAVertexShader(),
-			g_ActiveConfig.iMultisampleMode,1.0f);
-		D3D::RefreshSamplerState(1, D3DSAMP_MINFILTER);		
-		D3D::RefreshSamplerState(1, D3DSAMP_MAGFILTER);
-		D3D::SetTexture(1,NULL);
+			VertexShaderCache::GetFSAAVertexShader());		
 	}
 	else
 	{

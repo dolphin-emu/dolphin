@@ -385,40 +385,6 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 	RestoreShaders();
 }
 
-
-void drawFSAATexQuad(IDirect3DTexture9 *texture,
-					 IDirect3DTexture9 *Depthtexture,
-					   const RECT *rSource,
-					   int SourceWidth,
-					   int SourceHeight,
-					   IDirect3DPixelShader9 *PShader,
-					   IDirect3DVertexShader9 *Vshader,
-					   int Intensity,
-					   float DepthRange)
-{
-	float sw = 1.0f /(float) SourceWidth;
-	float sh = 1.0f /(float) SourceHeight;
-	float u1=((float)rSource->left + 0.5f) * sw;
-	float u2=((float)rSource->right + 0.5f) * sw;
-	float v1=((float)rSource->top + 0.5f) * sh;
-	float v2=((float)rSource->bottom + 0.5f) * sh;
-	float FinalIntensity = 4.0f / pow(10.0,Intensity);
-
-	struct Q2DVertex { float x,y,z,rhw;float u,v,w,h,dr1,dr2; } coords[4] = {
-		{-1.0f, 1.0f, 0.0f,1.0f,u1, v1, sw, sh,FinalIntensity,DepthRange},
-		{ 1.0f, 1.0f, 0.0f,1.0f,u2, v1, sw, sh,FinalIntensity,DepthRange},
-		{ 1.0f,-1.0f, 0.0f,1.0f,u2, v2, sw, sh,FinalIntensity,DepthRange},
-		{-1.0f,-1.0f, 0.0f,1.0f,u1, v2, sw, sh,FinalIntensity,DepthRange}
-	};
-	dev->SetVertexShader(Vshader);
-	dev->SetPixelShader(PShader);	
-	D3D::SetTexture(0, texture);
-	D3D::SetTexture(1, Depthtexture);
-	dev->SetFVF(D3DFVF_XYZW | D3DFVF_TEX3);
-	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));	
-	RestoreShaders();
-}
-
 void drawClearQuad(u32 Color,float z,IDirect3DPixelShader9 *PShader,IDirect3DVertexShader9 *Vshader)
 {
 	struct Q2DVertex { float x,y,z,rhw;u32 color;} coords[4] = {

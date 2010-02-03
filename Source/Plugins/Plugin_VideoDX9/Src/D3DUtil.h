@@ -64,15 +64,6 @@ namespace D3D
 					   int SourceHeight,
 					   IDirect3DPixelShader9 *PShader,
 					   IDirect3DVertexShader9 *Vshader);
-	void drawFSAATexQuad(IDirect3DTexture9 *texture,
-					 IDirect3DTexture9 *Depthtexture,
-					   const RECT *rSource,
-					   int SourceWidth,
-					   int SourceHeight,
-					   IDirect3DPixelShader9 *PShader,
-					   IDirect3DVertexShader9 *Vshader,
-					   int Intensity,
-					   float DepthRange);
 	void drawClearQuad(u32 Color,float z,IDirect3DPixelShader9 *PShader,IDirect3DVertexShader9 *Vshader);
 	void SaveRenderStates();
 	void RestoreRenderStates();

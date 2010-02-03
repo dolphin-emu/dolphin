@@ -62,8 +62,6 @@ static int s_backbuffer_height;
 static float xScale;
 static float yScale;
 
-static bool AUTO_ADJUST_RENDERTARGET_SIZE = false;
-
 static int s_recordWidth;
 static int s_recordHeight;
 
@@ -71,6 +69,8 @@ static bool s_LastFrameDumped;
 static bool s_AVIDumping;
 
 static u32 s_blendMode;
+static u32 s_LastAA;
+
 
 char st[32768];
 
@@ -281,13 +281,26 @@ bool Renderer::Init()
 	// TODO: Grab target width from configured resolution?
 	s_target_width  = s_backbuffer_width;
 	s_target_height = s_backbuffer_height * ((float)EFB_HEIGHT / 480.0f);	
+	s_LastAA = g_ActiveConfig.iMultisampleMode % 2;
+	
+	switch (s_LastAA)
+	{
+		case 1:
+			s_target_width  = (s_target_width * 3) / 2;
+			s_target_height = (s_target_height *3) / 2;
+			break;
+		case 2:
+			s_target_width  *= 2;
+			s_target_height *= 2;
+			break;
+		default:
+			break;
+	};
 
 	xScale = (float)s_target_width / (float)EFB_WIDTH;
 	yScale = (float)s_target_height / (float)EFB_HEIGHT;
 	s_Fulltarget_width  = s_target_width;
-	s_Fulltarget_height = s_target_height;
-	//apply automatic resizing only is not an ati card, ati can handle large viewports :)
-	AUTO_ADJUST_RENDERTARGET_SIZE  = true;//!D3D::IsATIDevice();
+	s_Fulltarget_height = s_target_height;	
 	
 	s_LastFrameDumped = false;
 	s_AVIDumping = false;
@@ -565,13 +578,9 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 
 	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);		
 	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-	if(g_ActiveConfig.iMultisampleMode != 0 )
+	if(g_ActiveConfig.iMultisampleMode > 2 )
 	{
-		D3D::ChangeSamplerState(1, D3DSAMP_MINFILTER, D3DTEXF_POINT);		
-		D3D::ChangeSamplerState(1, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-		D3D::drawFSAATexQuad(read_texture,FBManager::GetEFBDepthTexture(efbRect),&sourcerect,Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),PixelShaderCache::GetFSAAProgram(),VertexShaderCache::GetFSAAVertexShader(),g_ActiveConfig.iMultisampleMode,xfregs.rawViewport[2]);
-		D3D::RefreshSamplerState(1, D3DSAMP_MINFILTER);		
-		D3D::RefreshSamplerState(1, D3DSAMP_MAGFILTER);		
+		D3D::drawShadedTexQuad(read_texture,&sourcerect,Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),PixelShaderCache::GetFSAAProgram(),VertexShaderCache::GetFSAAVertexShader());			
 	}
 	else
 	{
@@ -987,41 +996,38 @@ void UpdateViewport()
 		Y += Height;
 		Height *= -1;		
 	}
-	if(AUTO_ADJUST_RENDERTARGET_SIZE)
+	bool sizeChanged = false;
+	if(X < 0)
 	{
-		bool sizeChanged = false;
-		if(X < 0)
-		{
-			s_Fulltarget_width -= 2 * X;
-			X = 0;
-			sizeChanged=true;
-		}
-		if(Y < 0)
-		{
-			s_Fulltarget_height -= 2 * Y;
-			Y = 0;
-			sizeChanged=true;
-		}
-		if(X + Width > s_Fulltarget_width)
-		{
-			s_Fulltarget_width += (X + Width - s_Fulltarget_width) * 2;
-			sizeChanged=true;
-		}
-		if(Y + Height > s_Fulltarget_height)
-		{
-			s_Fulltarget_height += (Y + Height - s_Fulltarget_height) * 2;
-			sizeChanged=true;
-		}
-		if(sizeChanged)
-		{
-			D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
-			D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
-			FBManager::Destroy();
-			FBManager::Create();
-			D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-			D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
-		}
+		s_Fulltarget_width -= 2 * X;
+		X = 0;
+		sizeChanged=true;
 	}
+	if(Y < 0)
+	{
+		s_Fulltarget_height -= 2 * Y;
+		Y = 0;
+		sizeChanged=true;
+	}
+	if(X + Width > s_Fulltarget_width)
+	{
+		s_Fulltarget_width += (X + Width - s_Fulltarget_width) * 2;
+		sizeChanged=true;
+	}
+	if(Y + Height > s_Fulltarget_height)
+	{
+		s_Fulltarget_height += (Y + Height - s_Fulltarget_height) * 2;
+		sizeChanged=true;
+	}
+	if(sizeChanged)
+	{
+		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
+		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
+		FBManager::Destroy();
+		FBManager::Create();
+		D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
+		D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+	}	
 	vp.X = X;
 	vp.Y = Y;
 	vp.Width = Width;
@@ -1125,6 +1131,37 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	g_VideoInitialize.pCopiedToXFB(false);
 
 	CheckForResize();
+
+	u32 newAA = g_ActiveConfig.iMultisampleMode % 2;
+	if(newAA != s_LastAA)
+	{	
+		s_target_width  = s_backbuffer_width;
+		s_target_height = s_backbuffer_height * ((float)EFB_HEIGHT / 480.0f);	
+		s_LastAA = newAA;
+		switch (s_LastAA)
+		{
+			case 1:
+				s_target_width  = (s_target_width * 3) / 2;
+				s_target_height = (s_target_height *3) / 2;
+				break;
+			case 2:
+				s_target_width  *= 2;
+				s_target_height *= 2;
+				break;
+			default:
+				break;
+		};
+		xScale = (float)s_target_width / (float)EFB_WIDTH;
+		yScale = (float)s_target_height / (float)EFB_HEIGHT;
+		s_Fulltarget_width  = s_target_width;
+		s_Fulltarget_height = s_target_height;
+		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
+		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
+		FBManager::Destroy();
+		FBManager::Create();
+		D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
+		D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+	}
 
 	// ---------------------------------------------------------------------
 	// Count FPS.
