@@ -835,7 +835,6 @@ u32 GCMemcard::ImportGciInternal(FILE *gci, const char *inputFile, std::string o
 	u32 size = BE16((tempDEntry->BlockCount)) * BLOCK_SIZE;
 	u8 *tempSaveData = new u8[size];
 	fread(tempSaveData, 1, size, gci);
-	fclose(gci);
 	u32 ret;
 	if(!outputFile.empty())
 	{
