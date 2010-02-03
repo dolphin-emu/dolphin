@@ -1,3 +1,14 @@
+// Project description
+// -------------------
+// Name: nJoy
+// Description: A Dolphin Compatible Input Plugin
+//
+// Author: Falcon4ever (nJoy@falcon4ever.com)
+// Site: www.multigesture.net
+// Copyright (C) 2003 Dolphin Project.
+//
+
+
 // Copyright (C) 2003 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
