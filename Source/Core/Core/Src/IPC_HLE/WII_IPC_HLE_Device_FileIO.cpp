@@ -32,9 +32,12 @@ std::string HLE_IPC_BuildFilename(const char* _pFilename, int _size)
 
 	std::string Filename = std::string(File::GetUserPath(D_WIIUSER_IDX));
 	if (Buffer[1] == '0')
-		Filename += std::string("/title");     // this looks and feel like a hack...
+		Filename += std::string("title/");     // this looks and feel like a hack...
 
-	Filename += Buffer;
+	if (Buffer[0] == '/')
+		Filename += Buffer + 1;
+	else
+		Filename += Buffer;
 
 	return Filename;
 }
