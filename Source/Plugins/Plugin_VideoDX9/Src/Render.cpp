@@ -70,6 +70,7 @@ static bool s_AVIDumping;
 
 static u32 s_blendMode;
 static u32 s_LastAA;
+static bool IS_AMD;
 
 
 char st[32768];
@@ -275,6 +276,7 @@ bool Renderer::Init()
 	D3D::Create(g_ActiveConfig.iAdapter, EmuWindow::GetWnd(), false,
 				fullScreenRes, backbuffer_ms_mode, false);
 
+	IS_AMD = D3D::IsATIDevice();
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
 
@@ -729,12 +731,12 @@ bool Renderer::SetScissorRect()
 
 	if (rc.left < 0) rc.left = 0;
 	if (rc.right < 0) rc.right = 0;
-	if (rc.left > s_Fulltarget_width) rc.left = s_Fulltarget_width;
-	if (rc.right > s_Fulltarget_width) rc.right = s_Fulltarget_width;	
+	if (rc.left > s_target_width) rc.left = s_target_width;
+	if (rc.right > s_target_width) rc.right = s_target_width;	
 	if (rc.top < 0) rc.top = 0;
 	if (rc.bottom < 0) rc.bottom = 0;
-	if (rc.top > s_Fulltarget_height) rc.top = s_Fulltarget_height;
-	if (rc.bottom > s_Fulltarget_height) rc.bottom = s_Fulltarget_height;
+	if (rc.top > s_target_height) rc.top = s_target_height;
+	if (rc.bottom > s_target_height) rc.bottom = s_target_height;
 	if (rc.left > rc.right)
 	{
 		int temp = rc.right;
@@ -758,8 +760,8 @@ bool Renderer::SetScissorRect()
 		//WARN_LOG(VIDEO, "Bad scissor rectangle: %i %i %i %i", rc.left, rc.top, rc.right, rc.bottom);
 		rc.left   = Xstride;
 		rc.top    = Ystride;
-		rc.right  = Xstride + GetTargetWidth();
-		rc.bottom = Ystride + GetTargetHeight();
+		rc.right  = Xstride + s_target_width;
+		rc.bottom = Ystride + s_target_height;
 		D3D::dev->SetScissorRect(&rc);
 		return false;
 	}
@@ -1009,15 +1011,18 @@ void UpdateViewport()
 		Y = 0;
 		sizeChanged=true;
 	}
-	if(X + Width > s_Fulltarget_width)
+	if(!IS_AMD)
 	{
-		s_Fulltarget_width += (X + Width - s_Fulltarget_width) * 2;
-		sizeChanged=true;
-	}
-	if(Y + Height > s_Fulltarget_height)
-	{
-		s_Fulltarget_height += (Y + Height - s_Fulltarget_height) * 2;
-		sizeChanged=true;
+		if(X + Width > s_Fulltarget_width)
+		{
+			s_Fulltarget_width += (X + Width - s_Fulltarget_width) * 2;
+			sizeChanged=true;
+		}
+		if(Y + Height > s_Fulltarget_height)
+		{
+			s_Fulltarget_height += (Y + Height - s_Fulltarget_height) * 2;
+			sizeChanged=true;
+		}
 	}
 	if(sizeChanged)
 	{

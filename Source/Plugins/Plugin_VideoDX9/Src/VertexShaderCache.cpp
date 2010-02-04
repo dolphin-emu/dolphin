@@ -178,15 +178,17 @@ void VertexShaderCache::Init()
 						   "float2 vTexCoord   : TEXCOORD0;\n"
 						   "float2 vTexCoord1   : TEXCOORD1;\n"
 						   "float2 vTexCoord2   : TEXCOORD2;\n"   
-						   "float2 vTexCoord3   : TEXCOORD3;\n"   						   
+						   "float2 vTexCoord3   : TEXCOORD3;\n"
+						   "float4 vTexCoord4   : TEXCOORD4;\n"
 						"};\n"
-						"void main( out VSOUTPUT OUT,in float4 inPosition : POSITION,in float2 inTEX0 : TEXCOORD0,in float2 inTEX1 : TEXCOORD1)\n"
+						"void main( out VSOUTPUT OUT,in float4 inPosition : POSITION,in float2 inTEX0 : TEXCOORD0,in float2 inTEX1 : TEXCOORD1,in float4 inTEX2 : TEXCOORD2)\n"
 						"{\n"
 						   "OUT.vPosition = inPosition;\n"
 						   "OUT.vTexCoord  = inTEX0 + (float2(-0.1830127f,-0.6830127f) * inTEX1);\n"
 						   "OUT.vTexCoord1 = inTEX0 + (float2(-0.6830127f, 0.1830127f) * inTEX1);\n"
 						   "OUT.vTexCoord2 = inTEX0 + (float2( 0.6830127f,-0.1830127f) * inTEX1);\n"
-						   "OUT.vTexCoord3 = inTEX0 + (float2( 0.1830127f, 0.6830127f) * inTEX1);\n"						   
+						   "OUT.vTexCoord3 = inTEX0 + (float2( 0.1830127f, 0.6830127f) * inTEX1);\n"
+						   "OUT.vTexCoord4 = inTEX2;\n"
 						"}\n");
 	FSAAVertexShader = D3D::CompileAndCreateVertexShader(vFSAAProg, (int)strlen(vFSAAProg));
 

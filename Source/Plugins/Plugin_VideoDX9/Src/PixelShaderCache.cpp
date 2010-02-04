@@ -161,8 +161,7 @@ void PixelShaderCache::Init()
 						"}\n",C_COLORMATRIX);
 	s_DepthMatrixProgram = D3D::CompileAndCreatePixelShader(pprog, (int)strlen(pprog));	
 
-	sprintf(pprog, "uniform sampler samp0 : register(s0);\n"
-					"uniform sampler samp1 : register(s1);\n"
+	sprintf(pprog, "uniform sampler samp0 : register(s0);\n"					
 					"void main(\n"
 					"out float4 ocol0 : COLOR0,\n"
 					"in float2 uv0 : TEXCOORD0,\n"
@@ -173,17 +172,17 @@ void PixelShaderCache::Init()
 					"}\n");
 	s_FSAAProgram = D3D::CompileAndCreatePixelShader(pprog, (int)strlen(pprog));
 
-	sprintf(pprog, "uniform sampler samp0 : register(s0);\n"
-					"uniform sampler samp1 : register(s1);\n"
+	sprintf(pprog, "uniform sampler samp0 : register(s0);\n"					
 					"uniform float4 cColMatrix[5] : register(c%d);\n"
 					"void main(\n"
 					"out float4 ocol0 : COLOR0,\n"
 					"in float2 uv0 : TEXCOORD0,\n"
 					"in float2 uv1 : TEXCOORD1,\n"
 					"in float2 uv2 : TEXCOORD2,\n"
-					"in float2 uv3 : TEXCOORD3){\n"
+					"in float2 uv3 : TEXCOORD3,\n"
+					"in float4 uv4 : TEXCOORD4){\n"
 					"float4 texcol = float4(0.0f,0.0f,0.0f,0.0f);\n"
-					"texcol = (tex2D(samp0,uv0) + tex2D(samp0,uv1) + tex2D(samp0,uv2) + tex2D(samp0,uv3))*0.25f;\n"
+					"texcol = (tex2D(samp0,float2(clamp(uv0.x,uv4.x,uv4.z),clamp(uv0.y,uv4.y,uv4.w))) + tex2D(samp0,float2(clamp(uv1.x,uv4.x,uv4.z),clamp(uv1.y,uv4.y,uv4.w))) + tex2D(samp0,float2(clamp(uv2.x,uv4.x,uv4.z),clamp(uv2.y,uv4.y,uv4.w))) + tex2D(samp0,float2(clamp(uv3.x,uv4.x,uv4.z),clamp(uv3.y,uv4.y,uv4.w))))*0.25f;\n"
 					"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 					"}\n",C_COLORMATRIX);
 	s_FSAAColorMatrixProgram = D3D::CompileAndCreatePixelShader(pprog, (int)strlen(pprog));
