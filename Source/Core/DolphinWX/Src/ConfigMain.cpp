@@ -51,8 +51,10 @@ EVT_BUTTON(wxID_CLOSE, CConfigMain::CloseClick)
 
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::CoreSettingsChanged)
+#if wxUSE_TIMER && defined _WIN32
 EVT_CHECKBOX(ID_INTERFACE_HIDECURSOR, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_AUTOHIDECURSOR, CConfigMain::CoreSettingsChanged)
+#endif
 EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_LEDS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_SPEAKERS, CConfigMain::CoreSettingsChanged)
@@ -242,12 +244,14 @@ void CConfigMain::CreateGUIControls()
 	UsePanicHandlers = new wxCheckBox(GeneralPage, ID_INTERFACE_USEPANICHANDLERS, wxT("Use Panic Handlers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UsePanicHandlers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
 
+#if wxUSE_TIMER && defined _WIN32
 	// Hide Cursor
 	wxStaticText *HideCursorText = new wxStaticText(GeneralPage, ID_INTERFACE_HIDECURSOR_TEXT, wxT("Hide Cursor:"), wxDefaultPosition, wxDefaultSize);
 	AutoHideCursor = new wxCheckBox(GeneralPage, ID_INTERFACE_AUTOHIDECURSOR, wxT("Auto"));
 	AutoHideCursor->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor);
 	HideCursor = new wxCheckBox(GeneralPage, ID_INTERFACE_HIDECURSOR, wxT("Always"));
 	HideCursor->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor);
+#endif
 	// Wiimote status in statusbar
 	wxStaticText *WiimoteStatusText = new wxStaticText(GeneralPage, ID_INTERFACE_WIIMOTE_TEXT, wxT("Show wiimote status:"), wxDefaultPosition, wxDefaultSize);
 	WiimoteStatusLEDs = new wxCheckBox(GeneralPage, ID_INTERFACE_WIIMOTE_LEDS, wxT("LEDs"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -278,9 +282,11 @@ void CConfigMain::CreateGUIControls()
 	UsePanicHandlers->SetToolTip(wxT("Show a message box when a potentially serious error has occured.")
 		wxT(" Disabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin")
 		wxT(" suddenly crashes without any explanation at all."));
+#if wxUSE_TIMER && defined _WIN32
 	AutoHideCursor->SetToolTip(wxT("This will auto hide the cursor in fullscreen mode."));
 	HideCursor->SetToolTip(wxT("This will always hide the cursor when it's over the rendering window.")
 		wxT("\nIt can be convenient in a Wii game that already has a cursor."));
+#endif
 	WiimoteStatusLEDs->SetToolTip(wxT("Show which wiimotes are connected in the statusbar."));
 	WiimoteStatusSpeakers->SetToolTip(wxT("Show wiimote speaker status in the statusbar."));
 	DSPThread->SetToolTip(wxT("Run DSPLLE on a dedicated thread (not recommended)."));
@@ -324,11 +330,13 @@ void CConfigMain::CreateGUIControls()
 	sbInterface = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Interface Settings"));
 	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
 	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
+#if wxUSE_TIMER && defined _WIN32
 	wxBoxSizer *sHideCursor = new wxBoxSizer(wxHORIZONTAL);
 	sHideCursor->Add(HideCursorText);
 	sHideCursor->Add(AutoHideCursor, 0, wxLEFT, 5);
 	sHideCursor->Add(HideCursor, 0, wxLEFT, 5);
 	sbInterface->Add(sHideCursor, 0, wxALL, 5);
+#endif
 	wxBoxSizer *sWiimoteStatus = new wxBoxSizer(wxHORIZONTAL);
 	sWiimoteStatus->Add(WiimoteStatusText);
 	sWiimoteStatus->Add(WiimoteStatusLEDs, 0, wxLEFT, 5);
@@ -661,6 +669,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers = UsePanicHandlers->IsChecked();
 		SetEnableAlert(UsePanicHandlers->IsChecked());
 		break;
+#if wxUSE_TIMER && defined _WIN32
 	case ID_INTERFACE_AUTOHIDECURSOR:
 		if (AutoHideCursor->IsChecked()) HideCursor->SetValue(!AutoHideCursor->IsChecked()); // Update the other one
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor = AutoHideCursor->IsChecked();		
@@ -671,6 +680,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor = AutoHideCursor->IsChecked();		
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor = HideCursor->IsChecked();
 		break;
+#endif
 	case ID_INTERFACE_THEME:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme = Theme->GetSelection();
 		main_frame->InitBitmaps();

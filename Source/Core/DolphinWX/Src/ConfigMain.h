@@ -48,8 +48,10 @@ private:
 	DECLARE_EVENT_TABLE();
 
 	wxBoxSizer* sGeneralPage; // General Settings
-	wxCheckBox* ConfirmStop, *AutoHideCursor;
-	wxCheckBox* HideCursor, *UsePanicHandlers;
+	wxCheckBox* ConfirmStop, *UsePanicHandlers;
+#if wxUSE_TIMER && defined _WIN32
+	wxCheckBox* HideCursor, *AutoHideCursor;
+#endif
 	wxCheckBox* WiimoteStatusLEDs, * WiimoteStatusSpeakers;
 
 	wxArrayString arrayStringFor_InterfaceLang;
@@ -171,7 +173,9 @@ private:
 
 		ID_INTERFACE_CONFIRMSTOP, // Interface settings
 		ID_INTERFACE_USEPANICHANDLERS,
+#if wxUSE_TIMER && defined _WIN32
 		ID_INTERFACE_HIDECURSOR_TEXT, ID_INTERFACE_HIDECURSOR, ID_INTERFACE_AUTOHIDECURSOR,
+#endif
 		ID_INTERFACE_WIIMOTE_TEXT, ID_INTERFACE_WIIMOTE_LEDS, ID_INTERFACE_WIIMOTE_SPEAKERS,
 		ID_INTERFACE_LANG_TEXT, ID_INTERFACE_LANG,
 		ID_INTERFACE_THEME,

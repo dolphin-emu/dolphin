@@ -337,10 +337,10 @@ class CFrame : public wxFrame
 		void BootGame(const std::string& filename);
 
 		// Double click and mouse move options
+		#if wxUSE_TIMER && defined _WIN32
 		double m_fLastClickTime, m_iLastMotionTime;
 		int LastMouseX, LastMouseY;
 
-		#if wxUSE_TIMER
 			void Update();
 			void OnTimer(wxTimerEvent& WXUNUSED(event)) { Update(); }
 			wxTimer m_timer;

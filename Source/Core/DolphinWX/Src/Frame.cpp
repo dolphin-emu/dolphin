@@ -285,7 +285,7 @@ EVT_SIZE(CFrame::OnResize)
 EVT_MOVE(CFrame::OnMove)
 EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CFrame::OnGameListCtrl_ItemActivated)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
-#if wxUSE_TIMER
+#if wxUSE_TIMER && defined _WIN32
 EVT_TIMER(wxID_ANY, CFrame::OnTimer)
 #endif
 
@@ -323,9 +323,9 @@ CFrame::CFrame(wxFrame* parent,
 	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
 	, bRenderToMain(false), bFloatLogWindow(false), bFloatConsoleWindow(false)
 	, HaveLeds(false), HaveSpeakers(false)
-	, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 	, m_bControlsCreated(false), bNoWiimoteMsg(false), m_StopDlg(NULL)
-	#if wxUSE_TIMER
+	#if wxUSE_TIMER && defined _WIN32
+		, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
 		, m_timer(this)
 	#endif
           
@@ -348,7 +348,7 @@ CFrame::CFrame(wxFrame* parent,
 	}	
 
 	// Create timer
-	#if wxUSE_TIMER
+	#if wxUSE_TIMER && defined _WIN32
 		int TimesPerSecond = 10; // We don't need more than this
 		m_timer.Start( floor((double)(1000 / TimesPerSecond)) );
 	#endif
@@ -476,9 +476,11 @@ CFrame::CFrame(wxFrame* parent,
 	wxTheApp->Connect(wxID_ANY, wxEVT_LEFT_DCLICK,
 		wxMouseEventHandler(CFrame::OnDoubleClick),
 		(wxObject*)0, this);
+#ifdef _WIN32 && defince _WIN32
 	wxTheApp->Connect(wxID_ANY, wxEVT_MOTION,
 		wxMouseEventHandler(CFrame::OnMotion),
 		(wxObject*)0, this);
+#endif
 	// ----------
 
 	// Update controls
@@ -504,7 +506,7 @@ CFrame::~CFrame()
 	cdio_free_device_list(drives);
 	/* The statbar sample has this so I add this to, but I guess timer will be deleted after
 	   this anyway */
-	#if wxUSE_TIMER
+	#if wxUSE_TIMER && defined _WIN32
 		if (m_timer.IsRunning()) m_timer.Stop();
 	#endif
 
@@ -763,6 +765,7 @@ void CFrame::OnDoubleClick(wxMouseEvent& event)
 
 // Check for mouse motion. Here we process the bHideCursor setting.
 
+#if wxUSE_TIMER && defined _WIN32
 void CFrame::OnMotion(wxMouseEvent& event)
 {
 	event.Skip();
@@ -786,15 +789,12 @@ void CFrame::OnMotion(wxMouseEvent& event)
 	if(IsFullScreen() && SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor)
 	{
 		m_iLastMotionTime = Common::Timer::GetDoubleTime();
-		#ifdef _WIN32
 				MSWSetCursor(true);
-		#endif
 		return;
 	}
 
 	if(SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor && event.GetId() == IDM_MPANEL)
 	{
-		#ifdef _WIN32
 			if(bRenderToMain) MSWSetCursor(false);
 
 			/* We only need to use this if we are rendering to a separate window. It does work
@@ -802,22 +802,20 @@ void CFrame::OnMotion(wxMouseEvent& event)
 			   so we can use that instead. If we one day determine that the separate window
 			   rendering is superfluous we could do without this */
 			else PostMessage((HWND)Core::GetWindowHandle(), WM_USER, 10, 0);
-		#endif
 	}
 
 	// For some reason we need this to, otherwise the cursor can get stuck with the resizing arrows
 	else
 	{
-		#ifdef _WIN32
 			if(bRenderToMain) MSWSetCursor(true);
 			else PostMessage((HWND)Core::GetWindowHandle(), WM_USER, 10, 1);
-		#endif
 	}
 
 }
+#endif
 
 // Check for mouse status a couple of times per second for the auto hide option
-#if wxUSE_TIMER
+#if wxUSE_TIMER && defined _WIN32
 void CFrame::Update()
 {
 	// Check if auto hide is on, or if we are already hiding the cursor all the time
@@ -830,10 +828,8 @@ void CFrame::Update()
 		double TmpSeconds = Common::Timer::GetDoubleTime(); // Get timestamp
 		double CompareTime = TmpSeconds - HideDelay; // Compare it
 
-		#ifdef _WIN32
 			if(m_iLastMotionTime < CompareTime) // Update cursor
 				MSWSetCursor(false);
-		#endif
 	}
 }
 #endif
