@@ -400,6 +400,18 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
                                    "GPU", None, NULL, 0, NULL);
         XMapRaised(GLWin.dpy, GLWin.win);
     }
+    if (g_Config.bHideCursor)
+    {
+      // make a blank cursor
+      Pixmap Blank;
+      XColor DummyColor;
+      char ZeroData[1] = {0};
+      Cursor MouseCursor;
+      Blank = XCreateBitmapFromData (GLWin.dpy, GLWin.win, ZeroData, 1, 1);
+      MouseCursor = XCreatePixmapCursor(GLWin.dpy, Blank, Blank, &DummyColor, &DummyColor, 0, 0);
+      XFreePixmap (GLWin.dpy, Blank);
+      XDefineCursor (GLWin.dpy, GLWin.win, MouseCursor);
+    }
 #endif
 	return true;
 }
@@ -585,6 +597,7 @@ void OpenGL_Shutdown()
 		hDC = NULL;                                       // Set DC To NULL
 	}
 #elif defined(HAVE_X11) && HAVE_X11
+	if (g_Config.bHideCursor) XUndefineCursor(GLWin.dpy, GLWin.win);
 	if (GLWin.ctx)
 	{
 		if (!glXMakeCurrent(GLWin.dpy, None, NULL))
