@@ -356,6 +356,7 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 	CFRunLoopRun();
 
 	memcpy(wm->event_buf,DataFromWiimote,sizeof(wm->event_buf));
+	
 	return 1;
 
 }

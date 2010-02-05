@@ -116,15 +116,28 @@ bool CoreAudioSound::CoreAudioInit()
 	
 	err = AudioOutputUnitStart(soundStruct->audioUnit);
 	if (err)
-		printf("error when stating audiounit\n");
+		printf("error when starting audiounit\n");
 
-	while(!threadData)
+	do
 	{
 		soundCriticalSection.Enter();	
 		m_mixer->Mix(soundStruct->realtimeBuffer, numBytesToRender);
 		soundCriticalSection.Leave();
 		soundSyncEvent.Wait();
-	}
+	}while(!threadData);
+
+	err = AudioOutputUnitStop(soundStruct->audioUnit);
+	if(err)
+		printf("error when sopping audiounit\n");
+	
+	err = AudioUnitUninitialize(soundStruct->audioUnit);
+	if(err)
+		printf("Error uninitializing audiounit\n");
+	
+	err = CloseComponent(soundStruct->audioUnit);
+	if(err)
+		printf("Error while closing component\n");
+	
 	return true;
 	
 }
@@ -148,6 +161,8 @@ bool CoreAudioSound::Start()
 
 void CoreAudioSound::Stop()
 {
+	threadData = 1;
+	soundSyncEvent.Set();
     	delete thread;
     	thread = NULL;
 

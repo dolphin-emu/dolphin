@@ -188,7 +188,7 @@ int main(int argc, char *argv[])
 		event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES ];
 		if(cocoaSendEvent(event))
 		{
-			PowerPC::Shutdown();
+			Core::Stop();
 			break;
 		}
 	}	
