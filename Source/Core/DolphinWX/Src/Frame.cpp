@@ -476,7 +476,7 @@ CFrame::CFrame(wxFrame* parent,
 	wxTheApp->Connect(wxID_ANY, wxEVT_LEFT_DCLICK,
 		wxMouseEventHandler(CFrame::OnDoubleClick),
 		(wxObject*)0, this);
-#ifdef _WIN32 && defince _WIN32
+#ifdef _WIN32
 	wxTheApp->Connect(wxID_ANY, wxEVT_MOTION,
 		wxMouseEventHandler(CFrame::OnMotion),
 		(wxObject*)0, this);
