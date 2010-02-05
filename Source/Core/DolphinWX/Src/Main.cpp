@@ -310,7 +310,7 @@ bool DolphinApp::OnInit()
 
 			//copy user wii shared2 SYSCONF if not exist
 			if (!File::Exists(File::GetUserPath(F_WIISYSCONF_IDX)))
-				File::Copy((File::GetBundleDirectory() + DIR_SEP + "Contents" + DIR_SEP + USERDATA_DIR + DIR_SEP + WII_SYSCONF_DIR).c_str(),
+				File::Copy((File::GetBundleDirectory() + DIR_SEP + "Contents" + DIR_SEP + USERDATA_DIR + DIR_SEP + WII_SYSCONF_DIR + DIR_SEP + WII_SYSCONF).c_str(),
 						File::GetUserPath(F_WIISYSCONF_IDX));
 			SConfig::GetInstance().m_SYSCONF->Reload();
 			//TODO : if not exist copy game config dir in user dir and detect the revision to upgrade if necessary
