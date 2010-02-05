@@ -36,6 +36,7 @@
 #import "cocoaApp.h"
 #endif
 
+#include "Core.h"
 #include "Globals.h"
 #include "Host.h"
 #include "ISOFile.h"
