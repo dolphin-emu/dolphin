@@ -525,7 +525,7 @@ have_texture:
 		
 
 	D3DFORMAT bformat = FBManager::GetEFBDepthRTSurfaceFormat();
-	if(!bFromZBuffer && g_ActiveConfig.iMultisampleMode > 2)
+	if(!bFromZBuffer && g_ActiveConfig.iMultisampleMode > 0)
 	{
 		D3D::drawShadedTexQuad(read_texture,
 			&sourcerect, 

@@ -283,13 +283,13 @@ bool Renderer::Init()
 	// TODO: Grab target width from configured resolution?
 	s_target_width  = s_backbuffer_width;
 	s_target_height = s_backbuffer_height * ((float)EFB_HEIGHT / 480.0f);	
-	s_LastAA = g_ActiveConfig.iMultisampleMode % 2;
+	s_LastAA = g_ActiveConfig.iMultisampleMode;
 	
 	switch (s_LastAA)
 	{
 		case 1:
-			s_target_width  = (s_target_width * 3) / 2;
-			s_target_height = (s_target_height *3) / 2;
+			s_target_width  = (s_target_width  * 3) / 2;
+			s_target_height = (s_target_height * 3) / 2;
 			break;
 		case 2:
 			s_target_width  *= 2;
@@ -580,7 +580,7 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 
 	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);		
 	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-	if(g_ActiveConfig.iMultisampleMode > 2 )
+	if(g_ActiveConfig.iMultisampleMode > 0 )
 	{
 		D3D::drawShadedTexQuad(read_texture,&sourcerect,Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),PixelShaderCache::GetFSAAProgram(),VertexShaderCache::GetFSAAVertexShader());			
 	}
@@ -1143,7 +1143,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	CheckForResize();
 
-	u32 newAA = g_ActiveConfig.iMultisampleMode % 2;
+	u32 newAA = g_ActiveConfig.iMultisampleMode;
 	if(newAA != s_LastAA)
 	{	
 		s_target_width  = s_backbuffer_width;
@@ -1152,8 +1152,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		switch (s_LastAA)
 		{
 			case 1:
-				s_target_width  = (s_target_width * 3) / 2;
-				s_target_height = (s_target_height *3) / 2;
+				s_target_width  = (s_target_width  * 3) / 2;
+				s_target_height = (s_target_height * 3) / 2;
 				break;
 			case 2:
 				s_target_width  *= 2;
