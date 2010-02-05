@@ -724,10 +724,10 @@ bool Renderer::SetScissorRect()
 	int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
 	int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
 
-	rc.left   = (int)(rc.left   * xScale) + Xstride;
-	rc.top    = (int)(rc.top    * yScale) + Ystride;
-	rc.right  = (int)(rc.right  * xScale) + Xstride;
-	rc.bottom = (int)(rc.bottom * yScale) + Ystride;
+	rc.left   = (int)(rc.left   * xScale);
+	rc.top    = (int)(rc.top    * yScale);
+	rc.right  = (int)(rc.right  * xScale);
+	rc.bottom = (int)(rc.bottom * yScale);
 
 	if (rc.left < 0) rc.left = 0;
 	if (rc.right < 0) rc.right = 0;
@@ -737,6 +737,12 @@ bool Renderer::SetScissorRect()
 	if (rc.bottom < 0) rc.bottom = 0;
 	if (rc.top > s_target_height) rc.top = s_target_height;
 	if (rc.bottom > s_target_height) rc.bottom = s_target_height;
+
+	rc.left   += Xstride;
+	rc.top    += Ystride;
+	rc.right  += Xstride;
+	rc.bottom += Ystride;
+
 	if (rc.left > rc.right)
 	{
 		int temp = rc.right;
