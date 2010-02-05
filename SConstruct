@@ -126,6 +126,10 @@ vars.AddVariables(
                  ignorecase = 2
                  ),
     PathVariable('wxconfig', 'Path to the wxconfig', None),
+    EnumVariable('pgo', 'Profile-Guided Optimization (generate or use)', 'none',
+                allowed_values = ('none', 'generate', 'use'),
+                ignorecase = 2
+                ),
     ('CC', 'The c compiler', 'gcc'),
     ('CXX', 'The c++ compiler', 'g++'),
     )
@@ -214,6 +218,14 @@ if sys.platform == 'win32':
 else:
     env['CXXFLAGS'] = compileFlags + [ '-fvisibility-inlines-hidden' ]
 env['CPPDEFINES'] = cppDefines
+
+# pgo - Profile Guided Optimization
+if env['pgo']=='generate':
+    compileFlags.append('-fprofile-generate')
+    env['LINKFLAGS']='-fprofile-generate'
+if env['pgo']=='use':
+    compileFlags.append('-fprofile-use')
+    env['LINKFLAGS']='-fprofile-use'
 
 
 # Configuration tests section
