@@ -663,7 +663,8 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 	event.StopPropagation();
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 	// Process the event before continue
-	wxGetApp().ProcessPendingEvents();
+	if (wxGetApp().Pending())
+		wxGetApp().ProcessPendingEvents();
 }
 
 void Host_SetWiiMoteConnectionState(int _State)
