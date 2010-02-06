@@ -177,7 +177,7 @@ void Jit64::Init()
 	   debugging window. */
 	jo.enableBlocklink = true;
 #ifdef _M_X64
-	jo.enableFastMem = Core::GetStartupParameter().bUseFastMem;
+	jo.enableFastMem = SConfig::GetInstance().m_LocalCoreStartupParameter.bUseFastMem;
 #else
 	jo.enableFastMem = false;
 #endif

@@ -19,6 +19,7 @@
 
 #include "State.h"
 #include "Core.h"
+#include "ConfigManager.h"
 #include "StringUtil.h"
 #include "Thread.h"
 #include "CoreTiming.h"
@@ -172,7 +173,7 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	}
 
 	// Setting up the header
-	memcpy(header.gameID, Core::GetStartupParameter().GetUniqueID().c_str(), 6);
+	memcpy(header.gameID, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), 6);
 	header.sz = bCompressed ? sz : 0;
 
 	fwrite(&header, sizeof(state_header), 1, f);
@@ -275,7 +276,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 
 	fread(&header, sizeof(state_header), 1, f);
 	
-	if (memcmp(Core::GetStartupParameter().GetUniqueID().c_str(), header.gameID, 6)) 
+	if (memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), header.gameID, 6)) 
 	{
 		char gameID[7] = {0};
 		memcpy(gameID, header.gameID, 6);
@@ -378,7 +379,7 @@ void State_Shutdown()
 
 std::string MakeStateFilename(int state_number)
 {
-	return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX), Core::GetStartupParameter().GetUniqueID().c_str(), state_number);
+	return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX), SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), state_number);
 }
 
 void State_SaveAs(const std::string &filename)

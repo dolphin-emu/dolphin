@@ -548,8 +548,7 @@ void OpenGL_Update()
                 rcWindow.bottom = GLWin.height;
                 break;
             case ClientMessage: //TODO: We aren't reading this correctly, It could be anything, highest chance is that it's a close event though
-		Shutdown(); // Calling from here since returning false does nothing
-                return;
+//								Shutdown(); // Calling from here since returning false does nothing
                 break;
             default:
                 //TODO: Should we put the event back if we don't handle it?

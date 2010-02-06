@@ -45,7 +45,7 @@ The register allocation is just a simple forward greedy allocator.
 #include "JitILAsm.h"
 #include "JitIL.h"
 #include "../../HW/GPFifo.h"
-#include "../../Core.h"
+#include "../../ConfigManager.h"
 #include "x64Emitter.h"
 
 using namespace IREmitter;
@@ -465,7 +465,7 @@ static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size) {
 	win32 = true;
 #endif
 	FixupBranch argh;
-	if (!(win32 && Core::GetStartupParameter().iTLBHack == 1))
+	if (!(win32 && SConfig::GetInstance().m_LocalCoreStartupParameter.iTLBHack == 1))
 	{
 		RI.Jit->TEST(32, R(ECX), Imm32(0x0C000000));
 		argh = RI.Jit->J_CC(CC_Z);
@@ -489,7 +489,7 @@ static void regEmitMemLoad(RegInfo& RI, InstLoc I, unsigned Size) {
 		RI.Jit->POP(32, R(EAX));
 #endif
 	}
-	if (!(win32 && Core::GetStartupParameter().iTLBHack == 1))
+	if (!(win32 && SConfig::GetInstance().m_LocalCoreStartupParameter.iTLBHack == 1))
 	{
 		FixupBranch arg2 = RI.Jit->J();
 	// Fast unsafe read using memory pointer EBX
@@ -1636,7 +1636,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 }
 
 void JitIL::WriteCode() {
-	DoWriteCode(&ibuild, this, false, Core::GetStartupParameter().bJITProfiledReJIT);
+	DoWriteCode(&ibuild, this, false, SConfig::GetInstance().m_LocalCoreStartupParameter.bJITProfiledReJIT);
 }
 
 void ProfiledReJit() {

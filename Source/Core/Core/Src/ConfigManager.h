@@ -102,12 +102,7 @@ struct SConfig
 	//Special load settings
 	void LoadSettingsHLE();
 
-	/* Return the permanent and somewhat globally used instance of this struct
-	   there is also a Core::GetStartupParameter() instance of it with almost
-	   the same values
-	   
-	   Is this still true or do we only have one now?
-	   */
+	// Return the permanent and somewhat globally used instance of this struct
 	static SConfig& GetInstance() {return(m_Instance);}
 
 	private:

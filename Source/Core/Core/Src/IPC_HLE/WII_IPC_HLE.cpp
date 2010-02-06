@@ -59,7 +59,7 @@
 #include "WII_IPC_HLE_Device_sdio_slot0.h"
 
 #include "FileUtil.h" // For Copy
-#include "../Core.h"
+#include "../ConfigManager.h"
 #include "../HW/CPU.h"
 #include "../HW/Memmap.h"
 #include "../HW/WII_IPC.h"
@@ -188,7 +188,7 @@ IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName
 void CopySettingsFile(std::string& DeviceName)
 {
 	std::string Source = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP;
-	if(Core::GetStartupParameter().bNTSC)
+	if(SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC)
 		Source += "setting-usa.txt";
 	else
 		Source += "setting-eur.txt";

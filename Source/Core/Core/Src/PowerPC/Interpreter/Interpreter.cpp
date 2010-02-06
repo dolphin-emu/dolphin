@@ -22,7 +22,7 @@
 #include "Interpreter.h"
 #include "../../Debugger/Debugger_SymbolMap.h"
 #include "../../CoreTiming.h"
-#include "../../Core.h"
+#include "../../ConfigManager.h"
 #include "PowerPCDisasm.h"
 #include "../../IPC_HLE/WII_IPC_HLE.h"
 
@@ -142,7 +142,7 @@ void Run()
 	while (!PowerPC::GetState())
 	{
 		//we have to check exceptions at branches apparently (or maybe just rfi?)
-		if (Core::GetStartupParameter().bEnableDebugging)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 		{
 			#ifdef SHOW_HISTORY
 				PCBlockVec.push_back(PC);

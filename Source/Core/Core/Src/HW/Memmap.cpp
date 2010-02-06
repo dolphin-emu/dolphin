@@ -346,8 +346,8 @@ static const int num_views = sizeof(views) / sizeof(MemoryView);
 
 bool Init()
 {
-	bool wii = Core::GetStartupParameter().bWii;
-	bFakeVMEM = Core::GetStartupParameter().iTLBHack == 1;
+	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
+	bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.iTLBHack == 1;
 
 	u32 flags = 0;
 	if (wii) flags |= MV_WII_ONLY;
@@ -367,7 +367,7 @@ bool Init()
 
 void DoState(PointerWrap &p)
 {
-	bool wii = Core::GetStartupParameter().bWii;
+	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	p.DoArray(m_pPhysicalRAM, RAM_SIZE);
 //	p.DoArray(m_pVirtualEFB, EFB_SIZE);
 	p.DoArray(m_pVirtualL1Cache, L1_CACHE_SIZE);
@@ -379,7 +379,7 @@ bool Shutdown()
 {
 	m_IsInitialized = false;
 	u32 flags = 0;
-	if (Core::GetStartupParameter().bWii) flags |= MV_WII_ONLY;
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) flags |= MV_WII_ONLY;
 	if (bFakeVMEM) flags |= MV_FAKE_VMEM;
 	MemoryMap_Shutdown(views, num_views, flags, &g_arena);
 	g_arena.ReleaseSpace();
@@ -394,7 +394,7 @@ void Clear()
 		memset(m_pRAM, 0, RAM_SIZE);
 	if (m_pL1Cache)
 		memset(m_pL1Cache, 0, L1_CACHE_SIZE);
-	if (Core::GetStartupParameter().bWii && m_pEXRAM)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && m_pEXRAM)
 		memset(m_pEXRAM, 0, EXRAM_SIZE);
 }
 
@@ -570,7 +570,7 @@ bool ValidMemory(const u32 _Address)
     case 0xD1:
     case 0xD2:
     case 0xD3:
-		if (Core::GetStartupParameter().bWii)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 			return true;
 		else
 			return false;
@@ -763,7 +763,7 @@ u8 *GetPointer(const u32 _Address)
 	case 0xD1:
 	case 0xD2:
 	case 0xD3:
-		if (Core::GetStartupParameter().bWii)
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 			return (u8*)(((char*)m_pPhysicalEXRAM) + (_Address & EXRAM_MASK));
 		else
 			return 0;

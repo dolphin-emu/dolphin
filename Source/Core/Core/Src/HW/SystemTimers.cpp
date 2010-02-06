@@ -68,7 +68,7 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 #include "../HW/EXI_DeviceIPL.h"
 #include "../PowerPC/PowerPC.h"
 #include "../CoreTiming.h"
-#include "../Core.h"
+#include "../ConfigManager.h"
 #include "../IPC_HLE/WII_IPC_HLE.h"
 #include "Thread.h"
 #include "Timer.h"
@@ -170,7 +170,7 @@ void AudioDMACallback(u64 userdata, int cyclesLate)
 
 void IPC_HLE_UpdateCallback(u64 userdata, int cyclesLate)
 {
-	if (Core::GetStartupParameter().bWii)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		WII_IPC_HLE_Interface::Update();
 	CoreTiming::ScheduleEvent(IPC_HLE_PERIOD - cyclesLate, et_IPC_HLE);
 }
@@ -239,7 +239,7 @@ void Init()
 	std::string DSPName(DSPType.Name);
 	bool UsingDSPLLE = (DSPName.find("LLE") != std::string::npos) || (DSPName.find("lle") != std::string::npos);
 
-	if (Core::GetStartupParameter().bWii)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 	{
 		CPU_CORE_CLOCK = 729000000u;
 
@@ -293,12 +293,12 @@ void Init()
 	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD, et_AudioDMA);
 
 	// For DC watchdog hack
-	if (Core::GetStartupParameter().bCPUThread)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
 		CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_FakeGPWD);
 
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_PatchEngine);
 
-	if (Core::GetStartupParameter().bWii)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		CoreTiming::ScheduleEvent(IPC_HLE_PERIOD, et_IPC_HLE);
 
 	CoreTiming::RegisterAdvanceCallback(&AdvanceCallback);

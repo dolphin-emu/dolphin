@@ -390,7 +390,7 @@ u32 CEXIIPL::GetGCTime()
     return ((u32)ltime - cJanuary2000 - Bias);
 #else
 	u64 ltime = Common::Timer::GetLocalTimeSinceJan1970();
-	if (Core::GetStartupParameter().bWii)
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		return ((u32)ltime - cJanuary2000 - cWiiBias);
 	else
 		return ((u32)ltime - cJanuary2000);

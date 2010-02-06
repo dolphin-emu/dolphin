@@ -56,7 +56,6 @@ namespace Core
 	void ScreenShot();
     
     // Get core parameters kill use SConfig instead
-    const SCoreStartupParameter& GetStartupParameter();
     extern SCoreStartupParameter g_CoreStartupParameter; 
 
     void* GetWindowHandle();

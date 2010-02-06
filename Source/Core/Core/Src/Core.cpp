@@ -529,7 +529,7 @@ static inline std::string GenerateScreenshotName()
 {
 	int index = 1;
 	std::string tempname, name;
-	std::string gameId = GetStartupParameter().GetUniqueID();
+	std::string gameId = SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID();
 	tempname = std::string(File::GetUserPath(D_SCREENSHOTS_IDX)) + gameId + DIR_SEP_CHR;
 
 	if (!File::CreateFullPath(tempname.c_str())) {
@@ -748,10 +748,4 @@ void Callback_WiimoteLog(const TCHAR* _szMessage, int _v)
 	GENERIC_LOG(LogTypes::WIIMOTE, (LogTypes::LOG_LEVELS)_v, _szMessage);
 }
  
-// TODO: Get rid of at some point
-const SCoreStartupParameter& GetStartupParameter()
-{
-    return SConfig::GetInstance().m_LocalCoreStartupParameter;
-}
-
 } // Core

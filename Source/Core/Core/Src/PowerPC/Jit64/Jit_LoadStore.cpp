@@ -23,6 +23,7 @@
 
 #include "../PowerPC.h"
 #include "../../Core.h"
+#include "../../ConfigManager.h"
 #include "../../HW/GPFifo.h"
 #include "../../HW/Memmap.h"
 #include "../PPCTables.h"
@@ -125,11 +126,11 @@ void Jit64::lXz(UGeckoInstruction inst)
 	// IMHO those Idles should always be skipped and replaced by a more controllable "native" Idle methode
 	// ... maybe the throttle one already do that :p
 	// if (CommandProcessor::AllowIdleSkipping() && PixelEngine::AllowIdleSkipping())
-	if (Core::GetStartupParameter().bSkipIdle &&
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle &&
 		inst.OPCD == 32 && 
 		(inst.hex & 0xFFFF0000) == 0x800D0000 &&
 		(Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x28000000 ||
-		(Core::GetStartupParameter().bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
+		(SConfig::GetInstance().m_LocalCoreStartupParameter.bWii && Memory::ReadUnchecked_U32(js.compilerPC + 4) == 0x2C000000)) &&
 		Memory::ReadUnchecked_U32(js.compilerPC + 8) == 0x4182fff8)
 	{
 		// TODO(LinesPrower): 			
