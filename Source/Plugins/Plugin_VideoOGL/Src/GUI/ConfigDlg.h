@@ -68,8 +68,6 @@ class GFXConfigDialogOGL : public wxDialog
 		void AddWindowReso(const char *reso);
 		void CreateGUIControls();
 		void GameIniLoad();
-		// Combo box lists, this one needs to be public
-		wxArrayString arrayStringFor_FullscreenCB;
 
 	private:
 		DECLARE_EVENT_TABLE();
@@ -109,13 +107,9 @@ class GFXConfigDialogOGL : public wxDialog
 		#ifndef _WIN32
 			wxCheckBox *m_HideCursor;
 		#endif
-		wxArrayString arrayStringFor_WindowResolutionCB;
 		wxComboBox *m_WindowResolutionCB;
 		wxComboBox *m_WindowFSResolutionCB;
-		wxArrayString arrayStringFor_MaxAnisotropyCB;
 		wxChoice *m_MaxAnisotropyCB;
-		wxArrayString arrayStringFor_MSAAModeCB, arrayStringFor_PhackvalueCB;
-		wxArrayString arrayStringFor_PostShaderCB;
 		wxChoice *m_MSAAModeCB, *m_PhackvalueCB, *m_PostShaderCB, *m_KeepAR;
 
 		wxCheckBox *m_ShowFPS;
@@ -145,6 +139,14 @@ class GFXConfigDialogOGL : public wxDialog
 		wxStaticText *m_TextScreenWidth, *m_TextScreenHeight, *m_TextScreenLeft, *m_TextScreenTop;
 		wxSlider *m_SliderWidth, *m_SliderHeight, *m_SliderLeft, *m_SliderTop;
 		wxCheckBox *m_ScreenSize;
+
+		wxArrayString arrayStringFor_WindowResolutionCB;
+		wxArrayString arrayStringFor_FullscreenCB;
+		wxArrayString arrayStringFor_AspectRatio;
+		wxArrayString arrayStringFor_MaxAnisotropyCB;
+		wxArrayString arrayStringFor_MSAAModeCB;
+		wxArrayString arrayStringFor_PhackvalueCB;
+		wxArrayString arrayStringFor_PostShaderCB;
 
 		enum
 		{
@@ -216,6 +218,11 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_RELOADSHADER,
 			ID_EDITSHADER,
 		};
+
+		void LoadShaders();
+		void InitializeGUILists();
+		void InitializeGUIValues();
+		void InitializeGUITooltips();
 
 		void OnClose(wxCloseEvent& event);
 		void UpdateGUI();

@@ -247,7 +247,7 @@ void X11AddResolutions() {
 	XFree(modes);
 }
 #elif defined(HAVE_COCOA) && HAVE_COCOA
-void CocaAddResolutions() {
+void CocoaAddResolutions() {
 
 	CFArrayRef modes;
 	CFRange range;
@@ -306,15 +306,9 @@ void DllConfig(HWND _hParent)
 #elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) && HAVE_XXF86VM 
 		X11AddResolutions();
 #elif defined(HAVE_COCOA) && HAVE_COCOA
-		CocaAddResolutions();
+		CocoaAddResolutions();
 #endif
 
-		// CreateGUIControls() will crash because the array is empty.
-		if (m_ConfigFrame->arrayStringFor_FullscreenCB.size() == 0) {
-			m_ConfigFrame->AddFSReso("<No resolutions found>");
-			m_ConfigFrame->AddWindowReso("<No resolutions found>");
-		}
-		
 		allowConfigShow = false;
 		m_ConfigFrame->CreateGUIControls();
 		allowConfigShow = m_ConfigFrame->ShowModal() == 1 ? true : false;

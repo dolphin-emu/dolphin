@@ -20,12 +20,14 @@
 #include "ConfigDlg.h"
 
 BEGIN_EVENT_TABLE(DSPConfigDialogHLE, wxDialog)
-EVT_BUTTON(wxID_OK, DSPConfigDialogHLE::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_HLE_AUDIO, DSPConfigDialogHLE::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogHLE::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogHLE::SettingsChanged)
-EVT_CHECKBOX(ID_ENABLE_RE0_FIX, DSPConfigDialogHLE::SettingsChanged)
-EVT_COMMAND_SCROLL(ID_VOLUME, DSPConfigDialogHLE::VolumeChanged)
+	EVT_BUTTON(wxID_OK, DSPConfigDialogHLE::SettingsChanged)
+	EVT_CHECKBOX(ID_ENABLE_HLE_AUDIO, DSPConfigDialogHLE::SettingsChanged)
+	EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogHLE::SettingsChanged)
+	EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogHLE::SettingsChanged)
+	EVT_CHECKBOX(ID_ENABLE_RE0_FIX, DSPConfigDialogHLE::SettingsChanged)
+#ifdef _WIN32
+	EVT_COMMAND_SCROLL(ID_VOLUME, DSPConfigDialogHLE::VolumeChanged)
+#endif
 END_EVENT_TABLE()
 
 DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
@@ -35,6 +37,15 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wx
 	CenterOnParent();
 
 	m_OK = new wxButton(this, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	
+	wxStaticBoxSizer *sbSettings = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Sound Settings"));
+	// Unfortunately, DSound is the only API having a volume setting...
+	// Its better to remove the Volume setting on non-WIN32, since the user might
+	// be confused about why he cannot change the volume 
+	// (or the dev fixing it might be confused about why it still doesn't work :P)
+#ifdef _WIN32
+	wxStaticBoxSizer *sbSettingsV = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Volume"));
+#endif
 
 	// Create items
 	m_buttonEnableHLEAudio = new wxCheckBox(this, ID_ENABLE_HLE_AUDIO, wxT("Enable HLE Audio"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -44,8 +55,10 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wx
 	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
 	m_BackendSelection = new wxComboBox(this, ID_BACKEND, wxEmptyString, wxDefaultPosition, wxSize(90, 20), wxArrayBackends, wxCB_READONLY, wxDefaultValidator);
 
-	m_volumeSlider = new wxSlider(this, ID_VOLUME, ac_Config.m_Volume, 1, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
+#ifdef _WIN32
 	m_volumeText = new wxStaticText(this, wxID_ANY, wxString::Format(wxT("%d %%"), ac_Config.m_Volume), wxDefaultPosition, wxDefaultSize, 0);
+	m_volumeSlider = new wxSlider(this, ID_VOLUME, ac_Config.m_Volume, 1, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
+#endif
 
 	// Update values
 	m_buttonEnableHLEAudio->SetValue(g_Config.m_EnableHLEAudio ? true : false);
@@ -69,7 +82,6 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wx
 	wxBoxSizer *sBackend = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer *sButtons = new wxBoxSizer(wxHORIZONTAL);
 
-	wxStaticBoxSizer *sbSettings = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Sound Settings"));
 	sbSettings->Add(m_buttonEnableHLEAudio, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableDTKMusic, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableThrottle, 0, wxALL, 5);
@@ -78,12 +90,12 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wx
 	sBackend->Add(m_BackendSelection, 0, wxALL, 1);
 	sbSettings->Add(sBackend, 0, wxALL, 2);
 
-	wxStaticBoxSizer *sbSettingsV = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Volume"));
+	sSettings->Add(sbSettings, 0, wxALL|wxEXPAND, 4);
+#ifdef _WIN32
 	sbSettingsV->Add(m_volumeSlider, 0, wxLEFT|wxRIGHT|wxALIGN_CENTER, 6);
 	sbSettingsV->Add(m_volumeText, 0, wxALL|wxALIGN_LEFT, 4);
-
-	sSettings->Add(sbSettings, 0, wxALL|wxEXPAND, 4);
 	sSettings->Add(sbSettingsV, 0, wxALL|wxEXPAND, 4);
+#endif
 	sMain->Add(sSettings, 0, wxALL|wxEXPAND, 4);
 	
 	sButtons->AddStretchSpacer(); 
@@ -102,12 +114,6 @@ void DSPConfigDialogHLE::AddBackend(const char* backend)
 #else
 	m_BackendSelection->SetValue(wxString::FromAscii(ac_Config.sBackend.c_str()));
 #endif
-
-	// Unfortunately, DSound is the only API having a volume setting...
-#ifndef _WIN32
-	m_volumeSlider->Disable();
-	m_volumeText->Disable();
-#endif
 }
 
 void DSPConfigDialogHLE::ClearBackends()
@@ -119,6 +125,7 @@ DSPConfigDialogHLE::~DSPConfigDialogHLE()
 {
 }
 
+#ifdef _WIN32
 void DSPConfigDialogHLE::VolumeChanged(wxScrollEvent& WXUNUSED(event))
 {
 	ac_Config.m_Volume = m_volumeSlider->GetValue();
@@ -126,6 +133,7 @@ void DSPConfigDialogHLE::VolumeChanged(wxScrollEvent& WXUNUSED(event))
 
 	m_volumeText->SetLabel(wxString::Format(wxT("%d %%"), m_volumeSlider->GetValue()));
 }
+#endif
 
 void DSPConfigDialogHLE::SettingsChanged(wxCommandEvent& event)
 {

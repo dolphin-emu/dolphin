@@ -53,13 +53,8 @@ private:
 	wxCheckBox* HideCursor, *AutoHideCursor;
 #endif
 	wxCheckBox* WiimoteStatusLEDs, * WiimoteStatusSpeakers;
-
-	wxArrayString arrayStringFor_InterfaceLang;
 	wxChoice* InterfaceLang;
-
-	wxArrayString arrayStringFor_Framelimit;
 	wxChoice* Framelimit;
-
 	wxRadioBox* Theme;
 
 	wxBoxSizer* sCore;
@@ -77,7 +72,6 @@ private:
 	wxBoxSizer* sGamecube; // GC settings
 	wxStaticBoxSizer* sbGamecubeIPLSettings;
 	wxGridBagSizer* sGamecubeIPLSettings;
-	wxArrayString arrayStringFor_GCSystemLang;
 	wxStaticText* GCSystemLangText;
 	wxChoice* GCSystemLang;
 	wxChoice *GCEXIDevice[3];
@@ -111,23 +105,19 @@ private:
 
 	FILE* pStream;
 
-	wxArrayString arrayStringFor_WiiSensBarPos; // Wiimote Settings
 	wxStaticText* WiiSensBarPosText;
 	wxChoice* WiiSensBarPos;
 
 	wxCheckBox* WiiScreenSaver; // IPL settings
 	wxCheckBox* WiiProgressiveScan;
 	wxCheckBox* WiiEuRGB60;
-	wxArrayString arrayStringFor_WiiAspectRatio;
 	wxStaticText* WiiAspectRatioText;
 	wxChoice* WiiAspectRatio;
-	wxArrayString arrayStringFor_WiiSystemLang;
 	wxStaticText* WiiSystemLangText;
 	wxChoice* WiiSystemLang;
 	wxCheckBox* WiiSDCard;
 	wxCheckBox* WiiKeyboard;
 
-	wxArrayString arrayStringFor_ISOPaths;
 	wxListBox* ISOPaths;
 	wxButton* AddISOPath;
 	wxButton* RemoveISOPath;
@@ -151,6 +141,15 @@ private:
 	wxButton* WiimoteConfig;
 	wxStaticText* WiimoteText;
 	wxChoice* WiimoteSelection;
+
+	wxArrayString arrayStringFor_InterfaceLang;
+	wxArrayString arrayStringFor_Framelimit;
+	wxArrayString arrayStringFor_GCSystemLang;
+	wxArrayString arrayStringFor_WiiSensBarPos;
+	wxArrayString arrayStringFor_WiiAspectRatio;
+	wxArrayString arrayStringFor_WiiSystemLang;
+	wxArrayString arrayStringFor_ISOPaths;
+	wxArrayString arrayStringFor_Themes;
 
 	enum
 	{
@@ -237,6 +236,10 @@ private:
 		ID_GRAPHIC_TEXT,
 		ID_GRAPHIC_CB
 	};
+
+	void InitializeGUILists();
+	void InitializeGUIValues();
+	void InitializeGUITooltips();
 
 	void CreateGUIControls();
 	void UpdateGUI();

@@ -139,104 +139,139 @@ void GFXConfigDialogOGL::AddWindowReso(const char *reso)
 	arrayStringFor_WindowResolutionCB.Add(wxString::FromAscii(reso));
 }
 
-
-
-
-void GFXConfigDialogOGL::CreateGUIControls()
+// This one could be used to reload shaders while dolphin is running...
+void GFXConfigDialogOGL::LoadShaders()
 {
-	// Notebook
-	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
-	m_PageGeneral = new wxPanel(m_Notebook, ID_PAGEGENERAL, wxDefaultPosition, wxDefaultSize);
-	m_Notebook->AddPage(m_PageGeneral, wxT("General"));
-	m_PageAdvanced = new wxPanel(m_Notebook, ID_PAGEADVANCED, wxDefaultPosition, wxDefaultSize);
-	m_Notebook->AddPage(m_PageAdvanced, wxT("Advanced"));
+	arrayStringFor_PostShaderCB.Clear();
 
-	// Buttons
-	m_About = new wxButton(this, ID_ABOUTOGL, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	arrayStringFor_PostShaderCB.Add(wxT("(off)"));
+	if (File::IsDirectory(File::GetUserPath(D_SHADERS_IDX)))
+	{
+		File::FSTEntry entry;
+		File::ScanDirectoryTree(File::GetUserPath(D_SHADERS_IDX), entry);
+		for (u32 i = 0; i < entry.children.size(); i++) 
+		{
+			std::string name = entry.children[i].virtualName.c_str();
+			if (!strcasecmp(name.substr(name.size() - 4).c_str(), ".txt"))
+				name = name.substr(0, name.size() - 4);
+			arrayStringFor_PostShaderCB.Add(wxString::FromAscii(name.c_str()));
+		}
+	}
+	else
+	{
+		File::CreateDir(File::GetUserPath(D_SHADERS_IDX));
+	}
+}
+void GFXConfigDialogOGL::InitializeGUILists()
+{
+	// Resolutions
+	if (arrayStringFor_FullscreenCB.empty())
+		AddFSReso("<No resolutions found>");
+	if (arrayStringFor_WindowResolutionCB.empty())
+		AddWindowReso("<No resolutions found>");
 
-	// Put notebook and buttons in sizers
-	wxBoxSizer* sButtons;
-	sButtons = new wxBoxSizer(wxHORIZONTAL);
-	sButtons->Add(m_About, 0, wxALL, 5);
-	sButtons->AddStretchSpacer();
-	sButtons->Add(m_Close, 0, wxALL, 5);
+	// Keep Aspect Ratio
+	arrayStringFor_AspectRatio.Add(wxT("Auto Aspect (recommended)"));
+	arrayStringFor_AspectRatio.Add(wxT("Force 16:9 Widescreen"));
+	arrayStringFor_AspectRatio.Add(wxT("Force 4:3 Standard"));
+	arrayStringFor_AspectRatio.Add(wxT("Stretch to Window"));
 
-	wxBoxSizer* sMain;
-	sMain = new wxBoxSizer(wxVERTICAL);
-	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
-	sMain->Add(sButtons, 0, wxEXPAND, 5);
+	// Antialias (MSAA)
+	arrayStringFor_MSAAModeCB.Add(wxT("(off)"));
+	arrayStringFor_MSAAModeCB.Add(wxT("2x"));
+	arrayStringFor_MSAAModeCB.Add(wxT("4x"));
+	arrayStringFor_MSAAModeCB.Add(wxT("8x"));
+	arrayStringFor_MSAAModeCB.Add(wxT("8x CSAA"));
+	arrayStringFor_MSAAModeCB.Add(wxT("8xQ CSAA"));
+	arrayStringFor_MSAAModeCB.Add(wxT("16x CSAA"));
+	arrayStringFor_MSAAModeCB.Add(wxT("16xQ CSAA"));
 
-	this->SetSizer(sMain);
-	this->Layout();
+	// Anisotropic filter
+	arrayStringFor_MaxAnisotropyCB.Add(wxT("1x"));
+	arrayStringFor_MaxAnisotropyCB.Add(wxT("2x"));
+	arrayStringFor_MaxAnisotropyCB.Add(wxT("4x"));
+	arrayStringFor_MaxAnisotropyCB.Add(wxT("8x"));
+	arrayStringFor_MaxAnisotropyCB.Add(wxT("16x"));
 
+	// Post-processing shader
+	LoadShaders();
+
+	// Hacks
+	arrayStringFor_PhackvalueCB.Add(wxT("None"));
+	arrayStringFor_PhackvalueCB.Add(wxT("Zelda Twilight Princess Bloom hack"));
+	arrayStringFor_PhackvalueCB.Add(wxT("Sonic and the Black Knight"));
+	arrayStringFor_PhackvalueCB.Add(wxT("Bleach Versus Crusade"));
+	arrayStringFor_PhackvalueCB.Add(wxT("Final Fantasy CC Echo of Time"));
+	arrayStringFor_PhackvalueCB.Add(wxT("Harvest Moon Magical Melody"));
+	arrayStringFor_PhackvalueCB.Add(wxT("Baten Kaitos"));
+	arrayStringFor_PhackvalueCB.Add(wxT("Baten Kaitos Origin"));
+	arrayStringFor_PhackvalueCB.Add(wxT("Skies of Arcadia"));
+}
+void GFXConfigDialogOGL::InitializeGUIValues()
+{
 	// General Display Settings
-	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Basic Display Settings"));
-	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to Main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_RenderToMainWindow->SetValue(g_Config.RenderToMainframe);
-	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_2xResolution = new wxCheckBox(m_PageGeneral, ID_2X_RESOLUTION, wxT("2x"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	wxStaticText *IRText = new wxStaticText(m_PageGeneral, ID_IRTEXT, wxT("Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
-	wxStaticText *RText = new wxStaticText(m_PageGeneral, ID_RTEXT, wxT("Custom resolution:"), wxDefaultPosition, wxDefaultSize, 0);
-	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Windowed:"), wxDefaultPosition, wxDefaultSize , 0 );
-	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
-	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.cInternalRes));
-	m_WindowFSResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWFSRESOLUTIONCB, arrayStringFor_FullscreenCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, wxCB_READONLY, wxDefaultValidator);
-	m_WindowFSResolutionCB->SetValue(wxString::FromAscii(g_Config.cFSResolution));
-
-	// Aspect ratio / positioning controls
-	wxStaticText *KeepARText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Keep aspect ratio:"), wxDefaultPosition, wxDefaultSize, 0);
-	m_KeepAR = new wxChoice(m_PageGeneral, ID_ASPECT, wxDefaultPosition, wxDefaultSize);
-	m_KeepAR->Append(wxT("Auto Aspect (recommended)"));
-	m_KeepAR->Append(wxT("Force 16:9 Widescreen"));
-	m_KeepAR->Append(wxT("Force 4:3 Standard"));
-	m_KeepAR->Append(wxT("Stretch to Window"));
-	m_Crop = new wxCheckBox(m_PageGeneral, ID_CROP, wxT("Crop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Fullscreen = new wxCheckBox(m_PageGeneral, ID_FULLSCREEN, wxT("Fullscreen :"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Fullscreen->SetValue(g_Config.bFullscreen);
-	m_UseXFB = new wxCheckBox(m_PageGeneral, ID_USEXFB, wxT("Use Real XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_AutoScale = new wxCheckBox(m_PageGeneral, ID_AUTOSCALE, wxT("Auto scale (try to remove borders)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_WidescreenHack = new wxCheckBox(m_PageGeneral, ID_WIDESCREENHACK, wxT("Wide screen hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-
-	// Default values
 	m_NativeResolution->SetValue(g_Config.bNativeResolution);
 	m_2xResolution->SetValue(g_Config.b2xResolution);
+	m_Fullscreen->SetValue(g_Config.bFullscreen);
+	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.cInternalRes));
+	m_WindowFSResolutionCB->SetValue(wxString::FromAscii(g_Config.cFSResolution));
+#ifndef _WIN32
+	m_HideCursor->SetValue(g_Config.bHideCursor); 
+#endif
 	m_KeepAR->SetSelection(g_Config.iAspectRatio);
-	
 	m_Crop->SetValue(g_Config.bCrop);
+
+	// Advanced Display Settings
+	m_RenderToMainWindow->SetValue(g_Config.RenderToMainframe);
+	m_OSDHotKey->SetValue(g_Config.bOSDHotKey);
+	m_VSync->SetValue(g_Config.bVSync);
 	m_UseXFB->SetValue(g_Config.bUseXFB);
 	m_AutoScale->SetValue(g_Config.bAutoScale);
 	m_WidescreenHack->SetValue(g_Config.bWidescreenHack);
 
-	#ifndef _WIN32
-		m_HideCursor = new wxCheckBox(m_PageGeneral, ID_HIDECURSOR, wxT("Hide mouse cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-		m_HideCursor->SetValue(g_Config.bHideCursor); 
-	#endif
-
-	// Advanced Display Settings
-	sbBasicAdvanced = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Advanced Display Settings"));
-	m_VSync = new wxCheckBox(m_PageGeneral, ID_VSYNC, wxT("VSync (req. restart)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_VSync->SetValue(g_Config.bVSync);
-
-	wxStaticText *MSAAText = new wxStaticText(m_PageGeneral, ID_MSAAMODETEXT, wxT("Antialias (MSAA):"), wxDefaultPosition, wxDefaultSize, 0);
-	m_MSAAModeCB = new wxChoice(m_PageGeneral, ID_MSAAMODECB, wxDefaultPosition, wxDefaultSize, arrayStringFor_MSAAModeCB, 0, wxDefaultValidator);
-	m_MSAAModeCB->Append(wxT("(off)"));
-	m_MSAAModeCB->Append(wxT("2x"));
-	m_MSAAModeCB->Append(wxT("4x"));
-	m_MSAAModeCB->Append(wxT("8x"));
-	m_MSAAModeCB->Append(wxT("8x CSAA"));
-	m_MSAAModeCB->Append(wxT("8xQ CSAA"));
-	m_MSAAModeCB->Append(wxT("16x CSAA"));
-	m_MSAAModeCB->Append(wxT("16xQ CSAA"));
+	// Enhancements
+	m_MaxAnisotropyCB->SetSelection(g_Config.iMaxAnisotropy - 1);
+	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
 	m_MSAAModeCB->SetSelection(g_Config.iMultisampleMode);
 
-	m_OSDHotKey = new wxCheckBox(m_PageGeneral, ID_OSDHOTKEY, wxT("Enable Hotkeys"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	#ifndef _WIN32
-	// JPeterson set the hot key to be Win32-specific
-	m_OSDHotKey->Enable(false);
-	#endif
-	m_OSDHotKey->SetValue(g_Config.bOSDHotKey);
+	wxString shader = wxString::FromAscii(g_Config.sPostProcessingShader.c_str());
+	if (shader == _(""))
+		shader = wxT("(off)");
+	m_PostShaderCB->SetStringSelection(shader);
 
+	// Information
+	m_ShowFPS->SetValue(g_Config.bShowFPS);
+	//m_ShaderErrors->SetValue(g_Config.bShowShaderErrors);
+	m_Statistics->SetValue(g_Config.bOverlayStats);
+	m_ProjStats->SetValue(g_Config.bOverlayProjStats);
+	m_ShowEFBCopyRegions->SetValue(g_Config.bShowEFBCopyRegions);
+	m_TexFmtOverlay->SetValue(g_Config.bTexFmtOverlayEnable);
+	m_TexFmtCenter->SetValue(g_Config.bTexFmtOverlayCenter);
+	m_TexFmtCenter->Enable(m_TexFmtOverlay->IsChecked());
+
+	// Render
+	m_Wireframe->SetValue(g_Config.bWireFrame);
+	m_DisableLighting->SetValue(g_Config.bDisableLighting);
+	m_DisableTexturing->SetValue(g_Config.bDisableTexturing);
+    m_DstAlphaPass->SetValue(g_Config.bDstAlphaPass);
+    m_DisableFog->SetValue(g_Config.bDisableFog);
+
+	m_CheckBox_DisableCopyEFB->SetValue(g_Config.bEFBCopyDisable);
+	g_Config.bCopyEFBToTexture ? m_Radio_CopyEFBToGL->SetValue(true) : m_Radio_CopyEFBToRAM->SetValue(true);
+
+	// Utility
+	m_DumpTextures->SetValue(g_Config.bDumpTextures);
+	m_HiresTextures->SetValue(g_Config.bHiresTextures);
+	m_DumpEFBTarget->SetValue(g_Config.bDumpEFBTarget);
+	m_DumpFrames->SetValue(g_Config.bDumpFrames);
+	m_FreeLook->SetValue(g_Config.bFreeLook);
+
+	// Hacks controls
+	m_PhackvalueCB->SetSelection(g_Config.iPhackvalue);
+	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
+}
+void GFXConfigDialogOGL::InitializeGUITooltips()
+{
 	// Tool tips
 	m_Fullscreen->SetToolTip(
 		wxT("Start the separate window in fullscreen mode.")
@@ -269,53 +304,115 @@ void GFXConfigDialogOGL::CreateGUIControls()
 		"Applies instanty during gameplay: <No>"));
 	m_OSDHotKey->SetToolTip(
 		wxT("Enable OSD hotkeys '3', '4', '5', '6' and '7' to easily toggle some settings."));
-	
+
 	// Enhancements
-	sbEnhancements = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Enhancements"));
-	wxStaticText *AnisoText = new wxStaticText(m_PageGeneral, ID_MAXANISOTROPYTEXT, wxT("Anisotropic filter:"), wxDefaultPosition, wxDefaultSize, 0);
-	m_MaxAnisotropyCB = new wxChoice(m_PageGeneral, ID_MAXANISOTROPY, wxDefaultPosition, wxDefaultSize, arrayStringFor_MaxAnisotropyCB, 0, wxDefaultValidator);
-	m_MaxAnisotropyCB->Append(wxT("1x"));
-	m_MaxAnisotropyCB->Append(wxT("2x"));
-	m_MaxAnisotropyCB->Append(wxT("4x"));
-	m_MaxAnisotropyCB->Append(wxT("8x"));
-	m_MaxAnisotropyCB->Append(wxT("16x"));
-	m_MaxAnisotropyCB->SetSelection(g_Config.iMaxAnisotropy - 1);
-	m_ForceFiltering = new wxCheckBox(m_PageGeneral, ID_FORCEFILTERING, wxT("Force Linear filter (!)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
 	m_ForceFiltering->SetToolTip(
 		wxT("Even though it will increase the IQ, it will also break some EFB effects\n")
 		wxT("such as Bink FMV in many Wii games or the goo in Mario Sunshine, so be careful :)"));
 
+	// Render
+	m_DstAlphaPass->SetToolTip(wxT("This renders a second time to set alpha to a constant value,")
+		wxT("\nDisabling it may speed up some games, but could also cause glitches."));
+	m_DisableFog->SetToolTip(wxT("This option should not require a restart."));
+	m_CheckBox_DisableCopyEFB->SetToolTip(wxT("This may lead to a higher FPS in for example Zelda - TP.")
+		wxT(" But it may also cause graphical errors and missing graphics."));
+	m_Radio_CopyEFBToRAM->SetToolTip(wxT("[This option will apply immediately and does not require a restart to take effect.]"));
+	m_Radio_CopyEFBToGL->SetToolTip(wxT("[This option will apply immediately and does not require a restart to take effect.]"));
+	
+	// Utility
+#ifdef _WIN32
+	m_DumpFrames->SetToolTip(
+		wxT("When dumping begins, you will be prompted to choose a video codec to")
+		wxT(" encode the video in."));
+#else
+	m_DumpFrames->SetToolTip(wxT(
+		"!!WARNING!! This option dumps raw bitmaps of each frame, and will fill up"
+		" your hard drive very quickly. Only turn this on if you have a named pipe"
+		" set up for the dump or several gigabytes of space available."));
+#endif
+	m_FreeLook->SetToolTip(
+		wxT("Use WASD to move around, 0 and 9 to move faster or slower, and the")
+		wxT(" left mouse button to pan the view."));
+
+	// Hacks controls
+	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games.")
+		wxT("\n[This option will apply immediately and does not require a restart. However it may not")
+		wxT(" be entirely safe to change it midgames.]"));
+}
+void GFXConfigDialogOGL::CreateGUIControls()
+{
+	InitializeGUILists();
+
+	// Notebook
+	m_Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
+	m_PageGeneral = new wxPanel(m_Notebook, ID_PAGEGENERAL, wxDefaultPosition, wxDefaultSize);
+	m_Notebook->AddPage(m_PageGeneral, wxT("General"));
+	m_PageAdvanced = new wxPanel(m_Notebook, ID_PAGEADVANCED, wxDefaultPosition, wxDefaultSize);
+	m_Notebook->AddPage(m_PageAdvanced, wxT("Advanced"));
+
+	// Buttons
+	m_About = new wxButton(this, ID_ABOUTOGL, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
+	// Put notebook and buttons in sizers
+	wxBoxSizer* sButtons;
+	sButtons = new wxBoxSizer(wxHORIZONTAL);
+	sButtons->Add(m_About, 0, wxALL, 5);
+	sButtons->AddStretchSpacer();
+	sButtons->Add(m_Close, 0, wxALL, 5);
+
+	wxBoxSizer* sMain;
+	sMain = new wxBoxSizer(wxVERTICAL);
+	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
+	sMain->Add(sButtons, 0, wxEXPAND, 5);
+
+	this->SetSizer(sMain);
+	this->Layout();
+
+	// General Display Settings
+	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Basic Display Settings"));
+	wxStaticText *IRText = new wxStaticText(m_PageGeneral, ID_IRTEXT, wxT("Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
+	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_2xResolution = new wxCheckBox(m_PageGeneral, ID_2X_RESOLUTION, wxT("2x"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	wxStaticText *RText = new wxStaticText(m_PageGeneral, ID_RTEXT, wxT("Custom resolution:"), wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Windowed:"), wxDefaultPosition, wxDefaultSize , 0 );
+	m_Fullscreen = new wxCheckBox(m_PageGeneral, ID_FULLSCREEN, wxT("Fullscreen:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
+	m_WindowFSResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWFSRESOLUTIONCB, arrayStringFor_FullscreenCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, wxCB_READONLY, wxDefaultValidator);
+#ifndef _WIN32
+	m_HideCursor = new wxCheckBox(m_PageGeneral, ID_HIDECURSOR, wxT("Hide mouse cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+#endif
+	// Aspect ratio / positioning controls
+	wxStaticText *KeepARText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Keep aspect ratio:"), wxDefaultPosition, wxDefaultSize, 0);
+	m_KeepAR = new wxChoice(m_PageGeneral, ID_ASPECT, wxDefaultPosition, wxDefaultSize, arrayStringFor_AspectRatio);
+	m_Crop = new wxCheckBox(m_PageGeneral, ID_CROP, wxT("Crop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
+	// Advanced Display Settings
+	sbBasicAdvanced = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Advanced Display Settings"));
+	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to Main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_OSDHotKey = new wxCheckBox(m_PageGeneral, ID_OSDHOTKEY, wxT("Enable Hotkeys"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+#ifndef _WIN32
+	// JPeterson set the hot key to be Win32-specific
+	m_OSDHotKey->Enable(false);
+#endif
+	m_VSync = new wxCheckBox(m_PageGeneral, ID_VSYNC, wxT("VSync (req. restart)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_UseXFB = new wxCheckBox(m_PageGeneral, ID_USEXFB, wxT("Use Real XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_AutoScale = new wxCheckBox(m_PageGeneral, ID_AUTOSCALE, wxT("Auto scale (try to remove borders)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_WidescreenHack = new wxCheckBox(m_PageGeneral, ID_WIDESCREENHACK, wxT("Wide screen hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+
+	// Enhancements
+	sbEnhancements = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Enhancements"));
+	wxStaticText *AnisoText = new wxStaticText(m_PageGeneral, ID_MAXANISOTROPYTEXT, wxT("Anisotropic filter:"), wxDefaultPosition, wxDefaultSize, 0);
+	m_MaxAnisotropyCB = new wxChoice(m_PageGeneral, ID_MAXANISOTROPY, wxDefaultPosition, wxDefaultSize, arrayStringFor_MaxAnisotropyCB, 0, wxDefaultValidator);
+	m_ForceFiltering = new wxCheckBox(m_PageGeneral, ID_FORCEFILTERING, wxT("Force Linear filter (!)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	wxStaticText *MSAAText = new wxStaticText(m_PageGeneral, ID_MSAAMODETEXT, wxT("Antialias (MSAA):"), wxDefaultPosition, wxDefaultSize, 0);
+	m_MSAAModeCB = new wxChoice(m_PageGeneral, ID_MSAAMODECB, wxDefaultPosition, wxDefaultSize, arrayStringFor_MSAAModeCB, 0, wxDefaultValidator);
 	wxStaticText *PostShaderText = new wxStaticText(m_PageGeneral, ID_POSTSHADERTEXT, wxT("Post-processing shader:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_PostShaderCB = new wxChoice(m_PageGeneral, ID_POSTSHADER, wxDefaultPosition, wxDefaultSize, arrayStringFor_PostShaderCB, 0, wxDefaultValidator);
-	m_PostShaderCB->Append(wxT("(off)"));
 	m_ReloadShader = new wxButton(m_PageGeneral, ID_RELOADSHADER, wxT("&Reload"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_EditShader = new wxButton(m_PageGeneral, ID_EDITSHADER, wxT("&Edit"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	if (File::IsDirectory(File::GetUserPath(D_SHADERS_IDX)))
-	{
-		File::FSTEntry entry;
-		File::ScanDirectoryTree(File::GetUserPath(D_SHADERS_IDX), entry);
-		for (u32 i = 0; i < entry.children.size(); i++) 
-		{
-			std::string name = entry.children[i].virtualName.c_str();
-			if (!strcasecmp(name.substr(name.size() - 4).c_str(), ".txt"))
-				name = name.substr(0, name.size() - 4);
-			m_PostShaderCB->Append(wxString::FromAscii(name.c_str()));
-		}
-	}
-	else
-	{
-		File::CreateDir(File::GetUserPath(D_SHADERS_IDX));
-	}
-
-	wxString shader= wxString::FromAscii(g_Config.sPostProcessingShader.c_str());
-	if (shader == _(""))
-		shader = wxT("(off)");
-	m_PostShaderCB->SetStringSelection(shader);
-
 	// Sizers
-
 	sGeneral = new wxBoxSizer(wxVERTICAL);
 	sBasic = new wxGridBagSizer(0, 0);	
 
@@ -330,8 +427,8 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasic->Add(m_WindowFSResolutionCB, wxGBPosition(2, 2), wxGBSpan(1, 1), wxALL, 5);	
 
 	sBasic->Add(KeepARText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_KeepAR,			wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_Crop,				wxGBPosition(3, 2), wxGBSpan(1, 1), wxALL | wxALIGN_CENTER_VERTICAL, 5);
+	sBasic->Add(m_KeepAR, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_Crop, wxGBPosition(3, 2), wxGBSpan(1, 1), wxALL | wxALIGN_CENTER_VERTICAL, 5);
 
 	// This option is configured from the main Dolphin.exe settings for _WIN32
 	#ifndef _WIN32
@@ -344,7 +441,6 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasicAdvanced = new wxGridBagSizer(0, 0);
 
 	sBasicAdvanced->Add(m_RenderToMainWindow,	wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-
 	sBasicAdvanced->Add(m_OSDHotKey,			wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_VSync,				wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_UseXFB,				wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
@@ -372,109 +468,45 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	// Information
 	sbInfo = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Info"));
 	m_ShowFPS = new wxCheckBox(m_PageAdvanced, ID_SHOWFPS, wxT("Overlay FPS"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_ShowFPS->SetValue(g_Config.bShowFPS);
-	m_Statistics = new wxCheckBox(m_PageAdvanced, ID_STATISTICS, wxT("Overlay some statistics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Statistics->SetValue(g_Config.bOverlayStats);
-	m_ProjStats = new wxCheckBox(m_PageAdvanced, ID_PROJSTATS, wxT("Overlay Projection Stats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_ProjStats->SetValue(g_Config.bOverlayProjStats);
-	m_ShowEFBCopyRegions = new wxCheckBox(m_PageAdvanced, ID_SHOWEFBCOPYREGIONS, wxT("Show EFB Copy Regions"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_ShowEFBCopyRegions->SetValue(g_Config.bShowEFBCopyRegions);
 	m_ShaderErrors = new wxCheckBox(m_PageAdvanced, ID_SHADERERRORS, wxT("Show shader compilation issues"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	//m_ShaderErrors->SetValue(g_Config.bShowShaderErrors);
 	m_ShaderErrors->Enable(false);
+	m_Statistics = new wxCheckBox(m_PageAdvanced, ID_STATISTICS, wxT("Overlay some statistics"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ProjStats = new wxCheckBox(m_PageAdvanced, ID_PROJSTATS, wxT("Overlay Projection Stats"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_ShowEFBCopyRegions = new wxCheckBox(m_PageAdvanced, ID_SHOWEFBCOPYREGIONS, wxT("Show EFB Copy Regions"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_TexFmtOverlay = new wxCheckBox(m_PageAdvanced, ID_TEXFMTOVERLAY, wxT("Overlay texture format"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_TexFmtOverlay->SetValue(g_Config.bTexFmtOverlayEnable);
 	m_TexFmtCenter = new wxCheckBox(m_PageAdvanced, ID_TEXFMTCENTER, wxT("centered"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_TexFmtCenter->SetValue(g_Config.bTexFmtOverlayCenter);
-	m_TexFmtCenter->Enable(m_TexFmtOverlay->IsChecked());
 
 	// Render
 	sbRendering = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Rendering"));
 	m_Wireframe = new wxCheckBox(m_PageAdvanced, ID_WIREFRAME, wxT("Enable Wireframe"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Wireframe->SetValue(g_Config.bWireFrame);
-	m_Wireframe->Enable(true);
 	m_DisableLighting = new wxCheckBox(m_PageAdvanced, ID_DISABLELIGHTING, wxT("Disable Material Lighting"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_DisableLighting->SetValue(g_Config.bDisableLighting);
-	m_DisableLighting->Enable(true);
 	m_DisableTexturing = new wxCheckBox(m_PageAdvanced, ID_DISABLETEXTURING, wxT("Disable Texturing"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_DisableTexturing->SetValue(g_Config.bDisableTexturing);
-	m_DisableTexturing->Enable(true);
     m_DstAlphaPass = new wxCheckBox(m_PageAdvanced, ID_DSTALPHAPASS, wxT("Disable Destination Alpha Pass"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-    m_DstAlphaPass->SetValue(g_Config.bDstAlphaPass);
-    m_DstAlphaPass->Enable(true);
     m_DisableFog = new wxCheckBox(m_PageAdvanced, ID_DISABLEFOG, wxT("Disable Fog"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-    m_DisableFog->SetValue(g_Config.bDisableFog);
 
 	m_StaticBox_EFB = new wxStaticBox(m_PageAdvanced, ID_STATICBOX_EFB, wxT("EFB Copy"));
 	m_CheckBox_DisableCopyEFB = new wxCheckBox(m_PageAdvanced, ID_CHECKBOX_DISABLECOPYEFB, wxT("Disable"));
-	m_CheckBox_DisableCopyEFB->SetValue(g_Config.bEFBCopyDisable);
-	m_CheckBox_DisableCopyEFB->SetToolTip(wxT("This may lead to a higher FPS in for example Zelda - TP.")
-		wxT(" But it may also cause graphical errors and missing graphics."));
-
 	m_Radio_CopyEFBToRAM = new wxRadioButton(m_PageAdvanced, ID_RADIO_COPYEFBTORAM, wxT("Copy EFB to system RAM (real)"));
-	m_Radio_CopyEFBToRAM->SetToolTip(wxT("[This option will apply immediately and does not require a restart to take effect.]"));
 	m_Radio_CopyEFBToGL = new wxRadioButton(m_PageAdvanced, ID_RADIO_COPYEFBTOGL, wxT("Copy EFB to GL texture (hack)"));
-	m_Radio_CopyEFBToGL->SetToolTip(wxT("[This option will apply immediately and does not require a restart to take effect.]"));
-	g_Config.bCopyEFBToTexture ? m_Radio_CopyEFBToGL->SetValue(true) : m_Radio_CopyEFBToRAM->SetValue(true);
 
 	// Utility
 	sbUtilities = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Utilities"));
 	m_DumpTextures = new wxCheckBox(m_PageAdvanced, ID_DUMPTEXTURES, wxT("Dump textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_DumpTextures->SetValue(g_Config.bDumpTextures);
 	m_HiresTextures = new wxCheckBox(m_PageAdvanced, ID_HIRESTEXTURES, wxT("Load Hires textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_HiresTextures->SetValue(g_Config.bHiresTextures);
 	m_DumpEFBTarget = new wxCheckBox(m_PageAdvanced, ID_DUMPEFBTARGET, wxT("Dump EFB Target"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_DumpEFBTarget->SetValue(g_Config.bDumpEFBTarget);
 	m_DumpFrames = new wxCheckBox(m_PageAdvanced, ID_DUMPFRAMES, wxT("Dump Rendered Frames"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-#ifdef _WIN32
-	m_DumpFrames->SetToolTip(
-		wxT("When dumping begins, you will be prompted to choose a video codec to")
-		wxT(" encode the video in."));
-#else
-	m_DumpFrames->SetToolTip(wxT(
-		"!!WARNING!! This option dumps raw bitmaps of each frame, and will fill up"
-		" your hard drive very quickly. Only turn this on if you have a named pipe"
-		" set up for the dump or several gigabytes of space available."));
-#endif
-	m_DumpFrames->SetValue(g_Config.bDumpFrames);
 	m_FreeLook = new wxCheckBox(m_PageAdvanced, ID_FREELOOK, wxT("Free Look"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_FreeLook->SetToolTip(
-		wxT("Use WASD to move around, 0 and 9 to move faster or slower, and the")
-		wxT(" left mouse button to pan the view."));
-	m_FreeLook->SetValue(g_Config.bFreeLook);
 
 	// Hacks controls
+	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_PhackvalueCB = new wxChoice(m_PageAdvanced, ID_PHACKVALUE, wxDefaultPosition, wxDefaultSize, arrayStringFor_PhackvalueCB, 0, wxDefaultValidator);
-	m_PhackvalueCB->Append(wxT("None"));
-	m_PhackvalueCB->Append(wxT("Zelda Twilight Princess Bloom hack"));
-	m_PhackvalueCB->Append(wxT("Sonic and the Black Knight"));
-	m_PhackvalueCB->Append(wxT("Bleach Versus Crusade"));
-	m_PhackvalueCB->Append(wxT("Final Fantasy CC Echo of Time"));
-	m_PhackvalueCB->Append(wxT("Harvest Moon Magical Melody"));
-	m_PhackvalueCB->Append(wxT("Baten Kaitos"));
-	m_PhackvalueCB->Append(wxT("Baten Kaitos Origin"));
-	m_PhackvalueCB->Append(wxT("Skies of Arcadia"));
-	m_PhackvalueCB->SetSelection(g_Config.iPhackvalue);
 
-	// Default values
-	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
-
-	// Tool tips
-	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games.")
-		wxT("\n[This option will apply immediately and does not require a restart. However it may not")
-		wxT(" be entirely safe to change it midgames.]"));
-
-	m_DstAlphaPass->SetToolTip(wxT("This renders a second time to set alpha to a constant value,")
-		wxT("\nDisabling it may speed up some games, but could also cause glitches."));
-	m_DisableFog->SetToolTip(wxT("This option should not require a restart."));
 
 	// Sizers
 	sHacks = new wxGridBagSizer(0, 0);
 	sHacks->Add(m_SafeTextureCache, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
 	sHacks->Add(m_PhackvalueCB, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-	
-	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
 	sbHacks->Add(sHacks, 0, wxEXPAND | (wxTOP), 0);
 
 	// Sizers
@@ -497,16 +529,15 @@ void GFXConfigDialogOGL::CreateGUIControls()
     sRendering->Add(m_DstAlphaPass, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 4);
 	sRendering->Add(m_DisableFog, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 4);
 	sRenderBoxRow1->Add(sRendering, 0, wxALL|wxEXPAND, 1);
-				wxStaticBoxSizer *sSBox = new wxStaticBoxSizer(m_StaticBox_EFB, wxVERTICAL);
-					wxBoxSizer *sStrip1 = new wxBoxSizer(wxHORIZONTAL);
-					sStrip1->Add(m_CheckBox_DisableCopyEFB, 0, wxALL|wxEXPAND, 5);
-				sSBox->Add(sStrip1, 0, wxALL|wxEXPAND, 0);
-				sSBox->Add(m_Radio_CopyEFBToRAM, 0, wxALL|wxEXPAND, 5);
-				sSBox->Add(m_Radio_CopyEFBToGL, 0, wxALL|wxEXPAND, 5);
+		wxStaticBoxSizer *sSBox = new wxStaticBoxSizer(m_StaticBox_EFB, wxVERTICAL);
+			wxBoxSizer *sStrip1 = new wxBoxSizer(wxHORIZONTAL);
+			sStrip1->Add(m_CheckBox_DisableCopyEFB, 0, wxALL|wxEXPAND, 5);
+		sSBox->Add(sStrip1, 0, wxALL|wxEXPAND, 0);
+		sSBox->Add(m_Radio_CopyEFBToRAM, 0, wxALL|wxEXPAND, 5);
+		sSBox->Add(m_Radio_CopyEFBToGL, 0, wxALL|wxEXPAND, 5);
 	sRenderBoxRow1->Add(sSBox, 0, wxALL|wxEXPAND, 5);
 	sbRendering->Add(sRenderBoxRow1);
 	
-	//sUtilities = new wxBoxSizer(wxHORIZONTAL);
     sUtilities = new wxGridBagSizer(0, 0);
 	sUtilities->Add(m_DumpTextures, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sUtilities->Add(m_HiresTextures, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
@@ -523,6 +554,9 @@ void GFXConfigDialogOGL::CreateGUIControls()
 
 	m_PageAdvanced->SetSizer(sAdvanced);
 	sAdvanced->Layout();
+
+	InitializeGUIValues();
+	InitializeGUITooltips();
 
 	Fit();
 	Center();
