@@ -172,7 +172,7 @@ void SetDefaultRectTexParams()
     if (glGetError() != GL_NO_ERROR) {
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
-        GL_REPORT_ERROR();
+        GL_REPORT_ERRORD();
     }
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -1083,7 +1083,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	bool last_copy_efb_to_ram = !g_ActiveConfig.bCopyEFBToTexture;
 	UpdateActiveConfig();
-	if (last_copy_efb_to_ram != g_ActiveConfig.bCopyEFBToTexture)
+	if (last_copy_efb_to_ram != (!g_ActiveConfig.bCopyEFBToTexture))
 		TextureMngr::ClearRenderTargets();
 
 	// For testing zbuffer targets.

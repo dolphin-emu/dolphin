@@ -166,7 +166,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			// each other stored in a single texture, and uses the palette to make different characters
 			// visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
 			// we must make sure that texture with different tluts get different IDs.
- 			u64 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(tex_format));
+ 			u64 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], (tex_format == GX_TF_C4) ? 32 : 128);
 			texHash ^= tlutHash;
 			if (g_ActiveConfig.bSafeTextureCache)
 				texID ^= tlutHash;

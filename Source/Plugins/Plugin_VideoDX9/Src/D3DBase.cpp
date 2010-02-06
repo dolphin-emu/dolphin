@@ -163,8 +163,8 @@ void Enumerate()
 		
 		// Add SuperSamples modes
 		a.aa_levels.push_back(AALevel("None", D3DMULTISAMPLE_NONE, 0));
-		a.aa_levels.push_back(AALevel("1.5x SSAA", D3DMULTISAMPLE_NONE, 0));
-		a.aa_levels.push_back(AALevel("2x SSAA", D3DMULTISAMPLE_NONE, 0));
+		a.aa_levels.push_back(AALevel("2.25x SSAA", D3DMULTISAMPLE_NONE, 0));
+		a.aa_levels.push_back(AALevel("4x SSAA", D3DMULTISAMPLE_NONE, 0));
 		//Add multisample modes
 		DWORD qlevels = 0;
 		if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(

@@ -275,7 +275,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			// each other stored in a single texture, and uses the palette to make different characters
 			// visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
 			// we must make sure that texture with different tluts get different IDs.
- 			u64 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(tex_format));
+ 			u64 tlutHash = TexDecoder_GetTlutHash(&texMem[tlutaddr],  (tex_format == GX_TF_C4) ? 32 : 128);
 			texHash ^= tlutHash;
 			if (g_ActiveConfig.bSafeTextureCache)
 				texID ^= tlutHash;
@@ -301,6 +301,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			glEnable(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D);
 //			entry.isRectangle ? TextureMngr::EnableTex2D(texstage) : TextureMngr::EnableTexRECT(texstage);
             glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
+			GL_REPORT_ERRORD();
             if (entry.mode.hex != tm0.hex)
                 entry.SetTextureParameters(tm0);
 			//DebugLog("%cC addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_ActiveConfig.bSafeTextureCache ? 'S' : 'U'
@@ -315,6 +316,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			if (width == entry.w && height == entry.h && FullFormat == entry.fmt)
             {
 				glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
+				GL_REPORT_ERRORD();
 				if (entry.mode.hex != tm0.hex)
 					entry.SetTextureParameters(tm0);
 				skip_texture_create = true;
@@ -634,19 +636,20 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	{
 		glGenTextures(1, (GLuint *)&entry.texture);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
+		GL_REPORT_ERRORD();
 		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, gl_iformat, w, h, 0, gl_format, gl_type, NULL);
 		GL_REPORT_ERRORD();
 	}
 	else 
 	{
 		_assert_(entry.texture);
-		GL_REPORT_ERROR();
+		GL_REPORT_ERRORD();
 		if (entry.w == w && entry.h == h && entry.isRectangle && entry.fmt == copyfmt) 
 		{
 			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
 			// for some reason mario sunshine errors here...
 			// Beyond Good and Evil does too, occasionally.
-			GL_REPORT_ERROR();
+			GL_REPORT_ERRORD();
 		} else {
 			// Delete existing texture.
 			glDeleteTextures(1,(GLuint *)&entry.texture);
