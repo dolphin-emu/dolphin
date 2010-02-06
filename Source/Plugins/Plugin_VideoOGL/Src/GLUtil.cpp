@@ -567,7 +567,6 @@ void OpenGL_Update()
 // Close plugin
 void OpenGL_Shutdown()
 {
-	printf("Deleting\n");
 #if defined(USE_WX) && USE_WX
 	delete GLWin.glCanvas;
 	delete GLWin.frame;

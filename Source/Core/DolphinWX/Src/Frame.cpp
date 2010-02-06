@@ -285,7 +285,7 @@ EVT_SIZE(CFrame::OnResize)
 EVT_MOVE(CFrame::OnMove)
 EVT_LIST_ITEM_ACTIVATED(LIST_CTRL, CFrame::OnGameListCtrl_ItemActivated)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
-#if wxUSE_TIMER && defined _WIN32
+#if wxUSE_TIMER
 EVT_TIMER(wxID_ANY, CFrame::OnTimer)
 #endif
 
@@ -324,8 +324,10 @@ CFrame::CFrame(wxFrame* parent,
 	, bRenderToMain(false), bFloatLogWindow(false), bFloatConsoleWindow(false)
 	, HaveLeds(false), HaveSpeakers(false)
 	, m_bControlsCreated(false), bNoWiimoteMsg(false), m_StopDlg(NULL)
-	#if wxUSE_TIMER && defined _WIN32
+	#if wxUSE_TIMER
+	#ifdef _WIN32
 		, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
+	#endif
 		, m_timer(this)
 	#endif
           
@@ -348,7 +350,7 @@ CFrame::CFrame(wxFrame* parent,
 	}	
 
 	// Create timer
-	#if wxUSE_TIMER && defined _WIN32
+	#if wxUSE_TIMER
 		int TimesPerSecond = 10; // We don't need more than this
 		m_timer.Start( floor((double)(1000 / TimesPerSecond)) );
 	#endif
@@ -506,7 +508,7 @@ CFrame::~CFrame()
 	cdio_free_device_list(drives);
 	/* The statbar sample has this so I add this to, but I guess timer will be deleted after
 	   this anyway */
-	#if wxUSE_TIMER && defined _WIN32
+	#if wxUSE_TIMER
 		if (m_timer.IsRunning()) m_timer.Stop();
 	#endif
 
@@ -611,6 +613,18 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 	return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
 }
 #endif
+
+void CFrame::OnTimer(wxTimerEvent& WXUNUSED(event))
+{
+#ifdef _WIN32
+	Update();
+#else
+	// Process events in linux.  Primarily to update the statusbar text.
+	// This should be unnecessary if we ever get WXGL and render to main working
+	if (wxGetApp().Pending())
+		wxGetApp().ProcessPendingEvents();
+#endif
+}
 
 void CFrame::OnHostMessage(wxCommandEvent& event)
 {
