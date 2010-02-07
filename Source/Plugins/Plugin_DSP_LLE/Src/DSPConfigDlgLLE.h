@@ -40,10 +40,8 @@ public:
 private:
     DECLARE_EVENT_TABLE();
 
-#ifdef _WIN32
 	wxSlider *m_volumeSlider;
 	wxStaticText *m_volumeText;    
-#endif
     wxButton *m_OK;
     wxCheckBox *m_buttonEnableDTKMusic;
     wxCheckBox *m_buttonEnableThrottle;
@@ -61,9 +59,9 @@ private:
     
     void OnOK(wxCommandEvent& event);
     void SettingsChanged(wxCommandEvent& event);
-#ifdef _WIN32
 	void VolumeChanged(wxScrollEvent& event);
-#endif
+	bool SupportsVolumeChanges(std::string backend);
+	void BackendChanged(wxCommandEvent& event);
 };
 
 #endif //__DSP_LLE_CONFIGDIALOG_h__

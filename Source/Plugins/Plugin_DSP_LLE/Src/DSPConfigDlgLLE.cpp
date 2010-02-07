@@ -23,9 +23,8 @@ BEGIN_EVENT_TABLE(DSPConfigDialogLLE, wxDialog)
 	EVT_BUTTON(wxID_OK, DSPConfigDialogLLE::SettingsChanged)
 	EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogLLE::SettingsChanged)
 	EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogLLE::SettingsChanged)
-#ifdef _WIN32
+	EVT_COMBOBOX(wxID_ANY, DSPConfigDialogLLE::BackendChanged)
 	EVT_COMMAND_SCROLL(ID_VOLUME, DSPConfigDialogLLE::VolumeChanged)
-#endif
 END_EVENT_TABLE()
 
 DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
@@ -40,10 +39,7 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	m_OK = new wxButton(this, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
 	wxStaticBoxSizer *sbSettings = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Sound Settings"));
-	// Same as for HLE. Maybe this dialog could be moved into AudioCommon or the likes?
-#ifdef _WIN32
 	wxStaticBoxSizer *sbSettingsV = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Volume"));
-#endif
 
 	// Create items
 	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, wxT("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -51,10 +47,9 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
 	m_BackendSelection = new wxComboBox(this, ID_BACKEND, wxEmptyString, wxDefaultPosition, wxSize(90, 20), wxArrayBackends, wxCB_READONLY, wxDefaultValidator);
 
-#ifdef _WIN32
 	m_volumeSlider = new wxSlider(this, ID_VOLUME, ac_Config.m_Volume, 1, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
+	m_volumeSlider->Enable(SupportsVolumeChanges(ac_Config.sBackend));
 	m_volumeText = new wxStaticText(this, wxID_ANY, wxString::Format(wxT("%d %%"), ac_Config.m_Volume), wxDefaultPosition, wxDefaultSize, 0);
-#endif
 
 	// Update values
 	m_buttonEnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
@@ -67,6 +62,7 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 		wxT("But sometimes enabling this could cause constant noise.\n")
 		wxT("\nKeyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."));
 	m_BackendSelection->SetToolTip(wxT("Changing this will have no effect while the emulator is running!"));
+	m_volumeSlider->SetToolTip(wxT("This setting only affects DSound and OpenAL."));
 
 	// Create sizer and add items to dialog
 	wxBoxSizer *sMain = new wxBoxSizer(wxVERTICAL);
@@ -81,13 +77,11 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	sBackend->Add(m_BackendSelection, 0, wxALL, 1);
 	sbSettings->Add(sBackend, 0, wxALL, 2);
 
-
-	sSettings->Add(sbSettings, 0, wxALL|wxEXPAND, 4);
-#ifdef _WIN32
 	sbSettingsV->Add(m_volumeSlider, 0, wxLEFT|wxRIGHT|wxALIGN_CENTER, 6);
 	sbSettingsV->Add(m_volumeText, 0, wxALL|wxALIGN_LEFT, 4);
+
+	sSettings->Add(sbSettings, 0, wxALL|wxEXPAND, 4);
 	sSettings->Add(sbSettingsV, 0, wxALL|wxEXPAND, 4);
-#endif
 	sMain->Add(sSettings, 0, wxALL|wxEXPAND, 4);
 
 	sButtons->AddStretchSpacer();
@@ -119,7 +113,6 @@ DSPConfigDialogLLE::~DSPConfigDialogLLE()
 {
 }
 
-#ifdef _WIN32
 void DSPConfigDialogLLE::VolumeChanged(wxScrollEvent& WXUNUSED(event))
 {
 	ac_Config.m_Volume = m_volumeSlider->GetValue();
@@ -127,7 +120,6 @@ void DSPConfigDialogLLE::VolumeChanged(wxScrollEvent& WXUNUSED(event))
 
 	m_volumeText->SetLabel(wxString::Format(wxT("%d %%"), m_volumeSlider->GetValue()));
 }
-#endif
 
 void DSPConfigDialogLLE::SettingsChanged(wxCommandEvent& event)
 {
@@ -144,4 +136,18 @@ void DSPConfigDialogLLE::SettingsChanged(wxCommandEvent& event)
 	
 	if (event.GetId() == wxID_OK)
 		EndModal(wxID_OK);
+}
+
+bool DSPConfigDialogLLE::SupportsVolumeChanges(std::string backend)
+{
+	//FIXME: this one should ask the backend whether it supports it.
+	//       but getting the backend from string etc. is probably
+	//       too much just to enable/disable a stupid slider...
+	return (backend == BACKEND_DIRECTSOUND ||
+		    backend == BACKEND_OPENAL);
+}
+
+void DSPConfigDialogLLE::BackendChanged(wxCommandEvent& event)
+{
+	m_volumeSlider->Enable(SupportsVolumeChanges(std::string(m_BackendSelection->GetValue().mb_str())));
 }
