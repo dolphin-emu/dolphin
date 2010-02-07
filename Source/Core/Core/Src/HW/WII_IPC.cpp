@@ -90,6 +90,8 @@ u32 g_Address = NULL;
 u32 g_Reply = NULL;
 u32 g_ReplyHead = NULL;
 u32 g_ReplyTail = NULL;
+u32 g_ReplyNum = NULL;
+u32 g_ReplyFifo[REPLY_FIFO_DEPTH] = {0};
 u32 g_SensorBarPower = NULL;
 UIPC_Status g_IPC_Status(NULL);
 UIPC_Config g_IPC_Config(NULL);
@@ -102,6 +104,8 @@ void DoState(PointerWrap &p)
 	p.Do(g_Reply);
 	p.Do(g_ReplyHead);
 	p.Do(g_ReplyTail);
+	p.Do(g_ReplyNum);
+	p.DoArray(g_ReplyFifo, REPLY_FIFO_DEPTH);
 	p.Do(g_SensorBarPower);
 	p.Do(g_IPC_Status);
 	p.Do(g_IPC_Config);
@@ -116,6 +120,7 @@ void Init()
     g_Reply = NULL;
 	g_ReplyHead = NULL;
     g_ReplyTail = NULL;
+	g_ReplyNum = NULL;
 	g_SensorBarPower = NULL;
     g_IPC_Status = UIPC_Status(NULL);
     g_IPC_Config = UIPC_Config(NULL);
@@ -259,6 +264,7 @@ void GenerateReply(u32 _Address)
 
 void EnqReply(u32 _Address)
 {
+/*
 	// AyuanX: Replies are stored in a FIFO (depth 2), like ping-pong, and 2 is fairly enough
 	// Simple structure of fixed length will do good for DoState
 	//
@@ -272,16 +278,44 @@ void EnqReply(u32 _Address)
 		ERROR_LOG(WII_IPC, "Reply FIFO is full, something must be wrong!");
 		PanicAlert("WII_IPC: Reply FIFO is full, something must be wrong!");
 	}
+*/
+	if (g_ReplyNum < REPLY_FIFO_DEPTH)
+	{
+		g_ReplyFifo[g_ReplyTail++] = _Address;
+		g_ReplyTail &= REPLY_FIFO_MASK;
+		g_ReplyNum++;
+	}
+	else
+	{
+		ERROR_LOG(WII_IPC, "Reply FIFO is full, something must be wrong!");
+		PanicAlert("WII_IPC: Reply FIFO is full, something must be wrong!");
+	}
 }
 
 u32 DeqReply()
 {
+/*
 	u32 _Address = (g_ReplyHead) ?  g_ReplyHead : g_ReplyTail;
 
 	if (g_ReplyHead)
 		g_ReplyHead = NULL;
 	else
 		g_ReplyTail = NULL;
+
+	return _Address;
+*/
+	u32 _Address;
+
+	if (g_ReplyNum)
+	{
+		_Address = g_ReplyFifo[g_ReplyHead++];
+		g_ReplyHead &= REPLY_FIFO_MASK;
+		g_ReplyNum--;
+	}
+	else
+	{
+		_Address = NULL;
+	}
 
 	return _Address;
 }

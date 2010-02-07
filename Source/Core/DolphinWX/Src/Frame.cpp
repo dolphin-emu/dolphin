@@ -643,8 +643,9 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 #if defined(HAVE_X11) && HAVE_X11
 	case WM_USER_STOP:
 		main_frame->DoStop();
-	}
+		break;
 #endif
+	}
 }
 
 void CFrame::OnCustomHostMessage(int Id)

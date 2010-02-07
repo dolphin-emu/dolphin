@@ -23,6 +23,9 @@ class PointerWrap;
 namespace WII_IPCInterface
 {
 
+#define REPLY_FIFO_DEPTH	(8)
+#define REPLY_FIFO_MASK		(REPLY_FIFO_DEPTH - 1)
+
 void Init();
 void Reset();
 void Shutdown();	

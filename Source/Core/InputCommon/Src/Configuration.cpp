@@ -232,6 +232,9 @@ std::string VKToString(int keycode)
 		case VK_OEM_COMMA: return ",";
 		case VK_OEM_PERIOD: return ".";
 
+		case VK_BROWSER_BACK: return "Nav Bwd";
+		case VK_BROWSER_FORWARD: return "Nav Fwd";
+
 		//default: return KeyString = KeyStr;
 	}
 	
