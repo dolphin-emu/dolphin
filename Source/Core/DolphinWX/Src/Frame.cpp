@@ -640,7 +640,11 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 			m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
 		}
 		break;
+#if defined(HAVE_X11) && HAVE_X11
+	case WM_USER_STOP:
+		main_frame->DoStop();
 	}
+#endif
 }
 
 void CFrame::OnCustomHostMessage(int Id)

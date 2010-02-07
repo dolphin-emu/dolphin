@@ -739,6 +739,13 @@ void Callback_KeyPress(int key, bool shift, bool control)
 		else
 			State_UndoLoadState();	
 	}
+#if defined(HAVE_X11) && HAVE_X11
+	// 0x1b == VK_ESCAPE
+	if (key == 0x1b) 
+	{
+		Host_Message(WM_USER_STOP);
+	}
+#endif
 }
  
 // Callback_WiimoteLog

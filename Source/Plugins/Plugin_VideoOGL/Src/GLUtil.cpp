@@ -506,7 +506,7 @@ void OpenGL_Update()
         switch(event.type) {
             case KeyRelease:
                 key = XLookupKeysym((XKeyEvent*)&event, 0);
-                if(key >= XK_F1 && key <= XK_F9) {
+                if((key >= XK_F1 && key <= XK_F9) || (key == XK_Escape)) {
                         g_VideoInitialize.pKeyPress(FKeyPressed, ShiftPressed, ControlPressed);
                         FKeyPressed = -1;
                 } else {
@@ -522,6 +522,8 @@ void OpenGL_Update()
                 key = XLookupKeysym((XKeyEvent*)&event, 0);
                 if(key >= XK_F1 && key <= XK_F9)
                     FKeyPressed = key - 0xff4e;
+                else if (key == XK_Escape)
+                    FKeyPressed = 0x1b;
                 else {
                     if(key == XK_Shift_L || key == XK_Shift_R)
                         ShiftPressed = true;
@@ -547,8 +549,10 @@ void OpenGL_Update()
                 rcWindow.right = GLWin.width;
                 rcWindow.bottom = GLWin.height;
                 break;
-            case ClientMessage: //TODO: We aren't reading this correctly, It could be anything, highest chance is that it's a close event though
-//								Shutdown(); // Calling from here since returning false does nothing
+            case ClientMessage:
+                if ((ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", False))
+                  g_VideoInitialize.pKeyPress(0x1b, False, False);
+                return;
                 break;
             default:
                 //TODO: Should we put the event back if we don't handle it?
@@ -596,6 +600,15 @@ void OpenGL_Shutdown()
 		hDC = NULL;                                       // Set DC To NULL
 	}
 #elif defined(HAVE_X11) && HAVE_X11
+#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
+	/* switch back to original desktop resolution if we were in fs */
+	if ((GLWin.dpy != NULL) && GLWin.fs) {
+		XUngrabKeyboard (GLWin.dpy, CurrentTime);
+		XUngrabButton (GLWin.dpy, AnyButton, AnyModifier, GLWin.win);
+		XF86VidModeSwitchToMode(GLWin.dpy, GLWin.screen, &GLWin.deskMode);
+		XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
+	}
+#endif
 	if (g_Config.bHideCursor) XUndefineCursor(GLWin.dpy, GLWin.win);
 	if (GLWin.ctx)
 	{
@@ -608,15 +621,6 @@ void OpenGL_Shutdown()
 		XCloseDisplay(GLWin.dpy);
 		GLWin.ctx = NULL;
 	}
-#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
-	/* switch back to original desktop resolution if we were in fs */
-	if (GLWin.dpy != NULL) {
-		if (GLWin.fs) {
-			XF86VidModeSwitchToMode(GLWin.dpy, GLWin.screen, &GLWin.deskMode);
-			XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
-		}
-	}
-#endif
 #endif
 }
 
