@@ -495,7 +495,7 @@ void ToggleFullscreen(HWND hParent, bool bForceFull)
 				sscanf(g_Config.cInternalRes, "%dx%d", &w_fs, &h_fs);
 
 			// FullScreen -> Desktop
-			ChangeDisplaySettings(NULL, 0);
+			ChangeDisplaySettings(NULL, CDS_FULLSCREEN);
 
 			DWORD style = WS_OVERLAPPEDWINDOW;
 			RECT rc = {0, 0, w_fs, h_fs};

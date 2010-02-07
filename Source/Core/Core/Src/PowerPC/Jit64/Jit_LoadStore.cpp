@@ -211,7 +211,7 @@ void Jit64::lXz(UGeckoInstruction inst)
 		return;
 	}
 
-	// Fast and daring/failing
+	// Fast and daring
 	gpr.Lock(a, d);
 	gpr.LoadToX64(a, true, false);
 	gpr.LoadToX64(d, a == d, true);

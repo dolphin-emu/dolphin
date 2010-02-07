@@ -144,6 +144,9 @@ void OpenALStream::SoundLoop()
 		alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, OAL_MAX_SAMPLES, ulFrequency);
 	alSourceQueueBuffers(uiSource, OAL_NUM_BUFFERS, uiBuffers);
 	alSourcePlay(uiSource);
+	
+	// Set the default sound volume as saved in the config file.
+	alSourcef(uiSource, AL_GAIN, fVolume); 
 
 	err = alGetError();
 	// TODO: Error handling

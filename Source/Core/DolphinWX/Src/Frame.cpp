@@ -323,7 +323,7 @@ CFrame::CFrame(wxFrame* parent,
 	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
 	, bRenderToMain(false), bFloatLogWindow(false), bFloatConsoleWindow(false)
 	, HaveLeds(false), HaveSpeakers(false)
-	, m_bControlsCreated(false), bNoWiimoteMsg(false), m_StopDlg(NULL)
+	, m_bControlsCreated(false), m_bModalDialogOpen(false), bNoWiimoteMsg(false), m_StopDlg(NULL)
 	#if wxUSE_TIMER
 	#ifdef _WIN32
 		, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)

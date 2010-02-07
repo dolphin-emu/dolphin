@@ -56,8 +56,6 @@ reswitch:
 		case PowerPC::CPU_RUNNING:
 			//1: enter a fast runloop
 			PowerPC::RunLoop();
-			if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
-				return;
 			break;
 
 		case PowerPC::CPU_STEPPING:

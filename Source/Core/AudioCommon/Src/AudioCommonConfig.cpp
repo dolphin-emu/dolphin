@@ -39,7 +39,7 @@ void AudioCommonConfig::Set(IniFile &file) {
 	file.Set("Config", "EnableDTKMusic", m_EnableDTKMusic);
 	file.Set("Config", "EnableThrottle", m_EnableThrottle);
 	file.Set("Config", "Backend", sBackend);
-//	file.Set("Config", "Volume", m_Volume);
+	file.Set("Config", "Volume", m_Volume);
 }
 
 // Update according to the values (stream/mixer)
