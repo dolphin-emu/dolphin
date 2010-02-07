@@ -94,6 +94,9 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		switch (LOWORD(wParam))
 		{
 			case VK_ESCAPE:
+				ToggleFullscreen(hWnd);
+				return 0;
+/*
 				if (g_Config.bFullscreen)
 				{
 					// Pressing Esc switches to Windowed in Fullscreen mode
@@ -106,6 +109,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 					PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
 					return 0;
 				}
+*/
 				break;
 			case '3': // OSD keys
 			case '4':
@@ -395,13 +399,13 @@ void ToggleFullscreen(HWND hParent, bool bForceFull)
 			RECT rcdesktop;
 			GetWindowRect(GetDesktopWindow(), &rcdesktop);		
 
-			// Set new window style FS -> Windowed
-			SetWindowLong(hParent, GWL_STYLE, style);
-
 			// SetWindowPos to the center of the screen
 			int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
 			int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
 			SetWindowPos(hParent, NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
+
+			// Set new window style FS -> Windowed
+			SetWindowLong(hParent, GWL_STYLE, style);
 
 			// Re-Enable the cursor
 			ShowCursor(TRUE);

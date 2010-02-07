@@ -243,6 +243,9 @@ void OnKeyDown(WPARAM wParam)
 	switch (LOWORD( wParam ))
 	{
 	case VK_ESCAPE:
+		ToggleFullscreen(m_hWnd);
+		return;
+/*
 		if (!g_Config.RenderToMainframe)
 		{
 			if (g_Config.bFullscreen)
@@ -258,6 +261,7 @@ void OnKeyDown(WPARAM wParam)
 				return;
 			}
 		}
+*/
 		break;
 	case '3': // OSD keys
 	case '4':
@@ -499,13 +503,13 @@ void ToggleFullscreen(HWND hParent, bool bForceFull)
 			RECT rcdesktop;
 			GetWindowRect(GetDesktopWindow(), &rcdesktop);		
 
-			// Set new window style FS -> Windowed
-			SetWindowLongPtr(hParent, GWL_STYLE, style);
-
 			// SetWindowPos to the center of the screen
 			int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
 			int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
 			SetWindowPos(hParent, NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
+
+			// Set new window style FS -> Windowed
+			SetWindowLongPtr(hParent, GWL_STYLE, style);
 
 			// Re-Enable the cursor
 			ShowCursor(TRUE);
