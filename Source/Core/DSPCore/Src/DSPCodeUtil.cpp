@@ -54,10 +54,10 @@ bool Disassemble(const std::vector<u16> &code, bool line_numbers, std::string &t
 	AssemblerSettings settings;
 
 	// These two prevent roundtripping.
-	settings.show_hex = false;
+	settings.show_hex = true;
 	settings.show_pc = line_numbers;
 	settings.ext_separator = '\'';
-	settings.decode_names = false;
+	settings.decode_names = true;
 	settings.decode_registers = true;
 
 	DSPDisassembler disasm(settings);
