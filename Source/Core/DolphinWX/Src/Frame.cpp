@@ -148,7 +148,7 @@ CPanel::CPanel(
 			// Stop
 			case WM_USER_STOP:
 				main_frame->DoStop();
-				return 0;
+				break;
 			
 			case WM_USER_CREATE:
 				// We don't have a local setting for bRenderToMain but we can detect it this way instead
@@ -157,7 +157,7 @@ CPanel::CPanel(
 					main_frame->bRenderToMain = false;
 				else
 					main_frame->bRenderToMain = true;
-				return 0;
+				break;
 
 			case WIIMOTE_DISCONNECT:
 				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
@@ -183,13 +183,13 @@ CPanel::CPanel(
 						dlg->Destroy();
 					}
 				}
-				return 0;
 			}
 			break;
+		default:
+			// By default let wxWidgets do what it normally does with this event
+			return wxPanel::MSWWindowProc(nMsg, wParam, lParam);
 		}
-		
-		// By default let wxWidgets do what it normally does with this event
-		return wxPanel::MSWWindowProc(nMsg, wParam, lParam);
+		return 0;
 	}
 #endif
 
@@ -730,12 +730,16 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
 	// Toggle fullscreen
-	if (event.GetKeyCode() == WXK_ESCAPE || (event.GetKeyCode() == WXK_RETURN && event.GetModifiers() == wxMOD_ALT))
+	if (event.GetKeyCode() == WXK_RETURN && event.GetModifiers() == wxMOD_ALT)
 	{
 		DoFullscreen(!IsFullScreen());
 
 		// We do that to avoid the event to be double processed (which would cause the window to be stuck in fullscreen) 
 		event.StopPropagation();
+	}
+	else if(event.GetKeyCode() == WXK_ESCAPE)
+	{
+		main_frame->DoStop();
 	}
 	// event.Skip() allows the event to propagate to the gamelist for example
 	else if (! (Core::GetState() == Core::CORE_RUN && bRenderToMain && event.GetEventObject() == this))
@@ -927,7 +931,10 @@ void CFrame::DoFullscreen(bool bF)
 	}
 #ifdef _WIN32
 	else // Post the message to the separate rendering window which will then handle it.
+	{
 		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, TOGGLE_FULLSCREEN, 0);
+		BringWindowToTop((HWND)Core::GetWindowHandle());
+	}
 #endif
 }
 

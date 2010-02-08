@@ -243,25 +243,16 @@ void OnKeyDown(WPARAM wParam)
 	switch (LOWORD( wParam ))
 	{
 	case VK_ESCAPE:
-		ToggleFullscreen(m_hWnd);
-		return;
-/*
 		if (!g_Config.RenderToMainframe)
 		{
 			if (g_Config.bFullscreen)
 			{
-				// Pressing Esc switches to Windowed in Fullscreen mode
+				// Pressing Esc switches to Windowed mode from Fullscreen mode
 				ToggleFullscreen(m_hWnd);
-				return;
 			}
-			else
-			{
-				// Pressing Esc stops the emulation
-				SendMessage( m_hWnd, WM_CLOSE, 0, 0 );
-				return;
-			}
+			// then stops the emulation if already Windowed
+			SendMessage(m_hWnd, WM_CLOSE, 0, 0);
 		}
-*/
 		break;
 	case '3': // OSD keys
 	case '4':

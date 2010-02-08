@@ -80,7 +80,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			hdc = BeginPaint(hWnd, &ps);
 			EndPaint(hWnd, &ps);
 		}
-		return 0;
+		break;
 
 	case WM_ENTERSIZEMOVE:
 		s_sizing = true;
@@ -94,22 +94,16 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		switch (LOWORD(wParam))
 		{
 			case VK_ESCAPE:
-				ToggleFullscreen(hWnd);
-				return 0;
-/*
-				if (g_Config.bFullscreen)
+				if(!g_Config.RenderToMainframe)
 				{
-					// Pressing Esc switches to Windowed in Fullscreen mode
-					ToggleFullscreen(hWnd);
-					return 0;
-				}
-				else
-				{
+					if (g_Config.bFullscreen)
+					{
+						// Pressing Esc switches to Windowed mode from Fullscreen mode
+						ToggleFullscreen(hWnd);
+					}
 					// And stops the emulation when already in Windowed mode
 					PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
-					return 0;
 				}
-*/
 				break;
 			case '3': // OSD keys
 			case '4':
@@ -125,18 +119,17 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		break;
 
 	case WM_SYSKEYDOWN:
-		switch( LOWORD( wParam ))
+		switch (LOWORD( wParam ))
 		{
 			case VK_RETURN:   // Pressing Alt+Enter switch FullScreen/Windowed
 				if (m_hParent == NULL && !g_Config.RenderToMainframe)
 				{
 					ToggleFullscreen(hWnd);
-					return 0;
 				}
 				break;
 			case VK_F5: case VK_F6: case VK_F7: case VK_F8:
 				PostMessage(m_hMain, WM_SYSKEYDOWN, wParam, lParam);
-				return 0;
+				break;
 		}
 		break;
 
@@ -146,7 +139,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	case WM_LBUTTONUP:
 	case WM_LBUTTONDBLCLK:
 		PostMessage(GetParentWnd(), iMsg, wParam, lParam);
-	break;
+		break;
 
 	case WM_CLOSE:
 		// When the user closes the window, we post an event to the main window to call Stop()
@@ -154,7 +147,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		if (m_hParent == NULL)
 		{
 			PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
-			return 0;
 		}
 		break;
 
@@ -178,12 +170,13 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		{
 		case SC_SCREENSAVE:
 		case SC_MONITORPOWER:
-			return 0;
+			break;
 		}
 		break;
+	default:
+		return DefWindowProc(hWnd, iMsg, wParam, lParam);
 	}
-
-	return DefWindowProc(hWnd, iMsg, wParam, lParam);
+	return 0;
 }
 
 // ---------------------------------------------------------------------

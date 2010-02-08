@@ -80,11 +80,11 @@ bool Exists(const char *filename)
 // Returns true if filename is a directory
 bool IsDirectory(const char *filename)
 {
-	struct stat file_info;
+	struct stat64 file_info;
 
 	char *copy = StripTailDirSlashes(__strdup(filename));
 
-	int result = stat(copy, &file_info);
+	int result = stat64(copy, &file_info);
 	free(copy);
 
 	if (result < 0) {

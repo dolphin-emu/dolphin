@@ -30,7 +30,7 @@ SConfig::SConfig()
 {
 	// Make sure we have log manager
 	LoadSettings();
-	//Mkae sure we load settings
+	//Make sure we load settings
 	LoadSettingsHLE();
 }
 
