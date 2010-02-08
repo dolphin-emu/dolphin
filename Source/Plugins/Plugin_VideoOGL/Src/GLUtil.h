@@ -69,6 +69,13 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
+
+// EWMH state actions, see
+// http://freedesktop.org/wiki/Specifications/wm-spec?action=show&redirect=Standards%2Fwm-spec
+#define _NET_WM_STATE_REMOVE        0    /* remove/unset property */
+#define _NET_WM_STATE_ADD           1    /* add/set property */
+#define _NET_WM_STATE_TOGGLE        2    /* toggle property  */
+
 #if defined(HAVE_XXF86VM) && HAVE_XXF86VM
 #include <X11/extensions/xf86vmode.h>
 #endif // XXF86VM
