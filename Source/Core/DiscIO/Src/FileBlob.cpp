@@ -20,61 +20,13 @@
 #include "Blob.h"
 #include "FileBlob.h"
 
-#ifdef _WIN32
-	#include <windows.h>
-#endif
-
 namespace DiscIO
 {
-
-#ifdef _WIN32
-
-PlainFileReader::PlainFileReader(HANDLE hFile_)
-{
-	hFile = hFile_;
-	GetFileSizeEx(hFile, (PLARGE_INTEGER)&size);
-}
-
-PlainFileReader* PlainFileReader::Create(const char* filename)
-{
-	HANDLE hFile = CreateFile(
-		filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_RANDOM_ACCESS, NULL);
-	if (hFile != INVALID_HANDLE_VALUE)
-		return new PlainFileReader(hFile);
-	else
-		return 0;
-}
-
-PlainFileReader::~PlainFileReader()
-{
-	CloseHandle(hFile);
-}
-
-bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
-{
-	if (!SetFilePointerEx(hFile, *(LARGE_INTEGER*)&offset, NULL, FILE_BEGIN))
-		return false;
-
-	DWORD bytesRead = 0;
-	if (!ReadFile(hFile, out_ptr, (DWORD)nbytes, &bytesRead, NULL))
-		return false;
-	if (bytesRead != nbytes)
-		return false;
-
-	return true;
-}
-
-#else // POSIX
 
 PlainFileReader::PlainFileReader(FILE* file__)
 {
 	file_ = file__;
-	#if 0
-		fseek64(file_, 0, SEEK_END);
-	#else
-		fseek(file_, 0, SEEK_END); // I don't have fseek64 with gcc 4.3
-	#endif
+	fseek(file_, 0, SEEK_END);
 	size = ftell(file_);
 	fseek(file_, 0, SEEK_SET);
 }
@@ -85,7 +37,7 @@ PlainFileReader* PlainFileReader::Create(const char* filename)
 	if (file_)
 		return new PlainFileReader(file_);
 	else
-		return 0;
+		return NULL;
 }
 
 PlainFileReader::~PlainFileReader()
@@ -101,7 +53,5 @@ bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 	size_t bytesRead = fread(out_ptr, 1, nbytes, file_);
 	return bytesRead == nbytes;
 }
-
-#endif
 
 }  // namespace

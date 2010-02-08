@@ -20,24 +20,15 @@
 
 #include "Blob.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#else
 #include <cstdio>
-#endif
 
 namespace DiscIO
 {
 
 class PlainFileReader : public IBlobReader
 {
-#ifdef _WIN32
-	HANDLE hFile;
-	PlainFileReader(HANDLE hFile_);
-#else
 	FILE* file_;
 	PlainFileReader(FILE* file__);
-#endif
 	s64 size;
 
 public:

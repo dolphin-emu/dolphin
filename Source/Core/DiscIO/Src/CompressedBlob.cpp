@@ -179,7 +179,10 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 
 	FILE* f = fopen(outfile, "wb");
 	if (!f)
+	{
+		fclose(inf);
 		return false;
+	}
 
 	callback("Files opened, ready to compress.", 0, arg);
 
@@ -209,6 +212,7 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 	u64 position = 0;
 	int num_compressed = 0;
 	int num_stored = 0;
+
 	for (u32 i = 0; i < header.num_blocks; i++)
 	{
 		if (i % (header.num_blocks / 1000) == 0)

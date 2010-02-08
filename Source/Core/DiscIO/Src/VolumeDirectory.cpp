@@ -49,7 +49,7 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
 	// create the default disk header
 	m_diskHeader = new u8[DISKHEADERINFO_ADDRESS];
 	memset(m_diskHeader, 0, (size_t)DISKHEADERINFO_ADDRESS);
-	SetUniqueID("RZDE01");	
+	SetUniqueID("AGBJ01");	
 	SetName("Default name");
 
 	if(_bIsWii)
@@ -170,6 +170,8 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer) const
 			_dbg_assert_(DVDINTERFACE, fileIter->first >= _Offset);
 			PadToAddress(fileIter->first, _Offset, _Length, _pBuffer);
 		}
+
+		delete reader;
 	}
 	
 	return true;
