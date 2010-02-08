@@ -28,8 +28,6 @@ namespace DiscIO
 namespace DiscScrubber
 {
 
-#define SCRUBBER_VERSION 1
-
 #define	CLUSTER_SIZE 0x8000
 
 u8* m_FreeTable = NULL;
@@ -89,21 +87,6 @@ bool ParsePartitionData(SPartition& _rPartition);
 u32 GetDOLSize(u64 _DOLOffset);
 
 
-// Check for simplistic flag stored in an unencrypted pad space (offset 0x80)
-u32 IsScrubbed(const char* filename)
-{
-	FILE* f = fopen(filename, "rb");
-
-	if (!f)
-		return false;
-
-	u32 ScrubbedFlag = SCRUBBER_VERSION;
-	fseek(f, 0x80, SEEK_SET);
-	fread(&ScrubbedFlag, sizeof(ScrubbedFlag), 1, f);
-	fclose(f);
-	return ScrubbedFlag;
-}
-
 bool SetupScrub(const char* filename, int block_size)
 {
 	bool success = true;
@@ -117,18 +100,6 @@ bool SetupScrub(const char* filename, int block_size)
 	}
 
 	m_BlocksPerCluster = CLUSTER_SIZE / m_BlockSize;
-
-	u32 version = IsScrubbed(filename);
-	if (version && version < SCRUBBER_VERSION)
-	{
-		if (!PanicYesNo("%s was scrubbed with an older version of DiscScrubber, would you like to re-scrub?", filename))
-			return success;
-	}
-	else if (version)
-	{
-		NOTICE_LOG(DISCIO, "%s is already scrubbed, skipping...", filename);
-		return success;
-	}
 
 	m_Disc = CreateVolumeFromFilename(filename);
 	m_FileSize = m_Disc->GetSize();
