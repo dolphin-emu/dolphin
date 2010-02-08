@@ -32,12 +32,15 @@ namespace DiscScrubber
 
 #define	CLUSTER_SIZE 0x8000
 
-static u8* m_Sector1;
-static u8* m_FreeTable;
-static u64 m_FileSize;
+u8* m_FreeTable = NULL;
+u64 m_FileSize;
+u64 m_BlockCount;
+u32 m_BlockSize;
+int m_BlocksPerCluster;
+bool m_isScrubbing = false;
 
-static std::string m_Filename;
-static IVolume* m_Disc = NULL;
+std::string m_Filename;
+IVolume* m_Disc = NULL;
 
 struct SPartitionHeader
 {
@@ -72,12 +75,11 @@ struct SPartitionGroup
 	u64 PartitionsOffset;
 	std::vector<SPartition> PartitionsVec;
 };
-static SPartitionGroup PartitionGroup[4];
+SPartitionGroup PartitionGroup[4];
 
 
 void MarkAsUsed(u64 _Offset, u64 _Size);
 void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size);
-bool MarkAsScrubbed(const char* filename);
 void ReadFromDisc(u64 _Offset, u64 _Length, u32& _Buffer);
 void ReadFromDisc(u64 _Offset, u64 _Length, u64& _Buffer);
 void ReadFromVolume(u64 _Offset, u64 _Length, u32& _Buffer);
@@ -102,10 +104,19 @@ u32 IsScrubbed(const char* filename)
 	return ScrubbedFlag;
 }
 
-bool Scrub(const char* filename, CompressCB callback, void* arg)
+bool SetupScrub(const char* filename, int block_size)
 {
 	bool success = true;
 	m_Filename = std::string(filename);
+	m_BlockSize = block_size;
+
+	if (CLUSTER_SIZE % m_BlockSize != 0)
+	{
+		ERROR_LOG(DISCIO, "block size %i is not a factor of 0x8000, scrubbing not possible", m_BlockSize);
+		return false;
+	}
+
+	m_BlocksPerCluster = CLUSTER_SIZE / m_BlockSize;
 
 	u32 version = IsScrubbed(filename);
 	if (version && version < SCRUBBER_VERSION)
@@ -115,7 +126,6 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 	}
 	else if (version)
 	{
-		callback("DiscScrubber: This disc is already scrubbed", 0, arg);
 		NOTICE_LOG(DISCIO, "%s is already scrubbed, skipping...", filename);
 		return success;
 	}
@@ -132,73 +142,51 @@ bool Scrub(const char* filename, CompressCB callback, void* arg)
 	// Table of free blocks
 	m_FreeTable = new u8[numClusters];
 	std::fill(m_FreeTable, m_FreeTable + numClusters, 1);
-	// Fill the dummy all 1 block
-	m_Sector1 = new u8[CLUSTER_SIZE];
-	std::fill(m_Sector1, m_Sector1 + CLUSTER_SIZE, 0xFF);
 
 	// Fill out table of free blocks
-	callback("DiscScrubber: Parsing...", 0, arg);
 	success = ParseDisc();
 	// Done with it; need it closed for the next part
 	delete m_Disc;
 	m_Disc = NULL;
-
-	// Open file
-	FILE* pFile = fopen(filename, "r+b");
-	if (!pFile)
-	{
-		ERROR_LOG(DISCIO, "DiscScrubber failed to open %s", filename);
-		success = false;
-	}
+	m_BlockCount = 0;
 
 	// Let's not touch the file if we've failed up to here :p
 	if (!success)
-		goto cleanup;
+		Cleanup();
 
-	// Modify file, obeying the table of free blocks
-	NOTICE_LOG(DISCIO, "Removing garbage data...go get some coffee :)");
-	for (u32 i = 0;	i < numClusters; i++)
-	{
-		u64 CurrentOffset = (u64)i * CLUSTER_SIZE;
-
-		if (m_FreeTable[i])
-		{
-			DEBUG_LOG(DISCIO, "Freeing 0x%016llx", CurrentOffset);
-			// Area is unused so fill with 1s
- 			fseek(pFile, CurrentOffset, SEEK_SET);
- 			success |= fwrite(m_Sector1, CLUSTER_SIZE, 1, pFile) == CLUSTER_SIZE;
-
-			if (!success)
-			{
-				PanicAlert("DiscScrubber failure");
-				break;
-			}
-		}
-		else
-		{
-			DEBUG_LOG(DISCIO, "Used    0x%016llx", CurrentOffset);
-		}
-
-		// Update progress dialog
-		if (i % (numClusters / 1000) == 0)
-		{
-			char temp[512];
-			sprintf(temp, "DiscScrubber: %x/%x (%s)", i, numClusters, m_FreeTable[i] ? "Free" : "Used");
-			callback(temp, (float)i / (float)numClusters, arg);
-		}
-	}
-	NOTICE_LOG(DISCIO, "Done removing garbage data");
-
-	if (success)
-		if (!MarkAsScrubbed(filename))
-			ERROR_LOG(DISCIO, "Really weird - failed to mark scrubbed disk as scrubbed :s");
-
-cleanup:
-	if (pFile) fclose(pFile);
-	delete[] m_Sector1;
-	delete[] m_FreeTable;
-
+	m_isScrubbing = success;
 	return success;
+}
+
+void GetNextBlock(FILE* in, u8* buffer)
+{
+	u64 CurrentOffset = m_BlockCount * m_BlockSize;
+	u64 i = CurrentOffset / CLUSTER_SIZE;
+
+	if (m_isScrubbing && m_FreeTable[i])
+	{
+		DEBUG_LOG(DISCIO, "Freeing 0x%016llx", CurrentOffset);
+		std::fill(buffer, buffer + m_BlockSize, 0xFF);
+		fseek(in, m_BlockSize, SEEK_CUR);
+	}
+	else
+	{
+		DEBUG_LOG(DISCIO, "Used    0x%016llx", CurrentOffset);
+		fread(buffer, m_BlockSize, 1, in);
+	}
+
+	m_BlockCount++;
+}
+
+void Cleanup()
+{
+	if (m_FreeTable) delete[] m_FreeTable;
+	m_FreeTable = NULL;
+	m_FileSize = 0;
+	m_BlockCount = 0;
+	m_BlockSize = 0;
+	m_BlocksPerCluster = 0;
+	m_isScrubbing = false;
 }
 
 void MarkAsUsed(u64 _Offset, u64 _Size)
@@ -231,20 +219,6 @@ void MarkAsUsedE(u64 _PartitionDataOffset, u64 _Offset, u64 _Size)
 	Size += _Offset % 0x7c00;
 
 	MarkAsUsed(Offset, Size);
-}
-
-bool MarkAsScrubbed(const char* filename)
-{
-	FILE* f = fopen(filename, "r+b");
-
-	if (!f)
-		return false;
-
-	u8 ScrubbedFlag[1] = {SCRUBBER_VERSION};
-	fseek(f, 0x80, SEEK_SET);
-	bool success = fwrite(ScrubbedFlag, 1, 1, f) == 1;
-	fclose(f);
-	return success;
 }
 
 // Helper functions for RAW reading the BE discs
