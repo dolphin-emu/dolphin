@@ -62,12 +62,10 @@ public:
 	static void Shutdown();
 	static bool SetShader(bool dstAlpha);
 	static bool InsertByteCode(const PIXELSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate);
-	static LPDIRECT3DPIXELSHADER9 GetColorMatrixProgram();
-	static LPDIRECT3DPIXELSHADER9 GetColorCopyProgram();
-	static LPDIRECT3DPIXELSHADER9 GetDepthMatrixProgram();
-	static LPDIRECT3DPIXELSHADER9 GetClearProgram();
-	static LPDIRECT3DPIXELSHADER9 GetFSAAProgram();
-	static LPDIRECT3DPIXELSHADER9 GetFSAAColorMatrixProgram();
+	static LPDIRECT3DPIXELSHADER9 GetColorMatrixProgram(int SSAAMode);
+	static LPDIRECT3DPIXELSHADER9 GetColorCopyProgram(int SSAAMode);
+	static LPDIRECT3DPIXELSHADER9 GetDepthMatrixProgram(int SSAAMode);
+	static LPDIRECT3DPIXELSHADER9 GetClearProgram();	
 	
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	static std::string GetCurrentShaderCode();

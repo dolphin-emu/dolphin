@@ -259,7 +259,7 @@ bool Renderer::Init()
 	UpdateActiveConfig();
 	int fullScreenRes, w_temp, h_temp;
 	s_blendMode = 0;
-	// Anti-aliasing hasn't been implemented yet
+	// Multisample Anti-aliasing hasn't been implemented yet
 	int backbuffer_ms_mode = 0;  // g_ActiveConfig.iMultisampleMode;
 
 	sscanf(g_Config.cFSResolution, "%dx%d", &w_temp, &h_temp);
@@ -283,7 +283,7 @@ bool Renderer::Init()
 	// TODO: Grab target width from configured resolution?
 	s_target_width  = s_backbuffer_width;
 	s_target_height = s_backbuffer_height * ((float)EFB_HEIGHT / 480.0f);	
-	s_LastAA = g_ActiveConfig.iMultisampleMode;
+	s_LastAA = (g_ActiveConfig.iMultisampleMode > 3)?0:g_ActiveConfig.iMultisampleMode;
 	
 	switch (s_LastAA)
 	{
@@ -294,6 +294,10 @@ bool Renderer::Init()
 		case 2:
 			s_target_width  *= 2;
 			s_target_height *= 2;
+			break;
+		case 3:
+			s_target_width  *= 3;
+			s_target_height *= 3;
 			break;
 		default:
 			break;
@@ -580,14 +584,10 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 
 	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);		
 	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-	if(g_ActiveConfig.iMultisampleMode > 0 )
-	{
-		D3D::drawShadedTexQuad(read_texture,&sourcerect,Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),PixelShaderCache::GetFSAAProgram(),VertexShaderCache::GetFSAAVertexShader());			
-	}
-	else
-	{
-		D3D::drawShadedTexQuad(read_texture,&sourcerect,Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader());			
-	}
+	int SSAAMode = ( g_ActiveConfig.iMultisampleMode > 3 )? 0 : g_ActiveConfig.iMultisampleMode;
+	
+	D3D::drawShadedTexQuad(read_texture,&sourcerect,Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),PixelShaderCache::GetColorCopyProgram(SSAAMode),(SSAAMode != 0)?VertexShaderCache::GetFSAAVertexShader():VertexShaderCache::GetSimpleVertexShader());			
+	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);		
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
 	
@@ -878,7 +878,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		
 		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);		
 
-		D3D::drawShadedTexQuad(read_texture,&RectToLock, Renderer::GetFullTargetWidth() , Renderer::GetFullTargetHeight(),(BufferFormat == FOURCC_RAWZ)?PixelShaderCache::GetColorMatrixProgram():PixelShaderCache::GetDepthMatrixProgram(),VertexShaderCache::GetSimpleVertexShader());	
+		D3D::drawShadedTexQuad(
+			read_texture,
+			&RectToLock, 
+			Renderer::GetFullTargetWidth() , 
+			Renderer::GetFullTargetHeight(),
+			(BufferFormat == FOURCC_RAWZ)?PixelShaderCache::GetColorMatrixProgram(0):PixelShaderCache::GetDepthMatrixProgram(0),
+			VertexShaderCache::GetSimpleVertexShader());	
 
 		D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 
@@ -1158,6 +1164,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 			case 2:
 				s_target_width  *= 2;
 				s_target_height *= 2;
+				break;
+			case 3:
+				s_target_width  *= 3;
+				s_target_height *= 3;
 				break;
 			default:
 				break;

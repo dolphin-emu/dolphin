@@ -165,7 +165,10 @@ void Enumerate()
 		a.aa_levels.push_back(AALevel("None", D3DMULTISAMPLE_NONE, 0));
 		a.aa_levels.push_back(AALevel("2.25x SSAA", D3DMULTISAMPLE_NONE, 0));
 		a.aa_levels.push_back(AALevel("4x SSAA", D3DMULTISAMPLE_NONE, 0));
+		a.aa_levels.push_back(AALevel("9x SSAA", D3DMULTISAMPLE_NONE, 0));
 		//Add multisample modes
+		//disable them will they are not implemnted
+		/*
 		DWORD qlevels = 0;
 		if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
 			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_2_SAMPLES, &qlevels))
@@ -208,7 +211,7 @@ void Enumerate()
 				}
 			}
 		}
-
+		*/
 		// Determine if INTZ is supported. Code from ATI's doc.
 		// http://developer.amd.com/gpu_assets/Advanced%20DX9%20Capabilities%20for%20ATI%20Radeon%20Cards.pdf
 		a.supports_intz = D3D_OK == D3D->CheckDeviceFormat(

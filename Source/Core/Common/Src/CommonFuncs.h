@@ -51,10 +51,20 @@ inline u32 _rotl(u32 x, int shift) {
     return (x << shift) | (x >> (32 - shift));
 }
 
+inline u64 _rotl64(u64 x, unsigned int shift){
+	unsigned int n = shift % 64;
+	return (x << n) | (x >> (64 - n));
+}
+
 inline u32 _rotr(u32 x, int shift) {
     shift &= 31;
     if (!shift) return x;
     return (x >> shift) | (x << (32 - shift));
+}
+
+inline u64 _rotr64(u64 x, unsigned int shift){
+	unsigned int n = shift % 64;
+	return (x >> n) | (x << (64 - n));
 }
 	#define SLEEP(x) usleep(x*1000)
 #else // WIN32

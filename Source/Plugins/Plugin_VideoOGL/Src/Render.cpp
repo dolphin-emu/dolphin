@@ -1081,9 +1081,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	GL_REPORT_ERRORD();
     g_Config.iSaveTargetId = 0;
 
-	bool last_copy_efb_to_ram = !g_ActiveConfig.bCopyEFBToTexture;
+	bool last_copy_efb_to_Texture = g_ActiveConfig.bCopyEFBToTexture;
 	UpdateActiveConfig();
-	if (last_copy_efb_to_ram != (!g_ActiveConfig.bCopyEFBToTexture))
+	if (last_copy_efb_to_Texture != g_ActiveConfig.bCopyEFBToTexture)
 		TextureMngr::ClearRenderTargets();
 
 	// For testing zbuffer targets.

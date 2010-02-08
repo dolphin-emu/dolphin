@@ -89,8 +89,8 @@ PC_TexFormat GetPC_TexFormat(int texformat, int tlutfmt);
 void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth, int texformat, int tlutaddr, int tlutfmt);
 
 
-u32 TexDecoder_GetSafeTextureHash(const u8 *src, int width, int height, int texformat, u32 seed=0);
-u32 TexDecoder_GetTlutHash(const u8* src, int len);
+u64 TexDecoder_GetFullHash(const u8 *src, int len, u64 seed = 0);
+u64 TexDecoder_GetFastHash(const u8 *src, int len, u64 seed = 0);
 
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 
