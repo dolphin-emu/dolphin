@@ -422,6 +422,7 @@ void SetARCode_IsActive(bool active, size_t index)
 
 void UpdateActiveList()
 {
+	bool old_value = SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = false;
 	b_RanOnce = false;
 	activeCodes.clear();
@@ -430,7 +431,7 @@ void UpdateActiveList()
 		if (arCodes[i].active)
 			activeCodes.push_back(arCodes[i]);
 	}
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = true;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = old_value;
 }
 
 void EnableSelfLogging(bool enable)
