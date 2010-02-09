@@ -74,6 +74,7 @@ class CFrame : public wxFrame
 		wxMenuBar* m_MenuBar;
 		wxBitmap aNormalFile;
 		void InitBitmaps();
+		void DoPause();
 		void DoStop();
 		bool bRenderToMain;
 		bool bNoWiimoteMsg;

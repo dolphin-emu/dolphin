@@ -101,8 +101,8 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 						// Pressing Esc switches to Windowed mode from Fullscreen mode
 						ToggleFullscreen(hWnd);
 					}
-					// And stops the emulation when already in Windowed mode
-					PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
+					// And pauses the emulation when already in Windowed mode
+					PostMessage(m_hMain, WM_USER, WM_USER_PAUSE, 0);
 				}
 				break;
 			case '3': // OSD keys
@@ -130,6 +130,8 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			case VK_F5: case VK_F6: case VK_F7: case VK_F8:
 				PostMessage(m_hMain, WM_SYSKEYDOWN, wParam, lParam);
 				break;
+			default:
+				return DefWindowProc(hWnd, iMsg, wParam, lParam);
 		}
 		break;
 
@@ -144,7 +146,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	case WM_CLOSE:
 		// When the user closes the window, we post an event to the main window to call Stop()
 		// Which then handles all the necessary steps to Shutdown the core + the plugins
-		if (m_hParent == NULL)
+		if (!g_Config.RenderToMainframe)
 		{
 			PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
 		}
@@ -171,6 +173,8 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		case SC_SCREENSAVE:
 		case SC_MONITORPOWER:
 			break;
+		default:
+			return DefWindowProc(hWnd, iMsg, wParam, lParam);
 		}
 		break;
 	default:

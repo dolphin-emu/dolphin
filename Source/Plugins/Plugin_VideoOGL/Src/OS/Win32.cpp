@@ -250,8 +250,8 @@ void OnKeyDown(WPARAM wParam)
 				// Pressing Esc switches to Windowed mode from Fullscreen mode
 				ToggleFullscreen(m_hWnd);
 			}
-			// then stops the emulation if already Windowed
-			SendMessage(m_hWnd, WM_CLOSE, 0, 0);
+			// then pauses the emulation if already Windowed
+			SendMessage(m_hMain, WM_USER, WM_USER_PAUSE, 0);
 		}
 		break;
 	case '3': // OSD keys

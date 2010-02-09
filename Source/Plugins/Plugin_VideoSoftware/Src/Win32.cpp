@@ -162,8 +162,8 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 				// Pressing Esc switches to Windowed mode from Fullscreen mode
 				ToggleFullscreen(hWnd);
 			}
-			// And stops the emulation when already in Windowed mode
-			PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
+			// And pause the emulation when already in Windowed mode
+			PostMessage(m_hMain, WM_USER, WM_USER_PAUSE, 0);
 			break;
         }
 		g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);

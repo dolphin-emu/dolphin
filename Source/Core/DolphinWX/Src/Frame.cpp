@@ -145,6 +145,11 @@ CPanel::CPanel(
 		case WM_USER:
 			switch(wParam)
 			{
+			// Pause
+			case WM_USER_PAUSE:
+				main_frame->DoPause();
+				break;
+			
 			// Stop
 			case WM_USER_STOP:
 				main_frame->DoStop();
@@ -739,7 +744,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	}
 	else if(event.GetKeyCode() == WXK_ESCAPE)
 	{
-		main_frame->DoStop();
+		main_frame->DoPause();
 	}
 	// event.Skip() allows the event to propagate to the gamelist for example
 	else if (! (Core::GetState() == Core::CORE_RUN && bRenderToMain && event.GetEventObject() == this))
@@ -932,8 +937,8 @@ void CFrame::DoFullscreen(bool bF)
 #ifdef _WIN32
 	else // Post the message to the separate rendering window which will then handle it.
 	{
-		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, TOGGLE_FULLSCREEN, 0);
 		BringWindowToTop((HWND)Core::GetWindowHandle());
+		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, TOGGLE_FULLSCREEN, 0);
 	}
 #endif
 }

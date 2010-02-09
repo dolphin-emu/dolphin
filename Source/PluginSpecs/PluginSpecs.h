@@ -18,7 +18,8 @@
 enum PLUGIN_COMM
 {
 	// Begin at 10 in case there is already messages with wParam = 0, 1, 2 and so on
-	WM_USER_STOP = 10,
+	WM_USER_PAUSE = 10,
+	WM_USER_STOP,
 	WM_USER_CREATE,
 	WM_USER_KEYDOWN,
 	WM_USER_VIDEO_STOP,
