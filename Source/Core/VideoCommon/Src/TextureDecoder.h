@@ -91,6 +91,7 @@ void TexDecoder_DecodeTexel(u8 *dst, const u8 *src, int s, int t, int imageWidth
 
 u64 TexDecoder_GetFullHash(const u8 *src, int len, u64 seed = 0);
 u64 TexDecoder_GetFastHash(const u8 *src, int len, u64 seed = 0);
+u32 TexDecoder_GetFullHash32(const u8 *src, int len, u32 seed = 0);
 
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 

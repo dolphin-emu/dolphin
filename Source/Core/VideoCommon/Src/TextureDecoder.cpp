@@ -88,26 +88,63 @@ int TexDecoder_GetTextureSizeInBytes(int width, int height, int format)
 	return (width * height * TexDecoder_GetTexelSizeInNibbles(format)) / 2;
 }
 
-u64 TexDecoder_GetFullHash(const u8 *key, int len, u64 seed)
+u32 TexDecoder_GetFullHash32(const u8 *src, int len, u32 seed)
+{
+	const u32 m = 0x5bd1e995;
+	const int r = 24;
+
+	u32 h = seed ^ len;
+
+	const u32 * data = (const u32 *)src;
+	int Flen = len / 4;
+	
+	while(len)
+	{
+		u32 k = data[0];
+		k *= m; 
+		k ^= k >> r; 
+		//k *= m; 		
+		//h *= m; 
+		h ^= k;
+
+		data++;
+		len --;
+	}
+	
+	switch(len)
+	{
+	case 3: h ^= data[2] << 16;
+	case 2: h ^= data[1] << 8;
+	case 1: h ^= data[0];
+	        h *= m;
+	};
+	h ^= h >> 13;
+	h *= m;
+	h ^= h >> 15;
+	return h;
+} 
+
+#ifdef _M_X64
+u64 TexDecoder_GetFullHash(const u8 *src, int len, u64 seed)
 {
 	const u64 m = 0xc6a4a7935bd1e995;
 	const int r = 47;
 
 	u64 h = seed ^ (len * m);
 
-	const u64 * data = (const u64 *)key;
+	const u64 * data = (const u64 *)src;
 	const u64 * end = data + (len/8);
-
+	
 	while(data != end)
 	{
-		u64 k = *data++;
-
+		u64 k = data[0];
+		data++;
 		k *= m; 
 		k ^= k >> r; 
-		k *= m; 
+		//k *= m; 
 		
 		h ^= k;
-		h *= m; 
+		//h *= m; 
 	}
 
 	const u8 * data2 = (const u8*)data;
@@ -130,6 +167,70 @@ u64 TexDecoder_GetFullHash(const u8 *key, int len, u64 seed)
 
 	return h;
 } 
+
+#else
+u64 TexDecoder_GetFullHash(const u8 *src, int len, u64 seed)
+{
+	const u32 m = 0x5bd1e995;
+	const int r = 24;
+
+	u32 h1 = seed ^ len;
+	u32 h2 = 0;
+
+	const u32 * data = (const u32 *)src;
+
+	while(len >= 8)
+	{
+		u32 k1 = *data++;
+		k1 *= m; 
+		k1 ^= k1 >> r; 
+		//k1 *= m;
+		//h1 *= m; 
+		h1 ^= k1;
+		len -= 4;
+
+		u32 k2 = *data++;
+		k2 *= m; 
+		k2 ^= k2 >> r; 
+		//k2 *= m;
+		//h2 *= m; 
+		h2 ^= k2;
+		len -= 4;
+	}
+
+	if(len >= 4)
+	{
+		u32 k1 = *data++;
+		k1 *= m; 
+		k1 ^= k1 >> r; 
+		//k1 *= m;
+		//h1 *= m; 
+		h1 ^= k1;
+		len -= 4;
+	}
+
+	switch(len)
+	{
+	case 3: h2 ^= ((u8*)data)[2] << 16;
+	case 2: h2 ^= ((u8*)data)[1] << 8;
+	case 1: h2 ^= ((u8*)data)[0];
+			h2 *= m;
+	};
+
+	h1 ^= h2 >> 18; h1 *= m;
+	h2 ^= h1 >> 22; h2 *= m;
+	h1 ^= h2 >> 17; h1 *= m;
+	h2 ^= h1 >> 19; h2 *= m;
+
+	u64 h = h1;
+
+	h = (h << 32) | h2;
+
+	return h;
+}
+
+
+#endif
 
 u64 TexDecoder_GetFastHash(const u8 *src, int len, u64 seed)
 {

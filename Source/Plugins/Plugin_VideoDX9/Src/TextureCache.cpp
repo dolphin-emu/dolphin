@@ -167,10 +167,13 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			// visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
 			// we must make sure that texture with different tluts get different IDs.
 			texHash =  TexDecoder_GetFullHash(ptr,TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format));
- 			u64 tlutHash = TexDecoder_GetFullHash(&texMem[tlutaddr], TexDecoder_GetPaletteSize(tex_format));
-			texHash ^= tlutHash;
+ 			u32 tlutHash = TexDecoder_GetFullHash32(&texMem[tlutaddr], TexDecoder_GetPaletteSize(tex_format));
+			//texHash ^= tlutHash; //this line was the problem, as the hash changes with the tlut hash
+			//the textures where alway recreated
 			if (g_ActiveConfig.bSafeTextureCache)
-				texID = texID ^ ((u32)(tlutHash & 0xFFFFFFFF)) ^ ((u32)((tlutHash >> 32) & 0xFFFFFFFF));
+			{
+				texID = texID ^ tlutHash;
+			}
 		}
 		else
 		{
