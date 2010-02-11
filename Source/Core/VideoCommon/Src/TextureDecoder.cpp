@@ -234,7 +234,7 @@ u64 TexDecoder_GetFullHash(const u8 *src, int len, u64 seed)
 
 u64 TexDecoder_GetFastHash(const u8 *src, int len, u64 seed)
 {
-	u64 hash = seed ? seed : 0x1337c0debeefbabe;
+	u64 hash = seed ? seed : 0x1337c0debeefbabeULL;
 	int step = (len / 8) / 37;
 	if (!step) step = 1;
 	for (int i = 0; i < len / 8; i += step) {
