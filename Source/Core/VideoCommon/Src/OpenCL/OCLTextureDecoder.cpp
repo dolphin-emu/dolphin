@@ -91,6 +91,14 @@ void TexDecoder_OpenCL_Initialize() {
 
 void TexDecoder_OpenCL_Shutdown() {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL && !defined(DEBUG_OPENCL)
+	
+	clReleaseProgram(g_program);
+	int i = 0;
+	while(strlen(Decoders[i].name) > 0) 
+	{
+		clReleaseKernel(Decoders[i].kernel);
+		i++;
+	}
 	if(g_clsrc)
 		clReleaseMemObject(g_clsrc);
 
