@@ -33,7 +33,7 @@ class CEXIMemoryCard : public IEXIDevice
 {
 public:
 	CEXIMemoryCard(const std::string& _rName, const std::string& _rFilename, int card_index);
-	~CEXIMemoryCard();
+	virtual ~CEXIMemoryCard();
 	void SetCS(int cs);
 	void Update();
 	bool IsInterruptSet();
