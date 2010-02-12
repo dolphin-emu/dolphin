@@ -343,10 +343,7 @@ else:
     env['HAVE_COCOA'] = 0
    
 # handling wx flags CCFLAGS should be created before
-if sys.platform == 'darwin' and env['osx'] == '64cocoa':
-    wxmods = ['adv', 'core', 'base']
-else:
-    wxmods = ['aui', 'adv', 'core', 'base']
+wxmods = ['aui', 'adv', 'core', 'base']
 
 env['USE_WX'] = 0
 if env['wxgl']:

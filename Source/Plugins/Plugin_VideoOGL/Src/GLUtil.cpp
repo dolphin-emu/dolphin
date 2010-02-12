@@ -621,6 +621,7 @@ void OpenGL_Shutdown()
 	delete GLWin.glCanvas;
 	delete GLWin.frame;
 #elif defined(HAVE_COCOA) && HAVE_COCOA
+	cocoaGLDeleteWindow(GLWin.cocoaWin);
 	cocoaGLDelete(GLWin.cocoaCtx);
 
 #elif defined(_WIN32)
