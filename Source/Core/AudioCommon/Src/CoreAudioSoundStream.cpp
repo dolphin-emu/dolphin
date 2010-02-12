@@ -138,6 +138,7 @@ bool CoreAudioSound::CoreAudioInit()
 	if(err)
 		printf("Error while closing component\n");
 	
+	free(soundStruct);
 	return true;
 	
 }

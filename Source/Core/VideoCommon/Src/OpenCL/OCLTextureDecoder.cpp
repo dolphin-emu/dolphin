@@ -162,6 +162,8 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 			formatResult = PC_TEX_FMT_BGRA32;
 			break;
 		case GX_TF_CMPR:
+			// Doesn't decode correctly
+			return PC_TEX_FMT_NONE;
 			kernelToRun = Decoders[7].kernel;
 			sizeOfSrc = sizeof(u8) / 2.0f;
             sizeOfDst = sizeof(u32);

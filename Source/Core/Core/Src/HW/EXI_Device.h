@@ -45,6 +45,7 @@ public:
 
 	// Is generating interrupt ?
 	virtual bool IsInterruptSet() {return false;}
+	virtual ~IEXIDevice() {};
 
 };
 
