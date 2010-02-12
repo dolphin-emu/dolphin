@@ -476,7 +476,7 @@ bool OpenGL_MakeCurrent()
     
     // better for pad plugin key input (thc)
     XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | ButtonPressMask | KeyReleaseMask | ButtonReleaseMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask |
-                 FocusChangeMask | PointerMotionMask );
+                 FocusChangeMask );
 #endif
 	return true;
 }
@@ -651,7 +651,7 @@ void OpenGL_Shutdown()
 	/* switch back to original desktop resolution if we were in fs */
 	if ((GLWin.dpy != NULL) && GLWin.fs) {
 		XUngrabKeyboard (GLWin.dpy, CurrentTime);
-		XUngrabButton (GLWin.dpy, AnyButton, AnyModifier, GLWin.win);
+		XUngrabPointer (GLWin.dpy, CurrentTime);
 		XF86VidModeSwitchToMode(GLWin.dpy, GLWin.screen, &GLWin.deskMode);
 		XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
 	}

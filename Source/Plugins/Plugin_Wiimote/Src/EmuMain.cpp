@@ -197,7 +197,7 @@ void LoadRecordedMovements()
 }
 
 #if defined(HAVE_X11) && HAVE_X11
-MousePosition MousePos;
+Window GLWin;
 #endif
 
 /* Calibrate the mouse position to the emulation window. g_WiimoteInitialize.hWnd is the rendering window handle. */
@@ -220,9 +220,19 @@ void GetMousePos(float& x, float& y)
 	float PictureWidth = WinWidth, PictureHeight = WinHeight;
 #else
 #if defined(HAVE_X11) && HAVE_X11
-	float WinWidth = (float)MousePos.WinWidth;
-	float WinHeight = (float)MousePos.WinHeight;
+	float WinWidth = 0, WinHeight = 0;
 	float XOffset = 0, YOffset = 0;
+	int root_x, root_y, win_x, win_y;
+	if (GLWin != 0)
+	{
+		XWindowAttributes WinAttribs;
+		XGetWindowAttributes (WMdisplay, GLWin, &WinAttribs);
+		WinWidth = (float)WinAttribs.width;
+		WinHeight = (float)WinAttribs.height;
+		Window rootDummy, childWin;
+		unsigned int mask;
+		XQueryPointer(WMdisplay, GLWin, &rootDummy, &childWin, &root_x, &root_y, &win_x, &win_y, &mask);
+	}
 	float PictureWidth = WinWidth, PictureHeight = WinHeight;
 #endif
 #endif
@@ -305,8 +315,8 @@ void GetMousePos(float& x, float& y)
 	*/
 #else
 #if defined(HAVE_X11) && HAVE_X11
-	x = ((float)MousePos.x - XOffset) / PictureWidth;
-	y = ((float)MousePos.y - YOffset) / PictureHeight;
+	x = ((float)win_x - XOffset) / PictureWidth;
+	y = ((float)win_y - YOffset) / PictureHeight;
 #endif
 #endif
 }
@@ -674,6 +684,7 @@ void ReadLinuxKeyboard()
 	for (num_events = XPending(WMdisplay); num_events > 0; num_events--)
 	{
 		XNextEvent(WMdisplay, &E);
+		GLWin = E.xany.window;
 		switch (E.type)
 		{
 		case KeyPress:
@@ -733,16 +744,6 @@ void ReadLinuxKeyboard()
 				KeyStatus[EWM_B] = false;
 			else
 				XPutBackEvent(WMdisplay, &E);
-			break;
-		}
-		case MotionNotify:
-		{
-			MousePos.x = E.xmotion.x;
-			MousePos.y = E.xmotion.y;
-			XWindowAttributes WinAttribs;
-			XGetWindowAttributes (E.xmotion.display, E.xmotion.window, &WinAttribs);
-			MousePos.WinWidth = WinAttribs.width;
-			MousePos.WinHeight = WinAttribs.height;
 			break;
 		}
 		case ConfigureNotify:
