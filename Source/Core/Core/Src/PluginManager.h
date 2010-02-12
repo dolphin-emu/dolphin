@@ -82,7 +82,7 @@ private:
 	CPluginManager();
 	~CPluginManager();
 	void GetPluginInfo(CPluginInfo *&info, std::string Filename);
-	void *LoadPlugin(const char *_rFilename, int Number = 0);
+	void *LoadPlugin(const char *_rFilename);
 
 };
 

@@ -262,7 +262,7 @@ void CPluginManager::GetPluginInfo(CPluginInfo *&info, std::string Filename)
 /* Called from: Get__() functions in this file only (not from anywhere else),
    therefore we can leave all condition checks in the Get__() functions
    below. */
-void *CPluginManager::LoadPlugin(const char *_rFilename, int Number)
+void *CPluginManager::LoadPlugin(const char *_rFilename)
 {
 	// Create a string of the filename
 	std::string Filename = _rFilename;
@@ -275,7 +275,7 @@ void *CPluginManager::LoadPlugin(const char *_rFilename, int Number)
 	   Dolphin was started */
 	CPluginInfo *info = NULL;
 	GetPluginInfo(info, Filename);
-	if (! info) {
+	if (!info) {
 		PanicAlert("Error loading %s: can't read info", _rFilename);
 		return NULL;
 	}
@@ -303,12 +303,14 @@ void *CPluginManager::LoadPlugin(const char *_rFilename, int Number)
 	
 	default:
 		PanicAlert("Trying to load unsupported type %d", type);
+		return NULL;
 	}
 	
 	// Check that the plugin has both all the common and all the type specific functions
 	if (!plugin->IsValid())
 	{
 		PanicAlert("Can't open %s, it has a missing function", _rFilename);
+		delete plugin;
 		return NULL;
 	}
 	
@@ -379,8 +381,12 @@ void CPluginManager::ScanForPlugins()
 Common::PluginPAD *CPluginManager::GetPad(int controller)
 {
 	if (m_pad[controller] != NULL)
+	{
 		if (m_pad[controller]->GetFilename() == m_params->m_strPadPlugin[controller])
 			return m_pad[controller];
+		else
+			FreePad(controller);
+	}
 	
 	// Else load a new plugin
 	m_pad[controller] = (Common::PluginPAD*)LoadPlugin(m_params->m_strPadPlugin[controller].c_str());
@@ -390,8 +396,12 @@ Common::PluginPAD *CPluginManager::GetPad(int controller)
 Common::PluginWiimote *CPluginManager::GetWiimote(int controller)
 {
 	if (m_wiimote[controller] != NULL)
+	{
 		if (m_wiimote[controller]->GetFilename() == m_params->m_strWiimotePlugin[controller])
 			return m_wiimote[controller];
+		else
+			FreeWiimote(controller);
+	}
 	
 	// Else load a new plugin
 	m_wiimote[controller] = (Common::PluginWiimote*)LoadPlugin(m_params->m_strWiimotePlugin[controller].c_str());
@@ -401,8 +411,12 @@ Common::PluginWiimote *CPluginManager::GetWiimote(int controller)
 Common::PluginDSP *CPluginManager::GetDSP()
 {
 	if (m_dsp != NULL)
+	{
 		if (m_dsp->GetFilename() == m_params->m_strDSPPlugin)
 			return m_dsp;
+		else
+			FreeDSP();
+	}
 	// Else load a new plugin
 	m_dsp = (Common::PluginDSP*)LoadPlugin(m_params->m_strDSPPlugin.c_str());
 	return m_dsp;

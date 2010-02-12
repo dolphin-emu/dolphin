@@ -98,7 +98,8 @@ GameListItem::GameListItem(const std::string& _rFileName)
 						if (pBannerLoader->GetBanner(g_ImageTemp))
 						{
 							m_ImageSize = DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT * 3;
-							m_pImage = new u8[m_ImageSize]; //(u8*)malloc(m_ImageSize);
+							//use malloc(), since wxImage::Create below calls free() afterwards.
+							m_pImage = (u8*)malloc(m_ImageSize);
 
 							for (size_t i = 0; i < DVD_BANNER_WIDTH * DVD_BANNER_HEIGHT; i++)
 							{
@@ -125,12 +126,9 @@ GameListItem::GameListItem(const std::string& _rFileName)
 		}
 	}
 
-	// i am not sure if this is a leak or if wxImage will release the code
 	if (m_pImage)
 	{
-#if defined(HAVE_WX) && HAVE_WX
 		m_Image.Create(DVD_BANNER_WIDTH, DVD_BANNER_HEIGHT, m_pImage);
-#endif
 	}
 	else
 	{

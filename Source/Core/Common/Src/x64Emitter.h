@@ -233,6 +233,7 @@ protected:
 public:
 	XEmitter() { code = NULL; }
 	XEmitter(u8 *code_ptr) { code = code_ptr; }
+	virtual ~XEmitter() {}
 
 	void WriteModRM(int mod, int rm, int reg);
 	void WriteSIB(int scale, int index, int base);

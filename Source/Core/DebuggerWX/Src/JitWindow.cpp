@@ -143,6 +143,7 @@ void CJitWindow::Compare(u32 em_address)
 		if (block_num < 0) {
 			ppc_box->SetValue(wxString::FromAscii(StringFromFormat("(non-code address: %08x)", em_address).c_str()));
 			x86_box->SetValue(wxString::FromAscii(StringFromFormat("(no translation)").c_str()));
+			delete[] xDis;
 			return;
 		}
 	}
@@ -210,7 +211,7 @@ void CJitWindow::Compare(u32 em_address)
 	}
 	
 
-	delete [] xDis;
+	delete[] xDis;
 }
 
 void CJitWindow::Update()

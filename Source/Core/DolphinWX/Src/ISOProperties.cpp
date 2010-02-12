@@ -214,9 +214,10 @@ CISOProperties::~CISOProperties()
 	}
 	else
 		if (!IsVolumeWadFile(OpenISO))
-			if(pFileSystem)
+			if (pFileSystem)
 				delete pFileSystem;
 
+	delete OpenGameListItem;
 	delete OpenISO;
 }
 
