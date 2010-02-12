@@ -59,6 +59,7 @@ CUCode_AXWii::CUCode_AXWii(CMailHandler& _rMailHandler, u32 l_CRC)
 CUCode_AXWii::~CUCode_AXWii()
 {
 	m_rMailHandler.Clear();
+	delete lCUCode_AX;
 	delete [] templbuffer;
 	delete [] temprbuffer;
 }
