@@ -61,9 +61,6 @@ int NumPads = 0, NumGoodPads = 0; // Number of goods pads
 std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 CONTROLLER_MAPPING_WII WiiMapping[MAX_WIIMOTES];
 
-// Keyboard input
-bool KeyStatus[LAST_CONSTANT];
-
 } // namespace
 
 #endif	//_EMU_DECLARATIONS_

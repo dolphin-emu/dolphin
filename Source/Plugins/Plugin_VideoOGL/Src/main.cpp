@@ -348,6 +348,9 @@ void Initialize(void *init)
 
 	// Now the window handle is written
     _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
+#if defined(HAVE_X11) && HAVE_X11
+    _pVideoInitialize->pXWindow = g_VideoInitialize.pXWindow;
+#endif
 
 	OSD::AddMessage("Dolphin OpenGL Video Plugin" ,5000);
 }

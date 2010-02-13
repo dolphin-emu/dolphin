@@ -196,10 +196,6 @@ void LoadRecordedMovements()
 	}
 }
 
-#if defined(HAVE_X11) && HAVE_X11
-Window GLWin;
-#endif
-
 /* Calibrate the mouse position to the emulation window. g_WiimoteInitialize.hWnd is the rendering window handle. */
 void GetMousePos(float& x, float& y)
 {
@@ -223,6 +219,7 @@ void GetMousePos(float& x, float& y)
 	float WinWidth = 0, WinHeight = 0;
 	float XOffset = 0, YOffset = 0;
 	int root_x, root_y, win_x, win_y;
+	Window GLWin = *(Window *)g_WiimoteInitialize.pXWindow;
 	if (GLWin != 0)
 	{
 		XWindowAttributes WinAttribs;
@@ -643,8 +640,6 @@ void Update(int _number)
 	// Read input or not
 	if (WiiMapping[g_ID].Source == 1)
 	{
-		ReadLinuxKeyboard();
-
 		// Check if the pad state should be updated
 		if (NumGoodPads > 0 && joyinfo.size() > (u32)WiiMapping[g_ID].ID)
 			UpdatePadState(WiiMapping[g_ID]);
@@ -670,91 +665,6 @@ void Update(int _number)
 		SendReportCoreAccelIr10Ext(g_ReportingChannel[g_ID]);
 		break;
 	}
-}
-
-
-void ReadLinuxKeyboard()
-{
-#if defined(HAVE_X11) && HAVE_X11
-	XEvent E;
-	KeySym key;
-
-	// keyboard input
-	int num_events;
-	for (num_events = XPending(WMdisplay); num_events > 0; num_events--)
-	{
-		XNextEvent(WMdisplay, &E);
-		GLWin = E.xany.window;
-		switch (E.type)
-		{
-		case KeyPress:
-		{
-			key = XLookupKeysym((XKeyEvent*)&E, 0);
-			
-			if ((key >= XK_F1 && key <= XK_F9) ||
-			   key == XK_Shift_L || key == XK_Shift_R ||
-			   key == XK_Control_L || key == XK_Control_R || key == XK_Escape)
-			{
-				XPutBackEvent(WMdisplay, &E);
-				break;
-			}
-
-			for (int i = 0; i < LAST_CONSTANT; i++)
-			{
-				if (((int) key) == WiiMapping[g_ID].Button[i])
-					KeyStatus[i] = true;
-			}
-			break;
-		}
-		case KeyRelease:
-		{
-			key = XLookupKeysym((XKeyEvent*)&E, 0);
-			
-			if ((key >= XK_F1 && key <= XK_F9) ||
-			   key == XK_Shift_L || key == XK_Shift_R ||
-			   key == XK_Control_L || key == XK_Control_R || key == XK_Escape) {
-				XPutBackEvent(WMdisplay, &E);
-				break;
-			}
-
-			for (int i = 0; i < LAST_CONSTANT; i++)
-			{
-				if (((int) key) == WiiMapping[g_ID].Button[i])
-					KeyStatus[i] = false;
-			}
-			break;
-		}
-		case ButtonPress:
-		{
-			int button = ((XButtonEvent*)&E)->button;
-			if (button == 1)
-				KeyStatus[EWM_A] = true;
-			else if (button == 3)
-				KeyStatus[EWM_B] = true;
-			else
-				XPutBackEvent(WMdisplay, &E);
-			break;
-		}
-		case ButtonRelease:
-		{
-			int button = ((XButtonEvent*)&E)->button;
-			if (button == 1)
-				KeyStatus[EWM_A] = false;
-			else if (button == 3)
-				KeyStatus[EWM_B] = false;
-			else
-				XPutBackEvent(WMdisplay, &E);
-			break;
-		}
-		case ConfigureNotify:
-		case ClientMessage:
-			XPutBackEvent(WMdisplay, &E);
-			break;
-		default:
-			break;
-		}
-	}
-#endif
 }
 
 } // end of namespace

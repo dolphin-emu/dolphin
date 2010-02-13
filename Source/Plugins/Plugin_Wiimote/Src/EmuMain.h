@@ -42,7 +42,7 @@ void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size
 void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size) ;
 void Update(int _number);
 void DoState(PointerWrap &p);
-void ReadLinuxKeyboard();
+//void ReadLinuxKeyboard();
 bool IsKey(int Key);
 
 // Recordings

@@ -161,7 +161,6 @@ bool Search_Devices(std::vector<InputCommon::CONTROLLER_INFO> &_joyinfo, int &_N
 void GetAxisState(CONTROLLER_MAPPING_GC &_GCMapping);
 void UpdatePadState(CONTROLLER_MAPPING_GC &_GCMapping);
 bool IsKey(int Key);
-void ReadLinuxKeyboard();
 bool IsFocus();
 bool ReloadDLL();
 void PAD_RumbleClose();

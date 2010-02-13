@@ -307,7 +307,6 @@ struct CONTROLLER_MAPPING_WII	// WII PAD MAPPING
 extern int NumPads, NumGoodPads; // Number of goods pads
 extern std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 extern CONTROLLER_MAPPING_WII WiiMapping[4];
-extern bool KeyStatus[64];
 
 } // namespace
 

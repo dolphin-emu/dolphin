@@ -70,6 +70,9 @@ typedef struct
 typedef struct
 {
 	void *pWindowHandle;
+#if defined(HAVE_X11) && HAVE_X11
+	void *pXWindow;
+#endif
 
     TSetInterrupt                   pSetInterrupt;
     TRegisterEvent                  pRegisterEvent;

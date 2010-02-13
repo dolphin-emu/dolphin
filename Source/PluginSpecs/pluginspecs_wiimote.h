@@ -19,6 +19,9 @@ typedef void (*TWiimoteInput)(int _number, u16 _channelID, const void* _pData, u
 typedef struct
 {
 	HWND hWnd;
+#ifdef __linux__
+	void *pXWindow;
+#endif
 	u32 ISOId;
 	TLogv pLog;
 	TWiimoteInput pWiimoteInput;

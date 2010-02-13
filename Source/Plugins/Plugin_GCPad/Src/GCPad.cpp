@@ -46,7 +46,6 @@
 
 // Variables
 // ---------
-bool KeyStatus[LAST_CONSTANT];
 bool g_SearchDeviceDone = false;
 CONTROLLER_MAPPING_GC GCMapping[4];
 std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
@@ -55,7 +54,7 @@ int NumPads = 0, NumGoodPads = 0, g_ID = 0;
 	HWND m_hWnd = NULL; // Handle to window
 #endif
 #if defined(HAVE_X11) && HAVE_X11
-   Display* WMdisplay;
+   Display* GCdisplay;
 #endif
 SPADInitialize *g_PADInitialize = NULL;
 PLUGIN_GLOBALS* globals = NULL;
@@ -194,7 +193,7 @@ void Initialize(void *init)
 	m_hWnd = (HWND)g_PADInitialize->hWnd;
 #endif
 #if defined(HAVE_X11) && HAVE_X11
-   WMdisplay = (Display*)g_PADInitialize->hWnd; 
+   GCdisplay = (Display*)g_PADInitialize->hWnd; 
 #endif
 
 	if (!g_SearchDeviceDone)
@@ -268,7 +267,6 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 	g_ID = _numPAD;
 
-	ReadLinuxKeyboard();
 	if (NumGoodPads && NumPads > GCMapping[_numPAD].ID)
 		UpdatePadState(GCMapping[_numPAD]);
 
@@ -611,7 +609,11 @@ bool IsKey(int Key)
 #else
 	if (MapKey < 256 || MapKey > 0xf000)
 	{
-		Ret = KeyStatus[Key];			// Keyboard (Linux)
+		char keys[32];
+		KeyCode keyCode;
+		XQueryKeymap(GCdisplay, keys);
+		keyCode = XKeysymToKeycode(GCdisplay, MapKey);
+		Ret = (keys[keyCode/8] & (1 << (keyCode%8)));	// Keyboard (Linux)
 #endif
 	}
 	else if (MapKey < 0x1100)
@@ -629,67 +631,6 @@ bool IsKey(int Key)
 	}
 
 	return (Ret) ? true : false;
-}
-
-void ReadLinuxKeyboard()
-{
-#if defined(HAVE_X11) && HAVE_X11
-	XEvent E;
-	KeySym key;
-
-	// keyboard input
-	int num_events;
-	for (num_events = XPending(WMdisplay); num_events > 0; num_events--)
-	{
-		XNextEvent(WMdisplay, &E);
-		switch (E.type)
-		{
-		case KeyPress:
-		{
-			key = XLookupKeysym((XKeyEvent*)&E, 0);
-			
-			if ((key >= XK_F1 && key <= XK_F9) ||
-			   key == XK_Shift_L || key == XK_Shift_R ||
-			   key == XK_Control_L || key == XK_Control_R || key == XK_Escape)
-			{
-				XPutBackEvent(WMdisplay, &E);
-				break;
-			}
-
-			for (int i = 0; i < LAST_CONSTANT; i++)
-			{
-				if (((int) key) == GCMapping[g_ID].Button[i])
-					KeyStatus[i] = true;
-			}
-			break;
-		}
-		case KeyRelease:
-		{
-			key = XLookupKeysym((XKeyEvent*)&E, 0);
-			
-			if ((key >= XK_F1 && key <= XK_F9) ||
-			   key == XK_Shift_L || key == XK_Shift_R ||
-			   key == XK_Control_L || key == XK_Control_R || key == XK_Escape) {
-				XPutBackEvent(WMdisplay, &E);
-				break;
-			}
-
-			for (int i = 0; i < LAST_CONSTANT; i++)
-			{
-				if (((int) key) == GCMapping[g_ID].Button[i])
-					KeyStatus[i] = false;
-			}
-			break;
-		}
-		case ConfigureNotify:
-		case ClientMessage:
-			XPutBackEvent(WMdisplay, &E);
-			break;
-		default:
-			break;
-		}
-	}
-#endif
 }
 
 // Check if Dolphin is in focus

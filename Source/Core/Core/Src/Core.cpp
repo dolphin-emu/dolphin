@@ -29,6 +29,11 @@
 #include "MathUtil.h"
 #include "MemoryUtil.h"
 
+#if defined(HAVE_X11) && HAVE_X11
+#include <X11/Xlib.h>
+#include <X11/keysym.h>
+#endif
+
 #include "Console.h"
 #include "Core.h"
 #include "CPUDetect.h"
@@ -92,6 +97,9 @@ bool g_bStopping = false;
 bool g_bHwInit = false;
 bool g_bRealWiimote = false;
 HWND g_pWindowHandle = NULL;
+#if defined(HAVE_X11) && HAVE_X11
+void *g_pXWindow = NULL;
+#endif
 Common::Thread* g_EmuThread = NULL;
 
 SCoreStartupParameter g_CoreStartupParameter;
@@ -234,7 +242,45 @@ void Stop()  // - Hammertime!
 	g_EmuThread = 0;
 }
 
- 
+#if defined(HAVE_X11) && HAVE_X11
+void ProcessXEvents(void)
+{
+	if (GetState() == CORE_PAUSE)
+	{
+		Display *dpy = (Display *)g_pWindowHandle;
+		XEvent event;
+		KeySym key;
+		int num_events;
+		for (num_events = XPending(dpy);num_events > 0;num_events--)
+		{
+			XNextEvent(dpy, &event);
+			switch(event.type) {
+				case KeyRelease:
+					key = XLookupKeysym((XKeyEvent*)&event, 0);
+					if(key == XK_F4 && ((event.xkey.state & Mod1Mask) == Mod1Mask))
+						Host_Message(WM_USER_STOP);
+					break;
+				case ClientMessage:
+					if ((ulong) event.xclient.data.l[0] == XInternAtom(dpy, "WM_DELETE_WINDOW", False))
+						Host_Message(WM_USER_STOP);
+					break;
+				default:
+					break;
+			}
+		}
+	}
+}
+
+THREAD_RETURN XEventThread(void *pArg)
+{
+	while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+	{
+		ProcessXEvents();
+		Common::SleepCurrentThread(200);
+	}
+	return 0;
+}
+#endif
 
 // Create the CPU thread. which would be a CPU + Video thread in Single Core mode.
 
@@ -330,6 +376,9 @@ THREAD_RETURN EmuThread(void *pArg)
  
 	// Under linux, this is an X11 Display, not a HWND!
 	g_pWindowHandle			= (HWND)VideoInitialize.pWindowHandle;
+#if defined(HAVE_X11) && HAVE_X11
+	g_pXWindow					= (Window *)VideoInitialize.pXWindow;
+#endif
 	Callback_PeekMessages	= VideoInitialize.pPeekMessages;
 	g_pUpdateFPSDisplay		= VideoInitialize.pUpdateFPSDisplay;
 
@@ -352,6 +401,7 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
 	
+	// Load and init GCPadPlugin
 	SPADInitialize PADInitialize;
 	PADInitialize.hWnd		= g_pWindowHandle;
 	PADInitialize.pLog		= Callback_PADLog;
@@ -364,6 +414,9 @@ THREAD_RETURN EmuThread(void *pArg)
 	{
 		SWiimoteInitialize WiimoteInitialize;
 		WiimoteInitialize.hWnd			= g_pWindowHandle;
+#if defined(HAVE_X11) && HAVE_X11
+		WiimoteInitialize.pXWindow	= g_pXWindow;
+#endif
 		WiimoteInitialize.ISOId			= Ascii2Hex(_CoreParameter.m_strUniqueID);
 		WiimoteInitialize.pLog			= Callback_WiimoteLog;
 		WiimoteInitialize.pWiimoteInput	= Callback_WiimoteInput;
@@ -392,6 +445,9 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	// Spawn the CPU thread
 	Common::Thread *cpuThread = NULL;
+#if defined(HAVE_X11) && HAVE_X11
+	Common::Thread *xEventThread = NULL;
+#endif
  
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
@@ -401,6 +457,9 @@ THREAD_RETURN EmuThread(void *pArg)
 
 		Plugins.GetVideo()->Video_Prepare(); // wglMakeCurrent
 		cpuThread = new Common::Thread(CpuThread, pArg);
+#if defined(HAVE_X11) && HAVE_X11
+		xEventThread = new Common::Thread(XEventThread, pArg);
+#endif
 		Common::SetCurrentThreadName("Video thread");
 
 		if (g_pUpdateFPSDisplay != NULL)
@@ -435,6 +494,9 @@ THREAD_RETURN EmuThread(void *pArg)
 		{
 			if (Callback_PeekMessages)
 				Callback_PeekMessages();
+#if defined(HAVE_X11) && HAVE_X11
+			ProcessXEvents();
+#endif
 			Common::SleepCurrentThread(20);
 		}
 

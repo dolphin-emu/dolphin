@@ -402,6 +402,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
                                    "GPU", None, NULL, 0, NULL);
         XMapRaised(GLWin.dpy, GLWin.win);
     }
+    g_VideoInitialize.pXWindow = (Window *) &GLWin.win;
     if (g_Config.bHideCursor)
     {
       // make a blank cursor
@@ -475,8 +476,8 @@ bool OpenGL_MakeCurrent()
         }
     
     // better for pad plugin key input (thc)
-    XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | ButtonPressMask | KeyReleaseMask | ButtonReleaseMask | StructureNotifyMask | EnterWindowMask | LeaveWindowMask |
-                 FocusChangeMask );
+    XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | KeyReleaseMask |
+        StructureNotifyMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask );
 #endif
 	return true;
 }
@@ -529,7 +530,6 @@ void OpenGL_Update()
     // We just check all of our events here
     XEvent event;
     KeySym key;
-    static RECT rcWindow;
     static bool ShiftPressed = false;
     static bool ControlPressed = false;
     static int FKeyPressed = -1;
@@ -539,7 +539,7 @@ void OpenGL_Update()
         switch(event.type) {
             case KeyRelease:
                 key = XLookupKeysym((XKeyEvent*)&event, 0);
-                if((key >= XK_F1 && key <= XK_F9) || (key == XK_Escape)) {
+                if(key >= XK_F1 && key <= XK_F9) {
                         g_VideoInitialize.pKeyPress(FKeyPressed, ShiftPressed, ControlPressed);
                         FKeyPressed = -1;
                 } else {
@@ -547,8 +547,6 @@ void OpenGL_Update()
                         ShiftPressed = false;
                     else if(key == XK_Control_L || key == XK_Control_R)
                         ControlPressed = false;
-                    else
-                        XPutBackEvent(GLWin.dpy, &event);
                 }
                 break;
             case KeyPress:
@@ -576,13 +574,10 @@ void OpenGL_Update()
                         ShiftPressed = true;
                     else if(key == XK_Control_L || key == XK_Control_R)
                         ControlPressed = true;
-                    else
-                        XPutBackEvent(GLWin.dpy, &event);
                 }
                 break;
             case ButtonPress:
             case ButtonRelease:
-                XPutBackEvent(GLWin.dpy, &event);
                 break;
             case ConfigureNotify:
                 Window winDummy;
@@ -591,10 +586,6 @@ void OpenGL_Update()
                              &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
                 s_backbuffer_width = GLWin.width;
                 s_backbuffer_height = GLWin.height;
-                rcWindow.left = 0;
-                rcWindow.top = 0;
-                rcWindow.right = GLWin.width;
-                rcWindow.bottom = GLWin.height;
                 break;
             case ClientMessage:
                 if ((ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", False))
