@@ -394,8 +394,8 @@ void OpcodeDecoder_Init()
 void OpcodeDecoder_Shutdown()
 {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
-	OpenCL::Destroy();
 	TexDecoder_OpenCL_Shutdown();
+	OpenCL::Destroy();
 #endif
 }
 

@@ -180,6 +180,10 @@ void Destroy()
 		return;
 	clReleaseCommandQueue(g_cmdq); 
 	clReleaseContext(g_context);
+	g_context = NULL;
+	g_cmdq = NULL;
+	
+	g_bInitialized = false;
 #endif
 }
 

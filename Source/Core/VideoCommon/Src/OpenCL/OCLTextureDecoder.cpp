@@ -99,11 +99,14 @@ void TexDecoder_OpenCL_Shutdown() {
 		clReleaseKernel(Decoders[i].kernel);
 		i++;
 	}
+	
 	if(g_clsrc)
 		clReleaseMemObject(g_clsrc);
 
 	if(g_cldst)
 		clReleaseMemObject(g_cldst);
+	
+	g_Inited = false;
 #endif
 }
 
