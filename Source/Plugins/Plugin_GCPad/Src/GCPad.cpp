@@ -606,7 +606,7 @@ bool IsKey(int Key)
 	if (MapKey < 256)
 	{
 		Ret = GetAsyncKeyState(MapKey);		// Keyboard (Windows)
-#else
+#elif defined HAVE_X11 && HAVE_X11
 	if (MapKey < 256 || MapKey > 0xf000)
 	{
 		char keys[32];
