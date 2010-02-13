@@ -596,6 +596,17 @@ void UpdatePadState(CONTROLLER_MAPPING_GC &_GCiMapping)
 	}
 }
 
+#if defined(HAVE_X11) && HAVE_X11
+bool HaveFocus (void)
+{
+	Window GLWin = *(Window *)g_PADInitialize->pXWindow;
+	Window FocusWin;
+	int Revert;
+	XGetInputFocus(GCdisplay, &FocusWin, &Revert);
+	return (GLWin != 0 && GLWin == FocusWin);
+}
+#endif
+
 // Multi System Input Status Check
 bool IsKey(int Key)
 {
@@ -609,7 +620,7 @@ bool IsKey(int Key)
 	}
 	else if (MapKey < 0x1100)
 #elif defined HAVE_X11 && HAVE_X11
-	if (MapKey < 256 || MapKey > 0xf000)
+	if (HaveFocus() && (MapKey < 256 || MapKey > 0xf000))
 	{
 		char keys[32];
 		KeyCode keyCode;

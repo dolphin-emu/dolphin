@@ -404,6 +404,9 @@ THREAD_RETURN EmuThread(void *pArg)
 	// Load and init GCPadPlugin
 	SPADInitialize PADInitialize;
 	PADInitialize.hWnd		= g_pWindowHandle;
+#if defined(HAVE_X11) && HAVE_X11
+	PADInitialize.pXWindow	= g_pXWindow;
+#endif
 	PADInitialize.pLog		= Callback_PADLog;
 	// This is may be needed to avoid a SDL problem
 	//Plugins.FreeWiimote();

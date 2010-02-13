@@ -42,8 +42,11 @@ void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size
 void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size) ;
 void Update(int _number);
 void DoState(PointerWrap &p);
-//void ReadLinuxKeyboard();
 bool IsKey(int Key);
+
+#if defined(HAVE_X11) && HAVE_X11
+bool HaveFocus (void);
+#endif
 
 // Recordings
 void LoadRecordedMovements();

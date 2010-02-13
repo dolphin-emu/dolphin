@@ -17,8 +17,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-#include "pluginspecs_wiimote.h"
 #include "Common.h"
+#include "pluginspecs_wiimote.h"
 #include "Encryption.h"
 
 

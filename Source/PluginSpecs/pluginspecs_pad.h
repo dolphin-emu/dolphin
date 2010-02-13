@@ -34,6 +34,9 @@ typedef void (*TLog)(const char* _pMessage);
 typedef struct
 {
 	HWND			hWnd;
+#if defined HAVE_X11 && HAVE_X11
+	void *pXWindow;
+#endif
 	TLog			pLog;
 } SPADInitialize;
 

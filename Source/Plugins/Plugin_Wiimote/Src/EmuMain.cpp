@@ -196,6 +196,17 @@ void LoadRecordedMovements()
 	}
 }
 
+#if defined(HAVE_X11) && HAVE_X11
+bool HaveFocus (void)
+{
+	Window GLWin = *(Window *)g_WiimoteInitialize.pXWindow;
+	Window FocusWin;
+	int Revert;
+	XGetInputFocus(WMdisplay, &FocusWin, &Revert);
+	return (GLWin != 0 && GLWin == FocusWin);
+}
+#endif
+
 /* Calibrate the mouse position to the emulation window. g_WiimoteInitialize.hWnd is the rendering window handle. */
 void GetMousePos(float& x, float& y)
 {
@@ -216,12 +227,13 @@ void GetMousePos(float& x, float& y)
 	float PictureWidth = WinWidth, PictureHeight = WinHeight;
 #else
 #if defined(HAVE_X11) && HAVE_X11
+	Window GLWin = *(Window *)g_WiimoteInitialize.pXWindow;
 	float WinWidth = 0, WinHeight = 0;
 	float XOffset = 0, YOffset = 0;
 	int root_x, root_y, win_x, win_y;
-	Window GLWin = *(Window *)g_WiimoteInitialize.pXWindow;
-	if (GLWin != 0)
+	if (HaveFocus())
 	{
+		Window GLWin = *(Window *)g_WiimoteInitialize.pXWindow;
 		XWindowAttributes WinAttribs;
 		XGetWindowAttributes (WMdisplay, GLWin, &WinAttribs);
 		WinWidth = (float)WinAttribs.width;

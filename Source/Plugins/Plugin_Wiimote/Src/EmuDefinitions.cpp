@@ -21,8 +21,8 @@
 #include <vector>
 #include <string>
 
-#include "pluginspecs_wiimote.h"
 #include "Common.h"
+#include "pluginspecs_wiimote.h"
 #include "wiimote_hid.h"
 #include "EmuDefinitions.h"
 #include "Encryption.h"

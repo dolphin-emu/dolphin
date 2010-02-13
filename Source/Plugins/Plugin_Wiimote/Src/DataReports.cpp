@@ -42,12 +42,11 @@
 	     CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 */
 
-#include "pluginspecs_wiimote.h"
-
 #include <vector>
 #include <string>
 
 #include "Common.h" // Common
+#include "pluginspecs_wiimote.h"
 #include "StringUtil.h" // for ArrayToString
 
 #include "wiimote_hid.h" // Local
