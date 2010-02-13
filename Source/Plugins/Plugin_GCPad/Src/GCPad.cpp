@@ -607,6 +607,7 @@ bool IsKey(int Key)
 	{
 		Ret = GetAsyncKeyState(MapKey);		// Keyboard (Windows)
 	}
+	else if (MapKey < 0x1100)
 #elif defined HAVE_X11 && HAVE_X11
 	if (MapKey < 256 || MapKey > 0xf000)
 	{
@@ -616,8 +617,10 @@ bool IsKey(int Key)
 		keyCode = XKeysymToKeycode(GCdisplay, MapKey);
 		Ret = (keys[keyCode/8] & (1 << (keyCode%8)));	// Keyboard (Linux)
 	}
-#endif
 	else if (MapKey < 0x1100)
+#else
+	if (MapKey < 0x1100)
+#endif
 	{
 		Ret = SDL_JoystickGetButton(GCMapping[g_ID].joy, MapKey - 0x1000);	// Pad button
 	}
