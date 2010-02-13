@@ -41,6 +41,7 @@
 #import <IOBluetooth/objc/IOBluetoothDevice.h>
 #import <IOBluetooth/objc/IOBluetoothDeviceInquiry.h>
 #import <IOBluetooth/objc/IOBluetoothL2CAPChannel.h>
+#import <IOBluetooth/objc/IOBluetoothHostController.h>
 
 IOBluetoothDeviceInquiry *bti;
 IOBluetoothDevice * btd;
@@ -183,10 +184,10 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 SearchBT *sbt;
 ConnectBT *cbt;
 
-void detectWiimote() {
+void detectWiimote(int timeout) {
 
     [bti setDelegate: sbt];
-    [bti setInquiryLength:20];
+    [bti setInquiryLength:timeout];
     [bti setSearchCriteria:kBluetoothServiceClassMajorAny majorDeviceClass:0x05 minorDeviceClass:0x01];
     [bti setUpdateNewDeviceNames:NO];
 
@@ -226,13 +227,22 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 
         NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
-        sbt = [[SearchBT alloc] init];
-        cbt = [[ConnectBT alloc] init];
-        bti = [[IOBluetoothDeviceInquiry alloc] init];
+	IOBluetoothHostController *bth = [[IOBluetoothHostController alloc] init];
+	if([bth addressAsString] == nil)
+	{
+		// Method addressAsString will return nil since it can't find a device
+		WIIUSE_INFO("No BT device");
+		[bth release];
+		[pool release];
+		return 0; // 0 Wiimotes found
+	}
+	sbt = [[SearchBT alloc] init];
+	cbt = [[ConnectBT alloc] init];
+	bti = [[IOBluetoothDeviceInquiry alloc] init];
 
-        detectWiimote();
+	detectWiimote(timeout);
 
-        CFRunLoopRun();
+	CFRunLoopRun();
 
 	found_wiimotes = 0;
 
