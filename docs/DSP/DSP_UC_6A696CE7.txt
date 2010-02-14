@@ -78,7 +78,7 @@ void Task_Init() {
 	// 0020 8100      clr         $ACC0
 	// 0021 00fe 0e31 sr          @0x0e31, $AC0.M
 	ACC0 = ACC1 = 0
-	*0x0e1b = 0xe80
+	*0x0e1b = 0xe80 // Used in Cmd8
 	*0x0e31 = 0
 	
 	// Send DSP_INIT mail
@@ -224,24 +224,34 @@ void Die_InvalidCmd() {
 	0081 0021      halt        
 }
 
+// Executes the same operation 3 times on buffers: (0, 0x0400, 0x07c0)
 void Cmd_0() {
-	0082 8100      clr         $ACC0
-	0083 8970      clr'l       $ACC1 : $AC0.M, @$AR0
-	0084 8e78      set16'l     : $AC1.M, @$AR0
-	0085 2ece      srs         @DSMAH, $AC0.M
-	0086 2fcf      srs         @DSMAL, $AC1.M
-	0087 009e 0e44 lri         $AC0.M, #0x0e44
-	0089 2ecd      srs         @DSPA, $AC0.M
-	008a 0e00      lris        $AC0.M, #0x00
-	008b 2ec9      srs         @DSCR, $AC0.M
-	008c 009e 0040 lri         $AC0.M, #0x0040
-	008e 2ecb      srs         @DSBL, $AC0.M
-	008f 0081 0e44 lri         $AR1, #0x0e44
-	0091 0082 0000 lri         $AR2, #0x0000
+	// 0082 8100      clr         $ACC0
+	// 0083 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	// 0084 8e78      set16'l     : $AC1.M, @$AR0
+	u16 maddrh = *(CmdBlockBuf++)
+	u16 maddrl = *(CmdBlockBuf++)
+	
+	// 0085 2ece      srs         @DSMAH, $AC0.M
+	// 0086 2fcf      srs         @DSMAL, $AC1.M
+	// 0087 009e 0e44 lri         $AC0.M, #0x0e44
+	// 0089 2ecd      srs         @DSPA, $AC0.M
+	// 008a 0e00      lris        $AC0.M, #0x00
+	// 008b 2ec9      srs         @DSCR, $AC0.M
+	// 008c 009e 0040 lri         $AC0.M, #0x0040
+	// 008e 2ecb      srs         @DSBL, $AC0.M
+	
+	// DMA 0x0040bytes to DRAM @ 0x0e44 from CPU @ maddr
+	
+	008f 0081 0e44 lri         $AR1, #0x0e44 // source
+	0091 0082 0000 lri         $AR2, #0x0000 // destination
+	
 	0093 009b 009f lri         $AX1.H, #0x009f
-	0095 009a 0140 lri         $AX0.H, #0x0140
+	0095 009a 0140 lri         $AX0.H, #0x0140 // loop length if !ACC0
+	
 	0097 8100      clr         $ACC0
 	0098 8900      clr         $ACC1
+	
 	0099 8f00      set40       
 	
 	// 009a 02bf 055c call        0x055c
@@ -250,12 +260,13 @@ void Cmd_0() {
 	009c 193e      lrri        $AC0.M, @$AR1
 	009d 193c      lrri        $AC0.L, @$AR1
 	009e b100      tst         $ACC0
-	009f 193f      lrri        $AC1.M, @$AR1
+	009f 193f      lrri        $AC1.M, @$AR1 // added to ACC0 in confusing ways
 	// 00a0 0294 00a6 jnz         0x00a6
 	if (!$ACC0) {
 		00a2 005a      loop        $AX0.H
 			00a3 1b5e      srri        @$AR2, $AC0.M
-		// 00a4 029f 00ae jmp         0x00ae
+			
+	// 00a4 029f 00ae jmp         0x00ae
 	} else {
 		00a6 9900      asr16       $ACC1
 		00a7 1b5e      srri        @$AR2, $AC0.M
@@ -264,25 +275,32 @@ void Cmd_0() {
 			00ab 4c00      add         $ACC0, $ACC1
 			00ac 1b5e      srri        @$AR2, $AC0.M
 			00ad 1b5c      srri        @$AR2, $AC0.L
+			
 	}
+	
+	// same code block as above...epic fail?
 	00ae 193e      lrri        $AC0.M, @$AR1
 	00af 193c      lrri        $AC0.L, @$AR1
 	00b0 b100      tst         $ACC0
 	00b1 193f      lrri        $AC1.M, @$AR1
-	00b2 0294 00b8 jnz         0x00b8
+	// 00b2 0294 00b8 jnz         0x00b8
 	if (!$ACC0) {
 		00b4 005a      loop        $AX0.H
-		00b5 1b5e      srri        @$AR2, $AC0.M
-		// 00b6 029f 00c0 jmp         0x00c0
+			00b5 1b5e      srri        @$AR2, $AC0.M
+			
+	// 00b6 029f 00c0 jmp         0x00c0
 	} else {
 		00b8 9900      asr16       $ACC1
 		00b9 1b5e      srri        @$AR2, $AC0.M
 		00ba 1b5c      srri        @$AR2, $AC0.L
 		00bb 007b 00bf bloop       $AX1.H, 0x00bf
-		00bd 4c00      add         $ACC0, $ACC1
-		00be 1b5e      srri        @$AR2, $AC0.M
-		00bf 1b5c      srri        @$AR2, $AC0.L
+			00bd 4c00      add         $ACC0, $ACC1
+			00be 1b5e      srri        @$AR2, $AC0.M
+			00bf 1b5c      srri        @$AR2, $AC0.L
+			
 	}
+	
+	// ...and again! wtf
 	00c0 193e      lrri        $AC0.M, @$AR1
 	00c1 193c      lrri        $AC0.L, @$AR1
 	00c2 b100      tst         $ACC0
@@ -290,8 +308,9 @@ void Cmd_0() {
 	// 00c4 0294 00ca jnz         0x00ca
 	if (!$ACC0) {
 		00c6 005a      loop        $AX0.H
-		00c7 1b5e      srri        @$AR2, $AC0.M
-		// 00c8 029f 00d2 jmp         0x00d2
+			00c7 1b5e      srri        @$AR2, $AC0.M
+			
+	// 00c8 029f 00d2 jmp         0x00d2
 	} else {
 		00ca 9900      asr16       $ACC1
 		00cb 1b5e      srri        @$AR2, $AC0.M
@@ -300,93 +319,128 @@ void Cmd_0() {
 			00cf 4c00      add         $ACC0, $ACC1
 			00d0 1b5e      srri        @$AR2, $AC0.M
 			00d1 1b5c      srri        @$AR2, $AC0.L
-		00d2 0082 0400 lri         $AR2, #0x0400
+			
 	}
+	
+	// set to next buffer
+	00d2 0082 0400 lri         $AR2, #0x0400
+	
+	// same code block, uses tst'l in one place...otherwise the same
 	00d4 193e      lrri        $AC0.M, @$AR1
 	00d5 193c      lrri        $AC0.L, @$AR1
 	00d6 b179      tst'l       $ACC0 : $AC1.M, @$AR1
-	00d7 0294 00dd jnz         0x00dd
-	00d9 005a      loop        $AX0.H
-		00da 1b5e      srri        @$AR2, $AC0.M
-	00db 029f 00e5 jmp         0x00e5
-	00dd 9900      asr16       $ACC1
-	00de 1b5e      srri        @$AR2, $AC0.M
-	00df 1b5c      srri        @$AR2, $AC0.L
-	00e0 007b 00e4 bloop       $AX1.H, 0x00e4
-		00e2 4c00      add         $ACC0, $ACC1
-		00e3 1b5e      srri        @$AR2, $AC0.M
-		00e4 1b5c      srri        @$AR2, $AC0.L
+	// 00d7 0294 00dd jnz         0x00dd
+	if (!$ACC0) {
+		00d9 005a      loop        $AX0.H
+			00da 1b5e      srri        @$AR2, $AC0.M
+	// 00db 029f 00e5 jmp         0x00e5
+	} else {
+		00dd 9900      asr16       $ACC1
+		00de 1b5e      srri        @$AR2, $AC0.M
+		00df 1b5c      srri        @$AR2, $AC0.L
+		00e0 007b 00e4 bloop       $AX1.H, 0x00e4
+			00e2 4c00      add         $ACC0, $ACC1
+			00e3 1b5e      srri        @$AR2, $AC0.M
+			00e4 1b5c      srri        @$AR2, $AC0.L
+	}
+	
+	// same code block, using tst'l again...wonder if it actually changes behavior?
 	00e5 193e      lrri        $AC0.M, @$AR1
 	00e6 193c      lrri        $AC0.L, @$AR1
 	00e7 b179      tst'l       $ACC0 : $AC1.M, @$AR1
-	00e8 0294 00ee jnz         0x00ee
-	00ea 005a      loop        $AX0.H
-	00eb 1b5e      srri        @$AR2, $AC0.M
-	00ec 029f 00f6 jmp         0x00f6
-	00ee 9900      asr16       $ACC1
-	00ef 1b5e      srri        @$AR2, $AC0.M
-	00f0 1b5c      srri        @$AR2, $AC0.L
-	00f1 007b 00f5 bloop       $AX1.H, 0x00f5
-		00f3 4c00      add         $ACC0, $ACC1
-		00f4 1b5e      srri        @$AR2, $AC0.M
-		00f5 1b5c      srri        @$AR2, $AC0.L
+	// 00e8 0294 00ee jnz         0x00ee
+	if (!$ACC0) {
+		00ea 005a      loop        $AX0.H
+			00eb 1b5e      srri        @$AR2, $AC0.M
+	// 00ec 029f 00f6 jmp         0x00f6
+	} else {
+		00ee 9900      asr16       $ACC1
+		00ef 1b5e      srri        @$AR2, $AC0.M
+		00f0 1b5c      srri        @$AR2, $AC0.L
+		00f1 007b 00f5 bloop       $AX1.H, 0x00f5
+			00f3 4c00      add         $ACC0, $ACC1
+			00f4 1b5e      srri        @$AR2, $AC0.M
+			00f5 1b5c      srri        @$AR2, $AC0.L
+	}
+	
+	// see comments above
 	00f6 193e      lrri        $AC0.M, @$AR1
 	00f7 193c      lrri        $AC0.L, @$AR1
 	00f8 b179      tst'l       $ACC0 : $AC1.M, @$AR1
-	00f9 0294 00ff jnz         0x00ff
-	00fb 005a      loop        $AX0.H
-		00fc 1b5e      srri        @$AR2, $AC0.M
-	00fd 029f 0107 jmp         0x0107
-	00ff 9900      asr16       $ACC1
-	0100 1b5e      srri        @$AR2, $AC0.M
-	0101 1b5c      srri        @$AR2, $AC0.L
-	0102 007b 0106 bloop       $AX1.H, 0x0106
-		0104 4c00      add         $ACC0, $ACC1
-		0105 1b5e      srri        @$AR2, $AC0.M
-		0106 1b5c      srri        @$AR2, $AC0.L
+	// 00f9 0294 00ff jnz         0x00ff
+	if (!$ACC0) {
+		00fb 005a      loop        $AX0.H
+			00fc 1b5e      srri        @$AR2, $AC0.M
+	// 00fd 029f 0107 jmp         0x0107
+	} else {
+		00ff 9900      asr16       $ACC1
+		0100 1b5e      srri        @$AR2, $AC0.M
+		0101 1b5c      srri        @$AR2, $AC0.L
+		0102 007b 0106 bloop       $AX1.H, 0x0106
+			0104 4c00      add         $ACC0, $ACC1
+			0105 1b5e      srri        @$AR2, $AC0.M
+			0106 1b5c      srri        @$AR2, $AC0.L
+	}
+	
+	// set to next buffer
 	0107 0082 07c0 lri         $AR2, #0x07c0
+	
+	// see comments above
 	0109 193e      lrri        $AC0.M, @$AR1
 	010a 193c      lrri        $AC0.L, @$AR1
 	010b b179      tst'l       $ACC0 : $AC1.M, @$AR1
-	010c 0294 0112 jnz         0x0112
-	010e 005a      loop        $AX0.H
-		010f 1b5e      srri        @$AR2, $AC0.M
-	0110 029f 011a jmp         0x011a
-	0112 9900      asr16       $ACC1
-	0113 1b5e      srri        @$AR2, $AC0.M
-	0114 1b5c      srri        @$AR2, $AC0.L
-	0115 007b 0119 bloop       $AX1.H, 0x0119
-		0117 4c00      add         $ACC0, $ACC1
-		0118 1b5e      srri        @$AR2, $AC0.M
-		0119 1b5c      srri        @$AR2, $AC0.L
+	// 010c 0294 0112 jnz         0x0112
+	if (!$ACC0) {
+		010e 005a      loop        $AX0.H
+			010f 1b5e      srri        @$AR2, $AC0.M
+	// 0110 029f 011a jmp         0x011a
+	} else {
+		0112 9900      asr16       $ACC1
+		0113 1b5e      srri        @$AR2, $AC0.M
+		0114 1b5c      srri        @$AR2, $AC0.L
+		0115 007b 0119 bloop       $AX1.H, 0x0119
+			0117 4c00      add         $ACC0, $ACC1
+			0118 1b5e      srri        @$AR2, $AC0.M
+			0119 1b5c      srri        @$AR2, $AC0.L
+	}
+	
+	// see comments above
 	011a 193e      lrri        $AC0.M, @$AR1
 	011b 193c      lrri        $AC0.L, @$AR1
 	011c b179      tst'l       $ACC0 : $AC1.M, @$AR1
-	011d 0294 0123 jnz         0x0123
-	011f 005a      loop        $AX0.H
-		0120 1b5e      srri        @$AR2, $AC0.M
-	0121 029f 012b jmp         0x012b
-	0123 9900      asr16       $ACC1
-	0124 1b5e      srri        @$AR2, $AC0.M
-	0125 1b5c      srri        @$AR2, $AC0.L
-	0126 007b 012a bloop       $AX1.H, 0x012a
-		0128 4c00      add         $ACC0, $ACC1
-		0129 1b5e      srri        @$AR2, $AC0.M
-		012a 1b5c      srri        @$AR2, $AC0.L
+	// 011d 0294 0123 jnz         0x0123
+	if (!$ACC0) {
+		011f 005a      loop        $AX0.H
+			0120 1b5e      srri        @$AR2, $AC0.M
+	// 0121 029f 012b jmp         0x012b
+	} else {
+		0123 9900      asr16       $ACC1
+		0124 1b5e      srri        @$AR2, $AC0.M
+		0125 1b5c      srri        @$AR2, $AC0.L
+		0126 007b 012a bloop       $AX1.H, 0x012a
+			0128 4c00      add         $ACC0, $ACC1
+			0129 1b5e      srri        @$AR2, $AC0.M
+			012a 1b5c      srri        @$AR2, $AC0.L
+	}
+	
+	// see comments above
 	012b 193e      lrri        $AC0.M, @$AR1
 	012c 193c      lrri        $AC0.L, @$AR1
 	012d b179      tst'l       $ACC0 : $AC1.M, @$AR1
-	012e 0294 0134 jnz         0x0134
+	// 012e 0294 0134 jnz         0x0134
+	if (!$ACC0) {
 		0130 005a      loop        $AX0.H
-	0131 1b5e      srri        @$AR2, $AC0.M
-	0132 029f 013c jmp         0x013c
-	0134 9900      asr16       $ACC1
-	0135 1b5e      srri        @$AR2, $AC0.M
-	0136 1b5c      srri        @$AR2, $AC0.L
-	0137 007b 013b bloop       $AX1.H, 0x013b
-		0139 4c00      add         $ACC0, $ACC1
-		013a 1b5e      srri        @$AR2, $AC0.M
-		013b 1b5c      srri        @$AR2, $AC0.L
+			0131 1b5e      srri        @$AR2, $AC0.M
+	// 0132 029f 013c jmp         0x013c
+	} else {
+		0134 9900      asr16       $ACC1
+		0135 1b5e      srri        @$AR2, $AC0.M
+		0136 1b5c      srri        @$AR2, $AC0.L
+		0137 007b 013b bloop       $AX1.H, 0x013b
+			0139 4c00      add         $ACC0, $ACC1
+			013a 1b5e      srri        @$AR2, $AC0.M
+			013b 1b5c      srri        @$AR2, $AC0.L
+	}
 	
 	// 013c 029f 0068 jmp         0x0068
 	goto DoNextCommand;
@@ -405,7 +459,7 @@ void Cmd_1() {
 	u16 maddrh = *(CmdBlockBuf++)
 	u16 maddrl = *(CmdBlockBuf++)
 	u16 unkForMulBuffer1 = *(CmdBlockBuf++)
-	u16 unkForMulBuffer2 = 0
+	u16 unkForMulBuffer2 = 0 // a buffer in dram
 	Unk(maddrh << 16 | maddrl, unkForMulBuffer1, unkForMulBuffer2)
 	
 	// 014b 00da 0e17 lr          $AX0.H, @0x0e17
@@ -431,7 +485,7 @@ void Cmd_1() {
 }
 
 void Cmd_9() {
-	015f 0086 07c0 lri         $IX2, #0x07c0
+	015f 0086 07c0 lri         $IX2, #0x07c0 // often used buffer in dram
 	
 	0161 02bf 0484 call        0x0484
 	
@@ -464,48 +518,81 @@ void Cmd_6() {
 }
 
 void Cmd_11() {
-	0175 8100      clr         $ACC0
-	0176 8970      clr'l       $ACC1 : $AC0.M, @$AR0
-	0177 8e60      set16'l     : $AC0.L, @$AR0
-	0178 2ece      srs         @DSMAH, $AC0.M
-	0179 2ccf      srs         @DSMAL, $AC0.L
-	017a 16cd 0e44 si          @DSPA, #0x0e44
-	017c 16c9 0000 si          @DSCR, #0x0000
-	017e 8900      clr         $ACC1
-	017f 0d20      lris        $AC1.L, #0x20
-	0180 2dcb      srs         @DSBL, $AC1.L
-	0181 4c00      add         $ACC0, $ACC1
-	0182 1c80      mrr         $IX0, $AR0
-	0183 0080 0280 lri         $AR0, #0x0280
-	0185 0081 0000 lri         $AR1, #0x0000
-	0187 0082 0140 lri         $AR2, #0x0140
-	0189 0083 0e44 lri         $AR3, #0x0e44
-	018b 0a00      lris        $AX0.H, #0x00
-	018c 27c9      lrs         $AC1.M, @DSCR
-	018d 03a0 0004 andf        $AC1.M, #0x0004
-	018f 029c 018c jlnz        0x018c
-	0191 2ece      srs         @DSMAH, $AC0.M
-	0192 2ccf      srs         @DSMAL, $AC0.L
-	0193 16cd 0e54 si          @DSPA, #0x0e54
-	0195 16c9 0000 si          @DSCR, #0x0000
-	0197 16cb 0260 si          @DSBL, #0x0260
-	0199 009f 00a0 lri         $AC1.M, #0x00a0
-	019b 8f00      set40       
-	019c 007f 01a5 bloop       $AC1.M, 0x01a5
-		019e 197e      lrri        $AC0.M, @$AR3
-		019f 1b1a      srri        @$AR0, $AX0.H
-		01a0 197c      lrri        $AC0.L, @$AR3
-		01a1 1b1a      srri        @$AR0, $AX0.H
-		01a2 1b5e      srri        @$AR2, $AC0.M
-		01a3 7c22      neg's       $ACC0 : @$AR2, $AC0.L
-		01a4 1b3e      srri        @$AR1, $AC0.M
-		01a5 1b3c      srri        @$AR1, $AC0.L
+	// 0175 8100      clr         $ACC0
+	// 0176 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	// 0177 8e60      set16'l     : $AC0.L, @$AR0
+	u16 maddrh = *(CmdBlockBuf++)
+	u16 maddrl = *(CmdBlockBuf++)
+	
+	// 0178 2ece      srs         @DSMAH, $AC0.M
+	// 0179 2ccf      srs         @DSMAL, $AC0.L
+	// 017a 16cd 0e44 si          @DSPA, #0x0e44
+	// 017c 16c9 0000 si          @DSCR, #0x0000
+	// 017e 8900      clr         $ACC1
+	// 017f 0d20      lris        $AC1.L, #0x20
+	// 0180 2dcb      srs         @DSBL, $AC1.L
+	
+	// DMA 0x20bytes to DRAM @ 0x0e44 from CPU @ maddr
+	
+	u16 length_of_0e44 = 0x20
+	
+	// 0181 4c00      add         $ACC0, $ACC1
+	maddr += length_of_0e44
+	
+	// Save CmdBlockBuf
+	// 0182 1c80      mrr         $IX0, $AR0
+	
+	// 0183 0080 0280 lri         $AR0, #0x0280
+	// 0185 0081 0000 lri         $AR1, #0x0000
+	// 0187 0082 0140 lri         $AR2, #0x0140
+	// 0189 0083 0e44 lri         $AR3, #0x0e44
+	// 018b 0a00      lris        $AX0.H, #0x00
+	
+	// 018c 27c9      lrs         $AC1.M, @DSCR
+	// 018d 03a0 0004 andf        $AC1.M, #0x0004
+	// 018f 029c 018c jlnz        0x018c
+	while (@DSCR & 4);
+	
+	// 0191 2ece      srs         @DSMAH, $AC0.M
+	// 0192 2ccf      srs         @DSMAL, $AC0.L
+	// 0193 16cd 0e54 si          @DSPA, #0x0e54
+	// 0195 16c9 0000 si          @DSCR, #0x0000
+	// 0197 16cb 0260 si          @DSBL, #0x0260
+	
+	// DMA 0x0260bytes to DRAM @ 0x0e54 from CPU @ maddr
+	
+	// 0199 009f 00a0 lri         $AC1.M, #0x00a0
+	// 019b 8f00      set40       
+	// 019c 007f 01a5 bloop       $AC1.M, 0x01a5
+	// 	019e 197e      lrri        $AC0.M, @$AR3
+	// 	019f 1b1a      srri        @$AR0, $AX0.H
+	// 	01a0 197c      lrri        $AC0.L, @$AR3
+	// 	01a1 1b1a      srri        @$AR0, $AX0.H
+	// 	01a2 1b5e      srri        @$AR2, $AC0.M
+	// 	01a3 7c22      neg's       $ACC0 : @$AR2, $AC0.L
+	// 	01a4 1b3e      srri        @$AR1, $AC0.M
+	// 	01a5 1b3c      srri        @$AR1, $AC0.L
+		
+	// high reg will only be sign bits, and it's never stored, so we can use s32 here
+	s32* buffer_source = 0x0e44
+	s32* buffer_dest = 0x0140
+	s32* buffer_to_zero = 0x0280
+	s32* buffer_dest_neg = 0x0000
+	for (i = 0x00a0; i > 0; i--) {
+		s32 thing = *(buffer_source++)
+		*(buffer_to_zero++) = 0
+		*(buffer_dest++) = thing
+		*(buffer_dest_neg++) = ~thing
+	}
+	
+	// Restore CmdBlockBuf
 	01a6 1c04      mrr         $AR0, $IX0
 	
 	// 01a7 029f 0068 jmp         0x0068
 	goto DoNextCommand;
 }
 
+// Interesting, DMAs in new CmdBlock and starts executing it
 void Cmd_D() {
 	// 01a9 8e70      set16'l     : $AC0.M, @$AR0
 	// 01aa 8960      clr'l       $ACC1 : $AC0.L, @$AR0
@@ -1204,18 +1291,23 @@ NextMillisecUpd:
 
 void Cmd_4() {
 	0413 8e00      set16       
-	0414 0086 0400 lri         $IX2, #0x0400
 	
-	0416 8100      clr         $ACC0
-	0417 8970      clr'l       $ACC1 : $AC0.M, @$AR0
-	0418 191c      lrri        $AC0.L, @$AR0
+	0414 0086 0400 lri         $IX2, #0x0400 // buffer in dram
 	
-	0419 2ece      srs         @DSMAH, $AC0.M
-	041a 2ccf      srs         @DSMAL, $AC0.L
-	041b 1fc6      mrr         $AC0.M, $IX2
-	041c 2ecd      srs         @DSPA, $AC0.M
-	041d 16c9 0001 si          @DSCR, #0x0001
-	041f 16cb 0780 si          @DSBL, #0x0780
+	// 0416 8100      clr         $ACC0
+	// 0417 8970      clr'l       $ACC1 : $AC0.M, @$AR0
+	// 0418 191c      lrri        $AC0.L, @$AR0
+	u16 maddrh = *(CmdBlockBuf++)
+	u16 maddrl = *(CmdBlockBuf++)
+	
+	// 0419 2ece      srs         @DSMAH, $AC0.M
+	// 041a 2ccf      srs         @DSMAL, $AC0.L
+	// 041b 1fc6      mrr         $AC0.M, $IX2
+	// 041c 2ecd      srs         @DSPA, $AC0.M
+	// 041d 16c9 0001 si          @DSCR, #0x0001
+	// 041f 16cb 0780 si          @DSBL, #0x0780
+	
+	// DMA 0x0780bytes from DRAM @ 0x0400 to CPU @ maddr
 
 	// 0421 02bf 055c call        0x055c
 	WaitDMA();
@@ -1228,7 +1320,9 @@ void Cmd_4() {
 
 void Cmd_5() {
 	0427 8e00      set16       
+	
 	0428 0086 07c0 lri         $IX2, #0x07c0
+	
 	042a 8100      clr         $ACC0
 	042b 8970      clr'l       $ACC1 : $AC0.M, @$AR0
 	042c 191c      lrri        $AC0.L, @$AR0
@@ -2200,7 +2294,7 @@ void SRC_None() {
 
 # From here to the jump tables, all the funcs just wrap calls to mixer(s) in IROM
 
-void Cmd_12() {
+void Mixer_0() {
 	0768 00c0 0e40 lr          $AR0, @0x0e40
 	076a 0081 0b89 lri         $AR1, #0x0b89
 	076c 00c2 0e08 lr          $AR2, @0x0e08
@@ -2213,7 +2307,7 @@ void Cmd_12() {
 	0779 02df      ret
 }
 
-void Unk() {
+void Mixer_1() {
 	077a 00c0 0e40 lr          $AR0, @0x0e40
 	077c 0081 0b89 lri         $AR1, #0x0b89
 	077e 00c2 0e08 lr          $AR2, @0x0e08
@@ -2235,7 +2329,7 @@ void Unk() {
 	079c 02df      ret
 }
 
-void Unk() {
+void Mixer_2() {
 	079d 00c0 0e40 lr          $AR0, @0x0e40
 	079f 0081 0b89 lri         $AR1, #0x0b89
 	07a1 00c2 0e08 lr          $AR2, @0x0e08
@@ -2817,20 +2911,26 @@ void Unk() {
 
 void Cmd_8() {
 	0b37 8e00      set16       
+	
 	0b38 8100      clr         $ACC0
 	0b39 8970      clr'l       $ACC1 : $AC0.M, @$AR0
 	0b3a 191c      lrri        $AC0.L, @$AR0
+	
 	0b3b 2ece      srs         @DSMAH, $AC0.M
 	0b3c 2ccf      srs         @DSMAL, $AC0.L
 	0b3d 16cd 0e80 si          @DSPA, #0x0e80
 	0b3f 16c9 0000 si          @DSCR, #0x0000
 	0b41 16cb 0100 si          @DSBL, #0x0100
+	
 	0b43 1f7e      mrr         $AX1.H, $AC0.M
 	0b44 1f3c      mrr         $AX1.L, $AC0.L
+	
 	0b45 8100      clr         $ACC0
+	
 	0b46 26c9      lrs         $AC0.M, @DSCR
 	0b47 02a0 0004 andf        $AC0.M, #0x0004
 	0b49 029c 0b46 jlnz        0x0b46
+	
 	0b4b 191e      lrri        $AC0.M, @$AR0
 	0b4c 191c      lrri        $AC0.L, @$AR0
 	0b4d 2ece      srs         @DSMAH, $AC0.M
@@ -2838,7 +2938,9 @@ void Cmd_8() {
 	0b4f 16cd 0280 si          @DSPA, #0x0280
 	0b51 16c9 0000 si          @DSCR, #0x0000
 	0b53 16cb 0280 si          @DSBL, #0x0280
+	
 	0b55 1c80      mrr         $IX0, $AR0
+	
 	0b56 0080 0280 lri         $AR0, #0x0280
 	0b58 00c1 0e1b lr          $AR1, @0x0e1b
 	0b5a 0085 0000 lri         $IX1, #0x0000
@@ -2847,9 +2949,11 @@ void Cmd_8() {
 	0b60 0083 16b4 lri         $AR3, #0x16b4
 	0b62 1ce3      mrr         $IX3, $AR3
 	0b63 8100      clr         $ACC0
+	
 	0b64 26c9      lrs         $AC0.M, @DSCR
 	0b65 02a0 0004 andf        $AC0.M, #0x0004
 	0b67 029c 0b64 jlnz        0x0b64
+	
 	0b69 8f00      set40       
 	0b6a 8a78      m2'l        : $AC1.M, @$AR0
 	0b6b 8c68      clr15'l     : $AC1.L, @$AR0
@@ -2873,23 +2977,28 @@ void Cmd_8() {
 		0b7e 6e68      movp'l      $ACC0 : $AC1.L, @$AR0
 		0b7f f132      lsl16's     $ACC1 : @$AR2, $AC0.M
 		0b80 1a3f      srr         @$AR1, $AC1.M
+		
 	0b81 1c67      mrr         $AR3, $IX3
 	0b82 84e3      clrp'ld     : $AX0.H, $AX1.L, @$AR3
 	0b83 107e      loopi       #0x7e
-	0b84 f2e3      madd'ld     $AX0.L, $AX0.H : $AX0.H, $AX1.L, @$AR3
+		0b84 f2e3      madd'ld     $AX0.L, $AX0.H : $AX0.H, $AX1.L, @$AR3
 	0b85 f2e7      madd'ldn    $AX0.L, $AX0.H : $AX0.H, $AX1.L, @$AR3
 	0b86 f200      madd        $AX0.L, $AX0.H
 	0b87 6e00      movp        $ACC0
 	0b88 1b5e      srri        @$AR2, $AC0.M
 	0b89 00e1 0e1b sr          @0x0e1b, $AR1
+	
 	0b8b 0080 0280 lri         $AR0, #0x0280
 	0b8d 0083 0f00 lri         $AR3, #0x0f00
 	0b8f 0081 0000 lri         $AR1, #0x0000
 	0b91 0082 0140 lri         $AR2, #0x0140
 	0b93 0089 ffff lri         $WR1, #0xffff
+	
 	0b95 8900      clr         $ACC1
 	0b96 8100      clr         $ACC0
+	
 	0b97 8f00      set40       
+	
 	0b98 11a0 0ba0 bloopi      #0xa0, 0x0ba0
 		0b9a 197f      lrri        $AC1.M, @$AR3
 		0b9b 9930      asr16's     $ACC1 : @$AR0, $AC0.M
@@ -2898,7 +3007,9 @@ void Cmd_8() {
 		0b9e 7d29      neg's       $ACC1 : @$AR1, $AC1.L
 		0b9f 1b5f      srri        @$AR2, $AC1.M
 		0ba0 1b5d      srri        @$AR2, $AC1.L
+		
 	0ba1 8e00      set16       
+	
 	0ba2 1fdb      mrr         $AC0.M, $AX1.H
 	0ba3 1f99      mrr         $AC0.L, $AX1.L
 	0ba4 2ece      srs         @DSMAH, $AC0.M
@@ -2918,9 +3029,11 @@ void Cmd_8() {
 
 void Cmd_10() {
 	0bb1 8e00      set16       
+	
 	0bb2 8100      clr         $ACC0
 	0bb3 8970      clr'l       $ACC1 : $AC0.M, @$AR0
 	0bb4 191c      lrri        $AC0.L, @$AR0
+	
 	0bb5 2ece      srs         @DSMAH, $AC0.M
 	0bb6 2ccf      srs         @DSMAL, $AC0.L
 	0bb7 16cd 07c0 si          @DSPA, #0x07c0
@@ -2933,6 +3046,7 @@ void Cmd_10() {
 	0bbf 8100      clr         $ACC0
 	0bc0 8970      clr'l       $ACC1 : $AC0.M, @$AR0
 	0bc1 191c      lrri        $AC0.L, @$AR0
+	
 	0bc2 2ece      srs         @DSMAH, $AC0.M
 	0bc3 2ccf      srs         @DSMAL, $AC0.L
 	0bc4 16cd 07c0 si          @DSPA, #0x07c0
@@ -2940,21 +3054,28 @@ void Cmd_10() {
 	0bc8 8900      clr         $ACC1
 	0bc9 0d20      lris        $AC1.L, #0x20
 	0bca 2dcb      srs         @DSBL, $AC1.L
+	
 	0bcb 4c00      add         $ACC0, $ACC1
+	
 	0bcc 1c80      mrr         $IX0, $AR0
+	
 	0bcd 0080 07c0 lri         $AR0, #0x07c0
 	0bcf 0083 0000 lri         $AR3, #0x0000
 	0bd1 1c43      mrr         $AR2, $AR3
 	0bd2 0a00      lris        $AX0.H, #0x00
+	
 	0bd3 27c9      lrs         $AC1.M, @DSCR
 	0bd4 03a0 0004 andf        $AC1.M, #0x0004
 	0bd6 029c 0bd3 jlnz        0x0bd3
+	
 	0bd8 2ece      srs         @DSMAH, $AC0.M
 	0bd9 2ccf      srs         @DSMAL, $AC0.L
 	0bda 16cd 07d0 si          @DSPA, #0x07d0
 	0bdc 16c9 0000 si          @DSCR, #0x0000
 	0bde 16cb 04e0 si          @DSBL, #0x04e0
+	
 	0be0 8f00      set40       
+	
 	0be1 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
 	0be2 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
 	0be3 6a00      movax       $ACC0, $AX1
@@ -2968,6 +3089,7 @@ void Cmd_10() {
 		0bec 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
 		0bed 6a3a      movax's     $ACC0, $AX1.L : @$AR2, $AC1.M
 		0bee 482a      addax's     $ACC0, $AX0.L : @$AR2, $AC1.L
+		
 	0bef 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
 	0bf0 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
 	0bf1 6b32      movax's     $ACC1, $AX1.L : @$AR2, $AC0.M
@@ -2990,6 +3112,7 @@ void Cmd_10() {
 		0c03 683a      movax's     $ACC0, $AX0.L : @$AR2, $AC1.M
 		0c04 7c00      neg         $ACC0
 		0c05 4a2a      addax's     $ACC0, $AX1.L : @$AR2, $AC1.L
+		
 	0c06 80f0      nx'ld       : $AX0.H, $AX1.H, @$AR0
 	0c07 80c0      nx'ld       : $AX0.L, $AX1.L, @$AR0
 	0c08 6932      movax's     $ACC1, $AX0.L : @$AR2, $AC0.M
@@ -2997,6 +3120,7 @@ void Cmd_10() {
 	0c0a 4b22      addax's     $ACC1, $AX1.L : @$AR2, $AC0.L
 	0c0b 1b5f      srri        @$AR2, $AC1.M
 	0c0c 1b5d      srri        @$AR2, $AC1.L
+	
 	0c0d 1c04      mrr         $AR0, $IX0
 	
 	// 0c0e 029f 0068 jmp         0x0068
