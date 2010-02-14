@@ -43,13 +43,17 @@ class ThunkManager : public Gen::XCodeBlock
 	const u8 *load_regs;
 
 public:
-	void Init();
-	void Reset();
-	void Shutdown();
-
+	ThunkManager() {
+		Init();
+	}
+	~ThunkManager() {
+		Shutdown();
+	}
 	void *ProtectFunction(void *function, int num_params);
+private:
+	void Init();
+	void Shutdown();
+	void Reset();
 };
-
-extern ThunkManager thunks;
 
 #endif // _THUNK_H_

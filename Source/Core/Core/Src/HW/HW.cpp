@@ -45,7 +45,6 @@ namespace HW
 	{
 		CoreTiming::Init();
 
-		thunks.Init(); // not really hw, but this way we know it's inited early :P
 		State_Init();
 
 		// Init the whole Hardware
@@ -85,7 +84,6 @@ namespace HW
 		}
 		
 		State_Shutdown();
-		thunks.Shutdown();
 		CoreTiming::Shutdown();
 	}
 

@@ -23,8 +23,6 @@
 #include "ABI.h"
 #include "Thunk.h"
 
-ThunkManager thunks;
-
 #define THUNK_ARENA_SIZE 1024*1024*1
 
 namespace

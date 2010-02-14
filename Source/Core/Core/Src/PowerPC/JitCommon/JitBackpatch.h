@@ -21,6 +21,7 @@
 #include "Common.h"
 #include "x64Emitter.h"
 #include "x64Analyzer.h"
+#include "Thunk.h"
 
 // Declarations and definitions
 // ----------
@@ -53,6 +54,8 @@ public:
 
 	const u8 *GetReadTrampoline(const InstructionInfo &info);
 	const u8 *GetWriteTrampoline(const InstructionInfo &info);
+private:
+	ThunkManager thunks;
 };
 
 #endif

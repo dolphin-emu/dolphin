@@ -48,6 +48,8 @@ The register allocation is just a simple forward greedy allocator.
 #include "../../ConfigManager.h"
 #include "x64Emitter.h"
 
+static ThunkManager thunks;
+
 using namespace IREmitter;
 using namespace Gen;
 

@@ -19,6 +19,7 @@
 #define _JITASMCOMMON_H
 
 #include "../JitCommon/Jit_Util.h"
+#include "Thunk.h"
 
 class CommonAsmRoutines : public EmuCodeBlock {
 protected:
@@ -69,6 +70,9 @@ public:
 	// In: ECX: Address to write to.
 	// In: XMM0: Bottom 32-bit slot holds the float to be written.
 	const u8 GC_ALIGNED16(*singleStoreQuantized[8]);
+
+private:
+	ThunkManager thunks;
 };
 
 #endif

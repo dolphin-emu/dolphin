@@ -19,6 +19,7 @@
 #define _JITUTIL_H
 
 #include "x64Emitter.h"
+#include "Thunk.h"
 
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::XCodeBlock {
@@ -39,6 +40,8 @@ public:
 
 	void ForceSinglePrecisionS(Gen::X64Reg xmm);
 	void ForceSinglePrecisionP(Gen::X64Reg xmm);
+protected:
+	ThunkManager thunks;
 };
 
 #endif  // _JITUTIL_H
