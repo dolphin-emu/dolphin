@@ -63,7 +63,7 @@
 // #include "virtual_dsp.h"
 
 // Used for communications with the DSP, such as dumping registers etc.
-u16 dspbuffer[16 * 1024];
+u16 dspbuffer[16 * 1024] __attribute__ ((aligned (0x4000)));
 
 static void *xfb = NULL;
 void (*reboot)() = (void(*)())0x80001800;
