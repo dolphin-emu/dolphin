@@ -193,6 +193,7 @@ void DllConfig(HWND _hParent)
 		m_ConfigFrame->ShowModal();
 
 		delete m_ConfigFrame;
+		frame->SetHWND(NULL);
 		delete frame;
 		m_ConfigFrame = 0;
 	}
