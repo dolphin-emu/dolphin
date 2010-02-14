@@ -422,7 +422,7 @@ void SetCurrentThreadName(const TCHAR* szThreadName)
 	// creates a memory leak if it actually doesn't fail
 	// since we don't delete it once we delete the thread
 	// we are using a single threadname_key anyway for all threads
-	if(!pthread_setspecific(threadname_key, strdup(szThreadName)))
+	if(!pthread_setspecific(threadname_key, name))
 		free(name);
 	INFO_LOG(COMMON, "%s(%s)\n", __FUNCTION__, szThreadName);
 }
