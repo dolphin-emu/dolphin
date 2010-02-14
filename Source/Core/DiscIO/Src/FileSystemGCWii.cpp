@@ -37,6 +37,7 @@ CFileSystemGCWii::CFileSystemGCWii(const IVolume *_rVolume)
 
 CFileSystemGCWii::~CFileSystemGCWii()
 {
+	m_FileInfoVector.clear();
 }
 
 bool CFileSystemGCWii::IsInitialized() const

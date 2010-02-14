@@ -30,7 +30,7 @@
  *	@file
  *	@brief Handles device I/O for *nix.
  */
-
+#define BLUETOOTH_VERSION_USE_CURRENT
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -225,7 +225,7 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 	int found_devices;
 	int found_wiimotes;
 
-        NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	IOBluetoothHostController *bth = [[IOBluetoothHostController alloc] init];
 	if([bth addressAsString] == nil)
@@ -250,6 +250,7 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 	
 	WIIMOTE_ENABLE_STATE(wm[found_wiimotes], WIIMOTE_STATE_DEV_FOUND);
 
+	[bth release];
 	[bti release];
 	[sbt release];
 

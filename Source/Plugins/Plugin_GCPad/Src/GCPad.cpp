@@ -169,10 +169,12 @@ void DllConfig(HWND _hParent)
 #if defined(HAVE_WX) && HAVE_WX
 	if (!m_ConfigFrame)
 	{
-		m_ConfigFrame = new GCPadConfigDialog(GetParentedWxWindow(_hParent));
+		wxWindow *frame = GetParentedWxWindow(_hParent);
+		m_ConfigFrame = new GCPadConfigDialog(frame);
 		m_ConfigFrame->ShowModal();
 		m_ConfigFrame->Destroy();
 		m_ConfigFrame = NULL;
+		delete frame;
 	}
 #endif
 }

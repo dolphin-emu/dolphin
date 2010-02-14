@@ -114,13 +114,17 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		LoadGameConfig();
 	else
 	{
+		// Will fail out if GameConfig folder doesn't exist
 		FILE *f = fopen(GameIniFile.c_str(), "w");
-		fprintf(f, "# %s - %s\n", OpenISO->GetUniqueID().c_str(), OpenISO->GetName().c_str());
-		fprintf(f, "[Core] Values set here will override the main dolphin settings.\n");
-		fprintf(f, "[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.\n");
-		fprintf(f, "[OnFrame] Add memory patches to be applied every frame here.\n");
-		fprintf(f, "[ActionReplay] Add action replay cheats here.\n");
-		fclose(f);
+		if (f)
+		{
+			fprintf(f, "# %s - %s\n", OpenISO->GetUniqueID().c_str(), OpenISO->GetName().c_str());
+			fprintf(f, "[Core] Values set here will override the main dolphin settings.\n");
+			fprintf(f, "[EmuState] The Emulation State. 1 is worst, 5 is best, 0 is not set.\n");
+			fprintf(f, "[OnFrame] Add memory patches to be applied every frame here.\n");
+			fprintf(f, "[ActionReplay] Add action replay cheats here.\n");
+			fclose(f);
+		}
 		if (GameIni.Load(GameIniFile.c_str()))
 			LoadGameConfig();
 		else
@@ -203,20 +207,13 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 
 CISOProperties::~CISOProperties()
 {
-	if (IsVolumeWiiDisc(OpenISO))
-	{
-		for (std::vector<WiiPartition>::const_iterator PartIter = WiiDisc.begin(); PartIter != WiiDisc.end(); ++PartIter)
-		{
-			delete PartIter->FileSystem; // Remember the FileList is a member of DiscIO::IFileSystem
-			delete PartIter->Partition;
-		}
-		WiiDisc.clear();
-	}
-	else
+	if (!IsVolumeWiiDisc(OpenISO))
 		if (!IsVolumeWadFile(OpenISO))
 			if (pFileSystem)
 				delete pFileSystem;
-
+	// two vector's items are no longer valid after deleting filesystem
+	WiiDisc.clear();
+	GCFiles.clear();
 	delete OpenGameListItem;
 	delete OpenISO;
 }

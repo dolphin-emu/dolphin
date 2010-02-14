@@ -407,7 +407,7 @@ char **cdio_get_devices() {
 #elif __linux__
 	return cdio_get_devices_linux();
 #else
-	// todo add somewarning
+#warning CDIO not supported on your platform!
 #endif
 }
 

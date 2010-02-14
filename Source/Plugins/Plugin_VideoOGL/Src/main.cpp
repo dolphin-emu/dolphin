@@ -299,7 +299,8 @@ void DllConfig(HWND _hParent)
 	// Prevent user to show more than 1 config window at same time
 	if (allowConfigShow)
 	{
-		m_ConfigFrame = new GFXConfigDialogOGL(GetParentedWxWindow(_hParent));
+		wxWindow *frame = GetParentedWxWindow(_hParent);
+		m_ConfigFrame = new GFXConfigDialogOGL(frame);
 
 #if defined(_WIN32)
 		Win32AddResolutions();
@@ -314,6 +315,7 @@ void DllConfig(HWND _hParent)
 		allowConfigShow = m_ConfigFrame->ShowModal() == 1 ? true : false;
 
 		delete m_ConfigFrame;
+		delete frame;
 		m_ConfigFrame = 0;
 	}
 #endif

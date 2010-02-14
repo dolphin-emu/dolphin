@@ -416,7 +416,14 @@ void SleepCurrentThread(int ms)
 
 void SetCurrentThreadName(const TCHAR* szThreadName)
 {
-	pthread_setspecific(threadname_key, strdup(szThreadName));
+	char *name = strdup(szThreadName);
+	// pthread_setspecific returns 0 on success
+	// free the string from strdup if fails
+	// creates a memory leak if it actually doesn't fail
+	// since we don't delete it once we delete the thread
+	// we are using a single threadname_key anyway for all threads
+	if(!pthread_setspecific(threadname_key, strdup(szThreadName)))
+		free(name);
 	INFO_LOG(COMMON, "%s(%s)\n", __FUNCTION__, szThreadName);
 }
 
