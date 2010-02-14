@@ -44,10 +44,6 @@ void Update(int _number);
 void DoState(PointerWrap &p);
 bool IsKey(int Key);
 
-#if defined(HAVE_X11) && HAVE_X11
-bool HaveFocus (void);
-#endif
-
 // Recordings
 void LoadRecordedMovements();
 void GetMousePos(float& x, float& y);

@@ -310,7 +310,7 @@ bool IsKey(int Key)
 		}
 		else if (MapKey < 0x1100)
 #elif defined(HAVE_X11) && HAVE_X11
-		if (HaveFocus() && (MapKey < 256 || MapKey >= 0xf000))
+		if (MapKey < 256 || MapKey >= 0xf000)
 		{
 			char keys[32];
 			KeyCode keyCode;
@@ -346,7 +346,7 @@ bool IsKey(int Key)
 		}
 #endif
 #if defined(HAVE_X11) && HAVE_X11
-		if ((Key == EWM_SHAKE || Key == EWM_A || Key == EWM_B) && HaveFocus())
+		if (Key == EWM_SHAKE || Key == EWM_A || Key == EWM_B)
 		{
 			Window GLWin = *(Window *)g_WiimoteInitialize.pXWindow;
 			int root_x, root_y, win_x, win_y;

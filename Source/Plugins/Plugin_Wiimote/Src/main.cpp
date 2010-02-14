@@ -411,6 +411,12 @@ bool IsFocus()
 		return true;
 	else
 		return false;
+#elif defined HAVE_X11 && HAVE_X11
+	Window GLWin = *(Window *)g_WiimoteInitialize.pXWindow;
+	Window FocusWin;
+	int Revert;
+	XGetInputFocus(WMdisplay, &FocusWin, &Revert);
+	return (GLWin != 0 && GLWin == FocusWin);
 #else
 	return true;
 #endif
