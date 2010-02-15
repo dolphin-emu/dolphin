@@ -411,9 +411,8 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
       char ZeroData[1] = {0};
       Cursor MouseCursor;
       Blank = XCreateBitmapFromData (GLWin.dpy, GLWin.win, ZeroData, 1, 1);
-      MouseCursor = XCreatePixmapCursor(GLWin.dpy, Blank, Blank, &DummyColor, &DummyColor, 0, 0);
+      GLWin.blankCursor = XCreatePixmapCursor(GLWin.dpy, Blank, Blank, &DummyColor, &DummyColor, 0, 0);
       XFreePixmap (GLWin.dpy, Blank);
-      XDefineCursor (GLWin.dpy, GLWin.win, MouseCursor);
     }
 #endif
 	return true;
@@ -474,6 +473,10 @@ bool OpenGL_MakeCurrent()
         } else {
          ERROR_LOG(VIDEO, "no Direct Rendering possible!");
         }
+
+    // Hide the cursor now
+    if (g_Config.bHideCursor)
+      XDefineCursor (GLWin.dpy, GLWin.win, GLWin.blankCursor);
     
     // better for pad plugin key input (thc)
     XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | KeyReleaseMask |
@@ -578,6 +581,14 @@ void OpenGL_Update()
                 break;
             case ButtonPress:
             case ButtonRelease:
+                break;
+            case FocusIn:
+                if (g_Config.bHideCursor)
+                  XDefineCursor(GLWin.dpy, GLWin.win, GLWin.blankCursor);
+                break;
+            case FocusOut:
+                if (g_Config.bHideCursor)
+                  XUndefineCursor(GLWin.dpy, GLWin.win);
                 break;
             case ConfigureNotify:
                 Window winDummy;

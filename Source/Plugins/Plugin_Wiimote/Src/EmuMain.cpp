@@ -216,7 +216,6 @@ void GetMousePos(float& x, float& y)
 	float PictureWidth = WinWidth, PictureHeight = WinHeight;
 #else
 #if defined(HAVE_X11) && HAVE_X11
-	Window GLWin = *(Window *)g_WiimoteInitialize.pXWindow;
 	float WinWidth = 0, WinHeight = 0;
 	float XOffset = 0, YOffset = 0;
 	int root_x, root_y, win_x, win_y;

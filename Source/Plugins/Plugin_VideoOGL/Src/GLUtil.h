@@ -93,6 +93,7 @@ typedef struct {
     Window win;
     Display *dpy;
     GLXContext ctx;
+    Cursor blankCursor;
     XSetWindowAttributes attr;
     Bool fs;
     Bool doubleBuffered;
