@@ -349,38 +349,40 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 	GLWin.attr.border_pixel = 0;
 	XkbSetDetectableAutoRepeat(GLWin.dpy, True, NULL);
 
-#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
     // get a connection
-    XF86VidModeQueryVersion(GLWin.dpy, &vidModeMajorVersion, &vidModeMinorVersion);
+    XRRQueryVersion(GLWin.dpy, &vidModeMajorVersion, &vidModeMinorVersion);
 
     if (GLWin.fs) {
         
-        XF86VidModeModeInfo **modes = NULL;
-        int modeNum = 0;
-        int bestMode = 0;
+        XRRScreenSize *sizes;
+        int numSizes;
+        int bestSize;
 
-        // set best mode to current
-        bestMode = 0;
-        NOTICE_LOG(VIDEO, "XF86VidModeExtension-Version %d.%d", vidModeMajorVersion, vidModeMinorVersion);
-        XF86VidModeGetAllModeLines(GLWin.dpy, GLWin.screen, &modeNum, &modes);
-        
-        if (modeNum > 0 && modes != NULL) {
-            /* save desktop-resolution before switching modes */
-            GLWin.deskMode = *modes[0];
+        NOTICE_LOG(VIDEO, "XRRExtension-Version %d.%d", vidModeMajorVersion, vidModeMinorVersion);
+
+        GLWin.screenConfig = XRRGetScreenInfo(GLWin.dpy, RootWindow(GLWin.dpy, GLWin.screen));
+
+        /* save desktop-resolution before switching modes */
+        GLWin.deskSize = XRRConfigCurrentConfiguration(GLWin.screenConfig, &GLWin.screenRotation);
+        bestSize = GLWin.deskSize;
+
+        sizes = XRRConfigSizes(GLWin.screenConfig, &numSizes);
+        if (numSizes > 0 && sizes != NULL) {
             /* look for mode with requested resolution */
-            for (int i = 0; i < modeNum; i++) {
-                if ((modes[i]->hdisplay == _twidth) && (modes[i]->vdisplay == _theight)) {
-                    bestMode = i;
+            for (int i = 0; i < numSizes; i++) {
+                if ((sizes[i].width == _twidth) && (sizes[i].height == _theight)) {
+                    bestSize = i;
                 }
             }    
 
-            XF86VidModeSwitchToMode(GLWin.dpy, GLWin.screen, modes[bestMode]);
-            XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
-            dpyWidth = modes[bestMode]->hdisplay;
-            dpyHeight = modes[bestMode]->vdisplay;
+            XRRSetScreenConfig(GLWin.dpy, GLWin.screenConfig, RootWindow(GLWin.dpy, GLWin.screen),
+                bestSize, GLWin.screenRotation, CurrentTime);
+
+            dpyWidth = sizes[bestSize].width;
+            dpyHeight = sizes[bestSize].height;
             NOTICE_LOG(VIDEO, "Resolution %dx%d", dpyWidth, dpyHeight);
-            XFree(modes);
-            
+			
             /* create a fullscreen window */
             GLWin.attr.override_redirect = True;
             GLWin.attr.event_mask = ExposureMask | KeyPressMask | ButtonPressMask | KeyReleaseMask | ButtonReleaseMask | StructureNotifyMask;
@@ -606,6 +608,16 @@ void OpenGL_Shutdown()
 		hDC = NULL;                                       // Set DC To NULL
 	}
 #elif defined(HAVE_X11) && HAVE_X11
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+	/* switch back to original desktop resolution if we were in fs */
+	if ((GLWin.dpy != NULL) && GLWin.fs) {
+		XUngrabKeyboard (GLWin.dpy, CurrentTime);
+		XUngrabPointer (GLWin.dpy, CurrentTime);
+	XRRSetScreenConfig(GLWin.dpy, GLWin.screenConfig, RootWindow(GLWin.dpy, GLWin.screen),
+		GLWin.deskSize, GLWin.screenRotation, CurrentTime);
+	XRRFreeScreenConfigInfo(GLWin.screenConfig);
+	}
+#endif
 	if (GLWin.ctx)
 	{
 		if (!glXMakeCurrent(GLWin.dpy, None, NULL))
@@ -617,15 +629,6 @@ void OpenGL_Shutdown()
 		XCloseDisplay(GLWin.dpy);
 		GLWin.ctx = NULL;
 	}
-#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
-	/* switch back to original desktop resolution if we were in fs */
-	if (GLWin.dpy != NULL) {
-		if (GLWin.fs) {
-			XF86VidModeSwitchToMode(GLWin.dpy, GLWin.screen, &GLWin.deskMode);
-			XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
-		}
-	}
-#endif
 #endif
 }
 

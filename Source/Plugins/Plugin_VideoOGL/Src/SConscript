@@ -100,11 +100,10 @@ if sys.platform == 'win32':
 	gfxenv['CPPPATH'] += libs
 	
 
-# check for xxf86vm
-
-gfxenv['HAVE_XXF86VM'] = gfxenv['HAVE_X11'] and conf.CheckPKG('xxf86vm')
+# check for Xrandr
+gfxenv['HAVE_XRANDR'] = gfxenv['HAVE_X11'] and conf.CheckPKG('xrandr')
         
-conf.Define('HAVE_XXF86VM', gfxenv['HAVE_XXF86VM'])
+conf.Define('HAVE_XRANDR', gfxenv['HAVE_XRANDR'])
 
 conf.Finish()
 

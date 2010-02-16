@@ -119,11 +119,91 @@ void UpdateFPSDisplay(const char *text)
     OpenGL_SetWindowText(temp);
 }
 
+#if defined(HAVE_X11) && HAVE_X11
+void CreateXWindow (void)
+{
+    Atom wmDelete;
+    int width, height;
+
+    if (GLWin.fs)
+    {
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+        if (GLWin.fullSize >= 0)
+            XRRSetScreenConfig(GLWin.dpy, GLWin.screenConfig, RootWindow(GLWin.dpy, GLWin.screen),
+                    GLWin.fullSize, GLWin.screenRotation, CurrentTime);
+#endif
+        GLWin.attr.override_redirect = True;
+        width = GLWin.fullWidth;
+        height = GLWin.fullHeight;
+    }
+    else
+    {
+        GLWin.attr.override_redirect = False;
+        width = GLWin.winWidth;
+        height = GLWin.winHeight;
+    }
+
+    // Control window size and picture scaling
+    s_backbuffer_width = width;
+    s_backbuffer_height = height;
+
+    // create the window
+    GLWin.attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
+        StructureNotifyMask | ResizeRedirectMask;
+    GLWin.win = XCreateWindow(GLWin.dpy, RootWindow(GLWin.dpy, GLWin.vi->screen),
+            0, 0, width, height, 0, GLWin.vi->depth, InputOutput, GLWin.vi->visual,
+            CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect, &GLWin.attr);
+    wmDelete = XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", True);
+    XSetWMProtocols(GLWin.dpy, GLWin.win, &wmDelete, 1);
+    XSetStandardProperties(GLWin.dpy, GLWin.win, "GPU", "GPU", None, NULL, 0, NULL);
+    XMapRaised(GLWin.dpy, GLWin.win);
+    if (GLWin.fs)
+    {
+        XGrabKeyboard(GLWin.dpy, GLWin.win, True, GrabModeAsync, GrabModeAsync, CurrentTime);
+        XGrabPointer(GLWin.dpy, GLWin.win, True, NULL,
+                GrabModeAsync, GrabModeAsync, GLWin.win, None, CurrentTime);
+    }
+    XSync(GLWin.dpy, True);
+}
+
+void DestroyXWindow(void)
+{
+    if( GLWin.ctx )
+    {
+        if( !glXMakeCurrent(GLWin.dpy, None, NULL))
+        {
+            printf("Could not release drawing context.\n");
+        }
+    }
+    /* switch back to original desktop resolution if we were in fullscreen */
+    if( GLWin.fs )
+    {
+        XUngrabKeyboard (GLWin.dpy, CurrentTime);
+        XUngrabPointer (GLWin.dpy, CurrentTime);
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+        if (GLWin.fullSize >= 0)
+            XRRSetScreenConfig(GLWin.dpy, GLWin.screenConfig, RootWindow(GLWin.dpy, GLWin.screen),
+                    GLWin.deskSize, GLWin.screenRotation, CurrentTime);
+#endif
+    }
+    XUnmapWindow(GLWin.dpy, GLWin.win);
+    XSync(GLWin.dpy, True);
+}
+
+void ToggleFullscreenMode (void)
+{
+  DestroyXWindow();
+  GLWin.fs = !GLWin.fs;
+  CreateXWindow();
+  OpenGL_MakeCurrent();
+}
+#endif
 
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight)
 {
+#if !defined(HAVE_X11) || !HAVE_X11
 	// Check for fullscreen mode
     int _twidth,  _theight;
     if (g_Config.bFullscreen)
@@ -154,6 +234,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	// Control window size and picture scaling
     s_backbuffer_width = _twidth;
     s_backbuffer_height = _theight;
+#endif
 
     g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
     g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
@@ -269,185 +350,129 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	// --------------------------------------
 
 #elif defined(HAVE_X11) && HAVE_X11
-    XVisualInfo *vi;
-    Colormap cmap;
-    int dpyWidth, dpyHeight;
-    int glxMajorVersion, glxMinorVersion;
-    int vidModeMajorVersion, vidModeMinorVersion;
-    Atom wmProtocols[3];
+  Colormap cmap;
+  int glxMajorVersion, glxMinorVersion;
+  int vidModeMajorVersion, vidModeMinorVersion;
 
-    // attributes for a single buffered visual in RGBA format with at least
-    // 8 bits per color and a 24 bit depth buffer
-    int attrListSgl[] = {GLX_RGBA, GLX_RED_SIZE, 8,
-                         GLX_GREEN_SIZE, 8,
-                         GLX_BLUE_SIZE, 8,
-                         GLX_DEPTH_SIZE, 24,
-                         None};
+  // attributes for a single buffered visual in RGBA format with at least
+  // 8 bits per color and a 24 bit depth buffer
+  int attrListSgl[] = {GLX_RGBA, GLX_RED_SIZE, 8,
+                       GLX_GREEN_SIZE, 8,
+                       GLX_BLUE_SIZE, 8,
+                       GLX_DEPTH_SIZE, 24,
+                       None};
 
-    // attributes for a double buffered visual in RGBA format with at least
-    // 8 bits per color and a 24 bit depth buffer
-    int attrListDbl[] = { GLX_RGBA, GLX_DOUBLEBUFFER,
-                          GLX_RED_SIZE, 8,
-                          GLX_GREEN_SIZE, 8,
-                          GLX_BLUE_SIZE, 8,
-                          GLX_DEPTH_SIZE, 24,
-                          GLX_SAMPLE_BUFFERS_ARB, g_Config.iMultisampleMode, GLX_SAMPLES_ARB, 1, None };
-	GLWin.dpy = XOpenDisplay(0);
-	g_VideoInitialize.pWindowHandle = (HWND)GLWin.dpy;
-	GLWin.screen = DefaultScreen(GLWin.dpy);
+  // attributes for a double buffered visual in RGBA format with at least
+  // 8 bits per color and a 24 bit depth buffer
+  int attrListDbl[] = {GLX_RGBA, GLX_DOUBLEBUFFER,
+                       GLX_RED_SIZE, 8,
+                       GLX_GREEN_SIZE, 8,
+                       GLX_BLUE_SIZE, 8,
+                       GLX_DEPTH_SIZE, 24,
+                       GLX_SAMPLE_BUFFERS_ARB, g_Config.iMultisampleMode, GLX_SAMPLES_ARB, 1, None };
 
-	// Fullscreen option.
-    GLWin.fs = g_Config.bFullscreen; //Set to setting in Options
-    
-    /* get an appropriate visual */
-    vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListDbl);
-    if (vi == NULL) {
-        vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListSgl);
-        GLWin.doubleBuffered = False;
-        ERROR_LOG(VIDEO, "Only Singlebuffered Visual!");
-    }
-    else {
-        GLWin.doubleBuffered = True;
-        NOTICE_LOG(VIDEO, "Got Doublebuffered Visual!");
-    }
+
+  GLWin.dpy = XOpenDisplay(0);
+  g_VideoInitialize.pWindowHandle = (HWND)GLWin.dpy;
+  GLWin.screen = DefaultScreen(GLWin.dpy);
+
+  // Fullscreen option.
+  GLWin.fs = g_Config.bFullscreen; //Set to setting in Options
+
+  /* get an appropriate visual */
+  GLWin.vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListDbl);
+  if (GLWin.vi == NULL) {
+    GLWin.vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListSgl);
+    GLWin.doubleBuffered = False;
+    ERROR_LOG(VIDEO, "Only Singlebuffered Visual!");
+  }
+  else {
+    GLWin.doubleBuffered = True;
+    NOTICE_LOG(VIDEO, "Got Doublebuffered Visual!");
+  }
 
 	glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
 	NOTICE_LOG(VIDEO, "glX-Version %d.%d", glxMajorVersion, glxMinorVersion);
 	// Create a GLX context.
-	GLWin.ctx = glXCreateContext(GLWin.dpy, vi, 0, GL_TRUE);
+	GLWin.ctx = glXCreateContext(GLWin.dpy, GLWin.vi, 0, GL_TRUE);
 	if(!GLWin.ctx)
 	{
 		PanicAlert("Couldn't Create GLX context.Quit");
 		exit(0); // TODO: Don't bring down entire Emu
 	}
 	// Create a color map.
-	cmap = XCreateColormap(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen), vi->visual, AllocNone);
+	cmap = XCreateColormap(GLWin.dpy, RootWindow(GLWin.dpy, GLWin.vi->screen), GLWin.vi->visual, AllocNone);
 	GLWin.attr.colormap = cmap;
 	GLWin.attr.border_pixel = 0;
 	XkbSetDetectableAutoRepeat(GLWin.dpy, True, NULL);
 
-#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
-    // get a connection
-    XF86VidModeQueryVersion(GLWin.dpy, &vidModeMajorVersion, &vidModeMinorVersion);
+  // Get the resolution setings for both fullscreen and windowed modes
+  if (strlen(g_Config.cFSResolution) > 1)
+    sscanf(g_Config.cFSResolution, "%dx%d", &GLWin.fullWidth, &GLWin.fullHeight);
+  else // No full screen reso set, fall back to desktop resolution
+  {
+    GLWin.fullWidth = DisplayWidth(GLWin.dpy, GLWin.screen);
+    GLWin.fullHeight = DisplayHeight(GLWin.dpy, GLWin.screen);
+  }
+  if (strlen(g_Config.cInternalRes) > 1)
+    sscanf(g_Config.cInternalRes, "%dx%d", &GLWin.winWidth, &GLWin.winHeight);
+  else // No Window resolution set, fall back to default
+  {
+    GLWin.winWidth = _iwidth;
+    GLWin.winHeight = _iheight;
+  }
 
-    if (GLWin.fs) {
-        
-        XF86VidModeModeInfo **modes = NULL;
-        int modeNum = 0;
-        int bestMode = 0;
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+  XRRQueryVersion(GLWin.dpy, &vidModeMajorVersion, &vidModeMinorVersion);
+  XRRScreenSize *sizes;
+  int numSizes;
 
-        // set best mode to current
-        bestMode = 0;
-        NOTICE_LOG(VIDEO, "XF86VidModeExtension-Version %d.%d", vidModeMajorVersion, vidModeMinorVersion);
-        XF86VidModeGetAllModeLines(GLWin.dpy, GLWin.screen, &modeNum, &modes);
-        
-        if (modeNum > 0 && modes != NULL) {
-            /* save desktop-resolution before switching modes */
-            GLWin.deskMode = *modes[0];
-            /* look for mode with requested resolution */
-            for (int i = 0; i < modeNum; i++) {
-                if ((modes[i]->hdisplay == _twidth) && (modes[i]->vdisplay == _theight)) {
-                    bestMode = i;
-                }
-            }    
+  NOTICE_LOG(VIDEO, "XRRExtension-Version %d.%d", vidModeMajorVersion, vidModeMinorVersion);
 
-            XF86VidModeSwitchToMode(GLWin.dpy, GLWin.screen, modes[bestMode]);
-            XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
-            dpyWidth = modes[bestMode]->hdisplay;
-            dpyHeight = modes[bestMode]->vdisplay;
-            NOTICE_LOG(VIDEO, "Resolution %dx%d", dpyWidth, dpyHeight);
-            XFree(modes);
-            
-            /* create a fullscreen window */
-            GLWin.attr.override_redirect = True;
-            GLWin.attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask | StructureNotifyMask;
-            GLWin.win = XCreateWindow(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen),
-                                      0, 0, dpyWidth, dpyHeight, 0, vi->depth, InputOutput, vi->visual,
-                                      CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect,
-                                      &GLWin.attr);
-            XWarpPointer(GLWin.dpy, None, GLWin.win, 0, 0, 0, 0, 0, 0);
-            XMapRaised(GLWin.dpy, GLWin.win);
-            XGrabKeyboard(GLWin.dpy, GLWin.win, True, GrabModeAsync, GrabModeAsync, CurrentTime);
-            XGrabPointer(GLWin.dpy, GLWin.win, True, NULL,
-                         GrabModeAsync, GrabModeAsync, GLWin.win, None, CurrentTime);
-        }
-        else {
-            ERROR_LOG(VIDEO, "Failed to start fullscreen. If you received the "
-                      "\"XFree86-VidModeExtension\" extension is missing, add\n"
-                      "Load \"extmod\"\n"
-                      "to your X configuration file (under the Module Section)\n");
-            GLWin.fs = 0;
-        }
-    }
-#endif    
-    
-    if (!GLWin.fs) {
+  GLWin.screenConfig = XRRGetScreenInfo(GLWin.dpy, RootWindow(GLWin.dpy, GLWin.screen));
 
-        //XRootWindow(dpy,screen)
-        //int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
-        //int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
+  /* save desktop resolution */
+  GLWin.deskSize = XRRConfigCurrentConfiguration(GLWin.screenConfig, &GLWin.screenRotation);
+  /* Set the desktop resolution as the default */
+  GLWin.fullSize = -1;
 
-        // create a window in window mode
-        GLWin.attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
-            StructureNotifyMask  | ResizeRedirectMask;
-        GLWin.win = XCreateWindow(GLWin.dpy, RootWindow(GLWin.dpy, vi->screen),
-                                  0, 0, _twidth, _theight, 0, vi->depth, InputOutput, vi->visual,
-                                  CWBorderPixel | CWColormap | CWEventMask, &GLWin.attr);
-        // only set window title and handle WM_PROTOCOLS if in windowed mode
-        wmProtocols[0] = XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", True);
-        wmProtocols[1] = XInternAtom(GLWin.dpy, "_NET_WM_STATE", False);
-        wmProtocols[2] = XInternAtom(GLWin.dpy, "_NET_WM_STATE_FULLSCREEN", False);
-        XSetWMProtocols(GLWin.dpy, GLWin.win, wmProtocols, 3);
-        XSetStandardProperties(GLWin.dpy, GLWin.win, "GPU",
-                                   "GPU", None, NULL, 0, NULL);
-        XMapRaised(GLWin.dpy, GLWin.win);
-    }
-    g_VideoInitialize.pXWindow = (Window *) &GLWin.win;
-    if (g_Config.bHideCursor)
-    {
+  /* Find the index of the fullscreen resolution from config */
+  sizes = XRRConfigSizes(GLWin.screenConfig, &numSizes);
+  if (numSizes > 0 && sizes != NULL) {
+	  for (int i = 0; i < numSizes; i++) {
+		  if ((sizes[i].width == GLWin.fullWidth) && (sizes[i].height == GLWin.fullHeight)) {
+			  GLWin.fullSize = i;
+		  }
+	  }
+	  NOTICE_LOG(VIDEO, "Fullscreen Resolution %dx%d", sizes[GLWin.fullSize].width, sizes[GLWin.fullSize].height);
+  }
+  else {
+    ERROR_LOG(VIDEO, "Failed to obtain fullscreen sizes.\n"
+            "Using current desktop resolution for fullscreen.\n");
+    GLWin.fullWidth = DisplayWidth(GLWin.dpy, GLWin.screen);
+    GLWin.fullHeight = DisplayHeight(GLWin.dpy, GLWin.screen);
+  }
+#else
+  GLWin.fullWidth = DisplayWidth(GLWin.dpy, GLWin.screen);
+  GLWin.fullHeight = DisplayHeight(GLWin.dpy, GLWin.screen);
+#endif
+
+  CreateXWindow();
+  g_VideoInitialize.pXWindow = (Window *) &GLWin.win;
+
+  if (g_Config.bHideCursor)
+  {
       // make a blank cursor
       Pixmap Blank;
       XColor DummyColor;
       char ZeroData[1] = {0};
-      Cursor MouseCursor;
       Blank = XCreateBitmapFromData (GLWin.dpy, GLWin.win, ZeroData, 1, 1);
       GLWin.blankCursor = XCreatePixmapCursor(GLWin.dpy, Blank, Blank, &DummyColor, &DummyColor, 0, 0);
       XFreePixmap (GLWin.dpy, Blank);
-    }
+  }
 #endif
 	return true;
 }
-
-#if defined(HAVE_X11) && HAVE_X11
-void X11_EWMH_Fullscreen(int action)
-{
-    assert(action == _NET_WM_STATE_REMOVE ||
-           action == _NET_WM_STATE_ADD || action == _NET_WM_STATE_TOGGLE);
-
-	XEvent xev;
-
-	// Init X event structure for _NET_WM_STATE_FULLSCREEN client message
-	xev.xclient.type = ClientMessage;
-	xev.xclient.serial = 0;
-	xev.xclient.send_event = True;
-	xev.xclient.message_type = XInternAtom(GLWin.dpy, "_NET_WM_STATE", False);
-	xev.xclient.window = GLWin.win;
-	xev.xclient.format = 32;
-	xev.xclient.data.l[0] = action;
-	xev.xclient.data.l[1] = XInternAtom(GLWin.dpy, "_NET_WM_STATE_FULLSCREEN", False);
-	xev.xclient.data.l[2] = 0;
-	xev.xclient.data.l[3] = 0;
-	xev.xclient.data.l[4] = 0;
-
-    // Send the event
-	if (!XSendEvent(GLWin.dpy, DefaultRootWindow(GLWin.dpy), False,
-				SubstructureRedirectMask | SubstructureNotifyMask,
-				&xev))
-	{
-		ERROR_LOG(VIDEO, "Failed to switch fullscreen/windowed mode.\n");
-	}
-}
-#endif
 
 bool OpenGL_MakeCurrent()
 {
@@ -561,17 +586,8 @@ void OpenGL_Update()
                   else
                     FKeyPressed = key - 0xff4e;
                 }
-                else if (key == XK_Escape)
-                {
-                  if (!GLWin.fs)
-                  {
-                    X11_EWMH_Fullscreen(_NET_WM_STATE_TOGGLE); 
-                    XWithdrawWindow(GLWin.dpy,GLWin.win,GLWin.screen);
-                    XMapRaised(GLWin.dpy,GLWin.win);
-                    XRaiseWindow(GLWin.dpy,GLWin.win);
-                    XFlush(GLWin.dpy);
-                  }
-                }
+                else if (key == XK_Return && ((event.xkey.state & Mod1Mask) == Mod1Mask))
+                  ToggleFullscreenMode();
                 else {
                     if(key == XK_Shift_L || key == XK_Shift_R)
                         ShiftPressed = true;
@@ -587,7 +603,7 @@ void OpenGL_Update()
                   XDefineCursor(GLWin.dpy, GLWin.win, GLWin.blankCursor);
                 break;
             case FocusOut:
-                if (g_Config.bHideCursor)
+                if (g_Config.bHideCursor && !GLWin.fs)
                   XUndefineCursor(GLWin.dpy, GLWin.win);
                 break;
             case ConfigureNotify:
@@ -597,6 +613,12 @@ void OpenGL_Update()
                              &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
                 s_backbuffer_width = GLWin.width;
                 s_backbuffer_height = GLWin.height;
+                // Save windowed mode size for return from fullscreen
+                if (!GLWin.fs)
+                {
+                  GLWin.winWidth = GLWin.width;
+                  GLWin.winHeight = GLWin.height;
+                }
                 break;
             case ClientMessage:
                 if ((ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", False))
@@ -650,23 +672,18 @@ void OpenGL_Shutdown()
 		hDC = NULL;                                       // Set DC To NULL
 	}
 #elif defined(HAVE_X11) && HAVE_X11
-#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
-	/* switch back to original desktop resolution if we were in fs */
-	if ((GLWin.dpy != NULL) && GLWin.fs) {
-		XUngrabKeyboard (GLWin.dpy, CurrentTime);
-		XUngrabPointer (GLWin.dpy, CurrentTime);
-		XF86VidModeSwitchToMode(GLWin.dpy, GLWin.screen, &GLWin.deskMode);
-		XF86VidModeSetViewPort(GLWin.dpy, GLWin.screen, 0, 0);
-	}
+    DestroyXWindow();
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+    if (GLWin.fullSize >= 0)
+        XRRFreeScreenConfigInfo(GLWin.screenConfig);
 #endif
-	if (g_Config.bHideCursor) XUndefineCursor(GLWin.dpy, GLWin.win);
+	if (g_Config.bHideCursor)
+    {
+        XUndefineCursor(GLWin.dpy, GLWin.win);
+        XFreeCursor(GLWin.dpy, GLWin.blankCursor);
+    }
 	if (GLWin.ctx)
 	{
-		if (!glXMakeCurrent(GLWin.dpy, None, NULL))
-		{
-			ERROR_LOG(VIDEO, "Could not release drawing context.\n");
-		}
-		XUnmapWindow(GLWin.dpy, GLWin.win);
 		glXDestroyContext(GLWin.dpy, GLWin.ctx);
 		XCloseDisplay(GLWin.dpy);
 		GLWin.ctx = NULL;

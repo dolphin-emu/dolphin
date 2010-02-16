@@ -75,9 +75,9 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
-#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
-#include <X11/extensions/xf86vmode.h>
-#endif // XXF86VM
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#include <X11/extensions/Xrandr.h>
+#endif // XRANDR
 #endif // X11
 
 #include <sys/stat.h>
@@ -95,9 +95,11 @@ typedef struct {
     XSetWindowAttributes attr;
     Bool fs;
     Bool doubleBuffered;
-#if defined(HAVE_XXF86VM) && HAVE_XXF86VM
-    XF86VidModeModeInfo deskMode;
-#endif // XXF86VM
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+	XRRScreenConfiguration *screenConfig;
+	Rotation screenRotation;
+	int deskSize;
+#endif // XRANDR
 #endif // X11
 #if defined(USE_WX) && USE_WX
     wxGLCanvas *glCanvas;

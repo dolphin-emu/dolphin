@@ -207,44 +207,29 @@ void Win32AddResolutions() {
         ZeroMemory(&dmi, sizeof(dmi));
 	}
 }	
-#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) && HAVE_XXF86VM 
+#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XRANDR) && HAVE_XRANDR
 void X11AddResolutions() {
-	int glxMajorVersion, glxMinorVersion;
-	int vidModeMajorVersion, vidModeMinorVersion;
-    GLWin.dpy = XOpenDisplay(0);
-    glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
-    XF86VidModeQueryVersion(GLWin.dpy, &vidModeMajorVersion, &vidModeMinorVersion);
+	GLWin.dpy = XOpenDisplay(0);
 	//Get all full screen resos for the config dialog
-	XF86VidModeModeInfo **modes = NULL;
+	XRRScreenSize *sizes = NULL;
 	int modeNum = 0;
-	int bestMode = 0;
 
-	//set best mode to current
-	bestMode = 0;
-	XF86VidModeGetAllModeLines(GLWin.dpy, GLWin.screen, &modeNum, &modes);
-	int px = 0, py = 0;
-	if (modeNum > 0 && modes != NULL)
+	sizes = XRRSizes(GLWin.dpy, GLWin.screen, &modeNum);
+	if (modeNum > 0 && sizes != NULL)
 	{
 		for (int i = 0; i < modeNum; i++)
 		{
-			if (px != modes[i]->hdisplay && py != modes[i]->vdisplay)
-			{
-				char temp[32];
-				sprintf(temp,"%dx%d", modes[i]->hdisplay, modes[i]->vdisplay);
-				
-				#if defined(HAVE_WX) && HAVE_WX
-				m_ConfigFrame->AddFSReso(temp);
-				m_ConfigFrame->AddWindowReso(temp);//Add same to Window ones,
-												   //since they should be
-												   //nearly all that's needed
-				#endif
-				px = modes[i]->hdisplay;//Used to remove repeating from
-										//different screen depths
-				py = modes[i]->vdisplay;
-			}
+			char temp[32];
+			sprintf(temp,"%dx%d", sizes[i].width, sizes[i].height);
+
+#if defined(HAVE_WX) && HAVE_WX
+			m_ConfigFrame->AddFSReso(temp);
+			//Add same to window resolutions, since
+			//they should be nearly all that's needed
+			m_ConfigFrame->AddWindowReso(temp);	
+#endif
 		}
 	}    
-	XFree(modes);
 }
 #elif defined(HAVE_COCOA) && HAVE_COCOA
 void CocoaAddResolutions() {
@@ -304,7 +289,7 @@ void DllConfig(HWND _hParent)
 
 #if defined(_WIN32)
 		Win32AddResolutions();
-#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XXF86VM) && HAVE_XXF86VM 
+#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XRANDR) && HAVE_XRANDR
 		X11AddResolutions();
 #elif defined(HAVE_COCOA) && HAVE_COCOA
 		CocoaAddResolutions();
