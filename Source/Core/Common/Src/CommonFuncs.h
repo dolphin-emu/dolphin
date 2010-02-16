@@ -120,6 +120,10 @@ inline u64 swap64(u64 _data) {return _byteswap_uint64(_data);}
 inline u16 swap16(u16 _data) {return bswap_16(_data);}
 inline u32 swap32(u32 _data) {return bswap_32(_data);}
 inline u64 swap64(u64 _data) {return bswap_64(_data);}
+#elif __APPLE__
+inline u16 swap16(u16 _data) {return (_data >> 8) | (_data << 8);}
+inline u32 swap32(u32 _data) {return __builtin_bswap32(_data);}
+inline u64 swap64(u64 _data) {return __builtin_bswap64(_data);}
 #else
 // Slow generic implementation.
 inline u16 swap16(u16 data) {return (data >> 8) | (data << 8);}

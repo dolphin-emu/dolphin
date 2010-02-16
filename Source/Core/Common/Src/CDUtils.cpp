@@ -51,54 +51,6 @@ void cdio_follow_symlink(const char * src, char * dst) {
 	strncpy(dst, src, PATH_MAX);
 #endif
 }
- 
-
-
-// Add/allocate a drive to the end of drives. 
-// Use cdio_free_device_list() to free this device_list.
-void cdio_add_device_list(char **device_list[], const char *drive, 
-						  unsigned int *num_drives) {
-	if (NULL != drive) {
-		unsigned int j;
-		char real_device_1[PATH_MAX];
-		char real_device_2[PATH_MAX];
-		cdio_follow_symlink(drive, real_device_1);
-		/* Check if drive is already in list. */
-		for (j=0; j<*num_drives; j++) {
-			cdio_follow_symlink((*device_list)[j], real_device_2);
-			if (strcmp(real_device_1, real_device_2) == 0) break;
-		}
-		
-		if (j==*num_drives) {
-			/* Drive not in list. Add it. */
-			(*num_drives)++;
-			*device_list = (char **)realloc(*device_list, (*num_drives) * sizeof(char *));
-			(*device_list)[*num_drives-1] = __strdup(drive);
-		}
-		
-	} else {
-		(*num_drives)++;
-		if (*device_list) {
-			*device_list = (char **)realloc(*device_list, (*num_drives) * sizeof(char *));
-		} else {
-			*device_list = (char **)malloc((*num_drives) * sizeof(char *));
-		}
-		(*device_list)[*num_drives-1] = NULL;
-	}
-}
-
-// Free device list returned by cdio_get_devices or
-// cdio_get_devices_with_cap.
-void cdio_free_device_list(char * ppsz_device_list[]) {
-	char **ppsz_device_list_save=ppsz_device_list;
-	if (!ppsz_device_list) return;
-	for ( ; NULL != *ppsz_device_list ; ppsz_device_list++ ) {
-		free(*ppsz_device_list);
-		*ppsz_device_list = NULL;
-	}
-	free(ppsz_device_list_save);
-}
-
 
 #ifdef _WIN32
 // Returns a string that can be used in a CreateFile call if 
@@ -128,9 +80,8 @@ const char *is_cdrom_win32(const char c_drive_letter) {
 }
 
 // Returns a pointer to an array of strings with the device names
-char ** cdio_get_devices_win32() {
-	char **drives = NULL;
-	unsigned int num_drives=0;
+std::vector<std::string> cdio_get_devices_win32() {
+	std::vector<std::string> drives;
 	char drive_letter;
 	
 	// Scan the system for CD-ROM drives.
@@ -138,11 +89,10 @@ char ** cdio_get_devices_win32() {
 	for (drive_letter='A'; drive_letter <= 'Z'; drive_letter++) {
 		const char *drive_str=is_cdrom_win32(drive_letter);
 		if (drive_str != NULL) {
-			cdio_add_device_list(&drives, drive_str, &num_drives);
+			drives.push_back(drive_str);
 			delete drive_str;
 		}
 	}
-	cdio_add_device_list(&drives, NULL, &num_drives);
 	return drives;
 }
 #endif // WIN32
@@ -153,23 +103,22 @@ char ** cdio_get_devices_win32() {
 /*
   Returns a pointer to an array of strings with the device names
 */
-char **cdio_get_devices_osx(void) {
+std::vector<std::string> cdio_get_devices_osx(void) {
 	io_object_t   next_media;
 	mach_port_t   master_port;
 	kern_return_t kern_result;
 	io_iterator_t media_iterator;
 	CFMutableDictionaryRef classes_to_match;
-	char        **drives = NULL;
-	unsigned int  num_drives=0;
+	std::vector<std::string> drives;
 	
 	kern_result = IOMasterPort( MACH_PORT_NULL, &master_port );
 	if( kern_result != KERN_SUCCESS ) {
-		return( NULL );
+		return( drives );
 	}
 	
 	classes_to_match = IOServiceMatching( kIOCDMediaClass );
 	if( classes_to_match == NULL ) {
-		return( NULL );
+		return( drives );
 	}
 	
 	CFDictionarySetValue( classes_to_match, CFSTR(kIOMediaEjectableKey),
@@ -179,7 +128,7 @@ char **cdio_get_devices_osx(void) {
 												classes_to_match,
 												&media_iterator );
 	if( kern_result != KERN_SUCCESS) {
-		return( NULL );
+		return( drives );
 	}
 	
 	next_media = IOIteratorNext( media_iterator );
@@ -209,7 +158,11 @@ char **cdio_get_devices_osx(void) {
 									(char*)&psz_buf + dev_path_length,
 									sizeof(psz_buf) - dev_path_length,
 									kCFStringEncodingASCII)) {
-				cdio_add_device_list(&drives, strdup(psz_buf), &num_drives);
+				if(psz_buf != NULL)
+				{
+					std::string str = psz_buf;
+					drives.push_back(str);
+				}
 			}
 			CFRelease( str_bsd_path );
 			IOObjectRelease( next_media );
@@ -217,7 +170,6 @@ char **cdio_get_devices_osx(void) {
 		} while( ( next_media = IOIteratorNext( media_iterator ) ) != 0 );
 	}
 	IOObjectRelease( media_iterator );
-	cdio_add_device_list(&drives, NULL, &num_drives);
 	return drives;
 }
 #endif
@@ -355,31 +307,33 @@ static char *check_mounts_linux(const char *mtab)
 }
 
 // Returns a pointer to an array of strings with the device names
-char **cdio_get_devices_linux () {
+std::vector<std::string> cdio_get_devices_linux () {
 	
 	unsigned int i;
 	char drive[40];
 	char *ret_drive;
-	char **drives = NULL;
-	unsigned int num_drives=0;
+	std::vector<std::string> drives;
 	
 	// Scan the system for CD-ROM drives.
 	for ( i=0; strlen(checklist1[i]) > 0; ++i ) {
 		sprintf(drive, "/dev/%s", checklist1[i]);
 		if ( is_cdrom_linux(drive, NULL) > 0 ) {
-			cdio_add_device_list(&drives, drive, &num_drives);
+			std::string str = drive;
+			drives.push_back(str);
 		}
 	}
 	
 	/* Now check the currently mounted CD drives */
 	if (NULL != (ret_drive = check_mounts_linux("/etc/mtab"))) {
-		cdio_add_device_list(&drives, ret_drive, &num_drives);
+		std::string str = ret_drive;
+		drives.push_back(str);
 		free(ret_drive);
 	}
 	
 	/* Finally check possible mountable drives in /etc/fstab */
 	if (NULL != (ret_drive = check_mounts_linux("/etc/fstab"))) {
-		cdio_add_device_list(&drives, ret_drive, &num_drives);
+		std::string str = ret_drive;
+		drives.push_back(str);
 		free(ret_drive);
 	}
 	
@@ -390,17 +344,17 @@ char **cdio_get_devices_linux () {
 		for ( j=checklist2[i].num_min; j<=checklist2[i].num_max; ++j ) {
 			sprintf(drive, checklist2[i].format, j);
 			if ( (is_cdrom_linux(drive, NULL)) > 0 ) {
-				cdio_add_device_list(&drives, drive, &num_drives);
+				std::string str = drive;
+				drives.push_back(str);
 			}
 		}
 	}
-	cdio_add_device_list(&drives, NULL, &num_drives);
 	return drives;
 }
 #endif
 
 // Returns a pointer to an array of strings with the device names
-char **cdio_get_devices() {
+std::vector<std::string> cdio_get_devices() {
 #ifdef _WIN32
 	return cdio_get_devices_win32();
 #elif __APPLE__
@@ -416,17 +370,17 @@ char **cdio_get_devices() {
 
 // Returns true if device is cdrom/dvd
 
-bool cdio_is_cdrom(const char *device) {
-	char **devices = cdio_get_devices();
+bool cdio_is_cdrom(std::string device) {
+	std::vector<std::string> devices = cdio_get_devices();
 	bool res = false;
-	for (int i = 0; devices[i] != NULL; i++) {
-		if (strncmp(devices[i], device, PATH_MAX) == 0) {
+	for (int i = 0; i < devices.size(); i++) {
+		if (strncmp(devices[i].c_str(), device.c_str(), PATH_MAX) == 0) {
 			res = true;
 			break;
 		}
     }
 	
-	cdio_free_device_list(devices);
+	devices.clear();
 	return res;
 }
 

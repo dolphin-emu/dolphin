@@ -115,8 +115,9 @@ void CFrame::CreateMenu()
 	m_pSubMenuDrive = fileMenu->AppendSubMenu(externalDrive, _T("&Boot from DVD Drive..."));
 	
 	drives = cdio_get_devices();
-	for (int i = 0; drives[i] != NULL && i < 24; i++) {
-		externalDrive->Append(IDM_DRIVE1 + i, wxString::FromAscii(drives[i]));
+	// Windows Limitation of 24 character drives
+	for (int i = 0; i < drives.size() && i < 24; i++) {
+		externalDrive->Append(IDM_DRIVE1 + i, wxString::FromAscii(drives[i].c_str()));
 	}
 
 	fileMenu->AppendSeparator();
@@ -666,7 +667,7 @@ void CFrame::StartGame(const std::string& filename)
 
 void CFrame::OnBootDrive(wxCommandEvent& event)
 {
-	BootManager::BootCore(drives[event.GetId()-IDM_DRIVE1]);
+	BootManager::BootCore(drives[event.GetId()-IDM_DRIVE1].c_str());
 }
 
 

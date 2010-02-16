@@ -86,7 +86,7 @@ bool SCoreStartupParameter::AutoSetup(EBootBS2 _BootBS2)
 	{
 	case BOOT_DEFAULT:
 		{
-			bool bootDrive = cdio_is_cdrom(m_strFilename.c_str());
+			bool bootDrive = cdio_is_cdrom(m_strFilename);
 			// Check if the file exist, we may have gotten it from a --elf command line
 			// that gave an incorrect file name 
 			if (!bootDrive && !File::Exists(m_strFilename.c_str()))

@@ -559,11 +559,12 @@ void CGameListCtrl::ScanForISOs()
 
 	if (SConfig::GetInstance().m_ListDrives)
 	{
-		char **drives = cdio_get_devices();
+		std::vector<std::string> drives = cdio_get_devices();
 		GameListItem * Drive[24];
-		for (int i = 0; drives[i] != NULL && i < 24; i++)
+		// Another silly Windows limitation of 24 drive letters
+		for (int i = 0; i < drives.size() != NULL && i < 24; i++)
 		{
-			Drive[i] = new GameListItem(drives[i]);
+			Drive[i] = new GameListItem(drives[i].c_str());
 			if (Drive[i]->IsValid())	m_ISOFiles.push_back(*Drive[i]);
 		}
 	}

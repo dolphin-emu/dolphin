@@ -121,7 +121,7 @@ bool SectorReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8 *
 
 IBlobReader* CreateBlobReader(const char* filename)
 {
-	if (cdio_is_cdrom(filename))
+	if (cdio_is_cdrom(std::string(filename)))
 		return DriveReader::Create(filename);
 
 	if (!File::Exists(filename))
