@@ -46,7 +46,10 @@ typedef std::vector<CPluginInfo>CPluginInfos;
 class CPluginManager
 {
 public:
-	static CPluginManager& GetInstance() {return(m_Instance);}
+	static CPluginManager& GetInstance() {return(*m_Instance);}
+	static void Init();
+	static void Shutdown();
+
 	Common::PluginVideo *GetVideo();
 	Common::PluginDSP *GetDSP();
 	Common::PluginPAD *GetPad(int controller);
@@ -68,8 +71,7 @@ public:
 	const CPluginInfos& GetPluginInfos() {return(m_PluginInfos);}
 	PLUGIN_GLOBALS* GetGlobals();
 private:
-	static CPluginManager m_Instance;
-	bool m_Initialized;
+	static CPluginManager* m_Instance;
 
 	CPluginInfos m_PluginInfos;
 	PLUGIN_GLOBALS *m_PluginGlobals;

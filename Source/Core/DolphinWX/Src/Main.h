@@ -27,6 +27,7 @@ class DolphinApp : public wxApp
 public:
 	bool OnInit();
 	void OnEndSession();
+	int OnExit();
 	CFrame* GetCFrame();
 };
 

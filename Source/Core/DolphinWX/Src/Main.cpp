@@ -57,7 +57,6 @@ IMPLEMENT_APP(DolphinApp)
 #endif
 
 CFrame* main_frame = NULL;
-LogManager *logManager = NULL;
 
 #ifdef WIN32
 //Has no error handling.
@@ -106,7 +105,6 @@ bool DolphinApp::OnInit()
 	wxString padPluginFilename;
 	wxString wiimotePluginFilename;
 
-
 	// Detect CPU info and write it to the cpu_info struct
 	cpu_info.Detect();
 
@@ -115,6 +113,11 @@ bool DolphinApp::OnInit()
 		tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
 		_CrtSetDbgFlag(tmpflag);
 	#endif
+
+	LogManager::Init();
+	EventHandler::Init();
+	SConfig::Init();
+	CPluginManager::Init();
 
 	// Register message box handler
 #if ! defined(_WIN32) && defined(HAVE_WX) && HAVE_WX
@@ -482,6 +485,16 @@ bool DolphinApp::OnInit()
 void DolphinApp::OnEndSession()
 {
 	SConfig::GetInstance().SaveSettings();
+}
+
+int DolphinApp::OnExit()
+{
+	CPluginManager::Shutdown();
+	SConfig::Shutdown();
+	EventHandler::Shutdown();
+	LogManager::Shutdown();
+
+	return wxApp::OnExit();
 }
 
 

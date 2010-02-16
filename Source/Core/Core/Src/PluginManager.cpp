@@ -41,10 +41,21 @@
 #include "Setup.h"
 
 // Create the plugin manager class
-CPluginManager CPluginManager::m_Instance;
+CPluginManager* CPluginManager::m_Instance;
 
 // The Plugin Manager Class
 // ------------
+
+void CPluginManager::Init()
+{
+	m_Instance = new CPluginManager;
+}
+
+void CPluginManager::Shutdown()
+{
+	delete m_Instance;
+	m_Instance = NULL;
+}
 
 // The plugin manager is some sort of singleton that runs during Dolphin's entire lifespan.
 CPluginManager::CPluginManager()

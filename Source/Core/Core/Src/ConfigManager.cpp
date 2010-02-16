@@ -28,12 +28,19 @@ SConfig SConfig::m_Instance;
 
 SConfig::SConfig()
 {
-	// Make sure we have log manager
-	LoadSettings();
-	//Make sure we load settings
-	LoadSettingsHLE();
 }
 
+void SConfig::Init()
+{
+	// Make sure we have log manager
+	m_Instance.LoadSettings();
+	//Make sure we load settings
+	m_Instance.LoadSettingsHLE();
+}
+
+void SConfig::Shutdown()
+{
+}
 
 SConfig::~SConfig()
 {

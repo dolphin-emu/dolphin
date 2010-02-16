@@ -19,13 +19,15 @@ EventHandler::~EventHandler() {
 
 EventHandler *EventHandler::GetInstance() {
     // fprintf(stderr, "handler instance %p\n", m_Instance);
-
-    if (! m_Instance)
-	m_Instance = new EventHandler();
-    return m_Instance;
+	return m_Instance;
 }
 
-void EventHandler::Destroy() {
+void EventHandler::Init()
+{
+	m_Instance = new EventHandler();
+}
+
+void EventHandler::Shutdown() {
     if (m_Instance)
        	delete m_Instance;
     // fprintf(stderr, "deleting instance %p\n", m_Instance);

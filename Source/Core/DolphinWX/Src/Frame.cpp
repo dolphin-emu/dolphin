@@ -518,6 +518,8 @@ CFrame::~CFrame()
 	#endif
 
 	ClosePages();
+
+	delete m_Mgr;
 }
 
 void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))

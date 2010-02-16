@@ -165,14 +165,15 @@ public:
 	}
 
 	static LogManager* GetInstance() {
-		if (! m_logManager) 
-			m_logManager = new LogManager();
 		return m_logManager;
 	}
 
 	static void SetInstance(LogManager *logManager) {
 		m_logManager = logManager;
 	}
+
+	static void Init();
+	static void Shutdown();
 };
 
 #endif // _LOGMANAGER_H_

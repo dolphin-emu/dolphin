@@ -51,7 +51,8 @@ public:
     bool RemoveEventListener(Keys key);
     void Update();
     static EventHandler *GetInstance();
-    static void Destroy();
+	static void Init();
+    static void Shutdown();
     bool addEvent(sf::Event *e);
     static bool TestEvent (Keys k, sf::Event e);
 #if defined HAVE_WX && HAVE_WX

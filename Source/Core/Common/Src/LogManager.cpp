@@ -26,7 +26,8 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 {
 	va_list args;
 	va_start(args, fmt);
-	LogManager::GetInstance()->Log(level, type, file, line, fmt, args);
+	if (LogManager::GetInstance())
+		LogManager::GetInstance()->Log(level, type, file, line, fmt, args);
 	va_end(args);
 }
 
@@ -91,11 +92,14 @@ LogManager::LogManager() {
 }
 
 LogManager::~LogManager() {
-	delete [] &m_Log;  // iffy :P
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i) {
 		m_logManager->removeListener((LogTypes::LOG_TYPE)i, m_fileLog);
 		m_logManager->removeListener((LogTypes::LOG_TYPE)i, m_consoleLog);
 	}
+
+	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+		delete m_Log[i];
+
 	delete m_fileLog;
 	delete m_consoleLog;
 	delete logMutex;
@@ -129,6 +133,17 @@ void LogManager::removeListener(LogTypes::LOG_TYPE type, LogListener *listener) 
 	logMutex->Enter();
 	m_Log[type]->removeListener(listener);
 	logMutex->Leave();
+}
+
+void LogManager::Init()
+{
+	m_logManager = new LogManager();
+}
+
+void LogManager::Shutdown()
+{
+	delete m_logManager;
+	m_logManager = NULL;
 }
 
 LogContainer::LogContainer(const char* shortName, const char* fullName, bool enable)
@@ -183,7 +198,8 @@ void FileLogListener::Reload() {
 
 FileLogListener::~FileLogListener() {
 	free(m_filename);
-	fclose(m_logfile);
+	if (m_logfile)
+		fclose(m_logfile);
 }
 
 void FileLogListener::Log(LogTypes::LOG_LEVELS, const char *msg) {

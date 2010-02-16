@@ -139,6 +139,7 @@ char ** cdio_get_devices_win32() {
 		const char *drive_str=is_cdrom_win32(drive_letter);
 		if (drive_str != NULL) {
 			cdio_add_device_list(&drives, drive_str, &num_drives);
+			delete drive_str;
 		}
 	}
 	cdio_add_device_list(&drives, NULL, &num_drives);
