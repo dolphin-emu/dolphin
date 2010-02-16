@@ -348,7 +348,7 @@ dump_memory:
 	mrr		$ar2, $ar0
 	mrr		$ar0, $ac1.m
 	
-	addis	$acc0, #0x1
+	addis	$ac0.m, #0x1
 
 _fill_loop2:
 	nop
