@@ -154,7 +154,7 @@
 #define SR_OVERFLOW		0x0002
 #define SR_ARITH_ZERO	0x0004
 #define SR_SIGN			0x0008
-#define SR_10			0x0010 // seem to be set by tst
+#define SR_10			0x0010 // set when there there was mod/tst/cmp on accu and abs(acc?)>=0x80000000, tstaxh never modifies it
 #define SR_TOP2BITS		0x0020 // if the upper 2 bits are equal
 #define SR_LOGIC_ZERO	0x0040
 #define SR_80			0x0080 // Unknown, set by add

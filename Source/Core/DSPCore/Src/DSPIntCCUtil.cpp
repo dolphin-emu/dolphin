@@ -26,32 +26,42 @@
 
 namespace DSPInterpreter {
 
-void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
+void Update_SR_Register64(s64 _Value, bool carry, bool overflow, bool sr10)
 {
-	// TODO: Should also set 0x10 and 0x01 (also 0x02?)
+	// TODO: recheck 0x1,0x2,even 0x80... implement...
 	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
 
-	if (_Value < 0)
-	{
-		g_dsp.r[DSP_REG_SR] |= SR_SIGN;
-	}
-
-	if (_Value == 0)
-	{
-		g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
-	}
-
+	// 0x01
 	if (carry)
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_CARRY;
 	}
 
+	// 0x02
 	if (overflow)
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_OVERFLOW;
 	}
-		
-	// Checks if top bits of m are equal, what is it good for?
+
+	// 0x04
+	if (_Value == 0)
+	{
+		g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
+	}
+
+	// 0x08
+	if (_Value < 0)
+	{
+		g_dsp.r[DSP_REG_SR] |= SR_SIGN;
+	}
+
+	// 0x10 - abs((u40)acc?) >= 0x80000000
+	if (sr10)
+	{
+		g_dsp.r[DSP_REG_SR] |= SR_10;
+	}
+
+	// 0x20 - Checks if top bits of m are equal, what is it good for?
 	if (((_Value & 0xc0000000) == 0) || ((_Value & 0xc0000000) == 0xc0000000))
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
@@ -59,32 +69,42 @@ void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
 }
 
 
-void Update_SR_Register16(s16 _Value, bool carry, bool overflow)
+void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool sr10)
 {
+	// TODO: recheck 0x1,0x2,even 0x80... implement...
 	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
 
-
-	if (_Value < 0)
-	{
-		g_dsp.r[DSP_REG_SR] |= SR_SIGN;
-	}
-
-	if (_Value == 0)
-	{
-		g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
-	}
-
+	// 0x01
 	if (carry)
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_CARRY;
 	}
 
+	// 0x02
 	if (overflow)
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_OVERFLOW;
 	}
+	
+	// 0x04
+	if (_Value == 0)
+	{
+		g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
+	}
 
-	// Checks if top bits are equal, what is it good for?
+	// 0x08 
+	if (_Value < 0)
+	{
+		g_dsp.r[DSP_REG_SR] |= SR_SIGN;
+	}
+
+	// 0x10 - abs((u40)acc?) >= 0x80000000
+	if (sr10) 
+	{
+		g_dsp.r[DSP_REG_SR] |= SR_10;
+	}
+
+	// 0x20 - Checks if top bits of m are equal, what is it good for?
 	if ((((u16)_Value >> 14) == 0) || (((u16)_Value >> 14) == 3))
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;

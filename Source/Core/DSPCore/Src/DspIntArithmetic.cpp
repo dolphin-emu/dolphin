@@ -334,12 +334,12 @@ void andi(const UDSPInstruction& opc)
 // Logic OR of accumulator mid part $acD.m with immediate value I.
 void ori(const UDSPInstruction& opc)
 {
-	u8 reg  = DSP_REG_ACM0 + ((opc.hex >> 8) & 0x1);
+	u8 reg  = (opc.hex >> 8) & 0x1;
 	u16 imm = dsp_fetch_code();
 
-	g_dsp.r[reg] |= imm;
+	g_dsp.r[DSP_REG_ACM0 + reg] |= imm;
 
-	Update_SR_Register16((s16)g_dsp.r[reg]);
+	Update_SR_Register16((s16)g_dsp.r[DSP_REG_ACM0 + reg], false, false, isSR10(dsp_get_long_acc(reg)));
 }
 
 //-------------------------------------------------------------
@@ -358,8 +358,9 @@ void add(const UDSPInstruction& opc)
 
 	zeroWriteBackLog();
 	dsp_set_long_acc(areg, res);
+	res = dsp_get_long_acc(areg);
 
-	Update_SR_Register64(res);
+	Update_SR_Register64(res, false, false, isSR10(res));
 }
 
 // ADDP $acD
