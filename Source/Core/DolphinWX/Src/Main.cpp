@@ -537,8 +537,9 @@ void Host_Message(int Id)
 	switch(Id)
 	{
 		case WM_USER_STOP:
+		case WM_USER_PAUSE:
 			{
-				wxCommandEvent event(wxEVT_HOST_COMMAND, WM_USER_STOP);
+				wxCommandEvent event(wxEVT_HOST_COMMAND, Id);
 				main_frame->GetEventHandler()->AddPendingEvent(event);
 				break;
 			}

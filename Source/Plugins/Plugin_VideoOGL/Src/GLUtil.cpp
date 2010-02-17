@@ -571,7 +571,7 @@ void OpenGL_Update()
         switch(event.type) {
             case KeyRelease:
                 key = XLookupKeysym((XKeyEvent*)&event, 0);
-                if(key >= XK_F1 && key <= XK_F9) {
+                if((key >= XK_F1 && key <= XK_F9) || key == XK_Escape) {
                         g_VideoInitialize.pKeyPress(FKeyPressed, ShiftPressed, ControlPressed);
                         FKeyPressed = -1;
                 } else {
@@ -592,6 +592,11 @@ void OpenGL_Update()
                 }
                 else if (key == XK_Return && ((event.xkey.state & Mod1Mask) == Mod1Mask))
                   ToggleFullscreenMode();
+                else if (key == XK_Escape)
+                {
+                  if (!GLWin.fs)
+                    FKeyPressed = 0x1c;
+                }
                 else {
                     if(key == XK_Shift_L || key == XK_Shift_R)
                         ShiftPressed = true;
@@ -632,10 +637,6 @@ void OpenGL_Update()
                 return;
                 break;
             default:
-                //TODO: Should we put the event back if we don't handle it?
-                // I think we handle all the needed ones, the rest shouldn't matter
-                // But to be safe, let's but them back anyway
-                //XPutBackEvent(GLWin.dpy, &event);
                 break;
             }
 	}

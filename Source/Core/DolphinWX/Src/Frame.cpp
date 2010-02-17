@@ -655,6 +655,9 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 	case WM_USER_STOP:
 		main_frame->DoStop();
 		break;
+	case WM_USER_PAUSE:
+		main_frame->OnPlay(event);
+		break;
 #endif
 	}
 }
