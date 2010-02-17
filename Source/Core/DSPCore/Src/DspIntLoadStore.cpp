@@ -47,6 +47,7 @@ void lrs(const UDSPInstruction& opc)
 	u8 reg   = ((opc.hex >> 8) & 0x7) + 0x18;
 	u16 addr = (g_dsp.r[DSP_REG_CR] << 8) | (opc.hex & 0xFF);
 	g_dsp.r[reg] = dsp_dmem_read(addr);
+	dsp_conditional_extend_accum(reg);
 }
 
 // LR $D, @M
