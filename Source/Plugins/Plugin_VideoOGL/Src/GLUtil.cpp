@@ -122,7 +122,7 @@ void UpdateFPSDisplay(const char *text)
 #if defined(HAVE_X11) && HAVE_X11
 void CreateXWindow (void)
 {
-    Atom wmDelete;
+    Atom wmProtocols[3];
     int width, height;
 
     if (GLWin.fs)
@@ -153,8 +153,10 @@ void CreateXWindow (void)
     GLWin.win = XCreateWindow(GLWin.dpy, RootWindow(GLWin.dpy, GLWin.vi->screen),
             0, 0, width, height, 0, GLWin.vi->depth, InputOutput, GLWin.vi->visual,
             CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect, &GLWin.attr);
-    wmDelete = XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", True);
-    XSetWMProtocols(GLWin.dpy, GLWin.win, &wmDelete, 1);
+    wmProtocols[0] = XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", True);
+    wmProtocols[1] = XInternAtom(GLWin.dpy, "WM_TAKE_FOCUS", True);
+    wmProtocols[2] = XInternAtom(GLWin.dpy, "TOGGLE_FULLSCREEN", False);
+    XSetWMProtocols(GLWin.dpy, GLWin.win, wmProtocols, 3);
     XSetStandardProperties(GLWin.dpy, GLWin.win, "GPU", "GPU", None, NULL, 0, NULL);
     XMapRaised(GLWin.dpy, GLWin.win);
     if (GLWin.fs)
@@ -162,6 +164,7 @@ void CreateXWindow (void)
         XGrabKeyboard(GLWin.dpy, GLWin.win, True, GrabModeAsync, GrabModeAsync, CurrentTime);
         XGrabPointer(GLWin.dpy, GLWin.win, True, NULL,
                 GrabModeAsync, GrabModeAsync, GLWin.win, None, CurrentTime);
+        XSetInputFocus(GLWin.dpy, GLWin.win, RevertToPointerRoot, CurrentTime);
     }
     XSync(GLWin.dpy, True);
 }
@@ -186,16 +189,17 @@ void DestroyXWindow(void)
                     GLWin.deskSize, GLWin.screenRotation, CurrentTime);
 #endif
     }
+    XUndefineCursor(GLWin.dpy, GLWin.win);
     XUnmapWindow(GLWin.dpy, GLWin.win);
     XSync(GLWin.dpy, True);
 }
 
 void ToggleFullscreenMode (void)
 {
-  DestroyXWindow();
-  GLWin.fs = !GLWin.fs;
-  CreateXWindow();
-  OpenGL_MakeCurrent();
+    DestroyXWindow();
+    GLWin.fs = !GLWin.fs;
+    CreateXWindow();
+    OpenGL_MakeCurrent();
 }
 #endif
 
@@ -623,6 +627,8 @@ void OpenGL_Update()
             case ClientMessage:
                 if ((ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", False))
                   g_VideoInitialize.pKeyPress(0x1b, False, False);
+                if ((ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "TOGGLE_FULLSCREEN", False))
+                    ToggleFullscreenMode();
                 return;
                 break;
             default:
@@ -678,10 +684,7 @@ void OpenGL_Shutdown()
         XRRFreeScreenConfigInfo(GLWin.screenConfig);
 #endif
 	if (g_Config.bHideCursor)
-    {
-        XUndefineCursor(GLWin.dpy, GLWin.win);
-        XFreeCursor(GLWin.dpy, GLWin.blankCursor);
-    }
+      XFreeCursor(GLWin.dpy, GLWin.blankCursor);
 	if (GLWin.ctx)
 	{
 		glXDestroyContext(GLWin.dpy, GLWin.ctx);

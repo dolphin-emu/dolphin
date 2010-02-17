@@ -660,9 +660,7 @@ bool IsFocus()
 	Window FocusWin;
 	int Revert;
 	XGetInputFocus(GCdisplay, &FocusWin, &Revert);
-	XWindowAttributes WinAttribs;
-	XGetWindowAttributes (GCdisplay, GLWin, &WinAttribs);
-	return (GLWin != 0 && (GLWin == FocusWin || WinAttribs.override_redirect));
+	return (GLWin != 0 && GLWin == FocusWin);
 #else
 	return true;
 #endif

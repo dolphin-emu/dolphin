@@ -50,6 +50,10 @@
 
 #include <wx/datetime.h> // wxWidgets
 
+#if defined HAVE_X11 && HAVE_X11
+#include <X11/Xlib.h>
+#endif
+
 // Resources
 
 extern "C" {
@@ -906,9 +910,32 @@ wxAuiNotebook* CFrame::CreateEmptyNotebook()
    return NB;
 }
 
+#if defined HAVE_X11 && HAVE_X11
+void X11_ShowFullScreen(bool bF)
+{
+	XEvent event;
+	Display *dpy = (Display *)Core::GetWindowHandle();
+	Window win = *(Window *)Core::GetXWindow();
+
+	// Init X event structure for TOGGLE_FULLSCREEN client message
+	event.xclient.type = ClientMessage;
+	event.xclient.format = 32;
+	event.xclient.data.l[0] = XInternAtom(dpy, "TOGGLE_FULLSCREEN", False);;
+
+	// Send the event
+	if (!XSendEvent(dpy, win, False, False, &event))
+	{
+		ERROR_LOG(VIDEO, "Failed to switch fullscreen/windowed mode.\n");
+	}
+}
+#endif
 
 void CFrame::DoFullscreen(bool bF)
 {
+#if defined HAVE_X11 && HAVE_X11
+	if ((Core::GetState() == Core::CORE_RUN) && !m_bModalDialogOpen)
+		X11_ShowFullScreen(bF);
+#endif
 	// Only switch this to fullscreen if we're rendering to main AND if we're running a game
 	// plus if a modal dialog is open, this will still process the keyboard events, and may cause
 	// the main window to become unresponsive, so we have to avoid that.

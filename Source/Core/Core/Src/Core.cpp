@@ -148,7 +148,14 @@ void *GetWindowHandle()
 {
     return g_pWindowHandle;
 }
- 
+
+#if defined HAVE_X11 && HAVE_X11
+void *GetXWindow()
+ {
+		 return g_pXWindow;
+ }
+#endif
+	 
 bool GetRealWiimote()
 {
     return g_bRealWiimote;

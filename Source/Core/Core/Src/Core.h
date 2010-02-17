@@ -59,6 +59,9 @@ namespace Core
     extern SCoreStartupParameter g_CoreStartupParameter; 
 
     void* GetWindowHandle();
+#if defined HAVE_X11 && HAVE_X11
+    void* GetXWindow();
+#endif
     bool GetRealWiimote();
 
     extern bool bReadTrace;
