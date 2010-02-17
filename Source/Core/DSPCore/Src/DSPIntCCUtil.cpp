@@ -85,7 +85,7 @@ void Update_SR_Register16(s16 _Value, bool carry, bool overflow)
 	}
 
 	// Checks if top bits are equal, what is it good for?
-	if (((_Value >> 14) == 0) || ((_Value >> 14) == 3))
+	if ((((u16)_Value >> 14) == 0) || (((u16)_Value >> 14) == 3))
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
 	}
