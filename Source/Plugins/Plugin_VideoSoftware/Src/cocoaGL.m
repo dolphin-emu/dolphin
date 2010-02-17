@@ -4,11 +4,12 @@ NSWindow *cocoaGLCreateWindow(int w,int h)
 {
 
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    	NSWindow *window;
-    	window = [[NSWindow alloc] initWithContentRect:NSMakeRect(50,50,w,h)
-        				styleMask:NSTitledWindowMask | NSResizableWindowMask
-        				backing:NSBackingStoreBuffered
-        				defer:FALSE];
+	NSWindow *window;
+	window = [[NSWindow alloc] initWithContentRect:NSMakeRect(50,50,w,h)
+					styleMask:NSTitledWindowMask | NSResizableWindowMask
+					backing:NSBackingStoreBuffered
+					defer:FALSE];
+	[window setReleasedWhenClosed: YES];
 
 	[window setTitle:@"Dolphin on OSX"];
 	//[window makeKeyAndOrderFront: nil];
@@ -29,24 +30,22 @@ void cocoaGLSetTitle(NSWindow *win, const char *title)
 
 void cocoaGLMakeCurrent(NSOpenGLContext *ctx, NSWindow *win)
 {
-    	NSAutoreleasePool *pool;
+	NSAutoreleasePool *pool;
 
   	pool = [[NSAutoreleasePool alloc] init];
 
 	int value = 0;
-        [ctx setValues:&value forParameter:NSOpenGLCPSwapInterval];
+	[ctx setValues:&value forParameter:NSOpenGLCPSwapInterval];
 
-    	if (ctx) {
+	if (ctx) {
+		[ctx setView:[win contentView]];
+		[ctx update];
+		[ctx makeCurrentContext];
+	} 
+	else 
+		[NSOpenGLContext clearCurrentContext];
 
-            	[ctx setView:[win contentView]];
-            	[ctx update];
-        	[ctx makeCurrentContext];
-	} else {
-        	[NSOpenGLContext clearCurrentContext];
-    	}
-
-    	[pool release];
-
+	[pool release];
 }
 
 
@@ -54,10 +53,11 @@ void cocoaGLMakeCurrent(NSOpenGLContext *ctx, NSWindow *win)
 NSOpenGLContext* cocoaGLInit(int mode)
 {
    	NSAutoreleasePool *pool;
-    	NSOpenGLPixelFormatAttribute attr[32];
-    	NSOpenGLPixelFormat *fmt;
-    	NSOpenGLContext *context;
-    	int i = 0;
+    	
+	NSOpenGLPixelFormatAttribute attr[32];
+	NSOpenGLPixelFormat *fmt;
+	NSOpenGLContext *context;
+	int i = 0;
 
 	pool = [[NSAutoreleasePool alloc] init];
 	
@@ -65,10 +65,11 @@ NSOpenGLContext* cocoaGLInit(int mode)
 	attr[i++] = 24;
 	attr[i++] = NSOpenGLPFADoubleBuffer;
 	
-        attr[i++] = NSOpenGLPFASampleBuffers;
-        attr[i++] = mode;
-        attr[i++] = NSOpenGLPFASamples;
-        attr[i++] = 1;
+	attr[i++] = NSOpenGLPFASampleBuffers;
+	attr[i++] = mode;
+	attr[i++] = NSOpenGLPFASamples;
+	attr[i++] = 1;
+	
 	attr[i++] = NSOpenGLPFANoRecovery;
 #ifdef GL_VERSION_1_3
 
@@ -80,62 +81,69 @@ NSOpenGLContext* cocoaGLInit(int mode)
 	attr[i++] = kCGLRendererGenericFloatID;
 #endif
 #endif
-    	attr[i++] = NSOpenGLPFAScreenMask;
-    	attr[i++] = CGDisplayIDToOpenGLDisplayMask(CGMainDisplayID());
+	attr[i++] = NSOpenGLPFAScreenMask;
+	attr[i++] = CGDisplayIDToOpenGLDisplayMask(CGMainDisplayID());
 
-    	attr[i] = 0;
+	attr[i] = 0;
 
-    	fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
+	fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes:attr];
    	if (fmt == nil) {
-        	printf("failed to create pixel format\n");
-        	[pool release];
-        	return NULL;
-    	}
+		printf("failed to create pixel format\n");
+		[pool release];
+		return NULL;
+	}
 
-    	context = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nil];
+	context = [[NSOpenGLContext alloc] initWithFormat:fmt shareContext:nil];
 
-    	[fmt release];
+	[fmt release];
 
-    	if (context == nil) {
-        	printf("failed to create context\n");
-        	[pool release];
-       	 	return NULL;
-    	}
+	if (context == nil) {
+		printf("failed to create context\n");
+		[pool release];
+		return NULL;
+	}
 
-    	[pool release];
+	[pool release];
 
-    	return context;
+	return context;
 
 }
 
 void cocoaGLDelete(NSOpenGLContext *ctx)
 {
-    	NSAutoreleasePool *pool;
+	NSAutoreleasePool *pool;
 
-    	pool = [[NSAutoreleasePool alloc] init];
+	pool = [[NSAutoreleasePool alloc] init];
 
-    	[ctx clearDrawable];
-    	[ctx release];
+	[ctx clearDrawable];
+	[ctx release];
 
-    	[pool release];
+	[pool release];
 
+}
+void cocoaGLDeleteWindow(NSWindow *window)
+{
+	
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
+	[window close];
+	[pool release];
+	
+	return window;
 }
 
 void cocoaGLSwap(NSOpenGLContext *ctx,NSWindow *window)
 {
-    	NSAutoreleasePool *pool;
+	NSAutoreleasePool *pool;
 
-    	pool = [[NSAutoreleasePool alloc] init];
+	pool = [[NSAutoreleasePool alloc] init];
 	[window makeKeyAndOrderFront: nil];
 
-    	ctx = [NSOpenGLContext currentContext];
-   	if (ctx != nil) {
-        	[ctx flushBuffer];
-    	}
+	ctx = [NSOpenGLContext currentContext];
+   	if (ctx != nil) 
+		[ctx flushBuffer];
 	else
-	{
 		printf("bad cocoa gl ctx\n");
-	}
-    	[pool release];
-
+	
+	[pool release];
 }

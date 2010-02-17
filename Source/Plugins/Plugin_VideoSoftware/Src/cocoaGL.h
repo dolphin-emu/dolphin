@@ -19,6 +19,8 @@ NSOpenGLContext* cocoaGLInit(int mode);
 
 void cocoaGLDelete(NSOpenGLContext *ctx);
 
+void cocoaGLDeleteWindow(NSWindow *window);
+
 void cocoaGLSwap(NSOpenGLContext *ctx,NSWindow *window);
 
 #ifdef __cplusplus
