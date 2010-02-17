@@ -80,7 +80,9 @@ void CLogWindow::CreateGUIControls()
 	m_verbosity->SetFont(wxFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
 	// Font
-	m_FontChoice = new wxChoice(this, IDM_FONT, wxDefaultPosition, wxDefaultSize, * new wxArrayString(), 0, wxDefaultValidator);
+	wxArrayString wxArray;
+	m_FontChoice = new wxChoice(this, IDM_FONT, wxDefaultPosition, wxDefaultSize, wxArray, 0, wxDefaultValidator);
+	
 	m_FontChoice->Append(wxT("Default font"));
 	m_FontChoice->Append(wxT("Monospaced font"));
 	m_FontChoice->Append(wxT("Selected font"));

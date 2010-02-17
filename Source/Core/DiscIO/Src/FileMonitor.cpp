@@ -145,5 +145,27 @@ void FindFilename(u64 offset)
 	CheckFile(fname, pFileSystem->GetFileSize(fname));
 }
 
+void Close()
+{
+	if(OpenISO != NULL)
+	{
+		delete OpenISO;
+		OpenISO = NULL;
+	}
+
+	if(pFileSystem != NULL)
+	{
+		delete pFileSystem;
+		pFileSystem = NULL;
+	}
+
+	// GCFiles' pointers are no longer valid after pFileSystem is cleared
+	GCFiles.clear();
+
+	ISOFile = "";
+	CurrentFile = "";
+	FileAccess = true;
+}
+
 
 } // FileMon

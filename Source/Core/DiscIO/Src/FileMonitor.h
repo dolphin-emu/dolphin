@@ -28,5 +28,6 @@ void ShowSound(std::string File);
 void ReadGC(std::string File);
 void CheckFile(std::string File, int Size);
 void FindFilename(u64 Offset);
+void Close();
 
 }

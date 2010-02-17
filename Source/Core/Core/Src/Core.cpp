@@ -56,6 +56,9 @@
  
 #include "PluginManager.h"
 #include "ConfigManager.h"
+
+#include "VolumeHandler.h"
+#include "FileMonitor.h"
  
 #include "MemTools.h"
 #include "Host.h"
@@ -526,6 +529,9 @@ THREAD_RETURN EmuThread(void *pArg)
 		// Returns after game exited
 		cpuThread = NULL;
 	}
+
+	VolumeHandler::EjectVolume();
+	FileMon::Close();
 
 	// Stop audio thread - Actually this does nothing on HLE plugin.
 	// But stops the DSP Interpreter on LLE plugin.
