@@ -212,7 +212,7 @@ send_back:
 	addi	$ac0.m, #0x200
 	mrr		$ac1.m, $ax0.l
 	addi	$ac1.m, #0x100
-	dma_copy:
+dma_copy:
 	mrr		$ax0.l, $ac1.m
 
 ; Wait for the CPU to send us a mail.	
