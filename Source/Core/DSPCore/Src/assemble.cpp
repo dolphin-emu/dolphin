@@ -551,7 +551,7 @@ bool DSPAssembler::VerifyParams(const opc_t *opc, param_t *par, int count, bool 
 					{
 						if (ext) fprintf(stderr, "(ext) ");
 						if (par[i].val >= 0x1e && par[i].val <= 0x1f) {
-							fprintf(stderr, "%i : %s", code_line, cur_line.c_str());
+							fprintf(stderr, "%i : %s ", code_line, cur_line.c_str());
 							fprintf(stderr, "WARNING: $ACM%d register used instead of $ACC%d register Line: %d Param: %d Ext: %d\n",
 								(par[i].val & 1), (par[i].val & 1), code_line, current_param, ext);
 						}
@@ -584,12 +584,12 @@ bool DSPAssembler::VerifyParams(const opc_t *opc, param_t *par, int count, bool 
 						if (ext) fprintf(stderr, "(ext) ");
 						if (par[i].val >= 0x1e && par[i].val <= 0x1f)
 						{
-							fprintf(stderr, "%s", cur_line.c_str());
+							fprintf(stderr, "%s ", cur_line.c_str());
 							fprintf(stderr, "WARNING: $ACM%d register used instead of $ACL%d register Line: %d Param: %d\n",
 								(par[i].val & 1), (par[i].val & 1), code_line, current_param);
 						}
 						else if (par[i].val >= 0x20 && par[i].val <= 0x21) {
-							fprintf(stderr, "%s", cur_line.c_str());
+							fprintf(stderr, "%s ", cur_line.c_str());
 							fprintf(stderr, "WARNING: $ACC%d register used instead of $ACL%d register Line: %d Param: %d\n",
 								(par[i].val & 1), (par[i].val & 1), code_line, current_param);
 						}

@@ -112,6 +112,7 @@
 #define DSP_DSMAL		0xcf // DSP DMA Address Low (External)
 
 #define DSP_FORMAT		0xd1 // Sample format
+#define DSP_ACUNK		0xd2 // Set to 3 on my dumps
 #define DSP_ACDATA1		0xd3 // used only by Zelda ucodes
 #define DSP_ACSAH		0xd4 // Start of loop
 #define DSP_ACSAL		0xd5
@@ -124,8 +125,9 @@
 #define DSP_YN2			0xdc
 #define DSP_ACCELERATOR	0xdd // ADPCM accelerator read. Used by AX.
 #define DSP_GAIN		0xde
+#define DSP_ACUNK2		0xdf // Set to 0xc on my dumps
 
-#define DSP_DREQ_MASK	0xef // ARAM DMA Request Mask
+#define DSP_AMDM		0xef // ARAM DMA Request Mask 0: DMA with ARAM unmasked 1: masked
 
 #define DSP_DIRQ		0xfb // DSP Irq Rest
 #define DSP_DMBH		0xfc // DSP Mailbox H

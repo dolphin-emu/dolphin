@@ -51,9 +51,9 @@ void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
 		g_dsp.r[DSP_REG_SR] |= SR_OVERFLOW;
 	}
 		
-	// Checks if top bits are equal, what is it good for?
-	if (((_Value >> 62) == 0) || (_Value >> 62 == 3))
-	{	
+	// Checks if top bits of m are equal, what is it good for?
+	if (((_Value & 0xc0000000) == 0) || ((_Value & 0xc0000000) == 0xc0000000))
+	{
 		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
 	}
 }
