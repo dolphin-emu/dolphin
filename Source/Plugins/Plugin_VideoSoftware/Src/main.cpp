@@ -98,6 +98,7 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 
 void Shutdown(void)
 {
+	OpenGL_Shutdown();
 }
 
 // This is called after Video_Initialize() from the Core

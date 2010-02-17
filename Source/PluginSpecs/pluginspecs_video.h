@@ -5,6 +5,7 @@
 #ifndef _VIDEO_H_INCLUDED__
 #define _VIDEO_H_INCLUDED__
 
+#include "Common.h"
 #include "PluginSpecs.h"
 
 #include "ExportProlog.h"
