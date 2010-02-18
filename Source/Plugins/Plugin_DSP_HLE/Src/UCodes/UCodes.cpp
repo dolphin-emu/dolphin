@@ -54,14 +54,8 @@ IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler)
 		INFO_LOG(DSPHLE, "CRC %08x: AX ucode chosen", _CRC);
 		return new CUCode_AX(_rMailHandler);
 
-		// Dunno if this is correct (well, pretty sure it's not...) but it
-		// prevents the deluge of error msgs when loading IPL with DSP HLE :p
 	case 0x6ba3b3ea: // IPL - PAL
 	case 0x24b22038: // IPL - NTSC/NTSC-JAP
-		return new CUCode_InitAudioSystem(_rMailHandler);
-
-	case 0x088e38a5: // IPL - JAP (shuffle2) - were these hashes from a different hash algo? seem incorrect (see above)
-	case 0xd73338cf: // IPL
 	case 0x42f64ac4: // Luigi
 	case 0x4be6a5cb: // AC, Pikmin
 		INFO_LOG(DSPHLE, "CRC %08x: JAC (early Zelda) ucode chosen", _CRC);
