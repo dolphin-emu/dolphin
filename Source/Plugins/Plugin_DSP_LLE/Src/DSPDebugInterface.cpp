@@ -40,7 +40,7 @@ void DSPDebugInterface::getRawMemoryString(int memory, unsigned int address, cha
 			sprintf(dest, "%04x", dsp_imem_read(address));
 			break;
 		default:
-			sprintf(dest, "----");
+			sprintf(dest, "--IMEM--");
 			break;
 		}
 		break;
@@ -48,10 +48,13 @@ void DSPDebugInterface::getRawMemoryString(int memory, unsigned int address, cha
 		switch (address >> 12) {
 		case 0:
 		case 1:
-			sprintf(dest, "%04x", dsp_dmem_read(address));
+			sprintf(dest, "%04x (DMEM)", dsp_dmem_read(address));
+			break;
+		case 0xf:
+			sprintf(dest, "%04x (MMIO)", g_dsp.ifx_regs[address & 0xFF]);
 			break;
 		default:
-			sprintf(dest, "----");
+			sprintf(dest, "--DMEM--");
 			break;
 		}
 		break;
@@ -113,6 +116,16 @@ void DSPDebugInterface::toggleBreakpoint(unsigned int address)
 		else
 			dsp_breakpoints.Add(real_addr);
 	}
+}
+
+bool DSPDebugInterface::isMemCheck(unsigned int address)
+{
+	return false;
+}
+
+void DSPDebugInterface::toggleMemCheck(unsigned int address)
+{
+	PanicAlert("MemCheck functionality not supported in DSP module.");
 }
 
 void DSPDebugInterface::insertBLR(unsigned int address) 

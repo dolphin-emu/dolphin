@@ -78,8 +78,6 @@ from huge functions in ROM - some kind of obfuscation?
 0030 8e00      set16       
 0031 02bf 8078 call        0x8078
 
-0030 8e00      set16       
-0031 02bf 8078 call        0x8078 // wait for cpu mail
 0033 20ff      lrs         $AX0.L, @CMBL
 0034 0240 0fff andi        $AC0.M, #0x0fff
 0036 1f5e      mrr         $AX0.H, $AC0.M 

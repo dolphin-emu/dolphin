@@ -133,6 +133,34 @@ void PPCDebugInterface::toggleBreakpoint(unsigned int address)
 		PowerPC::breakpoints.Add(address);
 }
 
+bool PPCDebugInterface::isMemCheck(unsigned int address)
+{
+	return (Memory::AreMemoryBreakpointsActivated()
+		&& PowerPC::memchecks.GetMemCheck(address));
+}
+
+void PPCDebugInterface::toggleMemCheck(unsigned int address)
+{
+	if (Memory::AreMemoryBreakpointsActivated()
+		&& !PowerPC::memchecks.GetMemCheck(address))
+	{
+		// Add Memory Check
+		TMemCheck MemCheck;
+		MemCheck.StartAddress = address;
+		MemCheck.EndAddress = address;
+		MemCheck.OnRead = true;
+		MemCheck.OnWrite = true;
+
+		MemCheck.Log = true;
+		MemCheck.Break = true;
+
+		PowerPC::memchecks.Add(MemCheck);
+
+	}
+	else
+		PowerPC::memchecks.DeleteByAddress(address);
+}
+
 void PPCDebugInterface::insertBLR(unsigned int address, unsigned int value) 
 {
 	Memory::Write_U32(value, address);

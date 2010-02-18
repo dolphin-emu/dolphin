@@ -15,82 +15,108 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "Common.h" // Common
-#include <iostream> // System
+#include "Common.h"
+#include <iostream>
 #include <fstream>
 #include <sstream>
+
+#include <wx/artprov.h>
 
 #include "DSPDebugWindow.h"
 #include "DSPRegisterView.h"
 #include "CodeView.h"
+#include "MemoryView.h"
 #include "../DSPSymbols.h"
 
 // Define these here to avoid undefined symbols while still saving functionality
 void Host_NotifyMapLoaded() {}
 void Host_UpdateBreakPointView() {}
 
-// Event table and class
 BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxFrame)	
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)
-
 	EVT_MENU_RANGE(ID_RUNTOOL, ID_STEPTOOL, DSPDebuggerLLE::OnChangeState)
 	EVT_MENU(ID_SHOWPCTOOL, DSPDebuggerLLE::OnShowPC)
-	EVT_TEXT(ID_ADDRBOX,    DSPDebuggerLLE::OnAddrBoxChange)
-    EVT_LISTBOX(ID_SYMBOLLIST,     DSPDebuggerLLE::OnSymbolListChange)
+	EVT_TEXT_ENTER(ID_ADDRBOX, DSPDebuggerLLE::OnAddrBoxChange)
+    EVT_LISTBOX(ID_SYMBOLLIST, DSPDebuggerLLE::OnSymbolListChange)
 END_EVENT_TABLE()
 
-DSPDebuggerLLE::DSPDebuggerLLE(wxWindow *parent, wxWindowID id, const wxString &title,
-							   const wxPoint &position, const wxSize& size, long style)
-							   : wxFrame(parent, id, title, position, size, style)
-							   , m_CachedStepCounter(-1)
+
+DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent)
+	: wxFrame(parent, wxID_ANY, _("DSP LLE Debugger"),
+			  wxDefaultPosition, wxSize(700, 800),
+			  wxDEFAULT_FRAME_STYLE)
+	, m_CachedStepCounter(-1)
 {
-	CreateGUIControls();
+	// notify wxAUI which frame to use
+	m_mgr.SetManagedWindow(this);
+
+	m_Toolbar = new wxAuiToolBar(this, ID_TOOLBAR,
+		wxDefaultPosition, wxDefaultSize, wxAUI_TB_HORZ_TEXT);
+	m_Toolbar->AddTool(ID_RUNTOOL, wxT("Pause"),
+		wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, wxSize(10,10)));
+	m_Toolbar->AddTool(ID_STEPTOOL, wxT("Step"),
+		wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_OTHER, wxSize(10,10)));
+	m_Toolbar->AddTool(ID_SHOWPCTOOL, wxT("Show PC"),
+		wxArtProvider::GetBitmap(wxART_GO_TO_PARENT, wxART_OTHER, wxSize(10,10)));
+	m_Toolbar->AddSeparator();
+	m_Toolbar->AddControl(new wxTextCtrl(m_Toolbar, ID_ADDRBOX, wxEmptyString,
+		wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER));
+	m_Toolbar->Realize();
+
+	m_SymbolList = new wxListBox(this, ID_SYMBOLLIST, wxDefaultPosition,
+		wxSize(140, 100), 0, NULL, wxLB_SORT);
+
+	m_MainNotebook = new wxAuiNotebook(this, wxID_ANY,
+		wxDefaultPosition, wxDefaultSize,
+		wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_MOVE);
+
+	wxPanel *code_panel = new wxPanel(m_MainNotebook, wxID_ANY);
+	wxBoxSizer *code_sizer = new wxBoxSizer(wxVERTICAL);
+	m_CodeView = new CCodeView(&debug_interface, &DSPSymbols::g_dsp_symbol_db, code_panel);
+	m_CodeView->SetPlain();
+	code_sizer->Add(m_CodeView, 1, wxALL | wxEXPAND);
+	code_panel->SetSizer(code_sizer);
+	code_sizer->SetSizeHints(code_panel);
+	m_MainNotebook->AddPage(code_panel, wxT("Disasm"), true);
+
+	wxPanel *mem_panel = new wxPanel(m_MainNotebook, wxID_ANY);
+	wxBoxSizer *mem_sizer = new wxBoxSizer(wxVERTICAL);
+	// TODO insert memViewer class
+	m_MemView = new CMemoryView(&debug_interface, mem_panel);
+	mem_sizer->Add(m_MemView, 1, wxALL | wxEXPAND);
+	mem_panel->SetSizer(mem_sizer);
+	mem_sizer->SetSizeHints(mem_panel);
+	m_MainNotebook->AddPage(mem_panel, wxT("Mem"));
+
+	m_Regs = new DSPRegisterView(this, ID_DSP_REGS);
+
+	// add the panes to the manager
+	m_mgr.AddPane(m_Toolbar, wxAuiPaneInfo().
+		ToolbarPane().Top().
+		LeftDockable(false).RightDockable(false));
+
+	m_mgr.AddPane(m_SymbolList, wxAuiPaneInfo().
+		Left().CloseButton(false).
+		Caption(wxT("Symbols")).Dockable(true));
+
+	m_mgr.AddPane(m_MainNotebook, wxAuiPaneInfo().
+		Name(wxT("m_MainNotebook")).Center().
+		CloseButton(false).MaximizeButton(true));
+
+	m_mgr.AddPane(m_Regs, wxAuiPaneInfo().Right().
+		CloseButton(false).Caption(wxT("Registers")).
+		Dockable(true));
+
+	UpdateState();
+
+	m_mgr.Update();
+
+	Show();
 }
 
 DSPDebuggerLLE::~DSPDebuggerLLE()
 {
-}
-
-void DSPDebuggerLLE::CreateGUIControls()
-{
-	// Basic settings
-	SetSize(700, 800);
-	this->SetSizeHints(700, 800);
-	this->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-
-	m_Toolbar = CreateToolBar(wxTB_NODIVIDER|wxTB_NOICONS|wxTB_HORZ_TEXT|wxTB_DOCKABLE, ID_TOOLBAR); 
-	m_Toolbar->AddTool(ID_RUNTOOL, wxT("Run"), wxNullBitmap, wxEmptyString, wxITEM_NORMAL);
-	m_Toolbar->AddTool(ID_STEPTOOL, wxT("Step"), wxNullBitmap, wxT("Step Code "), wxITEM_NORMAL);
-	m_Toolbar->AddTool(ID_SHOWPCTOOL, wxT("Show Pc"), wxNullBitmap, wxT("Show where PC is"), wxITEM_NORMAL);
-	m_Toolbar->AddTool(ID_JUMPTOTOOL, wxT("Jump"), wxNullBitmap, wxT("Jump to a specific Address"), wxITEM_NORMAL);
-	m_Toolbar->AddSeparator();
-
-	m_Toolbar->AddControl(new wxTextCtrl(m_Toolbar, ID_ADDRBOX, _T("")));
-
-	m_Toolbar->Realize();
-
-	wxBoxSizer* sMain = new wxBoxSizer(wxHORIZONTAL);
-	wxBoxSizer* sizerLeft  = new wxBoxSizer(wxVERTICAL);
-	sizerLeft->Add(m_SymbolList = new wxListBox(this, ID_SYMBOLLIST, wxDefaultPosition, wxSize(140, 100), 0, NULL, wxLB_SORT),
-		1, wxEXPAND);
-
-	m_CodeView = new CCodeView(&debug_interface, &DSPSymbols::g_dsp_symbol_db, this, ID_CODEVIEW);
-	m_CodeView->SetPlain();
-
-	sMain->Add(sizerLeft, 0, wxEXPAND, 0);
-
-	sMain->Add(m_CodeView, 4, wxEXPAND, 0);
-
-	wxStaticLine* m_staticline = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL);
-	sMain->Add(m_staticline, 0, wxEXPAND|wxALL, 0);
-
-	m_Regs = new DSPRegisterView(this, ID_DSP_REGS);
-	sMain->Add(m_Regs, 0, wxEXPAND|wxALL, 5);
-
-	this->SetSizer(sMain);
-	this->Layout();
-
-	UpdateState();
+	m_mgr.UnInit();
 }
 
 void DSPDebuggerLLE::OnClose(wxCloseEvent& event)
@@ -123,6 +149,7 @@ void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 	}
 
 	UpdateState();
+	m_mgr.Update();
 }
 
 void DSPDebuggerLLE::OnShowPC(wxCommandEvent& event)
@@ -137,6 +164,7 @@ void DSPDebuggerLLE::Refresh()
 	UpdateDisAsmListView();
 	UpdateRegisterFlags();
 	UpdateState();
+	m_mgr.Update();
 }
 
 void DSPDebuggerLLE::FocusOnPC()
@@ -147,12 +175,15 @@ void DSPDebuggerLLE::FocusOnPC()
 void DSPDebuggerLLE::UpdateState()
 {
 	if (DSPCore_GetState() == DSPCORE_RUNNING) {
-		m_Toolbar->FindById(ID_RUNTOOL)->SetLabel(wxT("Pause"));
-		m_Toolbar->FindById(ID_STEPTOOL)->Enable(false);
-	}
-	else {
-		m_Toolbar->FindById(ID_RUNTOOL)->SetLabel(wxT("Run"));
-		m_Toolbar->FindById(ID_STEPTOOL)->Enable(true);
+		m_Toolbar->SetToolLabel(ID_RUNTOOL, wxT("Pause"));
+		m_Toolbar->SetToolBitmap(ID_RUNTOOL,
+			wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, wxSize(10,10)));
+		m_Toolbar->EnableTool(ID_STEPTOOL, false);
+	} else {
+		m_Toolbar->SetToolLabel(ID_RUNTOOL, wxT("Run"));
+		m_Toolbar->SetToolBitmap(ID_RUNTOOL,
+			wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_OTHER, wxSize(10,10)));
+		m_Toolbar->EnableTool(ID_STEPTOOL, true);
 	}
 	m_Toolbar->Realize();
 }
@@ -201,12 +232,11 @@ void DSPDebuggerLLE::OnSymbolListChange(wxCommandEvent& event)
 
 void DSPDebuggerLLE::UpdateRegisterFlags()
 {
-
 }
 
 void DSPDebuggerLLE::OnAddrBoxChange(wxCommandEvent& event)
 {
-	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)GetToolBar()->FindControl(ID_ADDRBOX);
+	wxTextCtrl* pAddrCtrl = (wxTextCtrl*)m_Toolbar->FindControl(ID_ADDRBOX);
 	wxString txt = pAddrCtrl->GetValue();
 
 	std::string text(txt.mb_str());
@@ -220,16 +250,32 @@ void DSPDebuggerLLE::OnAddrBoxChange(wxCommandEvent& event)
 		else
 			pAddrCtrl->SetBackgroundColour(*wxRED);
 	}
-	event.Skip(1);
+	event.Skip();
 }
 
 bool DSPDebuggerLLE::JumpToAddress(u16 addr)
 {
-	int new_line = DSPSymbols::Addr2Line(addr);
-	if (new_line >= 0) {
-		m_CodeView->Center(new_line);
-		return true;
-	} else {
-		return false;
+	int page = m_MainNotebook->GetSelection();
+	if (page == 0)
+	{
+		// Center on valid instruction in IRAM/IROM
+		int new_line = DSPSymbols::Addr2Line(addr);
+		if (new_line >= 0) {
+			m_CodeView->Center(new_line);
+			return true;
+		}
 	}
+	else if (page == 1)
+	{
+		// Center on any location in any valid ROM/RAM
+		int seg = addr >> 12;
+		if (seg == 0 || seg == 1 ||
+			seg == 8 || seg == 0xf)
+		{
+			m_MemView->Center(addr);
+			return true;
+		}
+	}
+
+	return false;
 }

@@ -19,6 +19,8 @@ public:
 	virtual void clearBreakpoint(unsigned int address);
 	virtual void clearAllBreakpoints();
 	virtual void toggleBreakpoint(unsigned int address);
+	virtual bool isMemCheck(unsigned int address);
+	virtual void toggleMemCheck(unsigned int address);
 	virtual unsigned int readMemory(unsigned int address);
 	virtual unsigned int readInstruction(unsigned int address);
 	virtual unsigned int getPC();

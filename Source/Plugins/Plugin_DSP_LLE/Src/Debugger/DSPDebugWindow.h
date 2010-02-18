@@ -33,6 +33,7 @@
 #include <wx/sizer.h>
 #include <wx/listctrl.h>
 #include <wx/statline.h>
+#include <wx/aui/aui.h>
 
 #include "disassemble.h"
 #include "DSPInterpreter.h"
@@ -41,17 +42,12 @@
 
 class DSPRegisterView;
 class CCodeView;
+class CMemoryView;
 
 class DSPDebuggerLLE : public wxFrame
 {
 public:
-	DSPDebuggerLLE(wxWindow *parent,
-		wxWindowID id = wxID_ANY,
-		const wxString &title = wxT("DSP LLE Debugger"),
-		const wxPoint& pos = wxDefaultPosition,
-		const wxSize& size = wxDefaultSize,
-		long style = wxDEFAULT_FRAME_STYLE);
-
+	DSPDebuggerLLE(wxWindow *parent);
 	virtual ~DSPDebuggerLLE();
 
 	void Refresh();
@@ -61,36 +57,13 @@ private:
 
 	enum
 	{
-		// Toolbar
 		ID_TOOLBAR = 1000,
 		ID_RUNTOOL,
 		ID_STEPTOOL,
 		ID_SHOWPCTOOL,
 		ID_ADDRBOX,
-		ID_JUMPTOTOOL,
-		ID_DISASMDUMPTOOL,
-		ID_CHECK_ASSERTINT,
-		ID_CHECK_HALT,
-		ID_CHECK_INIT,
 		ID_SYMBOLLIST,
-
-		// Code view
-		ID_CODEVIEW,
-
-		// Register View
-		ID_DSP_REGS,
-	};
-
-	// Disasm listctrl columns
-	enum
-	{
-		COLUMN_BP,
-		COLUMN_FUNCTION,
-		COLUMN_ADDRESS,
-		COLUMN_MNEMONIC,
-		COLUMN_OPCODE,
-		COLUMN_EXT,
-		COLUMN_PARAM,
+		ID_DSP_REGS
 	};
 
 	DSPDebugInterface debug_interface;
@@ -103,10 +76,13 @@ private:
 	void UpdateState();
 
 	// GUI items
-	wxToolBar* m_Toolbar;
+	wxAuiManager m_mgr;
+	wxAuiToolBar* m_Toolbar;
 	CCodeView* m_CodeView;
+	CMemoryView* m_MemView;
 	DSPRegisterView* m_Regs;
 	wxListBox* m_SymbolList;
+	wxAuiNotebook* m_MainNotebook;
 
 	void OnClose(wxCloseEvent& event);
 	void OnChangeState(wxCommandEvent& event);
@@ -118,7 +94,6 @@ private:
 
 	bool JumpToAddress(u16 addr);
 
-	void CreateGUIControls();
 	void FocusOnPC();
 	void UnselectAll();
 };
