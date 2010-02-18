@@ -571,7 +571,7 @@ void OpenGL_Update()
         switch(event.type) {
             case KeyRelease:
                 key = XLookupKeysym((XKeyEvent*)&event, 0);
-                if((key >= XK_F1 && key <= XK_F9) || key == XK_Escape) {
+                if(key >= XK_F1 && key <= XK_F9) {
                         g_VideoInitialize.pKeyPress(FKeyPressed, ShiftPressed, ControlPressed);
                         FKeyPressed = -1;
                 } else {
@@ -590,13 +590,20 @@ void OpenGL_Update()
                   else
                     FKeyPressed = key - 0xff4e;
                 }
-                else if (key == XK_Return && ((event.xkey.state & Mod1Mask) == Mod1Mask))
-                  ToggleFullscreenMode();
                 else if (key == XK_Escape)
                 {
-                  if (!GLWin.fs)
-                    FKeyPressed = 0x1c;
+                    if (GLWin.fs)
+                    {
+                        ToggleFullscreenMode();
+                        XEvent event;
+                        do {
+                            XMaskEvent(GLWin.dpy, StructureNotifyMask, &event);
+                        } while ( (event.type != MapNotify) || (event.xmap.event != GLWin.win) );
+                    }
+                    g_VideoInitialize.pKeyPress(0x1c, ShiftPressed, ControlPressed);
                 }
+                else if (key == XK_Return && ((event.xkey.state & Mod1Mask) == Mod1Mask))
+                  ToggleFullscreenMode();
                 else {
                     if(key == XK_Shift_L || key == XK_Shift_R)
                         ShiftPressed = true;

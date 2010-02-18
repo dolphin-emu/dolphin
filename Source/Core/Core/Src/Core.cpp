@@ -269,9 +269,11 @@ void ProcessXEvents(void)
 					key = XLookupKeysym((XKeyEvent*)&event, 0);
 					if(key == XK_F4 && ((event.xkey.state & Mod1Mask) == Mod1Mask))
 						Host_Message(WM_USER_STOP);
-					else if (key == XK_Escape)
-						Host_Message(WM_USER_PAUSE);
 					break;
+				case KeyPress:
+					key = XLookupKeysym((XKeyEvent*)&event, 0);
+					if (key == XK_Escape)
+						Host_Message(WM_USER_PAUSE);
 				case ClientMessage:
 					if ((ulong) event.xclient.data.l[0] == XInternAtom(dpy, "WM_DELETE_WINDOW", False))
 						Host_Message(WM_USER_STOP);
