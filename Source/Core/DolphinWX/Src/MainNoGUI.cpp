@@ -117,10 +117,12 @@ void Host_SetWiiMoteConnectionState(int _State) {}
 
 @interface CocoaThread : NSObject
 {
+	NSThread *Thread;
 }
 - (void)cocoaThreadStart;
 - (void)cocoaThreadRun:(id)sender;
 - (void)cocoaThreadQuit:(NSNotification*)note;
+- (bool)cocoaThreadRunning;
 @end
 
 static NSString *CocoaThreadHaveFinish = @"CocoaThreadHaveFinish";
@@ -143,7 +145,7 @@ int appleMain(int argc, char *argv[]);
 {
 
 	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
-
+	Thread = [NSThread currentThread];
 	//launch main
 	appleMain(cocoaArgc,cocoaArgv);
 	
@@ -160,11 +162,16 @@ int appleMain(int argc, char *argv[]);
 
 }
 
+- (bool)cocoaThreadRunning
+{
+	if([Thread isFinished])
+		return false;
+	else 
+		return true;
+}
 
 @end
 
-
-volatile bool running;
 
 int main(int argc, char *argv[])
 {
@@ -180,10 +187,9 @@ int main(int argc, char *argv[])
 	NSEvent *event = [[NSEvent alloc] init];	
 	
 	[thread cocoaThreadStart];
-	running = true;
 
 	//cocoa event loop
-	while(running)
+	while(1)
 	{
 		event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES ];
 		if(cocoaSendEvent(event))
@@ -191,6 +197,8 @@ int main(int argc, char *argv[])
 			Core::Stop();
 			break;
 		}
+		if(![thread cocoaThreadRunning])
+			break;
 	}	
 
 
@@ -238,9 +246,6 @@ int main(int argc, char* argv[])
 			updateMainFrameEvent.Wait();
 		}
 	}
-#if defined(HAVE_COCOA) && HAVE_COCOA
-	running = false;
-#endif
 
 	CPluginManager::Shutdown();
 	SConfig::Shutdown();

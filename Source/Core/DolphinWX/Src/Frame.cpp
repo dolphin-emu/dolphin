@@ -395,12 +395,9 @@ CFrame::CFrame(wxFrame* parent,
 	// ---------------
 
 	// Manager
-#ifdef _WIN32
+	// wxAUI_MGR_LIVE_RESIZE does not exist in the wxWidgets 2.8.9 that comes with Ubuntu 9.04
+	// Could just check for wxWidgets version if it becomes a problem.
 	m_Mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
-#else
-	// wxAUI_MGR_LIVE_RESIZE does not exist in the wxWidgets 2.8 that comes with the latest ubuntu.
-	m_Mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT);
-#endif
 	NOTEBOOK_STYLE = wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_EXTERNAL_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_WINDOWLIST_BUTTON | wxNO_BORDER;
 	TOOLBAR_STYLE = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT  /*wxAUI_TB_OVERFLOW overflow visible*/;
 	wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
@@ -500,7 +497,7 @@ CFrame::CFrame(wxFrame* parent,
 
 	//if we are ever going back to optional iso caching:
 	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
-	if (m_GameListCtrl) m_GameListCtrl->Update();
+	//if (m_GameListCtrl) m_GameListCtrl->Update();
 
 	// If we are rerecording create the status bar now instead of later when a game starts
 	#ifdef RERECORDING
