@@ -137,7 +137,7 @@ class GCPadConfigDialog : public wxDialog
 			*m_Button_Analog[IDB_TRIGGER_R - IDB_ANALOG_LEFT_X + 1][4],
 			*m_Button_GC[IDB_SHDR_SEMI_R - IDB_BTN_A + 1][4];
 
-		wxComboBox *m_Joyname[4],
+		wxChoice *m_Joyname[4],
 			*m_ComboDeadZoneLeft[4],
 			*m_ComboDeadZoneRight[4],
 			*m_ComboDiagonal[4],

@@ -46,7 +46,7 @@ private:
     wxCheckBox *m_buttonEnableDTKMusic;
     wxCheckBox *m_buttonEnableThrottle;
     wxArrayString wxArrayBackends;
-    wxComboBox  *m_BackendSelection;
+    wxChoice  *m_BackendSelection;
 
     enum
 	{

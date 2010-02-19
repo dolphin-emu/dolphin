@@ -48,7 +48,7 @@ private:
     wxCheckBox *m_buttonEnableThrottle;
 	wxCheckBox *m_buttonEnableRE0Fix;
 	wxArrayString wxArrayBackends;
-    wxComboBox  *m_BackendSelection;
+    wxChoice  *m_BackendSelection;
 
     enum
 	{
