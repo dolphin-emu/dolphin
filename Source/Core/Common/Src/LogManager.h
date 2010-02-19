@@ -117,9 +117,10 @@ private:
 	ConsoleListener *m_consoleLog;
 	static LogManager *m_logManager;  // Singleton. Ugh.
 
-public:
 	LogManager();
 	~LogManager();
+	DISALLOW_COPY_AND_ASSIGN(LogManager);
+public:
 
 	static u32 GetMaxLevel() { return MAX_LOGLEVEL;	}
 

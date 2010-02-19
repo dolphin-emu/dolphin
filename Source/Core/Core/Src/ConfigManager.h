@@ -103,20 +103,22 @@ struct SConfig
 	void LoadSettingsHLE();
 
 	// Return the permanent and somewhat globally used instance of this struct
-	static SConfig& GetInstance() {return(m_Instance);}
+	static SConfig& GetInstance() {return(*m_Instance);}
 
 	static void Init();
 	static void Shutdown();
 
-	private:
+private:
 
-		// constructor
-		SConfig();
+	// constructor
+	SConfig();
 
-		// destructor
-		~SConfig();
+	// destructor
+	~SConfig();
 
-		static SConfig m_Instance;
+	static SConfig* m_Instance;
+
+	DISALLOW_COPY_AND_ASSIGN(SConfig);
 };
 
 #endif // endif config manager

@@ -23,23 +23,25 @@
 #include "PluginManager.h"
 #include "FileUtil.h"
 
-SConfig SConfig::m_Instance;
-
+SConfig* SConfig::m_Instance;
 
 SConfig::SConfig()
 {
+	// Make sure we have log manager
+	LoadSettings();
+	//Make sure we load settings
+	LoadSettingsHLE();
 }
 
 void SConfig::Init()
 {
-	// Make sure we have log manager
-	m_Instance.LoadSettings();
-	//Make sure we load settings
-	m_Instance.LoadSettingsHLE();
+	m_Instance = new SConfig;
 }
 
 void SConfig::Shutdown()
 {
+	delete m_Instance;
+	m_Instance = NULL;
 }
 
 SConfig::~SConfig()

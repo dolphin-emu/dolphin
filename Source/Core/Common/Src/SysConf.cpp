@@ -38,6 +38,8 @@ SysConf::~SysConf()
 	if (!m_IsValid)
 		return;
 
+	Save();
+
 	for (size_t i = 0; i < m_Entries.size() - 1; i++)
 	{
 		delete [] m_Entries.at(i).data;
@@ -169,5 +171,7 @@ bool SysConf::SaveToFile(const char *filename)
 
 bool SysConf::Save()
 {
+	if (!m_IsValid)
+		return false;
 	return SaveToFile(m_Filename.c_str());
 }

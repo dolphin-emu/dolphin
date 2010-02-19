@@ -57,6 +57,7 @@ public:
 private:
 	CDSPHandler();
 	~CDSPHandler();
+	DISALLOW_COPY_AND_ASSIGN(CDSPHandler);
 
 	// singleton instance
 	static CDSPHandler* m_pInstance;

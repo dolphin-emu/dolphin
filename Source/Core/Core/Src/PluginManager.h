@@ -86,6 +86,7 @@ private:
 	void GetPluginInfo(CPluginInfo *&info, std::string Filename);
 	void *LoadPlugin(const char *_rFilename);
 
+	DISALLOW_COPY_AND_ASSIGN(CPluginManager);
 };
 
 
