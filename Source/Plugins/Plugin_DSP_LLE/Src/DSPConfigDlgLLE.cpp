@@ -102,6 +102,7 @@ void DSPConfigDialogLLE::AddBackend(const char* backend)
 #else
 	int num = m_BackendSelection->FindString(wxString::FromAscii(ac_Config.sBackend.c_str()));
 #endif
+	m_BackendSelection->SetSelection(num);
 }
 
 void DSPConfigDialogLLE::ClearBackends()
