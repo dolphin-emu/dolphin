@@ -98,9 +98,9 @@ void DSPConfigDialogLLE::AddBackend(const char* backend)
     m_BackendSelection->Append(wxString::FromAscii(backend));
 
 #ifdef __APPLE__
-	m_BackendSelection->SetValue(wxString::FromAscii(ac_Config.sBackend));
+	int num = m_BackendSelection->FindString(wxString::FromAscii(ac_Config.sBackend));
 #else
-	m_BackendSelection->SetValue(wxString::FromAscii(ac_Config.sBackend.c_str()));
+	int num = m_BackendSelection->FindString(wxString::FromAscii(ac_Config.sBackend.c_str()));
 #endif
 }
 
@@ -127,9 +127,9 @@ void DSPConfigDialogLLE::SettingsChanged(wxCommandEvent& event)
 	ac_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
 
 #ifdef __APPLE__
-	strncpy(ac_Config.sBackend, m_BackendSelection->GetValue().mb_str(), 128);
+	strncpy(ac_Config.sBackend, m_BackendSelection->GetStringSelection().mb_str(), 128);
 #else
-	ac_Config.sBackend = m_BackendSelection->GetValue().mb_str();
+	ac_Config.sBackend = m_BackendSelection->GetStringSelection().mb_str();
 #endif
 	ac_Config.Update();
 	g_Config.Save();
@@ -149,5 +149,5 @@ bool DSPConfigDialogLLE::SupportsVolumeChanges(std::string backend)
 
 void DSPConfigDialogLLE::BackendChanged(wxCommandEvent& event)
 {
-	m_volumeSlider->Enable(SupportsVolumeChanges(std::string(m_BackendSelection->GetValue().mb_str())));
+	m_volumeSlider->Enable(SupportsVolumeChanges(std::string(m_BackendSelection->GetStringSelection().mb_str())));
 }
