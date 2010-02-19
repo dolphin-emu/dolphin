@@ -497,7 +497,7 @@ CFrame::CFrame(wxFrame* parent,
 
 	//if we are ever going back to optional iso caching:
 	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
-	//if (m_GameListCtrl) m_GameListCtrl->Update();
+	if (m_GameListCtrl) m_GameListCtrl->Update();
 
 	// If we are rerecording create the status bar now instead of later when a game starts
 	#ifdef RERECORDING
