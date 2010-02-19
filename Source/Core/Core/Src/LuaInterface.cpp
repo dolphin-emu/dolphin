@@ -1408,7 +1408,7 @@ DEFINE_LUA_FUNCTION(emulua_redraw, "")
 
 DEFINE_LUA_FUNCTION(memory_readbyte, "address")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	unsigned char value = Memory::Read_U8(address);
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1416,7 +1416,7 @@ DEFINE_LUA_FUNCTION(memory_readbyte, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readbytesigned, "address")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	signed char value = (signed char)(Memory::Read_U8(address));
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1424,7 +1424,7 @@ DEFINE_LUA_FUNCTION(memory_readbytesigned, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readword, "address")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	unsigned short value = Memory::Read_U16(address);
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1432,7 +1432,7 @@ DEFINE_LUA_FUNCTION(memory_readword, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readwordsigned, "address")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	signed short value = (signed short)(Memory::Read_U16(address));
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1440,7 +1440,7 @@ DEFINE_LUA_FUNCTION(memory_readwordsigned, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readdword, "address")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	unsigned long value = Memory::Read_U32(address);
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1448,7 +1448,7 @@ DEFINE_LUA_FUNCTION(memory_readdword, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readdwordsigned, "address")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	signed long value = (signed long)(Memory::Read_U32(address));
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1456,7 +1456,7 @@ DEFINE_LUA_FUNCTION(memory_readdwordsigned, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readqword, "address")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	unsigned long long value = Memory::Read_U64(address);
 	lua_settop(L,0);
 	lua_pushinteger(L, (lua_Integer)value);
@@ -1464,7 +1464,7 @@ DEFINE_LUA_FUNCTION(memory_readqword, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readqwordsigned, "address")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	signed long long value = (signed long long)(Memory::Read_U64(address));
 	lua_settop(L,0);
 	lua_pushinteger(L, (lua_Integer)value);
@@ -1473,28 +1473,28 @@ DEFINE_LUA_FUNCTION(memory_readqwordsigned, "address")
 
 DEFINE_LUA_FUNCTION(memory_writebyte, "address,value")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	unsigned char value = (unsigned char)(luaL_checkinteger(L,2) & 0xFF);
 	Memory::Write_U8(value, address);
 	return 0;
 }
 DEFINE_LUA_FUNCTION(memory_writeword, "address,value")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	unsigned short value = (unsigned short)(luaL_checkinteger(L,2) & 0xFFFF);
 	Memory::Write_U16(value, address);
 	return 0;
 }
 DEFINE_LUA_FUNCTION(memory_writedword, "address,value")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	unsigned long value = (unsigned long)(luaL_checkinteger(L,2));
 	Memory::Write_U32(value, address);
 	return 0;
 }
 DEFINE_LUA_FUNCTION(memory_writeqword, "address,value")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	unsigned long value = (unsigned long)(luaL_checkinteger(L,2));
 	Memory::Write_U64(value, address);
 	return 0;
@@ -1502,7 +1502,7 @@ DEFINE_LUA_FUNCTION(memory_writeqword, "address,value")
 
 DEFINE_LUA_FUNCTION(memory_readbyterange, "address,length")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	int length = (int)luaL_checkinteger(L,2);
 
 	if(length < 0)
@@ -1531,7 +1531,7 @@ DEFINE_LUA_FUNCTION(memory_readbyterange, "address,length")
 
 DEFINE_LUA_FUNCTION(memory_isvalid, "address")
 {
-	int address = (int)luaL_checkinteger(L,1);
+	unsigned long address = (unsigned long)luaL_checknumber(L,1);
 	lua_settop(L,0);
 	lua_pushboolean(L, Memory::IsRAMAddress(address));
 	return 1;
