@@ -27,18 +27,16 @@ SysConf::SysConf()
 
 void SysConf::Reload()
 {
-  if (m_IsValid)
-    return;
-  if (LoadFromFile(File::GetUserPath(F_WIISYSCONF_IDX)))
-    m_IsValid = true;
+	if (m_IsValid)
+		return;
+	if (LoadFromFile(File::GetUserPath(F_WIISYSCONF_IDX)))
+		m_IsValid = true;
 }
 
 SysConf::~SysConf()
 {
 	if (!m_IsValid)
 		return;
-
-	Save();
 
 	for (size_t i = 0; i < m_Entries.size() - 1; i++)
 	{
