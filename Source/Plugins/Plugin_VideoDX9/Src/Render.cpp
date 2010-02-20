@@ -50,6 +50,8 @@
 
 #include "debugger/debugger.h"
 
+int s_fps=0;
+
 static int s_target_width;
 static int s_target_height;
 

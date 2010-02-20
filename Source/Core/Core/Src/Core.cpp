@@ -1,21 +1,21 @@
 // Copyright (C) 2003 Dolphin Project.
- 
+
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, version 2.0.
- 
+
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License 2.0 for more details.
- 
+
 // A copy of the GPL 2.0 should have been included with the program.
 // If not, see http://www.gnu.org/licenses/
- 
+
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
- 
- 
+
+
 #ifdef _WIN32
 	#include <windows.h>
 #endif
@@ -39,7 +39,7 @@
 #include "CPUDetect.h"
 #include "CoreTiming.h"
 #include "Boot/Boot.h"
- 
+
 #include "HW/Memmap.h"
 #include "HW/ProcessorInterface.h"
 #include "HW/GPFifo.h"
@@ -50,31 +50,31 @@
 #include "HW/AudioInterface.h"
 #include "HW/VideoInterface.h"
 #include "HW/SystemTimers.h"
- 
+
 #include "PowerPC/PowerPC.h"
 #include "PowerPC/JitCommon/JitBase.h"
- 
+
 #include "PluginManager.h"
 #include "ConfigManager.h"
 
 #include "VolumeHandler.h"
 #include "FileMonitor.h"
- 
+
 #include "MemTools.h"
 #include "Host.h"
 #include "LogManager.h"
- 
+
 #include "State.h"
 #include "OnFrame.h"
- 
+
 namespace Core
 {
- 
+
 // Declarations and definitions
 Common::Timer Timer;
 volatile u32 DrawnFrame = 0;
 u32 DrawnVideo = 0;
- 
+
 // Function forwarding
 //void Callback_VideoRequestWindowSize(int _iWidth, int _iHeight, BOOL _bFullscreen);
 void Callback_VideoLog(const TCHAR* _szMessage, int _bDoBreak);
@@ -85,17 +85,17 @@ void Callback_DSPInterrupt();
 void Callback_PADLog(const TCHAR* _szMessage);
 void Callback_WiimoteLog(const TCHAR* _szMessage, int _v);
 void Callback_WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size);
- 
+
 // For keyboard shortcuts.
 void Callback_KeyPress(int key, bool shift, bool control);
 TPeekMessages Callback_PeekMessages = NULL;
 TUpdateFPSDisplay g_pUpdateFPSDisplay = NULL;
- 
+
 // Function declarations
 THREAD_RETURN EmuThread(void *pArg);
 
 void Stop();
- 
+
 bool g_bStopping = false;
 bool g_bHwInit = false;
 bool g_bRealWiimote = false;
@@ -126,39 +126,39 @@ bool PanicAlertToVideo(const char* text, bool yes_no)
 	DisplayMessage(text, 3000);
 	return true;
 }
- 
+
 void DisplayMessage(const std::string &message, int time_in_ms)
 {
-    CPluginManager::GetInstance().GetVideo()->Video_AddMessage(message.c_str(),
+	CPluginManager::GetInstance().GetVideo()->Video_AddMessage(message.c_str(),
 							       time_in_ms);
 }
- 
+
 void DisplayMessage(const char *message, int time_in_ms)
 {
-    CPluginManager::GetInstance().GetVideo()->Video_AddMessage(message, 
+	CPluginManager::GetInstance().GetVideo()->Video_AddMessage(message, 
 							    time_in_ms);
 }
- 
+
 void Callback_DebuggerBreak()
 {
 	CCPU::Break();
 }
- 
+
 void *GetWindowHandle()
 {
-    return g_pWindowHandle;
+	return g_pWindowHandle;
 }
 
 #if defined HAVE_X11 && HAVE_X11
 void *GetXWindow()
- {
-		 return g_pXWindow;
- }
+{
+	return g_pXWindow;
+}
 #endif
 	 
 bool GetRealWiimote()
 {
-    return g_bRealWiimote;
+	return g_bRealWiimote;
 }
 
 bool isRunning()
@@ -265,11 +265,6 @@ void ProcessXEvents(void)
 		{
 			XNextEvent(dpy, &event);
 			switch(event.type) {
-				case KeyRelease:
-					key = XLookupKeysym((XKeyEvent*)&event, 0);
-					if(key == XK_F4 && ((event.xkey.state & Mod1Mask) == Mod1Mask))
-						Host_Message(WM_USER_STOP);
-					break;
 				case KeyPress:
 					key = XLookupKeysym((XKeyEvent*)&event, 0);
 					if (key == XK_Escape)
@@ -312,10 +307,10 @@ THREAD_RETURN CpuThread(void *pArg)
 		CPluginManager::GetInstance().GetVideo()->Video_Prepare();
 		Common::SetCurrentThreadName("CPU-GPU thread");
 	}
- 
+
 	if (_CoreParameter.bLockThreads)
 		Common::Thread::SetCurrentThreadAffinity(1);  // Force to first core
- 
+
 	if (_CoreParameter.bUseFastMem)
 	{
 		#ifdef _M_X64
@@ -325,7 +320,7 @@ THREAD_RETURN CpuThread(void *pArg)
 			PanicAlert("32-bit platforms do not support fastmem yet. Report this bug.");
 		#endif
 	}
- 
+
 	// Enter CPU run loop. When we leave it - we are done.
 	CCPU::Run();
 
@@ -337,7 +332,7 @@ THREAD_RETURN CpuThread(void *pArg)
 	}
 
 	cpuRunloopQuit.Set();
- 	return 0;
+	return 0;
 }
 
 
@@ -355,21 +350,21 @@ THREAD_RETURN EmuThread(void *pArg)
 	CPluginManager &Plugins = CPluginManager::GetInstance();
 	if (_CoreParameter.bLockThreads)
 		Common::Thread::SetCurrentThreadAffinity(2);  // Force to second core
- 
+
 	INFO_LOG(OSREPORT, "Starting core = %s mode", _CoreParameter.bWii ? "Wii" : "Gamecube");
 	INFO_LOG(OSREPORT, "CPU Thread separate = %s", _CoreParameter.bCPUThread ? "Yes" : "No");
 
 	HW::Init();	
 
 	emuThreadGoing.Set();
- 
+
 	// Load the VideoPlugin
- 	SVideoInitialize VideoInitialize;
+	SVideoInitialize VideoInitialize;
 	VideoInitialize.pGetMemoryPointer	        = Memory::GetPointer;
-    VideoInitialize.pSetInterrupt               = ProcessorInterface::SetInterrupt;
-    VideoInitialize.pRegisterEvent              = CoreTiming::RegisterEvent;
-    VideoInitialize.pScheduleEvent_Threadsafe   = CoreTiming::ScheduleEvent_Threadsafe;
-    // This is first the m_Panel handle, then it is updated to have the new window handle
+	VideoInitialize.pSetInterrupt               = ProcessorInterface::SetInterrupt;
+	VideoInitialize.pRegisterEvent              = CoreTiming::RegisterEvent;
+	VideoInitialize.pScheduleEvent_Threadsafe   = CoreTiming::ScheduleEvent_Threadsafe;
+	// This is first the m_Panel handle, then it is updated to have the new window handle
 	VideoInitialize.pWindowHandle		        = _CoreParameter.hMainWindow;
 	VideoInitialize.pLog				        = Callback_VideoLog;
 	VideoInitialize.pSysMessage			        = Host_SysMessage;
@@ -381,13 +376,13 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pKeyPress                   = Callback_KeyPress;
 	VideoInitialize.bWii                        = _CoreParameter.bWii;
 	VideoInitialize.bOnThread					= _CoreParameter.bCPUThread;
-    VideoInitialize.Fifo_CPUBase                = &ProcessorInterface::Fifo_CPUBase;
-    VideoInitialize.Fifo_CPUEnd                 = &ProcessorInterface::Fifo_CPUEnd;
-    VideoInitialize.Fifo_CPUWritePointer        = &ProcessorInterface::Fifo_CPUWritePointer;
+	VideoInitialize.Fifo_CPUBase                = &ProcessorInterface::Fifo_CPUBase;
+	VideoInitialize.Fifo_CPUEnd                 = &ProcessorInterface::Fifo_CPUEnd;
+	VideoInitialize.Fifo_CPUWritePointer        = &ProcessorInterface::Fifo_CPUWritePointer;
 	VideoInitialize.bAutoAspectIs16_9           = _CoreParameter.bWii ? (SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR") ? true : false) : false;
 
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
- 
+
 	// Under linux, this is an X11 Display, not a HWND!
 	g_pWindowHandle			= (HWND)VideoInitialize.pWindowHandle;
 #if defined(HAVE_X11) && HAVE_X11
@@ -396,7 +391,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	Callback_PeekMessages	= VideoInitialize.pPeekMessages;
 	g_pUpdateFPSDisplay		= VideoInitialize.pUpdateFPSDisplay;
 
-    // Load and init DSPPlugin	
+	// Load and init DSPPlugin	
 	DSPInitialize dspInit;
 	dspInit.hWnd					= g_pWindowHandle;
 	dspInit.pARAM_Read_U8			= (u8  (__cdecl *)(const u32))DSP::ReadARAM; 
@@ -440,20 +435,20 @@ THREAD_RETURN EmuThread(void *pArg)
 		// Wait for Wiiuse to find the number of connected Wiimotes
 		Plugins.GetWiimote(0)->Initialize((void *)&WiimoteInitialize);
 	}
- 
+
 	// The hardware is initialized.
 	g_bHwInit = true;
 
 	DisplayMessage("CPU: " + cpu_info.Summarize(), 8000);
 	DisplayMessage(_CoreParameter.m_strFilename, 3000);
- 
+
 	// Load GCM/DOL/ELF whatever ... we boot with the interpreter core
 	PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 	CBoot::BootUp();
- 
+
 	if (g_pUpdateFPSDisplay != NULL)
-        g_pUpdateFPSDisplay(("Loading " + _CoreParameter.m_strFilename).c_str());
- 
+		g_pUpdateFPSDisplay(("Loading " + _CoreParameter.m_strFilename).c_str());
+
 	// Setup our core, but can't use dynarec if we are compare server
 	if (_CoreParameter.iCPUCore && (!_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient))
 		PowerPC::SetMode(PowerPC::MODE_JIT);
@@ -465,7 +460,7 @@ THREAD_RETURN EmuThread(void *pArg)
 #if defined(HAVE_X11) && HAVE_X11
 	Common::Thread *xEventThread = NULL;
 #endif
- 
+
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
 	{
@@ -569,8 +564,6 @@ THREAD_RETURN EmuThread(void *pArg)
 	g_bStopping = false;
 	return 0;
 }
- 
- 
 
 // Set or get the running state
 
@@ -579,7 +572,7 @@ void SetState(EState _State)
 	switch (_State)
 	{
 	case CORE_UNINITIALIZED:
-        Stop();
+		Stop();
 		break;
 	case CORE_PAUSE:
 		CCPU::EnableStepping(true);  // Break
@@ -592,7 +585,7 @@ void SetState(EState _State)
 		break;
 	}
 }
- 
+
 EState GetState()
 {
 	if (g_bHwInit)
@@ -606,7 +599,7 @@ EState GetState()
 	}
 	return CORE_UNINITIALIZED;
 }
- 
+
 static inline std::string GenerateScreenshotName()
 {
 	int index = 1;
@@ -718,7 +711,7 @@ void VideoThrottle()
 		Host_UpdateStatusBar(SMessage.c_str());
 
 		// Reset counter
-        Timer.Update();
+		Timer.Update();
 		Common::AtomicStore(DrawnFrame, 0);
 		DrawnVideo = 0;
 	}
@@ -761,7 +754,7 @@ void Callback_VideoCopiedToXFB(bool video_update)
 {
 	GENERIC_LOG(LogTypes::AUDIO, (LogTypes::LOG_LEVELS)_v, _szMessage);
 }
- 
+
 
 // Callback_DSPInterrupt
 // WARNING - THIS MAY BE EXECUTED FROM DSP THREAD
@@ -769,7 +762,7 @@ void Callback_DSPInterrupt()
 {
 	DSP::GenerateDSPInterruptFromPlugin(DSP::INT_DSP);
 }
- 
+
 
 // Callback_PADLog 
 //
@@ -778,17 +771,17 @@ void Callback_PADLog(const TCHAR* _szMessage)
 	// FIXME add levels
 	INFO_LOG(SERIALINTERFACE, _szMessage);
 }
- 
+
 
 // Callback_ISOName: Let the DSP plugin get the game name
 //
 const char *Callback_ISOName()
 {
-    SCoreStartupParameter& params = SConfig::GetInstance().m_LocalCoreStartupParameter;
+	SCoreStartupParameter& params = SConfig::GetInstance().m_LocalCoreStartupParameter;
 	if (params.m_strName.length() > 0)
 		return params.m_strName.c_str();
 	else	
-          return "";
+		return "";
 }
 
 // Called from ANY thread!
@@ -829,12 +822,12 @@ void Callback_KeyPress(int key, bool shift, bool control)
 		Host_Message(WM_USER_PAUSE);
 #endif
 }
- 
+
 // Callback_WiimoteLog
 //
 void Callback_WiimoteLog(const TCHAR* _szMessage, int _v)
 {
 	GENERIC_LOG(LogTypes::WIIMOTE, (LogTypes::LOG_LEVELS)_v, _szMessage);
 }
- 
+
 } // Core

@@ -79,21 +79,21 @@
 #include <sys/types.h>
 
 typedef struct {
-    int screen;
+	int screen;
 #if defined(HAVE_COCOA) && HAVE_COCOA
-    NSWindow *cocoaWin;
-    NSOpenGLContext *cocoaCtx;
+	NSWindow *cocoaWin;
+	NSOpenGLContext *cocoaCtx;
 #elif defined(HAVE_X11) && HAVE_X11
-    Window win;
-    Display *dpy;
-    XVisualInfo *vi;
-    GLXContext ctx;
-    Cursor blankCursor;
-    XSetWindowAttributes attr;
-    Bool fs;
-    Bool doubleBuffered;
-    int fullWidth, fullHeight;
-    int winWidth, winHeight;
+	Window win;
+	Display *dpy;
+	XVisualInfo *vi;
+	GLXContext ctx;
+	Cursor blankCursor;
+	XSetWindowAttributes attr;
+	Bool fs;
+	Bool doubleBuffered;
+	int fullWidth, fullHeight;
+	int winWidth, winHeight;
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	XRRScreenConfiguration *screenConfig;
 	Rotation screenRotation;
@@ -101,13 +101,13 @@ typedef struct {
 #endif // XRANDR
 #endif // X11
 #if defined(USE_WX) && USE_WX
-    wxGLCanvas *glCanvas;
-    wxFrame *frame;
-    wxGLContext *glCtxt;
+	wxGLCanvas *glCanvas;
+	wxFrame *frame;
+	wxGLContext *glCtxt;
 #endif 
-    int x, y;
-    unsigned int width, height;
-    unsigned int depth;    
+	int x, y;
+	unsigned int width, height;
+	unsigned int depth;    
 } GLWindow;
 
 extern GLWindow GLWin;

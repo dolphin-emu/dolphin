@@ -53,7 +53,6 @@ void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 	if (lastPSconstants[const_number][0] != f1 || lastPSconstants[const_number][1] != f2 ||
 		lastPSconstants[const_number][2] != f3 || lastPSconstants[const_number][3] != f4)
 	{
-		const float f[4] = {f1, f2, f3, f4};
 		glProgramEnvParameter4fARB(GL_FRAGMENT_PROGRAM_ARB, const_number, f1, f2, f3, f4);
 		lastPSconstants[const_number][0] = f1;
 		lastPSconstants[const_number][1] = f2;

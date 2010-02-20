@@ -361,7 +361,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_srcTexture);
 
 	// TODO: make this less slow.  (How?)
-	if(s_srcTextureWidth == (GLsizei)srcFmtWidth && s_srcTextureHeight == (GLsizei)srcHeight)
+	if((GLsizei)s_srcTextureWidth == (GLsizei)srcFmtWidth && (GLsizei)s_srcTextureHeight == (GLsizei)srcHeight)
 	{
 		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0,0,0,s_srcTextureWidth, s_srcTextureHeight, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);	
 	}

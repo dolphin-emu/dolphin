@@ -23,11 +23,12 @@
 #include <sys/param.h>
 #endif
 
-#ifdef __linux__
+#include "Common.h" // Common
+
+#if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
 #endif
 
-#include "Common.h" // Common
 #include "CPUDetect.h"
 #include "IniFile.h"
 #include "FileUtil.h"
@@ -475,7 +476,7 @@ bool DolphinApp::OnInit()
 
 	// Set main parent window
 	SetTopWindow(main_frame);
-#if defined __linux__
+#if defined HAVE_X11 && HAVE_X11
 		XInitThreads();
 #endif 
 	return true;

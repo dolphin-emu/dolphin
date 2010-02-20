@@ -74,6 +74,8 @@
 
 // Declarations and definitions
 // ----------------------------
+int s_fps=0;
+
 CGcontext g_cgcontext;
 CGprofile g_cgvProf;
 CGprofile g_cgfProf;

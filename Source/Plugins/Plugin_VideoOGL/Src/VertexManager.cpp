@@ -299,7 +299,6 @@ void Flush()
 
 	// finally bind
 
-	int groupStart = 0;
 	if (vs) VertexShaderCache::SetCurrentShader(vs->glprogid);
 	if (ps) PixelShaderCache::SetCurrentShader(ps->glprogid); // Lego Star Wars crashes here.
 
