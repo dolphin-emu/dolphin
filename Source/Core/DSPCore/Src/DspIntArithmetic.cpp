@@ -548,6 +548,7 @@ void addr(const UDSPInstruction& opc)
 // SUBR $acD.M, $axS.L
 // 0101 0ssd xxxx xxxx
 // Subtracts register $axS.L from accumulator $acD.M register.
+// NOTE: It is seen in DSP_UCODE_ZELDA that AXs.H can also be subtracted
 void subr(const UDSPInstruction& opc)
 {
 	u8 areg = (opc.hex >> 8) & 0x1;

@@ -39,9 +39,7 @@ extern "C" {
 #include "lstate.h"
 };
 
-// TODO Count: 8
-
-// TODO: GUI
+// TODO Count: 7
 
 #if defined(DEBUG) || defined(DEBUGFAST)
 bool Debug = true;
@@ -50,33 +48,6 @@ bool Debug = false;
 #endif
 
 namespace Lua {
-
-// the emulator must provide these so that we can implement
-// the various functions the user can call from their lua script
-// (this interface with the emulator needs cleanup, I know)
-//extern unsigned int ReadValueAtHardwareAddress(unsigned int address, unsigned int size);
-//extern bool WriteValueAtHardwareAddress(unsigned int address, unsigned int value, unsigned int size, bool hookless=false);
-//extern bool WriteValueAtHardwareRAMAddress(unsigned int address, unsigned int value, unsigned int size, bool hookless=false);
-//extern bool WriteValueAtHardwareROMAddress(unsigned int address, unsigned int value, unsigned int size);
-//extern bool IsHardwareAddressValid(unsigned int address);
-//extern bool IsHardwareRAMAddressValid(unsigned int address);
-//extern bool IsHardwareROMAddressValid(unsigned int address);
-//extern int Clear_Sound_Buffer(void);
-//extern long long GetCurrentInputCondensed();
-//extern long long PeekInputCondensed();
-//extern void SetNextInputCondensed(long long input, long long mask);
-//extern int Set_Current_State(int Num, bool showOccupiedMessage, bool showEmptyMessage);
-//extern int Update_Emulation_One(HWND hWnd);
-//extern void Update_Emulation_One_Before(HWND hWnd);
-//extern void Update_Emulation_After_Fast(HWND hWnd);
-//extern void Update_Emulation_One_Before_Minimal();
-//extern int Update_Frame_Adjusted();
-//extern int Update_Frame_Hook();
-//extern int Update_Frame_Fast_Hook();
-//extern void Update_Emulation_After_Controlled(HWND hWnd, bool flip);
-//extern void Prevent_Next_Frame_Skipping();
-//extern void UpdateLagCount();
-//extern bool Step_emulua_MainLoop(bool allowSleep, bool allowEmulate);
 
 int disableSound2, disableRamSearchUpdate;
 bool BackgroundInput;
@@ -1018,7 +989,8 @@ DEFINE_LUA_FUNCTION(print, "...")
 DEFINE_LUA_FUNCTION(emulua_message, "str")
 {
 	const char* str = toCString(L);
-	Core::DisplayMessage(str, 2000);
+	if(Core::isRunning())
+		Core::DisplayMessage(str, 2000);
 	return 0;
 }
 
@@ -1185,13 +1157,14 @@ void LuaRescueHook(lua_State* L, lua_Debug *dbg)
 		info.worryCount = 0;
 		info.stopWorrying = false;
 
-		bool stoprunning = true;
+		bool stoprunning = info.panic;
 		bool stopworrying = true;
-		if(!info.panic)
+		/*if(!info.panic)
 		{
-			CPluginManager::GetInstance().GetDSP()->DSP_ClearAudioBuffer();
+			if(Core::isRunning())
+				CPluginManager::GetInstance().GetDSP()->DSP_ClearAudioBuffer();
 			stoprunning = PanicYesNo("A Lua script has been running for quite a while. Maybe it is in an infinite loop.\n\nWould you like to stop the script?\n\n(Yes to stop it now,\n No to keep running and not ask again)");
-		}
+		}*/
 
 		if(!stoprunning && stopworrying)
 		{
@@ -1203,7 +1176,6 @@ void LuaRescueHook(lua_State* L, lua_Debug *dbg)
 		{
 			//lua_sethook(L, NULL, 0, 0);
 			assert(L->errfunc || L->errorJmp);
-			luaL_error(L, info.panic ? info.panicMessage : "terminated by user");
 		}
 
 		info.panic = false;
@@ -1371,16 +1343,19 @@ DEFINE_LUA_FUNCTION(emulua_frameadvance, "")
 	if(FailVerifyAtFrameBoundary(L, "emulua.frameadvance", 0,1))
 		return emulua_wait(L);
 
+	if(Core::GetState() == Core::CORE_UNINITIALIZED || Core::GetState() == Core::CORE_STOPPING)
+		return emulua_wait(L);
+
 	int uid = luaStateToUIDMap[L];
 	LuaContextInfo& info = GetCurrentInfo();
 
-	if(!info.ranFrameAdvance) {
-		info.ranFrameAdvance = true;
-		Frame::SetFrameStepping(info.ranFrameAdvance);
-	}
+	info.ranFrameAdvance = true;
+	Frame::SetFrameStepping(true);
 
 	// Should step exactly one frame
 	Core::SetState(Core::CORE_RUN);
+
+	//while(Core::GetState() != Core::CORE_PAUSE && !info.panic);
 
 	return 0;
 }
@@ -2907,7 +2882,8 @@ DEFINE_LUA_FUNCTION(movie_close, "")
 
 DEFINE_LUA_FUNCTION(sound_clear, "")
 {
-	CPluginManager::GetInstance().GetDSP()->DSP_ClearAudioBuffer();
+	if(CPluginManager::GetInstance().GetDSP())
+		CPluginManager::GetInstance().GetDSP()->DSP_ClearAudioBuffer();
 	return 0;
 }
 
@@ -3589,6 +3565,7 @@ void RequestAbortLuaScript(int uid, const char* message)
 		// and this works pretty well and is definitely safe, so screw it
 		info.L->hookcount = 1; // run hook function as soon as possible
 		info.panic = true; // and call luaL_error once we're inside the hook function
+
 		if(message)
 		{
 			strncpy(info.panicMessage, message, sizeof(info.panicMessage));
@@ -3749,6 +3726,9 @@ void StopLuaScript(int uid)
 		return;
 
 	LuaContextInfo& info = *infoPtr;
+
+	if(info.ranFrameAdvance)
+		Frame::SetFrameStepping(false);
 
 	if(info.running)
 	{
