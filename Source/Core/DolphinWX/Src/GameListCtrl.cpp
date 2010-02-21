@@ -330,6 +330,7 @@ std::string CGameListCtrl::GetGameNames() const
 	return m_gameList; 
 }
 
+#ifdef _WIN32
 // This draws our icons on top of the gamelist, it's only used on Windows
 void CGameListCtrl::OnPaintDrawImages(wxPaintEvent& event)
 {
@@ -367,6 +368,7 @@ void CGameListCtrl::OnPaintDrawImages(wxPaintEvent& event)
 		}
 	}
 }
+#endif
 
 void CGameListCtrl::InsertItemInReportView(long _Index)
 {
