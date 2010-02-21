@@ -28,10 +28,10 @@
 
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-	, m_Card(NULL)
 	, m_Status(CARD_NOT_EXIST)
 	, m_BlockLength(0)
 	, m_BusWidth(0)
+	, m_Card(NULL)
 {}
 
 CWII_IPC_HLE_Device_sdio_slot0::~CWII_IPC_HLE_Device_sdio_slot0()

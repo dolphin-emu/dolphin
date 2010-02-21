@@ -34,10 +34,10 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	IUCode(_rMailHandler),
 	m_CRC(_CRC),
 
-	m_NumSyncMail(0),
-
 	m_bSyncInProgress(false),
 	m_MaxVoice(0),
+
+	m_NumSyncMail(0),
 
 	m_NumVoices(0),
 

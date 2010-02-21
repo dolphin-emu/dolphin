@@ -160,7 +160,7 @@ namespace Clipper
 
         if (mask != 0)
         {
-		    for(int idx = 0; idx < 3; idx += 3)
+		    for(int i = 0; i < 3; i += 3)
             {
                 int vlist[2][2*6+1];
 		        int *inlist = vlist[0], *outlist = vlist[1];

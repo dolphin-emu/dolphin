@@ -400,9 +400,9 @@ void CMemoryWindow::onSearch(wxCommandEvent& event) {
 			if(k==size){
 				//Match was found
 				wxMessageBox(_T("A match was found. Placing viewer at the offset."));
-				wxChar tmpstr[128]={0};
-				wxSprintf(tmpstr,_T("%08x"),i);
-				wxString tmpwx(tmpstr);
+				wxChar tmpwxstr[128]={0};
+				wxSprintf(tmpwxstr,_T("%08x"),i);
+				wxString tmpwx(tmpwxstr);
 				addrbox->SetValue(tmpwx);
 				//memview->curAddress=i;
 				//memview->Refresh();

@@ -454,7 +454,7 @@ void Update()
 
 	// if we have a reply to send
 	u32 _Reply = WII_IPCInterface::DeqReply();
-	if (_Reply != NULL)
+	if (_Reply != 0)
 	{
 		WII_IPCInterface::GenerateReply(_Reply);
 		INFO_LOG(WII_IPC_HLE, "<<-- Reply to Command Address: 0x%08x", _Reply);
@@ -463,7 +463,7 @@ void Update()
 
 	// If there is a a new command
 	u32 _Address = WII_IPCInterface::GetAddress();
-	if (_Address != NULL)
+	if (_Address != 0)
 	{
 		WII_IPCInterface::GenerateAck();
 		INFO_LOG(WII_IPC_HLE, "||-- Acknowledge Command Address: 0x%08x", _Address);

@@ -390,8 +390,8 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "IOCTL_ES_SETUID no in buffer");
             _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
 
-            u64 m_TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-            INFO_LOG(WII_IPC_ES, "IOCTL_ES_SETUID titleID: %08x/%08x", (u32)(m_TitleID>>32), (u32)m_TitleID );
+            u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+            INFO_LOG(WII_IPC_ES, "IOCTL_ES_SETUID titleID: %08x/%08x", (u32)(TitleID>>32), (u32)TitleID);
         }
         break;
 

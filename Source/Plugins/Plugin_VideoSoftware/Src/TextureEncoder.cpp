@@ -101,7 +101,7 @@ inline void boxfilterRGBA_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
     b = (b16 << 6) / 142;
 }
 
-inline void boxfilterRGBA_to_x8(u8 *src, u8 &x, int shift)
+inline void boxfilterRGBA_to_x8(u8 *src, u8 &x8, int shift)
 {
     u16 x16 = 0;
 
@@ -117,7 +117,7 @@ inline void boxfilterRGBA_to_x8(u8 *src, u8 &x, int shift)
         src += (640 - 3) * 3;
     }
 
-    x = (x16 << 6) / 142;
+    x8 = (x16 << 6) / 142;
 }
 
 inline void boxfilterRGBA_to_xx8(u8 *src, u8 &x1, u8 &x2, int shift1, int shift2)
@@ -164,7 +164,7 @@ inline void boxfilterRGB_to_RGB8(u8 *src, u8 &r, u8 &g, u8 &b)
     b = b16 / 9;
 }
 
-inline void boxfilterRGB_to_x8(u8 *src, u8 &x, int comp)
+inline void boxfilterRGB_to_x8(u8 *src, u8 &x8, int comp)
 {
     u16 x16 = 0;
 
@@ -179,7 +179,7 @@ inline void boxfilterRGB_to_x8(u8 *src, u8 &x, int comp)
         src += (640 - 3) * 3;
     }
 
-    x = x16 / 9;
+    x8 = x16 / 9;
 }
 
 inline void boxfilterRGB_to_xx8(u8 *src, u8 &x1, u8 &x2, int comp1, int comp2)

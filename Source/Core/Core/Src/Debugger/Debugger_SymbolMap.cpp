@@ -86,7 +86,6 @@ bool GetCallstack(std::vector<CallstackEntry> &output)
 		if (!str || strlen(str) == 0 || !strcmp(str, "Invalid"))
 			str = "(unknown)";
 
-        CallstackEntry entry;
         entry.Name = StringFromFormat(" * %s [ addr = %08x ]\n", str, func - 4);
         entry.vAddress = func - 4;
 		output.push_back(entry);

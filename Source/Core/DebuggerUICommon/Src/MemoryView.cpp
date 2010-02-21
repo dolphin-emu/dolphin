@@ -289,12 +289,12 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 	dc.DrawRectangle(0, 0, rc.width, 5+8);
 
 	// TODO - clean up this freaking mess!!!!!
-	for (int i = -numRows; i <= numRows; i++)
+	for (int row = -numRows; row <= numRows; row++)
 	{
-		unsigned int address = curAddress + i * align;
+		unsigned int address = curAddress + row * align;
 
-		int rowY1 = rc.height / 2 + rowHeight * i - rowHeight / 2;
-		int rowY2 = rc.height / 2 + rowHeight * i + rowHeight / 2;
+		int rowY1 = rc.height / 2 + rowHeight * row - rowHeight / 2;
+		int rowY2 = rc.height / 2 + rowHeight * row + rowHeight / 2;
 
 		wxString temp = wxString::Format(_T("%08x"), address);
 		u32 col = debugger->getColor(address);
@@ -309,7 +309,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 		}
 		else
 		{
-			dc.SetPen(i == 0 ? currentPen : nullPen);
+			dc.SetPen(row == 0 ? currentPen : nullPen);
 		}
 
 		if (address == debugger->getPC())

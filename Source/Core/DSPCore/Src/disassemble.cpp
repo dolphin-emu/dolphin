@@ -97,7 +97,7 @@ char *DSPDisassembler::DisParams(const DSPOPCTemplate& opc, u16 op1, u16 op2, ch
 		if (j > 0)
 			buf += sprintf(buf, ", ");
 
-		u32 val = (opc.params[j].loc >= 1) ? val = op2 : val = op1;
+		u32 val = (opc.params[j].loc >= 1) ? op2 : op1;
 		val &= opc.params[j].mask;
 		if (opc.params[j].lshift < 0)
 			val = val << (-opc.params[j].lshift);

@@ -665,7 +665,7 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16 MTU, u16 Flush
 
 	SL2CAP_Options* pOptions;
 
-	if (MTU == NULL) MTU = rChannel.MTU;
+	if (MTU == 0) MTU = rChannel.MTU;
 	pOptions = (SL2CAP_Options*)&Buffer[Offset];
 	Offset += sizeof(SL2CAP_Options);
 	pOptions->type = 1;
@@ -673,7 +673,7 @@ void CWII_IPC_HLE_WiiMote::SendConfigurationRequest(u16 scid, u16 MTU, u16 Flush
 	*(u16*)&Buffer[Offset] = MTU;
 	Offset += 2;
 
-	if (FlushTimeOut == NULL) FlushTimeOut = rChannel.FlushTimeOut;
+	if (FlushTimeOut == 0) FlushTimeOut = rChannel.FlushTimeOut;
 	pOptions = (SL2CAP_Options*)&Buffer[Offset];
 	Offset += sizeof(SL2CAP_Options);
 	pOptions->type = 2;

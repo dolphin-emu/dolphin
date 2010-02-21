@@ -562,7 +562,7 @@ void CGameListCtrl::ScanForISOs()
 		std::vector<std::string> drives = cdio_get_devices();
 		GameListItem * Drive[24];
 		// Another silly Windows limitation of 24 drive letters
-		for (int i = 0; i < drives.size() != NULL && i < 24; i++)
+		for (int i = 0; i < drives.size() && i < 24; i++)
 		{
 			Drive[i] = new GameListItem(drives[i].c_str());
 			if (Drive[i]->IsValid())	m_ISOFiles.push_back(*Drive[i]);

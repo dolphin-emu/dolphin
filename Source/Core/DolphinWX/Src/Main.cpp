@@ -300,7 +300,6 @@ bool DolphinApp::OnInit()
 			chdir(AppSupportDir);
 
 			//create all necessary dir in user directory
-			char user_path[500];
 			if (!File::Exists(File::GetUserPath(D_CONFIG_IDX))) File::CreateDir(File::GetUserPath(D_CONFIG_IDX));
 			if (!File::Exists(File::GetUserPath(D_GCUSER_IDX))) File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
 			if (!File::Exists(File::GetUserPath(D_WIISYSCONF_IDX))) File::CreateFullPath(File::GetUserPath(D_WIISYSCONF_IDX));

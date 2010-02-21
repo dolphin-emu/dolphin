@@ -44,11 +44,11 @@ public:
 		m_csum = 0;
 		addData(hdr, 3, 1);
 	}
-	void addData(void *data, size_t len)
+	void addData(const void *data, size_t len)
 	{
-		addData((unsigned char*)data, len);
+		addData((const unsigned char*)data, len);
 	}
-	void addData(char *data)
+	void addData(const char *data)
 	{
 		addData(data, strlen(data));
 	}
@@ -65,7 +65,7 @@ public:
 		addData(m_csum + len - 2);
 	}
 
-	void addData(unsigned char *dst, size_t len, int sync = 0)
+	void addData(const unsigned char *dst, size_t len, int sync = 0)
 	{
 		while (len--)
 		{
@@ -305,7 +305,7 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 									{
 										int nr_players = *jvs_io++;
 										int bytes_per_player = *jvs_io++; /* ??? */
-										int i, j;
+										int j;
 										msg.addData(1);
 
 										msg.addData(0); // tilt

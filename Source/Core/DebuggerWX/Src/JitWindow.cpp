@@ -181,7 +181,7 @@ void CJitWindow::Compare(u32 em_address)
 	PPCAnalyst::BlockRegStats fpa;
 	if (PPCAnalyst::Flatten(ppc_addr, &size, &st, &gpa, &fpa, &code_buffer))
 	{
-		char *sptr = (char*)xDis;
+		sptr = (char*)xDis;
 		for (int i = 0; i < size; i++)
 		{
 			const PPCAnalyst::CodeOp &op = code_buffer.codebuffer[i];

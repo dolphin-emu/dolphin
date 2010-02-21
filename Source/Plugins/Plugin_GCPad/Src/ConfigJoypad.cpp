@@ -32,12 +32,12 @@
 
 
 // Replace the harder to understand -1 with "" for the sake of user friendliness
-void GCPadConfigDialog::ToBlank(bool ToBlank, int Id)
+void GCPadConfigDialog::ToBlank(bool toBlank, int Id)
 {
 	if (!m_ControlsCreated)
 		return;
 
-	if(ToBlank)
+	if(toBlank)
 	{
 		if (GetButtonText(Id) == wxString(wxT("-1")))
 			SetButtonText(Id, wxString());

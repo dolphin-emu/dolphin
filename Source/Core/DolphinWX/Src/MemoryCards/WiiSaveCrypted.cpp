@@ -538,7 +538,7 @@ bool CWiiSaveCrypted::getPaths(bool _export)
 	return true;
 }
 
-void CWiiSaveCrypted::ScanForFiles(std::string savDir, std::vector<std::string>&FilesList, u32 *_numFiles, u32 *_sizeFiles)
+void CWiiSaveCrypted::ScanForFiles(std::string savDir, std::vector<std::string>& FileList, u32 *_numFiles, u32 *_sizeFiles)
 {
 	std::vector<std::string> Directories;
 	*_numFiles = *_sizeFiles = 0;
@@ -546,7 +546,7 @@ void CWiiSaveCrypted::ScanForFiles(std::string savDir, std::vector<std::string>&
 	Directories.push_back(savDir);
 	for (u32 i = 0; i < Directories.size(); i++)
 	{
-		if (i)	FilesList.push_back(Directories.at(i));//add dir to fst
+		if (i) FileList.push_back(Directories.at(i));//add dir to fst
 
 		File::FSTEntry FST_Temp;
 		File::ScanDirectoryTree(Directories.at(i).c_str(), FST_Temp);
@@ -564,7 +564,7 @@ void CWiiSaveCrypted::ScanForFiles(std::string savDir, std::vector<std::string>&
 				}
 				else
 				{				
-					FilesList.push_back(FST_Temp.children.at(j).physicalName);
+					FileList.push_back(FST_Temp.children.at(j).physicalName);
 				}
 			}
 		}
