@@ -30,6 +30,28 @@
 #include "Core.h" // for bWii
 
 SCoreStartupParameter::SCoreStartupParameter()
+: hInstance(0), hMainWindow(0),
+  bJITUnlimitedCache(false), bJITBlockLinking(false),
+  bJITOff(false),
+  bJITLoadStoreOff(false), bJITLoadStorelXzOff(false),
+  bJITLoadStorelwzOff(false), bJITLoadStorelbzxOff(false),
+  bJITLoadStoreFloatingOff(false), bJITLoadStorePairedOff(false),
+  bJITFloatingPointOff(false), bJITIntegerOff(false),
+  bJITPairedOff(false), bJITSystemRegistersOff(false),
+  bJITBranchOff(false), bJITProfiledReJIT(false),
+  bEnableFPRF(false), 
+  bCPUThread(true), bDSPThread(false),
+  bSkipIdle(true), bNTSC(false),
+  bHLE_BS2(true), bUseFastMem(false),
+  bLockThreads(false),
+  bEnableCheats(false), bEnableIsoCache(false),
+  bRunCompareServer(false), bRunCompareClient(false),
+  iTLBHack(0), SelectedLanguage(0),
+  bWii(false), bWiiLeds(false), bWiiSpeakers(false),
+  bConfirmStop(false), bHideCursor(false), 
+  bAutoHideCursor(false), bUsePanicHandlers(true),
+  iTheme(0),
+  iPosX(100), iPosY(100), iWidth(800), iHeight(600)
 {
 	LoadDefaults();
 }
