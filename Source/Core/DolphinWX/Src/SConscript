@@ -12,7 +12,7 @@ files = [
 
 libs = [
 	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 
-	'inputcommon', 'common', 'lua', 'z'
+	'inputcommon', 'common', 'lua', 'z', 'sfml'
 	]
 
 if wxenv['HAVE_WX']:
@@ -37,6 +37,10 @@ if wxenv['HAVE_WX']:
 		'stdafx.cpp',
 		'WxUtils.cpp',
 		'MemoryCards/WiiSaveCrypted.cpp',
+		'NetEvent.cpp',
+		'NetFunctions.cpp',
+		'NetSockets.cpp',
+		'NetWindow.cpp',
 		]
 
         CPPDEFINES = [
@@ -45,14 +49,6 @@ if wxenv['HAVE_WX']:
                 ],
 
 	libs = [ 'debwx', 'debugger_ui_util'] + libs
-
-if wxenv['HAVE_SFML']:
-	files += [ 
-		'NetEvent.cpp',
-		'NetFunctions.cpp',
-		'NetSockets.cpp',
-		'NetWindow.cpp',
-		]
 
 if wxenv['HAVE_COCOA']:
     files += [ 'cocoaApp.m', ]

@@ -53,6 +53,7 @@ include_paths = [
     basedir + 'Externals/LZO',
     basedir + 'Externals/SOIL',
     basedir + 'Externals/Lua',
+    basedir + 'Externals/SFML/include',
     basedir + 'Externals/WiiUseSrc/Src',
     basedir + 'Source/Core/VideoCommon/Src',
     basedir + 'Source/Core/InputCommon/Src',
@@ -65,6 +66,7 @@ dirs = [
     'Externals/Bochs_disasm',
     'Externals/LZO',
     'Externals/SOIL',
+    'Externals/SFML/src',
     'Externals/Lua',
     'Externals/WiiUseSrc/Src', 
     'Source/Core/Common/Src',
@@ -322,11 +324,6 @@ if sys.platform != 'darwin':
 # needed for mic
     env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
 
-# sfml
-env['HAVE_SFML'] = 0
-if conf.CheckPKG('sfml-network') and conf.CheckCXXHeader("SFML/Network/Ftp.hpp"):
-    env['HAVE_SFML'] = 1;
-
 #osx 64 specifics
 if sys.platform == 'darwin':
     if env['osx'] == '64cocoa':
@@ -378,7 +375,6 @@ conf.Define('USE_WX', env['USE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])
 conf.Define('HAVE_COCOA', env['HAVE_COCOA'])
 conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
-conf.Define('HAVE_SFML', env['HAVE_SFML'])
 conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
 if (ARGUMENTS.get('install') == 'global'):
     conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")

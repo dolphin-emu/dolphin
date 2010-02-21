@@ -18,9 +18,7 @@
 
 #include "Setup.h" // Common
 
-#if defined(HAVE_SFML) && HAVE_SFML || defined(_WIN32)
 #include "NetWindow.h"
-#endif
 
 #include "Common.h" // Common
 #include "FileUtil.h"

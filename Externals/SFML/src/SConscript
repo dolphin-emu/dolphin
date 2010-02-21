@@ -1,0 +1,22 @@
+# -*- python -*- 
+
+Import('env')
+import sys
+
+files = [ 
+	"SFML/Network/Ftp.cpp",
+	"SFML/Network/Http.cpp",
+	"SFML/Network/IPAddress.cpp",
+	"SFML/Network/Packet.cpp",
+	"SFML/Network/SelectorBase.cpp",
+	"SFML/Network/SocketTCP.cpp",
+	"SFML/Network/SocketUDP.cpp",
+	"SFML/Network/Unix/SocketHelper.cpp",
+	]
+
+env_sfml = env.Clone(
+	CCFLAGS = env.filterWarnings(env['CCFLAGS']),
+	CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
+	)
+
+env_sfml.StaticLibrary(env['local_libs'] + "sfml", files)

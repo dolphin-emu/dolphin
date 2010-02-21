@@ -137,7 +137,8 @@ else:
 libs = [
 	'bdisasm',
         'inputcommon',
-	'lua'
+	'lua',
+        'sfml'
 	]
 
 env_core = env.Clone();

@@ -131,7 +131,6 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad(0);
 	pad->PAD_GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 
-#if defined(HAVE_SFML) && HAVE_SFML
 	u32 netValues[2] = {0};
 	int NetPlay = GetNetInput(ISIDevice::m_iDeviceNumber, PadStatus, netValues);
 
@@ -145,7 +144,6 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 
 		return true;
 	}
-#endif
 
 	Frame::SetPolledDevice();
 

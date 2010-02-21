@@ -16,14 +16,12 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-// CFrame is the main parent window. Inside CFrame there is an m_Panel that is the parent for
-// the rendering window (when we render to the main window). In Windows the rendering window is
-// created by giving CreateWindow() m_Panel->GetHandle() as parent window and creating a new
-// child window to m_Panel. The new child window handle that is returned by CreateWindow() can
+// CFrame is the main parent window. Inside CFrame there is an m_Panel that is
+// the parent for the rendering window (when we render to the main window). In
+// Windows the rendering window is created by giving CreateWindow()
+// m_Panel->GetHandle() as parent window and creating a new child window to
+// m_Panel. The new child window handle that is returned by CreateWindow() can
 // be accessed from Core::GetWindowHandle().
-
-// ----------
-// Includes
 
 #include "Common.h" // Common
 #include "FileUtil.h"
@@ -252,11 +250,7 @@ EVT_MENU(IDM_FLOAT_JITWINDOW, CFrame::OnFloatWindow)
 EVT_MENU(IDM_FLOAT_SOUNDWINDOW, CFrame::OnFloatWindow)
 EVT_MENU(IDM_FLOAT_VIDEOWINDOW, CFrame::OnFloatWindow)
 
-
-#if defined(HAVE_SFML) && HAVE_SFML
 EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
-#endif
-
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
 EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
 EVT_MENU(IDM_IMPORTSAVE, CFrame::OnImportSave)
