@@ -36,6 +36,14 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 namespace WiiMoteEmu
 {
 
+// Settings
+accel_cal g_wm;
+nu_cal g_nu;
+cc_cal g_ClassicContCalibration;
+gh3_cal g_GH3Calibration;
+
+bool g_EmulatedWiiMoteInitialized = false;
+
 /* Homebrew encryption for 16 byte zero keys. */
 void CryptBuffer(u8* _buffer, u8 _size)
 {

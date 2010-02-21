@@ -63,15 +63,6 @@ struct SRecordingAll
 	extern u32 g_ISOId;
 	extern bool g_SearchDeviceDone;
 	extern bool g_RealWiiMotePresent;
-	extern bool g_RealWiiMoteInitialized;
-	extern bool g_RealWiiMoteAllocated;
-	extern bool g_EmulatedWiiMoteInitialized;
-
-	// Settings
-	extern accel_cal g_wm;
-	extern nu_cal g_nu;
-	extern cc_cal g_ClassicContCalibration;
-	extern gh3_cal g_GH3Calibration;
 
 	// Debugging
 	extern bool g_DebugAccelerometer;

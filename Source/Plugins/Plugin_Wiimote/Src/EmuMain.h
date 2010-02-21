@@ -28,6 +28,14 @@
 namespace WiiMoteEmu
 {
 
+// TODO: those are only used with Emulated wiimote.
+//       if it were a class, we didn't need the extern here.
+// Settings
+extern accel_cal g_wm;
+extern nu_cal g_nu;
+extern cc_cal g_ClassicContCalibration;
+extern gh3_cal g_GH3Calibration;
+
 u32 convert24bit(const u8* src);
 u16 convert16bit(const u8* src);
 

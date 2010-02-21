@@ -45,6 +45,8 @@ void SendAcc(u8 _ReportID);
 void SetDataReportingMode(u8 ReportingMode = 0);
 void ClearEvents();
 
+bool SafeClose();
+
 // The alternative Wiimote loop
 void ReadWiimote();
 bool IRDataOK(struct wiimote_t* wm);

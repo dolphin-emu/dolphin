@@ -65,10 +65,8 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 	ControlsCreated = false;
 	m_Page = 0;
 
-	m_bEnableUseRealWiimote = true;
 	// Initialize the Real WiiMotes here, so we get a count of how many were found and set everything properly
-	if (!g_RealWiiMoteInitialized)
-		WiiMoteReal::Initialize();
+	WiiMoteReal::Initialize();
 
 	CreateGUIControls();
 	UpdateGUI();
@@ -293,19 +291,17 @@ void WiimoteBasicConfigDialog::UpdateOnce(wxTimerEvent& event)
 	{
 	case IDTM_UPDATE_ONCE:
 		// Reenable the checkbox
-		m_bEnableUseRealWiimote = true;
 		SetCursor(wxCursor(wxCURSOR_ARROW));
 		UpdateGUI();
 		break;
 	}
 }
 
+#if HAVE_WIIUSE
 void WiimoteBasicConfigDialog::DoRefreshReal()
 {
-	if (g_RealWiiMoteInitialized)
-		WiiMoteReal::Shutdown();
-	if (!g_RealWiiMoteInitialized)
-		WiiMoteReal::Initialize();
+	WiiMoteReal::Shutdown();
+	WiiMoteReal::Initialize();
 }
 
 void WiimoteBasicConfigDialog::DoUseReal()
@@ -332,7 +328,6 @@ void WiimoteBasicConfigDialog::DoUseReal()
 	{
 		// Disable the checkbox for a moment
 		SetCursor(wxCursor(wxCURSOR_WAIT));
-		m_bEnableUseRealWiimote = false;
 		// We may not need this if there is already a message queue that allows the nessesary timeout
 		//sleep(100);
 
@@ -342,6 +337,7 @@ void WiimoteBasicConfigDialog::DoUseReal()
 		m_TimeoutOnce->Start(1000, true);
 	}
 }
+#endif
 
 // Generate connect/disconnect status event
 void WiimoteBasicConfigDialog::DoExtensionConnectedDisconnected(int Extension)

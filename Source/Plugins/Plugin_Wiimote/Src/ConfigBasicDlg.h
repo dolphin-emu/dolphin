@@ -56,7 +56,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 	private:
 		DECLARE_EVENT_TABLE();
 
-		bool ControlsCreated, m_bEnableUseRealWiimote;
+		bool ControlsCreated;
 		int m_Page;
 
 		wxNotebook *m_Notebook;
