@@ -339,7 +339,7 @@ void ori(const UDSPInstruction& opc)
 
 	g_dsp.r[DSP_REG_ACM0 + reg] |= imm;
 
-	Update_SR_Register16((s16)g_dsp.r[DSP_REG_ACM0 + reg], false, false, isSR10(dsp_get_long_acc(reg)));
+	Update_SR_Register16((s16)g_dsp.r[DSP_REG_ACM0 + reg], false, false, isOverS32(dsp_get_long_acc(reg)));
 }
 
 //-------------------------------------------------------------
@@ -350,17 +350,18 @@ void ori(const UDSPInstruction& opc)
 //  Adds accumulator $ac(1-D) to accumulator register $acD.
 void add(const UDSPInstruction& opc)
 {
-	u8 areg  = (opc.hex >> 8) & 0x1;
-	s64 acc0 = dsp_get_long_acc(0);
-	s64 acc1 = dsp_get_long_acc(1);
+	u8 dreg  = (opc.hex >> 8) & 0x1;
 
+	s64 acc0 = dsp_get_long_acc(dreg);
+	s64 acc1 = dsp_get_long_acc(1 - dreg);
 	s64 res = acc0 + acc1;
 
 	zeroWriteBackLog();
-	dsp_set_long_acc(areg, res);
-	res = dsp_get_long_acc(areg);
 
-	Update_SR_Register64(res, false, false, isSR10(res));
+	dsp_set_long_acc(dreg, res);
+	res = dsp_get_long_acc(dreg);
+
+	Update_SR_Register64(res, isAddCarry(acc0, res), isOverflow(acc0, acc1, res));
 }
 
 // ADDP $acD

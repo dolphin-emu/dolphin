@@ -154,10 +154,10 @@
 #define SR_OVERFLOW		0x0002
 #define SR_ARITH_ZERO	0x0004
 #define SR_SIGN			0x0008
-#define SR_10			0x0010 // set when there there was mod/tst/cmp on accu and abs(acc?)>=0x80000000, tstaxh never modifies it
-#define SR_TOP2BITS		0x0020 // if the upper 2 bits are equal
+#define SR_OVER_S32		0x0010 // set when there there was mod/tst/cmp on accu and result is over s32
+#define SR_TOP2BITS		0x0020 // if the upper (ac?.m/ax?.h) 2 bits are equal
 #define SR_LOGIC_ZERO	0x0040
-#define SR_80			0x0080 // Unknown, set by add
+#define SR_80			0x0080 // Unknown, set by add, sub
 #define SR_INT_ENABLE	0x0200 // Not 100% sure but duddie says so. This should replace the hack, if so.
 #define SR_EXT_INT_ENABLE	0x0800 // Appears in zelda - seems to disable external interupts
 #define SR_MUL_MODIFY	0x2000 // 1 = normal. 0 = x2   (M0, M2)

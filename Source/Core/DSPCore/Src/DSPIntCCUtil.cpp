@@ -26,7 +26,7 @@
 
 namespace DSPInterpreter {
 
-void Update_SR_Register64(s64 _Value, bool carry, bool overflow, bool sr10)
+void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
 {
 	// TODO: recheck 0x1,0x2,even 0x80... implement...
 	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
@@ -55,10 +55,10 @@ void Update_SR_Register64(s64 _Value, bool carry, bool overflow, bool sr10)
 		g_dsp.r[DSP_REG_SR] |= SR_SIGN;
 	}
 
-	// 0x10 - abs((u40)acc?) >= 0x80000000
-	if (sr10)
+	// 0x10
+	if (_Value != (s32)_Value)
 	{
-		g_dsp.r[DSP_REG_SR] |= SR_10;
+		g_dsp.r[DSP_REG_SR] |= SR_OVER_S32;
 	}
 
 	// 0x20 - Checks if top bits of m are equal, what is it good for?
@@ -66,10 +66,14 @@ void Update_SR_Register64(s64 _Value, bool carry, bool overflow, bool sr10)
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
 	}
+
+	// 0x80
+	{
+	}
 }
 
 
-void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool sr10)
+void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
 {
 	// TODO: recheck 0x1,0x2,even 0x80... implement...
 	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
@@ -98,16 +102,20 @@ void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool sr10)
 		g_dsp.r[DSP_REG_SR] |= SR_SIGN;
 	}
 
-	// 0x10 - abs((u40)acc?) >= 0x80000000
-	if (sr10) 
+	// 0x10
+	if (overS32) 
 	{
-		g_dsp.r[DSP_REG_SR] |= SR_10;
+		g_dsp.r[DSP_REG_SR] |= SR_OVER_S32;
 	}
 
 	// 0x20 - Checks if top bits of m are equal, what is it good for?
 	if ((((u16)_Value >> 14) == 0) || (((u16)_Value >> 14) == 3))
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
+	}
+
+	// 0x80
+	{
 	}
 }
 

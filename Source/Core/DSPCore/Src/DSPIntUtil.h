@@ -251,6 +251,10 @@ inline void dsp_set_long_acc(int _reg, s64 val)
 	g_dsp.r[DSP_REG_ACH0 + _reg] = (u16)(s16)(s8)(u8)val;
 }
 
+inline s64 dsp_convert_long_acc(s64 val) // s64 -> s40
+{
+	return ((s64)(s8)(val >> 32))<<32 | (u32)val;
+}
 
 inline s16 dsp_get_acc_l(int _reg)
 {
