@@ -89,6 +89,7 @@ private:
 	DECLARE_EVENT_TABLE()
 
 	// events
+	void OnPaintDrawImages(wxPaintEvent& event);
 	void OnLeftClick(wxMouseEvent& event);
 	void OnRightClick(wxMouseEvent& event);
 	void OnMouseMotion(wxMouseEvent& event);

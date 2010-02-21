@@ -194,7 +194,8 @@ void CFrame::CreateMenu()
 	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
 
 #if defined(HAVE_SFML) && HAVE_SFML
-	toolsMenu->Append(IDM_NETPLAY, _T("Start &NetPlay"));
+	// Disabled for now, netplay doesn't quite work currently
+	// toolsMenu->Append(IDM_NETPLAY, _T("Start &NetPlay"));
 #endif
 
 	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(std::string (File::GetUserPath(D_WIIMENU_IDX))).IsValid())

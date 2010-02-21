@@ -1,5 +1,5 @@
 /* XPM */
-static const char * Flag_Taiwan_xpm[] = {
+static const char *const Flag_Taiwan_xpm[] = {
 "96 32 89 1",
 " 	c None",
 ".	c #000000",

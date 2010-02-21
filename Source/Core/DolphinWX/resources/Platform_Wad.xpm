@@ -1,6 +1,5 @@
 /* XPM */
 static const char *Platform_Wad_xpm[] = {
-/* columns rows colors chars-per-pixel */
 "96 32 347 2",
 "hX c #71CBE2",
 "v. c #DADCDC",

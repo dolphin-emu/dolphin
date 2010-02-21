@@ -42,6 +42,7 @@
 	#include "../resources/Flag_Japan.xpm"
 	#include "../resources/Flag_USA.xpm"
 	#include "../resources/Flag_Taiwan.xpm"
+	#include "../resources/Flag_Korea.xpm"
 	#include "../resources/Flag_Unknown.xpm"
 
 	#include "../resources/Platform_Wad.xpm"
@@ -98,6 +99,9 @@ BEGIN_EVENT_TABLE(wxEmuStateTip, wxTipWindow)
 END_EVENT_TABLE()
 
 BEGIN_EVENT_TABLE(CGameListCtrl, wxListCtrl)
+#ifdef _WIN32
+	EVT_PAINT(CGameListCtrl::OnPaintDrawImages)
+#endif
 	EVT_SIZE(CGameListCtrl::OnSize)
 	EVT_RIGHT_DOWN(CGameListCtrl::OnRightClick)
 	EVT_LEFT_DOWN(CGameListCtrl::OnLeftClick)
@@ -133,9 +137,9 @@ void CGameListCtrl::InitBitmaps()
 {
 	m_imageListSmall = new wxImageList(96, 32);
 	SetImageList(m_imageListSmall, wxIMAGE_LIST_SMALL);
-	m_FlagImageIndex.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
 	wxIcon iconTemp;
 
+	m_FlagImageIndex.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_Europe_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_France_xpm));
@@ -144,13 +148,12 @@ void CGameListCtrl::InitBitmaps()
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_Japan_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_JAPAN] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(Flag_Unknown_xpm)); // TODO add korea flag
+	iconTemp.CopyFromBitmap(wxBitmap(Flag_Korea_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_KOREA] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_Italy_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_Taiwan_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN] = m_imageListSmall->Add(iconTemp);
-
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_Unknown_xpm));
 	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SDK] = m_imageListSmall->Add(iconTemp);
 	iconTemp.CopyFromBitmap(wxBitmap(Flag_Unknown_xpm));
@@ -327,19 +330,61 @@ std::string CGameListCtrl::GetGameNames() const
 	return m_gameList; 
 }
 
+// This draws our icons on top of the gamelist, it's only used on Windows
+void CGameListCtrl::OnPaintDrawImages(wxPaintEvent& event)
+{
+	int i = 0, nState = 0;
+	IniFile ini;
+	wxRect itemRect;
+	wxPaintDC dc(this);
+
+	// Calls the default drawing code
+	wxControl::OnPaint(event);
+
+	// Draw the flags, platform icons and emustate icons on top if there's games to show
+	if (m_ISOFiles.size() != 0)
+	{
+		// Retrieve the topmost shown item and get drawing offsets
+		long top = GetTopItem();
+		int flagOffset = GetColumnWidth(0) + GetColumnWidth(1) + GetColumnWidth(2) + GetColumnWidth(3);
+		int stateOffset = flagOffset + GetColumnWidth(4) + GetColumnWidth(5);
+
+		// Only redraw shown lines
+		for (i = top; i < top + GetCountPerPage() + 2; i++)
+		{
+			if (GetItemRect(i, itemRect))
+			{
+				int itemY = itemRect.GetTop();
+				const GameListItem& rISOFile = m_ISOFiles[GetItemData(i)];
+
+				m_imageListSmall->Draw(m_PlatformImageIndex[rISOFile.GetPlatform()], dc, itemRect.GetX()+3, itemY);
+				m_imageListSmall->Draw(m_FlagImageIndex[rISOFile.GetCountry()], dc, flagOffset, itemY);
+
+				ini.Load((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + (rISOFile.GetUniqueID()) + ".ini").c_str());
+				ini.Get("EmuState", "EmulationStateId", &nState);
+				m_imageListSmall->Draw(m_EmuStateImageIndex[nState], dc, stateOffset, itemY);
+			}
+		}
+	}
+}
+
 void CGameListCtrl::InsertItemInReportView(long _Index)
 {
 	// When using wxListCtrl, there is no hope of per-column text colors.
 	// But for reference, here are the old colors that were used: (BGR)
 	// title: 0xFF0000
 	// company: 0x007030
-
 	int ImageIndex = -1;
 	wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
 	GameListItem& rISOFile = m_ISOFiles[_Index];
-	
-	// Insert a row with the platform image, that will be used as the Index
+	m_gamePath.append(rISOFile.GetFileName() + '\n');
+
+	// Insert a first row with the platform image, that will be used as the Index
+#ifndef _WIN32
 	long ItemIndex = InsertItem(_Index, wxEmptyString, m_PlatformImageIndex[rISOFile.GetPlatform()]);
+#else
+	long ItemIndex = InsertItem(_Index, wxEmptyString, -1);
+#endif
 
 	if (rISOFile.GetImage().IsOk())
 		ImageIndex = m_imageListSmall->Add(rISOFile.GetImage());
@@ -350,7 +395,6 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	if (rISOFile.GetPlatform() != GameListItem::WII_WAD)
 	{
 		std::string company;
-		m_gamePath.append(rISOFile.GetFileName() + '\n');
 
 		// We show the company string on Gamecube only
 		// On Wii we show the description instead as the company string is empty
@@ -391,6 +435,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 		SetItem(_Index, COLUMN_NOTES, wxString(rISOFile.GetDescription(0).c_str(), SJISConv), -1);
 	}
 
+#ifndef _WIN32
 	// Load the INI file for columns that read from it
 	IniFile ini;
 	ini.Load((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + (rISOFile.GetUniqueID()) + ".ini").c_str());
@@ -399,12 +444,15 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	int nState;
 	ini.Get("EmuState", "EmulationStateId", &nState);
 
-	// File size + Emulation state
-	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
+	// Emulation state
 	SetItemColumnImage(_Index, COLUMN_EMULATION_STATE, m_EmuStateImageIndex[nState]);
 
 	// Country
 	SetItemColumnImage(_Index, COLUMN_COUNTRY, m_FlagImageIndex[rISOFile.GetCountry()]);
+#endif
+
+	// File size
+	SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
 
 	// Background color
 	SetBackgroundColor();
@@ -535,8 +583,11 @@ void CGameListCtrl::ScanForISOs()
 				switch(ISOFile.GetCountry())
 				{
 				case DiscIO::IVolume::COUNTRY_TAIWAN: 
+					if (!SConfig::GetInstance().m_ListTaiwan)
+						list = false;
 				case DiscIO::IVolume::COUNTRY_KOREA:
-					// TODO: Add these to interface choices, or combine with japan?
+					if (!SConfig::GetInstance().m_ListKorea)
+						list = false;
 					break;
 				case DiscIO::IVolume::COUNTRY_JAPAN:
 					if (!SConfig::GetInstance().m_ListJap)
@@ -544,6 +595,14 @@ void CGameListCtrl::ScanForISOs()
 					break;
 				case DiscIO::IVolume::COUNTRY_USA:
 					if (!SConfig::GetInstance().m_ListUsa)
+						list = false;
+					break;
+				case DiscIO::IVolume::COUNTRY_FRANCE: 
+					if (!SConfig::GetInstance().m_ListFrance)
+						list = false;
+					break;
+				case DiscIO::IVolume::COUNTRY_ITALY:
+					if (!SConfig::GetInstance().m_ListItaly)
 						list = false;
 					break;
 				default:
@@ -562,7 +621,7 @@ void CGameListCtrl::ScanForISOs()
 		std::vector<std::string> drives = cdio_get_devices();
 		GameListItem * Drive[24];
 		// Another silly Windows limitation of 24 drive letters
-		for (int i = 0; i < drives.size() && i < 24; i++)
+		for (u32 i = 0; i < drives.size() && i < 24; i++)
 		{
 			Drive[i] = new GameListItem(drives[i].c_str());
 			if (Drive[i]->IsValid())	m_ISOFiles.push_back(*Drive[i]);
