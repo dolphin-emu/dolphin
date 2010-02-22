@@ -82,7 +82,7 @@ void mv(const UDSPInstruction& opc)
  	u8 sreg = opc.hex & 0x3;
 	u8 dreg = ((opc.hex >> 2) & 0x3);
 	
-	writeToBackLog(0, dreg + DSP_REG_AXL0, g_dsp.r[sreg + DSP_REG_ACC0]);
+	writeToBackLog(0, dreg + DSP_REG_AXL0, g_dsp.r[sreg + DSP_REG_ACL0]);
 }
 	
 // S @$D, $acD.l
@@ -92,7 +92,7 @@ void mv(const UDSPInstruction& opc)
 void s(const UDSPInstruction& opc)
 {
 	u8 dreg = opc.hex & 0x3;
-	u8 sreg = ((opc.hex >> 3) & 0x3) + DSP_REG_ACC0;
+	u8 sreg = ((opc.hex >> 3) & 0x3) + DSP_REG_ACL0;
 
 	dsp_dmem_write(g_dsp.r[dreg], g_dsp.r[sreg]);
 	writeToBackLog(0, dreg,	dsp_increment_addr_reg(dreg));
@@ -105,7 +105,7 @@ void s(const UDSPInstruction& opc)
 void sn(const UDSPInstruction& opc)
 {
 	u8 dreg = opc.hex & 0x3;
-	u8 sreg = ((opc.hex >> 3) & 0x3) + DSP_REG_ACC0;
+	u8 sreg = ((opc.hex >> 3) & 0x3) + DSP_REG_ACL0;
 
 	dsp_dmem_write(g_dsp.r[dreg], g_dsp.r[sreg]);
 

@@ -224,11 +224,11 @@ const DSPOPCTemplate opcodes[] =
 
 	//8
 	{"NX",      0x8000, 0xf700, DSPInterpreter::nx,     nop, 1 | P_EXT, 0, {}, true},
-	{"CLR",		0x8100, 0xf700, DSPInterpreter::clr,  nop, 1 | P_EXT,  1, {{P_ACC, 1, 0, 11, 0x0800}}, true}, // clear acc0
+	{"CLR",		0x8100, 0xf700, DSPInterpreter::clr,  nop, 1 | P_EXT,  1, {{P_ACC, 1, 0, 11, 0x0800}}, true},
 	{"CMP",		0x8200, 0xff00, DSPInterpreter::cmp,    nop, 1 | P_EXT, 0, {}, true},
-	//0x8300 - unknown - not used atm - could be cmp(acc1-acc0)
+	{"MULAXH",  0x8300, 0xff00, DSPInterpreter::mulaxh, nop, 1 | P_EXT, 0, {}, true},
 	{"CLRP",	0x8400, 0xff00, DSPInterpreter::clrp, nop, 1 | P_EXT,  0, {}, true},
-	//0x8500 - unknown mul opcode (modifies prod regs) - not used atm
+	{"TSTPROD", 0x8500, 0xff00, DSPInterpreter::tstprod, nop, 1 | P_EXT,  0, {}, true},
 	{"TSTAXH",  0x8600, 0xfe00, DSPInterpreter::tstaxh, nop, 1 | P_EXT, 1, {{P_REG1A, 1, 0, 8, 0x0100}}, true},
 	{"M2",      0x8a00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},
 	{"M0",      0x8b00, 0xff00, DSPInterpreter::srbith, nop, 1 | P_EXT, 0, {}, true},

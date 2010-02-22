@@ -161,6 +161,8 @@ void andf(const UDSPInstruction& opc);
 void xori(const UDSPInstruction& opc);
 void andi(const UDSPInstruction& opc);
 void ori(const UDSPInstruction& opc);
+void mulaxh(const UDSPInstruction& opc);
+void tstprod(const UDSPInstruction& opc);
 
 // FIXME inside
 void srbith(const UDSPInstruction& opc);

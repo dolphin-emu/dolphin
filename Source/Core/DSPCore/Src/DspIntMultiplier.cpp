@@ -158,6 +158,25 @@ void movpz(const UDSPInstruction& opc)
 	Update_SR_Register64(acc);
 }
 
+// MULAXH
+// 1000 0011 xxxx xxxx
+// Multiply $ax0.h by $ax0.h 
+void mulaxh(const UDSPInstruction& opc)
+{
+	s64 prod = dsp_multiply(dsp_get_ax_h(0), dsp_get_ax_h(0));
+	zeroWriteBackLog();
+	dsp_set_long_prod(prod);		
+}
+
+// TSTPROD
+// 1000 0101 xxxx xxxx
+// Test prod regs value.
+void tstprod(const UDSPInstruction& opc)
+{
+	s64 prod = dsp_get_long_prod();
+	Update_SR_Register64(prod);
+	zeroWriteBackLog();
+}
 
 // MULC $acS.m, $axT.h
 // 110s t000 xxxx xxxx
