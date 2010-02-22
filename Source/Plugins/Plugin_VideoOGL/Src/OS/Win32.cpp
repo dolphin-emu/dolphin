@@ -37,15 +37,15 @@
 HINSTANCE g_hInstance;
 
 #if defined(HAVE_WX) && HAVE_WX
-	class wxDLLApp : public wxApp
+class wxDLLApp : public wxApp
+{
+	bool OnInit()
 	{
-		bool OnInit()
-		{
-			return true;
-		}
-	};
-	IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
-	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+		return true;
+	}
+};
+IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
 // ------------------
 
@@ -57,24 +57,17 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 	{
 	case DLL_PROCESS_ATTACH:
 		{
-			#if defined(HAVE_WX) && HAVE_WX
-			// Use wxInitialize() if you don't want GUI instead of the following 12 lines
+#if defined(HAVE_WX) && HAVE_WX
 			wxSetInstance((HINSTANCE)hinstDLL);
-			int argc = 0;
-			char **argv = NULL;
-			wxEntryStart(argc, argv);
-			if (!wxTheApp || !wxTheApp->CallOnInit())
-				return FALSE;
-			#endif
+			wxInitialize();
+#endif
 		}
 		break; 
 
 	case DLL_PROCESS_DETACH:
-		#if defined(HAVE_WX) && HAVE_WX
-			// This causes a "stop hang", if the gfx config dialog has been opened.
-			// Old comment: "Use wxUninitialize() if you don't want GUI"
-			wxEntryCleanup();
-		#endif
+#if defined(HAVE_WX) && HAVE_WX
+		wxUninitialize();
+#endif
 		break;
 	default:
 		break;

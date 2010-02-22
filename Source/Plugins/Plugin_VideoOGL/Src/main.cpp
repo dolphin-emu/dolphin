@@ -298,13 +298,12 @@ void DllConfig(HWND _hParent)
 		allowConfigShow = false;
 		m_ConfigFrame->CreateGUIControls();
 		allowConfigShow = m_ConfigFrame->ShowModal() == 1 ? true : false;
-
-		delete m_ConfigFrame;
+		m_ConfigFrame->Destroy();
+		m_ConfigFrame = NULL;
 #ifdef _WIN32
 		frame->SetHWND(NULL);
 #endif
 		delete frame;
-		m_ConfigFrame = 0;
 	}
 #endif
 }

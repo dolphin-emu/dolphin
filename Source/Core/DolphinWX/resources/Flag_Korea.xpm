@@ -1,5 +1,5 @@
 /* XPM */
-static char *Flag_Korea_xpm[] = {
+static const char *const Flag_Korea_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "96 32 210 2",
 ".  c Black",

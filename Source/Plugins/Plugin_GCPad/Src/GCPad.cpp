@@ -73,7 +73,7 @@ class wxDLLApp : public wxApp
 	}
 };
 IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
-	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
+WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
 
 BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
@@ -86,18 +86,14 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 		{
 #if defined(HAVE_WX) && HAVE_WX
 			wxSetInstance((HINSTANCE)hinstDLL);
-			int argc = 0;
-			char **argv = NULL;
-			wxEntryStart(argc, argv);
-			if (!wxTheApp || !wxTheApp->CallOnInit())
-				return FALSE;
+			wxInitialize();
 #endif
 		}
 		break; 
 
 	case DLL_PROCESS_DETACH:
 #if defined(HAVE_WX) && HAVE_WX
-		wxEntryCleanup();
+		wxUninitialize();
 #endif
 		break;
 	default:

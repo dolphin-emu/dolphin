@@ -76,18 +76,14 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 		{
 #if defined(HAVE_WX) && HAVE_WX
 			wxSetInstance((HINSTANCE)hinstDLL);
-			int argc = 0;
-			char **argv = NULL;
-			wxEntryStart(argc, argv);
-			if (!wxTheApp || !wxTheApp->CallOnInit())
-				return FALSE;
+			wxInitialize();
 #endif
 		}
 		break; 
 
 	case DLL_PROCESS_DETACH:
 #if defined(HAVE_WX) && HAVE_WX
-		wxEntryCleanup();
+		wxUninitialize();
 #endif
 		break;
 	default:
@@ -155,9 +151,8 @@ void DllConfig(HWND _hParent)
 
 		// Only allow one open at a time
 		m_ConfigFrame->ShowModal();
-
-		delete m_ConfigFrame;
-		m_ConfigFrame = 0;
+		m_ConfigFrame->Destroy();
+		m_ConfigFrame = NULL;
 	}
 #endif
 }
