@@ -516,13 +516,13 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_Notebook->AddPage(m_Controller[i], wxString::Format(wxT("Wiimote %d"), i+1));
 
 		// Controller
-		m_Joyname[i] = new wxComboBox(m_Controller[i], IDC_JOYNAME, StrJoyname[0], wxDefaultPosition, wxSize(200, -1), StrJoyname, wxCB_READONLY);
+		m_Joyname[i] = new wxChoice(m_Controller[i], IDC_JOYNAME, wxDefaultPosition, wxSize(200, -1), StrJoyname,  0, wxDefaultValidator, StrJoyname[0]);
 		m_Joyname[i]->SetToolTip(wxT("Save your settings and configure another joypad"));
 
 		// Dead zone
 		m_ComboDeadZoneLabel[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Dead Zone"));
-		m_ComboDeadZoneLeft[i] = new wxComboBox(m_Controller[i], IDC_DEAD_ZONE_LEFT, TextDeadZone[0], wxDefaultPosition,  wxSize(50, -1), TextDeadZone, wxCB_READONLY);
-		m_ComboDeadZoneRight[i] = new wxComboBox(m_Controller[i], IDC_DEAD_ZONE_RIGHT, TextDeadZone[0], wxDefaultPosition,  wxSize(50, -1), TextDeadZone, wxCB_READONLY);
+		m_ComboDeadZoneLeft[i] = new wxChoice(m_Controller[i], IDC_DEAD_ZONE_LEFT, wxDefaultPosition,  wxSize(50, -1), TextDeadZone, 0, wxDefaultValidator, TextDeadZone[0]);
+		m_ComboDeadZoneRight[i] = new wxChoice(m_Controller[i], IDC_DEAD_ZONE_RIGHT, wxDefaultPosition,  wxSize(50, -1), TextDeadZone, 0, wxDefaultValidator, TextDeadZone[0]);
 
 		// Circle to square
 		m_CheckC2S[i] = new wxCheckBox(m_Controller[i], IDC_STICK_C2S, wxT("Circle To Square"));
@@ -533,12 +533,12 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_DiagonalLabel[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Diagonal"));
 		m_DiagonalLabel[i]->SetToolTip(wxT("To produce a perfect square circle in the 'Out' window you have to manually set\n")
 			wxT("your diagonal values here from what is shown in the 'In' window."));
-		m_ComboDiagonal[i] = new wxComboBox(m_Controller[i], IDC_STICK_DIAGONAL, StrDiagonal[0], wxDefaultPosition, wxSize(50, -1), StrDiagonal, wxCB_READONLY);
+		m_ComboDiagonal[i] = new wxChoice(m_Controller[i], IDC_STICK_DIAGONAL, wxDefaultPosition, wxSize(50, -1), StrDiagonal,  0, wxDefaultValidator, StrDiagonal[0]);
 		
 		// Rumble
 		m_CheckRumble[i] = new wxCheckBox(m_Controller[i], IDC_RUMBLE, wxT("Rumble"));
 		m_RumbleStrengthLabel[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Strength"));
-		m_RumbleStrength[i] = new wxComboBox(m_Controller[i], IDC_RUMBLE_STRENGTH, StrRumble[0], wxDefaultPosition, wxSize(50, -1), StrRumble, wxCB_READONLY);
+		m_RumbleStrength[i] = new wxChoice(m_Controller[i], IDC_RUMBLE_STRENGTH, wxDefaultPosition, wxSize(50, -1), StrRumble,  0, wxDefaultValidator, StrRumble[0]);
 
 		// Sizers
 		m_sDeadZoneHoriz[i] = new wxBoxSizer(wxHORIZONTAL);
@@ -580,18 +580,18 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_tTiltTypeWM[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Wiimote"));
 		m_tTiltTypeNC[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Nunchuck"));
 
-		m_TiltTypeWM[i] = new wxComboBox(m_Controller[i], IDC_TILT_TYPE_WM, StrTilt[0], wxDefaultPosition,  wxSize(70, -1), StrTilt, wxCB_READONLY);
+		m_TiltTypeWM[i] = new wxChoice(m_Controller[i], IDC_TILT_TYPE_WM, wxDefaultPosition,  wxSize(70, -1), StrTilt,  0, wxDefaultValidator, StrTilt[0]);
 		m_TiltTypeWM[i]->SetToolTip(wxT("Control Wiimote tilting by keyboard or stick or trigger"));
 
-		m_TiltTypeNC[i] = new wxComboBox(m_Controller[i], IDC_TILT_TYPE_NC, StrTilt[0], wxDefaultPosition,  wxSize(70, -1), StrTilt, wxCB_READONLY);
+		m_TiltTypeNC[i] = new wxChoice(m_Controller[i], IDC_TILT_TYPE_NC, wxDefaultPosition,  wxSize(70, -1), StrTilt,  0, wxDefaultValidator, StrTilt[0]);
 		m_TiltTypeNC[i]->SetToolTip(wxT("Control Nunchuck tilting by keyboard or stick or trigger"));		
 
 		m_TiltTextRoll[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Roll Left/Right"));
 		m_TiltTextPitch[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Pitch Up/Down"));
 
-		m_TiltComboRangeRoll[i] = new wxComboBox(m_Controller[i], IDC_TILT_ROLL, StrTiltRangeRoll[0], wxDefaultPosition,  wxSize(50, -1), StrTiltRangeRoll, wxCB_READONLY);
+		m_TiltComboRangeRoll[i] = new wxChoice(m_Controller[i], IDC_TILT_ROLL, wxDefaultPosition,  wxSize(50, -1), StrTiltRangeRoll,  0, wxDefaultValidator, StrTiltRangeRoll[0]);
 		m_TiltComboRangeRoll[i]->SetToolTip(wxT("The maximum Left/Righ Roll in degrees"));	
-		m_TiltComboRangePitch[i] = new wxComboBox(m_Controller[i], IDC_TILT_PITCH, StrTiltRangePitch[0], wxDefaultPosition,  wxSize(50, -1), StrTiltRangePitch, wxCB_READONLY);
+		m_TiltComboRangePitch[i] = new wxChoice(m_Controller[i], IDC_TILT_PITCH, wxDefaultPosition,  wxSize(50, -1), StrTiltRangePitch,  0, wxDefaultValidator, StrTiltRangePitch[0]);
 		m_TiltComboRangePitch[i]->SetToolTip(wxT("The maximum Up/Down Pitch in degrees"));
 		m_TiltRollSwing[i] = new wxCheckBox(m_Controller[i], IDC_TILT_ROLL_SWING, wxT("Swing"));
 		m_TiltRollSwing[i]->SetToolTip(wxT("Emulate Swing Left/Right instead of Roll Left/Right"));
@@ -680,7 +680,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_TriggerStatusL[i]= new wxStaticText(m_Controller[i], wxID_ANY, wxT("000"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
 		m_TriggerStatusR[i]= new wxStaticText(m_Controller[i], wxID_ANY, wxT("000"), wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
 		m_tTriggerSource[i]= new wxStaticText(m_Controller[i], wxID_ANY, wxT("Trigger Source"));
-		m_TriggerType[i] = new wxComboBox(m_Controller[i], IDC_TRIGGER_TYPE, StrTriggerType[0], wxDefaultPosition,  wxSize(70, -1), StrTriggerType, wxCB_READONLY);
+		m_TriggerType[i] = new wxChoice(m_Controller[i], IDC_TRIGGER_TYPE, wxDefaultPosition,  wxSize(70, -1), StrTriggerType,  0, wxDefaultValidator, StrTriggerType[0]);
 
 		// Sizers
 		m_sGridTrigger[i] = new wxGridBagSizer(0, 0);
@@ -762,7 +762,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		{
 			// Stick controls
 			m_NunchuckTextStick[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Stick"));
-			m_NunchuckComboStick[i] = new wxComboBox(m_Controller[i], IDC_NUNCHUCK_STICK, StrNunchuck[0], wxDefaultPosition, wxSize(70, -1), StrNunchuck, wxCB_READONLY);
+			m_NunchuckComboStick[i] = new wxChoice(m_Controller[i], IDC_NUNCHUCK_STICK, wxDefaultPosition, wxSize(70, -1), StrNunchuck,  0, wxDefaultValidator, StrNunchuck[0]);
 			
 			for (int x = 0; x <= IDB_NC_SHAKE - IDB_NC_Z; x++)
 			{
@@ -799,11 +799,11 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		{
 			// Stick controls
 			m_CcTextLeftStick[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left stick"));
-			m_CcComboLeftStick[i] = new wxComboBox(m_Controller[i], IDC_CC_LEFT_STICK, StrNunchuck[0], wxDefaultPosition,  wxSize(70, -1), StrNunchuck, wxCB_READONLY);
+			m_CcComboLeftStick[i] = new wxChoice(m_Controller[i], IDC_CC_LEFT_STICK, wxDefaultPosition,  wxSize(70, -1), StrNunchuck,  0, wxDefaultValidator, StrNunchuck[0]);
 			m_CcTextRightStick[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Right stick"));
-			m_CcComboRightStick[i] = new wxComboBox(m_Controller[i], IDC_CC_RIGHT_STICK, StrNunchuck[0], wxDefaultPosition,  wxSize(70, -1), StrNunchuck, wxCB_READONLY);
+			m_CcComboRightStick[i] = new wxChoice(m_Controller[i], IDC_CC_RIGHT_STICK, wxDefaultPosition,  wxSize(70, -1), StrNunchuck,  0, wxDefaultValidator, StrNunchuck[0]);
 			m_CcTextTriggers[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Triggers"));
-			m_CcComboTriggers[i] = new wxComboBox(m_Controller[i], IDC_CC_TRIGGERS, StrCcTriggers[0], wxDefaultPosition,  wxSize(70, -1), StrCcTriggers, wxCB_READONLY);
+			m_CcComboTriggers[i] = new wxChoice(m_Controller[i], IDC_CC_TRIGGERS, wxDefaultPosition,  wxSize(70, -1), StrCcTriggers,  0, wxDefaultValidator, StrCcTriggers[0]);
 
 			for (int x = 0; x <= IDB_CC_RD - IDB_CC_A; x++)
 			{
@@ -861,7 +861,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		{			
 			// Stick controls
 			m_tGH3Analog[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Stick"));
-			m_GH3ComboAnalog[i] = new wxComboBox(m_Controller[i], IDC_GH3_ANALOG, StrAnalogArray[0], wxDefaultPosition, wxSize(70, -1), StrAnalogArray, wxCB_READONLY);
+			m_GH3ComboAnalog[i] = new wxChoice(m_Controller[i], IDC_GH3_ANALOG, wxDefaultPosition, wxSize(70, -1), StrAnalogArray,  0, wxDefaultValidator, StrAnalogArray[0]);
 
 			for (int x = 0; x <= IDB_GH3_STRUM_DOWN - IDB_GH3_GREEN; x++)
 			{
@@ -983,14 +983,14 @@ void WiimotePadConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case IDC_TILT_ROLL:
 	case IDC_TILT_ROLL_SWING:
-		m_TiltComboRangeRoll[m_Page]->GetValue().ToLong(&TmpValue);
+		m_TiltComboRangeRoll[m_Page]->GetStringSelection().ToLong(&TmpValue);
 		WiiMoteEmu::WiiMapping[m_Page].Tilt.RollDegree = TmpValue;
 		WiiMoteEmu::WiiMapping[m_Page].Tilt.RollSwing = m_TiltRollSwing[m_Page]->IsChecked();
 		WiiMoteEmu::WiiMapping[m_Page].Tilt.RollRange = (m_TiltRollSwing[m_Page]->IsChecked()) ? 0 : TmpValue;
 		break;
 	case IDC_TILT_PITCH:
 	case IDC_TILT_PITCH_SWING:
-		m_TiltComboRangePitch[m_Page]->GetValue().ToLong(&TmpValue);
+		m_TiltComboRangePitch[m_Page]->GetStringSelection().ToLong(&TmpValue);
 		WiiMoteEmu::WiiMapping[m_Page].Tilt.PitchDegree = TmpValue;
 		WiiMoteEmu::WiiMapping[m_Page].Tilt.PitchSwing = m_TiltPitchSwing[m_Page]->IsChecked();
 		WiiMoteEmu::WiiMapping[m_Page].Tilt.PitchRange = (m_TiltPitchSwing[m_Page]->IsChecked()) ? 0 : TmpValue;

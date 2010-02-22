@@ -213,8 +213,13 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	m_NativeResolution->SetValue(g_Config.bNativeResolution);
 	m_2xResolution->SetValue(g_Config.b2xResolution);
 	m_Fullscreen->SetValue(g_Config.bFullscreen);
-	m_WindowResolutionCB->SetValue(wxString::FromAscii(g_Config.cInternalRes));
-	m_WindowFSResolutionCB->SetValue(wxString::FromAscii(g_Config.cFSResolution));
+	
+	int num = 0;
+	m_WindowResolutionCB->FindString(wxString::FromAscii(g_Config.cInternalRes));
+	m_WindowResolutionCB->SetSelection(num);
+	
+	m_WindowFSResolutionCB->FindString(wxString::FromAscii(g_Config.cFSResolution));
+	m_WindowFSResolutionCB->SetSelection(num);
 #ifndef _WIN32
 	m_HideCursor->SetValue(g_Config.bHideCursor); 
 #endif
@@ -377,8 +382,8 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	wxStaticText *RText = new wxStaticText(m_PageGeneral, ID_RTEXT, wxT("Custom resolution:"), wxDefaultPosition, wxDefaultSize, 0);
 	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Windowed:"), wxDefaultPosition, wxDefaultSize , 0 );
 	m_Fullscreen = new wxCheckBox(m_PageGeneral, ID_FULLSCREEN, wxT("Fullscreen:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_WindowResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWRESOLUTIONCB, arrayStringFor_WindowResolutionCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, wxCB_READONLY, wxDefaultValidator);
-	m_WindowFSResolutionCB = new wxComboBox(m_PageGeneral, ID_WINDOWFSRESOLUTIONCB, arrayStringFor_FullscreenCB[0], wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, wxCB_READONLY, wxDefaultValidator);
+	m_WindowResolutionCB = new wxChoice(m_PageGeneral, ID_WINDOWRESOLUTIONCB, wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator, arrayStringFor_WindowResolutionCB[0]);
+	m_WindowFSResolutionCB = new wxChoice(m_PageGeneral, ID_WINDOWFSRESOLUTIONCB, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, 0, wxDefaultValidator, arrayStringFor_FullscreenCB[0]);
 #ifndef _WIN32
 	m_HideCursor = new wxCheckBox(m_PageGeneral, ID_HIDECURSOR, wxT("Hide mouse cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 #endif
@@ -652,10 +657,10 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 		break; 
 	#endif
 	case ID_WINDOWRESOLUTIONCB:
-		strcpy(g_Config.cInternalRes, m_WindowResolutionCB->GetValue().mb_str() );
+		strcpy(g_Config.cInternalRes, m_WindowResolutionCB->GetStringSelection().mb_str() );
 		break;
 	case ID_WINDOWFSRESOLUTIONCB:
-		strcpy(g_Config.cFSResolution, m_WindowFSResolutionCB->GetValue().mb_str() );
+		strcpy(g_Config.cFSResolution, m_WindowFSResolutionCB->GetStringSelection().mb_str() );
 		break;
 	case ID_MAXANISOTROPY:
 		g_Config.iMaxAnisotropy = m_MaxAnisotropyCB->GetSelection() + 1;

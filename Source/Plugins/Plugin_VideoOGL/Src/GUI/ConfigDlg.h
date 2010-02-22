@@ -107,8 +107,8 @@ class GFXConfigDialogOGL : public wxDialog
 		#ifndef _WIN32
 			wxCheckBox *m_HideCursor;
 		#endif
-		wxComboBox *m_WindowResolutionCB;
-		wxComboBox *m_WindowFSResolutionCB;
+		wxChoice *m_WindowResolutionCB;
+		wxChoice *m_WindowFSResolutionCB;
 		wxChoice *m_MaxAnisotropyCB;
 		wxChoice *m_MSAAModeCB, *m_PhackvalueCB, *m_PostShaderCB, *m_KeepAR;
 
