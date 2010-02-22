@@ -104,6 +104,27 @@ u16 dspreg_in[32] = {
 
 u16 dspreg_out[1000][32];
 
+/*
+// gba ucode dmas result here
+u32 SecParams_out[2] __attribute__ ((aligned (0x20))) = {
+	0x11223344, // key
+	0x55667788 // bootinfo
+};
+
+// ripped from demo
+u32 SecParams_in[8] __attribute__ ((aligned (0x20))) = {
+	0xDB967E0F, // key from gba
+	0x00000002,
+	0x00000002,
+	0x00001078,
+	(u32)SecParams_out, //0x80075060, // ptr to receiving buffer
+	// padding?
+	0x00000000,
+	0x00000000,
+	0x00000000
+};
+*/
+
 // UI (interactive register editing)
 u32 ui_mode;
 
@@ -370,6 +391,8 @@ void handle_dsp_mail(void)
 			real_dsp.SendMailTo(0x8000dead);
 			while (real_dsp.CheckMailTo());
 		}
+
+		// ROM dumping mails
 		else if (mail == 0x8888c0de)
 		{
 			// DSP has copied irom to its dram...send address so it can dma it back
@@ -387,6 +410,29 @@ void handle_dsp_mail(void)
 			// Now we can do something useful with the buffer :)
 			DumpDSP_ROMs(dspbufP, &dspbufP[0x1000]);
 		}
+
+		// SDK status mails
+		/*
+		// GBA ucode
+		else if (mail == 0xdcd10000) // DSP_INIT
+		{
+			real_dsp.SendMailTo(0xabba0000);
+			while (real_dsp.CheckMailTo());
+			DCFlushRange(SecParams_in, sizeof(SecParams_in));
+			CON_PrintRow(4, 25, "SecParams_out = %x", SecParams_in[4]);
+			real_dsp.SendMailTo((u32)SecParams_in);
+			while (real_dsp.CheckMailTo());
+		}
+		else if (mail == 0xdcd10003) // DSP_DONE
+		{
+			real_dsp.SendMailTo(0xcdd1babe); // custom mail to tell dsp to halt (calls end_of_test)
+			while (real_dsp.CheckMailTo());
+
+			DCInvalidateRange(SecParams_out, sizeof(SecParams_out));
+			CON_PrintRow(4, 26, "SecParams_out: %08x %08x",
+			SecParams_out[0], SecParams_out[1]);
+		}
+		*/
 
 		CON_PrintRow(2, 1, "UCode: %d/%d %s, Last mail: %08x",
 			curUcode + 1, NUM_UCODES, UCODE_NAMES[curUcode], mail);
