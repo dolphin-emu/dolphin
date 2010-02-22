@@ -30,10 +30,8 @@ public:
 
 	void Transfer(char* si_buffer);
 
-	char current_data[5];
-
 private:
-	enum EBufferCommands
+	enum EJoybusCmds
 	{
 		CMD_RESET	= 0xff,
 		CMD_STATUS	= 0x00,
@@ -41,25 +39,21 @@ private:
 		CMD_WRITE	= 0x15		
 	};
 
-	sf::SocketTCP server;
 	sf::SocketTCP client;
-	sf::IPAddress client_addr;
+	char current_data[5];
 };
 
 class CSIDevice_GBA : public ISIDevice, private GBASockServer
 {
 public:
 	CSIDevice_GBA(int _iDeviceNumber);
-	~CSIDevice_GBA();
+	~CSIDevice_GBA() {}
 
 	// Run the SI Buffer
 	virtual int RunBuffer(u8* _pBuffer, int _iLength);
 
-	// Return true on new data
-	virtual bool GetData(u32& _Hi, u32& _Low);
-
-	// Send a command directly
-	virtual void SendCommand(u32 _Cmd, u8 _Poll);
+	virtual bool GetData(u32& _Hi, u32& _Low) { return true; }
+	virtual void SendCommand(u32 _Cmd, u8 _Poll) {}
 };
 
 #endif

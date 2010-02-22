@@ -19,26 +19,66 @@
 #include "SI_DeviceGBA.h"
 
 #include "SFML/Network.hpp"
-#include <algorithm>
+#include "Thread.h"
+#include <queue>
+
+static Common::Thread *connectionThread = NULL;
+static std::queue<sf::SocketTCP> waiting_socks;
 
 // --- GameBoy Advance "Link Cable" ---
+
+THREAD_RETURN ConnectionWaiter(void*)
+{
+	Common::SetCurrentThreadName("GBA Connection Waiter");
+
+	sf::SocketTCP server;
+	if (!server.Listen(0xd6ba))
+		return 0;
+
+	server.SetBlocking(false);
+
+	for (;;)
+	{
+		sf::SocketTCP new_client;
+		if (server.Accept(new_client) == sf::Socket::Done)
+		{
+			waiting_socks.push(new_client);
+			PanicAlert("Connected");
+		}
+	}
+	server.Close();
+	return 0;
+}
+
+bool GetAvailableSock(sf::SocketTCP& sock_to_fill)
+{
+	if (waiting_socks.size() > 0)
+	{
+		sock_to_fill = waiting_socks.front();
+		waiting_socks.pop();
+		return true;
+	}
+	return false;
+}
+
 GBASockServer::GBASockServer()
 {
-	if (!server.Listen(8080))
-		return;
-
-	server.Accept(client, &client_addr);
+	if (!connectionThread)
+		connectionThread = new Common::Thread(ConnectionWaiter, (void*)0);
 }
 
 GBASockServer::~GBASockServer()
 {
 	client.Close();
-	server.Close();
 }
 
 // Blocking, since GBA must always send lower byte of REG_JOYSTAT
 void GBASockServer::Transfer(char* si_buffer)
 {
+	if (!client.IsValid())
+		if (!GetAvailableSock(client))
+			return;
+
 	current_data[0] = si_buffer[3];
 	current_data[1] = si_buffer[2];
 	current_data[2] = si_buffer[1];
@@ -87,23 +127,8 @@ CSIDevice_GBA::CSIDevice_GBA(int _iDeviceNumber)
 {
 }
 
-CSIDevice_GBA::~CSIDevice_GBA()
-{
-}
-
 int CSIDevice_GBA::RunBuffer(u8* _pBuffer, int _iLength)
 {
 	Transfer((char*)_pBuffer);
 	return _iLength;
-}
-
-bool CSIDevice_GBA::GetData(u32& _Hi, u32& _Low)
-{
-	DEBUG_LOG(SERIALINTERFACE, "GBA %i GetData Hi: 0x%08x Low: 0x%08x", m_iDeviceNumber, _Hi, _Low);
-	return true;
-}
-
-void CSIDevice_GBA::SendCommand(u32 _Cmd, u8 _Poll)
-{
-	DEBUG_LOG(SERIALINTERFACE, "GBA %i SendCommand: (0x%08x)", m_iDeviceNumber, _Cmd);
 }
