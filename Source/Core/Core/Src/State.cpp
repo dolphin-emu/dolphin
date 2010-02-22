@@ -31,11 +31,7 @@
 
 #include <string>
 
-#ifdef __linux__
-#include <lzo/lzo1x.h>
-#else
 #include "minilzo.h"
-#endif
 
 // TODO: Move to namespace
 

@@ -137,11 +137,9 @@ else:
 libs = [
 	'bdisasm',
         'inputcommon',
-	'lua'
+	'lua',
+        'sfml'
 	]
-
-if sys.platform == 'darwin':
-    libs = ['sfml-network'] + libs
 
 env_core = env.Clone();
 env_core.StaticLibrary(env['local_libs'] + 'core', files, LIBS=libs)

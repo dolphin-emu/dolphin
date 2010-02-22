@@ -50,7 +50,10 @@ include_paths = [
     basedir + 'Source/Core/Core/Src',
     basedir + 'Source/Core/DebuggerWX/Src',
     basedir + 'Externals/Bochs_disasm',
+    basedir + 'Externals/LZO',
+    basedir + 'Externals/SOIL',
     basedir + 'Externals/Lua',
+    basedir + 'Externals/SFML/include',
     basedir + 'Externals/WiiUseSrc/Src',
     basedir + 'Source/Core/VideoCommon/Src',
     basedir + 'Source/Core/InputCommon/Src',
@@ -59,15 +62,11 @@ include_paths = [
     basedir + 'Source/Core/DSPCore/Src',
     ]
 
-if sys.platform == 'darwin':
-    include_paths += [
-        basedir + 'Externals/LZO', # TODO:  Macs have port of lzo, use that instead
-        basedir + 'Externals/SOIL',
-        basedir + 'Externals/SFML/include',
-        ]
-
 dirs = [
     'Externals/Bochs_disasm',
+    'Externals/LZO',
+    'Externals/SOIL',
+    'Externals/SFML/src',
     'Externals/Lua',
     'Externals/WiiUseSrc/Src', 
     'Source/Core/Common/Src',
@@ -88,13 +87,6 @@ dirs = [
     'Source/Core/DolphinWX/Src',
     'Source/Core/DebuggerWX/Src',
     ]
-
-if sys.platform == 'darwin':
-    dirs += [
-        'Externals/LZO', # TODO:  Macs have port of lzo, use that instead
-        'Externals/SOIL',
-        'Externals/SFML/src',
-        ]
 
 builders = {}
 if sys.platform == 'darwin':
@@ -346,13 +338,7 @@ if sys.platform == 'darwin':
 else:
     env['HAVE_X11'] = conf.CheckPKG('x11')
     env['HAVE_COCOA'] = 0
-    # SOIL
-    env['HAVE_SOIL'] = conf.CheckPKG('SOIL')
-    # LZO
-    env['HAVE_LZO'] = conf.CheckPKG('lzo2')
-    # sfml
-    env['HAVE_SFML'] = conf.CheckPKG('sfml-network') and conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
-
+   
 # handling wx flags CCFLAGS should be created before
 wxmods = ['aui', 'adv', 'core', 'base']
 

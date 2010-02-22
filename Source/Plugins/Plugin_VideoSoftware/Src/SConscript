@@ -42,10 +42,8 @@ compileFlags = [
 linkFlags = [
 	]
 libs = [
-	'videocommon', 'common'
+	'videocommon', 'soil', 'common'
 	]
-if sys.platform == 'darwin':
-	libs = ['SOIL'] + libs
 
 gfxenv = env.Clone()
 
