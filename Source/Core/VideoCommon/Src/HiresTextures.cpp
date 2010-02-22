@@ -20,7 +20,11 @@
 #include <cstring>
 #include <utility>
 #include <algorithm>
+#ifdef __linux__
+#include <SOIL/SOIL.h>
+#else
 #include "SOIL.h"
+#endif
 #include "CommonPaths.h"
 #include "FileUtil.h"
 #include "FileSearch.h"

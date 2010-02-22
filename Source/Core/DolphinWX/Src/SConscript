@@ -11,9 +11,12 @@ files = [
 	]
 
 libs = [
-	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 
-	'inputcommon', 'common', 'lua', 'z', 'sfml'
+	'core', 'discio', 'bdisasm', 'videocommon', 
+	'inputcommon', 'common', 'lua', 'z'
 	]
+
+if sys.platform == 'darwin':
+	libs = ['sfml-network', 'minilzo'] + libs
 
 if wxenv['HAVE_WX']:
 	files += [
