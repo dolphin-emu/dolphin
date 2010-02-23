@@ -138,7 +138,8 @@ void DllConfig(HWND _hParent)
 #if defined(HAVE_WX) && HAVE_WX
 	if (!m_ConfigFrame)
 	{
-		m_ConfigFrame = new DSPConfigDialogLLE(GetParentedWxWindow(_hParent));
+		wxWindow *frame = GetParentedWxWindow(_hParent);
+		m_ConfigFrame = new DSPConfigDialogLLE(frame);
 
 		// add backends
 		std::vector<std::string> backends = AudioCommon::GetSoundBackends();
@@ -153,6 +154,10 @@ void DllConfig(HWND _hParent)
 		m_ConfigFrame->ShowModal();
 		m_ConfigFrame->Destroy();
 		m_ConfigFrame = NULL;
+#ifdef _WIN32
+		frame->SetHWND(NULL);
+#endif
+		delete frame;
 	}
 #endif
 }

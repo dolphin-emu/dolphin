@@ -46,34 +46,41 @@ void Statistics::SwapDL()
 char *Statistics::ToString(char *ptr)
 {
 	char *p = ptr;
-	p+=sprintf(p,"textures created: %i\n",stats.numTexturesCreated);
-	p+=sprintf(p,"textures alive: %i\n",stats.numTexturesAlive);
-	p+=sprintf(p,"pshaders created: %i\n",stats.numPixelShadersCreated);
-	p+=sprintf(p,"pshaders alive: %i\n",stats.numPixelShadersAlive);
-	p+=sprintf(p,"vshaders created: %i\n",stats.numVertexShadersCreated);
-	p+=sprintf(p,"vshaders alive: %i\n",stats.numVertexShadersAlive);
-    p+=sprintf(p,"dlists called:    %i\n",stats.numDListsCalled);
-    p+=sprintf(p,"dlists called(f): %i\n",stats.thisFrame.numDListsCalled);
-	p+=sprintf(p,"dlists alive:     %i\n",stats.numDListsAlive);
-	p+=sprintf(p,"primitive joins: %i\n",stats.thisFrame.numPrimitiveJoins);
-	p+=sprintf(p,"draw calls:       %i\n",stats.thisFrame.numDrawCalls);
-	p+=sprintf(p,"indexed draw calls: %i\n",stats.thisFrame.numIndexedDrawCalls);
-	p+=sprintf(p,"buffer splits:    %i\n",stats.thisFrame.numBufferSplits);
-	p+=sprintf(p,"primitives: %i\n",stats.thisFrame.numPrims);
-	p+=sprintf(p,"primitives (DL): %i\n",stats.thisFrame.numDLPrims);
-	p+=sprintf(p,"XF loads: %i\n",stats.thisFrame.numXFLoads);
-	p+=sprintf(p,"XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
-	p+=sprintf(p,"CP loads: %i\n",stats.thisFrame.numCPLoads);
-	p+=sprintf(p,"CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
-	p+=sprintf(p,"BP loads: %i\n",stats.thisFrame.numBPLoads);
-	p+=sprintf(p,"BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
-	p+=sprintf(p,"Vertex Loaders: %i\n",stats.numVertexLoaders);
+	ptr+=sprintf(ptr,"textures created: %i\n",stats.numTexturesCreated);
+	ptr+=sprintf(ptr,"textures alive: %i\n",stats.numTexturesAlive);
+	ptr+=sprintf(ptr,"pshaders created: %i\n",stats.numPixelShadersCreated);
+	ptr+=sprintf(ptr,"pshaders alive: %i\n",stats.numPixelShadersAlive);
+	ptr+=sprintf(ptr,"vshaders created: %i\n",stats.numVertexShadersCreated);
+	ptr+=sprintf(ptr,"vshaders alive: %i\n",stats.numVertexShadersAlive);
+    ptr+=sprintf(ptr,"dlists called:    %i\n",stats.numDListsCalled);
+    ptr+=sprintf(ptr,"dlists called(f): %i\n",stats.thisFrame.numDListsCalled);
+	ptr+=sprintf(ptr,"dlists alive:     %i\n",stats.numDListsAlive);
+	ptr+=sprintf(ptr,"primitive joins: %i\n",stats.thisFrame.numPrimitiveJoins);
+	ptr+=sprintf(ptr,"draw calls:       %i\n",stats.thisFrame.numDrawCalls);
+	ptr+=sprintf(ptr,"indexed draw calls: %i\n",stats.thisFrame.numIndexedDrawCalls);
+	ptr+=sprintf(ptr,"buffer splits:    %i\n",stats.thisFrame.numBufferSplits);
+	ptr+=sprintf(ptr,"primitives: %i\n",stats.thisFrame.numPrims);
+	ptr+=sprintf(ptr,"primitives (DL): %i\n",stats.thisFrame.numDLPrims);
+	ptr+=sprintf(ptr,"XF loads: %i\n",stats.thisFrame.numXFLoads);
+	ptr+=sprintf(ptr,"XF loads (DL): %i\n",stats.thisFrame.numXFLoadsInDL);
+	ptr+=sprintf(ptr,"CP loads: %i\n",stats.thisFrame.numCPLoads);
+	ptr+=sprintf(ptr,"CP loads (DL): %i\n",stats.thisFrame.numCPLoadsInDL);
+	ptr+=sprintf(ptr,"BP loads: %i\n",stats.thisFrame.numBPLoads);
+	ptr+=sprintf(ptr,"BP loads (DL): %i\n",stats.thisFrame.numBPLoadsInDL);
+	ptr+=sprintf(ptr,"Vertex Loaders: %i\n",stats.numVertexLoaders);
 
 	std::string text1;
 	VertexLoaderManager::AppendListToString(&text1);
-	// TODO: Check for buffer overflow
-	p+=sprintf(p,"%s",text1.c_str());
-	return p;
+
+	// TODO : at some point text1 just becomes too huge and overflows, we can't even read the added stuff
+	// since it gets added at the far bottom of the screen anyway (actually outside the rendering window)
+	// we should really reset the list instead of using substr
+	if (text1.size() + ptr - p > 8170)
+		text1 = text1.substr(0, 8170 - (ptr - p));
+
+	ptr+=sprintf(ptr,"%s",text1.c_str());
+
+	return ptr;
 }
 
 // Is this really needed?
