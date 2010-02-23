@@ -23,7 +23,7 @@ BEGIN_EVENT_TABLE(DSPConfigDialogLLE, wxDialog)
 	EVT_BUTTON(wxID_OK, DSPConfigDialogLLE::SettingsChanged)
 	EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogLLE::SettingsChanged)
 	EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogLLE::SettingsChanged)
-	EVT_COMBOBOX(wxID_ANY, DSPConfigDialogLLE::BackendChanged)
+	EVT_CHOICE(wxID_ANY, DSPConfigDialogLLE::BackendChanged)
 	EVT_COMMAND_SCROLL(ID_VOLUME, DSPConfigDialogLLE::VolumeChanged)
 END_EVENT_TABLE()
 
