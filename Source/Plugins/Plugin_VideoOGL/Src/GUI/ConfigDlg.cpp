@@ -40,8 +40,8 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_VSYNC, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_COMBOBOX(ID_FULLSCREENCB, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_COMBOBOX(ID_WINDOWRESOLUTIONCB, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_COMBOBOX(ID_WINDOWFSRESOLUTIONCB, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHOICE(ID_WINDOWRESOLUTIONCB, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHOICE(ID_WINDOWFSRESOLUTIONCB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MAXANISOTROPY, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MSAAMODECB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_NATIVERESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
@@ -215,10 +215,10 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	m_Fullscreen->SetValue(g_Config.bFullscreen);
 	
 	int num = 0;
-	m_WindowResolutionCB->FindString(wxString::FromAscii(g_Config.cInternalRes));
+	num = m_WindowResolutionCB->FindString(wxString::FromAscii(g_Config.cInternalRes));
 	m_WindowResolutionCB->SetSelection(num);
 	
-	m_WindowFSResolutionCB->FindString(wxString::FromAscii(g_Config.cFSResolution));
+	num = m_WindowFSResolutionCB->FindString(wxString::FromAscii(g_Config.cFSResolution));
 	m_WindowFSResolutionCB->SetSelection(num);
 #ifndef _WIN32
 	m_HideCursor->SetValue(g_Config.bHideCursor); 
