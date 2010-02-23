@@ -88,36 +88,37 @@ int TexDecoder_GetTextureSizeInBytes(int width, int height, int format)
 	return (width * height * TexDecoder_GetTexelSizeInNibbles(format)) / 2;
 }
 
-u32 TexDecoder_GetFullHash32(const u8 *src, int len, u32 seed)
+u32 TexDecoder_GetHash32(const u8 *src, int len, u32 samples)
 {
 	const u32 m = 0x5bd1e995;
 	const int r = 24;
-
-	u32 h = seed ^ len;
-
+	u32 h = len;	
 	const u32 * data = (const u32 *)src;
-	int Flen = len / 4;
-	
-	while(len)
+	u32 Step = (len/4);
+	const u32 * End = data + Step;	
+	const u8 * uEnd = (const u8 *)End;
+	if(samples == 0) samples = Step;
+	Step  = Step / samples;
+	if(Step < 1) Step = 1;
+	while(data < End)
 	{
 		u32 k = data[0];
 		k *= m; 
 		k ^= k >> r; 
-		//k *= m; 		
-		//h *= m; 
+		k *= m; 		
+		h *= m; 
 		h ^= k;
-
-		data++;
-		len --;
+		data+=Step;
 	}
 	
-	switch(len)
+	switch(len & 3)
 	{
-	case 3: h ^= data[2] << 16;
-	case 2: h ^= data[1] << 8;
-	case 1: h ^= data[0];
-	        h *= m;
+	case 3: h ^= u32(uEnd[2]) << 16;
+	case 2: h ^= u32(uEnd[1]) << 8;
+	case 1: h ^= u32(uEnd[0]);	        
+			h *= m;
 	};
+	
 	h ^= h >> 13;
 	h *= m;
 	h ^= h >> 15;
@@ -125,29 +126,30 @@ u32 TexDecoder_GetFullHash32(const u8 *src, int len, u32 seed)
 } 
 
 #ifdef _M_X64
-u64 TexDecoder_GetFullHash(const u8 *src, int len, u64 seed)
+u64 TexDecoder_GetHash64(const u8 *src, int len, u32 samples)
 {
 	const u64 m = 0xc6a4a7935bd1e995;
 	const int r = 47;
 
-	u64 h = seed ^ (len * m);
-
+	u64 h = len * m;
+	u32 Step = (len/8);
 	const u64 * data = (const u64 *)src;
-	const u64 * end = data + (len/8);
-	
-	while(data != end)
+	const u64 * end = data + Step;
+	if(samples == 0) samples = Step;
+	Step  = Step / samples;
+	if(Step < 1) Step = 1;
+	while(data < end)
 	{
 		u64 k = data[0];
-		data++;
+		data+=Step;
 		k *= m; 
 		k ^= k >> r; 
-		//k *= m; 
-		
+		k *= m; 		
 		h ^= k;
-		//h *= m; 
+		h *= m; 
 	}
 
-	const u8 * data2 = (const u8*)data;
+	const u8 * data2 = (const u8*)end;
 
 	switch(len & 7)
 	{
@@ -169,51 +171,58 @@ u64 TexDecoder_GetFullHash(const u8 *src, int len, u64 seed)
 } 
 
 #else
-u64 TexDecoder_GetFullHash(const u8 *src, int len, u64 seed)
+u64 TexDecoder_GetHash64(const u8 *src, int len, u32 samples)
 {
 	const u32 m = 0x5bd1e995;
 	const int r = 24;
-
-	u32 h1 = seed ^ len;
+	
+	u32 h1 = len;
 	u32 h2 = 0;
 
+	u32 Step = (len / 4);
 	const u32 * data = (const u32 *)src;
+	const u32 * end = data + Step;
+	const u8 * uEnd = (const u8 *)end;
+	if(samples == 0) samples = Step;
+	Step = Step / samples;
 
-	while(len >= 8)
+	if(Step < 2) Step = 2;	
+
+	while(data < end)
 	{
-		u32 k1 = *data++;
+		u32 k1 = data[0];
 		k1 *= m; 
 		k1 ^= k1 >> r; 
-		//k1 *= m;
-		//h1 *= m; 
+		k1 *= m;
+		h1 *= m; 
 		h1 ^= k1;
-		len -= 4;
+		
 
-		u32 k2 = *data++;
+		u32 k2 = data[1];
 		k2 *= m; 
 		k2 ^= k2 >> r; 
-		//k2 *= m;
-		//h2 *= m; 
+		k2 *= m;
+		h2 *= m; 
 		h2 ^= k2;
-		len -= 4;
+		data+=Step;
 	}
 
-	if(len >= 4)
+	if(len & 7 > 3)
 	{
-		u32 k1 = *data++;
+		u32 k1 = *(end - 1);
 		k1 *= m; 
 		k1 ^= k1 >> r; 
-		//k1 *= m;
-		//h1 *= m; 
+		k1 *= m;
+		h1 *= m; 
 		h1 ^= k1;
 		len -= 4;
 	}
 
-	switch(len)
+	switch(len & 3)
 	{
-	case 3: h2 ^= ((u8*)data)[2] << 16;
-	case 2: h2 ^= ((u8*)data)[1] << 8;
-	case 1: h2 ^= ((u8*)data)[0];
+	case 3: h2 ^= uEnd[2] << 16;
+	case 2: h2 ^= uEnd[1] << 8;
+	case 1: h2 ^= uEnd[0];
 			h2 *= m;
 	};
 
@@ -231,18 +240,6 @@ u64 TexDecoder_GetFullHash(const u8 *src, int len, u64 seed)
 
 
 #endif
-
-u64 TexDecoder_GetFastHash(const u8 *src, int len, u64 seed)
-{
-	u64 hash = seed ? seed : 0x1337c0debeefbabeULL;
-	int step = (len / 8) / 37;
-	if (!step) step = 1;
-	for (int i = 0; i < len / 8; i += step) {
-		hash = _rotl64(hash, 19) ^ ((u64 *)src)[i];
-		hash += 7;	// to add a bit more entropy/mess in here
-	}	
-	return hash;
-}
 
 int TexDecoder_GetBlockWidthInTexels(u32 format)
 {

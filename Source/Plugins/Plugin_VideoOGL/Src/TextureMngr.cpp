@@ -274,16 +274,24 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			// each other stored in a single texture, and uses the palette to make different characters
 			// visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
 			// we must make sure that texture with different tluts get different IDs.
-			texHash =  TexDecoder_GetFullHash(ptr,TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format));
- 			u32 tlutHash = TexDecoder_GetFullHash32(&texMem[tlutaddr], TexDecoder_GetPaletteSize(tex_format));
-			//texHash ^= tlutHash;
+			int tempsize = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format);
+			tempsize = (g_ActiveConfig.iSafeTextureCache_IndexedMaxSize != 0 && g_ActiveConfig.iSafeTextureCache_IndexedMaxSize < tempsize)?g_ActiveConfig.iSafeTextureCache_IndexedMaxSize : tempsize;
+			texHash =  TexDecoder_GetHash64(ptr,tempsize,g_ActiveConfig.iSafeTextureCache_IndexedSamples);			
+			
+			tempsize = TexDecoder_GetPaletteSize(tex_format);
+			tempsize = (g_ActiveConfig.iSafeTextureCache_TlutMaxSize != 0 && g_ActiveConfig.iSafeTextureCache_TlutMaxSize < tempsize)?g_ActiveConfig.iSafeTextureCache_TlutMaxSize : tempsize;
+ 			u32 tlutHash = TexDecoder_GetHash32(&texMem[tlutaddr], tempsize,g_ActiveConfig.iSafeTextureCache_TlutSamples);
+			texHash ^= tlutHash;
 			if (g_ActiveConfig.bSafeTextureCache)
+			{
 				texID = texID ^ tlutHash;
-			//DebugLog("addr: %08x | texID: %08x | texHash: %08x", address, texID, hash_value);
+			}
 		}
 		else
 		{
-			texHash =  TexDecoder_GetFastHash(ptr, TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format));
+			int tempsize = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format);
+			tempsize = (g_ActiveConfig.iSafeTextureCache_ColorMaxSize != 0 && g_ActiveConfig.iSafeTextureCache_ColorMaxSize < tempsize)?g_ActiveConfig.iSafeTextureCache_ColorMaxSize : tempsize;
+			texHash =  TexDecoder_GetHash64(ptr, tempsize,g_ActiveConfig.iSafeTextureCache_ColorSamples);
 		}
 		if (g_ActiveConfig.bSafeTextureCache)
 			hash_value = texHash;

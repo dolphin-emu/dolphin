@@ -119,6 +119,12 @@ struct VideoConfig
 	bool bCopyEFBToTexture;
 	bool bCopyEFBScaled;
     bool bSafeTextureCache;
+	int iSafeTextureCache_ColorSamples;
+	int iSafeTextureCache_IndexedSamples;
+	int iSafeTextureCache_TlutSamples;
+	int iSafeTextureCache_ColorMaxSize;
+	int iSafeTextureCache_IndexedMaxSize;
+	int iSafeTextureCache_TlutMaxSize;
 	bool bFIFOBPhack;
 	int iPhackvalue;
 	bool bPhackvalue1, bPhackvalue2;

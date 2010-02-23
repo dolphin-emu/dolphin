@@ -56,6 +56,7 @@ public:
 	static void Shutdown();
 	static bool SetShader(u32 components);
 	static LPDIRECT3DVERTEXSHADER9 GetSimpleVertexShader();
+	static LPDIRECT3DVERTEXSHADER9 GetClearVertexShader();
 	static LPDIRECT3DVERTEXSHADER9 GetFSAAVertexShader();
 	static bool InsertByteCode(const VERTEXSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate);
 #if defined(_DEBUG) || defined(DEBUGFAST)

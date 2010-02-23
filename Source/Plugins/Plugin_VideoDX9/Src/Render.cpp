@@ -1082,7 +1082,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	D3D::dev->SetScissorRect(&sirc);	
 	if (zEnable)
 		D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_ALWAYS);
-	D3D::drawClearQuad(color ,(z & 0xFFFFFF) / float(0xFFFFFF),PixelShaderCache::GetClearProgram(),VertexShaderCache::GetSimpleVertexShader());	
+	D3D::drawClearQuad(color ,(z & 0xFFFFFF) / float(0xFFFFFF),PixelShaderCache::GetClearProgram(),VertexShaderCache::GetClearVertexShader());	
 	if (zEnable)
 		D3D::RefreshRenderState(D3DRS_ZFUNC);
 	//D3D::dev->Clear(0, NULL, (colorEnable ? D3DCLEAR_TARGET : 0)| ( zEnable ? D3DCLEAR_ZBUFFER : 0), color | ((alphaEnable)?0:0xFF000000),(z & 0xFFFFFF) / float(0xFFFFFF), 0);			

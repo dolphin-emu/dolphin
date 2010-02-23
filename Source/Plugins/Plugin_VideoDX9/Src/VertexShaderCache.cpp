@@ -41,6 +41,7 @@ const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 static float GC_ALIGNED16(lastVSconstants[C_FOGPARAMS + 8][4]);
 
 static LPDIRECT3DVERTEXSHADER9 SimpleVertexShader;
+static LPDIRECT3DVERTEXSHADER9 ClearVertexShader;
 static LPDIRECT3DVERTEXSHADER9 FSAAVertexShader;
 
 LinearDiskCache g_vs_disk_cache;
@@ -48,6 +49,11 @@ LinearDiskCache g_vs_disk_cache;
 LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetSimpleVertexShader()
 {
 	return SimpleVertexShader;
+}
+
+LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetClearVertexShader()
+{
+	return ClearVertexShader;
 }
 
 LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetFSAAVertexShader()
@@ -155,12 +161,12 @@ public:
 
 void VertexShaderCache::Init()
 {
-	char *vSimpleProg = new char[2048];
-	sprintf(vSimpleProg,"struct VSOUTPUT\n"
+	char* vProg = new char[2048];
+	sprintf(vProg,"struct VSOUTPUT\n"
 						"{\n"
-						   "float4 vPosition   : POSITION;\n"
+						   "float4 vPosition : POSITION;\n"
 						   "float4 vColor0   : COLOR0;\n"
-						   "float2 vTexCoord   : TEXCOORD0;\n"
+						   "float2 vTexCoord : TEXCOORD0;\n"
 						"};\n"
 						"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0,float4 inColor0: COLOR0)\n"
 						"{\n"
@@ -171,10 +177,24 @@ void VertexShaderCache::Init()
 							"return OUT;\n"
 						"}\n");
 
-	SimpleVertexShader = D3D::CompileAndCreateVertexShader(vSimpleProg, (int)strlen(vSimpleProg));
+	SimpleVertexShader = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));
+
+	sprintf(vProg,"struct VSOUTPUT\n"
+						"{\n"
+						   "float4 vPosition   : POSITION;\n"
+						   "float4 vColor0   : COLOR0;\n"						   
+						"};\n"
+						"VSOUTPUT main(float4 inPosition : POSITION,float4 inColor0: COLOR0)\n"
+						"{\n"
+							"VSOUTPUT OUT;\n"
+							"OUT.vPosition = inPosition;\n"
+							"OUT.vColor0 = inColor0;\n"
+							"return OUT;\n"
+						"}\n");
+
+	ClearVertexShader = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));
 	
-	char *vFSAAProg = new char[2048];
-	sprintf(vFSAAProg,	"struct VSOUTPUT\n"
+	sprintf(vProg,	"struct VSOUTPUT\n"
 						"{\n"
 						   "float4 vPosition   : POSITION;\n"
 						   "float4 vTexCoord   : TEXCOORD0;\n"
@@ -196,12 +216,10 @@ void VertexShaderCache::Init()
 						   "OUT.vTexCoord5 = inTEX2;\n"
 						   "return OUT;\n"
 						"}\n");
-	FSAAVertexShader = D3D::CompileAndCreateVertexShader(vFSAAProg, (int)strlen(vFSAAProg));
-
+	FSAAVertexShader = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));	
 	
 	Clear();
-	delete [] vFSAAProg;
-	delete [] vSimpleProg;
+	delete [] vProg;
 
 	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
