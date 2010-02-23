@@ -24,47 +24,65 @@
 
 static Common::Thread *connectionThread = NULL;
 static std::queue<sf::SocketTCP> waiting_socks;
+static Common::CriticalSection cs_gba;
+volatile bool server_running;
 
 // --- GameBoy Advance "Link Cable" ---
 
-THREAD_RETURN ConnectionWaiter(void*)
+THREAD_RETURN GBAConnectionWaiter(void*)
 {
+	server_running = true;
+
 	Common::SetCurrentThreadName("GBA Connection Waiter");
 
 	sf::SocketTCP server;
 	if (!server.Listen(0xd6ba))
 		return 0;
-
+	
 	server.SetBlocking(false);
-
-	for (;;)
+	
+	sf::SocketTCP new_client;
+	while (server_running)
 	{
-		sf::SocketTCP new_client;
 		if (server.Accept(new_client) == sf::Socket::Done)
 		{
+			cs_gba.Enter();
 			waiting_socks.push(new_client);
-			PanicAlert("Connected");
+			cs_gba.Leave();
 		}
+		SLEEP(1);
 	}
 	server.Close();
 	return 0;
 }
 
+void GBAConnectionWaiter_Shutdown()
+{
+	server_running = false;
+	if (connectionThread)
+		connectionThread->WaitForDeath();
+}
+
 bool GetAvailableSock(sf::SocketTCP& sock_to_fill)
 {
-	if (waiting_socks.size() > 0)
+	bool sock_filled = false;
+
+	cs_gba.Enter();
+	if (waiting_socks.size())
 	{
 		sock_to_fill = waiting_socks.front();
 		waiting_socks.pop();
-		return true;
+		sock_filled = true;
 	}
-	return false;
+	cs_gba.Leave();
+
+	return sock_filled;
 }
 
 GBASockServer::GBASockServer()
 {
 	if (!connectionThread)
-		connectionThread = new Common::Thread(ConnectionWaiter, (void*)0);
+		connectionThread = new Common::Thread(GBAConnectionWaiter, (void*)0);
 }
 
 GBASockServer::~GBASockServer()

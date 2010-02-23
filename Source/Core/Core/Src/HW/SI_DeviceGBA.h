@@ -22,6 +22,8 @@
 
 // GameBoy Advance "Link Cable"
 
+void GBAConnectionWaiter_Shutdown();
+
 class GBASockServer : public sf::SocketTCP
 {
 public:

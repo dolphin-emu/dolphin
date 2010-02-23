@@ -25,6 +25,7 @@
 #include "VideoInterface.h"
 
 #include "SI.h"
+#include "SI_DeviceGBA.h"
 
 namespace SerialInterface
 {
@@ -265,6 +266,7 @@ void Shutdown()
 {
 	for (int i = 0; i < NUMBER_OF_CHANNELS; i++)
 		RemoveDevice(i);
+	GBAConnectionWaiter_Shutdown();
 }
 
 void Read32(u32& _uReturnValue, const u32 _iAddress)
