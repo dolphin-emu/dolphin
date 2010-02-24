@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <cmath>
+#include <nmmintrin.h>
 #include "Common.h"
 //#include "VideoCommon.h" // to get debug logs
 
@@ -396,7 +397,11 @@ inline void decodebytesC8_5A3_To_BGRA32(u32 *dst, const u8 *src, int tlutaddr)
     }
 }
 
-inline void decodebytesC8_To_Raw16(u16* dst, const u8* src, int tlutaddr)
+template<bool SSSE3>
+inline void decodebytesC8_To_Raw16(u16* dst, const u8* src, int tlutaddr);
+
+template<>
+inline void decodebytesC8_To_Raw16<false>(u16* dst, const u8* src, int tlutaddr)
 {
 	u16* tlut = (u16*)(texMem + tlutaddr);
 	for (int x = 0; x < 8; x++)
@@ -406,6 +411,29 @@ inline void decodebytesC8_To_Raw16(u16* dst, const u8* src, int tlutaddr)
 	}
 }
 
+static const __m128i kMaskSwap16 = _mm_set_epi32(0x0E0F0C0DL, 0x0A0B0809L, 0x06070405L, 0x02030001L);
+template<>
+inline void decodebytesC8_To_Raw16<true>(u16* dst, const u8* src, int tlutaddr)
+{
+	u16* tlut = (u16*)(texMem + tlutaddr);
+
+	// Make 8 16-bits unsigned integer values
+	__m128i a;
+	a = _mm_insert_epi16(a, tlut[src[0]], 0);
+	a = _mm_insert_epi16(a, tlut[src[1]], 1);
+	a = _mm_insert_epi16(a, tlut[src[2]], 2);
+	a = _mm_insert_epi16(a, tlut[src[3]], 3);
+	a = _mm_insert_epi16(a, tlut[src[4]], 4);
+	a = _mm_insert_epi16(a, tlut[src[5]], 5);
+	a = _mm_insert_epi16(a, tlut[src[6]], 6);
+	a = _mm_insert_epi16(a, tlut[src[7]], 7);
+
+	// Apply Common::swap16() to 16-bits unsigned integers at once
+	const __m128i b = _mm_shuffle_epi8(a, kMaskSwap16);
+
+	// Store values to dst without polluting the caches
+	_mm_stream_si128((__m128i*)dst, b);
+}
 
 inline void decodebytesC14X2_5A3_To_BGRA32(u32 *dst, const u16 *src, int tlutaddr)
 {
@@ -912,6 +940,7 @@ PC_TexFormat TexDecoder_DirectDecode_real(u8 *dst, const u8 *src, int width, int
 //TODO: to save memory, don't blindly convert everything to argb8888
 //also ARGB order needs to be swapped later, to accommodate modern hardware better
 //need to add DXT support too
+static const __m128i kMaskSwap32 = _mm_set_epi32(0x0C0D0E0FL, 0x08090A0BL, 0x04050607L, 0x00010203L);
 PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
     switch (texformat)
@@ -965,10 +994,18 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
         }
 		else
 		{
-            for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 8)
-                    for (int iy = 0; iy < 4; iy++, src += 8)
-                        decodebytesC8_To_Raw16((u16*)dst + (y + iy) * width + x, src, tlutaddr);
+			if (cpu_info.bSSSE3) {
+				for (int y = 0; y < height; y += 4)
+					for (int x = 0; x < width; x += 8)
+						for (int iy = 0; iy < 4; iy++, src += 8)
+							decodebytesC8_To_Raw16<true>((u16*)dst + (y + iy) * width + x, src, tlutaddr);
+
+			} else {
+				for (int y = 0; y < height; y += 4)
+					for (int x = 0; x < width; x += 8)
+						for (int iy = 0; iy < 4; iy++, src += 8)
+							decodebytesC8_To_Raw16<false>((u16*)dst + (y + iy) * width + x, src, tlutaddr);
+			}
 		}
         return GetPCFormatFromTLUTFormat(tlutfmt);
     case GX_TF_IA4:
@@ -1034,13 +1071,76 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
         return PC_TEX_FMT_BGRA32;
     case GX_TF_RGBA8:  // speed critical
         {
-			for (int y = 0; y < height; y += 4)
-                for (int x = 0; x < width; x += 4)
-                {
-					for (int iy = 0; iy < 4; iy++)
-                        decodebytesARGB8_4((u32*)dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
-					src += 64;
-                }
+			if (cpu_info.bSSE4_1) {
+				for (int y = 0; y < height; y += 4) {
+					__m128i* p = (__m128i*)(src + y * width * 4);
+					for (int x = 0; x < width; x += 4) {
+						// Load 64-bytes at once.
+						const __m128i a0 = _mm_stream_load_si128(p++);
+						const __m128i a1 = _mm_stream_load_si128(p++);
+						const __m128i a2 = _mm_stream_load_si128(p++);
+						const __m128i a3 = _mm_stream_load_si128(p++);
+
+						// Shuffle 16-bit integeres by _mm_unpacklo_epi16()/_mm_unpackhi_epi16(),
+						// apply Common::swap32() by _mm_shuffle_epi8() and
+						// store them by _mm_stream_si128().
+						// See decodebytesARGB8_4() about the idea.
+						const __m128i b0 = _mm_unpacklo_epi16(a0, a2);
+						const __m128i c0 = _mm_shuffle_epi8(b0, kMaskSwap32);
+						_mm_stream_si128((__m128i*)((u32*)dst + (y + 0) * width + x), c0);
+
+						const __m128i b1 = _mm_unpackhi_epi16(a0, a2);
+						const __m128i c1 = _mm_shuffle_epi8(b1, kMaskSwap32);
+						_mm_stream_si128((__m128i*)((u32*)dst + (y + 1) * width + x), c1);
+
+						const __m128i b2 = _mm_unpacklo_epi16(a1, a3);
+						const __m128i c2 = _mm_shuffle_epi8(b2, kMaskSwap32);
+						_mm_stream_si128((__m128i*)((u32*)dst + (y + 2) * width + x), c2);
+
+						const __m128i b3 = _mm_unpackhi_epi16(a1, a3);
+						const __m128i c3 = _mm_shuffle_epi8(b3, kMaskSwap32);
+						_mm_stream_si128((__m128i*)((u32*)dst + (y + 3) * width + x), c3);
+					}
+				}
+
+			} else if (cpu_info.bSSSE3) {
+				// SSSE3 can not use _mm_stream_load_si128().
+				// Use _mm_load_si128() instead of _mm_load_si128().
+				for (int y = 0; y < height; y += 4) {
+					__m128i* p = (__m128i*)(src + y * width * 4);
+					for (int x = 0; x < width; x += 4) {
+						const __m128i a0 = _mm_load_si128(p++);
+						const __m128i a1 = _mm_load_si128(p++);
+						const __m128i a2 = _mm_load_si128(p++);
+						const __m128i a3 = _mm_load_si128(p++);
+
+						const __m128i b0 = _mm_unpacklo_epi16(a0, a2);
+						const __m128i c0 = _mm_shuffle_epi8(b0, kMaskSwap32);
+						_mm_stream_si128((__m128i*)((u32*)dst + (y + 0) * width + x), c0);
+
+						const __m128i b1 = _mm_unpackhi_epi16(a0, a2);
+						const __m128i c1 = _mm_shuffle_epi8(b1, kMaskSwap32);
+						_mm_stream_si128((__m128i*)((u32*)dst + (y + 1) * width + x), c1);
+
+						const __m128i b2 = _mm_unpacklo_epi16(a1, a3);
+						const __m128i c2 = _mm_shuffle_epi8(b2, kMaskSwap32);
+						_mm_stream_si128((__m128i*)((u32*)dst + (y + 2) * width + x), c2);
+
+						const __m128i b3 = _mm_unpackhi_epi16(a1, a3);
+						const __m128i c3 = _mm_shuffle_epi8(b3, kMaskSwap32);
+						_mm_stream_si128((__m128i*)((u32*)dst + (y + 3) * width + x), c3);
+					}
+				}
+
+			} else {
+				for (int y = 0; y < height; y += 4)
+					for (int x = 0; x < width; x += 4)
+					{
+						for (int iy = 0; iy < 4; iy++)
+							decodebytesARGB8_4((u32*)dst + (y+iy)*width + x, (u16*)src + 4 * iy, (u16*)src + 4 * iy + 16);
+						src += 64;
+					}
+			}
         }
         return PC_TEX_FMT_BGRA32;
     case GX_TF_CMPR:  // speed critical

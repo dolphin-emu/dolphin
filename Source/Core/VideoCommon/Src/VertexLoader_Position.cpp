@@ -18,7 +18,9 @@
 #ifndef VERTEXLOADER_POSITION_H
 #define VERTEXLOADER_POSITION_H
 
+#include <nmmintrin.h>
 #include "Common.h"
+#include "CPUDetect.h"
 #include "VideoCommon.h"
 #include "VertexLoader.h"
 #include "VertexLoader_Position.h"
@@ -149,18 +151,34 @@ inline void Pos_ReadIndex_Short(int Index)
 	VertexManager::s_pCurBufferPointer += 12;
 }
 
+static const __m128i kMaskSwap32 = _mm_set_epi32(0xFFFFFFFFL, 0x08090A0BL, 0x04050607L, 0x00010203L);
 template<bool three>
 inline void Pos_ReadIndex_Float(int Index)
 {
 	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]));
-	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
-	((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[1]);
-	if (three)
-		((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(pData[2]);
-	else
-		((float*)VertexManager::s_pCurBufferPointer)[2] = 0.0f;
-	LOG_VTX();
-	VertexManager::s_pCurBufferPointer += 12;
+
+	if (cpu_info.bSSE4_1) {
+		const __m128i a = _mm_loadu_si128((__m128i*)pData);
+		__m128i b = _mm_shuffle_epi8(a, kMaskSwap32);
+		if (!three) {
+			b = _mm_insert_epi32(b, 0, 2);
+		}
+		u8* p = VertexManager::s_pCurBufferPointer;
+		_mm_storeu_si128((__m128i*)p, b);
+		LOG_VTX();
+		p += 12;
+		VertexManager::s_pCurBufferPointer = p;
+
+	} else {
+		((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
+		((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[1]);
+		if (three)
+			((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(pData[2]);
+		else
+			((float*)VertexManager::s_pCurBufferPointer)[2] = 0.0f;
+		LOG_VTX();
+		VertexManager::s_pCurBufferPointer += 12;
+	}
 }
 
 // ==============================================================================

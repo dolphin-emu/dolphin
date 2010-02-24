@@ -18,7 +18,9 @@
 #ifndef VERTEXLOADER_TEXCOORD_H
 #define VERTEXLOADER_TEXCOORD_H
 
+#include <nmmintrin.h>
 #include "Common.h"
+#include "CPUDetect.h"
 #include "VideoCommon.h"
 #include "VertexLoader.h"
 #include "VertexLoader_Position.h"
@@ -308,15 +310,30 @@ void LOADERDECL TexCoord_ReadIndex16_Float1()
 	VertexManager::s_pCurBufferPointer += 4;
 	tcIndex++;
 }
-void LOADERDECL TexCoord_ReadIndex16_Float2()	
+
+static const __m128i kMaskSwap32 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L);
+void LOADERDECL TexCoord_ReadIndex16_Float2()
 {
 	u16 Index = DataReadU16(); 
 	const u32 *pData = (const u32 *)(cached_arraybases[ARRAY_TEXCOORD0+tcIndex] + (Index * arraystrides[ARRAY_TEXCOORD0+tcIndex]));
-	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
-	((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[1]);
-	LOG_TEX2();
-	VertexManager::s_pCurBufferPointer += 8;
-	tcIndex++;
+
+	if (cpu_info.bSSSE3) {
+		const __m128i a = _mm_loadl_epi64((__m128i*)pData);
+		const __m128i b = _mm_shuffle_epi8(a, kMaskSwap32);
+		u8* p = VertexManager::s_pCurBufferPointer;
+		_mm_storel_epi64((__m128i*)p, b);
+		LOG_TEX2();
+		p += 8;
+		VertexManager::s_pCurBufferPointer = p;
+		tcIndex++;
+
+	} else {
+		((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
+		((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[1]);
+		LOG_TEX2();
+		VertexManager::s_pCurBufferPointer += 8;
+		tcIndex++;
+	}
 }
 
 #endif

@@ -16,8 +16,10 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <assert.h>
+#include <nmmintrin.h>
 
 #include "Common.h"
+#include "CPUDetect.h"
 #include "VideoCommon.h"
 #include "VideoConfig.h"
 #include "Profiler.h"
@@ -70,7 +72,7 @@ int colIndex;
 TVtxAttr* pVtxAttr;
 int colElements[2];
 float posScale;
-float tcScale[8];
+__declspec(align(16)) float tcScale[8];
 
 using namespace Gen;
 
@@ -633,9 +635,31 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 
 	pVtxAttr = &m_VtxAttr;
 	posScale = 1.0f / float(1 << m_VtxAttr.PosFrac);
-	if (m_NativeFmt->m_components & VB_HAS_UVALL)
-		for (int i = 0; i < 8; i++)
-			tcScale[i] = 1.0f / float(1 << m_VtxAttr.texCoord[i].Frac);
+	if (m_NativeFmt->m_components & VB_HAS_UVALL) {
+		if (cpu_info.bSSE4_1) {
+			__m128i a0;
+			a0 = _mm_insert_epi32(a0, 1 << m_VtxAttr.texCoord[0].Frac, 0);
+			a0 = _mm_insert_epi32(a0, 1 << m_VtxAttr.texCoord[1].Frac, 1);
+			a0 = _mm_insert_epi32(a0, 1 << m_VtxAttr.texCoord[2].Frac, 2);
+			a0 = _mm_insert_epi32(a0, 1 << m_VtxAttr.texCoord[3].Frac, 3);
+			const __m128 b0 = _mm_cvtepi32_ps(a0);
+			const __m128 c0 = _mm_rcp_ps(b0);
+			_mm_stream_ps(&tcScale[0], c0);
+
+			__m128i a1;
+			a1 = _mm_insert_epi32(a1, 1 << m_VtxAttr.texCoord[4].Frac, 0);
+			a1 = _mm_insert_epi32(a1, 1 << m_VtxAttr.texCoord[5].Frac, 1);
+			a1 = _mm_insert_epi32(a1, 1 << m_VtxAttr.texCoord[6].Frac, 2);
+			a1 = _mm_insert_epi32(a1, 1 << m_VtxAttr.texCoord[7].Frac, 3);
+			const __m128 b1 = _mm_cvtepi32_ps(a1);
+			const __m128 c1 = _mm_rcp_ps(b1);
+			_mm_stream_ps(&tcScale[4], c1);
+		} else {
+			for (int i = 0; i < 8; i++) {
+				tcScale[i] = 1.0f / float(1 << m_VtxAttr.texCoord[i].Frac);
+			}
+		}
+	}
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
