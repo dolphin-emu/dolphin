@@ -106,9 +106,6 @@ bool DolphinApp::OnInit()
 	wxString padPluginFilename;
 	wxString wiimotePluginFilename;
 
-	// Detect CPU info and write it to the cpu_info struct
-	cpu_info.Detect();
-
 	#if defined _DEBUG && defined _WIN32
 		int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
 		tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;

@@ -78,6 +78,10 @@ void __cpuid(int info[4], int x)
 
 CPUInfo cpu_info;
 
+CPUInfo::CPUInfo() {
+	Detect();
+}
+
 // Detects the various cpu features
 void CPUInfo::Detect()
 {

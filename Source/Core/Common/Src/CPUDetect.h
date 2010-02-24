@@ -52,12 +52,16 @@ struct CPUInfo
 	bool bSSE4A;
 	bool bLAHFSAHF64;
 	bool bLongMode;
-	
-	// Detects the various cpu features
-	void Detect();
 
+	// Call Detect()
+	explicit CPUInfo();
+	
 	// Turn the cpu info into a string we can show
 	std::string Summarize();
+
+private:
+	// Detects the various cpu features
+	void Detect();
 };
 
 extern CPUInfo cpu_info;
