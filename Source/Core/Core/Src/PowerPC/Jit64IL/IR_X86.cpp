@@ -174,7 +174,7 @@ static const int FRegAllocSize = sizeof(FRegAllocOrder) / sizeof(X64Reg);
 #endif
 
 static X64Reg regFindFreeReg(RegInfo& RI) {
-	for (unsigned i = 0; i < RegAllocSize; i++)
+	for (int i = 0; i < RegAllocSize; i++)
 		if (RI.regs[RegAllocOrder[i]] == 0)
 			return RegAllocOrder[i];
 
@@ -185,7 +185,7 @@ static X64Reg regFindFreeReg(RegInfo& RI) {
 }
 
 static X64Reg fregFindFreeReg(RegInfo& RI) {
-	for (unsigned i = 0; i < FRegAllocSize; i++)
+	for (int i = 0; i < FRegAllocSize; i++)
 		if (RI.fregs[FRegAllocOrder[i]] == 0)
 			return FRegAllocOrder[i];
 	static unsigned nextReg = 0;
@@ -195,7 +195,7 @@ static X64Reg fregFindFreeReg(RegInfo& RI) {
 }
 
 static OpArg regLocForInst(RegInfo& RI, InstLoc I) {
-	for (unsigned i = 0; i < RegAllocSize; i++)
+	for (int i = 0; i < RegAllocSize; i++)
 		if (RI.regs[RegAllocOrder[i]] == I)
 			return R(RegAllocOrder[i]);
 
@@ -205,7 +205,7 @@ static OpArg regLocForInst(RegInfo& RI, InstLoc I) {
 }
 
 static OpArg fregLocForInst(RegInfo& RI, InstLoc I) {
-	for (unsigned i = 0; i < FRegAllocSize; i++)
+	for (int i = 0; i < FRegAllocSize; i++)
 		if (RI.fregs[FRegAllocOrder[i]] == I)
 			return R(FRegAllocOrder[i]);
 
@@ -215,13 +215,13 @@ static OpArg fregLocForInst(RegInfo& RI, InstLoc I) {
 }
 
 static void regClearInst(RegInfo& RI, InstLoc I) {
-	for (unsigned i = 0; i < RegAllocSize; i++)
+	for (int i = 0; i < RegAllocSize; i++)
 		if (RI.regs[RegAllocOrder[i]] == I)
 			RI.regs[RegAllocOrder[i]] = 0;
 }
 
 static void fregClearInst(RegInfo& RI, InstLoc I) {
-	for (unsigned i = 0; i < FRegAllocSize; i++)
+	for (int i = 0; i < FRegAllocSize; i++)
 		if (RI.fregs[FRegAllocOrder[i]] == I)
 			RI.fregs[FRegAllocOrder[i]] = 0;
 }

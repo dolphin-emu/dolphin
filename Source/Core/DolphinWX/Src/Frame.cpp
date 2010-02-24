@@ -320,13 +320,14 @@ CFrame::CFrame(wxFrame* parent,
 	: wxFrame(parent, id, title, pos, size, style)
 	, g_pCodeWindow(NULL)		
 	, m_MenuBar(NULL)
-	, m_LogWindow(NULL)
-	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
-	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
-	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
-	, bRenderToMain(false), bFloatLogWindow(false), bFloatConsoleWindow(false)
+	, bRenderToMain(false), bNoWiimoteMsg(false)
 	, HaveLeds(false), HaveSpeakers(false)
-	, m_bControlsCreated(false), m_bModalDialogOpen(false), bNoWiimoteMsg(false), m_StopDlg(NULL)
+	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
+	, bFloatLogWindow(false), bFloatConsoleWindow(false)
+	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
+	, m_LogWindow(NULL)
+	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
+	, m_bModalDialogOpen(false), m_bControlsCreated(false), m_StopDlg(NULL)
 	#if wxUSE_TIMER
 	#ifdef _WIN32
 		, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
@@ -394,7 +395,7 @@ CFrame::CFrame(wxFrame* parent,
 	m_Mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
 	NOTEBOOK_STYLE = wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_EXTERNAL_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_WINDOWLIST_BUTTON | wxNO_BORDER;
 	TOOLBAR_STYLE = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT  /*wxAUI_TB_OVERFLOW overflow visible*/;
-	wxBitmap aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
+	aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 
 	if (g_pCodeWindow)
 	{
@@ -415,13 +416,13 @@ CFrame::CFrame(wxFrame* parent,
 	}
 	else
 	{
-		IniFile ini; int pos;
+		IniFile ini; int winpos;
 		ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-		ini.Get("LogWindow", "pos", &pos, 2);
+		ini.Get("LogWindow", "pos", &winpos, 2);
 
 		m_Mgr->GetPane(wxT("Pane 0")).Show().PaneBorder(false).CaptionVisible(false).Layer(0).Center();
 		m_Mgr->GetPane(wxT("Pane 1")).Hide().PaneBorder(false).CaptionVisible(true).Layer(0)
-			.FloatingSize(wxSize(600, 350)).CloseButton(false).Direction(pos);
+			.FloatingSize(wxSize(600, 350)).CloseButton(false).Direction(winpos);
 		AuiFullscreen = m_Mgr->SavePerspective();
 	}
 

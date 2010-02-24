@@ -612,11 +612,11 @@ bool Subtype_AddCode(u32 addr, u32 data)
 
 bool Subtype_MasterCodeAndWriteToCCXXXXXX(u32 addr, u32 data)
 {
-	u32 new_addr = (addr & 0x01FFFFFF) | 0x80000000;
-	u8	mcode_type = (data & 0xFF0000) >> 16;
-	u8  mcode_count = (data & 0xFF00) >> 8;
-	u8  mcode_number = data & 0xFF;
 	// code not yet implemented - TODO
+	// u32 new_addr = (addr & 0x01FFFFFF) | 0x80000000;
+	// u8  mcode_type = (data & 0xFF0000) >> 16;
+	// u8  mcode_count = (data & 0xFF00) >> 8;
+	// u8  mcode_number = data & 0xFF;
 	PanicAlert("Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)", code.name.c_str());
 	return false;
 }

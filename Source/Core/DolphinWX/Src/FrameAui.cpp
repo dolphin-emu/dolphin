@@ -367,9 +367,9 @@ void CFrame::DoRemovePageString(wxString Str, bool /*_Hide*/, bool _Destroy)
 					if (!_Destroy)
 					{
 						// Reparent to avoid destruction if the notebook is closed and destroyed
-						wxWindow * Win = NB->GetPage(j);
+						wxWindow * NBPageWin = NB->GetPage(j);
 						NB->RemovePage(j);
-						Win->Reparent(this);
+						NBPageWin->Reparent(this);
 					}
 					else
 					{

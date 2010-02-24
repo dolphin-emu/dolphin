@@ -327,7 +327,7 @@ void UpdateInterruptsFromVideoPlugin(u64 userdata)
 
 void ReadFifo()
 {
-    bool canRead = cpreg.readptr != cpreg.writeptr && writePos < maxCommandBufferWrite;
+    bool canRead = cpreg.readptr != cpreg.writeptr && writePos < (int)maxCommandBufferWrite;
     bool atBreakpoint = AtBreakpoint();
 
     if (canRead && !atBreakpoint)
@@ -354,7 +354,7 @@ void ReadFifo()
                 ptr += GATHER_PIPE_SIZE;    
             }
 
-            canRead = cpreg.readptr != cpreg.writeptr && writePos < maxCommandBufferWrite;
+            canRead = cpreg.readptr != cpreg.writeptr && writePos < (int)maxCommandBufferWrite;
             atBreakpoint = AtBreakpoint();
         } while (canRead && !atBreakpoint);
 

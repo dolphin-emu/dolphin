@@ -98,7 +98,7 @@ void dsp_write_aram_d3(u16 value)
 {
 	// Zelda ucode writes a bunch of zeros to ARAM through d3 during
 	// initialization.  Don't know if it ever does it later, too.
-	const u32 EndAddress = (g_dsp.ifx_regs[DSP_ACEAH] << 16) | g_dsp.ifx_regs[DSP_ACEAL];
+	// const u32 EndAddress = (g_dsp.ifx_regs[DSP_ACEAH] << 16) | g_dsp.ifx_regs[DSP_ACEAL]; // Unused?
 	u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
 	switch (g_dsp.ifx_regs[DSP_FORMAT]) {
 		case 0xA:   // 16-bit writes

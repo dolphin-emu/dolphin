@@ -769,7 +769,9 @@ static void BeginField(FieldType field)
 
 	u32 xfbAddr = (field == FIELD_LOWER) ? GetXFBAddressBottom() : GetXFBAddressTop();
 
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	static const char* const fieldTypeNames[] = { "Progressive", "Upper", "Lower" };
+#endif
 
 	DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): addr: %.08X | FieldSteps %u | FbSteps %u | ACV %u | Field %s",
 		xfbAddr, m_HorizontalStepping.FieldSteps, m_HorizontalStepping.FbSteps, m_VerticalTimingRegister.ACV,
@@ -781,12 +783,15 @@ static void BeginField(FieldType field)
 		video->Video_BeginField(xfbAddr, field, fbWidth, fbHeight);
 }
 
+/*
 static void EndField()
 {
 	Common::PluginVideo* video = CPluginManager::GetInstance().GetVideo();
 	if (video->IsValid())
 		video->Video_EndField();
 }
+*/
+
 // AyuanX: No need to update per scan line, update per frame is good enough, and faster 
 // Purpose: Send VI interrupt when triggered
 // Run when: When a frame is scaned (progressive/interlace)

@@ -1584,7 +1584,7 @@ DEFINE_LUA_FUNCTION(memory_getregister, "cpu_dot_registername_string")
 {
 	const char* qualifiedRegisterName = luaL_checkstring(L,1);
 	lua_settop(L,0);
-	for(int cpu = 0; cpu < sizeof(cpuToRegisterMaps)/sizeof(*cpuToRegisterMaps); cpu++)
+	for(unsigned int cpu = 0; cpu < sizeof(cpuToRegisterMaps)/sizeof(*cpuToRegisterMaps); cpu++)
 	{
 		cpuToRegisterMap ctrm = cpuToRegisterMaps[cpu];
 		int cpuNameLen = (int)strlen(ctrm.cpuName);
@@ -1617,7 +1617,7 @@ DEFINE_LUA_FUNCTION(memory_setregister, "cpu_dot_registername_string,value")
 	const char* qualifiedRegisterName = luaL_checkstring(L,1);
 	unsigned long value = (unsigned long)(luaL_checkinteger(L,2));
 	lua_settop(L,0);
-	for(int cpu = 0; cpu < sizeof(cpuToRegisterMaps)/sizeof(*cpuToRegisterMaps); cpu++)
+	for(unsigned int cpu = 0; cpu < sizeof(cpuToRegisterMaps)/sizeof(*cpuToRegisterMaps); cpu++)
 	{
 		cpuToRegisterMap ctrm = cpuToRegisterMaps[cpu];
 		int cpuNameLen = (int)strlen(ctrm.cpuName);
@@ -2095,7 +2095,7 @@ inline int getcolor_unmodified(lua_State *L, int idx, int defaultColor)
 				if(missing >= 2) color |= 0xFF;
 				return color;
 			}
-			else for(int i = 0; i<sizeof(s_colorMapping)/sizeof(*s_colorMapping); i++)
+			else for(unsigned int i = 0; i<sizeof(s_colorMapping)/sizeof(*s_colorMapping); i++)
 			{
 				if(!strcasecmp(str,s_colorMapping[i].name))
 					return s_colorMapping[i].value;
@@ -3329,7 +3329,7 @@ void registerLibs(lua_State* L)
 	{
 		once = false;
 
-		for(int i = 0; i < sizeof(cFuncInfo)/sizeof(*cFuncInfo); i++)
+		for(unsigned int i = 0; i < sizeof(cFuncInfo)/sizeof(*cFuncInfo); i++)
 		{
 			const CFuncInfo& cfi = cFuncInfo[i];
 			if(cfi.registry)
@@ -3919,7 +3919,7 @@ static void CallRegisteredLuaMemHook_LuaMatch(unsigned int address, int size, un
 #endif
 				lua_settop(L, 0);
 				lua_getfield(L, LUA_REGISTRYINDEX, luaMemHookTypeStrings[hookType]);
-				for(int i = address; i != address+size; i++)
+				for(unsigned int i = address; i != address+size; i++)
 				{
 					lua_rawgeti(L, -1, i);
 					if (lua_isfunction(L, -1))

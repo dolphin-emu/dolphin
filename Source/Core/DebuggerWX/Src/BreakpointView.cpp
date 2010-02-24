@@ -156,7 +156,7 @@ CBreakPointBar::CBreakPointBar(CBreakPointWindow* parent, const wxWindowID id, c
 
 void CBreakPointBar::PopulateBar()
 {
-	long Index = InsertItem(IDM_DELETE, _T("Delete"), 0);
+	InsertItem(IDM_DELETE, _T("Delete"), 0);
 	InsertItem(IDM_CLEAR, _T("Clear all"), 0);
 
 	InsertItem(IDM_ADD_BREAKPOINT, _T("Add BP..."), 1);

@@ -363,7 +363,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 
 		// Add the new Virtual XFB to the list
 
-		if (m_virtualXFBList.size() >= MAX_VIRTUAL_XFB)
+		if ((int)m_virtualXFBList.size() >= MAX_VIRTUAL_XFB)
 		{
 			// List overflowed; delete the oldest.
 			glDeleteTextures(1, &m_virtualXFBList.back().xfbSource.texture);

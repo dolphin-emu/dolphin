@@ -373,7 +373,7 @@ std::vector<std::string> cdio_get_devices() {
 bool cdio_is_cdrom(std::string device) {
 	std::vector<std::string> devices = cdio_get_devices();
 	bool res = false;
-	for (int i = 0; i < devices.size(); i++) {
+	for (unsigned int i = 0; i < devices.size(); i++) {
 		if (strncmp(devices[i].c_str(), device.c_str(), PATH_MAX) == 0) {
 			res = true;
 			break;

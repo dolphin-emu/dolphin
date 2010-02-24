@@ -308,7 +308,7 @@ int main(int argc, const char *argv[])
 		}
 		results.append("\n");
 		results.append("Step [number]:\n[Reg] [last value] [current value]\n\n");
-		for (int step = 1; step < reg_vector.size()/32; step++)
+		for (unsigned int step = 1; step < reg_vector.size()/32; step++)
 		{
 			bool changed = false;
 			results.append(StringFromFormat("Step %3d:\n", step));
@@ -332,7 +332,7 @@ int main(int argc, const char *argv[])
 		if (!output_name.empty())
 			File::WriteStringToFile(true, results, output_name.c_str());
 		else
-			printf(results.c_str());
+			printf("%s", results.c_str());
 		return 0;
 	}
 

@@ -150,7 +150,7 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _PartitionGr
 	u64 PartitionsOffset = (u64)Reader.Read32(0x40000 + (_PartitionGroup * 8) + 4) << 2;
 
 	// Check if we're looking for a valid partition
-	if (_VolumeNum != -1 && _VolumeNum > numPartitions)
+	if ((int)_VolumeNum != -1 && _VolumeNum > numPartitions)
 		return NULL;
 
 	#ifdef _WIN32
@@ -203,7 +203,7 @@ IVolume* CreateVolumeFromCryptedWiiImage(IBlobReader& _rReader, u32 _PartitionGr
 			AES_cbc_encrypt(SubKey, VolumeKey, 16, &AES_KEY, IV, AES_DECRYPT);
 
 			// -1 means the caller just wanted the partition with matching type
-			if (_VolumeNum == -1 || i == _VolumeNum)
+			if ((int)_VolumeNum == -1 || i == _VolumeNum)
 				return new CVolumeWiiCrypted(&_rReader, rPartition.Offset + 0x20000, VolumeKey);
 		}
 	}

@@ -26,13 +26,14 @@
 
 void CUCode_Zelda::RenderSynth_RectWave(ZeldaVoicePB &PB, s32* _Buffer, int _Size)
 {
-	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
+	float _ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
 	u32 _ratio = (PB.RatioInt << 16);
-	s64 ratio = (_ratio * ratioFactor) * 16;
+	s64 ratio = (_ratio * _ratioFactor) * 16;
 	s64 TrueSamplePosition = PB.CurSampleFrac;
 
 	// PB.Format == 0x3 -> Rectangular Wave, 0x0 -> Square Wave
-	int mask = PB.Format ? 3 : 1, shift = PB.Format ? 2 : 1;
+	unsigned int mask = PB.Format ? 3 : 1; 
+	// int shift = PB.Format ? 2 : 1; // Unused?
 	
 	u32 pos[2] = {0, 0};
 	int i = 0;

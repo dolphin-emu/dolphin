@@ -60,9 +60,9 @@ void CUCode_Zelda::WritebackVoicePB(u32 _Addr, ZeldaVoicePB& PB)
 
 int CUCode_Zelda::ConvertRatio(int pb_ratio)
 {
-	float ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
+	float _ratioFactor = 32000.0f / (float)soundStream->GetMixer()->GetSampleRate();
 	u32 _ratio = (pb_ratio << 16);
-	return (u64)((_ratio * ratioFactor) * 16) >> 16;
+	return (u64)((_ratio * _ratioFactor) * 16) >> 16;
 }
 
 int CUCode_Zelda::SizeForResampling(ZeldaVoicePB &PB, int size, int ratio) {
@@ -648,7 +648,7 @@ ContinueWithBlock:
 			// The 8 buffers to mix to: 0d00, 0d60, 0f40 0ca0 0e80 0ee0 0c00 0c50
 			// We just mix to the first two and call it stereo :p
 			int value = b00[0x4 + count];
-			int delta = b00[0xC + count] << 11;
+			//int delta = b00[0xC + count] << 11; // Unused?
 			
 			int ramp = value << 16;
 			for (int i = 0; i < _Size; i++)

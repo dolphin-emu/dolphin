@@ -157,7 +157,7 @@ bool ReadAnnotatedAssembly(const char *filename)
 				else
 				{
 					// Remove hex notation
-					if (i == first_hex + 3 &&
+					if ((int)i == first_hex + 3 &&
 						(first_hex == 0 || line[first_hex - 1] != 'x') &&
 						(i >= len - 1 || line[i + 1] == ' '))
 					{

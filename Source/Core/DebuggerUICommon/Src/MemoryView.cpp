@@ -398,7 +398,6 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 						break;
 					}
 				}
-				size_t len = strlen(dis);
 				strcat(dis, "\0");
 				curAddress += 32;
 			}

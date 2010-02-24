@@ -272,7 +272,7 @@ bool JitBlock::ContainsAddress(u32 em_address)
 #endif
 		if (inst & 0xfc000000) // definitely not a JIT block
 			return -1;
-		if (inst >= num_blocks)
+		if ((int)inst >= num_blocks)
 			return -1;
 		if (blocks[inst].originalAddress != addr)
 			return -1;		

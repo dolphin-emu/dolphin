@@ -352,7 +352,8 @@ int Initialize()
 	// WiiUse initializes the Wiimotes in Windows right from the wiiuse_find function
 	// The Functionality should REALLY be changed
 	#ifndef _WIN32
-		int Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
+		int Connect;
+		Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
 		DEBUG_LOG(WIIMOTE, "Connected: %i", Connect);
 	#endif
 

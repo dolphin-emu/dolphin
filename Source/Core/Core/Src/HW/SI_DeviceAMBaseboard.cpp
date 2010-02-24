@@ -242,7 +242,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 						{
 							DEBUG_LOG(AMBASEBOARDDEBUG, "GC-AM: CMD %02x, %02x %02x %02x %02x %02x %02x %02x (JVS IO)", 
 								ptr(0), ptr(1), ptr(2), ptr(3), ptr(4), ptr(5), ptr(6), ptr(7));
-							int total_length = ptr(1);
 							int pptr = 2;
 							JVSIOMessage msg;
 
@@ -254,7 +253,6 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
 							int jvs_io_length = 0;
 							for (i=0; i<nr_bytes + 3; ++i)
 								jvs_io_buffer[jvs_io_length++] = ptr(pptr + i);
-							int ptr = 0;
 							int node = jvs_io_buffer[1];
 
 							unsigned char *jvs_io = jvs_io_buffer + 3;

@@ -148,7 +148,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, u32 texturemask, u32 dstAlphaEnable)
 
 static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL);
 static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, u32 HLSL);
-static void WriteAlphaCompare(char *&p, int num, int comp);
+// static void WriteAlphaCompare(char *&p, int num, int comp);
 static bool WriteAlphaTest(char *&p, u32 HLSL);
 static void WriteFog(char *&p);
 
@@ -926,7 +926,7 @@ static bool WriteAlphaTest(char *&p, u32 HLSL)
 	int compindex = bpmem.alphaFunc.comp0 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[0]);//lookup the first component from the alpha function table
     
-	WRITE(p, tevAlphaFunclogicTable[bpmem.alphaFunc.logic % 4]);//lookup the logic op
+	WRITE(p, "%s", tevAlphaFunclogicTable[bpmem.alphaFunc.logic % 4]);//lookup the logic op
    
     compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table    
@@ -969,7 +969,7 @@ static void WriteFog(char *&p)
 
 	if(bpmem.fog.c_proj_fsel.fsel > 3)
 	{
-		WRITE(p, tevFogFuncsTable[bpmem.fog.c_proj_fsel.fsel]);
+		WRITE(p, "%s", tevFogFuncsTable[bpmem.fog.c_proj_fsel.fsel]);
 	}
 	else
 	{

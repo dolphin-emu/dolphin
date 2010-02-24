@@ -113,11 +113,10 @@ namespace Clipper
 		    int idxPrev = inlist[0];                                    \
 		    float dpPrev = CLIP_DOTPROD(idxPrev, A, B, C, D );            \
 		    int outcount = 0;                                           \
-		    int i;                                                      \
                                                                         \
 		    inlist[n] = inlist[0];                                      \
-		    for (i = 1; i <= n; i++) { 		                            \
-			    int idx = inlist[i];                                    \
+		    for (int j = 1; j <= n; j++) { 		                            \
+			    int idx = inlist[j];                                    \
 			    float dp = CLIP_DOTPROD(idx, A, B, C, D );                \
 			    if (dpPrev >= 0) {                                      \
 				    outlist[outcount++] = idxPrev;                      \
@@ -190,10 +189,10 @@ namespace Clipper
 		        indices[0] = inlist[0];
 		        indices[1] = inlist[1];
 		        indices[2] = inlist[2];
-		        for (int i = 3; i < n; ++i) {
+		        for (int j = 3; j < n; ++j) {
 			        indices[numIndices++] = inlist[0];
-			        indices[numIndices++] = inlist[i - 1];
-			        indices[numIndices++] = inlist[i];
+			        indices[numIndices++] = inlist[j - 1];
+			        indices[numIndices++] = inlist[j];
 		        }
             }
 	    }
