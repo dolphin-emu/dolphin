@@ -57,9 +57,6 @@ GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 #include "render.h"
 
 
-// Having to include this is TERRIBLY ugly. FIXME x100
-#include "../../../Core/Core/Src/ConfigManager.h" // FIXME
-
 #include "Utils.h"
 
 HINSTANCE g_hInstance = NULL;
@@ -111,9 +108,9 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 }
 #endif
 
-#if defined(HAVE_WX) && HAVE_WX
 void DllDebugger(HWND _hParent, bool Show)
 {
+#if defined(HAVE_WX) && HAVE_WX
 	if (!m_DebuggerFrame)
 		m_DebuggerFrame = new GFXDebuggerDX9(GetParentedWxWindow(_hParent));
 
@@ -121,10 +118,8 @@ void DllDebugger(HWND _hParent, bool Show)
 		m_DebuggerFrame->Show();
 	else
 		m_DebuggerFrame->Hide();
-}
-#else
-void DllDebugger(HWND _hParent, bool Show) { }
 #endif
+}
 
 #if defined(HAVE_WX) && HAVE_WX
 	class wxDLLApp : public wxApp
@@ -144,23 +139,16 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvReserved)
 	{
 	case DLL_PROCESS_ATTACH:
 		{
-			#if defined(HAVE_WX) && HAVE_WX
-			// Use wxInitialize() if you don't want GUI instead of the following 12 lines
+#if defined(HAVE_WX) && HAVE_WX
 			wxSetInstance((HINSTANCE)hinstDLL);
-			int argc = 0;
-			char **argv = NULL;
-			wxEntryStart(argc, argv);
-			if (!wxTheApp || !wxTheApp->CallOnInit())
-				return FALSE;
-			#endif
+			wxInitialize();
+#endif
 		}
 		break;
 	case DLL_PROCESS_DETACH:
-		#if defined(HAVE_WX) && HAVE_WX
-			// This causes a "stop hang", if the gfx config dialog has been opened.
-			// Old comment: "Use wxUninitialize() if you don't want GUI"
-			wxEntryCleanup();
-		#endif
+#if defined(HAVE_WX) && HAVE_WX
+		wxUninitialize();
+#endif
 		break;
 	default:
 		break;
@@ -172,7 +160,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvReserved)
 
 unsigned int Callback_PeekMessages()
 {
-	//TODO: peek message
 	MSG msg;
 	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
 	{
