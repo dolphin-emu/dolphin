@@ -119,7 +119,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 #if _WIN32
 		SUB(64, R(RSP), Imm8(0x28));
 #else
-		//SUB(64, R(RSP), Imm8(0x8));
+		SUB(64, R(RSP), Imm8(0x8));
 #endif
 #endif
 		CALLptr(MDisp(EDX, (u32)(u64)asm_routines.singleStoreQuantized));
@@ -127,7 +127,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 #if _WIN32
 		ADD(64, R(RSP), Imm8(0x28));
 #else
-		//ADD(64, R(RSP), Imm8(0x8));
+		ADD(64, R(RSP), Imm8(0x8));
 #endif
 #endif
 	} else {
@@ -137,7 +137,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 #if _WIN32
 		SUB(64, R(RSP), Imm8(0x28));
 #else
-		//SUB(64, R(RSP), Imm8(0x8));
+		SUB(64, R(RSP), Imm8(0x8));
 #endif
 #endif
 		CALLptr(MDisp(EDX, (u32)(u64)asm_routines.pairedStoreQuantized));
@@ -145,7 +145,7 @@ void Jit64::psq_st(UGeckoInstruction inst)
 #if _WIN32
 		ADD(64, R(RSP), Imm8(0x28));
 #else
-		//ADD(64, R(RSP), Imm8(0x8));
+		ADD(64, R(RSP), Imm8(0x8));
 #endif
 #endif
 	}
@@ -197,7 +197,7 @@ void Jit64::psq_l(UGeckoInstruction inst)
 #if _WIN32
 		SUB(64, R(RSP), Imm8(0x28));
 #else
-		//SUB(64, R(RSP), Imm8(0x8));
+		SUB(64, R(RSP), Imm8(0x8));
 #endif
 #endif
 	CALLptr(MDisp(EDX, (u32)(u64)asm_routines.pairedLoadQuantized));
@@ -205,7 +205,7 @@ void Jit64::psq_l(UGeckoInstruction inst)
 #if _WIN32
 		ADD(64, R(RSP), Imm8(0x28));
 #else
-		//ADD(64, R(RSP), Imm8(0x8));
+		ADD(64, R(RSP), Imm8(0x8));
 #endif
 #endif
 	CVTPS2PD(fpr.RX(inst.RS), R(XMM0));
