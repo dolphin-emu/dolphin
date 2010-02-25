@@ -173,11 +173,13 @@ void DllConfig(HWND _hParent)
 	m_BasicConfigFrame->ShowModal();
 	frame->Enable();
 
-	m_BasicConfigFrame->Destroy();
-	m_BasicConfigFrame = NULL;
 #ifdef _WIN32
+	frame->SetFocus();
 	frame->SetHWND(NULL);
 #endif
+
+	m_BasicConfigFrame->Destroy();
+	m_BasicConfigFrame = NULL;
 	frame->Destroy();
 #endif
 }
