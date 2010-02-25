@@ -768,7 +768,7 @@ void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
-			m_Panel->GetHandle(),
+			GetHandle(),
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[0].c_str(),
 			PLUGIN_TYPE_PAD
 			);
