@@ -28,11 +28,6 @@ Core::GetWindowHandle().
 */
 
 
-// Why doesn't it work on windows?
-#ifndef _WIN32
-#include "Common.h"
-#endif
-
 #include "Setup.h" // Common
 
 #include "NetWindow.h"
@@ -747,11 +742,9 @@ void CFrame::OnReset(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnConfigMain(wxCommandEvent& WXUNUSED (event))
 {
-	m_bModalDialogOpen = true;
 	CConfigMain ConfigMain(this);
 	if (ConfigMain.ShowModal() == wxID_OK)
 		m_GameListCtrl->Update();
-	m_bModalDialogOpen = false;
 }
 
 void CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
@@ -762,7 +755,6 @@ void CFrame::OnPluginGFX(wxCommandEvent& WXUNUSED (event))
 			PLUGIN_TYPE_VIDEO
 			);
 }
-
 
 void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 {
@@ -796,12 +788,10 @@ void CFrame::OnHelp(wxCommandEvent& event)
 	{
 	case IDM_HELPABOUT:
 		{
-		m_bModalDialogOpen = true;
 			AboutDolphin frame(this);
 			frame.ShowModal();
-		m_bModalDialogOpen = false;
-		break;
 		}
+		break;
 	case IDM_HELPWEBSITE:
 		WxUtils::Launch("http://www.dolphin-emu.com/");
 		break;
@@ -842,10 +832,8 @@ void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))
 {
-	m_bModalDialogOpen = true;
 	CMemcardManager MemcardManager(this);
 	MemcardManager.ShowModal();
-	m_bModalDialogOpen = false;
 }
 
 void CFrame::OnImportSave(wxCommandEvent& WXUNUSED (event)) 
