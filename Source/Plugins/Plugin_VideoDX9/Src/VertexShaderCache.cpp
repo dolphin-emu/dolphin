@@ -247,9 +247,15 @@ void VertexShaderCache::Shutdown()
 	if (SimpleVertexShader)
 		SimpleVertexShader->Release();
 	SimpleVertexShader = NULL;
+
+	if (ClearVertexShader)
+		ClearVertexShader->Release();
+	ClearVertexShader = NULL;
+
 	if (FSAAVertexShader)
 		FSAAVertexShader->Release();
 	FSAAVertexShader = NULL;	
+
 	Clear();
 	g_vs_disk_cache.Sync();
 	g_vs_disk_cache.Close();

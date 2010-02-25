@@ -320,7 +320,16 @@ HRESULT Create(int adapter, HWND wnd, bool _fullscreen, int _resolution, int aa_
 
 void Close()
 {
-	dev->Release(); 
+	if (back_buffer_z)
+		back_buffer_z->Release();
+	back_buffer_z = NULL;
+	back_buffer->Release();
+	back_buffer = NULL;
+	
+	ULONG references = dev->Release();
+	if (references)
+		ERROR_LOG(VIDEO, "Unreleased references: %i.", references);
+
 	dev = 0;
 }
 
