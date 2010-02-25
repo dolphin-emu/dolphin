@@ -174,7 +174,6 @@ void DllConfig(HWND _hParent)
 	frame->SetHWND(NULL);
 #endif
 	frame->Destroy();
-	}
 #endif
 }
 
