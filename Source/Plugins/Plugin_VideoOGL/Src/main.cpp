@@ -98,8 +98,6 @@ GFXDebuggerOGL *m_DebuggerFrame = NULL;
 SVideoInitialize g_VideoInitialize;
 PLUGIN_GLOBALS* globals = NULL;
 
-bool allowConfigShow = true;
-
 // Logging
 int GLScissorX, GLScissorY, GLScissorW, GLScissorH;
 
@@ -117,14 +115,14 @@ bool IsD3D()
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 {
-    _PluginInfo->Version = 0x0100;
-    _PluginInfo->Type = PLUGIN_TYPE_VIDEO;
+	_PluginInfo->Version = 0x0100;
+	_PluginInfo->Type = PLUGIN_TYPE_VIDEO;
 #ifdef DEBUGFAST
-    sprintf(_PluginInfo->Name, "Dolphin OpenGL (DebugFast)");
+	sprintf_s(_PluginInfo->Name, "Dolphin OpenGL (DebugFast)");
 #elif defined _DEBUG
-    sprintf(_PluginInfo->Name, "Dolphin OpenGL (Debug)");
+	sprintf_s(_PluginInfo->Name, "Dolphin OpenGL (Debug)");
 #else
-    sprintf(_PluginInfo->Name, "Dolphin OpenGL");
+	sprintf_s(_PluginInfo->Name, "Dolphin OpenGL");
 #endif
 }
 
@@ -169,7 +167,8 @@ void DllDebugger(HWND _hParent, bool Show)
 }
 
 #ifdef _WIN32
-void Win32AddResolutions() {
+void Win32AddResolutions()
+{
 	// Search for avaliable resolutions
 	
 	DWORD iModeNum = 0;
@@ -204,7 +203,7 @@ void Win32AddResolutions() {
 			m_ConfigFrame->AddFSReso(szBuffer);
 			m_ConfigFrame->AddWindowReso(szBuffer);
 		}
-        ZeroMemory(&dmi, sizeof(dmi));
+		ZeroMemory(&dmi, sizeof(dmi));
 	}
 }	
 #elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XRANDR) && HAVE_XRANDR
@@ -226,10 +225,10 @@ void X11AddResolutions() {
 			m_ConfigFrame->AddFSReso(temp);
 			//Add same to window resolutions, since
 			//they should be nearly all that's needed
-			m_ConfigFrame->AddWindowReso(temp);	
+			m_ConfigFrame->AddWindowReso(temp);
 #endif
 		}
-	}    
+	}
 }
 #elif defined(HAVE_COCOA) && HAVE_COCOA
 void CocoaAddResolutions() {
@@ -244,7 +243,6 @@ void CocoaAddResolutions() {
 	int modeBpp;
 	int modeIndex;
 	int px = 0, py = 0;
-	
 	
 	modes = CGDisplayAvailableModes(CGMainDisplayID());
 	
@@ -281,42 +279,40 @@ void DllConfig(HWND _hParent)
 	g_Config.UpdateProjectionHack();
 	UpdateActiveConfig();
 #if defined(HAVE_WX) && HAVE_WX
-	// Prevent user to show more than 1 config window at same time
-	if (allowConfigShow)
-	{
-		wxWindow *frame = GetParentedWxWindow(_hParent);
-		m_ConfigFrame = new GFXConfigDialogOGL(frame);
+	wxWindow *frame = GetParentedWxWindow(_hParent);
+	m_ConfigFrame = new GFXConfigDialogOGL(frame);
 
 #if defined(_WIN32)
-		Win32AddResolutions();
+	Win32AddResolutions();
 #elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XRANDR) && HAVE_XRANDR
-		X11AddResolutions();
+	X11AddResolutions();
 #elif defined(HAVE_COCOA) && HAVE_COCOA
-		CocoaAddResolutions();
+	CocoaAddResolutions();
 #endif
 
-		allowConfigShow = false;
-		m_ConfigFrame->CreateGUIControls();
-		allowConfigShow = m_ConfigFrame->ShowModal() == 1 ? true : false;
-		m_ConfigFrame->Destroy();
-		m_ConfigFrame = NULL;
+	// Prevent user to show more than 1 config window at same time
+	frame->Disable();
+	m_ConfigFrame->ShowModal();
+	frame->Enable();
+
+	m_ConfigFrame->Destroy();
+	m_ConfigFrame = NULL;
 #ifdef _WIN32
-		frame->SetHWND(NULL);
+	frame->SetHWND(NULL);
 #endif
-		delete frame;
-	}
+	frame->Destroy();
 #endif
 }
 
 void Initialize(void *init)
 {
-    frameCount = 0;
-    SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
+	frameCount = 0;
+	SVideoInitialize *_pVideoInitialize = (SVideoInitialize*)init;
 	// Create a shortcut to _pVideoInitialize that can also update it
-    g_VideoInitialize = *(_pVideoInitialize); 
+	g_VideoInitialize = *(_pVideoInitialize); 
 	InitXFBConvTables();
 
-    g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
+	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
 	g_Config.GameIniLoad(globals->game_ini);
 
 	g_Config.UpdateProjectionHack();
@@ -326,19 +322,19 @@ void Initialize(void *init)
 #endif
 	UpdateActiveConfig();
 
-    if (!OpenGL_Create(g_VideoInitialize, 640, 480))
+	if (!OpenGL_Create(g_VideoInitialize, 640, 480))
 	{
-        g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
-        return;
-    }
+		g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
+		return;
+	}
 
 	_pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
-    _pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
+	_pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
 
 	// Now the window handle is written
-    _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
+	_pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 #if defined(HAVE_X11) && HAVE_X11
-    _pVideoInitialize->pXWindow = g_VideoInitialize.pXWindow;
+	_pVideoInitialize->pXWindow = g_VideoInitialize.pXWindow;
 #endif
 
 	OSD::AddMessage("Dolphin OpenGL Video Plugin" ,5000);
@@ -349,17 +345,17 @@ void DoState(unsigned char **ptr, int mode) {
 	// WHY is this here??
 	OpenGL_MakeCurrent();
 #endif
-    // Clear all caches that touch RAM
-    TextureMngr::Invalidate(false);
-    VertexLoaderManager::MarkAllDirty();
-    
-    PointerWrap p(ptr, mode);
-    VideoCommon_DoState(p);
-    
-    // Refresh state.
+	// Clear all caches that touch RAM
+	TextureMngr::Invalidate(false);
+	VertexLoaderManager::MarkAllDirty();
+	
+	PointerWrap p(ptr, mode);
+	VideoCommon_DoState(p);
+	
+	// Refresh state.
 	if (mode == PointerWrap::MODE_READ)
 	{
-        BPReload();
+		BPReload();
 		RecomputeCachedArraybases();
 	}
 }
@@ -372,34 +368,34 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 // This is called after Video_Initialize() from the Core
 void Video_Prepare(void)
 {
-    OpenGL_MakeCurrent();
-    if (!Renderer::Init()) {
-        g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
-        PanicAlert("Can't create opengl renderer. You might be missing some required opengl extensions, check the logs for more info");
-        exit(1);
-    }
+	OpenGL_MakeCurrent();
+	if (!Renderer::Init()) {
+		g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
+		PanicAlert("Can't create opengl renderer. You might be missing some required opengl extensions, check the logs for more info");
+		exit(1);
+	}
 
 	s_swapRequested = FALSE;
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
 
-    CommandProcessor::Init();
-    PixelEngine::Init();
+	CommandProcessor::Init();
+	PixelEngine::Init();
 
-    TextureMngr::Init();
+	TextureMngr::Init();
 
-    BPInit();
-    VertexManager::Init();
-    Fifo_Init(); // must be done before OpcodeDecoder_Init()
-    OpcodeDecoder_Init();
-    VertexShaderCache::Init();
-    VertexShaderManager::Init();
-    PixelShaderCache::Init();
-    PixelShaderManager::Init();
+	BPInit();
+	VertexManager::Init();
+	Fifo_Init(); // must be done before OpcodeDecoder_Init()
+	OpcodeDecoder_Init();
+	VertexShaderCache::Init();
+	VertexShaderManager::Init();
+	PixelShaderCache::Init();
+	PixelShaderManager::Init();
 	PostProcessing::Init();
-    GL_REPORT_ERRORD();
-    VertexLoaderManager::Init();
-    TextureConverter::Init();
+	GL_REPORT_ERRORD();
+	VertexLoaderManager::Init();
+	TextureConverter::Init();
 	DLCache::Init();
 
 	s_PluginInitialized = true;
@@ -584,37 +580,36 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 
 void Video_CommandProcessorRead16(u16& _rReturnValue, const u32 _Address)
 {
-    CommandProcessor::Read16(_rReturnValue, _Address);
+	CommandProcessor::Read16(_rReturnValue, _Address);
 }
 
 void Video_CommandProcessorWrite16(const u16 _Data, const u32 _Address)
 {
-    CommandProcessor::Write16(_Data, _Address);
+	CommandProcessor::Write16(_Data, _Address);
 }
 
 void Video_PixelEngineRead16(u16& _rReturnValue, const u32 _Address)
 {
-    PixelEngine::Read16(_rReturnValue, _Address);
+	PixelEngine::Read16(_rReturnValue, _Address);
 }
 
 void Video_PixelEngineWrite16(const u16 _Data, const u32 _Address)
 {
-    PixelEngine::Write16(_Data, _Address);
+	PixelEngine::Write16(_Data, _Address);
 }
 
 void Video_PixelEngineWrite32(const u32 _Data, const u32 _Address)
 {
-    PixelEngine::Write32(_Data, _Address);
+	PixelEngine::Write32(_Data, _Address);
 }
 
 void Video_GatherPipeBursted(void)
 {
-    CommandProcessor::GatherPipeBursted();
+	CommandProcessor::GatherPipeBursted();
 }
 
 void Video_WaitForFrameFinish(void)
 {
-    CommandProcessor::WaitForFrameFinish();
+	CommandProcessor::WaitForFrameFinish();
 }
-
 

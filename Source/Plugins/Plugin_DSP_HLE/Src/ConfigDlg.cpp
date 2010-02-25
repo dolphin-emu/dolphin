@@ -25,16 +25,13 @@ BEGIN_EVENT_TABLE(DSPConfigDialogHLE, wxDialog)
 	EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogHLE::SettingsChanged)
 	EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogHLE::SettingsChanged)
 	EVT_CHECKBOX(ID_ENABLE_RE0_FIX, DSPConfigDialogHLE::SettingsChanged)
-	EVT_CHOICE(wxID_ANY, DSPConfigDialogHLE::BackendChanged)
+	EVT_CHOICE(ID_BACKEND, DSPConfigDialogHLE::BackendChanged)
 	EVT_COMMAND_SCROLL(ID_VOLUME, DSPConfigDialogHLE::VolumeChanged)
 END_EVENT_TABLE()
 
 DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
-	// Center window
-	CenterOnParent();
-
 	m_OK = new wxButton(this, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
 	wxStaticBoxSizer *sbSettings = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Sound Settings"));
@@ -94,6 +91,9 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wx
 	sButtons->Add(m_OK, 0, wxALL, 1);
 	sMain->Add(sButtons, 0, wxALL|wxEXPAND, 4);
 	SetSizerAndFit(sMain);
+
+	// Center window
+	CenterOnParent();
 }
 
 // Add audio output options

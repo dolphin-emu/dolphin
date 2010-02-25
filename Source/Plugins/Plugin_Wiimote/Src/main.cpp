@@ -108,8 +108,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 		wxUninitialize();
 #endif
 		break;
-	default:
-		break;
 	}
 
 	g_hInstance = hinstDLL;
@@ -138,12 +136,12 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_WIIMOTE;
 #ifdef DEBUGFAST
-	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (DebugFast)");
+	sprintf_s(_PluginInfo->Name, "Dolphin Wiimote Plugin (DebugFast)");
 #else
 #ifndef _DEBUG
-	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin");
+	sprintf_s(_PluginInfo->Name, "Dolphin Wiimote Plugin");
 #else
-	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (Debug)");
+	sprintf_s(_PluginInfo->Name, "Dolphin Wiimote Plugin (Debug)");
 #endif
 #endif
 }
@@ -168,18 +166,19 @@ void DllConfig(HWND _hParent)
 	}
 
 #if defined(HAVE_WX) && HAVE_WX
-	if (!m_BasicConfigFrame)
-	{
-		wxWindow *frame = GetParentedWxWindow(_hParent);
-		m_BasicConfigFrame = new WiimoteBasicConfigDialog(frame);
-		m_BasicConfigFrame->ShowModal();
-		m_BasicConfigFrame->Destroy();
-		m_BasicConfigFrame = NULL;
+	wxWindow *frame = GetParentedWxWindow(_hParent);
+	m_BasicConfigFrame = new WiimoteBasicConfigDialog(frame);
+
+	frame->Disable();
+	m_BasicConfigFrame->ShowModal();
+	frame->Enable();
+
+	m_BasicConfigFrame->Destroy();
+	m_BasicConfigFrame = NULL;
 #ifdef _WIN32
-		frame->SetHWND(NULL);
+	frame->SetHWND(NULL);
 #endif
-		delete frame;
-	}
+	frame->Destroy();
 #endif
 }
 
@@ -189,18 +188,11 @@ void Initialize(void *init)
 	g_EmulatorRunning = true;
 	g_WiimoteInitialize =  *(SWiimoteInitialize *)init;
 
-	// Update the GUI if the configuration window is already open
 	#if defined(HAVE_WX) && HAVE_WX
-	if (m_BasicConfigFrame)
-	{
-		// Save the settings
-		g_Config.Save();
-		// Load the ISO Id
-		g_ISOId = g_WiimoteInitialize.ISOId;
-		// Load the settings
-		g_Config.Load();
-		m_BasicConfigFrame->UpdateGUI();
-	}
+	// Load the ISO Id
+	g_ISOId = g_WiimoteInitialize.ISOId;
+	// Load the settings
+	g_Config.Load();
 	#endif
 	#if defined(HAVE_X11) && HAVE_X11
 		WMdisplay = (Display*)g_WiimoteInitialize.hWnd;

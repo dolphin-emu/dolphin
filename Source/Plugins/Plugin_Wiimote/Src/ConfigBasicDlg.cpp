@@ -29,8 +29,8 @@
 
 BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_CLOSE(WiimoteBasicConfigDialog::OnClose)
-	EVT_BUTTON(ID_OK, WiimoteBasicConfigDialog::ButtonClick)
-	EVT_BUTTON(ID_CANCEL, WiimoteBasicConfigDialog::ButtonClick)
+	EVT_BUTTON(wxID_OK, WiimoteBasicConfigDialog::ButtonClick)
+	EVT_BUTTON(wxID_CANCEL, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_BUTTON(ID_BUTTONMAPPING, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_BUTTON(ID_BUTTONRECORDING, WiimoteBasicConfigDialog::ButtonClick)
 	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, WiimoteBasicConfigDialog::NotebookPageChanged)
@@ -81,12 +81,12 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 {
 	switch(event.GetId())
 	{
-	case ID_OK:
+	case wxID_OK:
 		WiiMoteReal::Allocate();
 		g_Config.Save();
 		Close();
 		break;
-	case ID_CANCEL:
+	case wxID_CANCEL:
 		g_Config.Load();
 		Close();
 		break;
@@ -256,9 +256,9 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 	m_ButtonMapping = new wxButton(this, ID_BUTTONMAPPING, wxT("Button Mapping"));
 	m_Recording		= new wxButton(this, ID_BUTTONRECORDING, wxT("Recording"));
 
-	m_OK = new wxButton(this, ID_OK, wxT("OK"));
+	m_OK = new wxButton(this, wxID_OK, wxT("OK"));
 	m_OK->SetToolTip(wxT("Save changes and close"));
-	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"));
+	m_Cancel = new wxButton(this, wxID_CANCEL, wxT("Cancel"));
 	m_Cancel->SetToolTip(wxT("Discard changes and close"));
 
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);

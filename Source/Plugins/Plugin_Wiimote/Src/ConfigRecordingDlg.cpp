@@ -26,8 +26,8 @@
 
 BEGIN_EVENT_TABLE(WiimoteRecordingConfigDialog,wxDialog)
 	EVT_CLOSE(WiimoteRecordingConfigDialog::OnClose)
-	EVT_BUTTON(ID_CLOSE, WiimoteRecordingConfigDialog::CloseClick)
-	EVT_BUTTON(ID_APPLY, WiimoteRecordingConfigDialog::CloseClick)
+	EVT_BUTTON(wxID_CLOSE, WiimoteRecordingConfigDialog::CloseClick)
+	EVT_BUTTON(wxID_APPLY, WiimoteRecordingConfigDialog::CloseClick)
 
 	EVT_CHOICE(IDC_RECORD + 1, WiimoteRecordingConfigDialog::RecordingChanged)
 	EVT_CHOICE(IDC_RECORD + 2, WiimoteRecordingConfigDialog::RecordingChanged)
@@ -65,8 +65,7 @@ END_EVENT_TABLE()
 
 WiimoteRecordingConfigDialog::WiimoteRecordingConfigDialog(wxWindow *parent, wxWindowID id, const wxString &title,
 						   const wxPoint &position, const wxSize& size, long style)
-: wxDialog
-(parent, id, title, position, size, style)
+: wxDialog(parent, id, title, position, size, style)
 {
 #if wxUSE_TIMER
 	m_TimeoutTimer = new wxTimer(this, IDTM_UPDATE);
@@ -96,13 +95,13 @@ void WiimoteRecordingConfigDialog::CloseClick(wxCommandEvent& event)
 {
 	switch(event.GetId())
 	{
-	case ID_CLOSE:
+	case wxID_CLOSE:
 #if HAVE_WIIUSE
 		if (!WiiMoteReal::SafeClose())
 #endif
 			Close();
 		break;
-	case ID_APPLY:
+	case wxID_APPLY:
 		SaveFile();
 		WiiMoteEmu::LoadRecordedMovements();
 		break;

@@ -69,8 +69,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 		wxUninitialize();
 #endif
 		break;
-	default:
-		break;
 	}
 
 	g_hInstance = hinstDLL;
@@ -125,7 +123,7 @@ void OSDMenu(WPARAM wParam)
 	case '7':
 		OSDChoice = 5;
 		g_Config.bDisableLighting = !g_Config.bDisableLighting;
-		break;		
+		break;
 	}
 }
 // ---------------------------------------------------------------------
@@ -166,14 +164,14 @@ HWND GetWnd()
 }
 HWND GetParentWnd()
 {
-    return m_hParent;
+	return m_hParent;
 }
 
 void FreeLookInput( UINT iMsg, WPARAM wParam )
 {
-    static float debugSpeed = 1.0f;
-    static bool mouseLookEnabled = false;
-    static float lastMouse[2];
+	static float debugSpeed = 1.0f;
+	static bool mouseLookEnabled = false;
+	static float lastMouse[2];
 
 	switch( iMsg )
 	{
@@ -181,51 +179,51 @@ void FreeLookInput( UINT iMsg, WPARAM wParam )
 	case WM_KEYDOWN:
 		switch( LOWORD( wParam ))
 		{
-        case '9':
-            debugSpeed /= 2.0f;
-            break;
-        case '0':
-            debugSpeed *= 2.0f;
-            break;        
-        case 'W':
-            VertexShaderManager::TranslateView(0.0f, debugSpeed);
-            break;
-        case 'S':
-            VertexShaderManager::TranslateView(0.0f, -debugSpeed);
-            break;
-        case 'A':
-            VertexShaderManager::TranslateView(debugSpeed, 0.0f);
-            break;
-        case 'D':
-            VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
-            break;
-        case 'R':
-            VertexShaderManager::ResetView();
-            break;
+		case '9':
+			debugSpeed /= 2.0f;
+			break;
+		case '0':
+			debugSpeed *= 2.0f;
+			break;
+		case 'W':
+			VertexShaderManager::TranslateView(0.0f, debugSpeed);
+			break;
+		case 'S':
+			VertexShaderManager::TranslateView(0.0f, -debugSpeed);
+			break;
+		case 'A':
+			VertexShaderManager::TranslateView(debugSpeed, 0.0f);
+			break;
+		case 'D':
+			VertexShaderManager::TranslateView(-debugSpeed, 0.0f);
+			break;
+		case 'R':
+			VertexShaderManager::ResetView();
+			break;
 		}
 		break;
 
 	case WM_MOUSEMOVE:
-        if (mouseLookEnabled) {
-            POINT point;
-	        GetCursorPos(&point);
-            VertexShaderManager::RotateView((point.x - lastMouse[0]) / 200.0f, (point.y - lastMouse[1]) / 200.0f);
-            lastMouse[0] = point.x;
-            lastMouse[1] = point.y;
-        }
+		if (mouseLookEnabled) {
+			POINT point;
+			GetCursorPos(&point);
+			VertexShaderManager::RotateView((point.x - lastMouse[0]) / 200.0f, (point.y - lastMouse[1]) / 200.0f);
+			lastMouse[0] = point.x;
+			lastMouse[1] = point.y;
+		}
 		break;
 
-    case WM_RBUTTONDOWN:
-        POINT point;	
-	    GetCursorPos(&point);
-        lastMouse[0] = point.x;
-        lastMouse[1] = point.y;
-        mouseLookEnabled= true;
-        break;
+	case WM_RBUTTONDOWN:
+		POINT point;	
+		GetCursorPos(&point);
+		lastMouse[0] = point.x;
+		lastMouse[1] = point.y;
+		mouseLookEnabled= true;
+		break;
 	case WM_RBUTTONUP:
-        mouseLookEnabled = false;
-        break;
-    }
+		mouseLookEnabled = false;
+		break;
+	}
 }
 
 // ---------------------------------------------------------------------
@@ -277,7 +275,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			hdc = BeginPaint(hWnd, &ps);
 			EndPaint(hWnd, &ps);
 		}
-		return 0;
+		break;
 
 	case WM_SYSKEYDOWN:
 		switch (LOWORD(wParam))
@@ -287,12 +285,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			if (m_hParent == NULL && !g_Config.RenderToMainframe)
 			{
 				ToggleFullscreen(hWnd);
-				return 0;
 			}
 			break;
 		case VK_F5: case VK_F6: case VK_F7: case VK_F8:
 			PostMessage(m_hMain, WM_SYSKEYDOWN, wParam, lParam);
-			return 0;
+			break;
+		default:
+			return DefWindowProc(hWnd, iMsg, wParam, lParam);
 		}
 		break;
 
@@ -300,6 +299,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		// Don't process this as a child window to avoid double events
 		if (!g_Config.RenderToMainframe)
 			OnKeyDown(wParam);
+		
+		if (g_Config.bFreeLook)
+			FreeLookInput( iMsg, wParam );
 		break;
 
 	/* Post these mouse events to the main window, it's nessesary becase in difference to the
@@ -328,8 +330,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		break;
 
 	/* To support the separate window rendering we get the message back here. So we basically
-	    only let it pass through Dolphin > Frame.cpp to determine if it should be on or off
-		and coordinate it with the other settings if nessesary */
+	   only let it pass through Dolphin > Frame.cpp to determine if it should be on or off
+	   and coordinate it with the other settings if nessesary */
 	case WM_USER:
 		if (wParam == WM_USER_STOP)
 			SetCursor((lParam) ? hCursor : hCursorBlank);
@@ -340,7 +342,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		}
 		else if (wParam == TOGGLE_FULLSCREEN)
 		{
-			 if(!g_Config.RenderToMainframe)
+			if(!g_Config.RenderToMainframe)
 				ToggleFullscreen(m_hWnd);
 		}
 		else if (wParam == WIIMOTE_DISCONNECT)
@@ -357,8 +359,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			if( g_Config.bFullscreen )
 				ToggleFullscreen(m_hParent);
 			PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
-			return 0;
 		}
+		break;
 
 	case WM_DESTROY:
 		Shutdown();
@@ -370,16 +372,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		{
 		case SC_SCREENSAVE:
 		case SC_MONITORPOWER:
-			return 0;
+			break;
+		default:
+			return DefWindowProc(hWnd, iMsg, wParam, lParam);
 		}
 		break;
+	default:
+		return DefWindowProc(hWnd, iMsg, wParam, lParam);
 	}
-
-    if (g_Config.bFreeLook) {
-        FreeLookInput( iMsg, wParam );
-    }
-
-	return DefWindowProc(hWnd, iMsg, wParam, lParam);
+	return 0;
+	
 }
 
 
@@ -407,35 +409,35 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	CreateCursors(m_hInstance);
 
 	// Create child window
-    if (g_Config.RenderToMainframe)
-    {
+	if (g_Config.RenderToMainframe)
+	{
 		m_hParent = m_hMain = parent;
 
 		m_hWnd = CreateWindow(m_szClassName, title, WS_CHILD,
-            0, 0, width, height, parent, NULL, hInstance, NULL);
-    }
+			0, 0, width, height, parent, NULL, hInstance, NULL);
+	}
 	// Create new separate window
-    else
-    {
+	else
+	{
 		// Don't forget to make it NULL, or a broken window will be created in case we
 		// render to main, stop, then render to separate window, as the GUI will still
-		// think we're rendering to main because m_hParent will still contain the old HWND...
+		// think we're rendering to main because m_hParent will still contain the old HWND
 		m_hParent = NULL;
 		m_hMain = parent;
 
 		DWORD style = g_Config.bFullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW;
-        RECT rc = {0, 0, width, height};
-        AdjustWindowRect(&rc, style, false);
+		RECT rc = {0, 0, width, height};
+		AdjustWindowRect(&rc, style, false);
 		RECT rcdesktop;
 		GetWindowRect(GetDesktopWindow(), &rcdesktop);
 
 		int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
 		int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
 
-        m_hWnd = CreateWindow(m_szClassName, title, style,
+		m_hWnd = CreateWindow(m_szClassName, title, style,
 			X, Y, rc.right-rc.left, rc.bottom-rc.top,
-            NULL, NULL, hInstance, NULL);
-    }
+			NULL, NULL, hInstance, NULL);
+	}
 
 	return m_hWnd;
 }
@@ -485,7 +487,7 @@ void ToggleFullscreen(HWND hParent, bool bForceFull)
 			RECT rc = {0, 0, w_fs, h_fs};
 			AdjustWindowRect(&rc, style, false);
 			RECT rcdesktop;
-			GetWindowRect(GetDesktopWindow(), &rcdesktop);		
+			GetWindowRect(GetDesktopWindow(), &rcdesktop);
 
 			// SetWindowPos to the center of the screen
 			int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;

@@ -48,7 +48,7 @@ enum
 class GFXConfigDialogOGL : public wxDialog
 {
 	public:
-		GFXConfigDialogOGL(wxWindow *parent, wxWindowID id = 1,
+		GFXConfigDialogOGL(wxWindow *parent, wxWindowID id = wxID_ANY,
 #ifdef DEBUGFAST
 			const wxString &title = wxT("OpenGL (DEBUGFAST) Plugin Configuration"),
 #else
@@ -123,12 +123,12 @@ class GFXConfigDialogOGL : public wxDialog
 		wxCheckBox *m_DisableLighting;
 		wxCheckBox *m_DisableTexturing;
 		wxCheckBox *m_DisableFog;
-        wxCheckBox *m_DstAlphaPass;
+		wxCheckBox *m_DstAlphaPass;
 		wxCheckBox *m_DumpTextures;
 		wxCheckBox *m_HiresTextures;
 		wxCheckBox *m_DumpEFBTarget;
 		wxCheckBox *m_DumpFrames;
-        wxCheckBox *m_FreeLook;
+		wxCheckBox *m_FreeLook;
 		wxStaticBox * m_StaticBox_EFB;
 		wxCheckBox *m_CheckBox_DisableCopyEFB;
 		wxRadioButton *m_Radio_CopyEFBToRAM, *m_Radio_CopyEFBToGL;
@@ -150,10 +150,7 @@ class GFXConfigDialogOGL : public wxDialog
 
 		enum
 		{
-			ID_CLOSE = 1000,
-			ID_ABOUTOGL,
-
-			ID_NOTEBOOK,
+			ID_NOTEBOOK = 1000,
 			ID_PAGEGENERAL,
 			ID_PAGEADVANCED,
 
@@ -204,13 +201,13 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_HIRESTEXTURES,
 			ID_DUMPEFBTARGET,
 			ID_DUMPFRAMES,
-            ID_FREELOOK,
+			ID_FREELOOK,
 			ID_TEXTUREPATH,
 
 			ID_CHECKBOX_DISABLECOPYEFB, 
 			ID_OSDHOTKEY,
 			//ID_PROJECTIONHACK1,
-            ID_DSTALPHAPASS,
+			ID_DSTALPHAPASS,
 			ID_RADIO_COPYEFBTORAM,
 			ID_RADIO_COPYEFBTOGL,
 			ID_POSTSHADER,

@@ -65,8 +65,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 			wxUninitialize();
 #endif
 		break;
-	default:
-		break;
 	}
 
 	g_hInstance = hinstDLL;
@@ -109,29 +107,29 @@ HWND GetWnd()
 
 HWND GetParentWnd()
 {
-    return m_hParent;
+	return m_hParent;
 }
 
 HWND GetChildParentWnd()
 {
-    return m_hMain;
+	return m_hMain;
 }
 
 LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 {		
-	HDC         hdc;
+	HDC			hdc;
 	PAINTSTRUCT ps;
 	switch( iMsg )
 	{
 	case WM_CREATE:
 		PostMessage(m_hMain, WM_USER, WM_USER_CREATE, (int)m_hParent);
 		break;
-
+	
 	case WM_PAINT:
 		hdc = BeginPaint( hWnd, &ps );
 		EndPaint( hWnd, &ps );
 		break;
-
+	
 	case WM_SYSKEYDOWN:
 		switch( LOWORD( wParam ))
 		{
@@ -140,11 +138,13 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			if (m_hParent == NULL && !g_Config.renderToMainframe)
 			{
 				ToggleFullscreen(hWnd);
-			}				
+			}
 			break;
 		case VK_F5: case VK_F6: case VK_F7: case VK_F8:
 			PostMessage(m_hMain, WM_SYSKEYDOWN, wParam, lParam);
 			break;
+		default:
+			return DefWindowProc(hWnd, iMsg, wParam, lParam);
 		}
 		break;
 
@@ -160,7 +160,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			// And pause the emulation when already in Windowed mode
 			PostMessage(m_hMain, WM_USER, WM_USER_PAUSE, 0);
 			break;
-        }
+		}
 		g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 		break;
 
@@ -174,14 +174,14 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		   it's nessesary for both the chil dwindow and separate rendering window because
 		   moves over the rendering window do not reach the main program then. */
 		if (GetParentWnd() == NULL) // Separate rendering window
-			PostMessage(m_hMain, iMsg, wParam, -1);			
+			PostMessage(m_hMain, iMsg, wParam, -1);
 		else
 			PostMessage(GetParentWnd(), iMsg, wParam, lParam);
 		break;
 
 	/* To support the separate window rendering we get the message back here. So we basically
-	    only let it pass through Dolphin > Frame.cpp to determine if it should be on or off
-		and coordinate it with the other settings if nessesary */
+	   only let it pass through Dolphin > Frame.cpp to determine if it should be on or off
+	   and coordinate it with the other settings if necessary */
 	case WM_USER:
 		if (wParam == WM_USER_STOP)
 			SetCursor((lParam) ? hCursor : hCursorBlank);
@@ -189,7 +189,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			PostMessage(m_hMain, WM_USER, wParam, lParam);
 		break;
 
-	/* Post thes mouse events to the main window, it's nessesary becase in difference to the
+	/* Post these mouse events to the main window, it's nessesary becase in difference to the
 	   keyboard inputs these events only appear here, not in the main WndProc() */
 	case WM_LBUTTONDOWN:
 	case WM_LBUTTONUP:
@@ -218,11 +218,13 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		case SC_SCREENSAVE:
 		case SC_MONITORPOWER:
 			break;
+		default:
+			return DefWindowProc(hWnd, iMsg, wParam, lParam);
 		}
 		break;
 	default:
 		return DefWindowProc(hWnd, iMsg, wParam, lParam);
-    }
+	}
 	return 0;
 }
 
@@ -251,45 +253,45 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	CreateCursors(m_hInstance);
 
 	// Create child window
-    if (parent)
-    {
+	if (parent)
+	{
 		m_hParent = m_hMain = parent;
 
-        m_hWnd = CreateWindow(m_szClassName, title,
-            WS_CHILD,
-            CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-            parent, NULL, hInstance, NULL);
+		m_hWnd = CreateWindow(m_szClassName, title,
+			WS_CHILD,
+			CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+			parent, NULL, hInstance, NULL);
 
-        ShowWindow(m_hWnd, SW_SHOWMAXIMIZED);
-    }
+		ShowWindow(m_hWnd, SW_SHOWMAXIMIZED);
+	}
 
 	// Create new separate window
-    else
-    {
+	else
+	{
 		DWORD style = g_Config.bFullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW;
 
-        RECT rc = {0, 0, width, height};
-        AdjustWindowRect(&rc, style, false);
+		RECT rc = {0, 0, width, height};
+		AdjustWindowRect(&rc, style, false);
 
-        int w = rc.right - rc.left;
-        int h = rc.bottom - rc.top;
+		int w = rc.right - rc.left;
+		int h = rc.bottom - rc.top;
 
-        rc.left = (1280 - w)/2;
-        rc.right = rc.left + w;
-        rc.top = (1024 - h)/2;
-        rc.bottom = rc.top + h;
+		rc.left = (1280 - w)/2;
+		rc.right = rc.left + w;
+		rc.top = (1024 - h)/2;
+		rc.bottom = rc.top + h;
 
 		// I save this to m_hMain instead of m_hParent because it casused problems otherwise
 		m_hMain = (HWND)g_VideoInitialize.pWindowHandle;
 
-        m_hWnd = CreateWindow(m_szClassName, title,
-            style,
-            rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top,
-            parent, NULL, hInstance, NULL );
+		m_hWnd = CreateWindow(m_szClassName, title,
+			style,
+			rc.left, rc.top, rc.right-rc.left, rc.bottom-rc.top,
+			parent, NULL, hInstance, NULL );
 
-        g_winstyle = GetWindowLong( m_hWnd, GWL_STYLE );
-        g_winstyle &= ~WS_MAXIMIZE & ~WS_MINIMIZE; // remove minimize/maximize style
-    }
+		g_winstyle = GetWindowLong( m_hWnd, GWL_STYLE );
+		g_winstyle &= ~WS_MAXIMIZE & ~WS_MINIMIZE; // remove minimize/maximize style
+	}
 
 	return m_hWnd;
 }

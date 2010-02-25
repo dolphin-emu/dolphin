@@ -42,8 +42,8 @@
 // The wxWidgets class
 BEGIN_EVENT_TABLE(GCPadConfigDialog,wxDialog)
 	EVT_CLOSE(GCPadConfigDialog::OnClose)
-	EVT_BUTTON(ID_OK, GCPadConfigDialog::OnCloseClick)
-	EVT_BUTTON(ID_CANCEL, GCPadConfigDialog::OnCloseClick)
+	EVT_BUTTON(wxID_OK, GCPadConfigDialog::OnCloseClick)
+	EVT_BUTTON(wxID_CANCEL, GCPadConfigDialog::OnCloseClick)
 	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, GCPadConfigDialog::NotebookPageChanged)
 
 	EVT_CHOICE(IDC_JOYNAME, GCPadConfigDialog::ChangeSettings)	
@@ -178,11 +178,11 @@ void GCPadConfigDialog::OnCloseClick(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case ID_OK:
+	case wxID_OK:
 		g_Config.Save();
 		Close(); // Call OnClose()
 		break;
-	case ID_CANCEL:
+	case wxID_CANCEL:
 		g_Config.Load();
 		Close(); // Call OnClose()
 		break;
@@ -736,9 +736,9 @@ void GCPadConfigDialog::CreateGUIControls()
 		m_Controller[i]->SetSizer(m_sMain[i]);
 	}
 
-	m_OK = new wxButton(this, ID_OK, wxT("OK"));
+	m_OK = new wxButton(this, wxID_OK, wxT("OK"));
 	m_OK->SetToolTip(wxT("Save changes and close"));
-	m_Cancel = new wxButton(this, ID_CANCEL, wxT("Cancel"));
+	m_Cancel = new wxButton(this, wxID_CANCEL, wxT("Cancel"));
 	m_Cancel->SetToolTip(wxT("Discard changes and close"));
 	wxBoxSizer* m_DlgButton = new wxBoxSizer(wxHORIZONTAL);
 	m_DlgButton->AddStretchSpacer();

@@ -26,8 +26,8 @@
 BEGIN_EVENT_TABLE(WiimotePadConfigDialog,wxDialog)
 
 	EVT_CLOSE(WiimotePadConfigDialog::OnClose)
-	EVT_BUTTON(ID_CLOSE, WiimotePadConfigDialog::CloseClick)
-//	EVT_BUTTON(ID_APPLY, WiimotePadConfigDialog::CloseClick)
+	EVT_BUTTON(wxID_CLOSE, WiimotePadConfigDialog::CloseClick)
+//	EVT_BUTTON(wxID_APPLY, WiimotePadConfigDialog::CloseClick)
 	EVT_NOTEBOOK_PAGE_CHANGED(ID_NOTEBOOK, WiimotePadConfigDialog::NotebookPageChanged)
 
 	EVT_TIMER(IDTM_BUTTON, WiimotePadConfigDialog::OnButtonTimer)
@@ -182,10 +182,10 @@ void WiimotePadConfigDialog::CloseClick(wxCommandEvent& event)
 {
 	switch(event.GetId())
 	{
-	case ID_CLOSE:
+	case wxID_CLOSE:
 		Close();
 		break;
-	case ID_APPLY:
+	case wxID_APPLY:
 		break;
 	}
 }
@@ -922,8 +922,8 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_Controller[i]->SetSizer(m_sMain[i]);
 	}
 
-//	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"));
-	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"));
+//	m_Apply = new wxButton(this, wxID_APPLY, wxT("Apply"));
+	m_Close = new wxButton(this, wxID_CLOSE, wxT("Close"));
 
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->AddStretchSpacer();

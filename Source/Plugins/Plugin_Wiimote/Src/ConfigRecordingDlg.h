@@ -34,7 +34,7 @@ class WiimoteRecordingConfigDialog : public wxDialog
 {
 	public:
 		WiimoteRecordingConfigDialog(wxWindow *parent,
-			wxWindowID id = 1,
+			wxWindowID id = wxID_ANY,
 			const wxString &title = wxT("Wii Remote Plugin Configuration"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
@@ -103,9 +103,7 @@ class WiimoteRecordingConfigDialog : public wxDialog
 
 		enum
 		{
-			ID_CLOSE = 1000,
-			ID_APPLY,
-			ID_RECORDINGPAGE,
+			ID_RECORDINGPAGE = 1000,
 			IDTM_UPDATE,
 
 			// Real

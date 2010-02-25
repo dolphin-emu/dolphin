@@ -86,8 +86,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 		wxUninitialize();
 #endif
 		break;
-	default:
-		break;
 	}
 
 	g_hInstance = hinstDLL;
@@ -117,12 +115,12 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Type = PLUGIN_TYPE_DSP;
 
 #ifdef DEBUGFAST
-	sprintf(_PluginInfo->Name, "Dolphin DSP-LLE Plugin (DebugFast)");
+	sprintf_s(_PluginInfo->Name, "Dolphin DSP-LLE Plugin (DebugFast)");
 #else
 #ifndef _DEBUG
-	sprintf(_PluginInfo->Name, "Dolphin DSP-LLE Plugin");
+	sprintf_s(_PluginInfo->Name, "Dolphin DSP-LLE Plugin");
 #else
-	sprintf(_PluginInfo->Name, "Dolphin DSP-LLE Plugin (Debug)");
+	sprintf_s(_PluginInfo->Name, "Dolphin DSP-LLE Plugin (Debug)");
 #endif
 #endif
 }
@@ -136,29 +134,29 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 void DllConfig(HWND _hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	if (!m_ConfigFrame)
+	wxWindow *frame = GetParentedWxWindow(_hParent);
+	m_ConfigFrame = new DSPConfigDialogLLE(frame);
+
+	// add backends
+	std::vector<std::string> backends = AudioCommon::GetSoundBackends();
+
+	for (std::vector<std::string>::const_iterator iter = backends.begin(); 
+		 iter != backends.end(); ++iter)
 	{
-		wxWindow *frame = GetParentedWxWindow(_hParent);
-		m_ConfigFrame = new DSPConfigDialogLLE(frame);
-
-		// add backends
-		std::vector<std::string> backends = AudioCommon::GetSoundBackends();
-
-		for (std::vector<std::string>::const_iterator iter = backends.begin(); 
-			 iter != backends.end(); ++iter)
-		{
-			m_ConfigFrame->AddBackend((*iter).c_str());
-		}
-
-		// Only allow one open at a time
-		m_ConfigFrame->ShowModal();
-		m_ConfigFrame->Destroy();
-		m_ConfigFrame = NULL;
-#ifdef _WIN32
-		frame->SetHWND(NULL);
-#endif
-		delete frame;
+		m_ConfigFrame->AddBackend((*iter).c_str());
 	}
+
+	// Only allow one open at a time
+	frame->Disable();
+	m_ConfigFrame->ShowModal();
+	frame->Enable();
+
+	m_ConfigFrame->Destroy();
+	m_ConfigFrame = NULL;
+#ifdef _WIN32
+	frame->SetHWND(NULL);
+#endif
+	frame->Destroy();
 #endif
 }
 

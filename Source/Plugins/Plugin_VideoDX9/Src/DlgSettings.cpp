@@ -109,9 +109,6 @@ struct TabDirect3D : public W32Util::Tab
 		case IDC_WIDESCREEN_HACK:
 			g_Config.bWidescreenHack = Button_GetCheck(GetDlgItem(hDlg, IDC_WIDESCREEN_HACK)) ? true : false;
 			break;
-		case IDC_WIREFRAME:
-			g_Config.bWireFrame = Button_GetCheck(GetDlgItem(hDlg,IDC_WIREFRAME)) ? true : false;
-			break;
 		case IDC_SAFE_TEXTURE_CACHE:
 			g_Config.bSafeTextureCache = Button_GetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE)) == 0 ? false : true;
 			break;

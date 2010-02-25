@@ -327,7 +327,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
 	, m_LogWindow(NULL)
 	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
-	, m_bModalDialogOpen(false), m_bControlsCreated(false), m_StopDlg(NULL)
+	, m_bControlsCreated(false), m_StopDlg(NULL)
 	#if wxUSE_TIMER
 	#ifdef _WIN32
 		, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
@@ -610,10 +610,15 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 		{
 		case SC_SCREENSAVE:
 		case SC_MONITORPOWER:
-			return 0;
+			break;
+		default:
+			return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
 		}
+		break;
+	default:
+		return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
 	}
-	return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
+	return 0;
 }
 #endif
 
@@ -928,13 +933,13 @@ void X11_ShowFullScreen(bool bF)
 void CFrame::DoFullscreen(bool bF)
 {
 #if defined HAVE_X11 && HAVE_X11
-	if ((Core::GetState() == Core::CORE_RUN) && !m_bModalDialogOpen)
+	if ((Core::GetState() == Core::CORE_RUN))
 		X11_ShowFullScreen(bF);
 #endif
 	// Only switch this to fullscreen if we're rendering to main AND if we're running a game
 	// plus if a modal dialog is open, this will still process the keyboard events, and may cause
 	// the main window to become unresponsive, so we have to avoid that.
-	if ((bRenderToMain && Core::GetState() == Core::CORE_RUN) && !m_bModalDialogOpen)
+	if ((bRenderToMain && Core::GetState() == Core::CORE_RUN))
 	{
 		ShowFullScreen(bF);
 

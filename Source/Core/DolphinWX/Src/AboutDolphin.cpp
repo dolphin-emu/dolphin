@@ -23,7 +23,7 @@
 
 BEGIN_EVENT_TABLE(AboutDolphin, wxDialog)
 	EVT_CLOSE(AboutDolphin::OnClose)
-	EVT_BUTTON(ID_CLOSE, AboutDolphin::CloseClick)
+	EVT_BUTTON(wxID_CLOSE, AboutDolphin::CloseClick)
 END_EVENT_TABLE()
 
 AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
@@ -38,7 +38,7 @@ AboutDolphin::~AboutDolphin()
 
 void AboutDolphin::CreateGUIControls()
 {
-	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Close = new wxButton(this, wxID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	//miloszwl@miloszwl.com (miloszwl.deviantart.com)
 
 	wxMemoryInputStream istream(dolphin_logo_png, sizeof dolphin_logo_png);
@@ -79,8 +79,8 @@ void AboutDolphin::CreateGUIControls()
 	this->SetSizer(sMain);
 	sMain->Layout();
 
-	CenterOnParent();
 	Fit();
+	CenterOnParent();
 }
 
 void AboutDolphin::OnClose(wxCloseEvent& WXUNUSED (event))

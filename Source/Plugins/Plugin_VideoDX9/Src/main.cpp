@@ -150,8 +150,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL, DWORD dwReason, LPVOID lpvReserved)
 		wxUninitialize();
 #endif
 		break;
-	default:
-		break;
 	}
 
 	g_hInstance = hinstDLL;
@@ -201,7 +199,7 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
 
 void DllAbout(HWND _hParent)
 {
-	DialogBoxA(g_hInstance,(LPCSTR)IDD_ABOUT,_hParent,(DLGPROC)AboutProc);
+	DialogBox(g_hInstance,(LPCTSTR)IDD_ABOUT,_hParent,(DLGPROC)AboutProc);
 }
 
 void DllConfig(HWND _hParent)

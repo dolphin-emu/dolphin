@@ -96,8 +96,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 		wxUninitialize();
 #endif
 		break;
-	default:
-		break;
 	}
 
 	g_hInstance = hinstDLL;
@@ -163,17 +161,19 @@ void DllConfig(HWND _hParent)
 	}
 
 #if defined(HAVE_WX) && HAVE_WX
-	if (!m_ConfigFrame)
-	{
-		wxWindow *frame = GetParentedWxWindow(_hParent);
-		m_ConfigFrame = new GCPadConfigDialog(frame);
-		m_ConfigFrame->ShowModal();
-		m_ConfigFrame->Destroy();
-		m_ConfigFrame = NULL;
+	wxWindow *frame = GetParentedWxWindow(_hParent);
+	m_ConfigFrame = new GCPadConfigDialog(frame);
+
+	frame->Disable();
+	m_ConfigFrame->ShowModal();
+	frame->Enable();
+
+	m_ConfigFrame->Destroy();
+	m_ConfigFrame = NULL;
 #ifdef _WIN32
-		frame->SetHWND(NULL);
+	frame->SetHWND(NULL);
 #endif
-		delete frame;
+	frame->Destroy();
 	}
 #endif
 }

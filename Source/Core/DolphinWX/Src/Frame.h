@@ -199,7 +199,6 @@ class CFrame : public wxFrame
 		bool m_bEdit;
 		bool m_bTabSplit;
 		bool m_bNoDocking;
-		bool m_bModalDialogOpen;
 		bool m_bControlsCreated;
 		char newDiscpath[2048];
 		wxMessageDialog *m_StopDlg;

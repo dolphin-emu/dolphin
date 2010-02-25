@@ -317,7 +317,7 @@ void *CPluginManager::LoadPlugin(const char *_rFilename)
 		return NULL;
 	}
 	
-	// Check that the plugin has both all the common and all the type specific functions
+	// Check that the plugin has all the common and all the type specific functions
 	if (!plugin->IsValid())
 	{
 		PanicAlert("Can't open %s, it has a missing function", _rFilename);

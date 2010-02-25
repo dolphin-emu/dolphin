@@ -23,7 +23,7 @@ BEGIN_EVENT_TABLE(DSPConfigDialogLLE, wxDialog)
 	EVT_BUTTON(wxID_OK, DSPConfigDialogLLE::SettingsChanged)
 	EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogLLE::SettingsChanged)
 	EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogLLE::SettingsChanged)
-	EVT_CHOICE(wxID_ANY, DSPConfigDialogLLE::BackendChanged)
+	EVT_CHOICE(ID_BACKEND, DSPConfigDialogLLE::BackendChanged)
 	EVT_COMMAND_SCROLL(ID_VOLUME, DSPConfigDialogLLE::VolumeChanged)
 END_EVENT_TABLE()
 
@@ -32,9 +32,6 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 {
 	// Load config settings
 	g_Config.Load();
-
-	// Center window
-	CenterOnParent();
 
 	m_OK = new wxButton(this, wxID_OK, wxT("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
@@ -89,6 +86,8 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	sMain->Add(sButtons, 0, wxALL|wxEXPAND, 4);
 	SetSizerAndFit(sMain);
 
+	// Center window
+	CenterOnParent();
 }
 
 // Add audio output options

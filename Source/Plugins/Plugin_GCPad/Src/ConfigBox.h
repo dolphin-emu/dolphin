@@ -45,7 +45,7 @@
 class GCPadConfigDialog : public wxDialog
 {	
 	public:
-		GCPadConfigDialog(wxWindow *parent, wxWindowID id = 1,
+		GCPadConfigDialog(wxWindow *parent, wxWindowID id = wxID_ANY,
 			const wxString &title = wxT("Gamecube Pad Plugin Configuration"),
 			const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
 			long style = wxDEFAULT_DIALOG_STYLE);
@@ -92,9 +92,7 @@ class GCPadConfigDialog : public wxDialog
 			IDB_TRIGGER_L, IDB_TRIGGER_R,
 
 			// Dialog controls
-			ID_OK = 1000,
-			ID_CANCEL,
-			ID_NOTEBOOK,
+			ID_NOTEBOOK = 1000,
 			ID_CONTROLLERPAGE1,
 			ID_CONTROLLERPAGE2,
 			ID_CONTROLLERPAGE3,

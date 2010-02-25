@@ -282,6 +282,7 @@ void CMemcardManager::CreateGUIControls()
 	this->SetSizer(sMain);
 	sMain->SetSizeHints(this);
 	Fit();
+	Center();
 
 	for (int i = SLOT_A; i < SLOT_B + 1; i++)
 	{

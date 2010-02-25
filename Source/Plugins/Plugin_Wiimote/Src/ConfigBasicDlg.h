@@ -36,7 +36,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 {
 	public:
 		WiimoteBasicConfigDialog(wxWindow *parent,
-			wxWindowID id = 1,
+			wxWindowID id = wxID_ANY,
 			const wxString &title = wxT("Wii Remote Plugin Configuration"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
@@ -107,8 +107,6 @@ class WiimoteBasicConfigDialog : public wxDialog
 
 		enum
 		{
-			ID_OK = 1000,
-			ID_CANCEL,
 			ID_BUTTONMAPPING,
 			ID_BUTTONRECORDING,
 			IDTM_SHUTDOWN,

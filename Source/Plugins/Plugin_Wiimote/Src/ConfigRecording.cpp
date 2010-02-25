@@ -339,8 +339,8 @@ void WiimoteRecordingConfigDialog::CreateGUIControlsRecording()
 
 	m_PageRecording->SetSizer(m_sRecordingMain);
 
-	m_Apply = new wxButton(this, ID_APPLY, wxT("Apply"));
-	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"));
+	m_Apply = new wxButton(this, wxID_APPLY, wxT("Apply"));
+	m_Close = new wxButton(this, wxID_CLOSE, wxT("Close"));
 	m_Close->SetToolTip(wxT("Apply and Close"));
 
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);

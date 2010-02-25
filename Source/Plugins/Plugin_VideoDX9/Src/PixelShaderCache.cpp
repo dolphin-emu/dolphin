@@ -302,7 +302,7 @@ void PixelShaderCache::Init()
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
 	char cache_filename[MAX_PATH];
-  sprintf(cache_filename, "%s%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
+	sprintf(cache_filename, "%s%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	PixelShaderCacheInserter inserter;
 	int read_items = g_ps_disk_cache.OpenAndRead(cache_filename, &inserter);
 }

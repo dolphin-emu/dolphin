@@ -129,10 +129,10 @@ static const D3DBLEND d3dDestFactors[8] =
 static const D3DBLENDOP d3dLogincOPop[16] =
 {
 	D3DBLENDOP_ADD,//0
-    D3DBLENDOP_ADD,//1
-    D3DBLENDOP_SUBTRACT,//2
-    D3DBLENDOP_ADD,//3
-    D3DBLENDOP_REVSUBTRACT,//4
+	D3DBLENDOP_ADD,//1
+	D3DBLENDOP_SUBTRACT,//2
+	D3DBLENDOP_ADD,//3
+	D3DBLENDOP_REVSUBTRACT,//4
 	D3DBLENDOP_ADD,//5
 	D3DBLENDOP_MAX,//6
 	D3DBLENDOP_ADD,//7
@@ -284,7 +284,7 @@ bool Renderer::Init()
 
 	// TODO: Grab target width from configured resolution?
 	s_target_width  = s_backbuffer_width;
-	s_target_height = s_backbuffer_height * ((float)EFB_HEIGHT / 480.0f);	
+	s_target_height = s_backbuffer_height * ((float)EFB_HEIGHT / 480.0f);
 	s_LastAA = (g_ActiveConfig.iMultisampleMode > 3)?0:g_ActiveConfig.iMultisampleMode;
 	
 	switch (s_LastAA)
@@ -308,7 +308,7 @@ bool Renderer::Init()
 	xScale = (float)s_target_width / (float)EFB_WIDTH;
 	yScale = (float)s_target_height / (float)EFB_HEIGHT;
 	s_Fulltarget_width  = s_target_width;
-	s_Fulltarget_height = s_target_height;	
+	s_Fulltarget_height = s_target_height;
 	
 	s_LastFrameDumped = false;
 	s_AVIDumping = false;
@@ -345,19 +345,17 @@ bool Renderer::Init()
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x0, 1.0f, 0);
 	D3D::BeginFrame();
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, true);
-	D3D::dev->CreateOffscreenPlainSurface(s_backbuffer_width,s_backbuffer_height, FBManager::GetEFBColorRTSurfaceFormat(), D3DPOOL_SYSTEMMEM, &ScreenShootMEMSurface, NULL );	
+	D3D::dev->CreateOffscreenPlainSurface(s_backbuffer_width,s_backbuffer_height, FBManager::GetEFBColorRTSurfaceFormat(), D3DPOOL_SYSTEMMEM, &ScreenShootMEMSurface, NULL );
 	return true;
 }
 
 void Renderer::Shutdown()
 {
-	
-	
 	TeardownDeviceObjects();
 	D3D::EndFrame();
 	D3D::Present();
 	D3D::Close();
-
+	
 	if (s_AVIDumping)
 	{
 		AVIDump::Stop();
@@ -415,7 +413,7 @@ void Renderer::DrawDebugText()
 				break;
 			}
 			std::string OSDM22 =
-				g_ActiveConfig.bCrop ? " (crop)" : "";			
+				g_ActiveConfig.bCrop ? " (crop)" : "";
 			std::string OSDM3 = g_ActiveConfig.bEFBCopyDisable ? "Disabled" :
 				g_ActiveConfig.bCopyEFBToTexture ? "To Texture" : "To RAM";
 
@@ -435,14 +433,14 @@ void Renderer::DrawDebugText()
 			T1 += (OSDChoice == -2) ? T0.at(1) : "\n";
 			T1 += (OSDChoice == -3) ? T0.at(2) : "\n";
 			T1 += (OSDChoice == -4) ? T0.at(3) : "\n";
-			T1 += (OSDChoice == -5) ? T0.at(4) : "\n";		
+			T1 += (OSDChoice == -5) ? T0.at(4) : "\n";
 
 			// The other settings in cyan
 			T2 += (OSDChoice != -1) ? T0.at(0) : "\n";
 			T2 += (OSDChoice != -2) ? T0.at(1) : "\n";
 			T2 += (OSDChoice != -3) ? T0.at(2) : "\n";
 			T2 += (OSDChoice != -4) ? T0.at(3) : "\n";
-			T2 += (OSDChoice != -5) ? T0.at(4) : "\n";		
+			T2 += (OSDChoice != -5) ? T0.at(4) : "\n";
 
 			// Render a shadow, and then the text
 			Renderer::RenderText(T1.c_str(), 21, 21, 0xDD000000);
@@ -570,7 +568,7 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 
 	D3D::dev->SetViewport(&vp);
 
-	EFBRectangle efbRect;	
+	EFBRectangle efbRect;
 	
 	LPDIRECT3DTEXTURE9 read_texture = FBManager::GetEFBColorTexture(efbRect);
 	RECT destinationrect;
@@ -584,13 +582,13 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 	sourcerect.right = src_rect.right;
 	sourcerect.top = src_rect.top;
 
-	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);		
+	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 	int SSAAMode = ( g_ActiveConfig.iMultisampleMode > 3 )? 0 : g_ActiveConfig.iMultisampleMode;
 	
-	D3D::drawShadedTexQuad(read_texture,&sourcerect,Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),PixelShaderCache::GetColorCopyProgram(SSAAMode),(SSAAMode != 0)?VertexShaderCache::GetFSAAVertexShader():VertexShaderCache::GetSimpleVertexShader());			
+	D3D::drawShadedTexQuad(read_texture,&sourcerect,Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),PixelShaderCache::GetColorCopyProgram(SSAAMode),(SSAAMode != 0)?VertexShaderCache::GetFSAAVertexShader():VertexShaderCache::GetSimpleVertexShader());
 	
-	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);		
+	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
 	
 	vp.X = 0;
@@ -638,7 +636,7 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 				ScreenShootMEMSurface->UnlockRect();
 			}
 		}
-		s_LastFrameDumped = true;			
+		s_LastFrameDumped = true;
 	}		 
 	else 
 	{
@@ -674,8 +672,6 @@ static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
 	OSD::DrawMessages();
 }
 
-
-
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
 	if (g_bSkipCurrentFrame)
@@ -688,7 +684,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	Renderer::ResetAPIState();
 	// Set the backbuffer as the rendering target
 	D3D::dev->SetDepthStencilSurface(NULL);
-	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());	
+	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 	
 	EFBTextureToD3DBackBuffer(sourceRc);
 	
@@ -704,13 +700,13 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	);
 
 	Swap(0,FIELD_PROGRESSIVE,0,0);	// we used to swap the buffer here, now we will wait
-										// until the XFB pointer is updated by VI	
+										// until the XFB pointer is updated by VI
 	D3D::BeginFrame();
 	Renderer::RestoreAPIState();
 	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());	
-	UpdateViewport();	
-    VertexShaderManager::SetViewportChanged();
+	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+	UpdateViewport();
+	VertexShaderManager::SetViewportChanged();
 }
 
 bool Renderer::SetScissorRect()
@@ -734,7 +730,7 @@ bool Renderer::SetScissorRect()
 	if (rc.left < 0) rc.left = 0;
 	if (rc.right < 0) rc.right = 0;
 	if (rc.left > s_target_width) rc.left = s_target_width;
-	if (rc.right > s_target_width) rc.right = s_target_width;	
+	if (rc.right > s_target_width) rc.right = s_target_width;
 	if (rc.top < 0) rc.top = 0;
 	if (rc.bottom < 0) rc.bottom = 0;
 	if (rc.top > s_target_height) rc.top = s_target_height;
@@ -886,7 +882,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 			Renderer::GetFullTargetWidth() , 
 			Renderer::GetFullTargetHeight(),
 			(BufferFormat == FOURCC_RAWZ)?PixelShaderCache::GetColorMatrixProgram(0):PixelShaderCache::GetDepthMatrixProgram(0),
-			VertexShaderCache::GetSimpleVertexShader());	
+			VertexShaderCache::GetSimpleVertexShader());
 
 		D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 
@@ -928,7 +924,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	if ((hr = pOffScreenBuffer->LockRect(&drect, &RectToLock, D3DLOCK_READONLY)) != D3D_OK)
 	{
 		PanicAlert("ERROR: %s", hr == D3DERR_WASSTILLDRAWING ? "Still drawing" :
-											  hr == D3DERR_INVALIDCALL     ? "Invalid call" : "w00t");	
+											  hr == D3DERR_INVALIDCALL ? "Invalid call" : "w00t");
 		return 0;
 	}
 		
@@ -938,7 +934,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 				switch (ReadBufferFormat)
 				{
 				case D3DFMT_R32F:
-					val = ((float *)drect.pBits)[6];					
+					val = ((float *)drect.pBits)[6];
 					break;
 				default:
 					float ffrac = 1.0f/255.0f;
@@ -947,12 +943,12 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 					ffrac*= 1 / 255.0f;
 					val +=	((float)((z>>8) & 0xFF)) * ffrac;
 					ffrac*= 1 / 255.0f;
-					val +=	((float)(z & 0xFF)) * ffrac;					
+					val +=	((float)(z & 0xFF)) * ffrac;
 					break;
 				};
 				z = ((u32)(val * 0xffffff));
 			}
-			break;			
+			break;
 		case POKE_Z:
 			// TODO: Get that Z value to poke from somewhere
 			//((float *)drect.pBits)[0] = val;
@@ -980,12 +976,12 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 void UpdateViewport()
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
-    // [0] = width/2
-    // [1] = height/2
-    // [2] = 16777215 * (farz - nearz)
-    // [3] = xorig + width/2 + 342
-    // [4] = yorig + height/2 + 342
-    // [5] = 16777215 * farz
+	// [0] = width/2
+	// [1] = height/2
+	// [2] = 16777215 * (farz - nearz)
+	// [3] = xorig + width/2 + 342
+	// [4] = yorig + height/2 + 342
+	// [5] = 16777215 * farz
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
@@ -998,19 +994,19 @@ void UpdateViewport()
 	D3DVIEWPORT9 vp;
 
 	// Stretch picture with increased internal resolution
-	int X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * MValueX) + Xstride; 	
+	int X = (int)(ceil(xfregs.rawViewport[3] - xfregs.rawViewport[0] - (scissorXOff)) * MValueX) + Xstride;
 	int Y = (int)(ceil(xfregs.rawViewport[4] + xfregs.rawViewport[1] - (scissorYOff)) * MValueY) + Ystride;
 	int Width  = (int)ceil((int)(2 * xfregs.rawViewport[0]) * MValueX);
 	int Height = (int)ceil((int)(-2 * xfregs.rawViewport[1]) * MValueY);
 	if (Width < 0)
 	{
 		X += Width;
-		Width*=-1;		
+		Width*=-1;
 	}
 	if (Height < 0)
 	{
 		Y += Height;
-		Height *= -1;		
+		Height *= -1;
 	}
 	bool sizeChanged = false;
 	if(X < 0)
@@ -1062,7 +1058,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 {	
 	// Update the view port for clearing the picture
 
-	D3DVIEWPORT9 vp;	
+	D3DVIEWPORT9 vp;
 	vp.X = 0;
 	vp.Y = 0;	
 	vp.Width  = Renderer::GetFullTargetWidth();
@@ -1079,13 +1075,13 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	sirc.top    = targetRc.top;
 	sirc.right  = targetRc.right;
 	sirc.bottom = targetRc.bottom;
-	D3D::dev->SetScissorRect(&sirc);	
+	D3D::dev->SetScissorRect(&sirc);
 	if (zEnable)
 		D3D::ChangeRenderState(D3DRS_ZFUNC, D3DCMP_ALWAYS);
-	D3D::drawClearQuad(color ,(z & 0xFFFFFF) / float(0xFFFFFF),PixelShaderCache::GetClearProgram(),VertexShaderCache::GetClearVertexShader());	
+	D3D::drawClearQuad(color ,(z & 0xFFFFFF) / float(0xFFFFFF),PixelShaderCache::GetClearProgram(),VertexShaderCache::GetClearVertexShader());
 	if (zEnable)
 		D3D::RefreshRenderState(D3DRS_ZFUNC);
-	//D3D::dev->Clear(0, NULL, (colorEnable ? D3DCLEAR_TARGET : 0)| ( zEnable ? D3DCLEAR_ZBUFFER : 0), color | ((alphaEnable)?0:0xFF000000),(z & 0xFFFFFF) / float(0xFFFFFF), 0);			
+	//D3D::dev->Clear(0, NULL, (colorEnable ? D3DCLEAR_TARGET : 0)| ( zEnable ? D3DCLEAR_ZBUFFER : 0), color | ((alphaEnable)?0:0xFF000000),(z & 0xFFFFFF) / float(0xFFFFFF), 0);
 	UpdateViewport();
 	SetScissorRect();
 }
@@ -1101,9 +1097,9 @@ void Renderer::SetBlendMode(bool forceUpdate)
 		return;
 	u32 newval = bpmem.blendmode.subtract << 2;
 
-    if (bpmem.blendmode.subtract) {
-        newval |= 0x0049;   // enable blending src 1 dst 1
-    } else if (bpmem.blendmode.blendenable) {		
+	if (bpmem.blendmode.subtract) {
+		newval |= 0x0049;   // enable blending src 1 dst 1
+	} else if (bpmem.blendmode.blendenable) {
 		newval |= 1;    // enable blending
 		newval |= bpmem.blendmode.srcfactor << 3;
 		newval |= bpmem.blendmode.dstfactor << 6;
@@ -1112,12 +1108,12 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
 
 	if (changes & 1) {
-        // blend enable change
+		// blend enable change
 		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, (newval & 1));
 		
 	}
 
-	if (changes & 4) {		
+	if (changes & 4) {
 		// subtract enable change
 		D3D::SetRenderState(D3DRS_BLENDOP, newval & 4 ? D3DBLENDOP_REVSUBTRACT : D3DBLENDOP_ADD);
 	}
@@ -1125,7 +1121,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	if (changes & 0x1F8) {
 		// blend RGB change
 		D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[(newval >> 3) & 7]);
-		D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[(newval >> 6) & 7]);		
+		D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[(newval >> 6) & 7]);
 	}
 
 	s_blendMode = newval;
@@ -1155,7 +1151,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	if(newAA != s_LastAA)
 	{	
 		s_target_width  = s_backbuffer_width;
-		s_target_height = s_backbuffer_height * ((float)EFB_HEIGHT / 480.0f);	
+		s_target_height = s_backbuffer_height * ((float)EFB_HEIGHT / 480.0f);
 		s_LastAA = newAA;
 		switch (s_LastAA)
 		{
@@ -1190,14 +1186,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// Count FPS.
 	// -------------
 	static int fpscount = 0;
-    static unsigned long lasttime;
-    ++fpscount;
+	static unsigned long lasttime;
+	++fpscount;
 	if (Common::Timer::GetTimeMs() - lasttime > 1000) 
-    {
-        lasttime = Common::Timer::GetTimeMs();
-        s_fps = fpscount - 1;
-        fpscount = 0;
-    }
+	{
+		lasttime = Common::Timer::GetTimeMs();
+		s_fps = fpscount - 1;
+		fpscount = 0;
+	}
 
 	// Begin new frame
 	// Set default viewport and scissor, for the clear to work correctly
@@ -1210,11 +1206,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 void Renderer::ResetAPIState()
 {
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-    D3D::SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-    D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-    D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
+	D3D::SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
+	D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
 	D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
-    DWORD color_mask = D3DCOLORWRITEENABLE_ALPHA| D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
+	DWORD color_mask = D3DCOLORWRITEENABLE_ALPHA| D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
 }
 
@@ -1225,14 +1221,14 @@ void Renderer::RestoreAPIState()
 	UpdateViewport();
 	SetScissorRect();
 	if (bpmem.zmode.testenable) D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
-    if (bpmem.zmode.updateenable)   D3D::SetRenderState(D3DRS_ZWRITEENABLE, TRUE);    
-    SetColorMask();
+	if (bpmem.zmode.updateenable)   D3D::SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
+	SetColorMask();
 	SetLogicOpMode();
 }
 
 void Renderer::SetGenerationMode()
 {
-	D3D::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);	
+	D3D::SetRenderState(D3DRS_CULLMODE, d3dCullModes[bpmem.genMode.cullmode]);
 }
 
 void Renderer::SetDepthMode()
@@ -1241,13 +1237,13 @@ void Renderer::SetDepthMode()
 	{
 		D3D::SetRenderState(D3DRS_ZENABLE, TRUE);
 		D3D::SetRenderState(D3DRS_ZWRITEENABLE, bpmem.zmode.updateenable);
-		D3D::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);		
+		D3D::SetRenderState(D3DRS_ZFUNC, d3dCmpFuncs[bpmem.zmode.func]);
 	}
 	else
 	{
 		D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
-		D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);  // ??		
-	}			
+		D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);  // ??
+	}
 }
 
 void Renderer::SetLogicOpMode()
@@ -1255,7 +1251,7 @@ void Renderer::SetLogicOpMode()
 	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3) 
 	{
 		s_blendMode = 0;
-        D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, 1);
+		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, 1);
 		D3D::SetRenderState(D3DRS_BLENDOP, d3dLogincOPop[bpmem.blendmode.logicmode]);
 		D3D::SetRenderState(D3DRS_SRCBLEND, d3dLogicOpSrcFactors[bpmem.blendmode.logicmode]);
 		D3D::SetRenderState(D3DRS_DESTBLEND, d3dLogicOpDestFactors[bpmem.blendmode.logicmode]);
@@ -1268,7 +1264,7 @@ void Renderer::SetLogicOpMode()
 
 void Renderer::SetDitherMode()
 {
-   D3D::SetRenderState(D3DRS_DITHERENABLE,bpmem.blendmode.dither);
+	D3D::SetRenderState(D3DRS_DITHERENABLE,bpmem.blendmode.dither);
 }
 
 void Renderer::SetLineWidth()

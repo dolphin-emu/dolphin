@@ -34,8 +34,8 @@
 
 BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CLOSE(GFXConfigDialogOGL::OnClose)
-	EVT_BUTTON(ID_CLOSE, GFXConfigDialogOGL::CloseClick)
-	EVT_BUTTON(ID_ABOUTOGL, GFXConfigDialogOGL::AboutClick)
+	EVT_BUTTON(wxID_CLOSE, GFXConfigDialogOGL::CloseClick)
+	EVT_BUTTON(wxID_ABOUT, GFXConfigDialogOGL::AboutClick)
 	EVT_CHECKBOX(ID_FULLSCREEN, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_VSYNC, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW, GFXConfigDialogOGL::GeneralSettingsChanged)
@@ -65,7 +65,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_DUMPTEXTURES, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_HIRESTEXTURES, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DUMPEFBTARGET, GFXConfigDialogOGL::AdvancedSettingsChanged)
-    EVT_CHECKBOX(ID_DUMPFRAMES, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DUMPFRAMES, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_FREELOOK, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLELIGHTING, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DISABLETEXTURING, GFXConfigDialogOGL::AdvancedSettingsChanged)
@@ -73,7 +73,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_OSDHOTKEY, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_HACK, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,GFXConfigDialogOGL::AdvancedSettingsChanged)
-    EVT_CHECKBOX(ID_DSTALPHAPASS,GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_DSTALPHAPASS,GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTORAM, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTOGL, GFXConfigDialogOGL::AdvancedSettingsChanged)
@@ -86,6 +86,7 @@ END_EVENT_TABLE()
 GFXConfigDialogOGL::GFXConfigDialogOGL(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
+	CreateGUIControls();
 }
 
 
@@ -95,6 +96,7 @@ GFXConfigDialogOGL::~GFXConfigDialogOGL()
 {
 	INFO_LOG(CONSOLE, "GFXConfigDialogOGL Closed");
 }
+
 void GFXConfigDialogOGL::OnClose(wxCloseEvent& event)
 {
 	//INFO_LOG(CONSOLE, "OnClose");
@@ -161,6 +163,7 @@ void GFXConfigDialogOGL::LoadShaders()
 		File::CreateDir(File::GetUserPath(D_SHADERS_IDX));
 	}
 }
+
 void GFXConfigDialogOGL::InitializeGUILists()
 {
 	// Resolutions
@@ -206,6 +209,7 @@ void GFXConfigDialogOGL::InitializeGUILists()
 	arrayStringFor_PhackvalueCB.Add(wxT("Baten Kaitos Origin"));
 	arrayStringFor_PhackvalueCB.Add(wxT("Skies of Arcadia"));
 }
+
 void GFXConfigDialogOGL::InitializeGUIValues()
 {
 	// General Display Settings
@@ -257,8 +261,8 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	m_Wireframe->SetValue(g_Config.bWireFrame);
 	m_DisableLighting->SetValue(g_Config.bDisableLighting);
 	m_DisableTexturing->SetValue(g_Config.bDisableTexturing);
-    m_DstAlphaPass->SetValue(g_Config.bDstAlphaPass);
-    m_DisableFog->SetValue(g_Config.bDisableFog);
+	m_DstAlphaPass->SetValue(g_Config.bDstAlphaPass);
+	m_DisableFog->SetValue(g_Config.bDisableFog);
 
 	m_CheckBox_DisableCopyEFB->SetValue(g_Config.bEFBCopyDisable);
 	g_Config.bCopyEFBToTexture ? m_Radio_CopyEFBToGL->SetValue(true) : m_Radio_CopyEFBToRAM->SetValue(true);
@@ -274,6 +278,7 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	m_PhackvalueCB->SetSelection(g_Config.iPhackvalue);
 	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
 }
+
 void GFXConfigDialogOGL::InitializeGUITooltips()
 {
 	// Tool tips
@@ -343,6 +348,7 @@ void GFXConfigDialogOGL::InitializeGUITooltips()
 		wxT("\n[This option will apply immediately and does not require a restart. However it may not")
 		wxT(" be entirely safe to change it midgames.]"));
 }
+
 void GFXConfigDialogOGL::CreateGUIControls()
 {
 	InitializeGUILists();
@@ -355,8 +361,8 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_Notebook->AddPage(m_PageAdvanced, wxT("Advanced"));
 
 	// Buttons
-	m_About = new wxButton(this, ID_ABOUTOGL, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Close = new wxButton(this, ID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_About = new wxButton(this, wxID_ABOUT, wxT("About"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Close = new wxButton(this, wxID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Put notebook and buttons in sizers
 	wxBoxSizer* sButtons;
@@ -418,7 +424,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 
 	// Sizers
 	sGeneral = new wxBoxSizer(wxVERTICAL);
-	sBasic = new wxGridBagSizer(0, 0);	
+	sBasic = new wxGridBagSizer(0, 0);
 
 	sBasic->Add(IRText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_NativeResolution, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
@@ -428,7 +434,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasic->Add(WMText, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_WindowResolutionCB, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 5);
 	sBasic->Add(m_Fullscreen, wxGBPosition(1, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_WindowFSResolutionCB, wxGBPosition(2, 2), wxGBSpan(1, 1), wxALL, 5);	
+	sBasic->Add(m_WindowFSResolutionCB, wxGBPosition(2, 2), wxGBSpan(1, 1), wxALL, 5);
 
 	sBasic->Add(KeepARText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_KeepAR, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
@@ -485,8 +491,8 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_Wireframe = new wxCheckBox(m_PageAdvanced, ID_WIREFRAME, wxT("Enable Wireframe"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DisableLighting = new wxCheckBox(m_PageAdvanced, ID_DISABLELIGHTING, wxT("Disable Material Lighting"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_DisableTexturing = new wxCheckBox(m_PageAdvanced, ID_DISABLETEXTURING, wxT("Disable Texturing"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-    m_DstAlphaPass = new wxCheckBox(m_PageAdvanced, ID_DSTALPHAPASS, wxT("Disable Destination Alpha Pass"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-    m_DisableFog = new wxCheckBox(m_PageAdvanced, ID_DISABLEFOG, wxT("Disable Fog"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_DstAlphaPass = new wxCheckBox(m_PageAdvanced, ID_DSTALPHAPASS, wxT("Disable Destination Alpha Pass"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_DisableFog = new wxCheckBox(m_PageAdvanced, ID_DISABLEFOG, wxT("Disable Fog"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	m_StaticBox_EFB = new wxStaticBox(m_PageAdvanced, ID_STATICBOX_EFB, wxT("EFB Copy"));
 	m_CheckBox_DisableCopyEFB = new wxCheckBox(m_PageAdvanced, ID_CHECKBOX_DISABLECOPYEFB, wxT("Disable"));
@@ -505,7 +511,6 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
 	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_PhackvalueCB = new wxChoice(m_PageAdvanced, ID_PHACKVALUE, wxDefaultPosition, wxDefaultSize, arrayStringFor_PhackvalueCB, 0, wxDefaultValidator);
-
 
 	// Sizers
 	sHacks = new wxGridBagSizer(0, 0);
@@ -530,7 +535,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sRendering->Add(m_Wireframe, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 4);
 	sRendering->Add(m_DisableLighting, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 4);
 	sRendering->Add(m_DisableTexturing, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALL, 4);
-    sRendering->Add(m_DstAlphaPass, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 4);
+	sRendering->Add(m_DstAlphaPass, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALL, 4);
 	sRendering->Add(m_DisableFog, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 4);
 	sRenderBoxRow1->Add(sRendering, 0, wxALL|wxEXPAND, 1);
 		wxStaticBoxSizer *sSBox = new wxStaticBoxSizer(m_StaticBox_EFB, wxVERTICAL);
@@ -542,12 +547,12 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sRenderBoxRow1->Add(sSBox, 0, wxALL|wxEXPAND, 5);
 	sbRendering->Add(sRenderBoxRow1);
 	
-    sUtilities = new wxGridBagSizer(0, 0);
+	sUtilities = new wxGridBagSizer(0, 0);
 	sUtilities->Add(m_DumpTextures, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sUtilities->Add(m_HiresTextures, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sUtilities->Add(m_DumpEFBTarget, wxGBPosition(0, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sUtilities->Add(m_DumpFrames, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
-    sUtilities->Add(m_FreeLook, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
+	sUtilities->Add(m_FreeLook, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sbUtilities->Add(sUtilities, 1, wxEXPAND);
 
 	// Sizers
@@ -566,7 +571,6 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	Center();
 	UpdateGUI();
 }
-
 
 void GFXConfigDialogOGL::AboutClick(wxCommandEvent& WXUNUSED (event))
 {
@@ -645,10 +649,10 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 		g_Config.bWidescreenHack = m_WidescreenHack->IsChecked();
 		break;
 	case ID_CROP:
-		g_Config.bCrop = m_Crop->IsChecked();	
+		g_Config.bCrop = m_Crop->IsChecked();
 		break;
 	case ID_FORCEFILTERING:
-		g_Config.bForceFiltering = m_ForceFiltering->IsChecked();	
+		g_Config.bForceFiltering = m_ForceFiltering->IsChecked();
 		break;
 	#ifndef _WIN32
 	case ID_HIDECURSOR:
@@ -683,7 +687,6 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 
 	UpdateGUI();
 }
-
 
 void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 {
@@ -721,8 +724,8 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_DISABLEFOG:
 		g_Config.bDisableFog = m_DisableFog->IsChecked();
-		break;		
-    case ID_DSTALPHAPASS:
+		break;
+	case ID_DSTALPHAPASS:
 		g_Config.bDstAlphaPass = m_DstAlphaPass->IsChecked();
 		break;
 	case ID_DUMPTEXTURES:
@@ -737,7 +740,7 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_DUMPFRAMES:
 		g_Config.bDumpFrames = m_DumpFrames->IsChecked();
 		break;
-    case ID_FREELOOK:
+	case ID_FREELOOK:
 		g_Config.bFreeLook = m_FreeLook->IsChecked();
 		break;
 	case ID_TEXTUREPATH:
@@ -809,8 +812,6 @@ void GFXConfigDialogOGL::UpdateGUI()
 
 	// Disable the Copy to options when EFBCopy is disabled
 	m_Radio_CopyEFBToRAM->Enable(!(g_Config.bEFBCopyDisable));
-	m_Radio_CopyEFBToGL->Enable(!(g_Config.bEFBCopyDisable));	
+	m_Radio_CopyEFBToGL->Enable(!(g_Config.bEFBCopyDisable));
 }
-
-
 

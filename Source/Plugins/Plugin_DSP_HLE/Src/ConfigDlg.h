@@ -28,7 +28,7 @@ class DSPConfigDialogHLE : public wxDialog
 {
 public:
 	DSPConfigDialogHLE(wxWindow *parent,
-		     wxWindowID id = 1,
+		     wxWindowID id = wxID_ANY,
 		     const wxString &title = wxT("Dolphin DSP-HLE Plugin Settings"),
 		     const wxPoint& pos = wxDefaultPosition,
 		     const wxSize& size = wxDefaultSize,
@@ -52,7 +52,6 @@ private:
 
     enum
 	{
-	    wxID_OK,
 	    ID_ENABLE_HLE_AUDIO,
 	    ID_ENABLE_DTK_MUSIC,
 	    ID_ENABLE_THROTTLE,
