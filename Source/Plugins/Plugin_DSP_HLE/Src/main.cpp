@@ -145,12 +145,12 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_DSP;
 #ifdef DEBUGFAST
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin DSP-HLE Plugin (DebugFast) ");
+	sprintf(_PluginInfo->Name, "Dolphin DSP-HLE Plugin (DebugFast) ");
 #else
 #ifndef _DEBUG
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin DSP-HLE Plugin ");
+	sprintf(_PluginInfo->Name, "Dolphin DSP-HLE Plugin ");
 #else
-	sprintf_s(_PluginInfo->Name, 100, "Dolphin DSP-HLE Plugin (Debug) ");
+	sprintf(_PluginInfo->Name, "Dolphin DSP-HLE Plugin (Debug) ");
 #endif
 #endif
 }

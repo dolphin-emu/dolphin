@@ -136,12 +136,12 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_WIIMOTE;
 #ifdef DEBUGFAST
-	sprintf_s(_PluginInfo->Name, "Dolphin Wiimote Plugin (DebugFast)");
+	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (DebugFast)");
 #else
 #ifndef _DEBUG
-	sprintf_s(_PluginInfo->Name, "Dolphin Wiimote Plugin");
+	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin");
 #else
-	sprintf_s(_PluginInfo->Name, "Dolphin Wiimote Plugin (Debug)");
+	sprintf(_PluginInfo->Name, "Dolphin Wiimote Plugin (Debug)");
 #endif
 #endif
 }

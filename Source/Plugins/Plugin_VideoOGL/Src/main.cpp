@@ -118,11 +118,11 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_VIDEO;
 #ifdef DEBUGFAST
-	sprintf_s(_PluginInfo->Name, "Dolphin OpenGL (DebugFast)");
+	sprintf(_PluginInfo->Name, "Dolphin OpenGL (DebugFast)");
 #elif defined _DEBUG
-	sprintf_s(_PluginInfo->Name, "Dolphin OpenGL (Debug)");
+	sprintf(_PluginInfo->Name, "Dolphin OpenGL (Debug)");
 #else
-	sprintf_s(_PluginInfo->Name, "Dolphin OpenGL");
+	sprintf(_PluginInfo->Name, "Dolphin OpenGL");
 #endif
 }
 
