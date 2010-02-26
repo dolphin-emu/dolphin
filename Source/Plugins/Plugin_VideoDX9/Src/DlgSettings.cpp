@@ -96,13 +96,13 @@ struct TabDirect3D : public W32Util::Tab
 		Button_SetCheck(GetDlgItem(hDlg, IDC_WIDESCREEN_HACK), g_Config.bWidescreenHack);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE), g_Config.bSafeTextureCache);
 		
-		if(g_Config.iSafeTextureCache_ColorSamples == 0 && g_Config.iSafeTextureCache_TlutMaxSize == 0)
+		if(g_Config.iSafeTextureCache_ColorSamples == 0)
 		{
 			Button_SetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE_SAFE), true);
 		}
 		else
 		{
-			if(g_Config.iSafeTextureCache_ColorSamples > 36 && g_Config.iSafeTextureCache_TlutMaxSize > 4095)
+			if(g_Config.iSafeTextureCache_ColorSamples > 128)
 			{
 				Button_SetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE_NORMAL), true);	
 			}
@@ -160,32 +160,23 @@ struct TabDirect3D : public W32Util::Tab
 		g_Config.RenderToMainframe = Button_GetCheck(GetDlgItem(hDlg, IDC_RENDER_TO_MAINWINDOW)) ? true : false;
 		if(Button_GetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE_SAFE)))
 		{
-			g_Config.iSafeTextureCache_ColorSamples = 0;
-			g_Config.iSafeTextureCache_TlutMaxSize = 0;
+			g_Config.iSafeTextureCache_ColorSamples = 0;			
 		}
 		else
 		{
 			if(Button_GetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE_NORMAL)))
 			{
-				if(g_Config.iSafeTextureCache_ColorSamples < 37)
+				if(g_Config.iSafeTextureCache_ColorSamples < 512)
 				{
-					g_Config.iSafeTextureCache_ColorSamples = 37;
-				}
-				if(g_Config.iSafeTextureCache_TlutMaxSize < 4096)
-				{
-					g_Config.iSafeTextureCache_TlutMaxSize = 4096;	
-				}
+					g_Config.iSafeTextureCache_ColorSamples = 512;
+				}				
 			}
 			else
 			{
-				if(g_Config.iSafeTextureCache_ColorSamples > 36 || g_Config.iSafeTextureCache_ColorSamples == 0)
+				if(g_Config.iSafeTextureCache_ColorSamples > 128 || g_Config.iSafeTextureCache_ColorSamples == 0)
 				{
-					g_Config.iSafeTextureCache_ColorSamples = 8;
-				}
-				if(g_Config.iSafeTextureCache_TlutMaxSize > 1024 || g_Config.iSafeTextureCache_TlutMaxSize == 0)
-				{
-					g_Config.iSafeTextureCache_TlutMaxSize = 1024;	
-				}
+					g_Config.iSafeTextureCache_ColorSamples = 128;
+				}				
 			}
 		}
 		g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
