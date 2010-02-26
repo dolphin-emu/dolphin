@@ -63,12 +63,8 @@ void VideoConfig::Load(const char *ini_file)
     
     iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false); // Settings
 	//Safe texture cache params
-	iniFile.Get("Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,37);
-	iniFile.Get("Settings", "SafeTextureCacheIndexedSamples", &iSafeTextureCache_IndexedSamples,0);
-	iniFile.Get("Settings", "SafeTextureCacheTlutSamples", &iSafeTextureCache_TlutSamples,0);
-	iniFile.Get("Settings", "SafeTextureCacheColorMaxSize", &iSafeTextureCache_ColorMaxSize,0);
-	iniFile.Get("Settings", "SafeTextureCacheIndexedMaxSize", &iSafeTextureCache_IndexedMaxSize,0);
-	iniFile.Get("Settings", "SafeTextureCacheTlutMaxSize", &iSafeTextureCache_TlutMaxSize,0);
+	iniFile.Get("Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,37);	
+	iniFile.Get("Settings", "SafeTextureCacheTlutMaxSize", &iSafeTextureCache_TlutMaxSize,1024);
 
     iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
     iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
@@ -137,16 +133,8 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 	//Safe texture cache params
 	if (iniFile.Exists("Video", "SafeTextureCacheColorSamples"))
 		iniFile.Get("Video", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,37);
-	if (iniFile.Exists("Video", "SafeTextureCacheIndexedSamples"))
-		iniFile.Get("Video", "SafeTextureCacheIndexedSamples", &iSafeTextureCache_IndexedSamples,0);
-	if (iniFile.Exists("Video", "SafeTextureCacheTlutSamples"))
-		iniFile.Get("Video", "SafeTextureCacheTlutSamples", &iSafeTextureCache_TlutSamples,0);
-	if (iniFile.Exists("Video", "SafeTextureCacheColorMaxSize"))
-		iniFile.Get("Video", "SafeTextureCacheColorMaxSize", &iSafeTextureCache_ColorMaxSize,0);
-	if (iniFile.Exists("Video", "SafeTextureCacheIndexedMaxSize"))
-		iniFile.Get("Video", "SafeTextureCacheIndexedMaxSize", &iSafeTextureCache_IndexedMaxSize,0);
 	if (iniFile.Exists("Video", "SafeTextureCacheTlutMaxSize"))
-		iniFile.Get("Video", "SafeTextureCacheTlutMaxSize", &iSafeTextureCache_TlutMaxSize,0);
+		iniFile.Get("Video", "SafeTextureCacheTlutMaxSize", &iSafeTextureCache_TlutMaxSize,1024);
 
 	if (iniFile.Exists("Video", "MSAA"))
 		iniFile.Get("Video", "MSAA", &iMultisampleMode, 0);
@@ -181,10 +169,6 @@ void VideoConfig::Save(const char *ini_file)
     iniFile.Set("Settings", "SafeTextureCache", bSafeTextureCache);
 	//safe texture cache params
 	iniFile.Set("Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
-	iniFile.Set("Settings", "SafeTextureCacheIndexedSamples", iSafeTextureCache_IndexedSamples);
-	iniFile.Set("Settings", "SafeTextureCacheTlutSamples", iSafeTextureCache_TlutSamples);
-	iniFile.Set("Settings", "SafeTextureCacheColorMaxSize", iSafeTextureCache_ColorMaxSize);
-	iniFile.Set("Settings", "SafeTextureCacheIndexedMaxSize", iSafeTextureCache_IndexedMaxSize);
 	iniFile.Set("Settings", "SafeTextureCacheTlutMaxSize", iSafeTextureCache_TlutMaxSize);
 
     iniFile.Set("Settings", "ShowFPS", bShowFPS);

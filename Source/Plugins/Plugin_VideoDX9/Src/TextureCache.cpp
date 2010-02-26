@@ -167,12 +167,11 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			// visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
 			// we must make sure that texture with different tluts get different IDs.
 			int tempsize = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format);
-			tempsize = (g_ActiveConfig.iSafeTextureCache_IndexedMaxSize != 0 && g_ActiveConfig.iSafeTextureCache_IndexedMaxSize < tempsize)?g_ActiveConfig.iSafeTextureCache_IndexedMaxSize : tempsize;
-			texHash =  TexDecoder_GetHash64(ptr,tempsize,g_ActiveConfig.iSafeTextureCache_IndexedSamples);			
+			texHash =  TexDecoder_GetHash64(ptr,tempsize,0);			
 			
 			tempsize = TexDecoder_GetPaletteSize(tex_format);
 			tempsize = (g_ActiveConfig.iSafeTextureCache_TlutMaxSize != 0 && g_ActiveConfig.iSafeTextureCache_TlutMaxSize < tempsize)?g_ActiveConfig.iSafeTextureCache_TlutMaxSize : tempsize;
- 			u32 tlutHash = TexDecoder_GetHash32(&texMem[tlutaddr], tempsize,g_ActiveConfig.iSafeTextureCache_TlutSamples);
+ 			u32 tlutHash = TexDecoder_GetHash32(&texMem[tlutaddr], tempsize,0);
 			texHash ^= tlutHash;
 			if (g_ActiveConfig.bSafeTextureCache)
 			{
@@ -182,7 +181,6 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		else
 		{
 			int tempsize = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format);
-			tempsize = (g_ActiveConfig.iSafeTextureCache_ColorMaxSize != 0 && g_ActiveConfig.iSafeTextureCache_ColorMaxSize < tempsize)?g_ActiveConfig.iSafeTextureCache_ColorMaxSize : tempsize;
 			texHash =  TexDecoder_GetHash64(ptr, tempsize,g_ActiveConfig.iSafeTextureCache_ColorSamples);
 		}
 		if (g_ActiveConfig.bSafeTextureCache)
