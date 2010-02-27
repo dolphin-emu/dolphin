@@ -58,15 +58,15 @@ void addaxl(const UDSPInstruction& opc)
 	u8 sreg = (opc.hex >> 9) & 0x1;
 	u8 dreg = (opc.hex >> 8) & 0x1;
 
-	s64 acc = dsp_get_long_acc(dreg);
-	s64 acx = dsp_get_ax_l(sreg);
+	u64 acc = (u64)dsp_get_long_acc(dreg);
+	u16 acx = (u16)dsp_get_ax_l(sreg);
 
 	acc += acx;
 
 	zeroWriteBackLog();
 
-	dsp_set_long_acc(dreg, acc);
-	Update_SR_Register64(acc);
+	dsp_set_long_acc(dreg, (s64)acc);
+	Update_SR_Register64((s64)acc);
 }
 
 // TSTAXH $axR.h

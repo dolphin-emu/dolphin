@@ -121,7 +121,6 @@ void l(const UDSPInstruction& opc)
 	u8 sreg = opc.hex & 0x3;
 	u8 dreg = ((opc.hex >> 3) & 0x7) + DSP_REG_AXL0;
 	
-	// 40bit sign extension if target is acm.D (important for zelda type ucodes)
 	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)) 
 	{
 		u16 val = dsp_dmem_read(g_dsp.r[sreg]);
@@ -146,8 +145,19 @@ void ln(const UDSPInstruction& opc)
 	u8 sreg = opc.hex & 0x3;
 	u8 dreg = ((opc.hex >> 3) & 0x7) + DSP_REG_AXL0;
 
-	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r[sreg]));
-	writeToBackLog(1, sreg, dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]));
+	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)) 
+	{
+		u16 val = dsp_dmem_read(g_dsp.r[sreg]);
+		writeToBackLog(0, dreg - DSP_REG_ACM0 + DSP_REG_ACH0, (val & 0x8000) ? 0xFFFF : 0x0000);
+		writeToBackLog(1, dreg,	val);
+		writeToBackLog(2, dreg - DSP_REG_ACM0 + DSP_REG_ACL0, 0);
+		writeToBackLog(3, sreg, dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]));
+	}
+	else
+	{
+		writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r[sreg]));
+		writeToBackLog(1, sreg, dsp_increase_addr_reg(sreg, (s16)g_dsp.r[DSP_REG_IX0 + sreg]));
+	}
 }
 
 // LS $axD.l, $acS.m

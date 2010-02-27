@@ -184,8 +184,8 @@ void tstprod(const UDSPInstruction& opc)
 // secondary accumulator $axS (treat them both as signed).
 void mulc(const UDSPInstruction& opc)
 {
-	u8 sreg = (opc.hex >> 11) & 0x1;
-	u8 treg = (opc.hex >> 12) & 0x1;
+	u8 sreg = (opc.hex >> 12) & 0x1;
+	u8 treg = (opc.hex >> 11) & 0x1;
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
 	s64 prod = dsp_multiply(accm, axh);
