@@ -84,8 +84,8 @@ class GFXConfigDialogOGL : public wxDialog
 		wxGridBagSizer* sRendering;
 		wxStaticBoxSizer* sbUtilities;
 		wxGridBagSizer* sUtilities;
+		wxStaticBoxSizer* sHacks;
 		wxStaticBoxSizer* sbHacks;
-		wxGridBagSizer* sHacks;
 		
 		wxButton *m_About;
 		wxButton *m_Close;
@@ -135,6 +135,9 @@ class GFXConfigDialogOGL : public wxDialog
 		wxCheckBox *m_OSDHotKey;
 		wxCheckBox *m_Hack;
 		wxCheckBox *m_SafeTextureCache;
+		wxRadioButton *m_Radio_SafeTextureCache_Safe;
+		wxRadioButton *m_Radio_SafeTextureCache_Normal;
+		wxRadioButton *m_Radio_SafeTextureCache_Fast;
 		// Screen size
 		wxStaticText *m_TextScreenWidth, *m_TextScreenHeight, *m_TextScreenLeft, *m_TextScreenTop;
 		wxSlider *m_SliderWidth, *m_SliderHeight, *m_SliderLeft, *m_SliderTop;
@@ -194,6 +197,9 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_DISABLEFOG,
 			ID_STATICBOX_EFB,
 			ID_SAFETEXTURECACHE,
+			ID_RADIO_SAFETEXTURECACHE_SAFE,
+			ID_RADIO_SAFETEXTURECACHE_NORMAL,
+			ID_RADIO_SAFETEXTURECACHE_FAST,
 			ID_HACK,
 			ID_PHACKVALUE,
 

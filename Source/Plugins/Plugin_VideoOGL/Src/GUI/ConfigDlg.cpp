@@ -73,6 +73,9 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_OSDHOTKEY, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_HACK, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SAFETEXTURECACHE,GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_RADIOBUTTON(ID_RADIO_SAFETEXTURECACHE_SAFE, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_RADIOBUTTON(ID_RADIO_SAFETEXTURECACHE_NORMAL, GFXConfigDialogOGL::AdvancedSettingsChanged)
+	EVT_RADIOBUTTON(ID_RADIO_SAFETEXTURECACHE_FAST, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_DSTALPHAPASS,GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_CHECKBOX_DISABLECOPYEFB, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_COPYEFBTORAM, GFXConfigDialogOGL::AdvancedSettingsChanged)
@@ -276,6 +279,13 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	// Hacks controls
 	m_PhackvalueCB->SetSelection(g_Config.iPhackvalue);
 	m_SafeTextureCache->SetValue(g_Config.bSafeTextureCache);
+	if(g_Config.iSafeTextureCache_ColorSamples == 0)
+		m_Radio_SafeTextureCache_Safe->SetValue(true);
+	else
+		if(g_Config.iSafeTextureCache_ColorSamples > 128)
+			m_Radio_SafeTextureCache_Normal->SetValue(true);
+		else
+			m_Radio_SafeTextureCache_Fast->SetValue(true);
 }
 
 void GFXConfigDialogOGL::InitializeGUITooltips()
@@ -346,6 +356,12 @@ void GFXConfigDialogOGL::InitializeGUITooltips()
 	m_SafeTextureCache->SetToolTip(wxT("This is useful to prevent Metroid Prime from crashing, but can cause problems in other games.")
 		wxT("\n[This option will apply immediately and does not require a restart. However it may not")
 		wxT(" be entirely safe to change it midgames.]"));
+	m_Radio_SafeTextureCache_Safe->SetToolTip(
+		wxT("[This option will apply immediately and does not require a restart to take effect.]"));
+	m_Radio_SafeTextureCache_Normal->SetToolTip(
+		wxT("[This option will apply immediately and does not require a restart to take effect.]"));
+	m_Radio_SafeTextureCache_Fast->SetToolTip(
+		wxT("[This option will apply immediately and does not require a restart to take effect.]"));
 }
 
 void GFXConfigDialogOGL::CreateGUIControls()
@@ -507,15 +523,22 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_FreeLook = new wxCheckBox(m_PageAdvanced, ID_FREELOOK, wxT("Free Look"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Hacks controls
-	sbHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
-	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	sHacks = new wxStaticBoxSizer(wxVERTICAL, m_PageAdvanced, wxT("Hacks"));
 	m_PhackvalueCB = new wxChoice(m_PageAdvanced, ID_PHACKVALUE, wxDefaultPosition, wxDefaultSize, arrayStringFor_PhackvalueCB, 0, wxDefaultValidator);
+	m_SafeTextureCache = new wxCheckBox(m_PageAdvanced, ID_SAFETEXTURECACHE, wxT("Use Safe texture cache"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Radio_SafeTextureCache_Safe = new wxRadioButton(m_PageAdvanced, ID_RADIO_SAFETEXTURECACHE_SAFE, wxT("Safe"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+	m_Radio_SafeTextureCache_Normal = new wxRadioButton(m_PageAdvanced, ID_RADIO_SAFETEXTURECACHE_NORMAL, wxT("Normal"));
+	m_Radio_SafeTextureCache_Fast = new wxRadioButton(m_PageAdvanced, ID_RADIO_SAFETEXTURECACHE_FAST, wxT("Fast"));
 
 	// Sizers
-	sHacks = new wxGridBagSizer(0, 0);
-	sHacks->Add(m_SafeTextureCache, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALL, 5);
-	sHacks->Add(m_PhackvalueCB, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-	sbHacks->Add(sHacks, 0, wxEXPAND | (wxTOP), 0);
+	sHacks->Add(m_PhackvalueCB, 0, wxTOP, 0);
+	sbHacks = new wxStaticBoxSizer(wxHORIZONTAL, m_PageAdvanced, wxT("Safe Texture Cache"));
+	sbHacks->Add(m_SafeTextureCache, 0, wxALL, 5);
+	sbHacks->AddStretchSpacer();
+	sbHacks->Add(m_Radio_SafeTextureCache_Safe, 0, wxALL, 5);
+	sbHacks->Add(m_Radio_SafeTextureCache_Normal, 0, wxALL, 5);
+	sbHacks->Add(m_Radio_SafeTextureCache_Fast, 0, wxALL, 5);
+	sHacks->Add(sbHacks, 0, wxEXPAND | (wxTOP), 5);
 
 	// Sizers
 	sAdvanced = new wxBoxSizer(wxVERTICAL);
@@ -558,7 +581,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sAdvanced->Add(sbInfo, 0, wxEXPAND | wxALL, 5);
 	sAdvanced->Add(sbRendering, 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
 	sAdvanced->Add(sbUtilities, 1, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
-	sAdvanced->Add(sbHacks, 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+	sAdvanced->Add(sHacks, 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
 
 	m_PageAdvanced->SetSizer(sAdvanced);
 	sAdvanced->Layout();
@@ -754,6 +777,17 @@ void GFXConfigDialogOGL::AdvancedSettingsChanged(wxCommandEvent& event)
 	case ID_SAFETEXTURECACHE:
 		g_Config.bSafeTextureCache = m_SafeTextureCache->IsChecked();
 		break;
+	case ID_RADIO_SAFETEXTURECACHE_SAFE:
+		g_Config.iSafeTextureCache_ColorSamples = 0;
+		break;
+	case ID_RADIO_SAFETEXTURECACHE_NORMAL:
+		if(g_Config.iSafeTextureCache_ColorSamples < 512)
+			g_Config.iSafeTextureCache_ColorSamples = 512;
+		break;
+	case ID_RADIO_SAFETEXTURECACHE_FAST:
+		if(g_Config.iSafeTextureCache_ColorSamples > 128 || g_Config.iSafeTextureCache_ColorSamples == 0)
+			g_Config.iSafeTextureCache_ColorSamples = 128;
+		break;
 	case ID_HACK:
 		g_Config.bHack = m_Hack->IsChecked();
 		break;
@@ -812,5 +846,10 @@ void GFXConfigDialogOGL::UpdateGUI()
 	// Disable the Copy to options when EFBCopy is disabled
 	m_Radio_CopyEFBToRAM->Enable(!(g_Config.bEFBCopyDisable));
 	m_Radio_CopyEFBToGL->Enable(!(g_Config.bEFBCopyDisable));
+
+	// Disable/Enable Safe Texture Cache options
+	m_Radio_SafeTextureCache_Safe->Enable(g_Config.bSafeTextureCache);
+	m_Radio_SafeTextureCache_Normal->Enable(g_Config.bSafeTextureCache);
+	m_Radio_SafeTextureCache_Fast->Enable(g_Config.bSafeTextureCache);
 }
 
