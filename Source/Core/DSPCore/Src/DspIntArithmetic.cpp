@@ -642,7 +642,7 @@ void lsr16(const UDSPInstruction& opc)
 	u8 areg = (opc.hex >> 8) & 0x1;
 
 	u64 acc = dsp_get_long_acc(areg);
-
+	acc &= 0x000000FFFFFFFFFFULL; 
 	acc >>= 16;
 
 	zeroWriteBackLog();
