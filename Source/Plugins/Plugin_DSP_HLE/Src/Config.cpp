@@ -49,20 +49,3 @@ void CConfig::Save()
 
 	file.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "DSP.ini").c_str());
 }
-
-void CConfig::GameIniLoad(const char *game_ini)
-{
-// This game config will affect global system config
-// Need a better way to seperate system config from game config
-//
-/*
-	if (game_ini && strlen(game_ini))
-	{
-		IniFile iniFile;
-		iniFile.Load(game_ini);
-		//iniFile.Get("HLEaudio", "UseRE0Fix", &m_EnableRE0Fix, 0);
-		//iniFile.Get("HLEaudio", "UseLoopFix", &m_EnableLoopFix, 0);
-	}
-*/
-}
-

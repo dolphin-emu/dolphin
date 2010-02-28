@@ -20,10 +20,10 @@
 
 struct PBMixer
 {
-	u16 volume_left;
-	u16 unknown;
-	u16 volume_right;
-	u16 unknown2;
+	u16 left;
+	u16 left_delta;
+	u16 right;
+	u16 right_delta;
 
 	u16 unknown3[8];
 	u16 unknown4[6];
@@ -31,13 +31,60 @@ struct PBMixer
 
 struct PBMixerWii
 {
-	u16 volume_left;
-	u16 unknown;
-	u16 volume_right;
-	u16 unknown2;
+	// volume mixing values in .15, 0x8000 = ca. 1.0
+	u16 left;
+	u16 left_delta;
+	u16 right;
+	u16 right_delta;
 
-	u16 unknown3[12];
-	u16 unknown4[8];
+	u16 auxA_left;
+	u16 auxA_left_delta;
+	u16 auxA_right;
+	u16 auxA_right_delta;
+
+	u16 auxB_left;
+	u16 auxB_left_delta;
+	u16 auxB_right;
+	u16 auxB_right_delta;
+
+	// Note: the following elements usage changes a little in DPL2 mode
+	// TODO: implement and comment it in the mixer
+	u16 auxC_left;
+	u16 auxC_left_delta;
+	u16 auxC_right;
+	u16 auxC_right_delta;
+
+	u16 surround;
+	u16 surround_delta;
+	u16 auxA_surround;
+	u16 auxA_surround_delta;
+	u16 auxB_surround;
+	u16 auxB_surround_delta;
+	u16 auxC_surround;
+	u16 auxC_surround_delta;
+};
+
+struct PBMixerWM
+{
+	u16 main0;
+	u16 main0_delta;
+	u16 aux0;
+	u16 aux0_delta;
+
+	u16 main1;
+	u16 main1_delta;
+	u16 aux1;
+	u16 aux1_delta;
+
+	u16 main2;
+	u16 main2_delta;
+	u16 aux2;
+	u16 aux2_delta;
+
+	u16 main3;
+	u16 main3_delta;
+	u16 aux3;
+	u16 aux3_delta;
 };
 
 struct PBInitialTimeDelay
@@ -62,32 +109,49 @@ struct PBUpdates
 	u16 data_lo;
 };
 
-struct PBUpdatesWii
-{
-	u16 num_updates[3];
-	u16 data_hi;  // These point to main RAM. Not sure about the structure of the data.
-	u16 data_lo;
-};
-
+// The DSP stores the final sample values for each voice after every frame of processing.
+// The values are then accumulated for all dropped voices, added to the next frame of audio,
+// and ramped down on a per-sample basis to provide a gentle "roll off."
 struct PBDpop
 {
 	s16 unknown[9];
 };
 
-	struct PBDpopWii
-	{
-		s16 unknown[12];
-	};
+struct PBDpopWii
+{
+	s16 left;
+	s16 auxA_left;
+	s16 auxB_left;
+	s16 auxC_left;
 
-	struct PBDpopWii_ // new CRC version
-	{
-		s16 unknown[7];
-	};
+	s16 right;
+	s16 auxA_right;
+	s16 auxB_right;
+	s16 auxC_right;
+
+	s16 surround;
+	s16 auxA_surround;
+	s16 auxB_surround;
+	s16 auxC_surround;
+};
+
+struct PBDpopWM
+{
+	s16 aMain0;
+	s16 aMain1;
+	s16 aMain2;
+	s16 aMain3;
+
+	s16 aAux0;
+	s16 aAux1;
+	s16 aAux2;
+	s16 aAux3;
+};
 
 struct PBVolumeEnvelope
 {
-	u16 cur_volume;
-	s16 cur_volume_delta;
+	u16 cur_volume;			// volume at start of frame
+	s16 cur_volume_delta;	// signed per sample delta (96 samples per frame)
 };
 
 struct PBUnknown2
@@ -118,9 +182,17 @@ struct PBADPCMInfo
 
 struct PBSampleRateConverter
 {
-	u16 ratio_hi;
-	u16 ratio_lo;
+	// ratio = (f32)ratio * 0x10000;
+	// valid range is 1/512 to 4.0000
+	u16 ratio_hi; // integer part of sampling ratio
+	u16 ratio_lo; // fraction part of sampling ratio
 	u16 cur_addr_frac;
+	u16 last_samples[4];
+};
+
+struct PBSampleRateConverterWM
+{
+	u16 currentAddressFrac;
 	u16 last_samples[4];
 };
 
@@ -131,35 +203,34 @@ struct PBADPCMLoopInfo
 	u16 yn2;
 };
 
-struct AXParamBlock
+struct AXPB
 {
 	u16 next_pb_hi;
 	u16 next_pb_lo;
-
 	u16 this_pb_hi;
 	u16 this_pb_lo;
 
 	u16 src_type;     // Type of sample rate converter (none, ?, linear)
 	u16 coef_select;
-
 	u16 mixer_control;
+
 	u16 running;       // 1=RUN 0=STOP
 	u16 is_stream;     // 1 = stream, 0 = one shot
 
-/*  9 */	PBMixer mixer;
-/* 27 */	PBInitialTimeDelay initial_time_delay;  
-/* 34 */	PBUpdates updates;
-/* 41 */	PBDpop dpop;
-/* 50 */	PBVolumeEnvelope vol_env;
-/* 52 */	PBUnknown2 unknown3;
-/* 55 */	PBAudioAddr audio_addr;
-/* 63 */	PBADPCMInfo adpcm;
-/* 83 */    PBSampleRateConverter src;
-/* 90 */	PBADPCMLoopInfo adpcm_loop_info;
-/* 93 */	//u16 unknown_maybe_padding[3];		// Comment this out to get some speedup
+	PBMixer mixer;
+	PBInitialTimeDelay initial_time_delay;  
+	PBUpdates updates;
+	PBDpop dpop;
+	PBVolumeEnvelope vol_env;
+	PBUnknown2 unknown3;
+	PBAudioAddr audio_addr;
+	PBADPCMInfo adpcm;
+	PBSampleRateConverter src;
+	PBADPCMLoopInfo adpcm_loop_info;
+	u16 unknown_maybe_padding[3];
 };
 
-struct PBLpf
+struct PBLowPassFilter
 {
 	u16 enabled;
 	u16 yn1;
@@ -167,69 +238,112 @@ struct PBLpf
 	u16 b0;
 };
 
-struct PBHpf
+struct PBBiquadFilter
 {
-	u16 enabled;
+
+	u16 on;		// on = 2, off = 0
+	u16 xn1;	// History data
+	u16 xn2;
 	u16 yn1;
-	u16 a0;
-	u16 b0;
+	u16 yn2;
+	u16 b0;		// Filter coefficients
+	u16 b1;
+	u16 b2;
+	u16 a1;
+	u16 a2;
+
 };
 
-struct AXParamBlockWii
+union PBInfImpulseResponseWM
+{
+	PBLowPassFilter lpf;
+	PBBiquadFilter biquad;
+};
+
+struct AXPBWii
 {
 	u16 next_pb_hi;
 	u16 next_pb_lo;
-
 	u16 this_pb_hi;
 	u16 this_pb_lo;
 
-	u16 src_type;     // Type of sample rate converter (none, ?, linear)
-	u16 coef_select;
+	u16 src_type;		// Type of sample rate converter (none, 4-tap, linear)
+	u16 coef_select;	// coef for the 4-tap src
 	u32 mixer_control;
 
-	u16 running;       // 1=RUN   0=STOP
-	u16 is_stream;     // 1 = stream, 0 = one shot
+	u16 running;		// 1=RUN   0=STOP
+	u16 is_stream;		// 1 = stream, 0 = one shot
 
-/*  10 */	PBMixerWii mixer;
-/*  34 */	PBInitialTimeDelay initial_time_delay;  
-/*  41 */	PBUpdatesWii updates;
-/*  46 */	PBDpopWii dpop;
-/*  58 */	PBVolumeEnvelope vol_env;
-/*  60 */	PBAudioAddr audio_addr;
-/*  68 */	PBADPCMInfo adpcm;
-/*  88 */	PBSampleRateConverter src;
-/*  95 */	PBADPCMLoopInfo adpcm_loop_info;
-/*  98 */	PBLpf lpf;
-/* 102 */	PBHpf hpf;
-/* 106 */	//u16 pad[22];	// Comment this out to get some speedup
+	PBMixerWii mixer;
+	PBInitialTimeDelay initial_time_delay;
+	PBDpopWii dpop;
+	PBVolumeEnvelope vol_env;
+	PBAudioAddr audio_addr;
+	PBADPCMInfo adpcm;
+	PBSampleRateConverter src;
+	PBADPCMLoopInfo adpcm_loop_info;
+	PBLowPassFilter lpf;
+	PBBiquadFilter biquad;
+
+	// WIIMOTE :D
+	u16 remote;
+	u16 remote_mixer_control;
+
+	PBMixerWM remote_mixer;
+	PBDpopWM remote_dpop;
+	PBSampleRateConverterWM remote_src;
+	PBInfImpulseResponseWM remote_iir;
+
+	u16 pad[12]; // align us, captain! (32B)
 };
 
-struct AXParamBlockWii_ // new CRC version
+// Seems like nintendo used an early version of AXWii and forgot to remove the update functionality ;p
+struct PBUpdatesWiiSports
 {
-/* 0x000 */	u16 next_pb_hi;
-/* 0x002 */	u16 next_pb_lo;
-/* 0x004 */	u16 this_pb_hi;
-/* 0x006 */	u16 this_pb_lo;
-/* 0x008 */	u16 src_type;     // Type of sample rate converter (none, ?, linear)
-/* 0x00A */	u16 coef_select;
-/* 0x00C */	u32 mixer_control;
-/* 0x010 */	u16 running;       // 1=RUN   0=STOP
-/* 0x012 */	u16 is_stream;     // 1 = stream, 0 = one shot
-/* 0x014 */	PBMixerWii mixer;
-/* 0x044 */	PBInitialTimeDelay initial_time_delay;
-/* 0x052 */	PBUpdatesWii updates;
-/* 0x05C */	PBDpopWii_ dpop;
-/* 0x06A */	PBVolumeEnvelope vol_env;
-/* 0x06E */	PBAudioAddr audio_addr;
-/* 0x07E */	PBADPCMInfo adpcm;
-/* 0x0A6 */	PBSampleRateConverter src;
-/* 0x0B4 */	PBADPCMLoopInfo adpcm_loop_info;
-/* 0x0BA */	PBLpf lpf;
-/* 0x0C2 */	PBHpf hpf;
-/* 0x0CA */	//u16 pad[27];	// Comment this out to get some speedup
-/* 0x100 */
+	u16 num_updates[3];
+	u16 data_hi;
+	u16 data_lo;
 };
 
+struct AXPBWiiSports
+{
+	u16 next_pb_hi;
+	u16 next_pb_lo;
+	u16 this_pb_hi;
+	u16 this_pb_lo;
+
+	u16 src_type;		// Type of sample rate converter (none, 4-tap, linear)
+	u16 coef_select;	// coef for the 4-tap src
+	u32 mixer_control;
+
+	u16 running;		// 1=RUN   0=STOP
+	u16 is_stream;		// 1 = stream, 0 = one shot
+
+	PBMixerWii mixer;
+	PBInitialTimeDelay initial_time_delay;
+	PBUpdatesWiiSports updates;
+	PBDpopWii dpop;
+	PBVolumeEnvelope vol_env;
+	PBAudioAddr audio_addr;
+	PBADPCMInfo adpcm;
+	PBSampleRateConverter src;
+	PBADPCMLoopInfo adpcm_loop_info;
+	PBLowPassFilter lpf;
+	PBBiquadFilter biquad;
+
+	// WIIMOTE :D
+	u16 remote;
+	u16 remote_mixer_control;
+
+	PBMixerWM remote_mixer;
+	PBDpopWM remote_dpop;
+	PBSampleRateConverterWM remote_src;
+	PBInfImpulseResponseWM remote_iir;
+
+	u16 pad[7]; // align us, captain! (32B)
+};
+
+// TODO: All these enums have changed a lot for wii
 enum {
     AUDIOFORMAT_ADPCM = 0,
     AUDIOFORMAT_PCM8  = 0x19,
@@ -240,6 +354,12 @@ enum {
 	SRCTYPE_LINEAR  = 1,
 	SRCTYPE_NEAREST = 2,
 	MIXCONTROL_RAMPING = 8,
+};
+
+// Both may be used at once
+enum {
+	FILTER_LOWPASS = 1,
+	FILTER_BIQUAD = 2,
 };
 
 #endif  // _UCODE_AX_STRUCTS_H

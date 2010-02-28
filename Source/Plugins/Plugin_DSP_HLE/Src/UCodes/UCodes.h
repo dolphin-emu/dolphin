@@ -24,7 +24,6 @@
 
 #define UCODE_ROM                   0x0000000
 #define UCODE_INIT_AUDIO_SYSTEM     0x0000001
-#define UCODE_AXWII					0x1000000
 
 class CMailHandler;
 
@@ -49,6 +48,16 @@ public:
 protected:
 	CMailHandler& m_rMailHandler;
 	Common::CriticalSection m_csMix;
+
+	enum EDSP_Codes
+	{
+		DSP_INIT        = 0xDCD10000,
+		DSP_RESUME      = 0xDCD10001,
+		DSP_YIELD       = 0xDCD10002,
+		DSP_DONE        = 0xDCD10003,
+		DSP_SYNC        = 0xDCD10004,
+		DSP_FRAME_END   = 0xDCD10005,
+	};
 };
 
 extern IUCode* UCodeFactory(u32 _CRC, CMailHandler& _rMailHandler);

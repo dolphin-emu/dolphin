@@ -164,6 +164,11 @@ void 008c_BigCrazyFunction()
 00a1 0340 00ff andi        $AC1.M, #0x00ff
 00a3 1f5f      mrr         $AX0.H, $AC1.M
 00a4 02bf 88e5 call        0x88e5
+	88e5 387a      orr'l       $AC0.M, $AX0.H : $AC1.M, @$AR2
+	88e6 18dd      lrrd        $AC1.L, @$AR2
+	88e7 4c05      add'dr      $ACC0, $ACC1 : $AR1
+	88e8 1b5e      srri        @$AR2, $AC0.M
+	88e9 1a5c      srr         @$AR2, $AC0.L
 00a6 1f1c      mrr         $AX0.L, $AC0.L
 00a7 811e      clr'mv      $ACC0 : $AX1.H, $AC0.M
 00a8 191e      lrri        $AC0.M, @$AR0
@@ -171,7 +176,11 @@ void 008c_BigCrazyFunction()
 00aa 1ffc      mrr         $AC1.M, $AC0.L
 00ab 1f5e      mrr         $AX0.H, $AC0.M
 00ac 02bf 8809 call        0x8809
+	8809 392e      orr'sn      $AC1.M, $AX0.H : @$AR2, $AC1.L
+	880a 1b5f      srri        @$AR2, $AC1.M
 00ae 02bf 8723 call        0x8723
+	8723 3300      xorr        $AC1.M, $AX1.H
+	8724 1adf      srrd        @$AR2, $AC1.M
 00b0 0006      dar         $AR2
 00b1 8106      clr'dr      $ACC0 : $AR2
 00b2 00de 166c lr          $AC0.M, @0x166c
@@ -182,6 +191,11 @@ void 008c_BigCrazyFunction()
 00ba 0340 00ff andi        $AC1.M, #0x00ff
 00bc 1f5f      mrr         $AX0.H, $AC1.M
 00bd 02bf 88e5 call        0x88e5
+	88e5 387a      orr'l       $AC0.M, $AX0.H : $AC1.M, @$AR2
+	88e6 18dd      lrrd        $AC1.L, @$AR2
+	88e7 4c05      add'dr      $ACC0, $ACC1 : $AR1
+	88e8 1b5e      srri        @$AR2, $AC0.M
+	88e9 1a5c      srr         @$AR2, $AC0.L
 00bf 1f1c      mrr         $AX0.L, $AC0.L
 00c0 811e      clr'mv      $ACC0 : $AX1.H, $AC0.M
 00c1 191e      lrri        $AC0.M, @$AR0
@@ -189,7 +203,11 @@ void 008c_BigCrazyFunction()
 00c3 1ffc      mrr         $AC1.M, $AC0.L
 00c4 1f5e      mrr         $AX0.H, $AC0.M
 00c5 02bf 8809 call        0x8809
+	8809 392e      orr'sn      $AC1.M, $AX0.H : @$AR2, $AC1.L
+	880a 1b5f      srri        @$AR2, $AC1.M
 00c7 02bf 8723 call        0x8723
+	8723 3300      xorr        $AC1.M, $AX1.H
+	8724 1adf      srrd        @$AR2, $AC1.M
 00c9 8100      clr         $ACC0
 00ca 8900      clr         $ACC1
 00cb 00d1 0005 lr          $AC1.H, @0x0005
@@ -210,6 +228,8 @@ void 008c_BigCrazyFunction()
 00de 00df 0003 lr          $AC1.M, @0x0003
 00e0 1504      lsl         $ACC1, #4
 00e1 02bf 8809 call        0x8809
+	8809 392e      orr'sn      $AC1.M, $AX0.H : @$AR2, $AC1.L
+	880a 1b5f      srri        @$AR2, $AC1.M
 00e3 029f 0102 jmp         0x0102
 
 :
@@ -220,6 +240,11 @@ void 008c_BigCrazyFunction()
 00eb 00de 1043 lr          $AC0.M, @0x1043
 00ed 0240 fff0 andi        $AC0.M, #0xfff0
 00ef 02bf 88e5 call        0x88e5
+	88e5 387a      orr'l       $AC0.M, $AX0.H : $AC1.M, @$AR2
+	88e6 18dd      lrrd        $AC1.L, @$AR2
+	88e7 4c05      add'dr      $ACC0, $ACC1 : $AR1
+	88e8 1b5e      srri        @$AR2, $AC0.M
+	88e9 1a5c      srr         @$AR2, $AC0.L
 00f1 029f 0102 jmp         0x0102
 
 :
@@ -233,6 +258,8 @@ void 008c_BigCrazyFunction()
 00fe 1404      lsl         $ACC0, #4
 00ff 1f5e      mrr         $AX0.H, $AC0.M
 0100 02bf 8809 call        0x8809
+	8809 392e      orr'sn      $AC1.M, $AX0.H : @$AR2, $AC1.L
+	880a 1b5f      srri        @$AR2, $AC1.M
 
 :
 0102 0083 0013 lri         $AR3, #0x0013
@@ -244,13 +271,26 @@ void 008c_BigCrazyFunction()
 010c 0240 fff0 andi        $AC0.M, #0xfff0
 010e 1f5e      mrr         $AX0.H, $AC0.M
 010f 02bf 81f4 call        0x81f4
+	81f4 b51e      mulxac'mv   $AX0.H, $AX1.L, $ACC1 : $AX1.H, $AC0.M
+	81f5 9909      asr16'ir    $ACC1 : $AR1
+	81f6 1b7f      srri        @$AR3, $AC1.M
+	81f7 812b      clr's       $ACC0 : @$AR3, $AC1.L
 0111 f100      lsl16       $ACC1
 0112 02bf 8458 call        0x8458
+	8458 b51e      mulxac'mv   $AX0.H, $AX1.L, $ACC1 : $AX1.H, $AC0.M
+	8459 9900      asr16       $ACC1
+	845a 1b7f      srri        @$AR3, $AC1.M
+	845b 812b      clr's       $ACC0 : @$AR3, $AC1.L
 0114 8f00      set40       
 0115 0082 0015 lri         $AR2, #0x0015
 0117 00de 0006 lr          $AC0.M, @0x0006
 0119 00da 165b lr          $AX0.H, @0x165b
 011b 02bf 88e5 call        0x88e5
+	88e5 387a      orr'l       $AC0.M, $AX0.H : $AC1.M, @$AR2
+	88e6 18dd      lrrd        $AC1.L, @$AR2
+	88e7 4c05      add'dr      $ACC0, $ACC1 : $AR1
+	88e8 1b5e      srri        @$AR2, $AC0.M
+	88e9 1a5c      srr         @$AR2, $AC0.L
 011d 14fd      asr         $ACC0, #-3
 011e 1403      lsl         $ACC0, #3
 011f 1b5e      srri        @$AR2, $AC0.M
@@ -260,6 +300,11 @@ void 008c_BigCrazyFunction()
 0125 14f4      asr         $ACC0, #-12
 0126 00da 166b lr          $AX0.H, @0x166b
 0128 02bf 88e5 call        0x88e5
+	88e5 387a      orr'l       $AC0.M, $AX0.H : $AC1.M, @$AR2
+	88e6 18dd      lrrd        $AC1.L, @$AR2
+	88e7 4c05      add'dr      $ACC0, $ACC1 : $AR1
+	88e8 1b5e      srri        @$AR2, $AC0.M
+	88e9 1a5c      srr         @$AR2, $AC0.L
 012a b100      tst         $ACC0
 012b 0290 012e jge         0x012e
 

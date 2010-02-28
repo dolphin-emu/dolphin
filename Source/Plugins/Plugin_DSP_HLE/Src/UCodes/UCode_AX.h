@@ -37,16 +37,6 @@ public:
 	void MixAdd(short* _pBuffer, int _iSize);
 	void Update(int cycles);
 
-	// Logging
-	//template<class ParamBlockType>
-	//void Logging(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs, int numberOfPBs);
-	void Logging(short* _pBuffer, int _iSize, int a, bool Wii);
-	void SaveLog_(bool Wii, const char* _fmt, va_list ap);
-	void SaveMail(bool Wii, u32 _uMail);
-	void SaveLogFile(std::string f, int resizeTo, bool type, bool Wii);
-	std::string TmpMailLog;
-	int saveNext;
-
 	// PBs
 	u8 numPBaddr;
 	u32 PBaddr[8]; //2 needed for MP2
@@ -69,8 +59,6 @@ private:
 
 	// ax task message handler
 	bool AXTask(u32& _uMail);
-	void SaveLog(const char* _fmt, ...);
-	void SendMail(u32 _uMail);
 };
 
 #endif  // _UCODE_AX

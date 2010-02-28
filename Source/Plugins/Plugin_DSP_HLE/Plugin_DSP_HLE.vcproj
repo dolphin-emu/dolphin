@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_DSP_HLE"
 	ProjectGUID="{D6E56527-BBB9-4EAD-A6EC-49D4BF6AFCD8}"
 	RootNamespace="Plugin_DSP"
@@ -594,7 +594,7 @@
 				>
 			</File>
 			<Filter
-				Name="UCode AX"
+				Name="AX"
 				>
 				<File
 					RelativePath=".\Src\UCodes\UCode_AX.cpp"
@@ -658,7 +658,7 @@
 				</File>
 			</Filter>
 			<Filter
-				Name="UCode Zelda"
+				Name="Zelda"
 				>
 				<File
 					RelativePath="..\..\..\docs\DSP\DSP_UC_Luigi.txt"
@@ -706,50 +706,6 @@
 				>
 			</File>
 		</Filter>
-		<Filter
-			Name="Debugger"
-			>
-			<File
-				RelativePath=".\Src\Debugger\Blocks.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Debugger\Debugger.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Debugger\Debugger.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Debugger\Logging.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Debugger\Mails.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Debugger\PBView.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Debugger\PBView.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Logging"
-			>
-			<File
-				RelativePath=".\Src\Debugger\File.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Debugger\File.h"
-				>
-			</File>
-		</Filter>
 		<File
 			RelativePath=".\Src\Config.cpp"
 			>
@@ -764,10 +720,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\DSPHandler.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\Globals.cpp"
 			>
 		</File>
 		<File

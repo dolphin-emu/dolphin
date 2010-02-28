@@ -11,8 +11,6 @@ files = [
 	'HLEMixer.cpp',
 	'main.cpp',
 	'Config.cpp',
-	'Globals.cpp',
-	'Debugger/File.cpp',
 	'UCodes/UCode_AX.cpp',
 	'UCodes/UCode_AXWii.cpp',
 	'UCodes/UCode_CARD.cpp',
@@ -30,12 +28,6 @@ dspenv = env.Clone()
 if dspenv['HAVE_WX']:
     files += [
         'ConfigDlg.cpp',
-        'Debugger/Debugger.cpp',
-        'Debugger/PBView.cpp',
-        'Debugger/Mails.cpp',
-        'Debugger/Blocks.cpp',
-        'Debugger/Logging.cpp',
-
         ]
 
 dspenv.Append(

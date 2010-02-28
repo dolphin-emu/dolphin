@@ -22,29 +22,42 @@
 #include "pluginspecs_dsp.h"
 #include "StringUtil.h"
 
-#include "../../../Core/Core/Src/ConfigManager.h" // FIXME
 extern DSPInitialize g_dspInitialize;
-
-#if defined(HAVE_WX) && HAVE_WX
-	#include "Debugger/Debugger.h"
-	class DSPDebuggerHLE;
-	extern DSPDebuggerHLE* m_DebuggerFrame;
-#endif
-
-extern bool gSSBM;
-extern bool gSSBMremedy1;
-extern bool gSSBMremedy2;
-extern bool gSequenced;
-extern bool gVolume;
-extern bool gReset;
-extern float ratioFactor; // a global to get the ratio factor from MixAdd
-
-u8 Memory_Read_U8(u32 _uAddress);
-u16 Memory_Read_U16(u32 _uAddress);
-u32 Memory_Read_U32(u32 _uAddress);
-float Memory_Read_Float(u32 _uAddress);
-void* Memory_Get_Pointer(u32 _uAddress);
-
 extern PLUGIN_GLOBALS* globals;
+
+extern u8* g_pMemory;
+
+// TODO: Wii support? Most likely audio data still must be in the old 24MB TRAM.
+#define RAM_MASK 0x1FFFFFF
+
+inline u8 Memory_Read_U8(u32 _uAddress)
+{
+	_uAddress &= RAM_MASK;
+	return g_pMemory[_uAddress];
+}
+
+inline u16 Memory_Read_U16(u32 _uAddress)
+{
+	_uAddress &= RAM_MASK;
+	return Common::swap16(*(u16*)&g_pMemory[_uAddress]);
+}
+
+inline u32 Memory_Read_U32(u32 _uAddress)
+{
+	_uAddress &= RAM_MASK;
+	return Common::swap32(*(u32*)&g_pMemory[_uAddress]);
+}
+
+inline float Memory_Read_Float(u32 _uAddress)
+{
+	u32 uTemp = Memory_Read_U32(_uAddress);
+	return *(float*)&uTemp;
+}
+
+inline void* Memory_Get_Pointer(u32 _uAddress)
+{
+	_uAddress &= RAM_MASK;
+	return &g_pMemory[_uAddress];
+}
 
 #endif

@@ -22,17 +22,6 @@
 
 class CUCode_CARD : public IUCode
 {
-private:
-	enum EDSP_Codes
-	{
-		DSP_INIT   = 0xDCD10000,
-		DSP_RESUME = 0xDCD10001,
-		DSP_YIELD  = 0xDCD10002,
-		DSP_DONE   = 0xDCD10003,
-		DSP_SYNC   = 0xDCD10004,
-		DSP_UNKN   = 0xDCD10005,
-	};
-
 public:
 	CUCode_CARD(CMailHandler& _rMailHandler);
 	virtual ~CUCode_CARD();

@@ -587,6 +587,10 @@
 			Name="RE"
 			>
 			<File
+				RelativePath="..\..\..\docs\DSP\DSP_UC_3B3B30CA.txt"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\docs\DSP\DSP_UC_ROM.txt"
 				>
 			</File>

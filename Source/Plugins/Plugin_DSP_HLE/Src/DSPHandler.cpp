@@ -54,7 +54,6 @@ unsigned short CDSPHandler::WriteControlRegister(unsigned short _Value)
 		// copy 128 byte from ARAM 0x000000 to IMEM
 		SetUCode(UCODE_INIT_AUDIO_SYSTEM);
 		Temp.DSPInitCode = 0;
-		// MessageBox(NULL, "UCODE_INIT_AUDIO_SYSTEM", "DSP-HLE", MB_OK);
 	}
 
 	m_DSPControl.Hex = Temp.Hex;

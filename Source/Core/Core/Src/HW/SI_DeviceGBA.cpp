@@ -120,7 +120,8 @@ void GBASockServer::Transfer(char* si_buffer)
 
 	memset(current_data, 0, sizeof(current_data));
 	size_t num_received = 0;
-	client.Receive(current_data, sizeof(current_data), num_received);
+	if (client.Receive(current_data, sizeof(current_data), num_received) == sf::Socket::Disconnected)
+		client.Close();
 
 	DEBUG_LOG(SERIALINTERFACE, "< %02x%02x%02x%02x%02x",
 		(u8)current_data[0], (u8)current_data[1], (u8)current_data[2],

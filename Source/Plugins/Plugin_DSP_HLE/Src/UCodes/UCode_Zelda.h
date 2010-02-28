@@ -166,16 +166,6 @@ public:
 	}
 
 private:
-	enum EDSP_Codes
-	{
-		DSP_INIT        = 0xDCD10000,
-		DSP_RESUME      = 0xDCD10001,
-		DSP_YIELD       = 0xDCD10002,
-		DSP_DONE        = 0xDCD10003,
-		DSP_SYNC        = 0xDCD10004,
-		DSP_FRAME_END   = 0xDCD10005,
-	};
-
 	// These map CRC to behaviour.
 
 	// DMA version

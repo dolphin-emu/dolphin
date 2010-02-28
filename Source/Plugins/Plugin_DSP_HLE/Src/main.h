@@ -21,11 +21,6 @@
 #include "SoundStream.h"
 #include "Globals.h" // Local
 
-#if defined(HAVE_WX) && HAVE_WX
-	#include "Debugger/Debugger.h"
-	extern DSPDebuggerHLE* m_DebuggerFrame;
-#endif
-
 extern SoundStream *soundStream;
 
 #endif

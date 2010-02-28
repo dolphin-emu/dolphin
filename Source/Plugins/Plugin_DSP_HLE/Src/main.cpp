@@ -22,9 +22,6 @@
 #if defined(HAVE_WX) && HAVE_WX
 #include "ConfigDlg.h"
 DSPConfigDialogHLE* m_ConfigFrame = NULL;
-#include "Debugger/File.h" // For file logging
-#include "Debugger/Debugger.h"
-DSPDebuggerHLE* m_DebuggerFrame = NULL;
 #endif
 
 #include "ChunkFile.h"
@@ -124,19 +121,6 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 
 void DllDebugger(HWND _hParent, bool Show)
 {
-#if defined(HAVE_WX) && HAVE_WX
-	if (Show)
-	{
-		if (!m_DebuggerFrame)
-			m_DebuggerFrame = new DSPDebuggerHLE(NULL);	
-			//m_DebuggerFrame = new DSPDebuggerHLE(GetParentedWxWindow(_hParent));
-		m_DebuggerFrame->Show();
-	}
-	else
-	{
-		if (m_DebuggerFrame) m_DebuggerFrame->Close();
-	}
-#endif
 }
 
 
@@ -167,7 +151,6 @@ void DllConfig(HWND _hParent)
 #if defined(HAVE_WX) && HAVE_WX
 	// Load config settings
 	g_Config.Load();
-	g_Config.GameIniLoad(globals->game_ini);
 
 	wxWindow *frame = GetParentedWxWindow(_hParent);
 	m_ConfigFrame = new DSPConfigDialogHLE(frame);
@@ -221,19 +204,6 @@ void Shutdown()
 
 	// Delete the UCodes
 	CDSPHandler::Destroy();
-
-#if defined(HAVE_WX) && HAVE_WX
-	// Reset mails
-	/*
-	if (m_DebuggerFrame)
-	{
-		sMailLog.clear();
-		sMailTime.clear();
-		m_DebuggerFrame->sMail.clear();
-		m_DebuggerFrame->sMailEnd.clear();
-	}
-	*/
-#endif	
 }
 
 void DoState(unsigned char **ptr, int mode)
@@ -331,11 +301,9 @@ void DSP_Update(int cycles)
 	CDSPHandler::GetInstance().Update(cycles);
 }
 
-/* Other Audio will pass through here. The kind of audio that sometimes are
-   used together with pre-drawn movies. This audio can be disabled further
-   inside Mixer_PushSamples(), the reason that we don't disable this entire
-   function when Other Audio is disabled is that then we can't turn it back on
-   again once the game has started. */
+// The reason that we don't disable this entire
+// function when Other Audio is disabled is that then we can't turn it back on
+// again once the game has started.
 void DSP_SendAIBuffer(unsigned int address, unsigned int num_samples)
 {
 	if (!soundStream)

@@ -18,7 +18,6 @@
 #include "Common.h"
 #include "IniFile.h"
 #include "VideoConfig.h"
-#include "../../../Core/Core/Src/ConfigManager.h" // FIXME
 
 Config g_Config;
 

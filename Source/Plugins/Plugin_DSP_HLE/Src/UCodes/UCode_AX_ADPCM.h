@@ -60,9 +60,8 @@ inline s16 ADPCM_Step(PBADPCMInfo &adpcm, u32& samplePos, u32 newSamplePos, u16 
 	return adpcm.yn1;
 }
 
-// =======================================================================================
+// TODO: WTF is going on here?!?
 // Volume control (ramping)
-// --------------
 inline u16 ADPCM_Vol(u16 vol, u16 delta)
 {
 	int x = vol;
@@ -87,6 +86,5 @@ inline u16 ADPCM_Vol(u16 vol, u16 delta)
 	if (x >= 0x4e20) x = 0x4e20; // add a definitive limit at 20 000
 	return x; // update volume
 }
-// ==============
 
 #endif  // _UCODE_AX_ADPCM_H

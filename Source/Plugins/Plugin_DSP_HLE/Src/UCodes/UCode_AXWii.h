@@ -30,14 +30,7 @@ public:
 
 	void HandleMail(u32 _uMail);
 	void MixAdd(short* _pBuffer, int _iSize);
-	template<class ParamBlockType>
-	//void Logging(short* _pBuffer, int _iSize, int a, bool Wii, ParamBlockType &PBs, int numberOfPBs);
-	void MixAdd_(short* _pBuffer, int _iSize, ParamBlockType &PBs);	
 	void Update(int cycles);
-
-	// The logging function for the debugger
-	void Logging(short* _pBuffer, int _iSize, int a);
-	CUCode_AX * lCUCode_AX; // we need the logging functions in there
 
 private:
 	enum
@@ -49,12 +42,13 @@ private:
 	u32 m_addressPBs;
 	u32 _CRC;
 
+	bool wiisportsHack;
+
 	int *templbuffer;
 	int *temprbuffer;
 
 	// ax task message handler
 	bool AXTask(u32& _uMail);
-	void SaveLog(const char* _fmt, ...);
 	void SendMail(u32 _uMail);
 };
 
