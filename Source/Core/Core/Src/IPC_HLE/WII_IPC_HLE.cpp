@@ -494,16 +494,11 @@ void Update()
 void UpdateDevices()
 {
 	// Check if a hardware device must be updated
-	TDeviceMap::const_iterator itr = g_DeviceMap.begin();
-
-	while (itr != g_DeviceMap.lower_bound(IPC_FIRST_FILEIO_ID))
-	{
-		if (itr->second->IsOpened())
-		{
-			if (itr->second->Update())
-				break;
+	TDeviceMap::const_iterator itrEnd = g_DeviceMap.lower_bound(IPC_FIRST_FILEIO_ID);
+	for (TDeviceMap::const_iterator itr = g_DeviceMap.begin(); itr != itrEnd; ++itr) {
+		if (itr->second->IsOpened() && itr->second->Update()) {
+			break;
 		}
-		++itr;
 	}
 }
 
