@@ -416,8 +416,9 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sbBasicAdvanced = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Advanced Display Settings"));
 	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to Main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_OSDHotKey = new wxCheckBox(m_PageGeneral, ID_OSDHOTKEY, wxT("Enable Hotkeys"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-#ifndef _WIN32
+#if !defined(_WIN32) && (!defined(HAVE_X11) || !HAVE_X11)
 	// JPeterson set the hot key to be Win32-specific
+	// Now linux has this (with X11)
 	m_OSDHotKey->Enable(false);
 #endif
 	m_VSync = new wxCheckBox(m_PageGeneral, ID_VSYNC, wxT("VSync (req. restart)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);

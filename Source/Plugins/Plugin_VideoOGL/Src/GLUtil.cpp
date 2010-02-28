@@ -566,30 +566,75 @@ void OpenGL_Update()
 		switch(event.type) {
 			case KeyPress:
 				key = XLookupKeysym((XKeyEvent*)&event, 0);
-				if(key >= XK_F1 && key <= XK_F9)
+				switch (key)
 				{
-					if(key == XK_F4 && ((event.xkey.state & Mod1Mask) == Mod1Mask))
-						g_VideoInitialize.pKeyPress(0x1b, False, False);
-					else
+					case XK_F4:
+						if(event.xkey.state & Mod1Mask)
+						{
+							g_VideoInitialize.pKeyPress(0x1b, False, False);
+							break;
+						}
+					case XK_F1: case XK_F2: case XK_F3: case XK_F5:
+					case XK_F6: case XK_F7: case XK_F8: case XK_F9:
 						g_VideoInitialize.pKeyPress(key - 0xff4e,
-								(event.xkey.state & ShiftMask) == ShiftMask,
-								(event.xkey.state & ControlMask) == ControlMask);
+								event.xkey.state & ShiftMask,
+								event.xkey.state & ControlMask);
+						break;
+					case XK_Escape:
+						if (GLWin.fs)
+						{
+							ToggleFullscreenMode();
+							XEvent mapevent;
+							do {
+								XMaskEvent(GLWin.dpy, StructureNotifyMask, &mapevent);
+							} while ( (mapevent.type != MapNotify) || (mapevent.xmap.event != GLWin.win) );
+						}
+						g_VideoInitialize.pKeyPress(0x1c, False, False);
+						break;
+					case XK_Return:
+						if (event.xkey.state & Mod1Mask)
+							ToggleFullscreenMode();
+						break;
+					case XK_3:
+						OSDChoice = 1;
+						// Toggle native resolution
+						if (!(g_Config.bNativeResolution || g_Config.b2xResolution))
+							g_Config.bNativeResolution = true;
+						else if (g_Config.bNativeResolution && Renderer::AllowCustom())
+						{ g_Config.bNativeResolution = false; if (Renderer::Allow2x()) {g_Config.b2xResolution = true;} }
+						else if (Renderer::AllowCustom())
+							g_Config.b2xResolution = false;
+						break;
+					case XK_4:
+						OSDChoice = 2;
+						// Toggle aspect ratio
+						g_Config.iAspectRatio = (g_Config.iAspectRatio + 1) & 3;
+						break;
+					case XK_5:
+						OSDChoice = 3;
+						// Toggle EFB copy
+						if (g_Config.bEFBCopyDisable || g_Config.bCopyEFBToTexture)
+						{
+							g_Config.bEFBCopyDisable = !g_Config.bEFBCopyDisable;
+							g_Config.bCopyEFBToTexture = false;
+						}
+						else
+						{
+							g_Config.bCopyEFBToTexture = !g_Config.bCopyEFBToTexture;
+						}
+						break;
+					case XK_6:
+						OSDChoice = 4;
+						g_Config.bDisableFog = !g_Config.bDisableFog;
+						break;
+					case XK_7:
+						OSDChoice = 5;
+						g_Config.bDisableLighting = !g_Config.bDisableLighting;
+						break;
+
+					default:
+						break;
 				}
-				else if (key == XK_Escape)
-				{
-					if (GLWin.fs)
-					{
-						ToggleFullscreenMode();
-						XEvent mapevent;
-						do {
-							XMaskEvent(GLWin.dpy, StructureNotifyMask, &mapevent);
-						} while ( (mapevent.type != MapNotify) || (mapevent.xmap.event != GLWin.win) );
-					}
-					g_VideoInitialize.pKeyPress(0x1c, False, False);
-				}
-				else if (key == XK_Return && ((event.xkey.state & Mod1Mask) == Mod1Mask))
-					ToggleFullscreenMode();
-				break;
 			case FocusIn:
 				if (g_Config.bHideCursor)
 					XDefineCursor(GLWin.dpy, GLWin.win, GLWin.blankCursor);
