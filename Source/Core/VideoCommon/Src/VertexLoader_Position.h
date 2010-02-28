@@ -18,40 +18,17 @@
 #ifndef VERTEXLOADER_POSITION_H
 #define VERTEXLOADER_POSITION_H
 
-void LOADERDECL Pos_ReadDirect_UByte3();
-void LOADERDECL Pos_ReadDirect_Byte3();
-void LOADERDECL Pos_ReadDirect_UShort3();
-void LOADERDECL Pos_ReadDirect_Short3();
-void LOADERDECL Pos_ReadDirect_Float3();
+typedef void (LOADERDECL *ReadPosision)();
 
-void LOADERDECL Pos_ReadIndex8_UByte3();
-void LOADERDECL Pos_ReadIndex8_Byte3();
-void LOADERDECL Pos_ReadIndex8_UShort3();
-void LOADERDECL Pos_ReadIndex8_Short3();
-void LOADERDECL Pos_ReadIndex8_Float3();
+// Hold function pointers of vertex loaders.
+// The first dimension corresponds to TVtxDesc.Position.
+// The second dimension corresponds to TVtxAttr.PosFormat.
+// The third dimension corresponds to TVtxAttr.PosElements.
+// The dimensions are aligned to 2^n for speed up.
+extern ReadPosision tableReadPosition[4][8][2];
 
-void LOADERDECL Pos_ReadIndex16_UByte3();
-void LOADERDECL Pos_ReadIndex16_Byte3();
-void LOADERDECL Pos_ReadIndex16_UShort3();
-void LOADERDECL Pos_ReadIndex16_Short3();
-void LOADERDECL Pos_ReadIndex16_Float3();
-
-void LOADERDECL Pos_ReadDirect_UByte2();
-void LOADERDECL Pos_ReadDirect_Byte2();
-void LOADERDECL Pos_ReadDirect_UShort2();
-void LOADERDECL Pos_ReadDirect_Short2();
-void LOADERDECL Pos_ReadDirect_Float2();
-
-void LOADERDECL Pos_ReadIndex8_UByte2();
-void LOADERDECL Pos_ReadIndex8_Byte2();
-void LOADERDECL Pos_ReadIndex8_UShort2();
-void LOADERDECL Pos_ReadIndex8_Short2();
-void LOADERDECL Pos_ReadIndex8_Float2();
-
-void LOADERDECL Pos_ReadIndex16_UByte2();
-void LOADERDECL Pos_ReadIndex16_Byte2();
-void LOADERDECL Pos_ReadIndex16_UShort2();
-void LOADERDECL Pos_ReadIndex16_Short2();
-void LOADERDECL Pos_ReadIndex16_Float2();
+// Hold vertex size of each vertex format.
+// The dimensions are same as tableReadPosition.
+extern int tableVertexSize[4][8][2];
 
 #endif

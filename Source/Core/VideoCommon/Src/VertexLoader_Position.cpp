@@ -15,9 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef VERTEXLOADER_POSITION_H
-#define VERTEXLOADER_POSITION_H
-
 #include "Common.h"
 #include "VideoCommon.h"
 #include "VertexLoader.h"
@@ -191,4 +188,65 @@ void LOADERDECL Pos_ReadIndex16_UShort2() {Pos_ReadIndex_Short<u16, false>(DataR
 void LOADERDECL Pos_ReadIndex16_Short2()  {Pos_ReadIndex_Short<s16, false>(DataReadU16());}
 void LOADERDECL Pos_ReadIndex16_Float2()  {Pos_ReadIndex_Float<false>     (DataReadU16());}
 
-#endif
+ReadPosision tableReadPosition[4][8][2] = {
+	{
+		{NULL, NULL,},
+		{NULL, NULL,},
+		{NULL, NULL,},
+		{NULL, NULL,},
+		{NULL, NULL,},
+	},
+	{
+		{Pos_ReadDirect_UByte2, Pos_ReadDirect_UByte3,},
+		{Pos_ReadDirect_Byte2, Pos_ReadDirect_Byte3,},
+		{Pos_ReadDirect_UShort2, Pos_ReadDirect_UShort3,},
+		{Pos_ReadDirect_Short2, Pos_ReadDirect_Short3,},
+		{Pos_ReadDirect_Float2, Pos_ReadDirect_Float3,},
+	},
+	{
+		{Pos_ReadIndex8_UByte2, Pos_ReadIndex8_UByte3,},
+		{Pos_ReadIndex8_Byte2, Pos_ReadIndex8_Byte3,},
+		{Pos_ReadIndex8_UShort2, Pos_ReadIndex8_UShort3,},
+		{Pos_ReadIndex8_Short2, Pos_ReadIndex8_Short3,},
+		{Pos_ReadIndex8_Float2, Pos_ReadIndex8_Float3,},
+	},
+	{
+		{Pos_ReadIndex16_UByte2, Pos_ReadIndex16_UByte3,},
+		{Pos_ReadIndex16_Byte2, Pos_ReadIndex16_Byte3,},
+		{Pos_ReadIndex16_UShort2, Pos_ReadIndex16_UShort3,},
+		{Pos_ReadIndex16_Short2, Pos_ReadIndex16_Short3,},
+		{Pos_ReadIndex16_Float2, Pos_ReadIndex16_Float3,},
+	},
+};
+
+int tableVertexSize[4][8][2] = {
+	{
+		{0, 0,},
+		{0, 0,},
+		{0, 0,},
+		{0, 0,},
+		{0, 0,},
+	},
+	{
+		{2, 3,},
+		{2, 3,},
+		{4, 6,},
+		{4, 6,},
+		{8, 12,},
+	},
+	{
+		{1, 1,},
+		{1, 1,},
+		{1, 1,},
+		{1, 1,},
+		{1, 1,},
+	},
+	{
+		{2, 2,},
+		{2, 2,},
+		{2, 2,},
+		{2, 2,},
+		{2, 2,},
+	},
+};
+

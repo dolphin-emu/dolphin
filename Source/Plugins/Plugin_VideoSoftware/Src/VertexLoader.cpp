@@ -147,44 +147,14 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
         }
     }
 
-    switch (g_VtxDesc.Position) {
-    case NOT_PRESENT: {_assert_msg_(VIDEO, 0, "Vertex descriptor without position!"); } break;
-	case DIRECT:
-        switch (m_CurrentVat->g0.PosFormat) {
-		case FORMAT_UBYTE:  m_VertexSize += m_CurrentVat->g0.PosElements?3:2; m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadDirect_UByte3:Pos_ReadDirect_UByte2);  break;
-		case FORMAT_BYTE:   m_VertexSize += m_CurrentVat->g0.PosElements?3:2; m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadDirect_Byte3:Pos_ReadDirect_Byte2);   break;
-		case FORMAT_USHORT: m_VertexSize += m_CurrentVat->g0.PosElements?6:4; m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadDirect_UShort3:Pos_ReadDirect_UShort2); break;
-		case FORMAT_SHORT:  m_VertexSize += m_CurrentVat->g0.PosElements?6:4; m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadDirect_Short3:Pos_ReadDirect_Short2);  break;
-		case FORMAT_FLOAT:  m_VertexSize += m_CurrentVat->g0.PosElements?12:8; m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadDirect_Float3:Pos_ReadDirect_Float2);  break;
-		default: _assert_(0); break;
-		}
-        AddAttributeLoader(LoadPosition);
-		break;
-	case INDEX8:		
-		switch (m_CurrentVat->g0.PosFormat) {
-		case FORMAT_UBYTE:	m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadIndex8_UByte3:Pos_ReadIndex8_UByte2);  break;
-		case FORMAT_BYTE:	m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadIndex8_Byte3:Pos_ReadIndex8_Byte2);   break;
-		case FORMAT_USHORT:	m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadIndex8_UShort3:Pos_ReadIndex8_UShort2); break;
-		case FORMAT_SHORT:	m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadIndex8_Short3:Pos_ReadIndex8_Short2);  break;
-		case FORMAT_FLOAT:	m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadIndex8_Float3:Pos_ReadIndex8_Float2);  break;
-		default: _assert_(0); break;
-		}
-        AddAttributeLoader(LoadPosition);
-		m_VertexSize += 1;
-		break;
-	case INDEX16:
-		switch (m_CurrentVat->g0.PosFormat) {
-		case FORMAT_UBYTE:	m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadIndex16_UByte3:Pos_ReadIndex16_UByte2);  break;
-		case FORMAT_BYTE:	m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadIndex16_Byte3:Pos_ReadIndex16_Byte2);   break;
-		case FORMAT_USHORT:	m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadIndex16_UShort3:Pos_ReadIndex16_UShort2); break;
-		case FORMAT_SHORT:	m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadIndex16_Short3:Pos_ReadIndex16_Short2);  break;
-		case FORMAT_FLOAT:	m_positionLoader = (m_CurrentVat->g0.PosElements?Pos_ReadIndex16_Float3:Pos_ReadIndex16_Float2);  break;
-		default: _assert_(0); break;
-		}
-        AddAttributeLoader(LoadPosition);
-		m_VertexSize += 2;
-		break;
-	}
+	// Write vertex position loader
+	_assert_msg_(VIDEO, DIRECT <= g_VtxDesc.Position && g_VtxDesc.Position <= INDEX16, "Invalid vertex position!\n(m_VtxDesc.Position = %d)", g_VtxDesc.Position);
+	_assert_msg_(VIDEO, FORMAT_UBYTE <= m_CurrentVat->g0.PosFormat && m_CurrentVat->g0.PosFormat <= FORMAT_FLOAT, "Invalid vertex position format!\n(m_VtxAttr.PosFormat = %d)", m_CurrentVat->g0.PosFormat);
+	_assert_msg_(VIDEO, 0 <= m_CurrentVat->g0.PosElements && m_CurrentVat->g0.PosElements <= 1, "Invalid number of vertex position elemnts!\n(m_VtxAttr.PosElements = %d)", m_CurrentVat->g0.PosElements);
+
+	m_positionLoader = tableReadPosition[g_VtxDesc.Position][m_CurrentVat->g0.PosFormat][m_CurrentVat->g0.PosElements];
+	m_VertexSize += tableVertexSize[g_VtxDesc.Position][m_CurrentVat->g0.PosFormat][m_CurrentVat->g0.PosElements];
+	AddAttributeLoader(LoadPosition);
 
 	// Normals
 	if (g_VtxDesc.Normal != NOT_PRESENT) {

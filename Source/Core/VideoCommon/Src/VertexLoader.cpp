@@ -263,44 +263,14 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.Tex6MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX6; WriteCall(TexMtx_ReadDirect_UByte); }
 	if (m_VtxDesc.Tex7MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
 
-	switch (m_VtxDesc.Position) {
-	case NOT_PRESENT:	{_assert_msg_(0, "Vertex descriptor without position!", "WTF?");} break;
-	case DIRECT:
-		switch (m_VtxAttr.PosFormat) {
-		case FORMAT_UBYTE:  m_VertexSize += m_VtxAttr.PosElements?3:2; WriteCall(m_VtxAttr.PosElements?Pos_ReadDirect_UByte3:Pos_ReadDirect_UByte2);  break;
-		case FORMAT_BYTE:   m_VertexSize += m_VtxAttr.PosElements?3:2; WriteCall(m_VtxAttr.PosElements?Pos_ReadDirect_Byte3:Pos_ReadDirect_Byte2);   break;
-		case FORMAT_USHORT: m_VertexSize += m_VtxAttr.PosElements?6:4; WriteCall(m_VtxAttr.PosElements?Pos_ReadDirect_UShort3:Pos_ReadDirect_UShort2); break;
-		case FORMAT_SHORT:  m_VertexSize += m_VtxAttr.PosElements?6:4; WriteCall(m_VtxAttr.PosElements?Pos_ReadDirect_Short3:Pos_ReadDirect_Short2);  break;
-		case FORMAT_FLOAT:  m_VertexSize += m_VtxAttr.PosElements?12:8; WriteCall(m_VtxAttr.PosElements?Pos_ReadDirect_Float3:Pos_ReadDirect_Float2);  break;
-		default: _assert_(0); break;
-		}
-		nat_offset += 12;
-		break;
-	case INDEX8:		
-		switch (m_VtxAttr.PosFormat) {
-		case FORMAT_UBYTE:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex8_UByte3:Pos_ReadIndex8_UByte2);  break; //WTF?
-		case FORMAT_BYTE:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex8_Byte3:Pos_ReadIndex8_Byte2);   break;
-		case FORMAT_USHORT:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex8_UShort3:Pos_ReadIndex8_UShort2); break;
-		case FORMAT_SHORT:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex8_Short3:Pos_ReadIndex8_Short2);  break;
-		case FORMAT_FLOAT:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex8_Float3:Pos_ReadIndex8_Float2);  break;
-		default: _assert_(0); break;
-		}
-		m_VertexSize += 1;
-		nat_offset += 12;
-		break;
-	case INDEX16:
-		switch (m_VtxAttr.PosFormat) {
-		case FORMAT_UBYTE:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex16_UByte3:Pos_ReadIndex16_UByte2);  break;
-		case FORMAT_BYTE:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex16_Byte3:Pos_ReadIndex16_Byte2);   break;
-		case FORMAT_USHORT:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex16_UShort3:Pos_ReadIndex16_UShort2); break;
-		case FORMAT_SHORT:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex16_Short3:Pos_ReadIndex16_Short2);  break;
-		case FORMAT_FLOAT:	WriteCall(m_VtxAttr.PosElements?Pos_ReadIndex16_Float3:Pos_ReadIndex16_Float2);  break;
-		default: _assert_(0); break;
-		}
-		m_VertexSize += 2;
-		nat_offset += 12;
-		break;
-	}
+	// Write vertex position loader
+	_assert_msg_(VIDEO, DIRECT <= m_VtxDesc.Position && m_VtxDesc.Position <= INDEX16, "Invalid vertex position!\n(m_VtxDesc.Position = %d)", m_VtxDesc.Position);
+	_assert_msg_(VIDEO, FORMAT_UBYTE <= m_VtxAttr.PosFormat && m_VtxAttr.PosFormat <= FORMAT_FLOAT, "Invalid vertex position format!\n(m_VtxAttr.PosFormat = %d)", m_VtxAttr.PosFormat);
+	_assert_msg_(VIDEO, 0 <= m_VtxAttr.PosElements && m_VtxAttr.PosElements <= 1, "Invalid number of vertex position elemnts!\n(m_VtxAttr.PosElements = %d)", m_VtxAttr.PosElements);
+
+	WriteCall(tableReadPosition[m_VtxDesc.Position][m_VtxAttr.PosFormat][m_VtxAttr.PosElements]);
+	m_VertexSize += tableVertexSize[m_VtxDesc.Position][m_VtxAttr.PosFormat][m_VtxAttr.PosElements];
+	nat_offset += 12;
 
 	// OK, so we just got a point. Let's go back and read it for the bounding box.
 	
