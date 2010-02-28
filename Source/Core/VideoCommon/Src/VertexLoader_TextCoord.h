@@ -18,6 +18,8 @@
 #ifndef VERTEXLOADER_TEXCOORD_H
 #define VERTEXLOADER_TEXCOORD_H
 
+#include "NativeVertexFormat.h"
+
 typedef void (LOADERDECL *ReadTexCoord)();
 
 // Hold function pointers of texture coordinates loaders.

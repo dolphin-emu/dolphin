@@ -15,13 +15,10 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef VERTEXLOADER_TEXCOORD_H
-#define VERTEXLOADER_TEXCOORD_H
-
 #include "Common.h"
 #include "VideoCommon.h"
 #include "VertexLoader.h"
-#include "VertexLoader_Position.h"
+#include "VertexLoader_TextCoord.h"
 #include "NativeVertexWriter.h"
 
 #define LOG_TEX1() // PRIM_LOG("tex: %f, ", ((float*)VertexManager::s_pCurBufferPointer)[0]);
@@ -319,7 +316,7 @@ void LOADERDECL TexCoord_ReadIndex16_Float2()
 	tcIndex++;
 }
 
-ReadPosision tableReadTexCoord[4][8][2] = {
+ReadTexCoord tableReadTexCoord[4][8][2] = {
 	{
 		{NULL, NULL,},
 		{NULL, NULL,},
@@ -380,5 +377,3 @@ int tableReadTexCoordVertexSize[4][8][2] = {
 		{2, 2,},
 	},
 };
-
-#endif

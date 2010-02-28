@@ -153,7 +153,7 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	_assert_msg_(VIDEO, 0 <= m_CurrentVat->g0.PosElements && m_CurrentVat->g0.PosElements <= 1, "Invalid number of vertex position elemnts!\n(m_VtxAttr.PosElements = %d)", m_CurrentVat->g0.PosElements);
 
 	m_positionLoader = tableReadPosition[g_VtxDesc.Position][m_CurrentVat->g0.PosFormat][m_CurrentVat->g0.PosElements];
-	m_VertexSize += tableVertexSize[g_VtxDesc.Position][m_CurrentVat->g0.PosFormat][m_CurrentVat->g0.PosElements];
+	m_VertexSize += tableReadPositionVertexSize[g_VtxDesc.Position][m_CurrentVat->g0.PosFormat][m_CurrentVat->g0.PosElements];
 	AddAttributeLoader(LoadPosition);
 
 	// Normals
@@ -243,51 +243,16 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 
 	// Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
 	for (int i = 0; i < 8; i++) {
-		int elements = tcElements[i];
-		switch (tcDesc[i])
-		{
-		case NOT_PRESENT: 
-			m_texCoordLoader[i] = NULL;
-			break;
-		case DIRECT:
-			switch (tcFormat[i])
-			{
-			case FORMAT_UBYTE:	m_VertexSize += elements?2:1; m_texCoordLoader[i] = (elements?TexCoord_ReadDirect_UByte2:TexCoord_ReadDirect_UByte1);  break;
-			case FORMAT_BYTE:	m_VertexSize += elements?2:1; m_texCoordLoader[i] = (elements?TexCoord_ReadDirect_Byte2:TexCoord_ReadDirect_Byte1);   break;
-			case FORMAT_USHORT:	m_VertexSize += elements?4:2; m_texCoordLoader[i] = (elements?TexCoord_ReadDirect_UShort2:TexCoord_ReadDirect_UShort1); break;
-			case FORMAT_SHORT:	m_VertexSize += elements?4:2; m_texCoordLoader[i] = (elements?TexCoord_ReadDirect_Short2:TexCoord_ReadDirect_Short1);  break;
-			case FORMAT_FLOAT:	m_VertexSize += elements?8:4; m_texCoordLoader[i] = (elements?TexCoord_ReadDirect_Float2:TexCoord_ReadDirect_Float1);  break;
-			default: _assert_(0); break;
-			}
-            AddAttributeLoader(LoadTexCoord, i);
-			break;
-		case INDEX8:	
-			m_VertexSize += 1;
-			switch (tcFormat[i])
-			{
-			case FORMAT_UBYTE:	m_texCoordLoader[i] = (elements?TexCoord_ReadIndex8_UByte2:TexCoord_ReadIndex8_UByte1);  break;
-			case FORMAT_BYTE:	m_texCoordLoader[i] = (elements?TexCoord_ReadIndex8_Byte2:TexCoord_ReadIndex8_Byte1);   break;
-			case FORMAT_USHORT:	m_texCoordLoader[i] = (elements?TexCoord_ReadIndex8_UShort2:TexCoord_ReadIndex8_UShort1); break;
-			case FORMAT_SHORT:	m_texCoordLoader[i] = (elements?TexCoord_ReadIndex8_Short2:TexCoord_ReadIndex8_Short1);  break;
-			case FORMAT_FLOAT:	m_texCoordLoader[i] = (elements?TexCoord_ReadIndex8_Float2:TexCoord_ReadIndex8_Float1);  break;
-			default: _assert_(0); break;
-			}
-            AddAttributeLoader(LoadTexCoord, i);
-			break;
-		case INDEX16:
-			m_VertexSize += 2;
-			switch (tcFormat[i])
-			{
-			case FORMAT_UBYTE:	m_texCoordLoader[i] = (elements?TexCoord_ReadIndex16_UByte2:TexCoord_ReadIndex16_UByte1);  break;
-			case FORMAT_BYTE:	m_texCoordLoader[i] = (elements?TexCoord_ReadIndex16_Byte2:TexCoord_ReadIndex16_Byte1);   break;
-			case FORMAT_USHORT:	m_texCoordLoader[i] = (elements?TexCoord_ReadIndex16_UShort2:TexCoord_ReadIndex16_UShort1); break;
-			case FORMAT_SHORT:	m_texCoordLoader[i] = (elements?TexCoord_ReadIndex16_Short2:TexCoord_ReadIndex16_Short1);  break;
-			case FORMAT_FLOAT:	m_texCoordLoader[i] = (elements?TexCoord_ReadIndex16_Float2:TexCoord_ReadIndex16_Float1);  break;
-			default: _assert_(0);
-			}
-            AddAttributeLoader(LoadTexCoord, i);
-			break;
-		}
+		const int desc = tcDesc[i];
+		const int format = tcFormat[i];
+		const int elements = tcElements[i];
+		_assert_msg_(VIDEO, NOT_PRESENT <= desc && desc <= INDEX16, "Invalid texture coordinates description!\n(desc = %d)", desc);
+		_assert_msg_(VIDEO, FORMAT_UBYTE <= format && format <= FORMAT_FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
+		_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elemnts!\n(elements = %d)", elements);
+
+		m_texCoordLoader[i] = tableReadTexCoord[desc][format][elements];
+		m_VertexSize += tableReadTexCoordVertexSize[desc][format][elements];
+		AddAttributeLoader(LoadTexCoord, i);
     }
 
 	// special case if only pos and tex coord 0 and tex coord input is AB11
