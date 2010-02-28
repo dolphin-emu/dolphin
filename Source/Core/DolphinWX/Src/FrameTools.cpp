@@ -547,6 +547,12 @@ void CFrame::DoOpen(bool Boot)
 		if (!fileChosen)
 			return;
 		BootManager::BootCore(std::string(path.mb_str()));
+		// Game has been started, hide the game list
+		if (m_GameListCtrl->IsShown())
+		{
+			m_GameListCtrl->Disable();
+			m_GameListCtrl->Hide();
+		}
 	}
 	else
 	{
