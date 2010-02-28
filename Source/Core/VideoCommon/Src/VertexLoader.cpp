@@ -269,7 +269,7 @@ void VertexLoader::CompileVertexTranslator()
 	_assert_msg_(VIDEO, 0 <= m_VtxAttr.PosElements && m_VtxAttr.PosElements <= 1, "Invalid number of vertex position elemnts!\n(m_VtxAttr.PosElements = %d)", m_VtxAttr.PosElements);
 
 	WriteCall(tableReadPosition[m_VtxDesc.Position][m_VtxAttr.PosFormat][m_VtxAttr.PosElements]);
-	m_VertexSize += tableVertexSize[m_VtxDesc.Position][m_VtxAttr.PosFormat][m_VtxAttr.PosElements];
+	m_VertexSize += tableReadPositionVertexSize[m_VtxDesc.Position][m_VtxAttr.PosFormat][m_VtxAttr.PosElements];
 	nat_offset += 12;
 
 	// OK, so we just got a point. Let's go back and read it for the bounding box.
@@ -412,48 +412,19 @@ void VertexLoader::CompileVertexTranslator()
 	// Texture matrix indices (remove if corresponding texture coordinate isn't enabled)
 	for (int i = 0; i < 8; i++) {
 		vtx_decl.texcoord_offset[i] = -1;
-		m_NativeFmt->m_components |= VB_HAS_UV0 << i;
-		int elements = m_VtxAttr.texCoord[i].Elements;
-		switch (tc[i])
-		{
-		case NOT_PRESENT: 
+		const int format = m_VtxAttr.texCoord[i].Format;
+		const int elements = m_VtxAttr.texCoord[i].Elements;
+
+		if (tc[i] == NOT_PRESENT) {
 			m_NativeFmt->m_components &= ~(VB_HAS_UV0 << i);
-			break;
-		case DIRECT:
-			switch (m_VtxAttr.texCoord[i].Format)
-			{
-			case FORMAT_UBYTE:	m_VertexSize += elements?2:1; WriteCall(elements?TexCoord_ReadDirect_UByte2:TexCoord_ReadDirect_UByte1);  break;
-			case FORMAT_BYTE:	m_VertexSize += elements?2:1; WriteCall(elements?TexCoord_ReadDirect_Byte2:TexCoord_ReadDirect_Byte1);   break;
-			case FORMAT_USHORT:	m_VertexSize += elements?4:2; WriteCall(elements?TexCoord_ReadDirect_UShort2:TexCoord_ReadDirect_UShort1); break;
-			case FORMAT_SHORT:	m_VertexSize += elements?4:2; WriteCall(elements?TexCoord_ReadDirect_Short2:TexCoord_ReadDirect_Short1);  break;
-			case FORMAT_FLOAT:	m_VertexSize += elements?8:4; WriteCall(elements?TexCoord_ReadDirect_Float2:TexCoord_ReadDirect_Float1);  break;
-			default: _assert_(0); break;
-			}
-			break;
-		case INDEX8:	
-			m_VertexSize += 1;
-			switch (m_VtxAttr.texCoord[i].Format)
-			{
-			case FORMAT_UBYTE:	WriteCall(elements?TexCoord_ReadIndex8_UByte2:TexCoord_ReadIndex8_UByte1);  break;
-			case FORMAT_BYTE:	WriteCall(elements?TexCoord_ReadIndex8_Byte2:TexCoord_ReadIndex8_Byte1);   break;
-			case FORMAT_USHORT:	WriteCall(elements?TexCoord_ReadIndex8_UShort2:TexCoord_ReadIndex8_UShort1); break;
-			case FORMAT_SHORT:	WriteCall(elements?TexCoord_ReadIndex8_Short2:TexCoord_ReadIndex8_Short1);  break;
-			case FORMAT_FLOAT:	WriteCall(elements?TexCoord_ReadIndex8_Float2:TexCoord_ReadIndex8_Float1);  break;
-			default: _assert_(0); break;
-			}
-			break;
-		case INDEX16:
-			m_VertexSize += 2;
-			switch (m_VtxAttr.texCoord[i].Format)
-			{
-			case FORMAT_UBYTE:	WriteCall(elements?TexCoord_ReadIndex16_UByte2:TexCoord_ReadIndex16_UByte1);  break;
-			case FORMAT_BYTE:	WriteCall(elements?TexCoord_ReadIndex16_Byte2:TexCoord_ReadIndex16_Byte1);   break;
-			case FORMAT_USHORT:	WriteCall(elements?TexCoord_ReadIndex16_UShort2:TexCoord_ReadIndex16_UShort1); break;
-			case FORMAT_SHORT:	WriteCall(elements?TexCoord_ReadIndex16_Short2:TexCoord_ReadIndex16_Short1);  break;
-			case FORMAT_FLOAT:	WriteCall(elements?TexCoord_ReadIndex16_Float2:TexCoord_ReadIndex16_Float1);  break;
-			default: _assert_(0);
-			}
-			break;
+		} else {
+			_assert_msg_(VIDEO, DIRECT <= tc[i] && tc[i] <= INDEX16, "Invalid texture coordinates!\n(tc[i] = %d)", tc[i]);
+			_assert_msg_(VIDEO, FORMAT_UBYTE <= format && format <= FORMAT_FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
+			_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elemnts!\n(elements = %d)", elements);
+
+			m_NativeFmt->m_components |= VB_HAS_UV0 << i;
+			WriteCall(tableReadTexCoord[tc[i]][format][elements]);
+			m_VertexSize += tableReadTexCoordVertexSize[tc[i]][format][elements];
 		}
 
 		if (m_NativeFmt->m_components & (VB_HAS_TEXMTXIDX0 << i)) {

@@ -18,36 +18,19 @@
 #ifndef VERTEXLOADER_TEXCOORD_H
 #define VERTEXLOADER_TEXCOORD_H
 
+typedef void (LOADERDECL *ReadTexCoord)();
+
+// Hold function pointers of texture coordinates loaders.
+// The first dimension corresponds to TVtxDesc.Tex?Coord.
+// The second dimension corresponds to TVtxAttr.texCoord[?].Format.
+// The third dimension corresponds to TVtxAttr.texCoord[?].Elements.
+// The dimensions are aligned to 2^n for speed up.
+extern ReadTexCoord tableReadTexCoord[4][8][2];
+
+// Hold vertex size of each vertex format.
+// The dimensions are same as tableReadPosition.
+extern int tableReadTexCoordVertexSize[4][8][2];
+
 void LOADERDECL TexCoord_Read_Dummy();
-void LOADERDECL TexCoord_ReadDirect_UByte1();
-void LOADERDECL TexCoord_ReadDirect_UByte2();
-void LOADERDECL TexCoord_ReadDirect_Byte1();
-void LOADERDECL TexCoord_ReadDirect_Byte2();
-void LOADERDECL TexCoord_ReadDirect_UShort1();
-void LOADERDECL TexCoord_ReadDirect_UShort2();
-void LOADERDECL TexCoord_ReadDirect_Short1();
-void LOADERDECL TexCoord_ReadDirect_Short2();
-void LOADERDECL TexCoord_ReadDirect_Float1();
-void LOADERDECL TexCoord_ReadDirect_Float2();
-void LOADERDECL TexCoord_ReadIndex8_UByte1();
-void LOADERDECL TexCoord_ReadIndex8_UByte2();
-void LOADERDECL TexCoord_ReadIndex8_Byte1();
-void LOADERDECL TexCoord_ReadIndex8_Byte2();
-void LOADERDECL TexCoord_ReadIndex8_UShort1();
-void LOADERDECL TexCoord_ReadIndex8_UShort2();
-void LOADERDECL TexCoord_ReadIndex8_Short1();
-void LOADERDECL TexCoord_ReadIndex8_Short2();
-void LOADERDECL TexCoord_ReadIndex8_Float1();
-void LOADERDECL TexCoord_ReadIndex8_Float2();
-void LOADERDECL TexCoord_ReadIndex16_UByte1();
-void LOADERDECL TexCoord_ReadIndex16_UByte2();
-void LOADERDECL TexCoord_ReadIndex16_Byte1();
-void LOADERDECL TexCoord_ReadIndex16_Byte2();
-void LOADERDECL TexCoord_ReadIndex16_UShort1();
-void LOADERDECL TexCoord_ReadIndex16_UShort2();
-void LOADERDECL TexCoord_ReadIndex16_Short1();
-void LOADERDECL TexCoord_ReadIndex16_Short2();
-void LOADERDECL TexCoord_ReadIndex16_Float1();
-void LOADERDECL TexCoord_ReadIndex16_Float2();
 
 #endif

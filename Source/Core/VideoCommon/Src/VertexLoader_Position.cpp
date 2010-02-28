@@ -219,7 +219,7 @@ ReadPosision tableReadPosition[4][8][2] = {
 	},
 };
 
-int tableVertexSize[4][8][2] = {
+int tableReadPositionVertexSize[4][8][2] = {
 	{
 		{0, 0,},
 		{0, 0,},

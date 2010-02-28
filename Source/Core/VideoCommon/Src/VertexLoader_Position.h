@@ -29,6 +29,6 @@ extern ReadPosision tableReadPosition[4][8][2];
 
 // Hold vertex size of each vertex format.
 // The dimensions are same as tableReadPosition.
-extern int tableVertexSize[4][8][2];
+extern int tableReadPositionVertexSize[4][8][2];
 
 #endif
