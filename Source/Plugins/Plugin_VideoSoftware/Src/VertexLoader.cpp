@@ -252,7 +252,8 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 
 		m_texCoordLoader[i] = tableReadTexCoord[desc][format][elements];
 		m_VertexSize += tableReadTexCoordVertexSize[desc][format][elements];
-		AddAttributeLoader(LoadTexCoord, i);
+		if (m_texCoordLoader[i])
+			AddAttributeLoader(LoadTexCoord, i);
     }
 
 	// special case if only pos and tex coord 0 and tex coord input is AB11
