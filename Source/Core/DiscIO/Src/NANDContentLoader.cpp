@@ -267,6 +267,7 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
 		}
 	}
 
+	delete [] pTMD;
 	return true;
 }
 
