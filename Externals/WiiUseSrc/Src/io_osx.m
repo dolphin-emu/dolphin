@@ -253,6 +253,7 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 	[bth release];
 	[bti release];
 	[sbt release];
+	[cbt release];
 
 	[pool release];
 
