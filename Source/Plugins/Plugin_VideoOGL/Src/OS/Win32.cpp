@@ -261,7 +261,10 @@ void OnKeyDown(WPARAM wParam)
 
 // Should really take a look at the mouse stuff in here - some of it is weird.
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
-{		
+{
+	if (g_Config.bFreeLook)
+		FreeLookInput( iMsg, wParam );
+
 	switch (iMsg)
 	{
 	case WM_CREATE:
@@ -300,8 +303,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		if (!g_Config.RenderToMainframe)
 			OnKeyDown(wParam);
 		
-		if (g_Config.bFreeLook)
-			FreeLookInput( iMsg, wParam );
 		break;
 
 	/* Post these mouse events to the main window, it's nessesary becase in difference to the
