@@ -21,6 +21,7 @@
 // Top vertex loaders
 // Metroid Prime: P I16-flt N I16-s16 T0 I16-u16 T1 i16-flt
 
+#include <algorithm>
 #include <string>
 
 #include "Common.h"
@@ -44,17 +45,7 @@ public:
 		vid[4] = g_VtxAttr[vtx_attr_group].g2.Hex & ~VAT_2_FRACBITS;
 	}
 	bool operator < (const VertexLoaderUID &other) const {
-		if (vid[0] < other.vid[0])
-			return true;
-		else if (vid[0] > other.vid[0])
-			return false;
-		for (int i = 1; i < 5; ++i) {
-			if (vid[i] < other.vid[i])
-				return true;
-			else if (vid[i] > other.vid[i])
-				return false;
-		}
-		return false;
+		return std::lexicographical_compare(vid, vid + sizeof(vid) / sizeof(vid[0]), other.vid, other.vid + sizeof(vid) / sizeof(vid[0]));
 	}
 };
 
