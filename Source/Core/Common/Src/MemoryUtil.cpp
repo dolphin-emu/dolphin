@@ -62,7 +62,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
          , -1, 0);  // | MAP_FIXED
 	// printf("Mapped executable memory at %p (size %i)\n", retval, size);
 
-	if ((u64)ptr >= 0x80000000)
+	if ((u64)retval >= 0x80000000)
 	{
 		// Should only happen in 64bit OSX
 		// Just a reminder, to show a OSX user that it may fail
