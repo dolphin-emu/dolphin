@@ -124,7 +124,7 @@ vars.AddVariables(
                  ignorecase = 2
                  ),
     EnumVariable('osx', 'Choose a backend (WIP)', '32cocoa',
-                 allowed_values = ('32x11', '32cocoa', '64cocoa'),
+                 allowed_values = ('32x11', '32cocoa', '64cocoa', 'universal'),
                  ignorecase = 2
                  ),
     PathVariable('wxconfig', 'Path to the wxconfig', None),
@@ -328,9 +328,14 @@ if sys.platform != 'darwin':
 if sys.platform == 'darwin':
     if env['osx'] == '64cocoa':
         compileFlags += ['-arch' , 'x86_64', '-m64' ]
+        env['LINKFLAGS'] += ['-arch' , 'x86_64', '-m64' ]
         conf.Define('MAP_32BIT', 0)
     if env['osx'] == '32cocoa':
         compileFlags += ['-arch' , 'i386', '-m32' ]
+        env['LINKFLAGS'] += ['-arch' , 'i386', '-m32' ]
+    if env['osx'] == 'universal':
+        compileFlags += ['-arch i386', '-arch x86_64']
+        env['LINKFLAGS'] += ['-arch i386', '-arch x86_64'] 
     if not env['osx'] == '32x11':
         env['HAVE_X11'] = 0
         env['HAVE_COCOA'] = 1
