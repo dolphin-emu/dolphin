@@ -164,9 +164,13 @@ void DllConfig(HWND _hParent)
 	wxWindow *frame = GetParentedWxWindow(_hParent);
 	m_ConfigFrame = new GCPadConfigDialog(frame);
 
+#ifdef _WIN32
 	frame->Disable();
 	m_ConfigFrame->ShowModal();
 	frame->Enable();
+#else
+	m_ConfigFrame->ShowModal();
+#endif
 
 #ifdef _WIN32
 	frame->SetFocus();

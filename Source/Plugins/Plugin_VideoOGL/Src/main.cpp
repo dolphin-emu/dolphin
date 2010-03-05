@@ -291,10 +291,15 @@ void DllConfig(HWND _hParent)
 #endif
 
 	// Prevent user to show more than 1 config window at same time
+#ifdef _WIN32
 	frame->Disable();
 	m_ConfigFrame->CreateGUIControls();
 	m_ConfigFrame->ShowModal();
 	frame->Enable();
+#else
+	m_ConfigFrame->CreateGUIControls();
+	m_ConfigFrame->ShowModal();
+#endif
 
 #ifdef _WIN32
 	frame->SetFocus();

@@ -147,9 +147,13 @@ void DllConfig(HWND _hParent)
 	}
 
 	// Only allow one open at a time
+#ifdef _WIN32
 	frame->Disable();
 	m_ConfigFrame->ShowModal();
 	frame->Enable();
+#else
+	m_ConfigFrame->ShowModal();
+#endif
 
 #ifdef _WIN32
 	frame->SetFocus();

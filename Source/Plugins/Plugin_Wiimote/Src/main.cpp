@@ -168,10 +168,13 @@ void DllConfig(HWND _hParent)
 #if defined(HAVE_WX) && HAVE_WX
 	wxWindow *frame = GetParentedWxWindow(_hParent);
 	m_BasicConfigFrame = new WiimoteBasicConfigDialog(frame);
-
+#ifdef _WIN32
 	frame->Disable();
 	m_BasicConfigFrame->ShowModal();
 	frame->Enable();
+#else
+	m_BasicConfigFrame->ShowModal();
+#endif
 
 #ifdef _WIN32
 	frame->SetFocus();

@@ -53,6 +53,7 @@ IOBluetoothL2CAPChannel * _cchan;
 #include "io.h"
 
 byte DataFromWiimote[MAX_PAYLOAD];
+NSUInteger g_length;
 
 static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 
@@ -99,6 +100,7 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address);
 		
 	//here we got data from wiimote
 	memcpy(DataFromWiimote, BtData, MAX_PAYLOAD);
+	g_length = length;
 	
 	//stop the main loop after reading
 	CFRunLoopStop( CFRunLoopGetCurrent() );
@@ -318,7 +320,8 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address) {
 	cbt = [[ConnectBT alloc] init];
 	//start to connect to the wiimotes
 	[cbt connectToWiimotes];
-
+	
+	usleep (200000); // Little delay, or else the device isn't ready!
 	WIIUSE_INFO("Connected to wiimote [id %i].", wm->unid);
 
 		/* do the handshake */
@@ -367,8 +370,11 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 	//run the main loop to get bt data
 	CFRunLoopRun();
 
-	memcpy(wm->event_buf,DataFromWiimote,sizeof(wm->event_buf));
+	memcpy(wm->event_buf,DataFromWiimote, g_length);
+	if(!g_length || !wm->event_buf[0]) // no packet
+		return 0;
 	
+	wm->event_buf[0] = 0xa2; // Make sure it's 0xa2, just in case
 	return 1;
 
 }

@@ -77,6 +77,8 @@ bool				g_RunTemporary = false;
 int					g_RunTemporaryCountdown = 0;
 u8					g_EventBuffer[32];
 bool				g_WiimoteInUse[MAX_WIIMOTES];
+	Common::Event NeedsConnect;
+	Common::Event Connected;
 
 // Probably this class should be in its own file
 
@@ -315,6 +317,8 @@ int Initialize()
 	// Return if already initialized
 	if (g_RealWiiMoteInitialized)
 		return g_NumberOfWiiMotes;
+	NeedsConnect.Init();
+	Connected.Init();
 
 	// Clear the wiimote classes
     memset(g_WiiMotes, 0, sizeof(CWiiMote*) * MAX_WIIMOTES);
@@ -329,7 +333,15 @@ int Initialize()
 	g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
 	DEBUG_LOG(WIIMOTE, "Found No of Wiimotes: %i", g_NumberOfWiiMotes);
 	if (g_NumberOfWiiMotes > 0)
+	{
 		g_RealWiiMotePresent = true;
+		// Create a new thread for listening for Wiimote data
+		// and also connecting in Linux/OSX.
+		// Windows connects to Wiimote in the wiiuse_find function
+		g_pReadThread = new Common::Thread(ReadWiimote_ThreadFunc, NULL);
+		NeedsConnect.Set();
+		Connected.Wait();
+	}
 	else
 		return 0;
 
@@ -349,21 +361,10 @@ int Initialize()
 	// Will test soon
 	//wiiuse_set_timeout(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes, 220, 220);
 
-	// WiiUse initializes the Wiimotes in Windows right from the wiiuse_find function
-	// The Functionality should REALLY be changed
-	#ifndef _WIN32
-		int Connect;
-		Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
-		DEBUG_LOG(WIIMOTE, "Connected: %i", Connect);
-	#endif
-
 	// If we are connecting from the config window without a game running we set the LEDs
 	if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY && g_RealWiiMotePresent)
 		FlashLights(true);
-
-	// Create a new thread and start listening for Wiimote data
-	if (g_NumberOfWiiMotes > 0)
-		g_pReadThread = new Common::Thread(ReadWiimote_ThreadFunc, NULL);
+		
 
 	/* Allocate memory and copy the Wiimote eeprom accelerometer neutral values
 	   to g_Eeprom. Unlike with and extension we have to do this here, because
@@ -534,6 +535,15 @@ THREAD_RETURN ReadWiimote_ThreadFunc(void* arg)
 {
 	g_StopThreadTemporary.Init();
 	g_StartThread.Init();
+	NeedsConnect.Wait();
+#ifndef _WIN32
+	int Connect;
+	// WiiUse initializes the Wiimotes in Windows right from the wiiuse_find function
+	// The Functionality should REALLY be changed
+	Connect = wiiuse_connect(g_WiiMotesFromWiiUse, MAX_WIIMOTES);
+	DEBUG_LOG(WIIMOTE, "Connected: %i", Connect);
+#endif
+	Connected.Set();
 		
 	while (!g_Shutdown)
 	{
