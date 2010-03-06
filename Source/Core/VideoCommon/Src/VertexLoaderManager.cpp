@@ -15,9 +15,16 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <algorithm>
+#ifdef _MSC_VER
+#include <hash_map>
+using stdext::hash_map;
+#else
+#include <ext/hash_map>
+using __gnu_cxx::hash_map;
+#endif
 #include <map>
 #include <vector>
-#include <algorithm>
 
 #include "VideoCommon.h"
 #include "Statistics.h"
@@ -30,10 +37,20 @@ static int s_attr_dirty;  // bitfield
 
 static VertexLoader *g_VertexLoaders[8];
 
+#ifndef _MSC_VER
+namespace __gnu_cxx {
+	template<> struct hash<VertexLoaderUID> {
+		size_t operator()(const VertexLoaderUID& __x) const {
+			return __x;
+		}
+	};
+}
+#endif
+
 namespace VertexLoaderManager
 {
 
-typedef std::map<VertexLoaderUID, VertexLoader *> VertexLoaderMap;
+typedef hash_map<VertexLoaderUID, VertexLoader*> VertexLoaderMap;
 static VertexLoaderMap g_VertexLoaderMap;
 // TODO - change into array of pointers. Keep a map of all seen so far.
 
