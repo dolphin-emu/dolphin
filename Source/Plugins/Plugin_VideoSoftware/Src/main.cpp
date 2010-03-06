@@ -98,6 +98,7 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 
 void Shutdown(void)
 {
+	Renderer::Shutdown();
 	OpenGL_Shutdown();
 }
 

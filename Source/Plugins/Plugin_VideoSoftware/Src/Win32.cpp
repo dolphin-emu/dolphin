@@ -201,14 +201,15 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	case WM_CLOSE:	
 		if (m_hParent == NULL)
 		{
-			// Simple hack to easily exit without stopping. Hope to fix the stopping errors soon.
-			ExitProcess(0);
+			// Take it out of fullscreen and stop the game
+			if( g_Config.bFullscreen )
+				ToggleFullscreen(m_hParent);
+			PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
 		}
 		break;
 
 	case WM_DESTROY:
-		//Shutdown();
-		//PostQuitMessage( 0 ); // Call WM_QUIT
+		Shutdown();
 		break;
 
 	// Called when a screensaver wants to show up while this window is active
