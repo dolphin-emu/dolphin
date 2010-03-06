@@ -35,7 +35,7 @@
 class VertexLoaderUID
 {
 	u32 vid[5];
-	size_t hashValue;
+	size_t hash;
 public:
 	VertexLoaderUID() {}
 	void InitFromCurrentState(int vtx_attr_group) {
@@ -44,7 +44,7 @@ public:
 		vid[2] = g_VtxAttr[vtx_attr_group].g0.Hex & ~VAT_0_FRACBITS;
 		vid[3] = g_VtxAttr[vtx_attr_group].g1.Hex & ~VAT_1_FRACBITS;
 		vid[4] = g_VtxAttr[vtx_attr_group].g2.Hex & ~VAT_2_FRACBITS;
-		hashValue = hash(*this);
+		hash = CalculateHash();
 	}
 	bool operator < (const VertexLoaderUID &other) const {
 		// This is complex because of speed.
@@ -60,15 +60,19 @@ public:
 		}
 		return false;
 	}
-	static size_t hash(const VertexLoaderUID& rh) {
+	bool operator == (const VertexLoaderUID& rh) const {
+		return hash == rh.hash && std::equal(vid, vid + sizeof(vid) / sizeof(vid[0]), rh.vid);
+	}
+	size_t GetHash() const {
+		return hash;
+	}
+private:
+	size_t CalculateHash() {
 		size_t h = -1;
-		for (int i = 0; i < sizeof(rh.vid) / sizeof(rh.vid[0]); ++i) {
-			h = h * 137 + rh.vid[i];
+		for (int i = 0; i < sizeof(vid) / sizeof(vid[0]); ++i) {
+			h = h * 137 + vid[i];
 		}
 		return h;
-	}
-	operator size_t() const {
-		return hashValue;
 	}
 };
 

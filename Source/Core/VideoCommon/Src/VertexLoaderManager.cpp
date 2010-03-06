@@ -37,11 +37,17 @@ static int s_attr_dirty;  // bitfield
 
 static VertexLoader *g_VertexLoaders[8];
 
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+namespace stdext {
+	inline size_t hash_value(const VertexLoaderUID& uid) {
+		return uid.GetHash();
+	}
+}
+#else
 namespace __gnu_cxx {
 	template<> struct hash<VertexLoaderUID> {
-		size_t operator()(const VertexLoaderUID& __x) const {
-			return __x;
+		size_t operator()(const VertexLoaderUID& uid) const {
+			return uid.GetHash();
 		}
 	};
 }
