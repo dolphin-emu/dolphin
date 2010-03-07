@@ -367,7 +367,7 @@ void NetPlay::UpdateNetWindow(bool update_infos, wxString infos)
 	{
 		m_critical.Enter();
 		//m_Game_str->SetLabel(wxString::Format(wxT(" Game : %s"), m_selectedGame.c_str()));
-		m_Game_str->SetLabel(wxString::FromUTF8( ( wxT( "Game %s"), m_selectedGame.c_str() )));
+		m_Game_str->SetLabel(wxString::FromAscii(std::string("Game " + m_selectedGame).c_str()));
 		m_critical.Leave();
 	}
 }

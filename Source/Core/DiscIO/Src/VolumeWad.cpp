@@ -119,7 +119,7 @@ std::string CVolumeWAD::GetName() const
 
 	// Remove the null bytes due to 16bit char length
 	std::string out_temp;
-	for (int i = 0; i < sizeof(temp); i+=2)
+	for (unsigned int i = 0; i < sizeof(temp); i+=2)
 	{
 		// Replace null chars with a single space per null section
  		if (temp[i] == '\0' && i > 0)

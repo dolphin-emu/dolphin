@@ -32,6 +32,10 @@
 
 namespace Rasterizer
 {
+Slope ZSlope;
+Slope WSlope;
+Slope ColorSlopes[2][4];
+Slope TexSlopes[8][3];
 
 s32 scissorLeft = 0;
 s32 scissorTop = 0;

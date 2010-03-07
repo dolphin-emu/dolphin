@@ -59,6 +59,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace Clipper
 {
+    float m_ViewOffset[3];
+    OutputVertexData ClippedVertices[18];
+    OutputVertexData *Vertices[21];
+
     void Init()
     {
         for (int i = 0; i < 18; ++i)

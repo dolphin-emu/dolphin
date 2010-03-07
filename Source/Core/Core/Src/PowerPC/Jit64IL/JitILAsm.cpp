@@ -35,7 +35,7 @@
 
 using namespace Gen;
 
-static int temp32;
+//static int temp32; // unused?
 
 //TODO - make an option
 //#if _DEBUG
@@ -44,7 +44,7 @@ static bool enableDebug = false;
 //		bool enableDebug = false; 
 //#endif
 
-static bool enableStatistics = false;
+//static bool enableStatistics = false; // unused?
 
 //GLOBAL STATIC ALLOCATIONS x86
 //EAX - ubiquitous scratch register - EVERYBODY scratches this

@@ -35,11 +35,6 @@ namespace Clipper
     bool CullTest(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2, bool &backface);
 
     void PerspectiveDivide(OutputVertexData *vertex);
-
-    static float m_ViewOffset[3];
-
-    static OutputVertexData ClippedVertices[18];
-    static OutputVertexData *Vertices[21];
 }
 
 

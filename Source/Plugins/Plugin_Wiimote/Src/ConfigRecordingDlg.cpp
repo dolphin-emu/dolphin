@@ -139,8 +139,8 @@ void WiimoteRecordingConfigDialog::RecordingChanged(wxCommandEvent& event)
 void WiimoteRecordingConfigDialog::UpdateRecordingGUI(int Slot)
 {
 	// Disable all recording buttons
-	bool ActiveRecording = !(m_bWaitForRecording || m_bRecording);
 	#ifdef _WIN32
+	bool ActiveRecording = !(m_bWaitForRecording || m_bRecording);
 		for(int i = IDB_RECORD + 1; i < (IDB_RECORD + RECORDING_ROWS + 1); i++)
 			if(ControlsCreated) m_PageRecording->FindItem(i)->Enable(ActiveRecording);
 	#endif

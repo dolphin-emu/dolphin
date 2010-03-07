@@ -69,7 +69,7 @@ public:
 private:
 	size_t CalculateHash() {
 		size_t h = -1;
-		for (int i = 0; i < sizeof(vid) / sizeof(vid[0]); ++i) {
+		for (unsigned int i = 0; i < sizeof(vid) / sizeof(vid[0]); ++i) {
 			h = h * 137 + vid[i];
 		}
 		return h;

@@ -98,7 +98,7 @@ void Sample(float s, float t, float lod, u8 texmap, u8 *sample)
     u8 *imageSrc = g_VideoInitialize.pGetMemoryPointer(imageBase);
 
     bool linear = false;
-    if (lod > 0 && tm0.min_filter > 4 || lod <= 0 && tm0.mag_filter)
+    if ((lod > 0 && tm0.min_filter > 4) || (lod <= 0 && tm0.mag_filter))
         linear = true;
 
     if (linear)

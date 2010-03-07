@@ -124,7 +124,7 @@ void DumpEfb(const char* filename)
             *(writePtr++) = sample[3];
         }
 
-    bool result = SaveTGA(filename, EFB_WIDTH, EFB_HEIGHT, data);
+    SaveTGA(filename, EFB_WIDTH, EFB_HEIGHT, data);
 
     delete []data;
 }
@@ -144,7 +144,7 @@ void DumpDepth(const char* filename)
             *(writePtr++) = 255;
         }
 
-    bool result = SaveTGA(filename, EFB_WIDTH, EFB_HEIGHT, data);
+    SaveTGA(filename, EFB_WIDTH, EFB_HEIGHT, data);
 
     delete []data;
 }

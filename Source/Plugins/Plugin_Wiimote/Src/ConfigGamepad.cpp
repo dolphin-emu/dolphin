@@ -245,7 +245,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 void WiimotePadConfigDialog::Convert2Box(int &x)
 {
 	// Border adjustment
-	int BoxW_ = BoxW - 2; int BoxH_ = BoxH - 2;
+	int BoxW_ = BoxW - 2;
 	// Convert values
 	x = (BoxW_ / 2) + (x * BoxW_ / (32767 * 2));
 }

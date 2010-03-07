@@ -373,8 +373,6 @@ bool PAD_Init_Rumble(u8 _numPAD, SDL_Joystick *SDL_Device)
 // --------------
 void PAD_Rumble(u8 _numPAD, unsigned int _uType)
 {
-	int Strenght = 0;
-
 #ifdef SDL_RUMBLE
 	if (WiiMapping[_numPAD].Rumble)  // rumble activated
 	{

@@ -50,8 +50,9 @@ END_EVENT_TABLE()
 
 CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxString &, const wxPoint &position, const wxSize& size, long style)
 	: wxPanel(parent, id, position, size, style)
-    , Parent(parent), m_LogSection(1), m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
-	, m_LogAccess(true)
+    , Parent(parent) , m_LogAccess(true)
+	, m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
+	, m_LogSection(1)
 	, m_SJISConv(wxFONTENCODING_SHIFT_JIS)
 {
 	m_LogManager = LogManager::GetInstance();

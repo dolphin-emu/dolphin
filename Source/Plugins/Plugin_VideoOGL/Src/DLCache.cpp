@@ -124,9 +124,9 @@ bool AnalyzeAndRunDisplayList(u32 address, int	 size, CachedDisplayList *dl)
 {
 	int num_xf_reg = 0;
 	int num_cp_reg = 0;
-	int num_bp_reg = 0;
+	//int num_bp_reg = 0; // unused?
 	int num_index_xf = 0;
-	int num_draw_call = 0;
+	//int num_draw_call = 0; // unused?
 
 	u8 *old_datareader = g_pVideoData;
 	g_pVideoData = Memory_GetPtr(address);

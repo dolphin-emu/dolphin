@@ -359,7 +359,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
 
 		if (__name.length() > 0x44)
 		{
-			PanicAlert("% is too long for the filename, max chars is 45", __name.c_str());
+			PanicAlert("%s is too long for the filename, max chars is 45", __name.c_str());
 			b_valid = false;
 			return;
 		}

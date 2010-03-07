@@ -40,10 +40,6 @@ namespace Rasterizer
         float GetValue(s32 x, s32 y) { return f0 + (dfdx * (x - x0)) + (dfdy * (y - y0)); }
     };
     
-    static Slope ZSlope;
-    static Slope WSlope;
-    static Slope ColorSlopes[2][4];
-    static Slope TexSlopes[8][3];    
 }
 
 #endif

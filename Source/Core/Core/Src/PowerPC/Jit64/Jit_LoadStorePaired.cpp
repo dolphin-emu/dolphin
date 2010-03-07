@@ -36,14 +36,16 @@
 
 const u8 GC_ALIGNED16(pbswapShuffle2x4[16]) = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
 
-static u64 GC_ALIGNED16(temp64);
+//static u64 GC_ALIGNED16(temp64); // unused?
  
 // TODO(ector): Improve 64-bit version
+#if 0
 static void WriteDual32(u64 value, u32 address)
 {
 	Memory::Write_U32((u32)(value >> 32), address);
 	Memory::Write_U32((u32)value, address + 4);
 }
+#endif
 
 // The big problem is likely instructions that set the quantizers in the same block.
 // We will have to break block after quantizers are written to.
@@ -66,12 +68,12 @@ void Jit64::psq_st(UGeckoInstruction inst)
 	int s = inst.RS; // Fp numbers
 
 	const UGQR gqr(rSPR(SPR_GQR0 + inst.I));
+#if 0
 	u16 store_gqr = gqr.Hex & 0xFFFF;
 
 	const EQuantizeType stType = static_cast<EQuantizeType>(gqr.ST_TYPE);
 	int stScale = gqr.ST_SCALE;
 
-#if 0
 	// Is this specialization still worth it? Let's keep it for now. It's probably
 	// not very risky since a game most likely wouldn't use the same code to process
 	// floats as integers (but you never know....).
