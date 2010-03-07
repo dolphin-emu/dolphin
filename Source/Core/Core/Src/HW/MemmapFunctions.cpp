@@ -17,6 +17,7 @@
 
 #include "Common.h"
 
+#include "GPFifo.h"
 #include "Memmap.h"
 #include "WII_IOB.h"
 #include "../Core.h"
@@ -209,14 +210,23 @@ inline void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Mem
 			_var = bswap((*(const T*)&m_pRAM[tlb_addr & RAM_MASK]));
 	}
 
-	/* Debugging: CheckForBadAddresses##_type(em_address, _var, true);*/
+	// Debugging: CheckForBadAddresses##_type(em_address, _var, true);
 }
 
 
 template <class T>
 inline void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory::XCheckTLBFlag flag)
 {
-	/* Debugging: CheckForBadAddresses##_type(em_address, data, false);*/
+	// Debugging: CheckForBadAddresses##_type(em_address, data, false);
+	// First, let's check for FIFO writes, since they are probably the most common
+	// reason we end up in this function:
+	if (em_address == 0xCC008000) {
+		switch (sizeof(T)) {
+		case 1:	GPFifo::Write8(data, em_address); return;
+		case 2:	GPFifo::Write16(data, em_address); return;
+		case 4:	GPFifo::Write32(data, em_address); return;
+		}
+	}
 	if ((em_address & 0xC8000000) == 0xC8000000)
 	{
 		if (em_address < 0xcc000000)
