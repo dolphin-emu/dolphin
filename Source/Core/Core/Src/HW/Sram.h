@@ -54,12 +54,12 @@ distribution.
 union SRAM
 {
 	u8 p_SRAM[64];
-	struct _syssram {			// Stored configuration value from the system SRAM area
-		u8 checksum[2];			// holds the block checksum.
-		u8 checksum_inv[2];		// holds the inverse block checksum
-		u8 ead0[4];				// unknown attribute
-		u8 ead1[4];				// unknown attribute
-		u8 counter_bias[4];		// bias value for the realtime clock
+	struct {					// Stored configuration value from the system SRAM area
+		u16 checksum;			// holds the block checksum.
+		u16 checksum_inv;		// holds the inverse block checksum
+		u32 ead0;				// unknown attribute
+		u32 ead1;				// unknown attribute
+		u32 counter_bias;		// bias value for the realtime clock
 		s8 display_offsetH;		// pixel offset for the VI
 		u8 ntd;					// unknown attribute
 		u8 lang;				// language of system
@@ -67,13 +67,13 @@ union SRAM
 
 								// Stored configuration value from the extended SRAM area
 		u8 flash_id[2][12];		// flash_id[2][12] 96bit memorycard unlock flash ID
-		u8 wirelessKbd_id[4];	// Device ID of last connected wireless keyboard
-		u8 wirelessPad_id[8];	// 16bit device ID of last connected pad.
+		u32 wirelessKbd_id;		// Device ID of last connected wireless keyboard
+		u16 wirelessPad_id[4];	// 16bit device ID of last connected pad.
 		u8 dvderr_code;			// last non-recoverable error from DVD interface
-		u8 __padding0;			// padding
-		u8 flashID_chksum[4];	// 16bit checksum of unlock flash ID
-		u8 __padding1[2];		// padding - libogc has this as [4]? I have it as 2 to make it 64
-	}syssram;
+		u8 __padding0;			// reserved
+		u16 flashID_chksum[2];	// 16bit checksum of unlock flash ID
+		u16 __padding1;			// padding
+	};
 };
 #pragma pack(pop)
 #endif

@@ -1171,15 +1171,15 @@ bool GCMemcard::Format(bool sjis, bool New, int slot, u16 SizeMb, bool hdrOnly)
 	for(int i = 0; i < 12; i++)
 	{
 		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-		hdr.serial[i] = (u8)(m_SRAM.syssram.flash_id[slot][i] + (u32)rand);
+		hdr.serial[i] = (u8)(m_SRAM.flash_id[slot][i] + (u32)rand);
 		rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);	
 		rand &= (u64)0x0000000000007fffULL;
 	}
 
 	hdr.fmtTime.high = (time >> 32) & 0xFFFFFFFF;
 	hdr.fmtTime.low = time & 0xFFFFFFFF;
-	*(u32*)&(hdr.SramBias) = *(u32*)&(m_SRAM.syssram.counter_bias);
-	*(u32*)&(hdr.SramLang) = m_SRAM.syssram.lang;
+	*(u32*)&(hdr.SramBias) = m_SRAM.counter_bias;
+	*(u32*)&(hdr.SramLang) = m_SRAM.lang;
 	*(u32*)&(hdr.Unk2) = Common::swap32(1);		// = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
 	// TODO: find out why memcard cares if component cable used for now set to one like main app
 	*(u16*)&(hdr.deviceID) = 0;

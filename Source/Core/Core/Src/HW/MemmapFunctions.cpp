@@ -146,7 +146,7 @@ u32 EFB_Read(const u32 addr)
 	return var;
 }
 
-template <class T>
+template <typename T>
 inline void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Memory::XCheckTLBFlag flag)
 {
 	// TODO: Figure out the fastest order of tests for both read and write (they are probably different).
@@ -214,7 +214,7 @@ inline void ReadFromHardware(T &_var, u32 em_address, u32 effective_address, Mem
 }
 
 
-template <class T>
+template <typename T>
 inline void WriteToHardware(u32 em_address, const T data, u32 effective_address, Memory::XCheckTLBFlag flag)
 {
 	// Debugging: CheckForBadAddresses##_type(em_address, data, false);
@@ -222,9 +222,9 @@ inline void WriteToHardware(u32 em_address, const T data, u32 effective_address,
 	// reason we end up in this function:
 	if (em_address == 0xCC008000) {
 		switch (sizeof(T)) {
-		case 1:	GPFifo::Write8(data, em_address); return;
-		case 2:	GPFifo::Write16(data, em_address); return;
-		case 4:	GPFifo::Write32(data, em_address); return;
+		case 1:	GPFifo::Write8((u8)data, em_address); return;
+		case 2:	GPFifo::Write16((u16)data, em_address); return;
+		case 4:	GPFifo::Write32((u32)data, em_address); return;
 		}
 	}
 	if ((em_address & 0xC8000000) == 0xC8000000)
