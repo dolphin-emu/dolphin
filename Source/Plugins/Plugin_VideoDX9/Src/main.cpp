@@ -173,7 +173,7 @@ unsigned int Callback_PeekMessages()
 void UpdateFPSDisplay(const char *text)
 {
 	char temp[512];
-	sprintf_s(temp, 512, "SVN R%i: DX9: %s", SVN_REV, text);
+	sprintf_s(temp, 512, "%s: DX9: %s", SVN_REV_STR, text);
     SetWindowTextA(EmuWindow::GetWnd(), temp);
 }
 

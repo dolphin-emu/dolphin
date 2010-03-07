@@ -117,7 +117,7 @@ unsigned int Callback_PeekMessages()
 void UpdateFPSDisplay(const char *text)
 {
     char temp[512];
-    sprintf(temp, "SVN R%s: SW: %s", SVN_REV_STR, text);
+    sprintf(temp, "%s: SW: %s", SVN_REV_STR, text);
     OpenGL_SetWindowText(temp);
 }
 // =========================

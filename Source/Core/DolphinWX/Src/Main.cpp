@@ -418,7 +418,7 @@ bool DolphinApp::OnInit()
 		#ifdef DEBUGFAST
 			const char *title = "Dolphin Debugfast SVN R " SVN_REV_STR;
 		#else
-			const char *title = "Dolphin SVN R " SVN_REV_STR;
+			const char *title = "Dolphin " SVN_REV_STR;
 		#endif
 	#endif
 
