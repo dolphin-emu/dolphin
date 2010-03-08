@@ -31,18 +31,13 @@ void nop(const UDSPInstruction& opc)
 		DSPInterpreter::unknown(opc);
 }
  
-// Unknown Ops
-// All AX games: a100
-
-// TODO: Fill up the tables with the corresponding instructions
 const DSPOPCTemplate opcodes[] =
 {
-	{"NOP",		0x0000, 0xffff, nop, nop, 1, 0, {}, false},
+	{"NOP",		0x0000, 0xfffc, nop, nop, 1, 0, {}, false},
 
 	{"DAR",		0x0004, 0xfffc, DSPInterpreter::dar, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false},
 	{"IAR",		0x0008, 0xfffc, DSPInterpreter::iar, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false},
-	{"XAR",		0x000c, 0xfffc, DSPInterpreter::xar, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false},
-
+	{"SUBARN",	0x000c, 0xfffc, DSPInterpreter::subarn, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false},
 	{"ADDARN",  0x0010, 0xfff0, DSPInterpreter::addarn, nop, 1, 2, {{P_REG, 1, 0, 0, 0x0003}, {P_REG04, 1, 0, 2, 0x000c}}, false},
 
 	{"HALT",	0x0021, 0xffff, DSPInterpreter::halt, nop, 1, 0, {}, false},
@@ -120,8 +115,8 @@ const DSPOPCTemplate opcodes[] =
 	{"CALLRLZ",	0x171d, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false},
 	{"CALLR",	0x171f, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false},
 
-	{"SBCLR",   0x1200, 0xfff8, DSPInterpreter::sbclr, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, false},
-	{"SBSET",   0x1300, 0xfff8, DSPInterpreter::sbset, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, false},
+	{"SBCLR",   0x1200, 0xff00, DSPInterpreter::sbclr, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, false},
+	{"SBSET",   0x1300, 0xff00, DSPInterpreter::sbset, nop, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, false},
 
 	{"LSL",		0x1400, 0xfec0, DSPInterpreter::lsl, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, false},
 	{"LSR",		0x1440, 0xfec0, DSPInterpreter::lsr, nop, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, false},
@@ -151,7 +146,6 @@ const DSPOPCTemplate opcodes[] =
 
 	{"ANDF",	0x02a0, 0xfeff, DSPInterpreter::andf, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, false},
 	{"ANDCF",	0x02c0, 0xfeff, DSPInterpreter::andcf, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, false},
-	{"ORF",		0x02e0, 0xfeff, DSPInterpreter::orf, nop, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, false}, // Hermes: ??? (has it commented out)
 
 	{"ILRR",    0x0210, 0xfefc, DSPInterpreter::ilrr,  nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, false},
 	{"ILRRD",	0x0214, 0xfefc, DSPInterpreter::ilrrd, nop, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, false}, // Hermes doesn't list this
@@ -244,14 +238,13 @@ const DSPOPCTemplate opcodes[] =
 	{"MULAC",   0x9400, 0xf600, DSPInterpreter::mulac,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"MULMV",   0x9600, 0xf600, DSPInterpreter::mulmv,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	
-	//a-b (!!!retest TST/TSTAXL!!!)
+	//a-b (!figure out 0xa100/0xa900!)
 	{"MULX",    0xa000, 0xe700, DSPInterpreter::mulx,    nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}}, true},
-	{"TST",		0xa100, 0xe700, DSPInterpreter::tst,   nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, true},
-	//{"TSTAXL",  0xa100, 0xff00, DSPInterpreter::tstaxl, nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, true}, //Definitely not TSTAXL, it affects one of the accumulators
-	//{"TST",		0xb100, 0xf700, DSPInterpreter::tst,   nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, true},
+	{"a100",    0xa100, 0xf700, DSPInterpreter::a100,   nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, true}, //Definitely not TSTAXL, it affects one of the accumulators
 	{"MULXMVZ", 0xa200, 0xe600, DSPInterpreter::mulxmvz, nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"MULXAC",  0xa400, 0xe600, DSPInterpreter::mulxac,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"MULXMV",  0xa600, 0xe600, DSPInterpreter::mulxmv,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
+	{"TST",		0xb100, 0xf700, DSPInterpreter::tst,   nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, true},
 
 	//c-d
 	{"MULC",    0xc000, 0xe700, DSPInterpreter::mulc,    nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, true},

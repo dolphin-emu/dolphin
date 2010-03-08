@@ -37,6 +37,7 @@
 // ---------------------------------------------------------------------------------------
 // --- SR
 // ---------------------------------------------------------------------------------------
+
 inline void dsp_SR_set_flag(int flag)
 {
 	g_dsp.r[DSP_REG_SR] |= flag;
@@ -47,9 +48,13 @@ inline bool dsp_SR_is_flag_set(int flag)
 	return (g_dsp.r[DSP_REG_SR] & flag) != 0;
 }
 
-
+// ---------------------------------------------------------------------------------------
+// --- AR increments, decrements
+// ---------------------------------------------------------------------------------------
+//
 // HORRIBLE UGLINESS, someone please fix.
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
+
 inline u16 ToMask(u16 a)
 {
 	a = a | (a >> 8);
@@ -112,6 +117,24 @@ inline s16 dsp_increase_addr_reg(int reg, s16 value)
 	return tmp;
 }
 
+inline s16 dsp_decrease_addr_reg(int reg, s16 value)
+{
+	s16 tmp = - 1;
+
+	// TODO: DO RIGHT!
+	if (value > 0) {
+		for (int i = 0; i < value; i++) {
+			tmp = dsp_decrement_addr_reg(reg, tmp);
+		}
+	} else if (value < 0) {
+		for (int i = 0; i < (int)(-value); i++) {
+			tmp = dsp_increment_addr_reg(reg, tmp);
+		}
+	} else
+		tmp = g_dsp.r[reg];
+
+	return tmp;
+}
 
 // ---------------------------------------------------------------------------------------
 // --- reg
@@ -143,17 +166,7 @@ inline void dsp_op_write_reg(int reg, u16 val)
 	case DSP_REG_ACM0:
 	case DSP_REG_ACM1:
 		g_dsp.r[reg] = val;
-		// Enabling the below sign extension code breaks things.
-		// There's probably some condition that enable it, maybe one of 
-		// the status flags like M2.
-		// Or maybe it only happens when this call is a result of 'l and similar extended opcodes.
-		
-		// Sign extend the loaded register. ACM0
-		// g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACH0] = ((s16)val < 0 ? 0xFFFF : 0);
-		// g_dsp.r[reg - DSP_REG_ACM0 + DSP_REG_ACL0] = 0;  // ?
 		break;
-
-		// There might also be something similar for AX.L but I'm not at all sure about that.
 
 	// Stack registers.
 	case DSP_REG_ST0:
@@ -262,20 +275,17 @@ inline s16 dsp_get_acc_l(int _reg)
 	return g_dsp.r[DSP_REG_ACL0 + _reg];
 }
 
-
 inline s16 dsp_get_acc_m(int _reg)
 {
 	_assert_(_reg < 2);
 	return g_dsp.r[DSP_REG_ACM0 + _reg];
 }
 
-
 inline s16 dsp_get_acc_h(int _reg)
 {
 	_assert_(_reg < 2);
 	return g_dsp.r[DSP_REG_ACH0 + _reg];
 }
-
 
 // ---------------------------------------------------------------------------------------
 // --- AX - extra accumulators (32-bit)

@@ -133,7 +133,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 		    if (val & 0x1)
 			    DSPHost_InterruptRequest();
 			else 
-				ERROR_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
+				INFO_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
 		    break;
 
 	    case 0xfc: // DMBH
@@ -156,14 +156,14 @@ void gdsp_ifx_write(u16 addr, u16 val)
 		    g_dsp.ifx_regs[DSP_DSCR] &= ~0x0004;
 		    break;
 
-		case 0xd3:   // ZeldaUnk (accelerator WRITE)
-			//		   	NOTICE_LOG(DSPLLE, "Write To ZeldaUnk pc=%04x (%04x)", g_dsp.pc, val);
+		case 0xd3: // Accelerator write (Zelda type) - "UnkZelda"
 			dsp_write_aram_d3(val);
 			break;
 
-		case 0xde:
-			//if (val)
-			//	PanicAlert("Gain written: %04x", val);   // BMX XXX does, and sounds HORRIBLE.
+		case 0xde: // BMX XXX does, and sounds HORRIBLE. / Spyro - A Hero's Tail / Sega GC games / Wiiware - World of Goo
+			if (val) {
+				INFO_LOG(DSPLLE,"Gain Written: 0x%04x", val); 
+			}
 	    case 0xcd:
 	    case 0xce:
 	    case 0xcf:
@@ -210,8 +210,7 @@ u16 gdsp_ifx_read(u16 addr)
 	    case 0xdd:  // ADPCM Accelerator reads
 		    return dsp_read_accelerator();
 
-	    case 0xd3:
-			//NOTICE_LOG(DSPLLE, "Read from ZeldaUnk pc=%04x", g_dsp.pc);
+	    case 0xd3: // Accelerator reads (Zelda type) - "UnkZelda"
 		    return dsp_read_aram_d3();
 
 	    default:

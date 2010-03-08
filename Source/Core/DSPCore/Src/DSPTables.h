@@ -155,6 +155,7 @@ const char *pdregnamelong(int val);
 void InitInstructionTable();
 void applyWriteBackLog();
 void zeroWriteBackLog();
+void zeroWriteBackLogPreserveAcc(u8 acc);
 
 inline void ExecuteInstruction(const UDSPInstruction& inst)
 {

@@ -480,7 +480,27 @@ void zeroWriteBackLog()
 {
 	// always make sure to have an extra entry at the end w/ -1 to avoid
 	// infinitive loops
-	for (int i = 0; writeBackLogIdx[i] != -1; i++) 
+	for (int i = 0; writeBackLogIdx[i] != -1; i++) {
 		dsp_op_write_reg(writeBackLogIdx[i], 0);
+	}
 }
 
+//needed for 0x3... (at least)..., + clrl
+//ex. corner case -> 0x4060: main opcode modifies .m, and extended .l -> .l shoudnt be zeroed because of .m write...
+void zeroWriteBackLogPreserveAcc(u8 acc) 
+{
+	for (int i = 0; writeBackLogIdx[i] != -1; i++) {
+		
+		// acc0
+		if ((acc == 0) &&  
+			((writeBackLogIdx[i] == DSP_REG_ACL0) || (writeBackLogIdx[i] == DSP_REG_ACM0) || (writeBackLogIdx[i] == DSP_REG_ACH0)))
+			continue;
+		
+		// acc1
+		if ((acc == 1) && 
+			((writeBackLogIdx[i] == DSP_REG_ACL1) || (writeBackLogIdx[i] == DSP_REG_ACM1) || (writeBackLogIdx[i] == DSP_REG_ACH1)))
+			continue;
+
+		dsp_op_write_reg(writeBackLogIdx[i], 0);
+	}
+}

@@ -73,6 +73,7 @@ u16 ReadCR()
 
 void Step()
 {
+	DSPCore_CheckExternalInterrupt();
 	DSPCore_CheckExceptions();
 
 	g_dsp.step_counter++;
@@ -91,12 +92,7 @@ void Step()
 		ProfilerDump(g_dsp.step_counter);
 	}
 #endif
-/*
-	//Pikmin GC (US)
-	if (g_dsp.pc == 0x0506)
-		NOTICE_LOG(DSPLLE,"-> FORMAT JUMPTABLE --> pc:=%04x,ac0.m:=%04x,ac1.m:=%04x", g_dsp.pc, dsp_get_acc_m(0), dsp_get_acc_m(1));
-*/
-	
+
 	u16 opc = dsp_fetch_code();
 	ExecuteInstruction(UDSPInstruction(opc));
 	HandleLoop();
@@ -141,7 +137,7 @@ int RunCyclesDebug(int cycles)
 			return 0;
 	}
 
-	DSPCore_CheckExternalInterrupt();
+	//DSPCore_CheckExternalInterrupt();
 	
 	// Now, let's run a few cycles with idle skipping.
 	for (int i = 0; i < 8; i++)
@@ -181,23 +177,7 @@ int RunCyclesDebug(int cycles)
 // Used by non-thread mode. Meant to be efficient.
 int RunCycles(int cycles)
 {
-	DSPCore_CheckExternalInterrupt();
-
-	if (cycles < 18)
-	{
-		for (int i = 0; i < cycles; i++)
-		{
-			if (g_dsp.cr & CR_HALT)
-				return 0;
-			if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
-				return 0;
-			Step();
-			cycles--;
-		}
-		return cycles;
-	}
-
-	DSPCore_CheckExternalInterrupt();
+	//DSPCore_CheckExternalInterrupt();
 
 	// First, let's run a few cycles with no idle skipping so that things can progress a bit.
 	for (int i = 0; i < 8; i++)

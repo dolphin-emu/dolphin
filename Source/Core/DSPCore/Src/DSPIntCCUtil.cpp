@@ -28,7 +28,6 @@ namespace DSPInterpreter {
 
 void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
 {
-	// TODO: recheck 0x1,0x2,even 0x80... implement...
 	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
 
 	// 0x01
@@ -37,10 +36,11 @@ void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
 		g_dsp.r[DSP_REG_SR] |= SR_CARRY;
 	}
 
-	// 0x02
+	// 0x02 and 0x80
 	if (overflow)
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_OVERFLOW;
+		g_dsp.r[DSP_REG_SR]  |= SR_OVERFLOW_SPECIAL; 
 	}
 
 	// 0x04
@@ -66,16 +66,11 @@ void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
 	}
-
-	// 0x80
-	{
-	}
 }
 
 
 void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
 {
-	// TODO: recheck 0x1,0x2,even 0x80... implement...
 	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
 
 	// 0x01
@@ -84,12 +79,13 @@ void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
 		g_dsp.r[DSP_REG_SR] |= SR_CARRY;
 	}
 
-	// 0x02
+	// 0x02 and 0x80
 	if (overflow)
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_OVERFLOW;
+		g_dsp.r[DSP_REG_SR]  |= SR_OVERFLOW_SPECIAL; 
 	}
-	
+
 	// 0x04
 	if (_Value == 0)
 	{
@@ -112,10 +108,6 @@ void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
 	if ((((u16)_Value >> 14) == 0) || (((u16)_Value >> 14) == 3))
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
-	}
-
-	// 0x80
-	{
 	}
 }
 

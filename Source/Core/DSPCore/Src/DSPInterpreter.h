@@ -20,6 +20,8 @@
 
 #include "DSPTables.h"
 
+#define PRECISE_SR_FLAGS
+
 #define DSP_REG_MASK    0x1f
 
 namespace DSPInterpreter {
@@ -95,7 +97,6 @@ void lsrnrx(const UDSPInstruction& opc);
 void asrnrx(const UDSPInstruction& opc);
 void lsrnr(const UDSPInstruction& opc);
 void asrnr(const UDSPInstruction& opc);
-void orf(const UDSPInstruction& opc);
 void add(const UDSPInstruction& opc);
 void addp(const UDSPInstruction& opc);
 void cmpis(const UDSPInstruction& opc);
@@ -126,7 +127,7 @@ void lsrn(const UDSPInstruction& opc);
 void asrn(const UDSPInstruction& opc);
 void dar(const UDSPInstruction& opc);
 void iar(const UDSPInstruction& opc);
-void xar(const UDSPInstruction& opc);
+void subarn(const UDSPInstruction& opc);
 void sbclr(const UDSPInstruction& opc);
 void sbset(const UDSPInstruction& opc);
 void mov(const UDSPInstruction& opc);
@@ -161,22 +162,12 @@ void andf(const UDSPInstruction& opc);
 void xori(const UDSPInstruction& opc);
 void andi(const UDSPInstruction& opc);
 void ori(const UDSPInstruction& opc);
+void srbith(const UDSPInstruction& opc);
 void mulaxh(const UDSPInstruction& opc);
 void tstprod(const UDSPInstruction& opc);
 
-// FIXME inside
-void srbith(const UDSPInstruction& opc);
-
-// END OF FIXMEs
-
-// TODO: PENDING IMPLEMENTATION / UNIMPLEMENTED
-void tstaxl(const UDSPInstruction& opc);
-// The mysterious a100
-
-// END OF UNIMPLEMENTED
-
-// Helpers
-inline void tsta(int reg);
+//mia
+void a100(const UDSPInstruction& opc);
 
 }  // namespace
 

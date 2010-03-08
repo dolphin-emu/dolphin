@@ -72,11 +72,11 @@ u16 dsp_read_aram_d3()
 	u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
 	u16 val = 0;
 	switch (g_dsp.ifx_regs[DSP_FORMAT]) {
-		case 0x5:   // unsigned 8-bit reads .. I think.
+		case 0x5:   // u8 reads
 			val = DSPHost_ReadHostMemory(Address);
 			Address++;
 			break;
-		case 0x6:   // unsigned 16-bit reads .. I think.
+		case 0x6:   // u16 reads
 		    val = (DSPHost_ReadHostMemory(Address) << 8) | DSPHost_ReadHostMemory(Address + 1);
 			Address += 2;
 			break;
@@ -132,24 +132,22 @@ u16 dsp_read_accelerator()
 	    case 0x00:  // ADPCM audio
 		    val = ADPCM_Step(Address);
 		    break;
-
 	    case 0x0A:  // 16-bit PCM audio
 		    val = (DSPHost_ReadHostMemory(Address) << 8) | DSPHost_ReadHostMemory(Address + 1);
-
 		    g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 		    g_dsp.ifx_regs[DSP_YN1] = val;
-
 		    Address += 2;
 		    break;
-
 	    default:
-		    val = (DSPHost_ReadHostMemory(Address) << 8) | DSPHost_ReadHostMemory(Address + 1);
-		    Address += 2;
-		    ERROR_LOG(DSPLLE, "Unknown DSP Format %i", g_dsp.ifx_regs[DSP_FORMAT]);
+		    ERROR_LOG(DSPLLE, "Unknown DSP Format %x", g_dsp.ifx_regs[DSP_FORMAT]);
 		    break;
 	}
 
 	// TODO: Take GAIN into account, whatever it is.
+	if (g_dsp.ifx_regs[DSP_GAIN] > 0)
+	{
+		//NOTICE_LOG(DSPLLE,"format: 0x%04x - val: 0x%04x - gain: 0x%04x", g_dsp.ifx_regs[DSP_FORMAT], val, g_dsp.ifx_regs[DSP_GAIN]);
+	}
 
 	// Check for loop.
 	if (Address >= EndAddress)
