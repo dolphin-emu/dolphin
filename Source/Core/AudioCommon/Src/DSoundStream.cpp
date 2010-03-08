@@ -162,7 +162,8 @@ void DSound::Clear(bool mute)
 
 	if (m_muted)
 	{
-		dsBuffer->Stop();
+		if (dsBuffer != NULL)
+			dsBuffer->Stop();
 	}
 	else
 	{
