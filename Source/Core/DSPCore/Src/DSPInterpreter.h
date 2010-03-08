@@ -20,8 +20,6 @@
 
 #include "DSPTables.h"
 
-#define PRECISE_SR_FLAGS
-
 #define DSP_REG_MASK    0x1f
 
 namespace DSPInterpreter {

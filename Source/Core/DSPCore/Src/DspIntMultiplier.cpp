@@ -109,9 +109,7 @@ void movp(const UDSPInstruction& opc)
 	zeroWriteBackLog();
 
 	dsp_set_long_acc(dreg, acc);
-#ifdef PRECISE_SR_FLAGS
 	Update_SR_Register64(acc);
-#endif
 }
 
 // MOVNP $acD
@@ -129,9 +127,7 @@ void movnp(const UDSPInstruction& opc)
 	zeroWriteBackLog();
 
 	dsp_set_long_acc(dreg, acc);
-#ifdef PRECISE_SR_FLAGS
 	Update_SR_Register64(acc);
-#endif
 }
 
 // MOVPZ $acD
@@ -149,9 +145,7 @@ void movpz(const UDSPInstruction& opc)
 	zeroWriteBackLog();
 
 	dsp_set_long_acc(dreg, acc);
-#ifdef PRECISE_SR_FLAGS
 	Update_SR_Register64(acc);
-#endif
 }
 
 // ADDPAXZ $acD, $axS
@@ -174,10 +168,8 @@ void addpaxz(const UDSPInstruction& opc)
 	zeroWriteBackLog();
 
 	dsp_set_long_acc(dreg, acc);
-#ifdef PRECISE_SR_FLAGS
 	acc = dsp_get_long_acc(dreg);
 	Update_SR_Register64(acc, isCarry2(prod, acc), isOverflow(prod, ax, acc));
-#endif
 }
 
 //----
@@ -234,9 +226,7 @@ void mulac(const UDSPInstruction& opc)
 
 	dsp_set_long_prod(prod);
 	dsp_set_long_acc(rreg, acc);
-#ifdef PRECISE_SR_FLAGS
 	Update_SR_Register64(dsp_get_long_acc(rreg));
-#endif
 }
 
 // MULMV $axS.l, $axS.h, $acR
@@ -260,9 +250,7 @@ void mulmv(const UDSPInstruction& opc)
 
 	dsp_set_long_prod(prod);
 	dsp_set_long_acc(rreg, acc);
-#ifdef PRECISE_SR_FLAGS
 	Update_SR_Register64(dsp_get_long_acc(rreg));
-#endif
 }
 
 // MULMVZ $axS.l, $axS.h, $acR
@@ -287,9 +275,7 @@ void mulmvz(const UDSPInstruction& opc)
 
 	dsp_set_long_prod(prod);
 	dsp_set_long_acc(rreg, acc);
-#ifdef PRECISE_SR_FLAGS
 	Update_SR_Register64(dsp_get_long_acc(rreg));
-#endif
 }
 
 //----
@@ -334,9 +320,7 @@ void mulxac(const UDSPInstruction& opc)
 
 	dsp_set_long_prod(prod);
 	dsp_set_long_acc(rreg, acc);
-#ifdef PRECISE_SR_FLAGS
 	Update_SR_Register64(dsp_get_long_acc(rreg));
-#endif
 }
 
 // MULXMV $ax0.S, $ax1.T, $acR
@@ -361,9 +345,7 @@ void mulxmv(const UDSPInstruction& opc)
 
 	dsp_set_long_prod(prod);
 	dsp_set_long_acc(rreg, acc);
-#ifdef PRECISE_SR_FLAGS
 	Update_SR_Register64(dsp_get_long_acc(rreg));
-#endif
 }
 
 // MULXMV $ax0.S, $ax1.T, $acR
@@ -389,9 +371,7 @@ void mulxmvz(const UDSPInstruction& opc)
 
 	dsp_set_long_prod(prod);
 	dsp_set_long_acc(rreg, acc);
-#ifdef PRECISE_SR_FLAGS
 	Update_SR_Register64(dsp_get_long_acc(rreg));
-#endif
 }
 
 //----
@@ -436,9 +416,7 @@ void mulcac(const UDSPInstruction& opc)
 
 	dsp_set_long_prod(prod);
 	dsp_set_long_acc(rreg, acc);
-#ifdef PRECISE_SR_FLAGS
 	Update_SR_Register64(dsp_get_long_acc(rreg));
-#endif
 }
 
 // MULCMV $acS.m, $axT.h, $acR
@@ -464,9 +442,7 @@ void mulcmv(const UDSPInstruction& opc)
 
 	dsp_set_long_prod(prod);
 	dsp_set_long_acc(rreg, acc);
-#ifdef PRECISE_SR_FLAGS
 	Update_SR_Register64(dsp_get_long_acc(rreg));
-#endif
 }
 
 // MULCMVZ $acS.m, $axT.h, $acR
@@ -493,9 +469,7 @@ void mulcmvz(const UDSPInstruction& opc)
 
 	dsp_set_long_prod(prod);
 	dsp_set_long_acc(rreg, acc);
-#ifdef PRECISE_SR_FLAGS
 	Update_SR_Register64(dsp_get_long_acc(rreg));
-#endif
 }
 
 //----
