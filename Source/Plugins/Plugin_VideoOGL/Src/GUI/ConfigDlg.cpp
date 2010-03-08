@@ -833,8 +833,10 @@ void GFXConfigDialogOGL::UpdateGUI()
 	m_AutoScale->Enable(!g_Config.bUseXFB);
 
 	// These options are for the separate rendering window
+#if !defined(HAVE_GTK2) || !HAVE_GTK2 || !defined(wxGTK)
 	m_Fullscreen->Enable(!g_Config.RenderToMainframe);
 	if (g_Config.RenderToMainframe) m_Fullscreen->SetValue(false);
+#endif
 
 	// Resolution settings
 	//disable native/2x choice when real xfb is on. native simply looks best, as ector noted above.
@@ -842,7 +844,11 @@ void GFXConfigDialogOGL::UpdateGUI()
 	m_NativeResolution->Enable(!g_Config.bUseXFB);
 	m_2xResolution->Enable(!g_Config.bUseXFB && (!g_Config.bRunning || Renderer::Allow2x()));
 	m_WindowResolutionCB->Enable(!g_Config.bRunning);
+#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	m_WindowFSResolutionCB->Enable(!g_Config.bRunning);
+#else
 	m_WindowFSResolutionCB->Enable(!g_Config.bRunning && !g_Config.RenderToMainframe);
+#endif
 
 	// Disable the Copy to options when EFBCopy is disabled
 	m_Radio_CopyEFBToRAM->Enable(!(g_Config.bEFBCopyDisable));

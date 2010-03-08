@@ -523,10 +523,34 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 	Close(true);
 }
 
+#if defined HAVE_X11 && HAVE_X11
+void X11_SendEvent(const char *message)
+{
+	XEvent event;
+	Display *dpy = (Display *)Core::GetWindowHandle();
+	Window win = *(Window *)Core::GetXWindow();
+
+	// Init X event structure for client message
+	event.xclient.type = ClientMessage;
+	event.xclient.format = 32;
+	event.xclient.data.l[0] = XInternAtom(dpy, message, False);
+
+	// Send the event
+	if (!XSendEvent(dpy, win, False, False, &event))
+	{
+		ERROR_LOG(VIDEO, "Failed to send message %s to the emulator window.\n", message);
+	}
+}
+#endif
+
 // --------
 // Events
 void CFrame::OnActive(wxActivateEvent& event)
 {
+#if defined(HAVE_X11) && HAVE_X11 && defined(wxGTK)
+	if (event.GetActive() && Core::GetState() == Core::CORE_RUN)
+		X11_SendEvent("WINDOW_REFOCUS");
+#endif
 	event.Skip();
 }
 
@@ -582,12 +606,18 @@ void CFrame::OnMove(wxMoveEvent& event)
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX = GetPosition().x;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY = GetPosition().y;
 }
+
 void CFrame::OnResize(wxSizeEvent& event)
 {
 	event.Skip();
 
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
+
+#if defined(HAVE_X11) && HAVE_X11
+	if (Core::GetState() == Core::CORE_RUN)
+		X11_SendEvent("MAIN_RESIZED");
+#endif
 
 	DoMoveIcons();  // In FrameWiimote.cpp
 }
@@ -653,7 +683,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		main_frame->DoStop();
 		break;
 	case WM_USER_PAUSE:
-		main_frame->OnPlay(event);
+		main_frame->DoPause();
 		break;
 #endif
 	}
@@ -910,31 +940,11 @@ wxAuiNotebook* CFrame::CreateEmptyNotebook()
    return NB;
 }
 
-#if defined HAVE_X11 && HAVE_X11
-void X11_ShowFullScreen(bool bF)
-{
-	XEvent event;
-	Display *dpy = (Display *)Core::GetWindowHandle();
-	Window win = *(Window *)Core::GetXWindow();
-
-	// Init X event structure for TOGGLE_FULLSCREEN client message
-	event.xclient.type = ClientMessage;
-	event.xclient.format = 32;
-	event.xclient.data.l[0] = XInternAtom(dpy, "TOGGLE_FULLSCREEN", False);;
-
-	// Send the event
-	if (!XSendEvent(dpy, win, False, False, &event))
-	{
-		ERROR_LOG(VIDEO, "Failed to switch fullscreen/windowed mode.\n");
-	}
-}
-#endif
-
 void CFrame::DoFullscreen(bool bF)
 {
 #if defined HAVE_X11 && HAVE_X11
 	if ((Core::GetState() == Core::CORE_RUN))
-		X11_ShowFullScreen(bF);
+		X11_SendEvent("TOGGLE_FULLSCREEN");
 #endif
 	// Only switch this to fullscreen if we're rendering to main AND if we're running a game
 	// plus if a modal dialog is open, this will still process the keyboard events, and may cause

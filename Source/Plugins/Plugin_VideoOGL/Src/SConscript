@@ -105,6 +105,10 @@ gfxenv['HAVE_XRANDR'] = gfxenv['HAVE_X11'] and conf.CheckPKG('xrandr')
         
 conf.Define('HAVE_XRANDR', gfxenv['HAVE_XRANDR'])
 
+# check for libgtk2.0
+gfxenv['HAVE_GTK2'] = gfxenv['HAVE_WX'] and conf.CheckPKG('gtk+-2.0')
+conf.Define('HAVE_GTK2', gfxenv['HAVE_GTK2'])
+
 conf.Finish()
 
 # Sanity check

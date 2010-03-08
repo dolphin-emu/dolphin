@@ -41,6 +41,11 @@
 #define I_NEED_OS2_H // HAXXOR
 #include <GL/glxew.h>
 #include <X11/XKBlib.h>
+#if defined(HAVE_GTK2) && HAVE_GTK2 // Needed for render to main
+#include <gtk/gtk.h>
+#include <gdk/gdkx.h>
+#include <wx/wx.h>
+#endif
 #elif defined(USE_SDL) && USE_SDL
 #include <GL/glew.h>
 #include <SDL.h>
@@ -85,6 +90,9 @@ typedef struct {
 	NSOpenGLContext *cocoaCtx;
 #elif defined(HAVE_X11) && HAVE_X11
 	Window win;
+#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	wxPanel *panel;
+#endif
 	Display *dpy;
 	XVisualInfo *vi;
 	GLXContext ctx;

@@ -120,9 +120,14 @@ void UpdateFPSDisplay(const char *text)
 #if defined(HAVE_X11) && HAVE_X11
 void CreateXWindow (void)
 {
-	Atom wmProtocols[3];
-	int width, height;
+	Atom wmProtocols[2];
+	Window parent = RootWindow(GLWin.dpy, GLWin.vi->screen);
+	GLWin.x = 0;
+	GLWin.y = 0;
 
+#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	wxMutexGuiEnter();
+#endif
 	if (GLWin.fs)
 	{
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
@@ -131,30 +136,40 @@ void CreateXWindow (void)
 					GLWin.fullSize, GLWin.screenRotation, CurrentTime);
 #endif
 		GLWin.attr.override_redirect = True;
-		width = GLWin.fullWidth;
-		height = GLWin.fullHeight;
+		GLWin.width = GLWin.fullWidth;
+		GLWin.height = GLWin.fullHeight;
 	}
 	else
 	{
 		GLWin.attr.override_redirect = False;
-		width = GLWin.winWidth;
-		height = GLWin.winHeight;
+#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+		if (g_Config.RenderToMainframe)
+		{
+			GLWin.panel->GetSize((int *)&GLWin.width, (int *)&GLWin.height);
+			GLWin.panel->GetPosition(&GLWin.x, &GLWin.y);
+			parent = GDK_WINDOW_XID(GTK_WIDGET(GLWin.panel->GetHandle())->window);
+		}
+		else
+#endif
+		{
+			GLWin.width = GLWin.winWidth;
+			GLWin.height = GLWin.winHeight;
+		}
 	}
 
 	// Control window size and picture scaling
-	s_backbuffer_width = width;
-	s_backbuffer_height = height;
+	s_backbuffer_width = GLWin.width;
+	s_backbuffer_height = GLWin.height;
 
 	// create the window
 	GLWin.attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
 		StructureNotifyMask | ResizeRedirectMask;
-	GLWin.win = XCreateWindow(GLWin.dpy, RootWindow(GLWin.dpy, GLWin.vi->screen),
-			0, 0, width, height, 0, GLWin.vi->depth, InputOutput, GLWin.vi->visual,
+	GLWin.win = XCreateWindow(GLWin.dpy, parent,
+			GLWin.x, GLWin.y, GLWin.width, GLWin.height, 0, GLWin.vi->depth, InputOutput, GLWin.vi->visual,
 			CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect, &GLWin.attr);
 	wmProtocols[0] = XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", True);
 	wmProtocols[1] = XInternAtom(GLWin.dpy, "WM_TAKE_FOCUS", True);
-	wmProtocols[2] = XInternAtom(GLWin.dpy, "TOGGLE_FULLSCREEN", False);
-	XSetWMProtocols(GLWin.dpy, GLWin.win, wmProtocols, 3);
+	XSetWMProtocols(GLWin.dpy, GLWin.win, wmProtocols, 2);
 	XSetStandardProperties(GLWin.dpy, GLWin.win, "GPU", "GPU", None, NULL, 0, NULL);
 	XMapRaised(GLWin.dpy, GLWin.win);
 	if (GLWin.fs)
@@ -162,9 +177,17 @@ void CreateXWindow (void)
 		XGrabKeyboard(GLWin.dpy, GLWin.win, True, GrabModeAsync, GrabModeAsync, CurrentTime);
 		XGrabPointer(GLWin.dpy, GLWin.win, True, NULL,
 				GrabModeAsync, GrabModeAsync, GLWin.win, None, CurrentTime);
-		XSetInputFocus(GLWin.dpy, GLWin.win, RevertToPointerRoot, CurrentTime);
 	}
+#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	if (GLWin.fs || g_Config.RenderToMainframe)
+#else
+	if (GLWin.fs)
+#endif
+		XSetInputFocus(GLWin.dpy, GLWin.win, RevertToPointerRoot, CurrentTime);
 	XSync(GLWin.dpy, True);
+#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	wxMutexGuiLeave();
+#endif
 }
 
 void DestroyXWindow(void)
@@ -352,7 +375,6 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	// --------------------------------------
 
 #elif defined(HAVE_X11) && HAVE_X11
-	Colormap cmap;
 	int glxMajorVersion, glxMinorVersion;
 	int vidModeMajorVersion, vidModeMinorVersion;
 
@@ -375,7 +397,10 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
 
 	GLWin.dpy = XOpenDisplay(0);
-	g_VideoInitialize.pWindowHandle = (HWND)GLWin.dpy;
+#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	GLWin.panel = (wxPanel *)g_VideoInitialize.pWindowHandle;
+#endif
+	g_VideoInitialize.pWindowHandle = (Display *)GLWin.dpy;
 	GLWin.screen = DefaultScreen(GLWin.dpy);
 
 	// Fullscreen option.
@@ -403,8 +428,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 		exit(0); // TODO: Don't bring down entire Emu
 	}
 	// Create a color map.
-	cmap = XCreateColormap(GLWin.dpy, RootWindow(GLWin.dpy, GLWin.vi->screen), GLWin.vi->visual, AllocNone);
-	GLWin.attr.colormap = cmap;
+	GLWin.attr.colormap = XCreateColormap(GLWin.dpy, RootWindow(GLWin.dpy, GLWin.vi->screen), GLWin.vi->visual, AllocNone);
 	GLWin.attr.border_pixel = 0;
 	XkbSetDetectableAutoRepeat(GLWin.dpy, True, NULL);
 
@@ -584,10 +608,15 @@ void OpenGL_Update()
 						if (GLWin.fs)
 						{
 							ToggleFullscreenMode();
-							XEvent mapevent;
-							do {
-								XMaskEvent(GLWin.dpy, StructureNotifyMask, &mapevent);
-							} while ( (mapevent.type != MapNotify) || (mapevent.xmap.event != GLWin.win) );
+							#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+							if (!g_Config.RenderToMainframe)
+							#endif
+							{
+								XEvent mapevent;
+								do {
+									XMaskEvent(GLWin.dpy, StructureNotifyMask, &mapevent);
+								} while ((mapevent.type != MapNotify) || (mapevent.xmap.event != GLWin.win));
+							}
 						}
 						g_VideoInitialize.pKeyPress(0x1c, False, False);
 						break;
@@ -635,6 +664,7 @@ void OpenGL_Update()
 					default:
 						break;
 				}
+				break;
 			case FocusIn:
 				if (g_Config.bHideCursor)
 					XDefineCursor(GLWin.dpy, GLWin.win, GLWin.blankCursor);
@@ -662,13 +692,22 @@ void OpenGL_Update()
 					g_VideoInitialize.pKeyPress(0x1b, False, False);
 				if ((ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "TOGGLE_FULLSCREEN", False))
 					ToggleFullscreenMode();
-				return;
-				break;
+#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+				if (g_Config.RenderToMainframe &&
+						(ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "MAIN_RESIZED", False))
+				{
+					GLWin.panel->GetSize((int *)&GLWin.width, (int *)&GLWin.height);
+					XResizeWindow(GLWin.dpy, GLWin.win, GLWin.width, GLWin.height);
+				}
+#endif
+				if (g_Config.RenderToMainframe &&
+						(ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WINDOW_REFOCUS", False))
+					XSetInputFocus(GLWin.dpy, GLWin.win, RevertToPointerRoot, CurrentTime);
+			break;
 			default:
 				break;
 		}
 	}
-	return;
 #endif
 }
 

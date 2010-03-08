@@ -64,6 +64,8 @@ class CFrame : public wxFrame
 		{
 			#ifdef _WIN32
 				return(m_Panel->GetHandle());
+			#elif defined(HAVE_X11) && HAVE_X11
+				return m_Panel;
 			#else
 				return this;
 			#endif

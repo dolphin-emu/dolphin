@@ -691,7 +691,10 @@ void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED (event))
 // Pause the emulation
 void CFrame::DoPause()
 {
-	Core::SetState(Core::CORE_PAUSE);
+	if (Core::GetState() == Core::CORE_RUN)
+		Core::SetState(Core::CORE_PAUSE);
+	else
+		Core::SetState(Core::CORE_RUN);
 	UpdateGUI();
 }
 
