@@ -18,6 +18,8 @@
 #ifndef _NATIVEVERTEXFORMAT_H
 #define _NATIVEVERTEXFORMAT_H
 
+#include "../../Plugin_VideoDX9/Src/Vec3.h"
+
 #ifdef WIN32
 #define LOADERDECL __cdecl
 #else
@@ -26,25 +28,33 @@
 
 typedef void (LOADERDECL *TPipelineFunction)();
 
+struct Vec4
+{
+	float x;
+	float y;
+	float z;
+	float w;
+};
+
 struct InputVertexData
 {
     u8 posMtx;
     u8 texMtx[8];
 
-    float position[4];    
-    float normal[3][3];
+    Vec3 position;    
+    Vec3 normal[3];
     u8 color[2][4];
     float texCoords[8][2];
 };
 
 struct OutputVertexData
 {
-    float mvPosition[3];
-    float projectedPosition[4];
-    float screenPosition[3];
-    float normal[3][3];
+    Vec3 mvPosition;
+    Vec4 projectedPosition;
+    Vec3 screenPosition;
+    Vec3 normal[3];
     u8 color[2][4];
-    float texCoords[8][3];
+    Vec3 texCoords[8];
 
     void Lerp(float t, OutputVertexData *a, OutputVertexData *b)
     {
@@ -52,17 +62,16 @@ struct OutputVertexData
 
         #define LINTERP_INT(T, OUT, IN) (OUT) + (((IN - OUT) * T) >> 8)
 
-        for (int i = 0; i < 3; ++i)
-            mvPosition[i] = LINTERP(t, a->mvPosition[i], b->mvPosition[i]);
+        mvPosition = LINTERP(t, a->mvPosition, b->mvPosition);
 
-        for (int i = 0; i < 4; ++i)
-            projectedPosition[i] = LINTERP(t, a->projectedPosition[i], b->projectedPosition[i]);
+        projectedPosition.x = LINTERP(t, a->projectedPosition.x, b->projectedPosition.x);
+		projectedPosition.y = LINTERP(t, a->projectedPosition.y, b->projectedPosition.y);
+		projectedPosition.z = LINTERP(t, a->projectedPosition.z, b->projectedPosition.z);
+		projectedPosition.w = LINTERP(t, a->projectedPosition.w, b->projectedPosition.w);
 
         for (int i = 0; i < 3; ++i)
         {
-            normal[i][0] = LINTERP(t, a->normal[i][0], b->normal[i][0]);
-            normal[i][1] = LINTERP(t, a->normal[i][1], b->normal[i][1]);
-            normal[i][2] = LINTERP(t, a->normal[i][2], b->normal[i][2]);
+            normal[i] = LINTERP(t, a->normal[i], b->normal[i]);
         }
 
         u16 t_int = (u16)(t * 256);
@@ -74,9 +83,7 @@ struct OutputVertexData
 
         for (int i = 0; i < 8; ++i)
         {
-            texCoords[i][0] = LINTERP(t, a->texCoords[i][0], b->texCoords[i][0]);
-            texCoords[i][1] = LINTERP(t, a->texCoords[i][1], b->texCoords[i][1]);
-            texCoords[i][2] = LINTERP(t, a->texCoords[i][2], b->texCoords[i][2]);
+            texCoords[i] = LINTERP(t, a->texCoords[i], b->texCoords[i]);
         }
 
         #undef LINTERP

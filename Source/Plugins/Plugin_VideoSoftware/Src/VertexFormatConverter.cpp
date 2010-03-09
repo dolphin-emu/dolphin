@@ -24,32 +24,32 @@ namespace VertexFormatConverter
 {
     void LoadNormal1_Byte(InputVertexData *dst, u8 *src)
     {
-        dst->normal[0][0] = (float)(s8)src[0] / 128;
-        dst->normal[0][1] = (float)(s8)src[1] / 128;
-        dst->normal[0][2] = (float)(s8)src[2] / 128;
+        dst->normal[0].x = (float)(s8)src[0] / 128;
+        dst->normal[0].y = (float)(s8)src[1] / 128;
+        dst->normal[0].z = (float)(s8)src[2] / 128;
     }
 
     void LoadNormal1_Short(InputVertexData *dst, u8 *src)
     {
-        dst->normal[0][0] = (float)((s16*)src)[0] / 32768;
-        dst->normal[0][1] = (float)((s16*)src)[1] / 32768;
-        dst->normal[0][2] = (float)((s16*)src)[2] / 32768;
+        dst->normal[0].x = (float)((s16*)src)[0] / 32768;
+        dst->normal[0].y = (float)((s16*)src)[1] / 32768;
+        dst->normal[0].z = (float)((s16*)src)[2] / 32768;
     }
 
     void LoadNormal1_Float(InputVertexData *dst, u8 *src)
     {
-        dst->normal[0][0] = ((float*)src)[0];
-        dst->normal[0][1] = ((float*)src)[1];
-        dst->normal[0][2] = ((float*)src)[2];
+        dst->normal[0].x = ((float*)src)[0];
+        dst->normal[0].y = ((float*)src)[1];
+        dst->normal[0].z = ((float*)src)[2];
     }
 
     void LoadNormal3_Byte(InputVertexData *dst, u8 *src)
     {
         for (int i = 0, j = 0; i < 3; i++, j+=3)
         {
-            dst->normal[i][0] = (float)(s8)src[j + 0] / 128;
-            dst->normal[i][1] = (float)(s8)src[j + 1] / 128;
-            dst->normal[i][2] = (float)(s8)src[j + 2] / 128;
+            dst->normal[i].x = (float)(s8)src[j + 0] / 128;
+            dst->normal[i].y = (float)(s8)src[j + 1] / 128;
+            dst->normal[i].z = (float)(s8)src[j + 2] / 128;
         }
     }
 
@@ -57,9 +57,9 @@ namespace VertexFormatConverter
     {
         for (int i = 0, j = 0; i < 3; i++, j+=3)
         {
-            dst->normal[i][0] = (float)((s16*)src)[j + 0] / 32768;
-            dst->normal[i][1] = (float)((s16*)src)[j + 1] / 32768;
-            dst->normal[i][2] = (float)((s16*)src)[j + 2] / 32768;
+            dst->normal[i].x = (float)((s16*)src)[j + 0] / 32768;
+            dst->normal[i].y = (float)((s16*)src)[j + 1] / 32768;
+            dst->normal[i].z = (float)((s16*)src)[j + 2] / 32768;
         }
     }
 
@@ -67,9 +67,9 @@ namespace VertexFormatConverter
     {
         for (int i = 0, j = 0; i < 3; i++, j+=3)
         {
-            dst->normal[i][0] = ((float*)src)[j + 0];
-            dst->normal[i][1] = ((float*)src)[j + 1];
-            dst->normal[i][2] = ((float*)src)[j + 2];
+            dst->normal[i].x = ((float*)src)[j + 0];
+            dst->normal[i].y = ((float*)src)[j + 1];
+            dst->normal[i].z = ((float*)src)[j + 2];
         }
     }
 }

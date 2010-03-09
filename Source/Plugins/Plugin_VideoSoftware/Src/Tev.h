@@ -21,7 +21,20 @@
 #include "BPMemLoader.h"
 
 class Tev
-{
+{ 
+	struct InputRegType {
+        unsigned a : 8;
+        unsigned b : 8;
+        unsigned c : 8;
+        signed   d : 11;
+    };
+
+	struct TextureCoordinateType
+	{
+		signed s : 24;
+		signed t : 24;
+	};
+
     // color order: RGBA
     s16 Reg[4][4];    
     s16 KonstantColors[4][4];
@@ -32,7 +45,7 @@ class Tev
     s16 Zero16[4];
     u8 AlphaBump;
     u8 IndirectTex[4][4];
-    float TexCoord[2];
+	TextureCoordinateType TexCoord;
 
     s16 *m_ColorInputLUT[16][3];
     s16 *m_AlphaInputLUT[8];        // values must point to RGBA color
@@ -49,20 +62,16 @@ class Tev
     void DrawAlphaRegular(TevStageCombiner::AlphaCombiner &ac);
     void DrawAlphaCompare(TevStageCombiner::AlphaCombiner &ac);
 
-    void Indirect(unsigned int stageNum, float s, float t);    
-
-    struct InputRegType {
-        unsigned a : 8;
-        unsigned b : 8;
-        unsigned c : 8;
-        signed   d : 11;
-    };
+    void Indirect(unsigned int stageNum, s32 s, s32 t);
 
 public:
-    s32 Position[3];
+	s32 Position[3];
     u8 Color[2][4];
-    float Uv[8][2];
-    float Lod[8];
+    TextureCoordinateType Uv[8];
+    s32 IndirectLod[4];
+	bool IndirectLinear[4];
+	s32 TextureLod[16];
+	bool TextureLinear[16];
 
     void Init();
 

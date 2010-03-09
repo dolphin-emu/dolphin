@@ -31,6 +31,7 @@ namespace Clipper
 
     void ProcessTriangle(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2);
 
+	void ProcessLine(OutputVertexData *v0, OutputVertexData *v1);
 
     bool CullTest(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2, bool &backface);
 

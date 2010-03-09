@@ -451,7 +451,8 @@ union TexMode0
         unsigned mag_filter : 1;
         unsigned min_filter : 3;
         unsigned diag_lod : 1;
-        signed lod_bias : 10;
+        signed lod_bias : 8;
+		unsigned pad0 : 2;
         unsigned max_aniso : 2;
         unsigned lod_clamp : 1;
     };

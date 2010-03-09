@@ -439,34 +439,33 @@ static bool AlphaTest(int alpha)
     return true;
 }
 
-inline float WrapIndirectCoord(float coord, int wrapMode)
+inline s32 WrapIndirectCoord(s32 coord, int wrapMode)
 {
     switch (wrapMode) {
         case ITW_OFF:
             return coord;
         case ITW_256:
-            return fmod(coord, 256);
-         case ITW_128:
-            return fmod(coord, 128);
+            return (coord % (256 << 7));
+        case ITW_128:
+            return (coord % (128 << 7));
         case ITW_64:
-            return fmod(coord, 64);
+            return (coord % (64 << 7));
         case ITW_32:
-            return fmod(coord, 32);
+            return (coord % (32 << 7));
         case ITW_16:
-            return fmod(coord, 16);
+            return (coord % (16 << 7));
         case ITW_0:
             return 0;
     }
     return 0;
 }
 
-void Tev::Indirect(unsigned int stageNum, float s, float t)
+void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 {
     TevStageIndirect &indirect = bpmem.tevind[stageNum];
     u8 *indmap = IndirectTex[indirect.bt];
-    
 
-    float indcoord[3];
+    s32 indcoord[3];
 
     // alpha bump select
     switch (indirect.bs) {
@@ -494,32 +493,32 @@ void Tev::Indirect(unsigned int stageNum, float s, float t)
     // format
     switch(indirect.fmt) {
         case ITF_8:
-            indcoord[0] = (float)indmap[ALP_C] + bias[0];
-            indcoord[1] = (float)indmap[BLU_C] + bias[1];
-            indcoord[2] = (float)indmap[GRN_C] + bias[2];
+            indcoord[0] = indmap[ALP_C] + bias[0];
+            indcoord[1] = indmap[BLU_C] + bias[1];
+            indcoord[2] = indmap[GRN_C] + bias[2];
             AlphaBump = AlphaBump & 0xf8;
             break;
         case ITF_5:
-            indcoord[0] = (float)(indmap[ALP_C] & 0x1f) + bias[0];
-            indcoord[1] = (float)(indmap[BLU_C] & 0x1f) + bias[1];
-            indcoord[2] = (float)(indmap[GRN_C] & 0x1f) + bias[2];
+            indcoord[0] = (indmap[ALP_C] & 0x1f) + bias[0];
+            indcoord[1] = (indmap[BLU_C] & 0x1f) + bias[1];
+            indcoord[2] = (indmap[GRN_C] & 0x1f) + bias[2];
             AlphaBump = AlphaBump & 0xe0;
             break;
         case ITF_4:
-            indcoord[0] = (float)(indmap[ALP_C] & 0x0f) + bias[0];
-            indcoord[1] = (float)(indmap[BLU_C] & 0x0f) + bias[1];
-            indcoord[2] = (float)(indmap[GRN_C] & 0x0f) + bias[2];
+            indcoord[0] = (indmap[ALP_C] & 0x0f) + bias[0];
+            indcoord[1] = (indmap[BLU_C] & 0x0f) + bias[1];
+            indcoord[2] = (indmap[GRN_C] & 0x0f) + bias[2];
             AlphaBump = AlphaBump & 0xf0;
             break;
         case ITF_3:
-            indcoord[0] = (float)(indmap[ALP_C] & 0x07) + bias[0];
-            indcoord[1] = (float)(indmap[BLU_C] & 0x07) + bias[1];
-            indcoord[2] = (float)(indmap[GRN_C] & 0x07) + bias[2];
+            indcoord[0] = (indmap[ALP_C] & 0x07) + bias[0];
+            indcoord[1] = (indmap[BLU_C] & 0x07) + bias[1];
+            indcoord[2] = (indmap[GRN_C] & 0x07) + bias[2];
             AlphaBump = AlphaBump & 0xf8;
             break;
     }
 
-    float indtevtrans[2] = { 0,0 };
+    s64 indtevtrans[2] = { 0,0 };
 
     // matrix multiply
     int indmtxid = indirect.mid & 3;
@@ -529,39 +528,40 @@ void Tev::Indirect(unsigned int stageNum, float s, float t)
         int scale = ((u32)indmtx.col0.s0 << 0) |
 	                ((u32)indmtx.col1.s1 << 2) |
 	                ((u32)indmtx.col2.s2 << 4);
-        float fscale = 0.0f;
+
+		int shift;
 
         switch (indirect.mid & 12) {
-            case 0:
-                fscale = powf(2.0f, (float)(scale - 17)) / 1024.0f;
+            case 0:   
+				shift = 3 + (17 - scale);
                 indtevtrans[0] = indmtx.col0.ma * indcoord[0] + indmtx.col1.mc * indcoord[1] + indmtx.col2.me * indcoord[2];
                 indtevtrans[1] = indmtx.col0.mb * indcoord[0] + indmtx.col1.md * indcoord[1] + indmtx.col2.mf * indcoord[2];
                 break;
             case 4: // s matrix
-                fscale = powf(2.0f, (float)(scale - 17)) / 256;
+				shift = 8 + (17 - scale);
                 indtevtrans[0] = s * indcoord[0];
                 indtevtrans[1] = t * indcoord[0];
                 break;
             case 8: // t matrix
-                fscale = powf(2.0f, (float)(scale - 17)) / 256;
+				shift = 8 + (17 - scale);
                 indtevtrans[0] = s * indcoord[1];
                 indtevtrans[1] = t * indcoord[1];
                 break;
         }
 
-        indtevtrans[0] *= fscale;
-        indtevtrans[1] *= fscale;
+		indtevtrans[0] = shift >= 0 ? indtevtrans[0] >> shift : indtevtrans[0] << -shift;
+		indtevtrans[1] = shift >= 0 ? indtevtrans[1] >> shift : indtevtrans[1] << -shift;
     }
 
-    if (indirect.fb_addprev)
+	if (indirect.fb_addprev)
     {
-        TexCoord[0] += WrapIndirectCoord(s, indirect.sw) + indtevtrans[0];
-        TexCoord[1] += WrapIndirectCoord(t, indirect.tw) + indtevtrans[1];
+        TexCoord.s += (int)(WrapIndirectCoord(s, indirect.sw) + indtevtrans[0]);
+        TexCoord.t += (int)(WrapIndirectCoord(t, indirect.tw) + indtevtrans[1]);
     }
     else
     {
-        TexCoord[0] = WrapIndirectCoord(s, indirect.sw) + indtevtrans[0];
-        TexCoord[1] = WrapIndirectCoord(t, indirect.tw) + indtevtrans[1];
+        TexCoord.s = (int)(WrapIndirectCoord(s, indirect.sw) + indtevtrans[0]);
+        TexCoord.t = (int)(WrapIndirectCoord(t, indirect.tw) + indtevtrans[1]);
     }
 }
 
@@ -580,10 +580,12 @@ void Tev::Draw()
         u32 texcoordSel = bpmem.tevindref.getTexCoord(stageNum);
         u32 texmap = bpmem.tevindref.getTexMap(stageNum);
 
-        float scaleS = bpmem.texscale[stageNum2].getScaleS(stageOdd);
-        float scaleT = bpmem.texscale[stageNum2].getScaleT(stageOdd);
+		const TEXSCALE& texscale = bpmem.texscale[stageNum2];
+		s32 scaleS = stageOdd ? texscale.ss1:texscale.ss0;
+        s32 scaleT = stageOdd ? texscale.ts1:texscale.ts0;
 
-        TextureSampler::Sample(Uv[texcoordSel][0] * scaleS, Uv[texcoordSel][1] * scaleT, Lod[texcoordSel], texmap, IndirectTex[stageNum]);
+        TextureSampler::Sample(Uv[texcoordSel].s >> scaleS, Uv[texcoordSel].t >> scaleT,
+			IndirectLod[stageNum], IndirectLinear[stageNum], texmap, IndirectTex[stageNum]);
 
 #ifdef _DEBUG
         if (g_Config.bDumpTevStages)
@@ -608,14 +610,14 @@ void Tev::Draw()
         int texcoordSel = order.getTexCoord(stageOdd);
         int texmap = order.getTexMap(stageOdd);
 
-        Indirect(stageNum, Uv[texcoordSel][0], Uv[texcoordSel][1]);
+        Indirect(stageNum, Uv[texcoordSel].s, Uv[texcoordSel].t);
 
         // sample texture
         if (order.getEnable(stageOdd))
         {
             u8 texel[4];
     
-            TextureSampler::Sample(TexCoord[0], TexCoord[1], Lod[texcoordSel], texmap, texel);
+			TextureSampler::Sample(TexCoord.s, TexCoord.t, TextureLod[stageNum], TextureLinear[stageNum], texmap, texel);
 
             int swaptable = ac.tswap * 2;            
 

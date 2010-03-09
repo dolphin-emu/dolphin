@@ -23,7 +23,9 @@
 
 namespace TextureSampler
 {
-    void Sample(float s, float t, float lod, u8 texmap, u8 *sample);
+	void Sample(s32 s, s32 t, s32 lod, bool linear, u8 texmap, u8 *sample);
+
+	void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample);
 }
 
 

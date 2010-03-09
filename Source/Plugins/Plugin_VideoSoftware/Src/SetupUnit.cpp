@@ -134,10 +134,38 @@ void SetupUnit::SetupTriFan()
 }
 
 void SetupUnit::SetupLine()
-{}
+{
+	if (m_VertexCounter < 1)
+    {
+        m_VertexCounter++;
+        m_VertWritePointer = m_VertPointer[m_VertexCounter];
+        return;
+    }
+
+    Clipper::ProcessLine(m_VertPointer[0], m_VertPointer[1]);
+
+    m_VertexCounter = 0;
+    m_VertWritePointer = m_VertPointer[0];
+}
 
 void SetupUnit::SetupLineStrip()
-{}
+{
+	if (m_VertexCounter < 1)
+    {
+        m_VertexCounter++;
+		m_VertWritePointer = m_VertPointer[m_VertexCounter];
+        return;
+    }
+
+	m_VertexCounter++;
+
+    Clipper::ProcessLine(m_VertPointer[0], m_VertPointer[1]);
+
+	m_VertWritePointer = m_VertPointer[0];
+
+	m_VertPointer[0] = m_VertPointer[1];
+	m_VertPointer[1] = &m_Vertices[m_VertexCounter & 1];
+}
 
 void SetupUnit::SetupPoint()
 {}

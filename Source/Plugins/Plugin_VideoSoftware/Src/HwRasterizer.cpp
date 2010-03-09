@@ -155,7 +155,7 @@ namespace HwRasterizer
         int width = texImage0.width;
         int height = texImage0.height;
 
-        DebugUtil::GetTextureBGRA(temp, 0, width, height);
+        DebugUtil::GetTextureBGRA(temp, 0, 0, width, height);
 
         glGenTextures(1, (GLuint *)&texture);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);

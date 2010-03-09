@@ -49,36 +49,32 @@ void Init()
     }
 }
 
-bool SaveTexture(const char* filename, u32 texmap, int width, int height)
-{
-    u8 *data = new u8[width * height * 4];
-    
-    GetTextureBGRA(data, texmap, width, height);
-
-    bool result = SaveTGA(filename, width, height, data);
-
-    delete []data;
-
-    return result;
-}
-
-void SaveTexture(const char* filename, u32 texmap)
+void SaveTexture(const char* filename, u32 texmap, s32 mip)
 {
     FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
     u8 subTexmap = texmap & 3;
 
     TexImage0& ti0 = texUnit.texImage0[subTexmap];
 
-    SaveTexture(filename, texmap, ti0.width + 1, ti0.height + 1);
+	int width = ti0.width + 1;
+	int height = ti0.height + 1;
+
+	u8 *data = new u8[width * height * 4];
+    
+    GetTextureBGRA(data, texmap, mip, width, height);
+
+    bool result = SaveTGA(filename, width, height, data);
+
+    delete []data;
 }
 
-void GetTextureBGRA(u8 *dst, u32 texmap, int width, int height)
+void GetTextureBGRA(u8 *dst, u32 texmap, s32 mip, int width, int height)
 {
     u8 sample[4];    
 
     for (int y = 0; y < height; y++)
         for (int x = 0; x < width; x++) {
-            TextureSampler::Sample((float)x, (float)y, 0, texmap, sample);
+            TextureSampler::SampleMip(x << 7, y << 7, mip, false, texmap, sample);
             // rgba to bgra
             *(dst++) = sample[2];
             *(dst++) = sample[1];
@@ -87,13 +83,32 @@ void GetTextureBGRA(u8 *dst, u32 texmap, int width, int height)
         }
 }
 
+s32 GetMaxTextureLod(u32 texmap)
+{
+	FourTexUnits& texUnit = bpmem.tex[(texmap >> 2) & 1];
+    u8 subTexmap = texmap & 3;
+
+	u8 maxLod = texUnit.texMode1[subTexmap].max_lod;
+	u8 mip = maxLod >> 4;
+	u8 fract = maxLod & 0xf;
+
+	if(fract)
+		++mip;
+
+	return (s32)mip;
+}
+
 void DumpActiveTextures()
 {
     for (unsigned int stageNum = 0; stageNum < bpmem.genMode.numindstages; stageNum++)
     {
         u32 texmap = bpmem.tevindref.getTexMap(stageNum);
 
-        SaveTexture(StringFromFormat("%star%i_ind%i_map%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX), stats.thisFrame.numDrawnObjects, stageNum, texmap).c_str(), texmap);     
+		s32 maxLod = GetMaxTextureLod(texmap);
+		for (s32 mip = 0; mip < maxLod; ++mip)
+		{
+			SaveTexture(StringFromFormat("%star%i_ind%i_map%i_mip%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX), stats.thisFrame.numDrawnObjects, stageNum, texmap, mip).c_str(), texmap, mip);
+		}
     }
 
     for (unsigned int stageNum = 0; stageNum <= bpmem.genMode.numtevstages; stageNum++)
@@ -104,7 +119,11 @@ void DumpActiveTextures()
 
         int texmap = order.getTexMap(stageOdd);
 
-        SaveTexture(StringFromFormat("%star%i_stage%i_map%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX), stats.thisFrame.numDrawnObjects, stageNum, texmap).c_str(), texmap);           
+        s32 maxLod = GetMaxTextureLod(texmap);
+		for (s32 mip = 0; mip < maxLod; ++mip)
+		{
+			SaveTexture(StringFromFormat("%star%i_stage%i_map%i_mip%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX), stats.thisFrame.numDrawnObjects, stageNum, texmap, mip).c_str(), texmap, mip);
+		}
     }
 }
 
