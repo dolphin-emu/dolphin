@@ -403,19 +403,72 @@ void Jit64::subfcx(UGeckoInstruction inst)
 
 void Jit64::subfex(UGeckoInstruction inst) 
 {
-	INSTRUCTION_START;
+ 	INSTRUCTION_START;
+	JITDISABLE(Integer)
 	Default(inst);
 	return;
-	/*
-	u32 a = m_GPR[_inst.RA];
-	u32 b = m_GPR[_inst.RB];
-	int carry = GetCarry();
-	m_GPR[_inst.RD] = (~a) + b + carry;
-	SetCarry(Helper_Carry(~a, b) || Helper_Carry((~a) + b, carry));
-
-	if (_inst.OE) PanicAlert("OE: subfcx");
-	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
-	*/
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+	gpr.FlushLockX(ECX);
+	gpr.Lock(a, b, d);
+	
+	if(d != a && d != b)
+		gpr.LoadToX64(d, false, true);
+	else
+		gpr.LoadToX64(d, true, true);
+	
+	MOV(32, R(EAX), gpr.R(b));
+	SUB(32, R(EAX), gpr.R(a));
+	MOV(32, gpr.R(d), R(EAX));
+	
+	MOV(32, R(EAX), gpr.R(a));
+	MOV(32, R(ECX), gpr.R(b));
+	
+	CMP(32, R(EAX), Imm8(0));
+	FixupBranch cpLesser  = J_CC(CC_L);
+	FixupBranch cpGreater = J_CC(CC_G);
+	
+	// Equal
+	JitSetCA();
+	FixupBranch continue1 = J();
+	
+	// Lesser and greater
+	SetJumpTarget(cpGreater);
+	SetJumpTarget(cpLesser);
+	
+	NEG(32, R(EAX));
+	NOT(32, R(ECX));
+	
+	CMP(32, R(EAX), R(ECX)); 
+	FixupBranch pLesser  = J_CC(CC_L);
+	FixupBranch pGreater = J_CC(CC_G);
+	
+	// Equal
+	JitClearCA();
+	FixupBranch continue2 = J();
+	
+	// Greater
+	SetJumpTarget(pGreater);
+	JitSetCA();
+	FixupBranch continue3 = J();
+	
+	// Less than
+	SetJumpTarget(pLesser);
+	JitClearCA();
+	
+	SetJumpTarget(continue1);
+	SetJumpTarget(continue2);
+	SetJumpTarget(continue3);
+	
+	gpr.UnlockAll();
+	gpr.UnlockAllX();
+	if (inst.OE) PanicAlert("OE: subfcx");
+	if (inst.Rc) {
+		MOV(32, R(EAX), gpr.R(d));
+		CALL((u8*)asm_routines.computeRc);
+		
+		// Doesn't yet work for 64bit machines
+		//CALL((u8*)asm_routines.computeCr);
+	}
 }
 
 void Jit64::subfx(UGeckoInstruction inst)
