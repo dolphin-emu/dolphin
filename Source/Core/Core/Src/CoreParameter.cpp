@@ -87,7 +87,7 @@ void SCoreStartupParameter::LoadDefaults()
 	// These are required for the JIT cores to work in OSX
 	// Older revs (~4854) Only required LoadStorePaired to be turned off
 	// Newer revs (~4890) require both turned off
-	#ifdef __x86_64__
+	#ifdef _M_X64
 	// These work fine in 32bit OSX
 	// Since the reason why 64bit OSX fails out is due to casting (u32)(u64)
 	// Since all 64bit applications are above the 32bit memory boundary

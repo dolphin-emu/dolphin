@@ -222,6 +222,7 @@ void Flush()
 	
 	
 	glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
+	glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - LocalVBuffer, NULL, GL_STREAM_COPY);
 	glBufferSubData(GL_ARRAY_BUFFER,0, s_pCurBufferPointer - LocalVBuffer, LocalVBuffer);	
 	GL_REPORT_ERRORD();
 
