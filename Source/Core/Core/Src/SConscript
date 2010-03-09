@@ -138,7 +138,7 @@ libs = [
 	'bdisasm',
         'inputcommon',
 	'lua',
-        'sfml'
+        'sfml-network'
 	]
 
 env_core = env.Clone();

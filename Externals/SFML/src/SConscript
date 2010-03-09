@@ -19,4 +19,4 @@ env_sfml = env.Clone(
 	CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
 	)
 
-env_sfml.StaticLibrary(env['local_libs'] + "sfml", files)
+env_sfml.StaticLibrary(env['local_libs'] + "sfml-network", files)

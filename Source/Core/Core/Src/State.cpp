@@ -31,7 +31,11 @@
 
 #include <string>
 
+#if defined(SHARED_LZO) && SHARED_LZO
+#include <lzo/lzo1x.h>
+#else
 #include "minilzo.h"
+#endif
 
 // TODO: Move to namespace
 

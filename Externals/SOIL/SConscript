@@ -15,4 +15,4 @@ env_soil = env.Clone(
 	parse_flags = ['-fPIC']
 	)
 
-env_soil.StaticLibrary(env['local_libs'] + "libsoil", files)
+env_soil.StaticLibrary(env['local_libs'] + "SOIL", files)
