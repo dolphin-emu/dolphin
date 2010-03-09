@@ -387,22 +387,6 @@ void Jit64::subfic(UGeckoInstruction inst)
 
 void Jit64::subfcx(UGeckoInstruction inst) 
 {
-	INSTRUCTION_START;
-	Default(inst);
-	return;
-	/*
-	u32 a = m_GPR[_inst.RA];
-	u32 b = m_GPR[_inst.RB];
-	m_GPR[_inst.RD] = b - a;
-	SetCarry(a == 0 || Helper_Carry(b, 0-a));
-
-	if (_inst.OE) PanicAlert("OE: subfcx");
-	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
-	*/
-}
-
-void Jit64::subfex(UGeckoInstruction inst) 
-{
  	INSTRUCTION_START;
 	JITDISABLE(Integer)
 	Default(inst);
@@ -469,6 +453,23 @@ void Jit64::subfex(UGeckoInstruction inst)
 		// Doesn't yet work for 64bit machines
 		//CALL((u8*)asm_routines.computeCr);
 	}
+}
+
+void Jit64::subfex(UGeckoInstruction inst) 
+{
+	INSTRUCTION_START;
+	Default(inst);
+	return;
+	/*
+	u32 a = m_GPR[_inst.RA];
+	u32 b = m_GPR[_inst.RB];
+	int carry = GetCarry();
+	m_GPR[_inst.RD] = (~a) + b + carry;
+	SetCarry(Helper_Carry(~a, b) || Helper_Carry((~a) + b, carry));
+
+	if (_inst.OE) PanicAlert("OE: subfcx");
+	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
+	*/
 }
 
 void Jit64::subfx(UGeckoInstruction inst)
