@@ -52,7 +52,7 @@
 
 // There may be multiple XFBs in GameCube RAM. This is the maximum number to
 // virtualize.
-const int MAX_VIRTUAL_XFB = 4;
+const int MAX_VIRTUAL_XFB = 8;
 
 inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 {
@@ -64,6 +64,10 @@ struct XFBSource
 	XFBSource() :
 		texture(0)
 	{}
+
+	u32 srcAddr;
+	u32 srcWidth;
+	u32 srcHeight;
 
 	GLuint texture;
 	int texWidth;
@@ -90,7 +94,7 @@ public:
 
 	void CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
 
-	const XFBSource* GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
+	const XFBSource** GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
 
 	// To get the EFB in texture form, these functions may have to transfer
 	// the EFB to a resolved texture first.
@@ -132,10 +136,12 @@ private:
 
 	VirtualXFBListType::iterator findVirtualXFB(u32 xfbAddr, u32 width, u32 height);
 
+	void replaceVirtualXFB();
+
 	void copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
 	void copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
-	const XFBSource* getRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
-	const XFBSource* getVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight);
+	const XFBSource** getRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
+	const XFBSource** getVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount);
 
 	int m_targetWidth;
 	int m_targetHeight;
@@ -154,6 +160,8 @@ private:
 	GLuint m_xfbFramebuffer; // Only used in MSAA mode
 	XFBSource m_realXFBSource; // Only used in Real XFB mode
 	VirtualXFBListType m_virtualXFBList; // Only used in Virtual XFB mode
+
+	const XFBSource* m_overlappingXFBArray[MAX_VIRTUAL_XFB];
 };
 
 extern FramebufferManager g_framebufferManager;

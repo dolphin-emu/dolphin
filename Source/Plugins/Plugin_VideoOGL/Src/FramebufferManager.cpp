@@ -188,18 +188,18 @@ void FramebufferManager::Shutdown()
 
 void FramebufferManager::CopyToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
-	if (g_ActiveConfig.bUseXFB)
+	if (g_ActiveConfig.bUseRealXFB)
 		copyToRealXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 	else
 		copyToVirtualXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 }
 
-const XFBSource* FramebufferManager::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
+const XFBSource** FramebufferManager::GetXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
 {
-	if (g_ActiveConfig.bUseXFB)
-		return getRealXFBSource(xfbAddr, fbWidth, fbHeight);
+	if (g_ActiveConfig.bUseRealXFB)
+		return getRealXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	else
-		return getVirtualXFBSource(xfbAddr, fbWidth, fbHeight);
+		return getVirtualXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 }
 
 GLuint FramebufferManager::GetEFBColorTexture(const EFBRectangle& sourceRc) const
@@ -286,12 +286,54 @@ FramebufferManager::findVirtualXFB(u32 xfbAddr, u32 width, u32 height)
 		u32 dstLower = it->xfbAddr;
 		u32 dstUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;
 
-		if (addrRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
+		if (dstLower >= srcLower && dstUpper <= srcUpper)
 			return it;
 	}
 
 	// That address is not in the Virtual XFB list.
 	return m_virtualXFBList.end();
+}
+
+void FramebufferManager::replaceVirtualXFB()
+{
+	VirtualXFBListType::iterator it = m_virtualXFBList.begin();	
+
+	s32 srcLower = it->xfbAddr;
+	s32 srcUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;
+	s32 lineSize = 2 * it->xfbWidth;
+
+	it++;
+
+	while (it != m_virtualXFBList.end())
+	{
+		s32 dstLower = it->xfbAddr;
+		s32 dstUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;
+
+		if (dstLower >= srcLower && dstUpper <= srcUpper)
+		{
+			// invalidate the data
+			it->xfbAddr = 0;
+			it->xfbHeight = 0;
+			it->xfbWidth = 0;
+		}
+		else if (addrRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
+		{		
+			s32 upperOverlap = (srcUpper - dstLower) / lineSize;
+			s32 lowerOverlap = (dstUpper - srcLower) / lineSize;
+
+			if (upperOverlap > 0 && lowerOverlap < 0)
+			{
+				it->xfbAddr += lineSize * upperOverlap;
+				it->xfbHeight -= upperOverlap;
+			}
+			else if (lowerOverlap > 0)
+			{
+				it->xfbHeight -= lowerOverlap;
+			}
+		}
+
+		it++;
+	}
 }
 
 void FramebufferManager::copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
@@ -312,6 +354,12 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 
 	VirtualXFBListType::iterator it = findVirtualXFB(xfbAddr, fbWidth, fbHeight);
 
+	if (it == m_virtualXFBList.end() && (int)m_virtualXFBList.size() >= MAX_VIRTUAL_XFB)
+	{
+		// replace the last virtual XFB
+		it--;
+	}
+
 	if (it != m_virtualXFBList.end())
 	{
 		// Overwrite an existing Virtual XFB.
@@ -319,6 +367,10 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		it->xfbAddr = xfbAddr;
 		it->xfbWidth = fbWidth;
 		it->xfbHeight = fbHeight;
+
+		it->xfbSource.srcAddr = xfbAddr;
+		it->xfbSource.srcWidth = fbWidth;
+		it->xfbSource.srcHeight = fbHeight;
 
 		it->xfbSource.texWidth = Renderer::GetTargetWidth();
 		it->xfbSource.texHeight = Renderer::GetTargetHeight();
@@ -328,6 +380,9 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 
 		// Move this Virtual XFB to the front of the list.
 		m_virtualXFBList.splice(m_virtualXFBList.begin(), m_virtualXFBList, it);
+
+		// Keep stale XFB data from being used
+		replaceVirtualXFB();
 	}
 	else
 	{
@@ -416,10 +471,16 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 	}
 }
 
-const XFBSource* FramebufferManager::getRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
+const XFBSource** FramebufferManager::getRealXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
 {
+	xfbCount = 1;
+
 	m_realXFBSource.texWidth = MAX_XFB_WIDTH;
 	m_realXFBSource.texHeight = MAX_XFB_HEIGHT;
+
+	m_realXFBSource.srcAddr = xfbAddr;
+	m_realXFBSource.srcWidth = fbWidth;
+	m_realXFBSource.srcHeight = fbHeight;
 
 	// OpenGL texture coordinates originate at the lower left, which is why
 	// sourceRc.top = fbHeight and sourceRc.bottom = 0.
@@ -441,26 +502,40 @@ const XFBSource* FramebufferManager::getRealXFBSource(u32 xfbAddr, u32 fbWidth, 
 	// Decode YUYV data from GameCube RAM
 	TextureConverter::DecodeToTexture(xfbAddr, fbWidth, fbHeight, m_realXFBSource.texture);
 
-	return &m_realXFBSource;
+	m_overlappingXFBArray[0] = &m_realXFBSource;
+
+	return &m_overlappingXFBArray[0];
 }
 
-const XFBSource* FramebufferManager::getVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
+const XFBSource** FramebufferManager::getVirtualXFBSource(u32 xfbAddr, u32 fbWidth, u32 fbHeight, u32 &xfbCount)
 {
+	xfbCount = 0;
+
 	if (m_virtualXFBList.size() == 0)
 	{
 		// No Virtual XFBs available.
 		return NULL;
 	}
 
-	VirtualXFBListType::iterator it = findVirtualXFB(xfbAddr, fbWidth, fbHeight);
-	if (it == m_virtualXFBList.end())
+	u32 srcLower = xfbAddr;
+	u32 srcUpper = xfbAddr + 2 * fbWidth * fbHeight;
+
+	VirtualXFBListType::iterator it;
+	for (it = m_virtualXFBList.end(); it != m_virtualXFBList.begin();)
 	{
-		// Virtual XFB is not in the list, so return the most recently rendered
-		// one.
-		it = m_virtualXFBList.begin();
+		--it;
+
+		u32 dstLower = it->xfbAddr;
+		u32 dstUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;
+
+		if (addrRangesOverlap(srcLower, srcUpper, dstLower, dstUpper))
+		{
+			m_overlappingXFBArray[xfbCount] = &(it->xfbSource);
+			xfbCount++;
+		}
 	}
 
-	return &it->xfbSource;
+	return &m_overlappingXFBArray[0];
 }
 
 void FramebufferManager::SetFramebuffer(GLuint fb)

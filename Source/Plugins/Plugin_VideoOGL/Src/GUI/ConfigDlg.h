@@ -103,6 +103,7 @@ class GFXConfigDialogOGL : public wxDialog
 		wxCheckBox *m_ForceFiltering;
 		wxCheckBox *m_Crop;
 		wxCheckBox *m_UseXFB;
+		wxCheckBox *m_UseRealXFB;
 		wxCheckBox *m_AutoScale;
 		#ifndef _WIN32
 			wxCheckBox *m_HideCursor;
@@ -163,6 +164,7 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_NATIVERESOLUTION, ID_2X_RESOLUTION,
 			ID_ASPECT, 
 			ID_CROP,
+			ID_USEREALXFB,
 			ID_USEXFB,
 			ID_AUTOSCALE,
 			ID_WIDESCREENHACK,

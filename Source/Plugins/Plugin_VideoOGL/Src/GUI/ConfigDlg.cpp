@@ -46,6 +46,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_NATIVERESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_2X_RESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USEXFB, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_USEREALXFB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_FORCEFILTERING, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_AUTOSCALE, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_WIDESCREENHACK, GFXConfigDialogOGL::GeneralSettingsChanged)
@@ -236,6 +237,7 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	m_OSDHotKey->SetValue(g_Config.bOSDHotKey);
 	m_VSync->SetValue(g_Config.bVSync);
 	m_UseXFB->SetValue(g_Config.bUseXFB);
+	m_UseRealXFB->SetValue(g_Config.bUseRealXFB);
 	m_AutoScale->SetValue(g_Config.bAutoScale);
 	m_WidescreenHack->SetValue(g_Config.bWidescreenHack);
 
@@ -422,7 +424,8 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_OSDHotKey->Enable(false);
 #endif
 	m_VSync = new wxCheckBox(m_PageGeneral, ID_VSYNC, wxT("VSync (req. restart)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_UseXFB = new wxCheckBox(m_PageGeneral, ID_USEXFB, wxT("Use Real XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_UseXFB = new wxCheckBox(m_PageGeneral, ID_USEXFB, wxT("Use XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_UseRealXFB = new wxCheckBox(m_PageGeneral, ID_USEREALXFB, wxT("Use Real XFB"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_AutoScale = new wxCheckBox(m_PageGeneral, ID_AUTOSCALE, wxT("Auto scale (try to remove borders)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_WidescreenHack = new wxCheckBox(m_PageGeneral, ID_WIDESCREENHACK, wxT("Wide screen hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
@@ -470,8 +473,9 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasicAdvanced->Add(m_OSDHotKey,			wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_VSync,				wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_UseXFB,				wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasicAdvanced->Add(m_AutoScale,			wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasicAdvanced->Add(m_WidescreenHack,		wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_UseRealXFB,			wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_AutoScale,			wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_WidescreenHack,		wxGBPosition(6, 0), wxGBSpan(1, 2), wxALL, 5);
 
 	sbBasicAdvanced->Add(sBasicAdvanced);
 	sGeneral->Add(sbBasicAdvanced, 0, wxEXPAND|wxALL, 5);
@@ -662,6 +666,9 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_USEXFB:
 		g_Config.bUseXFB = m_UseXFB->IsChecked();
 		break;
+	case ID_USEREALXFB:
+		g_Config.bUseRealXFB = m_UseRealXFB->IsChecked();
+		break;
 	case ID_AUTOSCALE:
 		g_Config.bAutoScale = m_AutoScale->IsChecked();
 		break;
@@ -821,8 +828,12 @@ void GFXConfigDialogOGL::UpdateGUI()
 {
 	// This is only used together with the aspect ratio options
 	m_Crop->Enable(g_Config.iAspectRatio != ASPECT_STRETCH);
-	if (g_Config.bUseXFB)
+	if (g_Config.bUseRealXFB)
 	{
+		// must use XFB to use real XFB
+		g_Config.bUseXFB = true;
+		m_UseXFB->SetValue(true);
+
 		// XFB looks much better if the copy comes from native resolution.
 		g_Config.bNativeResolution = true;
 		m_NativeResolution->SetValue(true);
@@ -830,7 +841,8 @@ void GFXConfigDialogOGL::UpdateGUI()
 		g_Config.b2xResolution = false; 
 		m_2xResolution->SetValue(false);
 	}
-	m_AutoScale->Enable(!g_Config.bUseXFB);
+	m_AutoScale->Enable(!g_Config.bUseRealXFB);
+	m_UseXFB->Enable(!g_Config.bUseRealXFB);
 
 	// These options are for the separate rendering window
 #if !defined(HAVE_GTK2) || !HAVE_GTK2 || !defined(wxGTK)
@@ -841,8 +853,8 @@ void GFXConfigDialogOGL::UpdateGUI()
 	// Resolution settings
 	//disable native/2x choice when real xfb is on. native simply looks best, as ector noted above.
 	//besides, it would look odd if one disabled native, and it came back on again.
-	m_NativeResolution->Enable(!g_Config.bUseXFB);
-	m_2xResolution->Enable(!g_Config.bUseXFB && (!g_Config.bRunning || Renderer::Allow2x()));
+	m_NativeResolution->Enable(!g_Config.bUseRealXFB);
+	m_2xResolution->Enable(!g_Config.bUseRealXFB && (!g_Config.bRunning || Renderer::Allow2x()));
 	m_WindowResolutionCB->Enable(!g_Config.bRunning);
 #if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
 	m_WindowFSResolutionCB->Enable(!g_Config.bRunning);

@@ -484,10 +484,8 @@ void VideoFifo_CheckSwapRequest()
 		{
 			Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 		}
-		else
-		{
-			Common::AtomicStoreRelease(s_swapRequested, FALSE);
-		}
+
+		Common::AtomicStoreRelease(s_swapRequested, FALSE);
 	}
 }
 
