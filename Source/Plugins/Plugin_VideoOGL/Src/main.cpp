@@ -208,12 +208,18 @@ void Win32AddResolutions()
 }	
 #elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XRANDR) && HAVE_XRANDR
 void X11AddResolutions() {
-	GLWin.dpy = XOpenDisplay(0);
+	// Don't modify GLWin.dpy here.
+	// If the emulator is running that is bad.
+	Display *dpy;
+	int screen;
+	dpy = XOpenDisplay(0);
+	screen = DefaultScreen(dpy);
 	//Get all full screen resos for the config dialog
 	XRRScreenSize *sizes = NULL;
 	int modeNum = 0;
 
-	sizes = XRRSizes(GLWin.dpy, GLWin.screen, &modeNum);
+	sizes = XRRSizes(dpy, screen, &modeNum);
+	XCloseDisplay(dpy);
 	if (modeNum > 0 && sizes != NULL)
 	{
 		for (int i = 0; i < modeNum; i++)

@@ -699,10 +699,10 @@ void OpenGL_Update()
 					GLWin.panel->GetSize((int *)&GLWin.width, (int *)&GLWin.height);
 					XResizeWindow(GLWin.dpy, GLWin.win, GLWin.width, GLWin.height);
 				}
-#endif
 				if (g_Config.RenderToMainframe &&
 						(ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WINDOW_REFOCUS", False))
 					XSetInputFocus(GLWin.dpy, GLWin.win, RevertToPointerRoot, CurrentTime);
+#endif
 			break;
 			default:
 				break;

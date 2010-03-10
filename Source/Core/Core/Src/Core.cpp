@@ -272,6 +272,8 @@ void ProcessXEvents(void)
 				case ClientMessage:
 					if ((ulong) event.xclient.data.l[0] == XInternAtom(dpy, "WM_DELETE_WINDOW", False))
 						Host_Message(WM_USER_STOP);
+					if ((ulong) event.xclient.data.l[0] == XInternAtom(dpy, "WINDOW_REFOCUS", False))
+						XSetInputFocus(dpy, *(Window *)g_pXWindow, RevertToPointerRoot, CurrentTime);
 					break;
 				default:
 					break;
