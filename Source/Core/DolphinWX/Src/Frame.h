@@ -93,23 +93,6 @@ class CFrame : public wxFrame
 		void OnCustomHostMessage(int Id);
 		void StartGame(const std::string& filename);
 
-		// ---------------------------------------
-		// Wiimote leds
-		// --------------------
-		void ModifyStatusBar();
-		void CreateDestroy(int Case);
-		void CreateLeds(); void CreateSpeakers();
-		void UpdateLeds(); void UpdateSpeakers();
-		wxBitmap CreateBitmapForLeds(bool On);
-		wxBitmap CreateBitmapForSpeakers(int BitmapType, bool On);
-		void DoMoveIcons(); void MoveLeds();  void MoveSpeakers();
-		bool HaveLeds; bool HaveSpeakers;
-
-		wxStaticBitmap *m_StatBmp[7];
-		u8 g_Leds[4]; u8 g_Leds_[4];
-		u8 g_Speakers[3]; u8 g_Speakers_[3];
-		// ---------------
-
 		// AUI
 		wxAuiManager *m_Mgr;
 		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
@@ -233,14 +216,6 @@ class CFrame : public wxFrame
 			XPLASTIK,
 			KDE,
 			THEMES_MAX
-		};
-
-		enum WiimoteBitmaps  // Wiimote speaker bitmaps
-		{
-			CREATELEDS, 						
-			DESTROYLEDS,
-			CREATESPEAKERS,
-			DESTROYSPEAKERS
 		};
 
 		wxBitmap m_Bitmaps[EToolbar_Max];

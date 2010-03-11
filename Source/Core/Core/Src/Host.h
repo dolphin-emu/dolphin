@@ -53,8 +53,4 @@ void Host_UpdateStatusBar(const char* _pText, int Filed = 0);
 void Host_SysMessage(const char *fmt, ...);
 void Host_SetWiiMoteConnectionState(int _State);
 
-void Host_UpdateLeds(int bits);
-void Host_UpdateSpeakerStatus(int index, int bits);
-void Host_UpdateStatus();
-
 #endif

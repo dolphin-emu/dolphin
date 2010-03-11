@@ -99,16 +99,6 @@ void Host_SysMessage(const char *fmt, ...)
 	fprintf(stderr, "%s", msg);
 }
 
-void Host_UpdateLeds(int led_bits)
-{
-}
-void Host_UpdateSpeakerStatus(int index, int speaker_bits)
-{
-}
-void Host_UpdateStatus()
-{
-}
-
 void Host_SetWiiMoteConnectionState(int _State) {}
 
 

@@ -173,7 +173,7 @@ CPanel::CPanel(
 						main_frame->bNoWiimoteMsg = false;
 					else
 					{
-						// The Wiimote has been disconnect, we offer reconnect here
+						// The Wiimote has been disconnected, we offer reconnect here
 						wxMessageDialog *dlg = new wxMessageDialog(
 							this,
 							wxString::Format(wxT("Wiimote %i has been disconnected by system.\n")
@@ -321,7 +321,6 @@ CFrame::CFrame(wxFrame* parent,
 	, g_pCodeWindow(NULL)		
 	, m_MenuBar(NULL)
 	, bRenderToMain(false), bNoWiimoteMsg(false)
-	, HaveLeds(false), HaveSpeakers(false)
 	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, bFloatLogWindow(false), bFloatConsoleWindow(false)
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
@@ -618,8 +617,6 @@ void CFrame::OnResize(wxSizeEvent& event)
 	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
 		X11_SendEvent("MAIN_RESIZED");
 #endif
-
-	DoMoveIcons();  // In FrameWiimote.cpp
 }
 void CFrame::OnResizeAll(wxSizeEvent& event)
 {

@@ -52,7 +52,6 @@ private:
 #if wxUSE_TIMER && defined _WIN32
 	wxCheckBox* HideCursor, *AutoHideCursor;
 #endif
-	wxCheckBox* WiimoteStatusLEDs, * WiimoteStatusSpeakers;
 	wxChoice* InterfaceLang;
 	wxChoice* Framelimit;
 	wxRadioBox* Theme;
@@ -175,7 +174,6 @@ private:
 #if wxUSE_TIMER && defined _WIN32
 		ID_INTERFACE_HIDECURSOR_TEXT, ID_INTERFACE_HIDECURSOR, ID_INTERFACE_AUTOHIDECURSOR,
 #endif
-		ID_INTERFACE_WIIMOTE_TEXT, ID_INTERFACE_WIIMOTE_LEDS, ID_INTERFACE_WIIMOTE_SPEAKERS,
 		ID_INTERFACE_LANG_TEXT, ID_INTERFACE_LANG,
 		ID_INTERFACE_THEME,
 		ID_FRAMELIMIT_TEXT, ID_FRAMELIMIT,

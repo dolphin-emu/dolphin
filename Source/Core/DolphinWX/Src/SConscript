@@ -23,7 +23,6 @@ if wxenv['HAVE_WX']:
 		'Frame.cpp',
 		'FrameAui.cpp',
 		'FrameTools.cpp',
-		'FrameWiimote.cpp',
 		'LuaWindow.cpp',
 		'LogWindow.cpp',
 		'GameListCtrl.cpp',

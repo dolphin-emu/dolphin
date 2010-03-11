@@ -85,8 +85,6 @@ void SConfig::SaveSettings()
 		ini.Set("Interface", "MainWindowPosY",		m_LocalCoreStartupParameter.iPosY);
 		ini.Set("Interface", "MainWindowWidth",		m_LocalCoreStartupParameter.iWidth);
 		ini.Set("Interface", "MainWindowHeight",	m_LocalCoreStartupParameter.iHeight);
-		ini.Set("Interface", "ShowWiimoteLeds",		m_LocalCoreStartupParameter.bWiiLeds);
-		ini.Set("Interface", "ShowWiimoteSpeakers",	m_LocalCoreStartupParameter.bWiiSpeakers);
 		ini.Set("Interface", "Language",			m_InterfaceLanguage);
 		ini.Set("Interface", "ShowToolbar",			m_InterfaceToolbar);
 		ini.Set("Interface", "ShowStatusbar",		m_InterfaceStatusbar);
@@ -197,8 +195,6 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "MainWindowPosY",		&m_LocalCoreStartupParameter.iPosY,				100);
 		ini.Get("Interface", "MainWindowWidth",		&m_LocalCoreStartupParameter.iWidth,			800);
 		ini.Get("Interface", "MainWindowHeight",	&m_LocalCoreStartupParameter.iHeight,			600);
-		ini.Get("Interface", "ShowWiimoteLeds",		&m_LocalCoreStartupParameter.bWiiLeds,			false);
-		ini.Get("Interface", "ShowWiimoteSpeakers",	&m_LocalCoreStartupParameter.bWiiSpeakers,		false);
 		ini.Get("Interface", "Language",			(int*)&m_InterfaceLanguage,						0);
 		ini.Get("Interface", "ShowToolbar",			&m_InterfaceToolbar,							true);
 		ini.Get("Interface", "ShowStatusbar",		&m_InterfaceStatusbar,							true);

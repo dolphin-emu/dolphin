@@ -56,8 +56,6 @@ EVT_CHECKBOX(ID_INTERFACE_HIDECURSOR, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_AUTOHIDECURSOR, CConfigMain::CoreSettingsChanged)
 #endif
 EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::CoreSettingsChanged)
-EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_LEDS, CConfigMain::CoreSettingsChanged)
-EVT_CHECKBOX(ID_INTERFACE_WIIMOTE_SPEAKERS, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::CoreSettingsChanged)
 
 EVT_CHECKBOX(ID_ALWAYS_HLE_BS2, CConfigMain::CoreSettingsChanged)
@@ -229,8 +227,6 @@ void CConfigMain::InitializeGUIValues()
 	AutoHideCursor->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor);
 	HideCursor->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor);
 #endif
-	WiimoteStatusLEDs->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiLeds);
-	WiimoteStatusSpeakers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers);
 	Theme->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme);
 	// need redesign
 	InterfaceLang->SetSelection(SConfig::GetInstance().m_InterfaceLanguage);
@@ -289,8 +285,6 @@ void CConfigMain::InitializeGUITooltips()
 	HideCursor->SetToolTip(wxT("This will always hide the cursor when it's over the rendering window.")
 		wxT("\nIt can be convenient in a Wii game that already has a cursor."));
 #endif
-	WiimoteStatusLEDs->SetToolTip(wxT("Show which wiimotes are connected in the statusbar."));
-	WiimoteStatusSpeakers->SetToolTip(wxT("Show wiimote speaker status in the statusbar."));
 	InterfaceLang->SetToolTip(wxT("For the time being this will only change the text shown in")
 		wxT("\nthe game list of PAL GC games."));
 	// Themes: Copyright notice
@@ -352,11 +346,6 @@ void CConfigMain::CreateGUIControls()
 	AutoHideCursor = new wxCheckBox(GeneralPage, ID_INTERFACE_AUTOHIDECURSOR, wxT("Auto"));
 	HideCursor = new wxCheckBox(GeneralPage, ID_INTERFACE_HIDECURSOR, wxT("Always"));
 #endif
-	// Wiimote status in statusbar
-	wxStaticText *WiimoteStatusText = new wxStaticText(GeneralPage, ID_INTERFACE_WIIMOTE_TEXT, wxT("Show wiimote status:"), wxDefaultPosition, wxDefaultSize);
-	WiimoteStatusLEDs = new wxCheckBox(GeneralPage, ID_INTERFACE_WIIMOTE_LEDS, wxT("LEDs"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	WiimoteStatusSpeakers = new wxCheckBox(GeneralPage, ID_INTERFACE_WIIMOTE_SPEAKERS, wxT("Speakers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-
 	// Interface Language
 	// At the moment this only changes the language displayed in m_gamelistctrl
 	// If someone wants to control the whole GUI's language, it should be set here too
@@ -396,11 +385,6 @@ void CConfigMain::CreateGUIControls()
 	sHideCursor->Add(HideCursor, 0, wxLEFT, 5);
 	sbInterface->Add(sHideCursor, 0, wxALL, 5);
 #endif
-	wxBoxSizer *sWiimoteStatus = new wxBoxSizer(wxHORIZONTAL);
-	sWiimoteStatus->Add(WiimoteStatusText);
-	sWiimoteStatus->Add(WiimoteStatusLEDs, 0, wxLEFT, 5);
-	sWiimoteStatus->Add(WiimoteStatusSpeakers, 0, wxLEFT, 5);
-	sbInterface->Add(sWiimoteStatus, 0, wxALL, 5);
 	sbInterface->Add(Theme, 0, wxEXPAND | wxALL, 5);
 	wxBoxSizer *sInterfaceLanguage = new wxBoxSizer(wxHORIZONTAL);
 	sInterfaceLanguage->Add(InterfaceLangText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
@@ -724,12 +708,6 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	case ID_INTERFACE_THEME:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme = Theme->GetSelection();
 		main_frame->InitBitmaps();
-		break;
-	case ID_INTERFACE_WIIMOTE_LEDS:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiLeds = WiimoteStatusLEDs->IsChecked();
-		break;
-	case ID_INTERFACE_WIIMOTE_SPEAKERS:
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers = WiimoteStatusSpeakers->IsChecked();
 		break;
 	case ID_INTERFACE_LANG:
 		SConfig::GetInstance().m_InterfaceLanguage = (INTERFACE_LANGUAGE)InterfaceLang->GetSelection();

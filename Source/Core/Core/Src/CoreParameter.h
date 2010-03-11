@@ -73,8 +73,7 @@ struct SCoreStartupParameter
 
 	int SelectedLanguage;
 
-	// Wii settings
-	bool bWii, bWiiLeds, bWiiSpeakers;
+	bool bWii;
 
 	// Interface settings
 	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers;
