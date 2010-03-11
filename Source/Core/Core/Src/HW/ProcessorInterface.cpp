@@ -238,12 +238,12 @@ void SetInterrupt(u32 _causemask, bool _bSet)
 
     if (_bSet && !(m_InterruptCause & _causemask))
     {
-        DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (%s)", Debug_GetInterruptName(_causemask), "set");
+        DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (set)", Debug_GetInterruptName(_causemask));
     }
 
 	if (!_bSet && (m_InterruptCause & _causemask))
     {
-        DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (%s)", Debug_GetInterruptName(_causemask), "clear");
+        DEBUG_LOG(PROCESSORINTERFACE, "Setting Interrupt %s (clear)", Debug_GetInterruptName(_causemask));
     }
 	
 	if (_bSet)

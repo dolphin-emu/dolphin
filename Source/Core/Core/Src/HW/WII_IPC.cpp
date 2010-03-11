@@ -27,109 +27,133 @@
 #include "../IPC_HLE/WII_IPC_HLE.h"
 #include "WII_IPC.h"
 
+
+// This is the intercommunication between ARM and PPC. Currently only PPC actually uses it, because of the IOS HLE
+// How IOS uses IPC:
+// X1 Execute command: a new pointer is available in HW_IPC_PPCCTRL
+// X2 Reload (a new IOS is being loaded, old one doesn't need to reply anymore)
+// Y1 Command executed and reply available in HW_IPC_ARMMSG
+// Y2 Command acknowledge
+// ppc_msg is a pointer to 0x40byte command structure
+// arm_msg is, similarly, starlet's response buffer*
+
 namespace WII_IPCInterface
 {
 
 enum
 {
-    IPC_COMMAND_REGISTER    = 0x00,
-    IPC_CONTROL_REGISTER    = 0x04,
-    IPC_REPLY_REGISTER      = 0x08,
-    IPC_STATUS_REGISTER     = 0x30,
-    IPC_CONFIG_REGISTER     = 0x34,    
-	IPC_SENSOR_BAR_POWER_REGISTER = 0xC0
+	IPC_PPCMSG	= 0x00,
+	IPC_PPCCTRL	= 0x04,
+	IPC_ARMMSG	= 0x08,
+	IPC_ARMCTRL	= 0x0c,
+
+	PPC_IRQFLAG	= 0x30,
+	PPC_IRQMASK	= 0x34,
+	ARM_IRQFLAG	= 0x38,
+	ARM_IRQMASK	= 0x3c,
+
+	GPIOB_OUT	= 0xc0 // sensor bar power flag??
 };
 
-union UIPC_Control
+struct CtrlRegister
 {
-    u32 Hex;
-    struct  
-    {		
-        unsigned ExecuteCmd     : 1;
-        unsigned AckReady       : 1;
-        unsigned ReplyReady     : 1;
-        unsigned Relaunch       : 1;
-        unsigned unk5           : 1;
-        unsigned unk6           : 1;
-        unsigned pad            : 26;
-    };
-    UIPC_Control(u32 _Hex = 0) {Hex = _Hex;}
-};
+	u8 X1	: 1;
+	u8 X2	: 1;
+	u8 Y1	: 1;
+	u8 Y2	: 1;
+	u8 IX1	: 1;
+	u8 IX2	: 1;
+	u8 IY1	: 1;
+	u8 IY2	: 1;
 
-union UIPC_Status
-{
-    u32 Hex;
-    struct  
-    {		
-        unsigned 				:  30;
-        unsigned INTERRUPT		:	1;   // 0x40000000
-        unsigned				:	1;
-    };
-    UIPC_Status(u32 _Hex = 0) {Hex = _Hex;}
-};
+	CtrlRegister() { X1 = X2 = Y1 = Y2 = IX1 = IX2 = IY1 = IY2 = 0; }
 
-union UIPC_Config
-{
-	u32 Hex;
-	struct  
-	{		
-		unsigned 				:  30;
-		unsigned INT_MASK		:	1;   // 0x40000000
-		unsigned				:	1;
-	};
-	UIPC_Config(u32 _Hex = 0) 
-    {
-        Hex = _Hex;
-        INT_MASK = 1;
-    }
+	inline u8 ppc() { return (IY2<<5)|(IY1<<4)|(X2<<3)|(Y1<<2)|(Y2<<1)|X1; }
+	inline u8 arm() { return (IX2<<5)|(IX1<<4)|(Y2<<3)|(X1<<2)|(X2<<1)|Y1; }
+
+	inline void ppc(u32 v) {
+		X1 = v & 1;
+		X2 = (v >> 3) & 1;
+		if ((v >> 2) & 1) Y1 = 0;
+		if ((v >> 1) & 1) Y2 = 0;
+		IY1 = (v >> 4) & 1;
+		IY2 = (v >> 5) & 1;
+	}
+
+	inline void arm(u32 v) {
+		Y1 = v & 1;
+		Y2 = (v >> 3) & 1;
+		if ((v >> 2) & 1) X1 = 0;
+		if ((v >> 1) & 1) X2 = 0;
+		IX1 = (v >> 4) & 1;
+		IX2 = (v >> 5) & 1;
+	}
 };
 
 // STATE_TO_SAVE
-bool g_ExeCmd = false;
-u32 g_Address = NULL;
-u32 g_Reply = NULL;
-u32 g_ReplyHead = NULL;
-u32 g_ReplyTail = NULL;
-u32 g_ReplyNum = NULL;
-u32 g_ReplyFifo[REPLY_FIFO_DEPTH] = {0};
-u32 g_SensorBarPower = NULL;
-UIPC_Status g_IPC_Status(NULL);
-UIPC_Config g_IPC_Config(NULL);
-UIPC_Control g_IPC_Control(NULL);
+u32 ppc_msg;
+u32 arm_msg;
+CtrlRegister ctrl;
+
+u32 ppc_irq_flags;
+u32 ppc_irq_masks;
+u32 arm_irq_flags;
+u32 arm_irq_masks;
+
+u32 sensorbar_power; // do we need to care about this?
+
+// not actual registers:
+bool cmd_active;
+u32 g_ReplyHead;
+u32 g_ReplyTail;
+u32 g_ReplyNum;
+u32 g_ReplyFifo[REPLY_FIFO_DEPTH];
 
 void DoState(PointerWrap &p)
 {
-	p.Do(g_ExeCmd);
-	p.Do(g_Address);
-	p.Do(g_Reply);
+	p.Do(ppc_msg);
+	p.Do(arm_msg);
+	p.Do(ctrl);
+	p.Do(ppc_irq_flags);
+	p.Do(ppc_irq_masks);
+	p.Do(arm_irq_flags);
+	p.Do(arm_irq_masks);
+	p.Do(sensorbar_power);
+	p.Do(cmd_active);
 	p.Do(g_ReplyHead);
 	p.Do(g_ReplyTail);
 	p.Do(g_ReplyNum);
 	p.DoArray(g_ReplyFifo, REPLY_FIFO_DEPTH);
-	p.Do(g_SensorBarPower);
-	p.Do(g_IPC_Status);
-	p.Do(g_IPC_Config);
-	p.Do(g_IPC_Control);
 }
 
 // Init
 void Init()
 {
-	g_ExeCmd = false;
-	g_Address = NULL;
-    g_Reply = NULL;
-	g_ReplyHead = NULL;
-    g_ReplyTail = NULL;
-	g_ReplyNum = NULL;
-	g_SensorBarPower = NULL;
-    g_IPC_Status = UIPC_Status(NULL);
-    g_IPC_Config = UIPC_Config(NULL);
-    g_IPC_Control = UIPC_Control(NULL);
+	cmd_active = false;
+	ctrl = CtrlRegister();
+	ppc_msg =
+	arm_msg =
+
+	ppc_irq_flags =
+	ppc_irq_masks =
+	arm_irq_flags =
+	arm_irq_masks =
+
+	sensorbar_power =
+
+	g_ReplyHead =
+	g_ReplyTail =
+	g_ReplyNum = 0;
+	memset(g_ReplyFifo, 0, REPLY_FIFO_DEPTH);
+
+	ppc_irq_masks |= INT_CAUSE_IPC_BROADWAY;
 }
 
 void Reset()
 {
+	INFO_LOG(WII_IPC, "Resetting ...");
 	Init();
+	WII_IPC_HLE_Interface::Reset();
 }
 
 void Shutdown()
@@ -140,26 +164,26 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 {
 	switch(_Address & 0xFFFF)
 	{
-	case IPC_CONTROL_REGISTER:	
-        _rReturnValue = g_IPC_Control.Hex;
-		INFO_LOG(WII_IPC, "IOP: Read32, IPC_CONTROL_REGISTER(0x04) = 0x%08x [R:%i A:%i E:%i]",
-			_rReturnValue, (_rReturnValue>>2)&1, (_rReturnValue>>1)&1, _rReturnValue&1);
+	case IPC_PPCCTRL:	
+		_rReturnValue = ctrl.ppc();
+		INFO_LOG(WII_IPC, "r32 IPC_PPCCTRL %03x [R:%i A:%i E:%i]",
+			ctrl.ppc(), ctrl.Y1, ctrl.Y2, ctrl.X1);
 
-        // if ((REASON_REG & 0x14) == 0x14) CALL IPCReplayHanlder
-        // if ((REASON_REG & 0x22) != 0x22) Jumps to the end
+		// if ((REASON_REG & 0x14) == 0x14) CALL IPCReplayHandler
+		// if ((REASON_REG & 0x22) != 0x22) Jumps to the end
 		break;
 
-    case IPC_REPLY_REGISTER: // looks a little bit like a callback function
-        _rReturnValue = g_Reply;
-		INFO_LOG(WII_IPC, "IOP: Read32, IPC_REPLY_REGISTER(0x08) = 0x%08x ", _rReturnValue);
-        break;
+	case IPC_ARMMSG:	// looks a little bit like a callback function
+		_rReturnValue = arm_msg;
+		INFO_LOG(WII_IPC, "r32 IPC_ARMMSG %08x ", _rReturnValue);
+		break;
 
-	case IPC_SENSOR_BAR_POWER_REGISTER:
-		_rReturnValue = g_SensorBarPower;
+	case GPIOB_OUT:
+		_rReturnValue = sensorbar_power;
 		break;
 
 	default:
-		_dbg_assert_msg_(WII_IPC, 0, "IOP: Read32 from 0x%08x", _Address);
+		_dbg_assert_msg_(WII_IPC, 0, "r32 from %08x", _Address);
 		break;
 	}
 }
@@ -168,117 +192,94 @@ void Write32(const u32 _Value, const u32 _Address)
 {
 	switch(_Address & 0xFFFF)
 	{
-    // write only ??
-	case IPC_COMMAND_REGISTER:					// __ios_Ipc2 ... a value from __responses is loaded
-        {
-            g_Address = _Value;
-            INFO_LOG(WII_IPC, "IOP: Write32, IPC_ADDRESS_REGISTER(0x00) = 0x%08x", g_Address);
-        }
+	case IPC_PPCMSG:	// __ios_Ipc2 ... a value from __responses is loaded
+		{
+			ppc_msg = _Value;
+			INFO_LOG(WII_IPC, "IPC_PPCMSG = %08x", ppc_msg);
+		}
 		break;
 
-	case IPC_CONTROL_REGISTER:
-        {
-			INFO_LOG(WII_IPC, "IOP: Write32, IPC_CONTROL_REGISTER(0x04) = 0x%08x [R:%i A:%i E:%i] (old: 0x%08x) ",
-				_Value, (_Value>>2)&1, (_Value>>1)&1, _Value&1, g_IPC_Control.Hex);
-
-            UIPC_Control TempControl(_Value);
-            _dbg_assert_msg_(WII_IPC, TempControl.pad == 0, "IOP: Write to UIPC_Control.pad", _Address);
-
-            if (TempControl.AckReady)       { g_IPC_Control.AckReady = 0; }
-            if (TempControl.ReplyReady)     { g_IPC_Control.ReplyReady = 0; }
-
-			// Ayuanx: What is this Relaunch bit used for ???
-			// I have done considerable amount of tests that show no use of it at all
-			// So I'm commenting this out
-			//
-            //if (TempControl.Relaunch)       { g_IPC_Control.Relaunch = 0; }
-
-			g_IPC_Control.Relaunch = TempControl.Relaunch;
-            g_IPC_Control.unk5 = TempControl.unk5;
-            g_IPC_Control.unk6 = TempControl.unk6;
-            g_IPC_Control.pad = TempControl.pad;
-
-			if (TempControl.ExecuteCmd)     
-			{ 
-				g_ExeCmd = true;
-			}
-        }
+	case IPC_PPCCTRL:
+		{
+			ctrl.ppc(_Value);
+			INFO_LOG(WII_IPC, "w32 %08x IPC_PPCCTRL = %03x [R:%i A:%i E:%i]",
+				_Value, ctrl.ppc(), ctrl.Y1, ctrl.Y2, ctrl.X1);
+			if (ctrl.X1) // seems like we should just be able to use X1 directly, but it doesn't work...why?!
+				cmd_active = true;
+		}
 		break;  
 
-    case IPC_STATUS_REGISTER:  // ACR REGISTER IT IS CALLED IN DEBUG
-        {           
-            UIPC_Status NewStatus(_Value);
-            if (NewStatus.INTERRUPT) g_IPC_Status.INTERRUPT = 0;    // clear interrupt
-
-            INFO_LOG(WII_IPC,  "IOP: Write32, IPC_STATUS_REGISTER(0x30) = 0x%08x", _Value);
-        }
-        break;
-
-	case IPC_CONFIG_REGISTER:	// __OSInterruptInit (0x40000000)
-        {							
-		    INFO_LOG(WII_IPC, "IOP: Write32, IPC_CONFIG_REGISTER(0x33) = 0x%08x", _Value);
-
-		    g_IPC_Config.Hex = _Value;
-			
-			if (_Value&0x40000000)
-			{
-				INFO_LOG(WII_IPC, "Reset triggered, Resetting ...");
-				Reset();
-				WII_IPC_HLE_Interface::Reset();
-			}
-        }
+	case PPC_IRQFLAG:	// ACR REGISTER IT IS CALLED IN DEBUG
+		{
+			ppc_irq_flags &= ~_Value;
+			INFO_LOG(WII_IPC,  "w32 PPC_IRQFLAG %08x (%08x)", _Value, ppc_irq_flags);
+		}
 		break;
 
-	case IPC_SENSOR_BAR_POWER_REGISTER:
-		g_SensorBarPower = _Value;
+	case PPC_IRQMASK:	// __OSInterruptInit (0x40000000)
+		{
+			ppc_irq_masks = _Value;
+			if (ppc_irq_masks & INT_CAUSE_IPC_BROADWAY) // wtf?
+				Reset();
+			INFO_LOG(WII_IPC, "w32 PPC_IRQMASK %08x", ppc_irq_masks);
+		}
+		break;
+
+	case GPIOB_OUT:
+		sensorbar_power = _Value;
 		break;
 
 	default:
-        {
-		    _dbg_assert_msg_(WII_IPC, 0, "IOP: Write32 to 0x%08x", _Address);
-        }
+		_dbg_assert_msg_(WII_IPC, 0, "w32 %08x @ %08x", _Value, _Address);
 		break;
 	}	
-	//  update the interrupts
+
 	UpdateInterrupts();
+}
+
+void UpdateInterrupts()
+{
+	if ((ctrl.Y1 & ctrl.IY1) || (ctrl.Y2 & ctrl.IY2))
+	{
+		ppc_irq_flags |= INT_CAUSE_IPC_BROADWAY;
+	}
+
+	if ((ctrl.X1 & ctrl.IX1) || (ctrl.X2 & ctrl.IX2))
+	{
+		ppc_irq_flags |= INT_CAUSE_IPC_STARLET;
+	}
+
+	// Generate interrupt on PI if any of the devices behind starlet have an interrupt and mask is set
+	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_WII_IPC, !!(ppc_irq_flags & ppc_irq_masks));
+}
+
+// The rest is for IOS HLE
+bool IsReady()
+{
+	return ((ctrl.Y1 == 0) && (ctrl.Y2 == 0) && ((ppc_irq_flags & INT_CAUSE_IPC_BROADWAY) == 0));
 }
 
 u32 GetAddress()
 {
-	return ((g_ExeCmd) ? g_Address : NULL);
+	return (cmd_active ? ppc_msg : 0);
 }
 
 void GenerateAck()
 {
-	g_ExeCmd = false;
-    g_IPC_Control.AckReady = 1;
-    UpdateInterrupts();
+	cmd_active = false;
+	ctrl.Y2 = 1;
+	UpdateInterrupts();
 }
 
 void GenerateReply(u32 _Address)
 {
-	g_Reply = _Address;
-	g_IPC_Control.ReplyReady = 1;
+	arm_msg = _Address;
+	ctrl.Y1 = 1;
 	UpdateInterrupts();
 }
 
 void EnqReply(u32 _Address)
 {
-/*
-	// AyuanX: Replies are stored in a FIFO (depth 2), like ping-pong, and 2 is fairly enough
-	// Simple structure of fixed length will do good for DoState
-	//
-	if (g_ReplyHead == NULL)
-	{
-		g_ReplyHead = g_ReplyTail;
-		g_ReplyTail = _Address;
-	}
-	else
-	{
-		ERROR_LOG(WII_IPC, "Reply FIFO is full, something must be wrong!");
-		PanicAlert("WII_IPC: Reply FIFO is full, something must be wrong!");
-	}
-*/
 	if (g_ReplyNum < REPLY_FIFO_DEPTH)
 	{
 		g_ReplyFifo[g_ReplyTail++] = _Address;
@@ -294,16 +295,6 @@ void EnqReply(u32 _Address)
 
 u32 DeqReply()
 {
-/*
-	u32 _Address = (g_ReplyHead) ?  g_ReplyHead : g_ReplyTail;
-
-	if (g_ReplyHead)
-		g_ReplyHead = NULL;
-	else
-		g_ReplyTail = NULL;
-
-	return _Address;
-*/
 	u32 _Address;
 
 	if (g_ReplyNum)
@@ -320,30 +311,4 @@ u32 DeqReply()
 	return _Address;
 }
 
-void UpdateInterrupts()
-{
-    if ((g_IPC_Control.AckReady == 1) ||
-        (g_IPC_Control.ReplyReady == 1))
-    {
-        g_IPC_Status.INTERRUPT = 1;
-    }
-
-	// check if we have to generate an interrupt
-	if (g_IPC_Config.INT_MASK & g_IPC_Status.INTERRUPT)
-	{
-		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_WII_IPC, true);
-	}
-	else
-	{
-		ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_WII_IPC, false);
-	}
 }
-
-bool IsReady()
-{
-	return ((g_IPC_Control.ReplyReady == 0) && (g_IPC_Control.AckReady == 0) && (g_IPC_Status.INTERRUPT == 0));
-}
-
-} // end of namespace IPC
-
-

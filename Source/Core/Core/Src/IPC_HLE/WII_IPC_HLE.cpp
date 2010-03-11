@@ -454,7 +454,7 @@ void Update()
 
 	// if we have a reply to send
 	u32 _Reply = WII_IPCInterface::DeqReply();
-	if (_Reply != 0)
+	if (_Reply)
 	{
 		WII_IPCInterface::GenerateReply(_Reply);
 		INFO_LOG(WII_IPC_HLE, "<<-- Reply to Command Address: 0x%08x", _Reply);
@@ -463,32 +463,17 @@ void Update()
 
 	// If there is a a new command
 	u32 _Address = WII_IPCInterface::GetAddress();
-	if (_Address != 0)
+	if (_Address)
 	{
 		WII_IPCInterface::GenerateAck();
 		INFO_LOG(WII_IPC_HLE, "||-- Acknowledge Command Address: 0x%08x", _Address);
 
 		ExecuteCommand(_Address);
-/*
-		// AyuanX: Since current HLE time slot is empty, we can piggyback a reply
-		// Besides, this trick makes a Ping-Pong Reply FIFO never get full
-		// I don't know whether original hardware supports this feature or not
-		// but it works here and we gain 1/3 extra bandwidth
-		//
-		u32 _Reply = WII_IPCInterface::DeqReply();
-		if (_Reply != NULL)
-		{
-			WII_IPCInterface::GenerateReply(_Reply);
-			INFO_LOG(WII_IPC_HLE, "<<-- Reply to Command Address: 0x%08x", _Reply);
-		}
-*/
+
 		#if MAX_LOG_LEVEL >= DEBUG_LEVEL
 			Debugger::PrintCallstack(LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);
 		#endif
-
-		return;
 	}
-
 }
 
 void UpdateDevices()

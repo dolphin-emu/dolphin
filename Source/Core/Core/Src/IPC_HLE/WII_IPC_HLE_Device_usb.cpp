@@ -489,7 +489,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	}
 
 	// Link channels when connected
-	if (m_ACLBuffer.m_address && !m_LastCmd && !WII_IPCInterface::GetAddress())
+	if (m_ACLBuffer.m_address && !m_LastCmd)
 	{
 		for (size_t i = 0; i < m_WiiMotes.size(); i++)
 		{
@@ -519,7 +519,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	// or CPU will disconnect WiiMote automatically
 	// but don't send too many or it will jam the bus and cost extra CPU time
 	// TODO: Figure out the correct frequency to send this thing
-	if (m_HCIBuffer.m_address && !WII_IPCInterface::GetAddress())
+	if (m_HCIBuffer.m_address)
 	{
 		if (++m_FreqDividerSync > 500)
 			m_FreqDividerSync = 0;
