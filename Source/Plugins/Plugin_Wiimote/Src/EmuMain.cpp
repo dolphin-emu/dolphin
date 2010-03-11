@@ -613,9 +613,9 @@ void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 		else
 		{
 			// AyuanX: My experiment shows Control Channel is never used
-			// In case it happens, we will send back a handshake which means report failed/rejected
-			// (TO_BE_VERIFIED)
-			//
+			// shuffle2: but homebrew uses this, so we'll do what we must :)
+			HidOutputReport(_channelID, (wm_report*)hidp->data);
+
 			u8 handshake = HID_HANDSHAKE_SUCCESS;
 			g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, &handshake, 1);
 
