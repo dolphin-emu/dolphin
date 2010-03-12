@@ -546,7 +546,7 @@ void X11_SendEvent(const char *message)
 // Events
 void CFrame::OnActive(wxActivateEvent& event)
 {
-#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+#if defined(HAVE_X11) && HAVE_X11 && defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
 	if (event.GetActive() && (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE))
 		X11_SendEvent("WINDOW_REFOCUS");
 #endif
@@ -612,15 +612,14 @@ void CFrame::OnResize(wxSizeEvent& event)
 
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
-
-#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
-		X11_SendEvent("MAIN_RESIZED");
-#endif
 }
 void CFrame::OnResizeAll(wxSizeEvent& event)
 {
 	event.Skip();
+#if defined(HAVE_X11) && HAVE_X11 && defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
+		X11_SendEvent("MAIN_RESIZED");
+#endif
 	//wxWindow * Win = (wxWindow*)event.GetEventObject();
 	//NOTICE_LOG(CONSOLE, "OnResizeAll: %i", (HWND)Win->GetHWND());
 }

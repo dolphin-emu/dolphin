@@ -162,8 +162,6 @@ void CreateXWindow (void)
 	s_backbuffer_height = GLWin.height;
 
 	// create the window
-	GLWin.attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
-		StructureNotifyMask | ResizeRedirectMask;
 	GLWin.win = XCreateWindow(GLWin.dpy, parent,
 			GLWin.x, GLWin.y, GLWin.width, GLWin.height, 0, GLWin.vi->depth, InputOutput, GLWin.vi->visual,
 			CWBorderPixel | CWColormap | CWEventMask | CWOverrideRedirect, &GLWin.attr);
@@ -427,8 +425,10 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 		PanicAlert("Couldn't Create GLX context.Quit");
 		exit(0); // TODO: Don't bring down entire Emu
 	}
-	// Create a color map.
+	// Create a color map and set the event masks
 	GLWin.attr.colormap = XCreateColormap(GLWin.dpy, RootWindow(GLWin.dpy, GLWin.vi->screen), GLWin.vi->visual, AllocNone);
+	GLWin.attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
+		StructureNotifyMask | ResizeRedirectMask;
 	GLWin.attr.border_pixel = 0;
 	XkbSetDetectableAutoRepeat(GLWin.dpy, True, NULL);
 
@@ -756,6 +756,7 @@ void OpenGL_Shutdown()
 	if (GLWin.ctx)
 	{
 		glXDestroyContext(GLWin.dpy, GLWin.ctx);
+		XFreeColormap(GLWin.dpy, GLWin.attr.colormap);
 		XCloseDisplay(GLWin.dpy);
 		GLWin.ctx = NULL;
 	}
