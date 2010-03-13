@@ -693,13 +693,13 @@ void OpenGL_Update()
 				if ((ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "TOGGLE_FULLSCREEN", False))
 					ToggleFullscreenMode();
 #if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-				if (g_Config.RenderToMainframe &&
+				if (g_Config.RenderToMainframe && !GLWin.fs &&
 						(ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "MAIN_RESIZED", False))
 				{
 					GLWin.panel->GetSize((int *)&GLWin.width, (int *)&GLWin.height);
 					XResizeWindow(GLWin.dpy, GLWin.win, GLWin.width, GLWin.height);
 				}
-				if (g_Config.RenderToMainframe &&
+				if (g_Config.RenderToMainframe && !GLWin.fs &&
 						(ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WINDOW_REFOCUS", False))
 					XSetInputFocus(GLWin.dpy, GLWin.win, RevertToPointerRoot, CurrentTime);
 #endif
