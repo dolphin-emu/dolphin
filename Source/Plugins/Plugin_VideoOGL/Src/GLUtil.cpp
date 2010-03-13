@@ -697,7 +697,8 @@ void OpenGL_Update()
 						(ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "MAIN_RESIZED", False))
 				{
 					GLWin.panel->GetSize((int *)&GLWin.width, (int *)&GLWin.height);
-					XResizeWindow(GLWin.dpy, GLWin.win, GLWin.width, GLWin.height);
+					GLWin.panel->GetPosition(&GLWin.x, &GLWin.y);
+					XMoveResizeWindow(GLWin.dpy, GLWin.win, GLWin.x, GLWin.y, GLWin.width, GLWin.height);
 				}
 				if (g_Config.RenderToMainframe && !GLWin.fs &&
 						(ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WINDOW_REFOCUS", False))
