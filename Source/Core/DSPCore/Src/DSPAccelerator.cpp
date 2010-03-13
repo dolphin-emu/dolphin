@@ -77,8 +77,8 @@ u16 dsp_read_aram_d3()
 			Address++;
 			break;
 		case 0x6:   // u16 reads
-		    val = (DSPHost_ReadHostMemory(Address) << 8) | DSPHost_ReadHostMemory(Address + 1);
-			Address += 2;
+		    val = (DSPHost_ReadHostMemory(Address*2) << 8) | DSPHost_ReadHostMemory(Address*2 + 1);
+			Address++;
 			break;
 		default:
 			ERROR_LOG(DSPLLE, "dsp_read_aram_d3: Unseen Format %i", g_dsp.ifx_regs[DSP_FORMAT]);
@@ -101,10 +101,10 @@ void dsp_write_aram_d3(u16 value)
 	// const u32 EndAddress = (g_dsp.ifx_regs[DSP_ACEAH] << 16) | g_dsp.ifx_regs[DSP_ACEAL]; // Unused?
 	u32 Address = (g_dsp.ifx_regs[DSP_ACCAH] << 16) | g_dsp.ifx_regs[DSP_ACCAL];
 	switch (g_dsp.ifx_regs[DSP_FORMAT]) {
-		case 0xA:   // 16-bit writes
-			DSPHost_WriteHostMemory(value >> 8, Address);
-			DSPHost_WriteHostMemory(value & 0xFF, Address + 1);
-			Address += 2;
+		case 0xA:   // u16 writes
+			DSPHost_WriteHostMemory(value >> 8, Address*2);
+			DSPHost_WriteHostMemory(value & 0xFF, Address*2 + 1);
+			Address++;
 			break;
 		default:
 			ERROR_LOG(DSPLLE, "dsp_write_aram_d3: Unseen Format %i", g_dsp.ifx_regs[DSP_FORMAT]);
@@ -136,13 +136,13 @@ u16 dsp_read_accelerator()
 		    val = (DSPHost_ReadHostMemory(Address*2) << 8) | DSPHost_ReadHostMemory(Address*2 + 1);
 		    g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 		    g_dsp.ifx_regs[DSP_YN1] = val;
-		    Address += 1;
+		    Address++;
 		    break;
 	    case 0x19:  // 8-bit PCM audio
 		    val = DSPHost_ReadHostMemory(Address) << 8; // probably wrong
 		    g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 		    g_dsp.ifx_regs[DSP_YN1] = val;
-		    Address += 1;
+		    Address++;
 			break;
 	    default:
 		    ERROR_LOG(DSPLLE, "Unknown DSP Format %x", g_dsp.ifx_regs[DSP_FORMAT]);
