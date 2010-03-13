@@ -133,17 +133,24 @@ u16 dsp_read_accelerator()
 		    val = ADPCM_Step(Address);
 		    break;
 	    case 0x0A:  // 16-bit PCM audio
-		    val = (DSPHost_ReadHostMemory(Address) << 8) | DSPHost_ReadHostMemory(Address + 1);
+		    val = (DSPHost_ReadHostMemory(Address*2) << 8) | DSPHost_ReadHostMemory(Address*2 + 1);
 		    g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
 		    g_dsp.ifx_regs[DSP_YN1] = val;
-		    Address += 2;
+		    Address += 1;
 		    break;
+	    case 0x19:  // 8-bit PCM audio
+		    val = DSPHost_ReadHostMemory(Address) << 8; // probably wrong
+		    g_dsp.ifx_regs[DSP_YN2] = g_dsp.ifx_regs[DSP_YN1];
+		    g_dsp.ifx_regs[DSP_YN1] = val;
+		    Address += 1;
+			break;
 	    default:
 		    ERROR_LOG(DSPLLE, "Unknown DSP Format %x", g_dsp.ifx_regs[DSP_FORMAT]);
 		    break;
 	}
 
 	// TODO: Take GAIN into account, whatever it is.
+	// It looks like its always 0x800 for PCM8/PCM16 and 0x0 for adpcm
 	if (g_dsp.ifx_regs[DSP_GAIN] > 0)
 	{
 		//NOTICE_LOG(DSPLLE,"format: 0x%04x - val: 0x%04x - gain: 0x%04x", g_dsp.ifx_regs[DSP_FORMAT], val, g_dsp.ifx_regs[DSP_GAIN]);

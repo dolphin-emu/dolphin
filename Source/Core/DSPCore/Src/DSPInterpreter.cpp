@@ -73,7 +73,7 @@ u16 ReadCR()
 
 void Step()
 {
-	DSPCore_CheckExternalInterrupt();
+	//DSPCore_CheckExternalInterrupt(); 
 	DSPCore_CheckExceptions();
 
 	g_dsp.step_counter++;
@@ -109,7 +109,7 @@ void Run()
 			break;
 
 		// This number (500) is completely arbitrary. TODO: tweak.
-		RunCyclesDebug(500);
+		RunCycles(500);
 
 		if (!gdsp_running)
 			break;
@@ -136,9 +136,9 @@ int RunCyclesDebug(int cycles)
 		if (cycles < 0)
 			return 0;
 	}
-
-	//DSPCore_CheckExternalInterrupt();
 	
+	DSPCore_CheckExternalInterrupt();
+
 	// Now, let's run a few cycles with idle skipping.
 	for (int i = 0; i < 8; i++)
 	{
@@ -177,8 +177,6 @@ int RunCyclesDebug(int cycles)
 // Used by non-thread mode. Meant to be efficient.
 int RunCycles(int cycles)
 {
-	//DSPCore_CheckExternalInterrupt();
-
 	// First, let's run a few cycles with no idle skipping so that things can progress a bit.
 	for (int i = 0; i < 8; i++)
 	{
@@ -187,6 +185,8 @@ int RunCycles(int cycles)
 		Step();
 		cycles--;
 	}
+
+	DSPCore_CheckExternalInterrupt();
 
 	// Next, let's run a few cycles with idle skipping, so that we can skip
 	// idle loops.
