@@ -185,7 +185,7 @@ if not env['verbose']:
     env['RANLIBCOMSTR'] = "Indexing $TARGET"
 
 # build flavor
-flavour = ARGUMENTS.get('flavor')
+flavour = env['flavor']
 if (flavour == 'debug'):
     compileFlags.append('-ggdb')
     cppDefines.append('_DEBUG') #enables LOGGING
@@ -254,7 +254,7 @@ elif flavour == 'prof':
     extra = '-prof'
 
 # Set up the install locations
-if (ARGUMENTS.get('install') == 'global'):
+if (env['install'] == 'global'):
     env['prefix'] = os.path.join(env['prefix'] + os.sep)
     env['binary_dir'] = env['prefix'] + 'bin/'
     env['libs_dir'] = env['prefix'] + 'lib/'
@@ -415,7 +415,7 @@ conf.Define('SHARED_SOIL', env['SHARED_SOIL'])
 conf.Define('SHARED_LZO', env['SHARED_LZO'])
 conf.Define('SHARED_SFML', env['SHARED_SFML'])
 conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
-if (ARGUMENTS.get('install') == 'global'):
+if (env['install'] == 'global'):
     conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
     conf.Define('LIBS_DIR', "\"" + env['libs_dir'] + "\"")
 
