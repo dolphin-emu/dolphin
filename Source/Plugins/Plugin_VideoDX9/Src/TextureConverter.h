@@ -19,6 +19,10 @@
 #define _TEXTURECONVERTER_H_
 
 #include "VideoCommon.h"
+#include "D3DBase.h"
+#include "D3DTexture.h"
+#include "D3DUtil.h"
+#include "D3DShader.h"
 
 // Converts textures between formats
 // TODO: support multiple texture formats
@@ -31,10 +35,10 @@ void Shutdown();
 void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt,
 				 u32 copyfmt, int bScaleByHalf, const EFBRectangle& source);
 
-/*void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc,
+void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc,
 					 u8* destAddr, int dstWidth, int dstHeight);
 
-void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTexture);*/
+void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE9 destTexture);
 
 }
 

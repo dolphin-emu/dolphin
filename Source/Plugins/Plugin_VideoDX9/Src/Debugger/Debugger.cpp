@@ -352,15 +352,15 @@ static void DX9DebuggerUpdateScreen()
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 		D3D::dev->SetDepthStencilSurface(NULL);
 
-		D3D::dev->StretchRect(FBManager::GetEFBColorRTSurface(), NULL,
+		D3D::dev->StretchRect(FBManager.GetEFBColorRTSurface(), NULL,
 			D3D::GetBackBufferSurface(), NULL,
 			D3DTEXF_LINEAR);
 
 		D3D::dev->EndScene();
 		D3D::dev->Present(NULL, NULL, NULL, NULL);
 
-		D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-		D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+		D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
+		D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
 		D3D::dev->BeginScene();
 	}
 	else

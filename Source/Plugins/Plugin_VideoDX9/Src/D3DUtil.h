@@ -18,6 +18,8 @@
 #pragma	once
 
 #include "D3DBase.h"
+#include <math.h>
+#include <MathUtil.h>
 
 namespace D3D
 {
@@ -64,6 +66,13 @@ namespace D3D
 					   int SourceHeight,
 					   IDirect3DPixelShader9 *PShader,
 					   IDirect3DVertexShader9 *Vshader);
+	void drawShadedTexSubQuad(IDirect3DTexture9 *texture,
+							const MathUtil::Rectangle<float> *rSource,
+							int SourceWidth,
+							int SourceHeight,
+							const MathUtil::Rectangle<float> *rDest,
+							IDirect3DPixelShader9 *PShader,
+							IDirect3DVertexShader9 *Vshader);
 	void drawClearQuad(u32 Color,float z,IDirect3DPixelShader9 *PShader,IDirect3DVertexShader9 *Vshader);
 	void SaveRenderStates();
 	void RestoreRenderStates();

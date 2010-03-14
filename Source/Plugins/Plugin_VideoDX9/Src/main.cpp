@@ -62,11 +62,12 @@ GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 HINSTANCE g_hInstance = NULL;
 SVideoInitialize g_VideoInitialize;
 PLUGIN_GLOBALS* globals = NULL;
-bool s_initialized;
+static bool s_PluginInitialized = false;
 
+volatile u32 s_swapRequested = FALSE;
 static u32 s_efbAccessRequested = FALSE;
 static volatile u32 s_FifoShuttingDown = FALSE;
-static bool s_swapRequested = false;
+static bool ForceSwap = true;
 
 static volatile struct
 {
@@ -205,9 +206,9 @@ void DllAbout(HWND _hParent)
 void DllConfig(HWND _hParent)
 {
 	// If not initialized, only init D3D so we can enumerate resolutions.
-	if (!s_initialized) D3D::Init();
+	if (!s_PluginInitialized) D3D::Init();
 	DlgSettings_Show(g_hInstance, _hParent);
-	if (!s_initialized)	D3D::Shutdown();
+	if (!s_PluginInitialized)	D3D::Shutdown();
 }
 
 void Initialize(void *init)
@@ -242,7 +243,7 @@ void Initialize(void *init)
     _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 
 	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.", 5000);
-	s_initialized = true;
+	s_PluginInitialized = true;
 }
 
 void Video_Prepare()
@@ -250,7 +251,8 @@ void Video_Prepare()
 	// Better be safe...
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
-
+	s_swapRequested = FALSE;
+	ForceSwap = true;
 	Renderer::Init();
 	TextureCache::Init();
 	BPInit();
@@ -270,7 +272,7 @@ void Shutdown()
 {
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
-
+	s_swapRequested = FALSE;
 	Fifo_Shutdown();
 	VertexManager::Shutdown();
 	VertexLoaderManager::Shutdown();
@@ -283,7 +285,7 @@ void Shutdown()
 	Renderer::Shutdown();
 	D3D::Shutdown();
 	EmuWindow::Close();
-	s_initialized = false;
+	s_PluginInitialized = false;
 }
 
 void DoState(unsigned char **ptr, int mode) {
@@ -318,52 +320,61 @@ void Video_SetRendering(bool bEnabled) {
 // Run from the graphics thread
 void VideoFifo_CheckSwapRequest()
 {
-	// swap unimplemented
-	return;
-
-	if (s_swapRequested)
+	if (Common::AtomicLoadAcquire(s_swapRequested))
 	{
-		// Flip the backbuffer to front buffer now
-		s_swapRequested = false;
-		//if (s_beginFieldArgs.field == FIELD_PROGRESSIVE || s_beginFieldArgs.field == FIELD_LOWER)
+		if (ForceSwap || g_ActiveConfig.bUseXFB)
 		{
-			Renderer::Swap(0,FIELD_PROGRESSIVE,0,0);	// The swap function is not finished
-														// so it is ok to pass dummy parameters for now
+			Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 		}
+
+		Common::AtomicStoreRelease(s_swapRequested, FALSE);
 	}
+}
+
+inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
+{
+	return !((aLower >= bUpper) || (bLower >= aUpper));
 }
 
 // Run from the graphics thread
 void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-	// swap unimplemented
+	if (Common::AtomicLoadAcquire(s_swapRequested) && g_ActiveConfig.bUseXFB)
+	{
+		u32 aLower = xfbAddr;
+		u32 aUpper = xfbAddr + 2 * fbWidth * fbHeight;
+		u32 bLower = s_beginFieldArgs.xfbAddr;
+		u32 bUpper = s_beginFieldArgs.xfbAddr + 2 * s_beginFieldArgs.fbWidth * s_beginFieldArgs.fbHeight;
+
+		if (addrRangesOverlap(aLower, aUpper, bLower, bUpper))
+			VideoFifo_CheckSwapRequest();
+	}
+
+	ForceSwap = false;
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
 void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
-	// swap unimplemented
-	return;
-
-	s_beginFieldArgs.xfbAddr = xfbAddr;
-	s_beginFieldArgs.field = field;
-	s_beginFieldArgs.fbWidth = fbWidth;
-	s_beginFieldArgs.fbHeight = fbHeight;
-	s_swapRequested = true;
-
-	if (s_initialized)
+	if (s_PluginInitialized)
 	{
 		// Make sure previous swap request has made it to the screen
 		if (g_VideoInitialize.bOnThread)
 		{
-			//while (Common::AtomicLoadAcquire(s_swapRequested))
-				//Common::YieldCPU();
+			while (Common::AtomicLoadAcquire(s_swapRequested) && !s_FifoShuttingDown)
+				//Common::SleepCurrentThread(1);
+				Common::YieldCPU();
 		}
 		else
 			VideoFifo_CheckSwapRequest();
 
+		s_beginFieldArgs.xfbAddr = xfbAddr;
+		s_beginFieldArgs.field = field;
+		s_beginFieldArgs.fbWidth = fbWidth;
+		s_beginFieldArgs.fbHeight = fbHeight;
+
+		Common::AtomicStoreRelease(s_swapRequested, TRUE);
 	}
-	DEBUGGER_LOG_AT(NEXT_XFB_CMD,{printf("Begin Field: %08x, %d x %d\n",xfbAddr,fbWidth,fbHeight);});
 }
 
 void Video_EndField()
@@ -413,24 +424,27 @@ void VideoFifo_CheckEFBAccess()
 
 u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 {
-	if (!g_ActiveConfig.bEFBAccessEnable)
-		return 0;
-
-	s_accessEFBArgs.type = type;
-	s_accessEFBArgs.x = x;
-	s_accessEFBArgs.y = y;
-
-	Common::AtomicStoreRelease(s_efbAccessRequested, TRUE);
-
-	if (g_VideoInitialize.bOnThread)
+	if (s_PluginInitialized)
 	{
-		while (Common::AtomicLoadAcquire(s_efbAccessRequested) && !s_FifoShuttingDown)
-			Common::YieldCPU();
-	}
-	else
-		VideoFifo_CheckEFBAccess();
+		s_accessEFBArgs.type = type;
+		s_accessEFBArgs.x = x;
+		s_accessEFBArgs.y = y;
 
-	return s_AccessEFBResult;
+		Common::AtomicStoreRelease(s_efbAccessRequested, TRUE);
+
+		if (g_VideoInitialize.bOnThread)
+		{
+			while (Common::AtomicLoadAcquire(s_efbAccessRequested) && !s_FifoShuttingDown)
+				Common::SleepCurrentThread(1);
+				//Common::YieldCPU();
+		}
+		else
+			VideoFifo_CheckEFBAccess();
+
+		return s_AccessEFBResult;
+	}
+
+	return 0;
 }
 
 

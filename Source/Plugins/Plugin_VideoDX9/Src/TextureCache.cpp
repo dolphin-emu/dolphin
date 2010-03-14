@@ -330,7 +330,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 
 	int tex_w = (abs(source_rect.GetWidth()) >> bScaleByHalf);
 	int tex_h = (abs(source_rect.GetHeight()) >> bScaleByHalf);
-	//compensate the texture grow if multisample is enabled to conserve memory usage
+	//compensate the texture grow if supersampling is enabled to conserve memory usage
 	float MultiSampleCompensation = 1.0f;
 	if(g_ActiveConfig.iMultisampleMode > 0 && g_ActiveConfig.iMultisampleMode < 4)
 	{
@@ -353,16 +353,14 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	int Scaledtex_h = (g_ActiveConfig.bCopyEFBScaled)?((int)(Renderer::GetTargetScaleY() * MultiSampleCompensation * tex_h)):tex_h;
 	
 	TexCache::iterator iter;
-	LPDIRECT3DTEXTURE9 tex;
+	LPDIRECT3DTEXTURE9 tex = NULL;
 	iter = textures.find(address);
 	if (iter != textures.end())
 	{
 		if (iter->second.isRenderTarget && iter->second.Scaledw == Scaledtex_w && iter->second.Scaledh == Scaledtex_h)
-		{
-			
+		{			
 			tex = iter->second.texture;
 			iter->second.frameCount = frameCount;
-			goto have_texture;
 		}
 		else
 		{
@@ -374,6 +372,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		}
 	}
 
+	if(!tex)
 	{
 		TCacheEntry entry;
 		entry.isRenderTarget = true;
@@ -390,7 +389,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		tex = entry.texture;
 	}
 
-have_texture:	
+
 	float colmat[16]= {0.0f};
 	float fConstAdd[4] = {0.0f};	
 
@@ -499,7 +498,7 @@ have_texture:
         }
     }
 	// Make sure to resolve anything we need to read from.
-	LPDIRECT3DTEXTURE9 read_texture = bFromZBuffer ? FBManager::GetEFBDepthTexture(source_rect) : FBManager::GetEFBColorTexture(source_rect);
+	LPDIRECT3DTEXTURE9 read_texture = bFromZBuffer ? FBManager.GetEFBDepthTexture(source_rect) : FBManager.GetEFBColorTexture(source_rect);
     
     // We have to run a pixel shader, for color conversion.
     Renderer::ResetAPIState(); // reset any game specific settings
@@ -545,7 +544,7 @@ have_texture:
 	}
 		
 
-	D3DFORMAT bformat = FBManager::GetEFBDepthRTSurfaceFormat();
+	D3DFORMAT bformat = FBManager.GetEFBDepthRTSurfaceFormat();
 	int SSAAMode = ( g_ActiveConfig.iMultisampleMode > 3 )? 0 : g_ActiveConfig.iMultisampleMode;
 	D3D::drawShadedTexQuad(
 		read_texture,
@@ -559,8 +558,8 @@ have_texture:
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
 	D3D::SetTexture(0,NULL);
-	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());	
+	D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());	
 	Renderer::RestoreAPIState();	
 	Rendersurf->Release();
 }

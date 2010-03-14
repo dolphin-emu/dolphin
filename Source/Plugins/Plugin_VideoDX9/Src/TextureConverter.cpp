@@ -28,10 +28,6 @@
 #include "VideoConfig.h"
 #include "ImageWrite.h"
 #include "Render.h"
-#include "D3DBase.h"
-#include "D3DTexture.h"
-#include "D3DUtil.h"
-#include "D3DShader.h"
 #include "TextureCache.h"
 #include "Math.h"
 #include "FileUtil.h"
@@ -60,14 +56,16 @@ static LPDIRECT3DPIXELSHADER9 s_encodingPrograms[NUM_ENCODING_PROGRAMS];
 void CreateRgbToYuyvProgram()
 {
 	// Output is BGRA because that is slightly faster than RGBA.
-	const char *FProgram =
+	char* FProgram = new char[2048];
+	sprintf(FProgram,"uniform float4 blkDims : register(c%d);\n"
+	"uniform float4 textureDims : register(c%d);\n"
 	"uniform sampler samp0 : register(s0);\n"	
 	"void main(\n"
 	"  out float4 ocol0 : COLOR0,\n"
 	"  in float2 uv0 : TEXCOORD0)\n"
 	"{\n"		
-	"  float2 uv1 = float2(uv0.x + 1.0f, uv0.y);\n"
-	"  float3 c0 = tex2D(samp0, uv0).rgb;\n"
+	"  float2 uv1 = float2(uv0.x + (1.0f/blkDims.z), uv0.y);\n"
+	"  float3 c0 = tex2D(samp0, uv0.xy).rgb;\n"
 	"  float3 c1 = tex2D(samp0, uv1).rgb;\n"
 	"  float3 y_const = float3(0.257f,0.504f,0.098f);\n"
 	"  float3 u_const = float3(-0.148f,-0.291f,0.439f);\n"
@@ -75,16 +73,20 @@ void CreateRgbToYuyvProgram()
 	"  float4 const3 = float4(0.0625f,0.5f,0.0625f,0.5f);\n"
 	"  float3 c01 = (c0 + c1) * 0.5f;\n"  
 	"  ocol0 = float4(dot(c1,y_const),dot(c01,u_const),dot(c0,y_const),dot(c01, v_const)) + const3;\n"	  	
-	"}\n";
+	"}\n",C_COLORMATRIX,C_COLORMATRIX+1);
+
 	s_rgbToYuyvProgram = D3D::CompileAndCreatePixelShader(FProgram, (int)strlen(FProgram));
 	if (!s_rgbToYuyvProgram) {
         ERROR_LOG(VIDEO, "Failed to create RGB to YUYV fragment program");
     }
+	delete [] FProgram;
 }
 
 void CreateYuyvToRgbProgram()
 {
-	const char *FProgram =
+	char* FProgram = new char[2048];
+	sprintf(FProgram,"uniform float4 blkDims : register(c%d);\n"
+	"uniform float4 textureDims : register(c%d);\n"
 	"uniform sampler samp0 : register(s0);\n"	
 	"void main(\n"
 	"  out float4 ocol0 : COLOR0,\n"
@@ -92,7 +94,7 @@ void CreateYuyvToRgbProgram()
 	"{\n"		
 	"  float4 c0 = tex2D(samp0, uv0).rgba;\n"
 
-	"  float f = step(0.5, frac(uv0.x));\n"
+	"  float f = step(0.5, frac(uv0.x * blkDims.z));\n"
 	"  float y = lerp(c0.b, c0.r, f);\n"
 	"  float yComp = 1.164f * (y - 0.0625f);\n"
 	"  float uComp = c0.g - 0.5f;\n"
@@ -102,11 +104,12 @@ void CreateYuyvToRgbProgram()
 	"                 yComp - (0.813f * vComp) - (0.391f * uComp),\n"
 	"                 yComp + (2.018f * uComp),\n"
 	"                 1.0f);\n"
-	"}\n";
+	"}\n",C_COLORMATRIX,C_COLORMATRIX+1);
 	s_yuyvToRgbProgram = D3D::CompileAndCreatePixelShader(FProgram, (int)strlen(FProgram));
 	if (!s_yuyvToRgbProgram) {
         ERROR_LOG(VIDEO, "Failed to create YUYV to RGB fragment program");
     }
+	delete [] FProgram;
 }
 
 LPDIRECT3DPIXELSHADER9 GetOrCreateEncodingShader(u32 format)
@@ -270,8 +273,8 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 
 	// Draw...
 	D3D::drawShadedTexQuad(srcTexture,&SrcRect,1,1,shader,VertexShaderCache::GetSimpleVertexShader());
-	hr = D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-	hr = D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+	hr = D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
+	hr = D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
 	Renderer::RestoreAPIState();	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	// .. and then readback the results.
@@ -337,7 +340,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	u8 *dest_ptr = Memory_GetPtr(address);
 
-	LPDIRECT3DTEXTURE9 source_texture = bFromZBuffer ? FBManager::GetEFBDepthTexture(source) : FBManager::GetEFBColorTexture(source);
+	LPDIRECT3DTEXTURE9 source_texture = bFromZBuffer ? FBManager.GetEFBDepthTexture(source) : FBManager.GetEFBColorTexture(source);
 	int width = (source.right - source.left) >> bScaleByHalf;
 	int height = (source.bottom - source.top) >> bScaleByHalf;
 
@@ -387,15 +390,23 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight,readStride, true, bScaleByHalf > 0);
 }
 
-/*void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc,
-				     u8* destAddr, int dstWidth, int dstHeight)
+void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc,u8* destAddr, int dstWidth, int dstHeight)
 {
+	TextureConversionShader::SetShaderParameters(
+		(float)dstWidth, 
+		(float)dstHeight, 
+		0.0f , 
+		0.0f, 
+		1.0f, 
+		1.0f,
+		(float)Renderer::GetFullTargetWidth(),
+		(float)Renderer::GetFullTargetHeight());
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
 }
 
 
 // Should be scale free.
-void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTexture)
+void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE9 destTexture)
 {
 	u8* srcAddr = Memory_GetPtr(xfbAddr);
 	if (!srcAddr)
@@ -404,64 +415,67 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 		return;
 	}
 
-	Renderer::ResetAPIState();
-
 	float srcFormatFactor = 0.5f;
 	float srcFmtWidth = srcWidth * srcFormatFactor;
-
-	// swich to texture converter frame buffer
-	// attach destTexture as color destination
-	g_framebufferManager.SetFramebuffer(s_texConvFrameBuffer);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, destTexture);	
-	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, destTexture, 0);
-
-	GL_REPORT_FBO_ERROR();
-
-    for (int i = 1; i < 8; ++i)
-		TextureMngr::DisableStage(i);
-
-	// activate source texture
-	// set srcAddr as data for source texture
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_RECTANGLE_ARB);
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, s_srcTexture);
-
-	// TODO: make this less slow.  (How?)
-	if(s_srcTextureWidth == (GLsizei)srcFmtWidth && s_srcTextureHeight == (GLsizei)srcHeight)
-	{
-		glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB, 0,0,0,s_srcTextureWidth, s_srcTextureHeight, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);	
-	}
-	else
-	{	
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA8, (GLsizei)srcFmtWidth, (GLsizei)srcHeight, 0, GL_BGRA, GL_UNSIGNED_BYTE, srcAddr);	
-		s_srcTextureWidth = (GLsizei)srcFmtWidth;
-		s_srcTextureHeight = (GLsizei)srcHeight;
-	}
-
-	glViewport(0, 0, srcWidth, srcHeight);
-
-	PixelShaderCache::EnableShader(s_yuyvToRgbProgram.glprogid);
 	
-	GL_REPORT_ERRORD();
+	Renderer::ResetAPIState(); // reset any game specific settings
+	LPDIRECT3DTEXTURE9 s_srcTexture = D3D::CreateTexture2D(srcAddr, srcFmtWidth, srcHeight, srcFmtWidth, D3DFMT_A8R8G8B8, false);
+	LPDIRECT3DSURFACE9 Rendersurf = NULL;
+	destTexture->GetSurfaceLevel(0,&Rendersurf);
+	D3D::dev->SetDepthStencilSurface(NULL);
+	D3D::dev->SetRenderTarget(0, Rendersurf);		
+    
+	D3DVIEWPORT9 vp;
 
-    glBegin(GL_QUADS);
-	glTexCoord2f(srcFmtWidth, (float)srcHeight); glVertex2f(1,-1);
-	glTexCoord2f(srcFmtWidth, 0); glVertex2f(1,1);
-	glTexCoord2f(0, 0); glVertex2f(-1,1);
-	glTexCoord2f(0, (float)srcHeight); glVertex2f(-1,-1);
-    glEnd();	
+	// Stretch picture with increased internal resolution
+	vp.X = 0;
+	vp.Y = 0;
+	vp.Width  = srcWidth;
+	vp.Height = srcHeight;
+	vp.MinZ = 0.0f;
+	vp.MaxZ = 1.0f;
+	D3D::dev->SetViewport(&vp);
+	RECT destrect;
+	destrect.bottom = srcHeight;
+	destrect.left = 0;
+	destrect.right = srcWidth;
+	destrect.top = 0;
+	
+	RECT sourcerect;
+	sourcerect.bottom = srcHeight;
+	sourcerect.left = 0;
+	sourcerect.right = srcFmtWidth;
+	sourcerect.top = 0;
 
-	// reset state
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
-    TextureMngr::DisableStage(0);
-
-	VertexShaderManager::SetViewportChanged();
-
-	g_framebufferManager.SetFramebuffer(0);
-
+	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+		
+	TextureConversionShader::SetShaderParameters(
+		(float)srcFmtWidth, 
+		(float)srcHeight, 
+		0.0f , 
+		0.0f, 
+		1.0f, 
+		1.0f,
+		(float)srcFmtWidth,
+		(float)srcHeight);
+	D3D::drawShadedTexQuad(
+		s_srcTexture,
+		&sourcerect, 
+		srcFmtWidth , 
+		srcHeight,
+		s_yuyvToRgbProgram,
+		VertexShaderCache::GetSimpleVertexShader());			
+	
+	
+	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
+	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
+	D3D::SetTexture(0,NULL);
+	D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());	
 	Renderer::RestoreAPIState();
-    GL_REPORT_ERRORD();
+	Rendersurf->Release();
+	s_srcTexture->Release();	
 }
-*/
+
 }  // namespace

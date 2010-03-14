@@ -32,7 +32,10 @@
 #define IDC_TEXFMT_OVERLAY              1024
 #define IDC_TEXFMT_CENTER               1025
 #define IDC_FORCEFILTERING              1026
+#define IDC_ENABLEXFB                   1026
 #define IDC_FORCEANISOTROPY             1027
+#define IDC_ENABLEXFB2                  1027
+#define IDC_ENABLEREALXFB               1027
 #define IDC_LOADHIRESTEXTURE            1028
 #define IDC_EFBSCALEDCOPY               1029
 #define IDC_OSDHOTKEY                   1030

@@ -21,6 +21,7 @@
 
 #include "StringUtil.h"
 #include "Common.h"
+#include "Atomic.h"
 #include "FileUtil.h"
 #include "Thread.h"
 #include "Timer.h"
@@ -52,6 +53,7 @@
 
 int s_fps=0;
 
+static bool WindowResized;
 static int s_target_width;
 static int s_target_height;
 
@@ -60,6 +62,9 @@ static int s_Fulltarget_height;
 
 static int s_backbuffer_width;
 static int s_backbuffer_height;
+
+static int s_XFB_width;
+static int s_XFB_height;
 
 static float xScale;
 static float yScale;
@@ -73,7 +78,7 @@ static bool s_AVIDumping;
 static u32 s_blendMode;
 static u32 s_LastAA;
 static bool IS_AMD;
-
+static bool XFBWrited;
 
 char st[32768];
 
@@ -229,7 +234,7 @@ void SetupDeviceObjects()
 {
 	D3D::font.Init();
 	VertexLoaderManager::Init();
-	FBManager::Create();
+	FBManager.Create();
 
 	VertexShaderManager::Dirty();
 	PixelShaderManager::Dirty();
@@ -246,7 +251,7 @@ void TeardownDeviceObjects()
 	ScreenShootMEMSurface = NULL;
 	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 	D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
-	FBManager::Destroy();
+	FBManager.Destroy();
 	D3D::font.Shutdown();
 	TextureCache::Invalidate(false);
 	VertexManager::DestroyDeviceObjects();
@@ -282,31 +287,53 @@ bool Renderer::Init()
 	s_backbuffer_width = D3D::GetBackBufferWidth();
 	s_backbuffer_height = D3D::GetBackBufferHeight();
 
-	// TODO: Grab target width from configured resolution?
-	s_target_width  = s_backbuffer_width;
-	s_target_height = s_backbuffer_height * ((float)EFB_HEIGHT / 480.0f);
+	s_XFB_width = MAX_XFB_WIDTH;
+	s_XFB_height = MAX_XFB_HEIGHT;
+
+	TargetRectangle dst_rect;
+	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
+
+	if(g_ActiveConfig.bUseRealXFB)
+	{
+		xScale = yScale = 1.0f;
+	}
+	else
+	{
+		xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
+		yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
+	}
+	
+
+	s_target_width  = EFB_WIDTH * xScale;
+	s_target_height = EFB_HEIGHT * yScale;
+	
 	s_LastAA = (g_ActiveConfig.iMultisampleMode > 3)?0:g_ActiveConfig.iMultisampleMode;
 	
+	float SupersampleCoeficient = 1.0f;	
 	switch (s_LastAA)
 	{
 		case 1:
 			s_target_width  = (s_target_width  * 3) / 2;
 			s_target_height = (s_target_height * 3) / 2;
+			SupersampleCoeficient = 3.0f/2.0f;			
 			break;
 		case 2:
 			s_target_width  *= 2;
 			s_target_height *= 2;
+			SupersampleCoeficient = 2.0f;			
 			break;
 		case 3:
 			s_target_width  *= 3;
 			s_target_height *= 3;
+			SupersampleCoeficient = 3.0f;
 			break;
 		default:
 			break;
 	};
 
-	xScale = (float)s_target_width / (float)EFB_WIDTH;
-	yScale = (float)s_target_height / (float)EFB_HEIGHT;
+	xScale *= SupersampleCoeficient;
+	yScale *= SupersampleCoeficient;
+	
 	s_Fulltarget_width  = s_target_width;
 	s_Fulltarget_height = s_target_height;
 	
@@ -335,8 +362,8 @@ bool Renderer::Init()
 	D3D::dev->SetViewport(&vp);
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET, 0x0, 0, 0);
 	
-	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+	D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
 	vp.X = (s_Fulltarget_width - s_target_width) / 2;
 	vp.Y = (s_Fulltarget_height - s_target_height) / 2;
 	vp.Width  = s_target_width;
@@ -345,7 +372,7 @@ bool Renderer::Init()
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x0, 1.0f, 0);
 	D3D::BeginFrame();
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, true);
-	D3D::dev->CreateOffscreenPlainSurface(s_backbuffer_width,s_backbuffer_height, FBManager::GetEFBColorRTSurfaceFormat(), D3DPOOL_SYSTEMMEM, &ScreenShootMEMSurface, NULL );
+	D3D::dev->CreateOffscreenPlainSurface(s_backbuffer_width,s_backbuffer_height, FBManager.GetEFBColorRTSurfaceFormat(), D3DPOOL_SYSTEMMEM, &ScreenShootMEMSurface, NULL );
 	return true;
 }
 
@@ -368,6 +395,15 @@ int Renderer::GetFullTargetWidth() { return s_Fulltarget_width; }
 int Renderer::GetFullTargetHeight() { return s_Fulltarget_height; }
 float Renderer::GetTargetScaleX() { return xScale; }
 float Renderer::GetTargetScaleY() { return yScale; }
+
+int Renderer::GetFrameBufferWidth()
+{
+	return s_backbuffer_width;
+}
+int Renderer::GetFrameBufferHeight()
+{
+	return s_backbuffer_height;
+}
 
 // Create On-Screen-Messages
 void Renderer::DrawDebugText()
@@ -523,190 +559,33 @@ void CheckForResize()
 	{
 		TeardownDeviceObjects();
 
-		D3D::Reset();
-
-		SetupDeviceObjects();
+		D3D::Reset();		
 		s_backbuffer_width = D3D::GetBackBufferWidth();
 		s_backbuffer_height = D3D::GetBackBufferHeight();
+		WindowResized = true;
 	}
 }
 
-static void EFBTextureToD3DBackBuffer(const EFBRectangle& sourceRc)
-{
-	TargetRectangle src_rect, dst_rect;
-	src_rect = Renderer::ConvertEFBRectangle(sourceRc);
-	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-	D3DVIEWPORT9 vp;
-	vp.X = 0;
-	vp.Y = 0;
-	vp.Width  = s_backbuffer_width;
-	vp.Height = s_backbuffer_height;
-	vp.MinZ = 0.0f;
-	vp.MaxZ = 1.0f;
-	D3D::dev->SetViewport(&vp);
-
-	D3D::dev->Clear(0,NULL, D3DCLEAR_TARGET,D3DCOLOR_XRGB(0,0,0),1.0f,0);
-	int X = dst_rect.left;
-	int Y = dst_rect.top;
-	int Width  = dst_rect.right - dst_rect.left;
-	int Height = dst_rect.bottom - dst_rect.top;
-	
-	if (X < 0) X = 0;
-	if (Y < 0) Y = 0;
-	if (X > s_backbuffer_width) X = s_backbuffer_width;
-	if (Y > s_backbuffer_height) Y = s_backbuffer_height;
-	if (Width < 0) Width = 0;
-	if (Height < 0) Height = 0;
-	if (Width > (s_backbuffer_width - X)) Width = s_backbuffer_width - X;
-	if (Height > (s_backbuffer_height - Y)) Height = s_backbuffer_height - Y;
-	vp.X = X;
-	vp.Y = Y;
-	vp.Width = Width;
-	vp.Height = Height;
-	vp.MinZ = 0.0f;
-	vp.MaxZ = 1.0f;
-
-	D3D::dev->SetViewport(&vp);
-
-	EFBRectangle efbRect;
-	
-	LPDIRECT3DTEXTURE9 read_texture = FBManager::GetEFBColorTexture(efbRect);
-	RECT destinationrect;
-	destinationrect.bottom = dst_rect.bottom;
-	destinationrect.left = dst_rect.left;
-	destinationrect.right = dst_rect.right;
-	destinationrect.top = dst_rect.top;
-	RECT sourcerect;
-	sourcerect.bottom = src_rect.bottom;
-	sourcerect.left = src_rect.left;
-	sourcerect.right = src_rect.right;
-	sourcerect.top = src_rect.top;
-
-	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-	int SSAAMode = ( g_ActiveConfig.iMultisampleMode > 3 )? 0 : g_ActiveConfig.iMultisampleMode;
-	
-	D3D::drawShadedTexQuad(read_texture,&sourcerect,Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),PixelShaderCache::GetColorCopyProgram(SSAAMode),(SSAAMode != 0)?VertexShaderCache::GetFSAAVertexShader():VertexShaderCache::GetSimpleVertexShader());
-	
-	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
-	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
-	
-	vp.X = 0;
-	vp.Y = 0;
-	vp.Width  = s_backbuffer_width;
-	vp.Height = s_backbuffer_height;
-	vp.MinZ = 0.0f;
-	vp.MaxZ = 1.0f;
-	D3D::dev->SetViewport(&vp);
-	if(s_bScreenshot)
-	{
-		s_criticalScreenshot.Enter();
-		D3DXSaveSurfaceToFileA(s_sScreenshotName, D3DXIFF_BMP, D3D::GetBackBufferSurface(), NULL, &destinationrect);
-		s_bScreenshot = false;
-		s_criticalScreenshot.Leave();
-	}
-	if (g_ActiveConfig.bDumpFrames) 
-	{
-		D3D::dev->GetRenderTargetData(D3D::GetBackBufferSurface(),ScreenShootMEMSurface);
-		if (!s_LastFrameDumped) 
-		{
-			s_recordWidth = destinationrect.right - destinationrect.left;
-			s_recordHeight = destinationrect.bottom - destinationrect.top;
-			s_AVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
-			if (!s_AVIDumping) 
-			{
-				PanicAlert("Error dumping frames to AVI.");
-			} 
-			else 
-			{
-				char msg [255];
-				sprintf(msg, "Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)", File::GetUserPath(D_DUMPFRAMES_IDX), s_recordWidth, s_recordHeight);
-				OSD::AddMessage(msg, 2000);
-			}
-		}
-		if (s_AVIDumping) 
-		{
-			D3DLOCKED_RECT rect;
-			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, &destinationrect, D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY))) 
-			{
-				char *data = (char *)malloc(3 * s_recordWidth * s_recordHeight);
-				formatBufferDump((const char *)rect.pBits, data, s_recordWidth, s_recordHeight, rect.Pitch);
-				AVIDump::AddFrame(data);
-				free(data);
-				ScreenShootMEMSurface->UnlockRect();
-			}
-		}
-		s_LastFrameDumped = true;
-	}		 
-	else 
-	{
-		if (s_LastFrameDumped && s_AVIDumping) 
-		{
-			AVIDump::Stop();
-			s_AVIDumping = false;
-		}
-		s_LastFrameDumped = false;
-	}
-	
-
-	// Finish up the current frame, print some stats
-	if (g_ActiveConfig.bShowFPS)
-	{
-		char fps[20];
-		StringCchPrintfA(fps, 20, "FPS: %d\n", s_fps);
-		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,fps,false);
-	}
-	Renderer::DrawDebugText();
-
-	if (g_ActiveConfig.bOverlayStats)
-	{
-		Statistics::ToString(st);
-		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
-	}
-	else if (g_ActiveConfig.bOverlayProjStats)
-	{
-		Statistics::ToStringProj(st);
-		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
-	}
-
-	OSD::DrawMessages();
-}
+extern volatile u32 s_swapRequested;
 
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
-	if (g_bSkipCurrentFrame)
-	{
-		g_VideoInitialize.pCopiedToXFB(false);
-		DEBUGGER_PAUSE_LOG_AT(NEXT_XFB_CMD,false,{printf("RenderToXFB - disabled");});
+	VideoFifo_CheckEFBAccess();
+	XFBWrited = true;
+	if(!fbWidth || !fbHeight)
 		return;
+	// If we're about to write to a requested XFB, make sure the previous
+	// contents make it to the screen first.
+	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
+	FBManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+	
+	// XXX: Without the VI, how would we know what kind of field this is? So
+	// just use progressive.
+	if (!g_ActiveConfig.bUseXFB)
+	{
+		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight);
+		Common::AtomicStoreRelease(s_swapRequested, FALSE);
 	}
-
-	Renderer::ResetAPIState();
-	// Set the backbuffer as the rendering target
-	D3D::dev->SetDepthStencilSurface(NULL);
-	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
-	
-	EFBTextureToD3DBackBuffer(sourceRc);
-	
-	D3D::EndFrame();
-
-	DEBUGGER_LOG_AT((NEXT_XFB_CMD|NEXT_EFB_CMD|NEXT_FRAME),
-		{printf("StretchRect, EFB->XFB\n");});
-	DEBUGGER_PAUSE_LOG_AT(
-		(NEXT_XFB_CMD),false,
-	{printf("RenderToXFB: addr = %08X, %d x %d, sourceRc = (%d,%d,%d,%d)\n", 
-		xfbAddr, fbWidth, fbHeight, 
-		sourceRc.left, sourceRc.top, sourceRc.right, sourceRc.bottom);}
-	);
-
-	Swap(0,FIELD_PROGRESSIVE,0,0);	// we used to swap the buffer here, now we will wait
-										// until the XFB pointer is updated by VI
-	D3D::BeginFrame();
-	Renderer::RestoreAPIState();
-	D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-	D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
-	UpdateViewport();
-	VertexShaderManager::SetViewportChanged();
 }
 
 bool Renderer::SetScissorRect()
@@ -789,18 +668,18 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 
 	//Get the working buffer
 	LPDIRECT3DSURFACE9 pBuffer = (type == PEEK_Z || type == POKE_Z) ? 
-		FBManager::GetEFBDepthRTSurface() : FBManager::GetEFBColorRTSurface();
+		FBManager.GetEFBDepthRTSurface() : FBManager.GetEFBColorRTSurface();
 	//get the temporal buffer to move 1pixel data
 	LPDIRECT3DSURFACE9 RBuffer = (type == PEEK_Z || type == POKE_Z) ? 
-		FBManager::GetEFBDepthReadSurface() : FBManager::GetEFBColorReadSurface();
+		FBManager.GetEFBDepthReadSurface() : FBManager.GetEFBColorReadSurface();
 	//get the memory buffer that can be locked
 	LPDIRECT3DSURFACE9 pOffScreenBuffer = (type == PEEK_Z || type == POKE_Z) ? 
-		FBManager::GetEFBDepthOffScreenRTSurface() : FBManager::GetEFBColorOffScreenRTSurface();
+		FBManager.GetEFBDepthOffScreenRTSurface() : FBManager.GetEFBColorOffScreenRTSurface();
 	//get the buffer format
 	D3DFORMAT BufferFormat = (type == PEEK_Z || type == POKE_Z) ? 
-		FBManager::GetEFBDepthRTSurfaceFormat() : FBManager::GetEFBColorRTSurfaceFormat();
+		FBManager.GetEFBDepthRTSurfaceFormat() : FBManager.GetEFBColorRTSurfaceFormat();
 	D3DFORMAT ReadBufferFormat = (type == PEEK_Z || type == POKE_Z) ? 
-		FBManager::GetEFBDepthReadSurfaceFormat() : BufferFormat;
+		FBManager.GetEFBDepthReadSurfaceFormat() : BufferFormat;
 	
 	if (BufferFormat == D3DFMT_D24X8)
 		return 0;
@@ -872,7 +751,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		colmat[0] = colmat[5] = colmat[10] = 1.0f;
 		PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
 		EFBRectangle source_rect;
-		LPDIRECT3DTEXTURE9 read_texture = FBManager::GetEFBDepthTexture(source_rect);
+		LPDIRECT3DTEXTURE9 read_texture = FBManager.GetEFBDepthTexture(source_rect);
 		
 		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);		
 
@@ -886,8 +765,8 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 
 		D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 
-		hr = D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-		hr = D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+		hr = D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
+		hr = D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
 		RestoreAPIState();
 		RectToLock.bottom = 4;
 		RectToLock.left = 0;
@@ -1038,10 +917,10 @@ void UpdateViewport()
 	{
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
-		FBManager::Destroy();
-		FBManager::Create();
-		D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-		D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+		FBManager.Destroy();
+		FBManager.Create();
+		D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
+		D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
 	}	
 	vp.X = X;
 	vp.Y = Y;
@@ -1131,55 +1010,279 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
+	if(!fbWidth || !fbHeight)
+		return;
 	// this function is called after the XFB field is changed, not after
 	// EFB is copied to XFB. In this way, flickering is reduced in games
-	// and seems to also give more FPS in ZTP
+	// and seems to also give more FPS in ZTP	
+	if(!XFBWrited)
+		return;
+	if (field == FIELD_LOWER)
+		xfbAddr -= fbWidth * 2;
+	
+	u32 xfbCount = 0;
+	const XFBSource** xfbSourceList = FBManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
+	if (!xfbSourceList || xfbCount == 0)
+	{
+		return;
+	}
 
-	// D3D frame is now over
-	// Clean out old stuff from caches.
+	if (g_bSkipCurrentFrame)
+	{
+		g_VideoInitialize.pCopiedToXFB(false);		
+		return;
+	}
+
+	Renderer::ResetAPIState();
+	// Set the backbuffer as the rendering target
+	D3D::dev->SetDepthStencilSurface(NULL);
+	D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
+	
+	TargetRectangle dst_rect;
+	ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
+	D3DVIEWPORT9 vp;
+	vp.X = 0;
+	vp.Y = 0;
+	vp.Width  = s_backbuffer_width;
+	vp.Height = s_backbuffer_height;
+	vp.MinZ = 0.0f;
+	vp.MaxZ = 1.0f;
+	D3D::dev->SetViewport(&vp);
+	D3D::dev->Clear(0,NULL, D3DCLEAR_TARGET,D3DCOLOR_XRGB(0,0,0),1.0f,0);
+
+	int X = dst_rect.left;
+	int Y = dst_rect.top;
+	int Width  = dst_rect.right - dst_rect.left;
+	int Height = dst_rect.bottom - dst_rect.top;
+	
+	if (X < 0) X = 0;
+	if (Y < 0) Y = 0;
+	if (X > s_backbuffer_width) X = s_backbuffer_width;
+	if (Y > s_backbuffer_height) Y = s_backbuffer_height;
+	if (Width < 0) Width = 0;
+	if (Height < 0) Height = 0;
+	if (Width > (s_backbuffer_width - X)) Width = s_backbuffer_width - X;
+	if (Height > (s_backbuffer_height - Y)) Height = s_backbuffer_height - Y;
+	vp.X = X;
+	vp.Y = Y;
+	vp.Width = Width;
+	vp.Height = Height;
+	vp.MinZ = 0.0f;
+	vp.MaxZ = 1.0f;
+
+	D3D::dev->SetViewport(&vp);
+
+	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+
+	const XFBSource* xfbSource;
+
+	// draw each xfb source
+	for (u32 i = 0; i < xfbCount; ++i)
+	{
+		xfbSource = xfbSourceList[i];	
+		MathUtil::Rectangle<float> sourceRc;
+		
+		sourceRc.left = 0;
+		sourceRc.top = 0;
+		sourceRc.right = xfbSource->texWidth;
+		sourceRc.bottom = xfbSource->texHeight;		
+
+		MathUtil::Rectangle<float> drawRc;
+
+		if (g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
+		{
+			// use virtual xfb with offset
+			int xfbHeight = xfbSource->srcHeight;
+			int xfbWidth = xfbSource->srcWidth;
+			int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbWidth * 2);
+
+			drawRc.bottom = 1.0f - 2.0f * ((hOffset) / (float)fbHeight);
+			drawRc.top = 1.0f - 2.0f * ((hOffset + xfbHeight) / (float)fbHeight);
+			drawRc.left = -(xfbWidth / (float)fbWidth);
+			drawRc.right = (xfbWidth / (float)fbWidth);
+
+
+			if (!g_ActiveConfig.bAutoScale)
+			{
+				// scale draw area for a 1 to 1 pixel mapping with the draw target
+				float vScale = (float)fbHeight / (float)s_backbuffer_height;
+				float hScale = (float)fbWidth / (float)s_backbuffer_width;
+
+				drawRc.top *= vScale;
+				drawRc.bottom *= vScale;
+				drawRc.left *= hScale;
+				drawRc.right *= hScale;
+			}
+		}
+		else
+		{
+			drawRc.top = -1;
+			drawRc.bottom = 1;
+			drawRc.left = -1;
+			drawRc.right = 1;
+		}
+
+		D3D::drawShadedTexSubQuad(xfbSource->texture,&sourceRc,xfbSource->texWidth,xfbSource->texHeight,&drawRc,PixelShaderCache::GetColorCopyProgram(0),VertexShaderCache::GetSimpleVertexShader());
+	}
+
+	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
+	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);	
+	vp.X = 0;
+	vp.Y = 0;
+	vp.Width  = s_backbuffer_width;
+	vp.Height = s_backbuffer_height;
+	vp.MinZ = 0.0f;
+	vp.MaxZ = 1.0f;
+	D3D::dev->SetViewport(&vp);
+	if(s_bScreenshot)
+	{
+		s_criticalScreenshot.Enter();
+		D3DXSaveSurfaceToFileA(s_sScreenshotName, D3DXIFF_BMP, D3D::GetBackBufferSurface(), NULL, NULL);
+		s_bScreenshot = false;
+		s_criticalScreenshot.Leave();
+	}
+	if (g_ActiveConfig.bDumpFrames) 
+	{
+		D3D::dev->GetRenderTargetData(D3D::GetBackBufferSurface(),ScreenShootMEMSurface);
+		if (!s_LastFrameDumped) 
+		{
+			s_recordWidth = s_backbuffer_width;
+			s_recordHeight = s_backbuffer_height;
+			s_AVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
+			if (!s_AVIDumping) 
+			{
+				PanicAlert("Error dumping frames to AVI.");
+			} 
+			else 
+			{
+				char msg [255];
+				sprintf(msg, "Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)", File::GetUserPath(D_DUMPFRAMES_IDX), s_recordWidth, s_recordHeight);
+				OSD::AddMessage(msg, 2000);
+			}
+		}
+		if (s_AVIDumping) 
+		{
+			D3DLOCKED_RECT rect;
+			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, NULL, D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY))) 
+			{
+				char *data = (char *)malloc(3 * s_recordWidth * s_recordHeight);
+				formatBufferDump((const char *)rect.pBits, data, s_recordWidth, s_recordHeight, rect.Pitch);
+				AVIDump::AddFrame(data);
+				free(data);
+				ScreenShootMEMSurface->UnlockRect();
+			}
+		}
+		s_LastFrameDumped = true;
+	}		 
+	else 
+	{
+		if (s_LastFrameDumped && s_AVIDumping) 
+		{
+			AVIDump::Stop();
+			s_AVIDumping = false;
+		}
+		s_LastFrameDumped = false;
+	}
+	
+
+	// Finish up the current frame, print some stats
+	if (g_ActiveConfig.bShowFPS)
+	{
+		char fps[20];
+		StringCchPrintfA(fps, 20, "FPS: %d\n", s_fps);
+		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,fps,false);
+	}
+	Renderer::DrawDebugText();
+
+	if (g_ActiveConfig.bOverlayStats)
+	{
+		Statistics::ToString(st);
+		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
+	}
+	else if (g_ActiveConfig.bOverlayProjStats)
+	{
+		Statistics::ToStringProj(st);
+		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
+	}
+
+	OSD::DrawMessages();
+	
+	D3D::EndFrame();
+
 	frameCount++;
 	TextureCache::Cleanup();
 
 	// Make any new configuration settings active.
-	UpdateActiveConfig();
-
-	g_VideoInitialize.pCopiedToXFB(false);
-
+	UpdateActiveConfig();	
+	WindowResized = false;
 	CheckForResize();
+	
+	bool xfbchanged = false;
+	
+	if(s_XFB_width != fbWidth || s_XFB_height != fbHeight)
+	{
+		xfbchanged = true;
+		s_XFB_width = fbWidth;
+		s_XFB_height = fbHeight;
+		if(s_XFB_width < 1) s_XFB_width = MAX_XFB_WIDTH;
+		if(s_XFB_width > MAX_XFB_WIDTH) s_XFB_width = MAX_XFB_WIDTH;
+		if(s_XFB_height < 1) s_XFB_height = MAX_XFB_HEIGHT;
+		if(s_XFB_height > MAX_XFB_HEIGHT) s_XFB_height = MAX_XFB_HEIGHT;
+
+	}
 
 	u32 newAA = g_ActiveConfig.iMultisampleMode;
-	if(newAA != s_LastAA)
+	if(newAA != s_LastAA || xfbchanged || WindowResized)
 	{	
-		s_target_width  = s_backbuffer_width;
-		s_target_height = s_backbuffer_height * ((float)EFB_HEIGHT / 480.0f);
 		s_LastAA = newAA;
+
+		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
+
+		if(g_ActiveConfig.bUseRealXFB)
+		{
+			xScale = yScale = 1.0f;
+		}
+		else
+		{
+			xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
+			yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
+		}		
+
+		s_target_width  = EFB_WIDTH * xScale;
+		s_target_height = EFB_HEIGHT * yScale;
+		
+		s_LastAA = (g_ActiveConfig.iMultisampleMode > 3)?0:g_ActiveConfig.iMultisampleMode;
+		
+		float SupersampleCoeficient = 1.0f;
 		switch (s_LastAA)
 		{
 			case 1:
 				s_target_width  = (s_target_width  * 3) / 2;
 				s_target_height = (s_target_height * 3) / 2;
+				SupersampleCoeficient = 3.0f/2.0f;
 				break;
 			case 2:
 				s_target_width  *= 2;
 				s_target_height *= 2;
+				SupersampleCoeficient = 2.0f;
 				break;
 			case 3:
 				s_target_width  *= 3;
 				s_target_height *= 3;
+				SupersampleCoeficient = 3.0f;
 				break;
 			default:
 				break;
 		};
-		xScale = (float)s_target_width / (float)EFB_WIDTH;
-		yScale = (float)s_target_height / (float)EFB_HEIGHT;
-		s_Fulltarget_width  = s_target_width;
-		s_Fulltarget_height = s_target_height;
+
+		xScale *= SupersampleCoeficient;
+		yScale *= SupersampleCoeficient;
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
-		FBManager::Destroy();
-		FBManager::Create();
-		D3D::dev->SetRenderTarget(0, FBManager::GetEFBColorRTSurface());
-		D3D::dev->SetDepthStencilSurface(FBManager::GetEFBDepthRTSurface());
+		SetupDeviceObjects();
+		D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
+		D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
 	}
 
 	// ---------------------------------------------------------------------
@@ -1201,6 +1304,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	// Flip/present backbuffer to frontbuffer here
 	D3D::Present();
+	D3D::BeginFrame();
+	Renderer::RestoreAPIState();
+	D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
+	UpdateViewport();
+	VertexShaderManager::SetViewportChanged();
+	XFBWrited = false;
 }
 
 void Renderer::ResetAPIState()
