@@ -533,6 +533,8 @@ void Host_Message(int Id)
 #if defined(HAVE_X11) && HAVE_X11
 	switch(Id)
 	{
+		case WM_USER_CREATE:
+		case TOGGLE_FULLSCREEN:
 		case WM_USER_STOP:
 		case WM_USER_PAUSE:
 			{

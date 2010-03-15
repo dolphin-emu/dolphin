@@ -629,16 +629,11 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 			wxThread::Sleep(20);
 			g_pCodeWindow->JumpToAddress(PC);
 			g_pCodeWindow->Update();
+			// Update toolbar with Play/Pause status
+			UpdateGUI();
 		}
 		else
-		{
-			if (Core::GetState() == Core::CORE_RUN)
-				Core::SetState(Core::CORE_PAUSE);
-			else
-				Core::SetState(Core::CORE_RUN);
-		}
-		// Update toolbar with Play/Pause status
-		UpdateGUI();
+			DoPause();
 	}
 	else
 		// Core is uninitialized, start the game
@@ -692,9 +687,19 @@ void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED (event))
 void CFrame::DoPause()
 {
 	if (Core::GetState() == Core::CORE_RUN)
+	{
+#if defined(HAVE_X11) && HAVE_X11
+		X11_SendClientEvent("PAUSE");
+#endif
 		Core::SetState(Core::CORE_PAUSE);
+	}
 	else
+	{
+#if defined(HAVE_X11) && HAVE_X11
+		X11_SendClientEvent("RESUME");
+#endif
 		Core::SetState(Core::CORE_RUN);
+	}
 	UpdateGUI();
 }
 

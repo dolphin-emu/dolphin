@@ -303,6 +303,9 @@ class CFrame : public wxFrame
 
 		void OnGameListCtrl_ItemActivated(wxListEvent& event);
 		void DoFullscreen(bool _F);
+#if defined HAVE_X11 && HAVE_X11
+		void X11_SendClientEvent(const char *message);
+#endif
 
 		// MenuBar
 		// File - Drive
