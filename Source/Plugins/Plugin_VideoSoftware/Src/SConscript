@@ -42,7 +42,7 @@ compileFlags = [
 linkFlags = [
 	]
 libs = [
-	'videocommon', 'soil', 'common'
+	'videocommon', 'SOIL', 'common'
 	]
 
 gfxenv = env.Clone()

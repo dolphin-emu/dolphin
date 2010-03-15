@@ -50,10 +50,7 @@ include_paths = [
     basedir + 'Source/Core/Core/Src',
     basedir + 'Source/Core/DebuggerWX/Src',
     basedir + 'Externals/Bochs_disasm',
-    basedir + 'Externals/LZO',
-    basedir + 'Externals/SOIL',
     basedir + 'Externals/Lua',
-    basedir + 'Externals/SFML/include',
     basedir + 'Externals/WiiUseSrc/Src',
     basedir + 'Source/Core/VideoCommon/Src',
     basedir + 'Source/Core/InputCommon/Src',
@@ -64,9 +61,6 @@ include_paths = [
 
 dirs = [
     'Externals/Bochs_disasm',
-    'Externals/LZO',
-    'Externals/SOIL',
-    'Externals/SFML/src',
     'Externals/Lua',
     'Externals/WiiUseSrc/Src', 
     'Source/Core/Common/Src',
@@ -112,6 +106,9 @@ vars.AddVariables(
     BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
     BoolVariable('opencl', 'Build with OpenCL', False),
     BoolVariable('nojit', 'Remove entire jit cores', False),
+    BoolVariable('shared_soil', 'Use system shared libSOIL', False),
+    BoolVariable('shared_lzo', 'Use system shared liblzo2', False),
+    BoolVariable('shared_sfml', 'Use system shared libsfml-network', False),
     PathVariable('userdir', 'Set the name of the user data directory in home', '.dolphin-emu', PathVariable.PathAccept),
     EnumVariable('install', 'Choose a local or global installation', 'local',
                  allowed_values = ('local', 'global'),
@@ -188,7 +185,7 @@ if not env['verbose']:
     env['RANLIBCOMSTR'] = "Indexing $TARGET"
 
 # build flavor
-flavour = ARGUMENTS.get('flavor')
+flavour = env['flavor']
 if (flavour == 'debug'):
     compileFlags.append('-ggdb')
     cppDefines.append('_DEBUG') #enables LOGGING
@@ -257,7 +254,7 @@ elif flavour == 'prof':
     extra = '-prof'
 
 # Set up the install locations
-if (ARGUMENTS.get('install') == 'global'):
+if (env['install'] == 'global'):
     env['prefix'] = os.path.join(env['prefix'] + os.sep)
     env['binary_dir'] = env['prefix'] + 'bin/'
     env['libs_dir'] = env['prefix'] + 'lib/'
@@ -324,6 +321,40 @@ if sys.platform != 'darwin':
 # needed for mic
     env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
 
+# SOIL
+env['SHARED_SOIL'] = 0;
+if env['shared_soil']:
+    env['SHARED_SOIL'] = conf.CheckPKG('SOIL')
+    if not env['SHARED_SOIL']:
+        print "shared SOIL library not detected"
+        print "falling back to the static library"
+if not env['SHARED_SOIL']:
+    env['CPPPATH'] += [ basedir + 'Externals/SOIL' ]
+    dirs += ['Externals/SOIL']
+
+# LZO
+env['SHARED_LZO'] = 0;
+if env['shared_lzo']:
+    env['SHARED_LZO'] = conf.CheckPKG('lzo2')
+    if not env['SHARED_LZO']:
+        print "shared LZO library not detected"
+        print "falling back to the static library"
+if not env['SHARED_LZO']:
+    env['CPPPATH'] += [ basedir + 'Externals/LZO' ]
+    dirs += ['Externals/LZO']
+
+# SFML
+env['SHARED_SFML'] = 0;
+if env['shared_sfml']:
+    # TODO:  Check the version of sfml.  It should be at least version 1.5
+    env['SHARED_SFML'] = conf.CheckPKG('sfml-network') and conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
+    if not env['SHARED_SFML']:
+        print "shared sfml-network library not detected"
+        print "falling back to the static library"
+if not env['SHARED_SFML']:
+    env['CPPPATH'] += [ basedir + 'Externals/SFML/include' ]
+    dirs += ['Externals/SFML/src']
+
 #osx 64 specifics
 if sys.platform == 'darwin':
     if env['osx'] == '64cocoa':
@@ -380,8 +411,11 @@ conf.Define('USE_WX', env['USE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])
 conf.Define('HAVE_COCOA', env['HAVE_COCOA'])
 conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
+conf.Define('SHARED_SOIL', env['SHARED_SOIL'])
+conf.Define('SHARED_LZO', env['SHARED_LZO'])
+conf.Define('SHARED_SFML', env['SHARED_SFML'])
 conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
-if (ARGUMENTS.get('install') == 'global'):
+if (env['install'] == 'global'):
     conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
     conf.Define('LIBS_DIR', "\"" + env['libs_dir'] + "\"")
 

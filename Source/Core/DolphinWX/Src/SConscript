@@ -11,8 +11,8 @@ files = [
 	]
 
 libs = [
-	'core', 'minilzo', 'discio', 'bdisasm', 'videocommon', 
-	'inputcommon', 'common', 'lua', 'z', 'sfml'
+	'core', 'lzo2', 'discio', 'bdisasm', 'videocommon', 
+	'inputcommon', 'common', 'lua', 'z', 'sfml-network'
 	]
 
 if wxenv['HAVE_WX']:
