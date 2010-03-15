@@ -468,9 +468,6 @@ else:
 # add methods from utils to env
 env.AddMethod(utils.filterWarnings)
 
-rev = utils.GenerateRevFile(env['flavor'], 
-                            "Source/Core/Common/Src/svnrev_template.h",
-                            "Source/Core/Common/Src/svnrev.h")
 # print a nice progress indication when not compiling
 Progress(['-\r', '\\\r', '|\r', '/\r'], interval = 5)
 
