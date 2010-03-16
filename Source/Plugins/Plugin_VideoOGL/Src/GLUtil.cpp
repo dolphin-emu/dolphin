@@ -122,7 +122,7 @@ THREAD_RETURN XEventThread(void *pArg);
 
 void X11_EWMH_Fullscreen(int action)
 {
-	assert(action == _NET_WM_STATE_REMOVE || action == _NET_WM_STATE_ADD
+	_assert_(action == _NET_WM_STATE_REMOVE || action == _NET_WM_STATE_ADD
 			|| action == _NET_WM_STATE_TOGGLE);
 
 	// Init X event structure for _NET_WM_STATE_FULLSCREEN client message
@@ -149,16 +149,12 @@ void CreateXWindow (void)
 	wxMutexGuiEnter();
 #endif
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
-	if (GLWin.fs
-#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-			&& !g_Config.RenderToMainframe
-#endif
-	   )
+	if (GLWin.fs && !GLWin.renderToMain)
 		XRRSetScreenConfig(GLWin.dpy, GLWin.screenConfig, RootWindow(GLWin.dpy, GLWin.screen),
 				GLWin.fullSize, GLWin.screenRotation, CurrentTime);
 #endif
 #if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-	if (g_Config.RenderToMainframe)
+	if (GLWin.renderToMain)
 	{
 		GLWin.panel->GetSize((int *)&GLWin.width, (int *)&GLWin.height);
 		GLWin.panel->GetPosition(&GLWin.x, &GLWin.y);
@@ -212,7 +208,7 @@ void DestroyXWindow(void)
 		XRRSetScreenConfig(GLWin.dpy, GLWin.screenConfig, RootWindow(GLWin.dpy, GLWin.screen),
 				GLWin.deskSize, GLWin.screenRotation, CurrentTime);
 #if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-		if (!g_Config.RenderToMainframe)
+		if (!GLWin.renderToMain)
 #endif
 			X11_EWMH_Fullscreen(_NET_WM_STATE_REMOVE); 
 #endif
@@ -234,7 +230,7 @@ void ToggleFullscreenMode (void)
 				GLWin.deskSize, GLWin.screenRotation, CurrentTime);
 #endif
 #if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-	if (!g_Config.RenderToMainframe)
+	if (!GLWin.renderToMain)
 #endif
 	{
 		X11_EWMH_Fullscreen(_NET_WM_STATE_TOGGLE); 
@@ -318,19 +314,11 @@ THREAD_RETURN XEventThread(void *pArg)
 					}
 					break;
 				case FocusIn:
-					if (g_Config.bHideCursor && !bPaused
-#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-							&& !g_Config.RenderToMainframe
-#endif
-					   )
+					if (g_Config.bHideCursor && !bPaused && !GLWin.renderToMain)
 						XDefineCursor(GLWin.dpy, GLWin.win, GLWin.blankCursor);
 					break;
 				case FocusOut:
-					if (g_Config.bHideCursor && !bPaused
-#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-							&& !g_Config.RenderToMainframe
-#endif
-					   )
+					if (g_Config.bHideCursor && !bPaused && !GLWin.renderToMain)
 						XUndefineCursor(GLWin.dpy, GLWin.win);
 					break;
 				case ConfigureNotify:
@@ -365,21 +353,21 @@ THREAD_RETURN XEventThread(void *pArg)
 						XDefineCursor(GLWin.dpy, GLWin.win, GLWin.blankCursor);
 					}
 #if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-					if (g_Config.RenderToMainframe &&
+					if (GLWin.renderToMain &&
 							(ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "RESIZE", False))
 					{
 						GLWin.panel->GetSize((int *)&GLWin.width, (int *)&GLWin.height);
 						GLWin.panel->GetPosition(&GLWin.x, &GLWin.y);
 						XMoveResizeWindow(GLWin.dpy, GLWin.win, GLWin.x, GLWin.y, GLWin.width, GLWin.height);
 					}
-					if (g_Config.RenderToMainframe &&
+					if (GLWin.renderToMain &&
 							(ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "FOCUSIN", False))
 					{
 						GLWin.panel->SetFocus();
 						if (g_Config.bHideCursor)
 							XDefineCursor(GLWin.dpy, GLWin.win, GLWin.blankCursor);
 					}
-					if (g_Config.RenderToMainframe && g_Config.bHideCursor &&
+					if (GLWin.renderToMain && g_Config.bHideCursor &&
 							(ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "FOCUSOUT", False))
 						XUndefineCursor(GLWin.dpy, GLWin.win);
 #endif
@@ -575,6 +563,12 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
 	// Fullscreen option.
 	GLWin.fs = g_Config.bFullscreen; //Set to setting in Options
+	// Render to main option.
+#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	GLWin.renderToMain = g_Config.RenderToMainframe;
+#else
+	GLWin.renderToMain = False;
+#endif
 
 	/* get an appropriate visual */
 	GLWin.vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListDbl);
@@ -658,7 +652,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 #endif
 
 #if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-	if (g_Config.RenderToMainframe)
+	if (GLWin.renderToMain)
 		g_VideoInitialize.pKeyPress(0, False, False);
 #endif
 
@@ -707,7 +701,7 @@ bool OpenGL_MakeCurrent()
 	if (GLWin.fs)
 	{
 #if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-		if (g_Config.RenderToMainframe)
+		if (GLWin.renderToMain)
 		{
 			GLWin.fs = False;
 			g_VideoInitialize.pKeyPress(0x1d, False, False);

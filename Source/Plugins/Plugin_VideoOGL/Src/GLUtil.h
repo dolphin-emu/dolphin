@@ -108,6 +108,7 @@ typedef struct {
 	int fullWidth, fullHeight;
 	int winWidth, winHeight;
 	Common::Thread *xEventThread;
+	Bool renderToMain;
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	XRRScreenConfiguration *screenConfig;
 	Rotation screenRotation;
