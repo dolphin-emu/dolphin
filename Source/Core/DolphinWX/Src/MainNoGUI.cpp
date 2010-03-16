@@ -32,6 +32,10 @@
 #include <sys/param.h>
 #endif
 
+#if defined HAVE_X11 && HAVE_X11
+#include <X11/Xlib.h>
+#endif
+
 #if defined(HAVE_COCOA) && HAVE_COCOA
 #import "cocoaApp.h"
 #endif
@@ -227,6 +231,10 @@ int main(int argc, char* argv[])
 	CPluginManager::Init();
 
 	CPluginManager::GetInstance().ScanForPlugins();
+
+#if defined HAVE_X11 && HAVE_X11
+	XInitThreads();
+#endif 
 
 	if (BootManager::BootCore(bootFile)) //no use running the loop when booting fails
 	{

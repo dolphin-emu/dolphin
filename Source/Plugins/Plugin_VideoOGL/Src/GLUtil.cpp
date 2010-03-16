@@ -189,6 +189,18 @@ void CreateXWindow (void)
 #if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
 	wxMutexGuiLeave();
 #endif
+
+	if (g_Config.bHideCursor)
+	{
+		// make a blank cursor
+		Pixmap Blank;
+		XColor DummyColor;
+		char ZeroData[1] = {0};
+		Blank = XCreateBitmapFromData (GLWin.dpy, GLWin.win, ZeroData, 1, 1);
+		GLWin.blankCursor = XCreatePixmapCursor(GLWin.dpy, Blank, Blank, &DummyColor, &DummyColor, 0, 0);
+		XFreePixmap (GLWin.dpy, Blank);
+	}
+
 	GLWin.xEventThread = new Common::Thread(XEventThread, NULL);
 }
 
@@ -659,16 +671,6 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	CreateXWindow();
 	g_VideoInitialize.pXWindow = (Window *) &GLWin.win;
 
-	if (g_Config.bHideCursor)
-	{
-		// make a blank cursor
-		Pixmap Blank;
-		XColor DummyColor;
-		char ZeroData[1] = {0};
-		Blank = XCreateBitmapFromData (GLWin.dpy, GLWin.win, ZeroData, 1, 1);
-		GLWin.blankCursor = XCreatePixmapCursor(GLWin.dpy, Blank, Blank, &DummyColor, &DummyColor, 0, 0);
-		XFreePixmap (GLWin.dpy, Blank);
-	}
 #endif
 	return true;
 }
