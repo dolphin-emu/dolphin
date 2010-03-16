@@ -58,7 +58,14 @@ void Host_NotifyMapLoaded(){}
 
 void Host_ShowJitResults(unsigned int address){}
 
-void Host_Message(int Id){}
+Common::Event updateMainFrameEvent;
+void Host_Message(int Id)
+{
+#if defined(HAVE_X11) && HAVE_X11
+	if (Id == WM_USER_STOP)
+		updateMainFrameEvent.Set();
+#endif
+}
 
 void Host_UpdateLogDisplay(){}
 
@@ -66,7 +73,6 @@ void Host_UpdateLogDisplay(){}
 void Host_UpdateDisasmDialog(){}
 
 
-Common::Event updateMainFrameEvent;
 void Host_UpdateMainFrame()
 {
 	updateMainFrameEvent.Set();
@@ -238,11 +244,17 @@ int main(int argc, char* argv[])
 
 	if (BootManager::BootCore(bootFile)) //no use running the loop when booting fails
 	{
-		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
-		{
+#if defined(HAVE_X11) && HAVE_X11
+		while (Core::GetState() == Core::CORE_UNINITIALIZED)
 			updateMainFrameEvent.Wait();
-		}
+		updateMainFrameEvent.Wait();
+		Core::Stop();
+#else
+		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+			updateMainFrameEvent.Wait();
+#endif
 	}
+	updateMainFrameEvent.Shutdown();
 
 	CPluginManager::Shutdown();
 	SConfig::Shutdown();
