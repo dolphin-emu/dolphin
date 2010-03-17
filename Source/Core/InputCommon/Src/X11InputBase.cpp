@@ -121,8 +121,23 @@ KeySym wxCharCodeWXToX(int id)
 void XKeyToString(unsigned int keycode, char *keyStr) {
   switch (keycode) {
     
+  case XK_Insert:
+    sprintf(keyStr, "INSERT");
+    break;
+  case XK_Delete:
+    sprintf(keyStr, "DELETE");
+    break;
   case XK_Home:
     sprintf(keyStr, "HOME");
+    break;
+  case XK_End:
+    sprintf(keyStr, "END");
+    break;
+  case XK_Prior:
+    sprintf(keyStr, "PAGEUP");
+    break;
+  case XK_Next:
+    sprintf(keyStr, "PAGEDOWN");
     break;
   case XK_Left:
     sprintf(keyStr, "LEFT");
@@ -139,6 +154,18 @@ void XKeyToString(unsigned int keycode, char *keyStr) {
   case XK_Return:
     sprintf(keyStr, "RETURN");
     break;
+  case XK_Escape:
+	sprintf(keyStr, "ESCAPE");
+	break;
+  case XK_Caps_Lock:
+    sprintf(keyStr, "CAPSLOCK");
+    break;
+  case XK_BackSpace:
+    sprintf(keyStr, "BACKSPACE");
+    break;
+  case XK_Tab:
+    sprintf(keyStr, "TAB");
+    break;
   case XK_KP_Enter:
     sprintf(keyStr, "KP ENTER");
     break;
@@ -154,11 +181,113 @@ void XKeyToString(unsigned int keycode, char *keyStr) {
   case XK_KP_Down:
     sprintf(keyStr, "KP DOWN");
     break;
+  case XK_KP_Insert:
+	sprintf(keyStr, "KP Insert");
+	break;
+  case XK_KP_Delete:
+	sprintf(keyStr, "KP Delete");
+	break;
+  case XK_KP_Page_Down:
+	sprintf(keyStr, "KP Page Down");
+	break;
+  case XK_KP_Page_Up:
+	sprintf(keyStr, "KP Page Up");
+	break;
+  case XK_KP_Separator:
+	sprintf(keyStr, "KP Separator");
+	break;
+  case XK_KP_Home:
+	sprintf(keyStr, "KP Home");
+	break;
+  case XK_KP_End:
+	sprintf(keyStr, "KP End");
+	break;
+  case XK_KP_Subtract:
+    sprintf(keyStr, "KP -");
+    break;
+  case XK_KP_Add:
+    sprintf(keyStr, "KP +");
+    break;
+  case XK_KP_Multiply:
+    sprintf(keyStr, "KP *");
+    break;
+  case XK_KP_Divide:
+    sprintf(keyStr, "KP /");
+    break;
+  case XK_KP_Decimal:
+	sprintf(keyStr, "KP .");
+	break;
+  case XK_KP_0:
+	sprintf(keyStr, "KP 0");
+	break;
+  case XK_KP_1:
+	sprintf(keyStr, "KP 1");
+	break;
+  case XK_KP_2:
+	sprintf(keyStr, "KP 2");
+	break;
+  case XK_KP_3:
+	sprintf(keyStr, "KP 3");
+	break;
+  case XK_KP_4:
+	sprintf(keyStr, "KP 4");
+	break;
+  case XK_KP_5:
+	sprintf(keyStr, "KP 5");
+	break;
+  case XK_KP_6:
+	sprintf(keyStr, "KP 6");
+	break;
+  case XK_KP_7:
+	sprintf(keyStr, "KP 7");
+	break;
+  case XK_KP_8:
+	sprintf(keyStr, "KP 8");
+	break;
+  case XK_KP_9:
+	sprintf(keyStr, "KP 9");
+	break;
   case XK_Shift_L:
     sprintf(keyStr, "LShift");
     break;
   case XK_Control_L:
     sprintf(keyStr, "LControl");
+    break;
+  case XK_F1:
+    sprintf(keyStr, "F1");
+    break;
+  case XK_F2:
+    sprintf(keyStr, "F2");
+    break;
+  case XK_F3:
+    sprintf(keyStr, "F3");
+    break;
+  case XK_F4:
+    sprintf(keyStr, "F4");
+    break;
+  case XK_F5:
+    sprintf(keyStr, "F5");
+    break;
+  case XK_F6:
+    sprintf(keyStr, "F6");
+    break;
+  case XK_F7:
+    sprintf(keyStr, "F7");
+    break;
+  case XK_F8:
+    sprintf(keyStr, "F8");
+    break;
+  case XK_F9:
+    sprintf(keyStr, "F9");
+    break;
+  case XK_F10:
+    sprintf(keyStr, "F10");
+    break;
+  case XK_F11:
+    sprintf(keyStr, "F11");
+    break;
+  case XK_F12:
+    sprintf(keyStr, "F12");
     break;
   default:
     sprintf(keyStr, "%c", toupper(keycode));

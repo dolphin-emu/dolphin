@@ -864,6 +864,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 			{
 				m_statictext_GH3[x][i] = new wxStaticText(m_Controller[i], wxID_ANY, gh3Text[x]);
 				m_Button_GH3[x][i] = new wxButton(m_Controller[i], x, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
+				m_Button_GH3[x][i]->SetFont(m_SmallFont);
 				m_Sizer_GH3[x][i] = new wxBoxSizer(wxHORIZONTAL);
 				m_Sizer_GH3[x][i]->Add(m_statictext_GH3[x][i], 0, (wxUP), 4);
 				m_Sizer_GH3[x][i]->Add(m_Button_GH3[x][i], 0, (wxLEFT), 2);
