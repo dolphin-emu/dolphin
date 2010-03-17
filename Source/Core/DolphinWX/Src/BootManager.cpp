@@ -139,9 +139,6 @@ bool BootCore(const std::string& _rFilename)
 	{
 		// Save the window handle of the eventual parent to the rendering window
 		StartUp.hMainWindow = main_frame->GetRenderHandle();
-
-		// Now that we know if we have a Wii game we can run this
-		main_frame->ModifyStatusBar();
 	}
 #endif
 	// Init the core

@@ -470,6 +470,7 @@ bool game_loading = false;
 // 3. Boot last selected game
 void CFrame::BootGame(const std::string& filename)
 {
+	bool success = false;
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -479,23 +480,23 @@ void CFrame::BootGame(const std::string& filename)
 	// Start the selected ISO, or try one of the saved paths.
 	// If all that fails, ask to add a dir and don't boot
 	if (!filename.empty())
-		BootManager::BootCore(filename);
+		success = BootManager::BootCore(filename);
 	else if (m_GameListCtrl->GetSelectedISO() != NULL)
 	{
 		if (m_GameListCtrl->GetSelectedISO()->IsValid())
-			BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
+			success = BootManager::BootCore(m_GameListCtrl->GetSelectedISO()->GetFileName());
 	}
 	else if (!StartUp.m_strDefaultGCM.empty()
 		&&	wxFileExists(wxString(StartUp.m_strDefaultGCM.c_str(), wxConvUTF8)))
 	{
-		BootManager::BootCore(StartUp.m_strDefaultGCM);
+		success = BootManager::BootCore(StartUp.m_strDefaultGCM);
 	}
 	else
 	{
 		if (!SConfig::GetInstance().m_LastFilename.empty()
 			&& wxFileExists(wxString(SConfig::GetInstance().m_LastFilename.c_str(), wxConvUTF8)))
 		{
-			BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
+			success = BootManager::BootCore(SConfig::GetInstance().m_LastFilename);
 		}
 		else
 		{
@@ -505,6 +506,12 @@ void CFrame::BootGame(const std::string& filename)
 			m_GameListCtrl->Show();
 			return;
 		}
+	}
+	if (!success)
+	{
+		game_loading = false;
+		m_GameListCtrl->Enable();
+		m_GameListCtrl->Show();
 	}
 }
 
@@ -546,13 +553,7 @@ void CFrame::DoOpen(bool Boot)
 	{
 		if (!fileChosen)
 			return;
-		BootManager::BootCore(std::string(path.mb_str()));
-		// Game has been started, hide the game list
-		if (m_GameListCtrl->IsShown())
-		{
-			m_GameListCtrl->Disable();
-			m_GameListCtrl->Hide();
-		}
+		StartGame(std::string(path.mb_str()));
 	}
 	else
 	{
@@ -629,16 +630,11 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 			wxThread::Sleep(20);
 			g_pCodeWindow->JumpToAddress(PC);
 			g_pCodeWindow->Update();
+			// Update toolbar with Play/Pause status
+			UpdateGUI();
 		}
 		else
-		{
-			if (Core::GetState() == Core::CORE_RUN)
-				Core::SetState(Core::CORE_PAUSE);
-			else
-				Core::SetState(Core::CORE_RUN);
-		}
-		// Update toolbar with Play/Pause status
-		UpdateGUI();
+			DoPause();
 	}
 	else
 		// Core is uninitialized, start the game
@@ -666,7 +662,7 @@ void CFrame::StartGame(const std::string& filename)
 
 void CFrame::OnBootDrive(wxCommandEvent& event)
 {
-	BootManager::BootCore(drives[event.GetId()-IDM_DRIVE1].c_str());
+	StartGame(drives[event.GetId()-IDM_DRIVE1]);
 }
 
 
@@ -691,7 +687,20 @@ void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED (event))
 // Pause the emulation
 void CFrame::DoPause()
 {
-	Core::SetState(Core::CORE_PAUSE);
+	if (Core::GetState() == Core::CORE_RUN)
+	{
+#if defined(HAVE_X11) && HAVE_X11
+		X11_SendClientEvent("PAUSE");
+#endif
+		Core::SetState(Core::CORE_PAUSE);
+	}
+	else
+	{
+#if defined(HAVE_X11) && HAVE_X11
+		X11_SendClientEvent("RESUME");
+#endif
+		Core::SetState(Core::CORE_RUN);
+	}
 	UpdateGUI();
 }
 

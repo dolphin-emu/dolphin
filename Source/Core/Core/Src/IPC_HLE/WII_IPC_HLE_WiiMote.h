@@ -130,66 +130,33 @@ struct SL2CAP_CommandDisconnectionResponse // 0x07
 
 #pragma pack(pop)
 
+
 class CBigEndianBuffer
 {
 public:
-	CBigEndianBuffer(u8* pBuffer) 
-		: m_pBuffer(pBuffer)
-	{
-	}
+	CBigEndianBuffer(u8* pBuffer) : m_pBuffer(pBuffer) {}
 
-	u8 Read8(u32 offset)
-	{
-		return m_pBuffer[offset];
-	}
+	u8		Read8(u32 offset)				{ return m_pBuffer[offset]; }
+	u16		Read16(u32 offset)				{ return Common::swap16(*(u16*)&m_pBuffer[offset]); }
+	u32		Read32(u32 offset)				{ return Common::swap32(*(u32*)&m_pBuffer[offset]); }
 
-	u16 Read16(u32 offset)
-	{
-		return Common::swap16(*(u16*)&m_pBuffer[offset]);
-	}
+	void	Write8(u32 offset, u8 data)		{ m_pBuffer[offset] = data; }
+	void	Write16(u32 offset, u16 data)	{ *(u16*)&m_pBuffer[offset] = Common::swap16(data); }
+	void	Write32(u32 offset, u32 data)	{ *(u32*)&m_pBuffer[offset] = Common::swap32(data); }
 
-	u32 Read32(u32 offset)
-	{
-		return Common::swap32(*(u32*)&m_pBuffer[offset]);
-	}
-
-	void Write8(u32 offset, u8 data)
-	{
-		m_pBuffer[offset] = data;
-	}
-
-	void Write16(u32 offset, u16 data)
-	{
-		*(u16*)&m_pBuffer[offset] = Common::swap16(data);
-	}
-
-	void Write32(u32 offset, u32 data)
-	{
-		*(u32*)&m_pBuffer[offset] = Common::swap32(data);
-	}
-
-	u8* GetPointer(u32 offset)
-	{
-		return &m_pBuffer[offset];
-	}
+	u8*		GetPointer(u32 offset)			{ return &m_pBuffer[offset]; }
 
 private:
-
 	u8* m_pBuffer;
-
 };
-
-
 
 
 class CWII_IPC_HLE_WiiMote
 {
 public:
-
 	CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number, bool ready = false);
 
-	virtual ~CWII_IPC_HLE_WiiMote()
-	{}
+	virtual ~CWII_IPC_HLE_WiiMote() {}
 
 	void DoState(PointerWrap &p);
 
@@ -200,8 +167,6 @@ public:
 	bool LinkChannel();
 	void ResetChannels();
 	void Activate(bool ready);
-	void ShowStatus(const void* _pData); // Show status
-	void UpdateStatus(); // Update status
 	void ExecuteL2capCmd(u8* _pData, u32 _Size);	// From CPU
 	void ReceiveL2capData(u16 scid, const void* _pData, u32 _Size);	// From wiimote
 
@@ -220,7 +185,6 @@ public:
 	const u8* GetLinkKey() const { return m_LinkKey; }
 
 private:
-
 	// -1: inactive, 0: ready, 1: connecting 2: linking 3: connected & linked
 	int m_Connected;
 
@@ -277,9 +241,7 @@ private:
 	void ReceiveConfigurationResponse(u8 _Ident, u8* _pData, u32 _Size);
 	
 	// some new ugly stuff
-	//
 	// should be inside the plugin 
-	//
 	void HandleSDP(u16 _SCID, u8* _pData, u32 _Size);
 	void SDPSendServiceSearchResponse(u16 _SCID, u16 _TransactionID, u8* _pServiceSearchPattern, u16 _MaximumServiceRecordCount);
 

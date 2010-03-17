@@ -288,6 +288,7 @@ class WiimotePadConfigDialog : public wxDialog
 		wxString GetButtonText(int id);
 
 		void DoGetButtons(int id);
+		void EndGetButtons();
 		void UpdatePadInfo(wxTimerEvent& WXUNUSED(event));
 		void ToBlank(bool ToBlank, int Id);
 		void DoChangeDeadZone();

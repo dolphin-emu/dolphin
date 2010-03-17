@@ -173,7 +173,7 @@ CPanel::CPanel(
 						main_frame->bNoWiimoteMsg = false;
 					else
 					{
-						// The Wiimote has been disconnect, we offer reconnect here
+						// The Wiimote has been disconnected, we offer reconnect here
 						wxMessageDialog *dlg = new wxMessageDialog(
 							this,
 							wxString::Format(wxT("Wiimote %i has been disconnected by system.\n")
@@ -321,7 +321,6 @@ CFrame::CFrame(wxFrame* parent,
 	, g_pCodeWindow(NULL)		
 	, m_MenuBar(NULL)
 	, bRenderToMain(false), bNoWiimoteMsg(false)
-	, HaveLeds(false), HaveSpeakers(false)
 	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, bFloatLogWindow(false), bFloatConsoleWindow(false)
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
@@ -523,10 +522,54 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 	Close(true);
 }
 
+#if defined HAVE_X11 && HAVE_X11
+void CFrame::X11_SendClientEvent(const char *message)
+{
+	XEvent event;
+	Display *dpy = (Display *)Core::GetWindowHandle();
+	Window win = *(Window *)Core::GetXWindow();
+
+	// Init X event structure for client message
+	event.xclient.type = ClientMessage;
+	event.xclient.format = 32;
+	event.xclient.data.l[0] = XInternAtom(dpy, message, False);
+
+	// Send the event
+	if (!XSendEvent(dpy, win, False, False, &event))
+		ERROR_LOG(VIDEO, "Failed to send message %s to the emulator window.\n", message);
+}
+
+void X11_SendKeyEvent(int key)
+{
+	XEvent event;
+	Display *dpy = (Display *)Core::GetWindowHandle();
+	Window win = *(Window *)Core::GetXWindow();
+
+	// Init X event structure for key press event
+	event.xkey.type = KeyPress;
+	// WARNING:  This works for '3' to '7'.  If in the future other keys are needed
+	// convert with InputCommon::wxCharCodeWXToX from X11InputBase.cpp.
+	event.xkey.keycode = XKeysymToKeycode(dpy, key);
+
+	// Send the event
+	if (!XSendEvent(dpy, win, False, False, &event))
+		ERROR_LOG(VIDEO, "Failed to send key press event to the emulator window.\n");
+}
+#endif
+
 // --------
 // Events
 void CFrame::OnActive(wxActivateEvent& event)
 {
+#if defined(HAVE_X11) && HAVE_X11 && defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
+	{
+		if (event.GetActive())
+			X11_SendClientEvent("FOCUSIN");
+		else
+			X11_SendClientEvent("FOCUSOUT");
+	}
+#endif
 	event.Skip();
 }
 
@@ -582,18 +625,21 @@ void CFrame::OnMove(wxMoveEvent& event)
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX = GetPosition().x;
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY = GetPosition().y;
 }
+
 void CFrame::OnResize(wxSizeEvent& event)
 {
 	event.Skip();
 
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
 	SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
-
-	DoMoveIcons();  // In FrameWiimote.cpp
 }
 void CFrame::OnResizeAll(wxSizeEvent& event)
 {
 	event.Skip();
+#if defined(HAVE_X11) && HAVE_X11 && defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
+		X11_SendClientEvent("RESIZE");
+#endif
 	//wxWindow * Win = (wxWindow*)event.GetEventObject();
 	//NOTICE_LOG(CONSOLE, "OnResizeAll: %i", (HWND)Win->GetHWND());
 }
@@ -649,11 +695,17 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		}
 		break;
 #if defined(HAVE_X11) && HAVE_X11
+	case WM_USER_CREATE:
+		bRenderToMain = true;
+		break;
+	case TOGGLE_FULLSCREEN:
+		DoFullscreen(!IsFullScreen());
+		break;
 	case WM_USER_STOP:
-		main_frame->DoStop();
+		DoStop();
 		break;
 	case WM_USER_PAUSE:
-		main_frame->OnPlay(event);
+		DoPause();
 		break;
 #endif
 	}
@@ -761,7 +813,13 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 	{
 		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
 	}
+#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	if (event.GetKeyCode() >= '3' && event.GetKeyCode() <= '7') // Send this to the video plugin
+	{
+		X11_SendKeyEvent(event.GetKeyCode());
+	}
 #endif
+
 
 	// Send the keyboard status to the Input plugin
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
@@ -910,66 +968,48 @@ wxAuiNotebook* CFrame::CreateEmptyNotebook()
    return NB;
 }
 
-#if defined HAVE_X11 && HAVE_X11
-void X11_ShowFullScreen(bool bF)
-{
-	XEvent event;
-	Display *dpy = (Display *)Core::GetWindowHandle();
-	Window win = *(Window *)Core::GetXWindow();
-
-	// Init X event structure for TOGGLE_FULLSCREEN client message
-	event.xclient.type = ClientMessage;
-	event.xclient.format = 32;
-	event.xclient.data.l[0] = XInternAtom(dpy, "TOGGLE_FULLSCREEN", False);;
-
-	// Send the event
-	if (!XSendEvent(dpy, win, False, False, &event))
-	{
-		ERROR_LOG(VIDEO, "Failed to switch fullscreen/windowed mode.\n");
-	}
-}
-#endif
-
 void CFrame::DoFullscreen(bool bF)
 {
-#if defined HAVE_X11 && HAVE_X11
-	if ((Core::GetState() == Core::CORE_RUN))
-		X11_ShowFullScreen(bF);
-#endif
 	// Only switch this to fullscreen if we're rendering to main AND if we're running a game
 	// plus if a modal dialog is open, this will still process the keyboard events, and may cause
 	// the main window to become unresponsive, so we have to avoid that.
-	if ((bRenderToMain && Core::GetState() == Core::CORE_RUN))
+	if ((Core::GetState() == Core::CORE_RUN) || (Core::GetState() == Core::CORE_PAUSE))
 	{
-		ShowFullScreen(bF);
+		if (bRenderToMain)
+		{
+			ShowFullScreen(bF);
 
-		if (bF)
-		{
-			// Save the current mode before going to fullscreen
-			AuiCurrent = m_Mgr->SavePerspective();
-			m_Mgr->LoadPerspective(AuiFullscreen, true);
-		}
-		else
-		{
-			// Restore saved perspective
-			m_Mgr->LoadPerspective(AuiCurrent, true);
-		}
+			if (bF)
+			{
+				// Save the current mode before going to fullscreen
+				AuiCurrent = m_Mgr->SavePerspective();
+				m_Mgr->LoadPerspective(AuiFullscreen, true);
+			}
+			else
+			{
+				// Restore saved perspective
+				m_Mgr->LoadPerspective(AuiCurrent, true);
+			}
 
-		// Show the cursor again, in case it was hidden
-		if (IsFullScreen())
-		{
-			#ifdef _WIN32
-			MSWSetCursor(true);
-			#endif
-		}
-	}
 #ifdef _WIN32
-	else // Post the message to the separate rendering window which will then handle it.
-	{
-		BringWindowToTop((HWND)Core::GetWindowHandle());
-		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, TOGGLE_FULLSCREEN, 0);
-	}
+			// Show the cursor again, in case it was hidden
+			if (IsFullScreen())
+			{
+				MSWSetCursor(true);
+			}
 #endif
+		}
+#ifdef _WIN32
+		else // Post the message to the separate rendering window which will then handle it.
+		{
+			BringWindowToTop((HWND)Core::GetWindowHandle());
+			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, TOGGLE_FULLSCREEN, 0);
+		}
+#elif defined HAVE_X11 && HAVE_X11
+		else // Send the event to the separate rendering window which will then handle it.
+			X11_SendClientEvent("TOGGLE_FULLSCREEN");
+#endif
+	}
 }
 
 // Debugging, show loose windows

@@ -32,6 +32,10 @@
 #include <sys/param.h>
 #endif
 
+#if defined HAVE_X11 && HAVE_X11
+#include <X11/Xlib.h>
+#endif
+
 #if defined(HAVE_COCOA) && HAVE_COCOA
 #import "cocoaApp.h"
 #endif
@@ -54,7 +58,48 @@ void Host_NotifyMapLoaded(){}
 
 void Host_ShowJitResults(unsigned int address){}
 
-void Host_Message(int Id){}
+#if defined(HAVE_X11) && HAVE_X11
+void X11_SendClientEvent(const char *message)
+{
+	XEvent event;
+	Display *dpy = (Display *)Core::GetWindowHandle();
+	Window win = *(Window *)Core::GetXWindow();
+
+	// Init X event structure for client message
+	event.xclient.type = ClientMessage;
+	event.xclient.format = 32;
+	event.xclient.data.l[0] = XInternAtom(dpy, message, False);
+
+	// Send the event
+	if (!XSendEvent(dpy, win, False, False, &event))
+		ERROR_LOG(VIDEO, "Failed to send message %s to the emulator window.\n", message);
+}
+#endif
+
+Common::Event updateMainFrameEvent;
+void Host_Message(int Id)
+{
+#if defined(HAVE_X11) && HAVE_X11
+	switch (Id)
+	{
+		case WM_USER_STOP:
+			updateMainFrameEvent.Set();
+			break;
+		case WM_USER_PAUSE:
+			if (Core::GetState() == Core::CORE_RUN)
+			{
+				X11_SendClientEvent("PAUSE");
+				Core::SetState(Core::CORE_PAUSE);
+			}
+			else
+			{
+				X11_SendClientEvent("RESUME");
+				Core::SetState(Core::CORE_RUN);
+			}
+			break;
+	}
+#endif
+}
 
 void Host_UpdateLogDisplay(){}
 
@@ -62,7 +107,6 @@ void Host_UpdateLogDisplay(){}
 void Host_UpdateDisasmDialog(){}
 
 
-Common::Event updateMainFrameEvent;
 void Host_UpdateMainFrame()
 {
 	updateMainFrameEvent.Set();
@@ -97,16 +141,6 @@ void Host_SysMessage(const char *fmt, ...)
 		msg[len] = '\0';
 	}
 	fprintf(stderr, "%s", msg);
-}
-
-void Host_UpdateLeds(int led_bits)
-{
-}
-void Host_UpdateSpeakerStatus(int index, int speaker_bits)
-{
-}
-void Host_UpdateStatus()
-{
 }
 
 void Host_SetWiiMoteConnectionState(int _State) {}
@@ -239,13 +273,23 @@ int main(int argc, char* argv[])
 
 	CPluginManager::GetInstance().ScanForPlugins();
 
+#if defined HAVE_X11 && HAVE_X11
+	XInitThreads();
+#endif 
+
 	if (BootManager::BootCore(bootFile)) //no use running the loop when booting fails
 	{
-		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
-		{
+#if defined(HAVE_X11) && HAVE_X11
+		while (Core::GetState() == Core::CORE_UNINITIALIZED)
 			updateMainFrameEvent.Wait();
-		}
+		updateMainFrameEvent.Wait();
+		Core::Stop();
+#else
+		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)
+			updateMainFrameEvent.Wait();
+#endif
 	}
+	updateMainFrameEvent.Shutdown();
 
 	CPluginManager::Shutdown();
 	SConfig::Shutdown();

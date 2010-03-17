@@ -856,10 +856,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\FrameWiimote.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\src\GameListCtrl.cpp"
 				>
 			</File>

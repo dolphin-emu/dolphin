@@ -397,12 +397,14 @@ bool IsFocus()
 		return false;
 #elif defined HAVE_X11 && HAVE_X11
 	Window GLWin = *(Window *)g_WiimoteInitialize.pXWindow;
+	bool bFocus = False;
+#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	bFocus = (wxPanel *)g_WiimoteInitialize.pPanel == wxWindow::FindFocus();
+#endif
 	Window FocusWin;
 	int Revert;
 	XGetInputFocus(WMdisplay, &FocusWin, &Revert);
-	XWindowAttributes WinAttribs;
-	XGetWindowAttributes (WMdisplay, GLWin, &WinAttribs);
-	return (GLWin != 0 && (GLWin == FocusWin || WinAttribs.override_redirect));
+	return (GLWin == FocusWin || bFocus);
 #else
 	return true;
 #endif

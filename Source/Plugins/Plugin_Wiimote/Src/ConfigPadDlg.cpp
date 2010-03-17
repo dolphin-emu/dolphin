@@ -135,10 +135,6 @@ WiimotePadConfigDialog::WiimotePadConfigDialog(wxWindow *parent, wxWindowID id, 
 	m_Notebook->ChangeSelection(m_Page);
 	// Set control values
 	UpdateGUI();
-
-	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
-		wxKeyEventHandler(WiimotePadConfigDialog::OnKeyDown),
-		(wxObject*)0, this);
 }
 
 WiimotePadConfigDialog::~WiimotePadConfigDialog()
@@ -247,10 +243,7 @@ void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 			SaveButtonMapping(ClickedButton->GetId(), XKey);
 		#endif
 		}
-		m_ButtonMappingTimer->Stop();
-		GetButtonWaitingTimer = 0;
-		GetButtonWaitingID = 0;
-		ClickedButton = NULL;
+		EndGetButtons();
 	}
 }
 
@@ -263,6 +256,10 @@ void WiimotePadConfigDialog::OnButtonClick(wxCommandEvent& event)
 	if (g_Pressed == WXK_SPACE) { g_Pressed = 0; return; }
 
 	if (m_ButtonMappingTimer->IsRunning()) return;
+
+	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
+		wxKeyEventHandler(WiimotePadConfigDialog::OnKeyDown),
+		(wxObject*)0, this);
 
 	// Create the button object
 	ClickedButton = (wxButton *)event.GetEventObject();

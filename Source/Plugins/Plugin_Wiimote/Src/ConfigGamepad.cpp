@@ -222,10 +222,7 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 		DEBUG_LOG(WIIMOTE, "Timer Stopped for Pad:%i _GetId:%i",
 			WiiMoteEmu::WiiMapping[m_Page].ID, _GetId);
 
-		m_ButtonMappingTimer->Stop();
-		GetButtonWaitingTimer = 0;
-		GetButtonWaitingID = 0;
-		ClickedButton = NULL;
+		EndGetButtons();
 	}
 
 	// If we got a bad button
@@ -239,6 +236,17 @@ void WiimotePadConfigDialog::DoGetButtons(int _GetId)
 			wxT(" select another key with a higher key code."), pressed)
 			, wxT("Notice"), wxICON_INFORMATION);		
 	}
+}
+
+void WiimotePadConfigDialog::EndGetButtons(void)
+{
+	wxTheApp->Disconnect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
+			wxKeyEventHandler(WiimotePadConfigDialog::OnKeyDown),
+			(wxObject*)0, this);
+	m_ButtonMappingTimer->Stop();
+	GetButtonWaitingTimer = 0;
+	GetButtonWaitingID = 0;
+	ClickedButton = NULL;
 }
 
 // Convert the 0x8000 range values to BoxW and BoxH for the plot

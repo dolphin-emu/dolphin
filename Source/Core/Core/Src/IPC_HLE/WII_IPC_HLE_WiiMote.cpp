@@ -146,73 +146,8 @@ bool CWII_IPC_HLE_WiiMote::LinkChannel()
 	}
 
 	m_Connected = 3;
-	UpdateStatus();
 
 	return false;
-}
-
-// ===================================================
-/* Send a status report to the status bar. */
-// ----------------
-void CWII_IPC_HLE_WiiMote::ShowStatus(const void* _pData)
-{
-        // Check if it's enabled
-    SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
-        bool LedsOn = StartUp.bWiiLeds;
-        bool SpeakersOn = StartUp.bWiiSpeakers;
-
-        const u8* data = (const u8*)_pData;
-
-        // Get the last four bits with LED info
-        if (LedsOn)
-        {
-                if (data[1] == 0x11)
-                {
-                        int led_bits = (data[2] >> 4);
-                        Host_UpdateLeds(led_bits);
-                }
-        }
-
-        int speaker_bits = 0;
-
-        if (SpeakersOn)
-        {
-                u8 Bits = 0;
-                switch (data[1])
-                {
-                case 0x14: // Enable and disable speakers
-                        if (data[2] == 0x02) // Off
-                                Bits = 0;
-                        else if (data[2] == 0x06) // On
-                                Bits = 1;
-                        Host_UpdateSpeakerStatus(0, Bits);
-                        break;
-
-                case 0x19: // Mute and unmute
-                        // Get the value
-                        if (data[2] == 0x02) // Unmute
-                                Bits = 1;
-                        else if (data[2] == 0x06) // Mute
-                                Bits = 0;
-                        Host_UpdateSpeakerStatus(1, Bits);
-                        break;
-                // Write to speaker registry, or write sound
-                case 0x16:
-                case 0x18:
-                                // Turn on the activity light
-                                Host_UpdateSpeakerStatus(2, 1);
-                        break;
-                }
-        }
-}
-
-// Turn off the activity icon again
-void CWII_IPC_HLE_WiiMote::UpdateStatus()
-{
-        // Check if it's enabled
-        if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bWiiSpeakers)
-                return;
-        Host_UpdateStatus();
 }
 
 //
@@ -335,13 +270,10 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 
 				case HID_CONTROL_CHANNEL:
 					mote->Wiimote_ControlChannel(m_ConnectionHandle & 0xFF, pHeader->CID, pData, DataSize);
-					// Call Wiimote Plugin
 					break;
 
 				case HID_INTERRUPT_CHANNEL:
-					ShowStatus(pData);
 					mote->Wiimote_InterruptChannel(m_ConnectionHandle & 0xFF, pHeader->CID, pData, DataSize);
-					// Call Wiimote Plugin
 					break;
 
 				default:

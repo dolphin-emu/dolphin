@@ -20,6 +20,9 @@ typedef struct
 {
 	HWND hWnd;
 #if defined HAVE_X11 && HAVE_X11
+#if defined(HAVE_GTK2) && HAVE_GTK2
+	void *pPanel;
+#endif
 	void *pXWindow;
 #endif
 	u32 ISOId;

@@ -31,19 +31,38 @@
 #include <GLew/gl.h>
 #include <GLew/glext.h>
 
-#else // linux basic definitions
+#else // linux and apple basic definitions
 
 #if defined(USE_WX) && USE_WX
 #include <GL/glew.h>
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
+
 #elif defined(HAVE_X11) && HAVE_X11
-#define I_NEED_OS2_H // HAXXOR
 #include <GL/glxew.h>
 #include <X11/XKBlib.h>
+#if defined(HAVE_GTK2) && HAVE_GTK2 // Needed for render to main
+#include <gtk/gtk.h>
+#include <gdk/gdkx.h>
+#include <wx/wx.h>
+#endif
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/keysym.h>
+#include "Thread.h"
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#include <X11/extensions/Xrandr.h>
+#endif // XRANDR
+// EWMH state actions, see
+// http://freedesktop.org/wiki/Specifications/wm-spec?action=show&redirect=Standards%2Fwm-spec
+#define _NET_WM_STATE_REMOVE        0    /* remove/unset property */
+#define _NET_WM_STATE_ADD           1    /* add/set property */
+#define _NET_WM_STATE_TOGGLE        2    /* toggle property  */
+
 #elif defined(USE_SDL) && USE_SDL
 #include <GL/glew.h>
 #include <SDL.h>
+
 #elif defined(HAVE_COCOA) && HAVE_COCOA
 #include <GL/glew.h>
 #include "cocoaGL.h"
@@ -65,15 +84,6 @@
 #endif
 
 #ifndef _WIN32
-#if defined(HAVE_X11) && HAVE_X11
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/keysym.h>
-
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-#include <X11/extensions/Xrandr.h>
-#endif // XRANDR
-#endif // X11
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -85,6 +95,9 @@ typedef struct {
 	NSOpenGLContext *cocoaCtx;
 #elif defined(HAVE_X11) && HAVE_X11
 	Window win;
+#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	wxPanel *panel;
+#endif
 	Display *dpy;
 	XVisualInfo *vi;
 	GLXContext ctx;
@@ -94,6 +107,8 @@ typedef struct {
 	Bool doubleBuffered;
 	int fullWidth, fullHeight;
 	int winWidth, winHeight;
+	Common::Thread *xEventThread;
+	Bool renderToMain;
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 	XRRScreenConfiguration *screenConfig;
 	Rotation screenRotation;

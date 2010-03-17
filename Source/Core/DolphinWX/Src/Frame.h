@@ -64,6 +64,8 @@ class CFrame : public wxFrame
 		{
 			#ifdef _WIN32
 				return(m_Panel->GetHandle());
+			#elif defined(HAVE_X11) && HAVE_X11
+				return m_Panel;
 			#else
 				return this;
 			#endif
@@ -90,23 +92,6 @@ class CFrame : public wxFrame
 		void ClearStatusBar();
 		void OnCustomHostMessage(int Id);
 		void StartGame(const std::string& filename);
-
-		// ---------------------------------------
-		// Wiimote leds
-		// --------------------
-		void ModifyStatusBar();
-		void CreateDestroy(int Case);
-		void CreateLeds(); void CreateSpeakers();
-		void UpdateLeds(); void UpdateSpeakers();
-		wxBitmap CreateBitmapForLeds(bool On);
-		wxBitmap CreateBitmapForSpeakers(int BitmapType, bool On);
-		void DoMoveIcons(); void MoveLeds();  void MoveSpeakers();
-		bool HaveLeds; bool HaveSpeakers;
-
-		wxStaticBitmap *m_StatBmp[7];
-		u8 g_Leds[4]; u8 g_Leds_[4];
-		u8 g_Speakers[3]; u8 g_Speakers_[3];
-		// ---------------
 
 		// AUI
 		wxAuiManager *m_Mgr;
@@ -233,14 +218,6 @@ class CFrame : public wxFrame
 			THEMES_MAX
 		};
 
-		enum WiimoteBitmaps  // Wiimote speaker bitmaps
-		{
-			CREATELEDS, 						
-			DESTROYLEDS,
-			CREATESPEAKERS,
-			DESTROYSPEAKERS
-		};
-
 		wxBitmap m_Bitmaps[EToolbar_Max];
 		wxBitmap m_BitmapsMenu[EToolbar_Max];
 
@@ -326,6 +303,9 @@ class CFrame : public wxFrame
 
 		void OnGameListCtrl_ItemActivated(wxListEvent& event);
 		void DoFullscreen(bool _F);
+#if defined HAVE_X11 && HAVE_X11
+		void X11_SendClientEvent(const char *message);
+#endif
 
 		// MenuBar
 		// File - Drive
