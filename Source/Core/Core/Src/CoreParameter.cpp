@@ -93,6 +93,7 @@ void SCoreStartupParameter::LoadDefaults()
 	// Since all 64bit applications are above the 32bit memory boundary
 	bJITLoadStoreOff = true;
 	bJITLoadStorePairedOff = true;
+	//bJITLoadStoreFloatingOff = true;
 	#endif
 	//#elif defined(__linux__)
 	// Similar to OSX, something with LoadStorePaired seems to cause
