@@ -42,23 +42,23 @@ static int temp32;
 void CommonAsmRoutines::GenFifoWrite(int size) 
 {
 	// Assume value in ABI_PARAM1
-	PUSH(ESI);
+	PUSH(RSI);
 	if (size != 32)
 		PUSH(EDX);
 	BSWAP(size, ABI_PARAM1);
-	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
-	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
+	MOV(32, R(EAX), Imm32((u64)GPFifo::m_gatherPipe));
+	MOV(64, R(RSI), M(&GPFifo::m_gatherPipeCount));
 	if (size != 32) {
 		MOV(32, R(EDX), R(ABI_PARAM1));
 		MOV(size, MComplex(RAX, RSI, 1, 0), R(EDX));
 	} else {
 		MOV(size, MComplex(RAX, RSI, 1, 0), R(ABI_PARAM1));
 	}
-	ADD(32, R(ESI), Imm8(size >> 3));
-	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
+	ADD(64, R(RSI), Imm8(size >> 3));
+	MOV(64, M(&GPFifo::m_gatherPipeCount), R(RSI));
 	if (size != 32)
 		POP(EDX);
-	POP(ESI);
+	POP(RSI);
 	RET();
 }
 void CommonAsmRoutines::GenFifoFloatWrite() 
