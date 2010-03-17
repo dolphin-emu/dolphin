@@ -235,6 +235,7 @@ class GCPadConfigDialog : public wxDialog
 		void ToBlank(bool ToBlank, int Id);
 
 		void DoGetButtons(int _GetId);
+		void EndGetButtons();
 		void SetButtonText(int id, const wxString &str);
 		wxString GetButtonText(int id);
 };

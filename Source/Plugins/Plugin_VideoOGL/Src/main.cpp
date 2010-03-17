@@ -355,8 +355,8 @@ void Initialize(void *init)
 }
 
 void DoState(unsigned char **ptr, int mode) {
-#ifndef _WIN32
-	// WHY is this here??
+#if !defined(_WIN32) && !defined(__linux__)
+	// WHY is this here??  If macs don't need this it should be removed.
 	OpenGL_MakeCurrent();
 #endif
 	// Clear all caches that touch RAM

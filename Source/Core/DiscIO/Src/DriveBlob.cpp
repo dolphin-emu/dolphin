@@ -56,6 +56,7 @@ DriveReader::DriveReader(const char *drive)
                    0, &dwNotUsed, NULL);
 	#endif
 #else
+	SectorReader::SetSectorSize(2048);
 	file_ = fopen(drive, "rb");
 	if (file_)
 	{
@@ -83,7 +84,8 @@ DriveReader::~DriveReader()
 		hDisc = INVALID_HANDLE_VALUE;
 	}
 #else
-	fclose(file_);
+	if (file_)
+		fclose(file_);
 	file_ = 0;
 #endif	
 }
