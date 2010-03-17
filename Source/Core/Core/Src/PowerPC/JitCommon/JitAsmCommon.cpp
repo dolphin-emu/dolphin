@@ -39,6 +39,28 @@ static int temp32;
 
 
 #ifdef __APPLE__ && _M_X64
+void CommonAsmRoutines::GenFifoWrite(int size) 
+{
+	// Assume value in ABI_PARAM1
+	PUSH(ESI);
+	if (size != 32)
+		PUSH(EDX);
+	BSWAP(size, ABI_PARAM1);
+	MOV(32, R(EAX), Imm32((u32)(u64)GPFifo::m_gatherPipe));
+	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
+	if (size != 32) {
+		MOV(32, R(EDX), R(ABI_PARAM1));
+		MOV(size, MComplex(RAX, RSI, 1, 0), R(EDX));
+	} else {
+		MOV(size, MComplex(RAX, RSI, 1, 0), R(ABI_PARAM1));
+	}
+	ADD(32, R(ESI), Imm8(size >> 3));
+	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
+	if (size != 32)
+		POP(EDX);
+	POP(ESI);
+	RET();
+}
 void CommonAsmRoutines::GenFifoFloatWrite() 
 {
 	// Assume value in XMM0
@@ -92,7 +114,6 @@ void CommonAsmRoutines::GenFifoWrite(int size)
 	POP(ESI);
 	RET();
 }
-
 void CommonAsmRoutines::GenFifoFloatWrite() 
 {
 	// Assume value in XMM0
@@ -110,7 +131,6 @@ void CommonAsmRoutines::GenFifoFloatWrite()
 	POP(ESI);
 	RET();
 }
-#endif
 void CommonAsmRoutines::GenFifoXmm64Write() 
 {
 	// Assume value in XMM0. Assume pre-byteswapped (unlike the others here!)
@@ -123,6 +143,8 @@ void CommonAsmRoutines::GenFifoXmm64Write()
 	POP(ESI);
 	RET();
 }
+#endif
+
 
 // Safe + Fast Quantizers, originally from JITIL by magumagu
 
