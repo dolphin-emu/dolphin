@@ -5,7 +5,7 @@
 #include <ogcsys.h>
 #include <time.h>
 #include <sys/time.h>
-
+#include <ogc/lwp_watchdog.h>
 #include <iostream>
 #include <debug.h>
 #include <math.h>
@@ -15,28 +15,7 @@ static void *xfb = NULL;
 u32 first_frame = 1;
 GXRModeObj *rmode;
 
-void Initialise();
-
-
-int main()
-{
-	Initialise();
-
-	time_t wii_time;
-	wii_time = time(NULL);
-
-	srand(wii_time);
-
-	while(1)
-	{
-		wii_time = time(NULL);
-		std::cout<<"\x1b[10;0HWii RTC time is"<<ctime(&wii_time);
-
-		VIDEO_WaitVSync();
-	}
-}
-
-void Initialise()
+inline void Initialise()
 {
 	// Initialise the video system
 	VIDEO_Init();
@@ -69,4 +48,23 @@ void Initialise()
 	// Wait for Video setup to complete
 	VIDEO_WaitVSync();
 	if(rmode->viTVMode&VI_NON_INTERLACE) VIDEO_WaitVSync();
+}
+
+int main()
+{
+	Initialise();
+
+	time_t wii_time;
+//settime(secs_to_ticks(time(NULL) - 0x386D4380));
+	wii_time = time(NULL);
+
+	std::cout << "\x1b[20;0HWii RTC time is " <<ctime(&wii_time) <<" "<< wii_time;
+
+	while(1)
+	{
+		wii_time = time(NULL);
+		std::cout << "\x1b[10;0HWii RTC time is " << ctime(&wii_time) <<" "<< wii_time;
+
+		VIDEO_WaitVSync();
+	}
 }

@@ -198,7 +198,7 @@ bool CBoot::SetupWiiMemory(unsigned int _CountryCode)
 
 	default:
 		// PanicAlert("SetupWiiMem: Unknown country. Wii boot process will be switched to European settings.");
-		filename = WII_EUR_SETTING_FILE;
+		filename = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP + WII_EUR_SETTING;
 		break;
 	}
 
