@@ -53,7 +53,7 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxString &, const wx
     , Parent(parent) , m_LogAccess(true)
 	, m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
 	, m_LogSection(1)
-	, m_SJISConv(wxFONTENCODING_SHIFT_JIS)
+	, m_CSConv(wxConvLocal)
 {
 	m_LogManager = LogManager::GetInstance();
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
@@ -156,12 +156,11 @@ CLogWindow::~CLogWindow()
 	}
 	m_LogTimer->Stop();
 	delete m_LogTimer;
-
-	SaveSettings();
 }
 
 void CLogWindow::OnClose(wxCloseEvent& event)
 {
+	SaveSettings();
 	wxGetApp().GetCFrame()->ToggleLogWindow(false);
 	event.Skip();
 }
@@ -530,6 +529,6 @@ void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)
 	m_LogSection.Enter();
 	if (msgQueue.size() >= 100)
 		msgQueue.pop();
-	msgQueue.push(std::pair<u8, wxString>((u8)level, wxString(text, m_SJISConv)));
+	msgQueue.push(std::pair<u8, wxString>((u8)level, wxString(text, m_CSConv)));
 	m_LogSection.Leave();
 }

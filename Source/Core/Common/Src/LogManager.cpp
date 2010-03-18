@@ -192,10 +192,6 @@ FileLogListener::FileLogListener(const char *filename) {
 	setEnable(true);
 }
 
-void FileLogListener::Reload() {
-  m_logfile = fopen(m_filename, "a+");
-}
-
 FileLogListener::~FileLogListener() {
 	free(m_filename);
 	if (m_logfile)

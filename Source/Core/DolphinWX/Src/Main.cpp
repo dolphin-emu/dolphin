@@ -52,10 +52,8 @@
 
 IMPLEMENT_APP(DolphinApp)
 
-#if defined(HAVE_WX) && HAVE_WX
-	#include <wx/stdpaths.h>
-	bool wxMsgAlert(const char*, const char*, bool, int);
-#endif
+#include <wx/stdpaths.h>
+bool wxMsgAlert(const char*, const char*, bool, int);
 
 CFrame* main_frame = NULL;
 
@@ -106,36 +104,139 @@ bool DolphinApp::OnInit()
 	wxString padPluginFilename;
 	wxString wiimotePluginFilename;
 
-	#if defined _DEBUG && defined _WIN32
-		int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
-		tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
-		_CrtSetDbgFlag(tmpflag);
-	#endif
+#if wxUSE_CMDLINE_PARSER // Parse command lines
+#if wxCHECK_VERSION(2, 9, 0)
+	wxCmdLineEntryDesc cmdLineDesc[] =
+	{
+		{
+			wxCMD_LINE_SWITCH, "h", "help", "Show this help message",
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
+		},
+		{
+			wxCMD_LINE_SWITCH, "d", "debugger", "Opens the debugger"
+		},
+		{
+			wxCMD_LINE_SWITCH, "l", "logger", "Opens The Logger"
+		},
+		{
+			wxCMD_LINE_OPTION, "e", "elf", "Loads an elf file",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, "V", "video_plugin","Specify a video plugin",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, "A", "audio_plugin","Specify an audio plugin",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, "P", "pad_plugin","Specify a pad plugin",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, "W", "wiimote_plugin","Specify a wiimote plugin",
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_NONE
+		}
+	};
+#else
+	wxCmdLineEntryDesc cmdLineDesc[] =
+	{
+		{
+			wxCMD_LINE_SWITCH, _("h"), _("help"), 
+			wxT("Show this help message"),
+			wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
+		},
+		{
+			wxCMD_LINE_SWITCH, _("d"), _("debugger"), wxT("Opens the debugger")
+		},
+		{
+			wxCMD_LINE_SWITCH, _("l"), _("logger"), wxT("Opens The Logger")
+		},
+		{
+			wxCMD_LINE_OPTION, _("e"), _("elf"), wxT("Loads an elf file"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, _("V"), _("video_plugin"), wxT("Specify a video plugin"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, _("A"), _("audio_plugin"), wxT("Specify an audio plugin"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, _("P"), _("pad_plugin"), wxT("Specify a pad plugin"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_OPTION, _("W"), _("wiimote_plugin"), wxT("Specify a wiimote plugin"),
+			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_NONE
+		}
+	};
+#endif
+	// Gets the command line parameters
+	wxCmdLineParser parser(cmdLineDesc, argc, argv);
 
-	LogManager::Init();
-	EventHandler::Init();
-	SConfig::Init();
-	CPluginManager::Init();
+	if (parser.Parse() != 0)
+	{
+		return false;
+	} 
+#if wxCHECK_VERSION(2, 9, 0)
+	UseDebugger = parser.Found("debugger");
+	UseLogger = parser.Found("logger");
+	LoadElf = parser.Found("elf", &ElfFile);
+#else
+	UseDebugger = parser.Found(_("debugger"));
+	UseLogger = parser.Found(_("logger"));
+	LoadElf = parser.Found(_("elf"), &ElfFile);
+#endif
+
+#if wxCHECK_VERSION(2, 9, 0)
+	selectVideoPlugin = parser.Found("video_plugin", &videoPluginFilename);
+	selectAudioPlugin = parser.Found("audio_plugin", &audioPluginFilename);
+	selectPadPlugin = parser.Found("pad_plugin", &padPluginFilename);
+	selectWiimotePlugin = parser.Found("wiimote_plugin", &wiimotePluginFilename);
+#else
+	selectVideoPlugin = parser.Found(_T("video_plugin"), &videoPluginFilename);
+	selectAudioPlugin = parser.Found(_T("audio_plugin"), &audioPluginFilename);
+	selectPadPlugin = parser.Found(_T("pad_plugin"), &padPluginFilename);
+	selectWiimotePlugin = parser.Found(_T("wiimote_plugin"), &wiimotePluginFilename);
+#endif
+#endif // wxUSE_CMDLINE_PARSER
+
+#if defined _DEBUG && defined _WIN32
+	int tmpflag = _CrtSetDbgFlag(_CRTDBG_REPORT_FLAG);
+	tmpflag |= _CRTDBG_DELAY_FREE_MEM_DF;
+	_CrtSetDbgFlag(tmpflag);
+#endif
 
 	// Register message box handler
-#if ! defined(_WIN32) && defined(HAVE_WX) && HAVE_WX
-		RegisterMsgAlertHandler(&wxMsgAlert);
+#ifndef _WIN32
+	RegisterMsgAlertHandler(&wxMsgAlert);
 #endif
 
 	// "ExtendedTrace" looks freakin dangerous!!!
-	#ifdef _WIN32
-		EXTENDEDTRACEINITIALIZE(".");
-		SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
-	#endif
-		
+#ifdef _WIN32
+	EXTENDEDTRACEINITIALIZE(".");
+	SetUnhandledExceptionFilter(&MyUnhandledExceptionFilter);
+#endif
+
 	// TODO: if First Boot
 	if (!cpu_info.bSSE2) 
 	{
 		PanicAlert("Hi,\n\nDolphin requires that your CPU has support for SSE2 extensions.\n"
-						 "Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
-						 "Sayonara!\n");
+				"Unfortunately your CPU does not support them, so Dolphin will not run.\n\n"
+				"Sayonara!\n");
 		return false;
 	}
+
 #if ! defined(__APPLE__) && ! defined(__linux__)
 	// Keep the user config dir free unless user wants to save the working dir
 	if (!File::Exists((std::string(File::GetUserPath(D_CONFIG_IDX)) + "portable").c_str()))
@@ -201,233 +302,141 @@ bool DolphinApp::OnInit()
 	}
 #endif
 
-	// Parse command lines
-	#if wxUSE_CMDLINE_PARSER
-#if wxCHECK_VERSION(2, 9, 0)
-		wxCmdLineEntryDesc cmdLineDesc[] =
-		{
-			{
-				wxCMD_LINE_SWITCH, "h", "help", "Show this help message",
-				wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
-			},
-			{
-				wxCMD_LINE_SWITCH, "d", "debugger", "Opens the debugger"
-			},
-			{
-				wxCMD_LINE_SWITCH, "l", "logger", "Opens The Logger"
-			},
-			{
-				wxCMD_LINE_OPTION, "e", "elf", "Loads an elf file",
-				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-			},
-			{
-				wxCMD_LINE_OPTION, "V", "video_plugin","Specify a video plugin",
-				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-			},
-			{
-				wxCMD_LINE_OPTION, "A", "audio_plugin","Specify an audio plugin",
-				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-			},
-			{
-				wxCMD_LINE_OPTION, "P", "pad_plugin","Specify a pad plugin",
-				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-			},
-			{
-				wxCMD_LINE_OPTION, "W", "wiimote_plugin","Specify a wiimote plugin",
-				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-			},
-			{
-				wxCMD_LINE_NONE
-			}
-		};
-#else
-		wxCmdLineEntryDesc cmdLineDesc[] =
-		{
-			{
-				wxCMD_LINE_SWITCH, _("h"), _("help"), 
-				wxT("Show this help message"),
-				wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP
-			},
-			{
-				wxCMD_LINE_SWITCH, _("d"), _("debugger"), wxT("Opens the debugger")
-			},
-			{
-				wxCMD_LINE_SWITCH, _("l"), _("logger"), wxT("Opens The Logger")
-			},
-			{
-				wxCMD_LINE_OPTION, _("e"), _("elf"), wxT("Loads an elf file"),
-				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-			},
-			{
-				wxCMD_LINE_OPTION, _("V"), _("video_plugin"), wxT("Specify a video plugin"),
-				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-			},
-			{
-				wxCMD_LINE_OPTION, _("A"), _("audio_plugin"), wxT("Specify an audio plugin"),
-				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-			},
-			{
-				wxCMD_LINE_OPTION, _("P"), _("pad_plugin"), wxT("Specify a pad plugin"),
-				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-			},
-			{
-				wxCMD_LINE_OPTION, _("W"), _("wiimote_plugin"), wxT("Specify a wiimote plugin"),
-				wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-			},
-			{
-				wxCMD_LINE_NONE
-			}
-		};
-#endif
-		#if defined(__APPLE__) 
-			// check to see if ~/Library/Application Support/Dolphin exists; if not, create it
-			char AppSupportDir[MAXPATHLEN];
-			snprintf(AppSupportDir, sizeof(AppSupportDir), "%s/Library/Application Support", getenv("HOME"));
-			if (!File::Exists(AppSupportDir) || !File::IsDirectory(AppSupportDir)) 
-				PanicAlert("Could not open ~/Library/Application Support");
+#ifdef __APPLE__ 
+	// check to see if ~/Library/Application Support/Dolphin exists; if not, create it
+	char AppSupportDir[MAXPATHLEN];
+	snprintf(AppSupportDir, sizeof(AppSupportDir), "%s/Library/Application Support", getenv("HOME"));
+	if (!File::Exists(AppSupportDir) || !File::IsDirectory(AppSupportDir)) 
+		PanicAlert("Could not open ~/Library/Application Support");
 
-			strlcat(AppSupportDir, "/Dolphin", sizeof(AppSupportDir));
-			
-			if (!File::Exists(AppSupportDir))
-				File::CreateDir(AppSupportDir);
-			
-			if (!File::IsDirectory(AppSupportDir))
-				PanicAlert("~/Library/Application Support/Dolphin exists, but is not a directory");
-			
-			chdir(AppSupportDir);
+	strlcat(AppSupportDir, "/Dolphin", sizeof(AppSupportDir));
 
-			//create all necessary dir in user directory
-			if (!File::Exists(File::GetUserPath(D_CONFIG_IDX))) File::CreateDir(File::GetUserPath(D_CONFIG_IDX));
-			if (!File::Exists(File::GetUserPath(D_GCUSER_IDX))) File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
-			if (!File::Exists(File::GetUserPath(D_WIISYSCONF_IDX))) File::CreateFullPath(File::GetUserPath(D_WIISYSCONF_IDX));
-			if (!File::Exists(File::GetUserPath(D_CACHE_IDX))) File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
-			if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX))) File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
-			if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX))) File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-			if (!File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX))) File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
-			if (!File::Exists(File::GetUserPath(D_MAILLOGS_IDX))) File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
-			if (!File::Exists(File::GetUserPath(D_SCREENSHOTS_IDX))) File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
-			if (!File::Exists(File::GetUserPath(D_STATESAVES_IDX))) File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+	if (!File::Exists(AppSupportDir))
+		File::CreateDir(AppSupportDir);
 
-			//copy user wii shared2 SYSCONF if not exist
-			if (!File::Exists(File::GetUserPath(F_WIISYSCONF_IDX)))
-				File::Copy((File::GetBundleDirectory() + DIR_SEP + "Contents" + DIR_SEP + USERDATA_DIR + DIR_SEP + WII_SYSCONF_DIR + DIR_SEP + WII_SYSCONF).c_str(),
-						File::GetUserPath(F_WIISYSCONF_IDX));
-			SConfig::GetInstance().m_SYSCONF->Reload();
-			//TODO : if not exist copy game config dir in user dir and detect the revision to upgrade if necessary
-			//TODO : if not exist copy maps dir in user dir and detect revision to upgrade if necessary
-			
+	if (!File::IsDirectory(AppSupportDir))
+		PanicAlert("~/Library/Application Support/Dolphin exists, but is not a directory");
+
+	chdir(AppSupportDir);
+
+	//create all necessary dir in user directory
+	if (!File::Exists(File::GetUserPath(D_CONFIG_IDX)))
+	   	File::CreateDir(File::GetUserPath(D_CONFIG_IDX));
+	if (!File::Exists(File::GetUserPath(D_GCUSER_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
+	if (!File::Exists(File::GetUserPath(D_WIISYSCONF_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_WIISYSCONF_IDX));
+	if (!File::Exists(File::GetUserPath(D_CACHE_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
+	if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+	if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+	if (!File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+	if (!File::Exists(File::GetUserPath(D_MAILLOGS_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+	if (!File::Exists(File::GetUserPath(D_SCREENSHOTS_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
+	if (!File::Exists(File::GetUserPath(D_STATESAVES_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+
+	//copy user wii shared2 SYSCONF if not exist
+	if (!File::Exists(File::GetUserPath(F_WIISYSCONF_IDX)))
+		File::Copy((File::GetBundleDirectory() + DIR_SEP + "Contents" + DIR_SEP + USERDATA_DIR + DIR_SEP + WII_SYSCONF_DIR + DIR_SEP + WII_SYSCONF).c_str(),
+				File::GetUserPath(F_WIISYSCONF_IDX));
+	//TODO : if not exist copy game config dir in user dir and detect the revision to upgrade if necessary
+	//TODO : if not exist copy maps dir in user dir and detect revision to upgrade if necessary
+
 #if !wxCHECK_VERSION(2, 9, 0)
-			// HACK: Get rid of bogus osx param
-			if (argc > 1 && wxString(argv[argc - 1]).StartsWith(_("-psn_"))) {
-				delete argv[argc-1];
-				argv[argc-1] = NULL;
-				argc--;
-			}        
+	// HACK: Get rid of bogus osx param
+	if (argc > 1 && wxString(argv[argc - 1]).StartsWith(_("-psn_"))) {
+		delete argv[argc-1];
+		argv[argc-1] = NULL;
+		argc--;
+	}        
 #endif
-		#endif
+#endif
 
 #ifdef __linux__
-			//create all necessary directories in user directory
-      //TODO : detect the revision and upgrade where necessary
-      File::CopyDir(SHARED_USER_DIR CONFIG_DIR DIR_SEP, File::GetUserPath(D_CONFIG_IDX));
-      File::CopyDir(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP, File::GetUserPath(D_GAMECONFIG_IDX));
-      File::CopyDir(SHARED_USER_DIR MAPS_DIR DIR_SEP, File::GetUserPath(D_MAPS_IDX));
-      File::CopyDir(SHARED_USER_DIR SHADERS_DIR DIR_SEP, File::GetUserPath(D_SHADERS_IDX));
-      File::CopyDir(SHARED_USER_DIR WII_USER_DIR DIR_SEP, File::GetUserPath(D_WIIUSER_IDX));
-      SConfig::GetInstance().m_SYSCONF->Reload();
+	//create all necessary directories in user directory
+	//TODO : detect the revision and upgrade where necessary
+	File::CopyDir(SHARED_USER_DIR CONFIG_DIR DIR_SEP, File::GetUserPath(D_CONFIG_IDX));
+	File::CopyDir(SHARED_USER_DIR GAMECONFIG_DIR DIR_SEP, File::GetUserPath(D_GAMECONFIG_IDX));
+	File::CopyDir(SHARED_USER_DIR MAPS_DIR DIR_SEP, File::GetUserPath(D_MAPS_IDX));
+	File::CopyDir(SHARED_USER_DIR SHADERS_DIR DIR_SEP, File::GetUserPath(D_SHADERS_IDX));
+	File::CopyDir(SHARED_USER_DIR WII_USER_DIR DIR_SEP, File::GetUserPath(D_WIIUSER_IDX));
 
-      if (!File::Exists(File::GetUserPath(D_GCUSER_IDX))) File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
-      if (!File::Exists(File::GetUserPath(D_CACHE_IDX))) File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
-			if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX))) File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
-			if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX))) File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-			if (!File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX))) File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
-      if (!File::Exists(File::GetUserPath(D_SCREENSHOTS_IDX))) File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
-      if (!File::Exists(File::GetUserPath(D_STATESAVES_IDX))) File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
-      if (!File::Exists(File::GetUserPath(D_LOGS_IDX))) {
-        File::CreateFullPath(File::GetUserPath(D_LOGS_IDX));
-        LogManager::GetInstance()->getFileListener()->Reload();
-      }
-			if (!File::Exists(File::GetUserPath(D_MAILLOGS_IDX))) File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+	if (!File::Exists(File::GetUserPath(D_GCUSER_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
+	if (!File::Exists(File::GetUserPath(D_CACHE_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
+	if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+	if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+	if (!File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+	if (!File::Exists(File::GetUserPath(D_SCREENSHOTS_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
+	if (!File::Exists(File::GetUserPath(D_STATESAVES_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+	if (!File::Exists(File::GetUserPath(D_MAILLOGS_IDX)))
+	   	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
 #endif
 
-		// Gets the passed media files from command line
-		wxCmdLineParser parser(cmdLineDesc, argc, argv);
+	LogManager::Init();
+	EventHandler::Init();
+	SConfig::Init();
+	CPluginManager::Init();
 
-		// Get filenames from the command line
-		if (parser.Parse() != 0)
-		{
-			return false;
-		} 
-#if wxCHECK_VERSION(2, 9, 0)
-		UseDebugger = parser.Found("debugger");
-		UseLogger = parser.Found("logger");
-		LoadElf = parser.Found("elf", &ElfFile);
-#else
-		UseDebugger = parser.Found(_("debugger"));
-		UseLogger = parser.Found(_("logger"));
-		LoadElf = parser.Found(_("elf"), &ElfFile);
-#endif
-		if( LoadElf && ElfFile == wxEmptyString )
-			PanicAlert("You did not specify a file name");
+	if (selectVideoPlugin && videoPluginFilename != wxEmptyString)
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin =
+			std::string(videoPluginFilename.mb_str());
 
-#if wxCHECK_VERSION(2, 9, 0)
-		selectVideoPlugin = parser.Found("video_plugin", &videoPluginFilename);
-		selectAudioPlugin = parser.Found("audio_plugin", &audioPluginFilename);
-		selectPadPlugin = parser.Found("pad_plugin", &padPluginFilename);
-		selectWiimotePlugin = parser.Found("wiimote_plugin", &wiimotePluginFilename);
-#else
-		selectVideoPlugin = parser.Found(_T("video_plugin"), &videoPluginFilename);
-		selectAudioPlugin = parser.Found(_T("audio_plugin"), &audioPluginFilename);
-		selectPadPlugin = parser.Found(_T("pad_plugin"), &padPluginFilename);
-		selectWiimotePlugin = parser.Found(_T("wiimote_plugin"), &wiimotePluginFilename);
-#endif
-		// ============
-	#endif
+	if (selectAudioPlugin && audioPluginFilename != wxEmptyString)
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin =
+		   	std::string(audioPluginFilename.mb_str());
 
-		if (selectVideoPlugin && videoPluginFilename != wxEmptyString)
-		{
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin = std::string(videoPluginFilename.mb_str());
-		}
-		if (selectAudioPlugin && audioPluginFilename != wxEmptyString)
-		{
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin = std::string(audioPluginFilename.mb_str());
-		}
-		if (selectPadPlugin && padPluginFilename != wxEmptyString)
-		{
-			int k;
-			for(k=0;k<MAXPADS;k++)
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[k] = std::string(padPluginFilename.mb_str());
-		}
-		if (selectWiimotePlugin && wiimotePluginFilename != wxEmptyString)
-		{
-			int k;
-			for(k=0;k<MAXWIIMOTES;k++)
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin[k] = std::string(wiimotePluginFilename.mb_str());
-		}
+	if (selectPadPlugin && padPluginFilename != wxEmptyString)
+	{
+		int k;
+		for(k=0;k<MAXPADS;k++)
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[k] =
+				std::string(padPluginFilename.mb_str());
+	}
 
-	
-		// Enable the PNG image handler
-		wxInitAllImageHandlers(); 
+	if (selectWiimotePlugin && wiimotePluginFilename != wxEmptyString)
+	{
+		int k;
+		for(k=0;k<MAXWIIMOTES;k++)
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin[k] =
+			   	std::string(wiimotePluginFilename.mb_str());
+	}
 
-		SetEnableAlert(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
-		
+	// Enable the PNG image handler
+	wxInitAllImageHandlers(); 
+
+	SetEnableAlert(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
+
 	// Create the window title
-	#ifdef _DEBUG
-		const char *title = "Dolphin Debug SVN R " SVN_REV_STR;
-	#else
-		#ifdef DEBUGFAST
-			const char *title = "Dolphin Debugfast SVN R " SVN_REV_STR;
-		#else
-			const char *title = "Dolphin SVN R " SVN_REV_STR;
-		#endif
-	#endif
+#ifdef _DEBUG
+	const char *title = "Dolphin Debug SVN R " SVN_REV_STR;
+#else
+#ifdef DEBUGFAST
+	const char *title = "Dolphin Debugfast SVN R " SVN_REV_STR;
+#else
+	const char *title = "Dolphin SVN R " SVN_REV_STR;
+#endif
+#endif
 
 	int x = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX;
 	int y = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY;
 	int w = SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth;
 	int h = SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight;
 
-// TODO: Do the same check for Linux
+	// The following is not needed in linux.  Linux window managers do not allow windows to
+	// be created off the desktop.
 #ifdef _WIN32
 	// Out of desktop check
 	HWND hDesktop = GetDesktopWindow();
@@ -438,31 +447,31 @@ bool DolphinApp::OnInit()
 #endif
 
 	main_frame = new CFrame((wxFrame*)NULL, wxID_ANY, wxString::FromAscii(title),
-		wxPoint(x, y), wxSize(w, h), UseDebugger, UseLogger);
+			wxPoint(x, y), wxSize(w, h), UseDebugger, UseLogger);
 
 	// ------------
 	// Check the autoboot options. 
 
-	// First check if we have a elf command line. Todo: Should we place this under #if wxUSE_CMDLINE_PARSER?
+	// First check if we have an elf command line. 
 	if (LoadElf && ElfFile != wxEmptyString)
 	{
 		main_frame->StartGame(std::string(ElfFile.mb_str()));
 	}
-	/* If we have selected Automatic Start, start the default ISO, or if no default
-	   ISO exists, start the last loaded ISO */
+	// If we have selected Automatic Start, start the default ISO, or if no default
+	// ISO exists, start the last loaded ISO
 	else if (main_frame->g_pCodeWindow)
 	{
 		if (main_frame->g_pCodeWindow->AutomaticStart())
 		{
 			if(!SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDefaultGCM.empty()
-				&& File::Exists(SConfig::GetInstance().m_LocalCoreStartupParameter.
-					m_strDefaultGCM.c_str()))
+					&& File::Exists(SConfig::GetInstance().m_LocalCoreStartupParameter.
+						m_strDefaultGCM.c_str()))
 			{
 				main_frame->StartGame(SConfig::GetInstance().m_LocalCoreStartupParameter.
-					m_strDefaultGCM);
+						m_strDefaultGCM);
 			}
 			else if(!SConfig::GetInstance().m_LastFilename.empty()
-				&& File::Exists(SConfig::GetInstance().m_LastFilename.c_str()))
+					&& File::Exists(SConfig::GetInstance().m_LastFilename.c_str()))
 			{
 				main_frame->StartGame(SConfig::GetInstance().m_LastFilename);
 			}	
@@ -472,9 +481,11 @@ bool DolphinApp::OnInit()
 
 	// Set main parent window
 	SetTopWindow(main_frame);
+
 #if defined HAVE_X11 && HAVE_X11
-		XInitThreads();
+	XInitThreads();
 #endif 
+
 	return true;
 }
 
@@ -514,7 +525,6 @@ void Host_SysMessage(const char *fmt, ...)
 	PanicAlert("%s", msg);
 }
 
-#if defined HAVE_WX && HAVE_WX
 bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
 {
     return wxYES == wxMessageBox(wxString::FromAscii(text), 
@@ -671,4 +681,3 @@ void Host_SetWiiMoteConnectionState(int _State)
 
 	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
-#endif // HAVE_WX

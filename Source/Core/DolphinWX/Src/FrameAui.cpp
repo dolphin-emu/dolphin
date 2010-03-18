@@ -105,7 +105,7 @@ void CFrame::ToggleLogWindow(bool bShow, int i)
 	}
 	else
 	{
-		DoRemovePage(m_LogWindow);
+		DoRemovePage(m_LogWindow, bShow);
 	}
 
 	// Hide or Show the pane
@@ -402,9 +402,10 @@ void CFrame::DoRemovePage(wxWindow * Win, bool _Hide)
 			if (GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND)
 			{
 				GetNotebookFromId(i)->RemovePage(GetNotebookFromId(i)->GetPageIndex(Win));
-				// Reparent to avoid destruction if the notebook is closed and destroyed
-				if (!Win->IsBeingDeleted()) Win->Reparent(this);
-				if (_Hide) Win->Hide();
+				if (_Hide)
+				   	Win->Hide();
+				else
+					Win->Close();
 			}
 		}
 	}

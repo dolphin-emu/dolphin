@@ -71,8 +71,6 @@ public:
 
 	bool IsValid() { return m_IsValid; }
 
-	void Reload();
-
 	template<class T>
 	T GetData(const char* sectionName)
 	{

@@ -86,7 +86,7 @@ private:
 
 	Common::CriticalSection m_LogSection;
 
-	wxCSConv m_SJISConv;
+	wxCSConv m_CSConv;
 
 	DECLARE_EVENT_TABLE()
 

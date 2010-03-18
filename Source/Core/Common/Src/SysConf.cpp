@@ -25,14 +25,6 @@ SysConf::SysConf()
 		m_IsValid = true;
 }
 
-void SysConf::Reload()
-{
-	if (m_IsValid)
-		return;
-	if (LoadFromFile(File::GetUserPath(F_WIISYSCONF_IDX)))
-		m_IsValid = true;
-}
-
 SysConf::~SysConf()
 {
 	if (!m_IsValid)
