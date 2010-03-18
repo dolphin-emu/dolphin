@@ -101,18 +101,23 @@ void Step()
 // Used by thread mode.
 void Run()
 {
+	int checkInterrupt = 0;
 	gdsp_running = true;
-	while (!(g_dsp.cr & CR_HALT))
-	{
-		// Are we running?
-		if (DSPHost_Running() && !DSPHost_OnThread())
-			break;
+	while (!(g_dsp.cr & CR_HALT) && gdsp_running)
+	{	
+		// Automatically let the other threads work if we're idle skipping
+		if(DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
+			Common::YieldCPU();
 
-		// This number (500) is completely arbitrary. TODO: tweak.
-		RunCycles(500);
+		Step();
 
-		if (!gdsp_running)
-			break;
+		// Turns out the less you check for external interrupts, the more 
+		// sound you hear, and it becomes slower
+		checkInterrupt++;
+		if(checkInterrupt == 500) { // <-- A completely arbitrary number. TODO: tweak
+			DSPCore_CheckExternalInterrupt();
+			checkInterrupt = 0;
+		}
 	}
 	gdsp_running = false;
 }
@@ -184,6 +189,8 @@ int RunCycles(int cycles)
 			return 0; 
 		Step();
 		cycles--;
+		if (cycles < 0)
+			return 0;
 	}
 
 	DSPCore_CheckExternalInterrupt();
@@ -198,6 +205,8 @@ int RunCycles(int cycles)
 			return 0;
 		Step();
 		cycles--;
+		if (cycles < 0)
+			return 0;
 	}
 
 	// Now, run the rest of the block without idle skipping. It might trip into
