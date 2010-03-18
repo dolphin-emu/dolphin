@@ -218,6 +218,13 @@ inline s64 dsp_get_long_prod()
 	return val;
 }
 
+inline s64 dsp_get_long_prod_prodl_zero()
+{
+	s64 tempprod = dsp_get_long_prod();
+	tempprod = (tempprod & ~0xffff)+(((tempprod & 0xffff) >= 0x8000) ? 0x10000 : 0); 
+	return tempprod;
+}
+
 // For accurate emulation, this is wrong - but the real prod registers behave
 // in completely bizarre ways. Probably not meaningful to emulate them accurately.
 inline void dsp_set_long_prod(s64 val)

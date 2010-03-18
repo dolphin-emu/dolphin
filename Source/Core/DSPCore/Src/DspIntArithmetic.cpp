@@ -48,9 +48,13 @@ void clrl(const UDSPInstruction& opc)
 {
 	u8 reg = (opc.hex >> 8) & 0x1;
 
-	g_dsp.r[DSP_REG_ACL0 + reg] = 0;
-	Update_SR_Register64(dsp_get_long_acc(reg));
+	s64 acc = dsp_get_long_acc(reg);
+	acc = (acc & ~0xffff) + (((acc & 0xffff) >= 0x8000) ? 0x10000 : 0);
+
 	zeroWriteBackLogPreserveAcc(reg);
+
+	dsp_set_long_acc(reg, acc);
+	Update_SR_Register64(acc);
 }
 
 //----

@@ -223,6 +223,10 @@ int main(int argc, const char *argv[])
 		printf("-o <OUTPUT FILE>: Results from stdout redirected to a file\n");
 		printf("-h <HEADER FILE>: Output assembly results to a header\n");
 		printf("-p <DUMP FILE>: Print results of DSPSpy register dump\n");
+		printf("-ps <DUMP FILE>: Print results of DSPSpy register dump (disable SR output)\n");
+		printf("-pm <DUMP FILE>: Print results of DSPSpy register dump (convert PROD values)\n");
+		printf("-psm <DUMP FILE>: Print results of DSPSpy register dump (convert PROD values/disable SR output)\n");
+	
 		return 0;
 	}
 
@@ -236,7 +240,8 @@ int main(int argc, const char *argv[])
 	std::string output_header_name;
 	std::string output_name;
 
-	bool disassemble = false, compare = false, multiple = false, outputSize = false, force = false, print_results = false;
+	bool disassemble = false, compare = false, multiple = false, outputSize = false, 
+		force = false, print_results = false, print_results_prodhack = false, print_results_srhack = false;
 	for (int i = 1; i < argc; i++)
 	{
 		if (!strcmp(argv[i], "-d"))
@@ -255,6 +260,19 @@ int main(int argc, const char *argv[])
 			force = true;
 		else if (!strcmp(argv[i], "-p"))
 			print_results = true;
+		else if (!strcmp(argv[i], "-ps")) {
+			print_results = true;
+			print_results_srhack = true;
+		}
+		else if (!strcmp(argv[i], "-pm")) {
+			print_results = true;
+			print_results_prodhack = true;
+		}
+		else if (!strcmp(argv[i], "-psm")) {
+			print_results = true;
+			print_results_srhack = true;
+			print_results_prodhack = true;
+		}
 		else 
 		{
 			if (!input_name.empty())
@@ -311,12 +329,40 @@ int main(int argc, const char *argv[])
 		for (unsigned int step = 1; step < reg_vector.size()/32; step++)
 		{
 			bool changed = false;
+			u16 current_reg;
+			u16 last_reg;
+			u32 htemp;
+			//results.append(StringFromFormat("Step %3d: (CW 0x%04x) UC:%03d\n", step, 0x8fff+step, (step-1)/32));
 			results.append(StringFromFormat("Step %3d:\n", step));
 			for (int reg = 0; reg < 32; reg++)
 			{
 				if ((reg >= 0x0c) && (reg <= 0x0f)) continue;
-				u16 last_reg = reg_vector.at((step*32-32)+reg);
-				u16 current_reg = reg_vector.at(step*32+reg);
+				if (print_results_srhack && (reg == 0x13)) continue;
+				
+				if ((print_results_prodhack) && (reg >= 0x15) && (reg <= 0x17)) {
+					switch (reg) {
+						case 0x15: //DSP_REG_PRODM
+							last_reg = reg_vector.at((step*32-32)+reg) + reg_vector.at((step*32-32)+reg+2);
+							current_reg = reg_vector.at(step*32+reg) + reg_vector.at(step*32+reg+2); 
+							break;
+						case 0x16: //DSP_REG_PRODH
+							htemp = ((reg_vector.at(step*32+reg-1) + reg_vector.at(step*32+reg+1))&~0xffff)>>16; 
+							current_reg = (u8)(reg_vector.at(step*32+reg) + htemp);
+							htemp = ((reg_vector.at(step*32-32+reg-1) + reg_vector.at(step*32-32+reg+1))&~0xffff)>>16; 
+							last_reg = (u8)(reg_vector.at(step*32-32+reg) + htemp);
+							break;
+						case 0x17: //DSP_REG_PRODM2
+							current_reg = 0;
+							last_reg = 0;
+							break;
+						default:
+							break;
+					}
+				}
+				else {
+					current_reg = reg_vector.at(step*32+reg);
+					last_reg = reg_vector.at((step*32-32)+reg);
+				}
 				if (last_reg != current_reg)
 				{
 					results.append(StringFromFormat("%02x %-7s: %04x %04x\n", reg, pdregname(reg), last_reg, current_reg));

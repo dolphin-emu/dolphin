@@ -28,16 +28,16 @@
 namespace DSPInterpreter {
 
 // Only MULX family instructions have unsigned support.
-inline s64 dsp_get_multiply_prod(u16 a, u16 b, bool sign)
+inline s64 dsp_get_multiply_prod(u16 a, u16 b, u8 sign)
 {
 	s64 prod;
 
-#if 0 //causing probs with all games atm
-	if (sign && g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)
-		prod = (u64)a * (u64)b;  // won't overflow 32-bits
+	if ((sign == 1) && (g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)) //unsigned
+		prod = (u64)a * (u64)b;
+	else if ((sign == 2) && (g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)) //mixed
+		prod = (u64)a * (s64)(s16)b;
 	else
-#endif
-		prod = (s32)(s16)a * (s32)(s16)b;  // won't overflow 32-bits
+		prod = (s64)(s16)a * (s64)(s16)b;
 
 	// Conditionally multiply by 2.
 	if ((g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY) == 0)
@@ -46,19 +46,19 @@ inline s64 dsp_get_multiply_prod(u16 a, u16 b, bool sign)
 	return prod;
 }
 	
-s64 dsp_multiply(u16 a, u16 b, bool sign = false)
+s64 dsp_multiply(u16 a, u16 b, u8 sign = 0)
 {
 	s64 prod = dsp_get_multiply_prod(a, b, sign);
 	return prod;
 }
 
-s64 dsp_multiply_add(u16 a, u16 b, bool sign = false)
+s64 dsp_multiply_add(u16 a, u16 b, u8 sign = 0)
 {
 	s64 prod = dsp_get_long_prod() + dsp_get_multiply_prod(a, b, sign);
 	return prod;
 }
 
-s64 dsp_multiply_sub(u16 a, u16 b, bool sign = false)
+s64 dsp_multiply_sub(u16 a, u16 b, u8 sign = 0)
 {
 	s64 prod = dsp_get_long_prod() -  dsp_get_multiply_prod(a, b, sign);
 	return prod;
@@ -140,7 +140,7 @@ void movpz(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x01;
 
-	s64 acc = dsp_get_long_prod() & ~0xffff;
+	s64 acc = dsp_get_long_prod_prodl_zero();
 
 	zeroWriteBackLog();
 
@@ -153,23 +153,21 @@ void movpz(const UDSPInstruction& opc)
 // Adds secondary accumulator $axS to product register and stores result
 // in accumulator register. Low 16-bits of $acD ($acD.l) are set to 0.
 //
-// flags out: x-xx xxxx
-//
-// TEST THIS!!
+// flags out: ?-xx xx??
 void addpaxz(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x1;
 	u8 sreg = (opc.hex >> 9) & 0x1;
 
-	s64 prod = dsp_get_long_prod() & ~0xffff;  // hm, should we really mask here?
+	s64 prod = dsp_get_long_prod_prodl_zero();
 	s64 ax = dsp_get_long_acx(sreg);
-	s64 acc = (prod + ax) & ~0xffff;
+	s64 res = prod + (ax & ~0xffff);
 
 	zeroWriteBackLog();
 
-	dsp_set_long_acc(dreg, acc);
-	acc = dsp_get_long_acc(dreg);
-	Update_SR_Register64(acc, isCarry2(prod, acc), isOverflow(prod, ax, acc));
+	dsp_set_long_acc(dreg, res);
+	res = dsp_get_long_acc(dreg);
+	Update_SR_Register64(res); 
 }
 
 //----
@@ -260,13 +258,13 @@ void mulmv(const UDSPInstruction& opc)
 // accumulator $axS by high part $axS.h of secondary accumulator $axS (treat
 // them both as signed).
 //
-// flags out: xx xx00
+// flags out: xx xx0x
 void mulmvz(const UDSPInstruction& opc)
 {
 	u8 rreg = (opc.hex >> 8) & 0x1;
 	u8 sreg = (opc.hex >> 11) & 0x1;
 
-	s64 acc = dsp_get_long_prod() & ~0xffff;
+	s64 acc = dsp_get_long_prod_prodl_zero();
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
 	s64 prod = dsp_multiply(axl, axh);
@@ -282,7 +280,7 @@ void mulmvz(const UDSPInstruction& opc)
 
 // MULX $ax0.S, $ax1.T
 // 101s t000 xxxx xxxx
-// Multiply one part $ax0 by one part $ax1 (treat them both as signed).
+// Multiply one part $ax0 by one part $ax1.
 // Part is selected by S and T bits. Zero selects low part, one selects high part.
 void mulx(const UDSPInstruction& opc)
 {
@@ -291,8 +289,40 @@ void mulx(const UDSPInstruction& opc)
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-	s64 prod = dsp_multiply(val1, val2, true);
-	
+	s64 prod;
+
+	if (!treg && !sreg)
+	{
+		prod = dsp_multiply(val1, val2, 1);
+	}
+	else if (treg && !sreg)
+	{
+		if ((val1 >= 0x8000) && (val2 >= 0x8000))
+			prod = dsp_multiply(val1, val2, 2);
+		else if ((val1 >= 0x8000) && (val2 < 0x8000))
+			prod = dsp_multiply(val1, val2, 1);
+		else
+			prod = dsp_multiply(val1, val2, 0);
+	}
+	else if (!treg && sreg)
+	{
+		if ((val2 >= 0x8000) && (val1 >= 0x8000))
+			prod = dsp_multiply(val2, val1, 2);
+		else if ((val2 >= 0x8000) && (val1 < 0x8000))
+			prod = dsp_multiply(val2, val1, 1);
+		else
+			prod = dsp_multiply(val2, val1, 0);
+	}
+	else
+	{
+		if ((val1 >= 0x8000) && (val2 >= 0x8000))
+			prod = dsp_multiply(val1, val2, 1);
+		else if ((val1 >= 0x8000) || (val2 >= 0x8000))
+			prod = dsp_multiply(val1, val2, 0);
+		else
+			prod = dsp_multiply(val1, val2, 1);
+	}
+
 	zeroWriteBackLog();
 
 	dsp_set_long_prod(prod);
@@ -301,7 +331,7 @@ void mulx(const UDSPInstruction& opc)
 // MULXAC $ax0.S, $ax1.T, $acR
 // 101s t01r xxxx xxxx
 // Add product register to accumulator register $acR. Multiply one part
-// $ax0 by one part $ax1 (treat them both as signed). Part is selected by S and
+// $ax0 by one part $ax1. Part is selected by S and
 // T bits. Zero selects low part, one selects high part.
 //
 // flags out: xx xx00
@@ -314,7 +344,39 @@ void mulxac(const UDSPInstruction& opc)
 	s64 acc = dsp_get_long_acc(rreg) + dsp_get_long_prod();
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-	s64 prod = dsp_multiply(val1, val2, true);
+	s64 prod;
+
+	if (!treg && !sreg)
+	{
+		prod = dsp_multiply(val1, val2, 1);
+	}
+	else if (treg && !sreg)
+	{
+		if ((val1 >= 0x8000) && (val2 >= 0x8000))
+			prod = dsp_multiply(val1, val2, 2);
+		else if ((val1 >= 0x8000) && (val2 < 0x8000))
+			prod = dsp_multiply(val1, val2, 1);
+		else
+			prod = dsp_multiply(val1, val2, 0);
+	}
+	else if (!treg && sreg)
+	{
+		if ((val2 >= 0x8000) && (val1 >= 0x8000))
+			prod = dsp_multiply(val2, val1, 2);
+		else if ((val2 >= 0x8000) && (val1 < 0x8000))
+			prod = dsp_multiply(val2, val1, 1);
+		else
+			prod = dsp_multiply(val2, val1, 0);
+	}
+	else
+	{
+		if ((val1 >= 0x8000) && (val2 >= 0x8000))
+			prod = dsp_multiply(val1, val2, 1);
+		else if ((val1 >= 0x8000) || (val2 >= 0x8000))
+			prod = dsp_multiply(val1, val2, 0);
+		else
+			prod = dsp_multiply(val1, val2, 1);
+	}
 	
 	zeroWriteBackLog();
 
@@ -326,7 +388,7 @@ void mulxac(const UDSPInstruction& opc)
 // MULXMV $ax0.S, $ax1.T, $acR
 // 101s t11r xxxx xxxx
 // Move product register to accumulator register $acR. Multiply one part
-// $ax0 by one part $ax1 (treat them both as signed). Part is selected by S and
+// $ax0 by one part $ax1. Part is selected by S and
 // T bits. Zero selects low part, one selects high part.
 //
 // flags out: xx xx00
@@ -337,9 +399,41 @@ void mulxmv(const UDSPInstruction& opc)
 	u8 sreg = (opc.hex >> 12) & 0x1;
 
 	s64 acc = dsp_get_long_prod();
-	s16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-	s16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-	s64 prod = dsp_multiply(val1, val2, true);
+	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
+	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
+	s64 prod;
+
+	if (!treg && !sreg)
+	{
+		prod = dsp_multiply(val1, val2, 1);
+	}
+	else if (treg && !sreg)
+	{
+		if ((val1 >= 0x8000) && (val2 >= 0x8000))
+			prod = dsp_multiply(val1, val2, 2);
+		else if ((val1 >= 0x8000) && (val2 < 0x8000))
+			prod = dsp_multiply(val1, val2, 1);
+		else
+			prod = dsp_multiply(val1, val2, 0);
+	}
+	else if (!treg && sreg)
+	{
+		if ((val2 >= 0x8000) && (val1 >= 0x8000))
+			prod = dsp_multiply(val2, val1, 2);
+		else if ((val2 >= 0x8000) && (val1 < 0x8000))
+			prod = dsp_multiply(val2, val1, 1);
+		else
+			prod = dsp_multiply(val2, val1, 0);
+	}
+	else
+	{
+		if ((val1 >= 0x8000) && (val2 >= 0x8000))
+			prod = dsp_multiply(val1, val2, 1);
+		else if ((val1 >= 0x8000) || (val2 >= 0x8000))
+			prod = dsp_multiply(val1, val2, 0);
+		else
+			prod = dsp_multiply(val1, val2, 1);
+	}
 
 	zeroWriteBackLog();
 
@@ -351,8 +445,8 @@ void mulxmv(const UDSPInstruction& opc)
 // MULXMV $ax0.S, $ax1.T, $acR
 // 101s t01r xxxx xxxx
 // Move product register to accumulator register $acR and clear low part
-// of accumulator register $acR.l. Multiply one part $ax0 by one part $ax1 (treat
-// them both as signed). Part is selected by S and T bits. Zero selects low part,
+// of accumulator register $acR.l. Multiply one part $ax0 by one part $ax1
+// Part is selected by S and T bits. Zero selects low part,
 // one selects high part.
 //
 // flags out: xx xx00
@@ -362,10 +456,42 @@ void mulxmvz(const UDSPInstruction& opc)
 	u8 treg = (opc.hex >> 11) & 0x1;
 	u8 sreg = (opc.hex >> 12) & 0x1;
 
-	s64 acc = dsp_get_long_prod() & ~0xffff;
+	s64 acc = dsp_get_long_prod_prodl_zero();
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-	s64 prod = dsp_multiply(val1, val2, true);
+	s64 prod;
+
+	if (!treg && !sreg)
+	{
+		prod = dsp_multiply(val1, val2, 1);
+	}
+	else if (treg && !sreg)
+	{
+		if ((val1 >= 0x8000) && (val2 >= 0x8000))
+			prod = dsp_multiply(val1, val2, 2);
+		else if ((val1 >= 0x8000) && (val2 < 0x8000))
+			prod = dsp_multiply(val1, val2, 1);
+		else
+			prod = dsp_multiply(val1, val2, 0);
+	}
+	else if (!treg && sreg)
+	{
+		if ((val2 >= 0x8000) && (val1 >= 0x8000))
+			prod = dsp_multiply(val2, val1, 2);
+		else if ((val2 >= 0x8000) && (val1 < 0x8000))
+			prod = dsp_multiply(val2, val1, 1);
+		else
+			prod = dsp_multiply(val2, val1, 0);
+	}
+	else
+	{
+		if ((val1 >= 0x8000) && (val2 >= 0x8000))
+			prod = dsp_multiply(val1, val2, 1);
+		else if ((val1 >= 0x8000) || (val2 >= 0x8000))
+			prod = dsp_multiply(val1, val2, 0);
+		else
+			prod = dsp_multiply(val1, val2, 1);
+	}
 
 	zeroWriteBackLog();
 
@@ -460,7 +586,7 @@ void mulcmvz(const UDSPInstruction& opc)
 	u8 treg  = (opc.hex >> 11) & 0x1;
 	u8 sreg  = (opc.hex >> 12) & 0x1;
 
-	s64 acc = dsp_get_long_prod() & ~0xffff;
+	s64 acc = dsp_get_long_prod_prodl_zero();
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
 	s64 prod = dsp_multiply(accm, axh);
