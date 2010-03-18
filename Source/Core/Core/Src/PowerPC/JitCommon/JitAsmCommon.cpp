@@ -37,6 +37,60 @@ using namespace Gen;
 
 static int temp32;
 
+#ifdef __APPLE__ && _M_X64
+void CommonAsmRoutines::GenFifoWrite(int size) 
+{
+	// Assume value in ABI_PARAM1
+	PUSH(RSI);
+	if (size != 32)
+		PUSH(EDX);
+	BSWAP(size, ABI_PARAM1);
+	MOV(32, R(EAX), Imm32((u64)GPFifo::m_gatherPipe));
+	MOV(64, R(RSI), M(&GPFifo::m_gatherPipeCount));
+	if (size != 32) {
+		MOV(32, R(EDX), R(ABI_PARAM1));
+		MOV(size, MComplex(RAX, RSI, 1, 0), R(EDX));
+	} else {
+		MOV(size, MComplex(RAX, RSI, 1, 0), R(ABI_PARAM1));
+	}
+	ADD(64, R(RSI), Imm8(size >> 3));
+	MOV(64, M(&GPFifo::m_gatherPipeCount), R(RSI));
+	if (size != 32)
+		POP(EDX);
+	POP(RSI);
+	RET();
+}
+void CommonAsmRoutines::GenFifoFloatWrite() 
+{
+	// Assume value in XMM0
+	PUSH(RSI);
+	PUSH(EDX);
+	MOVSS(M(&temp32), XMM0);
+	MOV(32, R(EDX), M(&temp32));
+	BSWAP(32, EDX);
+	MOV(64, R(RAX), Imm64((u64)GPFifo::m_gatherPipe));
+	MOV(64, R(RSI), M(&GPFifo::m_gatherPipeCount));
+	MOV(32, MComplex(RAX, RSI, 1, 0), R(EDX));
+	ADD(64, R(RSI), Imm8(4));
+	MOV(64, M(&GPFifo::m_gatherPipeCount), R(RSI));
+	POP(EDX);
+	POP(RSI);
+	RET();
+}
+
+void CommonAsmRoutines::GenFifoXmm64Write() 
+{
+	// Assume value in XMM0. Assume pre-byteswapped (unlike the others here!)
+	PUSH(RSI);
+	MOV(64, R(RAX), Imm32((u64)GPFifo::m_gatherPipe));
+	MOV(64, R(RSI), M(&GPFifo::m_gatherPipeCount));
+	MOVQ_xmm(MComplex(RAX, RSI, 1, 0), XMM0);
+	ADD(64, R(RSI), Imm8(8));
+	MOV(64, M(&GPFifo::m_gatherPipeCount), R(RSI));
+	POP(RSI);
+	RET();
+}
+#else
 void CommonAsmRoutines::GenFifoWrite(int size) 
 {
 	// Assume value in ABI_PARAM1
@@ -59,7 +113,6 @@ void CommonAsmRoutines::GenFifoWrite(int size)
 	POP(ESI);
 	RET();
 }
-
 void CommonAsmRoutines::GenFifoFloatWrite() 
 {
 	// Assume value in XMM0
@@ -77,7 +130,6 @@ void CommonAsmRoutines::GenFifoFloatWrite()
 	POP(ESI);
 	RET();
 }
-
 void CommonAsmRoutines::GenFifoXmm64Write() 
 {
 	// Assume value in XMM0. Assume pre-byteswapped (unlike the others here!)
@@ -86,10 +138,11 @@ void CommonAsmRoutines::GenFifoXmm64Write()
 	MOV(32, R(ESI), M(&GPFifo::m_gatherPipeCount));
 	MOVQ_xmm(MComplex(RAX, RSI, 1, 0), XMM0);
 	ADD(32, R(ESI), Imm8(8));
-	MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
-	POP(ESI);
-	RET();
+        MOV(32, M(&GPFifo::m_gatherPipeCount), R(ESI));
+        POP(ESI);
+        RET();
 }
+#endif
 
 // Safe + Fast Quantizers, originally from JITIL by magumagu
 

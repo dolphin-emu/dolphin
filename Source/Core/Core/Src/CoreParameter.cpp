@@ -91,7 +91,6 @@ void SCoreStartupParameter::LoadDefaults()
 	// These work fine in 32bit OSX
 	// Since the reason why 64bit OSX fails out is due to casting (u32)(u64)
 	// Since all 64bit applications are above the 32bit memory boundary
-	bJITLoadStoreOff = true;
 	bJITLoadStorePairedOff = true;
 	#endif
 	//#elif defined(__linux__)
