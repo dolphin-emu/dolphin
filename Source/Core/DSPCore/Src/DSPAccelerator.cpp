@@ -150,9 +150,14 @@ u16 dsp_read_accelerator()
 	}
 
 	// TODO: Take GAIN into account, whatever it is.
-	// It looks like its always 0x800 for PCM8/PCM16 and 0x0 for adpcm
+	// adpcm = 0, pcm8 = 0x100, pcm16 = 0x800
+	// games using pcm8 : Phoenix Wright Ace Attorney (Wiiware)
 	if (g_dsp.ifx_regs[DSP_GAIN] > 0)
 	{
+		// this was trial&error -> it fixes "Super Monkey Ball - Step & Roll"
+		// sth it wrong with exceptions here...
+		//DSPCore_SetException(EXP_3); 
+		
 		//NOTICE_LOG(DSPLLE,"format: 0x%04x - val: 0x%04x - gain: 0x%04x", g_dsp.ifx_regs[DSP_FORMAT], val, g_dsp.ifx_regs[DSP_GAIN]);
 	}
 

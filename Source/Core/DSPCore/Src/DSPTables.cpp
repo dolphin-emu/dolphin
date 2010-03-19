@@ -238,9 +238,9 @@ const DSPOPCTemplate opcodes[] =
 	{"MULAC",   0x9400, 0xf600, DSPInterpreter::mulac,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"MULMV",   0x9600, 0xf600, DSPInterpreter::mulmv,  nop, 1 | P_EXT, 3, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	
-	//a-b (!figure out 0xa100/0xa900!)
+	//a-b
 	{"MULX",    0xa000, 0xe700, DSPInterpreter::mulx,    nop, 1 | P_EXT, 2, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}}, true},
-	{"a100",    0xa100, 0xf700, DSPInterpreter::a100,   nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, true}, //Definitely not TSTAXL, it affects one of the accumulators
+	{"ABS",     0xa100, 0xf700, DSPInterpreter::abs,   nop, 1 | P_EXT, 1, {{P_ACC, 1, 0, 11, 0x0800}}, true},
 	{"MULXMVZ", 0xa200, 0xe600, DSPInterpreter::mulxmvz, nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"MULXAC",  0xa400, 0xe600, DSPInterpreter::mulxac,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"MULXMV",  0xa600, 0xe600, DSPInterpreter::mulxmv,  nop, 1 | P_EXT, 3, {{P_REGM18, 1, 0, 11, 0x1000}, {P_REGM19, 1, 0, 10, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
@@ -248,7 +248,7 @@ const DSPOPCTemplate opcodes[] =
 
 	//c-d
 	{"MULC",    0xc000, 0xe700, DSPInterpreter::mulc,    nop, 1 | P_EXT, 2, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, true},
-	{"CMPAR" ,  0xc100, 0xe700, DSPInterpreter::cmpar, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, true}, //MIA in duddie dox
+	{"CMPAR" ,  0xc100, 0xe700, DSPInterpreter::cmpar, nop, 1 | P_EXT, 2, {{P_ACC, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}}, true},
 	{"MULCMVZ", 0xc200, 0xe600, DSPInterpreter::mulcmvz, nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"MULCAC",  0xc400, 0xe600, DSPInterpreter::mulcac,  nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},
 	{"MULCMV",  0xc600, 0xe600, DSPInterpreter::mulcmv,  nop, 1 | P_EXT, 3, {{P_ACCM, 1, 0, 12, 0x1000}, {P_REG1A, 1, 0, 11, 0x0800}, {P_ACC, 1, 0, 8, 0x0100}}, true},

@@ -40,7 +40,7 @@ void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
 	if (overflow)
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_OVERFLOW;
-		g_dsp.r[DSP_REG_SR]  |= SR_OVERFLOW_SPECIAL; 
+		g_dsp.r[DSP_REG_SR]  |= SR_OVERFLOW_STICKY; 
 	}
 
 	// 0x04
@@ -83,7 +83,7 @@ void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
 	if (overflow)
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_OVERFLOW;
-		g_dsp.r[DSP_REG_SR]  |= SR_OVERFLOW_SPECIAL; 
+		g_dsp.r[DSP_REG_SR]  |= SR_OVERFLOW_STICKY; 
 	}
 
 	// 0x04

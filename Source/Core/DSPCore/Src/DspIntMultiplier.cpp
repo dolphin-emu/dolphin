@@ -27,7 +27,7 @@
 
 namespace DSPInterpreter {
 
-// Only MULX family instructions have unsigned support.
+// Only MULX family instructions have unsigned/mixed support.
 inline s64 dsp_get_multiply_prod(u16 a, u16 b, u8 sign)
 {
 	s64 prod;
@@ -37,7 +37,7 @@ inline s64 dsp_get_multiply_prod(u16 a, u16 b, u8 sign)
 	else if ((sign == 2) && (g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)) //mixed
 		prod = (u64)a * (s64)(s16)b;
 	else
-		prod = (s64)(s16)a * (s64)(s16)b;
+		prod = (s64)(s16)a * (s64)(s16)b; //signed
 
 	// Conditionally multiply by 2.
 	if ((g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY) == 0)
@@ -64,6 +64,40 @@ s64 dsp_multiply_sub(u16 a, u16 b, u8 sign = 0)
 	return prod;
 }
 
+s64 dsp_multiply_mulx(u8 axh0, u8 axh1, u16 val1, u16 val2)
+{
+	s64 result;
+
+	if ((axh0==0) && (axh1==0)) // axl.0 * axl.1
+	{
+		result = dsp_multiply(val1, val2, 1); // unsigned support ON if both ax?.l regs are used
+	}
+	else if ((axh0==0) && (axh1==1)) // axl.0 * axh.1
+	{
+		if ((val1 >= 0x8000) && (val2 >= 0x8000)) 
+			result = dsp_multiply(val1, val2, 2);
+		else if ((val1 >= 0x8000) && (val2 < 0x8000))
+			result = dsp_multiply(val1, val2, 1);
+		else
+			result = dsp_multiply(val1, val2, 0);
+	}
+	else if ((axh0==1) && (axh1==0)) // axh.0 * axl.1
+	{
+		if ((val2 >= 0x8000) && (val1 >= 0x8000))
+			result = dsp_multiply(val2, val1, 2);
+		else if ((val2 >= 0x8000) && (val1 < 0x8000))
+			result = dsp_multiply(val2, val1, 1);
+		else
+			result = dsp_multiply(val2, val1, 0);
+	}
+	else // axh.0 * axh.1
+	{
+		result = dsp_multiply(val1, val2, 0); // unsigned support OFF if both ax?.h regs are used
+	}
+
+	return result;
+}
+
 //----
 
 // CLRP
@@ -74,11 +108,14 @@ void clrp(const UDSPInstruction& opc)
 	// Magic numbers taken from duddie's doc
 	// These are probably a bad idea to put here.
 	zeroWriteBackLog();
+/*
 	g_dsp.r[DSP_REG_PRODL] = 0x0000;
 	g_dsp.r[DSP_REG_PRODM] = 0xfff0;
 	g_dsp.r[DSP_REG_PRODH] = 0x00ff;
 	g_dsp.r[DSP_REG_PRODM2] = 0x0010;
+*/
 	// 00ff_(fff0 + 0010)_0000 = 0100_0000_0000, conveniently, lower 40bits = 0
+	dsp_set_long_prod(0); // if we are doing it wrong then let's be consistent
 }
 
 // TSTPROD
@@ -140,7 +177,7 @@ void movpz(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x01;
 
-	s64 acc = dsp_get_long_prod_prodl_zero();
+	s64 acc = dsp_get_long_prod_round_prodl();
 
 	zeroWriteBackLog();
 
@@ -159,7 +196,7 @@ void addpaxz(const UDSPInstruction& opc)
 	u8 dreg = (opc.hex >> 8) & 0x1;
 	u8 sreg = (opc.hex >> 9) & 0x1;
 
-	s64 prod = dsp_get_long_prod_prodl_zero();
+	s64 prod = dsp_get_long_prod_round_prodl();
 	s64 ax = dsp_get_long_acx(sreg);
 	s64 res = prod + (ax & ~0xffff);
 
@@ -264,7 +301,7 @@ void mulmvz(const UDSPInstruction& opc)
 	u8 rreg = (opc.hex >> 8) & 0x1;
 	u8 sreg = (opc.hex >> 11) & 0x1;
 
-	s64 acc = dsp_get_long_prod_prodl_zero();
+	s64 acc = dsp_get_long_prod_round_prodl();
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
 	s64 prod = dsp_multiply(axl, axh);
@@ -289,39 +326,7 @@ void mulx(const UDSPInstruction& opc)
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-	s64 prod;
-
-	if (!treg && !sreg)
-	{
-		prod = dsp_multiply(val1, val2, 1);
-	}
-	else if (treg && !sreg)
-	{
-		if ((val1 >= 0x8000) && (val2 >= 0x8000))
-			prod = dsp_multiply(val1, val2, 2);
-		else if ((val1 >= 0x8000) && (val2 < 0x8000))
-			prod = dsp_multiply(val1, val2, 1);
-		else
-			prod = dsp_multiply(val1, val2, 0);
-	}
-	else if (!treg && sreg)
-	{
-		if ((val2 >= 0x8000) && (val1 >= 0x8000))
-			prod = dsp_multiply(val2, val1, 2);
-		else if ((val2 >= 0x8000) && (val1 < 0x8000))
-			prod = dsp_multiply(val2, val1, 1);
-		else
-			prod = dsp_multiply(val2, val1, 0);
-	}
-	else
-	{
-		if ((val1 >= 0x8000) && (val2 >= 0x8000))
-			prod = dsp_multiply(val1, val2, 1);
-		else if ((val1 >= 0x8000) || (val2 >= 0x8000))
-			prod = dsp_multiply(val1, val2, 0);
-		else
-			prod = dsp_multiply(val1, val2, 1);
-	}
+	s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
 
 	zeroWriteBackLog();
 
@@ -344,39 +349,7 @@ void mulxac(const UDSPInstruction& opc)
 	s64 acc = dsp_get_long_acc(rreg) + dsp_get_long_prod();
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-	s64 prod;
-
-	if (!treg && !sreg)
-	{
-		prod = dsp_multiply(val1, val2, 1);
-	}
-	else if (treg && !sreg)
-	{
-		if ((val1 >= 0x8000) && (val2 >= 0x8000))
-			prod = dsp_multiply(val1, val2, 2);
-		else if ((val1 >= 0x8000) && (val2 < 0x8000))
-			prod = dsp_multiply(val1, val2, 1);
-		else
-			prod = dsp_multiply(val1, val2, 0);
-	}
-	else if (!treg && sreg)
-	{
-		if ((val2 >= 0x8000) && (val1 >= 0x8000))
-			prod = dsp_multiply(val2, val1, 2);
-		else if ((val2 >= 0x8000) && (val1 < 0x8000))
-			prod = dsp_multiply(val2, val1, 1);
-		else
-			prod = dsp_multiply(val2, val1, 0);
-	}
-	else
-	{
-		if ((val1 >= 0x8000) && (val2 >= 0x8000))
-			prod = dsp_multiply(val1, val2, 1);
-		else if ((val1 >= 0x8000) || (val2 >= 0x8000))
-			prod = dsp_multiply(val1, val2, 0);
-		else
-			prod = dsp_multiply(val1, val2, 1);
-	}
+	s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
 	
 	zeroWriteBackLog();
 
@@ -401,39 +374,7 @@ void mulxmv(const UDSPInstruction& opc)
 	s64 acc = dsp_get_long_prod();
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-	s64 prod;
-
-	if (!treg && !sreg)
-	{
-		prod = dsp_multiply(val1, val2, 1);
-	}
-	else if (treg && !sreg)
-	{
-		if ((val1 >= 0x8000) && (val2 >= 0x8000))
-			prod = dsp_multiply(val1, val2, 2);
-		else if ((val1 >= 0x8000) && (val2 < 0x8000))
-			prod = dsp_multiply(val1, val2, 1);
-		else
-			prod = dsp_multiply(val1, val2, 0);
-	}
-	else if (!treg && sreg)
-	{
-		if ((val2 >= 0x8000) && (val1 >= 0x8000))
-			prod = dsp_multiply(val2, val1, 2);
-		else if ((val2 >= 0x8000) && (val1 < 0x8000))
-			prod = dsp_multiply(val2, val1, 1);
-		else
-			prod = dsp_multiply(val2, val1, 0);
-	}
-	else
-	{
-		if ((val1 >= 0x8000) && (val2 >= 0x8000))
-			prod = dsp_multiply(val1, val2, 1);
-		else if ((val1 >= 0x8000) || (val2 >= 0x8000))
-			prod = dsp_multiply(val1, val2, 0);
-		else
-			prod = dsp_multiply(val1, val2, 1);
-	}
+	s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
 
 	zeroWriteBackLog();
 
@@ -456,42 +397,10 @@ void mulxmvz(const UDSPInstruction& opc)
 	u8 treg = (opc.hex >> 11) & 0x1;
 	u8 sreg = (opc.hex >> 12) & 0x1;
 
-	s64 acc = dsp_get_long_prod_prodl_zero();
+	s64 acc = dsp_get_long_prod_round_prodl();
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-	s64 prod;
-
-	if (!treg && !sreg)
-	{
-		prod = dsp_multiply(val1, val2, 1);
-	}
-	else if (treg && !sreg)
-	{
-		if ((val1 >= 0x8000) && (val2 >= 0x8000))
-			prod = dsp_multiply(val1, val2, 2);
-		else if ((val1 >= 0x8000) && (val2 < 0x8000))
-			prod = dsp_multiply(val1, val2, 1);
-		else
-			prod = dsp_multiply(val1, val2, 0);
-	}
-	else if (!treg && sreg)
-	{
-		if ((val2 >= 0x8000) && (val1 >= 0x8000))
-			prod = dsp_multiply(val2, val1, 2);
-		else if ((val2 >= 0x8000) && (val1 < 0x8000))
-			prod = dsp_multiply(val2, val1, 1);
-		else
-			prod = dsp_multiply(val2, val1, 0);
-	}
-	else
-	{
-		if ((val1 >= 0x8000) && (val2 >= 0x8000))
-			prod = dsp_multiply(val1, val2, 1);
-		else if ((val1 >= 0x8000) || (val2 >= 0x8000))
-			prod = dsp_multiply(val1, val2, 0);
-		else
-			prod = dsp_multiply(val1, val2, 1);
-	}
+	s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
 
 	zeroWriteBackLog();
 
@@ -586,7 +495,7 @@ void mulcmvz(const UDSPInstruction& opc)
 	u8 treg  = (opc.hex >> 11) & 0x1;
 	u8 sreg  = (opc.hex >> 12) & 0x1;
 
-	s64 acc = dsp_get_long_prod_prodl_zero();
+	s64 acc = dsp_get_long_prod_round_prodl();
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
 	s64 prod = dsp_multiply(accm, axh);

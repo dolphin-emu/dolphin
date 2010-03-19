@@ -163,9 +163,7 @@ void ori(const UDSPInstruction& opc);
 void srbith(const UDSPInstruction& opc);
 void mulaxh(const UDSPInstruction& opc);
 void tstprod(const UDSPInstruction& opc);
-
-//mia
-void a100(const UDSPInstruction& opc);
+void abs(const UDSPInstruction& opc);
 
 }  // namespace
 

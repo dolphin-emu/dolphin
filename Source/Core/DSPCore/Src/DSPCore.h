@@ -157,7 +157,7 @@
 #define SR_OVER_S32			0x0010 // set when there there was mod/tst/cmp on accu and result is over s32
 #define SR_TOP2BITS			0x0020 // if the upper (ac?.m/ax?.h) 2 bits are equal
 #define SR_LOGIC_ZERO		0x0040
-#define SR_OVERFLOW_SPECIAL	0x0080 // set at the same time as 0x2 (under same conditions) - but not cleared the same
+#define SR_OVERFLOW_STICKY	0x0080 // set at the same time as 0x2 (under same conditions) - but not cleared the same
 #define SR_100				0x0100 // unknown
 #define SR_INT_ENABLE		0x0200 // Not 100% sure but duddie says so. This should replace the hack, if so.
 #define SR_400				0x0400 // unknown

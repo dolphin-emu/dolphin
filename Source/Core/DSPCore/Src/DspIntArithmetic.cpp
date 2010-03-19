@@ -48,10 +48,9 @@ void clrl(const UDSPInstruction& opc)
 {
 	u8 reg = (opc.hex >> 8) & 0x1;
 
-	s64 acc = dsp_get_long_acc(reg);
-	acc = (acc & ~0xffff) + (((acc & 0xffff) >= 0x8000) ? 0x10000 : 0);
+	s64 acc = (dsp_get_long_acc(reg) + 0x8000) & ~0xffff;
 
-	zeroWriteBackLogPreserveAcc(reg);
+	zeroWriteBackLog();
 
 	dsp_set_long_acc(reg, acc);
 	Update_SR_Register64(acc);
@@ -98,7 +97,7 @@ void andf(const UDSPInstruction& opc)
 // 1011 r001 xxxx xxxx
 // Test accumulator %acR.
 //
-// flags out: xx xx00
+// flags out: --xx xx00
 void tst(const UDSPInstruction& opc)
 {
 	u8 reg = (opc.hex >> 11) & 0x1;
@@ -135,8 +134,7 @@ void cmp(const UDSPInstruction& opc)
 	s64 acc1 = dsp_get_long_acc(1);
 	s64 res = dsp_convert_long_acc(acc0 - acc1);
 	
-	//Update_SR_Register64(res, isCarry2(acc0, res), isOverflow(acc0, -acc1, res)); // CF -> problems in ikaruga/nsmb -> 0xa100 ??
-	Update_SR_Register64(res, false, isOverflow(acc0, -acc1, res)); 
+	Update_SR_Register64(res, isCarry2(acc0, res), isOverflow(acc0, -acc1, res)); // CF -> influence on ABS/0xa100
 	zeroWriteBackLog();
 }
 
@@ -441,7 +439,7 @@ void add(const UDSPInstruction& opc)
 // 0100 111d xxxx xxxx
 // Adds product register to accumulator register.
 //
-// flags out: x-xx xxxx - CF??
+// flags out: x-xx xxxx
 void addp(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x1;
@@ -564,7 +562,7 @@ void inc(const UDSPInstruction& opc)
 // 0101 0ssd xxxx xxxx
 // Subtracts register $axS.L from accumulator $acD.M register.
 //
-// flags out: xx xx00
+// flags out: x-xx xxxx
 void subr(const UDSPInstruction& opc)
 {
 	u8 dreg = (opc.hex >> 8) & 0x1;
@@ -702,6 +700,25 @@ void neg(const UDSPInstruction& opc)
 	Update_SR_Register64(dsp_get_long_acc(dreg));
 }
 
+// ABS  $acD
+// 1010 d001 xxxx xxxx 
+// absolute value of $acD
+//
+// flags out: --xx xx00
+void abs(const UDSPInstruction& opc)
+{
+	u8 dreg = (opc.hex >> 11) & 0x1;
+
+	s64 acc = dsp_get_long_acc(dreg); 	
+
+	if (acc < 0)
+		acc = 0 - acc;
+	
+	zeroWriteBackLog();
+
+	dsp_set_long_acc(dreg, acc);
+	Update_SR_Register64(dsp_get_long_acc(dreg));
+}
 //----
 
 // MOVR $acD, $axS.R
@@ -1092,21 +1109,6 @@ void asrnr(const UDSPInstruction& opc)
 	Update_SR_Register64(dsp_get_long_acc(dreg));
 }
 
-//----
-
-// A100  $acD
-// 1010 d001 xxxx xxxx
-// 
-// MIA!! - needed for AX/AXWII
-//
-void a100(const UDSPInstruction& opc)
-{
-	u8 dreg = (opc.hex >> 11) & 0x1;
-	//it  changes target ACC sometimes!
-
-	zeroWriteBackLog();
-	Update_SR_Register64(dsp_get_long_acc(dreg));
-}
 
 }  // namespace
 
