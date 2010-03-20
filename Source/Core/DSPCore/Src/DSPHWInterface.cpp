@@ -165,7 +165,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 			dsp_write_aram_d3(val);
 			break;
 
-		case 0xde: // BMX XXX does, and sounds HORRIBLE. / Spyro - A Hero's Tail / Sega GC games / Wiiware - World of Goo
+		case DSP_GAIN: // BMX XXX does, and sounds HORRIBLE. / Spyro - A Hero's Tail / Sega GC games / Wiiware - World of Goo
 			if (val) {
 				INFO_LOG(DSPLLE,"Gain Written: 0x%04x", val); 
 			}
@@ -302,7 +302,7 @@ void gdsp_do_dma()
 	dsp_addr = g_dsp.ifx_regs[DSP_DSPA] * 2;
 	len = g_dsp.ifx_regs[DSP_DSBL];
 
-	if ((ctl > 3) || (len > 0x4000))
+	if (len > 0x4000)
 	{
 		ERROR_LOG(DSPLLE, "DMA ERROR pc: %04x ctl: %04x addr: %08x da: %04x size: %04x", g_dsp.pc, ctl, addr, dsp_addr, len);
 		exit(0);
