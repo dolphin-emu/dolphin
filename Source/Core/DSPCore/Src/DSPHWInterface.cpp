@@ -129,34 +129,39 @@ void gdsp_ifx_write(u16 addr, u16 val)
 {
 	switch (addr & 0xff)
 	{
-	    case 0xfb: // DIRQ
+	    case DSP_DIRQ:
 		    if (val & 0x1)
 			    DSPHost_InterruptRequest();
 			else 
 				INFO_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
 		    break;
 
-	    case 0xfc: // DMBH
+	    case DSP_DMBH:
 		    gdsp_mbox_write_h(GDSP_MBOX_DSP, val);
 		    break;
 
-	    case 0xfd: // DMBL
+	    case DSP_DMBL:
 		    gdsp_mbox_write_l(GDSP_MBOX_DSP, val);
 		    break;
 
-	    case 0xfe:  // CMBH
+	    case DSP_CMBH:
 		    return gdsp_mbox_write_h(GDSP_MBOX_CPU, val);
 
-	    case 0xff:  // CMBL
+	    case DSP_CMBL:
 		    return gdsp_mbox_write_l(GDSP_MBOX_CPU, val);
 
-	    case 0xcb: // DSBL
-		    g_dsp.ifx_regs[addr & 0xFF] = val;
-		    gdsp_do_dma();
-		    g_dsp.ifx_regs[DSP_DSCR] &= ~0x0004;
+	    case DSP_DSBL:
+		    g_dsp.ifx_regs[DSP_DSBL] = val;
+			g_dsp.ifx_regs[DSP_DSCR] |= 4; // Doesn't really matter since we do DMA instantly
+		    if (!g_dsp.ifx_regs[DSP_AMDM])
+				gdsp_do_dma();
+			else
+				NOTICE_LOG(DSPLLE, "Masked DMA skipped");
+		    g_dsp.ifx_regs[DSP_DSCR] &= ~4;
+			g_dsp.ifx_regs[DSP_DSBL] = 0;
 		    break;
 
-		case 0xd3: // Accelerator write (Zelda type) - "UnkZelda"
+		case DSP_ACDATA1: // Accelerator write (Zelda type) - "UnkZelda"
 			dsp_write_aram_d3(val);
 			break;
 
@@ -164,13 +169,17 @@ void gdsp_ifx_write(u16 addr, u16 val)
 			if (val) {
 				INFO_LOG(DSPLLE,"Gain Written: 0x%04x", val); 
 			}
-	    case 0xcd:
-	    case 0xce:
-	    case 0xcf:
-	    case 0xc9:
+	    case DSP_DSPA:
+	    case DSP_DSMAH:
+	    case DSP_DSMAL:
+	    case DSP_DSCR:
 		    g_dsp.ifx_regs[addr & 0xFF] = val;
 		    break;
-
+/*
+		case DSP_ACCAL:
+			dsp_step_accelerator();
+			break;
+*/
 	    default:
 			if ((addr & 0xff) >= 0xa0) {
 				if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description) {
@@ -192,25 +201,25 @@ u16 gdsp_ifx_read(u16 addr)
 {
 	switch (addr & 0xff)
 	{
-	    case 0xfc:  // DMBH
+	    case DSP_DMBH:
 		    return gdsp_mbox_read_h(GDSP_MBOX_DSP);
 
-	    case 0xfd:  // DMBL
+	    case DSP_DMBL:
 		    return gdsp_mbox_read_l(GDSP_MBOX_DSP);
 
-	    case 0xfe:  // CMBH
+	    case DSP_CMBH:
 		    return gdsp_mbox_read_h(GDSP_MBOX_CPU);
 
-	    case 0xff:  // CMBL
+	    case DSP_CMBL:
 		    return gdsp_mbox_read_l(GDSP_MBOX_CPU);
 
-	    case 0xc9:
+	    case DSP_DSCR:
 		    return g_dsp.ifx_regs[addr & 0xFF];
 
-	    case 0xdd:  // ADPCM Accelerator reads
-		    return dsp_read_accelerator();
+ 	    case DSP_ACCELERATOR:  // ADPCM Accelerator reads
+ 		    return dsp_read_accelerator();
 
-	    case 0xd3: // Accelerator reads (Zelda type) - "UnkZelda"
+	    case DSP_ACDATA1: // Accelerator reads (Zelda type) - "UnkZelda"
 		    return dsp_read_aram_d3();
 
 	    default:
