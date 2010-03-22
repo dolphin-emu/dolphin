@@ -46,12 +46,13 @@ it failed)
 #endif
 
 #include "WII_IPC_HLE_Device_net.h"
+#include "FileUtil.h"
 #include <stdio.h>
+#include <string>
 #ifdef _WIN32
 #include <ws2tcpip.h>
 #else
 #include <sys/types.h>
-#include <sys/socket.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
 #endif
@@ -161,6 +162,37 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 CWII_IPC_HLE_Device_net_ncd_manage::CWII_IPC_HLE_Device_net_ncd_manage(u32 _DeviceID, const std::string& _rDeviceName) 
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
+	// store network configuration
+	std::string filename(File::GetUserPath(D_WIIUSER_IDX));
+	filename.append("shared2/sys/net/02/config.dat");
+	FILE *file = fopen(filename.c_str(), "rb");
+
+	if (file == NULL || fread(&m_Ifconfig, sizeof(network_config_t), 1, file) != 1)
+	{
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Failed to load /shared2/sys/net/02/config.dat, using dummy configuration");
+
+		// wired connection on IP 192.168.1.1 using gateway 192.168.1.2
+		memset(&m_Ifconfig, 0, sizeof(m_Ifconfig));
+		m_Ifconfig.header4 = 1; // got one "valid" connection
+		m_Ifconfig.header6 = 7; // this is always 7?
+		m_Ifconfig.connection[0].flags = 167;
+		m_Ifconfig.connection[0].ip[0] = 192;
+		m_Ifconfig.connection[0].ip[1] = 168;
+		m_Ifconfig.connection[0].ip[2] =   1;
+		m_Ifconfig.connection[0].ip[3] =   1;
+		m_Ifconfig.connection[0].netmask[0] = 255;
+		m_Ifconfig.connection[0].netmask[1] = 255;
+		m_Ifconfig.connection[0].netmask[2] = 255;
+		m_Ifconfig.connection[0].netmask[3] = 255;
+		m_Ifconfig.connection[0].gateway[0] = 192;
+		m_Ifconfig.connection[0].gateway[1] = 168;
+		m_Ifconfig.connection[0].gateway[2] =   1;
+		m_Ifconfig.connection[0].gateway[3] =   2;
+	}
+	if (file)
+	{
+		fclose(file);
+	}
 }
 
 CWII_IPC_HLE_Device_net_ncd_manage::~CWII_IPC_HLE_Device_net_ncd_manage() 
@@ -169,7 +201,7 @@ CWII_IPC_HLE_Device_net_ncd_manage::~CWII_IPC_HLE_Device_net_ncd_manage()
 
 bool CWII_IPC_HLE_Device_net_ncd_manage::Open(u32 _CommandAddress, u32 _Mode)
 {
-    INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Open");
+	INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Open");
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	m_Active = true;
 	return true;
@@ -177,37 +209,77 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_net_ncd_manage::Close(u32 _CommandAddress, bool _bForce)
 {
-    INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Close");
+	INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Close");
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress) 
-{ 
+bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
+{
 	u32 ReturnValue = 0;
 
 	SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
 	switch (CommandBuffer.Parameter)
 	{
-      // WiiMenu
-	case IOCTL_NCD_GETLINKSTATUS: // 32 Out. 5th
-    case IOCTL_NCD_SETIFCONFIG3: // ??? It seems that is related to Write and Read information
-    case IOCTL_NCD_SETIFCONFIG4: // 7004 In, 32 Out. 4th
-    case 0x05: // 7004 Out, 32 Out. 2nd, 3rd
-    case 0x06:
-    case 0x08: // 32 Out, 6 Out. 1st
-        //break;
+	case IOCTLV_NCD_READCONFIG: // 7004 out, 32 out
+	// first out buffer gets filled with contents of /shared2/sys/net/02/config.dat
+	// TODO: What's the second output buffer for?
+	{
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETIFCONFIG");
 
-	default:		
-		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE IOCtlV: %i", CommandBuffer.Parameter);
+		// fill output buffer, taking care of endianness
+		u32 addr = CommandBuffer.PayloadBuffer.at(0).m_Address;
+		Memory::WriteBigEData((const u8*)&m_Ifconfig, addr, 8);
+		addr += 8;
+		for (unsigned int i = 0;i < 3; i++)
+		{
+			netcfg_connection_t *conn = &m_Ifconfig.connection[i];
+
+			Memory::WriteBigEData((const u8*)conn, addr, 26);
+			Memory::Write_U16(Common::swap16(conn->mtu), addr+26);
+			Memory::WriteBigEData((const u8*)conn->padding_3, addr+28, 8);
+
+			Memory::WriteBigEData((const u8*)&conn->proxy_settings, addr+36, 260);
+			Memory::Write_U16(Common::swap16(conn->proxy_settings.proxy_port), addr+296);
+			Memory::WriteBigEData((const u8*)&conn->proxy_settings.proxy_username, addr+298, 65);
+			Memory::Write_U8(conn->padding_4, addr+363);
+
+			Memory::WriteBigEData((const u8*)&conn->proxy_settings_copy, addr+364, 260);
+			Memory::Write_U16(Common::swap16(conn->proxy_settings_copy.proxy_port), addr+624);
+			Memory::WriteBigEData((const u8*)&conn->proxy_settings_copy.proxy_username, addr+626, 65);
+			Memory::WriteBigEData((const u8*)conn->padding_5, addr+691, 1641);
+			addr += sizeof(netcfg_connection_t);
+		}
+		ReturnValue = 0;
 		break;
 	}
-	Memory::Write_U32(ReturnValue, _CommandAddress+4);
 
-	return true; 
+	case IOCTLV_NCD_SETIFCONFIG4: // 7004 In, 32 Out. 4th
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_SETIFCONFIG4");
+		break;
+
+	case 0x05: // 7004 Out, 32 Out. 2nd, 3rd
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCtlV 0x5");
+		break;
+
+	case IOCTLV_NCD_GETLINKSTATUS: // 32 Out. 5th
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETLINKSTATUS");
+		break;
+
+	case 0x08: // 32 Out, 6 Out. 1st
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCtlV 0x8");
+		break;
+
+	default:
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE IOCtlV: %#x", CommandBuffer.Parameter);
+		break;
+	}
+
+	Memory::Write_U32(ReturnValue, _CommandAddress+4);
+	return true;
 }
 
 // **********************************************************************************
@@ -221,7 +293,7 @@ CWII_IPC_HLE_Device_net_ip_top::~CWII_IPC_HLE_Device_net_ip_top()
 
 bool CWII_IPC_HLE_Device_net_ip_top::Open(u32 _CommandAddress, u32 _Mode)
 {
-    INFO_LOG(WII_IPC_NET, "NET_IP_TOP: Open");
+	INFO_LOG(WII_IPC_NET, "NET_IP_TOP: Open");
 	Memory::Write_U32(GetDeviceID(), _CommandAddress+4);
 	m_Active = true;
 	return true;
@@ -229,7 +301,7 @@ bool CWII_IPC_HLE_Device_net_ip_top::Open(u32 _CommandAddress, u32 _Mode)
 
 bool CWII_IPC_HLE_Device_net_ip_top::Close(u32 _CommandAddress, bool _bForce)
 {
-    INFO_LOG(WII_IPC_NET, "NET_IP_TOP: Close");
+	INFO_LOG(WII_IPC_NET, "NET_IP_TOP: Close");
 	if (!_bForce)
 		Memory::Write_U32(0, _CommandAddress + 4);
 	m_Active = false;
@@ -240,16 +312,16 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 { 
 	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-    u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-    u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 	u32 Command			= Memory::Read_U32(_CommandAddress + 0x0C);
 
 //	INFO_LOG(WII_IPC_NET,"%s - Command(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)\n", GetDeviceName().c_str(), Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
 	u32 ReturnValue = ExecuteCommand(Command, BufferIn, BufferInSize, BufferOut, BufferOutSize);	
-    Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
-    return true;
+	return true;
 }
 struct bind_params {
 	u32 socket;
@@ -257,19 +329,19 @@ struct bind_params {
 	u8 name[28];
 };
 struct GC_sockaddr {
-  u8 sa_len;
-  u8 sa_family;
-  s8 sa_data[14];
+	u8 sa_len;
+	u8 sa_family;
+	s8 sa_data[14];
 };
 struct GC_in_addr {
-  u32 s_addr_;    // this cannot be named s_addr under windows - collides with some crazy define.
+	u32 s_addr_;    // this cannot be named s_addr under windows - collides with some crazy define.
 };
 struct GC_sockaddr_in {
-  u8 sin_len;
-  u8 sin_family;
-  u16 sin_port;
-  struct GC_in_addr sin_addr;
-  s8 sin_zero[8];
+	u8 sin_len;
+	u8 sin_family;
+	u16 sin_port;
+	struct GC_in_addr sin_addr;
+	s8 sin_zero[8];
 };
 u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command, u32 _BufferIn, u32 BufferInSize, u32 BufferOut, u32 BufferOutSize)
 {
@@ -286,7 +358,7 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command, u32 _BufferIn, 
 			u32 AF		= Memory::Read_U32(_BufferIn);
 			u32 TYPE	= Memory::Read_U32(_BufferIn + 0x04);
 			u32 PROT	= Memory::Read_U32(_BufferIn + 0x04 * 2);
-			u32 Unk1	= Memory::Read_U32(_BufferIn + 0x04 * 3);
+//			u32 Unk1	= Memory::Read_U32(_BufferIn + 0x04 * 3);
 			u32 Socket	= (u32)socket(AF, TYPE, PROT);
 			return Common::swap32(Socket); // So it doesn't get mangled later on
 		}

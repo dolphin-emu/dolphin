@@ -20,6 +20,91 @@
 
 #include "WII_IPC_HLE_Device.h"
 
+// data layout of the network configuration file (/shared2/sys/net/02/config.dat)
+// needed for /dev/net/ncd/manage
+#pragma pack(1)
+typedef struct
+{
+	u8 use_proxy;             // 0x00 -> no proxy;  0x01 -> proxy
+	u8 use_proxy_userandpass; // 0x00 -> don't use username and password;  0x01 -> use username and password
+	u8 padding_1[2];
+	u8 proxy_name[255];
+	u8 padding_2;
+	u16 proxy_port;           // 0-34463
+	u8 proxy_username[32];
+	u8 padding_3;
+	u8 proxy_password[32];
+} netcfg_proxy_t;
+
+typedef struct
+{
+	// settings common to both wired and wireless connections
+	u8 flags; //  Connection selected
+	          //  | ?
+	          //  | | Internet test passed
+	          //  | | | Use Proxy (1 -> on; 0 -> off)
+	          //  | | | |
+	          //  1 0 1 0  0 1 1 0
+	          //           | | | |
+	          //           | | | Interface (0 -> Internal wireless; 1 -> Wired LAN adapter)
+	          //           | | DNS source (0 -> Manual; 1 -> DHCP)
+	          //           | IP source (0 -> Manual; 1 -> DHCP)
+	          //           ?
+
+	u8 padding_1[3];
+
+	u8 ip[4];
+	u8 netmask[4];
+	u8 gateway[4];
+	u8 dns1[4];
+	u8 dns2[4];
+	u8 padding_2[2];
+
+	u16 mtu;         // 0 or 576-1500
+	u8 padding_3[8];
+
+	netcfg_proxy_t proxy_settings;
+	u8 padding_4;
+
+	netcfg_proxy_t proxy_settings_copy; // seems to be a duplicate of proxy_settings
+	u8 padding_5[1297];
+
+	// wireless specific settings
+	u8 ssid[32];        // access Point name.
+
+	u8 padding_6;
+	u8 ssid_length;     // length of ssid in bytes.
+	u8 padding_7[2];
+
+	u8 padding_8;
+	u8 encryption;      // (probably) encryption.  OPN: 0x00, WEP64: 0x01, WEP128: 0x02 WPA-PSK (TKIP): 0x04, WPA2-PSK (AES): 0x05, WPA-PSK (AES): 0x06
+	u8 padding_9[2];
+
+	u8 padding_10;
+	u8 key_length;      // length of key in bytes.  0x00 for WEP64 and WEP128.
+	u8 unknown;         // 0x00 or 0x01 toogled with a WPA-PSK (TKIP) and with a WEP entered with hex instead of ascii.
+	u8 padding_11;
+
+	u8 key[64];         // encryption key; for WEP, key is stored 4 times (20 bytes for WEP64 and 52 bytes for WEP128) then padded with 0x00
+	u8 padding_12[236];
+} netcfg_connection_t;
+
+typedef struct
+{
+	u8 header0;    // 0x00
+	u8 header1;    // 0x00
+	u8 header2;    // 0x00
+	u8 header3;    // 0x00
+	u8 header4;    // 0x01 if there's at least one valid connection to the Internet.
+	u8 header5;    // 0x00
+	u8 header6;    // always 0x07?
+	u8 header7;    // 0x00
+
+	netcfg_connection_t connection[3];
+} network_config_t;
+#pragma pack()
+
+
 // **********************************************************************************
 // KD is the IOS module responsible for implementing WiiConnect24 functionality. It
 // can perform HTTPS downloads, send and receive mail via SMTP, and execute a
@@ -205,7 +290,7 @@ private:
 };
 
 // **********************************************************************************
-// Seems like just wireless stuff?
+// Interface for reading and changing network configuration (probably some other stuff as well)
 class CWII_IPC_HLE_Device_net_ncd_manage : public IWII_IPC_HLE_Device
 {
 public:
@@ -219,12 +304,14 @@ public:
 
 private:
 	enum {
-		IOCTL_NCD_UNK1				= 1, // NCDLockWirelessDriver
-		IOCTL_NCD_UNK2				= 2, // NCDUnlockWirelessDriver
-		IOCTL_NCD_SETIFCONFIG3		= 3,
-		IOCTL_NCD_SETIFCONFIG4		= 4, // NCDGetWirelessMacAddress
-		IOCTL_NCD_GETLINKSTATUS		= 7 // NCDGetLinkStatus
+		IOCTLV_NCD_UNK1				= 1, // NCDLockWirelessDriver
+		IOCTLV_NCD_UNK2				= 2, // NCDUnlockWirelessDriver
+		IOCTLV_NCD_READCONFIG		= 3,
+		IOCTLV_NCD_SETIFCONFIG4		= 4, // NCDGetWirelessMacAddress
+		IOCTLV_NCD_GETLINKSTATUS		= 7 // NCDGetLinkStatus
 	};
+
+        network_config_t m_Ifconfig;
 };
 
 #endif
