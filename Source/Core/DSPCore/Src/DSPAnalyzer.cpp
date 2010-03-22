@@ -90,17 +90,18 @@ void AnalyzeRange(int start_addr, int end_addr)
 			continue;
 		}
 		code_flags[addr] |= CODE_START_OF_INST;
-		addr += opcode->size;
-
-		// Look for loops.
+		// Look for loops. (this is not used atm)
 		if ((inst.hex & 0xffe0) == 0x0060 || (inst.hex & 0xff00) == 0x1100) {
 			// BLOOP, BLOOPI
 			u16 loop_end = dsp_imem_read(addr + 1);
+			code_flags[addr] |= CODE_LOOP_START;
 			code_flags[loop_end] |= CODE_LOOP_END;
 		} else if ((inst.hex & 0xffe0) == 0x0040 || (inst.hex & 0xff00) == 0x1000) {
 			// LOOP, LOOPI
+			code_flags[addr] |= CODE_LOOP_START;
 			code_flags[addr + 1] |= CODE_LOOP_END;
 		}
+		addr += opcode->size;
 	}
 
 	// Next, we'll scan for potential idle skips.
@@ -122,7 +123,6 @@ void AnalyzeRange(int start_addr, int end_addr)
 			{
 				NOTICE_LOG(DSPLLE, "Idle skip location found at %02x", addr);
 				code_flags[addr] |= CODE_IDLE_SKIP;
-				// TODO: actually use this flag somewhere.
 			}
 		}
 	}

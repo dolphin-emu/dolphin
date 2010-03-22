@@ -270,7 +270,7 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 	u32 op2;
 
 	// Size 2 - the op has a large immediate.
-	if ((opc->size & ~P_EXT) == 2)
+	if (opc->size == 2)
 	{
 		op2 = binbuf[(*pc + 1) & 0x0fff];
 		if (settings_.show_hex)
@@ -327,7 +327,7 @@ bool DSPDisassembler::DisOpcode(const u16 *binbuf, int base_addr, int pass, u16 
 	if (extended)
 		*pc += opc_ext->size;
 	else
-		*pc += opc->size & ~P_EXT;
+		*pc += opc->size;
 
 	if (pass == 2)
 		dest.append(buffer);

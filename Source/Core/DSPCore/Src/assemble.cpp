@@ -976,13 +976,13 @@ bool DSPAssembler::AssembleFile(const char *fname, int pass)
 		if (!opc)
 			opc = &cw;
 
-		opcode_size = opc->size & ~P_EXT;
+		opcode_size = opc->size;
 
 		VerifyParams(opc, params, params_count);
 
 		const opc_t *opc_ext = NULL;
 		// Check for opcode extensions.
-		if (opc->size & P_EXT)
+		if (opc->extended)
 		{
 			if (opcode_ext)
 			{

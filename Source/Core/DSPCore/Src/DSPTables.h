@@ -64,8 +64,6 @@ enum partype_t
 	//	P_AX_D		= P_REG | 0x2280,
 };
 
-#define P_EXT   0x80
-
 #define OPTABLE_SIZE 0xffff + 1
 #define EXT_OPTABLE_SIZE 0xff + 1
 
