@@ -151,13 +151,9 @@ u16 dsp_read_accelerator()
 
 	// TODO: Take GAIN into account, whatever it is.
 	// adpcm = 0, pcm8 = 0x100, pcm16 = 0x800
-	// games using pcm8 : Phoenix Wright Ace Attorney (Wiiware)
+	// games using pcm8 : Phoenix Wright Ace Attorney (Wiiware), Megaman 9-10 (WiiWare)
 	if (g_dsp.ifx_regs[DSP_GAIN] > 0)
 	{
-		// this was trial&error -> it fixes "Super Monkey Ball - Step & Roll"
-		// sth it wrong with exceptions here...
-		//DSPCore_SetException(EXP_3); 
-		
 		//NOTICE_LOG(DSPLLE,"format: 0x%04x - val: 0x%04x - gain: 0x%04x", g_dsp.ifx_regs[DSP_FORMAT], val, g_dsp.ifx_regs[DSP_GAIN]);
 	}
 
@@ -177,8 +173,10 @@ u16 dsp_read_accelerator()
 		// so yeah, it seems likely that we should raise an exception to let
 		// the DSP program do that, at least if DSP_FORMAT == 0x0A.
 	}
+	//else
+	//	DSPCore_SetException(EXP_6); // test! (bunch of NOPs there - helps "SMB S&R (wii)")
 
 	g_dsp.ifx_regs[DSP_ACCAH] = Address >> 16;
 	g_dsp.ifx_regs[DSP_ACCAL] = Address & 0xffff;
-	return(val);
+	return val;
 }

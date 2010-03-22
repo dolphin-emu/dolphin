@@ -30,7 +30,7 @@ u8 code_flags[ISPACE];
 // as well give up its time slice immediately, after executing once.
 
 // Max signature length is 6. A 0 in a signature is ignored.
-#define NUM_IDLE_SIGS 5
+#define NUM_IDLE_SIGS 7
 #define MAX_IDLE_SIG_SIZE 6
 
 // 0xFFFF means ignore.
@@ -53,7 +53,14 @@ const u16 idle_skip_sigs[NUM_IDLE_SIGS][MAX_IDLE_SIG_SIZE + 1] =
 	  0x03c0, 0x8000,  // ANDCF $31, #0x8000
 	  0x029c, 0xFFFF,  // JLNZ 0x0280
 	  0, 0 },     // RET
-
+	{ 0x26fc,			// lrs         $AC0.M, @DMBH
+	  0x02a0, 0x8000,	// andf        $AC0.M, #0x8000
+	  0x029c, 0xFFFF,	// jlnz        0x????
+	  0, 0 }, 
+	{ 0x27fc,			// lrs         $AC1.M, @DMBH
+	  0x03a0, 0x8000,	// andf        $AC1.M, #0x8000
+	  0x029c, 0xFFFF,	// jlnz        0x????
+	  0, 0 }, 
 	// From Zelda:
 	{ 0x00de, 0xFFFE,  // LR $AC0.M, @CMBH
 	  0x02c0, 0x8000,  // ANDCF $AC0.M, #0x8000 

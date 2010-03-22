@@ -73,7 +73,6 @@ u16 ReadCR()
 
 void Step()
 {
-	//DSPCore_CheckExternalInterrupt(); 
 	DSPCore_CheckExceptions();
 
 	g_dsp.step_counter++;
@@ -125,8 +124,7 @@ void Run()
 // This one has basic idle skipping, and checks breakpoints.
 int RunCyclesDebug(int cycles)
 {
-	// First, let's run a few cycles with no idle skipping so that things can
-	// progress a bit.
+	// First, let's run a few cycles with no idle skipping so that things can progress a bit.
 	for (int i = 0; i < 8; i++)
 	{
 		if (g_dsp.cr & CR_HALT)
@@ -144,39 +142,44 @@ int RunCyclesDebug(int cycles)
 	
 	DSPCore_CheckExternalInterrupt();
 
-	// Now, let's run a few cycles with idle skipping.
-	for (int i = 0; i < 8; i++)
+	while (true)
 	{
-		if (g_dsp.cr & CR_HALT)
-			return 0;
-		if (dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
+		// Next, let's run a few cycles with idle skipping, so that we can skip
+		// idle loops.
+		for (int i = 0; i < 8; i++)
 		{
-			DSPCore_SetState(DSPCORE_STEPPING);
-			return cycles;
+			if (g_dsp.cr & CR_HALT)
+				return 0;
+			if (dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
+			{
+				DSPCore_SetState(DSPCORE_STEPPING);
+				return cycles;
+			}
+			// Idle skipping.
+			if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
+				return 0;
+			Step();
+			cycles--;
+			if (cycles < 0)
+				return 0;
 		}
-		// Idle skipping.
-		if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
-			return 0;
 
-		Step();
-		cycles--;
-		if (cycles < 0)
-			return 0;
-	}
-
-	// Finally, run the rest of the block without.
-	while (cycles > 0)
-	{
-		if (dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
+		// Now, lets run some more without idle skipping. 
+		for (int i = 0; i < 200; i++)
 		{
-			DSPCore_SetState(DSPCORE_STEPPING);
-			return cycles;
+			if (dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
+			{
+				DSPCore_SetState(DSPCORE_STEPPING);
+				return cycles;
+			}
+			Step();
+			cycles--;
+			if (cycles < 0)
+				return 0;
+			// We don't bother directly supporting pause - if the main emu pauses,
+			// it just won't call this function anymore.
 		}
-		Step();
-		cycles--;
 	}
-
-	return cycles;
 }
 
 // Used by non-thread mode. Meant to be efficient.
@@ -195,32 +198,34 @@ int RunCycles(int cycles)
 
 	DSPCore_CheckExternalInterrupt();
 
-	// Next, let's run a few cycles with idle skipping, so that we can skip
-	// idle loops.
-	for (int i = 0; i < 8; i++)
+	while (true)
 	{
-		if (g_dsp.cr & CR_HALT)
-			return 0;
-		if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
-			return 0;
-		Step();
-		cycles--;
-		if (cycles < 0)
-			return 0;
-	}
+		// Next, let's run a few cycles with idle skipping, so that we can skip
+		// idle loops.
+		for (int i = 0; i < 8; i++)
+		{
+			if (g_dsp.cr & CR_HALT)
+				return 0;
+			// Idle skipping.
+			if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
+				return 0;
+			Step();
+			cycles--;
+			if (cycles < 0)
+				return 0;
+		}
 
-	// Now, run the rest of the block without idle skipping. It might trip into
-	// a idle loop and if so we waste some time here. Might be beneficial to
-	// slice even further.
-	while (cycles > 0)
-	{
-		Step();
-		cycles--;
-		// We don't bother directly supporting pause - if the main emu pauses,
-		// it just won't call this function anymore.
+		// Now, lets run some more without idle skipping. 
+		for (int i = 0; i < 200; i++)	
+		{
+			Step();
+			cycles--;
+			if (cycles < 0)
+				return 0;
+			// We don't bother directly supporting pause - if the main emu pauses,
+			// it just won't call this function anymore.
+		}
 	}
-
-	return cycles;
 }
 
 void Stop()

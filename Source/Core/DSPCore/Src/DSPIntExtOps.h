@@ -29,10 +29,8 @@
 #include "DSPTables.h"
 
 // Extended opcode support.
-// Many opcode have the lower 0xFF free - there, an opcode extension
-// can be stored. The ones that must be executed before the operation
-// is handled as a prologue, the ones that must be executed afterwards
-// is handled as an epilogue.
+// Many opcode have the lower 0xFF (some only 0x7f) free - there, an opcode extension
+// can be stored. 
 
 namespace DSPInterpreter
 {

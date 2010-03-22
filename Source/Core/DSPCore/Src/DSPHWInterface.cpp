@@ -165,7 +165,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 			dsp_write_aram_d3(val);
 			break;
 
-		case DSP_GAIN: // BMX XXX does, and sounds HORRIBLE. / Spyro - A Hero's Tail / Sega GC games / Wiiware - World of Goo
+		case DSP_GAIN:
 			if (val) {
 				INFO_LOG(DSPLLE,"Gain Written: 0x%04x", val); 
 			}
