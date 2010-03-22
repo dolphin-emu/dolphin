@@ -1280,7 +1280,15 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		yScale *= SupersampleCoeficient;
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
-		SetupDeviceObjects();
+		if(WindowResized)
+		{
+			SetupDeviceObjects();
+		}
+		else
+		{
+			FBManager.Destroy();
+			FBManager.Create();
+		}
 		D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
 		D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
 	}
