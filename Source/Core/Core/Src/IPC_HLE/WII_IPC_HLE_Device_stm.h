@@ -37,10 +37,7 @@ enum
     IOCTL_STM_READDDRREG2		= 0x4002,
 };
 
-
-// =======================================================
-// The /device/stm/immediate class
-// -------------
+// The /dev/stm/immediate
 class CWII_IPC_HLE_Device_stm_immediate : public IWII_IPC_HLE_Device
 {
 public:
@@ -71,11 +68,11 @@ public:
 
     virtual bool IOCtl(u32 _CommandAddress) 
     {
-        u32 Parameter = Memory::Read_U32(_CommandAddress +0x0C);
-		u32 BufferIn = Memory::Read_U32(_CommandAddress +0x10);
-		u32 BufferInSize = Memory::Read_U32(_CommandAddress +0x14);
-		u32 BufferOut = Memory::Read_U32(_CommandAddress +0x18);
-		u32 BufferOutSize = Memory::Read_U32(_CommandAddress +0x1C);
+        u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
+		u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
+		u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
+		u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+		u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 
 		// Prepare the out buffer(s) with zeroes as a safety precaution
 		// to avoid returning bad values
@@ -123,16 +120,11 @@ public:
 
 		// Write return value to the IPC call
         Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-
-		// Generate true or false reply for the main UpdateInterrupts() function
         return true;
     }
 };
 
-
-// =======================================================
-// The /device/stm/eventhook class
-// -------------
+// The /dev/stm/eventhook
 class CWII_IPC_HLE_Device_stm_eventhook : public IWII_IPC_HLE_Device
 {
 public:
@@ -165,13 +157,13 @@ public:
 
     virtual bool IOCtl(u32 _CommandAddress) 
     {
-        u32 Parameter = Memory::Read_U32(_CommandAddress +0x0C);
-        u32 BufferIn = Memory::Read_U32(_CommandAddress +0x10);
-        u32 BufferInSize = Memory::Read_U32(_CommandAddress +0x14);
-        u32 BufferOut = Memory::Read_U32(_CommandAddress +0x18);
-        u32 BufferOutSize = Memory::Read_U32(_CommandAddress +0x1C);
+        u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
+        u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
+        u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
+        u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+        u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 
-		// Prepare the out buffer(s) with zeroes as a safety precaution
+		// Prepare the out buffer(s) with zeros as a safety precaution
 		// to avoid returning bad values
 		Memory::Memset(BufferOut, 0, BufferOutSize);
 		u32 ReturnValue = 0;
@@ -184,42 +176,29 @@ public:
 				m_EventHookAddress = _CommandAddress;
 
                 INFO_LOG(WII_IPC_STM, "%s registers event hook:", GetDeviceName().c_str());
-                DEBUG_LOG(WII_IPC_STM, "    0x1000 - IOCTL_STM_EVENTHOOK", Parameter);
-                DEBUG_LOG(WII_IPC_STM, "    BufferIn: 0x%08x", BufferIn);
-                DEBUG_LOG(WII_IPC_STM, "    BufferInSize: 0x%08x", BufferInSize);
-                DEBUG_LOG(WII_IPC_STM, "    BufferOut: 0x%08x", BufferOut);
-                DEBUG_LOG(WII_IPC_STM, "    BufferOutSize: 0x%08x", BufferOutSize);
+                DEBUG_LOG(WII_IPC_STM, "0x1000 - IOCTL_STM_EVENTHOOK", Parameter);
+                DEBUG_LOG(WII_IPC_STM, "BufferIn: 0x%08x", BufferIn);
+                DEBUG_LOG(WII_IPC_STM, "BufferInSize: 0x%08x", BufferInSize);
+                DEBUG_LOG(WII_IPC_STM, "BufferOut: 0x%08x", BufferOut);
+                DEBUG_LOG(WII_IPC_STM, "BufferOutSize: 0x%08x", BufferOutSize);
 
 				DumpCommands(BufferIn, BufferInSize/4, LogTypes::WII_IPC_STM);
-
-                return false;
             }
             break;
 
         default:
-            {
-                _dbg_assert_msg_(WII_IPC_STM, 0, "CWII_IPC_HLE_Device_stm_eventhook: 0x%x", Parameter);
-                INFO_LOG(WII_IPC_STM, "%s registers event hook:", GetDeviceName().c_str());
-                DEBUG_LOG(WII_IPC_STM, "    Parameter: 0x%x", Parameter);
-                DEBUG_LOG(WII_IPC_STM, "    BufferIn: 0x%08x", BufferIn);
-                DEBUG_LOG(WII_IPC_STM, "    BufferInSize: 0x%08x", BufferInSize);
-                DEBUG_LOG(WII_IPC_STM, "    BufferOut: 0x%08x", BufferOut);
-                DEBUG_LOG(WII_IPC_STM, "    BufferOutSize: 0x%08x", BufferOutSize);
-            }
+			_dbg_assert_msg_(WII_IPC_STM, 0, "unknown %s ioctl %x",
+				GetDeviceName().c_str(), Parameter);
             break;
         }
 
 		// Write return value to the IPC call, 0 means success
-        Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);   
-
-		// Generate true or false reply for the main UpdateInterrupts() function
-        return false;
+        Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+        return true;
 	}
 
 	// STATE_TO_SAVE
 	u32 m_EventHookAddress;
 };
 
-
 #endif
-

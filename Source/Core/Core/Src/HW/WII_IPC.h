@@ -44,9 +44,6 @@ enum StarletInterruptCause
 	INT_CAUSE_IPC_STARLET	= 0x80000000
 };
 
-#define REPLY_FIFO_DEPTH	(unsigned)8
-#define REPLY_FIFO_MASK		(REPLY_FIFO_DEPTH - 1)
-
 void Init();
 void Reset();
 void Shutdown();	
@@ -55,14 +52,10 @@ void DoState(PointerWrap &p);
 void Read32(u32& _rReturnValue, const u32 _Address);
 void Write32(const u32 _Value, const u32 _Address);
 
-u32 GetAddress();
-void GenerateAck();
-void GenerateReply(u32 _Address);
-void InsertReply(u32 _Address);
-void EnqReply(u32 _Address);
-u32 DeqReply();
-
 void UpdateInterrupts();
+void GenerateAck(u32 _Address);
+void GenerateReply(u32 _Address);
+
 bool IsReady();
 
 }

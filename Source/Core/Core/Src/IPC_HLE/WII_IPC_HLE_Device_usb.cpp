@@ -316,16 +316,11 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::IOCtlV(u32 _CommandAddress)
 
 	// write return value
 	Memory::Write_U32(0, _CommandAddress + 0x4);
-	return (_SendReply);
+	return _SendReply;
 }
-// ================
 
 
-
-// ===================================================
-/* Here we handle the USB_IOCTL_BLKMSG Ioctlv */
-// ----------------
-
+// Here we handle the USB_IOCTL_BLKMSG Ioctlv
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
 	CWII_IPC_HLE_WiiMote* pWiiMote = AccessWiiMote(_ConnectionHandle);
@@ -337,18 +332,12 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendToDevice(u16 _ConnectionHandle, u8
 	pWiiMote->ExecuteL2capCmd(_pData, _Size);
 }
 
-// ================
-
-
-// ===================================================
 // Here we send ACL pakcets to CPU. They will consist of header + data.
 // The header is for example 07 00 41 00 which means size 0x0007 and channel 0x0041.
 // ---------------------------------------------------
-
 // AyuanX: Basically, our WII_IPC_HLE is efficient enough to send the packet immediately
 // rather than enqueue it to some other memory 
 // But...the only exception comes from the Wiimote_Plugin
-//
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
 	if(m_ACLBuffer.m_address != 0)
@@ -368,7 +357,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 		Memory::Write_U32(sizeof(UACLHeader) + _Size, m_ACLBuffer.m_address + 0x4);
 
 		// Send a reply to indicate ACL buffer is sent
-		WII_IPCInterface::EnqReply(m_ACLBuffer.m_address);
+		WII_IPC_HLE_Interface::EnqReply(m_ACLBuffer.m_address);
 
 		// Invalidate ACL buffer
 		m_ACLBuffer.m_address = 0;
@@ -403,7 +392,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 // but current implementation of WiiMote_Plugin doesn't comply with this rule
 // It acts like sending all the 3 packets in one cycle and idling around in the other two cycles
 // that's why we need this contingent ACL pool
-//
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeACLPool()
 {
 	if(m_ACLBuffer.m_address == 0)
@@ -420,16 +408,14 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeACLPool()
 			// Write the packet size as return value
 			Memory::Write_U32(sizeof(UACLHeader) + ((UACLHeader*)_Address)->Size, m_ACLBuffer.m_address + 0x4);
 			// Send a reply to indicate ACL buffer is sent
-			WII_IPCInterface::EnqReply(m_ACLBuffer.m_address);
+			WII_IPC_HLE_Interface::EnqReply(m_ACLBuffer.m_address);
 			// Invalidate ACL buffer
 			m_ACLBuffer.m_address = 0;
 			m_ACLBuffer.m_buffer = NULL;
 		}
 }
 
-// ===================================================
-/* See IPC_HLE_PERIOD in SystemTimers.cpp for a documentation of this update. */
-// ----------------
+// See IPC_HLE_PERIOD in SystemTimers.cpp for a documentation of this update.
 u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 {
 	// Check if HCI Pool is not purged
@@ -437,7 +423,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	{
 		PurgeHCIPool();
 		if (m_HCIPool.m_number == 0)
-			WII_IPCInterface::EnqReply(m_CtrlSetup.m_Address);
+			WII_IPC_HLE_Interface::EnqReply(m_CtrlSetup.m_Address);
 		return true;
 	}
 
@@ -453,23 +439,22 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	{
 		PurgeACLPool();
 		if (m_ACLPool.m_number == 0)
-			WII_IPCInterface::EnqReply(m_ACLSetup);
+			WII_IPC_HLE_Interface::EnqReply(m_ACLSetup);
 		return true;
 	}
 
-	// --------------------------------------------------------------------
 	/* We wait for ScanEnable to be sent from the game through HCI_CMD_WRITE_SCAN_ENABLE
 	   before we initiate the connection.
 
 	   FiRES: TODO find a good solution to do this
 
-	/* Why do we need this? 0 worked with the emulated wiimote in all games I tried. Do we have to
+	   Why do we need this? 0 worked with the emulated wiimote in all games I tried. Do we have to
 	   wait for wiiuse_init() and wiiuse_find() for a real Wiimote here? I'm testing
 	   this new method of not waiting at all if there are no real Wiimotes. Please let me know
 	   if it doesn't work. */
 
 	// AyuanX: I don't know the Real Wiimote behavior, so I'll leave it here untouched
-	//
+
 	// Initiate ACL connection 
 	static int counter = (Core::GetRealWiimote() ? 1000 : 0);
 	if (m_HCIBuffer.m_address && (m_ScanEnable & 0x2))
@@ -537,17 +522,13 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 	return false;
 }
 
-
-
 // Events
 // -----------------
 // These messages are sent from the Wiimote to the game, for example RequestConnection()
 // or ConnectionComplete().
 //
-
 // Our WII_IPC_HLE is so efficient that we could fill the buffer immediately
 // rather than enqueue it to some other memory and this will do good for StateSave
-//
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _event)
 {
 	if (m_HCIBuffer.m_address != 0)
@@ -560,7 +541,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 		Memory::Write_U32((u32)_event.m_size, m_HCIBuffer.m_address + 0x4);
 
 		// Send a reply to indicate HCI buffer is filled
-		WII_IPCInterface::EnqReply(m_HCIBuffer.m_address);
+		WII_IPC_HLE_Interface::EnqReply(m_HCIBuffer.m_address);
 
 		// Invalidate HCI buffer
 		m_HCIBuffer.m_address = 0;
@@ -590,7 +571,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 // so when IPC is running too fast that CPU can't catch up
 // then CPU(actually it is the usb driver) sometimes throws out a command before sending us a HCI buffer
 // So I put this contingent HCI Pool here until we figure out the true reason
-//
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeHCIPool()
 {
 	if(m_HCIBuffer.m_address == 0)
@@ -607,7 +587,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeHCIPool()
 			// Write the packet size as return value
 			Memory::Write_U32(m_HCIPool.m_size[m_HCIPool.m_number], m_HCIBuffer.m_address + 0x4);
 			// Send a reply to indicate ACL buffer is sent
-			WII_IPCInterface::EnqReply(m_HCIBuffer.m_address);
+			WII_IPC_HLE_Interface::EnqReply(m_HCIBuffer.m_address);
 			// Invalidate ACL buffer
 			m_HCIBuffer.m_address = 0;
 			m_HCIBuffer.m_buffer = NULL;
@@ -714,7 +694,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConnectionComplete(const bdad
 	return true;
 }
 
-/* This is called from Update() after ScanEnable has been enabled. */
+// This is called from Update() after ScanEnable has been enabled.
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HLE_WiiMote& _rWiiMote)
 {
 	SQueuedEvent Event(sizeof(SHCIEventRequestConnection), 0);
@@ -1137,8 +1117,6 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConPacketTypeChange(u16 _conn
 // Command dispatcher
 // -----------------
 // This is called from the USB_IOCTL_HCI_COMMAND_MESSAGE Ioctlv
-//
-//
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICommandMessage& _rHCICommandMessage)
 {
 	u8* pInput = Memory::GetPointer(_rHCICommandMessage.m_PayLoadAddr + 3);
@@ -1329,7 +1307,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ExecuteHCICommandMessage(const SHCICom
 	if ((m_LastCmd == 0) && (m_HCIPool.m_number == 0))
 	{
 		// If HCI command is finished and HCI pool is empty, send a reply to command
-		WII_IPCInterface::EnqReply(_rHCICommandMessage.m_Address);
+		WII_IPC_HLE_Interface::EnqReply(_rHCICommandMessage.m_Address);
 	}
 }
 

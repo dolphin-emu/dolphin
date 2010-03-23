@@ -15,30 +15,23 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+/*
+This is the main Wii IPC file that handles all incoming IPC calls and directs them
+to the right function.
 
+IPC basics (IOS' usage):
 
-// =======================================================
-// File description
-// -------------
-/* This is the main Wii IPC file that handles all incoming IPC calls and directs them
-   to the right function.
-   
-   IPC basics:
-   
-   Return values for file handles: All IPC calls will generate a return value to 0x04,
-   in case of success they are
-		Open: DeviceID
-		Close: 0
-		Read: Bytes read
-		Write: Bytes written
-		Seek: Seek position
-		Ioctl: 0 (in addition to that there may be messages to the out buffers)
-		Ioctlv: 0 (in addition to that there may be messages to the out buffers)
-   They will also generate a true or false return for UpdateInterrupts() in WII_IPC.cpp. */
-// =============
-
-
-
+Return values for file handles: All IPC calls will generate a return value to 0x04,
+in case of success they are
+	Open: DeviceID
+	Close: 0
+	Read: Bytes read
+	Write: Bytes written
+	Seek: Seek position
+	Ioctl: 0 (in addition to that there may be messages to the out buffers)
+	Ioctlv: 0 (in addition to that there may be messages to the out buffers)
+They will also generate a true or false return for UpdateInterrupts() in WII_IPC.cpp.
+*/
 
 #include <map>
 #include <string>
@@ -77,6 +70,10 @@ TDeviceMap g_DeviceMap;
 typedef std::map<u32, std::string> TFileNameMap;
 TFileNameMap g_FileNameMap;
 u32 g_LastDeviceID;
+
+typedef std::queue<u32> ipc_msg_queue;
+static ipc_msg_queue request_queue;	// ppc -> arm
+static ipc_msg_queue reply_queue;	// arm -> ppc
 
 // General IPC functions 
 void Init()
@@ -125,6 +122,9 @@ void Reset(bool _bHard)
 	g_DeviceMap.erase(itr, g_DeviceMap.end());
 	g_FileNameMap.clear();
 
+	request_queue = std::queue<u32>();
+	reply_queue = std::queue<u32>();
+
     g_LastDeviceID = IPC_FIRST_FILEIO_ID;
 }
 
@@ -133,7 +133,6 @@ void Shutdown()
     Reset(true);
 }
 
-// Set default content file
 void SetDefaultContentFile(const std::string& _rFilename)
 {
 	CWII_IPC_HLE_Device_es* pDevice = (CWII_IPC_HLE_Device_es*)AccessDeviceByID(GetDeviceIDByName(std::string("/dev/es")));
@@ -172,7 +171,7 @@ void DeleteDeviceByID(u32 ID)
 	g_FileNameMap.erase(ID);
 }
 
-// This is called from COMMAND_OPEN_DEVICE. Here we either create a new file handle
+// This is called from ExecuteCommand() COMMAND_OPEN_DEVICE
 IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName)
 {
 	// scan device name and create the right one
@@ -184,7 +183,7 @@ IWII_IPC_HLE_Device* CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName
 	return pDevice;
 }
 
-// Let the game read the setting.txt file
+// Try to make sure the game is always reading the setting.txt file we provide
 void CopySettingsFile(std::string& DeviceName)
 {
 	std::string Source = File::GetSysDirectory() + WII_SYS_DIR + DIR_SEP;
@@ -197,7 +196,8 @@ void CopySettingsFile(std::string& DeviceName)
 
 	// Check if the target dir exists, otherwise create it
 	std::string TargetDir = Target.substr(0, Target.find_last_of(DIR_SEP));
-	if(!File::IsDirectory(TargetDir.c_str())) File::CreateFullPath(Target.c_str());
+	if (!File::IsDirectory(TargetDir.c_str()))
+		File::CreateFullPath(Target.c_str());
 
 	if (File::Copy(Source.c_str(), Target.c_str()))
 	{
@@ -256,14 +256,6 @@ void DoState(PointerWrap &p)
 	}
 }
 
-// ===================================================
-/* This generates an acknowledgment to IPC calls. This function is called from
-   IPC_CONTROL_REGISTER requests in WII_IPC.cpp. The acknowledgment _Address will
-   start with 0x033e...., it will be for the _CommandAddress 0x133e...., from
-   debugging I also noticed that the Ioctl arguments are stored temporarily in
-   0x933e.... with the same .... as in the _CommandAddress. */
-// ----------------
-
 void ExecuteCommand(u32 _Address)
 {
     bool CmdSuccess = false;
@@ -284,7 +276,8 @@ void ExecuteCommand(u32 _Address)
             Memory::GetString(DeviceName, Memory::Read_U32(_Address + 0xC));
 
 			// The game may try to read setting.txt here, in that case copy it so it can read it
-			if(DeviceName.find("setting.txt") != std::string::npos) CopySettingsFile(DeviceName);
+			if (DeviceName.find("setting.txt") != std::string::npos)
+				CopySettingsFile(DeviceName);
 
             u32 Mode = Memory::Read_U32(_Address + 0x10);
             DeviceID = GetDeviceIDByName(DeviceName);
@@ -332,9 +325,9 @@ void ExecuteCommand(u32 _Address)
                 INFO_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
                     pDevice->GetDeviceName().c_str(), DeviceID, Mode);
 
-				if(pDevice->IsHardware())
+				if (pDevice->IsHardware())
 				{
-					if(pDevice->IsOpened())
+					if (pDevice->IsOpened())
 					{
 						if (pDevice->GetDeviceName().find("/dev/net/kd/request") != std::string::npos)
 							// AyuanX: /dev/net/kd/request is more like event which doesn't need close so it can be reopened
@@ -358,7 +351,7 @@ void ExecuteCommand(u32 _Address)
 					//  Open > Failed > ... other stuff > ReOpen call sequence, in that case
 					//  we have no file and no file handle, so we call Open again to basically
 					//  get a -106 error so that the game call CreateFile and then ReOpen again. 
-					if(pDevice->ReturnFileHandle())
+					if (pDevice->ReturnFileHandle())
 						Memory::Write_U32(DeviceID, _Address + 4);
 					else
 						pDevice->Open(_Address, Mode);						
@@ -368,110 +361,102 @@ void ExecuteCommand(u32 _Address)
         break;
 
     case COMMAND_CLOSE_DEVICE:
-        {
-            if (pDevice)
-			{
-                pDevice->Close(_Address);
-				// Don't delete hardware
-				if (!pDevice->IsHardware())
-					DeleteDeviceByID(DeviceID);
-                CmdSuccess = true;
-			}
-        }
+        if (pDevice)
+		{
+            pDevice->Close(_Address);
+			// Don't delete hardware
+			if (!pDevice->IsHardware())
+				DeleteDeviceByID(DeviceID);
+            CmdSuccess = true;
+		}
         break;
 
     case COMMAND_READ:
-        {
-			if (pDevice != NULL)
-				CmdSuccess = pDevice->Read(_Address);
-        }
+		if (pDevice != NULL)
+			CmdSuccess = pDevice->Read(_Address);
         break;
     
     case COMMAND_WRITE:
-        {
-			if (pDevice != NULL)
-				CmdSuccess = pDevice->Write(_Address);
-        }
+		if (pDevice != NULL)
+			CmdSuccess = pDevice->Write(_Address);
         break;
 
     case COMMAND_SEEK:
-        {
-			if (pDevice != NULL)
-				CmdSuccess = pDevice->Seek(_Address);
-        }
+		if (pDevice != NULL)
+			CmdSuccess = pDevice->Seek(_Address);
         break;
 
     case COMMAND_IOCTL:
-        {
-			if (pDevice != NULL)
-				CmdSuccess = pDevice->IOCtl(_Address);
-        }
+		if (pDevice != NULL)
+			CmdSuccess = pDevice->IOCtl(_Address);
         break;
 
     case COMMAND_IOCTLV:
-        {
-			if (pDevice)
-				CmdSuccess = pDevice->IOCtlV(_Address);
-        }
+		if (pDevice)
+			CmdSuccess = pDevice->IOCtlV(_Address);
         break;
 
     default:
         _dbg_assert_msg_(WII_IPC_HLE, 0, "Unknown IPC Command %i (0x%08x)", Command, _Address);
-		// Break on the same terms as the _dbg_assert_msg_, if LOGGING was defined
         break;
     }
 
-
     // It seems that the original hardware overwrites the command after it has been
-	//	   executed. We write 8 which is not any valid command. 
-	//
-	// AyuanX: Is this really necessary?
-	// My experiment says no, so I'm just commenting this out
-	//
-	//Memory::Write_U32(8, _Address);
+	//	   executed. We write 8 which is not any valid command, and what IOS does 
+	Memory::Write_U32(8, _Address);
+	// IOS seems to write back the command that was responded to
+	Memory::Write_U32(Command, _Address + 8);
 
     if (CmdSuccess)
     {
 		// Generate a reply to the IPC command
-		WII_IPCInterface::EnqReply(_Address);
+		EnqReply(_Address);
     }
 	else
 	{
-		//INFO_LOG(WII_IPC_HLE, "<<-- Failed or Not Ready to Reply to Command Address: 0x%08x ", _Address);
+		ERROR_LOG(WII_IPC_HLE, "<<-- Failed or Not Ready to Reply to IPC Request @ 0x%08x ", _Address);
 	}
 }
 
+// Happens AS SOON AS IPC gets a new pointer!
+void EnqRequest(u32 _Address)
+{
+	request_queue.push(_Address);
+}
 
-// ===================================================
-// This is called continuously from SystemTimers.cpp
-// ---------------------------------------------------
+// Called when IOS module has some reply
+void EnqReply(u32 _Address)
+{
+	reply_queue.push(_Address);
+}
+
+// This is called every IPC_HLE_PERIOD from SystemTimers.cpp
+// Takes care of routing ipc <-> ipc HLE
 void Update()
 {
-	if (WII_IPCInterface::IsReady() == false)
+	if (!WII_IPCInterface::IsReady())
 		return;
 
 	UpdateDevices();
 
-	// if we have a reply to send
-	u32 _Reply = WII_IPCInterface::DeqReply();
-	if (_Reply)
+	if (reply_queue.size())
 	{
-		WII_IPCInterface::GenerateReply(_Reply);
-		INFO_LOG(WII_IPC_HLE, "<<-- Reply to Command Address: 0x%08x", _Reply);
+		WII_IPCInterface::GenerateReply(reply_queue.front());
+		INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
+		reply_queue.pop();
 		return;
 	}
 
-	// If there is a a new command
-	u32 _Address = WII_IPCInterface::GetAddress();
-	if (_Address)
+	if (request_queue.size())
 	{
-		WII_IPCInterface::GenerateAck();
-		INFO_LOG(WII_IPC_HLE, "||-- Acknowledge Command Address: 0x%08x", _Address);
+		WII_IPCInterface::GenerateAck(request_queue.front());
+		INFO_LOG(WII_IPC_HLE, "||-- Acknowledge IPC Request @ 0x%08x", request_queue.front());
 
-		ExecuteCommand(_Address);
+		ExecuteCommand(request_queue.front());
+		request_queue.pop();
 
-		#if MAX_LOG_LEVEL >= DEBUG_LEVEL
-			Debugger::PrintCallstack(LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);
+		#if MAX_LOGLEVEL >= DEBUG_LEVEL
+		Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);
 		#endif
 	}
 }
@@ -488,4 +473,4 @@ void UpdateDevices()
 }
 
 
-} // end of namespace IPC
+} // end of namespace WII_IPC_HLE_Interface

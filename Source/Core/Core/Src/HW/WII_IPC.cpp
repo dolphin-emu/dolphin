@@ -16,6 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <map>
+#include <queue>
+#include <vector>
 
 #include "Common.h"
 #include "ChunkFile.h"
@@ -91,23 +93,16 @@ struct CtrlRegister
 };
 
 // STATE_TO_SAVE
-u32 ppc_msg;
-u32 arm_msg;
-CtrlRegister ctrl;
+static u32 ppc_msg;
+static u32 arm_msg;
+static CtrlRegister ctrl;
 
-u32 ppc_irq_flags;
-u32 ppc_irq_masks;
-u32 arm_irq_flags;
-u32 arm_irq_masks;
+static u32 ppc_irq_flags;
+static u32 ppc_irq_masks;
+static u32 arm_irq_flags;
+static u32 arm_irq_masks;
 
-u32 sensorbar_power; // do we need to care about this?
-
-// not actual registers:
-bool cmd_active;
-u32 g_ReplyHead;
-u32 g_ReplyTail;
-u32 g_ReplyNum;
-u32 g_ReplyFifo[REPLY_FIFO_DEPTH];
+static u32 sensorbar_power; // do we need to care about this?
 
 void DoState(PointerWrap &p)
 {
@@ -119,17 +114,10 @@ void DoState(PointerWrap &p)
 	p.Do(arm_irq_flags);
 	p.Do(arm_irq_masks);
 	p.Do(sensorbar_power);
-	p.Do(cmd_active);
-	p.Do(g_ReplyHead);
-	p.Do(g_ReplyTail);
-	p.Do(g_ReplyNum);
-	p.DoArray(g_ReplyFifo, REPLY_FIFO_DEPTH);
 }
 
-// Init
 void Init()
 {
-	cmd_active = false;
 	ctrl = CtrlRegister();
 	ppc_msg =
 	arm_msg =
@@ -139,12 +127,7 @@ void Init()
 	arm_irq_flags =
 	arm_irq_masks =
 
-	sensorbar_power =
-
-	g_ReplyHead =
-	g_ReplyTail =
-	g_ReplyNum = 0;
-	memset(g_ReplyFifo, 0, REPLY_FIFO_DEPTH);
+	sensorbar_power = 0;
 
 	ppc_irq_masks |= INT_CAUSE_IPC_BROADWAY;
 }
@@ -166,7 +149,7 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 	{
 	case IPC_PPCCTRL:	
 		_rReturnValue = ctrl.ppc();
-		INFO_LOG(WII_IPC, "r32 IPC_PPCCTRL %03x [R:%i A:%i E:%i]",
+		DEBUG_LOG(WII_IPC, "r32 IPC_PPCCTRL %03x [R:%i A:%i E:%i]",
 			ctrl.ppc(), ctrl.Y1, ctrl.Y2, ctrl.X1);
 
 		// if ((REASON_REG & 0x14) == 0x14) CALL IPCReplayHandler
@@ -175,7 +158,7 @@ void Read32(u32& _rReturnValue, const u32 _Address)
 
 	case IPC_ARMMSG:	// looks a little bit like a callback function
 		_rReturnValue = arm_msg;
-		INFO_LOG(WII_IPC, "r32 IPC_ARMMSG %08x ", _rReturnValue);
+		DEBUG_LOG(WII_IPC, "r32 IPC_ARMMSG %08x ", _rReturnValue);
 		break;
 
 	case GPIOB_OUT:
@@ -195,24 +178,28 @@ void Write32(const u32 _Value, const u32 _Address)
 	case IPC_PPCMSG:	// __ios_Ipc2 ... a value from __responses is loaded
 		{
 			ppc_msg = _Value;
-			INFO_LOG(WII_IPC, "IPC_PPCMSG = %08x", ppc_msg);
+			DEBUG_LOG(WII_IPC, "IPC_PPCMSG = %08x", ppc_msg);
 		}
 		break;
 
 	case IPC_PPCCTRL:
 		{
 			ctrl.ppc(_Value);
-			INFO_LOG(WII_IPC, "w32 %08x IPC_PPCCTRL = %03x [R:%i A:%i E:%i]",
+			DEBUG_LOG(WII_IPC, "w32 %08x IPC_PPCCTRL = %03x [R:%i A:%i E:%i]",
 				_Value, ctrl.ppc(), ctrl.Y1, ctrl.Y2, ctrl.X1);
-			if (ctrl.X1) // seems like we should just be able to use X1 directly, but it doesn't work...why?!
-				cmd_active = true;
+			if (ctrl.X1)
+			{
+				INFO_LOG(WII_IPC, "new pointer available: %08x", ppc_msg);
+				// Let the HLE handle the request on it's own time
+				WII_IPC_HLE_Interface::EnqRequest(ppc_msg);
+			}
 		}
 		break;  
 
 	case PPC_IRQFLAG:	// ACR REGISTER IT IS CALLED IN DEBUG
 		{
 			ppc_irq_flags &= ~_Value;
-			INFO_LOG(WII_IPC,  "w32 PPC_IRQFLAG %08x (%08x)", _Value, ppc_irq_flags);
+			DEBUG_LOG(WII_IPC,  "w32 PPC_IRQFLAG %08x (%08x)", _Value, ppc_irq_flags);
 		}
 		break;
 
@@ -221,7 +208,7 @@ void Write32(const u32 _Value, const u32 _Address)
 			ppc_irq_masks = _Value;
 			if (ppc_irq_masks & INT_CAUSE_IPC_BROADWAY) // wtf?
 				Reset();
-			INFO_LOG(WII_IPC, "w32 PPC_IRQMASK %08x", ppc_irq_masks);
+			DEBUG_LOG(WII_IPC, "w32 PPC_IRQMASK %08x", ppc_irq_masks);
 		}
 		break;
 
@@ -253,21 +240,12 @@ void UpdateInterrupts()
 	ProcessorInterface::SetInterrupt(ProcessorInterface::INT_CAUSE_WII_IPC, !!(ppc_irq_flags & ppc_irq_masks));
 }
 
-// The rest is for IOS HLE
-bool IsReady()
+void GenerateAck(u32 _Address)
 {
-	return ((ctrl.Y1 == 0) && (ctrl.Y2 == 0) && ((ppc_irq_flags & INT_CAUSE_IPC_BROADWAY) == 0));
-}
-
-u32 GetAddress()
-{
-	return (cmd_active ? ppc_msg : 0);
-}
-
-void GenerateAck()
-{
-	cmd_active = false;
+	arm_msg = _Address; // dunno if it's really set here, but HLE needs to stay in context
 	ctrl.Y2 = 1;
+	INFO_LOG(WII_IPC, "GenerateAck: %08x | %08x [R:%i A:%i E:%i]",
+		ppc_msg,_Address, ctrl.Y1, ctrl.Y2, ctrl.X1);
 	UpdateInterrupts();
 }
 
@@ -275,40 +253,14 @@ void GenerateReply(u32 _Address)
 {
 	arm_msg = _Address;
 	ctrl.Y1 = 1;
+	INFO_LOG(WII_IPC, "GenerateReply: %08x | %08x [R:%i A:%i E:%i]",
+		ppc_msg,_Address, ctrl.Y1, ctrl.Y2, ctrl.X1);
 	UpdateInterrupts();
 }
 
-void EnqReply(u32 _Address)
+bool IsReady()
 {
-	if (g_ReplyNum < REPLY_FIFO_DEPTH)
-	{
-		g_ReplyFifo[g_ReplyTail++] = _Address;
-		g_ReplyTail &= REPLY_FIFO_MASK;
-		g_ReplyNum++;
-	}
-	else
-	{
-		ERROR_LOG(WII_IPC, "Reply FIFO is full, something must be wrong!");
-		PanicAlert("WII_IPC: Reply FIFO is full, something must be wrong!");
-	}
-}
-
-u32 DeqReply()
-{
-	u32 _Address;
-
-	if (g_ReplyNum)
-	{
-		_Address = g_ReplyFifo[g_ReplyHead++];
-		g_ReplyHead &= REPLY_FIFO_MASK;
-		g_ReplyNum--;
-	}
-	else
-	{
-		_Address = NULL;
-	}
-
-	return _Address;
+	return ((ctrl.Y1 == 0) && (ctrl.Y2 == 0) && ((ppc_irq_flags & INT_CAUSE_IPC_BROADWAY) == 0));
 }
 
 }

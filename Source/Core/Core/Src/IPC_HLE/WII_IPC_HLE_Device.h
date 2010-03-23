@@ -77,17 +77,15 @@ protected:
 	bool m_Hardware;
 	bool m_Active;
 
-	// ===================================================
-	/* A struct for IOS ioctlv calls */
-	// ----------------
+	// A struct for IOS ioctlv calls
     struct SIOCtlVBuffer
     {
         SIOCtlVBuffer(u32 _Address)
             : m_Address(_Address)
         {
-			/* These are the Ioctlv parameters in the IOS communication. The BufferVector
-			   is a memory address offset at where the in and out buffer addresses are
-			   stored. */
+			// These are the Ioctlv parameters in the IOS communication. The BufferVector
+			// is a memory address offset at where the in and out buffer addresses are
+			// stored.
             Parameter = Memory::Read_U32(m_Address + 0x0C); // command 3, arg0
             NumberInBuffer = Memory::Read_U32(m_Address + 0x10); // 4, arg1
             NumberPayloadBuffer = Memory::Read_U32(m_Address + 0x14); // 5, arg2
@@ -144,11 +142,8 @@ protected:
         std::vector<SBuffer> PayloadBuffer;
     };
 
-
-	// ===================================================
-	/* Write out the IPC struct from _CommandAddress to _NumberOfCommands numbers
-	   of 4 byte commands. */
-	// ----------------
+	// Write out the IPC struct from _CommandAddress to _NumberOfCommands numbers
+	// of 4 byte commands.
     void DumpCommands(u32 _CommandAddress, size_t _NumberOfCommands = 8,
 		LogTypes::LOG_TYPE LogType = LogTypes::WII_IPC_HLE,
 		LogTypes::LOG_LEVELS Verbosity = LogTypes::LDEBUG)
@@ -161,7 +156,6 @@ protected:
 						Memory::Read_U32(_CommandAddress + i*4));	
 		}
     }
-
 	
     void DumpAsync(u32 BufferVector, u32 NumberInBuffer, u32 NumberOutBuffer,
 		LogTypes::LOG_TYPE LogType = LogTypes::WII_IPC_HLE,
@@ -175,7 +169,8 @@ protected:
             u32 InBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
             u32 InBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
 
-            GENERIC_LOG(LogType, LogTypes::LINFO, "%s - IOCtlV InBuffer[%i]:", GetDeviceName().c_str(), i);
+            GENERIC_LOG(LogType, LogTypes::LINFO, "%s - IOCtlV InBuffer[%i]:",
+				GetDeviceName().c_str(), i);
 
             std::string Temp;
             for (u32 j = 0; j < InBufferSize; j++)
@@ -188,22 +183,21 @@ protected:
             GENERIC_LOG(LogType, LogTypes::LDEBUG, "    Buffer: %s", Temp.c_str());
         }
 
-
         for (u32 i = 0; i < NumberOutBuffer; i++)
         {
 			u32 OutBuffer        = Memory::Read_U32(BufferOffset); BufferOffset += 4;
 			u32 OutBufferSize    = Memory::Read_U32(BufferOffset); BufferOffset += 4;
 
-            GENERIC_LOG(LogType, LogTypes::LINFO, "%s - IOCtlV OutBuffer[%i]:", GetDeviceName().c_str(), i);
-            GENERIC_LOG(LogType, LogTypes::LINFO, "    OutBuffer: 0x%08x (0x%x):", OutBuffer, OutBufferSize);
+            GENERIC_LOG(LogType, LogTypes::LINFO, "%s - IOCtlV OutBuffer[%i]:",
+				GetDeviceName().c_str(), i);
+            GENERIC_LOG(LogType, LogTypes::LINFO, "    OutBuffer: 0x%08x (0x%x):",
+				OutBuffer, OutBufferSize);
 
 			#if defined(MAX_LOGLEVEL) && MAX_LOGLEVEL >= INFO_LEVEL
 			DumpCommands(OutBuffer, OutBufferSize, LogType, Verbosity);
 			#endif
        }
     }
-
 };
 
 #endif
-

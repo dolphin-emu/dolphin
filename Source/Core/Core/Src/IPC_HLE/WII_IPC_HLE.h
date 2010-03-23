@@ -61,6 +61,9 @@ void UpdateDevices();
 
 void ExecuteCommand(u32 _Address);
 
+void EnqRequest(u32 _Address);
+void EnqReply(u32 _Address);
+
 enum ECommandType
 {
 	COMMAND_OPEN_DEVICE		= 1,
