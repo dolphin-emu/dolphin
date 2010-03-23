@@ -557,10 +557,10 @@ void Jit64::mulhwux(UGeckoInstruction inst)
 	}
 }
 
-// skipped some of the special handling in here - if we get crashes, let the interpreter handle this op
-void Jit64::divwux(UGeckoInstruction inst) {
-	Default(inst); return;
-
+void Jit64::divwux(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 	gpr.FlushLockX(EDX);
 	gpr.Lock(a, b, d);

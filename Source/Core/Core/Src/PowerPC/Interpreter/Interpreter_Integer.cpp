@@ -479,7 +479,7 @@ void divwx(UGeckoInstruction _inst)
 	{
 		if (_inst.OE) 
 			PanicAlert("OE: divwx");
-		//else PanicAlert("Div by zero", "divwux");
+		//else PanicAlert("Div by zero", "divwx");
 	}
 	else
 		m_GPR[_inst.RD] = (u32)(a / b);

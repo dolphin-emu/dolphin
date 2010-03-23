@@ -132,6 +132,10 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 				}
 				break;
 
+			case 'p':
+				// Override, so 64bit dolphin prints 32bit pointers, since the ppc is 32bit :)
+				_rOutBuffer += StringFromFormat("%x", Parameter);
+				break;
 
 			default:
 				_rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);

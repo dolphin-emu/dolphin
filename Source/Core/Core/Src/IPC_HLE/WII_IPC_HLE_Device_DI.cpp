@@ -353,7 +353,6 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		}
         break;
 
-// Apparently Dx commands have never been seen in dolphin? *shrug*
 	case DVDLowReadDvd:
 		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDvd");
 		break;
@@ -371,7 +370,8 @@ u32 CWII_IPC_HLE_Device_di::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32
 		break;
 
 	case DVDLowReadDiskBca:
-		ERROR_LOG(WII_IPC_DVD, "DVDLowReadDiskBca");
+		WARN_LOG(WII_IPC_DVD, "DVDLowReadDiskBca");
+		Memory::Write_U32(1, _BufferOut + 0x30);
 		break;
 
 	case DVDLowRequestDiscStatus:
