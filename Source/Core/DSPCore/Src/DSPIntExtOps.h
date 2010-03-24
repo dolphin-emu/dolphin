@@ -36,27 +36,27 @@ namespace DSPInterpreter
 {
 namespace Ext
 { 
-void l(const UDSPInstruction& opc);
-void ln(const UDSPInstruction& opc);
-void ls(const UDSPInstruction& opc);
-void lsn(const UDSPInstruction& opc);
-void lsm(const UDSPInstruction& opc);
-void lsnm(const UDSPInstruction& opc);
-void sl(const UDSPInstruction& opc);
-void sln(const UDSPInstruction& opc);
-void slm(const UDSPInstruction& opc);
-void slnm(const UDSPInstruction& opc);
-void s(const UDSPInstruction& opc);
-void sn(const UDSPInstruction& opc);
-void ld(const UDSPInstruction& opc);
-void ldn(const UDSPInstruction& opc);
-void ldm(const UDSPInstruction& opc);
-void ldnm(const UDSPInstruction& opc);
-void mv(const UDSPInstruction& opc);
-void dr(const UDSPInstruction& opc);
-void ir(const UDSPInstruction& opc);
-void nr(const UDSPInstruction& opc);
-void nop(const UDSPInstruction& opc);
+void l(const UDSPInstruction opc);
+void ln(const UDSPInstruction opc);
+void ls(const UDSPInstruction opc);
+void lsn(const UDSPInstruction opc);
+void lsm(const UDSPInstruction opc);
+void lsnm(const UDSPInstruction opc);
+void sl(const UDSPInstruction opc);
+void sln(const UDSPInstruction opc);
+void slm(const UDSPInstruction opc);
+void slnm(const UDSPInstruction opc);
+void s(const UDSPInstruction opc);
+void sn(const UDSPInstruction opc);
+void ld(const UDSPInstruction opc);
+void ldn(const UDSPInstruction opc);
+void ldm(const UDSPInstruction opc);
+void ldnm(const UDSPInstruction opc);
+void mv(const UDSPInstruction opc);
+void dr(const UDSPInstruction opc);
+void ir(const UDSPInstruction opc);
+void nr(const UDSPInstruction opc);
+void nop(const UDSPInstruction opc);
  
 } // end namespace Ext
 } // end namespace DSPinterpeter

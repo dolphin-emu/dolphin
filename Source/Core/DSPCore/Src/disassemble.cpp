@@ -39,7 +39,7 @@
 #include <Windows.h> // For MAX_PATH
 #endif
 
-extern void nop(const UDSPInstruction& opc);
+extern void nop(const UDSPInstruction opc);
 
 DSPDisassembler::DSPDisassembler(const AssemblerSettings &settings)
 	: settings_(settings)

@@ -30,9 +30,9 @@ namespace DSPInterpreter {
 // Clears accumulator $acR
 //
 // flags out: --10 0100
-void clr(const UDSPInstruction& opc)
+void clr(const UDSPInstruction opc)
 {
-	u8 reg = (opc.hex >> 11) & 0x1;
+	u8 reg = (opc >> 11) & 0x1;
 
 	dsp_set_long_acc(reg, 0);
 	Update_SR_Register64(0);
@@ -44,9 +44,9 @@ void clr(const UDSPInstruction& opc)
 // Clears $acR.l - low 16 bits of accumulator $acR.
 //
 // flags out: --xx xx00
-void clrl(const UDSPInstruction& opc)
+void clrl(const UDSPInstruction opc)
 {
-	u8 reg = (opc.hex >> 8) & 0x1;
+	u8 reg = (opc >> 8) & 0x1;
 
 	s64 acc = (dsp_get_long_acc(reg) + 0x8000) & ~0xffff;
 
@@ -65,9 +65,9 @@ void clrl(const UDSPInstruction& opc)
 // accumulator mid part $acD.m with immediate value I is equal I.
 //
 // flags out: -x-- ----
-void andcf(const UDSPInstruction& opc)
+void andcf(const UDSPInstruction opc)
 {
-	u8 reg  = (opc.hex >> 8) & 0x1;
+	u8 reg  = (opc >> 8) & 0x1;
 
 	u16 imm = dsp_fetch_code();
 	u16 val = dsp_get_acc_m(reg);
@@ -82,9 +82,9 @@ void andcf(const UDSPInstruction& opc)
 // immediate value 0.
 //
 // flags out: -x-- ----
-void andf(const UDSPInstruction& opc)
+void andf(const UDSPInstruction opc)
 {
-	u8 reg  = (opc.hex >> 8) & 0x1;
+	u8 reg  = (opc >> 8) & 0x1;
 
 	u16 imm = dsp_fetch_code();
 	u16 val = dsp_get_acc_m(reg);
@@ -98,9 +98,9 @@ void andf(const UDSPInstruction& opc)
 // Test accumulator %acR.
 //
 // flags out: --xx xx00
-void tst(const UDSPInstruction& opc)
+void tst(const UDSPInstruction opc)
 {
-	u8 reg = (opc.hex >> 11) & 0x1;
+	u8 reg = (opc >> 11) & 0x1;
 
 	s64 acc = dsp_get_long_acc(reg);
 	Update_SR_Register64(acc);
@@ -112,9 +112,9 @@ void tst(const UDSPInstruction& opc)
 // Test high part of secondary accumulator $axR.h.
 //
 // flags out: --x0 xx00
-void tstaxh(const UDSPInstruction& opc)
+void tstaxh(const UDSPInstruction opc)
 {
-	u8 reg  = (opc.hex >> 8) & 0x1;
+	u8 reg  = (opc >> 8) & 0x1;
 
 	s16 val = dsp_get_ax_h(reg);
 	Update_SR_Register16(val);
@@ -128,7 +128,7 @@ void tstaxh(const UDSPInstruction& opc)
 // Compares accumulator $ac0 with accumulator $ac1.
 //
 // flags out: x-xx xxxx
-void cmp(const UDSPInstruction& opc)
+void cmp(const UDSPInstruction opc)
 {
 	s64 acc0 = dsp_get_long_acc(0);
 	s64 acc1 = dsp_get_long_acc(1);
@@ -144,10 +144,10 @@ void cmp(const UDSPInstruction& opc)
 // Not described by Duddie's doc - at least not as a separate instruction.
 //
 // flags out: x-xx xxxx
-void cmpar(const UDSPInstruction& opc)
+void cmpar(const UDSPInstruction opc)
 {
-	u8 rreg = ((opc.hex >> 12) & 0x1) + DSP_REG_AXH0;
-	u8 sreg = (opc.hex >> 11) & 0x1;
+	u8 rreg = ((opc >> 12) & 0x1) + DSP_REG_AXH0;
+	u8 sreg = (opc >> 11) & 0x1;
 
 	s64 sr = dsp_get_long_acc(sreg);
 	s64 rr = (s16)g_dsp.r[rreg];
@@ -165,9 +165,9 @@ void cmpar(const UDSPInstruction& opc)
 // Although flags are being set regarding whole accumulator register.
 //
 // flags out: x-xx xxxx
-void cmpi(const UDSPInstruction& opc)
+void cmpi(const UDSPInstruction opc)
 {
-	u8 reg  = (opc.hex >> 8) & 0x1;
+	u8 reg  = (opc >> 8) & 0x1;
 
 	s64 val = dsp_get_long_acc(reg);
 	s64 imm = (s64)(s16)dsp_fetch_code() << 16; // Immediate is considered to be at M level in the 40-bit accumulator.
@@ -183,12 +183,12 @@ void cmpi(const UDSPInstruction& opc)
 // $acD.hm and computing flags based on whole accumulator $acD.
 //
 // flags out: x-xx xxxx
-void cmpis(const UDSPInstruction& opc)
+void cmpis(const UDSPInstruction opc)
 {
-	u8 areg = (opc.hex >> 8) & 0x1;
+	u8 areg = (opc >> 8) & 0x1;
 
 	s64 acc = dsp_get_long_acc(areg);
-	s64 val = (s8)opc.hex;
+	s64 val = (s8)opc;
 	val <<= 16; 
 	s64 res = dsp_convert_long_acc(acc - val);
 
@@ -204,10 +204,10 @@ void cmpis(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 //
 // flags out: --xx xx00
-void xorr(const UDSPInstruction& opc)
+void xorr(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] ^ g_dsp.r[DSP_REG_AXH0 + sreg];
 	
 	zeroWriteBackLogPreserveAcc(dreg);
@@ -223,10 +223,10 @@ void xorr(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 //
 // flags out: --xx xx00
-void andr(const UDSPInstruction& opc)
+void andr(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] & g_dsp.r[DSP_REG_AXH0 + sreg];
 	
 	zeroWriteBackLogPreserveAcc(dreg);
@@ -242,10 +242,10 @@ void andr(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 //
 // flags out: --xx xx00
-void orr(const UDSPInstruction& opc)
+void orr(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] | g_dsp.r[DSP_REG_AXH0 + sreg];
 	
 	zeroWriteBackLogPreserveAcc(dreg);
@@ -261,9 +261,9 @@ void orr(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 //
 // flags out: --xx xx00
-void andc(const UDSPInstruction& opc)
+void andc(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] & g_dsp.r[DSP_REG_ACM0 + (1 - dreg)];
 	
 	zeroWriteBackLogPreserveAcc(dreg);
@@ -279,9 +279,9 @@ void andc(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 //
 // flags out: --xx xx00
-void orc(const UDSPInstruction& opc)
+void orc(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] | g_dsp.r[DSP_REG_ACM0 + (1 - dreg)];
 	
 	zeroWriteBackLogPreserveAcc(dreg);
@@ -296,9 +296,9 @@ void orc(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 //
 // flags out: --xx xx00
-void xorc(const UDSPInstruction& opc)
+void xorc(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] ^ g_dsp.r[DSP_REG_ACM0 + (1 - dreg)];
 
 	zeroWriteBackLogPreserveAcc(dreg);
@@ -313,9 +313,9 @@ void xorc(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 //
 // flags out: --xx xx00
-void notc(const UDSPInstruction& opc)
+void notc(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 	u16 accm = g_dsp.r[DSP_REG_ACM0 + dreg] ^ 0xffff;
 
 	zeroWriteBackLogPreserveAcc(dreg);
@@ -331,9 +331,9 @@ void notc(const UDSPInstruction& opc)
 // immediate value I.
 //
 // flags out: --xx xx00
-void xori(const UDSPInstruction& opc)
+void xori(const UDSPInstruction opc)
 {
-	u8 reg  = (opc.hex >> 8) & 0x1;
+	u8 reg  = (opc >> 8) & 0x1;
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[DSP_REG_ACM0 + reg] ^= imm;
 
@@ -346,9 +346,9 @@ void xori(const UDSPInstruction& opc)
 // Logic AND of accumulator mid part $acD.m with immediate value I.
 //
 // flags out: --xx xx00
-void andi(const UDSPInstruction& opc)
+void andi(const UDSPInstruction opc)
 {
-	u8 reg  = (opc.hex >> 8) & 0x1;
+	u8 reg  = (opc >> 8) & 0x1;
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[DSP_REG_ACM0 + reg] &= imm;
 
@@ -361,9 +361,9 @@ void andi(const UDSPInstruction& opc)
 // Logic OR of accumulator mid part $acD.m with immediate value I.
 //
 // flags out: --xx xx00
-void ori(const UDSPInstruction& opc)
+void ori(const UDSPInstruction opc)
 {
-	u8 reg  = (opc.hex >> 8) & 0x1;
+	u8 reg  = (opc >> 8) & 0x1;
 	u16 imm = dsp_fetch_code();
 	g_dsp.r[DSP_REG_ACM0 + reg] |= imm;
 
@@ -377,10 +377,10 @@ void ori(const UDSPInstruction& opc)
 // Adds register $axS.L to accumulator $acD.M register.
 //
 // flags out: x-xx xxxx
-void addr(const UDSPInstruction& opc)
+void addr(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
-	u8 sreg = ((opc.hex >> 9) & 0x3) + DSP_REG_AXL0;
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
 	s64 acc = dsp_get_long_acc(dreg);
 	s64 ax = (s16)g_dsp.r[sreg];
@@ -399,10 +399,10 @@ void addr(const UDSPInstruction& opc)
 // Adds secondary accumulator $axS to accumulator register $acD.
 //
 // flags out: x-xx xxxx
-void addax(const UDSPInstruction& opc)
+void addax(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
 	s64 acc = dsp_get_long_acc(dreg);
 	s64 ax  = dsp_get_long_acx(sreg);
@@ -420,9 +420,9 @@ void addax(const UDSPInstruction& opc)
 // Adds accumulator $ac(1-D) to accumulator register $acD.
 //
 // flags out: x-xx xxxx
-void add(const UDSPInstruction& opc)
+void add(const UDSPInstruction opc)
 {
-	u8 dreg  = (opc.hex >> 8) & 0x1;
+	u8 dreg  = (opc >> 8) & 0x1;
 
 	s64 acc0 = dsp_get_long_acc(dreg);
 	s64 acc1 = dsp_get_long_acc(1 - dreg);
@@ -440,9 +440,9 @@ void add(const UDSPInstruction& opc)
 // Adds product register to accumulator register.
 //
 // flags out: x-xx xxxx
-void addp(const UDSPInstruction& opc)
+void addp(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	s64 acc = dsp_get_long_acc(dreg);
 	s64 prod = dsp_get_long_prod();
@@ -461,10 +461,10 @@ void addp(const UDSPInstruction& opc)
 // should be unsigned values!!
 //
 // flags out: x-xx xxxx
-void addaxl(const UDSPInstruction& opc)
+void addaxl(const UDSPInstruction opc)
 {
-	u8 sreg = (opc.hex >> 9) & 0x1;
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	u64 acc = dsp_get_long_acc(dreg);
 	u16 acx = (u16)dsp_get_ax_l(sreg);
@@ -484,9 +484,9 @@ void addaxl(const UDSPInstruction& opc)
 // Adds immediate (16-bit sign extended) to mid accumulator $acD.hm.
 //
 // flags out: x-xx xxxx
-void addi(const UDSPInstruction& opc)
+void addi(const UDSPInstruction opc)
 {
-	u8 areg = (opc.hex >> 8) & 0x1;
+	u8 areg = (opc >> 8) & 0x1;
 
 	s64 acc = dsp_get_long_acc(areg);
 	s64 imm = (s16)dsp_fetch_code();
@@ -503,12 +503,12 @@ void addi(const UDSPInstruction& opc)
 // Adds short immediate (8-bit sign extended) to mid accumulator $acD.hm.
 //
 // flags out: x-xx xxxx
-void addis(const UDSPInstruction& opc)
+void addis(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	s64 acc = dsp_get_long_acc(dreg);
-	s64 imm = (s8)(u8)opc.hex;
+	s64 imm = (s8)(u8)opc;
 	imm <<= 16;
 	s64 res = acc + imm;
 
@@ -522,9 +522,9 @@ void addis(const UDSPInstruction& opc)
 // Increment 24-bit mid-accumulator $acsD.
 //
 // flags out: x-xx xxxx
-void incm(const UDSPInstruction& opc)
+void incm(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	s64 sub = 0x10000;
 	s64 acc = dsp_get_long_acc(dreg);
@@ -542,9 +542,9 @@ void incm(const UDSPInstruction& opc)
 // Increment accumulator $acD.
 //
 // flags out: x-xx xxxx
-void inc(const UDSPInstruction& opc)
+void inc(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	s64 acc = dsp_get_long_acc(dreg);
 	s64 res = acc + 1;	
@@ -563,10 +563,10 @@ void inc(const UDSPInstruction& opc)
 // Subtracts register $axS.L from accumulator $acD.M register.
 //
 // flags out: x-xx xxxx
-void subr(const UDSPInstruction& opc)
+void subr(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
-	u8 sreg = ((opc.hex >> 9) & 0x3) + DSP_REG_AXL0;
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
 	s64 acc = dsp_get_long_acc(dreg);
 	s64 ax = (s16)g_dsp.r[sreg];
@@ -585,10 +585,10 @@ void subr(const UDSPInstruction& opc)
 // Subtracts secondary accumulator $axS from accumulator register $acD.
 //
 // flags out: x-xx xxxx
-void subax(const UDSPInstruction& opc)
+void subax(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
 	s64 acc = dsp_get_long_acc(dreg);
 	s64 acx = dsp_get_long_acx(sreg);
@@ -606,9 +606,9 @@ void subax(const UDSPInstruction& opc)
 // Subtracts accumulator $ac(1-D) from accumulator register $acD. 
 //
 // flags out: x-xx xxxx
-void sub(const UDSPInstruction& opc)
+void sub(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	s64 acc1 = dsp_get_long_acc(dreg);
 	s64 acc2 = dsp_get_long_acc(1 - dreg);
@@ -626,9 +626,9 @@ void sub(const UDSPInstruction& opc)
 // Subtracts product register from accumulator register.
 //
 // flags out: x-xx xxxx
-void subp(const UDSPInstruction& opc)
+void subp(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	s64 acc = dsp_get_long_acc(dreg);
 	s64 prod = dsp_get_long_prod();
@@ -646,9 +646,9 @@ void subp(const UDSPInstruction& opc)
 // Decrement 24-bit mid-accumulator $acsD.
 //
 // flags out: x-xx xxxx
-void decm(const UDSPInstruction& opc)
+void decm(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x01;
+	u8 dreg = (opc >> 8) & 0x01;
 
 	s64 sub = 0x10000;
 	s64 acc = dsp_get_long_acc(dreg);
@@ -666,9 +666,9 @@ void decm(const UDSPInstruction& opc)
 // Decrement accumulator $acD.
 //
 // flags out: x-xx xxxx
-void dec(const UDSPInstruction& opc)
+void dec(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x01;
+	u8 dreg = (opc >> 8) & 0x01;
 
 	s64 acc = dsp_get_long_acc(dreg); 
 	s64 res = acc - 1;
@@ -687,9 +687,9 @@ void dec(const UDSPInstruction& opc)
 // Negate accumulator $acD.
 //
 // flags out: --xx xx00
-void neg(const UDSPInstruction& opc)
+void neg(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 	
 	s64 acc = dsp_get_long_acc(dreg);
 	acc = 0 - acc;
@@ -705,9 +705,9 @@ void neg(const UDSPInstruction& opc)
 // absolute value of $acD
 //
 // flags out: --xx xx00
-void abs(const UDSPInstruction& opc)
+void abs(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 11) & 0x1;
+	u8 dreg = (opc >> 11) & 0x1;
 
 	s64 acc = dsp_get_long_acc(dreg); 	
 
@@ -728,10 +728,10 @@ void abs(const UDSPInstruction& opc)
 // TODO: Check what happens to acD.h.
 //
 // flags out: --xx xx00
-void movr(const UDSPInstruction& opc)
+void movr(const UDSPInstruction opc)
 {
-	u8 areg = (opc.hex >> 8) & 0x1;
-	u8 sreg = ((opc.hex >> 9) & 0x3) + DSP_REG_AXL0;
+	u8 areg = (opc >> 8) & 0x1;
+	u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
  		
 	s64 acc = (s16)g_dsp.r[sreg];
 	acc <<= 16;
@@ -748,10 +748,10 @@ void movr(const UDSPInstruction& opc)
 // Moves secondary accumulator $axS to accumulator $axD. 
 //
 // flags out: --xx xx00
-void movax(const UDSPInstruction& opc)
+void movax(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
 	s64 acx = dsp_get_long_acx(sreg);
 
@@ -766,9 +766,9 @@ void movax(const UDSPInstruction& opc)
 // Moves accumulator $ax(1-D) to accumulator $axD.
 //
 // flags out: --x0 xx00
-void mov(const UDSPInstruction& opc)
+void mov(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 	u64 acc = dsp_get_long_acc(1 - dreg);
 
 	zeroWriteBackLog();
@@ -784,9 +784,9 @@ void mov(const UDSPInstruction& opc)
 // Logically shifts left accumulator $acR by 16.
 //
 // flags out: --xx xx00
-void lsl16(const UDSPInstruction& opc)
+void lsl16(const UDSPInstruction opc)
 {
-	u8 areg = (opc.hex >> 8) & 0x1;
+	u8 areg = (opc >> 8) & 0x1;
 
 	s64 acc = dsp_get_long_acc(areg);
 	acc <<= 16;
@@ -802,9 +802,9 @@ void lsl16(const UDSPInstruction& opc)
 // Logically shifts right accumulator $acR by 16.
 //
 // flags out: --xx xx00
-void lsr16(const UDSPInstruction& opc)
+void lsr16(const UDSPInstruction opc)
 {
-	u8 areg = (opc.hex >> 8) & 0x1;
+	u8 areg = (opc >> 8) & 0x1;
 
 	u64 acc = dsp_get_long_acc(areg);
 	acc &= 0x000000FFFFFFFFFFULL; 	// Lop off the extraneous sign extension our 64-bit fake accum causes
@@ -821,9 +821,9 @@ void lsr16(const UDSPInstruction& opc)
 // Arithmetically shifts right accumulator $acR by 16.
 //
 // flags out: --xx xx00
-void asr16(const UDSPInstruction& opc)
+void asr16(const UDSPInstruction opc)
 {
-	u8 areg = (opc.hex >> 11) & 0x1;
+	u8 areg = (opc >> 11) & 0x1;
 
 	s64 acc = dsp_get_long_acc(areg);
 	acc >>= 16;
@@ -839,10 +839,10 @@ void asr16(const UDSPInstruction& opc)
 // Logically shifts left accumulator $acR by number specified by value I.
 //
 // flags out: --xx xx00
-void lsl(const UDSPInstruction& opc) 
+void lsl(const UDSPInstruction opc) 
 {
-	u8 rreg = (opc.hex >> 8) & 0x01;
-	u16 shift = opc.hex & 0x3f; 
+	u8 rreg = (opc >> 8) & 0x01;
+	u16 shift = opc & 0x3f; 
 	u64 acc = dsp_get_long_acc(rreg);
 
 	acc <<= shift;
@@ -857,17 +857,17 @@ void lsl(const UDSPInstruction& opc)
 // calculated by negating sign extended bits 0-6.
 //
 // flags out: --xx xx00
-void lsr(const UDSPInstruction& opc)
+void lsr(const UDSPInstruction opc)
 {
-	u8 rreg = (opc.hex >> 8) & 0x01;
+	u8 rreg = (opc >> 8) & 0x01;
 	u16 shift;
 	u64 acc = dsp_get_long_acc(rreg);
 	acc &= 0x000000FFFFFFFFFFULL; 	// Lop off the extraneous sign extension our 64-bit fake accum causes
 
-	if ((opc.hex & 0x3f) == 0)
+	if ((opc & 0x3f) == 0)
 		shift = 0;
 	else
-		shift = 0x40 - (opc.hex & 0x3f);
+		shift = 0x40 - (opc & 0x3f);
 
 	acc >>= shift;
 	
@@ -880,10 +880,10 @@ void lsr(const UDSPInstruction& opc)
 // Logically shifts left accumulator $acR by number specified by value I.
 //
 // flags out: --xx xx00
-void asl(const UDSPInstruction& opc)
+void asl(const UDSPInstruction opc)
 {
-	u8 rreg = (opc.hex >> 8) & 0x01;
-	u16 shift = opc.hex & 0x3f;
+	u8 rreg = (opc >> 8) & 0x01;
+	u16 shift = opc & 0x3f;
 	u64 acc = dsp_get_long_acc(rreg);
 
 	acc <<= shift;
@@ -898,15 +898,15 @@ void asl(const UDSPInstruction& opc)
 // value calculated by negating sign extended bits 0-6.
 //
 // flags out: --xx xx00
-void asr(const UDSPInstruction& opc)
+void asr(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x01;
+	u8 dreg = (opc >> 8) & 0x01;
 	u16 shift;
 
-	if ((opc.hex & 0x3f) == 0)
+	if ((opc & 0x3f) == 0)
 		shift = 0;
 	else
-		shift = 0x40 - (opc.hex & 0x3f);
+		shift = 0x40 - (opc & 0x3f);
 
 	// arithmetic shift
 	s64 acc = dsp_get_long_acc(dreg);
@@ -922,7 +922,7 @@ void asr(const UDSPInstruction& opc)
 // (if value negative, becomes left shift).
 //
 // flags out: --xx xx00
-void lsrn(const UDSPInstruction& opc)
+void lsrn(const UDSPInstruction opc)
 {
 	s16 shift; 
 	u16 accm = (u16)dsp_get_acc_m(1);
@@ -952,7 +952,7 @@ void lsrn(const UDSPInstruction& opc)
 // (if value negative, becomes left shift).
 //
 // flags out: --xx xx00
-void asrn(const UDSPInstruction& opc)
+void asrn(const UDSPInstruction opc)
 {
 	s16 shift;
 	u16 accm = (u16)dsp_get_acc_m(1);
@@ -981,10 +981,10 @@ void asrn(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 //
 // flags out: --xx xx00
-void lsrnrx(const UDSPInstruction& opc)
+void lsrnrx(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
 	s16 shift;
 	u16 axh = g_dsp.r[DSP_REG_AXH0 + sreg];
@@ -1016,10 +1016,10 @@ void lsrnrx(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 //
 // flags out: --xx xx00
-void asrnrx(const UDSPInstruction& opc)
+void asrnrx(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
 	s16 shift;
 	u16 axh = g_dsp.r[DSP_REG_AXH0 + sreg];
@@ -1050,9 +1050,9 @@ void asrnrx(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 //
 // flags out: --xx xx00
-void lsrnr(const UDSPInstruction& opc)
+void lsrnr(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	s16 shift;
 	u16 accm = (u16)dsp_get_acc_m(1 - dreg);
@@ -1083,9 +1083,9 @@ void lsrnr(const UDSPInstruction& opc)
 // x = extension (7 bits!!)
 //
 // flags out: --xx xx00
-void asrnr(const UDSPInstruction& opc)
+void asrnr(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	s16 shift;
 	u16 accm = (u16)dsp_get_acc_m(1 - dreg);

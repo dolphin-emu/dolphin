@@ -103,7 +103,7 @@ s64 dsp_multiply_mulx(u8 axh0, u8 axh1, u16 val1, u16 val2)
 // CLRP
 // 1000 0100 xxxx xxxx
 // Clears product register $prod.
-void clrp(const UDSPInstruction& opc)
+void clrp(const UDSPInstruction opc)
 {
 	// Magic numbers taken from duddie's doc
 	// These are probably a bad idea to put here.
@@ -123,7 +123,7 @@ void clrp(const UDSPInstruction& opc)
 // Test prod regs value.
 //
 // flags out: xx xx0x <- CF??
-void tstprod(const UDSPInstruction& opc)
+void tstprod(const UDSPInstruction opc)
 {
 	s64 prod = dsp_get_long_prod();
 	Update_SR_Register64(prod);
@@ -137,9 +137,9 @@ void tstprod(const UDSPInstruction& opc)
 // Moves multiply product from $prod register to accumulator $acD register.
 //
 // flags out: xx xx00
-void movp(const UDSPInstruction& opc)
+void movp(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	s64 acc = dsp_get_long_prod();
 
@@ -155,9 +155,9 @@ void movp(const UDSPInstruction& opc)
 // $acD register.
 //
 // flags out: xx xx0x <- CF??
-void movnp(const UDSPInstruction& opc)
+void movnp(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
 
 	s64 acc = -dsp_get_long_prod();
 
@@ -173,9 +173,9 @@ void movnp(const UDSPInstruction& opc)
 // register and sets $acD.l to 0
 //
 // flags out: xx xx0x <- CF??
-void movpz(const UDSPInstruction& opc)
+void movpz(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x01;
+	u8 dreg = (opc >> 8) & 0x01;
 
 	s64 acc = dsp_get_long_prod_round_prodl();
 
@@ -191,10 +191,10 @@ void movpz(const UDSPInstruction& opc)
 // in accumulator register. Low 16-bits of $acD ($acD.l) are set to 0.
 //
 // flags out: ?-xx xx??
-void addpaxz(const UDSPInstruction& opc)
+void addpaxz(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 9) & 0x1;
+	u8 dreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
 	s64 prod = dsp_get_long_prod_round_prodl();
 	s64 ax = dsp_get_long_acx(sreg);
@@ -212,7 +212,7 @@ void addpaxz(const UDSPInstruction& opc)
 // MULAXH
 // 1000 0011 xxxx xxxx
 // Multiply $ax0.h by $ax0.h 
-void mulaxh(const UDSPInstruction& opc)
+void mulaxh(const UDSPInstruction opc)
 {
 	s64 prod = dsp_multiply(dsp_get_ax_h(0), dsp_get_ax_h(0));
 
@@ -227,9 +227,9 @@ void mulaxh(const UDSPInstruction& opc)
 // 1001 s000 xxxx xxxx
 // Multiply low part $axS.l of secondary accumulator $axS by high part
 // $axS.h of secondary accumulator $axS (treat them both as signed).
-void mul(const UDSPInstruction& opc)
+void mul(const UDSPInstruction opc)
 {
-	u8 sreg  = (opc.hex >> 11) & 0x1;
+	u8 sreg  = (opc >> 11) & 0x1;
 
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
@@ -247,10 +247,10 @@ void mul(const UDSPInstruction& opc)
 // accumulator $axS (treat them both as signed).
 //
 // flags out: xx xx00
-void mulac(const UDSPInstruction& opc)
+void mulac(const UDSPInstruction opc)
 {
-	u8 rreg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 11) & 0x1;
+	u8 rreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 11) & 0x1;
 
 	s64 acc = dsp_get_long_acc(rreg) + dsp_get_long_prod();
 	u16 axl = dsp_get_ax_l(sreg);
@@ -271,10 +271,10 @@ void mulac(const UDSPInstruction& opc)
 // accumulator $axS (treat them both as signed).
 //
 // flags out: xx xx00
-void mulmv(const UDSPInstruction& opc)
+void mulmv(const UDSPInstruction opc)
 {
-	u8 rreg  = (opc.hex >> 8) & 0x1;
-	u8 sreg  = ((opc.hex >> 11) & 0x1);
+	u8 rreg  = (opc >> 8) & 0x1;
+	u8 sreg  = ((opc >> 11) & 0x1);
 
 	s64 acc = dsp_get_long_prod();
 	u16 axl = dsp_get_ax_l(sreg);
@@ -296,10 +296,10 @@ void mulmv(const UDSPInstruction& opc)
 // them both as signed).
 //
 // flags out: xx xx0x
-void mulmvz(const UDSPInstruction& opc)
+void mulmvz(const UDSPInstruction opc)
 {
-	u8 rreg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 11) & 0x1;
+	u8 rreg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 11) & 0x1;
 
 	s64 acc = dsp_get_long_prod_round_prodl();
 	u16 axl = dsp_get_ax_l(sreg);
@@ -319,10 +319,10 @@ void mulmvz(const UDSPInstruction& opc)
 // 101s t000 xxxx xxxx
 // Multiply one part $ax0 by one part $ax1.
 // Part is selected by S and T bits. Zero selects low part, one selects high part.
-void mulx(const UDSPInstruction& opc)
+void mulx(const UDSPInstruction opc)
 {
-	u8 treg = ((opc.hex >> 11) & 0x1);
-	u8 sreg = ((opc.hex >> 12) & 0x1);
+	u8 treg = ((opc >> 11) & 0x1);
+	u8 sreg = ((opc >> 12) & 0x1);
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
@@ -340,11 +340,11 @@ void mulx(const UDSPInstruction& opc)
 // T bits. Zero selects low part, one selects high part.
 //
 // flags out: xx xx00
-void mulxac(const UDSPInstruction& opc)
+void mulxac(const UDSPInstruction opc)
 {
-	u8 rreg = (opc.hex >> 8) & 0x1;
-	u8 treg = (opc.hex >> 11) & 0x1;
-	u8 sreg = (opc.hex >> 12) & 0x1;
+	u8 rreg = (opc >> 8) & 0x1;
+	u8 treg = (opc >> 11) & 0x1;
+	u8 sreg = (opc >> 12) & 0x1;
 
 	s64 acc = dsp_get_long_acc(rreg) + dsp_get_long_prod();
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
@@ -365,11 +365,11 @@ void mulxac(const UDSPInstruction& opc)
 // T bits. Zero selects low part, one selects high part.
 //
 // flags out: xx xx00
-void mulxmv(const UDSPInstruction& opc)
+void mulxmv(const UDSPInstruction opc)
 {
-	u8 rreg = ((opc.hex >> 8) & 0x1);
-	u8 treg = (opc.hex >> 11) & 0x1;
-	u8 sreg = (opc.hex >> 12) & 0x1;
+	u8 rreg = ((opc >> 8) & 0x1);
+	u8 treg = (opc >> 11) & 0x1;
+	u8 sreg = (opc >> 12) & 0x1;
 
 	s64 acc = dsp_get_long_prod();
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
@@ -391,11 +391,11 @@ void mulxmv(const UDSPInstruction& opc)
 // one selects high part.
 //
 // flags out: xx xx00
-void mulxmvz(const UDSPInstruction& opc)
+void mulxmvz(const UDSPInstruction opc)
 {
-	u8 rreg  = (opc.hex >> 8) & 0x1;
-	u8 treg = (opc.hex >> 11) & 0x1;
-	u8 sreg = (opc.hex >> 12) & 0x1;
+	u8 rreg  = (opc >> 8) & 0x1;
+	u8 treg = (opc >> 11) & 0x1;
+	u8 sreg = (opc >> 12) & 0x1;
 
 	s64 acc = dsp_get_long_prod_round_prodl();
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
@@ -415,10 +415,10 @@ void mulxmvz(const UDSPInstruction& opc)
 // 110s t000 xxxx xxxx
 // Multiply mid part of accumulator register $acS.m by high part $axS.h of
 // secondary accumulator $axS (treat them both as signed).
-void mulc(const UDSPInstruction& opc)
+void mulc(const UDSPInstruction opc)
 {
-	u8 treg = (opc.hex >> 11) & 0x1;
-	u8 sreg = (opc.hex >> 12) & 0x1;
+	u8 treg = (opc >> 11) & 0x1;
+	u8 sreg = (opc >> 12) & 0x1;
 
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
@@ -436,11 +436,11 @@ void mulc(const UDSPInstruction& opc)
 // register before multiplication to accumulator $acR.
 //
 // flags out: xx xx00
-void mulcac(const UDSPInstruction& opc)
+void mulcac(const UDSPInstruction opc)
 {
-	u8 rreg = (opc.hex >> 8) & 0x1;
-	u8 treg  = (opc.hex >> 11) & 0x1;
-	u8 sreg  = (opc.hex >> 12) & 0x1;
+	u8 rreg = (opc >> 8) & 0x1;
+	u8 treg  = (opc >> 11) & 0x1;
+	u8 sreg  = (opc >> 12) & 0x1;
 
 	s64 acc = dsp_get_long_acc(rreg) + dsp_get_long_prod();
 	u16 accm = dsp_get_acc_m(sreg);
@@ -462,11 +462,11 @@ void mulcac(const UDSPInstruction& opc)
 // possible mistake in duddie's doc axT.h rather than axS.h
 //
 // flags out: xx xx00
-void mulcmv(const UDSPInstruction& opc)
+void mulcmv(const UDSPInstruction opc)
 {
-	u8 rreg = (opc.hex >> 8) & 0x1;
-	u8 treg  = (opc.hex >> 11) & 0x1;
-	u8 sreg  = (opc.hex >> 12) & 0x1;
+	u8 rreg = (opc >> 8) & 0x1;
+	u8 treg  = (opc >> 11) & 0x1;
+	u8 sreg  = (opc >> 12) & 0x1;
 
 	s64 acc = dsp_get_long_prod();
 	u16 accm = dsp_get_acc_m(sreg);
@@ -489,11 +489,11 @@ void mulcmv(const UDSPInstruction& opc)
 // accumulator $acR.l to zero.
 //
 // flags out: xx xx00
-void mulcmvz(const UDSPInstruction& opc)
+void mulcmvz(const UDSPInstruction opc)
 {
-	u8 rreg = (opc.hex >> 8) & 0x1;
-	u8 treg  = (opc.hex >> 11) & 0x1;
-	u8 sreg  = (opc.hex >> 12) & 0x1;
+	u8 rreg = (opc >> 8) & 0x1;
+	u8 treg  = (opc >> 11) & 0x1;
+	u8 sreg  = (opc >> 12) & 0x1;
 
 	s64 acc = dsp_get_long_prod_round_prodl();
 	u16 accm = dsp_get_acc_m(sreg);
@@ -514,10 +514,10 @@ void mulcmvz(const UDSPInstruction& opc)
 // Multiply one part of secondary accumulator $ax0 (selected by S) by
 // one part of secondary accumulator $ax1 (selected by T) (treat them both as
 // signed) and add result to product register.
-void maddx(const UDSPInstruction& opc)
+void maddx(const UDSPInstruction opc)
 {
-	u8 treg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 9) & 0x1;
+	u8 treg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
@@ -533,10 +533,10 @@ void maddx(const UDSPInstruction& opc)
 // Multiply one part of secondary accumulator $ax0 (selected by S) by
 // one part of secondary accumulator $ax1 (selected by T) (treat them both as
 // signed) and subtract result from product register.
-void msubx(const UDSPInstruction& opc)
+void msubx(const UDSPInstruction opc)
 {
-	u8 treg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 9) & 0x1;
+	u8 treg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
 	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
 	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
@@ -552,10 +552,10 @@ void msubx(const UDSPInstruction& opc)
 // Multiply middle part of accumulator $acS.m by high part of secondary
 // accumulator $axT.h (treat them both as signed) and add result to product
 // register.
-void maddc(const UDSPInstruction& opc)
+void maddc(const UDSPInstruction opc)
 {
-	u8 treg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 9) & 0x1;
+	u8 treg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
@@ -571,10 +571,10 @@ void maddc(const UDSPInstruction& opc)
 // Multiply middle part of accumulator $acS.m by high part of secondary
 // accumulator $axT.h (treat them both as signed) and subtract result from
 // product register.
-void msubc(const UDSPInstruction& opc)
+void msubc(const UDSPInstruction opc)
 {
-	u8 treg = (opc.hex >> 8) & 0x1;
-	u8 sreg = (opc.hex >> 9) & 0x1;
+	u8 treg = (opc >> 8) & 0x1;
+	u8 sreg = (opc >> 9) & 0x1;
 	
 	u16 accm = dsp_get_acc_m(sreg);
 	u16 axh = dsp_get_ax_h(treg);
@@ -590,9 +590,9 @@ void msubc(const UDSPInstruction& opc)
 // Multiply low part $axS.l of secondary accumulator $axS by high part
 // $axS.h of secondary accumulator $axS (treat them both as signed) and add
 // result to product register.
-void madd(const UDSPInstruction& opc)
+void madd(const UDSPInstruction opc)
 {
-	u8 sreg = (opc.hex >> 8) & 0x1;
+	u8 sreg = (opc >> 8) & 0x1;
 	
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);
@@ -608,9 +608,9 @@ void madd(const UDSPInstruction& opc)
 // Multiply low part $axS.l of secondary accumulator $axS by high part
 // $axS.h of secondary accumulator $axS (treat them both as signed) and
 // subtract result from product register.
-void msub(const UDSPInstruction& opc)
+void msub(const UDSPInstruction opc)
 {
-	u8 sreg = (opc.hex >> 8) & 0x1;
+	u8 sreg = (opc >> 8) & 0x1;
 	
 	u16 axl = dsp_get_ax_l(sreg);
 	u16 axh = dsp_get_ax_h(sreg);

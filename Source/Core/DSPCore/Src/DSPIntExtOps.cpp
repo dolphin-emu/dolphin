@@ -54,22 +54,22 @@ inline bool IsSameMemArea(u16 a, u16 b)
 // DR $arR
 // xxxx xxxx 0000 01rr
 // Decrement addressing register $arR.
-void dr(const UDSPInstruction& opc) {
-	writeToBackLog(0, opc.hex & 0x3, dsp_decrement_addr_reg(opc.hex & 0x3));
+void dr(const UDSPInstruction opc) {
+	writeToBackLog(0, opc & 0x3, dsp_decrement_addr_reg(opc & 0x3));
 }
 
 // IR $arR
 // xxxx xxxx 0000 10rr
 // Increment addressing register $arR.
-void ir(const UDSPInstruction& opc) {
-	writeToBackLog(0, opc.hex & 0x3, dsp_increment_addr_reg(opc.hex & 0x3));
+void ir(const UDSPInstruction opc) {
+	writeToBackLog(0, opc & 0x3, dsp_increment_addr_reg(opc & 0x3));
 }
 
 // NR $arR
 // xxxx xxxx 0000 11rr
 // Add corresponding indexing register $ixR to addressing register $arR.
-void nr(const UDSPInstruction& opc) {
-	u8 reg = opc.hex & 0x3;	
+void nr(const UDSPInstruction opc) {
+	u8 reg = opc & 0x3;	
 	
 	writeToBackLog(0, reg, dsp_increase_addr_reg(reg, (s16)g_dsp.r[DSP_REG_IX0 + reg]));
 }
@@ -77,10 +77,10 @@ void nr(const UDSPInstruction& opc) {
 // MV $axD.D, $acS.S
 // xxxx xxxx 0001 ddss
 // Move value of $acS.S to the $axD.D.
-void mv(const UDSPInstruction& opc)
+void mv(const UDSPInstruction opc)
 {
- 	u8 sreg = (opc.hex & 0x3) + DSP_REG_ACL0;
-	u8 dreg = ((opc.hex >> 2) & 0x3);
+ 	u8 sreg = (opc & 0x3) + DSP_REG_ACL0;
+	u8 dreg = ((opc >> 2) & 0x3);
 
 #if 0 //more tests 
 	if ((sreg >= DSP_REG_ACM0) && (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)) 
@@ -94,10 +94,10 @@ void mv(const UDSPInstruction& opc)
 // xxxx xxxx 001s s0dd
 // Store value of $acS.S in the memory pointed by register $arD.
 // Post increment register $arD.
-void s(const UDSPInstruction& opc)
+void s(const UDSPInstruction opc)
 {
-	u8 dreg = opc.hex & 0x3;
-	u8 sreg = ((opc.hex >> 3) & 0x3) + DSP_REG_ACL0;
+	u8 dreg = opc & 0x3;
+	u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
 
 	dsp_dmem_write(g_dsp.r[dreg], g_dsp.r[sreg]);
 	writeToBackLog(0, dreg,	dsp_increment_addr_reg(dreg));
@@ -107,10 +107,10 @@ void s(const UDSPInstruction& opc)
 // xxxx xxxx 001s s1dd
 // Store value of register $acS.S in the memory pointed by register $arD.
 // Add indexing register $ixD to register $arD.
-void sn(const UDSPInstruction& opc)
+void sn(const UDSPInstruction opc)
 {
-	u8 dreg = opc.hex & 0x3;
-	u8 sreg = ((opc.hex >> 3) & 0x3) + DSP_REG_ACL0;
+	u8 dreg = opc & 0x3;
+	u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
 
 	dsp_dmem_write(g_dsp.r[dreg], g_dsp.r[sreg]);
 	writeToBackLog(0, dreg,	dsp_increase_addr_reg(dreg, (s16)g_dsp.r[DSP_REG_IX0 + dreg]));
@@ -120,10 +120,10 @@ void sn(const UDSPInstruction& opc)
 // xxxx xxxx 01dd d0ss
 // Load $axD.D/$acD.D with value from memory pointed by register $arS. 
 // Post increment register $arS.
-void l(const UDSPInstruction& opc)
+void l(const UDSPInstruction opc)
 {
-	u8 sreg = opc.hex & 0x3;
-	u8 dreg = ((opc.hex >> 3) & 0x7) + DSP_REG_AXL0;
+	u8 sreg = opc & 0x3;
+	u8 dreg = ((opc >> 3) & 0x7) + DSP_REG_AXL0;
 	
 	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)) 
 	{
@@ -144,10 +144,10 @@ void l(const UDSPInstruction& opc)
 // xxxx xxxx 01dd d0ss
 // Load $axD.D/$acD.D with value from memory pointed by register $arS. 
 // Add indexing register register $ixS to register $arS.
-void ln(const UDSPInstruction& opc)
+void ln(const UDSPInstruction opc)
 {
-	u8 sreg = opc.hex & 0x3;
-	u8 dreg = ((opc.hex >> 3) & 0x7) + DSP_REG_AXL0;
+	u8 sreg = opc & 0x3;
+	u8 dreg = ((opc >> 3) & 0x7) + DSP_REG_AXL0;
 
 	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)) 
 	{
@@ -169,10 +169,10 @@ void ln(const UDSPInstruction& opc)
 // Load register $axD.D with value from memory pointed by register
 // $ar0. Store value from register $acS.m to memory location pointed by
 // register $ar3. Increment both $ar0 and $ar3.
-void ls(const UDSPInstruction& opc)
+void ls(const UDSPInstruction opc)
 {
-	u8 sreg = (opc.hex & 0x1) + DSP_REG_ACM0;
-	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
+	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
+	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 
 	dsp_dmem_write(g_dsp.r[DSP_REG_AR3], g_dsp.r[sreg]);
 
@@ -188,10 +188,10 @@ void ls(const UDSPInstruction& opc)
 // $ar0. Store value from register $acS.m to memory location pointed by
 // register $ar3. Add corresponding indexing register $ix0 to addressing
 // register $ar0 and increment $ar3.
-void lsn(const UDSPInstruction& opc)
+void lsn(const UDSPInstruction opc)
 {
-	u8 sreg = (opc.hex & 0x1) + DSP_REG_ACM0;
-	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
+	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
+	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 
 	dsp_dmem_write(g_dsp.r[DSP_REG_AR3], g_dsp.r[sreg]);
 
@@ -206,10 +206,10 @@ void lsn(const UDSPInstruction& opc)
 // $ar0. Store value from register $acS.m to memory location pointed by
 // register $ar3. Add corresponding indexing register $ix3 to addressing
 // register $ar3 and increment $ar0.
-void lsm(const UDSPInstruction& opc)
+void lsm(const UDSPInstruction opc)
 {
-	u8 sreg = (opc.hex & 0x1) + DSP_REG_ACM0;
-	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
+	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
+	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 	
 	dsp_dmem_write(g_dsp.r[DSP_REG_AR3], g_dsp.r[sreg]);
 
@@ -225,10 +225,10 @@ void lsm(const UDSPInstruction& opc)
 // register $ar3. Add corresponding indexing register $ix0 to addressing
 // register $ar0 and add corresponding indexing register $ix3 to addressing
 // register $ar3.
-void lsnm(const UDSPInstruction& opc)
+void lsnm(const UDSPInstruction opc)
 {
-	u8 sreg = (opc.hex & 0x1) + DSP_REG_ACM0;
-	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
+	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
+	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 	
 	dsp_dmem_write(g_dsp.r[DSP_REG_AR3], g_dsp.r[sreg]);
 
@@ -242,10 +242,10 @@ void lsnm(const UDSPInstruction& opc)
 // Store value from register $acS.m to memory location pointed by register
 // $ar0. Load register $axD.D with value from memory pointed by register
 // $ar3. Increment both $ar0 and $ar3.
-void sl(const UDSPInstruction& opc)
+void sl(const UDSPInstruction opc)
 {
-	u8 sreg = (opc.hex & 0x1) + DSP_REG_ACM0;
-	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
+	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
+	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 	
 	dsp_dmem_write(g_dsp.r[DSP_REG_AR0], g_dsp.r[sreg]);
 
@@ -260,10 +260,10 @@ void sl(const UDSPInstruction& opc)
 // $ar0. Load register $axD.D with value from memory pointed by register
 // $ar3. Add corresponding indexing register $ix0 to addressing register $ar0
 // and increment $ar3.
-void sln(const UDSPInstruction& opc)
+void sln(const UDSPInstruction opc)
 {
-	u8 sreg = (opc.hex & 0x1) + DSP_REG_ACM0;
-	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
+	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
+	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 	
 	dsp_dmem_write(g_dsp.r[DSP_REG_AR0], g_dsp.r[sreg]);
 	
@@ -278,10 +278,10 @@ void sln(const UDSPInstruction& opc)
 // $ar0. Load register $axD.D with value from memory pointed by register
 // $ar3. Add corresponding indexing register $ix3 to addressing register $ar3
 // and increment $ar0.
-void slm(const UDSPInstruction& opc)
+void slm(const UDSPInstruction opc)
 {
-	u8 sreg = (opc.hex & 0x1) + DSP_REG_ACM0;
-	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
+	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
+	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 	
 	dsp_dmem_write(g_dsp.r[DSP_REG_AR0], g_dsp.r[sreg]);
 
@@ -296,10 +296,10 @@ void slm(const UDSPInstruction& opc)
 // $ar0. Load register $axD.D with value from memory pointed by register
 // $ar3. Add corresponding indexing register $ix0 to addressing register $ar0
 // and add corresponding indexing register $ix3 to addressing register $ar3.
-void slnm(const UDSPInstruction& opc)
+void slnm(const UDSPInstruction opc)
 {
-	u8 sreg = (opc.hex & 0x1) + DSP_REG_ACM0;
-	u8 dreg = ((opc.hex >> 4) & 0x3) + DSP_REG_AXL0;
+	u8 sreg = (opc & 0x1) + DSP_REG_ACM0;
+	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 	
 	dsp_dmem_write(g_dsp.r[DSP_REG_AR0], g_dsp.r[sreg]);
 
@@ -317,11 +317,11 @@ void slnm(const UDSPInstruction& opc)
 // then the value pointed by AR0 is loaded to BOTH AX0.H and AX0.L.
 // If AR0 points into an invalid memory page (ie 0x2000), then AX0.H keeps its old value. (not implemented yet)
 // If AR3 points into an invalid memory page, then AX0.L gets the same value as AX0.H. (not implemented yet)
-void ld(const UDSPInstruction& opc)
+void ld(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 5) & 0x1;
-	u8 rreg = (opc.hex >> 4) & 0x1;
-	u8 sreg = opc.hex & 0x3;
+	u8 dreg = (opc >> 5) & 0x1;
+	u8 rreg = (opc >> 4) & 0x1;
+	u8 sreg = opc & 0x3;
 
 	if (sreg != DSP_REG_AR3) {
 		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r[sreg]));
@@ -348,11 +348,11 @@ void ld(const UDSPInstruction& opc)
 
 // LDN $ax0.d, $ax1.r, @$arS
 // xxxx xxxx 11dr 01ss
-void ldn(const UDSPInstruction& opc)
+void ldn(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 5) & 0x1;
-	u8 rreg = (opc.hex >> 4) & 0x1;
-	u8 sreg = opc.hex & 0x3;
+	u8 dreg = (opc >> 5) & 0x1;
+	u8 rreg = (opc >> 4) & 0x1;
+	u8 sreg = opc & 0x3;
 	
 	if (sreg != DSP_REG_AR3) {
 		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r[sreg]));
@@ -379,11 +379,11 @@ void ldn(const UDSPInstruction& opc)
 
 // LDM $ax0.d, $ax1.r, @$arS
 // xxxx xxxx 11dr 10ss
-void ldm(const UDSPInstruction& opc)
+void ldm(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 5) & 0x1;
-	u8 rreg = (opc.hex >> 4) & 0x1;
-	u8 sreg = opc.hex & 0x3;
+	u8 dreg = (opc >> 5) & 0x1;
+	u8 rreg = (opc >> 4) & 0x1;
+	u8 sreg = opc & 0x3;
 
 	if (sreg != DSP_REG_AR3) {
 		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r[sreg]));
@@ -411,11 +411,11 @@ void ldm(const UDSPInstruction& opc)
 
 // LDNM $ax0.d, $ax1.r, @$arS
 // xxxx xxxx 11dr 11ss
-void ldnm(const UDSPInstruction& opc)
+void ldnm(const UDSPInstruction opc)
 {
-	u8 dreg = (opc.hex >> 5) & 0x1;
-	u8 rreg = (opc.hex >> 4) & 0x1;
-	u8 sreg = opc.hex & 0x3;
+	u8 dreg = (opc >> 5) & 0x1;
+	u8 rreg = (opc >> 4) & 0x1;
+	u8 sreg = opc & 0x3;
 
 	if (sreg != DSP_REG_AR3) {
 		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, dsp_dmem_read(g_dsp.r[sreg]));
@@ -442,7 +442,7 @@ void ldnm(const UDSPInstruction& opc)
 }
 
 
-void nop(const UDSPInstruction& opc)
+void nop(const UDSPInstruction opc)
 {
 }
 

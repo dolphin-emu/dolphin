@@ -34,11 +34,11 @@ namespace DSPInterpreter {
 // Call function if condition cc has been met. Push program counter of
 // instruction following "call" to $st0. Set program counter to address
 // represented by value that follows this "call" instruction.
-void call(const UDSPInstruction& opc)
+void call(const UDSPInstruction opc)
 {
 	// must be outside the if.
 	u16 dest = dsp_fetch_code();
-	if (CheckCondition(opc.hex & 0xf))
+	if (CheckCondition(opc & 0xf))
 	{
 		dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
 		g_dsp.pc = dest;
@@ -51,11 +51,11 @@ void call(const UDSPInstruction& opc)
 // Call function if condition cc has been met. Push program counter of 
 // instruction following "call" to call stack $st0. Set program counter to 
 // register $R.
-void callr(const UDSPInstruction& opc)
+void callr(const UDSPInstruction opc)
 {
-	if (CheckCondition(opc.hex & 0xf))
+	if (CheckCondition(opc & 0xf))
 	{
-		u8 reg  = (opc.hex >> 5) & 0x7;
+		u8 reg  = (opc >> 5) & 0x7;
 		u16 addr = dsp_op_read_reg(reg);
 		dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
 		g_dsp.pc = addr;
@@ -66,9 +66,9 @@ void callr(const UDSPInstruction& opc)
 // IFcc
 // 0000 0010 0111 cccc
 // Execute following opcode if the condition has been met.
-void ifcc(const UDSPInstruction& opc)
+void ifcc(const UDSPInstruction opc)
 {
-	if (!CheckCondition(opc.hex & 0xf))
+	if (!CheckCondition(opc & 0xf))
 	{
 		// skip the next opcode - we have to lookup its size.
 		g_dsp.pc += opSize[dsp_peek_code()];
@@ -81,10 +81,10 @@ void ifcc(const UDSPInstruction& opc)
 // aaaa aaaa aaaa aaaa
 // Jump to addressA if condition cc has been met. Set program counter to
 // address represented by value that follows this "jmp" instruction.
-void jcc(const UDSPInstruction& opc)
+void jcc(const UDSPInstruction opc)
 {
 	u16 dest = dsp_fetch_code();
-	if (CheckCondition(opc.hex & 0xf))
+	if (CheckCondition(opc & 0xf))
 	{
 		g_dsp.pc = dest;
 	}
@@ -94,11 +94,11 @@ void jcc(const UDSPInstruction& opc)
 // JMPcc $R
 // 0001 0111 rrr0 cccc
 // Jump to address; set program counter to a value from register $R.
-void jmprcc(const UDSPInstruction& opc)
+void jmprcc(const UDSPInstruction opc)
 {
-	if (CheckCondition(opc.hex & 0xf))
+	if (CheckCondition(opc & 0xf))
 	{
-		u8 reg  = (opc.hex >> 5) & 0x7;
+		u8 reg  = (opc >> 5) & 0x7;
 		g_dsp.pc = dsp_op_read_reg(reg);
 	} 
 }
@@ -108,9 +108,9 @@ void jmprcc(const UDSPInstruction& opc)
 // 0000 0010 1101 cccc
 // Return from subroutine if condition cc has been met. Pops stored PC
 // from call stack $st0 and sets $pc to this location.
-void ret(const UDSPInstruction& opc)
+void ret(const UDSPInstruction opc)
 {
-	if (CheckCondition(opc.hex & 0xf))
+	if (CheckCondition(opc & 0xf))
 	{
 		g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
 	}
@@ -121,7 +121,7 @@ void ret(const UDSPInstruction& opc)
 // Return from exception. Pops stored status register $sr from data stack
 // $st1 and program counter PC from call stack $st0 and sets $pc to this
 // location.
-void rti(const UDSPInstruction& opc)
+void rti(const UDSPInstruction opc)
 {
 	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(DSP_STACK_D);
 	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
@@ -132,7 +132,7 @@ void rti(const UDSPInstruction& opc)
 // HALT
 // 0000 0000 0020 0001 
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
-void halt(const UDSPInstruction& opc)
+void halt(const UDSPInstruction opc)
 {
 	g_dsp.cr |= 0x4;
 	g_dsp.pc--;
@@ -182,9 +182,9 @@ void HandleLoop()
 // then looped instruction will not get executed.
 // Actually, this instruction simply prepares the loop stacks for the above.
 // The looping hardware takes care of the rest.
-void loop(const UDSPInstruction& opc)
+void loop(const UDSPInstruction opc)
 {
-	u16 reg = opc.hex & 0x1f;
+	u16 reg = opc & 0x1f;
 	u16 cnt = g_dsp.r[reg];
 	u16 loop_pc = g_dsp.pc;
 
@@ -204,9 +204,9 @@ void loop(const UDSPInstruction& opc)
 // instruction will not get executed.
 // Actually, this instruction simply prepares the loop stacks for the above.
 // The looping hardware takes care of the rest.
-void loopi(const UDSPInstruction& opc)
+void loopi(const UDSPInstruction opc)
 {
-	u16 cnt = opc.hex & 0xff;
+	u16 cnt = opc & 0xff;
 	u16 loop_pc = g_dsp.pc;
 
 	if (cnt)
@@ -227,9 +227,9 @@ void loopi(const UDSPInstruction& opc)
 // included in loop. Counter is pushed on loop stack $st3, end of block address
 // is pushed on loop stack $st2 and repeat address is pushed on call stack $st0.
 // Up to 4 nested loops is allowed.
-void bloop(const UDSPInstruction& opc)
+void bloop(const UDSPInstruction opc)
 {
-	u16 reg = opc.hex & 0x1f;
+	u16 reg = opc & 0x1f;
 	u16 cnt = g_dsp.r[reg];
 	u16 loop_pc = dsp_fetch_code();
 
@@ -255,9 +255,9 @@ void bloop(const UDSPInstruction& opc)
 // loop. Counter is pushed on loop stack $st3, end of block address is pushed
 // on loop stack $st2 and repeat address is pushed on call stack $st0. Up to 4
 // nested loops is allowed.
-void bloopi(const UDSPInstruction& opc)
+void bloopi(const UDSPInstruction opc)
 {
-	u16 cnt = opc.hex & 0xff;
+	u16 cnt = opc & 0xff;
 	u16 loop_pc = dsp_fetch_code();
 
 	if (cnt) 

@@ -67,7 +67,8 @@ enum partype_t
 #define OPTABLE_SIZE 0xffff + 1
 #define EXT_OPTABLE_SIZE 0xff + 1
 
-union UDSPInstruction
+typedef u16 UDSPInstruction;
+/*/union UDSPInstruction
 {
 	u16 hex;
 
@@ -88,9 +89,9 @@ union UDSPInstruction
 	};
 
 	// TODO: Figure out more instruction structures (add structs here)
-};
+	};*/
 
-typedef void (*dspInstFunc)(const UDSPInstruction&);
+typedef void (*dspInstFunc)(const UDSPInstruction);
 
 struct param2_t
 {
@@ -114,6 +115,7 @@ typedef struct
 	u8 param_count;
 	param2_t params[8];
 	bool extended;
+	bool branch;
 } DSPOPCTemplate;
 
 typedef DSPOPCTemplate opc_t;
@@ -155,16 +157,16 @@ void applyWriteBackLog();
 void zeroWriteBackLog();
 void zeroWriteBackLogPreserveAcc(u8 acc);
 
-inline void ExecuteInstruction(const UDSPInstruction& inst)
+inline void ExecuteInstruction(const UDSPInstruction inst)
 {
-	if (opTableUseExt[inst.hex]) {
-		if ((inst.hex >> 12) == 0x3)
-			extOpTable[inst.hex & 0x7F](inst);
+	if (opTableUseExt[inst]) {
+		if ((inst >> 12) == 0x3)
+			extOpTable[inst & 0x7F](inst);
 		else
-			extOpTable[inst.hex & 0xFF](inst);
+			extOpTable[inst & 0xFF](inst);
 	}
-	opTable[inst.hex](inst);
-	if (opTableUseExt[inst.hex]) {
+	opTable[inst](inst);
+	if (opTableUseExt[inst]) {
 		applyWriteBackLog();
 	}
 }
