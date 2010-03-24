@@ -38,7 +38,7 @@ using namespace Gen;
 static int temp32;
 
 
-#ifdef __APPLE__ && _M_X64
+#if defined(__APPLE__) && _M_X64
 void CommonAsmRoutines::GenFifoWrite(int size) 
 {
 	// Assume value in ABI_PARAM1
