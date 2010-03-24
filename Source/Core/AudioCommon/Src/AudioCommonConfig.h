@@ -33,6 +33,7 @@ struct AudioCommonConfig
 {
 	bool m_EnableDTKMusic;
     bool m_EnableThrottle;
+	bool m_EnableJIT;
 	int m_Volume;
 #ifdef __APPLE__
 	char sBackend[128];

@@ -102,4 +102,8 @@ namespace AudioCommon
 	   
 		return backends;
 	}
+
+	bool UseJIT() {
+		return ac_Config.m_EnableJIT;
+	}
 }

@@ -22,6 +22,7 @@ AudioCommonConfig ac_Config;
 void AudioCommonConfig::Load(IniFile &file) {
 	file.Get("Config", "EnableDTKMusic", &m_EnableDTKMusic, true);
 	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
+	file.Get("Config", "EnableJIT", &m_EnableJIT, true);
 	file.Get("Config", "Volume", &m_Volume, 75);
 #ifdef _WIN32
 	file.Get("Config", "Backend", &sBackend, BACKEND_DIRECTSOUND);
@@ -38,6 +39,7 @@ void AudioCommonConfig::Load(IniFile &file) {
 void AudioCommonConfig::Set(IniFile &file) {
 	file.Set("Config", "EnableDTKMusic", m_EnableDTKMusic);
 	file.Set("Config", "EnableThrottle", m_EnableThrottle);
+	file.Set("Config", "EnableJIT", m_EnableJIT);
 	file.Set("Config", "Backend", sBackend);
 	file.Set("Config", "Volume", m_Volume);
 }

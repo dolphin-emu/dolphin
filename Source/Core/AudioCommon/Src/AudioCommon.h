@@ -60,6 +60,7 @@ namespace AudioCommon
 	SoundStream *InitSoundStream(CMixer *mixer = NULL);
 	void ShutdownSoundStream();
 	std::vector<std::string> GetSoundBackends();
+	bool UseJIT();
 }
 
 #endif // _AUDIO_COMMON_H_
