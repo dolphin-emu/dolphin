@@ -479,6 +479,7 @@ void divwx(UGeckoInstruction _inst)
 	{
 		if (_inst.OE) 
 			PanicAlert("OE: divwx");
+			// should set OV
 		//else PanicAlert("Div by zero", "divwx");
 	}
 	else
@@ -497,6 +498,7 @@ void divwux(UGeckoInstruction _inst)
 	{
 		if (_inst.OE) 
 			PanicAlert("OE: divwux");
+			// should set OV
 		//else PanicAlert("Div by zero", "divwux");
 	}
 	else
