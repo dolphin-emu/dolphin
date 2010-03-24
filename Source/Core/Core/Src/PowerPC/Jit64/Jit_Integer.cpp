@@ -389,8 +389,6 @@ void Jit64::subfcx(UGeckoInstruction inst)
 {
  	INSTRUCTION_START;
 	JITDISABLE(Integer)
-	Default(inst);
-	return;
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 	gpr.FlushLockX(ECX);
 	gpr.Lock(a, b, d);
@@ -449,9 +447,6 @@ void Jit64::subfcx(UGeckoInstruction inst)
 	if (inst.Rc) {
 		MOV(32, R(EAX), gpr.R(d));
 		CALL((u8*)asm_routines.computeRc);
-		
-		// Doesn't yet work for 64bit machines
-		//CALL((u8*)asm_routines.computeCr);
 	}
 }
 
@@ -561,6 +556,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
+	Default(inst); return;
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 	gpr.FlushLockX(EDX);
 	gpr.Lock(a, b, d);

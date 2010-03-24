@@ -217,12 +217,29 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	FixupBranch pLesser  = J_CC(CC_L);
 	FixupBranch pGreater = J_CC(CC_G);
 	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x2)); // _x86Reg == 0
-	RET();
+	FixupBranch continue1 = J();
+	
 	SetJumpTarget(pGreater);
 	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x4)); // _x86Reg > 0
-	RET();
+	FixupBranch continue2 = J();
+	
 	SetJumpTarget(pLesser);
 	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x8)); // _x86Reg < 0
+	
+	SetJumpTarget(continue1);
+	SetJumpTarget(continue2);
+	
+	// cr[0] |= SPR_XER & ~(0xFFFFFFFE)
+	
+	MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+		
+	AND(32, R(ECX), Imm32(0xFFFFFFFE));
+	NOT(32, R(ECX));
+	AND(32, R(EAX), R(ECX));
+	
+	MOVSX(32, 8, ECX, M(&PowerPC::ppcState.cr_fast[0]));
+	OR(32, R(ECX), R(EAX));
+	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), R(ECX));
 	RET();
 	
 	fifoDirectWrite8 = AlignCode4();

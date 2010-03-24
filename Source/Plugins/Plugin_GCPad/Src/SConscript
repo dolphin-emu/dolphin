@@ -25,4 +25,7 @@ padenv.Append(
 	LIBS = [ 'inputcommon', 'common', ],
 	)
 
+if sys.platform == 'darwin':
+	padenv['FRAMEWORKS'] = ['CoreFoundation', 'System' ]
+
 padenv.SharedLibrary(env['plugin_dir']+name, files)
