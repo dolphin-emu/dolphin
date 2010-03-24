@@ -128,8 +128,16 @@ inline bool isCarry() {
 	return (g_dsp.r[DSP_REG_SR] & SR_CARRY) ? true : false;
 }
 
+inline bool isOverflow() {
+	return (g_dsp.r[DSP_REG_SR] & SR_OVERFLOW) ? true : false;
+}
+
+inline bool isOverS32() {
+	return (g_dsp.r[DSP_REG_SR] & SR_OVER_S32) ? true : false;
+}
+
 inline bool isLess() {
-	return ((g_dsp.r[DSP_REG_SR] & SR_OVERFLOW) != (g_dsp.r[DSP_REG_SR] & SR_SIGN));
+	return ((bool)(g_dsp.r[DSP_REG_SR] & SR_OVERFLOW) != (bool)(g_dsp.r[DSP_REG_SR] & SR_SIGN));
 }
 
 inline bool isZero() {
@@ -138,6 +146,10 @@ inline bool isZero() {
 
 inline bool isLogicZero() {
 	return (g_dsp.r[DSP_REG_SR] & SR_LOGIC_ZERO) ? true : false;
+}
+
+inline bool isConditionA() {
+	return (((g_dsp.r[DSP_REG_SR] & SR_OVER_S32) || (g_dsp.r[DSP_REG_SR] & SR_TOP2BITS)) && !(g_dsp.r[DSP_REG_SR] & SR_ARITH_ZERO)) ? true : false;
 }
 
 //see gdsp_registers.h for flags
@@ -161,11 +173,20 @@ bool CheckCondition(u8 _Condition)
 		return !isCarry();
 	case 0x7: // C - Carry 
 		return isCarry();
+	case 0x8: // ? - Not over s32
+		return !isOverS32();
+	case 0x9: // ? - Over s32
+		return isOverS32();
+	case 0xa: // ?
+		return isConditionA();
+	case 0xb: // ?
+		return !isConditionA();
 	case 0xc: // LNZ  - Logic Not Zero
 		return !isLogicZero();
 	case 0xd: // LZ - Logic Zero
 		return isLogicZero();
-
+	case 0xe: // 0 - Overflow
+		return isOverflow();
 	case 0xf: // Empty - always true.
 		return true;
 	default:
