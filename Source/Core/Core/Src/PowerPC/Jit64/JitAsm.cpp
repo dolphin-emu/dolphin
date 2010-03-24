@@ -233,8 +233,7 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	
 	MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
 		
-	AND(32, R(ECX), Imm32(0xFFFFFFFE));
-	NOT(32, R(ECX));
+	MOV(32, R(ECX), Imm32(1));
 	AND(32, R(EAX), R(ECX));
 	
 	MOVSX(32, 8, ECX, M(&PowerPC::ppcState.cr_fast[0]));
