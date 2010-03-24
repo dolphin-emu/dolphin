@@ -414,7 +414,7 @@ void ExecuteCommand(u32 _Address)
     }
 	else
 	{
-		ERROR_LOG(WII_IPC_HLE, "<<-- Failed or Not Ready to Reply to IPC Request @ 0x%08x ", _Address);
+		//DEBUG_LOG(WII_IPC_HLE, "<<-- Failed or Not Ready to Reply to IPC Request @ 0x%08x ", _Address);
 	}
 }
 
