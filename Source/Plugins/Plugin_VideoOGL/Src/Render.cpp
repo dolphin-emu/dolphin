@@ -775,18 +775,20 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 	glClear(bits);
 }
-
+static bool XFBWrited = false;
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
 	s_skipSwap = g_bSkipCurrentFrame;
 
-	VideoFifo_CheckEFBAccess();
+	//VideoFifo_CheckEFBAccess();
 
 	// If we're about to write to a requested XFB, make sure the previous
 	// contents make it to the screen first.
-	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
+	if (g_ActiveConfig.bUseXFB)
+		VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
+	
 	g_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
-
+	XFBWrited = true;
 	// XXX: Without the VI, how would we know what kind of field this is? So
 	// just use progressive.
 	if (!g_ActiveConfig.bUseXFB)
@@ -804,7 +806,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		g_VideoInitialize.pCopiedToXFB(false);
 		return;
 	}
-
+	if(!XFBWrited)
+		return;
 	if (field == FIELD_LOWER)
 		xfbAddr -= fbWidth * 2;
 
@@ -1142,6 +1145,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
     // SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
 
 	g_VideoInitialize.pCopiedToXFB(false);
+	XFBWrited = false;
 }
 
 // Create On-Screen-Messages

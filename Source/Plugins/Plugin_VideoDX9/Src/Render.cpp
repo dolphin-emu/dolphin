@@ -86,6 +86,7 @@ static bool s_bScreenshot = false;
 static Common::CriticalSection s_criticalScreenshot;
 static char s_sScreenshotName[1024];
 static LPDIRECT3DSURFACE9 ScreenShootMEMSurface = NULL;
+extern volatile u32 s_swapRequested;
 
 
 // State translation lookup tables
@@ -566,13 +567,13 @@ void CheckForResize()
 	}
 }
 
-extern volatile u32 s_swapRequested;
+
 
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
 	if(!fbWidth || !fbHeight)
 		return;
-	VideoFifo_CheckEFBAccess();
+	//VideoFifo_CheckEFBAccess();
 	// If we're about to write to a requested XFB, make sure the previous
 	// contents make it to the screen first.
 	if (g_ActiveConfig.bUseXFB)

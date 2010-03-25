@@ -435,8 +435,8 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 		if (g_VideoInitialize.bOnThread)
 		{
 			while (Common::AtomicLoadAcquire(s_efbAccessRequested) && !s_FifoShuttingDown)
-				Common::SleepCurrentThread(1);
-				//Common::YieldCPU();
+				//Common::SleepCurrentThread(1);
+				Common::YieldCPU();
 		}
 		else
 			VideoFifo_CheckEFBAccess();

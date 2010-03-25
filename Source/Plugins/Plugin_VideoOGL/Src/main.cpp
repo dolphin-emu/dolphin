@@ -516,14 +516,14 @@ void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 // Run from the CPU thread (from VideoInterface.cpp)
 void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
-	if (s_PluginInitialized)
+	if (s_PluginInitialized && g_ActiveConfig.bUseXFB)
 	{
 		// Make sure previous swap request has made it to the screen
 		if (g_VideoInitialize.bOnThread)
 		{
 			while (Common::AtomicLoadAcquire(s_swapRequested) && !s_FifoShuttingDown)
-				Common::SleepCurrentThread(1);
-				//Common::YieldCPU();
+				//Common::SleepCurrentThread(1);
+				Common::YieldCPU();
 		}
 		else
 			VideoFifo_CheckSwapRequest();
@@ -574,8 +574,8 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 		if (g_VideoInitialize.bOnThread)
 		{
 			while (Common::AtomicLoadAcquire(s_efbAccessRequested) && !s_FifoShuttingDown)
-				Common::SleepCurrentThread(1);
-				//Common::YieldCPU();
+				//Common::SleepCurrentThread(1);
+				Common::YieldCPU();
 		}
 		else
 			VideoFifo_CheckEFBAccess();
