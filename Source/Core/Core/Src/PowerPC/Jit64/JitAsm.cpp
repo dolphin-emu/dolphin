@@ -229,15 +229,15 @@ void Jit64AsmRoutineManager::GenerateCommon()
 	SetJumpTarget(continue1);
 	SetJumpTarget(continue2);
 	
-	// cr[0] |= SPR_XER & ~(0xFFFFFFFE)
+	// cr[0] |= SPR_XER & 1
 	
-	MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
+	/*MOV(32, R(EAX), M(&PowerPC::ppcState.spr[SPR_XER]));
 		
 	AND(32, R(EAX), Imm32(1));
 	
 	MOVSX(32, 8, ECX, M(&PowerPC::ppcState.cr_fast[0]));
 	OR(32, R(ECX), R(EAX));
-	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), R(ECX));
+	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), R(ECX));*/
 	RET();
 	
 	fifoDirectWrite8 = AlignCode4();
