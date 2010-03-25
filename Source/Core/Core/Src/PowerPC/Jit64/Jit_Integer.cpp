@@ -389,6 +389,8 @@ void Jit64::subfcx(UGeckoInstruction inst)
 {
  	INSTRUCTION_START;
 	JITDISABLE(Integer)
+	Default(inst);
+	return;
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 	gpr.FlushLockX(ECX);
 	gpr.Lock(a, b, d);
