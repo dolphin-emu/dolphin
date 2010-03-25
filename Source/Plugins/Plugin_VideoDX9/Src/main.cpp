@@ -356,7 +356,7 @@ void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 // Run from the CPU thread (from VideoInterface.cpp)
 void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
-	if (s_PluginInitialized)
+	if (s_PluginInitialized && g_ActiveConfig.bUseXFB)
 	{
 		// Make sure previous swap request has made it to the screen
 		if (g_VideoInitialize.bOnThread)
