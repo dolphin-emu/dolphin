@@ -574,7 +574,7 @@ void subfex(UGeckoInstruction _inst)
 	m_GPR[_inst.RD] = (~a) + b + carry;
 	SetCarry(Helper_Carry(~a, b) || Helper_Carry((~a) + b, carry));
 
-	if (_inst.OE) PanicAlert("OE: subfcx");
+	if (_inst.OE) PanicAlert("OE: subfex");
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 

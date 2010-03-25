@@ -455,6 +455,82 @@ void Jit64::subfex(UGeckoInstruction inst)
 	INSTRUCTION_START;
 	Default(inst);
 	return;
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+	gpr.FlushLockX(ECX);
+	gpr.Lock(a, b, d);
+	if(d != a && d != b)
+		gpr.LoadToX64(d, false, true);
+	else
+		gpr.LoadToX64(d, true, true);
+	
+	MOV(32, R(EAX), gpr.R(a));
+	NOT(32, R(EAX));
+	ADD(32, R(EAX), gpr.R(b));
+	
+	MOV(32, R(ECX), M(&PowerPC::ppcState.spr[SPR_XER]));
+	SHR(32, R(ECX), Imm8(2));
+	AND(32, R(ECX), Imm32(1));
+	
+	ADD(32, R(EAX), R(ECX));
+	MOV(32, gpr.R(d), R(EAX));
+		
+	//u32 Helper_Carry(u32 _uValue1, u32 _uValue2)
+	/*{
+		return _uValue2 > (~_uValue1);
+	}*/
+	// return b > ~(~a)
+	// return carry > (a + ~b)
+
+	CMP(32, gpr.R(b), gpr.R(a));
+		
+		FixupBranch cpLesser  = J_CC(CC_L);
+		FixupBranch cpGreater = J_CC(CC_G);
+		
+		// Equal
+		FixupBranch continue1 = J();
+		
+		// Lesser and greater
+		SetJumpTarget(cpGreater);
+		JitSetCA();
+		FixupBranch continue2 = J();
+		
+		SetJumpTarget(cpLesser);
+		SetJumpTarget(continue1);
+		
+		// Was false, do our second check
+		MOV(32, R(EAX), gpr.R(b));
+		NOT(32, R(EAX));
+		ADD(32, R(EAX), gpr.R(a));
+
+		// Carry bit is in ECX from above
+		CMP(32, R(ECX), R(EAX));
+		
+		FixupBranch cpLesser2  = J_CC(CC_L);
+		FixupBranch cpGreater2 = J_CC(CC_G);
+		
+		// Equal
+		JitClearCA();
+		FixupBranch continue3 = J();
+		
+		// Lesser and greater
+		SetJumpTarget(cpGreater2);
+		JitSetCA();
+		FixupBranch continue4 = J();
+		
+		SetJumpTarget(cpLesser2);
+		JitClearCA();
+		
+		
+	SetJumpTarget(continue2);
+	SetJumpTarget(continue3);
+	SetJumpTarget(continue4);
+	gpr.UnlockAll();
+	gpr.UnlockAllX();
+	if (inst.OE) PanicAlert("OE: subfex");
+	if (inst.Rc) {
+		MOV(32, R(EAX), gpr.R(d));
+		CALL((u8*)asm_routines.computeRc);
+	}
 	/*
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
@@ -462,7 +538,7 @@ void Jit64::subfex(UGeckoInstruction inst)
 	m_GPR[_inst.RD] = (~a) + b + carry;
 	SetCarry(Helper_Carry(~a, b) || Helper_Carry((~a) + b, carry));
 
-	if (_inst.OE) PanicAlert("OE: subfcx");
+	if (_inst.OE) PanicAlert("OE: subfex");
 	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 	*/
 }
