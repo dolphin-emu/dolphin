@@ -350,6 +350,11 @@ int Initialize()
 		// Remove the wiiuse_poll() threshold
 		wiiuse_set_accel_threshold(g_WiiMotesFromWiiUse[i], 0);
 		
+		// Set the ir sensor sensitivity.
+		if (g_Config.iIRLevel) {
+			wiiuse_set_ir_sensitivity(g_WiiMotesFromWiiUse[i], g_Config.iIRLevel);
+		}
+
 		// Set the sensor bar position, this should only affect the internal wiiuse api functions
 		wiiuse_set_ir_position(g_WiiMotesFromWiiUse[i], WIIUSE_IR_ABOVE);
 

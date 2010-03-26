@@ -35,7 +35,7 @@ struct Config
 	// Real Wiimote
 	bool bUpdateRealWiimote;
 	int bNumberRealWiimotes, bNumberEmuWiimotes;
-	int iIRLeft, iIRTop, iIRWidth, iIRHeight;
+	int iIRLeft, iIRTop, iIRWidth, iIRHeight, iIRLevel;
 	int iAccNeutralX, iAccNeutralY, iAccNeutralZ;
 	int iAccNunNeutralX, iAccNunNeutralY, iAccNunNeutralZ;
 

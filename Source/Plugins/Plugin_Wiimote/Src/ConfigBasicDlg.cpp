@@ -48,6 +48,7 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_COMMAND_SCROLL(IDS_HEIGHT, WiimoteBasicConfigDialog::IRCursorChanged)
 	EVT_COMMAND_SCROLL(IDS_LEFT, WiimoteBasicConfigDialog::IRCursorChanged)
 	EVT_COMMAND_SCROLL(IDS_TOP, WiimoteBasicConfigDialog::IRCursorChanged)
+	EVT_COMMAND_SCROLL(IDS_LEVEL, WiimoteBasicConfigDialog::IRCursorChanged)
 
 	EVT_TIMER(IDTM_UPDATE_ONCE, WiimoteBasicConfigDialog::UpdateOnce)
 END_EVENT_TABLE()
@@ -181,11 +182,13 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_TextScreenHeight[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Height: 000"));
 		m_TextScreenLeft[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Left: 000"));
 		m_TextScreenTop[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Top: 000"));
+		m_TextScreenIrLevel[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Sensivity: 000"));
 
 		m_SliderWidth[i] = new wxSlider(m_Controller[i], IDS_WIDTH, 0, 100, 923, wxDefaultPosition, wxSize(75, -1));
 		m_SliderHeight[i] = new wxSlider(m_Controller[i], IDS_HEIGHT, 0, 0, 727, wxDefaultPosition, wxSize(75, -1));
 		m_SliderLeft[i] = new wxSlider(m_Controller[i], IDS_LEFT, 0, 100, 500, wxDefaultPosition, wxSize(75, -1));
 		m_SliderTop[i] = new wxSlider(m_Controller[i], IDS_TOP, 0, 0, 500, wxDefaultPosition, wxSize(75, -1));
+		m_SliderIrLevel[i] = new wxSlider(m_Controller[i], IDS_LEVEL, 0, 1, 5, wxDefaultPosition, wxSize(75, -1));
 
 		// These are changed from the graphics plugin settings, so they are just here to show the loaded status
 		m_TextAR[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Aspect Ratio"));
@@ -231,9 +234,14 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_SizerIRPointerScreen[i]->Add(m_CheckAR169[i], 0, wxEXPAND | (wxLEFT), 5);
 		m_SizerIRPointerScreen[i]->Add(m_Crop[i], 0, wxEXPAND | (wxLEFT), 5);
 
+		m_SizerIRPointerSensitivity[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SizerIRPointerSensitivity[i]->Add(m_TextScreenIrLevel[i], 0, wxEXPAND | (wxTOP), 3);
+		m_SizerIRPointerSensitivity[i]->Add(m_SliderIrLevel[i], 0, wxEXPAND | (wxRIGHT), 0);
+
 		m_SizerIRPointer[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("IR Pointer"));
 		m_SizerIRPointer[i]->Add(m_SizerIRPointerWidth[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
 		m_SizerIRPointer[i]->Add(m_SizerIRPointerHeight[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
+		m_SizerIRPointer[i]->Add(m_SizerIRPointerSensitivity[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
 		m_SizerIRPointer[i]->Add(m_SizerIRPointerScreen[i], 0, wxALIGN_CENTER | (wxUP | wxDOWN), 10);
 
 		m_SizeBasicGeneralLeft[i] = new wxBoxSizer(wxVERTICAL);
@@ -433,6 +441,13 @@ void WiimoteBasicConfigDialog::IRCursorChanged(wxScrollEvent& event)
 	case IDS_TOP:
 		g_Config.iIRTop = m_SliderTop[m_Page]->GetValue();
 		break;
+	case IDS_LEVEL:
+		g_Config.iIRLevel = m_SliderIrLevel[m_Page]->GetValue();
+		if (g_RealWiiMotePresent) {
+			for (int i = 0; i < WiiMoteReal::g_NumberOfWiiMotes; i++)
+				wiiuse_set_ir_sensitivity(WiiMoteReal::g_WiiMotesFromWiiUse[i], g_Config.iIRLevel);
+		}
+		break;
 	}
 	UpdateGUI();
 }
@@ -455,12 +470,14 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 		m_SidewaysWiimote[m_Page]->Enable(false);
 		m_UprightWiimote[m_Page]->Enable(false);
 		m_Extension[m_Page]->Enable(false);
+		m_SliderIrLevel[m_Page]->Enable(false);
 	}
 	else
 	{
 		m_SidewaysWiimote[m_Page]->Enable(true);
 		m_UprightWiimote[m_Page]->Enable(true);
 		m_Extension[m_Page]->Enable(true);
+		m_SliderIrLevel[m_Page]->Enable(true);
 	}
 
 	m_SidewaysWiimote[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bSideways);
@@ -473,11 +490,13 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	m_TextScreenHeight[m_Page]->SetLabel(wxString::Format(wxT("Height: %i"), g_Config.iIRHeight));
 	m_TextScreenLeft[m_Page]->SetLabel(wxString::Format(wxT("Left: %i"), g_Config.iIRLeft));
 	m_TextScreenTop[m_Page]->SetLabel(wxString::Format(wxT("Top: %i"), g_Config.iIRTop));
+	m_TextScreenIrLevel[m_Page]->SetLabel(wxString::Format(wxT("Sensitivity: %i"), g_Config.iIRLevel));
 	// Update the slider position if a configuration has been loaded
 	m_SliderWidth[m_Page]->SetValue(g_Config.iIRWidth);
 	m_SliderHeight[m_Page]->SetValue(g_Config.iIRHeight);
 	m_SliderLeft[m_Page]->SetValue(g_Config.iIRLeft);
 	m_SliderTop[m_Page]->SetValue(g_Config.iIRTop);
+	m_SliderIrLevel[m_Page]->SetValue(g_Config.iIRLevel);
 
 	m_CheckAR43[m_Page]->SetValue(g_Config.bKeepAR43);
 	m_CheckAR169[m_Page]->SetValue(g_Config.bKeepAR169);

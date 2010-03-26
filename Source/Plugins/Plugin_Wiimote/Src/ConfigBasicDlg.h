@@ -75,7 +75,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 		wxSlider *m_SliderWidth[MAX_WIIMOTES],
 				 *m_SliderHeight[MAX_WIIMOTES],
 				 *m_SliderLeft[MAX_WIIMOTES],
-				 *m_SliderTop[MAX_WIIMOTES];
+				 *m_SliderTop[MAX_WIIMOTES],
+				 *m_SliderIrLevel[MAX_WIIMOTES];
 
 		wxCheckBox  *m_SidewaysWiimote[MAX_WIIMOTES],
 					*m_UprightWiimote[MAX_WIIMOTES],
@@ -88,6 +89,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 					 *m_TextScreenHeight[MAX_WIIMOTES],
 					 *m_TextScreenLeft[MAX_WIIMOTES],
 					 *m_TextScreenTop[MAX_WIIMOTES],
+					 *m_TextScreenIrLevel[MAX_WIIMOTES],
 					 *m_TextAR[MAX_WIIMOTES],
 					 *m_TextFoundRealWiimote[MAX_WIIMOTES];
 
@@ -97,7 +99,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 					*m_SizeBasicGeneralRight[MAX_WIIMOTES],			
 					*m_SizerIRPointerWidth[MAX_WIIMOTES],
 					*m_SizerIRPointerHeight[MAX_WIIMOTES],
-					*m_SizerIRPointerScreen[MAX_WIIMOTES];
+					*m_SizerIRPointerScreen[MAX_WIIMOTES],
+					*m_SizerIRPointerSensitivity[MAX_WIIMOTES];
 
 		wxStaticBoxSizer *m_SizeBasic[MAX_WIIMOTES],
 						 *m_SizeEmu[MAX_WIIMOTES],
@@ -134,6 +137,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 			IDS_HEIGHT, 
 			IDS_LEFT,
 			IDS_TOP,
+			IDS_LEVEL,
 		};
 
 		void CreateGUIControls();

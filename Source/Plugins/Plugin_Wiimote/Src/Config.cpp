@@ -352,6 +352,8 @@ void Config::LoadIR()
 	iniFile.Get("Default", "IRTop", &defaultTop, TOP);
 	iniFile.Get("Default", "IRWidth", &defaultWidth, RIGHT - LEFT);
 	iniFile.Get("Default", "IRHeight", &defaultHeight, BOTTOM - TOP);
+	iniFile.Get("Default", "IRLevel", &iIRLevel, 3);
+
 	//...and fall back to them if the GameId is not found.
 	//It shouldn't matter if we read Default twice, its in memory anyways.
 	iniFile.Get(TmpSection, "IRLeft", &iIRLeft, defaultLeft);
@@ -433,6 +435,7 @@ void Config::Save()
 	iniFile.Set(TmpSection, "IRTop", iIRTop);
 	iniFile.Set(TmpSection, "IRWidth", iIRWidth);
 	iniFile.Set(TmpSection, "IRHeight", iIRHeight);
+	iniFile.Set(TmpSection, "IRLevel", iIRLevel);
 	iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IR Pointer.ini").c_str());
 
 	//DEBUG_LOG(WIIMOTE, "Save()");
