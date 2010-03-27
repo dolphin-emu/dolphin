@@ -387,67 +387,33 @@ void Jit64::subfic(UGeckoInstruction inst)
 
 void Jit64::subfcx(UGeckoInstruction inst) 
 {
- 	INSTRUCTION_START;
+	INSTRUCTION_START;
 	JITDISABLE(Integer)
-	Default(inst);
-	return;
 	int a = inst.RA, b = inst.RB, d = inst.RD;
-	gpr.FlushLockX(ECX);
 	gpr.Lock(a, b, d);
-	
 	if(d != a && d != b)
 		gpr.LoadToX64(d, false, true);
 	else
 		gpr.LoadToX64(d, true, true);
-	
-	MOV(32, R(EAX), gpr.R(b));
-	SUB(32, R(EAX), gpr.R(a));
-	MOV(32, gpr.R(d), R(EAX));
-	
+
+	// For some reason, I could not get the jit versions of sub*
+	// working with x86 sub...so we use the ~a + b + 1 method
+	JitClearCA();
 	MOV(32, R(EAX), gpr.R(a));
-	MOV(32, R(ECX), gpr.R(b));
-	
-	CMP(32, R(EAX), Imm8(0));
-	FixupBranch cpLesser  = J_CC(CC_L);
-	FixupBranch cpGreater = J_CC(CC_G);
-	
-	// Equal
+	NOT(32, R(EAX));
+	ADD(32, R(EAX), gpr.R(b));
+	FixupBranch carry1 = J_CC(CC_NC);
 	JitSetCA();
-	FixupBranch continue1 = J();
-	
-	// Lesser and greater
-	SetJumpTarget(cpGreater);
-	SetJumpTarget(cpLesser);
-	
-	NEG(32, R(EAX));
-	NOT(32, R(ECX));
-	
-	CMP(32, R(EAX), R(ECX)); 
-	FixupBranch pLesser  = J_CC(CC_L);
-	FixupBranch pGreater = J_CC(CC_G);
-	
-	// Equal
-	JitClearCA();
-	FixupBranch continue2 = J();
-	
-	// Greater
-	SetJumpTarget(pGreater);
+	SetJumpTarget(carry1);
+	ADD(32, R(EAX), Imm32(1));
+	FixupBranch carry2 = J_CC(CC_NC);
 	JitSetCA();
-	FixupBranch continue3 = J();
-	
-	// Less than
-	SetJumpTarget(pLesser);
-	JitClearCA();
-	
-	SetJumpTarget(continue1);
-	SetJumpTarget(continue2);
-	SetJumpTarget(continue3);
-	
+	SetJumpTarget(carry2);
+	MOV(32, gpr.R(d), R(EAX));
+
 	gpr.UnlockAll();
-	gpr.UnlockAllX();
 	if (inst.OE) PanicAlert("OE: subfcx");
 	if (inst.Rc) {
-		MOV(32, R(EAX), gpr.R(d));
 		CALL((u8*)asm_routines.computeRc);
 	}
 }
@@ -455,8 +421,7 @@ void Jit64::subfcx(UGeckoInstruction inst)
 void Jit64::subfex(UGeckoInstruction inst) 
 {
 	INSTRUCTION_START;
-	Default(inst);
-	return;
+	JITDISABLE(Integer)
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 	gpr.FlushLockX(ECX);
 	gpr.Lock(a, b, d);
@@ -464,85 +429,36 @@ void Jit64::subfex(UGeckoInstruction inst)
 		gpr.LoadToX64(d, false, true);
 	else
 		gpr.LoadToX64(d, true, true);
-	
+
+	// Get CA
+	MOV(32, R(ECX), M(&PowerPC::ppcState.spr[SPR_XER]));
+	SHR(32, R(ECX), Imm8(29));
+	AND(32, R(ECX), Imm32(1));
+	// Don't need it anymore
+	JitClearCA();
+
+	// ~a + b
 	MOV(32, R(EAX), gpr.R(a));
 	NOT(32, R(EAX));
 	ADD(32, R(EAX), gpr.R(b));
-	
-	MOV(32, R(ECX), M(&PowerPC::ppcState.spr[SPR_XER]));
-	SHR(32, R(ECX), Imm8(2));
-	AND(32, R(ECX), Imm32(1));
-	
+	FixupBranch carry1 = J_CC(CC_NC);
+	JitSetCA();
+	SetJumpTarget(carry1);
+
+	// + CA
 	ADD(32, R(EAX), R(ECX));
+	FixupBranch carry2 = J_CC(CC_NC);
+	JitSetCA();
+	SetJumpTarget(carry2);
+
 	MOV(32, gpr.R(d), R(EAX));
-		
-	//u32 Helper_Carry(u32 _uValue1, u32 _uValue2)
-	/*{
-		return _uValue2 > (~_uValue1);
-	}*/
-	// return b > ~(~a)
-	// return carry > (a + ~b)
 
-	CMP(32, gpr.R(b), gpr.R(a));
-		
-		FixupBranch cpLesser  = J_CC(CC_L);
-		FixupBranch cpGreater = J_CC(CC_G);
-		
-		// Equal
-		FixupBranch continue1 = J();
-		
-		// Lesser and greater
-		SetJumpTarget(cpGreater);
-		JitSetCA();
-		FixupBranch continue2 = J();
-		
-		SetJumpTarget(cpLesser);
-		SetJumpTarget(continue1);
-		
-		// Was false, do our second check
-		MOV(32, R(EAX), gpr.R(b));
-		NOT(32, R(EAX));
-		ADD(32, R(EAX), gpr.R(a));
-
-		// Carry bit is in ECX from above
-		CMP(32, R(ECX), R(EAX));
-		
-		FixupBranch cpLesser2  = J_CC(CC_L);
-		FixupBranch cpGreater2 = J_CC(CC_G);
-		
-		// Equal
-		JitClearCA();
-		FixupBranch continue3 = J();
-		
-		// Lesser and greater
-		SetJumpTarget(cpGreater2);
-		JitSetCA();
-		FixupBranch continue4 = J();
-		
-		SetJumpTarget(cpLesser2);
-		JitClearCA();
-		
-		
-	SetJumpTarget(continue2);
-	SetJumpTarget(continue3);
-	SetJumpTarget(continue4);
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	if (inst.OE) PanicAlert("OE: subfex");
 	if (inst.Rc) {
-		MOV(32, R(EAX), gpr.R(d));
 		CALL((u8*)asm_routines.computeRc);
 	}
-	/*
-	u32 a = m_GPR[_inst.RA];
-	u32 b = m_GPR[_inst.RB];
-	int carry = GetCarry();
-	m_GPR[_inst.RD] = (~a) + b + carry;
-	SetCarry(Helper_Carry(~a, b) || Helper_Carry((~a) + b, carry));
-
-	if (_inst.OE) PanicAlert("OE: subfex");
-	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
-	*/
 }
 
 void Jit64::subfx(UGeckoInstruction inst)
@@ -645,10 +561,10 @@ void Jit64::divwux(UGeckoInstruction inst)
 	MOV(32, R(EAX), gpr.R(a));
 	XOR(32, R(EDX), R(EDX));
 	gpr.KillImmediate(b);
-	CMP(32, gpr.R(b), R(EDX));
+	CMP(32, gpr.R(b), Imm32(0));
 	// doesn't handle if OE is set, but int doesn't either...
 	FixupBranch not_div_by_zero = J_CC(CC_NZ);
-	MOV(32, gpr.R(d), Imm32(0));
+	MOV(32, gpr.R(d), R(EDX));
 	MOV(32, R(EAX), gpr.R(d));
 	FixupBranch end = J();
 	SetJumpTarget(not_div_by_zero);
