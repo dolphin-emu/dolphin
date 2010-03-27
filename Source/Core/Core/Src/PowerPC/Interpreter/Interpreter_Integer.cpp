@@ -477,10 +477,13 @@ void divwx(UGeckoInstruction _inst)
 	s32 b = m_GPR[_inst.RB];
 	if (b == 0 || ((u32)a == 0x80000000 && b == -1))
 	{
-		if (_inst.OE) 
-			PanicAlert("OE: divwx");
+		if (_inst.OE)
 			// should set OV
-		//else PanicAlert("Div by zero", "divwx");
+			PanicAlert("OE: divwx");
+		if (((u32)a & 0x80000000) && b == 0)
+			m_GPR[_inst.RD] = -1;
+		else
+			m_GPR[_inst.RD] = 0;
 	}
 	else
 		m_GPR[_inst.RD] = (u32)(a / b);
@@ -494,12 +497,12 @@ void divwux(UGeckoInstruction _inst)
 	u32 a = m_GPR[_inst.RA];
 	u32 b = m_GPR[_inst.RB];
 
-	if (b == 0) // || (a == 0x80000000 && b == 0xFFFFFFFF))
+	if (b == 0)
 	{
-		if (_inst.OE) 
-			PanicAlert("OE: divwux");
+		if (_inst.OE)
 			// should set OV
-		//else PanicAlert("Div by zero", "divwux");
+			PanicAlert("OE: divwux");
+		m_GPR[_inst.RD] = 0;
 	}
 	else
 	{

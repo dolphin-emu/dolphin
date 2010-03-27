@@ -634,7 +634,6 @@ void Jit64::divwux(UGeckoInstruction inst)
 {
 	INSTRUCTION_START
 	JITDISABLE(Integer)
-	Default(inst); return;
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 	gpr.FlushLockX(EDX);
 	gpr.Lock(a, b, d);
@@ -648,10 +647,13 @@ void Jit64::divwux(UGeckoInstruction inst)
 	gpr.KillImmediate(b);
 	CMP(32, gpr.R(b), R(EDX));
 	// doesn't handle if OE is set, but int doesn't either...
-	FixupBranch branch = J_CC(CC_Z);
+	FixupBranch not_div_by_zero = J_CC(CC_NZ);
+	MOV(32, gpr.R(d), Imm32(0));
+	FixupBranch end = J();
+	SetJumpTarget(not_div_by_zero);
 	DIV(32, gpr.R(b));
 	MOV(32, gpr.R(d), R(EAX));
-	SetJumpTarget(branch);
+	SetJumpTarget(end);
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	if (inst.Rc) {
