@@ -295,7 +295,7 @@ void Config::Load()
 		iniFile.Get(SectionName, "TiltPitchSwing", &WiiMoteEmu::WiiMapping[i].Tilt.PitchSwing, false);
 		iniFile.Get(SectionName, "TiltPitchInvert", &WiiMoteEmu::WiiMapping[i].Tilt.PitchInvert, false);
 		WiiMoteEmu::WiiMapping[i].Tilt.PitchRange = (WiiMoteEmu::WiiMapping[i].Tilt.PitchSwing) ? 0 : WiiMoteEmu::WiiMapping[i].Tilt.PitchDegree;
-
+		
 		// StickMapping
 		iniFile.Get(SectionName, "NCStick", &WiiMoteEmu::WiiMapping[i].Stick.NC, WiiMoteEmu::FROM_KEYBOARD);
 		iniFile.Get(SectionName, "CCStickLeft", &WiiMoteEmu::WiiMapping[i].Stick.CCL, WiiMoteEmu::FROM_KEYBOARD);
@@ -324,6 +324,14 @@ void Config::Load()
 		iniFile.Get(SectionName, "Rumble", &WiiMoteEmu::WiiMapping[i].Rumble, false);
 		iniFile.Get(SectionName, "RumbleStrength", &WiiMoteEmu::WiiMapping[i].RumbleStrength, 80);
 		iniFile.Get(SectionName, "TriggerType", &WiiMoteEmu::WiiMapping[i].TriggerType, 0);
+	}
+
+	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini").c_str());
+	for (int i = 0; i < MAX_WIIMOTES; i++)
+	{
+		char SectionName[32];
+		sprintf(SectionName, "Wiimote%i", i + 1);
+		iniFile.Get(SectionName, "AutoReconnectRealWiimote", &WiiMoteEmu::WiiMapping[i].bWiiAutoReconnect, false);
 	}
 
 	Config::LoadIR();
@@ -386,7 +394,6 @@ void Config::Save()
 		iniFile.Set(SectionName, "Upright", WiiMoteEmu::WiiMapping[i].bUpright);
 		iniFile.Set(SectionName, "ExtensionConnected", WiiMoteEmu::WiiMapping[i].iExtensionConnected);
 		iniFile.Set(SectionName, "MotionPlusConnected", WiiMoteEmu::WiiMapping[i].bMotionPlusConnected);
-
 		iniFile.Set(SectionName, "TiltInputWM", WiiMoteEmu::WiiMapping[i].Tilt.InputWM);
 		iniFile.Set(SectionName, "TiltInputNC", WiiMoteEmu::WiiMapping[i].Tilt.InputNC);
 		iniFile.Set(SectionName, "TiltRollDegree", WiiMoteEmu::WiiMapping[i].Tilt.RollDegree);
@@ -437,6 +444,11 @@ void Config::Save()
 	iniFile.Set(TmpSection, "IRHeight", iIRHeight);
 	iniFile.Set(TmpSection, "IRLevel", iIRLevel);
 	iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IR Pointer.ini").c_str());
+
+	//Save any options that need to be accessed in Dolphin
+	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini").c_str());
+	iniFile.Set("Wiimote" , "AutoReconnectRealWiimote", &WiiMoteEmu::WiiMapping[0].bWiiAutoReconnect);
+	iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini").c_str());
 
 	//DEBUG_LOG(WIIMOTE, "Save()");
 }

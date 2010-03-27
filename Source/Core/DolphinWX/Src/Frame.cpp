@@ -173,21 +173,31 @@ CPanel::CPanel(
 						main_frame->bNoWiimoteMsg = false;
 					else
 					{
-						// The Wiimote has been disconnected, we offer reconnect here
-						wxMessageDialog *dlg = new wxMessageDialog(
-							this,
-							wxString::Format(wxT("Wiimote %i has been disconnected by system.\n")
-							wxT("Maybe this game doesn't support multi-wiimote,\n")
-							wxT("or maybe it is due to idle time out or other reason.\n\n")
-							wxT("Do you want to reconnect immediately?"), lParam + 1),
-							wxT("Reconnect Wiimote Confirm"),
-							wxYES_NO | wxSTAY_ON_TOP | wxICON_INFORMATION, //wxICON_QUESTION,
-							wxDefaultPosition);
-
-						if (dlg->ShowModal() == wxID_YES)
+						//Auto reconnect if option is turned on.
+						//TODO: Make this only auto reconnect wiimotes that have the option activated.
+						if (SConfig::GetInstance().m_WiiAutoReconnect)
+						{ 
 							GetUsbPointer()->AccessWiiMote(lParam | 0x100)->Activate(true);
+							NOTICE_LOG(WIIMOTE, "Wiimote %i has been auto-reconnected...", lParam + 1);
+						}
+						else
+						{
+							// The Wiimote has been disconnected, we offer reconnect here.
+							wxMessageDialog *dlg = new wxMessageDialog(
+								this,
+								wxString::Format(wxT("Wiimote %i has been disconnected by system.\n")
+								wxT("Maybe this game doesn't support multi-wiimote,\n")
+								wxT("or maybe it is due to idle time out or other reason.\n\n")
+								wxT("Do you want to reconnect immediately?"), lParam + 1),
+								wxT("Reconnect Wiimote Confirm"),
+								wxYES_NO | wxSTAY_ON_TOP | wxICON_INFORMATION, //wxICON_QUESTION,
+								wxDefaultPosition);
 
-						dlg->Destroy();
+							if (dlg->ShowModal() == wxID_YES)
+								GetUsbPointer()->AccessWiiMote(lParam | 0x100)->Activate(true);
+
+							dlg->Destroy();
+						}
 					}
 				}
 			}

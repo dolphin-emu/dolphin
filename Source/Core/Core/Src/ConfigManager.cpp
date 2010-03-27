@@ -248,16 +248,22 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
 		ini.Get("Core", "FrameLimit",		&m_Framelimit,									1); // auto frame limit by default
 
+		//Wiimote configs
+		ini.Get("Wiimote", "AutoReconnectRealWiimote", &m_WiiAutoReconnect, false);
+
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin,	m_DefaultGFXPlugin.c_str());
 		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin,		m_DefaultDSPPlugin.c_str());
 		ini.Get("Core", "PadPlugin", &m_LocalCoreStartupParameter.m_strPadPlugin[0], m_DefaultPADPlugin.c_str());
 		ini.Get("Core", "WiiMotePlugin", &m_LocalCoreStartupParameter.m_strWiimotePlugin[0], m_DefaultWiiMotePlugin.c_str());
+
+
 	}
 
 	m_SYSCONF = new SysConf();
 }
 
+// Is this still even needed????
 void SConfig::LoadSettingsHLE()
 {
 	IniFile ini;

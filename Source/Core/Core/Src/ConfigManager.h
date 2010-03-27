@@ -44,6 +44,7 @@ struct SConfig
 	// Wii Devices
 	bool m_WiiSDCard;
 	bool m_WiiKeyboard;
+	bool m_WiiAutoReconnect;
 
 	// DSP HLE Audio fix
 	bool m_EnableRE0Fix;

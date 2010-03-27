@@ -295,6 +295,7 @@ struct CONTROLLER_MAPPING_WII	// WII PAD MAPPING
 	bool bSideways;
 	bool bUpright;
 	bool bMotionPlusConnected;
+	bool bWiiAutoReconnect;
 	int iExtensionConnected;
 
 	STiltMapping Tilt;

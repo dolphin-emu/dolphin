@@ -83,7 +83,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 					*m_WiiMotionPlusConnected[MAX_WIIMOTES],
 					*m_CheckAR43[MAX_WIIMOTES],
 					*m_CheckAR169[MAX_WIIMOTES],
-					*m_Crop[MAX_WIIMOTES];
+					*m_Crop[MAX_WIIMOTES],
+					*m_WiiAutoReconnect[MAX_WIIMOTES];
 
 		wxStaticText *m_TextScreenWidth[MAX_WIIMOTES],
 					 *m_TextScreenHeight[MAX_WIIMOTES],
@@ -127,6 +128,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 			IDC_SIDEWAYSWIIMOTE,
 			IDC_UPRIGHTWIIMOTE,
 			IDC_MOTIONPLUSCONNECTED,
+			IDC_WIIAUTORECONNECT,
 			IDC_EXTCONNECTED,
 
 			// Real
