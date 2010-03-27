@@ -505,10 +505,9 @@ void divwux(UGeckoInstruction _inst)
 		m_GPR[_inst.RD] = 0;
 	}
 	else
-	{
 		m_GPR[_inst.RD] = a / b;
-		if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
-	}
+
+	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
 }
 
 void mulhwx(UGeckoInstruction _inst)

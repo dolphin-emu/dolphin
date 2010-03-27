@@ -649,6 +649,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 	// doesn't handle if OE is set, but int doesn't either...
 	FixupBranch not_div_by_zero = J_CC(CC_NZ);
 	MOV(32, gpr.R(d), Imm32(0));
+	MOV(32, R(EAX), gpr.R(d));
 	FixupBranch end = J();
 	SetJumpTarget(not_div_by_zero);
 	DIV(32, gpr.R(b));
