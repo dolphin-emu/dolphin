@@ -108,7 +108,7 @@ const DSPOPCTemplate opcodes[] =
 	{"JMPxB",	0x029b, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, false, true},
 	{"JLNZ",	0x029c, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, false, true},
 	{"JLZ",		0x029d, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, false, true},
-	{"JMPO",	0x029e, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, false, true},
+	{"JO",		0x029e, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, false, true},
 	{"JMP",		0x029f, 0xffff, DSPInterpreter::jcc, nop, 2, 1, {{P_ADDR_I, 2, 1, 0, 0xffff}}, false, true},
 
 	{"JRGE",	0x1700, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false, true},
@@ -125,7 +125,7 @@ const DSPOPCTemplate opcodes[] =
 	{"JMPRxB",	0x170b, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false, true},
 	{"JRLNZ",	0x170c, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false, true},
 	{"JRLZ",	0x170d, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false, true},
-	{"JMPRO",	0x170e, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false, true},
+	{"JRO",		0x170e, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false, true},
 	{"JMPR",	0x170f, 0xff1f, DSPInterpreter::jmprcc, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false, true},
 
 	{"CALLRGE",	0x1710, 0xff1f, DSPInterpreter::callr, nop, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false, true},

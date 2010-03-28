@@ -220,7 +220,7 @@ inline s64 dsp_get_long_prod()
 
 inline s64 dsp_get_long_prod_round_prodl()
 {
-	return (dsp_get_long_prod() + 0x8000) & ~0xffff;
+	return (dsp_get_long_prod() + 0x7fff) & ~0xffff;
 }
 
 // For accurate emulation, this is wrong - but the real prod registers behave

@@ -61,7 +61,7 @@ void Update_SR_Register64(s64 _Value, bool carry, bool overflow)
 		g_dsp.r[DSP_REG_SR] |= SR_OVER_S32;
 	}
 
-	// 0x20 - Checks if top bits of m are equal, what is it good for?
+	// 0x20 - Checks if top bits of m are equal
 	if (((_Value & 0xc0000000) == 0) || ((_Value & 0xc0000000) == 0xc0000000))
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
@@ -104,7 +104,7 @@ void Update_SR_Register16(s16 _Value, bool carry, bool overflow, bool overS32)
 		g_dsp.r[DSP_REG_SR] |= SR_OVER_S32;
 	}
 
-	// 0x20 - Checks if top bits of m are equal, what is it good for?
+	// 0x20 - Checks if top bits of m are equal
 	if ((((u16)_Value >> 14) == 0) || (((u16)_Value >> 14) == 3))
 	{
 		g_dsp.r[DSP_REG_SR] |= SR_TOP2BITS;
@@ -152,7 +152,7 @@ inline bool isConditionA() {
 	return (((g_dsp.r[DSP_REG_SR] & SR_OVER_S32) || (g_dsp.r[DSP_REG_SR] & SR_TOP2BITS)) && !(g_dsp.r[DSP_REG_SR] & SR_ARITH_ZERO)) ? true : false;
 }
 
-//see gdsp_registers.h for flags
+//see DSPCore.h for flags
 bool CheckCondition(u8 _Condition)
 {
 	switch (_Condition & 0xf)
@@ -190,8 +190,7 @@ bool CheckCondition(u8 _Condition)
 	case 0xf: // Empty - always true.
 		return true;
 	default:
-		ERROR_LOG(DSPLLE, "Unknown condition check: 0x%04x", _Condition & 0xf);
-		return false;
+		return true;
 	}
 }
 
