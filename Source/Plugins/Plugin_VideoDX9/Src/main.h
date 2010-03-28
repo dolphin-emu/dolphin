@@ -22,5 +22,6 @@
 #include "Render.h"
 
 extern SVideoInitialize g_VideoInitialize;
+extern volatile u32 s_swapRequested;
 
 #endif

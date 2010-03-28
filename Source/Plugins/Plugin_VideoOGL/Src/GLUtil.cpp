@@ -761,11 +761,12 @@ void OpenGL_Update()
 	int height = rcWindow.bottom - rcWindow.top;
 
 	// If we are rendering to a child window
-	if (EmuWindow::GetParentWnd() != 0)
+	if (EmuWindow::GetParentWnd() != 0 && (s_backbuffer_width != width || s_backbuffer_height != height) && width >= 4 && height >= 4)
+	{
 		::MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
-
-	s_backbuffer_width = width;
-	s_backbuffer_height = height;
+		s_backbuffer_width = width;
+		s_backbuffer_height = height;
+	}
 
 #elif defined(HAVE_X11) && HAVE_X11
 #endif

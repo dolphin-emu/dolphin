@@ -86,7 +86,6 @@ static bool s_bScreenshot = false;
 static Common::CriticalSection s_criticalScreenshot;
 static char s_sScreenshotName[1024];
 static LPDIRECT3DSURFACE9 ScreenShootMEMSurface = NULL;
-extern volatile u32 s_swapRequested;
 
 
 // State translation lookup tables
@@ -1013,13 +1012,14 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
-	if(!fbWidth || !fbHeight)
+	if (g_bSkipCurrentFrame || !XFBWrited || !fbWidth || !fbHeight)
+	{
+		g_VideoInitialize.pCopiedToXFB(false);		
 		return;
+	}
 	// this function is called after the XFB field is changed, not after
 	// EFB is copied to XFB. In this way, flickering is reduced in games
-	// and seems to also give more FPS in ZTP	
-	if(!XFBWrited)
-		return;
+	// and seems to also give more FPS in ZTP		
 	if (field == FIELD_LOWER)
 		xfbAddr -= fbWidth * 2;
 	
@@ -1027,14 +1027,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	const XFBSource** xfbSourceList = FBManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if (!xfbSourceList || xfbCount == 0)
 	{
+		g_VideoInitialize.pCopiedToXFB(false);	
 		return;
 	}
 
-	if (g_bSkipCurrentFrame)
-	{
-		g_VideoInitialize.pCopiedToXFB(false);		
-		return;
-	}
+	
 
 	Renderer::ResetAPIState();
 	// Set the backbuffer as the rendering target

@@ -801,13 +801,11 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
-	if (s_skipSwap)
+	if (g_bSkipCurrentFrame || !XFBWrited || !fbWidth || !fbHeight)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);
 		return;
-	}
-	if(!XFBWrited)
-		return;
+	}	
 	if (field == FIELD_LOWER)
 		xfbAddr -= fbWidth * 2;
 
@@ -815,6 +813,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	const XFBSource** xfbSourceList = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if (!xfbSourceList)
 	{
+		g_VideoInitialize.pCopiedToXFB(false);
 		WARN_LOG(VIDEO, "Failed to get video for this frame");
 		return;
 	}

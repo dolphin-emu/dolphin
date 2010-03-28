@@ -208,7 +208,8 @@ void FramebufferManager::Destroy()
 
 	for (VirtualXFBListType::iterator it = m_virtualXFBList.begin(); it != m_virtualXFBList.end(); ++it)
 	{
-		it->xfbSource.texture->Release();
+		if(it->xfbSource.texture)
+			it->xfbSource.texture->Release();
 	}
 	m_virtualXFBList.clear();
 	if(m_realXFBSource.texture)

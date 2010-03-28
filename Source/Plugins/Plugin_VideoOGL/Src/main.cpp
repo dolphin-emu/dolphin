@@ -518,7 +518,12 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (s_PluginInitialized && g_ActiveConfig.bUseXFB)
 	{
-		// Make sure previous swap request has made it to the screen
+		s_beginFieldArgs.xfbAddr = xfbAddr;
+		s_beginFieldArgs.field = field;
+		s_beginFieldArgs.fbWidth = fbWidth;
+		s_beginFieldArgs.fbHeight = fbHeight;
+
+		Common::AtomicStoreRelease(s_swapRequested, TRUE);
 		if (g_VideoInitialize.bOnThread)
 		{
 			while (Common::AtomicLoadAcquire(s_swapRequested) && !s_FifoShuttingDown)
@@ -526,14 +531,7 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 				Common::YieldCPU();
 		}
 		else
-			VideoFifo_CheckSwapRequest();
-
-		s_beginFieldArgs.xfbAddr = xfbAddr;
-		s_beginFieldArgs.field = field;
-		s_beginFieldArgs.fbWidth = fbWidth;
-		s_beginFieldArgs.fbHeight = fbHeight;
-
-		Common::AtomicStoreRelease(s_swapRequested, TRUE);
+			VideoFifo_CheckSwapRequest();		
 	}
 }
 
