@@ -43,7 +43,7 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_CHECKBOX(IDC_UPRIGHTWIIMOTE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_MOTIONPLUSCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_WIIAUTORECONNECT, WiimoteBasicConfigDialog::GeneralSettingsChanged)
-	EVT_CHOICE(IDC_EXTCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
+
 	// IR cursor
 	EVT_COMMAND_SCROLL(IDS_WIDTH, WiimoteBasicConfigDialog::IRCursorChanged)
 	EVT_COMMAND_SCROLL(IDS_HEIGHT, WiimoteBasicConfigDialog::IRCursorChanged)
@@ -177,8 +177,8 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_TextFoundRealWiimote[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Connected to 0 Real Wiimotes"));
 		m_ConnectRealWiimote[i] = new wxButton(m_Controller[i], IDB_REFRESH_REAL, wxT("Refresh Real Wiimotes"));
 		m_ConnectRealWiimote[i]->SetToolTip(wxT("This can only be done when the emulator is paused or stopped."));
-		
-		m_WiiAutoReconnect[i] = new wxCheckBox(m_Controller[i], IDC_WIIAUTORECONNECT, wxT("Auto reconenct wiimote"), wxDefaultPosition, wxSize(-1, -1), 0, wxDefaultValidator);
+
+		m_WiiAutoReconnect[i] = new wxCheckBox(m_Controller[i], IDC_WIIAUTORECONNECT, wxT("Auto reconnect wiimote"));
 		m_WiiAutoReconnect[i]->SetToolTip(wxT("This makes dolphin automatically reconnect a wiimote when it has being disconnected.\nThis will cause problems when 2 controllers are connected for a 1 player game."));
 
 		//IR Pointer
@@ -479,14 +479,14 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 		m_SidewaysWiimote[m_Page]->Enable(false);
 		m_UprightWiimote[m_Page]->Enable(false);
 		m_Extension[m_Page]->Enable(false);
-		m_SliderIrLevel[m_Page]->Enable(false);
+		m_SliderIrLevel[m_Page]->Enable(true);
 	}
 	else
 	{
 		m_SidewaysWiimote[m_Page]->Enable(true);
 		m_UprightWiimote[m_Page]->Enable(true);
 		m_Extension[m_Page]->Enable(true);
-		m_SliderIrLevel[m_Page]->Enable(true);
+		m_SliderIrLevel[m_Page]->Enable(false);
 	}
 
 	m_SidewaysWiimote[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bSideways);

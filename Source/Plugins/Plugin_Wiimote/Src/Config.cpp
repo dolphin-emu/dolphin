@@ -447,7 +447,12 @@ void Config::Save()
 
 	//Save any options that need to be accessed in Dolphin
 	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini").c_str());
-	iniFile.Set("Wiimote" , "AutoReconnectRealWiimote", &WiiMoteEmu::WiiMapping[0].bWiiAutoReconnect);
+	for (int i = 0; i < MAX_WIIMOTES; i++)
+	{
+		char SectionName[32];
+		sprintf(SectionName, "Wiimote%i", i + 1);
+		iniFile.Set(SectionName, "AutoReconnectRealWiimote", WiiMoteEmu::WiiMapping[i].bWiiAutoReconnect);
+	}
 	iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini").c_str());
 
 	//DEBUG_LOG(WIIMOTE, "Save()");
