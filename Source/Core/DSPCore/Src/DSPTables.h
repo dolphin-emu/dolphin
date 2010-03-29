@@ -68,28 +68,6 @@ enum partype_t
 #define EXT_OPTABLE_SIZE 0xff + 1
 
 typedef u16 UDSPInstruction;
-/*/union UDSPInstruction
-{
-	u16 hex;
-
-	UDSPInstruction(u16 _hex)	{ hex = _hex; }
-	UDSPInstruction()	        { hex = 0; }
-
-	struct
-	{
-		signed shift        : 6;
-		unsigned negating   : 1;
-		unsigned arithmetic : 1;
-		unsigned areg       : 1;
-		unsigned op         : 7;
-	};
-	struct
-	{
-		unsigned ushift     : 6;
-	};
-
-	// TODO: Figure out more instruction structures (add structs here)
-	};*/
 
 typedef void (*dspInstFunc)(const UDSPInstruction);
 
@@ -125,14 +103,12 @@ extern const DSPOPCTemplate opcodes[];
 extern const int opcodes_size;
 extern const DSPOPCTemplate opcodes_ext[];
 extern const int opcodes_ext_size;
-extern u8 opSize[OPTABLE_SIZE];
 extern const DSPOPCTemplate cw;
 
 #define WRITEBACKLOGSIZE 7
 
-extern dspInstFunc opTable[];
-extern bool opTableUseExt[OPTABLE_SIZE];
-extern dspInstFunc extOpTable[EXT_OPTABLE_SIZE];
+extern const DSPOPCTemplate *opTable[OPTABLE_SIZE];
+extern const DSPOPCTemplate *extOpTable[EXT_OPTABLE_SIZE];
 extern u16 writeBackLog[WRITEBACKLOGSIZE];
 extern int writeBackLogIdx[WRITEBACKLOGSIZE];
 
@@ -157,22 +133,22 @@ void applyWriteBackLog();
 void zeroWriteBackLog();
 void zeroWriteBackLogPreserveAcc(u8 acc);
 
+const DSPOPCTemplate *GetOpTemplate(const UDSPInstruction &inst);
+
 inline void ExecuteInstruction(const UDSPInstruction inst)
 {
-	if (opTableUseExt[inst]) {
+	const DSPOPCTemplate *tinst = GetOpTemplate(inst);
+
+	if (tinst->extended) {
 		if ((inst >> 12) == 0x3)
-			extOpTable[inst & 0x7F](inst);
+			extOpTable[inst & 0x7F]->interpFunc(inst);
 		else
-			extOpTable[inst & 0xFF](inst);
+			extOpTable[inst & 0xFF]->interpFunc(inst);
 	}
-	opTable[inst](inst);
-	if (opTableUseExt[inst]) {
+	tinst->interpFunc(inst);
+	if (tinst->extended) {
 		applyWriteBackLog();
 	}
 }
-
-// This one's pretty slow, try to use it only at init or seldomly.
-// returns NULL if no matching instruction.
-const DSPOPCTemplate *GetOpTemplate(const UDSPInstruction &inst);
 
 #endif // _DSPTABLES_H

@@ -39,7 +39,7 @@ const DSPOPCTemplate opcodes[] =
 	{"SUBARN",	0x000c, 0xfffc, DSPInterpreter::subarn, nop, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false},
 	{"ADDARN",  0x0010, 0xfff0, DSPInterpreter::addarn, nop, 1, 2, {{P_REG, 1, 0, 0, 0x0003}, {P_REG04, 1, 0, 2, 0x000c}}, false, false},
 
-	{"HALT",	0x0021, 0xffff, DSPInterpreter::halt, nop, 1, 0, {}, false, false},
+	{"HALT",	0x0021, 0xffff, DSPInterpreter::halt, nop, 1, 0, {}, false, true},
 
 	{"RETGE",	0x02d0, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, false, true},
 	{"RETL",	0x02d1, 0xffff, DSPInterpreter::ret, nop, 1, 0, {}, false, true},
@@ -485,10 +485,8 @@ const pdlabel_t regnames[] =
 	{0x23, "AX1",		"Extra Accu 1",},
 };
 
-u8 opSize[OPTABLE_SIZE];
-dspInstFunc opTable[OPTABLE_SIZE];
-dspInstFunc extOpTable[EXT_OPTABLE_SIZE];
-bool opTableUseExt[OPTABLE_SIZE];
+const DSPOPCTemplate *opTable[OPTABLE_SIZE];
+const DSPOPCTemplate *extOpTable[EXT_OPTABLE_SIZE];
 u16 writeBackLog[WRITEBACKLOGSIZE];
 int writeBackLogIdx[WRITEBACKLOGSIZE];
 
@@ -518,13 +516,7 @@ const char *pdregnamelong(int val)
 
 const DSPOPCTemplate *GetOpTemplate(const UDSPInstruction &inst)
 {
-	for (int i = 0; i < opcodes_size; i++)
-	{
-		u16 mask = opcodes[i].opcode_mask;
-		if ((mask & inst) == opcodes[i].opcode)
-			return &opcodes[i];
-	}
-	return NULL;
+	return opTable[inst];
 }
 
 
@@ -534,7 +526,7 @@ void InitInstructionTable()
 {
 	// ext op table
 	for (int i = 0; i < EXT_OPTABLE_SIZE; i++) 
-		extOpTable[i] = DSPInterpreter::unknown;
+		extOpTable[i] = &cw;
 
 	for (int i = 0; i < EXT_OPTABLE_SIZE; i++)  
     {
@@ -543,8 +535,8 @@ void InitInstructionTable()
 			u16 mask = opcodes_ext[j].opcode_mask;
 			if ((mask & i) == opcodes_ext[j].opcode) 
 			{
-				if (extOpTable[i] == DSPInterpreter::unknown) 
-					extOpTable[i] = opcodes_ext[j].interpFunc;
+				if (extOpTable[i] == &cw) 
+					extOpTable[i] = &opcodes_ext[j];
 				else
 					ERROR_LOG(DSPLLE, "opcode ext table place %d already in use for %s", i, opcodes_ext[j].name); 	
 			}
@@ -553,11 +545,7 @@ void InitInstructionTable()
 
 	// op table
 	for (int i = 0; i < OPTABLE_SIZE; i++)
-	{
-		opTable[i] = DSPInterpreter::unknown;
-		opTableUseExt[i] = false;
-		opSize[i] = 0;
-	}
+		opTable[i] = &cw;
 	
 	for (int i = 0; i < OPTABLE_SIZE; i++)
 	{
@@ -566,16 +554,10 @@ void InitInstructionTable()
 			u16 mask = opcodes[j].opcode_mask;
 			if ((mask & i) == opcodes[j].opcode)
 			{
-				if (opTable[i] == DSPInterpreter::unknown)
-				{
-					opTable[i] = opcodes[j].interpFunc;
-					opSize[i] = opcodes[j].size & 3;
-					opTableUseExt[i] = opcodes[j].extended;
-				}
+				if (opTable[i] == &cw)
+					opTable[i] = &opcodes[j];
 				else
-				{
 					ERROR_LOG(DSPLLE, "opcode table place %d already in use for %s", i, opcodes[j].name); 
-				}
 			}
 		}
 	}

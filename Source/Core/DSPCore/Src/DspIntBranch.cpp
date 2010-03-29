@@ -71,7 +71,7 @@ void ifcc(const UDSPInstruction opc)
 	if (!CheckCondition(opc & 0xf))
 	{
 		// skip the next opcode - we have to lookup its size.
-		g_dsp.pc += opSize[dsp_peek_code()];
+		dsp_skip_inst();
 	}
 }
 
@@ -242,7 +242,7 @@ void bloop(const UDSPInstruction opc)
 	else
 	{
 		g_dsp.pc = loop_pc;
-		g_dsp.pc += opSize[dsp_peek_code()];
+		dsp_skip_inst();
 	}
 }
 
@@ -269,7 +269,7 @@ void bloopi(const UDSPInstruction opc)
 	else
 	{
 		g_dsp.pc = loop_pc;
-		g_dsp.pc += opSize[dsp_peek_code()];
+		dsp_skip_inst();
 	}
 }
 

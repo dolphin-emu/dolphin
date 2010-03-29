@@ -46,4 +46,9 @@ inline u16 dsp_peek_code()
 	return dsp_imem_read(g_dsp.pc);
 }
 
+inline void dsp_skip_inst()
+{
+	g_dsp.pc += opTable[dsp_peek_code()]->size;
+}
+
 #endif
