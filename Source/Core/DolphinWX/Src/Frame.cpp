@@ -175,8 +175,9 @@ CPanel::CPanel(
 					{
 						//Auto reconnect if option is turned on.
 						//TODO: Make this only auto reconnect wiimotes that have the option activated.
-						if (SConfig::GetInstance().m_WiiAutoReconnect)
-						{ 
+						LoadSettingsWii();//Make sure we are using the newest settings.
+						if (SConfig::GetInstance().m_WiiAutoReconnect[1])
+						{
 							GetUsbPointer()->AccessWiiMote(lParam | 0x100)->Activate(true);
 							NOTICE_LOG(WIIMOTE, "Wiimote %i has been auto-reconnected...", lParam + 1);
 						}

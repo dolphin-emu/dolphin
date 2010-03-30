@@ -44,7 +44,7 @@ struct SConfig
 	// Wii Devices
 	bool m_WiiSDCard;
 	bool m_WiiKeyboard;
-	bool m_WiiAutoReconnect;
+	bool m_WiiAutoReconnect[4];
 
 	// DSP HLE Audio fix
 	bool m_EnableRE0Fix;
@@ -102,6 +102,7 @@ struct SConfig
 
 	//Special load settings
 	void LoadSettingsHLE();
+	void LoadSettingsWii();
 
 	// Return the permanent and somewhat globally used instance of this struct
 	static SConfig& GetInstance() {return(*m_Instance);}

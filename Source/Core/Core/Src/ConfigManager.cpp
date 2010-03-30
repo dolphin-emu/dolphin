@@ -31,6 +31,8 @@ SConfig::SConfig()
 	LoadSettings();
 	//Make sure we load settings
 	LoadSettingsHLE();
+	LoadSettingsWii()
+
 }
 
 void SConfig::Init()
@@ -248,13 +250,6 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
 		ini.Get("Core", "FrameLimit",		&m_Framelimit,									1); // auto frame limit by default
 
-		//Wiimote configs
-		for (int i = 0; i < 4; i++)
-		{
-			char SectionName[32];
-			sprintf(SectionName, "Wiimote%i", i + 1);
-			ini.Get(SectionName, "AutoReconnectRealWiimote", &m_WiiAutoReconnect, false);
-		}
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin,	m_DefaultGFXPlugin.c_str());
 		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin,		m_DefaultDSPPlugin.c_str());
@@ -265,6 +260,18 @@ void SConfig::LoadSettings()
 	}
 
 	m_SYSCONF = new SysConf();
+}
+void SConfig::LoadSettingsWii()
+{
+	IniFile ini;
+	//Wiimote configs
+	ini.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini").c_str());
+	for (int i = 0; i < 4; i++)
+	{
+		char SectionName[32];
+		sprintf(SectionName, "Wiimote%i", i + 1);
+		ini.Get(SectionName, "AutoReconnectRealWiimote", &m_WiiAutoReconnect[i], false);
+	}
 }
 
 // Is this still even needed????
