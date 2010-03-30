@@ -173,13 +173,15 @@ CPanel::CPanel(
 						main_frame->bNoWiimoteMsg = false;
 					else
 					{
+						int wiimote_idx = lParam;
+						int wiimote_num = wiimote_idx + 1;
 						//Auto reconnect if option is turned on.
 						//TODO: Make this only auto reconnect wiimotes that have the option activated.
-						LoadSettingsWii();//Make sure we are using the newest settings.
-						if (SConfig::GetInstance().m_WiiAutoReconnect[1])
+						SConfig::GetInstance().LoadSettingsWii();//Make sure we are using the newest settings.
+						if (SConfig::GetInstance().m_WiiAutoReconnect[wiimote_idx])
 						{
-							GetUsbPointer()->AccessWiiMote(lParam | 0x100)->Activate(true);
-							NOTICE_LOG(WIIMOTE, "Wiimote %i has been auto-reconnected...", lParam + 1);
+							GetUsbPointer()->AccessWiiMote(wiimote_idx | 0x100)->Activate(true);
+							NOTICE_LOG(WIIMOTE, "Wiimote %i has been auto-reconnected...", wiimote_num);
 						}
 						else
 						{
@@ -189,13 +191,13 @@ CPanel::CPanel(
 								wxString::Format(wxT("Wiimote %i has been disconnected by system.\n")
 								wxT("Maybe this game doesn't support multi-wiimote,\n")
 								wxT("or maybe it is due to idle time out or other reason.\n\n")
-								wxT("Do you want to reconnect immediately?"), lParam + 1),
+								wxT("Do you want to reconnect immediately?"), wiimote_num),
 								wxT("Reconnect Wiimote Confirm"),
 								wxYES_NO | wxSTAY_ON_TOP | wxICON_INFORMATION, //wxICON_QUESTION,
 								wxDefaultPosition);
 
 							if (dlg->ShowModal() == wxID_YES)
-								GetUsbPointer()->AccessWiiMote(lParam | 0x100)->Activate(true);
+								GetUsbPointer()->AccessWiiMote(wiimote_idx | 0x100)->Activate(true);
 
 							dlg->Destroy();
 						}

@@ -31,7 +31,7 @@ SConfig::SConfig()
 	LoadSettings();
 	//Make sure we load settings
 	LoadSettingsHLE();
-	LoadSettingsWii()
+	LoadSettingsWii();
 
 }
 
