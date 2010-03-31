@@ -120,7 +120,7 @@ bool BootCore(const std::string& _rFilename)
 	if (unique_id.size() == 6 && game_ini.Load(StartUp.m_strGameIni.c_str()))
 	{
 		// General settings
-		game_ini.Get("Core", "CPUOnThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
+		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
 		game_ini.Get("Core", "SkipIdle",			&StartUp.bSkipIdle, StartUp.bSkipIdle);
 		game_ini.Get("Core", "EnableFPRF",			&StartUp.bEnableFPRF, StartUp.bEnableFPRF);
 		game_ini.Get("Core", "TLBHack",				&StartUp.iTLBHack, StartUp.iTLBHack);
