@@ -43,6 +43,7 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_CHECKBOX(IDC_UPRIGHTWIIMOTE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_MOTIONPLUSCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_WIIAUTORECONNECT, WiimoteBasicConfigDialog::GeneralSettingsChanged)
+	EVT_CHOICE(IDC_EXTCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 
 	// IR cursor
 	EVT_COMMAND_SCROLL(IDS_WIDTH, WiimoteBasicConfigDialog::IRCursorChanged)
