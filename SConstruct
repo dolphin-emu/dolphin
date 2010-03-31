@@ -512,9 +512,15 @@ else:
 env.Alias('install', env['prefix'])
 
 if env['bundle']:
+    # get the rev anyways, RC != RC between commits
+    # copied from utils.py, could be solved better...
+    try:
+        rev = os.popen('svnversion .').read().strip().split(':')[0]
+    except:
+        rev = ""
     # Make tar ball (TODO put inside normal dir)
     tar_env = env.Clone()
-    tarball = tar_env.Tar('dolphin-'+rev +'.tar.bz2', env['prefix'])
+    tarball = tar_env.Tar('dolphin-2.0RC1-'+ rev +'.tar.bz2', env['prefix'])
     tar_env.Append(TARFLAGS='-j', 
                    TARCOMSTR="Creating release tarball")
 
