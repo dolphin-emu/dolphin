@@ -626,6 +626,31 @@ void Jit64::addx(UGeckoInstruction inst)
 		}
 		gpr.UnlockAll();
 	}
+	else if( a == b && b == d && a == d)
+	{
+		gpr.Lock(d);
+		gpr.LoadToX64(d, true);
+		ADD(32, gpr.R(d), gpr.R(d));
+		if (inst.Rc)
+		{
+			MOV(32, R(EAX), gpr.R(d));
+			CALL((u8*)asm_routines.computeRc);
+		}
+		gpr.UnlockAll();
+	}
+	else if( a == b && b != d)
+	{
+		gpr.Lock(a, d);
+		gpr.LoadToX64(d, false);
+		MOV(32, gpr.R(d), gpr.R(a)); 
+		ADD(32, gpr.R(d), gpr.R(d));
+		if (inst.Rc)
+		{
+			MOV(32, R(EAX), gpr.R(d));
+			CALL((u8*)asm_routines.computeRc);
+		}
+		gpr.UnlockAll();
+	}
 	else
 	{
 		Default(inst);	return;

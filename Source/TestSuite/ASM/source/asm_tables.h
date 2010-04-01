@@ -36,6 +36,8 @@ struct inst
 };
 
 static inst instructions[] = {
+	{ "add", NULL, 3, IO_ARG1 | IO_ARG2 | IO_ARG3, IO_ARG1,TYPE_INTEGER, add},
+	{ "add.", MOD_CR0, 3, IO_ARG1 | IO_ARG2 | IO_ARG3, IO_ARG1,TYPE_INTEGER, add},
 	{ "subfc", NULL, 3, IO_ARG1 | IO_ARG2 | IO_ARG3, IO_ARG1,TYPE_INTEGER, subfc},
 	{ "subfc.", MOD_CR0, 3, IO_ARG1 | IO_ARG2 | IO_ARG3, IO_ARG1,TYPE_INTEGER, subfcRC},
 	{ "divw", NULL, 3, IO_ARG1 | IO_ARG2 | IO_ARG3, IO_ARG1, TYPE_INTEGER, divw},

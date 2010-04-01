@@ -1,5 +1,24 @@
 #include "asm_tables.h"
 #include "Defines.h"
+
+void add(u32 *a, u32 *b, u32 *c, u32 *d)
+{
+	asm(
+		"add %0,%1,%2"
+		: "=r"(*a)
+		: "r"(*b), "r"(*c)
+		);
+}
+void addRC(u32 *a, u32 *b, u32 *c, u32 *d)
+{
+	asm(
+		"add. %0,%1,%2"
+		: "=r"(*a)
+		: "r"(*b), "r"(*c)
+		: "cc"
+		);
+}
+
 void subfc(u32 *a, u32 *b, u32 *c, u32 *d)
 {
 	asm(

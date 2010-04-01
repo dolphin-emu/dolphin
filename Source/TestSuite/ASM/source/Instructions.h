@@ -1,5 +1,7 @@
 
 // Integer
+void add(u32 *a, u32 *b, u32 *c, u32 *d);
+void addRC(u32 *a, u32 *b, u32 *c, u32 *d);
 
 void subfc(u32 *a, u32 *b, u32 *c, u32 *d);
 void subfcRC(u32 *a, u32 *b, u32 *c, u32 *d);
