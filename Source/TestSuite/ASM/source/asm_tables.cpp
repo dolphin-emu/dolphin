@@ -36,7 +36,8 @@ u32 inval_table[][2] = {
 void Print(const char* text)
 {
 	printf(text);
-	fprintf(f, text);
+	if(f)
+		fprintf(f, text);
 }
 void ShowModifies(u32 inst)
 {
@@ -93,7 +94,8 @@ void RunInstruction(u32 inst)
 		printf("unable to open output file\n");
 	
 	printf("%s: InputNum: %d Modifies(flags): ", instructions[inst].name, instructions[inst].numInput);
-	fprintf(f, "%s: InputNum: %d Modifies(flags): ", instructions[inst].name, instructions[inst].numInput);
+	if(f)
+		fprintf(f, "%s: InputNum: %d Modifies(flags): ", instructions[inst].name, instructions[inst].numInput);
 	ShowModifies(inst);
 	Print("\n");
 
@@ -101,6 +103,7 @@ void RunInstruction(u32 inst)
 	{
 		inval1 = inval_table[i][0];
 		inval2 = inval_table[i][1];
+		outval = 0;
 
 		// Show our input values and where we are at on the array
 		printf("\x1b[%i;0H", i);
@@ -138,13 +141,16 @@ void RunInstruction(u32 inst)
 		
 		
 		// same in the file
-		fprintf(f, ":i=%08x, %08x:o=%08x\n\t", inval1,inval2, outval);
-		if(modCR0)
-			fprintf(f, "CR0:(%08x ~ %08x)", cr1,cr2);
-		if(modCR1)
-			fprintf(f, "CR1:(%08x ~ %08x)", cr11,cr12);
-		if(modXER)
-			fprintf(f, "XER:(%08x ~ %08x)", xer1, xer2);
+		if(f)
+		{
+			fprintf(f, ":i=%08x, %08x:o=%08x\n\t", inval1,inval2, outval);
+			if(modCR0)
+				fprintf(f, "CR0:(%08x ~ %08x)", cr1,cr2);
+			if(modCR1)
+				fprintf(f, "CR1:(%08x ~ %08x)", cr11,cr12);
+			if(modXER)
+				fprintf(f, "XER:(%08x ~ %08x)", xer1, xer2);
+		}
 
 		// see the difference in flags if any
 		if(modCR0)
@@ -152,7 +158,8 @@ void RunInstruction(u32 inst)
 			u32 cr_diff = cr2&~cr1;
 			if (cr_diff) {
 				printf(" CR0D:%08x",cr_diff);
-				fprintf(f, " CR0D:%08x",cr_diff);
+				if(f)
+					fprintf(f, " CR0D:%08x",cr_diff);
 			}
 		}
 		if(modCR1)
@@ -160,7 +167,8 @@ void RunInstruction(u32 inst)
 			u32 cr1_diff = cr12&~cr11;
 			if (cr1_diff) {
 				printf(" CR1D:%08x",cr1_diff);
-				fprintf(f, " CR1D:%08x",cr1_diff);
+				if(f)
+					fprintf(f, " CR1D:%08x",cr1_diff);
 			}
 		}
 		if(modXER)
@@ -168,10 +176,13 @@ void RunInstruction(u32 inst)
 			u32 xer_diff = xer2&~xer1;
 			if (xer_diff) {
 				printf(" XERD:%08x",xer_diff);
-				fprintf(f, " XERD:%08x",xer_diff);
+				if(f)
+					fprintf(f, " XERD:%08x",xer_diff);
 			}
 		}
-		fprintf(f,"\n");
+		if(f)
+			fprintf(f,"\n");
 	}
-	fclose(f);
+	if(f)
+		fclose(f);
 }
