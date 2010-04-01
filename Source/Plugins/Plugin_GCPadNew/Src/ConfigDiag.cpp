@@ -212,13 +212,12 @@ void GamepadPage::SetDevice( wxCommandEvent& event )
 {
 	m_plugin.controls_crit.Enter();		// enter
 
-
 	// TODO: need to handle the ConfigControl device in here
 
 	// default device
 	if ( event.GetEventObject() == device_cbox )
 	{
-		controller->default_device.FromString( std::string( device_cbox->GetLabel().ToAscii() ) );
+		controller->default_device.FromString( std::string( device_cbox->GetValue().ToAscii() ) );
 		
 		// show user what it was validated as
 		device_cbox->SetLabel( wxString::FromAscii( controller->default_device.ToString().c_str() ) );
@@ -232,7 +231,7 @@ void GamepadPage::SetDevice( wxCommandEvent& event )
 	// control dialog
 	else
 	{
-		m_control_dialog->control_reference->device_qualifier.FromString( std::string( m_control_dialog->device_cbox->GetLabel().ToAscii() ) );
+		m_control_dialog->control_reference->device_qualifier.FromString( std::string( m_control_dialog->device_cbox->GetValue().ToAscii() ) );
 		
 		m_control_dialog->device_cbox->SetLabel( wxString::FromAscii( m_control_dialog->control_reference->device_qualifier.ToString().c_str() ) );
 
