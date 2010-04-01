@@ -9,6 +9,9 @@
 #include <Windows.h>
 #include <dinput.h>
 
+#include <wx/stopwatch.h>
+#include <wx/utils.h>
+
 namespace ciface
 {
 namespace DirectInput

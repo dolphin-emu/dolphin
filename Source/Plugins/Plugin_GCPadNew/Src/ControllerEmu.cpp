@@ -55,7 +55,7 @@ void ControllerEmu::LoadConfig( IniFile::Section& sec )
 		std::vector<ControlGroup::Setting*>::const_iterator si = (*i)->settings.begin(),
 			se = (*i)->settings.end();
 		for ( ; si!=se; ++si )
-			(*si)->value = sec.GetValue(group+(*si)->name, (*si)->default_value*100) / 100;
+			(*si)->value = sec.Get(group+(*si)->name, (*si)->default_value*100) / 100;
 
 		// controls
 		std::vector<ControlGroup::Control*>::const_iterator ci = (*i)->controls.begin(),
@@ -64,15 +64,15 @@ void ControllerEmu::LoadConfig( IniFile::Section& sec )
 		{
 			// control and dev qualifier
 			(*ci)->control_ref->control_qualifier.name = sec[group + (*ci)->name];
-			(*ci)->control_ref->device_qualifier.FromString( sec.GetValue( group+(*ci)->name+"/Device", default_dev ) );
+			(*ci)->control_ref->device_qualifier.FromString( sec.Get( group+(*ci)->name+"/Device", default_dev ) );
 
 			// range
-			(*ci)->control_ref->range = sec.GetValue( group+(*ci)->name+"/Range", 100.0f ) / 100;
+			(*ci)->control_ref->range = sec.Get( group+(*ci)->name+"/Range", 100.0f ) / 100;
 
 			// input mode
 			if ( (*ci)->control_ref->is_input )
 				((ControllerInterface::InputReference*)((*ci)->control_ref))->mode
-					= sec.GetValue( group+(*ci)->name+"/Mode", 0 );
+					= sec.Get( group+(*ci)->name+"/Mode", 0 );
 
 		}
 	}
@@ -93,7 +93,7 @@ void ControllerEmu::SaveConfig( IniFile::Section& sec )
 		std::vector<ControlGroup::Setting*>::const_iterator si = (*i)->settings.begin(),
 			se = (*i)->settings.end();
 		for ( ; si!=se; ++si )
-			sec.SetValue( group+(*si)->name, (*si)->value*100, (*si)->default_value*100 );
+			sec.Set( group+(*si)->name, (*si)->value*100, (*si)->default_value*100 );
 
 		// controls
 		std::vector<ControlGroup::Control*>::const_iterator ci = (*i)->controls.begin(),
@@ -102,14 +102,14 @@ void ControllerEmu::SaveConfig( IniFile::Section& sec )
 		{
 			// control and dev qualifier
 			sec[group + (*ci)->name] = (*ci)->control_ref->control_qualifier.name;
-			sec.SetValue( group+(*ci)->name+"/Device", (*ci)->control_ref->device_qualifier.ToString(), default_dev );
+			sec.Set( group+(*ci)->name+"/Device", (*ci)->control_ref->device_qualifier.ToString(), default_dev );
 
 			// range
-			sec.SetValue( group+(*ci)->name+"/Range", (*ci)->control_ref->range*100, 100 );
+			sec.Set( group+(*ci)->name+"/Range", (*ci)->control_ref->range*100, 100 );
 
 			// input mode
 			if ( (*ci)->control_ref->is_input )
-				sec.SetValue( group+(*ci)->name+"/Mode",
+				sec.Set( group+(*ci)->name+"/Mode",
 					((ControllerInterface::InputReference*)((*ci)->control_ref))->mode, (unsigned int)0 );
 		}
 	}

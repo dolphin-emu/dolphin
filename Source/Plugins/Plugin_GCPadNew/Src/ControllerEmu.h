@@ -194,7 +194,7 @@ public:
 					*digital |= *bitmasks;
 				}
 				else
-					*analog = controls[i+trig_count]->control_ref->State() * range;
+					*analog = S(controls[i+trig_count]->control_ref->State() * range);
 					
 			}
 		}

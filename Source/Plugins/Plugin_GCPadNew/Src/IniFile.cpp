@@ -18,12 +18,12 @@ std::string TrimChars( const std::string& str, const S space )
 }
 
 //
-//		IniSection :: SetValue
+//		IniSection :: Set
 //
 // set key's value if it doesn't match the default
 // otherwise remove the key from the section if it exists
 //
-void IniSection::SetValue( const std::string& key, const std::string& val, const std::string& def )
+void IniSection::Set( const std::string& key, const std::string& val, const std::string& def )
 {
 	if ( val != def )
 		operator[](key) = val;
@@ -36,12 +36,12 @@ void IniSection::SetValue( const std::string& key, const std::string& val, const
 }
 
 //
-//		IniSection :: GetValue
+//		IniSection :: Get
 //
 // return a key's value if it exists
 // otherwise return the default
 //
-std::string IniSection::GetValue( const std::string& key, const std::string& def )
+std::string IniSection::Get( const std::string& key, const std::string& def )
 {
 	const const_iterator f = find(key);
 	if ( f != end() )

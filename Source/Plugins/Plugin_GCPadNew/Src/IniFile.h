@@ -12,11 +12,11 @@
 class IniSection : public std::map< std::string, std::string >
 {
 public:
-	void SetValue( const std::string& key, const std::string& val, const std::string& def = "" );
-	std::string GetValue( const std::string& key, const std::string& def = "" );
+	void Set( const std::string& key, const std::string& val, const std::string& def = "" );
+	std::string Get( const std::string& key, const std::string& def = "" );
 
 	template <typename V, typename D>
-	void SetValue( const std::string& key, const V& val, const D& def = 0 )
+	void Set( const std::string& key, const V& val, const D& def = 0 )
 	{
 		if ( val != def )
 		{
@@ -32,7 +32,7 @@ public:
 		}
 	}
 	template <typename V>
-	V GetValue( const std::string& key, const V& def = 0 )
+	V Get( const std::string& key, const V& def = 0 )
 	{
 		const const_iterator f = find(key);
 		if ( f != end() )

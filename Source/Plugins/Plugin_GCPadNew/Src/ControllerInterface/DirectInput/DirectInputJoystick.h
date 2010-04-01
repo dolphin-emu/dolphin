@@ -9,6 +9,13 @@
 #include <Windows.h>
 #include <dinput.h>
 
+#ifdef CIFACE_USE_XINPUT
+	// this takes so long, idk if it should be enabled :(
+	#define NO_DUPLICATE_DINPUT_XINPUT
+	#include <wbemidl.h>
+	#include <oleauto.h>
+#endif
+
 namespace ciface
 {
 namespace DirectInput

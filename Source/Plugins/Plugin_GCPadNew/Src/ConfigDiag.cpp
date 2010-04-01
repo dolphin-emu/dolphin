@@ -220,7 +220,7 @@ void GamepadPage::SetDevice( wxCommandEvent& event )
 		controller->default_device.FromString( std::string( device_cbox->GetValue().ToAscii() ) );
 		
 		// show user what it was validated as
-		device_cbox->SetLabel( wxString::FromAscii( controller->default_device.ToString().c_str() ) );
+		device_cbox->SetValue( wxString::FromAscii( controller->default_device.ToString().c_str() ) );
 
 		// this will set all the controls to this default device
 		controller->UpdateDefaultDevice();
@@ -233,7 +233,7 @@ void GamepadPage::SetDevice( wxCommandEvent& event )
 	{
 		m_control_dialog->control_reference->device_qualifier.FromString( std::string( m_control_dialog->device_cbox->GetValue().ToAscii() ) );
 		
-		m_control_dialog->device_cbox->SetLabel( wxString::FromAscii( m_control_dialog->control_reference->device_qualifier.ToString().c_str() ) );
+		m_control_dialog->device_cbox->SetValue( wxString::FromAscii( m_control_dialog->control_reference->device_qualifier.ToString().c_str() ) );
 
 		m_plugin.controller_interface.UpdateReference( m_control_dialog->control_reference );
 		
@@ -769,7 +769,7 @@ ConfigDialog::ConfigDialog( wxWindow* const parent, Plugin& plugin, const std::s
 
 	SetSizerAndFit( szr );
 	// not needed here it seems, but it cant hurt
-	Layout();
+	//Layout();
 
 	Center();
 

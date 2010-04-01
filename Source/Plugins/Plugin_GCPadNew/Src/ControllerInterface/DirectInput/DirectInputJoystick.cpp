@@ -9,6 +9,112 @@ namespace ciface
 namespace DirectInput
 {
 
+#ifdef NO_DUPLICATE_DINPUT_XINPUT
+//-----------------------------------------------------------------------------
+// Modified some MSDN code to get all the XInput device GUID.Data1 values in a vector,
+// faster than checking all the devices for each DirectInput device, like MSDN says to do
+//-----------------------------------------------------------------------------
+void GetXInputGUIDS( std::vector<DWORD>& guids )
+{
+
+#define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
+
+	IWbemLocator*			pIWbemLocator  = NULL;
+	IEnumWbemClassObject*   pEnumDevices   = NULL;
+	IWbemClassObject*		pDevices[20]   = {0};
+	IWbemServices*			pIWbemServices = NULL;
+	BSTR					bstrNamespace  = NULL;
+	BSTR					bstrDeviceID   = NULL;
+	BSTR					bstrClassName  = NULL;
+	DWORD					uReturned	   = 0;
+	VARIANT					var;
+	HRESULT					hr;
+
+	// CoInit if needed
+	hr = CoInitialize(NULL);
+	bool bCleanupCOM = SUCCEEDED(hr);
+
+	// Create WMI
+	hr = CoCreateInstance( __uuidof(WbemLocator),
+						   NULL,
+						   CLSCTX_INPROC_SERVER,
+						   __uuidof(IWbemLocator),
+						   (LPVOID*) &pIWbemLocator);
+	if( FAILED(hr) || pIWbemLocator == NULL )
+		goto LCleanup;
+
+	bstrNamespace = SysAllocString( L"\\\\.\\root\\cimv2" );if( bstrNamespace == NULL ) goto LCleanup;		
+	bstrClassName = SysAllocString( L"Win32_PNPEntity" );   if( bstrClassName == NULL ) goto LCleanup;		
+	bstrDeviceID  = SysAllocString( L"DeviceID" );			if( bstrDeviceID == NULL )  goto LCleanup;		
+	
+	// Connect to WMI 
+	hr = pIWbemLocator->ConnectServer( bstrNamespace, NULL, NULL, 0L, 0L, NULL, NULL, &pIWbemServices );
+	if( FAILED(hr) || pIWbemServices == NULL )
+		goto LCleanup;
+
+	// Switch security level to IMPERSONATE. 
+	CoSetProxyBlanket( pIWbemServices, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL, 
+					   RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE );					
+
+	hr = pIWbemServices->CreateInstanceEnum( bstrClassName, 0, NULL, &pEnumDevices ); 
+	if( FAILED(hr) || pEnumDevices == NULL )
+		goto LCleanup;
+
+	// Loop over all devices
+	while( true )
+	{
+		// Get 20 at a time
+		hr = pEnumDevices->Next( 10000, 20, pDevices, &uReturned );
+		if( FAILED(hr) || uReturned == 0 )
+			break;
+
+		for( UINT iDevice=0; iDevice<uReturned; ++iDevice )
+		{
+			// For each device, get its device ID
+			hr = pDevices[iDevice]->Get( bstrDeviceID, 0L, &var, NULL, NULL );
+			if( SUCCEEDED( hr ) && var.vt == VT_BSTR && var.bstrVal != NULL )
+			{
+				// Check if the device ID contains "IG_".  If it does, then it's an XInput device
+					// This information can not be found from DirectInput 
+				if( wcsstr( var.bstrVal, L"IG_" ) )
+				{
+					// If it does, then get the VID/PID from var.bstrVal
+					DWORD dwPid = 0, dwVid = 0;
+					WCHAR* strVid = wcsstr( var.bstrVal, L"VID_" );
+					if( strVid && swscanf( strVid, L"VID_%4X", &dwVid ) != 1 )
+						dwVid = 0;
+					WCHAR* strPid = wcsstr( var.bstrVal, L"PID_" );
+					if( strPid && swscanf( strPid, L"PID_%4X", &dwPid ) != 1 )
+						dwPid = 0;
+
+					// Compare the VID/PID to the DInput device
+					DWORD dwVidPid = MAKELONG( dwVid, dwPid );
+					guids.push_back( dwVidPid );
+					//bIsXinputDevice = true;
+				}
+			} 
+			SAFE_RELEASE( pDevices[iDevice] );
+		}
+	}
+
+LCleanup:
+	if(bstrNamespace)
+		SysFreeString(bstrNamespace);
+	if(bstrDeviceID)
+		SysFreeString(bstrDeviceID);
+	if(bstrClassName)
+		SysFreeString(bstrClassName);
+	for( UINT iDevice=0; iDevice<20; iDevice++ )
+		SAFE_RELEASE( pDevices[iDevice] );
+	SAFE_RELEASE( pEnumDevices );
+	SAFE_RELEASE( pIWbemLocator );
+	SAFE_RELEASE( pIWbemServices );
+
+	if( bCleanupCOM )
+		CoUninitialize();
+}
+#endif
+
 std::string TStringToString( const std::basic_string<TCHAR>& in )
 {
 	const int size = WideCharToMultiByte( CP_UTF8, 0, in.data(), int(in.length()), NULL, 0, NULL, NULL );
@@ -52,10 +158,20 @@ void InitJoystick( IDirectInput8* const idi8, std::vector<ControllerInterface::D
 	// multiple joysticks with the same name shall get unique ids starting at 0
 	std::map< std::basic_string<TCHAR>, ZeroedInt >	name_counts;
 
+#ifdef NO_DUPLICATE_DINPUT_XINPUT
+	std::vector<DWORD> xinput_guids;
+	GetXInputGUIDS( xinput_guids );
+#endif
+
 	std::vector<DIDEVICEINSTANCE>::iterator i = joysticks.begin(),
 		e = joysticks.end();
 	for ( ; i!=e; ++i )
 	{
+#ifdef NO_DUPLICATE_DINPUT_XINPUT
+		// skip XInput Devices
+		if ( std::find( xinput_guids.begin(), xinput_guids.end(), i->guidProduct.Data1 ) != xinput_guids.end() )
+			continue;
+#endif
 		// TODO: this has potential to mess up on createdev or setdatafmt failure
 		LPDIRECTINPUTDEVICE8 js_device;
 		if ( DI_OK == idi8->CreateDevice( i->guidInstance, &js_device, NULL ) )
@@ -113,17 +229,22 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		for ( unsigned int d = 0; d<4; ++d )
 			inputs.push_back( new Hat( i, d ) );
 	}
-	// axes / only the first 6 currently
+	// get up to 6 axes and 2 sliders
 	std::vector<DIDEVICEOBJECTINSTANCE> axes;
+	unsigned int cur_slider = 0;
 	m_device->EnumObjects( DIEnumDeviceObjectsCallback, (LPVOID)&axes, DIDFT_AXIS );
-	for( unsigned int i = 0; i<axes.size() && i<6; ++i )
+
+	// going in reverse leaves the list more organized in the end for me :/
+	std::vector<DIDEVICEOBJECTINSTANCE>::const_reverse_iterator i = axes.rbegin(),
+		e = axes.rend();
+	for( ; i!=e; ++i )
 	{
 		DIPROPRANGE range;
 		ZeroMemory( &range, sizeof(range ) );
 		range.diph.dwSize = sizeof(range);
 		range.diph.dwHeaderSize = sizeof(range.diph);
 		range.diph.dwHow = DIPH_BYID;
-		range.diph.dwObj = axes[i].dwType;
+		range.diph.dwObj = i->dwType;
 		// try to set some nice power of 2 values (8192)
 		range.lMin = -(1<<13);
 		range.lMax = (1<<13);
@@ -132,13 +253,35 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		// so i getproperty right afterward incase it didn't set :P
 		if ( DI_OK == m_device->GetProperty( DIPROP_RANGE, &range.diph ) )
 		{
-			const LONG base = (range.lMin + range.lMax) / 2;
-			// each axis gets a negative and a positive input instance associated with it
-			inputs.push_back( new Axis( i, base, range.lMin-base ) );
-			inputs.push_back( new Axis( i, base, range.lMax-base ) );
+			int offset = -1;
+			const GUID type = i->guidType;
+
+			// figure out which axis this is
+			if ( type == GUID_XAxis )
+				offset = 0;
+			else if ( type == GUID_YAxis )
+				offset = 1;
+			else if ( type == GUID_ZAxis )
+				offset = 2;
+			else if ( type == GUID_RxAxis )
+				offset = 3;
+			else if ( type == GUID_RyAxis )
+				offset = 4;
+			else if ( type == GUID_RzAxis )
+				offset = 5;
+			else if ( type == GUID_Slider )
+				if ( cur_slider < 2 )
+					offset = 6 + cur_slider++;
+
+			if ( offset >= 0 )
+			{
+				const LONG base = (range.lMin + range.lMax) / 2;
+				// each axis gets a negative and a positive input instance associated with it
+				inputs.push_back( new Axis( offset, base, range.lMin-base ) );
+				inputs.push_back( new Axis( offset, base, range.lMax-base ) );
+			}
 		}
 	}
-	// do people need sliders? maybe later
 
 	// get supported ff effects
 	std::vector<DIDEVICEOBJECTINSTANCE> objects;
@@ -255,7 +398,7 @@ bool Joystick::UpdateOutput()
 		{
 			i->changed = false;
 			DICONSTANTFORCE cf;
-			cf.lMagnitude = 10000 * i->magnitude;
+			cf.lMagnitude = LONG(10000 * i->magnitude);
 
 			if ( cf.lMagnitude )
 			{
@@ -290,7 +433,18 @@ std::string Joystick::Button::GetName() const
 std::string Joystick::Axis::GetName() const
 {
 	std::ostringstream ss;
-	ss << "Axis " << m_index << ( m_range>0 ? '+' : '-' );
+	// axis
+	if ( m_index < 6 )			
+	{
+		ss << "Axis " << "XYZ"[m_index%3];
+		if ( m_index > 2 )
+			ss << 'r';
+	}
+	// slider
+	else
+		ss << "Slider " << m_index-6;
+
+	ss << ( m_range>0 ? '+' : '-' );
 	return ss.str();
 }
 

@@ -371,26 +371,12 @@ void ControllerInterface::ControlQualifier::FromControl(const ControllerInterfac
 //		ControlQualifier = = Device :: Control*
 //
 // check if a control qualifier matches a device control
-// if qualifier name is /.../ form, uses a regular expression match
 // also |control1|control2| form, || matches all
 //
 bool ControllerInterface::ControlQualifier::operator==(const ControllerInterface::Device::Control* const control) const
 {
 	if ( name.size() )
 	{
-#ifdef CIFACE_USE_REGEX
-		if ( '/' == name[0] && '/' == (*name.rbegin()) )		// check if regex
-		{
-			wxRegEx re(
-			wxString::FromAscii(name.substr( 1, name.size()-2).c_str()).Prepend(wxT("^(")).Append(wxT(")$"))
-				, wxRE_ADVANCED | wxRE_EXTENDED | wxRE_NOSUB | wxRE_ICASE );
-
-			if ( re.IsValid() )
-				return re.Matches( wxString::FromAscii( control->GetName().c_str() ) );
-			else
-				return true;
-		}
-#endif
 		if ( '|' == name[0] && '|' == (*name.rbegin()) )		// check if using |button1|button2| format
 		{
 			return ( name.find( '|' + control->GetName() + '|' ) != name.npos || "||" == name );

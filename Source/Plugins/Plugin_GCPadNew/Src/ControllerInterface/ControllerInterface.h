@@ -7,8 +7,6 @@
 #include <map>
 #include <algorithm>
 
-//#define CIFACE_USE_REGEX
-
 // enable disable sources
 #ifdef _WIN32
 	#define CIFACE_USE_XINPUT
@@ -22,14 +20,6 @@
 #endif
 #ifndef CIFACE_USE_DIRECTINPUT_JOYSTICK
 	#define CIFACE_USE_SDL
-#endif
-
-#if defined(HAVE_WX) && HAVE_WX
-#ifdef CIFACE_USE_REGEX
-	#include <wx/regex.h>
-#endif
-#include <wx/stopwatch.h>
-#include <wx/utils.h>
 #endif
 
 // idk in case i wanted to change it to double or somethin, idk what's best
@@ -137,7 +127,6 @@ public:
 	//
 	// control qualifier includes input and output qualifiers
 	// used to match controls on devices, only has name property
-	// if name is blank it matches nothing, if name is /../ form, it matches controls using a regex
 	// |input1|input2| form as well, || matches anything, might change this to * or something
 	//
 	class ControlQualifier
@@ -182,7 +171,7 @@ public:
 	// they have a vector < struct { device , vector < controls > } >
 	//
 	// after being binded to devices and controls with ControllerInterface::UpdateReference,
-	//		each one can binded to 0+ devices, and 0+ controls on each device
+	//		each one can binded to a devices, and 0+ controls the device
 	// ControlReference can update its own controls when you change its control qualifier
 	//		using ControlReference::UpdateControls but when you change its device qualifer
 	//		you must use ControllerInterface::UpdateReference
