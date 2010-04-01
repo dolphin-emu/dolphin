@@ -184,6 +184,8 @@ void CreateXWindow (void)
 	wmProtocols[2] = XInternAtom(GLWin.dpy, "_NET_WM_STATE_FULLSCREEN", False);
 	XSetWMProtocols(GLWin.dpy, GLWin.win, wmProtocols, 3);
 	XSetStandardProperties(GLWin.dpy, GLWin.win, "GPU", "GPU", None, NULL, 0, NULL);
+	XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | KeyReleaseMask |
+			StructureNotifyMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask );
 	XMapRaised(GLWin.dpy, GLWin.win);
 	XSync(GLWin.dpy, True);
 #if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
@@ -674,24 +676,15 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	return true;
 }
 
-bool OpenGL_MakeCurrent()
+bool OpenGL_Initialize()
 {
-#if defined(USE_WX) && USE_WX
-	GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-	cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
-#elif defined(_WIN32)
-	if (!wglMakeCurrent(hDC,hRC)) {
-		PanicAlert("(5) Can't Activate The GL Rendering Context.");
+	bool success = OpenGL_MakeCurrent();
+	if (!success)
+   	{
+		PanicAlert("Can't Activate The GL Rendering Context.");
 		return false;
 	}
-#elif defined(HAVE_X11) && HAVE_X11
-	Window winDummy;
-	unsigned int borderDummy;
-	// connect the glx-context to the window
-	glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
-	XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
-			&GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
+#if defined(HAVE_X11) && HAVE_X11
 	NOTICE_LOG(VIDEO, "GLWin Depth %d", GLWin.depth)
 		if (glXIsDirect(GLWin.dpy, GLWin.ctx)) {
 			NOTICE_LOG(VIDEO, "detected direct rendering");
@@ -715,14 +708,25 @@ bool OpenGL_MakeCurrent()
 	// Hide the cursor now
 	if (g_Config.bHideCursor)
 		XDefineCursor (GLWin.dpy, GLWin.win, GLWin.blankCursor);
+#endif
+	return success;
 
-	// better for pad plugin key input (thc)
-	XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | KeyReleaseMask |
-			StructureNotifyMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask );
+}
+
+bool OpenGL_MakeCurrent()
+{
+	// connect the glx-context to the window
+#if defined(USE_WX) && USE_WX
+	GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
+#elif defined(HAVE_COCOA) && HAVE_COCOA
+	cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
+#elif defined(_WIN32)
+	return wglMakeCurrent(hDC,hRC)
+#elif defined(HAVE_X11) && HAVE_X11
+	return glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
 #endif
 	return true;
 }
-
 
 // Update window width, size and etc. Called from Render.cpp
 void OpenGL_Update()

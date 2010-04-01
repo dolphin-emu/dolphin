@@ -355,6 +355,9 @@ void Initialize(void *init)
 }
 
 void DoState(unsigned char **ptr, int mode) {
+#if defined(HAVE_X11) && HAVE_X11
+	OpenGL_MakeCurrent();
+#endif
 	// Clear all caches that touch RAM
 	TextureMngr::Invalidate(false);
 	VertexLoaderManager::MarkAllDirty();
@@ -378,7 +381,7 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 // This is called after Video_Initialize() from the Core
 void Video_Prepare(void)
 {
-	OpenGL_MakeCurrent();
+	OpenGL_Initialize();
 	if (!Renderer::Init()) {
 		g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
 		PanicAlert("Can't create opengl renderer. You might be missing some required opengl extensions, check the logs for more info");
