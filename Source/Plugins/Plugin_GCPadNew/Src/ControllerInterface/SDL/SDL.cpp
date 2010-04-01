@@ -23,8 +23,8 @@ void Init( std::vector<ControllerInterface::Device*>& devices )
 		// joysticks
 		for( int i = 0; i < SDL_NumJoysticks(); ++i )
 		{
-			SDL_Joystick* dev;
-			if ( dev = SDL_JoystickOpen( i ) )
+			SDL_Joystick* dev = SDL_JoystickOpen( i );
+			if ( dev )
 			{
 				Joystick* js = new Joystick( dev, i );
 				// only add if it has some inputs/outputs
@@ -60,9 +60,9 @@ Joystick::Joystick( SDL_Joystick* const joystick, const unsigned int index ) : m
 		inputs.push_back( new Axis( i, -32768 ) );
 		inputs.push_back( new Axis( i, 32767 ) );
 	}
-
+	m_haptic = SDL_HapticOpenFromJoystick( m_joystick );
 	// try to get supported ff effects
-	if ( m_haptic = SDL_HapticOpenFromJoystick( m_joystick ) )
+	if ( m_haptic  )
 	{
 
 		//SDL_HapticSetGain( m_haptic, 1000 );

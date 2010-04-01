@@ -29,7 +29,7 @@ void IniSection::SetValue( const std::string& key, const std::string& val, const
 		operator[](key) = val;
 	else
 	{
-		const const_iterator f = find(key);
+		iterator f = find(key);
 		if ( f != end() )
 			erase( f );	
 	}
@@ -125,7 +125,7 @@ void IniFile::Clean()
 		e = end();
 	for ( ; i != e; )
 	{
-		Section::const_iterator si = i->second.begin(),
+		Section::iterator si = i->second.begin(),
 			se = i->second.end();
 		for ( ; si != se; )
 		{		

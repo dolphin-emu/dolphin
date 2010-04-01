@@ -24,11 +24,13 @@
 	#define CIFACE_USE_SDL
 #endif
 
+#if defined(HAVE_WX) && HAVE_WX
 #ifdef CIFACE_USE_REGEX
 	#include <wx/regex.h>
 #endif
 #include <wx/stopwatch.h>
 #include <wx/utils.h>
+#endif
 
 // idk in case i wanted to change it to double or somethin, idk what's best
 typedef float ControlState;

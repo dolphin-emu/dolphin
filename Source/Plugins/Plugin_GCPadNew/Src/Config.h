@@ -4,8 +4,8 @@
 #define CONFIG_FILE_NAME		"GCPadNew.ini"
 
 #include "ControllerInterface/ControllerInterface.h"
-#include "../../../Core/Common/Src/thread.h"
-#include "../../../Core/Common/Src/FileUtil.h"
+#include "Thread.h"
+#include "FileUtil.h"
 #include "IniFile.h"
 
 #include "ControllerEmu.h"

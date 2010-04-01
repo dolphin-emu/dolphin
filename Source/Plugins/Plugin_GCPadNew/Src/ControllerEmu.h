@@ -7,6 +7,7 @@
 #include "pluginspecs_pad.h"
 #include "pluginspecs_wiimote.h"
 //#include <CommonTypes.h>
+#include <math.h>
 
 #include "ControllerInterface/ControllerInterface.h"
 #include "IniFile.h"

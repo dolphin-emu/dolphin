@@ -1,11 +1,14 @@
 
 #include <math.h>
-
+#include "Common.h"
 #include "pluginspecs_pad.h"
 #include "pluginspecs_wiimote.h"
 
 #include "ControllerInterface/ControllerInterface.h"
+#if defined(HAVE_WX) && HAVE_WX
 #include "ConfigDiag.h"
+#endif
+#include "Config.h"
 
 #define CIFACE_PLUGIN_VERSION		0x0100
 

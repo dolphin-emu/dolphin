@@ -26,7 +26,7 @@ public:
 		}
 		else
 		{
-			const const_iterator f = find(key);
+			iterator f = find(key);
 			if ( f != end() )
 				erase( f );	
 		}

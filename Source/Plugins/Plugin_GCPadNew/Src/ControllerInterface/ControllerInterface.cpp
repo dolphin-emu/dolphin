@@ -12,6 +12,7 @@
 #ifdef CIFACE_USE_SDL
 	#include "SDL/SDL.h"
 #endif
+#include "Thread.h"
 
 //#define MAX_DOUBLE_TAP_TIME			400
 //#define MAX_HOLD_DOWN_TIME			400
@@ -488,8 +489,9 @@ bool ControllerInterface::InputReference::Detect( const unsigned int ms, const u
 		while ( (time < ms) && (detected.size() < count) )
 		{
 			device->UpdateInput();
-			std::vector<Device::Input*>::const_iterator i = device->Inputs().begin(),
-				e = device->Inputs().end();
+			i = device->Inputs().begin();
+			e = device->Inputs().end();
+			
 			for ( unsigned int n=0;i != e; ++i,++n )
 			{
 				if ( device->GetInputState( *i ) > INPUT_DETECT_THRESHOLD )
@@ -501,7 +503,7 @@ bool ControllerInterface::InputReference::Detect( const unsigned int ms, const u
 				else
 					states[n] = false;
 			}
-			wxMilliSleep( 10 ); time += 10;
+			Common::SleepCurrentThread( 10 ); time += 10;
 		}
 
 		delete states;
@@ -513,10 +515,10 @@ bool ControllerInterface::InputReference::Detect( const unsigned int ms, const u
 			if ( controls.size() > 1 )
 			{
 				control_qualifier.name = '|';
-				std::vector<Device::Control*>::const_iterator i = controls.begin(),
-					e = controls.end();
-				for ( ; i!=e; ++i )
-					control_qualifier.name += (*i)->GetName() + '|';
+				std::vector<Device::Control*>::const_iterator c_i = controls.begin(),
+					c_e = controls.end();
+				for ( ; c_i != c_e; ++c_i )
+					control_qualifier.name += (*c_i)->GetName() + '|';
 			}
 			else
 				control_qualifier.FromControl( controls[0] );
@@ -546,7 +548,7 @@ bool ControllerInterface::OutputReference::Detect( const unsigned int ms, const 
 		while ( ms > ( slept += 10 ) )
 		{
 			device->UpdateOutput();
-			wxMilliSleep( 10 );
+			Common::SleepCurrentThread( 10 );
 		}
 		
 		State( 0 );

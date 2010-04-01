@@ -110,7 +110,7 @@ void ControllerEmu::SaveConfig( IniFile::Section& sec )
 			// input mode
 			if ( (*ci)->control_ref->is_input )
 				sec.SetValue( group+(*ci)->name+"/Mode",
-					((ControllerInterface::InputReference*)((*ci)->control_ref))->mode, 0 );
+					((ControllerInterface::InputReference*)((*ci)->control_ref))->mode, (unsigned int)0 );
 		}
 	}
 }

@@ -183,10 +183,12 @@ void GamepadPage::ClearAll( wxCommandEvent& event )
 	m_plugin.controls_crit.Enter();		// enter
 
 	// just load an empty ini section to clear everything :P
-	controller->LoadConfig( IniSection() );
+	IniSection Section = IniSection();
+	ControllerInterface Face = ControllerInterface();
+	controller->LoadConfig( Section );
 
 	// no point in using the real ControllerInterface i guess
-	controller->UpdateReferences( ControllerInterface() );
+	controller->UpdateReferences( Face );
 
 	UpdateGUI();
 
