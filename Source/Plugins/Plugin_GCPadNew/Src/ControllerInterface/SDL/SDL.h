@@ -7,11 +7,11 @@
 #undef M_PI
 // really dum
 #ifdef _WIN32
-	#include <sdl.h>
-	#include <sdl_haptic.h>
+	#include <SDL.h>
+	#include <SDL_haptic.h>
 #else
-	#include <SDL/sdl.h>
-	#include <SDL/sdl_haptic.h>
+	#include <SDL/SDL.h>
+	#include <SDL/SDL_haptic.h>
 #endif
 
 namespace ciface
