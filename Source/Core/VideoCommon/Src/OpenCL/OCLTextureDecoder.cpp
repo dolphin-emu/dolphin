@@ -165,6 +165,9 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
             formatResult = PC_TEX_FMT_RGB565;
 			break;
         case GX_TF_RGB5A3:
+			// Doesn't decode correctly
+			// See Sonic Adventure 2: Battle opening sequence
+			return PC_TEX_FMT_NONE;
 			kernelToRun = Decoders[6].kernel;
 			sizeOfSrc = sizeof(u16);
             sizeOfDst = sizeof(u32);
