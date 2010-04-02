@@ -721,7 +721,7 @@ bool OpenGL_MakeCurrent()
 #elif defined(HAVE_COCOA) && HAVE_COCOA
 	cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
 #elif defined(_WIN32)
-	return wglMakeCurrent(hDC,hRC)
+	return wglMakeCurrent(hDC,hRC);
 #elif defined(HAVE_X11) && HAVE_X11
 	return glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
 #endif
