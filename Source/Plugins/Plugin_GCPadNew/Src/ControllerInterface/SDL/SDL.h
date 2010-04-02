@@ -3,15 +3,25 @@
 
 #include "../ControllerInterface.h"
 
-// getting rid of warning, sdl/wxwidgets both define it
-#undef M_PI
-// really dum
 #ifdef _WIN32
 	#include <SDL.h>
-	#include <SDL_haptic.h>
 #else
 	#include <SDL/SDL.h>
-	#include <SDL/SDL_haptic.h>
+#endif
+
+#if SDL_VERSION_ATLEAST(1, 3, 0)
+	#define USE_SDL_HAPTIC
+#endif
+
+#ifdef USE_SDL_HAPTIC
+	#define SDL_INIT_FLAGS	SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC
+	#ifdef _WIN32
+		#include <SDL_haptic.h>
+	#else
+		#include <SDL/SDL_haptic.h>
+	#endif
+#else
+	#define SDL_INIT_FLAGS	SDL_INIT_JOYSTICK
 #endif
 
 namespace ciface
@@ -28,6 +38,7 @@ class Joystick : public ControllerInterface::Device
 
 protected:
 
+#ifdef USE_SDL_HAPTIC
 	class EffectIDState
 	{
 		friend class Joystick;
@@ -38,6 +49,7 @@ protected:
 		int					id;
 		bool				changed;
 	};
+#endif
 
 	class Input : public ControllerInterface::Device::Input
 	{
@@ -49,6 +61,7 @@ protected:
 		const unsigned int		m_index;
 	};
 
+#ifdef USE_SDL_HAPTIC
 	class Output : public ControllerInterface::Device::Output
 	{
 		friend class Joystick;
@@ -58,6 +71,7 @@ protected:
 		
 		const size_t		m_index;
 	};
+#endif
 
 	class Button : public Input
 	{
@@ -92,6 +106,7 @@ protected:
 		const unsigned int		m_direction;
 	};
 
+#ifdef USE_SDL_HAPTIC
 	class ConstantEffect : public Output
 	{
 		friend class Joystick;
@@ -111,6 +126,7 @@ protected:
 		RampEffect( const size_t index ) : Output(index) {}
 		void SetState( const ControlState state, EffectIDState* const effect );
 	};
+#endif
 
 	bool UpdateInput();
 	bool UpdateOutput();
@@ -127,11 +143,13 @@ public:
 	std::string GetSource() const;
 
 private:
-	std::vector<EffectIDState>	m_state_out;
-
-	SDL_Haptic*					m_haptic;
 	SDL_Joystick* const			m_joystick;
 	const unsigned int			m_index;
+
+#ifdef USE_SDL_HAPTIC
+	std::vector<EffectIDState>	m_state_out;
+	SDL_Haptic*					m_haptic;
+#endif
 };
 
 

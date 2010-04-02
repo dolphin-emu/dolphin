@@ -5,11 +5,12 @@
 #include "SDL.h"
 
 #ifdef _WIN32
-	#pragma comment(lib, "SDL.1.3.lib")
+	#if SDL_VERSION_ATLEAST(1, 3, 0)
+		#pragma comment(lib, "SDL.1.3.lib")
+	#else
+		#pragma comment(lib, "SDL.lib")
+	#endif
 #endif
-
-// temp for debuggin
-//#include <fstream>
 
 namespace ciface
 {
@@ -18,7 +19,7 @@ namespace SDL
 
 void Init( std::vector<ControllerInterface::Device*>& devices )
 {	
-	if ( SDL_Init( SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC ) >= 0 )
+	if ( SDL_Init( SDL_INIT_FLAGS ) >= 0 )
     {
 		// joysticks
 		for( int i = 0; i < SDL_NumJoysticks(); ++i )
@@ -60,15 +61,16 @@ Joystick::Joystick( SDL_Joystick* const joystick, const unsigned int index ) : m
 		inputs.push_back( new Axis( i, -32768 ) );
 		inputs.push_back( new Axis( i, 32767 ) );
 	}
-	m_haptic = SDL_HapticOpenFromJoystick( m_joystick );
+
+#ifdef USE_SDL_HAPTIC
 	// try to get supported ff effects
+	m_haptic = SDL_HapticOpenFromJoystick( m_joystick );
 	if ( m_haptic  )
 	{
-
 		//SDL_HapticSetGain( m_haptic, 1000 );
 		//SDL_HapticSetAutocenter( m_haptic, 0 );
 
-		const unsigned int supported_effects = SDL_HapticQuery( m_haptic ); // use this later
+		const unsigned int supported_effects = SDL_HapticQuery( m_haptic );
 
 		// constant effect
 		if ( supported_effects & SDL_HAPTIC_CONSTANT )
@@ -84,15 +86,17 @@ Joystick::Joystick( SDL_Joystick* const joystick, const unsigned int index ) : m
 			m_state_out.push_back( EffectIDState() );
 		}
 	}
+#endif
 
 }
 
 Joystick::~Joystick()
 {
+#ifdef USE_SDL_HAPTIC
 	if ( m_haptic )
 	{	
 		// stop/destroy all effects
-		//SDL_HapticStopAll( m_haptic ); // ControllerInterface handles this
+		SDL_HapticStopAll( m_haptic );
 		std::vector<EffectIDState>::iterator i = m_state_out.begin(),
 			e = m_state_out.end();
 		for ( ; i!=e; ++i )
@@ -101,16 +105,13 @@ Joystick::~Joystick()
 		// close haptic first
 		SDL_HapticClose( m_haptic );
 	}
+#endif
 
 	// close joystick
 	SDL_JoystickClose( m_joystick );
 }
 
-//std::string Joystick::Effect::GetName() const
-//{
-//	return haptic_named_effects[m_index].name;
-//}
-
+#ifdef USE_SDL_HAPTIC
 std::string Joystick::ConstantEffect::GetName() const
 {
 	return "Constant";
@@ -125,14 +126,8 @@ void Joystick::ConstantEffect::SetState( const ControlState state, Joystick::Eff
 {
 	if ( state )
 	{
-		//debuggin here ...
-		//memset( &effect->effect, 0, sizeof(effect->effect) );
 		effect->effect.type = SDL_HAPTIC_CONSTANT;
 		effect->effect.constant.length = SDL_HAPTIC_INFINITY;
-		//effect->effect.constant.attack_length = 3000;
-		//effect->effect.constant.direction.type = SDL_HAPTIC_CARTESIAN;
-		//effect->effect
-		//effect->effect.constant.button = 0xFFFFFFFF;
 	}
 	else
 		effect->effect.type = 0;
@@ -158,6 +153,7 @@ void Joystick::RampEffect::SetState( const ControlState state, Joystick::EffectI
 	if ( old != effect->effect.ramp.start )
 		effect->changed = true;
 }
+#endif
 
 ControlState Joystick::GetInputState(const ControllerInterface::Device::Input* input)
 {
@@ -166,18 +162,22 @@ ControlState Joystick::GetInputState(const ControllerInterface::Device::Input* i
 
 void Joystick::SetOutputState(const ControllerInterface::Device::Output* output, const ControlState state)
 {
+#ifdef USE_SDL_HAPTIC
 	((Output*)output)->SetState( state, &m_state_out[ ((Output*)output)->m_index ] );
+#endif
 }
 
 bool Joystick::UpdateInput()
 {
-	SDL_JoystickUpdate();		// each joystick is doin this, o well
+	// each joystick is doin this, o well
+	SDL_JoystickUpdate();
 	
 	return true;
 }
 
 bool Joystick::UpdateOutput()
 {
+#ifdef USE_SDL_HAPTIC
 	std::vector<EffectIDState>::iterator i = m_state_out.begin(),
 		e = m_state_out.end();
 	for ( ; i!=e; ++i )
@@ -187,25 +187,7 @@ bool Joystick::UpdateOutput()
 			{
 				if ( i->effect.type )		// if outputstate is >0  this would be true
 					if ( (i->id = SDL_HapticNewEffect( m_haptic, &i->effect )) > -1 )	// upload the effect
-					{
-						//std::ofstream file( "SDLgood.txt" );
-
-						/*if ( 0 == */SDL_HapticRunEffect( m_haptic, i->id, 1 );//)	// run the effect
-						//	file << "all good";
-						//else
-						//	file << "not good";
-						//file.close();
-
-					}
-					else
-					{
-						// DEBUG
-
-						//std::ofstream file( "SDLerror.txt" );
-						//file << SDL_GetError();
-						//file.close();
-
-					}
+						SDL_HapticRunEffect( m_haptic, i->id, 1 );	// run the effect
 			}
 			else	// effect is already uploaded
 			{
@@ -221,6 +203,7 @@ bool Joystick::UpdateOutput()
 
 			i->changed = false;
 		}
+#endif
 	return true;
 }
 
