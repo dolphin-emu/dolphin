@@ -77,15 +77,11 @@ dirs = [
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',
     'Source/Plugins/Plugin_GCPad/Src',
+    'Source/Plugins/Plugin_GCPadNew/Src',
     'Source/Plugins/Plugin_Wiimote/Src',
     'Source/Core/DolphinWX/Src',
     'Source/Core/DebuggerWX/Src',
     ]
-
-if sys.platform == 'darwin':
-    dirs += [
-            'Source/Plugins/Plugin_GCPadNew/Src'
-            ]
 
 builders = {}
 if sys.platform == 'darwin':

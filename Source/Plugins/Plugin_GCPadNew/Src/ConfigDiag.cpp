@@ -113,21 +113,25 @@ void ControlChooser::UpdateGUI()
 
 	// make sure it's a valid device
 	if ( control_reference->device )
-	if ( control_reference->is_input )
 	{
-		// for inputs
-		std::vector<ControllerInterface::Device::Input*>::const_iterator i = control_reference->device->Inputs().begin(),
-			e = control_reference->device->Inputs().end();
-		for ( ; i!=e; ++i )
-			control_lbox->Append( wxString::FromAscii( (*i)->GetName().c_str() ) );
-	}
-	else
-	{
-		// for outputs
-		std::vector<ControllerInterface::Device::Output*>::const_iterator i = control_reference->device->Outputs().begin(),
-			e = control_reference->device->Outputs().end();
-		for ( ; i!=e; ++i )
-			control_lbox->Append( wxString::FromAscii( (*i)->GetName().c_str() ) );
+		if ( control_reference->is_input )
+		{
+			// for inputs
+			std::vector<ControllerInterface::Device::Input*>::const_iterator
+			   	i = control_reference->device->Inputs().begin(),
+				e = control_reference->device->Inputs().end();
+			for ( ; i!=e; ++i )
+				control_lbox->Append( wxString::FromAscii( (*i)->GetName().c_str() ) );
+		}
+		else
+		{
+			// for outputs
+			std::vector<ControllerInterface::Device::Output*>::const_iterator
+			   	i = control_reference->device->Outputs().begin(),
+				e = control_reference->device->Outputs().end();
+			for ( ; i!=e; ++i )
+				control_lbox->Append( wxString::FromAscii( (*i)->GetName().c_str() ) );
+		}
 	}
 
 	// logic not 100% right here for a poorly formated qualifier

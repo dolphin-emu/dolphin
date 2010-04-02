@@ -10,6 +10,11 @@
 #endif
 #include "Config.h"
 
+#if defined(HAVE_X11) && HAVE_X11
+#include <X11/Xlib.h>
+Display* GCdisplay;
+#endif
+
 #define CIFACE_PLUGIN_VERSION		0x0100
 
 #define CIFACE_PLUGIN_BRANDING		/*"Billiard's"//*/"Dolphin"
