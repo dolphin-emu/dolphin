@@ -206,11 +206,6 @@ void GFXConfigDialogOGL::InitializeGUILists()
 	arrayStringFor_PhackvalueCB.Add(wxT("Zelda Twilight Princess Bloom hack"));
 	arrayStringFor_PhackvalueCB.Add(wxT("Sonic and the Black Knight"));
 	arrayStringFor_PhackvalueCB.Add(wxT("Bleach Versus Crusade"));
-	arrayStringFor_PhackvalueCB.Add(wxT("Final Fantasy CC Echo of Time"));
-	arrayStringFor_PhackvalueCB.Add(wxT("Harvest Moon Magical Melody"));
-	arrayStringFor_PhackvalueCB.Add(wxT("Baten Kaitos"));
-	arrayStringFor_PhackvalueCB.Add(wxT("Baten Kaitos Origin"));
-	arrayStringFor_PhackvalueCB.Add(wxT("Skies of Arcadia"));
 }
 
 void GFXConfigDialogOGL::InitializeGUIValues()

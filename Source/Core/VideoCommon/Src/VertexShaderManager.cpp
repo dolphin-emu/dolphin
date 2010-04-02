@@ -90,6 +90,7 @@ void UpdateProjectionHack(int iPhackvalue)
 		bPhackvalue1 = 0;
 		bProjHack1 = 0;
 		break;
+/*	// Unused - kept for reference
 	case PROJECTION_HACK_FINAL_FANTASY_CC_ECHO_OF_TIME:
 		bPhackvalue1 = 1;
 		fhackvalue1 = 0.8f;
@@ -123,6 +124,7 @@ void UpdateProjectionHack(int iPhackvalue)
 		bPhackvalue2 = 0;
 		bProjHack1 = 0;
 		break;
+*/
 	}
 
 	// Set the projections hacks

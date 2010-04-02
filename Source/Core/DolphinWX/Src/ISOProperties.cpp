@@ -314,11 +314,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_Hack.Add(_("Zelda Twilight Princess Bloom hack"));
 	arrayStringFor_Hack.Add(_("Sonic and the Black Knight"));
 	arrayStringFor_Hack.Add(_("Bleach Versus Crusade"));
-	arrayStringFor_Hack.Add(_("Final Fantasy CC Echo of Time"));
-	arrayStringFor_Hack.Add(_("Harvest Moon Magical Melody"));
-	arrayStringFor_Hack.Add(_("Baten Kaitos"));
-	arrayStringFor_Hack.Add(_("Baten Kaitos Origin"));
-	arrayStringFor_Hack.Add(_("Skies of Arcadia"));
 	Hack = new wxChoice(m_GameConfig, ID_HACK, wxDefaultPosition, wxDefaultSize, arrayStringFor_Hack, 0, wxDefaultValidator);
 
 	
@@ -942,7 +937,7 @@ bool CISOProperties::SaveGameConfig()
 	else
 		GameIni.Set("Video", "FIFOBPHack", BPHack->Get3StateValue());
 
-	if (EmuState->GetSelection() == -1)
+	if (Hack->GetSelection() == -1)
 		GameIni.DeleteKey("Video", "ProjectionHack");
 	else
 		GameIni.Set("Video", "ProjectionHack", Hack->GetSelection());
