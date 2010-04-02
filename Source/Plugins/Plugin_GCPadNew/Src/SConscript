@@ -17,6 +17,8 @@ files = [
 
 if padenv['HAVE_SDL']:
     files += [ 'ControllerInterface/SDL/SDL.cpp' ]
+if sys.platform == 'darwin':
+    files += [ 'ControllerInterface/OSX/OSX.cpp', 'ControllerInterface/OSX/OSXPrivate.mm' ]
 
 if padenv['HAVE_WX']:
     files += [
@@ -29,6 +31,6 @@ padenv.Append(
 	)
 
 if sys.platform == 'darwin':
-	padenv['FRAMEWORKS'] = ['CoreFoundation', 'System' ]
+	padenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'Cocoa', ]
 
 padenv.SharedLibrary(env['plugin_dir']+name, files)

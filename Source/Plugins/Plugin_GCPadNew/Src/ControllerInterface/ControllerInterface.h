@@ -21,6 +21,9 @@
 #ifndef CIFACE_USE_DIRECTINPUT_JOYSTICK
 	#define CIFACE_USE_SDL
 #endif
+#if defined(__APPLE__)
+	#define CIFACE_USE_OSX
+#endif
 
 // idk in case i wanted to change it to double or somethin, idk what's best
 typedef float ControlState;
@@ -109,16 +112,16 @@ public:
 	class DeviceQualifier
 	{
 	public:
-		DeviceQualifier() : id(-1){}
+		DeviceQualifier() : cid(-1){}
 		DeviceQualifier( const std::string& _source, const int _id, const std::string& _name )
-			: source(_source), id(_id), name(_name) {}
+			: source(_source), cid(_id), name(_name) {}
 		bool operator==(const Device* const dev) const;
 		void FromDevice(const Device* const dev);
 		void FromString(const std::string& str);
 		std::string ToString() const;
 
 		std::string		source;
-		int				id;
+		int				cid;
 		std::string		name;
 	};
 

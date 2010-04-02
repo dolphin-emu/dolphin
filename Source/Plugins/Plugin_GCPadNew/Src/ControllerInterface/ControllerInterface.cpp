@@ -1,5 +1,7 @@
 #include "ControllerInterface.h"
 
+namespace ciface {
+}
 #ifdef CIFACE_USE_XINPUT
 	#include "XInput/XInput.h"
 #endif
@@ -8,6 +10,9 @@
 #endif
 #ifdef CIFACE_USE_XLIB
 	#include "Xlib/Xlib.h"
+#endif
+#ifdef CIFACE_USE_OSX
+	#include "OSX/OSX.h"
 #endif
 #ifdef CIFACE_USE_SDL
 	#include "SDL/SDL.h"
@@ -36,6 +41,9 @@ void ControllerInterface::Init()
 #endif
 #ifdef CIFACE_USE_XLIB
 	ciface::XLIB::Init( m_devices, m_hwnd );
+#endif
+#ifdef CIFACE_USE_OSX
+	ciface::OSX::Init( m_devices, m_hwnd );
 #endif
 #ifdef CIFACE_USE_SDL
 	ciface::SDL::Init( m_devices );
@@ -78,6 +86,9 @@ void ControllerInterface::DeInit()
 	// nothing needed
 #endif
 #ifdef CIFACE_USE_XLIB
+	// nothing needed
+#endif
+#ifdef CIFACE_USE_OSX
 	// nothing needed
 #endif
 #ifdef CIFACE_USE_SDL
@@ -299,12 +310,12 @@ ControlState ControllerInterface::OutputReference::State( const ControlState sta
 //
 std::string ControllerInterface::DeviceQualifier::ToString() const
 {
-	if ( source.empty() && (id < 0) && name.empty() )
+	if ( source.empty() && (cid < 0) && name.empty() )
 		return "";
 	std::ostringstream ss;
 	ss << source << '/';
-	if ( id > -1 )
-		ss << id;
+	if ( cid > -1 )
+		ss << cid;
 	ss << '/' << name;
 	return ss.str();
 }
@@ -324,7 +335,7 @@ void ControllerInterface::DeviceQualifier::FromString(const std::string& str)
 
 	// dum
 	std::getline( ss, name, '/' );
-	std::istringstream(name) >> (id = -1);
+	std::istringstream(name) >> (cid = -1);
 
 	// good
 	std::getline( ss, name = "");
@@ -338,7 +349,7 @@ void ControllerInterface::DeviceQualifier::FromString(const std::string& str)
 void ControllerInterface::DeviceQualifier::FromDevice(const ControllerInterface::Device* const dev)
 {
 	name = dev->GetName();
-	id = dev->GetId();
+	cid = dev->GetId();
 	source= dev->GetSource();
 }
 
@@ -350,7 +361,7 @@ void ControllerInterface::DeviceQualifier::FromDevice(const ControllerInterface:
 bool ControllerInterface::DeviceQualifier::operator==(const ControllerInterface::Device* const dev) const
 {
 	if ( dev->GetName() == name )
-		if ( dev->GetId() == id )
+		if ( dev->GetId() == cid )
 			if ( dev->GetSource() == source )
 				return true;
 	return false;
