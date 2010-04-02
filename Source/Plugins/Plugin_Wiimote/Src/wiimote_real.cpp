@@ -639,96 +639,69 @@ int WiimotePairUp(void)
 	// Pair with Wii device(s)
 	int radio = 0;
 
+	for (radio = 0; radio < nRadios; radio++)
+	{
+		BLUETOOTH_RADIO_INFO radioInfo;
+		HBLUETOOTH_DEVICE_FIND hFind;
 
-		for (radio = 0; radio < nRadios; radio++)
+		BLUETOOTH_DEVICE_INFO btdi;
+		BLUETOOTH_DEVICE_SEARCH_PARAMS srch;
+
+		radioInfo.dwSize = sizeof(radioInfo);
+		btdi.dwSize = sizeof(btdi);
+		srch.dwSize = sizeof(BLUETOOTH_DEVICE_SEARCH_PARAMS);
+
+		BluetoothGetRadioInfo(hRadios[radio], &radioInfo);
+
+		srch.fReturnAuthenticated = TRUE;
+		srch.fReturnRemembered = TRUE;
+		srch.fReturnConnected = TRUE; // does not filter properly somehow, so we 've to do an additional check on fConnected BT Devices
+		srch.fReturnUnknown = TRUE;
+		srch.fIssueInquiry = TRUE;
+		srch.cTimeoutMultiplier = 1;
+		srch.hRadio = hRadios[radio];
+
+		//DEBUG_LOG(WIIMOTE, _T("Pair-Up: Scanning for BT Device(s)"));
+
+		hFind = BluetoothFindFirstDevice(&srch, &btdi);
+
+		if (hFind == NULL)
 		{
-			BLUETOOTH_RADIO_INFO radioInfo;
-			HBLUETOOTH_DEVICE_FIND hFind;
-
-			BLUETOOTH_DEVICE_INFO btdi;
-			BLUETOOTH_DEVICE_SEARCH_PARAMS srch;
-
-			radioInfo.dwSize = sizeof(radioInfo);
-			btdi.dwSize = sizeof(btdi);
-			srch.dwSize = sizeof(BLUETOOTH_DEVICE_SEARCH_PARAMS);
-
-			BluetoothGetRadioInfo(hRadios[radio], &radioInfo);
-
-			srch.fReturnAuthenticated = TRUE;
-			srch.fReturnRemembered = TRUE;
-			srch.fReturnConnected = TRUE; // does not filter properly somehow, so we 've to do an additional check on fConnected BT Devices
-			srch.fReturnUnknown = TRUE;
-			srch.fIssueInquiry = TRUE;
-			srch.cTimeoutMultiplier = 1;
-			srch.hRadio = hRadios[radio];
-
-			//DEBUG_LOG(WIIMOTE, _T("Pair-Up: Scanning for BT Device(s)"));
-
-			hFind = BluetoothFindFirstDevice(&srch, &btdi);
-
-			if (hFind == NULL)
-			{
-				ERROR_LOG(WIIMOTE, "Pair-Up: Error enumerating devices: %08x", GetLastError());  
-				return -1;
-			}
-
-			//DWORD pcServices = 16;
-			//GUID guids[16];
-			do
-			{
-				if ((!wcscmp(btdi.szName, L"Nintendo RVL-WBC-01") || !wcscmp(btdi.szName, L"Nintendo RVL-CNT-01")) && !btdi.fConnected)
-				{
-					// Wiimote found and not paired up yet
-					
-					// Wiimote unpaired(no driver installed yet): Name: Nintendo RVL-CNT-01 ClassOfDevice: 9476 fConnected: 0 fRemembered: 0 fAuthenicated: 0
-					// Wiimote already paired(driver installed): Name: Nintendo RVL-CNT-01 ClassOfDevice: 9476 fConnected: 32 fRemembered: 16 fAuthenicated: 0
-					// Wiimote paired but disc.(driver still active): Name: Nintendo RVL-CNT-01 ClassOfDevice: 9476 fConnected: 0 fRemembered: 16 fAuthenicated: 0
-					//TODO: improve the readd of the BT driver, esp. when batteries of the wiimote are removed while beeing fConnected
-					if (btdi.fRemembered) 
-					{
-						// Make Windows forget old expired pairing 
-						// we can pretty much ignore the return value here.
-						// it either worked (ERROR_SUCCESS), or the device did not exist (ERROR_NOT_FOUND)
-						// in both cases, there is nothing left.
-						BluetoothRemoveDevice(&btdi.Address);
-					}
-
-					// If this is not done, the Wii device will not remember the pairing
-					// same thing here, it should return ERROR_SUCCESS, or ERROR_MORE_DATA if the wiimote
-					// offers more than 16 services (pcServices).
-					//BluetoothEnumerateInstalledServices(hRadios[radio], &btdi, &pcServices, guids);
-
-					// Activate service
-					DWORD hr = BluetoothSetServiceState(hRadios[radio], &btdi, &HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
-
-					////authentication not directly neeeded, read it w/o getting corrupted driver installation.
-					////MAC address is passphrase;
-					//WCHAR pass[6];
-					//pass[0] = radioInfo.address.rgBytes[0];
-					//pass[1] = radioInfo.address.rgBytes[1];
-					//pass[2] = radioInfo.address.rgBytes[2];
-					//pass[3] = radioInfo.address.rgBytes[3];
-					//pass[4] = radioInfo.address.rgBytes[4];
-					//pass[5] = radioInfo.address.rgBytes[5];
-
-					//// Pair with Wii device; Pairing before enumerating and setting service state will result mostly in unsuccessfull pairing.
-					//if (BluetoothAuthenticateDevice(NULL, hRadios[radio], &btdi, pass, 6) != ERROR_SUCCESS)
-					//	error = TRUE;
-					if (!hr == ERROR_SUCCESS) 
-					{
-						nPaired++;
-					}
-					else 
-					{
-						ERROR_LOG(WIIMOTE, "Pair-Up: BluetoothSetServiceState() returned %08x", hr);
-					}
-					
-				}
-			} while (BluetoothFindNextDevice(hFind, &btdi));
+			ERROR_LOG(WIIMOTE, "Pair-Up: Error enumerating devices: %08x", GetLastError());  
+			return -1;
 		}
 
-		SLEEP(10);
-	
+		do
+		{
+			if ((!wcscmp(btdi.szName, L"Nintendo RVL-WBC-01") || !wcscmp(btdi.szName, L"Nintendo RVL-CNT-01")) && !btdi.fConnected)
+			{
+				//TODO: improve the readd of the BT driver, esp. when batteries of the wiimote are removed while beeing fConnected
+				if (btdi.fRemembered) 
+				{
+					// Make Windows forget old expired pairing 
+					// we can pretty much ignore the return value here.
+					// it either worked (ERROR_SUCCESS), or the device did not exist (ERROR_NOT_FOUND)
+					// in both cases, there is nothing left.
+					BluetoothRemoveDevice(&btdi.Address);
+				}
+
+				// Activate service
+				DWORD hr = BluetoothSetServiceState(hRadios[radio], &btdi, &HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
+				if (!hr == ERROR_SUCCESS) 
+				{
+					nPaired++;
+				}
+				else 
+				{
+					ERROR_LOG(WIIMOTE, "Pair-Up: BluetoothSetServiceState() returned %08x", hr);
+				}
+			}
+		} while (BluetoothFindNextDevice(hFind, &btdi));
+		BluetoothFindRadioClose(hFind);
+	}
+
+	SLEEP(10);
+
 
 	// Clean up
 	for (radio = 0; radio < nRadios; radio++)
