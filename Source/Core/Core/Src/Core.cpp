@@ -595,14 +595,14 @@ void ScreenShot()
 // This should only be called from VI
 void VideoThrottle()
 {
-	u32 TargetFPS = (SConfig::GetInstance().m_Framelimit > 1) ?
+	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 1) ?
 		SConfig::GetInstance().m_Framelimit * 10 : VideoInterface::TargetRefreshRate;
 
 	// When frame limit is NOT off
 	if (SConfig::GetInstance().m_Framelimit)
 	{
 		// Make the limiter a bit loose
-		u32 frametime = DrawnFrame * 1000 / ++TargetFPS;
+		u32 frametime = DrawnVideo * 1000 / ++TargetVPS;
 		while ((u32)Timer.GetTimeDifference() < frametime)
 			Common::YieldCPU();
 			//Common::SleepCurrentThread(1);
@@ -616,7 +616,7 @@ void VideoThrottle()
 
 		u32 FPS = Common::AtomicLoad(DrawnFrame) * 1000 / ElapseTime;
 		u32 VPS = --DrawnVideo * 1000 / ElapseTime;
-		u32 Speed = FPS * 100 / VideoInterface::TargetRefreshRate;
+		u32 Speed = VPS * 100 / VideoInterface::TargetRefreshRate;
 		
 		// Settings are shown the same for both extended and summary info
 		std::string SSettings = StringFromFormat("%s %s",
@@ -699,7 +699,8 @@ void Callback_VideoLog(const TCHAR *_szMessage, int _bDoBreak)
 // Should be called from GPU thread when a frame is drawn
 void Callback_VideoCopiedToXFB(bool video_update)
 {
-	Common::AtomicIncrement(DrawnFrame);
+	if(video_update)
+		Common::AtomicIncrement(DrawnFrame);
 	Frame::FrameUpdate();
 }
 

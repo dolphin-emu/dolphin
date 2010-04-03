@@ -88,43 +88,6 @@ int TexDecoder_GetTextureSizeInBytes(int width, int height, int format)
 	return (width * height * TexDecoder_GetTexelSizeInNibbles(format)) / 2;
 }
 
-u32 TexDecoder_GetHash32(const u8 *src, int len, u32 samples)
-{
-	const u32 m = 0x5bd1e995;
-	const int r = 24;
-	u32 h = len;	
-	const u32 * data = (const u32 *)src;
-	u32 Step = (len/4);
-	const u32 * End = data + Step;	
-	const u8 * uEnd = (const u8 *)End;
-	if(samples == 0) samples = Step;
-	Step  = Step / samples;
-	if(Step < 1) Step = 1;
-	while(data < End)
-	{
-		u32 k = data[0];
-		k *= m; 
-		k ^= k >> r; 
-		k *= m; 		
-		h *= m; 
-		h ^= k;
-		data+=Step;
-	}
-	
-	switch(len & 3)
-	{
-	case 3: h ^= u32(uEnd[2]) << 16;
-	case 2: h ^= u32(uEnd[1]) << 8;
-	case 1: h ^= u32(uEnd[0]);	        
-			h *= m;
-	};
-	
-	h ^= h >> 13;
-	h *= m;
-	h ^= h >> 15;
-	return h;
-} 
-
 #ifdef _M_X64
 u64 TexDecoder_GetHash64(const u8 *src, int len, u32 samples)
 {

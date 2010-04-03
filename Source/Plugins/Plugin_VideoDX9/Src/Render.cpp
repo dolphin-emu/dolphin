@@ -340,7 +340,7 @@ bool Renderer::Init()
 	s_LastFrameDumped = false;
 	s_AVIDumping = false;
 
-	// We're not using fixed function, except for some 2D.
+	// We're not using fixed function.
 	// Let's just set the matrices to identity to be sure.
 	D3DXMATRIX mtx;
 	D3DXMatrixIdentity(&mtx);
@@ -572,19 +572,13 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 {
 	if(!fbWidth || !fbHeight)
 		return;
-	//VideoFifo_CheckEFBAccess();
-	// If we're about to write to a requested XFB, make sure the previous
-	// contents make it to the screen first.
-	if (g_ActiveConfig.bUseXFB)
-	{
-		VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);		
-	}
+	VideoFifo_CheckEFBAccess();
 	FBManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 	XFBWrited = true;	
-	// XXX: Without the VI, how would we know what kind of field this is? So
-	// just use progressive.
 	if (!g_ActiveConfig.bUseXFB)
 	{
+		// XXX: Without the VI, how would we know what kind of field this is? So
+		// just use progressive.
 		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight);
 		Common::AtomicStoreRelease(s_swapRequested, FALSE);
 	}
@@ -1019,9 +1013,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	}
 	// this function is called after the XFB field is changed, not after
 	// EFB is copied to XFB. In this way, flickering is reduced in games
-	// and seems to also give more FPS in ZTP		
-	if (field == FIELD_LOWER)
-		xfbAddr -= fbWidth * 2;
+	// and seems to also give more FPS in ZTP
 	
 	u32 xfbCount = 0;
 	const XFBSource** xfbSourceList = FBManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
@@ -1029,9 +1021,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);	
 		return;
-	}
-
-	
+	}	
 
 	Renderer::ResetAPIState();
 	// Set the backbuffer as the rendering target
@@ -1319,7 +1309,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
 	UpdateViewport();
 	VertexShaderManager::SetViewportChanged();
-	g_VideoInitialize.pCopiedToXFB(false);
+	g_VideoInitialize.pCopiedToXFB(true);
 	XFBWrited = false;
 }
 

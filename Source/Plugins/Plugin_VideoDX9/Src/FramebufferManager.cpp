@@ -311,6 +311,8 @@ void FramebufferManager::copyToRealXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, c
 void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
 	LPDIRECT3DTEXTURE9 xfbTexture;
+	HRESULT hr = 0;
+
 
 	VirtualXFBListType::iterator it = findVirtualXFB(xfbAddr, fbWidth, fbHeight);
 
@@ -361,12 +363,14 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		it->xfbSource.srcWidth = fbWidth;
 		it->xfbSource.srcHeight = fbHeight;		
 
-		if(it->xfbSource.texWidth != target_width || it->xfbSource.texHeight != target_height || !it->xfbSource.texture)
+		if(it->xfbSource.texWidth != target_width || it->xfbSource.texHeight != target_height || !(it->xfbSource.texture))
 		{
 			if(it->xfbSource.texture)
 				it->xfbSource.texture->Release();
-			D3D::dev->CreateTexture(target_width, target_height, 1, D3DUSAGE_RENDERTARGET, s_efb_color_surface_Format,
-		                                 D3DPOOL_DEFAULT, &it->xfbSource.texture, NULL);
+			it->xfbSource.texture = NULL;
+			hr = D3D::dev->CreateTexture(target_width, target_height, 1, D3DUSAGE_RENDERTARGET, s_efb_color_surface_Format,
+		                                 D3DPOOL_DEFAULT, &(it->xfbSource.texture), NULL);
+
 		}
 
 		xfbTexture = it->xfbSource.texture;
@@ -412,10 +416,8 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 
 	if(!xfbTexture)
 		return;
-	// Make sure to resolve anything we need to read from.
 	LPDIRECT3DTEXTURE9 read_texture = GetEFBColorTexture(sourceRc);
     
-	// We have to run a pixel shader, for color conversion.
 	Renderer::ResetAPIState(); // reset any game specific settings
 	LPDIRECT3DSURFACE9 Rendersurf = NULL;
 	
@@ -425,7 +427,6 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
     
 	D3DVIEWPORT9 vp;
 
-	// Stretch picture with increased internal resolution
 	vp.X = 0;
 	vp.Y = 0;
 	vp.Width  = target_width;

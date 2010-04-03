@@ -805,9 +805,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);
 		return;
-	}	
-	if (field == FIELD_LOWER)
-		xfbAddr -= fbWidth * 2;
+	}		
 
 	u32 xfbCount = 0;
 	const XFBSource** xfbSourceList = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
@@ -1143,7 +1141,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
     // Renderer::SetZBufferRender();
     // SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
 
-	g_VideoInitialize.pCopiedToXFB(false);
+	g_VideoInitialize.pCopiedToXFB(true);
 	XFBWrited = false;
 }
 

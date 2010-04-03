@@ -363,7 +363,7 @@ static const char *tevIndAlphaSel[]   = {"", "x", "y", "z"};
 static const char *tevIndAlphaScale[] = {"*(248.0f/255.0f)", "*(224.0f/255.0f)","*(240.0f/255.0f)","*(248.0f/255.0f)"};
 static const char *tevIndBiasField[]  = {"", "x", "y", "xy", "z", "xz", "yz", "xyz"}; // indexed by bias
 static const char *tevIndBiasAdd[]    = {"-128.0f", "1.0f", "1.0f", "1.0f" }; // indexed by fmt
-static const char *tevIndWrapStart[]  = {"0", "256", "128", "64", "32", "16", "0.001" };
+static const char *tevIndWrapStart[]  = {"0.0f", "256.0f", "128.0f", "64.0f", "32.0f", "16.0f", "0.001f" };
 static const char *tevIndFmtScale[]   = {"255.0f", "31.0f", "15.0f", "7.0f" };
 
 #define WRITE p+=sprintf

@@ -358,7 +358,6 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (s_PluginInitialized && g_ActiveConfig.bUseXFB)
 	{
-		// Make sure previous swap request has made it to the screen
 		s_beginFieldArgs.xfbAddr = xfbAddr;
 		s_beginFieldArgs.field = field;
 		s_beginFieldArgs.fbWidth = fbWidth;
@@ -372,8 +371,7 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 				Common::YieldCPU();
 		}
 		else
-			VideoFifo_CheckSwapRequest();
-		
+			VideoFifo_CheckSwapRequest();		
 	}
 }
 
