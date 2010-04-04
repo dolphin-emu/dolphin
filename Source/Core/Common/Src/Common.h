@@ -85,6 +85,7 @@
 	#define HAVE_WX 1
 	#define HAVE_OPENAL 1
 	#define HAVE_ALSA 0
+	#define HAVE_PORTAUDIO 0
 
 // it is VERY DANGEROUS to mix _SECURE_SCL=0 and _SECURE_SCL=1 compiled libraries.
 // You will get bizarre crash bugs whenever you use STL.
