@@ -388,34 +388,77 @@ void Jit64::subfic(UGeckoInstruction inst)
 void Jit64::subfcx(UGeckoInstruction inst) 
 {
 	INSTRUCTION_START;
-	Default(inst);
-	return;
-	/*
-	u32 a = m_GPR[_inst.RA];
-	u32 b = m_GPR[_inst.RB];
-	m_GPR[_inst.RD] = b - a;
-	SetCarry(a == 0 || Helper_Carry(b, 0-a));
+	JITDISABLE(Integer)
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+	gpr.Lock(a, b, d);
+	if(d != a && d != b)
+		gpr.LoadToX64(d, false, true);
+	else
+		gpr.LoadToX64(d, true, true);
 
-	if (_inst.OE) PanicAlert("OE: subfcx");
-	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
-	*/
+	// For some reason, I could not get the jit versions of sub*
+	// working with x86 sub...so we use the ~a + b + 1 method
+	JitClearCA();
+	MOV(32, R(EAX), gpr.R(a));
+	NOT(32, R(EAX));
+	ADD(32, R(EAX), gpr.R(b));
+	FixupBranch carry1 = J_CC(CC_NC);
+	JitSetCA();
+	SetJumpTarget(carry1);
+	ADD(32, R(EAX), Imm32(1));
+	FixupBranch carry2 = J_CC(CC_NC);
+	JitSetCA();
+	SetJumpTarget(carry2);
+	MOV(32, gpr.R(d), R(EAX));
+
+	gpr.UnlockAll();
+	if (inst.OE) PanicAlert("OE: subfcx");
+	if (inst.Rc) {
+		CALL((u8*)asm_routines.computeRc);
+	}
 }
 
 void Jit64::subfex(UGeckoInstruction inst) 
 {
 	INSTRUCTION_START;
-	Default(inst);
-	return;
-	/*
-	u32 a = m_GPR[_inst.RA];
-	u32 b = m_GPR[_inst.RB];
-	int carry = GetCarry();
-	m_GPR[_inst.RD] = (~a) + b + carry;
-	SetCarry(Helper_Carry(~a, b) || Helper_Carry((~a) + b, carry));
+	JITDISABLE(Integer)
+	int a = inst.RA, b = inst.RB, d = inst.RD;
+	gpr.FlushLockX(ECX);
+	gpr.Lock(a, b, d);
+	if(d != a && d != b)
+		gpr.LoadToX64(d, false, true);
+	else
+		gpr.LoadToX64(d, true, true);
 
-	if (_inst.OE) PanicAlert("OE: subfcx");
-	if (_inst.Rc) Helper_UpdateCR0(m_GPR[_inst.RD]);
-	*/
+	// Get CA
+	MOV(32, R(ECX), M(&PowerPC::ppcState.spr[SPR_XER]));
+	SHR(32, R(ECX), Imm8(29));
+	AND(32, R(ECX), Imm32(1));
+	// Don't need it anymore
+	JitClearCA();
+
+	// ~a + b
+	MOV(32, R(EAX), gpr.R(a));
+	NOT(32, R(EAX));
+	ADD(32, R(EAX), gpr.R(b));
+	FixupBranch carry1 = J_CC(CC_NC);
+	JitSetCA();
+	SetJumpTarget(carry1);
+
+	// + CA
+	ADD(32, R(EAX), R(ECX));
+	FixupBranch carry2 = J_CC(CC_NC);
+	JitSetCA();
+	SetJumpTarget(carry2);
+
+	MOV(32, gpr.R(d), R(EAX));
+
+	gpr.UnlockAll();
+	gpr.UnlockAllX();
+	if (inst.OE) PanicAlert("OE: subfex");
+	if (inst.Rc) {
+		CALL((u8*)asm_routines.computeRc);
+	}
 }
 
 void Jit64::subfx(UGeckoInstruction inst)
@@ -503,10 +546,10 @@ void Jit64::mulhwux(UGeckoInstruction inst)
 	}
 }
 
-// skipped some of the special handling in here - if we get crashes, let the interpreter handle this op
-void Jit64::divwux(UGeckoInstruction inst) {
-	Default(inst); return;
-
+void Jit64::divwux(UGeckoInstruction inst)
+{
+	INSTRUCTION_START
+	JITDISABLE(Integer)
 	int a = inst.RA, b = inst.RB, d = inst.RD;
 	gpr.FlushLockX(EDX);
 	gpr.Lock(a, b, d);
@@ -518,8 +561,16 @@ void Jit64::divwux(UGeckoInstruction inst) {
 	MOV(32, R(EAX), gpr.R(a));
 	XOR(32, R(EDX), R(EDX));
 	gpr.KillImmediate(b);
+	CMP(32, gpr.R(b), Imm32(0));
+	// doesn't handle if OE is set, but int doesn't either...
+	FixupBranch not_div_by_zero = J_CC(CC_NZ);
+	MOV(32, gpr.R(d), R(EDX));
+	MOV(32, R(EAX), gpr.R(d));
+	FixupBranch end = J();
+	SetJumpTarget(not_div_by_zero);
 	DIV(32, gpr.R(b));
 	MOV(32, gpr.R(d), R(EAX));
+	SetJumpTarget(end);
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	if (inst.Rc) {
@@ -568,6 +619,31 @@ void Jit64::addx(UGeckoInstruction inst)
 		gpr.Lock(a, d);
 		gpr.LoadToX64(d, true);
 		ADD(32, gpr.R(d), gpr.R(a));
+		if (inst.Rc)
+		{
+			MOV(32, R(EAX), gpr.R(d));
+			CALL((u8*)asm_routines.computeRc);
+		}
+		gpr.UnlockAll();
+	}
+	else if( a == b && b == d && a == d)
+	{
+		gpr.Lock(d);
+		gpr.LoadToX64(d, true);
+		ADD(32, gpr.R(d), gpr.R(d));
+		if (inst.Rc)
+		{
+			MOV(32, R(EAX), gpr.R(d));
+			CALL((u8*)asm_routines.computeRc);
+		}
+		gpr.UnlockAll();
+	}
+	else if( a == b && b != d)
+	{
+		gpr.Lock(a, d);
+		gpr.LoadToX64(d, false);
+		MOV(32, gpr.R(d), gpr.R(a)); 
+		ADD(32, gpr.R(d), gpr.R(d));
 		if (inst.Rc)
 		{
 			MOV(32, R(EAX), gpr.R(d));
