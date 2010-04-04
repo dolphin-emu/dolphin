@@ -51,12 +51,17 @@ it failed)
 #include <string>
 #ifdef _WIN32
 #include <ws2tcpip.h>
+#elif defined(__linux__)
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <net/if.h>
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #endif
-
 
 extern std::queue<std::pair<u32,std::string> > g_ReplyQueueLater;
 
@@ -257,8 +262,8 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 		break;
 	}
 
-	case IOCTLV_NCD_SETIFCONFIG4: // 7004 In, 32 Out. 4th
-		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_SETIFCONFIG4");
+	case IOCTLV_NCD_UNK4: // 7004 In, 32 Out. 4th
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_UNK4");
 		break;
 
 	case 0x05: // 7004 Out, 32 Out. 2nd, 3rd
@@ -269,9 +274,51 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETLINKSTATUS");
 		break;
 
-	case 0x08: // 32 Out, 6 Out. 1st
-		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCtlV 0x8");
+	case IOCTLV_NCD_GETWIRELESSMACADDRESS: // 32 Out, 6 Out. 1st
+	// TODO: What's the first output buffer for?
+	// second out buffer gets filled with first four bytes of the wireless MAC address.
+	//     No idea why the fifth and sixth bytes are left untouched.
+	{
+		// hardcoded address as a fallback
+		// TODO: Make this configurable? Different MAC addresses MIGHT be needed for requesting a user id or encrypting content with NWC24
+		const u8 default_address[] = { 0x00, 0x19, 0x1e, 0xfd, 0x71, 0x84 };
+
+		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS");
+
+#if defined(__linux__)
+		const char *check_devices[3] = { "wlan0", "ath0", "eth0" };
+		int fd, ret;
+		struct ifreq ifr;
+
+		fd = socket(AF_INET, SOCK_DGRAM, 0);
+		ifr.ifr_addr.sa_family = AF_INET;
+
+		for (unsigned int dev = 0; dev < 3; dev++ )
+		{
+			strncpy(ifr.ifr_name, check_devices[dev], IFNAMSIZ-1);
+
+			ret = ioctl(fd, SIOCGIFHWADDR, &ifr);
+			if (ret == 0)
+			{
+				INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS returning local MAC address of %s", check_devices[dev]);
+				Memory::WriteBigEData((const u8*)ifr.ifr_hwaddr.sa_data, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
+				close(fd);
+				break;
+			}
+		}
+		close(fd);
+
+		// fall back to the hardcoded address
+		Memory::WriteBigEData(default_address, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
+
+//#elif defined(WIN32)
+//	TODO
+
+#else
+		Memory::WriteBigEData(default_address, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
+#endif
 		break;
+	}
 
 	default:
 		INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE IOCtlV: %#x", CommandBuffer.Parameter);

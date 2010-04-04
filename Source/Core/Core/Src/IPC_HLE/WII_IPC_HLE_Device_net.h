@@ -304,14 +304,15 @@ public:
 
 private:
 	enum {
-		IOCTLV_NCD_UNK1				= 1, // NCDLockWirelessDriver
-		IOCTLV_NCD_UNK2				= 2, // NCDUnlockWirelessDriver
-		IOCTLV_NCD_READCONFIG		= 3,
-		IOCTLV_NCD_SETIFCONFIG4		= 4, // NCDGetWirelessMacAddress
-		IOCTLV_NCD_GETLINKSTATUS		= 7 // NCDGetLinkStatus
+		IOCTLV_NCD_UNK1                  = 0x1,  // NCDLockWirelessDriver
+		IOCTLV_NCD_UNK2                  = 0x2,  // NCDUnlockWirelessDriver
+		IOCTLV_NCD_READCONFIG            = 0x3,  // NCDReadConfig?
+		IOCTLV_NCD_UNK4                  = 0x4,
+		IOCTLV_NCD_GETLINKSTATUS         = 0x7,  // NCDGetLinkStatus
+		IOCTLV_NCD_GETWIRELESSMACADDRESS = 0x8,  // NCDGetWirelessMacAddress
 	};
 
-        network_config_t m_Ifconfig;
+	network_config_t m_Ifconfig;
 };
 
 #endif
