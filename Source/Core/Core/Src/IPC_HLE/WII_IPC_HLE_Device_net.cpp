@@ -296,20 +296,20 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 		for (unsigned int dev = 0; dev < 3; dev++ )
 		{
 			strncpy(ifr.ifr_name, check_devices[dev], IFNAMSIZ-1);
-
 			ret = ioctl(fd, SIOCGIFHWADDR, &ifr);
 			if (ret == 0)
 			{
 				INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS returning local MAC address of %s", check_devices[dev]);
 				Memory::WriteBigEData((const u8*)ifr.ifr_hwaddr.sa_data, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
-				close(fd);
 				break;
 			}
 		}
+		if (ret != 0)
+		{
+			// fall back to the hardcoded address
+			Memory::WriteBigEData(default_address, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
+		}
 		close(fd);
-
-		// fall back to the hardcoded address
-		Memory::WriteBigEData(default_address, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
 
 //#elif defined(WIN32)
 //	TODO
