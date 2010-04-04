@@ -779,14 +779,7 @@ static bool XFBWrited = false;
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
 	s_skipSwap = g_bSkipCurrentFrame;
-
-	//VideoFifo_CheckEFBAccess();
-
-	// If we're about to write to a requested XFB, make sure the previous
-	// contents make it to the screen first.
-	if (g_ActiveConfig.bUseXFB)
-		VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
-	
+	VideoFifo_CheckEFBAccess();
 	g_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 	XFBWrited = true;
 	// XXX: Without the VI, how would we know what kind of field this is? So
