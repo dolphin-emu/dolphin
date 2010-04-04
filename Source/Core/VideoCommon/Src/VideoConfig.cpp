@@ -35,6 +35,10 @@ VideoConfig::VideoConfig()
 {
 	bRunning = false;
 	bAllowSignedBytes = !IsD3D();
+
+	// Needed for the first frame, I think
+	fAspectRatioHackW = 1;
+	fAspectRatioHackH = 1;
 }
 
 void VideoConfig::Load(const char *ini_file)
@@ -225,6 +229,52 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 	// Handle aspect ratio.
 	// Default to auto.
 	bool use16_9 = g_VideoInitialize.bAutoAspectIs16_9;
+
+	// Update aspect ratio hack values
+	// Won't take effect until next frame
+	// Don't know if there is a better place for this code so there isn't a 1 frame delay
+	if ( g_ActiveConfig.bWidescreenHack )
+	{
+		float source_aspect = use16_9 ? (16.0f / 9.0f) : (4.0f / 3.0f);
+		float target_aspect;
+
+		switch ( g_ActiveConfig.iAspectRatio )
+		{
+		case ASPECT_FORCE_16_9 :
+			target_aspect = 16.0f / 9.0f;
+			break;
+		case ASPECT_FORCE_4_3 :
+			target_aspect = 4.0f / 3.0f;
+			break;
+		case ASPECT_STRETCH :
+			target_aspect = WinWidth / WinHeight;
+			break;
+		default :
+			// ASPECT_AUTO == no hacking
+			target_aspect = source_aspect;
+			break;
+		}
+
+		float adjust = source_aspect / target_aspect;
+		if ( adjust > 1 )
+		{
+			// Vert+
+			g_Config.fAspectRatioHackW = 1;
+			g_Config.fAspectRatioHackH = 1/adjust;
+		}
+		else
+		{
+			// Hor+
+			g_Config.fAspectRatioHackW = adjust;
+			g_Config.fAspectRatioHackH = 1;
+		}
+	}
+	else
+	{
+		// Hack is disabled
+		g_Config.fAspectRatioHackW = 1;
+		g_Config.fAspectRatioHackH = 1;
+	}
 	
 	// Check for force-settings and override.
 	if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_16_9)

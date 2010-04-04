@@ -289,13 +289,13 @@ void VertexShaderManager::SetConstants()
 		{   
 			// Perspective
 			
-			g_fProjectionMatrix[0] = xfregs.rawProjection[0] * (g_ActiveConfig.bWidescreenHack ? 0.75f : 1.0f);
+			g_fProjectionMatrix[0] = xfregs.rawProjection[0] * g_ActiveConfig.fAspectRatioHackW;
 			g_fProjectionMatrix[1] = 0.0f;
             g_fProjectionMatrix[2] = xfregs.rawProjection[1];
             g_fProjectionMatrix[3] = 0.0f;
 
             g_fProjectionMatrix[4] = 0.0f;
-            g_fProjectionMatrix[5] = xfregs.rawProjection[2];
+            g_fProjectionMatrix[5] = xfregs.rawProjection[2] * g_ActiveConfig.fAspectRatioHackH;
             g_fProjectionMatrix[6] = xfregs.rawProjection[3];
             g_fProjectionMatrix[7] = 0.0f;
 
