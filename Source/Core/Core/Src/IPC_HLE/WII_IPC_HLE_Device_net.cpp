@@ -51,6 +51,7 @@ it failed)
 #include <string>
 #ifdef _WIN32
 #include <ws2tcpip.h>
+#include <iphlpapi.h>
 #elif defined(__linux__)
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -311,9 +312,24 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 		}
 		close(fd);
 
-//#elif defined(WIN32)
-//	TODO
+#elif defined(WIN32)
+		IP_ADAPTER_INFO *adapter_info = NULL;
+		DWORD len = 0;
 
+		DWORD ret = GetAdaptersInfo(adapter_info, &len);
+		if (ret != ERROR_BUFFER_OVERFLOW || !len)
+		{
+			Memory::WriteBigEData(default_address, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
+			break;
+		}
+
+		adapter_info = new IP_ADAPTER_INFO[len / sizeof(IP_ADAPTER_INFO)];
+		ret = GetAdaptersInfo(adapter_info, &len);
+
+		if (SUCCEEDED(ret)) Memory::WriteBigEData(adapter_info->Address, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
+		else Memory::WriteBigEData(default_address, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
+
+		delete[] adapter_info;
 #else
 		Memory::WriteBigEData(default_address, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
 #endif
