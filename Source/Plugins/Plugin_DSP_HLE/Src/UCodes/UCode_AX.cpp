@@ -66,7 +66,7 @@ static void ProcessUpdates(AXPB &PB)
 	int on = 0, off = 0;
 	for (int j = 0; j < numupd; j++)
 	{
-		int k = g_Config.m_EnableRE0Fix ? 0 : j;
+		int k = g_Config.m_RE0Fix ? 0 : j;
 
 		const u16 updpar = Memory_Read_U16(updaddr + k);
 		const u16 upddata = Memory_Read_U16(updaddr + k + 2);

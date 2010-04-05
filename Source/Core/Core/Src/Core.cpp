@@ -338,7 +338,14 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.Fifo_CPUBase                = &ProcessorInterface::Fifo_CPUBase;
 	VideoInitialize.Fifo_CPUEnd                 = &ProcessorInterface::Fifo_CPUEnd;
 	VideoInitialize.Fifo_CPUWritePointer        = &ProcessorInterface::Fifo_CPUWritePointer;
-	VideoInitialize.bAutoAspectIs16_9           = _CoreParameter.bWii ? (SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR") ? true : false) : false;
+	bool aspectWide = _CoreParameter.bWii;
+	if (aspectWide) 
+	{
+		IniFile gameIni;
+		gameIni.Load(_CoreParameter.m_strGameIni.c_str());
+		gameIni.Get("Wii", "Widescreen", &aspectWide, !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
+	}
+	VideoInitialize.bAutoAspectIs16_9           = aspectWide;
 
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
 

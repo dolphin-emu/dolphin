@@ -299,6 +299,13 @@ void CISOProperties::CreateGUIControls(bool IsWad)
  		EnableProgressiveScan->Hide();
  		EnableWideScreen->Hide();
 	}
+	else
+	{
+		//Progressive Scan is not used by Dolphin itself,
+		//and changing it on a per-game basis would have the side-effect of changing the SysConf, 
+		//making this setting rather useless.
+		EnableProgressiveScan->Disable();
+	}
 	// Video
 	sbVideoOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Video"));
 	ForceFiltering = new wxCheckBox(m_GameConfig, ID_FORCEFILTERING, _("Force Filtering"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
