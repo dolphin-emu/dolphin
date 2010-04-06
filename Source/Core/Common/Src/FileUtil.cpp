@@ -141,7 +141,7 @@ bool CreateDir(const char *path)
 		return true;
 	DWORD error = GetLastError();
 	if (error == ERROR_ALREADY_EXISTS) 	{
-		WARN_LOG(COMMON, "CreateDir: CreateDirectory failed on %s: already exists",  path);
+		WARN_LOG(COMMON, "CreateDir: CreateDirectory failed on %s: already exists", path);
 		return true;
 	}
 	ERROR_LOG(COMMON, "CreateDir: CreateDirectory failed on %s: %i", path, error);
@@ -153,7 +153,7 @@ bool CreateDir(const char *path)
 	int err = errno;
 
 	if (err == EEXIST) {
-		WARN_LOG(COMMON, "CreateDir: mkdir failed on %s: already exists",  path);
+		WARN_LOG(COMMON, "CreateDir: mkdir failed on %s: already exists", path);
 		return true;
 	}
 
@@ -297,7 +297,7 @@ bool Copy(const char *srcFilename, const char *destFilename)
 				return false;
 			}
 		}
-            
+
 		// write output
 		int wnum = fwrite(buffer, sizeof(char), rnum, output);
 		if (wnum != rnum)
@@ -492,34 +492,39 @@ bool DeleteDirRecursively(const char *directory)
 //Create directory and copy contents (does not overwrite existing files)
 void CopyDir(const char *source_path, const char *dest_path)
 {
-  if (!File::Exists(source_path))
-    return;
+	if (!strcmp(source_path, dest_path)) return;
+	if (!File::Exists(source_path)) return;
+	if (!File::Exists(dest_path)) File::CreateFullPath(dest_path);
 
-  if (!File::Exists(dest_path)) File::CreateFullPath(dest_path);
-  char *virtualName;
-  struct dirent dirent, *result = NULL;
-  DIR *dirp = opendir(source_path);
-  if (!dirp)
-    return;
-  while (!readdir_r(dirp, &dirent, &result) && result) {
-    virtualName = result->d_name;
-    // check for "." and ".."
-    if (((virtualName[0] == '.') && (virtualName[1] == '\0')) ||
-        ((virtualName[0] == '.') && (virtualName[1] == '.') && 
-         (virtualName[2] == '\0')))
-      continue;
-    char source[300], dest[300];
-    sprintf(source, "%s%s", source_path, virtualName);
-    sprintf(dest, "%s%s", dest_path, virtualName);
-    if (IsDirectory(source)) {
-      sprintf(source, "%s/", source);
-      sprintf(dest, "%s/", dest);
-      if (!File::Exists(dest)) File::CreateFullPath(dest);
-      CopyDir(source, dest);
-    } else 
-      if (!File::Exists(dest)) File::Copy(source, dest);
-  }
-  closedir(dirp);
+	char *virtualName;
+	struct dirent dirent, *result = NULL;
+	DIR *dirp = opendir(source_path);
+	if (!dirp) return;
+
+	while (!readdir_r(dirp, &dirent, &result) && result)
+	{
+		virtualName = result->d_name;
+		// check for "." and ".."
+		if (((virtualName[0] == '.') && (virtualName[1] == '\0')) ||
+			((virtualName[0] == '.') && (virtualName[1] == '.') &&
+			(virtualName[2] == '\0')))
+			continue;
+
+		char source[FILENAME_MAX], dest[FILENAME_MAX];
+		sprintf(source, "%s%s", source_path, virtualName);
+		sprintf(dest, "%s%s", dest_path, virtualName);
+		if (IsDirectory(source))
+		{
+			const unsigned int srclen = strlen(source);
+			const unsigned int destlen = strlen(dest);
+			source[srclen] = '/'; source[srclen+1] = '\0';
+			dest[destlen]  = '/'; dest[destlen+1]  = '\0';
+			if (!File::Exists(dest)) File::CreateFullPath(dest);
+			CopyDir(source, dest);
+		}
+		else if (!File::Exists(dest)) File::Copy(source, dest);
+	}
+	closedir(dirp);
 }
 #endif
 
