@@ -133,7 +133,7 @@ void gdsp_ifx_write(u16 addr, u16 val)
 		    if (val & 0x1)
 			    DSPHost_InterruptRequest();
 			else 
-				INFO_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
+				WARN_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
 		    break;
 
 	    case DSP_DMBH:
@@ -254,6 +254,9 @@ void gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 	
 	NOTICE_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr, g_dsp.iram_crc);
 
+	if (jit)
+		jit->ClearIRAM();
+	
 	DSPAnalyzer::Analyze();
 }
 

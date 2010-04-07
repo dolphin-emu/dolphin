@@ -37,6 +37,7 @@ u16  dsp_dmem_read(u16 addr);
 inline u16 dsp_fetch_code()
 {
 	u16 opc = dsp_imem_read(g_dsp.pc);
+
 	g_dsp.pc++;
 	return opc;
 }

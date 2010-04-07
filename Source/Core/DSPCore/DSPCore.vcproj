@@ -523,11 +523,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\DSPJit.cpp"
+			RelativePath=".\Src\DSPEmitter.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\DSPJit.h"
+			RelativePath=".\Src\DSPEmitter.h"
 			>
 		</File>
 		<File

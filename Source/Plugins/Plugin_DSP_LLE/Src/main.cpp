@@ -49,6 +49,7 @@ SoundStream *soundStream = NULL;
 bool g_InitMixer = false;
 
 bool bIsRunning = false;
+u32 cycle_count = 0;
 
 // Standard crap to make wxWidgets happy
 #ifdef _WIN32
@@ -218,7 +219,17 @@ THREAD_RETURN dsp_thread(void* lpParameter)
 {
 	while (bIsRunning)
 	{
-		DSPInterpreter::Run();
+		u32 cycles = 0;
+
+		if (jit)
+		{
+			cycles = cycle_count;
+			DSPCore_RunCycles(cycles);
+		}
+		else
+			DSPInterpreter::Run();
+
+		cycle_count -= cycles;
 	}
 	return 0;
 }
@@ -241,7 +252,7 @@ void Initialize(void *init)
 
 	std::string irom_filename = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + DSP_IROM;
 	std::string coef_filename = File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + DSP_COEF;
-	bCanWork = DSPCore_Init(irom_filename.c_str(), coef_filename.c_str());
+	bCanWork = DSPCore_Init(irom_filename.c_str(), coef_filename.c_str(), AudioCommon::UseJIT());
 
 	g_dsp.cpu_ram = g_dspInitialize.pGetMemoryPointer(0);
 	DSPCore_Reset();
@@ -363,6 +374,7 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 
 void DSP_Update(int cycles)
 {
+	int cyclesRatio = cycles / (jit?20:6);
 // Sound stream update job has been handled by AudioDMA routine, which is more efficient
 /*
 	// This gets called VERY OFTEN. The soundstream update might be expensive so only do it 200 times per second or something.
@@ -385,7 +397,12 @@ void DSP_Update(int cycles)
 	// If we're not on a thread, run cycles here.
 	if (!g_dspInitialize.bOnThread)
 	{
-		DSPCore_RunCycles(cycles);
+		// ~1/6th as many cycles as the period PPC-side.
+		DSPCore_RunCycles(cyclesRatio);;
+	}
+	else
+	{
+		cycle_count += (cyclesRatio);
 	}
 }
 

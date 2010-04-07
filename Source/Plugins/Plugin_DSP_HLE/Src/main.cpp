@@ -303,7 +303,8 @@ unsigned short DSP_ReadControlRegister()
 void DSP_Update(int cycles)
 {
 	// This is called OFTEN - better not do anything expensive!
-	CDSPHandler::GetInstance().Update(cycles);
+	// ~1/6th as many cycles as the period PPC-side.
+	CDSPHandler::GetInstance().Update(cycles / 6);
 }
 
 // The reason that we don't disable this entire

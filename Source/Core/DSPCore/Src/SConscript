@@ -18,12 +18,15 @@ files = [
     "DspIntLoadStore.cpp",
     "DspIntMisc.cpp",
     "DspIntMultiplier.cpp",
-    "DSPJit.cpp",
+    "DSPEmitter.cpp",
     "DSPCodeUtil.cpp",
     "LabelMap.cpp",
     "DSPInterpreter.cpp",
     "DSPCore.cpp",
     "DSPTables.cpp",
+    "Jit/DSPJitExtOps.cpp",
+    "Jit/DSPJitUtil.cpp",
+
     ]
 
 acenv = env.Clone()

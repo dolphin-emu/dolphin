@@ -23,6 +23,7 @@ BEGIN_EVENT_TABLE(DSPConfigDialogLLE, wxDialog)
 	EVT_BUTTON(wxID_OK, DSPConfigDialogLLE::SettingsChanged)
 	EVT_CHECKBOX(ID_ENABLE_DTK_MUSIC, DSPConfigDialogLLE::SettingsChanged)
 	EVT_CHECKBOX(ID_ENABLE_THROTTLE, DSPConfigDialogLLE::SettingsChanged)
+	EVT_CHECKBOX(ID_ENABLE_JIT, DSPConfigDialogLLE::SettingsChanged)
 	EVT_CHOICE(ID_BACKEND, DSPConfigDialogLLE::BackendChanged)
 	EVT_COMMAND_SCROLL(ID_VOLUME, DSPConfigDialogLLE::VolumeChanged)
 END_EVENT_TABLE()
@@ -41,6 +42,7 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	// Create items
 	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, wxT("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Audio Throttle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_buttonEnableJIT = new wxCheckBox(this, ID_ENABLE_JIT, wxT("Enable JIT Dynarec"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
 	m_BackendSelection = new wxChoice(this, ID_BACKEND, wxDefaultPosition, wxSize(90, 20), wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
 
@@ -51,6 +53,7 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 	// Update values
 	m_buttonEnableDTKMusic->SetValue(ac_Config.m_EnableDTKMusic ? true : false);
 	m_buttonEnableThrottle->SetValue(ac_Config.m_EnableThrottle ? true : false);
+	m_buttonEnableJIT->SetValue(ac_Config.m_EnableJIT ? true : false);
 
 	// Add tooltips
 	m_buttonEnableDTKMusic->SetToolTip(wxT("This is used to play music tracks, like BGM."));
@@ -58,6 +61,8 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 		wxT("Disabling this could cause abnormal game speed, such as too fast.\n")
 		wxT("But sometimes enabling this could cause constant noise.\n")
 		wxT("\nKeyboard Shortcut <TAB>:  Hold down to instantly disable Throttle."));
+	m_buttonEnableJIT->SetToolTip(wxT("Enables dynamic recompilation of DSP code.\n")
+		wxT("Changing this will have no effect while the emulator is running!"));
 	m_BackendSelection->SetToolTip(wxT("Changing this will have no effect while the emulator is running!"));
 	m_volumeSlider->SetToolTip(wxT("This setting only affects DSound and OpenAL."));
 
@@ -69,6 +74,7 @@ DSPConfigDialogLLE::DSPConfigDialogLLE(wxWindow *parent, wxWindowID id, const wx
 
 	sbSettings->Add(m_buttonEnableDTKMusic, 0, wxALL, 5);
 	sbSettings->Add(m_buttonEnableThrottle, 0, wxALL, 5);
+	sbSettings->Add(m_buttonEnableJIT, 0, wxALL, 5);
 
 	sBackend->Add(BackendText, 0, wxALIGN_CENTER|wxALL, 5);
 	sBackend->Add(m_BackendSelection, 0, wxALL, 1);
@@ -125,6 +131,7 @@ void DSPConfigDialogLLE::SettingsChanged(wxCommandEvent& event)
 {
 	ac_Config.m_EnableDTKMusic = m_buttonEnableDTKMusic->GetValue();
 	ac_Config.m_EnableThrottle = m_buttonEnableThrottle->GetValue();
+	ac_Config.m_EnableJIT = m_buttonEnableJIT->GetValue();
 
 #ifdef __APPLE__
 	strncpy(ac_Config.sBackend, m_BackendSelection->GetStringSelection().mb_str(), 128);

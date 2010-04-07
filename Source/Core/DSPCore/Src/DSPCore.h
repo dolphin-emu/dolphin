@@ -29,6 +29,7 @@
 #include "Thread.h"
 
 #include "DSPBreakpoints.h"
+#include "DSPEmitter.h"
 
 #define DSP_IRAM_BYTE_SIZE	0x2000
 #define DSP_IRAM_SIZE		0x1000
@@ -233,8 +234,10 @@ struct SDSP
 
 extern SDSP g_dsp;
 extern DSPBreakpoints dsp_breakpoints;
+extern DSPEmitter *jit;
 
-bool DSPCore_Init(const char *irom_filename, const char *coef_filename);
+bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
+				  bool bUsingJIT);
 
 void DSPCore_Reset();
 void DSPCore_Shutdown(); // Frees all allocated memory.
@@ -244,6 +247,8 @@ void DSPCore_CheckExceptions();
 
 // sets a flag in the pending exception register.
 void DSPCore_SetException(u8 level);
+
+void CompileCurrent();
 
 enum DSPCoreState
 {

@@ -45,6 +45,7 @@ private:
     wxButton *m_OK;
     wxCheckBox *m_buttonEnableDTKMusic;
     wxCheckBox *m_buttonEnableThrottle;
+	wxCheckBox *m_buttonEnableJIT;
     wxArrayString wxArrayBackends;
     wxChoice  *m_BackendSelection;
 
@@ -52,6 +53,7 @@ private:
 	{
 		ID_ENABLE_DTK_MUSIC,
 	    ID_ENABLE_THROTTLE,
+		ID_ENABLE_JIT,
 	    ID_BACKEND,
 		ID_VOLUME
 	};

@@ -103,19 +103,23 @@ void Run()
 	int checkInterrupt = 0;
 	gdsp_running = true;
 	while (!(g_dsp.cr & CR_HALT) && gdsp_running)
-	{	
-		// Automatically let the other threads work if we're idle skipping
-		if(DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
-			Common::YieldCPU();
-
-		Step();
-
-		// Turns out the less you check for external interrupts, the more 
-		// sound you hear, and it becomes slower
-		checkInterrupt++;
-		if(checkInterrupt == 500) { // <-- A completely arbitrary number. TODO: tweak
-			DSPCore_CheckExternalInterrupt();
-			checkInterrupt = 0;
+	{
+		if(jit)
+			jit->RunBlock(1);
+		else {
+			// Automatically let the other threads work if we're idle skipping
+			if(DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
+				Common::YieldCPU();
+			
+			Step();
+			
+			// Turns out the less you check for external interrupts, the more 
+			// sound you hear, and it becomes slower
+			checkInterrupt++;
+			if(checkInterrupt == 500) { // <-- Arbitrary number. TODO: tweak
+				DSPCore_CheckExternalInterrupt();
+				checkInterrupt = 0;
+			}
 		}
 	}
 	gdsp_running = false;
@@ -185,7 +189,8 @@ int RunCyclesDebug(int cycles)
 // Used by non-thread mode. Meant to be efficient.
 int RunCycles(int cycles)
 {
-	// First, let's run a few cycles with no idle skipping so that things can progress a bit.
+	// First, let's run a few cycles with no idle skipping so that things can
+	// progress a bit.
 	for (int i = 0; i < 8; i++)
 	{
 		if (g_dsp.cr & CR_HALT)

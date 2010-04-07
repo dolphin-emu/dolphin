@@ -157,8 +157,7 @@ void AICallback(u64 userdata, int cyclesLate)
 // DSP/CPU timeslicing.
 void DSPCallback(u64 userdata, int cyclesLate)
 {
-	// ~1/6th as many cycles as the period PPC-side.
-	CPluginManager::GetInstance().GetDSP()->DSP_Update(DSP_PERIOD / 6);
+	CPluginManager::GetInstance().GetDSP()->DSP_Update(DSP_PERIOD + cyclesLate);
 	CoreTiming::ScheduleEvent(DSP_PERIOD - cyclesLate, et_DSP);
 }
 

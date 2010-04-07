@@ -26,6 +26,7 @@
 #include "Common.h"
 #include "Thread.h"
 #include "DSPCore.h"
+#include "DSPEmitter.h"
 #include "DSPHost.h"
 #include "DSPAnalyzer.h"
 #include "MemoryUtil.h"
@@ -36,6 +37,7 @@
 SDSP g_dsp;
 DSPBreakpoints dsp_breakpoints;
 DSPCoreState core_state = DSPCORE_RUNNING;
+DSPEmitter *jit = NULL;
 Common::Event step_event;
 
 static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
@@ -65,10 +67,12 @@ static bool LoadRom(const char *fname, int size_in_words, u16 *rom)
 	return false;
 }
 
-bool DSPCore_Init(const char *irom_filename, const char *coef_filename)
+bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
+				  bool bUsingJIT)
 {
 	g_dsp.step_counter = 0;
-
+	jit = NULL;
+	
 	g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
 	g_dsp.iram = (u16*)AllocateMemoryPages(DSP_IRAM_BYTE_SIZE);
 	g_dsp.dram = (u16*)AllocateMemoryPages(DSP_DRAM_BYTE_SIZE);
@@ -124,7 +128,13 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename)
 	// Mostly keep IRAM write protected. We unprotect only when DMA-ing
 	// in new ucodes.
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+
+	// Initialize JIT, if necessary
+	if(bUsingJIT)
+		jit = new DSPEmitter();
+
 	DSPAnalyzer::Analyze();
+
 	step_event.Init();
 
 	return true;
@@ -132,6 +142,10 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename)
 
 void DSPCore_Shutdown()
 {
+	if(jit) {
+		delete jit;
+		jit = NULL;
+	}
 	step_event.Shutdown();
 	FreeMemoryPages(g_dsp.irom, DSP_IROM_BYTE_SIZE);
 	FreeMemoryPages(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
@@ -214,10 +228,14 @@ void DSPCore_CheckExceptions()
 	}
 }
 
-// Delegate to JIT (when it is written) or interpreter as appropriate.
+// Delegate to JIT  or interpreter as appropriate.
 // Handle state changes and stepping.
 int DSPCore_RunCycles(int cycles)
 {
+	if(jit) {
+		jit->RunBlock(cycles);
+		return 0;
+	}
 	while (cycles > 0) {
 	reswitch:
 		switch (core_state)
@@ -266,3 +284,8 @@ void DSPCore_Step()
 	if (core_state == DSPCORE_STEPPING)
 		step_event.Set();
 }
+
+void CompileCurrent() {
+	jit->Compile(g_dsp.pc);
+}
+
