@@ -373,32 +373,33 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 
 				for (int i = 0; i < 8; i++)
 				{
+					char buf[32] = "";
 					switch (dataType)
 					{
 					case 0:
-						sprintf(dis, "%s %02X %02X %02X %02X", dis,
+						sprintf(buf, " %02X %02X %02X %02X",
 							((mema[i]&0xff000000)>>24)&0xFF,
 							((mema[i]&0xff0000)>>16)&0xFF,
 							((mema[i]&0xff00)>>8)&0xFF,
 							mema[i]&0xff);
 						break;
 					case 1:
-						sprintf(dis, "%s %02X%02X %02X%02X", dis,
+						sprintf(buf, " %02X%02X %02X%02X",
 							((mema[i]&0xff000000)>>24)&0xFF,
 							((mema[i]&0xff0000)>>16)&0xFF,
 							((mema[i]&0xff00)>>8)&0xFF,
 							mema[i]&0xff);
 						break;
 					case 2:
-						sprintf(dis, "%s %02X%02X%02X%02X", dis,
+						sprintf(buf, " %02X%02X%02X%02X",
 							((mema[i]&0xff000000)>>24)&0xFF,
 							((mema[i]&0xff0000)>>16)&0xFF,
 							((mema[i]&0xff00)>>8)&0xFF,
 							mema[i]&0xff);
 						break;
 					}
+					strcat(dis, buf);
 				}
-				strcat(dis, "\0");
 				curAddress += 32;
 			}
 			else
