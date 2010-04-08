@@ -1,0 +1,34 @@
+# -*- python -*-
+
+Import('env')
+import sys
+
+name = "Plugin_GCPadNew"
+padenv = env.Clone()
+
+files = [
+	'Config.cpp',
+	'ControllerEmu.cpp',
+        'ControllerEmu/GCPad/GCPad.cpp',
+	'GCPadNew.cpp',
+	'ControllerInterface/ControllerInterface.cpp',
+        'IniFile.cpp',
+        ]
+
+if padenv['HAVE_SDL']:
+    files += [ 'ControllerInterface/SDL/SDL.cpp' ]
+
+if padenv['HAVE_WX']:
+    files += [
+        'ConfigDiag.cpp',
+        'ConfigDiagBitmaps.cpp',
+        ]
+
+padenv.Append(
+	LIBS = [ 'inputcommon', 'common', ],
+	)
+
+if sys.platform == 'darwin':
+	padenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'Cocoa', ]
+
+padenv.SharedLibrary(env['plugin_dir']+name, files)
