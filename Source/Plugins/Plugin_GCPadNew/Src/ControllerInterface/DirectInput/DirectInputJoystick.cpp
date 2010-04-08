@@ -217,7 +217,7 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	js_caps.dwButtons = std::min((DWORD)32, js_caps.dwButtons);
 	js_caps.dwPOVs = std::min((DWORD)4, js_caps.dwPOVs);
 
-	m_must_poll = (bool)( js_caps.dwFlags & DIDC_POLLEDDATAFORMAT );
+	m_must_poll = ( ( js_caps.dwFlags & DIDC_POLLEDDATAFORMAT ) > 0 );
 
 	// buttons
 	for ( unsigned int i = 0; i < js_caps.dwButtons; ++i )
@@ -387,7 +387,7 @@ bool Joystick::UpdateInput()
 	HRESULT hr = m_device->GetDeviceState( sizeof(m_state_in), &m_state_in );
 
 	// try reacquire if input lost
-	while ( DIERR_INPUTLOST == hr )
+	if ( DIERR_INPUTLOST == hr )
 		hr = m_device->Acquire();
 
 	return ( DI_OK == hr );

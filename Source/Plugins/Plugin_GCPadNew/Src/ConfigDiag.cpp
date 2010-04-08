@@ -1,9 +1,27 @@
 
 #include "ConfigDiag.h"
 
-SettingCBox::SettingCBox( wxWindow* const parent, ControlState& _value, int min, int max )
+PadSettingCheckBox::PadSettingCheckBox( wxWindow* const parent, ControlState& _value, const char* const label )
+	: wxCheckBox( parent, -1, wxString::FromAscii( label ), wxDefaultPosition )
+	, PadSetting(_value)
+{
+	UpdateGUI();
+}
+
+void PadSettingCheckBox::UpdateGUI()
+{
+	SetValue( value > 0 );
+}
+
+void PadSettingCheckBox::UpdateValue()
+{
+	// 0.01 so its saved to the ini file as just 1. :(
+	value = 0.01 * GetValue();
+}
+
+PadSettingChoice::PadSettingChoice( wxWindow* const parent, ControlState& _value, int min, int max )
 	: wxChoice( parent, -1, wxDefaultPosition, wxSize( 48, -1 ) )
-	, value(_value)
+	, PadSetting(_value)
 {
 	Append( wxT("0") );
 	for ( ; min<=max; ++min )
@@ -13,10 +31,19 @@ SettingCBox::SettingCBox( wxWindow* const parent, ControlState& _value, int min,
 		Append( wxString::FromAscii( ss.str().c_str() ) );
 	}
 
+	UpdateGUI();
+}
+
+void PadSettingChoice::UpdateGUI()
+{
 	std::ostringstream ss;
 	ss << int(value * 100);
 	SetSelection( FindString( wxString::FromAscii( ss.str().c_str() ) ) );
+}
 
+void PadSettingChoice::UpdateValue()
+{
+	value = float( atoi( GetStringSelection().mb_str() ) ) / 100;
 }
 
 ControlDialog::ControlDialog( wxWindow* const parent, ControllerInterface::ControlReference* const ref, const std::vector<ControllerInterface::Device*>& devs )
@@ -160,25 +187,24 @@ void GamepadPage::UpdateGUI()
 {
 	device_cbox->SetLabel( wxString::FromAscii( controller->default_device.ToString().c_str() ) );
 
-	std::vector< ControlGroupBox* >::const_iterator g = control_groups.begin(),
+	std::vector< ControlGroupBox* >::const_iterator
+		g = control_groups.begin(),
 		ge = control_groups.end();
 	for ( ; g!=ge; ++g )
 	{
 		// buttons
-		std::vector<ControlButton*>::const_iterator i = (*g)->control_buttons.begin()
-			, e = (*g)->control_buttons.end();
+		std::vector<ControlButton*>::const_iterator
+			i = (*g)->control_buttons.begin(),
+			e = (*g)->control_buttons.end();
 		for ( ; i!=e; ++i )
 			(*i)->SetLabel( wxString::FromAscii( (*i)->control_reference->control_qualifier.name.c_str() ) );
 
-		// cboxes
-		std::vector<SettingCBox*>::const_iterator si = (*g)->options.begin()
-			, se = (*g)->options.end();
+		// settings
+		std::vector<PadSetting*>::const_iterator
+			si = (*g)->options.begin(),
+			se = (*g)->options.end();
 		for ( ; si!=se; ++si )
-		{
-			std::ostringstream ss;
-			ss << int((*si)->value * 100);
-			(*si)->SetSelection( (*si)->FindString( wxString::FromAscii( ss.str().c_str() ) ) );
-		}
+			(*si)->UpdateGUI();
 	}
 }
 
@@ -261,8 +287,8 @@ void GamepadPage::AdjustSetting( wxCommandEvent& event )
 {
 	m_plugin.controls_crit.Enter();		// enter
 
-	float setting = atoi( ((SettingCBox*)event.GetEventObject())->GetStringSelection().mb_str() );
-	((SettingCBox*)event.GetEventObject())->value = setting / 100;
+	// updates the setting value from the GUI control
+	(dynamic_cast<PadSetting*>(event.GetEventObject()))->UpdateValue();
 
 	m_plugin.controls_crit.Leave();		// leave
 }
@@ -572,8 +598,8 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 
 			static_bitmap = new wxStaticBitmap( parent, -1, bitmap, wxDefaultPosition, wxDefaultSize, wxBITMAP_TYPE_BMP );
 
-			SettingCBox* deadzone_cbox = new SettingCBox( parent, group->settings[0]->value, 1, 50 );
-			SettingCBox* diagonal_cbox = new SettingCBox( parent, group->settings[1]->value, 1, 100 );
+			PadSettingChoice* deadzone_cbox = new PadSettingChoice( parent, group->settings[0]->value, 1, 50 );
+			PadSettingChoice* diagonal_cbox = new PadSettingChoice( parent, group->settings[1]->value, 1, 100 );
 
 			deadzone_cbox->Connect( wxID_ANY, wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( GamepadPage::AdjustSetting ), (wxObject*)0, (wxEvtHandler*)parent );
 			diagonal_cbox->Connect( wxID_ANY, wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( GamepadPage::AdjustSetting ), (wxObject*)0, (wxEvtHandler*)parent );
@@ -603,7 +629,7 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 			dc.SelectObject(wxNullBitmap);
 			static_bitmap = new wxStaticBitmap( parent, -1, bitmap, wxDefaultPosition, wxDefaultSize, wxBITMAP_TYPE_BMP );
 
-			SettingCBox* threshold_cbox = new SettingCBox( parent, group->settings[0]->value, 1, 99 );
+			PadSettingChoice* threshold_cbox = new PadSettingChoice( parent, group->settings[0]->value, 1, 99 );
 			threshold_cbox->Connect( wxID_ANY, wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( GamepadPage::AdjustSetting ), (wxObject*)0, (wxEvtHandler*)parent );
 
 			options.push_back( threshold_cbox );
@@ -625,7 +651,7 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 			dc.SelectObject(wxNullBitmap);
 			static_bitmap = new wxStaticBitmap( parent, -1, bitmap, wxDefaultPosition, wxDefaultSize, wxBITMAP_TYPE_BMP );
 
-			SettingCBox* threshold_cbox = new SettingCBox( parent, group->settings[0]->value, 1, 99 );
+			PadSettingChoice* threshold_cbox = new PadSettingChoice( parent, group->settings[0]->value, 1, 99 );
 			threshold_cbox->Connect( wxID_ANY, wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( GamepadPage::AdjustSetting ), (wxObject*)0, (wxEvtHandler*)parent );
 
 			options.push_back( threshold_cbox );
@@ -639,6 +665,20 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 		}
 		break;
 	default :
+		{
+			std::vector<ControllerEmu::ControlGroup::Setting*>::const_iterator
+				i = group->settings.begin(),
+				e = group->settings.end();
+			for ( ; i!=e; ++i )
+			{
+				PadSettingCheckBox* setting_cbox = new PadSettingCheckBox( parent, (*i)->value, (*i)->name );
+				setting_cbox->Connect( wxID_ANY, wxEVT_COMMAND_CHECKBOX_CLICKED, wxCommandEventHandler( GamepadPage::AdjustSetting ), (wxObject*)0, (wxEvtHandler*)parent );
+				options.push_back( setting_cbox );
+
+				Add( setting_cbox, 0, wxALL|wxCENTER, 5 );
+
+			}
+		}
 		break;
 
 	}
@@ -660,16 +700,16 @@ GamepadPage::GamepadPage( wxWindow* parent, Plugin& plugin, const unsigned int p
 	{
 		ControlGroupBox* control_group = new ControlGroupBox( m_plugin.controllers[pad_num]->groups[i], this );
 
-		if ( control_group->control_buttons.size() > 3 )
+		if ( control_group->control_buttons.size() > 2 )
 		{
 			if ( stacked_groups )
 				control_group_sizer->Add( stacked_groups, 0, /*wxEXPAND|*/wxBOTTOM|wxRIGHT, 5 );
 
 			stacked_groups = new wxBoxSizer( wxVERTICAL );
-			stacked_groups->Add( control_group, 1 );
+			stacked_groups->Add( control_group, 0, wxEXPAND );
 		}
 		else
-			stacked_groups->Add( control_group );
+			stacked_groups->Add( control_group, 0, wxEXPAND );
 
 		control_groups.push_back( control_group );
 	}

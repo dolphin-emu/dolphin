@@ -15,14 +15,18 @@
 Display* GCdisplay;
 #endif
 
-#define CIFACE_PLUGIN_VERSION		0x0100
+#define PLUGIN_VERSION		0x0100
 
-#define CIFACE_PLUGIN_BRANDING		/*"Billiard's"//*/"Dolphin"
-#define CIFACE_PLUGIN_TYPE			"GCPad"
-#define CIFACE_PLUGIN_NAME			"New"
-//#define CIFACE_PLUGIN_VERSTR		"v1.0"
+#ifdef DEBUGFAST
+#define PLUGIN_FULL_NAME	"Dolphin GCPad New (DebugFast)"
+#else
+#ifdef _DEBUG
+#define PLUGIN_FULL_NAME	"Dolphin GCPad New (Debug)"
+#else
+#define PLUGIN_FULL_NAME	"Dolphin GCPad New"
+#endif
+#endif
 
-#define CIFACE_PLUGIN_FULL_NAME	CIFACE_PLUGIN_BRANDING" "CIFACE_PLUGIN_TYPE" "CIFACE_PLUGIN_NAME//" "CIFACE_PLUGIN_VERSTR
 
 #ifdef _WIN32
 class wxDLLApp : public wxApp
@@ -160,16 +164,6 @@ EXPORT void CALL PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// wtf is this?	
 	_pPADStatus->button |= PAD_USE_ORIGIN;
 
-	// TODO: this will need changing
-	// need focus ?
-	// i'm not inside CritSec when I access this bool
-	//if ( false == (g_plugin.pads[_numPAD].options.allow_background_input || IsFocus()) )
-	//{
-	//	// center axes and return
-	//	memset( &_pPADStatus->stickX, 0x80, 4 );
-	//	return;
-	//}
-
 	// try lock
 	if ( false == g_plugin.controls_crit.TryEnter() )
 	{
@@ -189,8 +183,17 @@ EXPORT void CALL PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	}
 	_last_numPAD = _numPAD;
 	
-	// get input
-	((GCPad*)g_plugin.controllers[ _numPAD ])->GetInput( _pPADStatus );
+	// if we want background input or have focus
+	if ( g_plugin.controllers[_numPAD]->options[0].settings[0]->value || IsFocus() )
+		// get input
+		((GCPad*)g_plugin.controllers[ _numPAD ])->GetInput( _pPADStatus );
+	else
+	{
+		// center sticks
+		memset( &_pPADStatus->stickX, 0x80, 4 );
+		// stop rumble
+		((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput( false );
+	}
 
 	// leave
 	g_plugin.controls_crit.Leave();
@@ -219,8 +222,9 @@ EXPORT void CALL PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStre
 	// enter
 	if ( g_plugin.controls_crit.TryEnter() )
 	{
-		// only on/off rumble
-		((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput( 1 == _uType && _uStrength > 2 );
+		// only on/off rumble, if we have focus or background input on
+		if ( g_plugin.controllers[_numPAD]->options[0].settings[0]->value || IsFocus() )
+			((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput( 1 == _uType && _uStrength > 2 );
 
 		// leave
 		g_plugin.controls_crit.Leave();
@@ -241,9 +245,9 @@ EXPORT void CALL GetDllInfo(PLUGIN_INFO* _pPluginInfo)
 	// don't feel like messing around with all those strcpy functions and warnings
 	//char *s1 = CIFACE_PLUGIN_FULL_NAME, *s2 = _pPluginInfo->Name;
 	//while ( *s2++ = *s1++ );
-	memcpy( _pPluginInfo->Name, CIFACE_PLUGIN_FULL_NAME, sizeof(CIFACE_PLUGIN_FULL_NAME) );
+	memcpy( _pPluginInfo->Name, PLUGIN_FULL_NAME, sizeof(PLUGIN_FULL_NAME) );
 	_pPluginInfo->Type = PLUGIN_TYPE_PAD;
-	_pPluginInfo->Version = CIFACE_PLUGIN_VERSION;
+	_pPluginInfo->Version = PLUGIN_VERSION;
 }
 
 // ___________________________________________________________________________
@@ -264,7 +268,7 @@ EXPORT void CALL DllConfig(HWND _hParent)
 	// copied from GCPad
 #if defined(HAVE_WX) && HAVE_WX
 	wxWindow *frame = GetParentedWxWindow(_hParent);
-	ConfigDialog* m_ConfigFrame = new ConfigDialog( frame, g_plugin, CIFACE_PLUGIN_FULL_NAME, was_init );
+	ConfigDialog* m_ConfigFrame = new ConfigDialog( frame, g_plugin, PLUGIN_FULL_NAME, was_init );
 
 #ifdef _WIN32
 	frame->Disable();

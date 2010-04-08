@@ -215,6 +215,7 @@ public:
 
 	std::vector< ControlGroup* >		groups;
 
+	ControlGroup*						options;
 
 	ControllerInterface::DeviceQualifier	default_device;
 

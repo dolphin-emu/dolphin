@@ -18,7 +18,8 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 			if ( false == m_plugin.interface_crit.TryEnter() )
 				return;
 
-			if ( false == is_game_running )
+			//if ( false == is_game_running )
+			// just always update
 				m_plugin.controller_interface.UpdateInput();
 
 			switch ( (*g)->control_group->type )

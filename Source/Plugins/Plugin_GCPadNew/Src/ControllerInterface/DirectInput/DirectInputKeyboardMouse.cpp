@@ -189,8 +189,11 @@ bool KeyboardMouse::UpdateOutput()
 			m_current_state_out[i] ^= 1;
 		}
 	}
-
-	return ( kbinputs.size() == SendInput( (UINT)kbinputs.size(), &kbinputs[0], sizeof( kbinputs[0] ) ) );
+	
+	if ( kbinputs.size() )
+		return ( kbinputs.size() == SendInput( (UINT)kbinputs.size(), &kbinputs[0], sizeof( kbinputs[0] ) ) );
+	else
+		return true;
 }
 
 std::string KeyboardMouse::GetName() const

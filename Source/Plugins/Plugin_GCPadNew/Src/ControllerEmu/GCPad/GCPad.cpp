@@ -55,14 +55,18 @@ GCPad::GCPad( const unsigned int index ) : m_index(index)
 	for ( unsigned int i=0; i < sizeof(named_triggers)/sizeof(*named_triggers); ++i )
 		m_triggers->controls.push_back( new ControlGroup::Input( named_triggers[i] ) );
 
+	// rumble
+	groups.push_back( m_rumble = new ControlGroup( "Rumble" ) );
+	m_rumble->controls.push_back( new ControlGroup::Output( "Motor" ) );
+
 	// dpad
 	groups.push_back( m_dpad = new Buttons( "D-Pad" ) );
 	for ( unsigned int i=0; i < 4; ++i )
 		m_dpad->controls.push_back( new ControlGroup::Input( named_directions[i] ) );
 
-	// rumble
-	groups.push_back( m_rumble = new ControlGroup( "Rumble" ) );
-	m_rumble->controls.push_back( new ControlGroup::Output( "Motor" ) );
+	// options
+	groups.push_back( options = new ControlGroup( "Options" ) );
+	options->settings.push_back( new ControlGroup::Setting( "Background Input", false ) );
 
 }
 

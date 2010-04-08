@@ -25,13 +25,34 @@
 #include "Config.h"
 #include "FileSearch.h"
 
-class SettingCBox : public wxChoice
+class PadSetting
 {
+protected:
+	PadSetting( ControlState& _value ) : value(_value) {}
+
 public:
-	SettingCBox( wxWindow* const parent, ControlState& _value, int min, int max );
+	virtual void UpdateGUI() = 0;
+	virtual void UpdateValue() = 0;
 
 	ControlState&		value;
 };
+
+class PadSettingChoice : public PadSetting, public wxChoice
+{
+public:
+	PadSettingChoice( wxWindow* const parent, ControlState& _value, int min, int max );
+	void UpdateGUI();
+	void UpdateValue();
+};
+
+class PadSettingCheckBox : public PadSetting, public wxCheckBox
+{
+public:
+	PadSettingCheckBox( wxWindow* const parent, ControlState& _value, const char* const label );
+	void UpdateGUI();
+	void UpdateValue();
+};
+
 
 class ControlChooser : public wxStaticBoxSizer
 {
@@ -87,7 +108,7 @@ public:
 
 	ControllerEmu::ControlGroup*	control_group;
 	wxStaticBitmap*					static_bitmap;
-	std::vector< SettingCBox* >		options;
+	std::vector< PadSetting* >		options;
 	std::vector< wxButton* >		controls;
 	std::vector<ControlButton*>		control_buttons;	
 };
