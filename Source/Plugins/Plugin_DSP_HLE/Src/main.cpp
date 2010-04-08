@@ -142,8 +142,9 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 
 void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 {
-       globals = _pPluginGlobals;
-       LogManager::SetInstance((LogManager *)globals->logManager);
+	globals = _pPluginGlobals;
+	LogManager::SetInstance((LogManager *)globals->logManager);
+	g_Config.LoadGameIni(globals->game_ini);
 }
 
 void DllConfig(HWND _hParent)
