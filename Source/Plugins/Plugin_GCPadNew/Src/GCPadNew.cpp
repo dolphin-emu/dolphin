@@ -11,7 +11,6 @@
 
 #if defined(HAVE_X11) && HAVE_X11
 #include <X11/Xlib.h>
-Display* GCdisplay;
 #endif
 
 #define PLUGIN_VERSION		0x0100
@@ -54,10 +53,11 @@ bool IsFocus()
 	else
 		return false;
 #elif defined HAVE_X11 && HAVE_X11
+	Display* GCdisplay = (Display*)g_PADInitialize->hWnd;
 	Window GLWin = *(Window *)g_PADInitialize->pXWindow;
 	Window FocusWin;
 	int Revert;
-	XGetInputFocus((Display*)g_PADInitialize->hWnd, &FocusWin, &Revert);
+	XGetInputFocus(GCdisplay, &FocusWin, &Revert);
 	XWindowAttributes WinAttribs;
 	XGetWindowAttributes (GCdisplay, GLWin, &WinAttribs);
 	return (GLWin != 0 && (GLWin == FocusWin || WinAttribs.override_redirect));
@@ -109,14 +109,6 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved )
 }
 #endif
 
-
-// wut ??
-#define EXPORT
-#define CALL
-
-int _last_numPAD = 4;
-
-
 // if plugin isn't initialized, init and load config
 void InitPlugin( void* const hwnd )
 {
@@ -152,7 +144,7 @@ void InitPlugin( void* const hwnd )
 // input:   
 // output:   
 //
-EXPORT void CALL PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
+void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	// why not, i guess
 	if ( NULL == _pPADStatus )
@@ -174,6 +166,7 @@ EXPORT void CALL PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 
 	// if we are on the next input cycle, update output and input
 	// if we can get a lock
+	static int _last_numPAD = 4;
 	if ( _numPAD <= _last_numPAD && g_plugin.interface_crit.TryEnter() )
 	{
 		g_plugin.controller_interface.UpdateOutput();
@@ -205,7 +198,7 @@ EXPORT void CALL PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 // input:   The key and if it's pressed or released
 // output:  None
 //
-EXPORT void CALL PAD_Input(u16 _Key, u8 _UpDown)
+void PAD_Input(u16 _Key, u8 _UpDown)
 {
 	// nofin
 }
@@ -216,7 +209,7 @@ EXPORT void CALL PAD_Input(u16 _Key, u8 _UpDown)
 // input:	 PAD number, Command type (Stop=0, Rumble=1, Stop Hard=2) and strength of Rumble
 // output:   none
 //
-EXPORT void CALL PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
+void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 {
 	// enter
 	if ( g_plugin.controls_crit.TryEnter() )
@@ -239,7 +232,7 @@ EXPORT void CALL PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStre
 //           filled by the function. (see def above)
 // output:   none
 //
-EXPORT void CALL GetDllInfo(PLUGIN_INFO* _pPluginInfo)
+void GetDllInfo(PLUGIN_INFO* _pPluginInfo)
 {
 	// don't feel like messing around with all those strcpy functions and warnings
 	//char *s1 = CIFACE_PLUGIN_FULL_NAME, *s2 = _pPluginInfo->Name;
@@ -256,7 +249,7 @@ EXPORT void CALL GetDllInfo(PLUGIN_INFO* _pPluginInfo)
 // input:    A handle to the window that calls this function
 // output:   none
 //
-EXPORT void CALL DllConfig(HWND _hParent)
+void DllConfig(HWND _hParent)
 {
 	bool was_init = false;
 	if ( g_plugin.controller_interface.IsInit() )	// hack for showing dialog when game isnt running
@@ -299,7 +292,7 @@ EXPORT void CALL DllConfig(HWND _hParent)
 // input:    a handle to the window that calls this function
 // output:   none
 //
-EXPORT void CALL DllDebugger(HWND _hParent, bool Show)
+void DllDebugger(HWND _hParent, bool Show)
 {
 	// wut?
 }
@@ -310,7 +303,7 @@ EXPORT void CALL DllDebugger(HWND _hParent, bool Show)
 // input:    a pointer to the global struct
 // output:   none
 //
-EXPORT void CALL SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 {
 	// wut?
 }
@@ -321,8 +314,9 @@ EXPORT void CALL SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 // input:    Init
 // output:   none
 //
-EXPORT void CALL Initialize(void *init)
+void Initialize(void *init)
 {
+	g_PADInitialize = (SPADInitialize*)init;
 	if ( false == g_plugin.controller_interface.IsInit() )
 		InitPlugin( ((SPADInitialize*)init)->hWnd );
 }
@@ -334,7 +328,7 @@ EXPORT void CALL Initialize(void *init)
 // input:    none
 // output:   none
 //
-EXPORT void CALL Shutdown(void)
+void Shutdown(void)
 {
 	//plugin.controls_crit.Enter();	// enter
 	if ( g_plugin.controller_interface.IsInit() )
@@ -348,7 +342,7 @@ EXPORT void CALL Shutdown(void)
 // input/output: ptr
 // input: mode
 //
-EXPORT void CALL DoState(unsigned char **ptr, int mode)
+void DoState(unsigned char **ptr, int mode)
 {
 	// prolly won't need this
 }
@@ -359,7 +353,7 @@ EXPORT void CALL DoState(unsigned char **ptr, int mode)
 // input:    newState
 // output:   none
 //
-EXPORT void CALL EmuStateChange(PLUGIN_EMUSTATE newState)
+void EmuStateChange(PLUGIN_EMUSTATE newState)
 {
 	// maybe use this later
 }
