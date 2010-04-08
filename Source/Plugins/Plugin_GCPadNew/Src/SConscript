@@ -9,28 +9,30 @@ padenv = env.Clone()
 files = [
 	'Config.cpp',
 	'ControllerEmu.cpp',
-        'ControllerEmu/GCPad/GCPad.cpp',
+	'ControllerEmu/GCPad/GCPad.cpp',
 	'GCPadNew.cpp',
 	'ControllerInterface/ControllerInterface.cpp',
-        'IniFile.cpp',
-        ]
+	'IniFile.cpp'
+	]
 
 if padenv['HAVE_SDL']:
-    files += [ 'ControllerInterface/SDL/SDL.cpp' ]
+	files += [ 'ControllerInterface/SDL/SDL.cpp' ]
 if sys.platform == 'darwin':
-    files += [ 'ControllerInterface/OSX/OSX.cpp', 'ControllerInterface/OSX/OSXPrivate.mm' ]
+	files += [ 'ControllerInterface/OSX/OSX.cpp', 'ControllerInterface/OSX/OSXPrivate.mm' ]
+if sys.platform == 'linux2':
+	files += [ 'ControllerInterface/Xlib/Xlib.cpp' ]
 
 if padenv['HAVE_WX']:
-    files += [
-        'ConfigDiag.cpp',
-        'ConfigDiagBitmaps.cpp',
-        ]
+	files += [
+		'ConfigDiag.cpp',
+		'ConfigDiagBitmaps.cpp',
+		]
 
 padenv.Append(
-	LIBS = [ 'inputcommon', 'common', ],
+	LIBS = [ 'inputcommon', 'common' ],
 	)
 
 if sys.platform == 'darwin':
-	padenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'Cocoa', ]
+	padenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'Cocoa' ]
 
 padenv.SharedLibrary(env['plugin_dir']+name, files)

@@ -40,7 +40,7 @@ void ControllerInterface::Init()
 	ciface::DirectInput::Init( m_devices/*, (HWND)m_hwnd*/ );
 #endif
 #ifdef CIFACE_USE_XLIB
-	ciface::XLIB::Init( m_devices, m_hwnd );
+	ciface::Xlib::Init( m_devices, m_hwnd );
 #endif
 #ifdef CIFACE_USE_OSX
 	ciface::OSX::Init( m_devices, m_hwnd );

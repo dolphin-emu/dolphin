@@ -14,7 +14,7 @@ void Init( std::vector<ControllerInterface::Device*>& devices, void* const hwnd 
 {
 	// mouse will be added to this, Keyboard class will be turned into KeyboardMouse
 	// single device for combined keyboard/mouse, this will allow combinations like shift+click more easily
-	devices.push_back( new Keyboard( (Display*)display ) );
+	devices.push_back( new Keyboard( (Display*)hwnd ) );
 }
 
 Keyboard::Keyboard( Display* const display ) : m_display(display)
