@@ -23,14 +23,16 @@
 namespace ActionReplay
 {
 
-struct AREntry {
+struct AREntry
+{
 	AREntry() {}
 	AREntry(u32 _addr, u32 _value) : cmd_addr(_addr), value(_value) {}
 	u32 cmd_addr;
 	u32 value;
 };
 
-struct ARCode {
+struct ARCode
+{
 	std::string name;
 	std::vector<AREntry> ops;
 	bool active;

@@ -59,13 +59,14 @@ bool CBoot::Boot_ELF(const char *filename)
 	{
 		if (LoadMapFromFilename(filename))
 			HLE::PatchFunctions();
-	} else {
+	}
+	else
+	{
 		HLE::PatchFunctions();
 	}
 	
 	PC = reader.GetEntryPoint();
-	delete [] mem;
+	delete []mem;
 
     return true;
 }
-

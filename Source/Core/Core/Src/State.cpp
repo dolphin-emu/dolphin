@@ -89,11 +89,11 @@ void DoState(PointerWrap &p)
 	}
 	// Begin with video plugin, so that it gets a chance to clear it's caches and writeback modified things to RAM
 	CPluginManager &pm = CPluginManager::GetInstance();
-        pm.GetVideo()->DoState(p.GetPPtr(), p.GetMode());
-        pm.GetDSP()->DoState(p.GetPPtr(), p.GetMode());
-		pm.GetPad(0)->DoState(p.GetPPtr(), p.GetMode());
-		if (Core::g_CoreStartupParameter.bWii)
-			pm.GetWiimote(0)->DoState(p.GetPPtr(), p.GetMode());
+	pm.GetVideo()->DoState(p.GetPPtr(), p.GetMode());
+	pm.GetDSP()->DoState(p.GetPPtr(), p.GetMode());
+	pm.GetPad(0)->DoState(p.GetPPtr(), p.GetMode());
+	if (Core::g_CoreStartupParameter.bWii)
+		pm.GetWiimote(0)->DoState(p.GetPPtr(), p.GetMode());
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);
@@ -161,7 +161,8 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	delete saveArg;
 
 	// Moving to last overwritten save-state
-	if (File::Exists(cur_filename.c_str())) {
+	if (File::Exists(cur_filename.c_str()))
+	{
 		if (File::Exists((std::string(File::GetUserPath(D_STATESAVES_IDX)) + "lastState.sav").c_str()))
 			File::Delete((std::string(File::GetUserPath(D_STATESAVES_IDX)) + "lastState.sav").c_str());
 
@@ -170,9 +171,10 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	}
 
 	FILE *f = fopen(filename.c_str(), "wb");
-	if (f == NULL) {
+	if (f == NULL)
+	{
 		Core::DisplayMessage("Could not save state", 2000);
-		delete [] buffer;
+		delete []buffer;
 		return 0;
 	}
 
@@ -181,11 +183,13 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	header.sz = bCompressed ? sz : 0;
 
 	fwrite(&header, sizeof(state_header), 1, f);
-	if (bCompressed) {
+	if (bCompressed)
+	{
 		lzo_uint cur_len = 0;
 		lzo_uint i = 0;
 
-		for (;;) {
+		for (;;)
+		{
 			if ((i + IN_LEN) >= sz)
 				cur_len = sz - i;
 			else
@@ -202,7 +206,6 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 				break;
 			i += cur_len;
 		}
-
 	}
 	else
 	{
@@ -210,8 +213,7 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	}
 
 	fclose(f);
-
-	delete [] buffer;
+	delete []buffer;
 
 	Core::DisplayMessage(StringFromFormat("Saved State to %s",
 		filename.c_str()).c_str(), 2000);
@@ -288,7 +290,6 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 			gameID), 2000);
 
 		fclose(f);
-
 		return;
 	}
 
@@ -300,14 +301,15 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 
 		lzo_uint i = 0;
 		buffer = new u8[sz];
-		if (!buffer) {
+		if (!buffer)
+		{
 			PanicAlert("Error allocating buffer");
 			return;
 		}
 		while (true)
 		{
-			lzo_uint cur_len = 0;
-			lzo_uint new_len = 0;
+			lzo_uint cur_len = 0;  // number of bytes to read
+			lzo_uint new_len = 0;  // number of bytes to write
 			if (fread(&cur_len, 1, sizeof(int), f) == 0)
 				break;
 			if (feof(f))
@@ -324,7 +326,6 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 				return;
 			}
 	
-			// The size of the data to read to our buffer is 'new_len'
 			i += new_len;
 		}
 	}

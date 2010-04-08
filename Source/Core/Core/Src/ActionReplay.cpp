@@ -25,7 +25,7 @@
 // -----------------------------------------------------------------------------------------
 
 // -------------------------------------------------------------------------------------------------------------
-// Codes Types:
+// Code Types:
 // (Unconditonal) Normal Codes (0): this one has subtypes inside
 // (Conditional) Normal Codes (1 - 7): these just compare values and set the line skip info
 // Zero Codes: any code with no address.  These codes are used to do special operations like memory copy, etc
@@ -45,15 +45,16 @@
 
 namespace ActionReplay
 {
+
 enum
 {
-    // Zero Code Types
+	// Zero Code Types
 	ZCODE_END      = 0x00,
 	ZCODE_NORM     = 0x02, 
 	ZCODE_ROW	   = 0x03, 
 	ZCODE_04 = 0x04,
 
-    // Conditonal Codes
+	// Conditonal Codes
 	CONDTIONAL_IF_EQUAL                  = 0x01,
 	CONDTIONAL_IF_NOT_EQUAL              = 0x02, 
 	CONDTIONAL_IF_LESS_THAN_SIGNED       = 0x03,
@@ -68,7 +69,7 @@ enum
 	DATATYPE_32BIT       = 0x02, 
 	DATATYPE_32BIT_FLOAT = 0x03,
 
-    // Normal Code 0 Subtypes
+	// Normal Code 0 Subtypes
 	SUB_RAM_WRITE	    = 0x00,
 	SUB_WRITE_POINTER   = 0x01, 
 	SUB_ADD_CODE		= 0x02, 
@@ -101,7 +102,7 @@ void LoadCodes(IniFile &ini, bool forceLoad)
 {
 	// Parses the Action Replay section of a game ini file.
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats 
-	    && !forceLoad) 
+		&& !forceLoad) 
 		return;
 
 	std::vector<std::string> lines;
@@ -132,7 +133,7 @@ void LoadCodes(IniFile &ini, bool forceLoad)
 				currentCode.ops.clear();
 				encryptedLines.clear();
 			}
-			
+
 			if (line.size() > 1)
 			{
 				if (line[0] == '+')
@@ -217,7 +218,7 @@ void LogInfo(const char *format, ...)
 			if (logSelf)
 			{
 				std::string text = temp;
-				text += "\n";
+				text += '\n';
 				arLog.push_back(text.c_str());
 			}
 		}
@@ -238,12 +239,12 @@ void RunAllActive()
 			}
 		}
 
-		if (!b_RanOnce) 
-			b_RanOnce = true;
+		b_RanOnce = true;
 	}
 }
 
-bool RunCode(const ARCode &arcode) {
+bool RunCode(const ARCode &arcode)
+{
 	// The mechanism is different than what the real AR uses, so there may be compatibility problems.
 	u8 cmd;
 	u32 addr;
@@ -260,7 +261,7 @@ bool RunCode(const ARCode &arcode) {
 
 	LogInfo("Code Name: %s", code.name.c_str());
 	LogInfo("Number of codes: %i", code.ops.size());
-	
+
 	for (iter = code.ops.begin(); iter != code.ops.end(); ++iter) 
 	{
 		// If conditional mode has been set to true, then run our code execution control
@@ -281,8 +282,7 @@ bool RunCode(const ARCode &arcode) {
 			if (!skip && count > 0) count--; // execute n lines
 			// if -2 : execute all lines
 
-			if (b_RanOnce)
-				b_RanOnce = false;
+			b_RanOnce = false;
 		}
 
 		cmd = iter->cmd_addr >> 24; // AR command
@@ -460,30 +460,32 @@ bool Subtype_RamWriteAndFill(u32 addr, u32 data)
 	switch (size)
 	{
 	case DATATYPE_8BIT:
+	{
+		LogInfo("8-bit Write");
+		LogInfo("--------");
+		u32 repeat = data >> 8;
+		for (u32 i = 0; i <= repeat; i++)
 		{
-			LogInfo("8-bit Write");
-			LogInfo("--------");
-			u32 repeat = data >> 8;
-			for (u32 i = 0; i <= repeat; i++) {
-				Memory::Write_U8(data & 0xFF, new_addr + i);
-				LogInfo("Wrote %08x to address %08x", data & 0xFF, new_addr + i);
-			}
-			LogInfo("--------");
-			break;
+			Memory::Write_U8(data & 0xFF, new_addr + i);
+			LogInfo("Wrote %08x to address %08x", data & 0xFF, new_addr + i);
 		}
+		LogInfo("--------");
+		break;
+	}
 
 	case DATATYPE_16BIT:
+	{
+		LogInfo("16-bit Write");
+		LogInfo("--------");
+		u32 repeat = data >> 16;
+		for (u32 i = 0; i <= repeat; i++)
 		{
-			LogInfo("16-bit Write");
-			LogInfo("--------");
-			u32 repeat = data >> 16;
-			for (u32 i = 0; i <= repeat; i++) {
-				Memory::Write_U16(data & 0xFFFF, new_addr + i * 2);
-				LogInfo("Wrote %08x to address %08x", data & 0xFFFF, new_addr + i * 2);
-			}
-			LogInfo("--------");
-			break;
+			Memory::Write_U16(data & 0xFFFF, new_addr + i * 2);
+			LogInfo("Wrote %08x to address %08x", data & 0xFFFF, new_addr + i * 2);
 		}
+		LogInfo("--------");
+		break;
+	}
 	case DATATYPE_32BIT_FLOAT:
 	case DATATYPE_32BIT: // Dword write
 		LogInfo("32bit Write");
@@ -509,36 +511,36 @@ bool Subtype_WriteToPointer(u32 addr, u32 data)
 	switch (size)
 	{
 	case DATATYPE_8BIT:
-		{
-			LogInfo("Write 8-bit to pointer");
-			LogInfo("--------");
-			u32 ptr = Memory::Read_U32(new_addr);
-			u8 thebyte = data & 0xFF;
-			u32 offset = data >> 8;
-			LogInfo("Pointer: %08x", ptr);
-			LogInfo("Byte: %08x", thebyte);
-			LogInfo("Offset: %08x", offset);
-			Memory::Write_U8(thebyte, ptr + offset);
-			LogInfo("Wrote %08x to address %08x", thebyte, ptr + offset);
-			LogInfo("--------");
-			break;
-		}
+	{
+		LogInfo("Write 8-bit to pointer");
+		LogInfo("--------");
+		u32 ptr = Memory::Read_U32(new_addr);
+		u8 thebyte = data & 0xFF;
+		u32 offset = data >> 8;
+		LogInfo("Pointer: %08x", ptr);
+		LogInfo("Byte: %08x", thebyte);
+		LogInfo("Offset: %08x", offset);
+		Memory::Write_U8(thebyte, ptr + offset);
+		LogInfo("Wrote %08x to address %08x", thebyte, ptr + offset);
+		LogInfo("--------");
+		break;
+	}
 
 	case DATATYPE_16BIT:
-		{
-			LogInfo("Write 16-bit to pointer");
-			LogInfo("--------");
-			u32 ptr = Memory::Read_U32(new_addr);
-			u16 theshort = data & 0xFFFF;
-			u32 offset = (data >> 16) << 1;
-			LogInfo("Pointer: %08x", ptr);
-			LogInfo("Byte: %08x", theshort);
-			LogInfo("Offset: %08x", offset);
-			Memory::Write_U16(theshort, ptr + offset);
-			LogInfo("Wrote %08x to address %08x", theshort, ptr + offset);
-			LogInfo("--------");
-			break;
-		}
+	{
+		LogInfo("Write 16-bit to pointer");
+		LogInfo("--------");
+		u32 ptr = Memory::Read_U32(new_addr);
+		u16 theshort = data & 0xFFFF;
+		u32 offset = (data >> 16) << 1;
+		LogInfo("Pointer: %08x", ptr);
+		LogInfo("Byte: %08x", theshort);
+		LogInfo("Offset: %08x", offset);
+		Memory::Write_U16(theshort, ptr + offset);
+		LogInfo("Wrote %08x to address %08x", theshort, ptr + offset);
+		LogInfo("--------");
+		break;
+	}
 	case DATATYPE_32BIT_FLOAT:
 	case DATATYPE_32BIT:
 		LogInfo("Write 32-bit to pointer");
@@ -558,7 +560,7 @@ bool Subtype_WriteToPointer(u32 addr, u32 data)
 
 bool Subtype_AddCode(u32 addr, u32 data)
 {
-	// Used to incrment a value in memory
+	// Used to increment a value in memory
 	u32 new_addr = (addr & 0x81FFFFFF);
 	u8 size = (addr >> 25) & 0x03;
 	LogInfo("Hardware Address: %08x", new_addr);
@@ -587,21 +589,21 @@ bool Subtype_AddCode(u32 addr, u32 data)
 		LogInfo("--------");
 		break;
 	case DATATYPE_32BIT_FLOAT:
-		{
-			LogInfo("32-bit floating Add");
-			LogInfo("--------");
+	{
+		LogInfo("32-bit floating Add");
+		LogInfo("--------");
 
-			u32 read = Memory::Read_U32(new_addr);
-			float fread = *((float*)&read);
-			fread += (float)data;
-			u32 newval = *((u32*)&fread);
-			Memory::Write_U32(newval, new_addr);
-			LogInfo("Old Value %08x", read);
-			LogInfo("Increment %08x", data);
-			LogInfo("New value %08x", newval);
-			LogInfo("--------");
-			break;
-		}
+		u32 read = Memory::Read_U32(new_addr);
+		float fread = *((float*)&read);
+		fread += (float)data;
+		u32 newval = *((u32*)&fread);
+		Memory::Write_U32(newval, new_addr);
+		LogInfo("Old Value %08x", read);
+		LogInfo("Increment %08x", data);
+		LogInfo("New value %08x", newval);
+		LogInfo("--------");
+		break;
+	}
 	default:
 		LogInfo("Bad Size");
 		PanicAlert("Action Replay Error: Invalid size(%08x : address = %08x) in Add Code (%s)", size, addr, code.name.c_str());
@@ -639,57 +641,59 @@ bool ZeroCode_FillAndSlide(u32 val_last, u32 addr, u32 data) // This needs more 
 
 	switch (size)
 	{
-		case DATATYPE_8BIT:
-			LogInfo("8-bit Write");
-			LogInfo("--------");
-			for (int i = 0; i < write_num; i++) 
-			{
-				Memory::Write_U8(val & 0xFF, curr_addr);
-				curr_addr += addr_incr;
-				val += val_incr;
-				LogInfo("Write %08x to address %08x", val & 0xFF, curr_addr);
+	case DATATYPE_8BIT:
+		LogInfo("8-bit Write");
+		LogInfo("--------");
+		for (int i = 0; i < write_num; i++) 
+		{
+			Memory::Write_U8(val & 0xFF, curr_addr);
+			curr_addr += addr_incr;
+			val += val_incr;
+			LogInfo("Write %08x to address %08x", val & 0xFF, curr_addr);
 
-				LogInfo("Value Update: %08x", val);
-				LogInfo("Current Hardware Address Update: %08x", curr_addr);
-			}
-			LogInfo("--------");
-			break;
-		case DATATYPE_16BIT:
-			LogInfo("16-bit Write");
-			LogInfo("--------");
-			for (int i=0; i < write_num; i++) {
-				Memory::Write_U16(val & 0xFFFF, curr_addr);
-				LogInfo("Write %08x to address %08x", val & 0xFFFF, curr_addr);
-				curr_addr += addr_incr * 2;
-				val += val_incr;
-				LogInfo("Value Update: %08x", val);
-				LogInfo("Current Hardware Address Update: %08x", curr_addr);
-			}
-			LogInfo("--------");
-			break;
-		case DATATYPE_32BIT:
-			LogInfo("32-bit Write");
-			LogInfo("--------");
-			for (int i = 0; i < write_num; i++) {
-				Memory::Write_U32(val, curr_addr);
-				LogInfo("Write %08x to address %08x", val, curr_addr);
-				curr_addr += addr_incr * 4;
-				val += val_incr;
-				LogInfo("Value Update: %08x", val);
-				LogInfo("Current Hardware Address Update: %08x", curr_addr);
-			}
-			LogInfo("--------");
-			break;
-		default:
-			LogInfo("Bad Size");
-			PanicAlert("Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide (%s)", size, new_addr, code.name.c_str());
-			return false;
+			LogInfo("Value Update: %08x", val);
+			LogInfo("Current Hardware Address Update: %08x", curr_addr);
+		}
+		LogInfo("--------");
+		break;
+	case DATATYPE_16BIT:
+		LogInfo("16-bit Write");
+		LogInfo("--------");
+		for (int i=0; i < write_num; i++)
+		{
+			Memory::Write_U16(val & 0xFFFF, curr_addr);
+			LogInfo("Write %08x to address %08x", val & 0xFFFF, curr_addr);
+			curr_addr += addr_incr * 2;
+			val += val_incr;
+			LogInfo("Value Update: %08x", val);
+			LogInfo("Current Hardware Address Update: %08x", curr_addr);
+		}
+		LogInfo("--------");
+		break;
+	case DATATYPE_32BIT:
+		LogInfo("32-bit Write");
+		LogInfo("--------");
+		for (int i = 0; i < write_num; i++)
+		{
+			Memory::Write_U32(val, curr_addr);
+			LogInfo("Write %08x to address %08x", val, curr_addr);
+			curr_addr += addr_incr * 4;
+			val += val_incr;
+			LogInfo("Value Update: %08x", val);
+			LogInfo("Current Hardware Address Update: %08x", curr_addr);
+		}
+		LogInfo("--------");
+		break;
+	default:
+		LogInfo("Bad Size");
+		PanicAlert("Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide (%s)", size, new_addr, code.name.c_str());
+		return false;
 	}
 	return true;
 }
 
-// Looks like this is new??
-bool ZeroCode_MemoryCopy(u32 val_last, u32 addr, u32 data) // Has not been tested
+// Looks like this is new?? - untested
+bool ZeroCode_MemoryCopy(u32 val_last, u32 addr, u32 data)
 {
 	u32 addr_dest = val_last | 0x06000000;
 	u32 addr_src = (addr & 0x01FFFFFF) | 0x80000000;
@@ -704,7 +708,8 @@ bool ZeroCode_MemoryCopy(u32 val_last, u32 addr, u32 data) // Has not been teste
 		{ // Memory Copy With Pointers Support
 			LogInfo("Memory Copy With Pointers Support");
 			LogInfo("--------");
-			for (int i = 0; i < 138; i++) {
+			for (int i = 0; i < 138; i++)
+			{
 				Memory::Write_U8(Memory::Read_U8(addr_src + i), addr_dest + i);
 				LogInfo("Wrote %08x to address %08x", Memory::Read_U8(addr_src + i), addr_dest + i);
 			}

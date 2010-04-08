@@ -35,8 +35,6 @@ int total;
 const char *filter = "0123456789ABCDEFGHJKMNPQRTUVWXYZILOS";
 
 u32 genseeds[0x20];
-//u8 globalvar=0;
-//u8 globalvar2=0;
 
 
 const u8 bitstringlen[0x08] = {
@@ -408,9 +406,7 @@ bool batchdecrypt(u32 *codes, u16 size)
 
 int GetVal(const char *flt, char chr)
 {
-	int ret;
-
-	ret = (int)(strchr(flt,chr) - flt);
+	int ret = (int)(strchr(flt,chr) - flt);
 	switch (ret)
 	{
 	case 32: // 'I'
@@ -424,7 +420,6 @@ int GetVal(const char *flt, char chr)
 		ret = 5;
 		break;
 	}
-
 	return ret;
 }
 
@@ -516,4 +511,5 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry> &ops)
 		}
 	}
 }
+
 } //namespace ActionReplay

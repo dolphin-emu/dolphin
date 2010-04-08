@@ -23,21 +23,17 @@
 
 class CFileSearch
 {
-	public:
+public:
+	typedef std::vector<std::string>XStringVector;
 
-		typedef std::vector<std::string>XStringVector;
+	CFileSearch(const XStringVector& _rSearchStrings, const XStringVector& _rDirectories);
+	const XStringVector& GetFileNames() const;
 
-		CFileSearch(const XStringVector& _rSearchStrings, const XStringVector& _rDirectories);
+private:
 
-		const XStringVector& GetFileNames() const;
+	void FindFiles(const std::string& _searchString, const std::string& _strPath);
 
-
-	private:
-
-		void FindFiles(const std::string& _searchString, const std::string& _strPath);
-
-
-		XStringVector m_FileNames;
+	XStringVector m_FileNames;
 };
 
 #endif // _FILESEARCH_H_

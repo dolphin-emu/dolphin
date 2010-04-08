@@ -42,6 +42,6 @@ DiscIO::IVolume *GetVolume();
 
 void EjectVolume();
 
-}  // namespace
+} // end of namespace VolumeHandler
 
 #endif

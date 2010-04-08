@@ -123,7 +123,8 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 		sprintf(APPFileName, "%s%08x.app", ContentPath, Content.m_ContentID);
 
 		FILE* pAPPFile = fopen(APPFileName, "wb");
-		if (pAPPFile == NULL) {
+		if (pAPPFile == NULL)
+		{
 			PanicAlert("WAD installation failed: error creating %s", APPFileName);
 			return false;
 		}

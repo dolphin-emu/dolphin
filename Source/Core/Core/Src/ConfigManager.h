@@ -111,11 +111,7 @@ struct SConfig
 	static void Shutdown();
 
 private:
-
-	// constructor
 	SConfig();
-
-	// destructor
 	~SConfig();
 
 	static SConfig* m_Instance;

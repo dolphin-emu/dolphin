@@ -94,7 +94,7 @@ ElfReader::ElfReader(void *ptr)
 const char *ElfReader::GetSectionName(int section) const
 {
 	if (sections[section].sh_type == SHT_NULL)
-		return 0;
+		return NULL;
 
 	int nameOffset = sections[section].sh_name;
 	char *ptr = (char*)GetSectionDataPtr(header->e_shstrndx);
@@ -102,7 +102,7 @@ const char *ElfReader::GetSectionName(int section) const
 	if (ptr)
 		return ptr + nameOffset;
 	else
-		return 0;
+		return NULL;
 }
 
 void addrToHiLo(u32 addr, u16 &hi, s16 &lo)
@@ -207,7 +207,7 @@ SectionID ElfReader::GetSectionByName(const char *name, int firstSection) const
 	{
 		const char *secname = GetSectionName(i);
 
-		if (secname != 0 && strcmp(name, secname) == 0)
+		if (secname != NULL && strcmp(name, secname) == 0)
 			return i;
 	}
 	return -1;

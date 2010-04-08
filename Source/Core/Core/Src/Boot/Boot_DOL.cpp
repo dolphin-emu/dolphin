@@ -51,9 +51,9 @@ bool CDolLoader::Initialize(u8* _pBuffer, u32 _Size)
 		p[i] = Common::swap32(p[i]);
 
 	// load all text (code) sections
-	for(int i = 0; i < DOL_NUM_TEXT; i++)
+	for (int i = 0; i < DOL_NUM_TEXT; i++)
 	{
-		if(m_dolheader.textOffset[i] != 0)
+		if (m_dolheader.textOffset[i] != 0)
 		{
 			u8* pTemp = &_pBuffer[m_dolheader.textOffset[i]];
 			for (u32 num = 0; num < m_dolheader.textSize[i]; num++)
@@ -62,9 +62,9 @@ bool CDolLoader::Initialize(u8* _pBuffer, u32 _Size)
 	}
 
 	// load all data sections
-	for(int i = 0; i < DOL_NUM_DATA; i++)
+	for (int i = 0; i < DOL_NUM_DATA; i++)
 	{
-		if(m_dolheader.dataOffset[i] != 0)
+		if (m_dolheader.dataOffset[i] != 0)
 		{
 			u8* pTemp = &_pBuffer[m_dolheader.dataOffset[i]];
 			for (u32 num = 0; num < m_dolheader.dataSize[i]; num++)

@@ -123,7 +123,7 @@ bool Delete(const char *filename)
 	}
 #else
 	if (unlink(filename) == -1) {
-		WARN_LOG(COMMON, "Delete: DeleteFile failed on %s: %s", 
+		WARN_LOG(COMMON, "Delete: unlink failed on %s: %s", 
 				 filename, GetLastErrorMsg());
 		return false;
 	}
@@ -594,7 +594,6 @@ std::string GetPluginsDirectory()
 
 	INFO_LOG(COMMON, "GetPluginsDirectory: Setting to %s:", pluginsDir.c_str());
 	return pluginsDir;
-	
 }
 
 // Returns the path to where the sys file are

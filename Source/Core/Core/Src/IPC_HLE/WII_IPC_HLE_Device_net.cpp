@@ -105,58 +105,58 @@ bool CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);    
 
 	u32 ReturnValue = 0;
-    switch (Parameter)
-    {
-    case IOCTL_NWC24_SUSPEND_SCHEDULAR:
+	switch (Parameter)
+	{
+	case IOCTL_NWC24_SUSPEND_SCHEDULAR:
 		// NWC24iResumeForCloseLib  from NWC24SuspendScheduler (Input: none, Output: 32 bytes) 
-        INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_SUSPEND_SCHEDULAR - NI");
-        break;
+		INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_SUSPEND_SCHEDULAR - NI");
+		break;
 
-    case IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR: // NWC24iResumeForCloseLib
-        INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR - NI");
-        break;
+	case IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR: // NWC24iResumeForCloseLib
+		INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_EXEC_TRY_SUSPEND_SCHEDULAR - NI");
+		break;
 
-    case IOCTL_NWC24_UNK_3: // NWC24iResumeForCloseLib
-        INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_UNK_3 - NI");
-        break;
+	case IOCTL_NWC24_UNK_3: // NWC24iResumeForCloseLib
+		INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_UNK_3 - NI");
+		break;
 
-    case IOCTL_NWC24_STARTUP_SOCKET: // NWC24iStartupSocket
-        INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_STARTUP_SOCKET - NI");
-        break;
+	case IOCTL_NWC24_STARTUP_SOCKET: // NWC24iStartupSocket
+		INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_STARTUP_SOCKET - NI");
+		break;
 
-    case IOCTL_NWC24_LOCK_SOCKET: // WiiMenu
-        INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_LOCK_SOCKET - NI");
-        break;
+	case IOCTL_NWC24_LOCK_SOCKET: // WiiMenu
+		INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_LOCK_SOCKET - NI");
+		break;
 
-    case IOCTL_NWC24_UNLOCK_SOCKET:
-        INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_UNLOCK_SOCKET - NI");
-        break;
+	case IOCTL_NWC24_UNLOCK_SOCKET:
+		INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_UNLOCK_SOCKET - NI");
+		break;
 
-    case IOCTL_NWC24_REQUEST_GENERATED_USER_ID: // (Input: none, Output: 32 bytes)
-        INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
+	case IOCTL_NWC24_REQUEST_GENERATED_USER_ID: // (Input: none, Output: 32 bytes)
+		INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
 		memcpy(Memory::GetPointer(BufferOut), m_UserID.c_str(), m_UserID.length() + 1);
-        break;
+		break;
 
-    case IOCTL_NWC24_GET_SCHEDULAR_STAT:
-        INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_GET_SCHEDULAR_STAT - NI");
-        break;
+	case IOCTL_NWC24_GET_SCHEDULAR_STAT:
+		INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_GET_SCHEDULAR_STAT - NI");
+		break;
 
-    case IOCTL_NWC24_SAVE_MAIL_NOW:
-        INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW - NI");
-        break;
+	case IOCTL_NWC24_SAVE_MAIL_NOW:
+		INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_SAVE_MAIL_NOW - NI");
+		break;
 
-    case IOCTL_NWC24_REQUEST_SHUTDOWN:
+	case IOCTL_NWC24_REQUEST_SHUTDOWN:
 		// if ya set the IOS version to a very high value this happens ...
-        INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_REQUEST_SHUTDOWN - NI");
-        break;
+		INFO_LOG(WII_IPC_NET, "NET_KD_REQ: IOCTL_NWC24_REQUEST_SHUTDOWN - NI");
+		break;
 
-    default:
-        INFO_LOG(WII_IPC_NET, "/dev/net/kd/request::IOCtl request 0x%x (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-            Parameter, BufferIn, BufferInSize, BufferOut, BufferOutSize);
-        break;
-    }
+	default:
+		INFO_LOG(WII_IPC_NET, "/dev/net/kd/request::IOCtl request 0x%x (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+			Parameter, BufferIn, BufferInSize, BufferOut, BufferOutSize);
+		break;
+	}
 
-    // g_ReplyQueueLater.push(std::pair<u32, std::string>(_CommandAddress, GetDeviceName()));
+	// g_ReplyQueueLater.push(std::pair<u32, std::string>(_CommandAddress, GetDeviceName()));
 	Memory::Write_U32(ReturnValue, _CommandAddress + 4);
 
 	return true; 
@@ -240,7 +240,7 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 		u32 addr = CommandBuffer.PayloadBuffer.at(0).m_Address;
 		Memory::WriteBigEData((const u8*)&m_Ifconfig, addr, 8);
 		addr += 8;
-		for (unsigned int i = 0;i < 3; i++)
+		for (unsigned int i = 0; i < 3; i++)
 		{
 			netcfg_connection_t *conn = &m_Ifconfig.connection[i];
 
@@ -349,10 +349,12 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 // Handle /dev/net/ip/top requests
 CWII_IPC_HLE_Device_net_ip_top::CWII_IPC_HLE_Device_net_ip_top(u32 _DeviceID, const std::string& _rDeviceName) 
 	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
-{}
+{
+}
 
 CWII_IPC_HLE_Device_net_ip_top::~CWII_IPC_HLE_Device_net_ip_top() 
-{}
+{
+}
 
 bool CWII_IPC_HLE_Device_net_ip_top::Open(u32 _CommandAddress, u32 _Mode)
 {
@@ -417,58 +419,57 @@ u32 CWII_IPC_HLE_Device_net_ip_top::ExecuteCommand(u32 _Command, u32 _BufferIn, 
 		break;
 
 	case IOCTL_SO_SOCKET:
-		{
-			u32 AF		= Memory::Read_U32(_BufferIn);
-			u32 TYPE	= Memory::Read_U32(_BufferIn + 0x04);
-			u32 PROT	= Memory::Read_U32(_BufferIn + 0x04 * 2);
-//			u32 Unk1	= Memory::Read_U32(_BufferIn + 0x04 * 3);
-			u32 Socket	= (u32)socket(AF, TYPE, PROT);
-			return Common::swap32(Socket); // So it doesn't get mangled later on
-		}
+	{
+		u32 AF		= Memory::Read_U32(_BufferIn);
+		u32 TYPE	= Memory::Read_U32(_BufferIn + 0x04);
+		u32 PROT	= Memory::Read_U32(_BufferIn + 0x04 * 2);
+//		u32 Unk1	= Memory::Read_U32(_BufferIn + 0x04 * 3);
+		u32 Socket	= (u32)socket(AF, TYPE, PROT);
+		return Common::swap32(Socket); // So it doesn't get mangled later on
 		break;
+	}
 
 	case IOCTL_SO_BIND:
-		{
-			bind_params *addr = (bind_params*)Memory::GetPointer(_BufferIn);
-			GC_sockaddr_in addrPC;
-			memcpy(&addrPC, addr->name, sizeof(GC_sockaddr_in));
-			sockaddr_in address;
-			address.sin_family = addrPC.sin_family;
-			address.sin_addr.s_addr = addrPC.sin_addr.s_addr_;
-			address.sin_port = htons(addrPC.sin_port);
-			int Return = bind(addr->socket, (sockaddr*)&address, sizeof(address));
-			return Return;
-			//int bind(int s, struct sockaddr *addr, int addrlen);
-		}
+	{
+		bind_params *addr = (bind_params*)Memory::GetPointer(_BufferIn);
+		GC_sockaddr_in addrPC;
+		memcpy(&addrPC, addr->name, sizeof(GC_sockaddr_in));
+		sockaddr_in address;
+		address.sin_family = addrPC.sin_family;
+		address.sin_addr.s_addr = addrPC.sin_addr.s_addr_;
+		address.sin_port = htons(addrPC.sin_port);
+		int Return = bind(addr->socket, (sockaddr*)&address, sizeof(address));
+		return Return;
+		//int bind(int s, struct sockaddr *addr, int addrlen);
 		break;
+	}
 
 	case IOCTL_SO_LISTEN:
-		{
-			u32 S = Memory::Read_U32(_BufferIn);
-			u32 BACKLOG = Memory::Read_U32(_BufferIn + 0x04);
-			u32 Return = listen(S, BACKLOG);
-			return Return;
-		}
+	{
+		u32 S = Memory::Read_U32(_BufferIn);
+		u32 BACKLOG = Memory::Read_U32(_BufferIn + 0x04);
+		u32 Return = listen(S, BACKLOG);
+		return Return;
 		break;
+	}
 
 	case IOCTL_SO_ACCEPT:
-		{
-			//TODO: (Sonic)Check if this is correct
-			u32 S = Memory::Read_U32(_BufferIn);
-			socklen_t addrlen;
-			struct sockaddr_in address;
-			u32 Return = (u32)accept(S, (struct sockaddr *)&address, &addrlen);
-			GC_sockaddr_in *addr = (GC_sockaddr_in*)Memory::GetPointer(BufferOut);
-			addr->sin_family = (u8)address.sin_family;
-			addr->sin_addr.s_addr_ = address.sin_addr.s_addr;
-			addr->sin_port = address.sin_port;
-			socklen_t *Len = (socklen_t *)Memory::GetPointer(BufferOut + 0x04);
-			*Len = addrlen;
-			return Return;
-			//int accept(int s, struct sockaddr *addr, int *addrlen);
-			///dev/net/ip/top::IOCtl request 0x1 (BufferIn: (000318c0, 4), BufferOut: (00058a4c, 8)
-		}
-		break;
+	{
+		//TODO: (Sonic)Check if this is correct
+		u32 S = Memory::Read_U32(_BufferIn);
+		socklen_t addrlen;
+		struct sockaddr_in address;
+		u32 Return = (u32)accept(S, (struct sockaddr *)&address, &addrlen);
+		GC_sockaddr_in *addr = (GC_sockaddr_in*)Memory::GetPointer(BufferOut);
+		addr->sin_family = (u8)address.sin_family;
+		addr->sin_addr.s_addr_ = address.sin_addr.s_addr;
+		addr->sin_port = address.sin_port;
+		socklen_t *Len = (socklen_t *)Memory::GetPointer(BufferOut + 0x04);
+		*Len = addrlen;
+		return Return;
+		//int accept(int s, struct sockaddr *addr, int *addrlen);
+		///dev/net/ip/top::IOCtl request 0x1 (BufferIn: (000318c0, 4), BufferOut: (00058a4c, 8)
+	}
 
 	case IOCTL_SO_GETHOSTID: 
 		return 127 << 24 | 1;
@@ -504,6 +505,5 @@ bool CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 _CommandAddress)
 	}
 
 	Memory::Write_U32(ReturnValue, _CommandAddress+4);
-
 	return true; 
 }

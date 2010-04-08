@@ -23,7 +23,8 @@ namespace VolumeHandler
 
 DiscIO::IVolume* g_pVolume = NULL;
 
-DiscIO::IVolume *GetVolume() {
+DiscIO::IVolume *GetVolume()
+{
 	return g_pVolume;
 }
 
@@ -50,7 +51,7 @@ bool SetVolumeName(const std::string& _rFullPath)
 
     g_pVolume = DiscIO::CreateVolumeFromFilename(_rFullPath);
 
-	return g_pVolume != NULL;
+	return (g_pVolume != NULL);
 }
 
 void SetVolumeDirectory(const std::string& _rFullPath, bool _bIsWii, const std::string& _rApploader, const std::string& _rDOL)
@@ -82,7 +83,6 @@ bool ReadToPtr(u8* ptr, u64 _dwOffset, u64 _dwLength)
         g_pVolume->Read(_dwOffset, _dwLength, ptr);
         return true;
     }
-
     return false;
 }
 
@@ -93,13 +93,12 @@ bool RAWReadToPtr( u8* ptr, u64 _dwOffset, u64 _dwLength )
 		g_pVolume->RAWRead(_dwOffset, _dwLength, ptr);
 		return true;
 	}
-
 	return false;
 }
 
 bool IsValid()
 {
-    return g_pVolume != NULL;
+    return (g_pVolume != NULL);
 }
 
 bool IsWii()
@@ -110,4 +109,4 @@ bool IsWii()
     return false;
 }
 
-}  // namespace
+} // end of namespace VolumeHandler

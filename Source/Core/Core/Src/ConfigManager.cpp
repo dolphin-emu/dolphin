@@ -57,95 +57,90 @@ void SConfig::SaveSettings()
 {
 	NOTICE_LOG(BOOT, "Saving Settings to %s", File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	IniFile ini;
-	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)); // yes we must load first to not kill unknown stuff
+	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)); // load first to not kill unknown stuff
 
 	// General
+	ini.Set("General", "LastFilename",	m_LastFilename);
+
+	// ISO folders
+	ini.Set("General", "GCMPathes",		(int)m_ISOFolder.size());
+
+	for (size_t i = 0; i < m_ISOFolder.size(); i++)
 	{
-		ini.Set("General", "LastFilename",	m_LastFilename);
-
-		// ISO folders
-		ini.Set("General", "GCMPathes",		(int)m_ISOFolder.size());
-
-		for (size_t i = 0; i < m_ISOFolder.size(); i++)
-		{
-			TCHAR tmp[16];
-			sprintf(tmp, "GCMPath%i", (int)i);
-			ini.Set("General", tmp, m_ISOFolder[i]);
-		}
-
-		ini.Set("General", "RecersiveGCMPaths", m_RecursiveISOFolder);
+		TCHAR tmp[16];
+		sprintf(tmp, "GCMPath%i", (int)i);
+		ini.Set("General", tmp, m_ISOFolder[i]);
 	}
 
+	ini.Set("General", "RecersiveGCMPaths", m_RecursiveISOFolder);
+
+	// Interface		
+	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
+	ini.Set("Interface", "UsePanicHandlers",	m_LocalCoreStartupParameter.bUsePanicHandlers);
+	ini.Set("Interface", "HideCursor",			m_LocalCoreStartupParameter.bHideCursor);
+	ini.Set("Interface", "AutoHideCursor",		m_LocalCoreStartupParameter.bAutoHideCursor);
+	ini.Set("Interface", "Theme",				m_LocalCoreStartupParameter.iTheme);
+	ini.Set("Interface", "MainWindowPosX",		m_LocalCoreStartupParameter.iPosX);
+	ini.Set("Interface", "MainWindowPosY",		m_LocalCoreStartupParameter.iPosY);
+	ini.Set("Interface", "MainWindowWidth",		m_LocalCoreStartupParameter.iWidth);
+	ini.Set("Interface", "MainWindowHeight",	m_LocalCoreStartupParameter.iHeight);
+	ini.Set("Interface", "Language",			m_InterfaceLanguage);
+	ini.Set("Interface", "ShowToolbar",			m_InterfaceToolbar);
+	ini.Set("Interface", "ShowStatusbar",		m_InterfaceStatusbar);
+	ini.Set("Interface", "ShowLogWindow",		m_InterfaceLogWindow);
+	ini.Set("Interface", "ShowConsole",			m_InterfaceConsole);
+
+	// Game List Control
+	ini.Set("GameList", "ListDrives",	m_ListDrives);
+	ini.Set("GameList", "ListWad",		m_ListWad);
+	ini.Set("GameList", "ListWii",		m_ListWii);
+	ini.Set("GameList", "ListGC",		m_ListGC);
+	ini.Set("GameList", "ListJap",		m_ListJap);
+	ini.Set("GameList", "ListPal",		m_ListPal);
+	ini.Set("GameList", "ListUsa",		m_ListUsa);
+	ini.Set("GameList", "ListFrance",	m_ListFrance);
+	ini.Set("GameList", "ListItaly",	m_ListItaly);
+	ini.Set("GameList", "ListKorea",	m_ListKorea);
+	ini.Set("GameList", "ListTaiwan",	m_ListTaiwan);
+	ini.Set("GameList", "ListUnknown",	m_ListUnknown);
+
+	// Core
+	ini.Set("Core", "HLE_BS2",			m_LocalCoreStartupParameter.bHLE_BS2);
+	ini.Set("Core", "CPUCore",			m_LocalCoreStartupParameter.iCPUCore);
+	ini.Set("Core", "CPUThread",		m_LocalCoreStartupParameter.bCPUThread);
+	ini.Set("Core", "DSPThread",		m_LocalCoreStartupParameter.bDSPThread);
+	ini.Set("Core", "SkipIdle",			m_LocalCoreStartupParameter.bSkipIdle);
+	ini.Set("Core", "LockThreads",		m_LocalCoreStartupParameter.bLockThreads);
+	ini.Set("Core", "DefaultGCM",		m_LocalCoreStartupParameter.m_strDefaultGCM);
+	ini.Set("Core", "DVDRoot",			m_LocalCoreStartupParameter.m_strDVDRoot);
+	ini.Set("Core", "Apploader",		m_LocalCoreStartupParameter.m_strApploader);
+	ini.Set("Core", "EnableCheats",		m_LocalCoreStartupParameter.bEnableCheats);
+	ini.Set("Core", "SelectedLanguage",	m_LocalCoreStartupParameter.SelectedLanguage);
+	ini.Set("Core", "MemcardA",			m_strMemoryCardA);
+	ini.Set("Core", "MemcardB",			m_strMemoryCardB);
+	ini.Set("Core", "SlotA",			m_EXIDevice[0]);
+	ini.Set("Core", "SlotB",			m_EXIDevice[1]);
+	ini.Set("Core", "SerialPort1",		m_EXIDevice[2]);
+	char sidevicenum[16];
+	for (int i = 0; i < 4; ++i)
 	{
-		// Interface		
-		ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
-		ini.Set("Interface", "UsePanicHandlers",	m_LocalCoreStartupParameter.bUsePanicHandlers);
-		ini.Set("Interface", "HideCursor",			m_LocalCoreStartupParameter.bHideCursor);
-		ini.Set("Interface", "AutoHideCursor",		m_LocalCoreStartupParameter.bAutoHideCursor);
-		ini.Set("Interface", "Theme",				m_LocalCoreStartupParameter.iTheme);
-		ini.Set("Interface", "MainWindowPosX",		m_LocalCoreStartupParameter.iPosX);
-		ini.Set("Interface", "MainWindowPosY",		m_LocalCoreStartupParameter.iPosY);
-		ini.Set("Interface", "MainWindowWidth",		m_LocalCoreStartupParameter.iWidth);
-		ini.Set("Interface", "MainWindowHeight",	m_LocalCoreStartupParameter.iHeight);
-		ini.Set("Interface", "Language",			m_InterfaceLanguage);
-		ini.Set("Interface", "ShowToolbar",			m_InterfaceToolbar);
-		ini.Set("Interface", "ShowStatusbar",		m_InterfaceStatusbar);
-		ini.Set("Interface", "ShowLogWindow",		m_InterfaceLogWindow);
-		ini.Set("Interface", "ShowConsole",			m_InterfaceConsole);
-
-		// Game List Control
-		ini.Set("GameList", "ListDrives",	m_ListDrives);
-		ini.Set("GameList", "ListWad",		m_ListWad);
-		ini.Set("GameList", "ListWii",		m_ListWii);
-		ini.Set("GameList", "ListGC",		m_ListGC);
-		ini.Set("GameList", "ListJap",		m_ListJap);
-		ini.Set("GameList", "ListPal",		m_ListPal);
-		ini.Set("GameList", "ListUsa",		m_ListUsa);
-		ini.Set("GameList", "ListFrance",	m_ListFrance);
-		ini.Set("GameList", "ListItaly",	m_ListItaly);
-		ini.Set("GameList", "ListKorea",	m_ListKorea);
-		ini.Set("GameList", "ListTaiwan",	m_ListTaiwan);
-		ini.Set("GameList", "ListUnknown",	m_ListUnknown);
-
-		// Core
-		ini.Set("Core", "HLE_BS2",			m_LocalCoreStartupParameter.bHLE_BS2);
-		ini.Set("Core", "CPUCore",			m_LocalCoreStartupParameter.iCPUCore);
-		ini.Set("Core", "CPUThread",		m_LocalCoreStartupParameter.bCPUThread);
-		ini.Set("Core", "DSPThread",		m_LocalCoreStartupParameter.bDSPThread);
-		ini.Set("Core", "SkipIdle",			m_LocalCoreStartupParameter.bSkipIdle);
-		ini.Set("Core", "LockThreads",		m_LocalCoreStartupParameter.bLockThreads);
-		ini.Set("Core", "DefaultGCM",		m_LocalCoreStartupParameter.m_strDefaultGCM);
-		ini.Set("Core", "DVDRoot",			m_LocalCoreStartupParameter.m_strDVDRoot);
-		ini.Set("Core", "Apploader",		m_LocalCoreStartupParameter.m_strApploader);
-		ini.Set("Core", "EnableCheats",		m_LocalCoreStartupParameter.bEnableCheats);
-		ini.Set("Core", "SelectedLanguage",	m_LocalCoreStartupParameter.SelectedLanguage);
-		ini.Set("Core", "MemcardA",			m_strMemoryCardA);
-		ini.Set("Core", "MemcardB",			m_strMemoryCardB);
-		ini.Set("Core", "SlotA",			m_EXIDevice[0]);
-		ini.Set("Core", "SlotB",			m_EXIDevice[1]);
-		ini.Set("Core", "SerialPort1",		m_EXIDevice[2]);
-		char sidevicenum[16];
-		for (int i = 0; i < 4; ++i)
-		{
-			sprintf(sidevicenum, "SIDevice%i", i);
-			ini.Set("Core", sidevicenum,	m_SIDevice[i]);
-		}
-
-		ini.Set("Core", "WiiSDCard", m_WiiSDCard);
-		ini.Set("Core", "WiiKeyboard", m_WiiKeyboard);
-		ini.Set("Core", "RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
-		ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
-		ini.Set("Core", "FrameLimit",		m_Framelimit);
-
-		// Plugins
-		ini.Set("Core", "GFXPlugin",	m_LocalCoreStartupParameter.m_strVideoPlugin);
-		ini.Set("Core", "DSPPlugin",	m_LocalCoreStartupParameter.m_strDSPPlugin);
-		ini.Set("Core", "PadPlugin",	m_LocalCoreStartupParameter.m_strPadPlugin[0]);
-		ini.Set("Core", "WiiMotePlugin",m_LocalCoreStartupParameter.m_strWiimotePlugin[0]);
+		sprintf(sidevicenum, "SIDevice%i", i);
+		ini.Set("Core", sidevicenum, m_SIDevice[i]);
 	}
+
+	ini.Set("Core", "WiiSDCard", m_WiiSDCard);
+	ini.Set("Core", "WiiKeyboard", m_WiiKeyboard);
+	ini.Set("Core", "RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
+	ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
+	ini.Set("Core", "FrameLimit",		m_Framelimit);
+
+	// Plugins
+	ini.Set("Core", "GFXPlugin",	m_LocalCoreStartupParameter.m_strVideoPlugin);
+	ini.Set("Core", "DSPPlugin",	m_LocalCoreStartupParameter.m_strDSPPlugin);
+	ini.Set("Core", "PadPlugin",	m_LocalCoreStartupParameter.m_strPadPlugin[0]);
+	ini.Set("Core", "WiiMotePlugin",m_LocalCoreStartupParameter.m_strWiimotePlugin[0]);
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-
 	m_SYSCONF->Save();
 }
 

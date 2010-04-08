@@ -104,7 +104,8 @@ void Patch(u32 address, const char *hle_func_name)
 {
 	for (u32 i = 0; i < sizeof(OSPatches) / sizeof(SPatch); i++)
 	{
-		if (!strcmp(OSPatches[i].m_szPatchName, hle_func_name)) {
+		if (!strcmp(OSPatches[i].m_szPatchName, hle_func_name))
+		{
 			u32 HLEPatchValue = (1 & 0x3f) << 26;
 			Memory::Write_U32(HLEPatchValue | i, address);
 			return;
@@ -121,7 +122,8 @@ void PatchFunctions()
 		if (symbol > 0)
 		{
 			u32 HLEPatchValue = (1 & 0x3f) << 26;
-			for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4) {
+			for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
+			{
 				orig_instruction[addr] = Memory::ReadUnchecked_U32(addr);
 				Memory::Write_U32(HLEPatchValue | i, addr);
 			}
@@ -166,4 +168,4 @@ u32 GetOrigInstruction(u32 addr)
 		return 0;
 }
 
-}
+}  // end of namespace HLE

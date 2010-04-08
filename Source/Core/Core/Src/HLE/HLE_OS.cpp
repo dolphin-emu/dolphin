@@ -117,20 +117,20 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 
 			case 'd':
 			case 'i':
-				{
-					//u64 Double = Memory::Read_U64(Parameter);
-					_rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
-				}
+			{
+				//u64 Double = Memory::Read_U64(Parameter);
+				_rOutBuffer += StringFromFormat(ArgumentBuffer, Parameter);
 				break;
+			}
 			
 			case 'f':
-				{
-					_rOutBuffer += StringFromFormat(ArgumentBuffer, 
-													rPS0(FloatingParameterCounter));
-					FloatingParameterCounter++;
-					ParameterCounter--;
-				}
+			{
+				_rOutBuffer += StringFromFormat(ArgumentBuffer, 
+												rPS0(FloatingParameterCounter));
+				FloatingParameterCounter++;
+				ParameterCounter--;
 				break;
+			}
 
 			case 'p':
 				// Override, so 64bit dolphin prints 32bit pointers, since the ppc is 32bit :)
@@ -153,4 +153,4 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 		_rOutBuffer.resize(_rOutBuffer.length() - 1);
 }
 
-}
+}  // end of namespace HLE_OS

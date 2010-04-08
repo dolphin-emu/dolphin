@@ -53,7 +53,7 @@ void StopTrace()
 	if (tracefile)
 	{
 		fclose(tracefile);
-		tracefile = 0;
+		tracefile = NULL;
 	}
 }
 
@@ -143,5 +143,5 @@ int SyncTrace()
 	return 1;
 
 }
-}
 
+} // end of namespace Core

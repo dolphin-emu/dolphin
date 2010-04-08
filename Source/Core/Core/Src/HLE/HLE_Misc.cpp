@@ -26,7 +26,7 @@ namespace HLE_Misc
 {
 
 // Helper to quickly read the floating point value at a memory location.
-inline float F(u32 addr) 
+inline float F(u32 addr)
 {
 	u32 mem = Memory::ReadFast32(addr);
 	return *((float*)&mem);
