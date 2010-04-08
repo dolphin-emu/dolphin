@@ -720,6 +720,7 @@ int WiimotePairUp(void)
 					
 				}
 			} while (BluetoothFindNextDevice(hFind, &btdi));
+			BluetoothFindRadioClose(hFind);
 		}
 
 		SLEEP(10);
