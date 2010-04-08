@@ -81,18 +81,11 @@ bool BootCore(const std::string& _rFilename)
 	#if defined(HAVE_WX) && HAVE_WX		
 		if (main_frame->g_pCodeWindow)
 		{
-			//StartUp.bCPUThread = code_frame->UseDualCore();
-			StartUp.iCPUCore = !main_frame->g_pCodeWindow->UseInterpreter();
 			StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
 			StartUp.bAutomaticStart = main_frame->g_pCodeWindow->AutomaticStart();
 			StartUp.bJITUnlimitedCache = main_frame->g_pCodeWindow->UnlimitedJITCache();
 			StartUp.bJITBlockLinking = main_frame->g_pCodeWindow->JITBlockLinking();
 		}
-		else
-		{
-			//StartUp.bCPUThread = false;
-			//StartUp.bUseJIT = true;
-		}		
 		StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false; // RUNNING_DEBUG
 	#endif 
 
