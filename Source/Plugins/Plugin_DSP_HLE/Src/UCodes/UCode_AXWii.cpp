@@ -19,6 +19,7 @@
 
 #include "../MailHandler.h"
 #include "Mixer.h"
+#include "../DSPHandler.h"
 
 #include "UCodes.h"
 #include "UCode_AXStructs.h"
@@ -50,24 +51,43 @@ CUCode_AXWii::~CUCode_AXWii()
 
 void CUCode_AXWii::HandleMail(u32 _uMail)
 {
-	if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
-	{
-		// a new List
+	static s8 newucodemails = -1;
+
+	if (newucodemails > -1) {
+		newucodemails++;
+		if (newucodemails == 10) {
+			newucodemails = -1;				
+			m_rMailHandler.PushMail(DSP_RESUME);
+		}
 	}
-	else if (_uMail == 0xCDD10000) // Action 0 - restart
-	{
-		m_rMailHandler.PushMail(DSP_RESUME);
-	}
-	else if (_uMail == 0xCDD10001) // Action 1 - new ucode upload
-	{
-		NOTICE_LOG(DSPHLE,"Game wanted to upload new ucode!");
-	}
-	else if ((_uMail & 0xFFFF0000) == 0xCDD10000) // Action 2/3
-	{
-	}
-	else
-	{
-		AXTask(_uMail);
+	else {	
+		if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
+		{
+			// We are expected to get a new CmdBlock
+			DEBUG_LOG(DSPHLE, "GetNextCmdBlock (%ibytes)", (u16)_uMail);
+		}
+		else if (_uMail == 0xCDD10000) // Action 0 - AX_ResumeTask();
+		{
+			m_rMailHandler.PushMail(DSP_RESUME);
+		}
+		else if (_uMail == 0xCDD10001) // Action 1 - new ucode upload
+		{
+			NOTICE_LOG(DSPHLE,"DSP IROM - New Ucode!");
+			newucodemails = 0;
+		}
+		else if (_uMail == 0xCDD10002) // Action 2 - IROM_Reset(); ( WII: De Blob, Cursed Mountain,...)
+		{
+			NOTICE_LOG(DSPHLE,"DSP IROM - Reset!");
+			CDSPHandler::GetInstance().SetUCode(UCODE_ROM);
+		}
+		else if (_uMail == 0xCDD10003) // Action 3 - AX_GetNextCmdBlock();
+		{
+		}
+		else
+		{
+			DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : AXTask Mail (%08x)", _uMail);
+			AXTask(_uMail);
+		}
 	}
 }
 

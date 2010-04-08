@@ -521,7 +521,7 @@ if env['bundle']:
         rev = ""
     # Make tar ball (TODO put inside normal dir)
     tar_env = env.Clone()
-    tarball = tar_env.Tar('dolphin-2.0RC1-'+ rev +'.tar.bz2', env['prefix'])
+    tarball = tar_env.Tar('dolphin-2.0.tar.bz2', env['prefix'])
     tar_env.Append(TARFLAGS='-j', 
                    TARCOMSTR="Creating release tarball")
 

@@ -23,6 +23,7 @@
 #include "../Globals.h"
 #include "Mixer.h"
 #include "../MailHandler.h"
+#include "../DSPHandler.h"
 
 #include "UCodes.h"
 #include "UCode_AXStructs.h"
@@ -65,7 +66,7 @@ static void ProcessUpdates(AXPB &PB)
 	int on = 0, off = 0;
 	for (int j = 0; j < numupd; j++)
 	{
-		int k = g_Config.m_EnableRE0Fix ? 0 : j;
+		int k = g_Config.m_RE0Fix ? 0 : j;
 
 		const u16 updpar = Memory_Read_U16(updaddr + k);
 		const u16 upddata = Memory_Read_U16(updaddr + k + 2);
@@ -215,26 +216,43 @@ void CUCode_AX::MixAdd(short* _pBuffer, int _iSize)
 // Handle incoming mail
 void CUCode_AX::HandleMail(u32 _uMail)
 {
-	if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
-	{
-		// We are expected to get a new CmdBlock
-		DEBUG_LOG(DSPHLE, "GetNextCmdBlock (%ibytes)", (u16)_uMail);
+	static s8 newucodemails = -1;
+
+	if (newucodemails > -1) {
+		newucodemails++;
+		if (newucodemails == 10) {
+			newucodemails = -1;				
+			m_rMailHandler.PushMail(DSP_RESUME);
+		}
 	}
-	else if (_uMail == 0xCDD10000) // Action 0 - restart
-	{
-		m_rMailHandler.PushMail(DSP_RESUME);
-	}
-	else if (_uMail == 0xCDD10001) // Action 1 - new ucode upload
-	{
-		NOTICE_LOG(DSPHLE,"Game wanted to upload new ucode!");
-	}
-	else if ((_uMail & 0xFFFF0000) == 0xCDD10000) // Action 2/3
-	{
-	}
-	else
-	{
-		DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : AXTask Mail (%08x)", _uMail);
-		AXTask(_uMail);
+	else {	
+		if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
+		{
+			// We are expected to get a new CmdBlock
+			DEBUG_LOG(DSPHLE, "GetNextCmdBlock (%ibytes)", (u16)_uMail);
+		}
+		else if (_uMail == 0xCDD10000) // Action 0 - AX_ResumeTask();
+		{
+			m_rMailHandler.PushMail(DSP_RESUME);
+		}
+		else if (_uMail == 0xCDD10001) // Action 1 - new ucode upload ( GC: BayBlade S.T.B,...)
+		{
+			NOTICE_LOG(DSPHLE,"DSP IROM - New Ucode!");
+			newucodemails = 0;
+		}
+		else if (_uMail == 0xCDD10002) // Action 2 - IROM_Reset(); ( GC: NFS Carbon, FF Crystal Chronicles,...)
+		{
+			NOTICE_LOG(DSPHLE,"DSP IROM - Reset!");
+			CDSPHandler::GetInstance().SetUCode(UCODE_ROM);
+		}
+		else if (_uMail == 0xCDD10003) // Action 3 - AX_GetNextCmdBlock();
+		{
+		}
+		else
+		{
+			DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : AXTask Mail (%08x)", _uMail);
+			AXTask(_uMail);
+		}
 	}
 }
 
