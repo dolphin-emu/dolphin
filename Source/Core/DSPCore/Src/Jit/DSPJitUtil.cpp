@@ -19,6 +19,7 @@
 #define _DSP_JIT_UTIL_H
 
 #include "../DSPMemoryMap.h"
+#include "../DSPHWInterface.h"
 #include "../DSPEmitter.h"
 #include "x64Emitter.h"
 #include "ABI.h"
@@ -195,32 +196,26 @@ void DSPEmitter::ext_dmem_write(u32 dest, u32 src)
 
 	u16 addr = g_dsp.r[dest];
 	u16 val = g_dsp.r[src];
-	switch (addr >> 12) {
-	case 0x0: // 0xxx DRAM
+	u16 saddr = addr >> 12; 
+
+	if (saddr == 0)
 		g_dsp.dram[addr & DSP_DRAM_MASK] = val;
-		break;
-		
-	case 0xf: // Fxxx HW regs
-		// Can ext write to ifx?
+	else if (saddr == 0xf)
 		gdsp_ifx_write(addr, val);
-		break;
-	}
 
 }
 
 u16 DSPEmitter::ext_dmem_read(u16 addr)
 {
-	switch (addr >> 12) {
-	case 0x0:  // 0xxx DRAM
+	u16 saddr = addr >> 12; 
+	if (saddr == 0)
 		return g_dsp.dram[addr & DSP_DRAM_MASK];
-		
-	case 0x1:  // 1xxx COEF
+	else if (saddr == 0x1)
 		return g_dsp.coef[addr & DSP_COEF_MASK];
-		
-	case 0xf:  // Fxxx HW regs
+	else if (saddr == 0xf)
 		return gdsp_ifx_read(addr);
-        
-	}
+
+	return 0;
 }
 
 #endif
