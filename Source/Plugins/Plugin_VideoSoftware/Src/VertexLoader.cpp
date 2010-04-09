@@ -152,8 +152,8 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 	_assert_msg_(VIDEO, FORMAT_UBYTE <= m_CurrentVat->g0.PosFormat && m_CurrentVat->g0.PosFormat <= FORMAT_FLOAT, "Invalid vertex position format!\n(m_VtxAttr.PosFormat = %d)", m_CurrentVat->g0.PosFormat);
 	_assert_msg_(VIDEO, 0 <= m_CurrentVat->g0.PosElements && m_CurrentVat->g0.PosElements <= 1, "Invalid number of vertex position elemnts!\n(m_VtxAttr.PosElements = %d)", m_CurrentVat->g0.PosElements);
 
-	m_positionLoader = tableReadPosition[g_VtxDesc.Position][m_CurrentVat->g0.PosFormat][m_CurrentVat->g0.PosElements];
-	m_VertexSize += tableReadPositionVertexSize[g_VtxDesc.Position][m_CurrentVat->g0.PosFormat][m_CurrentVat->g0.PosElements];
+	m_positionLoader = VertexLoader_Position::GetFunction(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements);
+	m_VertexSize += VertexLoader_Position::GetSize(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements);
 	AddAttributeLoader(LoadPosition);
 
 	// Normals
@@ -250,8 +250,8 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
 		_assert_msg_(VIDEO, FORMAT_UBYTE <= format && format <= FORMAT_FLOAT, "Invalid texture coordinates format!\n(format = %d)", format);
 		_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elemnts!\n(elements = %d)", elements);
 
-		m_texCoordLoader[i] = tableReadTexCoord[desc][format][elements];
-		m_VertexSize += tableReadTexCoordVertexSize[desc][format][elements];
+		m_texCoordLoader[i] = VertexLoader_TextCoord::GetFunction(desc, format, elements);
+		m_VertexSize += VertexLoader_TextCoord::GetSize(desc, format, elements);
 		if (m_texCoordLoader[i])
 			AddAttributeLoader(LoadTexCoord, i);
     }
