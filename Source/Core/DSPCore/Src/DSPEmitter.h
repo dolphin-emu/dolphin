@@ -32,6 +32,8 @@ class DSPEmitter : public Gen::XCodeBlock
 	CompiledCode *blocks;
 	u16 blockSize[0x10000];
 	bool *endBlock;
+	DISALLOW_COPY_AND_ASSIGN(DSPEmitter);
+
 public:
 	DSPEmitter();
 	~DSPEmitter();
@@ -45,8 +47,6 @@ public:
 	const u8 *Compile(int start_addr);
 
 	void STACKALIGN RunBlock(int cycles);
-	
-	DISALLOW_COPY_AND_ASSIGN(DSPEmitter);
 
 	// Memory helper functions
 	void increment_addr_reg(int reg);

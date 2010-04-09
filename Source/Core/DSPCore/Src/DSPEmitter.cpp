@@ -110,7 +110,7 @@ void DSPEmitter::Default(UDSPInstruction _inst)
 const u8 *DSPEmitter::Compile(int start_addr) {
 	AlignCode16();
 	const u8 *entryPoint = GetCodePtr();
-	ABI_PushAllCalleeSavedRegsAndAdjustStack();
+	//	ABI_PushAllCalleeSavedRegsAndAdjustStack();
 
 	int addr = start_addr;
 
@@ -129,8 +129,8 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 		CMP(32, R(EAX), Imm32(0));
 		FixupBranch noExceptionOccurred = J_CC(CC_L);
 		
-		ABI_CallFunction((void *)DSPInterpreter::HandleLoop);
-		ABI_PopAllCalleeSavedRegsAndAdjustStack();
+		//	ABI_CallFunction((void *)DSPInterpreter::HandleLoop);
+		//	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 		RET();
 		
 		SetJumpTarget(skipCheck);
@@ -152,10 +152,10 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 		CMP(32, R(EAX), Imm32(0));
 		FixupBranch rLoopCounterExit = J_CC(CC_LE);
 
-		// These functions branch and therefore only need to be called in the end
-		// of each block and in this order
+		// These functions branch and therefore only need to be called in the
+		// end of each block and in this order
 	    ABI_CallFunction((void *)&DSPInterpreter::HandleLoop);
-		ABI_PopAllCalleeSavedRegsAndAdjustStack();
+		//	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 		RET();
 
 		SetJumpTarget(rLoopAddressExit);
@@ -171,13 +171,13 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 		}
 
 		if (opcode->branch || endBlock[addr] 
-			|| DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+			|| (DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_IDLE_SKIP)) {
 			break;
-
+		}
 		addr += opcode->size;
 	}
 
-	ABI_PopAllCalleeSavedRegsAndAdjustStack();
+	//	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
 
 	blocks[start_addr] = (CompiledCode)entryPoint;
