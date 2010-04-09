@@ -21,6 +21,10 @@
 #include "VertexLoader_Normal.h"
 #include "NativeVertexWriter.h"
 
+#if _M_SSE >= 0x301
+#include <tmmintrin.h>
+#endif
+
 #define LOG_NORM8() // PRIM_LOG("norm: %f %f %f, ", ((s8*)VertexManager::s_pCurBufferPointer)[-3]/127.0f, ((s8*)VertexManager::s_pCurBufferPointer)[-2]/127.0f, ((s8*)VertexManager::s_pCurBufferPointer)[-1]/127.0f);
 #define LOG_NORM16() // PRIM_LOG("norm: %f %f %f, ", ((s16*)VertexManager::s_pCurBufferPointer)[-3]/32767.0f, ((s16*)VertexManager::s_pCurBufferPointer)[-2]/32767.0f, ((s16*)VertexManager::s_pCurBufferPointer)[-1]/32767.0f);
 #define LOG_NORMF() // PRIM_LOG("norm: %f %f %f, ", ((float*)VertexManager::s_pCurBufferPointer)[-3], ((float*)VertexManager::s_pCurBufferPointer)[-2], ((float*)VertexManager::s_pCurBufferPointer)[-1]);
@@ -411,14 +415,30 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Byte_Expand16()
     LOG_NORM16();
 }
 
+#if _M_SSE >= 0x301
+static const __m128i kMaskSwap16_3 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x0FFFF0405L, 0x02030001L);
+#endif
+
 void LOADERDECL VertexLoader_Normal::Normal_Index16_Short()
 {
     u16 Index = DataReadU16();
 	const u16* pData = (const u16 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]));
+
+#if _M_SSE >= 0x301
+
+    __m128i a = _mm_loadl_epi64((__m128i*)pData);
+    __m128i b = _mm_shuffle_epi8(a, kMaskSwap16_3);
+    _mm_storel_epi64((__m128i*)VertexManager::s_pCurBufferPointer, b);
+
+#else
+
     ((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(pData[0]);
     ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(pData[1]);
     ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(pData[2]);
     ((u16*)VertexManager::s_pCurBufferPointer)[3] = 0;
+
+#endif
+
     VertexManager::s_pCurBufferPointer += 8;
     LOG_NORM16();
 }
