@@ -175,6 +175,8 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	m_NativeFmt = NativeVertexFormat::Create();
 	loop_counter = 0;
 	VertexLoader_Normal::Init();
+	VertexLoader_Position::Init();
+	VertexLoader_TextCoord::Init();
 
 	m_VtxDesc = vtx_desc;
 	SetVAT(vtx_attr.g0.Hex, vtx_attr.g1.Hex, vtx_attr.g2.Hex);
@@ -268,8 +270,8 @@ void VertexLoader::CompileVertexTranslator()
 	_assert_msg_(VIDEO, FORMAT_UBYTE <= m_VtxAttr.PosFormat && m_VtxAttr.PosFormat <= FORMAT_FLOAT, "Invalid vertex position format!\n(m_VtxAttr.PosFormat = %d)", m_VtxAttr.PosFormat);
 	_assert_msg_(VIDEO, 0 <= m_VtxAttr.PosElements && m_VtxAttr.PosElements <= 1, "Invalid number of vertex position elemnts!\n(m_VtxAttr.PosElements = %d)", m_VtxAttr.PosElements);
 
-	WriteCall(tableReadPosition[m_VtxDesc.Position][m_VtxAttr.PosFormat][m_VtxAttr.PosElements]);
-	m_VertexSize += tableReadPositionVertexSize[m_VtxDesc.Position][m_VtxAttr.PosFormat][m_VtxAttr.PosElements];
+	WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
+	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements);
 	nat_offset += 12;
 
 	// OK, so we just got a point. Let's go back and read it for the bounding box.
@@ -423,8 +425,8 @@ void VertexLoader::CompileVertexTranslator()
 			_assert_msg_(VIDEO, 0 <= elements && elements <= 1, "Invalid number of texture coordinates elemnts!\n(elements = %d)", elements);
 
 			m_NativeFmt->m_components |= VB_HAS_UV0 << i;
-			WriteCall(tableReadTexCoord[tc[i]][format][elements]);
-			m_VertexSize += tableReadTexCoordVertexSize[tc[i]][format][elements];
+			WriteCall(VertexLoader_TextCoord::GetFunction(tc[i], format, elements));
+			m_VertexSize += VertexLoader_TextCoord::GetSize(tc[i], format, elements);
 		}
 
 		if (m_NativeFmt->m_components & (VB_HAS_TEXMTXIDX0 << i)) {
@@ -459,7 +461,7 @@ void VertexLoader::CompileVertexTranslator()
 			int j = i + 1;
 			for (; j < 8; ++j) {
 				if (tc[j] != NOT_PRESENT) {
-					WriteCall(TexCoord_Read_Dummy); // important to get indices right!
+					WriteCall(VertexLoader_TextCoord::GetDummyFunction()); // important to get indices right!
 					break;
 				}
 			}

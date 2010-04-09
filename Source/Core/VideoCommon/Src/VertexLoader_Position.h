@@ -18,17 +18,17 @@
 #ifndef VERTEXLOADER_POSITION_H
 #define VERTEXLOADER_POSITION_H
 
-typedef void (LOADERDECL *ReadPosision)();
+class VertexLoader_Position {
+public:
 
-// Hold function pointers of vertex loaders.
-// The first dimension corresponds to TVtxDesc.Position.
-// The second dimension corresponds to TVtxAttr.PosFormat.
-// The third dimension corresponds to TVtxAttr.PosElements.
-// The dimensions are aligned to 2^n for speed up.
-extern ReadPosision tableReadPosition[4][8][2];
+    // Init
+    static void Init(void);
 
-// Hold vertex size of each vertex format.
-// The dimensions are same as tableReadPosition.
-extern int tableReadPositionVertexSize[4][8][2];
+    // GetSize
+    static unsigned int GetSize(unsigned int _type, unsigned int _format, unsigned int _elements);
+
+    // GetFunction
+    static TPipelineFunction GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements);
+};
 
 #endif

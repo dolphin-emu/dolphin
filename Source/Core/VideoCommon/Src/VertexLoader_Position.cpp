@@ -20,8 +20,9 @@
 #include "VertexLoader.h"
 #include "VertexLoader_Position.h"
 #include "NativeVertexWriter.h"
+#include "CPUDetect.h"
 
-#if _M_SSE >= 301
+#if _M_SSE >= 0x301
 #include <tmmintrin.h>
 #endif
 
@@ -150,36 +151,35 @@ inline void Pos_ReadIndex_Short(int Index)
 	VertexManager::s_pCurBufferPointer += 12;
 }
 
-#if _M_SSE >= 0x301
-static const __m128i kMaskSwap32_3 = _mm_set_epi32(0xFFFFFFFFL, 0x08090A0BL, 0x04050607L, 0x00010203L);
-static const __m128i kMaskSwap32_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L);
-#endif
-
 template<bool three>
 inline void Pos_ReadIndex_Float(int Index)
 {
 	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]));
-
-#if _M_SSE >= 0x301
-
-	const __m128i a = _mm_loadu_si128((__m128i*)pData);
-	__m128i b = _mm_shuffle_epi8(a, three ? kMaskSwap32_3 : kMaskSwap32_2);
-	_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, b);
-
-#else
-
 	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
 	((u32*)VertexManager::s_pCurBufferPointer)[1] = Common::swap32(pData[1]);
 	if (three)
 		((u32*)VertexManager::s_pCurBufferPointer)[2] = Common::swap32(pData[2]);
 	else
 		((float*)VertexManager::s_pCurBufferPointer)[2] = 0.0f;
-
-#endif
-
 	LOG_VTX();
 	VertexManager::s_pCurBufferPointer += 12;
 }
+
+#if _M_SSE >= 0x301
+static const __m128i kMaskSwap32_3 = _mm_set_epi32(0xFFFFFFFFL, 0x08090A0BL, 0x04050607L, 0x00010203L);
+static const __m128i kMaskSwap32_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L);
+
+template<bool three>
+inline void Pos_ReadIndex_Float_SSSE3(int Index)
+{
+	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]));
+	const __m128i a = _mm_loadu_si128((__m128i*)pData);
+	__m128i b = _mm_shuffle_epi8(a, three ? kMaskSwap32_3 : kMaskSwap32_2);
+	_mm_storeu_si128((__m128i*)VertexManager::s_pCurBufferPointer, b);
+	LOG_VTX();
+	VertexManager::s_pCurBufferPointer += 12;
+}
+#endif
 
 // ==============================================================================
 // Index 8
@@ -209,7 +209,14 @@ void LOADERDECL Pos_ReadIndex16_UShort2() {Pos_ReadIndex_Short<u16, false>(DataR
 void LOADERDECL Pos_ReadIndex16_Short2()  {Pos_ReadIndex_Short<s16, false>(DataReadU16());}
 void LOADERDECL Pos_ReadIndex16_Float2()  {Pos_ReadIndex_Float<false>     (DataReadU16());}
 
-ReadPosision tableReadPosition[4][8][2] = {
+#if _M_SSE >= 0x301
+void LOADERDECL Pos_ReadIndex8_Float3_SSSE3()  {Pos_ReadIndex_Float_SSSE3<true>      (DataReadU8());}
+void LOADERDECL Pos_ReadIndex8_Float2_SSSE3()  {Pos_ReadIndex_Float_SSSE3<false>     (DataReadU8());}
+void LOADERDECL Pos_ReadIndex16_Float3_SSSE3()  {Pos_ReadIndex_Float_SSSE3<true>      (DataReadU16());}
+void LOADERDECL Pos_ReadIndex16_Float2_SSSE3()  {Pos_ReadIndex_Float_SSSE3<false>     (DataReadU16());}
+#endif
+
+static TPipelineFunction tableReadPosition[4][8][2] = {
 	{
 		{NULL, NULL,},
 		{NULL, NULL,},
@@ -240,7 +247,7 @@ ReadPosision tableReadPosition[4][8][2] = {
 	},
 };
 
-int tableReadPositionVertexSize[4][8][2] = {
+static int tableReadPositionVertexSize[4][8][2] = {
 	{
 		{0, 0,},
 		{0, 0,},
@@ -271,3 +278,26 @@ int tableReadPositionVertexSize[4][8][2] = {
 	},
 };
 
+
+void VertexLoader_Position::Init(void) {
+
+#if _M_SSE >= 0x301
+
+	if (cpu_info.bSSSE3) {
+		tableReadPosition[2][4][0] = Pos_ReadIndex8_Float2_SSSE3;
+		tableReadPosition[2][4][1] = Pos_ReadIndex8_Float3_SSSE3;
+		tableReadPosition[3][4][0] = Pos_ReadIndex16_Float2_SSSE3;
+		tableReadPosition[3][4][1] = Pos_ReadIndex16_Float3_SSSE3;
+	}
+
+#endif
+
+}
+
+unsigned int VertexLoader_Position::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements) {
+	return tableReadPositionVertexSize[_type][_format][_elements];
+}
+
+TPipelineFunction VertexLoader_Position::GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements) {
+	return tableReadPosition[_type][_format][_elements];
+}

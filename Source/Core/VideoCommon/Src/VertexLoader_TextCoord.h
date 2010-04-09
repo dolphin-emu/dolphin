@@ -20,19 +20,22 @@
 
 #include "NativeVertexFormat.h"
 
-typedef void (LOADERDECL *ReadTexCoord)();
+class VertexLoader_TextCoord
+{
+public:
 
-// Hold function pointers of texture coordinates loaders.
-// The first dimension corresponds to TVtxDesc.Tex?Coord.
-// The second dimension corresponds to TVtxAttr.texCoord[?].Format.
-// The third dimension corresponds to TVtxAttr.texCoord[?].Elements.
-// The dimensions are aligned to 2^n for speed up.
-extern ReadTexCoord tableReadTexCoord[4][8][2];
+    // Init
+    static void Init(void);
 
-// Hold vertex size of each vertex format.
-// The dimensions are same as tableReadPosition.
-extern int tableReadTexCoordVertexSize[4][8][2];
+    // GetSize
+    static unsigned int GetSize(unsigned int _type, unsigned int _format, unsigned int _elements);
 
-void LOADERDECL TexCoord_Read_Dummy();
+    // GetFunction
+    static TPipelineFunction GetFunction(unsigned int _type, unsigned int _format, unsigned int _elements);
+
+    // GetDummyFunction
+	// It is important to synchronize tcIndex.
+    static TPipelineFunction GetDummyFunction();
+};
 
 #endif

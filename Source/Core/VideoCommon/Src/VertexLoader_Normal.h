@@ -117,6 +117,11 @@ private:
     static void LOADERDECL Normal_Index16_Byte3_Indices3_Expand16();
     static void LOADERDECL Normal_Index16_Short3_Indices3();
     static void LOADERDECL Normal_Index16_Float3_Indices3();
+
+#if _M_SSE >= 0x301
+    static void LOADERDECL Normal_Index16_Short_SSSE3();
+#endif
+
 };
 
 #endif

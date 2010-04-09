@@ -20,6 +20,7 @@
 #include "VertexLoader.h"
 #include "VertexLoader_Normal.h"
 #include "NativeVertexWriter.h"
+#include "CPUDetect.h"
 
 #if _M_SSE >= 0x301
 #include <tmmintrin.h>
@@ -114,6 +115,18 @@ void VertexLoader_Normal::Init(void)
     m_TableExpand16[NRM_INDEX16][NRM_INDICES1][NRM_NBT3][FORMAT_BYTE]  	= Set(2,  Normal_Index16_Byte3_Indices1_Expand16);
     m_TableExpand16[NRM_INDEX16][NRM_INDICES3][NRM_NBT] [FORMAT_BYTE]  	= Set(2,  Normal_Index16_Byte_Expand16);
     m_TableExpand16[NRM_INDEX16][NRM_INDICES3][NRM_NBT3][FORMAT_BYTE]  	= Set(6,  Normal_Index16_Byte3_Indices3_Expand16);
+
+#if _M_SSE >= 0x301
+
+	if (cpu_info.bSSSE3) {
+		m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT] [FORMAT_USHORT]	= Set(2,  Normal_Index16_Short_SSSE3); //HACK
+		m_Table[NRM_INDEX16][NRM_INDICES1][NRM_NBT] [FORMAT_SHORT] 	= Set(2,  Normal_Index16_Short_SSSE3);
+		m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT] [FORMAT_USHORT]	= Set(2,  Normal_Index16_Short_SSSE3); //HACK
+		m_Table[NRM_INDEX16][NRM_INDICES3][NRM_NBT] [FORMAT_SHORT] 	= Set(2,  Normal_Index16_Short_SSSE3);
+	}
+
+#endif
+
 }
 
 unsigned int VertexLoader_Normal::GetSize(unsigned int _type, unsigned int _format, unsigned int _elements, unsigned int _index3)
@@ -415,33 +428,32 @@ void LOADERDECL VertexLoader_Normal::Normal_Index16_Byte_Expand16()
     LOG_NORM16();
 }
 
-#if _M_SSE >= 0x301
-static const __m128i kMaskSwap16_3 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x0FFFF0405L, 0x02030001L);
-#endif
-
 void LOADERDECL VertexLoader_Normal::Normal_Index16_Short()
 {
     u16 Index = DataReadU16();
 	const u16* pData = (const u16 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]));
-
-#if _M_SSE >= 0x301
-
-    __m128i a = _mm_loadl_epi64((__m128i*)pData);
-    __m128i b = _mm_shuffle_epi8(a, kMaskSwap16_3);
-    _mm_storel_epi64((__m128i*)VertexManager::s_pCurBufferPointer, b);
-
-#else
-
     ((u16*)VertexManager::s_pCurBufferPointer)[0] = Common::swap16(pData[0]);
     ((u16*)VertexManager::s_pCurBufferPointer)[1] = Common::swap16(pData[1]);
     ((u16*)VertexManager::s_pCurBufferPointer)[2] = Common::swap16(pData[2]);
     ((u16*)VertexManager::s_pCurBufferPointer)[3] = 0;
-
-#endif
-
     VertexManager::s_pCurBufferPointer += 8;
     LOG_NORM16();
 }
+
+#if _M_SSE >= 0x301
+static const __m128i kMaskSwap16_3 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x0FFFF0405L, 0x02030001L);
+
+void LOADERDECL VertexLoader_Normal::Normal_Index16_Short_SSSE3()
+{
+    u16 Index = DataReadU16();
+	const u16* pData = (const u16 *)(cached_arraybases[ARRAY_NORMAL] + (Index * arraystrides[ARRAY_NORMAL]));
+    __m128i a = _mm_loadl_epi64((__m128i*)pData);
+    __m128i b = _mm_shuffle_epi8(a, kMaskSwap16_3);
+    _mm_storel_epi64((__m128i*)VertexManager::s_pCurBufferPointer, b);
+    VertexManager::s_pCurBufferPointer += 8;
+    LOG_NORM16();
+}
+#endif
 
 void LOADERDECL VertexLoader_Normal::Normal_Index16_Float()
 {
