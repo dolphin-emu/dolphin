@@ -31,6 +31,9 @@ using namespace Gen;
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
 void DSPEmitter::increment_addr_reg(int reg)
 {
+	PUSH(EAX);
+	PUSH(ECX);
+
 	//	u16 tmb = g_dsp.r[DSP_REG_WR0 + reg];
 	MOVZX(32, 16, EAX, M(&g_dsp.r[DSP_REG_WR0 + reg]));
 
@@ -77,11 +80,17 @@ void DSPEmitter::increment_addr_reg(int reg)
 	
 	//	g_dsp.r[reg] = tmp;	
 	MOV(16, M(&g_dsp.r[reg]), R(ECX));
+
+	POP(ECX);
+	POP(EAX);
 }
 
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
 void DSPEmitter::decrement_addr_reg(int reg)
 {
+	PUSH(EAX);
+	PUSH(ECX);
+
 	//	s16 tmp = g_dsp.r[reg];
 	MOVZX(32, 16, EAX, M(&g_dsp.r[reg]));
 
@@ -104,49 +113,54 @@ void DSPEmitter::decrement_addr_reg(int reg)
 	//	g_dsp.r[reg] = tmp;	
 	MOV(16, M(&g_dsp.r[reg]), R(EAX));
 
+	POP(ECX);
+	POP(EAX);
 }
 
 // Increase addr register according to the correspond ix register
 void DSPEmitter::increase_addr_reg(int reg)
 {	
 	//	s16 value = (s16)g_dsp.r[DSP_REG_IX0 + reg];
-	MOVSX(32, 16, EDX, M(&g_dsp.r[DSP_REG_IX0 + reg]));
+	//FIXME: interpreter uses reg, not IX0+reg?
+	MOVSX(32, 16, EDX, M(&g_dsp.r[reg]));
+	XOR(32, R(ECX), R(ECX)); // i = 0
 	
 	//	if (value > 0)
 	CMP(16, R(EDX), Imm16(0));
+	//FIXME: those jumps are too far for one byte, 
+	//       and force5bytes = true causes an illegal 
+	//       instruction for me. 
+	//       calling (de|in)crement_addr_reg causes that.
 	FixupBranch end = J_CC(CC_Z);
 	FixupBranch negValue = J_CC(CC_L);
 		
 	//	for (int i = 0; i < value; i++) 
-	XOR(32, R(ESI), R(ESI)); // i = 0
+	JumpTarget loop_pos = GetCodePtr();
+	increment_addr_reg(reg);
 
-	FixupBranch posloop;
-	SetJumpTarget(posloop);
-
-	increment_addr_reg(reg);   
-
-	ADD(32, R(ESI), Imm32(1)); // i++	
-	CMP(32, R(ESI), R(EDX)); // i < value
-
+	ADD(32, R(ECX), Imm32(1)); // i++	
+	CMP(32, R(ECX), R(EDX)); // i < value
+	J_CC(CC_NE, loop_pos);
 	FixupBranch posValue = J();
-	// FIXME: get normal abs with cdq
-	IMUL(32, EDX, Imm16(-1)); 
+
+	SetJumpTarget(negValue);
+	//abs == cdq; xor eax, edx; sub eax, edx
+	//we know its negative, and in that case edx is -1
+	XOR(32, R(EDX), Imm32(-1));
+	SUB(32, R(EDX), Imm32(-1));
 
 	//	for (int i = 0; i < (int)(-value); i++)
-	XOR(32, R(ESI), R(ESI)); // i = 0
-
-	FixupBranch negloop;
-	SetJumpTarget(negloop);
-
+	JumpTarget loop_neg = GetCodePtr();
 	decrement_addr_reg(reg);
-	ADD(32, R(ESI), Imm32(1)); // i++
-	CMP(32, R(ESI), R(EDX)); // i < -value
 
-	negloop = J_CC(CC_L);
+	ADD(32, R(ECX), Imm32(1)); // i++
+	CMP(32, R(ECX), R(EDX)); // i < -value
+	J_CC(CC_NE, loop_neg);
 
 	SetJumpTarget(posValue);
 	SetJumpTarget(end);
 
+	MOV(16, M(&g_dsp.r[reg]), R(EDX));
 }
 
 // Decrease addr register according to the correspond ix register

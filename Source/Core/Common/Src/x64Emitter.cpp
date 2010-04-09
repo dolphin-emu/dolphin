@@ -985,7 +985,7 @@ void XEmitter::IMUL(int bits, X64Reg regOp, OpArg a)
 	if (a.IsImm())
 	{
 		IMUL(bits, regOp, R(regOp), a) ;
-		return ;
+		return;
 	}
 
 	if (bits == 16)

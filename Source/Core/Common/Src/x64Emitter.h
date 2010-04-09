@@ -296,7 +296,7 @@ public:
 	void CALLptr(OpArg arg);
 
 	FixupBranch J_CC(CCFlags conditionCode, bool force5bytes = false);
-	void J_CC(CCFlags conditionCode, JumpTarget target);
+	//void J_CC(CCFlags conditionCode, JumpTarget target);
 	void J_CC(CCFlags conditionCode, const u8 * addr, bool force5Bytes = false);
 
 	void SetJumpTarget(const FixupBranch &branch);

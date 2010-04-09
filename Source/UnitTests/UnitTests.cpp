@@ -23,6 +23,8 @@
 #include "PowerPC/PowerPC.h"
 #include "HW/SI_DeviceGCController.h"
 
+void AudioJitTests();
+
 using namespace std;
 
 int fail_count = 0;
@@ -101,6 +103,8 @@ void StringTests()
 
 int main(int argc, _TCHAR* argv[])
 {
+	AudioJitTests();
+
 	CoreTests();
 	MathTests();
 	StringTests();
@@ -133,6 +137,7 @@ void Host_SetWiiMoteConnectionState(int _State){}
 void Host_UpdateLeds(int bits){}
 void Host_UpdateSpeakerStatus(int index, int bits){}
 void Host_UpdateStatus(){}
+void Host_Message(int){}
 
 int CSIDevice_GCController::GetNetInput(u8 numPAD, SPADStatus PadStatus, u32 *PADStatus)
 {

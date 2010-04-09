@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="UnitTests"
 	ProjectGUID="{40C636FA-B5BF-4D67-ABC8-376B524A7551}"
 	RootNamespace="UnitTests"
@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src"
+				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src;../Core/DSPCore/Src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -64,6 +64,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="Iphlpapi.lib winmm.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -119,7 +120,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src"
+				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src;../Core/DSPCore/Src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -139,6 +140,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="Iphlpapi.lib winmm.lib"
 				LinkIncremental="2"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -195,7 +197,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src"
+				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src;../Core/DSPCore/Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -214,6 +216,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="Iphlpapi.lib winmm.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -273,7 +276,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src"
+				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src;../Core/DSPCore/Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
@@ -292,6 +295,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="Iphlpapi.lib winmm.lib"
 				LinkIncremental="1"
 				GenerateDebugInformation="true"
 				SubSystem="1"
@@ -327,6 +331,22 @@
 	<References>
 	</References>
 	<Files>
+		<Filter
+			Name="Audio"
+			>
+			<File
+				RelativePath=".\AudioJitTests.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DSPJitTester.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DSPJitTester.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\UnitTests.cpp"
 			>
