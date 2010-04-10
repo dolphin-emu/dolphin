@@ -46,6 +46,8 @@ VertexLoader::VertexLoader() :
     m_NumAttributeLoaders(0)
  {
      VertexLoader_Normal::Init();
+	 VertexLoader_Position::Init();
+	 VertexLoader_TextCoord::Init();
 
      m_SetupUnit = new SetupUnit;     
  }
