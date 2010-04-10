@@ -297,8 +297,7 @@ restart:
 	{
 		PB.ReachedEnd = 0;
 
-		// HACK: AFC looping doesn't work yet. (remove "true ||" for pikmin2/zeldatp intro music - but its causing probs)
-		if (true || PB.RepeatMode == 0)
+		if ((PB.RepeatMode == 0) || (!PB.StopOnSilence == 0))
 		{
 			PB.KeyOff = 1;
 			PB.RemLength = 0;
@@ -310,15 +309,19 @@ restart:
 		}
 		else
 		{
-			// The loop start pos is incorrect, so samples will loop a bit wrong. However, at least
-			// this fixes the intro music in ZTP, Pikmin2.
-			// PB.RestartPos = PB.LoopStartPos;
- 			PB.RemLength = PB.Length; // - PB.RestartPos;
-			PB.CurAddr = PB.StartAddr; //+ (PB.LoopStartPos >> 4) * PB.Format + ;
+			//AFC looping
+			// The loop start pos is incorrect? (Fixed?), so samples will loop a bit wrong.
+			// this fixes the intro music in ZTP.
+			PB.RestartPos = PB.LoopStartPos;
+			PB.RemLength = PB.Length - PB.RestartPos;
+			// see DSP_UC_Zelda.txt line 2817
+			PB.CurAddr = ((((((PB.LoopStartPos >> 4) & 0xffff0000)*PB.Format)<<16)+
+				(((PB.LoopStartPos >> 4) & 0xffff)*PB.Format))+PB.StartAddr) & 0xffffffff;
+
 			// Hmm, this shouldn't be reversed .. or should it? Is it different between versions of the ucode?
+			// -> it has to be reversed in ZTP, otherwise intro music is broken...
 			PB.YN1 = PB.LoopYN2;
 			PB.YN2 = PB.LoopYN1;
- 				
 		}
 	}
 
