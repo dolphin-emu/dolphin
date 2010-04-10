@@ -172,13 +172,6 @@ void wiiuse_disconnected(struct wiimote_t* wm) {
 	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_CONNECTED);
 
 	/* reset a bunch of stuff */
-	#ifndef WIN32
-		wm->out_sock = -1;
-		wm->in_sock = -1;
-	#else
-		wm->dev_handle = 0;
-	#endif
-
 	wm->leds = 0;
 	wm->state = WIIMOTE_INIT_STATES;
 	wm->read_req = NULL;
@@ -187,6 +180,14 @@ void wiiuse_disconnected(struct wiimote_t* wm) {
 	wm->btns_held = 0;
 	wm->btns_released = 0;
 	memset(wm->event_buf, 0, sizeof(wm->event_buf));
+
+	#ifndef WIN32
+		wm->out_sock = -1;
+		wm->in_sock = -1;
+	#else
+		CloseHandle(wm->dev_handle);
+		wm->dev_handle = 0;
+	#endif
 
 	wm->event = WIIUSE_DISCONNECT;
 }

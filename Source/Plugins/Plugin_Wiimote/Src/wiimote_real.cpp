@@ -140,7 +140,11 @@ void ReadData()
 		//DEBUG_LOG(WIIMOTE, "Writing data to the Wiimote");
         SEvent& rEvent = m_EventWriteQueue.front();
 		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, rEvent._Size);
-		m_EventWriteQueue.pop();
+		if (m_pWiiMote->event == WIIUSE_UNEXPECTED_DISCONNECT)
+		{
+			NOTICE_LOG(WIIMOTE, "wiiuse_io_write: unexpected disconnect. handle: %08x", m_pWiiMote->dev_handle);
+		}
+			m_EventWriteQueue.pop();
 		
 //		InterruptDebugging(false, rEvent.m_PayLoad);
     }
@@ -175,6 +179,10 @@ void ReadData()
 			}
 			m_pCriticalSection->Leave();
 		}
+	}
+	else if (m_pWiiMote->event == WIIUSE_UNEXPECTED_DISCONNECT)
+	{
+		NOTICE_LOG(WIIMOTE, "wiiuse_io_read: unexpected disconnect. handle: %08x", m_pWiiMote->dev_handle);
 	}
 };
 
@@ -339,6 +347,8 @@ int Initialize()
 		// and also connecting in Linux/OSX.
 		// Windows connects to Wiimote in the wiiuse_find function
 		g_pReadThread = new Common::Thread(ReadWiimote_ThreadFunc, NULL);
+		// Don't run the Wiimote thread if no wiimotes were found
+		g_Shutdown = false;
 		NeedsConnect.Set();
 		Connected.Wait();
 	}
@@ -383,10 +393,6 @@ int Initialize()
 		byte *data = (byte*)malloc(sizeof(byte) * sizeof(WiiMoteEmu::EepromData_0));
 		wiiuse_read_data(g_WiiMotesFromWiiUse[i], data, 0, sizeof(WiiMoteEmu::EepromData_0));
 	}
-
-	// Don't run the Wiimote thread if no wiimotes were found
-	if (g_NumberOfWiiMotes > 0)
-		g_Shutdown = false;
 
 	// Initialized, even if we didn't find a Wiimote
 	g_RealWiiMoteInitialized = true;

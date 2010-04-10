@@ -112,7 +112,10 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 
 			/* try to set the output report to see if the device is actually connected */
 			if (!wiiuse_set_report_type(wm[found])) {
+				Sleep(10);
 				WIIMOTE_DISABLE_STATE(wm[found], WIIMOTE_STATE_CONNECTED);
+				if (wm[found]->event == WIIUSE_UNEXPECTED_DISCONNECT)
+					break;
 				continue;
 			}
 
@@ -181,6 +184,7 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 		if ((b == ERROR_HANDLE_EOF) || (b == ERROR_DEVICE_NOT_CONNECTED)) {
 			/* remote disconnect */
 			wiiuse_disconnected(wm);
+			wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
 			return 0;
 		}
 
@@ -214,7 +218,7 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 
 
 int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int len) {
-	DWORD bytes;
+	DWORD bytes, dw;
 	int i;
 
 	if (!wm || !WIIMOTE_IS_CONNECTED(wm))
@@ -235,12 +239,42 @@ int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int len) {
 				return i;
 			}
 
-			WIIUSE_ERROR("Unable to determine bluetooth stack type.");
+			/*--------------------------------------------------------------
+			dw = GetLastError(); 	//checking for 121 = timeout on semaphore/device off/disconnected to avoid trouble with other stacks toshiba/widcomm 
+			//995 = The I/O operation has been aborted because of either a thread exit or an application request.
+
+			if ( (dw == 121) || (dw == 995) ) {
+			WIIUSE_INFO("wiiuse_io_write[WIIUSE_STACK_UNKNOWN]: WIIUSE_UNEXPECTED_DISCONNECT");
+			wiiuse_disconnected(wm);
+			wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
+			}
+			else WIIUSE_ERROR("wiiuse_io_write[WIIUSE_STACK_UNKNOWN]: WIIUSE_UNEXPECTED_DISCONNECT ERROR: %08x", dw); 
+			--------------------------------------------------------------*/
+
+			//If the part below causes trouble on WIDCOMM/TOSHIBA stack uncomment the lines above, and comment out the 3 lines below instead.
+
+			WIIUSE_INFO("wiiuse_io_write[WIIUSE_STACK_UNKNOWN]: WIIUSE_UNEXPECTED_DISCONNECT - time out");
+			wiiuse_disconnected(wm);
+			wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
+
+			//WIIUSE_ERROR("wiiuse_io_write[WIIUSE_STACK_UNKNOWN]: Unable to determine bluetooth stack type || Wiimote timed out.");
 			return 0;
 		}
 
 		case WIIUSE_STACK_MS:
-			return HidD_SetOutputReport(wm->dev_handle, buf + 1, len - 1);
+			i = HidD_SetOutputReport(wm->dev_handle, buf + 1, len - 1);
+			dw = GetLastError();
+
+			if (dw == 121) { // semaphore timeout
+				WIIUSE_INFO("wiiuse_io_write[WIIUSE_STACK_MS]: WIIUSE_UNEXPECTED_DISCONNECT");
+				wiiuse_disconnected(wm);
+				wm->event = WIIUSE_UNEXPECTED_DISCONNECT;
+				return 0;
+			}/* else if (dw)
+				WIIUSE_ERROR("wiiuse_io_write[WIIUSE_STACK_MS]: WIIUSE_UNEXPECTED_DISCONNECT ERROR: %08x", dw);
+			*/
+			// it is not important to catch all errors here at this place, rest will be covered by io_reads.
+			return i;
 
 		case WIIUSE_STACK_BLUESOLEIL:
 			return WriteFile(wm->dev_handle, buf + 1, 22, &bytes, &wm->hid_overlap);
