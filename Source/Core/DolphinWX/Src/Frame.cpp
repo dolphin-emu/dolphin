@@ -805,38 +805,39 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
-	// Toggle fullscreen
-	if (event.GetKeyCode() == WXK_RETURN && event.GetModifiers() == wxMOD_ALT)
+	if(Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		DoFullscreen(!IsFullScreen());
+		// Toggle fullscreen
+		if (event.GetKeyCode() == WXK_RETURN && event.GetModifiers() == wxMOD_ALT)
+		{
+			DoFullscreen(!IsFullScreen());
 
-		// We do that to avoid the event to be double processed (which would cause the window to be stuck in fullscreen) 
-		event.StopPropagation();
-	}
-	else if(event.GetKeyCode() == WXK_ESCAPE)
-	{
-		main_frame->DoPause();
-	}
-	// event.Skip() allows the event to propagate to the gamelist for example
-	else if (! (Core::GetState() == Core::CORE_RUN && bRenderToMain && event.GetEventObject() == this))
-		event.Skip();
+			// We do that to avoid the event to be double processed (which would cause the window to be stuck in fullscreen) 
+			event.StopPropagation();
+		}
+		else if(event.GetKeyCode() == WXK_ESCAPE)
+		{
+			main_frame->DoPause();
+		}
+		// event.Skip() allows the event to propagate to the gamelist for example
+		else if (! (Core::GetState() == Core::CORE_RUN && bRenderToMain && event.GetEventObject() == this))
+			event.Skip();
 
 #ifdef _WIN32
-	if(event.GetKeyCode() == 'M', '3', '4', '5', '6', '7') // Send this to the video plugin WndProc
-	{
-		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
-	}
+		if(event.GetKeyCode() == 'M', '3', '4', '5', '6', '7') // Send this to the video plugin WndProc
+		{
+			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
+		}
 #elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-	if (event.GetKeyCode() >= '3' && event.GetKeyCode() <= '7') // Send this to the video plugin
-	{
-		X11_SendKeyEvent(event.GetKeyCode());
-	}
+		if (event.GetKeyCode() >= '3' && event.GetKeyCode() <= '7') // Send this to the video plugin
+		{
+			X11_SendKeyEvent(event.GetKeyCode());
+		}
 #endif
 
-
-	// Send the keyboard status to the Input plugin
-	if(Core::GetState() != Core::CORE_UNINITIALIZED)
-	    CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
+		// Send the keyboard status to the Input plugin
+		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
+	}
 }
 
 void CFrame::OnKeyUp(wxKeyEvent& event)

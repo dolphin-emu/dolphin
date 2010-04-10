@@ -2,8 +2,8 @@
 #include "ConfigDiag.h"
 
 PadSettingCheckBox::PadSettingCheckBox( wxWindow* const parent, ControlState& _value, const char* const label )
-	: wxCheckBox( parent, -1, wxString::FromAscii( label ), wxDefaultPosition )
-	, PadSetting(_value)
+	: PadSetting(_value)
+	, wxCheckBox( parent, -1, wxString::FromAscii( label ), wxDefaultPosition )
 {
 	UpdateGUI();
 }
@@ -20,8 +20,8 @@ void PadSettingCheckBox::UpdateValue()
 }
 
 PadSettingChoice::PadSettingChoice( wxWindow* const parent, ControlState& _value, int min, int max )
-	: wxChoice( parent, -1, wxDefaultPosition, wxSize( 48, -1 ) )
-	, PadSetting(_value)
+	: PadSetting(_value)
+	, wxChoice( parent, -1, wxDefaultPosition, wxSize( 48, -1 ) )
 {
 	Append( wxT("0") );
 	for ( ; min<=max; ++min )
@@ -362,17 +362,19 @@ void ControlDialog::SelectControl( wxCommandEvent& event )
 	//	final_label = "||";
 	else
 	{
-	final_label = wxT('|');
-	for ( unsigned int i=0; i<sels.size(); ++i )
-		final_label += names[ sels[i] ] + wxT('|');
+		final_label = wxT('|');
+		for ( unsigned int i=0; i<sels.size(); ++i )
+			final_label += names[ sels[i] ] + wxT('|');
 	}
+	if (!final_label.CompareTo(wxT("|")))
+		final_label.Empty();
 
 	control_chooser->textctrl->SetLabel( final_label );
 
 	// kinda dumb
 	wxCommandEvent nullevent;
 	((GamepadPage*)m_parent)->SetControl( nullevent );
-	
+
 }
 
 ControlChooser::ControlChooser( wxWindow* const parent, ControllerInterface::ControlReference* const ref, wxWindow* const eventsink )
@@ -422,7 +424,7 @@ ControlChooser::ControlChooser( wxWindow* const parent, ControllerInterface::Con
 
 	txtbox_szr->Add( textctrl, 1, wxEXPAND, 0 );
 
-	wxBoxSizer* mode_szr;
+	wxBoxSizer* mode_szr = NULL;
 	if ( control_reference->is_input )
 	{
 		mode_cbox = new wxChoice( parent, -1 );

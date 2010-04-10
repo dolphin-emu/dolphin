@@ -6,6 +6,7 @@
 #include <sstream>
 #include <map>
 #include <algorithm>
+#include "Common.h"
 
 // enable disable sources
 #ifdef _WIN32

@@ -7,17 +7,17 @@
 
 namespace ciface
 {
-namespace XInput
+namespace Xlib
 {
 
-void Init( std::vector<ControllerInterface::Device*>& devices, void* const hwnd );
+void Init(std::vector<ControllerInterface::Device*>& devices, void* const hwnd);
 
 class Keyboard : public ControllerInterface::Device
 {
 	friend class ControllerInterface;
 	friend class ControllerInterface::ControlReference;
 
-protected:
+	protected:
 
 	struct State
 	{
@@ -25,42 +25,48 @@ protected:
 		// mouse crap will go here
 	};
 
-	class Input : public ControllerInterface::Input
+	class Input : public ControllerInterface::Device::Input
 	{
 		friend class Keyboard;
-	protected:
-		ControlState GetState( const State* const state ) = 0;
-	}
+
+		protected:
+		virtual ControlState GetState(const State* const state) = 0;
+	};
 
 	class Key : public Input
 	{
 		friend class Keyboard;
-	public:
+
+		public:
 		std::string GetName() const;
-	protected:
-		Key( KeySym keysym ) : m_keysym(keysym) {}
-		ControlState GetState( const State* const state );
-	private:
-		const KeySym m_keysym
-		
+
+		protected:
+		Key(Display* const display, KeyCode keycode);
+		ControlState GetState(const State* const state);
+
+		private:
+		Display* const	m_display;
+		const KeyCode m_keycode;
+		std::string m_keyname;
+
 	};
 
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	ControlState Keyboard::GetInputState( const ControllerInterface::Device::Input* const input );
-	void Keyboard::SetOutputState( const ControllerInterface::Device::Output* const output, const ControlState state );
+	ControlState GetInputState(const ControllerInterface::Device::Input* const input);
+	void SetOutputState(const ControllerInterface::Device::Output* const output, const ControlState state);
 
-public:
-	Keyboard( Display* const display );
+	public:
+	Keyboard(Display* display);
 	~Keyboard();
 
 	std::string GetName() const;
 	std::string GetSource() const;
 	int GetId() const;
 
-private:
-	Display* const	m_display;
+	private:
+	Display*		m_display;
 	State			m_state;
 };
 

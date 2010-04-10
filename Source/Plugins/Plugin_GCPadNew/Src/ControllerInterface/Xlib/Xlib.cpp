@@ -1,7 +1,3 @@
-#include "../ControllerInterface.h"
-
-#ifdef CIFACE_USE_XLIB
-
 #include "Xlib.h"
 
 namespace ciface
@@ -9,48 +5,48 @@ namespace ciface
 namespace Xlib
 {
 
-
-void Init( std::vector<ControllerInterface::Device*>& devices, void* const hwnd )
+void Init(std::vector<ControllerInterface::Device*>& devices, void* const hwnd)
 {
 	// mouse will be added to this, Keyboard class will be turned into KeyboardMouse
 	// single device for combined keyboard/mouse, this will allow combinations like shift+click more easily
-	devices.push_back( new Keyboard( (Display*)hwnd ) );
+	devices.push_back(new Keyboard((Display*)hwnd));
 }
 
-Keyboard::Keyboard( Display* const display ) : m_display(display)
+Keyboard::Keyboard(Display* display) : m_display(display)
 {
+	memset(&m_state, 0, sizeof(m_state));
 
-	memset( &m_state, 0, sizeof(m_state) );
-
-	// this is probably dumb
-	for ( KeySym i = 0; i < 1024; ++i )
+	int min_keycode, max_keycode;
+	XDisplayKeycodes(m_display, &min_keycode, &max_keycode);
+	
+	for (int i = min_keycode; i <= max_keycode; ++i)
 	{
-		if ( XKeysymToString( m_keysym ) )	// if it isnt NULL
-			inputs.push_back( new Key( i ) );
+		Key *temp_key = new Key(m_display, i);
+		if (temp_key->m_keyname.length())
+			inputs.push_back(temp_key);
+		else
+			delete temp_key;
 	}
-
 }
-
 
 Keyboard::~Keyboard()
 {
-	// might not need this func
 }
 
 
-ControlState Keyboard::GetInputState( const ControllerInterface::Device::Input* const input )
+ControlState Keyboard::GetInputState(const ControllerInterface::Device::Input* const input)
 {
-	return ((Input*)input)->GetState( &m_state );
+	return ((Input*)input)->GetState(&m_state);
 }
 
-void Keyboard::SetOutputState( const ControllerInterface::Device::Output* const output, const ControlState state )
+void Keyboard::SetOutputState(const ControllerInterface::Device::Output* const output, const ControlState state)
 {
 
 }
 
 bool Keyboard::UpdateInput()
 {
-	XQueryKeymap( m_display, m_state.keyboard );
+	XQueryKeymap(m_display, m_state.keyboard);
 
 	// mouse stuff in here too
 
@@ -80,19 +76,33 @@ int Keyboard::GetId() const
 }
 
 
-ControlState Keyboard::Key::GetState( const State* const state )
+Keyboard::Key::Key(Display* const display, KeyCode keycode)
+  : m_display(display), m_keycode(keycode)
 {
-	key_code = XKeysymToKeycode(m_display, m_keysym );
-	return (state->keyboard[key_code/8] & (1 << (key_code%8))); // need >0 ?
+	int i = 0;
+	KeySym keysym = 0;
+	do
+	{
+		keysym = XKeycodeToKeysym(m_display, keycode, i);
+		i++;
+	}
+	while (keysym == NoSymbol && i < 8);
+
+	if (keysym == NoSymbol)
+		m_keyname = std::string();
+	else
+		m_keyname = std::string(XKeysymToString(keysym));
+}
+
+ControlState Keyboard::Key::GetState(const State* const state)
+{
+	return state->keyboard[m_keycode/8] & (1 << (m_keycode%8));
 }
 
 std::string Keyboard::Key::GetName() const
 {
-	return XKeysymToString( m_keysym );
+	return m_keyname;
 }
 
-
 }
 }
-
-#endif
