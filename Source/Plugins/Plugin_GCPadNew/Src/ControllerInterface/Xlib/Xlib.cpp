@@ -96,7 +96,7 @@ Keyboard::Key::Key(Display* const display, KeyCode keycode)
 
 ControlState Keyboard::Key::GetState(const State* const state)
 {
-	return state->keyboard[m_keycode/8] & (1 << (m_keycode%8));
+	return (state->keyboard[m_keycode/8] & (1 << (m_keycode%8))) != 0;
 }
 
 std::string Keyboard::Key::GetName() const
