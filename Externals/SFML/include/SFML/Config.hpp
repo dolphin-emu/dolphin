@@ -49,7 +49,7 @@
     // MacOS
     #define SFML_SYSTEM_MACOS
 
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 
     // FreeBSD
     #define SFML_SYSTEM_FREEBSD

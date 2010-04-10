@@ -27,6 +27,8 @@
 ////////////////////////////////////////////////////////////
 #include <SFML/Network/Http.hpp>
 #include <ctype.h>
+#include <algorithm>
+#include <iterator>
 #include <sstream>
 
 
@@ -51,14 +53,12 @@ namespace sf
 ////////////////////////////////////////////////////////////
 /// Default constructor
 ////////////////////////////////////////////////////////////
-Http::Request::Request(Method RequestMethod, const std::string& URI, const std::string& Body) :
-myMethod      (RequestMethod),
-myURI         (URI),
-myMajorVersion(1),
-myMinorVersion(0),
-myBody        (Body)
+Http::Request::Request(Method RequestMethod, const std::string& URI, const std::string& Body)
 {
-
+    SetMethod(RequestMethod);
+    SetURI(URI);
+    SetHttpVersion(1, 0);
+    SetBody(Body);
 }
 
 
@@ -180,7 +180,7 @@ myMinorVersion(0)
 ////////////////////////////////////////////////////////////
 const std::string& Http::Response::GetField(const std::string& Field) const
 {
-    FieldTable::const_iterator It = myFields.find(Field);
+    FieldTable::const_iterator It = myFields.find(ToLower(Field));
     if (It != myFields.end())
     {
         return It->second;
@@ -297,8 +297,7 @@ void Http::Response::FromString(const std::string& Data)
 
     // Finally extract the body
     myBody.clear();
-    while (std::getline(In, Line))
-        myBody += Line + "\n";
+    std::copy(std::istreambuf_iterator<char>(In), std::istreambuf_iterator<char>(), std::back_inserter(myBody));
 }
 
 
@@ -385,6 +384,14 @@ Http::Response Http::SendRequest(const Http::Request& Req, float Timeout)
         std::ostringstream Out;
         Out << ToSend.myBody.size();
         ToSend.SetField("Content-Length", Out.str());
+    }
+    if ((ToSend.myMethod == Request::Post) && !ToSend.HasField("Content-Type"))
+    {
+        ToSend.SetField("Content-Type", "application/x-www-form-urlencoded");
+    }
+    if ((ToSend.myMajorVersion * 10 + ToSend.myMinorVersion >= 11) && !ToSend.HasField("Connection"))
+    {
+        ToSend.SetField("Connection", "close");
     }
 
     // Prepare the response

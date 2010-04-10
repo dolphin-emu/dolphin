@@ -215,8 +215,10 @@ private :
     ////////////////////////////////////////////////////////////
     SocketHelper::SocketType mySocket;            ///< Socket identifier
     unsigned short           myPort;              ///< Port to which the socket is bound
-    std::vector<char>        myPendingPacket;     ///< Data of the current pending packet, if any (in non-blocking mode)
-    Int32                    myPendingPacketSize; ///< Size of the current pending packet, if any (in non-blocking mode)
+    Uint32                   myPendingHeader;     ///< Data of the current pending packet header, if any
+    Uint32                   myPendingHeaderSize; ///< Size of the current pending packet header, if any
+    std::vector<char>        myPendingPacket;     ///< Data of the current pending packet, if any
+    Int32                    myPendingPacketSize; ///< Size of the current pending packet, if any
     bool                     myIsBlocking;        ///< Is the socket blocking or non-blocking ?
 };
 

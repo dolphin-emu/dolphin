@@ -244,29 +244,31 @@ Socket::Status SocketUDP::Send(Packet& PacketToSend, const IPAddress& Address, u
 ////////////////////////////////////////////////////////////
 Socket::Status SocketUDP::Receive(Packet& PacketToReceive, IPAddress& Address, unsigned short& Port)
 {
-    // This is not safe at all, as data can be lost, duplicated, or arrive in a different order.
-    // So if a packet is split into more than one chunk, nobody knows what could happen...
-    // Conclusion : we shouldn't use packets with UDP, unless we build a more complex protocol on top of it.
-
     // We start by getting the size of the incoming packet
     Uint32      PacketSize = 0;
     std::size_t Received   = 0;
     if (myPendingPacketSize < 0)
     {
-        Socket::Status Status = Receive(reinterpret_cast<char*>(&PacketSize), sizeof(PacketSize), Received, Address, Port);
-        if (Status != Socket::Done)
-            return Status;
+        // Loop until we've received the entire size of the packet
+        // (even a 4 bytes variable may be received in more than one call)
+        while (myPendingHeaderSize < sizeof(myPendingHeader))
+        {
+            char* Data = reinterpret_cast<char*>(&myPendingHeader) + myPendingHeaderSize;
+            Socket::Status Status = Receive(Data, sizeof(myPendingHeader) - myPendingHeaderSize, Received, Address, Port);
+            myPendingHeaderSize += Received;
 
-        PacketSize = ntohl(PacketSize);
+            if (Status != Socket::Done)
+                return Status;
+        }
+
+        PacketSize = ntohl(myPendingHeader);
+        myPendingHeaderSize = 0;
     }
     else
     {
         // There is a pending packet : we already know its size
         PacketSize = myPendingPacketSize;
     }
-
-    // Clear the user packet
-    PacketToReceive.Clear();
 
     // Use another address instance for receiving the packet data ;
     // chunks of data coming from a different sender will be discarded (and lost...)
@@ -402,6 +404,7 @@ void SocketUDP::Create(SocketHelper::SocketType Descriptor)
     myPort = 0;
 
     // Reset the pending packet
+    myPendingHeaderSize = 0;
     myPendingPacket.clear();
     myPendingPacketSize = -1;
 

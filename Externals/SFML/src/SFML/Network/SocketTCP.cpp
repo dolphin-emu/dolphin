@@ -135,18 +135,18 @@ Socket::Status SocketTCP::Connect(unsigned short Port, const IPAddress& HostAddr
             if (select(static_cast<int>(mySocket + 1), NULL, &Selector, NULL, &Time) > 0)
             {
                 // At this point the connection may have been either accepted or refused.
-				// To know whether it's a success or a failure, we try to retrieve the name of the connected peer
+                // To know whether it's a success or a failure, we try to retrieve the name of the connected peer
                 SocketHelper::LengthType Size = sizeof(SockAddr);
-				if (getpeername(mySocket, reinterpret_cast<sockaddr*>(&SockAddr), &Size) != -1)
-				{
-					// Connection accepted
-					Status = Socket::Done;
-				}
-				else
-				{
-					// Connection failed
-					Status = SocketHelper::GetErrorStatus();
-				}
+                if (getpeername(mySocket, reinterpret_cast<sockaddr*>(&SockAddr), &Size) != -1)
+                {
+                    // Connection accepted
+                    Status = Socket::Done;
+                }
+                else
+                {
+                    // Connection failed
+                    Status = SocketHelper::GetErrorStatus();
+                }
             }
             else
             {
@@ -344,11 +344,20 @@ Socket::Status SocketTCP::Receive(Packet& PacketToReceive)
     std::size_t Received   = 0;
     if (myPendingPacketSize < 0)
     {
-        Socket::Status Status = Receive(reinterpret_cast<char*>(&PacketSize), sizeof(PacketSize), Received);
-        if (Status != Socket::Done)
-            return Status;
+        // Loop until we've received the entire size of the packet
+        // (even a 4 bytes variable may be received in more than one call)
+        while (myPendingHeaderSize < sizeof(myPendingHeader))
+        {
+            char* Data = reinterpret_cast<char*>(&myPendingHeader) + myPendingHeaderSize;
+            Socket::Status Status = Receive(Data, sizeof(myPendingHeader) - myPendingHeaderSize, Received);
+            myPendingHeaderSize += Received;
 
-        PacketSize = ntohl(PacketSize);
+            if (Status != Socket::Done)
+                return Status;
+        }
+
+        PacketSize = ntohl(myPendingHeader);
+        myPendingHeaderSize = 0;
     }
     else
     {
@@ -472,6 +481,7 @@ void SocketTCP::Create(SocketHelper::SocketType Descriptor)
     myIsBlocking = true;
 
     // Reset the pending packet
+    myPendingHeaderSize = 0;
     myPendingPacket.clear();
     myPendingPacketSize = -1;
 
