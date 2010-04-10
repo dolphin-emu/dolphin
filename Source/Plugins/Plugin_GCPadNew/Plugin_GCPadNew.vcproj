@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_GCPadNew"
 	ProjectGUID="{1C3A7A91-A97F-4C7C-B45D-26F2242904D7}"
 	RootNamespace="Plugin_GCPadNew"
@@ -618,18 +618,6 @@
 				</File>
 				<File
 					RelativePath=".\Src\ControllerInterface\DirectInput\NamedKeys.h"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="Xlib"
-				>
-				<File
-					RelativePath=".\Src\ControllerInterface\Xlib\Xlib.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\Src\ControllerInterface\Xlib\Xlib.h"
 					>
 				</File>
 			</Filter>
