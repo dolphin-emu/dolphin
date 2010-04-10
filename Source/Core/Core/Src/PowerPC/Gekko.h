@@ -522,7 +522,7 @@ union UReg_BAT_Up
 	{
 		unsigned VP         :   1;
 		unsigned VS         :   1;
-		unsigned BL			:	11;
+		unsigned BL			:	11; // Block length (aka block size mask)
 		unsigned			:	4;
 		unsigned BEPI		:	15;		
 	};
@@ -540,7 +540,7 @@ union UReg_BAT_Lo
 		unsigned            :   1;
 		unsigned WIMG		:	4;
 		unsigned			:	10;
-		unsigned BRPN		:	15;
+		unsigned BRPN		:	15; // Physical Block Number
 	};
 	u32 Hex;
 
@@ -623,16 +623,16 @@ enum
 	SPR_IBAT1L  = 531,
 	SPR_IBAT2U  = 532,
 	SPR_IBAT2L  = 533,
-	SPR_IBAT3L  = 534,
-	SPR_IBAT3U  = 535,
+	SPR_IBAT3U  = 534,
+	SPR_IBAT3L  = 535,
 	SPR_DBAT0U  = 536,
 	SPR_DBAT0L  = 537,
 	SPR_DBAT1U  = 538,
 	SPR_DBAT1L  = 539,
 	SPR_DBAT2U  = 540,
 	SPR_DBAT2L  = 541,
-	SPR_DBAT3L  = 542,
-	SPR_DBAT3U  = 543,
+	SPR_DBAT3U  = 542,
+	SPR_DBAT3L  = 543,
 	SPR_GQR0  = 912,
 	SPR_HID0  = 1008,
 	SPR_HID1  = 1009,

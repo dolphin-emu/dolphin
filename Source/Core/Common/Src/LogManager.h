@@ -26,7 +26,7 @@
 #include <stdio.h>
 
 #define	MAX_MESSAGES 8000   
-#define MAX_MSGLEN  512
+#define MAX_MSGLEN  1024
 
 
 // pure virtual interface (well, except the destructor which we just leave empty).

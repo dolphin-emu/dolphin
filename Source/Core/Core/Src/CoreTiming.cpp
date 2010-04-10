@@ -22,6 +22,8 @@
 #include "CoreTiming.h"
 #include "StringUtil.h"
 
+#define MAX_SLICE_LENGTH 20000
+
 namespace CoreTiming
 {
 
@@ -53,7 +55,7 @@ Event *eventTsPool = 0;
 int allocatedTsEvents = 0;
 
 int downcount, slicelength;
-int maxSliceLength = 20000;
+int maxSliceLength = MAX_SLICE_LENGTH;
 
 s64 globalTimer;
 s64 idledCycles;
@@ -332,6 +334,10 @@ void SetMaximumSlice(int maximumSliceLength)
 	maxSliceLength = maximumSliceLength;
 }
 
+void ResetSliceLength()
+{
+	maxSliceLength = MAX_SLICE_LENGTH;
+}
 
 void Advance()
 {	

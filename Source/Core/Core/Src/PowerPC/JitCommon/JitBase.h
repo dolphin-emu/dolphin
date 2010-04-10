@@ -18,10 +18,19 @@
 #ifndef _JITBASE_H
 #define _JITBASE_H
 
+//#define JIT_SINGLESTEP  // Enables single stepping
+//#define JIT_NO_CACHE    // Disables the block cache and enables breakpoints
+//#define JIT_LOG_X86     // Enables logging of the generated x86 code
+//#define JIT_LOG_GPR     // Enables logging of the PPC general purpose regs
+//#define JIT_LOG_FPR     // Enables logging of the PPC floating point regs
+
 #include "JitCache.h"
 #include "Jit_Util.h"  // for EmuCodeBlock
 #include "JitBackpatch.h"  // for EmuCodeBlock
 #include "JitAsmCommon.h"
+
+#include "PowerPCDisasm.h"
+#include "disasm.h"
 
 #define JIT_OPCODE 0
 
@@ -97,6 +106,6 @@ void Jit(u32 em_address);
 
 // Merged routines that should be moved somewhere better
 u32 Helper_Mask(u8 mb, u8 me);
-
+void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer *code_buffer, const u8 *normalEntry, JitBlock *b);
 
 #endif

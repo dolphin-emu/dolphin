@@ -72,6 +72,7 @@ void ClearPendingEvents();
 
 void LogPendingEvents();
 void SetMaximumSlice(int maximumSliceLength);
+void ResetSliceLength();
 
 void RegisterAdvanceCallback(void (*callback)(int cyclesExecuted));
 

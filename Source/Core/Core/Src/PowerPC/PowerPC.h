@@ -48,7 +48,6 @@ struct GC_ALIGNED64(PowerPCState)
 
 	u32 pc;     // program counter
 	u32 npc;
-	u32 nextBlock;
 
 	u32 cr;            // flags
 	u8 cr_fast[8];     // Possibly reorder to 0, 2, 4, 8, 1, 3, 5, 7 so that we can make Compact and Expand super fast?

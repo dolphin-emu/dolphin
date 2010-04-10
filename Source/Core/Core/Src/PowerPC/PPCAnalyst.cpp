@@ -284,7 +284,8 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 }
 
 // Does not yet perform inlining - although there are plans for that.
-bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, CodeBuffer *buffer)
+// Returns the exit address of the next PC
+u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, CodeBuffer *buffer, int blockSize)
 {
 	memset(st, 0, sizeof(st));
 	UGeckoInstruction previnst = Memory::Read_Opcode_JIT_LC(address - 4);
@@ -295,7 +296,8 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 	fpa->any = false;
 
 	u32 blockstart = address;
-	int maxsize = buffer->GetSize();
+	int maxsize = blockSize;
+
 	int num_inst = 0;
 	int numFollows = 0;
 	int numCycles = 0;
@@ -304,8 +306,9 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 	bool foundExit = false;
 
 	// Flatten! (Currently just copies, following branches is disabled)
-	for (int i = 0; i < maxsize; i++, num_inst++)
+	for (int i = 0; i < maxsize; i++)
 	{
+		num_inst++;
 		memset(&code[i], 0, sizeof(CodeOp));
 		code[i].address = address;
 		
@@ -322,7 +325,7 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 		_assert_msg_(POWERPC, opinfo != 0, "Invalid Op - Error flattening %08x op %08x", address + i*4, inst.hex);
 		bool follow = false;
 		u32 destination;
-		if (inst.OPCD == 18)
+		if (inst.OPCD == 18 && blockSize > 1)
 		{
 			//Is bx - should we inline? yes!
 			if (inst.AA)
@@ -351,10 +354,9 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 			code[i].skip = true;
 			address = destination;
 		}
-	}
-
-	_assert_msg_(POWERPC, foundExit, "Analyzer ERROR - Function %08x too big", blockstart);
-	num_inst++;  // why?
+	}	
+	if (!foundExit && blockSize > 1)
+		NOTICE_LOG(POWERPC, "Analyzer ERROR - Function %08x too big, size is 0x%08x", blockstart, address-blockstart);
 	st->numCycles = numCycles;
 
 	// Do analysis of the code, look for dependencies etc
@@ -497,33 +499,34 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 	}
 
 	// Instruction Reordering Pass
-
-	// Bubble down compares towards branches, so that they can be merged.
-	// -2: -1 for the pair, -1 for not swapping with the final instruction which is probably the branch.
-	for (int i = 0; i < num_inst - 2; i++)
+	if (blockSize > 1)
 	{
-		CodeOp &a = code[i];
-		CodeOp &b = code[i + 1];
-		// All integer compares can be reordered.
-		if ((a.inst.OPCD == 10 || a.inst.OPCD == 11) ||
-		    (a.inst.OPCD == 31 && (a.inst.SUBOP10 == 0 || a.inst.SUBOP10 == 32)))
+		// Bubble down compares towards branches, so that they can be merged.
+		// -2: -1 for the pair, -1 for not swapping with the final instruction which is probably the branch.
+		for (int i = 0; i < num_inst - 2; i++)
 		{
-			// Got a compare instruction.
-			if (CanSwapAdjacentOps(a, b)) {
-				// Alright, let's bubble it down!
-				CodeOp c = a;
-				a = b;
-				b = c;
+			CodeOp &a = code[i];
+			CodeOp &b = code[i + 1];
+			// All integer compares can be reordered.
+			if ((a.inst.OPCD == 10 || a.inst.OPCD == 11) ||
+				(a.inst.OPCD == 31 && (a.inst.SUBOP10 == 0 || a.inst.SUBOP10 == 32)))
+			{
+				// Got a compare instruction.
+				if (CanSwapAdjacentOps(a, b)) {
+					// Alright, let's bubble it down!
+					CodeOp c = a;
+					a = b;
+					b = c;
+				}
 			}
 		}
 	}
-
 	// Scan for CR0 dependency
 	// assume next block wants CR0 to be safe
 	bool wantsCR0 = true;
 	bool wantsCR1 = true;
 	bool wantsPS1 = true;
-	for (int i = num_inst - 1; i; i--)
+	for (int i = num_inst; i; i--)
 	{
 		if (code[i].outputCR0)
 			wantsCR0 = false;
@@ -541,7 +544,7 @@ bool Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Blo
 
 	*realsize = num_inst;
 	// ...
-	return true;
+	return address;
 }
 
 

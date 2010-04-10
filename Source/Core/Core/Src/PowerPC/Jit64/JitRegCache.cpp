@@ -262,7 +262,7 @@ void RegCache::KillImmediate(int preg)
 void GPRRegCache::LoadToX64(int i, bool doLoad, bool makeDirty)
 {
 	if (!regs[i].away && regs[i].location.IsImm())
-		PanicAlert("Bad immedaite");
+		PanicAlert("Bad immediate");
 
 	if (!regs[i].away || (regs[i].away && regs[i].location.IsImm()))
 	{
@@ -375,7 +375,7 @@ void RegCache::Flush(FlushMode mode)
 {
 	for (int i = 0; i < NUMXREGS; i++) {
 		if (xlocks[i])
-			PanicAlert("Somone forgot to unlock X64 reg %i.", i);
+			PanicAlert("Someone forgot to unlock X64 reg %i.", i);
 	}
 	for (int i = 0; i < 32; i++)
 	{

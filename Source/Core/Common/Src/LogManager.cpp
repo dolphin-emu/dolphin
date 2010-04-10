@@ -78,7 +78,7 @@ LogManager::LogManager() {
 	m_Log[LogTypes::WII_IPC_NET]		= new LogContainer("WII_IPC_NET",	"WII IPC NET");
 	m_Log[LogTypes::WII_IPC_WIIMOTE]	= new LogContainer("WII_IPC_WIIMOTE","WII IPC WIIMOTE");
 	m_Log[LogTypes::ACTIONREPLAY]		= new LogContainer("ActionReplay",	"ActionReplay");	
-	m_Log[LogTypes::MEMCARD_MANAGER]	= new LogContainer("MemCard Manger", "MemCard Manger");
+	m_Log[LogTypes::MEMCARD_MANAGER]	= new LogContainer("MemCard Manager", "MemCard Manager");
 	m_Log[LogTypes::NETPLAY]			= new LogContainer("NETPLAY",		"Netplay");
 
 	m_fileLog = new FileLogListener(File::GetUserPath(F_MAINLOG_IDX));
@@ -110,7 +110,7 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 					 va_list args) {
 
 	char temp[MAX_MSGLEN];
-	char msg[MAX_MSGLEN + 512];
+	char msg[MAX_MSGLEN * 2];
 	LogContainer *log = m_Log[type];
 
 	if (! log->isEnable() || level > log->getLevel())

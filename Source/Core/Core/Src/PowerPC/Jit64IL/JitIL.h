@@ -85,6 +85,7 @@ public:
 	const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b);
 
 	void NotifyBreakpoint(u32 em_address, bool set);
+	void Trace(PPCAnalyst::CodeBuffer *code_buffer, u32 em_address);
 
 	void ClearCache();
 	const u8 *GetDispatcher() {

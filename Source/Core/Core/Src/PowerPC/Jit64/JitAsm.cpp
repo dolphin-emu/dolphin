@@ -114,6 +114,11 @@ void Jit64AsmRoutineManager::Generate()
 			MOV(32, R(ABI_PARAM1), M(&PowerPC::ppcState.pc));
 			CALL((void *)&Jit);
 #endif
+#ifdef JIT_NO_CACHE
+			TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+			FixupBranch notRunning = J_CC(CC_NZ);
+#endif
+
 			JMP(dispatcherNoCheck); // no point in special casing this
 
 			//FP blocks test for FPU available, jump here if false
@@ -126,6 +131,9 @@ void Jit64AsmRoutineManager::Generate()
 			MOV(32, M(&PC), R(EAX));
 			JMP(dispatcher);
 
+#ifdef JIT_NO_CACHE
+			SetJumpTarget(notRunning);
+#endif
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();
 

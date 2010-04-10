@@ -175,7 +175,12 @@ void Jit64::Init()
 	   where this cause problems, so I'm enabling this by default, since I seem to get perhaps as much as 20% more
 	   fps with this option enabled. If you suspect that this option cause problems you can also disable it from the
 	   debugging window. */
+#ifdef JIT_SINGLESTEP
+	jo.enableBlocklink = false;
+	SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = false;
+#else
 	jo.enableBlocklink = true;
+#endif
 #ifdef _M_X64
 	jo.enableFastMem = SConfig::GetInstance().m_LocalCoreStartupParameter.bUseFastMem;
 #else
@@ -369,14 +374,44 @@ void STACKALIGN Jit64::Run()
 
 void Jit64::SingleStep()
 {
-	// NOT USED, NOT TESTED, PROBABLY NOT WORKING YET
-	// PanicAlert("Single");
-	/*
-	JitBlock temp_block;
-	PPCAnalyst::CodeBuffer temp_codebuffer(1);  // Only room for one instruction! Single step!
-	const u8 *code = DoJit(PowerPC::ppcState.pc, &temp_codebuffer, &temp_block);
-	CompiledCode pExecAddr = (CompiledCode)code;
-	pExecAddr();*/
+#ifndef JIT_NO_CACHE
+	CoreTiming::SetMaximumSlice(1);
+#endif
+
+	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
+	pExecAddr();
+
+#ifndef JIT_NO_CACHE
+	CoreTiming::ResetSliceLength();
+#endif
+}
+
+void Jit64::Trace(PPCAnalyst::CodeBuffer *code_buffer, u32 em_address)
+{
+	char reg[50] = "";
+	char regs[500] = "";
+	char fregs[750] = "";
+
+#ifdef JIT_LOG_GPR
+	for (int i = 0; i < 32; i++)
+	{
+		sprintf(reg, "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
+		strncat(regs, reg, 500);
+	}
+#endif
+
+#ifdef JIT_LOG_FPR
+	for (int i = 0; i < 32; i++)
+	{
+		sprintf(reg, "f%02d: %016x ", i, riPS0(i));
+		strncat(fregs, reg, 750);
+	}
+#endif	
+	const PPCAnalyst::CodeOp &op = code_buffer->codebuffer[0];
+	char ppcInst[256];
+	DisassembleGekko(op.inst.hex, em_address, ppcInst, 256);
+
+	NOTICE_LOG(DYNA_REC, "JIT64 PC: %08x Cycles: %04d CR: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s %s", em_address, js.st.numCycles, PowerPC::ppcState.cr, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs, ppcInst);
 }
 
 void STACKALIGN Jit64::Jit(u32 em_address)
@@ -391,14 +426,31 @@ void STACKALIGN Jit64::Jit(u32 em_address)
 		}
 		ClearCache();
 	}
+#ifdef JIT_NO_CACHE
+	ClearCache();
+	if (PowerPC::breakpoints.IsAddressBreakPoint(em_address))
+	{
+		PowerPC::Pause();
+		if (PowerPC::breakpoints.IsTempBreakPoint(em_address))
+			PowerPC::breakpoints.Remove(em_address);
+		return;
+	}
+#endif
 	int block_num = blocks.AllocateBlock(em_address);
 	JitBlock *b = blocks.GetBlock(block_num);
 	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
 }
 
 
-const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
+const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b)
 {
+	int blockSize = code_buffer->GetSize();
+
+#ifdef JIT_SINGLESTEP
+	blockSize = 1;
+	Trace(code_buffer, em_address);
+#endif
+
 	if (em_address == 0)
 		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
 
@@ -412,8 +464,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	//Analyze the block, collect all instructions it is made of (including inlining,
 	//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, code_buf);
-	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
+	u32 nextPC = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, code_buffer, blockSize);
+
+	PPCAnalyst::CodeOp *ops = code_buffer->codebuffer;
 
 	const u8 *start = AlignCode4(); //TODO: Test if this or AlignCode16 make a difference from GetCodePtr
 	b->checkedEntry = start;
@@ -426,6 +479,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	SetJumpTarget(skip);
 
 	const u8 *normalEntry = GetCodePtr();
+	b->normalEntry = normalEntry;
 
 	if (ImHereDebug)
 		ABI_CallFunction((void *)&ImHere); //Used to get a trace of the last few blocks before a crash, sometimes VERY useful
@@ -473,7 +527,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	gpr.Start(js.gpa);
 	fpr.Start(js.fpa);
 
+#ifdef JIT_SINGLESTEP
+	js.downcountAmount = js.st.numCycles;
+#else
 	js.downcountAmount = js.st.numCycles + PatchEngine::GetSpeedhackCycles(em_address);
+#endif
+
 	js.blockSize = size;
 	// Translate instructions
 	for (int i = 0; i < (int)size; i++)
@@ -512,12 +571,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			ABI_CallFunction(thunks.ProtectFunction((void *)&GPFifo::CheckGatherPipe, 0));
 		}
 
-		// If starting from the breakpointed instruction, we don't break.
-		if (em_address != ops[i].address && PowerPC::breakpoints.IsAddressBreakPoint(ops[i].address))
-		{
-			
-		}
-
 		if (!ops[i].skip)
 			Jit64Tables::CompileInstruction(ops[i].inst);
 
@@ -527,8 +580,19 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 			break;
 	}
 
+#ifdef JIT_SINGLESTEP
+	gpr.Flush(FLUSH_ALL);
+	fpr.Flush(FLUSH_ALL);
+	WriteExit(nextPC, 0);
+#endif
+
 	b->flags = js.block_flags;
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);
 	b->originalSize = size;
+
+#ifdef JIT_LOG_X86
+	LogGeneratedX86(size, code_buffer, normalEntry, b);
+#endif
+
 	return normalEntry;
 }

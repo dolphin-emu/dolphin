@@ -1661,7 +1661,8 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 
 	//if (!RI.MakeProfile && RI.numSpills)
 	//	printf("Block: %x, numspills %d\n", Jit->js.blockStart, RI.numSpills);
-
+	
+	Jit->WriteExit(jit->js.curBlock->exitAddress[0], 0);
 	Jit->UD2();
 }
 

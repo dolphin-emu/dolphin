@@ -158,6 +158,7 @@ void Shutdown()
 {
 	// Shutdown both execution engines. Doesn't matter which one is active.
 	jit->Shutdown();
+	state = CPU_POWERDOWN;
 	delete jit;
 	jit = 0;
 	Interpreter::Shutdown();

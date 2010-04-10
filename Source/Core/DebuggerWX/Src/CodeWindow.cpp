@@ -692,7 +692,7 @@ void CCodeWindow::UpdateButtonStates()
 		}
 	}
 
-	ToolBar->EnableTool(IDM_STEP, Initialized && Stepping && UseInterpreter());	
+	ToolBar->EnableTool(IDM_STEP, Initialized && Stepping);	
 	
 	if (ToolBar) ToolBar->Realize();
 
