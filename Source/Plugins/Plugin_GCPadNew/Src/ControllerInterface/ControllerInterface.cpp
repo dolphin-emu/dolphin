@@ -40,7 +40,7 @@ void ControllerInterface::Init()
 	ciface::DirectInput::Init( m_devices/*, (HWND)m_hwnd*/ );
 #endif
 #ifdef CIFACE_USE_XLIB
-	ciface::XLIB::Init( m_devices, m_hwnd );
+	ciface::Xlib::Init( m_devices, m_hwnd );
 #endif
 #ifdef CIFACE_USE_OSX
 	ciface::OSX::Init( m_devices, m_hwnd );
@@ -238,7 +238,7 @@ ControlState ControllerInterface::InputReference::State( const ControlState igno
 	if ( NULL == device )
 		return 0;
 
-	ControlState state;
+	ControlState state = 0;
 	// this mode thing will be turned into a switch statement
 	switch ( mode )
 	{
@@ -360,11 +360,7 @@ void ControllerInterface::DeviceQualifier::FromDevice(const ControllerInterface:
 //
 bool ControllerInterface::DeviceQualifier::operator==(const ControllerInterface::Device* const dev) const
 {
-	if ( dev->GetName() == name )
-		if ( dev->GetId() == cid )
-			if ( dev->GetSource() == source )
-				return true;
-	return false;
+	return (dev->GetName() == name) && (dev->GetId() == cid) && (dev->GetSource() == source);
 }
 
 //

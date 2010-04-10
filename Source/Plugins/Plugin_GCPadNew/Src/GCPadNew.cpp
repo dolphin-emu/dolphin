@@ -55,12 +55,14 @@ bool IsFocus()
 #elif defined HAVE_X11 && HAVE_X11
 	Display* GCdisplay = (Display*)g_PADInitialize->hWnd;
 	Window GLWin = *(Window *)g_PADInitialize->pXWindow;
+	bool bFocus = False;
+#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+	bFocus = (wxPanel *)g_PADInitialize->pPanel == wxWindow::FindFocus();
+#endif
 	Window FocusWin;
 	int Revert;
 	XGetInputFocus(GCdisplay, &FocusWin, &Revert);
-	XWindowAttributes WinAttribs;
-	XGetWindowAttributes (GCdisplay, GLWin, &WinAttribs);
-	return (GLWin != 0 && (GLWin == FocusWin || WinAttribs.override_redirect));
+	return (GLWin == FocusWin || bFocus);
 #else
 	return true;
 #endif
@@ -177,8 +179,10 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	
 	// if we want background input or have focus
 	if ( g_plugin.controllers[_numPAD]->options[0].settings[0]->value || IsFocus() )
+	{
 		// get input
 		((GCPad*)g_plugin.controllers[ _numPAD ])->GetInput( _pPADStatus );
+	}
 	else
 	{
 		// center sticks
@@ -252,10 +256,20 @@ void GetDllInfo(PLUGIN_INFO* _pPluginInfo)
 void DllConfig(HWND _hParent)
 {
 	bool was_init = false;
+#if defined(HAVE_X11) && HAVE_X11
+	Display *dpy = NULL;
+#endif
 	if ( g_plugin.controller_interface.IsInit() )	// hack for showing dialog when game isnt running
 		was_init = true;
 	else
-		InitPlugin( _hParent );
+	{
+#if defined(HAVE_X11) && HAVE_X11
+		dpy = XOpenDisplay(0);
+		InitPlugin(dpy);
+#else
+		InitPlugin(_hParent);
+#endif
+	}
 
 	// copied from GCPad
 #if defined(HAVE_WX) && HAVE_WX
@@ -282,8 +296,13 @@ void DllConfig(HWND _hParent)
 #endif
 	// /
 
-	if ( false == was_init )				// hack for showing dialog when game isnt running
+	if ( !was_init )				// hack for showing dialog when game isnt running
+	{
+#if defined(HAVE_X11) && HAVE_X11
+		XCloseDisplay(dpy);
+#endif
 		g_plugin.controller_interface.DeInit();
+	}
 }
 
 // ___________________________________________________________________________

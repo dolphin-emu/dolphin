@@ -6,6 +6,7 @@
 #include <sstream>
 #include <map>
 #include <algorithm>
+#include "Common.h"
 
 // enable disable sources
 #ifdef _WIN32
@@ -16,7 +17,7 @@
 #endif
 #if defined(HAVE_X11) && HAVE_X11
 // Xlib is not tested at all currently, it is like 80% complete at least though
-	//#define CIFACE_USE_XLIB
+	#define CIFACE_USE_XLIB
 #endif
 #ifndef CIFACE_USE_DIRECTINPUT_JOYSTICK
 	#define CIFACE_USE_SDL
