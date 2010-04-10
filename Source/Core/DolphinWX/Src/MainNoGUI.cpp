@@ -264,7 +264,6 @@ int main(int argc, char* argv[])
 	std::string bootFile(args_info.inputs[0]);
 
 	updateMainFrameEvent.Init();
-	cpu_info.Detect();
 
 	LogManager::Init();
 	EventHandler::Init();
