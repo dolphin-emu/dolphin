@@ -132,24 +132,26 @@ void SendData(u16 _channelID, const u8* _pData, u32 _Size)
 /* Read and write data to the Wiimote */
 void ReadData() 
 {
-    m_pCriticalSection->Enter();
+	m_pCriticalSection->Enter();
 
 	// Send data to the Wiimote
-    if (!m_EventWriteQueue.empty())
-    {
+	if (!m_EventWriteQueue.empty())
+	{
 		//DEBUG_LOG(WIIMOTE, "Writing data to the Wiimote");
-        SEvent& rEvent = m_EventWriteQueue.front();
+		SEvent& rEvent = m_EventWriteQueue.front();
 		wiiuse_io_write(m_pWiiMote, (byte*)rEvent.m_PayLoad, rEvent._Size);
+#ifdef _WIN32
 		if (m_pWiiMote->event == WIIUSE_UNEXPECTED_DISCONNECT)
 		{
 			NOTICE_LOG(WIIMOTE, "wiiuse_io_write: unexpected disconnect. handle: %08x", m_pWiiMote->dev_handle);
 		}
-			m_EventWriteQueue.pop();
-		
-//		InterruptDebugging(false, rEvent.m_PayLoad);
-    }
+#endif
+		m_EventWriteQueue.pop();
 
-    m_pCriticalSection->Leave();
+		//		InterruptDebugging(false, rEvent.m_PayLoad);
+	}
+
+	m_pCriticalSection->Leave();
 
 
 	// Read data from wiimote (but don't send it to the core, just filter and queue)
@@ -160,7 +162,7 @@ void ReadData()
 		if (m_channelID > 0)
 		{
 			m_pCriticalSection->Enter();
-			
+
 			// Filter out data reports
 			if (pBuffer[1] >= 0x30) 
 			{
@@ -180,10 +182,12 @@ void ReadData()
 			m_pCriticalSection->Leave();
 		}
 	}
+#ifdef _WIN32
 	else if (m_pWiiMote->event == WIIUSE_UNEXPECTED_DISCONNECT)
 	{
 		NOTICE_LOG(WIIMOTE, "wiiuse_io_read: unexpected disconnect. handle: %08x", m_pWiiMote->dev_handle);
 	}
+#endif
 };
 
 
