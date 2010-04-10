@@ -970,7 +970,6 @@ PC_TexFormat TexDecoder_Decode_real(u8 *dst, const u8 *src, int width, int heigh
 					for (int x = 0; x < width; x += 8)
 						for (int iy = 0; iy < 4; iy++, src += 8)
 							decodebytesC8_To_Raw16_SSSE3((u16*)dst + (y + iy) * width + x, src, tlutaddr);
-				break;
 			} else
 
 #endif
