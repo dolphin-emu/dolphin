@@ -129,30 +129,20 @@ void DSPEmitter::addarn(const UDSPInstruction opc)
 //----
 
 
-void DSPEmitter::setSR(u16 bit) {
+void DSPEmitter::setCompileSR(u16 bit) {
 	
-	//	(1 << bit)
-	MOV(32, R(EAX), Imm32(1));
-	SHR(32, R(EAX), Imm32(bit));
-	
-	//	g_dsp.r[DSP_REG_SR] |= EAX
-	MOV(16, R(ECX), M(&g_dsp.r[DSP_REG_SR]));	
-	OR(32, R(ECX), R(EAX));
+	//	g_dsp.r[DSP_REG_SR] |= bit
+	OR(16, M(&g_dsp.r[DSP_REG_SR]), Imm8(bit));
 
-	compileSR |= (1 << bit);
+	compileSR |= bit;
 }
 
-void DSPEmitter::clrSR(u16 bit) {
-	//	~(1 << bit)
-	MOV(32, R(EAX), Imm32(1));
-	SHR(32, R(EAX), Imm32(bit));
-	NOT(32, R(EAX));
+void DSPEmitter::clrCompileSR(u16 bit) {
 	
-	//	g_dsp.r[DSP_REG_SR] &= EAX
-	MOV(16, R(ECX), M(&g_dsp.r[DSP_REG_SR]));	
-	AND(32, R(ECX), R(EAX));
-		
-	compileSR  &= ~(1 << bit);
+	//	g_dsp.r[DSP_REG_SR] &= bit
+	AND(16, M(&g_dsp.r[DSP_REG_SR]), Imm8(~bit));
+
+	compileSR  &= ~bit;
 }
 // SBCLR #I
 // 0001 0011 aaaa aiii
@@ -160,9 +150,9 @@ void DSPEmitter::clrSR(u16 bit) {
 // immediate value I.
 void DSPEmitter::sbclr(const UDSPInstruction opc)
 {
-	u16 bit = (opc & 0x7) + 6;
+	u8 bit = (opc & 0x7) + 6;
 
-	clrSR(bit);
+	clrCompileSR(1 << bit);
 }
 
 // SBSET #I
@@ -172,7 +162,8 @@ void DSPEmitter::sbclr(const UDSPInstruction opc)
 void DSPEmitter::sbset(const UDSPInstruction opc)
 {
 	u8 bit = (opc & 0x7) + 6;
-	setSR(bit);
+
+	setCompileSR(1 << bit);
 }
 
 // This is a bunch of flag setters, flipping bits in SR. So far so good,
@@ -184,30 +175,29 @@ void DSPEmitter::srbith(const UDSPInstruction opc)
 	{
 	// M0/M2 change the multiplier mode (it can multiply by 2 for free).
 	case 0xa:  // M2
-		clrSR(SR_MUL_MODIFY);
+		clrCompileSR(SR_MUL_MODIFY);
 		break;
 	case 0xb:  // M0
-		setSR(SR_MUL_MODIFY);
+		setCompileSR(SR_MUL_MODIFY);
 		break;
 
 	// If set, treat multiplicands as unsigned.
 	// If clear, treat them as signed.
 	case 0xc:  // CLR15
-		clrSR(SR_MUL_UNSIGNED);
+		clrCompileSR(SR_MUL_UNSIGNED);
 		break;
 	case 0xd:  // SET15
-		setSR(SR_MUL_UNSIGNED);
+		setCompileSR(SR_MUL_UNSIGNED);
 		break;
 
 	// Automatic 40-bit sign extension when loading ACx.M.
     // SET40 changes something very important: see the LRI instruction above.
 	case 0xe:  // SET16 (CLR40)
-		clrSR(SR_40_MODE_BIT);
+		clrCompileSR(SR_40_MODE_BIT);
 		break;
 
 	case 0xf:  // SET40
-		setSR(SR_40_MODE_BIT);
-		g_dsp.r[DSP_REG_SR] |= SR_40_MODE_BIT;
+		setCompileSR(SR_40_MODE_BIT);
 		break;
 
 	default:

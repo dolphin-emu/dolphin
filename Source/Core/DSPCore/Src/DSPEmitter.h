@@ -50,8 +50,8 @@ public:
 	void STACKALIGN RunBlock(int cycles);
 
 	// Register helpers
-	void setSR(u16 bit);
-	void clrSR(u16 bit);
+	void setCompileSR(u16 bit);
+	void clrCompileSR(u16 bit);
 	
 	// Memory helper functions
 	void increment_addr_reg(int reg);
