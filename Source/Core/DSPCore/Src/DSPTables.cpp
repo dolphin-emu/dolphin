@@ -310,7 +310,7 @@ const DSPOPCTemplate opcodes_ext[] =
 	
 	{"DR",      0x0004, 0x00fc, DSPInterpreter::Ext::dr, &DSPEmitter::dr, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false},
 	{"IR",      0x0008, 0x00fc, DSPInterpreter::Ext::ir, &DSPEmitter::ir, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false},
-	{"NR",      0x000c, 0x00fc, DSPInterpreter::Ext::nr, NULL /*&DSPEmitter::nr*/, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false},
+	{"NR",      0x000c, 0x00fc, DSPInterpreter::Ext::nr, &DSPEmitter::nr, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false},
 	{"MV",      0x0010, 0x00f0, DSPInterpreter::Ext::mv, NULL /*&DSPEmitter::mv*/, 1, +2, {{P_REG18, 1, 0, 2, 0x000c}, {P_REG1C, 1, 0, 0, 0x0003}}, false, false},
 
 	{"S",       0x0020, 0x00e4, DSPInterpreter::Ext::s, NULL /*&DSPEmitter::s*/, 1, 2, {{P_PRG, 1, 0, 0, 0x0003}, {P_REG1C, 1, 0, 3, 0x0018}}, false, false},
