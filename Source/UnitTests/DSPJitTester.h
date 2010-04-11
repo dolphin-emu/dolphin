@@ -21,16 +21,7 @@ class DSPJitTester
 
 	bool AreEqual(SDSP&, SDSP&);
 public:
-	DSPJitTester(u16 opcode, u16 opcode_ext, bool verbose = false)
-		: be_verbose(verbose), run_count(0), fail_count(0)
-	{
-		instruction = opcode << 9 | opcode_ext;
-		opcode_template = GetOpTemplate(instruction);
-		sprintf(instruction_name, "%s", opcode_template->name);
-		if (opcode_template->extended) 
-			sprintf(&instruction_name[strlen(instruction_name)], "'%s", 
-				extOpTable[instruction & (((instruction >> 12) == 0x3) ? 0x7F : 0xFF)]->name);
-	}
+	DSPJitTester(u16 opcode, u16 opcode_ext, bool verbose = false);
 	bool Test(SDSP);
 	SDSP RunInterpreter(SDSP);
 	SDSP RunJit(SDSP);
@@ -42,6 +33,7 @@ public:
 	inline int GetFailCount() { return fail_count; }
 	inline const char* GetInstructionName() { return instruction_name; }
 	void Report();
+	void DumpJittedCode();
 
 	static void Initialize();
 };

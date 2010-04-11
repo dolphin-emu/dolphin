@@ -47,7 +47,7 @@ void nx_ir()
 void nx_nr()
 {
 	SDSP test_dsp;
-	DSPJitTester tester(0x40, 0x0c, true);
+	DSPJitTester tester(0x40, 0x0c);
 
 	for (u16 input_reg = 0; input_reg < 10; input_reg++)
 	for (u16 input_wr0 = 0; input_wr0 < 10; input_wr0++)
@@ -74,7 +74,7 @@ void AudioJitTests()
 
 	nx_ir();
 	nx_dr();
-	//nx_nr();
+	nx_nr();
 }
 
 //required to be able to link against DSPCore
