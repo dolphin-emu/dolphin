@@ -47,19 +47,21 @@ void nx_ir()
 void nx_nr()
 {
 	SDSP test_dsp;
-	DSPJitTester tester(0x40, 0x0c);
+	DSPJitTester tester(0x40, 0x0c, true);
 
-	for (u16 input_reg = 0; input_reg < 50; input_reg++)
+	for (u16 input_reg = 0; input_reg < 10; input_reg++)
 	for (u16 input_wr0 = 0; input_wr0 < 10; input_wr0++)
+	for (u16 input_ix0 = 0; input_ix0 < 10; input_ix0++)
 	{
 		memset(&test_dsp, 0, sizeof(SDSP));
+		test_dsp.r[DSP_REG_IX0] = input_ix0;
 		test_dsp.r[DSP_REG_WR0] = input_wr0;
 		test_dsp.r[0] = input_reg;
 		if (!tester.Test(test_dsp))
 		{
-			printf("%s Test failed: in = 0x%04x, wr0 = 0x%04x > int = 0x%04x, jit = 0x%04x\n", 
+			printf("%s Test failed: in = 0x%04x, wr0 = 0x%04x, ix0 = 0x%04x > int = 0x%04x, jit = 0x%04x\n", 
 				tester.GetInstructionName(),
-				input_reg, input_wr0,
+				input_reg, input_wr0, input_ix0,
 				tester.GetLastInterpreterDSP().r[0], tester.GetLastJitDSP().r[0]);
 		}
 	}

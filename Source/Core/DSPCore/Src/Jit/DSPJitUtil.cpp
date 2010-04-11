@@ -125,6 +125,8 @@ void DSPEmitter::increase_addr_reg(int reg)
 	XOR(32, R(ESI), R(ESI)); // i = 0
 	
 	//	if (value > 0)
+	CMP(16, R(EDX), Imm16(0));
+	//end is further away than 0x7f, needs a 6-byte jz
 	FixupBranch end = J_CC(CC_Z, true);
 	FixupBranch negValue = J_CC(CC_L);
 		
