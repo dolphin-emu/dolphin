@@ -165,7 +165,7 @@ void print_trace(const char * msg)
 
 	size = backtrace(array, 100);
 	strings = backtrace_symbols(array, size);
-	printf("%s Obtained %u stack frames.\n", msg, size);
+	printf("%s Obtained %u stack frames.\n", msg, (unsigned int)size);
 	for (i = 0; i < size; i++)
 		printf("--> %s\n", strings[i]);
 	free(strings);

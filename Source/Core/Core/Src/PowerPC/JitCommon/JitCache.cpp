@@ -107,17 +107,17 @@ bool JitBlock::ContainsAddress(u32 em_address)
 
 	void JitBlockCache::Shutdown()
 	{
-		delete [] blocks;
-		delete [] blockCodePointers;
+		delete[] blocks;
+		delete[] blockCodePointers;
 #ifdef JIT_UNLIMITED_ICACHE		
 		if (iCache != 0)
-			delete [] iCache;
+			delete[] iCache;
 		iCache = 0;
 		if (iCacheEx != 0)
-			delete [] iCacheEx;
+			delete[] iCacheEx;
 		iCacheEx = 0;
 		if (iCacheVMEM != 0)
-			delete [] iCacheVMEM;
+			delete[] iCacheVMEM;
 		iCacheVMEM = 0;
 #endif
 		blocks = 0;

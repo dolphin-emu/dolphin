@@ -141,9 +141,9 @@ void ClientSide::OnClientData(unsigned char data)
 			m_data_received = true;
 
 #ifdef NET_DEBUG
-			char sent[64];
-			sprintf(sent, "Received Values: 0x%08x : 0x%08x \n", m_netvalues[0][0], m_netvalues[0][1]);
-			Event->AppendText(wxString::FromAscii(sent));
+			char msgbuf[64];
+			sprintf(msgbuf, "Received Values: 0x%08x : 0x%08x \n", m_netvalues[0][0], m_netvalues[0][1]);
+			Event->AppendText(wxString::FromAscii(msgbuf));
 #endif
 			break;
 		}
@@ -276,9 +276,9 @@ void ServerSide::OnServerData(int sock, unsigned char data)
 			m_data_received = true;
 
 #ifdef NET_DEBUG
-			char sent[64];
-			sprintf(sent, "Received Values: 0x%08x : 0x%08x \n", m_netvalues[sock][0], m_netvalues[sock][1]);
-			Event->AppendText(wxString::FromAscii(sent));
+			char msgbuf[64];
+			sprintf(msgbuf, "Received Values: 0x%08x : 0x%08x \n", m_netvalues[sock][0], m_netvalues[sock][1]);
+			Event->AppendText(wxString::FromAscii(msgbuf));
 #endif
 			break;
 		}

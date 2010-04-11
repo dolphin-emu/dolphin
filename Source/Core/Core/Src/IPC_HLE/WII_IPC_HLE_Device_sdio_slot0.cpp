@@ -366,7 +366,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 				rwFail = 1;
 			}
 
-			delete [] buffer;
+			delete[] buffer;
 		}
 		}
 		Memory::Write_U32(0x900, _BufferOut);
@@ -401,7 +401,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 				rwFail = 1;
 			}
 
-			delete [] buffer;
+			delete[] buffer;
 		}
 		}
 		Memory::Write_U32(0x900, _BufferOut);

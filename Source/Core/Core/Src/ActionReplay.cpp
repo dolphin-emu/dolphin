@@ -20,7 +20,7 @@
 // Will never be able to support some AR codes - specifically those that patch the running
 // Action Replay engine itself - yes they do exist!!!
 // Action Replay actually is a small virtual machine with a limited number of commands.
-// It probably is Turning complete - but what does that matter when AR codes can write
+// It probably is Turing complete - but what does that matter when AR codes can write
 // actual PowerPC code...
 // -----------------------------------------------------------------------------------------
 

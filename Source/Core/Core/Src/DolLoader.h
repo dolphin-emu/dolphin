@@ -58,7 +58,7 @@ public:
 					for (size_t num=0; num<m_dolheader.textSize[i]; num++)
 						CMemory::Write_U8(pTemp[num], m_dolheader.textAddress[i] + num);
 
-					delete [] pTemp;
+					delete[] pTemp;
 				}
 			}
 
@@ -75,7 +75,7 @@ public:
 					for (size_t num=0; num<m_dolheader.dataSize[i]; num++)
 						CMemory::Write_U8(pTemp[num], m_dolheader.dataAddress[i] + num);
 
-					delete [] pTemp;
+					delete[] pTemp;
 				}
 			}
 

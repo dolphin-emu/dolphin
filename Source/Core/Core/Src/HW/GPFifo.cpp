@@ -108,10 +108,10 @@ void Write16(const u16 _iValue, const u32 _iAddress)
 
 void Write32(const u32 _iValue, const u32 _iAddress)
 {
-#ifdef _DEBUG
-	float floatvalue = *(float*)&_iValue;
+//#ifdef _DEBUG
+//	float floatvalue = *(float*)&_iValue;
 //	LOG(GPFIFO, "GPFIFO #%x: 0x%08x / %f",ProcessorInterface::Fifo_CPUWritePointer+m_gatherPipeCount, _iValue, floatvalue);
-#endif
+//#endif
 	*(u32*)(&m_gatherPipe[m_gatherPipeCount]) = Common::swap32(_iValue);
 	m_gatherPipeCount += 4;
 	CheckGatherPipe();

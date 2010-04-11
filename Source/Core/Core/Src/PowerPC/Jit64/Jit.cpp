@@ -386,15 +386,15 @@ void Jit64::SingleStep()
 #endif
 }
 
-void Jit64::Trace(PPCAnalyst::CodeBuffer *code_buffer, u32 em_address)
+void Jit64::Trace(PPCAnalyst::CodeBuffer *code_buf, u32 em_address)
 {
-	char reg[50] = "";
 	char regs[500] = "";
 	char fregs[750] = "";
 
 #ifdef JIT_LOG_GPR
 	for (int i = 0; i < 32; i++)
 	{
+		char reg[50];
 		sprintf(reg, "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
 		strncat(regs, reg, 500);
 	}
@@ -403,11 +403,12 @@ void Jit64::Trace(PPCAnalyst::CodeBuffer *code_buffer, u32 em_address)
 #ifdef JIT_LOG_FPR
 	for (int i = 0; i < 32; i++)
 	{
+		char reg[50];
 		sprintf(reg, "f%02d: %016x ", i, riPS0(i));
 		strncat(fregs, reg, 750);
 	}
 #endif	
-	const PPCAnalyst::CodeOp &op = code_buffer->codebuffer[0];
+	const PPCAnalyst::CodeOp &op = code_buf->codebuffer[0];
 	char ppcInst[256];
 	DisassembleGekko(op.inst.hex, em_address, ppcInst, 256);
 
@@ -442,13 +443,13 @@ void STACKALIGN Jit64::Jit(u32 em_address)
 }
 
 
-const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitBlock *b)
+const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
 {
-	int blockSize = code_buffer->GetSize();
+	int blockSize = code_buf->GetSize();
 
 #ifdef JIT_SINGLESTEP
 	blockSize = 1;
-	Trace(code_buffer, em_address);
+	Trace(code_buf, em_address);
 #endif
 
 	if (em_address == 0)
@@ -464,9 +465,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitB
 
 	//Analyze the block, collect all instructions it is made of (including inlining,
 	//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	u32 nextPC = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, code_buffer, blockSize);
+	u32 nextPC = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, code_buf, blockSize);
 
-	PPCAnalyst::CodeOp *ops = code_buffer->codebuffer;
+	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
 	const u8 *start = AlignCode4(); //TODO: Test if this or AlignCode16 make a difference from GetCodePtr
 	b->checkedEntry = start;
@@ -591,7 +592,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buffer, JitB
 	b->originalSize = size;
 
 #ifdef JIT_LOG_X86
-	LogGeneratedX86(size, code_buffer, normalEntry, b);
+	LogGeneratedX86(size, code_buf, normalEntry, b);
 #endif
 
 	return normalEntry;

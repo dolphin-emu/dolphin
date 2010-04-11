@@ -299,7 +299,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 			Addr += 9; // owner attribs, permission
 			u8 Attribs = Memory::Read_U8(Addr);
 
-			INFO_LOG(WII_IPC_FILEIO, "FS: CREATE_DIR %s", DirName.c_str());
+			INFO_LOG(WII_IPC_FILEIO, "FS: CREATE_DIR %s, OwnerID %#x, GroupID %#x, Attributes %#x", DirName.c_str(), OwnerID, GroupID, Attribs);
 
 			DirName += DIR_SEP;
 			File::CreateFullPath(DirName.c_str());

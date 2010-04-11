@@ -42,7 +42,7 @@ CDump::~CDump(void)
 {
 	if (m_pData != NULL)
 	{
-		delete [] m_pData;
+		delete[] m_pData;
 		m_pData = NULL;
 	}
 }

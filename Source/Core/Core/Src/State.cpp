@@ -139,7 +139,7 @@ void SaveBufferStateCallback(u64 userdata, int cyclesLate)
 	sz = (size_t)ptr;
 
 	if (*cur_buffer)
-		delete [] (*cur_buffer);
+		delete[] (*cur_buffer);
 
 	*cur_buffer = new u8[sz];
 	ptr = *cur_buffer;
@@ -174,7 +174,7 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	if (f == NULL)
 	{
 		Core::DisplayMessage("Could not save state", 2000);
-		delete []buffer;
+		delete[] buffer;
 		return 0;
 	}
 
@@ -213,7 +213,7 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 	}
 
 	fclose(f);
-	delete []buffer;
+	delete[] buffer;
 
 	Core::DisplayMessage(StringFromFormat("Saved State to %s",
 		filename.c_str()).c_str(), 2000);
@@ -322,7 +322,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 				PanicAlert("Internal LZO Error - decompression failed (%d) (%d, %d) \n"
 					"Try loading the state again", res, i, new_len);
 				fclose(f);
-				delete [] buffer;
+				delete[] buffer;
 				return;
 			}
 	
@@ -353,7 +353,7 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	else
 		Core::DisplayMessage("Unable to Load : Can't load state from other revisions !", 4000);
 
-	delete [] buffer;
+	delete[] buffer;
 }
 
 void State_Init()

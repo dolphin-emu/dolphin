@@ -37,7 +37,7 @@ bool CBoot::IsElfWii(const char *filename)
 	ElfReader reader(mem);			
 	// TODO: Find a more reliable way to distinguish.
 	bool isWii = reader.GetEntryPoint() >= 0x80004000;
-	delete [] mem;
+	delete[] mem;
 	
     return isWii;
 }
@@ -66,7 +66,7 @@ bool CBoot::Boot_ELF(const char *filename)
 	}
 	
 	PC = reader.GetEntryPoint();
-	delete []mem;
+	delete[] mem;
 
     return true;
 }

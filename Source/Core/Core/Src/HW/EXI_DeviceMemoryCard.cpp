@@ -170,7 +170,7 @@ void CEXIMemoryCard::Flush(bool exiting)
 CEXIMemoryCard::~CEXIMemoryCard()
 {
 	Flush(true);
-	delete [] memory_card_content;
+	delete[] memory_card_content;
 	memory_card_content = NULL;
 	if(flushThread)
 	{

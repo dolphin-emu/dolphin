@@ -53,17 +53,17 @@ void MemoryCheckDlg::CreateGUIControls()
 
 	m_pWriteFlag = new wxCheckBox(this, ID_WRITE_FLAG, wxT("Write"), wxPoint(336,16), wxSize(57,17), 0, wxDefaultValidator, wxT("WxCheckBox1"));
 
-	wxStaticBox* WxStaticBox2 = new wxStaticBox(this, ID_WXSTATICBOX2, wxT("Break On"), wxPoint(328,0), wxSize(73,57));
+	new wxStaticBox(this, ID_WXSTATICBOX2, wxT("Break On"), wxPoint(328,0), wxSize(73,57));
 
-	wxStaticText* WxStaticText2 = new wxStaticText(this, ID_WXSTATICTEXT2, wxT("End"), wxPoint(168,24), wxDefaultSize, 0, wxT("WxStaticText2"));
+	new wxStaticText(this, ID_WXSTATICTEXT2, wxT("End"), wxPoint(168,24), wxDefaultSize, 0, wxT("WxStaticText2"));
 
-	wxStaticText* WxStaticText1 = new wxStaticText(this, ID_WXSTATICTEXT1, wxT("Start"), wxPoint(8,24), wxDefaultSize, 0, wxT("WxStaticText1"));
+	new wxStaticText(this, ID_WXSTATICTEXT1, wxT("Start"), wxPoint(8,24), wxDefaultSize, 0, wxT("WxStaticText1"));
 
 	m_pEditStartAddress = new wxTextCtrl(this, ID_EDIT_START_ADDR, wxT("80000000"), wxPoint(40,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit1"));
 
 	m_pEditEndAddress = new wxTextCtrl(this, ID_EDIT_END_ADDRESS, wxT("80000000"), wxPoint(200,24), wxSize(109,20), 0, wxDefaultValidator, wxT("WxEdit2"));
 
-	wxStaticBox* WxStaticBox1 = new wxStaticBox(this, ID_WXSTATICBOX1, wxT("Address Range"), wxPoint(0,0), wxSize(321,57));
+	new wxStaticBox(this, ID_WXSTATICBOX1, wxT("Address Range"), wxPoint(0,0), wxSize(321,57));
 }
 
 void MemoryCheckDlg::OnClose(wxCloseEvent& /*event*/)

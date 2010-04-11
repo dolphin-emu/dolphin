@@ -53,7 +53,7 @@ CodeBuffer::CodeBuffer(int size)
 
 CodeBuffer::~CodeBuffer()
 {
-	delete [] codebuffer;
+	delete[] codebuffer;
 }
 
 void AnalyzeFunction2(Symbol &func);
