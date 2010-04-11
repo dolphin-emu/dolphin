@@ -457,6 +457,10 @@
 			 RelativePath=".\Src\Jit\DSPJitUtil.cpp"
 			  >
 			</File>
+	      <File
+			 RelativePath=".\Src\Jit\DSPJitMisc.cpp"
+			  >
+			</File>
 		  </Filter>
 		<File
 			RelativePath=".\Src\assemble.cpp"

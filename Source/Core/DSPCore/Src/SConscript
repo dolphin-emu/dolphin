@@ -26,7 +26,7 @@ files = [
     "DSPTables.cpp",
     "Jit/DSPJitExtOps.cpp",
     "Jit/DSPJitUtil.cpp",
-
+	"Jit/DSPJitMisc.cpp",
     ]
 
 acenv = env.Clone()

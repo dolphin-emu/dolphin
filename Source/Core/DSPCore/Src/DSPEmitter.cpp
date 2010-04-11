@@ -44,6 +44,9 @@ DSPEmitter::DSPEmitter()
 		blockSize[i] = 0;
 		endBlock[i] = false;
 	}
+	compileSR = 0;
+	compileSR |= SR_INT_ENABLE;
+	compileSR |= SR_EXT_INT_ENABLE;
 }
 
 DSPEmitter::~DSPEmitter() 

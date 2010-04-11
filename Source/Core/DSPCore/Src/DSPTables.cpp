@@ -35,10 +35,10 @@ const DSPOPCTemplate opcodes[] =
 {
 	{"NOP",		0x0000, 0xfffc, nop, &DSPEmitter::nop, 1, 0, {}, false, false},
 
-	{"DAR",		0x0004, 0xfffc, DSPInterpreter::dar, NULL, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false},
-	{"IAR",		0x0008, 0xfffc, DSPInterpreter::iar, NULL, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false},
-	{"SUBARN",	0x000c, 0xfffc, DSPInterpreter::subarn, NULL, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false},
-	{"ADDARN",  0x0010, 0xfff0, DSPInterpreter::addarn, NULL, 1, 2, {{P_REG, 1, 0, 0, 0x0003}, {P_REG04, 1, 0, 2, 0x000c}}, false, false},
+	{"DAR",		0x0004, 0xfffc, DSPInterpreter::dar, &DSPEmitter::dar, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false},
+	{"IAR",		0x0008, 0xfffc, DSPInterpreter::iar, &DSPEmitter::iar, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false},
+	{"SUBARN",	0x000c, 0xfffc, DSPInterpreter::subarn, &DSPEmitter::subarn, 1, 1, {{P_REG, 1, 0, 0, 0x0003}}, false, false},
+	{"ADDARN",  0x0010, 0xfff0, DSPInterpreter::addarn, &DSPEmitter::addarn, 1, 2, {{P_REG, 1, 0, 0, 0x0003}, {P_REG04, 1, 0, 2, 0x000c}}, false, false},
 
 	{"HALT",	0x0021, 0xffff, DSPInterpreter::halt, NULL, 1, 0, {}, false, true},
 
@@ -146,8 +146,8 @@ const DSPOPCTemplate opcodes[] =
 	{"CALLRO",	0x171e, 0xff1f, DSPInterpreter::callr, NULL, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false, true},
 	{"CALLR",	0x171f, 0xff1f, DSPInterpreter::callr, NULL, 1, 1, {{P_REG, 1, 0, 5, 0x00e0}}, false, true},
 
-	{"SBCLR",   0x1200, 0xff00, DSPInterpreter::sbclr, NULL, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, false, false},
-	{"SBSET",   0x1300, 0xff00, DSPInterpreter::sbset, NULL, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, false, false},
+	{"SBCLR",   0x1200, 0xff00, DSPInterpreter::sbclr, &DSPEmitter::sbclr, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, false, false},
+	{"SBSET",   0x1300, 0xff00, DSPInterpreter::sbset, &DSPEmitter::sbset, 1, 1, {{P_IMM, 1, 0, 0, 0x0007}}, false, false},
 
 	{"LSL",		0x1400, 0xfec0, DSPInterpreter::lsl, NULL, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, false, false},
 	{"LSR",		0x1440, 0xfec0, DSPInterpreter::lsr, NULL, 1, 2, {{P_ACC, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x003f}}, false, false},
@@ -255,12 +255,12 @@ const DSPOPCTemplate opcodes[] =
 	{"CLRP",	0x8400, 0xff00, DSPInterpreter::clrp, NULL, 1 ,  0, {}, true, false},
 	{"TSTPROD", 0x8500, 0xff00, DSPInterpreter::tstprod, NULL, 1 ,  0, {}, true, false},
 	{"TSTAXH",  0x8600, 0xfe00, DSPInterpreter::tstaxh, NULL, 1 , 1, {{P_REG1A, 1, 0, 8, 0x0100}}, true, false},
-	{"M2",      0x8a00, 0xff00, DSPInterpreter::srbith, NULL, 1 , 0, {}, true, false},
-	{"M0",      0x8b00, 0xff00, DSPInterpreter::srbith, NULL, 1 , 0, {}, true, false},
-	{"CLR15",   0x8c00, 0xff00, DSPInterpreter::srbith, NULL, 1 , 0, {}, true, false},
-	{"SET15",   0x8d00, 0xff00, DSPInterpreter::srbith, NULL, 1 , 0, {}, true, false},
-	{"SET16",	0x8e00, 0xff00, DSPInterpreter::srbith, NULL, 1 , 0, {}, true, false},
-	{"SET40",	0x8f00, 0xff00, DSPInterpreter::srbith, NULL, 1 , 0, {}, true, false},
+	{"M2",      0x8a00, 0xff00, DSPInterpreter::srbith, &DSPEmitter::srbith, 1 , 0, {}, true, false},
+	{"M0",      0x8b00, 0xff00, DSPInterpreter::srbith, &DSPEmitter::srbith, 1 , 0, {}, true, false},
+	{"CLR15",   0x8c00, 0xff00, DSPInterpreter::srbith, &DSPEmitter::srbith, 1 , 0, {}, true, false},
+	{"SET15",   0x8d00, 0xff00, DSPInterpreter::srbith, &DSPEmitter::srbith, 1 , 0, {}, true, false},
+	{"SET16",	0x8e00, 0xff00, DSPInterpreter::srbith, &DSPEmitter::srbith, 1 , 0, {}, true, false},
+	{"SET40",	0x8f00, 0xff00, DSPInterpreter::srbith, &DSPEmitter::srbith, 1 , 0, {}, true, false},
 
 	//9
 	{"MUL",		0x9000, 0xf700, DSPInterpreter::mul,    NULL, 1 , 2, {{P_REG18, 1, 0, 11, 0x0800}, {P_REG1A, 1, 0, 11, 0x0800}}, true, false},

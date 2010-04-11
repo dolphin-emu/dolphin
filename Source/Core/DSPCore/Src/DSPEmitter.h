@@ -32,6 +32,7 @@ class DSPEmitter : public Gen::XCodeBlock
 	CompiledCode *blocks;
 	u16 blockSize[0x10000];
 	bool *endBlock;
+	u16 compileSR;
 	DISALLOW_COPY_AND_ASSIGN(DSPEmitter);
 
 public:
@@ -48,6 +49,10 @@ public:
 
 	void STACKALIGN RunBlock(int cycles);
 
+	// Register helpers
+	void setSR(u16 bit);
+	void clrSR(u16 bit);
+	
 	// Memory helper functions
 	void increment_addr_reg(int reg);
 	void decrement_addr_reg(int reg);
@@ -79,6 +84,15 @@ public:
 	void ir(const UDSPInstruction opc);
 	void nr(const UDSPInstruction opc);
 	void nop(const UDSPInstruction opc) {}
+
+	// Commands
+	void dar(const UDSPInstruction opc);
+	void iar(const UDSPInstruction opc);
+	void subarn(const UDSPInstruction opc);
+	void addarn(const UDSPInstruction opc);
+	void sbclr(const UDSPInstruction opc);
+	void sbset(const UDSPInstruction opc);
+	void srbith(const UDSPInstruction opc);
 };									  
 
 

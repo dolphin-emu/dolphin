@@ -130,7 +130,7 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 	WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
 	// Initialize JIT, if necessary
-	if(bUsingJIT)
+	if(bUsingJIT) 
 		jit = new DSPEmitter();
 
 	DSPAnalyzer::Analyze();
