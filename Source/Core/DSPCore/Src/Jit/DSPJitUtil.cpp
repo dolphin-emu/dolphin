@@ -213,27 +213,49 @@ void DSPEmitter::ext_dmem_write(u32 dest, u32 src)
 	FixupBranch ifx = J_CC(CC_NZ);
 
 	//  g_dsp.dram[addr & DSP_DRAM_MASK] = val;
+	// FIXME this wont work on 64bit
 	AND(16, R(EAX), Imm16(DSP_DRAM_MASK));
-						 //	MOVZX(32, 16, M); 
+	MOV(16, MDisp(EAX, (int)&g_dsp.dram[0]), R(ECX));
 	
 	FixupBranch end = J();
 	//	else if (saddr == 0xf)
 	SetJumpTarget(ifx);
-	//		gdsp_ifx_write(addr, val);
+	// Does it mean gdsp_ifx_write needs u32 rather than u16?
+	ABI_CallFunctionRR((void *)gdsp_ifx_write, EAX, ECX);	
 	SetJumpTarget(end);
 }
 
-u16 DSPEmitter::ext_dmem_read(u16 addr)
+// EAX should have the return value
+void DSPEmitter::ext_dmem_read(u16 addr)
 {
-	u16 saddr = addr >> 12; 
-	if (saddr == 0)
-		return g_dsp.dram[addr & DSP_DRAM_MASK];
-	else if (saddr == 0x1)
-		return g_dsp.coef[addr & DSP_COEF_MASK];
-	else if (saddr == 0xf)
-		return gdsp_ifx_read(addr);
+	MOVZX(32, 16, ECX, M(&addr));
 
-	return 0;
+	//	u16 saddr = addr >> 12; 
+	MOVZX(32, 16, ESI, R(EAX));
+	SHR(16, R(ESI), Imm16(12));
+
+	//	if (saddr == 0)
+	CMP(16, R(ESI), Imm16(0));
+	FixupBranch dram = J_CC(CC_NZ);
+	//	return g_dsp.dram[addr & DSP_DRAM_MASK];
+	AND(16, R(ECX), Imm16(DSP_DRAM_MASK));
+
+	FixupBranch end = J();
+	SetJumpTarget(dram);
+	//	else if (saddr == 0x1)
+	CMP(16, R(ESI), Imm16(0x1));
+	FixupBranch ifx = J_CC(CC_NZ);
+	//		return g_dsp.coef[addr & DSP_COEF_MASK];
+	AND(16, R(ECX), Imm16(DSP_COEF_MASK));
+
+	FixupBranch end2 = J();
+	SetJumpTarget(ifx);
+	//	else if (saddr == 0xf)
+	//		return gdsp_ifx_read(addr);
+	ABI_CallFunctionR((void *)gdsp_ifx_read, ECX);
+	
+	SetJumpTarget(end);
+	SetJumpTarget(end2);
 }
 
 #endif

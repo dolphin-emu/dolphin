@@ -54,7 +54,7 @@ public:
 	void increase_addr_reg(int reg);
 	void decrease_addr_reg(int reg);
 	void ext_dmem_write(u32 src, u32 dest);
-	u16 ext_dmem_read(u16 addr);
+	void ext_dmem_read(u16 addr);
 	void writeAxAcc(const UDSPInstruction opc);
 
 	// Ext commands

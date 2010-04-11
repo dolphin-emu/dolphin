@@ -16,8 +16,12 @@
 // http://code.google.com/p/dolphin-emu/
 #include "../DSPMemoryMap.h"
 #include "../DSPEmitter.h"
+#include "x64Emitter.h"
+#include "ABI.h"
+
 #include "../DSPIntExtOps.h" // remove when getting rid of writebacklog
 // See docs in the interpeter
+using namespace Gen;
 
 inline bool IsSameMemArea(u16 a, u16 b)
 {
@@ -104,7 +108,10 @@ void DSPEmitter::l(const UDSPInstruction opc)
 	
 	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)) 
 	{
-		u16 val = ext_dmem_read(g_dsp.r[sreg]);
+		u16 val;
+		ext_dmem_read(g_dsp.r[sreg]);
+		MOV(16, M(&val), R(EAX));
+		
 		writeToBackLog(0, dreg - DSP_REG_ACM0 + DSP_REG_ACH0, (val & 0x8000) ? 0xFFFF : 0x0000);
 		writeToBackLog(1, dreg,	val);
 		writeToBackLog(2, dreg - DSP_REG_ACM0 + DSP_REG_ACL0, 0);
@@ -112,7 +119,8 @@ void DSPEmitter::l(const UDSPInstruction opc)
 	}
 	else
 	{
-		writeToBackLog(0, dreg,	ext_dmem_read(g_dsp.r[sreg]));
+		ext_dmem_read(g_dsp.r[sreg]);
+		MOV(16, M(&g_dsp.r[dreg]), R(EAX));
 		increment_addr_reg(sreg);
 	}
 }
@@ -128,7 +136,9 @@ void DSPEmitter::ln(const UDSPInstruction opc)
 
 	if ((dreg >= DSP_REG_ACM0) && (g_dsp.r[DSP_REG_SR] & SR_40_MODE_BIT)) 
 	{
-		u16 val = ext_dmem_read(g_dsp.r[sreg]);
+		u16 val;
+		ext_dmem_read(g_dsp.r[sreg]);
+		MOV(16, M(&val), R(EAX));
 		writeToBackLog(0, dreg - DSP_REG_ACM0 + DSP_REG_ACH0, (val & 0x8000) ? 0xFFFF : 0x0000);
 		writeToBackLog(1, dreg,	val);
 		writeToBackLog(2, dreg - DSP_REG_ACM0 + DSP_REG_ACL0, 0);
@@ -136,7 +146,8 @@ void DSPEmitter::ln(const UDSPInstruction opc)
 	}
 	else
 	{
-		writeToBackLog(0, dreg,	ext_dmem_read(g_dsp.r[sreg]));
+		ext_dmem_read(g_dsp.r[sreg]);
+		MOV(16, M(&g_dsp.r[dreg]), R(EAX));
 		increase_addr_reg(sreg);
 	}
 }
@@ -152,8 +163,10 @@ void DSPEmitter::ls(const UDSPInstruction opc)
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 
 	ext_dmem_write(DSP_REG_AR3, sreg);
-
-	writeToBackLog(0, dreg,	ext_dmem_read(g_dsp.r[DSP_REG_AR0]));
+	
+	ext_dmem_read(g_dsp.r[DSP_REG_AR0]);
+	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+	
 	increment_addr_reg(DSP_REG_AR3);
 	increment_addr_reg(DSP_REG_AR0); 
 }
@@ -172,7 +185,9 @@ void DSPEmitter::lsn(const UDSPInstruction opc)
 
 	ext_dmem_write(DSP_REG_AR3, sreg);
 
-	writeToBackLog(0, dreg,	ext_dmem_read(g_dsp.r[DSP_REG_AR0]));
+	ext_dmem_read(g_dsp.r[DSP_REG_AR0]);
+	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+	
 	increment_addr_reg(DSP_REG_AR3);
 	increase_addr_reg(DSP_REG_AR0);
 }
@@ -190,7 +205,9 @@ void DSPEmitter::lsm(const UDSPInstruction opc)
 	
 	ext_dmem_write(DSP_REG_AR3, sreg);
 
-	writeToBackLog(0, dreg,	ext_dmem_read(g_dsp.r[DSP_REG_AR0]));
+	ext_dmem_read(g_dsp.r[DSP_REG_AR0]);
+	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+
 	increase_addr_reg(DSP_REG_AR3);
 	increment_addr_reg(DSP_REG_AR0);
 }
@@ -209,7 +226,9 @@ void DSPEmitter::lsnm(const UDSPInstruction opc)
 	
 	ext_dmem_write(DSP_REG_AR3, sreg);
 
-	writeToBackLog(0, dreg,	ext_dmem_read(g_dsp.r[DSP_REG_AR0]));
+	ext_dmem_read(g_dsp.r[DSP_REG_AR0]);
+	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+
 	increase_addr_reg(DSP_REG_AR3);
 	increase_addr_reg(DSP_REG_AR0);
 }
@@ -225,8 +244,10 @@ void DSPEmitter::sl(const UDSPInstruction opc)
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 	
 	ext_dmem_write(DSP_REG_AR0, sreg);
+	
+	ext_dmem_read(g_dsp.r[DSP_REG_AR3]);
+	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
 
-	writeToBackLog(0, dreg,	ext_dmem_read(g_dsp.r[DSP_REG_AR3]));
 	increment_addr_reg(DSP_REG_AR3);
 	increment_addr_reg(DSP_REG_AR0); 
 }
@@ -243,8 +264,10 @@ void DSPEmitter::sln(const UDSPInstruction opc)
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 	
 	ext_dmem_write(DSP_REG_AR0, sreg);
-	
-	writeToBackLog(0, dreg,	ext_dmem_read(g_dsp.r[DSP_REG_AR3]));
+
+	ext_dmem_read(g_dsp.r[DSP_REG_AR3]);
+	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+
 	increment_addr_reg(DSP_REG_AR3);
 	increase_addr_reg(DSP_REG_AR0);
 }
@@ -261,8 +284,10 @@ void DSPEmitter::slm(const UDSPInstruction opc)
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 	
 	ext_dmem_write(DSP_REG_AR0, sreg);
+	
+	ext_dmem_read(g_dsp.r[DSP_REG_AR3]);
+	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
 
-	writeToBackLog(0, dreg,	ext_dmem_read(g_dsp.r[DSP_REG_AR3]));
 	increase_addr_reg(DSP_REG_AR3);
 	increment_addr_reg(DSP_REG_AR0);
 }
@@ -279,8 +304,10 @@ void DSPEmitter::slnm(const UDSPInstruction opc)
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 	
 	ext_dmem_write(DSP_REG_AR0, sreg);
+	
+	ext_dmem_read(g_dsp.r[DSP_REG_AR3]);
+	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
 
-	writeToBackLog(0, dreg,	ext_dmem_read(g_dsp.r[DSP_REG_AR3]));
 	increase_addr_reg(DSP_REG_AR3);
 	increase_addr_reg(DSP_REG_AR0);
 }
@@ -300,7 +327,7 @@ void DSPEmitter::ld(const UDSPInstruction opc)
 	u8 dreg = (opc >> 5) & 0x1;
 	u8 rreg = (opc >> 4) & 0x1;
 	u8 sreg = opc & 0x3;
-
+	/*
 	if (sreg != DSP_REG_AR3) {
 		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, ext_dmem_read(g_dsp.r[sreg]));
 
@@ -320,7 +347,7 @@ void DSPEmitter::ld(const UDSPInstruction opc)
 
 		increment_addr_reg(dreg);
 	}
-
+	*/
 	increment_addr_reg(DSP_REG_AR3);
 }
 
@@ -331,7 +358,7 @@ void DSPEmitter::ldn(const UDSPInstruction opc)
 	u8 dreg = (opc >> 5) & 0x1;
 	u8 rreg = (opc >> 4) & 0x1;
 	u8 sreg = opc & 0x3;
-	
+	/*
 	if (sreg != DSP_REG_AR3) {
 		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, ext_dmem_read(g_dsp.r[sreg]));
 
@@ -351,7 +378,7 @@ void DSPEmitter::ldn(const UDSPInstruction opc)
 
 		increase_addr_reg(dreg);
 	}
-	
+	*/	
 	increment_addr_reg(DSP_REG_AR3);
 }
 
@@ -362,7 +389,7 @@ void DSPEmitter::ldm(const UDSPInstruction opc)
 	u8 dreg = (opc >> 5) & 0x1;
 	u8 rreg = (opc >> 4) & 0x1;
 	u8 sreg = opc & 0x3;
-
+	/*
 	if (sreg != DSP_REG_AR3) {
 		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, ext_dmem_read(g_dsp.r[sreg]));
 
@@ -382,7 +409,7 @@ void DSPEmitter::ldm(const UDSPInstruction opc)
 
 		increment_addr_reg(dreg);
 	}
-
+	*/
 	increase_addr_reg(DSP_REG_AR3);
 }
 
@@ -393,7 +420,7 @@ void DSPEmitter::ldnm(const UDSPInstruction opc)
 	u8 dreg = (opc >> 5) & 0x1;
 	u8 rreg = (opc >> 4) & 0x1;
 	u8 sreg = opc & 0x3;
-
+	/*
 	if (sreg != DSP_REG_AR3) {
 		writeToBackLog(0, (dreg << 1) + DSP_REG_AXL0, ext_dmem_read(g_dsp.r[sreg]));
 
@@ -413,7 +440,7 @@ void DSPEmitter::ldnm(const UDSPInstruction opc)
 
 		increase_addr_reg(dreg);
 	}
-
+	*/
 	increase_addr_reg(DSP_REG_AR3);
 }
 
