@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-#include "DSPIntUtil.h"
+#include "../DSPIntUtil.h"
 #include "../DSPEmitter.h"
 #include "x64Emitter.h"
 #include "ABI.h"
