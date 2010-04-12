@@ -100,11 +100,8 @@ void StringTests()
 	EXPECT_EQ(TabsToSpaces(4, "a\tb"), "a    b");
 }
 
-#ifdef _WIN32
-int main(int argc, _TCHAR* argv[])
-#else
+
 int main(int argc, char* argv[])
-#endif
 {
 	AudioJitTests();
 

@@ -1,0 +1,19 @@
+# -*- python -*- 
+
+Import('env')
+import sys
+
+unitenv = env.Clone()
+
+files = [
+	"AudioJitTests.cpp",
+	"DSPJitTester.cpp",
+	"UnitTests.cpp",
+	]
+
+libs = [ 
+	'dspcore', 'common', 
+]
+
+unitenv.Append( LIBS = libs)
+unitenv.Program(env['binary_dir'] + 'tester', files)
