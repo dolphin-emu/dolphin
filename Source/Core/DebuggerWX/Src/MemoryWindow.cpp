@@ -388,7 +388,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event) {
 			sscanf(txt.mb_str(), "%08x", &addr);
 		}
 		i=addr+4;
-		for(;szRAM;i++){
+		for(;i<szRAM;i++){
 			for(k=0;k<size;k++){
 				if(i+k>szRAM) break;
 				if(k>size) break;

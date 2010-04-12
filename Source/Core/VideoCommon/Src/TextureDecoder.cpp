@@ -177,7 +177,7 @@ u64 TexDecoder_GetHash64(const u8 *src, int len, u32 samples)
 		data+=Step;
 	}
 
-	if(len & 7 > 3)
+	if((len & 7) > 3)
 	{
 		u32 k1 = *(end - 1);
 		k1 *= m; 

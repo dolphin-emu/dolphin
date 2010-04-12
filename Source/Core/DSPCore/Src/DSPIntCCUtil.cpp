@@ -137,7 +137,7 @@ inline bool isOverS32() {
 }
 
 inline bool isLess() {
-	return ((bool)(g_dsp.r[DSP_REG_SR] & SR_OVERFLOW) != (bool)(g_dsp.r[DSP_REG_SR] & SR_SIGN));
+	return (!(g_dsp.r[DSP_REG_SR] & SR_OVERFLOW) != !(g_dsp.r[DSP_REG_SR] & SR_SIGN));
 }
 
 inline bool isZero() {
