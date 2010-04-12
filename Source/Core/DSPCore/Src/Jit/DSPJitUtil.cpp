@@ -215,7 +215,7 @@ void DSPEmitter::ext_dmem_write(u32 dest, u32 src)
 	//  g_dsp.dram[addr & DSP_DRAM_MASK] = val;
 	// FIXME this wont work on 64bit
 	AND(16, R(EAX), Imm16(DSP_DRAM_MASK));
-	MOV(16, MDisp(EAX, (int)&g_dsp.dram[0]), R(ECX));
+	MOV(16, MDisp(EAX, (int)g_dsp.dram[0]), R(ECX));
 	
 	FixupBranch end = J();
 	//	else if (saddr == 0xf)
