@@ -169,7 +169,7 @@ const DSPOPCTemplate opcodes[] =
 	{"CMPIS",	0x0600, 0xfe00, DSPInterpreter::cmpis, NULL, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 1, 0, 0, 0x00ff}}, false, false},
 	{"LRIS",	0x0800, 0xf800, DSPInterpreter::lris, NULL, 1, 2, {{P_REG18, 1, 0, 8, 0x0700}, {P_IMM, 1, 0, 0, 0x00ff}}, false, false},
 
-	{"ADDI",    0x0200, 0xfeff, DSPInterpreter::addi, NULL, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, false, false}, // F|RES: missing S64
+	{"ADDI",    0x0200, 0xfeff, DSPInterpreter::addi, NULL, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, false, false}, 
 	{"XORI",    0x0220, 0xfeff, DSPInterpreter::xori, NULL, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, false, false},
 	{"ANDI",	0x0240, 0xfeff, DSPInterpreter::andi, NULL, 2, 2,  {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, false, false},
 	{"ORI",		0x0260, 0xfeff, DSPInterpreter::ori, NULL, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, false, false},
@@ -179,7 +179,7 @@ const DSPOPCTemplate opcodes[] =
 	{"ANDCF",	0x02c0, 0xfeff, DSPInterpreter::andcf, NULL, 2, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_IMM, 2, 1, 0, 0xffff}}, false, false},
 
 	{"ILRR",    0x0210, 0xfefc, DSPInterpreter::ilrr,  NULL, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, false, false},
-	{"ILRRD",	0x0214, 0xfefc, DSPInterpreter::ilrrd, NULL, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, false, false}, // Hermes doesn't list this
+	{"ILRRD",	0x0214, 0xfefc, DSPInterpreter::ilrrd, NULL, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, false, false}, 
 	{"ILRRI",   0x0218, 0xfefc, DSPInterpreter::ilrri, NULL, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, false, false},
 	{"ILRRN",   0x021c, 0xfefc, DSPInterpreter::ilrrn, NULL, 1, 2, {{P_ACCM, 1, 0, 8, 0x0100}, {P_PRG, 1, 0, 0, 0x0003}}, false, false},
 

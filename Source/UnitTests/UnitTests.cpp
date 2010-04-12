@@ -26,26 +26,25 @@
 void AudioJitTests();
 
 using namespace std;
-
 int fail_count = 0;
 
 #define EXPECT_TRUE(a) \
 	if (!a) { \
-		cout << "FAIL (" __FUNCTION__ "): " << #a << " is false" << endl; \
+		cout << "FAIL (" << __FUNCTION__ << "): " << #a << " is false" << endl; \
 		cout << "Value: " << a << endl << "Expected: true" << endl; \
 		fail_count++; \
 	}
 
 #define EXPECT_FALSE(a) \
 	if (a) { \
-		cout << "FAIL (" __FUNCTION__ "): " << #a << " is true" << endl; \
+		cout << "FAIL (" << __FUNCTION__ << "): " << #a << " is true" << endl; \
 		cout << "Value: " << a << endl << "Expected: false" << endl; \
 		fail_count++; \
 	}
 
 #define EXPECT_EQ(a, b) \
 	if ((a) != (b)) { \
-		cout << "FAIL (" __FUNCTION__ "): " << #a << " is not equal to " << #b << endl; \
+		cout << "FAIL (" << __FUNCTION__ << "): " << #a << " is not equal to " << #b << endl; \
 		cout << "Actual: " << a << endl << "Expected: " << b << endl; \
 		fail_count++; \
 	}
@@ -101,7 +100,11 @@ void StringTests()
 	EXPECT_EQ(TabsToSpaces(4, "a\tb"), "a    b");
 }
 
+#ifdef _WIN32
 int main(int argc, _TCHAR* argv[])
+#else
+int main(int argc, char* argv[])
+#endif
 {
 	AudioJitTests();
 

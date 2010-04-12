@@ -81,6 +81,7 @@ dirs = [
     'Source/Plugins/Plugin_Wiimote/Src',
     'Source/Core/DolphinWX/Src',
     'Source/Core/DebuggerWX/Src',
+    'Source/UnitTests/',
     ]
 
 builders = {}
