@@ -213,9 +213,14 @@ void DSPEmitter::ext_dmem_write(u32 dest, u32 src)
 	FixupBranch ifx = J_CC(CC_NZ);
 
 	//  g_dsp.dram[addr & DSP_DRAM_MASK] = val;
-	// FIXME this wont work on 64bit
 	AND(16, R(EAX), Imm16(DSP_DRAM_MASK));
-	MOV(16, MDisp(EAX, (int)g_dsp.dram[0]), R(ECX));
+#ifdef _M_X64
+	MOV(64, R(R11), Imm64((u64)g_dsp.dram)); 
+	ADD(64, R(EAX), R(R11));
+#else
+	ADD(32, R(EAX), Imm32((u32)g_dsp.dram));
+#endif
+	MOV(16, MDisp(EAX,0), R(ECX));
 	
 	FixupBranch end = J();
 	//	else if (saddr == 0xf)
@@ -239,6 +244,13 @@ void DSPEmitter::ext_dmem_read(u16 addr)
 	FixupBranch dram = J_CC(CC_NZ);
 	//	return g_dsp.dram[addr & DSP_DRAM_MASK];
 	AND(16, R(ECX), Imm16(DSP_DRAM_MASK));
+#ifdef _M_X64
+	MOV(64, R(R11), Imm64((u64)g_dsp.dram)); 
+	ADD(64, R(ECX), R(R11));
+#else
+	ADD(32, R(ECX), Imm32((u32)g_dsp.dram));
+#endif
+	MOV(16, R(EAX), MDisp(ECX,0));
 
 	FixupBranch end = J();
 	SetJumpTarget(dram);
@@ -247,6 +259,13 @@ void DSPEmitter::ext_dmem_read(u16 addr)
 	FixupBranch ifx = J_CC(CC_NZ);
 	//		return g_dsp.coef[addr & DSP_COEF_MASK];
 	AND(16, R(ECX), Imm16(DSP_COEF_MASK));
+#ifdef _M_X64
+	MOV(64, R(R11), Imm64((u64)g_dsp.dram)); 
+	ADD(64, R(ECX), R(R11));
+#else
+	ADD(32, R(ECX), Imm32((u32)g_dsp.dram));
+#endif
+	MOV(16, R(EAX), MDisp(ECX,0));
 
 	FixupBranch end2 = J();
 	SetJumpTarget(ifx);
