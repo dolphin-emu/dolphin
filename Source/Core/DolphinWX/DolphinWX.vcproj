@@ -872,6 +872,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\HotkeyDlg.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\HotkeyDlg.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\ISOProperties.cpp"
 				>
 			</File>

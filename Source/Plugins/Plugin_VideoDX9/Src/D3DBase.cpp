@@ -30,8 +30,6 @@ LPDIRECT3DSURFACE9 back_buffer_z;
 D3DCAPS9 caps;
 HWND hWnd;
 
-static bool fullScreen = false;
-static bool nextFullScreen = false;
 static int multisample;
 static int resolution;
 static int xres, yres;
@@ -130,23 +128,14 @@ void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
 	pp->MultiSampleQuality = adapters[adapter].aa_levels[aa_mode].qual_setting;
 
 	pp->Flags = auto_depth_stencil ? D3DPRESENTFLAG_DISCARD_DEPTHSTENCIL : 0;
-	if (fullScreen)
-	{
-		xres = pp->BackBufferWidth = FSResX;
-		yres = pp->BackBufferHeight = FSResY;	
-		pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
-		pp->Windowed = FALSE;
-	}
-	else
-	{
-		RECT client;
-		GetClientRect(hWnd, &client);
-		xres = pp->BackBufferWidth  = client.right - client.left;
-		yres = pp->BackBufferHeight = client.bottom - client.top;
-		pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
-		pp->PresentationInterval = g_Config.bVSync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
-		pp->Windowed = TRUE;
-	}
+
+	RECT client;
+	GetClientRect(hWnd, &client);
+	xres = pp->BackBufferWidth  = client.right - client.left;
+	yres = pp->BackBufferHeight = client.bottom - client.top;
+	pp->SwapEffect = D3DSWAPEFFECT_DISCARD;
+	pp->PresentationInterval = g_Config.bVSync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
+	pp->Windowed = TRUE;
 }
 
 void Enumerate()
@@ -265,11 +254,9 @@ void Enumerate()
 	}
 }
 
-HRESULT Create(int adapter, HWND wnd, bool _fullscreen, int _resolution, int aa_mode, bool auto_depth)
+HRESULT Create(int adapter, HWND wnd, int _resolution, int aa_mode, bool auto_depth)
 {
 	hWnd = wnd;
-	fullScreen = _fullscreen;
-	nextFullScreen = _fullscreen;
 	multisample = aa_mode;
 	resolution = _resolution;
 	auto_depth_stencil = auto_depth;
@@ -401,11 +388,6 @@ void Reset()
 	}
 }
 
-bool IsFullscreen()
-{
-	return fullScreen;
-}
-
 int GetBackBufferWidth()
 {
 	return xres;
@@ -414,11 +396,6 @@ int GetBackBufferWidth()
 int GetBackBufferHeight()
 {
 	return yres;
-}
-
-void SwitchFullscreen(bool fullscreen)
-{
-	nextFullScreen = fullscreen;
 }
 
 bool BeginFrame()
@@ -454,12 +431,6 @@ void Present()
 	if (dev)
 	{
 		dev->Present(NULL, NULL, NULL, NULL);
-	}
-
-	if (fullScreen != nextFullScreen)
-	{
-		fullScreen = nextFullScreen;
-		Reset();
 	}
 }
 

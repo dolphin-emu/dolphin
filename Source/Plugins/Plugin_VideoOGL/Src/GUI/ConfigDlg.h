@@ -65,7 +65,6 @@ class GFXConfigDialogOGL : public wxDialog
 		void CloseClick(wxCommandEvent& event);
 
 		void AddFSReso(const char *reso);
-		void AddWindowReso(const char *reso);
 		void CreateGUIControls();
 		void GameIniLoad();
 
@@ -95,9 +94,7 @@ class GFXConfigDialogOGL : public wxDialog
 		wxNotebook *m_Notebook;
 		wxPanel *m_PageGeneral;
 		wxPanel *m_PageAdvanced;
-		wxCheckBox *m_Fullscreen;
 		wxCheckBox *m_VSync;
-		wxCheckBox *m_RenderToMainWindow;
 		wxCheckBox *m_NativeResolution, *m_2xResolution;
 		wxCheckBox *m_WidescreenHack;
 		wxCheckBox *m_ForceFiltering;
@@ -105,10 +102,6 @@ class GFXConfigDialogOGL : public wxDialog
 		wxCheckBox *m_UseXFB;
 		wxCheckBox *m_UseRealXFB;
 		wxCheckBox *m_AutoScale;
-		#ifndef _WIN32
-			wxCheckBox *m_HideCursor;
-		#endif
-		wxChoice *m_WindowResolutionCB;
 		wxChoice *m_WindowFSResolutionCB;
 		wxChoice *m_MaxAnisotropyCB;
 		wxChoice *m_MSAAModeCB, *m_PhackvalueCB, *m_PostShaderCB, *m_KeepAR;
@@ -144,7 +137,6 @@ class GFXConfigDialogOGL : public wxDialog
 		wxSlider *m_SliderWidth, *m_SliderHeight, *m_SliderLeft, *m_SliderTop;
 		wxCheckBox *m_ScreenSize;
 
-		wxArrayString arrayStringFor_WindowResolutionCB;
 		wxArrayString arrayStringFor_FullscreenCB;
 		wxArrayString arrayStringFor_AspectRatio;
 		wxArrayString arrayStringFor_MaxAnisotropyCB;
@@ -158,9 +150,7 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_PAGEGENERAL,
 			ID_PAGEADVANCED,
 
-			ID_FULLSCREEN,
 			ID_VSYNC,
-			ID_RENDERTOMAINWINDOW,
 			ID_NATIVERESOLUTION, ID_2X_RESOLUTION,
 			ID_ASPECT, 
 			ID_CROP,
@@ -169,16 +159,7 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_AUTOSCALE,
 			ID_WIDESCREENHACK,
 
-			ID_HIDECURSOR,
-			ID_FSTEXT,
-			ID_FULLSCREENCB,
-			ID_WMTEXT,
-			ID_WM2TEXT,
-			ID_FMTEXT,
-			ID_IRTEXT,
-			ID_RTEXT,
-			ID_WINDOWRESOLUTIONCB,
-			ID_WINDOWFSRESOLUTIONCB,
+			ID_FULLSCREENRESOLUTION,
 			ID_FORCEFILTERING,
 			ID_MAXANISOTROPY,
 			ID_MAXANISOTROPYTEXT,

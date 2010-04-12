@@ -2407,7 +2407,7 @@ struct SHCIEventStatus
 {
 	u8 EventType;
 	u8 PayloadLength;
-	u8 Status;
+	u8 EventStatus;
 	u8 PacketIndicator;	
 	u16 Opcode;
 };
@@ -2423,14 +2423,14 @@ struct SHCIEventInquiryComplete
 {
     u8 EventType;
 	u8 PayloadLength;
-    u8 Status;
+    u8 EventStatus;
 };
 
 struct SHCIEventReadClockOffsetComplete
 {
     u8 EventType;
     u8 PayloadLength;
-    u8 Status;
+    u8 EventStatus;
     u16 ConnectionHandle;
     u16 ClockOffset;
 };
@@ -2439,7 +2439,7 @@ struct SHCIEventConPacketTypeChange
 {
 	u8 EventType;
 	u8 PayloadLength;
-	u8 Status;
+	u8 EventStatus;
 	u16 ConnectionHandle;
 	u16 PacketType;
 };
@@ -2448,7 +2448,7 @@ struct SHCIEventReadRemoteVerInfo
 {
     u8 EventType;
     u8 PayloadLength;
-    u8 Status;
+    u8 EventStatus;
     u16 ConnectionHandle;
     u8	lmp_version;
     u16	manufacturer;
@@ -2459,7 +2459,7 @@ struct SHCIEventReadRemoteFeatures
 {
     u8 EventType;
     u8 PayloadLength;
-    u8 Status;
+    u8 EventStatus;
     u16 ConnectionHandle;
     u8 features[HCI_FEATURES_SIZE];
 };
@@ -2468,7 +2468,7 @@ struct SHCIEventRemoteNameReq
 {
 	u8 EventType;
 	u8 PayloadLength;
-	u8 Status;
+	u8 EventStatus;
 	bdaddr_t bdaddr;
 	u8 RemoteName[248];
 };
@@ -2486,7 +2486,7 @@ struct SHCIEventConnectionComplete
 {
 	u8 EventType;
 	u8 PayloadLength;
-	u8 Status;
+	u8 EventStatus;
 	u16 Connection_Handle;
 	bdaddr_t bdaddr;
 	u8 LinkType;
@@ -2497,7 +2497,7 @@ struct SHCIEventRoleChange
 {
 	u8 EventType;
 	u8 PayloadLength;
-	u8 Status;
+	u8 EventStatus;
 	bdaddr_t bdaddr;
 	u8 NewRole;
 };
@@ -2515,7 +2515,7 @@ struct SHCIEventAuthenticationCompleted
 {
 	u8 EventType;
 	u8 PayloadLength;
-	u8 Status;
+	u8 EventStatus;
 	u16 Connection_Handle;
 };
 
@@ -2524,7 +2524,7 @@ struct SHCIEventModeChange
 {
 	u8 EventType;
 	u8 PayloadLength;
-	u8 Status;
+	u8 EventStatus;
 	u16 Connection_Handle;
 	u8 CurrentMode;
 	u16 Value;
@@ -2535,7 +2535,7 @@ struct SHCIEventDisconnectCompleted
 {
 	u8 EventType;
 	u8 PayloadLength;
-	u8 Status;
+	u8 EventStatus;
 	u16 Connection_Handle;
 	u8 Reason;
 };

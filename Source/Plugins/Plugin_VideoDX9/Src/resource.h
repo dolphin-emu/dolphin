@@ -9,10 +9,7 @@
 #define IDC_ADAPTER                     1001
 #define IDC_ANTIALIASMODE               1002
 #define IDC_RESOLUTION                  1003
-#define IDC_RESOLUTIONWINDOWED          1004
-#define IDC_FULLSCREENENABLE            1005
 #define IDC_VSYNC                       1006
-#define IDC_RENDER_TO_MAINWINDOW        1007
 #define IDC_ASPECT_16_9                 1008
 #define IDC_ASPECT_4_3                  1009
 #define IDC_WIDESCREEN_HACK             1010

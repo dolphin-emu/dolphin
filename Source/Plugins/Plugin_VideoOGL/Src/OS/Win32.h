@@ -31,8 +31,8 @@ namespace EmuWindow
     HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title);
     void Show();
     void Close();
-	void ToggleFullscreen(HWND hParent, bool bForceFull = false);
     void SetSize(int displayWidth, int displayHeight);
+    void ToggleDisplayMode (int bFullscreen);
 }
 
 #endif // _WIN32_H_

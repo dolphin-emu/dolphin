@@ -14,6 +14,11 @@ if env['HAVE_X11']:
 		"X11InputBase.cpp",
 		]
 
+if env['HAVE_WX']:
+	files += [
+		"WXInputBase.cpp",
+		]
+
 env_inputcommon = env.Clone()
 env_inputcommon.Append(CXXFLAGS = [ '-fPIC' ])
 env_inputcommon.StaticLibrary(env['local_libs'] + "inputcommon", files)

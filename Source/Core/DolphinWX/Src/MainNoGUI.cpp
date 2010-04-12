@@ -34,6 +34,14 @@
 
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
+#include <X11/keysym.h>
+#include "X11InputBase.h"
+#include "State.h"
+// EWMH state actions, see
+// http://freedesktop.org/wiki/Specifications/wm-spec?action=show&redirect=Standards%2Fwm-spec
+#define _NET_WM_STATE_REMOVE        0    /* remove/unset property */
+#define _NET_WM_STATE_ADD           1    /* add/set property */
+#define _NET_WM_STATE_TOGGLE        2    /* toggle property  */
 #endif
 
 #if defined(HAVE_COCOA) && HAVE_COCOA
@@ -54,12 +62,18 @@
 #include "LogManager.h"
 #include "BootManager.h"
 
+#if defined HAVE_X11 && HAVE_X11
+bool running = true;
+bool rendererHasFocus = true;
+#endif
+
 void Host_NotifyMapLoaded(){}
 
 void Host_ShowJitResults(unsigned int address){}
 
 #if defined(HAVE_X11) && HAVE_X11
-void X11_SendClientEvent(const char *message)
+void X11_SendClientEvent(const char *message,
+		int data1 = 0, int data2 = 0, int data3 = 0, int data4 = 0)
 {
 	XEvent event;
 	Display *dpy = (Display *)Core::GetWindowHandle();
@@ -69,10 +83,37 @@ void X11_SendClientEvent(const char *message)
 	event.xclient.type = ClientMessage;
 	event.xclient.format = 32;
 	event.xclient.data.l[0] = XInternAtom(dpy, message, False);
+	event.xclient.data.l[1] = data1;
+	event.xclient.data.l[2] = data2;
+	event.xclient.data.l[3] = data3;
+	event.xclient.data.l[4] = data4;
 
 	// Send the event
 	if (!XSendEvent(dpy, win, False, False, &event))
 		ERROR_LOG(VIDEO, "Failed to send message %s to the emulator window.\n", message);
+}
+
+void X11_EWMH_Fullscreen(int action)
+{
+	_assert_(action == _NET_WM_STATE_REMOVE || action == _NET_WM_STATE_ADD
+			|| action == _NET_WM_STATE_TOGGLE);
+
+	Display *dpy = (Display *)Core::GetWindowHandle();
+	Window win = *(Window *)Core::GetXWindow();
+
+	// Init X event structure for _NET_WM_STATE_FULLSCREEN client message
+	XEvent event;
+	event.xclient.type = ClientMessage;
+	event.xclient.message_type = XInternAtom(dpy, "_NET_WM_STATE", False);
+	event.xclient.window = win;
+	event.xclient.format = 32;
+	event.xclient.data.l[0] = action;
+	event.xclient.data.l[1] = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
+
+	// Send the event
+	if (!XSendEvent(dpy, DefaultRootWindow(dpy), False,
+				SubstructureRedirectMask | SubstructureNotifyMask, &event))
+		ERROR_LOG(VIDEO, "Failed to switch fullscreen/windowed mode.\n");
 }
 #endif
 
@@ -83,19 +124,7 @@ void Host_Message(int Id)
 	switch (Id)
 	{
 		case WM_USER_STOP:
-			updateMainFrameEvent.Set();
-			break;
-		case WM_USER_PAUSE:
-			if (Core::GetState() == Core::CORE_RUN)
-			{
-				X11_SendClientEvent("PAUSE");
-				Core::SetState(Core::CORE_PAUSE);
-			}
-			else
-			{
-				X11_SendClientEvent("RESUME");
-				Core::SetState(Core::CORE_RUN);
-			}
+			running = false;
 			break;
 	}
 #endif
@@ -120,6 +149,18 @@ void Host_UpdateMemoryView(){}
 
 void Host_SetDebugMode(bool){}
 
+void Host_RequestWindowSize(int& x, int& y, int& width, int& height)
+{
+	x = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos;
+	y = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos;
+	width = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth;
+	height = SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight;
+}
+
+bool Host_RendererHasFocus()
+{
+	return rendererHasFocus;
+}
 
 void Host_SetWaitCursor(bool enable){}
 
@@ -279,9 +320,111 @@ int main(int argc, char* argv[])
 	if (BootManager::BootCore(bootFile)) //no use running the loop when booting fails
 	{
 #if defined(HAVE_X11) && HAVE_X11
+		bool fullscreen = SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen;
+		printf("gopt here\n");
 		while (Core::GetState() == Core::CORE_UNINITIALIZED)
 			updateMainFrameEvent.Wait();
-		updateMainFrameEvent.Wait();
+		Display *dpy = XOpenDisplay(0);
+		Window win = *(Window *)Core::GetXWindow();
+		XSelectInput(dpy, win, KeyPressMask | KeyReleaseMask | FocusChangeMask);
+		Cursor blankCursor = NULL;
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+		{
+			// make a blank cursor
+			Pixmap Blank;
+			XColor DummyColor;
+			char ZeroData[1] = {0};
+			Blank = XCreateBitmapFromData (dpy, win, ZeroData, 1, 1);
+			blankCursor = XCreatePixmapCursor(dpy, Blank, Blank, &DummyColor, &DummyColor, 0, 0);
+			XFreePixmap (dpy, Blank);
+			XDefineCursor(dpy, win, blankCursor);
+		}
+		if (fullscreen)
+		{
+			X11_SendClientEvent("TOGGLE_DISPLAYMODE", fullscreen);
+			X11_EWMH_Fullscreen(_NET_WM_STATE_TOGGLE);
+		}
+		while (running)
+		{
+			XEvent event;
+			KeySym key;
+			for (int num_events = XPending(dpy); num_events > 0; num_events--)
+		   	{
+				XNextEvent(dpy, &event);
+				switch(event.type)
+				{
+					case KeyPress:
+						key = XLookupKeysym((XKeyEvent*)&event, 0);
+						if (key == XK_Escape)
+						{
+							if (Core::GetState() == Core::CORE_RUN)
+							{
+								if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+									XUndefineCursor(dpy, win);
+								Core::SetState(Core::CORE_PAUSE);
+							}
+							else
+							{
+								if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+									XDefineCursor(dpy, win, blankCursor);
+								Core::SetState(Core::CORE_RUN);
+							}
+						}
+						else if ((key == XK_Return) && (event.xkey.state & Mod1Mask))
+						{
+							fullscreen = !fullscreen;
+							X11_SendClientEvent("TOGGLE_DISPLAYMODE", fullscreen);
+							X11_EWMH_Fullscreen(_NET_WM_STATE_TOGGLE);
+						}
+						else if (key >= XK_F1 && key <= XK_F8)
+						{
+							int slot_number = key - XK_F1 + 1;
+							if (event.xkey.state & ShiftMask)
+								State_Save(slot_number);
+							else
+								State_Load(slot_number);
+						}
+						else if (key == XK_F9)
+							Core::ScreenShot();
+						else if (key == XK_F11)
+							State_LoadLastSaved();
+						else if (key == XK_F12)
+						{
+							if (event.xkey.state & ShiftMask)
+								State_UndoLoadState();
+							else
+								State_UndoSaveState();
+						}
+						break;
+					case FocusIn:
+						rendererHasFocus = true;
+						if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+								Core::GetState() != Core::CORE_PAUSE)
+							XDefineCursor(dpy, win, blankCursor);
+						break;
+					case FocusOut:
+						rendererHasFocus = false;
+						if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+							XUndefineCursor(dpy, win);
+						break;
+				}
+			}
+			if (!fullscreen)
+			{
+				Window winDummy;
+				unsigned int borderDummy, depthDummy;
+				XGetGeometry(dpy, win, &winDummy,
+						&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
+						&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos,
+						(unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
+						(unsigned int *)&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight,
+						&borderDummy, &depthDummy);
+			}
+			usleep(100000);
+		}
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+			XFreeCursor(dpy, blankCursor);
+		XCloseDisplay(dpy);
 		Core::Stop();
 #else
 		while (PowerPC::GetState() != PowerPC::CPU_POWERDOWN)

@@ -112,10 +112,16 @@ KeySym wxCharCodeWXToX(int id)
 
     return keySym;
 }
-#else
-KeySym wxCharCodeWXToX(int id)
+int wxKeyModWXToX(int modstate)
 {
-    return NULL;
+	int xstate = 0;
+	if (modstate & wxMOD_ALT)
+		xstate |= 8;
+	if (modstate & wxMOD_SHIFT)
+		xstate |= 1;
+	if (modstate & wxMOD_CONTROL)
+		xstate |= 4;
+	return xstate;
 }
 #endif
 void XKeyToString(unsigned int keycode, char *keyStr) {

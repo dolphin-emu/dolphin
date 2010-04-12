@@ -28,6 +28,7 @@
 #include "ConfigManager.h"
 #include "SysConf.h"
 #include "Frame.h"
+#include "HotkeyDlg.h"
 
 extern CFrame* main_frame;
 
@@ -51,12 +52,12 @@ EVT_BUTTON(wxID_CLOSE, CConfigMain::CloseClick)
 
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::CoreSettingsChanged)
-#if wxUSE_TIMER && defined _WIN32
-EVT_CHECKBOX(ID_INTERFACE_HIDECURSOR, CConfigMain::CoreSettingsChanged)
-EVT_CHECKBOX(ID_INTERFACE_AUTOHIDECURSOR, CConfigMain::CoreSettingsChanged)
-#endif
+EVT_CHECKBOX(ID_DISPLAY_HIDECURSOR, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_DISPLAY_FULLSCREEN, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_DISPLAY_RENDERTOMAIN, CConfigMain::CoreSettingsChanged)
 EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::CoreSettingsChanged)
+EVT_BUTTON(ID_HOTKEY_CONFIG, CConfigMain::CoreSettingsChanged)
 
 EVT_CHECKBOX(ID_ALWAYS_HLE_BS2, CConfigMain::CoreSettingsChanged)
 EVT_RADIOBUTTON(ID_RADIOJIT, CConfigMain::CoreSettingsChanged)
@@ -142,6 +143,7 @@ void CConfigMain::UpdateGUI()
 		LockThreads->Disable();
 		SkipIdle->Disable();
 		EnableCheats->Disable();
+		RenderToMain->Disable();
 		
 		GCSystemLang->Disable();
 		
@@ -223,13 +225,14 @@ void CConfigMain::InitializeGUIValues()
 	// General - Interface
 	ConfirmStop->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop);
 	UsePanicHandlers->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
-#if wxUSE_TIMER && defined _WIN32
-	AutoHideCursor->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor);
-	HideCursor->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor);
-#endif
 	Theme->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme);
 	// need redesign
 	InterfaceLang->SetSelection(SConfig::GetInstance().m_InterfaceLanguage);
+
+	// General - Display
+	Fullscreen->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
+	HideCursor->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor);
+	RenderToMain->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain);
 
 	// Gamecube - IPL
 	GCSystemLang->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.SelectedLanguage);
@@ -280,18 +283,22 @@ void CConfigMain::InitializeGUITooltips()
 	UsePanicHandlers->SetToolTip(wxT("Show a message box when a potentially serious error has occured.")
 		wxT(" Disabling this may avoid annoying and non-fatal messages, but it may also mean that Dolphin")
 		wxT(" suddenly crashes without any explanation at all."));
-#if wxUSE_TIMER && defined _WIN32
-	AutoHideCursor->SetToolTip(wxT("This will auto hide the cursor in fullscreen mode."));
-	HideCursor->SetToolTip(wxT("This will always hide the cursor when it's over the rendering window.")
-		wxT("\nIt can be convenient in a Wii game that already has a cursor."));
-#endif
 	InterfaceLang->SetToolTip(wxT("For the time being this will only change the text shown in")
 		wxT("\nthe game list of PAL GC games."));
+
 	// Themes: Copyright notice
 	Theme->SetItemToolTip(0, wxT("Created by Milosz Wlazlo [miloszwl@miloszwl.com, miloszwl.deviantart.com]"));
 	Theme->SetItemToolTip(1, wxT("Created by VistaIcons.com"));
 	Theme->SetItemToolTip(2, wxT("Created by black_rider and published on ForumW.org > Web Developments"));
 	Theme->SetItemToolTip(3, wxT("Created by KDE-Look.org"));
+
+	// General - Display
+	Fullscreen->SetToolTip(
+		wxT("Start the rendering window in fullscreen mode.")
+		wxT(" Press Alt+Enter to switch between Fullscreen and Windowed mode."));
+	HideCursor->SetToolTip(wxT("Hide the cursor when it is over the rendering window")
+		wxT("\n and the rendering window has focus."));
+	RenderToMain->SetToolTip(wxT("Render to main window."));
 
 	// Wii
 	WiiKeyboard->SetToolTip(wxT("This could cause slow down in Wii Menu and some games."));
@@ -318,6 +325,7 @@ void CConfigMain::CreateGUIControls()
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Basic Settings"));
 	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
 	sbInterface = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Interface Settings"));
+	sbDisplay = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Emulator Display Settings"));
 	// Core Settings - Basic
 	CPUThread = new wxCheckBox(GeneralPage, ID_CPUTHREAD, wxT("Enable Dual Core (speedup)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Enable Idle Skipping (speedup)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -340,20 +348,22 @@ void CConfigMain::CreateGUIControls()
 	ConfirmStop = new wxCheckBox(GeneralPage, ID_INTERFACE_CONFIRMSTOP, wxT("Confirm On Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UsePanicHandlers = new wxCheckBox(GeneralPage, ID_INTERFACE_USEPANICHANDLERS, wxT("Use Panic Handlers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-#if wxUSE_TIMER && defined _WIN32
-	// Hide Cursor
-	wxStaticText *HideCursorText = new wxStaticText(GeneralPage, ID_INTERFACE_HIDECURSOR_TEXT, wxT("Hide Cursor:"), wxDefaultPosition, wxDefaultSize);
-	AutoHideCursor = new wxCheckBox(GeneralPage, ID_INTERFACE_AUTOHIDECURSOR, wxT("Auto"));
-	HideCursor = new wxCheckBox(GeneralPage, ID_INTERFACE_HIDECURSOR, wxT("Always"));
-#endif
 	// Interface Language
 	// At the moment this only changes the language displayed in m_gamelistctrl
 	// If someone wants to control the whole GUI's language, it should be set here too
 	wxStaticText *InterfaceLangText = new wxStaticText(GeneralPage, ID_INTERFACE_LANG_TEXT, wxT("Game List Language:"), wxDefaultPosition, wxDefaultSize);
 	InterfaceLang = new wxChoice(GeneralPage, ID_INTERFACE_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_InterfaceLang, 0, wxDefaultValidator);
 
+	// Hotkey configuration
+	HotkeyConfig = new wxButton(GeneralPage, ID_HOTKEY_CONFIG, wxT("Hotkeys"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
+
 	// Themes - this should really be a wxChoice...
 	Theme = new wxRadioBox(GeneralPage, ID_INTERFACE_THEME, wxT("Theme"),wxDefaultPosition, wxDefaultSize, arrayStringFor_Themes, 1, wxRA_SPECIFY_ROWS);
+
+	// General display settings
+	Fullscreen = new wxCheckBox(GeneralPage, ID_DISPLAY_FULLSCREEN, wxT("Start Renderer in Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	HideCursor = new wxCheckBox(GeneralPage, ID_DISPLAY_HIDECURSOR, wxT("Hide Mouse Cursor"));
+	RenderToMain = new wxCheckBox(GeneralPage, ID_DISPLAY_RENDERTOMAIN, wxT("Render to Main Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Populate the settings
 	sCore = new wxBoxSizer(wxHORIZONTAL);
@@ -378,23 +388,23 @@ void CConfigMain::CreateGUIControls()
 
 	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
 	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
-#if wxUSE_TIMER && defined _WIN32
-	wxBoxSizer *sHideCursor = new wxBoxSizer(wxHORIZONTAL);
-	sHideCursor->Add(HideCursorText);
-	sHideCursor->Add(AutoHideCursor, 0, wxLEFT, 5);
-	sHideCursor->Add(HideCursor, 0, wxLEFT, 5);
-	sbInterface->Add(sHideCursor, 0, wxALL, 5);
-#endif
 	sbInterface->Add(Theme, 0, wxEXPAND | wxALL, 5);
-	wxBoxSizer *sInterfaceLanguage = new wxBoxSizer(wxHORIZONTAL);
-	sInterfaceLanguage->Add(InterfaceLangText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sInterfaceLanguage->Add(InterfaceLang, 0, wxEXPAND | wxALL, 5);
-	sbInterface->Add(sInterfaceLanguage, 0, wxEXPAND | wxALL, 5);
+	wxBoxSizer *sInterface = new wxBoxSizer(wxHORIZONTAL);
+	sInterface->Add(InterfaceLangText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sInterface->Add(InterfaceLang, 0, wxEXPAND | wxALL, 5);
+	sInterface->AddStretchSpacer();
+	sInterface->Add(HotkeyConfig, 0, wxALIGN_RIGHT | wxALL, 5);
+	sbInterface->Add(sInterface, 0, wxEXPAND | wxALL, 5);
+
+	sbDisplay->Add(Fullscreen, 0, wxEXPAND | wxALL, 5);
+	sbDisplay->Add(HideCursor, 0, wxALL, 5);
+	sbDisplay->Add(RenderToMain, 0, wxEXPAND | wxALL, 5);
 
 	// Populate the entire page
 	sGeneralPage = new wxBoxSizer(wxVERTICAL);
 	sGeneralPage->Add(sCore, 0, wxEXPAND | wxALL, 5);
 	sGeneralPage->Add(sbInterface, 0, wxEXPAND | wxALL, 5);
+	sGeneralPage->Add(sbDisplay, 0, wxEXPAND | wxALL, 5);
 
 	GeneralPage->SetSizer(sGeneralPage);
 	sGeneralPage->Layout();
@@ -699,18 +709,6 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers = UsePanicHandlers->IsChecked();
 		SetEnableAlert(UsePanicHandlers->IsChecked());
 		break;
-#if wxUSE_TIMER && defined _WIN32
-	case ID_INTERFACE_AUTOHIDECURSOR:
-		if (AutoHideCursor->IsChecked()) HideCursor->SetValue(!AutoHideCursor->IsChecked()); // Update the other one
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor = AutoHideCursor->IsChecked();		
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor = HideCursor->IsChecked();		
-		break;
-	case ID_INTERFACE_HIDECURSOR:
-		if (HideCursor->IsChecked()) AutoHideCursor->SetValue(!HideCursor->IsChecked()); // Update the other one
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor = AutoHideCursor->IsChecked();		
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor = HideCursor->IsChecked();
-		break;
-#endif
 	case ID_INTERFACE_THEME:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iTheme = Theme->GetSelection();
 		main_frame->InitBitmaps();
@@ -718,6 +716,15 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	case ID_INTERFACE_LANG:
 		SConfig::GetInstance().m_InterfaceLanguage = (INTERFACE_LANGUAGE)InterfaceLang->GetSelection();
 		bRefreshList = true;
+		break;
+	case ID_HOTKEY_CONFIG:
+		{
+			HotkeyConfigDialog *m_HotkeyDialog = new HotkeyConfigDialog(this);
+			m_HotkeyDialog->ShowModal();
+			m_HotkeyDialog->Destroy();
+			// Update the GUI in case menu accelerators were changed
+			main_frame->UpdateGUI();
+		}
 		break;
 	case ID_FRAMELIMIT:
 		SConfig::GetInstance().m_Framelimit = (u32)Framelimit->GetSelection();
@@ -751,6 +758,15 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_ENABLECHEATS:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = EnableCheats->IsChecked();
+		break;
+	case ID_DISPLAY_FULLSCREEN: // Display
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen = Fullscreen->IsChecked();
+		break;
+	case ID_DISPLAY_HIDECURSOR:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor = HideCursor->IsChecked();
+		break;
+	case ID_DISPLAY_RENDERTOMAIN:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain = RenderToMain->IsChecked();
 		break;
 	}
 }

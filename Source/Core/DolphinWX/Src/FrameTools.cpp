@@ -60,6 +60,7 @@ Core::GetWindowHandle().
 #include "State.h"
 #include "VolumeHandler.h"
 #include "NANDContentLoader.h"
+#include "WXInputBase.h"
 
 #include <wx/datetime.h> // wxWidgets
 
@@ -122,9 +123,11 @@ void CFrame::CreateMenu()
 
 	// Emulation menu
 	wxMenu* emulationMenu = new wxMenu;
-	emulationMenu->Append(IDM_PLAY, _T("&Play\tF10"));
-	emulationMenu->Append(IDM_STOP, _T("&Stop"));
+	emulationMenu->Append(IDM_PLAY, GetMenuLabel(HK_PLAY_PAUSE));
+	emulationMenu->Append(IDM_STOP, GetMenuLabel(HK_STOP));
 	emulationMenu->Append(IDM_RESET, _T("&Reset"));
+	emulationMenu->AppendSeparator();
+	emulationMenu->Append(IDM_TOGGLE_FULLSCREEN, GetMenuLabel(HK_FULLSCREEN));	
 	emulationMenu->AppendSeparator();
 	emulationMenu->Append(IDM_RECORD, _T("Start Re&cording..."));
 	emulationMenu->Append(IDM_PLAYRECORD, _T("P&lay Recording..."));
@@ -169,8 +172,6 @@ void CFrame::CreateMenu()
 	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&Gamecube Pad Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _T("&Wiimote Settings"));
-	pOptionsMenu->AppendSeparator();
-	pOptionsMenu->Append(IDM_TOGGLE_FULLSCREEN, _T("&Fullscreen\tAlt+Enter"));	
 	if (g_pCodeWindow)
 	{
 		pOptionsMenu->AppendSeparator();
@@ -269,7 +270,31 @@ void CFrame::CreateMenu()
 	SetMenuBar(m_MenuBar);
 }
 
+const wxChar * CFrame::GetMenuLabel(int Id)
+{
+	wxString Label;
+	switch (Id)
+	{
+		case HK_FULLSCREEN:
+			Label = _T("&Fullscreen\t");
+			break;
+		case HK_PLAY_PAUSE:
+			if (Core::GetState() == Core::CORE_UNINITIALIZED)
+				Label = _T("&Play\t");
+			else
+				Label = _T("&Play\t");
+			break;
+		case HK_STOP:
+			Label = _T("&Stop\t");
+	}
 
+	wxString Modifier = InputCommon::WXKeymodToString
+		(SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
+	wxString Hotkey = InputCommon::WXKeyToString
+		(SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id]);
+
+	return Label + Modifier + (Modifier.Len() ? _T("+") : _T("")) + Hotkey;
+}
 
 
 // Create toolbar items
@@ -500,6 +525,8 @@ void CFrame::BootGame(const std::string& filename)
 		}
 		else
 		{
+			if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+				m_RenderFrame->Destroy();
 			m_GameListCtrl->BrowseForDirectory();
 			game_loading = false;
 			m_GameListCtrl->Enable();
@@ -509,6 +536,8 @@ void CFrame::BootGame(const std::string& filename)
 	}
 	if (!success)
 	{
+		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			m_RenderFrame->Destroy();
 		game_loading = false;
 		m_GameListCtrl->Enable();
 		m_GameListCtrl->Show();
@@ -641,6 +670,43 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED (event))
 		StartGame(std::string(""));
 }
 
+void CFrame::OnRenderParentClose(wxCloseEvent& event)
+{
+	if ((Core::GetState() == Core::CORE_RUN) || (Core::GetState() == Core::CORE_PAUSE))
+		DoStop();
+	event.Skip();
+}
+
+void CFrame::OnRenderParentMove(wxMoveEvent& event)
+{
+	if (!RendererIsFullscreen() && !m_RenderFrame->IsMaximized())
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos = m_RenderFrame->GetPosition().x;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos = m_RenderFrame->GetPosition().y;
+	}
+	event.Skip();
+}
+
+void CFrame::OnRenderParentResize(wxSizeEvent& event)
+{
+	event.Skip();
+	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
+	{
+		int x, y, width, height;
+		m_RenderParent->GetSize(&width, &height);
+		m_RenderParent->GetPosition(&x, &y);
+		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+				!RendererIsFullscreen() && !m_RenderFrame->IsMaximized())
+		{
+			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = width;
+			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = height;
+		}
+#if defined(HAVE_X11) && HAVE_X11
+		X11_SendClientEvent("RESIZE", x, y, width, height);
+#endif
+	}
+}
+
 // Prepare the GUI to start the game.
 void CFrame::StartGame(const std::string& filename)
 {
@@ -656,6 +722,42 @@ void CFrame::StartGame(const std::string& filename)
 		m_GameListCtrl->Disable();
 		m_GameListCtrl->Hide();
 	}
+
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+	{
+		m_RenderParent = m_Panel;
+		m_RenderFrame = this;
+	}
+	else
+	{
+		wxPoint position(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos,
+				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos);
+		wxSize size(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
+				SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
+		m_RenderFrame = new wxFrame((wxWindow *)NULL, wxID_ANY, _("Dolphin"), position, size);
+		m_RenderFrame->Connect(wxID_ANY, wxEVT_CLOSE_WINDOW,
+				wxCloseEventHandler(CFrame::OnRenderParentClose),
+				(wxObject*)0, this);
+		m_RenderFrame->Connect(wxID_ANY, wxEVT_ACTIVATE,
+				wxActivateEventHandler(CFrame::OnActive),
+				(wxObject*)0, this);
+		m_RenderFrame->Connect(wxID_ANY, wxEVT_MOVE,
+				wxMoveEventHandler(CFrame::OnRenderParentMove),
+				(wxObject*)0, this);
+		m_RenderFrame->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
+				wxKeyEventHandler(CFrame::OnKeyDown),
+				(wxObject*)0, this);
+		m_RenderParent = new CPanel(m_RenderFrame, wxID_ANY);
+		m_RenderFrame->Show();
+	}
+	m_RenderFrame->Connect(wxID_ANY, wxEVT_SIZE,
+			wxSizeEventHandler(CFrame::OnRenderParentResize),
+			(wxObject*)0, this);
+#ifdef _WIN32
+	::SetFocus((HWND)m_RenderParent->GetHandle());
+#else
+	m_RenderParent->SetFocus();
+#endif
 
 	BootGame(filename);
 }
@@ -689,17 +791,16 @@ void CFrame::DoPause()
 {
 	if (Core::GetState() == Core::CORE_RUN)
 	{
-#if defined(HAVE_X11) && HAVE_X11
-		X11_SendClientEvent("PAUSE");
-#endif
 		Core::SetState(Core::CORE_PAUSE);
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+			m_RenderParent->SetCursor(wxCURSOR_ARROW);
 	}
 	else
 	{
-#if defined(HAVE_X11) && HAVE_X11
-		X11_SendClientEvent("RESUME");
-#endif
 		Core::SetState(Core::CORE_RUN);
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+				RendererHasFocus())
+			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 	}
 	UpdateGUI();
 }
@@ -738,6 +839,12 @@ void CFrame::DoStop()
 	
 		Core::Stop();
 		UpdateGUI();
+
+		// Destroy the renderer frame when not rendering to main
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+			m_RenderParent->SetCursor(wxCURSOR_ARROW);
+		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+			m_RenderFrame->Destroy();
 
 		// Clean framerate indications from the status bar.
 		m_pStatusBar->SetStatusText(wxT(" "), 0);
@@ -902,7 +1009,7 @@ void CFrame::OnConnectWiimote(wxCommandEvent& event)
 // the entire screen (when we render to the main window).
 void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED (event))
 {
-	DoFullscreen(!IsFullScreen());
+	DoFullscreen(!RendererIsFullscreen());
 }
 
 void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED (event))
@@ -1014,6 +1121,7 @@ void CFrame::UpdateGUI()
 		m_ToolBar->EnableTool(wxID_OPEN, !Initialized);
 		m_ToolBar->EnableTool(wxID_REFRESH, !Initialized); // Don't allow refresh when we don't show the list
 		m_ToolBar->EnableTool(IDM_STOP, Running || Paused);
+		m_ToolBar->EnableTool(IDM_TOGGLE_FULLSCREEN, Running || Paused);
 		m_ToolBar->EnableTool(IDM_SCREENSHOT, Running || Paused);
 	}
 
@@ -1030,7 +1138,13 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_PLAYRECORD)->Enable(!Initialized);
 	GetMenuBar()->FindItem(IDM_FRAMESTEP)->Enable(Running || Paused);
 	GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(Running || Paused);
-	
+	GetMenuBar()->FindItem(IDM_TOGGLE_FULLSCREEN)->Enable(Running || Paused);
+
+	// Update Menu Accelerators
+	GetMenuBar()->FindItem(IDM_TOGGLE_FULLSCREEN)->SetItemLabel(GetMenuLabel(HK_FULLSCREEN));
+	GetMenuBar()->FindItem(IDM_PLAY)->SetItemLabel(GetMenuLabel(HK_PLAY_PAUSE));
+	GetMenuBar()->FindItem(IDM_STOP)->SetItemLabel(GetMenuLabel(HK_STOP));
+
 	m_pSubMenuLoad->Enable(Initialized);
 	m_pSubMenuSave->Enable(Initialized);
 
@@ -1059,7 +1173,6 @@ void CFrame::UpdateGUI()
 			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Pause"));
 			m_ToolBar->SetToolLabel(IDM_PLAY, _("Pause"));
 		}
-		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Pause\tF10"));
 	}
 	else
 	{
@@ -1069,7 +1182,6 @@ void CFrame::UpdateGUI()
 			m_ToolBar->SetToolShortHelp(IDM_PLAY, _("Play"));
 			m_ToolBar->SetToolLabel(IDM_PLAY, wxT(" Play "));
 		}
-		GetMenuBar()->FindItem(IDM_PLAY)->SetText(_("&Play\tF10"));		
 	}
 	
 	if (!Initialized)

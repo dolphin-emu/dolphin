@@ -75,9 +75,6 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-#include <X11/extensions/Xrandr.h>
-#endif // XRANDR
 #endif // X11
 
 #include <sys/stat.h>
@@ -90,16 +87,10 @@ typedef struct {
     NSOpenGLContext *cocoaCtx;
 #elif defined(HAVE_X11) && HAVE_X11
     Window win;
-    Display *dpy;
+    Window parent;
+	Display *dpy;
     GLXContext ctx;
     XSetWindowAttributes attr;
-    Bool fs;
-    Bool doubleBuffered;
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-	XRRScreenConfiguration *screenConfig;
-	Rotation screenRotation;
-	int deskSize;
-#endif // XRANDR
 #endif // X11
 #if defined(USE_WX) && USE_WX
     wxGLCanvas *glCanvas;

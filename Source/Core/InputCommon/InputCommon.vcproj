@@ -449,6 +449,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\WXInputBase.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\WXInputBase.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\XInput_Util.cpp"
 			>
 		</File>

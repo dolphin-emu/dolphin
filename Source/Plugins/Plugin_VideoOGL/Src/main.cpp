@@ -167,7 +167,7 @@ void DllDebugger(HWND _hParent, bool Show)
 }
 
 #ifdef _WIN32
-void Win32AddResolutions()
+void AddResolutions()
 {
 	// Search for avaliable resolutions
 	
@@ -201,13 +201,12 @@ void Win32AddResolutions()
 			resos.push_back(strBuffer);
 			i++;
 			m_ConfigFrame->AddFSReso(szBuffer);
-			m_ConfigFrame->AddWindowReso(szBuffer);
 		}
 		ZeroMemory(&dmi, sizeof(dmi));
 	}
 }	
 #elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XRANDR) && HAVE_XRANDR
-void X11AddResolutions() {
+void AddResolutions() {
 	// Don't modify GLWin.dpy here.
 	// If the emulator is running that is bad.
 	Display *dpy;
@@ -229,15 +228,12 @@ void X11AddResolutions() {
 
 #if defined(HAVE_WX) && HAVE_WX
 			m_ConfigFrame->AddFSReso(temp);
-			//Add same to window resolutions, since
-			//they should be nearly all that's needed
-			m_ConfigFrame->AddWindowReso(temp);
 #endif
 		}
 	}
 }
 #elif defined(HAVE_COCOA) && HAVE_COCOA
-void CocoaAddResolutions() {
+void AddResolutions() {
 
 	CFArrayRef modes;
 	CFRange range;
@@ -269,7 +265,6 @@ void CocoaAddResolutions() {
 			sprintf(temp,"%dx%d", modeWidth, modeHeight);
 			#if defined(HAVE_WX) && HAVE_WX
 			m_ConfigFrame->AddFSReso(temp);
-			m_ConfigFrame->AddWindowReso(temp);//Add same to Window ones, since they should be nearly all that's needed
 			#endif
 			px = modeWidth;
 			py = modeHeight;
@@ -288,13 +283,7 @@ void DllConfig(HWND _hParent)
 	wxWindow *frame = GetParentedWxWindow(_hParent);
 	m_ConfigFrame = new GFXConfigDialogOGL(frame);
 
-#if defined(_WIN32)
-	Win32AddResolutions();
-#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XRANDR) && HAVE_XRANDR
-	X11AddResolutions();
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-	CocoaAddResolutions();
-#endif
+	AddResolutions();
 
 	// Prevent user to show more than 1 config window at same time
 #ifdef _WIN32

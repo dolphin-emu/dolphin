@@ -82,8 +82,6 @@ CGprofile g_cgfProf;
 
 RasterFont* s_pfont = NULL;
 
-static bool s_bFullscreen = false;
-
 static bool s_bLastFrameDumped = false;
 #ifdef _WIN32
 static bool s_bAVIDumping = false;
@@ -240,8 +238,6 @@ bool Renderer::Init()
 	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s", (const char*)glGetString(GL_VENDOR), 
 															 (const char*)glGetString(GL_RENDERER), 
 															 (const char*)glGetString(GL_VERSION)).c_str(), 5000);
-
-    s_bFullscreen = g_ActiveConfig.bFullscreen;
 
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
     if (numvertexattribs < 11) {
@@ -847,7 +843,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// care of disabling it in that case. It returns false in case of no post processing.
 	bool applyShader = PostProcessing::ApplyShader();
 
-	const XFBSource* xfbSource;
+	const XFBSource* xfbSource = NULL;
 
 	// draw each xfb source
 	for (u32 i = 0; i < xfbCount; ++i)
@@ -1227,7 +1223,8 @@ void Renderer::DrawDebugText()
 			std::vector<std::string> T0;
 
 			int W, H;
-			sscanf(g_ActiveConfig.cInternalRes, "%dx%d", &W, &H);
+			W = OpenGL_GetBackbufferWidth();
+			H = OpenGL_GetBackbufferHeight();
 
 			std::string OSDM1 =
 				g_ActiveConfig.bNativeResolution || g_ActiveConfig.b2xResolution ?

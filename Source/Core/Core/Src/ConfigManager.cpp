@@ -90,6 +90,22 @@ void SConfig::SaveSettings()
 	ini.Set("Interface", "ShowLogWindow",		m_InterfaceLogWindow);
 	ini.Set("Interface", "ShowConsole",			m_InterfaceConsole);
 
+	// Hotkeys
+	ini.Set("Hotkeys", "ToggleFullscreen", 			m_LocalCoreStartupParameter.iHotkey[HK_FULLSCREEN]);
+	ini.Set("Hotkeys", "PlayPause", 				m_LocalCoreStartupParameter.iHotkey[HK_PLAY_PAUSE]);
+	ini.Set("Hotkeys", "Stop",						m_LocalCoreStartupParameter.iHotkey[HK_STOP]);
+	ini.Set("Hotkeys", "ToggleFullscreenModifier",	m_LocalCoreStartupParameter.iHotkeyModifier[HK_FULLSCREEN]);
+	ini.Set("Hotkeys", "PlayPauseModifier", 		m_LocalCoreStartupParameter.iHotkeyModifier[HK_PLAY_PAUSE]);
+	ini.Set("Hotkeys", "StopModifier",  			m_LocalCoreStartupParameter.iHotkeyModifier[HK_STOP]);
+
+	// Display
+	ini.Set("Display", "Fullscreen",			m_LocalCoreStartupParameter.bFullscreen);
+	ini.Set("Display", "RenderToMain",			m_LocalCoreStartupParameter.bRenderToMain);
+	ini.Set("Display", "RenderWindowXPos",		m_LocalCoreStartupParameter.iRenderWindowXPos);
+	ini.Set("Display", "RenderWindowYPos",		m_LocalCoreStartupParameter.iRenderWindowYPos);
+	ini.Set("Display", "RenderWindowWidth",		m_LocalCoreStartupParameter.iRenderWindowWidth);
+	ini.Set("Display", "RenderWindowHeight",	m_LocalCoreStartupParameter.iRenderWindowHeight);
+
 	// Game List Control
 	ini.Set("GameList", "ListDrives",	m_ListDrives);
 	ini.Set("GameList", "ListWad",		m_ListWad);
@@ -197,6 +213,23 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "ShowStatusbar",		&m_InterfaceStatusbar,							true);
 		ini.Get("Interface", "ShowLogWindow",		&m_InterfaceLogWindow,							false);
 		ini.Get("Interface", "ShowConsole",			&m_InterfaceConsole,							false);
+
+		// Hotkeys
+		ini.Get("Hotkeys", "ToggleFullscreen", 			&m_LocalCoreStartupParameter.iHotkey[HK_FULLSCREEN], 13); // WXK_RETURN
+		ini.Get("Hotkeys", "PlayPause", 				&m_LocalCoreStartupParameter.iHotkey[HK_PLAY_PAUSE], 349); // WXK_F10
+		ini.Get("Hotkeys", "Stop",						&m_LocalCoreStartupParameter.iHotkey[HK_STOP], 27); // WXK_ESCAPE
+		ini.Get("Hotkeys", "ToggleFullscreenModifier",	&m_LocalCoreStartupParameter.iHotkeyModifier[HK_FULLSCREEN], 0x0001); // wxMOD_ALT
+		ini.Get("Hotkeys", "PlayPauseModifier",			&m_LocalCoreStartupParameter.iHotkeyModifier[HK_PLAY_PAUSE], 0x0000); // wxMOD_NONE
+		ini.Get("Hotkeys", "StopModifier",				&m_LocalCoreStartupParameter.iHotkeyModifier[HK_STOP], 0x0000); // wxMOD_NONE
+
+		// Display
+		ini.Get("Display", "Fullscreen",			&m_LocalCoreStartupParameter.bFullscreen,		false);
+		ini.Get("Display", "RenderToMain",			&m_LocalCoreStartupParameter.bRenderToMain,		false);
+		std::string temp;
+		ini.Get("Display", "RenderWindowXPos",		&m_LocalCoreStartupParameter.iRenderWindowXPos,	0);
+		ini.Get("Display", "RenderWindowYPos",		&m_LocalCoreStartupParameter.iRenderWindowYPos,	0);
+		ini.Get("Display", "RenderWindowWidth",		&m_LocalCoreStartupParameter.iRenderWindowWidth, 640);
+		ini.Get("Display", "RenderWindowHeight",	&m_LocalCoreStartupParameter.iRenderWindowHeight, 480);
 
 		// Game List Control
 		ini.Get("GameList", "ListDrives",	&m_ListDrives,	false);

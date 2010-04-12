@@ -49,15 +49,16 @@ private:
 
 	wxBoxSizer* sGeneralPage; // General Settings
 	wxCheckBox* ConfirmStop, *UsePanicHandlers;
-#if wxUSE_TIMER && defined _WIN32
-	wxCheckBox* HideCursor, *AutoHideCursor;
-#endif
+	wxCheckBox* HideCursor;
 	wxChoice* InterfaceLang;
 	wxChoice* Framelimit;
 	wxRadioBox* Theme;
+	wxCheckBox* Fullscreen;
+	wxCheckBox* RenderToMain;
+	wxButton* HotkeyConfig;
 
 	wxBoxSizer* sCore;
-	wxStaticBoxSizer* sbBasic, *sbAdvanced, *sbInterface;
+	wxStaticBoxSizer* sbBasic, *sbAdvanced, *sbInterface, *sbDisplay;
 	wxCheckBox* AlwaysHLE_BS2;
 	wxRadioButton* m_RadioInt;
 	wxRadioButton* m_RadioJIT;
@@ -171,9 +172,10 @@ private:
 
 		ID_INTERFACE_CONFIRMSTOP, // Interface settings
 		ID_INTERFACE_USEPANICHANDLERS,
-#if wxUSE_TIMER && defined _WIN32
-		ID_INTERFACE_HIDECURSOR_TEXT, ID_INTERFACE_HIDECURSOR, ID_INTERFACE_AUTOHIDECURSOR,
-#endif
+		ID_DISPLAY_FULLSCREEN,
+		ID_DISPLAY_HIDECURSOR,
+		ID_DISPLAY_RENDERTOMAIN,
+		ID_HOTKEY_CONFIG,
 		ID_INTERFACE_LANG_TEXT, ID_INTERFACE_LANG,
 		ID_INTERFACE_THEME,
 		ID_FRAMELIMIT_TEXT, ID_FRAMELIMIT,

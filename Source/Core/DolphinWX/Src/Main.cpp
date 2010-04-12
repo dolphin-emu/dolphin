@@ -540,13 +540,13 @@ CFrame* DolphinApp::GetCFrame()
 
 void Host_Message(int Id)
 {
-#if defined(HAVE_X11) && HAVE_X11
+
 	switch(Id)
 	{
-		case WM_USER_CREATE:
-		case TOGGLE_FULLSCREEN:
+#if defined(HAVE_X11) && HAVE_X11
 		case WM_USER_STOP:
-		case WM_USER_PAUSE:
+#endif
+		case WM_USER_CREATE:
 			{
 				wxCommandEvent event(wxEVT_HOST_COMMAND, Id);
 				main_frame->GetEventHandler()->AddPendingEvent(event);
@@ -555,9 +555,6 @@ void Host_Message(int Id)
 		default:
 			main_frame->OnCustomHostMessage(Id);
 	}
-#else
-	main_frame->OnCustomHostMessage(Id);
-#endif
 }
 
 // OK, this thread boundary is DANGEROUS on linux
@@ -631,18 +628,17 @@ void Host_UpdateMemoryView()
 void Host_SetDebugMode(bool)
 {}
 
+void Host_RequestWindowSize(int& x, int& y, int& width, int& height)
+{
+	main_frame->OnSizeRequest(x, y, width, height);
+}
+
 void Host_SetWaitCursor(bool enable)
 {
-#ifdef _WIN32
 	if (enable)
-	{
-		SetCursor(LoadCursor(NULL, IDC_WAIT));
-	}
+		wxBeginBusyCursor();
 	else
-	{
-		SetCursor(LoadCursor(NULL, IDC_ARROW));
-	}
-#endif
+		wxEndBusyCursor();
 }
 
 void Host_UpdateStatusBar(const char* _pText, int Field)
@@ -656,9 +652,6 @@ void Host_UpdateStatusBar(const char* _pText, int Field)
 	// TODO : this has been said to cause hang (??) how is that even possible ? :d
 	event.StopPropagation();
 	main_frame->GetEventHandler()->AddPendingEvent(event);
-	// Process the event before continue
-	if (wxGetApp().Pending())
-		wxGetApp().ProcessPendingEvents();
 }
 
 void Host_SetWiiMoteConnectionState(int _State)
@@ -680,4 +673,13 @@ void Host_SetWiiMoteConnectionState(int _State)
 	event.SetInt(1);
 
 	main_frame->GetEventHandler()->AddPendingEvent(event);
+}
+
+bool Host_RendererHasFocus()
+{
+#ifdef _WIN32
+	return main_frame->bRendererHasFocus;
+#else
+	return main_frame->RendererHasFocus();
+#endif
 }

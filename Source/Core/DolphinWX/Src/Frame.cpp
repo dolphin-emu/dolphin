@@ -111,22 +111,6 @@ HWND MSWGetParent_(HWND Parent)
 
 extern CFrame* main_frame;
 
-class CPanel : public wxPanel
-{
-	public:
-		CPanel(
-			wxWindow* parent,
-			wxWindowID id = wxID_ANY
-			);
-
-	private:
-		DECLARE_EVENT_TABLE();
-
-		#ifdef _WIN32
-			// Receive WndProc messages
-			WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
-		#endif
-};
 
 BEGIN_EVENT_TABLE(CPanel, wxPanel)
 END_EVENT_TABLE()
@@ -158,12 +142,15 @@ CPanel::CPanel(
 				break;
 			
 			case WM_USER_CREATE:
-				// We don't have a local setting for bRenderToMain but we can detect it this way instead
-				//PanicAlert("main call %i  %i  %i  %i", lParam, (HWND)Core::GetWindowHandle(), MSWGetParent_((HWND)Core::GetWindowHandle()), (HWND)this->GetHWND());
-				if (lParam == NULL)
-					main_frame->bRenderToMain = false;
+				main_frame->DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
+				break;
+
+			case WM_USER_SETCURSOR:
+				if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+						main_frame->RendererHasFocus() && Core::GetState() == Core::CORE_RUN)
+					MSWSetCursor(!SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor);
 				else
-					main_frame->bRenderToMain = true;
+					MSWSetCursor(true);
 				break;
 
 			case WIIMOTE_DISCONNECT:
@@ -341,9 +328,6 @@ CFrame::CFrame(wxFrame* parent,
 	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
 	, m_bControlsCreated(false), m_StopDlg(NULL)
 	#if wxUSE_TIMER
-	#ifdef _WIN32
-		, m_fLastClickTime(0), m_iLastMotionTime(0), LastMouseX(0), LastMouseY(0)
-	#endif
 		, m_timer(this)
 	#endif
           
@@ -473,10 +457,6 @@ CFrame::CFrame(wxFrame* parent,
 	// -------------------------
 	// Connect event handlers
 
-	wxTheApp->Connect(wxID_ANY, wxEVT_SIZE, // Keyboard
-		wxSizeEventHandler(CFrame::OnResizeAll),
-		(wxObject*)0, this);
-
 	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
 		wxKeyEventHandler(CFrame::OnKeyDown),
 		(wxObject*)0, this);
@@ -491,11 +471,6 @@ CFrame::CFrame(wxFrame* parent,
 	wxTheApp->Connect(wxID_ANY, wxEVT_LEFT_DCLICK,
 		wxMouseEventHandler(CFrame::OnDoubleClick),
 		(wxObject*)0, this);
-#ifdef _WIN32
-	wxTheApp->Connect(wxID_ANY, wxEVT_MOTION,
-		wxMouseEventHandler(CFrame::OnMotion),
-		(wxObject*)0, this);
-#endif
 	// ----------
 
 	// Update controls
@@ -530,13 +505,23 @@ CFrame::~CFrame()
 	delete m_Mgr;
 }
 
+bool CFrame::RendererIsFullscreen()
+{
+	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
+	{
+		return m_RenderFrame->IsFullScreen();
+	}
+	return false;
+}
+
 void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 {
 	Close(true);
 }
 
 #if defined HAVE_X11 && HAVE_X11
-void CFrame::X11_SendClientEvent(const char *message)
+void CFrame::X11_SendClientEvent(const char *message,
+	   	int data1, int data2, int data3, int data4)
 {
 	XEvent event;
 	Display *dpy = (Display *)Core::GetWindowHandle();
@@ -546,6 +531,10 @@ void CFrame::X11_SendClientEvent(const char *message)
 	event.xclient.type = ClientMessage;
 	event.xclient.format = 32;
 	event.xclient.data.l[0] = XInternAtom(dpy, message, False);
+	event.xclient.data.l[1] = data1;
+	event.xclient.data.l[2] = data2;
+	event.xclient.data.l[3] = data3;
+	event.xclient.data.l[4] = data4;
 
 	// Send the event
 	if (!XSendEvent(dpy, win, False, False, &event))
@@ -560,7 +549,7 @@ void X11_SendKeyEvent(int key)
 
 	// Init X event structure for key press event
 	event.xkey.type = KeyPress;
-	// WARNING:  This works for '3' to '7'.  If in the future other keys are needed
+	// WARNING:  This works for ASCII keys.  If in the future other keys are needed
 	// convert with InputCommon::wxCharCodeWXToX from X11InputBase.cpp.
 	event.xkey.keycode = XKeysymToKeycode(dpy, key);
 
@@ -574,15 +563,25 @@ void X11_SendKeyEvent(int key)
 // Events
 void CFrame::OnActive(wxActivateEvent& event)
 {
-#if defined(HAVE_X11) && HAVE_X11 && defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
 	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
 	{
-		if (event.GetActive())
-			X11_SendClientEvent("FOCUSIN");
-		else
-			X11_SendClientEvent("FOCUSOUT");
-	}
+		if (event.GetActive() && event.GetEventObject() == m_RenderFrame)
+		{
+#ifdef _WIN32
+			::SetFocus((HWND)m_RenderParent->GetHandle());
+#else
+			m_RenderParent->SetFocus();
 #endif
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor &&
+					Core::GetState() == Core::CORE_RUN)
+				m_RenderParent->SetCursor(wxCURSOR_BLANK);
+		}
+		else
+		{
+			if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+				m_RenderParent->SetCursor(wxCURSOR_ARROW);
+		}
+	}
 	event.Skip();
 }
 
@@ -601,7 +600,7 @@ void CFrame::OnClose(wxCloseEvent& event)
 
 	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		Core::Stop();
+		DoStop();
 		UpdateGUI();
 	}
 }
@@ -635,26 +634,23 @@ void CFrame::OnMove(wxMoveEvent& event)
 {
 	event.Skip();
 
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX = GetPosition().x;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY = GetPosition().y;
+	if (!IsMaximized() &&
+		   	!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX = GetPosition().x;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY = GetPosition().y;
+	}
 }
 
 void CFrame::OnResize(wxSizeEvent& event)
 {
 	event.Skip();
-
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
-	SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
-}
-void CFrame::OnResizeAll(wxSizeEvent& event)
-{
-	event.Skip();
-#if defined(HAVE_X11) && HAVE_X11 && defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
-		X11_SendClientEvent("RESIZE");
-#endif
-	//wxWindow * Win = (wxWindow*)event.GetEventObject();
-	//NOTICE_LOG(CONSOLE, "OnResizeAll: %i", (HWND)Win->GetHWND());
+	if (!IsMaximized() &&
+		   	!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
+	{
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
+	}
 }
 
 // Host messages
@@ -681,17 +677,14 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 }
 #endif
 
+#if wxUSE_TIMER
 void CFrame::OnTimer(wxTimerEvent& WXUNUSED(event))
 {
-#ifdef _WIN32
-	Update();
-#else
-	// Process events in linux.  Primarily to update the statusbar text.
-	// This should be unnecessary if we ever get WXGL and render to main working
+	// Process events.  Primarily to update the statusbar text.
 	if (wxGetApp().Pending())
 		wxGetApp().ProcessPendingEvents();
-#endif
 }
+#endif
 
 void CFrame::OnHostMessage(wxCommandEvent& event)
 {
@@ -707,18 +700,15 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 			m_pStatusBar->SetStatusText(event.GetString(), event.GetInt());
 		}
 		break;
-#if defined(HAVE_X11) && HAVE_X11
+
 	case WM_USER_CREATE:
-		bRenderToMain = true;
+		DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
+			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		break;
-	case TOGGLE_FULLSCREEN:
-		DoFullscreen(!IsFullScreen());
-		break;
+#if defined(HAVE_X11) && HAVE_X11
 	case WM_USER_STOP:
 		DoStop();
-		break;
-	case WM_USER_PAUSE:
-		DoPause();
 		break;
 #endif
 	}
@@ -753,6 +743,24 @@ void CFrame::OnCustomHostMessage(int Id)
 	case VIDEO_DESTROY:
 		break;
 	}
+}
+
+void CFrame::OnSizeRequest(int& x, int& y, int& width, int& height)
+{
+	m_RenderParent->GetSize(&width, &height);
+	m_RenderParent->GetPosition(&x, &y);
+}
+
+bool CFrame::RendererHasFocus()
+{
+#ifdef _WIN32
+	// Why doesn't the "else" method below work in windows when called from
+	// Host_RendererHasFocus()?
+	bRendererHasFocus = (m_RenderParent == wxWindow::FindFocus());
+	return bRendererHasFocus;
+#else
+	return m_RenderParent == wxWindow::FindFocus();
+#endif
 }
 
 void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
@@ -803,38 +811,68 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		StartGame(std::string(""));
 }
 
+bool IsHotkey(wxKeyEvent &event, int Id)
+{
+	return (event.GetKeyCode() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkey[Id] &&
+			event.GetModifiers() == SConfig::GetInstance().m_LocalCoreStartupParameter.iHotkeyModifier[Id]);
+}
+
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
 		// Toggle fullscreen
-		if (event.GetKeyCode() == WXK_RETURN && event.GetModifiers() == wxMOD_ALT)
-		{
-			DoFullscreen(!IsFullScreen());
+		if (IsHotkey(event, HK_FULLSCREEN))
+			DoFullscreen(!RendererIsFullscreen());
+		// Pause and Unpause
+		else if (IsHotkey(event, HK_PLAY_PAUSE))
+			DoPause();
+		// Stop
+		else if (IsHotkey(event, HK_STOP))
+			DoStop();
 
-			// We do that to avoid the event to be double processed (which would cause the window to be stuck in fullscreen) 
-			event.StopPropagation();
-		}
-		else if(event.GetKeyCode() == WXK_ESCAPE)
-		{
-			main_frame->DoPause();
-		}
-		// event.Skip() allows the event to propagate to the gamelist for example
-		else if (! (Core::GetState() == Core::CORE_RUN && bRenderToMain && event.GetEventObject() == this))
-			event.Skip();
-
-		if (event.GetKeyCode() >= '3' && event.GetKeyCode() <= '7') // Send this to the video plugin
+		// Send the OSD hotkeys to the video plugin
+		if (event.GetKeyCode() >= '3' && event.GetKeyCode() <= '7' && event.GetModifiers() == wxMOD_NONE)
 		{
 #ifdef _WIN32
 			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
-#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
+#elif defined(HAVE_X11) && HAVE_X11
 			X11_SendKeyEvent(event.GetKeyCode());
 #endif
 		}
+#ifdef _WIN32
+		// Send the freelook hotkeys to the video plugin
+		if ((event.GetKeyCode() == '0', '9', 'W', 'S', 'A', 'D', 'R')
+				&& event.GetModifiers() == wxMOD_SHIFT)
+			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
+#endif
+		// state save and state load hotkeys
+		if (event.GetKeyCode() >= WXK_F1 && event.GetKeyCode() <= WXK_F8)
+		{
+			int slot_number = event.GetKeyCode() - WXK_F1 + 1;
+			if (event.GetModifiers() == wxMOD_NONE)
+				State_Load(slot_number);
+			else if (event.GetModifiers() == wxMOD_SHIFT)
+				State_Save(slot_number);
+		}
+		if (event.GetKeyCode() == WXK_F11 && event.GetModifiers() == wxMOD_NONE)
+			State_LoadLastSaved();
+		if (event.GetKeyCode() == WXK_F12)
+		{
+			if (event.GetModifiers() == wxMOD_NONE)
+				State_UndoSaveState();
+			else if (event.GetModifiers() == wxMOD_SHIFT)
+				State_UndoLoadState();	
+		}
+		// screenshot hotkeys
+		if (event.GetKeyCode() == WXK_F9 && event.GetModifiers() == wxMOD_NONE)
+			Core::ScreenShot();
 
 		// Send the keyboard status to the Input plugin
 		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
 	}
+	else
+		event.Skip();
 }
 
 void CFrame::OnKeyUp(wxKeyEvent& event)
@@ -857,82 +895,10 @@ void CFrame::OnDoubleClick(wxMouseEvent& event)
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) return;
 
 	// Only detect double clicks in the rendering window, and only use this when a game is running
-	if (! (Core::GetState() == Core::CORE_RUN && bRenderToMain && event.GetEventObject() == m_Panel)) return;
+	if (! (Core::GetState() == Core::CORE_RUN && event.GetEventObject() == m_RenderParent)) return;
 
-	DoFullscreen(!IsFullScreen());
+	DoFullscreen(!RendererIsFullscreen());
 }
-
-
-// Check for mouse motion. Here we process the bHideCursor setting.
-
-#if wxUSE_TIMER && defined _WIN32
-void CFrame::OnMotion(wxMouseEvent& event)
-{
-	event.Skip();
-
-	// The following is only interesting when a game is running
-	if(Core::GetState() == Core::CORE_UNINITIALIZED) return;
-
-	/* For some reason WM_MOUSEMOVE events are sent from the plugin even when there is no movement
-	   so we have to check that the cursor position has actually changed */
-	if(bRenderToMain) //
-	{
-		bool PositionIdentical = false;
-		if (event.GetX() == LastMouseX && event.GetY() == LastMouseY) PositionIdentical = true;
-		LastMouseX = event.GetX(); LastMouseY = event.GetY();
-		if(PositionIdentical) return;
-	}
-
-	// Now we know that we have an actual mouse movement event
-
-	// Update motion for the auto hide option and return
-	if(IsFullScreen() && SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor)
-	{
-		m_iLastMotionTime = Common::Timer::GetDoubleTime();
-				MSWSetCursor(true);
-		return;
-	}
-
-	if(SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor && event.GetId() == IDM_MPANEL)
-	{
-			if(bRenderToMain) MSWSetCursor(false);
-
-			/* We only need to use this if we are rendering to a separate window. It does work
-			   for rendering to the main window to, but in that case our MSWSetCursor() works to
-			   so we can use that instead. If we one day determine that the separate window
-			   rendering is superfluous we could do without this */
-			else PostMessage((HWND)Core::GetWindowHandle(), WM_USER, 10, 0);
-	}
-
-	// For some reason we need this to, otherwise the cursor can get stuck with the resizing arrows
-	else
-	{
-			if(bRenderToMain) MSWSetCursor(true);
-			else PostMessage((HWND)Core::GetWindowHandle(), WM_USER, 10, 1);
-	}
-
-}
-#endif
-
-// Check for mouse status a couple of times per second for the auto hide option
-#if wxUSE_TIMER && defined _WIN32
-void CFrame::Update()
-{
-	// Check if auto hide is on, or if we are already hiding the cursor all the time
-	if(!SConfig::GetInstance().m_LocalCoreStartupParameter.bAutoHideCursor
-		|| SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor) return;
-
-	if(IsFullScreen())
-	{
-		int HideDelay = 1; // Wait 1 second to hide the cursor, just like Windows Media Player
-		double TmpSeconds = Common::Timer::GetDoubleTime(); // Get timestamp
-		double CompareTime = TmpSeconds - HideDelay; // Compare it
-
-			if(m_iLastMotionTime < CompareTime) // Update cursor
-				MSWSetCursor(false);
-	}
-}
-#endif
 
 
 // --------
@@ -986,10 +952,14 @@ void CFrame::DoFullscreen(bool bF)
 	// the main window to become unresponsive, so we have to avoid that.
 	if ((Core::GetState() == Core::CORE_RUN) || (Core::GetState() == Core::CORE_PAUSE))
 	{
-		if (bRenderToMain)
+#if defined(HAVE_X11) && HAVE_X11
+		X11_SendClientEvent("TOGGLE_DISPLAYMODE", bF);
+#elif defined(_WIN32)
+		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, TOGGLE_DISPLAYMODE, bF);
+#endif
+		m_RenderFrame->ShowFullScreen(bF);
+		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 		{
-			ShowFullScreen(bF);
-
 			if (bF)
 			{
 				// Save the current mode before going to fullscreen
@@ -1001,25 +971,9 @@ void CFrame::DoFullscreen(bool bF)
 				// Restore saved perspective
 				m_Mgr->LoadPerspective(AuiCurrent, true);
 			}
-
-#ifdef _WIN32
-			// Show the cursor again, in case it was hidden
-			if (IsFullScreen())
-			{
-				MSWSetCursor(true);
-			}
-#endif
 		}
-#ifdef _WIN32
-		else // Post the message to the separate rendering window which will then handle it.
-		{
-			BringWindowToTop((HWND)Core::GetWindowHandle());
-			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, TOGGLE_FULLSCREEN, 0);
-		}
-#elif defined HAVE_X11 && HAVE_X11
-		else // Send the event to the separate rendering window which will then handle it.
-			X11_SendClientEvent("TOGGLE_FULLSCREEN");
-#endif
+		else
+			m_RenderFrame->Raise();
 	}
 }
 

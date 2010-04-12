@@ -77,7 +77,6 @@ struct TabDirect3D : public W32Util::Tab
 			const D3D::Resolution &r = adapter.resolutions[i];
 			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, r.name, -1, tempwstr, 2000);
 			ComboBox_AddString(GetDlgItem(hDlg, IDC_RESOLUTION), tempwstr);
-			ComboBox_AddString(GetDlgItem(hDlg, IDC_RESOLUTIONWINDOWED),tempwstr);
 		}
 		
 		for (int i = 0; i < 16; i++) {
@@ -85,14 +84,7 @@ struct TabDirect3D : public W32Util::Tab
 		}
 		ComboBox_SelectString(GetDlgItem(hDlg,IDC_RESOLUTION), -1, tempwstr);
 
-		for (int i = 0; i < 16; i++) {
-			tempwstr[i] = g_Config.cInternalRes[i];
-		}
-		ComboBox_SelectString(GetDlgItem(hDlg,IDC_RESOLUTIONWINDOWED), -1, tempwstr);
-
-		Button_SetCheck(GetDlgItem(hDlg, IDC_FULLSCREENENABLE), g_Config.bFullscreen);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_VSYNC), g_Config.bVSync);
-		Button_SetCheck(GetDlgItem(hDlg, IDC_RENDER_TO_MAINWINDOW), g_Config.RenderToMainframe);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_WIDESCREEN_HACK), g_Config.bWidescreenHack);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE), g_Config.bSafeTextureCache);
 		
@@ -116,7 +108,6 @@ struct TabDirect3D : public W32Util::Tab
 		Button_Enable(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE_FAST),g_Config.bSafeTextureCache);
 		
 		Button_SetCheck(GetDlgItem(hDlg, IDC_EFB_ACCESS_ENABLE), g_Config.bEFBAccessEnable);
-		Button_GetCheck(GetDlgItem(hDlg,IDC_RENDER_TO_MAINWINDOW)) ? Button_Enable(GetDlgItem(hDlg,IDC_FULLSCREENENABLE), false) : Button_Enable(GetDlgItem(hDlg,IDC_FULLSCREENENABLE), true);
 	}
 
 	void Command(HWND hDlg,WPARAM wParam)
@@ -138,11 +129,6 @@ struct TabDirect3D : public W32Util::Tab
 		case IDC_EFB_ACCESS_ENABLE:
 			g_Config.bEFBAccessEnable = Button_GetCheck(GetDlgItem(hDlg, IDC_EFB_ACCESS_ENABLE)) == 0 ? false : true;
 			break;
-		case IDC_RENDER_TO_MAINWINDOW:
-			Button_Enable(GetDlgItem(hDlg, IDC_FULLSCREENENABLE), !Button_GetCheck(GetDlgItem(hDlg, IDC_RENDER_TO_MAINWINDOW)));
-			if (Button_GetCheck(GetDlgItem(hDlg, IDC_RENDER_TO_MAINWINDOW)))
-				Button_SetCheck(GetDlgItem(hDlg, IDC_FULLSCREENENABLE),  false);
-			break;
 		default:
 			break;
 		}
@@ -150,14 +136,11 @@ struct TabDirect3D : public W32Util::Tab
 
 	void Apply(HWND hDlg)
 	{
-		ComboBox_GetTextA(GetDlgItem(hDlg, IDC_RESOLUTIONWINDOWED), g_Config.cInternalRes, 16);
 		ComboBox_GetTextA(GetDlgItem(hDlg, IDC_RESOLUTION), g_Config.cFSResolution, 16);
 
 		g_Config.iAdapter = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_ADAPTER));
 		g_Config.iMultisampleMode = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_ANTIALIASMODE));
-		g_Config.bFullscreen = Button_GetCheck(GetDlgItem(hDlg, IDC_FULLSCREENENABLE)) ? true : false;
 		g_Config.bVSync = Button_GetCheck(GetDlgItem(hDlg, IDC_VSYNC)) ? true : false;
-		g_Config.RenderToMainframe = Button_GetCheck(GetDlgItem(hDlg, IDC_RENDER_TO_MAINWINDOW)) ? true : false;
 		if(Button_GetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE_SAFE)))
 		{
 			g_Config.iSafeTextureCache_ColorSamples = 0;			

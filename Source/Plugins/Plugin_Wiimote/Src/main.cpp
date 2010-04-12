@@ -382,32 +382,11 @@ unsigned int Wiimote_GetAttachedControllers()
 
 // Supporting functions
 
-// Check if Dolphin is in focus
+// Check if the render window is in focus
 
 bool IsFocus()
 {
-#ifdef _WIN32
-	HWND RenderingWindow = g_WiimoteInitialize.hWnd;
-	HWND Parent = GetParent(RenderingWindow);
-	HWND TopLevel = GetParent(Parent);
-	// Support both rendering to main window and not
-	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == RenderingWindow)
-		return true;
-	else
-		return false;
-#elif defined HAVE_X11 && HAVE_X11
-	Window GLWin = *(Window *)g_WiimoteInitialize.pXWindow;
-	bool bFocus = False;
-#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-	bFocus = (wxPanel *)g_WiimoteInitialize.pPanel == wxWindow::FindFocus();
-#endif
-	Window FocusWin;
-	int Revert;
-	XGetInputFocus(WMdisplay, &FocusWin, &Revert);
-	return (GLWin == FocusWin || bFocus);
-#else
-	return true;
-#endif
+	return g_WiimoteInitialize.pRendererHasFocus();
 }
 
 /* Returns a timestamp with three decimals for precise time comparisons. The return format is

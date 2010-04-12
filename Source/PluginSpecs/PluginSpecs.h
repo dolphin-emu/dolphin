@@ -21,8 +21,10 @@ enum PLUGIN_COMM
 	WM_USER_PAUSE = 10,
 	WM_USER_STOP,
 	WM_USER_CREATE,
+	WM_USER_SETCURSOR,
 	WM_USER_KEYDOWN,
 	WM_USER_VIDEO_STOP,
+	TOGGLE_DISPLAYMODE,
 	TOGGLE_FULLSCREEN,
 	VIDEO_DESTROY, // The video debugging window was destroyed
 	AUDIO_DESTROY, // The audio debugging window was destroyed

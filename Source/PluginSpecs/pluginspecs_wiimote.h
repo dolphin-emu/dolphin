@@ -14,20 +14,19 @@ typedef void (*TLogv)(const char* _pMessage, int _v);
 // This is called when the Wiimote sends input reports to the Core.
 // Payload: an L2CAP packet.
 typedef void (*TWiimoteInput)(int _number, u16 _channelID, const void* _pData, u32 _Size);
+typedef bool (*TRendererHasFocus)(void);
 
 // This data is passed from the core on initialization.
 typedef struct
 {
 	HWND hWnd;
 #if defined HAVE_X11 && HAVE_X11
-#if defined(HAVE_GTK2) && HAVE_GTK2
-	void *pPanel;
-#endif
 	void *pXWindow;
 #endif
 	u32 ISOId;
 	TLogv pLog;
 	TWiimoteInput pWiimoteInput;
+	TRendererHasFocus pRendererHasFocus;
 } SWiimoteInitialize;
 
 

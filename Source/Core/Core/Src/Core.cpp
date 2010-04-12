@@ -71,7 +71,7 @@ volatile u32 DrawnFrame = 0;
 u32 DrawnVideo = 0;
 
 // Function forwarding
-//void Callback_VideoRequestWindowSize(int _iWidth, int _iHeight, BOOL _bFullscreen);
+void Callback_VideoRequestWindowSize(int& x, int& y, int& width, int& height);
 void Callback_VideoLog(const TCHAR* _szMessage, int _bDoBreak);
 void Callback_VideoCopiedToXFB(bool video_update);
 void Callback_DSPLog(const TCHAR* _szMessage, int _v);
@@ -80,9 +80,10 @@ void Callback_DSPInterrupt();
 void Callback_PADLog(const TCHAR* _szMessage);
 void Callback_WiimoteLog(const TCHAR* _szMessage, int _v);
 void Callback_WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size);
+bool Callback_RendererHasFocus(void);
 
 // For keyboard shortcuts.
-void Callback_KeyPress(int key, bool shift, bool control);
+void Callback_CoreMessage(int Id);
 TPeekMessages Callback_PeekMessages = NULL;
 TUpdateFPSDisplay g_pUpdateFPSDisplay = NULL;
 
@@ -322,17 +323,14 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pScheduleEvent_Threadsafe   = CoreTiming::ScheduleEvent_Threadsafe;
 	// This is first the m_Panel handle, then it is updated to have the new window handle
 	VideoInitialize.pWindowHandle		        = _CoreParameter.hMainWindow;
-#if defined(HAVE_X11) && HAVE_X11 && defined(HAVE_GTK2) && HAVE_GTK2
-	VideoInitialize.pPanel				        = _CoreParameter.hMainWindow;
-#endif
 	VideoInitialize.pLog				        = Callback_VideoLog;
 	VideoInitialize.pSysMessage			        = Host_SysMessage;
-	VideoInitialize.pRequestWindowSize	        = NULL; //Callback_VideoRequestWindowSize;
+	VideoInitialize.pRequestWindowSize	        = Callback_VideoRequestWindowSize;
 	VideoInitialize.pCopiedToXFB		        = Callback_VideoCopiedToXFB;
 	VideoInitialize.pPeekMessages               = NULL;
 	VideoInitialize.pUpdateFPSDisplay           = NULL;
 	VideoInitialize.pMemoryBase                 = Memory::base;
-	VideoInitialize.pKeyPress                   = Callback_KeyPress;
+	VideoInitialize.pCoreMessage                = Callback_CoreMessage;
 	VideoInitialize.bWii                        = _CoreParameter.bWii;
 	VideoInitialize.bOnThread					= _CoreParameter.bCPUThread;
 	VideoInitialize.Fifo_CPUBase                = &ProcessorInterface::Fifo_CPUBase;
@@ -381,11 +379,9 @@ THREAD_RETURN EmuThread(void *pArg)
 	PADInitialize.hWnd		= g_pWindowHandle;
 #if defined(HAVE_X11) && HAVE_X11
 	PADInitialize.pXWindow	= g_pXWindow;
-#if defined(HAVE_GTK2) && HAVE_GTK2
-	PADInitialize.pPanel	= VideoInitialize.pPanel;
-#endif
 #endif
 	PADInitialize.pLog		= Callback_PADLog;
+	PADInitialize.pRendererHasFocus	= Callback_RendererHasFocus;
 	// This is may be needed to avoid a SDL problem
 	//Plugins.FreeWiimote();
 	Plugins.GetPad(0)->Initialize(&PADInitialize);
@@ -396,14 +392,12 @@ THREAD_RETURN EmuThread(void *pArg)
 		SWiimoteInitialize WiimoteInitialize;
 		WiimoteInitialize.hWnd			= g_pWindowHandle;
 #if defined(HAVE_X11) && HAVE_X11
-#if defined(HAVE_GTK2) && HAVE_GTK2
-		WiimoteInitialize.pPanel	= VideoInitialize.pPanel;
-#endif
 		WiimoteInitialize.pXWindow	= g_pXWindow;
 #endif
 		WiimoteInitialize.ISOId			= Ascii2Hex(_CoreParameter.m_strUniqueID);
 		WiimoteInitialize.pLog			= Callback_WiimoteLog;
 		WiimoteInitialize.pWiimoteInput	= Callback_WiimoteInput;
+		WiimoteInitialize.pRendererHasFocus	= Callback_RendererHasFocus;
 		// Wait for Wiiuse to find the number of connected Wiimotes
 		Plugins.GetWiimote(0)->Initialize((void *)&WiimoteInitialize);
 	}
@@ -711,6 +705,12 @@ void Callback_VideoCopiedToXFB(bool video_update)
 	Frame::FrameUpdate();
 }
 
+// Ask the host for the desired window size
+void Callback_VideoRequestWindowSize(int& x, int& y, int& width, int& height)
+{
+	Host_RequestWindowSize(x, y, width, height);
+}
+
 // Callback_DSPLog
 // WARNING - THIS MAY BE EXECUTED FROM DSP THREAD
 	void Callback_DSPLog(const TCHAR* _szMessage, int _v)
@@ -748,46 +748,10 @@ const char *Callback_ISOName()
 }
 
 // Called from ANY thread!
-// The hotkey function
-void Callback_KeyPress(int key, bool shift, bool control)
+// Pass the message on to the host
+void Callback_CoreMessage(int Id)
 {
-	// F1 - F8: Save states
-	if (key >= 0x70 && key < 0x78) {
-		// F-key
-		int slot_number = key - 0x70 + 1;
-		if (shift)
-			State_Save(slot_number);
-		else
-			State_Load(slot_number);
-	}
-
-	// 0x78 == VK_F9
-	if (key == 0x78)
-		ScreenShot();
-
-	// 0x7a == VK_F11
-	if (key == 0x7a)
-		State_LoadLastSaved();
-
-	// 0x7b == VK_F12
-	if (key == 0x7b) 
-	{
-		if(shift)
-			State_UndoSaveState();
-		else
-			State_UndoLoadState();	
-	}
-#if defined(HAVE_X11) && HAVE_X11
-	if (key == 0) 
-		Host_Message(WM_USER_CREATE);
-	// 0x1b == VK_ESCAPE
-	if (key == 0x1b) 
-		Host_Message(WM_USER_STOP);
-	if (key == 0x1c)
-		Host_Message(WM_USER_PAUSE);
-	if (key == 0x1d)
-		Host_Message(TOGGLE_FULLSCREEN);
-#endif
+	Host_Message(Id);
 }
 
 // Callback_WiimoteLog
@@ -795,6 +759,12 @@ void Callback_KeyPress(int key, bool shift, bool control)
 void Callback_WiimoteLog(const TCHAR* _szMessage, int _v)
 {
 	GENERIC_LOG(LogTypes::WIIMOTE, (LogTypes::LOG_LEVELS)_v, _szMessage);
+}
+
+// Check to see if the renderer window has focus
+bool Callback_RendererHasFocus(void)
+{
+	return Host_RendererHasFocus();
 }
 
 } // Core

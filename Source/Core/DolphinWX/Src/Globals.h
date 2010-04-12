@@ -79,6 +79,7 @@ enum
 	IDM_PLAY,
 	IDM_STOP,
 	IDM_RESET,
+	IDM_TOGGLE_FULLSCREEN,
 	IDM_RECORD,
 	IDM_PLAYRECORD,
 	IDM_FRAMESTEP,
@@ -123,7 +124,6 @@ enum
 	IDM_CONFIG_DSP_PLUGIN,
 	IDM_CONFIG_PAD_PLUGIN,
 	IDM_CONFIG_WIIMOTE_PLUGIN,
-	IDM_TOGGLE_FULLSCREEN,
 
 	// --------------------------------------------------------------
 	// Debugger Menu Entries

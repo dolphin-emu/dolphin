@@ -394,6 +394,15 @@ if env['nowx']:
 else:
     env['HAVE_WX'] = conf.CheckWXConfig('2.8', wxmods, 0) 
 
+# check for libgtk2.0
+env['HAVE_GTK2'] = 0
+if sys.platform == 'linux2':
+    env['HAVE_GTK2'] = env['HAVE_WX'] and conf.CheckPKG('gtk+-2.0')
+    if env['HAVE_WX'] and not env['HAVE_GTK2']:
+        print "gtk+-2.0 developement headers not detected"
+        print "gtk+-2.0 is required to build the WX GUI"
+        Exit(1)
+
 env['NOJIT'] = 0
 if env['nojit']:
 	env['NOJIT'] = 1

@@ -18,11 +18,11 @@ typedef void            (*TScheduleEvent_Threadsafe)(int cyclesIntoFuture, int e
 typedef unsigned char*	(*TGetMemoryPointer)(const unsigned int  _iAddress);
 typedef void			(*TVideoLog)(const char* _pMessage, int _bBreak);
 typedef void			(*TSysMessage)(const char *fmt, ...);
-typedef void			(*TRequestWindowSize)(int _iWidth, int _iHeight, bool _bFullscreen);
+typedef void			(*TRequestWindowSize)(int& x, int& y, int& width, int& height);
 typedef void			(*TCopiedToXFB)(bool video_update);
 typedef unsigned int	(*TPeekMessages)(void);
 typedef void			(*TUpdateFPSDisplay)(const char* text); // sets the window title
-typedef void			(*TKeyPressed)(int keycode, bool shift, bool control); // passes keys to the hotkey function
+typedef void			(*TCoreMessage)(int Id); // passes message to the core
 
 enum FieldType
 {
@@ -72,9 +72,6 @@ typedef struct
 {
 	void *pWindowHandle;
 #if defined(HAVE_X11) && HAVE_X11
-#if defined(HAVE_GTK2) && HAVE_GTK2
-	void *pPanel;
-#endif
 	void *pXWindow;
 #endif
 
@@ -88,7 +85,7 @@ typedef struct
 	TCopiedToXFB					pCopiedToXFB;
 	TPeekMessages					pPeekMessages;
     TUpdateFPSDisplay               pUpdateFPSDisplay;
-	TKeyPressed                     pKeyPress;
+	TCoreMessage                    pCoreMessage;
 	void *pMemoryBase;
 	bool bWii;
 	bool bOnThread;

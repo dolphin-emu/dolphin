@@ -137,26 +137,11 @@ namespace EmuWindow
 
 HWND m_hWnd = NULL; // The new window that is created here
 HWND m_hParent = NULL;
-HWND m_hMain = NULL; // The main CPanel
 
 HINSTANCE m_hInstance = NULL;
 WNDCLASSEX wndClass;
 const TCHAR m_szClassName[] = _T("DolphinEmuWnd");
 int g_winstyle;
-
-// ---------------------------------------------------------------------
-/* Invisible cursor option. In the lack of a predefined IDC_BLANK we make
-   an empty transparent cursor */
-// ------------------
-HCURSOR hCursor = NULL, hCursorBlank = NULL;
-void CreateCursors(HINSTANCE hInstance)
-{
-	BYTE ANDmaskCursor[] = { 0xff };
-	BYTE XORmaskCursor[] = { 0x00 };
-	hCursorBlank = CreateCursor(hInstance, 0,0, 1,1, ANDmaskCursor,XORmaskCursor);
-
-	hCursor = LoadCursor(NULL, IDC_ARROW);
-}
 
 HWND GetWnd()
 {
@@ -233,18 +218,6 @@ void OnKeyDown(WPARAM wParam)
 {
 	switch (LOWORD( wParam ))
 	{
-	case VK_ESCAPE:
-		if (!g_Config.RenderToMainframe)
-		{
-			if (g_Config.bFullscreen)
-			{
-				// Pressing Esc switches to Windowed mode from Fullscreen mode
-				ToggleFullscreen(m_hWnd);
-			}
-			// then pauses the emulation if already Windowed
-			SendMessage(m_hMain, WM_USER, WM_USER_PAUSE, 0);
-		}
-		break;
 	case '3': // OSD keys
 	case '4':
 	case '5':
@@ -254,10 +227,29 @@ void OnKeyDown(WPARAM wParam)
 			OSDMenu(wParam);
 		break;
 	}
-	g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 }
 // ---------------------------------------------------------------------
 
+void ToggleDisplayMode (int bFullscreen)
+{
+	if (bFullscreen)
+	{
+		DEVMODE dmScreenSettings;
+		memset(&dmScreenSettings,0,sizeof(dmScreenSettings));
+		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
+		sscanf(g_Config.cFSResolution, "%dx%d", &dmScreenSettings.dmPelsWidth, &dmScreenSettings.dmPelsHeight);
+		dmScreenSettings.dmBitsPerPel = 32;
+		dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
+
+		// Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
+		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
+	}
+	else
+	{
+		// Change to default resolution
+		ChangeDisplaySettings(NULL, CDS_FULLSCREEN);
+	}
+}
 
 // Should really take a look at the mouse stuff in here - some of it is weird.
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
@@ -267,10 +259,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 
 	switch (iMsg)
 	{
-	case WM_CREATE:
-		PostMessage(m_hMain, WM_USER, WM_USER_CREATE, g_Config.RenderToMainframe);
-		break;
-
 	case WM_PAINT:
 		{
 			HDC hdc;
@@ -280,29 +268,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 
-	case WM_SYSKEYDOWN:
-		switch (LOWORD(wParam))
-		{
-		case VK_RETURN:
-			// Pressing Alt+Enter switch FullScreen/Windowed
-			if (m_hParent == NULL && !g_Config.RenderToMainframe)
-			{
-				ToggleFullscreen(hWnd);
-			}
-			break;
-		case VK_F5: case VK_F6: case VK_F7: case VK_F8:
-			PostMessage(m_hMain, WM_SYSKEYDOWN, wParam, lParam);
-			break;
-		default:
-			return DefWindowProc(hWnd, iMsg, wParam, lParam);
-		}
-		break;
-
 	case WM_KEYDOWN:
-		// Don't process this as a child window to avoid double events
-		if (!g_Config.RenderToMainframe)
-			OnKeyDown(wParam);
-		
 		break;
 
 	/* Post these mouse events to the main window, it's nessesary becase in difference to the
@@ -313,53 +279,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		PostMessage(GetParentWnd(), iMsg, wParam, lParam);
 		break;
 
-	/* The reason we pick up the WM_MOUSEMOVE is to be able to change this option
-	   during gameplay. The alternative is to load one of the cursors when the plugin
-	   is loaded and go with that. This should only produce a minimal performance hit
-	   because SetCursor is not supposed to actually change the cursor if it's the
-	   same as the one before. */
-	case WM_MOUSEMOVE:
-		/* Check rendering mode; child or parent. Then post the mouse moves to the main window
-		   it's nessesary for both the child window and separate rendering window because
-		   moves over the rendering window do not reach the main program then. */
-		if (GetParentWnd() == NULL) { // Separate rendering window
-			PostMessage(m_hMain, iMsg, wParam, -1);			
-			SetCursor(hCursor);
-		}
-		else
-			PostMessage(GetParentWnd(), iMsg, wParam, lParam);
-		break;
-
-	/* To support the separate window rendering we get the message back here. So we basically
-	   only let it pass through Dolphin > Frame.cpp to determine if it should be on or off
-	   and coordinate it with the other settings if nessesary */
 	case WM_USER:
-		if (wParam == WM_USER_STOP)
-			SetCursor((lParam) ? hCursor : hCursorBlank);
-		else if (wParam == WM_USER_KEYDOWN)
+		if (wParam == WM_USER_KEYDOWN)
 		{
 			OnKeyDown(lParam);
 			FreeLookInput(wParam, lParam);
 		}
-		else if (wParam == TOGGLE_FULLSCREEN)
-		{
-			if(!g_Config.RenderToMainframe)
-				ToggleFullscreen(m_hWnd);
-		}
 		else if (wParam == WIIMOTE_DISCONNECT)
 		{
-			PostMessage(m_hMain, WM_USER, wParam, lParam);
+			PostMessage(m_hParent, WM_USER, wParam, lParam);
 		}
+		else if (wParam == TOGGLE_DISPLAYMODE)
+			ToggleDisplayMode(lParam);
 		break;
 
 	// This is called when we close the window when we render to a separate window
-	case WM_CLOSE:	
+	case WM_CLOSE:
 		if (m_hParent == NULL)
 		{
-			// Take it out of fullscreen and stop the game
-			if( g_Config.bFullscreen )
-				ToggleFullscreen(m_hParent);
-			PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
+			// Stop the game
+			PostMessage(m_hParent, WM_USER, WM_USER_STOP, 0);
 		}
 		break;
 
@@ -378,6 +317,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 			return DefWindowProc(hWnd, iMsg, wParam, lParam);
 		}
 		break;
+	case WM_SETCURSOR:
+		PostMessage(m_hParent, WM_USER, WM_USER_SETCURSOR, 0);
+		return true;
+		break;
 	default:
 		return DefWindowProc(hWnd, iMsg, wParam, lParam);
 	}
@@ -390,14 +333,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const TCHAR *title)
 {
 	wndClass.cbSize = sizeof( wndClass );
-	wndClass.style  = CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS;
+	wndClass.style  = CS_HREDRAW | CS_VREDRAW;
 	wndClass.lpfnWndProc = WndProc;
 	wndClass.cbClsExtra = 0;
 	wndClass.cbWndExtra = 0;
 	wndClass.hInstance = hInstance;
 	wndClass.hIcon = LoadIcon( NULL, IDI_APPLICATION );
-	// To interfer less with SetCursor() later we set this to NULL
-	//wndClass.hCursor = LoadCursor( NULL, IDC_ARROW );
 	wndClass.hCursor = NULL;
 	wndClass.hbrBackground = (HBRUSH)GetStockObject( BLACK_BRUSH );
 	wndClass.lpszMenuName = NULL;
@@ -407,105 +348,13 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	m_hInstance = hInstance;
 	RegisterClassEx( &wndClass );
 
-	CreateCursors(m_hInstance);
-
 	// Create child window
-	if (g_Config.RenderToMainframe)
-	{
-		m_hParent = m_hMain = parent;
+	m_hParent = parent;
 
-		m_hWnd = CreateWindow(m_szClassName, title, WS_CHILD,
-			0, 0, width, height, parent, NULL, hInstance, NULL);
-	}
-	// Create new separate window
-	else
-	{
-		// Don't forget to make it NULL, or a broken window will be created in case we
-		// render to main, stop, then render to separate window, as the GUI will still
-		// think we're rendering to main because m_hParent will still contain the old HWND
-		m_hParent = NULL;
-		m_hMain = parent;
-
-		DWORD style = g_Config.bFullscreen ? WS_POPUP : WS_OVERLAPPEDWINDOW;
-		RECT rc = {0, 0, width, height};
-		AdjustWindowRect(&rc, style, false);
-		RECT rcdesktop;
-		GetWindowRect(GetDesktopWindow(), &rcdesktop);
-
-		int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
-		int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
-
-		m_hWnd = CreateWindow(m_szClassName, title, style,
-			X, Y, rc.right-rc.left, rc.bottom-rc.top,
-			NULL, NULL, hInstance, NULL);
-	}
+	m_hWnd = CreateWindow(m_szClassName, title, WS_CHILD,
+		0, 0, width, height, parent, NULL, hInstance, NULL);
 
 	return m_hWnd;
-}
-
-void ToggleFullscreen(HWND hParent, bool bForceFull)
-{
-	if (m_hParent == NULL)
-	{
-		int	w_fs = 640, h_fs = 480;
-		if (!g_Config.bFullscreen || bForceFull)
-		{
-			if (strlen(g_Config.cFSResolution) > 1)
-				sscanf(g_Config.cFSResolution, "%dx%d", &w_fs, &h_fs);
-
-			// Get into fullscreen
-			DEVMODE dmScreenSettings;
-			memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
-			// Desktop -> FullScreen
-			dmScreenSettings.dmSize			= sizeof(dmScreenSettings);
-			dmScreenSettings.dmPelsWidth	= w_fs;
-			dmScreenSettings.dmPelsHeight	= h_fs;
-			dmScreenSettings.dmFields = DM_PELSWIDTH|DM_PELSHEIGHT;
-			if (ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
-				return;
-			
-			// Set new window style -> PopUp
-			SetWindowLongPtr(hParent, GWL_STYLE, WS_POPUP);
-
-			// SetWindowPos to the upper-left corner of the screen
-			SetWindowPos(hParent, HWND_TOP, 0, 0, w_fs, h_fs, SWP_NOREPOSITION);
-
-			ShowCursor(FALSE);
-			g_Config.bFullscreen = true;
-
-			// Eventually show the window!
-			EmuWindow::Show();
-		}
-		else
-		{
-			if (strlen(g_Config.cInternalRes) > 1)
-				sscanf(g_Config.cInternalRes, "%dx%d", &w_fs, &h_fs);
-
-			// FullScreen -> Desktop
-			ChangeDisplaySettings(NULL, CDS_FULLSCREEN);
-
-			DWORD style = WS_OVERLAPPEDWINDOW;
-			RECT rc = {0, 0, w_fs, h_fs};
-			AdjustWindowRect(&rc, style, false);
-			RECT rcdesktop;
-			GetWindowRect(GetDesktopWindow(), &rcdesktop);
-
-			// SetWindowPos to the center of the screen
-			int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
-			int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
-			SetWindowPos(hParent, NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
-
-			// Set new window style FS -> Windowed
-			SetWindowLongPtr(hParent, GWL_STYLE, style);
-
-			// Re-Enable the cursor
-			ShowCursor(TRUE);
-			g_Config.bFullscreen = false;
-
-			// Eventually show the window!
-			EmuWindow::Show();
-		}
-	}
 }
 
 void Show()
@@ -513,6 +362,7 @@ void Show()
 	ShowWindow(m_hWnd, SW_SHOW);
 	BringWindowToTop(m_hWnd);
 	UpdateWindow(m_hWnd);
+	SetFocus(m_hParent);
 
 	// gShowDebugger from main.cpp is forgotten between the Dolphin-Debugger is opened and a game is
 	// started so we have to use an ini file setting here
@@ -527,14 +377,15 @@ void Show()
 
 HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
 {
-	int width=640, height=480;
-	sscanf( g_Config.bFullscreen ? g_Config.cFSResolution : g_Config.cInternalRes, "%dx%d", &width, &height );
+	int x=0, y=0, width=640, height=480;
+	g_VideoInitialize.pRequestWindowSize(x, y, width, height);
 	return OpenWindow(hParent, hInstance, width, height, title);
 }
 
 void Close()
 {
-	DestroyWindow(m_hWnd);
+	if (m_hParent == NULL)
+		DestroyWindow(m_hWnd);
 	UnregisterClass(m_szClassName, m_hInstance);
 }
 

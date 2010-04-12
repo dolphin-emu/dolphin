@@ -79,7 +79,6 @@ namespace EmuWindow
 
 HWND m_hWnd = NULL; // The new window that is created here
 HWND m_hParent = NULL;
-HWND m_hMain = NULL; // The main CPanel
 
 HINSTANCE m_hInstance = NULL;
 WNDCLASSEX wndClass;
@@ -110,11 +109,6 @@ HWND GetParentWnd()
 	return m_hParent;
 }
 
-HWND GetChildParentWnd()
-{
-	return m_hMain;
-}
-
 LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 {		
 	HDC			hdc;
@@ -122,7 +116,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 	switch( iMsg )
 	{
 	case WM_CREATE:
-		PostMessage(m_hMain, WM_USER, WM_USER_CREATE, (int)m_hParent);
+		PostMessage(m_hParent, WM_USER, WM_USER_CREATE, (int)m_hParent);
 		break;
 	
 	case WM_PAINT:
@@ -141,7 +135,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			}
 			break;
 		case VK_F5: case VK_F6: case VK_F7: case VK_F8:
-			PostMessage(m_hMain, WM_SYSKEYDOWN, wParam, lParam);
+			PostMessage(m_hParent, WM_SYSKEYDOWN, wParam, lParam);
 			break;
 		default:
 			return DefWindowProc(hWnd, iMsg, wParam, lParam);
@@ -158,10 +152,9 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 				ToggleFullscreen(hWnd);
 			}
 			// And pause the emulation when already in Windowed mode
-			PostMessage(m_hMain, WM_USER, WM_USER_PAUSE, 0);
+			PostMessage(m_hParent, WM_USER, WM_USER_PAUSE, 0);
 			break;
 		}
-		g_VideoInitialize.pKeyPress(LOWORD(wParam), GetAsyncKeyState(VK_SHIFT) != 0, GetAsyncKeyState(VK_CONTROL) != 0);
 		break;
 
 	/* The reason we pick up the WM_MOUSEMOVE is to be able to change this option
@@ -174,7 +167,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		   it's nessesary for both the chil dwindow and separate rendering window because
 		   moves over the rendering window do not reach the main program then. */
 		if (GetParentWnd() == NULL) // Separate rendering window
-			PostMessage(m_hMain, iMsg, wParam, -1);
+			PostMessage(m_hParent, iMsg, wParam, -1);
 		else
 			PostMessage(GetParentWnd(), iMsg, wParam, lParam);
 		break;
@@ -186,7 +179,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 		if (wParam == WM_USER_STOP)
 			SetCursor((lParam) ? hCursor : hCursorBlank);
 		else if (wParam == WIIMOTE_DISCONNECT)
-			PostMessage(m_hMain, WM_USER, wParam, lParam);
+			PostMessage(m_hParent, WM_USER, wParam, lParam);
 		break;
 
 	/* Post these mouse events to the main window, it's nessesary becase in difference to the
@@ -204,7 +197,7 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			// Take it out of fullscreen and stop the game
 			if( g_Config.bFullscreen )
 				ToggleFullscreen(m_hParent);
-			PostMessage(m_hMain, WM_USER, WM_USER_STOP, 0);
+			PostMessage(m_hParent, WM_USER, WM_USER_STOP, 0);
 		}
 		break;
 
@@ -256,7 +249,7 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 	// Create child window
 	if (parent)
 	{
-		m_hParent = m_hMain = parent;
+		m_hParent = parent;
 
 		m_hWnd = CreateWindow(m_szClassName, title,
 			WS_CHILD,
@@ -282,8 +275,7 @@ HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const T
 		rc.top = (1024 - h)/2;
 		rc.bottom = rc.top + h;
 
-		// I save this to m_hMain instead of m_hParent because it casused problems otherwise
-		m_hMain = (HWND)g_VideoInitialize.pWindowHandle;
+		m_hParent = (HWND)g_VideoInitialize.pWindowHandle;
 
 		m_hWnd = CreateWindow(m_szClassName, title,
 			style,
@@ -370,7 +362,8 @@ HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
 
 void Close()
 {
-	DestroyWindow(m_hWnd);
+	if (!m_hParent)
+		DestroyWindow(m_hWnd);
 	UnregisterClass(m_szClassName, m_hInstance);
 }
 

@@ -148,7 +148,7 @@ extern std::vector<InputCommon::CONTROLLER_INFO> joyinfo;
 extern HWND m_hWnd; // Handle to window
 #endif
 #if defined(HAVE_X11) && HAVE_X11
-extern Display* WMdisplay;
+extern Display* GCdisplay;
 #endif
 
 

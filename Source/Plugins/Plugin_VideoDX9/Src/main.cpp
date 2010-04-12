@@ -284,6 +284,7 @@ void Shutdown()
 	OpcodeDecoder_Shutdown();
 	Renderer::Shutdown();
 	D3D::Shutdown();
+	EmuWindow::ToggleDisplayMode(false);
 	EmuWindow::Close();
 	s_PluginInitialized = false;
 }

@@ -27,6 +27,7 @@ if wxenv['HAVE_WX']:
 		'LogWindow.cpp',
 		'GameListCtrl.cpp',
 		'Globals.cpp',
+		'HotkeyDlg.cpp',
 		'ISOFile.cpp',
 		'ISOProperties.cpp',
 		'MemcardManager.cpp',

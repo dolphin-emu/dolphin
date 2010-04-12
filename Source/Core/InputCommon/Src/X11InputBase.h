@@ -26,7 +26,10 @@
 #endif
 namespace InputCommon
 {
+#if defined(HAVE_WX) && HAVE_WX
 KeySym wxCharCodeWXToX(int id);
+int wxKeyModWXToX(int modstate);
+#endif
 void XKeyToString(unsigned int keycode, char *keyStr);
 }
 #endif

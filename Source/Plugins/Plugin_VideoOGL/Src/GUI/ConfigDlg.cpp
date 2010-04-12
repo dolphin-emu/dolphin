@@ -36,11 +36,8 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CLOSE(GFXConfigDialogOGL::OnClose)
 	EVT_BUTTON(wxID_CLOSE, GFXConfigDialogOGL::CloseClick)
 	EVT_BUTTON(wxID_ABOUT, GFXConfigDialogOGL::AboutClick)
-	EVT_CHECKBOX(ID_FULLSCREEN, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_VSYNC, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_CHECKBOX(ID_RENDERTOMAINWINDOW, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_CHOICE(ID_WINDOWRESOLUTIONCB, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_CHOICE(ID_WINDOWFSRESOLUTIONCB, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHOICE(ID_FULLSCREENRESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MAXANISOTROPY, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MSAAMODECB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_NATIVERESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
@@ -52,9 +49,6 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_WIDESCREENHACK, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_ASPECT, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_CROP, GFXConfigDialogOGL::GeneralSettingsChanged)
-	#ifndef _WIN32
-		EVT_CHECKBOX(ID_HIDECURSOR, GFXConfigDialogOGL::GeneralSettingsChanged)
-	#endif
 	EVT_CHECKBOX(ID_WIREFRAME, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SHOWFPS, GFXConfigDialogOGL::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_STATISTICS, GFXConfigDialogOGL::AdvancedSettingsChanged)
@@ -138,11 +132,6 @@ void GFXConfigDialogOGL::AddFSReso(const char *reso)
 	arrayStringFor_FullscreenCB.Add(wxString::FromAscii(reso));
 }
 
-void GFXConfigDialogOGL::AddWindowReso(const char *reso)
-{
-	arrayStringFor_WindowResolutionCB.Add(wxString::FromAscii(reso));
-}
-
 // This one could be used to reload shaders while dolphin is running...
 void GFXConfigDialogOGL::LoadShaders()
 {
@@ -172,8 +161,6 @@ void GFXConfigDialogOGL::InitializeGUILists()
 	// Resolutions
 	if (arrayStringFor_FullscreenCB.empty())
 		AddFSReso("<No resolutions found>");
-	if (arrayStringFor_WindowResolutionCB.empty())
-		AddWindowReso("<No resolutions found>");
 
 	// Keep Aspect Ratio
 	arrayStringFor_AspectRatio.Add(wxT("Auto Aspect (recommended)"));
@@ -213,22 +200,14 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	// General Display Settings
 	m_NativeResolution->SetValue(g_Config.bNativeResolution);
 	m_2xResolution->SetValue(g_Config.b2xResolution);
-	m_Fullscreen->SetValue(g_Config.bFullscreen);
 	
 	int num = 0;
-	num = m_WindowResolutionCB->FindString(wxString::FromAscii(g_Config.cInternalRes));
-	m_WindowResolutionCB->SetSelection(num);
-	
 	num = m_WindowFSResolutionCB->FindString(wxString::FromAscii(g_Config.cFSResolution));
 	m_WindowFSResolutionCB->SetSelection(num);
-#ifndef _WIN32
-	m_HideCursor->SetValue(g_Config.bHideCursor); 
-#endif
 	m_KeepAR->SetSelection(g_Config.iAspectRatio);
 	m_Crop->SetValue(g_Config.bCrop);
 
 	// Advanced Display Settings
-	m_RenderToMainWindow->SetValue(g_Config.RenderToMainframe);
 	m_OSDHotKey->SetValue(g_Config.bOSDHotKey);
 	m_VSync->SetValue(g_Config.bVSync);
 	m_UseXFB->SetValue(g_Config.bUseXFB);
@@ -288,10 +267,6 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 void GFXConfigDialogOGL::InitializeGUITooltips()
 {
 	// Tool tips
-	m_Fullscreen->SetToolTip(
-		wxT("Start the separate window in fullscreen mode.")
-		wxT(" Press Alt+Enter to switch between Fullscreen and Windowed mode.")
-		wxT("\n\nApplies instanty during gameplay: <Yes>"));
 	m_NativeResolution->SetToolTip(
 		wxT("This will use the game's native resolution and stretch it to fill the")
 		wxT("\nwindow instead of changing the internal display resolution. It")
@@ -309,12 +284,9 @@ void GFXConfigDialogOGL::InitializeGUITooltips()
 		wxT("\nis of the 5:4 format if you have selected the 4:3 aspect ratio. It will assume")
 		wxT("\nthat your screen is of the 16:10 format if you have selected the 16:9 aspect ratio.")
 		wxT("\n\nApplies instanty during gameplay: <Yes>"));
-	m_WindowResolutionCB->SetToolTip(
-		wxT("Select internal resolution for the separate rendering window for windowed mode")
-		wxT("\n\nApplies instanty during gameplay: <No>"));
 	m_WindowFSResolutionCB->SetToolTip(
-		wxT("Select internal resolution for the separate rendering window for fullscreen mode")
-		wxT("\n\nApplies instanty during gameplay: <No>"));
+		wxT("Select resolution for fullscreen mode")
+		wxT("\n\nApplies instantly during gameplay: <No>"));
 	m_MSAAModeCB->SetToolTip(wxT(
 		"Applies instanty during gameplay: <No>"));
 	m_OSDHotKey->SetToolTip(
@@ -393,17 +365,11 @@ void GFXConfigDialogOGL::CreateGUIControls()
 
 	// General Display Settings
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Basic Display Settings"));
-	wxStaticText *IRText = new wxStaticText(m_PageGeneral, ID_IRTEXT, wxT("Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
+	wxStaticText *IRText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_2xResolution = new wxCheckBox(m_PageGeneral, ID_2X_RESOLUTION, wxT("2x"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	wxStaticText *RText = new wxStaticText(m_PageGeneral, ID_RTEXT, wxT("Custom resolution:"), wxDefaultPosition, wxDefaultSize, 0);
-	wxStaticText *WMText = new wxStaticText(m_PageGeneral, ID_WMTEXT, wxT("Windowed:"), wxDefaultPosition, wxDefaultSize , 0 );
-	m_Fullscreen = new wxCheckBox(m_PageGeneral, ID_FULLSCREEN, wxT("Fullscreen:"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_WindowResolutionCB = new wxChoice(m_PageGeneral, ID_WINDOWRESOLUTIONCB, wxDefaultPosition, wxDefaultSize, arrayStringFor_WindowResolutionCB, 0, wxDefaultValidator, arrayStringFor_WindowResolutionCB[0]);
-	m_WindowFSResolutionCB = new wxChoice(m_PageGeneral, ID_WINDOWFSRESOLUTIONCB, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, 0, wxDefaultValidator, arrayStringFor_FullscreenCB[0]);
-#ifndef _WIN32
-	m_HideCursor = new wxCheckBox(m_PageGeneral, ID_HIDECURSOR, wxT("Hide mouse cursor"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-#endif
+	wxStaticText *RText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Fullscreen Display Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
+	m_WindowFSResolutionCB = new wxChoice(m_PageGeneral, ID_FULLSCREENRESOLUTION, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, 0, wxDefaultValidator, arrayStringFor_FullscreenCB[0]);
 	// Aspect ratio / positioning controls
 	wxStaticText *KeepARText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Keep aspect ratio:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_KeepAR = new wxChoice(m_PageGeneral, ID_ASPECT, wxDefaultPosition, wxDefaultSize, arrayStringFor_AspectRatio);
@@ -411,7 +377,6 @@ void GFXConfigDialogOGL::CreateGUIControls()
 
 	// Advanced Display Settings
 	sbBasicAdvanced = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Advanced Display Settings"));
-	m_RenderToMainWindow = new wxCheckBox(m_PageGeneral, ID_RENDERTOMAINWINDOW, wxT("Render to Main window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_OSDHotKey = new wxCheckBox(m_PageGeneral, ID_OSDHOTKEY, wxT("Enable Hotkeys"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 #if !defined(_WIN32) && (!defined(HAVE_X11) || !HAVE_X11)
 	// JPeterson set the hot key to be Win32-specific
@@ -445,32 +410,23 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasic->Add(m_2xResolution, wxGBPosition(0, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
 	sBasic->Add(RText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(WMText, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_WindowResolutionCB, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_Fullscreen, wxGBPosition(1, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_WindowFSResolutionCB, wxGBPosition(2, 2), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_WindowFSResolutionCB, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 5);
 
-	sBasic->Add(KeepARText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_KeepAR, wxGBPosition(3, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_Crop, wxGBPosition(3, 2), wxGBSpan(1, 1), wxALL | wxALIGN_CENTER_VERTICAL, 5);
-
-	// This option is configured from the main Dolphin.exe settings for _WIN32
-	#ifndef _WIN32
-	sBasic->Add(m_HideCursor, wxGBPosition(5, 0), wxGBSpan(1, 4), wxALL, 5);
-	#endif
+	sBasic->Add(KeepARText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBasic->Add(m_KeepAR, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_Crop, wxGBPosition(2, 2), wxGBSpan(1, 1), wxALL | wxALIGN_CENTER_VERTICAL, 5);
 
 	sbBasic->Add(sBasic);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
 
 	sBasicAdvanced = new wxGridBagSizer(0, 0);
 
-	sBasicAdvanced->Add(m_RenderToMainWindow,	wxGBPosition(0, 0), wxGBSpan(1, 1), wxALL, 5);
-	sBasicAdvanced->Add(m_OSDHotKey,			wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasicAdvanced->Add(m_VSync,				wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasicAdvanced->Add(m_UseXFB,				wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasicAdvanced->Add(m_UseRealXFB,			wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasicAdvanced->Add(m_AutoScale,			wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL, 5);
-	sBasicAdvanced->Add(m_WidescreenHack,		wxGBPosition(6, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_OSDHotKey,			wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_VSync,				wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_UseXFB,				wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_UseRealXFB,			wxGBPosition(3, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_AutoScale,			wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_WidescreenHack,		wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL, 5);
 
 	sbBasicAdvanced->Add(sBasicAdvanced);
 	sGeneral->Add(sbBasicAdvanced, 0, wxEXPAND|wxALL, 5);
@@ -638,13 +594,6 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case ID_FULLSCREEN:
-		g_Config.bFullscreen = m_Fullscreen->IsChecked();
-		break;
-	case ID_RENDERTOMAINWINDOW:
-		g_Config.RenderToMainframe = m_RenderToMainWindow->IsChecked();
-		g_Config.bFullscreen = false;
-		break;
 	case ID_NATIVERESOLUTION:
 		g_Config.bNativeResolution = m_NativeResolution->IsChecked();
 		// Don't allow 1x and 2x at the same time
@@ -679,15 +628,7 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_FORCEFILTERING:
 		g_Config.bForceFiltering = m_ForceFiltering->IsChecked();
 		break;
-	#ifndef _WIN32
-	case ID_HIDECURSOR:
-		g_Config.bHideCursor = m_HideCursor->IsChecked();
-		break; 
-	#endif
-	case ID_WINDOWRESOLUTIONCB:
-		strcpy(g_Config.cInternalRes, m_WindowResolutionCB->GetStringSelection().mb_str() );
-		break;
-	case ID_WINDOWFSRESOLUTIONCB:
+	case ID_FULLSCREENRESOLUTION:
 		strcpy(g_Config.cFSResolution, m_WindowFSResolutionCB->GetStringSelection().mb_str() );
 		break;
 	case ID_MAXANISOTROPY:
@@ -839,23 +780,12 @@ void GFXConfigDialogOGL::UpdateGUI()
 	m_AutoScale->Enable(!g_Config.bUseRealXFB);
 	m_UseXFB->Enable(!g_Config.bUseRealXFB);
 
-	// These options are for the separate rendering window
-#if !defined(HAVE_GTK2) || !HAVE_GTK2 || !defined(wxGTK)
-	m_Fullscreen->Enable(!g_Config.RenderToMainframe);
-	if (g_Config.RenderToMainframe) m_Fullscreen->SetValue(false);
-#endif
-
 	// Resolution settings
 	//disable native/2x choice when real xfb is on. native simply looks best, as ector noted above.
 	//besides, it would look odd if one disabled native, and it came back on again.
 	m_NativeResolution->Enable(!g_Config.bUseRealXFB);
 	m_2xResolution->Enable(!g_Config.bUseRealXFB && (!g_Config.bRunning || Renderer::Allow2x()));
-	m_WindowResolutionCB->Enable(!g_Config.bRunning);
-#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
 	m_WindowFSResolutionCB->Enable(!g_Config.bRunning);
-#else
-	m_WindowFSResolutionCB->Enable(!g_Config.bRunning && !g_Config.RenderToMainframe);
-#endif
 
 	// Disable the Copy to options when EFBCopy is disabled
 	m_Radio_CopyEFBToRAM->Enable(!(g_Config.bEFBCopyDisable));

@@ -24,6 +24,13 @@
 #define MAXPADS 1
 #define MAXWIIMOTES 1
 
+enum Hotkey {
+	HK_FULLSCREEN,
+	HK_PLAY_PAUSE,
+	HK_STOP,
+	NUM_HOTKEYS,
+};
+
 struct SCoreStartupParameter
 {
 	void * hInstance;  // HINSTANCE but we don't want to include <windows.h>
@@ -77,6 +84,16 @@ struct SCoreStartupParameter
 
 	// Interface settings
 	bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers;
+
+	// Hotkeys
+	int iHotkey[NUM_HOTKEYS];
+	int iHotkeyModifier[NUM_HOTKEYS];
+
+	// Display settings
+	bool bFullscreen, bRenderToMain;
+	int iRenderWindowXPos, iRenderWindowYPos;
+	int iRenderWindowWidth, iRenderWindowHeight;
+
 	int iTheme; 
 	int iPosX, iPosY, iWidth, iHeight;
 	

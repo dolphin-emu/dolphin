@@ -46,7 +46,7 @@ namespace D3D
 
 bool IsATIDevice();
 HRESULT Init();
-HRESULT Create(int adapter, HWND wnd, bool fullscreen, int resolution, int aa_mode, bool auto_depth);
+HRESULT Create(int adapter, HWND wnd, int resolution, int aa_mode, bool auto_depth);
 void Close();
 void Shutdown();
 
@@ -58,8 +58,6 @@ void Reset();
 bool BeginFrame();
 void EndFrame();
 void Present();
-void SwitchFullscreen(bool fullscreen);
-bool IsFullscreen();
 bool CanUseINTZ();
 
 int GetBackBufferWidth();

@@ -30,17 +30,16 @@
 #define PAD_BUTTON_START        0x1000
 
 typedef void (*TLog)(const char* _pMessage);
+typedef bool (*TRendererHasFocus)(void);
 
 typedef struct
 {
 	HWND			hWnd;
 #if defined HAVE_X11 && HAVE_X11
-#if defined(HAVE_GTK2) && HAVE_GTK2
-	void *pPanel;
-#endif
 	void *pXWindow;
 #endif
 	TLog			pLog;
+	TRendererHasFocus pRendererHasFocus;
 } SPADInitialize;
 
 typedef struct

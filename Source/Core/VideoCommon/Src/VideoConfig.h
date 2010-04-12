@@ -67,14 +67,10 @@ struct VideoConfig
 	void UpdateProjectionHack();
 
     // General
-    bool bFullscreen;
-    bool bHideCursor;
-    bool RenderToMainframe;
 	bool bVSync;
 
 	// Resolution control
 	char cFSResolution[16];
-    char cInternalRes[16];
 
     bool bNativeResolution, b2xResolution, bRunning;  // Should possibly be augmented with 2x, 4x native.
 	bool bWidescreenHack;

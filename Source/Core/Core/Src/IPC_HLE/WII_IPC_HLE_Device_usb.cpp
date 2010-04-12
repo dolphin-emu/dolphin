@@ -601,7 +601,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventInquiryComplete()
 	SHCIEventInquiryComplete* pInquiryComplete = (SHCIEventInquiryComplete*)Event.m_buffer;    
 	pInquiryComplete->EventType = HCI_EVENT_INQUIRY_COMPL;
 	pInquiryComplete->PayloadLength = sizeof(SHCIEventInquiryComplete) - 2;
-	pInquiryComplete->Status = 0x00;
+	pInquiryComplete->EventStatus = 0x00;
 
 	AddEventToQueue(Event);
 
@@ -666,7 +666,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConnectionComplete(const bdad
 
 	pConnectionComplete->EventType = HCI_EVENT_CON_COMPL;
 	pConnectionComplete->PayloadLength = sizeof(SHCIEventConnectionComplete) - 2;
-	pConnectionComplete->Status = 0x00;
+	pConnectionComplete->EventStatus = 0x00;
 	pConnectionComplete->Connection_Handle = pWiiMote->GetConnectionHandle();
 	pConnectionComplete->bdaddr = _bd;
 	pConnectionComplete->LinkType = HCI_LINK_ACL;
@@ -745,7 +745,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventDisconnect(u16 _connectionHan
 	SHCIEventDisconnectCompleted* pDisconnect = (SHCIEventDisconnectCompleted*)Event.m_buffer;
 	pDisconnect->EventType = HCI_EVENT_DISCON_COMPL;
 	pDisconnect->PayloadLength = sizeof(SHCIEventDisconnectCompleted) - 2;
-	pDisconnect->Status = 0;
+	pDisconnect->EventStatus = 0;
 	pDisconnect->Connection_Handle = _connectionHandle;
 	pDisconnect->Reason = _Reason;
 
@@ -770,7 +770,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventAuthenticationCompleted(u16 _
 	SHCIEventAuthenticationCompleted* pEventAuthenticationCompleted = (SHCIEventAuthenticationCompleted*)Event.m_buffer;
 	pEventAuthenticationCompleted->EventType = HCI_EVENT_AUTH_COMPL;
 	pEventAuthenticationCompleted->PayloadLength = sizeof(SHCIEventAuthenticationCompleted) - 2;
-	pEventAuthenticationCompleted->Status = 0;
+	pEventAuthenticationCompleted->EventStatus = 0;
 	pEventAuthenticationCompleted->Connection_Handle = _connectionHandle;
 
 	// Log
@@ -794,7 +794,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRemoteNameReq(const bdaddr_t&
 
 	pRemoteNameReq->EventType = HCI_EVENT_REMOTE_NAME_REQ_COMPL;
 	pRemoteNameReq->PayloadLength = sizeof(SHCIEventRemoteNameReq) - 2;
-	pRemoteNameReq->Status = 0x00;
+	pRemoteNameReq->EventStatus = 0x00;
 	pRemoteNameReq->bdaddr = _bd;
 	strcpy((char*)pRemoteNameReq->RemoteName, pWiiMote->GetName());
 
@@ -821,7 +821,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadRemoteFeatures(u16 _conne
 
 	pReadRemoteFeatures->EventType = HCI_EVENT_READ_REMOTE_FEATURES_COMPL;
 	pReadRemoteFeatures->PayloadLength = sizeof(SHCIEventReadRemoteFeatures) - 2;
-	pReadRemoteFeatures->Status = 0x00;
+	pReadRemoteFeatures->EventStatus = 0x00;
 	pReadRemoteFeatures->ConnectionHandle = _connectionHandle;
 	pReadRemoteFeatures->features[0] = pWiiMote->GetFeatures()[0];
 	pReadRemoteFeatures->features[1] = pWiiMote->GetFeatures()[1];
@@ -856,7 +856,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadRemoteVerInfo(u16 _connec
 	SHCIEventReadRemoteVerInfo* pReadRemoteVerInfo = (SHCIEventReadRemoteVerInfo*)Event.m_buffer;    
 	pReadRemoteVerInfo->EventType = HCI_EVENT_READ_REMOTE_VER_INFO_COMPL;
 	pReadRemoteVerInfo->PayloadLength = sizeof(SHCIEventReadRemoteVerInfo) - 2;
-	pReadRemoteVerInfo->Status = 0x00;
+	pReadRemoteVerInfo->EventStatus = 0x00;
 	pReadRemoteVerInfo->ConnectionHandle = _connectionHandle;
 	pReadRemoteVerInfo->lmp_version = pWiiMote->GetLMPVersion();
 	pReadRemoteVerInfo->manufacturer = pWiiMote->GetManufactorID();
@@ -914,7 +914,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventCommandStatus(u16 _Opcode)
 		SHCIEventStatus* pHCIEvent = (SHCIEventStatus*)Event.m_buffer;
 		pHCIEvent->EventType = HCI_EVENT_COMMAND_STATUS;
 		pHCIEvent->PayloadLength = sizeof(SHCIEventStatus) - 2;
-		pHCIEvent->Status = 0x0;
+		pHCIEvent->EventStatus = 0x0;
 		pHCIEvent->PacketIndicator = 0x01;
 		pHCIEvent->Opcode = _Opcode;
 
@@ -947,7 +947,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRoleChange(bdaddr_t _bd, bool
 
 	pRoleChange->EventType = HCI_EVENT_ROLE_CHANGE;
 	pRoleChange->PayloadLength = sizeof(SHCIEventRoleChange) - 2;
-	pRoleChange->Status = 0x00;
+	pRoleChange->EventStatus = 0x00;
 	pRoleChange->bdaddr = _bd;
 	pRoleChange->NewRole = _master ? 0x00 : 0x01;
 
@@ -1002,7 +1002,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventModeChange(u16 _connectionHan
 	SHCIEventModeChange* pModeChange = (SHCIEventModeChange*)Event.m_buffer;
 	pModeChange->EventType = HCI_EVENT_MODE_CHANGE;
 	pModeChange->PayloadLength = sizeof(SHCIEventModeChange) - 2;
-	pModeChange->Status = 0;
+	pModeChange->EventStatus = 0;
 	pModeChange->Connection_Handle = _connectionHandle;
 	pModeChange->CurrentMode = _mode;
 	pModeChange->Value = _value;
@@ -1074,7 +1074,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventReadClockOffsetComplete(u16 _
 	SHCIEventReadClockOffsetComplete* pReadClockOffsetComplete = (SHCIEventReadClockOffsetComplete*)Event.m_buffer;
 	pReadClockOffsetComplete->EventType = HCI_EVENT_READ_CLOCK_OFFSET_COMPL;
 	pReadClockOffsetComplete->PayloadLength = sizeof(SHCIEventReadClockOffsetComplete) - 2;
-	pReadClockOffsetComplete->Status = 0x00;
+	pReadClockOffsetComplete->EventStatus = 0x00;
 	pReadClockOffsetComplete->ConnectionHandle = _connectionHandle;
 	pReadClockOffsetComplete->ClockOffset = 0x3818;
 
@@ -1099,7 +1099,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConPacketTypeChange(u16 _conn
 	SHCIEventConPacketTypeChange* pChangeConPacketType = (SHCIEventConPacketTypeChange*)Event.m_buffer;
 	pChangeConPacketType->EventType = HCI_EVENT_CON_PKT_TYPE_CHANGED;
 	pChangeConPacketType->PayloadLength = sizeof(SHCIEventConPacketTypeChange) - 2;
-	pChangeConPacketType->Status = 0x00;
+	pChangeConPacketType->EventStatus = 0x00;
 	pChangeConPacketType->ConnectionHandle = _connectionHandle;
 	pChangeConPacketType->PacketType = _packetType;
 

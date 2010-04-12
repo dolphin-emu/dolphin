@@ -35,6 +35,10 @@
 #include "CDUtils.h"
 #include "CodeWindow.h"
 #include "LogWindow.h"
+#if defined(HAVE_X11) && HAVE_X11
+#include <gtk/gtk.h>
+#include <gdk/gdkx.h>
+#endif
 
 // A shortcut to access the bitmaps
 #define wxGetBitmapFromMemory(name) _wxGetBitmapFromMemory(name, sizeof(name))
@@ -47,6 +51,24 @@ inline wxBitmap _wxGetBitmapFromMemory(const unsigned char* data, int length)
 // Class declarations
 class CGameListCtrl;
 class CLogWindow;
+
+// The CPanel class to receive MSWWindowProc messages from the video plugin.
+class CPanel : public wxPanel
+{
+	public:
+		CPanel(
+			wxWindow* parent,
+			wxWindowID id = wxID_ANY
+			);
+
+	private:
+		DECLARE_EVENT_TABLE();
+
+		#ifdef _WIN32
+			// Receive WndProc messages
+			WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
+		#endif
+};
 
 class CFrame : public wxFrame
 {
@@ -63,11 +85,11 @@ class CFrame : public wxFrame
 		void* GetRenderHandle()
 		{
 			#ifdef _WIN32
-				return(m_Panel->GetHandle());
+				return (void *)m_RenderParent->GetHandle();
 			#elif defined(HAVE_X11) && HAVE_X11
-				return m_Panel;
+				return (void *)GDK_WINDOW_XID(GTK_WIDGET(m_RenderParent->GetHandle())->window);
 			#else
-				return this;
+				return m_RenderParent;
 			#endif
 		}
 
@@ -81,6 +103,9 @@ class CFrame : public wxFrame
 		void DoPause();
 		void DoStop();
 		bool bRenderToMain;
+#ifdef _WIN32
+		bool bRendererHasFocus;
+#endif
 		bool bNoWiimoteMsg;
 		void UpdateGUI();
 		void ToggleLogWindow(bool, int i = -1);
@@ -91,7 +116,12 @@ class CFrame : public wxFrame
 		void StatusBarMessage(const char * Text, ...);
 		void ClearStatusBar();
 		void OnCustomHostMessage(int Id);
+		void OnSizeRequest(int& x, int& y, int& width, int& height);
 		void StartGame(const std::string& filename);
+		void OnRenderParentClose(wxCloseEvent& event);
+		void OnRenderParentMove(wxMoveEvent& event);
+		bool RendererHasFocus();
+		void DoFullscreen(bool _F);
 
 		// AUI
 		wxAuiManager *m_Mgr;
@@ -118,6 +148,7 @@ class CFrame : public wxFrame
 		int PixelsToPercentage(int,int);
 		void ListChildren();
 		void ListTopWindows();
+		const wxChar * GetMenuLabel(int Id);
 
 		// Perspectives
 		void AddRemoveBlankPage();
@@ -178,6 +209,8 @@ class CFrame : public wxFrame
 		wxBoxSizer* sizerFrame;
 		CGameListCtrl* m_GameListCtrl;
 		wxPanel* m_Panel;
+		wxFrame* m_RenderFrame;
+		wxPanel* m_RenderParent;
 		wxToolBarToolBase* m_ToolPlay;
 		CLogWindow* m_LogWindow;
 		bool UseDebugger;
@@ -277,7 +310,6 @@ class CFrame : public wxFrame
 		void OnManagerResize(wxAuiManagerEvent& event);
 		void OnMove(wxMoveEvent& event);
 		void OnResize(wxSizeEvent& event);
-		void OnResizeAll(wxSizeEvent& event);
 		void OnToggleToolbar(wxCommandEvent& event);
 		void DoToggleToolbar(bool);
 		void OnToggleStatusbar(wxCommandEvent& event);
@@ -286,7 +318,6 @@ class CFrame : public wxFrame
 		void OnKeyDown(wxKeyEvent& event);
 		void OnKeyUp(wxKeyEvent& event);
 		void OnDoubleClick(wxMouseEvent& event);
-		void OnMotion(wxMouseEvent& event);
 		
 		void OnHostMessage(wxCommandEvent& event);
 
@@ -302,9 +333,11 @@ class CFrame : public wxFrame
 		void GameListChanged(wxCommandEvent& event);
 
 		void OnGameListCtrl_ItemActivated(wxListEvent& event);
-		void DoFullscreen(bool _F);
+		void OnRenderParentResize(wxSizeEvent& event);
+		bool RendererIsFullscreen();
 #if defined HAVE_X11 && HAVE_X11
-		void X11_SendClientEvent(const char *message);
+		void X11_SendClientEvent(const char *message,
+				int data1 = 0, int data2 = 0, int data3 = 0, int data4 = 0);
 #endif
 
 		// MenuBar
@@ -318,15 +351,8 @@ class CFrame : public wxFrame
 
 		void BootGame(const std::string& filename);
 
-		// Double click and mouse move options
 #if wxUSE_TIMER
-	#ifdef _WIN32
-		double m_fLastClickTime, m_iLastMotionTime;
-		int LastMouseX, LastMouseY;
-
-		void Update();
-	#endif
-		// Used in linux to process command events
+		// Used to process command events
 		void OnTimer(wxTimerEvent& WXUNUSED(event));
 		wxTimer m_timer;
 #endif

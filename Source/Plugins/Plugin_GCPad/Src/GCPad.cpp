@@ -647,26 +647,5 @@ bool IsKey(int Key)
 // ----------------
 bool IsFocus()
 {
-#ifdef _WIN32
-	HWND RenderingWindow = (g_PADInitialize) ? g_PADInitialize->hWnd : NULL;
-	HWND Parent = GetParent(RenderingWindow);
-	HWND TopLevel = GetParent(Parent);
-
-	if (GetForegroundWindow() == TopLevel || GetForegroundWindow() == RenderingWindow)
-		return true;
-	else
-		return false;
-#elif defined HAVE_X11 && HAVE_X11
-	Window GLWin = *(Window *)g_PADInitialize->pXWindow;
-	bool bFocus = False;
-#if defined(HAVE_GTK2) && HAVE_GTK2 && defined(wxGTK)
-	bFocus = (wxPanel *)g_PADInitialize->pPanel == wxWindow::FindFocus();
-#endif
-	Window FocusWin;
-	int Revert;
-	XGetInputFocus(GCdisplay, &FocusWin, &Revert);
-	return (GLWin == FocusWin || bFocus);
-#else
-	return true;
-#endif
+	return g_PADInitialize->pRendererHasFocus();
 }

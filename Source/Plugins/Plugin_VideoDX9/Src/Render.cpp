@@ -280,7 +280,7 @@ bool Renderer::Init()
 	if (fullScreenRes == D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions.size())
 		fullScreenRes = 0;
 
-	D3D::Create(g_ActiveConfig.iAdapter, EmuWindow::GetWnd(), false,
+	D3D::Create(g_ActiveConfig.iAdapter, EmuWindow::GetWnd(),
 				fullScreenRes, backbuffer_ms_mode, false);
 
 	IS_AMD = D3D::IsATIDevice();
