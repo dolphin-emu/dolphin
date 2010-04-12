@@ -320,7 +320,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 #if defined(USE_WX) && USE_WX
 	int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
-	wxSize size(_iwidth, _iheight);
+	wxSize size(_twidth, _theight);
 
 	GLWin.panel = (wxPanel *)g_VideoInitialize.pWindowHandle;
 
