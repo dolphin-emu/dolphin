@@ -21,7 +21,7 @@ void PadSettingCheckBox::UpdateValue()
 
 PadSettingChoice::PadSettingChoice( wxWindow* const parent, ControlState& _value, int min, int max )
 	: PadSetting(_value)
-	, wxChoice( parent, -1, wxDefaultPosition, wxSize( 48, -1 ) )
+	, wxChoice( parent, -1, wxDefaultPosition, wxSize( 54, -1 ) )
 {
 	Append( wxT("0") );
 	for ( ; min<=max; ++min )
@@ -180,7 +180,7 @@ void ControlChooser::UpdateGUI()
 	if ( bound ) ss << bound; else ss << "None";
 	m_bound_label->SetLabel( wxString::FromAscii(ss.str().c_str()) );
 
-	textctrl->SetLabel( wxString::FromAscii( control_reference->control_qualifier.name.c_str() ) );
+	textctrl->SetValue(wxString::FromAscii(control_reference->control_qualifier.name.c_str()));
 };
 
 void GamepadPage::UpdateGUI()
@@ -229,7 +229,7 @@ void GamepadPage::SetControl( wxCommandEvent& event )
 {
 	m_plugin.controls_crit.Enter();		// enter
 
-	m_control_dialog->control_reference->control_qualifier.name = std::string( m_control_dialog->control_chooser->textctrl->GetLabel().ToAscii() );
+	m_control_dialog->control_reference->control_qualifier.name = std::string( m_control_dialog->control_chooser->textctrl->GetValue().ToAscii() );
 	m_control_dialog->control_reference->UpdateControls();
 	m_control_dialog->control_chooser->UpdateGUI();
 
@@ -356,20 +356,21 @@ void ControlDialog::SelectControl( wxCommandEvent& event )
 
 	wxString final_label;
 
-	if ( sels.size() == 1 )
+	if (sels.GetCount() == 0)
+		return;
+
+	if ( sels.GetCount() == 1 )
 		final_label = names[ sels[0] ];
-	//else if ( sels.size() == lb->GetCount() )
+	//else if ( sels.GetCount() == lb->GetCount() )
 	//	final_label = "||";
 	else
 	{
 		final_label = wxT('|');
-		for ( unsigned int i=0; i<sels.size(); ++i )
+		for ( unsigned int i=0; i<sels.GetCount(); ++i )
 			final_label += names[ sels[i] ] + wxT('|');
 	}
-	if (!final_label.CompareTo(wxT("|")))
-		final_label.Empty();
 
-	control_chooser->textctrl->SetLabel( final_label );
+	control_chooser->textctrl->SetValue( final_label );
 
 	// kinda dumb
 	wxCommandEvent nullevent;
@@ -397,7 +398,7 @@ ControlChooser::ControlChooser( wxWindow* const parent, ControllerInterface::Con
 	if ( ref->is_input )
 		for ( unsigned int i = 2; i<5; ++i )
 		{
-			wxButton* d_btn = new wxButton( parent, -1, wxChar( '0'+i ), wxDefaultPosition, wxSize(16,-1) );
+			wxButton* d_btn = new wxButton( parent, -1, wxChar( '0'+i ), wxDefaultPosition, wxSize(20,-1) );
 			_connect_macro_( d_btn, ConfigDetectControl, wxEVT_COMMAND_BUTTON_CLICKED);
 			button_sizer->Add( d_btn );
 		}
@@ -562,13 +563,16 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 	control_group = group;
 	static_bitmap = NULL;
 
+	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 	for ( unsigned int c = 0; c < group->controls.size(); ++c )
 	{
 
 		wxStaticText* label = new wxStaticText( parent, -1, wxString::FromAscii( group->controls[c]->name )/*.append(wxT(" :"))*/ );
 		ControlButton* control_button = new ControlButton( parent,  group->controls[c]->control_ref, 80 );
+		control_button->SetFont(m_SmallFont);
 		controls.push_back( control_button );
-		ControlButton* adv_button = new ControlButton( parent, group->controls[c]->control_ref, 16, "+" );
+		ControlButton* adv_button = new ControlButton( parent, group->controls[c]->control_ref, 18, "+" );
+		adv_button->SetFont(m_SmallFont);
 
 		control_buttons.push_back( control_button );
 
@@ -632,6 +636,7 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 			static_bitmap = new wxStaticBitmap( parent, -1, bitmap, wxDefaultPosition, wxDefaultSize, wxBITMAP_TYPE_BMP );
 
 			PadSettingChoice* threshold_cbox = new PadSettingChoice( parent, group->settings[0]->value, 1, 99 );
+//			threshold_cbox->SetFont(m_SmallFont);
 			threshold_cbox->Connect( wxID_ANY, wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( GamepadPage::AdjustSetting ), (wxObject*)0, (wxEvtHandler*)parent );
 
 			options.push_back( threshold_cbox );
@@ -727,7 +732,7 @@ GamepadPage::GamepadPage( wxWindow* parent, Plugin& plugin, const unsigned int p
 
 	device_cbox = new wxComboBox( this, -1, wxT(""), wxDefaultPosition, wxSize(128,-1), 0, 0, wxTE_PROCESS_ENTER );
 
-	wxButton* refresh_button = new wxButton( this, -1, wxT("Refresh"), wxDefaultPosition, wxSize(48,-1) );
+	wxButton* refresh_button = new wxButton( this, -1, wxT("Refresh"), wxDefaultPosition, wxSize(60,-1) );
 
 	#define _connect_macro3_( b, f, c )		(b)->Connect( wxID_ANY, c, wxCommandEventHandler( GamepadPage::f ), (wxObject*)0, (wxEvtHandler*)this );
 
@@ -749,7 +754,7 @@ GamepadPage::GamepadPage( wxWindow* parent, Plugin& plugin, const unsigned int p
 
 	wxButton* const pload_btn = new wxButton( this, -1, wxT("Load"), wxDefaultPosition, wxSize(48,-1) );
 	wxButton* const psave_btn = new wxButton( this, -1, wxT("Save"), wxDefaultPosition, wxSize(48,-1) );
-	wxButton* const pdelete_btn = new wxButton( this, -1, wxT("Delete"), wxDefaultPosition, wxSize(48,-1) );
+	wxButton* const pdelete_btn = new wxButton( this, -1, wxT("Delete"), wxDefaultPosition, wxSize(60,-1) );
 
 	pload_btn->Connect( wxID_ANY, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( GamepadPage::LoadProfile ),
 		(wxObject*)0, (wxEvtHandler*)this );

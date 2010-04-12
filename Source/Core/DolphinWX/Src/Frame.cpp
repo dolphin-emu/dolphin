@@ -324,6 +324,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, bFloatLogWindow(false), bFloatConsoleWindow(false)
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
+	, m_RenderFrame(NULL), m_RenderParent(NULL)
 	, m_LogWindow(NULL)
 	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
 	, m_bControlsCreated(false), m_StopDlg(NULL)
@@ -756,10 +757,10 @@ bool CFrame::RendererHasFocus()
 #ifdef _WIN32
 	// Why doesn't the "else" method below work in windows when called from
 	// Host_RendererHasFocus()?
-	bRendererHasFocus = (m_RenderParent == wxWindow::FindFocus());
+	bRendererHasFocus = m_RenderParent && (m_RenderParent == wxWindow::FindFocus());
 	return bRendererHasFocus;
 #else
-	return m_RenderParent == wxWindow::FindFocus();
+	return m_RenderParent && (m_RenderParent == wxWindow::FindFocus());
 #endif
 }
 

@@ -845,6 +845,7 @@ void CFrame::DoStop()
 			m_RenderParent->SetCursor(wxCURSOR_ARROW);
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			m_RenderFrame->Destroy();
+		m_RenderParent = NULL;
 
 		// Clean framerate indications from the status bar.
 		m_pStatusBar->SetStatusText(wxT(" "), 0);

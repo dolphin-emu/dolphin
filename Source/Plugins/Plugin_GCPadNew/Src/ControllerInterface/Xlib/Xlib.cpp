@@ -88,7 +88,9 @@ Keyboard::Key::Key(Display* const display, KeyCode keycode)
 	}
 	while (keysym == NoSymbol && i < 8);
 
-	if (keysym == NoSymbol)
+	// 0x0110ffff is the top of the unicode character range according to keysymdef.h
+	// although it is probably more than we need.
+	if (keysym == NoSymbol || keysym > 0x0110ffff)
 		m_keyname = std::string();
 	else
 		m_keyname = std::string(XKeysymToString(keysym));
