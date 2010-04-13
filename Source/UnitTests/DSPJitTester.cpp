@@ -1,9 +1,9 @@
 #include "DSPJitTester.h"
 
-DSPJitTester::DSPJitTester(u16 opcode, u16 opcode_ext, bool verbose)
-	: be_verbose(verbose), run_count(0), fail_count(0)
+DSPJitTester::DSPJitTester(u16 opcode, u16 opcode_ext, bool verbose, bool only_failed)
+	: be_verbose(verbose), failed_only(only_failed), run_count(0), fail_count(0)
 {
-	instruction = opcode << 9 | opcode_ext;
+	instruction = opcode | opcode_ext;
 	opcode_template = GetOpTemplate(instruction);
 	sprintf(instruction_name, "%s", opcode_template->name);
 	if (opcode_template->extended) 
@@ -12,9 +12,13 @@ DSPJitTester::DSPJitTester(u16 opcode, u16 opcode_ext, bool verbose)
 }
 bool DSPJitTester::Test(SDSP dsp_settings)
 {
-	if (be_verbose)
+	if (be_verbose && !failed_only)
+	{
 		printf("Running %s: ", instruction_name);
+		DumpRegs(dsp_settings);
+	}
 	
+	last_input_dsp = dsp_settings;
 	last_int_dsp = RunInterpreter(dsp_settings);
 	last_jit_dsp = RunJit(dsp_settings);
 
@@ -55,18 +59,26 @@ void DSPJitTester::ResetJit()
 bool DSPJitTester::AreEqual(SDSP& int_dsp, SDSP& jit_dsp)
 {
 	bool equal = true;
-	for (int i = 0; i < 32; i++)
+	for (int i = 0; i < DSP_REG_NUM; i++)
 	{
 		if (int_dsp.r[i] != jit_dsp.r[i])
 		{
-			if (equal && be_verbose)
-				printf("failed\n");
+			if (equal)
+			{
+				if (failed_only)
+				{
+					printf("%s ", instruction_name);
+					DumpRegs(last_input_dsp);
+				}
+				if (be_verbose || failed_only)
+					printf("failed\n");
+			}
 			equal = false;
-			if (be_verbose)
+			if (be_verbose || failed_only)
 				printf("\t%s: int = 0x%04x, jit = 0x%04x\n", regnames[i].name, int_dsp.r[i], jit_dsp.r[i]);
 		}
 	}
-	if (equal && be_verbose)
+	if (equal && be_verbose && !failed_only)
 		printf("passed\n");
 	return equal;
 }
@@ -86,8 +98,68 @@ void DSPJitTester::DumpJittedCode()
 		printf("%02x ", code[i]);
 	printf("\n");
 }
+void DSPJitTester::DumpRegs(SDSP& dsp)
+{
+	for (int i = 0; i < DSP_REG_NUM; i++)
+		if (dsp.r[i])
+			printf("%s=0x%04x ", regnames[i].name, dsp.r[i]);
+}
 void DSPJitTester::Initialize()
 {
 	//init int
 	InitInstructionTable();
+}
+
+int DSPJitTester::TestOne(TestDataIterator it, SDSP& dsp)
+{
+	int failed = 0;
+	if (it != test_values.end())
+	{
+		u8 reg = it->first;
+		TestData& data = it->second;
+		it++;
+		for (TestData::size_type i = 0; i < data.size(); i++)
+		{
+			dsp.r[reg] = data.at(i);
+			failed += TestOne(it, dsp);
+		}
+	}
+	else
+	{
+		if (!Test(dsp))
+			failed++;
+	}
+	return failed;
+}
+int DSPJitTester::TestAll(bool verbose_fail)
+{
+	int failed = 0;
+
+	SDSP dsp;
+	memset(&dsp, 0, sizeof(SDSP));
+
+	bool verbose = failed_only;
+	failed_only = verbose_fail;
+	failed += TestOne(test_values.begin(), dsp);
+	failed_only = verbose;
+
+	return failed;
+}
+void DSPJitTester::AddTestData(u8 reg)
+{
+	AddTestData(reg, 0);
+	AddTestData(reg, 1);
+	AddTestData(reg, 0x1fff);
+	AddTestData(reg, 0x2000);
+	AddTestData(reg, 0x2001);
+	AddTestData(reg, 0x7fff);
+	AddTestData(reg, 0x8000);
+	AddTestData(reg, 0x8001);
+	AddTestData(reg, 0xfffe);
+	AddTestData(reg, 0xffff);
+}
+void DSPJitTester::AddTestData(u8 reg, u16 value)
+{
+	if (reg < DSP_REG_NUM)
+		test_values[reg].push_back(value);
 }

@@ -2,75 +2,91 @@
 
 void nx_dr()
 {
-	SDSP test_dsp;
-	DSPJitTester tester(0x40, 0x04);
-
-	for (u16 input_reg = 0; input_reg < 50; input_reg++)
-	for (u16 input_wr0 = 0; input_wr0 < 10; input_wr0++)
-	{
-		memset(&test_dsp, 0, sizeof(SDSP));
-		test_dsp.r[DSP_REG_WR0] = input_wr0;
-		test_dsp.r[0] = input_reg;
-		if (!tester.Test(test_dsp))
-		{
-			printf("%s Test failed: in = 0x%04x, wr0 = 0x%04x > int = 0x%04x, jit = 0x%04x\n", 
-				tester.GetInstructionName(),
-				input_reg, input_wr0,
-				tester.GetLastInterpreterDSP().r[0], tester.GetLastJitDSP().r[0]);
-		}
-	}
+	DSPJitTester tester(0x8000, 0x0004);
+	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_WR0);
+	tester.TestAll();
 	tester.Report();
 }
 
 void nx_ir()
 {
-	SDSP test_dsp;
-	DSPJitTester tester(0x40, 0x08);
-
-	for (u16 input_reg = 0; input_reg < 50; input_reg++)
-	for (u16 input_wr0 = 0; input_wr0 < 10; input_wr0++)
-	{
-		memset(&test_dsp, 0, sizeof(SDSP));
-		test_dsp.r[DSP_REG_WR0] = input_wr0;
-		test_dsp.r[0] = input_reg;
-		if (!tester.Test(test_dsp))
-		{
-			printf("%s Test failed: in = 0x%04x, wr0 = 0x%04x > int = 0x%04x, jit = 0x%04x\n", 
-				tester.GetInstructionName(),
-				input_reg, input_wr0,
-				tester.GetLastInterpreterDSP().r[0], tester.GetLastJitDSP().r[0]);
-		}
-	}
+	DSPJitTester tester(0x8000, 0x0008);
+	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_WR0);
+	tester.TestAll();
 	tester.Report();
 }
 
 void nx_nr()
 {
-	SDSP test_dsp;
-	DSPJitTester tester(0x40, 0x0c);
+	DSPJitTester tester(0x8000, 0x000c);
+	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_WR0);
+	tester.AddTestData(DSP_REG_IX0);
+	tester.TestAll(true);
+	tester.Report();
+}
 
-	for (u16 input_reg = 0; input_reg < 10; input_reg++)
-	for (u16 input_wr0 = 0; input_wr0 < 10; input_wr0++)
-	for (u16 input_ix0 = 0; input_ix0 < 10; input_ix0++)
-	{
-		memset(&test_dsp, 0, sizeof(SDSP));
-		test_dsp.r[DSP_REG_IX0] = input_ix0;
-		test_dsp.r[DSP_REG_WR0] = input_wr0;
-		test_dsp.r[0] = input_reg;
-		if (!tester.Test(test_dsp))
-		{
-			printf("%s Test failed: in = 0x%04x, wr0 = 0x%04x, ix0 = 0x%04x > int = 0x%04x, jit = 0x%04x\n", 
-				tester.GetInstructionName(),
-				input_reg, input_wr0, input_ix0,
-				tester.GetLastInterpreterDSP().r[0], tester.GetLastJitDSP().r[0]);
-		}
-	}
+void dar()
+{
+	DSPJitTester tester(0x0004);
+	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_WR0);
+	tester.TestAll();
+	tester.Report();
+}
+void iar()
+{
+	DSPJitTester tester(0x0008);
+	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_WR0);
+	tester.TestAll();
+	tester.Report();
+}
+void subarn()
+{
+	DSPJitTester tester(0x000c);
+	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_WR0);
+	tester.AddTestData(DSP_REG_IX0);
+	tester.TestAll();
+	tester.Report();
+}
+void addarn()
+{
+	DSPJitTester tester(0x0010);
+	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_WR0);
+	tester.AddTestData(DSP_REG_IX0);
+	tester.TestAll();
+	tester.Report();
+}
+void sbclr()
+{
+	DSPJitTester tester(0x1200);
+	tester.AddTestData(DSP_REG_SR);
+	tester.TestAll();
+	tester.Report();
+}
+void sbset()
+{
+	DSPJitTester tester(0x1300);
+	tester.AddTestData(DSP_REG_SR);
+	tester.TestAll();
 	tester.Report();
 }
 
 void AudioJitTests()
 {
 	DSPJitTester::Initialize();
+
+	dar();
+	iar();
+	subarn();
+	addarn();
+	sbclr();
+	sbset();
 
 	nx_ir();
 	nx_dr();
