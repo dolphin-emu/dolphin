@@ -121,7 +121,7 @@ class CFrame : public wxFrame
 		void OnRenderParentClose(wxCloseEvent& event);
 		void OnRenderParentMove(wxMoveEvent& event);
 		bool RendererHasFocus();
-		void DoFullscreen(bool _F);
+		void DoFullscreen(bool bF);
 
 		// AUI
 		wxAuiManager *m_Mgr;

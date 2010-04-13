@@ -844,7 +844,14 @@ void CFrame::DoStop()
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxCURSOR_ARROW);
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+		{
+#ifdef _WIN32
+			if (!RendererIsFullscreen() && !m_RenderFrame->IsMaximized())
+				m_RenderParent->GetSize(&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
+					&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
+#endif
 			m_RenderFrame->Destroy();
+		}
 		m_RenderParent = NULL;
 
 		// Clean framerate indications from the status bar.
