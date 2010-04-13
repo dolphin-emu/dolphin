@@ -117,39 +117,15 @@ void Jit64::psq_st(UGeckoInstruction inst)
 		// One value
 		XORPS(XMM0, R(XMM0));  // TODO: See if we can get rid of this cheaply by tweaking the code in the singleStore* functions.
 		CVTSD2SS(XMM0, fpr.R(s));
-#ifdef _M_X64
-#if _WIN32
-		SUB(64, R(RSP), Imm8(0x28));
-#else
-		SUB(64, R(RSP), Imm8(0x8));
-#endif
-#endif
+		ABI_AlignStack(0);
 		CALLptr(MDisp(EDX, (u32)(u64)asm_routines.singleStoreQuantized));
-#ifdef _M_X64
-#if _WIN32
-		ADD(64, R(RSP), Imm8(0x28));
-#else
-		ADD(64, R(RSP), Imm8(0x8));
-#endif
-#endif
+		ABI_RestoreStack(0);
 	} else {
 		// Pair of values
 		CVTPD2PS(XMM0, fpr.R(s));
-#ifdef _M_X64
-#if _WIN32
-		SUB(64, R(RSP), Imm8(0x28));
-#else
-		SUB(64, R(RSP), Imm8(0x8));
-#endif
-#endif
+		ABI_AlignStack(0);
 		CALLptr(MDisp(EDX, (u32)(u64)asm_routines.pairedStoreQuantized));
-#ifdef _M_X64
-#if _WIN32
-		ADD(64, R(RSP), Imm8(0x28));
-#else
-		ADD(64, R(RSP), Imm8(0x8));
-#endif
-#endif
+		ABI_RestoreStack(0);
 	}
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
@@ -195,21 +171,9 @@ void Jit64::psq_l(UGeckoInstruction inst)
 #else
 	SHL(32, R(EDX), Imm8(3));
 #endif
-#ifdef _M_X64
-#if _WIN32
-		SUB(64, R(RSP), Imm8(0x28));
-#else
-		SUB(64, R(RSP), Imm8(0x8));
-#endif
-#endif
+	ABI_AlignStack(0);
 	CALLptr(MDisp(EDX, (u32)(u64)asm_routines.pairedLoadQuantized));
-#ifdef _M_X64
-#if _WIN32
-		ADD(64, R(RSP), Imm8(0x28));
-#else
-		ADD(64, R(RSP), Imm8(0x8));
-#endif
-#endif
+	ABI_RestoreStack(0);
 	CVTPS2PD(fpr.RX(inst.RS), R(XMM0));
 	gpr.UnlockAll();
 	gpr.UnlockAllX();

@@ -1185,21 +1185,9 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 			Jit->SHL(32, R(EDX), Imm8(3));
 #endif
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp1(I)));
-#ifdef _M_X64
-#if _WIN32
-			Jit->SUB(64, R(RSP), Imm8(0x28));
-#else
-			Jit->SUB(64, R(RSP), Imm8(0x8));
-#endif
-#endif
+			Jit->ABI_AlignStack(0);
 			Jit->CALLptr(MDisp(EDX, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedLoadQuantized)));
-#ifdef _M_X64
-#if _WIN32
-			Jit->ADD(64, R(RSP), Imm8(0x28));
-#else
-			Jit->ADD(64, R(RSP), Imm8(0x8));
-#endif
-#endif
+			Jit->ABI_RestoreStack(0);
 			Jit->MOVAPD(reg, R(XMM0));
 			RI.fregs[reg] = I;
 			regNormalRegClear(RI, I);
@@ -1258,21 +1246,9 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 #endif
 			Jit->MOV(32, R(ECX), regLocForInst(RI, getOp2(I)));
 			Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
-#ifdef _M_X64
-#if _WIN32
-			Jit->SUB(64, R(RSP), Imm8(0x28));
-#else
-			Jit->SUB(64, R(RSP), Imm8(0x8));
-#endif
-#endif
+			Jit->ABI_AlignStack(0);
 			Jit->CALLptr(MDisp(EDX, (u32)(u64)(((JitIL *)jit)->asm_routines.pairedStoreQuantized)));
-#ifdef _M_X64
-#if _WIN32
-			Jit->ADD(64, R(RSP), Imm8(0x28));
-#else
-			Jit->ADD(64, R(RSP), Imm8(0x8));
-#endif
-#endif
+			Jit->ABI_RestoreStack(0);
 			if (RI.IInfo[I - RI.FirstI] & 4)
 				fregClearInst(RI, getOp1(I));
 			if (RI.IInfo[I - RI.FirstI] & 8)

@@ -106,7 +106,7 @@ void XEmitter::ABI_CallFunctionCCP(void *func, u32 param1, u32 param2, void *par
 	ABI_RestoreStack(3 * 4);
 }
 
-// Pass a register as a paremeter.
+// Pass a register as a parameter.
 void XEmitter::ABI_CallFunctionR(void *func, X64Reg reg1) {
 	ABI_AlignStack(1 * 4);
 	PUSH(32, R(reg1));
@@ -228,14 +228,14 @@ void XEmitter::ABI_CallFunctionCCP(void *func, u32 param1, u32 param2, void *par
 	CALL(func);
 }
 
-// Pass a register as a paremeter.
+// Pass a register as a parameter.
 void XEmitter::ABI_CallFunctionR(void *func, X64Reg reg1) {
 	if (reg1 != ABI_PARAM1)
 		MOV(32, R(ABI_PARAM1), R(reg1));
 	CALL(func);
 }
 
-// Pass two registers as paremeters.
+// Pass two registers as parameters.
 void XEmitter::ABI_CallFunctionRR(void *func, X64Reg reg1, X64Reg reg2) {
 	if (reg2 != ABI_PARAM1) {
 		if (reg1 != ABI_PARAM1)
@@ -263,12 +263,6 @@ unsigned int XEmitter::ABI_GetAlignedFrameSize(unsigned int frameSize) {
 	return frameSize;
 }
 
-void XEmitter::ABI_AlignStack(unsigned int /*frameSize*/) {
-}
-
-void XEmitter::ABI_RestoreStack(unsigned int /*frameSize*/) {
-}
-
 #ifdef _WIN32
 
 // Win64 Specific Code
@@ -283,11 +277,11 @@ void XEmitter::ABI_PushAllCalleeSavedRegsAndAdjustStack() {
 	PUSH(R14); 
 	PUSH(R15);
 	//TODO: Also preserve XMM0-3?
-	SUB(64, R(RSP), Imm8(0x28));
+	ABI_AlignStack(0);
 }
 
 void XEmitter::ABI_PopAllCalleeSavedRegsAndAdjustStack() {
-	ADD(64, R(RSP), Imm8(0x28));
+	ABI_RestoreStack(0);
 	POP(R15);
 	POP(R14); 
 	POP(R13); 
@@ -309,11 +303,11 @@ void XEmitter::ABI_PushAllCallerSavedRegsAndAdjustStack() {
 	PUSH(R10);
 	PUSH(R11);
 	//TODO: Also preserve XMM0-15?
-	SUB(64, R(RSP), Imm8(0x28));
+	ABI_AlignStack(0);
 }
 
 void XEmitter::ABI_PopAllCallerSavedRegsAndAdjustStack() {
-	ADD(64, R(RSP), Imm8(0x28));
+	ABI_RestoreStack(0);
 	POP(R11);
 	POP(R10);
 	POP(R9);
@@ -322,6 +316,14 @@ void XEmitter::ABI_PopAllCallerSavedRegsAndAdjustStack() {
 	POP(RSI); 
 	POP(RDX);
 	POP(RCX);
+}
+
+void XEmitter::ABI_AlignStack(unsigned int /*frameSize*/) {
+	SUB(64, R(RSP), Imm8(0x28));
+}
+
+void XEmitter::ABI_RestoreStack(unsigned int /*frameSize*/) {
+	ADD(64, R(RSP), Imm8(0x28));
 }
 
 #else
@@ -368,6 +370,14 @@ void XEmitter::ABI_PopAllCallerSavedRegsAndAdjustStack() {
 	POP(RSI); 
 	POP(RDX);
 	POP(RCX);
+}
+
+void XEmitter::ABI_AlignStack(unsigned int /*frameSize*/) {
+	SUB(64, R(RSP), Imm8(0x08));
+}
+
+void XEmitter::ABI_RestoreStack(unsigned int /*frameSize*/) {
+	ADD(64, R(RSP), Imm8(0x08));
 }
 
 #endif // WIN32
