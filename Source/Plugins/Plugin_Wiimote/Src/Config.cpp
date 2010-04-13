@@ -324,6 +324,18 @@ void Config::Load()
 		iniFile.Get(SectionName, "Rumble", &WiiMoteEmu::WiiMapping[i].Rumble, false);
 		iniFile.Get(SectionName, "RumbleStrength", &WiiMoteEmu::WiiMapping[i].RumbleStrength, 80);
 		iniFile.Get(SectionName, "TriggerType", &WiiMoteEmu::WiiMapping[i].TriggerType, 0);
+
+		//UDPWii
+		iniFile.Get(SectionName, "UDPWii_Enable", &WiiMoteEmu::WiiMapping[i].UDPWM.enable, false);
+		std::string port;
+		char default_port[15];
+		sprintf(default_port,"%d",4432+i);
+		iniFile.Get(SectionName, "UDPWii_Port", &port, default_port);
+		strncpy(WiiMoteEmu::WiiMapping[i].UDPWM.port,port.c_str(),10);
+		iniFile.Get(SectionName, "UDPWii_EnableAccel", &WiiMoteEmu::WiiMapping[i].UDPWM.enableAccel, true);
+		iniFile.Get(SectionName, "UDPWii_EnableButtons", &WiiMoteEmu::WiiMapping[i].UDPWM.enableButtons, true);
+		iniFile.Get(SectionName, "UDPWii_EnableIR", &WiiMoteEmu::WiiMapping[i].UDPWM.enableIR, true);
+		iniFile.Get(SectionName, "UDPWii_EnableNunchuck", &WiiMoteEmu::WiiMapping[i].UDPWM.enableNunchuck, true);
 	}
 
 	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini").c_str());
@@ -430,6 +442,14 @@ void Config::Save()
 		iniFile.Set(SectionName, "Rumble", WiiMoteEmu::WiiMapping[i].Rumble);
 		iniFile.Set(SectionName, "RumbleStrength", WiiMoteEmu::WiiMapping[i].RumbleStrength);
 		iniFile.Set(SectionName, "TriggerType", WiiMoteEmu::WiiMapping[i].TriggerType);
+
+		// UDPWii
+		iniFile.Set(SectionName, "UDPWii_Enable", WiiMoteEmu::WiiMapping[i].UDPWM.enable);
+		iniFile.Set(SectionName, "UDPWii_Port", WiiMoteEmu::WiiMapping[i].UDPWM.port);
+		iniFile.Set(SectionName, "UDPWii_EnableAccel", WiiMoteEmu::WiiMapping[i].UDPWM.enableAccel);
+		iniFile.Set(SectionName, "UDPWii_EnableButtons", WiiMoteEmu::WiiMapping[i].UDPWM.enableButtons);
+		iniFile.Set(SectionName, "UDPWii_EnableIR", WiiMoteEmu::WiiMapping[i].UDPWM.enableIR);
+		iniFile.Set(SectionName, "UDPWii_EnableNunchuck", WiiMoteEmu::WiiMapping[i].UDPWM.enableNunchuck);
 	}
 
 	iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Wiimote.ini").c_str());

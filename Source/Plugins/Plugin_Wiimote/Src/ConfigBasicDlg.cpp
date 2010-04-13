@@ -45,6 +45,14 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_CHECKBOX(IDC_WIIAUTORECONNECT, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHOICE(IDC_EXTCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 
+	//UDPWii
+	EVT_CHECKBOX(IDC_UDPWIIENABLE, WiimoteBasicConfigDialog::UDPWiiSettingsChanged)
+	EVT_CHECKBOX(IDC_UDPWIIACCEL, WiimoteBasicConfigDialog::UDPWiiSettingsChanged)
+	EVT_CHECKBOX(IDC_UDPWIIBUTT, WiimoteBasicConfigDialog::UDPWiiSettingsChanged)
+	EVT_CHECKBOX(IDC_UDPWIIIR, WiimoteBasicConfigDialog::UDPWiiSettingsChanged)
+	EVT_CHECKBOX(IDC_UDPWIINUN, WiimoteBasicConfigDialog::UDPWiiSettingsChanged)
+	EVT_TEXT(IDT_UDPWIIPORT, WiimoteBasicConfigDialog::UDPWiiSettingsChanged)
+
 	// IR cursor
 	EVT_COMMAND_SCROLL(IDS_WIDTH, WiimoteBasicConfigDialog::IRCursorChanged)
 	EVT_COMMAND_SCROLL(IDS_HEIGHT, WiimoteBasicConfigDialog::IRCursorChanged)
@@ -169,6 +177,22 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_WiiMotionPlusConnected[i]->Enable(false);
 
 		m_Extension[i] = new wxChoice(m_Controller[i], IDC_EXTCONNECTED, wxDefaultPosition, wxDefaultSize, arrayStringFor_extension, 0, wxDefaultValidator);
+		
+		// UDPWii
+		m_UDPWiiEnable[i] = new wxCheckBox(m_Controller[i], IDC_UDPWIIENABLE, wxT("Enable UDPWii"));
+		m_UDPWiiEnable[i]->SetToolTip(wxT("Enable listening for wiimote data on the network. Requires emulation restart"));
+		m_UDPWiiAccel[i] = new wxCheckBox(m_Controller[i], IDC_UDPWIIACCEL, wxT("Update acceleration from UDPWii"));
+		m_UDPWiiAccel[i]->SetToolTip(wxT("Retrieve acceleration data from a device on the network"));
+		m_UDPWiiButt[i] = new wxCheckBox(m_Controller[i], IDC_UDPWIIBUTT, wxT("Update buttons from UDPWii"));
+		m_UDPWiiButt[i]->SetToolTip(wxT("Retrieve button data from a device on the network. This doesn't affect keyboard mappings"));
+		m_UDPWiiIR[i] = new wxCheckBox(m_Controller[i], IDC_UDPWIIIR, wxT("Update IR pointer from UDPWii"));
+		m_UDPWiiIR[i]->SetToolTip(wxT("Retrieve IR pointer from a device on the network. Disables using mouse as pointer"));
+		m_UDPWiiNun[i] = new wxCheckBox(m_Controller[i], IDC_UDPWIINUN, wxT("Update nunchuck from UDPWii"));
+		m_UDPWiiNun[i]->SetToolTip(wxT("Retrieve nunchuck data from a device on the network."));
+		m_UDPWiiPort[i] = new wxTextCtrl(m_Controller[i], IDT_UDPWIIPORT);
+		m_UDPWiiPort[i]->SetMaxLength(9);
+		m_TextUDPWiiPort[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("UDP Port:"));
+		m_TextUDPWiiPort[i]->SetToolTip(wxT("The UDP port on witch UDPWii listens for this remote."));
 
 		m_PairUpRealWiimote[i] = new wxButton(m_Controller[i], IDB_PAIRUP_REAL, wxT("Pair Up Real Wiimotes"));
 		m_PairUpRealWiimote[i]->SetToolTip(wxT("Press the Buttons 1 and 2 on your Wiimote.\nThis might take a few seconds.\nIt only works if you are using Microsoft Bluetooth stack.")); // Only working with MS BT Stack.
@@ -216,6 +240,16 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_SizeExtensions[i]->Add(m_WiiMotionPlusConnected[i], 0, wxEXPAND | wxALL, 5);
 		m_SizeExtensions[i]->Add(m_Extension[i], 0, wxEXPAND | wxALL, 5);
 
+		m_SizeUDPWii[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Emulated UDPWii"));
+		m_SizeUDPWii[i]->Add(m_UDPWiiEnable[i], 0, wxEXPAND | wxALL,1);
+		m_SizeUDPWiiPort[i]= new wxBoxSizer(wxHORIZONTAL);
+		m_SizeUDPWiiPort[i]->Add(m_TextUDPWiiPort[i], 0, wxEXPAND | wxALL,1);
+		m_SizeUDPWiiPort[i]->Add(m_UDPWiiPort[i], 0, wxEXPAND | wxALL,1);
+		m_SizeUDPWii[i]->Add(m_SizeUDPWiiPort[i], 0, wxEXPAND | wxALL,1);
+		m_SizeUDPWii[i]->Add(m_UDPWiiAccel[i], 0, wxEXPAND | wxALL,1);
+		m_SizeUDPWii[i]->Add(m_UDPWiiButt[i], 0, wxEXPAND | wxALL,1);
+		m_SizeUDPWii[i]->Add(m_UDPWiiIR[i], 0, wxEXPAND | wxALL,1);
+		m_SizeUDPWii[i]->Add(m_UDPWiiNun[i], 0, wxEXPAND | wxALL,1);
 
 		m_SizeReal[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Real Wiimote"));
 		m_SizeReal[i]->Add(m_PairUpRealWiimote[i], 0, wxEXPAND | wxALL, 5);
@@ -255,6 +289,7 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_SizeBasicGeneralLeft[i]->Add(m_SizeBasic[i], 0, wxEXPAND | (wxUP), 5);
 		m_SizeBasicGeneralLeft[i]->Add(m_SizeEmu[i], 0, wxEXPAND | (wxUP), 5);
 		m_SizeBasicGeneralLeft[i]->Add(m_SizeExtensions[i], 0, wxEXPAND | (wxUP), 5);
+		m_SizeBasicGeneralLeft[i]->Add(m_SizeUDPWii[i], 0, wxEXPAND | (wxUP), 5);
 
 		m_SizeBasicGeneralRight[i] = new wxBoxSizer(wxVERTICAL);
 		m_SizeBasicGeneralRight[i]->Add(m_SizeReal[i], 0, wxEXPAND | (wxUP), 5);
@@ -462,6 +497,32 @@ void WiimoteBasicConfigDialog::IRCursorChanged(wxScrollEvent& event)
 	UpdateGUI();
 }
 
+void WiimoteBasicConfigDialog::UDPWiiSettingsChanged(wxCommandEvent &event)
+{
+	switch(event.GetId())
+	{
+	case IDC_UDPWIIENABLE:
+		WiiMoteEmu::WiiMapping[m_Page].UDPWM.enable=m_UDPWiiEnable[m_Page]->GetValue();
+		break;
+	case IDC_UDPWIIACCEL:
+		WiiMoteEmu::WiiMapping[m_Page].UDPWM.enableAccel=m_UDPWiiAccel[m_Page]->GetValue();
+		break;
+	case IDC_UDPWIIIR:
+		WiiMoteEmu::WiiMapping[m_Page].UDPWM.enableIR=m_UDPWiiIR[m_Page]->GetValue();
+		break;
+	case IDC_UDPWIIBUTT:
+		WiiMoteEmu::WiiMapping[m_Page].UDPWM.enableButtons=m_UDPWiiButt[m_Page]->GetValue();
+		break;
+	case IDC_UDPWIINUN:
+		WiiMoteEmu::WiiMapping[m_Page].UDPWM.enableNunchuck=m_UDPWiiNun[m_Page]->GetValue();
+		break;
+	case IDT_UDPWIIPORT:
+		strncpy(WiiMoteEmu::WiiMapping[m_Page].UDPWM.port,(const char*)(m_UDPWiiPort[m_Page]->GetValue().mb_str(wxConvUTF8)),10);
+		break;
+	}
+	UpdateGUI();
+}
+
 void WiimoteBasicConfigDialog::UpdateGUI()
 {
 	/* I have disabled this option during a running game because it's enough to be able to switch
@@ -508,6 +569,16 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	m_SliderLeft[m_Page]->SetValue(g_Config.iIRLeft);
 	m_SliderTop[m_Page]->SetValue(g_Config.iIRTop);
 	m_SliderIrLevel[m_Page]->SetValue(g_Config.iIRLevel);
+
+	//Update UDPWii
+	m_UDPWiiEnable[m_Page]->Enable(g_EmulatorState != PLUGIN_EMUSTATE_PLAY);
+	m_UDPWiiPort[m_Page]->Enable(g_EmulatorState != PLUGIN_EMUSTATE_PLAY);
+	m_UDPWiiEnable[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].UDPWM.enable);
+	m_UDPWiiAccel[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].UDPWM.enableAccel);
+	m_UDPWiiButt[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].UDPWM.enableButtons);
+	m_UDPWiiIR[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].UDPWM.enableIR);
+	m_UDPWiiNun[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].UDPWM.enableNunchuck);
+	m_UDPWiiPort[m_Page]->ChangeValue(wxString::FromAscii(WiiMoteEmu::WiiMapping[m_Page].UDPWM.port));
 
 	m_CheckAR43[m_Page]->SetValue(g_Config.bKeepAR43);
 	m_CheckAR169[m_Page]->SetValue(g_Config.bKeepAR169);

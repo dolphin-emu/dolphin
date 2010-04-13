@@ -374,29 +374,36 @@ void FillReportInfo(wm_core& _core)
 	// Check that Dolphin is in focus
 	if (!IsFocus()) return;
 
+	u32 mask=0;
+	if (WiiMapping[g_ID].UDPWM.instance)
+		WiiMapping[g_ID].UDPWM.instance->update();
+
+	if ((WiiMapping[g_ID].UDPWM.instance)&&(WiiMapping[g_ID].UDPWM.enableButtons))
+		mask=WiiMapping[g_ID].UDPWM.instance->getButtons();
+
 	// Allow both mouse buttons and keyboard to press a and b
-	_core.a = IsKey(EWM_A);
-	_core.b = IsKey(EWM_B);
-	_core.one = IsKey(EWM_ONE);
-	_core.two = IsKey(EWM_TWO);
-	_core.plus = IsKey(EWM_P);
-	_core.minus = IsKey(EWM_M);
-	_core.home = IsKey(EWM_H);
+	_core.a = IsKey(EWM_A)||(mask&UDPWM_BA);
+	_core.b = IsKey(EWM_B)||(mask&UDPWM_BB);
+	_core.one = IsKey(EWM_ONE)||(mask&UDPWM_B1);
+	_core.two = IsKey(EWM_TWO)||(mask&UDPWM_B2);
+	_core.plus = IsKey(EWM_P)||(mask&UDPWM_BP);
+	_core.minus = IsKey(EWM_M)||(mask&UDPWM_BM);
+	_core.home = IsKey(EWM_H)||(mask&UDPWM_BH);
 
 	/* Sideways controls (for example for Wario Land) if the Wiimote is intended to be held sideways */
 	if(WiiMapping[g_ID].bSideways)
 	{
-		_core.left = IsKey(EWM_D);
-		_core.up = IsKey(EWM_L);
-		_core.right = IsKey(EWM_U);
-		_core.down = IsKey(EWM_R);
+		_core.left = IsKey(EWM_D)||(mask&UDPWM_BL);
+		_core.up = IsKey(EWM_L)||(mask&UDPWM_BU);
+		_core.right = IsKey(EWM_U)||(mask&UDPWM_BR);
+		_core.down = IsKey(EWM_R)||(mask&UDPWM_BU);
 	}
 	else
 	{
-		_core.left = IsKey(EWM_L);
-		_core.up = IsKey(EWM_U);
-		_core.right = IsKey(EWM_R);
-		_core.down = IsKey(EWM_D);
+		_core.left = IsKey(EWM_L)||(mask&UDPWM_BL);
+		_core.up = IsKey(EWM_U)||(mask&UDPWM_BU);
+		_core.right = IsKey(EWM_R)||(mask&UDPWM_BR);
+		_core.down = IsKey(EWM_D)||(mask&UDPWM_BD);
 	}
 }
 
@@ -435,7 +442,10 @@ void FillReportAcc(wm_accel& _acc)
 		int acc_y = _acc.y;
 		int acc_z = _acc.z;
 
-		if (IsKey(EWM_SHAKE) && !WiiMapping[g_ID].Motion.TiltWM.Shake)
+		if (((WiiMapping[g_ID].UDPWM.instance)&&
+			(WiiMapping[g_ID].UDPWM.enableButtons)&&
+			(WiiMapping[g_ID].UDPWM.instance->getButtons()&UDPWM_SK))
+			||(IsKey(EWM_SHAKE))&& !WiiMapping[g_ID].Motion.TiltWM.Shake)
 			WiiMapping[g_ID].Motion.TiltWM.Shake = 1;
 
 		// Step the shake simulation one step
@@ -555,7 +565,10 @@ void FillReportIR(wm_ir_extended& _ir0, wm_ir_extended& _ir1)
 	memset(&_ir1, 0xff, sizeof(wm_ir_extended));
 
 	float MouseX, MouseY;
-	GetMousePos(MouseX, MouseY);
+	if ((WiiMapping[g_ID].UDPWM.instance)&&(WiiMapping[g_ID].UDPWM.enableIR))
+		WiiMapping[g_ID].UDPWM.instance->getIR(MouseX,MouseY);
+	else
+		GetMousePos(MouseX, MouseY);
 
 	// If we are outside the screen leave the values at 0xff
 	if(MouseX > 1 || MouseX < 0 || MouseY > 1 || MouseY < 0) return;
@@ -633,7 +646,10 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	memset(&_ir1, 0xff, sizeof(wm_ir_basic));
 
 	float MouseX, MouseY;
-	GetMousePos(MouseX, MouseY);
+	if ((WiiMapping[g_ID].UDPWM.instance)&&(WiiMapping[g_ID].UDPWM.enableIR))
+		WiiMapping[g_ID].UDPWM.instance->getIR(MouseX,MouseY);
+	else
+		GetMousePos(MouseX, MouseY);
 
 	// If we are outside the screen leave the values at 0xff
 	if(MouseX > 1 || MouseX < 0 || MouseY > 1 || MouseY < 0) return;
@@ -752,6 +768,29 @@ void FillReportExtension(wm_extension& _ext)
 		_ext.ay = acc_y;
 		_ext.az = acc_z;
 
+		if ((WiiMapping[g_ID].UDPWM.instance)&&(WiiMapping[g_ID].UDPWM.enableNunchuck))
+		{
+			float x,y;
+			u8 b;
+			WiiMapping[g_ID].UDPWM.instance->getNunchuck(x,y,b);
+			//NOTICE_LOG(WIIMOTE,"%f %f %x",x,y,b);
+			//x
+			int factNeg= + g_nu.jx.center - g_nu.jx.min;
+			int factPoz= - g_nu.jx.center + g_nu.jx.max;
+			if (x==0) _ext.jx=g_nu.jx.center;
+			if (x>0) _ext.jx=(int)(x*factPoz+g_nu.jx.center);
+			if (x<0) _ext.jx=(int)(x*factNeg+g_nu.jx.center);
+			//y
+			factNeg= + g_nu.jy.center - g_nu.jy.min;
+			factPoz= - g_nu.jy.center + g_nu.jy.max;
+			if (y==0) _ext.jy=g_nu.jy.center;
+			if (y>0) _ext.jy=(int)(y*factPoz+g_nu.jy.center);
+			if (y<0) _ext.jy=(int)(y*factNeg+g_nu.jy.center);
+			//buttons
+			if(IsKey(ENC_C)||(b&UDPWM_NC)) _ext.bt &= ~0x02;
+			if(IsKey(ENC_Z)||(b&UDPWM_NZ)) _ext.bt &= ~0x01;
+		} else
+		{
 		// Update the analog stick
 		if (WiiMapping[g_ID].Stick.NC == FROM_KEYBOARD)
 		{
@@ -835,6 +874,7 @@ void FillReportExtension(wm_extension& _ext)
 
 		if(IsKey(ENC_C)) _ext.bt &= ~0x02;
 		if(IsKey(ENC_Z)) _ext.bt &= ~0x01;
+		}
 	}
 
 	/* Here we encrypt the report */

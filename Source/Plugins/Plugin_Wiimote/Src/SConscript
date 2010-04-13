@@ -17,6 +17,7 @@ files = [
         "Encryption.cpp",
         "main.cpp",
 		"Rumble.cpp",
+	"UDPWiimote.cpp"
 	]
 if wmenv['HAVE_WX']:
     files += [

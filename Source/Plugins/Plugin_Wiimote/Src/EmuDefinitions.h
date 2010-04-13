@@ -33,6 +33,8 @@
 #include "wiimote_hid.h" // Local
 #include "Encryption.h"
 
+#include "UDPWiimote.h"
+
 #if defined(HAVE_X11) && HAVE_X11
 #include <X11/X.h>
 #endif
@@ -276,6 +278,16 @@ struct SMotion
 	STiltData TiltNC;
 };
 
+struct UDPWiiSettings
+{
+	bool enable;
+	bool enableAccel;
+	bool enableButtons;
+	bool enableIR;
+	bool enableNunchuck;
+	char port[10];
+	UDPWiimote *instance;
+};
 
 struct CONTROLLER_MAPPING_WII	// WII PAD MAPPING
 {
@@ -302,6 +314,8 @@ struct CONTROLLER_MAPPING_WII	// WII PAD MAPPING
 	SStickMapping Stick;
 	int Button[LAST_CONSTANT];
 	SMotion Motion;
+
+	UDPWiiSettings UDPWM;
 };
 
 // Gamepad input

@@ -84,7 +84,12 @@ class WiimoteBasicConfigDialog : public wxDialog
 					*m_CheckAR43[MAX_WIIMOTES],
 					*m_CheckAR169[MAX_WIIMOTES],
 					*m_Crop[MAX_WIIMOTES],
-					*m_WiiAutoReconnect[MAX_WIIMOTES];
+					*m_WiiAutoReconnect[MAX_WIIMOTES],
+					*m_UDPWiiEnable[MAX_WIIMOTES],
+					*m_UDPWiiAccel[MAX_WIIMOTES],
+					*m_UDPWiiButt[MAX_WIIMOTES],
+					*m_UDPWiiIR[MAX_WIIMOTES],
+					*m_UDPWiiNun[MAX_WIIMOTES];
 
 		wxStaticText *m_TextScreenWidth[MAX_WIIMOTES],
 					 *m_TextScreenHeight[MAX_WIIMOTES],
@@ -92,7 +97,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 					 *m_TextScreenTop[MAX_WIIMOTES],
 					 *m_TextScreenIrLevel[MAX_WIIMOTES],
 					 *m_TextAR[MAX_WIIMOTES],
-					 *m_TextFoundRealWiimote[MAX_WIIMOTES];
+					 *m_TextFoundRealWiimote[MAX_WIIMOTES],
+					 *m_TextUDPWiiPort[MAX_WIIMOTES];
 
 		wxBoxSizer  *m_MainSizer,
 					*m_SizeBasicGeneral[MAX_WIIMOTES],
@@ -101,13 +107,17 @@ class WiimoteBasicConfigDialog : public wxDialog
 					*m_SizerIRPointerWidth[MAX_WIIMOTES],
 					*m_SizerIRPointerHeight[MAX_WIIMOTES],
 					*m_SizerIRPointerScreen[MAX_WIIMOTES],
-					*m_SizerIRPointerSensitivity[MAX_WIIMOTES];
+					*m_SizerIRPointerSensitivity[MAX_WIIMOTES],
+					*m_SizeUDPWiiPort[MAX_WIIMOTES];
 
 		wxStaticBoxSizer *m_SizeBasic[MAX_WIIMOTES],
 						 *m_SizeEmu[MAX_WIIMOTES],
 						 *m_SizeReal[MAX_WIIMOTES],
 						 *m_SizeExtensions[MAX_WIIMOTES],
-						 *m_SizerIRPointer[MAX_WIIMOTES];
+						 *m_SizerIRPointer[MAX_WIIMOTES],
+						 *m_SizeUDPWii[MAX_WIIMOTES];
+		
+		wxTextCtrl *m_UDPWiiPort[MAX_WIIMOTES];
 
 		enum
 		{
@@ -131,6 +141,14 @@ class WiimoteBasicConfigDialog : public wxDialog
 			IDC_WIIAUTORECONNECT,
 			IDC_EXTCONNECTED,
 
+			//UDPWii
+			IDC_UDPWIIENABLE,
+			IDC_UDPWIIACCEL,
+			IDC_UDPWIIBUTT,
+			IDC_UDPWIIIR,
+			IDC_UDPWIINUN,
+			IDT_UDPWIIPORT,
+
 			// Real
 			IDB_PAIRUP_REAL,
 			IDB_REFRESH_REAL,
@@ -147,6 +165,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 		void NotebookPageChanged(wxNotebookEvent& event);
 		void GeneralSettingsChanged(wxCommandEvent& event);
 		void IRCursorChanged(wxScrollEvent& event);
+		void UDPWiiSettingsChanged(wxCommandEvent& event);
 
 		void DoRefreshReal();	// Real
 		void DoUseReal();

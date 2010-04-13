@@ -256,18 +256,22 @@ void TiltByKeyboard(STiltData &_TiltData, int Type)
 void TiltWiimote(int &_x, int &_y, int &_z)
 {
 	// Select input method and return the x, y, x values
-	if (WiiMapping[g_ID].Tilt.InputWM == FROM_KEYBOARD)
-		TiltByKeyboard(WiiMapping[g_ID].Motion.TiltWM, 0);
+	if ((WiiMapping[g_ID].UDPWM.instance)&&(WiiMapping[g_ID].UDPWM.enableAccel))
+		WiiMapping[g_ID].UDPWM.instance->getAccel(_x,_y,_z);
 	else
-		TiltByGamepad(WiiMapping[g_ID].Motion.TiltWM, WiiMapping[g_ID].Tilt.InputWM);
+	{
+		if (WiiMapping[g_ID].Tilt.InputWM == FROM_KEYBOARD)
+			TiltByKeyboard(WiiMapping[g_ID].Motion.TiltWM, 0);
+		else
+			TiltByGamepad(WiiMapping[g_ID].Motion.TiltWM, WiiMapping[g_ID].Tilt.InputWM);
 
-	// Adjust angles, it's only needed if both roll and pitch is used together
-	if (WiiMapping[g_ID].Tilt.RollRange && WiiMapping[g_ID].Tilt.PitchRange)
-		AdjustAngles(WiiMapping[g_ID].Motion.TiltWM.Roll, WiiMapping[g_ID].Motion.TiltWM.Pitch);
+		// Adjust angles, it's only needed if both roll and pitch is used together
+		if (WiiMapping[g_ID].Tilt.RollRange && WiiMapping[g_ID].Tilt.PitchRange)
+			AdjustAngles(WiiMapping[g_ID].Motion.TiltWM.Roll, WiiMapping[g_ID].Motion.TiltWM.Pitch);
 
-	// Calculate the accelerometer value from this tilt angle
-	TiltToAccelerometer(_x, _y, _z,WiiMapping[g_ID].Motion.TiltWM);
-
+		// Calculate the accelerometer value from this tilt angle
+		TiltToAccelerometer(_x, _y, _z,WiiMapping[g_ID].Motion.TiltWM);
+	}
 	//DEBUG_LOG(WIIMOTE, "Roll:%i, Pitch:%i, _x:%u, _y:%u, _z:%u", g_Wiimote_kbd.TiltData.Roll, g_Wiimote_kbd.TiltData.Pitch, _x, _y, _z);
 }
 

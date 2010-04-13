@@ -810,6 +810,8 @@
 		B1EDF579106C2DAE0003EAE6 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1EDF564106C2CD70003EAE6 /* CoreAudio.framework */; };
 		B1EDF582106C2E000003EAE6 /* Render.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF581106C2E000003EAE6 /* Render.h */; };
 		B1EDF583106C2E000003EAE6 /* Render.h in Headers */ = {isa = PBXBuildFile; fileRef = B1EDF581106C2E000003EAE6 /* Render.h */; };
+		C1CE233A116A4C0200347EB3 /* UDPWiimote.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C1CE2338116A4C0200347EB3 /* UDPWiimote.cpp */; };
+		C1CE233B116A4C0200347EB3 /* UDPWiimote.h in Headers */ = {isa = PBXBuildFile; fileRef = C1CE2339116A4C0200347EB3 /* UDPWiimote.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -1925,6 +1927,8 @@
 		B1EDF55B106C2CBA0003EAE6 /* CoreAudioSoundStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreAudioSoundStream.h; sourceTree = "<group>"; };
 		B1EDF564106C2CD70003EAE6 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
 		B1EDF581106C2E000003EAE6 /* Render.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Render.h; sourceTree = "<group>"; };
+		C1CE2338116A4C0200347EB3 /* UDPWiimote.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UDPWiimote.cpp; sourceTree = "<group>"; };
+		C1CE2339116A4C0200347EB3 /* UDPWiimote.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UDPWiimote.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -2496,6 +2500,8 @@
 		B122DB4F1003548600D86E1A /* Src */ = {
 			isa = PBXGroup;
 			children = (
+				C1CE2338116A4C0200347EB3 /* UDPWiimote.cpp */,
+				C1CE2339116A4C0200347EB3 /* UDPWiimote.h */,
 				B122DB501003548600D86E1A /* Config.cpp */,
 				B122DB511003548600D86E1A /* Config.h */,
 				B122DB5A1003548600D86E1A /* DataReports.cpp */,
@@ -3727,6 +3733,7 @@
 				B122DB841003548600D86E1A /* main.h in Headers */,
 				B122DB861003548600D86E1A /* wiimote_hid.h in Headers */,
 				B122DB881003548600D86E1A /* wiimote_real.h in Headers */,
+				C1CE233B116A4C0200347EB3 /* UDPWiimote.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4702,6 +4709,7 @@
 				B122DB831003548600D86E1A /* main.cpp in Sources */,
 				B122DB851003548600D86E1A /* ReadWiimote.cpp in Sources */,
 				B122DB871003548600D86E1A /* wiimote_real.cpp in Sources */,
+				C1CE233A116A4C0200347EB3 /* UDPWiimote.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

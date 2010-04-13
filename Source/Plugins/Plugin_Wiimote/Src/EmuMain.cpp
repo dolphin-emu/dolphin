@@ -344,6 +344,13 @@ void Shutdown()
 	if (SDL_WasInit(0))
 		SDL_Quit();
 */
+
+	for (int i=0; i<MAX_WIIMOTES; i++)
+	{
+		if (WiiMapping[i].UDPWM.instance)
+			delete WiiMapping[i].UDPWM.instance;
+	}
+
 	g_SearchDeviceDone = false;
 }
 
@@ -376,6 +383,10 @@ void Initialize()
 		memcpy(g_Eeprom[i] + 0x16D0, EepromData_16D0, sizeof(EepromData_16D0));
 		// Copy extension id and calibration to its register, g_Config.Load() is needed before this
 		UpdateExtRegisterBlocks(i);
+		if (WiiMapping[i].UDPWM.enable)
+			WiiMapping[i].UDPWM.instance=new UDPWiimote(WiiMapping[i].UDPWM.port);
+		else
+			WiiMapping[i].UDPWM.instance=NULL;
 	}
 
 	// The emulated Wiimote is initialized
