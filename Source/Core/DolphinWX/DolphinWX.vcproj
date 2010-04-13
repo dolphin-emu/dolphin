@@ -263,7 +263,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
-				ExcludedFromBuild="false"
+				ExcludedFromBuild="true"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -374,7 +374,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
-				ExcludedFromBuild="false"
+				ExcludedFromBuild="true"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -485,7 +485,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
-				ExcludedFromBuild="false"
+				ExcludedFromBuild="true"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -600,7 +600,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				CommandLine="&quot;$(ProjectDir)..\Common\SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)..\Common\src\svnrev_template.h&quot; &quot;$(ProjectDir)..\Common\src\svnrev.h&quot;"
-				ExcludedFromBuild="false"
+				ExcludedFromBuild="true"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
