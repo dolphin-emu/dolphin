@@ -1,0 +1,26 @@
+# -*- python -*-
+
+Import('env')
+import sys
+
+name = "Plugin_WiimoteNew"
+wiinewenv = env.Clone()
+
+files = [
+	  'WiimoteEmu/WiimoteEmu.cpp',
+	  'WiimoteEmu/Attachment/Classic.cpp',
+	  'WiimoteEmu/Attachment/Attachment.cpp',
+	  'WiimoteEmu/Attachment/Nunchuk.cpp',
+	  'WiimoteEmu/EmuSubroutines.cpp',
+	  'WiimoteEmu/Encryption.cpp',
+	  'WiimoteNew.cpp',
+	]
+
+wiinewenv.Append(
+	LIBS = [ 'inputplugincommon', 'inputcommon', 'common' ],
+	)
+
+if sys.platform == 'darwin':
+	wiinewenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'Cocoa' ]
+
+wiinewenv.SharedLibrary(env['plugin_dir']+name, files)

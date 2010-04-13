@@ -1,0 +1,15 @@
+# -*- python -*-
+
+Import('env')
+
+files = [
+	'Config.cpp', 
+	'ConfigDiagBitmaps.cpp',  
+	'ConfigDiag.cpp',  
+	'ControllerEmu.cpp',
+	'IniFile.cpp',
+	]
+
+env_inputpc = env.Clone()
+env_inputpc.Append(CXXFLAGS = [ '-fPIC' ])
+env_inputpc.StaticLibrary(env['local_libs'] + "inputplugincommon", files)

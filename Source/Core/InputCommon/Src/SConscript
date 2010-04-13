@@ -1,12 +1,14 @@
 # -*- python -*-
-
+import sys
 Import('env')
+icenv = env.Clone()
 
 files = [
 	'Configuration.cpp',
 	'EventHandler.cpp',
 	'InputCommon.cpp',
 	'SDL_Util.cpp',
+	'ControllerInterface/ControllerInterface.cpp',
 	]
 
 if env['HAVE_X11']:
@@ -19,6 +21,16 @@ if env['HAVE_WX']:
 		"WXInputBase.cpp",
 		]
 
-env_inputcommon = env.Clone()
-env_inputcommon.Append(CXXFLAGS = [ '-fPIC' ])
-env_inputcommon.StaticLibrary(env['local_libs'] + "inputcommon", files)
+if icenv['HAVE_SDL']:
+	files += [ 'ControllerInterface/SDL/SDL.cpp' ]
+if sys.platform == 'darwin':
+	files += [ 'ControllerInterface/OSX/OSX.cpp', 
+		   'ControllerInterface/OSX/OSXPrivate.mm' ]
+if sys.platform == 'linux2':
+	files += [ 'ControllerInterface/Xlib/Xlib.cpp' ]
+
+
+icenv.Append(CXXFLAGS = [ '-fPIC' ])
+icenv.StaticLibrary(env['local_libs'] + "inputcommon", files)
+
+
