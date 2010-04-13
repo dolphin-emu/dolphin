@@ -6,7 +6,7 @@
 #define PREVIEW_UPDATE_TIME			25
 
 // might have to change this setup for wiimote
-#define PROFILES_PATH				"Profiles/GCPad/"
+#define PROFILES_PATH				"Profiles/"
 
 #include <wx/wx.h>
 #include <wx/listbox.h>
@@ -21,38 +21,49 @@
 #include <sstream>
 #include <vector>
 
-#include "ControllerInterface/ControllerInterface.h"
+#include <ControllerInterface/ControllerInterface.h>
 #include "Config.h"
 #include "FileSearch.h"
 
 class PadSetting
 {
 protected:
-	PadSetting( ControlState& _value ) : value(_value) {}
+	PadSetting() {}
 
 public:
 	virtual void UpdateGUI() = 0;
 	virtual void UpdateValue() = 0;
-
-	ControlState&		value;
 };
 
-class PadSettingChoice : public PadSetting, public wxChoice
+class PadSettingExtension : public wxChoice, public PadSetting
+{
+public:
+	PadSettingExtension( wxWindow* const parent, ControllerEmu::Extension* const ext );
+	void UpdateGUI();
+	void UpdateValue();
+
+	ControllerEmu::Extension* const	extension;
+};
+
+class PadSettingChoice : public wxChoice, public PadSetting
 {
 public:
 	PadSettingChoice( wxWindow* const parent, ControlState& _value, int min, int max );
 	void UpdateGUI();
 	void UpdateValue();
+
+	ControlState&		value;
 };
 
-class PadSettingCheckBox : public PadSetting, public wxCheckBox
+class PadSettingCheckBox : public wxCheckBox, public PadSetting
 {
 public:
 	PadSettingCheckBox( wxWindow* const parent, ControlState& _value, const char* const label );
 	void UpdateGUI();
 	void UpdateValue();
-};
 
+	ControlState&		value;
+};
 
 class ControlChooser : public wxStaticBoxSizer
 {
@@ -93,6 +104,16 @@ public:
 	ControlChooser*			control_chooser;
 };
 
+class ExtensionButton : public wxButton
+{
+public:
+	ExtensionButton( wxWindow* const parent, ControllerEmu::Extension* const ext )
+		: wxButton( parent, -1, wxT("Configure"), wxDefaultPosition )
+		, extension(ext) {}
+
+	ControllerEmu::Extension* const	extension;
+};
+
 class ControlButton : public wxButton
 {
 public:
@@ -104,13 +125,21 @@ public:
 class ControlGroupBox : public wxStaticBoxSizer
 {
 public:
-	ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWindow* const parent );
+	ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWindow* const parent, wxWindow* const eventsink );
 
 	ControllerEmu::ControlGroup*	control_group;
 	wxStaticBitmap*					static_bitmap;
 	std::vector< PadSetting* >		options;
 	std::vector< wxButton* >		controls;
 	std::vector<ControlButton*>		control_buttons;	
+};
+
+class ControlGroupsSizer : public wxBoxSizer
+{
+public:
+	ControlGroupsSizer( ControllerEmu* const controller, wxWindow* const parent,  wxWindow* const eventsink, std::vector<ControlGroupBox*>* const groups = NULL );
+
+	
 };
 
 class ConfigDialog;
@@ -134,6 +163,8 @@ public:
 	void ConfigDetectControl( wxCommandEvent& event );
 	void DetectControl( wxCommandEvent& event );
 	void ClearControl( wxCommandEvent& event );
+
+	void ConfigExtension( wxCommandEvent& event );
 
 	void SetDevice( wxCommandEvent& event );
 	void SetControl( wxCommandEvent& event );

@@ -148,7 +148,15 @@ bool Device::UpdateInput()
 
 bool Device::UpdateOutput()
 {
-	return ( ERROR_SUCCESS == XInputSetState( m_index, &m_state_out ) );
+	// this if statement is to make rumble work better when multiple ControllerInterfaces are using the device
+	static XINPUT_VIBRATION current_state_out = {0,0};
+	if ( memcmp( &m_state_out, &current_state_out, sizeof(m_state_out) ) )
+	{
+		current_state_out = m_state_out;
+		return ( ERROR_SUCCESS == XInputSetState( m_index, &m_state_out ) );
+	}
+	else
+		return true;
 }
 
 // GET name/source/id

@@ -189,8 +189,8 @@ bool KeyboardMouse::UpdateOutput()
 			m_current_state_out[i] ^= 1;
 		}
 	}
-	
-	if ( kbinputs.size() )
+
+	if (kbinputs.size())
 		return ( kbinputs.size() == SendInput( (UINT)kbinputs.size(), &kbinputs[0], sizeof( kbinputs[0] ) ) );
 	else
 		return true;

@@ -1,7 +1,7 @@
 #ifndef _CONEMU_GCPAD_H_
 #define _CONEMU_GCPAD_H_
 
-#include "../../ControllerEmu.h"
+#include <ControllerEmu.h>
 
 class GCPad : public ControllerEmu
 {

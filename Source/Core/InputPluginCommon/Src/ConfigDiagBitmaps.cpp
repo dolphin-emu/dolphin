@@ -24,16 +24,20 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 
 			switch ( (*g)->control_group->type )
 			{
+			case GROUP_TYPE_TILT :
 			case GROUP_TYPE_STICK :
 				{
-					float x, y;
+					float x = 0, y = 0;
 					float xx, yy;
-					((ControllerEmu::AnalogStick*)(*g)->control_group)->GetState( &x, &y, 32.0, 32-1.5 );
+					if ( GROUP_TYPE_STICK == (*g)->control_group->type )
+						((ControllerEmu::AnalogStick*)(*g)->control_group)->GetState( &x, &y, 32.0, 32-1.5 );
+					else
+						((ControllerEmu::Tilt*)(*g)->control_group)->GetState( &x, &y, 32.0, 32-1.5 );
 
-					xx = ((ControllerEmu::AnalogStick*)(*g)->control_group)->controls[3]->control_ref->State();
-					xx -= ((ControllerEmu::AnalogStick*)(*g)->control_group)->controls[2]->control_ref->State();
-					yy = ((ControllerEmu::AnalogStick*)(*g)->control_group)->controls[1]->control_ref->State();
-					yy -= ((ControllerEmu::AnalogStick*)(*g)->control_group)->controls[0]->control_ref->State();
+					xx = (*g)->control_group->controls[3]->control_ref->State();
+					xx -= (*g)->control_group->controls[2]->control_ref->State();
+					yy = (*g)->control_group->controls[1]->control_ref->State();
+					yy -= (*g)->control_group->controls[0]->control_ref->State();
 					xx *= 32 - 1; xx += 32;
 					yy *= 32 - 1; yy += 32;
 
@@ -48,11 +52,14 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					// circle for visual aid for diagonal adjustment
 					dc.SetPen(*wxLIGHT_GREY_PEN);
 					dc.SetBrush(*wxTRANSPARENT_BRUSH);
-					dc.DrawCircle( 32, 32, 32);
+					if ( GROUP_TYPE_STICK == (*g)->control_group->type )
+						dc.DrawCircle( 32, 32, 32);
+					else
+						dc.DrawRectangle( 16, 16, 32, 32 );
 
 					// deadzone circle
 					dc.SetBrush(*wxLIGHT_GREY_BRUSH);
-					dc.DrawCircle( 32, 32, ((ControllerEmu::AnalogStick*)(*g)->control_group)->settings[0]->value * 32 );
+					dc.DrawCircle( 32, 32, ((*g)->control_group)->settings[0]->value * 32 );						
 
 					// raw dot
 					dc.SetPen(*wxGREY_PEN);

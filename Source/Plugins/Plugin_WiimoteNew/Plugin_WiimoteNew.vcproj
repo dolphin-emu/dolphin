@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="Plugin_Wiimote"
-	ProjectGUID="{8D612734-FAA5-4B8A-804F-4DEA2367D495}"
-	RootNamespace="Plugin_Wiimote"
+	Name="Plugin_WiimoteNew"
+	ProjectGUID="{BB6CE47B-C676-44BB-AE93-2CF59B8C8BD4}"
+	RootNamespace="Plugin_WiimoteNew"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -44,8 +44,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\inc"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include;..\..\Core\Common\Src;..\..\Core\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -68,7 +68,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib rpcrt4.lib  wxbase28ud.lib wxmsw28ud_core.lib"
-				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_WiimoteD.dll"
+				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_WiimoteNewD.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
 				GenerateManifest="false"
@@ -130,8 +130,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\inc"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;_SECURE_SCL=0"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include;..\..\Core\Common\Src;..\..\Core\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -152,7 +152,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib rpcrt4.lib wxbase28ud.lib wxmsw28ud_core.lib"
-				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteD.dll"
+				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteNewD.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
 				GenerateManifest="false"
@@ -213,8 +213,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\inc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include;..\..\Core\Common\Src;..\..\Core\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="0"
 				AssemblerListingLocation="$(IntDir)\"
 				ProgramDataBaseFileName="$(IntDir)\"
@@ -236,7 +236,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/NODEFAULTLIB:msvcrt.lib"
 				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib wxbase28u.lib wxmsw28u_core.lib"
-				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_Wiimote.dll"
+				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_WiimoteNew.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
 				GenerateManifest="false"
@@ -299,8 +299,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\inc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include;..\..\Core\Common\Src;..\..\Core\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="0"
 				AssemblerListingLocation="$(IntDir)\"
 				ProgramDataBaseFileName="$(IntDir)\"
@@ -321,7 +321,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib wxbase28u.lib wxmsw28u_core.lib"
-				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_Wiimote.dll"
+				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteNew.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
 				GenerateManifest="false"
@@ -382,8 +382,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\inc"
-				PreprocessorDefinitions="DEBUGFAST;WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include;..\..\Core\Common\Src;..\..\Core\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="DEBUGFAST;WIN32;NDEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				WarningLevel="3"
 				WarnAsError="false"
@@ -403,7 +403,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/NODEFAULTLIB:msvcrt.lib"
 				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib wxbase28u.lib wxmsw28u_core.lib"
-				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_WiimoteDF.dll"
+				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_WiimoteNewDF.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\WiiUse\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32"
 				GenerateManifest="false"
@@ -465,8 +465,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\include;..\..\Core\Common\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\WiiUse\inc"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include;..\..\Core\Common\Src;..\..\Core\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				WarningLevel="3"
 				WarnAsError="false"
@@ -485,7 +485,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wiiuse.lib wxbase28u.lib wxmsw28u_core.lib"
-				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteDF.dll"
+				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_WiimoteNewDF.dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\..\..\Externals\SDL\x64;..\..\..\Externals\WiiUse\x64;..\..\..\Externals\wxWidgets\lib\vc_lib\x64"
 				GenerateManifest="false"
@@ -526,159 +526,63 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Emulated Wiimote"
+			Name="WiimoteEmu"
 			>
 			<File
-				RelativePath=".\Src\DataReports.cpp"
+				RelativePath=".\Src\WiimoteEmu\EmuSubroutines.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\EmuDefinitions.cpp"
+				RelativePath=".\Src\WiimoteEmu\Encryption.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\EmuDefinitions.h"
+				RelativePath=".\Src\WiimoteEmu\Encryption.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\EmuDynamics.cpp"
+				RelativePath=".\Src\WiimoteEmu\WiimoteEmu.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\EmuMain.cpp"
+				RelativePath=".\Src\WiimoteEmu\WiimoteEmu.h"
 				>
 			</File>
 			<File
-				RelativePath=".\Src\EmuMain.h"
+				RelativePath=".\Src\WiimoteEmu\WiimoteHid.h"
 				>
 			</File>
-			<File
-				RelativePath=".\Src\EmuPad.cpp"
+			<Filter
+				Name="Attachment"
 				>
-			</File>
-			<File
-				RelativePath=".\Src\EmuSubroutines.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\EmuSubroutines.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Encryption.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Encryption.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\FillReport.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Rumble.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\UDPWiimote.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\UDPWiimote.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\wiimote_hid.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Real Wiimote"
-			>
-			<File
-				RelativePath=".\Src\ReadWiimote.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\wiimote_real.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\wiimote_real.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Config"
-			>
-			<File
-				RelativePath=".\Src\Config.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Config.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ConfigBasicDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ConfigBasicDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ConfigGamepad.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ConfigPadDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ConfigPadDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ConfigRecording.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ConfigRecordingDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ConfigRecordingDlg.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="UDP Wiimote"
-			>
-			<File
-				RelativePath=".\Src\UDPWiimote.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\UDPWiimote.h"
-				>
-			</File>
+				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\Attachment.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\Attachment.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\Classic.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\Classic.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\Nunchuk.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\Nunchuk.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<File
-			RelativePath=".\Src\main.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\main.h"
-			>
-		</File>
-		<File
-			RelativePath="..\..\PluginSpecs\pluginspecs_wiimote.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SConscript"
+			RelativePath=".\Src\WiimoteNew.cpp"
 			>
 		</File>
 	</Files>

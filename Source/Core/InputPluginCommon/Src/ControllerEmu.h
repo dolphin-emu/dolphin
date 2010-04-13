@@ -9,7 +9,7 @@
 //#include <CommonTypes.h>
 #include <math.h>
 
-#include "ControllerInterface/ControllerInterface.h"
+#include <ControllerInterface/ControllerInterface.h>
 #include "IniFile.h"
 
 #include <vector>
@@ -20,10 +20,13 @@
 
 enum
 {
-	GROUP_TYPE_OTHER
-	,GROUP_TYPE_STICK
-	,GROUP_TYPE_MIXED_TRIGGERS
-	,GROUP_TYPE_BUTTONS
+	GROUP_TYPE_OTHER,
+	GROUP_TYPE_STICK,
+	GROUP_TYPE_MIXED_TRIGGERS,
+	GROUP_TYPE_BUTTONS,
+	GROUP_TYPE_FORCE,
+	GROUP_TYPE_EXTENSION,
+	GROUP_TYPE_TILT,
 };
 
 const char * const named_directions[] = 
@@ -89,7 +92,8 @@ public:
 		ControlGroup( const char* const _name, const unsigned int _type = GROUP_TYPE_OTHER ) : name(_name), type(_type) {}
 		virtual ~ControlGroup();
 	
-		//ControlGroup( const ControlGroup& ctrl );
+		void LoadConfig( IniFile::Section& sec, const std::string& defdev = "", const std::string& base = "" );
+		void SaveConfig( IniFile::Section& sec, const std::string& defdev = "", const std::string& base = "" );
 
 		//const unsigned int		type;
 		const char* const			name;
@@ -119,8 +123,8 @@ public:
 			// modifier code
 			if ( m )
 			{
-				yy = (abs(yy)>deadzone) * sign(yy) * m;
-				xx = (abs(xx)>deadzone) * sign(xx) * m;
+				yy = (abs(yy)>deadzone) * sign(yy) * (m + deadzone/2);
+				xx = (abs(xx)>deadzone) * sign(xx) * (m + deadzone/2);
 			}
 
 			// deadzone / square stick code
@@ -146,7 +150,7 @@ public:
 				dist /= ( 1 - deadzone );
 
 				// square stick code
-				ControlState amt = ( dist ) / stick_full;
+				ControlState amt = dist / stick_full;
 				dist -= ((square_full - 1) * amt * square);
 
 				yy = std::max( -1.0f, std::min( 1.0f, ang_sin * dist ) );
@@ -203,25 +207,107 @@ public:
 
 	};
 
+	class Force : public ControlGroup
+	{
+	public:
+		Force( const char* const _name );
+
+		void GetState( u8* data, const u8 base, const u8 range );
+	};
+
+	class Tilt : public ControlGroup
+	{
+	public:
+		Tilt( const char* const _name );
+
+		template <typename C, typename R>
+		void GetState( C* const x, C* const y, const unsigned int base, const R range )
+		{
+			// this is all a mess
+
+			ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
+			ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+
+			ControlState deadzone = settings[0]->value;
+			ControlState circle = settings[1]->value;
+			ControlState m = controls[4]->control_ref->State();
+
+			// modifier code
+			if ( m )
+			{
+				yy = (abs(yy)>deadzone) * sign(yy) * (m + deadzone/2);
+				xx = (abs(xx)>deadzone) * sign(xx) * (m + deadzone/2);
+			}
+
+			// deadzone / circle stick code
+			if ( deadzone || circle )
+			{
+				// this section might be all wrong, but its working good enough, i think
+
+				ControlState ang = atan2( yy, xx ); 
+				ControlState ang_sin = sin(ang);
+				ControlState ang_cos = cos(ang);
+
+				// the amt a full square stick would have at current angle
+				ControlState square_full = std::min( 1/abs(ang_sin), 1/abs(ang_cos) );
+
+				// the amt a full stick would have that was ( user setting circular ) at current angle
+				// i think this is more like a pointed circle rather than a rounded square like it should be
+				ControlState stick_full = (square_full * (1 - circle)) + (circle);
+
+				ControlState dist = sqrt(xx*xx + yy*yy);
+
+				// dead zone code
+				dist = std::max( 0.0f, dist - deadzone * stick_full );
+				dist /= (1 - deadzone);
+
+				// circle stick code
+				ControlState amt = dist / stick_full;
+				dist += (square_full - 1) * amt * circle;
+
+				yy = std::max( -1.0f, std::min( 1.0f, ang_sin * dist ) );
+				xx = std::max( -1.0f, std::min( 1.0f, ang_cos * dist ) );
+			}
+
+			*y = C( yy * range + base );
+			*x = C( xx * range + base );
+		}
+	};
+
+	class Extension : public ControlGroup
+	{
+	public:
+		Extension( const char* const _name )
+			: ControlGroup( _name, GROUP_TYPE_EXTENSION )
+			, switch_extension(0)
+			, active_extension(0) {}
+
+		void GetState( u8* const data );
+
+		std::vector<ControllerEmu*>		attachments;
+
+		unsigned int	switch_extension;
+		unsigned int	active_extension;
+	};
+
 	virtual ~ControllerEmu();
 
 	virtual std::string GetName() const = 0;
 
-	void LoadConfig( IniFile::Section& sec );
-	void SaveConfig( IniFile::Section& sec );
+	void LoadConfig( IniFile::Section& sec, const std::string& base = "" );
+	void SaveConfig( IniFile::Section& sec, const std::string& base = "" );
 	void UpdateDefaultDevice();
 
 	void UpdateReferences( ControllerInterface& devi );
 
 	std::vector< ControlGroup* >		groups;
 
+
 	ControlGroup*						options;
 
 	ControllerInterface::DeviceQualifier	default_device;
 
 };
-
-
 
 
 #endif

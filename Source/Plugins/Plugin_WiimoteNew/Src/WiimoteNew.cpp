@@ -1,10 +1,10 @@
 
 #include <math.h>
 #include "Common.h"
-#include "pluginspecs_pad.h"
+#include "pluginspecs_wiimote.h"
 
 #include "ControllerInterface/ControllerInterface.h"
-#include "GCPadEmu.h"
+#include "WiimoteEmu/WiimoteEmu.h"
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "ConfigDiag.h"
@@ -13,11 +13,12 @@
 
 #if defined(HAVE_X11) && HAVE_X11
 #include <X11/Xlib.h>
+Display* GCdisplay;
 #endif
 
 #define PLUGIN_VERSION		0x0100
 
-#define PLUGIN_NAME		"Dolphin GCPad New"
+#define PLUGIN_NAME		"Dolphin Wiimote New Incomplete"
 #ifdef DEBUGFAST
 #define PLUGIN_FULL_NAME	PLUGIN_NAME" (DebugFast)"
 #else
@@ -27,10 +28,6 @@
 #define PLUGIN_FULL_NAME	PLUGIN_NAME
 #endif
 #endif
-
-// the plugin
-Plugin g_plugin( "GCPadNew", "Pad", "GCPad" );
-SPADInitialize *g_PADInitialize = NULL;
 
 #ifdef _WIN32
 class wxDLLApp : public wxApp
@@ -43,6 +40,15 @@ class wxDLLApp : public wxApp
 IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
+// copied from GCPad
+SWiimoteInitialize g_WiimoteInitialize;
+// Check if Dolphin is in focus
+// ----------------
+bool IsFocus()
+{
+	// TODO: this
+	return true;
+}
 
 // copied from GCPad
 HINSTANCE g_hInstance;
@@ -63,6 +69,9 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 }
 #endif
 // /
+
+// the plugin
+Plugin g_plugin( "WiimoteNew", "Wiimote", "Wiimote" );
 
 #ifdef _WIN32
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved )
@@ -87,7 +96,6 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved )
 
 void DeInitPlugin()
 {
-	// i realize i am checking IsInit() twice, just too lazy to change it
 	if ( g_plugin.controller_interface.IsInit() )
 	{
 		std::vector<ControllerEmu*>::const_iterator
@@ -104,12 +112,11 @@ void DeInitPlugin()
 // if plugin isn't initialized, init and load config
 void InitPlugin( void* const hwnd )
 {
-	// i realize i am checking IsInit() twice, just too lazy to change it
 	if ( false == g_plugin.controller_interface.IsInit() )
 	{
-		// add 4 gcpads
+		// add 4 wiimotes
 		for ( unsigned int i = 0; i<4; ++i )
-			g_plugin.controllers.push_back( new GCPad( i ) );
+			g_plugin.controllers.push_back( new WiimoteEmu::Wiimote( i, &g_WiimoteInitialize ) );
 
 		// load the saved controller config
 		g_plugin.LoadConfig();
@@ -130,88 +137,83 @@ void InitPlugin( void* const hwnd )
 // I N T E R F A C E 
 
 // __________________________________________________________________________________________________
-// Function:
-// Purpose:  
-// input:   
-// output:   
+// Function: Wiimote_Output
+// Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
+//           on the HID CONTROL channel.
+// input:    Da pakket.
+// output:   none
 //
-void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
+void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	memset( _pPADStatus, 0, sizeof(*_pPADStatus) );
-	_pPADStatus->err = PAD_ERR_NONE;
-	// wtf is this?	
-	_pPADStatus->button |= PAD_USE_ORIGIN;
+	//PanicAlert( "Wiimote_ControlChannel" );
 
-	// try lock
-	if ( false == g_plugin.controls_crit.TryEnter() )
-	{
-		// if gui has lock (messing with controls), skip this input cycle
-		// center axes and return
-		memset( &_pPADStatus->stickX, 0x80, 4 );
-		return;
-	}
+	// TODO: change this to a TryEnter, and make it give empty input on failure
+	g_plugin.controls_crit.Enter();
 
-	// if we are on the next input cycle, update output and input
-	// if we can get a lock
-	static int _last_numPAD = 4;
-	if ( _numPAD <= _last_numPAD && g_plugin.interface_crit.TryEnter() )
+	((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->ControlChannel( _channelID, _pData, _Size );
+
+	g_plugin.controls_crit.Leave();
+}
+
+// __________________________________________________________________________________________________
+// Function: Wiimote_Input
+// Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
+//           on the HID INTERRUPT channel.
+// input:    Da pakket.
+// output:   none
+//
+void Wiimote_InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
+{
+	//PanicAlert( "Wiimote_InterruptChannel" );
+
+	// TODO: change this to a TryEnter, and make it give empty input on failure
+	g_plugin.controls_crit.Enter();
+
+	((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->InterruptChannel( _channelID, _pData, _Size );
+
+	g_plugin.controls_crit.Leave();
+}
+
+// __________________________________________________________________________________________________
+// Function: Wiimote_Update
+// Purpose:  This function is called periodically by the Core.
+// input:    none
+// output:   none
+//
+void Wiimote_Update(int _number)
+{
+	//PanicAlert( "Wiimote_Update" );
+
+	// TODO: change this to a TryEnter, and make it give empty input on failure
+	g_plugin.controls_crit.Enter();
+
+	static int _last_number = 4;
+	if ( _number <= _last_number && g_plugin.interface_crit.TryEnter() )
 	{
 		g_plugin.controller_interface.UpdateOutput();
 		g_plugin.controller_interface.UpdateInput();
 		g_plugin.interface_crit.Leave();
 	}
-	_last_numPAD = _numPAD;
-	
-	// if we want background input or have focus
-	if ( g_plugin.controllers[_numPAD]->options[0].settings[0]->value || g_PADInitialize->pRendererHasFocus() )
-	{
-		// get input
-		((GCPad*)g_plugin.controllers[ _numPAD ])->GetInput( _pPADStatus );
-	}
-	else
-	{
-		// center sticks
-		memset( &_pPADStatus->stickX, 0x80, 4 );
-		// stop rumble
-		((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput( false );
-	}
+	_last_number = _number;
 
-	// leave
+	((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->Update();
+
 	g_plugin.controls_crit.Leave();
-
 }
 
 // __________________________________________________________________________________________________
-// Function: Send keyboard input to the plugin
-// Purpose:  
-// input:   The key and if it's pressed or released
-// output:  None
+// Function: PAD_GetAttachedPads
+// Purpose:  Get mask of attached pads (eg: controller 1 & 4 -> 0x9)
+// input:	 none
+// output:   number of pads
 //
-void PAD_Input(u16 _Key, u8 _UpDown)
+unsigned int Wiimote_GetAttachedControllers()
 {
-	// nofin
+	//PanicAlert( "Wiimote_GetAttachedControllers" );
+	// temporary
+	//return 0x0F;
+	return 1;
 }
-
-// __________________________________________________________________________________________________
-// Function: PAD_Rumble
-// Purpose:  Pad rumble!
-// input:	 PAD number, Command type (Stop=0, Rumble=1, Stop Hard=2) and strength of Rumble
-// output:   none
-//
-void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
-{
-	// enter
-	if ( g_plugin.controls_crit.TryEnter() )
-	{
-		// only on/off rumble, if we have focus or background input on
-		if ( g_plugin.controllers[_numPAD]->options[0].settings[0]->value || g_PADInitialize->pRendererHasFocus() )
-			((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput( 1 == _uType && _uStrength > 2 );
-
-		// leave
-		g_plugin.controls_crit.Leave();
-	}
-}
-
 
 // GLOBAL I N T E R F A C E 
 // Function: GetDllInfo
@@ -227,7 +229,7 @@ void GetDllInfo(PLUGIN_INFO* _pPluginInfo)
 	//char *s1 = CIFACE_PLUGIN_FULL_NAME, *s2 = _pPluginInfo->Name;
 	//while ( *s2++ = *s1++ );
 	memcpy( _pPluginInfo->Name, PLUGIN_FULL_NAME, sizeof(PLUGIN_FULL_NAME) );
-	_pPluginInfo->Type = PLUGIN_TYPE_PAD;
+	_pPluginInfo->Type = PLUGIN_TYPE_WIIMOTE;
 	_pPluginInfo->Version = PLUGIN_VERSION;
 }
 
@@ -241,20 +243,10 @@ void GetDllInfo(PLUGIN_INFO* _pPluginInfo)
 void DllConfig(HWND _hParent)
 {
 	bool was_init = false;
-#if defined(HAVE_X11) && HAVE_X11
-	Display *dpy = NULL;
-#endif
-	if ( g_plugin.controller_interface.IsInit() )	// check if game is running
+	if ( g_plugin.controller_interface.IsInit() )	// hack for showing dialog when game isnt running
 		was_init = true;
 	else
-	{
-#if defined(HAVE_X11) && HAVE_X11
-		dpy = XOpenDisplay(0);
-		InitPlugin(dpy);
-#else
-		InitPlugin(_hParent);
-#endif
-	}
+		InitPlugin( _hParent );
 
 	// copied from GCPad
 #if defined(HAVE_WX) && HAVE_WX
@@ -281,13 +273,8 @@ void DllConfig(HWND _hParent)
 #endif
 	// /
 
-	if ( !was_init )				// if game is running
-	{
-#if defined(HAVE_X11) && HAVE_X11
-		XCloseDisplay(dpy);
-#endif
+	if ( false == was_init )				// hack for showing dialog when game isnt running
 		DeInitPlugin();
-	}
 }
 
 // ___________________________________________________________________________
@@ -320,7 +307,7 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 //
 void Initialize(void *init)
 {
-	g_PADInitialize = (SPADInitialize*)init;
+	g_WiimoteInitialize = *(SWiimoteInitialize*)init;
 	if ( false == g_plugin.controller_interface.IsInit() )
 		InitPlugin( ((SPADInitialize*)init)->hWnd );
 }

@@ -1,7 +1,6 @@
 
-#include "GCPad.h"
+#include "GCPadEmu.h"
 
-// this is all temporary, but sticking with the padspecs ...for now
 const u16 button_bitmasks[] =
 {
 	PAD_BUTTON_A,

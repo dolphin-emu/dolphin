@@ -377,12 +377,10 @@ std::string Joystick::GetSource() const
 
 // update IO
 
-
 bool Joystick::UpdateInput()
 {
 	if ( m_must_poll )
 		m_device->Poll();
-			//return false;
 
 	HRESULT hr = m_device->GetDeviceState( sizeof(m_state_in), &m_state_in );
 
