@@ -757,8 +757,10 @@ bool CFrame::RendererHasFocus()
 #ifdef _WIN32
 	// Why doesn't the "else" method below work in windows when called from
 	// Host_RendererHasFocus()?
-	bRendererHasFocus = m_RenderParent && (m_RenderParent == wxWindow::FindFocus());
-	return bRendererHasFocus;
+	if (m_RenderParent)
+		if (m_RenderParent->GetParent()->GetHWND() == GetForegroundWindow())
+            return true;
+	return false;
 #else
 	return m_RenderParent && (m_RenderParent == wxWindow::FindFocus());
 #endif

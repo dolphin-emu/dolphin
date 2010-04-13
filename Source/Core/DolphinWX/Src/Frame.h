@@ -103,9 +103,6 @@ class CFrame : public wxFrame
 		void DoPause();
 		void DoStop();
 		bool bRenderToMain;
-#ifdef _WIN32
-		bool bRendererHasFocus;
-#endif
 		bool bNoWiimoteMsg;
 		void UpdateGUI();
 		void ToggleLogWindow(bool, int i = -1);

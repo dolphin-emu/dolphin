@@ -677,9 +677,5 @@ void Host_SetWiiMoteConnectionState(int _State)
 
 bool Host_RendererHasFocus()
 {
-#ifdef _WIN32
-	return main_frame->bRendererHasFocus;
-#else
 	return main_frame->RendererHasFocus();
-#endif
 }

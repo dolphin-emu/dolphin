@@ -1,5 +1,4 @@
 
-#include <math.h>
 #include "Common.h"
 #include "pluginspecs_wiimote.h"
 
@@ -13,7 +12,6 @@
 
 #if defined(HAVE_X11) && HAVE_X11
 #include <X11/Xlib.h>
-Display* GCdisplay;
 #endif
 
 #define PLUGIN_VERSION		0x0100
@@ -29,6 +27,10 @@ Display* GCdisplay;
 #endif
 #endif
 
+// plugin globals
+Plugin g_plugin( "WiimoteNew", "Wiimote", "Wiimote" );
+SWiimoteInitialize g_WiimoteInitialize;
+
 #ifdef _WIN32
 class wxDLLApp : public wxApp
 {
@@ -40,15 +42,6 @@ class wxDLLApp : public wxApp
 IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
-// copied from GCPad
-SWiimoteInitialize g_WiimoteInitialize;
-// Check if Dolphin is in focus
-// ----------------
-bool IsFocus()
-{
-	// TODO: this
-	return true;
-}
 
 // copied from GCPad
 HINSTANCE g_hInstance;
@@ -69,9 +62,6 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 }
 #endif
 // /
-
-// the plugin
-Plugin g_plugin( "WiimoteNew", "Wiimote", "Wiimote" );
 
 #ifdef _WIN32
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved )

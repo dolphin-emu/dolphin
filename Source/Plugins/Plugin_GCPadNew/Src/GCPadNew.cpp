@@ -1,5 +1,4 @@
 
-#include <math.h>
 #include "Common.h"
 #include "pluginspecs_pad.h"
 
@@ -28,7 +27,7 @@
 #endif
 #endif
 
-// the plugin
+// plugin globals
 Plugin g_plugin( "GCPadNew", "Pad", "GCPad" );
 SPADInitialize *g_PADInitialize = NULL;
 
