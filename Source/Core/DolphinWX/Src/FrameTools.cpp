@@ -692,16 +692,18 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 	event.Skip();
 	if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
 	{
-		int x, y, width, height;
-		m_RenderParent->GetSize(&width, &height);
-		m_RenderParent->GetPosition(&x, &y);
+		int width, height;
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
 				!RendererIsFullscreen() && !m_RenderFrame->IsMaximized())
 		{
+			m_RenderFrame->GetSize(&width, &height);
 			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = width;
 			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = height;
 		}
 #if defined(HAVE_X11) && HAVE_X11
+		int x, y;
+		m_RenderParent->GetSize(&width, &height);
+		m_RenderParent->GetPosition(&x, &y);
 		X11_SendClientEvent("RESIZE", x, y, width, height);
 #endif
 	}
@@ -847,7 +849,7 @@ void CFrame::DoStop()
 		{
 #ifdef _WIN32
 			if (!RendererIsFullscreen() && !m_RenderFrame->IsMaximized())
-				m_RenderParent->GetSize(&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
+				m_RenderFrame->GetSize(&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
 					&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
 #endif
 			m_RenderFrame->Destroy();
