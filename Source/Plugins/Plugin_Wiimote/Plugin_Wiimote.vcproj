@@ -581,6 +581,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\UDPWiimote.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\UDPWiimote.h"
+				>
+			</File>
+			<File
 				RelativePath=".\Src\wiimote_hid.h"
 				>
 			</File>
