@@ -113,7 +113,6 @@ void Video_Prepare(void)
 // Run from the CPU thread (from VideoInterface.cpp)
 void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {	
-    g_VideoInitialize.pCopiedToXFB(true);
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)

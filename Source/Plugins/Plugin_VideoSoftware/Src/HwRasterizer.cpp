@@ -85,13 +85,13 @@ namespace HwRasterizer
     void DrawColorVertex(OutputVertexData *v)
     {
         glColor3ub(v->color[0][0], v->color[0][1], v->color[0][2]);
-        glVertex3f(v->screenPosition[0] / efbHalfWidth - 1.0f, 1.0f - v->screenPosition[1] / efbHalfHeight, v->screenPosition[2]);
+        glVertex3f(v->screenPosition.x / efbHalfWidth - 1.0f, 1.0f - v->screenPosition.y / efbHalfHeight, v->screenPosition.z);
     }
 
     void DrawTextureVertex(OutputVertexData *v)
     {
-        glTexCoord2f(v->texCoords[0][0] * texWidth, v->texCoords[0][1] * texHeight);
-        glVertex3f(v->screenPosition[0] / efbHalfWidth - 1.0f, 1.0f - v->screenPosition[1] / efbHalfHeight, v->screenPosition[2]);
+        glTexCoord2f(v->texCoords[0].x * texWidth, v->texCoords[0].y * texHeight);
+        glVertex3f(v->screenPosition.x / efbHalfWidth - 1.0f, 1.0f - v->screenPosition.y / efbHalfHeight, v->screenPosition.z);
     }
 
     void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVertexData *v2)

@@ -105,7 +105,7 @@ void DumpActiveTextures()
         u32 texmap = bpmem.tevindref.getTexMap(stageNum);
 
 		s32 maxLod = GetMaxTextureLod(texmap);
-		for (s32 mip = 0; mip < maxLod; ++mip)
+		for (s32 mip = 0; mip <= maxLod; ++mip)
 		{
 			SaveTexture(StringFromFormat("%star%i_ind%i_map%i_mip%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX), stats.thisFrame.numDrawnObjects, stageNum, texmap, mip).c_str(), texmap, mip);
 		}
@@ -120,7 +120,7 @@ void DumpActiveTextures()
         int texmap = order.getTexMap(stageOdd);
 
         s32 maxLod = GetMaxTextureLod(texmap);
-		for (s32 mip = 0; mip < maxLod; ++mip)
+		for (s32 mip = 0; mip <= maxLod; ++mip)
 		{
 			SaveTexture(StringFromFormat("%star%i_stage%i_map%i_mip%i.tga", File::GetUserPath(D_DUMPTEXTURES_IDX), stats.thisFrame.numDrawnObjects, stageNum, texmap, mip).c_str(), texmap, mip);
 		}

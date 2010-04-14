@@ -166,15 +166,9 @@ inline void TransformTexCoordRegular(const TexMtxInfo &texinfo, int coordNum, bo
 		else
 		{		
 			if (postInfo.normalize)
-			{
-				float length = sqrtf(dst[0] * dst[0] + dst[1] * dst[1] + dst[2] * dst[2]);
-				float invL = 1.0f / length;
-				tempCoord = *dst * invL;
-			}
+				tempCoord = dst->normalized();
 			else
-			{
 				tempCoord = *dst;
-			}
 
 			MultiplyVec3Mat34(tempCoord, postMat, *dst);
 		}
@@ -463,32 +457,35 @@ void TransformTexCoord(const InputVertexData *src, OutputVertexData *dst, bool s
                 float d1 = ldir * dst->normal[1];
                 float d2 = ldir * dst->normal[2];
 
-                dst->texCoords[coordNum][0] = dst->texCoords[texinfo.embosssourceshift][0] + d1;
-                dst->texCoords[coordNum][1] = dst->texCoords[texinfo.embosssourceshift][1] + d2;
-                dst->texCoords[coordNum][2] = dst->texCoords[texinfo.embosssourceshift][2];
+                dst->texCoords[coordNum].x = dst->texCoords[texinfo.embosssourceshift].x + d1;
+                dst->texCoords[coordNum].y = dst->texCoords[texinfo.embosssourceshift].y + d2;
+                dst->texCoords[coordNum].z = dst->texCoords[texinfo.embosssourceshift].z;
             }
             break;
         case XF_TEXGEN_COLOR_STRGBC0:
             _assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
             _assert_(texinfo.inputform == XF_TEXINPUT_AB11);
-            dst->texCoords[coordNum][0] = (float)dst->color[0][0] / 255.0f;
-            dst->texCoords[coordNum][1] = (float)dst->color[0][1] / 255.0f;
-            dst->texCoords[coordNum][2] = 1.0f;
+            dst->texCoords[coordNum].x = (float)dst->color[0][0] / 255.0f;
+            dst->texCoords[coordNum].y = (float)dst->color[0][1] / 255.0f;
+            dst->texCoords[coordNum].z = 1.0f;
             break;
         case XF_TEXGEN_COLOR_STRGBC1:
             _assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
             _assert_(texinfo.inputform == XF_TEXINPUT_AB11);
-            dst->texCoords[coordNum][0] = (float)dst->color[1][0] / 255.0f;
-            dst->texCoords[coordNum][1] = (float)dst->color[1][1] / 255.0f;
-            dst->texCoords[coordNum][2] = 1.0f;
+            dst->texCoords[coordNum].x = (float)dst->color[1][0] / 255.0f;
+            dst->texCoords[coordNum].y = (float)dst->color[1][1] / 255.0f;
+            dst->texCoords[coordNum].z = 1.0f;
             break;
         default:
-            ERROR_LOG(VIDEO, "Bad tex gen type %i", texinfo.texgentype);            
+            ERROR_LOG(VIDEO, "Bad tex gen type %i", texinfo.texgentype);
         }
+    }
 
+	for (u32 coordNum = 0; coordNum < xfregs.numTexGens; coordNum++)
+    {
 		dst->texCoords[coordNum][0] *= (bpmem.texcoords[coordNum].s.scale_minus_1 + 1);
 		dst->texCoords[coordNum][1] *= (bpmem.texcoords[coordNum].t.scale_minus_1 + 1);
-    }
+	}
 }
 
 }

@@ -35,6 +35,30 @@ void XFWritten(u32 transferSize, u32 baseAddress)
 
     if (baseAddress <= 0x1026 && topAddress >= 0x1020)
         Clipper::SetViewOffset();
+
+	// fix lights so invalid values don't trash the lighting computations	
+	if (baseAddress <= 0x067f && topAddress >= 0x0604)
+	{
+		u32* x = xfregs.lights;
+
+		// go through all lights
+		for (int light = 0; light < 8; light++)
+		{
+			// skip to floating point values
+			x += 4;
+
+			for (int i = 0; i < 12; i++)
+			{
+				u32 xVal = *x;
+
+				// if the exponent is 255 then the number is inf or nan
+				if ((xVal & 0x7f800000) == 0x7f800000)
+					*x = 0;
+
+				x++;
+			}
+		}
+	}
 }
 
 void LoadXFReg(u32 transferSize, u32 baseAddress, u32 *pData)
@@ -66,8 +90,7 @@ void LoadIndexedXF(u32 val, int array)
     int size = ((val >> 12) & 0xF) + 1;
     //load stuff from array to address in xf mem
 
-    u32* xfmem = (u32*)&xfregs;
+	u32 *pData = (u32*)g_VideoInitialize.pGetMemoryPointer(arraybases[array] + arraystrides[array]*index);
 
-    for (int i = 0; i < size; i++)
-        xfmem[address + i] = Memory_Read_U32(arraybases[array] + arraystrides[array]*index + i*4);
+	LoadXFReg(size, address, pData);
 }

@@ -35,9 +35,8 @@ namespace Rasterizer
         float dfdx;
         float dfdy;
         float f0;
-        float x0;
-        float y0;
-        float GetValue(s32 x, s32 y) { return f0 + (dfdx * (x - x0)) + (dfdy * (y - y0)); }
+
+		float GetValue(float dx, float dy) { return f0 + (dfdx * dx) + (dfdy * dy); }
     };
 
 	struct RasterBlockPixel

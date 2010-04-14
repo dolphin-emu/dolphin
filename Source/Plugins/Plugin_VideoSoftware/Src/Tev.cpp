@@ -705,6 +705,57 @@ void Tev::Draw()
         Position[2] = ztex & 0x00ffffff;
     }
 
+	// fog
+	if (bpmem.fog.c_proj_fsel.fsel)
+	{
+		float ze;
+
+		if (bpmem.fog.c_proj_fsel.proj == 0)
+		{
+			// perspective
+			// ze = A/(B - Zs)
+			s32 denom = bpmem.fog.b_magnitude - (Position[2] >> bpmem.fog.b_shift);
+			ze = bpmem.fog.a.GetA() / (float)denom;
+		} 
+		else 
+		{
+			// orthographic
+			// ze = a*Zs
+			ze = bpmem.fog.a.GetA() / (float)Position[2];
+		}
+
+		ze = (ze * (float)0xffffff) - bpmem.fog.c_proj_fsel.GetC();
+
+		// clamp 0 to 1
+		float fog = (ze<0.0f) ? 0.0f : ((ze>1.0f) ? 1.0f : ze);
+
+		switch (bpmem.fog.c_proj_fsel.fsel)
+		{
+			case 4: // exp
+				fog = 1.0f - pow(2.0f, -8.0f * fog);
+				break;
+			case 5: // exp2
+				fog = 1.0f - pow(2.0f, -8.0f * fog * fog);
+				break;
+			case 6: // backward exp
+				fog = 1.0f - fog;
+				fog = 1.0f - pow(2.0f, -8.0f * fog);
+				break;
+			case 7: // backward exp2
+				fog = 1.0f - fog;
+				fog = 1.0f - pow(2.0f, -8.0f * fog * fog);
+				break;
+		}
+
+		// lerp from output to fog color
+		u32 fogInt = (u32)(fog * 256);
+		u32 invFog = 256 - fogInt;
+
+		output[RED_C] = (output[RED_C] * invFog + fogInt * bpmem.fog.color.r) >> 8;
+		output[GRN_C] = (output[GRN_C] * invFog + fogInt * bpmem.fog.color.g) >> 8;
+		output[BLU_C] = (output[BLU_C] * invFog + fogInt * bpmem.fog.color.b) >> 8;
+	}
+
     if (!bpmem.zcontrol.zcomploc && bpmem.zmode.testenable)
     {
         if (!EfbInterface::ZCompare(Position[0], Position[1], Position[2]))

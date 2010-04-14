@@ -157,13 +157,17 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
 		}
 	}
 
-	// integer part of sample location
-	int imageS = s >> 7;
-	int imageT = t >> 7;
-
     if (linear)
     {
-        // linear sampling
+		// offset linear sampling
+		s -= 64;
+		t -= 64;
+
+		// integer part of sample location
+		int imageS = s >> 7;
+		int imageT = t >> 7;
+
+		// linear sampling
 		int imageSPlus1 = imageS + 1;
         int fractS = s & 0x7f;
         
@@ -197,6 +201,10 @@ void SampleMip(s32 s, s32 t, s32 mip, bool linear, u8 texmap, u8 *sample)
     }
     else
     {
+		// integer part of sample location
+		int imageS = s >> 7;
+		int imageT = t >> 7;
+
         // nearest neighbor sampling
 		WrapCoord(imageS, tm0.wrap_s, imageWidth);
         WrapCoord(imageT, tm0.wrap_t, imageHeight);

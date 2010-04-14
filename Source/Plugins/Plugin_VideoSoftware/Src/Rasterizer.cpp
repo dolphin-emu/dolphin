@@ -49,6 +49,11 @@ Slope WSlope;
 Slope ColorSlopes[2][4];
 Slope TexSlopes[8][3];
 
+s32 vertex0X;
+s32 vertex0Y;
+float vertexOffsetX;
+float vertexOffsetY;
+
 s32 scissorLeft = 0;
 s32 scissorTop = 0;
 s32 scissorRight = 0;
@@ -108,7 +113,10 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 {
     INCSTAT(stats.thisFrame.rasterizedPixels);
 
-	float zFloat = 1.0f + ZSlope.GetValue(x, y);
+	float dx = vertexOffsetX + (float)(x - vertex0X);
+	float dy = vertexOffsetY + (float)(y - vertex0Y);
+
+	float zFloat = 1.0f + ZSlope.GetValue(dx, dy);
 	if (zFloat < 0.0f || zFloat > 1.0f)
 		return;
 
@@ -133,7 +141,7 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 	for (unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
 	{
 		for(int comp = 0; comp < 4; comp++)
-			tev.Color[i][comp] = (u8)ColorSlopes[i][comp].GetValue(x, y);
+			tev.Color[i][comp] = (u8)ColorSlopes[i][comp].GetValue(dx, dy);
 	}
 
 	// tex coords
@@ -159,9 +167,21 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
     tev.Draw();
 }
 
-void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31, float DX12, float DY12, float DY31, float X1, float Y1)
+void InitTriangle(float X1, float Y1, s32 xi, s32 yi)
 {
-    float DF31 = f3 - f1;
+	vertex0X = xi;
+    vertex0Y = yi;
+
+	// adjust a little less than 0.5
+	const float adjust = 0.495f;
+
+	vertexOffsetX = ((float)xi - X1) + adjust;
+	vertexOffsetY = ((float)yi - Y1) + adjust;
+}
+
+void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31, float DX12, float DY12, float DY31)
+{
+	float DF31 = f3 - f1;
     float DF21 = f2 - f1;
     float a = DF31 * -DY12 - DF21 * DY31;
     float b = DX31 * DF21 + DX12 * DF31;    
@@ -169,8 +189,6 @@ void InitSlope(Slope *slope, float f1, float f2, float f3, float DX31, float DX1
     slope->dfdx = -a / c;
     slope->dfdy = -b / c;
     slope->f0 = f1;
-    slope->x0 = X1;
-    slope->y0 = Y1;
 }
 
 inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord)
@@ -210,7 +228,7 @@ inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord)
 	bias >>= 1;
 	lod += bias;
 
-	linear = (lod >= 0 && (tm0.min_filter & 4) || lod < 0 && tm0.mag_filter);
+	linear = (lod > 0 && (tm0.min_filter & 4) || lod <= 0 && tm0.mag_filter);
 
 	// order of checks matters
 	// should be:
@@ -227,10 +245,10 @@ void BuildBlock(s32 blockX, s32 blockY)
 		{
 			RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];
 
-			s32 x = xi + blockX;
-			s32 y = yi + blockY;			
+			float dx = vertexOffsetX + (float)(xi + blockX - vertex0X);
+			float dy = vertexOffsetY + (float)(yi + blockY - vertex0Y);
 
-			float invW = 1.0f / WSlope.GetValue(x, y);
+			float invW = 1.0f / WSlope.GetValue(dx, dy);
 			pixel.InvW = invW;
 
 			// tex coords
@@ -239,14 +257,14 @@ void BuildBlock(s32 blockX, s32 blockY)
 				float projection;
 				if (xfregs.texMtxInfo[i].projection)
 				{
-					float q = TexSlopes[i][2].GetValue(x, y) * invW;
+					float q = TexSlopes[i][2].GetValue(dx, dy) * invW;
 					projection = invW / q;
 				}
 				else
 					projection = invW;
 
-				pixel.Uv[i][0] = TexSlopes[i][0].GetValue(x, y) * projection;
-				pixel.Uv[i][1] = TexSlopes[i][1].GetValue(x, y) * projection;
+				pixel.Uv[i][0] = TexSlopes[i][0].GetValue(dx, dy) * projection;
+				pixel.Uv[i][1] = TexSlopes[i][1].GetValue(dx, dy) * projection;
 			}
 		}
 	}
@@ -288,14 +306,15 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
 
     // adapted from http://www.devmaster.net/forums/showthread.php?t=1884
 
-    // 28.4 fixed-pou32 coordinates. rounded to nearest
-    const s32 Y1 = iround(16.0f * v0->screenPosition[1]);
-    const s32 Y2 = iround(16.0f * v1->screenPosition[1]);
-    const s32 Y3 = iround(16.0f * v2->screenPosition[1]);
+    // 28.4 fixed-pou32 coordinates. rounded to nearest and adjusted to match hardware output
+	// could also take floor and adjust -8
+	const s32 Y1 = iround(16.0f * v0->screenPosition[1]) - 9;
+	const s32 Y2 = iround(16.0f * v1->screenPosition[1]) - 9;
+	const s32 Y3 = iround(16.0f * v2->screenPosition[1]) - 9;
 
-    const s32 X1 = iround(16.0f * v0->screenPosition[0]);
-    const s32 X2 = iround(16.0f * v1->screenPosition[0]);
-    const s32 X3 = iround(16.0f * v2->screenPosition[0]);
+	const s32 X1 = iround(16.0f * v0->screenPosition[0]) - 9;
+	const s32 X2 = iround(16.0f * v1->screenPosition[0]) - 9;
+	const s32 X3 = iround(16.0f * v2->screenPosition[0]) - 9;
 
     // Deltas
     const s32 DX12 = X1 - X2;
@@ -331,28 +350,30 @@ void DrawTriangleFrontFace(OutputVertexData *v0, OutputVertexData *v1, OutputVer
         return;
 
     // Setup slopes
-    float fltx1 = v0->screenPosition[0];
-    float flty1 = v0->screenPosition[1];
-    float fltdx31 = v2->screenPosition[0] - fltx1;
-    float fltdx12 = fltx1 - v1->screenPosition[0];
-    float fltdy12 = flty1 - v1->screenPosition[1];
-    float fltdy31 = v2->screenPosition[1] - flty1;
+    float fltx1 = v0->screenPosition.x;
+    float flty1 = v0->screenPosition.y;
+    float fltdx31 = v2->screenPosition.x - fltx1;
+    float fltdx12 = fltx1 - v1->screenPosition.x;
+    float fltdy12 = flty1 - v1->screenPosition.y;
+    float fltdy31 = v2->screenPosition.y - flty1;
+
+	InitTriangle(fltx1, flty1, (X1 + 0xF) >> 4, (Y1 + 0xF) >> 4);
 
     float w[3] = { 1.0f / v0->projectedPosition.w, 1.0f / v1->projectedPosition.w, 1.0f / v2->projectedPosition.w };
-    InitSlope(&WSlope, w[0], w[1], w[2], fltdx31, fltdx12, fltdy12, fltdy31, fltx1, flty1);
+    InitSlope(&WSlope, w[0], w[1], w[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
-    InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31, fltdx12, fltdy12, fltdy31, fltx1, flty1);
+    InitSlope(&ZSlope, v0->screenPosition[2], v1->screenPosition[2], v2->screenPosition[2], fltdx31, fltdx12, fltdy12, fltdy31);
 
     for(unsigned int i = 0; i < bpmem.genMode.numcolchans; i++)
     {
         for(int comp = 0; comp < 4; comp++)
-            InitSlope(&ColorSlopes[i][comp], v0->color[i][comp], v1->color[i][comp], v2->color[i][comp], fltdx31, fltdx12, fltdy12, fltdy31, fltx1, flty1);
+            InitSlope(&ColorSlopes[i][comp], v0->color[i][comp], v1->color[i][comp], v2->color[i][comp], fltdx31, fltdx12, fltdy12, fltdy31);
     }
 
     for(unsigned int i = 0; i < bpmem.genMode.numtexgens; i++)
     {
         for(int comp = 0; comp < 3; comp++)
-            InitSlope(&TexSlopes[i][comp], v0->texCoords[i][comp] * w[0], v1->texCoords[i][comp] * w[1], v2->texCoords[i][comp] * w[2], fltdx31, fltdx12, fltdy12, fltdy31, fltx1, flty1);
+            InitSlope(&TexSlopes[i][comp], v0->texCoords[i][comp] * w[0], v1->texCoords[i][comp] * w[1], v2->texCoords[i][comp] * w[2], fltdx31, fltdx12, fltdy12, fltdy31);
     }
 
     // Start in corner of 8x8 block

@@ -339,6 +339,9 @@ namespace Clipper
 		Vertices[0] = lineV0;
         Vertices[1] = lineV1;
 
+		// point to a valid vertex to store to when clipping
+		Vertices[2] = &ClippedVertices[17];
+
 		ClipLine(indices);
 
 		if(indices[0] != SKIP_FLAG)
