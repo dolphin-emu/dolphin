@@ -31,9 +31,6 @@ using namespace Gen;
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
 void DSPEmitter::increment_addr_reg(int reg)
 {
-	//	PUSH(EAX);
-	//	PUSH(ECX);
-
 	//	u16 tmb = g_dsp.r[DSP_REG_WR0 + reg];
 	MOVZX(32, 16, EAX, M(&g_dsp.r[DSP_REG_WR0 + reg]));
 
@@ -80,24 +77,17 @@ void DSPEmitter::increment_addr_reg(int reg)
 	
 	//	g_dsp.r[reg] = tmp;	
 	MOV(16, M(&g_dsp.r[reg]), R(ECX));
-
-	//	POP(ECX);
-	//	POP(EAX);
 }
+
 
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
 void DSPEmitter::decrement_addr_reg(int reg)
 {
-	//	PUSH(EAX);
-	//	PUSH(ECX);
-
 	//	s16 tmp = g_dsp.r[reg];
-	MOVZX(32, 16, EAX, M(&g_dsp.r[reg]));
+	MOV(16, R(EAX), M(&g_dsp.r[reg]));
 
 	//	if ((tmp & g_dsp.r[DSP_REG_WR0 + reg]) == 0)
-	MOV(16, R(ECX), R(EAX));
-	AND(16, R(ECX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
-	//	CMP(16, R(ECX), Imm8(0));
+	TEST(16, R(EAX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
 	FixupBranch not_equal = J_CC(CC_NZ);
 
 	//	tmp |= g_dsp.r[DSP_REG_WR0 + reg];
@@ -106,15 +96,12 @@ void DSPEmitter::decrement_addr_reg(int reg)
 	FixupBranch end = J();
 	SetJumpTarget(not_equal);
 	//		tmp--;
-	SUB(16, R(EAX), Imm8(1));
+	SUB(16, R(EAX), Imm16(1));
 
 	SetJumpTarget(end);
 	
 	//	g_dsp.r[reg] = tmp;	
 	MOV(16, M(&g_dsp.r[reg]), R(EAX));
-
-	//	POP(ECX);
-	//	POP(EAX);
 }
 
 // Increase addr register according to the correspond ix register
@@ -122,35 +109,30 @@ void DSPEmitter::increase_addr_reg(int reg)
 {	
 	//	s16 value = (s16)g_dsp.r[DSP_REG_IX0 + reg];
 	MOVSX(32, 16, EDX, M(&g_dsp.r[DSP_REG_IX0 + reg]));
-	XOR(32, R(ESI), R(ESI)); // i = 0
-	
+
 	//	if (value > 0)
-	CMP(16, R(EDX), Imm16(0));
+	CMP(32, R(EDX), Imm32(0));
 	//end is further away than 0x7f, needs a 6-byte jz
-	FixupBranch end = J_CC(CC_Z, true);
 	FixupBranch negValue = J_CC(CC_L);
-		
-	//	for (int i = 0; i < value; i++) 
+	FixupBranch end = J_CC(CC_Z, true);
+
+	//	for (; value == 0; value--) 
 	JumpTarget loop_pos = GetCodePtr();
 	increment_addr_reg(reg);
 
-	ADD(32, R(ESI), Imm32(1)); // i++	
-	CMP(32, R(ESI), R(EDX)); // i < value
+	SUB(32, R(EDX), Imm32(1)); // value--	
+	CMP(32, R(EDX), Imm32(0)); // value == 0
 	J_CC(CC_NE, loop_pos);
 	FixupBranch posValue = J();
 
 	SetJumpTarget(negValue);
-	//abs == cdq; xor eax, edx; sub eax, edx
-	//we know its negative, and in that case edx is -1
-	XOR(32, R(EDX), Imm32(-1));
-	SUB(32, R(EDX), Imm32(-1));
 
-	//	for (int i = 0; i < (int)(-value); i++)
+	//	for (; value == 0; value++) 
 	JumpTarget loop_neg = GetCodePtr();
 	decrement_addr_reg(reg);
 
-	ADD(32, R(ESI), Imm32(1)); // i++
-	CMP(32, R(ESI), R(EDX)); // i < -value
+	ADD(32, R(EDX), Imm32(1)); // value++
+	CMP(32, R(EDX), Imm32(0)); // value == 0
 	J_CC(CC_NE, loop_neg);
 
 	SetJumpTarget(posValue);
@@ -162,34 +144,30 @@ void DSPEmitter::decrease_addr_reg(int reg)
 {
 	//	s16 value = (s16)g_dsp.r[DSP_REG_IX0 + reg];
 	MOVSX(32, 16, EDX, M(&g_dsp.r[DSP_REG_IX0 + reg]));
-	XOR(32, R(ESI), R(ESI)); // i = 0
 	
 	//	if (value > 0)
 	CMP(32, R(EDX), Imm32(0));
+	//end is further away than 0x7f, needs a 6-byte jz
 	FixupBranch end = J_CC(CC_Z, true);
 	FixupBranch negValue = J_CC(CC_L);
-		
-	//	for (int i = 0; i < value; i++) 
+
+	//	for (; value == 0; value--) 
 	JumpTarget loop_pos = GetCodePtr();
 	decrement_addr_reg(reg);
 
-	ADD(32, R(ESI), Imm32(1)); // i++	
-	CMP(32, R(ESI), R(EDX)); // i < value
+	SUB(32, R(EDX), Imm32(1)); // value--	
+	CMP(32, R(EDX), Imm32(0)); // value == 0
 	J_CC(CC_NE, loop_pos);
 	FixupBranch posValue = J();
-	
-	SetJumpTarget(negValue);
-	//abs == cdq; xor eax, edx; sub eax, edx
-	//we know its negative, and in that case edx is -1
-	XOR(32, R(EDX), Imm32(-1));
-	SUB(32, R(EDX), Imm32(-1));
 
-	//	for (int i = 0; i < (int)(-value); i++)
+	SetJumpTarget(negValue);
+
+	//	for (; value == 0; value++) 
 	JumpTarget loop_neg = GetCodePtr();
 	increment_addr_reg(reg);
 
-	ADD(32, R(ESI), Imm32(1)); // i++
-	CMP(32, R(ESI), R(EDX)); // i < -value
+	ADD(32, R(EDX), Imm32(1)); // value++
+	CMP(32, R(EDX), Imm32(0)); // value == 0
 	J_CC(CC_NE, loop_neg);
 
 	SetJumpTarget(posValue);

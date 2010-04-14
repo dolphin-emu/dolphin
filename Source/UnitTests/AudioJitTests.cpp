@@ -3,7 +3,7 @@
 void nx_dr()
 {
 	DSPJitTester tester(0x8000, 0x0004);
-	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_AR0);
 	tester.AddTestData(DSP_REG_WR0);
 	tester.TestAll();
 	tester.Report();
@@ -12,7 +12,7 @@ void nx_dr()
 void nx_ir()
 {
 	DSPJitTester tester(0x8000, 0x0008);
-	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_AR0);
 	tester.AddTestData(DSP_REG_WR0);
 	tester.TestAll();
 	tester.Report();
@@ -21,7 +21,7 @@ void nx_ir()
 void nx_nr()
 {
 	DSPJitTester tester(0x8000, 0x000c);
-	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_AR0);
 	tester.AddTestData(DSP_REG_WR0);
 	tester.AddTestData(DSP_REG_IX0);
 	tester.TestAll(true);
@@ -31,7 +31,7 @@ void nx_nr()
 void dar()
 {
 	DSPJitTester tester(0x0004);
-	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_AR0);
 	tester.AddTestData(DSP_REG_WR0);
 	tester.TestAll();
 	tester.Report();
@@ -39,7 +39,7 @@ void dar()
 void iar()
 {
 	DSPJitTester tester(0x0008);
-	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_AR0);
 	tester.AddTestData(DSP_REG_WR0);
 	tester.TestAll();
 	tester.Report();
@@ -47,7 +47,7 @@ void iar()
 void subarn()
 {
 	DSPJitTester tester(0x000c);
-	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_AR0);
 	tester.AddTestData(DSP_REG_WR0);
 	tester.AddTestData(DSP_REG_IX0);
 	tester.TestAll();
@@ -56,7 +56,7 @@ void subarn()
 void addarn()
 {
 	DSPJitTester tester(0x0010);
-	tester.AddTestData(DSP_REG_ACC0);
+	tester.AddTestData(DSP_REG_AR0);
 	tester.AddTestData(DSP_REG_WR0);
 	tester.AddTestData(DSP_REG_IX0);
 	tester.TestAll();
