@@ -95,6 +95,10 @@ GFXDebuggerOGL *m_DebuggerFrame = NULL;
 
 #include "VideoState.h"
 
+#if defined(HAVE_COCOA) && HAVE_COCOA
+#include <Cocoa/Cocoa.h>
+#endif
+
 SVideoInitialize g_VideoInitialize;
 PLUGIN_GLOBALS* globals = NULL;
 
@@ -166,47 +170,34 @@ void DllDebugger(HWND _hParent, bool Show)
 #endif
 }
 
-#ifdef _WIN32
+// Search for avaliable resolutions
 void AddResolutions()
 {
-	// Search for avaliable resolutions
+#ifdef _WIN32
 	
 	DWORD iModeNum = 0;
 	DEVMODE dmi;
 	ZeroMemory(&dmi, sizeof(dmi));
 	dmi.dmSize = sizeof(dmi);
 	std::vector<std::string> resos;
-	resos.reserve(20);
-	int i = 0;
 
 	while (EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
 	{
-		char szBuffer[100];
-		sprintf(szBuffer, "%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
-		std::string strBuffer(szBuffer);
-		// Create a check loop to check every pointer of resolutions to see if
-		// the res is added or not
-		int b = 0;
-		bool resFound = false;
-		while (b < i && !resFound)
+		char res[100];
+		sprintf(res, "%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
+		std::string strRes(res);
+		// Only add unique resolutions
+		if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
 		{
-			// Is the res already added?
-			resFound = (resos[b] == strBuffer);
-			b++;
-		}
-		// Add the resolution
-		if (!resFound && i < 100)  // don't want to overflow resos array. not
-								   // likely to happen, but you never know.
-		{
-			resos.push_back(strBuffer);
-			i++;
-			m_ConfigFrame->AddFSReso(szBuffer);
+			resos.push_back(strRes);
+			m_ConfigFrame->AddFSReso(res);
 		}
 		ZeroMemory(&dmi, sizeof(dmi));
 	}
-}	
-#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XRANDR) && HAVE_XRANDR
-void AddResolutions() {
+
+#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XRANDR) \
+	&& HAVE_XRANDR && defined(HAVE_WX) && HAVE_WX
+
 	// Don't modify GLWin.dpy here.
 	// If the emulator is running that is bad.
 	Display *dpy;
@@ -225,53 +216,41 @@ void AddResolutions() {
 		{
 			char temp[32];
 			sprintf(temp,"%dx%d", sizes[i].width, sizes[i].height);
-
-#if defined(HAVE_WX) && HAVE_WX
 			m_ConfigFrame->AddFSReso(temp);
-#endif
 		}
 	}
-}
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-void AddResolutions() {
 
-	CFArrayRef modes;
-	CFRange range;
-	CFDictionaryRef modesDict;
-	CFNumberRef modeValue;
+#elif defined(HAVE_COCOA) && HAVE_COCOA && defined(HAVE_WX) && HAVE_WX
 	
-	int modeWidth;
-	int modeHeight;
-	int modeBpp;
-	int modeIndex;
-	int px = 0, py = 0;
+	CGDisplayModeRef			mode;
+	CFArrayRef					array;
+	CFIndex						n, i;
+	int							w, h;
+	std::vector<std::string>	resos;
 	
-	modes = CGDisplayAvailableModes(CGMainDisplayID());
+	array	= CGDisplayCopyAllDisplayModes(CGMainDisplayID(), NULL);
+	n		= CFArrayGetCount(array);
 	
-	range.location = 0;
-	range.length = CFArrayGetCount(modes);
-	
-	for (modeIndex=0; modeIndex<range.length; modeIndex++) {
-		modesDict = (CFDictionaryRef)CFArrayGetValueAtIndex(modes, modeIndex);
-		modeValue = (CFNumberRef) CFDictionaryGetValue(modesDict, kCGDisplayWidth);
-		CFNumberGetValue(modeValue, kCFNumberLongType, &modeWidth);
-		modeValue = (CFNumberRef) CFDictionaryGetValue(modesDict, kCGDisplayHeight);
-		CFNumberGetValue(modeValue, kCFNumberLongType, &modeHeight);
-		modeValue = (CFNumberRef) CFDictionaryGetValue(modesDict, kCGDisplayBitsPerPixel);
-		CFNumberGetValue(modeValue, kCFNumberLongType, &modeBpp);
+	for (i = 0; i < n; i++)
+	{
+		mode	= (CGDisplayModeRef)CFArrayGetValueAtIndex(array, i);
+		w		= CGDisplayModeGetWidth(mode);
+		h		= CGDisplayModeGetHeight(mode);
 		
-		if (px != modeWidth && py != modeHeight) {
-			char temp[32];
-			sprintf(temp,"%dx%d", modeWidth, modeHeight);
-			#if defined(HAVE_WX) && HAVE_WX
-			m_ConfigFrame->AddFSReso(temp);
-			#endif
-			px = modeWidth;
-			py = modeHeight;
+		char res[32];
+		sprintf(res,"%dx%d", w, h);
+		std::string strRes(res);
+		// Only add unique resolutions
+		if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
+		{
+			resos.push_back(strRes);
+			m_ConfigFrame->AddFSReso(res);
 		}
 	}
-}
+	CFRelease(array);
+
 #endif
+}
 
 void DllConfig(HWND _hParent)
 {
