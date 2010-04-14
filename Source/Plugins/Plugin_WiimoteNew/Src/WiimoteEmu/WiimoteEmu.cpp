@@ -76,6 +76,10 @@ void Wiimote::Reset()
 	m_reporting_channel = 0;
 	m_reporting_auto = false;
 
+	// will make the first Update() call send a status request
+	// the first call to RequestStatus() will then set up the status struct extension bit
+	m_extension->active_extension = -1;
+
 	// eeprom
 	memset( m_eeprom, 0, sizeof(m_eeprom) );
 	// calibration data
@@ -109,9 +113,6 @@ Wiimote::Wiimote( const unsigned int index, SWiimoteInitialize* const wiimote_in
 	: m_index(index)
 	, m_wiimote_init( wiimote_initialize )
 {
-	// reset eeprom/register/values to default
-	Reset();
-
 	// ---- set up all the controls ----
 
 	// buttons
@@ -157,6 +158,10 @@ Wiimote::Wiimote( const unsigned int index, SWiimoteInitialize* const wiimote_in
 	groups.push_back( options = new ControlGroup( "Options" ) );
 	options->settings.push_back( new ControlGroup::Setting( "Background Input", false ) );
 	options->settings.push_back( new ControlGroup::Setting( "Sideways Wiimote", false ) );
+
+
+	// --- reset eeprom/register/values to default ---
+	Reset();
 }
 
 std::string Wiimote::GetName() const
@@ -173,16 +178,22 @@ void Wiimote::Update()
 	m_buttons->GetState( &m_status.buttons, button_bitmasks );
 	m_dpad->GetState( &m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks );
 
-	if ( false == m_reporting_auto )
-		return;
-
-	// handle extension switching
-	if ( m_extension->active_extension != m_extension->switch_extension )
+	// check if a status report needs to be sent
+	// this happens on wiimote sync and when extensions are switched
+	if (m_extension->active_extension != m_extension->switch_extension)
 	{
 		RequestStatus( m_reporting_channel, NULL );
-		// games don't seem to like me sending the status report and the data report
-		return;
+
+		// Wiibrew: Following a connection or disconnection event on the Extension Port,
+		// data reporting is disabled and the Data Reporting Mode must be reset before new data can arrive.
+
+		// after a game receives an unrequested status report,
+		// it expects data reports to stop until it sets the reporting mode again
+		m_reporting_auto = false;
 	}
+
+	if ( false == m_reporting_auto )
+		return;
 
 	// figure out what data we need
 	size_t rpt_size = 0;

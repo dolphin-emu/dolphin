@@ -54,7 +54,7 @@ include_paths = [
     basedir + 'Externals/WiiUseSrc/Src',
     basedir + 'Source/Core/VideoCommon/Src',
     basedir + 'Source/Core/InputCommon/Src',
-    basedir + 'Source/Core/InputPluginCommon/Src',
+    basedir + 'Source/Plugins/InputPluginCommon/Src',
     basedir + 'Source/Core/AudioCommon/Src',
     basedir + 'Source/Core/DebuggerUICommon/Src',
     basedir + 'Source/Core/DSPCore/Src',
@@ -83,7 +83,7 @@ dirs = [
     'Source/Core/DolphinWX/Src',
     'Source/Core/DebuggerWX/Src',
     'Source/UnitTests/',
-    'Source/Core/InputPluginCommon/Src/',
+    'Source/Plugins/InputPluginCommon/Src/',
     'Source/Plugins/Plugin_WiimoteNew/Src/',
     ]
 

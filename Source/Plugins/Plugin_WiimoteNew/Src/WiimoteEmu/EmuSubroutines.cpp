@@ -68,7 +68,7 @@ void Wiimote::ReportMode(u16 _channelID, wm_report_mode* dr)
 	m_reporting_channel = _channelID;
 
 	if (0 == dr->all_the_time)
-		PanicAlert("Wiimote: Reporting Always is set to OFF!");
+		PanicAlert("Wiimote: Reporting Always is set to OFF! Everything should be fine, but games never do this.");
 
 	// Validation check
 	switch (dr->mode)
@@ -200,22 +200,20 @@ void Wiimote::RequestStatus(u16 _channelID, wm_request_status* rs, int Extension
 	// handle switch extension
 	if ( m_extension->active_extension != m_extension->switch_extension )
 	{
-		if ( m_extension->active_extension && m_extension->switch_extension )
-			// detach extension first
+		// if an extension is currently connected and we want to switch to a different extension
+		if ( (m_extension->active_extension > 0) && m_extension->switch_extension )
+			// detach extension first, wait til next Update() or RequestStatus() call to change to the new extension
 			m_extension->active_extension = 0;
 		else
+			// set the wanted extension
 			m_extension->active_extension = m_extension->switch_extension;
-		
+
+		// update status struct
+		m_status.extension = m_extension->active_extension ? 1 : 0;
+
 		// set register, I hate this line
 		m_register[ 0xa40000 ] = ((WiimoteEmu::Attachment*)m_extension->attachments[ m_extension->active_extension ])->reg;
-
-		// Wiibrew: Following a connection or disconnection event on the Extension Port,
-		// data reporting is disabled and the Data Reporting Mode must be reset before new data can arrive. 
-		m_reporting_auto = false;
 	}
-
-	// extension status
-	m_status.extension = m_extension->active_extension ? 1 : 0;
 
 	// set up report
 	u8 data[8];
@@ -317,14 +315,13 @@ void Wiimote::ReadData(u16 _channelID, wm_read_data* rd)
 			// Read from EEPROM
 			if (address + size > WIIMOTE_EEPROM_FREE_SIZE) 
 			{
-				// generate a read error
-				size = 0;
-
 				if (address + size > WIIMOTE_EEPROM_SIZE) 
 				{
 					PanicAlert("ReadData: address + size out of bounds");
 					return;
 				}
+				// generate a read error
+				size = 0;
 			}
 			SendReadDataReply(_channelID, m_eeprom + address, address, size);
 		}

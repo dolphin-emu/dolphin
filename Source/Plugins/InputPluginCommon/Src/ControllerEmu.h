@@ -286,8 +286,8 @@ public:
 
 		std::vector<ControllerEmu*>		attachments;
 
-		unsigned int	switch_extension;
-		unsigned int	active_extension;
+		int	switch_extension;
+		int	active_extension;
 	};
 
 	virtual ~ControllerEmu();
