@@ -283,7 +283,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	bool isPow2 = !((width & (width - 1)) || (height & (height - 1)));
 	entry.isNonPow2 = false;
 	int TexLevels = (width > height)?width:height;
-	TexLevels =  (isPow2 && UseNativeMips) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : (isPow2?0:1);
+	TexLevels =  (isPow2 && UseNativeMips && tex_format != GX_TF_CMPR) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : (isPow2?0:1);
 	if(TexLevels > maxlevel && maxlevel > 0)
 		TexLevels = maxlevel;
 	if (!skip_texture_create) 

@@ -393,7 +393,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
 	bool isPow2 = !((width & (width - 1)) || (height & (height - 1)));
 	int TexLevels = (width > height)?width:height;
-	TexLevels =  (isPow2 && UseNativeMips) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : (isPow2?0:1);
+	TexLevels =  (isPow2 && UseNativeMips && tex_format != GX_TF_CMPR) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : (isPow2?0:1);
 	if(TexLevels > maxlevel && maxlevel > 0)
 		TexLevels = maxlevel;
 	int gl_format;
@@ -467,7 +467,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		}
 
 		if (expandedWidth != width) // reset
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);		
 	}
 	else
 	{
