@@ -369,11 +369,16 @@ void ControlDialog::SelectControl( wxCommandEvent& event )
 	if (!final_label.CompareTo(wxT("|")))
 		final_label.Empty();
 
-	control_chooser->textctrl->SetLabel( final_label );
+#ifdef __linux__
+	if (!((wxWindow*)this)->IsBeingDeleted())
+#endif
+		control_chooser->textctrl->SetLabel( final_label );
 
+#ifndef __linux__ // This causes the application to hang in linux
 	// kinda dumb
 	wxCommandEvent nullevent;
 	((GamepadPage*)m_parent)->SetControl( nullevent );
+#endif
 
 }
 
