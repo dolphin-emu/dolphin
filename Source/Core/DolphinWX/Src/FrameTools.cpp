@@ -270,7 +270,7 @@ void CFrame::CreateMenu()
 	SetMenuBar(m_MenuBar);
 }
 
-const wxChar * CFrame::GetMenuLabel(int Id)
+wxString CFrame::GetMenuLabel(int Id)
 {
 	wxString Label;
 	switch (Id)

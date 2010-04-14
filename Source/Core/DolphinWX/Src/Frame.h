@@ -145,7 +145,7 @@ class CFrame : public wxFrame
 		int PixelsToPercentage(int,int);
 		void ListChildren();
 		void ListTopWindows();
-		const wxChar * GetMenuLabel(int Id);
+		wxString GetMenuLabel(int Id);
 
 		// Perspectives
 		void AddRemoveBlankPage();
