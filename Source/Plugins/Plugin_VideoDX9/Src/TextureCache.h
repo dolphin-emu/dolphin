@@ -82,7 +82,7 @@ public:
 	static void Shutdown();
 	static void Invalidate(bool shutdown);
 	static void InvalidateRange(u32 start_address, u32 size);
-	static TCacheEntry *Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt);
+	static TCacheEntry *Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt,bool UseNativeMips, int maxlevel);
 	static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source_rect);
 };
 

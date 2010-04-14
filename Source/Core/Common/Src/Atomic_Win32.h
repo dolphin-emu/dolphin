@@ -55,6 +55,10 @@ inline void AtomicIncrement(volatile u32& target) {
 	InterlockedIncrement((volatile LONG*)&target);
 }
 
+inline void AtomicDecrement(volatile u32& target) {
+	InterlockedDecrement((volatile LONG*)&target);
+}
+
 inline u32 AtomicLoad(volatile u32& src) {
 	return src; // 32-bit reads are always atomic.
 }

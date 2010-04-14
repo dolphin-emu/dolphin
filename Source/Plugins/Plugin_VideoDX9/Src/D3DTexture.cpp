@@ -21,7 +21,7 @@
 namespace D3D
 {
 
-LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int height, const int pitch, D3DFORMAT fmt, bool swap_r_b)
+LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int height, const int pitch, D3DFORMAT fmt, bool swap_r_b, int levels)
 {
 	u32* pBuffer = (u32*)buffer;
 	LPDIRECT3DTEXTURE9 pTexture;
@@ -38,8 +38,8 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 	HRESULT hr;
 	// TODO(ector): Allow mipmaps for non-pow textures on newer cards?
 	// TODO(ector): Use the game-specified mipmaps?
-	if (!isPow2)
-		hr = dev->CreateTexture(width, height, 1, 0, fmt, D3DPOOL_MANAGED, &pTexture, NULL);
+	if (levels > 0)
+		hr = dev->CreateTexture(width, height, levels, 0, fmt, D3DPOOL_MANAGED, &pTexture, NULL);
 	else
 		hr = dev->CreateTexture(width, height, 0, D3DUSAGE_AUTOGENMIPMAP, fmt, D3DPOOL_MANAGED, &pTexture, NULL);
 
@@ -148,10 +148,9 @@ LPDIRECT3DTEXTURE9 CreateOnlyTexture2D(const int width, const int height, D3DFOR
 	return pTexture;
 }
 
-void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int width, const int height, const int pitch, D3DFORMAT fmt, bool swap_r_b)
+void ReplaceTexture2D(LPDIRECT3DTEXTURE9 pTexture, const u8* buffer, const int width, const int height, const int pitch, D3DFORMAT fmt, bool swap_r_b, int level)
 {
 	u32* pBuffer = (u32*)buffer;
-	int level = 0;
 	D3DLOCKED_RECT Lock;
 	pTexture->LockRect(level, &Lock, NULL, 0);
 	u32* pIn = pBuffer;

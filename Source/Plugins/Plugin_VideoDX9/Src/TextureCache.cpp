@@ -136,7 +136,7 @@ void TextureCache::Cleanup()
 	}
 }
 
-TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width, int height, int tex_format, int tlutaddr, int tlutfmt)
+TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width, int height, int tex_format, int tlutaddr, int tlutfmt,bool UseNativeMips, int maxlevel)
 {
 	if (address == 0)
 		return NULL;
@@ -144,6 +144,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 	int bsw = TexDecoder_GetBlockWidthInTexels(tex_format) - 1; //TexelSizeInNibbles(format)*width*height/16;
 	int bsh = TexDecoder_GetBlockHeightInTexels(tex_format) - 1; //TexelSizeInNibbles(format)*width*height/16;
+	int bsdepth = TexDecoder_GetTexelSizeInNibbles(tex_format);
 	int expandedWidth  = (width + bsw)  & (~bsw);
 	int expandedHeight = (height + bsh) & (~bsh);
 
@@ -279,11 +280,40 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	entry.addr = address;
 	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, tex_format);
 	entry.isRenderTarget = false;
-	entry.isNonPow2 = false;//((width & (width - 1)) || (height & (height - 1)));
-	if (!skip_texture_create) {
-		entry.texture = D3D::CreateTexture2D((BYTE*)temp, width, height, expandedWidth, d3d_fmt, swap_r_b);
-	} else {
+	bool isPow2 = !((width & (width - 1)) || (height & (height - 1)));
+	entry.isNonPow2 = false;
+	int TexLevels = (width > height)?width:height;
+	TexLevels =  (isPow2 && UseNativeMips) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : (isPow2?0:1);
+	if(TexLevels > maxlevel && maxlevel > 0)
+		TexLevels = maxlevel;
+	if (!skip_texture_create) 
+	{		
+		entry.texture = D3D::CreateTexture2D((BYTE*)temp, width, height, expandedWidth, d3d_fmt, swap_r_b,TexLevels);
+	} 
+	else 
+	{
 		D3D::ReplaceTexture2D(entry.texture, (BYTE*)temp, width, height, expandedWidth, d3d_fmt, swap_r_b);
+	}
+	if(TexLevels > 1 && pcfmt != PC_TEX_FMT_NONE)
+	{
+		int level = 1;
+		int mipWidth = (width + 1) >> 1;
+		int mipHeight = (height + 1) >> 1;
+		ptr +=  entry.size_in_bytes;
+		while((mipHeight || mipWidth) && (level < TexLevels))
+		{
+			u32 currentWidth = (mipWidth > 0)? mipWidth : 1;
+			u32 currentHeight = (mipHeight > 0)? mipHeight : 1;
+			expandedWidth  = (currentWidth + bsw)  & (~bsw);
+			expandedHeight = (currentHeight + bsh) & (~bsh);
+			TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt);
+			D3D::ReplaceTexture2D(entry.texture, (BYTE*)temp, currentWidth, currentHeight, expandedWidth, d3d_fmt, swap_r_b,level);
+			u32 size = (max(mipWidth, bsw) * max(mipHeight, bsh) * bsdepth) >> 1;
+			ptr +=  size;
+			mipWidth >>= 1;
+			mipHeight >>= 1;
+			level++;
+		}
 	}
 	entry.frameCount = frameCount;
 	entry.w = width;

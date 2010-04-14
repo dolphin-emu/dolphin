@@ -38,6 +38,7 @@ public:
         u32 paletteHash;
         u32 oldpixel; // used for simple cleanup
         TexMode0 mode; // current filter and clamp modes that texture is set to
+		TexMode1 mode1; // current filter and clamp modes that texture is set to
 
         int frameCount;
         int w, h, fmt;
@@ -49,7 +50,7 @@ public:
         bool isRectangle; // if nonpow2, use GL_TEXTURE_2D, else GL_TEXTURE_RECTANGLE_NV
         bool bHaveMipMaps;
 
-        void SetTextureParameters(TexMode0& newmode);
+        void SetTextureParameters(TexMode0& newmode,TexMode1 &newmode1);
         void Destroy(bool shutdown);
         void ConvertFromRenderTarget(u32 taddr, int twidth, int theight, int tformat, int tlutaddr, int tlutfmt);
 		bool IntersectsMemoryRange(u32 range_address, u32 range_size);

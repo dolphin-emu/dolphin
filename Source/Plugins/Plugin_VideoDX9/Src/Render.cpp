@@ -1015,6 +1015,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// EFB is copied to XFB. In this way, flickering is reduced in games
 	// and seems to also give more FPS in ZTP
 	
+	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
 	const XFBSource** xfbSourceList = FBManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if (!xfbSourceList || xfbCount == 0)
@@ -1389,6 +1390,7 @@ void Renderer::SetSamplerState(int stage, int texindex)
 {
 	const FourTexUnits &tex = bpmem.tex[texindex];	
 	const TexMode0 &tm0 = tex.texMode0[stage];
+	const TexMode1 &tm1 = tex.texMode1[stage];
 	
 	D3DTEXTUREFILTERTYPE min, mag, mip;
 	if (g_ActiveConfig.bForceFiltering)
@@ -1399,7 +1401,7 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	{
 		min = (tm0.min_filter & 4) ? D3DTEXF_LINEAR : D3DTEXF_POINT;
 		mag = tm0.mag_filter ? D3DTEXF_LINEAR : D3DTEXF_POINT;
-		mip = d3dMipFilters[tm0.min_filter & 3];
+		mip = (tm0.min_filter == 8)?D3DTEXF_NONE:d3dMipFilters[tm0.min_filter & 3];
 	}
 	if (texindex)
 		stage += 4;	
@@ -1415,11 +1417,9 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	
 	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSU, d3dClamps[tm0.wrap_s]);
 	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSV, d3dClamps[tm0.wrap_t]);
-	//wip
-	//dev->SetSamplerState(stage,D3DSAMP_MIPMAPLODBIAS,tm0.lod_bias/4.0f);
-	//char temp[256];
-	//sprintf(temp,"lod %f",tm0.lod_bias/4.0f);
-	//g_VideoInitialize.pLog(temp);
+	//just a test but it seems to work
+	D3D::SetSamplerState(stage,D3DSAMP_MIPMAPLODBIAS,tm0.lod_bias/2.0f);
+	D3D::SetSamplerState(stage,D3DSAMP_MAXMIPLEVEL,tm1.min_lod>>4);	
 }
 
 void Renderer::SetInterlacingMode()
