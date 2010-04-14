@@ -180,7 +180,7 @@ void ControlChooser::UpdateGUI()
 	if ( bound ) ss << bound; else ss << "None";
 	m_bound_label->SetLabel( wxString::FromAscii(ss.str().c_str()) );
 
-	textctrl->SetLabel( wxString::FromAscii( control_reference->control_qualifier.name.c_str() ) );
+	textctrl->SetValue( wxString::FromAscii( control_reference->control_qualifier.name.c_str() ) );
 };
 
 void GamepadPage::UpdateGUI()
@@ -229,7 +229,7 @@ void GamepadPage::SetControl( wxCommandEvent& event )
 {
 	m_plugin.controls_crit.Enter();		// enter
 
-	m_control_dialog->control_reference->control_qualifier.name = std::string( m_control_dialog->control_chooser->textctrl->GetLabel().ToAscii() );
+	m_control_dialog->control_reference->control_qualifier.name = std::string( m_control_dialog->control_chooser->textctrl->GetValue().ToAscii() );
 	m_control_dialog->control_reference->UpdateControls();
 	m_control_dialog->control_chooser->UpdateGUI();
 
@@ -372,7 +372,7 @@ void ControlDialog::SelectControl( wxCommandEvent& event )
 #ifdef __linux__
 	if (!((wxWindow*)this)->IsBeingDeleted())
 #endif
-		control_chooser->textctrl->SetLabel( final_label );
+		control_chooser->textctrl->SetValue( final_label );
 
 #ifndef __linux__ // This causes the application to hang in linux
 	// kinda dumb
