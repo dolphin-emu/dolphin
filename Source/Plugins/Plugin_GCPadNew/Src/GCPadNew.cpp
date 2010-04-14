@@ -28,7 +28,7 @@
 #endif
 
 // plugin globals
-Plugin g_plugin( "GCPadNew", "Pad", "GCPad" );
+static Plugin g_plugin( "GCPadNew", "Pad", "GCPad" );
 SPADInitialize *g_PADInitialize = NULL;
 
 #ifdef _WIN32

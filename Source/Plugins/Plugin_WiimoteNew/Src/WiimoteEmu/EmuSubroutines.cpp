@@ -406,6 +406,7 @@ void Wiimote::SendReadDataReply(u16 _channelID, const void* _Base, unsigned int 
 	{
 		reply->size = 0x0f;
 		reply->error = 0x08;
+		reply->address = Common::swap16(_Address);
 
 		memset(reply->data, 0, sizeof(reply->data));
 		m_wiimote_init->pWiimoteInput(m_index, _channelID, data, sizeof(data));

@@ -28,7 +28,7 @@
 #endif
 
 // plugin globals
-Plugin g_plugin( "WiimoteNew", "Wiimote", "Wiimote" );
+static Plugin g_plugin( "WiimoteNew", "Wiimote", "Wiimote" );
 SWiimoteInitialize g_WiimoteInitialize;
 
 #ifdef _WIN32

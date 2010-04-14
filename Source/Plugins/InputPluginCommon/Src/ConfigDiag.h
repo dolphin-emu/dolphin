@@ -71,6 +71,8 @@ public:
 	ControlChooser( wxWindow* const parent, ControllerInterface::ControlReference* const ref, wxWindow* const eventsink );
 	
 	void UpdateGUI();
+	void UpdateListContents();
+	void UpdateListSelection();
 
 	ControllerInterface::ControlReference*	control_reference;
 
@@ -97,7 +99,12 @@ class ControlDialog : public wxDialog
 {
 public:
 	ControlDialog( wxWindow* const parent, ControllerInterface::ControlReference* const ref, const std::vector<ControllerInterface::Device*>& devs );
+	
 	void SelectControl( wxCommandEvent& event );
+	void DetectControl( wxCommandEvent& event );
+	void ClearControl( wxCommandEvent& event );
+	void SetControl( wxCommandEvent& event );
+	void SetDevice( wxCommandEvent& event );
 
 	ControllerInterface::ControlReference* const		control_reference;
 	wxComboBox*				device_cbox;
@@ -149,7 +156,7 @@ class GamepadPage : public wxNotebookPage
 	friend class ConfigDialog;
 
 public:
-	GamepadPage( wxWindow* parent, Plugin& plugin, const unsigned int pad_num, ConfigDialog* const config_dialog );
+	GamepadPage( wxWindow* parent, const unsigned int pad_num, ConfigDialog* const config_dialog );
 
 	void UpdateGUI();
 
@@ -160,14 +167,11 @@ public:
 	void DeleteProfile( wxCommandEvent& event );
 
 	void ConfigControl( wxCommandEvent& event );
-	void ConfigDetectControl( wxCommandEvent& event );
 	void DetectControl( wxCommandEvent& event );
-	void ClearControl( wxCommandEvent& event );
 
 	void ConfigExtension( wxCommandEvent& event );
 
 	void SetDevice( wxCommandEvent& event );
-	void SetControl( wxCommandEvent& event );
 
 	void ClearAll( wxCommandEvent& event );
 
@@ -186,7 +190,6 @@ protected:
 private:
 
 	ControlDialog*				m_control_dialog;
-	Plugin&						m_plugin;
 	ConfigDialog* const			m_config_dialog;
 };
 

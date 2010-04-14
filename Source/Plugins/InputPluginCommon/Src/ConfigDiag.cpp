@@ -3,6 +3,8 @@
 
 #define _connect_macro_( b, f, c, s )	(b)->Connect( wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s );
 
+static Plugin* g_plugin;
+
 void GamepadPage::ConfigExtension( wxCommandEvent& event )
 {
 	ControllerEmu::Extension* const ex = ((ExtensionButton*)event.GetEventObject())->extension;
@@ -108,10 +110,8 @@ ControlDialog::ControlDialog( wxWindow* const parent, ControllerInterface::Contr
 
 	device_cbox = new wxComboBox( this, -1, wxString::FromAscii( ref->device_qualifier.ToString().c_str() ), wxDefaultPosition, wxSize(256,-1), wxArrayString(), wxTE_PROCESS_ENTER );
 
-	//#define _connect_macro2_( b, f, c )		(b)->Connect( wxID_ANY, c, wxCommandEventHandler( GamepadPage::f ), (wxObject*)0, (wxEvtHandler*)parent );
-
-	_connect_macro_( device_cbox, GamepadPage::SetDevice, wxEVT_COMMAND_COMBOBOX_SELECTED, parent );
-	_connect_macro_( device_cbox, GamepadPage::SetDevice, wxEVT_COMMAND_TEXT_ENTER, parent );
+	_connect_macro_( device_cbox, ControlDialog::SetDevice, wxEVT_COMMAND_COMBOBOX_SELECTED, this );
+	_connect_macro_( device_cbox, ControlDialog::SetDevice, wxEVT_COMMAND_TEXT_ENTER, this );
 
 	std::vector< ControllerInterface::Device* >::const_iterator i = devs.begin(),
 		e = devs.end();
@@ -148,7 +148,7 @@ ControlButton::ControlButton( wxWindow* const parent, ControllerInterface::Contr
 void ConfigDialog::UpdateProfileComboBox()
 {
 	std::string pname( File::GetUserPath(D_CONFIG_IDX) );
-	pname += PROFILES_PATH; pname += m_plugin.profile_name;
+	pname += PROFILES_PATH; pname += g_plugin->profile_name;
 
 	CFileSearch::XStringVector exts;
 	exts.push_back("*.ini");
@@ -180,16 +180,16 @@ void ConfigDialog::UpdateControlReferences()
 	std::vector< GamepadPage* >::iterator i = m_padpages.begin(),
 		e = m_padpages.end();
 	for ( ; i != e; ++i  )
-		(*i)->controller->UpdateReferences( m_plugin.controller_interface );
+		(*i)->controller->UpdateReferences( g_plugin->controller_interface );
 }
 
 void ConfigDialog::ClickSave( wxCommandEvent& event )
 {
-	m_plugin.SaveConfig();
+	g_plugin->SaveConfig();
 	Close();
-};
+}
 
-void ControlChooser::UpdateGUI()
+void ControlChooser::UpdateListContents()
 {
 	control_lbox->Clear();
 
@@ -216,26 +216,44 @@ void ControlChooser::UpdateGUI()
 		}
 	}
 
-	// logic not 100% right here for a poorly formated qualifier
-	// but its just for selecting crap in the listbox
+	UpdateListSelection();
+}
+
+void ControlChooser::UpdateListSelection()
+{
+	UpdateGUI();
+
 	wxArrayString control_names = control_lbox->GetStrings();
 	const std::string cname = control_reference->control_qualifier.name;
-	for ( int i = int(control_names.size()) - 1; i >=0; --i )
-	{
-		if ( cname == std::string(control_names[i].ToAscii()) ||
-			cname.find( control_names[i].Prepend(wxT('|')).Append(wxT('|')).ToAscii() ) != std::string::npos )
-			control_lbox->Select( i );
-		else
-			control_lbox->Deselect( i );
-	}
 
+	control_lbox->DeselectAll();
+
+	// if text starts and ends with '|' it's multiple controls, otherwise just single one
+	if (cname.size() ? ((*cname.rbegin()=='|') && (*cname.begin()=='|')) : false)
+	{
+		for (int i = int(control_names.size()) - 1; i >= 0; --i)
+			if (cname.find( control_names[i].Prepend(wxT('|')).Append(wxT('|')).ToAscii()) != cname.npos)
+				control_lbox->Select( i );
+	}
+	else
+	{
+		const int n = control_lbox->FindString(wxString::FromAscii(cname.c_str()));
+		if (n >= 0)
+			control_lbox->Select(n);
+	}
+}
+
+void ControlChooser::UpdateGUI()
+{
+	// update textbox
+	textctrl->SetValue(wxString::FromAscii(control_reference->control_qualifier.name.c_str()));
+
+	// updates the "bound controls:" label
 	size_t bound = control_reference->controls.size();
 	std::ostringstream ss;
 	ss << "Bound Controls: ";
 	if ( bound ) ss << bound; else ss << "None";
 	m_bound_label->SetLabel( wxString::FromAscii(ss.str().c_str()) );
-
-	textctrl->SetValue(wxString::FromAscii(control_reference->control_qualifier.name.c_str()));
 };
 
 void GamepadPage::UpdateGUI()
@@ -262,7 +280,7 @@ void GamepadPage::UpdateGUI()
 
 void GamepadPage::ClearAll( wxCommandEvent& event )
 {
-	m_plugin.controls_crit.Enter();		// enter
+	g_plugin->controls_crit.Enter();		// enter
 
 	// just load an empty ini section to clear everything :P
 	IniSection section;
@@ -274,133 +292,130 @@ void GamepadPage::ClearAll( wxCommandEvent& event )
 
 	UpdateGUI();
 
-	m_plugin.controls_crit.Leave();		// leave
+	g_plugin->controls_crit.Leave();		// leave
 }
 
-void GamepadPage::SetControl( wxCommandEvent& event )
+void ControlDialog::SetControl( wxCommandEvent& event )
 {
-	m_plugin.controls_crit.Enter();		// enter
+	control_reference->control_qualifier.name =
+		std::string( control_chooser->textctrl->GetValue().ToAscii() );
 
-	m_control_dialog->control_reference->control_qualifier.name =
-		std::string( m_control_dialog->control_chooser->textctrl->GetValue().ToAscii() );
-	m_control_dialog->control_reference->UpdateControls();
-	m_control_dialog->control_chooser->UpdateGUI();
+	g_plugin->controls_crit.Enter();		// enter
+	control_reference->UpdateControls();
+	g_plugin->controls_crit.Leave();		// leave
 
-	UpdateGUI();
-
-	m_plugin.controls_crit.Leave();		// leave
+	control_chooser->UpdateListSelection();
 }
 
 void GamepadPage::SetDevice( wxCommandEvent& event )
 {
-	m_plugin.controls_crit.Enter();		// enter
+	controller->default_device.FromString( std::string( device_cbox->GetValue().ToAscii() ) );
+	
+	// show user what it was validated as
+	device_cbox->SetValue( wxString::FromAscii( controller->default_device.ToString().c_str() ) );
 
-	// TODO: need to handle the ConfigControl device in here
+	// this will set all the controls to this default device
+	controller->UpdateDefaultDevice();
 
-	// default device
-	if ( event.GetEventObject() == device_cbox )
-	{
-		controller->default_device.FromString( std::string( device_cbox->GetValue().ToAscii() ) );
-		
-		// show user what it was validated as
-		device_cbox->SetValue( wxString::FromAscii( controller->default_device.ToString().c_str() ) );
-
-		// this will set all the controls to this default device
-		controller->UpdateDefaultDevice();
-
-		// update references
-		controller->UpdateReferences( m_plugin.controller_interface );
-	}
-	// control dialog
-	else
-	{
-		m_control_dialog->control_reference->device_qualifier.FromString( std::string( m_control_dialog->device_cbox->GetValue().ToAscii() ) );
-		
-		m_control_dialog->device_cbox->SetValue( wxString::FromAscii( m_control_dialog->control_reference->device_qualifier.ToString().c_str() ) );
-
-		m_plugin.controller_interface.UpdateReference( m_control_dialog->control_reference );
-		
-		m_control_dialog->control_chooser->UpdateGUI();
-
-	}
-
-	m_plugin.controls_crit.Leave();		// leave
-
+	// update references
+	g_plugin->controls_crit.Enter();		// enter
+	controller->UpdateReferences( g_plugin->controller_interface );
+	g_plugin->controls_crit.Leave();		// leave
 }
 
-void GamepadPage::ClearControl( wxCommandEvent& event )
+void ControlDialog::SetDevice( wxCommandEvent& event )
 {
-	m_control_dialog->control_reference->control_qualifier.name.clear();
-	m_control_dialog->control_reference->UpdateControls();
-	m_control_dialog->control_chooser->UpdateGUI();
-	UpdateGUI();
+	control_reference->device_qualifier.FromString( std::string( device_cbox->GetValue().ToAscii() ) );
+	
+	// show user what it was validated as
+	device_cbox->SetValue( wxString::FromAscii( control_reference->device_qualifier.ToString().c_str() ) );
+
+	// update references
+	g_plugin->controls_crit.Enter();		// enter
+	g_plugin->controller_interface.UpdateReference( control_reference );
+	g_plugin->controls_crit.Leave();		// leave
+
+	// update gui
+	control_chooser->UpdateListContents();
+}
+
+void ControlDialog::ClearControl( wxCommandEvent& event )
+{
+	control_reference->control_qualifier.name.clear();
+
+	g_plugin->controls_crit.Leave();		// enter
+	control_reference->UpdateControls();
+	g_plugin->controls_crit.Leave();		// leave
+
+	control_chooser->UpdateListSelection();
 }
 
 void GamepadPage::AdjustSetting( wxCommandEvent& event )
 {
-	m_plugin.controls_crit.Enter();		// enter
+	g_plugin->controls_crit.Enter();		// enter
 
 	// updates the setting value from the GUI control
 	(dynamic_cast<PadSetting*>(event.GetEventObject()))->UpdateValue();
 
-	m_plugin.controls_crit.Leave();		// leave
+	g_plugin->controls_crit.Leave();		// leave
 }
 
 void GamepadPage::AdjustControlOption( wxCommandEvent& event )
 {
-	m_plugin.controls_crit.Enter();		// enter
+	g_plugin->controls_crit.Enter();		// enter
 
 	m_control_dialog->control_reference->range = ControlState( m_control_dialog->control_chooser->range_slider->GetValue() ) / SLIDER_TICK_COUNT;
 
 	if ( m_control_dialog->control_reference->is_input )
-	{
-		((ControllerInterface::InputReference*)m_control_dialog->control_reference)->mode = m_control_dialog->control_chooser->mode_cbox->GetSelection();
-	}
+		((ControllerInterface::InputReference*)m_control_dialog->control_reference)->mode =
+			m_control_dialog->control_chooser->mode_cbox->GetSelection();
 
-	m_plugin.controls_crit.Leave();		// leave
+	g_plugin->controls_crit.Leave();		// leave
 }
 
 void GamepadPage::ConfigControl( wxCommandEvent& event )
 {
-	m_control_dialog  = new ControlDialog( this, ((ControlButton*)event.GetEventObject())->control_reference, m_plugin.controller_interface.Devices() );
+	m_control_dialog  = new ControlDialog( this, ((ControlButton*)event.GetEventObject())->control_reference, g_plugin->controller_interface.Devices() );
 	m_control_dialog->ShowModal();
 	m_control_dialog->Destroy();
+
+	// update changes that were made in the dialog
+	UpdateGUI();
 }
 
-void GamepadPage::ConfigDetectControl( wxCommandEvent& event )
+void ControlDialog::DetectControl( wxCommandEvent& event )
 {
-	m_plugin.controls_crit.Enter();		// enter
-
-	// major major hacks
+	// some hacks
 	wxChar num = ((wxButton*)event.GetEventObject())->GetLabel()[0];
 	if ( num > '9' )
 		num = 1;
 	else
 		num -= 0x30;
 
-	if ( m_control_dialog->control_reference->Detect( DETECT_WAIT_TIME, num ) )	// if we got input, update control
-	{
-		UpdateGUI();
-		m_control_dialog->control_chooser->UpdateGUI();
-	}
-
-	m_plugin.controls_crit.Leave();		// leave
+	g_plugin->controls_crit.Enter();		// enter
+	if ( control_reference->Detect( DETECT_WAIT_TIME, num ) )	// if we got input, update gui
+		control_chooser->UpdateListSelection();
+	g_plugin->controls_crit.Leave();		// leave
 }
 
 void GamepadPage::DetectControl( wxCommandEvent& event )
 {
 	ControlButton* btn = (ControlButton*)event.GetEventObject();
 
-	m_plugin.controls_crit.Enter();		// enter
+	g_plugin->controls_crit.Enter();		// enter
 
 	btn->control_reference->Detect( DETECT_WAIT_TIME );
 	btn->SetLabel( wxString::FromAscii( btn->control_reference->control_qualifier.name.c_str() ) );
 
-	m_plugin.controls_crit.Leave();		// leave
+	g_plugin->controls_crit.Leave();		// leave
 }
 
 void ControlDialog::SelectControl( wxCommandEvent& event )
 {
+	// needed for linux
+	if (IsBeingDeleted())
+		return;
+
 	wxListBox* lb = (wxListBox*)event.GetEventObject();
 
 	wxArrayInt sels;
@@ -411,8 +426,6 @@ void ControlDialog::SelectControl( wxCommandEvent& event )
 
 	if (sels.GetCount() == 1)
 		final_label = names[ sels[0] ];
-	//else if ( sels.size() == lb->GetCount() )
-	//	final_label = "||";
 	else
 	{
 	final_label = wxT('|');
@@ -420,32 +433,29 @@ void ControlDialog::SelectControl( wxCommandEvent& event )
 		final_label += names[ sels[i] ] + wxT('|');
 	}
 
-#ifdef __linux__
-	if (!((wxWindow*)this)->IsBeingDeleted())
-#endif
-		control_chooser->textctrl->SetValue( final_label );
+	control_reference->control_qualifier.name =
+		std::string( final_label.ToAscii() );
+	
+	g_plugin->controls_crit.Enter();		// enter
+	control_reference->UpdateControls();
+	g_plugin->controls_crit.Leave();		// leave
 
-#ifndef __linux__ // This causes the application to hang in linux
-	// kinda dumb
-	wxCommandEvent nullevent;
-	((GamepadPage*)m_parent)->SetControl( nullevent );
-#endif
+	control_chooser->UpdateGUI();
 }
 
 ControlChooser::ControlChooser( wxWindow* const parent, ControllerInterface::ControlReference* const ref, wxWindow* const eventsink )
 : wxStaticBoxSizer( wxVERTICAL, parent, ref->is_input ? wxT("Input") : wxT("Output") )
 	, control_reference(ref)
 {
-	//#define _connect_macro_( b, f, c )		(b)->Connect( wxID_ANY, (c), wxCommandEventHandler( GamepadPage::f ), (wxObject*)0, (wxEvtHandler*)eventsink );
+	textctrl = new wxTextCtrl( parent, -1, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_PROCESS_ENTER );
+	_connect_macro_( textctrl, ControlDialog::SetControl, wxEVT_COMMAND_TEXT_ENTER, parent);
 
-	textctrl = new wxTextCtrl( parent, -1 );
 	wxButton* detect_button = new wxButton( parent, -1, ref->is_input ? wxT("Detect 1") : wxT("Test") );
 	wxButton* clear_button = new  wxButton( parent, -1, wxT("Clear"), wxDefaultPosition );
 	wxButton* set_button = new wxButton( parent, -1, wxT("Set")/*, wxDefaultPosition, wxSize( 32, -1 )*/ );
 
 	control_lbox = new wxListBox( parent, -1, wxDefaultPosition, wxSize( 256, 128 ), wxArrayString(), wxLB_EXTENDED );
-
-	control_lbox->Connect( wxID_ANY, wxEVT_COMMAND_LISTBOX_SELECTED, wxCommandEventHandler( ControlDialog::SelectControl ), (wxObject*)0, parent );
+	_connect_macro_( control_lbox, ControlDialog::SelectControl, wxEVT_COMMAND_LISTBOX_SELECTED, parent);
 
 	wxBoxSizer* button_sizer = new wxBoxSizer( wxHORIZONTAL );
 	button_sizer->Add( detect_button, 1, 0, 5 );
@@ -453,7 +463,7 @@ ControlChooser::ControlChooser( wxWindow* const parent, ControllerInterface::Con
 		for ( unsigned int i = 2; i<5; ++i )
 		{
 			wxButton* d_btn = new wxButton( parent, -1, wxChar( '0'+i ), wxDefaultPosition, wxSize(20,-1) );
-			_connect_macro_( d_btn, GamepadPage::ConfigDetectControl, wxEVT_COMMAND_BUTTON_CLICKED, eventsink );
+			_connect_macro_( d_btn, ControlDialog::DetectControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
 			button_sizer->Add( d_btn );
 		}
 	button_sizer->Add( clear_button, 1, 0, 5 );
@@ -463,9 +473,9 @@ ControlChooser::ControlChooser( wxWindow* const parent, ControllerInterface::Con
 
 	range_slider->SetValue( control_reference->range * SLIDER_TICK_COUNT );
 
-	_connect_macro_( detect_button, GamepadPage::ConfigDetectControl, wxEVT_COMMAND_BUTTON_CLICKED, eventsink);
-	_connect_macro_( clear_button, GamepadPage::ClearControl, wxEVT_COMMAND_BUTTON_CLICKED, eventsink);
-	_connect_macro_( set_button, GamepadPage::SetControl, wxEVT_COMMAND_BUTTON_CLICKED, eventsink);
+	_connect_macro_( detect_button, ControlDialog::DetectControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
+	_connect_macro_( clear_button, ControlDialog::ClearControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
+	_connect_macro_( set_button, ControlDialog::SetControl, wxEVT_COMMAND_BUTTON_CLICKED, parent);
 
 	_connect_macro_( range_slider, GamepadPage::AdjustControlOption, wxEVT_SCROLL_CHANGED, eventsink);
 	wxStaticText* range_label = new wxStaticText( parent, -1, wxT("Range"));
@@ -503,7 +513,7 @@ ControlChooser::ControlChooser( wxWindow* const parent, ControllerInterface::Con
 	Add( control_lbox, 0, wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM, 5 );
 	Add( m_bound_label, 0, wxEXPAND|wxLEFT, 80 );
 
-	UpdateGUI();
+	UpdateListContents();
 }
 
 void GamepadPage::LoadProfile( wxCommandEvent& event )
@@ -512,11 +522,11 @@ void GamepadPage::LoadProfile( wxCommandEvent& event )
 	if ( profile_cbox->GetValue().empty() )
 		return;
 	
-	m_plugin.controls_crit.Enter();
+	g_plugin->controls_crit.Enter();
 
 	std::ifstream file;
 	std::string fname( File::GetUserPath(D_CONFIG_IDX) );
-	fname += PROFILES_PATH; fname += m_plugin.profile_name; fname += '/';
+	fname += PROFILES_PATH; fname += g_plugin->profile_name; fname += '/';
 	fname += profile_cbox->GetValue().ToAscii(); fname += ".ini";
 
 	if ( false == File::Exists( fname.c_str() ) )
@@ -528,9 +538,9 @@ void GamepadPage::LoadProfile( wxCommandEvent& event )
 	controller->LoadConfig( inifile["Profile"] );
 	file.close();
 
-	controller->UpdateReferences( m_plugin.controller_interface );
+	controller->UpdateReferences( g_plugin->controller_interface );
 
-	m_plugin.controls_crit.Leave();
+	g_plugin->controls_crit.Leave();
 
 	UpdateGUI();
 }
@@ -546,7 +556,7 @@ void GamepadPage::SaveProfile( wxCommandEvent& event )
 	controller->SaveConfig( inifile["Profile"] );
 	std::ofstream file;
 	std::string fname( File::GetUserPath(D_CONFIG_IDX) );
-	fname += PROFILES_PATH; fname += m_plugin.profile_name; fname += '/';
+	fname += PROFILES_PATH; fname += g_plugin->profile_name; fname += '/';
 	
 	if ( false == File::Exists( fname.c_str() ) )
 		File::CreateFullPath( fname.c_str() );
@@ -568,7 +578,7 @@ void GamepadPage::DeleteProfile( wxCommandEvent& event )
 	
 	// don't need lock
 	std::string fname( File::GetUserPath(D_CONFIG_IDX) );
-	fname += PROFILES_PATH; fname += m_plugin.profile_name; fname += '/';
+	fname += PROFILES_PATH; fname += g_plugin->profile_name; fname += '/';
 	fname += profile_cbox->GetValue().ToAscii(); fname += ".ini";
 	if ( File::Exists( fname.c_str() ) )
 		File::Delete( fname.c_str() );
@@ -584,8 +594,8 @@ void ConfigDialog::UpdateDeviceComboBox()
 	for ( ; i != e; ++i  )
 	{
 		(*i)->device_cbox->Clear();
-		std::vector<ControllerInterface::Device*>::const_iterator di = m_plugin.controller_interface.Devices().begin(),
-			de = m_plugin.controller_interface.Devices().end();
+		std::vector<ControllerInterface::Device*>::const_iterator di = g_plugin->controller_interface.Devices().begin(),
+			de = g_plugin->controller_interface.Devices().end();
 		for ( ; di!=de; ++di )
 		{
 			dq.FromDevice( *di );
@@ -597,11 +607,11 @@ void ConfigDialog::UpdateDeviceComboBox()
 
 void GamepadPage::RefreshDevices( wxCommandEvent& event )
 {
-	m_plugin.controls_crit.Enter();		// enter
+	g_plugin->controls_crit.Enter();		// enter
 
 	// refresh devices
-	m_plugin.controller_interface.DeInit();
-	m_plugin.controller_interface.Init();
+	g_plugin->controller_interface.DeInit();
+	g_plugin->controller_interface.Init();
 
 	// update all control references
 	m_config_dialog->UpdateControlReferences();
@@ -609,7 +619,7 @@ void GamepadPage::RefreshDevices( wxCommandEvent& event )
 	// update device cbox
 	m_config_dialog->UpdateDeviceComboBox();
 
-	m_plugin.controls_crit.Leave();		// leave
+	g_plugin->controls_crit.Leave();		// leave
 }
 
 ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWindow* const parent, wxWindow* const eventsink )
@@ -791,14 +801,13 @@ ControlGroupsSizer::ControlGroupsSizer( ControllerEmu* const controller, wxWindo
 
 }
 
-GamepadPage::GamepadPage( wxWindow* parent, Plugin& plugin, const unsigned int pad_num, ConfigDialog* const config_dialog )
+GamepadPage::GamepadPage( wxWindow* parent, const unsigned int pad_num, ConfigDialog* const config_dialog )
 	: wxNotebookPage( parent, -1 , wxDefaultPosition, wxDefaultSize )
-	,controller(plugin.controllers[pad_num])
-	,m_plugin(plugin)
+	,controller(g_plugin->controllers[pad_num])
 	,m_config_dialog(config_dialog)
 {
 
-	wxBoxSizer* control_group_sizer = new ControlGroupsSizer( m_plugin.controllers[pad_num], this, this, &control_groups );
+	wxBoxSizer* control_group_sizer = new ControlGroupsSizer( g_plugin->controllers[pad_num], this, this, &control_groups );
 
 	wxStaticBoxSizer* profile_sbox = new wxStaticBoxSizer( wxHORIZONTAL, this, wxT("Profile") );
 
@@ -809,8 +818,6 @@ GamepadPage::GamepadPage( wxWindow* parent, Plugin& plugin, const unsigned int p
 	device_cbox = new wxComboBox( this, -1, wxT(""), wxDefaultPosition, wxSize(128,-1), 0, 0, wxTE_PROCESS_ENTER );
 
 	wxButton* refresh_button = new wxButton( this, -1, wxT("Refresh"), wxDefaultPosition, wxSize(60,-1) );
-
-	//#define _connect_macro3_( b, f, c )		(b)->Connect( wxID_ANY, c, wxCommandEventHandler( GamepadPage::f ), (wxObject*)0, (wxEvtHandler*)this );
 
 	_connect_macro_( device_cbox, GamepadPage::SetDevice, wxEVT_COMMAND_COMBOBOX_SELECTED, this );
 	_connect_macro_( device_cbox, GamepadPage::SetDevice, wxEVT_COMMAND_TEXT_ENTER, this );
@@ -823,8 +830,7 @@ GamepadPage::GamepadPage( wxWindow* parent, Plugin& plugin, const unsigned int p
 	wxButton* all_button = new wxButton( this, -1, wxT("All"), wxDefaultPosition, wxSize(48,-1) );
 	clear_sbox->Add( all_button, 1, wxLEFT|wxRIGHT, 5 );
 
-	all_button->Connect( wxID_ANY, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( GamepadPage::ClearAll ),
-		(wxObject*)0, (wxEvtHandler*)this );
+	_connect_macro_(all_button, GamepadPage::ClearAll, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	profile_cbox = new wxComboBox( this, -1, wxT(""), wxDefaultPosition, wxSize(128,-1) );
 
@@ -832,12 +838,9 @@ GamepadPage::GamepadPage( wxWindow* parent, Plugin& plugin, const unsigned int p
 	wxButton* const psave_btn = new wxButton( this, -1, wxT("Save"), wxDefaultPosition, wxSize(48,-1) );
 	wxButton* const pdelete_btn = new wxButton( this, -1, wxT("Delete"), wxDefaultPosition, wxSize(60,-1) );
 
-	pload_btn->Connect( wxID_ANY, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( GamepadPage::LoadProfile ),
-		(wxObject*)0, (wxEvtHandler*)this );
-	psave_btn->Connect( wxID_ANY, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( GamepadPage::SaveProfile ),
-		(wxObject*)0, (wxEvtHandler*)this );
-	pdelete_btn->Connect( wxID_ANY, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( GamepadPage::DeleteProfile ),
-		(wxObject*)0, (wxEvtHandler*)this );
+	_connect_macro_(pload_btn, GamepadPage::LoadProfile, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	_connect_macro_(psave_btn, GamepadPage::SaveProfile, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	_connect_macro_(pdelete_btn, GamepadPage::DeleteProfile, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	profile_sbox->Add( profile_cbox, 1, wxLEFT, 5 );
 	profile_sbox->Add( pload_btn, 0, wxLEFT, 5 );
@@ -870,20 +873,21 @@ ConfigDialog::ConfigDialog( wxWindow* const parent, Plugin& plugin, const std::s
 	, is_game_running(_is_game_running)
 	, m_plugin(plugin)
 {
+	g_plugin = &plugin;
+
 	m_pad_notebook = new wxNotebook( this, -1, wxDefaultPosition, wxDefaultSize, wxNB_DEFAULT );
 	for ( unsigned int i = 0; i < plugin.controllers.size(); ++i )
 	{
-		GamepadPage* gp = new GamepadPage( m_pad_notebook, plugin, i, this );
+		GamepadPage* gp = new GamepadPage( m_pad_notebook, i, this );
 		m_padpages.push_back( gp );
-		m_pad_notebook->AddPage( gp, wxString::FromAscii( m_plugin.gui_name ) + wxT(' ') + wxChar('1'+i) );
+		m_pad_notebook->AddPage( gp, wxString::FromAscii( g_plugin->gui_name ) + wxT(' ') + wxChar('1'+i) );
 	}
 
 	UpdateDeviceComboBox();
 	UpdateProfileComboBox();
 
 	wxButton* close_button = new wxButton( this, -1, wxT("Save"));
-
-	close_button->Connect( wxID_ANY, wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( ConfigDialog::ClickSave ), (wxObject*)0, (wxEvtHandler*)this );
+	_connect_macro_(close_button, ConfigDialog::ClickSave, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	wxBoxSizer* btns = new wxBoxSizer( wxHORIZONTAL );
 	//btns->Add( new wxStaticText( this, -1, wxString::FromAscii(ver.c_str())), 0, wxLEFT|wxTOP, 5 );
