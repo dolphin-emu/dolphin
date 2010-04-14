@@ -23,17 +23,11 @@
 struct CConfig
 {
     bool m_EnableHLEAudio;
-	//is the RE0 fix enabled in config?
-	bool m_EnableRE0Fix;
-	//is the RE0 supposed to be used?
-	//this value includes game.ini, avoiding overwrite of config
-	bool m_RE0Fix;
 
     CConfig();
     
     void Load();
     void Save();
-	void LoadGameIni(const char*);
 };
 
 extern CConfig g_Config;

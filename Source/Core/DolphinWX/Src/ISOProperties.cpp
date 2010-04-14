@@ -323,11 +323,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_Hack.Add(_("Bleach Versus Crusade"));
 	Hack = new wxChoice(m_GameConfig, ID_HACK, wxDefaultPosition, wxDefaultSize, arrayStringFor_Hack, 0, wxDefaultValidator);
 
-	
-	//HLE Audio
-	sbHLEaudioOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("HLE Audio"));
-	UseRE0Fix = new wxCheckBox(m_GameConfig, ID_RE0FIX, _("Use RE0 Fix"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-
 	// Emulation State
 	sEmuState = new wxBoxSizer(wxHORIZONTAL);
 	EmuStateText = new wxStaticText(m_GameConfig, ID_EMUSTATE_TEXT, _("Emulation State: "), wxDefaultPosition, wxDefaultSize);
@@ -357,11 +352,9 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbVideoOverrides->Add(BPHack, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(Hacktext, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(Hack, 0, wxEXPAND|wxLEFT, 5);
-	sbHLEaudioOverrides->Add(UseRE0Fix, 0, wxEXPAND|wxLEFT, 5);
 	sbGameConfig->Add(sbCoreOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbWiiOverrides, 0, wxEXPAND);
 	sbGameConfig->Add(sbVideoOverrides, 0, wxEXPAND);
-	sbGameConfig->Add(sbHLEaudioOverrides, 0, wxEXPAND);
 	sConfigPage->Add(sbGameConfig, 0, wxEXPAND|wxALL, 5);
 	sEmuState->Add(EmuStateText, 0, wxALIGN_CENTER_VERTICAL);
 	sEmuState->Add(EmuState, 0, wxEXPAND);
@@ -849,11 +842,6 @@ void CISOProperties::LoadGameConfig()
 	else
 		UseXFB->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("HLEaudio", "UseRE0Fix", &bTemp))
-		UseRE0Fix->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		UseRE0Fix->Set3StateValue(wxCHK_UNDETERMINED);
-
 	if (GameIni.Get("Video", "FIFOBPHack", &bTemp))
 		BPHack->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -933,11 +921,6 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Video", "UseXFB");
 	else
 		GameIni.Set("Video", "UseXFB", UseXFB->Get3StateValue());
-
-	if (UseRE0Fix->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("HLEaudio", "UseRE0Fix");
-	else
-		GameIni.Set("HLEaudio", "UseRE0Fix", UseRE0Fix->Get3StateValue());
 
 	if (BPHack->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Video", "FIFOBPHack");

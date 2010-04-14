@@ -239,14 +239,6 @@ void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 	}
 	Interpreter::_interpreterInstruction instr = GetInterpreterOp(inst);
 	ABI_CallFunctionC((void*)instr, inst.hex);
-
-	if (js.isLastInstruction && SConfig::GetInstance().m_EnableRE0Fix )
-	{
-		
-		SConfig::GetInstance().LoadSettingsHLE();//Make sure the settings are up to date
-		MOV(32, R(EAX), M(&NPC));
-		WriteRfiExitDestInEAX();
-	}
 }
 
 void Jit64::unknown_instruction(UGeckoInstruction inst)

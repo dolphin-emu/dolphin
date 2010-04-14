@@ -29,8 +29,7 @@ SConfig::SConfig()
 {
 	// Make sure we have log manager
 	LoadSettings();
-	//Make sure we load settings
-	LoadSettingsHLE();
+	//Make sure we load any extra settings
 	LoadSettingsWii();
 
 }
@@ -300,12 +299,4 @@ void SConfig::LoadSettingsWii()
 		sprintf(SectionName, "Wiimote%i", i + 1);
 		ini.Get(SectionName, "AutoReconnectRealWiimote", &m_WiiAutoReconnect[i], false);
 	}
-}
-
-// Is this still even needed????
-void SConfig::LoadSettingsHLE()
-{
-	IniFile ini;
-	ini.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "DSP.ini").c_str());
-	ini.Get("Config", "EnableRE0AudioFix", &m_EnableRE0Fix, false); // RE0 Hack
 }

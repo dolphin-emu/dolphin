@@ -35,8 +35,6 @@ void CConfig::Load()
 	IniFile file;
 	file.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "DSP.ini").c_str());
 	file.Get("Config", "EnableHLEAudio", &m_EnableHLEAudio, true); // Sound Settings
-	file.Get("Config", "EnableRE0AudioFix", &m_EnableRE0Fix, false); // RE0 Hack
-	m_RE0Fix = m_EnableRE0Fix;
 	ac_Config.Load(file);
 }
 
@@ -45,15 +43,7 @@ void CConfig::Save()
 	IniFile file;
 	file.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "DSP.ini").c_str());
 	file.Set("Config", "EnableHLEAudio", m_EnableHLEAudio); // Sound Settings
-	file.Set("Config", "EnableRE0AudioFix", m_EnableRE0Fix); // RE0 Hack
 	ac_Config.Set(file);
 
 	file.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "DSP.ini").c_str());
-}
-
-void CConfig::LoadGameIni(const char* gameIniPath)
-{
-	IniFile gameIni;
-	gameIni.Load(gameIniPath);
-	gameIni.Get("HLEaudio", "UseRE0Fix", &m_RE0Fix, m_EnableRE0Fix);
 }

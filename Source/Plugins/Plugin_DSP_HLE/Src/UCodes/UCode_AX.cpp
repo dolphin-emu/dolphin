@@ -64,28 +64,23 @@ static void ProcessUpdates(AXPB &PB)
 	if (numupd > 64) numupd = 64; // prevent crazy values TODO: LOL WHAT
 	const u32 updaddr   = (u32)(PB.updates.data_hi << 16) | PB.updates.data_lo;
 	int on = 0, off = 0;
-	for (int j = 0; j < numupd; j++)
+	const u16 updpar = Memory_Read_U16(updaddr);
+	const u16 upddata = Memory_Read_U16(updaddr + 2);
+	// some safety checks, I hope it's enough
+	if (updaddr > 0x80000000 && updaddr < 0x817fffff
+		&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
+		// 0-3, those are important
+		//&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
+		// but I don't know how or when
+		)
 	{
-		int k = g_Config.m_RE0Fix ? 0 : j;
-
-		const u16 updpar = Memory_Read_U16(updaddr + k);
-		const u16 upddata = Memory_Read_U16(updaddr + k + 2);
-		// some safety checks, I hope it's enough
-		if (updaddr > 0x80000000 && updaddr < 0x817fffff
-			&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
-			// 0-3, those are important
-			//&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
-			// but I don't know how or when
-			)
-		{
-			((u16*)&PB)[updpar] = upddata; // WTF ABOUNDS!
-		}
-		if (updpar == 7 && upddata == 1) on++;
-		if (updpar == 7 && upddata == 1) off++;
-
-		// hack: if we get both an on and an off select on rather than off
-		if (on > 0 && off > 0) PB.running = 1;
+		((u16*)&PB)[updpar] = upddata; // WTF ABOUNDS!
 	}
+	if (updpar == 7 && upddata == 1) on++;
+	if (updpar == 7 && upddata == 1) off++;
+
+	// hack: if we get both an on and an off select on rather than off
+	if (on > 0 && off > 0) PB.running = 1;
 }
 
 static void VoiceHacks(AXPB &pb)
