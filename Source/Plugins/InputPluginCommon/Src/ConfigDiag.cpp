@@ -420,12 +420,16 @@ void ControlDialog::SelectControl( wxCommandEvent& event )
 		final_label += names[ sels[i] ] + wxT('|');
 	}
 
-	control_chooser->textctrl->SetValue( final_label );
+#ifdef __linux__
+	if (!((wxWindow*)this)->IsBeingDeleted())
+#endif
+		control_chooser->textctrl->SetValue( final_label );
 
+#ifndef __linux__ // This causes the application to hang in linux
 	// kinda dumb
 	wxCommandEvent nullevent;
 	((GamepadPage*)m_parent)->SetControl( nullevent );
-	
+#endif
 }
 
 ControlChooser::ControlChooser( wxWindow* const parent, ControllerInterface::ControlReference* const ref, wxWindow* const eventsink )
