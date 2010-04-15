@@ -248,9 +248,6 @@ void Initialize(void *init)
 
 void Video_Prepare()
 {
-	// Tell the host the window is ready
-	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
-
 	// Better be safe...
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
@@ -269,6 +266,9 @@ void Video_Prepare()
 	PixelShaderManager::Init();
     CommandProcessor::Init();
     PixelEngine::Init();
+
+	// Tell the host the window is ready
+	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
 }
 
 void Shutdown()

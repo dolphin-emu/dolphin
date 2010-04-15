@@ -611,6 +611,13 @@ void Host_UpdateMainFrame()
 	}
 }
 
+void Host_UpdateTitle(const char* title)
+{
+	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATETITLE);
+	event.SetString(wxString::FromAscii(title));
+	main_frame->GetEventHandler()->AddPendingEvent(event);
+}
+
 void Host_UpdateBreakPointView()
 {
 	wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATEBREAKPOINTS);

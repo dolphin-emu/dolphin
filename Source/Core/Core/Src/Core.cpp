@@ -414,6 +414,7 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	if (g_pUpdateFPSDisplay != NULL)
 		g_pUpdateFPSDisplay(("Loading " + _CoreParameter.m_strFilename).c_str());
+	Host_UpdateTitle(("Loading " + _CoreParameter.m_strFilename).c_str());
 
 	// Setup our core, but can't use dynarec if we are compare server
 	if (_CoreParameter.iCPUCore && (!_CoreParameter.bRunCompareServer || _CoreParameter.bRunCompareClient))
@@ -435,6 +436,7 @@ THREAD_RETURN EmuThread(void *pArg)
 
 		if (g_pUpdateFPSDisplay != NULL)
 			g_pUpdateFPSDisplay(("Loaded " + _CoreParameter.m_strFilename).c_str());
+		Host_UpdateTitle(("Loaded " + _CoreParameter.m_strFilename).c_str());
 
 		// Update the window again because all stuff is initialized
 		Host_UpdateDisasmDialog();
@@ -454,6 +456,7 @@ THREAD_RETURN EmuThread(void *pArg)
 
 		if (g_pUpdateFPSDisplay != NULL)
 			g_pUpdateFPSDisplay(("Loaded " + _CoreParameter.m_strFilename).c_str());
+		Host_UpdateTitle(("Loaded " + _CoreParameter.m_strFilename).c_str());
 
 		// Update the window again because all stuff is initialized
 		Host_UpdateDisasmDialog();
@@ -663,6 +666,7 @@ void VideoThrottle()
 		// Show message
 		if (g_pUpdateFPSDisplay != NULL)
 			g_pUpdateFPSDisplay(SMessage.c_str()); 
+		Host_UpdateTitle(SMessage.c_str());
 
 		Host_UpdateStatusBar(SMessage.c_str());
 

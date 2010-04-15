@@ -732,6 +732,11 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		}
 		break;
 
+	case IDM_UPDATETITLE:
+		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && m_RenderFrame)
+			m_RenderFrame->SetTitle(event.GetString());
+		break;
+
 	case WM_USER_CREATE:
 		DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)

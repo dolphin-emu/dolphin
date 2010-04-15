@@ -38,6 +38,7 @@
 
 void Host_Message(int Id);
 void Host_UpdateMainFrame();
+void Host_UpdateTitle(const char* title);
 void Host_UpdateDisasmDialog();
 void Host_UpdateLogDisplay();
 void Host_UpdateMemoryView();
