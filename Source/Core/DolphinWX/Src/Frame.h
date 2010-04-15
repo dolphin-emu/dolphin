@@ -70,7 +70,24 @@ class CPanel : public wxPanel
 		#endif
 };
 
-class CFrame : public wxFrame
+class CRenderFrame : public wxFrame
+{
+	public:
+		CRenderFrame(wxFrame* parent,
+			wxWindowID id = wxID_ANY,
+			const wxString& title = wxT("Dolphin"),
+			const wxPoint& pos = wxDefaultPosition,
+			const wxSize& size = wxDefaultSize,
+			long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
+
+	private:
+		#ifdef _WIN32
+			// Receive WndProc messages
+			WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
+		#endif
+};
+
+class CFrame : public CRenderFrame
 {
 	public:
 		CFrame(wxFrame* parent,
@@ -206,7 +223,7 @@ class CFrame : public wxFrame
 		wxBoxSizer* sizerFrame;
 		CGameListCtrl* m_GameListCtrl;
 		wxPanel* m_Panel;
-		wxFrame* m_RenderFrame;
+		CRenderFrame* m_RenderFrame;
 		wxPanel* m_RenderParent;
 		wxToolBarToolBase* m_ToolPlay;
 		CLogWindow* m_LogWindow;

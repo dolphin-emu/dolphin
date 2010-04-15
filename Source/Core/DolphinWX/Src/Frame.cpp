@@ -200,13 +200,43 @@ CPanel::CPanel(
 	}
 #endif
 
+CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title,
+		const wxPoint& pos, const wxSize& size,	long style)
+	: wxFrame(parent, id, title, pos, size, style)
+{
+}
+
+#ifdef _WIN32
+WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
+{
+	switch (nMsg)
+	{
+		case WM_SYSCOMMAND:
+			switch (wParam)
+			{
+				case SC_SCREENSAVE:
+				case SC_MONITORPOWER:
+					if (Core::GetState() == Core::CORE_RUN)
+						break;
+				default:
+					return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
+			}
+			break;
+		default:
+			// By default let wxWidgets do what it normally does with this event
+			return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
+	}
+	return 0;
+}
+#endif
+
 // event tables
 // Notice that wxID_HELP will be processed for the 'About' menu and the toolbar
 // help button.
 
 const wxEventType wxEVT_HOST_COMMAND = wxNewEventType();
 
-BEGIN_EVENT_TABLE(CFrame, wxFrame)
+BEGIN_EVENT_TABLE(CFrame, CRenderFrame)
 
 // Menu bar
 EVT_MENU(wxID_OPEN, CFrame::OnOpen)
@@ -317,7 +347,7 @@ CFrame::CFrame(wxFrame* parent,
 		bool _UseDebugger,
 		bool ShowLogWindow,
 		long style)
-	: wxFrame(parent, id, title, pos, size, style)
+	: CRenderFrame(parent, id, title, pos, size, style)
 	, g_pCodeWindow(NULL)		
 	, m_MenuBar(NULL)
 	, bRenderToMain(false), bNoWiimoteMsg(false)
