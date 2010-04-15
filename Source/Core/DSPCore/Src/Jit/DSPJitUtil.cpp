@@ -107,36 +107,99 @@ void DSPEmitter::decrement_addr_reg(int reg)
 // Increase addr register according to the correspond ix register
 void DSPEmitter::increase_addr_reg(int reg)
 {	
-	//	s16 value = (s16)g_dsp.r[DSP_REG_IX0 + reg];
-	MOVSX(32, 16, EDX, M(&g_dsp.r[DSP_REG_IX0 + reg]));
-
-	//	if (value > 0)
-	CMP(32, R(EDX), Imm32(0));
-	//end is further away than 0x7f, needs a 6-byte jz
-	FixupBranch negValue = J_CC(CC_L);
+	MOV(16, R(ECX), M(&g_dsp.r[DSP_REG_IX0 + reg]));
+	//IX0 == 0, bail out
+	TEST(16, R(ECX), R(ECX));
 	FixupBranch end = J_CC(CC_Z, true);
 
-	//	for (; value == 0; value--) 
+	MOV(16, R(EAX), M(&g_dsp.r[reg]));
+	MOV(16, R(EDX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
+	//IX0 > 0
+	FixupBranch neg = J_CC(CC_L);
+
+	//ToMask(WR0), calculating it once is enough
+	MOV(16, R(EBX), R(EDX));
+	SHR(16, R(EBX), Imm8(8));
+	OR(16, R(EDX), R(EBX));
+	MOV(16, R(EBX), R(EDX));
+	SHR(16, R(EBX), Imm8(4));
+	OR(16, R(EDX), R(EBX));
+	MOV(16, R(EBX), R(EDX));
+	SHR(16, R(EBX), Imm8(2));
+	OR(16, R(EDX), R(EBX));
+	MOV(16, R(EBX), R(EDX));
+	SHR(16, R(EBX), Imm8(1));
+	OR(16, R(EDX), R(EBX));
+
 	JumpTarget loop_pos = GetCodePtr();
-	increment_addr_reg(reg);
+	//dsp_increment
+	MOV(16, R(EBX), R(EAX));
+	AND(16, R(EBX), R(EDX));
+	CMP(16, R(EBX), R(EDX));
+	FixupBranch pos_neq = J_CC(CC_NE);
+	//TODO: WR0 is in EDX already, until ToMask at least.
+	//      currently, J_CC end jumps exactly 0x80 bytes,
+	//      just too much for a simple 5bytes = false one...
+	//      see if we can use some other reg instead.
+	XOR(16, R(EAX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
+	FixupBranch pos_eq = J();
+	SetJumpTarget(pos_neq);
+	ADD(16, R(EAX), Imm16(1));
+	SetJumpTarget(pos_eq);
 
-	SUB(32, R(EDX), Imm32(1)); // value--	
-	CMP(32, R(EDX), Imm32(0)); // value == 0
-	J_CC(CC_NE, loop_pos);
-	FixupBranch posValue = J();
+	SUB(16, R(ECX), Imm16(1));
+	CMP(16, R(ECX), Imm16(0));
+	J_CC(CC_G, loop_pos);
+	FixupBranch end_pos = J();
 
-	SetJumpTarget(negValue);
-
-	//	for (; value == 0; value++) 
+	//else, IX0 < 0
+	SetJumpTarget(neg);
 	JumpTarget loop_neg = GetCodePtr();
-	decrement_addr_reg(reg);
+	//dsp_decrement
+	TEST(16, R(EAX), R(EDX));
+	FixupBranch neg_nz = J_CC(CC_NZ);
+	OR(16, R(EAX), R(EDX));
+	FixupBranch neg_z = J();
+	SetJumpTarget(neg_nz);
+	SUB(16, R(EAX), Imm16(1));
+	SetJumpTarget(neg_z);
 
-	ADD(32, R(EDX), Imm32(1)); // value++
-	CMP(32, R(EDX), Imm32(0)); // value == 0
-	J_CC(CC_NE, loop_neg);
+	ADD(16, R(ECX), Imm16(1));
+	CMP(16, R(ECX), Imm16(0));
+	J_CC(CC_L, loop_neg);
+	SetJumpTarget(end_pos);
+	MOV(16, M(&g_dsp.r[reg]), R(EAX));
 
-	SetJumpTarget(posValue);
 	SetJumpTarget(end);
+
+	//s16 value = g_dsp.r[DSP_REG_IX0 + reg];
+	//if (value != 0)
+	//{
+	//	u16 tmp = g_dsp.r[reg];
+	//	u16 wr_reg = g_dsp.r[DSP_REG_WR0 + reg];
+	//	if (value > 0) 
+	//	{
+	//		u16 tmb = ToMask(wr_reg);
+	//		while (value-- > 0) 
+	//		{
+	//			if ((tmp & tmb) == tmb)
+	//				tmp ^= wr_reg;
+	//			else
+	//				tmp++;
+	//		}
+	//	} 
+	//	else
+	//	{
+	//		while (value++ < 0)
+	//		{
+	//			if ((tmp & wr_reg) == 0)
+	//				tmp |= wr_reg;
+	//			else
+	//				tmp--;
+	//		}
+	//	}
+	//	g_dsp.r[reg] = tmp;
+	//}
 }
 
 // Decrease addr register according to the correspond ix register
