@@ -193,6 +193,7 @@ void GFXConfigDialogOGL::InitializeGUILists()
 	arrayStringFor_PhackvalueCB.Add(wxT("Zelda Twilight Princess Bloom hack"));
 	arrayStringFor_PhackvalueCB.Add(wxT("Sonic and the Black Knight"));
 	arrayStringFor_PhackvalueCB.Add(wxT("Bleach Versus Crusade"));
+	arrayStringFor_PhackvalueCB.Add(wxT("Skies of Arcadia"));
 }
 
 void GFXConfigDialogOGL::InitializeGUIValues()

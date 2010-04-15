@@ -90,6 +90,12 @@ void UpdateProjectionHack(int iPhackvalue)
 		bPhackvalue1 = 0;
 		bProjHack1 = 0;
 		break;
+	case PROJECTION_HACK_SKIES_OF_ARCADIA:
+		bPhackvalue1 = 1;
+		fhackvalue1 = 0.04f;
+		bPhackvalue2 = 0;
+		bProjHack1 = 0;
+		break;
 /*	// Unused - kept for reference
 	case PROJECTION_HACK_FINAL_FANTASY_CC_ECHO_OF_TIME:
 		bPhackvalue1 = 1;
@@ -117,12 +123,6 @@ void UpdateProjectionHack(int iPhackvalue)
 		bPhackvalue2 = 1;
 		fhackvalue2 = 1.9988f;
 		bProjHack1 = 1;
-		break;
-	case PROJECTION_HACK_SKIES_OF_ARCADIA:
-		bPhackvalue1 = 1;
-		fhackvalue1 = 0.04f;
-		bPhackvalue2 = 0;
-		bProjHack1 = 0;
 		break;
 */
 	}

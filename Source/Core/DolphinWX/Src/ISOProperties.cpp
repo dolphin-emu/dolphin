@@ -321,6 +321,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	arrayStringFor_Hack.Add(_("Zelda Twilight Princess Bloom hack"));
 	arrayStringFor_Hack.Add(_("Sonic and the Black Knight"));
 	arrayStringFor_Hack.Add(_("Bleach Versus Crusade"));
+	arrayStringFor_Hack.Add(_("Skies of Arcadia"));
 	Hack = new wxChoice(m_GameConfig, ID_HACK, wxDefaultPosition, wxDefaultSize, arrayStringFor_Hack, 0, wxDefaultValidator);
 
 	// Emulation State
