@@ -264,6 +264,7 @@ void Config::Load()
 
 	// Real Wiimote
 	iniFile.Get("Real", "UpdateStatus", &bUpdateRealWiimote, true);
+	iniFile.Get("Real", "Unpair", &bUnpairRealWiimote, false);
 	iniFile.Get("Real", "AccNeutralX", &iAccNeutralX, 0);
 	iniFile.Get("Real", "AccNeutralY", &iAccNeutralY, 0);
 	iniFile.Get("Real", "AccNeutralZ", &iAccNeutralZ, 0);
@@ -388,6 +389,7 @@ void Config::Save()
 	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Wiimote.ini").c_str());
 	
 	iniFile.Set("Real", "UpdateStatus", bUpdateRealWiimote);
+	iniFile.Set("Real", "Unpair", bUnpairRealWiimote);
 	iniFile.Set("Real", "AccNeutralX", iAccNeutralX);
 	iniFile.Set("Real", "AccNeutralY", iAccNeutralY);
 	iniFile.Set("Real", "AccNeutralZ", iAccNeutralZ);

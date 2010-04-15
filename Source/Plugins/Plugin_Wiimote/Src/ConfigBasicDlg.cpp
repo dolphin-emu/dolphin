@@ -25,8 +25,6 @@
 #include "EmuMain.h" // for SetDefaultExtensionRegistry
 #include "EmuSubroutines.h" // for WmRequestStatus
 
-
-
 BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_CLOSE(WiimoteBasicConfigDialog::OnClose)
 	EVT_BUTTON(wxID_OK, WiimoteBasicConfigDialog::ButtonClick)
@@ -43,6 +41,7 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_CHECKBOX(IDC_UPRIGHTWIIMOTE, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_MOTIONPLUSCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_WIIAUTORECONNECT, WiimoteBasicConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(IDC_WIIAUTOUNPAIR, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHOICE(IDC_EXTCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 
 	//UDPWii
@@ -122,7 +121,7 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 		if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY)
 		{
 			m_PairUpRealWiimote[m_Page]->Enable(false);
-			if (WiiMoteReal::WiimotePairUp() > 0)
+			if (WiiMoteReal::WiimotePairUp(false) > 0)
 			{	// Only temporay solution TODO: 2nd step: threaded. 
 				// sleep would be required (but not best way to solve that cuz 3000ms~ would be needed, which is not convenient),cuz BT device is not ready yet when calling DoRefreshReal() 
 				DoRefreshReal();
@@ -203,9 +202,14 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_ConnectRealWiimote[i] = new wxButton(m_Controller[i], IDB_REFRESH_REAL, wxT("Refresh Real Wiimotes"));
 		m_ConnectRealWiimote[i]->SetToolTip(wxT("This can only be done when the emulator is paused or stopped."));
 
-		m_WiiAutoReconnect[i] = new wxCheckBox(m_Controller[i], IDC_WIIAUTORECONNECT, wxT("Auto reconnect wiimote"));
+		m_WiiAutoReconnect[i] = new wxCheckBox(m_Controller[i], IDC_WIIAUTORECONNECT, wxT("Reconnect Wiimote on disconnect"));
 		m_WiiAutoReconnect[i]->SetToolTip(wxT("This makes dolphin automatically reconnect a wiimote when it has being disconnected.\nThis will cause problems when 2 controllers are connected for a 1 player game."));
-
+		m_WiiAutoUnpair[i] = new wxCheckBox(m_Controller[i], IDC_WIIAUTOUNPAIR, wxT("Unpair Wiimote on close"));
+		m_WiiAutoUnpair[i]->SetToolTip(wxT("This makes dolphin automatically unpair a wiimote when dolphin is about to be closed."));
+#ifndef _WIN32
+		m_WiiAutoUnpair[i]->Enable(false);
+#endif
+				
 		//IR Pointer
 		m_TextScreenWidth[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Width: 000"));
 		m_TextScreenHeight[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Height: 000"));
@@ -251,11 +255,15 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_SizeUDPWii[i]->Add(m_UDPWiiIR[i], 0, wxEXPAND | wxALL,1);
 		m_SizeUDPWii[i]->Add(m_UDPWiiNun[i], 0, wxEXPAND | wxALL,1);
 
+		m_SizeRealAuto[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Automatic"));
+		m_SizeRealAuto[i]->Add(m_WiiAutoReconnect[i], 0, wxEXPAND | (wxDOWN | wxTOP), 5);
+		m_SizeRealAuto[i]->Add(m_WiiAutoUnpair[i], 0, wxEXPAND | (wxDOWN | wxTOP), 5);
+
 		m_SizeReal[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Real Wiimote"));
 		m_SizeReal[i]->Add(m_PairUpRealWiimote[i], 0, wxEXPAND | wxALL, 5);
 		m_SizeReal[i]->Add(m_TextFoundRealWiimote[i], 0, wxEXPAND | wxALL, 5);
 		m_SizeReal[i]->Add(m_ConnectRealWiimote[i], 0, wxEXPAND | wxALL, 5);
-		m_SizeReal[i]->Add(m_WiiAutoReconnect[i], 0, wxEXPAND | wxALL, 5);
+		m_SizeReal[i]->Add(m_SizeRealAuto[i], 0, wxEXPAND | wxALL, 5);
 
 		m_SizerIRPointerWidth[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SizerIRPointerWidth[i]->Add(m_TextScreenLeft[i], 0, wxEXPAND | (wxTOP), 3);
@@ -452,6 +460,9 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		case IDC_WIIAUTORECONNECT:
 			WiiMoteEmu::WiiMapping[m_Page].bWiiAutoReconnect = m_WiiAutoReconnect[m_Page]->IsChecked();
 			break;
+		case IDC_WIIAUTOUNPAIR:
+			g_Config.bUnpairRealWiimote = m_WiiAutoUnpair[m_Page]->IsChecked();
+			break;
 		case IDC_EXTCONNECTED:
 			// Disconnect the extension so that the game recognize the change
 			DoExtensionConnectedDisconnected(WiiMoteEmu::EXT_NONE);
@@ -555,6 +566,7 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	m_UprightWiimote[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bUpright);
 	m_WiiMotionPlusConnected[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bMotionPlusConnected);
 	m_WiiAutoReconnect[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bWiiAutoReconnect);
+	m_WiiAutoUnpair[m_Page]->SetValue(g_Config.bUnpairRealWiimote);
 	m_Extension[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected);
 
 	// Update the Wiimote IR pointer calibration

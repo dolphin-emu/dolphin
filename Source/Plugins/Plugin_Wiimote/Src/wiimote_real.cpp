@@ -619,7 +619,7 @@ THREAD_RETURN SafeCloseReadWiimote_ThreadFunc(void* arg)
 }
 // WiiMote Pair-Up
 #ifdef WIN32
-int WiimotePairUp(void)
+int WiimotePairUp(bool unpair)
 {
 	HANDLE hRadios[256];
 	int nRadios;
@@ -683,7 +683,7 @@ int WiimotePairUp(void)
 
 		do
 		{
-			if ((!wcscmp(btdi.szName, L"Nintendo RVL-WBC-01") || !wcscmp(btdi.szName, L"Nintendo RVL-CNT-01")) && !btdi.fConnected)
+			if ((!wcscmp(btdi.szName, L"Nintendo RVL-WBC-01") || !wcscmp(btdi.szName, L"Nintendo RVL-CNT-01")) && !btdi.fConnected && !unpair)
 			{
 				//TODO: improve the readd of the BT driver, esp. when batteries of the wiimote are removed while beeing fConnected
 				if (btdi.fRemembered) 
@@ -705,6 +705,13 @@ int WiimotePairUp(void)
 				{
 					ERROR_LOG(WIIMOTE, "Pair-Up: BluetoothSetServiceState() returned %08x", hr);
 				}
+			}
+			else if ((!wcscmp(btdi.szName, L"Nintendo RVL-WBC-01") || !wcscmp(btdi.szName, L"Nintendo RVL-CNT-01")) && unpair)
+			{
+							
+					BluetoothRemoveDevice(&btdi.Address);
+					NOTICE_LOG(WIIMOTE, "Pair-Up: Automatically removed BT Device on shutdown: %08x", GetLastError());  
+
 			}
 		} while (BluetoothFindNextDevice(hFind, &btdi));
 		BluetoothFindRadioClose(hFind);

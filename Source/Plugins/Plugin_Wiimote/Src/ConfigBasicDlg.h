@@ -85,6 +85,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 					*m_CheckAR169[MAX_WIIMOTES],
 					*m_Crop[MAX_WIIMOTES],
 					*m_WiiAutoReconnect[MAX_WIIMOTES],
+					*m_WiiAutoUnpair[MAX_WIIMOTES],
 					*m_UDPWiiEnable[MAX_WIIMOTES],
 					*m_UDPWiiAccel[MAX_WIIMOTES],
 					*m_UDPWiiButt[MAX_WIIMOTES],
@@ -112,6 +113,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 
 		wxStaticBoxSizer *m_SizeBasic[MAX_WIIMOTES],
 						 *m_SizeEmu[MAX_WIIMOTES],
+						 *m_SizeRealAuto[MAX_WIIMOTES],
 						 *m_SizeReal[MAX_WIIMOTES],
 						 *m_SizeExtensions[MAX_WIIMOTES],
 						 *m_SizerIRPointer[MAX_WIIMOTES],
@@ -139,6 +141,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 			IDC_UPRIGHTWIIMOTE,
 			IDC_MOTIONPLUSCONNECTED,
 			IDC_WIIAUTORECONNECT,
+			IDC_WIIAUTOUNPAIR,
 			IDC_EXTCONNECTED,
 
 			//UDPWii

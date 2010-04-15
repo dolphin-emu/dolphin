@@ -32,7 +32,7 @@ namespace WiiMoteReal
 {
 
 int Initialize();
-int WiimotePairUp();
+int WiimotePairUp(bool unpair);
 
 void Allocate();
 void DoState(PointerWrap &p);

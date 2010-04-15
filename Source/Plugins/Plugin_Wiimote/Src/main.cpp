@@ -104,6 +104,9 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 		break;
 
 	case DLL_PROCESS_DETACH:
+#ifdef _WIN32
+		if (g_Config.bUnpairRealWiimote) WiiMoteReal::WiimotePairUp(true);
+#endif
 #if defined(HAVE_WX) && HAVE_WX
 		wxUninitialize();
 #endif
