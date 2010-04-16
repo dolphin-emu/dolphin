@@ -35,6 +35,7 @@ class DSPEmitter : public Gen::XCodeBlock
 	u16 compileSR;
 	DISALLOW_COPY_AND_ASSIGN(DSPEmitter);
 
+	void ToMask(Gen::X64Reg value_reg = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
 public:
 	DSPEmitter();
 	~DSPEmitter();

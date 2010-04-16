@@ -26,6 +26,22 @@
 
 using namespace Gen;
 
+// Performs the hashing required by increment/increase/decrease_addr_reg
+void DSPEmitter::ToMask(X64Reg value_reg, X64Reg temp_reg)
+{
+	MOV(16, R(temp_reg), R(value_reg));
+	SHR(16, R(temp_reg), Imm8(8));
+	OR(16, R(value_reg), R(temp_reg));
+	MOV(16, R(temp_reg), R(value_reg));
+	SHR(16, R(temp_reg), Imm8(4));
+	OR(16, R(value_reg), R(temp_reg));
+	MOV(16, R(temp_reg), R(value_reg));
+	SHR(16, R(temp_reg), Imm8(2));
+	OR(16, R(value_reg), R(temp_reg));
+	MOV(16, R(temp_reg), R(value_reg));
+	SHR(16, R(temp_reg), Imm8(1));
+	OR(16, R(value_reg), R(temp_reg));
+}
 
 // HORRIBLE UGLINESS, someone please fix.
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
@@ -39,19 +55,7 @@ void DSPEmitter::increment_addr_reg(int reg)
 
 	//ToMask(WR0), calculating it into EDI
 	MOV(16, R(EDI), R(EDX));
-
-	MOV(16, R(ESI), R(EDI));
-	SHR(16, R(ESI), Imm8(8));
-	OR(16, R(EDI), R(ESI));
-	MOV(16, R(ESI), R(EDI));
-	SHR(16, R(ESI), Imm8(4));
-	OR(16, R(EDI), R(ESI));
-	MOV(16, R(ESI), R(EDI));
-	SHR(16, R(ESI), Imm8(2));
-	OR(16, R(EDI), R(ESI));
-	MOV(16, R(ESI), R(EDI));
-	SHR(16, R(ESI), Imm8(1));
-	OR(16, R(EDI), R(ESI));
+	ToMask(EDI);
 
 	// 	if ((tmp & tmb) == tmb)
 	MOV(16, R(ESI), R(EAX));
@@ -111,7 +115,7 @@ void DSPEmitter::increase_addr_reg(int reg)
 	MOV(16, R(ECX), M(&g_dsp.r[DSP_REG_IX0 + reg]));
 	//IX0 == 0, bail out
 	TEST(16, R(ECX), R(ECX));
-	FixupBranch end = J_CC(CC_Z, true);
+	FixupBranch end = J_CC(CC_Z);
 
 	MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	MOV(16, R(EDX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
@@ -120,19 +124,7 @@ void DSPEmitter::increase_addr_reg(int reg)
 
 	//ToMask(WR0), calculating it into EDI
 	MOV(16, R(EDI), R(EDX));
-
-	MOV(16, R(ESI), R(EDI));
-	SHR(16, R(ESI), Imm8(8));
-	OR(16, R(EDI), R(ESI));
-	MOV(16, R(ESI), R(EDI));
-	SHR(16, R(ESI), Imm8(4));
-	OR(16, R(EDI), R(ESI));
-	MOV(16, R(ESI), R(EDI));
-	SHR(16, R(ESI), Imm8(2));
-	OR(16, R(EDI), R(ESI));
-	MOV(16, R(ESI), R(EDI));
-	SHR(16, R(ESI), Imm8(1));
-	OR(16, R(EDI), R(ESI));
+	ToMask(EDI);
 
 	//dsp_increment
 	JumpTarget loop_pos = GetCodePtr();
@@ -150,7 +142,7 @@ void DSPEmitter::increase_addr_reg(int reg)
 	ADD(16, R(EAX), Imm16(1));
 	SetJumpTarget(pos_eq);
 
-	SUB(16, R(ECX), Imm16(1)); // value --
+	SUB(16, R(ECX), Imm16(1)); // value--
 	CMP(16, R(ECX), Imm16(0)); // value > 0
 	J_CC(CC_G, loop_pos); 
 	FixupBranch end_pos = J();
@@ -193,13 +185,12 @@ void DSPEmitter::decrease_addr_reg(int reg)
 	MOV(16, R(ECX), M(&g_dsp.r[DSP_REG_IX0 + reg]));
 	//IX0 == 0, bail out
 	TEST(16, R(ECX), R(ECX));
-	FixupBranch end = J_CC(CC_Z, true);
+	FixupBranch end = J_CC(CC_Z);
 
 	MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	MOV(16, R(EDX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
 	//IX0 > 0
 	FixupBranch neg = J_CC(CC_L);
-	//dsp_increment
 	JumpTarget loop_pos = GetCodePtr();
 
 	//dsp_decrement
@@ -215,7 +206,7 @@ void DSPEmitter::decrease_addr_reg(int reg)
 	SUB(16, R(EAX), Imm16(1));
 	SetJumpTarget(neg_z);
 
-	SUB(16, R(ECX), Imm16(1)); // value --
+	SUB(16, R(ECX), Imm16(1)); // value--
 	CMP(16, R(ECX), Imm16(0)); // value > 0
 	J_CC(CC_G, loop_pos); 
 	FixupBranch end_pos = J();
@@ -225,21 +216,10 @@ void DSPEmitter::decrease_addr_reg(int reg)
 
 	//ToMask(WR0), calculating it into EDI
 	MOV(16, R(EDI), R(EDX));
-
-	MOV(16, R(ESI), R(EDI));
-	SHR(16, R(ESI), Imm8(8));
-	OR(16, R(EDI), R(ESI));
-	MOV(16, R(ESI), R(EDI));
-	SHR(16, R(ESI), Imm8(4));
-	OR(16, R(EDI), R(ESI));
-	MOV(16, R(ESI), R(EDI));
-	SHR(16, R(ESI), Imm8(2));
-	OR(16, R(EDI), R(ESI));
-	MOV(16, R(ESI), R(EDI));
-	SHR(16, R(ESI), Imm8(1));
-	OR(16, R(EDI), R(ESI));
+	ToMask(EDI);
 
 	JumpTarget loop_neg = GetCodePtr();
+	//dsp_increment
 	// if ((tmp & tmb) == tmb)
 	MOV(16, R(ESI), R(EAX));
 	AND(16, R(ESI), R(EDI));
@@ -249,6 +229,7 @@ void DSPEmitter::decrease_addr_reg(int reg)
 	// tmp ^= wr_reg
 	XOR(16, R(EAX), R(EDX));
 	FixupBranch pos_eq = J();
+
 	SetJumpTarget(pos_neq);
 	//	else tmp++
 	ADD(16, R(EAX), Imm16(1));
