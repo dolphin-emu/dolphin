@@ -193,7 +193,7 @@ void DSPCore_CheckExceptions()
 	if (g_dsp.exceptions == 0)
 		return;	
 
-	// it's unclear what to do when there are two exceptions are the same time
+	// it's unclear what to do when there are two exceptions at the same time
 	// but for sure they should not be called together therefore the
 	// g_dsp.exception_in_progress
 	if (g_dsp.exception_in_progress != -1) {

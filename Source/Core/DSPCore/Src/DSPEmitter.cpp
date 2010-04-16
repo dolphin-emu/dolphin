@@ -66,6 +66,27 @@ void DSPEmitter::ClearIRAM() {
 	}
 }
 
+// Must go out of block if exception is detected
+void DSPEmitter::checkExceptions() {
+	ABI_CallFunction((void *)&DSPCore_CheckExternalInterrupt);
+	// Check for interrupts and exceptions
+	TEST(8, M(&g_dsp.exceptions), Imm8(0xff));
+	FixupBranch skipCheck = J_CC(CC_Z);
+	
+	ABI_CallFunction((void *)&DSPCore_CheckExceptions);
+	
+	MOV(32, R(EAX), M(&g_dsp.exception_in_progress));
+	CMP(32, R(EAX), Imm32(0));
+	FixupBranch noExceptionOccurred = J_CC(CC_L);
+	
+	//	ABI_CallFunction((void *)DSPInterpreter::HandleLoop);
+	ABI_RestoreStack(0);
+	RET();
+	
+	SetJumpTarget(skipCheck);
+	SetJumpTarget(noExceptionOccurred);
+}
+
 void DSPEmitter::WriteCallInterpreter(UDSPInstruction inst)
 {
 	const DSPOPCTemplate *tinst = GetOpTemplate(inst);
@@ -116,28 +137,12 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 	ABI_AlignStack(0);
 
 	int addr = start_addr;
-
+	checkExceptions();
 	while (addr < start_addr + BLOCK_SIZE)
 	{
 		UDSPInstruction inst = dsp_imem_read(addr);
 		const DSPOPCTemplate *opcode = GetOpTemplate(inst);
 
-		// Check for interrupts and exceptions
-		TEST(8, M(&g_dsp.exceptions), Imm8(0xff));
-		FixupBranch skipCheck = J_CC(CC_Z);
-		
-		ABI_CallFunction((void *)&DSPCore_CheckExceptions);
-		
-		MOV(32, R(EAX), M(&g_dsp.exception_in_progress));
-		CMP(32, R(EAX), Imm32(0));
-		FixupBranch noExceptionOccurred = J_CC(CC_L);
-		
-		//	ABI_CallFunction((void *)DSPInterpreter::HandleLoop);
-		ABI_RestoreStack(0);
-		RET();
-		
-		SetJumpTarget(skipCheck);
-		SetJumpTarget(noExceptionOccurred);
 		
 		// Increment PC
 		ADD(16, M(&(g_dsp.pc)), Imm16(1));
@@ -198,8 +203,6 @@ void STACKALIGN DSPEmitter::RunBlock(int cycles)
 	{
 		if (block_cycles > 500)
 		{
-			if(g_dsp.cr & CR_EXTERNAL_INT)
-				DSPCore_CheckExternalInterrupt();
 			block_cycles = 0;
 		}
 

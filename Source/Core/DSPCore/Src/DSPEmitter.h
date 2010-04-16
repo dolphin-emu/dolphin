@@ -52,7 +52,8 @@ public:
 	// Register helpers
 	void setCompileSR(u16 bit);
 	void clrCompileSR(u16 bit);
-	
+	void checkExceptions();
+
 	// Memory helper functions
 	void increment_addr_reg(int reg);
 	void decrement_addr_reg(int reg);
