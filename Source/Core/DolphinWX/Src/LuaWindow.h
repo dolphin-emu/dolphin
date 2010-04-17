@@ -60,7 +60,7 @@ class wxLuaWindow : public wxFrame
 		wxPanel *m_Tab_Log;
 
 		wxButton *m_Button_Close, *m_Button_LoadScript, *m_Button_Run, 
-			     *m_Button_Stop;
+			     *m_Button_Stop, *m_Button_Clear;
 
 		wxTextCtrl *m_TextCtrl_Log;
 
@@ -72,6 +72,7 @@ class wxLuaWindow : public wxFrame
 			ID_BUTTON_LOAD,
 			ID_BUTTON_RUN,
 			ID_BUTTON_STOP,
+			ID_BUTTON_CLEAR,
 			ID_TEXTCTRL_LOG
 		};
 
@@ -88,7 +89,15 @@ class wxLuaWindow : public wxFrame
 		void OnEvent_ScriptLoad_Press(wxCommandEvent& event);
 		void OnEvent_ScriptRun_Press(wxCommandEvent& event);
 		void OnEvent_ScriptStop_Press(wxCommandEvent& event);
+		void OnEvent_ButtonClear_Press(wxCommandEvent& event);
 
+		// -- CoreTiming-style event handlers --
+		static void LuaOpenCallback(u64 userdata, int cyclesLate);
+		static void LuaCloseCallback(u64 userdata, int cyclesLate);
+		static void LuaStartCallback(u64 userdata, int cyclesLate);
+		static void LuaStopCallback(u64 userdata, int cyclesLate);
+
+		static void LuaWindow_InitFirstTime();
 
 };
 

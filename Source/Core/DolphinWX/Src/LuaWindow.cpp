@@ -17,6 +17,7 @@
 
 #include "LuaWindow.h"
 #include "LuaInterface.h"
+#include "../../Core/Src/CoreTiming.h"
 
 #include <map>
 
@@ -33,9 +34,13 @@ BEGIN_EVENT_TABLE(wxLuaWindow, wxWindow)
 	EVT_BUTTON(ID_BUTTON_LOAD,                           wxLuaWindow::OnEvent_ScriptLoad_Press)
 	EVT_BUTTON(ID_BUTTON_RUN,                            wxLuaWindow::OnEvent_ScriptRun_Press)
 	EVT_BUTTON(ID_BUTTON_STOP,                           wxLuaWindow::OnEvent_ScriptStop_Press)
+	EVT_BUTTON(ID_BUTTON_CLEAR,                          wxLuaWindow::OnEvent_ButtonClear_Press)
 END_EVENT_TABLE()
 
 std::map<int, wxLuaWindow *> g_contextMap;
+
+static int ev_LuaOpen, ev_LuaClose, ev_LuaStart, ev_LuaStop;
+
 
 void LuaPrint(int uid, const char *msg)
 {
@@ -55,11 +60,13 @@ void LuaStop(int uid, bool ok)
 wxLuaWindow::wxLuaWindow(wxFrame* parent, const wxPoint& pos, const wxSize& size) :
 	wxFrame(parent, wxID_ANY, _T("Lua Script Console"), pos, size, wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE)
 {
+	LuaWindow_InitFirstTime();
+
 	// Create Lua context
 	luaID = luaCount;
-	Lua::OpenLuaContext(luaID, LuaPrint, NULL, LuaStop);
-	g_contextMap[luaID] = this;
 	luaCount++;
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev_LuaOpen, luaID);
+	g_contextMap[luaID] = this;
 	bScriptRunning = false;
 
 	// Create the GUI controls
@@ -76,7 +83,7 @@ wxLuaWindow::wxLuaWindow(wxFrame* parent, const wxPoint& pos, const wxSize& size
 wxLuaWindow::~wxLuaWindow()
 {
 	// On Disposal
-	Lua::CloseLuaContext(luaID);
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev_LuaClose, luaID);
 	g_contextMap.erase(luaID);
 }
 
@@ -104,6 +111,7 @@ void wxLuaWindow::InitGUIControls()
 	m_Button_LoadScript = new wxButton(this, ID_BUTTON_LOAD, _T("Load Script..."), wxDefaultPosition, wxDefaultSize);
 	m_Button_Run = new wxButton(this, ID_BUTTON_RUN, _T("Run"), wxDefaultPosition, wxDefaultSize);
 	m_Button_Stop = new wxButton(this, ID_BUTTON_STOP, _T("Stop"), wxDefaultPosition, wxDefaultSize);
+	m_Button_Clear = new wxButton(this, ID_BUTTON_CLEAR, _T("Clear"), wxDefaultPosition, wxDefaultSize);
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 
 	m_Button_Run->Disable();
@@ -113,6 +121,7 @@ void wxLuaWindow::InitGUIControls()
 	sButtons->Add(m_Button_LoadScript, 0, wxALL, 5);
 	sButtons->Add(m_Button_Run, 0, wxALL, 5);
 	sButtons->Add(m_Button_Stop, 0, wxALL, 5);
+	sButtons->Add(m_Button_Clear, 0, wxALL, 5);
 
 	wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(m_Tab_Log, 1, wxEXPAND|wxALL, 5);
@@ -157,12 +166,12 @@ void wxLuaWindow::OnEvent_ScriptRun_Press(wxCommandEvent&  WXUNUSED(event))
 	m_Button_Run->Disable();
 	m_Button_Stop->Enable();
 
-	Lua::RunLuaScriptFile(luaID, (const char *)currentScript.mb_str());
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev_LuaStart, luaID);
 }
 
 void wxLuaWindow::OnEvent_ScriptStop_Press(wxCommandEvent&  WXUNUSED(event)) 
 {
-	Lua::StopLuaScript(luaID);
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev_LuaStop, luaID);
 	OnStop();
 	PrintMessage("Script stopped!\n");
 }
@@ -173,6 +182,11 @@ void wxLuaWindow::OnStop()
 	m_Button_LoadScript->Enable();
 	m_Button_Run->Enable();
 	m_Button_Stop->Disable();
+}
+
+void wxLuaWindow::OnEvent_ButtonClear_Press(wxCommandEvent& WXUNUSED (event))
+{
+	m_TextCtrl_Log->Clear();
 }
 
 void wxLuaWindow::OnEvent_Window_Resize(wxSizeEvent& WXUNUSED (event))
@@ -188,3 +202,34 @@ void wxLuaWindow::OnEvent_Window_Close(wxCloseEvent& WXUNUSED (event))
 	Destroy();
 }
 
+
+// this layer of event stuff is because Lua needs to run on the CPU thread
+void wxLuaWindow::LuaOpenCallback(u64 userdata, int)
+{
+	Lua::OpenLuaContext((int)userdata, LuaPrint, NULL, LuaStop);
+}
+void wxLuaWindow::LuaCloseCallback(u64 userdata, int)
+{
+	Lua::CloseLuaContext((int)userdata);
+}
+void wxLuaWindow::LuaStartCallback(u64 userdata, int)
+{
+	int luaID = (int)userdata;
+	Lua::RunLuaScriptFile(luaID, (const char *)g_contextMap[luaID]->currentScript.mb_str());
+}
+void wxLuaWindow::LuaStopCallback(u64 userdata, int)
+{
+	Lua::StopLuaScript((int)userdata);
+}
+void wxLuaWindow::LuaWindow_InitFirstTime()
+{
+	static bool initialized = false;
+	if(!initialized)
+	{
+		ev_LuaOpen = CoreTiming::RegisterEvent("LuaOpen", &wxLuaWindow::LuaOpenCallback);
+		ev_LuaClose = CoreTiming::RegisterEvent("LuaClose", &wxLuaWindow::LuaCloseCallback);
+		ev_LuaStart = CoreTiming::RegisterEvent("LuaStart", &wxLuaWindow::LuaStartCallback);
+		ev_LuaStop = CoreTiming::RegisterEvent("LuaStop", &wxLuaWindow::LuaStopCallback);
+		initialized = true;
+	}
+}

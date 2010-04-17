@@ -61,6 +61,7 @@ static bool state_op_in_progress = false;
 
 static int ev_Save, ev_BufferSave;
 static int ev_Load, ev_BufferLoad;
+static int ev_Verify, ev_BufferVerify;
 
 static std::string cur_filename, lastFilename;
 static u8 **cur_buffer = NULL;
@@ -97,6 +98,11 @@ void DoState(PointerWrap &p)
 	PowerPC::DoState(p);
 	HW::DoState(p);
 	CoreTiming::DoState(p);
+
+	// TODO: it's a GIGANTIC waste of time and space to savestate the following
+	// (adds 128MB of mostly-empty cache data to every savestate).
+	// it seems to be unnecessary as far as I can tell,
+	// but I can't prove it is yet so I'll leave it here for now...
 #ifdef JIT_UNLIMITED_ICACHE	
 	p.DoVoid(jit->GetBlockCache()->GetICache(), JIT_ICACHE_SIZE);
 	p.DoVoid(jit->GetBlockCache()->GetICacheEx(), JIT_ICACHEEX_SIZE);
@@ -123,8 +129,6 @@ void LoadBufferStateCallback(u64 userdata, int cyclesLate)
 
 void SaveBufferStateCallback(u64 userdata, int cyclesLate)
 {
-	size_t sz;
-
 	if (!cur_buffer) {
 		Core::DisplayMessage("Error saving state", 1000);
 		return;
@@ -135,17 +139,42 @@ void SaveBufferStateCallback(u64 userdata, int cyclesLate)
 	u8 *ptr = NULL;
 
 	PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
-	DoState(p);
-	sz = (size_t)ptr;
 
-	if (*cur_buffer)
-		delete[] (*cur_buffer);
+	if (!*cur_buffer)
+	{
+		// if we got passed an empty buffer,
+		// allocate it with new[]
+		// (and the caller is responsible for delete[]ing it later)
+		DoState(p);
+		size_t sz = (size_t)ptr;
+		*cur_buffer = new u8[sz];
+	}
+	else
+	{
+		// otherwise the caller is telling us that they have already allocated it with enough space
+	}
 
-	*cur_buffer = new u8[sz];
 	ptr = *cur_buffer;
 	p.SetMode(PointerWrap::MODE_WRITE);
 	DoState(p);
 
+	state_op_in_progress = false;
+}
+
+void VerifyBufferStateCallback(u64 userdata, int cyclesLate)
+{
+	if (!cur_buffer || !*cur_buffer) {
+		Core::DisplayMessage("State does not exist", 1000);
+		return;
+	}
+
+	jit->ClearCache();
+
+	u8 *ptr = *cur_buffer;
+	PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
+	DoState(p);
+
+	Core::DisplayMessage("Verified state", 2000);
 	state_op_in_progress = false;
 }
 
@@ -224,12 +253,7 @@ THREAD_RETURN CompressAndDumpState(void *pArgs)
 
 void SaveStateCallback(u64 userdata, int cyclesLate)
 {
-	// If already saving state, wait for it to finish
-	if (saveThread)
-	{
-		delete saveThread;
-		saveThread = NULL;
-	}
+	State_Flush();
 
 	jit->ClearCache();
 
@@ -258,16 +282,17 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 {
 	bool bCompressedState;
 
-	// If saving state, wait for it to finish
-	if (saveThread)
-	{
-		delete saveThread;
-		saveThread = NULL;
-	}
+	State_Flush();
 
 	// Save temp buffer for undo load state
-	cur_buffer = &undoLoad;
-	SaveBufferStateCallback(userdata, cyclesLate);
+	// TODO: this should be controlled by a user option,
+	// because it slows down every savestate load to provide an often-unused feature.
+	{
+		delete[] undoLoad;
+		undoLoad = NULL;
+		cur_buffer = &undoLoad;
+		SaveBufferStateCallback(userdata, cyclesLate);
+	}
 
 	FILE *f = fopen(cur_filename.c_str(), "rb");
 	if (!f)
@@ -356,12 +381,108 @@ void LoadStateCallback(u64 userdata, int cyclesLate)
 	delete[] buffer;
 }
 
+void VerifyStateCallback(u64 userdata, int cyclesLate)
+{
+	bool bCompressedState;
+
+	State_Flush();
+
+	FILE *f = fopen(cur_filename.c_str(), "rb");
+	if (!f)
+	{
+		Core::DisplayMessage("State not found", 2000);
+		return;
+	}
+
+	u8 *buffer = NULL;
+	state_header header;
+	size_t sz;
+
+	fread(&header, sizeof(state_header), 1, f);
+	
+	if (memcmp(SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str(), header.gameID, 6)) 
+	{
+		char gameID[7] = {0};
+		memcpy(gameID, header.gameID, 6);
+		Core::DisplayMessage(StringFromFormat("State belongs to a different game (ID %s)",
+			gameID), 2000);
+
+		fclose(f);
+
+		return;
+	}
+
+	sz = header.sz;
+	bCompressedState = (sz != 0);
+	if (bCompressedState)
+	{
+		Core::DisplayMessage("Decompressing State...", 500);
+
+		lzo_uint i = 0;
+		buffer = new u8[sz];
+		if (!buffer) {
+			PanicAlert("Error allocating buffer");
+			return;
+		}
+		while (true)
+		{
+			lzo_uint cur_len = 0;
+			lzo_uint new_len = 0;
+			if (fread(&cur_len, 1, sizeof(int), f) == 0)
+				break;
+			if (feof(f))
+				break;  // don't know if this happens.
+			fread(out, 1, cur_len, f);
+			int res = lzo1x_decompress(out, cur_len, (buffer + i), &new_len, NULL);
+			if (res != LZO_E_OK)
+			{
+				// This doesn't seem to happen anymore.
+				PanicAlert("Internal LZO Error - decompression failed (%d) (%d, %d) \n"
+					"Try verifying the state again", res, i, new_len);
+				fclose(f);
+				delete [] buffer;
+				return;
+			}
+	
+			// The size of the data to read to our buffer is 'new_len'
+			i += new_len;
+		}
+	}
+	else
+	{
+		fseek(f, 0, SEEK_END);
+		sz = (int)(ftell(f) - sizeof(int));
+		fseek(f, sizeof(int), SEEK_SET);
+		buffer = new u8[sz];
+		int x;
+		if ((x = (int)fread(buffer, 1, sz, f)) != (int)sz)
+			PanicAlert("wtf? %d %d", x, sz);
+	}
+
+	fclose(f);
+
+	jit->ClearCache();
+
+	u8 *ptr = buffer;
+	PointerWrap p(&ptr, PointerWrap::MODE_VERIFY);
+	DoState(p);
+
+	if (p.GetMode() == PointerWrap::MODE_READ)
+		Core::DisplayMessage(StringFromFormat("Verified state at %s", cur_filename.c_str()).c_str(), 2000);
+	else
+		Core::DisplayMessage("Unable to Verify : Can't verify state from other revisions !", 4000);
+
+	delete [] buffer;
+}
+
 void State_Init()
 {
 	ev_Load = CoreTiming::RegisterEvent("LoadState", &LoadStateCallback);
 	ev_Save = CoreTiming::RegisterEvent("SaveState", &SaveStateCallback);
+	ev_Verify = CoreTiming::RegisterEvent("VerifyState", &VerifyStateCallback);
 	ev_BufferLoad = CoreTiming::RegisterEvent("LoadBufferState", &LoadBufferStateCallback);
 	ev_BufferSave = CoreTiming::RegisterEvent("SaveBufferState", &SaveBufferStateCallback);
+	ev_BufferVerify = CoreTiming::RegisterEvent("VerifyBufferState", &VerifyBufferStateCallback);
 
 	if (lzo_init() != LZO_E_OK)
 		PanicAlert("Internal LZO Error - lzo_init() failed");
@@ -369,11 +490,7 @@ void State_Init()
 
 void State_Shutdown()
 {
-	if (saveThread)
-	{
-		delete saveThread;
-		saveThread = NULL;
-	}
+	State_Flush();
 
 	if (undoLoad)
 	{
@@ -394,7 +511,7 @@ void State_SaveAs(const std::string &filename)
 	state_op_in_progress = true;
 	cur_filename = filename;
 	lastFilename = filename;
-	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Save);
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev_Save);
 }
 
 void State_Save(int slot)
@@ -408,12 +525,26 @@ void State_LoadAs(const std::string &filename)
 		return;
 	state_op_in_progress = true;
 	cur_filename = filename;
-	CoreTiming::ScheduleEvent_Threadsafe(0, ev_Load);
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev_Load);
 }
 
 void State_Load(int slot)
 {
 	State_LoadAs(MakeStateFilename(slot));
+}
+
+void State_VerifyAt(const std::string &filename)
+{
+	if (state_op_in_progress)
+		return;
+	state_op_in_progress = true;
+	cur_filename = filename;
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev_Verify);
+}
+
+void State_Verify(int slot)
+{
+	State_VerifyAt(MakeStateFilename(slot));
 }
 
 void State_LoadLastSaved()
@@ -430,7 +561,7 @@ void State_LoadFromBuffer(u8 **buffer)
 		return;
 	state_op_in_progress = true;
 	cur_buffer = buffer;
-	CoreTiming::ScheduleEvent_Threadsafe(0, ev_BufferLoad);
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev_BufferLoad);
 }
 
 void State_SaveToBuffer(u8 **buffer)
@@ -439,7 +570,26 @@ void State_SaveToBuffer(u8 **buffer)
 		return;
 	state_op_in_progress = true;
 	cur_buffer = buffer;
-	CoreTiming::ScheduleEvent_Threadsafe(0, ev_BufferSave);
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev_BufferSave);
+}
+
+void State_VerifyBuffer(u8 **buffer)
+{
+	if (state_op_in_progress)
+		return;
+	state_op_in_progress = true;
+	cur_buffer = buffer;
+	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev_BufferVerify);
+}
+
+void State_Flush()
+{
+	// If already saving state, wait for it to finish
+	if (saveThread)
+	{
+		delete saveThread;
+		saveThread = NULL;
+	}
 }
 
 // Load the last state before loading the state

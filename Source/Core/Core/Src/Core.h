@@ -48,6 +48,7 @@ namespace Core
 	std::string StopMessage(bool, std::string);
 
 	bool isRunning();
+	bool IsRunningInCurrentThread(); // this tells us whether we are in the cpu thread.
     
     void SetState(EState _State);
     EState GetState();

@@ -117,7 +117,12 @@ void Thread::SetCurrentThreadAffinity(int mask)
 	SetThreadAffinityMask(GetCurrentThread(), mask);
 }
 
-#ifdef _WIN32
+bool Thread::IsCurrentThread()
+{
+	return GetCurrentThreadId() == m_threadId;
+}
+
+
 EventEx::EventEx()
 {
 	InterlockedExchange(&m_Lock, 1);
@@ -169,7 +174,7 @@ bool EventEx::MsgWait()
 	}
 	return true;
 }
-#endif
+
 
 // Regular same thread loop based waiting
 Event::Event()
@@ -395,6 +400,11 @@ void Thread::SetCurrentThreadAffinity(int mask)
 
 	pthread_setaffinity_np(pthread_self(), sizeof(cpu_set), &cpu_set);
 #endif
+}
+
+bool Thread::IsCurrentThread()
+{
+	return pthread_equal(pthread_self(), thread_id) != 0;
 }
 
 void InitThreading() {

@@ -101,11 +101,15 @@ void *g_pXWindow = NULL;
 #endif
 Common::Thread* g_EmuThread = NULL;
 
+static Common::Thread* cpuThread = NULL;
+
 SCoreStartupParameter g_CoreStartupParameter;
 
 // This event is set when the emuthread starts.
 Common::Event emuThreadGoing;
 Common::Event cpuRunloopQuit;
+
+
 
 // Display messages and return values
 
@@ -162,6 +166,10 @@ bool isRunning()
 	return (GetState() != CORE_UNINITIALIZED) || g_bHwInit;
 }
 
+bool IsRunningInCurrentThread()
+{
+	return isRunning() && ((cpuThread == NULL) || cpuThread->IsCurrentThread());
+}
 
 // This is called from the GUI thread. See the booting call schedule in
 // BootManager.cpp
@@ -423,7 +431,7 @@ THREAD_RETURN EmuThread(void *pArg)
 		PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
 
 	// Spawn the CPU thread
-	Common::Thread *cpuThread = NULL;
+	_dbg_assert_(HLE, cpuThread == NULL);
 	// ENTER THE VIDEO THREAD LOOP
 	if (_CoreParameter.bCPUThread)
 	{

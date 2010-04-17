@@ -20,6 +20,7 @@
 #include "Thread.h"
 #include "PowerPC/PowerPC.h"
 #include "CoreTiming.h"
+#include "Core.h"
 #include "StringUtil.h"
 
 #define MAX_SLICE_LENGTH 20000
@@ -174,6 +175,7 @@ void DoState(PointerWrap &p)
 		}
 		break;
 	case PointerWrap::MODE_MEASURE:
+	case PointerWrap::MODE_VERIFY:
 	case PointerWrap::MODE_WRITE:
 		{
 		Event *ev = first;
@@ -215,6 +217,20 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 	ne->userdata = userdata;
 	tsFirst = ne;
 	externalEventSection.Leave();
+}
+
+// Same as ScheduleEvent_Threadsafe(0, ...) EXCEPT if we are already on the main thread
+// in which case the event will get handled immediately, before returning.
+void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
+{
+	if(Core::IsRunningInCurrentThread())
+	{
+		externalEventSection.Enter();
+		event_types[event_type].callback(userdata, 0);
+		externalEventSection.Leave();
+	}
+	else
+		ScheduleEvent_Threadsafe(0, event_type, userdata);
 }
 
 void ClearPendingEvents()
