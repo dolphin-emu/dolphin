@@ -455,7 +455,7 @@ bool DolphinApp::OnInit()
 	// First check if we have an elf command line. 
 	if (LoadElf && ElfFile != wxEmptyString)
 	{
-		main_frame->StartGame(std::string(ElfFile.mb_str()));
+		main_frame->BootGame(std::string(ElfFile.mb_str()));
 	}
 	// If we have selected Automatic Start, start the default ISO, or if no default
 	// ISO exists, start the last loaded ISO
@@ -467,13 +467,13 @@ bool DolphinApp::OnInit()
 					&& File::Exists(SConfig::GetInstance().m_LocalCoreStartupParameter.
 						m_strDefaultGCM.c_str()))
 			{
-				main_frame->StartGame(SConfig::GetInstance().m_LocalCoreStartupParameter.
+				main_frame->BootGame(SConfig::GetInstance().m_LocalCoreStartupParameter.
 						m_strDefaultGCM);
 			}
 			else if(!SConfig::GetInstance().m_LastFilename.empty()
 					&& File::Exists(SConfig::GetInstance().m_LastFilename.c_str()))
 			{
-				main_frame->StartGame(SConfig::GetInstance().m_LastFilename);
+				main_frame->BootGame(SConfig::GetInstance().m_LastFilename);
 			}	
 		}
 	}

@@ -357,7 +357,7 @@ CFrame::CFrame(wxFrame* parent,
 	, m_RenderFrame(NULL), m_RenderParent(NULL)
 	, m_LogWindow(NULL)
 	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
-	, m_bControlsCreated(false), m_StopDlg(NULL)
+	, m_bControlsCreated(false), m_bGameLoading(false), m_StopDlg(NULL)
 	#if wxUSE_TIMER
 		, m_timer(this)
 	#endif
@@ -487,13 +487,6 @@ CFrame::CFrame(wxFrame* parent,
 
 	// -------------------------
 	// Connect event handlers
-
-	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
-		wxKeyEventHandler(CFrame::OnKeyDown),
-		(wxObject*)0, this);
-	wxTheApp->Connect(wxID_ANY, wxEVT_KEY_UP,
-		wxKeyEventHandler(CFrame::OnKeyUp),
-		(wxObject*)0, this);
 
 	m_Mgr->Connect(wxID_ANY, wxEVT_AUI_RENDER, // Resize
 		wxAuiManagerEventHandler(CFrame::OnManagerResize),
@@ -846,7 +839,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 	}			
 	else
 		// Game started by double click
-		StartGame(std::string(""));
+		BootGame(std::string(""));
 }
 
 bool IsHotkey(wxKeyEvent &event, int Id)

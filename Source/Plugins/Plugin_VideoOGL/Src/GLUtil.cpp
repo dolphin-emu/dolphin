@@ -445,20 +445,6 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	return true;
 }
 
-bool OpenGL_Initialize()
-{
-	bool success = OpenGL_MakeCurrent();
-	if (!success)
-	{
-		PanicAlert("Can't Activate The GL Rendering Context.");
-		return false;
-	}
-	// Notify the core that the window is current
-	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
-	return success;
-
-}
-
 bool OpenGL_MakeCurrent()
 {
 	// connect the glx-context to the window

@@ -115,7 +115,6 @@ extern GLWindow GLWin;
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _width, int _height);
 void OpenGL_Shutdown();
 void OpenGL_Update();
-bool OpenGL_Initialize();
 bool OpenGL_MakeCurrent();
 void OpenGL_SwapBuffers();
 

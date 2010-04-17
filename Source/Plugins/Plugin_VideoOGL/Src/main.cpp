@@ -349,7 +349,7 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 // This is called after Video_Initialize() from the Core
 void Video_Prepare(void)
 {
-	OpenGL_Initialize();
+	OpenGL_MakeCurrent();
 	if (!Renderer::Init()) {
 		g_VideoInitialize.pLog("Renderer::Create failed\n", TRUE);
 		PanicAlert("Can't create opengl renderer. You might be missing some required opengl extensions, check the logs for more info");
@@ -378,6 +378,9 @@ void Video_Prepare(void)
 	VertexLoaderManager::Init();
 	TextureConverter::Init();
 	DLCache::Init();
+
+	// Notify the core that the video plugin is ready
+	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
 
 	s_PluginInitialized = true;
 	INFO_LOG(VIDEO, "Video plugin initialized.");

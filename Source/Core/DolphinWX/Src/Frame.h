@@ -131,7 +131,7 @@ class CFrame : public CRenderFrame
 		void ClearStatusBar();
 		void OnCustomHostMessage(int Id);
 		void OnSizeRequest(int& x, int& y, int& width, int& height);
-		void StartGame(const std::string& filename);
+		void BootGame(const std::string& filename);
 		void OnRenderParentClose(wxCloseEvent& event);
 		void OnRenderParentMove(wxMoveEvent& event);
 		bool RendererHasFocus();
@@ -232,6 +232,7 @@ class CFrame : public CRenderFrame
 		bool m_bTabSplit;
 		bool m_bNoDocking;
 		bool m_bControlsCreated;
+		bool m_bGameLoading;
 		char newDiscpath[2048];
 		wxMessageDialog *m_StopDlg;
 
@@ -349,6 +350,7 @@ class CFrame : public CRenderFrame
 		void OnGameListCtrl_ItemActivated(wxListEvent& event);
 		void OnRenderParentResize(wxSizeEvent& event);
 		bool RendererIsFullscreen();
+		void StartGame(const std::string& filename);
 #if defined HAVE_X11 && HAVE_X11
 		void X11_SendClientEvent(const char *message,
 				int data1 = 0, int data2 = 0, int data3 = 0, int data4 = 0);
@@ -362,8 +364,6 @@ class CFrame : public CRenderFrame
 		wxMenuItem* m_pSubMenuLoad;
 		wxMenuItem* m_pSubMenuSave;
 		wxMenuItem* m_pSubMenuFrameSkipping;
-
-		void BootGame(const std::string& filename);
 
 #if wxUSE_TIMER
 		// Used to process command events
