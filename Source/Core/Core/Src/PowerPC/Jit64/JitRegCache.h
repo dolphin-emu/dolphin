@@ -95,7 +95,7 @@ public:
 	}
 	virtual void Flush(FlushMode mode);
 	virtual void Flush(PPCAnalyst::CodeOp *op) {Flush(FLUSH_ALL);}
-	void SanityCheck() const;
+	int SanityCheck() const;
 	void KillImmediate(int preg);
 
 	//TODO - instead of doload, use "read", "write"

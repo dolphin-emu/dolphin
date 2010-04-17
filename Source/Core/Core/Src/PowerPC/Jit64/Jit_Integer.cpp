@@ -71,6 +71,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 	{
 		// a == 0, which for these instructions imply value = 0
 		gpr.SetImmediate32(d, value);
+		gpr.StoreFromX64(d);
 	}
 	else
 	{

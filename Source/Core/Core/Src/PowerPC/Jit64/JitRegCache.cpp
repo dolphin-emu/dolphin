@@ -163,21 +163,22 @@ void RegCache::FlushR(X64Reg reg)
 	}
 }
 
-void RegCache::SanityCheck() const
+int RegCache::SanityCheck() const
 {
 	for (int i = 0; i < 32; i++) {
 		if (regs[i].away) {
 			if (regs[i].location.IsSimpleReg()) {
 				Gen::X64Reg simple = regs[i].location.GetSimpleReg();
-				if (xlocks[simple]) {
-					PanicAlert("%08x : PPC Reg %i is in locked x64 register %i", /*js.compilerPC*/ 0, i, regs[i].location.GetSimpleReg());
-				}
-				if (xregs[simple].ppcReg != i) {
-					PanicAlert("%08x : Xreg/ppcreg mismatch");
-				}
+				if (xlocks[simple])
+					return 1;
+				if (xregs[simple].ppcReg != i)
+					return 2;
 			}
+			else if (regs[i].location.IsImm())
+				return 3;
 		}
 	}
+	return 0;
 }
 
 void RegCache::DiscardRegContentsIfCached(int preg)
@@ -397,7 +398,7 @@ void RegCache::Flush(FlushMode mode)
 			}
 			else
 			{
-				_assert_msg_(DYNA_REC,0,"Jit64 - Flush unhandled case, reg %i", i);
+				_assert_msg_(DYNA_REC,0,"Jit64 - Flush unhandled case, reg %i PC: %08x", i, PC);
 			}
 		}
 	}

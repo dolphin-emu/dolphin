@@ -23,7 +23,7 @@
 #include "Common.h"
 
 // Enable memory checks in the Debug/DebugFast builds, but NOT in release
-#if _DEBUG || DEBUGFAST
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	#define ENABLE_MEM_CHECK
 #endif
 
