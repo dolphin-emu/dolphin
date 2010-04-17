@@ -121,7 +121,6 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 
 	g_dsp.r[DSP_REG_SR] |= SR_INT_ENABLE;
 	g_dsp.r[DSP_REG_SR] |= SR_EXT_INT_ENABLE;
-	g_dsp.exception_in_progress = -1;
 
 	g_dsp.cr = 0x804;
 	gdsp_ifx_init();
@@ -155,9 +154,7 @@ void DSPCore_Shutdown()
 
 void DSPCore_Reset()
 {
-    _assert_msg_(MASTER_LOG, g_dsp.exception_in_progress == -1, "reset while exception");
     g_dsp.pc = DSP_RESET_VECTOR;
-    g_dsp.exception_in_progress = -1;
 
 	g_dsp.r[DSP_REG_WR0] = 0xffff;
 	g_dsp.r[DSP_REG_WR1] = 0xffff;
@@ -193,22 +190,10 @@ void DSPCore_CheckExceptions()
 	if (g_dsp.exceptions == 0)
 		return;	
 
-	// it's unclear what to do when there are two exceptions at the same time
-	// but for sure they should not be called together therefore the
-	// g_dsp.exception_in_progress
-	if (g_dsp.exception_in_progress != -1) {
-#if defined(_DEBUG) || defined(DEBUGFAST)
-		ERROR_LOG(DSPLLE, "Firing exception %d failed exception %d active", g_dsp.exceptions, g_dsp.exception_in_progress);
-#endif		
-		return;
-	}
-
 	for (int i = 7; i > 0; i--) {
-		// Seems exp int or reset are not masked by sr_int_enable 
+		// Seems exp int are not masked by sr_int_enable 
 		if (g_dsp.exceptions & (1 << i)) {
 			if (dsp_SR_is_flag_set(SR_INT_ENABLE) || (i == EXP_INT)) {
-				
-				_assert_msg_(MASTER_LOG, g_dsp.exception_in_progress == -1, "assert %d while exception", g_dsp.exception_in_progress);
 				
 				// store pc and sr until RTI
 				dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
@@ -216,8 +201,10 @@ void DSPCore_CheckExceptions()
 				
 				g_dsp.pc = i * 2; 
 				g_dsp.exceptions &= ~(1 << i);
-				if (i)
-					g_dsp.exception_in_progress = i;
+				if (i == 7)
+					g_dsp.r[DSP_REG_SR] &= ~SR_EXT_INT_ENABLE;
+				else
+					g_dsp.r[DSP_REG_SR] &= ~SR_INT_ENABLE;
 				break;
 			} else {
 #if defined(_DEBUG) || defined(DEBUGFAST)

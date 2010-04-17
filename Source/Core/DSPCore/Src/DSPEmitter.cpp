@@ -66,8 +66,26 @@ void DSPEmitter::ClearIRAM() {
 	}
 }
 
+
 // Must go out of block if exception is detected
 void DSPEmitter::checkExceptions() {
+	/*
+	// check if there is an external interrupt
+	if (! dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
+		return;
+
+	if (! (g_dsp.cr & CR_EXTERNAL_INT)) 
+		return;
+
+	g_dsp.cr &= ~CR_EXTERNAL_INT;
+
+	// Check for other exceptions
+	if (dsp_SR_is_flag_set(SR_INT_ENABLE))
+		return;
+
+	if (g_dsp.exceptions == 0)
+		return;	
+	*/
 	ABI_CallFunction((void *)&DSPCore_CheckExternalInterrupt);
 	// Check for interrupts and exceptions
 	TEST(8, M(&g_dsp.exceptions), Imm8(0xff));
@@ -75,16 +93,10 @@ void DSPEmitter::checkExceptions() {
 	
 	ABI_CallFunction((void *)&DSPCore_CheckExceptions);
 	
-	MOV(32, R(EAX), M(&g_dsp.exception_in_progress));
-	CMP(32, R(EAX), Imm32(0));
-	FixupBranch noExceptionOccurred = J_CC(CC_L);
-	
-	//	ABI_CallFunction((void *)DSPInterpreter::HandleLoop);
 	ABI_RestoreStack(0);
 	RET();
 	
 	SetJumpTarget(skipCheck);
-	SetJumpTarget(noExceptionOccurred);
 }
 
 void DSPEmitter::WriteCallInterpreter(UDSPInstruction inst)
