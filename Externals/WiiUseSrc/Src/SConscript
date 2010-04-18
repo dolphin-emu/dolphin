@@ -34,15 +34,13 @@ else:
 	env_wiiuse = env.Clone(
 		CCFLAGS = env.filterWarnings(env['CCFLAGS']) + ' -fvisibility=default',
 		CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
+		parse_flags = ['-fPIC']
 		)
 
 libs = [
     'm',
 ]
 
-if sys.platform == 'darwin':
-    env_wiiuse.StaticLibrary(env['libs_dir']+"wiiuse", files, LIBS=libs)
-else:
-    env_wiiuse.SharedLibrary(env['libs_dir']+"wiiuse", files, LIBS=libs)
+env_wiiuse.StaticLibrary(env['libs_dir']+"wiiuse", files, LIBS=libs)
 
 env['HAVE_WIIUSE'] = 1
