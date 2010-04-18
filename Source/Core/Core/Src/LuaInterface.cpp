@@ -30,7 +30,8 @@
 #include "PluginManager.h"
 #include "HW/Memmap.h"
 #include "Host.h"
-
+#include "PowerPC/PowerPC.h"
+#include "CoreTiming.h"
 
 extern "C" {
 #include "lua.h"
@@ -1107,20 +1108,11 @@ DEFINE_LUA_FUNCTION(bitbit, "whichbit")
 // (e.g. a savestate could possibly get loaded before emu.wait() returns)
 DEFINE_LUA_FUNCTION(emulua_wait, "")
 {
-	/*LuaContextInfo& info = GetCurrentInfo();
+	//LuaContextInfo& info = GetCurrentInfo();
 
-	switch(info.speedMode)
-	{
-		default:
-		case SPEEDMODE_NORMAL:
-			Step_emulua_MainLoop(true, false);
-			break;
-		case SPEEDMODE_NOTHROTTLE:
-		case SPEEDMODE_TURBO:
-		case SPEEDMODE_MAXIMUM:
-			Step_emulua_MainLoop(Core::GetState() == Core::CORE_PAUSE, false);
-			break;
-	}*/
+	// we're only calling this to run user events. (a windows-only example of what that means is the canonical Peek/Translate/Dispatch loop)
+	// hopefully this won't actually advance the emulation state in any non-user-input-driven way when called in this context...
+	CoreTiming::Advance();
 
 	return 0;
 }
@@ -1176,6 +1168,7 @@ void LuaRescueHook(lua_State* L, lua_Debug *dbg)
 		{
 			//lua_sethook(L, NULL, 0, 0);
 			assert(L->errfunc || L->errorJmp);
+			luaL_error(L, info.panic ? info.panicMessage : "terminated by user");
 		}
 
 		info.panic = false;
@@ -1213,7 +1206,7 @@ void printfToOutput(const char* fmt, ...)
 
 bool FailVerifyAtFrameBoundary(lua_State* L, const char* funcName, int unstartedSeverity=2, int inframeSeverity=2)
 {
-	if (!Core::isRunning())
+	if (!Core::isRunning() || Core::GetState() == Core::CORE_STOPPING)
 	{
 		static const char* msg = "cannot call %s() when emulation has not started.";
 		switch(unstartedSeverity)
@@ -1361,25 +1354,36 @@ DEFINE_LUA_FUNCTION(emulua_speedmode, "mode")
 }*/
 
 
+// I didn't make it clear enough what this function needs to do, so I'll spell it out this time:
+// 1: This function needs to cause emulation to run for 1 full frame, until the next frame boundary
+//    (more importantly, the duration it runs for must correspond with 1 frame of input recording movies).
+// 2: This function needs to return AFTER the frame of emulation has completely finished running.
+// 3: This function needs to work when it is called from the SAME thread as the emulation (CPU thread).
+// 4: This function needs to leave the emulation in a normal, UNPAUSED state.
 
 DEFINE_LUA_FUNCTION(emulua_frameadvance, "")
 {
 	if(FailVerifyAtFrameBoundary(L, "emu.frameadvance", 0,1))
 		return emulua_wait(L);
 
-	if(Core::GetState() == Core::CORE_UNINITIALIZED || Core::GetState() == Core::CORE_STOPPING)
-		return emulua_wait(L);
-
-	int uid = luaStateToUIDMap[L];
 	LuaContextInfo& info = GetCurrentInfo();
-
 	info.ranFrameAdvance = true;
-	Frame::SetFrameStepping(true);
 
-	// Should step exactly one frame
-	Core::SetState(Core::CORE_RUN);
+	// set to stop the run loop after 1 frame
+	Frame::SetFrameStopping(true);
 
-	//while(Core::GetState() != Core::CORE_PAUSE && !info.panic);
+	// run 1 frame
+	if(info.speedMode == SPEEDMODE_MAXIMUM)
+		CPluginManager::GetInstance().GetVideo()->Video_SetRendering(false);
+	if(Core::GetState() == Core::CORE_PAUSE)
+		Core::SetState(Core::CORE_RUN);
+	PowerPC::RunLoop();
+
+	// continue as normal
+	if(info.speedMode == SPEEDMODE_MAXIMUM)
+		CPluginManager::GetInstance().GetVideo()->Video_SetRendering(true);
+	Frame::SetFrameStopping(false);
+	*PowerPC::GetStatePtr() = PowerPC::CPU_RUNNING;
 
 	return 0;
 }
@@ -1407,7 +1411,7 @@ DEFINE_LUA_FUNCTION(emulua_redraw, "")
 
 DEFINE_LUA_FUNCTION(memory_readbyte, "address")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	unsigned char value = Memory::Read_U8(address);
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1415,7 +1419,7 @@ DEFINE_LUA_FUNCTION(memory_readbyte, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readbytesigned, "address")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	signed char value = (signed char)(Memory::Read_U8(address));
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1423,7 +1427,7 @@ DEFINE_LUA_FUNCTION(memory_readbytesigned, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readword, "address")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	unsigned short value = Memory::Read_U16(address);
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1431,7 +1435,7 @@ DEFINE_LUA_FUNCTION(memory_readword, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readwordsigned, "address")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	signed short value = (signed short)(Memory::Read_U16(address));
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1439,7 +1443,7 @@ DEFINE_LUA_FUNCTION(memory_readwordsigned, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readdword, "address")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	unsigned long value = Memory::Read_U32(address);
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1447,7 +1451,7 @@ DEFINE_LUA_FUNCTION(memory_readdword, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readdwordsigned, "address")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	signed long value = (signed long)(Memory::Read_U32(address));
 	lua_settop(L,0);
 	lua_pushinteger(L, value);
@@ -1455,7 +1459,7 @@ DEFINE_LUA_FUNCTION(memory_readdwordsigned, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readqword, "address")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	unsigned long long value = Memory::Read_U64(address);
 	lua_settop(L,0);
 	lua_pushinteger(L, (lua_Integer)value);
@@ -1463,7 +1467,7 @@ DEFINE_LUA_FUNCTION(memory_readqword, "address")
 }
 DEFINE_LUA_FUNCTION(memory_readqwordsigned, "address")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	signed long long value = (signed long long)(Memory::Read_U64(address));
 	lua_settop(L,0);
 	lua_pushinteger(L, (lua_Integer)value);
@@ -1472,28 +1476,28 @@ DEFINE_LUA_FUNCTION(memory_readqwordsigned, "address")
 
 DEFINE_LUA_FUNCTION(memory_writebyte, "address,value")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	unsigned char value = (unsigned char)(luaL_checkinteger(L,2) & 0xFF);
 	Memory::Write_U8(value, address);
 	return 0;
 }
 DEFINE_LUA_FUNCTION(memory_writeword, "address,value")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	unsigned short value = (unsigned short)(luaL_checkinteger(L,2) & 0xFFFF);
 	Memory::Write_U16(value, address);
 	return 0;
 }
 DEFINE_LUA_FUNCTION(memory_writedword, "address,value")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	unsigned long value = (unsigned long)(luaL_checkinteger(L,2));
 	Memory::Write_U32(value, address);
 	return 0;
 }
 DEFINE_LUA_FUNCTION(memory_writeqword, "address,value")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	unsigned long value = (unsigned long)(luaL_checkinteger(L,2));
 	Memory::Write_U64(value, address);
 	return 0;
@@ -1501,7 +1505,7 @@ DEFINE_LUA_FUNCTION(memory_writeqword, "address,value")
 
 DEFINE_LUA_FUNCTION(memory_readbyterange, "address,length")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	int length = (int)luaL_checkinteger(L,2);
 
 	if(length < 0)
@@ -1530,7 +1534,7 @@ DEFINE_LUA_FUNCTION(memory_readbyterange, "address,length")
 
 DEFINE_LUA_FUNCTION(memory_isvalid, "address")
 {
-	unsigned long address = (unsigned long)luaL_checknumber(L,1);
+	unsigned long address = luaL_checkinteger(L,1);
 	lua_settop(L,0);
 	lua_pushboolean(L, Memory::IsRAMAddress(address));
 	return 1;
@@ -2963,7 +2967,7 @@ DEFINE_LUA_FUNCTION(input_getcurrentinputstatus, "")
 {
 	lua_newtable(L);
 
-	// TODO: Use pad plugin's input
+	// TODO: implement this (NOT using the pad plugin's input, because that's useless for this purpose)
 /*
 	// keyboard and mouse button status
 	{
@@ -3632,6 +3636,8 @@ void RequestAbortLuaScript(int uid, const char* message)
 		info.L->hookcount = 1; // run hook function as soon as possible
 		info.panic = true; // and call luaL_error once we're inside the hook function
 
+		info.restart = false; // also cancel prior restart requests
+
 		if(message)
 		{
 			strncpy(info.panicMessage, message, sizeof(info.panicMessage));
@@ -3792,9 +3798,6 @@ void StopLuaScript(int uid)
 		return;
 
 	LuaContextInfo& info = *infoPtr;
-
-	if(info.ranFrameAdvance)
-		Frame::SetFrameStepping(false);
 
 	if(info.running)
 	{

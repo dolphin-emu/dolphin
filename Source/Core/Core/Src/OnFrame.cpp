@@ -21,12 +21,14 @@
 #include "PluginManager.h"
 #include "Thread.h"
 #include "FileUtil.h"
+#include "PowerPC/PowerPC.h"
 
 Common::CriticalSection cs_frameSkip;
 
 namespace Frame {
 
 bool g_bFrameStep = false;
+bool g_bFrameStop = false;
 bool g_bAutoFire = false;
 u32 g_autoFirstKey = 0, g_autoSecondKey = 0;
 bool g_bFirstKey = true;
@@ -52,6 +54,11 @@ void FrameUpdate() {
 
 	if (g_bFrameStep)
 		Core::SetState(Core::CORE_PAUSE);
+
+	// ("framestop") the only purpose of this is to cause interpreter/jit Run() to return temporarily.
+	// after that we set it back to CPU_RUNNING and continue as normal.
+	if (g_bFrameStop)
+		*PowerPC::GetStatePtr() = PowerPC::CPU_STEPPING;
 
 	if(g_framesToSkip)
 		FrameSkipping();
@@ -122,6 +129,9 @@ bool IsAutoFiring() {
 
 void SetFrameStepping(bool bEnabled) {
 	g_bFrameStep = bEnabled;
+}
+void SetFrameStopping(bool bEnabled) {
+	g_bFrameStop = bEnabled;
 }
 
 void ModifyController(SPADStatus *PadStatus, int controllerID)

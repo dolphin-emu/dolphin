@@ -93,9 +93,9 @@
 #define LUA_CDIR	"!\\"
 #define LUA_PATH_DEFAULT  \
 		".\\?.lua;"  LUA_LDIR"?.lua;"  LUA_LDIR"?\\init.lua;" \
-		             LUA_CDIR"?.lua;"  LUA_CDIR"?\\init.lua"
+		             LUA_CDIR"?.lua;"  LUA_CDIR"?\\init.lua;" "?;" "?.lua"
 #define LUA_CPATH_DEFAULT \
-	".\\?.dll;"  LUA_CDIR"?.dll;" LUA_CDIR"loadall.dll"
+	".\\?.dll;"  LUA_CDIR"?.dll;" LUA_CDIR"loadall.dll;" "?;" "?.dll"
 
 #else
 #define LUA_ROOT	"/usr/local/"
@@ -211,7 +211,7 @@
 @* of a function in debug information.
 ** CHANGE it if you want a different size.
 */
-#define LUA_IDSIZE	60
+#define LUA_IDSIZE	48
 
 
 /*
@@ -303,7 +303,7 @@
 ** mean larger pauses which mean slower collection.) You can also change
 ** this value dynamically.
 */
-#define LUAI_GCPAUSE	200  /* 200% (wait memory to double before next GC) */
+#define LUAI_GCPAUSE	150  /* 200% (wait memory to double before next GC) */
 
 
 /*
@@ -314,7 +314,7 @@
 ** infinity, where each step performs a full collection.) You can also
 ** change this value dynamically.
 */
-#define LUAI_GCMUL	200 /* GC runs 'twice the speed' of memory allocation */
+#define LUAI_GCMUL	150 /* GC runs 'twice the speed' of memory allocation */
 
 
 
@@ -378,6 +378,9 @@
 ** a bit, but may be quite useful when debugging C code that interfaces
 ** with Lua. A useful redefinition is to use assert.h.
 */
+#if defined(_DEBUG) || defined(DEBUGFAST)
+#define LUA_USE_APICHECK
+#endif
 #if defined(LUA_USE_APICHECK)
 #include <assert.h>
 #define luai_apicheck(L,o)	{ (void)L; assert(o); }
@@ -562,7 +565,7 @@
     (defined(__i386) || defined (_M_IX86) || defined(__i386__))
 
 /* On a Microsoft compiler, use assembler */
-#if defined(_MSC_VER)
+#if 0 /*defined(_MSC_VER)*/ /* disabled because it handles some integers very incorrectly and the other case works perfectly fine with current MSVC compilers */
 
 #define lua_number2int(i,d)   __asm fld d   __asm fistp i
 #define lua_number2integer(i,n)		lua_number2int(i, n)

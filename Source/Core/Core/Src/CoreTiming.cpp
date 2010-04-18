@@ -49,6 +49,7 @@ typedef LinkedListItem<BaseEvent> Event;
 // STATE_TO_SAVE (how?)
 Event *first;
 Event *tsFirst;
+Event *tsLast;
 
 // event pools
 Event *eventPool = 0;
@@ -213,9 +214,13 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 	Event *ne = GetNewTsEvent();
 	ne->time = globalTimer + cyclesIntoFuture;
 	ne->type = event_type;
-	ne->next = tsFirst;
+	ne->next = 0;
 	ne->userdata = userdata;
-	tsFirst = ne;
+	if(!tsFirst)
+		tsFirst = ne;
+	if(tsLast)
+		tsLast->next = ne;
+	tsLast = ne;
 	externalEventSection.Leave();
 }
 
@@ -243,44 +248,21 @@ void ClearPendingEvents()
 	}
 }
 
-void AddEventToQueue(Event *ne)
+void AddEventToQueue(Event* ne)
 {
-	// Damn, this logic got complicated. Must be an easier way.
-	if (!first)
+	Event* prev = NULL;
+	Event** pNext = &first;
+	for(;;)
 	{
-		first = ne;
-		ne->next = 0;
-	}
-	else
-	{
-		Event *ptr = first;
-		Event *prev = 0;
-		if (ptr->time > ne->time)
+		Event*& next = *pNext;
+		if(!next || ne->time < next->time)
 		{
-			ne->next = first;
-			first = ne;
+			ne->next = next;
+			next = ne;
+			break;
 		}
-		else
-		{
-			prev = first;
-			ptr = first->next;
-
-			while (ptr)
-			{
-				if (ptr->time <= ne->time)
-				{
-					prev = ptr;
-					ptr = ptr->next;
-				}
-				else
-					break;
-			}
-
-			//OK, ptr points to the item AFTER our new item. Let's insert
-			ne->next = prev->next;
-			prev->next = ne;
-			// Done!
-		}
+		prev = next;
+		pNext = &prev->next;
 	}
 }
 
@@ -365,6 +347,7 @@ void Advance()
 		AddEventToQueue(tsFirst);
 		tsFirst = next;
 	}
+	tsLast = NULL;
 
     // Move free events to threadsafe pool
     while(allocatedTsEvents > 0 && eventPool)
@@ -378,8 +361,8 @@ void Advance()
 	externalEventSection.Leave();
 
 	int cyclesExecuted = slicelength - downcount;
-
 	globalTimer += cyclesExecuted;
+	downcount = slicelength;
 
 	while (first)
 	{
@@ -387,10 +370,10 @@ void Advance()
 		{
 //			LOG(GEKKO, "[Scheduler] %s     (%lld, %lld) ", 
 //				first->name ? first->name : "?", (u64)globalTimer, (u64)first->time);
-			event_types[first->type].callback(first->userdata, (int)(globalTimer - first->time));
-			Event *next = first->next;
-			FreeEvent(first);
-			first = next;
+			Event* evt = first;
+			first = first->next;
+			event_types[evt->type].callback(evt->userdata, (int)(globalTimer - evt->time));
+			FreeEvent(evt);
 		}
 		else
 		{

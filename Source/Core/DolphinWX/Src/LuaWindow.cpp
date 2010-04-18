@@ -51,8 +51,8 @@ void LuaStop(int uid, bool ok)
 {
 	if(ok)
 		g_contextMap[uid]->PrintMessage("Script completed successfully!\n");
-	else
-		g_contextMap[uid]->PrintMessage("Script failed\n");
+	//else // disabled because this message makes no sense in certain contexts, and there's always an earlier error message anyway.
+	//	g_contextMap[uid]->PrintMessage("Script failed.\n");
 
 	g_contextMap[uid]->OnStop();
 }
@@ -173,7 +173,7 @@ void wxLuaWindow::OnEvent_ScriptStop_Press(wxCommandEvent&  WXUNUSED(event))
 {
 	CoreTiming::ScheduleEvent_Threadsafe_Immediate(ev_LuaStop, luaID);
 	OnStop();
-	PrintMessage("Script stopped!\n");
+	PrintMessage("Stopping script...\n");
 }
 
 void wxLuaWindow::OnStop()

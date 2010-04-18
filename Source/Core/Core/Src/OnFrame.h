@@ -100,6 +100,7 @@ void SetAutoHold(bool bEnabled, u32 keyToHold = 0);
 void SetAutoFire(bool bEnabled, u32 keyOne = 0, u32 keyTwo = 0);
 
 void SetFrameStepping(bool bEnabled);
+void SetFrameStopping(bool bEnabled);
 
 void SetFrameSkipping(unsigned int framesToSkip);
 int FrameSkippingFactor();
