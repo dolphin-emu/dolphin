@@ -66,7 +66,7 @@ void DSPEmitter::increment_addr_reg(int reg)
 	// tmp ^= wr_reg
 	XOR(16, R(EAX), R(EDX));
 
-	FixupBranch end = J()
+	FixupBranch end = J();
 	SetJumpTarget(not_equal);
 
 	//	else tmp++
