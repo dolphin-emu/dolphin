@@ -861,6 +861,30 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		// Stop
 		else if (IsHotkey(event, HK_STOP))
 			DoStop();
+		// state save and state load hotkeys
+		else if (event.GetKeyCode() >= WXK_F1 && event.GetKeyCode() <= WXK_F8)
+		{
+			int slot_number = event.GetKeyCode() - WXK_F1 + 1;
+			if (event.GetModifiers() == wxMOD_NONE)
+				State_Load(slot_number);
+			else if (event.GetModifiers() == wxMOD_SHIFT)
+				State_Save(slot_number);
+			else event.Skip();
+		}
+		else if (event.GetKeyCode() == WXK_F11 && event.GetModifiers() == wxMOD_NONE)
+			State_LoadLastSaved();
+		else if (event.GetKeyCode() == WXK_F12)
+		{
+			if (event.GetModifiers() == wxMOD_NONE)
+				State_UndoSaveState();
+			else if (event.GetModifiers() == wxMOD_SHIFT)
+				State_UndoLoadState();	
+			else event.Skip();
+		}
+		// screenshot hotkeys
+		else if (event.GetKeyCode() == WXK_F9 && event.GetModifiers() == wxMOD_NONE)
+			Core::ScreenShot();
+		else event.Skip();
 
 		// Send the OSD hotkeys to the video plugin
 		if (event.GetKeyCode() >= '3' && event.GetKeyCode() <= '7' && event.GetModifiers() == wxMOD_NONE)
@@ -877,27 +901,6 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				&& event.GetModifiers() == wxMOD_SHIFT)
 			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
 #endif
-		// state save and state load hotkeys
-		if (event.GetKeyCode() >= WXK_F1 && event.GetKeyCode() <= WXK_F8)
-		{
-			int slot_number = event.GetKeyCode() - WXK_F1 + 1;
-			if (event.GetModifiers() == wxMOD_NONE)
-				State_Load(slot_number);
-			else if (event.GetModifiers() == wxMOD_SHIFT)
-				State_Save(slot_number);
-		}
-		if (event.GetKeyCode() == WXK_F11 && event.GetModifiers() == wxMOD_NONE)
-			State_LoadLastSaved();
-		if (event.GetKeyCode() == WXK_F12)
-		{
-			if (event.GetModifiers() == wxMOD_NONE)
-				State_UndoSaveState();
-			else if (event.GetModifiers() == wxMOD_SHIFT)
-				State_UndoLoadState();	
-		}
-		// screenshot hotkeys
-		if (event.GetKeyCode() == WXK_F9 && event.GetModifiers() == wxMOD_NONE)
-			Core::ScreenShot();
 
 		// Send the keyboard status to the Input plugin
 		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
