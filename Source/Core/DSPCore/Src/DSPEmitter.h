@@ -35,7 +35,7 @@ class DSPEmitter : public Gen::XCodeBlock
 	u16 compileSR;
 
 	// The index of the last stored ext value (compile time).
-	u16 storeIndex;
+	int storeIndex;
 	
 	DISALLOW_COPY_AND_ASSIGN(DSPEmitter);
 
@@ -70,6 +70,7 @@ public:
 	// Ext command helpers
 	void pushExtValueFromReg(u16 dreg, u16 sreg);
 	void popExtValueToReg();
+	void pushExtValueFromMem(u16 dreg, u16 sreg);
 	
 	// Ext commands
 	void l(const UDSPInstruction opc);

@@ -149,10 +149,9 @@ void DSPEmitter::ls(const UDSPInstruction opc)
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 
 	ext_dmem_write(DSP_REG_AR3, sreg);
-	
-	ext_dmem_read(g_dsp.r[DSP_REG_AR0]);
-	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
-	
+
+	pushExtValueFromMem(dreg, DSP_REG_AR0);
+
 	increment_addr_reg(DSP_REG_AR3);
 	increment_addr_reg(DSP_REG_AR0); 
 }
@@ -171,8 +170,7 @@ void DSPEmitter::lsn(const UDSPInstruction opc)
 
 	ext_dmem_write(DSP_REG_AR3, sreg);
 
-	ext_dmem_read(g_dsp.r[DSP_REG_AR0]);
-	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+	pushExtValueFromMem(dreg, DSP_REG_AR0);
 	
 	increment_addr_reg(DSP_REG_AR3);
 	increase_addr_reg(DSP_REG_AR0);
@@ -191,8 +189,7 @@ void DSPEmitter::lsm(const UDSPInstruction opc)
 	
 	ext_dmem_write(DSP_REG_AR3, sreg);
 
-	ext_dmem_read(g_dsp.r[DSP_REG_AR0]);
-	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+	pushExtValueFromMem(dreg, DSP_REG_AR0);
 
 	increase_addr_reg(DSP_REG_AR3);
 	increment_addr_reg(DSP_REG_AR0);
@@ -212,8 +209,7 @@ void DSPEmitter::lsnm(const UDSPInstruction opc)
 	
 	ext_dmem_write(DSP_REG_AR3, sreg);
 
-	ext_dmem_read(g_dsp.r[DSP_REG_AR0]);
-	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+	pushExtValueFromMem(dreg, DSP_REG_AR0);
 
 	increase_addr_reg(DSP_REG_AR3);
 	increase_addr_reg(DSP_REG_AR0);
@@ -230,9 +226,8 @@ void DSPEmitter::sl(const UDSPInstruction opc)
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 	
 	ext_dmem_write(DSP_REG_AR0, sreg);
-	
-	ext_dmem_read(g_dsp.r[DSP_REG_AR3]);
-	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+
+	pushExtValueFromMem(dreg, DSP_REG_AR3);
 
 	increment_addr_reg(DSP_REG_AR3);
 	increment_addr_reg(DSP_REG_AR0); 
@@ -251,8 +246,7 @@ void DSPEmitter::sln(const UDSPInstruction opc)
 	
 	ext_dmem_write(DSP_REG_AR0, sreg);
 
-	ext_dmem_read(g_dsp.r[DSP_REG_AR3]);
-	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+	pushExtValueFromMem(dreg, DSP_REG_AR3);
 
 	increment_addr_reg(DSP_REG_AR3);
 	increase_addr_reg(DSP_REG_AR0);
@@ -270,9 +264,8 @@ void DSPEmitter::slm(const UDSPInstruction opc)
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 	
 	ext_dmem_write(DSP_REG_AR0, sreg);
-	
-	ext_dmem_read(g_dsp.r[DSP_REG_AR3]);
-	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+
+	pushExtValueFromMem(dreg, DSP_REG_AR3);
 
 	increase_addr_reg(DSP_REG_AR3);
 	increment_addr_reg(DSP_REG_AR0);
@@ -290,9 +283,8 @@ void DSPEmitter::slnm(const UDSPInstruction opc)
 	u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
 	
 	ext_dmem_write(DSP_REG_AR0, sreg);
-	
-	ext_dmem_read(g_dsp.r[DSP_REG_AR3]);
-	MOV(16, M(&g_dsp.r[dreg]), R(EAX));
+
+	pushExtValueFromMem(dreg, DSP_REG_AR3);
 
 	increase_addr_reg(DSP_REG_AR3);
 	increase_addr_reg(DSP_REG_AR0);
@@ -531,9 +523,18 @@ void DSPEmitter::pushExtValueFromReg(u16 dreg, u16 sreg) {
 	storeIndex = dreg;
 }
 
-void DSPEmitter::popExtValueToReg() {
-	MOV(16, M(&g_dsp.r[storeIndex]), R(EBX));
+void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg) {
+	ext_dmem_read(g_dsp.r[DSP_REG_AR0]);
+	MOV(16, R(EBX), R(EAX));
+	
+	storeIndex = dreg;
+}
 
+void DSPEmitter::popExtValueToReg() {
+	if (storeIndex != -1)
+		MOV(16, M(&g_dsp.r[storeIndex]), R(EBX));
+
+	storeIndex = -1;
 	// TODO handle commands such as 'l
 }
 
