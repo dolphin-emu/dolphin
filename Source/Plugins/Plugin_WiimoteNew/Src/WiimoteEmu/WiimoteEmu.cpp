@@ -110,8 +110,8 @@ void Wiimote::Reset()
 }
 
 Wiimote::Wiimote( const unsigned int index, SWiimoteInitialize* const wiimote_initialize )
-	: m_index(index)
-	, m_wiimote_init( wiimote_initialize )
+	: m_wiimote_init( wiimote_initialize )
+	, m_index(index)
 {
 	// ---- set up all the controls ----
 

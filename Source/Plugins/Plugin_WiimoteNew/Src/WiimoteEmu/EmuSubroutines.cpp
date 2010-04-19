@@ -195,7 +195,7 @@ void Wiimote::SendAck(u16 _channelID, u8 _reportID)
    the status request rs and all its eventual instructions it may include (for
    example turn off rumble or something else) and just send the status
    report. */
-void Wiimote::RequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
+void Wiimote::RequestStatus(u16 _channelID, wm_request_status* rs, int _Extension)
 {
 	// handle switch extension
 	if ( m_extension->active_extension != m_extension->switch_extension )

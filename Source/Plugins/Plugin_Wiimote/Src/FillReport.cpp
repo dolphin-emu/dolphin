@@ -442,10 +442,9 @@ void FillReportAcc(wm_accel& _acc)
 		int acc_y = _acc.y;
 		int acc_z = _acc.z;
 
-		if (((WiiMapping[g_ID].UDPWM.instance)&&
-			(WiiMapping[g_ID].UDPWM.enableButtons)&&
-			(WiiMapping[g_ID].UDPWM.instance->getButtons()&UDPWM_SK))
-			||(IsKey(EWM_SHAKE))&& !WiiMapping[g_ID].Motion.TiltWM.Shake)
+		if ((WiiMapping[g_ID].UDPWM.instance && WiiMapping[g_ID].UDPWM.enableButtons
+					&& (WiiMapping[g_ID].UDPWM.instance->getButtons() & UDPWM_SK))
+				|| (IsKey(EWM_SHAKE) && !WiiMapping[g_ID].Motion.TiltWM.Shake))
 			WiiMapping[g_ID].Motion.TiltWM.Shake = 1;
 
 		// Step the shake simulation one step

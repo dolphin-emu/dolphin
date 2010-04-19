@@ -49,7 +49,7 @@ struct UDPWiimote::_d
 
 int UDPWiimote::noinst=0;
 
-UDPWiimote::UDPWiimote(const char *port) : d(new _d) ,x(0),y(0),z(0),nunX(0),nunY(0),mask(0),nunMask(0),pointerX(-0.1),pointerY(-0.1)
+UDPWiimote::UDPWiimote(const char *port) : d(new _d) ,x(0),y(0),z(0),nunX(0),nunY(0),pointerX(-0.1),pointerY(-0.1),nunMask(0),mask(0)
 {
 	#ifdef _WIN32
 	u_long iMode = 1;
@@ -77,7 +77,7 @@ UDPWiimote::UDPWiimote(const char *port) : d(new _d) ,x(0),y(0),z(0),nunX(0),nun
     if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0) {
 //        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		cleanup;
-        this->err=-1;
+        err=-1;
 		return;
     }
 	
@@ -97,13 +97,13 @@ UDPWiimote::UDPWiimote(const char *port) : d(new _d) ,x(0),y(0),z(0),nunX(0),nun
 	
     if (p == NULL) {
 		cleanup;
-		this->err=-2;
+		err=-2;
         return;
     }
 	
     freeaddrinfo(servinfo);
 	blockingoff(d->sockfd);
-	this->err=0;
+	err=0;
 	return;
 }
 
@@ -161,9 +161,9 @@ void UDPWiimote::update()
 						ux=(double)((s32)ntohl(*p)); p++;
 						uy=(double)((s32)ntohl(*p)); p++;
 						uz=(double)((s32)ntohl(*p)); p++;
-						this->x=ux/1048576; //packet accel data
-						this->y=uy/1048576;
-						this->z=uz/1048576;
+						x=ux/1048576; //packet accel data
+						y=uy/1048576;
+						z=uz/1048576;
 					}
 					if (bf[2]&BUTT_FLAG)
 					{
@@ -171,14 +171,14 @@ void UDPWiimote::update()
 					}
 					if (bf[2]&IR_FLAG)
 					{
-						this->pointerX=((double)((s32)ntohl(*p)))/1048576; p++;
-						this->pointerY=((double)((s32)ntohl(*p)))/1048576; p++;
+						pointerX=((double)((s32)ntohl(*p)))/1048576; p++;
+						pointerY=((double)((s32)ntohl(*p)))/1048576; p++;
 					}
 					if (bf[2]&NUN_FLAG)
 					{
-						this->nunMask=*((u8*)p); p=(u32*)(((u8*)p)+1);
-						this->nunX=((double)((s32)ntohl(*p)))/1048576; p++;
-						this->nunY=((double)((s32)ntohl(*p)))/1048576; p++;
+						nunMask=*((u8*)p); p=(u32*)(((u8*)p)+1);
+						nunX=((double)((s32)ntohl(*p)))/1048576; p++;
+						nunY=((double)((s32)ntohl(*p)))/1048576; p++;
 					}
 				}
 			}
@@ -189,18 +189,18 @@ void UDPWiimote::update()
 		} 
 	}
 	//NOTICE_LOG(WIIMOTE,"UDPWii update result:np:%d x:%f y:%f z:%f nx:%f ny:%f px:%f py:%f bmask:%x nmask:%x",
-	//	nopack,this->x,this->y,this->z,this->nunX, this->nunY,this->pointerX,this->pointerY, this->mask, this->nunMask);
+	//	nopack, x, y, z, nunX, nunY, pointerX, pointerY, mask, nunMask);
 }
 
-void UDPWiimote::getAccel(int &x, int &y, int &z)
+void UDPWiimote::getAccel(int &_x, int &_y, int &_z)
 {
-	//NOTICE_LOG(WIIMOTE,"%lf %lf %lf",this->x, this-y, this->z);
+	//NOTICE_LOG(WIIMOTE,"%lf %lf %lf",_x, _y, _z);
 	float xg = WiiMoteEmu::g_wm.cal_g.x;
 	float yg = WiiMoteEmu::g_wm.cal_g.y;
 	float zg = WiiMoteEmu::g_wm.cal_g.z;
-	x = WiiMoteEmu::g_wm.cal_zero.x + (int)(xg * this->x);
-	y = WiiMoteEmu::g_wm.cal_zero.y + (int)(yg * this->y);
-	z = WiiMoteEmu::g_wm.cal_zero.z + (int)(zg * this->z);
+	_x = WiiMoteEmu::g_wm.cal_zero.x + (int)(xg * x);
+	_y = WiiMoteEmu::g_wm.cal_zero.y + (int)(yg * y);
+	_z = WiiMoteEmu::g_wm.cal_zero.z + (int)(zg * z);
 }
 
 u32 UDPWiimote::getButtons()
@@ -208,15 +208,15 @@ u32 UDPWiimote::getButtons()
 	return mask;
 }
 
-void UDPWiimote::getIR(float &x, float &y)
+void UDPWiimote::getIR(float &_x, float &_y)
 {
-	x=(float)this->pointerX;
-	y=(float)this->pointerY;
+	_x=(float)pointerX;
+	_y=(float)pointerY;
 }
 
-void UDPWiimote::getNunchuck(float &x, float &y, u8 &mask)
+void UDPWiimote::getNunchuck(float &_x, float &_y, u8 &_mask)
 {
-	x=(float)this->nunX;
-	y=(float)this->nunY;
-	mask=this->nunMask;
+	_x=(float)nunX;
+	_y=(float)nunY;
+	_mask=nunMask;
 }
