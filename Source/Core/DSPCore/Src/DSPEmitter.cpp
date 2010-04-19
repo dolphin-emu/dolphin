@@ -127,9 +127,12 @@ void DSPEmitter::WriteCallInterpreter(UDSPInstruction inst)
 		(this->*opTable[inst]->jitFunc)(inst);
 
 	// Backlog
-	// TODO if for jit
 	if (tinst->extended) {
-		ABI_CallFunction((void*)applyWriteBackLog);
+		if (! extOpTable[inst & 0x7F]->jitFunc) {
+			ABI_CallFunction((void*)applyWriteBackLog);
+		} else {
+			popExtValueToReg();
+		}
 	}
 }
 

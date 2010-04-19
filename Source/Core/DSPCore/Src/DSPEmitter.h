@@ -33,6 +33,10 @@ class DSPEmitter : public Gen::XCodeBlock
 	u16 blockSize[0x10000];
 	bool *endBlock;
 	u16 compileSR;
+
+	// The index of the last stored ext value (compile time).
+	u16 storeIndex;
+	
 	DISALLOW_COPY_AND_ASSIGN(DSPEmitter);
 
 	void ToMask(Gen::X64Reg value_reg = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);
@@ -62,7 +66,10 @@ public:
 	void decrease_addr_reg(int reg);
 	void ext_dmem_write(u32 src, u32 dest);
 	void ext_dmem_read(u16 addr);
-	void storeExtValue(u16 value);
+
+	// Ext command helpers
+	void pushExtValueFromReg(u16 dreg, u16 sreg);
+	void popExtValueToReg();
 	
 	// Ext commands
 	void l(const UDSPInstruction opc);

@@ -53,8 +53,8 @@ void DSPEmitter::mv(const UDSPInstruction opc)
 {
  	u8 sreg = (opc & 0x3) + DSP_REG_ACL0;
 	u8 dreg = ((opc >> 2) & 0x3);
-
-	MOV(16, M(&g_dsp.r[dreg + DSP_REG_AXL0]), M(&g_dsp.r[sreg]));
+	pushExtValueFromReg(dreg + DSP_REG_AXL0, sreg);
+	//	MOV(16, M(&g_dsp.r[dreg + DSP_REG_AXL0]), M(&g_dsp.r[sreg]));
 }
 	
 // S @$arD, $acS.S
@@ -524,8 +524,16 @@ void DSPEmitter::ldnm(const UDSPInstruction opc)
 }
 
 
-void DSPEmitter::storeExtValue(u16 value) {
-	
+// Push value from g_dsp.r[sreg] into EBX and stores the destinationindex in
+// storeIndex
+void DSPEmitter::pushExtValueFromReg(u16 dreg, u16 sreg) {
+	MOVZX(32, 16, EBX, M(&g_dsp.r[sreg]));
+	storeIndex = dreg;
 }
 
+void DSPEmitter::popExtValueToReg() {
+	MOV(16, M(&g_dsp.r[storeIndex]), R(EBX));
+
+	// TODO handle commands such as 'l
+}
 
