@@ -130,6 +130,8 @@ void Host_Message(int Id)
 #endif
 }
 
+void Host_UpdateTitle(const char* title){};
+
 void Host_UpdateLogDisplay(){}
 
 

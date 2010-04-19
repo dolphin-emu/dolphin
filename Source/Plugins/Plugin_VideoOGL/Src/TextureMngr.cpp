@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <vector>
+#include <cmath>
 
 #include "Globals.h"
 #include "CommonPaths.h"
@@ -268,9 +269,9 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     int expandedWidth = (width + bsw) & (~bsw);
 	int expandedHeight = (height + bsh) & (~bsh);
 
-	u64 hash_value;
+	u64 hash_value = 0;
     u32 texID = address;
-	u64 texHash;
+	u64 texHash = 0;
 	u32 FullFormat = tex_format;
 	if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
 		FullFormat = (tex_format | (tlutfmt << 16));
@@ -396,9 +397,9 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	TexLevels =  (isPow2 && UseNativeMips && tex_format != GX_TF_CMPR) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : (isPow2?0:1);
 	if(TexLevels > maxlevel && maxlevel > 0)
 		TexLevels = maxlevel;
-	int gl_format;
-	int gl_iformat;
-	int gl_type;
+	int gl_format = 0;
+	int gl_iformat = 0;
+	int gl_type = 0;
 	entry.bHaveMipMaps = UseNativeMips;
 	if (dfmt != PC_TEX_FMT_DXT1)
 	{
@@ -503,10 +504,10 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			//this is not a  problem as the level are filtered by lod min and max value
 			if (dfmt != PC_TEX_FMT_DXT1)
 			{
-				if (expandedWidth != currentWidth)
+				if (expandedWidth != (int)currentWidth)
 					glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);
 				glTexImage2D(target, level, gl_iformat, currentWidth, currentHeight, 0, gl_format, gl_type, temp);				
-				if (expandedWidth != currentWidth) // reset
+				if (expandedWidth != (int)currentWidth) // reset
 					glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 			}
 			else
