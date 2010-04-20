@@ -22,15 +22,20 @@ if env['HAVE_WX']:
 		]
 
 if icenv['HAVE_SDL']:
-	files += [ 'ControllerInterface/SDL/SDL.cpp' ]
+	files += [
+		'ControllerInterface/SDL/SDL.cpp'
+		]
+	
 if sys.platform == 'darwin':
-	files += [ 'ControllerInterface/OSX/OSX.cpp', 
-		   'ControllerInterface/OSX/OSXPrivate.mm' ]
+	files += [
+		'ControllerInterface/OSX/OSX.cpp', 
+		'ControllerInterface/OSX/OSXPrivate.mm'
+		]
+		   
 if sys.platform == 'linux2':
-	files += [ 'ControllerInterface/Xlib/Xlib.cpp' ]
-
+	files += [
+		'ControllerInterface/Xlib/Xlib.cpp'
+		]
 
 icenv.Append(CXXFLAGS = [ '-fPIC' ])
 icenv.StaticLibrary(env['local_libs'] + "inputcommon", files)
-
-

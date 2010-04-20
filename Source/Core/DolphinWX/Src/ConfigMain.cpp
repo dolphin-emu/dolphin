@@ -607,13 +607,13 @@ void CConfigMain::CreateGUIControls()
 	sPaths->Add(sbISOPaths, 1, wxEXPAND|wxALL, 5);
 
 	sOtherPaths = new wxGridBagSizer(0, 0);
-	sOtherPaths->AddGrowableCol(1);
 	sOtherPaths->Add(DefaultISOText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sOtherPaths->Add(DefaultISO, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sOtherPaths->Add(DVDRootText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sOtherPaths->Add(DVDRoot, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sOtherPaths->Add(ApploaderPathText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sOtherPaths->Add(ApploaderPath, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sOtherPaths->AddGrowableCol(1);
 	sPaths->Add(sOtherPaths, 0, wxEXPAND|wxALL, 5);
 	PathsPage->SetSizer(sPaths);
 	sPaths->Layout();

@@ -317,8 +317,7 @@ void Jit64::stX(UGeckoInstruction inst)
 		case 38: accessSize = 8; break;  //stb
 		default: _assert_msg_(DYNA_REC, 0, "AWETKLJASDLKF"); return;
 		}
-#if !defined(__APPLE__) && _M_X64
-// This code path fails in OSX, not 100% sure why, seems to be from the gpr.SetImmediate
+
 		if (gpr.R(a).IsImm())
 		{
 			// If we already know the address through constant folding, we can do some
@@ -354,7 +353,7 @@ void Jit64::stX(UGeckoInstruction inst)
 			}
 			// Other IO not worth the trouble.
 		}
-#endif
+		
 		// Optimized stack access?
 		if (accessSize == 32 && !gpr.R(a).IsImm() && a == 1 && js.st.isFirstBlockOfFunction && jo.optimizeStack)
 		{

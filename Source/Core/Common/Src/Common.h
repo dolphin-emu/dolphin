@@ -54,8 +54,8 @@
 #endif
 
 // Darwin ABI requires that stack frames be aligned to 16-byte boundaries.
-// This probably wouldn't break anyone either, but hey
-#ifdef __APPLE__
+// This is only needed on i386 gcc - x86_64 already aligns to 16bytes
+#if defined(__APPLE__) && defined(__i386__) && defined(__GNUC__)
 	#define STACKALIGN __attribute__((__force_align_arg_pointer__))
 #else
 	#define STACKALIGN
