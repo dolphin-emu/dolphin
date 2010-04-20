@@ -257,7 +257,7 @@ void DSPEmitter::ext_dmem_write(u32 dest, u32 src)
 
 	//	u16 saddr = addr >> 12; 
 	MOVZX(32, 16, ESI, R(EAX));
-	SHR(16, R(ESI), Imm16(12));
+	SHR(16, R(ESI), Imm8(12));
 
 	//	if (saddr == 0)
 	CMP(16, R(ESI), Imm16(0));
@@ -288,7 +288,7 @@ void DSPEmitter::ext_dmem_read(u16 addr)
 
 	//	u16 saddr = addr >> 12; 
 	MOVZX(32, 16, ESI, R(EAX));
-	SHR(16, R(ESI), Imm16(12));
+	SHR(16, R(ESI), Imm8(12));
 
 	//	if (saddr == 0)
 	CMP(16, R(ESI), Imm16(0));
