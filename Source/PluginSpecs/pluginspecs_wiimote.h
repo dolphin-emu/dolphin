@@ -8,6 +8,10 @@
 #include "PluginSpecs.h"
 #include "ExportProlog.h"
 
+#ifndef _WIN32
+#include "Config.h"
+#endif
+
 
 typedef void (*TLogv)(const char* _pMessage, int _v);
 

@@ -1,5 +1,9 @@
 #include "ControllerEmu.h"
 
+#if defined(HAVE_X11) && HAVE_X11
+#include <X11/Xlib.h>
+#endif
+
 const char modifier[] = "Modifier";
 
 
@@ -321,20 +325,16 @@ void GetMousePos(float& x, float& y, const SWiimoteInitialize* const wiimote_ini
 		int x, y;
 	} point = { 1, 1 };
 
-	// i think this if can be taken out, the plugin will handle that
-	if (IsFocus())
-	{
-		Display* const wm_display = (Display*)wiimote_initialize->hWnd;
-		Window glwin = *(Window *)wiimote_initialize->pXWindow;
+	Display* const wm_display = (Display*)wiimote_initialize->hWnd;
+	Window glwin = *(Window *)wiimote_initialize->pXWindow;
 
-		XWindowAttributes win_attribs;
-		XGetWindowAttributes (wm_display, glwin, &win_attribs);
-		win_width = win_attribs.width;
-		win_height = win_attribs.height;
-		Window root_dummy, child_win;
-		unsigned int mask;
-		XQueryPointer(wm_display, glwin, &root_dummy, &child_win, &root_x, &root_y, &point.x, &point.y, &mask);
-	}
+	XWindowAttributes win_attribs;
+	XGetWindowAttributes (wm_display, glwin, &win_attribs);
+	win_width = win_attribs.width;
+	win_height = win_attribs.height;
+	Window root_dummy, child_win;
+	unsigned int mask;
+	XQueryPointer(wm_display, glwin, &root_dummy, &child_win, &root_x, &root_y, &point.x, &point.y, &mask);
 #endif
 
 #if ( defined(_WIN32) || (defined(HAVE_X11) && HAVE_X11))
