@@ -70,6 +70,7 @@ struct SConfig
 	INTERFACE_LANGUAGE m_InterfaceLanguage;
 	// framelimit choose
 	int m_Framelimit;
+	bool b_UseFPS;
 	// other interface settings
 	bool m_InterfaceToolbar;
 	bool m_InterfaceStatusbar;

@@ -211,6 +211,13 @@ struct TabAdvanced : public W32Util::Tab
 				g_Config.bUseXFB = Button_GetCheck(GetDlgItem(hDlg, IDC_ENABLEXFB)) ? true : false;
 			}
 			break;
+		case IDC_ENABLEREALXFB:
+		{
+			g_Config.bUseXFB = Button_GetCheck(GetDlgItem(hDlg, IDC_ENABLEREALXFB)) ? true : (Button_GetCheck(GetDlgItem(hDlg, IDC_ENABLEXFB)) ? true : false);
+			g_Config.bUseRealXFB = Button_GetCheck(GetDlgItem(hDlg, IDC_ENABLEREALXFB)) ? true : false;
+			Button_GetCheck(GetDlgItem(hDlg, IDC_ENABLEREALXFB)) ? Button_Enable(GetDlgItem(hDlg,IDC_ENABLEXFB), false) : Button_Enable(GetDlgItem(hDlg,IDC_ENABLEXFB), true);
+		}
+		break;
 		case IDC_ENABLEEFBCOPY:
 			{
 				Button_GetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY)) ? Button_Enable(GetDlgItem(hDlg,IDC_EFBTORAM), true) : Button_Enable(GetDlgItem(hDlg,IDC_EFBTORAM), false);

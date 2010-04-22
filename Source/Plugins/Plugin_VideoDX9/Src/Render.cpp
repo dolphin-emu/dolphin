@@ -219,7 +219,7 @@ static const D3DTEXTUREFILTERTYPE d3dMipFilters[4] =
 	D3DTEXF_NONE,
 	D3DTEXF_POINT,
 	D3DTEXF_LINEAR,
-	D3DTEXF_LINEAR, //reserved
+	D3DTEXF_NONE, //reserved
 };
 
 static const D3DTEXTUREADDRESS d3dClamps[4] =
@@ -1402,6 +1402,7 @@ void Renderer::SetSamplerState(int stage, int texindex)
 		min = (tm0.min_filter & 4) ? D3DTEXF_LINEAR : D3DTEXF_POINT;
 		mag = tm0.mag_filter ? D3DTEXF_LINEAR : D3DTEXF_POINT;
 		mip = (tm0.min_filter == 8)?D3DTEXF_NONE:d3dMipFilters[tm0.min_filter & 3];
+		if((tm0.min_filter & 3) && (tm0.min_filter != 8) && ((tm1.max_lod >> 4) == 0)) mip = D3DTEXF_NONE;
 	}
 	if (texindex)
 		stage += 4;	

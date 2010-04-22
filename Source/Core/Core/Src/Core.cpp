@@ -608,13 +608,13 @@ void ScreenShot()
 void VideoThrottle()
 {
 	u32 TargetVPS = (SConfig::GetInstance().m_Framelimit > 1) ?
-		SConfig::GetInstance().m_Framelimit * 10 : VideoInterface::TargetRefreshRate;
+		SConfig::GetInstance().m_Framelimit * 5 : VideoInterface::TargetRefreshRate;
 
 	// When frame limit is NOT off
 	if (SConfig::GetInstance().m_Framelimit)
 	{
 		// Make the limiter a bit loose
-		u32 frametime = DrawnVideo * 1000 / ++TargetVPS;
+		u32 frametime = ((SConfig::GetInstance().b_UseFPS)? Common::AtomicLoad(DrawnFrame) : DrawnVideo) * 1000 / ++TargetVPS;
 		while ((u32)Timer.GetTimeDifference() < frametime)
 			Common::YieldCPU();
 			//Common::SleepCurrentThread(1);
@@ -692,7 +692,7 @@ void VideoThrottle()
 // depending on the framelimit set
 bool report_slow(int skipped)
 {
-	u32 TargetFPS = (SConfig::GetInstance().m_Framelimit > 1) ? SConfig::GetInstance().m_Framelimit * 10
+	u32 TargetFPS = (SConfig::GetInstance().m_Framelimit > 1) ? SConfig::GetInstance().m_Framelimit * 5
 		: VideoInterface::TargetRefreshRate;
 	u32 frames = Common::AtomicLoad(DrawnFrame);
 	bool fps_slow = (Timer.GetTimeDifference() < (frames + skipped) * 1000 / TargetFPS) ? false : true;

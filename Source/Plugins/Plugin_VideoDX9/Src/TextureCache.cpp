@@ -278,12 +278,12 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	}
 
 	entry.addr = address;
-	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, tex_format);
+	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format);
 	entry.isRenderTarget = false;
 	bool isPow2 = !((width & (width - 1)) || (height & (height - 1)));
 	entry.isNonPow2 = false;
 	int TexLevels = (width > height)?width:height;
-	TexLevels =  (isPow2 && UseNativeMips && tex_format != GX_TF_CMPR) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : (isPow2?0:1);
+	TexLevels =  (isPow2 && UseNativeMips && (maxlevel > 0)) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : ((isPow2 && g_ActiveConfig.bForceFiltering)? 0 : 1);
 	if(TexLevels > maxlevel && maxlevel > 0)
 		TexLevels = maxlevel;
 	if (!skip_texture_create) 
@@ -292,7 +292,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	} 
 	else 
 	{
-		D3D::ReplaceTexture2D(entry.texture, (BYTE*)temp, width, height, expandedWidth, d3d_fmt, swap_r_b);
+		D3D::ReplaceTexture2D(entry.texture, (BYTE*)temp, width, height, expandedWidth, d3d_fmt, swap_r_b, 0);
 	}
 	if(TexLevels > 1 && pcfmt != PC_TEX_FMT_NONE)
 	{

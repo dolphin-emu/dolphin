@@ -127,11 +127,12 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode,TexMode1 &
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
 			            (newmode.mag_filter || g_Config.bForceFiltering) ? GL_LINEAR : GL_NEAREST);
 
-        if (bHaveMipMaps) {
-            int filt = newmode.min_filter;
-            if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
-                newmode.min_filter += 4; // take equivalent forced linear
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt]);
+        if (bHaveMipMaps) 
+		{
+			if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
+                mode.min_filter += 4; // take equivalent forced linear
+            int filt = newmode.min_filter;            
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & (((newmode1.max_lod >> 4) > 0)?7:4)]);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod >> 4);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod >> 4);
 			//glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (newmode.lod_bias/2.0f));
@@ -256,11 +257,11 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     if (address == 0)
         return NULL;
 
-    TexMode0 &tm0 = bpmem.tex[texstage > 3].texMode0[texstage & 3];
-	TexMode1 &tm1 = bpmem.tex[texstage > 3].texMode1[texstage & 3];
+    TexMode0 &tm0 = bpmem.tex[texstage >> 2].texMode0[texstage & 3];
+	TexMode1 &tm1 = bpmem.tex[texstage >> 2].texMode1[texstage & 3];
 	
 	bool UseNativeMips = (tm0.min_filter & 3) && (tm0.min_filter != 8);				 
-	int maxlevel = (tm1.max_lod >> 4);
+	int maxlevel = ((tm1.max_lod >> 4));
 
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 	int bsw = TexDecoder_GetBlockWidthInTexels(tex_format) - 1;
@@ -379,7 +380,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	}
 
     entry.addr = address;
-	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, tex_format);
+	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format);
     entry.isRenderTarget = false;
 
 	// For static textures, we use NPOT.
@@ -394,7 +395,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
 	bool isPow2 = !((width & (width - 1)) || (height & (height - 1)));
 	int TexLevels = (width > height)?width:height;
-	TexLevels =  (isPow2 && UseNativeMips && tex_format != GX_TF_CMPR) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : (isPow2?0:1);
+	TexLevels =  (isPow2 && UseNativeMips && (maxlevel > 0)) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : 1;
 	if(TexLevels > maxlevel && maxlevel > 0)
 		TexLevels = maxlevel;
 	int gl_format = 0;
@@ -403,9 +404,6 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	entry.bHaveMipMaps = UseNativeMips;
 	if (dfmt != PC_TEX_FMT_DXT1)
 	{
-		if (expandedWidth != width)
-			glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);
-
 		switch (dfmt)
 		{
 		default:
@@ -447,24 +445,25 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			gl_type = GL_UNSIGNED_SHORT_5_6_5;
 			break;
 		}
+		if (expandedWidth != width)
+			glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);
 		//generate mipmaps even if we use native mips to suport textures with less levels
-		bool GenerateMipmaps = !entry.isRectangle && ((tm0.min_filter & 3) == 1 || (tm0.min_filter & 3) == 2);
-		if (GenerateMipmaps) 
-		{
-			glTexParameteri(target, GL_GENERATE_MIPMAP, GL_TRUE);
-		}
+		bool GenerateMipmaps = isPow2 && UseNativeMips && (maxlevel > 0);
+		entry.bHaveMipMaps = GenerateMipmaps;
 		if(skip_texture_create)
 		{
 			glTexSubImage2D(target, 0,0,0,width, height, gl_format, gl_type, temp);
 		}
 		else
 		{
-			glTexImage2D(target, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
-		}
-		if (GenerateMipmaps) 
-		{
-			glTexParameteri(target, GL_GENERATE_MIPMAP, GL_FALSE);
-			entry.bHaveMipMaps = true;
+			if (GenerateMipmaps) 
+			{
+				gluBuild2DMipmaps(target, gl_iformat, width, height, gl_format, gl_type, temp);
+			}
+			else
+			{
+				glTexImage2D(target, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);			
+			}
 		}
 
 		if (expandedWidth != width) // reset
@@ -486,41 +485,45 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	if(TexLevels > 1 && dfmt != PC_TEX_FMT_NONE)
 	{
 		int level = 1;
-		int mipWidth = (width + 1) >> 1;
-		int mipHeight = (height + 1) >> 1;
+		int mipWidth = width >> 1;
+		int mipHeight = height >> 1;
 		ptr +=  entry.size_in_bytes;
-		while((mipHeight || mipWidth))
+		while((mipHeight || mipWidth) && (level < TexLevels))
 		{
 			u32 currentWidth = (mipWidth > 0)? mipWidth : 1;
 			u32 currentHeight = (mipHeight > 0)? mipHeight : 1;
 			expandedWidth  = (currentWidth + bsw)  & (~bsw);
 			expandedHeight = (currentHeight + bsh) & (~bsh);
-			if(level < TexLevels)
-			{
-				TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt);				
-			}
-			//ugly hack but it seems to work
-			//complete the level not defined in hardware with pixels of the top levels
-			//this is not a  problem as the level are filtered by lod min and max value
+			TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt);							
 			if (dfmt != PC_TEX_FMT_DXT1)
 			{
 				if (expandedWidth != (int)currentWidth)
 					glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);
-				glTexImage2D(target, level, gl_iformat, currentWidth, currentHeight, 0, gl_format, gl_type, temp);				
-				if (expandedWidth != (int)currentWidth) // reset
+				
+				glTexSubImage2D(target, level,0,0,currentWidth, currentHeight, gl_format, gl_type, temp);								
+				
+				if (expandedWidth != (int)currentWidth)
 					glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 			}
 			else
 			{
-				glCompressedTexImage2D(target, level, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,	currentWidth, currentHeight, 0, expandedWidth*expandedHeight/2, temp);
+				if(skip_texture_create)
+				{
+					glCompressedTexSubImage2D(target, level,0,0,currentWidth, currentHeight, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,expandedWidth*expandedHeight/2, temp);				
+				}
+				else
+				{
+					glCompressedTexImage2D(target, level, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,	currentWidth, currentHeight, 0, expandedWidth*expandedHeight/2, temp);
+				}
 			}
+			GL_REPORT_ERRORD();
 			u32 size = (max(mipWidth, bsw) * max(mipHeight, bsh) * bsdepth) >> 1;
 			ptr +=  size;
 			mipWidth >>= 1;
 			mipHeight >>= 1;
 			level++;
 		}
-	}
+	}	
     entry.frameCount = frameCount;
     entry.w = width;
     entry.h = height;

@@ -48,7 +48,7 @@ private:
 	DECLARE_EVENT_TABLE();
 
 	wxBoxSizer* sGeneralPage; // General Settings
-	wxCheckBox* ConfirmStop, *UsePanicHandlers;
+	wxCheckBox* ConfirmStop, *UsePanicHandlers, *UseFPSForLimiting;
 	wxCheckBox* HideCursor;
 	wxChoice* InterfaceLang;
 	wxChoice* Framelimit;
@@ -171,14 +171,16 @@ private:
 		ID_ENABLECHEATS,
 
 		ID_INTERFACE_CONFIRMSTOP, // Interface settings
-		ID_INTERFACE_USEPANICHANDLERS,
+		ID_INTERFACE_USEPANICHANDLERS,		
 		ID_DISPLAY_FULLSCREEN,
 		ID_DISPLAY_HIDECURSOR,
 		ID_DISPLAY_RENDERTOMAIN,
 		ID_HOTKEY_CONFIG,
 		ID_INTERFACE_LANG_TEXT, ID_INTERFACE_LANG,
 		ID_INTERFACE_THEME,
-		ID_FRAMELIMIT_TEXT, ID_FRAMELIMIT,
+		ID_FRAMELIMIT_TEXT, 
+		ID_FRAMELIMIT,
+		ID_FRAMELIMIT_USEFPSFORLIMITING,
 
 		ID_GC_SRAM_LNG_TEXT,
 		ID_GC_SRAM_LNG,

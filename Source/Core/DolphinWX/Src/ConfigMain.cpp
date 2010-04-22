@@ -52,6 +52,7 @@ EVT_BUTTON(wxID_CLOSE, CConfigMain::CloseClick)
 
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_FRAMELIMIT_USEFPSFORLIMITING, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_HIDECURSOR, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_FULLSCREEN, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_RENDERTOMAIN, CConfigMain::CoreSettingsChanged)
@@ -185,7 +186,7 @@ void CConfigMain::InitializeGUILists()
 	// Framelimit
 	arrayStringFor_Framelimit.Add(wxT("Off"));
 	arrayStringFor_Framelimit.Add(wxT("Auto"));
-	for (int i = 20; i <= 120; i += 10)	// from 20 to 120
+	for (int i = 10; i <= 120; i += 5)	// from 10 to 120
 		arrayStringFor_Framelimit.Add(wxString::Format(wxT("%i"), i));
 
 	// Themes
@@ -210,6 +211,7 @@ void CConfigMain::InitializeGUIValues()
 	SkipIdle->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle);
 	EnableCheats->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats);
 	Framelimit->SetSelection(SConfig::GetInstance().m_Framelimit);
+	UseFPSForLimiting->SetValue(SConfig::GetInstance().b_UseFPS);
 
 	// General - Advanced
 	AlwaysHLE_BS2->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2);
@@ -334,6 +336,7 @@ void CConfigMain::CreateGUIControls()
 	// Framelimit
 	wxStaticText *FramelimitText = new wxStaticText(GeneralPage, ID_FRAMELIMIT_TEXT, wxT("Framelimit :"), wxDefaultPosition, wxDefaultSize);
 	Framelimit = new wxChoice(GeneralPage, ID_FRAMELIMIT, wxDefaultPosition, wxDefaultSize, arrayStringFor_Framelimit, 0, wxDefaultValidator);
+	UseFPSForLimiting = new wxCheckBox(GeneralPage, ID_FRAMELIMIT_USEFPSFORLIMITING, wxT("Use FPS  For Limiting"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Core Settings - Advanced
 	wxStaticBoxSizer* sizerCoreType = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("CPU Emulator Engine"));
@@ -347,6 +350,7 @@ void CConfigMain::CreateGUIControls()
 	// Interface settings
 	ConfirmStop = new wxCheckBox(GeneralPage, ID_INTERFACE_CONFIRMSTOP, wxT("Confirm On Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	UsePanicHandlers = new wxCheckBox(GeneralPage, ID_INTERFACE_USEPANICHANDLERS, wxT("Use Panic Handlers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	
 
 	// Interface Language
 	// At the moment this only changes the language displayed in m_gamelistctrl
@@ -373,6 +377,7 @@ void CConfigMain::CreateGUIControls()
 	wxBoxSizer *sFramelimit = new wxBoxSizer(wxHORIZONTAL);
 	sFramelimit->Add(FramelimitText, 0, wxALL | wxALIGN_CENTER, 1);
 	sFramelimit->Add(Framelimit, 0, wxALL | wxEXPAND, 5);
+	sFramelimit->Add(UseFPSForLimiting, 0, wxALL | wxEXPAND, 5);
 	sbBasic->Add(sFramelimit, 0, wxALL | wxEXPAND, 5);
 
 	sbAdvanced->Add(AlwaysHLE_BS2, 0, wxALL, 5);
@@ -702,6 +707,9 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
+	case ID_FRAMELIMIT_USEFPSFORLIMITING:
+		SConfig::GetInstance().b_UseFPS = UseFPSForLimiting->IsChecked();
+		break;
 	case ID_INTERFACE_CONFIRMSTOP: // Interface
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bConfirmStop = ConfirmStop->IsChecked();
 		break;

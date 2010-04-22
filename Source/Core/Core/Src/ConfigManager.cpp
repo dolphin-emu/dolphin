@@ -148,6 +148,7 @@ void SConfig::SaveSettings()
 	ini.Set("Core", "RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
 	ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
 	ini.Set("Core", "FrameLimit",		m_Framelimit);
+	ini.Set("Core", "UseFPS",		b_UseFPS);
 
 	// Plugins
 	ini.Set("Core", "GFXPlugin",	m_LocalCoreStartupParameter.m_strVideoPlugin);
@@ -276,6 +277,7 @@ void SConfig::LoadSettings()
 		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
 		ini.Get("Core", "FrameLimit",		&m_Framelimit,									1); // auto frame limit by default
+		ini.Get("Core", "UseFPS",		&b_UseFPS,									false); // use vps as default
 
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin,	m_DefaultGFXPlugin.c_str());
