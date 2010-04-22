@@ -211,7 +211,7 @@ ControllerEmu::AnalogStick::AnalogStick( const char* const _name ) : ControlGrou
 
 	controls.push_back( new Input( modifier ) );
 
-	settings.push_back( new Setting("Dead Zone", 0 ) );
+	settings.push_back( new Setting("Dead Zone", 0, 1, 50 ) );
 	settings.push_back( new Setting("Square Stick", 0 ) );
 
 }
@@ -253,6 +253,97 @@ ControllerEmu::Tilt::Tilt( const char* const _name ) : ControlGroup( _name, GROU
 
 	controls.push_back( new Input( modifier ) );
 
-	settings.push_back( new Setting("Dead Zone", 0 ) );
+	settings.push_back( new Setting("Dead Zone", 0, 1, 50 ) );
 	settings.push_back( new Setting("Circle Stick", 0 ) );
+}
+
+ControllerEmu::Cursor::Cursor( const char* const _name, const SWiimoteInitialize* const _wiimote_initialize )
+	: ControlGroup( _name, GROUP_TYPE_CURSOR )
+	//, z(0)
+	, wiimote_initialize(_wiimote_initialize)
+{
+	for ( unsigned int i = 0; i < 4; ++i )
+		controls.push_back( new Input( named_directions[i] ) );
+
+	settings.push_back( new Setting("Width", 0.5f ) );
+	settings.push_back( new Setting("Height", 0.5f ) );
+	settings.push_back( new Setting("Top", 0.5f ) );
+
+}
+
+//void GetMousePos(float& x, float& y, const SWiimoteInitialize* const wiimote_initialize)
+//{
+//#ifdef _WIN32
+//	// Get the cursor position for the entire screen
+//	POINT point;
+//	GetCursorPos(&point);
+//	// Get the cursor position relative to the upper left corner of the rendering window
+//	ScreenToClient(wiimote_initialize->hWnd, &point);
+//
+//	// Get the size of the rendering window. (In my case Rect.top and Rect.left was zero.)
+//	RECT Rect;
+//	GetClientRect(wiimote_initialize->hWnd, &Rect);
+//	// Width and height is the size of the rendering window
+//	float WinWidth = (float)(Rect.right - Rect.left);
+//	float WinHeight = (float)(Rect.bottom - Rect.top);
+//	float XOffset = 0, YOffset = 0;
+//	float PictureWidth = WinWidth, PictureHeight = WinHeight;
+//#endif
+//
+//	x = ((float)point.x - XOffset) / PictureWidth;
+//	y = ((float)point.y - YOffset) / PictureHeight;
+//	x *=2; x-=1;
+//	y *=2; y-=1;
+//}
+
+void GetMousePos(float& x, float& y, const SWiimoteInitialize* const wiimote_initialize)
+{
+	unsigned int win_width = 2, win_height = 2;
+
+#ifdef _WIN32
+	// Get the cursor position for the entire screen
+	POINT point = { 1, 1 };
+	GetCursorPos(&point);
+	// Get the cursor position relative to the upper left corner of the rendering window
+	ScreenToClient(wiimote_initialize->hWnd, &point);
+
+	// Get the size of the rendering window. (In my case Rect.top and Rect.left was zero.)
+	RECT Rect;
+	GetClientRect(wiimote_initialize->hWnd, &Rect);
+	// Width and height is the size of the rendering window
+	win_width = Rect.right - Rect.left;
+	win_height = Rect.bottom - Rect.top;
+
+#elif defined(HAVE_X11) && HAVE_X11
+	int root_x, root_y;
+	struct
+	{
+		int x, y;
+	} point = { 1, 1 };
+
+	// i think this if can be taken out, the plugin will handle that
+	if (IsFocus())
+	{
+		Display* const wm_display = (Display*)wiimote_initialize->hWnd;
+		Window glwin = *(Window *)wiimote_initialize->pXWindow;
+
+		XWindowAttributes win_attribs;
+		XGetWindowAttributes (wm_display, glwin, &win_attribs);
+		win_width = win_attribs.width;
+		win_height = win_attribs.height;
+		Window root_dummy, child_win;
+		unsigned int mask;
+		XQueryPointer(wm_display, glwin, &root_dummy, &child_win, &root_x, &root_y, &point.x, &point.y, &mask);
+	}
+#endif
+
+#if ( defined(_WIN32) || (defined(HAVE_X11) && HAVE_X11))
+	// Return the mouse position as a range from -1 to 1
+	x = (float)point.x / (float)win_width * 2 - 1;
+	y = (float)point.y / (float)win_height * 2 - 1;
+#else
+	x = 0;
+	y = 0;
+#endif
+
 }

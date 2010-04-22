@@ -8,7 +8,7 @@ class Nunchuk : public Attachment
 {
 public:
 	Nunchuk();
-	void GetState( u8* const data );
+	void GetState( u8* const data, const bool focus );
 
 private:
 	Tilt*			m_tilt;
@@ -18,6 +18,8 @@ private:
 
 	Buttons*		m_buttons;
 	AnalogStick*	m_stick;
+
+	unsigned int	m_shake_step;
 };
 
 }

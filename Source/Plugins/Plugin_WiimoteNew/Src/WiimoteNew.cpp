@@ -106,7 +106,7 @@ void InitPlugin( void* const hwnd )
 	{
 		// add 4 wiimotes
 		for ( unsigned int i = 0; i<4; ++i )
-			g_plugin.controllers.push_back( new WiimoteEmu::Wiimote( i, &g_WiimoteInitialize ) );
+			g_plugin.controllers.push_back( new WiimoteEmu::Wiimote(i) );
 
 		// load the saved controller config
 		g_plugin.LoadConfig();

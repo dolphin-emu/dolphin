@@ -7,6 +7,7 @@
 #include "Encryption.h"
 
 #include <vector>
+#include <queue>
 
 #define PI	3.14159265358979323846
 
@@ -17,6 +18,8 @@
 #define WIIMOTE_REG_EXT_SIZE		0x100
 #define WIIMOTE_REG_IR_SIZE			0x34
 
+extern SWiimoteInitialize g_WiimoteInitialize;
+
 namespace WiimoteEmu
 {
 
@@ -26,31 +29,36 @@ class Wiimote : public ControllerEmu
 {
 public:
 
-	Wiimote( const unsigned int index, SWiimoteInitialize* const wiimote_initialize );
+	struct ReadRequest
+	{
+		unsigned int	address, size, position;
+		u8*		data;
+	};
+
+	Wiimote( const unsigned int index );
 	void Reset();
 
 	void Update();
-	void InterruptChannel(u16 _channelID, const void* _pData, u32 _Size);
-	void ControlChannel(u16 _channelID, const void* _pData, u32 _Size);
+	void InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size);
+	void ControlChannel(const u16 _channelID, const void* _pData, u32 _Size);
 
-	void ReportMode(u16 _channelID, wm_report_mode* dr);
-	void HidOutputReport(u16 _channelID, wm_report* sr);
-	void SendAck(u16 _channelID, u8 _reportID);
-	void RequestStatus(u16 _channelID, wm_request_status* rs, int Extension = -1);
+	void ReportMode(const u16 _channelID, wm_report_mode* dr);
+	void HidOutputReport(const u16 _channelID, wm_report* sr);
+	void SendAck(const u16 _channelID, u8 _reportID);
+	void RequestStatus(const u16 _channelID, wm_request_status* rs = NULL);
 
-	void WriteData(u16 _channelID, wm_write_data* wd);
-	void ReadData(u16 _channelID, wm_read_data* rd);
-	void SendReadDataReply(u16 _channelID, const void* _Base, unsigned int _Address, unsigned int _Size);
+	void WriteData(const u16 _channelID, wm_write_data* wd);
+	void ReadData(const u16 _channelID, wm_read_data* rd);
+	void SendReadDataReply(const u16 _channelID, ReadRequest& _request);
 
 	std::string GetName() const;
 
 private:
 
-	SWiimoteInitialize* const	m_wiimote_init;
-
 	Buttons*				m_buttons;
 	Buttons*				m_dpad;
 	Buttons*				m_shake;
+	Cursor*					m_ir;
 	Tilt*					m_tilt;
 	Force*					m_swing;
 	ControlGroup*			m_rumble;
@@ -59,9 +67,13 @@ private:
 
 	const unsigned int		m_index;
 
+	bool		m_rumble_on;
+
 	bool					m_reporting_auto;
 	unsigned int			m_reporting_mode;
 	unsigned int			m_reporting_channel;
+
+	unsigned int			m_shake_step;
 
 	wm_status_report		m_status;
 
@@ -73,12 +85,17 @@ private:
 
 	} m_register;
 
+	// read data request queue
+	// maybe it isn't actualy a queue
+	// maybe read requests cancel any current requests
+	std::queue< ReadRequest >	m_read_requests;
+
 	//u8		m_eeprom[WIIMOTE_EEPROM_SIZE];
 	u8		m_eeprom[WIIMOTE_EEPROM_SIZE];
 
 	//u8*		m_reg_speaker;
 	//u8*		m_reg_motion_plus;
-	//u8*		m_reg_ir;
+	u8*		m_reg_ir;
 	u8*		m_reg_ext;
 
 	wiimote_key		m_ext_key;

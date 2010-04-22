@@ -55,18 +55,21 @@ Nunchuk::Nunchuk() : Attachment( "Nunchuk" )
 	memcpy( &reg[0x20], nunchuck_calibration, sizeof(nunchuck_calibration) );
 	// id
 	memcpy( &reg[0xfa], nunchuck_id, sizeof(nunchuck_id) );
+
+	// this should get set to 0 on disconnect, but it isn't, o well
+	m_shake_step = 0;
 }
 
-void Nunchuk::GetState( u8* const data )
+void Nunchuk::GetState( u8* const data, const bool focus )
 {
 	wm_extension* const ncdata = (wm_extension*)data;
 
 	// stick / not using calibration data for stick, o well
-	m_stick->GetState( &ncdata->jx, &ncdata->jy, 0x80, 127 );
+	m_stick->GetState( &ncdata->jx, &ncdata->jy, 0x80, focus ? 127 : 0 );
 
 	// tilt
 	float x, y;
-	m_tilt->GetState( &x, &y, 0, (PI / 2) ); // 90 degrees
+	m_tilt->GetState( &x, &y, 0, focus ? (PI / 2) : 0 ); // 90 degrees
 
 	// this isn't doing anything with those low bits in the calib data, o well
 
@@ -84,20 +87,21 @@ void Nunchuk::GetState( u8* const data )
 	// shake
 	const unsigned int btns[] = { 0x01, 0x02, 0x04 };
 	unsigned int shake = 0;
-	m_shake->GetState( &shake, btns );
-	static unsigned int shake_step = 0;
+	if (focus)
+		m_shake->GetState( &shake, btns );
 	if (shake)
 	{
-		shake_step = (shake_step + 1) % sizeof(shake_data);
 		for ( unsigned int i=0; i<3; ++i )
 			if ( shake & (1 << i) )
-				(&ncdata->ax)[i] = shake_data[shake_step];
+				(&ncdata->ax)[i] = shake_data[m_shake_step];
+		m_shake_step = (m_shake_step + 1) % sizeof(shake_data);
 	}
 	else
-		shake_step = 0;
+		m_shake_step = 0;
 
 	// buttons
-	m_buttons->GetState( &ncdata->bt, nunchuk_button_bitmasks );
+	if (focus)
+		m_buttons->GetState( &ncdata->bt, nunchuk_button_bitmasks );
 	
 	// flip the button bits :/
 	ncdata->bt ^= 0x3;

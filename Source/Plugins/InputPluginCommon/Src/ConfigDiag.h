@@ -48,7 +48,7 @@ public:
 class PadSettingChoice : public wxChoice, public PadSetting
 {
 public:
-	PadSettingChoice( wxWindow* const parent, ControlState& _value, int min, int max );
+	PadSettingChoice( wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const setting );
 	void UpdateGUI();
 	void UpdateValue();
 

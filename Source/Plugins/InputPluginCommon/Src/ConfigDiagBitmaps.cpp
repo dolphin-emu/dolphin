@@ -26,13 +26,27 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 			{
 			case GROUP_TYPE_TILT :
 			case GROUP_TYPE_STICK :
+			case GROUP_TYPE_CURSOR :
 				{
-					float x = 0, y = 0;
+					// this is starting to be a mess combining all these in one case
+
+					float x = 0, y = 0, z = 0;
 					float xx, yy;
-					if ( GROUP_TYPE_STICK == (*g)->control_group->type )
+
+					switch ((*g)->control_group->type)
+					{
+					case GROUP_TYPE_STICK :
 						((ControllerEmu::AnalogStick*)(*g)->control_group)->GetState( &x, &y, 32.0, 32-1.5 );
-					else
+						break;
+					case GROUP_TYPE_TILT :
 						((ControllerEmu::Tilt*)(*g)->control_group)->GetState( &x, &y, 32.0, 32-1.5 );
+						break;
+					case GROUP_TYPE_CURSOR :
+						((ControllerEmu::Cursor*)(*g)->control_group)->GetState( &x, &y, &z );
+						x *= (32-1.5); x+= 32;
+						y *= (32-1.5); y+= 32;
+						break;
+					}
 
 					xx = (*g)->control_group->controls[3]->control_ref->State();
 					xx -= (*g)->control_group->controls[2]->control_ref->State();
@@ -49,25 +63,37 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 
 					// draw the shit
 
+					// ir cursor forward movement
+					if (z)
+					{
+						dc.SetPen(*wxRED_PEN);
+						dc.SetBrush(*wxRED_BRUSH);
+						dc.DrawRectangle( 0, 64 - z*64, 64, 2);
+					}
+
 					// circle for visual aid for diagonal adjustment
 					dc.SetPen(*wxLIGHT_GREY_PEN);
-					dc.SetBrush(*wxTRANSPARENT_BRUSH);
+					dc.SetBrush(*wxWHITE_BRUSH);
 					if ( GROUP_TYPE_STICK == (*g)->control_group->type )
 						dc.DrawCircle( 32, 32, 32);
 					else
 						dc.DrawRectangle( 16, 16, 32, 32 );
 
 					// deadzone circle
-					dc.SetBrush(*wxLIGHT_GREY_BRUSH);
-					dc.DrawCircle( 32, 32, ((*g)->control_group)->settings[0]->value * 32 );						
+					if ( GROUP_TYPE_CURSOR != (*g)->control_group->type )
+					{
+						dc.SetBrush(*wxLIGHT_GREY_BRUSH);
+						dc.DrawCircle( 32, 32, ((*g)->control_group)->settings[0]->value * 32 );
 
-					// raw dot
-					dc.SetPen(*wxGREY_PEN);
-					dc.SetBrush(*wxGREY_BRUSH);
-					// i like the dot better than the cross i think
-					dc.DrawRectangle( xx - 2, yy - 2, 4, 4 );
-					//dc.DrawRectangle( xx-1, 64-yy-4, 2, 8 );
-					//dc.DrawRectangle( xx-4, 64-yy-1, 8, 2 );
+						// raw dot
+						dc.SetPen(*wxGREY_PEN);
+						dc.SetBrush(*wxGREY_BRUSH);
+						// i like the dot better than the cross i think
+						dc.DrawRectangle( xx - 2, yy - 2, 4, 4 );
+						//dc.DrawRectangle( xx-1, 64-yy-4, 2, 8 );
+						//dc.DrawRectangle( xx-4, 64-yy-1, 8, 2 );
+
+					}
 
 					// adjusted dot
 					if ( x!=32 || y!=32 )

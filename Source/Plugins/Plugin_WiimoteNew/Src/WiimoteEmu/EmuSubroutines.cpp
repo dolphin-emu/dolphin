@@ -33,6 +33,7 @@
 #include <string>
 
 #include "Common.h" // Common
+#include "FileUtil.h"
 #include "pluginspecs_wiimote.h"
 
 #include "WiimoteEmu.h"
@@ -52,7 +53,7 @@ u16 convert16bit(const u8* src)
 namespace WiimoteEmu
 {
 
-void Wiimote::ReportMode(u16 _channelID, wm_report_mode* dr) 
+void Wiimote::ReportMode(const u16 _channelID, wm_report_mode* dr) 
 {
 	//INFO_LOG(WIIMOTE, "Set data report mode");
 	//DEBUG_LOG(WIIMOTE, "  Rumble: %x", dr->rumble);
@@ -60,8 +61,7 @@ void Wiimote::ReportMode(u16 _channelID, wm_report_mode* dr)
 	//DEBUG_LOG(WIIMOTE, "  All The Time: %x", dr->all_the_time);
 	//DEBUG_LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
 
-	// should I use the rumble var in here?
-	//m_rumble->controls[0]->control_ref->State( dr->rumble );
+	m_rumble_on = (dr->rumble != 0);
 
 	m_reporting_auto = dr->all_the_time;
 	m_reporting_mode = dr->mode;
@@ -70,19 +70,10 @@ void Wiimote::ReportMode(u16 _channelID, wm_report_mode* dr)
 	if (0 == dr->all_the_time)
 		PanicAlert("Wiimote: Reporting Always is set to OFF! Everything should be fine, but games never do this.");
 
-	// Validation check
-	switch (dr->mode)
-	{
-	case WM_REPORT_CORE :
-	case WM_REPORT_CORE_ACCEL :
-	case WM_REPORT_CORE_ACCEL_IR12 :
-	case WM_REPORT_CORE_ACCEL_EXT16 :
-	case WM_REPORT_CORE_ACCEL_IR10_EXT6 :
-		break;
-	default:
-		PanicAlert("Wiimote: Unsupported reporting mode 0x%x", dr->mode);
-		break;
-	}
+	if (dr->mode >= WM_REPORT_INTERLEAVE1)
+		PanicAlert("Wiimote: Unsupported Reporting mode.");
+	else if (dr->mode < WM_REPORT_CORE)
+		PanicAlert("Wiimote: Reporting mode < 0x30.");
 }
 
 /* Here we process the Output Reports that the Wii sends. Our response will be
@@ -98,14 +89,14 @@ void Wiimote::ReportMode(u16 _channelID, wm_report_mode* dr)
    The IR enable/disable and speaker enable/disable and mute/unmute values are
 		bit2: 0 = Disable (0x02), 1 = Enable (0x06)
 */
-void Wiimote::HidOutputReport(u16 _channelID, wm_report* sr)
+void Wiimote::HidOutputReport(const u16 _channelID, wm_report* sr)
 {
 	INFO_LOG(WIIMOTE, "HidOutputReport (page: %i, cid: 0x%02x, wm: 0x%02x)", m_index, _channelID, sr->wm);
 
 	switch (sr->wm)
 	{
 	case WM_RUMBLE : // 0x10
-		m_rumble->controls[0]->control_ref->State( sr->data[0] > 0 );
+		m_rumble_on = (sr->data[0] != 0);
 		return;	// no ack
 		break;
 
@@ -175,7 +166,7 @@ void Wiimote::HidOutputReport(u16 _channelID, wm_report* sr)
    The first two bytes are the core buttons data,
    00 00 means nothing is pressed.
    The last byte is the success code 00. */
-void Wiimote::SendAck(u16 _channelID, u8 _reportID)
+void Wiimote::SendAck(const u16 _channelID, u8 _reportID)
 {
 	u8 data[6];
 
@@ -188,15 +179,18 @@ void Wiimote::SendAck(u16 _channelID, u8 _reportID)
 	ack->reportID = _reportID;
 	ack->errorID = 0;
 
-	m_wiimote_init->pWiimoteInput( m_index, _channelID, data, sizeof(data));
+	g_WiimoteInitialize.pWiimoteInput( m_index, _channelID, data, sizeof(data));
 }
 
 /* Here we produce a 0x20 status report to send to the Wii. We currently ignore
    the status request rs and all its eventual instructions it may include (for
    example turn off rumble or something else) and just send the status
    report. */
-void Wiimote::RequestStatus(u16 _channelID, wm_request_status* rs, int _Extension)
+void Wiimote::RequestStatus(const u16 _channelID, wm_request_status* rs)
 {
+	if (rs)
+		m_rumble_on = (rs->rumble != 0);
+
 	// handle switch extension
 	if ( m_extension->active_extension != m_extension->switch_extension )
 	{
@@ -224,15 +218,19 @@ void Wiimote::RequestStatus(u16 _channelID, wm_request_status* rs, int _Extensio
 	*(wm_status_report*)(data + 2) = m_status;
 
 	// send report
-	m_wiimote_init->pWiimoteInput(m_index, _channelID, data, sizeof(data));
+	g_WiimoteInitialize.pWiimoteInput(m_index, _channelID, data, sizeof(data));
 }
 
 /* Write data to Wiimote and Extensions registers. */
-void Wiimote::WriteData(u16 _channelID, wm_write_data* wd) 
+void Wiimote::WriteData(const u16 _channelID, wm_write_data* wd) 
 {
 	u32 address = convert24bit(wd->address);
-	// this is done in ReadDate, but not here in WriteData ?
 	//u16 size = convert16bit(rd->size);
+
+	// ignore the 0x010000 bit
+	address &= 0xFEFFFF;
+
+	m_rumble_on = ( wd->rumble != 0 );
 
 	if (wd->size > 16)
 	{
@@ -244,13 +242,8 @@ void Wiimote::WriteData(u16 _channelID, wm_write_data* wd)
 	{
 	case WM_SPACE_EEPROM :
 		{
-			static bool first = true;
-			if (first)
-			{
-				PanicAlert("WriteData: first write to EEPROM");
-				first = false;
-			}
 			// Write to EEPROM
+
 			if (address + wd->size > WIIMOTE_EEPROM_SIZE)
 			{
 				ERROR_LOG(WIIMOTE, "WriteData: address + size out of bounds!");
@@ -258,15 +251,23 @@ void Wiimote::WriteData(u16 _channelID, wm_write_data* wd)
 				return;
 			}
 			memcpy(m_eeprom + address, wd->data, wd->size);
+
+			// write mii data to file
+			// i need to improve this greatly
+			if (address >= 0x0FCA && address < 0x12C0)
+			{
+				// writing the whole mii block each write :/
+				std::ofstream file;
+				file.open( (std::string(File::GetUserPath(D_WIIUSER_IDX)) + "mii.bin").c_str(), std::ios::binary | std::ios::out);
+				file.write((char*)m_eeprom + 0x0FCA, 0x02f0);
+				file.close();
+			}
 		}
 		break;
 	case WM_SPACE_REGS1 :
 	case WM_SPACE_REGS2 :
 		{
 			// Write to Control Register
-
-			// ignore the 0x010000 bit
-			address &= 0xFEFFFF;
 
 			// ignore second byte for extension area
 			if (0xA4 == (address >> 16))
@@ -302,10 +303,18 @@ void Wiimote::WriteData(u16 _channelID, wm_write_data* wd)
 }
 
 /* Read data from Wiimote and Extensions registers. */
-void Wiimote::ReadData(u16 _channelID, wm_read_data* rd) 
+void Wiimote::ReadData(const u16 _channelID, wm_read_data* rd) 
 {
 	u32 address = convert24bit(rd->address);
 	u16 size = convert16bit(rd->size);
+
+	// ignore the 0x010000 bit
+	address &= 0xFEFFFF;
+
+	m_rumble_on = (rd->rumble != 0);
+
+	ReadRequest rr;
+	u8* block = new u8[size];
 
 	switch (rd->space)
 	{
@@ -323,7 +332,20 @@ void Wiimote::ReadData(u16 _channelID, wm_read_data* rd)
 				// generate a read error
 				size = 0;
 			}
-			SendReadDataReply(_channelID, m_eeprom + address, address, size);
+
+			// read mii data from file
+			// i need to improve this greatly
+			if (address >= 0x0FCA && address < 0x12C0)
+			{
+				// reading the whole mii block :/
+				std::ifstream file;
+				file.open( (std::string(File::GetUserPath(D_WIIUSER_IDX)) + "mii.bin").c_str(), std::ios::binary | std::ios::in);
+				file.read((char*)m_eeprom + 0x0FCA, 0x02f0);
+				file.close();
+			}
+
+			// read mem to be sent to wii
+			memcpy( block, m_eeprom + address, size);
 		}
 		break;
 	case WM_SPACE_REGS1 :
@@ -331,14 +353,11 @@ void Wiimote::ReadData(u16 _channelID, wm_read_data* rd)
 		{
 			// Read from Control Register
 
-			// ignore the 0x010000 bit
-			address &= 0xFEFFFF;
-
 			// ignore second byte for extension area
 			if (0xA4 == (address >> 16))
 				address &= 0xFF00FF;
 
-			u8* const block = new u8[ size ];
+			// read block to send to wii
 			m_register.Read( address, block, size );
 
 			switch (address >> 16)
@@ -364,78 +383,86 @@ void Wiimote::ReadData(u16 _channelID, wm_read_data* rd)
 				}
 				break;
 			}
-
-			// Let this function process the message and send it to the Wii
-			SendReadDataReply(_channelID, block, address, (int)size);
-
-			delete[] block;
 		} 
 		break;
 	default :
 		PanicAlert("WmReadData: unimplemented parameters (size: %i, addr: 0x%x)!", size, rd->space);
 		break;
 	}
+
+	// want the requested address, not the above modified one
+	rr.address = convert24bit(rd->address);
+	rr.size = size;
+	rr.position = 0;
+	rr.data = block;
+
+	// send up to 16 bytes
+	SendReadDataReply( _channelID, rr );
+
+	// if there is more data to be sent, add it to the queue
+	if (rr.size)
+		m_read_requests.push( rr );
+	else
+		delete[] rr.data;
 }
 
+// old comment
 /* Here we produce the actual 0x21 Input report that we send to the Wii. The
    message is divided into 16 bytes pieces and sent piece by piece. There will
    be five formatting bytes at the begging of all reports. A common format is
    00 00 f0 00 20, the 00 00 means that no buttons are pressed, the f means 16
    bytes in the message, the 0 means no error, the 00 20 means that the message
    is at the 00 20 offest in the registry that was read.
-   
-   _Base: The data beginning at _Base[0]
-   _Address: The starting address inside the registry, this is used to check for out of bounds reading
-   _Size: The total size to send
 */
-void Wiimote::SendReadDataReply(u16 _channelID, const void* _Base, unsigned int _Address, unsigned int _Size)
+void Wiimote::SendReadDataReply(const u16 _channelID, ReadRequest& _request)
 {
 	u8 data[23];
 	data[0] = 0xA1;
 	data[1] = WM_READ_DATA_REPLY;
+
 	wm_read_data_reply* const reply = (wm_read_data_reply*)(data + 2);
 	reply->buttons = m_status.buttons;
-	reply->error = 0;
+	reply->address = Common::swap16(_request.address);
 
+	// generate a read error
 	// Out of bounds. The real Wiimote generate an error for the first
 	// request to 0x1770 if we dont't replicate that the game will never
 	// read the calibration data at the beginning of Eeprom. I think this
 	// error is supposed to occur when we try to read above the freely
 	// usable space that ends at 0x16ff.
-	if (0 == _Size)
+	if (0 == _request.size)
 	{
 		reply->size = 0x0f;
 		reply->error = 0x08;
-		reply->address = Common::swap16(_Address);
 
 		memset(reply->data, 0, sizeof(reply->data));
-		m_wiimote_init->pWiimoteInput(m_index, _channelID, data, sizeof(data));
 	}
-
-	while (_Size)
+	else
 	{
 		// Limit the amt to 16 bytes
 		// AyuanX: the MTU is 640B though... what a waste!
-		const int amt = std::min( (unsigned int)16, _Size );
+		const int amt = std::min( (unsigned int)16, _request.size );
+
+		// no error
+		reply->error = 0;
 
 		// 0x1 means two bytes, 0xf means 16 bytes
 		reply->size = amt - 1;
-		reply->address = Common::swap16(_Address);
 
 		// Clear the mem first
 		memset(reply->data, 0, sizeof(reply->data));
 
 		// copy piece of mem
-		memcpy(reply->data, _Base, amt);
+		memcpy(reply->data, _request.data + _request.position, amt);
 
-		// Send a piece
-		m_wiimote_init->pWiimoteInput(m_index, _channelID, data, sizeof(data));
-
-		// advance pointers
-		_Size -= amt;
-		_Base = (u8*)_Base + amt;
-		_Address += amt;
+		// update request struct
+		_request.size -= amt;
+		_request.position += amt;
+		_request.address += amt;
 	}
+
+	// Send a piece
+	g_WiimoteInitialize.pWiimoteInput(m_index, _channelID, data, sizeof(data));
 }
 
 }

@@ -105,6 +105,7 @@ private:
 	const unsigned int		m_index;
 	XINPUT_STATE			m_state_in;
 	XINPUT_VIBRATION		m_state_out;
+	XINPUT_VIBRATION		m_current_state_out;
 	const unsigned int		m_subtype;
 };
 

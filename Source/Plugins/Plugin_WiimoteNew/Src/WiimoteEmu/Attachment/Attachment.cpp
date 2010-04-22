@@ -30,7 +30,7 @@ std::string Attachment::GetName() const
 
 }
 
-void ControllerEmu::Extension::GetState( u8* const data )
+void ControllerEmu::Extension::GetState( u8* const data, const bool focus )
 {
-	((WiimoteEmu::Attachment*)attachments[ active_extension ])->GetState( data );
+	((WiimoteEmu::Attachment*)attachments[ active_extension ])->GetState( data, focus );
 }

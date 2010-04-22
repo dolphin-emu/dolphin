@@ -96,14 +96,16 @@ Classic::Classic() : Attachment( "Classic Controller" )
 	memcpy( &reg[0xfa], classic_id, sizeof(classic_id) );
 }
 
-void Classic::GetState( u8* const data )
+void Classic::GetState( u8* const data, const bool focus )
 {
 	wm_classic_extension* const ccdata = (wm_classic_extension*)data;
+
+	// not using calibration data, o well
 
 	// left stick
 	{
 	u8 x, y;
-	m_left_stick->GetState( &x, &y, 0x20, 0x1F /*0x15*/ );
+	m_left_stick->GetState( &x, &y, 0x20, focus ? 0x1F /*0x15*/ : 0 );
 
 	ccdata->lx = x;
 	ccdata->ly = y;
@@ -112,7 +114,7 @@ void Classic::GetState( u8* const data )
 	// right stick
 	{
 	u8 x, y;
-	m_right_stick->GetState( &x, &y, 0x10, 0x0F /*0x0C*/ );
+	m_right_stick->GetState( &x, &y, 0x10, focus ? 0x0F /*0x0C*/ : 0 );
 
 	ccdata->rx1 = x;
 	ccdata->rx2 = x >> 1;
@@ -123,17 +125,20 @@ void Classic::GetState( u8* const data )
 	//triggers
 	{
 	u8 trigs[2];
-	m_triggers->GetState( &ccdata->bt, classic_trigger_bitmasks, trigs, 0x1F );
+	m_triggers->GetState( &ccdata->bt, classic_trigger_bitmasks, trigs, focus ? 0x1F : 0 );
 
 	ccdata->lt1 = trigs[0];
 	ccdata->lt2 = trigs[0] >> 3;
 	ccdata->rt = trigs[1];
 	}
 
-	// buttons
-	m_buttons->GetState( &ccdata->bt, classic_button_bitmasks );
-	// dpad
-	m_dpad->GetState( &ccdata->bt, classic_dpad_bitmasks );
+	if (focus)
+	{
+		// buttons
+		m_buttons->GetState( &ccdata->bt, classic_button_bitmasks );
+		// dpad
+		m_dpad->GetState( &ccdata->bt, classic_dpad_bitmasks );
+	}
 
 	// flip button bits
 	ccdata->bt ^= 0xFFFF;

@@ -27,6 +27,7 @@ enum
 	GROUP_TYPE_FORCE,
 	GROUP_TYPE_EXTENSION,
 	GROUP_TYPE_TILT,
+	GROUP_TYPE_CURSOR,
 };
 
 const char * const named_directions[] = 
@@ -36,6 +37,8 @@ const char * const named_directions[] =
 	"Left",
 	"Right"
 };
+
+void GetMousePos(float& x, float& y, const SWiimoteInitialize* const wiimote_initialize);
 
 class ControllerEmu
 {
@@ -82,11 +85,18 @@ public:
 		{
 		public:
 
-			Setting(const char* const _name, const float def_value ) : name(_name), value(def_value), default_value(def_value) {}
+			Setting(const char* const _name, const ControlState def_value
+				, const unsigned int _low = 1, const unsigned int _high = 100 )
+				: name(_name)
+				, value(def_value)
+				, default_value(def_value)
+				, low(_low)
+				, high(_high){}
 
 			const char* const	name;
 			ControlState		value;
 			const ControlState	default_value;
+			const unsigned int	low, high;
 		};
 
 		ControlGroup( const char* const _name, const unsigned int _type = GROUP_TYPE_OTHER ) : name(_name), type(_type) {}
@@ -274,6 +284,62 @@ public:
 		}
 	};
 
+	class Cursor : public ControlGroup
+	{
+	public:
+		Cursor( const char* const _name, const SWiimoteInitialize* const _wiimote_initialize );
+
+		template <typename C>
+		void GetState( C* const x, C* const y, C* const forward, const bool adjusted = false )
+		{
+			// this is flawed when GetState() isn't called at regular intervals
+			//const ControlState zz = controls[4]->control_ref->State();
+			//if (z < zz)
+			//	z = std::min( z + 0.01f, zz );
+			//else
+			//	z = std::max( z - 0.01f, zz );
+			const ControlState z = controls[4]->control_ref->State();
+			
+			// hide
+			if (controls[5]->control_ref->State() > 0.5f)
+			{
+				*x = 10000; *y = 0; *forward = 0;
+			}
+			else
+			{
+				*forward = z;
+				float xx, yy;
+				GetMousePos(xx, yy, wiimote_initialize);
+
+				// use mouse cursor, or user defined mapping if they have something mapped
+				// this if seems horrible
+				if ( controls[0]->control_ref->control_qualifier.name.size() || controls[1]->control_ref->control_qualifier.name.size() )
+					yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
+				else
+					yy = -yy;
+
+				if ( controls[2]->control_ref->control_qualifier.name.size() || controls[3]->control_ref->control_qualifier.name.size() )
+					xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+
+				// adjust cursor according to settings
+				if (adjusted)
+				{
+					xx *= ( settings[0]->value * 2 );
+					yy *= ( settings[1]->value * 2 );
+					yy += ( settings[2]->value - 0.5f );
+				}
+
+				*x = xx;
+				*y = yy;
+			}
+		}
+
+	private:
+		//ControlState z;
+		const SWiimoteInitialize* const wiimote_initialize;
+
+	};
+
 	class Extension : public ControlGroup
 	{
 	public:
@@ -282,7 +348,7 @@ public:
 			, switch_extension(0)
 			, active_extension(0) {}
 
-		void GetState( u8* const data );
+		void GetState( u8* const data, const bool focus = true );
 
 		std::vector<ControllerEmu*>		attachments;
 
@@ -301,7 +367,6 @@ public:
 	void UpdateReferences( ControllerInterface& devi );
 
 	std::vector< ControlGroup* >		groups;
-
 
 	ControlGroup*						options;
 

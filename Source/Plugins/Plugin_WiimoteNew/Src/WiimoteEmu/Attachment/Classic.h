@@ -7,7 +7,7 @@ class Classic : public Attachment
 {
 public:
 	Classic();
-	void GetState( u8* const data );
+	void GetState( u8* const data, const bool focus );
 
 private:
 	Buttons*		m_buttons;

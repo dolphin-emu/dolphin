@@ -64,6 +64,7 @@ Device::Device( const XINPUT_CAPABILITIES* const caps, const unsigned int index 
 : m_index(index), m_subtype(caps->SubType)
 {
 	ZeroMemory( &m_state_out, sizeof(m_state_out) );
+	ZeroMemory( &m_current_state_out, sizeof(m_current_state_out) );
 
 	// XInputGetCaps seems to always claim all capabilities are supported
 	// but i will leave all this stuff in, incase m$ fixes xinput up a bit
@@ -149,10 +150,10 @@ bool Device::UpdateInput()
 bool Device::UpdateOutput()
 {
 	// this if statement is to make rumble work better when multiple ControllerInterfaces are using the device
-	static XINPUT_VIBRATION current_state_out = {0,0};
-	if ( memcmp( &m_state_out, &current_state_out, sizeof(m_state_out) ) )
+	// only calls XInputSetState if the state changed
+	if ( memcmp( &m_state_out, &m_current_state_out, sizeof(m_state_out) ) )
 	{
-		current_state_out = m_state_out;
+		m_current_state_out = m_state_out;
 		return ( ERROR_SUCCESS == XInputSetState( m_index, &m_state_out ) );
 	}
 	else

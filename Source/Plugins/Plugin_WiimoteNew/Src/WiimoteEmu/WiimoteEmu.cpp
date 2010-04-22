@@ -29,20 +29,53 @@ namespace WiimoteEmu
 /* An example of a factory default first bytes of the Eeprom memory. There are differences between
    different Wiimotes, my Wiimote had different neutral values for the accelerometer. */
 static const u8 eeprom_data_0[] = {
-	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, 0x74, 0xD3,
-	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, 0x74, 0xD3,
-	// Accelerometer neutral values
+	// IR, maybe more
+	// assuming last 2 bytes are checksum
+	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, /*0x74, 0xD3,*/ 0x00, 0x00,	// messing up the checksum on purpose
+	0xA1, 0xAA, 0x8B, 0x99, 0xAE, 0x9E, 0x78, 0x30, 0xA7, /*0x74, 0xD3,*/ 0x00, 0x00,
+	// Accelerometer
+	// 0g x,y,z, 1g x,y,z, 2 byte checksum
 	0x82, 0x82, 0x82, 0x15, 0x9C, 0x9C, 0x9E, 0x38, 0x40, 0x3E,
 	0x82, 0x82, 0x82, 0x15, 0x9C, 0x9C, 0x9E, 0x38, 0x40, 0x3E
 };
+
+
 static const u8 eeprom_data_16D0[] = {
 	0x00, 0x00, 0x00, 0xFF, 0x11, 0xEE, 0x00, 0x00,
 	0x33, 0xCC, 0x44, 0xBB, 0x00, 0x00, 0x66, 0x99,
 	0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13
 };
 
+struct ReportFeatures
+{
+	u8		core, accel, ir, ext, size;
+} const reporting_mode_features[] = 
+{
+    //0x30: Core Buttons
+	{ 2, 0, 0, 0, 4 },
+    //0x31: Core Buttons and Accelerometer
+	{ 2, 4, 0, 0, 7 },
+    //0x32: Core Buttons with 8 Extension bytes
+	{ 2, 0, 0, 4, 12 },
+    //0x33: Core Buttons and Accelerometer with 12 IR bytes
+	{ 2, 4, 7, 0, 19 },
+    //0x34: Core Buttons with 19 Extension bytes
+	{ 2, 0, 0, 4, 23 },
+    //0x35: Core Buttons and Accelerometer with 16 Extension Bytes
+	{ 2, 4, 0, 7, 23 },
+    //0x36: Core Buttons with 10 IR bytes and 9 Extension Bytes
+	{ 2, 0, 4, 14, 23 },
+    //0x37: Core Buttons and Accelerometer with 10 IR bytes and 6 Extension Bytes
+	{ 2, 4, 7, 17, 23 },
+    //0x3d: 21 Extension Bytes
+	{ 0, 0, 0, 2, 23 },
+    //0x3e / 0x3f: Interleaved Core Buttons and Accelerometer with 36 IR bytes
+	// UNSUPPORTED
+	{ 0, 0, 0, 0, 23 },
+};
+
 // array of accel data to emulate shaking
-const u8 shake_data[8] = { 0x80, 0x40, 0x01, 0x40, 0x80, 0xC0, 0xFF, 0xC0 };
+const u8 shake_data[8] = { 0x40, 0x01, 0x40, 0x80, 0xC0, 0xFF, 0xC0, 0x80 };
 
 const u16 button_bitmasks[] =
 {
@@ -76,6 +109,8 @@ void Wiimote::Reset()
 	m_reporting_channel = 0;
 	m_reporting_auto = false;
 
+	m_rumble_on = false;
+
 	// will make the first Update() call send a status request
 	// the first call to RequestStatus() will then set up the status struct extension bit
 	m_extension->active_extension = -1;
@@ -97,7 +132,7 @@ void Wiimote::Reset()
 	//m_reg_speaker		= &m_register[0xa20000][0];
 	m_reg_ext			= &m_register[0xa40000][0];
 	//m_reg_motion_plus	= &m_register[0xa60000][0];
-	//m_reg_ir			= &m_register[0xB00000][0];
+	m_reg_ir			= &m_register[0xB00000][0];
 
 	// status
 	memset( &m_status, 0, sizeof(m_status) );
@@ -107,11 +142,18 @@ void Wiimote::Reset()
 	//   0x33 - 0x54: level 3
 	//   0x55 - 0xff: level 4
 	m_status.battery = 0x5f;
+
+	m_shake_step = 0;
+
+	// clear read request queue
+	while (m_read_requests.size())
+	{
+		delete[] m_read_requests.front().data;
+		m_read_requests.pop();
+	}
 }
 
-Wiimote::Wiimote( const unsigned int index, SWiimoteInitialize* const wiimote_initialize )
-	: m_wiimote_init( wiimote_initialize )
-	, m_index(index)
+Wiimote::Wiimote( const unsigned int index ) : m_index(index)
 {
 	// ---- set up all the controls ----
 
@@ -121,11 +163,9 @@ Wiimote::Wiimote( const unsigned int index, SWiimoteInitialize* const wiimote_in
 		m_buttons->controls.push_back( new ControlGroup::Input( named_buttons[i] ) );
 
 	// ir
-	//groups.push_back( m_rumble = new ControlGroup( "IR" ) );
-	//m_rumble->controls.push_back( new ControlGroup::Output( "X" ) );
-	//m_rumble->controls.push_back( new ControlGroup::Output( "Y" ) );
-	//m_rumble->controls.push_back( new ControlGroup::Output( "Distance" ) );
-	//m_rumble->controls.push_back( new ControlGroup::Output( "Hide" ) );
+	groups.push_back( m_ir = new Cursor( "IR", &g_WiimoteInitialize ) );
+	m_ir->controls.push_back( new ControlGroup::Input( "Forward" ) );
+	m_ir->controls.push_back( new ControlGroup::Input( "Hide" ) );
 
 	// forces
 	groups.push_back( m_tilt = new Tilt( "Pitch and Roll" ) );
@@ -171,22 +211,52 @@ std::string Wiimote::GetName() const
 
 void Wiimote::Update()
 {
-	const bool is_sideways = options->settings[1]->value > 0;
+	const bool is_sideways = options->settings[1]->value > 0; 
+
+	// if windows is focused or background input is enabled
+	const bool focus = g_WiimoteInitialize.pRendererHasFocus() || (options->settings[0]->value != 0);
+
+	// no rumble if no focus
+	if (false == focus)
+		m_rumble_on = false;
+	m_rumble->controls[0]->control_ref->State(m_rumble_on);
 
 	// update buttons in status struct
 	m_status.buttons = 0;
-	m_buttons->GetState( &m_status.buttons, button_bitmasks );
-	m_dpad->GetState( &m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks );
+	if ( focus )
+	{
+		m_buttons->GetState( &m_status.buttons, button_bitmasks );
+		m_dpad->GetState( &m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks );
+	}
 
+	// check if there is a read data request
+	if ( m_read_requests.size() )
+	{
+		ReadRequest& rr = m_read_requests.front();
+		// send up to 16 bytes to the wii
+		SendReadDataReply(m_reporting_channel, rr);
+		//SendReadDataReply(rr.channel, rr);
+
+		// if there is no more data, remove from queue
+		if (0 == rr.size)
+		{
+			delete[] rr.data;
+			m_read_requests.pop();
+		}
+
+		// dont send any other reports
+		return;
+	}
+
+	// -- maybe this should happen before the read request stuff?
 	// check if a status report needs to be sent
 	// this happens on wiimote sync and when extensions are switched
 	if (m_extension->active_extension != m_extension->switch_extension)
 	{
-		RequestStatus( m_reporting_channel, NULL );
+		RequestStatus(m_reporting_channel);
 
 		// Wiibrew: Following a connection or disconnection event on the Extension Port,
 		// data reporting is disabled and the Data Reporting Mode must be reset before new data can arrive.
-
 		// after a game receives an unrequested status report,
 		// it expects data reports to stop until it sets the reporting mode again
 		m_reporting_auto = false;
@@ -196,70 +266,26 @@ void Wiimote::Update()
 		return;
 
 	// figure out what data we need
-	size_t rpt_size = 0;
-	size_t rpt_core = 0;
-	size_t rpt_accel = 0;
-	size_t rpt_ir = 0;
-	size_t rpt_ext = 0;
-
-	switch ( m_reporting_mode )
-	{
-	//(a1) 30 BB BB
-	case WM_REPORT_CORE :
-		rpt_size	= 2 + 2;
-		rpt_core	= 2;
-		break;
-	//(a1) 31 BB BB AA AA AA
-	case WM_REPORT_CORE_ACCEL :
-		rpt_size	= 2 + 2 + 3;
-		rpt_core	= 2;
-		rpt_accel	= 2 + 2;
-		break;
-	//(a1) 33 BB BB AA AA AA II II II II II II II II II II II II
-	case WM_REPORT_CORE_ACCEL_IR12 :
-		rpt_size	= 2 + 2 + 3 + 12;
-		rpt_core	= 2;
-		rpt_accel	= 2 + 2;
-		rpt_ir		= 2 + 2 + 3;
-		break;
-	//(a1) 35 BB BB AA AA AA EE EE EE EE EE EE EE EE EE EE EE EE EE EE EE EE
-	case WM_REPORT_CORE_ACCEL_EXT16 :
-		rpt_size	= 2 + 2 + 3 + 16;
-		rpt_core	= 2;
-		rpt_accel	= 2 + 2;
-		rpt_ext		= 2 + 2 + 3;
-		break;	
-	//(a1) 37 BB BB AA AA AA II II II II II II II II II II EE EE EE EE EE EE
-	case WM_REPORT_CORE_ACCEL_IR10_EXT6 :
-		rpt_size	= 2 + 2 + 3 + 10 + 6;
-		rpt_core	= 2;
-		rpt_accel	= 2 + 2;
-		rpt_ir		= 2 + 2 + 3;
-		rpt_ext		= 2 + 2 + 3 + 10;
-		break;
-	default :
-		//PanicAlert( "Unsupported Reporting Mode" );
-		return;
-		break;
-	}
+	const ReportFeatures& rpt = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
 
 	// set up output report
-	u8* const rpt = new u8[rpt_size];
-	memset( rpt, 0, rpt_size );
+	// made data bigger than needed in case the wii specifies the wrong ir mode for a reporting mode
+	u8 data[46];
+	memset( data, 0, sizeof(data) );
 
-	rpt[0] = 0xA1;
-	rpt[1] = m_reporting_mode;
+	data[0] = 0xA1;
+	data[1] = m_reporting_mode;
 
-	// core buttons - always 2
-	if (rpt_core)
-		*(wm_core*)(rpt + rpt_core) = m_status.buttons;
+	// core buttons
+	if (rpt.core)
+		*(wm_core*)(data + rpt.core) = m_status.buttons;
 
 	// accelerometer
-	if (rpt_accel)
+	if (rpt.accel)
 	{
 		// tilt
 		float x, y;
-		m_tilt->GetState( &x, &y, 0, (PI / 2) ); // 90 degrees
+		m_tilt->GetState( &x, &y, 0, focus ? (PI / 2) : 0 ); // 90 degrees
 
 		// this isn't doing anything with those low bits in the calib data, o well
 
@@ -270,58 +296,144 @@ void Wiimote::Update()
 			one_g[i] = (&cal->one_g.x)[i] - zero_g[i];
 
 		// this math should be good enough :P
-		rpt[rpt_accel + 2] = u8(sin( (PI / 2) - std::max( abs(x), abs(y) ) ) * one_g[2] + zero_g[2]);
+		data[rpt.accel + 2] = u8(sin( (PI / 2) - std::max( abs(x), abs(y) ) ) * one_g[2] + zero_g[2]);
 		
 		if (is_sideways)
 		{
-			rpt[rpt_accel + 0] = u8(sin(y) * -one_g[1] + zero_g[1]);
-			rpt[rpt_accel + 1] = u8(sin(x) * -one_g[0] + zero_g[0]);
+			data[rpt.accel + 0] = u8(sin(y) * -one_g[1] + zero_g[1]);
+			data[rpt.accel + 1] = u8(sin(x) * -one_g[0] + zero_g[0]);
 		}
 		else
 		{
-			rpt[rpt_accel + 0] = u8(sin(x) * -one_g[0] + zero_g[0]);
-			rpt[rpt_accel + 1] = u8(sin(y) * one_g[1] + zero_g[1]);
+			data[rpt.accel + 0] = u8(sin(x) * -one_g[0] + zero_g[0]);
+			data[rpt.accel + 1] = u8(sin(y) * one_g[1] + zero_g[1]);
 		}
 
 		// shake
-		const unsigned int btns[] = { 0x01, 0x02, 0x04 };
+		const unsigned int btns[] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20 };
 		unsigned int shake = 0;
-		m_shake->GetState( &shake, btns );
-		static unsigned int shake_step = 0;
+		if (focus)
+			m_shake->GetState( &shake, btns );
 		if (shake)
 		{
-			shake_step = (shake_step + 1) % sizeof(shake_data);
 			for ( unsigned int i=0; i<3; ++i )
-				if ( shake & (1 << i) )
-					rpt[rpt_accel + i] = shake_data[shake_step];
+				if (shake & (1 << i))
+					data[rpt.accel + i] = shake_data[m_shake_step];
+			m_shake_step = (m_shake_step + 1) % sizeof(shake_data);
 		}
 		else
-			shake_step = 0;
-	}
+			m_shake_step = 0;
 
-	// TODO: IR
-	if (rpt_ir)
-	{
+		// swing
+		//u8 swing[3];
+		//m_swing->GetState( swing, 0x80, 60 );
+		//for ( unsigned int i=0; i<3; ++i )
+		//	if ( swing[i] != 0x80 )
+		//		data[rpt.accel + i] = swing[i];
+
 	}
 
 	// extension
-	if (rpt_ext)
+	if (rpt.ext)
 	{
-		// temporary
-		m_extension->GetState(rpt + rpt_ext);
-		wiimote_encrypt(&m_ext_key, rpt + rpt_ext, 0x00, sizeof(wm_extension));
+		m_extension->GetState(data + rpt.ext, focus);
+		wiimote_encrypt(&m_ext_key, data + rpt.ext, 0x00, sizeof(wm_extension));
 
 		// i dont think anything accesses the extension data like this, but ill support it
-		memcpy( m_reg_ext + 8, rpt + rpt_ext, sizeof(wm_extension));
+		memcpy(m_reg_ext + 8, data + rpt.ext, sizeof(wm_extension));
 	}
 
-	// send input report
-	m_wiimote_init->pWiimoteInput( m_index, m_reporting_channel, rpt, (u32)rpt_size );
+	// ir
+	if (rpt.ir)
+	{
+		float xx = 10000, yy = 0, zz = 0;
 
-	delete[] rpt;
+		if (focus)
+			m_ir->GetState(&xx, &yy, &zz, true);
+
+		xx *= (-256 * 0.95f);
+		xx += 512;
+
+		yy *= (-256 * 0.90f);
+		yy += 490;
+
+		const unsigned int distance = (unsigned int)(100 + 100 * zz);
+
+		// TODO: make roll affect the dot positions
+		const unsigned int y = (unsigned int)yy;
+
+		unsigned int x[4];
+		x[0] = (unsigned int)(xx - distance);
+		x[1] = (unsigned int)(xx + distance);
+		x[2] = (unsigned int)(xx - 1.2f * distance);
+		x[3] = (unsigned int)(xx + 1.2f * distance);
+
+		// ir mode
+		switch (m_reg_ir[0x33])
+		{
+		// basic
+		case 1 :
+			{
+			memset(data + rpt.ir, 0xFF, 10);
+			wm_ir_basic* const irdata = (wm_ir_basic*)(data + rpt.ir);
+			if (y < 768)
+			{
+				for ( unsigned int i=0; i<2; ++i )
+				{
+					if (x[i*2] < 1024)
+					{
+						irdata[i].x1 = u8(x[i*2]);
+						irdata[i].x1hi = x[i*2] >> 8;
+
+						irdata[i].y1 = u8(y);
+						irdata[i].y1hi = y >> 8;
+					}
+					if (x[i*2+1] < 1024)
+					{
+						irdata[i].x2 = u8(x[i*2+1]);
+						irdata[i].x2hi = x[i*2+1] >> 8;
+
+						irdata[i].y2 = u8(y);
+						irdata[i].y2hi = y >> 8;
+					}
+				}
+			}
+			}
+			break;
+		// extended
+		case 3 :
+			{
+			memset(data + rpt.ir, 0xFF, 12);
+			wm_ir_extended* const irdata = (wm_ir_extended*)(data + rpt.ir);
+			if (y < 768)
+			{
+				for ( unsigned int i=0; i<2; ++i )
+					if (irdata[i].x < 1024)
+					{
+						irdata[i].x = u8(x[i]);
+						irdata[i].xhi = x[i] >> 8;
+
+						irdata[i].y = u8(y);
+						irdata[i].yhi = y >> 8;
+
+						irdata[i].size = 10;
+					}
+			}
+			}
+			break;
+		// full
+		case 5 :
+			// UNSUPPORTED
+			break;
+
+		}
+	}
+
+	// send data report
+	g_WiimoteInitialize.pWiimoteInput( m_index, m_reporting_channel, data, rpt.size );
 }
 
-void Wiimote::ControlChannel(u16 _channelID, const void* _pData, u32 _Size) 
+void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size) 
 {
 
 	// Check for custom communication
@@ -357,7 +469,7 @@ void Wiimote::ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 			HidOutputReport(_channelID, (wm_report*)hidp->data);
 
 			u8 handshake = HID_HANDSHAKE_SUCCESS;
-			m_wiimote_init->pWiimoteInput(m_index, _channelID, &handshake, 1);
+			g_WiimoteInitialize.pWiimoteInput(m_index, _channelID, &handshake, 1);
 
 			PanicAlert("HID_TYPE_DATA - OUTPUT: Ambiguous Control Channel Report!");
 		}
@@ -374,7 +486,7 @@ void Wiimote::ControlChannel(u16 _channelID, const void* _pData, u32 _Size)
 
 }
 
-void Wiimote::InterruptChannel(u16 _channelID, const void* _pData, u32 _Size)
+void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size)
 {
 	hid_packet* hidp = (hid_packet*)_pData;
 
