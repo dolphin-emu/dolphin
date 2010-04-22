@@ -70,27 +70,6 @@ void OnKeyDown(WPARAM wParam)
 }
 // ---------------------------------------------------------------------
 
-void ToggleDisplayMode (int bFullscreen)
-{
-	if (bFullscreen)
-	{
-		DEVMODE dmScreenSettings;
-		memset(&dmScreenSettings,0,sizeof(dmScreenSettings));
-		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-		sscanf(g_Config.cFSResolution, "%dx%d", &dmScreenSettings.dmPelsWidth, &dmScreenSettings.dmPelsHeight);
-		dmScreenSettings.dmBitsPerPel = 32;
-		dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
-
-		// Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
-		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
-	}
-	else
-	{
-		// Change to default resolution
-		ChangeDisplaySettings(NULL, CDS_FULLSCREEN);
-	}
-}
-
 LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 {
 	switch( iMsg )
@@ -132,8 +111,6 @@ LRESULT CALLBACK WndProc( HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam )
 			OnKeyDown(lParam);
 		else if (wParam == WIIMOTE_DISCONNECT)
 			PostMessage(m_hParent, WM_USER, wParam, lParam);
-		else if (wParam == TOGGLE_DISPLAYMODE)
-			ToggleDisplayMode(lParam);
 		break;
 
 	case WM_SYSCOMMAND:

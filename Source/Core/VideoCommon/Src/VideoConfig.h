@@ -69,9 +69,6 @@ struct VideoConfig
     // General
 	bool bVSync;
 
-	// Resolution control
-	char cFSResolution[16];
-
     bool bNativeResolution, b2xResolution, bRunning;  // Should possibly be augmented with 2x, 4x native.
 	bool bWidescreenHack;
 	int iAspectRatio;

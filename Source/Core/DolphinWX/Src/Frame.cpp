@@ -48,10 +48,6 @@
 
 #include <wx/datetime.h> // wxWidgets
 
-#if defined HAVE_X11 && HAVE_X11
-#include <X11/Xlib.h>
-#endif
-
 // Resources
 
 extern "C" {
@@ -142,7 +138,6 @@ CPanel::CPanel(
 				break;
 			
 			case WM_USER_CREATE:
-				main_frame->DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
 				break;
 
 			case WM_USER_SETCURSOR:
@@ -485,6 +480,11 @@ CFrame::CFrame(wxFrame* parent,
 		CreateCursor();
 	#endif
 
+	#if defined(HAVE_XRANDR) && HAVE_XRANDR
+		m_XRRConfig = new X11Utils::XRRConfiguration(X11Utils::XDisplayFromHandle(GetHandle()),
+			   	X11Utils::XWindowFromHandle(GetHandle()));
+	#endif
+
 	// -------------------------
 	// Connect event handlers
 
@@ -524,6 +524,10 @@ CFrame::~CFrame()
 		if (m_timer.IsRunning()) m_timer.Stop();
 	#endif
 
+	#if defined(HAVE_XRANDR) && HAVE_XRANDR
+		delete m_XRRConfig;
+	#endif
+
 	ClosePages();
 
 	delete m_Mgr;
@@ -542,46 +546,6 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED (event))
 {
 	Close(true);
 }
-
-#if defined HAVE_X11 && HAVE_X11
-void CFrame::X11_SendClientEvent(const char *message,
-	   	int data1, int data2, int data3, int data4)
-{
-	XEvent event;
-	Display *dpy = (Display *)Core::GetWindowHandle();
-	Window win = *(Window *)Core::GetXWindow();
-
-	// Init X event structure for client message
-	event.xclient.type = ClientMessage;
-	event.xclient.format = 32;
-	event.xclient.data.l[0] = XInternAtom(dpy, message, False);
-	event.xclient.data.l[1] = data1;
-	event.xclient.data.l[2] = data2;
-	event.xclient.data.l[3] = data3;
-	event.xclient.data.l[4] = data4;
-
-	// Send the event
-	if (!XSendEvent(dpy, win, False, False, &event))
-		ERROR_LOG(VIDEO, "Failed to send message %s to the emulator window.\n", message);
-}
-
-void X11_SendKeyEvent(int key)
-{
-	XEvent event;
-	Display *dpy = (Display *)Core::GetWindowHandle();
-	Window win = *(Window *)Core::GetXWindow();
-
-	// Init X event structure for key press event
-	event.xkey.type = KeyPress;
-	// WARNING:  This works for ASCII keys.  If in the future other keys are needed
-	// convert with InputCommon::wxCharCodeWXToX from X11InputBase.cpp.
-	event.xkey.keycode = XKeysymToKeycode(dpy, key);
-
-	// Send the event
-	if (!XSendEvent(dpy, win, False, False, &event))
-		ERROR_LOG(VIDEO, "Failed to send key press event to the emulator window.\n");
-}
-#endif
 
 // --------
 // Events
@@ -731,7 +695,6 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		break;
 
 	case WM_USER_CREATE:
-		DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		break;
@@ -776,8 +739,10 @@ void CFrame::OnCustomHostMessage(int Id)
 
 void CFrame::OnSizeRequest(int& x, int& y, int& width, int& height)
 {
+	wxMutexGuiEnter();
 	m_RenderParent->GetSize(&width, &height);
 	m_RenderParent->GetPosition(&x, &y);
+	wxMutexGuiLeave();
 }
 
 bool CFrame::RendererHasFocus()
@@ -892,7 +857,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 #ifdef _WIN32
 			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
 #elif defined(HAVE_X11) && HAVE_X11
-			X11_SendKeyEvent(event.GetKeyCode());
+			X11Utils::SendKeyEvent(event.GetKeyCode());
 #endif
 		}
 #ifdef _WIN32
@@ -981,34 +946,25 @@ wxAuiNotebook* CFrame::CreateEmptyNotebook()
 
 void CFrame::DoFullscreen(bool bF)
 {
-	// Only switch this to fullscreen if we're rendering to main AND if we're running a game
-	// plus if a modal dialog is open, this will still process the keyboard events, and may cause
-	// the main window to become unresponsive, so we have to avoid that.
-	if ((Core::GetState() == Core::CORE_RUN) || (Core::GetState() == Core::CORE_PAUSE))
+	ToggleDisplayMode(bF);
+
+	m_RenderFrame->ShowFullScreen(bF);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
-#if defined(HAVE_X11) && HAVE_X11
-		X11_SendClientEvent("TOGGLE_DISPLAYMODE", bF);
-#elif defined(_WIN32)
-		PostMessage((HWND)Core::GetWindowHandle(), WM_USER, TOGGLE_DISPLAYMODE, bF);
-#endif
-		m_RenderFrame->ShowFullScreen(bF);
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
+		if (bF)
 		{
-			if (bF)
-			{
-				// Save the current mode before going to fullscreen
-				AuiCurrent = m_Mgr->SavePerspective();
-				m_Mgr->LoadPerspective(AuiFullscreen, true);
-			}
-			else
-			{
-				// Restore saved perspective
-				m_Mgr->LoadPerspective(AuiCurrent, true);
-			}
+			// Save the current mode before going to fullscreen
+			AuiCurrent = m_Mgr->SavePerspective();
+			m_Mgr->LoadPerspective(AuiFullscreen, true);
 		}
 		else
-			m_RenderFrame->Raise();
+		{
+			// Restore saved perspective
+			m_Mgr->LoadPerspective(AuiCurrent, true);
+		}
 	}
+	else
+		m_RenderFrame->Raise();
 }
 
 // Debugging, show loose windows

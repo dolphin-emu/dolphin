@@ -47,10 +47,6 @@ void VideoConfig::Load(const char *ini_file)
     IniFile iniFile;
     iniFile.Load(ini_file);
 
-	// get resolution
-	iniFile.Get("Hardware", "FullscreenRes", &temp, "640x480");
-    strncpy(cFSResolution, temp.c_str(), 16);
-    
     iniFile.Get("Hardware", "VSync", &bVSync, 0); // Hardware
     iniFile.Get("Settings", "StretchToFit", &bNativeResolution, true);
 	iniFile.Get("Settings", "2xResolution", &b2xResolution, false);
@@ -151,7 +147,6 @@ void VideoConfig::Save(const char *ini_file)
 {
     IniFile iniFile;
     iniFile.Load(ini_file);
-    iniFile.Set("Hardware", "FullscreenRes", cFSResolution);
     iniFile.Set("Hardware", "VSync", bVSync);
     iniFile.Set("Settings", "StretchToFit", bNativeResolution);
 	iniFile.Set("Settings", "2xResolution", b2xResolution);

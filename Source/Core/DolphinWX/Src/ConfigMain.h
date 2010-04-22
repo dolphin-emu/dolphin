@@ -23,6 +23,9 @@
 #include <wx/notebook.h>
 #include <wx/filepicker.h>
 #include "ConfigManager.h"
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+#include "X11Utils.h"
+#endif
 
 class CConfigMain : public wxDialog
 {
@@ -54,6 +57,9 @@ private:
 	wxChoice* Framelimit;
 	wxRadioBox* Theme;
 	wxCheckBox* Fullscreen;
+	wxChoice* FullscreenResolution;
+	wxSpinCtrl *WindowWidth;
+	wxSpinCtrl *WindowHeight;
 	wxCheckBox* RenderToMain;
 	wxButton* HotkeyConfig;
 
@@ -150,6 +156,7 @@ private:
 	wxArrayString arrayStringFor_WiiSystemLang;
 	wxArrayString arrayStringFor_ISOPaths;
 	wxArrayString arrayStringFor_Themes;
+	wxArrayString arrayStringFor_FullscreenResolution;
 
 	enum
 	{
@@ -172,6 +179,9 @@ private:
 
 		ID_INTERFACE_CONFIRMSTOP, // Interface settings
 		ID_INTERFACE_USEPANICHANDLERS,		
+		ID_DISPLAY_FULLSCREENRES,
+		ID_DISPLAY_WINDOWWIDTH,
+		ID_DISPLAY_WINDOWHEIGHT,
 		ID_DISPLAY_FULLSCREEN,
 		ID_DISPLAY_HIDECURSOR,
 		ID_DISPLAY_RENDERTOMAIN,
@@ -246,6 +256,7 @@ private:
 	void CreateGUIControls();
 	void UpdateGUI();
 	void OnClose(wxCloseEvent& event);
+	void OnSpin(wxSpinEvent& event);
 	void CoreSettingsChanged(wxCommandEvent& event);
 	void GCSettingsChanged(wxCommandEvent& event);
 	void ChooseMemcardPath(std::string& strMemcard, bool isSlotA);
@@ -262,5 +273,6 @@ private:
 	void FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::string& _SelectFilename);
 	void CallConfig(wxChoice* _pChoice);
 	bool GetFilename(wxChoice* _pChoice, std::string& _rFilename);
+	void AddResolutions();
 };
 #endif

@@ -122,48 +122,7 @@ THREAD_RETURN XEventThread(void *pArg);
 
 void CreateXWindow (void)
 {
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-	// Get the resolution setings for fullscreen mode
-	int fullWidth, fullHeight;
-	sscanf(g_Config.cFSResolution, "%dx%d", &fullWidth, &fullHeight);
-
-	int vidModeMajorVersion, vidModeMinorVersion;
-	XRRScreenSize *sizes;
-	int numSizes;
-
-	XRRQueryVersion(GLWin.dpy, &vidModeMajorVersion, &vidModeMinorVersion);
-	NOTICE_LOG(VIDEO, "XRRExtension-Version %d.%d", vidModeMajorVersion, vidModeMinorVersion);
-
-	GLWin.screenConfig = XRRGetScreenInfo(GLWin.dpy, GLWin.parent);
-
-	/* save desktop resolution */
-	GLWin.deskSize = XRRConfigCurrentConfiguration(GLWin.screenConfig, &GLWin.screenRotation);
-	/* Set the desktop resolution as the default */
-	GLWin.fullSize = GLWin.deskSize;
-
-	/* Find the index of the fullscreen resolution from config */
-	sizes = XRRConfigSizes(GLWin.screenConfig, &numSizes);
-	if (numSizes > 0 && sizes != NULL) {
-		for (int i = 0; i < numSizes; i++) {
-			if ((sizes[i].width == fullWidth) && (sizes[i].height == fullHeight)) {
-				GLWin.fullSize = i;
-			}
-		}
-		NOTICE_LOG(VIDEO, "Fullscreen Resolution %dx%d", sizes[GLWin.fullSize].width, sizes[GLWin.fullSize].height);
-	}
-	else {
-		ERROR_LOG(VIDEO, "Failed to obtain fullscreen sizes.\n"
-				"Using current desktop resolution for fullscreen.\n");
-	}
-#endif
-
 	Atom wmProtocols[1];
-
-	g_VideoInitialize.pRequestWindowSize(GLWin.x, GLWin.y, (int&)GLWin.width, (int&)GLWin.height);
-
-	// Control window size and picture scaling
-	s_backbuffer_width = GLWin.width;
-	s_backbuffer_height = GLWin.height;
 
 	// Setup window attributes
 	GLWin.attr.colormap = XCreateColormap(GLWin.dpy,
@@ -188,33 +147,15 @@ void CreateXWindow (void)
 	GLWin.xEventThread = new Common::Thread(XEventThread, NULL);
 }
 
-void ToggleDisplayMode (bool bFullscreen)
-{
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-	if (bFullscreen)
-		XRRSetScreenConfig(GLWin.dpy, GLWin.screenConfig, GLWin.parent,
-				GLWin.fullSize, GLWin.screenRotation, CurrentTime);
-	else
-		XRRSetScreenConfig(GLWin.dpy, GLWin.screenConfig, GLWin.parent,
-				GLWin.deskSize, GLWin.screenRotation, CurrentTime);
-#endif
-}
-
 void DestroyXWindow(void)
 {
 	/* switch back to original desktop resolution if we were in fullscreen */
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-	ToggleDisplayMode(False);
-#endif
 	XUnmapWindow(GLWin.dpy, GLWin.win);
 	GLWin.win = 0;
 	XFreeColormap(GLWin.dpy, GLWin.attr.colormap);
 	if (GLWin.xEventThread)
 		GLWin.xEventThread->WaitForDeath();
 	GLWin.xEventThread = NULL;
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-	XRRFreeScreenConfigInfo(GLWin.screenConfig);
-#endif
 }
 
 THREAD_RETURN XEventThread(void *pArg)
@@ -285,8 +226,6 @@ THREAD_RETURN XEventThread(void *pArg)
 				case ClientMessage:
 					if ((ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", False))
 						g_VideoInitialize.pCoreMessage(WM_USER_STOP);
-					if ((ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "TOGGLE_DISPLAYMODE", False))
-						ToggleDisplayMode(event.xclient.data.l[1]);
 					if ((ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "RESIZE", False))
 						XMoveResizeWindow(GLWin.dpy, GLWin.win, event.xclient.data.l[1],
 							   	event.xclient.data.l[2], event.xclient.data.l[3], event.xclient.data.l[4]);
@@ -305,14 +244,12 @@ THREAD_RETURN XEventThread(void *pArg)
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight)
 {
-#if (!defined(HAVE_X11) || !HAVE_X11)
 	int _tx, _ty, _twidth,  _theight;
 	g_VideoInitialize.pRequestWindowSize(_tx, _ty, _twidth, _theight);
 
 	// Control window size and picture scaling
 	s_backbuffer_width = _twidth;
 	s_backbuffer_height = _theight;
-#endif
 
 	g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
 	g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
@@ -439,6 +376,11 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 		exit(0); // TODO: Don't bring down entire Emu
 	}
 
+	GLWin.x = _tx;
+	GLWin.y = _ty;
+	GLWin.width = _twidth;
+	GLWin.height = _theight;
+
 	CreateXWindow();
 	g_VideoInitialize.pXWindow = (Window *) &GLWin.win;
 #endif
@@ -455,6 +397,8 @@ bool OpenGL_MakeCurrent()
 #elif defined(_WIN32)
 	return wglMakeCurrent(hDC,hRC);
 #elif defined(HAVE_X11) && HAVE_X11
+	g_VideoInitialize.pRequestWindowSize(GLWin.x, GLWin.y, (int&)GLWin.width, (int&)GLWin.height);
+	XMoveResizeWindow(GLWin.dpy, GLWin.win, GLWin.x, GLWin.y, GLWin.width, GLWin.height);
 	return glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
 #endif
 	return true;
@@ -519,7 +463,6 @@ void OpenGL_Shutdown()
 	cocoaGLDelete(GLWin.cocoaCtx);
 
 #elif defined(_WIN32)
-	EmuWindow::ToggleDisplayMode(false);
 	if (hRC)                                            // Do We Have A Rendering Context?
 	{
 		if (!wglMakeCurrent(NULL,NULL))                 // Are We Able To Release The DC And RC Contexts?

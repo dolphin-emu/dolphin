@@ -170,88 +170,6 @@ void DllDebugger(HWND _hParent, bool Show)
 #endif
 }
 
-// Search for avaliable resolutions
-void AddResolutions()
-{
-#ifdef _WIN32
-	
-	DWORD iModeNum = 0;
-	DEVMODE dmi;
-	ZeroMemory(&dmi, sizeof(dmi));
-	dmi.dmSize = sizeof(dmi);
-	std::vector<std::string> resos;
-
-	while (EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
-	{
-		char res[100];
-		sprintf(res, "%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
-		std::string strRes(res);
-		// Only add unique resolutions
-		if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
-		{
-			resos.push_back(strRes);
-			m_ConfigFrame->AddFSReso(res);
-		}
-		ZeroMemory(&dmi, sizeof(dmi));
-	}
-
-#elif defined(HAVE_X11) && HAVE_X11 && defined(HAVE_XRANDR) \
-	&& HAVE_XRANDR && defined(HAVE_WX) && HAVE_WX
-
-	// Don't modify GLWin.dpy here.
-	// If the emulator is running that is bad.
-	Display *dpy;
-	int screen;
-	dpy = XOpenDisplay(0);
-	screen = DefaultScreen(dpy);
-	//Get all full screen resos for the config dialog
-	XRRScreenSize *sizes = NULL;
-	int modeNum = 0;
-
-	sizes = XRRSizes(dpy, screen, &modeNum);
-	XCloseDisplay(dpy);
-	if (modeNum > 0 && sizes != NULL)
-	{
-		for (int i = 0; i < modeNum; i++)
-		{
-			char temp[32];
-			sprintf(temp,"%dx%d", sizes[i].width, sizes[i].height);
-			m_ConfigFrame->AddFSReso(temp);
-		}
-	}
-
-#elif defined(HAVE_COCOA) && HAVE_COCOA && defined(HAVE_WX) && HAVE_WX
-	
-	CGDisplayModeRef			mode;
-	CFArrayRef					array;
-	CFIndex						n, i;
-	int							w, h;
-	std::vector<std::string>	resos;
-	
-	array	= CGDisplayCopyAllDisplayModes(CGMainDisplayID(), NULL);
-	n		= CFArrayGetCount(array);
-	
-	for (i = 0; i < n; i++)
-	{
-		mode	= (CGDisplayModeRef)CFArrayGetValueAtIndex(array, i);
-		w		= CGDisplayModeGetWidth(mode);
-		h		= CGDisplayModeGetHeight(mode);
-		
-		char res[32];
-		sprintf(res,"%dx%d", w, h);
-		std::string strRes(res);
-		// Only add unique resolutions
-		if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
-		{
-			resos.push_back(strRes);
-			m_ConfigFrame->AddFSReso(res);
-		}
-	}
-	CFRelease(array);
-
-#endif
-}
-
 void DllConfig(HWND _hParent)
 {
 	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
@@ -261,8 +179,6 @@ void DllConfig(HWND _hParent)
 #if defined(HAVE_WX) && HAVE_WX
 	wxWindow *frame = GetParentedWxWindow(_hParent);
 	m_ConfigFrame = new GFXConfigDialogOGL(frame);
-
-	AddResolutions();
 
 	// Prevent user to show more than 1 config window at same time
 #ifdef _WIN32

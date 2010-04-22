@@ -230,27 +230,6 @@ void OnKeyDown(WPARAM wParam)
 }
 // ---------------------------------------------------------------------
 
-void ToggleDisplayMode (int bFullscreen)
-{
-	if (bFullscreen)
-	{
-		DEVMODE dmScreenSettings;
-		memset(&dmScreenSettings,0,sizeof(dmScreenSettings));
-		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-		sscanf(g_Config.cFSResolution, "%dx%d", &dmScreenSettings.dmPelsWidth, &dmScreenSettings.dmPelsHeight);
-		dmScreenSettings.dmBitsPerPel = 32;
-		dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
-
-		// Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
-		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
-	}
-	else
-	{
-		// Change to default resolution
-		ChangeDisplaySettings(NULL, CDS_FULLSCREEN);
-	}
-}
-
 // Should really take a look at the mouse stuff in here - some of it is weird.
 LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -289,8 +268,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 		{
 			PostMessage(m_hParent, WM_USER, wParam, lParam);
 		}
-		else if (wParam == TOGGLE_DISPLAYMODE)
-			ToggleDisplayMode(lParam);
 		break;
 
 	// This is called when we close the window when we render to a separate window

@@ -72,18 +72,6 @@ struct TabDirect3D : public W32Util::Tab
 		}
 		ComboBox_SetCurSel(GetDlgItem(hDlg, IDC_ASPECTRATIO), g_Config.iAspectRatio);
 
-		for (int i = 0; i < (int)adapter.resolutions.size(); i++)
-		{
-			const D3D::Resolution &r = adapter.resolutions[i];
-			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, r.name, -1, tempwstr, 2000);
-			ComboBox_AddString(GetDlgItem(hDlg, IDC_RESOLUTION), tempwstr);
-		}
-		
-		for (int i = 0; i < 16; i++) {
-			tempwstr[i] = g_Config.cFSResolution[i];
-		}
-		ComboBox_SelectString(GetDlgItem(hDlg,IDC_RESOLUTION), -1, tempwstr);
-
 		Button_SetCheck(GetDlgItem(hDlg, IDC_VSYNC), g_Config.bVSync);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_WIDESCREEN_HACK), g_Config.bWidescreenHack);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE), g_Config.bSafeTextureCache);
@@ -136,8 +124,6 @@ struct TabDirect3D : public W32Util::Tab
 
 	void Apply(HWND hDlg)
 	{
-		ComboBox_GetTextA(GetDlgItem(hDlg, IDC_RESOLUTION), g_Config.cFSResolution, 16);
-
 		g_Config.iAdapter = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_ADAPTER));
 		g_Config.iMultisampleMode = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_ANTIALIASMODE));
 		g_Config.bVSync = Button_GetCheck(GetDlgItem(hDlg, IDC_VSYNC)) ? true : false;

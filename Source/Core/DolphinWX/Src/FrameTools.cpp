@@ -661,7 +661,8 @@ void CFrame::OnRenderParentClose(wxCloseEvent& event)
 
 void CFrame::OnRenderParentMove(wxMoveEvent& event)
 {
-	if (!RendererIsFullscreen() && !m_RenderFrame->IsMaximized())
+	if (Core::GetState() != Core::CORE_UNINITIALIZED &&
+			!RendererIsFullscreen() && !m_RenderFrame->IsMaximized())
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowXPos = m_RenderFrame->GetPosition().x;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowYPos = m_RenderFrame->GetPosition().y;
@@ -671,21 +672,50 @@ void CFrame::OnRenderParentMove(wxMoveEvent& event)
 
 void CFrame::OnRenderParentResize(wxSizeEvent& event)
 {
-	int width, height;
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
-			!RendererIsFullscreen() && !m_RenderFrame->IsMaximized())
+	if (Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
-		m_RenderFrame->GetSize(&width, &height);
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = width;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = height;
-	}
+		int width, height;
+		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain &&
+				!RendererIsFullscreen() && !m_RenderFrame->IsMaximized())
+		{
+			m_RenderFrame->GetSize(&width, &height);
+			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = width;
+			SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = height;
+		}
 #if defined(HAVE_X11) && HAVE_X11
-	int x, y;
-	m_RenderParent->GetSize(&width, &height);
-	m_RenderParent->GetPosition(&x, &y);
-	X11_SendClientEvent("RESIZE", x, y, width, height);
+		int x, y;
+		m_RenderParent->GetSize(&width, &height);
+		m_RenderParent->GetPosition(&x, &y);
+		X11Utils::SendClientEvent("RESIZE", x, y, width, height);
 #endif
+	}
 	event.Skip();
+}
+
+void CFrame::ToggleDisplayMode (bool bFullscreen)
+{
+#ifdef _WIN32
+	if (bFullscreen)
+	{
+		DEVMODE dmScreenSettings;
+		memset(&dmScreenSettings,0,sizeof(dmScreenSettings));
+		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
+		sscanf(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str(),
+			   	"%dx%d", &dmScreenSettings.dmPelsWidth, &dmScreenSettings.dmPelsHeight);
+		dmScreenSettings.dmBitsPerPel = 32;
+		dmScreenSettings.dmFields = DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
+
+		// Try To Set Selected Mode And Get Results.  NOTE: CDS_FULLSCREEN Gets Rid Of Start Bar.
+		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
+	}
+	else
+	{
+		// Change to default resolution
+		ChangeDisplaySettings(NULL, CDS_FULLSCREEN);
+	}
+#elif defined(HAVE_XRANDR) && HAVE_XRANDR
+	m_XRRConfig->ToggleDisplayMode(bFullscreen);
+#endif
 }
 
 // Prepare the GUI to start the game.
@@ -728,11 +758,6 @@ void CFrame::StartGame(const std::string& filename)
 		m_RenderParent = new CPanel(m_RenderFrame, wxID_ANY);
 		m_RenderFrame->Show();
 	}
-#ifdef _WIN32
-	::SetFocus((HWND)m_RenderParent->GetHandle());
-#else
-	m_RenderParent->SetFocus();
-#endif
 
 	if (!BootManager::BootCore(filename))
 	{
@@ -745,6 +770,14 @@ void CFrame::StartGame(const std::string& filename)
 	}
 	else
 	{
+		DoFullscreen(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
+
+#ifdef _WIN32
+		::SetFocus((HWND)m_RenderParent->GetHandle());
+#else
+		m_RenderParent->SetFocus();
+#endif
+
 		wxTheApp->Connect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard
 				wxKeyEventHandler(CFrame::OnKeyDown),
 				(wxObject*)0, this);
@@ -847,15 +880,9 @@ void CFrame::DoStop()
 				(wxObject*)0, this);
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxCURSOR_ARROW);
+		DoFullscreen(FALSE);
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
-		{
-#ifdef _WIN32
-			if (!RendererIsFullscreen() && !m_RenderFrame->IsMaximized())
-				m_RenderFrame->GetSize(&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth,
-					&SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
-#endif
 			m_RenderFrame->Destroy();
-		}
 		m_RenderParent = NULL;
 
 		// Clean framerate indications from the status bar.

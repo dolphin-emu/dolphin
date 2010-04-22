@@ -378,6 +378,7 @@ if sys.platform == 'darwin':
 
 else:
     env['HAVE_X11'] = conf.CheckPKG('x11')
+    env['HAVE_XRANDR'] = env['HAVE_X11'] and conf.CheckPKG('xrandr')
     env['HAVE_COCOA'] = 0
    
 # handling wx flags CCFLAGS should be created before
@@ -423,6 +424,7 @@ conf.Define('HAVE_ALSA', env['HAVE_ALSA'])
 conf.Define('HAVE_WX', env['HAVE_WX'])
 conf.Define('USE_WX', env['USE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])
+conf.Define('HAVE_XRANDR', env['HAVE_XRANDR'])
 conf.Define('HAVE_COCOA', env['HAVE_COCOA'])
 conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
 conf.Define('SHARED_SOIL', env['SHARED_SOIL'])

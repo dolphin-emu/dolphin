@@ -107,9 +107,6 @@ void EnableAlphaToCoverage()
 
 void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
 {
-	int FSResX = adapters[adapter].resolutions[resolution].xres; 
-	int FSResY = adapters[adapter].resolutions[resolution].yres;
-
 	ZeroMemory(pp, sizeof(D3DPRESENT_PARAMETERS));
 	pp->hDeviceWindow = hWnd;
 	if (auto_depth_stencil)

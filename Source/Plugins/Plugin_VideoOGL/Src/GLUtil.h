@@ -44,9 +44,6 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include "Thread.h"
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-#include <X11/extensions/Xrandr.h>
-#endif // XRANDR
 
 #elif defined(USE_SDL) && USE_SDL
 #include <GL/glew.h>
@@ -90,11 +87,6 @@ typedef struct {
 	GLXContext ctx;
 	XSetWindowAttributes attr;
 	Common::Thread *xEventThread;
-#if defined(HAVE_XRANDR) && HAVE_XRANDR
-	XRRScreenConfiguration *screenConfig;
-	Rotation screenRotation;
-	int deskSize, fullSize;
-#endif // XRANDR
 #endif // X11
 #if defined(USE_WX) && USE_WX
 	wxGLCanvas *glCanvas;

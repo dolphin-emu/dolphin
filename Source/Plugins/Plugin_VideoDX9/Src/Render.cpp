@@ -264,12 +264,12 @@ void TeardownDeviceObjects()
 bool Renderer::Init() 
 {
 	UpdateActiveConfig();
-	int fullScreenRes, w_temp, h_temp;
+	int fullScreenRes, x, y, w_temp, h_temp;
 	s_blendMode = 0;
 	// Multisample Anti-aliasing hasn't been implemented yet
 	int backbuffer_ms_mode = 0;  // g_ActiveConfig.iMultisampleMode;
 
-	sscanf(g_Config.cFSResolution, "%dx%d", &w_temp, &h_temp);
+	g_VideoInitialize.pRequestWindowSize(x, y, w_temp, h_temp);
 
 	for (fullScreenRes = 0; fullScreenRes < (int)D3D::GetAdapter(g_ActiveConfig.iAdapter).resolutions.size(); fullScreenRes++)
 	{

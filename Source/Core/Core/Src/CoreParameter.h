@@ -91,6 +91,7 @@ struct SCoreStartupParameter
 
 	// Display settings
 	bool bFullscreen, bRenderToMain;
+	std::string strFullscreenResolution;
 	int iRenderWindowXPos, iRenderWindowYPos;
 	int iRenderWindowWidth, iRenderWindowHeight;
 

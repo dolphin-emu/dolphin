@@ -36,8 +36,7 @@
 #include "CodeWindow.h"
 #include "LogWindow.h"
 #if defined(HAVE_X11) && HAVE_X11
-#include <gtk/gtk.h>
-#include <gdk/gdkx.h>
+#include "X11Utils.h"
 #endif
 
 // A shortcut to access the bitmaps
@@ -99,18 +98,18 @@ class CFrame : public CRenderFrame
 			bool ShowLogWindow = false,
 			long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
+		virtual ~CFrame();
+
 		void* GetRenderHandle()
 		{
 			#ifdef _WIN32
 				return (void *)m_RenderParent->GetHandle();
 			#elif defined(HAVE_X11) && HAVE_X11
-				return (void *)GDK_WINDOW_XID(GTK_WIDGET(m_RenderParent->GetHandle())->window);
+				return (void *)X11Utils::XWindowFromHandle(m_RenderParent->GetHandle());
 			#else
 				return m_RenderParent;
 			#endif
 		}
-
-		virtual ~CFrame();
 
 		// These have to be public		
 		CCodeWindow* g_pCodeWindow;
@@ -136,6 +135,11 @@ class CFrame : public CRenderFrame
 		void OnRenderParentMove(wxMoveEvent& event);
 		bool RendererHasFocus();
 		void DoFullscreen(bool bF);
+		void ToggleDisplayMode (bool bFullscreen);
+
+		#if defined(HAVE_XRANDR) && HAVE_XRANDR
+		X11Utils::XRRConfiguration *m_XRRConfig;
+		#endif
 
 		// AUI
 		wxAuiManager *m_Mgr;
@@ -351,10 +355,6 @@ class CFrame : public CRenderFrame
 		void OnRenderParentResize(wxSizeEvent& event);
 		bool RendererIsFullscreen();
 		void StartGame(const std::string& filename);
-#if defined HAVE_X11 && HAVE_X11
-		void X11_SendClientEvent(const char *message,
-				int data1 = 0, int data2 = 0, int data3 = 0, int data4 = 0);
-#endif
 
 		// MenuBar
 		// File - Drive

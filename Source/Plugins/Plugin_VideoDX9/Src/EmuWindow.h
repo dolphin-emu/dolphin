@@ -14,7 +14,6 @@ void Close();
 void SetSize(int displayWidth, int displayHeight);
 bool IsSizing();
 void OSDMenu(WPARAM wParam);
-void ToggleDisplayMode (int bFullscreen);
 
 }
 

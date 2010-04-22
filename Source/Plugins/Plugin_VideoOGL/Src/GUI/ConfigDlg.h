@@ -60,7 +60,6 @@ class GFXConfigDialogOGL : public wxDialog
 		virtual ~GFXConfigDialogOGL();
 		void CloseClick(wxCommandEvent& event);
 
-		void AddFSReso(const char *reso);
 		void CreateGUIControls();
 		void GameIniLoad();
 
@@ -98,7 +97,6 @@ class GFXConfigDialogOGL : public wxDialog
 		wxCheckBox *m_UseXFB;
 		wxCheckBox *m_UseRealXFB;
 		wxCheckBox *m_AutoScale;
-		wxChoice *m_WindowFSResolutionCB;
 		wxChoice *m_MaxAnisotropyCB;
 		wxChoice *m_MSAAModeCB, *m_PhackvalueCB, *m_PostShaderCB, *m_KeepAR;
 
@@ -155,7 +153,6 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_AUTOSCALE,
 			ID_WIDESCREENHACK,
 
-			ID_FULLSCREENRESOLUTION,
 			ID_FORCEFILTERING,
 			ID_MAXANISOTROPY,
 			ID_MAXANISOTROPYTEXT,

@@ -99,11 +99,6 @@ if sys.platform == 'win32':
 		]	
 	gfxenv['CPPPATH'] += libs
 
-# check for Xrandr
-gfxenv['HAVE_XRANDR'] = gfxenv['HAVE_X11'] and conf.CheckPKG('xrandr')
-
-conf.Define('HAVE_XRANDR', gfxenv['HAVE_XRANDR'])
-
 conf.Finish()
 
 # Sanity check

@@ -37,7 +37,6 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_BUTTON(wxID_CLOSE, GFXConfigDialogOGL::CloseClick)
 	EVT_BUTTON(wxID_ABOUT, GFXConfigDialogOGL::AboutClick)
 	EVT_CHECKBOX(ID_VSYNC, GFXConfigDialogOGL::GeneralSettingsChanged)
-	EVT_CHOICE(ID_FULLSCREENRESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MAXANISOTROPY, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_MSAAMODECB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_NATIVERESOLUTION, GFXConfigDialogOGL::GeneralSettingsChanged)
@@ -125,13 +124,6 @@ void GFXConfigDialogOGL::CloseClick(wxCommandEvent& WXUNUSED (event))
 
 
 
-// Add avaliable resolutions and other settings
-// ---------------
-void GFXConfigDialogOGL::AddFSReso(const char *reso)
-{
-	arrayStringFor_FullscreenCB.Add(wxString::FromAscii(reso));
-}
-
 // This one could be used to reload shaders while dolphin is running...
 void GFXConfigDialogOGL::LoadShaders()
 {
@@ -158,10 +150,6 @@ void GFXConfigDialogOGL::LoadShaders()
 
 void GFXConfigDialogOGL::InitializeGUILists()
 {
-	// Resolutions
-	if (arrayStringFor_FullscreenCB.empty())
-		AddFSReso("<No resolutions found>");
-
 	// Keep Aspect Ratio
 	arrayStringFor_AspectRatio.Add(wxT("Auto Aspect (recommended)"));
 	arrayStringFor_AspectRatio.Add(wxT("Force 16:9 Widescreen"));
@@ -202,9 +190,6 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	m_NativeResolution->SetValue(g_Config.bNativeResolution);
 	m_2xResolution->SetValue(g_Config.b2xResolution);
 	
-	int num = 0;
-	num = m_WindowFSResolutionCB->FindString(wxString::FromAscii(g_Config.cFSResolution));
-	m_WindowFSResolutionCB->SetSelection(num);
 	m_KeepAR->SetSelection(g_Config.iAspectRatio);
 	m_Crop->SetValue(g_Config.bCrop);
 
@@ -285,9 +270,6 @@ void GFXConfigDialogOGL::InitializeGUITooltips()
 		wxT("\nis of the 5:4 format if you have selected the 4:3 aspect ratio. It will assume")
 		wxT("\nthat your screen is of the 16:10 format if you have selected the 16:9 aspect ratio.")
 		wxT("\n\nApplies instanty during gameplay: <Yes>"));
-	m_WindowFSResolutionCB->SetToolTip(
-		wxT("Select resolution for fullscreen mode")
-		wxT("\n\nApplies instantly during gameplay: <No>"));
 	m_MSAAModeCB->SetToolTip(wxT(
 		"Applies instanty during gameplay: <No>"));
 	m_OSDHotKey->SetToolTip(
@@ -369,8 +351,6 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	wxStaticText *IRText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_NativeResolution = new wxCheckBox(m_PageGeneral, ID_NATIVERESOLUTION, wxT("Native"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_2xResolution = new wxCheckBox(m_PageGeneral, ID_2X_RESOLUTION, wxT("2x"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	wxStaticText *RText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Fullscreen Display Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
-	m_WindowFSResolutionCB = new wxChoice(m_PageGeneral, ID_FULLSCREENRESOLUTION, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenCB, 0, wxDefaultValidator, arrayStringFor_FullscreenCB[0]);
 	// Aspect ratio / positioning controls
 	wxStaticText *KeepARText = new wxStaticText(m_PageGeneral, wxID_ANY, wxT("Keep aspect ratio:"), wxDefaultPosition, wxDefaultSize, 0);
 	m_KeepAR = new wxChoice(m_PageGeneral, ID_ASPECT, wxDefaultPosition, wxDefaultSize, arrayStringFor_AspectRatio);
@@ -410,12 +390,9 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasic->Add(m_NativeResolution, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 	sBasic->Add(m_2xResolution, wxGBPosition(0, 2), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
 
-	sBasic->Add(RText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_WindowFSResolutionCB, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 5);
-
-	sBasic->Add(KeepARText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sBasic->Add(m_KeepAR, wxGBPosition(2, 1), wxGBSpan(1, 1), wxALL, 5);
-	sBasic->Add(m_Crop, wxGBPosition(2, 2), wxGBSpan(1, 1), wxALL | wxALIGN_CENTER_VERTICAL, 5);
+	sBasic->Add(KeepARText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sBasic->Add(m_KeepAR, wxGBPosition(1, 1), wxGBSpan(1, 1), wxALL, 5);
+	sBasic->Add(m_Crop, wxGBPosition(1, 2), wxGBSpan(1, 1), wxALL | wxALIGN_CENTER_VERTICAL, 5);
 
 	sbBasic->Add(sBasic);
 	sGeneral->Add(sbBasic, 0, wxEXPAND|wxALL, 5);
@@ -629,9 +606,6 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 	case ID_FORCEFILTERING:
 		g_Config.bForceFiltering = m_ForceFiltering->IsChecked();
 		break;
-	case ID_FULLSCREENRESOLUTION:
-		strcpy(g_Config.cFSResolution, m_WindowFSResolutionCB->GetStringSelection().mb_str() );
-		break;
 	case ID_MAXANISOTROPY:
 		g_Config.iMaxAnisotropy = m_MaxAnisotropyCB->GetSelection() + 1;
 		break;
@@ -786,7 +760,6 @@ void GFXConfigDialogOGL::UpdateGUI()
 	//besides, it would look odd if one disabled native, and it came back on again.
 	m_NativeResolution->Enable(!g_Config.bUseRealXFB);
 	m_2xResolution->Enable(!g_Config.bUseRealXFB && (!g_Config.bRunning || Renderer::Allow2x()));
-	m_WindowFSResolutionCB->Enable(!g_Config.bRunning);
 
 	// Disable the Copy to options when EFBCopy is disabled
 	m_Radio_CopyEFBToRAM->Enable(!(g_Config.bEFBCopyDisable));

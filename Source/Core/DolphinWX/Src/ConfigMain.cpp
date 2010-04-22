@@ -53,8 +53,11 @@ EVT_BUTTON(wxID_CLOSE, CConfigMain::CloseClick)
 EVT_CHECKBOX(ID_INTERFACE_CONFIRMSTOP, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_INTERFACE_USEPANICHANDLERS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_FRAMELIMIT_USEFPSFORLIMITING, CConfigMain::CoreSettingsChanged)
-EVT_CHECKBOX(ID_DISPLAY_HIDECURSOR, CConfigMain::CoreSettingsChanged)
+EVT_CHOICE(ID_DISPLAY_FULLSCREENRES, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_FULLSCREEN, CConfigMain::CoreSettingsChanged)
+EVT_TEXT(ID_DISPLAY_WINDOWWIDTH, CConfigMain::CoreSettingsChanged)
+EVT_TEXT(ID_DISPLAY_WINDOWHEIGHT, CConfigMain::CoreSettingsChanged)
+EVT_CHECKBOX(ID_DISPLAY_HIDECURSOR, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_DISPLAY_RENDERTOMAIN, CConfigMain::CoreSettingsChanged)
 EVT_RADIOBOX(ID_INTERFACE_THEME, CConfigMain::CoreSettingsChanged)
 EVT_CHOICE(ID_INTERFACE_LANG, CConfigMain::CoreSettingsChanged)
@@ -116,6 +119,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 	// Control refreshing of the ISOs list
 	bRefreshList = false;
 
+	AddResolutions();
 	CreateGUIControls();
 
 	// Update selected ISO paths
@@ -145,6 +149,7 @@ void CConfigMain::UpdateGUI()
 		SkipIdle->Disable();
 		EnableCheats->Disable();
 		RenderToMain->Disable();
+		FullscreenResolution->Disable();
 		
 		GCSystemLang->Disable();
 		
@@ -182,7 +187,11 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_WiiSystemLang.Add(wxT("Korean"));
 	// GUI
 	arrayStringFor_InterfaceLang = arrayStringFor_GCSystemLang;
-	
+
+	// Resolutions
+	if (arrayStringFor_FullscreenResolution.empty())
+		arrayStringFor_FullscreenResolution.Add(wxT("<No resolutions found>"));
+
 	// Framelimit
 	arrayStringFor_Framelimit.Add(wxT("Off"));
 	arrayStringFor_Framelimit.Add(wxT("Auto"));
@@ -232,6 +241,11 @@ void CConfigMain::InitializeGUIValues()
 	InterfaceLang->SetSelection(SConfig::GetInstance().m_InterfaceLanguage);
 
 	// General - Display
+	int num = 0;
+	num = FullscreenResolution->FindString(wxString::FromAscii(SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution.c_str()));
+	FullscreenResolution->SetSelection(num);
+	WindowWidth->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth);
+	WindowHeight->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight);
 	Fullscreen->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen);
 	HideCursor->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor);
 	RenderToMain->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain);
@@ -295,9 +309,10 @@ void CConfigMain::InitializeGUITooltips()
 	Theme->SetItemToolTip(3, wxT("Created by KDE-Look.org"));
 
 	// General - Display
-	Fullscreen->SetToolTip(
-		wxT("Start the rendering window in fullscreen mode.")
-		wxT(" Press Alt+Enter to switch between Fullscreen and Windowed mode."));
+	FullscreenResolution->SetToolTip(wxT("Select resolution for fullscreen mode"));
+	WindowWidth->SetToolTip(wxT("Window width for windowed mode"));
+	WindowHeight->SetToolTip(wxT("Window height for windowed mode"));
+	Fullscreen->SetToolTip(wxT("Start the rendering window in fullscreen mode."));
 	HideCursor->SetToolTip(wxT("Hide the cursor when it is over the rendering window")
 		wxT("\n and the rendering window has focus."));
 	RenderToMain->SetToolTip(wxT("Render to main window."));
@@ -305,6 +320,7 @@ void CConfigMain::InitializeGUITooltips()
 	// Wii
 	WiiKeyboard->SetToolTip(wxT("This could cause slow down in Wii Menu and some games."));
 }
+
 void CConfigMain::CreateGUIControls()
 {
 	InitializeGUILists();
@@ -365,6 +381,14 @@ void CConfigMain::CreateGUIControls()
 	Theme = new wxRadioBox(GeneralPage, ID_INTERFACE_THEME, wxT("Theme"),wxDefaultPosition, wxDefaultSize, arrayStringFor_Themes, 1, wxRA_SPECIFY_ROWS);
 
 	// General display settings
+	wxStaticText *FullscreenResolutionText = new wxStaticText(GeneralPage, wxID_ANY, wxT("Fullscreen Display Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
+	FullscreenResolution = new wxChoice(GeneralPage, ID_DISPLAY_FULLSCREENRES, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenResolution, 0, wxDefaultValidator, arrayStringFor_FullscreenResolution[0]);
+	wxStaticText *WindowSizeText = new wxStaticText(GeneralPage, wxID_ANY, wxT("Window Size:"), wxDefaultPosition, wxDefaultSize, 0);
+    WindowWidth = new wxSpinCtrl(GeneralPage, ID_DISPLAY_WINDOWWIDTH, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+	wxStaticText *WindowXText = new wxStaticText(GeneralPage, wxID_ANY, wxT("x"), wxDefaultPosition, wxDefaultSize, 0);
+	WindowWidth->SetRange(0,3280);
+    WindowHeight = new wxSpinCtrl(GeneralPage, ID_DISPLAY_WINDOWHEIGHT, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+	WindowHeight->SetRange(0,2048);
 	Fullscreen = new wxCheckBox(GeneralPage, ID_DISPLAY_FULLSCREEN, wxT("Start Renderer in Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	HideCursor = new wxCheckBox(GeneralPage, ID_DISPLAY_HIDECURSOR, wxT("Hide Mouse Cursor"));
 	RenderToMain = new wxCheckBox(GeneralPage, ID_DISPLAY_RENDERTOMAIN, wxT("Render to Main Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -401,6 +425,16 @@ void CConfigMain::CreateGUIControls()
 	sInterface->Add(HotkeyConfig, 0, wxALIGN_RIGHT | wxALL, 5);
 	sbInterface->Add(sInterface, 0, wxEXPAND | wxALL, 5);
 
+	wxBoxSizer *sDisplayRes = new wxBoxSizer(wxHORIZONTAL);
+	sDisplayRes->Add(FullscreenResolutionText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sDisplayRes->Add(FullscreenResolution, 0, wxEXPAND | wxALL, 5);
+	sbDisplay->Add(sDisplayRes, 0, wxALL, 5);
+	wxBoxSizer *sDisplaySize = new wxBoxSizer(wxHORIZONTAL);
+	sDisplaySize->Add(WindowSizeText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sDisplaySize->Add(WindowWidth, 0, wxEXPAND | wxALL, 5);
+	sDisplaySize->Add(WindowXText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sDisplaySize->Add(WindowHeight, 0, wxEXPAND | wxALL, 5);
+	sbDisplay->Add(sDisplaySize, 0, wxALL, 5);
 	sbDisplay->Add(Fullscreen, 0, wxEXPAND | wxALL, 5);
 	sbDisplay->Add(HideCursor, 0, wxALL, 5);
 	sbDisplay->Add(RenderToMain, 0, wxEXPAND | wxALL, 5);
@@ -701,7 +735,6 @@ void CConfigMain::CloseClick(wxCommandEvent& WXUNUSED (event))
 	Close();
 }
 
-
 // Core AND Interface settings
 void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 {
@@ -766,6 +799,19 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_ENABLECHEATS:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats = EnableCheats->IsChecked();
+		break;
+	case ID_DISPLAY_FULLSCREENRES:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.strFullscreenResolution =
+			FullscreenResolution->GetStringSelection().mb_str();
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+		main_frame->m_XRRConfig->Update();
+#endif
+		break;
+	case ID_DISPLAY_WINDOWWIDTH:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowWidth = WindowWidth->GetValue();
+		break;
+	case ID_DISPLAY_WINDOWHEIGHT:
+		SConfig::GetInstance().m_LocalCoreStartupParameter.iRenderWindowHeight = WindowHeight->GetValue();
 		break;
 	case ID_DISPLAY_FULLSCREEN: // Display
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bFullscreen = Fullscreen->IsChecked();
@@ -1104,3 +1150,66 @@ bool CConfigMain::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
 
 	return(false);
 }
+
+// Search for avaliable resolutions
+void CConfigMain::AddResolutions()
+{
+#ifdef _WIN32
+	
+	DWORD iModeNum = 0;
+	DEVMODE dmi;
+	ZeroMemory(&dmi, sizeof(dmi));
+	dmi.dmSize = sizeof(dmi);
+	std::vector<std::string> resos;
+
+	while (EnumDisplaySettings(NULL, iModeNum++, &dmi) != 0)
+	{
+		char res[100];
+		sprintf(res, "%dx%d", dmi.dmPelsWidth, dmi.dmPelsHeight);
+		std::string strRes(res);
+		// Only add unique resolutions
+		if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
+		{
+			resos.push_back(strRes);
+			arrayStringFor_FullscreenResolution.Add(wxString::FromAscii(res));
+		}
+		ZeroMemory(&dmi, sizeof(dmi));
+	}
+
+#elif defined(HAVE_XRANDR) && HAVE_XRANDR
+
+	main_frame->m_XRRConfig->AddResolutions(arrayStringFor_FullscreenResolution);
+
+#elif defined(HAVE_COCOA) && HAVE_COCOA
+	
+	CGDisplayModeRef			mode;
+	CFArrayRef					array;
+	CFIndex						n, i;
+	int							w, h;
+	std::vector<std::string>	resos;
+	
+	array	= CGDisplayCopyAllDisplayModes(CGMainDisplayID(), NULL);
+	n		= CFArrayGetCount(array);
+	
+	for (i = 0; i < n; i++)
+	{
+		mode	= (CGDisplayModeRef)CFArrayGetValueAtIndex(array, i);
+		w		= CGDisplayModeGetWidth(mode);
+		h		= CGDisplayModeGetHeight(mode);
+		
+		char res[32];
+		sprintf(res,"%dx%d", w, h);
+		std::string strRes(res);
+		// Only add unique resolutions
+		if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
+		{
+			resos.push_back(strRes);
+			arrayStringFor_FullscreenResolution.Add(wxString::FromAscii(res));
+		}
+	}
+	CFRelease(array);
+
+#endif
+}
+
+
