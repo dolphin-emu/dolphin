@@ -524,7 +524,7 @@ void DSPEmitter::pushExtValueFromReg(u16 dreg, u16 sreg) {
 }
 
 void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg) {
-	ext_dmem_read(g_dsp.r[DSP_REG_AR0]);
+	ext_dmem_read(g_dsp.r[sreg]);
 	MOV(16, R(EBX), R(EAX));
 	
 	storeIndex = dreg;

@@ -287,7 +287,7 @@ void DSPEmitter::ext_dmem_read(u16 addr)
 	MOVZX(32, 16, ECX, M(&addr));
 
 	//	u16 saddr = addr >> 12; 
-	MOVZX(32, 16, ESI, R(EAX));
+	MOVZX(32, 16, ESI, R(ECX));
 	SHR(16, R(ESI), Imm8(12));
 
 	//	if (saddr == 0)
