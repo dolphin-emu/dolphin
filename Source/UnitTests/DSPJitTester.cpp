@@ -78,6 +78,29 @@ bool DSPJitTester::AreEqual(SDSP& int_dsp, SDSP& jit_dsp)
 				printf("\t%s: int = 0x%04x, jit = 0x%04x\n", regnames[i].name, int_dsp.r[i], jit_dsp.r[i]);
 		}
 	}
+
+	//TODO: more sophisticated checks?
+	if (!int_dsp.iram || !jit_dsp.iram)
+	{
+		if (be_verbose)
+			printf("(IRAM null)");
+	}
+	else if (memcmp(int_dsp.iram, jit_dsp.iram, DSP_IRAM_BYTE_SIZE))
+	{
+		printf("\tIRAM: different\n");
+		equal = false;
+	}
+	if (!int_dsp.dram || !jit_dsp.dram)
+	{
+		if (be_verbose)
+			printf("(DRAM null)");
+	}
+	else if (memcmp(int_dsp.dram, jit_dsp.dram, DSP_DRAM_BYTE_SIZE))
+	{
+		printf("\tDRAM: different\n");
+		equal = false;
+	}
+
 	if (equal && be_verbose && !failed_only)
 		printf("passed\n");
 	return equal;
@@ -137,11 +160,29 @@ int DSPJitTester::TestAll(bool verbose_fail)
 
 	SDSP dsp;
 	memset(&dsp, 0, sizeof(SDSP));
+	//from DSPCore_Init
+	dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
+	dsp.iram = (u16*)AllocateMemoryPages(DSP_IRAM_BYTE_SIZE);
+	dsp.dram = (u16*)AllocateMemoryPages(DSP_DRAM_BYTE_SIZE);
+	dsp.coef = (u16*)AllocateMemoryPages(DSP_COEF_BYTE_SIZE);
+
+	// Fill roms with zeros. 
+	memset(dsp.irom, 0, DSP_IROM_BYTE_SIZE);
+	memset(dsp.coef, 0, DSP_COEF_BYTE_SIZE);
+	memset(dsp.dram, 0, DSP_DRAM_BYTE_SIZE);
+	// Fill IRAM with HALT opcodes.
+	for (int i = 0; i < DSP_IRAM_SIZE; i++)
+		dsp.iram[i] = 0x0021; // HALT opcode
 
 	bool verbose = failed_only;
 	failed_only = verbose_fail;
 	failed += TestOne(test_values.begin(), dsp);
 	failed_only = verbose;
+
+	FreeMemoryPages(dsp.irom, DSP_IROM_BYTE_SIZE);
+	FreeMemoryPages(dsp.iram, DSP_IRAM_BYTE_SIZE);
+	FreeMemoryPages(dsp.dram, DSP_DRAM_BYTE_SIZE);
+	FreeMemoryPages(dsp.coef, DSP_COEF_BYTE_SIZE);
 
 	return failed;
 }
