@@ -30,6 +30,10 @@
 #include "Frame.h"
 #include "HotkeyDlg.h"
 
+#if defined(HAVE_COCOA) && HAVE_COCOA
+#include <Cocoa/Cocoa.h>
+#endif
+
 extern CFrame* main_frame;
 
 // Strings for Device Selections

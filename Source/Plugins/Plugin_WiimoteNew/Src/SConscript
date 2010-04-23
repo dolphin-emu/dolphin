@@ -21,6 +21,6 @@ wiinewenv.Append(
 	)
 
 if sys.platform == 'darwin':
-	wiinewenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'Cocoa' ]
+	wiinewenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'Cocoa', 'IOKit' ]
 
 wiinewenv.SharedLibrary(env['plugin_dir']+name, files)

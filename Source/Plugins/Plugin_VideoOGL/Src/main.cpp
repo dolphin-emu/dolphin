@@ -95,10 +95,6 @@ GFXDebuggerOGL *m_DebuggerFrame = NULL;
 
 #include "VideoState.h"
 
-#if defined(HAVE_COCOA) && HAVE_COCOA
-#include <Cocoa/Cocoa.h>
-#endif
-
 SVideoInitialize g_VideoInitialize;
 PLUGIN_GLOBALS* globals = NULL;
 

@@ -362,6 +362,7 @@ if not env['SHARED_SFML']:
 
 #osx 64 specifics
 if sys.platform == 'darwin':
+    env['HAVE_XRANDR'] = 0
     if env['osx'] == '64cocoa':
         compileFlags += ['-arch' , 'x86_64', '-m64' ]
         env['LINKFLAGS'] += ['-arch' , 'x86_64', '-m64' ]

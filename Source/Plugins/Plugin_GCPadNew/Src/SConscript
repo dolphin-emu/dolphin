@@ -16,6 +16,6 @@ padenv.Append(
 	)
 
 if sys.platform == 'darwin':
-	padenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'Cocoa' ]
+	padenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'Cocoa', 'IOKit' ]
 
 padenv.SharedLibrary(env['plugin_dir']+name, files)
