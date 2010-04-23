@@ -93,7 +93,8 @@ void DSPEmitter::checkExceptions() {
 	
 	ABI_CallFunction((void *)&DSPCore_CheckExceptions);
 	
-	ABI_RestoreStack(0);
+	//	ABI_RestoreStack(0);
+	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
 	
 	SetJumpTarget(skipCheck);
@@ -149,7 +150,8 @@ void DSPEmitter::Default(UDSPInstruction _inst)
 const u8 *DSPEmitter::Compile(int start_addr) {
 	AlignCode16();
 	const u8 *entryPoint = GetCodePtr();
-	ABI_AlignStack(0);
+	ABI_PushAllCalleeSavedRegsAndAdjustStack();
+	//	ABI_AlignStack(0);
 
 	int addr = start_addr;
 	checkExceptions();
@@ -178,7 +180,8 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 		// These functions branch and therefore only need to be called in the
 		// end of each block and in this order
 	    ABI_CallFunction((void *)&DSPInterpreter::HandleLoop);
-		ABI_RestoreStack(0);
+		//		ABI_RestoreStack(0);
+		ABI_PopAllCalleeSavedRegsAndAdjustStack();
 		RET();
 
 		SetJumpTarget(rLoopAddressExit);
@@ -200,7 +203,8 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 		addr += opcode->size;
 	}
 
-	ABI_RestoreStack(0);
+	//	ABI_RestoreStack(0);
+	ABI_PopAllCalleeSavedRegsAndAdjustStack();
 	RET();
 
 	blocks[start_addr] = (CompiledCode)entryPoint;
