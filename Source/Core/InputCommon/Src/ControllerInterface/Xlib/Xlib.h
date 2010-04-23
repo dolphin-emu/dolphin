@@ -22,7 +22,7 @@ class Keyboard : public ControllerInterface::Device
 	struct State
 	{
 		char keyboard[32];
-		// mouse crap will go here
+		unsigned int buttons;
 	};
 
 	class Input : public ControllerInterface::Device::Input
@@ -46,9 +46,24 @@ class Keyboard : public ControllerInterface::Device
 
 		private:
 		Display* const	m_display;
-		const KeyCode m_keycode;
-		std::string m_keyname;
+		const KeyCode	m_keycode;
+		std::string		m_keyname;
 
+	};
+
+	class Button : public Input
+	{
+		friend class Keyboard;
+
+		public:
+		std::string GetName() const;
+
+		protected:
+		Button(const unsigned int index) : m_index(index) {}
+		ControlState GetState(const State* const state);
+
+		private:
+		const unsigned int m_index;
 	};
 
 	bool UpdateInput();
@@ -66,6 +81,7 @@ class Keyboard : public ControllerInterface::Device
 	int GetId() const;
 
 	private:
+	Window			m_window;
 	Display*		m_display;
 	State			m_state;
 };

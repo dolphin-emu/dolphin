@@ -16,9 +16,12 @@ Keyboard::Keyboard(Display* display) : m_display(display)
 {
 	memset(&m_state, 0, sizeof(m_state));
 
+	m_window = DefaultRootWindow(m_display);
+
 	int min_keycode, max_keycode;
 	XDisplayKeycodes(m_display, &min_keycode, &max_keycode);
 	
+	// Keyboard Keys
 	for (int i = min_keycode; i <= max_keycode; ++i)
 	{
 		Key *temp_key = new Key(m_display, i);
@@ -27,6 +30,13 @@ Keyboard::Keyboard(Display* display) : m_display(display)
 		else
 			delete temp_key;
 	}
+
+	// Mouse Buttons
+	inputs.push_back(new Button(Button1Mask));
+	inputs.push_back(new Button(Button2Mask));
+	inputs.push_back(new Button(Button3Mask));
+	inputs.push_back(new Button(Button4Mask));
+	inputs.push_back(new Button(Button5Mask));
 }
 
 Keyboard::~Keyboard()
@@ -48,7 +58,9 @@ bool Keyboard::UpdateInput()
 {
 	XQueryKeymap(m_display, m_state.keyboard);
 
-	// mouse stuff in here too
+	int root_x, root_y, win_x, win_y;
+	Window root, child;
+	XQueryPointer(m_display, m_window, &root, &child, &root_x, &root_y, &win_x, &win_y, &m_state.buttons);
 
 	return true;
 }
@@ -101,9 +113,29 @@ ControlState Keyboard::Key::GetState(const State* const state)
 	return (state->keyboard[m_keycode/8] & (1 << (m_keycode%8))) != 0;
 }
 
+ControlState Keyboard::Button::GetState(const State* const state)
+{
+	return ((state->buttons & m_index) > 0);
+}
+
 std::string Keyboard::Key::GetName() const
 {
 	return m_keyname;
+}
+
+std::string Keyboard::Button::GetName() const
+{
+	char button = '0';
+	switch (m_index)
+	{
+		case Button1Mask: button = '1'; break;
+		case Button2Mask: button = '2'; break;
+		case Button3Mask: button = '3'; break;
+		case Button4Mask: button = '4'; break;
+		case Button5Mask: button = '5'; break;
+	}
+
+	return std::string("Button ") + button;
 }
 
 }

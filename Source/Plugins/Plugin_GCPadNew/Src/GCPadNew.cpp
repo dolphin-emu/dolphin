@@ -321,7 +321,7 @@ void Initialize(void *init)
 {
 	g_PADInitialize = (SPADInitialize*)init;
 	if ( false == g_plugin.controller_interface.IsInit() )
-		InitPlugin( ((SPADInitialize*)init)->hWnd );
+		InitPlugin( g_PADInitialize->hWnd );
 }
 
 // ___________________________________________________________________________
