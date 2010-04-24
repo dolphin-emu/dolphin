@@ -4,7 +4,7 @@
 namespace WiimoteEmu
 {
 
-static const u8 classic_id[]	= { 0x00, 0x00, 0xa4, 0x20, 0x01, 0x01 };
+static const u8 classic_id[] = { 0x00, 0x00, 0xa4, 0x20, 0x01, 0x01 };
 /* Classic Controller calibration */
 static const u8 classic_calibration[] =
 {
@@ -68,7 +68,7 @@ const u16 classic_dpad_bitmasks[] =
 	CLASSIC_PAD_UP, CLASSIC_PAD_DOWN, CLASSIC_PAD_LEFT, CLASSIC_PAD_RIGHT 
 };
 
-Classic::Classic() : Attachment( "Classic Controller" )
+Classic::Classic() : Attachment( "Classic" )
 {
 	// buttons
 	groups.push_back( m_buttons = new Buttons( "Buttons" ) );

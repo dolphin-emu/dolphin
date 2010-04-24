@@ -3,6 +3,8 @@
 
 #include <ControllerEmu.h>
 
+extern SPADInitialize *g_PADInitialize;
+
 class GCPad : public ControllerEmu
 {
 public:
@@ -22,6 +24,7 @@ private:
 	Buttons*				m_dpad;
 	MixedTriggers*			m_triggers;
 	ControlGroup*			m_rumble;
+	ControlGroup*			m_options;
 
 	const unsigned int		m_index;
 

@@ -4,11 +4,9 @@
 #include <X11/Xlib.h>
 #endif
 
-const char modifier[] = "Modifier";
-
-
 ControllerEmu::~ControllerEmu()
 {
+	// control groups
 	std::vector<ControlGroup*>::const_iterator
 		i = groups.begin(),
 		e = groups.end();
@@ -18,17 +16,33 @@ ControllerEmu::~ControllerEmu()
 
 ControllerEmu::ControlGroup::~ControlGroup()
 {
+	// controls
 	std::vector<Control*>::const_iterator
 		ci = controls.begin(),
 		ce = controls.end();
 	for ( ; ci!=ce; ++ci )
 		delete *ci;
 
+	// settings
 	std::vector<Setting*>::const_iterator
 		si = settings.begin(),
 		se = settings.end();
 	for ( ; si!=se; ++si )
 		delete *si;
+}
+
+ControllerEmu::Extension::~Extension()
+{
+	// attachments
+	std::vector<ControllerEmu*>::const_iterator
+		ai = attachments.begin(),
+		ae = attachments.end();
+	for ( ; ai!=ae; ++ai )
+		delete *ai;
+}
+ControllerEmu::ControlGroup::Control::~Control()
+{
+	delete control_ref;
 }
 
 void ControllerEmu::UpdateReferences( ControllerInterface& devi )
@@ -170,7 +184,7 @@ void ControllerEmu::ControlGroup::SaveConfig( IniFile::Section& sec, const std::
 	for ( ; ci!=ce; ++ci )
 	{
 		// control and dev qualifier
-		sec[group + (*ci)->name] = (*ci)->control_ref->control_qualifier.name;
+		sec.Set( group+(*ci)->name, (*ci)->control_ref->control_qualifier.name );
 		sec.Set( group+(*ci)->name+"/Device", (*ci)->control_ref->device_qualifier.ToString(), defdev );
 
 		// range
@@ -200,7 +214,7 @@ void ControllerEmu::SaveConfig( IniFile::Section& sec, const std::string& base )
 {
 	const std::string defdev = default_device.ToString();
 	if ( base.empty() )
-		sec[ std::string(" ") + base + "Device" ] = defdev;
+		sec.Set( std::string(" ") + base + "Device", defdev );
 
 	std::vector<ControlGroup*>::const_iterator i = groups.begin(),
 		e = groups.end();
@@ -213,7 +227,7 @@ ControllerEmu::AnalogStick::AnalogStick( const char* const _name ) : ControlGrou
 	for ( unsigned int i = 0; i < 4; ++i )
 		controls.push_back( new Input( named_directions[i] ) );
 
-	controls.push_back( new Input( modifier ) );
+	controls.push_back( new Input( "Modifier" ) );
 
 	settings.push_back( new Setting("Dead Zone", 0, 1, 50 ) );
 	settings.push_back( new Setting("Square Stick", 0 ) );
@@ -228,6 +242,11 @@ ControllerEmu::Buttons::Buttons( const char* const _name ) : ControlGroup( _name
 ControllerEmu::MixedTriggers::MixedTriggers( const char* const _name ) : ControlGroup( _name, GROUP_TYPE_MIXED_TRIGGERS )
 {
 	settings.push_back( new Setting("Threshold", 0.9f ) );
+}
+
+ControllerEmu::Triggers::Triggers( const char* const _name ) : ControlGroup( _name, GROUP_TYPE_TRIGGERS )
+{
+	settings.push_back( new Setting("Dead Zone", 0, 1, 50 ) );
 }
 
 ControllerEmu::Force::Force( const char* const _name ) : ControlGroup( _name, GROUP_TYPE_FORCE )
@@ -255,7 +274,7 @@ ControllerEmu::Tilt::Tilt( const char* const _name ) : ControlGroup( _name, GROU
 	controls.push_back( new Input( "Left" ) );
 	controls.push_back( new Input( "Right" ) );
 
-	controls.push_back( new Input( modifier ) );
+	controls.push_back( new Input( "Modifier" ) );
 
 	settings.push_back( new Setting("Dead Zone", 0, 1, 50 ) );
 	settings.push_back( new Setting("Circle Stick", 0 ) );
@@ -274,31 +293,6 @@ ControllerEmu::Cursor::Cursor( const char* const _name, const SWiimoteInitialize
 	settings.push_back( new Setting("Top", 0.5f ) );
 
 }
-
-//void GetMousePos(float& x, float& y, const SWiimoteInitialize* const wiimote_initialize)
-//{
-//#ifdef _WIN32
-//	// Get the cursor position for the entire screen
-//	POINT point;
-//	GetCursorPos(&point);
-//	// Get the cursor position relative to the upper left corner of the rendering window
-//	ScreenToClient(wiimote_initialize->hWnd, &point);
-//
-//	// Get the size of the rendering window. (In my case Rect.top and Rect.left was zero.)
-//	RECT Rect;
-//	GetClientRect(wiimote_initialize->hWnd, &Rect);
-//	// Width and height is the size of the rendering window
-//	float WinWidth = (float)(Rect.right - Rect.left);
-//	float WinHeight = (float)(Rect.bottom - Rect.top);
-//	float XOffset = 0, YOffset = 0;
-//	float PictureWidth = WinWidth, PictureHeight = WinHeight;
-//#endif
-//
-//	x = ((float)point.x - XOffset) / PictureWidth;
-//	y = ((float)point.y - YOffset) / PictureHeight;
-//	x *=2; x-=1;
-//	y *=2; y-=1;
-//}
 
 void GetMousePos(float& x, float& y, const SWiimoteInitialize* const wiimote_initialize)
 {

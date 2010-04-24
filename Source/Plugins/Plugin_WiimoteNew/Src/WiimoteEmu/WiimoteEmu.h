@@ -13,7 +13,7 @@
 
 // Registry sizes 
 #define WIIMOTE_EEPROM_SIZE			(16*1024)
-#define WIIMOTE_EEPROM_FREE_SIZE	0x16ff
+#define WIIMOTE_EEPROM_FREE_SIZE	0x1700
 #define WIIMOTE_REG_SPEAKER_SIZE	10
 #define WIIMOTE_REG_EXT_SIZE		0x100
 #define WIIMOTE_REG_IR_SIZE			0x34
@@ -28,19 +28,21 @@ extern const u8 shake_data[8];
 class Wiimote : public ControllerEmu
 {
 public:
+	Wiimote( const unsigned int index );
+	std::string GetName() const;
 
+	void Update();
+	void InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size);
+	void ControlChannel(const u16 _channelID, const void* _pData, u32 _Size);
+
+private:
 	struct ReadRequest
 	{
 		unsigned int	address, size, position;
 		u8*		data;
 	};
 
-	Wiimote( const unsigned int index );
 	void Reset();
-
-	void Update();
-	void InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size);
-	void ControlChannel(const u16 _channelID, const void* _pData, u32 _Size);
 
 	void ReportMode(const u16 _channelID, wm_report_mode* dr);
 	void HidOutputReport(const u16 _channelID, wm_report* sr);
@@ -51,10 +53,7 @@ public:
 	void ReadData(const u16 _channelID, wm_read_data* rd);
 	void SendReadDataReply(const u16 _channelID, ReadRequest& _request);
 
-	std::string GetName() const;
-
-private:
-
+	// control groups
 	Buttons*				m_buttons;
 	Buttons*				m_dpad;
 	Buttons*				m_shake;
@@ -63,11 +62,13 @@ private:
 	Force*					m_swing;
 	ControlGroup*			m_rumble;
 	Extension*				m_extension;
-	// TODO: add ir
+	ControlGroup*			m_options;
 
+	// wiimote index, 0-3
 	const unsigned int		m_index;
 
 	bool		m_rumble_on;
+	bool		m_speaker_mute;
 
 	bool					m_reporting_auto;
 	unsigned int			m_reporting_mode;
@@ -90,13 +91,20 @@ private:
 	// maybe read requests cancel any current requests
 	std::queue< ReadRequest >	m_read_requests;
 
-	//u8		m_eeprom[WIIMOTE_EEPROM_SIZE];
-	u8		m_eeprom[WIIMOTE_EEPROM_SIZE];
+	//std::queue< u8 >	m_speaker_data;
 
-	//u8*		m_reg_speaker;
-	//u8*		m_reg_motion_plus;
-	u8*		m_reg_ir;
+	u8		m_eeprom[WIIMOTE_EEPROM_SIZE];
 	u8*		m_reg_ext;
+	u8*		m_reg_ir;
+	u8*		m_reg_motion_plus;
+	struct SpeakerConfig
+	{
+		u16 : 16;
+		u8		format;
+		u16		sample_rate;
+		u8		volume;
+
+	}	*m_reg_speaker;
 
 	wiimote_key		m_ext_key;
 };

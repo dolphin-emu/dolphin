@@ -28,6 +28,7 @@ enum
 	GROUP_TYPE_EXTENSION,
 	GROUP_TYPE_TILT,
 	GROUP_TYPE_CURSOR,
+	GROUP_TYPE_TRIGGERS,
 };
 
 const char * const named_directions[] = 
@@ -55,9 +56,7 @@ public:
 				: control_ref(_ref), name(_name){}
 		public:
 
-			
-			//virtual std::string GetName() const = 0;
-
+			virtual ~Control();
 			ControllerInterface::ControlReference*		const control_ref;
 			const char * const		name;
 
@@ -105,7 +104,6 @@ public:
 		void LoadConfig( IniFile::Section& sec, const std::string& defdev = "", const std::string& base = "" );
 		void SaveConfig( IniFile::Section& sec, const std::string& defdev = "", const std::string& base = "" );
 
-		//const unsigned int		type;
 		const char* const			name;
 		const unsigned int			type;
 
@@ -147,7 +145,7 @@ public:
 				ControlState ang_cos = cos(ang);
 
 				// the amt a full square stick would have at current angle
-				ControlState square_full = std::min( 1/abs(ang_sin), 1/abs(ang_cos) );
+				ControlState square_full = std::min( ang_sin ? 1/abs(ang_sin) : 2, ang_cos ? 1/abs(ang_cos) : 2 );
 
 				// the amt a full stick would have that was ( user setting squareness) at current angle
 				// i think this is more like a pointed circle rather than a rounded square like it should be
@@ -217,6 +215,23 @@ public:
 
 	};
 
+	class Triggers : public ControlGroup
+	{
+	public:
+
+		template <typename S>
+		void GetState( S* analog, const unsigned int range )
+		{
+			const unsigned int trig_count = ((unsigned int) (controls.size()));
+			const ControlState deadzone = settings[0]->value;
+			for ( unsigned int i=0; i<trig_count; ++i,++analog )
+				*analog = S( std::max(controls[i]->control_ref->State() - deadzone, 0.0f) / (1 - deadzone) * range );
+		}
+
+		Triggers( const char* const _name );
+
+	};
+
 	class Force : public ControlGroup
 	{
 	public:
@@ -259,7 +274,7 @@ public:
 				ControlState ang_cos = cos(ang);
 
 				// the amt a full square stick would have at current angle
-				ControlState square_full = std::min( 1/abs(ang_sin), 1/abs(ang_cos) );
+				ControlState square_full = std::min( ang_sin ? 1/abs(ang_sin) : 2, ang_cos ? 1/abs(ang_cos) : 2 );
 
 				// the amt a full stick would have that was ( user setting circular ) at current angle
 				// i think this is more like a pointed circle rather than a rounded square like it should be
@@ -292,12 +307,6 @@ public:
 		template <typename C>
 		void GetState( C* const x, C* const y, C* const forward, const bool adjusted = false )
 		{
-			// this is flawed when GetState() isn't called at regular intervals
-			//const ControlState zz = controls[4]->control_ref->State();
-			//if (z < zz)
-			//	z = std::min( z + 0.01f, zz );
-			//else
-			//	z = std::max( z - 0.01f, zz );
 			const ControlState z = controls[4]->control_ref->State();
 			
 			// hide
@@ -335,7 +344,6 @@ public:
 		}
 
 	private:
-		//ControlState z;
 		const SWiimoteInitialize* const wiimote_initialize;
 
 	};
@@ -347,6 +355,7 @@ public:
 			: ControlGroup( _name, GROUP_TYPE_EXTENSION )
 			, switch_extension(0)
 			, active_extension(0) {}
+		~Extension();
 
 		void GetState( u8* const data, const bool focus = true );
 
@@ -367,8 +376,6 @@ public:
 	void UpdateReferences( ControllerInterface& devi );
 
 	std::vector< ControlGroup* >		groups;
-
-	ControlGroup*						options;
 
 	ControllerInterface::DeviceQualifier	default_device;
 

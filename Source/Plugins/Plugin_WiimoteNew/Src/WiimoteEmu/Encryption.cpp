@@ -279,7 +279,7 @@ void wiimote_gen_key(wiimote_key *key, u8 *keydata)
 	// for homebrew, ft and sb are all 0x97 which is equivalent to 0x17
 }
 
-
+// TODO: is there a reason these can only handle a length of 255?
 /* Encrypt data */
 void wiimote_encrypt(wiimote_key *key, u8 *data, int addr, u8 len)
 {

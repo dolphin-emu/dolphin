@@ -5,8 +5,6 @@ namespace WiimoteEmu
 {
 
 // Extension device IDs to be written to the last bytes of the extension reg
-static const u8 gh3glp_id[]		= { 0x00, 0x00, 0xa4, 0x20, 0x01, 0x03 };
-static const u8 ghwtdrums_id[]	= { 0x01, 0x00, 0xa4, 0x20, 0x01, 0x03 };
 // The id for nothing inserted
 static const u8 nothing_id[]	= { 0x00, 0x00, 0x00, 0x00, 0x2e, 0x2e };
 // The id for a partially inserted extension

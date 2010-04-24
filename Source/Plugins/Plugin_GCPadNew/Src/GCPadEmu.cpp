@@ -64,8 +64,8 @@ GCPad::GCPad( const unsigned int index ) : m_index(index)
 		m_dpad->controls.push_back( new ControlGroup::Input( named_directions[i] ) );
 
 	// options
-	groups.push_back( options = new ControlGroup( "Options" ) );
-	options->settings.push_back( new ControlGroup::Setting( "Background Input", false ) );
+	groups.push_back( m_options = new ControlGroup( "Options" ) );
+	m_options->settings.push_back( new ControlGroup::Setting( "Background Input", false ) );
 
 }
 
@@ -76,25 +76,33 @@ std::string GCPad::GetName() const
 
 void GCPad::GetInput( SPADStatus* const pad )
 {
-	std::vector< ControlGroup::Control* >::iterator i,e;
+	// if window has focus or background input enabled
+	if (g_PADInitialize->pRendererHasFocus() || m_options[0].settings[0]->value )
+	{
+		// buttons
+		m_buttons->GetState( &pad->button, button_bitmasks );
 
-	// buttons
-	m_buttons->GetState( &pad->button, button_bitmasks );
+		// TODO: set analog A/B analog to full or w/e, prolly not needed
 
-	// TODO: set analog A/B to full or w/e
+		// dpad
+		m_dpad->GetState( &pad->button, dpad_bitmasks );
 
-	// dpad
-	m_dpad->GetState( &pad->button, dpad_bitmasks );
+		// sticks
+		m_main_stick->GetState( &pad->stickX, &pad->stickY, 0x80, 127 );
+		m_c_stick->GetState( &pad->substickX, &pad->substickY, 0x80, 127 );
 
-	// sticks
-	m_main_stick->GetState( &pad->stickX, &pad->stickY, 0x80, 127 );
-	m_c_stick->GetState( &pad->substickX, &pad->substickY, 0x80, 127 );
-
-	// triggers
-	m_triggers->GetState( &pad->button, trigger_bitmasks, &pad->triggerLeft, 0xFF );
+		// triggers
+		m_triggers->GetState( &pad->button, trigger_bitmasks, &pad->triggerLeft, 0xFF );
+	}
+	else
+	{
+		// center sticks
+		memset( &pad->stickX, 0x80, 4 );
+	}
 }
 
 void GCPad::SetOutput( const bool on )
 {
-	m_rumble->controls[0]->control_ref->State( on );
+	// only rumble if window has focus or background input is enabled
+	m_rumble->controls[0]->control_ref->State( on && (g_PADInitialize->pRendererHasFocus() || m_options[0].settings[0]->value) );
 }

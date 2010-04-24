@@ -79,9 +79,9 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					else
 						dc.DrawRectangle( 16, 16, 32, 32 );
 
-					// deadzone circle
 					if ( GROUP_TYPE_CURSOR != (*g)->control_group->type )
 					{
+						// deadzone circle
 						dc.SetBrush(*wxLIGHT_GREY_BRUSH);
 						dc.DrawCircle( 32, 32, ((*g)->control_group)->settings[0]->value * 32 );
 
@@ -166,7 +166,52 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					(*g)->static_bitmap->SetBitmap( bitmap );					
 				}
 				break;
+			case GROUP_TYPE_TRIGGERS :
+				{
+					const unsigned int trigger_count = ((unsigned int)((*g)->control_group->controls.size()));
+					// setup
+					wxBitmap bitmap( 64, 12*trigger_count+1);
+					wxMemoryDC dc;
+					dc.SelectObject(bitmap);
+					dc.Clear();
 
+					// draw the shit
+					dc.SetPen(*wxGREY_PEN);
+					ControlState deadzone =  (*g)->control_group->settings[0]->value;
+
+					unsigned int* const trigs = new unsigned int[trigger_count];
+					((ControllerEmu::Triggers*)(*g)->control_group)->GetState( trigs, 64 );
+
+					for ( unsigned int n = 0; n < trigger_count; ++n )
+					{
+						ControlState trig_r = (*g)->control_group->controls[n]->control_ref->State();
+
+						dc.SetBrush(*wxGREY_BRUSH);
+						dc.DrawRectangle(0, n*12, trig_r*64, 14);
+
+						dc.SetBrush(*wxRED_BRUSH);
+						dc.DrawRectangle(0, n*12, trigs[n], 14);
+					}
+
+					delete[] trigs;
+
+					// deadzone box
+					dc.SetPen(*wxLIGHT_GREY_PEN);
+					dc.SetBrush(*wxTRANSPARENT_BRUSH);
+					dc.DrawRectangle(0, 0, deadzone*64, trigger_count*14);
+
+					// box outline
+					// Windows XP color
+					dc.SetPen(wxPen(_T("#7f9db9")));
+					dc.DrawRectangle(0, 0, bitmap.GetWidth(), bitmap.GetHeight());
+
+					// done drawing
+					dc.SelectObject(wxNullBitmap);
+
+					// set the shit
+					(*g)->static_bitmap->SetBitmap( bitmap );
+				}
+				break;
 			case GROUP_TYPE_MIXED_TRIGGERS :
 				{
 					const unsigned int trigger_count = ((unsigned int)((*g)->control_group->controls.size() / 2));
@@ -194,6 +239,9 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						dc.DrawRectangle(trig_a*64, n*12, 64+20, 14);
 						dc.DrawRectangle(64, n*12, 32, 14);
 					}
+
+					// threshold box
+					dc.SetPen(*wxLIGHT_GREY_PEN);
 					dc.SetBrush(*wxTRANSPARENT_BRUSH);
 					dc.DrawRectangle(thresh*64, 0, 128, trigger_count*14);
 

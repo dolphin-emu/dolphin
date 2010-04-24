@@ -61,8 +61,6 @@ void Wiimote::ReportMode(const u16 _channelID, wm_report_mode* dr)
 	//DEBUG_LOG(WIIMOTE, "  All The Time: %x", dr->all_the_time);
 	//DEBUG_LOG(WIIMOTE, "  Mode: 0x%02x", dr->mode);
 
-	m_rumble_on = (dr->rumble != 0);
-
 	m_reporting_auto = dr->all_the_time;
 	m_reporting_mode = dr->mode;
 	m_reporting_channel = _channelID;
@@ -93,10 +91,14 @@ void Wiimote::HidOutputReport(const u16 _channelID, wm_report* sr)
 {
 	INFO_LOG(WIIMOTE, "HidOutputReport (page: %i, cid: 0x%02x, wm: 0x%02x)", m_index, _channelID, sr->wm);
 
+	// wiibrew:
+	// In every single Output Report, bit 0 (0x01) of the first byte controls the Rumble feature.
+	m_rumble_on = (sr->data[0] & 0x01) != 0;
+
 	switch (sr->wm)
 	{
 	case WM_RUMBLE : // 0x10
-		m_rumble_on = (sr->data[0] != 0);
+		// this is handled above
 		return;	// no ack
 		break;
 
@@ -116,6 +118,7 @@ void Wiimote::HidOutputReport(const u16 _channelID, wm_report* sr)
 
 	case WM_SPEAKER_ENABLE : // 0x14
 		//INFO_LOG(WIIMOTE, "WM Speaker Enable: 0x%02x", sr->data[0]);
+		//PanicAlert( "WM Speaker Enable: %d", sr->data[0] );
 		m_status.speaker = (sr->data[0] & 0x04) ? 1 : 0;
 		break;
 
@@ -135,12 +138,24 @@ void Wiimote::HidOutputReport(const u16 _channelID, wm_report* sr)
 
 	case WM_WRITE_SPEAKER_DATA : // 0x18
 		// TODO: Does this need an ack?
+		{
+			// testing
+			//wm_speaker_data* const sd = (wm_speaker_data*)sr->data;
+			//unsigned int length = sd->length >> 3;
+
+			//PanicAlert( "WM Speaker Data:\nlength: %d\nformat: 0x%x\nrate: 0x%x\nvolume: 0x%x",
+				//length, m_reg_speaker->format, m_reg_speaker->sample_rate, m_reg_speaker->volume );
+
+			//for (unsigned int i=0; i<length; ++i)
+			//	m_speaker_data.push(0);
+		}
 		return;	// no ack
 		break;
 
 	case WM_SPEAKER_MUTE : // 0x19
 		//INFO_LOG(WIIMOTE, "WM Speaker Mute: 0x%02x", sr->data[0]);
-		//m_speaker_mute = (sr->data[0] & 0x04) ? 1 : 0;
+		//PanicAlert( "WM Speaker Mute: %d", sr->data[0] & 0x04 );
+		m_speaker_mute = (sr->data[0] & 0x04) ? 1 : 0;
 		break;
 
 	case WM_IR_LOGIC: // 0x1a
@@ -182,14 +197,14 @@ void Wiimote::SendAck(const u16 _channelID, u8 _reportID)
 	g_WiimoteInitialize.pWiimoteInput( m_index, _channelID, data, sizeof(data));
 }
 
+// old comment
 /* Here we produce a 0x20 status report to send to the Wii. We currently ignore
    the status request rs and all its eventual instructions it may include (for
    example turn off rumble or something else) and just send the status
    report. */
 void Wiimote::RequestStatus(const u16 _channelID, wm_request_status* rs)
 {
-	if (rs)
-		m_rumble_on = (rs->rumble != 0);
+	//if (rs)
 
 	// handle switch extension
 	if ( m_extension->active_extension != m_extension->switch_extension )
@@ -229,8 +244,6 @@ void Wiimote::WriteData(const u16 _channelID, wm_write_data* wd)
 
 	// ignore the 0x010000 bit
 	address &= 0xFEFFFF;
-
-	m_rumble_on = ( wd->rumble != 0 );
 
 	if (wd->size > 16)
 	{
@@ -278,6 +291,10 @@ void Wiimote::WriteData(const u16 _channelID, wm_write_data* wd)
 
 			switch (address >> 16)
 			{
+			// speaker
+			case 0xa2 :
+				//PanicAlert("Write to speaker!!");
+				break;
 			// extension register
 			case 0xa4 :
 				{
@@ -311,8 +328,6 @@ void Wiimote::ReadData(const u16 _channelID, wm_read_data* rd)
 	// ignore the 0x010000 bit
 	address &= 0xFEFFFF;
 
-	m_rumble_on = (rd->rumble != 0);
-
 	ReadRequest rr;
 	u8* block = new u8[size];
 
@@ -322,7 +337,7 @@ void Wiimote::ReadData(const u16 _channelID, wm_read_data* rd)
 		{
 			//PanicAlert("ReadData: reading from EEPROM: address: 0x%x size: 0x%x", address, size);
 			// Read from EEPROM
-			if (address + size > WIIMOTE_EEPROM_FREE_SIZE) 
+			if (address + size >= WIIMOTE_EEPROM_FREE_SIZE) 
 			{
 				if (address + size > WIIMOTE_EEPROM_SIZE) 
 				{
@@ -362,17 +377,20 @@ void Wiimote::ReadData(const u16 _channelID, wm_read_data* rd)
 
 			switch (address >> 16)
 			{
+			// speaker
+			case 0xa2 :
+				//PanicAlert("read from speaker!!");
+				break;
+			// extension
 			case 0xa4 :
 				{
 					// Encrypt data read from extension register
 					// Check if encrypted reads is on
 					if ( m_reg_ext[0xf0] == 0xaa )
-					{
-						// I probably totally f'ed this up
 						wiimote_encrypt(&m_ext_key, block, address & 0xffff, (u8)size);
-					}
 				}
 				break;
+			// motion plus
 			case 0xa6 :
 				{
 					// motion plus crap copied from old wiimote plugin

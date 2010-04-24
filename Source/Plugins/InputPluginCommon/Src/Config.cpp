@@ -48,7 +48,7 @@ void Plugin::SaveConfig()
 		(*i)->SaveConfig( inifile[ (*i)->GetName() ] );
 	
 	// dont need to save empty values
-	inifile.Clean();
+	//inifile.Clean();
 
 	std::ofstream file;
 	file.open( (std::string(File::GetUserPath(D_CONFIG_IDX)) + ini_name + ".ini" ).c_str() );

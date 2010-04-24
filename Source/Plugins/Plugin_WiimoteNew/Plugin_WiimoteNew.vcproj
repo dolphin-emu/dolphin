@@ -572,6 +572,22 @@
 					>
 				</File>
 				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\Drums.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\Drums.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\Guitar.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\Guitar.h"
+					>
+				</File>
+				<File
 					RelativePath=".\Src\WiimoteEmu\Attachment\Nunchuk.cpp"
 					>
 				</File>

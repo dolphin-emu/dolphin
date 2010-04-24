@@ -1,6 +1,8 @@
 
 #include "Attachment/Classic.h"
 #include "Attachment/Nunchuk.h"
+#include "Attachment/Guitar.h"
+#include "Attachment/Drums.h"
 
 #include "WiimoteEmu.h"
 #include "WiimoteHid.h"
@@ -39,6 +41,7 @@ static const u8 eeprom_data_0[] = {
 	0x82, 0x82, 0x82, 0x15, 0x9C, 0x9C, 0x9E, 0x38, 0x40, 0x3E
 };
 
+static const u8 motion_plus_id[] = { 0x00, 0x00, 0xA6, 0x20, 0x00, 0x05 };
 
 static const u8 eeprom_data_16D0[] = {
 	0x00, 0x00, 0x00, 0xFF, 0x11, 0xEE, 0x00, 0x00,
@@ -110,6 +113,7 @@ void Wiimote::Reset()
 	m_reporting_auto = false;
 
 	m_rumble_on = false;
+	m_speaker_mute = false;
 
 	// will make the first Update() call send a status request
 	// the first call to RequestStatus() will then set up the status struct extension bit
@@ -129,10 +133,13 @@ void Wiimote::Reset()
 	m_register[0xa60000].resize(WIIMOTE_REG_EXT_SIZE,0);
 	m_register[0xB00000].resize(WIIMOTE_REG_IR_SIZE,0);
 
-	//m_reg_speaker		= &m_register[0xa20000][0];
+	m_reg_speaker		= (SpeakerConfig*)&m_register[0xa20000][0];
 	m_reg_ext			= &m_register[0xa40000][0];
-	//m_reg_motion_plus	= &m_register[0xa60000][0];
+	m_reg_motion_plus	= &m_register[0xa60000][0];
 	m_reg_ir			= &m_register[0xB00000][0];
+
+	// testing
+	//memcpy( m_reg_motion_plus + 0xfa, motion_plus_id, sizeof(motion_plus_id) );
 
 	// status
 	memset( &m_status, 0, sizeof(m_status) );
@@ -183,7 +190,8 @@ Wiimote::Wiimote( const unsigned int index ) : m_index(index)
 	m_extension->attachments.push_back( new WiimoteEmu::None() );
 	m_extension->attachments.push_back( new WiimoteEmu::Nunchuk() );
 	m_extension->attachments.push_back( new WiimoteEmu::Classic() );
-	//m_extension->attachments.push_back( new Attachment::GH3() );
+	m_extension->attachments.push_back( new WiimoteEmu::Guitar() );
+	m_extension->attachments.push_back( new WiimoteEmu::Drums() );
 
 	// dpad
 	groups.push_back( m_dpad = new Buttons( "D-Pad" ) );
@@ -195,9 +203,9 @@ Wiimote::Wiimote( const unsigned int index ) : m_index(index)
 	m_rumble->controls.push_back( new ControlGroup::Output( "Motor" ) );
 
 	// options
-	groups.push_back( options = new ControlGroup( "Options" ) );
-	options->settings.push_back( new ControlGroup::Setting( "Background Input", false ) );
-	options->settings.push_back( new ControlGroup::Setting( "Sideways Wiimote", false ) );
+	groups.push_back( m_options = new ControlGroup( "Options" ) );
+	m_options->settings.push_back( new ControlGroup::Setting( "Background Input", false ) );
+	m_options->settings.push_back( new ControlGroup::Setting( "Sideways Wiimote", false ) );
 
 
 	// --- reset eeprom/register/values to default ---
@@ -211,15 +219,28 @@ std::string Wiimote::GetName() const
 
 void Wiimote::Update()
 {
-	const bool is_sideways = options->settings[1]->value > 0; 
+	const bool is_sideways = m_options->settings[1]->value > 0; 
 
 	// if windows is focused or background input is enabled
-	const bool focus = g_WiimoteInitialize.pRendererHasFocus() || (options->settings[0]->value != 0);
+	const bool focus = g_WiimoteInitialize.pRendererHasFocus() || (m_options->settings[0]->value != 0);
 
 	// no rumble if no focus
 	if (false == focus)
 		m_rumble_on = false;
 	m_rumble->controls[0]->control_ref->State(m_rumble_on);
+
+	// testing speaker stuff
+	//m_rumble->controls[0]->control_ref->State( m_speaker_data.size() > 0 );
+	//while ( m_speaker_data.size() )
+	//{
+	//	std::ofstream file;
+	//	file.open( "test.pcm", std::ios::app | std::ios::out | std::ios::binary );
+	//	file.put(m_speaker_data.front());
+	//	file.close();
+	//	m_speaker_data.pop();
+	//}
+	//if ( m_speaker_data.size() )
+	//	m_speaker_data.pop();
 
 	// update buttons in status struct
 	m_status.buttons = 0;
@@ -324,7 +345,7 @@ void Wiimote::Update()
 		else
 			m_shake_step = 0;
 
-		// swing
+		// TODO: swing
 		//u8 swing[3];
 		//m_swing->GetState( swing, 0x80, 60 );
 		//for ( unsigned int i=0; i<3; ++i )
@@ -337,7 +358,11 @@ void Wiimote::Update()
 	if (rpt.ext)
 	{
 		m_extension->GetState(data + rpt.ext, focus);
-		wiimote_encrypt(&m_ext_key, data + rpt.ext, 0x00, sizeof(wm_extension));
+
+		// both of these ifs work
+		//if ( m_reg_ext[0xf0] != 0x55 )
+		if ( m_reg_ext[0xf0] == 0xaa )
+			wiimote_encrypt(&m_ext_key, data + rpt.ext, 0x00, sizeof(wm_extension));
 
 		// i dont think anything accesses the extension data like this, but ill support it
 		memcpy(m_reg_ext + 8, data + rpt.ext, sizeof(wm_extension));
@@ -613,3 +638,4 @@ void Wiimote::Register::Write( size_t address, void* src, size_t length )
 }
 
 }
+

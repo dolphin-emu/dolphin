@@ -57,6 +57,7 @@ public:
 		{
 		public:
 			virtual std::string GetName() const = 0;
+			virtual ~Control() {}
 		};
 
 		//
@@ -138,6 +139,8 @@ public:
 	public:
 		ControlQualifier() {};
 		ControlQualifier( const std::string& _name ) : name(_name) {}
+		virtual ~ControlQualifier() {}
+
 		virtual bool operator==(const Device::Control* const in) const;
 		void FromControl(const Device::Control* const in);
 
@@ -184,6 +187,7 @@ public:
 	{
 	public:
 		ControlReference( const bool _is_input ) : range(1), is_input(_is_input), device(NULL) {}
+		virtual ~ControlReference() {}
 
 		virtual ControlState State( const ControlState state = 0 ) = 0;
 		virtual bool Detect( const unsigned int ms, const unsigned int count = 1 ) = 0;

@@ -4,7 +4,7 @@
 namespace WiimoteEmu
 {
 
-static const u8 nunchuck_id[]	= { 0x00, 0x00, 0xa4, 0x20, 0x00, 0x00 };
+static const u8 nunchuck_id[] = { 0x00, 0x00, 0xa4, 0x20, 0x00, 0x00 };
 /* Default calibration for the nunchuck. It should be written to 0x20 - 0x3f of the
    extension register. 0x80 is the neutral x and y accelerators and 0xb3 is the
    neutral z accelerometer that is adjusted for gravity. */

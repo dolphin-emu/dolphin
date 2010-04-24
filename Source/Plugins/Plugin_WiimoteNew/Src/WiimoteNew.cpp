@@ -140,13 +140,7 @@ void InitPlugin( void* const hwnd )
 void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
 	//PanicAlert( "Wiimote_ControlChannel" );
-
-	// TODO: change this to a TryEnter, and make it give empty input on failure
-	g_plugin.controls_crit.Enter();
-
 	((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->ControlChannel( _channelID, _pData, _Size );
-
-	g_plugin.controls_crit.Leave();
 }
 
 // __________________________________________________________________________________________________
@@ -159,13 +153,7 @@ void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32
 void Wiimote_InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
 	//PanicAlert( "Wiimote_InterruptChannel" );
-
-	// TODO: change this to a TryEnter, and make it give empty input on failure
-	g_plugin.controls_crit.Enter();
-
 	((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->InterruptChannel( _channelID, _pData, _Size );
-
-	g_plugin.controls_crit.Leave();
 }
 
 // __________________________________________________________________________________________________
@@ -337,7 +325,7 @@ void Shutdown(void)
 //
 void DoState(unsigned char **ptr, int mode)
 {
-	// prolly won't need this
+	// do this later
 }
 
 // ___________________________________________________________________________

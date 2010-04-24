@@ -161,19 +161,8 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	}
 	_last_numPAD = _numPAD;
 	
-	// if we want background input or have focus
-	if ( g_plugin.controllers[_numPAD]->options[0].settings[0]->value || g_PADInitialize->pRendererHasFocus() )
-	{
-		// get input
-		((GCPad*)g_plugin.controllers[ _numPAD ])->GetInput( _pPADStatus );
-	}
-	else
-	{
-		// center sticks
-		memset( &_pPADStatus->stickX, 0x80, 4 );
-		// stop rumble
-		((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput( false );
-	}
+	// get input
+	((GCPad*)g_plugin.controllers[ _numPAD ])->GetInput( _pPADStatus );
 
 	// leave
 	g_plugin.controls_crit.Leave();
@@ -202,9 +191,9 @@ void PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength)
 	// enter
 	if ( g_plugin.controls_crit.TryEnter() )
 	{
-		// only on/off rumble, if we have focus or background input on
-		if ( g_plugin.controllers[_numPAD]->options[0].settings[0]->value || g_PADInitialize->pRendererHasFocus() )
-			((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput( 1 == _uType && _uStrength > 2 );
+		// TODO: this has potential to not stop rumble if user is messing with GUI at the perfect time
+		// set rumble
+		((GCPad*)g_plugin.controllers[ _numPAD ])->SetOutput( 1 == _uType && _uStrength > 2 );
 
 		// leave
 		g_plugin.controls_crit.Leave();

@@ -99,7 +99,7 @@ struct wm_classic_extension
 	u16 bt; // byte 4, 5
 };
 
-struct wm_GH3_extension
+struct wm_guitar_extension
 {
 	u8 sx   : 6;
 	u8 pad1 : 2; // 1 on gh3, 0 on ghwt
@@ -113,23 +113,28 @@ struct wm_GH3_extension
 	u8 whammy : 5;
 	u8 pad4 : 3; // always 0
 
-	u8 pad5 : 2; // always 1
-	u8 plus : 1;
-	u8 pad6 : 1; // always 1
-	u8 minus : 1;
-	u8 pad7 : 1; // always 1
-	u8 strumdown : 1;
-	u8 pad8 : 1; // always 1
-
-	u8 strumup : 1;
-	u8 pad9 : 2; // always 1
-	u8 yellow : 1;
-	u8 green  : 1;
-	u8 blue   : 1;
-	u8 red    : 1;
-	u8 orange : 1;
+	u16 bt; // buttons
 };
 
+struct wm_drums_extension
+{
+	u8 sx   : 6;
+	u8 pad1 : 2; // always 0
+
+	u8 sy   : 6;
+	u8 pad2 : 2; // always 0
+
+	u8 pad3 : 1; // unknown
+	u8 which : 5;
+	u8 none : 1;
+	u8 hhp : 1;
+
+	u8 pad4 : 1; // unknown
+	u8 velocity : 4; // unknown
+	u8 softness : 3;
+
+	u16 bt; // buttons
+};
 
 struct wm_report {
 	u8 wm;
@@ -279,7 +284,10 @@ struct wm_report_ext21
 #define WM_SPEAKER_ENABLE 0x14
 #define WM_SPEAKER_MUTE 0x19 
 #define WM_WRITE_SPEAKER_DATA 0x18
-
+struct wm_speaker_data {
+	u8 length;		// shifted left by three bits
+	u8 data[20];
+};
 
 // Custom structs
 
