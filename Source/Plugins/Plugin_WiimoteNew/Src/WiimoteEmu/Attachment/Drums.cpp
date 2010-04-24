@@ -20,16 +20,16 @@ static const u8 drums_id[] = { 0x01, 0x00, 0xa4, 0x20, 0x01, 0x03 };
 const u16 drum_pad_bitmasks[] =
 {
 	DRUMS_RED,
+	DRUMS_YELLOW,
 	DRUMS_BLUE,
 	DRUMS_GREEN,
-	DRUMS_YELLOW,
 	DRUMS_ORANGE,
 	DRUMS_BASS,
 };
 
 const char* drum_pad_names[] =
 {
-	"Red","Blue","Green","Yellow","Orange","Bass"
+	"Red","Yellow","Blue","Green","Orange","Bass"
 };
 
 const u16 drum_button_bitmasks[] =

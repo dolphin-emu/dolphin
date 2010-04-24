@@ -66,7 +66,15 @@ void IniFile::Save( std::ostream& file )
 		Section::const_iterator si = i->second.begin(),
 			se = i->second.end();
 		for ( ; si != se; ++si )
-			file << si->first << " = " << si->second << '\n';
+		{
+			file << si->first << " = ";
+			// if value has quotes or whitespace, surround it with quotes
+			if (si->second.find_first_of("\"\t ") != std::string::npos)
+				file << '"' << si->second << '"';
+			else
+				file << si->second;
+			file << '\n';
+		}
 	}
 }
 
@@ -103,7 +111,13 @@ void IniFile::Load( std::istream& file )
 					std::istringstream ss(line);
 					std::string key; std::getline( ss, key, '=' );
 					std::string val; std::getline( ss, val );
-					(*section)[ TrimChars(key,space) ] = TrimChars(val,space);
+					val = TrimChars(val,space);
+					// handle quote surrounded values
+					if (val.length() > 1)
+						if ('"' == val[0])
+							val = val.substr(1, val.length()-2);
+
+					(*section)[ TrimChars(key,space) ] = val;
 					break;
 				}
 			}
