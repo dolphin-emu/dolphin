@@ -196,10 +196,10 @@ void CFrame::CreateMenu()
 		toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
 	}
 	toolsMenu->AppendSeparator();
-	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE1, _T("Connect Wiimote 1\tAlt+F5"));
-	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE2, _T("Connect Wiimote 2\tAlt+F6"));
-	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE3, _T("Connect Wiimote 3\tAlt+F7"));
-	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE4, _T("Connect Wiimote 4\tAlt+F8"));
+	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE1, GetMenuLabel(HK_WIIMOTE1_CONNECT));
+	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE2, GetMenuLabel(HK_WIIMOTE2_CONNECT));
+	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE3, GetMenuLabel(HK_WIIMOTE3_CONNECT));
+	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE4, GetMenuLabel(HK_WIIMOTE4_CONNECT));
 
 	m_MenuBar->Append(toolsMenu, _T("&Tools"));
 
@@ -279,13 +279,21 @@ wxString CFrame::GetMenuLabel(int Id)
 			Label = _T("&Fullscreen\t");
 			break;
 		case HK_PLAY_PAUSE:
-			if (Core::GetState() == Core::CORE_UNINITIALIZED)
-				Label = _T("&Play\t");
+			if (Core::GetState() == Core::CORE_RUN)
+				Label = _T("&Pause\t");
 			else
 				Label = _T("&Play\t");
 			break;
 		case HK_STOP:
 			Label = _T("&Stop\t");
+		case HK_WIIMOTE1_CONNECT:
+			Label = _T("Connect Wiimote 1\t");
+		case HK_WIIMOTE2_CONNECT:
+			Label = _T("Connect Wiimote 2\t");
+		case HK_WIIMOTE3_CONNECT:
+			Label = _T("Connect Wiimote 3\t");
+		case HK_WIIMOTE4_CONNECT:
+			Label = _T("Connect Wiimote 4\t");
 	}
 
 	wxString Modifier = InputCommon::WXKeymodToString
@@ -1183,6 +1191,10 @@ void CFrame::UpdateGUI()
 	GetMenuBar()->FindItem(IDM_TOGGLE_FULLSCREEN)->SetItemLabel(GetMenuLabel(HK_FULLSCREEN));
 	GetMenuBar()->FindItem(IDM_PLAY)->SetItemLabel(GetMenuLabel(HK_PLAY_PAUSE));
 	GetMenuBar()->FindItem(IDM_STOP)->SetItemLabel(GetMenuLabel(HK_STOP));
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->SetItemLabel(GetMenuLabel(HK_WIIMOTE1_CONNECT));
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->SetItemLabel(GetMenuLabel(HK_WIIMOTE2_CONNECT));
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->SetItemLabel(GetMenuLabel(HK_WIIMOTE3_CONNECT));
+	GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->SetItemLabel(GetMenuLabel(HK_WIIMOTE4_CONNECT));
 
 	m_pSubMenuLoad->Enable(Initialized);
 	m_pSubMenuSave->Enable(Initialized);

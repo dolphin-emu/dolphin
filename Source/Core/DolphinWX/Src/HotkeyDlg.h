@@ -29,6 +29,7 @@
 #include "Config.h"
 #endif
 
+#include "CoreParameter.h"
 #include "WXInputBase.h"
 
 #if defined(HAVE_X11) && HAVE_X11
@@ -55,10 +56,6 @@ class HotkeyConfigDialog : public wxDialog
 
 		enum
 		{
-			ID_FULLSCREEN,
-			ID_PLAY_PAUSE,
-			ID_STOP,
-			NUM_HOTKEYS,
 			ID_CLOSE = 1000,
 			IDTM_BUTTON, // Timer
 			ID_APPLY

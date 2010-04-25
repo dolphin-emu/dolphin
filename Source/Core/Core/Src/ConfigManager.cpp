@@ -25,6 +25,20 @@
 
 SConfig* SConfig::m_Instance;
 
+static const struct {
+	const char*	IniText;
+	const int DefaultKey;
+	const int DefaultModifier;
+} g_HKData[] = {
+	{ "ToggleFullscreen",	13 /* WXK_RETURN */,	0x0001 /* wxMOD_ALT */ },
+	{ "PlayPause",		 	349 /* WXK_F10 */,		0x0000 /* wxMOD_NONE */ },
+	{ "Stop",			 	27 /* WXK_ESCAPE */,	0x0000 /* wxMOD_NONE */ },
+	{ "Wiimote1Connect", 	344 /* WXK_F5 */,		0x0001 /* wxMOD_ALT */ },
+	{ "Wiimote2Connect", 	345 /* WXK_F6 */,		0x0001 /* wxMOD_ALT */ },
+	{ "Wiimote3Connect", 	346 /* WXK_F7 */,		0x0001 /* wxMOD_ALT */ },
+	{ "Wiimote4Connect", 	347 /* WXK_F8 */,		0x0001 /* wxMOD_ALT */ },
+};
+
 SConfig::SConfig()
 {
 	// Make sure we have log manager
@@ -90,12 +104,12 @@ void SConfig::SaveSettings()
 	ini.Set("Interface", "ShowConsole",			m_InterfaceConsole);
 
 	// Hotkeys
-	ini.Set("Hotkeys", "ToggleFullscreen", 			m_LocalCoreStartupParameter.iHotkey[HK_FULLSCREEN]);
-	ini.Set("Hotkeys", "PlayPause", 				m_LocalCoreStartupParameter.iHotkey[HK_PLAY_PAUSE]);
-	ini.Set("Hotkeys", "Stop",						m_LocalCoreStartupParameter.iHotkey[HK_STOP]);
-	ini.Set("Hotkeys", "ToggleFullscreenModifier",	m_LocalCoreStartupParameter.iHotkeyModifier[HK_FULLSCREEN]);
-	ini.Set("Hotkeys", "PlayPauseModifier", 		m_LocalCoreStartupParameter.iHotkeyModifier[HK_PLAY_PAUSE]);
-	ini.Set("Hotkeys", "StopModifier",  			m_LocalCoreStartupParameter.iHotkeyModifier[HK_STOP]);
+	for (int i = HK_FULLSCREEN; i < NUM_HOTKEYS; i++)
+	{
+		ini.Set("Hotkeys", g_HKData[i].IniText, m_LocalCoreStartupParameter.iHotkey[i]);
+		ini.Set("Hotkeys", (std::string(g_HKData[i].IniText) + "Modifier").c_str(),
+				m_LocalCoreStartupParameter.iHotkeyModifier[i]);
+	}
 
 	// Display
 	ini.Set("Display", "FullscreenResolution",	m_LocalCoreStartupParameter.strFullscreenResolution);
@@ -216,12 +230,13 @@ void SConfig::LoadSettings()
 		ini.Get("Interface", "ShowConsole",			&m_InterfaceConsole,							false);
 
 		// Hotkeys
-		ini.Get("Hotkeys", "ToggleFullscreen", 			&m_LocalCoreStartupParameter.iHotkey[HK_FULLSCREEN], 13); // WXK_RETURN
-		ini.Get("Hotkeys", "PlayPause", 				&m_LocalCoreStartupParameter.iHotkey[HK_PLAY_PAUSE], 349); // WXK_F10
-		ini.Get("Hotkeys", "Stop",						&m_LocalCoreStartupParameter.iHotkey[HK_STOP], 27); // WXK_ESCAPE
-		ini.Get("Hotkeys", "ToggleFullscreenModifier",	&m_LocalCoreStartupParameter.iHotkeyModifier[HK_FULLSCREEN], 0x0001); // wxMOD_ALT
-		ini.Get("Hotkeys", "PlayPauseModifier",			&m_LocalCoreStartupParameter.iHotkeyModifier[HK_PLAY_PAUSE], 0x0000); // wxMOD_NONE
-		ini.Get("Hotkeys", "StopModifier",				&m_LocalCoreStartupParameter.iHotkeyModifier[HK_STOP], 0x0000); // wxMOD_NONE
+		for (int i = HK_FULLSCREEN; i < NUM_HOTKEYS; i++)
+		{
+			ini.Get("Hotkeys", g_HKData[i].IniText,
+					&m_LocalCoreStartupParameter.iHotkey[i], g_HKData[i].DefaultKey);
+			ini.Get("Hotkeys", (std::string(g_HKData[i].IniText) + "Modifier").c_str(),
+					&m_LocalCoreStartupParameter.iHotkeyModifier[i], g_HKData[i].DefaultModifier);
+		}
 
 		// Display
 		ini.Get("Display", "Fullscreen",			&m_LocalCoreStartupParameter.bFullscreen,		false);

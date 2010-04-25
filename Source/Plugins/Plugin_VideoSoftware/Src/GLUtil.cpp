@@ -461,7 +461,6 @@ void OpenGL_Shutdown()
 		hDC = NULL;                                       // Set DC To NULL
 	}
 #elif defined(HAVE_X11) && HAVE_X11
-	printf ("Unmapping window\n");
 	if (GLWin.ctx)
 	{
 		if (!glXMakeCurrent(GLWin.dpy, None, NULL))

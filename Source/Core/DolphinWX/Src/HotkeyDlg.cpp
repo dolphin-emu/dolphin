@@ -21,9 +21,8 @@
 BEGIN_EVENT_TABLE(HotkeyConfigDialog,wxDialog)
 	EVT_CLOSE(HotkeyConfigDialog::OnClose)
 	EVT_BUTTON(ID_CLOSE, HotkeyConfigDialog::CloseClick)
-	EVT_BUTTON(ID_FULLSCREEN, HotkeyConfigDialog::OnButtonClick)
-	EVT_BUTTON(ID_PLAY_PAUSE, HotkeyConfigDialog::OnButtonClick)
-	EVT_BUTTON(ID_STOP, HotkeyConfigDialog::OnButtonClick)
+	EVT_COMMAND_RANGE(HK_FULLSCREEN, NUM_HOTKEYS - 1,
+		   	wxEVT_COMMAND_BUTTON_CLICKED, HotkeyConfigDialog::OnButtonClick)
 	EVT_TIMER(IDTM_BUTTON, HotkeyConfigDialog::OnButtonTimer)
 END_EVENT_TABLE()
 
@@ -191,6 +190,10 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		wxT("Toggle Fullscreen"),
 		wxT("Play/Pause"),
 		wxT("Stop"),
+		wxT("Connect Wiimote 1"),
+		wxT("Connect Wiimote 2"),
+		wxT("Connect Wiimote 3"),
+		wxT("Connect Wiimote 4")
 	};
 
 	// Configuration controls sizes
@@ -215,7 +218,7 @@ void HotkeyConfigDialog::CreateHotkeyGUIControls(void)
 		wxStaticText *stHotkeys = new wxStaticText(this, wxID_ANY, hkText[i]);
 
 		// Key selection button
-		m_Button_Hotkeys[i] = new wxButton(this, ID_FULLSCREEN + i, wxEmptyString,
+		m_Button_Hotkeys[i] = new wxButton(this, HK_FULLSCREEN + i, wxEmptyString,
 				wxDefaultPosition, size);
 		m_Button_Hotkeys[i]->SetFont(m_SmallFont);
 		SetButtonText(i,

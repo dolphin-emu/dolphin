@@ -817,6 +817,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 {
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
 	{
+		int WiimoteId = -1;
 		// Toggle fullscreen
 		if (IsHotkey(event, HK_FULLSCREEN))
 			DoFullscreen(!RendererIsFullscreen());
@@ -826,6 +827,15 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		// Stop
 		else if (IsHotkey(event, HK_STOP))
 			DoStop();
+		// Wiimote connect and disconnect hotkeys
+		else if (IsHotkey(event, HK_WIIMOTE1_CONNECT))
+			WiimoteId = 0;
+		else if (IsHotkey(event, HK_WIIMOTE2_CONNECT))
+			WiimoteId = 1;
+		else if (IsHotkey(event, HK_WIIMOTE3_CONNECT))
+			WiimoteId = 2;
+		else if (IsHotkey(event, HK_WIIMOTE4_CONNECT))
+			WiimoteId = 3;
 		// state save and state load hotkeys
 		else if (event.GetKeyCode() >= WXK_F1 && event.GetKeyCode() <= WXK_F8)
 		{
@@ -834,7 +844,8 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				State_Load(slot_number);
 			else if (event.GetModifiers() == wxMOD_SHIFT)
 				State_Save(slot_number);
-			else event.Skip();
+			else
+				event.Skip();
 		}
 		else if (event.GetKeyCode() == WXK_F11 && event.GetModifiers() == wxMOD_NONE)
 			State_LoadLastSaved();
@@ -850,6 +861,17 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 		else if (event.GetKeyCode() == WXK_F9 && event.GetModifiers() == wxMOD_NONE)
 			Core::ScreenShot();
 		else event.Skip();
+
+		// Actually perform the wiimote connection or disconnection
+		if (WiimoteId >= 0)
+		{
+			bNoWiimoteMsg = GetMenuBar()->IsChecked(IDM_CONNECT_WIIMOTE1 + WiimoteId);
+			GetMenuBar()->Check(IDM_CONNECT_WIIMOTE1 + WiimoteId, !bNoWiimoteMsg);
+			GetUsbPointer()->AccessWiiMote(WiimoteId | 0x100)->Activate(!bNoWiimoteMsg);
+			wxString msg(wxString::Format(wxT("Wiimote %i %s"), WiimoteId + 1,
+						bNoWiimoteMsg ?  wxT("Disconnected") : wxT("Connected")));
+			Core::DisplayMessage(msg.ToAscii(), 3000);
+		}
 
 		// Send the OSD hotkeys to the video plugin
 		if (event.GetKeyCode() >= '3' && event.GetKeyCode() <= '7' && event.GetModifiers() == wxMOD_NONE)
