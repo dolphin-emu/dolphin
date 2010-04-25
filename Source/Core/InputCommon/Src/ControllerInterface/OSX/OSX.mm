@@ -33,7 +33,8 @@ static void DeviceMatching_callback(void* inContext,
 									IOReturn inResult,
 									void* inSender,
 									IOHIDDeviceRef inIOHIDDeviceRef)
-{	
+{
+	NSLog(@"-------------------------");
 	NSLog(@"Got Device: %@", IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(kIOHIDProductKey)));
 	
 	// Add to the devices vector if it's of a type we want
@@ -44,13 +45,12 @@ static void DeviceMatching_callback(void* inContext,
 		std::vector<ControllerInterface::Device*> *devices = (std::vector<ControllerInterface::Device*> *)inContext;
 		devices->push_back(new KeyboardMouse(inIOHIDDeviceRef));
 	}
-/*	else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_GamePad))
+	else
 	{
-	}*/
-	else {
 		// Actually, we don't want it
 		NSLog(@"Throwing away...");
-		#define shortlog(x) NSLog(@"%s: %@", x, IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(x)));
+		#define shortlog(x)
+		//#define shortlog(x) NSLog(@"%s: %@", x, IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(x)));
 		shortlog(kIOHIDTransportKey)
 		shortlog(kIOHIDVendorIDKey)
 		shortlog(kIOHIDVendorIDSourceKey)
@@ -72,19 +72,7 @@ static void DeviceMatching_callback(void* inContext,
 		shortlog(kIOHIDReportIntervalKey)
 		shortlog(kIOHIDReportDescriptorKey)
 		#undef shortlog
-		NSLog(@"\n\n");
 	}
-
-}
-
-// Will come in handy if we support hotplugging
-static void DeviceRemoval_callback(void *inContext,
-								   IOReturn inResult,
-								   void *inSender,
-								   IOHIDDeviceRef inIOHIDDeviceRef)
-{
-	NSLog(@"%s( context: %p, result: %p, sender: %p, device: %p )", 
-		   __PRETTY_FUNCTION__, inContext, (void *)inResult, inSender, (void *)inIOHIDDeviceRef);
 }
 
 void Init( std::vector<ControllerInterface::Device*>& devices )
@@ -114,8 +102,7 @@ void Init( std::vector<ControllerInterface::Device*>& devices )
 	
 	// Callbacks for acquisition or loss of a matching device
 	IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, DeviceMatching_callback, (void *)&devices);
-	IOHIDManagerRegisterDeviceRemovalCallback(HIDManager, DeviceRemoval_callback, (void *)&devices);
-	
+
 	// Match devices that are plugged right now.
 	IOHIDManagerScheduleWithRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
 	if (IOHIDManagerOpen(HIDManager, kIOHIDOptionsTypeNone) != kIOReturnSuccess)
@@ -125,9 +112,7 @@ void Init( std::vector<ControllerInterface::Device*>& devices )
 	while (CFRunLoopRunInMode(OurRunLoop,0,TRUE) == kCFRunLoopRunHandledSource);
 	
 	// Things should be configured now. Disable hotplugging and other scheduling
-	// TODO: support hotplugging, get rid of the following:
 	IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, NULL, NULL);
-	IOHIDManagerRegisterDeviceRemovalCallback(HIDManager, NULL, NULL);
     IOHIDManagerUnscheduleFromRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
 }
 
@@ -202,7 +187,7 @@ KeyboardMouse::KeyboardMouse(IOHIDDeviceRef device)
 	for (IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, idx);
 		 e;
 		 e = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, ++idx))
-	{	
+	{
 		if ((IOHIDElementGetType(e) == kIOHIDElementTypeInput_Button) &&
 			(IOHIDElementGetUsagePage(e) == kHIDPage_KeyboardOrKeypad) &&
 			(IOHIDElementGetLogicalMin(e) == 0) &&
@@ -217,8 +202,9 @@ KeyboardMouse::KeyboardMouse(IOHIDDeviceRef device)
 		{
 			outputs.push_back(new Light(e));
 		}
-		else {
-			DeviceElementDebugPrint((void *)e, NULL);
+		else
+		{
+//			DeviceElementDebugPrint(e, NULL);
 		}
 
 	}
@@ -236,7 +222,7 @@ void KeyboardMouse::SetOutputState( const ControllerInterface::Device::Output* c
 }
 
 bool KeyboardMouse::UpdateInput()
-{	
+{
 	return true;
 }
 
@@ -278,6 +264,7 @@ ControlState KeyboardMouse::Key::GetState( const State* const state )
 		//NSLog(@"element %x value %x scaled %f", IOHIDElementGetUsage(m_key_element), value, scaled_value);
 		return scaled_value > 0;
 	}
+
 	return false;
 }
 

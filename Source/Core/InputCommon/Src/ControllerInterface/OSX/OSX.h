@@ -20,7 +20,7 @@ protected:
 	
 	struct State
 	{
-		unsigned char buttons[32];
+		Boolean *keyboard_keys;
 	};
 	
 	class Input : public ControllerInterface::Device::Input
@@ -46,8 +46,8 @@ protected:
 		Key( IOHIDElementRef key_element );
 		ControlState GetState( const State* const state );
 	private:
-		IOHIDElementRef m_key_element;
-		std::string m_key_name;
+		IOHIDElementRef	m_key_element;
+		std::string		m_key_name;
 	};
 	
 	class Button : public Input
@@ -60,7 +60,7 @@ protected:
 		ControlState GetState( const State* const state );
 	private:
 		IOHIDElementRef m_button_element;
-		std::string m_button_name;
+		std::string		m_button_name;
 	};
 	
 	class Axis : public Input
@@ -73,7 +73,7 @@ protected:
 		ControlState GetState( const State* const state );
 	private:
 		IOHIDElementRef m_axis_element;
-		std::string m_axis_name;
+		std::string		m_axis_name;
 	};
 	
 	class Light : public Output
@@ -86,7 +86,7 @@ protected:
 		void SetState( const ControlState state, unsigned char* const state_out );
 	private:
 		IOHIDElementRef m_light_element;
-		std::string m_light_name;
+		std::string		m_light_name;
 	};
 	
 	bool UpdateInput();
@@ -103,10 +103,10 @@ public:
 	int GetId() const;
 	
 private:
-	State			m_state_in;
-	unsigned char	m_state_out[6]; // ugly
-	IOHIDDeviceRef	m_device;
-	std::string		m_device_name;
+	State				m_state_in;
+	unsigned char		m_state_out[6]; // ugly
+	IOHIDDeviceRef		m_device;
+	std::string			m_device_name;
 };
 
 }
