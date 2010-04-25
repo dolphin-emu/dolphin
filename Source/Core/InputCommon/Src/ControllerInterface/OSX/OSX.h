@@ -97,7 +97,6 @@ protected:
 	
 public:
 	KeyboardMouse(IOHIDDeviceRef device);
-	~KeyboardMouse();
 	
 	std::string GetName() const;
 	std::string GetSource() const;
