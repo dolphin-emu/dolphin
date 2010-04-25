@@ -38,6 +38,7 @@
 
 #include <windows.h>
 #include <hidsdi.h>
+#include <dbt.h>
 #include <setupapi.h>
 
 #include "definitions.h"
@@ -283,4 +284,68 @@ int wiiuse_io_write(struct wiimote_t* wm, byte* buf, int len) {
 	return 0;
 }
 
+//Checks if the corresponding device to a system notification is a wiimote
+//I placed the code here to avoid ddk/wdk dependencies @wiimote plugin
+int wiiuse_check_system_notification(unsigned int nMsg, WPARAM wParam, LPARAM lParam) {
+    PDEV_BROADCAST_HDR pDevice = (PDEV_BROADCAST_HDR)lParam;
+
+	switch( pDevice->dbch_devicetype ) {
+
+		case DBT_DEVTYP_DEVICEINTERFACE:
+			{
+				PDEV_BROADCAST_DEVICEINTERFACE pDeviceInfo = (PDEV_BROADCAST_DEVICEINTERFACE)pDevice;
+				HIDD_ATTRIBUTES	attr;
+				char stringbuf[255];
+
+				HANDLE dev = CreateFile(pDeviceInfo->dbcc_name,
+						0,(FILE_SHARE_READ | FILE_SHARE_WRITE),
+						NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
+				
+				if (dev != INVALID_HANDLE_VALUE)
+				{
+					attr.Size = sizeof(attr);
+					HidD_GetAttributes(dev, &attr);
+					
+					//Checking PID&VID
+					if ((attr.VendorID == WM_VENDOR_ID) && (attr.ProductID == WM_PRODUCT_ID)) {
+						CloseHandle(dev);
+						return 1;
+					}
+
+					CloseHandle(dev);
+				}
+				else {	//different method to acquire the "wiimote vid/pid" for a comparison when the device is already unavailable @CreateFile()
+							
+					wcstombs(stringbuf, pDeviceInfo->dbcc_name, 255);
+					
+					//ms bt stack + bluesoleil vid/pid dbccname format 
+					if ( (strstr(stringbuf, "VID&0002057e_PID&0306") != NULL) || (strstr(stringbuf, "VID_057e&PID_0306") != NULL) )
+					{
+						return 1;
+					}
+				}
+
+				return 0;
+			}
+
+		default: 
+			return 0;
+
+		}
+	return 0;
+}
+
+//register a handle for device notifications
+int wiiuse_register_system_notification(HWND hwnd) {
+	DEV_BROADCAST_DEVICEINTERFACE Filter;
+	ZeroMemory( &Filter, sizeof(Filter) );
+
+	//GUID wiimoteguid;
+	//CLSIDFromString(_T("745a17a0-74d3-11d0-b6fe-00a0c90f57da"),&wiimoteguid);
+    Filter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
+    Filter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+	//Filter.dbcc_classguid = wiimoteguid;
+
+    return RegisterDeviceNotification(hwnd,&Filter, DEVICE_NOTIFY_ALL_INTERFACE_CLASSES);
+}
 #endif /* ifdef WIN32 */
