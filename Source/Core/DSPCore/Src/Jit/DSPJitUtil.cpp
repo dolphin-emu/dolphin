@@ -256,15 +256,16 @@ void DSPEmitter::ext_dmem_write(u32 dest, u32 src)
 	MOVZX(32, 16, ECX, M(&g_dsp.r[src]));
 
 	//	u16 saddr = addr >> 12; 
-	MOVZX(32, 16, ESI, R(EAX));
+	MOV(32, R(ESI), R(EAX));
 	SHR(16, R(ESI), Imm8(12));
 
 	//	if (saddr == 0)
-	CMP(16, R(ESI), Imm16(0));
+	TEST(16, R(ESI), R(ESI));
 	FixupBranch ifx = J_CC(CC_NZ);
 
 	//  g_dsp.dram[addr & DSP_DRAM_MASK] = val;
 	AND(16, R(EAX), Imm16(DSP_DRAM_MASK));
+	SHL(16, R(EAX), Imm16(1));  // * sizeof(u16)
 #ifdef _M_X64
 	MOV(64, R(R11), Imm64((u64)g_dsp.dram)); 
 	ADD(64, R(EAX), R(R11));
@@ -287,14 +288,15 @@ void DSPEmitter::ext_dmem_read(u16 addr)
 	MOVZX(32, 16, ECX, M(&addr));
 
 	//	u16 saddr = addr >> 12; 
-	MOVZX(32, 16, ESI, R(ECX));
+	MOV(32, R(ESI), R(ECX));
 	SHR(16, R(ESI), Imm8(12));
 
 	//	if (saddr == 0)
-	CMP(16, R(ESI), Imm16(0));
+	TEST(16, R(ESI), R(ESI));
 	FixupBranch dram = J_CC(CC_NZ);
 	//	return g_dsp.dram[addr & DSP_DRAM_MASK];
 	AND(16, R(ECX), Imm16(DSP_DRAM_MASK));
+	SHL(16, R(ECX), Imm16(1)); // * sizeof(u16)
 #ifdef _M_X64
 	MOV(64, R(R11), Imm64((u64)g_dsp.dram)); 
 	ADD(64, R(ECX), R(R11));

@@ -125,7 +125,7 @@ u16 gdsp_mbox_read_l(u8 mbx)
 }
 
 
-void gdsp_ifx_write(u16 addr, u16 val)
+void gdsp_ifx_write(u32 addr, u32 val)
 {
 	switch (addr & 0xff)
 	{

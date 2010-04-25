@@ -77,6 +77,14 @@ void sbset()
 	tester.Report();
 }
 
+void nx_s() 
+{
+	DSPJitTester tester(0x8000, 0x0020);
+	tester.AddTestData(DSP_REG_AR0);
+	tester.AddTestData(DSP_REG_ACL0);
+	tester.TestAll(true);
+	tester.Report();
+}
 void AudioJitTests()
 {
 	DSPJitTester::Initialize();
@@ -91,6 +99,7 @@ void AudioJitTests()
 	nx_ir();
 	nx_dr();
 	nx_nr();
+	nx_s();
 }
 
 //required to be able to link against DSPCore
