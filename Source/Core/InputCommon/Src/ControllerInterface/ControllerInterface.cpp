@@ -43,7 +43,7 @@ void ControllerInterface::Init()
 	ciface::Xlib::Init( m_devices, m_hwnd );
 #endif
 #ifdef CIFACE_USE_OSX
-	ciface::OSX::Init( m_devices, m_hwnd );
+	ciface::OSX::Init( m_devices );
 #endif
 #ifdef CIFACE_USE_SDL
 	ciface::SDL::Init( m_devices );
@@ -89,7 +89,7 @@ void ControllerInterface::DeInit()
 	// nothing needed
 #endif
 #ifdef CIFACE_USE_OSX
-	// nothing needed
+	ciface::OSX::DeInit();
 #endif
 #ifdef CIFACE_USE_SDL
 	// there seems to be some sort of memory leak with SDL, quit isn't freeing everything up

@@ -16,71 +16,71 @@ class Keyboard : public ControllerInterface::Device
 {
 	friend class ControllerInterface;
 	friend class ControllerInterface::ControlReference;
-
-	protected:
-
+	
+protected:
+	
 	struct State
 	{
 		char keyboard[32];
 		unsigned int buttons;
 	};
-
+	
 	class Input : public ControllerInterface::Device::Input
 	{
 		friend class Keyboard;
-
-		protected:
+		
+	protected:
 		virtual ControlState GetState(const State* const state) = 0;
 	};
-
+	
 	class Key : public Input
 	{
 		friend class Keyboard;
-
-		public:
+		
+	public:
 		std::string GetName() const;
-
-		protected:
+		
+	protected:
 		Key(Display* const display, KeyCode keycode);
 		ControlState GetState(const State* const state);
-
-		private:
+		
+	private:
 		Display* const	m_display;
 		const KeyCode	m_keycode;
 		std::string		m_keyname;
-
+		
 	};
-
+	
 	class Button : public Input
 	{
 		friend class Keyboard;
-
-		public:
+		
+	public:
 		std::string GetName() const;
-
-		protected:
+		
+	protected:
 		Button(const unsigned int index) : m_index(index) {}
 		ControlState GetState(const State* const state);
-
-		private:
+		
+	private:
 		const unsigned int m_index;
 	};
-
+	
 	bool UpdateInput();
 	bool UpdateOutput();
-
+	
 	ControlState GetInputState(const ControllerInterface::Device::Input* const input);
 	void SetOutputState(const ControllerInterface::Device::Output* const output, const ControlState state);
-
-	public:
+	
+public:
 	Keyboard(Display* display);
 	~Keyboard();
-
+	
 	std::string GetName() const;
 	std::string GetSource() const;
 	int GetId() const;
-
-	private:
+	
+private:
 	Window			m_window;
 	Display*		m_display;
 	State			m_state;
