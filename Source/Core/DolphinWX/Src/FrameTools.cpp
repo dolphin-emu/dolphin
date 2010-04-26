@@ -286,14 +286,19 @@ wxString CFrame::GetMenuLabel(int Id)
 			break;
 		case HK_STOP:
 			Label = _T("&Stop\t");
+			break;
 		case HK_WIIMOTE1_CONNECT:
 			Label = _T("Connect Wiimote 1\t");
+			break;
 		case HK_WIIMOTE2_CONNECT:
 			Label = _T("Connect Wiimote 2\t");
+			break;
 		case HK_WIIMOTE3_CONNECT:
 			Label = _T("Connect Wiimote 3\t");
+			break;
 		case HK_WIIMOTE4_CONNECT:
 			Label = _T("Connect Wiimote 4\t");
+			break;
 	}
 
 	wxString Modifier = InputCommon::WXKeymodToString
