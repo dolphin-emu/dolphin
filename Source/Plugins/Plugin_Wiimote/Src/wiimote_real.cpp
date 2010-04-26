@@ -36,6 +36,7 @@
 #include "wiimote_real.h"
 #if defined(HAVE_WX) && HAVE_WX
 #include "ConfigRecordingDlg.h"
+#include "ConfigBasicDlg.h"
 #endif
 
 #ifdef WIN32
@@ -56,9 +57,6 @@ bool g_RealWiiMoteAllocated = false;
 
 class CWiiMote;
 
-THREAD_RETURN ReadWiimote_ThreadFunc(void* arg);
-THREAD_RETURN SafeCloseReadWiimote_ThreadFunc(void* arg);
-
 // Variable declarations
 
 wiimote_t**			g_WiiMotesFromWiiUse = NULL;
@@ -77,8 +75,25 @@ bool				g_RunTemporary = false;
 int					g_RunTemporaryCountdown = 0;
 u8					g_EventBuffer[32];
 bool				g_WiimoteInUse[MAX_WIIMOTES];
-	Common::Event NeedsConnect;
-	Common::Event Connected;
+Common::Event		NeedsConnect;
+Common::Event		Connected;
+
+#if defined(_WIN32) && defined(HAVE_WIIUSE)
+//Autopairup
+Common::Thread*		g_AutoPairUpInvisibleWindow = NULL;
+Common::Thread*		g_AutoPairUpMonitoring = NULL;
+Common::Event		g_StartAutopairThread;
+
+int					stoprefresh = 0;
+unsigned int		PairUpTimer = 2000;
+
+int PaiUpRefreshWiimote();
+THREAD_RETURN PairUp_ThreadFunc(void* arg);
+THREAD_RETURN RunInvisibleMessageWindow_ThreadFunc(void* arg);
+#endif
+
+THREAD_RETURN ReadWiimote_ThreadFunc(void* arg);
+THREAD_RETURN SafeCloseReadWiimote_ThreadFunc(void* arg);
 
 // Probably this class should be in its own file
 
@@ -644,7 +659,7 @@ int WiimotePairUp(bool unpair)
 		return -1;
 	}
 	nRadios--;
-	// DEBUG_LOG(WIIMOTE, "Pair-Up: Found %d radios\n", nRadios);
+	//DEBUG_LOG(WIIMOTE, "Pair-Up: Found %d radios\n", nRadios);
 
 	// Pair with Wii device(s)
 	int radio = 0;
@@ -671,7 +686,7 @@ int WiimotePairUp(bool unpair)
 		srch.cTimeoutMultiplier = 1;
 		srch.hRadio = hRadios[radio];
 
-		//DEBUG_LOG(WIIMOTE, _T("Pair-Up: Scanning for BT Device(s)"));
+		//DEBUG_LOG(WIIMOTE, "Pair-Up: Scanning for BT Device(s)");
 
 		hFind = BluetoothFindFirstDevice(&srch, &btdi);
 
@@ -683,6 +698,7 @@ int WiimotePairUp(bool unpair)
 
 		do
 		{
+			//btdi.szName is sometimes missings it's content - it's a bt feature..
 			if ((!wcscmp(btdi.szName, L"Nintendo RVL-WBC-01") || !wcscmp(btdi.szName, L"Nintendo RVL-CNT-01")) && !btdi.fConnected && !unpair)
 			{
 				//TODO: improve the readd of the BT driver, esp. when batteries of the wiimote are removed while beeing fConnected
@@ -710,7 +726,8 @@ int WiimotePairUp(bool unpair)
 			{
 							
 					BluetoothRemoveDevice(&btdi.Address);
-					NOTICE_LOG(WIIMOTE, "Pair-Up: Automatically removed BT Device on shutdown: %08x", GetLastError());  
+					NOTICE_LOG(WIIMOTE, "Pair-Up: Automatically removed BT Device on shutdown: %08x", GetLastError());
+					nPaired++;
 
 			}
 		} while (BluetoothFindNextDevice(hFind, &btdi));
@@ -728,6 +745,150 @@ int WiimotePairUp(bool unpair)
 
 	return nPaired;
 }
+
+#ifdef HAVE_WIIUSE
+LRESULT CALLBACK CallBackDeviceChange(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch(uMsg)
+	{
+		
+		case WM_DEVICECHANGE:
+
+			// DBT_DEVNODES_CHANGED 0x007 (devnodes are atm not received); DBT_DEVICEARRIVAL 0x8000 DBT_DEVICEREMOVECOMPLETE 0x8004 // avoiding header file^^
+		    if ( (  wParam == 0x8000 || wParam  == 0x8004 ||  wParam == 0x0007 ) )
+			{
+				if (wiiuse_check_system_notification(uMsg, wParam, lParam)) //extern wiiuse function: returns 1 if the event came from a wiimote
+				{
+					switch (wParam)
+					{
+						case 0x8000:
+							if (stoprefresh) // arrival will pop up twice //need to rewrite the stoprefresh thing, to support multiple pair ups in one go
+							{
+								stoprefresh = 0;
+								
+									PaiUpRefreshWiimote();
+								break;
+							}
+							else stoprefresh = 1; //fake arrival wait for second go
+							break;
+
+						case 0x8004:
+							if (!stoprefresh) // removal event will pop up only once (it will also pop up if we add a device: fake arrival, fake removal, real arrival.
+							{
+								PaiUpRefreshWiimote();
+							}
+							break;
+					}
+				}
+			}
+			return DefWindowProc(hWnd, uMsg, wParam, lParam);
+
+		default:
+			return DefWindowProc(hWnd, uMsg, wParam, lParam);
+    }
+
+return 0;
+}
+
+THREAD_RETURN RunInvisibleMessageWindow_ThreadFunc(void* arg)
+{
+	MSG Msg;
+	HWND hwnd;
+	
+	WNDCLASSEX  WCEx;
+    ZeroMemory(&WCEx, sizeof(WCEx));
+    WCEx.cbSize        = sizeof(WCEx);
+    WCEx.lpfnWndProc   = CallBackDeviceChange;
+    WCEx.hInstance     = g_hInstance;
+    WCEx.lpszClassName = L"MSGWND";
+	
+	if (RegisterClassEx(&WCEx) != 0)
+    {
+		hwnd = CreateWindowEx(0, WCEx.lpszClassName, NULL,0,
+						0, 0, 0, 0, HWND_MESSAGE, NULL, g_hInstance, NULL);
+
+		if (!hwnd) {
+			UnregisterClass(WCEx.lpszClassName, g_hInstance);
+			return 1;
+		}
+	}
+
+	wiiuse_register_system_notification(hwnd); //function moved into wiiuse to avoid ddk/wdk dependicies
+        
+    while(GetMessage(&Msg, 0, 0, 0) > 0)
+    {
+		TranslateMessage(&Msg);
+        DispatchMessage(&Msg);
+    }
+
+	UnregisterClass(WCEx.lpszClassName, g_hInstance);
+
+	if (g_Config.bUnpairRealWiimote)
+		WiiMoteReal::WiimotePairUp(true);
+
+     return (int)Msg.wParam;
+
+}
+
+int PaiUpRefreshWiimote()
+{
+	if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY)
+	{
+		Shutdown();
+		Initialize();
+		//Allocate();
+		if (m_BasicConfigFrame != NULL)
+			m_BasicConfigFrame->UpdateGUI();
+	}
+	else {
+
+		Sleep(100);
+		PostMessage(GetParent(g_WiimoteInitialize.hWnd), WM_USER, WM_USER_PAUSE, 0);
+		while (g_EmulatorState == PLUGIN_EMUSTATE_PLAY) Sleep(50);
+		Shutdown();
+		Initialize();
+		Allocate();
+		PostMessage(GetParent(g_WiimoteInitialize.hWnd), WM_USER, WM_USER_PAUSE, 0);
+		while (g_EmulatorState != PLUGIN_EMUSTATE_PLAY) Sleep(50);
+		
+	}
+	return 0;
+}
+
+
+THREAD_RETURN PairUp_ThreadFunc(void* arg)
+{
+	Sleep(100); //small pause till the callback is registered on first start
+	DEBUG_LOG(WIIMOTE, "PairUp_ThreadFunc started.");
+	g_StartAutopairThread.Init();
+	int result;
+
+	while(1) {
+		if (g_Config.bPairRealWiimote) {
+			PairUpTimer = 2000;
+			result = g_StartAutopairThread.Wait(PairUpTimer);
+		}
+		else {
+			result = g_StartAutopairThread.Wait();
+		}
+
+		if (result)
+			WiimotePairUp(false);
+		else {
+			if (m_BasicConfigFrame != NULL)
+				m_BasicConfigFrame->UpdateBasicConfigDialog(false);
+			WiimotePairUp(false);
+			if (m_BasicConfigFrame != NULL)
+				m_BasicConfigFrame->UpdateBasicConfigDialog(true);
+			
+		}
+
+	}
+	DEBUG_LOG(WIIMOTE, "PairUp_ThreadFunc terminated.");
+return 0;
+}
+
+#endif
 #endif
 
 }; // end of namespace

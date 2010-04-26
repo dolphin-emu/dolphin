@@ -104,12 +104,17 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 		break;
 
 	case DLL_PROCESS_DETACH:
+		{
 #ifdef _WIN32
-		if (g_Config.bUnpairRealWiimote) WiiMoteReal::WiimotePairUp(true);
+			if (g_Config.bUnpairRealWiimote){
+				WiiMoteReal::Shutdown();
+				WiiMoteReal::WiimotePairUp(true);
+			}
 #endif
 #if defined(HAVE_WX) && HAVE_WX
 		wxUninitialize();
 #endif
+		}
 		break;
 	}
 
@@ -159,6 +164,13 @@ void DllDebugger(HWND _hParent, bool Show) {}
 
 void DllConfig(HWND _hParent)
 {
+#ifdef _WIN32
+	if (WiiMoteReal::g_AutoPairUpInvisibleWindow == NULL)
+	{
+		WiiMoteReal::g_AutoPairUpInvisibleWindow = new Common::Thread(WiiMoteReal::RunInvisibleMessageWindow_ThreadFunc, NULL);
+		WiiMoteReal::g_AutoPairUpMonitoring = new Common::Thread(WiiMoteReal::PairUp_ThreadFunc, NULL);
+	}
+#endif
 	if (!g_SearchDeviceDone)
 	{
 		// Load settings
@@ -167,6 +179,7 @@ void DllConfig(HWND _hParent)
 		WiiMoteEmu::Search_Devices(WiiMoteEmu::joyinfo, WiiMoteEmu::NumPads, WiiMoteEmu::NumGoodPads);
 		g_SearchDeviceDone = true;
 	}
+
 
 #if defined(HAVE_WX) && HAVE_WX
 	wxWindow *frame = GetParentedWxWindow(_hParent);
@@ -223,8 +236,16 @@ void Initialize(void *init)
 	   Wiimote connected or not. It takes no time for Wiiuse to check for
 	   connected Wiimotes. */
 #if HAVE_WIIUSE
+
 	WiiMoteReal::Initialize();
 	WiiMoteReal::Allocate();
+#ifdef _WIN32
+	if (WiiMoteReal::g_AutoPairUpInvisibleWindow == NULL)
+	{
+		WiiMoteReal::g_AutoPairUpInvisibleWindow = new Common::Thread(WiiMoteReal::RunInvisibleMessageWindow_ThreadFunc, NULL);
+		WiiMoteReal::g_AutoPairUpMonitoring = new Common::Thread(WiiMoteReal::PairUp_ThreadFunc, NULL);
+	}
+#endif
 #endif
 }
 
@@ -272,6 +293,7 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 {
 	g_EmulatorState = newState;
 }
+
 
 /* This function produce Wiimote Input (reports from the Wiimote) in response
    to Output from the Wii. It's called from WII_IPC_HLE_WiiMote.cpp.

@@ -42,6 +42,7 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_CHECKBOX(IDC_MOTIONPLUSCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_WIIAUTORECONNECT, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHECKBOX(IDC_WIIAUTOUNPAIR, WiimoteBasicConfigDialog::GeneralSettingsChanged)
+	EVT_CHECKBOX(IDC_WIIAUTOPAIR, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 	EVT_CHOICE(IDC_EXTCONNECTED, WiimoteBasicConfigDialog::GeneralSettingsChanged)
 
 	//UDPWii
@@ -120,15 +121,8 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 	case IDB_PAIRUP_REAL:
 		if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY)
 		{
-			m_PairUpRealWiimote[m_Page]->Enable(false);
-			if (WiiMoteReal::WiimotePairUp(false) > 0)
-			{	// Only temporay solution TODO: 2nd step: threaded. 
-				// sleep would be required (but not best way to solve that cuz 3000ms~ would be needed, which is not convenient),cuz BT device is not ready yet when calling DoRefreshReal() 
-				DoRefreshReal();
-			}
-			m_PairUpRealWiimote[m_Page]->Enable(true);			
+			WiiMoteReal::g_StartAutopairThread.Set();		
 		}
-		UpdateGUI();
 		break;
 #endif
 	case IDB_REFRESH_REAL:
@@ -206,6 +200,8 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_WiiAutoReconnect[i]->SetToolTip(wxT("This makes dolphin automatically reconnect a wiimote when it has being disconnected.\nThis will cause problems when 2 controllers are connected for a 1 player game."));
 		m_WiiAutoUnpair[i] = new wxCheckBox(m_Controller[i], IDC_WIIAUTOUNPAIR, wxT("Unpair Wiimote on close"));
 		m_WiiAutoUnpair[i]->SetToolTip(wxT("This makes dolphin automatically unpair a wiimote when dolphin is about to be closed."));
+		m_WiiExtendedPairUp[i] = new wxCheckBox(m_Controller[i], IDC_WIIAUTOPAIR, wxT("Extended PairUp/Connect"));
+		m_WiiExtendedPairUp[i]->SetToolTip(wxT("This makes dolphin automatically pair up and connect Wiimotes on pressing 1+2 on your Wiimote."));
 #ifndef _WIN32
 		m_WiiAutoUnpair[i]->Enable(false);
 #endif
@@ -258,6 +254,7 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_SizeRealAuto[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Automatic"));
 		m_SizeRealAuto[i]->Add(m_WiiAutoReconnect[i], 0, wxEXPAND | (wxDOWN | wxTOP), 5);
 		m_SizeRealAuto[i]->Add(m_WiiAutoUnpair[i], 0, wxEXPAND | (wxDOWN | wxTOP), 5);
+		m_SizeRealAuto[i]->Add(m_WiiExtendedPairUp[i], 0, wxEXPAND | (wxDOWN | wxTOP), 5);
 
 		m_SizeReal[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Real Wiimote"));
 		m_SizeReal[i]->Add(m_PairUpRealWiimote[i], 0, wxEXPAND | wxALL, 5);
@@ -362,6 +359,19 @@ void WiimoteBasicConfigDialog::DoRefreshReal()
 	WiiMoteReal::Initialize();
 }
 
+
+void WiimoteBasicConfigDialog::UpdateBasicConfigDialog(bool state) {
+	if (m_BasicConfigFrame != NULL) {
+		if (state) {
+			m_PairUpRealWiimote[m_Page]->Enable(true);
+			m_BasicConfigFrame->UpdateGUI();
+		}
+		else 
+			m_PairUpRealWiimote[m_Page]->Enable(false);
+	}
+}
+
+
 void WiimoteBasicConfigDialog::DoUseReal()
 {
 	if (!g_RealWiiMotePresent)
@@ -463,6 +473,13 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 		case IDC_WIIAUTOUNPAIR:
 			g_Config.bUnpairRealWiimote = m_WiiAutoUnpair[m_Page]->IsChecked();
 			break;
+#ifdef _WIN32
+		case IDC_WIIAUTOPAIR:
+			if (m_WiiExtendedPairUp[m_Page]->IsChecked()) 
+				WiiMoteReal::g_StartAutopairThread.Set();
+			g_Config.bPairRealWiimote = m_WiiExtendedPairUp[m_Page]->IsChecked();
+			break;
+#endif
 		case IDC_EXTCONNECTED:
 			// Disconnect the extension so that the game recognize the change
 			DoExtensionConnectedDisconnected(WiiMoteEmu::EXT_NONE);
@@ -567,6 +584,7 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	m_WiiMotionPlusConnected[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bMotionPlusConnected);
 	m_WiiAutoReconnect[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bWiiAutoReconnect);
 	m_WiiAutoUnpair[m_Page]->SetValue(g_Config.bUnpairRealWiimote);
+	m_WiiExtendedPairUp[m_Page]->SetValue(g_Config.bPairRealWiimote);
 	m_Extension[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected);
 
 	// Update the Wiimote IR pointer calibration

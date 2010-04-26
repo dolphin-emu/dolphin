@@ -45,6 +45,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 
 		// General open, close and event functions
 		void UpdateGUI();
+		void UpdateBasicConfigDialog(bool state);
 		void ButtonClick(wxCommandEvent& event);
 		void ShutDown(wxTimerEvent& WXUNUSED(event));
 		void UpdateOnce(wxTimerEvent& event);
@@ -86,6 +87,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 					*m_Crop[MAX_WIIMOTES],
 					*m_WiiAutoReconnect[MAX_WIIMOTES],
 					*m_WiiAutoUnpair[MAX_WIIMOTES],
+					*m_WiiExtendedPairUp[MAX_WIIMOTES],
 					*m_UDPWiiEnable[MAX_WIIMOTES],
 					*m_UDPWiiAccel[MAX_WIIMOTES],
 					*m_UDPWiiButt[MAX_WIIMOTES],
@@ -142,6 +144,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 			IDC_MOTIONPLUSCONNECTED,
 			IDC_WIIAUTORECONNECT,
 			IDC_WIIAUTOUNPAIR,
+			IDC_WIIAUTOPAIR,
 			IDC_EXTCONNECTED,
 
 			//UDPWii

@@ -32,7 +32,9 @@ namespace WiiMoteReal
 {
 
 int Initialize();
+#ifdef _WIN32
 int WiimotePairUp(bool unpair);
+#endif
 
 void Allocate();
 void DoState(PointerWrap &p);
@@ -64,6 +66,13 @@ bool IRDataOK(struct wiimote_t* wm);
 	extern bool				g_RunTemporary;
 	extern int				g_RunTemporaryCountdown;
 	extern u8				g_EventBuffer[32];
+#ifdef _WIN32
+	extern Common::Thread*	g_AutoPairUpInvisibleWindow;
+	extern Common::Thread*	g_AutoPairUpMonitoring;
+	extern Common::Event	g_StartAutopairThread;
+	THREAD_RETURN			PairUp_ThreadFunc(void* arg);
+	THREAD_RETURN			RunInvisibleMessageWindow_ThreadFunc(void* arg);
+#endif
 #endif
 
 }; // WiiMoteReal
