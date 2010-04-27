@@ -70,7 +70,7 @@ Mouse::Mouse(IOHIDDeviceRef device)
 
 ControlState Mouse::GetInputState( const ControllerInterface::Device::Input* const input )
 {
-	return ((Input*)input)->GetState();
+	return ((Input*)input)->GetState(m_device);
 }
 
 void Mouse::SetOutputState( const ControllerInterface::Device::Output* const output, const ControlState state )
@@ -106,18 +106,16 @@ int Mouse::GetId() const
 Mouse::Button::Button(IOHIDElementRef element)
 	: m_element(element)
 {
-	m_device = IOHIDElementGetDevice(m_element);
-	
 	std::ostringstream s;
 	s << IOHIDElementGetUsage(m_element);
 	m_name = std::string("Button ") + s.str();
 }
 
-ControlState Mouse::Button::GetState()
+ControlState Mouse::Button::GetState(IOHIDDeviceRef device)
 {
 	IOHIDValueRef value;
-	if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
-		return IOHIDValueGetScaledValue(value, kIOHIDValueScaleTypePhysical) > 0;
+	if (IOHIDDeviceGetValue(device, m_element, &value) == kIOReturnSuccess)
+		return IOHIDValueGetIntegerValue(value) > 0;
 
 	return false;
 }
@@ -132,8 +130,6 @@ Mouse::Axis::Axis(IOHIDElementRef element, direction dir)
 	: m_element(element)
 	, m_direction(dir)
 {
-	m_device = IOHIDElementGetDevice(m_element);
-
 	// Need to parse the element a bit first
 	std::string description("unk");
 	
@@ -149,23 +145,33 @@ Mouse::Axis::Axis(IOHIDElementRef element, direction dir)
 	}
 	
 	m_name = std::string("Axis ") + description;
-	m_name.append((m_direction == positive) ? std::string("+") : std::string("-"));
+	m_name.append((m_direction == positive) ? "+" : "-");
+	
+	// yeah, that factor is completely random :/
+	m_range = (float)IOHIDElementGetLogicalMax(m_element) / 1000.;
 }
 
-ControlState Mouse::Axis::GetState()
+ControlState Mouse::Axis::GetState(IOHIDDeviceRef device)
 {
 	IOHIDValueRef value;
-	if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)	
+	if (IOHIDDeviceGetValue(device, m_element, &value) == kIOReturnSuccess)	
 	{
-		double scaled_value = IOHIDValueGetScaledValue(value, kIOHIDValueScaleTypePhysical);
-		double actual_value = 0;
+		int int_value = IOHIDValueGetIntegerValue(value);
 		
-		if ((scaled_value < 0) && (m_direction == negative))
-			actual_value = fabs(scaled_value);
-		else if ((scaled_value > 0) && (m_direction == positive))
-			actual_value = scaled_value;
+		if (((int_value < 0) && (m_direction == positive)) ||
+			((int_value > 0) && (m_direction == negative)) ||
+			!int_value)
+			return false;
 		
-		//NSLog(@"%s %f %f", m_name.c_str(), scaled_value, actual_value);
+		float actual_value = 0;
+		
+		if (int_value < 0)
+			actual_value = abs(int_value) / m_range;
+		else if (int_value > 0)
+			actual_value = int_value / m_range;
+		
+		//NSLog(@"%s %i %f", m_name.c_str(), int_value, actual_value);
+		
 		return actual_value;
 	}
 	

@@ -19,7 +19,7 @@ protected:
 	{
 		friend class Keyboard;
 	protected:
-		virtual ControlState GetState() = 0;
+		virtual ControlState GetState(IOHIDDeviceRef device) = 0;
 	};
 	
 	class Key : public Input
@@ -29,9 +29,8 @@ protected:
 		std::string GetName() const;
 	protected:
 		Key( IOHIDElementRef element );
-		ControlState GetState();
+		ControlState GetState(IOHIDDeviceRef device);
 	private:
-		IOHIDDeviceRef	m_device;
 		IOHIDElementRef	m_element;
 		std::string		m_name;
 	};

@@ -19,7 +19,7 @@ protected:
 	{
 		friend class Mouse;
 	protected:
-		virtual ControlState GetState() = 0;
+		virtual ControlState GetState(IOHIDDeviceRef device) = 0;
 	};
 	
 	class Button : public Input
@@ -29,9 +29,8 @@ protected:
 		std::string GetName() const;
 	protected:
 		Button( IOHIDElementRef element );
-		ControlState GetState();
+		ControlState GetState(IOHIDDeviceRef device);
 	private:
-		IOHIDDeviceRef	m_device;
 		IOHIDElementRef	m_element;
 		std::string		m_name;
 	};
@@ -47,12 +46,12 @@ protected:
 		std::string GetName() const;
 	protected:
 		Axis( IOHIDElementRef element, direction dir );
-		ControlState GetState();
+		ControlState GetState(IOHIDDeviceRef device);
 	private:
-		IOHIDDeviceRef	m_device;
 		IOHIDElementRef	m_element;
 		std::string		m_name;
 		direction		m_direction;
+		float			m_range;
 	};
 	
 	bool UpdateInput();

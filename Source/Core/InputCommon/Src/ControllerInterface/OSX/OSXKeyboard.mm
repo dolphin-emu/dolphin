@@ -53,6 +53,13 @@ Keyboard::Keyboard(IOHIDDeviceRef device)
 			try { inputs.push_back(new Key(e)); }
 			catch (std::bad_alloc&) { /*Thrown if the key is reserved*/ }
 		}
+		
+		////
+		NSDictionary *melements;
+		kern_return_t err = kIOReturnSuccess;
+		if ((err = IOHIDDeviceCopyValueMultiple(m_device, elements, (CFDictionaryRef *)&melements)) != kIOReturnSuccess)
+			NSLog(@"FAILBOAT %x", err);
+		////
 		CFRelease(elements);
 	}
 	
@@ -61,7 +68,7 @@ Keyboard::Keyboard(IOHIDDeviceRef device)
 
 ControlState Keyboard::GetInputState( const ControllerInterface::Device::Input* const input )
 {
-	return ((Input*)input)->GetState();
+	return ((Input*)input)->GetState(m_device);
 }
 
 void Keyboard::SetOutputState( const ControllerInterface::Device::Output* const output, const ControlState state )
@@ -98,8 +105,6 @@ Keyboard::Key::Key(IOHIDElementRef element)
 	: m_element(element)
 	, m_name("RESERVED") // for some reason HID Manager gives these to us. bad_alloc!
 {
-	m_device = IOHIDElementGetDevice(m_element);
-	
 	uint32_t keycode = IOHIDElementGetUsage(m_element);
 	for (uint32_t i = 0; i < sizeof(named_keys)/sizeof(*named_keys); i++)
 	{
@@ -112,11 +117,11 @@ Keyboard::Key::Key(IOHIDElementRef element)
 	throw std::bad_alloc();
 }
 
-ControlState Keyboard::Key::GetState()
+ControlState Keyboard::Key::GetState(IOHIDDeviceRef device)
 {
 	IOHIDValueRef value;
-	if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
-		return IOHIDValueGetScaledValue(value, kIOHIDValueScaleTypePhysical) > 0;
+	if (IOHIDDeviceGetValue(device, m_element, &value) == kIOReturnSuccess)
+		return IOHIDValueGetIntegerValue(value) > 0;
 
 	return false;
 }
