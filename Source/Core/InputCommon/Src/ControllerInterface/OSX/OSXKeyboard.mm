@@ -53,13 +53,6 @@ Keyboard::Keyboard(IOHIDDeviceRef device)
 			try { inputs.push_back(new Key(e)); }
 			catch (std::bad_alloc&) { /*Thrown if the key is reserved*/ }
 		}
-		
-		////
-		NSDictionary *melements;
-		kern_return_t err = kIOReturnSuccess;
-		if ((err = IOHIDDeviceCopyValueMultiple(m_device, elements, (CFDictionaryRef *)&melements)) != kIOReturnSuccess)
-			NSLog(@"FAILBOAT %x", err);
-		////
 		CFRelease(elements);
 	}
 	

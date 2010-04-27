@@ -163,12 +163,7 @@ ControlState Mouse::Axis::GetState(IOHIDDeviceRef device)
 			!int_value)
 			return false;
 		
-		float actual_value = 0;
-		
-		if (int_value < 0)
-			actual_value = abs(int_value) / m_range;
-		else if (int_value > 0)
-			actual_value = int_value / m_range;
+		float actual_value = abs(int_value) / m_range;
 		
 		//NSLog(@"%s %i %f", m_name.c_str(), int_value, actual_value);
 		
