@@ -11,22 +11,11 @@ namespace ciface
 namespace OSX
 {
 
-struct PrettyLights
-{
-	const uint32_t		code;
-	const char* const	name;
-} named_lights[] =
-{
-	{ kHIDUsage_LED_NumLock, "Num Lock" },
-	{ kHIDUsage_LED_CapsLock, "Caps Lock" },
-	{ kHIDUsage_LED_ScrollLock, "Scroll Lock" },
-	{ kHIDUsage_LED_Compose, "Compose" },
-	{ kHIDUsage_LED_Kana, "Kana" },
-	{ kHIDUsage_LED_Power, "Power" }
-};
 
 static IOHIDManagerRef HIDManager = NULL;
 static CFStringRef OurRunLoop = CFSTR("DolphinOSXInput");
+
+unsigned int KeyboardIndex = 0;
 
 
 static void DeviceMatching_callback(void* inContext,
@@ -39,12 +28,21 @@ static void DeviceMatching_callback(void* inContext,
 	
 	// Add to the devices vector if it's of a type we want
 	if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard) ||
-		IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Keypad)/* ||
-		IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse)*/)
+		IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Keypad))
 	{
 		std::vector<ControllerInterface::Device*> *devices = (std::vector<ControllerInterface::Device*> *)inContext;
-		devices->push_back(new KeyboardMouse(inIOHIDDeviceRef));
+		devices->push_back(new Keyboard(inIOHIDDeviceRef, KeyboardIndex++));
 	}
+	/*
+	// One of the built-in mice devices insta-crash :(
+	else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse))
+	{
+	}
+	// Probably just a lot of fiddling...but then we can kill SDL dependency (?)
+	else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_GamePad))
+	{
+	}
+	*/
 	else
 	{
 		// Actually, we don't want it
@@ -173,165 +171,6 @@ void DeviceElementDebugPrint(const void *value, void *context)
 		// this leaks...but it's just debug code, right? :D
 		CFArrayApplyFunction(elements, range, DeviceElementDebugPrint, NULL);
 	}
-}
-
-	
-KeyboardMouse::KeyboardMouse(IOHIDDeviceRef device)
-	: m_device(device)
-{
-	m_device_name = [(NSString *)IOHIDDeviceGetProperty(m_device, CFSTR(kIOHIDProductKey)) UTF8String];
-	
-	// Go through all the elements of the device we've been given and try to make something out of them
-	CFArrayRef elements = IOHIDDeviceCopyMatchingElements(m_device, NULL, kIOHIDOptionsTypeNone);
-	CFIndex idx = 0;
-	for (IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, idx);
-		 e;
-		 e = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, ++idx))
-	{
-		if ((IOHIDElementGetType(e) == kIOHIDElementTypeInput_Button) &&
-			(IOHIDElementGetUsagePage(e) == kHIDPage_KeyboardOrKeypad) &&
-			(IOHIDElementGetLogicalMin(e) == 0) &&
-			(IOHIDElementGetLogicalMax(e) == 1))
-		{
-			inputs.push_back(new Key(e));
-		}
-		else if((IOHIDElementGetType(e) == kIOHIDElementTypeOutput) &&
-				(IOHIDElementGetUsagePage(e) == kHIDPage_LEDs) &&
-				(IOHIDElementGetLogicalMin(e) == 0) &&
-				(IOHIDElementGetLogicalMax(e) == 1))
-		{
-			outputs.push_back(new Light(e));
-		}
-		else
-		{
-//			DeviceElementDebugPrint(e, NULL);
-		}
-
-	}
-	CFRelease(elements);
-}
-
-ControlState KeyboardMouse::GetInputState( const ControllerInterface::Device::Input* const input )
-{
-	return ((Input*)input)->GetState( &m_state_in );
-}
-
-void KeyboardMouse::SetOutputState( const ControllerInterface::Device::Output* const output, const ControlState state )
-{
-	((Output*)output)->SetState(state, m_state_out);
-}
-
-bool KeyboardMouse::UpdateInput()
-{
-	return true;
-}
-
-bool KeyboardMouse::UpdateOutput()
-{
-	return true;
-}
-
-std::string KeyboardMouse::GetName() const
-{
-	return m_device_name;
-}
-
-std::string KeyboardMouse::GetSource() const
-{
-	return "OSX";
-}
-
-int KeyboardMouse::GetId() const
-{
-	return 0;
-}
-
-
-KeyboardMouse::Key::Key(IOHIDElementRef key_element)
-	: m_key_element(key_element)
-{
-	std::ostringstream s;
-	s << IOHIDElementGetUsage(m_key_element);
-	m_key_name = s.str();
-}
-
-ControlState KeyboardMouse::Key::GetState( const State* const state )
-{
-	IOHIDValueRef value;
-	if (IOHIDDeviceGetValue(IOHIDElementGetDevice(m_key_element), m_key_element, &value) == kIOReturnSuccess)
-	{
-		double scaled_value = IOHIDValueGetScaledValue(value, kIOHIDValueScaleTypePhysical);
-		//NSLog(@"element %x value %x scaled %f", IOHIDElementGetUsage(m_key_element), value, scaled_value);
-		return scaled_value > 0;
-	}
-
-	return false;
-}
-
-std::string KeyboardMouse::Key::GetName() const
-{
-	return m_key_name;
-}
-
-
-KeyboardMouse::Button::Button(IOHIDElementRef button_element)
-: m_button_element(button_element)
-{
-	std::ostringstream s;
-	s << IOHIDElementGetUsage(m_button_element);
-	m_button_name = s.str();
-}
-
-ControlState KeyboardMouse::Button::GetState( const State* const state )
-{
-	return false;
-}
-
-std::string KeyboardMouse::Button::GetName() const
-{
-	return m_button_name;
-}
-
-
-KeyboardMouse::Axis::Axis(IOHIDElementRef axis_element)
-: m_axis_element(axis_element)
-{
-	std::ostringstream s;
-	s << IOHIDElementGetUsage(m_axis_element);
-	m_axis_name = s.str();
-}
-
-ControlState KeyboardMouse::Axis::GetState( const State* const state )
-{
-	return false;
-}
-
-std::string KeyboardMouse::Axis::GetName() const
-{
-	return m_axis_name;
-}
-
-
-KeyboardMouse::Light::Light(IOHIDElementRef light_element)
-: m_light_element(light_element)
-{
-	int idx = IOHIDElementGetUsage(m_light_element);
-	m_light_name = (idx <= 5) ? named_lights[idx].name : "UNKNOWN";
-}
-
-void KeyboardMouse::Light::SetState( const ControlState state, unsigned char* const state_out )
-{
-	uint64_t timestamp = 0;
-	IOHIDValueRef value = IOHIDValueCreateWithIntegerValue(kCFAllocatorDefault, m_light_element, timestamp, (int)state);
-	if (IOHIDDeviceSetValue(IOHIDElementGetDevice(m_light_element), m_light_element, value) == kIOReturnSuccess)
-	{
-		NSLog(@"element %x value %x", IOHIDElementGetUsage(m_light_element), value);
-	}
-}
-
-std::string KeyboardMouse::Light::GetName() const
-{
-	return m_light_name;
 }
 
 

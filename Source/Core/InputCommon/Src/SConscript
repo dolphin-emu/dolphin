@@ -28,7 +28,8 @@ if icenv['HAVE_SDL']:
 	
 if sys.platform == 'darwin':
 	files += [
-		'ControllerInterface/OSX/OSX.mm'
+		'ControllerInterface/OSX/OSX.mm',
+		'ControllerInterface/OSX/OSXKeyboard.mm'
 		]
 	icenv['FRAMEWORKS'] = ['IOKit']
 		   
