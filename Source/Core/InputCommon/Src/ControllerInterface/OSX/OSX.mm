@@ -3,6 +3,8 @@
 #ifdef CIFACE_USE_OSX
 
 #include "OSX.h"
+#include "OSXKeyboard.h"
+#include "OSXMouse.h"
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
 
@@ -15,38 +17,38 @@ namespace OSX
 static IOHIDManagerRef HIDManager = NULL;
 static CFStringRef OurRunLoop = CFSTR("DolphinOSXInput");
 
-unsigned int KeyboardIndex = 0;
-
 
 static void DeviceMatching_callback(void* inContext,
 									IOReturn inResult,
 									void* inSender,
 									IOHIDDeviceRef inIOHIDDeviceRef)
 {
-	NSLog(@"-------------------------");
-	NSLog(@"Got Device: %@", IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(kIOHIDProductKey)));
+	//NSLog(@"-------------------------");
+	//NSLog(@"Got Device: %@", IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(kIOHIDProductKey)));
 	
 	// Add to the devices vector if it's of a type we want
 	if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard) ||
 		IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Keypad))
 	{
 		std::vector<ControllerInterface::Device*> *devices = (std::vector<ControllerInterface::Device*> *)inContext;
-		devices->push_back(new Keyboard(inIOHIDDeviceRef, KeyboardIndex++));
+		devices->push_back(new Keyboard(inIOHIDDeviceRef));
+	}
+	if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse))
+	{
+		std::vector<ControllerInterface::Device*> *devices = (std::vector<ControllerInterface::Device*> *)inContext;
+		devices->push_back(new Mouse(inIOHIDDeviceRef));
 	}
 	/*
-	// One of the built-in mice devices insta-crash :(
-	else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse))
-	{
-	}
 	// Probably just a lot of fiddling...but then we can kill SDL dependency (?)
 	else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_GamePad))
 	{
+		std::vector<ControllerInterface::Device*> *devices = (std::vector<ControllerInterface::Device*> *)inContext;
+		devices->push_back();
 	}
 	*/
 	else
 	{
 		// Actually, we don't want it
-		NSLog(@"Throwing away...");
 		#define shortlog(x)
 		//#define shortlog(x) NSLog(@"%s: %@", x, IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(x)));
 		shortlog(kIOHIDTransportKey)
@@ -75,26 +77,29 @@ static void DeviceMatching_callback(void* inContext,
 
 void Init( std::vector<ControllerInterface::Device*>& devices )
 {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
 	HIDManager = IOHIDManagerCreate(kCFAllocatorDefault, kIOHIDOptionsTypeNone);
 	if (!HIDManager)
 		NSLog(@"Failed to create HID Manager reference");
 	
 	// HID Manager will give us the following devices:
 	// Keyboard, Keypad, Mouse, GamePad
-	NSArray *matchingDevices = [NSArray arrayWithObjects:
-		[NSDictionary dictionaryWithObjectsAndKeys:
-			[NSNumber numberWithInteger:kHIDPage_GenericDesktop], @ kIOHIDDeviceUsagePageKey,
-			[NSNumber numberWithInteger:kHIDUsage_GD_Keyboard], @ kIOHIDDeviceUsageKey, nil],
-		[NSDictionary dictionaryWithObjectsAndKeys:
-			[NSNumber numberWithInteger:kHIDPage_GenericDesktop], @ kIOHIDDeviceUsagePageKey,
-			[NSNumber numberWithInteger:kHIDUsage_GD_Keypad], @ kIOHIDDeviceUsageKey, nil],
-		[NSDictionary dictionaryWithObjectsAndKeys:
-			[NSNumber numberWithInteger:kHIDPage_GenericDesktop], @ kIOHIDDeviceUsagePageKey,
-			[NSNumber numberWithInteger:kHIDUsage_GD_Mouse], @ kIOHIDDeviceUsageKey, nil],
-		[NSDictionary dictionaryWithObjectsAndKeys:
-			[NSNumber numberWithInteger:kHIDPage_GenericDesktop], @ kIOHIDDeviceUsagePageKey,
-			[NSNumber numberWithInteger:kHIDUsage_GD_GamePad], @ kIOHIDDeviceUsageKey, nil],
-		nil];
+	NSArray *matchingDevices =
+	[NSArray arrayWithObjects:
+	 [NSDictionary dictionaryWithObjectsAndKeys:
+	  [NSNumber numberWithInteger:kHIDPage_GenericDesktop], @ kIOHIDDeviceUsagePageKey,
+	  [NSNumber numberWithInteger:kHIDUsage_GD_Keyboard], @ kIOHIDDeviceUsageKey, nil],
+	 [NSDictionary dictionaryWithObjectsAndKeys:
+	  [NSNumber numberWithInteger:kHIDPage_GenericDesktop], @ kIOHIDDeviceUsagePageKey,
+	  [NSNumber numberWithInteger:kHIDUsage_GD_Keypad], @ kIOHIDDeviceUsageKey, nil],
+	 [NSDictionary dictionaryWithObjectsAndKeys:
+	  [NSNumber numberWithInteger:kHIDPage_GenericDesktop], @ kIOHIDDeviceUsagePageKey,
+	  [NSNumber numberWithInteger:kHIDUsage_GD_Mouse], @ kIOHIDDeviceUsageKey, nil],
+	 [NSDictionary dictionaryWithObjectsAndKeys:
+	  [NSNumber numberWithInteger:kHIDPage_GenericDesktop], @ kIOHIDDeviceUsagePageKey,
+	  [NSNumber numberWithInteger:kHIDUsage_GD_GamePad], @ kIOHIDDeviceUsageKey, nil],
+	 nil];
 	// Pass NULL to get all devices
 	IOHIDManagerSetDeviceMatchingMultiple(HIDManager, (CFArrayRef)matchingDevices);
 	
@@ -112,6 +117,8 @@ void Init( std::vector<ControllerInterface::Device*>& devices )
 	// Things should be configured now. Disable hotplugging and other scheduling
 	IOHIDManagerRegisterDeviceMatchingCallback(HIDManager, NULL, NULL);
     IOHIDManagerUnscheduleFromRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
+	
+	[pool release];
 }
 
 void DeInit()
@@ -154,7 +161,7 @@ void DeviceElementDebugPrint(const void *value, void *context)
 	}
 	
 	c_type.append(" ");
-	NSLog(@"%s%s%spage: 0x%x usage: 0x%x name: %s lmin: %u lmax: %u",
+	NSLog(@"%s%s%spage: 0x%x usage: 0x%x name: %s lmin: %i lmax: %i pmin: %i pmax: %i",
 		  type.c_str(),
 		  type == "collection" ? ":" : "",
 		  type == "collection" ? c_type.c_str() : " ",
@@ -162,7 +169,9 @@ void DeviceElementDebugPrint(const void *value, void *context)
 		  IOHIDElementGetUsage(e),
 		  IOHIDElementGetName(e), // TOO BAD IT"S FUCKING USELESS
 		  IOHIDElementGetLogicalMin(e),
-		  IOHIDElementGetLogicalMax(e));
+		  IOHIDElementGetLogicalMax(e),
+		  IOHIDElementGetPhysicalMin(e),
+		  IOHIDElementGetPhysicalMax(e));
 	
 	if (type == "collection")
 	{

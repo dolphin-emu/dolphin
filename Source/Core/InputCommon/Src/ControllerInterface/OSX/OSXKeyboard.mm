@@ -2,7 +2,7 @@
 
 #ifdef CIFACE_USE_OSX
 
-#include "OSX.h"
+#include "OSXKeyboard.h"
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
 
@@ -24,36 +24,39 @@ struct PrettyKeys
 extern void DeviceElementDebugPrint(const void*, void*);
 
 
-Keyboard::Keyboard(IOHIDDeviceRef device, int index)
+Keyboard::Keyboard(IOHIDDeviceRef device)
 	: m_device(device)
-	, m_device_index(index)
 {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+	
 	m_device_name = [(NSString *)IOHIDDeviceGetProperty(m_device, CFSTR(kIOHIDProductKey)) UTF8String];
 	
-	// Go through all the elements of the device we've been given and try to make something out of them
-	CFArrayRef elements = IOHIDDeviceCopyMatchingElements(m_device, NULL, kIOHIDOptionsTypeNone);
-	CFIndex idx = 0;
-	for (IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, idx);
-		 e;
-		 e = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, ++idx))
+	// This class should only recieve Keyboard or Keypad devices
+	// Now, filter on just the buttons we can handle sanely
+	NSDictionary *matchingElements =
+	 [NSDictionary dictionaryWithObjectsAndKeys:
+	  [NSNumber numberWithInteger:kIOHIDElementTypeInput_Button], @ kIOHIDElementTypeKey,
+	  [NSNumber numberWithInteger:0], @ kIOHIDElementMinKey,
+	  [NSNumber numberWithInteger:1], @ kIOHIDElementMaxKey,
+	  nil];
+	
+	CFArrayRef elements =
+		IOHIDDeviceCopyMatchingElements(m_device, (CFDictionaryRef)matchingElements, kIOHIDOptionsTypeNone);
+	
+	if (elements)
 	{
-		if ((IOHIDElementGetType(e) == kIOHIDElementTypeInput_Button) &&
-			(IOHIDElementGetUsagePage(e) == kHIDPage_KeyboardOrKeypad) &&
-			(IOHIDElementGetLogicalMin(e) == 0) &&
-			(IOHIDElementGetLogicalMax(e) == 1))
+		for (int i = 0; i < CFArrayGetCount(elements); i++)
 		{
-			try {
-				inputs.push_back(new Key(e));
-			}
-			catch (std::bad_alloc&) {
-			}
-		}
-		else
-		{
+			IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, i);
 			//DeviceElementDebugPrint(e, NULL);
+		
+			try { inputs.push_back(new Key(e)); }
+			catch (std::bad_alloc&) { /*Thrown if the key is reserved*/ }
 		}
+		CFRelease(elements);
 	}
-	CFRelease(elements);
+	
+	[pool release];
 }
 
 ControlState Keyboard::GetInputState( const ControllerInterface::Device::Input* const input )
@@ -87,20 +90,22 @@ std::string Keyboard::GetSource() const
 
 int Keyboard::GetId() const
 {
-	return m_device_index;
+	return 0;
 }
 
 
-Keyboard::Key::Key(IOHIDElementRef key_element)
-	: m_key_element(key_element)
-	, m_key_name("RESERVED") // for some reason HID Manager gives these to us. bad_alloc!
+Keyboard::Key::Key(IOHIDElementRef element)
+	: m_element(element)
+	, m_name("RESERVED") // for some reason HID Manager gives these to us. bad_alloc!
 {
-	uint32_t keycode = IOHIDElementGetUsage(m_key_element);
+	m_device = IOHIDElementGetDevice(m_element);
+	
+	uint32_t keycode = IOHIDElementGetUsage(m_element);
 	for (uint32_t i = 0; i < sizeof(named_keys)/sizeof(*named_keys); i++)
 	{
 		if (named_keys[i].code == keycode)
 		{
-			m_key_name = named_keys[i].name;
+			m_name = named_keys[i].name;
 			return;
 		}
 	}
@@ -110,19 +115,15 @@ Keyboard::Key::Key(IOHIDElementRef key_element)
 ControlState Keyboard::Key::GetState()
 {
 	IOHIDValueRef value;
-	if (IOHIDDeviceGetValue(IOHIDElementGetDevice(m_key_element), m_key_element, &value) == kIOReturnSuccess)
-	{
-		double scaled_value = IOHIDValueGetScaledValue(value, kIOHIDValueScaleTypePhysical);
-		//NSLog(@"element %x value %x scaled %f", IOHIDElementGetUsage(m_key_element), value, scaled_value);
-		return scaled_value > 0;
-	}
+	if (IOHIDDeviceGetValue(m_device, m_element, &value) == kIOReturnSuccess)
+		return IOHIDValueGetScaledValue(value, kIOHIDValueScaleTypePhysical) > 0;
 
 	return false;
 }
 
 std::string Keyboard::Key::GetName() const
 {
-	return m_key_name;
+	return m_name;
 }
 
 

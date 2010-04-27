@@ -955,6 +955,9 @@
 		292AC59211838FD700B8790B /* pluginspecs_pad.h in Headers */ = {isa = PBXBuildFile; fileRef = 292AC1DC11838FD700B8790B /* pluginspecs_pad.h */; };
 		292AC59311838FD700B8790B /* pluginspecs_video.h in Headers */ = {isa = PBXBuildFile; fileRef = 292AC1DD11838FD700B8790B /* pluginspecs_video.h */; };
 		292AC59411838FD700B8790B /* pluginspecs_wiimote.h in Headers */ = {isa = PBXBuildFile; fileRef = 292AC1DE11838FD700B8790B /* pluginspecs_wiimote.h */; };
+		298D72BB11867D970096937B /* OSXKeyboard.h in Headers */ = {isa = PBXBuildFile; fileRef = 298D72BA11867D970096937B /* OSXKeyboard.h */; };
+		298D731E118699AD0096937B /* OSXMouse.mm in Sources */ = {isa = PBXBuildFile; fileRef = 298D731C118699AD0096937B /* OSXMouse.mm */; };
+		298D731F118699AD0096937B /* OSXMouse.h in Headers */ = {isa = PBXBuildFile; fileRef = 298D731D118699AD0096937B /* OSXMouse.h */; };
 		29D1528F118634B400CC2741 /* OSXKeyboard.mm in Sources */ = {isa = PBXBuildFile; fileRef = 29D1528E118634B400CC2741 /* OSXKeyboard.mm */; };
 		29D152AC1186461800CC2741 /* NamedKeys.h in Headers */ = {isa = PBXBuildFile; fileRef = 29D152AB1186461800CC2741 /* NamedKeys.h */; };
 		5232B1F10EEB634D0093A7B1 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5232B1F00EEB634D0093A7B1 /* Cocoa.framework */; };
@@ -2316,6 +2319,9 @@
 		292AC1DC11838FD700B8790B /* pluginspecs_pad.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pluginspecs_pad.h; sourceTree = "<group>"; };
 		292AC1DD11838FD700B8790B /* pluginspecs_video.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pluginspecs_video.h; sourceTree = "<group>"; };
 		292AC1DE11838FD700B8790B /* pluginspecs_wiimote.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pluginspecs_wiimote.h; sourceTree = "<group>"; };
+		298D72BA11867D970096937B /* OSXKeyboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OSXKeyboard.h; sourceTree = "<group>"; };
+		298D731C118699AD0096937B /* OSXMouse.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OSXMouse.mm; sourceTree = "<group>"; };
+		298D731D118699AD0096937B /* OSXMouse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OSXMouse.h; sourceTree = "<group>"; };
 		29D1528E118634B400CC2741 /* OSXKeyboard.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OSXKeyboard.mm; sourceTree = "<group>"; };
 		29D152AB1186461800CC2741 /* NamedKeys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NamedKeys.h; sourceTree = "<group>"; };
 		5048396D09E3307300765E4B /* DolphinProj.xcconfig */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xcconfig; path = DolphinProj.xcconfig; sourceTree = "<group>"; };
@@ -3581,9 +3587,12 @@
 			isa = PBXGroup;
 			children = (
 				29D152AB1186461800CC2741 /* NamedKeys.h */,
-				29D1528E118634B400CC2741 /* OSXKeyboard.mm */,
-				292AC00211838FD600B8790B /* OSX.mm */,
 				292AC00311838FD600B8790B /* OSX.h */,
+				292AC00211838FD600B8790B /* OSX.mm */,
+				298D72BA11867D970096937B /* OSXKeyboard.h */,
+				29D1528E118634B400CC2741 /* OSXKeyboard.mm */,
+				298D731D118699AD0096937B /* OSXMouse.h */,
+				298D731C118699AD0096937B /* OSXMouse.mm */,
 			);
 			path = OSX;
 			sourceTree = "<group>";
@@ -4850,6 +4859,8 @@
 				292AC59311838FD700B8790B /* pluginspecs_video.h in Headers */,
 				292AC59411838FD700B8790B /* pluginspecs_wiimote.h in Headers */,
 				29D152AC1186461800CC2741 /* NamedKeys.h in Headers */,
+				298D72BB11867D970096937B /* OSXKeyboard.h in Headers */,
+				298D731F118699AD0096937B /* OSXMouse.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5903,6 +5914,7 @@
 				292AC58A11838FD700B8790B /* WiimoteEmu.cpp in Sources */,
 				292AC58D11838FD700B8790B /* WiimoteNew.cpp in Sources */,
 				29D1528F118634B400CC2741 /* OSXKeyboard.mm in Sources */,
+				298D731E118699AD0096937B /* OSXMouse.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
