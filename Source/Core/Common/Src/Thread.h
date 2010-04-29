@@ -47,6 +47,10 @@
 #error unsupported platform (no pthreads?)
 #endif
 
+#ifdef __APPLE__
+#include <libkern/OSAtomic.h>
+#endif
+
 #endif
 
 // Don't include common.h here as it will break LogManager
@@ -75,7 +79,11 @@ class CriticalSection
 	CRITICAL_SECTION section;
 #else
 #ifdef _POSIX_THREADS
-	pthread_mutex_t mutex;
+	#ifdef __APPLE__
+		OSSpinLock lock;
+	#else
+		pthread_mutex_t mutex;
+	#endif
 #endif
 #endif
 public:
@@ -197,8 +205,13 @@ private:
 
 	bool is_set_;
 #ifdef _POSIX_THREADS
+#ifdef __APPLE__
+	OSSpinLock lock;
+	u32 event_;
+#else
 	pthread_cond_t event_;
 	pthread_mutex_t mutex_;
+#endif
 #endif
 
 #endif

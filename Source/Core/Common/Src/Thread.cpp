@@ -17,6 +17,7 @@
 
 #include "Setup.h"
 #include "Thread.h"
+#include "Atomic.h"
 #include "Common.h"
 
 #ifdef USE_BEGINTHREADEX
@@ -305,16 +306,22 @@ pthread_key_t threadname_key;
 
 CriticalSection::CriticalSection(int spincount_unused)
 {
-	pthread_mutex_init(&mutex, NULL);
+	#ifdef __APPLE__
+		lock = OS_SPINLOCK_INIT;
+	#else
+		pthread_mutex_init(&mutex, NULL);
+	#endif
 }
 
 
 CriticalSection::~CriticalSection()
 {
-	pthread_mutex_destroy(&mutex);
+	#ifndef __APPLE__
+		pthread_mutex_destroy(&mutex);
+	#endif
 }
 
-
+#ifndef __APPLE__
 void CriticalSection::Enter()
 {
 	int ret = pthread_mutex_lock(&mutex);
@@ -335,7 +342,25 @@ void CriticalSection::Leave()
 	if (ret) ERROR_LOG(COMMON, "%s: pthread_mutex_unlock(%p) failed: %s\n", 
 					__FUNCTION__, &mutex, strerror(ret));
 }
+#else
+void CriticalSection::Enter()
+{
+	OSSpinLockLock(&lock);
+}
 
+
+bool CriticalSection::TryEnter()
+{
+	return(!OSSpinLockTry(&lock));
+}
+
+
+void CriticalSection::Leave()
+{
+	OSSpinLockUnlock(&lock);
+}
+	
+#endif
 
 Thread::Thread(ThreadFunc function, void* arg)
 	: thread_id(0)
@@ -440,35 +465,46 @@ void SetCurrentThreadName(const TCHAR* szThreadName)
 
 Event::Event()
 {
+#ifdef __APPLE__
+	lock = OS_SPINLOCK_INIT;
+	event_ = 0;
+#endif
 	is_set_ = false;
 }
 
 
 void Event::Init()
 {
+#ifndef __APPLE__
 	pthread_cond_init(&event_, 0);
 	pthread_mutex_init(&mutex_, 0);
+#else
+	lock = OS_SPINLOCK_INIT;
+	event_ = 0;
+#endif
 }
 
 
 void Event::Shutdown()
 {
+#ifndef __APPLE__
 	pthread_mutex_destroy(&mutex_);
 	pthread_cond_destroy(&event_);
+#endif
 }
 
-
+#ifdef __APPLE__
 void Event::Set()
 {
-	pthread_mutex_lock(&mutex_);
+	OSSpinLockLock(&lock);
 
 	if (!is_set_)
 	{
 		is_set_ = true;
-		pthread_cond_signal(&event_);
+		Common::AtomicStore(event_, 1);
 	}
 
-	pthread_mutex_unlock(&mutex_);
+	OSSpinLockUnlock(&lock);
 }
 
 
@@ -476,7 +512,6 @@ bool Event::Wait(const u32 timeout)
 {
 	bool timedout = false;
 	struct timespec wait;
-	pthread_mutex_lock(&mutex_);
 
 	if (timeout != INFINITE) 
 	{
@@ -491,7 +526,69 @@ bool Event::Wait(const u32 timeout)
 		//wait.tv_nsec = (now.tv_usec + (timeout % 1000) * 1000) * 1000);
 		wait.tv_sec = now.tv_sec + (timeout / 1000);
 	}
+	
+	int Slept = 0;
+	while (!timedout)
+	{
+		if (timeout == INFINITE) 
+		{
+			if(Common::AtomicLoad(event_) == 1)
+				break;
+		}
+		else 
+		{
+			if(Slept >= wait.tv_sec * 1000000)
+				timedout = true;
+			else
+				if(Common::AtomicLoad(event_) == 1)
+					break;
+		}
+		usleep(250);
+		Slept += 250;
+	}
 
+	OSSpinLockLock(&lock);
+	is_set_ = false;
+	Common::AtomicStore(event_, 0);
+	OSSpinLockUnlock(&lock);
+	
+	return timedout;
+}
+#else
+void Event::Set()
+{
+	pthread_mutex_lock(&mutex_);
+	
+	if (!is_set_)
+	{
+		is_set_ = true;
+		pthread_cond_signal(&event_);
+	}
+	
+	pthread_mutex_unlock(&mutex_);
+}
+
+
+bool Event::Wait(const u32 timeout)
+{
+	bool timedout = false;
+	struct timespec wait;
+	pthread_mutex_lock(&mutex_);
+	
+	if (timeout != INFINITE) 
+	{
+		struct timeval now;
+		gettimeofday(&now, NULL);
+		
+		memset(&wait, 0, sizeof(wait));
+		//TODO: timespec also has nanoseconds, but do we need them?
+		//as consequence, waiting is limited to seconds for now.
+		//the following just looks ridiculous, and probably fails for
+		//values 429 < ms <= 999 since it overflows the long.
+		//wait.tv_nsec = (now.tv_usec + (timeout % 1000) * 1000) * 1000);
+		wait.tv_sec = now.tv_sec + (timeout / 1000);
+	}
+	
 	while (!is_set_ && !timedout)
 	{
 		if (timeout == INFINITE) 
@@ -503,12 +600,13 @@ bool Event::Wait(const u32 timeout)
 			timedout = pthread_cond_timedwait(&event_, &mutex_, &wait) == ETIMEDOUT;
 		}
 	}
-
+	
 	is_set_ = false;
 	pthread_mutex_unlock(&mutex_);
 	
 	return timedout;
 }
+#endif
 
 #endif
 
