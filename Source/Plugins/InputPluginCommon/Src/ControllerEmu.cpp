@@ -251,18 +251,15 @@ ControllerEmu::Triggers::Triggers( const char* const _name ) : ControlGroup( _na
 
 ControllerEmu::Force::Force( const char* const _name ) : ControlGroup( _name, GROUP_TYPE_FORCE )
 {
-	controls.push_back( new Input( "X-" ) );
-	controls.push_back( new Input( "X+" ) );
-	controls.push_back( new Input( "Y-" ) );
-	controls.push_back( new Input( "Y+" ) );
-	controls.push_back( new Input( "Z-" ) );
-	controls.push_back( new Input( "Z+" ) );
-}
+	controls.push_back( new Input( "Up" ) );
+	controls.push_back( new Input( "Down" ) );
+	controls.push_back( new Input( "Left" ) );
+	controls.push_back( new Input( "Right" ) );
+	controls.push_back( new Input( "Forward" ) );
+	controls.push_back( new Input( "Backward" ) );
+	controls.push_back( new Input( "Modifier" ) );
 
-void ControllerEmu::Force::GetState( u8* data, const u8 base, const u8 range )
-{
-	for ( unsigned int i=0; i<3; ++i,++data )
-		*data = u8( ( controls[i*2+1]->control_ref->State() - controls[i*2]->control_ref->State() ) * range + base );
+	settings.push_back( new Setting("Dead Zone", 0, 1, 50 ) );
 }
 
 ControllerEmu::Tilt::Tilt( const char* const _name ) : ControlGroup( _name, GROUP_TYPE_TILT )
@@ -287,10 +284,12 @@ ControllerEmu::Cursor::Cursor( const char* const _name, const SWiimoteInitialize
 {
 	for ( unsigned int i = 0; i < 4; ++i )
 		controls.push_back( new Input( named_directions[i] ) );
+	controls.push_back( new Input( "Forward" ) );
+	controls.push_back( new Input( "Hide" ) );
 
+	settings.push_back( new Setting("Center", 0.5f ) );
 	settings.push_back( new Setting("Width", 0.5f ) );
 	settings.push_back( new Setting("Height", 0.5f ) );
-	settings.push_back( new Setting("Top", 0.5f ) );
 
 }
 

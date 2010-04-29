@@ -31,10 +31,10 @@ struct wiimote_key
 };
 
 
-void wiimote_encrypt(wiimote_key *key, u8 *data, int addr, u8 len);
-void wiimote_decrypt(wiimote_key *key, u8 *data, int addr, u8 len);
+void wiimote_encrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len);
+void wiimote_decrypt(const wiimote_key* const key, u8* const data, int addr, const u8 len);
 
-void wiimote_gen_key(wiimote_key *key, u8 *keydata);
+void wiimote_gen_key(wiimote_key* const key, const u8* const keydata);
 
 
 #endif

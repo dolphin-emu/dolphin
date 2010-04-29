@@ -77,8 +77,101 @@ struct ReportFeatures
 	{ 0, 0, 0, 0, 23 },
 };
 
-// array of accel data to emulate shaking
-const u8 shake_data[8] = { 0x40, 0x01, 0x40, 0x80, 0xC0, 0xFF, 0xC0, 0x80 };
+void EmulateShake( u8* const accel
+				  , ControllerEmu::Buttons* const buttons_group
+				  , unsigned int* const shake_step )
+{
+	static const u8 shake_data[] = { 0x40, 0x01, 0x40, 0x80, 0xC0, 0xFF, 0xC0, 0x80 };
+	static const unsigned int btns[] = { 0x01, 0x02, 0x04 };
+	unsigned int shake = 0;
+
+	buttons_group->GetState( &shake, btns );
+	for ( unsigned int i=0; i<3; ++i )
+		if (shake & (1 << i))
+		{
+			accel[i] = shake_data[shake_step[i]++];
+			shake_step[i] %= sizeof(shake_data);
+		}
+		else
+			shake_step[i] = 0;
+}
+
+void EmulateTilt( wm_accel* const accel
+				 , ControllerEmu::Tilt* const tilt_group
+				 , const accel_cal* const cal
+				 , bool focus, bool sideways, bool upright)
+{
+	float roll, pitch;
+	tilt_group->GetState( &roll, &pitch, 0, focus ? (PI / 2) : 0 ); // 90 degrees
+
+	// this isn't doing anything with those low bits in the calib data, o well
+
+	const u8* const zero_g = &cal->zero_g.x;
+	s8 one_g[3];
+	for ( unsigned int i=0; i<3; ++i )
+		one_g[i] = (&cal->one_g.x)[i] - zero_g[i];
+
+	unsigned int	ud = 0, lr = 0, fb = 0;
+
+	// some notes that no one will understand but me :p
+
+	// left, forward, up
+	// lr/ left == negative for all orientations
+	// ud/ up == negative for upright longways
+	// fb/ forward == positive for (sideways flat)
+
+	//if (sideways)
+	//{
+	//	if (upright)
+	//	{
+	//		ud = 0;
+	//		lr = 1;
+	//		fb = 2;
+	//	}
+	//	else
+	//	{
+	//		ud = 2;
+	//		lr = 1;
+	//		fb = 0;
+	//		one_g[fb] *= -1;
+	//	}
+	//}
+	//else
+	//{
+	//	if (upright)
+	//	{
+	//		ud = 1;
+	//		lr = 0;
+	//		fb = 2;
+	//		one_g[ud] *= -1;
+	//	}
+	//	else
+	//	{
+	//		ud = 2;
+	//		lr = 0;
+	//		fb = 1;
+	//	}
+	//}
+
+	// this is the above statements compacted
+	ud = upright ? (sideways ? 0 : 1) : 2;
+	lr = sideways;
+	fb = upright ? 2 : (sideways ? 0 : 1);
+
+	if (sideways && !upright)
+		one_g[fb] *= -1;
+	if (!sideways && upright)
+		one_g[ud] *= -1;
+
+	(&accel->x)[ud] = u8(sin( (PI / 2) - std::max( abs(roll), abs(pitch) ) ) * one_g[ud] + zero_g[ud]);
+	(&accel->x)[lr] = u8(sin(roll) * -one_g[lr] + zero_g[lr]);
+	(&accel->x)[fb] = u8(sin(pitch) * one_g[fb] + zero_g[fb]);
+}
+
+//void EmulateSwing()
+//{
+//
+//}
 
 const u16 button_bitmasks[] =
 {
@@ -115,6 +208,9 @@ void Wiimote::Reset()
 	m_rumble_on = false;
 	m_speaker_mute = false;
 
+	// used for some hax in Update()
+	m_skip_update = 0;
+
 	// will make the first Update() call send a status request
 	// the first call to RequestStatus() will then set up the status struct extension bit
 	m_extension->active_extension = -1;
@@ -133,10 +229,10 @@ void Wiimote::Reset()
 	m_register[0xa60000].resize(WIIMOTE_REG_EXT_SIZE,0);
 	m_register[0xB00000].resize(WIIMOTE_REG_IR_SIZE,0);
 
-	m_reg_speaker		= (SpeakerConfig*)&m_register[0xa20000][0];
-	m_reg_ext			= &m_register[0xa40000][0];
+	m_reg_speaker		= (SpeakerReg*)&m_register[0xa20000][0];
+	m_reg_ext			= (ExtensionReg*)&m_register[0xa40000][0];
 	m_reg_motion_plus	= &m_register[0xa60000][0];
-	m_reg_ir			= &m_register[0xB00000][0];
+	m_reg_ir			= (IrReg*)&m_register[0xB00000][0];
 
 	// testing
 	//memcpy( m_reg_motion_plus + 0xfa, motion_plus_id, sizeof(motion_plus_id) );
@@ -150,7 +246,8 @@ void Wiimote::Reset()
 	//   0x55 - 0xff: level 4
 	m_status.battery = 0x5f;
 
-	m_shake_step = 0;
+	memset(m_shake_step, 0, sizeof(m_shake_step));
+	memset(m_swing_step, 0, sizeof(m_swing_step));
 
 	// clear read request queue
 	while (m_read_requests.size())
@@ -160,7 +257,9 @@ void Wiimote::Reset()
 	}
 }
 
-Wiimote::Wiimote( const unsigned int index ) : m_index(index)
+Wiimote::Wiimote( const unsigned int index )
+	: m_index(index)
+//	, m_sound_stream( NULL )
 {
 	// ---- set up all the controls ----
 
@@ -171,12 +270,11 @@ Wiimote::Wiimote( const unsigned int index ) : m_index(index)
 
 	// ir
 	groups.push_back( m_ir = new Cursor( "IR", &g_WiimoteInitialize ) );
-	m_ir->controls.push_back( new ControlGroup::Input( "Forward" ) );
-	m_ir->controls.push_back( new ControlGroup::Input( "Hide" ) );
 
-	// forces
-	groups.push_back( m_tilt = new Tilt( "Pitch and Roll" ) );
-	//groups.push_back( m_tilt = new Tilt( "Tilt" ) );
+	// tilt
+	groups.push_back( m_tilt = new Tilt( "Tilt" ) );
+
+	// swing
 	//groups.push_back( m_swing = new Force( "Swing" ) );
 
 	// shake
@@ -193,20 +291,46 @@ Wiimote::Wiimote( const unsigned int index ) : m_index(index)
 	m_extension->attachments.push_back( new WiimoteEmu::Guitar() );
 	m_extension->attachments.push_back( new WiimoteEmu::Drums() );
 
+	// rumble
+	groups.push_back( m_rumble = new ControlGroup( "Rumble" ) );
+	m_rumble->controls.push_back( new ControlGroup::Output( "Motor" ) );
+
 	// dpad
 	groups.push_back( m_dpad = new Buttons( "D-Pad" ) );
 	for ( unsigned int i=0; i < 4; ++i )
 		m_dpad->controls.push_back( new ControlGroup::Input( named_directions[i] ) );
 
-	// rumble
-	groups.push_back( m_rumble = new ControlGroup( "Rumble" ) );
-	m_rumble->controls.push_back( new ControlGroup::Output( "Motor" ) );
-
 	// options
 	groups.push_back( m_options = new ControlGroup( "Options" ) );
 	m_options->settings.push_back( new ControlGroup::Setting( "Background Input", false ) );
 	m_options->settings.push_back( new ControlGroup::Setting( "Sideways Wiimote", false ) );
+	m_options->settings.push_back( new ControlGroup::Setting( "Upright Wiimote", false ) );
+	
+#ifdef USE_WIIMOTE_EMU_SPEAKER
+	// set up speaker stuff
+	// this doesnt belong here
 
+	// TODO: i never clean up any of this audio stuff
+
+	if (0 == m_index)	// very dumb
+	{
+		ALCdevice* pDevice;
+		ALchar DeviceName[] = "DirectSound3D";
+		pDevice = alcOpenDevice(DeviceName);
+		ALCcontext* pContext;
+		pContext = alcCreateContext(pDevice, NULL);
+		alcMakeContextCurrent(pContext);
+	}
+
+	alListener3f(AL_POSITION, 0.0, 0.0, 0.0);
+	alListener3f(AL_VELOCITY, 0.0, 0.0, 0.0);
+	alListener3f(AL_DIRECTION, 0.0, 0.0, 0.0);
+
+	alGenSources(1, &m_audio_source);
+	alSourcef(m_audio_source, AL_PITCH, 1.0);
+	alSourcef(m_audio_source, AL_GAIN, 1.0);
+	alSourcei(m_audio_source, AL_LOOPING, false);
+#endif
 
 	// --- reset eeprom/register/values to default ---
 	Reset();
@@ -219,18 +343,37 @@ std::string Wiimote::GetName() const
 
 void Wiimote::Update()
 {
-	const bool is_sideways = m_options->settings[1]->value > 0; 
+	const bool is_sideways = m_options->settings[1]->value > 0;
+	const bool is_upright = m_options->settings[2]->value > 0; 
 
 	// if windows is focused or background input is enabled
-	const bool focus = g_WiimoteInitialize.pRendererHasFocus() || (m_options->settings[0]->value != 0);
+	const bool is_focus = g_WiimoteInitialize.pRendererHasFocus() || (m_options->settings[0]->value != 0);
 
 	// no rumble if no focus
-	if (false == focus)
+	if (false == is_focus)
 		m_rumble_on = false;
 	m_rumble->controls[0]->control_ref->State(m_rumble_on);
 
-	// testing speaker stuff
+	// ----speaker----
+#ifdef USE_WIIMOTE_EMU_SPEAKER
+
+	ALint processed = 0;
+	alGetSourcei(m_audio_source, AL_BUFFERS_PROCESSED, &processed);
+
+	while (processed--)
+	{
+		//PanicAlert("Buffer Processed");
+		alSourceUnqueueBuffers(m_audio_source, 1, &m_audio_buffers.front().buffer);
+		alDeleteBuffers(1, &m_audio_buffers.front().buffer);
+		delete[] m_audio_buffers.front().samples;
+		m_audio_buffers.pop();
+	}
+
+	// testing speaker crap
 	//m_rumble->controls[0]->control_ref->State( m_speaker_data.size() > 0 );
+	//if ( m_speaker_data.size() )
+		//m_speaker_data.pop();
+
 	//while ( m_speaker_data.size() )
 	//{
 	//	std::ofstream file;
@@ -239,12 +382,11 @@ void Wiimote::Update()
 	//	file.close();
 	//	m_speaker_data.pop();
 	//}
-	//if ( m_speaker_data.size() )
-	//	m_speaker_data.pop();
+#endif
 
 	// update buttons in status struct
 	m_status.buttons = 0;
-	if ( focus )
+	if (is_focus)
 	{
 		m_buttons->GetState( &m_status.buttons, button_bitmasks );
 		m_dpad->GetState( &m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks );
@@ -283,11 +425,28 @@ void Wiimote::Update()
 		m_reporting_auto = false;
 	}
 
-	if ( false == m_reporting_auto )
+	if (false == m_reporting_auto)
 		return;
+
+	// Some hax to skip a few update cycles after a change in reporting mode
+	// It fixes the nunchuk prob in ztp and wii sports. I have no idea why
+	// maybe its an m_reporting_channel problem?
+	if (m_skip_update)
+	{
+		--m_skip_update;
+		return;
+	}
 
 	// figure out what data we need
 	const ReportFeatures& rpt = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
+
+	// what does the real wiimote do when put in a reporting mode with extension data,
+	// but with no extension attached? should i just send zeros? sure
+	//if (rpt.ext && (m_extension->active_extension <= 0))
+	//{
+	//	m_reporting_auto = false;
+	//	return;
+	//}
 
 	// set up output report
 	// made data bigger than needed in case the wii specifies the wrong ir mode for a reporting mode
@@ -301,79 +460,63 @@ void Wiimote::Update()
 	if (rpt.core)
 		*(wm_core*)(data + rpt.core) = m_status.buttons;
 
-	// accelerometer
+	// ----accelerometer----
 	if (rpt.accel)
 	{
-		// tilt
-		float x, y;
-		m_tilt->GetState( &x, &y, 0, focus ? (PI / 2) : 0 ); // 90 degrees
+		// ----TILT----
+		EmulateTilt((wm_accel*)&data[rpt.accel], m_tilt, (accel_cal*)&m_eeprom[0x16], is_focus, is_sideways, is_upright );
 
-		// this isn't doing anything with those low bits in the calib data, o well
-
-		const accel_cal* const cal = (accel_cal*)&m_eeprom[0x16];
-		const u8* const zero_g = &cal->zero_g.x;
-		u8 one_g[3];
-		for ( unsigned int i=0; i<3; ++i )
-			one_g[i] = (&cal->one_g.x)[i] - zero_g[i];
-
-		// this math should be good enough :P
-		data[rpt.accel + 2] = u8(sin( (PI / 2) - std::max( abs(x), abs(y) ) ) * one_g[2] + zero_g[2]);
-		
-		if (is_sideways)
-		{
-			data[rpt.accel + 0] = u8(sin(y) * -one_g[1] + zero_g[1]);
-			data[rpt.accel + 1] = u8(sin(x) * -one_g[0] + zero_g[0]);
-		}
-		else
-		{
-			data[rpt.accel + 0] = u8(sin(x) * -one_g[0] + zero_g[0]);
-			data[rpt.accel + 1] = u8(sin(y) * one_g[1] + zero_g[1]);
-		}
-
-		// shake
-		const unsigned int btns[] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20 };
-		unsigned int shake = 0;
-		if (focus)
-			m_shake->GetState( &shake, btns );
-		if (shake)
-		{
-			for ( unsigned int i=0; i<3; ++i )
-				if (shake & (1 << i))
-					data[rpt.accel + i] = shake_data[m_shake_step];
-			m_shake_step = (m_shake_step + 1) % sizeof(shake_data);
-		}
-		else
-			m_shake_step = 0;
-
-		// TODO: swing
+		// ----SWING----
+		//const s8 swing_data[] = { 0x20, 0x40, 0x20, 0x00 };
 		//u8 swing[3];
-		//m_swing->GetState( swing, 0x80, 60 );
-		//for ( unsigned int i=0; i<3; ++i )
-		//	if ( swing[i] != 0x80 )
-		//		data[rpt.accel + i] = swing[i];
+		//m_swing->GetState( swing, 0x80, 0x40 );
+
+		//// up/down
+		//if (swing[0] != 0x80)
+		//{
+		//	//data[rpt.accel + 0] = swing[0];
+		//	data[rpt.accel + 2] += swing_data[m_swing_step[0]/4];
+		//	if (m_swing_step[0] < 12)
+		//		++m_swing_step[0];
+		//}
+		//else
+		//	m_swing_step[0] = 0;
+
+		//// left/right
+		//if (swing[1] != 0x80)
+		//	data[rpt.accel + !is_sideways] = swing[1];
+
+		//// forward/backward
+		//if (swing[2] != 0x80)
+		//	data[rpt.accel + is_sideways] = swing[2];
+
+		// ----SHAKE----
+		if (is_focus)
+			EmulateShake(data + rpt.accel, m_shake, m_shake_step);
 
 	}
 
-	// extension
+	// ----extension----
 	if (rpt.ext)
 	{
-		m_extension->GetState(data + rpt.ext, focus);
-
-		// both of these ifs work
-		//if ( m_reg_ext[0xf0] != 0x55 )
-		if ( m_reg_ext[0xf0] == 0xaa )
-			wiimote_encrypt(&m_ext_key, data + rpt.ext, 0x00, sizeof(wm_extension));
+		m_extension->GetState(data + rpt.ext, is_focus);
 
 		// i dont think anything accesses the extension data like this, but ill support it
-		memcpy(m_reg_ext + 8, data + rpt.ext, sizeof(wm_extension));
+		// i think it should be unencrpyted in the register, encrypted when read
+		memcpy(m_reg_ext->controller_data, data + rpt.ext, sizeof(wm_extension));
+
+		// both of these ifs work
+		//if (0x55 != m_reg_ext->encryption)
+		if (0xAA == m_reg_ext->encryption)
+			wiimote_encrypt(&m_ext_key, data + rpt.ext, 0x00, sizeof(wm_extension));
 	}
 
-	// ir
+	// ----ir----
 	if (rpt.ir)
 	{
 		float xx = 10000, yy = 0, zz = 0;
 
-		if (focus)
+		if (is_focus)
 			m_ir->GetState(&xx, &yy, &zz, true);
 
 		xx *= (-256 * 0.95f);
@@ -394,7 +537,7 @@ void Wiimote::Update()
 		x[3] = (unsigned int)(xx + 1.2f * distance);
 
 		// ir mode
-		switch (m_reg_ir[0x33])
+		switch (m_reg_ir->mode)
 		{
 		// basic
 		case 1 :
@@ -432,8 +575,8 @@ void Wiimote::Update()
 			wm_ir_extended* const irdata = (wm_ir_extended*)(data + rpt.ir);
 			if (y < 768)
 			{
-				for ( unsigned int i=0; i<2; ++i )
-					if (irdata[i].x < 1024)
+				for ( unsigned int i=0; i<4; ++i )
+					if (x[i] < 1024)
 					{
 						irdata[i].x = u8(x[i]);
 						irdata[i].xhi = x[i] >> 8;
@@ -542,25 +685,26 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
 // TODO: i need to test this
 void Wiimote::Register::Read( size_t address, void* dst, size_t length )
 {
+	const_iterator i = begin();
+	const const_iterator e = end();
 	while (length)
 	{
 		const std::vector<u8>* block = NULL;
 		size_t addr_start = 0;
 		size_t addr_end = address+length;
 
-		// TODO: don't need to start at begin() each time
 		// find block and start of next block
-		const_iterator
-			i = begin(),
-			e = end();
 		for ( ; i!=e; ++i )
+			// if address is inside or after this block
 			if ( address >= i->first )
 			{
 				block = &i->second;
 				addr_start = i->first;
 			}
+			// if address is before this block
 			else
 			{
+				// how far til the start of the next block
 				addr_end = std::min( i->first, addr_end );
 				break;
 			}
@@ -568,7 +712,9 @@ void Wiimote::Register::Read( size_t address, void* dst, size_t length )
 		// read bytes from a mapped block
 		if (block)
 		{
+			// offset of wanted data in the vector
 			const size_t offset = std::min( address - addr_start, block->size() );
+			// how much data we can read depending on the vector size and how much we want
 			const size_t amt = std::min( block->size()-offset, length );
 
 			memcpy( dst, &block->operator[](offset), amt );
@@ -592,25 +738,26 @@ void Wiimote::Register::Read( size_t address, void* dst, size_t length )
 // TODO: i need to test this
 void Wiimote::Register::Write( size_t address, void* src, size_t length )
 {
+	iterator i = begin();
+	const const_iterator e = end();
 	while (length)
 	{
 		std::vector<u8>* block = NULL;
 		size_t addr_start = 0;
 		size_t addr_end = address+length;
 
-		// TODO: don't need to start at begin() each time
 		// find block and start of next block
-		iterator
-			i = begin(),
-			e = end();
 		for ( ; i!=e; ++i )
+			// if address is inside or after this block
 			if ( address >= i->first )
 			{
 				block = &i->second;
 				addr_start = i->first;
 			}
+			// if address is before this block
 			else
 			{
+				// how far til the start of the next block
 				addr_end = std::min( i->first, addr_end );
 				break;
 			}
@@ -618,7 +765,9 @@ void Wiimote::Register::Write( size_t address, void* src, size_t length )
 		// write bytes to a mapped block
 		if (block)
 		{
+			// offset of wanted data in the vector
 			const size_t offset = std::min( address - addr_start, block->size() );
+			// how much data we can read depending on the vector size and how much we want
 			const size_t amt = std::min( block->size()-offset, length );
 
 			memcpy( &block->operator[](offset), src, amt );

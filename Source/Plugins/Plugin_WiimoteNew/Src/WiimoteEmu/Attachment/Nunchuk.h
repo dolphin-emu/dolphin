@@ -19,7 +19,7 @@ private:
 	Buttons*		m_buttons;
 	AnalogStick*	m_stick;
 
-	unsigned int	m_shake_step;
+	unsigned int	m_shake_step[3];
 };
 
 }

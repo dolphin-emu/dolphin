@@ -237,7 +237,20 @@ public:
 	public:
 		Force( const char* const _name );
 
-		void GetState( u8* data, const u8 base, const u8 range );
+		template <typename C, typename R>
+		void GetState( C* axis, const u8 base, const R range )
+		{
+			const float deadzone = settings[0]->value;
+			for ( unsigned int i=0; i<6; i+=2 )
+			{
+				const float state = controls[i+1]->control_ref->State() - controls[i]->control_ref->State();
+				if (abs(state) > deadzone)
+					*axis++ = (C)((state - (deadzone * sign(state))) / (1 - deadzone) * range + base);
+					//*axis++ = state * range + base;
+				else
+					*axis++ = (C)(base);
+			}
+		}
 	};
 
 	class Tilt : public ControlGroup
@@ -333,9 +346,9 @@ public:
 				// adjust cursor according to settings
 				if (adjusted)
 				{
-					xx *= ( settings[0]->value * 2 );
-					yy *= ( settings[1]->value * 2 );
-					yy += ( settings[2]->value - 0.5f );
+					xx *= ( settings[1]->value * 2 );
+					yy *= ( settings[2]->value * 2 );
+					yy += ( settings[0]->value - 0.5f );
 				}
 
 				*x = xx;

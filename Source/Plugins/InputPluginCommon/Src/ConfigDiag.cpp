@@ -19,9 +19,9 @@ void GamepadPage::ConfigExtension( wxCommandEvent& event )
 		const std::size_t orig_size = control_groups.size();
 
 		ControlGroupsSizer* const szr = new ControlGroupsSizer( ex->attachments[ex->switch_extension], pnl, this, &control_groups );
-		pnl->SetSizerAndFit( szr );
+		pnl->SetSizerAndFit( szr );	// needed
 		pnl_szr->Add( pnl, 0, wxLEFT, 5 );
-		dlg->SetSizerAndFit( pnl_szr );
+		dlg->SetSizerAndFit( pnl_szr );	// needed
 
 		dlg->Center();
 
@@ -131,7 +131,7 @@ ControlDialog::ControlDialog( wxWindow* const parent, ControllerInterface::Contr
 	szr->Add( d_szr, 0, wxEXPAND|wxLEFT|wxRIGHT|wxTOP, 5 );
 	szr->Add( control_chooser, 0, wxEXPAND|wxALL, 5 );
 
-	SetSizerAndFit( szr );
+	SetSizerAndFit( szr );	// needed
 
 }
 
@@ -661,6 +661,7 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 	case GROUP_TYPE_STICK :
 	case GROUP_TYPE_TILT :
 	case GROUP_TYPE_CURSOR :
+	case GROUP_TYPE_FORCE :
 		{
 			wxBitmap bitmap(64, 64);
 			wxMemoryDC dc;
@@ -871,7 +872,7 @@ GamepadPage::GamepadPage( wxWindow* parent, const unsigned int pad_num, ConfigDi
 
 	UpdateGUI();
 
-	SetSizerAndFit( mapping );
+	SetSizerAndFit( mapping );	// needed
 	Layout();
 };
 
@@ -911,7 +912,8 @@ ConfigDialog::ConfigDialog( wxWindow* const parent, Plugin& plugin, const std::s
 	szr->Add( m_pad_notebook, 0, wxEXPAND|wxTOP|wxLEFT|wxRIGHT, 5 );
 	szr->Add( btns, 0, wxEXPAND|wxALL, 5 );
 
-	SetSizerAndFit( szr );
+	SetSizerAndFit( szr );	// needed
+
 	// not needed here it seems, but it cant hurt
 	//Layout();
 

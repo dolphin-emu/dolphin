@@ -65,6 +65,11 @@ void Wiimote::ReportMode(const u16 _channelID, wm_report_mode* dr)
 	m_reporting_mode = dr->mode;
 	m_reporting_channel = _channelID;
 
+	// some hax to skip a few Update() cycles to fix a nunchuk prob in ztp and wii sports
+	// skipping 10 seems to work
+	// probably like 1/6th of a second that the user won't have control :/
+	m_skip_update = 10;
+
 	if (0 == dr->all_the_time)
 		PanicAlert("Wiimote: Reporting Always is set to OFF! Everything should be fine, but games never do this.");
 
@@ -137,24 +142,21 @@ void Wiimote::HidOutputReport(const u16 _channelID, wm_report* sr)
 		break;
 
 	case WM_WRITE_SPEAKER_DATA : // 0x18
+#ifdef USE_WIIMOTE_EMU_SPEAKER
+		SpeakerData((wm_speaker_data*)sr->data);
+#endif
 		// TODO: Does this need an ack?
-		{
-			// testing
-			//wm_speaker_data* const sd = (wm_speaker_data*)sr->data;
-			//unsigned int length = sd->length >> 3;
-
-			//PanicAlert( "WM Speaker Data:\nlength: %d\nformat: 0x%x\nrate: 0x%x\nvolume: 0x%x",
-				//length, m_reg_speaker->format, m_reg_speaker->sample_rate, m_reg_speaker->volume );
-
-			//for (unsigned int i=0; i<length; ++i)
-			//	m_speaker_data.push(0);
-		}
 		return;	// no ack
 		break;
 
 	case WM_SPEAKER_MUTE : // 0x19
 		//INFO_LOG(WIIMOTE, "WM Speaker Mute: 0x%02x", sr->data[0]);
 		//PanicAlert( "WM Speaker Mute: %d", sr->data[0] & 0x04 );
+#ifdef USE_WIIMOTE_EMU_SPEAKER
+		// testing
+		if (sr->data[0] ^ 0x04)
+			m_channel_status.step = 0;
+#endif
 		m_speaker_mute = (sr->data[0] & 0x04) ? 1 : 0;
 		break;
 
@@ -240,7 +242,6 @@ void Wiimote::RequestStatus(const u16 _channelID, wm_request_status* rs)
 void Wiimote::WriteData(const u16 _channelID, wm_write_data* wd) 
 {
 	u32 address = convert24bit(wd->address);
-	//u16 size = convert16bit(rd->size);
 
 	// ignore the 0x010000 bit
 	address &= 0xFEFFFF;
@@ -302,12 +303,15 @@ void Wiimote::WriteData(const u16 _channelID, wm_write_data* wd)
 					// that we send it parts of a key, only the last full key will have an effect
 					// I might have f'ed this up
 					if ( address >= 0xa40040 && address <= 0xa4004c )
-					{
-						u8 data[WIIMOTE_REG_EXT_SIZE];
-						m_register.Read( 0xa40000, data, WIIMOTE_REG_EXT_SIZE );
-						wiimote_gen_key( &m_ext_key, data + 0x40 );
-					}
+						wiimote_gen_key(&m_ext_key, m_reg_ext->encryption_key);
+					//else if ( address >= 0xa40020 && address < 0xa40040 )
+					//	PanicAlert("Writing to extension calibration data! Extension may misbehave");
 				}
+				break;
+			// ir
+			case 0xB0 :
+				if (5 == m_reg_ir->mode)
+					PanicAlert("IR Full Mode is Unsupported!");
 				break;
 			}
 
@@ -386,8 +390,11 @@ void Wiimote::ReadData(const u16 _channelID, wm_read_data* rd)
 				{
 					// Encrypt data read from extension register
 					// Check if encrypted reads is on
-					if ( m_reg_ext[0xf0] == 0xaa )
+					if (0xaa == m_reg_ext->encryption)
 						wiimote_encrypt(&m_ext_key, block, address & 0xffff, (u8)size);
+
+					//if ( address >= 0xa40008 && address < 0xa40020 )
+					//	PanicAlert("Reading extension data from register");
 				}
 				break;
 			// motion plus

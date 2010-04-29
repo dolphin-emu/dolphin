@@ -10,7 +10,7 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 	ge = current_page->control_groups.end();
 	for ( ; g != ge; ++g  )
 	{
-
+		// if this control group has a bitmap
 		if ( (*g)->static_bitmap )
 		{
 
@@ -21,6 +21,20 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 			//if ( false == is_game_running )
 			// just always update
 				m_plugin.controller_interface.UpdateInput();
+
+			wxMemoryDC dc;
+			wxBitmap bitmap((*g)->static_bitmap->GetBitmap());
+			dc.SelectObject(bitmap);
+			dc.Clear();
+
+			// label for sticks and stuff
+			if (64 == bitmap.GetHeight())
+			{
+				wxFont small_font(6, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+				dc.SetFont(small_font);
+				dc.SetTextForeground(0xC0C0C0);
+				dc.DrawText(wxString::FromAscii((*g)->control_group->name).Upper(), 4, 2);
+			}
 
 			switch ( (*g)->control_group->type )
 			{
@@ -55,12 +69,6 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					xx *= 32 - 1; xx += 32;
 					yy *= 32 - 1; yy += 32;
 
-					// setup
-					wxBitmap bitmap(64, 64);
-					wxMemoryDC dc;
-					dc.SelectObject(bitmap);
-					dc.Clear();
-
 					// draw the shit
 
 					// ir cursor forward movement
@@ -75,7 +83,10 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					dc.SetPen(*wxLIGHT_GREY_PEN);
 					dc.SetBrush(*wxWHITE_BRUSH);
 					if ( GROUP_TYPE_STICK == (*g)->control_group->type )
+					{
+						dc.SetBrush(*wxTRANSPARENT_BRUSH);
 						dc.DrawCircle( 32, 32, 32);
+					}
 					else
 						dc.DrawRectangle( 16, 16, 32, 32 );
 
@@ -106,27 +117,70 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						//dc.DrawRectangle( x-4, 64-y-1, 8, 2 );
 					}
 
-					// box outline
-					// Windows XP color
-					dc.SetPen(wxPen(_T("#7f9db9")));
-					dc.SetBrush(*wxTRANSPARENT_BRUSH);
-					dc.DrawRectangle(0, 0, 64, 64);
+				}
+				break;
+			case GROUP_TYPE_FORCE :
+				{
+					float raw_dot[3];
+					float adj_dot[3];
+					const float deadzone = 32 * ((*g)->control_group)->settings[0]->value;
 
-					// done drawing
-					dc.SelectObject(wxNullBitmap);
+					// adjusted
+					((ControllerEmu::Force*)(*g)->control_group)->GetState( adj_dot, 32.0, 32-1.5 );
 
-					// set the shit
-					(*g)->static_bitmap->SetBitmap( bitmap );
+					// raw
+					for ( unsigned int i=0; i<3; ++i )
+					{
+						raw_dot[i] = (*g)->control_group->controls[i*2 + 1]->control_ref->State()
+							- (*g)->control_group->controls[i*2]->control_ref->State();
+						raw_dot[i] *= 32 - 1; raw_dot[i] += 32;
+					}
+
+					// deadzone rect for forward/backward visual
+					dc.SetBrush(*wxLIGHT_GREY_BRUSH);
+					dc.SetPen(*wxLIGHT_GREY_PEN);
+					dc.DrawRectangle( 0, 32 - deadzone, 64, deadzone * 2 );
+
+					// raw forward/background line
+					dc.SetPen(*wxGREY_PEN);
+					dc.SetBrush(*wxGREY_BRUSH);
+					dc.DrawRectangle( 0, raw_dot[2] - 1, 64, 2 );
+
+					// adjusted forward/background line
+					if ( adj_dot[2]!=32 )
+					{
+						dc.SetPen(*wxRED_PEN);
+						dc.SetBrush(*wxRED_BRUSH);
+						dc.DrawRectangle( 0, adj_dot[2] - 1, 64, 2 );
+					}
+
+					// a rectangle, for looks i guess
+					dc.SetBrush(*wxWHITE_BRUSH);
+					dc.SetPen(*wxLIGHT_GREY_PEN);
+					dc.DrawRectangle( 16, 16, 32, 32 );
+
+					// deadzone square
+					dc.SetBrush(*wxLIGHT_GREY_BRUSH);
+					dc.DrawRectangle( 32 - deadzone, 32 - deadzone, deadzone * 2, deadzone * 2 );
+
+					// raw dot
+					dc.SetPen(*wxGREY_PEN);
+					dc.SetBrush(*wxGREY_BRUSH);
+					dc.DrawRectangle( raw_dot[1] - 2, raw_dot[0] - 2, 4, 4 );
+
+					// adjusted dot
+					if ( adj_dot[1]!=32 || adj_dot[0]!=32 )
+					{
+						dc.SetPen(*wxRED_PEN);
+						dc.SetBrush(*wxRED_BRUSH);
+						dc.DrawRectangle( adj_dot[1]-2, adj_dot[0]-2, 4, 4 );
+					}
+
 				}
 				break;
 			case GROUP_TYPE_BUTTONS :
 				{
 					const unsigned int button_count = ((unsigned int)(*g)->control_group->controls.size());
-					// setup
-					wxBitmap bitmap(12*button_count+1, 12);
-					wxMemoryDC dc;
-					dc.SelectObject(bitmap);
-					dc.Clear();
 
 					// draw the shit
 					dc.SetPen(*wxGREY_PEN);
@@ -140,7 +194,6 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 
 					for ( unsigned int n = 0; n<button_count; ++n )
 					{
-						// TODO: threshold stuff, actually redo this crap with the GetState func
 						if ( buttons & bitmasks[n] )
 							dc.SetBrush( *wxRED_BRUSH );
 						else
@@ -152,28 +205,12 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					}
 
 					delete bitmasks;
-
-					// box outline
-					// Windows XP color
-					dc.SetPen(wxPen(_T("#7f9db9")));
-					dc.SetBrush(*wxTRANSPARENT_BRUSH);
-					dc.DrawRectangle(0, 0, bitmap.GetWidth(), bitmap.GetHeight());
-
-					// done drawing
-					dc.SelectObject(wxNullBitmap);
-
-					// set the shit
-					(*g)->static_bitmap->SetBitmap( bitmap );					
+					
 				}
 				break;
 			case GROUP_TYPE_TRIGGERS :
 				{
 					const unsigned int trigger_count = ((unsigned int)((*g)->control_group->controls.size()));
-					// setup
-					wxBitmap bitmap( 64, 12*trigger_count+1);
-					wxMemoryDC dc;
-					dc.SelectObject(bitmap);
-					dc.Clear();
 
 					// draw the shit
 					dc.SetPen(*wxGREY_PEN);
@@ -200,26 +237,11 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					dc.SetBrush(*wxTRANSPARENT_BRUSH);
 					dc.DrawRectangle(0, 0, deadzone*64, trigger_count*14);
 
-					// box outline
-					// Windows XP color
-					dc.SetPen(wxPen(_T("#7f9db9")));
-					dc.DrawRectangle(0, 0, bitmap.GetWidth(), bitmap.GetHeight());
-
-					// done drawing
-					dc.SelectObject(wxNullBitmap);
-
-					// set the shit
-					(*g)->static_bitmap->SetBitmap( bitmap );
 				}
 				break;
 			case GROUP_TYPE_MIXED_TRIGGERS :
 				{
 					const unsigned int trigger_count = ((unsigned int)((*g)->control_group->controls.size() / 2));
-					// setup
-					wxBitmap bitmap( 64+12+1, 12*trigger_count+1);
-					wxMemoryDC dc;
-					dc.SelectObject(bitmap);
-					dc.Clear();
 
 					// draw the shit
 					dc.SetPen(*wxGREY_PEN);
@@ -245,21 +267,20 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					dc.SetBrush(*wxTRANSPARENT_BRUSH);
 					dc.DrawRectangle(thresh*64, 0, 128, trigger_count*14);
 
-					// box outline
-					// Windows XP color
-					dc.SetPen(wxPen(_T("#7f9db9")));
-					dc.DrawRectangle(0, 0, bitmap.GetWidth(), bitmap.GetHeight());
-
-					// done drawing
-					dc.SelectObject(wxNullBitmap);
-
-					// set the shit
-					(*g)->static_bitmap->SetBitmap( bitmap );	
 				}
 				break;
 			default :
 				break;
 			}
+
+			// box outline
+			// Windows XP color
+			dc.SetPen(wxPen(_T("#7f9db9")));
+			dc.SetBrush(*wxTRANSPARENT_BRUSH);
+			dc.DrawRectangle(0, 0, bitmap.GetWidth(), bitmap.GetHeight());
+
+			dc.SelectObject(wxNullBitmap);
+			(*g)->static_bitmap->SetBitmap(bitmap);
 
 			m_plugin.interface_crit.Leave();
 		}

@@ -285,7 +285,8 @@ struct wm_report_ext21
 #define WM_SPEAKER_MUTE 0x19 
 #define WM_WRITE_SPEAKER_DATA 0x18
 struct wm_speaker_data {
-	u8 length;		// shifted left by three bits
+	u8 unknown : 3;
+	u8 length : 5;
 	u8 data[20];
 };
 

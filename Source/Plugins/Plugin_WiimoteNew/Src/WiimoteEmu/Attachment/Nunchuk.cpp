@@ -39,9 +39,10 @@ Nunchuk::Nunchuk() : Attachment( "Nunchuk" )
 	// stick
 	groups.push_back( m_stick = new AnalogStick( "Stick" ) );
 
-	// force
-	//groups.push_back( m_tilt = new Tilt( "Tilt" ) );
-	groups.push_back( m_tilt = new Tilt( "Pitch and Roll" ) );
+	// tilt
+	groups.push_back( m_tilt = new Tilt( "Tilt" ) );
+
+	// swing
 	//groups.push_back( m_swing = new Force( "Swing" ) );
 
 	// shake
@@ -57,7 +58,7 @@ Nunchuk::Nunchuk() : Attachment( "Nunchuk" )
 	memcpy( &reg[0xfa], nunchuck_id, sizeof(nunchuck_id) );
 
 	// this should get set to 0 on disconnect, but it isn't, o well
-	m_shake_step = 0;
+	memset(m_shake_step, 0, sizeof(m_shake_step));
 }
 
 void Nunchuk::GetState( u8* const data, const bool focus )
@@ -68,43 +69,18 @@ void Nunchuk::GetState( u8* const data, const bool focus )
 	m_stick->GetState( &ncdata->jx, &ncdata->jy, 0x80, focus ? 127 : 0 );
 
 	// tilt
-	float x, y;
-	m_tilt->GetState( &x, &y, 0, focus ? (PI / 2) : 0 ); // 90 degrees
+	EmulateTilt((wm_accel*)&ncdata->ax, m_tilt, (accel_cal*)&reg[0x20], focus);
 
-	// this isn't doing anything with those low bits in the calib data, o well
-
-	const accel_cal* const cal = (accel_cal*)&reg[0x20];
-	const u8* const zero_g = &cal->zero_g.x;
-	u8 one_g[3];
-	for ( unsigned int i=0; i<3; ++i )
-		one_g[i] = (&cal->one_g.x)[i] - zero_g[i];
-
-	// this math should be good enough :P
-	ncdata->az = u8(sin( (PI / 2) - std::max( abs(x), abs(y) ) ) * one_g[2] + zero_g[2]);
-	ncdata->ax = u8(sin(x) * -one_g[0] + zero_g[0]);
-	ncdata->ay = u8(sin(y) * one_g[1] + zero_g[1]);
-
-	// shake
-	const unsigned int btns[] = { 0x01, 0x02, 0x04 };
-	unsigned int shake = 0;
 	if (focus)
-		m_shake->GetState( &shake, btns );
-	if (shake)
 	{
-		for ( unsigned int i=0; i<3; ++i )
-			if ( shake & (1 << i) )
-				(&ncdata->ax)[i] = shake_data[m_shake_step];
-		m_shake_step = (m_shake_step + 1) % sizeof(shake_data);
-	}
-	else
-		m_shake_step = 0;
-
-	// buttons
-	if (focus)
+		// shake
+		EmulateShake(&ncdata->ax, m_shake, m_shake_step);
+		// buttons
 		m_buttons->GetState( &ncdata->bt, nunchuk_button_bitmasks );
+	}
 	
 	// flip the button bits :/
-	ncdata->bt ^= 0x3;
+	ncdata->bt ^= 0x03;
 }
 
 

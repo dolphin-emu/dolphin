@@ -4,6 +4,11 @@
 
 #include "DirectInputJoystick.h"
 
+inline bool operator<(const GUID & lhs, const GUID & rhs)
+{
+	return memcmp(&lhs, &rhs, sizeof(GUID)) < 0 ? true : false;
+}
+
 namespace ciface
 {
 namespace DirectInput
@@ -231,8 +236,18 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	}
 	// get up to 6 axes and 2 sliders
 	std::vector<DIDEVICEOBJECTINSTANCE> axes;
+	m_device->EnumObjects( DIEnumDeviceObjectsCallback, (LPVOID)&axes, DIDFT_ABSAXIS );
+
 	unsigned int cur_slider = 0;
-	m_device->EnumObjects( DIEnumDeviceObjectsCallback, (LPVOID)&axes, DIDFT_AXIS );
+
+	// map of axis offsets in joystate dataformat based on axis guidType
+	std::map<GUID,int> types;
+	types[GUID_XAxis] = 0;
+	types[GUID_YAxis] = 1;
+	types[GUID_ZAxis] = 2;
+	types[GUID_RxAxis] = 3;
+	types[GUID_RyAxis] = 4;
+	types[GUID_RzAxis] = 5;
 
 	// going in reverse leaves the list more organized in the end for me :/
 	std::vector<DIDEVICEOBJECTINSTANCE>::const_reverse_iterator i = axes.rbegin(),
@@ -254,24 +269,25 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		if ( DI_OK == m_device->GetProperty( DIPROP_RANGE, &range.diph ) )
 		{
 			int offset = -1;
-			const GUID type = i->guidType;
 
-			// figure out which axis this is
-			if ( type == GUID_XAxis )
-				offset = 0;
-			else if ( type == GUID_YAxis )
-				offset = 1;
-			else if ( type == GUID_ZAxis )
-				offset = 2;
-			else if ( type == GUID_RxAxis )
-				offset = 3;
-			else if ( type == GUID_RyAxis )
-				offset = 4;
-			else if ( type == GUID_RzAxis )
-				offset = 5;
-			else if ( type == GUID_Slider )
-				if ( cur_slider < 2 )
+			if (GUID_Slider ==i->guidType)
+			{
+				// max of 2 sliders / limit of used data format
+				if (cur_slider < 2)
 					offset = 6 + cur_slider++;
+			}
+			else
+			{
+				// don't add duplicate axes, some buggy drivers report the same axis twice
+				const std::map<GUID,int>::iterator f = types.find(i->guidType);
+				if (types.end() != f)
+				{
+					offset = f->second;
+					// remove from the map so it isn't added again
+					types.erase(f);
+				}
+			}
+
 
 			if ( offset >= 0 )
 			{
