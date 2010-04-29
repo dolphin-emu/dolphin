@@ -238,7 +238,7 @@
 				AdditionalDependencies="SDL.lib xinput.lib comctl32.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib openal32.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_WiimoteNew.dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\x64;../../../Externals/OpenAL/Win32/"
+				AdditionalLibraryDirectories="..\..\..\Externals\SDL\win32;..\..\..\Externals\wxWidgets\lib\vc_lib\Win32;../../../Externals/OpenAL/Win32/"
 				GenerateManifest="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
