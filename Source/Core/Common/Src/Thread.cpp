@@ -17,7 +17,6 @@
 
 #include "Setup.h"
 #include "Thread.h"
-#include "Atomic.h"
 #include "Common.h"
 
 #ifdef USE_BEGINTHREADEX
@@ -26,588 +25,491 @@
 
 namespace Common
 {
-
-int Thread::CurrentId()
-{
-	#ifdef _WIN32
-		return GetCurrentThreadId();
-	#else
-		return 0;
-	#endif
-}
-
+	
+	int Thread::CurrentId()
+	{
 #ifdef _WIN32
-
-void InitThreading()
-{
-	// Nothing to do in Win32 build.
-}
-
-CriticalSection::CriticalSection(int spincount)
-{
-	if (spincount)
-	{
-		if (!InitializeCriticalSectionAndSpinCount(&section, spincount))
-			ERROR_LOG(COMMON, "CriticalSection could not be initialized!\n%s", GetLastErrorMsg());
-	}
-	else
-	{
-		InitializeCriticalSection(&section);
-	}
-}
-
-CriticalSection::~CriticalSection()
-{
-	DeleteCriticalSection(&section);
-}
-
-void CriticalSection::Enter()
-{
-	EnterCriticalSection(&section);
-}
-
-bool CriticalSection::TryEnter()
-{
-	return TryEnterCriticalSection(&section) ? true : false;
-}
-
-void CriticalSection::Leave()
-{
-	LeaveCriticalSection(&section);
-}
-
-Thread::Thread(ThreadFunc function, void* arg)
-	: m_hThread(NULL), m_threadId(0)
-{
-#ifdef USE_BEGINTHREADEX
-	m_hThread = (HANDLE)_beginthreadex(NULL, 0, function, arg, 0, &m_threadId);
+		return GetCurrentThreadId();
 #else
-	m_hThread = CreateThread(NULL, 0, function, arg, 0, &m_threadId);
+		return 0;
 #endif
-}
-
-Thread::~Thread()
-{
-	WaitForDeath();
-}
-
-DWORD Thread::WaitForDeath(const int iWait)
-{
-	if (m_hThread)
-	{
-		DWORD Wait = WaitForSingleObject(m_hThread, iWait);
-		CloseHandle(m_hThread);
-		m_hThread = NULL;
-		return Wait;
 	}
-	return NULL;
-}
-
-void Thread::SetAffinity(int mask)
-{
-	SetThreadAffinityMask(m_hThread, mask);
-}
-
-void Thread::SetPriority(int priority)
-{
-	SetThreadPriority(m_hThread, priority);
-}
-
-void Thread::SetCurrentThreadAffinity(int mask)
-{
-	SetThreadAffinityMask(GetCurrentThread(), mask);
-}
-
-bool Thread::IsCurrentThread()
-{
-	return GetCurrentThreadId() == m_threadId;
-}
-
-
-EventEx::EventEx()
-{
-	InterlockedExchange(&m_Lock, 1);
-}
-
-void EventEx::Init()
-{
-	InterlockedExchange(&m_Lock, 1);
-}
-
-void EventEx::Shutdown()
-{
-	InterlockedExchange(&m_Lock, 0);
-}
-
-void EventEx::Set()
-{
-	InterlockedExchange(&m_Lock, 0);
-}
-
-void EventEx::Spin()
-{
-	while (InterlockedCompareExchange(&m_Lock, 1, 0))
-		// This only yields when there is a runnable thread on this core
-		// If not, spin
-		SwitchToThread();
-}
-
-void EventEx::Wait()
-{
-	while (InterlockedCompareExchange(&m_Lock, 1, 0))
-		// This directly enters Ring0 and enforces a sleep about 15ms
-		SleepCurrentThread(1);
-}
-
-bool EventEx::MsgWait()
-{
-	while (InterlockedCompareExchange(&m_Lock, 1, 0))
+	
+#ifdef _WIN32
+	
+	void InitThreading()
 	{
-		MSG msg;
-		while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-		{
-			if (msg.message == WM_QUIT) return false;
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-		// This directly enters Ring0 and enforces a sleep about 15ms
-		SleepCurrentThread(1);
+		// Nothing to do in Win32 build.
 	}
-	return true;
-}
-
-
-// Regular same thread loop based waiting
-Event::Event()
-{
-	m_hEvent = 0;
-}
-
-void Event::Init()
-{
-	m_hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
-}
-
-void Event::Shutdown()
-{
-	CloseHandle(m_hEvent);
-	m_hEvent = 0;
-}
-
-void Event::Set()
-{
-	SetEvent(m_hEvent);
-}
-
-bool Event::Wait(const u32 timeout)
-{
-	return WaitForSingleObject(m_hEvent, timeout) != WAIT_OBJECT_0;
-}
-
-inline HRESULT MsgWaitForSingleObject(HANDLE handle, DWORD timeout)
-{
-	return MsgWaitForMultipleObjects(1, &handle, FALSE, timeout, 0);
-}
-
-void Event::MsgWait()
-{
-	// Adapted from MSDN example http://msdn.microsoft.com/en-us/library/ms687060.aspx
-	while (true)
+	
+	CriticalSection::CriticalSection(int spincount)
 	{
-		DWORD result; 
-		MSG msg; 
-		// Read all of the messages in this next loop, 
-		// removing each message as we read it.
-		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) 
-		{ 
-			// If it is a quit message, exit.
-			if (msg.message == WM_QUIT)  
-				return; 
-			// Otherwise, dispatch the message.
-			TranslateMessage(&msg);
-			DispatchMessage(&msg); 
-		}
-
-		// Wait for any message sent or posted to this queue 
-		// or for one of the passed handles be set to signaled.
-		result = MsgWaitForSingleObject(m_hEvent, THREAD_WAIT_TIMEOUT); 
-
-		// The result tells us the type of event we have.
-		if (result == (WAIT_OBJECT_0 + 1))
+		if (spincount)
 		{
-			// New messages have arrived. 
-			// Continue to the top of the always while loop to 
-			// dispatch them and resume waiting.
-			continue;
-		} 
+			if (!InitializeCriticalSectionAndSpinCount(&section, spincount))
+				ERROR_LOG(COMMON, "CriticalSection could not be initialized!\n%s", GetLastErrorMsg());
+		}
 		else
 		{
-			// result == WAIT_OBJECT_0
-			// Our event got signaled
-			return;
+			InitializeCriticalSection(&section);
 		}
 	}
-}
-
-// Supporting functions
-void SleepCurrentThread(int ms)
-{
-	Sleep(ms);
-}
-
-typedef struct tagTHREADNAME_INFO
-{
-	DWORD dwType; // must be 0x1000
-	LPCSTR szName; // pointer to name (in user addr space)
-	DWORD dwThreadID; // thread ID (-1=caller thread)
-	DWORD dwFlags; // reserved for future use, must be zero
-} THREADNAME_INFO;
-// Usage: SetThreadName (-1, "MainThread");
-//
-// Sets the debugger-visible name of the current thread.
-// Uses undocumented (actually, it is now documented) trick.
-// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vsdebug/html/vxtsksettingthreadname.asp
-
-// This is implemented much nicer in upcoming msvc++, see:
-// http://msdn.microsoft.com/en-us/library/xcb2z8hs(VS.100).aspx
-void SetCurrentThreadName(const TCHAR* szThreadName)
-{
-	THREADNAME_INFO info;
-	info.dwType = 0x1000;
-#ifdef UNICODE
-	//TODO: Find the proper way to do this.
-	char tname[256];
-	unsigned int i;
-
-	for (i = 0; i < _tcslen(szThreadName); i++)
+	
+	CriticalSection::~CriticalSection()
 	{
-		tname[i] = (char)szThreadName[i]; //poor man's unicode->ansi, TODO: fix
+		DeleteCriticalSection(&section);
 	}
-
-	tname[i] = 0;
-	info.szName = tname;
+	
+	void CriticalSection::Enter()
+	{
+		EnterCriticalSection(&section);
+	}
+	
+	bool CriticalSection::TryEnter()
+	{
+		return TryEnterCriticalSection(&section) ? true : false;
+	}
+	
+	void CriticalSection::Leave()
+	{
+		LeaveCriticalSection(&section);
+	}
+	
+	Thread::Thread(ThreadFunc function, void* arg)
+	: m_hThread(NULL), m_threadId(0)
+	{
+#ifdef USE_BEGINTHREADEX
+		m_hThread = (HANDLE)_beginthreadex(NULL, 0, function, arg, 0, &m_threadId);
 #else
-	info.szName = szThreadName;
+		m_hThread = CreateThread(NULL, 0, function, arg, 0, &m_threadId);
 #endif
-
-	info.dwThreadID = -1; //dwThreadID;
-	info.dwFlags = 0;
-	__try
-	{
-		RaiseException(0x406D1388, 0, sizeof(info) / sizeof(DWORD), (ULONG_PTR*)&info);
-	}
-	__except(EXCEPTION_CONTINUE_EXECUTION)
-	{}
-}
-
-#else // !WIN32, so must be POSIX threads
-
-pthread_key_t threadname_key;
-
-CriticalSection::CriticalSection(int spincount_unused)
-{
-	#ifdef __APPLE__
-		lock = OS_SPINLOCK_INIT;
-	#else
-		pthread_mutex_init(&mutex, NULL);
-	#endif
-}
-
-
-CriticalSection::~CriticalSection()
-{
-	#ifndef __APPLE__
-		pthread_mutex_destroy(&mutex);
-	#endif
-}
-
-#ifndef __APPLE__
-void CriticalSection::Enter()
-{
-	int ret = pthread_mutex_lock(&mutex);
-	if (ret) ERROR_LOG(COMMON, "%s: pthread_mutex_lock(%p) failed: %s\n", 
-					__FUNCTION__, &mutex, strerror(ret));
-}
-
-
-bool CriticalSection::TryEnter()
-{
-	return(!pthread_mutex_trylock(&mutex));
-}
-
-
-void CriticalSection::Leave()
-{
-	int ret = pthread_mutex_unlock(&mutex);
-	if (ret) ERROR_LOG(COMMON, "%s: pthread_mutex_unlock(%p) failed: %s\n", 
-					__FUNCTION__, &mutex, strerror(ret));
-}
-#else
-void CriticalSection::Enter()
-{
-	OSSpinLockLock(&lock);
-}
-
-
-bool CriticalSection::TryEnter()
-{
-	return(!OSSpinLockTry(&lock));
-}
-
-
-void CriticalSection::Leave()
-{
-	OSSpinLockUnlock(&lock);
-}
-	
-#endif
-
-Thread::Thread(ThreadFunc function, void* arg)
-	: thread_id(0)
-{
-	pthread_attr_t attr;
-	pthread_attr_init(&attr);
-	pthread_attr_setstacksize(&attr, 1024 * 1024);
-	int ret = pthread_create(&thread_id, &attr, function, arg);
-	if (ret) ERROR_LOG(COMMON, "%s: pthread_create(%p, %p, %p, %p) failed: %s\n", 
-		__FUNCTION__, &thread_id, &attr, function, arg, strerror(ret));
-	
-	INFO_LOG(COMMON, "created new thread %lu (func=%p, arg=%p)\n", thread_id, function, arg);
-}
-
-
-Thread::~Thread()
-{
-	WaitForDeath();
-}
-
-
-void Thread::WaitForDeath()
-{
-	if (thread_id)
-	{
-		void* exit_status;
-		int ret = pthread_join(thread_id, &exit_status);
-		if (ret) ERROR_LOG(COMMON, "error joining thread %lu: %s\n", thread_id, strerror(ret));
-        if (exit_status)
-			ERROR_LOG(COMMON, "thread %lu exited with status %d\n", thread_id, *(int *)exit_status);
-		thread_id = 0;
-	}
-}
-
-
-void Thread::SetAffinity(int mask)
-{
-	// This is non-standard
-#ifdef __linux__
-	cpu_set_t cpu_set;
-	CPU_ZERO(&cpu_set);
-
-	for (unsigned int i = 0; i < sizeof(mask) * 8; i++)
-	{
-		if ((mask >> i) & 1){CPU_SET(i, &cpu_set);}
-	}
-
-	pthread_setaffinity_np(thread_id, sizeof(cpu_set), &cpu_set);
-#endif
-}
-
-void Thread::SetCurrentThreadAffinity(int mask)
-{
-#ifdef __linux__
-	cpu_set_t cpu_set;
-	CPU_ZERO(&cpu_set);
-
-	for (size_t i = 0; i < sizeof(mask) * 8; i++)
-	{
-		if ((mask >> i) & 1){CPU_SET(i, &cpu_set);}
-	}
-
-	pthread_setaffinity_np(pthread_self(), sizeof(cpu_set), &cpu_set);
-#endif
-}
-
-bool Thread::IsCurrentThread()
-{
-	return pthread_equal(pthread_self(), thread_id) != 0;
-}
-
-void InitThreading() {
-	static int thread_init_done = 0;
-	if (thread_init_done)
-		return;
-	
-	if (pthread_key_create(&threadname_key, NULL/*free*/) != 0)
-		perror("Unable to create thread name key: ");
-
-	thread_init_done++;
-}
-
-void SleepCurrentThread(int ms)
-{
-	usleep(1000 * ms);
-}
-
-
-void SetCurrentThreadName(const TCHAR* szThreadName)
-{
-	char *name = strdup(szThreadName);
-	// pthread_setspecific returns 0 on success
-	// free the string from strdup if fails
-	// creates a memory leak if it actually doesn't fail
-	// since we don't delete it once we delete the thread
-	// we are using a single threadname_key anyway for all threads
-	if(!pthread_setspecific(threadname_key, name))
-		free(name);
-	INFO_LOG(COMMON, "%s(%s)\n", __FUNCTION__, szThreadName);
-}
-
-
-Event::Event()
-{
-#ifdef __APPLE__
-	lock = OS_SPINLOCK_INIT;
-	event_ = 0;
-#endif
-	is_set_ = false;
-}
-
-
-void Event::Init()
-{
-#ifndef __APPLE__
-	pthread_cond_init(&event_, 0);
-	pthread_mutex_init(&mutex_, 0);
-#else
-	lock = OS_SPINLOCK_INIT;
-	event_ = 0;
-#endif
-}
-
-
-void Event::Shutdown()
-{
-#ifndef __APPLE__
-	pthread_mutex_destroy(&mutex_);
-	pthread_cond_destroy(&event_);
-#endif
-}
-
-#ifdef __APPLE__
-void Event::Set()
-{
-	OSSpinLockLock(&lock);
-
-	if (!is_set_)
-	{
-		is_set_ = true;
-		Common::AtomicStore(event_, 1);
-	}
-
-	OSSpinLockUnlock(&lock);
-}
-
-
-bool Event::Wait(const u32 timeout)
-{
-	bool timedout = false;
-	struct timespec wait;
-
-	if (timeout != INFINITE) 
-	{
-		struct timeval now;
-		gettimeofday(&now, NULL);
-
-		memset(&wait, 0, sizeof(wait));
-		//TODO: timespec also has nanoseconds, but do we need them?
-		//as consequence, waiting is limited to seconds for now.
-		//the following just looks ridiculous, and probably fails for
-		//values 429 < ms <= 999 since it overflows the long.
-		//wait.tv_nsec = (now.tv_usec + (timeout % 1000) * 1000) * 1000);
-		wait.tv_sec = now.tv_sec + (timeout / 1000);
 	}
 	
-	int Slept = 0;
-	while (!timedout)
+	Thread::~Thread()
 	{
-		if (timeout == INFINITE) 
+		WaitForDeath();
+	}
+	
+	DWORD Thread::WaitForDeath(const int iWait)
+	{
+		if (m_hThread)
 		{
-			if(Common::AtomicLoad(event_) == 1)
-				break;
+			DWORD Wait = WaitForSingleObject(m_hThread, iWait);
+			CloseHandle(m_hThread);
+			m_hThread = NULL;
+			return Wait;
 		}
-		else 
+		return NULL;
+	}
+	
+	void Thread::SetAffinity(int mask)
+	{
+		SetThreadAffinityMask(m_hThread, mask);
+	}
+	
+	void Thread::SetPriority(int priority)
+	{
+		SetThreadPriority(m_hThread, priority);
+	}
+	
+	void Thread::SetCurrentThreadAffinity(int mask)
+	{
+		SetThreadAffinityMask(GetCurrentThread(), mask);
+	}
+	
+	bool Thread::IsCurrentThread()
+	{
+		return GetCurrentThreadId() == m_threadId;
+	}
+	
+	
+	EventEx::EventEx()
+	{
+		InterlockedExchange(&m_Lock, 1);
+	}
+	
+	void EventEx::Init()
+	{
+		InterlockedExchange(&m_Lock, 1);
+	}
+	
+	void EventEx::Shutdown()
+	{
+		InterlockedExchange(&m_Lock, 0);
+	}
+	
+	void EventEx::Set()
+	{
+		InterlockedExchange(&m_Lock, 0);
+	}
+	
+	void EventEx::Spin()
+	{
+		while (InterlockedCompareExchange(&m_Lock, 1, 0))
+			// This only yields when there is a runnable thread on this core
+			// If not, spin
+			SwitchToThread();
+	}
+	
+	void EventEx::Wait()
+	{
+		while (InterlockedCompareExchange(&m_Lock, 1, 0))
+			// This directly enters Ring0 and enforces a sleep about 15ms
+			SleepCurrentThread(1);
+	}
+	
+	bool EventEx::MsgWait()
+	{
+		while (InterlockedCompareExchange(&m_Lock, 1, 0))
 		{
-			if(Slept >= wait.tv_sec * 1000000)
-				timedout = true;
+			MSG msg;
+			while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+			{
+				if (msg.message == WM_QUIT) return false;
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+			// This directly enters Ring0 and enforces a sleep about 15ms
+			SleepCurrentThread(1);
+		}
+		return true;
+	}
+	
+	
+	// Regular same thread loop based waiting
+	Event::Event()
+	{
+		m_hEvent = 0;
+	}
+	
+	void Event::Init()
+	{
+		m_hEvent = CreateEvent(NULL, FALSE, FALSE, NULL);
+	}
+	
+	void Event::Shutdown()
+	{
+		CloseHandle(m_hEvent);
+		m_hEvent = 0;
+	}
+	
+	void Event::Set()
+	{
+		SetEvent(m_hEvent);
+	}
+	
+	bool Event::Wait(const u32 timeout)
+	{
+		return WaitForSingleObject(m_hEvent, timeout) != WAIT_OBJECT_0;
+	}
+	
+	inline HRESULT MsgWaitForSingleObject(HANDLE handle, DWORD timeout)
+	{
+		return MsgWaitForMultipleObjects(1, &handle, FALSE, timeout, 0);
+	}
+	
+	void Event::MsgWait()
+	{
+		// Adapted from MSDN example http://msdn.microsoft.com/en-us/library/ms687060.aspx
+		while (true)
+		{
+			DWORD result; 
+			MSG msg; 
+			// Read all of the messages in this next loop, 
+			// removing each message as we read it.
+			while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) 
+			{ 
+				// If it is a quit message, exit.
+				if (msg.message == WM_QUIT)  
+					return; 
+				// Otherwise, dispatch the message.
+				TranslateMessage(&msg);
+				DispatchMessage(&msg); 
+			}
+			
+			// Wait for any message sent or posted to this queue 
+			// or for one of the passed handles be set to signaled.
+			result = MsgWaitForSingleObject(m_hEvent, THREAD_WAIT_TIMEOUT); 
+			
+			// The result tells us the type of event we have.
+			if (result == (WAIT_OBJECT_0 + 1))
+			{
+				// New messages have arrived. 
+				// Continue to the top of the always while loop to 
+				// dispatch them and resume waiting.
+				continue;
+			} 
 			else
-				if(Common::AtomicLoad(event_) == 1)
-					break;
+			{
+				// result == WAIT_OBJECT_0
+				// Our event got signaled
+				return;
+			}
 		}
-		usleep(250);
-		Slept += 250;
-	}
-
-	OSSpinLockLock(&lock);
-	is_set_ = false;
-	Common::AtomicStore(event_, 0);
-	OSSpinLockUnlock(&lock);
-	
-	return timedout;
-}
-#else
-void Event::Set()
-{
-	pthread_mutex_lock(&mutex_);
-	
-	if (!is_set_)
-	{
-		is_set_ = true;
-		pthread_cond_signal(&event_);
 	}
 	
-	pthread_mutex_unlock(&mutex_);
-}
-
-
-bool Event::Wait(const u32 timeout)
-{
-	bool timedout = false;
-	struct timespec wait;
-	pthread_mutex_lock(&mutex_);
-	
-	if (timeout != INFINITE) 
+	// Supporting functions
+	void SleepCurrentThread(int ms)
 	{
-		struct timeval now;
-		gettimeofday(&now, NULL);
+		Sleep(ms);
+	}
+	
+	typedef struct tagTHREADNAME_INFO
+	{
+		DWORD dwType; // must be 0x1000
+		LPCSTR szName; // pointer to name (in user addr space)
+		DWORD dwThreadID; // thread ID (-1=caller thread)
+		DWORD dwFlags; // reserved for future use, must be zero
+	} THREADNAME_INFO;
+	// Usage: SetThreadName (-1, "MainThread");
+	//
+	// Sets the debugger-visible name of the current thread.
+	// Uses undocumented (actually, it is now documented) trick.
+	// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vsdebug/html/vxtsksettingthreadname.asp
+	
+	// This is implemented much nicer in upcoming msvc++, see:
+	// http://msdn.microsoft.com/en-us/library/xcb2z8hs(VS.100).aspx
+	void SetCurrentThreadName(const TCHAR* szThreadName)
+	{
+		THREADNAME_INFO info;
+		info.dwType = 0x1000;
+#ifdef UNICODE
+		//TODO: Find the proper way to do this.
+		char tname[256];
+		unsigned int i;
 		
-		memset(&wait, 0, sizeof(wait));
-		//TODO: timespec also has nanoseconds, but do we need them?
-		//as consequence, waiting is limited to seconds for now.
-		//the following just looks ridiculous, and probably fails for
-		//values 429 < ms <= 999 since it overflows the long.
-		//wait.tv_nsec = (now.tv_usec + (timeout % 1000) * 1000) * 1000);
-		wait.tv_sec = now.tv_sec + (timeout / 1000);
+		for (i = 0; i < _tcslen(szThreadName); i++)
+		{
+			tname[i] = (char)szThreadName[i]; //poor man's unicode->ansi, TODO: fix
+		}
+		
+		tname[i] = 0;
+		info.szName = tname;
+#else
+		info.szName = szThreadName;
+#endif
+		
+		info.dwThreadID = -1; //dwThreadID;
+		info.dwFlags = 0;
+		__try
+		{
+			RaiseException(0x406D1388, 0, sizeof(info) / sizeof(DWORD), (ULONG_PTR*)&info);
+		}
+		__except(EXCEPTION_CONTINUE_EXECUTION)
+		{}
 	}
 	
-	while (!is_set_ && !timedout)
+#else // !WIN32, so must be POSIX threads
+	
+	pthread_key_t threadname_key;
+	
+	CriticalSection::CriticalSection(int spincount_unused)
 	{
-		if (timeout == INFINITE) 
+		pthread_mutex_init(&mutex, NULL);
+	}
+	
+	
+	CriticalSection::~CriticalSection()
+	{
+		pthread_mutex_destroy(&mutex);
+	}
+	
+	
+	void CriticalSection::Enter()
+	{
+		int ret = pthread_mutex_lock(&mutex);
+		if (ret) ERROR_LOG(COMMON, "%s: pthread_mutex_lock(%p) failed: %s\n", 
+						   __FUNCTION__, &mutex, strerror(ret));
+	}
+	
+	
+	bool CriticalSection::TryEnter()
+	{
+		return(!pthread_mutex_trylock(&mutex));
+	}
+	
+	
+	void CriticalSection::Leave()
+	{
+		int ret = pthread_mutex_unlock(&mutex);
+		if (ret) ERROR_LOG(COMMON, "%s: pthread_mutex_unlock(%p) failed: %s\n", 
+						   __FUNCTION__, &mutex, strerror(ret));
+	}
+	
+	
+	Thread::Thread(ThreadFunc function, void* arg)
+	: thread_id(0)
+	{
+		pthread_attr_t attr;
+		pthread_attr_init(&attr);
+		pthread_attr_setstacksize(&attr, 1024 * 1024);
+		int ret = pthread_create(&thread_id, &attr, function, arg);
+		if (ret) ERROR_LOG(COMMON, "%s: pthread_create(%p, %p, %p, %p) failed: %s\n", 
+						   __FUNCTION__, &thread_id, &attr, function, arg, strerror(ret));
+		
+		INFO_LOG(COMMON, "created new thread %lu (func=%p, arg=%p)\n", thread_id, function, arg);
+	}
+	
+	
+	Thread::~Thread()
+	{
+		WaitForDeath();
+	}
+	
+	
+	void Thread::WaitForDeath()
+	{
+		if (thread_id)
 		{
-			pthread_cond_wait(&event_, &mutex_);
-		}
-		else 
-		{
-			timedout = pthread_cond_timedwait(&event_, &mutex_, &wait) == ETIMEDOUT;
+			void* exit_status;
+			int ret = pthread_join(thread_id, &exit_status);
+			if (ret) ERROR_LOG(COMMON, "error joining thread %lu: %s\n", thread_id, strerror(ret));
+			if (exit_status)
+				ERROR_LOG(COMMON, "thread %lu exited with status %d\n", thread_id, *(int *)exit_status);
+			thread_id = 0;
 		}
 	}
 	
-	is_set_ = false;
-	pthread_mutex_unlock(&mutex_);
 	
-	return timedout;
-}
+	void Thread::SetAffinity(int mask)
+	{
+		// This is non-standard
+#ifdef __linux__
+		cpu_set_t cpu_set;
+		CPU_ZERO(&cpu_set);
+		
+		for (unsigned int i = 0; i < sizeof(mask) * 8; i++)
+		{
+			if ((mask >> i) & 1){CPU_SET(i, &cpu_set);}
+		}
+		
+		pthread_setaffinity_np(thread_id, sizeof(cpu_set), &cpu_set);
 #endif
-
+	}
+	
+	void Thread::SetCurrentThreadAffinity(int mask)
+	{
+#ifdef __linux__
+		cpu_set_t cpu_set;
+		CPU_ZERO(&cpu_set);
+		
+		for (size_t i = 0; i < sizeof(mask) * 8; i++)
+		{
+			if ((mask >> i) & 1){CPU_SET(i, &cpu_set);}
+		}
+		
+		pthread_setaffinity_np(pthread_self(), sizeof(cpu_set), &cpu_set);
 #endif
-
+	}
+	
+	bool Thread::IsCurrentThread()
+	{
+		return pthread_equal(pthread_self(), thread_id) != 0;
+	}
+	
+	void InitThreading() {
+		static int thread_init_done = 0;
+		if (thread_init_done)
+			return;
+		
+		if (pthread_key_create(&threadname_key, NULL/*free*/) != 0)
+			perror("Unable to create thread name key: ");
+		
+		thread_init_done++;
+	}
+	
+	void SleepCurrentThread(int ms)
+	{
+		usleep(1000 * ms);
+	}
+	
+	
+	void SetCurrentThreadName(const TCHAR* szThreadName)
+	{
+		char *name = strdup(szThreadName);
+		// pthread_setspecific returns 0 on success
+		// free the string from strdup if fails
+		// creates a memory leak if it actually doesn't fail
+		// since we don't delete it once we delete the thread
+		// we are using a single threadname_key anyway for all threads
+		if(!pthread_setspecific(threadname_key, name))
+			free(name);
+		INFO_LOG(COMMON, "%s(%s)\n", __FUNCTION__, szThreadName);
+	}
+	
+	
+	Event::Event()
+	{
+		is_set_ = false;
+	}
+	
+	
+	void Event::Init()
+	{
+		pthread_cond_init(&event_, 0);
+		pthread_mutex_init(&mutex_, 0);
+	}
+	
+	
+	void Event::Shutdown()
+	{
+		pthread_mutex_destroy(&mutex_);
+		pthread_cond_destroy(&event_);
+	}
+	
+	
+	void Event::Set()
+	{
+		pthread_mutex_lock(&mutex_);
+		
+		if (!is_set_)
+		{
+			is_set_ = true;
+			pthread_cond_signal(&event_);
+		}
+		
+		pthread_mutex_unlock(&mutex_);
+	}
+	
+	
+	bool Event::Wait(const u32 timeout)
+	{
+		bool timedout = false;
+		struct timespec wait;
+		pthread_mutex_lock(&mutex_);
+		
+		if (timeout != INFINITE) 
+		{
+			struct timeval now;
+			gettimeofday(&now, NULL);
+			
+			memset(&wait, 0, sizeof(wait));
+			//TODO: timespec also has nanoseconds, but do we need them?
+			//as consequence, waiting is limited to seconds for now.
+			//the following just looks ridiculous, and probably fails for
+			//values 429 < ms <= 999 since it overflows the long.
+			//wait.tv_nsec = (now.tv_usec + (timeout % 1000) * 1000) * 1000);
+			wait.tv_sec = now.tv_sec + (timeout / 1000);
+		}
+		
+		while (!is_set_ && !timedout)
+		{
+			if (timeout == INFINITE) 
+			{
+				pthread_cond_wait(&event_, &mutex_);
+			}
+			else 
+			{
+				timedout = pthread_cond_timedwait(&event_, &mutex_, &wait) == ETIMEDOUT;
+			}
+		}
+		
+		is_set_ = false;
+		pthread_mutex_unlock(&mutex_);
+		
+		return timedout;
+	}
+	
+#endif
+	
 } // namespace Common

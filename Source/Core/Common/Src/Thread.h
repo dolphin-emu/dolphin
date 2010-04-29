@@ -47,10 +47,6 @@
 #error unsupported platform (no pthreads?)
 #endif
 
-#ifdef __APPLE__
-#include <libkern/OSAtomic.h>
-#endif
-
 #endif
 
 // Don't include common.h here as it will break LogManager
@@ -60,9 +56,9 @@
 
 // This may not be defined outside _WIN32
 #ifndef _WIN32
-	#ifndef INFINITE
-	#define INFINITE 0xffffffff
-	#endif
+#ifndef INFINITE
+#define INFINITE 0xffffffff
+#endif
 
 //for gettimeofday and struct time(val|spec)
 #include <sys/time.h>
@@ -72,169 +68,159 @@
 
 namespace Common
 {
-
-class CriticalSection
-{
+	
+	class CriticalSection
+	{
 #ifdef _WIN32
-	CRITICAL_SECTION section;
+		CRITICAL_SECTION section;
 #else
 #ifdef _POSIX_THREADS
-	#ifdef __APPLE__
-		OSSpinLock lock;
-	#else
 		pthread_mutex_t mutex;
-	#endif
 #endif
 #endif
-public:
-
-	CriticalSection(int spincount = 1000);
-	~CriticalSection();
-	void Enter();
-	bool TryEnter();
-	void Leave();
-};
-
+	public:
+		
+		CriticalSection(int spincount = 1000);
+		~CriticalSection();
+		void Enter();
+		bool TryEnter();
+		void Leave();
+	};
+	
 #ifdef _WIN32
-
+	
 #ifdef USE_BEGINTHREADEX
-typedef unsigned (__stdcall *ThreadFunc)(void* arg);
+	typedef unsigned (__stdcall *ThreadFunc)(void* arg);
 #else
-typedef DWORD (WINAPI *ThreadFunc)(void* arg);
+	typedef DWORD (WINAPI *ThreadFunc)(void* arg);
 #endif
-
+	
 #else
-
-typedef void* (*ThreadFunc)(void* arg);
-
+	
+	typedef void* (*ThreadFunc)(void* arg);
+	
 #endif
-
-class Thread
-{
-public:
-	Thread(ThreadFunc entry, void* arg);
-	~Thread();
-
-	void SetAffinity(int mask);
-	static void SetCurrentThreadAffinity(int mask);
-	static int CurrentId();
-	bool IsCurrentThread();
+	
+	class Thread
+	{
+	public:
+		Thread(ThreadFunc entry, void* arg);
+		~Thread();
+		
+		void SetAffinity(int mask);
+		static void SetCurrentThreadAffinity(int mask);
+		static int CurrentId();
+		bool IsCurrentThread();
 #ifdef _WIN32	
-	void SetPriority(int priority);
-	DWORD WaitForDeath(const int iWait = INFINITE);
+		void SetPriority(int priority);
+		DWORD WaitForDeath(const int iWait = INFINITE);
 #else
-	void WaitForDeath();
+		void WaitForDeath();
 #endif
-
-private:
-
+		
+	private:
+		
 #ifdef _WIN32
-
-	HANDLE m_hThread;
+		
+		HANDLE m_hThread;
 #ifdef USE_BEGINTHREADEX
-	unsigned m_threadId;
+		unsigned m_threadId;
 #else
-	DWORD m_threadId;
+		DWORD m_threadId;
 #endif
-
+		
 #else
-
+		
 #ifdef _POSIX_THREADS
-	pthread_t thread_id;
+		pthread_t thread_id;
 #endif
-
+		
 #endif
-};
-
+	};
+	
 #ifdef _WIN32
-// Event(WaitForSingleObject) is too expensive
-// as it always enters Ring0 regardless of the state of lock
-// This EventEx will try to stay in Ring3 as much as possible
-// If the lock can be obtained in the first time, Ring0 won't be entered at all
-class EventEx
-{
-public:
-	EventEx();
-	void Init();
-	void Shutdown();
-	void Set();
-	// Infinite wait
-	void Spin();
-	// Infinite wait with sleep
-	void Wait();
-	// Wait with message processing and sleep
-	bool MsgWait();
-private:
-	volatile long m_Lock;
-};
+	// Event(WaitForSingleObject) is too expensive
+	// as it always enters Ring0 regardless of the state of lock
+	// This EventEx will try to stay in Ring3 as much as possible
+	// If the lock can be obtained in the first time, Ring0 won't be entered at all
+	class EventEx
+	{
+	public:
+		EventEx();
+		void Init();
+		void Shutdown();
+		void Set();
+		// Infinite wait
+		void Spin();
+		// Infinite wait with sleep
+		void Wait();
+		// Wait with message processing and sleep
+		bool MsgWait();
+	private:
+		volatile long m_Lock;
+	};
 #else
-// TODO: implement for Linux
+	// TODO: implement for Linux
 #define EventEx	Event
 #endif
-
-class Event
-{
-public:
-	Event();
-
-	void Init();
-	void Shutdown();
-
-	void Set();
-	//returns whether the wait timed out
-	bool Wait(const u32 timeout = INFINITE);
+	
+	class Event
+	{
+	public:
+		Event();
+		void Init();
+		void Shutdown();
+		
+		void Set();
+		//returns whether the wait timed out
+		bool Wait(const u32 timeout = INFINITE);
 #ifdef _WIN32
-	void MsgWait();
+		void MsgWait();
 #else
-	void MsgWait() {Wait();}
+		void MsgWait() {Wait();}
 #endif
-
-
-private:
+		
+		
+	private:
 #ifdef _WIN32
-
-	HANDLE m_hEvent;
-	/* If we have waited more than five seconds we can be pretty sure that the thread is deadlocked.
-	   So then we can just as well continue and hope for the best. I could try several times that
-	   this works after a five second timeout (with works meaning that the game stopped and I could
-	   start another game without any noticable problems). But several times it failed to, and ended
-	   with a crash. But it's better than an infinite deadlock. */
-	static const int THREAD_WAIT_TIMEOUT = 5000; // INFINITE or 5000 for example
-
+		
+		HANDLE m_hEvent;
+		/* If we have waited more than five seconds we can be pretty sure that the thread is deadlocked.
+		 So then we can just as well continue and hope for the best. I could try several times that
+		 this works after a five second timeout (with works meaning that the game stopped and I could
+		 start another game without any noticable problems). But several times it failed to, and ended
+		 with a crash. But it's better than an infinite deadlock. */
+		static const int THREAD_WAIT_TIMEOUT = 5000; // INFINITE or 5000 for example
+		
 #else
-
-	bool is_set_;
+		
+		bool is_set_;
 #ifdef _POSIX_THREADS
-#ifdef __APPLE__
-	OSSpinLock lock;
-	u32 event_;
-#else
-	pthread_cond_t event_;
-	pthread_mutex_t mutex_;
+		pthread_cond_t event_;
+		pthread_mutex_t mutex_;
 #endif
+		
 #endif
-
-#endif
-};
-
-void InitThreading();
-void SleepCurrentThread(int ms);
-
-// YieldCPU: This function is only effective on HyperThreading CPU
-// Use this function during a spin-wait to make the current thread
-// relax while another thread is working. This may be more efficient
-// than using events because event functions use kernel calls.
-inline void YieldCPU()
-{
+	};
+	
+	void InitThreading();
+	void SleepCurrentThread(int ms);
+	
+	// YieldCPU: This function is only effective on HyperThreading CPU
+	// Use this function during a spin-wait to make the current thread
+	// relax while another thread is working. This may be more efficient
+	// than using events because event functions use kernel calls.
+	inline void YieldCPU()
+	{
 #ifdef _WIN32
-	YieldProcessor();
+		YieldProcessor();
 #elif defined(_M_IX86) || defined(_M_X64)
-	_mm_pause();
+		_mm_pause();
 #endif
-}
-
-void SetCurrentThreadName(const char *name);
-
+	}
+	
+	void SetCurrentThreadName(const char *name);
+	
 } // namespace Common
 
 #endif // _THREAD_H_
