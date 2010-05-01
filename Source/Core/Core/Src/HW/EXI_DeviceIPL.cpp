@@ -415,7 +415,12 @@ u32 CEXIIPL::GetGCTime()
     u64 ltime = Common::Timer::GetTimeSinceJan1970();
     return ((u32)ltime - cJanuary2000 - Bias);
 #else
-	u64 ltime = Common::Timer::GetLocalTimeSinceJan1970();
+
+	// hack in some netplay stuff
+	u64 ltime = GetNetGCTime();
+	if (0 == ltime)
+		ltime = Common::Timer::GetLocalTimeSinceJan1970();
+
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
 		return ((u32)ltime - cJanuary2000 - cWiiBias/* + 32434790*/);
 	else

@@ -32,6 +32,8 @@ public:
 	void DoState(PointerWrap &p);
 
 	static u32 GetGCTime();
+	static u32 GetNetGCTime();
+
 	static void Descrambler(u8* data, u32 size);
 
 private:
