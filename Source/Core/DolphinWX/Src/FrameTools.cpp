@@ -186,9 +186,7 @@ void CFrame::CreateMenu()
 	toolsMenu->Append(IDM_IMPORTSAVE, _T("Wii Save Import (experimental)"));
 	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
 
-#if defined(HAVE_SFML) && HAVE_SFML
 	toolsMenu->Append(IDM_NETPLAY, _T("Start &NetPlay"));
-#endif
 
 	if (DiscIO::CNANDContentManager::Access().GetNANDLoader(std::string (File::GetUserPath(D_WIIMENU_IDX))).IsValid())
 	{
@@ -998,9 +996,7 @@ void CFrame::StatusBarMessage(const char * Text, ...)
 // NetPlay stuff
 void CFrame::OnNetPlay(wxCommandEvent& WXUNUSED (event))
 {
-#if defined(HAVE_SFML) && HAVE_SFML
 	new NetPlaySetupDiag(this, m_GameListCtrl);
-#endif
 }
 
 void CFrame::OnMemcard(wxCommandEvent& WXUNUSED (event))

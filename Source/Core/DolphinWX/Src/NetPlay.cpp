@@ -18,10 +18,10 @@
 #include "HW/SI_DeviceGCController.h"
 #include "HW/EXI_DeviceIPL.h"
 
-#include "Frame.h"
-
 #include "NetPlay.h"
 #include "NetWindow.h"
+
+#include "Frame.h"
 
 #include <sstream>
 

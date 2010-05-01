@@ -221,8 +221,8 @@ void NetPlaySetupDiag::OnQuit(wxCommandEvent& event)
 NetPlayDiag::NetPlayDiag(wxWindow* parent, const CGameListCtrl* const game_list
 						 , const std::string& game, const bool is_hosting)
 	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR), wxDefaultPosition, wxDefaultSize)
-	, m_game_list(game_list)
 	, m_selected_game(game)
+	, m_game_list(game_list)
 {
 	wxPanel* const panel = new wxPanel(this);
 
