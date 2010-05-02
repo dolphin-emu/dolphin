@@ -400,7 +400,7 @@ void NetPlay::UpdateGUI()
 	if (m_dialog)
 	{
 		wxCommandEvent evt(wxEVT_THREAD, 1);
-		m_dialog->AddPendingEvent(evt);
+		m_dialog->GetEventHandler()->AddPendingEvent(evt);
 	}
 }
 
@@ -586,7 +586,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			// update gui
 			wxCommandEvent evt(wxEVT_THREAD, 45);
 			evt.SetString(wxString(m_selected_game.c_str(), *wxConvCurrent));
-			m_dialog->AddPendingEvent(evt);
+			m_dialog->GetEventHandler()->AddPendingEvent(evt);
 		}
 		break;
 
@@ -594,7 +594,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 		{
 			// kinda silly
 			wxCommandEvent evt(wxEVT_THREAD, 46);
-			m_dialog->AddPendingEvent(evt);
+			m_dialog->GetEventHandler()->AddPendingEvent(evt);
 		}
 		break;
 	

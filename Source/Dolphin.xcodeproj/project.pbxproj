@@ -486,11 +486,6 @@
 		292AC3BB11838FD700B8790B /* GCMemcard.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABFAE11838FD600B8790B /* GCMemcard.h */; };
 		292AC3BC11838FD700B8790B /* WiiSaveCrypted.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABFAF11838FD600B8790B /* WiiSaveCrypted.cpp */; };
 		292AC3BD11838FD700B8790B /* WiiSaveCrypted.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABFB011838FD600B8790B /* WiiSaveCrypted.h */; };
-		292AC3BE11838FD700B8790B /* NetEvent.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABFB111838FD600B8790B /* NetEvent.cpp */; };
-		292AC3BF11838FD700B8790B /* NetFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABFB211838FD600B8790B /* NetFunctions.cpp */; };
-		292AC3C011838FD700B8790B /* NetSockets.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABFB311838FD600B8790B /* NetSockets.cpp */; };
-		292AC3C111838FD700B8790B /* NetSockets.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABFB411838FD600B8790B /* NetSockets.h */; };
-		292AC3C211838FD700B8790B /* NetStructs.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABFB511838FD600B8790B /* NetStructs.h */; };
 		292AC3C311838FD700B8790B /* NetWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABFB611838FD600B8790B /* NetWindow.cpp */; };
 		292AC3C411838FD700B8790B /* NetWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABFB711838FD600B8790B /* NetWindow.h */; };
 		292AC3C511838FD700B8790B /* PatchAddEdit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABFB911838FD600B8790B /* PatchAddEdit.cpp */; };
@@ -958,6 +953,9 @@
 		298D72BB11867D970096937B /* OSXKeyboard.h in Headers */ = {isa = PBXBuildFile; fileRef = 298D72BA11867D970096937B /* OSXKeyboard.h */; };
 		298D731E118699AD0096937B /* OSXMouse.mm in Sources */ = {isa = PBXBuildFile; fileRef = 298D731C118699AD0096937B /* OSXMouse.mm */; };
 		298D731F118699AD0096937B /* OSXMouse.h in Headers */ = {isa = PBXBuildFile; fileRef = 298D731D118699AD0096937B /* OSXMouse.h */; };
+		29BBA8FA118E12C600AE24E0 /* LockingQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = 29BBA8F7118E12C600AE24E0 /* LockingQueue.h */; };
+		29BBA8FB118E12C600AE24E0 /* NetPlay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 29BBA8F8118E12C600AE24E0 /* NetPlay.cpp */; };
+		29BBA8FC118E12C600AE24E0 /* NetPlay.h in Headers */ = {isa = PBXBuildFile; fileRef = 29BBA8F9118E12C600AE24E0 /* NetPlay.h */; };
 		29D1528F118634B400CC2741 /* OSXKeyboard.mm in Sources */ = {isa = PBXBuildFile; fileRef = 29D1528E118634B400CC2741 /* OSXKeyboard.mm */; };
 		29D152AC1186461800CC2741 /* NamedKeys.h in Headers */ = {isa = PBXBuildFile; fileRef = 29D152AB1186461800CC2741 /* NamedKeys.h */; };
 		5232B1F10EEB634D0093A7B1 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5232B1F00EEB634D0093A7B1 /* Cocoa.framework */; };
@@ -1813,11 +1811,6 @@
 		292ABFAE11838FD600B8790B /* GCMemcard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GCMemcard.h; sourceTree = "<group>"; };
 		292ABFAF11838FD600B8790B /* WiiSaveCrypted.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = WiiSaveCrypted.cpp; sourceTree = "<group>"; };
 		292ABFB011838FD600B8790B /* WiiSaveCrypted.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WiiSaveCrypted.h; sourceTree = "<group>"; };
-		292ABFB111838FD600B8790B /* NetEvent.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetEvent.cpp; sourceTree = "<group>"; };
-		292ABFB211838FD600B8790B /* NetFunctions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetFunctions.cpp; sourceTree = "<group>"; };
-		292ABFB311838FD600B8790B /* NetSockets.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetSockets.cpp; sourceTree = "<group>"; };
-		292ABFB411838FD600B8790B /* NetSockets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetSockets.h; sourceTree = "<group>"; };
-		292ABFB511838FD600B8790B /* NetStructs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetStructs.h; sourceTree = "<group>"; };
 		292ABFB611838FD600B8790B /* NetWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetWindow.cpp; sourceTree = "<group>"; };
 		292ABFB711838FD600B8790B /* NetWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetWindow.h; sourceTree = "<group>"; };
 		292ABFB811838FD600B8790B /* Params.ggo */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Params.ggo; sourceTree = "<group>"; };
@@ -2322,6 +2315,9 @@
 		298D72BA11867D970096937B /* OSXKeyboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OSXKeyboard.h; sourceTree = "<group>"; };
 		298D731C118699AD0096937B /* OSXMouse.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OSXMouse.mm; sourceTree = "<group>"; };
 		298D731D118699AD0096937B /* OSXMouse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OSXMouse.h; sourceTree = "<group>"; };
+		29BBA8F7118E12C600AE24E0 /* LockingQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LockingQueue.h; sourceTree = "<group>"; };
+		29BBA8F8118E12C600AE24E0 /* NetPlay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetPlay.cpp; sourceTree = "<group>"; };
+		29BBA8F9118E12C600AE24E0 /* NetPlay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetPlay.h; sourceTree = "<group>"; };
 		29D1528E118634B400CC2741 /* OSXKeyboard.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = OSXKeyboard.mm; sourceTree = "<group>"; };
 		29D152AB1186461800CC2741 /* NamedKeys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NamedKeys.h; sourceTree = "<group>"; };
 		5048396D09E3307300765E4B /* DolphinProj.xcconfig */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xcconfig; path = DolphinProj.xcconfig; sourceTree = "<group>"; };
@@ -3403,6 +3399,7 @@
 				292ABF9F11838FD600B8790B /* ISOFile.h */,
 				292ABFA011838FD600B8790B /* ISOProperties.cpp */,
 				292ABFA111838FD600B8790B /* ISOProperties.h */,
+				29BBA8F7118E12C600AE24E0 /* LockingQueue.h */,
 				292ABFA211838FD600B8790B /* LogWindow.cpp */,
 				292ABFA311838FD600B8790B /* LogWindow.h */,
 				292ABFA411838FD600B8790B /* LuaWindow.cpp */,
@@ -3413,11 +3410,8 @@
 				292ABFA911838FD600B8790B /* MemcardManager.cpp */,
 				292ABFAA11838FD600B8790B /* MemcardManager.h */,
 				292ABFAB11838FD600B8790B /* MemoryCards */,
-				292ABFB111838FD600B8790B /* NetEvent.cpp */,
-				292ABFB211838FD600B8790B /* NetFunctions.cpp */,
-				292ABFB311838FD600B8790B /* NetSockets.cpp */,
-				292ABFB411838FD600B8790B /* NetSockets.h */,
-				292ABFB511838FD600B8790B /* NetStructs.h */,
+				29BBA8F8118E12C600AE24E0 /* NetPlay.cpp */,
+				29BBA8F9118E12C600AE24E0 /* NetPlay.h */,
 				292ABFB611838FD600B8790B /* NetWindow.cpp */,
 				292ABFB711838FD600B8790B /* NetWindow.h */,
 				292ABFB811838FD600B8790B /* Params.ggo */,
@@ -4628,8 +4622,6 @@
 				292AC3B911838FD700B8790B /* MemcardManager.h in Headers */,
 				292AC3BB11838FD700B8790B /* GCMemcard.h in Headers */,
 				292AC3BD11838FD700B8790B /* WiiSaveCrypted.h in Headers */,
-				292AC3C111838FD700B8790B /* NetSockets.h in Headers */,
-				292AC3C211838FD700B8790B /* NetStructs.h in Headers */,
 				292AC3C411838FD700B8790B /* NetWindow.h in Headers */,
 				292AC3C611838FD700B8790B /* PatchAddEdit.h in Headers */,
 				292AC3C811838FD700B8790B /* stdafx.h in Headers */,
@@ -4861,6 +4853,8 @@
 				29D152AC1186461800CC2741 /* NamedKeys.h in Headers */,
 				298D72BB11867D970096937B /* OSXKeyboard.h in Headers */,
 				298D731F118699AD0096937B /* OSXMouse.h in Headers */,
+				29BBA8FA118E12C600AE24E0 /* LockingQueue.h in Headers */,
+				29BBA8FC118E12C600AE24E0 /* NetPlay.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -5674,9 +5668,6 @@
 				292AC3B811838FD700B8790B /* MemcardManager.cpp in Sources */,
 				292AC3BA11838FD700B8790B /* GCMemcard.cpp in Sources */,
 				292AC3BC11838FD700B8790B /* WiiSaveCrypted.cpp in Sources */,
-				292AC3BE11838FD700B8790B /* NetEvent.cpp in Sources */,
-				292AC3BF11838FD700B8790B /* NetFunctions.cpp in Sources */,
-				292AC3C011838FD700B8790B /* NetSockets.cpp in Sources */,
 				292AC3C311838FD700B8790B /* NetWindow.cpp in Sources */,
 				292AC3C511838FD700B8790B /* PatchAddEdit.cpp in Sources */,
 				292AC3C711838FD700B8790B /* stdafx.cpp in Sources */,
@@ -5915,6 +5906,7 @@
 				292AC58D11838FD700B8790B /* WiimoteNew.cpp in Sources */,
 				29D1528F118634B400CC2741 /* OSXKeyboard.mm in Sources */,
 				298D731E118699AD0096937B /* OSXMouse.mm in Sources */,
+				29BBA8FB118E12C600AE24E0 /* NetPlay.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
