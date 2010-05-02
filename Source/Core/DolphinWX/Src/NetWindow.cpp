@@ -30,7 +30,7 @@ END_EVENT_TABLE()
 
 NetPlay* netplay_ptr = NULL;
 
-NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* parent, const CGameListCtrl* const game_list)
+NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* const game_list)
 	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR), wxDefaultPosition, wxDefaultSize)
 	, m_game_list(game_list)
 {
@@ -63,7 +63,6 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* parent, const CGameListCtrl* const 
 	m_connect_port_text = new wxTextCtrl(connect_tab, wxID_ANY, wxT("2626"));
 
 	wxButton* const connect_btn = new wxButton(connect_tab, wxID_ANY, wxT("Connect"));
-	//connect_button->Disable();
 	_connect_macro_(connect_btn, NetPlaySetupDiag::OnJoin, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	wxStaticText* const alert_lbl = new wxStaticText(connect_tab, wxID_ANY
@@ -100,7 +99,6 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* parent, const CGameListCtrl* const 
 	m_host_port_text = new wxTextCtrl(host_tab, wxID_ANY, wxT("2626"));
 
 	wxButton* const host_btn = new wxButton(host_tab, wxID_ANY, wxT("Host"));
-	//host_button->Disable();
 	_connect_macro_(host_btn, NetPlaySetupDiag::OnHost, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	m_game_lbox = new wxListBox(host_tab, wxID_ANY);
@@ -136,7 +134,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* parent, const CGameListCtrl* const 
 	panel->SetSizerAndFit(main_szr);
 
 	//wxBoxSizer* const diag_szr = new wxBoxSizer(wxVERTICAL);
-	//diag_szr->Add(panel);
+	//diag_szr->Add(panel, 1, wxEXPAND);
 	//SetSizerAndFit(diag_szr);
 
 	main_szr->SetSizeHints(this);
@@ -223,7 +221,7 @@ void NetPlaySetupDiag::OnQuit(wxCommandEvent& event)
 	Destroy();
 }
 
-NetPlayDiag::NetPlayDiag(wxWindow* parent, const CGameListCtrl* const game_list
+NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game_list
 						 , const std::string& game, const bool is_hosting)
 	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR), wxDefaultPosition, wxDefaultSize)
 	, m_selected_game(game)
@@ -234,7 +232,11 @@ NetPlayDiag::NetPlayDiag(wxWindow* parent, const CGameListCtrl* const game_list
 	// top crap
 	m_game_btn = new wxButton(panel, wxID_ANY
 		, wxString(m_selected_game.c_str(), *wxConvCurrent).Prepend(wxT(" Game : ")), wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-	m_game_btn->Disable();
+	
+	if (is_hosting)
+		_connect_macro_(m_game_btn, NetPlayDiag::OnChangeGame, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	else
+		m_game_btn->Disable();
 
 	// middle crap
 
@@ -283,6 +285,9 @@ NetPlayDiag::NetPlayDiag(wxWindow* parent, const CGameListCtrl* const game_list
 		wxButton* const start_btn = new wxButton(panel, wxID_ANY, wxT("Start"));
 		_connect_macro_(start_btn, NetPlayDiag::OnStart, wxEVT_COMMAND_BUTTON_CLICKED, this);
 		bottom_szr->Add(start_btn);
+		wxButton* const stop_btn = new wxButton(panel, wxID_ANY, wxT("Stop [buggy]"));
+		_connect_macro_(stop_btn, NetPlayDiag::OnStop, wxEVT_COMMAND_BUTTON_CLICKED, this);
+		bottom_szr->Add(stop_btn);
 	}
 		
 	bottom_szr->AddStretchSpacer(1);
@@ -351,6 +356,14 @@ void NetPlayDiag::OnStart(wxCommandEvent& event)
 		PanicAlert("Game not found!!");
 }
 
+void NetPlayDiag::OnStop(wxCommandEvent& event)
+{
+	// warning removal
+	event.GetId();
+
+	::netplay_ptr->StopGame();
+}
+
 void NetPlayDiag::OnQuit(wxCommandEvent& event)
 {
 	// warning removal
@@ -376,15 +389,26 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 
 	switch (event.GetId())
 	{
-	case 45 :
+	case NP_GUI_EVT_CHANGE_GAME :
 		// update selected game :/
+		{
 		m_selected_game.assign(event.GetString().mb_str());
 		m_game_btn->SetLabel(event.GetString().Prepend(wxT(" Game : ")));
+		}
 		break;
-	case 46 :
+	case NP_GUI_EVT_START_GAME :
 		// client start game :/
+		{
 		wxCommandEvent evt;
 		OnStart(evt);
+		}
+		break;
+	case NP_GUI_EVT_STOP_GAME :
+		// client stop game
+		{
+		wxCommandEvent evt;
+		OnStop(evt);
+		}
 		break;
 	}
 
@@ -396,4 +420,60 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 		//PanicAlert("message: %s", s.c_str());
 		m_chat_text->AppendText(wxString(s.c_str(), *wxConvCurrent).Append(wxT('\n')));
 	}
+}
+
+void NetPlayDiag::OnChangeGame(wxCommandEvent& event)
+{
+	// warning removal
+	event.GetId();
+
+	wxString game_name;
+	ChangeGameDiag* const cgd = new ChangeGameDiag(this, m_game_list, game_name);
+	cgd->ShowModal();
+
+	if (game_name.length())
+	{
+		m_selected_game = std::string(game_name.mb_str());
+		::netplay_ptr->ChangeGame(m_selected_game);
+		m_game_btn->SetLabel(game_name.Prepend(wxT(" Game : ")));
+	}
+}
+
+ChangeGameDiag::ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* const game_list, wxString& game_name)
+	: wxDialog(parent, wxID_ANY, wxT("Change Game"), wxDefaultPosition, wxDefaultSize)
+	, m_game_name(game_name)
+{
+	wxPanel* const panel = new wxPanel(this);
+
+	m_game_lbox = new wxListBox(panel, wxID_ANY);
+	_connect_macro_(m_game_lbox, ChangeGameDiag::OnPick, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, this);
+
+	// fill list with games
+	std::istringstream ss(game_list->GetGameNames());
+	std::string game;
+	while (std::getline(ss,game))
+		m_game_lbox->Append(wxString(game.c_str(), *wxConvCurrent));
+
+	wxButton* const ok_btn = new wxButton(panel, wxID_ANY, wxT("Change"));
+	_connect_macro_(ok_btn, ChangeGameDiag::OnPick, wxEVT_COMMAND_BUTTON_CLICKED, this);
+
+	wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
+	szr->Add(m_game_lbox, 1, wxLEFT | wxRIGHT | wxTOP | wxEXPAND, 5);
+	szr->Add(ok_btn, 0, wxALL | wxALIGN_RIGHT, 5);
+
+	panel->SetSizerAndFit(szr);
+
+	wxBoxSizer* const dlg_szr = new wxBoxSizer(wxVERTICAL);
+	dlg_szr->Add(panel, 1, wxEXPAND);
+	SetSizerAndFit(dlg_szr);
+}
+
+void ChangeGameDiag::OnPick(wxCommandEvent& event)
+{
+	// warning removal
+	event.GetId();
+
+	// return the selected game name
+	m_game_name = m_game_lbox->GetStringSelection();
+	Destroy();
 }

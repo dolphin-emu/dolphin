@@ -30,7 +30,7 @@ public:
 	u32 nLo;
 };
 
-#define NETPLAY_VERSION		"Dolphin NetPlay 2.0"
+#define NETPLAY_VERSION		"Dolphin NetPlay 2.1"
 
 #ifdef _M_X64
 	#define	NP_ARCH "x64"
@@ -58,6 +58,7 @@ public:
 
 #define NP_MSG_START_GAME		0xA0
 #define NP_MSG_CHANGE_GAME		0xA1
+#define NP_MSG_STOP_GAME		0xA2
 
 #define NP_MSG_READY			0xD0
 #define NP_MSG_NOT_READY		0xD1
@@ -85,20 +86,35 @@ public:
 	
 	// Send and receive pads values
 	virtual bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues) = 0;
-	virtual bool SetSelectedGame(const std::string& game) = 0;
+	virtual bool ChangeGame(const std::string& game) = 0;
 	virtual void GetPlayerList(std::string& list) = 0;
 	virtual void SendChatMessage(const std::string& msg) = 0;
-	virtual bool StartGame(const std::string &path) = 0;
+
+	virtual bool StartGame(const std::string &path);
+	virtual bool StopGame();
 
 protected:
 	//NetPlay(Common::ThreadFunc entry, void* arg) : m_thread(entry, arg) {}
-
+	void NetPlay::GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);
 	void UpdateGUI();
+	void AppendChatGUI(const std::string& msg);
 
 	struct
 	{
 		Common::CriticalSection	send, players, buffer, other;
 	} m_crit;
+
+	class Player
+	{
+	public:
+		Player();
+		std::string ToString() const;
+
+		PlayerId		pid;
+		std::string		name;
+		PadMapping		pad_map[4];
+		std::string		revision;
+	};
 
 	//LockingQueue<NetPad>	m_pad_buffer[4];
 	std::queue<NetPad>	m_pad_buffer[4];
@@ -128,21 +144,17 @@ public:
 
 	// Send and receive pads values
 	bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
-	bool SetSelectedGame(const std::string& game);
+	bool ChangeGame(const std::string& game);
 	void SendChatMessage(const std::string& msg);
+
 	bool StartGame(const std::string &path);
+	bool StopGame();
 
 private:
-	class Player
+	class Client : public Player
 	{
 	public:
-		Player();
-
-		PlayerId		pid;
 		sf::SocketTCP	socket;
-		std::string		name;
-		PadMapping		pad_map[4];
-		std::string		revision;
 	};
 
 	void SendToClients(sf::Packet& packet, const PlayerId skip_pid = 0);
@@ -150,7 +162,7 @@ private:
 	unsigned int OnDisconnect(sf::SocketTCP& socket);
 	unsigned int OnData(sf::Packet& packet, sf::SocketTCP& socket);
 
-	std::map<sf::SocketTCP, Player>	m_players;
+	std::map<sf::SocketTCP, Client>	m_players;
 };
 
 class NetPlayClient : public NetPlay
@@ -165,22 +177,10 @@ public:
 
 	// Send and receive pads values
 	bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
-	bool SetSelectedGame(const std::string& game);
+	bool ChangeGame(const std::string& game);
 	void SendChatMessage(const std::string& msg);
-	bool StartGame(const std::string &path);
 
 private:
-	class Player
-	{
-	public:
-		Player();
-
-		PlayerId		pid;
-		std::string		name;
-		PadMapping		pad_map[4];
-		std::string		revision;
-	};
-
 	unsigned int OnData(sf::Packet& packet);
 
 	PlayerId		m_pid;

@@ -48,10 +48,17 @@
 
 #include "LockingQueue.h"
 
+enum
+{
+	NP_GUI_EVT_CHANGE_GAME = 45,
+	NP_GUI_EVT_START_GAME,
+	NP_GUI_EVT_STOP_GAME,
+};
+
 class NetPlaySetupDiag : public wxFrame
 {
 public:
-	NetPlaySetupDiag(wxWindow* parent, const CGameListCtrl* const game_list);
+	NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* const game_list);
 
 private:
 	void OnJoin(wxCommandEvent& event);
@@ -71,7 +78,7 @@ private:
 class NetPlayDiag : public wxFrame
 {
 public:
-	NetPlayDiag(wxWindow* parent, const CGameListCtrl* const game_list
+	NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game_list
 		, const std::string& game, const bool is_hosting = false);
 	~NetPlayDiag();
 
@@ -79,6 +86,7 @@ public:
 	//std::string				chat_msg;
 
 	void OnStart(wxCommandEvent& event);
+	void OnStop(wxCommandEvent& event);
 
 private:
     DECLARE_EVENT_TABLE()
@@ -86,6 +94,7 @@ private:
 	void OnChat(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
 	void OnThread(wxCommandEvent& event);
+	void OnChangeGame(wxCommandEvent& event);
 
 	wxListBox*		m_player_lbox;
 	wxTextCtrl*		m_chat_text;
@@ -99,6 +108,18 @@ private:
 };
 
 DECLARE_EVENT_TYPE(wxEVT_THREAD, -1)
+
+class ChangeGameDiag : public wxDialog
+{
+public:
+	ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* const game_list, wxString& game_name);
+
+private:
+	void OnPick(wxCommandEvent& event);
+
+	wxListBox*		m_game_lbox;
+	wxString&		m_game_name;
+};
 
 #endif // _NETWINDOW_H_
 

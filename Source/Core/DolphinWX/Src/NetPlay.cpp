@@ -71,12 +71,7 @@ NetPlayClient::~NetPlayClient()
 	}	
 }
 
-NetPlayServer::Player::Player()
-{
-	memset(pad_map, -1, sizeof(pad_map));
-}
-
-NetPlayClient::Player::Player()
+NetPlay::Player::Player()
 {
 	memset(pad_map, -1, sizeof(pad_map));
 }
@@ -88,7 +83,7 @@ NetPlayServer::NetPlayServer(const u16 port, const std::string& name, NetPlayDia
 
 	if (m_socket.Listen(port))
 	{
-		Player player;
+		Client player;
 		player.pid = 0;
 		player.revision = NETPLAY_DOLPHIN_VER;
 		player.socket = m_socket;
@@ -221,7 +216,8 @@ void NetPlayServer::Entry()
 					if (0 == OnData(rpac, ready_socket))
 						break;
 
-				case sf::Socket::Disconnected :
+				//case sf::Socket::Disconnected :
+				default :
 					m_crit.other.Enter();
 					OnDisconnect(ready_socket);
 					m_crit.other.Leave();
@@ -233,7 +229,7 @@ void NetPlayServer::Entry()
 
 	// close listening socket and client sockets
 	{
-	std::map<sf::SocketTCP, Player>::reverse_iterator
+	std::map<sf::SocketTCP, Client>::reverse_iterator
 		i = m_players.rbegin(),
 		e = m_players.rend();
 	for ( ; i!=e; ++i)
@@ -263,14 +259,14 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	if (m_players.size() >= 255)
 		return CON_ERR_SERVER_FULL;
 
-	Player player;
+	Client player;
 	player.socket = socket;
 	rpac >> player.revision;
 	rpac >> player.name;
 
 	// give new client first available id
 	player.pid = 0;
-	std::map<sf::SocketTCP, Player>::const_iterator
+	std::map<sf::SocketTCP, Client>::const_iterator
 		i,
 		e = m_players.end();
 	for (PlayerId p = 1; 0 == player.pid; ++p)
@@ -297,7 +293,7 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 		for (i = m_players.begin(); i!=e; ++i)
 		{
 			if (i->second.pad_map[m] >= 0)
-				is_mapped[i->second.pad_map[m]] = true;
+				is_mapped[(unsigned)i->second.pad_map[m]] = true;
 		}
 	}
 
@@ -386,11 +382,12 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 	m_players.erase(m_players.find(socket));
 	m_crit.players.Leave();
 
-	UpdateGUI();
-
+	// alert other players of disconnect
 	m_crit.send.Enter();
 	SendToClients(spac);
 	m_crit.send.Leave();
+
+	UpdateGUI();
 
 	return 0;
 }
@@ -404,9 +401,19 @@ void NetPlay::UpdateGUI()
 	}
 }
 
+void NetPlay::AppendChatGUI(const std::string& msg)
+{
+	if (m_dialog)
+	{
+		m_dialog->chat_msgs.Push(msg);
+		// silly
+		UpdateGUI();
+	}
+}
+
 void NetPlayServer::SendToClients(sf::Packet& packet, const PlayerId skip_pid)
 {
-	std::map<sf::SocketTCP, Player>::iterator
+	std::map<sf::SocketTCP, Client>::iterator
 		i = m_players.begin(),
 		e = m_players.end();
 	for ( ; i!=e; ++i)
@@ -444,21 +451,19 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 			std::ostringstream ss;
 			ss << player.name << '[' << (char)(player.pid+'0') << "]: " << msg;
 
-			m_dialog->chat_msgs.Push(ss.str());
-
-			UpdateGUI();
+			AppendChatGUI(ss.str());
 		}
 		break;
 
 	case NP_MSG_PAD_DATA :
 		{
-			PadMapping map;
+			PadMapping map = 0;
 			NetPad np;
 			packet >> map >> np.nHi >> np.nLo;
 
 			// check if client's pad indeed maps in game
 			if (map >= 0 && map < 4)
-				map = player.pad_map[map];
+				map = player.pad_map[(unsigned)map];
 			else
 				map = -1;
 			
@@ -469,7 +474,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 				
 			// add to pad buffer
 			m_crit.buffer.Enter();
-			m_pad_buffer[map].push(np);
+			m_pad_buffer[(unsigned)map].push(np);
 			m_crit.buffer.Leave();
 
 			// relay to clients
@@ -543,8 +548,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			std::ostringstream ss;
 			ss << player.name << '[' << (char)(pid+'0') << "]: " << msg;
 
-			m_dialog->chat_msgs.Push(ss.str());
-			UpdateGUI();
+			AppendChatGUI(ss.str());
 		}
 		break;
 
@@ -566,13 +570,14 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
 	case NP_MSG_PAD_DATA :
 		{
-			PadMapping map;
+			PadMapping map = 0;
 			NetPad np;
 			packet >> map >> np.nHi >> np.nLo;
 
+			// trusting server for good map value (>=0 && <4)
 			// add to pad buffer
 			m_crit.buffer.Enter();
-			m_pad_buffer[map].push(np);
+			m_pad_buffer[(unsigned)map].push(np);
 			m_crit.buffer.Leave();
 		}
 		break;
@@ -584,7 +589,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 			m_crit.other.Leave();
 
 			// update gui
-			wxCommandEvent evt(wxEVT_THREAD, 45);
+			wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_CHANGE_GAME);
+			// TODO: using a wxString in AddPendingEvent from another thread is unsafe i guess?
 			evt.SetString(wxString(m_selected_game.c_str(), *wxConvCurrent));
 			m_dialog->GetEventHandler()->AddPendingEvent(evt);
 		}
@@ -592,8 +598,14 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
 	case NP_MSG_START_GAME :
 		{
-			// kinda silly
-			wxCommandEvent evt(wxEVT_THREAD, 46);
+			wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
+			m_dialog->GetEventHandler()->AddPendingEvent(evt);
+		}
+		break;
+
+	case NP_MSG_STOP_GAME :
+		{
+			wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_STOP_GAME);
 			m_dialog->GetEventHandler()->AddPendingEvent(evt);
 		}
 		break;
@@ -620,7 +632,8 @@ void NetPlayClient::Entry()
 				OnData(rpac);
 				break;
 
-			case sf::Socket::Disconnected :
+			//case sf::Socket::Disconnected :
+			default :
 				PanicAlert("Lost connection to server! If the game is running, it will likely hang!");
 				m_do_loop = false;
 				break;
@@ -633,13 +646,12 @@ void NetPlayClient::Entry()
 	return;
 }
 
-template <typename P>
-static inline std::string PlayerToString(const P& p)
+std::string NetPlay::Player::ToString() const
 {
 	std::ostringstream ss;
-	ss << p.name << '[' << (char)(p.pid+'0') << "] : " << p.revision << " |";
+	ss << name << '[' << (char)(pid+'0') << "] : " << revision << " |";
 	for (unsigned int i=0; i<4; ++i)
-		ss << (p.pad_map[i]>=0 ? (char)(p.pad_map[i]+'1') : '-');
+		ss << (pad_map[i]>=0 ? (char)(pad_map[i]+'1') : '-');
 	ss << '|';
 	return ss.str();
 }
@@ -654,7 +666,7 @@ void NetPlayClient::GetPlayerList(std::string &list)
 		i = m_players.begin(),
 		e = m_players.end();
 	for ( ; i!=e; ++i)
-		ss << PlayerToString(i->second) << '\n';
+		ss << i->second.ToString() << '\n';
 
 	list = ss.str();
 
@@ -667,11 +679,11 @@ void NetPlayServer::GetPlayerList(std::string &list)
 
 	std::ostringstream ss;
 
-	std::map<sf::SocketTCP, Player>::const_iterator
+	std::map<sf::SocketTCP, Client>::const_iterator
 		i = m_players.begin(),
 		e = m_players.end();
 	for ( ; i!=e; ++i)
-		ss << PlayerToString(i->second) << '\n';
+		ss << i->second.ToString() << '\n';
 
 	list = ss.str();
 
@@ -739,7 +751,7 @@ bool NetPlayServer::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 
 		// add to buffer
 		m_crit.buffer.Enter();
-		m_pad_buffer[in_game_num].push(np);
+		m_pad_buffer[(unsigned)in_game_num].push(np);
 		m_crit.buffer.Leave();
 
 		// send to clients
@@ -752,7 +764,38 @@ bool NetPlayServer::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 		SendToClients(spac);
 		m_crit.send.Leave();
 	}
-	
+
+	m_crit.players.Leave();
+
+	// get pad from pad buffer and send to game
+	GetBufferedPad(pad_nb, netvalues);
+
+	return true;
+}
+
+bool NetPlayServer::ChangeGame(const std::string &game)
+{
+	m_crit.other.Enter();
+	m_selected_game = game;
+
+	// send changed game to clients
+	sf::Packet spac;
+	spac << (MessageId)NP_MSG_CHANGE_GAME;
+	spac << game;
+
+	m_crit.players.Enter();
+	m_crit.send.Enter();
+	SendToClients(spac);
+	m_crit.send.Leave();
+	m_crit.players.Leave();
+
+	m_crit.other.Leave();
+
+	return true;
+}
+
+void NetPlay::GetBufferedPad(const u8 pad_nb, NetPad* const netvalues)
+{
 	// get padstate from buffer and send to game
 	m_crit.buffer.Enter();
 	while (0 == m_pad_buffer[pad_nb].size())
@@ -765,18 +808,6 @@ bool NetPlayServer::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 	*netvalues = m_pad_buffer[pad_nb].front();
 	m_pad_buffer[pad_nb].pop();
 	m_crit.buffer.Leave();
-
-	m_crit.players.Leave();
-
-	return true;
-}
-
-bool NetPlayServer::SetSelectedGame(const std::string &game)
-{
-	// warning removal
-	game.size();
-
-	return true;
 }
 
 bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_status, NetPad* const netvalues)
@@ -793,7 +824,7 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 
 		// add to buffer
 		m_crit.buffer.Enter();
-		m_pad_buffer[in_game_num].push(np);
+		m_pad_buffer[(unsigned)in_game_num].push(np);
 		m_crit.buffer.Leave();
 
 		// send to server
@@ -807,32 +838,43 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 		m_crit.send.Leave();
 	}
 
-	// get padstate from buffer and send to game
-	m_crit.buffer.Enter();
-	while (0 == m_pad_buffer[pad_nb].size())
-	{
-		m_crit.buffer.Leave();
-		// wait for receiving thread to push some data
-		Common::SleepCurrentThread(1);
-		m_crit.buffer.Enter();
-	}
-	*netvalues = m_pad_buffer[pad_nb].front();
-	m_pad_buffer[pad_nb].pop();
-	m_crit.buffer.Leave();
-
 	m_crit.players.Leave();
+
+	// get pad from pad buffer and send to game
+	GetBufferedPad(pad_nb, netvalues);
+
 	return true;
 }
 
-bool NetPlayClient::SetSelectedGame(const std::string &game)
+bool NetPlayClient::ChangeGame(const std::string &game)
 {
 	// warning removal
 	game.size();
+
+	// idk, nothing is needed here
 
 	return true;
 }
 
 bool NetPlayServer::StartGame(const std::string &path)
+{
+	if (false == NetPlay::StartGame(path))
+		return false;
+
+	// tell clients to start game
+	sf::Packet spac;
+	spac << (MessageId)NP_MSG_START_GAME;
+
+	m_crit.players.Enter();
+	m_crit.send.Enter();
+	SendToClients(spac);
+	m_crit.send.Leave();
+	m_crit.players.Leave();
+
+	return true;
+}
+
+bool NetPlay::StartGame(const std::string &path)
 {
 	m_crit.other.Enter();
 
@@ -842,24 +884,25 @@ bool NetPlayServer::StartGame(const std::string &path)
 		return false;
 	}
 
+	AppendChatGUI(" -- STARTING GAME -- ");
+
 	m_is_running = true;
 	::NetClass_ptr = this;
 
+	// temporary / testing
 	m_crit.buffer.Enter();
-	// testing
 	NetPad np;
-	for (unsigned int i=0; i<TEMP_FIXED_BUFFER; ++i)
-		for (unsigned int p=0; p<4; ++p)
+	for (unsigned int p=0; p<4; ++p)
+	{
+		// no clear method ?
+		while (m_pad_buffer[p].size())
+			m_pad_buffer[p].pop();
+
+		// temporary
+		for (unsigned int i=0; i<TEMP_FIXED_BUFFER; ++i)
 			m_pad_buffer[p].push(np);
+	}
 	m_crit.buffer.Leave();
-
-	// tell clients to start game
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_START_GAME;
-
-	m_crit.send.Enter();
-	SendToClients(spac);
-	m_crit.send.Leave();
 
 	// boot game
 	::main_frame->BootGame(path);
@@ -870,26 +913,43 @@ bool NetPlayServer::StartGame(const std::string &path)
 	return true;
 }
 
-bool NetPlayClient::StartGame(const std::string &path)
+bool NetPlay::StopGame()
 {
 	m_crit.other.Enter();
 
-	m_is_running = true;
-	::NetClass_ptr = this;
+	if (false == m_is_running)
+	{
+		PanicAlert("Game isn't running!");
+		return false;
+	}
 
-	m_crit.buffer.Enter();
-	// testing
-	NetPad np;
-	for (unsigned int i=0; i<TEMP_FIXED_BUFFER; ++i)
-		for (unsigned int p=0; p<4; ++p)
-			m_pad_buffer[p].push(np);
-	m_crit.buffer.Leave();
+	AppendChatGUI(" -- STOPPING GAME -- ");
 
-	// boot game
-	::main_frame->BootGame(path);
-	//BootManager::BootCore(path);
+	// stop game
+	::main_frame->DoStop();
+
+	m_is_running = false;
+	::NetClass_ptr = false;
 
 	m_crit.other.Leave();
+
+	return true;
+}
+
+bool NetPlayServer::StopGame()
+{
+	if (false == NetPlay::StopGame())
+		return false;
+
+	// tell clients to stop game
+	sf::Packet spac;
+	spac << (MessageId)NP_MSG_STOP_GAME;
+
+	m_crit.players.Enter();
+	m_crit.send.Enter();
+	SendToClients(spac);
+	m_crit.send.Leave();
+	m_crit.players.Leave();
 
 	return true;
 }
