@@ -130,7 +130,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, const s
 		sf::Packet rpac;
 		// TODO: make this not hang
 		m_socket.Receive(rpac);
-		u8	error;
+		MessageId error;
 		rpac >> error;
 
 		// got error message
@@ -142,10 +142,13 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, const s
 				PanicAlert("The server is full!");
 				break;
 			case CON_ERR_VERSION_MISMATCH :
-				PanicAlert("The NetPlay versions are incompatible!");
+				PanicAlert("The server and client's NetPlay versions are incompatible!");
 				break;
 			case CON_ERR_GAME_RUNNING :
-				PanicAlert("The game is currently running!");
+				PanicAlert("The server responded: the game is currently running!");
+				break;
+			default :
+				PanicAlert("The server sent an unknown error message!");
 				break;
 			}
 			m_socket.Close();
@@ -155,7 +158,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, const s
 			rpac >> m_pid;
 
 			Player player;
-			player.name = "Player";
+			player.name = name;
 			player.pid = m_pid;
 			player.revision = NETPLAY_DOLPHIN_VER;
 
@@ -270,7 +273,7 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	std::map<sf::SocketTCP, Player>::const_iterator
 		i,
 		e = m_players.end();
-	for (u8 p = 1; 0 == player.pid; ++p)
+	for (PlayerId p = 1; 0 == player.pid; ++p)
 	{
 		for (i = m_players.begin(); ; ++i)
 		{
@@ -401,7 +404,7 @@ void NetPlay::UpdateGUI()
 	}
 }
 
-void NetPlayServer::SendToClients(sf::Packet& packet, const u8 skip_pid)
+void NetPlayServer::SendToClients(sf::Packet& packet, const PlayerId skip_pid)
 {
 	std::map<sf::SocketTCP, Player>::iterator
 		i = m_players.begin(),
@@ -482,7 +485,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 		break;
 
 	default :
-		//PanicAlert("Unknown message received with id : %d", mid);
+		PanicAlert("Unknown message with id:%d received from player:%d Kicking player!", mid, player.pid);
 		// unknown message, kick the client
 		return 1;
 		break;
@@ -590,8 +593,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 	case NP_MSG_START_GAME :
 		{
 			// kinda silly
-			wxCommandEvent evt;
-			m_dialog->OnStart(evt);
+			wxCommandEvent evt(wxEVT_THREAD, 46);
+			m_dialog->AddPendingEvent(evt);
 		}
 		break;
 	
@@ -647,7 +650,7 @@ void NetPlayClient::GetPlayerList(std::string &list)
 
 	std::ostringstream ss;
 
-	std::map<u8, Player>::const_iterator
+	std::map<PlayerId, Player>::const_iterator
 		i = m_players.begin(),
 		e = m_players.end();
 	for ( ; i!=e; ++i)
@@ -756,7 +759,7 @@ bool NetPlayServer::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 	{
 		m_crit.buffer.Leave();
 		// wait for receiving thread to push some data
-		Common::SleepCurrentThread(10);
+		Common::SleepCurrentThread(1);
 		m_crit.buffer.Enter();
 	}
 	*netvalues = m_pad_buffer[pad_nb].front();
@@ -810,7 +813,7 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_stat
 	{
 		m_crit.buffer.Leave();
 		// wait for receiving thread to push some data
-		Common::SleepCurrentThread(10);
+		Common::SleepCurrentThread(1);
 		m_crit.buffer.Enter();
 	}
 	*netvalues = m_pad_buffer[pad_nb].front();

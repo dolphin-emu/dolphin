@@ -145,7 +145,7 @@ private:
 		std::string		revision;
 	};
 
-	void SendToClients(sf::Packet& packet, const u8 skip_pid = 0);
+	void SendToClients(sf::Packet& packet, const PlayerId skip_pid = 0);
 	unsigned int OnConnect(sf::SocketTCP& socket);
 	unsigned int OnDisconnect(sf::SocketTCP& socket);
 	unsigned int OnData(sf::Packet& packet, sf::SocketTCP& socket);
@@ -184,7 +184,7 @@ private:
 	unsigned int OnData(sf::Packet& packet);
 
 	PlayerId		m_pid;
-	std::map<u8, Player>	m_players;
+	std::map<PlayerId, Player>	m_players;
 };
 
 #endif

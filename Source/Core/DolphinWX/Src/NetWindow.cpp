@@ -67,8 +67,11 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* parent, const CGameListCtrl* const 
 	_connect_macro_(connect_btn, NetPlaySetupDiag::OnJoin, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	wxStaticText* const alert_lbl = new wxStaticText(connect_tab, wxID_ANY
-		, wxT("ALERT:\n\nNetPlay will currently only work properly when using the following settings:\n")
-			wxT(" - Dual Core [OFF]\n - DSP LLE Plugin\n - DSPLLE on thread [OFF]\n - Manually set the exact number of controller that will be used to [Standard Controller]")
+		, wxT("ALERT:\n\nNetPlay will currently only work properly when using the following settings:")
+			wxT("\n - Dual Core [OFF]")
+			wxT("\n - Audio Throttle [OFF] (if using DSP HLE)")
+			wxT("\n - DSP LLE Plugin (may not be needed)\n - DSPLLE on thread [OFF]")
+			wxT("\n - Manually set the exact number of controller that will be used to [Standard Controller]")
 			wxT("\n\nAll players should try to use the same Dolphin version and settings.")
 			wxT("\nDisable all memory cards or send them to all players before starting.")
 			wxT("\nWiimote support has not been implemented.\nWii games will likely desync for other reasons as well.")
@@ -101,6 +104,8 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* parent, const CGameListCtrl* const 
 	_connect_macro_(host_btn, NetPlaySetupDiag::OnHost, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	m_game_lbox = new wxListBox(host_tab, wxID_ANY);
+	_connect_macro_(m_game_lbox, NetPlaySetupDiag::OnHost, wxEVT_COMMAND_LISTBOX_DOUBLECLICKED, this);
+
 	std::istringstream ss(game_list->GetGameNames());
 	std::string game;
 	while (std::getline(ss,game))
@@ -369,11 +374,18 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 	while (std::getline(ss, tmps))
 		m_player_lbox->Append(wxString(tmps.c_str(), *wxConvCurrent));
 
-	// update selected game :/
-	if (45 == event.GetId())
+	switch (event.GetId())
 	{
+	case 45 :
+		// update selected game :/
 		m_selected_game.assign(event.GetString().mb_str());
 		m_game_btn->SetLabel(event.GetString().Prepend(wxT(" Game : ")));
+		break;
+	case 46 :
+		// client start game :/
+		wxCommandEvent evt;
+		OnStart(evt);
+		break;
 	}
 
 	// chat messages
