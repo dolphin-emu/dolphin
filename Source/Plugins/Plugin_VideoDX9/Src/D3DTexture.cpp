@@ -110,11 +110,26 @@ LPDIRECT3DTEXTURE9 CreateTexture2D(const u8* buffer, const int width, const int 
 			else
 			{*/
 				u32* pIn = pBuffer;
-				for (int y = 0; y < height; y++)
-				{
-					u32* pBits = (u32*)((u8*)Lock.pBits + (y * Lock.Pitch));
-					memcpy(pBits, pIn, width * 4);
-					pIn += pitch;
+				if (!swap_r_b) {
+					for (int y = 0; y < height; y++)
+					{
+						u32 *pBits = (u32*)((u8*)Lock.pBits + (y * Lock.Pitch));
+						memcpy(pBits, pIn, width * 4);
+						pIn += pitch;
+					}
+				} else {
+					for (int y = 0; y < height; y++)
+					{
+						u8 *pIn8 = (u8 *)pIn;
+						u8 *pBits = (u8 *)((u8*)Lock.pBits + (y * Lock.Pitch));
+						for (int x = 0; x < width * 4; x += 4) {
+							pBits[x + 0] = pIn8[x + 2];
+							pBits[x + 1] = pIn8[x + 1];
+							pBits[x + 2] = pIn8[x + 0];
+							pBits[x + 3] = pIn8[x + 3];
+						}
+						pIn += pitch;
+					}
 				}
 			//}
 		}

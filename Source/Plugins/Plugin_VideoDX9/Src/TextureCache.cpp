@@ -288,7 +288,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		TexLevels = maxlevel;
 	if (!skip_texture_create) 
 	{		
-		entry.texture = D3D::CreateTexture2D((BYTE*)temp, width, height, expandedWidth, d3d_fmt, swap_r_b,TexLevels);
+		entry.texture = D3D::CreateTexture2D((BYTE*)temp, width, height, expandedWidth, d3d_fmt, swap_r_b, TexLevels);
 	} 
 	else 
 	{
