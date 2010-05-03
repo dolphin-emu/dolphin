@@ -95,7 +95,7 @@ public:
 
 protected:
 	//NetPlay(Common::ThreadFunc entry, void* arg) : m_thread(entry, arg) {}
-	void NetPlay::GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);
+	void GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);
 	void UpdateGUI();
 	void AppendChatGUI(const std::string& msg);
 
