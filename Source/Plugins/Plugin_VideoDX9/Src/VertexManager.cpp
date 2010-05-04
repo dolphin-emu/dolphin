@@ -53,7 +53,7 @@ static int lastPrimitive;
 static u8 *LocalVBuffer;   
 static u16 *TIBuffer;
 static u16 *LIBuffer;  
-static u16 *PIBuffer;  
+static u16 *PIBuffer;
 #define MAXVBUFFERSIZE 0x50000
 #define MAXIBUFFERSIZE 0xFFFF
 static bool Flushed=false;
@@ -118,9 +118,27 @@ int GetRemainingSize()
 	return  MAXVBUFFERSIZE - (int)(s_pCurBufferPointer - LocalVBuffer);
 }
 
+int GetRemainingVertices(int primitive)
+{
+	switch (primitive)
+	{
+		case GX_DRAW_QUADS:          
+		case GX_DRAW_TRIANGLES:      
+		case GX_DRAW_TRIANGLE_STRIP: 
+		case GX_DRAW_TRIANGLE_FAN:   
+			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen())/3;
+		case GX_DRAW_LINE_STRIP:
+		case GX_DRAW_LINES:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetLineindexLen())/2;
+		case GX_DRAW_POINTS:
+			return (MAXIBUFFERSIZE - IndexGenerator::GetPointindexLen());
+		default: return 0;
+	}
+}
+
 void AddVertices(int _primitive, int _numVertices)
 {
-	if (_numVertices < 0)
+	if (_numVertices <= 0)
 		return;
 	switch (_primitive)
 	{
@@ -128,7 +146,7 @@ void AddVertices(int _primitive, int _numVertices)
 		case GX_DRAW_TRIANGLES:      
 		case GX_DRAW_TRIANGLE_STRIP: 
 		case GX_DRAW_TRIANGLE_FAN:   
-			if(MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen() < 2 * _numVertices)
+			if(MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen() < 3 * _numVertices)
 			Flush();
 			break;
 		case GX_DRAW_LINE_STRIP:
@@ -250,7 +268,7 @@ void Flush()
 				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
 				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8),
+				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
 				(tex.texMode1[i&3].max_lod >> 4));
 
 			if (tentry) {

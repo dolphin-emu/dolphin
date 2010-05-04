@@ -175,7 +175,7 @@ struct TabAdvanced : public W32Util::Tab
 		Button_SetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY), !g_Config.bEFBCopyDisable);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_ENABLEXFB),g_Config.bUseXFB);
 		Button_SetCheck(GetDlgItem(hDlg,IDC_ENABLEREALXFB),g_Config.bUseRealXFB);
-
+		Button_SetCheck(GetDlgItem(hDlg,IDC_USENATIVEMIPS),g_Config.bUseNativeMips);
 		if(g_Config.bCopyEFBToTexture)
 			Button_SetCheck(GetDlgItem(hDlg,IDC_EFBTOTEX), true);
 		else
@@ -237,6 +237,7 @@ struct TabAdvanced : public W32Util::Tab
 		g_Config.bCopyEFBToTexture = Button_GetCheck(GetDlgItem(hDlg,IDC_EFBTORAM)) ? false : true;
 		g_Config.bUseXFB = Button_GetCheck(GetDlgItem(hDlg, IDC_ENABLEXFB)) ? true : false;
 		g_Config.bUseRealXFB = Button_GetCheck(GetDlgItem(hDlg, IDC_ENABLEREALXFB)) ? true : false;		
+		g_Config.bUseNativeMips = Button_GetCheck(GetDlgItem(hDlg, IDC_USENATIVEMIPS)) ? true : false;
 		g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 
 		if( D3D::dev != NULL ) {

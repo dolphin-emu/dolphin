@@ -260,7 +260,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     TexMode0 &tm0 = bpmem.tex[texstage >> 2].texMode0[texstage & 3];
 	TexMode1 &tm1 = bpmem.tex[texstage >> 2].texMode1[texstage & 3];
 	
-	bool UseNativeMips = (tm0.min_filter & 3) && (tm0.min_filter != 8);				 
+	bool UseNativeMips = (tm0.min_filter & 3) && (tm0.min_filter != 8) && g_ActiveConfig.bUseNativeMips;
 	int maxlevel = ((tm1.max_lod >> 4));
 
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
@@ -395,13 +395,14 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
 	bool isPow2 = !((width & (width - 1)) || (height & (height - 1)));
 	int TexLevels = (width > height)?width:height;
-	TexLevels =  (isPow2 && UseNativeMips && (maxlevel > 0)) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : 1;
+	TexLevels =  (isPow2 && UseNativeMips && (maxlevel > 0)) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : (isPow2? 0 : 1);
 	if(TexLevels > maxlevel && maxlevel > 0)
 		TexLevels = maxlevel;
+	bool GenerateMipmaps = TexLevels > 1 || TexLevels == 0;
+	entry.bHaveMipMaps = GenerateMipmaps;
 	int gl_format = 0;
 	int gl_iformat = 0;
-	int gl_type = 0;
-	entry.bHaveMipMaps = UseNativeMips;
+	int gl_type = 0;	
 	if (dfmt != PC_TEX_FMT_DXT1)
 	{
 		switch (dfmt)
@@ -447,9 +448,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		}
 		if (expandedWidth != width)
 			glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);
-		//generate mipmaps even if we use native mips to suport textures with less levels
-		bool GenerateMipmaps = isPow2 && UseNativeMips && (maxlevel > 0);
-		entry.bHaveMipMaps = GenerateMipmaps;
+		//generate mipmaps even if we use native mips to suport textures with less levels		
 		if(skip_texture_create)
 		{
 			glTexSubImage2D(target, 0,0,0,width, height, gl_format, gl_type, temp);
@@ -458,7 +457,16 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		{
 			if (GenerateMipmaps) 
 			{
-				gluBuild2DMipmaps(target, gl_iformat, width, height, gl_format, gl_type, temp);
+				if(UseNativeMips)
+				{				
+					gluBuild2DMipmaps(target, gl_iformat, width, height, gl_format, gl_type, temp);
+				}
+				else
+				{
+					glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+					glTexImage2D(target, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
+					glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+				}
 			}
 			else
 			{

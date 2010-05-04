@@ -95,6 +95,7 @@ class GFXConfigDialogOGL : public wxDialog
 		wxCheckBox *m_ForceFiltering;
 		wxCheckBox *m_Crop;
 		wxCheckBox *m_UseXFB;
+		wxCheckBox *m_UseNativeMips;
 		wxCheckBox *m_UseRealXFB;
 		wxCheckBox *m_AutoScale;
 		wxChoice *m_MaxAnisotropyCB;
@@ -150,6 +151,7 @@ class GFXConfigDialogOGL : public wxDialog
 			ID_CROP,
 			ID_USEREALXFB,
 			ID_USEXFB,
+			ID_USENATIVEMIPS,
 			ID_AUTOSCALE,
 			ID_WIDESCREENHACK,
 

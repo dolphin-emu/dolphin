@@ -76,6 +76,7 @@ struct VideoConfig
     bool bUseXFB;
 	bool bUseRealXFB;
     bool bAutoScale;  // Removes annoying borders without using XFB. Doesn't always work perfectly.
+	bool bUseNativeMips;
     
 	// Enhancements
     int iMultisampleMode;

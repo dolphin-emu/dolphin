@@ -25,6 +25,7 @@ namespace VertexManager
 void AddVertices(int primitive, int numvertices);
 void Flush(); // flushes the current buffer
 int GetRemainingSize();  // remaining space in the current buffer.
+int GetRemainingVertices(int primitive); // remaining number of vertices that can be processed in one AddVertices call
 
 // TODO: move, rename.
 extern u8* s_pCurBufferPointer;

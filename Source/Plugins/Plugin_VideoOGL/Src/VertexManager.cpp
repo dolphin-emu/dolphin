@@ -126,9 +126,27 @@ int GetRemainingSize()
 	return  MAXVBUFFERSIZE - (int)(s_pCurBufferPointer - LocalVBuffer);
 }
 
+int GetRemainingVertices(int primitive)
+{
+	switch (primitive)
+	{
+		case GX_DRAW_QUADS:          
+		case GX_DRAW_TRIANGLES:      
+		case GX_DRAW_TRIANGLE_STRIP: 
+		case GX_DRAW_TRIANGLE_FAN:   
+			return (max_Index_size - IndexGenerator::GetTriangleindexLen())/3;
+		case GX_DRAW_LINE_STRIP:
+		case GX_DRAW_LINES:
+			return (max_Index_size - IndexGenerator::GetLineindexLen())/2;
+		case GX_DRAW_POINTS:
+			return (max_Index_size - IndexGenerator::GetPointindexLen());
+		default: return 0;
+	}
+}
+
 void AddVertices(int primitive, int numvertices)
 {
-	if (numvertices < 0)
+	if (numvertices <= 0)
 		return;
 	switch (primitive)
 	{
@@ -136,7 +154,7 @@ void AddVertices(int primitive, int numvertices)
 		case GX_DRAW_TRIANGLES:      
 		case GX_DRAW_TRIANGLE_STRIP: 
 		case GX_DRAW_TRIANGLE_FAN:   
-			if(max_Index_size - IndexGenerator::GetTriangleindexLen() < 2 * numvertices)
+			if(max_Index_size - IndexGenerator::GetTriangleindexLen() < 3 * numvertices)
 				Flush();
 			break;
 		case GX_DRAW_LINE_STRIP:
