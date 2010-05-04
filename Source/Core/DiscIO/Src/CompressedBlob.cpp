@@ -216,10 +216,11 @@ bool CompressFileToBlob(const char* infile, const char* outfile, u32 sub_type,
 	u64 position = 0;
 	int num_compressed = 0;
 	int num_stored = 0;
+	int progress_monitor = max<int>(1, header.num_blocks / 1000);
 
 	for (u32 i = 0; i < header.num_blocks; i++)
 	{
-		if (i % (header.num_blocks / 1000) == 0)
+		if (i % progress_monitor == 0)
 		{
 			u64 inpos = ftell(inf);
 			int ratio = 0;
@@ -315,10 +316,11 @@ bool DecompressBlobToFile(const char* infile, const char* outfile, CompressCB ca
 	FILE* f = fopen(outfile, "wb");
 	const CompressedBlobHeader &header = reader->GetHeader();
 	u8* buffer = new u8[header.block_size];
+	int progress_monitor = max<int>(1, header.num_blocks / 100);
 
 	for (u64 i = 0; i < header.num_blocks; i++)
 	{
-		if (i % (header.num_blocks / 100) == 0)
+		if (i % progress_monitor == 0)
 		{
 			callback("Unpacking", (float)i / (float)header.num_blocks, arg);
 		}
