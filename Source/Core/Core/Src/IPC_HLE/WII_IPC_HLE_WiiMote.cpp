@@ -258,6 +258,8 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 			_dbg_assert_msg_(WII_IPC_WIIMOTE, DoesChannelExist(pHeader->CID), "L2CAP: SendACLPacket to unknown channel %i", pHeader->CID);
 			CChannelMap::iterator  itr= m_Channel.find(pHeader->CID);
 
+			const int number = NetPlay_GetWiimoteNum(m_ConnectionHandle & 0xFF);
+
 			Common::PluginWiimote* mote = CPluginManager::GetInstance().GetWiimote(0);
 			if (itr != m_Channel.end())
 			{
@@ -269,11 +271,13 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 					break;
 
 				case HID_CONTROL_CHANNEL:
-					mote->Wiimote_ControlChannel(m_ConnectionHandle & 0xFF, pHeader->CID, pData, DataSize);
+					if (number < 4)
+						mote->Wiimote_ControlChannel(number, pHeader->CID, pData, DataSize);
 					break;
 
 				case HID_INTERRUPT_CHANNEL:
-					mote->Wiimote_InterruptChannel(m_ConnectionHandle & 0xFF, pHeader->CID, pData, DataSize);
+					if (number < 4)
+						mote->Wiimote_InterruptChannel(number, pHeader->CID, pData, DataSize);
 					break;
 
 				default:
@@ -854,6 +858,9 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 // ---------------------------------------------------
 void CWII_IPC_HLE_WiiMote::ReceiveL2capData(u16 scid, const void* _pData, u32 _Size)
 {
+	if (NetPlay_WiimoteInput(m_ConnectionHandle & 0xFF, scid, _pData, _Size))
+		return;
+
 	// Allocate DataFrame
 	u8 DataFrame[1024];
 	u32 Offset = 0;

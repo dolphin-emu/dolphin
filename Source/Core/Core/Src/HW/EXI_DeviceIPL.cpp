@@ -417,7 +417,7 @@ u32 CEXIIPL::GetGCTime()
 #else
 
 	// hack in some netplay stuff
-	u64 ltime = GetNetGCTime();
+	u64 ltime = NetPlay_GetGCTime();
 	if (0 == ltime)
 		ltime = Common::Timer::GetLocalTimeSinceJan1970();
 

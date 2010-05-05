@@ -95,6 +95,8 @@ public:
 
 	void DoState(PointerWrap &p);
 
+	void NetPlay_WiimoteUpdate(int _number);
+
 private:
 
 	enum

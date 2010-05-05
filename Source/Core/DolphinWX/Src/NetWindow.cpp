@@ -28,7 +28,7 @@ BEGIN_EVENT_TABLE(NetPlayDiag, wxFrame)
 	EVT_COMMAND(wxID_ANY, wxEVT_THREAD, NetPlayDiag::OnThread)
 END_EVENT_TABLE()
 
-NetPlay* netplay_ptr = NULL;
+static NetPlay* netplay_ptr = NULL;
 
 NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* const game_list)
 	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR), wxDefaultPosition, wxDefaultSize)
@@ -68,12 +68,12 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	wxStaticText* const alert_lbl = new wxStaticText(connect_tab, wxID_ANY
 		, wxT("ALERT:\n\nNetPlay will currently only work properly when using the following settings:")
 			wxT("\n - Dual Core [OFF]")
-			wxT("\n - Audio Throttle [OFF] (if using DSP HLE)")
-			wxT("\n - DSP LLE Plugin (may not be needed)\n - DSPLLE on thread [OFF]")
-			wxT("\n - Manually set the exact number of controller that will be used to [Standard Controller]")
+			wxT("\n - Audio Throttle [OFF/ON] (try both)")
+			wxT("\n - DSP LLE/HLE (try both)")
+			wxT("\n - Manually set the exact number of controllers that will be used to [Standard Controller]")
 			wxT("\n\nAll players should try to use the same Dolphin version and settings.")
 			wxT("\nDisable all memory cards or send them to all players before starting.")
-			wxT("\nWiimote support has not been implemented.\nWii games will likely desync for other reasons as well.")
+			wxT("\nWiimote support has not been implemented.")
 			wxT("\n\nYou must forward TCP port to host!!")
 		, wxDefaultPosition, wxDefaultSize);
 
@@ -285,9 +285,17 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 		wxButton* const start_btn = new wxButton(panel, wxID_ANY, wxT("Start"));
 		_connect_macro_(start_btn, NetPlayDiag::OnStart, wxEVT_COMMAND_BUTTON_CLICKED, this);
 		bottom_szr->Add(start_btn);
-		wxButton* const stop_btn = new wxButton(panel, wxID_ANY, wxT("Stop [buggy]"));
+		wxButton* const stop_btn = new wxButton(panel, wxID_ANY, wxT("Stop"));
 		_connect_macro_(stop_btn, NetPlayDiag::OnStop, wxEVT_COMMAND_BUTTON_CLICKED, this);
 		bottom_szr->Add(stop_btn);
+		bottom_szr->Add(new wxStaticText(panel, wxID_ANY, wxT("Buffer:")), 0, wxLEFT | wxCENTER, 5 );
+		wxSpinCtrl* const padbuf_spin = new wxSpinCtrl(panel, wxID_ANY, wxT("20")
+			, wxDefaultPosition, wxSize(64, -1), wxSP_ARROW_KEYS, 0, 200, 20);
+		_connect_macro_(padbuf_spin, NetPlayDiag::OnAdjustBuffer, wxEVT_COMMAND_SPINCTRL_UPDATED, this);
+		wxButton* const padbuf_btn = new wxButton(panel, wxID_ANY, wxT("?"), wxDefaultPosition, wxSize(22, -1));
+		_connect_macro_(padbuf_btn, NetPlayDiag::OnPadBuffHelp, wxEVT_COMMAND_BUTTON_CLICKED, this);
+		bottom_szr->Add(padbuf_spin, 0, wxCENTER);
+		bottom_szr->Add(padbuf_btn);
 	}
 		
 	bottom_szr->AddStretchSpacer(1);
@@ -362,6 +370,31 @@ void NetPlayDiag::OnStop(wxCommandEvent& event)
 	event.GetId();
 
 	::netplay_ptr->StopGame();
+}
+
+void NetPlayDiag::OnPadBuffHelp(wxCommandEvent& event)
+{
+	// warning removal
+	event.GetId();
+
+	const u64 time = ((NetPlayServer*)::netplay_ptr)->CalculateMinimumBufferTime();
+	std::ostringstream ss;
+	ss << "< Calculated from pings: required buffer: "
+		<< time * (60/1000) << "(60fps) / "
+		<< time * (50/1000) << "(50fps) >\n";
+
+	m_chat_text->AppendText(wxString(ss.str().c_str(), *wxConvCurrent));
+}
+
+void NetPlayDiag::OnAdjustBuffer(wxCommandEvent& event)
+{
+	const int val = ((wxSpinCtrl*)event.GetEventObject())->GetValue();
+	((NetPlayServer*)::netplay_ptr)->AdjustPadBufferSize(val);
+
+	std::ostringstream ss;
+	ss << "< Pad Buffer: " << val << " >";
+	::netplay_ptr->SendChatMessage(ss.str());
+	m_chat_text->AppendText(wxString(ss.str().c_str(), *wxConvCurrent).Append(wxT('\n')));
 }
 
 void NetPlayDiag::OnQuit(wxCommandEvent& event)

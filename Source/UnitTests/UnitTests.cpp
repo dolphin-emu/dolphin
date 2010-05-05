@@ -138,8 +138,3 @@ void Host_UpdateLeds(int bits){}
 void Host_UpdateSpeakerStatus(int index, int bits){}
 void Host_UpdateStatus(){}
 void Host_Message(int){}
-
-int CSIDevice_GCController::GetNetInput(u8 numPAD, SPADStatus PadStatus, u32 *PADStatus)
-{
-	return 0;
-}

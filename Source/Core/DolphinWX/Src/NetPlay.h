@@ -5,6 +5,7 @@
 #include "CommonTypes.h"
 //#define WIN32_LEAN_AND_MEAN
 #include "Thread.h"
+#include "Timer.h"
 
 // hax, i hope something like this isn't needed on non-windows
 #define _WINSOCK2API_
@@ -17,6 +18,7 @@
 
 #include <map>
 #include <queue>
+#include <sstream>
 
 class NetPlayDiag;
 
@@ -30,7 +32,17 @@ public:
 	u32 nLo;
 };
 
-#define NETPLAY_VERSION		"Dolphin NetPlay 2.1"
+class NetWiimote
+{
+public:
+	NetWiimote& operator=(const NetWiimote&);
+	NetWiimote(const u32 _size) : size(_size), data(new u8[size]) {}
+
+	const u32	size;
+	u8* const	data;
+};
+
+#define NETPLAY_VERSION		"Dolphin NetPlay 2.2"
 
 #ifdef _M_X64
 	#define	NP_ARCH "x64"
@@ -39,11 +51,11 @@ public:
 #endif
 
 #ifdef _WIN32
-	#define NETPLAY_DOLPHIN_VER		SVN_REV_STR" win-"NP_ARCH
+	#define NETPLAY_DOLPHIN_VER		SVN_REV_STR" W"NP_ARCH
 #elif __APPLE__
-	#define NETPLAY_DOLPHIN_VER		SVN_REV_STR" osx-"NP_ARCH
+	#define NETPLAY_DOLPHIN_VER		SVN_REV_STR" M"NP_ARCH
 #else
-	#define NETPLAY_DOLPHIN_VER		SVN_REV_STR" nix-"NP_ARCH
+	#define NETPLAY_DOLPHIN_VER		SVN_REV_STR" L"NP_ARCH
 #endif
 
 // messages
@@ -56,9 +68,13 @@ public:
 #define NP_MSG_PAD_MAPPING		0x61
 #define NP_MSG_PAD_BUFFER		0x62
 
+#define NP_MSG_WIIMOTE_DATA		0x70
+#define NP_MSG_WIIMOTE_MAPPING	0x71	// just using pad mapping for now
+
 #define NP_MSG_START_GAME		0xA0
 #define NP_MSG_CHANGE_GAME		0xA1
 #define NP_MSG_STOP_GAME		0xA2
+#define NP_MSG_DISABLE_GAME		0xA3
 
 #define NP_MSG_READY			0xD0
 #define NP_MSG_NOT_READY		0xD1
@@ -67,25 +83,46 @@ public:
 #define NP_MSG_PONG				0xE1
 // end messages
 
-// gui messages
-#define NP_GUI_UPDATE			0x10
-// end messages
-
 typedef u8	MessageId;
 typedef u8	PlayerId;
 typedef s8	PadMapping;
+typedef u32	FrameNum;
+
+enum
+{
+	CON_ERR_SERVER_FULL = 1,
+	CON_ERR_GAME_RUNNING,
+	CON_ERR_VERSION_MISMATCH	
+};
+
+THREAD_RETURN NetPlayThreadFunc(void* arg);
+
+// something like this should be in Common stuff
+class CritLocker
+{
+public:
+	//CritLocker(const CritLocker&);
+	CritLocker& operator=(const CritLocker&);
+	CritLocker(Common::CriticalSection& crit) : m_crit(crit) { m_crit.Enter(); }
+	~CritLocker() { m_crit.Leave(); }
+
+private:
+	Common::CriticalSection&	m_crit;
+};
 
 class NetPlay
 {
 public:
-	NetPlay() : m_is_running(false), m_do_loop(true) {}
+	NetPlay();
 	virtual ~NetPlay();
 	virtual void Entry() = 0;
 
 	bool	is_connected;
 	
 	// Send and receive pads values
-	virtual bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues) = 0;
+	void WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size);
+	void WiimoteUpdate(int _number);
+	bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
 	virtual bool ChangeGame(const std::string& game) = 0;
 	virtual void GetPlayerList(std::string& list) = 0;
 	virtual void SendChatMessage(const std::string& msg) = 0;
@@ -93,15 +130,23 @@ public:
 	virtual bool StartGame(const std::string &path);
 	virtual bool StopGame();
 
+	//void PushPadStates(unsigned int count);
+
+	u8 GetPadNum(u8 numPAD);
+
 protected:
 	//NetPlay(Common::ThreadFunc entry, void* arg) : m_thread(entry, arg) {}
-	void GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);
+	//void GetBufferedPad(const u8 pad_nb, NetPad* const netvalues);
+	void ClearBuffers();
 	void UpdateGUI();
 	void AppendChatGUI(const std::string& msg);
+	virtual void SendPadState(const PadMapping local_nb, const NetPad& np) = 0;
 
 	struct
 	{
-		Common::CriticalSection	send, players, buffer, other;
+		Common::CriticalSection		game;
+		// lock order
+		Common::CriticalSection		players, buffer, send;
 	} m_crit;
 
 	class Player
@@ -118,6 +163,9 @@ protected:
 
 	//LockingQueue<NetPad>	m_pad_buffer[4];
 	std::queue<NetPad>	m_pad_buffer[4];
+	std::map<FrameNum, NetWiimote>	m_wiimote_buffer[4];
+
+	FrameNum		m_wiimote_update_frame;
 
 	NetPlayDiag*	m_dialog;
 	sf::SocketTCP	m_socket;
@@ -125,12 +173,21 @@ protected:
 	sf::Selector<sf::SocketTCP>		m_selector;
 
 	std::string		m_selected_game;
-	bool	m_is_running;
+	volatile bool	m_is_running;
 	volatile bool	m_do_loop;
+
+	unsigned int	m_target_buffer_size;
+
+	Player*		m_local_player;
+
+	u32		m_on_game;
 
 private:
 
 };
+
+void NetPlay_Enable(NetPlay* const np);
+void NetPlay_Disable();
 
 class NetPlayServer : public NetPlay
 {
@@ -143,26 +200,38 @@ public:
 	void GetPlayerList(std::string& list);
 
 	// Send and receive pads values
-	bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
+	//bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
 	bool ChangeGame(const std::string& game);
 	void SendChatMessage(const std::string& msg);
 
 	bool StartGame(const std::string &path);
 	bool StopGame();
 
+	u64 CalculateMinimumBufferTime();
+	void AdjustPadBufferSize(unsigned int size);
+
 private:
 	class Client : public Player
 	{
 	public:
+		Client() : ping(0), on_game(0) {}
+
 		sf::SocketTCP	socket;
+		u64				ping;	
+		u32				on_game;
 	};
 
+	void SendPadState(const PadMapping local_nb, const NetPad& np);
 	void SendToClients(sf::Packet& packet, const PlayerId skip_pid = 0);
 	unsigned int OnConnect(sf::SocketTCP& socket);
 	unsigned int OnDisconnect(sf::SocketTCP& socket);
 	unsigned int OnData(sf::Packet& packet, sf::SocketTCP& socket);
 
 	std::map<sf::SocketTCP, Client>	m_players;
+
+	Common::Timer	m_ping_timer;
+	u32		m_ping_key;
+	bool	m_update_pings;
 };
 
 class NetPlayClient : public NetPlay
@@ -176,11 +245,13 @@ public:
 	void GetPlayerList(std::string& list);
 
 	// Send and receive pads values
-	bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
+	//bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
+	bool StartGame(const std::string &path);
 	bool ChangeGame(const std::string& game);
 	void SendChatMessage(const std::string& msg);
 
 private:
+	void SendPadState(const PadMapping local_nb, const NetPad& np);
 	unsigned int OnData(sf::Packet& packet);
 
 	PlayerId		m_pid;

@@ -29,6 +29,7 @@
 #include <wx/notebook.h>
 #include <wx/gbsizer.h>
 #include <wx/listbox.h>
+#include <wx/spinctrl.h>
 //#include <wx/thread.h>
 
 #include "GameListCtrl.h"
@@ -93,8 +94,10 @@ private:
 
 	void OnChat(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
+	void OnPadBuffHelp(wxCommandEvent& event);
 	void OnThread(wxCommandEvent& event);
 	void OnChangeGame(wxCommandEvent& event);
+	void OnAdjustBuffer(wxCommandEvent& event);
 
 	wxListBox*		m_player_lbox;
 	wxTextCtrl*		m_chat_text;

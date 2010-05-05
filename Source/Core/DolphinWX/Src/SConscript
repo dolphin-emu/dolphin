@@ -38,6 +38,8 @@ if wxenv['HAVE_WX']:
 		'WxUtils.cpp',
 		'MemoryCards/WiiSaveCrypted.cpp',
 		'NetPlay.cpp',
+		'NetPlayClient.cpp',
+		'NetPlayServer.cpp',
 		'NetWindow.cpp',
 		]
 

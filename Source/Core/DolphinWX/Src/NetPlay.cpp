@@ -15,28 +15,26 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "HW/SI_DeviceGCController.h"
-#include "HW/EXI_DeviceIPL.h"
-
 #include "NetPlay.h"
 #include "NetWindow.h"
 
+// for wiimote
+#include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "IPC_HLE/WII_IPC_HLE_WiiMote.h"
+// for gcpad
+#include "HW/SI_DeviceGCController.h"
+// for gctime
+#include "HW/EXI_DeviceIPL.h"
+// to start/stop game
 #include "Frame.h"
+// for OSD msgs
+#include "Core.h"
 
-#include <sstream>
-
-// this will be removed soon
-#define TEMP_FIXED_BUFFER	20
-
-enum
-{
-	CON_ERR_SERVER_FULL = 1,
-	CON_ERR_GAME_RUNNING,
-	CON_ERR_VERSION_MISMATCH	
-};
-
-NetPlay* NetClass_ptr = NULL;
+Common::CriticalSection		crit_netplay_ptr;
+static NetPlay* netplay_ptr = NULL;
 extern CFrame* main_frame;
+
+#define RPT_SIZE_HACK	(1 << 16)
 
 DEFINE_EVENT_TYPE(wxEVT_THREAD)
 
@@ -46,29 +44,42 @@ THREAD_RETURN NetPlayThreadFunc(void* arg)
 	return 0;
 }
 
+//CritLocker::CritLocker(Common::CriticalSection& crit)
+//	: m_crit(crit)
+//{
+//	m_crit.Enter();
+//}
+//
+//CritLocker::~CritLocker()
+//{
+//	m_crit.Leave();
+//}
+
+// called from ---GUI--- thread
+NetPlay::NetPlay()
+	: m_is_running(false), m_do_loop(true)
+{
+	m_target_buffer_size = 20;
+	ClearBuffers();
+}
+
+void NetPlay_Enable(NetPlay* const np)
+{
+	CritLocker crit(::crit_netplay_ptr);	// probably safe without a lock
+	::netplay_ptr = np;
+}
+
+void NetPlay_Disable()
+{
+	CritLocker crit(::crit_netplay_ptr);
+	::netplay_ptr = NULL;
+}
+
+// called from ---GUI--- thread
 NetPlay::~NetPlay()
 {
-	::NetClass_ptr = NULL;
-}
-
-NetPlayServer::~NetPlayServer()
-{
-	if (is_connected)
-	{
-		m_do_loop = false;
-		m_thread->WaitForDeath();
-		delete m_thread;
-	}	
-}
-
-NetPlayClient::~NetPlayClient()
-{
-	if (is_connected)
-	{
-		m_do_loop = false;
-		m_thread->WaitForDeath();
-		delete m_thread;
-	}	
+	CritLocker crit(crit_netplay_ptr);
+	::netplay_ptr = NULL;
 }
 
 NetPlay::Player::Player()
@@ -76,322 +87,7 @@ NetPlay::Player::Player()
 	memset(pad_map, -1, sizeof(pad_map));
 }
 
-NetPlayServer::NetPlayServer(const u16 port, const std::string& name, NetPlayDiag* const npd, const std::string& game)
-{
-	m_dialog = npd;
-	m_selected_game = game;
-
-	if (m_socket.Listen(port))
-	{
-		Client player;
-		player.pid = 0;
-		player.revision = NETPLAY_DOLPHIN_VER;
-		player.socket = m_socket;
-		player.name = name;
-
-		// map local pad 1 to game pad 1
-		player.pad_map[0] = 0;
-
-		// add self to player list
-		m_players[m_socket] = player;
-		//PanicAlert("Listening");
-
-		UpdateGUI();
-
-		is_connected = true;
-
-		m_selector.Add(m_socket);
-		m_thread = new Common::Thread(NetPlayThreadFunc, this);
-	}
-	else
-		is_connected = false;
-}
-
-NetPlayClient::NetPlayClient(const std::string& address, const u16 port, const std::string& name, NetPlayDiag* const npd)
-{
-	m_dialog = npd;
-	is_connected = false;
-
-	// why is false successful? documentation says true is
-	if (0 == m_socket.Connect(port, address))
-	{
-		// send connect message
-		sf::Packet spac;
-		spac << NETPLAY_VERSION;
-		spac << NETPLAY_DOLPHIN_VER;
-		spac << name;
-		m_socket.Send(spac);
-
-		sf::Packet rpac;
-		// TODO: make this not hang
-		m_socket.Receive(rpac);
-		MessageId error;
-		rpac >> error;
-
-		// got error message
-		if (error)
-		{
-			switch (error)
-			{
-			case CON_ERR_SERVER_FULL :
-				PanicAlert("The server is full!");
-				break;
-			case CON_ERR_VERSION_MISMATCH :
-				PanicAlert("The server and client's NetPlay versions are incompatible!");
-				break;
-			case CON_ERR_GAME_RUNNING :
-				PanicAlert("The server responded: the game is currently running!");
-				break;
-			default :
-				PanicAlert("The server sent an unknown error message!");
-				break;
-			}
-			m_socket.Close();
-		}
-		else
-		{
-			rpac >> m_pid;
-
-			Player player;
-			player.name = name;
-			player.pid = m_pid;
-			player.revision = NETPLAY_DOLPHIN_VER;
-
-			// add self to player list
-			m_players[m_pid] = player;
-
-			UpdateGUI();
-
-			//PanicAlert("Connection successful: assigned player id: %d", m_pid);
-			is_connected = true;
-
-			m_selector.Add(m_socket);
-			m_thread = new Common::Thread(NetPlayThreadFunc, this);
-		}
-	}
-	else
-		PanicAlert("Failed to Connect!");
-
-}
-
-void NetPlayServer::Entry()
-{
-	while (m_do_loop)
-	{
-		const unsigned int num = m_selector.Wait(0.01f);
-
-		for (unsigned int i=0; i<num; ++i)
-		{
-			sf::SocketTCP ready_socket = m_selector.GetSocketReady(i);
-
-			// listening socket
-			if (ready_socket == m_socket)
-			{
-				sf::SocketTCP accept_socket;
-				m_socket.Accept(accept_socket);
-
-				m_crit.other.Enter();
-				unsigned int error = OnConnect(accept_socket);
-				m_crit.other.Leave();
-
-				if (error)
-				{
-					sf::Packet spac;
-					spac << (MessageId)error;
-					// don't need to lock, this client isn't in the client map
-					accept_socket.Send(spac);
-
-					// TODO: not sure if client gets the message if i close right away
-					accept_socket.Close();
-				}
-			}
-			// client socket
-			else
-			{
-				sf::Packet rpac;
-				switch (ready_socket.Receive(rpac))
-				{
-				case sf::Socket::Done :
-					// if a bad packet is recieved, disconnect the client
-					if (0 == OnData(rpac, ready_socket))
-						break;
-
-				//case sf::Socket::Disconnected :
-				default :
-					m_crit.other.Enter();
-					OnDisconnect(ready_socket);
-					m_crit.other.Leave();
-					break;
-				}
-			}
-		}
-	}
-
-	// close listening socket and client sockets
-	{
-	std::map<sf::SocketTCP, Client>::reverse_iterator
-		i = m_players.rbegin(),
-		e = m_players.rend();
-	for ( ; i!=e; ++i)
-		i->second.socket.Close();
-	}
-
-	return;
-}
-
-unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
-{
-	sf::Packet rpac;
-	// TODO: make this not hang / check if good packet
-	socket.Receive(rpac);
-
-	std::string npver;
-	rpac >> npver;
-	// dolphin netplay version
-	if (npver != NETPLAY_VERSION)
-		return CON_ERR_VERSION_MISMATCH;
-
-	// game is currently running
-	if (m_is_running)
-		return CON_ERR_GAME_RUNNING;
-
-	// too many players
-	if (m_players.size() >= 255)
-		return CON_ERR_SERVER_FULL;
-
-	Client player;
-	player.socket = socket;
-	rpac >> player.revision;
-	rpac >> player.name;
-
-	// give new client first available id
-	player.pid = 0;
-	std::map<sf::SocketTCP, Client>::const_iterator
-		i,
-		e = m_players.end();
-	for (PlayerId p = 1; 0 == player.pid; ++p)
-	{
-		for (i = m_players.begin(); ; ++i)
-		{
-			if (e == i)
-			{
-				player.pid = p;
-				break;
-			}
-			if (p == i->second.pid)
-				break;
-		}
-	}
-
-	// TODO: this is crappy
-	// try to automatically assign new user a pad
-	{
-	bool is_mapped[4] = {false,false,false,false};
-
-	for ( unsigned int m = 0; m<4; ++m)
-	{
-		for (i = m_players.begin(); i!=e; ++i)
-		{
-			if (i->second.pad_map[m] >= 0)
-				is_mapped[(unsigned)i->second.pad_map[m]] = true;
-		}
-	}
-
-	for ( unsigned int m = 0; m<4; ++m)
-		if (false == is_mapped[m])
-		{
-			player.pad_map[0] = m;
-			break;
-		}
-
-	}
-
-	// ENTER
-	m_crit.send.Enter();
-
-	// send join message to already connected clients
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_PLAYER_JOIN;
-	spac << player.pid << player.name << player.revision;
-	SendToClients(spac);
-
-	// send new client success message with their id
-	spac.Clear();
-	spac << (MessageId)0;
-	spac << player.pid;
-	socket.Send(spac);
-
-	// send user their pad mapping
-	spac.Clear();
-	spac << (MessageId)NP_MSG_PAD_MAPPING;
-	spac << player.pid;
-	for (unsigned int pm = 0; pm<4; ++pm)
-		spac << player.pad_map[pm];
-	socket.Send(spac);
-
-	// send new client the selected game
-	spac.Clear();
-	spac << (MessageId)NP_MSG_CHANGE_GAME;
-	spac << m_selected_game;
-	socket.Send(spac);
-
-	// sync values with new client
-	for (i = m_players.begin(); i!=e; ++i)
-	{
-		spac.Clear();
-		spac << (MessageId)NP_MSG_PLAYER_JOIN;
-		spac << i->second.pid << i->second.name << i->second.revision;
-		socket.Send(spac);
-
-		spac.Clear();
-		spac << (MessageId)NP_MSG_PAD_MAPPING;
-		spac << i->second.pid;
-		for (unsigned int pm = 0; pm<4; ++pm)
-			spac << i->second.pad_map[pm];
-		socket.Send(spac);
-	}
-
-	// LEAVE
-	m_crit.send.Leave();
-
-	// add client to the player list
-	m_crit.players.Enter();
-	m_players[socket] = player;
-	m_crit.players.Leave();
-
-	// add client to selector/ used for receiving
-	m_selector.Add(socket);
-
-	UpdateGUI();
-
-	return 0;
-}
-
-unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
-{
-	if (m_is_running)
-		PanicAlert("Disconnect while game is running. Game will likely hang!");
-
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_PLAYER_LEAVE;
-	spac << m_players[socket].pid;
-
-	m_selector.Remove(socket);
-	
-	m_crit.players.Enter();
-	m_players.erase(m_players.find(socket));
-	m_crit.players.Leave();
-
-	// alert other players of disconnect
-	m_crit.send.Enter();
-	SendToClients(spac);
-	m_crit.send.Leave();
-
-	UpdateGUI();
-
-	return 0;
-}
-
+// called from ---NETPLAY--- thread
 void NetPlay::UpdateGUI()
 {
 	if (m_dialog)
@@ -401,6 +97,7 @@ void NetPlay::UpdateGUI()
 	}
 }
 
+// called from ---NETPLAY--- thread
 void NetPlay::AppendChatGUI(const std::string& msg)
 {
 	if (m_dialog)
@@ -411,241 +108,7 @@ void NetPlay::AppendChatGUI(const std::string& msg)
 	}
 }
 
-void NetPlayServer::SendToClients(sf::Packet& packet, const PlayerId skip_pid)
-{
-	std::map<sf::SocketTCP, Client>::iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	for ( ; i!=e; ++i)
-		if (i->second.pid && (i->second.pid != skip_pid))
-			i->second.socket.Send(packet);
-}
-
-unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
-{
-	MessageId mid;
-	packet >> mid;
-
-	// don't need lock because this is the only thread that modifies the players
-	// only need locks for writes to m_players in this thread
-	Player& player = m_players[socket];
-
-	switch (mid)
-	{
-	case NP_MSG_CHAT_MESSAGE :
-		{
-			std::string msg;
-			packet >> msg;
-
-			// send msg to other clients
-			sf::Packet spac;
-			spac << (MessageId)NP_MSG_CHAT_MESSAGE;
-			spac << player.pid;
-			spac << msg;
-
-			m_crit.send.Enter();
-			SendToClients(spac, player.pid);
-			m_crit.send.Leave();
-
-			// add to gui
-			std::ostringstream ss;
-			ss << player.name << '[' << (char)(player.pid+'0') << "]: " << msg;
-
-			AppendChatGUI(ss.str());
-		}
-		break;
-
-	case NP_MSG_PAD_DATA :
-		{
-			PadMapping map = 0;
-			NetPad np;
-			packet >> map >> np.nHi >> np.nLo;
-
-			// check if client's pad indeed maps in game
-			if (map >= 0 && map < 4)
-				map = player.pad_map[(unsigned)map];
-			else
-				map = -1;
-			
-			// if not, they are hacking, so disconnect them
-			// this could happen right after a pad map change, but that isn't implimented yet
-			if (map < 0)
-				return 1;
-				
-			// add to pad buffer
-			m_crit.buffer.Enter();
-			m_pad_buffer[(unsigned)map].push(np);
-			m_crit.buffer.Leave();
-
-			// relay to clients
-			sf::Packet spac;
-			spac << (MessageId)NP_MSG_PAD_DATA;
-			spac << map;	// in game mapping
-			spac << np.nHi << np.nLo;
-
-			m_crit.send.Enter();
-			SendToClients(spac, player.pid);
-			m_crit.send.Leave();
-		}
-		break;
-
-	default :
-		PanicAlert("Unknown message with id:%d received from player:%d Kicking player!", mid, player.pid);
-		// unknown message, kick the client
-		return 1;
-		break;
-	}
-
-	return 0;
-}
-
-unsigned int NetPlayClient::OnData(sf::Packet& packet)
-{
-	MessageId mid;
-	packet >> mid;
-
-	switch (mid)
-	{
-	case NP_MSG_PLAYER_JOIN :
-		{
-			Player player;
-			packet >> player.pid;
-			packet >> player.name;
-			packet >> player.revision;
-
-			m_crit.players.Enter();
-			m_players[player.pid] = player;
-			m_crit.players.Leave();
-
-			UpdateGUI();
-		}
-		break;
-
-	case NP_MSG_PLAYER_LEAVE :
-		{
-			PlayerId pid;
-			packet >> pid;
-
-			m_crit.players.Enter();
-			m_players.erase(m_players.find(pid));
-			m_crit.players.Leave();
-
-			UpdateGUI();
-		}
-		break;
-
-	case NP_MSG_CHAT_MESSAGE :
-		{
-			PlayerId pid;
-			packet >> pid;
-			std::string msg;
-			packet >> msg;
-
-			// don't need lock to read in this thread
-			const Player& player = m_players[pid];
-
-			// add to gui
-			std::ostringstream ss;
-			ss << player.name << '[' << (char)(pid+'0') << "]: " << msg;
-
-			AppendChatGUI(ss.str());
-		}
-		break;
-
-	case NP_MSG_PAD_MAPPING :
-		{
-			PlayerId pid;
-			packet >> pid;
-
-			m_crit.players.Enter();
-			Player& player = m_players[pid];
-
-			for (unsigned int i=0; i<4; ++i)
-				packet >> player.pad_map[i];
-			m_crit.players.Leave();
-
-			UpdateGUI();
-		}
-		break;
-
-	case NP_MSG_PAD_DATA :
-		{
-			PadMapping map = 0;
-			NetPad np;
-			packet >> map >> np.nHi >> np.nLo;
-
-			// trusting server for good map value (>=0 && <4)
-			// add to pad buffer
-			m_crit.buffer.Enter();
-			m_pad_buffer[(unsigned)map].push(np);
-			m_crit.buffer.Leave();
-		}
-		break;
-
-	case NP_MSG_CHANGE_GAME :
-		{
-			m_crit.other.Enter();
-			packet >> m_selected_game;
-			m_crit.other.Leave();
-
-			// update gui
-			wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_CHANGE_GAME);
-			// TODO: using a wxString in AddPendingEvent from another thread is unsafe i guess?
-			evt.SetString(wxString(m_selected_game.c_str(), *wxConvCurrent));
-			m_dialog->GetEventHandler()->AddPendingEvent(evt);
-		}
-		break;
-
-	case NP_MSG_START_GAME :
-		{
-			wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
-			m_dialog->GetEventHandler()->AddPendingEvent(evt);
-		}
-		break;
-
-	case NP_MSG_STOP_GAME :
-		{
-			wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_STOP_GAME);
-			m_dialog->GetEventHandler()->AddPendingEvent(evt);
-		}
-		break;
-	
-	default :
-		PanicAlert("Unknown message received with id : %d", mid);
-		break;
-
-	}
-
-	return 0;
-}
-
-void NetPlayClient::Entry()
-{
-	while (m_do_loop)
-	{
-		if (m_selector.Wait(0.01f))
-		{
-			sf::Packet rpac;
-			switch (m_socket.Receive(rpac))
-			{
-			case sf::Socket::Done :
-				OnData(rpac);
-				break;
-
-			//case sf::Socket::Disconnected :
-			default :
-				PanicAlert("Lost connection to server! If the game is running, it will likely hang!");
-				m_do_loop = false;
-				break;
-			}
-		}
-	}
-
-	m_socket.Close();
-
-	return;
-}
-
+// called from ---GUI--- thread
 std::string NetPlay::Player::ToString() const
 {
 	std::ostringstream ss;
@@ -656,71 +119,8 @@ std::string NetPlay::Player::ToString() const
 	return ss.str();
 }
 
-void NetPlayClient::GetPlayerList(std::string &list)
-{
-	m_crit.players.Enter();
-
-	std::ostringstream ss;
-
-	std::map<PlayerId, Player>::const_iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	for ( ; i!=e; ++i)
-		ss << i->second.ToString() << '\n';
-
-	list = ss.str();
-
-	m_crit.players.Leave();
-}
-
-void NetPlayServer::GetPlayerList(std::string &list)
-{
-	m_crit.players.Enter();
-
-	std::ostringstream ss;
-
-	std::map<sf::SocketTCP, Client>::const_iterator
-		i = m_players.begin(),
-		e = m_players.end();
-	for ( ; i!=e; ++i)
-		ss << i->second.ToString() << '\n';
-
-	list = ss.str();
-
-	m_crit.players.Leave();
-}
-
-void NetPlayServer::SendChatMessage(const std::string& msg)
-{
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_CHAT_MESSAGE;
-	spac << (PlayerId)0;	// server id always 0
-	spac << msg;
-
-	m_crit.send.Enter();
-	SendToClients(spac);
-	m_crit.send.Leave();
-}
-
-void NetPlayClient::SendChatMessage(const std::string& msg)
-{
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_CHAT_MESSAGE;
-	spac << msg;
-
-	m_crit.send.Enter();
-	m_socket.Send(spac);
-	m_crit.send.Leave();
-}
-
 NetPad::NetPad()
 {
-	//SPADStatus sp;
-	//memset(&sp, 0, sizeof(sp));
-	//memset(&sp.stickX, 0x80, 4);
-	//*this = NetPad(&sp);
-
-	// i'd rather do something like this
 	nHi = 0x00808080;
 	nLo = 0x80800000;
 }
@@ -737,146 +137,127 @@ NetPad::NetPad(const SPADStatus* const pad_status)
 	nLo |= (u32)((u8)pad_status->substickX << 24);
 }
 
-bool NetPlayServer::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_status, NetPad* const netvalues)
+// called from ---NETPLAY--- thread
+void NetPlay::ClearBuffers()
 {
-	m_crit.players.Enter();
+	// clear pad buffers, no clear method ?
+	for (unsigned int i=0; i<4; ++i)
+	{
+		while (m_pad_buffer[i].size())
+			m_pad_buffer[i].pop();
+	}
+}
 
-	// in game mapping for this local pad, kinda silly method
-	PadMapping in_game_num = m_players[m_socket].pad_map[pad_nb];
+// called from ---CPU--- thread
+bool NetPlay::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_status, NetPad* const netvalues)
+{
+	m_crit.players.Enter();	// lock players
 
-	// check if this local pad maps in game
-	if (in_game_num >= 0)
+	// in game mapping for this local pad
+	unsigned int in_game_num = m_local_player->pad_map[pad_nb];
+
+	// does this local pad map in game?
+	if (in_game_num < 4)
 	{
 		NetPad np(pad_status);
 
-		// add to buffer
-		m_crit.buffer.Enter();
-		m_pad_buffer[(unsigned)in_game_num].push(np);
+		m_crit.buffer.Enter();	// lock buffer
+		// adjust the buffer either up or down
+		while (m_pad_buffer[in_game_num].size() <= m_target_buffer_size)
+		{
+			// add to buffer
+			m_pad_buffer[in_game_num].push(np);
+
+			// send
+			SendPadState(pad_nb, np);
+		}
 		m_crit.buffer.Leave();
-
-		// send to clients
-		sf::Packet spac;
-		spac << (MessageId)NP_MSG_PAD_DATA;
-		spac << in_game_num;	// in game pad num
-		spac << np.nHi << np.nLo;
-
-		m_crit.send.Enter();
-		SendToClients(spac);
-		m_crit.send.Leave();
 	}
 
 	m_crit.players.Leave();
 
-	// get pad from pad buffer and send to game
-	GetBufferedPad(pad_nb, netvalues);
+	//Common::Timer bufftimer;
+	//bufftimer.Start();
 
-	return true;
-}
-
-bool NetPlayServer::ChangeGame(const std::string &game)
-{
-	m_crit.other.Enter();
-	m_selected_game = game;
-
-	// send changed game to clients
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_CHANGE_GAME;
-	spac << game;
-
-	m_crit.players.Enter();
-	m_crit.send.Enter();
-	SendToClients(spac);
-	m_crit.send.Leave();
-	m_crit.players.Leave();
-
-	m_crit.other.Leave();
-
-	return true;
-}
-
-void NetPlay::GetBufferedPad(const u8 pad_nb, NetPad* const netvalues)
-{
 	// get padstate from buffer and send to game
-	m_crit.buffer.Enter();
+	m_crit.buffer.Enter();	// lock buffer
 	while (0 == m_pad_buffer[pad_nb].size())
 	{
 		m_crit.buffer.Leave();
 		// wait for receiving thread to push some data
 		Common::SleepCurrentThread(1);
+		if (false == m_is_running)
+			return false;
 		m_crit.buffer.Enter();
+
+		// TODO: check the time of bufftimer here,
+		// if it gets pretty high, ask the user if they want to disconnect
+
 	}
 	*netvalues = m_pad_buffer[pad_nb].front();
 	m_pad_buffer[pad_nb].pop();
 	m_crit.buffer.Leave();
-}
 
-bool NetPlayClient::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_status, NetPad* const netvalues)
-{
-	m_crit.players.Enter();
-
-	// in game mapping for this local pad
-	PadMapping in_game_num = m_players[m_pid].pad_map[pad_nb];
-
-	// does this local pad map in game?
-	if (in_game_num >= 0)
-	{
-		NetPad np(pad_status);
-
-		// add to buffer
-		m_crit.buffer.Enter();
-		m_pad_buffer[(unsigned)in_game_num].push(np);
-		m_crit.buffer.Leave();
-
-		// send to server
-		sf::Packet spac;
-		spac << (MessageId)NP_MSG_PAD_DATA;
-		spac << (PadMapping)pad_nb;	// local pad num
-		spac << np.nHi << np.nLo;
-
-		m_crit.send.Enter();
-		m_socket.Send(spac);
-		m_crit.send.Leave();
-	}
-
-	m_crit.players.Leave();
-
-	// get pad from pad buffer and send to game
-	GetBufferedPad(pad_nb, netvalues);
+	//u64 hangtime = bufftimer.GetTimeElapsed();
+	//if (hangtime > 10)
+	//{
+	//	std::ostringstream ss;
+	//	ss << "Pad " << (int)pad_nb << ": Had to wait " << hangtime << "ms for pad data. (increase pad Buffer maybe)";
+	//	Core::DisplayMessage(ss.str(), 1000);
+	//}
 
 	return true;
 }
 
-bool NetPlayClient::ChangeGame(const std::string &game)
+// called from ---CPU--- thread
+void NetPlay::WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	// warning removal
-	game.size();
+	//m_crit.players.Enter();	// lock players
 
-	// idk, nothing is needed here
+	//// in game mapping for this local wiimote
+	//unsigned int in_game_num = m_local_player->pad_map[_number];	// just using gc pad_map for now
 
-	return true;
+	//// does this local pad map in game?
+	//if (in_game_num < 4)
+	//{
+	//	//NetPad np(pad_status);
+
+	//	m_crit.buffer.Enter();	// lock buffer
+	//	// adjust the buffer either up or down
+	//	//while (m_pad_buffer[in_game_num].size() <= m_target_buffer_size)
+	//	{
+	//		// add to buffer
+	//		//m_wiimote_buffer[in_game_num].push(np);
+
+	//		// send
+	//		//SendPadState(pad_nb, np);
+	//	}
+	//	m_crit.buffer.Leave();
+	//}
+
+	//// get pad from pad buffer and send to game
+	//GetBufferedPad(pad_nb, netvalues);
+
 }
 
-bool NetPlayServer::StartGame(const std::string &path)
+// called from ---CPU--- thread
+void NetPlay::WiimoteUpdate(int _number)
 {
-	if (false == NetPlay::StartGame(path))
-		return false;
+	// temporary
+	if (_number)
+		return;
 
-	// tell clients to start game
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_START_GAME;
+	m_crit.buffer.Enter();	// lock buffer
+	++m_wiimote_update_frame;
+	m_crit.buffer.Leave();
 
-	m_crit.players.Enter();
-	m_crit.send.Enter();
-	SendToClients(spac);
-	m_crit.send.Leave();
-	m_crit.players.Leave();
-
-	return true;
+	// TODO: prolly do some wiimote input here
 }
 
+// called from ---GUI--- thread
 bool NetPlay::StartGame(const std::string &path)
 {
-	m_crit.other.Enter();
+	CritLocker game_lock(m_crit.game);	// lock game state
 
 	if (m_is_running)
 	{
@@ -887,35 +268,19 @@ bool NetPlay::StartGame(const std::string &path)
 	AppendChatGUI(" -- STARTING GAME -- ");
 
 	m_is_running = true;
-	::NetClass_ptr = this;
-
-	// temporary / testing
-	m_crit.buffer.Enter();
-	NetPad np;
-	for (unsigned int p=0; p<4; ++p)
-	{
-		// no clear method ?
-		while (m_pad_buffer[p].size())
-			m_pad_buffer[p].pop();
-
-		// temporary
-		for (unsigned int i=0; i<TEMP_FIXED_BUFFER; ++i)
-			m_pad_buffer[p].push(np);
-	}
-	m_crit.buffer.Leave();
+	NetPlay_Enable(this);
 
 	// boot game
 	::main_frame->BootGame(path);
 	//BootManager::BootCore(path);
 
-	m_crit.other.Leave();
-
 	return true;
 }
 
+// called from ---GUI--- thread and ---NETPLAY--- thread (client side)
 bool NetPlay::StopGame()
 {
-	m_crit.other.Enter();
+	CritLocker game_lock(m_crit.game);	// lock game state
 
 	if (false == m_is_running)
 	{
@@ -925,51 +290,105 @@ bool NetPlay::StopGame()
 
 	AppendChatGUI(" -- STOPPING GAME -- ");
 
+	m_is_running = false;
+	NetPlay_Disable();
+
 	// stop game
 	::main_frame->DoStop();
 
-	m_is_running = false;
-	::NetClass_ptr = false;
-
-	m_crit.other.Leave();
-
 	return true;
 }
 
-bool NetPlayServer::StopGame()
+// called from ---CPU--- thread
+u8 NetPlay::GetPadNum(u8 numPAD)
 {
-	if (false == NetPlay::StopGame())
-		return false;
+	// TODO: i don't like that this loop is running everytime there is rumble
+	unsigned int i = 0;
+	for (; i<4; ++i)
+		if (numPAD == m_local_player->pad_map[i])
+			break;
 
-	// tell clients to stop game
-	sf::Packet spac;
-	spac << (MessageId)NP_MSG_STOP_GAME;
-
-	m_crit.players.Enter();
-	m_crit.send.Enter();
-	SendToClients(spac);
-	m_crit.send.Leave();
-	m_crit.players.Leave();
-
-	return true;
+	return i;
 }
 
+// stuff hacked into dolphin
+
+// called from ---CPU--- thread
 // Actual Core function which is called on every frame
-int CSIDevice_GCController::GetNetInput(u8 numPAD, SPADStatus PadStatus, u32 *PADStatus)
+int CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, SPADStatus PadStatus, u32 *PADStatus)
 {
-	if (NetClass_ptr)
-		// TODO: NetClass_ptr could go null here, need a lock
-		return NetClass_ptr->GetNetPads(numPAD, &PadStatus, (NetPad*)PADStatus) ? 1 : 0;
+	CritLocker crit(::crit_netplay_ptr);
+
+	if (::netplay_ptr)
+		return netplay_ptr->GetNetPads(numPAD, &PadStatus, (NetPad*)PADStatus) ? 1 : 0;
 	else
 		return 2;
 }
 
+// called from ---CPU--- thread
 // so all players' games get the same time
-u32 CEXIIPL::GetNetGCTime()
+u32 CEXIIPL::NetPlay_GetGCTime()
 {
-	if (NetClass_ptr)
-		// TODO: NetClass_ptr could go null here, need a lock
+	CritLocker crit(::crit_netplay_ptr);
+
+	if (::netplay_ptr)
 		return 1272737767;	// watev
 	else
 		return 0;
+}
+
+// called from ---CPU--- thread
+// return the local pad num that should rumble given a ingame pad num
+u8 CSIDevice_GCController::NetPlay_GetPadNum(u8 numPAD)
+{
+	CritLocker crit(::crit_netplay_ptr);
+
+	if (::netplay_ptr)
+		return ::netplay_ptr->GetPadNum(numPAD);
+	else
+		return numPAD;
+}
+
+// called from ---CPU--- thread
+// wiimote update / used for frame counting
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::NetPlay_WiimoteUpdate(int _number)
+{
+	CritLocker crit(::crit_netplay_ptr);
+
+	return;
+}
+
+// called from ---CPU--- thread
+//
+int CWII_IPC_HLE_WiiMote::NetPlay_GetWiimoteNum(int _number)
+{
+	CritLocker crit(::crit_netplay_ptr);
+
+	if (::netplay_ptr)
+		return ::netplay_ptr->GetPadNum(_number);		// just using gcpad mapping for now
+	else
+		return _number;
+}
+
+// called from ---CPU--- thread
+// intercept wiimote input callback
+bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int _number, u16 _channelID, const void* _pData, u32& _Size)
+{
+	CritLocker crit(::crit_netplay_ptr);
+
+	if (::netplay_ptr)
+	{
+		if (_Size >= RPT_SIZE_HACK)
+		{
+			_Size -= RPT_SIZE_HACK;
+			return false;
+		}
+		else
+		{
+			::netplay_ptr->WiimoteInput(_number, _channelID, _pData, _Size);
+			return true;
+		}
+	}
+	else
+		return false;
 }
