@@ -35,7 +35,7 @@
 
 #if defined(__APPLE__)
 #include <CoreFoundation/CFString.h>
-#include <CoreFoundation/CFUrl.h>
+#include <CoreFoundation/CFURL.h>
 #include <CoreFoundation/CFBundle.h>
 #include <sys/param.h>
 #endif
