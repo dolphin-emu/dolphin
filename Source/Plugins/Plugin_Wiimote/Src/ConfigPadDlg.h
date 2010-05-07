@@ -257,7 +257,7 @@ class WiimotePadConfigDialog : public wxDialog
 			*m_tTriggerSource[MAX_WIIMOTES],
 			*m_statictext_Analog[IDB_TRIGGER_R - IDB_ANALOG_LEFT_X + 1][MAX_WIIMOTES],
 			*m_statictext_Wiimote[IDB_WM_SHAKE - IDB_WM_A + 1][MAX_WIIMOTES],
-			*m_statictext_NunChuck[IDB_NC_SHAKE - IDB_NC_Z + 1][MAX_WIIMOTES],
+			*m_statictext_Nunchuk[IDB_NC_SHAKE - IDB_NC_Z + 1][MAX_WIIMOTES],
 			*m_statictext_Classic[IDB_CC_RD - IDB_CC_A + 1][MAX_WIIMOTES],
 			*m_statictext_GH3[IDB_GH3_STRUM_DOWN - IDB_GH3_GREEN + 1][MAX_WIIMOTES],
 			*m_NunchuckTextStick[5],

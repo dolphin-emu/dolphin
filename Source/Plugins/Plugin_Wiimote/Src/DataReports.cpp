@@ -196,7 +196,7 @@ void SendReportCoreAccelExt16(u16 _channelID)
 	FillReportAcc(pReport->a);
 #endif
 
-	if(WiiMapping[g_ID].iExtensionConnected == EXT_NUNCHUCK)
+	if(WiiMapping[g_ID].iExtensionConnected == EXT_NUNCHUK)
 	{
 #if defined(HAVE_WX) && HAVE_WX
 		FillReportExtension(pReport->ext);
@@ -233,38 +233,53 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	memset(pReport, 0, sizeof(wm_report_core_accel_ir10_ext6));
 
 	// Make a classic extension struct
-	wm_classic_extension _ext;
-	wm_GH3_extension _GH3_ext;
-	memset(&_ext, 0, sizeof(wm_classic_extension));
-	memset(&_GH3_ext, 0, sizeof(wm_GH3_extension));
+	
 
 #if defined(HAVE_WX) && HAVE_WX
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
 	FillReportIRBasic(pReport->ir[0], pReport->ir[1]);
-#endif
-	if(WiiMapping[g_ID].iExtensionConnected == EXT_NUNCHUCK)
+	if ((WiiMapping[g_ID].bMotionPlusConnected) && (( WiiMapping[g_ID].iExtensionConnected == EXT_NUNCHUK ) || (WiiMapping[g_ID].iExtensionConnected == EXT_NONE)) )
 	{
-#if defined(HAVE_WX) && HAVE_WX
-		FillReportExtension(pReport->ext);
-#endif
-	}
-	else if(WiiMapping[g_ID].iExtensionConnected == EXT_CLASSIC_CONTROLLER)
-	{
-#if defined(HAVE_WX) && HAVE_WX
-		FillReportClassicExtension(_ext);
-#endif
-		// Copy _ext to pReport->ext
-		memcpy(&pReport->ext, &_ext, sizeof(_ext));
-	}
-	else if(WiiMapping[g_ID].iExtensionConnected == EXT_GUITARHERO)
-	{
-#if defined(HAVE_WX) && HAVE_WX
-		FillReportGuitarHero3Extension(_GH3_ext);
-#endif
-		memcpy(&pReport->ext, &_GH3_ext, sizeof(_GH3_ext));
-	}
+		if(WiiMapping[g_ID].iExtensionConnected == EXT_NUNCHUK)
+		{
+			FillReportMotionPlus(pReport->ext, true);
 
+		}
+		else if (WiiMapping[g_ID].iExtensionConnected == EXT_NONE)
+		{
+			FillReportMotionPlus(pReport->ext, false);
+
+		}
+
+	}
+	else {
+		if(WiiMapping[g_ID].iExtensionConnected == EXT_NUNCHUK)
+		{
+			FillReportExtension(pReport->ext);
+		}
+		else if(WiiMapping[g_ID].iExtensionConnected == EXT_CLASSIC_CONTROLLER)
+		{
+			wm_classic_extension _ext;
+			memset(&_ext, 0, sizeof(wm_classic_extension));
+
+			FillReportClassicExtension(_ext);
+
+			// Copy _ext to pReport->ext
+			memcpy(&pReport->ext, &_ext, sizeof(_ext));
+		}
+		else if(WiiMapping[g_ID].iExtensionConnected == EXT_GUITARHERO)
+		{
+
+			wm_GH3_extension _GH3_ext;
+			memset(&_GH3_ext, 0, sizeof(wm_GH3_extension));
+			FillReportGuitarHero3Extension(_GH3_ext);
+
+			memcpy(&pReport->ext, &_GH3_ext, sizeof(_GH3_ext));
+		}
+
+	}
+	#endif
 	INFO_LOG(WIIMOTE,  "  SendReportCoreAccelIr10Ext(0x37)");
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);

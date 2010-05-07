@@ -755,7 +755,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_gWiimote[i]->Add(m_sWmVertRight[i], 0, (wxLEFT | wxRIGHT | wxDOWN), 1);
 
 		// Extension Mapping
-		if(WiiMoteEmu::WiiMapping[i].iExtensionConnected == WiiMoteEmu::EXT_NUNCHUCK)
+		if(WiiMoteEmu::WiiMapping[i].iExtensionConnected == WiiMoteEmu::EXT_NUNCHUK)
 		{
 			// Stick controls
 			m_NunchuckTextStick[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Stick"));
@@ -763,11 +763,11 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 			
 			for (int x = 0; x <= IDB_NC_SHAKE - IDB_NC_Z; x++)
 			{
-				m_statictext_NunChuck[x][i] = new wxStaticText(m_Controller[i], wxID_ANY, ncText[x]);
+				m_statictext_Nunchuk[x][i] = new wxStaticText(m_Controller[i], wxID_ANY, ncText[x]);
 				m_Button_NunChuck[x][i] = new wxButton(m_Controller[i], x + IDB_NC_Z, wxEmptyString, wxDefaultPosition, wxSize(BtW, BtH));
 				m_Button_NunChuck[x][i]->SetFont(m_SmallFont);
 				m_Sizer_NunChuck[x][i] = new wxBoxSizer(wxHORIZONTAL);
-				m_Sizer_NunChuck[x][i]->Add(m_statictext_NunChuck[x][i], 0, (wxUP), 4);
+				m_Sizer_NunChuck[x][i]->Add(m_statictext_Nunchuk[x][i], 0, (wxUP), 4);
 				m_Sizer_NunChuck[x][i]->Add(m_Button_NunChuck[x][i], 0, (wxLEFT), 2);
 			}
 
@@ -895,7 +895,7 @@ void WiimotePadConfigDialog::CreatePadGUIControls()
 		m_sHorizControllerMapping[i]->Add(m_gWiimote[i], 0, (wxLEFT), 5);
 		switch(WiiMoteEmu::WiiMapping[i].iExtensionConnected)
 		{
-		case WiiMoteEmu::EXT_NUNCHUCK:
+		case WiiMoteEmu::EXT_NUNCHUK:
 			m_sHorizControllerMapping[i]->Add(m_gNunchuck[i], 0, (wxLEFT), 5);
 			break;
 		case WiiMoteEmu::EXT_CLASSIC_CONTROLLER:
@@ -1074,7 +1074,7 @@ void WiimotePadConfigDialog::UpdateGUI()
 		m_Button_Wiimote[x][m_Page]->SetLabel(wxString::FromAscii(
 		InputCommon::VKToString(WiiMoteEmu::WiiMapping[m_Page].Button[x + WiiMoteEmu::EWM_A]).c_str()));
 	}
-	if(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected == WiiMoteEmu::EXT_NUNCHUCK)
+	if(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected == WiiMoteEmu::EXT_NUNCHUK)
 	{
 		m_NunchuckComboStick[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.NC);
 		for (int x = 0; x <= IDB_NC_SHAKE - IDB_NC_Z; x++)
@@ -1104,7 +1104,7 @@ void WiimotePadConfigDialog::UpdateGUI()
 		InputCommon::XKeyToString(WiiMoteEmu::WiiMapping[m_Page].Button[x + WiiMoteEmu::EWM_A], keyStr);
 		m_Button_Wiimote[x][m_Page]->SetLabel(wxString::FromAscii(keyStr));
 	}
-	if(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected == WiiMoteEmu::EXT_NUNCHUCK)
+	if(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected == WiiMoteEmu::EXT_NUNCHUK)
 	{
 		m_NunchuckComboStick[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.NC);
 		for (int x = 0; x <= IDB_NC_SHAKE - IDB_NC_Z; x++)

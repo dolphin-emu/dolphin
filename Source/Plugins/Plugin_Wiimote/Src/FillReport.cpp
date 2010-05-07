@@ -710,7 +710,8 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 		);*/
 	// ------------------
 }
-
+/* Generate the 6 byte extension report for the motionplus&nunchuk, encrypted. The bytes
+void FillReportExtension(wm_extension& _ext)
 
 /* Generate the 6 byte extension report for the Nunchuck, encrypted. The bytes
    are JX JY AX AY AZ BT. */
@@ -1245,6 +1246,203 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 	wiimote_encrypt(&g_ExtKey[g_ID], Tmp, 0x00, sizeof(_ext));
 	// Write it back to the struct
 	memcpy(&_ext, Tmp, sizeof(_ext));
+}
+
+/* Generate the 6 byte extension report for the MotionPlus Controller.
+   pass-through mode supported for MotionPlus+Nunchuk */
+void FillReportMotionPlus(wm_extension& ext, bool extension){
+
+	//sending initial control packet, this must be sent first, its some kind of verifiation, all control bits are set to 0!
+	if (g_MotionPlusReadError[g_ID]) {
+
+		memcpy(&ext, motionpluscheck_id, sizeof(motionpluscheck_id)); 
+		g_MotionPlus[g_ID] = (extension) ? 1 : 0;
+		g_MotionPlusReadError[g_ID] = 0;	
+
+	} //nunchuk inserted
+	else if (extension == 1) {
+
+		switch (g_InterleavedData[g_ID]) 
+		{
+			case false://MPlus
+				FillReportMotionPlusNoExtension(ext);
+				break;
+
+			case true: //Nunchuk
+				FillReportMotionPlusNunchukExtension(ext);
+				break;
+		}
+		 //alternate between nunchuk and wm+ interleaved reports
+		g_InterleavedData[g_ID] = g_InterleavedData[g_ID] ? false : true;
+
+	}//no additional extension inserted, no interleaving, always sending mp+ data
+	else if (extension == 0) { 
+
+		FillReportMotionPlusNoExtension(ext);
+		g_InterleavedData[g_ID] = false;
+
+	}
+}
+
+void FillReportMotionPlusNoExtension(wm_extension& _ext)
+{
+	wm_mp_nc_0 ext;
+	memset(&ext, 0, sizeof(wm_mp_nc_0));
+	ext.YawLeftLS = 0x00; //dummy data atm
+	ext.RollLeftLS = 0x00;
+	ext.PitchDownLS = 0x00;
+	ext.pitchfast = 0x00;
+	ext.yawfast = 0x00;
+	ext.YawLeftHI = 0x00;
+	ext.ExtCon = 0x00; // 0 (important, since we don't use a nunchuk here)
+	ext.rollfast = 0x00;
+	ext.RollLeftHI = 0x00;
+	ext.dummy = 0x00; // 0 (important)
+	ext.mpdata = 0x01;  //1 (important, using MP+ report instead of NC report)
+	ext.PitchDownHI = 0x00;
+	memcpy(&_ext, &ext, sizeof(ext));
+
+}
+
+
+void FillReportMotionPlusNunchukExtension(wm_extension& _ext)
+{
+	wm_mp_nc_1 ext;
+	memset(&ext, 0, sizeof(wm_mp_nc_1));
+	ext.jx = g_nu.jx.center;
+	ext.jy = g_nu.jy.center;
+
+	// Use the neutral values
+	ext.ax = g_nu.cal_zero.x;
+	ext.ay = g_nu.cal_zero.y;
+	ext.az = g_nu.cal_zero.z + g_nu.cal_g.z;
+	ext.axLS  = 0x00; 
+	ext.ayLS  = 0x00;
+	ext.azLS  = 0x00;
+
+	ext.bz = 0x01;
+	ext.bc = 0x01;
+	ext.dummy = 0; //0 (important)
+	ext.mpdata = 0; //0 NC report, interleaved data (important)
+	ext.ExtCon = 1; // must be 1 when in NC-MP+ Mode
+	
+	
+	if (IsFocus())
+	{
+		int acc_x = g_nu.cal_zero.x;
+		int acc_y = g_nu.cal_zero.y;
+		int acc_z = g_nu.cal_zero.z + g_nu.cal_g.z;
+
+		if (IsKey(ENC_SHAKE) && !WiiMapping[g_ID].Motion.TiltNC.Shake)
+			WiiMapping[g_ID].Motion.TiltNC.Shake = 1;
+
+		// Step the shake simulation one step
+		ShakeToAccelerometer(acc_x, acc_y, acc_z, WiiMapping[g_ID].Motion.TiltNC);
+
+		// Tilt Nunchuck, allow the shake function to interrupt it
+		if (!WiiMapping[g_ID].Motion.TiltNC.Shake)
+			TiltNunchuck(acc_x, acc_y, acc_z);
+
+		// Boundary check
+		if (acc_x > 0xFF)	acc_x = 0xFF;
+		else if (acc_x < 0x00)	acc_x = 0x00;
+		if (acc_y > 0xFF)	acc_y = 0xFF;
+		else if (acc_y < 0x00)	acc_y = 0x00;
+		if (acc_z > 0xFF)	acc_z = 0xFF;
+		else if (acc_z < 0x00)	acc_z = 0x00;
+
+		ext.ax = acc_x;
+		ext.ay = acc_y;
+		ext.az = acc_z>>1;
+		ext.azLS = acc_z<<1; //LS0=0
+
+
+		// Update the analog stick
+		if (WiiMapping[g_ID].Stick.NC == FROM_KEYBOARD)
+		{
+			// Set the max values to the current calibration values
+			if(IsKey(ENC_L)) // x
+				ext.jx = g_nu.jx.min;
+			if(IsKey(ENC_R))
+				ext.jx = g_nu.jx.max;
+
+			if(IsKey(ENC_D)) // y
+				ext.jy = g_nu.jy.min;
+			if(IsKey(ENC_U))
+				ext.jy = g_nu.jy.max;
+
+			// On a real stick, the initialization value of center is 0x80,
+			// but after a first time touch, the center value automatically changes to 0x7F
+			if(ext.jx != g_nu.jx.center)
+				g_nu.jx.center = 0x7F;
+			if(ext.jy != g_nu.jy.center)
+				g_nu.jy.center = 0x7F;
+		}
+		else
+		{
+			// Get adjusted pad state values
+			int _Lx = WiiMapping[g_ID].AxisState.Lx;
+			int _Ly = WiiMapping[g_ID].AxisState.Ly;
+			int _Rx = WiiMapping[g_ID].AxisState.Rx;
+			int _Ry = WiiMapping[g_ID].AxisState.Ry;
+
+			// The Y-axis is inverted
+			_Ly = 0xff - _Ly;
+			_Ry = 0xff - _Ry;
+
+			/* This is if we are also using a real Nunchuck that we are sharing the
+			calibration with. It's not needed if we are using our default
+			values. We adjust the values to the configured range, we even allow
+			the center to not be 0x80. */
+			if(g_nu.jx.max != 0xff || g_nu.jy.max != 0xff
+				|| g_nu.jx.min != 0 || g_nu.jy.min != 0
+				|| g_nu.jx.center != 0x80 || g_nu.jy.center != 0x80)
+			{
+				float Lx = (float)_Lx;
+				float Ly = (float)_Ly;
+				float Rx = (float)_Rx;
+				float Ry = (float)_Ry;
+				//float Tl = (float)_Tl;
+				//float Tr = (float)_Tr;
+
+				float XRangePos = (float) (g_nu.jx.max - g_nu.jx.center);
+				float XRangeNeg = (float) (g_nu.jx.center - g_nu.jx.min);
+				float YRangePos = (float) (g_nu.jy.max - g_nu.jy.center);
+				float YRangeNeg = (float) (g_nu.jy.center - g_nu.jy.min);
+				if (Lx > 0x80) Lx = Lx * (XRangePos / 128.0);
+				if (Lx < 0x80) Lx = Lx * (XRangeNeg / 128.0);
+				if (Lx == 0x80) Lx = (float)g_nu.jx.center;
+				if (Ly > 0x80) Ly = Ly * (YRangePos / 128.0);
+				if (Ly < 0x80) Ly = Ly * (YRangeNeg / 128.0);
+				if (Ly == 0x80) Lx = (float)g_nu.jy.center;
+				// Boundaries
+				_Lx = (int)Lx;
+				_Ly = (int)Ly;
+				_Rx = (int)Rx;
+				_Ry = (int)Ry;
+				if (_Lx > 0xff) _Lx = 0xff; if (_Lx < 0) _Lx = 0;
+				if (_Rx > 0xff) _Rx = 0xff; if (_Rx < 0) _Rx = 0;
+				if (_Ly > 0xff) _Ly = 0xff; if (_Ly < 0) _Ly = 0;
+				if (_Ry > 0xff) _Ry = 0xff; if (_Ry < 0) _Ry = 0;
+			}
+
+			if (WiiMapping[g_ID].Stick.NC == FROM_ANALOG1)
+			{
+				ext.jx = _Lx;
+				ext.jy = _Ly;
+			}
+			else // ANALOG2
+			{
+				ext.jx = _Rx;
+				ext.jy = _Ry;
+			}
+		}
+
+		if(IsKey(ENC_C)) ext.bc = 0x00; ///////////////
+		if(IsKey(ENC_Z)) ext.bz = 0x00; 
+		
+	}
+	memcpy(&_ext, &ext, sizeof(ext));
 }
 
 } // end of namespace

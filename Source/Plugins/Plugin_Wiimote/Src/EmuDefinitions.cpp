@@ -44,12 +44,16 @@ u8 g_IRClock[MAX_WIIMOTES];
 u8 g_IR[MAX_WIIMOTES];
 u8 g_Leds[MAX_WIIMOTES];
 u8 g_Speaker[MAX_WIIMOTES];
+u8 g_MotionPlus[MAX_WIIMOTES];
 u8 g_SpeakerMute[MAX_WIIMOTES];
 
+int g_MotionPlusReadError[MAX_WIIMOTES];
 u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
 
 int g_ID; // Current refreshing Wiimote
 bool g_ReportingAuto[MAX_WIIMOTES]; // Auto report or passive report
+bool g_MotionPlusConnected[MAX_WIIMOTES]; //MotionPlusinitiated
+bool g_InterleavedData[MAX_WIIMOTES]; //sending alternated data packets from the nunchuk/motionplus
 u8 g_ReportingMode[MAX_WIIMOTES]; // The reporting mode and channel id
 u16 g_ReportingChannel[MAX_WIIMOTES];
 

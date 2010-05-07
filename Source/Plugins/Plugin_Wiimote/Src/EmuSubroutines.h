@@ -51,7 +51,9 @@ void SendReportCoreAccelIr10Ext(u16 _channelID);
 
 int WriteWmReportHdr(u8* dst, u8 wm);
 void WmSendAck(u16 _channelID, u8 _reportID);
-void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, int _Size);
+void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _AddressHI, int _Size);
+void SwapExtRegisters();
+void HandlingMotionPlusWrites(u8* data, u8 addressHI, u32 address);
 
 void FillReportAcc(wm_accel& _acc);
 void FillReportInfo(wm_core& _core);
@@ -60,7 +62,9 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1);
 void FillReportExtension(wm_extension& _ext);
 void FillReportClassicExtension(wm_classic_extension& _ext);
 void FillReportGuitarHero3Extension(wm_GH3_extension& _ext);
-
+void FillReportMotionPlusNunchukExtension(wm_extension& _ext);
+void FillReportMotionPlusNoExtension(wm_extension& _ext);
+void FillReportMotionPlus(wm_extension& ext, bool extension);
 } // namespace
 
 #endif	//_EMU_DECLARATIONS_

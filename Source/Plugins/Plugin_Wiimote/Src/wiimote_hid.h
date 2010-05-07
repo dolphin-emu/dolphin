@@ -138,6 +138,39 @@ struct wm_classic_extension
 	wm_cc_5 b2; // byte 5
 };
 
+struct wm_mp_nc_0 //motionplus+nunchuk_pass-through
+{
+	u8 YawLeftLS; //7e
+	u8 RollLeftLS; //82
+	u8 PitchDownLS; //83
+	u8 pitchfast : 1; //1
+	u8 yawfast : 1; //0
+	u8 YawLeftHI : 6; //01 1010 /1a
+	u8 ExtCon : 1; // 1 usually
+	u8 rollfast : 1; //0
+	u8 RollLeftHI : 6; //00 1010
+	u8 dummy : 1; // 0 usually. 1 in dem fall mhh
+	u8 mpdata : 1;  //1 in this case, interleaved motion+ data
+	u8 PitchDownHI : 6;//01 1100
+}; // default for yaw/roll/pitch around 0x1F7F
+
+struct wm_mp_nc_1 //motionplus+nunchuk_pass-through
+{
+	u8 jx;
+	u8 jy;
+	u8 ax;
+	u8 ay;
+	u8 ExtCon : 1; // 1 usually
+	u8 az : 7;
+	u8 dummy : 1; //0 always
+	u8 mpdata : 1; //0 when nunchuk interleaved data
+	u8 bz : 1;
+	u8 bc : 1;
+	u8 axLS : 1; // ls 1, ls0 = 0 by default,
+	u8 ayLS : 1;
+	u8 azLS : 2;
+};
+
 struct wm_GH3_extension
 {
 	u8 SX   : 6;

@@ -167,7 +167,6 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_UprightWiimote[i]->SetToolTip(wxT("Treat the upright position as neutral"));
 
 		m_WiiMotionPlusConnected[i] = new wxCheckBox(m_Controller[i], IDC_MOTIONPLUSCONNECTED, wxT("Wii Motion Plus Connected"));
-		m_WiiMotionPlusConnected[i]->Enable(false);
 
 		m_Extension[i] = new wxChoice(m_Controller[i], IDC_EXTCONNECTED, wxDefaultPosition, wxDefaultSize, arrayStringFor_extension, 0, wxDefaultValidator);
 		
@@ -382,7 +381,7 @@ void WiimoteBasicConfigDialog::DoUseReal()
 
 	// Are we using an extension now? The report that it's removed, then reconnected.
 	bool UsingExtension = false;
-	if (WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected != WiiMoteEmu::EXT_NONE)
+	if ((WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected != WiiMoteEmu::EXT_NONE) || ( WiiMoteEmu::WiiMapping[m_Page].bMotionPlusConnected))
 		UsingExtension = true;
 
 	DEBUG_LOG(WIIMOTE, "DoUseReal()  Connect extension: %i", !UsingExtension);
@@ -466,6 +465,11 @@ void WiimoteBasicConfigDialog::GeneralSettingsChanged(wxCommandEvent& event)
 			break;
 		case IDC_MOTIONPLUSCONNECTED:
 			WiiMoteEmu::WiiMapping[m_Page].bMotionPlusConnected = m_WiiMotionPlusConnected[m_Page]->IsChecked();
+			DoExtensionConnectedDisconnected(WiiMoteEmu::EXT_NONE);
+			if (g_EmulatorRunning)
+				SLEEP(25);
+			WiiMoteEmu::UpdateExtRegisterBlocks(m_Page);
+			DoExtensionConnectedDisconnected();
 			break;
 		case IDC_WIIAUTORECONNECT:
 			WiiMoteEmu::WiiMapping[m_Page].bWiiAutoReconnect = m_WiiAutoReconnect[m_Page]->IsChecked();
