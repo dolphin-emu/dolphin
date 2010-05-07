@@ -68,32 +68,14 @@ inline s64 dsp_multiply_mulx(u8 axh0, u8 axh1, u16 val1, u16 val2)
 {
 	s64 result;
 
-	if ((axh0==0) && (axh1==0)) // axl.0 * axl.1
-	{
+	if ((axh0==0) && (axh1==0))
 		result = dsp_multiply(val1, val2, 1); // unsigned support ON if both ax?.l regs are used
-	}
-	else if ((axh0==0) && (axh1==1)) // axl.0 * axh.1
-	{
-		if ((val1 >= 0x8000) && (val2 >= 0x8000)) 
-			result = dsp_multiply(val1, val2, 2);
-		else if ((val1 >= 0x8000) && (val2 < 0x8000))
-			result = dsp_multiply(val1, val2, 1);
-		else
-			result = dsp_multiply(val1, val2, 0);
-	}
-	else if ((axh0==1) && (axh1==0)) // axh.0 * axl.1
-	{
-		if ((val2 >= 0x8000) && (val1 >= 0x8000))
-			result = dsp_multiply(val2, val1, 2);
-		else if ((val2 >= 0x8000) && (val1 < 0x8000))
-			result = dsp_multiply(val2, val1, 1);
-		else
-			result = dsp_multiply(val2, val1, 0);
-	}
-	else // axh.0 * axh.1
-	{
+	else if ((axh0==0) && (axh1==1))
+		result = dsp_multiply(val1, val2, 2); // mixed support ON (u64)axl.0  * (s64)(s16)axh.1
+	else if ((axh0==1) && (axh1==0))
+		result = dsp_multiply(val2, val1, 2); // mixed support ON (u64)axl.1  * (s64)(s16)axh.0
+	else
 		result = dsp_multiply(val1, val2, 0); // unsigned support OFF if both ax?.h regs are used
-	}
 
 	return result;
 }
@@ -103,19 +85,20 @@ inline s64 dsp_multiply_mulx(u8 axh0, u8 axh1, u16 val1, u16 val2)
 // CLRP
 // 1000 0100 xxxx xxxx
 // Clears product register $prod.
+// Magic numbers taken from duddie's doc
+//
+// 00ff_(fff0 + 0010)_0000 = 0100_0000_0000, conveniently, lower 40bits = 0
+//
+// It's not ok, to just zero all of them, correct values should be set because of
+// direct use of prod regs by AX/AXWII (look @that part of ucode).
 void clrp(const UDSPInstruction opc)
 {
-	// Magic numbers taken from duddie's doc
-	// These are probably a bad idea to put here.
 	zeroWriteBackLog();
-/*
+
 	g_dsp.r[DSP_REG_PRODL] = 0x0000;
 	g_dsp.r[DSP_REG_PRODM] = 0xfff0;
 	g_dsp.r[DSP_REG_PRODH] = 0x00ff;
 	g_dsp.r[DSP_REG_PRODM2] = 0x0010;
-*/
-	// 00ff_(fff0 + 0010)_0000 = 0100_0000_0000, conveniently, lower 40bits = 0
-	dsp_set_long_prod(0); // if we are doing it wrong then let's be consistent
 }
 
 // TSTPROD
@@ -170,7 +153,7 @@ void movnp(const UDSPInstruction opc)
 // MOVPZ $acD
 // 1111 111d xxxx xxxx
 // Moves multiply product from $prod register to accumulator $acD
-// register and sets $acD.l to 0
+// register and sets (rounds) $acD.l to 0
 //
 // flags out: --xx xx0x
 void movpz(const UDSPInstruction opc)
@@ -188,7 +171,7 @@ void movpz(const UDSPInstruction opc)
 // ADDPAXZ $acD, $axS
 // 1111 10sd xxxx xxxx
 // Adds secondary accumulator $axS to product register and stores result
-// in accumulator register. Low 16-bits of $acD ($acD.l) are set to 0.
+// in accumulator register. Low 16-bits of $acD ($acD.l) are set (round) to 0.
 //
 // flags out: --xx xx0x
 void addpaxz(const UDSPInstruction opc)
@@ -291,7 +274,7 @@ void mulmv(const UDSPInstruction opc)
 
 // MULMVZ $axS.l, $axS.h, $acR
 // 1001 s01r xxxx xxxx
-// Move product register to accumulator register $acR and clear low part
+// Move product register to accumulator register $acR and clear (round) low part
 // of accumulator register $acR.l. Multiply low part $axS.l of secondary
 // accumulator $axS by high part $axS.h of secondary accumulator $axS (treat
 // them both as signed).
@@ -386,7 +369,7 @@ void mulxmv(const UDSPInstruction opc)
 
 // MULXMV $ax0.S, $ax1.T, $acR
 // 101s t01r xxxx xxxx
-// Move product register to accumulator register $acR and clear low part
+// Move product register to accumulator register $acR and clear (round) low part
 // of accumulator register $acR.l. Multiply one part $ax0 by one part $ax1
 // Part is selected by S and T bits. Zero selects low part,
 // one selects high part.
@@ -486,7 +469,7 @@ void mulcmv(const UDSPInstruction opc)
 // (fixed possible bug in duddie's description, s->t)
 // Multiply mid part of accumulator register $acS.m by high part $axT.h of
 // secondary accumulator $axT  (treat them both as signed). Move product
-// register before multiplication to accumulator $acR, set low part of 
+// register before multiplication to accumulator $acR, set (round) low part of 
 // accumulator $acR.l to zero.
 //
 // flags out: --xx xx0x

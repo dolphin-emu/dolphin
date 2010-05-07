@@ -41,14 +41,14 @@ void clr(const UDSPInstruction opc)
 
 // CLRL $acR.l
 // 1111 110r xxxx xxxx
-// Clears $acR.l - low 16 bits of accumulator $acR.
+// Clears (and rounds!) $acR.l - low 16 bits of accumulator $acR.
 //
 // flags out: --xx xx00
 void clrl(const UDSPInstruction opc)
 {
 	u8 reg = (opc >> 8) & 0x1;
 
-	s64 acc = (dsp_get_long_acc(reg) + 0x8000) & ~0xffff;
+	s64 acc = (dsp_get_long_acc(reg) + 0x7fff) & ~0xffff;
 
 	zeroWriteBackLog();
 
@@ -853,7 +853,7 @@ void lsl(const UDSPInstruction opc)
 
 // LSR $acR, #I
 // 0001 010r 01ii iiii
-// Logically shifts left accumulator $acR by number specified by value
+// Logically shifts right accumulator $acR by number specified by value
 // calculated by negating sign extended bits 0-6.
 //
 // flags out: --xx xx00

@@ -214,7 +214,7 @@ void lsm(const UDSPInstruction opc)
 	dsp_dmem_write(g_dsp.r[DSP_REG_AR3], g_dsp.r[sreg]);
 
 	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r[DSP_REG_AR0]));
-	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX0 + DSP_REG_AR3]));
+	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX3]));
 	writeToBackLog(2, DSP_REG_AR0, dsp_increment_addr_reg(DSP_REG_AR0));
 }
 
@@ -233,7 +233,7 @@ void lsnm(const UDSPInstruction opc)
 	dsp_dmem_write(g_dsp.r[DSP_REG_AR3], g_dsp.r[sreg]);
 
 	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r[DSP_REG_AR0]));
-	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX0 + DSP_REG_AR3]));
+	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX3]));
 	writeToBackLog(2, DSP_REG_AR0, dsp_increase_addr_reg(DSP_REG_AR0, (s16)g_dsp.r[DSP_REG_IX0]));
 }
 
@@ -286,7 +286,7 @@ void slm(const UDSPInstruction opc)
 	dsp_dmem_write(g_dsp.r[DSP_REG_AR0], g_dsp.r[sreg]);
 
 	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r[DSP_REG_AR3]));
-	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX0 + DSP_REG_AR3]));
+	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX3]));
 	writeToBackLog(2, DSP_REG_AR0, dsp_increment_addr_reg(DSP_REG_AR0));
 }
 
@@ -304,7 +304,7 @@ void slnm(const UDSPInstruction opc)
 	dsp_dmem_write(g_dsp.r[DSP_REG_AR0], g_dsp.r[sreg]);
 
 	writeToBackLog(0, dreg,	dsp_dmem_read(g_dsp.r[DSP_REG_AR3]));
-	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX0 + DSP_REG_AR3]));
+	writeToBackLog(1, DSP_REG_AR3, dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX3]));
 	writeToBackLog(2, DSP_REG_AR0, dsp_increase_addr_reg(DSP_REG_AR0, (s16)g_dsp.r[DSP_REG_IX0]));
 }
 
@@ -406,7 +406,7 @@ void ldm(const UDSPInstruction opc)
 	}
 
 	writeToBackLog(3, DSP_REG_AR3,
-				   dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX0 + DSP_REG_AR3]));
+				   dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX3]));
 }
 
 // LDNM $ax0.d, $ax1.r, @$arS
@@ -438,7 +438,7 @@ void ldnm(const UDSPInstruction opc)
 	}
 
 	writeToBackLog(3, DSP_REG_AR3,
-				   dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX0 + DSP_REG_AR3]));
+				   dsp_increase_addr_reg(DSP_REG_AR3, (s16)g_dsp.r[DSP_REG_IX3]));
 }
 
 
@@ -483,7 +483,7 @@ void zeroWriteBackLog()
 	}
 }
 
-//needed for 0x3... (at least)..., + clrl
+//needed for 0x3... 
 //ex. corner case -> 0x3060: main opcode modifies .m, and extended .l -> .l shoudnt be zeroed because of .m write...
 void zeroWriteBackLogPreserveAcc(u8 acc) 
 {

@@ -295,8 +295,8 @@ const DSPOPCTemplate opcodes[] =
 	{"MADD",    0xf200, 0xfe00, DSPInterpreter::madd,  NULL, 1 , 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, true, false},
 	{"LSR16",   0xf400, 0xfe00, DSPInterpreter::lsr16, NULL, 1 , 1, {{P_ACC, 1, 0, 8, 0x0100}}, true, false},
 	{"MSUB",    0xf600, 0xfe00, DSPInterpreter::msub , NULL, 1 , 2, {{P_REG18, 1, 0, 8, 0x0100}, {P_REG1A, 1, 0, 8, 0x0100}}, true, false},
-	{"ADDPAXZ", 0xf800, 0xfc00, DSPInterpreter::addpaxz, NULL, 1 , 2, {{P_ACC, 1, 0, 9, 0x0200}, {P_AX, 1, 0, 8, 0x0100}}, true, false},  //Think the args are wrong
-	{"CLRL",	0xfc00, 0xfe00, DSPInterpreter::clrl, NULL, 1 ,  1, {{P_ACCL, 1, 0, 11, 0x0800}}, true, false}, // clear acl0
+	{"ADDPAXZ", 0xf800, 0xfc00, DSPInterpreter::addpaxz, NULL, 1 , 2, {{P_ACC, 1, 0, 9, 0x0200}, {P_AX, 1, 0, 8, 0x0100}}, true, false},
+	{"CLRL",	0xfc00, 0xfe00, DSPInterpreter::clrl, NULL, 1 ,  1, {{P_ACCL, 1, 0, 11, 0x0800}}, true, false},
 	{"MOVPZ",   0xfe00, 0xfe00, DSPInterpreter::movpz, NULL, 1 , 1, {{P_ACC, 1, 0, 8, 0x0100}}, true, false},
 };
 

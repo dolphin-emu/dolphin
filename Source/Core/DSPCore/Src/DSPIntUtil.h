@@ -54,6 +54,8 @@ inline bool dsp_SR_is_flag_set(int flag)
 //
 // HORRIBLE UGLINESS, someone please fix.
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
+//
+// increment, decrement 100% ok (as far as i can tell), increase, decrease still probs
 
 inline u16 ToMask(u16 a)
 {
@@ -63,72 +65,71 @@ inline u16 ToMask(u16 a)
 	return a | (a >> 1);
 }
 
-inline s16 dsp_increment_addr_reg(int reg, s16 value)
+inline u16 dsp_increment_addr_reg(u16 reg, u16 ar)
 {
-	u16 tmb = ToMask(g_dsp.r[DSP_REG_WR0 + reg]);
+	u16 wr = g_dsp.r[DSP_REG_WR0 + reg];
+	u16 tmb = ToMask(wr);
 
-	if ((value & tmb) == tmb)
-		value ^= g_dsp.r[DSP_REG_WR0 + reg];
+	if ((ar & tmb) == tmb)
+		ar-=wr;
 	else
-		value++;
+		ar++;
 	
-	return value;
+	return ar;
 }
-inline s16 dsp_increment_addr_reg(int reg)
+inline u16 dsp_increment_addr_reg(u16 reg)
 {
 	return dsp_increment_addr_reg(reg, g_dsp.r[reg]);
 }
 
-// See http://code.google.com/p/dolphin-emu/source/detail?r=3125
-inline s16 dsp_decrement_addr_reg(int reg, s16 value)
+inline u16 dsp_decrement_addr_reg(u16 reg, u16 ar)
 {
-	// This one is easy. Looks like a hw implementation. Increment is worse...
-	if ((value & g_dsp.r[DSP_REG_WR0 + reg]) == 0)
-		value |= g_dsp.r[DSP_REG_WR0 + reg];
-	else
-		value--;
+	u16 wr = g_dsp.r[DSP_REG_WR0 + reg];
+	u16 tmb = ToMask(wr);
+	u16 min = (tmb+1-ar)&tmb;
 
-	return value;
+	if ((wr < min) || !min)
+		ar+=wr;
+	else
+		ar--;
+
+	return ar;
 }
-inline s16 dsp_decrement_addr_reg(int reg)
+inline u16 dsp_decrement_addr_reg(u16 reg)
 {
 	return dsp_decrement_addr_reg(reg, g_dsp.r[reg]);
 }
 
-inline s16 dsp_increase_addr_reg(int reg, s16 value)
+inline u16 dsp_increase_addr_reg(u16 reg, s16 ix)
 {
-	s16 tmp = g_dsp.r[reg];
+	u16 ar = g_dsp.r[reg];
 
-	// TODO: DO RIGHT!
-	if (value > 0) {
-		for (int i = 0; i < value; i++) {
-			tmp = dsp_increment_addr_reg(reg, tmp);
+	if (ix > 0) {
+		for (s32 i = 0; i < ix; i++) {
+			ar = dsp_increment_addr_reg(reg, ar);
 		}
-	} else if (value < 0) {
-		for (int i = 0; i < (int)(-value); i++) {
-			tmp = dsp_decrement_addr_reg(reg, tmp);
+	} else if (ix < 0) {
+		for (s32 i = 0; i < (-ix); i++) {
+			ar = dsp_decrement_addr_reg(reg, ar);
 		}
-	}
-
-	return tmp;
+	} 
+	return ar;
 }
 
-inline s16 dsp_decrease_addr_reg(int reg, s16 value)
+inline u16 dsp_decrease_addr_reg(u16 reg, s16 ix)
 {
-	s16 tmp = g_dsp.r[reg];
+	u16 ar = g_dsp.r[reg];
 
-	// TODO: DO RIGHT!
-	if (value > 0) {
-		for (int i = 0; i < value; i++) {
-			tmp = dsp_decrement_addr_reg(reg, tmp);
+	if (ix > 0) {
+		for (s32 i = 0; i < ix; i++) {
+			ar = dsp_decrement_addr_reg(reg, ar);
 		}
-	} else if (value < 0) {
-		for (int i = 0; i < (int)(-value); i++) {
-			tmp = dsp_increment_addr_reg(reg, tmp);
+	} else if (ix < 0) {
+		for (s32 i = 0; i < (-ix); i++) {
+			ar = dsp_increment_addr_reg(reg, ar);
 		}
 	}
-
-	return tmp;
+	return ar;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -203,7 +204,7 @@ inline s64 dsp_get_long_prod()
 	ProfilerAddDelta(g_dsp.err_pc, 1);
 #endif
 
-	s64 val   = (s8)g_dsp.r[DSP_REG_PRODH];
+	s64 val   = (s8)(u8)g_dsp.r[DSP_REG_PRODH];
 	val <<= 32;
 	s64 low_prod  = g_dsp.r[DSP_REG_PRODM];
 	low_prod += g_dsp.r[DSP_REG_PRODM2];
@@ -230,7 +231,7 @@ inline void dsp_set_long_prod(s64 val)
 	val >>= 16;
 	g_dsp.r[DSP_REG_PRODM] = (u16)val;
 	val >>= 16;
-	g_dsp.r[DSP_REG_PRODH] = (u16)val;
+	g_dsp.r[DSP_REG_PRODH] = (u8)val;
 	g_dsp.r[DSP_REG_PRODM2] = 0;
 }
 

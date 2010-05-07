@@ -43,7 +43,6 @@ void mrr(const UDSPInstruction opc)
 // 0000 0000 100d dddd
 // iiii iiii iiii iiii
 // Load immediate value I to register $D. 
-// FIXME: Perform additional operation depending on destination register.
 //
 // DSPSpy discovery: This, and possibly other instructions that load a
 // register, has a different behaviour in S40 mode if loaded to AC0.M: The
@@ -60,7 +59,6 @@ void lri(const UDSPInstruction opc)
 // LRIS $(0x18+D), #I
 // 0000 1ddd iiii iiii
 // Load immediate value I (8-bit sign extended) to accumulator register. 
-// FIXME: Perform additional operation depending on destination register.
 void lris(const UDSPInstruction opc)
 {
 	u8 reg  = ((opc >> 8) & 0x7) + DSP_REG_AXL0;
