@@ -88,6 +88,8 @@ bool AlsaSound::AlsaInit()
 	int dir;
 	snd_pcm_sw_params_t *swparams;
 	snd_pcm_hw_params_t *hwparams;
+	snd_pcm_uframes_t buffer_size;
+	unsigned int periods;
 	
 	err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
 	if (err < 0) 
@@ -132,6 +134,31 @@ bool AlsaSound::AlsaInit()
 		ERROR_LOG(AUDIO, "Channels count not available: %s\n", snd_strerror(err));
 		return false;
 	}
+	
+	periods = 2;
+	err = snd_pcm_hw_params_set_periods_min(handle, hwparams, &periods, &dir);
+	if (err < 0) 
+	{
+		ERROR_LOG(AUDIO, "Cannot set Minimum periods: %s\n", snd_strerror(err));
+		return false;
+	}
+
+	buffer_size = BUFFER_SIZE;
+	err = snd_pcm_hw_params_set_buffer_size_min(handle, hwparams, &buffer_size);
+	if (err < 0) 
+	{
+		ERROR_LOG(AUDIO, "Cannot set minimum buffer size: %s\n", snd_strerror(err));
+		return false;
+	}
+
+	buffer_size = BUFFER_SIZE*2;
+	err = snd_pcm_hw_params_set_buffer_size_near(handle, hwparams, &buffer_size);
+	if (err < 0) 
+	{
+		ERROR_LOG(AUDIO, "Cannot set buffer size: %s\n", snd_strerror(err));
+		return false;
+	}
+	NOTICE_LOG(AUDIO, "ALSA gave us %d \"hardware\" buffers of %d samples.\n", periods, buffer_size);
 
 	err = snd_pcm_hw_params(handle, hwparams);
 	if (err < 0) 
@@ -146,13 +173,6 @@ bool AlsaSound::AlsaInit()
 	if (err < 0) 
 	{
 	    ERROR_LOG(AUDIO, "cannot init sw params: %s\n", snd_strerror(err));
-		return false;
-	}
-	
-	err = snd_pcm_sw_params_set_avail_min(handle, swparams, BUFFER_SIZE);
-	if (err < 0) 
-	{
-	    ERROR_LOG(AUDIO, "cannot set avail min: %s\n", snd_strerror(err));
 		return false;
 	}
 	
