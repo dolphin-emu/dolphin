@@ -165,8 +165,9 @@ void WmSendAck(u16 _channelID, u8 _reportID)
 	u8 DataFrame[1024];
 	// Write DataFrame header
 	u32 Offset = WriteWmReportHdr(DataFrame, WM_ACK_DATA);
-
 	wm_acknowledge* pData = (wm_acknowledge*)(DataFrame + Offset);
+	memset(pData, 0, sizeof(wm_acknowledge));
+
 #if defined(HAVE_WX) && HAVE_WX
 	FillReportInfo(pData->buttons);
 #endif
@@ -309,7 +310,8 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _AddressHI,
 		int copySize = (_Size > 16) ? 16 : _Size;
 		// AyuanX: the MTU is 640B though... what a waste!
 
-		wm_read_data_reply* pReply = (wm_read_data_reply*)(DataFrame + Offset);	
+		wm_read_data_reply* pReply = (wm_read_data_reply*)(DataFrame + Offset);
+		memset(pReply,0,sizeof(wm_read_data_reply));
 		Offset += sizeof(wm_read_data_reply);
 
 #if defined(HAVE_WX) && HAVE_WX
