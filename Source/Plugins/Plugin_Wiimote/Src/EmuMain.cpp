@@ -579,7 +579,7 @@ void DoState(PointerWrap &p)
 		p.Do(g_IR[i]);
 		p.Do(g_Leds[i]);
 		p.Do(g_Speaker[i]);
-		p.Do(g_MotionPlus[i]);
+		//p.Do(g_MotionPlus[i]);
 		//p.Do(g_SpeakerMute[i]);
 		p.Do(g_ExtKey[i]);
 	}
