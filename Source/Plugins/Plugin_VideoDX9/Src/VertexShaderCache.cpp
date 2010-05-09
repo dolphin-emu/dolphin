@@ -120,27 +120,8 @@ void SetMultiVSConstant3fv(int const_number, int count, const float *f)
 
 void SetMultiVSConstant4fv(int const_number, int count, const float *f)
 {
-	bool change = false;
-	for (int i = 0; i < count; i++)
-	{
-		if (lastVSconstants[const_number + i][0] != f[0 + i*4] || 
-			lastVSconstants[const_number + i][1] != f[1 + i*4] ||
-			lastVSconstants[const_number + i][2] != f[2 + i*4] ||
-			lastVSconstants[const_number + i][3] != f[3 + i*4])
-		{
-			change = true;
-			break;
-		}
-	}
-	if (change)
-	{
-		for (int i = 0; i < count; i++)
-		{
-			lastVSconstants[const_number + i][0] = f[0 + i*4];
-			lastVSconstants[const_number + i][1] = f[1 + i*4];
-			lastVSconstants[const_number + i][2] = f[2 + i*4];
-			lastVSconstants[const_number + i][3] = f[3 + i*4];
-		}
+	if (memcmp(&lastVSconstants[const_number], f, count * sizeof(float) * 4)) {
+		memcpy(&lastVSconstants[const_number], f, count * sizeof(float) * 4);
 		D3D::dev->SetVertexShaderConstantF(const_number, lastVSconstants[const_number], count);
 	}
 }
