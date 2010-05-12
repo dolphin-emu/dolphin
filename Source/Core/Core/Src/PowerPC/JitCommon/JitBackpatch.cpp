@@ -64,7 +64,7 @@ void TrampolineCache::Init()
 
 void TrampolineCache::Shutdown()
 {
-	AllocCodeSpace(1024 * 1024);
+	FreeCodeSpace();
 }
 
 // Extremely simplistic - just generate the requested trampoline. May reuse them in the future.
