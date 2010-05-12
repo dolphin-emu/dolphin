@@ -12,28 +12,35 @@ temp_dir="Dolphin-r`svn info | grep "Revision" | awk '{print $2}'`"
 fix_shared_object_depends() {
 	search_string=$1
 
-	## Get list of files to work on
+	# Get list of files to work on
 	file_list=`find $temp_dir/Dolphin.app -name *.dylib`
 
-	## Loop over the files, and update the path
-	for file in ${file_list}
-	do
-		orig_path=`otool -L  ${file} | grep ${search_string} | awk '{print $1;}'`
+	# Loop over the files, and update the path
+	for file in ${file_list}; do
+		orig_paths=(`otool -L  ${file} | grep ${search_string} | awk '{print $1}'`)
 
-		if test "x${orig_path}" != x; then
-			new_path=`echo ${orig_path} | xargs basename`
+		for orig_path in ${orig_paths[@]}; do
+			if test "x${orig_path}" != x; then
+				new_path=`echo ${orig_path} | xargs basename`
+				echo "$file\t$orig_path"
 
-			cp ${orig_path} $temp_dir/Dolphin.app/Contents/MacOS/${new_path}
-			install_name_tool -change ${orig_path} @executable_path/${new_path} ${file}
-		fi
+				cp ${orig_path} $temp_dir/Dolphin.app/Contents/MacOS/${new_path}
+				install_name_tool -change ${orig_path} @executable_path/${new_path} ${file}
+			fi
+		done
 	done
 
-	orig_path=`otool -L  $temp_dir/Dolphin.app/Contents/MacOS/Dolphin | grep ${search_string} | awk '{print $1;}'`
-	if test "x${orig_path}" != x; then
-		new_path=`echo ${orig_path} | xargs basename`
-		cp ${orig_path} $temp_dir/Dolphin.app/Contents/MacOS/${new_path}
-		install_name_tool -change ${orig_path} @executable_path/${new_path} $temp_dir/Dolphin.app/Contents/MacOS/Dolphin
-	fi
+	# wxw shoves all the paths into one string…so the looping is really just for dealing with wxw crap…
+	orig_paths=(`otool -L  $temp_dir/Dolphin.app/Contents/MacOS/Dolphin | grep ${search_string} | awk '{print $1}'`)
+	
+	for orig_path in ${orig_paths[@]}; do
+		if test "x${orig_path}" != x; then
+			new_path=`echo ${orig_path} | xargs basename`
+			cp ${orig_path} $temp_dir/Dolphin.app/Contents/MacOS/${new_path}
+			install_name_tool -change ${orig_path} @executable_path/${new_path} $temp_dir/Dolphin.app/Contents/MacOS/Dolphin
+			echo "Fixing $orig_path"
+		fi
+	done
 }
 
 cd Binary 2>/dev/null
@@ -50,5 +57,6 @@ cp /Library/Frameworks/Cg.framework/Cg $temp_dir/Dolphin.app/Contents/Library/Fr
 
 find $temp_dir -name .svn -exec rm -fr {} \; 2>/dev/null
 rm $temp_dir.dmg 2>/dev/null
+echo "Creating dmg"
 hdiutil create -srcfolder $temp_dir -format UDBZ $temp_dir.dmg
 rm -rf $temp_dir
