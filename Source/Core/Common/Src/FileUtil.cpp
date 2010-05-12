@@ -488,10 +488,10 @@ bool DeleteDirRecursively(const char *directory)
 	return true;
 }
 
-#ifdef __linux__
 //Create directory and copy contents (does not overwrite existing files)
 void CopyDir(const char *source_path, const char *dest_path)
 {
+#ifndef _WIN32
 	if (!strcmp(source_path, dest_path)) return;
 	if (!File::Exists(source_path)) return;
 	if (!File::Exists(dest_path)) File::CreateFullPath(dest_path);
@@ -525,8 +525,8 @@ void CopyDir(const char *source_path, const char *dest_path)
 		else if (!File::Exists(dest)) File::Copy(source, dest);
 	}
 	closedir(dirp);
-}
 #endif
+}
 
 // Returns the current directory
 std::string GetCurrentDir()
@@ -553,7 +553,6 @@ bool SetCurrentDir(const char *_rDirectory)
 #if defined(__APPLE__)
 std::string GetBundleDirectory() 
 {
-	// Plugin path will be Dolphin.app/Contents/PlugIns
 	CFURLRef BundleRef;
 	char AppBundlePath[MAXPATHLEN];
 	// Get the main bundle for the app
@@ -574,7 +573,6 @@ std::string GetBundleDirectory()
 }
 #endif
 
-// Returns the path to where the plugins are
 std::string GetPluginsDirectory()
 {
 	std::string pluginsDir;
@@ -596,7 +594,6 @@ std::string GetPluginsDirectory()
 	return pluginsDir;
 }
 
-// Returns the path to where the sys file are
 std::string GetSysDirectory()
 {
 	std::string sysDir;
@@ -657,18 +654,13 @@ const char *GetUserPath(int DirIDX)
 #ifdef _WIN32
 		// Keep the directory setup the way it was on windows
 		snprintf(UserDir, sizeof(UserDir), ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP);
-		//char homedir[MAX_PATH];
-		//if (!SUCCEEDED(SHGetFolderPath(NULL, CSIDL_APPDATA, NULL, 0, path)))
-		//	return NULL;
-#else
+#elif defined (__linux__)
 		if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
 			snprintf(UserDir, sizeof(UserDir), ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP);
 		else
-		{
-			char *homedir = getenv("HOME");
-			if (homedir)
-				snprintf(UserDir, sizeof(UserDir), "%s" DIR_SEP DOLPHIN_DATA_DIR DIR_SEP, homedir);
-		}
+			snprintf(UserDir, sizeof(UserDir), "%s" DIR_SEP DOLPHIN_DATA_DIR DIR_SEP, getenv("HOME"));
+#else
+		snprintf(UserDir, sizeof(UserDir), "%s" DIR_SEP DOLPHIN_DATA_DIR DIR_SEP, getenv("HOME"));
 #endif
 		INFO_LOG(COMMON, "GetUserPath: Setting user directory to %s:", UserDir);
 

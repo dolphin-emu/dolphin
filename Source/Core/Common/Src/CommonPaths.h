@@ -57,7 +57,10 @@
 	#define USERDATA_DIR "User"
 	#define DOLPHIN_DATA_DIR "Dolphin"
 #elif defined __APPLE__
-	#define USERDATA_DIR "User"
+	// On OS X, USERDATA_DIR exists within the .app, but *always* reference
+	// the copy in Application Support instead! (Copied on first run)
+	// You can use the File::GetUserPath() util for this
+	#define USERDATA_DIR "Contents/User"
 	#define DOLPHIN_DATA_DIR "Library/Application Support/Dolphin"
 #elif defined __linux__
 	#define USERDATA_DIR "user"

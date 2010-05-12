@@ -18,30 +18,30 @@
 #include "../Memmap.h"
 #include "../EXI_Device.h"
 #include "../EXI_DeviceEthernet.h"
-bool CEXIETHERNET::deactivate()
-{
+bool CEXIETHERNET::deactivate() {
 	return true;
 }
-bool CEXIETHERNET::isActivated()
-{ 
+bool CEXIETHERNET::isActivated() {
 	return false;
 }
-
 bool CEXIETHERNET::activate() {
-	return false;	
+	return false;
 }
-bool CEXIETHERNET::CheckRecieved()
-{
+bool CEXIETHERNET::CheckRecieved() {
+	return false;
 }
 bool CEXIETHERNET::resume() {
+	return false;
 }
 bool CEXIETHERNET::startRecv() {
+	return false;
 }
-bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) 
-{
+bool CEXIETHERNET::sendPacket(u8 *etherpckt, int size) {
+	return false;
 }
-bool CEXIETHERNET::handleRecvdPacket() 
-{
+bool CEXIETHERNET::handleRecvdPacket() {
+	return false;
 }
 bool CEXIETHERNET::cbwriteDescriptor(u32 size) {
+	return false;
 }

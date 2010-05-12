@@ -302,51 +302,16 @@ bool DolphinApp::OnInit()
 	}
 #endif
 
-#ifdef __APPLE__ 
-	// check to see if ~/Library/Application Support/Dolphin exists; if not, create it
-	char AppSupportDir[MAXPATHLEN];
-	snprintf(AppSupportDir, sizeof(AppSupportDir), "%s/Library/Application Support", getenv("HOME"));
-	if (!File::Exists(AppSupportDir) || !File::IsDirectory(AppSupportDir)) 
-		PanicAlert("Could not open ~/Library/Application Support");
-
-	strlcat(AppSupportDir, "/Dolphin", sizeof(AppSupportDir));
+#ifdef __APPLE__
+	const char *AppSupportDir = File::GetUserPath(D_USER_IDX);
 
 	if (!File::Exists(AppSupportDir))
-		File::CreateDir(AppSupportDir);
-
-	if (!File::IsDirectory(AppSupportDir))
+	{
+		// Fresh run: create Dolphin dir and copy contents of User within the bundle to App Support
+		File::CopyDir(std::string(File::GetBundleDirectory() + DIR_SEP USERDATA_DIR DIR_SEP).c_str(), AppSupportDir);
+	}
+	else if (!File::IsDirectory(AppSupportDir))
 		PanicAlert("~/Library/Application Support/Dolphin exists, but is not a directory");
-
-	chdir(AppSupportDir);
-
-	//create all necessary dir in user directory
-	if (!File::Exists(File::GetUserPath(D_CONFIG_IDX)))
-	   	File::CreateDir(File::GetUserPath(D_CONFIG_IDX));
-	if (!File::Exists(File::GetUserPath(D_GCUSER_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
-	if (!File::Exists(File::GetUserPath(D_WIISYSCONF_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_WIISYSCONF_IDX));
-	if (!File::Exists(File::GetUserPath(D_CACHE_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
-	if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
-	if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
-	if (!File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
-	if (!File::Exists(File::GetUserPath(D_MAILLOGS_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
-	if (!File::Exists(File::GetUserPath(D_SCREENSHOTS_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
-	if (!File::Exists(File::GetUserPath(D_STATESAVES_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
-
-	//copy user wii shared2 SYSCONF if not exist
-	if (!File::Exists(File::GetUserPath(F_WIISYSCONF_IDX)))
-		File::Copy((File::GetBundleDirectory() + DIR_SEP + "Contents" + DIR_SEP + USERDATA_DIR + DIR_SEP + WII_SYSCONF_DIR + DIR_SEP + WII_SYSCONF).c_str(),
-				File::GetUserPath(F_WIISYSCONF_IDX));
-	//TODO : if not exist copy game config dir in user dir and detect the revision to upgrade if necessary
-	//TODO : if not exist copy maps dir in user dir and detect revision to upgrade if necessary
 
 #if !wxCHECK_VERSION(2, 9, 0)
 	// HACK: Get rid of bogus osx param
@@ -354,7 +319,7 @@ bool DolphinApp::OnInit()
 		delete argv[argc-1];
 		argv[argc-1] = NULL;
 		argc--;
-	}        
+	}
 #endif
 #endif
 

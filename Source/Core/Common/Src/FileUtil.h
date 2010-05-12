@@ -111,7 +111,7 @@ bool DeleteDirRecursively(const char *directory);
 // Returns the current directory
 std::string GetCurrentDir();
 
-//Create directory and copy contents (does not overwrite existing files)
+// Create directory and copy contents (does not overwrite existing files)
 void CopyDir(const char *source_path, const char *dest_path);
 
 // Set the current directory to given directory
