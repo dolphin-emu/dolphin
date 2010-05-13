@@ -391,7 +391,7 @@ CFrame::CFrame(wxFrame* parent,
 	SetIcon(IconTemp);
 
 	// Give it a status bar
-	m_pStatusBar = CreateStatusBar(1, wxST_SIZEGRIP, ID_STATUSBAR);
+	m_pStatusBar = CreateStatusBar(2, wxST_SIZEGRIP, ID_STATUSBAR);
 	if (!SConfig::GetInstance().m_InterfaceStatusbar)
 		m_pStatusBar->Hide();
 
