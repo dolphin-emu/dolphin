@@ -94,7 +94,66 @@ private:
 
 };
 
+class CSharedContent
+{
+public:
+
+	static CSharedContent& AccessInstance() { return m_Instance; }
+
+	std::string GetFilenameFromSHA1(u8* _pHash);
+	std::string AddSharedContent(u8* _pHash);
+
+private:
+
+
+	CSharedContent();
+
+	virtual ~CSharedContent();
+
+#pragma pack(push,1)
+	struct SElement
+	{
+		u8 FileName[8];
+		u8 SHA1Hash[20];
+	};
+#pragma pack(pop)
+
+	u32 lastID;
+	char contentMap[1024];
+	std::vector<SElement> m_Elements;
+	static CSharedContent m_Instance;
+};
+
+class cUIDsys
+{
+public:
+
+	static cUIDsys& AccessInstance() { return m_Instance; }
+
+	u32 GetUIDFromTitle(u64 _Title);
+	bool AddTitle(u64 _Title);
+	bool CheckValidTitle(u64 _TitleID);
+	void GetTitleIDs(std::vector<u64>& _TitleIDs);
+private:
+
+
+	cUIDsys();
+
+	virtual ~cUIDsys();
+
+#pragma pack(push,1)
+	struct SElement
+	{
+		u8 titleID[8];
+		u8 UID[4];
+	};
+#pragma pack(pop)
+	u32 lastUID;
+	char uidSys[1024];
+	std::vector<SElement> m_Elements;
+	static cUIDsys m_Instance;
+};
+
 }
 
 #endif
-

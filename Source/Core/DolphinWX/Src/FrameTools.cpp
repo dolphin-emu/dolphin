@@ -192,6 +192,10 @@ void CFrame::CreateMenu()
 	{
 		toolsMenu->Append(IDM_LOAD_WII_MENU, _T("Load Wii Menu"));
 	}
+	else
+	{
+		toolsMenu->Append(IDM_INSTALL_WII_MENU, _T("Install Wii Menu"));
+	}
 	toolsMenu->AppendSeparator();
 	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE1, GetMenuLabel(HK_WIIMOTE1_CONNECT));
 	toolsMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE2, GetMenuLabel(HK_WIIMOTE2_CONNECT));
@@ -1035,9 +1039,33 @@ void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
 	CheatsWindow = new wxCheatsWindow(this, wxDefaultPosition, wxSize(600, 390));
 }
 
-void CFrame::OnLoadWiiMenu(wxCommandEvent& WXUNUSED (event))
+void CFrame::OnLoadWiiMenu(wxCommandEvent& event)
 {
-	BootGame(std::string (File::GetUserPath(D_WIIMENU_IDX)));
+	if (event.GetId() == IDM_LOAD_WII_MENU)
+	{
+		BootGame(std::string (File::GetUserPath(D_WIIMENU_IDX)));
+	}
+	else
+	{
+		
+		wxString path = wxFileSelector(
+			_T("Select the System Menu wad extracted from the update partition of a disc"),
+			wxEmptyString, wxEmptyString, wxEmptyString,
+			wxString::Format
+			(
+					_T("System Menu wad|RVL-WiiSystemmenu-v*.wad"),
+					wxFileSelectorDefaultWildcardStr,
+					wxFileSelectorDefaultWildcardStr
+			),
+			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
+			this);
+
+		if (CBoot::Install_WiiWAD(path.mb_str()))
+		{;// TODO: Fix so that menu item changes approprately so a restart is not required
+		//	GetMenuBar()->FindItem(IDM_INSTALL_WII_MENU)->SetId(IDM_LOAD_WII_MENU);
+		//	GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->SetItemLabel(_T("Load Wii Menu"));
+		}
+	}
 }
 
 void CFrame::OnConnectWiimote(wxCommandEvent& event)

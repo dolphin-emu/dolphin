@@ -29,50 +29,30 @@
 namespace DiscIO
 {
 
-
-class CSharedContent
-{
-public:
-
-	static CSharedContent& AccessInstance() { return m_Instance; }
-
-	std::string GetFilenameFromSHA1(u8* _pHash);
-
-private:
-
-
-	CSharedContent();
-
-	virtual ~CSharedContent();
-
-	struct SElement
-	{
-		u8 FileName[8];
-		u8 SHA1Hash[20];
-	};
-
-	std::vector<SElement> m_Elements;
-	static CSharedContent m_Instance;
-};
-
 CSharedContent CSharedContent::m_Instance;
+cUIDsys cUIDsys::m_Instance;
 
 CSharedContent::CSharedContent()
 {
-	char szFilename[1024];
-	sprintf(szFilename, "%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX));
-	if (File::Exists(szFilename))
+	sprintf(contentMap, "%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX));
+	lastID = 0;
+	if (File::Exists(contentMap))
 	{
-		FILE* pFile = fopen(szFilename, "rb");
+		FILE* pFile = fopen(contentMap, "rb");
 		while(!feof(pFile))
 		{
 			SElement Element;
 			if (fread(&Element, sizeof(SElement), 1, pFile) == 1)
 			{
 				m_Elements.push_back(Element);
+				lastID++;
 			}
 		}
 		fclose(pFile);
+	}
+	else
+	{
+		File::CreateFullPath(contentMap);
 	}
 }
 
@@ -95,6 +75,29 @@ std::string CSharedContent::GetFilenameFromSHA1(u8* _pHash)
 	return "unk";
 }
 
+std::string CSharedContent::AddSharedContent(u8* _pHash)
+{
+	std::string szFilename = GetFilenameFromSHA1(_pHash);
+	if (strcasecmp(szFilename.c_str(), "unk") == 0)
+	{
+		char tempFilename[1024], c_ID[9];
+		SElement Element;
+		sprintf(c_ID, "%08x", lastID);
+		memcpy(Element.FileName, c_ID, 8);
+		memcpy(Element.SHA1Hash, _pHash, 20);
+		m_Elements.push_back(Element);
+		FILE* pFile = fopen(contentMap, "ab");
+		if (pFile)
+		{
+			fwrite(&Element, sizeof(SElement), 1, pFile);
+			fclose(pFile);
+		}
+		sprintf(tempFilename, "%sshared1/%s.app", File::GetUserPath(D_WIIUSER_IDX), c_ID);
+		szFilename = tempFilename;
+		lastID++;
+	}
+	return szFilename;
+}
 
 
 // this classes must be created by the CNANDContentManager
@@ -369,6 +372,101 @@ const INANDContentLoader& CNANDContentManager::GetNANDLoader(const std::string& 
 		m_Map.insert(lb, CNANDContentMap::value_type(_rName, new CNANDContentLoader(_rName)));
 
 	return *m_Map[_rName];
+}
+
+cUIDsys::cUIDsys()
+{
+	sprintf(uidSys, "%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX));
+	lastUID = 0x00001000;
+	if (File::Exists(uidSys))
+	{
+		FILE* pFile = fopen(uidSys, "rb");
+		while(!feof(pFile))
+		{
+			SElement Element;
+			if (fread(&Element, sizeof(SElement), 1, pFile) == 1)
+			{
+				if (CheckValidTitle(Common::swap64(Element.titleID)))
+				{
+					m_Elements.push_back(Element);
+					lastUID++;
+				}
+			}
+		}
+		fclose(pFile);
+	}
+	else
+	{
+		File::CreateFullPath(uidSys);
+	}
+}
+
+cUIDsys::~cUIDsys()
+{}
+
+u32 cUIDsys::GetUIDFromTitle(u64 _Title)
+{
+	for (size_t i=0; i<m_Elements.size(); i++)
+	{
+		if (Common::swap64(_Title) == (u64)m_Elements[i].titleID)
+		{
+			return Common::swap32(m_Elements[i].UID);
+		}
+	}
+	return 0;
+}
+
+bool cUIDsys::AddTitle(u64 _TitleID)
+{
+	if (GetUIDFromTitle(_TitleID))
+		return false;
+	else
+	{
+		SElement Element;
+		*(u64*)&(Element.titleID) = Common::swap64(_TitleID);
+		*(u32*)&(Element.UID) = Common::swap32(lastUID);
+		m_Elements.push_back(Element);
+		lastUID++;
+		FILE* pFile = fopen(uidSys, "ab");
+		if (pFile)
+		{
+			if (fwrite(&Element, sizeof(SElement), 1, pFile) != 1)
+				ERROR_LOG(DISCIO, "fwrite failed");
+			fclose(pFile);
+		}
+		
+		return true;
+	}	
+}
+
+void cUIDsys::GetTitleIDs(std::vector<u64>& _TitleIDs)
+{
+	for (size_t i = 0; i < m_Elements.size(); i++)
+	{
+		_TitleIDs.push_back(Common::swap64(m_Elements[i].titleID));
+	}
+}
+
+bool cUIDsys::CheckValidTitle(u64 _TitleID)
+{
+	char TitlePath[1024];
+	sprintf(TitlePath, "%stitle/%08x/%08x/content/title.tmd", File::GetUserPath(D_WIIUSER_IDX),
+			(u32)(_TitleID >> 32), (u32)(_TitleID & 0xFFFFFFFF));
+
+	if (File::Exists(TitlePath))
+	{
+		FILE* pTMDFile = fopen(TitlePath, "rb");
+		if(pTMDFile)
+		{
+			u64 TitleID = 0xDEADBEEFDEADBEEFULL;
+			fseek(pTMDFile, 0x18C, SEEK_SET);
+			fread(&TitleID, 8, 1, pTMDFile);
+			fclose(pTMDFile);
+			if (_TitleID == Common::swap64(TitleID))
+				return true;
+		}
+	}
+	return false;
 }
 
 } // namespace end

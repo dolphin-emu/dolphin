@@ -120,17 +120,32 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 		fwrite(Content.m_Header, DiscIO::INANDContentLoader::CONTENT_HEADER_SIZE, 1, pTMDFile);
 
 		char APPFileName[1024];
-		sprintf(APPFileName, "%s%08x.app", ContentPath, Content.m_ContentID);
-
-		FILE* pAPPFile = fopen(APPFileName, "wb");
-		if (pAPPFile == NULL)
+		if (Content.m_Type & 0x8000) //shared
 		{
-			PanicAlert("WAD installation failed: error creating %s", APPFileName);
-			return false;
+			sprintf(APPFileName, "%s", 
+				DiscIO::CSharedContent::AccessInstance().AddSharedContent(Content.m_SHA1Hash).c_str());
 		}
-		
-		fwrite(Content.m_pData, Content.m_Size, 1, pAPPFile);
-		fclose(pAPPFile);
+		else
+		{
+			sprintf(APPFileName, "%s%08x.app", ContentPath, Content.m_ContentID);
+		}
+
+		if (!File::Exists(APPFileName))
+		{
+			FILE* pAPPFile = fopen(APPFileName, "wb");
+			if (pAPPFile == NULL)
+			{
+				PanicAlert("WAD installation failed: error creating %s", APPFileName);
+				return false;
+			}
+			
+			fwrite(Content.m_pData, Content.m_Size, 1, pAPPFile);
+			fclose(pAPPFile);
+		}
+		else
+		{
+			INFO_LOG(DISCIO, "Content %s already exists.", APPFileName);
+		}
 	}
 
 	fclose(pTMDFile);
@@ -160,6 +175,11 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 	fwrite(Wad.GetTicket(), Wad.GetTicketSize(), 1, pTicketFile);
 
 	fclose(pTicketFile);
+	
+	if (!DiscIO::cUIDsys::AccessInstance().AddTitle(TitleID))
+	{
+		INFO_LOG(DISCIO, "Title %08x%08x, already exists in uid.sys", TitleID_HI, TitleID_LO);
+	}
 
 	return true;
 }

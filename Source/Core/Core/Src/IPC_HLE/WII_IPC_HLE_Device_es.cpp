@@ -92,14 +92,16 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
         m_TitleID = ((u64)0x00010000 << 32) | 0xF00DBEEF;
     }   
 
+	// TODO: when dev/fs IOCTLV_GETUSAGE is correct (wii doesnt report fs as corrupt) uncomment this line
+	// title ids are all listed in sys/uid.sys - lpfaint99
+	//DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDs);
 
-    // scan for the title ids listed in TMDs within /title/
 	m_TitleIDs.push_back(0x0000000100000002ULL);
     //m_TitleIDs.push_back(0x0001000248414741ULL); 
     //m_TitleIDs.push_back(0x0001000248414341ULL);
     //m_TitleIDs.push_back(0x0001000248414241ULL);
     //m_TitleIDs.push_back(0x0001000248414141ULL);
-    
+    // scan for the title ids listed in TMDs within /title/
 	//FindValidTitleIDs();
 
     INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", (u32)(m_TitleID>>32), (u32)m_TitleID);
