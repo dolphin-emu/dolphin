@@ -59,6 +59,7 @@ BEGIN_EVENT_TABLE(WiimoteBasicConfigDialog,wxDialog)
 	EVT_COMMAND_SCROLL(IDS_LEFT, WiimoteBasicConfigDialog::IRCursorChanged)
 	EVT_COMMAND_SCROLL(IDS_TOP, WiimoteBasicConfigDialog::IRCursorChanged)
 	EVT_COMMAND_SCROLL(IDS_LEVEL, WiimoteBasicConfigDialog::IRCursorChanged)
+	EVT_COMMAND_SCROLL(IDS_TIMEOUT, WiimoteBasicConfigDialog::IRCursorChanged)//scrollevent
 
 	EVT_TIMER(IDTM_UPDATE_ONCE, WiimoteBasicConfigDialog::UpdateOnce)
 END_EVENT_TABLE()
@@ -186,25 +187,30 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_TextUDPWiiPort[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("UDP Port:"));
 		m_TextUDPWiiPort[i]->SetToolTip(wxT("The UDP port on witch UDPWii listens for this remote."));
 
-		m_PairUpRealWiimote[i] = new wxButton(m_Controller[i], IDB_PAIRUP_REAL, wxT("Pair Up Real Wiimotes"));
+		m_PairUpRealWiimote[i] = new wxButton(m_Controller[i], IDB_PAIRUP_REAL, wxT("Pair Up"));
 		m_PairUpRealWiimote[i]->SetToolTip(wxT("Press the Buttons 1 and 2 on your Wiimote.\nThis might take a few seconds.\nIt only works if you are using Microsoft Bluetooth stack.")); // Only working with MS BT Stack.
-#ifndef _WIN32
-		m_PairUpRealWiimote[i]->Enable(false);
-#endif
+
 		m_TextFoundRealWiimote[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Connected to 0 Real Wiimotes"));
-		m_ConnectRealWiimote[i] = new wxButton(m_Controller[i], IDB_REFRESH_REAL, wxT("Refresh Real Wiimotes"));
+		m_ConnectRealWiimote[i] = new wxButton(m_Controller[i], IDB_REFRESH_REAL, wxT("Refresh"));
 		m_ConnectRealWiimote[i]->SetToolTip(wxT("This can only be done when the emulator is paused or stopped."));
 
+		m_TextWiimoteTimeout[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Timeout: 000"));
+		m_WiimoteTimeout[i] = new wxSlider(m_Controller[i], IDS_TIMEOUT, 0, 10, 200, wxDefaultPosition, wxSize(75, -1));
+		m_WiimoteTimeout[i]->SetToolTip(wxT("General Reaö Wiimote Read Timeout, Default: 10 (ms). Higher values might eliminate frequent disconnects."));
+
+		//Real Wiimote / automatic settings
 		m_WiiAutoReconnect[i] = new wxCheckBox(m_Controller[i], IDC_WIIAUTORECONNECT, wxT("Reconnect Wiimote on disconnect"));
 		m_WiiAutoReconnect[i]->SetToolTip(wxT("This makes dolphin automatically reconnect a wiimote when it has being disconnected.\nThis will cause problems when 2 controllers are connected for a 1 player game."));
 		m_WiiAutoUnpair[i] = new wxCheckBox(m_Controller[i], IDC_WIIAUTOUNPAIR, wxT("Unpair Wiimote on close"));
 		m_WiiAutoUnpair[i]->SetToolTip(wxT("This makes dolphin automatically unpair a wiimote when dolphin is about to be closed."));
 		m_WiiExtendedPairUp[i] = new wxCheckBox(m_Controller[i], IDC_WIIAUTOPAIR, wxT("Extended PairUp/Connect"));
 		m_WiiExtendedPairUp[i]->SetToolTip(wxT("This makes dolphin automatically pair up and connect Wiimotes on pressing 1+2 on your Wiimote."));
+		
 #ifndef _WIN32
 		m_WiiAutoUnpair[i]->Enable(false);
+		m_PairUpRealWiimote[i]->Enable(false);
 #endif
-				
+								
 		//IR Pointer
 		m_TextScreenWidth[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Width: 000"));
 		m_TextScreenHeight[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Height: 000"));
@@ -255,11 +261,19 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_SizeRealAuto[i]->Add(m_WiiAutoUnpair[i], 0, wxEXPAND | (wxDOWN | wxTOP), 5);
 		m_SizeRealAuto[i]->Add(m_WiiExtendedPairUp[i], 0, wxEXPAND | (wxDOWN | wxTOP), 5);
 
+		m_SizeRealTimeout[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SizeRealTimeout[i]->Add(m_TextWiimoteTimeout[i], 0, wxEXPAND | (wxTOP), 3);
+		m_SizeRealTimeout[i]->Add(m_WiimoteTimeout[i], 0, wxEXPAND | (wxRIGHT), 0);
+
+		m_SizeRealRefreshPair[i] = new wxBoxSizer(wxHORIZONTAL);
+		m_SizeRealRefreshPair[i]->Add(m_PairUpRealWiimote[i], 0, wxEXPAND | wxALL, 5);
+		m_SizeRealRefreshPair[i]->Add(m_ConnectRealWiimote[i], 0, wxEXPAND | wxALL, 5);
+
 		m_SizeReal[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Real Wiimote"));
-		m_SizeReal[i]->Add(m_PairUpRealWiimote[i], 0, wxEXPAND | wxALL, 5);
-		m_SizeReal[i]->Add(m_TextFoundRealWiimote[i], 0, wxEXPAND | wxALL, 5);
-		m_SizeReal[i]->Add(m_ConnectRealWiimote[i], 0, wxEXPAND | wxALL, 5);
+		m_SizeReal[i]->Add(m_TextFoundRealWiimote[i], 0, wxALIGN_CENTER | wxALL, 5);
+		m_SizeReal[i]->Add(m_SizeRealRefreshPair[i], 0, wxALIGN_CENTER | (wxLEFT | wxDOWN | wxRIGHT), 5);
 		m_SizeReal[i]->Add(m_SizeRealAuto[i], 0, wxEXPAND | wxALL, 5);
+		m_SizeReal[i]->Add(m_SizeRealTimeout[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
 
 		m_SizerIRPointerWidth[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SizerIRPointerWidth[i]->Add(m_TextScreenLeft[i], 0, wxEXPAND | (wxTOP), 3);
@@ -525,6 +539,12 @@ void WiimoteBasicConfigDialog::IRCursorChanged(wxScrollEvent& event)
 				wiiuse_set_ir_sensitivity(WiiMoteReal::g_WiiMotesFromWiiUse[i], g_Config.iIRLevel);
 		}
 		break;
+	case IDS_TIMEOUT:
+		g_Config.bWiiReadTimeout = m_WiimoteTimeout[m_Page]->GetValue();
+		if (g_RealWiiMotePresent) {
+			wiiuse_set_timeout(WiiMoteReal::g_WiiMotesFromWiiUse, WiiMoteReal::g_NumberOfWiiMotes, g_Config.bWiiReadTimeout, g_Config.bWiiReadTimeout);
+		}
+		break;
 	}
 	UpdateGUI();
 }
@@ -568,28 +588,37 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 
 	m_InputSource[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].Source);
 	m_InputSource[m_Page]->Enable(g_EmulatorState != PLUGIN_EMUSTATE_PLAY);
+
 	if (WiiMoteEmu::WiiMapping[m_Page].Source == 2)
 	{
+		m_Extension[m_Page]->Enable(false);
 		m_SidewaysWiimote[m_Page]->Enable(false);
 		m_UprightWiimote[m_Page]->Enable(false);
-		m_Extension[m_Page]->Enable(false);
+		m_WiimoteTimeout[m_Page]->Enable(true);
 		m_SliderIrLevel[m_Page]->Enable(true);
 	}
 	else
 	{
+		m_Extension[m_Page]->Enable(true);
 		m_SidewaysWiimote[m_Page]->Enable(true);
 		m_UprightWiimote[m_Page]->Enable(true);
-		m_Extension[m_Page]->Enable(true);
+		m_WiimoteTimeout[m_Page]->Enable(false);
 		m_SliderIrLevel[m_Page]->Enable(false);
 	}
-
+	
+	//General settings
+	m_Extension[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected);
 	m_SidewaysWiimote[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bSideways);
 	m_UprightWiimote[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bUpright);
 	m_WiiMotionPlusConnected[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bMotionPlusConnected);
+	
+	//Real Wiimote related settings
+	//Automatic settings
 	m_WiiAutoReconnect[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bWiiAutoReconnect);
 	m_WiiAutoUnpair[m_Page]->SetValue(g_Config.bUnpairRealWiimote);
 	m_WiiExtendedPairUp[m_Page]->SetValue(g_Config.bPairRealWiimote);
-	m_Extension[m_Page]->SetSelection(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected);
+	m_TextWiimoteTimeout[m_Page]->SetLabel(wxString::Format(wxT("Timeout: %i"), g_Config.bWiiReadTimeout));
+	m_WiimoteTimeout[m_Page]->SetValue(g_Config.bWiiReadTimeout);
 
 	// Update the Wiimote IR pointer calibration
 	m_TextScreenWidth[m_Page]->SetLabel(wxString::Format(wxT("Width: %i"), g_Config.iIRWidth));
@@ -597,12 +626,17 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	m_TextScreenLeft[m_Page]->SetLabel(wxString::Format(wxT("Left: %i"), g_Config.iIRLeft));
 	m_TextScreenTop[m_Page]->SetLabel(wxString::Format(wxT("Top: %i"), g_Config.iIRTop));
 	m_TextScreenIrLevel[m_Page]->SetLabel(wxString::Format(wxT("Sensitivity: %i"), g_Config.iIRLevel));
+
 	// Update the slider position if a configuration has been loaded
 	m_SliderWidth[m_Page]->SetValue(g_Config.iIRWidth);
 	m_SliderHeight[m_Page]->SetValue(g_Config.iIRHeight);
 	m_SliderLeft[m_Page]->SetValue(g_Config.iIRLeft);
 	m_SliderTop[m_Page]->SetValue(g_Config.iIRTop);
 	m_SliderIrLevel[m_Page]->SetValue(g_Config.iIRLevel);
+
+	m_CheckAR43[m_Page]->SetValue(g_Config.bKeepAR43);
+	m_CheckAR169[m_Page]->SetValue(g_Config.bKeepAR169);
+	m_Crop[m_Page]->SetValue(g_Config.bCrop);
 
 	//Update UDPWii
 	m_UDPWiiEnable[m_Page]->Enable(g_EmulatorState != PLUGIN_EMUSTATE_PLAY);
@@ -614,7 +648,4 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	m_UDPWiiNun[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].UDPWM.enableNunchuck);
 	m_UDPWiiPort[m_Page]->ChangeValue(wxString::FromAscii(WiiMoteEmu::WiiMapping[m_Page].UDPWM.port));
 
-	m_CheckAR43[m_Page]->SetValue(g_Config.bKeepAR43);
-	m_CheckAR169[m_Page]->SetValue(g_Config.bKeepAR169);
-	m_Crop[m_Page]->SetValue(g_Config.bCrop);
 }

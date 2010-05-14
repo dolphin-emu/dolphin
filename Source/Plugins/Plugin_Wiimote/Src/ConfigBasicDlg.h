@@ -77,6 +77,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 				 *m_SliderHeight[MAX_WIIMOTES],
 				 *m_SliderLeft[MAX_WIIMOTES],
 				 *m_SliderTop[MAX_WIIMOTES],
+				 *m_WiimoteTimeout[MAX_WIIMOTES],
 				 *m_SliderIrLevel[MAX_WIIMOTES];
 
 		wxCheckBox  *m_SidewaysWiimote[MAX_WIIMOTES],
@@ -94,7 +95,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 					*m_UDPWiiIR[MAX_WIIMOTES],
 					*m_UDPWiiNun[MAX_WIIMOTES];
 
-		wxStaticText *m_TextScreenWidth[MAX_WIIMOTES],
+		wxStaticText *m_TextWiimoteTimeout[MAX_WIIMOTES],
+					 *m_TextScreenWidth[MAX_WIIMOTES],
 					 *m_TextScreenHeight[MAX_WIIMOTES],
 					 *m_TextScreenLeft[MAX_WIIMOTES],
 					 *m_TextScreenTop[MAX_WIIMOTES],
@@ -106,7 +108,9 @@ class WiimoteBasicConfigDialog : public wxDialog
 		wxBoxSizer  *m_MainSizer,
 					*m_SizeBasicGeneral[MAX_WIIMOTES],
 					*m_SizeBasicGeneralLeft[MAX_WIIMOTES],
-					*m_SizeBasicGeneralRight[MAX_WIIMOTES],			
+					*m_SizeBasicGeneralRight[MAX_WIIMOTES],
+					*m_SizeRealTimeout[MAX_WIIMOTES],
+					*m_SizeRealRefreshPair[MAX_WIIMOTES],
 					*m_SizerIRPointerWidth[MAX_WIIMOTES],
 					*m_SizerIRPointerHeight[MAX_WIIMOTES],
 					*m_SizerIRPointerScreen[MAX_WIIMOTES],
@@ -115,8 +119,8 @@ class WiimoteBasicConfigDialog : public wxDialog
 
 		wxStaticBoxSizer *m_SizeBasic[MAX_WIIMOTES],
 						 *m_SizeEmu[MAX_WIIMOTES],
-						 *m_SizeRealAuto[MAX_WIIMOTES],
 						 *m_SizeReal[MAX_WIIMOTES],
+						 *m_SizeRealAuto[MAX_WIIMOTES],
 						 *m_SizeExtensions[MAX_WIIMOTES],
 						 *m_SizerIRPointer[MAX_WIIMOTES],
 						 *m_SizeUDPWii[MAX_WIIMOTES];
@@ -137,7 +141,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 			ID_CONTROLLERPAGE3,
 			ID_CONTROLLERPAGE4,
 			
-			// Emulated Wiimote
+			// Emulated/Real Wiimote
 			IDC_INPUT_SOURCE,
 			IDC_SIDEWAYSWIIMOTE,
 			IDC_UPRIGHTWIIMOTE,
@@ -164,6 +168,7 @@ class WiimoteBasicConfigDialog : public wxDialog
 			IDS_LEFT,
 			IDS_TOP,
 			IDS_LEVEL,
+			IDS_TIMEOUT,
 		};
 
 		void CreateGUIControls();

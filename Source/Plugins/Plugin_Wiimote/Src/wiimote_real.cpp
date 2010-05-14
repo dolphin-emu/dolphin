@@ -393,7 +393,8 @@ int Initialize()
 
 	// psyjoe reports this allows majority of lost packets to be transferred.
 	// Will test soon
-	//wiiuse_set_timeout(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes, 220, 220);
+		if (g_Config.bWiiReadTimeout != 10)
+			wiiuse_set_timeout(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes, g_Config.bWiiReadTimeout, g_Config.bWiiReadTimeout);
 
 	// If we are connecting from the config window without a game running we set the LEDs
 	if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY && g_RealWiiMotePresent)
