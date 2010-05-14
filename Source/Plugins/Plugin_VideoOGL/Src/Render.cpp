@@ -774,8 +774,11 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 static bool XFBWrited = false;
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
 {
+	if(!fbWidth || !fbHeight)
+		return;
 	s_skipSwap = g_bSkipCurrentFrame;
 	VideoFifo_CheckEFBAccess();
+	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
 	g_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 	XFBWrited = true;
 	// XXX: Without the VI, how would we know what kind of field this is? So
@@ -790,11 +793,11 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
-	if (g_bSkipCurrentFrame || !XFBWrited || !fbWidth || !fbHeight)
+	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.bUseRealXFB) || !fbWidth || !fbHeight)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);
 		return;
-	}		
+	}	
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
 	const XFBSource** xfbSourceList = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
@@ -1129,9 +1132,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// For testing zbuffer targets.
     // Renderer::SetZBufferRender();
     // SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
-
-	g_VideoInitialize.pCopiedToXFB(true);
 	XFBWrited = false;
+	g_VideoInitialize.pCopiedToXFB(true);
+	
 }
 
 // Create On-Screen-Messages
