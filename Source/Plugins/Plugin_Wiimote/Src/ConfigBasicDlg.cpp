@@ -194,9 +194,9 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_ConnectRealWiimote[i] = new wxButton(m_Controller[i], IDB_REFRESH_REAL, wxT("Refresh"));
 		m_ConnectRealWiimote[i]->SetToolTip(wxT("This can only be done when the emulator is paused or stopped."));
 
-		m_TextWiimoteTimeout[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Timeout: 000"));
+		m_TextWiimoteTimeout[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Timeout: 000 ms"));
 		m_WiimoteTimeout[i] = new wxSlider(m_Controller[i], IDS_TIMEOUT, 0, 10, 200, wxDefaultPosition, wxSize(75, -1));
-		m_WiimoteTimeout[i]->SetToolTip(wxT("General Reaö Wiimote Read Timeout, Default: 10 (ms). Higher values might eliminate frequent disconnects."));
+		m_WiimoteTimeout[i]->SetToolTip(wxT("General Real Wiimote Read Timeout, Default: 10 (ms). Higher values might eliminate frequent disconnects."));
 
 		//Real Wiimote / automatic settings
 		m_WiiAutoReconnect[i] = new wxCheckBox(m_Controller[i], IDC_WIIAUTORECONNECT, wxT("Reconnect Wiimote on disconnect"));
@@ -592,6 +592,7 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	if (WiiMoteEmu::WiiMapping[m_Page].Source == 2)
 	{
 		m_Extension[m_Page]->Enable(false);
+		m_WiiMotionPlusConnected[m_Page]->Enable(false);
 		m_SidewaysWiimote[m_Page]->Enable(false);
 		m_UprightWiimote[m_Page]->Enable(false);
 		m_WiimoteTimeout[m_Page]->Enable(true);
@@ -600,6 +601,7 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	else
 	{
 		m_Extension[m_Page]->Enable(true);
+		m_WiiMotionPlusConnected[m_Page]->Enable(true);
 		m_SidewaysWiimote[m_Page]->Enable(true);
 		m_UprightWiimote[m_Page]->Enable(true);
 		m_WiimoteTimeout[m_Page]->Enable(false);
@@ -617,7 +619,7 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	m_WiiAutoReconnect[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bWiiAutoReconnect);
 	m_WiiAutoUnpair[m_Page]->SetValue(g_Config.bUnpairRealWiimote);
 	m_WiiExtendedPairUp[m_Page]->SetValue(g_Config.bPairRealWiimote);
-	m_TextWiimoteTimeout[m_Page]->SetLabel(wxString::Format(wxT("Timeout: %i"), g_Config.bWiiReadTimeout));
+	m_TextWiimoteTimeout[m_Page]->SetLabel(wxString::Format(wxT("Timeout: %i ms"), g_Config.bWiiReadTimeout));
 	m_WiimoteTimeout[m_Page]->SetValue(g_Config.bWiiReadTimeout);
 
 	// Update the Wiimote IR pointer calibration
