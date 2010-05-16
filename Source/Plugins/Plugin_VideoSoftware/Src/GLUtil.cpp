@@ -271,6 +271,16 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
                           GLX_BLUE_SIZE, 8,
                           GLX_DEPTH_SIZE, 24,
                           GLX_SAMPLE_BUFFERS_ARB, GLX_SAMPLES_ARB, 1, None };
+
+	int attrListDefault[] = {
+		GLX_RGBA,
+		GLX_RED_SIZE, 1,
+		GLX_GREEN_SIZE, 1,
+		GLX_BLUE_SIZE, 1,
+		GLX_DOUBLEBUFFER,
+		GLX_DEPTH_SIZE, 1,
+		None };
+
 	GLWin.dpy = XOpenDisplay(0);
 	GLWin.parent = (Window)g_VideoInitialize.pWindowHandle;
 	g_VideoInitialize.pWindowHandle = (HWND)GLWin.dpy;
@@ -278,9 +288,22 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 
     /* get an appropriate visual */
     vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListDbl);
-    if (vi == NULL) {
+    if (vi == NULL)
+	{
         vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListSgl);
-        ERROR_LOG(VIDEO, "Only Singlebuffered Visual!");
+		if (vi != NULL)
+		{
+			ERROR_LOG(VIDEO, "Only Singlebuffered Visual!");
+		}
+		else
+		{
+			vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListDefault);
+			if (vi == NULL)
+			{
+				ERROR_LOG(VIDEO, "Could not choose visual (glXChooseVisual)");
+				exit(0);
+			}
+		}
     }
     else
         NOTICE_LOG(VIDEO, "Got Doublebuffered Visual!");
