@@ -287,16 +287,8 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 		else
 		{
 			sprintf(pathRawSave, "%s%s", pathSavedir, _tmpFileHDR.name);
-
-			if (_tmpFileHDR.type == 2)
-			{
-				PanicAlert("savegame with a dir, report me :p, %s", pathRawSave);
-				// TODO: tachtig doesnt write future files to this dir
-				// for now, put the rest of the files in the new folder
-				File::CreateFullPath(pathRawSave);
-				strcpy(pathSavedir, pathRawSave);
-			}
-			else
+			File::CreateFullPath(pathRawSave);
+			if (_tmpFileHDR.type == 1)
 			{
 				_fileSize = Common::swap32(_tmpFileHDR.size);
 				lastpos += ROUND_UP(_fileSize, BLOCK_SZ);				
@@ -552,8 +544,7 @@ void CWiiSaveCrypted::ScanForFiles(std::string savDir, std::vector<std::string>&
 		File::ScanDirectoryTree(Directories.at(i).c_str(), FST_Temp);
 		for (u32 j = 0; j < FST_Temp.children.size(); j++)
 		{
-			if (strncmp(FST_Temp.children.at(j).virtualName.c_str(), "banner.bin", 10) != 0 &&
-			strncmp(FST_Temp.children.at(j).virtualName.c_str(), "nocopy", 6) != 0)
+			if (strncmp(FST_Temp.children.at(j).virtualName.c_str(), "banner.bin", 10) != 0)
 			{
 				(*_numFiles)++;
 				*_sizeFiles += FILE_HDR_SZ + ROUND_UP(FST_Temp.children.at(j).size, BLOCK_SZ);
@@ -563,7 +554,7 @@ void CWiiSaveCrypted::ScanForFiles(std::string savDir, std::vector<std::string>&
 					Directories.push_back(FST_Temp.children.at(j).physicalName);
 				}
 				else
-				{				
+				{
 					FileList.push_back(FST_Temp.children.at(j).physicalName);
 				}
 			}

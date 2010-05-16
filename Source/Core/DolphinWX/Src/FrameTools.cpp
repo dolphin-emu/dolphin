@@ -183,7 +183,7 @@ void CFrame::CreateMenu()
 	wxMenu* toolsMenu = new wxMenu;
 	toolsMenu->Append(IDM_LUA, _T("New &Lua Console"));
 	toolsMenu->Append(IDM_MEMCARD, _T("&Memcard Manager (GC)"));
-	toolsMenu->Append(IDM_IMPORTSAVE, _T("Wii Save Import (experimental)"));
+	toolsMenu->Append(IDM_IMPORTSAVE, _T("Wii Save Import"));
 	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
 
 	toolsMenu->Append(IDM_NETPLAY, _T("Start &NetPlay"));
@@ -1061,9 +1061,8 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& event)
 			this);
 
 		if (CBoot::Install_WiiWAD(path.mb_str()))
-		{;// TODO: Fix so that menu item changes approprately so a restart is not required
-		//	GetMenuBar()->FindItem(IDM_INSTALL_WII_MENU)->SetId(IDM_LOAD_WII_MENU);
-		//	GetMenuBar()->FindItem(IDM_LOAD_WII_MENU)->SetItemLabel(_T("Load Wii Menu"));
+		{
+			GetMenuBar()->FindItem(IDM_INSTALL_WII_MENU)->Enable(false);
 		}
 	}
 }
