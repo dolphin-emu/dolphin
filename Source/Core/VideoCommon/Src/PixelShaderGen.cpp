@@ -157,13 +157,13 @@ const float epsilon8bit = 1.0f / 255.0f;
 static const char *tevKSelTableC[] = // KCSEL
 {
     "1.0f,1.0f,1.0f",    // 1   = 0x00
-    "0.875f,0.875f,0.875f", // 7_8 = 0x01
-    "0.75f,0.75f,0.75f",	 // 3_4 = 0x02
-    "0.625f,0.625f,0.625f", // 5_8 = 0x03
-    "0.5f,0.5f,0.5f",       // 1_2 = 0x04
-    "0.375f,0.375f,0.375f", // 3_8 = 0x05
-    "0.25f,0.25f,0.25f",    // 1_4 = 0x06
-    "0.125f,0.125f,0.125f", // 1_8 = 0x07
+    "0.8745098f,0.8745098f,0.8745098f", // 7_8 = 0x01
+    "0.7490196f,0.7490196f,0.7490196f",	 // 3_4 = 0x02
+    "0.6235294f,0.6235294f,0.6235294f", // 5_8 = 0x03
+    "0.4980392f,0.4980392f,0.4980392f",       // 1_2 = 0x04
+    "0.372549f,0.372549f,0.372549f", // 3_8 = 0x05
+    "0.2470588f,0.2470588f,0.2470588f",    // 1_4 = 0x06
+    "0.1215686f,0.1215686f,0.1215686f", // 1_8 = 0x07
     "ERROR", // 0x08
     "ERROR", // 0x09
     "ERROR", // 0x0a
@@ -193,13 +193,13 @@ static const char *tevKSelTableC[] = // KCSEL
 static const char *tevKSelTableA[] = // KASEL
 {
     "1.0f",  // 1   = 0x00
-    "0.875f",// 7_8 = 0x01
-    "0.75f", // 3_4 = 0x02
-    "0.625f",// 5_8 = 0x03
-    "0.5f",  // 1_2 = 0x04
-    "0.375f",// 3_8 = 0x05
-    "0.25f", // 1_4 = 0x06
-    "0.125f",// 1_8 = 0x07
+    "0.8745098f",// 7_8 = 0x01
+    "0.7490196f", // 3_4 = 0x02
+    "0.6235294f",// 5_8 = 0x03
+    "0.4980392f",  // 1_2 = 0x04
+    "0.372549f",// 3_8 = 0x05
+    "0.2470588f", // 1_4 = 0x06
+    "0.1215686f",// 1_8 = 0x07
     "ERROR", // 0x08
     "ERROR", // 0x09
     "ERROR", // 0x0a
@@ -237,8 +237,8 @@ static const char *tevScaleTable[] = // CS
 static const char *tevBiasTable[] = // TB
 {
     "",       // ZERO,
-    "+0.5f",  // ADDHALF,
-    "-0.5f",  // SUBHALF,
+    "+0.4980392f",  // ADDHALF,
+    "-0.4980392f",  // SUBHALF,
     "",
 };
 
@@ -269,7 +269,7 @@ static const char *tevCInputTable[] = // CC
     "rastemp.rgb",        // RASC,
     "rastemp.aaa",        // RASA,
     "float3(1.0f,1.0f,1.0f)",              // ONE,
-    "float3(0.5f,0.5f,0.5f)",                 // HALF,
+    "float3(0.4980392f,0.4980392f,0.4980392f)",                 // HALF,
     "konsttemp.rgb",                       // KONST,
     "float3(0.0f,0.0f,0.0f)",              // ZERO
     "PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
@@ -294,7 +294,7 @@ static const char *tevCInputTable2[] = // CC
     "rastemp",            // RASC,
     "(rastemp.aaa)",      // RASA,
     "float3(1.0f,1.0f,1.0f)",              // ONE
-    "float3(0.5f,0.5f,0.5f)",                 // HALF
+    "float3(0.4980392f,0.4980392f,0.4980392f)",                 // HALF
     "konsttemp", //"konsttemp.rgb",        // KONST
     "float3(0.0f,0.0f,0.0f)",              // ZERO
     "PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
@@ -350,8 +350,8 @@ static const char *tevRasTable[] =
 
 static const char *alphaRef[2] = 
 {
-    I_ALPHA"[0].x",
-    I_ALPHA"[0].y"
+    I_ALPHA"[0].r",
+    I_ALPHA"[0].g"
 };
 
 //static const char *tevTexFunc[] = { "tex2D", "texRECT" };
@@ -521,8 +521,15 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 H
 
 	for (int i = 0; i < numStages; i++)
         WriteStage(p, i, texture_mask,HLSL); //build the equation for this stage
-	WRITE(p, "prev = saturate(prev);\n");
-	
+	// emulation of unisgned 8 overflow when casting
+	if(HLSL)
+	{
+		WRITE(p, "prev = ((((prev * 255.0f) %% 256.0f) + 256.0f) %% 256.0f) / 255.0f;\n");
+	}
+	else
+	{
+		WRITE(p, "prev = mod(mod(prev * 255.0f,256.0f) + 256.0f,256.0f) / 255.0f;\n");
+	}	
 		
     if (!WriteAlphaTest(p, HLSL))
 	{
@@ -586,11 +593,11 @@ static const char *TEVCMPColorOPTable[16] =
 	"float3(0.0f,0.0f,0.0f)",//5
 	"float3(0.0f,0.0f,0.0f)",//6
 	"float3(0.0f,0.0f,0.0f)",//7
-	"   %s + ((%s.r > %s.r + (0.25f/255.0f)) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_R8_GT 8
+	"   %s + ((%s.r >= %s.r + (0.25f/255.0f)) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_R8_GT 8
 	"   %s + ((abs(%s.r - %s.r) < (0.5f/255.0f)) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_R8_EQ 9
-	"   %s + (( dot(%s.rgb, comp16) > (dot(%s.rgb, comp16) + (0.25f/255.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_GR16_GT 10
+	"   %s + (( dot(%s.rgb, comp16) >= (dot(%s.rgb, comp16) + (0.25f/255.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_GR16_GT 10
 	"   %s + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (0.5f/255.0f) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_GR16_EQ 11
-	"   %s + (( dot(%s.rgb, comp24) > (dot(%s.rgb, comp24) + (0.25f/255.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_BGR24_GT 12
+	"   %s + (( dot(%s.rgb, comp24) >= (dot(%s.rgb, comp24) + (0.25f/255.0f))) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_BGR24_GT 12
 	"   %s + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (0.5f/255.0f) ? %s : float3(0.0f,0.0f,0.0f))",//#define TEVCMP_BGR24_EQ 13
 	"   %s + (max(sign(%s.rgb - %s.rgb - (0.25f/255.0f)),float3(0.0f,0.0f,0.0f)) * %s)",//#define TEVCMP_RGB8_GT  14
 	"   %s + ((float3(1.0f,1.0f,1.0f) - max(sign(abs(%s.rgb - %s.rgb) - (0.5f/255.0f)),float3(0.0f,0.0f,0.0f))) * %s)"//#define TEVCMP_RGB8_EQ  15
@@ -607,13 +614,13 @@ static const char *TEVCMPAlphaOPTable[16] =
 	"0.0f",//5
 	"0.0f",//6
 	"0.0f",//7
-	"   %s + ((%s.r > (%s.r + (0.25f/255.0f))) ? %s : 0.0f)",//#define TEVCMP_R8_GT 8
+	"   %s + ((%s.r >= (%s.r + (0.25f/255.0f))) ? %s : 0.0f)",//#define TEVCMP_R8_GT 8
 	"   %s + (abs(%s.r - %s.r) < (0.5f/255.0f) ? %s : 0.0f)",//#define TEVCMP_R8_EQ 9
-	"   %s + ((dot(%s.rgb, comp16) > (dot(%s.rgb, comp16) + (0.25f/255.0f))) ? %s : 0.0f)",//#define TEVCMP_GR16_GT 10
+	"   %s + ((dot(%s.rgb, comp16) >= (dot(%s.rgb, comp16) + (0.25f/255.0f))) ? %s : 0.0f)",//#define TEVCMP_GR16_GT 10
 	"   %s + (abs(dot(%s.rgb, comp16) - dot(%s.rgb, comp16)) < (0.5f/255.0f) ? %s : 0.0f)",//#define TEVCMP_GR16_EQ 11
-	"   %s + ((dot(%s.rgb, comp24) > (dot(%s.rgb, comp24) + (0.25f/255.0f))) ? %s : 0.0f)",//#define TEVCMP_BGR24_GT 12
+	"   %s + ((dot(%s.rgb, comp24) >= (dot(%s.rgb, comp24) + (0.25f/255.0f))) ? %s : 0.0f)",//#define TEVCMP_BGR24_GT 12
 	"   %s + (abs(dot(%s.rgb, comp24) - dot(%s.rgb, comp24)) < (0.5f/255.0f) ? %s : 0.0f)",//#define TEVCMP_BGR24_EQ 13	
-	"   %s + ((%s.a > (%s.a + (0.25f/255.0f))) ? %s : 0.0f)",//#define TEVCMP_A8_GT 14
+	"   %s + ((%s.a >= (%s.a + (0.25f/255.0f))) ? %s : 0.0f)",//#define TEVCMP_A8_GT 14
 	"   %s + (abs(%s.a - %s.a) < (0.5f/255.0f) ? %s : 0.0f)"//#define TEVCMP_A8_EQ 15
 
 };
@@ -777,7 +784,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
     }
 	if (cc.clamp)
 		WRITE(p,")");
-	WRITE(p,";\n");
+	WRITE(p,";\n");	
     
     // combine the alpha channel
     if (ac.clamp)
@@ -813,6 +820,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 		
 		if (ac.shift>0)
 			WRITE(p, ")");
+
     }
     else 
 	{
@@ -826,7 +834,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
     }
 	if (ac.clamp)
 		WRITE(p, ")");
-	WRITE(p, ";\n\n");
+	WRITE(p, ";\n\n");	
 }
 
 void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, u32 HLSL)

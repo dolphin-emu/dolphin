@@ -63,32 +63,19 @@ void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 
 void SetVSConstant4fv(int const_number, const float *f)
 {
-	if (lastVSconstants[const_number][0] != f[0] || 
-		lastVSconstants[const_number][1] != f[1] ||
-		lastVSconstants[const_number][2] != f[2] ||
-		lastVSconstants[const_number][3] != f[3])
-	{
-		lastVSconstants[const_number][0] = f[0];
-		lastVSconstants[const_number][1] = f[1];
-		lastVSconstants[const_number][2] = f[2];
-		lastVSconstants[const_number][3] = f[3];
+	if (memcmp(&lastVSconstants[const_number], f, sizeof(float) * 4)) {
+		memcpy(&lastVSconstants[const_number], f, sizeof(float) * 4);
 		glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number, lastVSconstants[const_number]);
-	}
+	}	
 }
 
 void SetMultiVSConstant4fv(int const_number, int count, const float *f)
 {
-	for (int i = 0; i < count; i++)
+	const float *f0 = f;
+	for (int i = 0; i < count; i++,f0+=4)
 	{
-		if (lastVSconstants[const_number + i][0] != f[0 + i*4] || 
-			lastVSconstants[const_number + i][1] != f[1 + i*4] ||
-			lastVSconstants[const_number + i][2] != f[2 + i*4] ||
-			lastVSconstants[const_number + i][3] != f[3 + i*4])
-		{
-			lastVSconstants[const_number + i][0] = f[0 + i*4];
-			lastVSconstants[const_number + i][1] = f[1 + i*4];
-			lastVSconstants[const_number + i][2] = f[2 + i*4];
-			lastVSconstants[const_number + i][3] = f[3 + i*4];
+		if (memcmp(&lastVSconstants[const_number + i], f0, sizeof(float) * 4)) {
+			memcpy(&lastVSconstants[const_number + i], f0, sizeof(float) * 4);
 			glProgramEnvParameter4fvARB(GL_VERTEX_PROGRAM_ARB, const_number + i, lastVSconstants[const_number + i]);
 		}
 	}

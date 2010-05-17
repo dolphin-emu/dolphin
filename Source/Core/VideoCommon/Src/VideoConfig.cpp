@@ -53,7 +53,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "wideScreenHack", &bWidescreenHack, false);
 	iniFile.Get("Settings", "AspectRatio", &iAspectRatio, (int)ASPECT_AUTO);
 	iniFile.Get("Settings", "Crop", &bCrop, false);
-    iniFile.Get("Settings", "UseXFB", &bUseXFB, true);
+    iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
 	iniFile.Get("Settings", "UseRealXFB", &bUseRealXFB, 0);
     iniFile.Get("Settings", "AutoScale", &bAutoScale, true);
 	iniFile.Get("Settings", "UseNativeMips", &bUseNativeMips, true);
