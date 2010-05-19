@@ -268,9 +268,9 @@ TargetRectangle FramebufferManager::ConvertEFBRectangle(const EFBRectangle& rc) 
 	float XScale = Renderer::GetTargetScaleX();
 	float YScale = Renderer::GetTargetScaleY();
 	result.left = rc.left * XScale;
-	result.top = Renderer::GetTargetHeight() - (rc.top * YScale);
+	result.top = ((EFB_HEIGHT - rc.top) * YScale);
 	result.right = rc.right * XScale ;
-	result.bottom = Renderer::GetTargetHeight() - (rc.bottom * YScale);
+	result.bottom = ((EFB_HEIGHT - rc.bottom) * YScale);
 	return result;
 }
 
@@ -410,6 +410,10 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		newVirt.xfbAddr = xfbAddr;
 		newVirt.xfbWidth = fbWidth;
 		newVirt.xfbHeight = fbHeight;
+
+		newVirt.xfbSource.srcAddr = xfbAddr;
+		newVirt.xfbSource.srcWidth = fbWidth;
+		newVirt.xfbSource.srcHeight = fbHeight;
 
 		newVirt.xfbSource.texture = xfbTexture;
 		newVirt.xfbSource.texWidth = m_targetWidth;

@@ -69,6 +69,9 @@ static int s_XFB_height;
 static float xScale;
 static float yScale;
 
+static int EFBxScale;
+static int EFByScale;
+
 static int s_recordWidth;
 static int s_recordHeight;
 
@@ -303,28 +306,17 @@ bool Renderer::Init()
 		yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
 	}
 	
-
-	s_target_width  = EFB_WIDTH * xScale;
-	s_target_height = EFB_HEIGHT * yScale;
-	
 	s_LastAA = (g_ActiveConfig.iMultisampleMode > 3)?0:g_ActiveConfig.iMultisampleMode;
 	
 	float SupersampleCoeficient = 1.0f;	
 	switch (s_LastAA)
 	{
 		case 1:
-			s_target_width  = (s_target_width  * 3) / 2;
-			s_target_height = (s_target_height * 3) / 2;
-			SupersampleCoeficient = 3.0f/2.0f;			
 			break;
 		case 2:
-			s_target_width  *= 2;
-			s_target_height *= 2;
 			SupersampleCoeficient = 2.0f;			
 			break;
 		case 3:
-			s_target_width  *= 3;
-			s_target_height *= 3;
 			SupersampleCoeficient = 3.0f;
 			break;
 		default:
@@ -334,6 +326,12 @@ bool Renderer::Init()
 	xScale *= SupersampleCoeficient;
 	yScale *= SupersampleCoeficient;
 	
+	EFBxScale = ceilf(xScale);
+	EFByScale = ceilf(yScale);
+
+	s_target_width  = EFB_WIDTH * EFBxScale;
+	s_target_height = EFB_HEIGHT * EFByScale;
+
 	s_Fulltarget_width  = s_target_width;
 	s_Fulltarget_height = s_target_height;
 	
@@ -393,8 +391,12 @@ int Renderer::GetTargetWidth() { return s_target_width; }
 int Renderer::GetTargetHeight() { return s_target_height; }
 int Renderer::GetFullTargetWidth() { return s_Fulltarget_width; }
 int Renderer::GetFullTargetHeight() { return s_Fulltarget_height; }
-float Renderer::GetTargetScaleX() { return xScale; }
-float Renderer::GetTargetScaleY() { return yScale; }
+float Renderer::GetTargetScaleX() { return EFBxScale; }
+float Renderer::GetTargetScaleY() { return EFByScale; }
+
+float Renderer::GetXFBScaleX() { return xScale; }
+float Renderer::GetXFBScaleY() { return yScale; }
+
 
 int Renderer::GetFrameBufferWidth()
 {
@@ -507,10 +509,10 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 	int Xstride = (s_Fulltarget_width - s_target_width) / 2;
 	int Ystride = (s_Fulltarget_height - s_target_height) / 2;
 	TargetRectangle result;
-	result.left   = (int)(rc.left   * xScale) + Xstride;
-	result.top    = (int)(rc.top    * yScale) + Ystride;
-	result.right  = (int)(rc.right  * xScale) + Xstride;
-	result.bottom = (int)(rc.bottom * yScale) + Ystride;
+	result.left   = (int)(rc.left   * EFBxScale) + Xstride;
+	result.top    = (int)(rc.top    * EFByScale) + Ystride;
+	result.right  = (int)(rc.right  * EFBxScale) + Xstride;
+	result.bottom = (int)(rc.bottom * EFByScale) + Ystride;
 	return result;
 }
 
@@ -573,12 +575,13 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	if(!fbWidth || !fbHeight)
 		return;
 	VideoFifo_CheckEFBAccess();
+	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
 	FBManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
-	XFBWrited = true;	
+	XFBWrited = true;
+	// XXX: Without the VI, how would we know what kind of field this is? So
+	// just use progressive.
 	if (!g_ActiveConfig.bUseXFB)
 	{
-		// XXX: Without the VI, how would we know what kind of field this is? So
-		// just use progressive.
 		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight);
 		Common::AtomicStoreRelease(s_swapRequested, FALSE);
 	}
@@ -597,10 +600,10 @@ bool Renderer::SetScissorRect()
 	int Xstride =  (s_Fulltarget_width - s_target_width) / 2;
 	int Ystride =  (s_Fulltarget_height - s_target_height) / 2;
 
-	rc.left   = (int)(rc.left   * xScale);
-	rc.top    = (int)(rc.top    * yScale);
-	rc.right  = (int)(rc.right  * xScale);
-	rc.bottom = (int)(rc.bottom * yScale);
+	rc.left   = (int)(rc.left   * EFBxScale);
+	rc.top    = (int)(rc.top    * EFByScale);
+	rc.right  = (int)(rc.right  * EFBxScale);
+	rc.bottom = (int)(rc.bottom * EFByScale);
 
 	if (rc.left < 0) rc.left = 0;
 	if (rc.right < 0) rc.right = 0;
@@ -1006,9 +1009,9 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
-	if (g_bSkipCurrentFrame || !XFBWrited || !fbWidth || !fbHeight)
+	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.bUseRealXFB) || !fbWidth || !fbHeight)
 	{
-		g_VideoInitialize.pCopiedToXFB(false);		
+		g_VideoInitialize.pCopiedToXFB(false);
 		return;
 	}
 	// this function is called after the XFB field is changed, not after
@@ -1238,29 +1241,17 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		{
 			xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
 			yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
-		}		
-
-		s_target_width  = EFB_WIDTH * xScale;
-		s_target_height = EFB_HEIGHT * yScale;
+		}
 		
-		s_LastAA = (g_ActiveConfig.iMultisampleMode > 3)?0:g_ActiveConfig.iMultisampleMode;
-		
-		float SupersampleCoeficient = 1.0f;
+		float SupersampleCoeficient = 1.0f;	
 		switch (s_LastAA)
 		{
 			case 1:
-				s_target_width  = (s_target_width  * 3) / 2;
-				s_target_height = (s_target_height * 3) / 2;
-				SupersampleCoeficient = 3.0f/2.0f;
 				break;
 			case 2:
-				s_target_width  *= 2;
-				s_target_height *= 2;
-				SupersampleCoeficient = 2.0f;
+				SupersampleCoeficient = 2.0f;			
 				break;
 			case 3:
-				s_target_width  *= 3;
-				s_target_height *= 3;
 				SupersampleCoeficient = 3.0f;
 				break;
 			default:
@@ -1269,6 +1260,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 		xScale *= SupersampleCoeficient;
 		yScale *= SupersampleCoeficient;
+
+		EFBxScale = ceilf(xScale);
+		EFByScale = ceilf(yScale);
+		
+		s_target_width  = EFB_WIDTH * ceilf(EFBxScale);
+		s_target_height = EFB_HEIGHT * ceilf(EFByScale);
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
 		if(WindowResized)

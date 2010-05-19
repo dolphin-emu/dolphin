@@ -79,6 +79,9 @@ public:
 	static float GetTargetScaleX();
     static float GetTargetScaleY();
 
+	static float GetXFBScaleX();
+    static float GetXFBScaleY();
+
 	static TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc);
 
 	static u32 AccessEFB(EFBAccessType type, int x, int y);

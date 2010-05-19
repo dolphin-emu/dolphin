@@ -294,7 +294,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
     float MValueX = Renderer::GetTargetScaleX();
 	float MValueY = Renderer::GetTargetScaleY();
 
-	float top = Renderer::GetTargetHeight() - (source.top + expandedHeight) * MValueY ;
+	float top = (EFB_HEIGHT - source.top - expandedHeight) * MValueY ;
 
     float sampleStride = bScaleByHalf?2.0f:1.0f;
 

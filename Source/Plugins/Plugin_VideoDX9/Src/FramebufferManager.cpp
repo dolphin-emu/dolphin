@@ -322,27 +322,28 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		it--;
 	}
 
-	float MultiSampleCompensation = 1.0f;
+	float SuperSampleCompensation = 1.0f;
+	float scaleX = Renderer::GetXFBScaleX();
+	float scaleY = Renderer::GetXFBScaleY();
 	if(g_ActiveConfig.iMultisampleMode > 0 && g_ActiveConfig.iMultisampleMode < 4)
 	{
 		switch (g_ActiveConfig.iMultisampleMode)
 		{
 			case 1:
-				MultiSampleCompensation = 2.0f/3.0f;				
 				break;
 			case 2:
-				MultiSampleCompensation = 0.5f;
+				SuperSampleCompensation = 0.5f;
 				break;
 			case 3:
-				MultiSampleCompensation = 1.0f/3.0f;
+				SuperSampleCompensation = 1.0f/3.0f;
 				break;
 			default:
 				break;
 		};
 	}
 
-	float scaleX = Renderer::GetTargetScaleX() * MultiSampleCompensation ;
-	float scaleY = Renderer::GetTargetScaleY() * MultiSampleCompensation;
+	scaleX *= SuperSampleCompensation ;
+	scaleY *= SuperSampleCompensation;
 	TargetRectangle targetSource,efbSource;
 	efbSource = Renderer::ConvertEFBRectangle(sourceRc);
 	targetSource.top = (sourceRc.top *scaleY);

@@ -221,6 +221,10 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 	//	printf("Compiling pixel shader. size = %i\n", strlen(code));
 	if (!code || !CompilePixelShader(newentry.shader, code)) {
 		ERROR_LOG(VIDEO, "failed to create pixel shader");
+		static int counter = 0;
+		char szTemp[MAX_PATH];
+		sprintf(szTemp, "%sBADps_%04i.txt", File::GetUserPath(D_DUMP_IDX), counter++);			
+		SaveData(szTemp, code);
 		return NULL;
 	}
 	

@@ -114,6 +114,18 @@ static int m_FrameBufferHeight;
 
 static GLuint s_tempScreenshotFramebuffer = 0;
 
+static int s_XFB_width;
+static int s_XFB_height;
+
+static float xScale;
+static float yScale;
+
+static int EFBxScale;
+static int EFByScale;
+
+static int s_recordWidth;
+static int s_recordHeight;
+
 static bool s_skipSwap = false;
 
 #ifndef _WIN32
@@ -156,12 +168,33 @@ static const GLenum glDestFactors[8] = {
 };
 
 static const GLenum glCmpFuncs[8] = {
-	GL_NEVER, GL_LESS, GL_EQUAL, GL_LEQUAL, GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS
+	GL_NEVER,
+	GL_LESS,
+	GL_EQUAL,
+	GL_LEQUAL,
+	GL_GREATER,
+	GL_NOTEQUAL,
+	GL_GEQUAL,
+	GL_ALWAYS
 };
 
 static const GLenum glLogicOpCodes[16] = {
-    GL_CLEAR, GL_AND, GL_AND_REVERSE, GL_COPY, GL_AND_INVERTED, GL_NOOP, GL_XOR, 
-	GL_OR, GL_NOR, GL_EQUIV, GL_INVERT, GL_OR_REVERSE, GL_COPY_INVERTED, GL_OR_INVERTED, GL_NAND, GL_SET
+    GL_CLEAR,
+	GL_AND,
+	GL_AND_REVERSE,
+	GL_COPY,
+	GL_AND_INVERTED,
+	GL_NOOP,
+	GL_XOR, 
+	GL_OR,
+	GL_NOR,
+	GL_EQUIV,
+	GL_INVERT,
+	GL_OR_REVERSE,
+	GL_COPY_INVERTED,
+	GL_OR_INVERTED,
+	GL_NAND,
+	GL_SET
 };
 
 void SetDefaultRectTexParams()
@@ -203,15 +236,15 @@ bool Renderer::Init()
 	s_MSAACoverageSamples = 0;
 	switch (g_ActiveConfig.iMultisampleMode)
 	{
-	case MULTISAMPLE_OFF: s_MSAASamples = 1; break;
-	case MULTISAMPLE_2X:  s_MSAASamples = 2; break;
-	case MULTISAMPLE_4X:  s_MSAASamples = 4; break;
-	case MULTISAMPLE_8X:  s_MSAASamples = 8; break;
-	case MULTISAMPLE_CSAA_8X:   s_MSAASamples = 4; s_MSAACoverageSamples = 8; break;
-	case MULTISAMPLE_CSAA_8XQ:  s_MSAASamples = 8; s_MSAACoverageSamples = 8; break;
-	case MULTISAMPLE_CSAA_16X:  s_MSAASamples = 4; s_MSAACoverageSamples = 16; break;
-	case MULTISAMPLE_CSAA_16XQ: s_MSAASamples = 8; s_MSAACoverageSamples = 16; break;
-	default:
+		case MULTISAMPLE_OFF: s_MSAASamples = 1; break;
+		case MULTISAMPLE_2X:  s_MSAASamples = 2; break;
+		case MULTISAMPLE_4X:  s_MSAASamples = 4; break;
+		case MULTISAMPLE_8X:  s_MSAASamples = 8; break;
+		case MULTISAMPLE_CSAA_8X:   s_MSAASamples = 4; s_MSAACoverageSamples = 8; break;
+		case MULTISAMPLE_CSAA_8XQ:  s_MSAASamples = 8; s_MSAACoverageSamples = 8; break;
+		case MULTISAMPLE_CSAA_16X:  s_MSAASamples = 4; s_MSAACoverageSamples = 16; break;
+		case MULTISAMPLE_CSAA_16XQ: s_MSAASamples = 8; s_MSAACoverageSamples = 16; break;
+		default:
 		s_MSAASamples = 1;
 	}
 	GLint numvertexattribs = 0;
@@ -307,31 +340,40 @@ bool Renderer::Init()
 
 	// Decide frambuffer size
 	int W = (int)OpenGL_GetBackbufferWidth(), H = (int)OpenGL_GetBackbufferHeight();
+
+	s_XFB_width = MAX_XFB_WIDTH;
+	s_XFB_height = MAX_XFB_HEIGHT;
+
+	TargetRectangle dst_rect;
+	ComputeDrawRectangle(W, H, false, &dst_rect);
+
+	xScale = 1.0f;
+	yScale = 1.0f;
+
+	if(!g_ActiveConfig.bNativeResolution)
+	{
+		if (g_ActiveConfig.b2xResolution)
+		{
+			xScale = 2.0f;
+			yScale = 2.0f;
+		}
+		else
+		{
+			xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
+			yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
+		}
+	}
 	
-	if (g_ActiveConfig.b2xResolution)
-	{
-		m_FrameBufferWidth = (2 * EFB_HEIGHT >= W) ? 2 * EFB_HEIGHT : W;
-		m_FrameBufferHeight = (2 * EFB_HEIGHT >= H) ? 2 * EFB_HEIGHT : H;
-	}
-	else
-	{
-		// The size of the framebuffer targets should really NOT be the size of the OpenGL viewport.
-		// The EFB is larger than 640x480 - in fact, it's 640x528, give or take a couple of lines.
-		m_FrameBufferWidth = (EFB_WIDTH >= W) ? EFB_WIDTH : W;
-		m_FrameBufferHeight = (480 >= H) ? 480 : H;
+	
+	EFBxScale = ceilf(xScale);
+	EFByScale = ceilf(yScale);
 
-		// Adjust all heights with this ratio, the resulting height will be the same as H or EFB_HEIGHT. I.e.
-		// 768 (-1) for 1024x768 etc.
-		m_FrameBufferHeight *= (float)EFB_HEIGHT / 480.0;
-
-		// Ensure a minimum target size so that the native res target always fits
-		if (m_FrameBufferWidth < EFB_WIDTH) m_FrameBufferWidth = EFB_WIDTH;
-		if (m_FrameBufferHeight < EFB_HEIGHT) m_FrameBufferHeight = EFB_HEIGHT;
-	}
+	m_FrameBufferWidth  = EFB_WIDTH * EFBxScale;
+	m_FrameBufferHeight = EFB_HEIGHT * EFByScale;
 
 	// Save the custom resolution
-	m_CustomWidth = (int)OpenGL_GetBackbufferWidth();
-	m_CustomHeight = (int)OpenGL_GetBackbufferHeight();
+	m_CustomWidth = W;
+	m_CustomHeight = H;
 
 	// Because of the fixed framebuffer size we need to disable the resolution options while running
 	g_Config.bRunning = true;
@@ -432,8 +474,8 @@ void Renderer::Shutdown(void)
         cgDestroyContext(g_cgcontext);
         g_cgcontext = 0;
 	}
-
-	glDeleteFramebuffersEXT(1, &s_tempScreenshotFramebuffer);
+	if(s_tempScreenshotFramebuffer)
+		glDeleteFramebuffersEXT(1, &s_tempScreenshotFramebuffer);
 	s_tempScreenshotFramebuffer = 0;
 
 	g_framebufferManager.Shutdown();
@@ -486,28 +528,32 @@ int Renderer::GetCustomHeight()
 // Return the rendering target width and height
 int Renderer::GetTargetWidth()
 {
-	return (g_ActiveConfig.bNativeResolution || g_ActiveConfig.b2xResolution) ?
-		(g_ActiveConfig.bNativeResolution ? EFB_WIDTH : EFB_WIDTH * 2) : m_CustomWidth;
+	return  m_FrameBufferWidth;
 }
 int Renderer::GetTargetHeight()
 {
-	return (g_ActiveConfig.bNativeResolution || g_ActiveConfig.b2xResolution) ?
-		(g_ActiveConfig.bNativeResolution ? EFB_HEIGHT : EFB_HEIGHT * 2) : m_CustomHeight;
+	return m_FrameBufferHeight;
 }
 float Renderer::GetTargetScaleX()
 {
-    return (float)GetTargetWidth() / (float)EFB_WIDTH;
+    return EFBxScale;
 }
 
 float Renderer::GetTargetScaleY()
 {
-    return (float)GetTargetHeight() / (float)EFB_HEIGHT;
+    return EFByScale;
 }
+
+
+float Renderer::GetXFBScaleX() { return xScale; }
+float Renderer::GetXFBScaleY() { return yScale; }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 {
 	return g_framebufferManager.ConvertEFBRectangle(rc);
 }
+
+
 
 void Renderer::ResetAPIState()
 {
@@ -693,25 +739,20 @@ bool Renderer::SetScissorRect()
 {
     int xoff = bpmem.scissorOffset.x * 2 - 342;
     int yoff = bpmem.scissorOffset.y * 2 - 342;
-    float MValueX = GetTargetScaleX();
-    float MValueY = GetTargetScaleY();
-	float rc_left = (float)bpmem.scissorTL.x - xoff - 342; // left = 0
-	rc_left *= MValueX;
-	if (rc_left < 0) rc_left = 0;
+    float rc_left = (float)bpmem.scissorTL.x - xoff - 342; // left = 0
+	if (rc_left < 0) rc_left = 0;	
 
 	float rc_top = (float)bpmem.scissorTL.y - yoff - 342; // right = 0
-	rc_top *= MValueY;
-	if (rc_top < 0) rc_top = 0;
+	if (rc_top < 0) rc_top = 0;	
     
 	float rc_right = (float)bpmem.scissorBR.x - xoff - 341; // right = 640
-	rc_right *= MValueX;
-	if (rc_right > EFB_WIDTH * MValueX) rc_right = EFB_WIDTH * MValueX;
+	if (rc_right > EFB_WIDTH) rc_right = EFB_WIDTH;
+	
 
 	float rc_bottom = (float)bpmem.scissorBR.y - yoff - 341; // bottom = 480
-	rc_bottom *= MValueY;
-	if (rc_bottom > EFB_HEIGHT * MValueY) rc_bottom = EFB_HEIGHT * MValueY;
+	if (rc_bottom > EFB_HEIGHT) rc_bottom = EFB_HEIGHT;	
 
-   if(rc_left > rc_right)
+	if(rc_left > rc_right)
 	{
 		int temp = rc_right;
 		rc_right = rc_left;
@@ -724,18 +765,27 @@ bool Renderer::SetScissorRect()
 		rc_top = temp;
 	}
 
+	
 	// Check that the coordinates are good
     if (rc_right >= rc_left && rc_bottom >= rc_top)
 	{
-        glScissor(
-			(int)rc_left, // x = 0 for example
-			Renderer::GetTargetHeight() - (int)(rc_bottom), // y = 0 for example
-			(int)(rc_right - rc_left), // width = 640 for example
-			(int)(rc_bottom - rc_top) // height = 480 for example
+		glScissor(
+			(int)(rc_left * EFBxScale), // x = 0 for example
+			(int)((EFB_HEIGHT - rc_bottom) * EFByScale), // y = 0 for example
+			(int)((rc_right - rc_left)* EFBxScale), // width = 640 for example
+			(int)((rc_bottom - rc_top) * EFByScale) // height = 480 for example
 			); 
         return true;
     }
-
+	else
+	{
+		glScissor(
+			0,
+			0,
+			Renderer::GetTargetWidth(), 
+			Renderer::GetTargetHeight() 
+			); 	
+	}
     return false;
 }
 
@@ -770,6 +820,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 	glClear(bits);
+	SetScissorRect();
 }
 static bool XFBWrited = false;
 void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc)
@@ -808,13 +859,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		return;
 	}
 
-    OpenGL_Update(); // just updates the render window position and the backbuffer size
     DVSTARTPROFILE();
 
     ResetAPIState();
 
 	TargetRectangle back_rc;
-	ComputeDrawRectangle(OpenGL_GetBackbufferWidth(), OpenGL_GetBackbufferHeight(), true, &back_rc);
+	ComputeDrawRectangle(m_CustomWidth, m_CustomHeight, true, &back_rc);
 
 	// Make sure that the wireframe setting doesn't screw up the screen copy.
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -1054,6 +1104,69 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		s_bLastFrameDumped = false;
 	}
 #endif
+
+	OpenGL_Update(); // just updates the render window position and the backbuffer size
+	bool xfbchanged = false;
+	if(s_XFB_width != fbWidth || s_XFB_height != fbHeight)
+	{
+		xfbchanged = true;
+		s_XFB_width = fbWidth;
+		s_XFB_height = fbHeight;
+		if(s_XFB_width < 1) s_XFB_width = MAX_XFB_WIDTH;
+		if(s_XFB_width > MAX_XFB_WIDTH) s_XFB_width = MAX_XFB_WIDTH;
+		if(s_XFB_height < 1) s_XFB_height = MAX_XFB_HEIGHT;
+		if(s_XFB_height > MAX_XFB_HEIGHT) s_XFB_height = MAX_XFB_HEIGHT;
+
+	}
+	bool WindowResized = false;
+	int W = (int)OpenGL_GetBackbufferWidth(), H = (int)OpenGL_GetBackbufferHeight();
+	if (W != m_CustomWidth || H != m_CustomHeight)
+	{
+		WindowResized = true;
+		m_CustomWidth = W;
+		m_CustomHeight = H;
+	}
+
+
+	if( xfbchanged || WindowResized)
+	{	
+		TargetRectangle dst_rect;
+		ComputeDrawRectangle(m_CustomWidth, m_CustomHeight, false, &dst_rect);
+
+		xScale = 1.0f;
+		yScale = 1.0f;
+
+		if(!g_ActiveConfig.bNativeResolution)
+		{
+			if (g_ActiveConfig.b2xResolution)
+			{
+				xScale = 2.0f;
+				yScale = 2.0f;
+			}
+			else
+			{
+				xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
+				yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
+			}
+		}
+		
+		
+		EFBxScale = ceilf(xScale);
+		EFByScale = ceilf(yScale);
+
+		int m_newFrameBufferWidth  = EFB_WIDTH * EFBxScale;
+		int m_newFrameBufferHeight = EFB_HEIGHT * EFByScale;
+		if(m_newFrameBufferWidth != m_FrameBufferWidth || m_newFrameBufferHeight != m_FrameBufferHeight )
+		{
+			m_FrameBufferWidth  = m_newFrameBufferWidth;
+			m_FrameBufferHeight = m_newFrameBufferHeight;
+
+			g_framebufferManager.Shutdown();
+			g_framebufferManager.Init(m_FrameBufferWidth, m_FrameBufferHeight, s_MSAASamples, s_MSAACoverageSamples);
+			glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
+		}
+		
+	}
 
 	// Place messages on the picture, then copy it to the screen
 	// ---------------------------------------------------------------------
@@ -1432,15 +1545,12 @@ void UpdateViewport()
     // [5] = 16777215 * farz
 	int scissorXOff = bpmem.scissorOffset.x * 2;   // 342
 	int scissorYOff = bpmem.scissorOffset.y * 2;   // 342
-
-	float MValueX = Renderer::GetTargetScaleX();
-	float MValueY = Renderer::GetTargetScaleY();
-
+	
 	// Stretch picture with increased internal resolution
-	int GLx = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - scissorXOff) * MValueX);
-	int GLy = (int)ceil(Renderer::GetTargetHeight() - ((int)(xfregs.rawViewport[4] - xfregs.rawViewport[1] - scissorYOff)) * MValueY);
-	int GLWidth = (int)ceil((int)(2 * xfregs.rawViewport[0]) * MValueX);
-	int GLHeight = (int)ceil((int)(-2 * xfregs.rawViewport[1]) * MValueY);
+	int GLx = (int)ceil((xfregs.rawViewport[3] - xfregs.rawViewport[0] - scissorXOff) * EFBxScale);
+	int GLy = (int)ceil((float)((int)(EFB_HEIGHT - xfregs.rawViewport[4] + xfregs.rawViewport[1] + scissorYOff)) * EFByScale);
+	int GLWidth = (int)ceil((float)(2 * xfregs.rawViewport[0]) * EFBxScale);
+	int GLHeight = (int)ceil((float)(-2 * xfregs.rawViewport[1]) * EFByScale);
 	double GLNear = (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
 	double GLFar = xfregs.rawViewport[5] / 16777216.0f;
 	if(GLWidth < 0)
