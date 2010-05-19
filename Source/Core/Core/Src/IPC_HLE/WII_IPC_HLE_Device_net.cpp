@@ -312,7 +312,7 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 		}
 		close(fd);
 
-#elif defined(WIN32)
+#elif defined(_WIN32)
 		IP_ADAPTER_INFO *adapter_info = NULL;
 		DWORD len = 0;
 
@@ -323,7 +323,8 @@ bool CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
 			break;
 		}
 
-		adapter_info = new IP_ADAPTER_INFO[len / sizeof(IP_ADAPTER_INFO)];
+		// LPFaint99: len is sizeof(IP_ADAPTER_INFO) * nics - 0x20
+		adapter_info = new IP_ADAPTER_INFO[(len / sizeof(IP_ADAPTER_INFO)) + 1];
 		ret = GetAdaptersInfo(adapter_info, &len);
 
 		if (SUCCEEDED(ret)) Memory::WriteBigEData(adapter_info->Address, CommandBuffer.PayloadBuffer.at(1).m_Address, 4);
