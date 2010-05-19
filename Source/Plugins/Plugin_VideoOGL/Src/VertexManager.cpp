@@ -54,7 +54,7 @@ static u16 *TIBuffer;
 static u16 *LIBuffer;  
 static u16 *PIBuffer;  
 static GLint max_Index_size = 0;
-#define MAXVBUFFERSIZE 0x50000
+#define MAXVBUFFERSIZE 0x1FFFF
 #define MAXIBUFFERSIZE 0xFFFF
 #define MAXVBOBUFFERCOUNT 0x8
 
@@ -79,10 +79,6 @@ bool Init()
 	s_pCurBufferPointer = LocalVBuffer;
 	s_nCurVBOIndex = 0;
 	glGenBuffers(ARRAYSIZE(s_vboBuffers), s_vboBuffers);
-	for (u32 i = 0; i < ARRAYSIZE(s_vboBuffers); ++i) {
-		glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[i]);
-		glBufferData(GL_ARRAY_BUFFER, MAXVBUFFERSIZE, NULL, GL_STREAM_DRAW);
-	}
 	glEnableClientState(GL_VERTEX_ARRAY);
 	g_nativeVertexFmt = NULL;
 	Flushed=false;
@@ -148,6 +144,7 @@ void AddVertices(int primitive, int numvertices)
 {
 	if (numvertices <= 0)
 		return;
+	GL_REPORT_ERROR();
 	switch (primitive)
 	{
 		case GX_DRAW_QUADS:          
@@ -235,13 +232,12 @@ void Flush()
 
 	DVSTARTPROFILE();
 
-	GL_REPORT_ERRORD(); 
+	GL_REPORT_ERROR(); 
 
 	
 	
 	glBindBuffer(GL_ARRAY_BUFFER, s_vboBuffers[s_nCurVBOIndex]);
-	glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - LocalVBuffer, NULL, GL_STREAM_COPY);
-	glBufferSubData(GL_ARRAY_BUFFER,0, s_pCurBufferPointer - LocalVBuffer, LocalVBuffer);	
+	glBufferData(GL_ARRAY_BUFFER, s_pCurBufferPointer - LocalVBuffer, LocalVBuffer, GL_STREAM_DRAW);
 	GL_REPORT_ERRORD();
 
 	// setup the pointers

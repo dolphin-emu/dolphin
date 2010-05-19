@@ -403,6 +403,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	int gl_format = 0;
 	int gl_iformat = 0;
 	int gl_type = 0;	
+	GL_REPORT_ERRORD();
 	if (dfmt != PC_TEX_FMT_DXT1)
 	{
 		switch (dfmt)
@@ -490,6 +491,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 				width, height, 0, expandedWidth*expandedHeight/2, temp);
 		}		
 	}
+	GL_REPORT_ERRORD();
 	if(TexLevels > 1 && dfmt != PC_TEX_FMT_NONE)
 	{
 		int level = 1;
