@@ -59,6 +59,7 @@ private:
 	volatile int thread_data;
 
 	snd_pcm_t *handle;
+	int frames_to_deliver;
 #else
 public:
 	AlsaSound(CMixer *mixer) : SoundStream(mixer) {}
