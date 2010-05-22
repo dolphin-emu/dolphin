@@ -18,7 +18,7 @@
 #include "LinearDiskCache.h"
 
 static const char ID[4] = {'D', 'C', 'A', 'C'};
-const int version = 5457;  // TODO: Get from SVN_REV
+const int version = 5464;  // TODO: Get from SVN_REV
 
 LinearDiskCache::LinearDiskCache() 
 	: file_(NULL), num_entries_(0) {

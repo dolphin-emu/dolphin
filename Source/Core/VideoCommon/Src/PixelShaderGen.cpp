@@ -758,20 +758,20 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 		if (cc.shift>0)
 			WRITE(p, "%s*(",tevScaleTable[cc.shift]);		
 
-		if(!(cc.d == 15 && cc.op == 0))
+		if(!(cc.d == TEVCOLORARG_ZERO && cc.op == 0))
 			WRITE(p, "%s%s",tevCInputTable[cc.d],tevOpTable[cc.op]);
 
-		if (cc.a == 15 && cc.b == 15)
+		if (cc.a == TEVCOLORARG_ZERO && cc.b == TEVCOLORARG_ZERO)
 			WRITE(p, "float3(0.0f,0.0f,0.0f)");
-		else if (cc.a == 15 && cc.c == 15)
+		else if (cc.a == TEVCOLORARG_ZERO && cc.c == TEVCOLORARG_ZERO)
 			WRITE(p, "float3(0.0f,0.0f,0.0f)");
-		else if (cc.b == 15 && cc.c == 15)
+		else if (cc.b == TEVCOLORARG_ZERO && cc.c == TEVCOLORARG_ZERO)
 			WRITE(p,"%s",tevCInputTable[cc.a]);
-		else if (cc.a == 15)
+		else if (cc.a == TEVCOLORARG_ZERO)
 			WRITE(p,"%s*%s",tevCInputTable[cc.b],tevCInputTable[cc.c]);
-		else if (cc.b == 15)
+		else if (cc.b == TEVCOLORARG_ZERO)
 			WRITE(p,"%s*(float3(1.0f,1.0f,1.0f)-%s)",tevCInputTable[cc.a],tevCInputTable[cc.c]);
-		else if (cc.c == 15)
+		else if (cc.c == TEVCOLORARG_ZERO)
 			WRITE(p,"%s",tevCInputTable[cc.a]);
 		else
 			WRITE(p, "lerp(%s,%s,%s)",tevCInputTable[cc.a], tevCInputTable[cc.b],tevCInputTable[cc.c]);
@@ -806,20 +806,20 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 		if (ac.shift>0)
 			WRITE(p, "%s*(",tevScaleTable[ac.shift]);		
 
-		if(!(ac.d == 7 && ac.op == 0))
+		if(!(ac.d == TEVALPHAARG_ZERO && ac.op == 0))
 			WRITE(p, "%s%s",tevAInputTable[ac.d],tevOpTable[ac.op]);		
 
-		if (ac.a == 7 && ac.b == 7)
+		if (ac.a == TEVALPHAARG_ZERO && ac.b == TEVALPHAARG_ZERO)
 			WRITE(p, "0.0f");
-		else if (ac.a == 7 && ac.c == 7)
+		else if (ac.a == TEVALPHAARG_ZERO && ac.c == TEVALPHAARG_ZERO)
 			WRITE(p, "0.0f");
-		else if (ac.b == 7 && ac.c == 7)
+		else if (ac.b == TEVALPHAARG_ZERO && ac.c == TEVALPHAARG_ZERO)
 			WRITE(p,"%s",tevAInputTable[ac.a]);
-		else if (ac.a == 7)
+		else if (ac.a == TEVALPHAARG_ZERO)
 			WRITE(p,"%s*%s",tevAInputTable[ac.b],tevAInputTable[ac.c]);
-		else if (ac.b == 7)
+		else if (ac.b == TEVALPHAARG_ZERO)
 			WRITE(p,"%s*(1.0f-%s)",tevAInputTable[ac.a],tevAInputTable[ac.c]);
-		else if (ac.c == 7)
+		else if (ac.c == TEVALPHAARG_ZERO)
 			WRITE(p,"%s",tevAInputTable[ac.a]);
 		else
 	        WRITE(p, "lerp(%s,%s,%s)",tevAInputTable[ac.a],tevAInputTable[ac.b],tevAInputTable[ac.c]);
