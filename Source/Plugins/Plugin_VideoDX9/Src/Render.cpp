@@ -1285,14 +1285,15 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// ---------------------------------------------------------------------
 	// Count FPS.
 	// -------------
-	static int fpscount = 0;
+	static int fpscount = 1;
 	static unsigned long lasttime;
-	++fpscount;
+	if(XFBWrited)
+		++fpscount;
 	if (Common::Timer::GetTimeMs() - lasttime > 1000) 
 	{
 		lasttime = Common::Timer::GetTimeMs();
 		s_fps = fpscount - 1;
-		fpscount = 0;
+		fpscount = 1;
 	}
 
 	// Begin new frame
@@ -1307,7 +1308,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
 	UpdateViewport();
 	VertexShaderManager::SetViewportChanged();
-	g_VideoInitialize.pCopiedToXFB(true);
+	g_VideoInitialize.pCopiedToXFB(XFBWrited);
 	XFBWrited = false;
 }
 

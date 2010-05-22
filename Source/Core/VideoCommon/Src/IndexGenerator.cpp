@@ -28,8 +28,11 @@ QUAD simulator
 
 //Init
 u16 *IndexGenerator::Tptr = 0;
+u16 *IndexGenerator::BASETptr = 0;
 u16 *IndexGenerator::Lptr = 0;
+u16 *IndexGenerator::BASELptr = 0;
 u16 *IndexGenerator::Pptr = 0;
+u16 *IndexGenerator::BASEPptr = 0;
 int IndexGenerator::numT = 0;
 int IndexGenerator::numL = 0;
 int IndexGenerator::numP = 0;
@@ -37,9 +40,6 @@ int IndexGenerator::index = 0;
 int IndexGenerator::Tadds = 0;
 int IndexGenerator::Ladds = 0;
 int IndexGenerator::Padds = 0;
-int IndexGenerator::TindexLen = 0;
-int IndexGenerator::LindexLen = 0;
-int IndexGenerator::PindexLen = 0;
 IndexGenerator::IndexPrimitiveType IndexGenerator::LastTPrimitive = Prim_None;
 IndexGenerator::IndexPrimitiveType IndexGenerator::LastLPrimitive = Prim_None;
 bool IndexGenerator::used = false;
@@ -49,6 +49,9 @@ void IndexGenerator::Start(u16 *Triangleptr,u16 *Lineptr,u16 *Pointptr)
 	Tptr = Triangleptr;
 	Lptr = Lineptr;
 	Pptr = Pointptr;
+	BASETptr = Triangleptr;
+	BASELptr = Lineptr;
+	BASEPptr = Pointptr;
 	index = 0;
 	numT = 0;
 	numL = 0;
@@ -56,24 +59,62 @@ void IndexGenerator::Start(u16 *Triangleptr,u16 *Lineptr,u16 *Pointptr)
 	Tadds = 0;
 	Ladds = 0;
 	Padds = 0;
-	TindexLen = 0;
-	LindexLen = 0;
-	PindexLen = 0;
 	LastTPrimitive = Prim_None;
 	LastLPrimitive = Prim_None;
 }
 // Triangles
 void IndexGenerator::AddList(int numVerts)
 {
-	int numTris = numVerts / 3;
-	if (numTris <= 0) return;
-	for (int i = 0; i < numTris; i++)
+	//if we have no vertices return
+	if(numVerts <= 0) return;
+	int numTris = numVerts / 3;	
+	if (!numTris)
 	{
-		*Tptr++ = index+i*3;
-		*Tptr++ = index+i*3+1;
-		*Tptr++ = index+i*3+2;
+		//if we have less than 3 verts
+		if(numVerts == 1)
+		{
+			// discard
+			index++;
+			return;
+		}
+		else
+		{
+			//we have two verts render a degenerated triangle
+			numTris = 1;
+			*Tptr++ = index;
+			*Tptr++ = index+1;
+			*Tptr++ = index;
+		}		
 	}
-	TindexLen += numVerts;
+	else
+	{
+		for (int i = 0; i < numTris; i++)
+		{
+			*Tptr++ = index+i*3;
+			*Tptr++ = index+i*3+1;
+			*Tptr++ = index+i*3+2;
+		}
+		int baseRemainingverts = numVerts - numVerts % 3;
+		switch (numVerts % 3)
+		{
+		case 2:
+			//whe have 2 remaining verts use strip method
+			*Tptr++ = index + baseRemainingverts - 1;
+			*Tptr++ = index + baseRemainingverts;
+			*Tptr++ = index + baseRemainingverts + 1;
+			numTris++;
+			break;
+		case 1:
+			//whe have 1 remaining verts use strip method this is only a conjeture
+			*Tptr++ = index + baseRemainingverts - 2;
+			*Tptr++ = index + baseRemainingverts - 1;
+			*Tptr++ = index + baseRemainingverts;
+			numTris++;
+			break;
+		default:
+			break;
+		};
+	}
 	index += numVerts;
 	numT += numTris;
 	Tadds++;
@@ -82,17 +123,37 @@ void IndexGenerator::AddList(int numVerts)
 
 void IndexGenerator::AddStrip(int numVerts)
 {
+	if(numVerts <= 0) return;
 	int numTris = numVerts - 2;
-	if (numTris <= 0) return;
-	bool wind = false;
-	for (int i = 0; i < numTris; i++)
+	if (numTris < 1) 
 	{
-		*Tptr++ = index+i;
-		*Tptr++ = index+i+(wind?2:1);
-		*Tptr++ = index+i+(wind?1:2);
-		wind = !wind;
+		//if we have less than 3 verts
+		if(numVerts == 1)
+		{
+			//dicard
+			index++;
+			return;
+		}
+		else
+		{
+			//we have two verts render a degenerated triangle
+			numTris = 1;
+			*Tptr++ = index;
+			*Tptr++ = index+1;
+			*Tptr++ = index;
+		}
 	}
-	TindexLen += numTris * 3;
+	else
+	{	
+		bool wind = false;
+		for (int i = 0; i < numTris; i++)
+		{
+			*Tptr++ = index+i;
+			*Tptr++ = index+i+(wind?2:1);
+			*Tptr++ = index+i+(wind?1:2);
+			wind = !wind;
+		}
+	}
 	index += numVerts;
 	numT += numTris;
 	Tadds++;	
@@ -100,15 +161,35 @@ void IndexGenerator::AddStrip(int numVerts)
 }
 void IndexGenerator::AddFan(int numVerts)
 {
+	if(numVerts <= 0) return;
 	int numTris = numVerts - 2;
-	if (numTris <= 0) return;
-	for (int i = 0; i < numTris; i++)
+	if (numTris < 1) 
 	{
-		*Tptr++ = index;
-		*Tptr++ = index+i+1;
-		*Tptr++ = index+i+2;
+		//if we have less than 3 verts
+		if(numVerts == 1)
+		{
+			//Discard
+			index++;
+			return;
+		}
+		else
+		{
+			//we have two verts render a degenerated triangle
+			numTris = 1;
+			*Tptr++ = index;
+			*Tptr++ = index+1;
+			*Tptr++ = index;
+		}
 	}
-	TindexLen += numTris * 3;
+	else
+	{
+		for (int i = 0; i < numTris; i++)
+		{
+			*Tptr++ = index;
+			*Tptr++ = index+i+1;
+			*Tptr++ = index+i+2;
+		}
+	}	
 	index += numVerts;
 	numT += numTris;
 	Tadds++;	
@@ -117,18 +198,76 @@ void IndexGenerator::AddFan(int numVerts)
 
 void IndexGenerator::AddQuads(int numVerts)
 {
+	if(numVerts <= 0) return;
 	int numTris = (numVerts/4)*2;
-	if (numTris <= 0) return;
-	for (int i = 0; i < numTris / 2; i++)
+	if (numTris == 0) 
 	{
-		*Tptr++ = index+i*4;
-		*Tptr++ = index+i*4+1;
-		*Tptr++ = index+i*4+3;
-		*Tptr++ = index+i*4+1;
-		*Tptr++ = index+i*4+2;
-		*Tptr++ = index+i*4+3;
+		//if we have less than 3 verts
+		if(numVerts == 1)
+		{
+			//discard
+			index++;
+			return;
+		}
+		else
+		{
+			if(numVerts == 2)
+			{
+				//we have two verts render a degenerated triangle
+				numTris = 1;
+				*Tptr++ = index;
+				*Tptr++ = index + 1;
+				*Tptr++ = index;
+			}
+			else
+			{
+				//we have 3 verts render a full triangle
+				numTris = 1;
+				*Tptr++ = index;
+				*Tptr++ = index + 1;
+				*Tptr++ = index + 2;
+			}
+		}
 	}
-	TindexLen += numTris * 3;
+	else
+	{
+		for (int i = 0; i < numTris / 2; i++)
+		{
+			*Tptr++ = index+i*4;
+			*Tptr++ = index+i*4+1;
+			*Tptr++ = index+i*4+3;
+			*Tptr++ = index+i*4+1;
+			*Tptr++ = index+i*4+2;
+			*Tptr++ = index+i*4+3;
+		}
+		int baseRemainingverts = numVerts - numVerts % 4;
+		switch (numVerts % 4)
+		{
+		case 3:
+			//whe have 3 remaining verts use strip method
+			*Tptr++ = index + baseRemainingverts;
+			*Tptr++ = index + baseRemainingverts + 1;
+			*Tptr++ = index + baseRemainingverts + 2;
+			numTris++;
+			break;
+		case 2:
+			//whe have 2 remaining verts use strip method
+			*Tptr++ = index + baseRemainingverts - 1;
+			*Tptr++ = index + baseRemainingverts;
+			*Tptr++ = index + baseRemainingverts + 1;
+			numTris++;
+			break;
+		case 1:
+			//whe have 1 remaining verts use strip method this is only a conjeture
+			*Tptr++ = index + baseRemainingverts - 2;
+			*Tptr++ = index + baseRemainingverts - 1;
+			*Tptr++ = index + baseRemainingverts;
+			numTris++;
+			break;
+		default:
+			break;
+		};
+	}
 	index += numVerts;
 	numT += numTris;
 	Tadds++;	
@@ -139,14 +278,28 @@ void IndexGenerator::AddQuads(int numVerts)
 //Lines
 void IndexGenerator::AddLineList(int numVerts)
 {
-	int numLines= numVerts / 2;
-	if (numLines <= 0) return;
-	for (int i = 0; i < numLines; i++)
+	if(numVerts <= 0) return;
+	int numLines = numVerts / 2;
+	if (!numLines)
 	{
-		*Lptr++ = index+i*2;
-		*Lptr++ = index+i*2+1;
+		//Discard
+		index++;
+		return;
 	}
-	LindexLen += numVerts;
+	else
+	{
+		for (int i = 0; i < numLines; i++)
+		{
+			*Lptr++ = index+i*2;
+			*Lptr++ = index+i*2+1;
+		}
+		if(numVerts%2 != 0)
+		{
+			//use line strip for remaining vert
+			*Lptr++ = index + numLines * 2 - 1;
+			*Lptr++ = index + numLines * 2;
+		}
+	}
 	index += numVerts;
 	numL += numLines;
 	Ladds++;
@@ -156,13 +309,19 @@ void IndexGenerator::AddLineList(int numVerts)
 void IndexGenerator::AddLineStrip(int numVerts)
 {
 	int numLines = numVerts - 1;
-	if (numLines <= 0) return;
+	if (numLines <= 0)
+	{
+		if(numVerts == 1)
+		{
+			index++;
+		}
+		return;
+	}
 	for (int i = 0; i < numLines; i++)
 	{
 		*Lptr++ = index+i;
 		*Lptr++ = index+i+1;
 	}
-	LindexLen += numLines * 2;
 	index += numVerts;
 	numL += numLines;
 	Ladds++;	
@@ -180,7 +339,6 @@ void IndexGenerator::AddPoints(int numVerts)
 	}
 	index += numVerts;
 	numP += numVerts;
-	PindexLen+=numVerts;
 	Padds++;
 }
 

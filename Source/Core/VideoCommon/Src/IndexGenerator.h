@@ -43,9 +43,9 @@ public:
 	static int GetNumPoints() {used = true;return numP;}
 	static int GetNumVerts() {return index;} //returns numprimitives
 	static int GetNumAdds() {return Tadds + Ladds + Padds;}
-	static int GetTriangleindexLen() {return TindexLen;}
-	static int GetLineindexLen() {return LindexLen;}
-	static int GetPointindexLen() {return PindexLen;}		
+	static int GetTriangleindexLen() {return (int)(Tptr - BASETptr);}
+	static int GetLineindexLen() {return (int)(Lptr - BASELptr);}
+	static int GetPointindexLen() {return (int)(Pptr - BASEPptr);}		
 
 	enum IndexPrimitiveType
 	{
@@ -56,8 +56,11 @@ public:
 	} ;
 private:
 	static u16 *Tptr;
+	static u16 *BASETptr;
 	static u16 *Lptr;
+	static u16 *BASELptr;
 	static u16 *Pptr;
+	static u16 *BASEPptr;
 	static int numT;
 	static int numL;
 	static int numP;
@@ -65,9 +68,6 @@ private:
 	static int Tadds;
 	static int Ladds;
 	static int Padds;
-	static int TindexLen;
-	static int LindexLen;
-	static int PindexLen;
 	static IndexPrimitiveType LastTPrimitive;
 	static IndexPrimitiveType LastLPrimitive;
 	static bool used;

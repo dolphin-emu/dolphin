@@ -64,8 +64,8 @@ void CreateRgbToYuyvProgram()
 	"  out float4 ocol0 : COLOR0,\n"
 	"  in float2 uv0 : TEXCOORD0)\n"
 	"{\n"		
-	"  float2 uv1 = float2(uv0.x + (1.0f/blkDims.z), uv0.y);\n"
-	"  float3 c0 = tex2D(samp0, uv0.xy).rgb;\n"
+	"  float2 uv1 = float2((uv0.x + 1.0f)/ blkDims.z, uv0.y / blkDims.w);\n"
+	"  float3 c0 = tex2D(samp0, uv0.xy / blkDims.zw).rgb;\n"
 	"  float3 c1 = tex2D(samp0, uv1).rgb;\n"
 	"  float3 y_const = float3(0.257f,0.504f,0.098f);\n"
 	"  float3 u_const = float3(-0.148f,-0.291f,0.439f);\n"
@@ -92,9 +92,8 @@ void CreateYuyvToRgbProgram()
 	"  out float4 ocol0 : COLOR0,\n"
 	"  in float2 uv0 : TEXCOORD0)\n"
 	"{\n"		
-	"  float4 c0 = tex2D(samp0, uv0).rgba;\n"
-
-	"  float f = step(0.5, frac(uv0.x * blkDims.z));\n"
+	"  float4 c0 = tex2D(samp0, uv0 / blkDims.zw).rgba;\n"
+	"  float f = step(0.5, frac(uv0.x));\n"
 	"  float y = lerp(c0.b, c0.r, f);\n"
 	"  float yComp = 1.164f * (y - 0.0625f);\n"
 	"  float uComp = c0.g - 0.5f;\n"
@@ -443,12 +442,12 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 	
 	RECT sourcerect;
 	sourcerect.bottom = srcHeight;
-	sourcerect.left = 0;
+	sourcerect.left = -1;
 	sourcerect.right = srcFmtWidth;
-	sourcerect.top = 0;
+	sourcerect.top = -1;
 
-	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
 		
 	TextureConversionShader::SetShaderParameters(
 		(float)srcFmtWidth, 
@@ -462,8 +461,8 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 	D3D::drawShadedTexQuad(
 		s_srcTexture,
 		&sourcerect, 
-		srcFmtWidth , 
-		srcHeight,
+		1 , 
+		1,
 		s_yuyvToRgbProgram,
 		VertexShaderCache::GetSimpleVertexShader());			
 	

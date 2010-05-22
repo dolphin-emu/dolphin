@@ -111,13 +111,8 @@ void WriteSwizzler(char*& p, u32 format,bool HLSL)
 
 	if(HLSL)
 	{
-		WRITE(p, "  sampleUv = sampleUv + float2(1.0f,1.0f);\n"
-				 "  sampleUv = sampleUv / blkDims.zw;\n");
-	}
-	else
-	{
-		WRITE(p, "  sampleUv = sampleUv;\n");
-	}	
+		WRITE(p, "  sampleUv = sampleUv / blkDims.zw;\n");
+	}		
 }
 
 // block dimensions : widthStride, heightStride 
@@ -168,13 +163,8 @@ void Write32BitSwizzler(char*& p, u32 format, bool HLSL)
 
 	if(HLSL)
 	{
-		WRITE(p, "  sampleUv = sampleUv + float2(1.0f,1.0f);\n"
-				 "  sampleUv = sampleUv / blkDims.zw;\n");
-	}
-	else
-	{
-		WRITE(p, "  sampleUv = sampleUv + float2(1.0f,-1.0f);\n");
-	}
+		WRITE(p, "  sampleUv = sampleUv / blkDims.zw;\n");
+	}	
 }
 
 void WriteSampleColor(char*& p, const char* colorComp, const char* dest,bool HLSL)
