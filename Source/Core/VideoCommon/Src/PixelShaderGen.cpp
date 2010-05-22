@@ -146,7 +146,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, u32 texturemask, u32 dstAlphaEnable)
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and 
 
-static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL, bool final);
+static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL);
 static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, u32 HLSL);
 // static void WriteAlphaCompare(char *&p, int num, int comp);
 static bool WriteAlphaTest(char *&p, u32 HLSL);
@@ -520,7 +520,15 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 H
     
 
 	for (int i = 0; i < numStages; i++)
-        WriteStage(p, i, texture_mask,HLSL,i+1 == numStages); //build the equation for this stage
+		WriteStage(p, i, texture_mask,HLSL); //build the equation for this stage
+	if(numStages)
+	{
+		// The results of the last texenv stage are put onto the screen,
+		// regardless of the used destination register
+		WRITE(p, "prev.rgb = %s;\n",tevCOutputTable[bpmem.combiners[numStages-1].colorC.dest]);
+		WRITE(p, "prev.a = %s;\n",tevAOutputTable[bpmem.combiners[numStages-1].alphaC.dest]);
+	}
+
 	// emulation of unisgned 8 overflow when casting
 	if(HLSL)
 	{
@@ -626,7 +634,7 @@ static const char *TEVCMPAlphaOPTable[16] =
 };
 
 
-static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL, bool final)
+static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 {
     char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
     char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
@@ -739,9 +747,9 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL, bool final)
         WRITE(p, "konsttemp=float4(%s,%s);\n",tevKSelTableC[kc],tevKSelTableA[ka]);  
 
     if (cc.clamp)
-		WRITE(p, "%s=saturate(", tevCOutputTable[final?0:cc.dest]);
+		WRITE(p, "%s=saturate(", tevCOutputTable[cc.dest]);
 	else
-		WRITE(p, "%s=", tevCOutputTable[final?0:cc.dest]);
+		WRITE(p, "%s=", tevCOutputTable[cc.dest]);
 
     // combine the color channel
     if (cc.bias != 3) // if not compare
@@ -788,9 +796,9 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL, bool final)
     
     // combine the alpha channel
     if (ac.clamp)
-	    WRITE(p, "%s=saturate(", tevAOutputTable[final?0:ac.dest]);
+	    WRITE(p, "%s=saturate(", tevAOutputTable[ac.dest]);
 	else
-		WRITE(p, "%s=", tevAOutputTable[final?0:ac.dest]);
+		WRITE(p, "%s=", tevAOutputTable[ac.dest]);
 
     if (ac.bias != 3) // if not compare
 	{
