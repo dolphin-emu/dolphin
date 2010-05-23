@@ -157,7 +157,7 @@ std::wstring StringFromFormat(const wchar_t* format, ...)
 		buf = new wchar_t[newSize + 1];
 	
 		va_start(args, format);
-		writtenCount = _vsnwprintf(buf, newSize, format, args);
+		writtenCount = vswprintf(buf, newSize, format, args);
 		va_end(args);
 		if (writtenCount >= (int)newSize) {
 			writtenCount = -1;
@@ -302,12 +302,12 @@ bool TryParseInt(const char* str, int* outVal)
 
 bool TryParseBool(const char* str, bool* output)
 {
-	if ((str[0] == '1') || !stricmp(str, "true"))
+	if ((str[0] == '1') || !strcasecmp(str, "true"))
 	{
 		*output = true;
 		return true;
 	}
-	else if (str[0] == '0' || !stricmp(str, "false"))
+	else if (str[0] == '0' || !strcasecmp(str, "false"))
 	{
 		*output = false;
 		return true;
