@@ -23,47 +23,12 @@
 // faster than sscanf
 bool AsciiToHex(const char* _szValue, u32& result)
 {
-	u32 value = 0;
-	size_t finish = strlen(_szValue);
-
-	if (finish > 8)
-		finish = 8;  // Max 32-bit values are supported.
-
-	for (size_t count = 0; count < finish; count++)
-	{
-		value <<= 4;
-		switch (_szValue[count])
-		{
-			case '0': break;
-			case '1': value += 1; break;
-			case '2': value += 2; break;
-			case '3': value += 3; break;
-			case '4': value += 4; break;
-			case '5': value += 5; break;
-			case '6': value += 6; break;
-			case '7': value += 7; break;
-			case '8': value += 8; break;
-			case '9': value += 9; break;
-			case 'A':
-			case 'a': value += 10; break;
-			case 'B':
-			case 'b': value += 11; break;
-			case 'C':
-			case 'c': value += 12; break;
-			case 'D':
-			case 'd': value += 13; break;
-			case 'E':
-			case 'e': value += 14; break;
-			case 'F':
-			case 'f': value += 15; break;
-			default:
-				return false;
-				break;
-		}
-	}
-
+	char *endptr = NULL;
+	u32 value = strtoul(_szValue,&endptr,16);
+	if (!endptr || *endptr != '\0')
+		return false;
 	result = value;
-	return (true);
+	return true;
 }
 
 // Convert AB to it's ascii table entry numbers 0x4142
@@ -271,30 +236,10 @@ std::string StripNewline(const std::string& s)
 
 bool TryParseInt(const char* str, int* outVal)
 {
-	const char* s = str;
-	int value = 0;
-	bool negativ = false;
-
-	if (*s == '-')
-	{
-		negativ = true;
-		s++;
-	}
-
-	while (*s)
-	{
-		char c = *s++;
-
-		if ((c < '0') || (c > '9'))
-		{
-			return false;
-		}
-
-		value = value * 10 + (c - '0');
-	}
-	if (negativ)
-		value = -value;
-
+	char *endptr = NULL;
+	int value = strtol(str,&endptr,10);
+	if (!endptr || *endptr != '\0')
+		return false;
 	*outVal = value;
 	return true;
 }
@@ -441,10 +386,12 @@ void SplitString(const std::string& str, const std::string& delim, std::vector<s
 
 bool TryParseUInt(const std::string& str, u32* output)
 {
-	if (!strcmp(str.substr(0, 2).c_str(), "0x") || !strcmp(str.substr(0, 2).c_str(), "0X"))
-		return sscanf(str.c_str() + 2, "%x", output) > 0;
-	else
-		return sscanf(str.c_str(), "%d", output) > 0;
+	char *endptr = NULL;
+	u32 value = strtoul(str.c_str(),&endptr,0);
+	if (!endptr || *endptr != '\0')
+		return false;
+	*output = value;
+	return true;
 }
 
 int ChooseStringFrom(const char* str, const char* * items)
