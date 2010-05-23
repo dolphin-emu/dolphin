@@ -164,8 +164,8 @@ namespace W32Util
 
 	void WizExteriorPage::Init(HWND hDlg)
 	{
-        HWND hwndControl = GetDlgItem(hDlg, captionID);
-        //SetWindowFont(hwndControl, sheet->GetTitleFont(), TRUE);
+		HWND hwndControl = GetDlgItem(hDlg, captionID);
+		//SetWindowFont(hwndControl, sheet->GetTitleFont(), TRUE);
 		SendMessage(hwndControl,WM_SETFONT,(WPARAM)sheet->GetTitleFont(),0);
 	}
 
@@ -194,11 +194,12 @@ namespace W32Util
 			break;
 		case WM_NOTIFY:
 			{
-				LPPSHNOTIFY lppsn = (LPPSHNOTIFY) lParam;
-				HWND sheet = lppsn->hdr.hwndFrom;
-				switch(lppsn->hdr.code) {
+				LPNMHDR lpnmh = (LPNMHDR) lParam;
+				HWND sheet = lpnmh->hwndFrom;
+				switch(lpnmh->code) {
 				case PSN_APPLY:
 					tab->Apply(hDlg);
+					SetWindowLongPtr(hDlg, DWLP_MSGRESULT, PSNRET_NOERROR);
 					break;
 				case PSN_SETACTIVE:
 					PropSheet_SetWizButtons(GetParent(hDlg), 
@@ -206,12 +207,17 @@ namespace W32Util
 						(tab->HasNext()?PSWIZB_NEXT:0) | 
 						(tab->HasFinish()?PSWIZB_FINISH:0));
 					break;
+				case PSN_KILLACTIVE:
+					SetWindowLongPtr(hDlg, DWLP_MSGRESULT, FALSE);
+					break;
 				case PSN_WIZNEXT: 
 					tab->Apply(hDlg); //maybe not always good
 					break;
 				case PSN_WIZBACK:
 				case PSN_RESET: //cancel
 					break;
+				default:
+					return tab->Notify(hDlg, lParam);
 				}
 			}
 			break;

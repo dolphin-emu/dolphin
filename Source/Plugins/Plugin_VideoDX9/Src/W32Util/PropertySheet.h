@@ -12,6 +12,7 @@ namespace W32Util
 		PropSheet *sheet; //back pointer ..
 		virtual void Init(HWND hDlg) {}
 		virtual void Command(HWND hDlg, WPARAM wParam) {}
+		virtual int Notify(HWND, LPARAM) {return 0;}
 		virtual void Apply(HWND hDlg) {}
 		virtual bool HasPrev()   {return true;}
 		virtual bool HasFinish() {return false;}

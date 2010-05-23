@@ -25,6 +25,7 @@
 
 #include "Common.h"
 
+std::wstring StringFromFormat(const wchar_t* format, ...);
 std::string StringFromFormat(const char* format, ...);
 void ToStringFromFormat(std::string* out, const char* format, ...);
 
@@ -46,16 +47,25 @@ inline void CharArrayFromFormat(char (& out)[Count], const char* format, ...)
 	va_end(args);
 }
 
-
+std::wstring StripSpaces(const std::wstring &s);
+std::wstring StripQuotes(const std::wstring &s);
+//std::wstring StripNewline(const std::string &s);
+// Thousand separator. Turns 12345678 into 12,345,678
+//std::wstring ThS(int a, bool b = true, int Spaces = 0);
 std::string StripSpaces(const std::string &s);
 std::string StripQuotes(const std::string &s);
 std::string StripNewline(const std::string &s);
 // Thousand separator. Turns 12345678 into 12,345,678
 std::string ThS(int a, bool b = true, int Spaces = 0);
 
+std::wstring StringFromIntW(int value);
+std::wstring StringFromBoolW(bool value);
 std::string StringFromInt(int value);
 std::string StringFromBool(bool value);
 
+bool TryParseInt(const wchar_t* str, int* outVal);
+bool TryParseBool(const wchar_t* str, bool* output);
+bool TryParseUInt(const std::wstring& str, u32* output);
 bool TryParseInt(const char* str, int* outVal);
 bool TryParseBool(const char* str, bool* output);
 bool TryParseUInt(const std::string& str, u32* output);

@@ -34,31 +34,31 @@ bool AsciiToHex(const char* _szValue, u32& result)
 		value <<= 4;
 		switch (_szValue[count])
 		{
-		    case '0': break;
-		    case '1': value += 1; break;
-		    case '2': value += 2; break;
-		    case '3': value += 3; break;
-		    case '4': value += 4; break;
-		    case '5': value += 5; break;
-		    case '6': value += 6; break;
-		    case '7': value += 7; break;
-		    case '8': value += 8; break;
-		    case '9': value += 9; break;
-		    case 'A':
-		    case 'a': value += 10; break;
-		    case 'B':
-		    case 'b': value += 11; break;
-		    case 'C':
-		    case 'c': value += 12; break;
-		    case 'D':
-		    case 'd': value += 13; break;
-		    case 'E':
-		    case 'e': value += 14; break;
-		    case 'F':
-		    case 'f': value += 15; break;
-		    default:
-			    return false;
-			    break;
+			case '0': break;
+			case '1': value += 1; break;
+			case '2': value += 2; break;
+			case '3': value += 3; break;
+			case '4': value += 4; break;
+			case '5': value += 5; break;
+			case '6': value += 6; break;
+			case '7': value += 7; break;
+			case '8': value += 8; break;
+			case '9': value += 9; break;
+			case 'A':
+			case 'a': value += 10; break;
+			case 'B':
+			case 'b': value += 11; break;
+			case 'C':
+			case 'c': value += 12; break;
+			case 'D':
+			case 'd': value += 13; break;
+			case 'E':
+			case 'e': value += 14; break;
+			case 'F':
+			case 'f': value += 15; break;
+			default:
+				return false;
+				break;
 		}
 	}
 
@@ -126,7 +126,7 @@ void ToStringFromFormat(std::string* out, const char* format, ...)
 		delete [] buf;
 		buf = new char[newSize + 1];
 	
-	    va_start(args, format);
+		va_start(args, format);
 		writtenCount = vsnprintf(buf, newSize, format, args);
 		va_end(args);
 		if (writtenCount >= (int)newSize) {
@@ -145,7 +145,36 @@ void ToStringFromFormat(std::string* out, const char* format, ...)
 	delete[] buf;
 }
 
+std::wstring StringFromFormat(const wchar_t* format, ...)
+{
+	int writtenCount = -1;
+	int newSize = (int)wcslen(format) + 4;
+	wchar_t *buf = 0;
+	va_list args;
+	while (writtenCount < 0)
+	{
+		delete [] buf;
+		buf = new wchar_t[newSize + 1];
+	
+		va_start(args, format);
+		writtenCount = _vsnwprintf(buf, newSize, format, args);
+		va_end(args);
+		if (writtenCount >= (int)newSize) {
+			writtenCount = -1;
+		}
+		// ARGH! vsnprintf does no longer return -1 on truncation in newer libc!
+		// WORKAROUND! let's fake the old behaviour (even though it's less efficient).
+		// TODO: figure out why the fix causes an invalid read in strlen called from vsnprintf :(
+//		if (writtenCount >= (int)newSize)
+//			writtenCount = -1;
+		newSize *= 2;
+	}
 
+	buf[writtenCount] = '\0';
+	std::wstring temp = buf;
+	delete[] buf;
+	return temp;
+}
 std::string StringFromFormat(const char* format, ...)
 {
 	int writtenCount = -1;
@@ -157,7 +186,7 @@ std::string StringFromFormat(const char* format, ...)
 		delete [] buf;
 		buf = new char[newSize + 1];
 	
-	    va_start(args, format);
+		va_start(args, format);
 		writtenCount = vsnprintf(buf, newSize, format, args);
 		va_end(args);
 		if (writtenCount >= (int)newSize) {
@@ -176,7 +205,6 @@ std::string StringFromFormat(const char* format, ...)
 	delete[] buf;
 	return temp;
 }
-
 
 // For Debugging. Read out an u8 array.
 std::string ArrayToString(const u8 *data, u32 size, u32 offset, int line_len, bool Spaces)
@@ -217,7 +245,6 @@ std::string StripSpaces(const std::string &str)
 	return s.substr(0, i + 1);
 }
 
-
 // "\"hello\"" is turned to "hello"
 // This one assumes that the string has already been space stripped in both
 // ends, as done by StripSpaces above, for example.
@@ -246,13 +273,13 @@ bool TryParseInt(const char* str, int* outVal)
 {
 	const char* s = str;
 	int value = 0;
-    bool negativ = false;
+	bool negativ = false;
 
-    if (*s == '-')
-    {
-        negativ = true;
-        s++;
-    }
+	if (*s == '-')
+	{
+		negativ = true;
+		s++;
+	}
 
 	while (*s)
 	{
@@ -265,8 +292,8 @@ bool TryParseInt(const char* str, int* outVal)
 
 		value = value * 10 + (c - '0');
 	}
-    if (negativ)
-        value = -value;
+	if (negativ)
+		value = -value;
 
 	*outVal = value;
 	return true;
@@ -275,12 +302,12 @@ bool TryParseInt(const char* str, int* outVal)
 
 bool TryParseBool(const char* str, bool* output)
 {
-	if ((str[0] == '1') || !strcmp(str, "true") || !strcmp(str, "True") || !strcmp(str, "TRUE"))
+	if ((str[0] == '1') || !stricmp(str, "true"))
 	{
 		*output = true;
 		return true;
 	}
-	else if (str[0] == '0' || !strcmp(str, "false") || !strcmp(str, "False") || !strcmp(str, "FALSE"))
+	else if (str[0] == '0' || !stricmp(str, "false"))
 	{
 		*output = false;
 		return true;
@@ -419,7 +446,6 @@ bool TryParseUInt(const std::string& str, u32* output)
 	else
 		return sscanf(str.c_str(), "%d", output) > 0;
 }
-
 
 int ChooseStringFrom(const char* str, const char* * items)
 {

@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <windowsx.h>
+#include <Richedit.h>
 
 #include "resource.h"
 #include "W32Util/PropertySheet.h"
@@ -23,31 +24,30 @@
 #include "FileUtil.h"
 
 #include "D3DBase.h"
+#include "D3DUtil.h"
 
 #include "VideoConfig.h"
 
 #include "TextureCache.h"
-// TODO: remove if/when ini files use unicode
-#define ComboBox_GetTextA(hwndCtl, lpch, cchMax) GetWindowTextA((hwndCtl), (lpch), (cchMax))
 
-const char *aspect_ratio_names[4] = {
-	"Auto",
-	"Force 16:9 Widescreen",
-	"Force 4:3 Standard",
-	"Stretch to Window",
+const TCHAR *aspect_ratio_names[4] = {
+	_T("Auto"),
+	_T("Force 16:9 Widescreen"),
+	_T("Force 4:3 Standard"),
+	_T("Stretch to Window"),
 };
 
 struct TabDirect3D : public W32Util::Tab
 {
 	void Init(HWND hDlg)
 	{
-		WCHAR tempwstr[2000];
+		TCHAR tempstr[2000];
 
 		for (int i = 0; i < D3D::GetNumAdapters(); i++)
 		{
 			const D3D::Adapter &adapter = D3D::GetAdapter(i);
-			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, adapter.ident.Description, -1, tempwstr, 2000);
-			ComboBox_AddString(GetDlgItem(hDlg, IDC_ADAPTER),tempwstr);
+			stprintf_s( tempstr, _T("%hs"), adapter.ident.Description );
+			ComboBox_AddString(GetDlgItem(hDlg, IDC_ADAPTER), tempstr);
 		}
 
 		const D3D::Adapter &adapter = D3D::GetAdapter(g_Config.iAdapter);
@@ -55,8 +55,8 @@ struct TabDirect3D : public W32Util::Tab
 
 		for (int i = 0; i < (int)adapter.aa_levels.size(); i++)
 		{
-			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, adapter.aa_levels[i].name, -1, tempwstr, 2000);
-			ComboBox_AddString(GetDlgItem(hDlg, IDC_ANTIALIASMODE), tempwstr);
+			stprintf_s( tempstr, _T("%hs"), adapter.aa_levels[i].name );
+			ComboBox_AddString(GetDlgItem(hDlg, IDC_ANTIALIASMODE), tempstr);
 		}
 
 		ComboBox_SetCurSel(GetDlgItem(hDlg, IDC_ANTIALIASMODE), g_Config.iMultisampleMode);
@@ -67,8 +67,7 @@ struct TabDirect3D : public W32Util::Tab
 
 		for (int i = 0; i < 4; i++)
 		{
-			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, aspect_ratio_names[i], -1, tempwstr, 2000);
-			ComboBox_AddString(GetDlgItem(hDlg, IDC_ASPECTRATIO), tempwstr);
+			ComboBox_AddString(GetDlgItem(hDlg, IDC_ASPECTRATIO), aspect_ratio_names[i]);
 		}
 		ComboBox_SetCurSel(GetDlgItem(hDlg, IDC_ASPECTRATIO), g_Config.iAspectRatio);
 
@@ -96,6 +95,14 @@ struct TabDirect3D : public W32Util::Tab
 		Button_Enable(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE_FAST),g_Config.bSafeTextureCache);
 		
 		Button_SetCheck(GetDlgItem(hDlg, IDC_EFB_ACCESS_ENABLE), g_Config.bEFBAccessEnable);
+
+		std::wstring str;
+		if( !D3D::DXCheck(str) ) {
+			SNDMSG( GetDlgItem(hDlg, IDC_DXCHK), EM_AUTOURLDETECT, TRUE, 0 );
+			SNDMSG( GetDlgItem(hDlg, IDC_DXCHK), EM_SETEVENTMASK, 0, ENM_LINK );
+			str.append( _T("\nhttp://www.microsoft.com/downloads/details.aspx?FamilyID=2da43d38-db71-4c1b-bc6a-9b6652cd92a3") );
+		}
+		Edit_SetText(GetDlgItem(hDlg, IDC_DXCHK), str.c_str());
 	}
 
 	void Command(HWND hDlg,WPARAM wParam)
@@ -120,6 +127,23 @@ struct TabDirect3D : public W32Util::Tab
 		default:
 			break;
 		}
+	}
+
+	int Notify(HWND hDlg, LPARAM lParam)
+	{
+		switch (((LPNMHDR)lParam)->code) {
+		case EN_LINK:
+			{
+				ENLINK* enl = (ENLINK*)lParam;
+				if( enl->msg == WM_LBUTTONDOWN ) {
+					TCHAR dxlink[256];
+					TEXTRANGE txtrng = {enl->chrg, dxlink};
+					SNDMSG( GetDlgItem(hDlg, IDC_DXCHK), EM_GETTEXTRANGE, 0, (LPARAM)&txtrng );
+					ShellExecute( NULL, NULL, dxlink, NULL, NULL, SW_SHOWNORMAL );
+				}
+			} break;
+		}
+		return 0;
 	}
 
 	void Apply(HWND hDlg)
@@ -236,7 +260,7 @@ struct TabAdvanced : public W32Util::Tab
 		g_Config.bEFBCopyDisable = Button_GetCheck(GetDlgItem(hDlg,IDC_ENABLEEFBCOPY)) ? false : true;
 		g_Config.bCopyEFBToTexture = Button_GetCheck(GetDlgItem(hDlg,IDC_EFBTORAM)) ? false : true;
 		g_Config.bUseXFB = Button_GetCheck(GetDlgItem(hDlg, IDC_ENABLEXFB)) ? true : false;
-		g_Config.bUseRealXFB = Button_GetCheck(GetDlgItem(hDlg, IDC_ENABLEREALXFB)) ? true : false;		
+		g_Config.bUseRealXFB = Button_GetCheck(GetDlgItem(hDlg, IDC_ENABLEREALXFB)) ? true : false;
 		g_Config.bUseNativeMips = Button_GetCheck(GetDlgItem(hDlg, IDC_USENATIVEMIPS)) ? true : false;
 		g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 

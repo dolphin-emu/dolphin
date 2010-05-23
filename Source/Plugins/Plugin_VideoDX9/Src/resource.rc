@@ -12,13 +12,11 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -37,7 +35,7 @@ BEGIN
 END
 
 IDD_SETTINGS DIALOGEX 0, 0, 244, 183
-STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_BORDER | WS_SYSMENU
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_VISIBLE | WS_BORDER | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
     LTEXT           "&Graphics card:",IDC_STATIC,9,9,49,8
@@ -54,6 +52,7 @@ BEGIN
     CONTROL         "Safe",IDC_SAFE_TEXTURE_CACHE_SAFE,"Button",BS_AUTORADIOBUTTON,117,105,27,10
     CONTROL         "Normal",IDC_SAFE_TEXTURE_CACHE_NORMAL,"Button",BS_AUTORADIOBUTTON,154,105,38,10
     CONTROL         "Fast",IDC_SAFE_TEXTURE_CACHE_FAST,"Button",BS_AUTORADIOBUTTON,198,105,30,10
+    CONTROL         "",IDC_DXCHK,"RichEdit20W",ES_MULTILINE | ES_READONLY | WS_BORDER | WS_TABSTOP,30,126,186,50
 END
 
 IDD_ADVANCED DIALOGEX 0, 0, 244, 200
@@ -104,7 +103,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_ABOUT, DIALOG
     BEGIN
@@ -120,8 +119,8 @@ BEGIN
         RIGHTMARGIN, 237
         VERTGUIDE, 7
         VERTGUIDE, 68
-        VERTGUIDE, 81
-        VERTGUIDE, 87
+        VERTGUIDE, 109
+        VERTGUIDE, 161
         TOPMARGIN, 7
         BOTTOMMARGIN, 176
     END
@@ -167,7 +166,7 @@ END
 
 2 TEXTINCLUDE 
 BEGIN
-    "#include <windows.h\0"
+    "#include <windows.h>\0"
 END
 
 3 TEXTINCLUDE 
@@ -178,7 +177,7 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif    // English (U.S.) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

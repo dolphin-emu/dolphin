@@ -76,4 +76,5 @@ namespace D3D
 	void drawClearQuad(u32 Color,float z,IDirect3DPixelShader9 *PShader,IDirect3DVertexShader9 *Vshader);
 	void SaveRenderStates();
 	void RestoreRenderStates();
+	bool DXCheck(std::wstring&);
 }

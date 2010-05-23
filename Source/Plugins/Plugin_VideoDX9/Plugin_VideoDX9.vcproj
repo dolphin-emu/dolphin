@@ -104,6 +104,7 @@
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
+				DelayLoadDLLs="d3dx9_42.dll"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -216,6 +217,7 @@
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
+				DelayLoadDLLs="d3dx9_42.dll"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -315,6 +317,7 @@
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
+				DelayLoadDLLs="d3dx9d_42.dll"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -413,6 +416,7 @@
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
+				DelayLoadDLLs="d3dx9d_42.dll"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -522,6 +526,7 @@
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
+				DelayLoadDLLs="d3dx9_42.dll"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -632,6 +637,7 @@
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
+				DelayLoadDLLs="d3dx9_42.dll"
 			/>
 			<Tool
 				Name="VCALinkTool"

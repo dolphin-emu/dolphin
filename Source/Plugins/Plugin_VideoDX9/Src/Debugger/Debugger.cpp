@@ -223,7 +223,7 @@ void GFXDebuggerDX9::CreateGUIControls()
 	m_pDumpList->Append(wxT("Statistics"));
 	m_pDumpList->SetSelection(0);
 
-    for (int i = 0; i < NUM_OPTIONS-ID_SAVETOFILE; ++i)
+	for (int i = 0; i < NUM_OPTIONS-ID_SAVETOFILE; ++i)
 		sOptions->Add(m_Check[i], 0, 0, 5);
 
 	// Layout everything on m_MainPanel
@@ -346,7 +346,7 @@ extern bool D3D::bFrameInProgress;
 
 static void DX9DebuggerUpdateScreen()
 {
-	//update screen
+	// update screen
 	if (D3D::bFrameInProgress)
 	{
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());

@@ -15,10 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include <tchar.h>
-#include <windows.h>
-#include <d3dx9.h>
-
 #include "Common.h"
 #include "Atomic.h"
 #include "Thread.h"
@@ -173,9 +169,9 @@ unsigned int Callback_PeekMessages()
 
 void UpdateFPSDisplay(const char *text)
 {
-	char temp[512];
-	sprintf_s(temp, 512, "SVN R%i: DX9: %s", SVN_REV, text);
-    SetWindowTextA(EmuWindow::GetWnd(), temp);
+	TCHAR temp[512];
+	swprintf_s(temp, 512, _T("SVN R%i: DX9: %hs"), SVN_REV, text);
+	SetWindowText(EmuWindow::GetWnd(), temp);
 }
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo)
@@ -193,9 +189,10 @@ void GetDllInfo (PLUGIN_INFO* _PluginInfo)
 #endif
 }
 
-void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals) {
+void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
+{
 	globals = _pPluginGlobals;
-	LogManager::SetInstance((LogManager *)globals->logManager);
+	LogManager::SetInstance((LogManager*)globals->logManager);
 }
 
 void DllAbout(HWND _hParent)
@@ -206,9 +203,12 @@ void DllAbout(HWND _hParent)
 void DllConfig(HWND _hParent)
 {
 	// If not initialized, only init D3D so we can enumerate resolutions.
-	if (!s_PluginInitialized) D3D::Init();
+	if (!s_PluginInitialized)
+		D3D::Init();
+	HINSTANCE hREd = LoadLibrary(_T("riched20.dll"));
 	DlgSettings_Show(g_hInstance, _hParent);
-	if (!s_PluginInitialized)	D3D::Shutdown();
+	if (!s_PluginInitialized)
+		D3D::Shutdown();
 }
 
 void Initialize(void *init)
@@ -231,16 +231,25 @@ void Initialize(void *init)
 	}
 	else if (FAILED(D3D::Init()))
 	{
-		MessageBox(GetActiveWindow(), _T("Unable to initialize Direct3D. Please make sure that you have the latest version of DirectX 9.0c correctly installed."), _T("Fatal Error"), MB_OK);
+		MessageBox(GetActiveWindow(), _T("Unable to initialize Direct3D. Please make sure that you have the latest version of DirectX 9.0c correctly installed."), _T("Fatal Error"), MB_ICONERROR|MB_OK);
 		return;
+	}
+
+	std::wstring msg;
+	if( !D3D::DXCheck(msg) )
+	{
+		msg.insert( 0, _T("Unable to initialize Direct3D. ") );
+		msg.append( _T("\n\nHave a nice crash. :P") );
+		MessageBox( (HWND)g_VideoInitialize.pWindowHandle, msg.c_str(), _T("Critical Error"), MB_ICONERROR|MB_OK );
+		ShellExecute( NULL, NULL, _T("http://www.microsoft.com/downloads/details.aspx?FamilyID=2da43d38-db71-4c1b-bc6a-9b6652cd92a3"), NULL, NULL, SW_SHOWNORMAL );
 	}
 
 	g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
 	g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 
-    _pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
-    _pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
-    _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
+	_pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
+	_pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
+	_pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 
 	OSD::AddMessage("Dolphin Direct3D9 Video Plugin.", 5000);
 	s_PluginInitialized = true;
@@ -264,8 +273,8 @@ void Video_Prepare()
 	VertexShaderManager::Init();
 	PixelShaderCache::Init();
 	PixelShaderManager::Init();
-    CommandProcessor::Init();
-    PixelEngine::Init();
+	CommandProcessor::Init();
+	PixelEngine::Init();
 
 	// Tell the host the window is ready
 	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
@@ -376,7 +385,7 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 				Common::YieldCPU();
 		}
 		else
-			VideoFifo_CheckSwapRequest();		
+			VideoFifo_CheckSwapRequest();
 	}
 }
 
@@ -453,35 +462,35 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
 
 void Video_CommandProcessorRead16(u16& _rReturnValue, const u32 _Address)
 {
-    CommandProcessor::Read16(_rReturnValue, _Address);
+	CommandProcessor::Read16(_rReturnValue, _Address);
 }
 
 void Video_CommandProcessorWrite16(const u16 _Data, const u32 _Address)
 {
-    CommandProcessor::Write16(_Data, _Address);
+	CommandProcessor::Write16(_Data, _Address);
 }
 
 void Video_PixelEngineRead16(u16& _rReturnValue, const u32 _Address)
 {
-    PixelEngine::Read16(_rReturnValue, _Address);
+	PixelEngine::Read16(_rReturnValue, _Address);
 }
 
 void Video_PixelEngineWrite16(const u16 _Data, const u32 _Address)
 {
-    PixelEngine::Write16(_Data, _Address);
+	PixelEngine::Write16(_Data, _Address);
 }
 
 void Video_PixelEngineWrite32(const u32 _Data, const u32 _Address)
 {
-    PixelEngine::Write32(_Data, _Address);
+	PixelEngine::Write32(_Data, _Address);
 }
 
 inline void Video_GatherPipeBursted(void)
 {
-    CommandProcessor::GatherPipeBursted();
+	CommandProcessor::GatherPipeBursted();
 }
 
 void Video_WaitForFrameFinish(void)
 {
-    CommandProcessor::WaitForFrameFinish();
+	CommandProcessor::WaitForFrameFinish();
 }

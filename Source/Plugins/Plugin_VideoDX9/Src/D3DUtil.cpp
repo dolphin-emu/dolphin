@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "StringUtil.h"
 
 #include "D3DBase.h"
 #include "D3DUtil.h"
@@ -186,6 +187,25 @@ const int TS[6][2] =
 	{D3DTSS_ALPHAARG1, D3DTA_TEXTURE },
 	{D3DTSS_ALPHAARG2, D3DTA_DIFFUSE },
 };
+
+bool DXCheck( std::wstring& msg )
+{
+	std::wstring dll = 
+	#ifdef _DEBUG
+		StringFromFormat( _T("d3dx9d_%d.dll"), D3DX_SDK_VERSION);
+	#else
+		StringFromFormat( _T("d3dx9_%d.dll"), D3DX_SDK_VERSION);
+	#endif
+	HINSTANCE hDll = LoadLibrary(dll.c_str());
+	if( !hDll )
+	{
+		msg = _T("Please make sure that you have the latest version of DirectX 9.0c correctly installed.");
+		return false;
+	} else
+		msg = _T("DirectX9 is up to date and ready to be used!");
+	FreeLibrary( hDll );
+	return true;
+}
 
 static LPDIRECT3DPIXELSHADER9 ps_old = NULL;
 static LPDIRECT3DVERTEXSHADER9 vs_old = NULL;

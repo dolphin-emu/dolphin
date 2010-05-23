@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by Resource.rc
+// Used by resource.rc
 //
 #define IDD_ABOUT                       102
 #define IDD_SETTINGS                    103
@@ -8,10 +8,7 @@
 #define IDD_ADVANCED                    105
 #define IDC_ADAPTER                     1001
 #define IDC_ANTIALIASMODE               1002
-#define IDC_RESOLUTION                  1003
 #define IDC_VSYNC                       1006
-#define IDC_ASPECT_16_9                 1008
-#define IDC_ASPECT_4_3                  1009
 #define IDC_WIDESCREEN_HACK             1010
 #define IDC_SAFE_TEXTURE_CACHE          1011
 #define IDC_EFB_ACCESS_ENABLE           1012
@@ -31,18 +28,15 @@
 #define IDC_FORCEFILTERING              1026
 #define IDC_ENABLEXFB                   1026
 #define IDC_FORCEANISOTROPY             1027
-#define IDC_ENABLEXFB2                  1027
 #define IDC_ENABLEREALXFB               1027
 #define IDC_LOADHIRESTEXTURE            1028
 #define IDC_EFBSCALEDCOPY               1029
 #define IDC_OSDHOTKEY                   1030
-#define IDC_COMBO2                      1040
 #define IDC_ASPECTRATIO                 1040
 #define IDC_SAFE_TEXTURE_CACHE_SAFE     1041
 #define IDC_SAFE_TEXTURE_CACHE_NORMAL   1042
-#define IDC_RADIO3                      1043
 #define IDC_SAFE_TEXTURE_CACHE_FAST     1043
-#define IDC_CHECK1                      1100
+#define IDC_DXCHK                       1046
 #define IDC_USENATIVEMIPS               1100
 #define IDC_STATIC                      -1
 
@@ -52,7 +46,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        106
 #define _APS_NEXT_COMMAND_VALUE         40001
-#define _APS_NEXT_CONTROL_VALUE         1044
+#define _APS_NEXT_CONTROL_VALUE         1047
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
