@@ -149,8 +149,7 @@ enum
 	\param flags can be any of SOIL_FLAG_POWER_OF_TWO | SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_MULTIPLY_ALPHA | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_DDS_LOAD_DIRECT
 	\return 0-failed, otherwise returns the OpenGL texture handle
 **/
-unsigned int
-	SOIL_load_OGL_texture
+unsigned int SOIL_load_OGL_texture
 	(
 		const char *filename,
 		int force_channels,
@@ -171,8 +170,7 @@ unsigned int
 	\param flags can be any of SOIL_FLAG_POWER_OF_TWO | SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_MULTIPLY_ALPHA | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_DDS_LOAD_DIRECT
 	\return 0-failed, otherwise returns the OpenGL texture handle
 **/
-unsigned int
-	SOIL_load_OGL_cubemap
+unsigned int SOIL_load_OGL_cubemap
 	(
 		const char *x_pos_file,
 		const char *x_neg_file,
@@ -194,8 +192,7 @@ unsigned int
 	\param flags can be any of SOIL_FLAG_POWER_OF_TWO | SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_MULTIPLY_ALPHA | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_DDS_LOAD_DIRECT
 	\return 0-failed, otherwise returns the OpenGL texture handle
 **/
-unsigned int
-	SOIL_load_OGL_single_cubemap
+unsigned int SOIL_load_OGL_single_cubemap
 	(
 		const char *filename,
 		const char face_order[6],
@@ -212,8 +209,7 @@ unsigned int
 	\param flags can be any of SOIL_FLAG_POWER_OF_TWO | SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_MULTIPLY_ALPHA | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT
 	\return 0-failed, otherwise returns the OpenGL texture handle
 **/
-unsigned int
-	SOIL_load_OGL_HDR_texture
+unsigned int SOIL_load_OGL_HDR_texture
 	(
 		const char *filename,
 		int fake_HDR_format,
@@ -231,8 +227,7 @@ unsigned int
 	\param flags can be any of SOIL_FLAG_POWER_OF_TWO | SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_MULTIPLY_ALPHA | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_DDS_LOAD_DIRECT
 	\return 0-failed, otherwise returns the OpenGL texture handle
 **/
-unsigned int
-	SOIL_load_OGL_texture_from_memory
+unsigned int SOIL_load_OGL_texture_from_memory
 	(
 		const unsigned char *const buffer,
 		int buffer_length,
@@ -260,8 +255,7 @@ unsigned int
 	\param flags can be any of SOIL_FLAG_POWER_OF_TWO | SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_MULTIPLY_ALPHA | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_DDS_LOAD_DIRECT
 	\return 0-failed, otherwise returns the OpenGL texture handle
 **/
-unsigned int
-	SOIL_load_OGL_cubemap_from_memory
+unsigned int SOIL_load_OGL_cubemap_from_memory
 	(
 		const unsigned char *const x_pos_buffer,
 		int x_pos_buffer_length,
@@ -290,8 +284,7 @@ unsigned int
 	\param flags can be any of SOIL_FLAG_POWER_OF_TWO | SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_MULTIPLY_ALPHA | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_DDS_LOAD_DIRECT
 	\return 0-failed, otherwise returns the OpenGL texture handle
 **/
-unsigned int
-	SOIL_load_OGL_single_cubemap_from_memory
+unsigned int SOIL_load_OGL_single_cubemap_from_memory
 	(
 		const unsigned char *const buffer,
 		int buffer_length,
@@ -312,8 +305,7 @@ unsigned int
 	\param flags can be any of SOIL_FLAG_POWER_OF_TWO | SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_MULTIPLY_ALPHA | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT
 	\return 0-failed, otherwise returns the OpenGL texture handle
 **/
-unsigned int
-	SOIL_create_OGL_texture
+unsigned int SOIL_create_OGL_texture
 	(
 		const unsigned char *const data,
 		int width, int height, int channels,
@@ -332,8 +324,7 @@ unsigned int
 	\param flags can be any of SOIL_FLAG_POWER_OF_TWO | SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_MULTIPLY_ALPHA | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT | SOIL_FLAG_DDS_LOAD_DIRECT
 	\return 0-failed, otherwise returns the OpenGL texture handle
 **/
-unsigned int
-	SOIL_create_OGL_single_cubemap
+unsigned int SOIL_create_OGL_single_cubemap
 	(
 		const unsigned char *const data,
 		int width, int height, int channels,
@@ -346,8 +337,7 @@ unsigned int
 	Captures the OpenGL window (RGB) and saves it to disk
 	\return 0 if it failed, otherwise returns 1
 **/
-int
-	SOIL_save_screenshot
+int SOIL_save_screenshot
 	(
 		const char *filename,
 		int image_type,
@@ -364,8 +354,7 @@ int
 	count).
 	\return 0 if failed, otherwise returns 1
 **/
-unsigned char*
-	SOIL_load_image
+unsigned char* SOIL_load_image
 	(
 		const char *filename,
 		int *width, int *height, int *channels,
@@ -381,8 +370,7 @@ unsigned char*
 	count).
 	\return 0 if failed, otherwise returns 1
 **/
-unsigned char*
-	SOIL_load_image_from_memory
+unsigned char* SOIL_load_image_from_memory
 	(
 		const unsigned char *const buffer,
 		int buffer_length,
@@ -394,8 +382,7 @@ unsigned char*
 	Saves an image from an array of unsigned chars (RGBA) to disk
 	\return 0 if failed, otherwise returns 1
 **/
-int
-	SOIL_save_image
+int SOIL_save_image
 	(
 		const char *filename,
 		int image_type,
@@ -408,8 +395,7 @@ int
 	present mostly so C++ programmers don't forget to use "free()" and call
 	"delete []" instead [8^)
 **/
-void
-	SOIL_free_image_data
+void SOIL_free_image_data
 	(
 		unsigned char *img_data
 	);
@@ -419,8 +405,7 @@ void
 	that happened inside SOIL.  It can be used to determine why an image
 	failed to load.
 **/
-const char*
-	SOIL_last_result
+const char* SOIL_last_result
 	(
 		void
 	);
