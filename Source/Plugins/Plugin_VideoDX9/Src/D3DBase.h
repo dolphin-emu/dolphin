@@ -21,7 +21,7 @@
 #include <vector>
 #include <set>
 
-#include <d3d9.h>
+#include <d3dx9.h>
 
 #include "Common.h"
 
@@ -51,7 +51,7 @@ void Close();
 void Shutdown();
 
 // Direct access to the device.
-extern IDirect3DDevice9 *dev;
+extern LPDIRECT3DDEVICE9 dev;
 extern bool bFrameInProgress;
 
 void Reset();
@@ -115,7 +115,7 @@ struct AALevel
 		ms_setting = m; 
 		qual_setting = q;
 	}
-    char name[32];
+	char name[32];
 	D3DMULTISAMPLE_TYPE ms_setting;
 	int qual_setting;
 };

@@ -46,7 +46,7 @@ struct TabDirect3D : public W32Util::Tab
 		for (int i = 0; i < D3D::GetNumAdapters(); i++)
 		{
 			const D3D::Adapter &adapter = D3D::GetAdapter(i);
-			stprintf_s( tempstr, _T("%hs"), adapter.ident.Description );
+			swprintf_s( tempstr, _T("%hs"), adapter.ident.Description );
 			ComboBox_AddString(GetDlgItem(hDlg, IDC_ADAPTER), tempstr);
 		}
 
@@ -55,7 +55,7 @@ struct TabDirect3D : public W32Util::Tab
 
 		for (int i = 0; i < (int)adapter.aa_levels.size(); i++)
 		{
-			stprintf_s( tempstr, _T("%hs"), adapter.aa_levels[i].name );
+			swprintf_s( tempstr, _T("%hs"), adapter.aa_levels[i].name );
 			ComboBox_AddString(GetDlgItem(hDlg, IDC_ANTIALIASMODE), tempstr);
 		}
 
