@@ -186,7 +186,7 @@ static int write_empty(FILE* file, u64 count)
 	return 0;
 }
 
-bool SDCardCreate(u32 disk_size /*in MB*/, char* filename)
+bool SDCardCreate(u64 disk_size /*in MB*/, char* filename)
 {
 	int sectors_per_fat;
 	int sectors_per_disk;

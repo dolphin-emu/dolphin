@@ -205,7 +205,6 @@ const DSPOPCTemplate opcodes[] =
 	{"SRS",		0x2800, 0xf800, DSPInterpreter::srs, NULL, 1, 2, {{P_MEM, 1, 0, 0, 0x00ff}, {P_REG18, 1, 0, 8, 0x0700}}, false, false},
 
 // opcodes that can be extended
-// extended opcodes, note size of opcode will be set to 0
 
 	//3 - main opcode defined by 9 bits, extension defined by last 7 bits!!
 	{"XORR",    0x3000, 0xfc80, DSPInterpreter::xorr,	NULL, 1 , 2, {{P_ACCM, 1, 0, 8, 0x0100},{P_REG1A,  1, 0, 9, 0x0200}}, true, false},
@@ -303,6 +302,7 @@ const DSPOPCTemplate opcodes[] =
 const DSPOPCTemplate cw = 
 	{"CW",		0x0000, 0x0000, NULL, NULL, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false};
 
+// extended opcodes
 
 const DSPOPCTemplate opcodes_ext[] =
 {

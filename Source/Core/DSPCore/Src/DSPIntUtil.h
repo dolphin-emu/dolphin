@@ -57,6 +57,7 @@ inline bool dsp_SR_is_flag_set(int flag)
 //
 // increment, decrement 100% ok (as far as i can tell), increase, decrease still probs
 
+// NextPowerOf2()-1
 inline u16 ToMask(u16 a)
 {
 	a = a | (a >> 8);

@@ -40,6 +40,7 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 
 		// NTSC
 		case 'E':
+		case 'Z': // Prince Of Persia - The Forgotten Sands (WII)
 			return IVolume::COUNTRY_USA;
 			break;
 

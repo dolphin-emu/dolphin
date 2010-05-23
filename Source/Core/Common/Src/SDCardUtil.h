@@ -17,4 +17,4 @@
 
 #include "Common.h"
 
-bool SDCardCreate(u32 disk_size /*in MB*/, char* filename);
+bool SDCardCreate(u64 disk_size /*in MB*/, char* filename);

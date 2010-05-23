@@ -19,22 +19,14 @@
 #include "DSPIntExtOps.h"
 
 // Extended opcodes do not exist on their own. These opcodes can only be
-// attached to opcodes that allow extending (8 lower bits of opcode not used by
+// attached to opcodes that allow extending (8 (or 7) lower bits of opcode not used by
 // opcode). Extended opcodes do not modify program counter $pc register.
 
 // Most of the suffixes increment or decrement one or more addressing registers
 // (the first four, ARx). The increment/decrement is either 1, or the
 // corresponding "index" register (the second four, IXx). The addressing
 // registers will wrap in odd ways, dictated by the corresponding wrapping
-// register, WP0-3.
-
-// The following should be applied as a decrement (and is applied by
-// dsp_decrement_addr_reg):
-// ar[i] = (ar[i] & wp[i]) == 0 ? ar[i] | wp[i] : ar[i] - 1;
-// I have not found the corresponding algorithms for increments yet.
-// It's gotta be fairly simple though. See R3123, R3125 in Google Code.
-// (May have something to do with (ar[i] ^ wp[i]) == 0)
-
+// register, WR0-3.
 
 namespace DSPInterpreter
 {
