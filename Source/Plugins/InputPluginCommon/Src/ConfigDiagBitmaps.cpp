@@ -204,7 +204,7 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						dc.DrawRectangle(n*12, 0, 14, 12);
 					}
 
-					delete bitmasks;
+					delete[] bitmasks;
 					
 				}
 				break;

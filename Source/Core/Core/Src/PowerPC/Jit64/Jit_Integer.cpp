@@ -174,6 +174,11 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 			less_than = CC_L;
 			greater_than = CC_G;
 			comparand = Imm32((s32)(s16)inst.UIMM);
+		} else {
+			PanicAlert("cmpXX");
+			less_than = CC_O;
+			greater_than = CC_O;
+			comparand = Imm32(0);
 		}
 	}
 

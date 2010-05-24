@@ -274,6 +274,11 @@ void BPWritten(const BPCmd& bp)
 			break;
         }
 	case BPMEM_FOGRANGE: // Fog Settings Control
+	case BPMEM_FOGRANGE+1:
+	case BPMEM_FOGRANGE+2:
+	case BPMEM_FOGRANGE+3:
+	case BPMEM_FOGRANGE+4:
+	case BPMEM_FOGRANGE+5:
 	case BPMEM_FOGPARAM0:
 	case BPMEM_FOGBMAGNITUDE:
 	case BPMEM_FOGBEXPONENT:
@@ -547,32 +552,32 @@ void BPWritten(const BPCmd& bp)
 			case BPMEM_TEV_ALPHA_ENV+2:
 			case BPMEM_TEV_COLOR_ENV+4:  // Texture Environment 3
 			case BPMEM_TEV_ALPHA_ENV+4:
-			case BPMEM_TEV_COLOR_ENV+8:  // Texture Environment 4
+			case BPMEM_TEV_COLOR_ENV+6:  // Texture Environment 4
+			case BPMEM_TEV_ALPHA_ENV+6:
+			case BPMEM_TEV_COLOR_ENV+8:  // Texture Environment 5
 			case BPMEM_TEV_ALPHA_ENV+8:
-			case BPMEM_TEV_COLOR_ENV+10: // Texture Environment 5
+			case BPMEM_TEV_COLOR_ENV+10: // Texture Environment 6
 			case BPMEM_TEV_ALPHA_ENV+10:
-			case BPMEM_TEV_COLOR_ENV+12: // Texture Environment 6
+			case BPMEM_TEV_COLOR_ENV+12: // Texture Environment 7
 			case BPMEM_TEV_ALPHA_ENV+12:
-			case BPMEM_TEV_COLOR_ENV+14: // Texture Environment 7
+			case BPMEM_TEV_COLOR_ENV+14: // Texture Environment 8
 			case BPMEM_TEV_ALPHA_ENV+14:
-			case BPMEM_TEV_COLOR_ENV+16: // Texture Environment 8
+			case BPMEM_TEV_COLOR_ENV+16: // Texture Environment 9
 			case BPMEM_TEV_ALPHA_ENV+16:
-			case BPMEM_TEV_COLOR_ENV+18: // Texture Environment 9
+			case BPMEM_TEV_COLOR_ENV+18: // Texture Environment 10
 			case BPMEM_TEV_ALPHA_ENV+18:
-			case BPMEM_TEV_COLOR_ENV+20: // Texture Environment 10
+			case BPMEM_TEV_COLOR_ENV+20: // Texture Environment 11
 			case BPMEM_TEV_ALPHA_ENV+20:
-			case BPMEM_TEV_COLOR_ENV+22: // Texture Environment 11
+			case BPMEM_TEV_COLOR_ENV+22: // Texture Environment 12
 			case BPMEM_TEV_ALPHA_ENV+22:
-			case BPMEM_TEV_COLOR_ENV+24: // Texture Environment 12
+			case BPMEM_TEV_COLOR_ENV+24: // Texture Environment 13
 			case BPMEM_TEV_ALPHA_ENV+24:
-			case BPMEM_TEV_COLOR_ENV+26: // Texture Environment 13
+			case BPMEM_TEV_COLOR_ENV+26: // Texture Environment 14
 			case BPMEM_TEV_ALPHA_ENV+26:
-			case BPMEM_TEV_COLOR_ENV+28: // Texture Environment 14
+			case BPMEM_TEV_COLOR_ENV+28: // Texture Environment 15
 			case BPMEM_TEV_ALPHA_ENV+28:
-			case BPMEM_TEV_COLOR_ENV+30: // Texture Environment 15
+			case BPMEM_TEV_COLOR_ENV+30: // Texture Environment 16
 			case BPMEM_TEV_ALPHA_ENV+30:
-			case BPMEM_TEV_COLOR_ENV+32: // Texture Environment 16
-			case BPMEM_TEV_ALPHA_ENV+32:
 				break;
 			default:
 				WARN_LOG(VIDEO, "Unknown BP opcode: address = 0x%08x value = 0x%08x", bp.address, bp.newvalue);

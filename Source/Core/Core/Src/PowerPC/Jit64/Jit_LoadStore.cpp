@@ -452,6 +452,8 @@ void Jit64::stXx(UGeckoInstruction inst)
 		case 151: accessSize = 32; break;
 		case 407: accessSize = 16; break;
 		case 215: accessSize = 8; break;
+		default: PanicAlert("stXx: invalid access size"); 
+			accessSize = 0; break;
 	}
 
 	MOV(32, R(ECX), gpr.R(s));

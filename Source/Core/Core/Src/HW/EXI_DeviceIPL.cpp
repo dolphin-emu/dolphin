@@ -144,6 +144,8 @@ CEXIIPL::CEXIIPL() :
 	m_count(0),
 	m_FontsLoaded(false)
 {
+	memset(m_szBuffer,0,sizeof(m_szBuffer));
+
 	// Determine region
 	m_bNTSC = SConfig::GetInstance().m_LocalCoreStartupParameter.bNTSC;
 
@@ -175,7 +177,10 @@ CEXIIPL::CEXIIPL() :
 	FILE *file = fopen(SConfig::GetInstance().m_LocalCoreStartupParameter.m_strSRAM.c_str(), "rb");
     if (file != NULL)
     {
-        fread(&m_SRAM, 1, 64, file);
+        if (fread(&m_SRAM, 1, 64, file) < 64) {
+	    ERROR_LOG(EXPANSIONINTERFACE,  "EXI IPL-DEV: Could not read all of SRAM");
+	    m_SRAM = sram_dump;
+	}
         fclose(file);
     }
     else

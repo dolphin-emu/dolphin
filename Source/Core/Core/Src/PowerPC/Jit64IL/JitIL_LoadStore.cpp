@@ -62,7 +62,7 @@ void JitIL::lXz(UGeckoInstruction inst)
 	case 32: val = ibuild.EmitLoad32(addr); break; //lwz	
 	case 40: val = ibuild.EmitLoad16(addr); break; //lhz
 	case 34: val = ibuild.EmitLoad8(addr);  break; //lbz - lbzu crashes GFZP01 @ 0x8008575C
-	default: PanicAlert("lXz: invalid access size");
+	default: PanicAlert("lXz: invalid access size"); val = 0; break;
 	}
 	ibuild.EmitStoreGReg(val, inst.RD);
 }

@@ -1551,6 +1551,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, bool UseProfile, bool Mak
 					case ICmpSlt: flag = CC_GE; break;
 					case ICmpSge: flag = CC_L; break;
 					case ICmpSle: flag = CC_G; break;
+					default: PanicAlert("cmpXX"); flag = CC_O; break;
 				}
 				FixupBranch cont = Jit->J_CC(flag);
 				regWriteExit(RI, getOp2(I));
