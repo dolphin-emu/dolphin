@@ -271,7 +271,7 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 
 
 	// Draw...
-	D3D::drawShadedTexQuad(srcTexture,&SrcRect,1,1,shader,VertexShaderCache::GetSimpleVertexShader());
+	D3D::drawShadedTexQuad(srcTexture,&SrcRect,1,1,dstWidth,dstHeight,shader,VertexShaderCache::GetSimpleVertexShader());
 	hr = D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
 	hr = D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
 	Renderer::RestoreAPIState();	
@@ -442,9 +442,9 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 	
 	RECT sourcerect;
 	sourcerect.bottom = srcHeight;
-	sourcerect.left = -1;
+	sourcerect.left = 0;
 	sourcerect.right = srcFmtWidth;
-	sourcerect.top = -1;
+	sourcerect.top = 0;
 
 	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
 	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
@@ -463,6 +463,8 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 		&sourcerect, 
 		1 , 
 		1,
+		srcWidth,
+		srcHeight,
 		s_yuyvToRgbProgram,
 		VertexShaderCache::GetSimpleVertexShader());			
 	

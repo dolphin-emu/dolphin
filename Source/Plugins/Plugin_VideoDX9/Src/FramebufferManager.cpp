@@ -451,6 +451,8 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		&sourcerect, 
 		Renderer::GetFullTargetWidth() , 
 		Renderer::GetFullTargetHeight(),
+		target_width,
+		target_height,
 		PixelShaderCache::GetColorCopyProgram(SSAAMode),
 		(SSAAMode != 0)? VertexShaderCache::GetFSAAVertexShader() : VertexShaderCache::GetSimpleVertexShader());			
 	

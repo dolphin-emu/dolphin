@@ -759,6 +759,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 			&RectToLock, 
 			Renderer::GetFullTargetWidth() , 
 			Renderer::GetFullTargetHeight(),
+			4,4,
 			(BufferFormat == FOURCC_RAWZ)?PixelShaderCache::GetColorMatrixProgram(0):PixelShaderCache::GetDepthMatrixProgram(0),
 			VertexShaderCache::GetSimpleVertexShader());
 
@@ -1095,7 +1096,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 			drawRc.top = 1.0f - 2.0f * ((hOffset + xfbHeight) / (float)fbHeight);
 			drawRc.left = -(xfbWidth / (float)fbWidth);
 			drawRc.right = (xfbWidth / (float)fbWidth);
-
+			
 
 			if (!g_ActiveConfig.bAutoScale)
 			{
@@ -1117,7 +1118,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 			drawRc.right = 1;
 		}
 
-		D3D::drawShadedTexSubQuad(xfbSource->texture,&sourceRc,xfbSource->texWidth,xfbSource->texHeight,&drawRc,PixelShaderCache::GetColorCopyProgram(0),VertexShaderCache::GetSimpleVertexShader());
+		D3D::drawShadedTexSubQuad(xfbSource->texture,&sourceRc,xfbSource->texWidth,xfbSource->texHeight,&drawRc,Width,Height,PixelShaderCache::GetColorCopyProgram(0),VertexShaderCache::GetSimpleVertexShader());
 	}
 
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);

@@ -582,6 +582,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		&sourcerect, 
 		Renderer::GetFullTargetWidth() , 
 		Renderer::GetFullTargetHeight(),
+		Scaledtex_w,
+		Scaledtex_h,
 		((bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8) && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(SSAAMode): PixelShaderCache::GetColorMatrixProgram(SSAAMode),
 		(SSAAMode != 0)? VertexShaderCache::GetFSAAVertexShader() : VertexShaderCache::GetSimpleVertexShader());			
 	
