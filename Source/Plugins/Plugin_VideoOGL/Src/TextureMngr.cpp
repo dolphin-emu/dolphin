@@ -133,9 +133,9 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode,TexMode1 &
                 mode.min_filter += 4; // take equivalent forced linear
             int filt = newmode.min_filter;            
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & (((newmode1.max_lod >> 4) > 0)?7:4)]);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod >> 4);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod >> 4);
-			//glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (newmode.lod_bias/2.0f));
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod >> 5);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod >> 5);
+			glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (newmode.lod_bias/32.0f));
 
         }
         else
@@ -460,7 +460,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			{
 				if(UseNativeMips)
 				{				
-					gluBuild2DMipmaps(target, gl_iformat, width, height, gl_format, gl_type, temp);
+					glTexImage2D(target, 0, gl_iformat, width, height, 0, gl_format, gl_type, temp);
 				}
 				else
 				{
@@ -509,9 +509,14 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			{
 				if (expandedWidth != (int)currentWidth)
 					glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);
-				
-				glTexSubImage2D(target, level,0,0,currentWidth, currentHeight, gl_format, gl_type, temp);								
-				
+				if(skip_texture_create)
+				{
+					glTexSubImage2D(target, level,0,0,currentWidth, currentWidth, gl_format, gl_type, temp);
+				}
+				else
+				{
+					glTexImage2D(target, level, gl_iformat, currentWidth, currentHeight, 0, gl_format, gl_type, temp);									
+				}
 				if (expandedWidth != (int)currentWidth)
 					glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 			}
