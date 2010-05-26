@@ -266,10 +266,6 @@ void VertexLoader::CompileVertexTranslator()
 	if (m_VtxDesc.Tex7MatIdx) {m_VertexSize += 1; m_NativeFmt->m_components |= VB_HAS_TEXMTXIDX7; WriteCall(TexMtx_ReadDirect_UByte); }
 
 	// Write vertex position loader
-	_assert_msg_(VIDEO, DIRECT <= m_VtxDesc.Position && m_VtxDesc.Position <= INDEX16, "Invalid vertex position!\n(m_VtxDesc.Position = %d)", m_VtxDesc.Position);
-	_assert_msg_(VIDEO, FORMAT_UBYTE <= m_VtxAttr.PosFormat && m_VtxAttr.PosFormat <= FORMAT_FLOAT, "Invalid vertex position format!\n(m_VtxAttr.PosFormat = %d)", m_VtxAttr.PosFormat);
-	_assert_msg_(VIDEO, 0 <= m_VtxAttr.PosElements && m_VtxAttr.PosElements <= 1, "Invalid number of vertex position elemnts!\n(m_VtxAttr.PosElements = %d)", m_VtxAttr.PosElements);
-
 	WriteCall(VertexLoader_Position::GetFunction(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements));
 	m_VertexSize += VertexLoader_Position::GetSize(m_VtxDesc.Position, m_VtxAttr.PosFormat, m_VtxAttr.PosElements);
 	nat_offset += 12;

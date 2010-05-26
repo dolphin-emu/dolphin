@@ -150,10 +150,6 @@ void VertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
     }
 
 	// Write vertex position loader
-	_assert_msg_(VIDEO, DIRECT <= g_VtxDesc.Position && g_VtxDesc.Position <= INDEX16, "Invalid vertex position!\n(m_VtxDesc.Position = %d)", g_VtxDesc.Position);
-	_assert_msg_(VIDEO, FORMAT_UBYTE <= m_CurrentVat->g0.PosFormat && m_CurrentVat->g0.PosFormat <= FORMAT_FLOAT, "Invalid vertex position format!\n(m_VtxAttr.PosFormat = %d)", m_CurrentVat->g0.PosFormat);
-	_assert_msg_(VIDEO, 0 <= m_CurrentVat->g0.PosElements && m_CurrentVat->g0.PosElements <= 1, "Invalid number of vertex position elemnts!\n(m_VtxAttr.PosElements = %d)", m_CurrentVat->g0.PosElements);
-
 	m_positionLoader = VertexLoader_Position::GetFunction(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements);
 	m_VertexSize += VertexLoader_Position::GetSize(g_VtxDesc.Position, m_CurrentVat->g0.PosFormat, m_CurrentVat->g0.PosElements);
 	AddAttributeLoader(LoadPosition);
