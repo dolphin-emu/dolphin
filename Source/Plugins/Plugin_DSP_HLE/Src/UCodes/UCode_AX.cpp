@@ -70,7 +70,7 @@ static void ProcessUpdates(AXPB &PB)
 		const u16 upddata = Memory_Read_U16(updaddr + j*4 + 2);
 		// some safety checks, I hope it's enough
 		if (updaddr > 0x80000000 && updaddr < 0x817fffff
-			&& updpar < 63 && updpar > 3 && upddata >= 0 // updpar > 3 because we don't want to change
+			&& updpar < 63 && updpar > 3 // updpar > 3 because we don't want to change
 			// 0-3, those are important
 			//&& (upd0 || upd1 || upd2 || upd3 || upd4) // We should use these in some way to I think
 			// but I don't know how or when
