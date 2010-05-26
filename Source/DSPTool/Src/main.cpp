@@ -352,10 +352,9 @@ int main(int argc, const char *argv[])
 							last_reg = (u8)(reg_vector.at(step*32-32+reg) + htemp);
 							break;
 						case 0x17: //DSP_REG_PRODM2
+						default:
 							current_reg = 0;
 							last_reg = 0;
-							break;
-						default:
 							break;
 					}
 				}
