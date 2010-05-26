@@ -52,7 +52,7 @@ bool cocoaKeyCode(NSEvent *event)
 	bool Return = false;
 	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 
-	NSConnection *connec = [NSConnection defaultConnection];
+	NSConnection *connec = [[NSConnection new] autorelease];
 
 	[connec setRootObject: event];
 	if ([connec registerName: @"DolphinCocoaEvent"] == NO)
@@ -62,8 +62,7 @@ bool cocoaKeyCode(NSEvent *event)
 	
 	if( [event type] != NSFlagsChanged )
 	{
-		NSString *NewString = [event characters];
-		char *Keys = [NewString UTF8String];
+		const char *Keys = [[event characters] UTF8String];
 
 		if( Keys[0] == 'q' && [event type] == NSKeyDown )
 			QDown = true;
