@@ -181,13 +181,13 @@ void TiltByGamepad(STiltData &_TiltData, int Type)
 // Tilting by keyboard
 void TiltByKeyboard(STiltData &_TiltData, int Type)
 {
+#if defined(HAVE_WX) && HAVE_WX
 	int _ROLL_LEFT_ = (Type) ? ENC_ROLL_L : EWM_ROLL_L;
 	int _ROLL_RIGHT_ = (Type) ? ENC_ROLL_R : EWM_ROLL_R;
 	int _PITCH_UP_ = (Type) ? ENC_PITCH_U : EWM_PITCH_U;
 	int _PITCH_DOWN_ = (Type) ? ENC_PITCH_D : EWM_PITCH_D;
 
 	// Do roll/pitch or free swing
-#if defined(HAVE_WX) && HAVE_WX
 
 	if (IsKey(_ROLL_LEFT_))
 	{
