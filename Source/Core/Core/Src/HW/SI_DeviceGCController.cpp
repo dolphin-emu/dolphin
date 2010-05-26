@@ -133,9 +133,9 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 
 	u32 netValues[2] = {0};
 	int NetPlay = 2;
-	#if defined(HAVE_WX) && HAVE_WX
+#if defined(HAVE_WX) && HAVE_WX
 	NetPlay = NetPlay_GetInput(ISIDevice::m_iDeviceNumber, PadStatus, netValues);
-	#endif
+#endif
 
 	if (NetPlay != 2)
 	{
@@ -272,8 +272,12 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 			unsigned int uType = command.Parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
 			unsigned int uStrength = command.Parameter2;
 
+#if defined(HAVE_WX) && HAVE_WX
 			// get the correct pad number that should rumble locally when using netplay
 			const u8 numPAD = NetPlay_GetPadNum(ISIDevice::m_iDeviceNumber);
+#else
+			const u8 numPAD = 0;
+#endif
 
 			if (numPAD < 4)
 				if (pad->PAD_Rumble)
