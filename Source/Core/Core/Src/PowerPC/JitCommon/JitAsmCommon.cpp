@@ -206,12 +206,14 @@ static const float GC_ALIGNED16(m_m128) = -128.0f;
 // I don't know whether the overflow actually happens in any games
 // but it potentially can cause problems, so we need some clamping
 
+#ifdef _M_X64
 // TODO(ector): Improve 64-bit version
 static void WriteDual32(u64 value, u32 address)
 {
 	Memory::Write_U32((u32)(value >> 32), address);
 	Memory::Write_U32((u32)value, address + 4);
 }
+#endif
 
 // See comment in header for in/outs.
 void CommonAsmRoutines::GenQuantizedStores() {
