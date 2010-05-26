@@ -99,12 +99,6 @@ enum LOG_LEVELS {
 #endif // loglevel
 #endif // logging
 
-#define ERROR_LOG(...) {}
-#define WARN_LOG(...) {}
-#define NOTICE_LOG(...) {}
-#define INFO_LOG(...) {}
-#define DEBUG_LOG(...) {}
-
 void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
 				const char *file, int line, const char *fmt, ...);
 
@@ -116,29 +110,11 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 #define GENERIC_LOG(t, v, ...) {if (v <= MAX_LOGLEVEL) {GenericLog(v, t, __FILE__, __LINE__, __VA_ARGS__);}}
 #endif
 
-#if MAX_LOGLEVEL >= ERROR_LEVEL
-#undef ERROR_LOG
-#define ERROR_LOG(t,...) {GENERIC_LOG(LogTypes::t, LogTypes::LERROR, __VA_ARGS__)}
-#endif // loglevel ERROR+
-
-#if MAX_LOGLEVEL >= WARNING_LEVEL
-#undef WARN_LOG
-#define WARN_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LWARNING, __VA_ARGS__)}
-#endif // loglevel WARNING+
-
-#if MAX_LOGLEVEL >= NOTICE_LEVEL
-#undef NOTICE_LOG
-#define NOTICE_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LNOTICE, __VA_ARGS__)}
-#endif // loglevel NOTICE+
-#if MAX_LOGLEVEL >= INFO_LEVEL
-#undef INFO_LOG
-#define INFO_LOG(t,...)  {GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__)}
-#endif // loglevel INFO+
-
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
-#undef DEBUG_LOG
-#define DEBUG_LOG(t,...) {GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__)}
-#endif // loglevel DEBUG+
+#define ERROR_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LERROR, __VA_ARGS__) }
+#define WARN_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LWARNING, __VA_ARGS__) }
+#define NOTICE_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LNOTICE, __VA_ARGS__) }
+#define INFO_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LINFO, __VA_ARGS__) }
+#define DEBUG_LOG(t,...) { GENERIC_LOG(LogTypes::t, LogTypes::LDEBUG, __VA_ARGS__) }
 
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
 #define _dbg_assert_(_t_, _a_) \

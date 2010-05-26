@@ -494,7 +494,9 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 		{
 			if (m_WiiMotes[i].IsConnected() == 3 && m_FreqDividerMote == 150 / (i + 1))
 			{
+#if defined(HAVE_WX) && HAVE_WX
 				NetPlay_WiimoteUpdate(i);
+#endif
 				CPluginManager::GetInstance().GetWiimote(0)->Wiimote_Update(i);
 				return true;
 			}
@@ -675,14 +677,12 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventConnectionComplete(const bdad
 
 	AddEventToQueue(Event);
 
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	static char s_szLinkType[][128] =
 	{
 		{ "HCI_LINK_SCO		0x00 - Voice"},
 		{ "HCI_LINK_ACL		0x01 - Data"},
 		{ "HCI_LINK_eSCO	0x02 - eSCO"},
 	};
-#endif
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Event: SendEventConnectionComplete");
 	INFO_LOG(WII_IPC_WIIMOTE, "  Connection_Handle: 0x%04x", pConnectionComplete->Connection_Handle);
@@ -711,7 +711,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventRequestConnection(CWII_IPC_HL
 	pEventRequestConnection->LinkType = HCI_LINK_ACL;
 
 	// Log
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
+#if 0
 	static char LinkType[][128] =
 	{
 		{ "HCI_LINK_SCO		0x00 - Voice"},
@@ -1037,9 +1037,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305::SendEventLinkKeyNotification(const CWI
 		pEventLinkKey->bdaddr.b[0], pEventLinkKey->bdaddr.b[1], pEventLinkKey->bdaddr.b[2],
 		pEventLinkKey->bdaddr.b[3], pEventLinkKey->bdaddr.b[4], pEventLinkKey->bdaddr.b[5]);
 
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	LOG_LinkKey(pEventLinkKey->LinkKey);
-#endif
 
 	return true;
 };
@@ -1427,13 +1425,11 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandAcceptCon(u8* _Input)
 		m_LastCmd = 0;
 	}
 
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	static char s_szRole[][128] =
 	{
 		{ "Master (0x00)"},
 		{ "Slave (0x01)"},
 	};
-#endif
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_ACCEPT_CON");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x",
@@ -1741,10 +1737,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLocalName(u8* _Input)
 // But not from homebrew games that use lwbt. Why not?
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageTimeOut(u8* _Input)
 {
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	// command parameters
 	hci_write_page_timeout_cp* pWritePageTimeOut = (hci_write_page_timeout_cp*)_Input;
-#endif
 
 	// reply
 	hci_host_buffer_size_rp Reply;
@@ -1767,7 +1761,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 	hci_write_scan_enable_rp Reply;
 	Reply.status = 0x00;
 
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	static char Scanning[][128] =
 	{
 		{ "HCI_NO_SCAN_ENABLE"},
@@ -1775,7 +1768,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteScanEnable(u8* _Input)
 		{ "HCI_PAGE_SCAN_ENABLE"},
 		{ "HCI_INQUIRY_AND_PAGE_SCAN_ENABLE"},
 	};
-#endif
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_SCAN_ENABLE: (0x%02x)", pWriteScanEnable->scan_enable);
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  scan_enable: %s", Scanning[pWriteScanEnable->scan_enable]);
@@ -1848,10 +1840,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteLinkSupervisionTimeout(u8*
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryScanType(u8* _Input)
 {
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	// command parameters
 	hci_write_inquiry_scan_type_cp* pSetEventFilter = (hci_write_inquiry_scan_type_cp*)_Input;
-#endif
+
 	// reply
 	hci_write_inquiry_scan_type_rp Reply;
 	Reply.status = 0x00;
@@ -1864,23 +1855,19 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryScanType(u8* _Input
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryMode(u8* _Input)
 {
-#if MAX_LOGLEVEL >= 4
 	// command parameters
 	hci_write_inquiry_mode_cp* pInquiryMode = (hci_write_inquiry_mode_cp*)_Input;
-#endif
 
 	// reply
 	hci_write_inquiry_mode_rp Reply;
 	Reply.status = 0x00;
 
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	static char InquiryMode[][128] =
 	{
 		{ "Standard Inquiry Result event format (default)" },
 		{ "Inquiry Result format with RSSI" },
 		{ "Inquiry Result with RSSI format or Extended Inquiry Result format" }
 	};
-#endif
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_INQUIRY_MODE:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  mode: %s", InquiryMode[pInquiryMode->mode]);
 
@@ -1889,22 +1876,18 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWriteInquiryMode(u8* _Input)
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::CommandWritePageScanType(u8* _Input)
 {
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	// command parameters
 	hci_write_page_scan_type_cp* pWritePageScanType = (hci_write_page_scan_type_cp*)_Input;
-#endif
 
 	// reply
 	hci_write_page_scan_type_rp Reply;
 	Reply.status = 0x00;
 
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	static char PageScanType[][128] =
 	{
 		{ "Mandatory: Standard Scan (default)" },
 		{ "Optional: Interlaced Scan" }
 	};
-#endif
 
 	INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_WRITE_PAGE_SCAN_TYPE:");
 	DEBUG_LOG(WII_IPC_WIIMOTE, "  type: %s", PageScanType[pWritePageScanType->type]);

@@ -575,8 +575,10 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 			str = wxGetTextFromUser(_(""), wxT("Op?"), wxEmptyString, this);
 			for (u32 addr = 0x80000000; addr < 0x80100000; addr += 4) {
 				const char *name = PPCTables::GetInstructionName(Memory::ReadUnchecked_U32(addr));
-				if (name && !strcmp((const char *)str.mb_str(), name))
-					NOTICE_LOG(POWERPC, "Found %s at %08x", str.c_str(), addr);
+				if (name && !strcmp((const char *)str.mb_str(), name)) {
+					std::string mb_str(str.mb_str());
+					NOTICE_LOG(POWERPC, "Found %s at %08x", mb_str.c_str(), addr);
+				}
 			}
 			break;
 		}

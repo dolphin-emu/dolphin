@@ -206,7 +206,6 @@ void UpdateException()
 		PowerPC::ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 }
 
-#if MAX_LOGLEVEL >= DEBUG_LEVEL
 static const char *Debug_GetInterruptName(u32 _causemask)
 {
 	switch (_causemask)
@@ -230,7 +229,6 @@ static const char *Debug_GetInterruptName(u32 _causemask)
 	default:						return "!!! ERROR-unknown Interrupt !!!";
 	}
 }
-#endif
 
 void SetInterrupt(u32 _causemask, bool _bSet)
 {

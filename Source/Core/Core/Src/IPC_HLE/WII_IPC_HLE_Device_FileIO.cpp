@@ -210,12 +210,14 @@ bool CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 
 	INFO_LOG(WII_IPC_FILEIO, "FileIO: Write 0x%04x bytes from 0x%08x to %s", Size, Address, m_Name.c_str());
 
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	if (m_pFileHandle)
 	{
 		size_t Result = fwrite(Memory::GetPointer(Address), Size, 1, m_pFileHandle);
         _dbg_assert_msg_(WII_IPC_FILEIO, Result == 1, "fwrite failed");   
         ReturnValue = Size;
 	}
+#endif
 
     Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
     return true;
