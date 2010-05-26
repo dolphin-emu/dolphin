@@ -538,6 +538,9 @@ void CCodeWindow::OnToggleDLLWindow(int Id, bool _Show, int i)
 			PLUGINTYPE = PLUGIN_TYPE_VIDEO;
 			Title = wxT("Video");
 			break;
+		default:
+			PanicAlert("CCodeWindow::OnToggleDLLWindow");
+			return;
 	}
 
 	if (_Show)

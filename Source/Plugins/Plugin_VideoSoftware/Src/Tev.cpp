@@ -516,6 +516,9 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
             indcoord[2] = (indmap[GRN_C] & 0x07) + bias[2];
             AlphaBump = AlphaBump & 0xf8;
             break;
+        default:
+            PanicAlert("Tev::Indirect");
+            return;
     }
 
     s64 indtevtrans[2] = { 0,0 };
@@ -547,6 +550,8 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
                 indtevtrans[0] = s * indcoord[1];
                 indtevtrans[1] = t * indcoord[1];
                 break;
+            default:
+                return;
         }
 
 		indtevtrans[0] = shift >= 0 ? indtevtrans[0] >> shift : indtevtrans[0] << -shift;

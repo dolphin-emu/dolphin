@@ -259,6 +259,9 @@ void LightColor(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
             float cosAtt = max(0.0f, light->cosatt * ldir);
             float distAtt = light->distatt * ldir;
             attn = SafeDivide(max(0.0f, cosAtt), distAtt);
+        } else {
+            PanicAlert("LightColor");
+            return;
         }
 
         switch (chan.diffusefunc) {
@@ -324,7 +327,7 @@ void LightAlpha(const Vec3 &pos, const Vec3 &normal, u8 lightNum, const LitChann
             float distAtt = light->distatt.x + (light->distatt.y * dist) + (light->distatt.z * dist2);
             attn = SafeDivide(max(0.0f, cosAtt), distAtt);
         }
-        else if (chan.attnfunc == 1) { // specular
+        else /* if (chan.attnfunc == 1) */ { // specular
             // donko - what is going on here?  655.36 is a guess but seems about right.
             attn = (light->pos * normal) > -655.36 ? max(0.0f, (light->dir * normal)) : 0;
             ldir.set(1.0f, attn, attn * attn);
