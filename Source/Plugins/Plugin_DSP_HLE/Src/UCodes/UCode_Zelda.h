@@ -130,7 +130,7 @@ union ZeldaUnkPB
 
 namespace {
     // If this miscompiles, adjust the size of ZeldaVoicePB to 0x180 bytes (0xc0 shorts).
-    CompileTimeAssert<sizeof(ZeldaVoicePB) == 0x180> ensure_zpb_size_correct;
+    CompileTimeAssert<sizeof(ZeldaVoicePB) == 0x180> volatile ensure_zpb_size_correct;
 }  // namespace
 
 class CUCode_Zelda : public IUCode

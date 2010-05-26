@@ -94,7 +94,7 @@
 		#ifndef _SECURE_SCL
 			#error Please define _SECURE_SCL=0 in the project settings
 		#else
-			CompileTimeAssert<_SECURE_SCL==0> EnsureNoSecureSCL;
+			CompileTimeAssert<_SECURE_SCL==0> volatile EnsureNoSecureSCL;
 		#endif
 	}
 
