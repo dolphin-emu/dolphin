@@ -96,7 +96,7 @@ int Keyboard::GetId() const
 
 Keyboard::Key::Key(IOHIDElementRef element)
 	: m_element(element)
-	, m_name("RESERVED") // for some reason HID Manager gives these to us. bad_alloc!
+	, m_name("RESERVED") // for some reason HID Manager gives these to us.
 {
 	uint32_t keycode = IOHIDElementGetUsage(m_element);
 	for (uint32_t i = 0; i < sizeof(named_keys)/sizeof(*named_keys); i++)
@@ -107,7 +107,7 @@ Keyboard::Key::Key(IOHIDElementRef element)
 			return;
 		}
 	}
-	throw std::bad_alloc();
+	NSLog(@"Got key 0x%x of type RESERVED", IOHIDElementGetUsage(m_element));      
 }
 
 ControlState Keyboard::Key::GetState(IOHIDDeviceRef device)
