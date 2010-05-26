@@ -63,7 +63,7 @@ void SaveTexture(const char* filename, u32 texmap, s32 mip)
     
     GetTextureBGRA(data, texmap, mip, width, height);
 
-    bool result = SaveTGA(filename, width, height, data);
+    (void)SaveTGA(filename, width, height, data);
 
     delete []data;
 }
@@ -143,7 +143,7 @@ void DumpEfb(const char* filename)
             *(writePtr++) = sample[3];
         }
 
-    SaveTGA(filename, EFB_WIDTH, EFB_HEIGHT, data);
+    (void)SaveTGA(filename, EFB_WIDTH, EFB_HEIGHT, data);
 
     delete []data;
 }
@@ -163,7 +163,7 @@ void DumpDepth(const char* filename)
             *(writePtr++) = 255;
         }
 
-    SaveTGA(filename, EFB_WIDTH, EFB_HEIGHT, data);
+    (void)SaveTGA(filename, EFB_WIDTH, EFB_HEIGHT, data);
 
     delete []data;
 }
@@ -208,7 +208,7 @@ void OnObjectEnd()
             if (DrawnToBuffer[i])
             {
                 DrawnToBuffer[i] = false;
-                SaveTGA(StringFromFormat("%sobject%i_%s(%i).tga", File::GetUserPath(D_DUMPFRAMES_IDX),
+                (void)SaveTGA(StringFromFormat("%sobject%i_%s(%i).tga", File::GetUserPath(D_DUMPFRAMES_IDX),
                     stats.thisFrame.numDrawnObjects, ObjectBufferName[i], i).c_str(), EFB_WIDTH, EFB_HEIGHT, ObjectBuffer[i]);
                 memset(ObjectBuffer[i], 0, sizeof(ObjectBuffer[i]));
             }
