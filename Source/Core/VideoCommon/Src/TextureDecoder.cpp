@@ -510,6 +510,7 @@ void decodeDXTBlock(u32 *dst, const DXTBlock *src, int pitch)
     }
 }
 
+#if 0   // TODO - currently does not handle transparency correctly and causes problems when texture dimensions are not multiples of 8
 static void copyDXTBlock(u8* dst, const u8* src)
 {
 	((u16*)dst)[0] = Common::swap16(((u16*)src)[0]);
@@ -522,6 +523,7 @@ static void copyDXTBlock(u8* dst, const u8* src)
 	pixels = ((pixels >> 2) & 0x33333333) | ((pixels << 2) & 0xCCCCCCCC);
 	((u32*)dst)[1] = pixels;
 }
+#endif
 
 static PC_TexFormat GetPCFormatFromTLUTFormat(int tlutfmt)
 {
