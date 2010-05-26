@@ -98,7 +98,9 @@ static bool s_bHaveCoverageMSAA = false;
 static u32 s_blendMode;
 
 static volatile bool s_bScreenshot = false;
+#if defined(HAVE_WX) && HAVE_WX
 static Common::Thread *scrshotThread = 0;
+#endif
 static Common::CriticalSection s_criticalScreenshot;
 static std::string s_sScreenshotName;
 
@@ -114,17 +116,14 @@ static int m_FrameBufferHeight;
 
 static GLuint s_tempScreenshotFramebuffer = 0;
 
-static int s_XFB_width;
-static int s_XFB_height;
+static unsigned int s_XFB_width;
+static unsigned int s_XFB_height;
 
 static float xScale;
 static float yScale;
 
 static int EFBxScale;
 static int EFByScale;
-
-static int s_recordWidth;
-static int s_recordHeight;
 
 static bool s_skipSwap = false;
 
