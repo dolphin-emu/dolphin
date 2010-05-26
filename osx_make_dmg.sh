@@ -30,7 +30,7 @@ fix_shared_object_depends() {
 		done
 	done
 
-	# wxw shoves all the paths into one string…so the looping is really just for dealing with wxw crap…
+	# wxw shoves all the paths into one string, so the looping is really just for dealing with wxw crap
 	orig_paths=(`otool -L  $temp_dir/Dolphin.app/Contents/MacOS/Dolphin | grep ${search_string} | awk '{print $1}'`)
 	
 	for orig_path in ${orig_paths[@]}; do
@@ -51,6 +51,7 @@ cp -r Darwin-i386/Dolphin.app $temp_dir
 fix_shared_object_depends libwx
 fix_shared_object_depends libSDL
 fix_shared_object_depends libGLEW
+fix_shared_object_depends libz
 
 mkdir -p $temp_dir/Dolphin.app/Contents/Library/Frameworks/Cg.framework
 cp /Library/Frameworks/Cg.framework/Cg $temp_dir/Dolphin.app/Contents/Library/Frameworks/Cg.framework/Cg

@@ -41,6 +41,6 @@ libs = [
     'm',
 ]
 
-env_wiiuse.StaticLibrary(env['libs_dir']+"wiiuse", files, LIBS=libs)
+env_wiiuse.StaticLibrary(env['local_libs'] + "wiiuse", files, LIBS=libs)
 
 env['HAVE_WIIUSE'] = 1

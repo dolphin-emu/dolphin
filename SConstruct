@@ -25,14 +25,11 @@ warnings = [
     'pointer-arith',
     'packed',
     'no-conversion',
-#	'no-unused-result',  (need a newer gcc for this?)
     ]
 compileFlags = [
     '-fno-exceptions',
     '-fno-strict-aliasing',
     '-msse2',
-#    '-fomit-frame-pointer',
-#    '-flto',
     ]
 
 cppDefines = [
@@ -125,10 +122,6 @@ vars.AddVariables(
                  allowed_values = ('release', 'devel', 'debug', 'fastlog', 'prof'),
                  ignorecase = 2
                  ),
-    EnumVariable('osx', 'Choose a backend (WIP)', '32cocoa',
-                 allowed_values = ('32x11', '32cocoa', '64cocoa', 'universal'),
-                 ignorecase = 2
-                 ),
     PathVariable('wxconfig', 'Path to the wxconfig', None),
     EnumVariable('pgo', 'Profile-Guided Optimization (generate or use)', 'none',
                 allowed_values = ('none', 'generate', 'use'),
@@ -207,9 +200,11 @@ elif (flavour == 'prof'):
 elif (flavour == 'release'):
     compileFlags.append('-O3')
     compileFlags.append('-fomit-frame-pointer');
+# XXX please test -Werror builds on Linux and Windows and remove this condition
+if sys.platform == 'darwin':
+    warnings.append('error')
 # more warnings
 if env['lint']:
-    warnings.append('error')
     warnings.append('unreachable-code')
     warnings.append('float-equal')
 
@@ -245,8 +240,8 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
 #object files
 env['build_dir'] = os.path.join(basedir, 'Build', platform.system() + '-' + platform.machine() + '-' + env['flavor'] + os.sep)
 
-
-VariantDir(env['build_dir'], '.', duplicate=0)
+# Static libs go here
+env['local_libs'] = env['build_dir'] + os.sep + 'libs' + os.sep
 
 # Where do we run from
 env['base_dir'] = os.getcwd()+ '/'
@@ -262,28 +257,18 @@ elif flavour == 'prof':
 if (env['install'] == 'global'):
     env['prefix'] = os.path.join(env['prefix'] + os.sep)
     env['binary_dir'] = env['prefix'] + 'bin/'
-    env['libs_dir'] = env['prefix'] + 'lib/'
     env['plugin_dir'] = env['prefix'] + 'lib/dolphin-emu/' 
     env['data_dir'] = env['prefix'] + "share/dolphin-emu/"
 else:
     env['prefix'] = os.path.join(env['base_dir'] + 'Binary', platform.system() + '-' + platform.machine() + extra + os.sep)
     env['binary_dir'] = env['prefix']
-    if sys.platform == 'darwin':
-        env['plugin_dir'] = env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
-        env['data_dir'] = env['prefix'] + 'Dolphin.app/Contents/'
-        env['libs_dir'] = env['prefix'] + 'Libs/'
-    else:
-        env['plugin_dir'] = env['prefix'] + 'plugins/' 
-        env['data_dir'] = env['prefix']
-        env['libs_dir'] = env['prefix'] + 'lib/'
+    env['plugin_dir'] = env['prefix'] + 'plugins/' 
+    env['data_dir'] = env['prefix']
+if sys.platform == 'darwin':
+    env['plugin_dir'] = env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
+    env['data_dir'] = env['prefix'] + 'Dolphin.app/Contents/'
 
-env['RPATH'].append(env['libs_dir'])
-
-# static libs goes here
-env['local_libs'] =  env['build_dir'] + os.sep + 'libs' + os.sep
-
-env['LIBPATH'].append(env['local_libs']) 
-env['LIBPATH'].append(env['libs_dir']) 
+env['LIBPATH'].append(env['local_libs'])
 
 conf = env.Configure(custom_tests = tests, 
                      config_h="Source/Core/Common/Src/Config.h")
@@ -360,23 +345,18 @@ if not env['SHARED_SFML']:
     env['CPPPATH'] += [ basedir + 'Externals/SFML/include' ]
     dirs += ['Externals/SFML/src']
 
-#osx 64 specifics
+#osx specifics
 if sys.platform == 'darwin':
+    compileFlags.append('-mmacosx-version-min=10.5')
+    env['HAVE_COCOA'] = 1
     env['HAVE_XRANDR'] = 0
-    if env['osx'] == '64cocoa':
-        compileFlags += ['-arch' , 'x86_64', '-m64' ]
-        env['LINKFLAGS'] += ['-arch' , 'x86_64', '-m64' ]
-        conf.Define('MAP_32BIT', 0)
-    if env['osx'] == '32cocoa':
-        compileFlags += ['-arch' , 'i386', '-m32' ]
-        env['LINKFLAGS'] += ['-arch' , 'i386', '-m32' ]
-    if env['osx'] == 'universal':
-        compileFlags += ['-arch i386', '-arch x86_64']
-        env['LINKFLAGS'] += ['-arch i386', '-arch x86_64'] 
-    if not env['osx'] == '32x11':
-        env['HAVE_X11'] = 0
-        env['HAVE_COCOA'] = 1
-
+    env['HAVE_X11'] = 0
+    env['CC'] = "gcc-4.2"
+    env['CXX'] = "g++-4.2"
+    env['CFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
+    env['CXXFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
+    env['LINKFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
+    conf.Define('MAP_32BIT', 0)
 else:
     env['HAVE_X11'] = conf.CheckPKG('x11')
     env['HAVE_XRANDR'] = env['HAVE_X11'] and conf.CheckPKG('xrandr')
@@ -398,7 +378,11 @@ if sys.platform == 'win32':
 if env['nowx']:
     env['HAVE_WX'] = 0;
 else:
-    env['HAVE_WX'] = conf.CheckWXConfig('2.8', wxmods, 0) 
+    if sys.platform == 'darwin':
+        # 2.9 is needed for 64-bit support on OS X
+        env['HAVE_WX'] = conf.CheckWXConfig('2.9', wxmods, 0) 
+    else:
+        env['HAVE_WX'] = conf.CheckWXConfig('2.8', wxmods, 0) 
 
 # check for libgtk2.0
 env['HAVE_GTK2'] = 0
@@ -434,7 +418,6 @@ conf.Define('SHARED_SFML', env['SHARED_SFML'])
 conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
 if (env['install'] == 'global'):
     conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
-    conf.Define('LIBS_DIR', "\"" + env['libs_dir'] + "\"")
 
 # lua
 env['LUA_USE_MACOSX'] = 0
@@ -466,19 +449,6 @@ conf.Finish()
 #wx windows flags
 if env['HAVE_WX']:
     wxconfig.ParseWXConfig(env)
-    #this smells like a hack, but i dont know any other way to fix this
-    #right now. ParseWXConfig calls wx-config --libs, which returns
-    #"-arch i386" on my box (and probably also tmator's).
-    #SCons.ParseConfig makes this a tuple, which is
-    # 1) a problem for utils.filterWarnings
-    # 2) a duplicate (and conflicting) set of arch specifiers
-    #this mainly affects MacOSX, since darwin builds explicitly get
-    #those set around line 280.
-    if sys.platform == 'darwin':
-	env['CCFLAGS'] = [ 
-	    f 
-	    for f in filter(lambda x:isinstance(x, basestring), env['CCFLAGS'])
-	    ]
 else:
     print "WX not found or disabled, not building GUI"
 
@@ -498,7 +468,6 @@ if env.has_key('destdir'):
     env['prefix'] = env['destdir'] + env['prefix']
     env['plugin_dir'] = env['destdir'] + env['plugin_dir']
     env['binary_dir'] = env['destdir'] + env['binary_dir']
-    env['libs_dir'] = env['destdir'] + env['libs_dir']
     env['data_dir'] = env['destdir'] + env['data_dir']
 
 # die on unknown variables
@@ -538,8 +507,5 @@ if env['bundle']:
     tar_env.Append(TARFLAGS='-j', 
                    TARCOMSTR="Creating release tarball")
 
-
 #TODO clean all bundles
-#env.Clean(all, 'dolphin-*'+ '.tar.bz2')
-
-
+#env.Clean(all, 'dolphin-*' + '.tar.bz2', 'Binary/Dolphin-r*' + '.dmg')
