@@ -146,7 +146,7 @@ u16 dsp_read_accelerator()
 			break;
 	    default:
 		    ERROR_LOG(DSPLLE, "Unknown DSP Format %x", g_dsp.ifx_regs[DSP_FORMAT]);
-		    break;
+		    val = 0;
 	}
 
 	// TODO: Take GAIN into account, whatever it is.

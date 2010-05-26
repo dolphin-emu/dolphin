@@ -293,7 +293,7 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 			PanicAlert("AUDIO_INTERFACE: Up-sampling is not implemented yet!");
 		}
 
-		int pcm_l, pcm_r;
+		int pcm_l = 0, pcm_r = 0;
 		for (unsigned int i = 0; i < _numSamples; i++)
 		{
 			if (pos == 0)

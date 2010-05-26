@@ -127,7 +127,7 @@ void fctiwx(UGeckoInstruction _inst)
 	}
 	else
 	{
-		s32 i;
+		s32 i = 0;
 		switch (FPSCR.RN)
 		{
 		case 0: // nearest
