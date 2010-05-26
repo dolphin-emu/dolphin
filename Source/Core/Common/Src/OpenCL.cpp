@@ -187,11 +187,11 @@ void Destroy()
 #endif
 }
 
-void HandleCLError(cl_int error, char* str)
+void HandleCLError(cl_int error, const char* str)
 {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 
-	char* name;
+	const char* name;
 	switch(error)
 	{
 #define CL_ERROR(x) case (x): name = #x; break
