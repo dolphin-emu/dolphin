@@ -58,8 +58,9 @@
 
 #if defined HAVE_X11 && HAVE_X11
 bool running = true;
-bool rendererHasFocus = true;
 #endif
+
+bool rendererHasFocus = true;
 
 void Host_NotifyMapLoaded(){}
 
