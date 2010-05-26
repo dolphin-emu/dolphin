@@ -39,6 +39,7 @@ namespace WiiMoteEmu
 // Settings
 accel_cal g_wm;
 nu_cal g_nu;
+mp_cal g_mp[2]; //fast[0] and slow[01]-motion
 cc_cal g_ClassicContCalibration;
 gh3_cal g_GH3Calibration;
 
@@ -417,6 +418,7 @@ void ResetVariables()
 	{
 		g_ReportingAuto[i] = false;
 		g_MotionPlusReadError[i] = 0;
+		g_MotionPlusLastWriteReg[i] = 0;
 		g_InterleavedData[i] = false;
 		g_ReportingMode[i] = 0;
 		g_ReportingChannel[i] = 0;
@@ -457,6 +459,13 @@ void InitCalibration()
 	g_nu.cal_g.x = nunchuck_calibration[0x04] - nunchuck_calibration[0x00];
 	g_nu.cal_g.y = nunchuck_calibration[0x05] - nunchuck_calibration[0x01];
 	g_nu.cal_g.z = nunchuck_calibration[0x06] - nunchuck_calibration[0x02];
+
+	g_mp[0].cal_zero.x = ((motion_plus_calibration[0x00]<<6) + (motion_plus_calibration[0x01]>>2));
+	g_mp[0].cal_zero.y = ((motion_plus_calibration[0x02]<<6) + (motion_plus_calibration[0x03]>>2));
+	g_mp[0].cal_zero.z = ((motion_plus_calibration[0x04]<<6) + (motion_plus_calibration[0x05]>>2));
+	g_mp[1].cal_zero.x = ((motion_plus_calibration[0x10]<<6) + (motion_plus_calibration[0x11]>>2));
+	g_mp[1].cal_zero.y = ((motion_plus_calibration[0x12]<<6) + (motion_plus_calibration[0x13]>>2));
+	g_mp[1].cal_zero.z = ((motion_plus_calibration[0x14]<<6) + (motion_plus_calibration[0x15]>>2));
 
 	g_nu.jx.max = nunchuck_calibration[0x08];
 	g_nu.jx.min = nunchuck_calibration[0x09];
@@ -500,25 +509,27 @@ void UpdateExtRegisterBlocks(int Slot)
 		if (WiiMapping[Slot].iExtensionConnected == EXT_NONE)
 		{	
 			memset(g_RegExt[Slot],0,sizeof(g_RegExt[0]));
-			memcpy(g_RegMotionPlus[Slot], motionplus_register, sizeof(motionplus_register));
-			memcpy(g_RegMotionPlus[Slot] + 0x20, motion_plus_calibration, sizeof(motion_plus_calibration)); //reg 32bytes 0x20-3f;
-			g_MotionPlus[Slot] = 0;
-			//memcpy(g_RegMotionPlus[Slot] + 0xfa, motionplus_id, sizeof(motionplus_id));
+			memcpy(g_RegExt[Slot], motionplus_register, sizeof(motionplus_register));
+			memcpy(g_RegExt[Slot] + 0x20, motion_plus_calibration, sizeof(motion_plus_calibration)); //reg 32bytes 0x20-3f;
+			memcpy(g_RegExt[Slot] + 0xfa, motionplus_id, sizeof(motionplus_id));
+			g_MotionPlus[Slot] = 1;
 		}
 		else if(WiiMapping[Slot].iExtensionConnected == EXT_NUNCHUK)
 		{
 			memset(g_RegMotionPlus[Slot],0,sizeof(g_RegExt[0]));
 			memcpy(g_RegMotionPlus[Slot], motionplus_register, sizeof(motionplus_register));
 			memcpy(g_RegMotionPlus[Slot] + 0x20, motion_plus_calibration, sizeof(motion_plus_calibration)); //reg 32bytes 0x20-3f;
+			memcpy(g_RegMotionPlus[Slot] + 0x40, nunchuck_calibration, sizeof(nunchuck_calibration));
+			memcpy(g_RegMotionPlus[Slot] + 0xfa, motionplusnunchuk_id, sizeof(motionplusnunchuk_id));
 			memcpy(g_RegExt[Slot] + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
 			memcpy(g_RegExt[Slot] + 0x30, nunchuck_calibration, sizeof(nunchuck_calibration));
 			memcpy(g_RegExt[Slot] + 0xfa, nunchuck_id, sizeof(nunchuck_id));
-			g_MotionPlus[Slot] = 1;
+
+			g_MotionPlus[Slot] = 0;
 		}
 		g_MotionPlusReadError[Slot] = 0;
 			
 	} else {
-
 
 		// Copy extension id and calibration to its register	
 		if(WiiMapping[Slot].iExtensionConnected == EXT_NUNCHUK)

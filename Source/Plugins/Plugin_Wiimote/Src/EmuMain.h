@@ -33,6 +33,7 @@ namespace WiiMoteEmu
 // Settings
 extern accel_cal g_wm;
 extern nu_cal g_nu;
+extern mp_cal g_mp[2];
 extern cc_cal g_ClassicContCalibration;
 extern gh3_cal g_GH3Calibration;
 

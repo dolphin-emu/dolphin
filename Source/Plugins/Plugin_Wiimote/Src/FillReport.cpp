@@ -1253,10 +1253,10 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
 void FillReportMotionPlus(wm_extension& ext, bool extension){
 
 	//sending initial control packet, this must be sent first, its some kind of verifiation, all control bits are set to 0!
-	if (g_MotionPlusReadError[g_ID]) {
-
+	if ((g_MotionPlusReadError[g_ID]) && (g_RegExt[g_ID][0xFE] == 0x05) && (!extension)) {
 		memcpy(&ext, motionpluscheck_id, sizeof(motionpluscheck_id)); 
-		g_MotionPlus[g_ID] = (extension) ? 1 : 0;
+		 
+		//g_MotionPlus[g_ID] = (extension) ? 1 : 0;
 		g_MotionPlusReadError[g_ID] = 0;	
 
 	} //nunchuk inserted
@@ -1288,18 +1288,24 @@ void FillReportMotionPlusNoExtension(wm_extension& _ext)
 {
 	wm_mp_nc_0 ext;
 	memset(&ext, 0, sizeof(wm_mp_nc_0));
-	ext.YawLeftLS = 0x00; //dummy data atm
-	ext.RollLeftLS = 0x00;
-	ext.PitchDownLS = 0x00;
-	ext.pitchfast = 0x00;
-	ext.yawfast = 0x00;
-	ext.YawLeftHI = 0x00;
-	ext.ExtCon = 0x00; // 0 (important, since we don't use a nunchuk here)
-	ext.rollfast = 0x00;
-	ext.RollLeftHI = 0x00;
-	ext.dummy = 0x00; // 0 (important)
+
+	//bookkeeping bits
+	ext.ExtCon = ((WiiMapping[g_ID].iExtensionConnected != EXT_NONE)) ? 1 : 0; //0 = no passed-through ext., 1 = ext. connected;
 	ext.mpdata = 0x01;  //1 (important, using MP+ report instead of NC report)
-	ext.PitchDownHI = 0x00;
+	ext.dummy = 0x00; // 0 (important)
+/*
+	ext.yawslow = 0x01;
+	ext.pitchslow = 0x01; 
+	ext.rollslow = 0x01;	
+
+	ext.YawLeftLS = g_mp[1].cal_zero.x; 
+	ext.RollLeftLS = g_mp[1].cal_zero.y; 
+	ext.PitchDownLS = g_mp[1].cal_zero.z;
+
+	ext.YawLeftHI = g_mp[1].cal_zero.x>>8;
+	ext.RollLeftHI =  g_mp[1].cal_zero.y>>8;
+	ext.PitchDownHI =  g_mp[1].cal_zero.z>>8;
+*/
 	memcpy(&_ext, &ext, sizeof(ext));
 
 }
@@ -1316,16 +1322,12 @@ void FillReportMotionPlusNunchukExtension(wm_extension& _ext)
 	ext.ax = g_nu.cal_zero.x;
 	ext.ay = g_nu.cal_zero.y;
 	ext.az = g_nu.cal_zero.z + g_nu.cal_g.z;
-	ext.axLS  = 0x00; 
-	ext.ayLS  = 0x00;
-	ext.azLS  = 0x00;
 
 	ext.bz = 0x01;
 	ext.bc = 0x01;
 	ext.dummy = 0; //0 (important)
 	ext.mpdata = 0; //0 NC report, interleaved data (important)
 	ext.ExtCon = 1; // must be 1 when in NC-MP+ Mode
-	
 	
 	if (IsFocus())
 	{

@@ -66,6 +66,9 @@ struct wm_accel {
 	u8 x, y, z;
 };
 
+struct mp_gyro {
+	u16 x:14, y:14, z:14;
+};
 // Four bytes for two objects. Filled with 0xFF if empty
 struct wm_ir_basic
 {
@@ -138,23 +141,23 @@ struct wm_classic_extension
 	wm_cc_5 b2; // byte 5
 };
 
-struct wm_mp_nc_0 //motionplus+nunchuk_pass-through
+struct wm_mp_nc_0 //motionplus data
 {
 	u8 YawLeftLS; //7e
 	u8 RollLeftLS; //82
 	u8 PitchDownLS; //83
-	u8 pitchfast : 1; //1
-	u8 yawfast : 1; //0
+	u8 pitchslow : 1; //1
+	u8 yawslow : 1; //0
 	u8 YawLeftHI : 6; //01 1010 /1a
 	u8 ExtCon : 1; // 1 usually
-	u8 rollfast : 1; //0
+	u8 rollslow : 1; //0
 	u8 RollLeftHI : 6; //00 1010
 	u8 dummy : 1; // 0 usually. 1 in dem fall mhh
 	u8 mpdata : 1;  //1 in this case, interleaved motion+ data
 	u8 PitchDownHI : 6;//01 1100
 }; // default for yaw/roll/pitch around 0x1F7F
 
-struct wm_mp_nc_1 //motionplus+nunchuk_pass-through
+struct wm_mp_nc_1 //nunchuk data on motion-plus pass-through
 {
 	u8 jx;
 	u8 jy;
@@ -378,6 +381,14 @@ struct nu_cal
 	nu_js jx;				//
 	nu_js jy;				//
 };
+
+struct mp_cal
+{
+	mp_gyro cal_zero;
+	mp_gyro cal_min;
+	mp_gyro cal_max;
+};
+
 struct cc_cal
 {
 	nu_js Lx;				//

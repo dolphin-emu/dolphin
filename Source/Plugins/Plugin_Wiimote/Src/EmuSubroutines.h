@@ -53,7 +53,7 @@ int WriteWmReportHdr(u8* dst, u8 wm);
 void WmSendAck(u16 _channelID, u8 _reportID);
 void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _AddressHI, int _Size);
 void SwapExtRegisters();
-void HandlingMotionPlusWrites(u8* data, u8 addressHI, u32 address);
+int HandlingMotionPlusWrites(u8* data, u8 addressHI, u32 address);
 
 void FillReportAcc(wm_accel& _acc);
 void FillReportInfo(wm_core& _core);

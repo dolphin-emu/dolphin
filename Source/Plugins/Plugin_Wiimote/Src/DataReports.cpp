@@ -239,12 +239,18 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	FillReportInfo(pReport->c);
 	FillReportAcc(pReport->a);
 	FillReportIRBasic(pReport->ir[0], pReport->ir[1]);
-	if ((WiiMapping[g_ID].bMotionPlusConnected) && (( WiiMapping[g_ID].iExtensionConnected == EXT_NUNCHUK ) || (WiiMapping[g_ID].iExtensionConnected == EXT_NONE)) )
+	if ((WiiMapping[g_ID].bMotionPlusConnected) )
 	{
 		if(WiiMapping[g_ID].iExtensionConnected == EXT_NUNCHUK)
 		{
-			FillReportMotionPlus(pReport->ext, true);
-
+			if (g_RegExt[g_ID][0xFF] == 0x05) {
+				FillReportMotionPlus(pReport->ext, true);
+			}
+			else {
+				FillReportExtension(pReport->ext);
+			}
+			DEBUG_LOG(WIIMOTE,  "Motionplus:Nunchuk data -> ext:%01x mp:%01x [ff:0x%02x]", (pReport->ext.az &0x01), (pReport->ext.bt &0x02),g_RegExt[g_ID][0xFF]);
+				
 		}
 		else if (WiiMapping[g_ID].iExtensionConnected == EXT_NONE)
 		{
