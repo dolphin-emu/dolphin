@@ -458,6 +458,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	//Analyze the block, collect all instructions it is made of (including inlining,
 	//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
 	u32 nextPC = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, code_buf, blockSize);
+#ifndef JIT_SINGLESTEP
+	(void)nextPC;
+#endif
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 

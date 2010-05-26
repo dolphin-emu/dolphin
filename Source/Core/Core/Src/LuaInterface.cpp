@@ -744,8 +744,6 @@ static void toCStringConverter(lua_State* L, int i, char*& ptr, int& remaining)
 	if(remaining <= 0)
 		return;
 
-	const char* str = ptr; // for debugging
-
 	// if there is a __tostring metamethod then call it
 	int usedMeta = luaL_callmeta(L, i, "__tostring");
 	if(usedMeta)
@@ -811,7 +809,7 @@ defcase:default: APPENDPRINT "%s:%p",luaL_typename(L,i),lua_topointer(L,i) END b
 			if(foundCycleIter != s_tableAddressStack.end())
 			{
 				if((s_tableAddressStack.end() - foundCycleIter) > 1)
-					APPENDPRINT "%s:parent^%d",luaL_typename(L,i),(s_tableAddressStack.end() - foundCycleIter) END
+					APPENDPRINT "%s:parent^%d",luaL_typename(L,i),(int)(s_tableAddressStack.end() - foundCycleIter) END
 				else
 					APPENDPRINT "%s:parent",luaL_typename(L,i) END
 			}
@@ -819,6 +817,7 @@ defcase:default: APPENDPRINT "%s:%p",luaL_typename(L,i),lua_topointer(L,i) END b
 			{
 				s_tableAddressStack.push_back(lua_topointer(L,i));
 				struct Scope { ~Scope(){ s_tableAddressStack.pop_back(); } } scope;
+				(void)scope;
 
 				APPENDPRINT "{" END
 
@@ -1712,6 +1711,7 @@ DEFINE_LUA_FUNCTION(state_save, "location[,option]")
 			g_onlyCallSavestateCallbacks = true;
 	}
 	struct Scope { ~Scope(){ g_disableStatestateWarnings = false; g_onlyCallSavestateCallbacks = false; } } scope; // needs to run even if the following code throws an exception... maybe I should have put this in a "finally" block instead, but this project seems to have something against using the "try" statement
+	(void)scope;
 
 	if(!g_onlyCallSavestateCallbacks && FailVerifyAtFrameBoundary(L, "savestate.save", 2,2))
 		return 0;
@@ -1758,6 +1758,7 @@ DEFINE_LUA_FUNCTION(state_load, "location[,option]")
 			g_onlyCallSavestateCallbacks = true;
 	}
 	struct Scope { ~Scope(){ g_disableStatestateWarnings = false; g_onlyCallSavestateCallbacks = false; } } scope; // needs to run even if the following code throws an exception... maybe I should have put this in a "finally" block instead, but this project seems to have something against using the "try" statement
+	(void)scope;
 
 	if(!g_onlyCallSavestateCallbacks && FailVerifyAtFrameBoundary(L, "savestate.load", 2,2))
 		return 0;
@@ -1852,7 +1853,8 @@ DEFINE_LUA_FUNCTION(state_loadscriptdata, "location")
 		default:
 		{
 			// TODO
-			int stateNumber = (int)luaL_checkinteger(L,1);
+			// int stateNumber = (int)luaL_checkinteger(L,1);
+
 			//Set_Current_State(stateNumber, false,false);
 			char Name [1024] = {0};
 			//Get_State_File_Name(Name); 
@@ -2178,7 +2180,6 @@ inline int getcolor_unmodified(lua_State *L, int idx, int defaultColor)
 			lua_pushnil(L); // first key
 			int keyIndex = lua_gettop(L);
 			int valueIndex = keyIndex + 1;
-			bool first = true;
 			while(lua_next(L, idx))
 			{
 				bool keyIsString = (lua_type(L, keyIndex) == LUA_TSTRING);
@@ -3501,6 +3502,7 @@ void RunLuaScriptFile(int uid, const char* filenameCStr)
 #ifdef USE_INFO_STACK
 	infoStack.insert(infoStack.begin(), &info);
 	struct Scope { ~Scope(){ infoStack.erase(infoStack.begin()); } } scope; // doing it like this makes sure that the info stack gets cleaned up even if an exception is thrown
+	(void)scope;
 #endif
 
 	info.nextFilename = filenameCStr;
@@ -3717,6 +3719,7 @@ void CallExitFunction(int uid)
 #ifdef USE_INFO_STACK
 		infoStack.insert(infoStack.begin(), &info);
 		struct Scope { ~Scope(){ infoStack.erase(infoStack.begin()); } } scope;
+		(void)scope;
 #endif
 
 		lua_settop(L, 0);
@@ -3750,7 +3753,6 @@ void CallExitFunction(int uid)
 				{
 					const char* varName = info.persistVars[i].c_str();
 					lua_getfield(L, LUA_GLOBALSINDEX, varName);
-					int type = lua_type(L,-1);
 					unsigned int varNameCRC = crc32(0, (const unsigned char*)varName, (int)strlen(varName));
 					newExitData.SaveRecordPartial(uid, varNameCRC, -1);
 					lua_pop(L,1);
@@ -3985,6 +3987,7 @@ static void CallRegisteredLuaMemHook_LuaMatch(unsigned int address, int size, un
 #ifdef USE_INFO_STACK
 				infoStack.insert(infoStack.begin(), &info);
 				struct Scope { ~Scope(){ infoStack.erase(infoStack.begin()); } } scope;
+				(void)scope;
 #endif
 				lua_settop(L, 0);
 				lua_getfield(L, LUA_REGISTRYINDEX, luaMemHookTypeStrings[hookType]);
@@ -4054,6 +4057,7 @@ void CallRegisteredLuaFunctions(LuaCallID calltype)
 #ifdef USE_INFO_STACK
 			infoStack.insert(infoStack.begin(), &info);
 			struct Scope { ~Scope(){ infoStack.erase(infoStack.begin()); } } scope;
+			(void)scope;
 #endif
 			// handle deferred GUI function calls and disabling deferring when unnecessary
 			if(calltype == LUACALL_AFTEREMULATIONGUI || calltype == LUACALL_AFTEREMULATION)
@@ -4103,6 +4107,7 @@ void CallRegisteredLuaSaveFunctions(int savestateNumber, LuaSaveData& saveData)
 #ifdef USE_INFO_STACK
 			infoStack.insert(infoStack.begin(), &info);
 			struct Scope { ~Scope(){ infoStack.erase(infoStack.begin()); } } scope;
+			(void)scope;
 #endif
 
 			lua_settop(L, 0);
@@ -4148,6 +4153,7 @@ void CallRegisteredLuaLoadFunctions(int savestateNumber, const LuaSaveData& save
 #ifdef USE_INFO_STACK
 			infoStack.insert(infoStack.begin(), &info);
 			struct Scope { ~Scope(){ infoStack.erase(infoStack.begin()); } } scope;
+			(void)scope;
 #endif
 
 			lua_settop(L, 0);
@@ -4373,6 +4379,7 @@ static void LuaStackToBinaryConverter(lua_State* L, int i, std::vector<unsigned 
 			{
 				s_tableAddressStack.push_back(lua_topointer(L,i));
 				struct Scope { ~Scope(){ s_tableAddressStack.pop_back(); } } scope;
+				(void)scope;
 
 				bool wasnil = false;
 				int nilcount = 0;
@@ -4453,7 +4460,7 @@ static void LuaStackToBinaryConverter(lua_State* L, int i, std::vector<unsigned 
 // complements LuaStackToBinaryConverter
 void BinaryToLuaStackConverter(lua_State* L, const unsigned char*& data, unsigned int& remaining)
 {
-	assert(s_dbg_dataSize - (data - s_dbg_dataStart) == remaining);
+	assert(s_dbg_dataSize - (data - s_dbg_dataStart) == (int)remaining);
 
 	unsigned char type = AdvanceByteStream<unsigned char>(data, remaining);
 

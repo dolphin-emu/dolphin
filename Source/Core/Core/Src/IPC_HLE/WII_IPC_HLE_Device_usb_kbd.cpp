@@ -46,12 +46,12 @@ bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 	//m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, NULL));
 	Memory::Write_U32(m_DeviceID, _CommandAddress+4);
 	m_Active = true;
-    return true;
+	return true;
 }
 
 bool CWII_IPC_HLE_Device_usb_kbd::Close(u32 _CommandAddress, bool _bForce)
 {
-    INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Close");
+	INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Close");
 	while (!m_MessageQueue.empty())
 		m_MessageQueue.pop();
 	if (!_bForce)
@@ -71,11 +71,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::Write(u32 _CommandAddress)
 
 bool CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
 {
-    u32 Parameter		= Memory::Read_U32(_CommandAddress + 0x0C);
-    u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
-    u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-    u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-    u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
 
 	if (SConfig::GetInstance().m_WiiKeyboard && !m_MessageQueue.empty())
 	{
@@ -83,8 +79,8 @@ bool CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
 		m_MessageQueue.pop();
 	}
 
-    Memory::Write_U32(0, _CommandAddress + 0x4);
-    return true;
+	Memory::Write_U32(0, _CommandAddress + 0x4);
+	return true;
 }
 
 bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)

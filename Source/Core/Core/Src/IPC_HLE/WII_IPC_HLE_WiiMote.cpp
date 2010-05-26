@@ -258,7 +258,11 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 			_dbg_assert_msg_(WII_IPC_WIIMOTE, DoesChannelExist(pHeader->CID), "L2CAP: SendACLPacket to unknown channel %i", pHeader->CID);
 			CChannelMap::iterator  itr= m_Channel.find(pHeader->CID);
 
+#if defined(HAVE_WX) && HAVE_WX
 			const int number = NetPlay_GetWiimoteNum(m_ConnectionHandle & 0xFF);
+#else
+			const int number = 0;
+#endif
 
 			Common::PluginWiimote* mote = CPluginManager::GetInstance().GetWiimote(0);
 			if (itr != m_Channel.end())
@@ -704,9 +708,13 @@ int ParseAttribList(u8* pAttribIDList, u16& _startID, u16& _endID)
 
 	u8 sequence		= attribList.Read8(attribOffset);		attribOffset++;
 	u8 seqSize		= attribList.Read8(attribOffset);		attribOffset++;
-	u8 typeID      = attribList.Read8(attribOffset);		attribOffset++;
+	u8 typeID      		= attribList.Read8(attribOffset);		attribOffset++;
 
+#if MAX_LOGLEVEL >= DEBUG_LEVEL
 	_dbg_assert_(WII_IPC_WIIMOTE, sequence == SDP_SEQ8);
+#else
+	(void)sequence, (void)seqSize;
+#endif
 
 	if (typeID == SDP_UINT32)
 	{
@@ -778,10 +786,8 @@ void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
 			_dbg_assert_(WII_IPC_WIIMOTE, _Size == 13);
 
 			u16 TransactionID = buffer.Read16(1);
-			u16 ParameterLength = buffer.Read16(3);
 			u8* pServiceSearchPattern = buffer.GetPointer(5);
 			u16 MaximumServiceRecordCount = buffer.Read16(10);
-			u8 ContinuationState = buffer.Read8(12);
 
 			SDPSendServiceSearchResponse(cid, TransactionID, pServiceSearchPattern, MaximumServiceRecordCount);
 		}
@@ -795,10 +801,14 @@ void CWII_IPC_HLE_WiiMote::HandleSDP(u16 cid, u8* _pData, u32 _Size)
 			u16 startAttrID, endAttrID;
 			u32 offset = 1;
 
-			u16 TransactionID = buffer.Read16(offset);					offset += 2;
-			u16 ParameterLength = buffer.Read16(offset);				offset += 2;
-			u32 ServiceHandle = buffer.Read32(offset);					offset += 4;
-			u16 MaximumAttributeByteCount = buffer.Read16(offset);		offset += 2;
+			u16 TransactionID = buffer.Read16(offset);
+			offset += 2;
+			// u16 ParameterLength = buffer.Read16(offset);
+			offset += 2;
+			u32 ServiceHandle = buffer.Read32(offset);
+			offset += 4;
+			u16 MaximumAttributeByteCount = buffer.Read16(offset);
+			offset += 2;
 			offset += ParseAttribList(buffer.GetPointer(offset), startAttrID, endAttrID);
 			u8* pContinuationState =  buffer.GetPointer(offset);
 
@@ -858,8 +868,10 @@ void CWII_IPC_HLE_WiiMote::SendCommandToACL(u8 _Ident, u8 _Code, u8 _CommandLeng
 // ---------------------------------------------------
 void CWII_IPC_HLE_WiiMote::ReceiveL2capData(u16 scid, const void* _pData, u32 _Size)
 {
+#if defined(HAVE_WX) && HAVE_WX
 	if (NetPlay_WiimoteInput(m_ConnectionHandle & 0xFF, scid, _pData, _Size))
 		return;
+#endif
 
 	// Allocate DataFrame
 	u8 DataFrame[1024];

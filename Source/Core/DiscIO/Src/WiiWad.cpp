@@ -107,7 +107,7 @@ bool WiiWAD::ParseWAD(DiscIO::IBlobReader& _rReader)
         return false;
 
     m_CertificateChainSize    = ReaderBig.Read32(0x8);
-    u32 Reserved              = ReaderBig.Read32(0xC);
+    // u32 Reserved           = ReaderBig.Read32(0xC);
     m_TicketSize              = ReaderBig.Read32(0x10);
     m_TMDSize                 = ReaderBig.Read32(0x14);
     m_DataAppSize             = ReaderBig.Read32(0x18);

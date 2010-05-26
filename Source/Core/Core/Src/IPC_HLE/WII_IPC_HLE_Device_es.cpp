@@ -207,7 +207,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETTITLECONTENTS bad out buffer");
 
 			u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-			u32 MaxSize = Memory::Read_U32(Buffer.InBuffer[1].m_Address); // unused?
 
 			const DiscIO::INANDContentLoader& rNANDCOntent = AccessContentDevice(TitleID);
 			if (rNANDCOntent.IsValid()) // Not sure if dolphin will ever fail this check
@@ -236,7 +235,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
             
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-            u8* pTicket = Memory::GetPointer(Buffer.InBuffer[1].m_Address); 
             u32 Index = Memory::Read_U32(Buffer.InBuffer[2].m_Address);
 
             u32 CFD = AccessIdentID++;
@@ -369,7 +367,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
 
-            char* pTitleID = (char*)&TitleID;
             char* Path = (char*)Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
             sprintf(Path, "/%08x/%08x/data", (u32)(TitleID >> 32), (u32)TitleID);
 
@@ -480,7 +477,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
             _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETVIEWS no out buffer");
 
             u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-            u32 Count = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
 
             std::string TicketFilename = CreateTicketFileName(TitleID);
             if (File::Exists(TicketFilename.c_str()))
@@ -552,8 +548,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x   buffersize: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
 
-            u32 Count = 0;
-            u8* p = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
             if (Loader.IsValid())
             {
                 u32 Address = Buffer.PayloadBuffer[0].m_Address;
@@ -601,7 +595,6 @@ bool CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
             INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x   buffersize: %i", (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
 
-            u32 Count = 0;
             if (Loader.IsValid())
             {
                 u32 Address = Buffer.PayloadBuffer[0].m_Address;
@@ -786,7 +779,6 @@ void CWII_IPC_HLE_Device_es::FindValidTitleIDs()
 
     sprintf(TitlePath, "%stitle", File::GetUserPath(D_WIIUSER_IDX));
     File::FSTEntry ParentEntry;
-    u32 NumEntries = ScanDirectoryTree(TitlePath, ParentEntry);  
     for(std::vector<File::FSTEntry>::iterator Level1 = ParentEntry.children.begin(); Level1 != ParentEntry.children.end(); ++Level1)
     {
         if (Level1->isDirectory)

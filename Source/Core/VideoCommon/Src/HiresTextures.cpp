@@ -37,8 +37,6 @@ std::map<std::string, std::string> textureMap;
 
 void Init(const char *gameCode)
 {
-	static bool bCheckedDir;
-
 	CFileSearch::XStringVector Directories;
 	//Directories.push_back(std::string(File::GetUserPath(D_HIRESTEXTURES_IDX)));
 	char szDir[MAX_PATH];

@@ -131,8 +131,6 @@ inline void Draw(s32 x, s32 y, s32 xi, s32 yi)
 
 	RasterBlockPixel& pixel = rasterBlock.Pixel[xi][yi];
 
-	float invW = pixel.InvW;
-
 	tev.Position[0] = x;
 	tev.Position[1] = y;
 	tev.Position[2] = z;
