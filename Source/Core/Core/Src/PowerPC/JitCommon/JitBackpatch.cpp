@@ -73,10 +73,11 @@ const u8 *TrampolineCache::GetReadTrampoline(const InstructionInfo &info)
 	if (GetSpaceLeft() < 1024)
 		PanicAlert("Trampoline cache full");
 
-	X64Reg addrReg = (X64Reg)info.scaledReg;
-	X64Reg dataReg = (X64Reg)info.regOperandReg;
 	const u8 *trampoline = GetCodePtr();
 #ifdef _M_X64
+	X64Reg addrReg = (X64Reg)info.scaledReg;
+	X64Reg dataReg = (X64Reg)info.regOperandReg;
+
 	// It's a read. Easy.
 	ABI_PushAllCallerSavedRegsAndAdjustStack();
 	if (addrReg != ABI_PARAM1)
@@ -102,7 +103,6 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 	if (GetSpaceLeft() < 1024)
 		PanicAlert("Trampoline cache full");
 
-	X64Reg addrReg = (X64Reg)info.scaledReg;
 	X64Reg dataReg = (X64Reg)info.regOperandReg;
 	if (dataReg != EAX)
 		PanicAlert("Backpatch write - not through EAX");
@@ -110,6 +110,7 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 	const u8 *trampoline = GetCodePtr();
 
 #ifdef _M_X64
+	X64Reg addrReg = (X64Reg)info.scaledReg;
 
 	// It's a write. Yay. Remember that we don't have to be super efficient since it's "just" a 
 	// hardware access - we can take shortcuts.
@@ -151,9 +152,9 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 //    that many of them in a typical program/game.
 const u8 *JitBase::BackPatch(u8 *codePtr, int accessType, u32 emAddress, void *ctx_void)
 {
+#ifdef _M_X64
 	CONTEXT *ctx = (CONTEXT *)ctx_void;
 
-#ifdef _M_X64
 	if (!jit->IsInCodeSpace(codePtr))
 		return 0;  // this will become a regular crash real soon after this
 	
