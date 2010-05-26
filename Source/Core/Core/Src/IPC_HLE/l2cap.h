@@ -206,7 +206,9 @@ struct l2cap_info_rsp {
 #define L2CAP_IR_SUCCESS    0x0000
 #define L2CAP_IR_NOTSUPP    0x0001
 
+#ifdef _MSC_VER
 #pragma warning(pop)
+#endif
 #pragma pack(pop)
 
 struct value_string
