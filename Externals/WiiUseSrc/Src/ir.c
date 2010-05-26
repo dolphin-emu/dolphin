@@ -42,7 +42,7 @@
 #include "wiiuse_internal.h"
 #include "ir.h"
 
-static int get_ir_sens(struct wiimote_t* wm, char** block1, char** block2);
+static int get_ir_sens(struct wiimote_t* wm, const char** block1, const char** block2);
 static void interpret_ir_data(struct wiimote_t* wm);
 static void fix_rotated_ir_dots(struct ir_dot_t* dot, float ang);
 static void get_ir_dot_avg(struct ir_dot_t* dot, int* x, int* y);
@@ -60,8 +60,8 @@ static void ir_convert_to_vres(int* x, int* y, enum aspect_t aspect, unsigned in
  */
 void wiiuse_set_ir(struct wiimote_t* wm, int status) {
 	byte buf;
-	char* block1 = NULL;
-	char* block2 = NULL;
+	const char* block1 = NULL;
+	const char* block2 = NULL;
 	int ir_level;
 
 	if (!wm)
@@ -155,7 +155,7 @@ void wiiuse_set_ir(struct wiimote_t* wm, int status) {
  *
  *	@return Returns the sensitivity level.
  */
-static int get_ir_sens(struct wiimote_t* wm, char** block1, char** block2) {
+static int get_ir_sens(struct wiimote_t* wm, const char** block1, const char** block2) {
 	if (WIIMOTE_IS_SET(wm, WIIMOTE_STATE_IR_SENS_LVL1)) {
 		*block1 = WM_IR_BLOCK1_LEVEL1;
 		*block2 = WM_IR_BLOCK2_LEVEL1;
@@ -270,8 +270,8 @@ void wiiuse_set_aspect_ratio(struct wiimote_t* wm, enum aspect_t aspect) {
  *	If the level is > 5, then level will be set to 5.
  */
 void wiiuse_set_ir_sensitivity(struct wiimote_t* wm, int level) {
-	char* block1 = NULL;
-	char* block2 = NULL;
+	const char* block1 = NULL;
+	const char* block2 = NULL;
 
 	if (!wm)	return;
 
