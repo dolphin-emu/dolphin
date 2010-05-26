@@ -129,7 +129,7 @@ void cocoaGLDeleteWindow(NSWindow *window)
 	[window close];
 	[pool release];
 	
-	return window;
+	return;
 }
 
 void cocoaGLSwap(NSOpenGLContext *ctx,NSWindow *window)
