@@ -711,9 +711,6 @@ void FillReportIRBasic(wm_ir_basic& _ir0, wm_ir_basic& _ir1)
 	// ------------------
 }
 /* Generate the 6 byte extension report for the motionplus&nunchuk, encrypted. The bytes
-void FillReportExtension(wm_extension& _ext)
-
-/* Generate the 6 byte extension report for the Nunchuck, encrypted. The bytes
    are JX JY AX AY AZ BT. */
 void FillReportExtension(wm_extension& _ext)
 {
