@@ -208,7 +208,6 @@ void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 		// Save the key
 		g_Pressed = event.GetKeyCode();
 		// Handle the keyboard key mapping
-		char keyStr[128] = {0};
 
 		// Allow the escape key to set a blank key
 		if (g_Pressed == WXK_ESCAPE)
@@ -236,6 +235,7 @@ void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 				}
 			}
 		#elif defined(HAVE_X11) && HAVE_X11
+			char keyStr[128] = {0};
 			int XKey = InputCommon::wxCharCodeWXToX(g_Pressed);
 			InputCommon::XKeyToString(XKey, keyStr);
 			SetButtonText(ClickedButton->GetId(),
