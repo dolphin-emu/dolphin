@@ -779,6 +779,7 @@ void CWII_IPC_HLE_Device_es::FindValidTitleIDs()
 
     sprintf(TitlePath, "%stitle", File::GetUserPath(D_WIIUSER_IDX));
     File::FSTEntry ParentEntry;
+    (void)ScanDirectoryTree(TitlePath, ParentEntry);
     for(std::vector<File::FSTEntry>::iterator Level1 = ParentEntry.children.begin(); Level1 != ParentEntry.children.end(); ++Level1)
     {
         if (Level1->isDirectory)
