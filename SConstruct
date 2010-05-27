@@ -418,6 +418,7 @@ conf.Define('SHARED_SFML', env['SHARED_SFML'])
 conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
 if (env['install'] == 'global'):
     conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
+    conf.Define('LIBS_DIR', "\"" + env['prefix'] + 'lib/' +  "\"")
 
 # lua
 env['LUA_USE_MACOSX'] = 0
