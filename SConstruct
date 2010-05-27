@@ -501,11 +501,15 @@ else:
 env.Alias('install', env['prefix'])
 
 if env['bundle']:
-    # Make tar ball (TODO put inside normal dir)
-    tar_env = env.Clone()
-    tarball = tar_env.Tar('dolphin-'+rev +'.tar.bz2', env['prefix'])
-    tar_env.Append(TARFLAGS='-j', 
-                   TARCOMSTR="Creating release tarball")
-
+    if sys.platform == 'linux2':
+        # Make tar ball (TODO put inside normal dir)
+        tar_env = env.Clone()
+        tarball = tar_env.Tar('dolphin-'+rev +'.tar.bz2', env['prefix'])
+        tar_env.Append(TARFLAGS='-j', TARCOMSTR="Creating release tarball")
+    elif sys.platform == 'darwin':
+        env.Command('.', env['binary_dir'] +
+                    'Dolphin.app/Contents/MacOS/Dolphin', './osx_make_dmg.sh')
+	
 #TODO clean all bundles
-#env.Clean(all, 'dolphin-*' + '.tar.bz2', 'Binary/Dolphin-r*' + '.dmg')
+#env.Clean(all, 'dolphin-*' + '.tar.bz2')
+#env.Clean(all, 'Binary/Dolphin-r*' + '.dmg')
