@@ -420,11 +420,6 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		newVirt.xfbSource.texHeight = m_targetHeight;
 		newVirt.xfbSource.sourceRc = ConvertEFBRectangle(sourceRc);
 
-		/* is this needed? */
-		newVirt.xfbSource.srcAddr = xfbAddr;
-		newVirt.xfbSource.srcWidth = fbWidth;
-		newVirt.xfbSource.srcHeight = fbHeight;
-
 		// Add the new Virtual XFB to the list
 
 		if ((int)m_virtualXFBList.size() >= MAX_VIRTUAL_XFB)
