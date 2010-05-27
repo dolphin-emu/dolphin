@@ -103,13 +103,13 @@ const u8 *TrampolineCache::GetWriteTrampoline(const InstructionInfo &info)
 	if (GetSpaceLeft() < 1024)
 		PanicAlert("Trampoline cache full");
 
+	const u8 *trampoline = GetCodePtr();
+
+#ifdef _M_X64
 	X64Reg dataReg = (X64Reg)info.regOperandReg;
 	if (dataReg != EAX)
 		PanicAlert("Backpatch write - not through EAX");
 
-	const u8 *trampoline = GetCodePtr();
-
-#ifdef _M_X64
 	X64Reg addrReg = (X64Reg)info.scaledReg;
 
 	// It's a write. Yay. Remember that we don't have to be super efficient since it's "just" a 
