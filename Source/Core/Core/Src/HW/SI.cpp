@@ -604,8 +604,9 @@ void RunSIBuffer()
 	else
 		outLength++;
 
-	DEBUG_LOG(SERIALINTERFACE, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength,
-			outLength, g_Channel[g_ComCSR.CHANNEL].m_pDevice->RunBuffer(g_SIBuffer, inLength));
+	int numOutput = g_Channel[g_ComCSR.CHANNEL].m_pDevice->RunBuffer(g_SIBuffer, inLength);
+
+	DEBUG_LOG(SERIALINTERFACE, "RunSIBuffer     (intLen: %i    outLen: %i) (processed: %i)", inLength, outLength, numOutput);
 
 	// Transfer completed
 	GenerateSIInterrupt(INT_TCINT);
