@@ -6,7 +6,7 @@ def filterWarnings(self, flags):
     return ' '.join(
         flag
         for flag in flags
-        if not flag.startswith('-W')
+#        if not flag.startswith('-W')
         )
 
 # taken from scons wiki
@@ -26,7 +26,7 @@ def CheckFramework(context, name):
               int main(int argc, char **argv) {
                 return 0;
               }
-              """, '.c')
+              """ + '\n', '.c')
         if not ret:
             context.env.Replace(FRAMEWORKS = lastFRAMEWORKS
 )
@@ -72,8 +72,8 @@ def CheckLib(context, name):
     ret = context.TryLink("""
               int main(int argc, char **argv) {
                 return 0;
-              }
-              """,'.c')
+              }         
+              """ + '\n','.c')
     if not ret:
         context.env.Replace(LIBS = lastLIBS)
 
@@ -130,7 +130,7 @@ def CheckPortaudio(context, version):
                 printf("%d", Pa_GetVersion());
                 return 0;
               }
-              """, '.c')[1]
+              """ + '\n', '.c')[1]
 
     if found:
         ret = (version <= found)
