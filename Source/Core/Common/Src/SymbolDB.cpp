@@ -20,7 +20,7 @@
 
 void SymbolDB::List()
 {
-	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
+	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
 	{
 		DEBUG_LOG(HLE,"%s @ %08x: %i bytes (hash %08x) : %i calls", iter->second.name.c_str(), iter->second.address, iter->second.size, iter->second.hash,iter->second.numCalls);
 	}
@@ -37,7 +37,7 @@ void SymbolDB::Clear(const char *prefix)
 void SymbolDB::Index()
 {
 	int i = 0;
-	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
+	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
 	{
 		iter->second.index = i++;
 	}
@@ -45,7 +45,7 @@ void SymbolDB::Index()
 
 Symbol *SymbolDB::GetSymbolFromName(const char *name)
 {
-	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
+	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
 	{
 		if (!strcmp(iter->second.name.c_str(), name))
 			return &iter->second;

@@ -199,15 +199,15 @@ void TextureMngr::ProgressiveCleanup()
 		{
             if (!iter->second.isRenderTarget) {
                 iter->second.Destroy(false);
-				ERASE_THROUGH_ITERATOR(textures, iter);
+				textures.erase(iter++);
             }
             else {
                 iter->second.Destroy(false);
-				ERASE_THROUGH_ITERATOR(textures, iter);
+				textures.erase(iter++);
             }
         }
         else
-            iter++;
+            ++iter;
     }
 }
 
@@ -219,7 +219,7 @@ void TextureMngr::InvalidateRange(u32 start_address, u32 size)
 		if (iter->second.IntersectsMemoryRange(start_address, size))
 		{
 			iter->second.Destroy(false);
-			ERASE_THROUGH_ITERATOR(textures, iter);
+			textures.erase(iter++);
 		}
 		else {
 			++iter;
@@ -820,6 +820,6 @@ void TextureMngr::DisableStage(int stage)
 
 void TextureMngr::ClearRenderTargets()
 {
-    for (TexCache::iterator iter = textures.begin(); iter != textures.end(); iter++)
+    for (TexCache::iterator iter = textures.begin(); iter != textures.end(); ++iter)
         iter->second.isRenderTarget = false;
 }

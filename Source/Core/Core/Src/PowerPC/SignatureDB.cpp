@@ -68,7 +68,7 @@ bool SignatureDB::Save(const char *filename)
 	}
 	int fcount = (int)database.size();
 	fwrite(&fcount, 4, 1, f);
-	for (FuncDB::const_iterator iter = database.begin(); iter != database.end(); iter++)
+	for (FuncDB::const_iterator iter = database.begin(); iter != database.end(); ++iter)
 	{
 		FuncDesc temp;
 		memset(&temp, 0, sizeof(temp));
@@ -99,7 +99,7 @@ u32 SignatureDB::Add(u32 startAddr, u32 size, const char *name)
 
 void SignatureDB::List()
 {
-	for (FuncDB::iterator iter = database.begin(); iter != database.end(); iter++)
+	for (FuncDB::iterator iter = database.begin(); iter != database.end(); ++iter)
 	{
 		INFO_LOG(HLE,"%s : %i bytes, hash = %08x",iter->second.name.c_str(), iter->second.size, iter->first);
 	}
@@ -113,7 +113,7 @@ void SignatureDB::Clear()
 
 void SignatureDB::Apply(PPCSymbolDB *symbol_db)
 {
-	for (FuncDB::const_iterator iter = database.begin(); iter != database.end(); iter++)
+	for (FuncDB::const_iterator iter = database.begin(); iter != database.end(); ++iter)
 	{
 		u32 hash = iter->first;
 		Symbol *function = symbol_db->GetSymbolFromHash(hash);
@@ -138,7 +138,7 @@ void SignatureDB::Apply(PPCSymbolDB *symbol_db)
 void SignatureDB::Initialize(PPCSymbolDB *symbol_db, const char *prefix)
 {
 	std::string prefix_str(prefix);
-	for (PPCSymbolDB::XFuncMap::const_iterator iter = symbol_db->GetConstIterator(); iter != symbol_db->End(); iter++)
+	for (PPCSymbolDB::XFuncMap::const_iterator iter = symbol_db->GetConstIterator(); iter != symbol_db->End(); ++iter)
 	{
 		if ((iter->second.name.substr(0, prefix_str.size()) == prefix_str) || prefix_str.empty())
 		{

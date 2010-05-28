@@ -160,7 +160,7 @@ void PixelShaderCache::Shutdown()
     glDeleteProgramsARB(1, &s_DepthMatrixProgram);
 	s_DepthMatrixProgram = 0;
 	PSCache::iterator iter = pshaders.begin();
-	for (; iter != pshaders.end(); iter++)
+	for (; iter != pshaders.end(); ++iter)
 		iter->second.Destroy();
 	pshaders.clear();
 }

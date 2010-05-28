@@ -72,7 +72,7 @@ void TextureCache::Init()
 
 void TextureCache::Invalidate(bool shutdown)
 {
-	for (TexCache::iterator iter = textures.begin(); iter != textures.end(); iter++)
+	for (TexCache::iterator iter = textures.begin(); iter != textures.end(); ++iter)
 		iter->second.Destroy(shutdown);
 	textures.clear();
 	HiresTextures::Shutdown();
@@ -86,7 +86,7 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 		if (iter->second.IntersectsMemoryRange(start_address, size))
 		{
 			iter->second.Destroy(false);
-			ERASE_THROUGH_ITERATOR(textures, iter);
+			textures.erase(iter++);
 		}
 		else {
 			++iter;
@@ -131,7 +131,7 @@ void TextureCache::Cleanup()
 		}
 		else
 		{
-            iter++;
+            ++iter;
         }
 	}
 }

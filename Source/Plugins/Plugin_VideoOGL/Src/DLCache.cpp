@@ -471,14 +471,10 @@ void ProgressiveCleanup()
 		int limit = iter->second.uncachable ? 1200 : 400;
 		if (entry.frame_count < frameCount - limit) {
 			// entry.Destroy();
-#ifdef _WIN32
-			iter = dl_map.erase(iter);
-#else
 			dl_map.erase(iter++);  // (this is gcc standard!)
-#endif
 		}
 		else
-			iter++;
+			++iter;
 	}
 }
 

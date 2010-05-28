@@ -70,7 +70,7 @@ namespace W32Util
 		page.hInstance = hInstance;
 
 		int i=0;
-		for (DlgList::iterator iter = list.begin(); iter != list.end(); iter++, i++)
+		for (DlgList::iterator iter = list.begin(); iter != list.end(); ++iter, ++i)
 		{
 			if (wizard)
 			{
@@ -146,7 +146,7 @@ namespace W32Util
 		PropertySheet(&sheet);
 		if (!floating)
 		{
-			for (DlgList::iterator iter = list.begin(); iter != list.end(); iter++)
+			for (DlgList::iterator iter = list.begin(); iter != list.end(); ++iter)
 			{
 				delete iter->tab;
 			}

@@ -155,7 +155,7 @@ void CPatchAddEdit::AddRemoveEntry(wxCommandEvent& event)
 			SaveEntryData(itCurEntry);
 
 			PatchEngine::PatchEntry peEmptyEntry(PatchEngine::PATCH_8BIT, 0x00000000, 0x00000000);
-			itCurEntry++;
+			++itCurEntry;
 			currentItem++;
 			itCurEntry = tempEntries.insert(itCurEntry, peEmptyEntry);
 
@@ -172,7 +172,7 @@ void CPatchAddEdit::AddRemoveEntry(wxCommandEvent& event)
 			
 			if (itCurEntry != tempEntries.begin())
 			{
-				itCurEntry--;
+				--itCurEntry;
 				currentItem--;
 			}
 			else

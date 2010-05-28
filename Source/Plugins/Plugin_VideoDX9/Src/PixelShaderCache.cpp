@@ -314,7 +314,7 @@ void PixelShaderCache::Init()
 void PixelShaderCache::Clear()
 {
 	PSCache::iterator iter = PixelShaders.begin();
-	for (; iter != PixelShaders.end(); iter++)
+	for (; iter != PixelShaders.end(); ++iter)
 		iter->second.Destroy();
 	PixelShaders.clear(); 
 

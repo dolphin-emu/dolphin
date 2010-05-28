@@ -75,7 +75,7 @@ Symbol *DSPSymbolDB::GetSymbolFromAddr(u32 addr)
 		return &it->second;
 	else
 	{
-		for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
+		for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
 		{
 			if (addr >= iter->second.address && addr < iter->second.address + iter->second.size)
 				return &iter->second;

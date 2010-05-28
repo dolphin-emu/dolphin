@@ -302,7 +302,7 @@ void FramebufferManager::replaceVirtualXFB()
 	s32 srcUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;
 	s32 lineSize = 2 * it->xfbWidth;
 
-	it++;
+	++it;
 
 	while (it != m_virtualXFBList.end())
 	{
@@ -332,7 +332,7 @@ void FramebufferManager::replaceVirtualXFB()
 			}
 		}
 
-		it++;
+		++it;
 	}
 }
 
@@ -357,7 +357,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 	if (it == m_virtualXFBList.end() && (int)m_virtualXFBList.size() >= MAX_VIRTUAL_XFB)
 	{
 		// replace the last virtual XFB
-		it--;
+		--it;
 	}
 
 	if (it != m_virtualXFBList.end())
@@ -524,11 +524,9 @@ const XFBSource** FramebufferManager::getVirtualXFBSource(u32 xfbAddr, u32 fbWid
 	u32 srcLower = xfbAddr;
 	u32 srcUpper = xfbAddr + 2 * fbWidth * fbHeight;
 
-	VirtualXFBListType::iterator it;
-	for (it = m_virtualXFBList.end(); it != m_virtualXFBList.begin();)
+	VirtualXFBListType::reverse_iterator it;
+	for (it = m_virtualXFBList.rbegin(); it != m_virtualXFBList.rend(); ++it)
 	{
-		--it;
-
 		u32 dstLower = it->xfbAddr;
 		u32 dstUpper = it->xfbAddr + 2 * it->xfbWidth * it->xfbHeight;
 

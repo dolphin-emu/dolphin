@@ -13,7 +13,7 @@ void DialogManager::AddDlg(HWND hDialog)
 bool DialogManager::IsDialogMessage(LPMSG message)
 {
 	WindowList::iterator iter;
-	for (iter=dialogs.begin(); iter!=dialogs.end(); iter++)
+	for (iter=dialogs.begin(); iter!=dialogs.end(); ++iter)
 	{
 		if (::IsDialogMessage(*iter,message))
 			return true;
@@ -24,6 +24,6 @@ bool DialogManager::IsDialogMessage(LPMSG message)
 void DialogManager::EnableAll(BOOL enable)
 {
 	WindowList::iterator iter;
-	for (iter=dialogs.begin(); iter!=dialogs.end(); iter++)
+	for (iter=dialogs.begin(); iter!=dialogs.end(); ++iter)
 		EnableWindow(*iter,enable); 
 }

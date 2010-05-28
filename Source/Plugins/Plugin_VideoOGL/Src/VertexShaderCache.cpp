@@ -116,7 +116,7 @@ void VertexShaderCache::Init()
 
 void VertexShaderCache::Shutdown()
 {
-	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); iter++)
+	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); ++iter)
 		iter->second.Destroy();
 	vshaders.clear();
 }

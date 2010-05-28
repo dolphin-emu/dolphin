@@ -357,7 +357,7 @@ CNANDContentManager::~CNANDContentManager()
 	while (itr != m_Map.end())
 	{
 		delete itr->second;
-		itr++;
+		++itr;
 	}
 	m_Map.clear();
 }

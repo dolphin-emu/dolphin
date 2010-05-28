@@ -15,6 +15,8 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <algorithm>
+
 #include "LogManager.h"
 #include "ConsoleListener.h"
 #include "Timer.h"
@@ -160,28 +162,19 @@ void LogContainer::addListener(LogListener *listener) {
 }
 
 void LogContainer::removeListener(LogListener *listener) {
-	std::vector<LogListener *>::iterator i;
-	for(i = listeners.begin(); i != listeners.end(); i++) {
-		if ((*i) == listener) {
-			listeners.erase(i);
-			break;
-		}
-	}
+	std::vector<LogListener *>::iterator i = std::find(listeners.begin(), listeners.end(), listener);
+	if (listeners.end() != i)
+		listeners.erase(i);
 }
 
 bool LogContainer::isListener(LogListener *listener) const {
-	std::vector<LogListener *>::const_iterator i;
-	for (i = listeners.begin(); i != listeners.end(); i++) {
-		if ((*i) == listener) {
-			return true;
-		}
-	}
-	return false;
+	std::vector<LogListener *>::const_iterator i = std::find(listeners.begin(), listeners.end(), listener);
+	return listeners.end() != i;
 }
 
 void LogContainer::trigger(LogTypes::LOG_LEVELS level, const char *msg) {
 	std::vector<LogListener *>::const_iterator i;
-	for (i = listeners.begin(); i != listeners.end(); i++) {
+	for (i = listeners.begin(); i != listeners.end(); ++i) {
 		(*i)->Log(level, msg);
 	}
 }

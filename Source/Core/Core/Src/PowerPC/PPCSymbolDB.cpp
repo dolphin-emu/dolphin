@@ -103,7 +103,7 @@ Symbol *PPCSymbolDB::GetSymbolFromAddr(u32 addr)
 		return &it->second;
 	else
 	{
-		for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
+		for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
 		{
 			if (addr >= iter->second.address && addr < iter->second.address + iter->second.size)
 				return &iter->second;
@@ -123,12 +123,12 @@ const char *PPCSymbolDB::GetDescription(u32 addr)
 
 void PPCSymbolDB::FillInCallers()
 {
-	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
+	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
 	{
 		iter->second.callers.clear();
 	}
 
-	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); iter++)
+	for (XFuncMap::iterator iter = functions.begin(); iter != functions.end(); ++iter)
 	{
 		Symbol &f = iter->second;
 		for (size_t i = 0; i < f.calls.size(); i++)
@@ -158,7 +158,7 @@ void PPCSymbolDB::PrintCalls(u32 funcAddr) const
 	{
 		const Symbol &f = iter->second;
 		INFO_LOG(HLE, "The function %s at %08x calls:", f.name.c_str(), f.address);
-		for (std::vector<SCall>::const_iterator fiter = f.calls.begin(); fiter!=f.calls.end(); fiter++)
+		for (std::vector<SCall>::const_iterator fiter = f.calls.begin(); fiter!=f.calls.end(); ++fiter)
 		{
 			XFuncMap::const_iterator n = functions.find(fiter->function);
 			if (n != functions.end())
@@ -180,7 +180,7 @@ void PPCSymbolDB::PrintCallers(u32 funcAddr) const
 	{
 		const Symbol &f = iter->second;
 		INFO_LOG(CONSOLE,"The function %s at %08x is called by:",f.name.c_str(),f.address);
-		for (std::vector<SCall>::const_iterator fiter = f.callers.begin(); fiter != f.callers.end(); fiter++)
+		for (std::vector<SCall>::const_iterator fiter = f.callers.begin(); fiter != f.callers.end(); ++fiter)
 		{
 			XFuncMap::const_iterator n = functions.find(fiter->function);
 			if (n != functions.end())
@@ -306,7 +306,7 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 		{
 			fprintf(f,"%08x %08x %08x %i %s\n", rSymbol.address, rSymbol.size, rSymbol.address,
 			0, rSymbol.name.c_str());
-			itr++;
+			++itr;
 		}
 
 		// Save a code file
@@ -315,7 +315,7 @@ bool PPCSymbolDB::SaveMap(const char *filename, bool WithCodes) const
 			// Get the current and next address
 			LastAddress = rSymbol.address;
 			LastSymbolName = rSymbol.name;	
-			itr++;			
+			++itr;
 
 			/* To make nice straight lines we fill out the name with spaces, we also cut off
 			   all names longer than 25 letters */
