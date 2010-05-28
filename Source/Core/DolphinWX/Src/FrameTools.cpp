@@ -1053,7 +1053,7 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& event)
 			wxEmptyString, wxEmptyString, wxEmptyString,
 			wxString::Format
 			(
-					_T("System Menu wad|RVL-WiiSystemmenu-v*.wad"),
+					_T("System Menu wad|*.wad"),
 					wxFileSelectorDefaultWildcardStr,
 					wxFileSelectorDefaultWildcardStr
 			),
