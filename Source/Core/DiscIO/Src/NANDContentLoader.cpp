@@ -34,8 +34,9 @@ cUIDsys cUIDsys::m_Instance;
 
 CSharedContent::CSharedContent()
 {
-	sprintf(contentMap, "%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX));
 	lastID = 0;
+	sprintf(contentMap, "%sshared1/content.map", File::GetUserPath(D_WIIUSER_IDX));
+
 	if (File::Exists(contentMap))
 	{
 		FILE* pFile = fopen(contentMap, "rb");
@@ -267,6 +268,7 @@ bool CNANDContentLoader::CreateFromDirectory(const std::string& _rPath)
 		else 
 		{
 			ERROR_LOG(DISCIO, "NANDContentLoader: error opening %s", szFilename);
+			return false;
 		}
 	}
 
@@ -378,6 +380,8 @@ cUIDsys::cUIDsys()
 {
 	sprintf(uidSys, "%ssys/uid.sys", File::GetUserPath(D_WIIUSER_IDX));
 	lastUID = 0x00001000;
+	bool validTMD;
+	bool validTIK;
 	if (File::Exists(uidSys))
 	{
 		FILE* pFile = fopen(uidSys, "rb");
@@ -386,10 +390,13 @@ cUIDsys::cUIDsys()
 			SElement Element;
 			if (fread(&Element, sizeof(SElement), 1, pFile) == 1)
 			{
-				if (CheckValidTitle(Common::swap64(Element.titleID)))
+				validTMD = CheckTitleTMD(Common::swap64(Element.titleID));
+				validTIK = CheckTitleTIK(Common::swap64(Element.titleID));
+				if (validTMD && validTIK)
 				{
+					*(u32*)&(Element.UID) = Common::swap32(lastUID++);
 					m_Elements.push_back(Element);
-					lastUID++;
+					
 				}
 			}
 		}
@@ -397,7 +404,18 @@ cUIDsys::cUIDsys()
 	}
 	else
 	{
+		SElement Element;
+		*(u64*)&(Element.titleID) = Common::swap64(0x0000000100000002ull);
+		*(u32*)&(Element.UID) = Common::swap32(lastUID++);
+
 		File::CreateFullPath(uidSys);
+		FILE* pFile = fopen(uidSys, "wb");
+		if (pFile)
+		{
+			if (fwrite(&Element, sizeof(SElement), 1, pFile) != 1)
+				ERROR_LOG(DISCIO, "fwrite failed");
+			fclose(pFile);
+		}
 	}
 }
 
@@ -424,9 +442,8 @@ bool cUIDsys::AddTitle(u64 _TitleID)
 	{
 		SElement Element;
 		*(u64*)&(Element.titleID) = Common::swap64(_TitleID);
-		*(u32*)&(Element.UID) = Common::swap32(lastUID);
+		*(u32*)&(Element.UID) = Common::swap32(lastUID++);
 		m_Elements.push_back(Element);
-		lastUID++;
 		FILE* pFile = fopen(uidSys, "ab");
 		if (pFile)
 		{
@@ -447,7 +464,7 @@ void cUIDsys::GetTitleIDs(std::vector<u64>& _TitleIDs)
 	}
 }
 
-bool cUIDsys::CheckValidTitle(u64 _TitleID)
+bool cUIDsys::CheckTitleTMD(u64 _TitleID)
 {
 	char TitlePath[1024];
 	sprintf(TitlePath, "%stitle/%08x/%08x/content/title.tmd", File::GetUserPath(D_WIIUSER_IDX),
@@ -466,6 +483,30 @@ bool cUIDsys::CheckValidTitle(u64 _TitleID)
 				return true;
 		}
 	}
+	INFO_LOG(DISCIO, "Invalid or no tmd for title %08x %08x", (u32)(_TitleID >> 32), (u32)(_TitleID & 0xFFFFFFFF));
+	return false;
+}
+
+bool cUIDsys::CheckTitleTIK(u64 _TitleID)
+{
+	char TitlePath[1024];
+	sprintf(TitlePath, "%sticket/%08x/%08x.tik", File::GetUserPath(D_WIIUSER_IDX),
+			(u32)(_TitleID >> 32), (u32)(_TitleID & 0xFFFFFFFF));
+
+	if (File::Exists(TitlePath))
+	{
+		FILE* pTIKFile = fopen(TitlePath, "rb");
+		if(pTIKFile)
+		{
+			u64 TitleID = 0xDEADBEEFDEADBEEFULL;
+			fseek(pTIKFile, 0x1dC, SEEK_SET);
+			fread(&TitleID, 8, 1, pTIKFile);
+			fclose(pTIKFile);
+			if (_TitleID == Common::swap64(TitleID))
+				return true;
+		}
+	}
+	INFO_LOG(DISCIO, "Invalid or no tik for title %08x %08x", (u32)(_TitleID >> 32), (u32)(_TitleID & 0xFFFFFFFF));
 	return false;
 }
 

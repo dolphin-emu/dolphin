@@ -144,7 +144,6 @@ private:
 
     std::string CreateTicketFileName(u64 _TitleID) const;
     std::string CreateTitleContentPath(u64 _TitleID) const;
-    void FindValidTitleIDs();
 };
 
 #endif

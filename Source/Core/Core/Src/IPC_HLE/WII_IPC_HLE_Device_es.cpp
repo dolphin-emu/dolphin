@@ -79,6 +79,16 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
     if (m_pContentLoader->IsValid())
     {
         m_TitleID = m_pContentLoader->GetTitleID();
+		// System menu versions about 0xE0 will indicate that system files are corrupted if there is more than one title
+		// TODO: fix System menu versions above this and remove this check
+		if (m_pContentLoader->GetTitleVersion() <= 0xE0)
+		{
+			DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDs);
+		}
+		else
+		{
+			m_TitleIDs.push_back(0x0000000100000002ULL);
+		}
     }
     else if (VolumeHandler::IsValid())
     {
@@ -91,18 +101,6 @@ bool CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
     {
         m_TitleID = ((u64)0x00010000 << 32) | 0xF00DBEEF;
     }   
-
-	// TODO: when dev/fs IOCTLV_GETUSAGE is correct (wii doesnt report fs as corrupt) uncomment this line
-	// title ids are all listed in sys/uid.sys - lpfaint99
-	//DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDs);
-
-	m_TitleIDs.push_back(0x0000000100000002ULL);
-    //m_TitleIDs.push_back(0x0001000248414741ULL); 
-    //m_TitleIDs.push_back(0x0001000248414341ULL);
-    //m_TitleIDs.push_back(0x0001000248414241ULL);
-    //m_TitleIDs.push_back(0x0001000248414141ULL);
-    // scan for the title ids listed in TMDs within /title/
-	//FindValidTitleIDs();
 
     INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", (u32)(m_TitleID>>32), (u32)m_TitleID);
 
@@ -772,36 +770,3 @@ std::string CWII_IPC_HLE_Device_es::CreateTitleContentPath(u64 _TitleID) const
     return TicketFilename;
 }
 
-void CWII_IPC_HLE_Device_es::FindValidTitleIDs()
-{
-    m_TitleIDs.clear();
-    char TitlePath[1024];
-
-    sprintf(TitlePath, "%stitle", File::GetUserPath(D_WIIUSER_IDX));
-    File::FSTEntry ParentEntry;
-    (void)ScanDirectoryTree(TitlePath, ParentEntry);
-    for(std::vector<File::FSTEntry>::iterator Level1 = ParentEntry.children.begin(); Level1 != ParentEntry.children.end(); ++Level1)
-    {
-        if (Level1->isDirectory)
-        {
-            for(std::vector<File::FSTEntry>::iterator Level2 = Level1->children.begin(); Level2 != Level1->children.end(); ++Level2)
-            {
-                if (Level2->isDirectory)
-                {
-                    // finally at /title/*/*/
-                    // ...get titleID from content/title.tmd
-                    std::string CurrentTMD(Level2->physicalName + DIR_SEP + "content" + DIR_SEP + "title.tmd");
-                    if (File::Exists(CurrentTMD.c_str()))
-                    {
-                        FILE* pTMDFile = fopen(CurrentTMD.c_str(), "rb");
-                        u64 TitleID = 0xDEADBEEFDEADBEEFULL;
-                        fseek(pTMDFile, 0x18C, SEEK_SET);
-                        fread(&TitleID, 8, 1, pTMDFile);
-                        m_TitleIDs.push_back(Common::swap64(TitleID));
-                        fclose(pTMDFile);
-                    }
-                }
-            }
-        }
-    }
-}
