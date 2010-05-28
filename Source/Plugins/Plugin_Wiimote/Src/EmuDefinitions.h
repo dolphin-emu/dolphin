@@ -147,20 +147,9 @@ static const u8 nunchuck_calibration[] =
 	0xb3,0xb3,0xb3,0x00, //  x, y, z g-force values 
 
 	0xff, 0x00, 0x80, 0xff, // 0xff max, 0x00 min, 0x80 = analog stick x and y axis center
-	0x00, 0x80, 0xee, 0x43	// checksum on the last two bytes 
-							// In fact, this checksum is invalid. Games that validate this checksum will write 0x01
-							// to register 0xA400F3 when invalid) snzgoo
-							// However, as long the game doesn't care about the checksum(98% doesn't, RedSteel2/Wii SportsResort does tho., probably most MotionPlus games), it won't matter.
+	0x00, 0x80, 0xec, 0x41	// checksum on the last two bytes 
 };
 
-//This is real calibration data with a proper valid checksum.
-static const u8 nunchuck_calibration_valid[] =
-{
-0x7d, 0x80, 0x80, 0x1a,
-0xb1, 0xb2, 0xb4, 0x08,
-0xe5, 0x1c, 0x80, 0xde,
-0x21, 0x7c, 0x07, 0x5c
-};
 
 static const u8 wireless_nunchuck_calibration[] =
 {

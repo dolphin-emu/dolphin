@@ -16,7 +16,7 @@ static const u8 nunchuck_calibration[] =
 	// 0x80 = analog stick x and y axis center
 	0xff, 0x00, 0x80,
 	0xff, 0x00, 0x80,
-	0xee, 0x43 // checksum on the last two bytes
+	0xec, 0x41 // checksum on the last two bytes
 };
 
 // nunchuk buttons
