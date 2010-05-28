@@ -51,10 +51,6 @@ CSharedContent::CSharedContent()
 		}
 		fclose(pFile);
 	}
-	else
-	{
-		File::CreateFullPath(contentMap);
-	}
 }
 
 CSharedContent::~CSharedContent()
@@ -408,7 +404,6 @@ cUIDsys::cUIDsys()
 		*(u64*)&(Element.titleID) = Common::swap64(0x0000000100000002ull);
 		*(u32*)&(Element.UID) = Common::swap32(lastUID++);
 
-		File::CreateFullPath(uidSys);
 		FILE* pFile = fopen(uidSys, "wb");
 		if (pFile)
 		{
