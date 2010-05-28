@@ -1191,7 +1191,8 @@ void CGameListCtrl::OnCompressGCM(wxCommandEvent& WXUNUSED (event))
 			wxString::Format
 			(
 			_T("All GC/Wii ISO files (%s)|%s|All files (%s)|%s"),
-			Ext.After('.'), Ext,
+			(char *)Ext.After('.').char_str(wxConvUTF8), 
+			(char *)Ext.char_str(wxConvUTF8),
 			wxFileSelectorDefaultWildcardStr,
 			wxFileSelectorDefaultWildcardStr
 			),

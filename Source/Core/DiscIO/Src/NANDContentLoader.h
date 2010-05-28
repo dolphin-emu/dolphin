@@ -132,8 +132,8 @@ public:
 
 	u32 GetUIDFromTitle(u64 _Title);
 	bool AddTitle(u64 _Title);
-	bool cUIDsys::CheckTitleTMD(u64 _TitleID);
-	bool cUIDsys::CheckTitleTIK(u64 _TitleID);
+	bool CheckTitleTMD(u64 _TitleID);
+	bool CheckTitleTIK(u64 _TitleID);
 	void GetTitleIDs(std::vector<u64>& _TitleIDs);
 private:
 
