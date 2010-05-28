@@ -519,11 +519,12 @@ void UpdateExtRegisterBlocks(int Slot)
 			memset(g_RegMotionPlus[Slot],0,sizeof(g_RegExt[0]));
 			memcpy(g_RegMotionPlus[Slot], motionplus_register, sizeof(motionplus_register));
 			memcpy(g_RegMotionPlus[Slot] + 0x20, motion_plus_calibration, sizeof(motion_plus_calibration)); //reg 32bytes 0x20-3f;
-			memcpy(g_RegMotionPlus[Slot] + 0x40, nunchuck_calibration, sizeof(nunchuck_calibration));
+			memcpy(g_RegMotionPlus[Slot] + 0x40, nunchuck_calibration_valid, sizeof(nunchuck_calibration_valid));
 			memcpy(g_RegMotionPlus[Slot] + 0xfa, motionplusnunchuk_id, sizeof(motionplusnunchuk_id));
-			memcpy(g_RegExt[Slot] + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
-			memcpy(g_RegExt[Slot] + 0x30, nunchuck_calibration, sizeof(nunchuck_calibration));
+			memcpy(g_RegExt[Slot] + 0x20, nunchuck_calibration_valid, sizeof(nunchuck_calibration_valid));
+			memcpy(g_RegExt[Slot] + 0x30, nunchuck_calibration_valid, sizeof(nunchuck_calibration_valid));
 			memcpy(g_RegExt[Slot] + 0xfa, nunchuck_id, sizeof(nunchuck_id));
+
 
 			g_MotionPlus[Slot] = 0;
 		}
