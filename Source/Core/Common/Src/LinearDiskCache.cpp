@@ -16,9 +16,10 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "LinearDiskCache.h"
+#include "svnrev.h"
 
 static const char ID[4] = {'D', 'C', 'A', 'C'};
-const int version = 5520;  // TODO: Get from SVN_REV
+const int version = SVN_REV;
 
 LinearDiskCache::LinearDiskCache() 
 	: file_(NULL), num_entries_(0) {
