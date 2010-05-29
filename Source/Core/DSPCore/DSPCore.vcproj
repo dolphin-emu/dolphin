@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="DSPCore"
 	ProjectGUID="{838A89A3-3AA0-4A45-ACBE-3D1E0980C2ED}"
 	RootNamespace="DSPCore"
@@ -447,21 +447,29 @@
 			</File>
 		</Filter>
 		<Filter
-		   Name="JIT"
-		   >
-		  <File
-			 RelativePath=".\Src\Jit\DSPJitExtOps.cpp"
-			  >
+			Name="JIT"
+			>
+			<File
+				RelativePath=".\Src\DSPEmitter.cpp"
+				>
 			</File>
-		  <File
-			 RelativePath=".\Src\Jit\DSPJitUtil.cpp"
-			  >
+			<File
+				RelativePath=".\Src\DSPEmitter.h"
+				>
 			</File>
-	      <File
-			 RelativePath=".\Src\Jit\DSPJitMisc.cpp"
-			  >
+			<File
+				RelativePath=".\Src\Jit\DSPJitExtOps.cpp"
+				>
 			</File>
-		  </Filter>
+			<File
+				RelativePath=".\Src\Jit\DSPJitMisc.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\Jit\DSPJitUtil.cpp"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\assemble.cpp"
 			>
@@ -511,12 +519,12 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\DSPCore.cpp"
+			RelativePath=".\Src\DSPCommon.h"
 			>
 		</File>
 		<File
-		    RelativePath=".\Src\DSPCommon.h"
-		    >
+			RelativePath=".\Src\DSPCore.cpp"
+			>
 		</File>
 		<File
 			RelativePath=".\Src\DSPCore.h"
@@ -540,14 +548,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\DSPInterpreter.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\DSPEmitter.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\DSPEmitter.h"
 			>
 		</File>
 		<File

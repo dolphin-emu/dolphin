@@ -25,7 +25,7 @@
 #include "x64Emitter.h"
 #include "ABI.h"
 
-#define BLOCK_SIZE 250
+#define MAX_BLOCK_SIZE 250
 
 using namespace Gen;
 
@@ -36,33 +36,30 @@ DSPEmitter::DSPEmitter() : storeIndex(-1)
 	AllocCodeSpace(COMPILED_CODE_SIZE);
 
 	blocks = new CompiledCode[MAX_BLOCKS];
-	endBlock = new bool[MAX_BLOCKS];
+	blockSize = new u16[0x10000];
+	
+	ClearIRAM();
 
-	for(int i = 0x0000; i < MAX_BLOCKS; i++)
-	{
-		blocks[i] = CompileCurrent;
-		blockSize[i] = 0;
-		endBlock[i] = false;
-	}
 	compileSR = 0;
 	compileSR |= SR_INT_ENABLE;
 	compileSR |= SR_EXT_INT_ENABLE;
+
+	CompileDispatcher();
 }
 
 DSPEmitter::~DSPEmitter() 
 {
 	delete[] blocks;
-	delete[] endBlock;
+	delete[] blockSize;
 	FreeCodeSpace();
 }
 
 void DSPEmitter::ClearIRAM() {
-	// TODO: Does not clear codespace
+	// ClearCodeSpace();
 	for(int i = 0x0000; i < 0x1000; i++)
 	{
-		blocks[i] = CompileCurrent;
+		blocks[i] = NULL;
 		blockSize[i] = 0;
-		endBlock[i] = false;
 	}
 }
 
@@ -100,7 +97,7 @@ void DSPEmitter::checkExceptions() {
 	SetJumpTarget(skipCheck);
 }
 
-void DSPEmitter::WriteCallInterpreter(UDSPInstruction inst)
+void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 {
 	const DSPOPCTemplate *tinst = GetOpTemplate(inst);
 
@@ -108,12 +105,14 @@ void DSPEmitter::WriteCallInterpreter(UDSPInstruction inst)
 	if (tinst->extended) {
 		if ((inst >> 12) == 0x3) {
 			if (! extOpTable[inst & 0x7F]->jitFunc) {
+				// Fall back to interpreter
 				ABI_CallFunctionC16((void*)extOpTable[inst & 0x7F]->intFunc, inst);
 			} else {
 				(this->*extOpTable[inst & 0x7F]->jitFunc)(inst);
 			}
 		} else {
 			if (!extOpTable[inst & 0xFF]->jitFunc) {
+				// Fall back to interpreter
 				ABI_CallFunctionC16((void*)extOpTable[inst & 0xFF]->intFunc, inst);
 			} else {
 				(this->*extOpTable[inst & 0xFF]->jitFunc)(inst);
@@ -122,10 +121,14 @@ void DSPEmitter::WriteCallInterpreter(UDSPInstruction inst)
 	}
 	
 	// Main instruction
-	if (!opTable[inst]->jitFunc)
+	if (!opTable[inst]->jitFunc) {
+		// Fall back to interpreter
 		ABI_CallFunctionC16((void*)opTable[inst]->intFunc, inst);
+	}
 	else
+	{
 		(this->*opTable[inst]->jitFunc)(inst);
+	}
 
 	// Backlog
 	if (tinst->extended) {
@@ -144,7 +147,7 @@ void DSPEmitter::unknown_instruction(UDSPInstruction inst)
 
 void DSPEmitter::Default(UDSPInstruction _inst)
 {
-	WriteCallInterpreter(_inst);
+	EmitInstruction(_inst);
 }
 
 const u8 *DSPEmitter::Compile(int start_addr) {
@@ -155,52 +158,50 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 
 	int addr = start_addr;
 	checkExceptions();
-	while (addr < start_addr + BLOCK_SIZE)
+	while (addr < start_addr + MAX_BLOCK_SIZE)
 	{
 		UDSPInstruction inst = dsp_imem_read(addr);
 		const DSPOPCTemplate *opcode = GetOpTemplate(inst);
-
 		
-		// Increment PC
+		// Increment PC - we shouldn't need to do this for every instruction. only for branches and end of block.
 		ADD(16, M(&(g_dsp.pc)), Imm16(1));
 
-		WriteCallInterpreter(inst);
+		EmitInstruction(inst);
 				
-		blockSize[start_addr]++;
+		// Handle loop condition, only if current instruction was flagged as a loop destination
+		// by the analyzer.  COMMENTED OUT - this breaks Zelda TP. Bah.
 
-		// Handle loop condition.  Change to TEST
-		MOVZX(32, 16, EAX, M(&(g_dsp.r[DSP_REG_ST2])));
-		CMP(32, R(EAX), Imm32(0));
-		FixupBranch rLoopAddressExit = J_CC(CC_LE);
+		// if (DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_LOOP_END)
+		{
+			// TODO: Change to TEST for some reason (who added this comment?)
+			MOVZX(32, 16, EAX, M(&(g_dsp.r[DSP_REG_ST2])));
+			CMP(32, R(EAX), Imm32(0));
+			FixupBranch rLoopAddressExit = J_CC(CC_LE);
 		
-		MOVZX(32, 16, EAX, M(&(g_dsp.r[DSP_REG_ST3])));
-		CMP(32, R(EAX), Imm32(0));
-		FixupBranch rLoopCounterExit = J_CC(CC_LE);
+			MOVZX(32, 16, EAX, M(&(g_dsp.r[DSP_REG_ST3])));
+			CMP(32, R(EAX), Imm32(0));
+			FixupBranch rLoopCounterExit = J_CC(CC_LE);
 
-		// These functions branch and therefore only need to be called in the
-		// end of each block and in this order
-	    ABI_CallFunction((void *)&DSPInterpreter::HandleLoop);
-		//		ABI_RestoreStack(0);
-		ABI_PopAllCalleeSavedRegsAndAdjustStack();
-		RET();
+			// These functions branch and therefore only need to be called in the
+			// end of each block and in this order
+			ABI_CallFunction((void *)&DSPInterpreter::HandleLoop);
+			//		ABI_RestoreStack(0);
+			ABI_PopAllCalleeSavedRegsAndAdjustStack();
+			RET();
 
-		SetJumpTarget(rLoopAddressExit);
-		SetJumpTarget(rLoopCounterExit);
-
-		// End the block where the loop ends
-		if ((inst & 0xffe0) == 0x0060 || (inst & 0xff00) == 0x1100) {
-			// BLOOP, BLOOPI
-			endBlock[dsp_imem_read(addr + 1)] = true;
-		} else if ((inst & 0xffe0) == 0x0040 || (inst & 0xff00) == 0x1000) {
-			// LOOP, LOOPI
-			endBlock[addr + 1] = true;
+			SetJumpTarget(rLoopAddressExit);
+			SetJumpTarget(rLoopCounterExit);
 		}
 
-		if (opcode->branch || endBlock[addr] 
-			|| (DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_IDLE_SKIP)) {
+		// End the block if we're at a loop end.
+		if (opcode->branch ||
+			(DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_LOOP_END) ||
+			(DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_IDLE_SKIP)) {
 			break;
 		}
 		addr += opcode->size;
+
+		blockSize[start_addr]++;
 	}
 
 	//	ABI_RestoreStack(0);
@@ -212,40 +213,50 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 	return entryPoint;
 }
 
+void STACKALIGN DSPEmitter::CompileDispatcher()
+{
+	// TODO	
+}
+
+// Don't use the % operator in the inner loop. It's slow.
 void STACKALIGN DSPEmitter::RunBlock(int cycles)
 {
+	// How does this variable work?
 	static int idleskip = 0;
-	// Trigger an external interrupt at the start of the cycle
-	u16 block_cycles = 501;
 
+#define BURST_LENGTH 512   // Must be a power of two
+	u16 block_cycles = BURST_LENGTH + 1;
+
+	// Trigger an external interrupt at the start of the cycle
 	while (!(g_dsp.cr & CR_HALT))
 	{
-		if (block_cycles > 500)
+		if (block_cycles > BURST_LENGTH)
 		{
 			block_cycles = 0;
 		}
 
 		// Compile the block if needed
-		if (blocks[g_dsp.pc] == CompileCurrent)
+		if (!blocks[g_dsp.pc])
 		{
 			blockSize[g_dsp.pc] = 0;
-			blocks[g_dsp.pc]();
+			CompileCurrent();
 		}
 		
 		// Execute the block if we have enough cycles
 		if (cycles > blockSize[g_dsp.pc])
 		{
 			u16 start_addr = g_dsp.pc;
-			if (idleskip % 100 > 95 && (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)) {
+
+			// 5%. Not sure where the rationale originally came from.
+			if (((idleskip & 127) > 121) &&
+				(DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)) {
 				block_cycles = 0;
-			} else
+			} else {
 				blocks[g_dsp.pc]();
-			
+			}
 			idleskip++;
-
-			if (idleskip % 500 == 0)
+			if ((idleskip & (BURST_LENGTH - 1)) == 0)
 				idleskip = 0;
-
 			block_cycles += blockSize[start_addr];
 			cycles -= blockSize[start_addr];		
 		}

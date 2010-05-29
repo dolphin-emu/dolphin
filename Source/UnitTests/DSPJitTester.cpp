@@ -41,7 +41,7 @@ SDSP DSPJitTester::RunJit(SDSP dsp_settings)
 	ResetJit();
 	memcpy(&g_dsp, &dsp_settings, sizeof(SDSP));
 	const u8* code = jit.GetCodePtr();
-	jit.WriteCallInterpreter(instruction);
+	jit.EmitInstruction(instruction);
 	jit.RET();
 	((void(*)())code)();
 
@@ -113,8 +113,8 @@ void DSPJitTester::DumpJittedCode()
 {
 	ResetJit();
 	const u8* code = jit.GetCodePtr();
-	jit.WriteCallInterpreter(instruction);
-	int code_size = jit.GetCodePtr() - code;
+	jit.EmitInstruction(instruction);
+	size_t code_size = jit.GetCodePtr() - code;
 
 	printf("%s emitted: ", instruction_name);
 	for (int i = 0; i < code_size; i++)

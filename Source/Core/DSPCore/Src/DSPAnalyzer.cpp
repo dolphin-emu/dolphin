@@ -95,7 +95,7 @@ void AnalyzeRange(int start_addr, int end_addr)
 			continue;
 		}
 		code_flags[addr] |= CODE_START_OF_INST;
-		// Look for loops. (this is not used atm)
+		// Look for loops.
 		if ((inst & 0xffe0) == 0x0060 || (inst & 0xff00) == 0x1100) {
 			// BLOOP, BLOOPI
 			u16 loop_end = dsp_imem_read(addr + 1);
