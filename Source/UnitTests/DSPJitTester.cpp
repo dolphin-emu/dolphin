@@ -117,7 +117,7 @@ void DSPJitTester::DumpJittedCode()
 	size_t code_size = jit.GetCodePtr() - code;
 
 	printf("%s emitted: ", instruction_name);
-	for (int i = 0; i < code_size; i++)
+	for (size_t i = 0; i < code_size; i++)
 		printf("%02x ", code[i]);
 	printf("\n");
 }
@@ -204,3 +204,4 @@ void DSPJitTester::AddTestData(u8 reg, u16 value)
 	if (reg < DSP_REG_NUM)
 		test_values[reg].push_back(value);
 }
+
