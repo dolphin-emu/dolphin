@@ -158,6 +158,7 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 
 	int addr = start_addr;
 	checkExceptions();
+	blockSize[start_addr] = 0;
 	while (addr < start_addr + MAX_BLOCK_SIZE)
 	{
 		UDSPInstruction inst = dsp_imem_read(addr);
@@ -236,8 +237,6 @@ int STACKALIGN DSPEmitter::RunForCycles(int cycles)
 
 	while (!(g_dsp.cr & CR_HALT))
 	{
-		DSPCore_CheckExternalInterrupt();
-		DSPCore_CheckExceptions();
 		// Compile the block if needed
 		u16 block_addr = g_dsp.pc;
 		if (!blocks[block_addr])
