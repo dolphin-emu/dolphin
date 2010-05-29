@@ -575,25 +575,25 @@ void GenerateDSPInterruptFromPlugin(DSPInterruptType type, bool _bSet)
 // This happens at 4 khz, since 32 bytes at 4khz = 4 bytes at 32 khz (16bit stereo pcm)
 void UpdateAudioDMA()
 {
-	if (g_audioDMA.AudioDMAControl.Enable && g_audioDMA.BlocksLeft)
+	if (g_audioDMA.BlocksLeft)
 	{
 		// Read audio at g_audioDMA.ReadAddress in RAM and push onto an
 		// external audio fifo in the emulator, to be mixed with the disc
 		// streaming output. If that audio queue fills up, we delay the
 		// emulator.
+		dsp_plugin->DSP_SendAIBuffer(g_audioDMA.ReadAddress, 8);
 
-		// AyuanX: let's do it in a bundle to speed up
-		if (g_audioDMA.BlocksLeft == g_audioDMA.AudioDMAControl.NumBlocks)
-			dsp_plugin->DSP_SendAIBuffer(g_audioDMA.SourceAddress, g_audioDMA.AudioDMAControl.NumBlocks * 8);
-
-		//g_audioDMA.ReadAddress += 32;
+		g_audioDMA.ReadAddress += 32;
 		g_audioDMA.BlocksLeft--;
 
 		if (g_audioDMA.BlocksLeft == 0)
 		{
 			GenerateDSPInterrupt(DSP::INT_AID);
-			//g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
-			g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
+			if (g_audioDMA.AudioDMAControl.Enable)
+			{
+				g_audioDMA.BlocksLeft = g_audioDMA.AudioDMAControl.NumBlocks;
+				g_audioDMA.ReadAddress = g_audioDMA.SourceAddress;
+			}
 			//DEBUG_LOG(DSPLLE, "ADMA read addresses: %08x", g_audioDMA.ReadAddress);
 		}
 	}

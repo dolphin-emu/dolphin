@@ -44,7 +44,7 @@ public:
 
 	const u8 *Compile(int start_addr);
 
-	void STACKALIGN RunBlock(int cycles);
+	int STACKALIGN RunForCycles(int cycles);
 
 	// Register helpers
 	void setCompileSR(u16 bit);
@@ -101,11 +101,19 @@ private:
 	u16 *blockSize;
 	u16 compileSR;
 
+	// CALL this to start the dispatcher
+	u8 *enterDispatcher;
+
+	// JMP here when a block should be dispatches. make sure you're in a block
+	// or at the same stack level already.
 	u8 *dispatcher;
 
 	// The index of the last stored ext value (compile time).
 	int storeIndex;
 	
+	// Counts down.
+	// int cycles;
+
 	DISALLOW_COPY_AND_ASSIGN(DSPEmitter);
 
 	void ToMask(Gen::X64Reg value_reg = Gen::EDI, Gen::X64Reg temp_reg = Gen::ESI);

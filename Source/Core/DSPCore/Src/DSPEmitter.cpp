@@ -215,53 +215,52 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 
 void STACKALIGN DSPEmitter::CompileDispatcher()
 {
+	/*
 	// TODO	
+	enterDispatcher = GetCodePtr();
+	AlignCode16();
+	ABI_PushAllCalleeSavedRegsAndAdjustStack();
+	
+	const u8 *outer_loop = GetCodePtr();
+
+		
+	//Landing pad for drec space
+	ABI_PopAllCalleeSavedRegsAndAdjustStack();
+	RET();*/
 }
 
 // Don't use the % operator in the inner loop. It's slow.
-void STACKALIGN DSPEmitter::RunBlock(int cycles)
+int STACKALIGN DSPEmitter::RunForCycles(int cycles)
 {
-	// How does this variable work?
-	static int idleskip = 0;
+	const int idle_cycles = 1000;
 
-#define BURST_LENGTH 512   // Must be a power of two
-	u16 block_cycles = BURST_LENGTH + 1;
-
-	// Trigger an external interrupt at the start of the cycle
 	while (!(g_dsp.cr & CR_HALT))
 	{
-		if (block_cycles > BURST_LENGTH)
-		{
-			block_cycles = 0;
-		}
-
+		DSPCore_CheckExternalInterrupt();
+		DSPCore_CheckExceptions();
 		// Compile the block if needed
-		if (!blocks[g_dsp.pc])
+		u16 block_addr = g_dsp.pc;
+		if (!blocks[block_addr])
 		{
-			blockSize[g_dsp.pc] = 0;
 			CompileCurrent();
 		}
-		
+		int block_size = blockSize[block_addr];
 		// Execute the block if we have enough cycles
-		if (cycles > blockSize[g_dsp.pc])
+		if (cycles > block_size)
 		{
-			u16 start_addr = g_dsp.pc;
-
-			// 5%. Not sure where the rationale originally came from.
-			if (((idleskip & 127) > 121) &&
-				(DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)) {
-				block_cycles = 0;
+			blocks[block_addr]();
+			if (DSPAnalyzer::code_flags[block_addr] & DSPAnalyzer::CODE_IDLE_SKIP) {
+				if (cycles > idle_cycles)
+					cycles -= idle_cycles;
+				else
+					cycles = 0;
 			} else {
-				blocks[g_dsp.pc]();
+				cycles -= block_size;
 			}
-			idleskip++;
-			if ((idleskip & (BURST_LENGTH - 1)) == 0)
-				idleskip = 0;
-			block_cycles += blockSize[start_addr];
-			cycles -= blockSize[start_addr];		
 		}
 		else {
 			break;
 		}
 	}
+	return cycles;
 }

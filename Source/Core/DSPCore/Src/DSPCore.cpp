@@ -187,6 +187,7 @@ void DSPCore_CheckExternalInterrupt()
 
 void DSPCore_CheckExceptions() 
 {
+	// Early out to skip the loop in the common case.
 	if (g_dsp.exceptions == 0)
 		return;	
 
@@ -215,14 +216,19 @@ void DSPCore_CheckExceptions()
 	}
 }
 
-// Delegate to JIT  or interpreter as appropriate.
+// Delegate to JIT or interpreter as appropriate.
 // Handle state changes and stepping.
 int DSPCore_RunCycles(int cycles)
 {
-	if(jit) {
-		jit->RunBlock(cycles);
+	static int spare_cycles = 0;
+	if (jit)
+	{
+		// DSPCore_CheckExceptions();
+		// DSPCore_CheckExternalInterrupt();
+		spare_cycles = jit->RunForCycles(cycles + spare_cycles);
 		return 0;
 	}
+
 	while (cycles > 0) {
 	reswitch:
 		switch (core_state)

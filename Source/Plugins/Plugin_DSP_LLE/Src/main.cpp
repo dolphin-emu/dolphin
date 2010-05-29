@@ -17,6 +17,7 @@
 
 
 #include "Common.h" // Common
+#include "Atomic.h"
 #include "CommonTypes.h"
 #include "LogManager.h"
 #include "Thread.h"
@@ -49,7 +50,7 @@ SoundStream *soundStream = NULL;
 bool g_InitMixer = false;
 
 bool bIsRunning = false;
-u32 cycle_count = 0;
+volatile u32 cycle_count = 0;
 
 // Standard crap to make wxWidgets happy
 #ifdef _WIN32
@@ -219,17 +220,19 @@ THREAD_RETURN dsp_thread(void* lpParameter)
 {
 	while (bIsRunning)
 	{
-		u32 cycles = 0;
-
-		if (jit)
-		{
-			cycles = cycle_count;
-			DSPCore_RunCycles(cycles);
+		int cycles = (int)cycle_count;
+		if (cycles > 0) {
+			if (jit)
+			{
+				cycles -= DSPCore_RunCycles(cycles);
+			}
+			else {
+				cycles -= DSPInterpreter::RunCycles(cycles);
+			}
+			Common::AtomicAdd(cycle_count, -cycles);
 		}
-		else
-			DSPInterpreter::Run();
 
-		cycle_count -= cycles;
+		// yield?
 	}
 	return 0;
 }
@@ -374,7 +377,8 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 
 void DSP_Update(int cycles)
 {
-	int cyclesRatio = cycles / (jit?20:6);
+	int dsp_cycles = cycles / 6;  //(jit?20:6);
+
 // Sound stream update job has been handled by AudioDMA routine, which is more efficient
 /*
 	// This gets called VERY OFTEN. The soundstream update might be expensive so only do it 200 times per second or something.
@@ -398,11 +402,14 @@ void DSP_Update(int cycles)
 	if (!g_dspInitialize.bOnThread)
 	{
 		// ~1/6th as many cycles as the period PPC-side.
-		DSPCore_RunCycles(cyclesRatio);;
+		DSPCore_RunCycles(dsp_cycles);
 	}
 	else
 	{
-		cycle_count += (cyclesRatio);
+		// Wait for dsp thread to catch up reasonably. Note: this logic should be thought through.
+		while (cycle_count > dsp_cycles)
+			;
+		Common::AtomicAdd(cycle_count, dsp_cycles);
 	}
 }
 

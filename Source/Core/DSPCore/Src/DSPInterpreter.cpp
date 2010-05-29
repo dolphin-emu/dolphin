@@ -104,8 +104,8 @@ void Run()
 	gdsp_running = true;
 	while (!(g_dsp.cr & CR_HALT) && gdsp_running)
 	{
-		if(jit)
-			jit->RunBlock(1);
+		if (jit)
+			jit->RunForCycles(1);
 		else {
 			// Automatically let the other threads work if we're idle skipping
 			if(DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
@@ -180,6 +180,7 @@ int RunCyclesDebug(int cycles)
 			cycles--;
 			if (cycles < 0)
 				return 0;
+
 			// We don't bother directly supporting pause - if the main emu pauses,
 			// it just won't call this function anymore.
 		}
