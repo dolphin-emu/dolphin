@@ -676,7 +676,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 
 		if (fst[i]->IsDirectory())
 		{
-			sprintf(exportName, "%s/%s/", _rExportFolder, fst[i]->m_FullPath);
+			snprintf(exportName, sizeof(exportName), "%s/%s/", _rExportFolder, fst[i]->m_FullPath);
 			DEBUG_LOG(DISCIO, "%s", exportName);		
 
 			if (!File::Exists(exportName) && !File::CreateFullPath(exportName))
@@ -693,7 +693,7 @@ void CISOProperties::ExportDir(const char* _rFullPath, const char* _rExportFolde
 		}
 		else
 		{
-			sprintf(exportName, "%s/%s", _rExportFolder, fst[i]->m_FullPath);
+			snprintf(exportName, sizeof(exportName), "%s/%s", _rExportFolder, fst[i]->m_FullPath);
 			DEBUG_LOG(DISCIO, "%s", exportName);
 
 			if (!File::Exists(exportName) && !FS->ExportFile(fst[i]->m_FullPath, exportName))
