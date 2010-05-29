@@ -712,6 +712,7 @@ int ParseAttribList(u8* pAttribIDList, u16& _startID, u16& _endID)
 
 #if MAX_LOGLEVEL >= DEBUG_LEVEL
 	_dbg_assert_(WII_IPC_WIIMOTE, sequence == SDP_SEQ8);
+	(void)seqSize;
 #else
 	(void)sequence, (void)seqSize;
 #endif
