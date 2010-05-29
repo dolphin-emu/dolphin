@@ -346,9 +346,6 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _AddressHI,
 			{
 					pReply->size = 0x0f;
 					pReply->error = 0x07; //error: write-only area when activated/or not present
-					// we use the read error at the same time as an indicator whether we need to send a faked 0x37 report or not
-					g_MotionPlusReadError[g_ID]++;
-			
 			}
 		}
 	
@@ -454,22 +451,24 @@ void WmWriteData(u16 _channelID, wm_write_data* wd)
 
 		}
 		if (WiiMapping[g_ID].bMotionPlusConnected) {
-			//If the MP+ gets activated, it's important to send a status report if there's another extension connected to MP
+			//If the MP+ gets activated, it's important to send one or two status reports depending on the presence of a pass-through extension
 			int sendreport = HandlingMotionPlusWrites(wd->data, addressHI, address);
-			g_MotionPlusLastWriteReg[g_ID] = address;
+			g_MotionPlusLastWriteReg[g_ID] = address; 
 
 			switch (sendreport)
 			{
-				//reconnect device; unplug old extension && plug in new extension
+				//pass-through extension disconnected and wm+ connected
 				case 1: 
 					WmRequestStatus(_channelID, (wm_request_status*) wd, 0); 
 					WmRequestStatus(_channelID, (wm_request_status*) wd, 1); 
 					break;
-				//device unplugged(on deactivation)
+
+				//wm+ unplugged(on deactivation)
 				case 2:
 					WmRequestStatus(_channelID, (wm_request_status*) wd, 0); 
 					break;
-				//device plugged in(on activation)
+
+				//wm+ plugged in(on activation)
 				case 3:
 					WmRequestStatus(_channelID, (wm_request_status*) wd, 1);
 					break;
@@ -549,99 +548,100 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 }
 
 //http://snzgoo.blogspot.com for more details on what this is doing
-int HandlingMotionPlusWrites(u8* data, u8 addressHI, u32 address){
+int HandlingMotionPlusWrites(u8* data, u8 addressHI, u32 address)
+{
+	bool MPlusActiveExt = (g_RegExt[g_ID][0xFF] == 0x05) ? 1 : 0;
+
 	switch (addressHI)
 	{
 	case 0xA4:
 		switch (address)
 		{
 		case 0x00FE:
-			if (data[0] == 0x00) { 
-				if (g_RegExt[g_ID][0xFF] == 0x05)
+			if (data[0] == 0x00)
+			{ 
+				if (MPlusActiveExt)
 				{
-					SwapExtRegisters();
-					if (WiiMapping[g_ID].iExtensionConnected != EXT_NONE){
+					if (WiiMapping[g_ID].iExtensionConnected)
+					{
 						DEBUG_LOG(WIIMOTE, "Writing [0x%02x] to [0x%02x:%04x]:  Disabling WM+ and swapping registers back", data[0], addressHI, address);
-						g_RegMotionPlus[g_ID][0xFE] = 0x00;
-
+						g_RegExt[g_ID][0xFE] = 0x00;
+						SwapExtRegisters();
 						return 1; // we need to issue a 0x20 report, if there's an extension connected to the MP+!
 					}	
-
 				}
-				else {
+				else
+				{
 					DEBUG_LOG(WIIMOTE, "Writing [0x%02x] to [0x%02x:%04x]:  WM+ already inactive", data[0], addressHI, address);
 				}
 				g_MotionPlus[g_ID] = 1;
 			}
 			break;
 
-		//1. Initializing the pass-through extension: writing 0x55 ->0xA400F0 and then 0x00 to 0xA400FB.
-		//2. Disables an active wiimote; 0x20 report sent when iExtensionConnected != NONE : ext disconnect.
-		//3. single write 0x00 to 0x00FB when MP got activated, part of the MP activation.
+		//1. Disables an active wiimote; 0x20 report sent when iExtensionConnected != NONE : ext disconnect.
+		//2. Initializing the pass-through extension: writing 0x55 ->0xA400F0 and then 0x00 to 0xA400FB.
+		//3. Single write 0x00 to 0x00FB when MP got activated, part of the MP activation.
 		case 0x00FB:	
-
-			if ((data[0] == 0x00) && (g_MotionPlusLastWriteReg[g_ID] == 0xF0)) {
-
-				//1. Default extension init, disable mp if actitaved, else do nothing
-				if (g_RegMotionPlus[g_ID][0xFF] == 0x05) //mp already deactivated, no register swap needed
+			if ((data[0] == 0x00) && (g_MotionPlusLastWriteReg[g_ID] == 0xF0))
+			{
+				switch (g_MotionPlusLastWriteReg[g_ID])
 				{
-					DEBUG_LOG(WIIMOTE, "Writing [0x%02x] to [0x%02x:%04x]: WM+ already disabled [ext:%i] - no swapping", data[0], addressHI, address, WiiMapping[g_ID].iExtensionConnected);
-					g_RegMotionPlus[g_ID][0xFE] = 0x05;
-					g_RegMotionPlus[g_ID][0xF7] = 0x08;
-
-				} //2. disabling wiimote,
-				else if (g_RegExt[g_ID][0xFF] == 0x05){
-
-					DEBUG_LOG(WIIMOTE, "Writing [0x%02x] to [0x%02x:%04x]: Disabling WM+ and swapping registers back", data[0], addressHI, address)
-
-					if (!WiiMapping[g_ID].iExtensionConnected){
-						g_RegExt[g_ID][0xFE] = 0x05;
-						g_MotionPlus[g_ID] = 0;
-						SwapExtRegisters();
-						return 2; 
-					}
-					else {
+				case 0xF0:
+					//1. disabling wiimote,
+					if (MPlusActiveExt) //mp already deactivated, no register swap needed
+					{
+						DEBUG_LOG(WIIMOTE, "Writing [0x%02x] to [0x%02x:%04x]: Disabling WM+ and swapping registers back", data[0], addressHI, address)
+						g_MotionPlus[g_ID] = WiiMapping[g_ID].iExtensionConnected ? 1 : 0;
 						g_RegExt[g_ID][0xFE] = 0x05;
 						SwapExtRegisters();
-						g_MotionPlus[g_ID] = 1;
 
+						if (!WiiMapping[g_ID].iExtensionConnected)
+							return 2; 
+					} //2. Default extension init, disable mp if actitaved, else do nothing
+					else
+					{
+						DEBUG_LOG(WIIMOTE, "Writing [0x%02x] to [0x%02x:%04x]: WM+ already disabled [ext:%i] - no swapping", data[0], addressHI, address, WiiMapping[g_ID].iExtensionConnected);
+						g_RegMotionPlus[g_ID][0xFE] = 0x05;
+						g_RegMotionPlus[g_ID][0xF7] = 0x08;
 					}
-
-				}
-			} //3.
-			else if ((data[0] == 0x00) && (g_MotionPlusLastWriteReg[g_ID] != 0xF0)) {
-
-				if (g_RegExt[g_ID][0xFF] == 0x05) {
-					g_RegExt[g_ID][0xF1] = 0x01;
-					g_RegExt[g_ID][0xF7] = 0x08; //init/calibration state flag
-
-					if (WiiMapping[g_ID].iExtensionConnected){
-						//I don't know what these are for: F6h,F8h, F9h; but they seem necessary to be set to 0x00
-						//if there's an extension connected to the MP, else they are 0xFF
-						g_RegExt[g_ID][0xF6] = 0x00; 
-						g_RegExt[g_ID][0xF8] = 0x00;
-						g_RegExt[g_ID][0xF9] = 0x00;
+					break;
+				//3. part of wm activation.
+				default:
+					if (MPlusActiveExt)
+					{
+						g_RegExt[g_ID][0xF1] = 0x01;
+						g_RegExt[g_ID][0xF7] = 0x08; //init/calibration state flag
+	
+						if (WiiMapping[g_ID].iExtensionConnected)
+						{
+							//I don't know what these are for: F6h,F8h, F9h. They seem necessary to be set to 0x00 instead of 0xFF(default),
+							//when there's an extension connected to the MP
+							g_RegExt[g_ID][0xF6] = 0x00;
+							g_RegExt[g_ID][0xF8] = 0x00;
+							g_RegExt[g_ID][0xF9] = 0x00;
+						}
 					}
+					break;
 				}
 			}
 			break;
 
-		//switch for invalid/valid data calibration (00/01)
+		//switch for invalid/valid data calibration (0x00/0x01)
 		case 0x00F1: 
-			if (g_RegExt[g_ID][0xFF] == 0x05) {
-				g_RegExt[g_ID][0xF7] = 0x1A;
+			if (MPlusActiveExt)
+			{
+				g_RegExt[g_ID][0xF7] = 0x1A; //syncing finished
 			}
 			break;
-		
+
 		//switch for triggering the calibration/syncing between wiimote and MP (corresponding data will be at 50h)			
 		case 0x00F2: 
-			if((g_RegExt[g_ID][0xFF] == 0x05) && (g_RegExt[g_ID][0xF7] < 0x0E)) {
+			if(MPlusActiveExt && (g_RegExt[g_ID][0xF7] < 0x0E))
+			{
 				g_RegExt[g_ID][0xF7] = 0x0E;
 			}
 			break;
 
-		//case 0x00F3/0x00F4: //It'ss probably just the same as either F1/F2, needs more investigation tho,
-		//						but most likely just a different calibration sensitivity; wii sports resort does use it, but redsteel doesnt
 		}
 		break;
 
@@ -649,48 +649,50 @@ int HandlingMotionPlusWrites(u8* data, u8 addressHI, u32 address){
 	case 0xA6:
 		switch (address)
 		{
-		case 0x00FE:
-			//Enabling WM+: swapping extension registers
-			if ((data[0] == 0x04) || (data[0] == 0x05)) { 
-				if (g_RegMotionPlus[g_ID][0xFF] == 0x05) {
+		//Enabling WM+: swapping extension registers
+		case 0x00FE:	
+			if ((data[0] == 0x04) || (data[0] == 0x05))
+			{ 
+				if (!MPlusActiveExt)
+				{
 					DEBUG_LOG(WIIMOTE, "Writing [0x%02x] to [0x%02x:%04x]: Enabling WM+ and swapping registers", data[0], addressHI, address);
 
 					//The WII will try to read from the A6 WM+ register directly after activation,
-					//but we need to reply with an error each time as long the mp is still activate.
+					//and we need to reply with an error each time as long the mp is still activate.
 					//In addition, we need to sent 1-2 0x20 statusreports depending on if theres an extension connected to the MP or not.
-					g_MotionPlusReadError[g_ID] = 0;
-
-					g_RegMotionPlus[g_ID][0xF7] = 0x08;
-					g_RegMotionPlus[g_ID][0xFE] = data[0];
 					g_MotionPlus[g_ID] = 1;
 					SwapExtRegisters();
 
-					if (WiiMapping[g_ID].iExtensionConnected != EXT_NONE){
+					g_RegExt[g_ID][0xF7] = 0x08; //Reset flag
+					g_RegExt[g_ID][0xFE] = data[0];
 
+					if (WiiMapping[g_ID].iExtensionConnected != EXT_NONE)
+					{
 						g_RegExt[g_ID][0xF1] = 0x01;
-						g_RegExt[g_ID][0xF6] = 0x00; // i dont knwo what these are for: F6h,F8h, F9h; but they are necessary to be set to 0x00 if theres a nunchuk/ext connected
+						g_RegExt[g_ID][0xF6] = 0x00;
 						g_RegExt[g_ID][0xF8] = 0x00;
 						g_RegExt[g_ID][0xF9] = 0x00;
 						return 1; // we need to issue 2 0x20 reports, if there's an extension connected to the MP
 					}
-					return 3; // we need to issue 1 0x20 report, if there's an extension connected to the MP
+					return 3; // we need to issue 1 0x20 report, if there's no extension connected to the MP
 				}
-				else {
+				else
+				{
 					DEBUG_LOG(WIIMOTE, "Writing [0x%02x] to [0x%02x:%04x]: WM already enabled no register swapping", data[0], addressHI, address);
 				}
 			}
 			break;
-
-		case 0x00F0: //Part of the WM+ init()
+		//Part of the WM+ init()
+		case 0x00F0:
 			if (data[0] == 0x55) { 
-				
-				//if the wiimote is already active, we will init() the WM+ directly in the ExtReg, shouldnt happen usually
-				if (g_RegExt[g_ID][0xFF] == 0x05) {
+				//If the wiimote is already active, we will init() the WM+ directly in the ExtReg, shouldn't happen usually
+				if (MPlusActiveExt)
+				{
 					g_RegExt[g_ID][0xFE] = 0x05;
-					g_RegExt[g_ID][0xF7] = 0x08;//calibdata trigger
+					g_RegExt[g_ID][0xF7] = 0x08;
 				}
 				if (WiiMapping[g_ID].iExtensionConnected == EXT_NONE)
-						g_MotionPlus[g_ID] = 0;
+					g_MotionPlus[g_ID] = 0;
 			}
 			break;
 
@@ -704,8 +706,8 @@ int HandlingMotionPlusWrites(u8* data, u8 addressHI, u32 address){
 }
 
 //Swapping Ext/WM+-registers
-void SwapExtRegisters(){
-
+void SwapExtRegisters()
+{
 	memset(g_RegExtTmp, 0, sizeof(g_RegExtTmp));
 	memcpy(g_RegExtTmp, g_RegExt[g_ID], sizeof(g_RegExt[0]));
 	memset(g_RegExt[0], 0, sizeof(g_RegExt[0]));

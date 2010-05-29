@@ -417,7 +417,6 @@ void ResetVariables()
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
 		g_ReportingAuto[i] = false;
-		g_MotionPlusReadError[i] = 0;
 		g_MotionPlusLastWriteReg[i] = 0;
 		g_InterleavedData[i] = false;
 		g_ReportingMode[i] = 0;
@@ -509,28 +508,29 @@ void UpdateExtRegisterBlocks(int Slot)
 		if (WiiMapping[Slot].iExtensionConnected == EXT_NONE)
 		{	
 			memset(g_RegExt[Slot],0,sizeof(g_RegExt[0]));
-			memcpy(g_RegExt[Slot], motionplus_register, sizeof(motionplus_register));
 			memcpy(g_RegExt[Slot] + 0x20, motion_plus_calibration, sizeof(motion_plus_calibration)); //reg 32bytes 0x20-3f;
+			memset(g_RegMotionPlus[Slot] + 0x40, 0xFF, sizeof(nunchuck_calibration));
+			memcpy(g_RegMotionPlus[Slot] + 0x50, motionplus_accel_gyro_syncing, sizeof(motionplus_accel_gyro_syncing));
+			memcpy(g_RegMotionPlus[Slot] + 0xf0, motionplus_activeflags, sizeof(motionplus_activeflags));
 			memcpy(g_RegExt[Slot] + 0xfa, motionplus_id, sizeof(motionplus_id));
-			g_MotionPlus[Slot] = 1;
+
 		}
 		else if(WiiMapping[Slot].iExtensionConnected == EXT_NUNCHUK)
 		{
 			memset(g_RegMotionPlus[Slot],0,sizeof(g_RegExt[0]));
-			memcpy(g_RegMotionPlus[Slot], motionplus_register, sizeof(motionplus_register));
 			memcpy(g_RegMotionPlus[Slot] + 0x20, motion_plus_calibration, sizeof(motion_plus_calibration)); //reg 32bytes 0x20-3f;
 			memcpy(g_RegMotionPlus[Slot] + 0x40, nunchuck_calibration, sizeof(nunchuck_calibration));
+			memcpy(g_RegMotionPlus[Slot] + 0x50, motionplus_accel_gyro_syncing, sizeof(motionplus_accel_gyro_syncing));
+			memcpy(g_RegMotionPlus[Slot] + 0xf0, motionplus_activeflags, sizeof(motionplus_activeflags));
 			memcpy(g_RegMotionPlus[Slot] + 0xfa, motionplusnunchuk_id, sizeof(motionplusnunchuk_id));
 			memcpy(g_RegExt[Slot] + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
 			memcpy(g_RegExt[Slot] + 0x30, nunchuck_calibration, sizeof(nunchuck_calibration));
 			memcpy(g_RegExt[Slot] + 0xfa, nunchuck_id, sizeof(nunchuck_id));
-
-
-			g_MotionPlus[Slot] = 0;
 		}
-		g_MotionPlusReadError[Slot] = 0;
-			
-	} else {
+		g_MotionPlus[Slot] = (WiiMapping[Slot].iExtensionConnected) ? 0 : 1;
+
+	} else
+	{
 
 		// Copy extension id and calibration to its register	
 		if(WiiMapping[Slot].iExtensionConnected == EXT_NUNCHUK)

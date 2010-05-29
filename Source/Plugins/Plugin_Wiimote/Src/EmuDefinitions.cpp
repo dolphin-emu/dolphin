@@ -48,7 +48,6 @@ u8 g_MotionPlus[MAX_WIIMOTES];
 u8 g_SpeakerMute[MAX_WIIMOTES];
 
 u8 g_MotionPlusLastWriteReg[MAX_WIIMOTES];
-int g_MotionPlusReadError[MAX_WIIMOTES];
 u8 g_RegExtTmp[WIIMOTE_REG_EXT_SIZE];
 
 int g_ID; // Current refreshing Wiimote

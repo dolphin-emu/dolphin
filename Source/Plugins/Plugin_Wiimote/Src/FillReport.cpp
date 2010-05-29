@@ -1249,16 +1249,7 @@ void FillReportGuitarHero3Extension(wm_GH3_extension& _ext)
    pass-through mode supported for MotionPlus+Nunchuk */
 void FillReportMotionPlus(wm_extension& ext, bool extension){
 
-	//sending initial control packet, this must be sent first, its some kind of verification, all control bits are set to 0!(mp-mode only)
-	if ((g_MotionPlusReadError[g_ID]) && (g_RegExt[g_ID][0xFE] == 0x05) && (!extension)) {
-		// wont be not needed anymore, ill remove this if so next time
-		memcpy(&ext, motionpluscheck_id, sizeof(motionpluscheck_id)); 
-		 
-		//g_MotionPlus[g_ID] = (extension) ? 1 : 0;
-		g_MotionPlusReadError[g_ID] = 0;	
-	
-	} //nunchuk inserted
-	else if (extension == 1) {
+	if (extension == 1) {
 
 		switch (g_InterleavedData[g_ID]) 
 		{
