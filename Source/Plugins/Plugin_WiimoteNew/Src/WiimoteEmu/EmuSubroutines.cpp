@@ -65,10 +65,8 @@ void Wiimote::ReportMode(const u16 _channelID, wm_report_mode* dr)
 	m_reporting_mode = dr->mode;
 	m_reporting_channel = _channelID;
 
-	// some hax to skip a few Update() cycles to fix a nunchuk prob in ztp and wii sports
-	// skipping 10 seems to work
-	// probably like 1/6th of a second that the user won't have control :/
-	m_skip_update = 10;
+	// reset IR camera
+	memset(m_reg_ir, 0, sizeof(*m_reg_ir));
 
 	if (0 == dr->all_the_time)
 		PanicAlert("Wiimote: Reporting Always is set to OFF! Everything should be fine, but games never do this.");
@@ -154,8 +152,8 @@ void Wiimote::HidOutputReport(const u16 _channelID, wm_report* sr)
 		//PanicAlert( "WM Speaker Mute: %d", sr->data[0] & 0x04 );
 #ifdef USE_WIIMOTE_EMU_SPEAKER
 		// testing
-		if (sr->data[0] ^ 0x04)
-			m_channel_status.step = 0;
+		if (sr->data[0] & 0x04)
+			memset(&m_channel_status, 0, sizeof(m_channel_status));
 #endif
 		m_speaker_mute = (sr->data[0] & 0x04) ? 1 : 0;
 		break;
@@ -418,6 +416,7 @@ void Wiimote::ReadData(const u16 _channelID, wm_read_data* rd)
 	// want the requested address, not the above modified one
 	rr.address = convert24bit(rd->address);
 	rr.size = size;
+	//rr.channel = _channelID;
 	rr.position = 0;
 	rr.data = block;
 
@@ -488,6 +487,17 @@ void Wiimote::SendReadDataReply(const u16 _channelID, ReadRequest& _request)
 
 	// Send a piece
 	g_WiimoteInitialize.pWiimoteInput(m_index, _channelID, data, sizeof(data));
+}
+
+void Wiimote::DoState(PointerWrap& p)
+{
+	// not working :(
+	//if (p.MODE_READ == p.GetMode())
+	//{
+	//	// LOAD
+	//	Reset();	// should cause a status report to be sent, then wii should re-setup wiimote
+	//}
+	//p.Do(m_reporting_channel);
 }
 
 }

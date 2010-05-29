@@ -400,7 +400,11 @@ void Wiimote_Update(int _number)
 
 unsigned int Wiimote_GetAttachedControllers()
 {
-	return 1;
+	unsigned int attached = 0;
+	for (unsigned int i=0; i<4; ++i)
+		if (WiiMoteEmu::WiiMapping[i].Source)
+			attached |= (1 << i);
+	return attached;
 }
 
 

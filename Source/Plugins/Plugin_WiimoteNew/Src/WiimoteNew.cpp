@@ -191,10 +191,11 @@ void Wiimote_Update(int _number)
 //
 unsigned int Wiimote_GetAttachedControllers()
 {
-	//PanicAlert( "Wiimote_GetAttachedControllers" );
-	// temporary
-	//return 0x0F;
-	return 1;
+	unsigned int attached = 0;
+	for (unsigned int i=0; i<4; ++i)
+		if (g_plugin.controllers[i]->default_device.ToString().length())
+			attached |= (1 << i);
+	return attached;
 }
 
 // GLOBAL I N T E R F A C E 
@@ -325,7 +326,9 @@ void Shutdown(void)
 //
 void DoState(unsigned char **ptr, int mode)
 {
-	// do this later
+	PointerWrap p(ptr, mode);
+	for (unsigned int i=0; i<4; ++i)
+		((WiimoteEmu::Wiimote*)g_plugin.controllers[i])->DoState(p);
 }
 
 // ___________________________________________________________________________

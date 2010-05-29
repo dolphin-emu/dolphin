@@ -1458,7 +1458,7 @@ THREAD_RETURN TakeScreenshot(void *pArgs)
 
 	// Save the screenshot and finally kill the wxImage object
 	// This is really expensive when saving to PNG, but not at all when using BMP
-	threadStruct->img->SaveFile(wxString::FromAscii(threadStruct->filename.c_str()), wxBITMAP_TYPE_BMP);
+	threadStruct->img->SaveFile(wxString::FromAscii(threadStruct->filename.c_str()), wxBITMAP_TYPE_PNG);
 	threadStruct->img->Destroy();
 	
 	// Show success messages

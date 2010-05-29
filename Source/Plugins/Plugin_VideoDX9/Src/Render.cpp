@@ -1133,7 +1133,19 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	if(s_bScreenshot)
 	{
 		s_criticalScreenshot.Enter();
-		D3DXSaveSurfaceToFileA(s_sScreenshotName, D3DXIFF_BMP, D3D::GetBackBufferSurface(), NULL, NULL);
+
+		// create a R8G8B8 surface for the screenshot (no alpha channel)
+		// otherwise funky screenshots get saved
+		LPDIRECT3DSURFACE9 screenshot_surface;
+		if (D3D_OK == D3D::dev->CreateOffscreenPlainSurface(s_backbuffer_width, s_backbuffer_height, D3DFMT_R8G8B8, D3DPOOL_SCRATCH, &screenshot_surface, NULL))
+		{
+			D3DXLoadSurfaceFromSurface(screenshot_surface, NULL, NULL, D3D::GetBackBufferSurface(), NULL, NULL, D3DX_DEFAULT, 0);
+			D3DXSaveSurfaceToFileA(s_sScreenshotName, D3DXIFF_PNG, screenshot_surface, NULL, NULL);
+			screenshot_surface->Release();
+		}
+		else
+			PanicAlert("Failed to create surface for screenshot!");
+
 		s_bScreenshot = false;
 		s_criticalScreenshot.Leave();
 	}

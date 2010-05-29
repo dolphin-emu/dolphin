@@ -15,8 +15,8 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
 	const u8* const e = sd->data + sd->length;
 	for ( const u8* i = sd->data; i<e; ++i )
 	{
-		*s++ = adpcm_yamaha_expand_nibble( &m_channel_status, *i & 0x0F );
-		*s++ = adpcm_yamaha_expand_nibble( &m_channel_status, *i >> 4 );
+		*s++ = NGCADPCM::ADPDecodeSample(*i & 0x0F, sd->data[0] & 0x0F, &m_channel_status.hist1p, &m_channel_status.hist2p);
+		*s++ = NGCADPCM::ADPDecodeSample(*i >> 4, sd->data[0] >> 4, &m_channel_status.hist1p, &m_channel_status.hist2p);
 	}
 
 	alGenBuffers(1, &sb.buffer);

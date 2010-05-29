@@ -208,9 +208,6 @@ void Wiimote::Reset()
 	m_rumble_on = false;
 	m_speaker_mute = false;
 
-	// used for some hax in Update()
-	m_skip_update = 0;
-
 	// will make the first Update() call send a status request
 	// the first call to RequestStatus() will then set up the status struct extension bit
 	m_extension->active_extension = -1;
@@ -393,7 +390,7 @@ void Wiimote::Update()
 	}
 
 	// check if there is a read data request
-	if ( m_read_requests.size() )
+	if (m_read_requests.size())
 	{
 		ReadRequest& rr = m_read_requests.front();
 		// send up to 16 bytes to the wii
@@ -427,15 +424,6 @@ void Wiimote::Update()
 
 	if (false == m_reporting_auto)
 		return;
-
-	// Some hax to skip a few update cycles after a change in reporting mode
-	// It fixes the nunchuk prob in ztp and wii sports. I have no idea why
-	// maybe its an m_reporting_channel problem?
-	if (m_skip_update)
-	{
-		--m_skip_update;
-		return;
-	}
 
 	// figure out what data we need
 	const ReportFeatures& rpt = reporting_mode_features[m_reporting_mode - WM_REPORT_CORE];
@@ -512,7 +500,10 @@ void Wiimote::Update()
 	}
 
 	// ----ir----
-	if (rpt.ir)
+	// only if camera is fully enabled.
+	// should send 0xFF if camera isn't enabled maybe,
+	// 0x00 is working fine though
+	if (rpt.ir && 0x08 == m_reg_ir->data[0x30])
 	{
 		float xx = 10000, yy = 0, zz = 0;
 

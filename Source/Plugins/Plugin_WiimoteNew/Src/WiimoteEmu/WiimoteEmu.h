@@ -3,10 +3,13 @@
 
 //#define USE_WIIMOTE_EMU_SPEAKER
 
+//#include <Core.h>
+//#include <HW/StreamADPCM.h>
 // just used to get the OpenAL includes :p
 //#include <OpenALStream.h>
 
 #include <ControllerEmu.h>
+#include "ChunkFile.h"
 
 #include "WiimoteHid.h"
 #include "Encryption.h"
@@ -47,9 +50,12 @@ public:
 	void InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size);
 	void ControlChannel(const u16 _channelID, const void* _pData, u32 _Size);
 
+	void DoState(PointerWrap& p);
+
 private:
 	struct ReadRequest
 	{
+		//u16		channel;
 		unsigned int	address, size, position;
 		u8*		data;
 	};
@@ -86,12 +92,9 @@ private:
 	bool		m_rumble_on;
 	bool		m_speaker_mute;
 
-	bool					m_reporting_auto;
-	unsigned int			m_reporting_mode;
-	unsigned int			m_reporting_channel;
-
-	// hax
-	unsigned int			m_skip_update;
+	bool		m_reporting_auto;
+	u8			m_reporting_mode;
+	u16			m_reporting_channel;
 
 	unsigned int			m_shake_step[3];
 	unsigned int			m_swing_step[3];
@@ -120,7 +123,10 @@ private:
 	};
 	std::queue<SoundBuffer>	m_audio_buffers;
 	ALuint					m_audio_source;
-	ADPCMChannelStatus		m_channel_status;
+	struct
+	{
+		int		hist1p, hist2p;
+	}	m_channel_status;
 #endif
 
 	u8		m_eeprom[WIIMOTE_EEPROM_SIZE];
@@ -129,7 +135,7 @@ private:
 
 	struct IrReg
 	{
-		u8	unknown1[0x33];
+		u8	data[0x33];
 		u8	mode;
 
 	}	*m_reg_ir;

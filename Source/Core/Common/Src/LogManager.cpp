@@ -168,8 +168,7 @@ void LogContainer::removeListener(LogListener *listener) {
 }
 
 bool LogContainer::isListener(LogListener *listener) const {
-	std::vector<LogListener *>::const_iterator i = std::find(listeners.begin(), listeners.end(), listener);
-	return listeners.end() != i;
+	return listeners.end() != std::find(listeners.begin(), listeners.end(), listener);
 }
 
 void LogContainer::trigger(LogTypes::LOG_LEVELS level, const char *msg) {
