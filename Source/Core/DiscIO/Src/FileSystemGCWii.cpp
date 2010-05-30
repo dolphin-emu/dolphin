@@ -92,31 +92,46 @@ u64 CFileSystemGCWii::ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _Max
 
 bool CFileSystemGCWii::ExportFile(const char* _rFullPath, const char* _rExportFilename) const
 {
-	size_t filesize = (size_t) GetFileSize(_rFullPath);
+	const SFileInfo* pFileInfo = FindFileInfo(_rFullPath);
 
-	if (filesize == 0)
+	if (!pFileInfo || pFileInfo->m_FileSize == 0)
 		return false;
 
-	u8* buffer = new u8[filesize];
-
-	if (!ReadFile(_rFullPath, buffer, filesize))
-	{
-		delete[] buffer;
-		return false;
-	}
+	u64 remainingSize = pFileInfo->m_FileSize;
+	u64 fileOffset = pFileInfo->m_Offset;
 
 	FILE* f = fopen(_rExportFilename, "wb");
+	if (!f)
+		return false;
 
-	if (f)
+	bool result = true;
+
+	while (remainingSize)
 	{
-		fwrite(buffer, filesize, 1, f);
-		fclose(f);
+		// Limit read size to 128 MB
+		size_t readSize = (size_t)min(remainingSize, (u64)0x08000000);
+
+		u8* buffer = new u8[readSize];
+
+		result = m_rVolume->Read(fileOffset, readSize, buffer);
+
+		if (!result)
+		{
+			delete[] buffer;
+			break;
+		}
+
+		fwrite(buffer, readSize, 1, f);
+
+		remainingSize -= readSize;
+		fileOffset += readSize;
+
 		delete[] buffer;
-		return true;
 	}
 
-	delete[] buffer;
-	return false;
+	fclose(f);
+
+	return result;
 }
 
 bool CFileSystemGCWii::ExportApploader(const char* _rExportFolder) const
