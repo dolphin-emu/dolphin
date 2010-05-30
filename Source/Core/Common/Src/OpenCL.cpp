@@ -86,9 +86,7 @@ bool Initialize()
 
 	cl_context_properties* cprops = (NULL == platform) ? NULL : cps;
 
-	int gpu = 1; // I think we should use CL_DEVICE_TYPE_ALL
-
-	err = clGetDeviceIDs(platform, gpu ? CL_DEVICE_TYPE_GPU : CL_DEVICE_TYPE_CPU, 1, &device_id, NULL);
+	err = clGetDeviceIDs(platform, CL_DEVICE_TYPE_DEFAULT, 1, &device_id, NULL);
 	if (err != CL_SUCCESS)
 	{
 		HandleCLError(err, "Failed to create a device group!");
