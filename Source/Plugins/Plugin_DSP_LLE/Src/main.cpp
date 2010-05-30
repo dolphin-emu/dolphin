@@ -377,7 +377,7 @@ void DSP_WriteMailboxLow(bool _CPUMailbox, u16 _uLowMail)
 
 void DSP_Update(int cycles)
 {
-	int dsp_cycles = cycles / 6;  //(jit?20:6);
+	unsigned int dsp_cycles = cycles / 6;  //(jit?20:6);
 
 // Sound stream update job has been handled by AudioDMA routine, which is more efficient
 /*
@@ -389,7 +389,6 @@ void DSP_Update(int cycles)
 	else
 		cycles_between_ss_update = 81000000 / 200;
 	
-	static int cycle_count = 0;
 	cycle_count += cycles;
 	if (cycle_count > cycles_between_ss_update)
 	{
