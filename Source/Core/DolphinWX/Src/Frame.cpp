@@ -491,10 +491,6 @@ CFrame::CFrame(wxFrame* parent,
 
 	m_Mgr->Connect(wxID_ANY, wxEVT_AUI_RENDER, // Resize
 		wxAuiManagerEventHandler(CFrame::OnManagerResize),
-		(wxObject*)0, this);	
-
-	wxTheApp->Connect(wxID_ANY, wxEVT_LEFT_DCLICK,
-		wxMouseEventHandler(CFrame::OnDoubleClick),
 		(wxObject*)0, this);
 	// ----------
 
@@ -904,24 +900,6 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
 		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
 }
-
-// ---------------
-// Detect double click
-
-void CFrame::OnDoubleClick(wxMouseEvent& event)
-{
-	 // Don't block the mouse click
-	event.Skip();
-
-	// Don't use this in Wii mode since we use the mouse as input to the game there
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii) return;
-
-	// Only detect double clicks in the rendering window, and only use this when a game is running
-	if (! (Core::GetState() == Core::CORE_RUN && event.GetEventObject() == m_RenderParent)) return;
-
-	DoFullscreen(!RendererIsFullscreen());
-}
-
 
 // --------
 // Functions

@@ -336,7 +336,6 @@ class CFrame : public CRenderFrame
 		void OnToggleConsole(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
 		void OnKeyUp(wxKeyEvent& event);
-		void OnDoubleClick(wxMouseEvent& event);
 		
 		void OnHostMessage(wxCommandEvent& event);
 

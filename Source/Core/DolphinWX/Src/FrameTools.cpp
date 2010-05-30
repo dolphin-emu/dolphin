@@ -332,7 +332,7 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 	ToolBar->AddTool(IDM_CONFIG_MAIN, _T("Config"), m_Bitmaps[Toolbar_PluginOptions], _T("Configure..."));
 	ToolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("Graphics"),  m_Bitmaps[Toolbar_PluginGFX], _T("Graphics settings"));
 	ToolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
-	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("GC Pad"),  m_Bitmaps[Toolbar_PluginPAD], _T("Gamecube Pad settings"));
+	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("GCPad"),  m_Bitmaps[Toolbar_PluginPAD], _T("Gamecube Pad settings"));
 	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _T("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _T("Wiimote settings"));
 
 	// after adding the buttons to the toolbar, must call Realize() to reflect

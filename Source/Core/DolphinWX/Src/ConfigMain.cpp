@@ -332,12 +332,14 @@ void CConfigMain::CreateGUIControls()
 	// Create the notebook and pages
 	Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 	GeneralPage = new wxPanel(Notebook, ID_GENERALPAGE, wxDefaultPosition, wxDefaultSize);
+	DisplayPage = new wxPanel(Notebook, ID_DISPLAYPAGE, wxDefaultPosition, wxDefaultSize);
 	GamecubePage = new wxPanel(Notebook, ID_GAMECUBEPAGE, wxDefaultPosition, wxDefaultSize);
 	WiiPage = new wxPanel(Notebook, ID_WIIPAGE, wxDefaultPosition, wxDefaultSize);
 	PathsPage = new wxPanel(Notebook, ID_PATHSPAGE, wxDefaultPosition, wxDefaultSize);
 	PluginPage = new wxPanel(Notebook, ID_PLUGINPAGE, wxDefaultPosition, wxDefaultSize);
 
 	Notebook->AddPage(GeneralPage, wxT("General"));
+	Notebook->AddPage(DisplayPage, wxT("Display"));
 	Notebook->AddPage(GamecubePage, wxT("Gamecube"));
 	Notebook->AddPage(WiiPage, wxT("Wii"));
 	Notebook->AddPage(PathsPage, wxT("Paths"));
@@ -346,8 +348,6 @@ void CConfigMain::CreateGUIControls()
 	// General page
 	sbBasic = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Basic Settings"));
 	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
-	sbInterface = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Interface Settings"));
-	sbDisplay = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Emulator Display Settings"));
 	// Core Settings - Basic
 	CPUThread = new wxCheckBox(GeneralPage, ID_CPUTHREAD, wxT("Enable Dual Core (speedup)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(GeneralPage, ID_IDLESKIP, wxT("Enable Idle Skipping (speedup)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -367,38 +367,7 @@ void CConfigMain::CreateGUIControls()
 	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	DSPThread = new wxCheckBox(GeneralPage, ID_DSPTHREAD, wxT("DSPLLE on thread"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	// Interface settings
-	ConfirmStop = new wxCheckBox(GeneralPage, ID_INTERFACE_CONFIRMSTOP, wxT("Confirm On Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	UsePanicHandlers = new wxCheckBox(GeneralPage, ID_INTERFACE_USEPANICHANDLERS, wxT("Use Panic Handlers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	
-
-	// Interface Language
-	// At the moment this only changes the language displayed in m_gamelistctrl
-	// If someone wants to control the whole GUI's language, it should be set here too
-	wxStaticText *InterfaceLangText = new wxStaticText(GeneralPage, ID_INTERFACE_LANG_TEXT, wxT("Game List Language:"), wxDefaultPosition, wxDefaultSize);
-	InterfaceLang = new wxChoice(GeneralPage, ID_INTERFACE_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_InterfaceLang, 0, wxDefaultValidator);
-
-	// Hotkey configuration
-	HotkeyConfig = new wxButton(GeneralPage, ID_HOTKEY_CONFIG, wxT("Hotkeys"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
-
-	// Themes - this should really be a wxChoice...
-	Theme = new wxRadioBox(GeneralPage, ID_INTERFACE_THEME, wxT("Theme"),wxDefaultPosition, wxDefaultSize, arrayStringFor_Themes, 1, wxRA_SPECIFY_ROWS);
-
-	// General display settings
-	wxStaticText *FullscreenResolutionText = new wxStaticText(GeneralPage, wxID_ANY, wxT("Fullscreen Display Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
-	FullscreenResolution = new wxChoice(GeneralPage, ID_DISPLAY_FULLSCREENRES, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenResolution, 0, wxDefaultValidator, arrayStringFor_FullscreenResolution[0]);
-	wxStaticText *WindowSizeText = new wxStaticText(GeneralPage, wxID_ANY, wxT("Window Size:"), wxDefaultPosition, wxDefaultSize, 0);
-    WindowWidth = new wxSpinCtrl(GeneralPage, ID_DISPLAY_WINDOWWIDTH, wxEmptyString, wxDefaultPosition, wxDefaultSize);
-	wxStaticText *WindowXText = new wxStaticText(GeneralPage, wxID_ANY, wxT("x"), wxDefaultPosition, wxDefaultSize, 0);
-	WindowWidth->SetRange(0,3280);
-    WindowHeight = new wxSpinCtrl(GeneralPage, ID_DISPLAY_WINDOWHEIGHT, wxEmptyString, wxDefaultPosition, wxDefaultSize);
-	WindowHeight->SetRange(0,2048);
-	Fullscreen = new wxCheckBox(GeneralPage, ID_DISPLAY_FULLSCREEN, wxT("Start Renderer in Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	HideCursor = new wxCheckBox(GeneralPage, ID_DISPLAY_HIDECURSOR, wxT("Hide Mouse Cursor"));
-	RenderToMain = new wxCheckBox(GeneralPage, ID_DISPLAY_RENDERTOMAIN, wxT("Render to Main Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-
 	// Populate the settings
-	sCore = new wxBoxSizer(wxHORIZONTAL);
 	sbBasic->Add(CPUThread, 0, wxALL, 5);
 	sbBasic->Add(SkipIdle, 0, wxALL, 5);
 	sbBasic->Add(EnableCheats, 0, wxALL, 5);
@@ -415,19 +384,31 @@ void CConfigMain::CreateGUIControls()
 	sbAdvanced->Add(sizerCoreType, 0, wxALL, 5);
 	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
 	sbAdvanced->Add(DSPThread, 0, wxALL, 5);
-	sCore->Add(sbBasic, 0, wxEXPAND);
-	sCore->AddStretchSpacer();
-	sCore->Add(sbAdvanced, 0, wxEXPAND);
 
-	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
-	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
-	sbInterface->Add(Theme, 0, wxEXPAND | wxALL, 5);
-	wxBoxSizer *sInterface = new wxBoxSizer(wxHORIZONTAL);
-	sInterface->Add(InterfaceLangText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-	sInterface->Add(InterfaceLang, 0, wxEXPAND | wxALL, 5);
-	sInterface->AddStretchSpacer();
-	sInterface->Add(HotkeyConfig, 0, wxALIGN_RIGHT | wxALL, 5);
-	sbInterface->Add(sInterface, 0, wxEXPAND | wxALL, 5);
+	// Populate the entire page
+	sGeneralPage = new wxBoxSizer(wxVERTICAL);
+	sGeneralPage->Add(sbBasic, 0, wxEXPAND | wxALL, 5);
+	sGeneralPage->Add(sbAdvanced, 0, wxEXPAND | wxALL, 5);
+
+	GeneralPage->SetSizer(sGeneralPage);
+	sGeneralPage->Layout();
+
+	// Display page
+	sbInterface = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, wxT("Interface Settings"));
+	sbDisplay = new wxStaticBoxSizer(wxVERTICAL, DisplayPage, wxT("Emulator Display Settings"));
+
+	// General display settings
+	wxStaticText *FullscreenResolutionText = new wxStaticText(DisplayPage, wxID_ANY, wxT("Fullscreen Display Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
+	FullscreenResolution = new wxChoice(DisplayPage, ID_DISPLAY_FULLSCREENRES, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenResolution, 0, wxDefaultValidator, arrayStringFor_FullscreenResolution[0]);
+	wxStaticText *WindowSizeText = new wxStaticText(DisplayPage, wxID_ANY, wxT("Window Size:"), wxDefaultPosition, wxDefaultSize, 0);
+    WindowWidth = new wxSpinCtrl(DisplayPage, ID_DISPLAY_WINDOWWIDTH, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+	wxStaticText *WindowXText = new wxStaticText(DisplayPage, wxID_ANY, wxT("x"), wxDefaultPosition, wxDefaultSize, 0);
+	WindowWidth->SetRange(0,3280);
+    WindowHeight = new wxSpinCtrl(DisplayPage, ID_DISPLAY_WINDOWHEIGHT, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+	WindowHeight->SetRange(0,2048);
+	Fullscreen = new wxCheckBox(DisplayPage, ID_DISPLAY_FULLSCREEN, wxT("Start Renderer in Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	HideCursor = new wxCheckBox(DisplayPage, ID_DISPLAY_HIDECURSOR, wxT("Hide Mouse Cursor"));
+	RenderToMain = new wxCheckBox(DisplayPage, ID_DISPLAY_RENDERTOMAIN, wxT("Render to Main Window"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	wxBoxSizer *sDisplayRes = new wxBoxSizer(wxHORIZONTAL);
 	sDisplayRes->Add(FullscreenResolutionText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
@@ -443,17 +424,40 @@ void CConfigMain::CreateGUIControls()
 	sbDisplay->Add(HideCursor, 0, wxALL, 5);
 	sbDisplay->Add(RenderToMain, 0, wxEXPAND | wxALL, 5);
 
-	// Populate the entire page
-	sGeneralPage = new wxBoxSizer(wxVERTICAL);
-	sGeneralPage->Add(sCore, 0, wxEXPAND | wxALL, 5);
-	sGeneralPage->Add(sbInterface, 0, wxEXPAND | wxALL, 5);
-	sGeneralPage->Add(sbDisplay, 0, wxEXPAND | wxALL, 5);
-
-	GeneralPage->SetSizer(sGeneralPage);
-	sGeneralPage->Layout();
-
-
+	// Interface settings
+	ConfirmStop = new wxCheckBox(DisplayPage, ID_INTERFACE_CONFIRMSTOP, wxT("Confirm On Stop"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	UsePanicHandlers = new wxCheckBox(DisplayPage, ID_INTERFACE_USEPANICHANDLERS, wxT("Use Panic Handlers"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	
+	// Interface Language
+	// At the moment this only changes the language displayed in m_gamelistctrl
+	// If someone wants to control the whole GUI's language, it should be set here too
+	wxStaticText *InterfaceLangText = new wxStaticText(DisplayPage, ID_INTERFACE_LANG_TEXT, wxT("Game List Language:"), wxDefaultPosition, wxDefaultSize);
+	InterfaceLang = new wxChoice(DisplayPage, ID_INTERFACE_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_InterfaceLang, 0, wxDefaultValidator);
+
+	// Hotkey configuration
+	HotkeyConfig = new wxButton(DisplayPage, ID_HOTKEY_CONFIG, wxT("Hotkeys"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT, wxDefaultValidator);
+
+	// Themes - this should really be a wxChoice...
+	Theme = new wxRadioBox(DisplayPage, ID_INTERFACE_THEME, wxT("Theme"),wxDefaultPosition, wxDefaultSize, arrayStringFor_Themes, 1, wxRA_SPECIFY_ROWS);
+
+	sbInterface->Add(ConfirmStop, 0, wxALL, 5);
+	sbInterface->Add(UsePanicHandlers, 0, wxALL, 5);
+	sbInterface->Add(Theme, 0, wxEXPAND | wxALL, 5);
+	wxBoxSizer *sInterface = new wxBoxSizer(wxHORIZONTAL);
+	sInterface->Add(InterfaceLangText, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+	sInterface->Add(InterfaceLang, 0, wxEXPAND | wxALL, 5);
+	sInterface->AddStretchSpacer();
+	sInterface->Add(HotkeyConfig, 0, wxALIGN_RIGHT | wxALL, 5);
+	sbInterface->Add(sInterface, 0, wxEXPAND | wxALL, 5);
+
+	// sizers
+	sDisplayPage = new wxBoxSizer(wxVERTICAL);
+	sDisplayPage->Add(sbDisplay, 0, wxEXPAND | wxALL, 5);
+	sDisplayPage->Add(sbInterface, 0, wxEXPAND | wxALL, 5);
+
+	DisplayPage->SetSizer(sDisplayPage);
+	sDisplayPage->Layout();
+
 	// Gamecube page
 	sbGamecubeIPLSettings = new wxStaticBoxSizer(wxVERTICAL, GamecubePage, wxT("IPL Settings"));
 	// IPL settings

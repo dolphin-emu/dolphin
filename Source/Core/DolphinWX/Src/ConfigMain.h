@@ -52,18 +52,10 @@ private:
 
 	wxBoxSizer* sGeneralPage; // General Settings
 	wxCheckBox* ConfirmStop, *UsePanicHandlers, *UseFPSForLimiting;
-	wxCheckBox* HideCursor;
 	wxChoice* InterfaceLang;
 	wxChoice* Framelimit;
 	wxRadioBox* Theme;
-	wxCheckBox* Fullscreen;
-	wxChoice* FullscreenResolution;
-	wxSpinCtrl *WindowWidth;
-	wxSpinCtrl *WindowHeight;
-	wxCheckBox* RenderToMain;
-	wxButton* HotkeyConfig;
 
-	wxBoxSizer* sCore;
 	wxStaticBoxSizer* sbBasic, *sbAdvanced, *sbInterface, *sbDisplay;
 	wxCheckBox* AlwaysHLE_BS2;
 	wxRadioButton* m_RadioInt;
@@ -74,6 +66,16 @@ private:
 	wxCheckBox* LockThreads;
 	wxCheckBox* SkipIdle;
 	wxCheckBox* EnableCheats;
+
+	// Display settings
+	wxBoxSizer* sDisplayPage;
+	wxCheckBox* HideCursor;
+	wxCheckBox* Fullscreen;
+	wxChoice* FullscreenResolution;
+	wxSpinCtrl *WindowWidth;
+	wxSpinCtrl *WindowHeight;
+	wxCheckBox* RenderToMain;
+	wxButton* HotkeyConfig;
 
 	wxBoxSizer* sGamecube; // GC settings
 	wxStaticBoxSizer* sbGamecubeIPLSettings;
@@ -102,6 +104,7 @@ private:
 
 	wxNotebook *Notebook;
 	wxPanel *GeneralPage;
+	wxPanel *DisplayPage;
 	wxPanel *GamecubePage;
 	wxPanel *WiiPage;
 	wxPanel *PathsPage;
@@ -162,6 +165,7 @@ private:
 	{
 		ID_NOTEBOOK = 1000,
 		ID_GENERALPAGE,
+		ID_DISPLAYPAGE,
 		ID_GAMECUBEPAGE,
 		ID_WIIPAGE,
 		ID_PATHSPAGE,
