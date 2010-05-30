@@ -23,6 +23,7 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 	switch (CountryCode) 
 	{
 		// PAL
+		case 'A':
 		case 'D':
 		case 'S': // <- that is shitty :) zelda demo disc
 		case 'X': // XIII <- uses X but is PAL rip
