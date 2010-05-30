@@ -22,10 +22,14 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 {
 	switch (CountryCode) 
 	{
-		// PAL
+		// Region free - fall through to European defaults for now
 		case 'A':
+
+		// PAL
 		case 'D':
-		case 'S': // <- that is shitty :) zelda demo disc
+		case 'L': // Japanese import to PAL regions
+		case 'M': // Japanese import to PAL regions
+		case 'S': // Spanish-speaking regions
 		case 'X': // XIII <- uses X but is PAL rip
 		case 'P':
 			return IVolume::COUNTRY_EUROPE;
@@ -41,6 +45,7 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 
 		// NTSC
 		case 'E':
+		case 'N': // Japanese import to PAL regions
 		case 'Z': // Prince Of Persia - The Forgotten Sands (WII)
 			return IVolume::COUNTRY_USA;
 			break;
@@ -50,6 +55,8 @@ IVolume::ECountry CountrySwitch(u8 CountryCode)
 			break;
 
 		case 'K':
+		case 'T': // Korea with English language
+		case 'Q': // Korea with Japanese language
 			return IVolume::COUNTRY_KOREA;
 			break;			
 
