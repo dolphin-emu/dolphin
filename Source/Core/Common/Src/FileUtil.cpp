@@ -55,7 +55,7 @@ namespace File
 
 // Remove any ending forward slashes from directory paths
 // Modifies argument.
-inline char *StripTailDirSlashes(char *fname)
+static char *StripTailDirSlashes(char *fname)
 {
 	int len = (int)strlen(fname);
 	int i = len - 1;
