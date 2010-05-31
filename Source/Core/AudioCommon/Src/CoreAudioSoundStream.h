@@ -31,10 +31,12 @@
 class CoreAudioSound : public SoundStream
 {
 #if defined(__APPLE__)
+	Common::Thread *thread;
+	Common::Event soundSyncEvent;
+	Common::CriticalSection soundCriticalSection;
 
-        Common::Thread *thread;
-        Common::CriticalSection soundCriticalSection;
-        Common::Event soundSyncEvent;
+        ComponentDescription desc;
+        AudioUnit audioUnit;
 
 public:
 	CoreAudioSound(CMixer *mixer);
@@ -42,19 +44,18 @@ public:
 	
 	virtual bool Start();
 	virtual void SoundLoop();
-	virtual void Stop(); 
+	virtual void Stop();
 	
 	static bool isValid() {
 		return true;
 	}
-	virtual bool usesMixer() const { 
-		return true; 
+	virtual bool usesMixer() const {
+		return true;
 	}
 	
 	virtual void Update();
-	
-private:
-	bool CoreAudioInit();
+
+	void RenderSamples(void *target, UInt32 size);
 #else
 public:
 	CoreAudioSound(CMixer *mixer) : SoundStream(mixer) {}
@@ -62,4 +63,3 @@ public:
 };
 
 #endif
-
