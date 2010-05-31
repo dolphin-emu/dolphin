@@ -190,13 +190,7 @@ const int TS[6][2] =
 
 bool DXCheck( std::wstring& msg )
 {
-	std::wstring dll = 
-	#ifdef _DEBUG
-		StringFromFormat( _T("d3dx9d_%d.dll"), D3DX_SDK_VERSION);
-	#else
-		StringFromFormat( _T("d3dx9_%d.dll"), D3DX_SDK_VERSION);
-	#endif
-	HINSTANCE hDll = LoadLibrary(dll.c_str());
+	HINSTANCE hDll = LoadLibrary(StringFromFormat( _T("d3dx9_%d.dll"), D3DX_SDK_VERSION).c_str());
 	if( !hDll )
 	{
 		msg = _T("Please make sure that you have the latest version of DirectX 9.0c correctly installed.");
