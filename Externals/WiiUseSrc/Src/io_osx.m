@@ -224,8 +224,7 @@ void detectWiimote(int timeout) {
  */
 int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 
-	int found_devices;
-	int found_wiimotes;
+	int found_wiimotes = 0;
 
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -246,9 +245,9 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 
 	CFRunLoopRun();
 
-	found_wiimotes = 0;
-
+#if 0	/* XXX */
 	WIIUSE_INFO("Found %i bluetooth device(s).", found_devices);
+#endif
 	
 	WIIMOTE_ENABLE_STATE(wm[found_wiimotes], WIIMOTE_STATE_DEV_FOUND);
 
