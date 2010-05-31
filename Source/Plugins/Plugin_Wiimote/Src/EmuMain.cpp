@@ -508,24 +508,27 @@ void UpdateExtRegisterBlocks(int Slot)
 		if (WiiMapping[Slot].iExtensionConnected == EXT_NONE)
 		{	
 			memset(g_RegExt[Slot],0,sizeof(g_RegExt[0]));
-			memcpy(g_RegExt[Slot] + 0x20, motion_plus_calibration, sizeof(motion_plus_calibration)); //reg 32bytes 0x20-3f;
-			memset(g_RegMotionPlus[Slot] + 0x40, 0xFF, sizeof(nunchuck_calibration));
-			memcpy(g_RegMotionPlus[Slot] + 0x50, motionplus_accel_gyro_syncing, sizeof(motionplus_accel_gyro_syncing));
-			memcpy(g_RegMotionPlus[Slot] + 0xf0, motionplus_activeflags, sizeof(motionplus_activeflags));
+			memcpy(g_RegExt[Slot] + 0x20, motion_plus_calibration, sizeof(motion_plus_calibration));
+			memset(g_RegExt[Slot] + 0x40, 0xFF, sizeof(nunchuck_calibration));
+			memcpy(g_RegExt[Slot] + 0x50, motionplus_accel_gyro_syncing, sizeof(motionplus_accel_gyro_syncing));
+			memcpy(g_RegExt[Slot] + 0xf0, motionplus_activeflags, sizeof(motionplus_activeflags));
 			memcpy(g_RegExt[Slot] + 0xfa, motionplus_id, sizeof(motionplus_id));
 
 		}
 		else if(WiiMapping[Slot].iExtensionConnected == EXT_NUNCHUK)
 		{
-			memset(g_RegMotionPlus[Slot],0,sizeof(g_RegExt[0]));
-			memcpy(g_RegMotionPlus[Slot] + 0x20, motion_plus_calibration, sizeof(motion_plus_calibration)); //reg 32bytes 0x20-3f;
+
+			memset(g_RegExt[Slot],0,sizeof(g_RegExt[0]));
+			memset(g_RegMotionPlus[Slot],0,sizeof(g_RegMotionPlus[0]));
+			memcpy(g_RegExt[Slot] + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
+			memcpy(g_RegExt[Slot] + 0x30, nunchuck_calibration, sizeof(nunchuck_calibration));
+			memcpy(g_RegExt[Slot] + 0xfa, nunchuck_id, sizeof(nunchuck_id));
+			memcpy(g_RegMotionPlus[Slot] + 0x20, motion_plus_calibration, sizeof(motion_plus_calibration));
 			memcpy(g_RegMotionPlus[Slot] + 0x40, nunchuck_calibration, sizeof(nunchuck_calibration));
 			memcpy(g_RegMotionPlus[Slot] + 0x50, motionplus_accel_gyro_syncing, sizeof(motionplus_accel_gyro_syncing));
 			memcpy(g_RegMotionPlus[Slot] + 0xf0, motionplus_activeflags, sizeof(motionplus_activeflags));
 			memcpy(g_RegMotionPlus[Slot] + 0xfa, motionplusnunchuk_id, sizeof(motionplusnunchuk_id));
-			memcpy(g_RegExt[Slot] + 0x20, nunchuck_calibration, sizeof(nunchuck_calibration));
-			memcpy(g_RegExt[Slot] + 0x30, nunchuck_calibration, sizeof(nunchuck_calibration));
-			memcpy(g_RegExt[Slot] + 0xfa, nunchuck_id, sizeof(nunchuck_id));
+
 		}
 		g_MotionPlus[Slot] = (WiiMapping[Slot].iExtensionConnected) ? 0 : 1;
 
