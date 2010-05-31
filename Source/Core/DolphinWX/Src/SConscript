@@ -1,6 +1,7 @@
 # -*- python -*-
 
 Import('env')
+import os
 import sys
 
 wxenv = env.Clone()
@@ -78,25 +79,19 @@ if sys.platform == 'darwin':
 	exeGUI = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'
 	exeNoGUI = env['binary_dir'] + 'DolphinNoGUI'
 
-	icon = 'Dolphin'
-	version = 'svn'
 	wxenv['FRAMEWORKS'] = ['Cocoa', 'CoreFoundation', 'System']
 	wxenv.Plist(
 		env['binary_dir'] + 'Dolphin.app/Contents/Info.plist',
 		Value(dict(
-			CFAppleHelpAnchor = 'index',
 			CFBundleExecutable = 'Dolphin',
-			CFBundleGetInfoHTML = 'Dolphin ' + version,
-			CFBundleIconFile = icon,
+			CFBundleIconFile = 'Dolphin.icns',
 			CFBundleIdentifier = 'com.dolphin-emu.dolphin',
 			CFBundleName = 'Dolphin',
 			CFBundlePackageType = 'APPL',
-			CFBundleShortVersionString = version,
-			CFBundleSignature = 'dlfn',
-			CFBundleVersion = version,
+			CFBundleShortVersionString =
+				os.popen('svnversion -n ' + Dir('#').abspath).read(),
+			CFBundleVersion = '2.0',
 			LSRequiresCarbon = True,
-			NSPrefPaneIconFile = icon,
-			NSPrefPaneIconLabel = 'Dolphin',
 			))
 		)
 else:
