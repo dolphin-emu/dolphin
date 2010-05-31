@@ -622,7 +622,7 @@ void VideoThrottle()
 
 	// Update info per second
 	u32 ElapseTime = (u32)Timer.GetTimeDifference();
-	if (ElapseTime >= 1000)
+	if (ElapseTime >= 1000 && DrawnVideo > 0)
 	{
 		SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
