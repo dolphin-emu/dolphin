@@ -37,11 +37,11 @@ SDL: Simple DirectMedia Layer API (http://www.libsdl.org/)
 *.pdb = Program Debug Database (use these symbols with a program debugger)
 
 [DSP Plugins]
+Plugin_DSP_HLE: High Level DSP Emulation
 Plugin_DSP_LLE: Low Level DSP Emulation
-Plugin_DSP_HLE: High Level DSP Emulation (only emulates AX UCodes)
 
 [Video Plugins]
-Plugin_VideoDX9: Render with Direct3D 9 (outdated video plugin)
+Plugin_VideoDX9: Render with Direct3D 9
 Plugin_VideoOGL: Render with OpenGL + Cg Shader Language
 
 [Gamecube Controller Plugins]
@@ -55,13 +55,17 @@ totaldb.dsy: Database of symbols (for devs only)
 font_ansi.bin/font_sjis.bin: font dumps
 setting-usa/jpn/usa.txt: config files for Wii
 
-[Config Folders]
+[Support Folders]
 Cache: used to cache the ISO list
-Dump: Anything dumped from dolphin will go here
-GameConfig: Holds the INI game config files
-GC: Gamecube Memory Cards
+Config: emulator configuration files
+Dump: anything dumped from dolphin will go here
+GC: Gamecube memory cards
+GameConfig: holds the INI game config files
+Load: high resolution textures
 Logs: logs go here
 Maps: symbol tables go here (dev only)
+OpenCL: OpenCL code
 ScreenShots: screenshots are saved here
-SaveStates: save states are stored here
+Shaders: post-processing shaders
+StateSaves: save states are stored here
 Wii: Wii saves and config is stored here
