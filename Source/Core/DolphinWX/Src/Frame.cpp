@@ -238,7 +238,7 @@ EVT_MENU(wxID_OPEN, CFrame::OnOpen)
 EVT_MENU(wxID_EXIT, CFrame::OnQuit)
 EVT_MENU(IDM_HELPWEBSITE, CFrame::OnHelp)
 EVT_MENU(IDM_HELPGOOGLECODE, CFrame::OnHelp)
-EVT_MENU(IDM_HELPABOUT, CFrame::OnHelp)
+EVT_MENU(wxID_ABOUT, CFrame::OnHelp)
 EVT_MENU(wxID_REFRESH, CFrame::OnRefresh)
 EVT_MENU(IDM_PLAY, CFrame::OnPlay)
 EVT_MENU(IDM_STOP, CFrame::OnStop)
@@ -248,7 +248,7 @@ EVT_MENU(IDM_PLAYRECORD, CFrame::OnPlayRecording)
 EVT_MENU(IDM_FRAMESTEP, CFrame::OnFrameStep)
 EVT_MENU(IDM_LUA, CFrame::OnOpenLuaWindow)
 EVT_MENU(IDM_SCREENSHOT, CFrame::OnScreenshot)
-EVT_MENU(IDM_CONFIG_MAIN, CFrame::OnConfigMain)
+EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
 EVT_MENU(IDM_CONFIG_GFX_PLUGIN, CFrame::OnPluginGFX)
 EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnPluginDSP)
 EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
@@ -497,10 +497,6 @@ CFrame::CFrame(wxFrame* parent,
 	// Update controls
 	m_bControlsCreated = true;
 	UpdateGUI();
-
-	//if we are ever going back to optional iso caching:
-	//m_GameListCtrl->Update(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableIsoCache);
-	if (m_GameListCtrl) m_GameListCtrl->Update();
 
 	// If we are rerecording create the status bar now instead of later when a game starts
 	#ifdef RERECORDING

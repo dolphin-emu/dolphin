@@ -25,11 +25,9 @@
 #include "ConfigManager.h"
 #include "StringUtil.h"
 
-#if USE_XPM_BITMAPS
-	#include "../resources/isoprop_file.xpm"
-	#include "../resources/isoprop_folder.xpm"
-	#include "../resources/isoprop_disc.xpm"
-#endif // USE_XPM_BITMAPS
+#include "../resources/isoprop_file.xpm"
+#include "../resources/isoprop_folder.xpm"
+#include "../resources/isoprop_disc.xpm"
 
 struct WiiPartition
 {
@@ -414,7 +412,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	// ISO Details
 	sbISODetails = new wxStaticBoxSizer(wxVERTICAL, m_Information, _("ISO Details"));
 	sISODetails = new wxGridBagSizer(0, 0);
-	sISODetails->AddGrowableCol(1);
+	// XXX sISODetails->AddGrowableCol(0);
 	m_NameText = new wxStaticText(m_Information, ID_NAME_TEXT, _("Name:"), wxDefaultPosition, wxDefaultSize);
 	m_Name = new wxTextCtrl(m_Information, ID_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_GameIDText = new wxStaticText(m_Information, ID_GAMEID_TEXT, _("Game ID:"), wxDefaultPosition, wxDefaultSize);
@@ -431,7 +429,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	// Banner Details
 	sbBannerDetails = new wxStaticBoxSizer(wxVERTICAL, m_Information, _("Banner Details"));
 	sBannerDetails = new wxGridBagSizer(0, 0);
-	sBannerDetails->AddGrowableCol(1); sBannerDetails->AddGrowableCol(2); sBannerDetails->AddGrowableCol(3);
+	// XXX sBannerDetails->AddGrowableCol(1); sBannerDetails->AddGrowableCol(2); sBannerDetails->AddGrowableCol(3);
 	m_LangText = new wxStaticText(m_Information, ID_LANG_TEXT, _("Show Language:"), wxDefaultPosition, wxDefaultSize);
 	arrayStringFor_Lang.Add(_("English"));
 	arrayStringFor_Lang.Add(_("German"));

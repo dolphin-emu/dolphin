@@ -45,7 +45,6 @@ if wxenv['HAVE_WX']:
 		]
 
         CPPDEFINES = [
-                'USE_XPM_BITMAPS',
                 'wxNEEDS_CHARPP',
                 ],
 

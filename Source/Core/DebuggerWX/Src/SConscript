@@ -20,7 +20,6 @@ files = [
 wxenv = env.Clone()
 wxenv.Append(
 	CPPDEFINES = [
-		'USE_XPM_BITMAPS',
 		'wxNEEDS_CHARPP'
 		],
 	LINKFLAGS = [

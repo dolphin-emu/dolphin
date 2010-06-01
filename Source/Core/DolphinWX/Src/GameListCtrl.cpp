@@ -35,22 +35,18 @@
 #include "WxUtils.h"
 #include "Main.h"
 
-#if USE_XPM_BITMAPS
-	#include "../resources/Flag_Europe.xpm"
-	#include "../resources/Flag_France.xpm"
-	#include "../resources/Flag_Italy.xpm"
-	#include "../resources/Flag_Japan.xpm"
-	#include "../resources/Flag_USA.xpm"
-	#include "../resources/Flag_Taiwan.xpm"
-	#include "../resources/Flag_Korea.xpm"
-	#include "../resources/Flag_Unknown.xpm"
-
-	#include "../resources/Platform_Wad.xpm"
-	#include "../resources/Platform_Wii.xpm"
-	#include "../resources/Platform_Gamecube.xpm"
-
-	#include "../resources/rating_gamelist.h"
-#endif // USE_XPM_BITMAPS
+#include "../resources/Flag_Europe.xpm"
+#include "../resources/Flag_France.xpm"
+#include "../resources/Flag_Italy.xpm"
+#include "../resources/Flag_Japan.xpm"
+#include "../resources/Flag_USA.xpm"
+#include "../resources/Flag_Taiwan.xpm"
+#include "../resources/Flag_Korea.xpm"
+#include "../resources/Flag_Unknown.xpm"
+#include "../resources/Platform_Wad.xpm"
+#include "../resources/Platform_Wii.xpm"
+#include "../resources/Platform_Gamecube.xpm"
+#include "../resources/rating_gamelist.h"
 
 size_t CGameListCtrl::m_currentItem = 0;
 size_t CGameListCtrl::m_numberItem = 0;
@@ -137,49 +133,48 @@ void CGameListCtrl::InitBitmaps()
 {
 	m_imageListSmall = new wxImageList(96, 32);
 	SetImageList(m_imageListSmall, wxIMAGE_LIST_SMALL);
-	wxIcon iconTemp;
 
 	m_FlagImageIndex.resize(DiscIO::IVolume::NUMBER_OF_COUNTRIES);
-	iconTemp.CopyFromBitmap(wxBitmap(Flag_Europe_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(Flag_France_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(Flag_USA_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(Flag_Japan_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_JAPAN] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(Flag_Korea_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_KOREA] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(Flag_Italy_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(Flag_Taiwan_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(Flag_Unknown_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SDK] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(Flag_Unknown_xpm));
-	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN] = m_imageListSmall->Add(iconTemp);
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_EUROPE] =
+		m_imageListSmall->Add(wxBitmap(Flag_Europe_xpm), wxNullBitmap);
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_FRANCE] =
+		m_imageListSmall->Add(wxBitmap(Flag_France_xpm), wxNullBitmap);
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_USA] =
+		m_imageListSmall->Add(wxBitmap(Flag_USA_xpm), wxNullBitmap);
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_JAPAN] =
+		m_imageListSmall->Add(wxBitmap(Flag_Japan_xpm), wxNullBitmap);
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_KOREA] =
+		m_imageListSmall->Add(wxBitmap(Flag_Korea_xpm), wxNullBitmap);
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_ITALY] =
+		m_imageListSmall->Add(wxBitmap(Flag_Italy_xpm), wxNullBitmap);
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_TAIWAN] =
+		m_imageListSmall->Add(wxBitmap(Flag_Taiwan_xpm), wxNullBitmap);
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_SDK] =
+		m_imageListSmall->Add(wxBitmap(Flag_Unknown_xpm), wxNullBitmap);
+	m_FlagImageIndex[DiscIO::IVolume::COUNTRY_UNKNOWN] =
+		m_imageListSmall->Add(wxBitmap(Flag_Unknown_xpm), wxNullBitmap);
 
 	m_PlatformImageIndex.resize(3);
-	iconTemp.CopyFromBitmap(wxBitmap(Platform_Gamecube_xpm));
-	m_PlatformImageIndex[0] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(Platform_Wii_xpm));
-	m_PlatformImageIndex[1] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(Platform_Wad_xpm));
-	m_PlatformImageIndex[2] = m_imageListSmall->Add(iconTemp);
+	m_PlatformImageIndex[0] =
+		m_imageListSmall->Add(wxBitmap(Platform_Gamecube_xpm), wxNullBitmap);
+	m_PlatformImageIndex[1] =
+		m_imageListSmall->Add(wxBitmap(Platform_Wii_xpm), wxNullBitmap);
+	m_PlatformImageIndex[2] =
+		m_imageListSmall->Add(wxBitmap(Platform_Wad_xpm), wxNullBitmap);
 
 	m_EmuStateImageIndex.resize(6);
-	iconTemp.CopyFromBitmap(wxBitmap(rating_0));
-	m_EmuStateImageIndex[0] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(rating_1));
-	m_EmuStateImageIndex[1] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(rating_2));
-	m_EmuStateImageIndex[2] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(rating_3));
-	m_EmuStateImageIndex[3] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(rating_4));
-	m_EmuStateImageIndex[4] = m_imageListSmall->Add(iconTemp);
-	iconTemp.CopyFromBitmap(wxBitmap(rating_5));
-	m_EmuStateImageIndex[5] = m_imageListSmall->Add(iconTemp);
+	m_EmuStateImageIndex[0] =
+		m_imageListSmall->Add(wxBitmap(rating_0), wxNullBitmap);
+	m_EmuStateImageIndex[1] =
+		m_imageListSmall->Add(wxBitmap(rating_1), wxNullBitmap);
+	m_EmuStateImageIndex[2] =
+		m_imageListSmall->Add(wxBitmap(rating_2), wxNullBitmap);
+	m_EmuStateImageIndex[3] =
+		m_imageListSmall->Add(wxBitmap(rating_3), wxNullBitmap);
+	m_EmuStateImageIndex[4] =
+		m_imageListSmall->Add(wxBitmap(rating_4), wxNullBitmap);
+	m_EmuStateImageIndex[5] =
+		m_imageListSmall->Add(wxBitmap(rating_5), wxNullBitmap);
 }
 
 void CGameListCtrl::BrowseForDirectory()

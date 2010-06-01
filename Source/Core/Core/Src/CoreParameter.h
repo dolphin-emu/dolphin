@@ -75,7 +75,6 @@ struct SCoreStartupParameter
 	bool bUseFastMem;
 	bool bLockThreads;
 	bool bEnableCheats;
-	bool bEnableIsoCache;
 
 	bool bRunCompareServer;
 	bool bRunCompareClient;

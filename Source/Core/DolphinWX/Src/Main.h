@@ -29,6 +29,13 @@ public:
 	void OnEndSession();
 	int OnExit();
 	CFrame* GetCFrame();
+
+private:
+	DECLARE_EVENT_TABLE()
+
+	wxTimer *m_afterinit;
+
+	void AfterInit(wxTimerEvent& WXUNUSED(event));
 };
 
 DECLARE_APP(DolphinApp);

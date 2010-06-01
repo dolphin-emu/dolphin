@@ -44,7 +44,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bSkipIdle(true), bNTSC(false),
   bHLE_BS2(true), bUseFastMem(false),
   bLockThreads(false),
-  bEnableCheats(false), bEnableIsoCache(false),
+  bEnableCheats(false),
   bRunCompareServer(false), bRunCompareClient(false),
   iTLBHack(0), SelectedLanguage(0),
   bWii(false),

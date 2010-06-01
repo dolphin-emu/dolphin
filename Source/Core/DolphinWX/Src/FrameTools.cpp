@@ -166,7 +166,7 @@ void CFrame::CreateMenu()
 
 	// Options menu
 	wxMenu* pOptionsMenu = new wxMenu;
-	pOptionsMenu->Append(IDM_CONFIG_MAIN, _T("Co&nfigure..."));
+	pOptionsMenu->Append(wxID_PREFERENCES, _T("Co&nfigure..."));
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_CONFIG_GFX_PLUGIN, _T("&Graphics Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP Settings"));
@@ -259,12 +259,12 @@ void CFrame::CreateMenu()
 
 	// Help menu
 	wxMenu* helpMenu = new wxMenu;
-	/*helpMenu->Append(wxID_HELP, _T("&Help"));
-	re-enable when there's something useful to display*/
+	// Re-enable when there's something useful to display */
+	// helpMenu->Append(wxID_HELP, _T("&Help"));
 	helpMenu->Append(IDM_HELPWEBSITE, _T("Dolphin &Web Site"));
 	helpMenu->Append(IDM_HELPGOOGLECODE, _T("Dolphin at &Google Code"));
 	helpMenu->AppendSeparator();
-	helpMenu->Append(IDM_HELPABOUT, _T("&About..."));
+	helpMenu->Append(wxID_ABOUT, _T("&About..."));
 	m_MenuBar->Append(helpMenu, _T("&Help"));
 
 	// Associate the menu bar with the frame
@@ -329,7 +329,7 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 	ToolBar->AddTool(IDM_TOGGLE_FULLSCREEN, _T("FullScr"),  m_Bitmaps[Toolbar_FullScreen], _T("Toggle Fullscreen"));
 	ToolBar->AddTool(IDM_SCREENSHOT, _T("ScrShot"),   m_Bitmaps[Toolbar_FullScreen], _T("Take Screenshot"));
 	ToolBar->AddSeparator();
-	ToolBar->AddTool(IDM_CONFIG_MAIN, _T("Config"), m_Bitmaps[Toolbar_PluginOptions], _T("Configure..."));
+	ToolBar->AddTool(wxID_PREFERENCES, _T("Config"), m_Bitmaps[Toolbar_PluginOptions], _T("Configure..."));
 	ToolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("Graphics"),  m_Bitmaps[Toolbar_PluginGFX], _T("Graphics settings"));
 	ToolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
 	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("GCPad"),  m_Bitmaps[Toolbar_PluginPAD], _T("Gamecube Pad settings"));
@@ -961,7 +961,7 @@ void CFrame::OnHelp(wxCommandEvent& event)
 {
 	switch (event.GetId())
 	{
-	case IDM_HELPABOUT:
+	case wxID_ABOUT:
 		{
 			AboutDolphin frame(this);
 			frame.ShowModal();
@@ -1325,6 +1325,11 @@ void CFrame::UpdateGUI()
 
 	// Commit changes to manager
 	m_Mgr->Update();
+}
+
+void CFrame::UpdateGameList()
+{
+	m_GameListCtrl->Update();
 }
 
 void CFrame::GameListChanged(wxCommandEvent& event)
