@@ -43,8 +43,10 @@ namespace AudioCommon
 			soundStream = new AOSound(mixer);
 		else if (backend == BACKEND_ALSA        && AlsaSound::isValid())
 			soundStream = new AlsaSound(mixer);
+#ifdef __APPLE__
 		else if (backend == BACKEND_COREAUDIO   && CoreAudioSound::isValid()) 
 			soundStream = new CoreAudioSound(mixer);
+#endif
 		else if (backend == BACKEND_PULSEAUDIO  && PulseAudio::isValid())
 			soundStream = new PulseAudio(mixer);
 
@@ -97,8 +99,10 @@ namespace AudioCommon
 			backends.push_back(BACKEND_AOSOUND);
 		if (AlsaSound::isValid()) 
 			backends.push_back(BACKEND_ALSA);
+#ifdef __APPLE_
 		if (CoreAudioSound::isValid())       
 			backends.push_back(BACKEND_COREAUDIO);
+#endif
 		if (PulseAudio::isValid()) 
 			backends.push_back(BACKEND_PULSEAUDIO);
 	   
