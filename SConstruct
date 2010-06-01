@@ -288,28 +288,24 @@ env['HAVE_SDL'] = conf.CheckSDL('1.0.0')
 env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 
 # needed for sound
-env['HAVE_AO'] = 0
-if not env['noao']:
-    env['HAVE_AO'] = conf.CheckPKG('ao')
-
-env['HAVE_OPENAL'] = 0
-if env['openal']:
-    env['HAVE_OPENAL'] = conf.CheckPKG('openal')
-
 env['HAVE_ALSA'] = conf.CheckPKG('alsa')
 
+env['HAVE_AO'] = 0
+env['HAVE_OPENAL'] = 0
+env['HAVE_PORTAUDIO'] =  0
 env['HAVE_PULSEAUDIO'] = 0
-#env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse')
+if sys.platform != 'darwin':
+    if not env['noao']:
+        env['HAVE_AO'] = conf.CheckPKG('ao')
+    if env['openal']:
+        env['HAVE_OPENAL'] = conf.CheckPKG('openal')
+    env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
+    #env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse')
 
 # OpenCL
 env['HAVE_OPENCL'] = 0
 if env['opencl']:   
     env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
-
-env['HAVE_PORTAUDIO'] =  0
-if sys.platform != 'darwin':
-# needed for mic
-    env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
 
 # SOIL
 env['SHARED_SOIL'] = 0;

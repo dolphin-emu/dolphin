@@ -52,20 +52,20 @@ bool CoreAudioSound::Start()
 	AudioStreamBasicDescription format;
 
 	desc.componentType = kAudioUnitType_Output;
-	desc.componentSubType = kAudioUnitSubType_HALOutput;
+	desc.componentSubType = kAudioUnitSubType_DefaultOutput;
 	desc.componentFlags = 0;
 	desc.componentFlagsMask = 0;
 	desc.componentManufacturer = kAudioUnitManufacturer_Apple;
 
 	Component component = FindNextComponent(NULL, &desc);
 	if (component == NULL) {
-		printf("error finding audio component\n");
+		ERROR_LOG(AUDIO, "error finding audio component");
 		return false;
 	}
 
 	err = OpenAComponent(component, &audioUnit);
 	if (err != noErr) {
-		printf("error opening audio component\n");
+		ERROR_LOG(AUDIO, "error opening audio component");
 		return false;
 	}
 
@@ -82,7 +82,7 @@ bool CoreAudioSound::Start()
 				kAudioUnitScope_Input, 0, &format,
 				sizeof(AudioStreamBasicDescription));
 	if (err != noErr) {
-		printf("error setting audio format\n");
+		ERROR_LOG(AUDIO, "error setting audio format");
 		return false;
 	}
 
@@ -93,19 +93,19 @@ bool CoreAudioSound::Start()
 				kAudioUnitScope_Input, 0, &callback_struct,
 				sizeof callback_struct);
 	if (err != noErr) {
-		printf("error setting audio callback\n");
+		ERROR_LOG(AUDIO, "error setting audio callback");
 		return false;
 	}
 
 	err = AudioUnitInitialize(audioUnit);
 	if (err != noErr) {
-		printf("error initializing audiounit\n");
+		ERROR_LOG(AUDIO, "error initializing audiounit");
 		return false;
 	}
 
 	err = AudioOutputUnitStart(audioUnit);
 	if (err != noErr) {
-		printf("error starting audiounit\n");
+		ERROR_LOG(AUDIO, "error starting audiounit");
 		return false;
 	}
 
@@ -122,19 +122,19 @@ void CoreAudioSound::Stop()
 
 	err = AudioOutputUnitStop(audioUnit);
 	if (err != noErr) {
-		printf("error stopping audiounit\n");
+		ERROR_LOG(AUDIO, "error stopping audiounit");
 		return;
 	}
 
 	err = AudioUnitUninitialize(audioUnit);
 	if (err != noErr) {
-		printf("error uninitializing audiounit\n");
+		ERROR_LOG(AUDIO, "error uninitializing audiounit");
 		return;
 	}
 
 	err = CloseComponent(audioUnit);
 	if (err != noErr) {
-		printf("error while closing audio component\n");
+		ERROR_LOG(AUDIO, "error closing audio component");
 		return;
 	}
 }

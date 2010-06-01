@@ -20,7 +20,9 @@
 #include "DSoundStream.h"
 #include "AOSoundStream.h"
 #include "AlsaSoundStream.h"
+#ifdef __APPLE__
 #include "CoreAudioSoundStream.h"
+#endif
 #include "OpenALStream.h"
 #include "PulseAudioStream.h"
 
