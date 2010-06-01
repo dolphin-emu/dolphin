@@ -22,14 +22,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "Common.h"
+#include <Common.h>
 #include "aldlist.h"
 #ifdef _WIN32
 #include "../../../../Externals/OpenAL/include/al.h"
 #include "../../../../Externals/OpenAL/include/alc.h"
+#else // linux
 #include <AL/al.h>
 #include <AL/alc.h>
-#endif // WIN32
+#endif
 
 
 /* 
