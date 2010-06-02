@@ -172,3 +172,4 @@
 { kHIDUsage_KeyboardRightAlt, "Right Alt" },
 { kHIDUsage_KeyboardRightGUI, "Right GUI" },
 /* 0x4E - 0xFFFF Reserved */
+

@@ -30,8 +30,7 @@ if wmenv['HAVE_WX']:
         ]
 libs = [ 'common', 'inputcommon' ]
 
-
-cxxflags = [ '-fPIC' ]
+cxxflags = [ ]
 
 if wmenv['HAVE_WIIUSE']:
     libs  += [ 'wiiuse' ]

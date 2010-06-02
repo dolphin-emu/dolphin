@@ -31,7 +31,6 @@ if dspenv['HAVE_WX']:
         ]
 
 dspenv.Append(
-	CXXFLAGS = [ '-fPIC' ],
 	LIBS = [ 'common', 'audiocommon' ],
 	)
 if sys.platform == 'darwin':

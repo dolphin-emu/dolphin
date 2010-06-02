@@ -1,14 +1,6 @@
 import os
 import platform
 
-# methods that should be added to env
-def filterWarnings(self, flags):
-    return ' '.join(
-        flag
-        for flag in flags
-        if not flag.startswith('-W')
-        )
-
 # taken from scons wiki
 def CheckPKGConfig(context, version):
     context.Message( 'Checking for pkg-config version > %s... ' % version)
@@ -28,8 +20,7 @@ def CheckFramework(context, name):
               }
               """, '.c')
         if not ret:
-            context.env.Replace(FRAMEWORKS = lastFRAMEWORKS
-)
+            context.env.Replace(FRAMEWORKS = lastFRAMEWORKS)
 
     return ret
 

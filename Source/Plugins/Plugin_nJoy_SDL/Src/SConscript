@@ -24,7 +24,6 @@ if padenv['HAVE_WX']:
         ]
 
 padenv.Append(
-	CXXFLAGS = [ '-fPIC' ],
 	LIBS = [ 'common', 'inputcommon' ],
 	)
 

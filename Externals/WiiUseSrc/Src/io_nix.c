@@ -267,7 +267,6 @@ int wiiuse_io_read(struct wiimote_t* wm) {
 	struct timeval tv;
 	fd_set fds;
 	int r;
-	int i;
 	if (!wm) 
 		return 0;
 

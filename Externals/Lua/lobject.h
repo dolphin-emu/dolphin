@@ -114,7 +114,7 @@ typedef struct lua_TValue {
 
 
 /* Macros to set values */
-#define setnilvalue(obj) ((obj)->tt=LUA_TNIL)
+#define setnilvalue(obj) ((obj)->value.n=0, (obj)->tt=LUA_TNIL)
 
 #define setnvalue(obj,x) \
   { TValue *i_o=(obj); i_o->value.n=(x); i_o->tt=LUA_TNUMBER; }

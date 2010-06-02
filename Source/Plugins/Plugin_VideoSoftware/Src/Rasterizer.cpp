@@ -226,7 +226,7 @@ inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord)
 	bias >>= 1;
 	lod += bias;
 
-	linear = (lod > 0 && (tm0.min_filter & 4) || lod <= 0 && tm0.mag_filter);
+	linear = ((lod > 0 && (tm0.min_filter & 4)) || (lod <= 0 && tm0.mag_filter));
 
 	// order of checks matters
 	// should be:

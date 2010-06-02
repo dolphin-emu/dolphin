@@ -204,17 +204,17 @@ extern float *stbi_loadf_from_file  (FILE *f,                  int *x, int *y, i
 #endif
 extern float *stbi_loadf_from_memory(stbi_uc const *buffer, int len, int *x, int *y, int *comp, int req_comp);
 
-extern void   stbi_hdr_to_ldr_gamma(float gamma);
+extern void   stbi_hdr_to_ldr_gamma(float gammafactor);
 extern void   stbi_hdr_to_ldr_scale(float scale);
 
-extern void   stbi_ldr_to_hdr_gamma(float gamma);
+extern void   stbi_ldr_to_hdr_gamma(float gammafactor);
 extern void   stbi_ldr_to_hdr_scale(float scale);
 
 #endif // STBI_NO_HDR
 
 // get a VERY brief reason for failure
 // NOT THREADSAFE
-extern char    *stbi_failure_reason  (void); 
+extern const char *stbi_failure_reason (void); 
 
 // free the loaded image -- this is just free()
 extern void     stbi_image_free      (void *retval_from_stbi_load);

@@ -9,10 +9,4 @@ files = [
 	'stb_image_aug.c'
 	]
 
-env_soil = env.Clone(
-	CCFLAGS = env.filterWarnings(env['CCFLAGS']),
-	CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
-	parse_flags = ['-fPIC']
-	)
-
-env_soil.StaticLibrary(env['local_libs'] + "SOIL", files)
+env.StaticLibrary(env['local_libs'] + "SOIL", files)

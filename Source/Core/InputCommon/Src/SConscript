@@ -39,5 +39,4 @@ if sys.platform == 'linux2':
 		'ControllerInterface/Xlib/Xlib.cpp'
 		]
 
-icenv.Append(CXXFLAGS = [ '-fPIC' ])
 icenv.StaticLibrary(env['local_libs'] + "inputcommon", files)

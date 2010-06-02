@@ -45,5 +45,4 @@ if env_vcommon['HAVE_OPENCL']:
         'OpenCL/OCLTextureDecoder.cpp',
         ]
 
-env_vcommon.Append(CXXFLAGS = [ '-fPIC' ])
 env_vcommon.StaticLibrary(env['local_libs'] + "videocommon", files)

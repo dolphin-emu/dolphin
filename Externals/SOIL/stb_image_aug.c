@@ -117,14 +117,14 @@ typedef unsigned char validate_uint32[sizeof(uint32)==4];
 //
 
 // this is not threadsafe
-static char *failure_reason;
+static const char *failure_reason;
 
-char *stbi_failure_reason(void)
+const char *stbi_failure_reason(void)
 {
    return failure_reason;
 }
 
-static int e(char *str)
+static int e(const char *str)
 {
    failure_reason = str;
    return 0;
@@ -333,10 +333,10 @@ extern int      stbi_info_from_memory(stbi_uc const *buffer, int len, int *x, in
 static float h2l_gamma_i=1.0f/2.2f, h2l_scale_i=1.0f;
 static float l2h_gamma=2.2f, l2h_scale=1.0f;
 
-void   stbi_hdr_to_ldr_gamma(float gamma) { h2l_gamma_i = 1/gamma; }
+void   stbi_hdr_to_ldr_gamma(float gammafactor) { h2l_gamma_i = 1/gammafactor; }
 void   stbi_hdr_to_ldr_scale(float scale) { h2l_scale_i = 1/scale; }
 
-void   stbi_ldr_to_hdr_gamma(float gamma) { l2h_gamma = gamma; }
+void   stbi_ldr_to_hdr_gamma(float gammafactor) { l2h_gamma = gammafactor; }
 void   stbi_ldr_to_hdr_scale(float scale) { l2h_scale = scale; }
 #endif
 
@@ -368,6 +368,8 @@ typedef struct
 static void start_file(stbi *s, FILE *f)
 {
    s->img_file = f;
+   s->img_buffer = NULL;
+   s->img_buffer_end = NULL;
 }
 #endif
 
@@ -1128,14 +1130,14 @@ static int process_marker(jpeg *z, int m)
          L = get16(&z->s)-2;
          while (L > 0) {
             uint8 *v;
-            int sizes[16],i,m=0;
+            int sizes[16],i,m2=0;
             int q = get8(&z->s);
             int tc = q >> 4;
             int th = q & 15;
             if (tc > 1 || th > 3) return e("bad DHT header","Corrupt JPEG");
             for (i=0; i < 16; ++i) {
                sizes[i] = get8(&z->s);
-               m += sizes[i];
+               m2 += sizes[i];
             }
             L -= 17;
             if (tc == 0) {
@@ -1145,9 +1147,9 @@ static int process_marker(jpeg *z, int m)
                if (!build_huffman(z->huff_ac+th, sizes)) return 0;
                v = z->huff_ac[th].values;
             }
-            for (i=0; i < m; ++i)
+            for (i=0; i < m2; ++i)
                v[i] = get8u(&z->s);
-            L -= m;
+            L -= m2;
          }
          return L==0;
    }
@@ -1671,10 +1673,10 @@ static int zbuild_huffman(zhuffman *z, uint8 *sizelist, int num)
          z->size[c] = (uint8)s;
          z->value[c] = (uint16)i;
          if (s <= ZFAST_BITS) {
-            int k = bit_reverse(next_code[s],s);
-            while (k < (1 << ZFAST_BITS)) {
-               z->fast[k] = (uint16) c;
-               k += (1 << s);
+            int k2 = bit_reverse(next_code[s],s);
+            while (k2 < (1 << ZFAST_BITS)) {
+               z->fast[k2] = (uint16) c;
+               k2 += (1 << s);
             }
          }
          ++next_code[s];
@@ -1947,12 +1949,12 @@ static int parse_zlib(zbuf *a, int parse_header)
    return 1;
 }
 
-static int do_zlib(zbuf *a, char *obuf, int olen, int exp, int parse_header)
+static int do_zlib(zbuf *a, char *obuf, int olen, int expandable, int parse_header)
 {
    a->zout_start = obuf;
    a->zout       = obuf;
    a->zout_end   = obuf + olen;
-   a->z_expandable = exp;
+   a->z_expandable = expandable;
 
    return parse_zlib(a, parse_header);
 }
@@ -2092,10 +2094,13 @@ static int create_png_image_raw(png *a, uint8 *raw, uint32 raw_len, int out_n, u
    a->out = (uint8 *) malloc(x * y * out_n);
    if (!a->out) return e("outofmem", "Out of memory");
    if (!stbi_png_partial) {
-      if (s->img_x == x && s->img_y == y)
-         if (raw_len != (img_n * x + 1) * y) return e("not enough pixels","Corrupt PNG");
-      else // interlaced:
-         if (raw_len < (img_n * x + 1) * y) return e("not enough pixels","Corrupt PNG");
+      if (s->img_x == x && s->img_y == y) {
+         if (raw_len != (img_n * x + 1) * y)
+            return e("not enough pixels","Corrupt PNG");
+      } else { // interlaced:
+         if (raw_len < (img_n * x + 1) * y)
+            return e("not enough pixels","Corrupt PNG");
+      }
    }
    for (j=0; j < y; ++j) {
       uint8 *cur = a->out + stride*j;
@@ -2861,7 +2866,7 @@ static stbi_uc *tga_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 	unsigned char *tga_palette = NULL;
 	int i, j;
 	unsigned char raw_data[4];
-	unsigned char trans_data[4];
+	unsigned char trans_data[4] = {0,0,0,0};
 	int RLE_count = 0;
 	int RLE_repeating = 0;
 	int read_next_pixel = 1;
@@ -2995,6 +3000,8 @@ static stbi_uc *tga_load(stbi *s, int *x, int *y, int *comp, int req_comp)
 				trans_data[2] = raw_data[0];
 				trans_data[3] = raw_data[3];
 				break;
+			default:
+				return NULL;
 			}
 			//	clear the reading flag for the next pixel
 			read_next_pixel = 0;
@@ -3305,7 +3312,7 @@ stbi_uc *stbi_psd_load_from_memory (stbi_uc const *buffer, int len, int *x, int 
 #ifndef STBI_NO_HDR
 static int hdr_test(stbi *s)
 {
-   char *signature = "#?RADIANCE\n";
+   const char *signature = "#?RADIANCE\n";
    int i;
    for (i=0; signature[i]; ++i)
       if (get8(s) != signature[i])
@@ -3335,10 +3342,10 @@ int stbi_hdr_test_file(FILE *f)
 #define HDR_BUFLEN  1024
 static char *hdr_gettoken(stbi *z, char *buffer)
 {
-   int len=0;
-	char *s = buffer, c = '\0';
+	int len=0;
+	char c = '\0';
 
-   c = get8(z);
+	c = get8(z);
 
 	while (!at_eof(z) && c != '\n') {
 		buffer[len++] = c;
@@ -3645,7 +3652,7 @@ stbi_uc *stbi_hdr_load_rgbe_memory(stbi_uc *buffer, int len, int *x, int *y, int
 
 static void write8(FILE *f, int x) { uint8 z = (uint8) x; fwrite(&z,1,1,f); }
 
-static void writefv(FILE *f, char *fmt, va_list v)
+static void writefv(FILE *f, const char *fmt, va_list v)
 {
    while (*fmt) {
       switch (*fmt++) {
@@ -3661,7 +3668,7 @@ static void writefv(FILE *f, char *fmt, va_list v)
    }
 }
 
-static void writef(FILE *f, char *fmt, ...)
+static void writef(FILE *f, const char *fmt, ...)
 {
    va_list v;
    va_start(v, fmt);
@@ -3708,7 +3715,7 @@ static void write_pixels(FILE *f, int rgb_dir, int vdir, int x, int y, int comp,
    }
 }
 
-static int outfile(char const *filename, int rgb_dir, int vdir, int x, int y, int comp, void *data, int alpha, int pad, char *fmt, ...)
+static int outfile(char const *filename, int rgb_dir, int vdir, int x, int y, int comp, void *data, int alpha, int pad, const char *fmt, ...)
 {
    FILE *f = fopen(filename, "wb");
    if (f) {

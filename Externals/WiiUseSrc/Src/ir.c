@@ -682,7 +682,7 @@ static float ir_distance(struct ir_dot_t* dot) {
  *	precision for a big increase in usability.
  */
 static int ir_correct_for_bounds(int* x, int* y, enum aspect_t aspect, int offset_x, int offset_y) {
-	int x0, y0;
+	int xzero, yzero;
 	int xs, ys;
 
 	if (aspect == WIIUSE_ASPECT_16_9) {
@@ -693,13 +693,13 @@ static int ir_correct_for_bounds(int* x, int* y, enum aspect_t aspect, int offse
 		ys = WM_ASPECT_4_3_Y;
 	}
 
-	x0 = ((1024 - xs) / 2) + offset_x;
-	y0 = ((768 - ys) / 2) + offset_y;
+	xzero = ((1024 - xs) / 2) + offset_x;
+	yzero = ((768 - ys) / 2) + offset_y;
 
-	if ((*x >= x0)
-		&& (*x <= (x0 + xs))
-		&& (*y >= y0)
-		&& (*y <= (y0 + ys)))
+	if ((*x >= xzero)
+		&& (*x <= (xzero + xs))
+		&& (*y >= yzero)
+		&& (*y <= (yzero + ys)))
 	{
 		*x -= offset_x;
 		*y -= offset_y;

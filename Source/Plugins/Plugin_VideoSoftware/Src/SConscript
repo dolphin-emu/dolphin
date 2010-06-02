@@ -36,9 +36,6 @@ files = [
         'VideoConfig.cpp',
         'XFMemLoader.cpp',
 	]
-compileFlags = [
-	'-fPIC',
-	]
 linkFlags = [
 	]
 libs = [
@@ -56,7 +53,7 @@ conf = gfxenv.Configure(custom_tests = tests,
 
 if sys.platform == 'darwin':
 	gfxenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'OpenGL', 'Cocoa', 'Cg']
-	compileFlags += ['-x','objective-c++',]
+	compileFlags = ['-x','objective-c++',]
 	files += [ 'cocoaGL.m', ]
 
 	conf.CheckPKG('OpenGL')
@@ -94,7 +91,6 @@ if gfxenv['USE_WX'] and not gfxenv['HAVE_WX']:
     print "Must have wx to use wxgl"
     Return()
 gfxenv.Append(
-	CXXFLAGS = compileFlags,
 	LINKFLAGS = linkFlags,
 	)
 

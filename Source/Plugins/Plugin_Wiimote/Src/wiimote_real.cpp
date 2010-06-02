@@ -63,7 +63,7 @@ wiimote_t**			g_WiiMotesFromWiiUse = NULL;
 Common::Thread*		g_pReadThread = NULL;
 int					g_NumberOfWiiMotes;
 CWiiMote*			g_WiiMotes[MAX_WIIMOTES];	
-bool				g_Shutdown = false;
+volatile bool				g_Shutdown = false;
 Common::Event		g_StartThread;
 Common::Event		g_StopThreadTemporary;
 bool				g_LocalThread = true;

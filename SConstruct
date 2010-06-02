@@ -26,10 +26,16 @@ warnings = [
     'packed',
     'no-conversion',
     ]
+# XXX check for the availability of these (in GCC 4.3 or newer)
+if sys.platform != 'darwin':
+    warnings.append('no-array-bounds')
+    warnings.append('no-unused-result')
+
 compileFlags = [
     '-fno-exceptions',
     '-fno-strict-aliasing',
     '-msse2',
+    '-fPIC',
     ]
 
 cppDefines = [
@@ -111,15 +117,18 @@ vars.AddVariables(
     BoolVariable('shared_soil', 'Use system shared libSOIL', False),
     BoolVariable('shared_lzo', 'Use system shared liblzo2', False),
     BoolVariable('shared_sfml', 'Use system shared libsfml-network', False),
-    PathVariable('userdir', 'Set the name of the user data directory in home', '.dolphin-emu', PathVariable.PathAccept),
+    PathVariable('userdir', 'Set the name of the user data directory in home',
+                 '.dolphin-emu', PathVariable.PathAccept),
     EnumVariable('install', 'Choose a local or global installation', 'local',
                  allowed_values = ('local', 'global'),
                  ignorecase = 2
                  ),
-    PathVariable('prefix', 'Installation prefix (only used for a global build)', '/usr', PathVariable.PathAccept),
-    PathVariable('destdir', 'Temporary install location (for package building)', None, PathVariable.PathAccept),
+    PathVariable('prefix', 'Installation prefix (only used for a global build)',
+                 '/usr', PathVariable.PathAccept),
+    PathVariable('destdir', 'Temporary install location (for package building)',
+                 None, PathVariable.PathAccept),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
-                 allowed_values = ('release', 'devel', 'debug', 'fastlog', 'prof'),
+                 allowed_values = ('release','devel','debug','fastlog','prof'),
                  ignorecase = 2
                  ),
     PathVariable('wxconfig', 'Path to the wxconfig', None),
@@ -191,6 +200,7 @@ if (flavour == 'debug'):
     cppDefines.append('NDEBUG') 
 elif (flavour == 'devel'):
     compileFlags.append('-ggdb')
+    warnings.append('error')
 elif (flavour == 'fastlog'):
     compileFlags.append('-O3')
     cppDefines.append('DEBUGFAST')
@@ -200,8 +210,6 @@ elif (flavour == 'prof'):
 elif (flavour == 'release'):
     compileFlags.append('-O3')
     compileFlags.append('-fomit-frame-pointer');
-# XXX please test -Werror builds on Linux and Windows and remove this condition
-if sys.platform == 'darwin':
     warnings.append('error')
 # more warnings
 if env['lint']:
@@ -238,7 +246,8 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          }
 
 #object files
-env['build_dir'] = os.path.join(basedir, 'Build', platform.system() + '-' + platform.machine() + '-' + env['flavor'] + os.sep)
+env['build_dir'] = os.path.join(basedir, 'Build',
+    platform.system() + '-' + platform.machine() + '-' + env['flavor'] + os.sep)
 
 # Static libs go here
 env['local_libs'] = env['build_dir'] + os.sep + 'libs' + os.sep
@@ -260,7 +269,8 @@ if (env['install'] == 'global'):
     env['plugin_dir'] = env['prefix'] + 'lib/dolphin-emu/' 
     env['data_dir'] = env['prefix'] + "share/dolphin-emu/"
 else:
-    env['prefix'] = os.path.join(env['base_dir'] + 'Binary', platform.system() + '-' + platform.machine() + extra + os.sep)
+    env['prefix'] = os.path.join(env['base_dir'] + 'Binary',
+        platform.system() + '-' + platform.machine() + extra + os.sep)
     env['binary_dir'] = env['prefix']
     env['plugin_dir'] = env['prefix'] + 'plugins/' 
     env['data_dir'] = env['prefix']
@@ -333,7 +343,8 @@ if not env['SHARED_LZO']:
 env['SHARED_SFML'] = 0;
 if env['shared_sfml']:
     # TODO:  Check the version of sfml.  It should be at least version 1.5
-    env['SHARED_SFML'] = conf.CheckPKG('sfml-network') and conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
+    env['SHARED_SFML'] = conf.CheckPKG('sfml-network') and \
+                         conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
     if not env['SHARED_SFML']:
         print "shared sfml-network library not detected"
         print "falling back to the static library"
@@ -349,8 +360,7 @@ if sys.platform == 'darwin':
     env['HAVE_X11'] = 0
     env['CC'] = "gcc-4.2"
     env['CXX'] = "g++-4.2"
-    env['CFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
-    env['CXXFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
+    env['CCFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
     env['LINKFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
     conf.Define('MAP_32BIT', 0)
 else:
@@ -449,14 +459,11 @@ if env['HAVE_WX']:
 else:
     print "WX not found or disabled, not building GUI"
 
-# add methods from utils to env
-env.AddMethod(utils.filterWarnings)
-
 rev = utils.GenerateRevFile(env['flavor'], 
                             "Source/Core/Common/Src/svnrev_template.h",
                             "Source/Core/Common/Src/svnrev.h")
 # print a nice progress indication when not compiling
-Progress(['-\r', '\\\r', '|\r', '/\r'], interval = 5)
+Progress(['-\r', '\\\r', '|\r', '/\r'], file=open('/dev/tty', 'w'), interval=5)
 
 # Setup destdir for package building
 # Warning:  The program will not run from this location.  It is assumed the

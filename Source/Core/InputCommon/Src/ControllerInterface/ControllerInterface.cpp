@@ -238,8 +238,8 @@ ControlState ControllerInterface::InputReference::State( const ControlState igno
 	if ( NULL == device )
 		return 0;
 
-	ControlState state;
-	// this mode thing will be turned into a switch statement
+	ControlState state = 0;
+
 	switch ( mode )
 	{
 	// OR

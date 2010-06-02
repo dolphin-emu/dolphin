@@ -45,7 +45,7 @@
 #include <string.h>
 
 /*	error reporting	*/
-char *result_string_pointer = "SOIL initialized";
+const char *result_string_pointer = "SOIL initialized";
 
 /*	for loading cube maps	*/
 enum{
@@ -54,7 +54,7 @@ enum{
 	SOIL_CAPABILITY_PRESENT = 1
 };
 
-static int has_cubemap_capability = SOIL_CAPABILITY_UNKNOWN;
+/* static int has_cubemap_capability = SOIL_CAPABILITY_UNKNOWN; */
 int query_cubemap_capability( void );
 #define SOIL_TEXTURE_WRAP_R					0x8072
 #define SOIL_CLAMP_TO_EDGE					0x812F
@@ -71,15 +71,15 @@ int query_cubemap_capability( void );
 #define SOIL_PROXY_TEXTURE_CUBE_MAP			0x851B
 #define SOIL_MAX_CUBE_MAP_TEXTURE_SIZE		0x851C
 /*	for non-power-of-two texture	*/
-static int has_NPOT_capability = SOIL_CAPABILITY_UNKNOWN;
+/* static int has_NPOT_capability = SOIL_CAPABILITY_UNKNOWN; */
 int query_NPOT_capability( void );
 /*	for texture rectangles	*/
-static int has_tex_rectangle_capability = SOIL_CAPABILITY_UNKNOWN;
+/* static int has_tex_rectangle_capability = SOIL_CAPABILITY_UNKNOWN; */
 int query_tex_rectangle_capability( void );
 #define SOIL_TEXTURE_RECTANGLE_ARB				0x84F5
 #define SOIL_MAX_RECTANGLE_TEXTURE_SIZE_ARB		0x84F8
 /*	for using DXT compression	*/
-static int has_DXT_capability = SOIL_CAPABILITY_UNKNOWN;
+/* static int has_DXT_capability = SOIL_CAPABILITY_UNKNOWN; */
 int query_DXT_capability( void );
 #define SOIL_RGB_S3TC_DXT1		0x83F0
 #define SOIL_RGBA_S3TC_DXT1		0x83F1
@@ -1434,7 +1434,7 @@ int
 }
 #endif
 
-unsigned char*
+unsigned char *
 	SOIL_load_image
 	(
 		const char *filename,
@@ -1442,7 +1442,7 @@ unsigned char*
 		int force_channels
 	)
 {
-	unsigned char *result = stbi_load( filename,
+	stbi_uc *result = stbi_load( filename,
 			width, height, channels, force_channels );
 	if( result == NULL )
 	{
@@ -1454,7 +1454,7 @@ unsigned char*
 	return result;
 }
 
-unsigned char*
+unsigned char *
 	SOIL_load_image_from_memory
 	(
 		const unsigned char *const buffer,
@@ -1463,7 +1463,7 @@ unsigned char*
 		int force_channels
 	)
 {
-	unsigned char *result = stbi_load_from_memory(
+	stbi_uc *result = stbi_load_from_memory(
 				buffer, buffer_length,
 				width, height, channels,
 				force_channels );

@@ -79,11 +79,11 @@ void CMailHandler::DoState(PointerWrap &p)
 	if (p.GetMode() == PointerWrap::MODE_READ)
 	{
 		Clear();
-		int sz;
+		int sz = 0;
 		p.Do(sz);
 		for (int i = 0; i < sz; i++)
 		{
-			u32 mail;
+			u32 mail = 0;
 			p.Do(mail);
 			m_Mails.push(mail);
 		}

@@ -14,9 +14,4 @@ files = [
 	"SFML/Network/Unix/SocketHelper.cpp",
 	]
 
-env_sfml = env.Clone(
-	CCFLAGS = env.filterWarnings(env['CCFLAGS']),
-	CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
-	)
-
-env_sfml.StaticLibrary(env['local_libs'] + "sfml-network", files)
+env.StaticLibrary(env['local_libs'] + "sfml-network", files)

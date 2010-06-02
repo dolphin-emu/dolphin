@@ -93,7 +93,7 @@ public:
 				x.clear();
 				while (number > 0)
 				{
-					unsigned int first;
+					unsigned int first = 0;
 					Do(first);
 					std::string second;
 					Do(second);

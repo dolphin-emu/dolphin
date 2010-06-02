@@ -29,16 +29,10 @@ files = [
     'ltable.c',
     'ltablib.c',
     'ltm.c',
-    'lua.c',
-    'luac.c',
     'lundump.c',
     'lvm.c',
     'lzio.c',
     'print.c',
     ]
 
-env_lua = env.Clone(
-        CCFLAGS = env.filterWarnings(env['CCFLAGS']),
-        CXXFLAGS = env.filterWarnings(env['CXXFLAGS']),
-        )
-env_lua.StaticLibrary(env['local_libs'] + "lua", files)
+env.StaticLibrary(env['local_libs'] + "lua", files)

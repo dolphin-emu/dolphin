@@ -25,17 +25,6 @@
 #include "asm_tables.h"
 #include "Helpers.h"
 
-#ifdef __APPLE__
-void die(char *msg){}
-
-void initialise_fat(){}
-
-void init_crap(){}
-
-void end(){}
-#endif 
-
-
 FILE *f = NULL;
 int main(int argc, char **argv) {
 	init_crap();

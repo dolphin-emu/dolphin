@@ -17,5 +17,4 @@ if env['HAVE_WX']:
 
 
 env_inputpc = env.Clone()
-env_inputpc.Append(CXXFLAGS = [ '-fPIC' ])
 env_inputpc.StaticLibrary(env['local_libs'] + "inputplugincommon", files)

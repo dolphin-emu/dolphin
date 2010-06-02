@@ -30,6 +30,5 @@ files = [
     ]
 
 acenv = env.Clone()
-acenv.Append(CXXFLAGS = [ '-fPIC' ])
 
 acenv.StaticLibrary(env['local_libs'] + 'dspcore', files, LIBS = [ 'common'] )

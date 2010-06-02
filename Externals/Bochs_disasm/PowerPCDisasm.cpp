@@ -389,7 +389,7 @@ typedef unsigned int ppc_word;
 	{
 		const char *cnd;
 
-		if (cnd = trap_condition[PPCGETD(in)]) {
+		if ((cnd = trap_condition[PPCGETD(in)]) != NULL) {
 			dp->flags |= dmode;
 			sprintf(dp->opcode,"t%c%s",dmode?'d':'w',cnd);
 			imm(dp,in,0,2,0);
@@ -408,7 +408,7 @@ typedef unsigned int ppc_word;
 			if (i)
 				dp->flags |= PPCF_64;
 			sprintf(dp->opcode,"%si",cmpname[uimm*2+i]);
-			if (i = (int)PPCGETCRD(in)) {
+			if ((i = (int)PPCGETCRD(in))) {
 				sprintf(oper,"cr%c,",'0'+i);
 				dp->operands += 4;
 			}
@@ -491,7 +491,7 @@ typedef unsigned int ppc_word;
 
 		if (d & 0x8000) d |= 0xffff0000;
 
-		if (offs = branch(dp,in,"",(in&2)?1:0,d)) {
+		if ((offs = branch(dp,in,"",(in&2)?1:0,d))) {
 			oper += offs;
 			*oper++ = ',';
 		}
@@ -619,7 +619,7 @@ typedef unsigned int ppc_word;
 			if (i)
 				dp->flags |= PPCF_64;
 			strcpy(dp->opcode,cmpname[((in&PPCIDX2MASK)?2:0)+i]);
-			if (i = (int)PPCGETCRD(in))
+			if ((i = (int)PPCGETCRD(in)))
 				oper += sprintf(oper,"cr%c,",'0'+i);
 			ra_rb(oper,in);
 		}
@@ -633,7 +633,7 @@ typedef unsigned int ppc_word;
 		const char *cnd;
 		int to = (int)PPCGETD(in);
 
-		if (cnd = trap_condition[to]) {
+		if ((cnd = trap_condition[to])) {
 			dp->flags |= dmode;
 			sprintf(dp->opcode,"t%c%s",dmode?'d':'w',cnd);
 			ra_rb(dp->operands,in);
@@ -991,7 +991,6 @@ typedef unsigned int ppc_word;
 
 	static void ps(struct DisasmPara_PPC *dp,ppc_word inst)
 	{
-		ppc_word pc = *dp->iaddr;
 		char *op = dp->opcode;
 		char *pr = dp->operands;
 		switch ((inst>>1)&0x1F) 
@@ -1015,7 +1014,7 @@ typedef unsigned int ppc_word;
 			return;
 		case 23:
 			strcpy(op, "ps_sel");
-			sprintf(pr, "p%u>=0?p%u:p%u", FD, FA, FC, FB);
+			sprintf(pr, "p%u>=0?p%u:p%u", FD, FA, FC);
 			return;
 		case 24:
 			strcpy(op, "ps_res");
@@ -1094,19 +1093,19 @@ typedef unsigned int ppc_word;
 			return;
 		case 0:
 			strcpy(op, "ps_cmpu0");
-			sprintf(pr, "ps_cmpu0", FD);
+			sprintf(pr, "ps_cmpu0");
 			return;
 		case 32:
 			strcpy(op,"ps_cmpq0");
-			sprintf(pr, "ps_cmpo0", FD);
+			sprintf(pr, "ps_cmpo0");
 			return;
 		case 64:
 			strcpy(op,"ps_cmpu1");
-			sprintf(pr, "ps_cmpu1", FD);
+			sprintf(pr, "ps_cmpu1");
 			return;
 		case 96:
 			strcpy(op,"ps_cmpo1");
-			sprintf(pr, "ps_cmpo1", FD);
+			sprintf(pr, "ps_cmpo1");
 			return;
 		case 528:
 			strcpy(op,"ps_merge00");
@@ -1126,7 +1125,7 @@ typedef unsigned int ppc_word;
 			return;
 		case 1014:
 			strcpy(op,"dcbz_l");
-			sprintf(pr, "");
+			*pr = '\0';
 			return;
 		}
 
@@ -1138,7 +1137,6 @@ typedef unsigned int ppc_word;
 
 	static void ps_mem(struct DisasmPara_PPC *dp,ppc_word inst)
 	{
-		ppc_word pc = *dp->iaddr;
 		char *op = dp->opcode;
 		char *pr = dp->operands;
 		switch (PPCGETIDX(inst)) 
@@ -1149,7 +1147,7 @@ typedef unsigned int ppc_word;
 			break;
 		case 57:
 			strcpy(op,"psq_lu");
-			sprintf(pr, "", FD);
+			*pr = '\0';
 			break;
 		case 60:
 			strcpy(op,"psq_st");

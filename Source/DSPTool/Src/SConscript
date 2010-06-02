@@ -15,8 +15,7 @@ libs = [
 ]
 
 
-dtenv.Append(CXXFLAGS = [ '-fPIC' ],
-             LIBS = libs)
+dtenv.Append(LIBS = libs)
 if sys.platform == 'darwin':
     dtenv['FRAMEWORKS'] = ['CoreFoundation', 'Cocoa', 'System']
 

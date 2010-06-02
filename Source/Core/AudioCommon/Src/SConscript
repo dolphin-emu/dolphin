@@ -12,7 +12,6 @@ files = [
     ]
 
 acenv = env.Clone()
-acenv.Append(CXXFLAGS = [ '-fPIC' ])
 
 if acenv['HAVE_OPENAL']:
     files += [ 'OpenALStream.cpp', 'aldlist.cpp' ]
