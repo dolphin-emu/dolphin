@@ -28,10 +28,6 @@
 #include "Common.h"
 #include "FileUtil.h"
 
-#ifdef __APPLE__
-#include <sys/param.h>
-#endif
-
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/keysym.h>
 #include "State.h"

@@ -47,7 +47,7 @@ bool CEXIETHERNET::activate() {
 		return false;
 	}
 	struct ifreq ifr;
-#if !defined(__APPLE__)	
+
 	int err;
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI | IFF_ONE_QUEUE;
@@ -73,7 +73,6 @@ bool CEXIETHERNET::activate() {
 		DEBUGPRINT("set tun device flags: %s", strerror (errno));
 	}*/
 
-#endif
 	DEBUGPRINT("Returned Socket name is: %s\n", ifr.ifr_name);
 	system("brctl addif pan0 Dolphin");
 	system("ifconfig Dolphin 0.0.0.0 promisc up");

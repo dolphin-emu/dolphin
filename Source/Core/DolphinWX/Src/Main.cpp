@@ -19,10 +19,6 @@
 #include <string>
 #include "svnrev.h"
 
-#ifdef __APPLE__
-#include <sys/param.h>
-#endif
-
 #include "Common.h" // Common
 
 #if defined HAVE_X11 && HAVE_X11
@@ -316,15 +312,6 @@ bool DolphinApp::OnInit()
 	}
 	else if (!File::IsDirectory(AppSupportDir))
 		PanicAlert("~/Library/Application Support/Dolphin exists, but is not a directory");
-
-#if !wxCHECK_VERSION(2, 9, 0)
-	// HACK: Get rid of bogus osx param
-	if (argc > 1 && wxString(argv[argc - 1]).StartsWith(_("-psn_"))) {
-		delete argv[argc-1];
-		argv[argc-1] = NULL;
-		argc--;
-	}
-#endif
 #endif
 
 #ifdef __linux__
