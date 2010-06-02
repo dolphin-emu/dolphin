@@ -99,7 +99,7 @@ namespace AudioCommon
 			backends.push_back(BACKEND_AOSOUND);
 		if (AlsaSound::isValid()) 
 			backends.push_back(BACKEND_ALSA);
-#ifdef __APPLE_
+#ifdef __APPLE__
 		if (CoreAudioSound::isValid())       
 			backends.push_back(BACKEND_COREAUDIO);
 #endif
