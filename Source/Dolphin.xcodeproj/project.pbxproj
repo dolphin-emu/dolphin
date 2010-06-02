@@ -163,7 +163,6 @@
 		292AC27811838FD700B8790B /* HLE_Misc.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABE2011838FD500B8790B /* HLE_Misc.h */; };
 		292AC27911838FD700B8790B /* HLE_OS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABE2111838FD500B8790B /* HLE_OS.cpp */; };
 		292AC27A11838FD700B8790B /* HLE_OS.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABE2211838FD500B8790B /* HLE_OS.h */; };
-		292AC27B11838FD700B8790B /* Host.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABE2311838FD500B8790B /* Host.cpp */; };
 		292AC27C11838FD700B8790B /* Host.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABE2411838FD500B8790B /* Host.h */; };
 		292AC27D11838FD700B8790B /* AudioInterface.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABE2611838FD500B8790B /* AudioInterface.cpp */; };
 		292AC27E11838FD700B8790B /* AudioInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABE2711838FD500B8790B /* AudioInterface.h */; };
@@ -1434,7 +1433,6 @@
 		292ABE2011838FD500B8790B /* HLE_Misc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HLE_Misc.h; sourceTree = "<group>"; };
 		292ABE2111838FD500B8790B /* HLE_OS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HLE_OS.cpp; sourceTree = "<group>"; };
 		292ABE2211838FD500B8790B /* HLE_OS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HLE_OS.h; sourceTree = "<group>"; };
-		292ABE2311838FD500B8790B /* Host.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Host.cpp; sourceTree = "<group>"; };
 		292ABE2411838FD500B8790B /* Host.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Host.h; sourceTree = "<group>"; };
 		292ABE2611838FD500B8790B /* AudioInterface.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AudioInterface.cpp; sourceTree = "<group>"; };
 		292ABE2711838FD500B8790B /* AudioInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AudioInterface.h; sourceTree = "<group>"; };
@@ -2841,7 +2839,6 @@
 				292ABE1311838FD500B8790B /* Debugger */,
 				292ABE1B11838FD500B8790B /* DolLoader.h */,
 				292ABE1C11838FD500B8790B /* HLE */,
-				292ABE2311838FD500B8790B /* Host.cpp */,
 				292ABE2411838FD500B8790B /* Host.h */,
 				292ABE2511838FD500B8790B /* HW */,
 				292ABE6511838FD500B8790B /* IPC_HLE */,
@@ -5488,7 +5485,6 @@
 				292AC27511838FD700B8790B /* HLE.cpp in Sources */,
 				292AC27711838FD700B8790B /* HLE_Misc.cpp in Sources */,
 				292AC27911838FD700B8790B /* HLE_OS.cpp in Sources */,
-				292AC27B11838FD700B8790B /* Host.cpp in Sources */,
 				292AC27D11838FD700B8790B /* AudioInterface.cpp in Sources */,
 				292AC27F11838FD700B8790B /* TAP_Apple.cpp in Sources */,
 				292AC28011838FD700B8790B /* TAP_Unix.cpp in Sources */,

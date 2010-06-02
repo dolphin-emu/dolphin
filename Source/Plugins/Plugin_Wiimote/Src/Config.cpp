@@ -369,7 +369,7 @@ void Config::LoadIR()
 	int defaultLeft, defaultTop, defaultWidth, defaultHeight;
 
 	sprintf(TmpSection, "%s", g_ISOId ? Hex2Ascii(g_ISOId).c_str() : "Default");
-	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IR Pointer.ini").c_str());
+	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IrPointer.ini").c_str());
 	//Load defaults first...
 	iniFile.Get("Default", "IRLeft", &defaultLeft, LEFT);
 	iniFile.Get("Default", "IRTop", &defaultTop, TOP);
@@ -461,7 +461,7 @@ void Config::Save()
 	iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Wiimote.ini").c_str());
 
 	// Save the IR cursor settings if it's avaliable for the GameId, if not save the default settings
-	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IR Pointer.ini").c_str());
+	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IrPointer.ini").c_str());
 	char TmpSection[32];
 	sprintf(TmpSection, "%s", g_ISOId ? Hex2Ascii(g_ISOId).c_str() : "Default");
 	iniFile.Set(TmpSection, "IRLeft", iIRLeft);
@@ -469,7 +469,7 @@ void Config::Save()
 	iniFile.Set(TmpSection, "IRWidth", iIRWidth);
 	iniFile.Set(TmpSection, "IRHeight", iIRHeight);
 	iniFile.Set(TmpSection, "IRLevel", iIRLevel);
-	iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IR Pointer.ini").c_str());
+	iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IrPointer.ini").c_str());
 
 	//Save any options that need to be accessed in Dolphin
 	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini").c_str());

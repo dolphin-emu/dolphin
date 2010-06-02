@@ -47,7 +47,7 @@ include_paths = [
     basedir + 'Source/Core/Common/Src',
     basedir + 'Source/PluginSpecs',
     basedir + 'Source/Core/DolphinWX/Src',
-   	basedir + 'Externals/Memcard Manager/src',
+   	basedir + 'Externals/MemcardManager/src',
   ]
 
 dirs = [

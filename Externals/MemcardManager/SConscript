@@ -13,8 +13,8 @@ libs = [
 
 if wxenv['HAVE_WX']:
 	files += [
-	    'Externals/Memcard Manager/src/mcmMain.cpp',
-		'Externals/Memcard Manager/src/MCMdebug.cpp',
+	    'Externals/MemcardManager/src/mcmMain.cpp',
+		'Externals/MemcardManager/src/MCMdebug.cpp',
 		'Source/Core/DolphinWX/Src/MemcardManager.cpp',
 		'Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp',
 		'Source/Core/DolphinWX/Src/WxUtils.cpp',		
@@ -48,7 +48,7 @@ else:
 
 
 
-exeGUI = env['binary_dir'] + 'Memcard Manager'
+exeGUI = env['binary_dir'] + 'MemcardManager'
 
 #objects = [ wxenv.Object(srcFile) for srcFile in files ]
 
