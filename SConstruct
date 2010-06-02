@@ -200,7 +200,6 @@ if (flavour == 'debug'):
     cppDefines.append('NDEBUG') 
 elif (flavour == 'devel'):
     compileFlags.append('-ggdb')
-    warnings.append('error')
 elif (flavour == 'fastlog'):
     compileFlags.append('-O3')
     cppDefines.append('DEBUGFAST')
