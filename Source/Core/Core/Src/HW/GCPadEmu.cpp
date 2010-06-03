@@ -1,4 +1,4 @@
-#include "..\Host.h"
+#include "../Host.h"
 #include "GCPadEmu.h"
 
 const u16 button_bitmasks[] =
