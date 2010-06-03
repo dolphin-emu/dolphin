@@ -42,9 +42,6 @@
    #include <X11/Xutil.h>
    #include <X11/keysym.h>
    #include <X11/XKBlib.h>
-//no need for Cocoa yet, but I guess ayuanx isn't done yet.
-//#elif defined(HAVE_COCOA) && HAVE_COCOA
-//   #include <Cocoa/Cocoa.h>
 #endif
 #include "pluginspecs_pad.h"
 

@@ -454,8 +454,6 @@
 		292AC39C11838FD700B8790B /* CheatsWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABF8D11838FD600B8790B /* CheatsWindow.h */; };
 		292AC39D11838FD700B8790B /* cmdline.c in Sources */ = {isa = PBXBuildFile; fileRef = 292ABF8E11838FD600B8790B /* cmdline.c */; };
 		292AC39E11838FD700B8790B /* cmdline.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABF8F11838FD600B8790B /* cmdline.h */; };
-		292AC39F11838FD700B8790B /* cocoaApp.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABF9011838FD600B8790B /* cocoaApp.h */; };
-		292AC3A011838FD700B8790B /* cocoaApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 292ABF9111838FD600B8790B /* cocoaApp.m */; };
 		292AC3A111838FD700B8790B /* ConfigMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABF9211838FD600B8790B /* ConfigMain.cpp */; };
 		292AC3A211838FD700B8790B /* ConfigMain.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABF9311838FD600B8790B /* ConfigMain.h */; };
 		292AC3A311838FD700B8790B /* Frame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABF9411838FD600B8790B /* Frame.cpp */; };
@@ -794,8 +792,6 @@
 		292AC4F711838FD700B8790B /* XFStructs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292AC12B11838FD700B8790B /* XFStructs.cpp */; };
 		292AC4F811838FD700B8790B /* XFStructs.h in Headers */ = {isa = PBXBuildFile; fileRef = 292AC12C11838FD700B8790B /* XFStructs.h */; };
 		292AC4F911838FD700B8790B /* BPFunctions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292AC13011838FD700B8790B /* BPFunctions.cpp */; };
-		292AC4FA11838FD700B8790B /* cocoaGL.h in Headers */ = {isa = PBXBuildFile; fileRef = 292AC13111838FD700B8790B /* cocoaGL.h */; };
-		292AC4FB11838FD700B8790B /* cocoaGL.m in Sources */ = {isa = PBXBuildFile; fileRef = 292AC13211838FD700B8790B /* cocoaGL.m */; };
 		292AC4FC11838FD700B8790B /* Debugger.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292AC13411838FD700B8790B /* Debugger.cpp */; };
 		292AC4FD11838FD700B8790B /* Debugger.h in Headers */ = {isa = PBXBuildFile; fileRef = 292AC13511838FD700B8790B /* Debugger.h */; };
 		292AC4FE11838FD700B8790B /* DLCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292AC13611838FD700B8790B /* DLCache.cpp */; };
@@ -837,8 +833,6 @@
 		292AC52211838FD700B8790B /* BPMemLoader.h in Headers */ = {isa = PBXBuildFile; fileRef = 292AC16011838FD700B8790B /* BPMemLoader.h */; };
 		292AC52311838FD700B8790B /* Clipper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292AC16111838FD700B8790B /* Clipper.cpp */; };
 		292AC52411838FD700B8790B /* Clipper.h in Headers */ = {isa = PBXBuildFile; fileRef = 292AC16211838FD700B8790B /* Clipper.h */; };
-		292AC52511838FD700B8790B /* cocoaGL.h in Headers */ = {isa = PBXBuildFile; fileRef = 292AC16311838FD700B8790B /* cocoaGL.h */; };
-		292AC52611838FD700B8790B /* cocoaGL.m in Sources */ = {isa = PBXBuildFile; fileRef = 292AC16411838FD700B8790B /* cocoaGL.m */; };
 		292AC52711838FD700B8790B /* CommandProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292AC16511838FD700B8790B /* CommandProcessor.cpp */; };
 		292AC52811838FD700B8790B /* CommandProcessor.h in Headers */ = {isa = PBXBuildFile; fileRef = 292AC16611838FD700B8790B /* CommandProcessor.h */; };
 		292AC52911838FD700B8790B /* CPMemLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292AC16711838FD700B8790B /* CPMemLoader.cpp */; };
@@ -1778,8 +1772,6 @@
 		292ABF8D11838FD600B8790B /* CheatsWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CheatsWindow.h; sourceTree = "<group>"; };
 		292ABF8E11838FD600B8790B /* cmdline.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cmdline.c; sourceTree = "<group>"; };
 		292ABF8F11838FD600B8790B /* cmdline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cmdline.h; sourceTree = "<group>"; };
-		292ABF9011838FD600B8790B /* cocoaApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cocoaApp.h; sourceTree = "<group>"; };
-		292ABF9111838FD600B8790B /* cocoaApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = cocoaApp.m; sourceTree = "<group>"; };
 		292ABF9211838FD600B8790B /* ConfigMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConfigMain.cpp; sourceTree = "<group>"; };
 		292ABF9311838FD600B8790B /* ConfigMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConfigMain.h; sourceTree = "<group>"; };
 		292ABF9411838FD600B8790B /* Frame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Frame.cpp; sourceTree = "<group>"; };
@@ -2148,8 +2140,6 @@
 		292AC12C11838FD700B8790B /* XFStructs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XFStructs.h; sourceTree = "<group>"; };
 		292AC12E11838FD700B8790B /* Plugin_VideoOGL.vcproj */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Plugin_VideoOGL.vcproj; sourceTree = "<group>"; };
 		292AC13011838FD700B8790B /* BPFunctions.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BPFunctions.cpp; sourceTree = "<group>"; };
-		292AC13111838FD700B8790B /* cocoaGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cocoaGL.h; sourceTree = "<group>"; };
-		292AC13211838FD700B8790B /* cocoaGL.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = cocoaGL.m; sourceTree = "<group>"; };
 		292AC13411838FD700B8790B /* Debugger.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Debugger.cpp; sourceTree = "<group>"; };
 		292AC13511838FD700B8790B /* Debugger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Debugger.h; sourceTree = "<group>"; };
 		292AC13611838FD700B8790B /* DLCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DLCache.cpp; sourceTree = "<group>"; };
@@ -2193,8 +2183,6 @@
 		292AC16011838FD700B8790B /* BPMemLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BPMemLoader.h; sourceTree = "<group>"; };
 		292AC16111838FD700B8790B /* Clipper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Clipper.cpp; sourceTree = "<group>"; };
 		292AC16211838FD700B8790B /* Clipper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Clipper.h; sourceTree = "<group>"; };
-		292AC16311838FD700B8790B /* cocoaGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cocoaGL.h; sourceTree = "<group>"; };
-		292AC16411838FD700B8790B /* cocoaGL.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = cocoaGL.m; sourceTree = "<group>"; };
 		292AC16511838FD700B8790B /* CommandProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CommandProcessor.cpp; sourceTree = "<group>"; };
 		292AC16611838FD700B8790B /* CommandProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CommandProcessor.h; sourceTree = "<group>"; };
 		292AC16711838FD700B8790B /* CPMemLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CPMemLoader.cpp; sourceTree = "<group>"; };
@@ -3378,8 +3366,6 @@
 				292ABF8D11838FD600B8790B /* CheatsWindow.h */,
 				292ABF8E11838FD600B8790B /* cmdline.c */,
 				292ABF8F11838FD600B8790B /* cmdline.h */,
-				292ABF9011838FD600B8790B /* cocoaApp.h */,
-				292ABF9111838FD600B8790B /* cocoaApp.m */,
 				292ABF9211838FD600B8790B /* ConfigMain.cpp */,
 				292ABF9311838FD600B8790B /* ConfigMain.h */,
 				292ABF9411838FD600B8790B /* Frame.cpp */,
@@ -4075,8 +4061,6 @@
 			isa = PBXGroup;
 			children = (
 				292AC13011838FD700B8790B /* BPFunctions.cpp */,
-				292AC13111838FD700B8790B /* cocoaGL.h */,
-				292AC13211838FD700B8790B /* cocoaGL.m */,
 				292AC13311838FD700B8790B /* Debugger */,
 				292AC13611838FD700B8790B /* DLCache.cpp */,
 				292AC13711838FD700B8790B /* DLCache.h */,
@@ -4159,8 +4143,6 @@
 				292AC16011838FD700B8790B /* BPMemLoader.h */,
 				292AC16111838FD700B8790B /* Clipper.cpp */,
 				292AC16211838FD700B8790B /* Clipper.h */,
-				292AC16311838FD700B8790B /* cocoaGL.h */,
-				292AC16411838FD700B8790B /* cocoaGL.m */,
 				292AC16511838FD700B8790B /* CommandProcessor.cpp */,
 				292AC16611838FD700B8790B /* CommandProcessor.h */,
 				292AC16711838FD700B8790B /* CPMemLoader.cpp */,
@@ -4605,7 +4587,6 @@
 				292AC39A11838FD700B8790B /* BootManager.h in Headers */,
 				292AC39C11838FD700B8790B /* CheatsWindow.h in Headers */,
 				292AC39E11838FD700B8790B /* cmdline.h in Headers */,
-				292AC39F11838FD700B8790B /* cocoaApp.h in Headers */,
 				292AC3A211838FD700B8790B /* ConfigMain.h in Headers */,
 				292AC3A411838FD700B8790B /* Frame.h in Headers */,
 				292AC3A811838FD700B8790B /* GameListCtrl.h in Headers */,
@@ -4769,7 +4750,6 @@
 				292AC4F411838FD700B8790B /* TabControl.h in Headers */,
 				292AC4F611838FD700B8790B /* Thread.h in Headers */,
 				292AC4F811838FD700B8790B /* XFStructs.h in Headers */,
-				292AC4FA11838FD700B8790B /* cocoaGL.h in Headers */,
 				292AC4FD11838FD700B8790B /* Debugger.h in Headers */,
 				292AC4FF11838FD700B8790B /* DLCache.h in Headers */,
 				292AC50111838FD700B8790B /* FramebufferManager.h in Headers */,
@@ -4790,7 +4770,6 @@
 				292AC52011838FD700B8790B /* XFB.h in Headers */,
 				292AC52211838FD700B8790B /* BPMemLoader.h in Headers */,
 				292AC52411838FD700B8790B /* Clipper.h in Headers */,
-				292AC52511838FD700B8790B /* cocoaGL.h in Headers */,
 				292AC52811838FD700B8790B /* CommandProcessor.h in Headers */,
 				292AC52A11838FD700B8790B /* CPMemLoader.h in Headers */,
 				292AC52C11838FD700B8790B /* DebugUtil.h in Headers */,
@@ -5647,7 +5626,6 @@
 				292AC39911838FD700B8790B /* BootManager.cpp in Sources */,
 				292AC39B11838FD700B8790B /* CheatsWindow.cpp in Sources */,
 				292AC39D11838FD700B8790B /* cmdline.c in Sources */,
-				292AC3A011838FD700B8790B /* cocoaApp.m in Sources */,
 				292AC3A111838FD700B8790B /* ConfigMain.cpp in Sources */,
 				292AC3A311838FD700B8790B /* Frame.cpp in Sources */,
 				292AC3A511838FD700B8790B /* FrameAui.cpp in Sources */,
@@ -5823,7 +5801,6 @@
 				292AC4F511838FD700B8790B /* Thread.cpp in Sources */,
 				292AC4F711838FD700B8790B /* XFStructs.cpp in Sources */,
 				292AC4F911838FD700B8790B /* BPFunctions.cpp in Sources */,
-				292AC4FB11838FD700B8790B /* cocoaGL.m in Sources */,
 				292AC4FC11838FD700B8790B /* Debugger.cpp in Sources */,
 				292AC4FE11838FD700B8790B /* DLCache.cpp in Sources */,
 				292AC50011838FD700B8790B /* FramebufferManager.cpp in Sources */,
@@ -5845,7 +5822,6 @@
 				292AC51F11838FD700B8790B /* XFB.cpp in Sources */,
 				292AC52111838FD700B8790B /* BPMemLoader.cpp in Sources */,
 				292AC52311838FD700B8790B /* Clipper.cpp in Sources */,
-				292AC52611838FD700B8790B /* cocoaGL.m in Sources */,
 				292AC52711838FD700B8790B /* CommandProcessor.cpp in Sources */,
 				292AC52911838FD700B8790B /* CPMemLoader.cpp in Sources */,
 				292AC52B11838FD700B8790B /* DebugUtil.cpp in Sources */,

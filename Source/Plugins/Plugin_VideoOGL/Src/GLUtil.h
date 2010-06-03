@@ -48,10 +48,6 @@
 #elif defined(USE_SDL) && USE_SDL
 #include <GL/glew.h>
 #include <SDL.h>
-
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-#include <GL/glew.h>
-#include "cocoaGL.h"
 #endif // end USE_WX
 
 #if defined(__APPLE__) 
@@ -76,10 +72,7 @@
 
 typedef struct {
 	int screen;
-#if defined(HAVE_COCOA) && HAVE_COCOA
-	NSWindow *cocoaWin;
-	NSOpenGLContext *cocoaCtx;
-#elif defined(HAVE_X11) && HAVE_X11
+#if defined(HAVE_X11) && HAVE_X11
 	Window win;
 	Window parent;
 	Display *dpy;
@@ -87,8 +80,7 @@ typedef struct {
 	GLXContext ctx;
 	XSetWindowAttributes attr;
 	Common::Thread *xEventThread;
-#endif // X11
-#if defined(USE_WX) && USE_WX
+#elif defined(USE_WX) && USE_WX
 	wxGLCanvas *glCanvas;
 	wxPanel *panel;
 	wxGLContext *glCtxt;

@@ -55,8 +55,6 @@ void OpenGL_SwapBuffers()
 {
 #if defined(USE_WX) && USE_WX
 	GLWin.glCanvas->SwapBuffers();
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-	cocoaGLSwap(GLWin.cocoaCtx,GLWin.cocoaWin);
 #elif defined(_WIN32)
 	SwapBuffers(hDC);
 #elif defined(HAVE_X11) && HAVE_X11
@@ -78,8 +76,6 @@ void OpenGL_SetWindowText(const char *text)
 {
 #if defined(USE_WX) && USE_WX
 //	GLWin.frame->SetTitle(wxString::FromAscii(text));
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-	cocoaGLSetTitle(GLWin.cocoaWin, text);
 #elif defined(_WIN32)
 	// TODO convert text to unicode and change SetWindowTextA to SetWindowText
 	SetWindowTextA(EmuWindow::GetWnd(), text);
@@ -268,12 +264,6 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
 	GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
 
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-	GLWin.width = s_backbuffer_width;
-	GLWin.height = s_backbuffer_height;
-	GLWin.cocoaWin = cocoaGLCreateWindow(GLWin.width, GLWin.height);
-	GLWin.cocoaCtx = cocoaGLInit(g_Config.iMultisampleMode);
-
 #elif defined(_WIN32)
 	g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Please wait..."));
 	if (g_VideoInitialize.pWindowHandle == NULL)
@@ -415,8 +405,6 @@ bool OpenGL_MakeCurrent()
 	// connect the glx-context to the window
 #if defined(USE_WX) && USE_WX
 	GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-	cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
 #elif defined(_WIN32)
 	return wglMakeCurrent(hDC,hRC);
 #elif defined(HAVE_X11) && HAVE_X11
@@ -436,11 +424,6 @@ void OpenGL_Update()
 	rcWindow.bottom = GLWin.height;
 
 	// TODO fill in
-
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-	RECT rcWindow = {0};
-	rcWindow.right = GLWin.width;
-	rcWindow.bottom = GLWin.height;
 
 #elif defined(_WIN32)
 	RECT rcWindow;
@@ -481,10 +464,6 @@ void OpenGL_Shutdown()
 {
 #if defined(USE_WX) && USE_WX
 	delete GLWin.glCanvas;
-#elif defined(HAVE_COCOA) && HAVE_COCOA
-	cocoaGLDeleteWindow(GLWin.cocoaWin);
-	cocoaGLDelete(GLWin.cocoaCtx);
-
 #elif defined(_WIN32)
 	if (hRC)                                            // Do We Have A Rendering Context?
 	{

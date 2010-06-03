@@ -108,10 +108,10 @@ vars.AddVariables(
     BoolVariable('verbose', 'Set for compilation line', False),
     BoolVariable('bundle', 'Set to create bundle', False),
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
-    BoolVariable('nowx', 'Set For Building with no WX libs (WIP)', False),
+    BoolVariable('nowx', 'Set For Building with no WX libs', False),
     BoolVariable('openal', 'Build with OpenAL', False),
     BoolVariable('noao', 'Build without AO', False),
-    BoolVariable('wxgl', 'Set For Building with WX GL libs (WIP)', False),
+    BoolVariable('wxgl', 'Set For Building with WX GL libs', False),
     BoolVariable('opencl', 'Build with OpenCL', False),
     BoolVariable('nojit', 'Remove entire jit cores', False),
     BoolVariable('shared_soil', 'Use system shared libSOIL', False),
@@ -354,7 +354,6 @@ if not env['SHARED_SFML']:
 #osx specifics
 if sys.platform == 'darwin':
     compileFlags.append('-mmacosx-version-min=10.5')
-    env['HAVE_COCOA'] = 1
     env['HAVE_XRANDR'] = 0
     env['HAVE_X11'] = 0
     env['CC'] = "gcc-4.2"
@@ -365,21 +364,20 @@ if sys.platform == 'darwin':
 else:
     env['HAVE_X11'] = conf.CheckPKG('x11')
     env['HAVE_XRANDR'] = env['HAVE_X11'] and conf.CheckPKG('xrandr')
-    env['HAVE_COCOA'] = 0
    
 # handling wx flags CCFLAGS should be created before
 wxmods = ['aui', 'adv', 'core', 'base']
 
 env['USE_WX'] = 0
 if env['wxgl']:
-    wxmods.append('gl')
     env['USE_WX'] = 1
-
-if sys.platform == 'win32':
+if sys.platform == 'win32' or sys.platform == 'darwin':
     env['HAVE_WX'] = 1
     env['USE_WX'] = 1
+if env['USE_WX']:
+    wxmods.append('gl')
 
-# Gui less build
+# gui-less build
 if env['nowx']:
     env['HAVE_WX'] = 0;
 else:
@@ -415,7 +413,6 @@ conf.Define('HAVE_WX', env['HAVE_WX'])
 conf.Define('USE_WX', env['USE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])
 conf.Define('HAVE_XRANDR', env['HAVE_XRANDR'])
-conf.Define('HAVE_COCOA', env['HAVE_COCOA'])
 conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
 conf.Define('SHARED_SOIL', env['SHARED_SOIL'])
 conf.Define('SHARED_LZO', env['SHARED_LZO'])

@@ -32,7 +32,7 @@
 #include "X11Utils.h"
 #endif
 
-#if defined(HAVE_COCOA) && HAVE_COCOA
+#ifdef __APPLE__
 #import "cocoaApp.h"
 #endif
 
@@ -260,7 +260,7 @@ void X11_MainLoop()
 #endif
 
 //for cocoa we need to hijack the main to get event
-#if defined(HAVE_COCOA) && HAVE_COCOA
+#ifdef __APPLE__
 
 @interface CocoaThread : NSObject
 {

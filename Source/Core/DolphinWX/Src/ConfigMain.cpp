@@ -30,7 +30,7 @@
 #include "Frame.h"
 #include "HotkeyDlg.h"
 
-#if defined(HAVE_COCOA) && HAVE_COCOA
+#ifdef __APPLE__
 #include <Cocoa/Cocoa.h>
 #endif
 
@@ -1188,7 +1188,7 @@ void CConfigMain::AddResolutions()
 
 	main_frame->m_XRRConfig->AddResolutions(arrayStringFor_FullscreenResolution);
 
-#elif defined(HAVE_COCOA) && HAVE_COCOA
+#elif defined(__APPLE__)
 	
 	CGDisplayModeRef			mode;
 	CFArrayRef					array;

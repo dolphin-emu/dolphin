@@ -122,7 +122,7 @@ static const int gcDefaultControls[] =
 		0x00, // L semi-press
 		0x00, // R semi-press
 	};
-#elif defined(HAVE_COCOA) && HAVE_COCOA
+#elif defined(__APPLE__)
 	// Reference for Cocoa key codes:
 	// http://boredzo.org/blog/archives/2007-05-22/virtual-key-codes
 	{
