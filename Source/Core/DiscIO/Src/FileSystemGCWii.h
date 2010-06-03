@@ -40,9 +40,8 @@ public:
 	virtual bool ExportDOL(const char* _rExportFolder) const;
 
 private:
-
-	bool m_Valid;
 	bool m_Initialized;
+	bool m_Valid;
 
 	u32 m_OffsetShift; // WII offsets are all shifted
 	std::vector <SFileInfo> m_FileInfoVector;

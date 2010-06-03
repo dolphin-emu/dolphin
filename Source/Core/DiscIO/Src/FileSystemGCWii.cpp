@@ -248,15 +248,15 @@ bool CFileSystemGCWii::DetectFileSystem()
 	if (Read32(0x18) == 0x5D1C9EA3)
 	{
 		m_OffsetShift = 2; // Wii file system
+		return true;
 	}
 	else if (Read32(0x1c) == 0xC2339F3D)
 	{
 		m_OffsetShift = 0; // GC file system
+		return true;
 	}
-	else
-	{
-		return false;
-	}
+
+	return false;
 }
 
 void CFileSystemGCWii::InitFileSystem()
