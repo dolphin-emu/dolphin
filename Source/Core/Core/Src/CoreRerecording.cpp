@@ -17,9 +17,9 @@
  
  
 #include "Setup.h"
-#ifdef RERECORDING
-
-
+#ifndef RERECORDING
+bool rerecording = false;
+#else
 
 // Include
 // --------------

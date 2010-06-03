@@ -609,10 +609,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\ChunkFile.cpp"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\ChunkFile.h"
 			>
 		</File>

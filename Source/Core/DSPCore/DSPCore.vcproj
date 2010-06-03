@@ -503,10 +503,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\DSPBreakpoints.cpp"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\DSPBreakpoints.h"
 			>
 		</File>
