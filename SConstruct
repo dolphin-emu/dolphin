@@ -165,7 +165,8 @@ else:
         variables = vars,
         ENV = {
             'PATH' : os.environ['PATH'],
-            'HOME' : os.environ['HOME']
+            'HOME' : os.environ['HOME'],
+            'PKG_CONFIG_PATH' : os.environ.get('PKG_CONFIG_PATH')
         },
         BUILDERS = builders,
         DESCRIPTION = description,
