@@ -214,7 +214,7 @@ void NetPlay::WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 
 {
 	// warning removing, like a boss
 	_number = _channelID;
-	_Size = (u32)_pData;
+	// _Size = (u32)_pData;
 
 	//m_crit.players.Enter();	// lock players
 
@@ -357,7 +357,7 @@ u8 CSIDevice_GCController::NetPlay_GetPadNum(u8 numPAD)
 // wiimote update / used for frame counting
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::NetPlay_WiimoteUpdate(int _number)
 {
-	_number;;
+	// _number;;
 	//CritLocker crit(::crit_netplay_ptr);
 
 	return;
