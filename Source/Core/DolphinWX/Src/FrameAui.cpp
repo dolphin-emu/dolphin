@@ -772,9 +772,8 @@ void CFrame::SetSimplePaneSize()
 
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-	Section& logwin = ini["LogWindow"];
-	logwin.Get("x", &x, Size);
-	logwin.Get("y", &y, Size);
+	ini.Get("LogWindow", "x", &x, Size);
+	ini.Get("LogWindow", "y", &y, Size);
 
 	// Update size
 	m_Mgr->GetPane(wxT("Pane 0")).BestSize(x, y).MinSize(x, y).MaxSize(x, y);
@@ -895,9 +894,8 @@ void CFrame::SaveLocal()
 
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
-	Section& perspectives = ini["Perspectives"];
-	perspectives.Get("Perspectives", &_Perspectives, "");
-	perspectives.Get("Active", &ActivePerspective, 5);
+	ini.Get("Perspectives", "Perspectives", &_Perspectives, "");
+	ini.Get("Perspectives", "Active", &ActivePerspective, 5);
 	SplitString(_Perspectives, ",", VPerspectives);
 
 	for (u32 i = 0; i < VPerspectives.size(); i++)
@@ -910,10 +908,10 @@ void CFrame::SaveLocal()
 		if (Tmp.Name == "") continue;
 		//if (!ini.Exists(_Section.c_str(), "Width")) continue;
 
-		Section& section = ini[StringFromFormat("P - %s", Tmp.Name.c_str())];
-		section.Get("Perspective", &_Perspective, "");
-		section.Get("Width", &_Width, "");
-		section.Get("Height", &_Height, "");	
+		_Section = StringFromFormat("P - %s", Tmp.Name.c_str());
+		ini.Get(_Section.c_str(), "Perspective", &_Perspective, "");
+		ini.Get(_Section.c_str(), "Width", &_Width, "");
+		ini.Get(_Section.c_str(), "Height", &_Height, "");	
 
 		Tmp.Perspective = wxString::FromAscii(_Perspective.c_str());
 
@@ -948,8 +946,8 @@ void CFrame::Save()
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
-	Section& section = ini[StringFromFormat("P - %s", Perspectives.at(ActivePerspective).Name.c_str())];
-	section.Set("Perspective", m_Mgr->SavePerspective().mb_str());
+	std::string _Section = StringFromFormat("P - %s", Perspectives.at(ActivePerspective).Name.c_str());
+	ini.Set(_Section.c_str(), "Perspective", m_Mgr->SavePerspective().mb_str());
 	
 	std::string SWidth = "", SHeight = "";
 	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
@@ -964,8 +962,8 @@ void CFrame::Save()
 	// Remove the ending ","
 	SWidth = SWidth.substr(0, SWidth.length()-1); SHeight = SHeight.substr(0, SHeight.length()-1);
 
-	section.Set("Width", SWidth.c_str());
-	section.Set("Height", SHeight.c_str());
+	ini.Set(_Section.c_str(), "Width", SWidth.c_str());
+	ini.Set(_Section.c_str(), "Height", SHeight.c_str());
 
 	// Save perspective names
 	std::string STmp = "";
@@ -974,9 +972,8 @@ void CFrame::Save()
 		STmp += Perspectives.at(i).Name + ",";
 	}
 	STmp = STmp.substr(0, STmp.length()-1);
-	Section& perspectives = ini["Perspectives"];
-	perspectives.Set("Perspectives", STmp.c_str());
-	perspectives.Set("Active", ActivePerspective);
+	ini.Set("Perspectives", "Perspectives", STmp.c_str());
+	ini.Set("Perspectives", "Active", ActivePerspective);
 	ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
 	// Save notebook affiliations

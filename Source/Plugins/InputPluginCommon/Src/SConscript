@@ -1,0 +1,20 @@
+# -*- python -*-
+
+Import('env')
+
+files = [
+	'Config.cpp',
+	'ControllerEmu.cpp',
+	'IniFile.cpp',
+	]
+
+if env['HAVE_WX']:
+	files += [
+			'ConfigDiagBitmaps.cpp',
+			'ConfigDiag.cpp',
+			]
+
+
+
+env_inputpc = env.Clone()
+env_inputpc.StaticLibrary(env['local_libs'] + "inputplugincommon", files)

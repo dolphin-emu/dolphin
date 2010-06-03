@@ -9,6 +9,8 @@
 #include <Windows.h>
 #include <dinput.h>
 
+#include <wx/stopwatch.h>
+#include <wx/utils.h>
 
 namespace ciface
 {
@@ -111,7 +113,7 @@ private:
 	const LPDIRECTINPUTDEVICE8	m_kb_device;
 	const LPDIRECTINPUTDEVICE8	m_mo_device;
 
-	u64							m_last_update;
+	wxLongLong					m_last_update;
 	State						m_state_in;
 	unsigned char				m_state_out[3];	// NUM CAPS SCROLL
 	bool				m_current_state_out[3];	// NUM CAPS SCROLL

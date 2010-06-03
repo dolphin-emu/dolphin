@@ -99,6 +99,7 @@ private:
 	wxBoxSizer* sPlugins;
 	wxStaticBoxSizer* sbGraphicsPlugin;
 	wxStaticBoxSizer* sbDSPPlugin;
+	wxStaticBoxSizer* sbPadPlugin;
 	wxStaticBoxSizer* sbWiimotePlugin;
 
 	wxNotebook *Notebook;
@@ -137,6 +138,9 @@ private:
 	wxStaticText* ApploaderPathText;
 	wxFilePickerCtrl* ApploaderPath;
 
+	wxStaticText* PADText;
+	wxButton* PADConfig;
+	wxChoice* PADSelection;
 	wxButton* DSPConfig;
 	wxStaticText* DSPText;
 	wxChoice* DSPSelection;
@@ -235,6 +239,10 @@ private:
 		ID_WIIMOTE_CONFIG,
 		ID_WIIMOTE_TEXT,
 		ID_WIIMOTE_CB,
+		ID_PAD_TEXT,
+		ID_PAD_ABOUT ,
+		ID_PAD_CONFIG,
+		ID_PAD_CB,
 		ID_DSP_ABOUT,
 		ID_DSP_CONFIG,
 		ID_DSP_TEXT,

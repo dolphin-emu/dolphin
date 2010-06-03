@@ -212,10 +212,6 @@ bool NetPlay::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_status, Ne
 // called from ---CPU--- thread
 void NetPlay::WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	// warning removing, like a boss
-	_number = _channelID;
-	// _Size = (u32)_pData;
-
 	//m_crit.players.Enter();	// lock players
 
 	//// in game mapping for this local wiimote
@@ -357,8 +353,7 @@ u8 CSIDevice_GCController::NetPlay_GetPadNum(u8 numPAD)
 // wiimote update / used for frame counting
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::NetPlay_WiimoteUpdate(int _number)
 {
-	// _number;;
-	//CritLocker crit(::crit_netplay_ptr);
+	CritLocker crit(::crit_netplay_ptr);
 
 	return;
 }

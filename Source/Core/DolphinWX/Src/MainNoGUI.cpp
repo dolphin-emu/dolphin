@@ -379,6 +379,7 @@ int main(int argc, char* argv[])
 	updateMainFrameEvent.Init();
 
 	LogManager::Init();
+	EventHandler::Init();
 	SConfig::Init();
 	CPluginManager::Init();
 
@@ -401,6 +402,7 @@ int main(int argc, char* argv[])
 
 	CPluginManager::Shutdown();
 	SConfig::Shutdown();
+	EventHandler::Shutdown();
 	LogManager::Shutdown();
 
 	cmdline_parser_free (&args_info);

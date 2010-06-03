@@ -34,7 +34,7 @@ void CConfig::Load()
 	// first load defaults
 	IniFile file;
 	file.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "DSP.ini").c_str());
-	file["Config"].Get("EnableHLEAudio", &m_EnableHLEAudio, true); // Sound Settings
+	file.Get("Config", "EnableHLEAudio", &m_EnableHLEAudio, true); // Sound Settings
 	ac_Config.Load(file);
 }
 
@@ -42,7 +42,7 @@ void CConfig::Save()
 {
 	IniFile file;
 	file.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "DSP.ini").c_str());
-	file["Config"].Set("EnableHLEAudio", m_EnableHLEAudio); // Sound Settings
+	file.Set("Config", "EnableHLEAudio", m_EnableHLEAudio); // Sound Settings
 	ac_Config.Set(file);
 
 	file.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "DSP.ini").c_str());

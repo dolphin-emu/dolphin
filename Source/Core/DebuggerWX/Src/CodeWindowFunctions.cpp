@@ -88,93 +88,89 @@ void CCodeWindow::Load()
 
 	// The font to override DebuggerFont with
 	std::string fontDesc;
-	Section& showonstart = ini["ShowOnStart"];
-	showonstart.Get("DebuggerFont", &fontDesc);
+	ini.Get("ShowOnStart", "DebuggerFont", &fontDesc);
 	if (!fontDesc.empty())
 		DebuggerFont.SetNativeFontInfoUserDesc(wxString::FromAscii(fontDesc.c_str()));
 
 	// Decide what windows to use
 	// This stuff really doesn't belong in CodeWindow anymore, does it? It should be
 	// in Frame.cpp somewhere, even though it's debugger stuff.
-	showonstart.Get("Code", &bCodeWindow, true);
-	showonstart.Get("Registers", &bRegisterWindow, false);
-	showonstart.Get("Breakpoints", &bBreakpointWindow, false);
-	showonstart.Get("Memory", &bMemoryWindow, false);
-	showonstart.Get("JIT", &bJitWindow, false);
-	showonstart.Get("Sound", &bSoundWindow, false);
-	showonstart.Get("Video", &bVideoWindow, false);
+	ini.Get("ShowOnStart", "Code", &bCodeWindow, true);
+	ini.Get("ShowOnStart", "Registers", &bRegisterWindow, false);
+	ini.Get("ShowOnStart", "Breakpoints", &bBreakpointWindow, false);
+	ini.Get("ShowOnStart", "Memory", &bMemoryWindow, false);
+	ini.Get("ShowOnStart", "JIT", &bJitWindow, false);
+	ini.Get("ShowOnStart", "Sound", &bSoundWindow, false);
+	ini.Get("ShowOnStart", "Video", &bVideoWindow, false);
 	// Get notebook affiliation
-	Section& section = ini[StringFromFormat("P - %s",
+	std::string _Section = StringFromFormat("P - %s",
 		(Parent->ActivePerspective < Parent->Perspectives.size())
-		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "")];
-	section.Get("Log", &iLogWindow, 1);
-	section.Get("Console", &iConsoleWindow, 1);
-	section.Get("Code", &iCodeWindow, 1);
-	section.Get("Registers", &iRegisterWindow, 1);
-	section.Get("Breakpoints", &iBreakpointWindow, 0);
-	section.Get("Memory", &iMemoryWindow, 1);
-	section.Get("JIT", &iJitWindow, 1);
-	section.Get("Sound", &iSoundWindow, 0);
-	section.Get("Video", &iVideoWindow, 0);
+		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "");
+	ini.Get(_Section.c_str(), "Log", &iLogWindow, 1);
+	ini.Get(_Section.c_str(), "Console", &iConsoleWindow, 1);
+	ini.Get(_Section.c_str(), "Code", &iCodeWindow, 1);
+	ini.Get(_Section.c_str(), "Registers", &iRegisterWindow, 1);
+	ini.Get(_Section.c_str(), "Breakpoints", &iBreakpointWindow, 0);
+	ini.Get(_Section.c_str(), "Memory", &iMemoryWindow, 1);
+	ini.Get(_Section.c_str(), "JIT", &iJitWindow, 1);
+	ini.Get(_Section.c_str(), "Sound", &iSoundWindow, 0);
+	ini.Get(_Section.c_str(), "Video", &iVideoWindow, 0);
 	// Get floating setting
-	Section& flt = ini["Float"];
-	flt.Get("Log", &Parent->bFloatLogWindow, false);
-	flt.Get("Console", &Parent->bFloatConsoleWindow, false);
-	flt.Get("Code", &bFloatCodeWindow, false);
-	flt.Get("Registers", &bFloatRegisterWindow, false);
-	flt.Get("Breakpoints", &bFloatBreakpointWindow, false);
-	flt.Get("Memory", &bFloatMemoryWindow, false);
-	flt.Get("JIT", &bFloatJitWindow, false);
-	flt.Get("Sound", &bFloatSoundWindow, false);
-	flt.Get("Video", &bFloatVideoWindow, false);
+	ini.Get("Float", "Log", &Parent->bFloatLogWindow, false);
+	ini.Get("Float", "Console", &Parent->bFloatConsoleWindow, false);
+	ini.Get("Float", "Code", &bFloatCodeWindow, false);
+	ini.Get("Float", "Registers", &bFloatRegisterWindow, false);
+	ini.Get("Float", "Breakpoints", &bFloatBreakpointWindow, false);
+	ini.Get("Float", "Memory", &bFloatMemoryWindow, false);
+	ini.Get("Float", "JIT", &bFloatJitWindow, false);
+	ini.Get("Float", "Sound", &bFloatSoundWindow, false);
+	ini.Get("Float", "Video", &bFloatVideoWindow, false);
 
 	// Boot to pause or not
-	showonstart.Get("AutomaticStart", &bAutomaticStart, false);
-	showonstart.Get("BootToPause", &bBootToPause, true);
+	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
+	ini.Get("ShowOnStart", "BootToPause", &bBootToPause, true);
 }
 void CCodeWindow::Save()
 {
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
-	Section& showonstart = ini["ShowOnStart"];
-	showonstart.Set("DebuggerFont", std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str()));
+	ini.Set("ShowOnStart", "DebuggerFont", std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str()));
 
 	// Boot to pause or not
-	showonstart.Set("AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
-	showonstart.Set("BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
+	ini.Set("ShowOnStart", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
+	ini.Set("ShowOnStart", "BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
 
 	// Save windows settings	
-	//showonstart.Set("Code", GetMenuBar()->IsChecked(IDM_CODEWINDOW));
-	showonstart.Set("Registers", GetMenuBar()->IsChecked(IDM_REGISTERWINDOW));
-	showonstart.Set("Breakpoints", GetMenuBar()->IsChecked(IDM_BREAKPOINTWINDOW));
-	showonstart.Set("Memory", GetMenuBar()->IsChecked(IDM_MEMORYWINDOW));
-	showonstart.Set("JIT", GetMenuBar()->IsChecked(IDM_JITWINDOW));
-	showonstart.Set("Sound", GetMenuBar()->IsChecked(IDM_SOUNDWINDOW));
-	showonstart.Set("Video", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));		
-	Section& section = ini[StringFromFormat("P - %s",
+	//ini.Set("ShowOnStart", "Code", GetMenuBar()->IsChecked(IDM_CODEWINDOW));
+	ini.Set("ShowOnStart", "Registers", GetMenuBar()->IsChecked(IDM_REGISTERWINDOW));
+	ini.Set("ShowOnStart", "Breakpoints", GetMenuBar()->IsChecked(IDM_BREAKPOINTWINDOW));
+	ini.Set("ShowOnStart", "Memory", GetMenuBar()->IsChecked(IDM_MEMORYWINDOW));
+	ini.Set("ShowOnStart", "JIT", GetMenuBar()->IsChecked(IDM_JITWINDOW));
+	ini.Set("ShowOnStart", "Sound", GetMenuBar()->IsChecked(IDM_SOUNDWINDOW));
+	ini.Set("ShowOnStart", "Video", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));		
+	std::string _Section = StringFromFormat("P - %s",
 		(Parent->ActivePerspective < Parent->Perspectives.size())
-		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "")];
-	section.Set("Log", iLogWindow);
-	section.Set("Console", iConsoleWindow);
-	section.Set("Code", iCodeWindow);
-	section.Set("Registers", iRegisterWindow);
-	section.Set("Breakpoints", iBreakpointWindow);
-	section.Set("Memory", iMemoryWindow);
-	section.Set("JIT", iJitWindow);
-	section.Set("Sound", iSoundWindow);
-	section.Set("Video", iVideoWindow);
+		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "");
+	ini.Set(_Section.c_str(), "Log", iLogWindow);
+	ini.Set(_Section.c_str(), "Console", iConsoleWindow);
+	ini.Set(_Section.c_str(), "Code", iCodeWindow);
+	ini.Set(_Section.c_str(), "Registers", iRegisterWindow);
+	ini.Set(_Section.c_str(), "Breakpoints", iBreakpointWindow);
+	ini.Set(_Section.c_str(), "Memory", iMemoryWindow);
+	ini.Set(_Section.c_str(), "JIT", iJitWindow);
+	ini.Set(_Section.c_str(), "Sound", iSoundWindow);
+	ini.Set(_Section.c_str(), "Video", iVideoWindow);
 	// Save floating setting
-	Section& flt = ini["Float"];
-	flt.Set("Log", !!FindWindowById(IDM_LOGWINDOW_PARENT));
-	flt.Set("Console", !!FindWindowById(IDM_CONSOLEWINDOW_PARENT));
-	flt.Set("Code", !!FindWindowById(IDM_CODEWINDOW_PARENT));
-	flt.Set("Registers", !!FindWindowById(IDM_REGISTERWINDOW_PARENT));
-	flt.Set("Breakpoints", !!FindWindowById(IDM_BREAKPOINTWINDOW_PARENT));
-	flt.Set("Memory", !!FindWindowById(IDM_MEMORYWINDOW_PARENT));
-	flt.Set("JIT", !!FindWindowById(IDM_JITWINDOW_PARENT));
-	flt.Set("Sound", !!FindWindowById(IDM_SOUNDWINDOW_PARENT));
-	flt.Set("Video", !!FindWindowById(IDM_VIDEOWINDOW_PARENT));	
+	ini.Set("Float", "Log", !!FindWindowById(IDM_LOGWINDOW_PARENT));
+	ini.Set("Float", "Console", !!FindWindowById(IDM_CONSOLEWINDOW_PARENT));
+	ini.Set("Float", "Code", !!FindWindowById(IDM_CODEWINDOW_PARENT));
+	ini.Set("Float", "Registers", !!FindWindowById(IDM_REGISTERWINDOW_PARENT));
+	ini.Set("Float", "Breakpoints", !!FindWindowById(IDM_BREAKPOINTWINDOW_PARENT));
+	ini.Set("Float", "Memory", !!FindWindowById(IDM_MEMORYWINDOW_PARENT));
+	ini.Set("Float", "JIT", !!FindWindowById(IDM_JITWINDOW_PARENT));
+	ini.Set("Float", "Sound", !!FindWindowById(IDM_SOUNDWINDOW_PARENT));
+	ini.Set("Float", "Video", !!FindWindowById(IDM_VIDEOWINDOW_PARENT));	
 
 	ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 }

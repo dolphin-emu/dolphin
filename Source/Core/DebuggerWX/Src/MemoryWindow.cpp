@@ -129,23 +129,21 @@ void CMemoryWindow::Save(IniFile& _IniFile) const
 	// Prevent these bad values that can happen after a crash or hanging
 	if(GetPosition().x != -32000 && GetPosition().y != -32000)
 	{
-		Section& memwin = _IniFile["MemoryWindow"];
-		memwin.Set("x", GetPosition().x);
-		memwin.Set("y", GetPosition().y);
-		memwin.Set("w", GetSize().GetWidth());
-		memwin.Set("h", GetSize().GetHeight());
+		_IniFile.Set("MemoryWindow", "x", GetPosition().x);
+		_IniFile.Set("MemoryWindow", "y", GetPosition().y);
+		_IniFile.Set("MemoryWindow", "w", GetSize().GetWidth());
+		_IniFile.Set("MemoryWindow", "h", GetSize().GetHeight());
 	}
 }
 
 
 void CMemoryWindow::Load(IniFile& _IniFile)
 {
-	int x, y, w, h;
-	Section& memwin = _IniFile["MemoryWindow"];
-	memwin.Get("x", &x, GetPosition().x);
-	memwin.Get("y", &y, GetPosition().y);
-	memwin.Get("w", &w, GetSize().GetWidth());
-	memwin.Get("h", &h, GetSize().GetHeight());
+	int x,y,w,h;
+	_IniFile.Get("MemoryWindow", "x", &x, GetPosition().x);
+	_IniFile.Get("MemoryWindow", "y", &y, GetPosition().y);
+	_IniFile.Get("MemoryWindow", "w", &w, GetSize().GetWidth());
+	_IniFile.Get("MemoryWindow", "h", &h, GetSize().GetHeight());
 	SetSize(x, y, w, h);
 }
 
@@ -324,12 +322,12 @@ void CMemoryWindow::onSearch(wxCommandEvent& event) {
 	//memview->cu
 	wxString rawData=valbox->GetValue();
 	std::vector<u8> Dest;//May need a better name
-	size_t size=0;
+	u32 size=0;
 	int pad=rawData.size()%2;//If it's uneven
 	unsigned long i=0;
 	long count=0;
 	char copy[3]={0};
-	size_t newsize=0;
+	long newsize=0;
 	unsigned char *tmp2=0;
 	char* tmpstr=0;
 	switch (chkHex->GetValue()){

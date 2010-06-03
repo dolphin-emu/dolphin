@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="InputUICommon"
+	Name="InputPluginCommon"
 	ProjectGUID="{660BB3F7-ED8F-4027-A460-8E4EDA8189BE}"
 	RootNamespace="VideoCommon"
 	Keyword="Win32Proj"
@@ -408,18 +408,14 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="old"
+		<File
+			RelativePath=".\Src\Config.cpp"
 			>
-			<File
-				RelativePath=".\Src\WXInputBase.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\WXInputBase.h"
-				>
-			</File>
-		</Filter>
+		</File>
+		<File
+			RelativePath=".\Src\Config.h"
+			>
+		</File>
 		<File
 			RelativePath=".\Src\ConfigDiag.cpp"
 			>
@@ -433,7 +429,19 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\SConscript"
+			RelativePath=".\Src\ControllerEmu.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\ControllerEmu.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\IniFile.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\IniFile.h"
 			>
 		</File>
 	</Files>

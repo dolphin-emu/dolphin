@@ -13,7 +13,7 @@ files = [
 
 libs = [
 	'core', 'lzo2', 'discio', 'bdisasm', 'videocommon', 
-	'inputuicommon', 'inputcommon', 'common', 'lua', 'z', 'sfml-network'
+	'inputcommon', 'common', 'lua', 'z', 'sfml-network'
 	]
 
 if wxenv['HAVE_WX']:

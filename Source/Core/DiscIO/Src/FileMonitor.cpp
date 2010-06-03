@@ -142,7 +142,7 @@ void FindFilename(u64 offset)
 	if (!fname || (strlen(fname) == 512))
 		return;
 	
-	CheckFile(fname, (int)pFileSystem->GetFileSize(fname));
+	CheckFile(fname, pFileSystem->GetFileSize(fname));
 }
 
 void Close()

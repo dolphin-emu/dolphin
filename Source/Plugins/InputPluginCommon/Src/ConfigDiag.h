@@ -22,7 +22,7 @@
 #include <vector>
 
 #include <ControllerInterface/ControllerInterface.h>
-#include <InputConfig.h>
+#include "Config.h"
 #include "FileSearch.h"
 
 class PadSetting

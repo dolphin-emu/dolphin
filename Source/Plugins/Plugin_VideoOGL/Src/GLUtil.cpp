@@ -406,7 +406,7 @@ bool OpenGL_MakeCurrent()
 #if defined(USE_WX) && USE_WX
 	GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
 #elif defined(_WIN32)
-	return wglMakeCurrent(hDC,hRC) != 0;
+	return wglMakeCurrent(hDC,hRC);
 #elif defined(HAVE_X11) && HAVE_X11
 	g_VideoInitialize.pRequestWindowSize(GLWin.x, GLWin.y, (int&)GLWin.width, (int&)GLWin.height);
 	XMoveResizeWindow(GLWin.dpy, GLWin.win, GLWin.x, GLWin.y, GLWin.width, GLWin.height);

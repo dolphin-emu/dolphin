@@ -320,7 +320,7 @@ class CFrame : public CRenderFrame
 		void OnConfigMain(wxCommandEvent& event); // Options
 		void OnPluginGFX(wxCommandEvent& event);
 		void OnPluginDSP(wxCommandEvent& event);
-		void OnPluginGCPad(wxCommandEvent& event);
+		void OnPluginPAD(wxCommandEvent& event);
 		void OnPluginWiimote(wxCommandEvent& event);
 
 		void OnToggleFullscreen(wxCommandEvent& event);

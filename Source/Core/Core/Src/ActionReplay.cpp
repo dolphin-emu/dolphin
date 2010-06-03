@@ -105,12 +105,14 @@ void LoadCodes(IniFile &ini, bool forceLoad)
 		&& !forceLoad) 
 		return;
 
+	std::vector<std::string> lines;
 	std::vector<std::string> encryptedLines;
 	ARCode currentCode;
 	arCodes.clear();
 
-	std::vector<std::string> lines;
-	ini["ActionReplay"].GetLines(lines);
+	if (!ini.GetLines("ActionReplay", lines))
+		return;  // no codes found.
+
 	for (std::vector<std::string>::const_iterator it = lines.begin(); it != lines.end(); ++it)
 	{
 		std::string line = *it;

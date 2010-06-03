@@ -3,7 +3,7 @@
 
 #define _connect_macro_( b, f, c, s )	(b)->Connect( wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s );
 
-static Plugin* g_plugin;//WTF?TODOSHUFFLE
+static Plugin* g_plugin;
 
 void GamepadPage::ConfigExtension( wxCommandEvent& event )
 {
@@ -283,7 +283,7 @@ void GamepadPage::ClearAll( wxCommandEvent& event )
 	g_plugin->controls_crit.Enter();		// enter
 
 	// just load an empty ini section to clear everything :P
-	Section section;
+	IniSection section;
 	controller->LoadConfig( section );
 
 	// no point in using the real ControllerInterface i guess
@@ -516,26 +516,29 @@ ControlChooser::ControlChooser( wxWindow* const parent, ControllerInterface::Con
 	UpdateListContents();
 }
 
-void GamepadPage::LoadProfile(wxCommandEvent& event)
+void GamepadPage::LoadProfile( wxCommandEvent& event )
 {
 	// TODO: check for dumb characters maybe
-	if (profile_cbox->GetValue().empty())
+	if ( profile_cbox->GetValue().empty() )
 		return;
 	
 	g_plugin->controls_crit.Enter();
 
+	std::ifstream file;
 	std::string fname( File::GetUserPath(D_CONFIG_IDX) );
 	fname += PROFILES_PATH; fname += g_plugin->profile_name; fname += '/';
 	fname += profile_cbox->GetValue().ToAscii(); fname += ".ini";
 
-	if (false == File::Exists(fname.c_str()))
+	if ( false == File::Exists( fname.c_str() ) )
 		return;
 
+	file.open( fname.c_str() );
 	IniFile inifile;
-	inifile.Load(fname);
-	controller->LoadConfig(inifile["Profile"]);
+	inifile.Load( file );
+	controller->LoadConfig( inifile["Profile"] );
+	file.close();
 
-	controller->UpdateReferences(g_plugin->controller_interface);
+	controller->UpdateReferences( g_plugin->controller_interface );
 
 	g_plugin->controls_crit.Leave();
 
@@ -560,7 +563,9 @@ void GamepadPage::SaveProfile( wxCommandEvent& event )
 
 	fname += profile_cbox->GetValue().ToAscii(); fname += ".ini";
 
-	inifile.Save(fname);
+	file.open( fname.c_str() );
+	inifile.Save( file );
+	file.close();
 
 	m_config_dialog->UpdateProfileComboBox();
 }

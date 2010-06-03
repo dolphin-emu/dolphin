@@ -4,8 +4,6 @@
 
 #include "XInput.h"
 
-#pragma comment(lib, "xinput.lib")
-
 namespace ciface
 {
 namespace XInput

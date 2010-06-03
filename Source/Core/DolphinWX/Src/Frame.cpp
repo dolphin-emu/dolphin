@@ -45,7 +45,6 @@
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "State.h"
 #include "VolumeHandler.h"
-#include "HW/GCPad.h"
 
 #include <wx/datetime.h> // wxWidgets
 
@@ -252,7 +251,7 @@ EVT_MENU(IDM_SCREENSHOT, CFrame::OnScreenshot)
 EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
 EVT_MENU(IDM_CONFIG_GFX_PLUGIN, CFrame::OnPluginGFX)
 EVT_MENU(IDM_CONFIG_DSP_PLUGIN, CFrame::OnPluginDSP)
-EVT_MENU(IDM_CONFIG_GCPAD, CFrame::OnPluginGCPad)
+EVT_MENU(IDM_CONFIG_PAD_PLUGIN, CFrame::OnPluginPAD)
 EVT_MENU(IDM_CONFIG_WIIMOTE_PLUGIN, CFrame::OnPluginWiimote)
 
 EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnToolBar)
@@ -442,7 +441,7 @@ CFrame::CFrame(wxFrame* parent,
 	{
 		IniFile ini; int winpos;
 		ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-		ini["LogWindow"].Get("pos", &winpos, 2);
+		ini.Get("LogWindow", "pos", &winpos, 2);
 
 		m_Mgr->GetPane(wxT("Pane 0")).Show().PaneBorder(false).CaptionVisible(false).Layer(0).Center();
 		m_Mgr->GetPane(wxT("Pane 1")).Hide().PaneBorder(false).CaptionVisible(true).Layer(0)
@@ -713,6 +712,12 @@ void CFrame::OnCustomHostMessage(int Id)
 		{
 			DoRemovePage(Win, false);
 
+			CPluginManager::GetInstance().OpenDebug(
+				GetHandle(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
+				PLUGIN_TYPE_DSP, false
+				);
+
 			//Win->Reparent(NULL);
 			//g_pCodeWindow->OnToggleDLLWindow(false, 0);
 			GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(false);
@@ -878,7 +883,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 #endif
 
 		// Send the keyboard status to the Input plugin
-		PAD_Input(event.GetKeyCode(), 1); // 1 = Down
+		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
 	}
 	else
 		event.Skip();
@@ -889,7 +894,7 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 	event.Skip();
 
 	if(Core::GetState() != Core::CORE_UNINITIALIZED)
-		PAD_Input(event.GetKeyCode(), 0); // 0 = Up*/
+		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
 }
 
 // --------

@@ -26,6 +26,10 @@ warnings = [
     'packed',
     'no-conversion',
     ]
+# XXX check for the availability of these (in GCC 4.3 or newer)
+if sys.platform != 'darwin':
+    warnings.append('no-array-bounds')
+    warnings.append('no-unused-result')
 
 compileFlags = [
     '-fno-exceptions',
@@ -53,10 +57,10 @@ include_paths = [
     basedir + 'Externals/WiiUseSrc/Src',
     basedir + 'Source/Core/VideoCommon/Src',
     basedir + 'Source/Core/InputCommon/Src',
+    basedir + 'Source/Plugins/InputPluginCommon/Src',
     basedir + 'Source/Core/AudioCommon/Src',
     basedir + 'Source/Core/DebuggerUICommon/Src',
     basedir + 'Source/Core/DSPCore/Src',
-    basedir + 'Source/Plugins/InputUICommon/Src',
     ]
 
 dirs = [
@@ -76,11 +80,13 @@ dirs = [
     'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',
+    'Source/Plugins/Plugin_GCPad/Src',
+    'Source/Plugins/Plugin_GCPadNew/Src',
     'Source/Plugins/Plugin_Wiimote/Src',
-    'Source/Plugins/InputUICommon/Src',
     'Source/Core/DolphinWX/Src',
     'Source/Core/DebuggerWX/Src',
     'Source/UnitTests/',
+    'Source/Plugins/InputPluginCommon/Src/',
     'Source/Plugins/Plugin_WiimoteNew/Src/',
     ]
 
@@ -159,8 +165,7 @@ else:
         variables = vars,
         ENV = {
             'PATH' : os.environ['PATH'],
-            'HOME' : os.environ['HOME'],
-            'PKG_CONFIG_PATH' : os.environ.get('PKG_CONFIG_PATH')
+            'HOME' : os.environ['HOME']
         },
         BUILDERS = builders,
         DESCRIPTION = description,
@@ -204,11 +209,11 @@ elif (flavour == 'prof'):
 elif (flavour == 'release'):
     compileFlags.append('-O3')
     compileFlags.append('-fomit-frame-pointer');
+    warnings.append('error')
 # more warnings
 if env['lint']:
-    warnings.append('error')
-    #warnings.append('unreachable-code')
-    #warnings.append('float-equal')
+    warnings.append('unreachable-code')
+    warnings.append('float-equal')
 
 # add the warnings to the compile flags
 compileFlags += [ ('-W' + warning) for warning in warnings ]

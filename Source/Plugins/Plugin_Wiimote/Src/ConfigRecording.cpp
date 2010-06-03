@@ -42,32 +42,31 @@ void WiimoteRecordingConfigDialog::LoadFile()
 
 		// Get row name
 		std::string SaveName = StringFromFormat("Recording%i", i);
-		Section& section = file[SaveName.c_str()];
 
 		// HotKey
-		section.Get("HotKeySwitch", &iTmp, 3); m_RecordHotKeySwitch[i]->SetSelection(iTmp);
-		section.Get("HotKeyWiimote", &iTmp, 10); m_RecordHotKeyWiimote[i]->SetSelection(iTmp);		
-		section.Get("HotKeyNunchuck", &iTmp, 10); m_RecordHotKeyNunchuck[i]->SetSelection(iTmp);
-		section.Get("HotKeyIR", &iTmp, 10); m_RecordHotKeyIR[i]->SetSelection(iTmp);
+		file.Get(SaveName.c_str(), "HotKeySwitch", &iTmp, 3); m_RecordHotKeySwitch[i]->SetSelection(iTmp);
+		file.Get(SaveName.c_str(), "HotKeyWiimote", &iTmp, 10); m_RecordHotKeyWiimote[i]->SetSelection(iTmp);		
+		file.Get(SaveName.c_str(), "HotKeyNunchuck", &iTmp, 10); m_RecordHotKeyNunchuck[i]->SetSelection(iTmp);
+		file.Get(SaveName.c_str(), "HotKeyIR", &iTmp, 10); m_RecordHotKeyIR[i]->SetSelection(iTmp);
 
 		// Movement name
-		section.Get("MovementName", &STmp, ""); m_RecordText[i]->SetValue(wxString::FromAscii(STmp.c_str()));
+		file.Get(SaveName.c_str(), "MovementName", &STmp, ""); m_RecordText[i]->SetValue(wxString::FromAscii(STmp.c_str()));
 
 		// Game name
-		section.Get("GameName", &STmp, ""); m_RecordGameText[i]->SetValue(wxString::FromAscii(STmp.c_str()));
+		file.Get(SaveName.c_str(), "GameName", &STmp, ""); m_RecordGameText[i]->SetValue(wxString::FromAscii(STmp.c_str()));
 
 		// IR Bytes
-		section.Get("IRBytes", &STmp, ""); m_RecordIRBytesText[i]->SetValue(wxString::FromAscii(STmp.c_str()));
+		file.Get(SaveName.c_str(), "IRBytes", &STmp, ""); m_RecordIRBytesText[i]->SetValue(wxString::FromAscii(STmp.c_str()));
 
 		// Recording speed
-		section.Get("RecordingSpeed", &iTmp, -1);
+		file.Get(SaveName.c_str(), "RecordingSpeed", &iTmp, -1);
 		if(iTmp != -1)
 			m_RecordSpeed[i]->SetValue(wxString::Format(wxT("%i"), iTmp));
 		else
 			m_RecordSpeed[i]->SetValue(wxT(""));
 
 		// Playback speed (currently always saved directly after a recording)
-		section.Get("PlaybackSpeed", &iTmp, -1); m_RecordPlayBackSpeed[i]->SetSelection(iTmp);
+		file.Get(SaveName.c_str(), "PlaybackSpeed", &iTmp, -1); m_RecordPlayBackSpeed[i]->SetSelection(iTmp);
 	}
 }
 
@@ -82,31 +81,30 @@ void WiimoteRecordingConfigDialog::SaveFile()
 	{
 		// Get row name
 		std::string SaveName = StringFromFormat("Recording%i", i);
-		Section& section = file[SaveName.c_str()];
 
 		// HotKey
-		section.Set("HotKeySwitch", m_RecordHotKeySwitch[i]->GetSelection());
-		section.Set("HotKeyWiimote", m_RecordHotKeyWiimote[i]->GetSelection());
-		section.Set("HotKeyNunchuck", m_RecordHotKeyNunchuck[i]->GetSelection());
-		section.Set("HotKeyIR", m_RecordHotKeyIR[i]->GetSelection());
+		file.Set(SaveName.c_str(), "HotKeySwitch", m_RecordHotKeySwitch[i]->GetSelection());
+		file.Set(SaveName.c_str(), "HotKeyWiimote", m_RecordHotKeyWiimote[i]->GetSelection());
+		file.Set(SaveName.c_str(), "HotKeyNunchuck", m_RecordHotKeyNunchuck[i]->GetSelection());
+		file.Set(SaveName.c_str(), "HotKeyIR", m_RecordHotKeyIR[i]->GetSelection());
 
 		// Movement name
-		section.Set("MovementName", (const char*)m_RecordText[i]->GetValue().mb_str(wxConvUTF8));
+		file.Set(SaveName.c_str(), "MovementName", (const char*)m_RecordText[i]->GetValue().mb_str(wxConvUTF8));
 
 		// Game name
-		section.Set("GameName", (const char*)m_RecordGameText[i]->GetValue().mb_str(wxConvUTF8));
+		file.Set(SaveName.c_str(), "GameName", (const char*)m_RecordGameText[i]->GetValue().mb_str(wxConvUTF8));
 
 		// Recording speed (currently always saved directly after a recording)
 		/*
 		wxString TmpRecordSpeed = m_RecordSpeed[i]->GetValue();		
 		if(TmpRecordSpeed.length() > 0)			
-			int TmpRecordSpeed; section.Set("RecordingSpeed", TmpRecordSpeed);
+			int TmpRecordSpeed; file.Set(SaveName.c_str(), "RecordingSpeed", TmpRecordSpeed);
 		else
-			int TmpRecordSpeed; section.Set("RecordingSpeed", "-1");
+			int TmpRecordSpeed; file.Set(SaveName.c_str(), "RecordingSpeed", "-1");
 		*/
 
 		// Playback speed (currently always saved directly after a recording)
-		section.Set("PlaybackSpeed", m_RecordPlayBackSpeed[i]->GetSelection());
+		file.Set(SaveName.c_str(), "PlaybackSpeed", m_RecordPlayBackSpeed[i]->GetSelection());
 	}
 
 	file.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "WiimoteMovement.ini").c_str());
@@ -421,19 +419,17 @@ void WiimoteRecordingConfigDialog::ConvertToString()
 
 	// Save file
 	std::string SaveName = StringFromFormat("Recording%i", m_iRecordTo);
-	Section& section = file[SaveName];
-
-	section.Set("Movement", TmpStr);
-	section.Set("IR", TmpIR);
-	section.Set("Time", TmpTime);
-	section.Set("IRBytes", IRBytes);
-	section.Set("RecordingSpeed", Rate);
+	file.Set(SaveName.c_str(), "Movement", TmpStr.c_str());
+	file.Set(SaveName.c_str(), "IR", TmpIR.c_str());
+	file.Set(SaveName.c_str(), "Time", TmpTime.c_str());
+	file.Set(SaveName.c_str(), "IRBytes", IRBytes);
+	file.Set(SaveName.c_str(), "RecordingSpeed", Rate);
 
 	// Set a default playback speed if none is set already
-	int TmpPlaySpeed; section.Get("PlaybackSpeed", &TmpPlaySpeed, -1);
+	int TmpPlaySpeed; file.Get(SaveName.c_str(), "PlaybackSpeed", &TmpPlaySpeed, -1);
 	if (TmpPlaySpeed == -1)
 	{
-		section.Set("PlaybackSpeed", 3);
+		file.Set(SaveName.c_str(), "PlaybackSpeed", 3);
 		m_RecordPlayBackSpeed[m_iRecordTo]->SetSelection(3);
 	}	
 

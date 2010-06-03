@@ -66,7 +66,7 @@ void Wiimote::ReportMode(const u16 _channelID, wm_report_mode* dr)
 	m_reporting_channel = _channelID;
 
 	// reset IR camera
-	//memset(m_reg_ir, 0, sizeof(*m_reg_ir));  //ugly hack
+	memset(m_reg_ir, 0, sizeof(*m_reg_ir));
 
 	if (0 == dr->all_the_time)
 		PanicAlert("Wiimote: Reporting Always is set to OFF! Everything should be fine, but games never do this.");

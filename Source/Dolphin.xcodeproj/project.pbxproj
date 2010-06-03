@@ -39,6 +39,7 @@
 		292AC1FC11838FD700B8790B /* BreakPoints.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABD9B11838FD400B8790B /* BreakPoints.h */; };
 		292AC1FD11838FD700B8790B /* CDUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABD9C11838FD400B8790B /* CDUtils.cpp */; };
 		292AC1FE11838FD700B8790B /* CDUtils.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABD9D11838FD400B8790B /* CDUtils.h */; };
+		292AC1FF11838FD700B8790B /* ChunkFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABD9E11838FD400B8790B /* ChunkFile.cpp */; };
 		292AC20011838FD700B8790B /* ChunkFile.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABD9F11838FD400B8790B /* ChunkFile.h */; };
 		292AC20111838FD700B8790B /* ColorUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABDA011838FD400B8790B /* ColorUtil.cpp */; };
 		292AC20211838FD700B8790B /* ColorUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABDA111838FD400B8790B /* ColorUtil.h */; };
@@ -61,6 +62,7 @@
 		292AC21311838FD700B8790B /* DebugInterface.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABDB311838FD400B8790B /* DebugInterface.h */; };
 		292AC21411838FD700B8790B /* DynamicLibrary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABDB411838FD400B8790B /* DynamicLibrary.cpp */; };
 		292AC21511838FD700B8790B /* DynamicLibrary.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABDB511838FD400B8790B /* DynamicLibrary.h */; };
+		292AC21611838FD700B8790B /* ExtendedTrace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABDB611838FD400B8790B /* ExtendedTrace.cpp */; };
 		292AC21711838FD700B8790B /* ExtendedTrace.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABDB711838FD400B8790B /* ExtendedTrace.h */; };
 		292AC21811838FD700B8790B /* FileSearch.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABDB811838FD400B8790B /* FileSearch.cpp */; };
 		292AC21911838FD700B8790B /* FileSearch.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABDB911838FD400B8790B /* FileSearch.h */; };
@@ -499,6 +501,7 @@
 		292AC3D211838FD700B8790B /* DSPAccelerator.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABFCA11838FD600B8790B /* DSPAccelerator.h */; };
 		292AC3D311838FD700B8790B /* DSPAnalyzer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABFCB11838FD600B8790B /* DSPAnalyzer.cpp */; };
 		292AC3D411838FD700B8790B /* DSPAnalyzer.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABFCC11838FD600B8790B /* DSPAnalyzer.h */; };
+		292AC3D511838FD700B8790B /* DSPBreakpoints.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABFCD11838FD600B8790B /* DSPBreakpoints.cpp */; };
 		292AC3D611838FD700B8790B /* DSPBreakpoints.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABFCE11838FD600B8790B /* DSPBreakpoints.h */; };
 		292AC3D711838FD700B8790B /* DSPCodeUtil.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 292ABFCF11838FD600B8790B /* DSPCodeUtil.cpp */; };
 		292AC3D811838FD700B8790B /* DSPCodeUtil.h in Headers */ = {isa = PBXBuildFile; fileRef = 292ABFD011838FD600B8790B /* DSPCodeUtil.h */; };
@@ -1297,6 +1300,7 @@
 		292ABD9B11838FD400B8790B /* BreakPoints.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BreakPoints.h; sourceTree = "<group>"; };
 		292ABD9C11838FD400B8790B /* CDUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CDUtils.cpp; sourceTree = "<group>"; };
 		292ABD9D11838FD400B8790B /* CDUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CDUtils.h; sourceTree = "<group>"; };
+		292ABD9E11838FD400B8790B /* ChunkFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ChunkFile.cpp; sourceTree = "<group>"; };
 		292ABD9F11838FD400B8790B /* ChunkFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChunkFile.h; sourceTree = "<group>"; };
 		292ABDA011838FD400B8790B /* ColorUtil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ColorUtil.cpp; sourceTree = "<group>"; };
 		292ABDA111838FD400B8790B /* ColorUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ColorUtil.h; sourceTree = "<group>"; };
@@ -1319,6 +1323,7 @@
 		292ABDB311838FD400B8790B /* DebugInterface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DebugInterface.h; sourceTree = "<group>"; };
 		292ABDB411838FD400B8790B /* DynamicLibrary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DynamicLibrary.cpp; sourceTree = "<group>"; };
 		292ABDB511838FD400B8790B /* DynamicLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DynamicLibrary.h; sourceTree = "<group>"; };
+		292ABDB611838FD400B8790B /* ExtendedTrace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ExtendedTrace.cpp; sourceTree = "<group>"; };
 		292ABDB711838FD400B8790B /* ExtendedTrace.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExtendedTrace.h; sourceTree = "<group>"; };
 		292ABDB811838FD400B8790B /* FileSearch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FileSearch.cpp; sourceTree = "<group>"; };
 		292ABDB911838FD400B8790B /* FileSearch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FileSearch.h; sourceTree = "<group>"; };
@@ -1817,6 +1822,7 @@
 		292ABFCA11838FD600B8790B /* DSPAccelerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DSPAccelerator.h; sourceTree = "<group>"; };
 		292ABFCB11838FD600B8790B /* DSPAnalyzer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DSPAnalyzer.cpp; sourceTree = "<group>"; };
 		292ABFCC11838FD600B8790B /* DSPAnalyzer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DSPAnalyzer.h; sourceTree = "<group>"; };
+		292ABFCD11838FD600B8790B /* DSPBreakpoints.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DSPBreakpoints.cpp; sourceTree = "<group>"; };
 		292ABFCE11838FD600B8790B /* DSPBreakpoints.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DSPBreakpoints.h; sourceTree = "<group>"; };
 		292ABFCF11838FD600B8790B /* DSPCodeUtil.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DSPCodeUtil.cpp; sourceTree = "<group>"; };
 		292ABFD011838FD600B8790B /* DSPCodeUtil.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DSPCodeUtil.h; sourceTree = "<group>"; };
@@ -2694,6 +2700,7 @@
 				292ABD9B11838FD400B8790B /* BreakPoints.h */,
 				292ABD9C11838FD400B8790B /* CDUtils.cpp */,
 				292ABD9D11838FD400B8790B /* CDUtils.h */,
+				292ABD9E11838FD400B8790B /* ChunkFile.cpp */,
 				292ABD9F11838FD400B8790B /* ChunkFile.h */,
 				292ABDA011838FD400B8790B /* ColorUtil.cpp */,
 				292ABDA111838FD400B8790B /* ColorUtil.h */,
@@ -2710,6 +2717,7 @@
 				292ABDB311838FD400B8790B /* DebugInterface.h */,
 				292ABDB411838FD400B8790B /* DynamicLibrary.cpp */,
 				292ABDB511838FD400B8790B /* DynamicLibrary.h */,
+				292ABDB611838FD400B8790B /* ExtendedTrace.cpp */,
 				292ABDB711838FD400B8790B /* ExtendedTrace.h */,
 				292ABDB811838FD400B8790B /* FileSearch.cpp */,
 				292ABDB911838FD400B8790B /* FileSearch.h */,
@@ -3442,6 +3450,7 @@
 				292ABFCA11838FD600B8790B /* DSPAccelerator.h */,
 				292ABFCB11838FD600B8790B /* DSPAnalyzer.cpp */,
 				292ABFCC11838FD600B8790B /* DSPAnalyzer.h */,
+				292ABFCD11838FD600B8790B /* DSPBreakpoints.cpp */,
 				292ABFCE11838FD600B8790B /* DSPBreakpoints.h */,
 				292ABFCF11838FD600B8790B /* DSPCodeUtil.cpp */,
 				292ABFD011838FD600B8790B /* DSPCodeUtil.h */,
@@ -5398,6 +5407,7 @@
 				292AC1F611838FD700B8790B /* ABI.cpp in Sources */,
 				292AC1FB11838FD700B8790B /* BreakPoints.cpp in Sources */,
 				292AC1FD11838FD700B8790B /* CDUtils.cpp in Sources */,
+				292AC1FF11838FD700B8790B /* ChunkFile.cpp in Sources */,
 				292AC20111838FD700B8790B /* ColorUtil.cpp in Sources */,
 				292AC20811838FD700B8790B /* ConsoleListener.cpp in Sources */,
 				292AC20A11838FD700B8790B /* CPUDetect.cpp in Sources */,
@@ -5406,6 +5416,7 @@
 				292AC20E11838FD700B8790B /* md5.cpp in Sources */,
 				292AC21011838FD700B8790B /* sha1.cpp in Sources */,
 				292AC21411838FD700B8790B /* DynamicLibrary.cpp in Sources */,
+				292AC21611838FD700B8790B /* ExtendedTrace.cpp in Sources */,
 				292AC21811838FD700B8790B /* FileSearch.cpp in Sources */,
 				292AC21A11838FD700B8790B /* FileUtil.cpp in Sources */,
 				292AC21D11838FD700B8790B /* Hash.cpp in Sources */,
@@ -5640,6 +5651,7 @@
 				292AC3CF11838FD700B8790B /* disassemble.cpp in Sources */,
 				292AC3D111838FD700B8790B /* DSPAccelerator.cpp in Sources */,
 				292AC3D311838FD700B8790B /* DSPAnalyzer.cpp in Sources */,
+				292AC3D511838FD700B8790B /* DSPBreakpoints.cpp in Sources */,
 				292AC3D711838FD700B8790B /* DSPCodeUtil.cpp in Sources */,
 				292AC3DA11838FD700B8790B /* DSPCore.cpp in Sources */,
 				292AC3DC11838FD700B8790B /* DSPEmitter.cpp in Sources */,

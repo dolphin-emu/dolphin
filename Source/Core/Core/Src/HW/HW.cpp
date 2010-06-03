@@ -28,7 +28,6 @@
 #include "Memmap.h"
 #include "ProcessorInterface.h"
 #include "SI.h"
-#include "GCPad.h"
 #include "AudioInterface.h"
 #include "VideoInterface.h"
 #include "WII_IPC.h"
@@ -51,7 +50,6 @@ namespace HW
 		// Init the whole Hardware
 		AudioInterface::Init();
 		VideoInterface::Init();
-		PAD_Init();
 		SerialInterface::Init();
 		ProcessorInterface::Init();
 		Memory::Init();
@@ -77,7 +75,6 @@ namespace HW
 		DSP::Shutdown();
 		Memory::Shutdown();
 		SerialInterface::Shutdown();
-		PAD_Shutdown();
 		AudioInterface::Shutdown();
 
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
@@ -85,7 +82,7 @@ namespace HW
 			WII_IPCInterface::Shutdown();
 			WII_IPC_HLE_Interface::Shutdown();
 		}
-
+		
 		State_Shutdown();
 		CoreTiming::Shutdown();
 	}

@@ -20,7 +20,7 @@
 
 #include <X11/X.h>
 #include <X11/keysym.h>
-#include "InputConfig.h"
+#include "Config.h"
 #if defined(HAVE_WX) && HAVE_WX
 #include <wx/wx.h>
 #endif

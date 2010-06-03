@@ -263,85 +263,82 @@ void Config::Load()
 	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Wiimote.ini").c_str());
 
 	// Real Wiimote
-	Section& real = iniFile["Real"];
-
-	real.Get("UpdateStatus", &bUpdateRealWiimote, true);
-	real.Get("Unpair", &bUnpairRealWiimote, false);
-	real.Get("Autopair", &bPairRealWiimote, false);
-	real.Get("Timeout", &bWiiReadTimeout, 10);
-	real.Get("AccNeutralX", &iAccNeutralX, 0);
-	real.Get("AccNeutralY", &iAccNeutralY, 0);
-	real.Get("AccNeutralZ", &iAccNeutralZ, 0);
-	real.Get("AccNunNeutralX", &iAccNunNeutralX, 0);
-	real.Get("AccNunNeutralY", &iAccNunNeutralY, 0);
-	real.Get("AccNunNeutralZ", &iAccNunNeutralZ, 0);
+	iniFile.Get("Real", "UpdateStatus", &bUpdateRealWiimote, true);
+	iniFile.Get("Real", "Unpair", &bUnpairRealWiimote, false);
+	iniFile.Get("Real", "Autopair", &bPairRealWiimote, false);
+	iniFile.Get("Real", "Timeout", &bWiiReadTimeout, 10);
+	iniFile.Get("Real", "AccNeutralX", &iAccNeutralX, 0);
+	iniFile.Get("Real", "AccNeutralY", &iAccNeutralY, 0);
+	iniFile.Get("Real", "AccNeutralZ", &iAccNeutralZ, 0);
+	iniFile.Get("Real", "AccNunNeutralX", &iAccNunNeutralX, 0);
+	iniFile.Get("Real", "AccNunNeutralY", &iAccNunNeutralY, 0);
+	iniFile.Get("Real", "AccNunNeutralZ", &iAccNunNeutralZ, 0);
 
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
 		// Slot specific settings
 		char SectionName[32];
 		sprintf(SectionName, "Wiimote%i", i + 1);
-		Section& section = iniFile[SectionName];
 
 		// General
-		section.Get("Source", &WiiMoteEmu::WiiMapping[i].Source, (i == 0) ? 1 : 0);
+		iniFile.Get(SectionName, "Source", &WiiMoteEmu::WiiMapping[i].Source, (i == 0) ? 1 : 0);
 
-		section.Get("Sideways", &WiiMoteEmu::WiiMapping[i].bSideways, false);
-		section.Get("Upright", &WiiMoteEmu::WiiMapping[i].bUpright, false);
-		section.Get("ExtensionConnected", &WiiMoteEmu::WiiMapping[i].iExtensionConnected, WiiMoteEmu::EXT_NONE);
-		section.Get("MotionPlusConnected", &WiiMoteEmu::WiiMapping[i].bMotionPlusConnected, false);
+		iniFile.Get(SectionName, "Sideways", &WiiMoteEmu::WiiMapping[i].bSideways, false);
+		iniFile.Get(SectionName, "Upright", &WiiMoteEmu::WiiMapping[i].bUpright, false);
+		iniFile.Get(SectionName, "ExtensionConnected", &WiiMoteEmu::WiiMapping[i].iExtensionConnected, WiiMoteEmu::EXT_NONE);
+		iniFile.Get(SectionName, "MotionPlusConnected", &WiiMoteEmu::WiiMapping[i].bMotionPlusConnected, false);
 
-		section.Get("TiltInputWM", &WiiMoteEmu::WiiMapping[i].Tilt.InputWM, WiiMoteEmu::FROM_KEYBOARD);
-		section.Get("TiltInputNC", &WiiMoteEmu::WiiMapping[i].Tilt.InputNC, WiiMoteEmu::FROM_KEYBOARD);
-		section.Get("TiltRollDegree", &WiiMoteEmu::WiiMapping[i].Tilt.RollDegree, 60);
-		section.Get("TiltRollSwing", &WiiMoteEmu::WiiMapping[i].Tilt.RollSwing, false);
-		section.Get("TiltRollInvert", &WiiMoteEmu::WiiMapping[i].Tilt.RollInvert, false);
+		iniFile.Get(SectionName, "TiltInputWM", &WiiMoteEmu::WiiMapping[i].Tilt.InputWM, WiiMoteEmu::FROM_KEYBOARD);
+		iniFile.Get(SectionName, "TiltInputNC", &WiiMoteEmu::WiiMapping[i].Tilt.InputNC, WiiMoteEmu::FROM_KEYBOARD);
+		iniFile.Get(SectionName, "TiltRollDegree", &WiiMoteEmu::WiiMapping[i].Tilt.RollDegree, 60);
+		iniFile.Get(SectionName, "TiltRollSwing", &WiiMoteEmu::WiiMapping[i].Tilt.RollSwing, false);
+		iniFile.Get(SectionName, "TiltRollInvert", &WiiMoteEmu::WiiMapping[i].Tilt.RollInvert, false);
 		WiiMoteEmu::WiiMapping[i].Tilt.RollRange = (WiiMoteEmu::WiiMapping[i].Tilt.RollSwing) ? 0 : WiiMoteEmu::WiiMapping[i].Tilt.RollDegree;
-		section.Get("TiltPitchDegree", &WiiMoteEmu::WiiMapping[i].Tilt.PitchDegree, 60);
-		section.Get("TiltPitchSwing", &WiiMoteEmu::WiiMapping[i].Tilt.PitchSwing, false);
-		section.Get("TiltPitchInvert", &WiiMoteEmu::WiiMapping[i].Tilt.PitchInvert, false);
+		iniFile.Get(SectionName, "TiltPitchDegree", &WiiMoteEmu::WiiMapping[i].Tilt.PitchDegree, 60);
+		iniFile.Get(SectionName, "TiltPitchSwing", &WiiMoteEmu::WiiMapping[i].Tilt.PitchSwing, false);
+		iniFile.Get(SectionName, "TiltPitchInvert", &WiiMoteEmu::WiiMapping[i].Tilt.PitchInvert, false);
 		WiiMoteEmu::WiiMapping[i].Tilt.PitchRange = (WiiMoteEmu::WiiMapping[i].Tilt.PitchSwing) ? 0 : WiiMoteEmu::WiiMapping[i].Tilt.PitchDegree;
 		
 		// StickMapping
-		section.Get("NCStick", &WiiMoteEmu::WiiMapping[i].Stick.NC, WiiMoteEmu::FROM_KEYBOARD);
-		section.Get("CCStickLeft", &WiiMoteEmu::WiiMapping[i].Stick.CCL, WiiMoteEmu::FROM_KEYBOARD);
-		section.Get("CCStickRight", &WiiMoteEmu::WiiMapping[i].Stick.CCR, WiiMoteEmu::FROM_KEYBOARD);
-		section.Get("CCTriggers", &WiiMoteEmu::WiiMapping[i].Stick.CCT, WiiMoteEmu::FROM_KEYBOARD);
-		section.Get("GHStick", &WiiMoteEmu::WiiMapping[i].Stick.GH, WiiMoteEmu::FROM_KEYBOARD);
+		iniFile.Get(SectionName, "NCStick", &WiiMoteEmu::WiiMapping[i].Stick.NC, WiiMoteEmu::FROM_KEYBOARD);
+		iniFile.Get(SectionName, "CCStickLeft", &WiiMoteEmu::WiiMapping[i].Stick.CCL, WiiMoteEmu::FROM_KEYBOARD);
+		iniFile.Get(SectionName, "CCStickRight", &WiiMoteEmu::WiiMapping[i].Stick.CCR, WiiMoteEmu::FROM_KEYBOARD);
+		iniFile.Get(SectionName, "CCTriggers", &WiiMoteEmu::WiiMapping[i].Stick.CCT, WiiMoteEmu::FROM_KEYBOARD);
+		iniFile.Get(SectionName, "GHStick", &WiiMoteEmu::WiiMapping[i].Stick.GH, WiiMoteEmu::FROM_KEYBOARD);
 
 		// ButtonMapping
 		for (int x = 0; x < WiiMoteEmu::LAST_CONSTANT; x++)
-			section.Get(wmControlNames[x], &WiiMoteEmu::WiiMapping[i].Button[x], wmDefaultControls[x]);
+			iniFile.Get(SectionName, wmControlNames[x], &WiiMoteEmu::WiiMapping[i].Button[x], wmDefaultControls[x]);
 
 		// This pad Id could possibly be higher than the number of pads that are connected,
 		// but we check later, when needed, that that is not the case
-		section.Get("DeviceID", &WiiMoteEmu::WiiMapping[i].ID, 0);
+		iniFile.Get(SectionName, "DeviceID", &WiiMoteEmu::WiiMapping[i].ID, 0);
 
-		section.Get("Axis_Lx", &WiiMoteEmu::WiiMapping[i].AxisMapping.Lx, 0);
-		section.Get("Axis_Ly", &WiiMoteEmu::WiiMapping[i].AxisMapping.Ly, 1);
-		section.Get("Axis_Rx", &WiiMoteEmu::WiiMapping[i].AxisMapping.Rx, 2);
-		section.Get("Axis_Ry", &WiiMoteEmu::WiiMapping[i].AxisMapping.Ry, 3);
-		section.Get("Trigger_L", &WiiMoteEmu::WiiMapping[i].AxisMapping.Tl, 1004);
-		section.Get("Trigger_R", &WiiMoteEmu::WiiMapping[i].AxisMapping.Tr, 1005);
-		section.Get("DeadZoneL", &WiiMoteEmu::WiiMapping[i].DeadZoneL, 0);
-		section.Get("DeadZoneR", &WiiMoteEmu::WiiMapping[i].DeadZoneR, 0);
-		section.Get("Diagonal", &WiiMoteEmu::WiiMapping[i].Diagonal, 100);
-		section.Get("Circle2Square", &WiiMoteEmu::WiiMapping[i].bCircle2Square, false);
-		section.Get("Rumble", &WiiMoteEmu::WiiMapping[i].Rumble, false);
-		section.Get("RumbleStrength", &WiiMoteEmu::WiiMapping[i].RumbleStrength, 80);
-		section.Get("TriggerType", &WiiMoteEmu::WiiMapping[i].TriggerType, 0);
+		iniFile.Get(SectionName, "Axis_Lx", &WiiMoteEmu::WiiMapping[i].AxisMapping.Lx, 0);
+		iniFile.Get(SectionName, "Axis_Ly", &WiiMoteEmu::WiiMapping[i].AxisMapping.Ly, 1);
+		iniFile.Get(SectionName, "Axis_Rx", &WiiMoteEmu::WiiMapping[i].AxisMapping.Rx, 2);
+		iniFile.Get(SectionName, "Axis_Ry", &WiiMoteEmu::WiiMapping[i].AxisMapping.Ry, 3);
+		iniFile.Get(SectionName, "Trigger_L", &WiiMoteEmu::WiiMapping[i].AxisMapping.Tl, 1004);
+		iniFile.Get(SectionName, "Trigger_R", &WiiMoteEmu::WiiMapping[i].AxisMapping.Tr, 1005);
+		iniFile.Get(SectionName, "DeadZoneL", &WiiMoteEmu::WiiMapping[i].DeadZoneL, 0);
+		iniFile.Get(SectionName, "DeadZoneR", &WiiMoteEmu::WiiMapping[i].DeadZoneR, 0);
+		iniFile.Get(SectionName, "Diagonal", &WiiMoteEmu::WiiMapping[i].Diagonal, 100);
+		iniFile.Get(SectionName, "Circle2Square", &WiiMoteEmu::WiiMapping[i].bCircle2Square, false);
+		iniFile.Get(SectionName, "Rumble", &WiiMoteEmu::WiiMapping[i].Rumble, false);
+		iniFile.Get(SectionName, "RumbleStrength", &WiiMoteEmu::WiiMapping[i].RumbleStrength, 80);
+		iniFile.Get(SectionName, "TriggerType", &WiiMoteEmu::WiiMapping[i].TriggerType, 0);
 
 		//UDPWii
-		section.Get("UDPWii_Enable", &WiiMoteEmu::WiiMapping[i].UDPWM.enable, false);
+		iniFile.Get(SectionName, "UDPWii_Enable", &WiiMoteEmu::WiiMapping[i].UDPWM.enable, false);
 		std::string port;
 		char default_port[15];
 		sprintf(default_port,"%d",4432+i);
-		section.Get("UDPWii_Port", &port, default_port);
+		iniFile.Get(SectionName, "UDPWii_Port", &port, default_port);
 		strncpy(WiiMoteEmu::WiiMapping[i].UDPWM.port,port.c_str(),10);
-		section.Get("UDPWii_EnableAccel", &WiiMoteEmu::WiiMapping[i].UDPWM.enableAccel, true);
-		section.Get("UDPWii_EnableButtons", &WiiMoteEmu::WiiMapping[i].UDPWM.enableButtons, true);
-		section.Get("UDPWii_EnableIR", &WiiMoteEmu::WiiMapping[i].UDPWM.enableIR, true);
-		section.Get("UDPWii_EnableNunchuck", &WiiMoteEmu::WiiMapping[i].UDPWM.enableNunchuck, true);
+		iniFile.Get(SectionName, "UDPWii_EnableAccel", &WiiMoteEmu::WiiMapping[i].UDPWM.enableAccel, true);
+		iniFile.Get(SectionName, "UDPWii_EnableButtons", &WiiMoteEmu::WiiMapping[i].UDPWM.enableButtons, true);
+		iniFile.Get(SectionName, "UDPWii_EnableIR", &WiiMoteEmu::WiiMapping[i].UDPWM.enableIR, true);
+		iniFile.Get(SectionName, "UDPWii_EnableNunchuck", &WiiMoteEmu::WiiMapping[i].UDPWM.enableNunchuck, true);
 	}
 
 	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini").c_str());
@@ -349,7 +346,7 @@ void Config::Load()
 	{
 		char SectionName[32];
 		sprintf(SectionName, "Wiimote%i", i + 1);
-		iniFile[SectionName].Get("AutoReconnectRealWiimote", &WiiMoteEmu::WiiMapping[i].bWiiAutoReconnect, false);
+		iniFile.Get(SectionName, "AutoReconnectRealWiimote", &WiiMoteEmu::WiiMapping[i].bWiiAutoReconnect, false);
 	}
 
 	Config::LoadIR();
@@ -357,10 +354,9 @@ void Config::Load()
 	// Load a few screen settings to. If these are added to the DirectX plugin it's probably
 	// better to place them in the main Dolphin.ini file
 	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
-	Section& settings = iniFile["Settings"];
-	settings.Get("KeepAR_4_3", &bKeepAR43, false);
-	settings.Get("KeepAR_16_9", &bKeepAR169, false);
-	settings.Get("Crop", &bCrop, false);
+	iniFile.Get("Settings", "KeepAR_4_3", &bKeepAR43, false);
+	iniFile.Get("Settings", "KeepAR_16_9", &bKeepAR169, false);
+	iniFile.Get("Settings", "Crop", &bCrop, false);
 
 	//DEBUG_LOG(WIIMOTE, "Load()");
 }
@@ -372,23 +368,21 @@ void Config::LoadIR()
 	char TmpSection[32];
 	int defaultLeft, defaultTop, defaultWidth, defaultHeight;
 
+	sprintf(TmpSection, "%s", g_ISOId ? Hex2Ascii(g_ISOId).c_str() : "Default");
 	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IrPointer.ini").c_str());
 	//Load defaults first...
-	Section& def = iniFile["Default"];
-	def.Get("IRLeft", &defaultLeft, LEFT);
-	def.Get("IRTop", &defaultTop, TOP);
-	def.Get("IRWidth", &defaultWidth, RIGHT - LEFT);
-	def.Get("IRHeight", &defaultHeight, BOTTOM - TOP);
-	def.Get("IRLevel", &iIRLevel, 3);
+	iniFile.Get("Default", "IRLeft", &defaultLeft, LEFT);
+	iniFile.Get("Default", "IRTop", &defaultTop, TOP);
+	iniFile.Get("Default", "IRWidth", &defaultWidth, RIGHT - LEFT);
+	iniFile.Get("Default", "IRHeight", &defaultHeight, BOTTOM - TOP);
+	iniFile.Get("Default", "IRLevel", &iIRLevel, 3);
 
 	//...and fall back to them if the GameId is not found.
 	//It shouldn't matter if we read Default twice, its in memory anyways.
-	sprintf(TmpSection, "%s", g_ISOId ? Hex2Ascii(g_ISOId).c_str() : "Default");
-	Section& tmpsection = iniFile[TmpSection];
-	tmpsection.Get("IRLeft", &iIRLeft, defaultLeft);
-	tmpsection.Get("IRTop", &iIRTop, defaultTop);
-	tmpsection.Get("IRWidth", &iIRWidth, defaultWidth);
-	tmpsection.Get("IRHeight", &iIRHeight, defaultHeight);
+	iniFile.Get(TmpSection, "IRLeft", &iIRLeft, defaultLeft);
+	iniFile.Get(TmpSection, "IRTop", &iIRTop, defaultTop);
+	iniFile.Get(TmpSection, "IRWidth", &iIRWidth, defaultWidth);
+	iniFile.Get(TmpSection, "IRHeight", &iIRHeight, defaultHeight);
 }
 
 void Config::Save()
@@ -396,74 +390,72 @@ void Config::Save()
 	IniFile iniFile;
 	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Wiimote.ini").c_str());
 	
-	Section& real = iniFile["Real"];
-	real.Set("UpdateStatus", bUpdateRealWiimote);
-	real.Set("Unpair", bUnpairRealWiimote);
-	real.Set("Autopair", bPairRealWiimote);
-	real.Set("Timeout", bWiiReadTimeout);
-	real.Set("AccNeutralX", iAccNeutralX);
-	real.Set("AccNeutralY", iAccNeutralY);
-	real.Set("AccNeutralZ", iAccNeutralZ);
-	real.Set("AccNunNeutralX", iAccNunNeutralX);
-	real.Set("AccNunNeutralY", iAccNunNeutralY);
-	real.Set("AccNunNeutralZ", iAccNunNeutralZ);
+	iniFile.Set("Real", "UpdateStatus", bUpdateRealWiimote);
+	iniFile.Set("Real", "Unpair", bUnpairRealWiimote);
+	iniFile.Set("Real", "Autopair", bPairRealWiimote);
+	iniFile.Set("Real", "Timeout", bWiiReadTimeout);
+	iniFile.Set("Real", "AccNeutralX", iAccNeutralX);
+	iniFile.Set("Real", "AccNeutralY", iAccNeutralY);
+	iniFile.Set("Real", "AccNeutralZ", iAccNeutralZ);
+	iniFile.Set("Real", "AccNunNeutralX", iAccNunNeutralX);
+	iniFile.Set("Real", "AccNunNeutralY", iAccNunNeutralY);
+	iniFile.Set("Real", "AccNunNeutralZ", iAccNunNeutralZ);
 
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 	{
 		// Slot specific settings
 		char SectionName[32];
 		sprintf(SectionName, "Wiimote%i", i + 1);
-		Section& section = iniFile[SectionName];
 
-		section.Set("Source", WiiMoteEmu::WiiMapping[i].Source);
-		section.Set("Sideways", WiiMoteEmu::WiiMapping[i].bSideways);
-		section.Set("Upright", WiiMoteEmu::WiiMapping[i].bUpright);
-		section.Set("ExtensionConnected", WiiMoteEmu::WiiMapping[i].iExtensionConnected);
-		section.Set("MotionPlusConnected", WiiMoteEmu::WiiMapping[i].bMotionPlusConnected);
-		section.Set("TiltInputWM", WiiMoteEmu::WiiMapping[i].Tilt.InputWM);
-		section.Set("TiltInputNC", WiiMoteEmu::WiiMapping[i].Tilt.InputNC);
-		section.Set("TiltRollDegree", WiiMoteEmu::WiiMapping[i].Tilt.RollDegree);
-		section.Set("TiltRollSwing", WiiMoteEmu::WiiMapping[i].Tilt.RollSwing);
-		section.Set("TiltRollInvert", WiiMoteEmu::WiiMapping[i].Tilt.RollInvert);
-		section.Set("TiltPitchDegree", WiiMoteEmu::WiiMapping[i].Tilt.PitchDegree);
-		section.Set("TiltPitchSwing", WiiMoteEmu::WiiMapping[i].Tilt.PitchSwing);
-		section.Set("TiltPitchInvert", WiiMoteEmu::WiiMapping[i].Tilt.PitchInvert);
+		iniFile.Set(SectionName, "Source", WiiMoteEmu::WiiMapping[i].Source);
+		iniFile.Set(SectionName, "Sideways", WiiMoteEmu::WiiMapping[i].bSideways);
+		iniFile.Set(SectionName, "Upright", WiiMoteEmu::WiiMapping[i].bUpright);
+		iniFile.Set(SectionName, "ExtensionConnected", WiiMoteEmu::WiiMapping[i].iExtensionConnected);
+		iniFile.Set(SectionName, "MotionPlusConnected", WiiMoteEmu::WiiMapping[i].bMotionPlusConnected);
+		iniFile.Set(SectionName, "TiltInputWM", WiiMoteEmu::WiiMapping[i].Tilt.InputWM);
+		iniFile.Set(SectionName, "TiltInputNC", WiiMoteEmu::WiiMapping[i].Tilt.InputNC);
+		iniFile.Set(SectionName, "TiltRollDegree", WiiMoteEmu::WiiMapping[i].Tilt.RollDegree);
+		iniFile.Set(SectionName, "TiltRollSwing", WiiMoteEmu::WiiMapping[i].Tilt.RollSwing);
+		iniFile.Set(SectionName, "TiltRollInvert", WiiMoteEmu::WiiMapping[i].Tilt.RollInvert);
+		iniFile.Set(SectionName, "TiltPitchDegree", WiiMoteEmu::WiiMapping[i].Tilt.PitchDegree);
+		iniFile.Set(SectionName, "TiltPitchSwing", WiiMoteEmu::WiiMapping[i].Tilt.PitchSwing);
+		iniFile.Set(SectionName, "TiltPitchInvert", WiiMoteEmu::WiiMapping[i].Tilt.PitchInvert);
 
 		// StickMapping
-		section.Set("NCStick", WiiMoteEmu::WiiMapping[i].Stick.NC);
-		section.Set("CCStickLeft", WiiMoteEmu::WiiMapping[i].Stick.CCL);
-		section.Set("CCStickRight", WiiMoteEmu::WiiMapping[i].Stick.CCR);
-		section.Set("CCTriggers", WiiMoteEmu::WiiMapping[i].Stick.CCT);
-		section.Set("GHStick", WiiMoteEmu::WiiMapping[i].Stick.GH);
+		iniFile.Set(SectionName, "NCStick", WiiMoteEmu::WiiMapping[i].Stick.NC);
+		iniFile.Set(SectionName, "CCStickLeft", WiiMoteEmu::WiiMapping[i].Stick.CCL);
+		iniFile.Set(SectionName, "CCStickRight", WiiMoteEmu::WiiMapping[i].Stick.CCR);
+		iniFile.Set(SectionName, "CCTriggers", WiiMoteEmu::WiiMapping[i].Stick.CCT);
+		iniFile.Set(SectionName, "GHStick", WiiMoteEmu::WiiMapping[i].Stick.GH);
 
 		// ButtonMapping
 		for (int x = 0; x < WiiMoteEmu::LAST_CONSTANT; x++)
-			section.Set(wmControlNames[x], WiiMoteEmu::WiiMapping[i].Button[x]);
+			iniFile.Set(SectionName, wmControlNames[x], WiiMoteEmu::WiiMapping[i].Button[x]);
 
 		// Save the physical device ID number
-		section.Set("DeviceID", WiiMoteEmu::WiiMapping[i].ID);
+		iniFile.Set(SectionName, "DeviceID", WiiMoteEmu::WiiMapping[i].ID);
 
-		section.Set("Axis_Lx", WiiMoteEmu::WiiMapping[i].AxisMapping.Lx);
-		section.Set("Axis_Ly", WiiMoteEmu::WiiMapping[i].AxisMapping.Ly);
-		section.Set("Axis_Rx", WiiMoteEmu::WiiMapping[i].AxisMapping.Rx);
-		section.Set("Axis_Ry", WiiMoteEmu::WiiMapping[i].AxisMapping.Ry);
-		section.Set("Trigger_L", WiiMoteEmu::WiiMapping[i].AxisMapping.Tl);
-		section.Set("Trigger_R", WiiMoteEmu::WiiMapping[i].AxisMapping.Tr);
-		section.Set("DeadZoneL", WiiMoteEmu::WiiMapping[i].DeadZoneL);
-		section.Set("DeadZoneR", WiiMoteEmu::WiiMapping[i].DeadZoneR);
-		section.Set("Diagonal", WiiMoteEmu::WiiMapping[i].Diagonal);
-		section.Set("Circle2Square", WiiMoteEmu::WiiMapping[i].bCircle2Square);
-		section.Set("Rumble", WiiMoteEmu::WiiMapping[i].Rumble);
-		section.Set("RumbleStrength", WiiMoteEmu::WiiMapping[i].RumbleStrength);
-		section.Set("TriggerType", WiiMoteEmu::WiiMapping[i].TriggerType);
+		iniFile.Set(SectionName, "Axis_Lx", WiiMoteEmu::WiiMapping[i].AxisMapping.Lx);
+		iniFile.Set(SectionName, "Axis_Ly", WiiMoteEmu::WiiMapping[i].AxisMapping.Ly);
+		iniFile.Set(SectionName, "Axis_Rx", WiiMoteEmu::WiiMapping[i].AxisMapping.Rx);
+		iniFile.Set(SectionName, "Axis_Ry", WiiMoteEmu::WiiMapping[i].AxisMapping.Ry);
+		iniFile.Set(SectionName, "Trigger_L", WiiMoteEmu::WiiMapping[i].AxisMapping.Tl);
+		iniFile.Set(SectionName, "Trigger_R", WiiMoteEmu::WiiMapping[i].AxisMapping.Tr);
+		iniFile.Set(SectionName, "DeadZoneL", WiiMoteEmu::WiiMapping[i].DeadZoneL);
+		iniFile.Set(SectionName, "DeadZoneR", WiiMoteEmu::WiiMapping[i].DeadZoneR);
+		iniFile.Set(SectionName, "Diagonal", WiiMoteEmu::WiiMapping[i].Diagonal);
+		iniFile.Set(SectionName, "Circle2Square", WiiMoteEmu::WiiMapping[i].bCircle2Square);
+		iniFile.Set(SectionName, "Rumble", WiiMoteEmu::WiiMapping[i].Rumble);
+		iniFile.Set(SectionName, "RumbleStrength", WiiMoteEmu::WiiMapping[i].RumbleStrength);
+		iniFile.Set(SectionName, "TriggerType", WiiMoteEmu::WiiMapping[i].TriggerType);
 
 		// UDPWii
-		section.Set("UDPWii_Enable", WiiMoteEmu::WiiMapping[i].UDPWM.enable);
-		section.Set("UDPWii_Port", WiiMoteEmu::WiiMapping[i].UDPWM.port);
-		section.Set("UDPWii_EnableAccel", WiiMoteEmu::WiiMapping[i].UDPWM.enableAccel);
-		section.Set("UDPWii_EnableButtons", WiiMoteEmu::WiiMapping[i].UDPWM.enableButtons);
-		section.Set("UDPWii_EnableIR", WiiMoteEmu::WiiMapping[i].UDPWM.enableIR);
-		section.Set("UDPWii_EnableNunchuck", WiiMoteEmu::WiiMapping[i].UDPWM.enableNunchuck);
+		iniFile.Set(SectionName, "UDPWii_Enable", WiiMoteEmu::WiiMapping[i].UDPWM.enable);
+		iniFile.Set(SectionName, "UDPWii_Port", WiiMoteEmu::WiiMapping[i].UDPWM.port);
+		iniFile.Set(SectionName, "UDPWii_EnableAccel", WiiMoteEmu::WiiMapping[i].UDPWM.enableAccel);
+		iniFile.Set(SectionName, "UDPWii_EnableButtons", WiiMoteEmu::WiiMapping[i].UDPWM.enableButtons);
+		iniFile.Set(SectionName, "UDPWii_EnableIR", WiiMoteEmu::WiiMapping[i].UDPWM.enableIR);
+		iniFile.Set(SectionName, "UDPWii_EnableNunchuck", WiiMoteEmu::WiiMapping[i].UDPWM.enableNunchuck);
 	}
 
 	iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Wiimote.ini").c_str());
@@ -472,12 +464,11 @@ void Config::Save()
 	iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IrPointer.ini").c_str());
 	char TmpSection[32];
 	sprintf(TmpSection, "%s", g_ISOId ? Hex2Ascii(g_ISOId).c_str() : "Default");
-	Section& tmpsection = iniFile[TmpSection];
-	tmpsection.Set("IRLeft", iIRLeft);
-	tmpsection.Set("IRTop", iIRTop);
-	tmpsection.Set("IRWidth", iIRWidth);
-	tmpsection.Set("IRHeight", iIRHeight);
-	tmpsection.Set("IRLevel", iIRLevel);
+	iniFile.Set(TmpSection, "IRLeft", iIRLeft);
+	iniFile.Set(TmpSection, "IRTop", iIRTop);
+	iniFile.Set(TmpSection, "IRWidth", iIRWidth);
+	iniFile.Set(TmpSection, "IRHeight", iIRHeight);
+	iniFile.Set(TmpSection, "IRLevel", iIRLevel);
 	iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "IrPointer.ini").c_str());
 
 	//Save any options that need to be accessed in Dolphin
@@ -486,7 +477,7 @@ void Config::Save()
 	{
 		char SectionName[32];
 		sprintf(SectionName, "Wiimote%i", i + 1);
-		iniFile[SectionName].Set("AutoReconnectRealWiimote", WiiMoteEmu::WiiMapping[i].bWiiAutoReconnect);
+		iniFile.Set(SectionName, "AutoReconnectRealWiimote", WiiMoteEmu::WiiMapping[i].bWiiAutoReconnect);
 	}
 	iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini").c_str());
 

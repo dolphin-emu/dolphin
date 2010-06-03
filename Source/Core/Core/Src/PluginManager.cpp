@@ -64,12 +64,15 @@ CPluginManager::CPluginManager()
 
 	// Start LogManager
 	m_PluginGlobals->logManager = LogManager::GetInstance();
+	m_PluginGlobals->eventHandler = EventHandler::GetInstance();
 
 	m_params = &(SConfig::GetInstance().m_LocalCoreStartupParameter);
 
 	// Set initial values to NULL.
 	m_video = NULL;
 	m_dsp = NULL;
+	for (int i = 0; i < MAXPADS; i++)
+		m_pad[i] = NULL;
 	for (int i = 0; i < MAXWIIMOTES; i++)
 		m_wiimote[i] = NULL;
 }
@@ -81,6 +84,15 @@ CPluginManager::~CPluginManager()
 
 	delete m_PluginGlobals;
 	delete m_dsp;
+
+	for (int i = 0; i < MAXPADS; i++)
+	{
+		if (m_pad[i])
+		{
+			delete m_pad[i];
+			m_pad[i] = NULL;
+		}
+	}
 
 	for (int i = 0; i < MAXWIIMOTES; i++)
 	{
@@ -100,7 +112,7 @@ CPluginManager::~CPluginManager()
 
 // Init and Shutdown Plugins 
 // ------------
-// Function: Point the m_wiimote[] and other variables to a certain plugin
+// Function: Point the m_pad[] and other variables to a certain plugin
 bool CPluginManager::InitPlugins()
 {
 	// Update pluginglobals.
@@ -122,8 +134,25 @@ bool CPluginManager::InitPlugins()
 	}
 	INFO_LOG(CONSOLE, "After GetVideo\n");
 
-	// Check if we get at least one wiimote
+	// Check if we get at least one pad or wiimote
+	bool pad = false;
 	bool wiimote = false;
+
+	// Init pad
+	for (int i = 0; i < MAXPADS; i++)
+	{
+		// Check that the plugin has a name
+		if (!m_params->m_strPadPlugin[i].empty())
+			GetPad(i);
+		// Check that GetPad succeeded
+		if (m_pad[i] != NULL)
+			pad = true;
+	}
+	if (!pad)
+	{
+		PanicAlert("Can't init any PAD Plugins");
+		return false;
+	}
 
 	// Init wiimote
 	if (m_params->bWii)
@@ -151,6 +180,15 @@ bool CPluginManager::InitPlugins()
 // for an explanation about the current LoadLibrary() and FreeLibrary() behavior.
 void CPluginManager::ShutdownPlugins()
 {
+	for (int i = 0; i < MAXPADS; i++)
+	{
+		if (m_pad[i])
+		{
+			m_pad[i]->Shutdown();
+			FreePad(i);
+		}
+	}
+
 	for (int i = 0; i < MAXWIIMOTES; i++)
 	{
 		if (m_wiimote[i])
@@ -266,6 +304,10 @@ void *CPluginManager::LoadPlugin(const char *_rFilename)
 		plugin = new Common::PluginDSP(_rFilename);
 		break;
 	
+	case PLUGIN_TYPE_PAD:
+		plugin = new Common::PluginPAD(_rFilename);
+		break;
+	
 	case PLUGIN_TYPE_WIIMOTE:
 		plugin = new Common::PluginWiimote(_rFilename);
 		break;
@@ -340,12 +382,28 @@ void CPluginManager::ScanForPlugins()
 
 
 /* Create or return the already created plugin pointers. This will be called
-   often for the Wiimote from the SI_.cpp files.
+   often for the Pad and Wiimote from the SI_.cpp files. And often for the DSP
+   from the DSP files.
    
    We don't need to check if [Plugin]->IsValid() here because it will not be set by LoadPlugin()
    if it's not valid.
    */
 // ------------
+Common::PluginPAD *CPluginManager::GetPad(int controller)
+{
+	if (m_pad[controller] != NULL)
+	{
+		if (m_pad[controller]->GetFilename() == m_params->m_strPadPlugin[controller])
+			return m_pad[controller];
+		else
+			FreePad(controller);
+	}
+	
+	// Else load a new plugin
+	m_pad[controller] = (Common::PluginPAD*)LoadPlugin(m_params->m_strPadPlugin[controller].c_str());
+	return m_pad[controller];
+}
+
 Common::PluginWiimote *CPluginManager::GetWiimote(int controller)
 {
 	if (m_wiimote[controller] != NULL)
@@ -412,6 +470,15 @@ void CPluginManager::FreeDSP()
 	m_dsp = NULL;
 }
 
+void CPluginManager::FreePad(u32 Pad)
+{
+	if (Pad < MAXPADS)
+	{
+		delete m_pad[Pad];
+		m_pad[Pad] = NULL;	
+	}
+}
+
 void CPluginManager::FreeWiimote(u32 Wiimote)
 {
 	if (Wiimote < MAXWIIMOTES)
@@ -429,6 +496,7 @@ void CPluginManager::EmuStateChange(PLUGIN_EMUSTATE newState)
 	//      Would we need to call all plugins?
 	//      If yes, how would one check if the plugin was not 
 	//      just created by GetXxx(idx) because there was none?
+	GetPad(0)->EmuStateChange(newState);
 	GetWiimote(0)->EmuStateChange(newState);
 }
 
@@ -453,6 +521,9 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 	case PLUGIN_TYPE_DSP:
 		GetDSP()->Config((HWND)_Parent);
 		break;
+	case PLUGIN_TYPE_PAD:
+		GetPad(0)->Config((HWND)_Parent);
+		break;
 	case PLUGIN_TYPE_WIIMOTE:
 		GetWiimote(0)->Config((HWND)_Parent);
 		break;
@@ -461,7 +532,7 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 	}
 }
 
-// Open debugging window. Type = Video. Show = Show or hide window.
+// Open debugging window. Type = Video or DSP. Show = Show or hide window.
 void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show)
 {
 	if (!File::Exists(_rFilename))

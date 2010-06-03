@@ -116,23 +116,19 @@ void LoadRecordedMovements()
 		VRecording.at(i).Recording.clear();
 
 		// Get row name
-		Section& section = file[StringFromFormat("Recording%i", i + 1)];
+		std::string SaveName = StringFromFormat("Recording%i", i + 1);
 
 		// Get movement
-		std::string TmpMovement;
-		section.Get("Movement", &TmpMovement, "");
+		std::string TmpMovement; file.Get(SaveName.c_str(), "Movement", &TmpMovement, "");
 
 		// Get IR
-		std::string TmpIR;
-		section.Get("IR", &TmpIR, "");
+		std::string TmpIR; file.Get(SaveName.c_str(), "IR", &TmpIR, "");
 
 		// Get time
-		std::string TmpTime;
-		section.Get("Time", &TmpTime, "");
+		std::string TmpTime; file.Get(SaveName.c_str(), "Time", &TmpTime, "");
 
 		// Get IR bytes
-		int TmpIRBytes;
-		section.Get("IRBytes", &TmpIRBytes, 0);
+		int TmpIRBytes; file.Get(SaveName.c_str(), "IRBytes", &TmpIRBytes, 0);
 		VRecording.at(i).IRBytes = TmpIRBytes;
 
 		SRecording Tmp;
@@ -185,13 +181,13 @@ void LoadRecordedMovements()
 		}
 
 		// Get HotKey
-		section.Get("HotKeySwitch", &iTmp, 3); VRecording.at(i).HotKeySwitch = iTmp;
-		section.Get("HotKeyWiimote", &iTmp, 10); VRecording.at(i).HotKeyWiimote = iTmp;
-		section.Get("HotKeyNunchuck", &iTmp, 10); VRecording.at(i).HotKeyNunchuck = iTmp;
-		section.Get("HotKeyIR", &iTmp, 10); VRecording.at(i).HotKeyIR = iTmp;
+		file.Get(SaveName.c_str(), "HotKeySwitch", &iTmp, 3); VRecording.at(i).HotKeySwitch = iTmp;
+		file.Get(SaveName.c_str(), "HotKeyWiimote", &iTmp, 10); VRecording.at(i).HotKeyWiimote = iTmp;
+		file.Get(SaveName.c_str(), "HotKeyNunchuck", &iTmp, 10); VRecording.at(i).HotKeyNunchuck = iTmp;
+		file.Get(SaveName.c_str(), "HotKeyIR", &iTmp, 10); VRecording.at(i).HotKeyIR = iTmp;
 
 		// Get Recording speed
-		int TmpPlaybackSpeed; section.Get("PlaybackSpeed", &TmpPlaybackSpeed, -1);
+		int TmpPlaybackSpeed; file.Get(SaveName.c_str(), "PlaybackSpeed", &TmpPlaybackSpeed, -1);
 		VRecording.at(i).PlaybackSpeed = TmpPlaybackSpeed;
 
 		// Logging

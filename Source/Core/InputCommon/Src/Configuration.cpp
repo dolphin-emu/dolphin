@@ -18,9 +18,12 @@
 
 #include <iostream> // System
 #include <vector>
-#define _USE_MATH_DEFINES
-#include <math.h>
+#include <cmath>
 #include "Common.h" // Common
+
+#if defined HAVE_WX && HAVE_WX
+	#include <wx/wx.h>
+#endif
 
 #ifdef _WIN32
 #define NOMINMAX

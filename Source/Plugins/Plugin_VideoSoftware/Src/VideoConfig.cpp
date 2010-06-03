@@ -45,9 +45,8 @@ void Config::Load()
     IniFile iniFile;
     iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_software.ini").c_str());
     
-	Section& hardware = iniFile["Hardware"];
-    hardware.Get("Fullscreen", &bFullscreen, false); // Hardware
-    hardware.Get("RenderToMainframe", &renderToMainframe, false);
+    iniFile.Get("Hardware", "Fullscreen", &bFullscreen, 0); // Hardware
+    iniFile.Get("Hardware", "RenderToMainframe", &renderToMainframe, false);
 }
 
 
@@ -57,9 +56,8 @@ void Config::Save()
     IniFile iniFile;
     iniFile.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_software.ini").c_str());
 
-	Section& hardware = iniFile["Hardware"];
-    hardware.Set("Fullscreen", bFullscreen);
-    hardware.Set("RenderToMainframe", renderToMainframe);
+    iniFile.Set("Hardware", "Fullscreen", bFullscreen);
+    iniFile.Set("Hardware", "RenderToMainframe", renderToMainframe);
     
     iniFile.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_opengl.ini").c_str());
 }

@@ -121,7 +121,7 @@ enum
 
 	IDM_CONFIG_GFX_PLUGIN,
 	IDM_CONFIG_DSP_PLUGIN,
-	IDM_CONFIG_GCPAD,
+	IDM_CONFIG_PAD_PLUGIN,
 	IDM_CONFIG_WIIMOTE_PLUGIN,
 
 	// --------------------------------------------------------------
