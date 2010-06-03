@@ -423,7 +423,7 @@ void CFrame::InitBitmaps()
 		m_Bitmaps[Toolbar_Help]			= wxGetBitmapFromMemory(toolbar_help_png);
 
 		// Scale the 48x48 bitmaps to 24x24
-		for (size_t n = Toolbar_FileOpen; n <= Toolbar_Help; n++)
+		for (size_t n = Toolbar_FileOpen; n < EToolbar_Max; n++)
 		{
 			m_Bitmaps[n] = wxBitmap(m_Bitmaps[n].ConvertToImage().Scale(24, 24));
 		}

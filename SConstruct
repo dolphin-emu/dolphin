@@ -210,11 +210,11 @@ elif (flavour == 'prof'):
 elif (flavour == 'release'):
     compileFlags.append('-O3')
     compileFlags.append('-fomit-frame-pointer');
-    warnings.append('error')
 # more warnings
 if env['lint']:
-    warnings.append('unreachable-code')
-    warnings.append('float-equal')
+    warnings.append('error')
+    #warnings.append('unreachable-code')
+    #warnings.append('float-equal')
 
 # add the warnings to the compile flags
 compileFlags += [ ('-W' + warning) for warning in warnings ]

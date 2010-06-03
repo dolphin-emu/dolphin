@@ -7,12 +7,10 @@ files = [
 	"ABI.cpp",
 	"BreakPoints.cpp",
 	"CDUtils.cpp",
-	"ChunkFile.cpp",
 	"ColorUtil.cpp",
 	"ConsoleListener.cpp",
 	"CPUDetect.cpp",
 	"DynamicLibrary.cpp",
-	"ExtendedTrace.cpp",
 	"FileSearch.cpp",
 	"FileUtil.cpp",
 	"Hash.cpp",
@@ -46,6 +44,7 @@ files = [
 	]
 
 if sys.platform == 'win32':
+	files += [ "ExtendedTrace.cpp" ]
 	files += [ "stdafx.cpp" ]
 
 env_common = env.Clone()
