@@ -484,26 +484,8 @@ void Wiimote::Update()
 
 	}
 
-	// ----extension----
-	if (rpt.ext)
-	{
-		m_extension->GetState(data + rpt.ext, is_focus);
-
-		// i dont think anything accesses the extension data like this, but ill support it
-		// i think it should be unencrpyted in the register, encrypted when read
-		memcpy(m_reg_ext->controller_data, data + rpt.ext, sizeof(wm_extension));
-
-		// both of these ifs work
-		//if (0x55 != m_reg_ext->encryption)
-		if (0xAA == m_reg_ext->encryption)
-			wiimote_encrypt(&m_ext_key, data + rpt.ext, 0x00, sizeof(wm_extension));
-	}
-
 	// ----ir----
-	// only if camera is fully enabled.
-	// should send 0xFF if camera isn't enabled maybe,
-	// 0x00 is working fine though
-	if (rpt.ir && 0x08 == m_reg_ir->data[0x30])
+	if (rpt.ir)
 	{
 		float xx = 10000, yy = 0, zz = 0;
 
@@ -526,14 +508,21 @@ void Wiimote::Update()
 		x[1] = (unsigned int)(xx + distance);
 		x[2] = (unsigned int)(xx - 1.2f * distance);
 		x[3] = (unsigned int)(xx + 1.2f * distance);
+		
+		//0xFF report
+		if (rpt.ext)
+			memset(data + rpt.ir, 0xFF, (rpt.ext - rpt.ir));
+		else 
+			memset(data + rpt.ir, 0xFF, (46 - rpt.ir));
 
+		//Fill report with valid data when full handshake was done
+		if (m_reg_ir->data[0x30] || m_reg_ir->data[0x33])
 		// ir mode
 		switch (m_reg_ir->mode)
 		{
 		// basic
 		case 1 :
 			{
-			memset(data + rpt.ir, 0xFF, 10);
 			wm_ir_basic* const irdata = (wm_ir_basic*)(data + rpt.ir);
 			if (y < 768)
 			{
@@ -562,7 +551,6 @@ void Wiimote::Update()
 		// extended
 		case 3 :
 			{
-			memset(data + rpt.ir, 0xFF, 12);
 			wm_ir_extended* const irdata = (wm_ir_extended*)(data + rpt.ir);
 			if (y < 768)
 			{
@@ -584,10 +572,22 @@ void Wiimote::Update()
 		case 5 :
 			// UNSUPPORTED
 			break;
-
 		}
 	}
 
+	// ----extension----
+	if (rpt.ext)
+	{
+		m_extension->GetState(data + rpt.ext, is_focus);
+
+		// i dont think anything accesses the extension data like this, but ill support it. Indeed, commercial games don't do this.
+		// i think it should be unencrpyted in the register, encrypted when read.
+		memcpy(m_reg_ext->controller_data, data + rpt.ext, sizeof(wm_extension));
+
+		if (0xAA == m_reg_ext->encryption) {
+			wiimote_encrypt(&m_ext_key, data + rpt.ext, 0x00, sizeof(wm_extension));
+		}
+	}
 	// send data report
 	g_WiimoteInitialize.pWiimoteInput( m_index, m_reporting_channel, data, rpt.size );
 }
