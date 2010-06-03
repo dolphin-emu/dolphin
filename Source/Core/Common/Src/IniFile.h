@@ -18,74 +18,105 @@
 #ifndef _INIFILE_H_
 #define _INIFILE_H_
 
-#include <string>
-#include <vector>
+#include "CommonTypes.h"
 
+#include <fstream>
+#include <map>
+#include <string>
+#include <sstream>
+
+// some things that include IniFile.h rely on this being here
 #include "StringUtil.h"
 
-class Section
-{
-public:
-	Section();
-	Section(const std::string& _name);
-	Section(const Section& other);
-	std::vector<std::string>lines;
-	std::string name;
-	std::string comment;
+class IniFile;
 
-	bool operator<(const Section& other) const
+class Section : public std::map<std::string, std::string>
+{
+	friend class IniFile;
+
+public:
+	Section() : m_use_lines(false) {}
+
+	bool Exists(const std::string& key) const;
+	void Delete(const std::string& key);
+
+	void SetLines(const std::vector<std::string>& lines);
+	void GetLines(std::vector<std::string>& lines);
+
+	bool Get(const std::string& key, std::string* const val, const std::string& def = "") const;
+	void Set(const std::string& key, const std::string& val, const std::string& def = "");
+
+	template <typename V>
+	void Set(const std::string& key, const V val)
 	{
-		return(name < other.name);
+		std::ostringstream ss;
+		ss << val;
+		operator[](key) = ss.str();
 	}
-};
 
-class IniFile
-{
-public:
-	IniFile();
-	~IniFile();
+	// if val doesn't match def, set the key's value to val
+	// otherwise delete that key
+	//
+	// this removed a lot of redundant code in the game-properties stuff
+	template <typename V, typename D>
+	void Set(const std::string& key, const V val, const D def)
+	{
+		if (val != def)
+			Set(key, val);
+		else
+		{
+			iterator f = find(key);
+			if (f != end())
+				erase(f);
+		}
+	}
 
-	bool Load(const char* filename);
-	bool Save(const char* filename);
+	template <typename V>
+	bool Get(const std::string& key, V* const val) const
+	{
+		const const_iterator f = find(key);
+		if (f != end())
+		{
+			std::istringstream ss(f->second);
+			ss >> *val;
+			return true;
+		}
+		return false;
+	}
 
-	void Set(const char* sectionName, const char* key, const char* newValue);
-	void Set(const char* sectionName, const char* key, int newValue);
-	void Set(const char* sectionName, const char* key, u32 newValue);
-	void Set(const char* sectionName, const char* key, bool newValue);
-	void Set(const char* sectionName, const char* key, const std::string& newValue) {Set(sectionName, key, newValue.c_str());}
-	void Set(const char* sectionName, const char* key, const std::vector<std::string>& newValues);
+	template <typename V, typename D>
+	bool Get(const std::string& key, V* const val, const D def) const
+	{
+		if (Get(key, val))
+			return true;
+		*val = def;
+		return false;
+	}
 
-	void SetLines(const char* sectionName, const std::vector<std::string> &lines);
+protected:
+	void Save(std::ostream& file) const;
 
-	// Returns true if exists key in section
-	bool Exists(const char* sectionName, const char* key) const;
-
-	// getter should be const
-	bool Get(const char* sectionName, const char* key, std::string* value, const char* defaultValue = "");
-	bool Get(const char* sectionName, const char* key, int* value, int defaultValue = 0);
-	bool Get(const char* sectionName, const char* key, u32* value, u32 defaultValue = 0);
-	bool Get(const char* sectionName, const char* key, bool* value, bool defaultValue = false);
-	bool Get(const char* sectionName, const char* key, std::vector<std::string>& values);
-
-	bool GetKeys(const char* sectionName, std::vector<std::string>& keys) const;
-	bool GetLines(const char* sectionName, std::vector<std::string>& lines) const;
-
-	bool DeleteKey(const char* sectionName, const char* key);
-	bool DeleteSection(const char* sectionName);
-
-	void SortSections();
-
-	void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut, std::string* commentOut) const;
-	std::string* GetLine(Section* section, const char* key, std::string* valueOut, std::string* commentOut);
+	std::vector<std::string>	m_lines;
 
 private:
-	std::vector<Section>sections;
+	bool	m_use_lines;
+};
 
-	const Section* GetSection(const char* section) const;
-	Section* GetSection(const char* section);
-	Section* GetOrCreateSection(const char* section);
-	std::string* GetLine(const char* section, const char* key);
-	void CreateSection(const char* section);
+class IniFile : public std::map<std::string, Section>
+{
+public:
+	void Clean();
+	bool Exists(const std::string& section) const;
+	void Delete(const std::string& section);
+
+	bool Save(const char filename[]) const;
+	bool Load(const char filename[]);
+
+	bool Save(const std::string& filename) const;
+	bool Load(const std::string& filename);
+
+	void Save(std::ostream& file) const;
+	void Load(std::istream& file);
 };
 
 #endif // _INIFILE_H_

@@ -357,7 +357,7 @@ void CGameListCtrl::OnPaintDrawImages(wxPaintEvent& event)
 				m_imageListSmall->Draw(m_FlagImageIndex[rISOFile.GetCountry()], dc, flagOffset, itemY);
 
 				ini.Load((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + (rISOFile.GetUniqueID()) + ".ini").c_str());
-				ini.Get("EmuState", "EmulationStateId", &nState);
+				ini["EmuState"].Get("EmulationStateId", &nState);
 				m_imageListSmall->Draw(m_EmuStateImageIndex[nState], dc, stateOffset, itemY);
 			}
 		}
@@ -701,9 +701,9 @@ int wxCALLBACK wxListCompare(long item1, long item2, long sortData)
 		std::string GameIni2 = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + iso2->GetUniqueID() + ".ini";
 		
 		ini.Load(GameIni1.c_str());
-		ini.Get("EmuState", "EmulationStateId", &nState1);
+		ini["EmuState"].Get("EmulationStateId", &nState1);
 		ini.Load(GameIni2.c_str());
-		ini.Get("EmuState", "EmulationStateId", &nState2);
+		ini["EmuState"].Get("EmulationStateId", &nState2);
 
 		if(nState1 > nState2) return  1 *t;
 		if(nState1 < nState2) return -1 *t;
@@ -809,8 +809,9 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
 			std::string emuState[5] = {"Broken", "Intro", "In-Game", "Playable", "Perfect"}, issues;
 
 			int nState;
-			ini.Get("EmuState", "EmulationStateId", &nState);
-			ini.Get("EmuState", "EmulationIssues", &issues, "");
+			Section& emustate = ini["EmuState"];
+			emustate.Get("EmulationStateId", &nState);
+			emustate.Get("EmulationIssues", &issues, "");
 
 			// Get item Coords then convert from wxWindow coord to Screen coord
 			wxRect Rect;

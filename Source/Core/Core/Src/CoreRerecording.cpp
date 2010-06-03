@@ -44,7 +44,7 @@
 #include "HW/GPFifo.h"
 #include "HW/CPU.h"
 #include "HW/HW.h"
-#include "HW/DSP.h"
+#include "HW/DSPInterface.h"
 #include "HW/GPFifo.h"
 #include "HW/AudioInterface.h"
 #include "HW/VideoInterface.h"

@@ -95,7 +95,6 @@ bool DolphinApp::OnInit()
 	bool LoadElf = false;
 	bool selectVideoPlugin = false;
 	bool selectAudioPlugin = false;
-	bool selectPadPlugin = false;
 	bool selectWiimotePlugin = false;
 
 	wxString ElfFile;
@@ -128,10 +127,6 @@ bool DolphinApp::OnInit()
 		},
 		{
 			wxCMD_LINE_OPTION, "A", "audio_plugin","Specify an audio plugin",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_OPTION, "P", "pad_plugin","Specify a pad plugin",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
@@ -169,10 +164,6 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
-			wxCMD_LINE_OPTION, _("P"), _("pad_plugin"), wxT("Specify a pad plugin"),
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
 			wxCMD_LINE_OPTION, _("W"), _("wiimote_plugin"), wxT("Specify a wiimote plugin"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
@@ -201,12 +192,10 @@ bool DolphinApp::OnInit()
 #if wxCHECK_VERSION(2, 9, 0)
 	selectVideoPlugin = parser.Found("video_plugin", &videoPluginFilename);
 	selectAudioPlugin = parser.Found("audio_plugin", &audioPluginFilename);
-	selectPadPlugin = parser.Found("pad_plugin", &padPluginFilename);
 	selectWiimotePlugin = parser.Found("wiimote_plugin", &wiimotePluginFilename);
 #else
 	selectVideoPlugin = parser.Found(_T("video_plugin"), &videoPluginFilename);
 	selectAudioPlugin = parser.Found(_T("audio_plugin"), &audioPluginFilename);
-	selectPadPlugin = parser.Found(_T("pad_plugin"), &padPluginFilename);
 	selectWiimotePlugin = parser.Found(_T("wiimote_plugin"), &wiimotePluginFilename);
 #endif
 #endif // wxUSE_CMDLINE_PARSER
@@ -342,7 +331,6 @@ bool DolphinApp::OnInit()
 #endif
 
 	LogManager::Init();
-	EventHandler::Init();
 	SConfig::Init();
 	CPluginManager::Init();
 
@@ -353,14 +341,6 @@ bool DolphinApp::OnInit()
 	if (selectAudioPlugin && audioPluginFilename != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin =
 		   	std::string(audioPluginFilename.mb_str());
-
-	if (selectPadPlugin && padPluginFilename != wxEmptyString)
-	{
-		int k;
-		for(k=0;k<MAXPADS;k++)
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[k] =
-				std::string(padPluginFilename.mb_str());
-	}
 
 	if (selectWiimotePlugin && wiimotePluginFilename != wxEmptyString)
 	{
@@ -465,7 +445,6 @@ int DolphinApp::OnExit()
 {
 	CPluginManager::Shutdown();
 	SConfig::Shutdown();
-	EventHandler::Shutdown();
 	LogManager::Shutdown();
 
 	return wxApp::OnExit();

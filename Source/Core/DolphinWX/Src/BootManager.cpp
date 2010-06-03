@@ -113,10 +113,11 @@ bool BootCore(const std::string& _rFilename)
 	if (unique_id.size() == 6 && game_ini.Load(StartUp.m_strGameIni.c_str()))
 	{
 		// General settings
-		game_ini.Get("Core", "CPUThread",			&StartUp.bCPUThread, StartUp.bCPUThread);
-		game_ini.Get("Core", "SkipIdle",			&StartUp.bSkipIdle, StartUp.bSkipIdle);
-		game_ini.Get("Core", "EnableFPRF",			&StartUp.bEnableFPRF, StartUp.bEnableFPRF);
-		game_ini.Get("Core", "TLBHack",				&StartUp.iTLBHack, StartUp.iTLBHack);
+		Section& core = game_ini["Core"];
+		core.Get("CPUThread",	&StartUp.bCPUThread, StartUp.bCPUThread);
+		core.Get("SkipIdle",	&StartUp.bSkipIdle, StartUp.bSkipIdle);
+		core.Get("EnableFPRF",	&StartUp.bEnableFPRF, StartUp.bEnableFPRF);
+		core.Get("TLBHack",		&StartUp.iTLBHack, StartUp.iTLBHack);
 		// Wii settings
 		if (StartUp.bWii)
 		{

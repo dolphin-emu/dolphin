@@ -77,7 +77,8 @@ void GFXDebuggerDX9::SaveSettings() const
 {
 	IniFile file;
 	file.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
-
+	
+	Section& videowindow = file["VideoWindow"];
 	// TODO: make this work when we close the entire program too, currently on total close we get
 	// weird values, perhaps because of some conflict with the rendering window
 	// TODO: get the screen resolution and make limits from that
@@ -85,13 +86,13 @@ void GFXDebuggerDX9::SaveSettings() const
 		                       && GetSize().GetWidth() < 1000 
 							   && GetSize().GetHeight() < 1000)
 	{
-		file.Set("VideoWindow", "x", GetPosition().x);
-		file.Set("VideoWindow", "y", GetPosition().y);
-		file.Set("VideoWindow", "w", GetSize().GetWidth());
-		file.Set("VideoWindow", "h", GetSize().GetHeight());
+		videowindow.Set("x", GetPosition().x);
+		videowindow.Set("y", GetPosition().y);
+		videowindow.Set("w", GetSize().GetWidth());
+		videowindow.Set("h", GetSize().GetHeight());
 	}
 
-	file.Set("VideoWindow", "WriteToFile", m_Check[0]->IsChecked());
+	videowindow.Set("WriteToFile", m_Check[0]->IsChecked());
 
 	//g_Config.iLog = bInfoLog ? CONF_LOG : 0;
 	//g_Config.iLog |= bPrimLog ? CONF_PRIMLOG : 0;
@@ -99,7 +100,7 @@ void GFXDebuggerDX9::SaveSettings() const
 	//g_Config.iLog |= bSaveTargets ? CONF_SAVETARGETS : 0;
 	//g_Config.iLog |= bSaveShaders ? CONF_SAVESHADERS : 0;
 
-	//file.Set("VideoWindow", "ConfBits", g_Config.iLog);
+	//videowindow.Set("ConfBits", g_Config.iLog);
 
 	file.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 }
@@ -109,11 +110,12 @@ void GFXDebuggerDX9::LoadSettings()
 	IniFile file;
 	file.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
+	Section& videowindow = file["VideoWindow"];
 	int x = 100, y = 100, w = 100, h = 100;
-	file.Get("VideoWindow", "x", &x, GetPosition().x);
-	file.Get("VideoWindow", "y", &y, GetPosition().y);
-	file.Get("VideoWindow", "w", &w, GetSize().GetWidth());
-	file.Get("VideoWindow", "h", &h, GetSize().GetHeight());
+	videowindow.Get("x", &x, GetPosition().x);
+	videowindow.Get("y", &y, GetPosition().y);
+	videowindow.Get("w", &w, GetSize().GetWidth());
+	videowindow.Get("h", &h, GetSize().GetHeight());
 	SetSize(x, y, w, h);
 
 	//file.Get("VideoWindow", "ConfBits", &g_Config.iLog, 0);

@@ -20,28 +20,30 @@ AudioCommonConfig ac_Config;
 
 // Load from given file
 void AudioCommonConfig::Load(IniFile &file) {
-	file.Get("Config", "EnableDTKMusic", &m_EnableDTKMusic, true);
-	file.Get("Config", "EnableThrottle", &m_EnableThrottle, true);
-	file.Get("Config", "EnableJIT", &m_EnableJIT, true);
-	file.Get("Config", "Volume", &m_Volume, 75);
+	Section& config = file["Config"];
+	config.Get("EnableDTKMusic", &m_EnableDTKMusic, true);
+	config.Get("EnableThrottle", &m_EnableThrottle, true);
+	config.Get("EnableJIT", &m_EnableJIT, true);
+	config.Get("Volume", &m_Volume, 75);
 #ifdef _WIN32
-	file.Get("Config", "Backend", &sBackend, BACKEND_DIRECTSOUND);
+	config.Get("Backend", &sBackend, BACKEND_DIRECTSOUND);
 #elif defined(__APPLE__)
 	std::string temp;
-	file.Get("Config", "Backend", &temp, BACKEND_COREAUDIO);
+	config.Get("Backend", &temp, BACKEND_COREAUDIO);
 	strncpy(sBackend, temp.c_str(), 128);
 #else // linux
-	file.Get("Config", "Backend", &sBackend, BACKEND_ALSA);
+	config.Get("Backend", &sBackend, BACKEND_ALSA);
 #endif
 }
 
 // Set the values for the file
 void AudioCommonConfig::Set(IniFile &file) {
-	file.Set("Config", "EnableDTKMusic", m_EnableDTKMusic);
-	file.Set("Config", "EnableThrottle", m_EnableThrottle);
-	file.Set("Config", "EnableJIT", m_EnableJIT);
-	file.Set("Config", "Backend", sBackend);
-	file.Set("Config", "Volume", m_Volume);
+	Section& config = file["Config"];
+	config.Set("EnableDTKMusic", m_EnableDTKMusic);
+	config.Set("EnableThrottle", m_EnableThrottle);
+	config.Set("EnableJIT", m_EnableJIT);
+	config.Set("Backend", sBackend);
+	config.Set("Volume", m_Volume);
 }
 
 // Update according to the values (stream/mixer)

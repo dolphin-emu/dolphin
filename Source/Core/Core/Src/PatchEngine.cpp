@@ -55,12 +55,13 @@ std::vector<std::string> discList;
     
 void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile &ini)
 {
-	std::vector<std::string> lines;
-	if (!ini.GetLines(section, lines))
-		return;
+	//if (!ini.Exists(section))
+		//return;
 
 	Patch currentPatch;
 
+	std::vector<std::string> lines;
+	ini[section].GetLines(lines);
 	for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
 	{
 		std::string line = *iter;
@@ -99,15 +100,14 @@ void LoadPatchSection(const char *section, std::vector<Patch> &patches, IniFile 
 			}
 		}
 	}
-	if (currentPatch.name.size()) patches.push_back(currentPatch);
+	if (currentPatch.name.size())
+		patches.push_back(currentPatch);
 }
     
 static void LoadDiscList(const char *section, std::vector<std::string> &_discList, IniFile &ini) {
 
     std::vector<std::string> lines;
-    if (!ini.GetLines(section, lines))
-	return;
-    
+	ini[section].GetLines(lines);
     for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
 	{
 	    std::string line = *iter;
@@ -117,19 +117,18 @@ static void LoadDiscList(const char *section, std::vector<std::string> &_discLis
 }
 
 static void LoadSpeedhacks(const char *section, std::map<u32, int> &hacks, IniFile &ini) {
-	std::vector<std::string> keys;
-	ini.GetKeys(section, keys);
-	for (std::vector<std::string>::const_iterator iter = keys.begin(); iter != keys.end(); ++iter)
+	Section& sect = ini[section];
+	for (Section::const_iterator iter = sect.begin(); iter != sect.end(); ++iter)
 	{
-		std::string key = *iter;
+		const std::string& key = iter->first;
 		std::string value;
-		ini.Get(section, key.c_str(), &value, "BOGUS");
+		sect.Get(key, &value, "BOGUS");
 		if (value != "BOGUS")
 		{
 			u32 address;
 			u32 cycles;
 			bool success = true;
-			success = success && TryParseUInt(std::string(key.c_str()), &address);
+			success = success && TryParseUInt(std::string(key.c_str()), &address);	// std::string(.c_str()); // what?
 			success = success && TryParseUInt(value, &cycles);
 			if (success) {
 				speedHacks[address] = (int)cycles;

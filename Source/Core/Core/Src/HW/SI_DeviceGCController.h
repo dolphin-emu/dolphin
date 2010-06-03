@@ -18,22 +18,34 @@
 #ifndef _SI_DEVICEGCCONTROLLER_H
 #define _SI_DEVICEGCCONTROLLER_H
 
-#include "../PluginManager.h"
 #include "SI_Device.h"
-
+#include "GCPad.h"
 
 // standard gamecube controller
 class CSIDevice_GCController : public ISIDevice
 {
 private:
-	
-	// Commands
-	enum EBufferCommands
+	enum GCPADCommands
 	{
 		CMD_INVALID		= 0xFFFFFFFF,
 		CMD_RESET		= 0x00,
+		CMD_WRITE		= 0x40,
 		CMD_ORIGIN		= 0x41,
 		CMD_RECALIBRATE	= 0x42,
+	};
+
+	union UCommand
+	{
+		u32 Hex;
+		struct  
+		{
+			unsigned Parameter1	:	8;
+			unsigned Parameter2	:	8;
+			unsigned Command	:	8;
+			unsigned			:	8;
+		};
+		UCommand()				{Hex = 0;}
+		UCommand(u32 _iValue)	{Hex = _iValue;}		
 	};
 
 	struct SOrigin
@@ -50,25 +62,6 @@ private:
 		u8 unk_5;
 		u8 unk_6;
 		u8 unk_7;
-	};
-
-	enum EDirectCommands
-	{
-		CMD_WRITE = 0x40
-	};
-
-	union UCommand
-	{
-		u32 Hex;
-		struct  
-		{
-			unsigned Parameter1	:	8;
-			unsigned Parameter2	:	8;
-			unsigned Command	:	8;
-			unsigned			:	8;
-		};
-		UCommand()				{Hex = 0;}
-		UCommand(u32 _iValue)	{Hex = _iValue;}		
 	};
 
 	enum EButtonCombo
@@ -94,8 +87,6 @@ private:
 	EButtonCombo m_LastButtonCombo;
 
 public:
-
-	// Constructor
 	CSIDevice_GCController(int _iDeviceNumber);
 
 	// Run the SI Buffer

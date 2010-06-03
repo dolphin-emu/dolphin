@@ -27,42 +27,44 @@ window handle that is returned by CreateWindow() can be accessed from
 Core::GetWindowHandle().
 */
 
+// Common
+#include <Common.h>
+#include <Setup.h>
+#include <FileUtil.h>
+#include <FileSearch.h>
+#include <Timer.h>
 
-#include "Setup.h" // Common
+#include <Core.h>
+#include <ConfigManager.h>
+#include <OnFrame.h>
+#include <IPC_HLE/WII_IPC_HLE_Device_usb.h>
+#include <HW/CPU.h>
+#include <HW/DVDInterface.h>
+#include <HW/ProcessorInterface.h>
+#include <PowerPC/PowerPC.h>
+#include <State.h>
+#include <PluginManager.h>
+
+#include <VolumeHandler.h>
+#include <NANDContentLoader.h>
+
+#include <WXInputBase.h>
+#include <ConfigDiag.h>
+
+#include <wx/datetime.h>
 
 #include "NetWindow.h"
-#include "Common.h" // Common
-#include "FileUtil.h"
-#include "FileSearch.h"
-#include "Timer.h"
-
-#include "Globals.h" // Local
+#include "Globals.h"
 #include "Frame.h"
 #include "ConfigMain.h"
-#include "PluginManager.h"
 #include "MemcardManager.h"
 #include "CheatsWindow.h"
 #include "LuaWindow.h"
 #include "AboutDolphin.h"
 #include "GameListCtrl.h"
-#include "BootManager.h"
 #include "LogWindow.h"
 #include "WxUtils.h"
-
-#include "ConfigManager.h" // Core
-#include "Core.h"
-#include "OnFrame.h"
-#include "HW/CPU.h"
-#include "PowerPC/PowerPC.h"
-#include "HW/DVDInterface.h"
-#include "HW/ProcessorInterface.h"
-#include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
-#include "State.h"
-#include "VolumeHandler.h"
-#include "NANDContentLoader.h"
-#include "WXInputBase.h"
-
-#include <wx/datetime.h> // wxWidgets
+#include "BootManager.h"
 
 
 // Resources
@@ -170,7 +172,7 @@ void CFrame::CreateMenu()
 	pOptionsMenu->AppendSeparator();
 	pOptionsMenu->Append(IDM_CONFIG_GFX_PLUGIN, _T("&Graphics Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_DSP_PLUGIN, _T("&DSP Settings"));
-	pOptionsMenu->Append(IDM_CONFIG_PAD_PLUGIN, _T("&Gamecube Pad Settings"));
+	pOptionsMenu->Append(IDM_CONFIG_GCPAD, _T("&GCPad Settings"));
 	pOptionsMenu->Append(IDM_CONFIG_WIIMOTE_PLUGIN, _T("&Wiimote Settings"));
 	if (g_pCodeWindow)
 	{
@@ -332,8 +334,10 @@ void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 	ToolBar->AddTool(wxID_PREFERENCES, _T("Config"), m_Bitmaps[Toolbar_PluginOptions], _T("Configure..."));
 	ToolBar->AddTool(IDM_CONFIG_GFX_PLUGIN, _T("Graphics"),  m_Bitmaps[Toolbar_PluginGFX], _T("Graphics settings"));
 	ToolBar->AddTool(IDM_CONFIG_DSP_PLUGIN, _T("DSP"),  m_Bitmaps[Toolbar_PluginDSP], _T("DSP settings"));
-	ToolBar->AddTool(IDM_CONFIG_PAD_PLUGIN, _T("GCPad"),  m_Bitmaps[Toolbar_PluginPAD], _T("Gamecube Pad settings"));
+	ToolBar->AddTool(IDM_CONFIG_GCPAD, _T("GCPad"),  m_Bitmaps[Toolbar_PluginPAD], _T("GCPad settings"));
 	ToolBar->AddTool(IDM_CONFIG_WIIMOTE_PLUGIN, _T("Wiimote"),  m_Bitmaps[Toolbar_Wiimote], _T("Wiimote settings"));
+	ToolBar->AddSeparator();
+	ToolBar->AddTool(wxID_ABOUT, _T("About"), m_Bitmaps[Toolbar_Help], _T("About Dolphin"));
 
 	// after adding the buttons to the toolbar, must call Realize() to reflect
 	// the changes
@@ -940,14 +944,25 @@ void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 			);
 }
 
-void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
+extern Plugin g_GCPad; //TODOSHUFFLE
+void CFrame::OnPluginGCPad(wxCommandEvent& WXUNUSED (event))
 {
-	CPluginManager::GetInstance().OpenConfig(
-			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[0].c_str(),
-			PLUGIN_TYPE_PAD
-			);
+	bool was_init = false;
+
+	if ( g_GCPad.controller_interface.IsInit() )	// check if game is running
+		was_init = true;
+	else
+		PAD_Init();
+
+	ConfigDialog* configDiag = new ConfigDialog( this, g_GCPad, g_GCPad.gui_name, was_init );
+
+	configDiag->ShowModal();
+	configDiag->Destroy();
+
+	if ( !was_init )	// if game isn't running
+		PAD_Shutdown();
 }
+
 void CFrame::OnPluginWiimote(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(

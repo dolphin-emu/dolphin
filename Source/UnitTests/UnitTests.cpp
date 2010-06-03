@@ -21,7 +21,6 @@
 #include "StringUtil.h"
 #include "MathUtil.h"
 #include "PowerPC/PowerPC.h"
-#include "HW/SI_DeviceGCController.h"
 
 void AudioJitTests();
 

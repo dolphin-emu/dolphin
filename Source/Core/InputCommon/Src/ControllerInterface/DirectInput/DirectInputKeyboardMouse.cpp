@@ -2,6 +2,7 @@
 
 #ifdef CIFACE_USE_DIRECTINPUT_KBM
 
+#include <Timer.h>
 #include "DirectInputKeyboardMouse.h"
 
 // TODO: maybe add a ClearInputState function to this device
@@ -95,7 +96,7 @@ KeyboardMouse::KeyboardMouse( const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRE
 	: m_kb_device(kb_device)
 	, m_mo_device(mo_device)
 {
-	m_last_update = wxGetLocalTimeMillis();
+	m_last_update = Common::Timer::GetLocalTimeSinceJan1970();
 
 	ZeroMemory( &m_state_in, sizeof(m_state_in) );
 	ZeroMemory( m_state_out, sizeof(m_state_out) );
@@ -133,7 +134,7 @@ bool KeyboardMouse::UpdateInput()
 	DIMOUSESTATE2 tmp_mouse;
 
 	// if mouse position hasn't been updated in a short while, skip a dev state
-	wxLongLong cur_time = wxGetLocalTimeMillis();
+	u64 cur_time = Common::Timer::GetLocalTimeSinceJan1970();
 	if ( cur_time - m_last_update > DROP_INPUT_TIME )
 	{
 		// set axes to zero
@@ -178,7 +179,7 @@ bool KeyboardMouse::UpdateOutput()
 	{
 		bool want_on = false;
 		if ( m_state_out[i] )
-			want_on = m_state_out[i] > wxGetLocalTimeMillis() % 255 ;	// light should flash when output is 0.5
+			want_on = m_state_out[i] > Common::Timer::GetLocalTimeSinceJan1970() % 255 ;	// light should flash when output is 0.5
 
 		// lights are set to their original state when output is zero
 		if ( want_on ^ m_current_state_out[i] )

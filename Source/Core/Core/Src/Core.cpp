@@ -77,7 +77,6 @@ void Callback_VideoCopiedToXFB(bool video_update);
 void Callback_DSPLog(const TCHAR* _szMessage, int _v);
 const char *Callback_ISOName(void);
 void Callback_DSPInterrupt();
-void Callback_PADLog(const TCHAR* _szMessage);
 void Callback_WiimoteLog(const TCHAR* _szMessage, int _v);
 void Callback_WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size);
 bool Callback_RendererHasFocus(void);
@@ -349,7 +348,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	{
 		IniFile gameIni;
 		gameIni.Load(_CoreParameter.m_strGameIni.c_str());
-		gameIni.Get("Wii", "Widescreen", &aspectWide, !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
+		gameIni["Wii"].Get("Widescreen", &aspectWide, !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
 	}
 	VideoInitialize.bAutoAspectIs16_9           = aspectWide;
 
@@ -381,18 +380,6 @@ THREAD_RETURN EmuThread(void *pArg)
 	dspInit.bOnThread				= _CoreParameter.bDSPThread;
 
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
-	
-	// Load and init GCPadPlugin
-	SPADInitialize PADInitialize;
-	PADInitialize.hWnd		= g_pWindowHandle;
-#if defined(HAVE_X11) && HAVE_X11
-	PADInitialize.pXWindow	= g_pXWindow;
-#endif
-	PADInitialize.pLog		= Callback_PADLog;
-	PADInitialize.pRendererHasFocus	= Callback_RendererHasFocus;
-	// This is may be needed to avoid a SDL problem
-	//Plugins.FreeWiimote();
-	Plugins.GetPad(0)->Initialize(&PADInitialize);
 
 	// Load and Init WiimotePlugin - only if we are booting in wii mode	
 	if (_CoreParameter.bWii)
@@ -737,16 +724,6 @@ void Callback_DSPInterrupt()
 {
 	DSP::GenerateDSPInterruptFromPlugin(DSP::INT_DSP);
 }
-
-
-// Callback_PADLog 
-//
-void Callback_PADLog(const TCHAR* _szMessage)
-{
-	// FIXME add levels
-	INFO_LOG(SERIALINTERFACE, _szMessage);
-}
-
 
 // Callback_ISOName: Let the DSP plugin get the game name
 //

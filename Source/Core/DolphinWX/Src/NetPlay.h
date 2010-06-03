@@ -11,7 +11,7 @@
 #define _WINSOCK2API_
 #include <SFML/Network.hpp>
 
-#include "pluginspecs_pad.h"
+#include "HW/GCPad.h"
 #include "svnrev.h"
 
 //#include <wx/wx.h>

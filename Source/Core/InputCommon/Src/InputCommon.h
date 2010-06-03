@@ -1,7 +1,3 @@
-#include "EventHandler.h"
-
-//extern EventHandler *eventHandler;
-
 namespace InputCommon
 {
 enum EButtonType
@@ -24,6 +20,4 @@ enum EXInputTrigger
 	XI_TRIGGER_R,
 };
 
-    void Init(); 
-    void Shutdown();
 }

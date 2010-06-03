@@ -20,10 +20,8 @@
 
 #include "Plugin.h"
 #include "PluginDSP.h"
-#include "PluginPAD.h"
 #include "PluginVideo.h"
 #include "PluginWiimote.h"
-#include "EventHandler.h"
 #include "CoreParameter.h"
 
 class CPluginInfo
@@ -52,12 +50,10 @@ public:
 
 	Common::PluginVideo *GetVideo();
 	Common::PluginDSP *GetDSP();
-	Common::PluginPAD *GetPad(int controller);
 	Common::PluginWiimote *GetWiimote(int controller);
 
 	void FreeVideo();
 	void FreeDSP();
-	void FreePad(u32 Pad);
 	void FreeWiimote(u32 Wiimote);
 
 	void EmuStateChange(PLUGIN_EMUSTATE newState);
@@ -75,7 +71,6 @@ private:
 
 	CPluginInfos m_PluginInfos;
 	PLUGIN_GLOBALS *m_PluginGlobals;
-	Common::PluginPAD *m_pad[4];
 	Common::PluginVideo *m_video;
 	Common::PluginWiimote *m_wiimote[4];
 	Common::PluginDSP *m_dsp;

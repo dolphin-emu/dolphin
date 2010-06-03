@@ -168,16 +168,22 @@ void CLogWindow::OnClose(wxCloseEvent& event)
 void CLogWindow::SaveSettings()
 {
 	IniFile ini;
-	ini.Set("LogWindow", "x", Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth());
-	ini.Set("LogWindow", "y", Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight());
-	ini.Set("LogWindow", "pos", Parent->m_Mgr->GetPane(wxT("Pane 1")).dock_direction);
-	ini.Set("Options", "Verbosity", m_verbosity->GetSelection() + 1);
-	ini.Set("Options", "Font", m_FontChoice->GetSelection());
-	ini.Set("Options", "WriteToFile", m_writeFile);
-	ini.Set("Options", "WriteToConsole", m_writeConsole);
-	ini.Set("Options", "WriteToWindow", m_writeWindow);
+	
+	Section& logwin = ini["LogWindow"];
+	logwin.Set("x", Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth());
+	logwin.Set("y", Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight());
+	logwin.Set("pos", Parent->m_Mgr->GetPane(wxT("Pane 1")).dock_direction);
+	
+	Section& options = ini["Options"];
+	options.Set("Verbosity", m_verbosity->GetSelection() + 1);
+	options.Set("Font", m_FontChoice->GetSelection());
+	options.Set("WriteToFile", m_writeFile);
+	options.Set("WriteToConsole", m_writeConsole);
+	options.Set("WriteToWindow", m_writeWindow);
+	
+	Section& logs = ini["Logs"];
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-		ini.Set("Logs", m_LogManager->getShortName((LogTypes::LOG_TYPE)i), m_checks->IsChecked(i));
+		logs.Set(m_LogManager->getShortName((LogTypes::LOG_TYPE)i), m_checks->IsChecked(i));
 	ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
 }
 
@@ -185,25 +191,28 @@ void CLogWindow::LoadSettings()
 {
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+	Section& options = ini["Options"];
 	int verbosity,font;
-	ini.Get("Options", "Verbosity", &verbosity, 0);
+	options.Get("Verbosity", &verbosity, 0);
 	if (verbosity < 1) verbosity = 1;
 	if (verbosity > MAX_LOGLEVEL) verbosity = MAX_LOGLEVEL;
 	m_verbosity->SetSelection(verbosity - 1);
-	ini.Get("Options", "Font", &font, 0);
+	options.Get("Font", &font, 0);
 	m_FontChoice->SetSelection(font);
 	if (m_FontChoice->GetSelection() < (int)Font.size())
 		m_Log->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, Font.at(m_FontChoice->GetSelection())));
-	ini.Get("Options", "WriteToFile", &m_writeFile, true);
+	options.Get("WriteToFile", &m_writeFile, true);
 	m_writeFileCB->SetValue(m_writeFile);
-	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
+	options.Get("WriteToConsole", &m_writeConsole, true);
 	m_writeConsoleCB->SetValue(m_writeConsole);
-	ini.Get("Options", "WriteToWindow", &m_writeWindow, true);
+	options.Get("WriteToWindow", &m_writeWindow, true);
 	m_writeWindowCB->SetValue(m_writeWindow);
+
+	Section& logs = ini["Logs"];
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
 	{
 		bool enable;
-		ini.Get("Logs", m_LogManager->getShortName((LogTypes::LOG_TYPE)i), &enable, true);
+		logs.Get(m_LogManager->getShortName((LogTypes::LOG_TYPE)i), &enable, true);
 
 		if (m_writeWindow && enable)
 			m_LogManager->addListener((LogTypes::LOG_TYPE)i, this);

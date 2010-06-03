@@ -773,6 +773,26 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="GCPad"
+				>
+				<File
+					RelativePath=".\Src\HW\GCPad.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\GCPad.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\GCPadEmu.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\GCPadEmu.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="PowerPC"

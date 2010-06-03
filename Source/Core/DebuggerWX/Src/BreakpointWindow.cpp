@@ -142,13 +142,14 @@ void CBreakPointWindow::OnAddBreakPointMany()
 	if (ini.Load(filename.c_str())) // check if there is any file there
 	{
 		// get lines from a certain section
-		std::vector<std::string> lines;
-		if (!ini.GetLines("BreakPoints", lines))
+		if (!ini.Exists("BreakPoints"))
 		{
 			wxMessageBox(_T("You have no [BreakPoints] line in your file"));
 			return;
 		}
 
+		std::vector<std::string> lines;
+		ini["BreakPoints"].GetLines(lines);
 		for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
 		{
 			std::string line = StripSpaces(*iter);
@@ -188,13 +189,14 @@ void CBreakPointWindow::OnAddMemoryCheckMany()
 	if (ini.Load(filename.c_str()))
 	{
 		// get lines from a certain section
-		std::vector<std::string> lines;
-		if (!ini.GetLines("MemoryChecks", lines))
+		if (!ini.Exists("MemoryChecks"))
 		{
 			wxMessageBox(_T("You have no [MemoryChecks] line in your file"));
 			return;
 		}
 
+		std::vector<std::string> lines;
+		ini["MemoryChecks"].GetLines(lines);
 		for (std::vector<std::string>::const_iterator iter = lines.begin(); iter != lines.end(); ++iter)
 		{
 			std::string line = StripSpaces(*iter);

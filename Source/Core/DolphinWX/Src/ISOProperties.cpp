@@ -782,77 +782,57 @@ void CISOProperties::SetRefresh(wxCommandEvent& event)
 
 void CISOProperties::LoadGameConfig()
 {
-	bool bTemp;
 	int iTemp;
 	std::string sTemp;
 
-	if (GameIni.Get("Core", "CPUThread", &bTemp))
-		CPUThread->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		CPUThread->Set3StateValue(wxCHK_UNDETERMINED);
+	Section& core = GameIni["Core"];
+	Section& wii = GameIni["Wii"];
+	Section& video = GameIni["Video"];
+	Section& emustate = GameIni["EmuState"];
 
-	if (GameIni.Get("Core", "SkipIdle", &bTemp))
-		SkipIdle->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		SkipIdle->Set3StateValue(wxCHK_UNDETERMINED);
+	core.Get("CPUThread", &iTemp, (int)wxCHK_UNDETERMINED);
+	CPUThread->Set3StateValue((wxCheckBoxState)iTemp);
 
-	if (GameIni.Get("Core", "TLBHack", &bTemp))
-		TLBHack->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		TLBHack->Set3StateValue(wxCHK_UNDETERMINED);
+	core.Get("SkipIdle", &iTemp, (int)wxCHK_UNDETERMINED);
+	SkipIdle->Set3StateValue((wxCheckBoxState)iTemp);
 
-	if (GameIni.Get("Wii", "ProgressiveScan", &bTemp))
-		EnableProgressiveScan->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		EnableProgressiveScan->Set3StateValue(wxCHK_UNDETERMINED);
+	core.Get("TLBHack", &iTemp, (int)wxCHK_UNDETERMINED);
+	TLBHack->Set3StateValue((wxCheckBoxState)iTemp);
 
-	if (GameIni.Get("Wii", "Widescreen", &bTemp))
-		EnableWideScreen->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		EnableWideScreen->Set3StateValue(wxCHK_UNDETERMINED);
+	wii.Get("ProgressiveScan", &iTemp, (int)wxCHK_UNDETERMINED);
+	EnableProgressiveScan->Set3StateValue((wxCheckBoxState)iTemp);
 
-	if (GameIni.Get("Video", "ForceFiltering", &bTemp))
-		ForceFiltering->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		ForceFiltering->Set3StateValue(wxCHK_UNDETERMINED);
+	wii.Get("Widescreen", &iTemp, (int)wxCHK_UNDETERMINED);
+	EnableWideScreen->Set3StateValue((wxCheckBoxState)iTemp);
 
-	if (GameIni.Get("Video", "EFBCopyDisable", &bTemp))
-		EFBCopyDisable->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		EFBCopyDisable->Set3StateValue(wxCHK_UNDETERMINED);
+	video.Get("ForceFiltering", &iTemp, (int)wxCHK_UNDETERMINED);
+	ForceFiltering->Set3StateValue((wxCheckBoxState)iTemp);
 
-	if (GameIni.Get("Video", "EFBToTextureEnable", &bTemp))
-		EFBToTextureEnable->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		EFBToTextureEnable->Set3StateValue(wxCHK_UNDETERMINED);
+	video.Get("EFBCopyDisable", &iTemp, (int)wxCHK_UNDETERMINED);
+	EFBCopyDisable->Set3StateValue((wxCheckBoxState)iTemp);
 
-	if (GameIni.Get("Video", "SafeTextureCache", &bTemp))
-		SafeTextureCache->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		SafeTextureCache->Set3StateValue(wxCHK_UNDETERMINED);
+	video.Get("EFBToTextureEnable", &iTemp, (int)wxCHK_UNDETERMINED);
+	EFBToTextureEnable->Set3StateValue((wxCheckBoxState)iTemp);
 
-	if (GameIni.Get("Video", "DstAlphaPass", &bTemp))
-		DstAlphaPass->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		DstAlphaPass->Set3StateValue(wxCHK_UNDETERMINED);
+	video.Get("SafeTextureCache", &iTemp, (int)wxCHK_UNDETERMINED);
+	SafeTextureCache->Set3StateValue((wxCheckBoxState)iTemp);
 
-	if (GameIni.Get("Video", "UseXFB", &bTemp))
-		UseXFB->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		UseXFB->Set3StateValue(wxCHK_UNDETERMINED);
+	video.Get("DstAlphaPass", &iTemp, (int)wxCHK_UNDETERMINED);
+	DstAlphaPass->Set3StateValue((wxCheckBoxState)iTemp);
 
-	if (GameIni.Get("Video", "FIFOBPHack", &bTemp))
-		BPHack->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		BPHack->Set3StateValue(wxCHK_UNDETERMINED);
+	video.Get("UseXFB", &iTemp, (int)wxCHK_UNDETERMINED);
+	UseXFB->Set3StateValue((wxCheckBoxState)iTemp);
 
-	GameIni.Get("Video", "ProjectionHack", &iTemp, -1);
+	video.Get("FIFOBPHack", &iTemp, (int)wxCHK_UNDETERMINED);
+	BPHack->Set3StateValue((wxCheckBoxState)iTemp);
+
+	video.Get("ProjectionHack", &iTemp, -1);
 	Hack->SetSelection(iTemp);
 
-	GameIni.Get("EmuState", "EmulationStateId", &iTemp, -1);
+	emustate.Get("EmulationStateId", &iTemp, -1);
 	EmuState->SetSelection(iTemp);
 
-	GameIni.Get("EmuState", "EmulationIssues", &sTemp);
+	emustate.Get("EmulationIssues", &sTemp);
 	if (!sTemp.empty())
 	{
 		EmuIssues->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
@@ -866,77 +846,29 @@ void CISOProperties::LoadGameConfig()
 
 bool CISOProperties::SaveGameConfig()
 {
-	if (CPUThread->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Core", "CPUThread");
-	else
-		GameIni.Set("Core", "CPUThread", CPUThread->Get3StateValue());
+	Section& core = GameIni["Core"];
+	Section& wii = GameIni["Wii"];
+	Section& video = GameIni["Video"];
+	Section& emustate = GameIni["EmuState"];
 
-	if (SkipIdle->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Core", "SkipIdle");
-	else
-		GameIni.Set("Core", "SkipIdle", SkipIdle->Get3StateValue());
+	core.Set("CPUThread", CPUThread->Get3StateValue(), wxCHK_UNDETERMINED);
+	core.Set("SkipIdle", SkipIdle->Get3StateValue(), wxCHK_UNDETERMINED);
+	core.Set("TLBHack", TLBHack->Get3StateValue(), wxCHK_UNDETERMINED);
 
-	if (TLBHack->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Core", "TLBHack");
-	else
-		GameIni.Set("Core", "TLBHack", TLBHack->Get3StateValue());
+	wii.Set("ProgressiveScan", EnableProgressiveScan->Get3StateValue(), wxCHK_UNDETERMINED);
+	wii.Set("Widescreen", EnableWideScreen->Get3StateValue(), wxCHK_UNDETERMINED);
 
-	if (EnableProgressiveScan->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Wii", "ProgressiveScan");
-	else
-		GameIni.Set("Wii", "ProgressiveScan", EnableProgressiveScan->Get3StateValue());
+	video.Set("ForceFiltering", ForceFiltering->Get3StateValue(), wxCHK_UNDETERMINED);
+	video.Set("EFBCopyDisable", EFBCopyDisable->Get3StateValue(), wxCHK_UNDETERMINED);
+	video.Set("EFBToTextureEnable", EFBToTextureEnable->Get3StateValue(), wxCHK_UNDETERMINED);
+	video.Set("SafeTextureCache", SafeTextureCache->Get3StateValue(), wxCHK_UNDETERMINED);
+	video.Set("DstAlphaPass", DstAlphaPass->Get3StateValue(), wxCHK_UNDETERMINED);
+	video.Set("UseXFB", UseXFB->Get3StateValue(), wxCHK_UNDETERMINED);
+	video.Set("FIFOBPHack", BPHack->Get3StateValue(), wxCHK_UNDETERMINED);
+	video.Set("ProjectionHack", Hack->GetSelection(), wxCHK_UNDETERMINED);
 
-	if (EnableWideScreen->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Wii", "Widescreen");
-	else
-		GameIni.Set("Wii", "Widescreen", EnableWideScreen->Get3StateValue());
-
-	if (ForceFiltering->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "ForceFiltering");
-	else
-		GameIni.Set("Video", "ForceFiltering", ForceFiltering->Get3StateValue());
-
-	if (EFBCopyDisable->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "EFBCopyDisable");
-	else
-		GameIni.Set("Video", "EFBCopyDisable", EFBCopyDisable->Get3StateValue());
-
-	if (EFBToTextureEnable->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "EFBToTextureEnable");
-	else
-		GameIni.Set("Video", "EFBToTextureEnable", EFBToTextureEnable->Get3StateValue());
-
-	if (SafeTextureCache->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "SafeTextureCache");
-	else
-		GameIni.Set("Video", "SafeTextureCache", SafeTextureCache->Get3StateValue());
-
-	if (DstAlphaPass->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "DstAlphaPass");
-	else
-		GameIni.Set("Video", "DstAlphaPass", DstAlphaPass->Get3StateValue());
-
-	if (UseXFB->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "UseXFB");
-	else
-		GameIni.Set("Video", "UseXFB", UseXFB->Get3StateValue());
-
-	if (BPHack->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "FIFOBPHack");
-	else
-		GameIni.Set("Video", "FIFOBPHack", BPHack->Get3StateValue());
-
-	if (Hack->GetSelection() == -1)
-		GameIni.DeleteKey("Video", "ProjectionHack");
-	else
-		GameIni.Set("Video", "ProjectionHack", Hack->GetSelection());
-
-	if (EmuState->GetSelection() == -1)
-		GameIni.DeleteKey("EmuState", "EmulationStateId");
-	else
-		GameIni.Set("EmuState", "EmulationStateId", EmuState->GetSelection());
-
-	GameIni.Set("EmuState", "EmulationIssues", (const char*)EmuIssues->GetValue().mb_str(*wxConvCurrent));
+	emustate.Set("EmulationStateId", EmuState->GetSelection());
+	emustate.Set("EmulationIssues", (const char*)EmuIssues->GetValue().mb_str(*wxConvCurrent));
 
 	PatchList_Save();
 	ActionReplayList_Save();
@@ -1018,6 +950,7 @@ void CISOProperties::PatchList_Load()
 void CISOProperties::PatchList_Save()
 {
 	std::vector<std::string> lines;
+	lines.clear();
 	u32 index = 0;
 	for (std::vector<PatchEngine::Patch>::const_iterator onFrame_it = onFrame.begin(); onFrame_it != onFrame.end(); ++onFrame_it)
 	{
@@ -1032,8 +965,7 @@ void CISOProperties::PatchList_Save()
 		}
 		++index;
 	}
-	GameIni.SetLines("OnFrame", lines);
-	lines.clear();
+	GameIni["OnFrame"].SetLines(lines);
 }
 
 void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
@@ -1104,7 +1036,7 @@ void CISOProperties::ActionReplayList_Save()
 		}
 		++index;
 	}
-	GameIni.SetLines("ActionReplay", lines);
+	GameIni["ActionReplay"].SetLines(lines);
 }
 
 void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)

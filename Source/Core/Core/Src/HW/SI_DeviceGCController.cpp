@@ -21,6 +21,7 @@
 #include "SI.h"
 #include "SI_Device.h"
 #include "SI_DeviceGCController.h"
+#include "GCPad.h"
 
 #include "EXI_Device.h"
 #include "EXI_DeviceMic.h"
@@ -60,7 +61,7 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 	while (iPosition < _iLength)
 	{
 		// Read the command
-		EBufferCommands command = static_cast<EBufferCommands>(_pBuffer[iPosition ^ 3]);
+		GCPADCommands command = static_cast<GCPADCommands>(_pBuffer[iPosition ^ 3]);
 		iPosition++;
 
 		// Handle it
@@ -128,8 +129,7 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 {
 	SPADStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
-	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad(0);
-	pad->PAD_GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
+	PAD_GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 
 	u32 netValues[2] = {0};
 	int NetPlay = 2;
@@ -258,7 +258,6 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 // SendCommand
 void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 {
-	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad(0);
 	UCommand command(_Cmd);
 
 	switch (command.Command)
@@ -269,8 +268,8 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 
 	case CMD_WRITE:
 		{
-			unsigned int uType = command.Parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
-			unsigned int uStrength = command.Parameter2;
+			u8 uType = command.Parameter1;  // 0 = stop, 1 = rumble, 2 = stop hard
+			u8 uStrength = command.Parameter2;
 
 #if defined(HAVE_WX) && HAVE_WX
 			// get the correct pad number that should rumble locally when using netplay
@@ -280,8 +279,7 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 #endif
 
 			if (numPAD < 4)
-				if (pad->PAD_Rumble)
-					pad->PAD_Rumble(numPAD, uType, uStrength);
+				PAD_Rumble(numPAD, uType, uStrength);
 
 			if (!_Poll)
 			{

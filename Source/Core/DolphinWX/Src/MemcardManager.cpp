@@ -110,10 +110,11 @@ CMemcardManager::CMemcardManager(wxWindow* parent, wxWindowID id, const wxString
 	memoryCard[SLOT_B]=NULL;
 	if (MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)))
 	{
-		MemcardManagerIni.Get("MemcardManager", "Items per page",  &itemsPerPage, 16);
-		MemcardManagerIni.Get("MemcardManager", "DefaultMemcardA", &(DefaultMemcard[SLOT_A]), ".");
-		MemcardManagerIni.Get("MemcardManager", "DefaultMemcardB", &(DefaultMemcard[SLOT_B]), ".");
-		MemcardManagerIni.Get("MemcardManager", "DefaultIOFolder", &DefaultIOPath, "/Users/GC");
+		Section& mm = MemcardManagerIni["MemcardManager"];
+		mm.Get("Items per page",  &itemsPerPage, 16);
+		mm.Get("DefaultMemcardA", &(DefaultMemcard[SLOT_A]), ".");
+		mm.Get("DefaultMemcardB", &(DefaultMemcard[SLOT_B]), ".");
+		mm.Get("DefaultIOFolder", &DefaultIOPath, "/Users/GC");
 	}
 	else itemsPerPage = 16;
 	maxPages = (128 / itemsPerPage) - 1;
@@ -144,16 +145,12 @@ CMemcardManager::~CMemcardManager()
 	}
 #endif
 	MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-	MemcardManagerIni.Set("MemcardManager", "Items per page",  itemsPerPage);
+	Section& mm = MemcardManagerIni["MemcardManager"];
+	mm.Set("Items per page",  itemsPerPage);
 
-	if (!DefaultMemcard[SLOT_A].empty() && (strcmp(DefaultMemcard[SLOT_A].c_str(), ".")))
-		MemcardManagerIni.Set("MemcardManager", "DefaultMemcardA", DefaultMemcard[SLOT_A]);
-	else
-		MemcardManagerIni.DeleteKey("MemcardManager", "DefaultMemcardA");
-	if (!DefaultMemcard[SLOT_B].empty() && (strcmp(DefaultMemcard[SLOT_B].c_str(), ".")))
-		MemcardManagerIni.Set("MemcardManager", "DefaultMemcardB", DefaultMemcard[SLOT_B]);
-	else
-		MemcardManagerIni.DeleteKey("MemcardManager", "DefaultMemcardB");
+	mm.Set("DefaultMemcardA", DefaultMemcard[SLOT_A], ".");
+	mm.Set("DefaultMemcardB", DefaultMemcard[SLOT_B], ".");
+
 	MemcardManagerIni.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 }
 
@@ -162,15 +159,16 @@ CMemcardManager::CMemcardListCtrl::CMemcardListCtrl(wxWindow* parent, const wxWi
 {
 	if (MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)))
 	{
-		MemcardManagerIni.Get("MemcardManager", "Use Pages", &usePages, true);
-		MemcardManagerIni.Get("MemcardManager", "cBanner", &column[COLUMN_BANNER], true);
-		MemcardManagerIni.Get("MemcardManager", "cTitle", &column[COLUMN_TITLE], true);
-		MemcardManagerIni.Get("MemcardManager", "cComment", &column[COLUMN_COMMENT], true);
-		MemcardManagerIni.Get("MemcardManager", "cIcon", &column[COLUMN_ICON], true);
-		MemcardManagerIni.Get("MemcardManager", "cBlocks", &column[COLUMN_BLOCKS], true);
-		MemcardManagerIni.Get("MemcardManager", "cFirst Block", &column[COLUMN_FIRSTBLOCK], true);
+		Section& mm = MemcardManagerIni["MemcardManager"];
+		mm.Get("Use Pages", &usePages, true);
+		mm.Get("cBanner", &column[COLUMN_BANNER], true);
+		mm.Get("cTitle", &column[COLUMN_TITLE], true);
+		mm.Get("cComment", &column[COLUMN_COMMENT], true);
+		mm.Get("cIcon", &column[COLUMN_ICON], true);
+		mm.Get("cBlocks", &column[COLUMN_BLOCKS], true);
+		mm.Get("cFirst Block", &column[COLUMN_FIRSTBLOCK], true);
 #ifdef DEBUG_MCM
-		MemcardManagerIni.Get("MemcardManager", "cDebug", &column[NUMBER_OF_COLUMN], false);	
+		mm.Get("cDebug", &column[NUMBER_OF_COLUMN], false);	
 #else
 		column[NUMBER_OF_COLUMN] = false;
 #endif
@@ -197,16 +195,17 @@ CMemcardManager::CMemcardListCtrl::CMemcardListCtrl(wxWindow* parent, const wxWi
 CMemcardManager::CMemcardListCtrl::~CMemcardListCtrl()
 {
 	MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+	Section& mm = MemcardManagerIni["MemcardManager"];
 
-	MemcardManagerIni.Set("MemcardManager", "Use Pages", usePages);
-	MemcardManagerIni.Set("MemcardManager", "cBanner", column[COLUMN_BANNER]);
-	MemcardManagerIni.Set("MemcardManager", "cTitle", column[COLUMN_TITLE]);
-	MemcardManagerIni.Set("MemcardManager", "cComment", column[COLUMN_COMMENT]);
-	MemcardManagerIni.Set("MemcardManager", "cIcon", column[COLUMN_ICON]);
-	MemcardManagerIni.Set("MemcardManager", "cBlocks", column[COLUMN_BLOCKS]);
-	MemcardManagerIni.Set("MemcardManager", "cFirst Block", column[COLUMN_FIRSTBLOCK]);
+	mm.Set("Use Pages", usePages);
+	mm.Set("cBanner", column[COLUMN_BANNER]);
+	mm.Set("cTitle", column[COLUMN_TITLE]);
+	mm.Set("cComment", column[COLUMN_COMMENT]);
+	mm.Set("cIcon", column[COLUMN_ICON]);
+	mm.Set("cBlocks", column[COLUMN_BLOCKS]);
+	mm.Set("cFirst Block", column[COLUMN_FIRSTBLOCK]);
 #ifdef DEBUG_MCM
-	MemcardManagerIni.Set("MemcardManager", "cDebug", column[NUMBER_OF_COLUMN]);
+	mm.Set("cDebug", column[NUMBER_OF_COLUMN]);
 #endif
 	MemcardManagerIni.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 }

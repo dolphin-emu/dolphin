@@ -73,103 +73,108 @@ void SConfig::SaveSettings()
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)); // load first to not kill unknown stuff
 
 	// General
-	ini.Set("General", "LastFilename",	m_LastFilename);
+	Section& general = ini["General"];
+	general.Set("LastFilename", m_LastFilename);
 
 	// ISO folders
-	ini.Set("General", "GCMPathes",		(int)m_ISOFolder.size());
+	general.Set("GCMPathes", (int)m_ISOFolder.size());
 
 	for (size_t i = 0; i < m_ISOFolder.size(); i++)
 	{
 		TCHAR tmp[16];
 		sprintf(tmp, "GCMPath%i", (int)i);
-		ini.Set("General", tmp, m_ISOFolder[i]);
+		general.Set(tmp, m_ISOFolder[i]);
 	}
 
-	ini.Set("General", "RecersiveGCMPaths", m_RecursiveISOFolder);
+	general.Set("RecersiveGCMPaths", m_RecursiveISOFolder);
 
-	// Interface		
-	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
-	ini.Set("Interface", "UsePanicHandlers",	m_LocalCoreStartupParameter.bUsePanicHandlers);
-	ini.Set("Interface", "HideCursor",			m_LocalCoreStartupParameter.bHideCursor);
-	ini.Set("Interface", "AutoHideCursor",		m_LocalCoreStartupParameter.bAutoHideCursor);
-	ini.Set("Interface", "Theme",				m_LocalCoreStartupParameter.iTheme);
-	ini.Set("Interface", "MainWindowPosX",		m_LocalCoreStartupParameter.iPosX);
-	ini.Set("Interface", "MainWindowPosY",		m_LocalCoreStartupParameter.iPosY);
-	ini.Set("Interface", "MainWindowWidth",		m_LocalCoreStartupParameter.iWidth);
-	ini.Set("Interface", "MainWindowHeight",	m_LocalCoreStartupParameter.iHeight);
-	ini.Set("Interface", "Language",			m_InterfaceLanguage);
-	ini.Set("Interface", "ShowToolbar",			m_InterfaceToolbar);
-	ini.Set("Interface", "ShowStatusbar",		m_InterfaceStatusbar);
-	ini.Set("Interface", "ShowLogWindow",		m_InterfaceLogWindow);
-	ini.Set("Interface", "ShowConsole",			m_InterfaceConsole);
+	// Interface
+	Section& iface = ini["Interface"];
+	iface.Set("ConfirmStop",		m_LocalCoreStartupParameter.bConfirmStop);
+	iface.Set("UsePanicHandlers",	m_LocalCoreStartupParameter.bUsePanicHandlers);
+	iface.Set("HideCursor",			m_LocalCoreStartupParameter.bHideCursor);
+	iface.Set("AutoHideCursor",		m_LocalCoreStartupParameter.bAutoHideCursor);
+	iface.Set("Theme",				m_LocalCoreStartupParameter.iTheme);
+	iface.Set("MainWindowPosX",		m_LocalCoreStartupParameter.iPosX);
+	iface.Set("MainWindowPosY",		m_LocalCoreStartupParameter.iPosY);
+	iface.Set("MainWindowWidth",	m_LocalCoreStartupParameter.iWidth);
+	iface.Set("MainWindowHeight",	m_LocalCoreStartupParameter.iHeight);
+	iface.Set("Language",			m_InterfaceLanguage);
+	iface.Set("ShowToolbar",		m_InterfaceToolbar);
+	iface.Set("ShowStatusbar",		m_InterfaceStatusbar);
+	iface.Set("ShowLogWindow",		m_InterfaceLogWindow);
+	iface.Set("ShowConsole",		m_InterfaceConsole);
 
 	// Hotkeys
+	Section& hotkeys = ini["Hotkeys"];
 	for (int i = HK_FULLSCREEN; i < NUM_HOTKEYS; i++)
 	{
-		ini.Set("Hotkeys", g_HKData[i].IniText, m_LocalCoreStartupParameter.iHotkey[i]);
-		ini.Set("Hotkeys", (std::string(g_HKData[i].IniText) + "Modifier").c_str(),
+		hotkeys.Set(g_HKData[i].IniText, m_LocalCoreStartupParameter.iHotkey[i]);
+		hotkeys.Set((std::string(g_HKData[i].IniText) + "Modifier").c_str(),
 				m_LocalCoreStartupParameter.iHotkeyModifier[i]);
 	}
 
 	// Display
-	ini.Set("Display", "FullscreenResolution",	m_LocalCoreStartupParameter.strFullscreenResolution);
-	ini.Set("Display", "Fullscreen",			m_LocalCoreStartupParameter.bFullscreen);
-	ini.Set("Display", "RenderToMain",			m_LocalCoreStartupParameter.bRenderToMain);
-	ini.Set("Display", "RenderWindowXPos",		m_LocalCoreStartupParameter.iRenderWindowXPos);
-	ini.Set("Display", "RenderWindowYPos",		m_LocalCoreStartupParameter.iRenderWindowYPos);
-	ini.Set("Display", "RenderWindowWidth",		m_LocalCoreStartupParameter.iRenderWindowWidth);
-	ini.Set("Display", "RenderWindowHeight",	m_LocalCoreStartupParameter.iRenderWindowHeight);
+	Section& display = ini["Display"];
+	display.Set("FullscreenResolution",	m_LocalCoreStartupParameter.strFullscreenResolution);
+	display.Set("Fullscreen",			m_LocalCoreStartupParameter.bFullscreen);
+	display.Set("RenderToMain",			m_LocalCoreStartupParameter.bRenderToMain);
+	display.Set("RenderWindowXPos",		m_LocalCoreStartupParameter.iRenderWindowXPos);
+	display.Set("RenderWindowYPos",		m_LocalCoreStartupParameter.iRenderWindowYPos);
+	display.Set("RenderWindowWidth",	m_LocalCoreStartupParameter.iRenderWindowWidth);
+	display.Set("RenderWindowHeight",	m_LocalCoreStartupParameter.iRenderWindowHeight);
 
 	// Game List Control
-	ini.Set("GameList", "ListDrives",	m_ListDrives);
-	ini.Set("GameList", "ListWad",		m_ListWad);
-	ini.Set("GameList", "ListWii",		m_ListWii);
-	ini.Set("GameList", "ListGC",		m_ListGC);
-	ini.Set("GameList", "ListJap",		m_ListJap);
-	ini.Set("GameList", "ListPal",		m_ListPal);
-	ini.Set("GameList", "ListUsa",		m_ListUsa);
-	ini.Set("GameList", "ListFrance",	m_ListFrance);
-	ini.Set("GameList", "ListItaly",	m_ListItaly);
-	ini.Set("GameList", "ListKorea",	m_ListKorea);
-	ini.Set("GameList", "ListTaiwan",	m_ListTaiwan);
-	ini.Set("GameList", "ListUnknown",	m_ListUnknown);
+	Section& gamelist = ini["GameList"];
+	gamelist.Set("ListDrives",	m_ListDrives);
+	gamelist.Set("ListWad",		m_ListWad);
+	gamelist.Set("ListWii",		m_ListWii);
+	gamelist.Set("ListGC",		m_ListGC);
+	gamelist.Set("ListJap",		m_ListJap);
+	gamelist.Set("ListPal",		m_ListPal);
+	gamelist.Set("ListUsa",		m_ListUsa);
+	gamelist.Set("ListFrance",	m_ListFrance);
+	gamelist.Set("ListItaly",	m_ListItaly);
+	gamelist.Set("ListKorea",	m_ListKorea);
+	gamelist.Set("ListTaiwan",	m_ListTaiwan);
+	gamelist.Set("ListUnknown",	m_ListUnknown);
 
 	// Core
-	ini.Set("Core", "HLE_BS2",			m_LocalCoreStartupParameter.bHLE_BS2);
-	ini.Set("Core", "CPUCore",			m_LocalCoreStartupParameter.iCPUCore);
-	ini.Set("Core", "CPUThread",		m_LocalCoreStartupParameter.bCPUThread);
-	ini.Set("Core", "DSPThread",		m_LocalCoreStartupParameter.bDSPThread);
-	ini.Set("Core", "SkipIdle",			m_LocalCoreStartupParameter.bSkipIdle);
-	ini.Set("Core", "LockThreads",		m_LocalCoreStartupParameter.bLockThreads);
-	ini.Set("Core", "DefaultGCM",		m_LocalCoreStartupParameter.m_strDefaultGCM);
-	ini.Set("Core", "DVDRoot",			m_LocalCoreStartupParameter.m_strDVDRoot);
-	ini.Set("Core", "Apploader",		m_LocalCoreStartupParameter.m_strApploader);
-	ini.Set("Core", "EnableCheats",		m_LocalCoreStartupParameter.bEnableCheats);
-	ini.Set("Core", "SelectedLanguage",	m_LocalCoreStartupParameter.SelectedLanguage);
-	ini.Set("Core", "MemcardA",			m_strMemoryCardA);
-	ini.Set("Core", "MemcardB",			m_strMemoryCardB);
-	ini.Set("Core", "SlotA",			m_EXIDevice[0]);
-	ini.Set("Core", "SlotB",			m_EXIDevice[1]);
-	ini.Set("Core", "SerialPort1",		m_EXIDevice[2]);
+	Section& core = ini["Core"];
+	core.Set("HLE_BS2",			m_LocalCoreStartupParameter.bHLE_BS2);
+	core.Set("CPUCore",			m_LocalCoreStartupParameter.iCPUCore);
+	core.Set("CPUThread",		m_LocalCoreStartupParameter.bCPUThread);
+	core.Set("DSPThread",		m_LocalCoreStartupParameter.bDSPThread);
+	core.Set("SkipIdle",		m_LocalCoreStartupParameter.bSkipIdle);
+	core.Set("LockThreads",		m_LocalCoreStartupParameter.bLockThreads);
+	core.Set("DefaultGCM",		m_LocalCoreStartupParameter.m_strDefaultGCM);
+	core.Set("DVDRoot",			m_LocalCoreStartupParameter.m_strDVDRoot);
+	core.Set("Apploader",		m_LocalCoreStartupParameter.m_strApploader);
+	core.Set("EnableCheats",	m_LocalCoreStartupParameter.bEnableCheats);
+	core.Set("SelectedLanguage",m_LocalCoreStartupParameter.SelectedLanguage);
+	core.Set("MemcardA",		m_strMemoryCardA);
+	core.Set("MemcardB",		m_strMemoryCardB);
+	core.Set("SlotA",			m_EXIDevice[0]);
+	core.Set("SlotB",			m_EXIDevice[1]);
+	core.Set("SerialPort1",		m_EXIDevice[2]);
 	char sidevicenum[16];
 	for (int i = 0; i < 4; ++i)
 	{
 		sprintf(sidevicenum, "SIDevice%i", i);
-		ini.Set("Core", sidevicenum, m_SIDevice[i]);
+		core.Set(sidevicenum, m_SIDevice[i]);
 	}
 
-	ini.Set("Core", "WiiSDCard", m_WiiSDCard);
-	ini.Set("Core", "WiiKeyboard", m_WiiKeyboard);
-	ini.Set("Core", "RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
-	ini.Set("Core", "RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
-	ini.Set("Core", "FrameLimit",		m_Framelimit);
-	ini.Set("Core", "UseFPS",		b_UseFPS);
+	core.Set("WiiSDCard", m_WiiSDCard);
+	core.Set("WiiKeyboard", m_WiiKeyboard);
+	core.Set("RunCompareServer",	m_LocalCoreStartupParameter.bRunCompareServer);
+	core.Set("RunCompareClient",	m_LocalCoreStartupParameter.bRunCompareClient);
+	core.Set("FrameLimit",			m_Framelimit);
+	core.Set("UseFPS",				b_UseFPS);
 
 	// Plugins
-	ini.Set("Core", "GFXPlugin",	m_LocalCoreStartupParameter.m_strVideoPlugin);
-	ini.Set("Core", "DSPPlugin",	m_LocalCoreStartupParameter.m_strDSPPlugin);
-	ini.Set("Core", "PadPlugin",	m_LocalCoreStartupParameter.m_strPadPlugin[0]);
-	ini.Set("Core", "WiiMotePlugin",m_LocalCoreStartupParameter.m_strWiimotePlugin[0]);
+	core.Set("GFXPlugin",	m_LocalCoreStartupParameter.m_strVideoPlugin);
+	core.Set("DSPPlugin",	m_LocalCoreStartupParameter.m_strDSPPlugin);
+	core.Set("WiiMotePlugin",m_LocalCoreStartupParameter.m_strWiimotePlugin[0]);
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	m_SYSCONF->Save();
@@ -187,119 +192,121 @@ void SConfig::LoadSettings()
 	// Hard coded default
 	m_DefaultGFXPlugin = PluginsDir + DEFAULT_GFX_PLUGIN;
 	m_DefaultDSPPlugin = PluginsDir + DEFAULT_DSP_PLUGIN;
-	m_DefaultPADPlugin = PluginsDir + DEFAULT_PAD_PLUGIN;
 	m_DefaultWiiMotePlugin = PluginsDir + DEFAULT_WIIMOTE_PLUGIN;
 
 	// General
 	{
-		ini.Get("General", "LastFilename",	&m_LastFilename);
+		Section& general = ini["General"];
+		general.Get("LastFilename",	&m_LastFilename);
 
 		m_ISOFolder.clear();
-		int numGCMPaths;
 
-		if (ini.Get("General", "GCMPathes", &numGCMPaths, 0))
+		unsigned int numGCMPaths;
+		general.Get("GCMPathes", &numGCMPaths, 0);
+		for (unsigned int i = 0; i < numGCMPaths; i++)
 		{
-			for (int i = 0; i < numGCMPaths; i++)
-			{
-				TCHAR tmp[16];
-				sprintf(tmp, "GCMPath%i", i);
-				std::string tmpPath;
-				ini.Get("General", tmp, &tmpPath, "");
-				m_ISOFolder.push_back(tmpPath);
-			}
+			TCHAR tmp[16];
+			sprintf(tmp, "GCMPath%i", i);
+			std::string tmpPath;
+			general.Get(tmp, &tmpPath, "");
+			m_ISOFolder.push_back(tmpPath);
 		}
 
-		ini.Get("General", "RecersiveGCMPaths",		&m_RecursiveISOFolder,							false);
+		general.Get("RecersiveGCMPaths",		&m_RecursiveISOFolder,							false);
 	}
 
 	{
 		// Interface
-		ini.Get("Interface", "ConfirmStop",			&m_LocalCoreStartupParameter.bConfirmStop,		false);
-		ini.Get("Interface", "UsePanicHandlers",	&m_LocalCoreStartupParameter.bUsePanicHandlers,	true);
-		ini.Get("Interface", "HideCursor",			&m_LocalCoreStartupParameter.bHideCursor,		false);
-		ini.Get("Interface", "AutoHideCursor",		&m_LocalCoreStartupParameter.bAutoHideCursor,	false);
-		ini.Get("Interface", "Theme",				&m_LocalCoreStartupParameter.iTheme,			0);
-		ini.Get("Interface", "MainWindowPosX",		&m_LocalCoreStartupParameter.iPosX,				100);
-		ini.Get("Interface", "MainWindowPosY",		&m_LocalCoreStartupParameter.iPosY,				100);
-		ini.Get("Interface", "MainWindowWidth",		&m_LocalCoreStartupParameter.iWidth,			800);
-		ini.Get("Interface", "MainWindowHeight",	&m_LocalCoreStartupParameter.iHeight,			600);
-		ini.Get("Interface", "Language",			(int*)&m_InterfaceLanguage,						0);
-		ini.Get("Interface", "ShowToolbar",			&m_InterfaceToolbar,							true);
-		ini.Get("Interface", "ShowStatusbar",		&m_InterfaceStatusbar,							true);
-		ini.Get("Interface", "ShowLogWindow",		&m_InterfaceLogWindow,							false);
-		ini.Get("Interface", "ShowConsole",			&m_InterfaceConsole,							false);
+		Section& iface = ini["Interface"];
+		iface.Get("ConfirmStop",		&m_LocalCoreStartupParameter.bConfirmStop,		false);
+		iface.Get("UsePanicHandlers",	&m_LocalCoreStartupParameter.bUsePanicHandlers,	true);
+		iface.Get("HideCursor",			&m_LocalCoreStartupParameter.bHideCursor,		false);
+		iface.Get("AutoHideCursor",		&m_LocalCoreStartupParameter.bAutoHideCursor,	false);
+		iface.Get("Theme",				&m_LocalCoreStartupParameter.iTheme,			0);
+		iface.Get("MainWindowPosX",		&m_LocalCoreStartupParameter.iPosX,				100);
+		iface.Get("MainWindowPosY",		&m_LocalCoreStartupParameter.iPosY,				100);
+		iface.Get("MainWindowWidth",	&m_LocalCoreStartupParameter.iWidth,			800);
+		iface.Get("MainWindowHeight",	&m_LocalCoreStartupParameter.iHeight,			600);
+		iface.Get("Language",			(int*)&m_InterfaceLanguage,						0);
+		iface.Get("ShowToolbar",		&m_InterfaceToolbar,							true);
+		iface.Get("ShowStatusbar",		&m_InterfaceStatusbar,							true);
+		iface.Get("ShowLogWindow",		&m_InterfaceLogWindow,							false);
+		iface.Get("ShowConsole",		&m_InterfaceConsole,							false);
 
 		// Hotkeys
+		Section& hotkeys = ini["Hotkeys"];
 		for (int i = HK_FULLSCREEN; i < NUM_HOTKEYS; i++)
 		{
-			ini.Get("Hotkeys", g_HKData[i].IniText,
+			hotkeys.Get(g_HKData[i].IniText,
 					&m_LocalCoreStartupParameter.iHotkey[i], g_HKData[i].DefaultKey);
-			ini.Get("Hotkeys", (std::string(g_HKData[i].IniText) + "Modifier").c_str(),
+			hotkeys.Get((std::string(g_HKData[i].IniText) + "Modifier").c_str(),
 					&m_LocalCoreStartupParameter.iHotkeyModifier[i], g_HKData[i].DefaultModifier);
 		}
 
 		// Display
-		ini.Get("Display", "Fullscreen",			&m_LocalCoreStartupParameter.bFullscreen,		false);
-		ini.Get("Display", "FullscreenResolution",	&m_LocalCoreStartupParameter.strFullscreenResolution, "640x480");
-		ini.Get("Display", "RenderToMain",			&m_LocalCoreStartupParameter.bRenderToMain,		false);
-		ini.Get("Display", "RenderWindowXPos",		&m_LocalCoreStartupParameter.iRenderWindowXPos,	0);
-		ini.Get("Display", "RenderWindowYPos",		&m_LocalCoreStartupParameter.iRenderWindowYPos,	0);
-		ini.Get("Display", "RenderWindowWidth",		&m_LocalCoreStartupParameter.iRenderWindowWidth, 640);
-		ini.Get("Display", "RenderWindowHeight",	&m_LocalCoreStartupParameter.iRenderWindowHeight, 480);
+		Section& display = ini["Display"];
+		display.Get("Fullscreen",			&m_LocalCoreStartupParameter.bFullscreen,		false);
+		display.Get("FullscreenResolution",	&m_LocalCoreStartupParameter.strFullscreenResolution, "640x480");
+		display.Get("RenderToMain",			&m_LocalCoreStartupParameter.bRenderToMain,		false);
+		display.Get("RenderWindowXPos",		&m_LocalCoreStartupParameter.iRenderWindowXPos,	0);
+		display.Get("RenderWindowYPos",		&m_LocalCoreStartupParameter.iRenderWindowYPos,	0);
+		display.Get("RenderWindowWidth",	&m_LocalCoreStartupParameter.iRenderWindowWidth, 640);
+		display.Get("RenderWindowHeight",	&m_LocalCoreStartupParameter.iRenderWindowHeight, 480);
 
 		// Game List Control
-		ini.Get("GameList", "ListDrives",	&m_ListDrives,	false);
-		ini.Get("GameList", "ListWad",		&m_ListWad,		true);
-		ini.Get("GameList", "ListWii",		&m_ListWii,		true);
-		ini.Get("GameList", "ListGC",		&m_ListGC,		true);
-		ini.Get("GameList", "ListJap",		&m_ListJap,		true);
-		ini.Get("GameList", "ListPal",		&m_ListPal,		true);
-		ini.Get("GameList", "ListUsa",		&m_ListUsa,		true);
+		Section& gamelist = ini["GameList"];
+		gamelist.Get("ListDrives",	&m_ListDrives,	false);
+		gamelist.Get("ListWad",		&m_ListWad,		true);
+		gamelist.Get("ListWii",		&m_ListWii,		true);
+		gamelist.Get("ListGC",		&m_ListGC,		true);
+		gamelist.Get("ListJap",		&m_ListJap,		true);
+		gamelist.Get("ListPal",		&m_ListPal,		true);
+		gamelist.Get("ListUsa",		&m_ListUsa,		true);
 
-		ini.Get("GameList", "ListFrance",		&m_ListFrance, true);
-		ini.Get("GameList", "ListItaly",		&m_ListItaly, true);
-		ini.Get("GameList", "ListKorea",		&m_ListKorea, true);
-		ini.Get("GameList", "ListTaiwan",		&m_ListTaiwan, true);
-		ini.Get("GameList", "ListUnknown",		&m_ListUnknown, true);
+		gamelist.Get("ListFrance",	&m_ListFrance, true);
+		gamelist.Get("ListItaly",	&m_ListItaly, true);
+		gamelist.Get("ListKorea",	&m_ListKorea, true);
+		gamelist.Get("ListTaiwan",	&m_ListTaiwan, true);
+		gamelist.Get("ListUnknown",	&m_ListUnknown, true);
 
 		// Core
-		ini.Get("Core", "HLE_BS2",		&m_LocalCoreStartupParameter.bHLE_BS2,		true);
-		ini.Get("Core", "CPUCore",		&m_LocalCoreStartupParameter.iCPUCore,		1);
-		ini.Get("Core", "DSPThread",	&m_LocalCoreStartupParameter.bDSPThread,	false);
-		ini.Get("Core", "CPUThread",	&m_LocalCoreStartupParameter.bCPUThread,	true);
-		ini.Get("Core", "SkipIdle",		&m_LocalCoreStartupParameter.bSkipIdle,		true);
-		ini.Get("Core", "LockThreads",	&m_LocalCoreStartupParameter.bLockThreads,	false);
-		ini.Get("Core", "DefaultGCM",	&m_LocalCoreStartupParameter.m_strDefaultGCM);
-		ini.Get("Core", "DVDRoot",		&m_LocalCoreStartupParameter.m_strDVDRoot);
-		ini.Get("Core", "Apploader",	&m_LocalCoreStartupParameter.m_strApploader);
-		ini.Get("Core", "EnableCheats",	&m_LocalCoreStartupParameter.bEnableCheats,				false);
-		ini.Get("Core", "SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage,		0);
-		ini.Get("Core", "MemcardA",		&m_strMemoryCardA);
-		ini.Get("Core", "MemcardB",		&m_strMemoryCardB);
-		ini.Get("Core", "SlotA",		(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD_A);
-		ini.Get("Core", "SlotB",		(int*)&m_EXIDevice[1], EXIDEVICE_MEMORYCARD_B);
-		ini.Get("Core", "SerialPort1",	(int*)&m_EXIDevice[2], EXIDEVICE_NONE);
-		ini.Get("Core", "ProfiledReJIT",&m_LocalCoreStartupParameter.bJITProfiledReJIT,			false);
+		Section& core = ini["Core"];
+		core.Get("HLE_BS2",			&m_LocalCoreStartupParameter.bHLE_BS2,		true);
+		core.Get("CPUCore",			&m_LocalCoreStartupParameter.iCPUCore,		1);
+		core.Get("DSPThread",		&m_LocalCoreStartupParameter.bDSPThread,	false);
+		core.Get("CPUThread",		&m_LocalCoreStartupParameter.bCPUThread,	true);
+		core.Get("SkipIdle",		&m_LocalCoreStartupParameter.bSkipIdle,		true);
+		core.Get("LockThreads",		&m_LocalCoreStartupParameter.bLockThreads,	false);
+		core.Get("DefaultGCM",		&m_LocalCoreStartupParameter.m_strDefaultGCM);
+		core.Get("DVDRoot",			&m_LocalCoreStartupParameter.m_strDVDRoot);
+		core.Get("Apploader",		&m_LocalCoreStartupParameter.m_strApploader);
+		core.Get("EnableCheats",	&m_LocalCoreStartupParameter.bEnableCheats,			false);
+		core.Get("SelectedLanguage", &m_LocalCoreStartupParameter.SelectedLanguage,		0);
+		core.Get("MemcardA",		&m_strMemoryCardA);
+		core.Get("MemcardB",		&m_strMemoryCardB);
+		core.Get("SlotA",			(int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD_A);
+		core.Get("SlotB",			(int*)&m_EXIDevice[1], EXIDEVICE_MEMORYCARD_B);
+		core.Get("SerialPort1",		(int*)&m_EXIDevice[2], EXIDEVICE_NONE);
+		core.Get("ProfiledReJIT",	&m_LocalCoreStartupParameter.bJITProfiledReJIT,		false);
 		char sidevicenum[16];
 		for (int i = 0; i < 4; ++i)
 		{
 			sprintf(sidevicenum, "SIDevice%i", i);
-			ini.Get("Core", sidevicenum,	(u32*)&m_SIDevice[i], i==0 ? SI_GC_CONTROLLER:SI_NONE);
+			core.Get(sidevicenum, (u32*)&m_SIDevice[i], i==0 ? SI_GC_CONTROLLER:SI_NONE);
 		}
 
-		ini.Get("Core", "WiiSDCard", &m_WiiSDCard, false);
-		ini.Get("Core", "WiiKeyboard", &m_WiiKeyboard, false);
-		ini.Get("Core", "RunCompareServer",	&m_LocalCoreStartupParameter.bRunCompareServer,	false);
-		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
-		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
-		ini.Get("Core", "FrameLimit",		&m_Framelimit,									1); // auto frame limit by default
-		ini.Get("Core", "UseFPS",		&b_UseFPS,									false); // use vps as default
+		core.Get("WiiSDCard",			&m_WiiSDCard, false);
+		core.Get("WiiKeyboard",			&m_WiiKeyboard, false);
+		core.Get("RunCompareServer",	&m_LocalCoreStartupParameter.bRunCompareServer,	false);
+		core.Get("RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
+		core.Get("TLBHack",				&m_LocalCoreStartupParameter.iTLBHack,			0);
+		core.Get("FrameLimit",			&m_Framelimit,									1); // auto frame limit by default
+		core.Get("UseFPS",				&b_UseFPS,									false); // use vps as default
 
 		// Plugins
-		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin,	m_DefaultGFXPlugin.c_str());
-		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin,		m_DefaultDSPPlugin.c_str());
-		ini.Get("Core", "PadPlugin", &m_LocalCoreStartupParameter.m_strPadPlugin[0], m_DefaultPADPlugin.c_str());
-		ini.Get("Core", "WiiMotePlugin", &m_LocalCoreStartupParameter.m_strWiimotePlugin[0], m_DefaultWiiMotePlugin.c_str());
+		core.Get("GFXPlugin",		&m_LocalCoreStartupParameter.m_strVideoPlugin,	m_DefaultGFXPlugin.c_str());
+		core.Get("DSPPlugin",		&m_LocalCoreStartupParameter.m_strDSPPlugin,		m_DefaultDSPPlugin.c_str());
+		core.Get("WiiMotePlugin",	&m_LocalCoreStartupParameter.m_strWiimotePlugin[0], m_DefaultWiiMotePlugin.c_str());
 
 
 	}
@@ -315,6 +322,6 @@ void SConfig::LoadSettingsWii()
 	{
 		char SectionName[32];
 		sprintf(SectionName, "Wiimote%i", i + 1);
-		ini.Get(SectionName, "AutoReconnectRealWiimote", &m_WiiAutoReconnect[i], false);
+		ini[SectionName].Get("AutoReconnectRealWiimote", &m_WiiAutoReconnect[i], false);
 	}
 }

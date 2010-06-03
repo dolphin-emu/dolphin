@@ -45,7 +45,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -110,7 +110,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SECURE_SCL=0;_LIB;__WXMSW__;wxUSE_BASE=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -175,7 +175,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -244,7 +244,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
-				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -306,7 +306,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -368,7 +368,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src;../../PluginSpecs;..\..\..\Externals\wxWidgets\include;..\..\..\Externals\wxWidgets\lib\vc_lib\msw;..\..\..\Externals\wxWidgets\include\msvc"
+				AdditionalIncludeDirectories="..\..\..\Externals\SDL\include;../../Core/Common/Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;__WXMSW__;wxUSE_BASE=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -476,60 +476,48 @@
 				</File>
 			</Filter>
 		</Filter>
+		<Filter
+			Name="old"
+			>
+			<File
+				RelativePath=".\Src\Configuration.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\InputCommon.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SDL_Util.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\SDL_Util.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\XInput_Util.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\XInput_Util.h"
+				>
+			</File>
+		</Filter>
 		<File
-			RelativePath=".\Src\Configuration.cpp"
+			RelativePath=".\Src\Config.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\DirectInputBase.cpp"
+			RelativePath=".\Src\Config.h"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\DirectInputBase.h"
+			RelativePath=".\Src\ControllerEmu.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\Src\Event.hpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\EventHandler.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\EventHandler.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\InputCommon.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\InputCommon.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SDL_Util.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\SDL_Util.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\WXInputBase.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\WXInputBase.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\XInput_Util.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\XInput_Util.h"
+			RelativePath=".\Src\ControllerEmu.h"
 			>
 		</File>
 	</Files>

@@ -472,14 +472,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Src\PluginPAD.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\PluginPAD.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\PluginVideo.cpp"
 				>
 			</File>
@@ -512,10 +504,6 @@
 				</File>
 				<File
 					RelativePath="..\..\PluginSpecs\pluginspecs_dsp.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\PluginSpecs\pluginspecs_pad.h"
 					>
 				</File>
 				<File
