@@ -5,7 +5,7 @@ icenv = env.Clone()
 
 files = [
 	'Configuration.cpp',
-	'Config.cpp',
+	'InputConfig.cpp',
 	'ControllerEmu.cpp',
 	'SDL_Util.cpp',
 	'ControllerInterface/ControllerInterface.cpp',

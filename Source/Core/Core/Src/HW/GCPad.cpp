@@ -1,6 +1,6 @@
 #include <ControllerInterface/ControllerInterface.h>
 #include "GCPadEmu.h"
-#include <ConfigInput.h>
+#include <InputConfig.h>
 #include "../ConfigManager.h"
 
 /*staticTODOSHUFFLE*/ Plugin g_GCPad( "GCPad", "Pad", "GCPad" );

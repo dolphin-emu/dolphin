@@ -411,14 +411,14 @@
 		<Filter
 			Name="old"
 			>
-		<File
+			<File
 				RelativePath=".\Src\WXInputBase.cpp"
-			>
-		</File>
-		<File
+				>
+			</File>
+			<File
 				RelativePath=".\Src\WXInputBase.h"
-			>
-		</File>
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\Src\ConfigDiag.cpp"
@@ -430,6 +430,10 @@
 		</File>
 		<File
 			RelativePath=".\Src\ConfigDiagBitmaps.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SConscript"
 			>
 		</File>
 	</Files>
