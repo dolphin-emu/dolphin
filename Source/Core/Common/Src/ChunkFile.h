@@ -183,7 +183,6 @@ public:
 	template<class T>
 	static bool Load(const std::string& _rFilename, int _Revision, T& _class) 
 	{
-		
 		INFO_LOG(COMMON, "ChunkReader: Loading %s" , _rFilename.c_str());
 
 		if (! File::Exists(_rFilename.c_str()))

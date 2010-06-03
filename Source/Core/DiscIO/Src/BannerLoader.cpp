@@ -128,15 +128,18 @@ bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16
 	return returnCode;
 }
 
-
 IBannerLoader* CreateBannerLoader(DiscIO::IFileSystem& _rFileSystem, DiscIO::IVolume *pVolume)
 {
 	if (IsVolumeWiiDisc(pVolume) || IsVolumeWadFile(pVolume))
 	{
-		return(new CBannerLoaderWii(pVolume));
+		return new CBannerLoaderWii(pVolume);
+	}
+	if (_rFileSystem.IsValid()) 
+	{
+		return new CBannerLoaderGC(_rFileSystem);
 	}
 
-	return(new CBannerLoaderGC(_rFileSystem));
+	return NULL;
 }
-} // namespace
 
+} // namespace

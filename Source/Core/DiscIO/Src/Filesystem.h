@@ -49,14 +49,14 @@ public:
 	IFileSystem(const IVolume *_rVolume);
 
 	virtual ~IFileSystem();
-	virtual bool IsInitialized() const = 0;
-	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) const = 0;
-	virtual u64 GetFileSize(const char* _rFullPath) const = 0;
-	virtual u64 ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const = 0;
-	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) const = 0;
+	virtual bool IsValid() const = 0;
+	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) = 0;
+	virtual u64 GetFileSize(const char* _rFullPath) = 0;
+	virtual u64 ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) = 0;
+	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) = 0;
 	virtual bool ExportApploader(const char* _rExportFolder) const = 0;
 	virtual bool ExportDOL(const char* _rExportFolder) const = 0;
-	virtual const char* GetFileName(u64 _Address) const = 0;
+	virtual const char* GetFileName(u64 _Address) = 0;
 
 	virtual const IVolume *GetVolume() const { return m_rVolume; }
 protected:

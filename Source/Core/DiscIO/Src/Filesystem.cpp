@@ -40,7 +40,7 @@ IFileSystem* CreateFileSystem(const IVolume* _rVolume)
 	if (!pFileSystem)
 		return 0;
 
-	if (!pFileSystem->IsInitialized())
+	if (!pFileSystem->IsValid())
 	{
 		delete pFileSystem;
 		pFileSystem = NULL;

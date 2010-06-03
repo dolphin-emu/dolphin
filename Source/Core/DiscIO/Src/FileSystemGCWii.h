@@ -30,24 +30,27 @@ class CFileSystemGCWii : public IFileSystem
 public:
 	CFileSystemGCWii(const IVolume *_rVolume);
 	virtual ~CFileSystemGCWii();
-	virtual bool IsInitialized() const;
-	virtual u64 GetFileSize(const char* _rFullPath) const;
-	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames) const;
-	virtual const char* GetFileName(u64 _Address) const;
-	virtual u64 ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize) const;
-	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename) const;
+	virtual bool IsValid() const { return m_Valid; }
+	virtual u64 GetFileSize(const char* _rFullPath);
+	virtual size_t GetFileList(std::vector<const SFileInfo *> &_rFilenames);
+	virtual const char* GetFileName(u64 _Address);
+	virtual u64 ReadFile(const char* _rFullPath, u8* _pBuffer, size_t _MaxBufferSize);
+	virtual bool ExportFile(const char* _rFullPath, const char* _rExportFilename);
 	virtual bool ExportApploader(const char* _rExportFolder) const;
 	virtual bool ExportDOL(const char* _rExportFolder) const;
 
 private:
 
+	bool m_Valid;
 	bool m_Initialized;
+
 	u32 m_OffsetShift; // WII offsets are all shifted
 	std::vector <SFileInfo> m_FileInfoVector;
 	u32 Read32(u64 _Offset) const;
 	void GetStringFromOffset(u64 _Offset, char* Filename) const;
-	const SFileInfo* FindFileInfo(const char* _rFullPath) const;
-	bool InitFileSystem();
+	const SFileInfo* FindFileInfo(const char* _rFullPath);
+	bool DetectFileSystem();
+	void InitFileSystem();
 	size_t BuildFilenames(const size_t _FirstIndex, const size_t _LastIndex, const char* _szDirectory, u64 _NameTableOffset);
 };
 
