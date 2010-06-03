@@ -1,5 +1,5 @@
 
-#include "Config.h"
+#include "ConfigInput.h"
 
 Plugin::Plugin( const char* const _ini_name, const char* const _gui_name, const char* const _profile_name  )
 	: ini_name(_ini_name)

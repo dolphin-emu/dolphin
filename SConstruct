@@ -26,10 +26,6 @@ warnings = [
     'packed',
     'no-conversion',
     ]
-# XXX check for the availability of these (in GCC 4.3 or newer)
-if sys.platform != 'darwin':
-    warnings.append('no-array-bounds')
-    warnings.append('no-unused-result')
 
 compileFlags = [
     '-fno-exceptions',
@@ -57,10 +53,10 @@ include_paths = [
     basedir + 'Externals/WiiUseSrc/Src',
     basedir + 'Source/Core/VideoCommon/Src',
     basedir + 'Source/Core/InputCommon/Src',
-    basedir + 'Source/Plugins/InputPluginCommon/Src',
     basedir + 'Source/Core/AudioCommon/Src',
     basedir + 'Source/Core/DebuggerUICommon/Src',
     basedir + 'Source/Core/DSPCore/Src',
+    basedir + 'Source/Plugins/InputUICommon/Src',
     ]
 
 dirs = [
@@ -80,13 +76,11 @@ dirs = [
     'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',
-    'Source/Plugins/Plugin_GCPad/Src',
-    'Source/Plugins/Plugin_GCPadNew/Src',
     'Source/Plugins/Plugin_Wiimote/Src',
+    'Source/Plugins/InputUICommon/Src',
     'Source/Core/DolphinWX/Src',
     'Source/Core/DebuggerWX/Src',
     'Source/UnitTests/',
-    'Source/Plugins/InputPluginCommon/Src/',
     'Source/Plugins/Plugin_WiimoteNew/Src/',
     ]
 

@@ -1,19 +1,13 @@
 # -*- python -*-
 
 Import('env')
-
-files = [
-	'Config.cpp',
-	'ControllerEmu.cpp',
-	]
-
 if env['HAVE_WX']:
-	files += [
-			'ConfigDiagBitmaps.cpp',
-			'ConfigDiag.cpp',
-			]
+	
+	files = [
+		'ConfigDiagBitmaps.cpp',
+		'ConfigDiag.cpp',
+		'WXInputBase.cpp'
+		]
 
-
-
-env_inputpc = env.Clone()
-env_inputpc.StaticLibrary(env['local_libs'] + "inputplugincommon", files)
+	env_inputpc = env.Clone()
+	env_inputpc.StaticLibrary(env['local_libs'] + "inputuicommon", files)

@@ -28,7 +28,6 @@ files = [
 	"PluginDSP.cpp",
 	"PluginWiimote.cpp",
 	"PluginVideo.cpp",
-	"PluginPAD.cpp",
 	"SDCardUtil.cpp",
 	"StringUtil.cpp",
 	"SymbolDB.cpp",

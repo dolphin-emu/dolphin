@@ -439,7 +439,7 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 
 	// Emulation status
 	int nState;
-	ini.Get("EmuState", "EmulationStateId", &nState);
+	ini["EmuState"].Get("EmulationStateId", &nState);
 
 	// Emulation state
 	SetItemColumnImage(_Index, COLUMN_EMULATION_STATE, m_EmuStateImageIndex[nState]);

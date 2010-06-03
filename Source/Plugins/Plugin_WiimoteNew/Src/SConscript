@@ -20,7 +20,7 @@ files = [
 	]
 
 wiinewenv.Append(
-	LIBS = [ 'inputplugincommon', 'inputcommon', 'common' ],
+	LIBS = [ 'inputuicommon', 'inputcommon', 'common' ],
 	)
 
 if sys.platform == 'darwin':

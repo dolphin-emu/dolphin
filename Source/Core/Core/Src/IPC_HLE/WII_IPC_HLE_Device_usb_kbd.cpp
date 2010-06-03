@@ -37,7 +37,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
 	INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Open");
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-	ini["USB Keyboard"].Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
+	ini["USB Keyboard"].Get("Layout", &m_KeyboardLayout, (int)KBD_LAYOUT_QWERTY);
 
 	for(int i = 0; i < 256; i++)
 		m_OldKeyBuffer[i] = false;
