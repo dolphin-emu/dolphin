@@ -23,44 +23,110 @@
 
 #include "StringUtil.h"
 
-class Section
-{
-public:
-	Section();
-	Section(const std::string& _name);
-	Section(const Section& other);
-	std::vector<std::string>lines;
-	std::string name;
-	std::string comment;
-
-	bool operator<(const Section& other) const
-	{
-		return(name < other.name);
-	}
-};
-
 class IniFile
 {
 public:
+	class Section
+	{
+	public:
+		Section();
+		Section(const std::string& _name);
+		Section(const Section& other);
+
+		std::vector<std::string> lines;
+		std::string name;
+		std::string comment;
+
+		bool Exists(const char *key) const;
+
+		std::string* GetLine(const char* key, std::string* valueOut, std::string* commentOut);
+		void Set(const char* key, const char* newValue);
+		void Set(const std::string &key, const std::string &value) {
+			Set(key.c_str(), value.c_str());
+		}
+		bool Get(const char* key, std::string* value, const char* defaultValue);
+
+		void Set(const char* key, u32 newValue) {
+			Set(key, StringFromFormat("0x%08x", newValue).c_str());
+		}
+		void Set(const char* key, float newValue) {
+			Set(key, StringFromFormat("%f", newValue).c_str());
+		}
+		void Set(const char* key, double newValue) {
+			Set(key, StringFromFormat("%f", newValue).c_str());
+		}
+		void Set(const char* key, int newValue) {
+			Set(key, StringFromInt(newValue).c_str());
+		}
+		void Set(const char* key, bool newValue) {
+			Set(key, StringFromBool(newValue).c_str());
+		}
+		void Set(const char* key, const std::vector<std::string>& newValues);
+
+		bool Get(const char* key, int* value, int defaultValue = 0);
+		bool Get(const char* key, u32* value, u32 defaultValue = 0);
+		bool Get(const char* key, bool* value, bool defaultValue = false);
+		bool Get(const char* key, float* value, float defaultValue = false);
+		bool Get(const char* key, double* value, double defaultValue = false);
+		bool Get(const char* key, std::vector<std::string>& values);
+
+		// Direct getters, Billiard-style.
+		std::string Get(const char *key, const char *default_value) {
+			std::string value; Get(key, &value, default_value); return value;
+		}
+		int Get(const char *key, int defaultValue) {
+			int value; Get(key, &value, defaultValue); return value;
+		}
+		int Get(const char *key, u32 defaultValue) {
+			u32 value; Get(key, &value, defaultValue); return value;
+		}
+		int Get(const char *key, bool defaultValue) {
+			bool value; Get(key, &value, defaultValue); return value;
+		}
+		float Get(const char *key, float defaultValue) {
+			float value; Get(key, &value, defaultValue); return value;
+		}
+		double Get(const char *key, double defaultValue) {
+			double value; Get(key, &value, defaultValue); return value;
+		}
+
+		bool operator < (const Section& other) const {
+			return name < other.name;
+		}
+	};
+
 	IniFile();
 	~IniFile();
 
 	bool Load(const char* filename);
+	bool Load(const std::string &filename) { return Load(filename.c_str()); }
 	bool Save(const char* filename);
+	bool Save(const std::string &filename) { return Save(filename.c_str()); }
 
-	void Set(const char* sectionName, const char* key, const char* newValue);
-	void Set(const char* sectionName, const char* key, int newValue);
-	void Set(const char* sectionName, const char* key, u32 newValue);
-	void Set(const char* sectionName, const char* key, bool newValue);
-	void Set(const char* sectionName, const char* key, const std::string& newValue) {Set(sectionName, key, newValue.c_str());}
-	void Set(const char* sectionName, const char* key, const std::vector<std::string>& newValues);
-
-	void SetLines(const char* sectionName, const std::vector<std::string> &lines);
-
-	// Returns true if exists key in section
+	// Returns true if key exists in section
 	bool Exists(const char* sectionName, const char* key) const;
 
-	// getter should be const
+	// TODO: Get rid of these, in favor of the Section ones.
+	void Set(const char* sectionName, const char* key, const char* newValue) {
+		GetOrCreateSection(sectionName)->Set(key, newValue);
+	}
+	void Set(const char* sectionName, const char* key, const std::string& newValue) {
+		GetOrCreateSection(sectionName)->Set(key, newValue.c_str());
+	}
+	void Set(const char* sectionName, const char* key, int newValue) {
+		GetOrCreateSection(sectionName)->Set(key, newValue);
+	}
+	void Set(const char* sectionName, const char* key, u32 newValue) {
+		GetOrCreateSection(sectionName)->Set(key, newValue);
+	}
+	void Set(const char* sectionName, const char* key, bool newValue) {
+		GetOrCreateSection(sectionName)->Set(key, newValue);
+	}
+	void Set(const char* sectionName, const char* key, const std::vector<std::string>& newValues) {
+		GetOrCreateSection(sectionName)->Set(key, newValues);
+	}
+
+	// TODO: Get rid of these, in favor of the Section ones.
 	bool Get(const char* sectionName, const char* key, std::string* value, const char* defaultValue = "");
 	bool Get(const char* sectionName, const char* key, int* value, int defaultValue = 0);
 	bool Get(const char* sectionName, const char* key, u32* value, u32 defaultValue = 0);
@@ -68,6 +134,8 @@ public:
 	bool Get(const char* sectionName, const char* key, std::vector<std::string>& values);
 
 	bool GetKeys(const char* sectionName, std::vector<std::string>& keys) const;
+
+	void SetLines(const char* sectionName, const std::vector<std::string> &lines);
 	bool GetLines(const char* sectionName, std::vector<std::string>& lines) const;
 
 	bool DeleteKey(const char* sectionName, const char* key);
@@ -75,15 +143,13 @@ public:
 
 	void SortSections();
 
-	void ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut, std::string* commentOut) const;
-	std::string* GetLine(Section* section, const char* key, std::string* valueOut, std::string* commentOut);
+	Section* GetOrCreateSection(const char* section);
 
 private:
-	std::vector<Section>sections;
+	std::vector<Section> sections;
 
 	const Section* GetSection(const char* section) const;
 	Section* GetSection(const char* section);
-	Section* GetOrCreateSection(const char* section);
 	std::string* GetLine(const char* section, const char* key);
 	void CreateSection(const char* section);
 };

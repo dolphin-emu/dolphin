@@ -69,6 +69,8 @@ bool TryParseUInt(const std::wstring& str, u32* output);
 bool TryParseInt(const char* str, int* outVal);
 bool TryParseBool(const char* str, bool* output);
 bool TryParseUInt(const std::string& str, u32* output);
+bool TryParseFloat(const char* str, float *output);
+bool TryParseDouble(const char* str, double *output);
 
 
 // TODO: kill this

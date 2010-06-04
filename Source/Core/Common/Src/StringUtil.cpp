@@ -244,7 +244,6 @@ bool TryParseInt(const char* str, int* outVal)
 	return true;
 }
 
-
 bool TryParseBool(const char* str, bool* output)
 {
 	if ((str[0] == '1') || !strcasecmp(str, "true"))
@@ -258,6 +257,25 @@ bool TryParseBool(const char* str, bool* output)
 		return true;
 	}
 	return false;
+}
+
+bool TryParseFloat(const char* str, float *output)
+{
+	double d_val;
+	if (sscanf(str, "%f", &d_val) == 1)
+	{
+		*output = (float)d_val;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool TryParseDouble(const char* str, double *output)
+{
+	return sscanf(str, "%f", output) == 1;
 }
 
 std::string StringFromInt(int value)
