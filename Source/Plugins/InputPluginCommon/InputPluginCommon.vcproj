@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="InputPluginCommon"
 	ProjectGUID="{660BB3F7-ED8F-4027-A460-8E4EDA8189BE}"
 	RootNamespace="VideoCommon"
@@ -434,14 +434,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\ControllerEmu.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\IniFile.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\IniFile.h"
 			>
 		</File>
 	</Files>

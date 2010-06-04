@@ -101,8 +101,8 @@ public:
 		ControlGroup( const char* const _name, const unsigned int _type = GROUP_TYPE_OTHER ) : name(_name), type(_type) {}
 		virtual ~ControlGroup();
 	
-		void LoadConfig( IniFile::Section& sec, const std::string& defdev = "", const std::string& base = "" );
-		void SaveConfig( IniFile::Section& sec, const std::string& defdev = "", const std::string& base = "" );
+		void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
+		void SaveConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 
 		const char* const			name;
 		const unsigned int			type;
@@ -382,8 +382,8 @@ public:
 
 	virtual std::string GetName() const = 0;
 
-	void LoadConfig( IniFile::Section& sec, const std::string& base = "" );
-	void SaveConfig( IniFile::Section& sec, const std::string& base = "" );
+	void LoadConfig(IniFile::Section *sec, const std::string& base = "");
+	void SaveConfig(IniFile::Section *sec, const std::string& base = "");
 	void UpdateDefaultDevice();
 
 	void UpdateReferences( ControllerInterface& devi );

@@ -418,7 +418,7 @@ bool OpenGL_MakeCurrent()
 #elif defined(__APPLE__)
 	cocoaGLMakeCurrent(GLWin.cocoaCtx,GLWin.cocoaWin);
 #elif defined(_WIN32)
-	return wglMakeCurrent(hDC,hRC);
+	return wglMakeCurrent(hDC,hRC) ? true : false;
 #elif defined(HAVE_X11) && HAVE_X11
 	g_VideoInitialize.pRequestWindowSize(GLWin.x, GLWin.y, (int&)GLWin.width, (int&)GLWin.height);
 	XMoveResizeWindow(GLWin.dpy, GLWin.win, GLWin.x, GLWin.y, GLWin.width, GLWin.height);

@@ -283,12 +283,12 @@ void GamepadPage::ClearAll( wxCommandEvent& event )
 	g_plugin->controls_crit.Enter();		// enter
 
 	// just load an empty ini section to clear everything :P
-	IniSection section;
-	controller->LoadConfig( section );
+	IniFile::Section section;
+	controller->LoadConfig(&section);
 
 	// no point in using the real ControllerInterface i guess
 	ControllerInterface face;
-	controller->UpdateReferences( face );
+	controller->UpdateReferences(face);
 
 	UpdateGUI();
 
@@ -524,7 +524,6 @@ void GamepadPage::LoadProfile( wxCommandEvent& event )
 	
 	g_plugin->controls_crit.Enter();
 
-	std::ifstream file;
 	std::string fname( File::GetUserPath(D_CONFIG_IDX) );
 	fname += PROFILES_PATH; fname += g_plugin->profile_name; fname += '/';
 	fname += profile_cbox->GetValue().ToAscii(); fname += ".ini";
@@ -532,16 +531,12 @@ void GamepadPage::LoadProfile( wxCommandEvent& event )
 	if ( false == File::Exists( fname.c_str() ) )
 		return;
 
-	file.open( fname.c_str() );
 	IniFile inifile;
-	inifile.Load( file );
-	controller->LoadConfig( inifile["Profile"] );
-	file.close();
-
+	inifile.Load(fname);
+	controller->LoadConfig( inifile.GetOrCreateSection("Profile"));
 	controller->UpdateReferences( g_plugin->controller_interface );
 
 	g_plugin->controls_crit.Leave();
-
 	UpdateGUI();
 }
 
@@ -551,21 +546,17 @@ void GamepadPage::SaveProfile( wxCommandEvent& event )
 	if ( profile_cbox->GetValue().empty() )
 		return;
 
-	// don't need lock
-	IniFile inifile;
-	controller->SaveConfig( inifile["Profile"] );
-	std::ofstream file;
 	std::string fname( File::GetUserPath(D_CONFIG_IDX) );
 	fname += PROFILES_PATH; fname += g_plugin->profile_name; fname += '/';
-	
 	if ( false == File::Exists( fname.c_str() ) )
 		File::CreateFullPath( fname.c_str() );
-
 	fname += profile_cbox->GetValue().ToAscii(); fname += ".ini";
 
-	file.open( fname.c_str() );
-	inifile.Save( file );
-	file.close();
+	// don't need lock
+	IniFile inifile;
+	inifile.Load(fname);
+	controller->SaveConfig( inifile.GetOrCreateSection("Profile") );
+	inifile.Save(fname);
 
 	m_config_dialog->UpdateProfileComboBox();
 }

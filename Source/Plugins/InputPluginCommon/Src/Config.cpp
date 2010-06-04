@@ -1,6 +1,7 @@
 
 #include "Config.h"
 
+
 Plugin::Plugin( const char* const _ini_name, const char* const _gui_name, const char* const _profile_name  )
 	: ini_name(_ini_name)
 	, gui_name(_gui_name)
@@ -26,32 +27,26 @@ Plugin::~Plugin()
 void Plugin::LoadConfig()
 {
 	IniFile inifile;
-
-	std::ifstream file;
-	file.open( (std::string(File::GetUserPath(D_CONFIG_IDX)) + ini_name + ".ini" ).c_str() );
-	inifile.Load( file );
-	file.close();
+	inifile.Load(std::string(File::GetUserPath(D_CONFIG_IDX)) + ini_name + ".ini");
 
 	std::vector< ControllerEmu* >::const_iterator i = controllers.begin(),
 		e = controllers.end();
-	for ( ; i!=e; ++i )
-		(*i)->LoadConfig( inifile[ (*i)->GetName() ] );
+	for ( ; i!=e; ++i ) {
+		(*i)->LoadConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
+	}
 }
 
 void Plugin::SaveConfig()
 {
+	std::string ini_filename = (std::string(File::GetUserPath(D_CONFIG_IDX)) + ini_name + ".ini" );
+
 	IniFile inifile;
+	inifile.Load(ini_filename);
 
 	std::vector< ControllerEmu* >::const_iterator i = controllers.begin(),
 		e = controllers.end();
 	for ( ; i!=e; ++i )
-		(*i)->SaveConfig( inifile[ (*i)->GetName() ] );
+		(*i)->SaveConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
 	
-	// dont need to save empty values
-	//inifile.Clean();
-
-	std::ofstream file;
-	file.open( (std::string(File::GetUserPath(D_CONFIG_IDX)) + ini_name + ".ini" ).c_str() );
-	inifile.Save( file );
-	file.close();
+	inifile.Save(ini_filename);
 }

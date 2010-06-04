@@ -26,7 +26,7 @@ namespace FileMon
 
 void ShowSound(std::string File);
 void ReadGC(std::string File);
-void CheckFile(std::string File, int Size);
+void CheckFile(std::string File, u64 Size);
 void FindFilename(u64 Offset);
 void Close();
 

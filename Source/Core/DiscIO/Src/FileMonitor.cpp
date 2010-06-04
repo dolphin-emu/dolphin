@@ -95,7 +95,7 @@ void ReadGC(std::string FileName)
 }
 
 // Check if we should play this file
-void CheckFile(std::string File, int Size)
+void CheckFile(std::string File, u64 Size)
 {
 	// Don't do anything if the log is unselected
 	if (!LogManager::GetInstance()->isEnable(LogTypes::FILEMON)) return;

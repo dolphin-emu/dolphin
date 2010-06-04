@@ -113,37 +113,37 @@ void VideoConfig::GameIniLoad(const char *ini_file)
     iniFile.Load(ini_file);
 
 	if (iniFile.Exists("Video", "ForceFiltering"))
-		iniFile.Get("Video", "ForceFiltering", &bForceFiltering, 0);
+		iniFile.Get("Video", "ForceFiltering", &bForceFiltering);
 	if (iniFile.Exists("Video", "MaxAnisotropy"))
-		iniFile.Get("Video", "MaxAnisotropy", &iMaxAnisotropy, 3);  // NOTE - this is x in (1 << x)
+		iniFile.Get("Video", "MaxAnisotropy", &iMaxAnisotropy);  // NOTE - this is x in (1 << x)
 	if (iniFile.Exists("Video", "EFBCopyDisable"))
-		iniFile.Get("Video", "EFBCopyDisable", &bEFBCopyDisable, 0);
+		iniFile.Get("Video", "EFBCopyDisable", &bEFBCopyDisable);
 	if (iniFile.Exists("Video", "EFBCopyDisableHotKey"))
-		iniFile.Get("Video", "EFBCopyDisableHotKey", &bOSDHotKey, 0);
+		iniFile.Get("Video", "EFBCopyDisableHotKey", &bOSDHotKey);
 	if (iniFile.Exists("Video", "EFBToTextureEnable"))
-		iniFile.Get("Video", "EFBToTextureEnable", &bCopyEFBToTexture, 0);
+		iniFile.Get("Video", "EFBToTextureEnable", &bCopyEFBToTexture);
 	if (iniFile.Exists("Video", "EFBScaledCopy"))
-		iniFile.Get("Video", "EFBScaledCopy", &bCopyEFBScaled, 0);
+		iniFile.Get("Video", "EFBScaledCopy", &bCopyEFBScaled);
 	if (iniFile.Exists("Video", "SafeTextureCache"))
-		iniFile.Get("Video", "SafeTextureCache", &bSafeTextureCache, false);	
+		iniFile.Get("Video", "SafeTextureCache", &bSafeTextureCache);
 	//Safe texture cache params
 	if (iniFile.Exists("Video", "SafeTextureCacheColorSamples"))
-		iniFile.Get("Video", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,512);	
+		iniFile.Get("Video", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples);
 
 	if (iniFile.Exists("Video", "MSAA"))
-		iniFile.Get("Video", "MSAA", &iMultisampleMode, 0);
+		iniFile.Get("Video", "MSAA", &iMultisampleMode);
 	if (iniFile.Exists("Video", "DstAlphaPass"))
-		iniFile.Get("Video", "DstAlphaPass", &bDstAlphaPass, false);
+		iniFile.Get("Video", "DstAlphaPass", &bDstAlphaPass);
 	if (iniFile.Exists("Video", "UseXFB"))
-		iniFile.Get("Video", "UseXFB", &bUseXFB, 0);
+		iniFile.Get("Video", "UseXFB", &bUseXFB);
 	if (iniFile.Exists("Video", "UseRealXFB"))
-		iniFile.Get("Video", "UseRealXFB", &bUseRealXFB, 0);
+		iniFile.Get("Video", "UseRealXFB", &bUseRealXFB);
 	if (iniFile.Exists("Video", "FIFOBPHack"))
-		iniFile.Get("Video", "FIFOBPHack", &bFIFOBPhack, false);
+		iniFile.Get("Video", "FIFOBPHack", &bFIFOBPhack);
 	if (iniFile.Exists("Video", "ProjectionHack"))
-		iniFile.Get("Video", "ProjectionHack", &iPhackvalue, 0);
+		iniFile.Get("Video", "ProjectionHack", &iPhackvalue);
 	if (iniFile.Exists("Video", "UseNativeMips"))
-		iniFile.Get("Video", "UseNativeMips", &bUseNativeMips, true);
+		iniFile.Get("Video", "UseNativeMips", &bUseNativeMips);
 }
 
 void VideoConfig::Save(const char *ini_file)

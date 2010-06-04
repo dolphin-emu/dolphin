@@ -31,6 +31,7 @@
 
 #include <vector>
 #include <string>
+#include <fstream>
 
 #include "Common.h" // Common
 #include "FileUtil.h"
