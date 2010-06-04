@@ -90,12 +90,12 @@ std::string* IniFile::Section::GetLine(const char* key, std::string* valueOut, s
 
 void IniFile::Section::Set(const char* key, const char* newValue)
 {
-	std::string value, comment;
-	std::string* line = GetLine(key, &value, &comment);
+	std::string value, commented;
+	std::string* line = GetLine(key, &value, &commented);
 	if (line)
 	{
 		// Change the value - keep the key and comment
-		*line = StripSpaces(key) + " = " + newValue + comment;
+		*line = StripSpaces(key) + " = " + newValue + commented;
 	}
 	else
 	{

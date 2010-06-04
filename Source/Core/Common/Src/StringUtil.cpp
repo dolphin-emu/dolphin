@@ -261,7 +261,7 @@ bool TryParseBool(const char* str, bool* output)
 
 bool TryParseFloat(const char* str, float *output)
 {
-	double d_val;
+	float d_val;
 	if (sscanf(str, "%f", &d_val) == 1)
 	{
 		*output = (float)d_val;
@@ -275,7 +275,7 @@ bool TryParseFloat(const char* str, float *output)
 
 bool TryParseDouble(const char* str, double *output)
 {
-	return sscanf(str, "%f", output) == 1;
+	return sscanf(str, "%lf", output) == 1;
 }
 
 std::string StringFromInt(int value)
