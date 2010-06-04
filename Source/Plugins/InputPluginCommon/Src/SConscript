@@ -5,7 +5,6 @@ Import('env')
 files = [
 	'Config.cpp',
 	'ControllerEmu.cpp',
-	'IniFile.cpp',
 	]
 
 if env['HAVE_WX']:
