@@ -25,6 +25,8 @@ files = [
 	'PostProcessing.cpp',
 	'FramebufferManager.cpp',
 	]
+compileFlags =	[
+	]
 linkFlags = [
 	]
 libs = [
@@ -46,6 +48,12 @@ if gfxenv['HAVE_WX']:
 		'Debugger/Debugger.cpp',
                 ]
 
+if sys.platform == 'darwin':
+        files += [ 'cocoaGL.m' ]
+        compileFlags +=	[
+                '-x',
+                'objective-c++',
+                ]
 if sys.platform == 'win32':
         files += [ 'OS/Win32.cpp' ]
 
@@ -97,6 +105,7 @@ if gfxenv['USE_WX'] and not gfxenv['HAVE_WX']:
     print "Must have wx to use wxgl"
     Return()
 gfxenv.Append(
+	CXXFLAGS = compileFlags,
 	LINKFLAGS = linkFlags,
 	)
 

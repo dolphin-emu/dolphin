@@ -714,7 +714,7 @@ void CFrame::OnCustomHostMessage(int Id)
 
 			CPluginManager::GetInstance().OpenDebug(
 				GetHandle(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
+				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin,
 				PLUGIN_TYPE_DSP, false
 				);
 
