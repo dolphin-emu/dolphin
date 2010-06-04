@@ -56,8 +56,6 @@ if wxenv['HAVE_WX']:
 
 
 if sys.platform == 'darwin':
-	files += [ 'cocoaApp.m', ]
-
 	compileFlags = [
 		'-x',
 		'objective-c++',

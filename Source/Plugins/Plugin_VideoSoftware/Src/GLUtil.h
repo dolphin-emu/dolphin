@@ -50,6 +50,8 @@
 #elif defined(USE_SDL) && USE_SDL
 #include <GL/glew.h>
 #include <SDL.h>
+#else
+#include <GL/glew.h>
 #endif // end USE_WX
 
 #if defined(__APPLE__) 

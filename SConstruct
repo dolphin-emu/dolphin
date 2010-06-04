@@ -381,6 +381,7 @@ if env['USE_WX']:
 # gui-less build
 if env['nowx']:
     env['HAVE_WX'] = 0;
+    env['USE_WX'] = 0;
 else:
     if sys.platform == 'darwin':
         # 2.9 is needed for 64-bit support on OS X

@@ -32,10 +32,6 @@
 #include "X11Utils.h"
 #endif
 
-#ifdef __APPLE__
-#import "cocoaApp.h"
-#endif
-
 #include "Core.h"
 #include "Globals.h"
 #include "Host.h"
@@ -259,110 +255,12 @@ void X11_MainLoop()
 }
 #endif
 
-//for cocoa we need to hijack the main to get event
-#ifdef __APPLE__
-
-@interface CocoaThread : NSObject
-{
-	NSThread *Thread;
-}
-- (void)cocoaThreadStart;
-- (void)cocoaThreadRun:(id)sender;
-- (void)cocoaThreadQuit:(NSNotification*)note;
-- (bool)cocoaThreadRunning;
-@end
-
-static NSString *CocoaThreadHaveFinish = @"CocoaThreadHaveFinish";
-
-int cocoaArgc;
-char **cocoaArgv;
-int appleMain(int argc, char *argv[]);
-
-@implementation CocoaThread
-
-- (void)cocoaThreadStart
-{
-
-	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(cocoaThreadQuit:) name:CocoaThreadHaveFinish object:nil];
-	[NSThread detachNewThreadSelector:@selector(cocoaThreadRun:) toTarget:self withObject:nil];
-
-}
-
-- (void)cocoaThreadRun:(id)sender
-{
-
-	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
-	Thread = [NSThread currentThread];
-	//launch main
-	appleMain(cocoaArgc,cocoaArgv);
-	
-	[[NSNotificationCenter defaultCenter] postNotificationName:CocoaThreadHaveFinish object:nil];
-
-	[pool release];
-
-}
-
-- (void)cocoaThreadQuit:(NSNotification*)note
-{
-
-	[[NSNotificationCenter defaultCenter] removeObserver:self];
-
-}
-
-- (bool)cocoaThreadRunning
-{
-	if([Thread isFinished])
-		return false;
-	else 
-		return true;
-}
-
-@end
-
-
-int main(int argc, char *argv[])
-{
-
-	cocoaArgc = argc;
-	cocoaArgv = argv;
-
-	cocoaCreateApp();
-
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-
-	CocoaThread *thread = [[CocoaThread alloc] init];
-	NSEvent *event = [[NSEvent alloc] init];	
-	
-	[thread cocoaThreadStart];
-
-	//cocoa event loop
-	while(1)
-	{
-		event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES ];
-		if(cocoaSendEvent(event))
-		{
-			Core::Stop();
-			break;
-		}
-		if(![thread cocoaThreadRunning])
-			break;
-	}	
-
-
-	[event release];
-	[thread release];
-	[pool release];
-}
-
-
-int appleMain(int argc, char *argv[])
-#else
 // Include SDL header so it can hijack main().
 #if defined(USE_SDL) && USE_SDL
 #include <SDL.h>
 #endif
+
 int main(int argc, char* argv[])
-#endif
 {
 	gengetopt_args_info args_info;
 
