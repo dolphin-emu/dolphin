@@ -1,4 +1,4 @@
-# -*- python -*- 
+# -* python -*- 
 
 import os
 import sys
@@ -365,29 +365,37 @@ if sys.platform == 'darwin':
 else:
     env['HAVE_X11'] = conf.CheckPKG('x11')
     env['HAVE_XRANDR'] = env['HAVE_X11'] and conf.CheckPKG('xrandr')
-   
-# handling wx flags CCFLAGS should be created before
+
 wxmods = ['aui', 'adv', 'core', 'base']
-
-env['USE_WX'] = 0
-if env['wxgl']:
+if env['wxgl'] or sys.platform == 'win32' or sys.platform == 'darwin':
     env['USE_WX'] = 1
-if sys.platform == 'win32' or sys.platform == 'darwin':
-    env['HAVE_WX'] = 1
-    env['USE_WX'] = 1
-if env['USE_WX']:
     wxmods.append('gl')
+else:
+    env['USE_WX'] = 0;
+if env['nowx']:
+    env['USE_WX'] = 0;
 
-# gui-less build
+if sys.platform == 'darwin':
+    wxver = '2.9' # 64-bit on OS X
+else:
+    wxver = '2.8'
+
 if env['nowx']:
     env['HAVE_WX'] = 0;
-    env['USE_WX'] = 0;
 else:
-    if sys.platform == 'darwin':
-        # 2.9 is needed for 64-bit support on OS X
-        env['HAVE_WX'] = conf.CheckWXConfig('2.9', wxmods, 0) 
-    else:
-        env['HAVE_WX'] = conf.CheckWXConfig('2.8', wxmods, 0) 
+    env['HAVE_WX'] = conf.CheckWXConfig(wxver, wxmods, 0) 
+    wxconfig.ParseWXConfig(env)
+    env['HAVE_WX'] = conf.CheckPKG('c')
+
+if not env['HAVE_WX'] and not env['nowx']:
+    print "WX not found - see config.log"
+    Exit(1)
+
+# zlib
+env['HAVE_ZLIB'] = conf.CheckPKG('z')
+if not ['HAVE_ZLIB']:
+    print "zlib is required"
+    Exit(1)
 
 # check for libgtk2.0
 env['HAVE_GTK2'] = 0
@@ -450,12 +458,6 @@ if (flavour == 'prof'):
 conf.Define('USE_OPROFILE', env['USE_OPROFILE'])
 # After all configuration tests are done
 conf.Finish()
-
-#wx windows flags
-if env['HAVE_WX']:
-    wxconfig.ParseWXConfig(env)
-else:
-    print "WX not found or disabled, not building GUI"
 
 rev = utils.GenerateRevFile(env['flavor'], 
                             "Source/Core/Common/Src/svnrev_template.h",
