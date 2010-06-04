@@ -27,9 +27,6 @@ warnings = [
     'no-conversion',
     ]
 # XXX check for the availability of these (in GCC 4.3 or newer)
-if sys.platform != 'darwin':
-    warnings.append('no-array-bounds')
-    warnings.append('no-unused-result')
 
 compileFlags = [
     '-fno-exceptions',
@@ -213,6 +210,9 @@ elif (flavour == 'release'):
 # more warnings
 if env['lint']:
     warnings.append('error')
+    if sys.platform != 'darwin':
+        warnings.append('no-array-bounds')
+        warnings.append('no-unused-result')
     #warnings.append('unreachable-code')
     #warnings.append('float-equal')
 
