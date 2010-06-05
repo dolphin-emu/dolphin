@@ -281,7 +281,7 @@ void SendEvent(SEvent& _rEvent)
 	Offset += sizeof(_rEvent.m_PayLoad);
 
 	// Send it
-	g_WiimoteInitialize.pWiimoteInput(m_WiimoteNumber, m_channelID, Buffer, Offset);
+	g_WiimoteInitialize.pWiimoteInterruptChannel(m_WiimoteNumber, m_channelID, Buffer, Offset);
 
 	// Debugging
 	// ReadDebugging(false, Buffer, Offset);

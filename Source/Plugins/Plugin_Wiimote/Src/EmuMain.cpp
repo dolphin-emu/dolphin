@@ -677,7 +677,7 @@ void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 			HidOutputReport(_channelID, (wm_report*)hidp->data);
 
 			u8 handshake = HID_HANDSHAKE_SUCCESS;
-			g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, &handshake, 1);
+			g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, &handshake, 1);
 
 			PanicAlert("HID_TYPE_DATA - OUTPUT: Ambiguous Control Channel Report!");
 		}

@@ -906,12 +906,12 @@ namespace Core
 {
 	/* This is called continuously from the Wiimote plugin as soon as it has received
 	   a reporting mode. _Size is the byte size of the report. */
-	void Callback_WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size)
+	void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 	{
 		const u8* pData = (const u8*)_pData;
 
 		INFO_LOG(WIIMOTE, "====================");
-		INFO_LOG(WIIMOTE, "Callback_WiimoteInput: (Wiimote: #%i)", _number);
+		INFO_LOG(WIIMOTE, "Callback_WiimoteInterruptChannel: (Wiimote: #%i)", _number);
 		DEBUG_LOG(WIIMOTE, "   Data: %s", ArrayToString(pData, _Size, 0, 50).c_str());
 		DEBUG_LOG(WIIMOTE, "   Channel: %u", _channelID);
 

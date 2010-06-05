@@ -28,6 +28,7 @@
 
 
 #include "math.h" // System
+#include "WXInputBase.h"
 #include "ConfigBox.h"
 #include "Config.h"
 #include "GCPad.h"
@@ -239,6 +240,10 @@ void GCPadConfigDialog::OnKeyDown(wxKeyEvent& event)
 			SetButtonText(ClickedButton->GetId(),
                                       wxString::FromAscii(keyStr));
 			SaveButtonMapping(ClickedButton->GetId(), XKey);
+		#elif defined(USE_WX) && USE_WX
+			SetButtonText(ClickedButton->GetId(),
+					InputCommon::WXKeyToString(g_Pressed));
+			SaveButtonMapping(ClickedButton->GetId(), g_Pressed);
 		#endif
 		}
 		EndGetButtons();
@@ -393,6 +398,13 @@ void GCPadConfigDialog::UpdateGUI()
 	{
 		InputCommon::XKeyToString(GCMapping[m_Page].Button[x + EGC_A], keyStr);
 		m_Button_GC[x][m_Page]->SetLabel(wxString::FromAscii(keyStr));
+	}
+#elif defined(USE_WX) && USE_WX
+	for (int x = 0; x <= IDB_SHDR_SEMI_R - IDB_BTN_A; x++)
+	{
+		m_Button_GC[x][m_Page]-> \
+			SetLabel(InputCommon::WXKeyToString(
+				GCMapping[m_Page].Button[x + EGC_A]));
 	}
 #endif
 

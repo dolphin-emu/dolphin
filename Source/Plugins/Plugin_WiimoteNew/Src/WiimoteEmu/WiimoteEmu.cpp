@@ -589,7 +589,7 @@ void Wiimote::Update()
 		}
 	}
 	// send data report
-	g_WiimoteInitialize.pWiimoteInput( m_index, m_reporting_channel, data, rpt.size );
+	g_WiimoteInitialize.pWiimoteInterruptChannel( m_index, m_reporting_channel, data, rpt.size );
 }
 
 void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size) 
@@ -628,7 +628,7 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 			HidOutputReport(_channelID, (wm_report*)hidp->data);
 
 			u8 handshake = HID_HANDSHAKE_SUCCESS;
-			g_WiimoteInitialize.pWiimoteInput(m_index, _channelID, &handshake, 1);
+			g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, _channelID, &handshake, 1);
 
 			PanicAlert("HID_TYPE_DATA - OUTPUT: Ambiguous Control Channel Report!");
 		}

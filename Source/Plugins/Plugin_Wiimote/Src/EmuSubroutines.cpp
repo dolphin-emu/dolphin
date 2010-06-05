@@ -178,7 +178,7 @@ void WmSendAck(u16 _channelID, u8 _reportID)
 	DEBUG_LOG(WIIMOTE,  "WMSendAck");
 	DEBUG_LOG(WIIMOTE,  "  Report ID: %02x", _reportID);
 
-	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
@@ -363,7 +363,7 @@ void SendReadDataReply(u16 _channelID, void* _Base, u16 _Address, u8 _AddressHI,
 #endif
 
 		// Send a piece
-		g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
+		g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
 
 		// Update the size that is left
 		_Size -= copySize;
@@ -541,7 +541,7 @@ void WmRequestStatus(u16 _channelID, wm_request_status* rs, int Extension)
 	DEBUG_LOG(WIIMOTE, "  LEDs: %x", pStatus->leds);
 
 
-	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);

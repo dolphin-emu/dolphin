@@ -144,7 +144,18 @@ void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32
 }
 
 // __________________________________________________________________________________________________
-// Function: Wiimote_Input
+// Function: Send keyboard input to the plugin
+// Purpose:
+// input:   The key and if it's pressed or released
+// output:  None
+//
+void Wiimote_Input(u16 _Key, u8 _UpDown)
+{
+	return;
+}
+
+// __________________________________________________________________________________________________
+// Function: Wiimote_InterruptChannel
 // Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
 //           on the HID INTERRUPT channel.
 // input:    Da pakket.

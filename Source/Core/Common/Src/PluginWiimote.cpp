@@ -22,9 +22,11 @@ namespace Common {
 PluginWiimote::PluginWiimote(const char *_Filename)
 	: CPlugin(_Filename), validWiimote(false)
 {
-	Wiimote_ControlChannel = reinterpret_cast<TWiimote_Output>   
+	Wiimote_ControlChannel = reinterpret_cast<TWiimote_ControlChannel>
 		(LoadSymbol("Wiimote_ControlChannel"));
-	Wiimote_InterruptChannel = reinterpret_cast<TWiimote_Input>
+	Wiimote_Input = reinterpret_cast<TWiimote_Input>
+		(LoadSymbol("Wiimote_Input"));
+	Wiimote_InterruptChannel = reinterpret_cast<TWiimote_InterruptChannel>
 		(LoadSymbol("Wiimote_InterruptChannel"));
 	Wiimote_Update = reinterpret_cast<TWiimote_Update>
 		(LoadSymbol("Wiimote_Update"));
@@ -32,6 +34,7 @@ PluginWiimote::PluginWiimote(const char *_Filename)
 		(LoadSymbol("Wiimote_GetAttachedControllers"));
 
 	if ((Wiimote_ControlChannel != 0) &&
+		(Wiimote_Input != 0) &&
 		(Wiimote_InterruptChannel != 0) &&
 		(Wiimote_Update != 0) &&
 		(Wiimote_GetAttachedControllers != 0))

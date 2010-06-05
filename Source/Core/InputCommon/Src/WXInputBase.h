@@ -22,7 +22,7 @@
 
 namespace InputCommon
 {
-const wxChar *WXKeyToString(int keycode);
-const wxChar *WXKeymodToString(int modifier);
+const wxString WXKeyToString(int keycode);
+const wxString WXKeymodToString(int modifier);
 }
 #endif

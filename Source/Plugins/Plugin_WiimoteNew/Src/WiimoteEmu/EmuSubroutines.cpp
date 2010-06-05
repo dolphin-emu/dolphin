@@ -195,7 +195,7 @@ void Wiimote::SendAck(const u16 _channelID, u8 _reportID)
 	ack->reportID = _reportID;
 	ack->errorID = 0;
 
-	g_WiimoteInitialize.pWiimoteInput( m_index, _channelID, data, sizeof(data));
+	g_WiimoteInitialize.pWiimoteInterruptChannel( m_index, _channelID, data, sizeof(data));
 }
 
 // old comment
@@ -234,7 +234,7 @@ void Wiimote::RequestStatus(const u16 _channelID, wm_request_status* rs)
 	*(wm_status_report*)(data + 2) = m_status;
 
 	// send report
-	g_WiimoteInitialize.pWiimoteInput(m_index, _channelID, data, sizeof(data));
+	g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, _channelID, data, sizeof(data));
 }
 
 /* Write data to Wiimote and Extensions registers. */
@@ -487,7 +487,7 @@ void Wiimote::SendReadDataReply(const u16 _channelID, ReadRequest& _request)
 	}
 
 	// Send a piece
-	g_WiimoteInitialize.pWiimoteInput(m_index, _channelID, data, sizeof(data));
+	g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, _channelID, data, sizeof(data));
 }
 
 void Wiimote::DoState(PointerWrap& p)

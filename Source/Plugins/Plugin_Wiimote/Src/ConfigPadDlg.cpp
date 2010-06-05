@@ -18,6 +18,7 @@
 #include "wiimote_real.h" // for MAX_WIIMOTES
 #include "wiimote_hid.h"
 #include "main.h"
+#include "WXInputBase.h"
 #include "ConfigPadDlg.h"
 #include "ConfigBasicDlg.h"
 #include "Config.h"
@@ -241,6 +242,10 @@ void WiimotePadConfigDialog::OnKeyDown(wxKeyEvent& event)
 			SetButtonText(ClickedButton->GetId(),
                                       wxString::FromAscii(keyStr));
 			SaveButtonMapping(ClickedButton->GetId(), XKey);
+		#elif defined(USE_WX) && USE_WX
+			SetButtonText(ClickedButton->GetId(),
+					InputCommon::WXKeyToString(g_Pressed));
+			SaveButtonMapping(ClickedButton->GetId(), g_Pressed);
 		#endif
 		}
 		EndGetButtons();
@@ -1131,6 +1136,61 @@ void WiimotePadConfigDialog::UpdateGUI()
 		{
 			InputCommon::XKeyToString(WiiMoteEmu::WiiMapping[m_Page].Button[x + WiiMoteEmu::EGH_Green], keyStr);
 			m_Button_GH3[x][m_Page]->SetLabel(wxString::FromAscii(keyStr));
+		}
+	}
+#elif defined(USE_WX) && USE_WX
+	for (int x = 0; x <= IDB_WM_SHAKE - IDB_WM_A; x++)
+	{
+		m_Button_Wiimote[x][m_Page]-> \
+			SetLabel(InputCommon::WXKeyToString(
+				WiiMoteEmu::WiiMapping[m_Page]. \
+					Button[x + WiiMoteEmu::EWM_A]));
+	}
+	if (WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected ==
+		WiiMoteEmu::EXT_NUNCHUK)
+	{
+		m_NunchuckComboStick[m_Page]-> \
+			SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.NC);
+
+		for (int x = 0; x <= IDB_NC_SHAKE - IDB_NC_Z; x++)
+		{
+			m_Button_NunChuck[x][m_Page]-> \
+				SetLabel(InputCommon::WXKeyToString(
+					WiiMoteEmu::WiiMapping[m_Page]. \
+						Button[x + WiiMoteEmu::ENC_Z]));
+		}
+	}
+	else if (WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected ==
+		WiiMoteEmu::EXT_CLASSIC_CONTROLLER)
+	{
+		m_CcComboLeftStick[m_Page]-> \
+			SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.CCL);
+		m_CcComboRightStick[m_Page]-> \
+			SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.CCR);
+		m_CcComboTriggers[m_Page]-> \
+			SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.CCT);
+
+		for (int x = 0; x <= IDB_CC_RD - IDB_CC_A; x++)
+		{
+			m_Button_Classic[x][m_Page]-> \
+				SetLabel(InputCommon::WXKeyToString(
+					WiiMoteEmu::WiiMapping[m_Page]. \
+						Button[x + WiiMoteEmu::ECC_A]));
+		}
+	}
+
+	else if(WiiMoteEmu::WiiMapping[m_Page].iExtensionConnected ==
+		WiiMoteEmu::EXT_GUITARHERO)
+	{
+		m_GH3ComboAnalog[m_Page]-> \
+			SetSelection(WiiMoteEmu::WiiMapping[m_Page].Stick.GH);
+
+		for (int x = 0; x <= IDB_GH3_STRUM_DOWN - IDB_GH3_GREEN; x++)
+		{
+			m_Button_GH3[x][m_Page]-> \
+				SetLabel(InputCommon::WXKeyToString(
+					WiiMoteEmu::WiiMapping[m_Page]. \
+						Button[x + WiiMoteEmu::EGH_Green]));
 		}
 	}
 #endif

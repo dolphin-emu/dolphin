@@ -34,7 +34,7 @@
 
    The Data Report's path from here is
       WII_IPC_HLE_WiiMote.cpp:
-	     Callback_WiimoteInput()
+	     Callback_WiimoteInterruptChannel()
 	     CWII_IPC_HLE_WiiMote::SendL2capData()
 	  WII_IPC_HLE_Device_usb.cpp:
 	     CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket()
@@ -116,7 +116,7 @@ void SendReportCore(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
-	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
 }
@@ -141,7 +141,7 @@ void SendReportCoreAccel(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
-	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
@@ -170,7 +170,7 @@ void SendReportCoreAccelIr12(u16 _channelID) {
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
-	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
@@ -215,7 +215,7 @@ void SendReportCoreAccelExt16(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 
-	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);
@@ -290,7 +290,7 @@ void SendReportCoreAccelIr10Ext(u16 _channelID)
 	DEBUG_LOG(WIIMOTE,  "    Channel: %04x", _channelID);
 	DEBUG_LOG(WIIMOTE,  "    Size: %08x", Offset);
 	
-	g_WiimoteInitialize.pWiimoteInput(g_ID, _channelID, DataFrame, Offset);
+	g_WiimoteInitialize.pWiimoteInterruptChannel(g_ID, _channelID, DataFrame, Offset);
 
 	// Debugging
 	//ReadDebugging(true, DataFrame, Offset);

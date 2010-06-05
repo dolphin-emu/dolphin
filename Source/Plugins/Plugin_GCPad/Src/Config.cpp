@@ -34,6 +34,7 @@
 #include "Config.h"
 #include "GCPad.h"
 #include "FileUtil.h"
+#include "WXInputBase.h"
 
 static const char* gcControlNames[] =
 { 
@@ -122,34 +123,32 @@ static const int gcDefaultControls[] =
 		0x00, // L semi-press
 		0x00, // R semi-press
 	};
-#elif defined(__APPLE__)
-	// Reference for Cocoa key codes:
-	// http://boredzo.org/blog/archives/2007-05-22/virtual-key-codes
+#else defined(USE_WX) && USE_WX
 	{
-		7, // A (x)
-		6, // B (z)
-		8, // X (c)
-		1, // Y (s)
-		2, // Z (d)
-		36, // Start (return)
-		17, // D-pad up (t)
-		5, // D-pad down (g)
-		3, // D-pad left (f)
-		4, // D-pad right (h)
-		126, // Main stick up (up)
-		125, // Main stick down (down)
-		123, // Main stick left (left)
-		124, // Main stick right (right)
-		56, // Main stick semi (left shift)
-		34, // C-stick up (i)
-		40, // C-stick down (k)
-		38, // C-stick left (j)
-		37, // C-stick right (l)
-		59, // C-stick semi (left control)
-		12, // L (q)
-		13, // R (w)
-		-1, // L semi-press (none)
-		-1, // R semi-press (none)
+		'X',		// A
+		'Z',		// B
+		'C',		// X
+		'S',		// Y
+		'D',		// Z
+		WXK_RETURN,	// Start
+		'T',		// D-pad up
+		'G',		// D-pad down
+		'F',		// D-pad left
+		'H',		// D-pad right
+		WXK_UP,		// Main stick up
+		WXK_DOWN,	// Main stick down
+		WXK_LEFT,	// Main stick left
+		WXK_RIGHT,	// Main stick right
+		WXK_SHIFT,	// Main stick semi
+		'I',		// C-stick up
+		'K',		// C-stick down
+		'J',		// C-stick left
+		'L',		// C-stick right
+		WXK_CONTROL,	// C-stick semi
+		'Q',		// L
+		'W',		// R
+		0,		// L semi-press
+		0,		// R semi-press
 	};
 #endif
 

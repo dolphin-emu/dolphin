@@ -17,7 +17,7 @@ typedef void (*TLogv)(const char* _pMessage, int _v);
 
 // This is called when the Wiimote sends input reports to the Core.
 // Payload: an L2CAP packet.
-typedef void (*TWiimoteInput)(int _number, u16 _channelID, const void* _pData, u32 _Size);
+typedef void (*TWiimoteInterruptChannel)(int _number, u16 _channelID, const void* _pData, u32 _Size);
 typedef bool (*TRendererHasFocus)(void);
 
 // This data is passed from the core on initialization.
@@ -29,7 +29,7 @@ typedef struct
 #endif
 	u32 ISOId;
 	TLogv pLog;
-	TWiimoteInput pWiimoteInput;
+	TWiimoteInterruptChannel pWiimoteInterruptChannel;
 	TRendererHasFocus pRendererHasFocus;
 } SWiimoteInitialize;
 
@@ -47,7 +47,15 @@ typedef struct
 EXPORT void CALL Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 
 // __________________________________________________________________________________________________
-// Function: Wiimote_Input
+// Function: Send keyboard input to the plugin
+// Purpose:
+// input:   The key and if it's pressed or released
+// output:  None
+//
+EXPORT void CALL Wiimote_Input(u16 _Key, u8 _UpDown);
+
+// __________________________________________________________________________________________________
+// Function: Wiimote_InterruptChannel
 // Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
 //           on the HID INTERRUPT channel.
 // input:    Da pakket.

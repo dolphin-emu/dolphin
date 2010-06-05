@@ -79,7 +79,7 @@ const char *Callback_ISOName(void);
 void Callback_DSPInterrupt();
 void Callback_PADLog(const TCHAR* _szMessage);
 void Callback_WiimoteLog(const TCHAR* _szMessage, int _v);
-void Callback_WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size);
+void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 bool Callback_RendererHasFocus(void);
 
 // For keyboard shortcuts.
@@ -404,7 +404,7 @@ THREAD_RETURN EmuThread(void *pArg)
 #endif
 		WiimoteInitialize.ISOId			= Ascii2Hex(_CoreParameter.m_strUniqueID);
 		WiimoteInitialize.pLog			= Callback_WiimoteLog;
-		WiimoteInitialize.pWiimoteInput	= Callback_WiimoteInput;
+		WiimoteInitialize.pWiimoteInterruptChannel = Callback_WiimoteInterruptChannel;
 		WiimoteInitialize.pRendererHasFocus	= Callback_RendererHasFocus;
 		// Wait for Wiiuse to find the number of connected Wiimotes
 		Plugins.GetWiimote(0)->Initialize((void *)&WiimoteInitialize);

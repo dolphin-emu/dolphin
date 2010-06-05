@@ -25,8 +25,9 @@ namespace Common {
     
 typedef unsigned int (__cdecl* TPAD_GetAttachedPads)();
 typedef void (__cdecl* TWiimote_Update)(int _number);
-typedef void (__cdecl* TWiimote_Output)(int _number, u16 _channelID, const void* _pData, u32 _Size);
-typedef void (__cdecl* TWiimote_Input)(int _number, u16 _channelID, const void* _pData, u32 _Size);
+typedef void (__cdecl* TWiimote_Input)(u16 _Key, u8 _UpDown);
+typedef void (__cdecl* TWiimote_ControlChannel)(int _number, u16 _channelID, const void* _pData, u32 _Size);
+typedef void (__cdecl* TWiimote_InterruptChannel)(int _number, u16 _channelID, const void* _pData, u32 _Size);
 typedef unsigned int (__cdecl* TWiimote_GetAttachedControllers)();
 
 class PluginWiimote : public CPlugin {
@@ -35,8 +36,9 @@ public:
 	virtual ~PluginWiimote();
 	virtual bool IsValid() {return validWiimote;};
 
-	TWiimote_Output Wiimote_ControlChannel;
-	TWiimote_Input  Wiimote_InterruptChannel;
+	TWiimote_ControlChannel Wiimote_ControlChannel;
+	TWiimote_Input Wiimote_Input;
+	TWiimote_InterruptChannel  Wiimote_InterruptChannel;
 	TWiimote_Update Wiimote_Update;
 	TWiimote_GetAttachedControllers Wiimote_GetAttachedControllers;
 

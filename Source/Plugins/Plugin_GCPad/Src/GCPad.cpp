@@ -243,10 +243,19 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 {
 }
 
+// Hack to use wx key events
+volatile bool wxkeystate[256];
+
 // Set buttons status from keyboard input. Currently this is done from wxWidgets in the main application.
 // --------------
 void PAD_Input(u16 _Key, u8 _UpDown)
 {
+#if defined(__APPLE__) && defined(USE_WX) && USE_WX 
+	if (_Key < 256)
+	{
+		wxkeystate[_Key] = _UpDown;
+	}
+#endif
 }
 
 // Set PAD status
@@ -624,6 +633,11 @@ bool IsKey(int Key)
 		Ret = (keys[keyCode/8] & (1 << (keyCode%8)));	// Keyboard (Linux)
 	}
 	else if (MapKey < 0x1100)
+#elif defined (USE_WX) && USE_WX
+	if (MapKey < 256) {
+		Ret = wxkeystate[MapKey];
+	}
+	else if (MapKey < 0x1100)
 #else
 	if (MapKey < 0x1100)
 #endif
@@ -647,5 +661,8 @@ bool IsKey(int Key)
 // ----------------
 bool IsFocus()
 {
+#if defined(__APPLE__) && defined(USE_WX) && USE_WX
+	return true;	/* XXX */
+#endif
 	return g_PADInitialize->pRendererHasFocus();
 }
