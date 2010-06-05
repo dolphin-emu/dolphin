@@ -224,7 +224,7 @@ CPluginInfo::CPluginInfo(const char *_rFilename)
 	: m_Filename(_rFilename)
 	, m_Valid(false)
 {
-	if (!File::Exists(_rFilename))
+	if (!File::Exists((File::GetPluginsDirectory() + _rFilename).c_str()))
 	{
 		PanicAlert("Can't find plugin %s", _rFilename);
 		return;
@@ -273,17 +273,14 @@ void CPluginManager::GetPluginInfo(CPluginInfo *&info, std::string Filename)
    below. */
 void *CPluginManager::LoadPlugin(const char *_rFilename)
 {
-	// Create a string of the filename
-	std::string Filename = _rFilename;
-
-	if (!File::Exists(_rFilename)) {
+	if (!File::Exists((File::GetPluginsDirectory() + _rFilename).c_str())) {
 		PanicAlert("Error loading %s: can't find file", _rFilename);
 		return NULL;
 	}
 	/* Avoid calling LoadLibrary() again and instead point to the plugin info that we found when
 	   Dolphin was started */
 	CPluginInfo *info = NULL;
-	GetPluginInfo(info, Filename);
+	GetPluginInfo(info, _rFilename);
 	if (!info) {
 		PanicAlert("Error loading %s: can't read info", _rFilename);
 		return NULL;
@@ -342,11 +339,7 @@ void CPluginManager::ScanForPlugins()
 	// Get plugins dir
 	CFileSearch::XStringVector Directories;
 
-#if defined(__APPLE__)
 	Directories.push_back(File::GetPluginsDirectory());
-#else
-	Directories.push_back(std::string(PLUGINS_DIR));
-#endif
 
 	CFileSearch::XStringVector Extensions;
 	Extensions.push_back("*" PLUGIN_SUFFIX);
@@ -359,17 +352,21 @@ void CPluginManager::ScanForPlugins()
 		for (size_t i = 0; i < rFilenames.size(); i++)
 		{
 			std::string orig_name = rFilenames[i];
-			std::string Filename;
+			std::string Filename, Extension;
 			
-			if (!SplitPath(rFilenames[i], NULL, &Filename, NULL)) {
+			if (!SplitPath(rFilenames[i], NULL, &Filename, &Extension)) {
 				printf("Bad Path %s\n", rFilenames[i].c_str());
 				return;
 			}
 
-			CPluginInfo PluginInfo(orig_name.c_str());
+			// Leave off the directory component
+			std::string StoredName = Filename;
+			StoredName += Extension;
+
+			CPluginInfo PluginInfo(StoredName.c_str());
 			if (PluginInfo.IsValid())
 			{
-				// Save the PluginInfo
+				// Save the Plugin
 				m_PluginInfos.push_back(PluginInfo);
 			}
 		}
@@ -504,7 +501,8 @@ void CPluginManager::EmuStateChange(PLUGIN_EMUSTATE newState)
 // Open config window. Input: _rFilename = Plugin filename , Type = Plugin type
 void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type)
 {
-	if (! File::Exists(_rFilename)) {
+	if (! File::Exists((File::GetPluginsDirectory() + _rFilename).c_str()))
+	{
 		PanicAlert("Can't find plugin %s", _rFilename);
 		return;
 	}
@@ -531,7 +529,7 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 // Open debugging window. Type = Video or DSP. Show = Show or hide window.
 void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show)
 {
-	if (!File::Exists(_rFilename))
+	if (! File::Exists((File::GetPluginsDirectory() + _rFilename).c_str()))
 	{
 		PanicAlert("Can't find plugin %s", _rFilename);
 		return;
@@ -549,4 +547,3 @@ void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYP
 		PanicAlert("Type %d debug not supported in plugin %s", Type, _rFilename);
 	}
 }
-

@@ -581,13 +581,9 @@ std::string GetPluginsDirectory()
 	pluginsDir = GetBundleDirectory();
 	pluginsDir += DIR_SEP;
 	pluginsDir += PLUGINS_DIR;
-#elif defined __linux__
-	pluginsDir = PLUGINS_DIR;
-	// FIXME global install
 #else
-	pluginsDir = PLUGINS_DIR;	
+	pluginsDir = PLUGINS_DIR;
 #endif
-
 	pluginsDir += DIR_SEP;
 
 	INFO_LOG(COMMON, "GetPluginsDirectory: Setting to %s:", pluginsDir.c_str());
@@ -602,14 +598,11 @@ std::string GetSysDirectory()
 	sysDir = GetBundleDirectory();
 	sysDir += DIR_SEP;
 	sysDir += SYSDATA_DIR;
-#elif defined __linux__
-	sysDir = SYSDATA_DIR;
-	// FIXME global install
 #else
-	sysDir = SYSDATA_DIR;	
+	sysDir = SYSDATA_DIR;
 #endif
-
 	sysDir += DIR_SEP;
+
 	INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
 	return sysDir;
 }

@@ -59,6 +59,9 @@ const char *DllGetLastError()
 */
 int DynamicLibrary::Load(const char* filename)
 {
+	std::string LibraryPath = File::GetPluginsDirectory() + filename;
+	filename = LibraryPath.c_str();
+
 	INFO_LOG(COMMON, "DL: Loading dynamic library %s", filename);
 
 	if (!filename || strlen(filename) == 0)	{

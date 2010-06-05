@@ -182,13 +182,11 @@ void SConfig::LoadSettings()
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
-	std::string PluginsDir = File::GetPluginsDirectory();
-	
-	// Hard coded default
-	m_DefaultGFXPlugin = PluginsDir + DEFAULT_GFX_PLUGIN;
-	m_DefaultDSPPlugin = PluginsDir + DEFAULT_DSP_PLUGIN;
-	m_DefaultPADPlugin = PluginsDir + DEFAULT_PAD_PLUGIN;
-	m_DefaultWiiMotePlugin = PluginsDir + DEFAULT_WIIMOTE_PLUGIN;
+	// Hard coded defaults
+	m_DefaultGFXPlugin = DEFAULT_GFX_PLUGIN;
+	m_DefaultDSPPlugin = DEFAULT_DSP_PLUGIN;
+	m_DefaultPADPlugin = DEFAULT_PAD_PLUGIN;
+	m_DefaultWiiMotePlugin = DEFAULT_WIIMOTE_PLUGIN;
 
 	// General
 	{
