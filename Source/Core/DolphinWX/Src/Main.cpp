@@ -189,9 +189,9 @@ bool DolphinApp::OnInit()
 		return false;
 	} 
 #if wxCHECK_VERSION(2, 9, 0)
-	UseDebugger = parser.Found(wxT("debugger"));
-	UseLogger = parser.Found(wxT("logger"));
-	LoadElf = parser.Found(wxT("elf"), &ElfFile);
+	UseDebugger = parser.Found("debugger");
+	UseLogger = parser.Found("logger");
+	LoadElf = parser.Found("elf", &ElfFile);
 #else
 	UseDebugger = parser.Found(wxT("debugger"));
 	UseLogger = parser.Found(wxT("logger"));
@@ -199,10 +199,10 @@ bool DolphinApp::OnInit()
 #endif
 
 #if wxCHECK_VERSION(2, 9, 0)
-	selectVideoPlugin = parser.Found(wxT("video_plugin"), &videoPluginFilename);
-	selectAudioPlugin = parser.Found(wxT("audio_plugin"), &audioPluginFilename);
-	selectPadPlugin = parser.Found(wxT"pad_plugin", &padPluginFilename);
-	selectWiimotePlugin = parser.Found(wxT("wiimote_plugin"), &wiimotePluginFilename);
+	selectVideoPlugin = parser.Found("video_plugin", &videoPluginFilename);
+	selectAudioPlugin = parser.Found("audio_plugin", &audioPluginFilename);
+	selectPadPlugin = parser.Found("pad_plugin", &padPluginFilename);
+	selectWiimotePlugin = parser.Found("wiimote_plugin", &wiimotePluginFilename);
 #else
 	selectVideoPlugin = parser.Found(wxT("video_plugin"), &videoPluginFilename);
 	selectAudioPlugin = parser.Found(wxT("audio_plugin"), &audioPluginFilename);
