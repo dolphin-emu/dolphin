@@ -46,39 +46,30 @@ void InitKeyboardMouse( IDirectInput8* const idi8, std::vector<ControllerInterfa
 	// if thats dumb, i will make a VirtualDevice class that just uses ranges of inputs/outputs from other devices
 	// so there can be a separated Keyboard and mouse, as well as combined KeyboardMouse
 
-	// TODO: this has potential to not release devices if set datafmt or cooplevel fails
+	LPDIRECTINPUTDEVICE8 kb_device = NULL;
+	LPDIRECTINPUTDEVICE8 mo_device = NULL;
 
-	LPDIRECTINPUTDEVICE8 kb_device;
-	LPDIRECTINPUTDEVICE8 mo_device;
-
-	if ( DI_OK == idi8->CreateDevice( GUID_SysKeyboard, &kb_device, NULL ) )
-	if ( DI_OK == kb_device->SetDataFormat( &c_dfDIKeyboard ) )
-	if ( DI_OK == kb_device->SetCooperativeLevel( NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE) )
-	if ( DI_OK == kb_device->Acquire() )
+	if (DI_OK == idi8->CreateDevice( GUID_SysKeyboard, &kb_device, NULL))
 	{
-
-		if ( DI_OK == idi8->CreateDevice( GUID_SysMouse, &mo_device, NULL ) )
-		if ( DI_OK == mo_device->SetDataFormat( &c_dfDIMouse2 ) )
-		if ( DI_OK == mo_device->SetCooperativeLevel( NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE) )
-		if ( DI_OK == mo_device->Acquire() )
+		if (DI_OK == kb_device->SetDataFormat(&c_dfDIKeyboard))
+		if (DI_OK == kb_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE))
 		{
-			devices.push_back( new KeyboardMouse( kb_device, mo_device ) );
-			return;
+			if (DI_OK == idi8->CreateDevice( GUID_SysMouse, &mo_device, NULL ))
+			{
+				if (DI_OK == mo_device->SetDataFormat(&c_dfDIMouse2))
+				if (DI_OK == mo_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE))
+				{
+					devices.push_back(new KeyboardMouse(kb_device, mo_device));
+					return;
+				}
+			}
 		}
-		else
-			goto release_mouse;
-
-		goto unacquire_kb;
 	}
-	else
-		goto release_kb;
 
-release_mouse:
-	mo_device->Release();
-unacquire_kb:
-	kb_device->Unacquire();
-release_kb:
-	kb_device->Release();
+	if (kb_device)
+		kb_device->Release();
+	if (mo_device)
+		mo_device->Release();
 }
 
 KeyboardMouse::~KeyboardMouse()
@@ -95,6 +86,9 @@ KeyboardMouse::KeyboardMouse( const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRE
 	: m_kb_device(kb_device)
 	, m_mo_device(mo_device)
 {
+	m_kb_device->Acquire();
+	m_mo_device->Acquire();
+
 	m_last_update = wxGetLocalTimeMillis();
 
 	ZeroMemory( &m_state_in, sizeof(m_state_in) );
@@ -144,8 +138,16 @@ bool KeyboardMouse::UpdateInput()
 
 	m_last_update = cur_time;
 
-	if ( DI_OK == m_kb_device->GetDeviceState( sizeof(m_state_in.keyboard), &m_state_in.keyboard )
-		&& DI_OK == m_mo_device->GetDeviceState( sizeof(tmp_mouse), &tmp_mouse ) )
+	HRESULT kb_hr = m_kb_device->GetDeviceState(sizeof(m_state_in.keyboard), &m_state_in.keyboard);
+	HRESULT mo_hr = m_mo_device->GetDeviceState(sizeof(tmp_mouse), &tmp_mouse);
+
+	if (DIERR_INPUTLOST == kb_hr || DIERR_NOTACQUIRED == kb_hr)
+		m_kb_device->Acquire();
+
+	if (DIERR_INPUTLOST == mo_hr || DIERR_NOTACQUIRED == mo_hr)
+		m_mo_device->Acquire();
+
+	if (DI_OK == kb_hr && DI_OK == mo_hr)
 	{
 		// need to smooth out the axes, otherwise it doesnt work for shit
 		for ( unsigned int i = 0; i < 3; ++i )
@@ -155,8 +157,8 @@ bool KeyboardMouse::UpdateInput()
 		memcpy( m_state_in.mouse.rgbButtons, tmp_mouse.rgbButtons, sizeof(m_state_in.mouse.rgbButtons) );
 		return true;
 	}
-	else
-		return false;
+
+	return false;
 }
 
 bool KeyboardMouse::UpdateOutput()

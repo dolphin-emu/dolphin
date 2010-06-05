@@ -107,7 +107,10 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 		si = settings.begin(),
 		se = settings.end();
 	for ( ; si!=se; ++si )
-		(*si)->value = sec->Get((group+(*si)->name).c_str(), (*si)->default_value*100) / 100;
+	{
+		sec->Get((group+(*si)->name).c_str(), &(*si)->value, (*si)->default_value*100);
+		(*si)->value /= 100;
+	}
 
 	// controls
 	std::vector<ControlGroup::Control*>::const_iterator
@@ -116,17 +119,18 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 	for ( ; ci!=ce; ++ci )
 	{
 		// control and dev qualifier
-		(*ci)->control_ref->control_qualifier.name = sec->Get((group + (*ci)->name).c_str(), "");
-		(*ci)->control_ref->device_qualifier.FromString(
-			sec->Get((group+(*ci)->name+"/Device").c_str(), defdev.c_str() ) );
+		sec->Get((group + (*ci)->name).c_str(), &(*ci)->control_ref->control_qualifier.name, "");
+		std::string dev;
+		sec->Get((group+(*ci)->name+"/Device").c_str(), &dev, defdev.c_str());
+		(*ci)->control_ref->device_qualifier.FromString(dev);
 
 		// range
-		(*ci)->control_ref->range = sec->Get( (group+(*ci)->name+"/Range").c_str(), 100.0f ) / 100;
+		sec->Get( (group+(*ci)->name+"/Range").c_str(), &(*ci)->control_ref->range, 100.0f);
+		(*ci)->control_ref->range /= 100;
 
 		// input mode
 		if ( (*ci)->control_ref->is_input )
-			((ControllerInterface::InputReference*)((*ci)->control_ref))->mode
-				= sec->Get( (group+(*ci)->name+"/Mode").c_str(), 0 );
+			sec->Get( (group+(*ci)->name+"/Mode").c_str(), &((ControllerInterface::InputReference*)((*ci)->control_ref))->mode, 0 );
 	}
 
 	// extensions
@@ -136,7 +140,8 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 
 		ex->switch_extension = 0;
 		unsigned int n = 0;
-		const std::string extname = sec->Get((base + name).c_str(), "");
+		std::string extname;
+		sec->Get((base + name).c_str(), &extname, "");
 
 		std::vector<ControllerEmu*>::const_iterator
 			ai = ((Extension*)this)->attachments.begin(),
@@ -157,7 +162,7 @@ void ControllerEmu::LoadConfig( IniFile::Section *sec, const std::string& base )
 	std::string defdev = default_device.ToString();
 	if (base.empty())
 	{
-		defdev = sec->Get((base + "Device").c_str(), "");
+		sec->Get((base + "Device").c_str(), &defdev, "");
 		default_device.FromString(defdev);
 	}
 	std::vector<ControlGroup*>::const_iterator i = groups.begin(),
@@ -175,7 +180,7 @@ void ControllerEmu::ControlGroup::SaveConfig( IniFile::Section *sec, const std::
 		si = settings.begin(),
 		se = settings.end();
 	for ( ; si!=se; ++si )
-		sec->Set( (group+(*si)->name).c_str(), (*si)->value*100.0f);
+		sec->Set( (group+(*si)->name).c_str(), (*si)->value*100.0f, (*si)->default_value*100.0f);
 
 	// controls
 	std::vector<ControlGroup::Control*>::const_iterator
@@ -184,23 +189,28 @@ void ControllerEmu::ControlGroup::SaveConfig( IniFile::Section *sec, const std::
 	for ( ; ci!=ce; ++ci )
 	{
 		// control and dev qualifier
-		sec->Set( (group+(*ci)->name).c_str(), (*ci)->control_ref->control_qualifier.name );
-		sec->Set( (group+(*ci)->name+"/Device").c_str(), (*ci)->control_ref->device_qualifier.ToString());
+		sec->Set( (group+(*ci)->name).c_str(), (*ci)->control_ref->control_qualifier.name, "");
+		sec->Set( (group+(*ci)->name+"/Device").c_str(), (*ci)->control_ref->device_qualifier.ToString(), defdev);
 
 		// range
-		sec->Set( (group+(*ci)->name+"/Range").c_str(), (*ci)->control_ref->range*100.0f);
+		sec->Set( (group+(*ci)->name+"/Range").c_str(), (*ci)->control_ref->range*100.0f, 100.0f);
 
 		// input mode
 		if ( (*ci)->control_ref->is_input )
-			sec->Set( (group+(*ci)->name+"/Mode").c_str(),
-				((ControllerInterface::InputReference*)((*ci)->control_ref))->mode);
+		{
+			const int mode = ((ControllerInterface::InputReference*)((*ci)->control_ref))->mode;
+			if (mode)
+				sec->Set((group+(*ci)->name+"/Mode").c_str(), mode);
+			else
+				sec->Delete((group+(*ci)->name+"/Mode").c_str());
+		}
 	}
 
 	// extensions
 	if ( GROUP_TYPE_EXTENSION == type )
 	{
 		Extension* const ext = ((Extension*)this);
-		sec->Set((base + name).c_str(), ext->attachments[ext->switch_extension]->GetName());
+		sec->Set((base + name).c_str(), ext->attachments[ext->switch_extension]->GetName(), "None");
 
 		std::vector<ControllerEmu*>::const_iterator
 			ai = ((Extension*)this)->attachments.begin(),
@@ -214,7 +224,7 @@ void ControllerEmu::SaveConfig( IniFile::Section *sec, const std::string& base )
 {
 	const std::string defdev = default_device.ToString();
 	if ( base.empty() )
-		sec->Set( std::string(" ") + base + "Device", defdev );
+		sec->Set( (/*std::string(" ") +*/ base + "Device").c_str(), defdev, "");
 
 	std::vector<ControlGroup*>::const_iterator i = groups.begin(),
 		e = groups.end();
@@ -229,7 +239,7 @@ ControllerEmu::AnalogStick::AnalogStick( const char* const _name ) : ControlGrou
 
 	controls.push_back( new Input( "Modifier" ) );
 
-	settings.push_back( new Setting("Dead Zone", 0, 1, 50 ) );
+	settings.push_back( new Setting("Dead Zone", 0, 0, 50 ) );
 	settings.push_back( new Setting("Square Stick", 0 ) );
 
 }
@@ -259,7 +269,7 @@ ControllerEmu::Force::Force( const char* const _name ) : ControlGroup( _name, GR
 	controls.push_back( new Input( "Backward" ) );
 	controls.push_back( new Input( "Modifier" ) );
 
-	settings.push_back( new Setting("Dead Zone", 0, 1, 50 ) );
+	settings.push_back( new Setting("Dead Zone", 0, 0, 50 ) );
 }
 
 ControllerEmu::Tilt::Tilt( const char* const _name ) : ControlGroup( _name, GROUP_TYPE_TILT )
@@ -273,7 +283,7 @@ ControllerEmu::Tilt::Tilt( const char* const _name ) : ControlGroup( _name, GROU
 
 	controls.push_back( new Input( "Modifier" ) );
 
-	settings.push_back( new Setting("Dead Zone", 0, 1, 50 ) );
+	settings.push_back( new Setting("Dead Zone", 0, 0, 50 ) );
 	settings.push_back( new Setting("Circle Stick", 0 ) );
 }
 

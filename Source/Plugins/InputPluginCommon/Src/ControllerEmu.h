@@ -85,7 +85,7 @@ public:
 		public:
 
 			Setting(const char* const _name, const ControlState def_value
-				, const unsigned int _low = 1, const unsigned int _high = 100 )
+				, const unsigned int _low = 0, const unsigned int _high = 100 )
 				: name(_name)
 				, value(def_value)
 				, default_value(def_value)

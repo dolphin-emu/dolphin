@@ -3,6 +3,7 @@
 #ifdef CIFACE_USE_DIRECTINPUT_JOYSTICK
 
 #include "DirectInputJoystick.h"
+#include <StringUtil.h>
 
 inline bool operator<(const GUID & lhs, const GUID & rhs)
 {
@@ -13,6 +14,8 @@ namespace ciface
 {
 namespace DirectInput
 {
+
+#define DATA_BUFFER_SIZE	32
 
 #ifdef NO_DUPLICATE_DINPUT_XINPUT
 //-----------------------------------------------------------------------------
@@ -177,32 +180,37 @@ void InitJoystick( IDirectInput8* const idi8, std::vector<ControllerInterface::D
 		if ( std::find( xinput_guids.begin(), xinput_guids.end(), i->guidProduct.Data1 ) != xinput_guids.end() )
 			continue;
 #endif
-		// TODO: this has potential to mess up on createdev or setdatafmt failure
 		LPDIRECTINPUTDEVICE8 js_device;
-		if ( DI_OK == idi8->CreateDevice( i->guidInstance, &js_device, NULL ) )
-		if ( DI_OK == js_device->SetDataFormat( &c_dfDIJoystick ) )
-		// using foregroundwindow seems like a hack
-		if ( DI_OK != js_device->SetCooperativeLevel( GetForegroundWindow(), DISCL_BACKGROUND | DISCL_EXCLUSIVE ) )
+		if (DI_OK == idi8->CreateDevice(i->guidInstance, &js_device, NULL))
 		{
-			// fall back to non-exclusive mode, with no rumble
-			if ( DI_OK != js_device->SetCooperativeLevel( NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE ) )
+			if (DI_OK == js_device->SetDataFormat(&c_dfDIJoystick))
 			{
+				// using foregroundwindow seems like a hack
+				if (DI_OK != js_device->SetCooperativeLevel(GetForegroundWindow(), DISCL_BACKGROUND | DISCL_EXCLUSIVE))
+				{
+					//PanicAlert("SetCooperativeLevel(DISCL_EXCLUSIVE) failed!");
+					// fall back to non-exclusive mode, with no rumble
+					if (DI_OK != js_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE))
+					{
+						//PanicAlert("SetCooperativeLevel failed!");
+						js_device->Release();
+						continue;
+					}
+				}
+
+				Joystick* js = new Joystick(/*&*i, */js_device, name_counts[i->tszInstanceName].value++);
+				// only add if it has some inputs/outpus
+				if (js->Inputs().size() || js->Outputs().size())
+					devices.push_back(js);
+				else
+					delete js;
+			}
+			else
+			{
+				//PanicAlert("SetDataFormat failed!");
 				js_device->Release();
-				continue;
 			}
 		}
-		
-		if ( DI_OK == js_device->Acquire() )
-		{
-			Joystick* js = new Joystick( /*&*i, */js_device, name_counts[i->tszInstanceName].value++ );
-			// only add if it has some inputs/outpus
-			if ( js->Inputs().size() || js->Outputs().size() )
-				devices.push_back( js );
-			else
-				delete js;
-		}
-		else
-			js_device->Release();
 		
 	}
 }
@@ -222,7 +230,22 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	js_caps.dwButtons = std::min((DWORD)32, js_caps.dwButtons);
 	js_caps.dwPOVs = std::min((DWORD)4, js_caps.dwPOVs);
 
-	m_must_poll = ( ( js_caps.dwFlags & DIDC_POLLEDDATAFORMAT ) > 0 );
+	// polled or buffered data
+	{
+	DIPROPDWORD dipdw;
+	dipdw.diph.dwSize = sizeof(DIPROPDWORD);
+	dipdw.diph.dwHeaderSize = sizeof(DIPROPHEADER);
+	dipdw.diph.dwObj = 0;
+	dipdw.diph.dwHow = DIPH_DEVICE;
+	dipdw.dwData = DATA_BUFFER_SIZE;
+
+    // set the buffer size,
+	// if we can't set the property, we can't use buffered data,
+	// must use polling, which apparently doesn't work as well
+	m_must_poll = (DI_OK != m_device->SetProperty(DIPROP_BUFFERSIZE, &dipdw.diph));
+	}
+
+	m_device->Acquire();
 
 	// buttons
 	for ( unsigned int i = 0; i < js_caps.dwButtons; ++i )
@@ -339,7 +362,7 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		dipdw.diph.dwHeaderSize = sizeof( DIPROPHEADER );
 		dipdw.diph.dwObj = 0;
 		dipdw.diph.dwHow = DIPH_DEVICE;
-		dipdw.dwData = FALSE;
+		dipdw.dwData = DIPROPAUTOCENTER_OFF;
 		m_device->SetProperty( DIPROP_AUTOCENTER, &dipdw.diph );
 	}
 
@@ -377,7 +400,7 @@ std::string Joystick::GetName() const
 	str.diph.dwHeaderSize = sizeof(str.diph);
 	str.diph.dwHow = DIPH_DEVICE;
 	m_device->GetProperty( DIPROP_PRODUCTNAME, &str.diph );
-	return TStringToString( str.wsz );
+	return StripSpaces(TStringToString(str.wsz));
 	//return m_name;
 }
 
@@ -395,16 +418,42 @@ std::string Joystick::GetSource() const
 
 bool Joystick::UpdateInput()
 {
-	if ( m_must_poll )
-		m_device->Poll();
+	HRESULT hr = 0;
 
-	HRESULT hr = m_device->GetDeviceState( sizeof(m_state_in), &m_state_in );
+	if (m_must_poll)
+	{
+		m_device->Poll();
+		hr = m_device->GetDeviceState(sizeof(m_state_in), &m_state_in);
+	}
+	else
+	{
+		DIDEVICEOBJECTDATA evtbuf[DATA_BUFFER_SIZE];
+		DWORD numevents = DATA_BUFFER_SIZE;
+
+		hr = m_device->GetDeviceData(sizeof(*evtbuf), evtbuf, &numevents, 0);
+		//PanicAlert("GetDeviceData %l", hr);
+		while (DI_OK == hr && numevents)
+		{
+			for (LPDIDEVICEOBJECTDATA evt = evtbuf; evt<evtbuf + numevents; ++evt)
+			{
+				// all the buttons are at the end of the data format
+				// they are bytes rather than longs
+				if (evt->dwOfs < DIJOFS_BUTTON(0))
+					*(DWORD*)(((u8*)&m_state_in) + evt->dwOfs) = evt->dwData;
+				else
+					*(BYTE*)(((u8*)&m_state_in) + evt->dwOfs) = (BYTE)evt->dwData;
+			}
+
+			numevents = DATA_BUFFER_SIZE;
+			hr = m_device->GetDeviceData(sizeof(evtbuf), evtbuf, &numevents, 0);
+		}
+	}
 
 	// try reacquire if input lost
-	if ( DIERR_INPUTLOST == hr )
+	if (DIERR_INPUTLOST == hr || DIERR_NOTACQUIRED == hr)
 		hr = m_device->Acquire();
 
-	return ( DI_OK == hr );
+	return (DI_OK == hr);
 }
 
 bool Joystick::UpdateOutput()

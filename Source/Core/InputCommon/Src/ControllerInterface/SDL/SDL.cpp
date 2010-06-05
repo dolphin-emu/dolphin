@@ -3,6 +3,7 @@
 #ifdef CIFACE_USE_SDL
 
 #include "SDL.h"
+#include <StringUtil.h>
 
 #ifdef _WIN32
 	#if SDL_VERSION_ATLEAST(1, 3, 0)
@@ -209,7 +210,7 @@ bool Joystick::UpdateOutput()
 
 std::string Joystick::GetName() const
 {
-	return SDL_JoystickName( m_index );
+	return StripSpaces(SDL_JoystickName(m_index));
 }
 
 std::string Joystick::GetSource() const

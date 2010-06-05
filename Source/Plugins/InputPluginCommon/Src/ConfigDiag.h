@@ -17,6 +17,7 @@
 #include <wx/checkbox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
+#include <wx/spinctrl.h>
 
 #include <sstream>
 #include <vector>
@@ -45,10 +46,14 @@ public:
 	ControllerEmu::Extension* const	extension;
 };
 
-class PadSettingChoice : public wxChoice, public PadSetting
+class PadSettingChoice : public wxSpinCtrl, public PadSetting
 {
 public:
-	PadSettingChoice( wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const setting );
+	PadSettingChoice( wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const setting )
+		: wxSpinCtrl(parent, -1, wxEmptyString, wxDefaultPosition
+			, wxSize( 54, -1 ), 0, setting->low, setting->high, setting->value * 100)
+		, value(setting->value) {}
+
 	void UpdateGUI();
 	void UpdateValue();
 
@@ -167,6 +172,7 @@ public:
 	void DeleteProfile( wxCommandEvent& event );
 
 	void ConfigControl( wxCommandEvent& event );
+	void ClearControl( wxCommandEvent& event );
 	void DetectControl( wxCommandEvent& event );
 
 	void ConfigExtension( wxCommandEvent& event );

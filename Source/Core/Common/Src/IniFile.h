@@ -28,19 +28,19 @@ class IniFile
 public:
 	class Section
 	{
-	public:
-		Section();
-		Section(const std::string& _name);
-		Section(const Section& other);
+		friend class IniFile;
 
-		std::vector<std::string> lines;
-		std::string name;
-		std::string comment;
+	public:
+		Section() {}
+		Section(const std::string& _name) : name(_name) {}
 
 		bool Exists(const char *key) const;
+		bool Delete(const char *key);
 
 		std::string* GetLine(const char* key, std::string* valueOut, std::string* commentOut);
 		void Set(const char* key, const char* newValue);
+		void Set(const char* key, const std::string& newValue, const std::string& defaultValue);
+
 		void Set(const std::string &key, const std::string &value) {
 			Set(key.c_str(), value.c_str());
 		}
@@ -52,6 +52,7 @@ public:
 		void Set(const char* key, float newValue) {
 			Set(key, StringFromFormat("%f", newValue).c_str());
 		}
+		void Set(const char* key, const float newValue, const float defaultValue);
 		void Set(const char* key, double newValue) {
 			Set(key, StringFromFormat("%f", newValue).c_str());
 		}
@@ -70,33 +71,15 @@ public:
 		bool Get(const char* key, double* value, double defaultValue = false);
 		bool Get(const char* key, std::vector<std::string>& values);
 
-		// Direct getters, Billiard-style.
-		std::string Get(const char *key, const char *default_value) {
-			std::string value; Get(key, &value, default_value); return value;
-		}
-		int Get(const char *key, int defaultValue) {
-			int value; Get(key, &value, defaultValue); return value;
-		}
-		int Get(const char *key, u32 defaultValue) {
-			u32 value; Get(key, &value, defaultValue); return value;
-		}
-		int Get(const char *key, bool defaultValue) {
-			bool value; Get(key, &value, defaultValue); return value;
-		}
-		float Get(const char *key, float defaultValue) {
-			float value; Get(key, &value, defaultValue); return value;
-		}
-		double Get(const char *key, double defaultValue) {
-			double value; Get(key, &value, defaultValue); return value;
-		}
-
 		bool operator < (const Section& other) const {
 			return name < other.name;
 		}
-	};
 
-	IniFile();
-	~IniFile();
+	protected:
+		std::vector<std::string> lines;
+		std::string name;
+		std::string comment;
+	};
 
 	bool Load(const char* filename);
 	bool Load(const std::string &filename) { return Load(filename.c_str()); }
