@@ -591,6 +591,7 @@ void Renderer::RestoreAPIState()
 	SetBlendMode(true);
 
 	VertexShaderCache::SetCurrentShader(0);
+	glEnable(GL_VERTEX_PROGRAM_ARB);// needed by nvidia cards o avoid texture problems
 	PixelShaderCache::SetCurrentShader(0);
 }
 
