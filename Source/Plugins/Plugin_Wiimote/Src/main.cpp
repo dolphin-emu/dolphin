@@ -295,7 +295,7 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 }
 
 // Hack to use wx key events
-volatile bool wxkeystate[256];
+volatile bool wxkeystate[400];
 
 // Set buttons status from keyboard input. Currently this is done from
 // wxWidgets in the main application.   
@@ -303,7 +303,7 @@ volatile bool wxkeystate[256];
 void Wiimote_Input(u16 _Key, u8 _UpDown)
 {
 #if defined(__APPLE__) && defined(USE_WX) && USE_WX
-        if (_Key < 256)
+        if (_Key < 400)
         {
                 wxkeystate[_Key] = _UpDown;
         }
