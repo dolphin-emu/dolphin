@@ -164,9 +164,9 @@ private:
 
 	wxArrayString arrayStringFor_Framelimit;
 	wxArrayString arrayStringFor_CPUEngine;
+	wxArrayString arrayStringFor_FullscreenResolution;
 	wxArrayString arrayStringFor_Themes;
 	wxArrayString arrayStringFor_InterfaceLang;
-	wxArrayString arrayStringFor_FullscreenResolution;
 	wxArrayString arrayStringFor_GCSystemLang;
 	wxArrayString arrayStringFor_WiiSensBarPos;
 	wxArrayString arrayStringFor_WiiAspectRatio;
