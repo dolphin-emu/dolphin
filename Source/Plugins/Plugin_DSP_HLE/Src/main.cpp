@@ -196,6 +196,10 @@ void Initialize(void *init)
 	CDSPHandler::CreateInstance();
 }
 
+void DSP_StopSoundStream()
+{
+}
+
 void Shutdown()
 {
 	AudioCommon::ShutdownSoundStream();
