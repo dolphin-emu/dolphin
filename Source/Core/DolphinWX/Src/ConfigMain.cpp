@@ -404,7 +404,7 @@ void CConfigMain::CreateGUIControls()
 	// Core Settings - Advanced
 	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
 	AlwaysHLE_BS2 = new wxCheckBox(GeneralPage, ID_ALWAYS_HLE_BS2, wxT("HLE the IPL (recommended)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	CPUEngine = new wxRadioBox(GeneralPage, ID_CPURECOMPILER, wxT("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize, arrayStringFor_CPURec, 0, wxRA_SPECIFY_ROWS);
+	CPUEngine = new wxRadioBox(GeneralPage, ID_CPUENGINE, wxT("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize, arrayStringFor_CPUEngine, 0, wxRA_SPECIFY_ROWS);
 	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	DSPThread = new wxCheckBox(GeneralPage, ID_DSPTHREAD, wxT("DSPLLE on thread"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
