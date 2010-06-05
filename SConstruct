@@ -463,7 +463,7 @@ rev = utils.GenerateRevFile(env['flavor'],
                             "Source/Core/Common/Src/svnrev_template.h",
                             "Source/Core/Common/Src/svnrev.h")
 # print a nice progress indication when not compiling
-Progress(['-\r', '\\\r', '|\r', '/\r'], file=open('/dev/tty', 'w'), interval=5)
+Progress(['-\r', '\\\r', '|\r', '/\r'], interval=5)
 
 # Setup destdir for package building
 # Warning:  The program will not run from this location.  It is assumed the
