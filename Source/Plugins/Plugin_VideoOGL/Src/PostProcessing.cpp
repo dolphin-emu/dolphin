@@ -74,7 +74,7 @@ bool ApplyShader()
 
 	if (s_shader.glprogid != 0)
 	{
-		PixelShaderCache::EnableShader(s_shader.glprogid);		
+		PixelShaderCache::SetCurrentShader(s_shader.glprogid);		
 		return true;
 	}
 	else

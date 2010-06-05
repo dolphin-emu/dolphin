@@ -81,8 +81,6 @@ public:
 	static void SetCurrentShader(GLuint Shader);
 
 	static void DisableShader();
-	
-	static void EnableShader(GLuint Shader);
 };
 
 #endif // _PIXELSHADERCACHE_H_

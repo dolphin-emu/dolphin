@@ -111,7 +111,7 @@ void PixelShaderCache::Init()
 						"ADD result.color, R1, program.env[%d];\n"
 						"END\n", C_COLORMATRIX+3, C_COLORMATRIX+2, C_COLORMATRIX, C_COLORMATRIX+1, C_COLORMATRIX+4);
 	glGenProgramsARB(1, &s_ColorMatrixProgram);
-	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, s_ColorMatrixProgram);
+	SetCurrentShader(s_ColorMatrixProgram);
 	glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pmatrixprog), pmatrixprog);
 
 	GLenum err = GL_REPORT_ERROR();
@@ -139,7 +139,7 @@ void PixelShaderCache::Init()
 						"ADD result.color, R1, program.env[%d];\n"
 						"END\n", C_COLORMATRIX, C_COLORMATRIX+1, C_COLORMATRIX+2, C_COLORMATRIX+3, C_COLORMATRIX+4);
 	glGenProgramsARB(1, &s_DepthMatrixProgram);
-	glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, s_DepthMatrixProgram);
+	SetCurrentShader(s_DepthMatrixProgram);
 	glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pmatrixprog), pmatrixprog);
 
 	err = GL_REPORT_ERROR();
@@ -148,9 +148,7 @@ void PixelShaderCache::Init()
 		glDeleteProgramsARB(1, &s_DepthMatrixProgram);
 		s_DepthMatrixProgram = 0;
 	}
-	CurrentShader=0;
-	ShaderEnabled = false;
-	EnableShader(s_DepthMatrixProgram);	
+	
 }
 
 void PixelShaderCache::Shutdown()
@@ -160,7 +158,7 @@ void PixelShaderCache::Shutdown()
     glDeleteProgramsARB(1, &s_DepthMatrixProgram);
 	s_DepthMatrixProgram = 0;
 	PSCache::iterator iter = pshaders.begin();
-	for (; iter != pshaders.end(); ++iter)
+	for (; iter != pshaders.end(); iter++)
 		iter->second.Destroy();
 	pshaders.clear();
 }
@@ -272,7 +270,7 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 	}
 
 	glGenProgramsARB(1, &ps.glprogid);
-	EnableShader(ps.glprogid);	
+	SetCurrentShader(ps.glprogid);	
 	glProgramStringARB(GL_FRAGMENT_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);
 
 	err = GL_REPORT_ERROR();
@@ -311,7 +309,6 @@ void PixelShaderCache::DisableShader()
 	CurrentShader = 0;
 	if(ShaderEnabled)
 	{		
-		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, CurrentShader);
 		glDisable(GL_FRAGMENT_PROGRAM_ARB);
 		ShaderEnabled = false;
 	}	
@@ -320,17 +317,6 @@ void PixelShaderCache::DisableShader()
 
 //bind a program if is diferent from the binded oone
 void PixelShaderCache::SetCurrentShader(GLuint Shader)
-{
-	//The caching here breakes Super Mario Sunshine i'm still trying to figure out wy
-	if(ShaderEnabled /*&& CurrentShader != Shader*/)
-	{
-		CurrentShader = Shader;
-		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, CurrentShader);
-	}
-}
-
-//Enable Fragment program and bind initial program
-void PixelShaderCache::EnableShader(GLuint Shader)
 {
 	if(!ShaderEnabled)
 	{

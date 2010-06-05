@@ -325,31 +325,12 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 	float SuperSampleCompensation = 1.0f;
 	float scaleX = Renderer::GetXFBScaleX();
 	float scaleY = Renderer::GetXFBScaleY();
-	if(g_ActiveConfig.iMultisampleMode > 0 && g_ActiveConfig.iMultisampleMode < 4)
-	{
-		switch (g_ActiveConfig.iMultisampleMode)
-		{
-			case 1:
-				break;
-			case 2:
-				SuperSampleCompensation = 0.5f;
-				break;
-			case 3:
-				SuperSampleCompensation = 1.0f/3.0f;
-				break;
-			default:
-				break;
-		};
-	}
-
-	scaleX *= SuperSampleCompensation ;
-	scaleY *= SuperSampleCompensation;
 	TargetRectangle targetSource,efbSource;
 	efbSource = Renderer::ConvertEFBRectangle(sourceRc);
-	targetSource.top = (sourceRc.top *scaleY);
-	targetSource.bottom = (sourceRc.bottom *scaleY);
-	targetSource.left = (sourceRc.left *scaleX);
-	targetSource.right = (sourceRc.right * scaleX);
+	targetSource.top = (int)(sourceRc.top *scaleY);
+	targetSource.bottom = (int)(sourceRc.bottom *scaleY);
+	targetSource.left = (int)(sourceRc.left *scaleX);
+	targetSource.right = (int)(sourceRc.right * scaleX);
 	int target_width = targetSource.right - targetSource.left;
 	int target_height = targetSource.bottom - targetSource.top;
 	if (it != m_virtualXFBList.end())
@@ -445,7 +426,6 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 		
 
-	int SSAAMode = ( g_ActiveConfig.iMultisampleMode > 3 )? 0 : g_ActiveConfig.iMultisampleMode;
 	D3D::drawShadedTexQuad(
 		read_texture,
 		&sourcerect, 
@@ -453,8 +433,8 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		Renderer::GetFullTargetHeight(),
 		target_width,
 		target_height,
-		PixelShaderCache::GetColorCopyProgram(SSAAMode),
-		(SSAAMode != 0)? VertexShaderCache::GetFSAAVertexShader() : VertexShaderCache::GetSimpleVertexShader());			
+		PixelShaderCache::GetColorCopyProgram( g_ActiveConfig.iMultisampleMode),
+		VertexShaderCache::GetSimpleVertexShader( g_ActiveConfig.iMultisampleMode));			
 	
 	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);

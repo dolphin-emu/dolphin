@@ -12,11 +12,13 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (United States) resources
+// English (U.S.) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
+#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -44,7 +46,7 @@ BEGIN
     CONTROL         "&Widescreen Hack",IDC_WIDESCREEN_HACK,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,161,25,67,10
     LTEXT           "&Aspect Ratio:",IDC_STATIC,9,40,48,8
     COMBOBOX        IDC_ASPECTRATIO,68,39,89,57,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&Anti-alias mode:",IDC_STATIC,9,59,51,8
+    LTEXT           "&Scale - AA mode:",IDC_STATIC,9,59,59,8
     COMBOBOX        IDC_ANTIALIASMODE,68,59,162,73,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "&Enable CPU->EFB access ",IDC_EFB_ACCESS_ENABLE,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,7,80,94,11
     GROUPBOX        "Safe Texture Cache Mode",IDC_STATIC,109,94,125,27
@@ -103,7 +105,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO
+GUIDELINES DESIGNINFO 
 BEGIN
     IDD_ABOUT, DIALOG
     BEGIN
@@ -177,7 +179,7 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-#endif    // English (United States) resources
+#endif    // English (U.S.) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

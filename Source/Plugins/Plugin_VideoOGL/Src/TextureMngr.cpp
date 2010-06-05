@@ -132,7 +132,7 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode,TexMode1 &
 			if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
                 mode.min_filter += 4; // take equivalent forced linear
             int filt = newmode.min_filter;            
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & (((newmode1.max_lod >> 4) > 0)?7:4)]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & (((newmode1.max_lod >> 5) > 0)?7:4)]);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod >> 5);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod >> 5);
 			glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (newmode.lod_bias/32.0f));
@@ -261,7 +261,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	TexMode1 &tm1 = bpmem.tex[texstage >> 2].texMode1[texstage & 3];
 	
 	bool UseNativeMips = (tm0.min_filter & 3) && (tm0.min_filter != 8) && g_ActiveConfig.bUseNativeMips;
-	int maxlevel = ((tm1.max_lod >> 4));
+	int maxlevel = tm1.max_lod >> 4;//this ir realy strange should be 5 but that breaks some textures
 
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 	int bsw = TexDecoder_GetBlockWidthInTexels(tex_format) - 1;
@@ -309,7 +309,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		if (!g_ActiveConfig.bSafeTextureCache)
 			hash_value = ((u32 *)ptr)[0];
 
-        if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash) && (int) FullFormat == entry.fmt))
+        if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash) && ((int) FullFormat == entry.fmt) && maxlevel <= entry.MipLevels ))
 		{
             entry.frameCount = frameCount;
 			glEnable(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D);
@@ -327,7 +327,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
             // Let's reload the new texture data into the same texture,
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
-			if (width == entry.w && height == entry.h && (int) FullFormat == entry.fmt)
+			if (width == entry.w && height == entry.h && (int) FullFormat == entry.fmt && maxlevel <= entry.MipLevels )
             {
 				glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
 				GL_REPORT_ERRORD();
@@ -398,6 +398,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	TexLevels =  (isPow2 && UseNativeMips && (maxlevel > 0)) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : (isPow2? 0 : 1);
 	if(TexLevels > maxlevel && maxlevel > 0)
 		TexLevels = maxlevel;
+	entry.MipLevels = maxlevel;
 	bool GenerateMipmaps = TexLevels > 1 || TexLevels == 0;
 	entry.bHaveMipMaps = GenerateMipmaps;
 	int gl_format = 0;
@@ -509,27 +510,13 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			{
 				if (expandedWidth != (int)currentWidth)
 					glPixelStorei(GL_UNPACK_ROW_LENGTH, expandedWidth);
-				if(skip_texture_create)
-				{
-					glTexSubImage2D(target, level,0,0,currentWidth, currentWidth, gl_format, gl_type, temp);
-				}
-				else
-				{
-					glTexImage2D(target, level, gl_iformat, currentWidth, currentHeight, 0, gl_format, gl_type, temp);									
-				}
+				glTexImage2D(target, level, gl_iformat, currentWidth, currentHeight, 0, gl_format, gl_type, temp);													
 				if (expandedWidth != (int)currentWidth)
 					glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
 			}
 			else
 			{
-				if(skip_texture_create)
-				{
-					glCompressedTexSubImage2D(target, level,0,0,currentWidth, currentHeight, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,expandedWidth*expandedHeight/2, temp);				
-				}
-				else
-				{
-					glCompressedTexImage2D(target, level, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,	currentWidth, currentHeight, 0, expandedWidth*expandedHeight/2, temp);
-				}
+				glCompressedTexImage2D(target, level, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT,	currentWidth, currentHeight, 0, expandedWidth*expandedHeight/2, temp);				
 			}
 			GL_REPORT_ERRORD();
 			u32 size = (max(mipWidth, bsw) * max(mipHeight, bsh) * bsdepth) >> 1;
@@ -778,7 +765,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
    
     glViewport(0, 0, w, h);
 
-	PixelShaderCache::EnableShader(bFromZBuffer ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
+	PixelShaderCache::SetCurrentShader(bFromZBuffer ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
     PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
     GL_REPORT_ERRORD();
 

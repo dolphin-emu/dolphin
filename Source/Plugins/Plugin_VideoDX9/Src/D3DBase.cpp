@@ -148,10 +148,15 @@ void Enumerate()
 		bool isNvidia = a.ident.VendorId == VENDOR_NVIDIA;
 		
 		// Add SuperSamples modes
-		a.aa_levels.push_back(AALevel("None", D3DMULTISAMPLE_NONE, 0));
-		a.aa_levels.push_back(AALevel("2.25x SSAA", D3DMULTISAMPLE_NONE, 0));
-		a.aa_levels.push_back(AALevel("4x SSAA", D3DMULTISAMPLE_NONE, 0));
-		a.aa_levels.push_back(AALevel("9x SSAA", D3DMULTISAMPLE_NONE, 0));
+		a.aa_levels.push_back(AALevel("1x EFB - SSAA NONE", D3DMULTISAMPLE_NONE, 0));
+		a.aa_levels.push_back(AALevel("1x EFB - 4x SSAA", D3DMULTISAMPLE_NONE, 0));
+		a.aa_levels.push_back(AALevel("1x EFB - 9x SSAA", D3DMULTISAMPLE_NONE, 0));
+		a.aa_levels.push_back(AALevel("2x EFB - SSAA NONE", D3DMULTISAMPLE_NONE, 0));
+		a.aa_levels.push_back(AALevel("2x EFB - 4x SSAA", D3DMULTISAMPLE_NONE, 0));
+		a.aa_levels.push_back(AALevel("2x EFB - 9x SSAA", D3DMULTISAMPLE_NONE, 0));
+		a.aa_levels.push_back(AALevel("3x EFB - SSAA NONE", D3DMULTISAMPLE_NONE, 0));
+		a.aa_levels.push_back(AALevel("3x EFB - 4x SSAA", D3DMULTISAMPLE_NONE, 0));
+		a.aa_levels.push_back(AALevel("3x EFB - 9x SSAA", D3DMULTISAMPLE_NONE, 0));
 		//Add multisample modes
 		//disable them will they are not implemnted
 		/*

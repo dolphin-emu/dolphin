@@ -598,12 +598,12 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	int startv = 0, extraverts = 0;
 	int v = 0;
 
-	int remainingVerts2 = VertexManager::GetRemainingVertices(primitive);
+	//int remainingVerts2 = VertexManager::GetRemainingVertices(primitive);
 	while (v < count)
 	{
 		int remainingVerts = VertexManager::GetRemainingSize() / native_stride;
-		if (remainingVerts2 - v + startv < remainingVerts)
-		    remainingVerts = remainingVerts2 - v + startv;
+		//if (remainingVerts2 - v + startv < remainingVerts)
+		    //remainingVerts = remainingVerts2 - v + startv;
 		if (remainingVerts < granularity) {
 			INCSTAT(stats.thisFrame.numBufferSplits);
 			// This buffer full - break current primitive and flush, to switch to the next buffer.
@@ -611,7 +611,7 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 			if (v - startv > 0)
 				VertexManager::AddVertices(primitive, v - startv + extraverts);
 			VertexManager::Flush();
-			remainingVerts2 = VertexManager::GetRemainingVertices(primitive);
+			//remainingVerts2 = VertexManager::GetRemainingVertices(primitive);
 			// Why does this need to be so complicated?
 			switch (primitive) {
 				case 3: // triangle strip, copy last two vertices

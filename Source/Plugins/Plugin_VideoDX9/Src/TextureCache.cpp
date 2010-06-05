@@ -188,7 +188,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		if (!g_ActiveConfig.bSafeTextureCache)
 			hash_value = ((u32 *)ptr)[0];
 
-		if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash) && FullFormat == entry.fmt))
+		if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash) && FullFormat == entry.fmt && entry.MipLevels <= maxlevel))
 		{
 			entry.frameCount = frameCount;
 			D3D::SetTexture(stage, entry.texture);
@@ -200,7 +200,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
 
-			if (width == entry.w && height==entry.h && FullFormat == entry.fmt)
+			if (width == entry.w && height==entry.h && FullFormat == entry.fmt && entry.MipLevels == maxlevel) 
 			{
 				skip_texture_create = true;
 			}
@@ -286,6 +286,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	TexLevels =  (isPow2 && UseNativeMips && (maxlevel > 0)) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : ((isPow2)? 0 : 1);
 	if(TexLevels > maxlevel && maxlevel > 0)
 		TexLevels = maxlevel;
+	entry.MipLevels = maxlevel;
 	if (!skip_texture_create) 
 	{		
 		entry.texture = D3D::CreateTexture2D((BYTE*)temp, width, height, expandedWidth, d3d_fmt, swap_r_b, TexLevels);
@@ -361,25 +362,11 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	int tex_w = (abs(source_rect.GetWidth()) >> bScaleByHalf);
 	int tex_h = (abs(source_rect.GetHeight()) >> bScaleByHalf);
 	//compensate the texture grow if supersampling is enabled to conserve memory usage
-	float SuperSampleCompensation = 1.0f;
+	float SuperSampleCompensation = (g_ActiveConfig.iMultisampleMode % 3) + 1;
+	SuperSampleCompensation = 1.0f / SuperSampleCompensation;
 	float xScale = Renderer::GetTargetScaleX();
 	float yScale = Renderer::GetTargetScaleY();
-	if(g_ActiveConfig.iMultisampleMode > 0 && g_ActiveConfig.iMultisampleMode < 4)
-	{
-		switch (g_ActiveConfig.iMultisampleMode)
-		{
-			case 1:
-				break;
-			case 2:
-				SuperSampleCompensation = 0.5f;
-				break;
-			case 3:
-				SuperSampleCompensation = 1.0f/3.0f;
-				break;
-			default:
-				break;
-		};
-	}	
+		
 	int Scaledtex_w = (g_ActiveConfig.bCopyEFBScaled)?((int)(xScale * SuperSampleCompensation *  tex_w)):tex_w;
 	int Scaledtex_h = (g_ActiveConfig.bCopyEFBScaled)?((int)(yScale * SuperSampleCompensation * tex_h)):tex_h;
 	
@@ -585,7 +572,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		Scaledtex_w,
 		Scaledtex_h,
 		((bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8) && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(SSAAMode): PixelShaderCache::GetColorMatrixProgram(SSAAMode),
-		(SSAAMode != 0)? VertexShaderCache::GetFSAAVertexShader() : VertexShaderCache::GetSimpleVertexShader());			
+		VertexShaderCache::GetSimpleVertexShader(SSAAMode));			
 	
 	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);

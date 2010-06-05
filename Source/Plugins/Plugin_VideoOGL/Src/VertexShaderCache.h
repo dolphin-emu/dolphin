@@ -65,9 +65,8 @@ public:
 	static bool CompileVertexShader(VERTEXSHADER& ps, const char* pstrprogram);
 
 	static void SetCurrentShader(GLuint Shader);
-
 	static void DisableShader();
-	static void EnableShader(GLuint Shader);
+	
 };
 
 #endif // _VERTEXSHADERCACHE_H_

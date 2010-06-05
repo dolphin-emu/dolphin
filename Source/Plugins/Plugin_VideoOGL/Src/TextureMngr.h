@@ -29,7 +29,7 @@ class TextureMngr
 public:
     struct TCacheEntry
     {
-        TCacheEntry() : texture(0), addr(0), size_in_bytes(0), hash(0), w(0), h(0), scaleX(1.0f), scaleY(1.0f), isRenderTarget(false), isRectangle(true), bHaveMipMaps(false) { mode.hex = 0xFCFCFCFC; }
+        TCacheEntry() : texture(0), addr(0), size_in_bytes(0), hash(0), w(0), h(0),MipLevels(0), scaleX(1.0f), scaleY(1.0f), isRenderTarget(false), isRectangle(true), bHaveMipMaps(false) { mode.hex = 0xFCFCFCFC; }
 
         GLuint texture;
         u32 addr;
@@ -41,7 +41,7 @@ public:
 		TexMode1 mode1; // current filter and clamp modes that texture is set to
 
         int frameCount;
-        int w, h, fmt;
+        int w, h, fmt,MipLevels;
 
 		float scaleX, scaleY; // Hires texutres need this
 

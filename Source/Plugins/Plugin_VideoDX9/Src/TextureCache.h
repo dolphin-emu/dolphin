@@ -39,7 +39,7 @@ public:
 		u32 oldpixel;
 		
 		int frameCount;
-		int w, h, fmt;
+		int w, h, fmt,MipLevels;
 		int Scaledw, Scaledh;
 
 		float scaleX, scaleY; // Hires texutres need this

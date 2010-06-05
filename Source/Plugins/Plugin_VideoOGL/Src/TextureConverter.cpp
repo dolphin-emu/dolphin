@@ -203,7 +203,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
 
 	glViewport(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight);
 
-	PixelShaderCache::EnableShader(shader.glprogid);
+	PixelShaderCache::SetCurrentShader(shader.glprogid);
 
 	// Draw...
 	glBegin(GL_QUADS);
@@ -340,8 +340,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	Renderer::ResetAPIState();
 
-	float srcFormatFactor = 0.5f;
-	float srcFmtWidth = srcWidth * srcFormatFactor;
+	int srcFmtWidth = srcWidth / 2;
 
 	// swich to texture converter frame buffer
 	// attach destTexture as color destination
@@ -374,7 +373,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, GLuint destTextur
 
 	glViewport(0, 0, srcWidth, srcHeight);
 
-	PixelShaderCache::EnableShader(s_yuyvToRgbProgram.glprogid);
+	PixelShaderCache::SetCurrentShader(s_yuyvToRgbProgram.glprogid);
 	
 	GL_REPORT_ERRORD();
 

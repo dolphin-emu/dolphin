@@ -157,13 +157,13 @@ const float epsilon8bit = 1.0f / 255.0f;
 static const char *tevKSelTableC[] = // KCSEL
 {
     "1.0f,1.0f,1.0f",    // 1   = 0x00
-    "0.8745098f,0.8745098f,0.8745098f", // 7_8 = 0x01
-    "0.7490196f,0.7490196f,0.7490196f",	 // 3_4 = 0x02
-    "0.6235294f,0.6235294f,0.6235294f", // 5_8 = 0x03
-    "0.4980392f,0.4980392f,0.4980392f",       // 1_2 = 0x04
-    "0.372549f,0.372549f,0.372549f", // 3_8 = 0x05
-    "0.2470588f,0.2470588f,0.2470588f",    // 1_4 = 0x06
-    "0.1215686f,0.1215686f,0.1215686f", // 1_8 = 0x07
+    "(223.0f/255.0f),(223.0f/255.0f),(223.0f/255.0f)", // 7_8 = 0x01
+    "(191.0f/255.0f),(191.0f/255.0f),(191.0f/255.0f)",	 // 3_4 = 0x02
+    "(159.0f/255.0f),(159.0f/255.0f),(159.0f/255.0f)", // 5_8 = 0x03
+    "(127.0f/255.0f),(127.0f/255.0f),(127.0f/255.0f)",       // 1_2 = 0x04
+    "(95.0f/255.0f),(95.0f/255.0f),(95.0f/255.0f)", // 3_8 = 0x05
+    "(63.0f/255.0f),(63.0f/255.0f),(63.0f/255.0f)",    // 1_4 = 0x06
+    "(31.0f/255.0f),(31.0f/255.0f),(31.0f/255.0f)", // 1_8 = 0x07
     "ERROR", // 0x08
     "ERROR", // 0x09
     "ERROR", // 0x0a
@@ -193,13 +193,13 @@ static const char *tevKSelTableC[] = // KCSEL
 static const char *tevKSelTableA[] = // KASEL
 {
     "1.0f",  // 1   = 0x00
-    "0.8745098f",// 7_8 = 0x01
-    "0.7490196f", // 3_4 = 0x02
-    "0.6235294f",// 5_8 = 0x03
-    "0.4980392f",  // 1_2 = 0x04
-    "0.372549f",// 3_8 = 0x05
-    "0.2470588f", // 1_4 = 0x06
-    "0.1215686f",// 1_8 = 0x07
+    "(223.0f/255.0f)",// 7_8 = 0x01
+    "(191.0f/255.0f)", // 3_4 = 0x02
+    "(159.0f/255.0f)",// 5_8 = 0x03
+    "(127.0f/255.0f)",  // 1_2 = 0x04
+    "(95.0f/255.0f)",// 3_8 = 0x05
+    "(63.0f/255.0f)", // 1_4 = 0x06
+    "(31.0f/255.0f)",// 1_8 = 0x07
     "ERROR", // 0x08
     "ERROR", // 0x09
     "ERROR", // 0x0a
@@ -237,8 +237,8 @@ static const char *tevScaleTable[] = // CS
 static const char *tevBiasTable[] = // TB
 {
     "",       // ZERO,
-    "+0.4980392f",  // ADDHALF,
-    "-0.4980392f",  // SUBHALF,
+    "+(127.0f/255.0f)",  // ADDHALF,
+    "-(127.0f/255.0f)",  // SUBHALF,
     "",
 };
 
@@ -246,13 +246,6 @@ static const char *tevOpTable[] = { // TEV
     "+",      // TEVOP_ADD = 0,
     "-",      // TEVOP_SUB = 1,
 };
-
-//static const char *tevCompOpTable[] = { ">", "==" };
-
-#define TEVCMP_R8    0
-#define TEVCMP_GR16  1
-#define TEVCMP_BGR24 2
-#define TEVCMP_RGB8  3
 
 static const char *tevCInputTable[] = // CC
 {
@@ -269,7 +262,7 @@ static const char *tevCInputTable[] = // CC
     "(rastemp.rgb)",            // RASC,
     "(rastemp.aaa)",      // RASA,
     "float3(1.0f,1.0f,1.0f)",              // ONE
-    "float3(0.4980392f,0.4980392f,0.4980392f)",                 // HALF
+    "float3((127.0f/255.0f),(127.0f/255.0f),(127.0f/255.0f))",                 // HALF
     "(konsttemp.rgb)", //"konsttemp.rgb",        // KONST
     "float3(0.0f,0.0f,0.0f)",              // ZERO
 	///aded extra values to map clamped values
@@ -286,7 +279,7 @@ static const char *tevCInputTable[] = // CC
     "(rastemp.rgb)",            // RASC,
     "(rastemp.aaa)",      // RASA,
     "float3(1.0f,1.0f,1.0f)",              // ONE
-    "float3(0.4980392f,0.4980392f,0.4980392f)",                 // HALF
+    "float3((127.0f/255.0f),(127.0f/255.0f),(127.0f/255.0f))",                 // HALF
     "(konsttemp.rgb)", //"konsttemp.rgb",        // KONST
     "float3(0.0f,0.0f,0.0f)",              // ZERO    
     "PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",
@@ -510,7 +503,7 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 H
 	}
 
 	// emulation of unisgned 8 overflow when casting
-	WRITE(p, "prev = frac(4.0f + prev * 0.99609375f) *  1.00392157f;\n");//fmod(fmod(prev * 255.0f,256.0f) + 256.0f,256.0f) * 0.0039215686f;\n");		
+	WRITE(p, "prev = frac(4.0f + prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 		
     if (!WriteAlphaTest(p, HLSL))
 	{
@@ -719,14 +712,49 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
     if (bCKonst || bAKonst )
         WRITE(p, "konsttemp=float4(%s,%s);\n",tevKSelTableC[kc],tevKSelTableA[ka]);  
 
-	if(cc.a == 0 || cc.a == 1 || cc.b == 0 || cc.b == 1 || cc.c == 0 || cc.c == 1 || ac.a == 0 || ac.b == 0 || ac.c == 0)
-		WRITE(p, "cprev = frac(4.0f + prev * 0.99609375f) *  1.00392157f;\n");  
-	if(cc.a == 2 || cc.a == 3 || cc.b == 2 || cc.b == 3 || cc.c == 2 || cc.c == 3 || ac.a == 1 || ac.b == 1 || ac.c == 1)
-		WRITE(p, "cc0 = frac(4.0f + c0 * 0.99609375f) *  1.00392157f;\n");
-	if(cc.a == 4 || cc.a == 5 || cc.b == 4 || cc.b == 5 || cc.c == 4 || cc.c == 5 || ac.a == 2 || ac.b == 2 || ac.c == 2)
-		WRITE(p, "cc1 = frac(4.0f + c1 * 0.99609375f) *  1.00392157f;\n");  
-	if(cc.a == 6 || cc.a == 7 || cc.b == 6 || cc.b == 7 || cc.c == 6 || cc.c == 7 || ac.a == 3 || ac.b == 3 || ac.c == 3)
-		WRITE(p, "cc2 = frac(4.0f + c2 * 0.99609375f) *  1.00392157f;\n");  	
+	if(cc.a == TEVCOLORARG_CPREV 
+	|| cc.a == TEVCOLORARG_APREV 
+	|| cc.b == TEVCOLORARG_CPREV 
+	|| cc.b == TEVCOLORARG_APREV 
+	|| cc.c == TEVCOLORARG_CPREV 
+	|| cc.c == TEVCOLORARG_APREV 
+	|| ac.a == TEVALPHAARG_APREV 
+	|| ac.b == TEVALPHAARG_APREV 
+	|| ac.c == TEVALPHAARG_APREV)
+		WRITE(p, "cprev = frac(4.0f + prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");  
+
+	if(cc.a == TEVCOLORARG_C0 
+	|| cc.a == TEVCOLORARG_A0 
+	|| cc.b == TEVCOLORARG_C0 
+	|| cc.b == TEVCOLORARG_A0 
+	|| cc.c == TEVCOLORARG_C0 
+	|| cc.c == TEVCOLORARG_A0 
+	|| ac.a == TEVALPHAARG_A0 
+	|| ac.b == TEVALPHAARG_A0 
+	|| ac.c == TEVALPHAARG_A0)
+		WRITE(p, "cc0 = frac(4.0f + c0 * (255.0f/256.0f)) * (256.0f/255.0f);\n");
+
+	if(cc.a == TEVCOLORARG_C1 
+	|| cc.a == TEVCOLORARG_A1 
+	|| cc.b == TEVCOLORARG_C1 
+	|| cc.b == TEVCOLORARG_A1 
+	|| cc.c == TEVCOLORARG_C1 
+	|| cc.c == TEVCOLORARG_A1 
+	|| ac.a == TEVALPHAARG_A1 
+	|| ac.b == TEVALPHAARG_A1 
+	|| ac.c == TEVALPHAARG_A1)
+		WRITE(p, "cc1 = frac(4.0f + c1 * (255.0f/256.0f)) * (256.0f/255.0f);\n");  
+	
+	if(cc.a == TEVCOLORARG_C2 
+	|| cc.a == TEVCOLORARG_A2 
+	|| cc.b == TEVCOLORARG_C2 
+	|| cc.b == TEVCOLORARG_A2 
+	|| cc.c == TEVCOLORARG_C2 
+	|| cc.c == TEVCOLORARG_A2 
+	|| ac.a == TEVALPHAARG_A2 
+	|| ac.b == TEVALPHAARG_A2 
+	|| ac.c == TEVALPHAARG_A2)
+		WRITE(p, "cc2 = frac(4.0f + c2 * (255.0f/256.0f)) * (256.0f/255.0f);\n");  	
 
     if (cc.clamp)
 		WRITE(p, "%s=saturate(", tevCOutputTable[cc.dest]);
@@ -734,13 +762,13 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 		WRITE(p, "%s=", tevCOutputTable[cc.dest]);
 
     // combine the color channel
-    if (cc.bias != 3) // if not compare
+	if (cc.bias != TevBias_COMPARE) // if not compare
 	{
 		//normal color combiner goes here        
-		if (cc.shift>0)
+		if (cc.shift > TEVSCALE_1)
 			WRITE(p, "%s*(",tevScaleTable[cc.shift]);		
 
-		if(!(cc.d == TEVCOLORARG_ZERO && cc.op == 0))
+		if(!(cc.d == TEVCOLORARG_ZERO && cc.op == TEVOP_ADD))
 			WRITE(p, "%s%s",tevCInputTable[cc.d],tevOpTable[cc.op]);
 
 		if (cc.a == cc.b)
@@ -750,11 +778,11 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 		else if (cc.c == TEVCOLORARG_ONE)
 			WRITE(p,"%s",tevCInputTable[cc.b + 16]);
 		else if (cc.a == TEVCOLORARG_ZERO)
-			WRITE(p,"%s*(trunc(%s * 256.9921875f)*0.00390625f)",tevCInputTable[cc.b + 16],tevCInputTable[cc.c + 16]);
+			WRITE(p,"%s*%s",tevCInputTable[cc.b + 16],tevCInputTable[cc.c + 16]);
 		else if (cc.b == TEVCOLORARG_ZERO)
-			WRITE(p,"%s*(float3(1.0f,1.0f,1.0f)-(trunc(%s * 256.9921875f)*0.00390625f))",tevCInputTable[cc.a + 16],tevCInputTable[cc.c + 16]);
+			WRITE(p,"%s*(float3(1.0f,1.0f,1.0f)-%s)",tevCInputTable[cc.a + 16],tevCInputTable[cc.c + 16]);
 		else
-			WRITE(p, "lerp(%s,%s,(trunc(%s * 256.9921875f)*0.00390625f))",tevCInputTable[cc.a + 16], tevCInputTable[cc.b + 16],tevCInputTable[cc.c + 16]);
+			WRITE(p, "lerp(%s,%s,%s)",tevCInputTable[cc.a + 16], tevCInputTable[cc.b + 16],tevCInputTable[cc.c + 16]);
 		
 		WRITE(p, "%s",tevBiasTable[cc.bias]);
 		
@@ -780,13 +808,13 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 	else
 		WRITE(p, "%s=", tevAOutputTable[ac.dest]);
 
-    if (ac.bias != 3) // if not compare
+    if (ac.bias != TevBias_COMPARE) // if not compare
 	{
         //normal alpha combiner goes here
-		if (ac.shift>0)
+		if (ac.shift > TEVSCALE_1)
 			WRITE(p, "%s*(",tevScaleTable[ac.shift]);		
 
-		if(!(ac.d == TEVALPHAARG_ZERO && ac.op == 0))
+		if(!(ac.d == TEVALPHAARG_ZERO && ac.op == TEVOP_ADD))
 			WRITE(p, "%s.a%s",tevAInputTable[ac.d],tevOpTable[ac.op]);		
 
 		if (ac.a == ac.b)
@@ -794,11 +822,11 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 		else if (ac.c == TEVALPHAARG_ZERO)
 			WRITE(p,"%s.a",tevAInputTable[ac.a + 8]);
 		else if (ac.a == TEVALPHAARG_ZERO)
-			WRITE(p,"%s.a*(trunc(%s.a * 256.9921875f)*0.00390625f)",tevAInputTable[ac.b + 8],tevAInputTable[ac.c + 8]);
+			WRITE(p,"%s.a*%s.a",tevAInputTable[ac.b + 8],tevAInputTable[ac.c + 8]);
 		else if (ac.b == TEVALPHAARG_ZERO)
-			WRITE(p,"%s.a*(1.0f-(trunc(%s.a * 256.9921875f)*0.00390625f))",tevAInputTable[ac.a + 8],tevAInputTable[ac.c + 8]);
+			WRITE(p,"%s.a*(1.0f-%s.a)",tevAInputTable[ac.a + 8],tevAInputTable[ac.c + 8]);
 		else
-	        WRITE(p, "lerp(%s.a,%s.a,(trunc(%s.a * 256.9921875f)*0.00390625f))",tevAInputTable[ac.a + 8],tevAInputTable[ac.b + 8],tevAInputTable[ac.c + 8]);
+	        WRITE(p, "lerp(%s.a,%s.a,%s.a)",tevAInputTable[ac.a + 8],tevAInputTable[ac.b + 8],tevAInputTable[ac.c + 8]);
 		
 		WRITE(p, "%s",tevBiasTable[ac.bias]);
 		

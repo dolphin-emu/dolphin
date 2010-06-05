@@ -271,7 +271,7 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 
 
 	// Draw...
-	D3D::drawShadedTexQuad(srcTexture,&SrcRect,1,1,dstWidth,dstHeight,shader,VertexShaderCache::GetSimpleVertexShader());
+	D3D::drawShadedTexQuad(srcTexture,&SrcRect,1,1,dstWidth,dstHeight,shader,VertexShaderCache::GetSimpleVertexShader(0));
 	hr = D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
 	hr = D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
 	Renderer::RestoreAPIState();	
@@ -414,8 +414,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 		return;
 	}
 
-	float srcFormatFactor = 0.5f;
-	float srcFmtWidth = srcWidth * srcFormatFactor;
+	int srcFmtWidth = srcWidth / 2;
 	
 	Renderer::ResetAPIState(); // reset any game specific settings
 	LPDIRECT3DTEXTURE9 s_srcTexture = D3D::CreateTexture2D(srcAddr, srcFmtWidth, srcHeight, srcFmtWidth, D3DFMT_A8R8G8B8, false);
@@ -466,7 +465,7 @@ void DecodeToTexture(u32 xfbAddr, int srcWidth, int srcHeight, LPDIRECT3DTEXTURE
 		srcWidth,
 		srcHeight,
 		s_yuyvToRgbProgram,
-		VertexShaderCache::GetSimpleVertexShader());			
+		VertexShaderCache::GetSimpleVertexShader(0));			
 	
 	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);

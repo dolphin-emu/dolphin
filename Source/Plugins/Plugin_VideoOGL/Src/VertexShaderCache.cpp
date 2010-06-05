@@ -108,15 +108,13 @@ void VertexShaderCache::Init()
 
 	s_displayCompileAlert = true;
 
-    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);
-	ShaderEnabled = false;
-	CurrentShader = 0;
-	EnableShader(0);
+    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);	
+	SetCurrentShader(0);
 }
 
 void VertexShaderCache::Shutdown()
 {
-	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); ++iter)
+	for (VSCache::iterator iter = vshaders.begin(); iter != vshaders.end(); iter++)
 		iter->second.Destroy();
 	vshaders.clear();
 }
@@ -213,7 +211,7 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 		plocal = strstr(plocal + 13, "program.local");
 	}
 	glGenProgramsARB(1, &vs.glprogid);
-	EnableShader(vs.glprogid);
+	SetCurrentShader(vs.glprogid);
 
 	glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB, (GLsizei)strlen(pcompiledprog), pcompiledprog);	
 	err = GL_REPORT_ERROR();
@@ -233,10 +231,9 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 
 void VertexShaderCache::DisableShader()
 {
+	CurrentShader = 0;
 	if (ShaderEnabled)
 	{
-		CurrentShader = 0;
-		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);
 		glDisable(GL_VERTEX_PROGRAM_ARB);
 		ShaderEnabled = false;
 	}
@@ -244,15 +241,6 @@ void VertexShaderCache::DisableShader()
 
 
 void VertexShaderCache::SetCurrentShader(GLuint Shader)
-{
-	if (ShaderEnabled && CurrentShader != Shader)
-	{
-		CurrentShader = Shader;
-		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);
-	}
-}
-
-void VertexShaderCache::EnableShader(GLuint Shader)
 {
 	if (!ShaderEnabled)
 	{
@@ -266,4 +254,3 @@ void VertexShaderCache::EnableShader(GLuint Shader)
 		glBindProgramARB(GL_VERTEX_PROGRAM_ARB, CurrentShader);
 	}
 }
-

@@ -111,6 +111,7 @@ void WriteSwizzler(char*& p, u32 format,bool HLSL)
 
 	if(HLSL)
 	{
+		WRITE(p, "  sampleUv = sampleUv + float2(0.0f,1.0f);\n");// still to determine the reason for this
 		WRITE(p, "  sampleUv = sampleUv / blkDims.zw;\n");
 	}		
 }
@@ -163,6 +164,7 @@ void Write32BitSwizzler(char*& p, u32 format, bool HLSL)
 
 	if(HLSL)
 	{
+		WRITE(p, "  sampleUv = sampleUv + float2(0.0f,1.0f);\n");// still to determine the reason for this
 		WRITE(p, "  sampleUv = sampleUv / blkDims.zw;\n");
 	}	
 }

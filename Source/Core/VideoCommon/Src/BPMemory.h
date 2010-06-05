@@ -108,6 +108,15 @@
 
 // Tev/combiner things
 
+#define TEVSCALE_1 0
+#define TEVSCALE_2 1
+#define TEVSCALE_4 2
+#define TEVDIVIDE_2 3
+
+#define TEVCMP_R8    0
+#define TEVCMP_GR16  1
+#define TEVCMP_BGR24 2
+#define TEVCMP_RGB8  3
 
 #define TEVOP_ADD 0
 #define TEVOP_SUB 1
@@ -173,13 +182,10 @@ enum Compare
 #define ZTEXTURE_ADD 1
 #define ZTEXTURE_REPLACE 2
 
-enum TevBias
-{
-    TB_ZERO     = 0,
-    TB_ADDHALF  = 1,
-    TB_SUBHALF  = 2,
-	TB_COMPARE  = 3,
-};
+#define TevBias_ZERO     0
+#define TevBias_ADDHALF  1
+#define TevBias_SUBHALF  2
+#define TevBias_COMPARE  3
 
 enum AlphaOp
 {
