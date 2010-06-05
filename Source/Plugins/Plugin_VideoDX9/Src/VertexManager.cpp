@@ -50,16 +50,13 @@ namespace VertexManager
 
 static int lastPrimitive;
 
-static u8 *LocalVBuffer;   
+static u8 *LocalVBuffer;
 static u16 *TIBuffer;
-static u16 *LIBuffer;  
+static u16 *LIBuffer;
 static u16 *PIBuffer;
 #define MAXVBUFFERSIZE 0x50000
 #define MAXIBUFFERSIZE 0xFFFF
 static bool Flushed=false;
-
-void CreateDeviceObjects();
-void DestroyDeviceObjects();
 
 bool Init()
 {
@@ -69,18 +66,17 @@ bool Init()
 	PIBuffer = new u16[MAXIBUFFERSIZE];
 	s_pCurBufferPointer = LocalVBuffer;
 	Flushed=false;
-	IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);	
+	IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
 	return true;
 }
 
 void ResetBuffer()
 {
-	s_pCurBufferPointer = LocalVBuffer;	
+	s_pCurBufferPointer = LocalVBuffer;
 }
 
 void Shutdown()
 {
-	DestroyDeviceObjects();
 	delete [] LocalVBuffer;
 	delete [] TIBuffer;
 	delete [] LIBuffer;
@@ -88,25 +84,16 @@ void Shutdown()
 	ResetBuffer();
 }
 
-void CreateDeviceObjects()
-{
-	
-}
-
-void DestroyDeviceObjects()
-{
-}
-
 void AddIndices(int _primitive, int _numVertices)
 {
 	switch (_primitive)
 	{
-	case GX_DRAW_QUADS:          IndexGenerator::AddQuads(_numVertices); break;    
+	case GX_DRAW_QUADS:          IndexGenerator::AddQuads(_numVertices); break;
 	case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(_numVertices); break;
 	case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(_numVertices);     break;
 	case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(_numVertices);       break;
 	case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(_numVertices); break;
-	case GX_DRAW_LINES:		     IndexGenerator::AddLineList(_numVertices); break;
+	case GX_DRAW_LINES:          IndexGenerator::AddLineList(_numVertices); break;
 	case GX_DRAW_POINTS:         IndexGenerator::AddPoints(_numVertices);    break;
 	}
 }
@@ -122,10 +109,10 @@ int GetRemainingVertices(int primitive)
 {
 	switch (primitive)
 	{
-		case GX_DRAW_QUADS:          
-		case GX_DRAW_TRIANGLES:      
-		case GX_DRAW_TRIANGLE_STRIP: 
-		case GX_DRAW_TRIANGLE_FAN:   
+		case GX_DRAW_QUADS:
+		case GX_DRAW_TRIANGLES:
+		case GX_DRAW_TRIANGLE_STRIP:
+		case GX_DRAW_TRIANGLE_FAN:
 			return (MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen())/3;
 		case GX_DRAW_LINE_STRIP:
 		case GX_DRAW_LINES:
@@ -142,10 +129,10 @@ void AddVertices(int _primitive, int _numVertices)
 		return;
 	switch (_primitive)
 	{
-		case GX_DRAW_QUADS:          
-		case GX_DRAW_TRIANGLES:      
-		case GX_DRAW_TRIANGLE_STRIP: 
-		case GX_DRAW_TRIANGLE_FAN:   
+		case GX_DRAW_QUADS:
+		case GX_DRAW_TRIANGLES:
+		case GX_DRAW_TRIANGLE_STRIP:
+		case GX_DRAW_TRIANGLE_FAN:
 			if(MAXIBUFFERSIZE - IndexGenerator::GetTriangleindexLen() < 3 * _numVertices)
 			Flush();
 			break;
@@ -165,7 +152,7 @@ void AddVertices(int _primitive, int _numVertices)
 		IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
 		Flushed=false;
 	}
-	lastPrimitive = _primitive;	
+	lastPrimitive = _primitive;
 	ADDSTAT(stats.thisFrame.numPrims, _numVertices);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
 	AddIndices(_primitive, _numVertices);
@@ -195,11 +182,11 @@ inline void Draw(int stride)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_TRIANGLELIST, 
-			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumTriangles(),
-			TIBuffer,
-			D3DFMT_INDEX16,
-			LocalVBuffer,
-			stride))) 
+			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumTriangles(), 
+			TIBuffer, 
+			D3DFMT_INDEX16, 
+			LocalVBuffer, 
+			stride)))
 		{
 			DumpBadShaders();
 		}
@@ -209,11 +196,11 @@ inline void Draw(int stride)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_LINELIST, 
-			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumLines(),
-			LIBuffer,
-			D3DFMT_INDEX16,
-			LocalVBuffer,
-			stride))) 
+			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumLines(), 
+			LIBuffer, 
+			D3DFMT_INDEX16, 
+			LocalVBuffer, 
+			stride)))
 		{
 			DumpBadShaders();
 		}
@@ -223,11 +210,11 @@ inline void Draw(int stride)
 	{
 		if (FAILED(D3D::dev->DrawIndexedPrimitiveUP(
 			D3DPT_POINTLIST, 
-			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumPoints(),
-			PIBuffer,
-			D3DFMT_INDEX16,
-			LocalVBuffer,
-			stride))) 
+			0, IndexGenerator::GetNumVerts(), IndexGenerator::GetNumPoints(), 
+			PIBuffer, 
+			D3DFMT_INDEX16, 
+			LocalVBuffer, 
+			stride)))
 		{
 			DumpBadShaders();
 		}
@@ -237,7 +224,7 @@ inline void Draw(int stride)
 
 void Flush()
 {
-	if (LocalVBuffer == s_pCurBufferPointer) return;	
+	if (LocalVBuffer == s_pCurBufferPointer) return;
 	if(Flushed) return;
 	Flushed=true;
 
@@ -264,11 +251,11 @@ void Flush()
 			Renderer::SetSamplerState(i & 3, i >> 2);
 			FourTexUnits &tex = bpmem.tex[i >> 2];
 			TextureCache::TCacheEntry* tentry = TextureCache::Load(i, 
-				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5,
-				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1,
+				(tex.texImage3[i&3].image_base/* & 0x1FFFFF*/) << 5, 
+				tex.texImage0[i&3].width + 1, tex.texImage0[i&3].height + 1, 
 				tex.texImage0[i&3].format, tex.texTlut[i&3].tmem_offset<<9, 
 				tex.texTlut[i&3].tlut_format,
-				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips,
+				(tex.texMode0[i&3].min_filter & 3) && (tex.texMode0[i&3].min_filter != 8) && g_ActiveConfig.bUseNativeMips, 
 				(tex.texMode1[i&3].max_lod >> 5));
 
 			if (tentry) {
@@ -307,7 +294,7 @@ void Flush()
 	
 	Draw(stride);
 
-	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
+	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
 	{
 		DWORD write = 0;
 		if (!PixelShaderCache::SetShader(true))
@@ -323,7 +310,7 @@ void Flush()
 		Draw(stride);
 
 		D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
-		D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);		
+		D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
 	}
 	DEBUGGER_PAUSE_AT(NEXT_FLUSH,true);
 

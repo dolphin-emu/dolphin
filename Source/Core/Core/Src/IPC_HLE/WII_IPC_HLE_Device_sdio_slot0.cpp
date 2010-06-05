@@ -27,7 +27,7 @@
 #include "../Core.h"
 
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID, const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+	: IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 	, m_Status(CARD_NOT_EXIST)
 	, m_BlockLength(0)
 	, m_BusWidth(0)
@@ -64,9 +64,9 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
 		}
 	}
 
-    Memory::Write_U32(GetDeviceID(), _CommandAddress + 0x4);
+	Memory::Write_U32(GetDeviceID(), _CommandAddress + 0x4);
 	m_Active = true;
-    return true;
+	return true;
 }
 
 bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress, bool _bForce)
@@ -82,9 +82,9 @@ bool CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress, bool _bForce)
 	m_BusWidth = 0;
 
 	if (!_bForce)
-	    Memory::Write_U32(0, _CommandAddress + 0x4);
+		Memory::Write_U32(0, _CommandAddress + 0x4);
 	m_Active = false;
-    return true;
+	return true;
 }
 
 // The front SD slot
@@ -94,8 +94,8 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 
 	u32 BufferIn		= Memory::Read_U32(_CommandAddress + 0x10);
 	u32 BufferInSize	= Memory::Read_U32(_CommandAddress + 0x14);
-    u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
-    u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
+	u32 BufferOut		= Memory::Read_U32(_CommandAddress + 0x18);
+	u32 BufferOutSize	= Memory::Read_U32(_CommandAddress + 0x1C);
 	
 	// As a safety precaution we fill the out buffer with zeros to avoid
 	// returning nonsense values
@@ -163,7 +163,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 		{
 			INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD 0x%08x", Memory::Read_U32(BufferIn));
 		}
-		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, 0, 0, BufferOut, BufferOutSize);	
+		ReturnValue = ExecuteCommand(BufferIn, BufferInSize, 0, 0, BufferOut, BufferOutSize);
 		break;
 
 	case IOCTL_GETSTATUS:
@@ -197,7 +197,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 	return true;
 }
 
-bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress) 
+bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 {
 	// PPC sending commands
 
@@ -212,7 +212,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 	}
 
 	u32 ReturnValue = 0;
-	switch(CommandBuffer.Parameter) {	
+	switch(CommandBuffer.Parameter) {
 	case IOCTLV_SENDCMD:
 		INFO_LOG(WII_IPC_SD, "IOCTLV_SENDCMD 0x%08x", Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address));
 		ReturnValue = ExecuteCommand(
@@ -230,7 +230,7 @@ bool CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
 
 	Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
-    return true;
+	return true;
 }
 
 u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize,
@@ -251,13 +251,13 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		u32 pad0;
 	} req;
 
-    req.command = Memory::Read_U32(_BufferIn + 0);
-    req.type    = Memory::Read_U32(_BufferIn + 4);
-    req.resp    = Memory::Read_U32(_BufferIn + 8);
-    req.arg     = Memory::Read_U32(_BufferIn + 12);
-    req.blocks  = Memory::Read_U32(_BufferIn + 16);
-    req.bsize   = Memory::Read_U32(_BufferIn + 20);
-    req.addr    = Memory::Read_U32(_BufferIn + 24);
+	req.command = Memory::Read_U32(_BufferIn + 0);
+	req.type	= Memory::Read_U32(_BufferIn + 4);
+	req.resp	= Memory::Read_U32(_BufferIn + 8);
+	req.arg		= Memory::Read_U32(_BufferIn + 12);
+	req.blocks	= Memory::Read_U32(_BufferIn + 16);
+	req.bsize	= Memory::Read_U32(_BufferIn + 20);
+	req.addr	= Memory::Read_U32(_BufferIn + 24);
 	req.isDMA	= Memory::Read_U32(_BufferIn + 28);
 	req.pad0	= Memory::Read_U32(_BufferIn + 32);
 
@@ -431,5 +431,5 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 		break;
 	}
 
-    return rwFail;
+	return rwFail;
 }

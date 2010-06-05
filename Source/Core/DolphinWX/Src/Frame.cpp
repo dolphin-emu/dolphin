@@ -357,7 +357,6 @@ CFrame::CFrame(wxFrame* parent,
 	#if wxUSE_TIMER
 		, m_timer(this)
 	#endif
-          
 {
 	if (ShowLogWindow) SConfig::GetInstance().m_InterfaceLogWindow = true;
 
@@ -616,7 +615,7 @@ void CFrame::OnMove(wxMoveEvent& event)
 	event.Skip();
 
 	if (!IsMaximized() &&
-		   	!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
+			!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX = GetPosition().x;
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY = GetPosition().y;
@@ -627,7 +626,7 @@ void CFrame::OnResize(wxSizeEvent& event)
 {
 	event.Skip();
 	if (!IsMaximized() &&
-		   	!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
+			!(SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain && RendererIsFullscreen()))
 	{
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth = GetSize().GetWidth();
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iHeight = GetSize().GetHeight();
@@ -745,7 +744,7 @@ bool CFrame::RendererHasFocus()
 	// Host_RendererHasFocus()?
 	if (m_RenderParent)
 		if (m_RenderParent->GetParent()->GetHWND() == GetForegroundWindow())
-            return true;
+			return true;
 	return false;
 #else
 	return m_RenderParent && (m_RenderParent == wxWindow::FindFocus());
@@ -930,15 +929,17 @@ wxFrame * CFrame::CreateParentFrame(wxWindowID Id, const wxString& Title, wxWind
 	Frame->Show();
 	return Frame;
 }
+
 wxPanel* CFrame::CreateEmptyPanel(wxWindowID Id)
-{	
-   wxPanel* Panel = new wxPanel(this, Id);
-   return Panel;
+{
+	wxPanel* Panel = new wxPanel(this, Id);
+	return Panel;
 }
+
 wxAuiNotebook* CFrame::CreateEmptyNotebook()
-{	
-   wxAuiNotebook* NB = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, NOTEBOOK_STYLE);
-   return NB;
+{
+	wxAuiNotebook* NB = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, NOTEBOOK_STYLE);
+	return NB;
 }
 
 void CFrame::DoFullscreen(bool bF)
@@ -1034,22 +1035,22 @@ void CFrame::ListChildren()
 
 void CFrame::ListTopWindows()
 {
-    wxWindowList::const_iterator i;
+	wxWindowList::const_iterator i;
 	int j = 0;
-    const wxWindowList::const_iterator end = wxTopLevelWindows.end();
+	const wxWindowList::const_iterator end = wxTopLevelWindows.end();
 
-    for (i = wxTopLevelWindows.begin(); i != end; ++i)
-    {
-        wxTopLevelWindow * const Win = wx_static_cast(wxTopLevelWindow *, *i);
+	for (i = wxTopLevelWindows.begin(); i != end; ++i)
+	{
+		wxTopLevelWindow * const Win = wx_static_cast(wxTopLevelWindow *, *i);
 		NOTICE_LOG(CONSOLE, "%i: %i %s", j, Win, (const char *)Win->GetTitle().mb_str());
 		/*
-        if ( win->ShouldPreventAppExit() )
-        {
-            // there remains at least one important TLW, don't exit
-            return false;
-        }
+		if ( win->ShouldPreventAppExit() )
+		{
+			// there remains at least one important TLW, don't exit
+			return false;
+		}
 		*/
 		j++;
-    }
+	}
 	NOTICE_LOG(CONSOLE, "\n");
 }

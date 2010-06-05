@@ -38,10 +38,10 @@ public:
 	int Unload();
 
 	// Gets a pointer to the function symbol of funcname by getting it from the
-	// share object
+	// shared object
 	void *Get(const char *funcname) const;
 
-	// Returns true is the library is loaded
+	// Returns true if the library is loaded
 	bool IsLoaded() const { return library != 0; }
 
 private:

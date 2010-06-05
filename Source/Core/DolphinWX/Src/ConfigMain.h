@@ -39,7 +39,7 @@ public:
 		long style = wxDEFAULT_DIALOG_STYLE);
 	virtual ~CConfigMain();
 
-	void OnClick(wxMouseEvent& event);
+	void OnOk(wxCommandEvent& event);
 	void CloseClick(wxCommandEvent& event);
 	void OnSelectionChanged(wxCommandEvent& event);
 	void OnConfig(wxCommandEvent& event);
@@ -47,119 +47,131 @@ public:
 	bool bRefreshList;
 
 private:
-
-	DECLARE_EVENT_TABLE();
+	wxNotebook* Notebook;
+	wxPanel* GeneralPage;
+	wxPanel* GamecubePage;
+	wxPanel* DisplayPage;
+	wxPanel* WiiPage;
+	wxPanel* PathsPage;
+	wxPanel* PluginsPage;
 
 	wxBoxSizer* sGeneralPage; // General Settings
-	wxCheckBox* ConfirmStop, *UsePanicHandlers, *UseFPSForLimiting;
-	wxChoice* InterfaceLang;
-	wxChoice* Framelimit;
-	wxRadioBox* Theme;
-
-	wxStaticBoxSizer* sbBasic, *sbAdvanced, *sbInterface, *sbDisplay;
-	wxCheckBox* AlwaysHLE_BS2;
-	wxRadioButton* m_RadioInt;
-	wxRadioButton* m_RadioJIT;
-	wxRadioButton* m_RadioJITIL;
+	wxStaticBoxSizer* sbBasic, *sbAdvanced; // Basic and Advanced sections
+	
+	// Basic
 	wxCheckBox* CPUThread;
-	wxCheckBox* DSPThread;
-	wxCheckBox* LockThreads;
 	wxCheckBox* SkipIdle;
 	wxCheckBox* EnableCheats;
+	wxChoice* Framelimit;
+	wxCheckBox* UseFPSForLimiting;
+	
+	// Advanced
+	wxCheckBox* AlwaysHLE_BS2;
+	wxRadioBox* CPUEngine;
+	wxCheckBox* DSPThread;
+	wxCheckBox* LockThreads;
 
-	// Display settings
-	wxBoxSizer* sDisplayPage;
-	wxCheckBox* HideCursor;
-	wxCheckBox* Fullscreen;
+
+	wxBoxSizer* sDisplayPage; // Display settings
+	wxStaticBoxSizer* sbDisplay, *sbInterface; // Display and Interface sections
+
+	// Display
 	wxChoice* FullscreenResolution;
-	wxSpinCtrl *WindowWidth;
-	wxSpinCtrl *WindowHeight;
+	wxSpinCtrl* WindowWidth, *WindowHeight;
+	wxCheckBox* Fullscreen;
+	wxCheckBox* HideCursor;
 	wxCheckBox* RenderToMain;
+
+	// Interface
+	wxCheckBox* ConfirmStop;
+	wxCheckBox* UsePanicHandlers;
+	wxRadioBox* Theme;
+	wxChoice* InterfaceLang;
 	wxButton* HotkeyConfig;
 
-	wxBoxSizer* sGamecube; // GC settings
+
+	wxBoxSizer* sGamecubePage; // GC settings
 	wxStaticBoxSizer* sbGamecubeIPLSettings;
 	wxGridBagSizer* sGamecubeIPLSettings;
-	wxStaticText* GCSystemLangText;
+
+	// IPL
 	wxChoice* GCSystemLang;
-	wxChoice *GCEXIDevice[3];
-	wxButton *GCMemcardPath[2];
-	wxChoice *GCSIDevice[4];
 
-	wxBoxSizer* sWii; // Wii settings
-	wxStaticBoxSizer* sbWiimoteSettings;
-	wxGridBagSizer* sWiimoteSettings;
-	wxStaticBoxSizer* sbWiiIPLSettings;
-	wxGridBagSizer* sWiiIPLSettings;
-	wxStaticBoxSizer* sbWiiDeviceSettings;
-	wxBoxSizer* sPaths;
-	wxStaticBoxSizer* sbISOPaths;		
-	wxBoxSizer* sISOButtons;
-	wxGridBagSizer* sOtherPaths;
-	wxBoxSizer* sPlugins;
-	wxStaticBoxSizer* sbGraphicsPlugin;
-	wxStaticBoxSizer* sbDSPPlugin;
-	wxStaticBoxSizer* sbPadPlugin;
-	wxStaticBoxSizer* sbWiimotePlugin;
+	// Device
+	wxChoice* GCEXIDevice[3];
+	wxButton* GCMemcardPath[2];
+	wxChoice* GCSIDevice[4];
 
-	wxNotebook *Notebook;
-	wxPanel *GeneralPage;
-	wxPanel *DisplayPage;
-	wxPanel *GamecubePage;
-	wxPanel *WiiPage;
-	wxPanel *PathsPage;
-	wxPanel *PluginPage;
 
-	wxButton* m_Close;
+	wxBoxSizer* sWiiPage; // Wii settings
+	wxStaticBoxSizer* sbWiimoteSettings, *sbWiiIPLSettings, *sbWiiDeviceSettings; // Wiimote, Misc and Device sections
+	wxGridBagSizer* sWiimoteSettings, *sWiiIPLSettings;
 
-	FILE* pStream;
-
-	wxStaticText* WiiSensBarPosText;
+	// Wiimote
 	wxChoice* WiiSensBarPos;
 
-	wxCheckBox* WiiScreenSaver; // IPL settings
+	// Misc
+	wxCheckBox* WiiScreenSaver;
 	wxCheckBox* WiiProgressiveScan;
 	wxCheckBox* WiiEuRGB60;
-	wxStaticText* WiiAspectRatioText;
 	wxChoice* WiiAspectRatio;
-	wxStaticText* WiiSystemLangText;
 	wxChoice* WiiSystemLang;
+
+	// Device
 	wxCheckBox* WiiSDCard;
 	wxCheckBox* WiiKeyboard;
 
+
+	wxBoxSizer* sPathsPage; // Paths settings
+	wxStaticBoxSizer* sbISOPaths;
+	wxGridBagSizer* sOtherPaths;
+
+	// ISO Directories
 	wxListBox* ISOPaths;
+	wxCheckBox* RecursiveISOPath;
 	wxButton* AddISOPath;
 	wxButton* RemoveISOPath;
-	wxCheckBox* RecersiveISOPath;
-	wxStaticText* DefaultISOText;
+
+	// DefaultISO, DVD Root, Apploader
 	wxFilePickerCtrl* DefaultISO;
-	wxStaticText* DVDRootText;
 	wxDirPickerCtrl* DVDRoot;
-	wxStaticText* ApploaderPathText;
 	wxFilePickerCtrl* ApploaderPath;
 
-	wxStaticText* PADText;
-	wxButton* PADConfig;
-	wxChoice* PADSelection;
-	wxButton* DSPConfig;
-	wxStaticText* DSPText;
-	wxChoice* DSPSelection;
-	wxButton* GraphicConfig;
-	wxStaticText* GraphicText;
-	wxChoice* GraphicSelection;
-	wxButton* WiimoteConfig;
-	wxStaticText* WiimoteText;
-	wxChoice* WiimoteSelection;
 
-	wxArrayString arrayStringFor_InterfaceLang;
+	wxBoxSizer* sPluginsPage; // Plugins settings
+	wxStaticBoxSizer* sbGraphicsPlugin, *sbDSPPlugin, *sbPadPlugin, *sbWiimotePlugin;  // Graphics, DSP, Pad and Wiimote sections
+
+	// Graphics
+	wxChoice* GraphicSelection;
+	wxButton* GraphicConfig;
+
+	// DSP
+	wxChoice* DSPSelection;
+	wxButton* DSPConfig;
+
+	// Pad
+	wxChoice* PADSelection;
+	wxButton* PADConfig;
+
+	// Wiimote
+	wxChoice* WiimoteSelection;
+	wxButton* WiimoteConfig;
+
+
+	wxButton* m_Ok;
+
+	FILE* pStream;
+
 	wxArrayString arrayStringFor_Framelimit;
+	wxArrayString arrayStringFor_CPUEngine;
+	wxArrayString arrayStringFor_Themes;
+	wxArrayString arrayStringFor_InterfaceLang;
+	wxArrayString arrayStringFor_FullscreenResolution;
 	wxArrayString arrayStringFor_GCSystemLang;
 	wxArrayString arrayStringFor_WiiSensBarPos;
 	wxArrayString arrayStringFor_WiiAspectRatio;
 	wxArrayString arrayStringFor_WiiSystemLang;
 	wxArrayString arrayStringFor_ISOPaths;
-	wxArrayString arrayStringFor_Themes;
-	wxArrayString arrayStringFor_FullscreenResolution;
 
 	enum
 	{
@@ -171,33 +183,36 @@ private:
 		ID_PATHSPAGE,
 		ID_PLUGINPAGE,
 
-		ID_ALWAYS_HLE_BS2,
-		ID_RADIOJIT,
-		ID_RADIOJITIL,
-		ID_RADIOINT,
 		ID_CPUTHREAD,
-		ID_DSPTHREAD,
-		ID_LOCKTHREADS,
 		ID_IDLESKIP,
 		ID_ENABLECHEATS,
+		ID_FRAMELIMIT_TEXT, ID_FRAMELIMIT,
+		ID_FRAMELIMIT_USEFPSFORLIMITING,
+		
+		ID_ALWAYS_HLE_BS2,
+		ID_CPUENGINE,
+		ID_LOCKTHREADS,
+		ID_DSPTHREAD,
 
-		ID_INTERFACE_CONFIRMSTOP, // Interface settings
-		ID_INTERFACE_USEPANICHANDLERS,		
+
 		ID_DISPLAY_FULLSCREENRES,
 		ID_DISPLAY_WINDOWWIDTH,
 		ID_DISPLAY_WINDOWHEIGHT,
 		ID_DISPLAY_FULLSCREEN,
 		ID_DISPLAY_HIDECURSOR,
 		ID_DISPLAY_RENDERTOMAIN,
-		ID_HOTKEY_CONFIG,
-		ID_INTERFACE_LANG_TEXT, ID_INTERFACE_LANG,
+
+		// Interface settings
+		ID_INTERFACE_CONFIRMSTOP,
+		ID_INTERFACE_USEPANICHANDLERS,
 		ID_INTERFACE_THEME,
-		ID_FRAMELIMIT_TEXT, 
-		ID_FRAMELIMIT,
-		ID_FRAMELIMIT_USEFPSFORLIMITING,
+		ID_INTERFACE_LANG_TEXT, ID_INTERFACE_LANG,
+		ID_HOTKEY_CONFIG,
+
 
 		ID_GC_SRAM_LNG_TEXT,
 		ID_GC_SRAM_LNG,
+
 		ID_GC_EXIDEVICE_SLOTA_TEXT,
 		ID_GC_EXIDEVICE_SLOTA,
 		ID_GC_EXIDEVICE_SLOTA_PATH,
@@ -212,8 +227,10 @@ private:
 		ID_GC_SIDEVICE2,
 		ID_GC_SIDEVICE3,
 
+
 		ID_WII_BT_BAR_TEXT,
 		ID_WII_BT_BAR,
+
 		ID_WII_IPL_SSV,
 		ID_WII_IPL_PGS,
 		ID_WII_IPL_E60,
@@ -221,13 +238,16 @@ private:
 		ID_WII_IPL_AR,
 		ID_WII_IPL_LNG_TEXT,
 		ID_WII_IPL_LNG,
+
 		ID_WII_SD_CARD,
 		ID_WII_KEYBOARD,
 
+
 		ID_ISOPATHS,
+		ID_RECURSIVEISOPATH,
 		ID_ADDISOPATH,
 		ID_REMOVEISOPATH,
-		ID_RECERSIVEISOPATH,
+
 		ID_DEFAULTISO_TEXT,
 		ID_DEFAULTISO,
 		ID_DVDROOT_TEXT,
@@ -235,22 +255,26 @@ private:
 		ID_APPLOADERPATH_TEXT,
 		ID_APPLOADERPATH,
 
-		ID_WIIMOTE_ABOUT,
-		ID_WIIMOTE_CONFIG,
-		ID_WIIMOTE_TEXT,
-		ID_WIIMOTE_CB,
-		ID_PAD_TEXT,
-		ID_PAD_ABOUT ,
-		ID_PAD_CONFIG,
-		ID_PAD_CB,
-		ID_DSP_ABOUT,
-		ID_DSP_CONFIG,
+
+		ID_GRAPHIC_TEXT,
+		ID_GRAPHIC_CB,
+		ID_GRAPHIC_CONFIG,
+		ID_GRAPHIC_ABOUT,
+
 		ID_DSP_TEXT,
 		ID_DSP_CB,
-		ID_GRAPHIC_ABOUT,
-		ID_GRAPHIC_CONFIG,
-		ID_GRAPHIC_TEXT,
-		ID_GRAPHIC_CB
+		ID_DSP_CONFIG,
+		ID_DSP_ABOUT,
+
+		ID_PAD_TEXT,
+		ID_PAD_CB,
+		ID_PAD_CONFIG,
+		ID_PAD_ABOUT,
+
+		ID_WIIMOTE_TEXT,
+		ID_WIIMOTE_CB,
+		ID_WIIMOTE_CONFIG,
+		ID_WIIMOTE_ABOUT
 	};
 
 	void InitializeGUILists();
@@ -260,13 +284,20 @@ private:
 	void CreateGUIControls();
 	void UpdateGUI();
 	void OnClose(wxCloseEvent& event);
-	void OnSpin(wxSpinEvent& event);
+
 	void CoreSettingsChanged(wxCommandEvent& event);
+
+	void DisplaySettingsChanged(wxCommandEvent& event);
+	void AddResolutions();
+	void OnSpin(wxSpinEvent& event);
+
 	void GCSettingsChanged(wxCommandEvent& event);
 	void ChooseMemcardPath(std::string& strMemcard, bool isSlotA);
 	void ChooseSIDevice(std::string deviceName, int deviceNum);
 	void ChooseEXIDevice(std::string deviceName, int deviceNum);
+
 	void WiiSettingsChanged(wxCommandEvent& event);
+
 	void ISOPathsSelectionChanged(wxCommandEvent& event);
 	void RecursiveDirectoryChanged(wxCommandEvent& event);
 	void AddRemoveISOPaths(wxCommandEvent& event);
@@ -277,6 +308,6 @@ private:
 	void FillChoiceBox(wxChoice* _pChoice, int _PluginType, const std::string& _SelectFilename);
 	void CallConfig(wxChoice* _pChoice);
 	bool GetFilename(wxChoice* _pChoice, std::string& _rFilename);
-	void AddResolutions();
+	DECLARE_EVENT_TABLE();
 };
 #endif

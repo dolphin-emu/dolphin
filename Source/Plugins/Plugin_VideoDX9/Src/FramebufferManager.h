@@ -121,7 +121,7 @@ public:
 	D3DFORMAT GetEFBColorRTSurfaceFormat();
 	D3DFORMAT GetEFBDepthReadSurfaceFormat();
 	LPDIRECT3DSURFACE9 GetEFBColorReadSurface();
-	LPDIRECT3DSURFACE9 GetEFBDepthReadSurface();	
+	LPDIRECT3DSURFACE9 GetEFBDepthReadSurface();
 
 private:
 
@@ -162,7 +162,6 @@ private:
 	LPDIRECT3DSURFACE9 s_efb_depth_ReadBuffer;//Surface 0 of s_efb_depthRead_texture
 	LPDIRECT3DSURFACE9 s_efb_color_OffScreenReadBuffer;//System memory Surface that can be locked to retriebe the data
 	LPDIRECT3DSURFACE9 s_efb_depth_OffScreenReadBuffer;//System memory Surface that can be locked to retriebe the data
-
 
 	D3DFORMAT s_efb_color_surface_Format;//Format of the color Surface
 	D3DFORMAT s_efb_depth_surface_Format;//Format of the Depth Surface

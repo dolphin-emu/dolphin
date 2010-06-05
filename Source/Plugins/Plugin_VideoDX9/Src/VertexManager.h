@@ -30,9 +30,6 @@ void Shutdown();
 void AddVertices(int _primitive, int _numVertices);
 void Flush();
 
-void CreateDeviceObjects();
-void DestroyDeviceObjects();
-
 }  // namespace
 
 #endif

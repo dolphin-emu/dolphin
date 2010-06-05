@@ -102,7 +102,7 @@ void EnableAlphaToCoverage()
 	if (GetCurAdapter().ident.VendorId == VENDOR_ATI)
 		D3D::SetRenderState(D3DRS_POINTSIZE, (D3DFORMAT)MAKEFOURCC('A', '2', 'M', '1'));
 	else
-		D3D::SetRenderState(D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C'));			
+		D3D::SetRenderState(D3DRS_ADAPTIVETESS_Y, (D3DFORMAT)MAKEFOURCC('A', 'T', 'O', 'C'));
 }
 
 void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
@@ -191,7 +191,7 @@ void Enumerate()
 				}
 			}
 			if (D3DERR_NOTAVAILABLE != D3D::D3D->CheckDeviceMultiSampleType(
-				i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_8_SAMPLES, &qlevels)) 
+				i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8, TRUE, D3DMULTISAMPLE_8_SAMPLES, &qlevels))
 			{
 				if (qlevels > 2)
 				{
@@ -211,14 +211,14 @@ void Enumerate()
 		// Also check for RAWZ (nvidia only, but the only option to get Z24 textures on sub GF8800
 		a.supports_rawz = D3D_OK == D3D->CheckDeviceFormat(
 			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8,
-			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_RAWZ); 
+			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_RAWZ);
 		// Might as well check for RESZ and NULL too.
 		a.supports_resz = D3D_OK == D3D->CheckDeviceFormat(
 			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8,
-			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_RESZ); 
+			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_RESZ);
 		a.supports_null = D3D_OK == D3D->CheckDeviceFormat(
 			i, D3DDEVTYPE_HAL, D3DFMT_X8R8G8B8,
-			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_NULL); 
+			D3DUSAGE_DEPTHSTENCIL, D3DRTYPE_TEXTURE, FOURCC_NULL);
 
 		if (a.aa_levels.size() == 1)
 		{
@@ -291,7 +291,7 @@ HRESULT Create(int adapter, HWND wnd, int _resolution, int aa_mode, bool auto_de
 	dev->GetRenderTarget(0, &back_buffer);
 	if (dev->GetDepthStencilSurface(&back_buffer_z) == D3DERR_NOTFOUND)
 		back_buffer_z = NULL;
-	D3D::SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE );	
+	D3D::SetRenderState(D3DRS_ZENABLE, D3DZB_TRUE );
 	D3D::SetRenderState(D3DRS_FILLMODE, g_Config.bWireFrame ? D3DFILL_WIREFRAME : D3DFILL_SOLID);
 	memset(m_Textures, 0, sizeof(m_Textures));
 	memset(m_TextureStageStatesSet, 0, sizeof(m_TextureStageStatesSet));
@@ -312,14 +312,15 @@ void Close()
 	if (back_buffer_z)
 		back_buffer_z->Release();
 	back_buffer_z = NULL;
-	back_buffer->Release();
+	if( back_buffer )
+		back_buffer->Release();
 	back_buffer = NULL;
 	
 	ULONG references = dev->Release();
 	if (references)
 		ERROR_LOG(VIDEO, "Unreleased references: %i.", references);
 
-	dev = 0;
+	dev = NULL;
 }
 
 const D3DCAPS9 &GetCaps()
@@ -353,14 +354,22 @@ LPDIRECT3DSURFACE9 GetBackBufferDepthSurface()
 
 void ShowD3DError(HRESULT err)
 {
-	switch (err) 
+	switch (err)
 	{
-	case D3DERR_DEVICELOST: PanicAlert("Device Lost"); break;
-	case D3DERR_INVALIDCALL: PanicAlert("Invalid Call"); break;
-	case D3DERR_DRIVERINTERNALERROR: PanicAlert("Driver Internal Error"); break;
-	case D3DERR_OUTOFVIDEOMEMORY: PanicAlert("Out of vid mem"); break;
+	case D3DERR_DEVICELOST:
+		PanicAlert("Device Lost");
+		break;
+	case D3DERR_INVALIDCALL:
+		PanicAlert("Invalid Call");
+		break;
+	case D3DERR_DRIVERINTERNALERROR:
+		PanicAlert("Driver Internal Error");
+		break;
+	case D3DERR_OUTOFVIDEOMEMORY:
+		PanicAlert("Out of vid mem");
+		break;
 	default:
-		// MessageBoxA(0,"Other error or success","ERROR",0);
+		// MessageBox(0,_T("Other error or success"),_T("ERROR"),0);
 		break;
 	}
 }
@@ -378,7 +387,7 @@ void Reset()
 		back_buffer->Release();
 		back_buffer = NULL;
 
-		D3DPRESENT_PARAMETERS d3dpp; 
+		D3DPRESENT_PARAMETERS d3dpp;
 		InitPP(cur_adapter, resolution, multisample, &d3dpp);
 		HRESULT hr = dev->Reset(&d3dpp);
 		ShowD3DError(hr);
@@ -457,7 +466,7 @@ void ApplyCachedState()
 	// so no stale state is around.
 	memset(m_Textures, 0, sizeof(m_Textures));
 	memset(m_TextureStageStatesSet, 0, sizeof(m_TextureStageStatesSet));
-	memset(m_TextureStageStatesChanged, 0, sizeof(m_TextureStageStatesChanged));	
+	memset(m_TextureStageStatesChanged, 0, sizeof(m_TextureStageStatesChanged));
 	m_VtxDecl = NULL;
 	m_PixelShader = NULL;
 	m_VertexShader = NULL;
@@ -553,7 +562,7 @@ void RefreshSamplerState(DWORD Sampler, D3DSAMPLERSTATETYPE Type)
 {
 	if(m_SamplerStatesSet[Sampler][Type] && m_SamplerStatesChanged[Sampler][Type])
 	{
-		D3D::dev->SetSamplerState(Sampler, Type, m_SamplerStates[Sampler][Type]);	
+		D3D::dev->SetSamplerState(Sampler, Type, m_SamplerStates[Sampler][Type]);
 		m_SamplerStatesChanged[Sampler][Type] = false;
 	}
 }
@@ -575,7 +584,7 @@ void RefreshVertexDeclaration()
 {
 	if (m_VtxDecl)
 	{
-		D3D::dev->SetVertexDeclaration(m_VtxDecl);		
+		D3D::dev->SetVertexDeclaration(m_VtxDecl);
 	}
 }
 
@@ -596,7 +605,7 @@ void RefreshVertexShader()
 {
 	if (m_VertexShader)
 	{
-		D3D::dev->SetVertexShader(m_VertexShader);		
+		D3D::dev->SetVertexShader(m_VertexShader);
 	}
 }
 
@@ -617,7 +626,7 @@ void RefreshPixelShader()
 {
 	if (m_PixelShader)
 	{
-		D3D::dev->SetPixelShader(m_PixelShader);		
+		D3D::dev->SetPixelShader(m_PixelShader);
 	}
 }
 

@@ -95,7 +95,7 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wx
 void DSPConfigDialogHLE::AddBackend(const char* backend)
 {
 	// Update values
-    m_BackendSelection->Append(wxString::FromAscii(backend));
+	m_BackendSelection->Append(wxString::FromAscii(backend));
 #ifdef __APPLE__
 	int num = m_BackendSelection->FindString(wxString::FromAscii(ac_Config.sBackend));
 #else
@@ -145,7 +145,7 @@ bool DSPConfigDialogHLE::SupportsVolumeChanges(std::string backend)
 	//       but getting the backend from string etc. is probably
 	//       too much just to enable/disable a stupid slider...
 	return (backend == BACKEND_DIRECTSOUND ||
-		    backend == BACKEND_OPENAL);
+			backend == BACKEND_OPENAL);
 }
 
 void DSPConfigDialogHLE::BackendChanged(wxCommandEvent& event)

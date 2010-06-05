@@ -60,60 +60,60 @@ class IniFile;
 // NEVER inherit from this class.
 struct VideoConfig
 {
-    VideoConfig();
-    void Load(const char *ini_file);
+	VideoConfig();
+	void Load(const char *ini_file);
 	void GameIniLoad(const char *ini_file);
-    void Save(const char *ini_file);
+	void Save(const char *ini_file);
 	void UpdateProjectionHack();
 
-    // General
+	// General
 	bool bVSync;
 
-    bool bNativeResolution, b2xResolution, bRunning;  // Should possibly be augmented with 2x, 4x native.
+	bool bNativeResolution, b2xResolution, bRunning;  // Should possibly be augmented with 2x, 4x native.
 	bool bWidescreenHack;
 	int iAspectRatio;
-    bool bCrop;   // Aspect ratio controls.
-    bool bUseXFB;
+	bool bCrop;   // Aspect ratio controls.
+	bool bUseXFB;
 	bool bUseRealXFB;
-    bool bAutoScale;  // Removes annoying borders without using XFB. Doesn't always work perfectly.
+	bool bAutoScale;  // Removes annoying borders without using XFB. Doesn't always work perfectly.
 	bool bUseNativeMips;
-    
+	
 	// Enhancements
-    int iMultisampleMode;
-    bool bForceFiltering;
-    int iMaxAnisotropy;
+	int iMultisampleMode;
+	bool bForceFiltering;
+	int iMaxAnisotropy;
 	std::string sPostProcessingShader;
 
 	// Information
-    bool bShowFPS;
-    bool bOverlayStats;
+	bool bShowFPS;
+	bool bOverlayStats;
 	bool bOverlayProjStats;
-    bool bTexFmtOverlayEnable;
-    bool bTexFmtOverlayCenter;
+	bool bTexFmtOverlayEnable;
+	bool bTexFmtOverlayCenter;
 	bool bShowEFBCopyRegions;
-    
-    // Render
-    bool bWireFrame;
-    bool bDisableLighting;
-    bool bDisableTexturing;
-    bool bDstAlphaPass;
+	
+	// Render
+	bool bWireFrame;
+	bool bDisableLighting;
+	bool bDisableTexturing;
+	bool bDstAlphaPass;
 	bool bDisableFog;
-    
-    // Utility
-    bool bDumpTextures;
+	
+	// Utility
+	bool bDumpTextures;
 	bool bHiresTextures;
 	bool bDumpEFBTarget;
 	bool bDumpFrames;
-    bool bFreeLook;
-    
-    // Hacks
-    bool bEFBAccessEnable;
+	bool bFreeLook;
+	
+	// Hacks
+	bool bEFBAccessEnable;
 	bool bEFBCopyDisable;  // should reverse polarity of this one :) true=disabled can be confusing
-    bool bOSDHotKey;
+	bool bOSDHotKey;
 	bool bHack;
 	bool bCopyEFBToTexture;
 	bool bCopyEFBScaled;
-    bool bSafeTextureCache;
+	bool bSafeTextureCache;
 	int iSafeTextureCache_ColorSamples;	
 	bool bFIFOBPhack;
 	int iPhackvalue;
@@ -122,12 +122,12 @@ struct VideoConfig
 	bool bProjHack1;
 	float fAspectRatioHackW, fAspectRatioHackH;
 
-    int iLog; // CONF_ bits
-    int iSaveTargetId;
-    
-    //currently unused:
-    int iCompileDLsLevel;
-    bool bShowShaderErrors;
+	int iLog; // CONF_ bits
+	int iSaveTargetId;
+	
+	//currently unused:
+	int iCompileDLsLevel;
+	bool bShowShaderErrors;
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;

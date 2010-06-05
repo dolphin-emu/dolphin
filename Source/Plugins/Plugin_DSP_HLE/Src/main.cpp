@@ -72,7 +72,7 @@ class wxDLLApp : public wxApp
 		return true;
 	}
 };
-IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
 
@@ -89,7 +89,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 			wxInitialize();
 #endif
 		}
-		break; 
+		break;
 
 	case DLL_PROCESS_DETACH:
 #if defined(HAVE_WX) && HAVE_WX
@@ -129,13 +129,11 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_DSP;
 #ifdef DEBUGFAST
-	sprintf(_PluginInfo->Name, "Dolphin DSP-HLE Plugin (DebugFast) ");
+	sprintf(_PluginInfo->Name, "Dolphin DSP-HLE Plugin (DebugFast)");
+#elif defined _DEBUG
+	sprintf(_PluginInfo->Name, "Dolphin DSP-HLE Plugin (Debug)");
 #else
-#ifndef _DEBUG
-	sprintf(_PluginInfo->Name, "Dolphin DSP-HLE Plugin ");
-#else
-	sprintf(_PluginInfo->Name, "Dolphin DSP-HLE Plugin (Debug) ");
-#endif
+	sprintf(_PluginInfo->Name, "Dolphin DSP-HLE Plugin");
 #endif
 }
 
@@ -143,7 +141,7 @@ void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 {
 	globals = _pPluginGlobals;
-	LogManager::SetInstance((LogManager *)globals->logManager);
+	LogManager::SetInstance((LogManager*)globals->logManager);
 }
 
 void DllConfig(HWND _hParent)
@@ -196,10 +194,6 @@ void Initialize(void *init)
 	g_dspState.Reset();
 
 	CDSPHandler::CreateInstance();
-}
-
-void DSP_StopSoundStream()
-{
 }
 
 void Shutdown()
@@ -285,7 +279,7 @@ unsigned short DSP_WriteControlRegister(unsigned short _Value)
 		{
 			unsigned int AISampleRate, DACSampleRate;
 			g_dspInitialize.pGetSampleRate(AISampleRate, DACSampleRate);
-			soundStream = AudioCommon::InitSoundStream(new HLEMixer(AISampleRate, DACSampleRate)); 
+			soundStream = AudioCommon::InitSoundStream(new HLEMixer(AISampleRate, DACSampleRate));
 			if(!soundStream) PanicAlert("Error starting up sound stream");
 			// Mixer is initialized
 			g_InitMixer = true;

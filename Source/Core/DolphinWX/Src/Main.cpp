@@ -189,25 +189,25 @@ bool DolphinApp::OnInit()
 		return false;
 	} 
 #if wxCHECK_VERSION(2, 9, 0)
-	UseDebugger = parser.Found("debugger");
-	UseLogger = parser.Found("logger");
-	LoadElf = parser.Found("elf", &ElfFile);
+	UseDebugger = parser.Found(wxT("debugger"));
+	UseLogger = parser.Found(wxT("logger"));
+	LoadElf = parser.Found(wxT("elf"), &ElfFile);
 #else
-	UseDebugger = parser.Found(_("debugger"));
-	UseLogger = parser.Found(_("logger"));
-	LoadElf = parser.Found(_("elf"), &ElfFile);
+	UseDebugger = parser.Found(wxT("debugger"));
+	UseLogger = parser.Found(wxT("logger"));
+	LoadElf = parser.Found(wxT("elf"), &ElfFile);
 #endif
 
 #if wxCHECK_VERSION(2, 9, 0)
-	selectVideoPlugin = parser.Found("video_plugin", &videoPluginFilename);
-	selectAudioPlugin = parser.Found("audio_plugin", &audioPluginFilename);
-	selectPadPlugin = parser.Found("pad_plugin", &padPluginFilename);
-	selectWiimotePlugin = parser.Found("wiimote_plugin", &wiimotePluginFilename);
+	selectVideoPlugin = parser.Found(wxT("video_plugin"), &videoPluginFilename);
+	selectAudioPlugin = parser.Found(wxT("audio_plugin"), &audioPluginFilename);
+	selectPadPlugin = parser.Found(wxT"pad_plugin", &padPluginFilename);
+	selectWiimotePlugin = parser.Found(wxT("wiimote_plugin"), &wiimotePluginFilename);
 #else
-	selectVideoPlugin = parser.Found(_T("video_plugin"), &videoPluginFilename);
-	selectAudioPlugin = parser.Found(_T("audio_plugin"), &audioPluginFilename);
+	selectVideoPlugin = parser.Found(wxT("video_plugin"), &videoPluginFilename);
+	selectAudioPlugin = parser.Found(wxT("audio_plugin"), &audioPluginFilename);
 	selectPadPlugin = parser.Found(_T("pad_plugin"), &padPluginFilename);
-	selectWiimotePlugin = parser.Found(_T("wiimote_plugin"), &wiimotePluginFilename);
+	selectWiimotePlugin = parser.Found(wxT("wiimote_plugin"), &wiimotePluginFilename);
 #endif
 #endif // wxUSE_CMDLINE_PARSER
 
@@ -324,21 +324,21 @@ bool DolphinApp::OnInit()
 	File::CopyDir(SHARED_USER_DIR WII_USER_DIR DIR_SEP, File::GetUserPath(D_WIIUSER_IDX));
 
 	if (!File::Exists(File::GetUserPath(D_GCUSER_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
+		File::CreateFullPath(File::GetUserPath(D_GCUSER_IDX));
 	if (!File::Exists(File::GetUserPath(D_CACHE_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
+		File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
 	if (!File::Exists(File::GetUserPath(D_DUMPDSP_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+		File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
 	if (!File::Exists(File::GetUserPath(D_DUMPTEXTURES_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+		File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
 	if (!File::Exists(File::GetUserPath(D_HIRESTEXTURES_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+		File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
 	if (!File::Exists(File::GetUserPath(D_SCREENSHOTS_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
+		File::CreateFullPath(File::GetUserPath(D_SCREENSHOTS_IDX));
 	if (!File::Exists(File::GetUserPath(D_STATESAVES_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
+		File::CreateFullPath(File::GetUserPath(D_STATESAVES_IDX));
 	if (!File::Exists(File::GetUserPath(D_MAILLOGS_IDX)))
-	   	File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
+		File::CreateFullPath(File::GetUserPath(D_MAILLOGS_IDX));
 #endif
 
 	LogManager::Init();
@@ -352,7 +352,7 @@ bool DolphinApp::OnInit()
 
 	if (selectAudioPlugin && audioPluginFilename != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin =
-		   	std::string(audioPluginFilename.mb_str());
+			std::string(audioPluginFilename.mb_str());
 
 	if (selectPadPlugin && padPluginFilename != wxEmptyString)
 	{
@@ -367,7 +367,7 @@ bool DolphinApp::OnInit()
 		int k;
 		for(k=0;k<MAXWIIMOTES;k++)
 			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin[k] =
-			   	std::string(wiimotePluginFilename.mb_str());
+				std::string(wiimotePluginFilename.mb_str());
 	}
 
 	// Enable the PNG image handler
@@ -378,12 +378,10 @@ bool DolphinApp::OnInit()
 	// Create the window title
 #ifdef _DEBUG
 	const char *title = "Dolphin Debug SVN R " SVN_REV_STR;
-#else
-#ifdef DEBUGFAST
+#elif defined DEBUGFAST
 	const char *title = "Dolphin Debugfast SVN R " SVN_REV_STR;
 #else
 	const char *title = "Dolphin SVN R " SVN_REV_STR;
-#endif
 #endif
 
 	int x = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX;
@@ -406,9 +404,9 @@ bool DolphinApp::OnInit()
 			wxPoint(x, y), wxSize(w, h), UseDebugger, UseLogger);
 
 	// ------------
-	// Check the autoboot options. 
+	// Check the autoboot options.
 
-	// First check if we have an elf command line. 
+	// First check if we have an elf command line.
 	if (LoadElf && ElfFile != wxEmptyString)
 	{
 		main_frame->BootGame(std::string(ElfFile.mb_str()));
@@ -493,7 +491,7 @@ void Host_SysMessage(const char *fmt, ...)
 
 bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
 {
-    return wxYES == wxMessageBox(wxString::FromAscii(text), 
+	return wxYES == wxMessageBox(wxString::FromAscii(text), 
 				 wxString::FromAscii(caption),
 				 (yes_no)?wxYES_NO:wxOK);
 }

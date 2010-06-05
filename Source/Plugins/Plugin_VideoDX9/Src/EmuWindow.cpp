@@ -181,7 +181,7 @@ void OSDMenu(WPARAM wParam)
 	case '7':
 		OSDChoice = 5;
 		g_Config.bDisableLighting = !g_Config.bDisableLighting;
-		break;		
+		break;
 	}
 }
 

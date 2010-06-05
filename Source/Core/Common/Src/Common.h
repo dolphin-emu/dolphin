@@ -27,12 +27,7 @@
 
 // Force enable logging in the right modes. For some reason, something had changed
 // so that debugfast no longer logged.
-#ifdef _DEBUG
-#undef LOGGING
-#define LOGGING 1
-#endif
-
-#ifdef DEBUGFAST
+#if defined(_DEBUG) || defined(DEBUGFAST)
 #undef LOGGING
 #define LOGGING 1
 #endif
@@ -137,7 +132,7 @@
 // A macro to disallow the copy constructor and operator= functions
 // This should be used in the private: declarations for a class
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName&);               \
-  void operator=(const TypeName&)
+	TypeName(const TypeName&);               \
+	void operator=(const TypeName&)
 
 #endif // _COMMON_H_

@@ -24,14 +24,14 @@
 
 namespace Common
 {
-    typedef void (__cdecl * TGetDllInfo)(PLUGIN_INFO*);
-    typedef void (__cdecl * TDllConfig)(HWND);
-    typedef void (__cdecl * TDllDebugger)(HWND, bool);
-    typedef void (__cdecl * TSetDllGlobals)(PLUGIN_GLOBALS*);
-    typedef void (__cdecl * TInitialize)(void *);
-    typedef void (__cdecl * TShutdown)();
-    typedef void (__cdecl * TDoState)(unsigned char**, int);
-    typedef void (__cdecl * TEmuStateChange)(PLUGIN_EMUSTATE);
+	typedef void (__cdecl * TGetDllInfo)(PLUGIN_INFO*);
+	typedef void (__cdecl * TDllConfig)(HWND);
+	typedef void (__cdecl * TDllDebugger)(HWND, bool);
+	typedef void (__cdecl * TSetDllGlobals)(PLUGIN_GLOBALS*);
+	typedef void (__cdecl * TInitialize)(void *);
+	typedef void (__cdecl * TShutdown)();
+	typedef void (__cdecl * TDoState)(unsigned char**, int);
+	typedef void (__cdecl * TEmuStateChange)(PLUGIN_EMUSTATE);
 
 class CPlugin
 {

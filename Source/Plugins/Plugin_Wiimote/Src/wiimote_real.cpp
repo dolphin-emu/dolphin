@@ -62,7 +62,7 @@ class CWiiMote;
 wiimote_t**			g_WiiMotesFromWiiUse = NULL;
 Common::Thread*		g_pReadThread = NULL;
 int					g_NumberOfWiiMotes;
-CWiiMote*			g_WiiMotes[MAX_WIIMOTES];	
+CWiiMote*			g_WiiMotes[MAX_WIIMOTES];
 volatile bool				g_Shutdown = false;
 Common::Event		g_StartThread;
 Common::Event		g_StopThreadTemporary;
@@ -101,16 +101,16 @@ class CWiiMote
 {
 public:
 
-CWiiMote(u8 _WiimoteNumber, wiimote_t* _pWiimote) 
-    : m_WiimoteNumber(_WiimoteNumber)
-    , m_channelID(0)
-    , m_pWiiMote(_pWiimote)
-    , m_pCriticalSection(NULL)
-    , m_LastReportValid(false)
+CWiiMote(u8 _WiimoteNumber, wiimote_t* _pWiimote)
+	: m_WiimoteNumber(_WiimoteNumber)
+	, m_channelID(0)
+	, m_pWiiMote(_pWiimote)
+	, m_pCriticalSection(NULL)
+	, m_LastReportValid(false)
 {
-    m_pCriticalSection = new Common::CriticalSection();
+	m_pCriticalSection = new Common::CriticalSection();
 
-    //wiiuse_set_leds(m_pWiiMote, WIIMOTE_LED_4);
+	//wiiuse_set_leds(m_pWiiMote, WIIMOTE_LED_4);
 
 	#ifdef _WIN32
 		// F|RES: i dunno if we really need this
@@ -118,34 +118,34 @@ CWiiMote(u8 _WiimoteNumber, wiimote_t* _pWiimote)
 	#endif
 }
 
-virtual ~CWiiMote() 
+virtual ~CWiiMote()
 {
-    delete m_pCriticalSection;
+	delete m_pCriticalSection;
 };
 
 
 // Queue raw HID data from the core to the wiimote
 void SendData(u16 _channelID, const u8* _pData, u32 _Size)
 {
-    m_channelID = _channelID;
+	m_channelID = _channelID;
 
-    m_pCriticalSection->Enter();
-    {
-        SEvent WriteEvent;
+	m_pCriticalSection->Enter();
+	{
+		SEvent WriteEvent;
 		memcpy(WriteEvent.m_PayLoad, _pData, _Size);
 		WriteEvent._Size = _Size;
-        m_EventWriteQueue.push(WriteEvent);
+		m_EventWriteQueue.push(WriteEvent);
 
 		// Debugging
 		//std::string Temp = ArrayToString(WriteEvent.m_PayLoad, 28, 0, 30);
 		//DEBUG_LOG(WIIMOTE, "Wiimote Write:\n%s", Temp.c_str());
-    }
-    m_pCriticalSection->Leave();
+	}
+	m_pCriticalSection->Leave();
 }
 
 
 /* Read and write data to the Wiimote */
-void ReadData() 
+void ReadData()
 {
 	m_pCriticalSection->Enter();
 
@@ -179,7 +179,7 @@ void ReadData()
 			m_pCriticalSection->Enter();
 
 			// Filter out data reports
-			if (pBuffer[1] >= 0x30) 
+			if (pBuffer[1] >= 0x30)
 			{
 				// Copy Buffer to LastReport
 				memcpy(m_LastReport.m_PayLoad, pBuffer + 1, MAX_PAYLOAD - 1);
@@ -207,25 +207,25 @@ void ReadData()
 
 
 // Send queued data to the core
-void Update() 
+void Update()
 {
 	// Thread function
-    m_pCriticalSection->Enter();
+	m_pCriticalSection->Enter();
 
-    if (m_EventReadQueue.empty())
-    {
+	if (m_EventReadQueue.empty())
+	{
 		// Send the data report
-        if (m_LastReportValid)
+		if (m_LastReportValid)
 			SendEvent(m_LastReport);
-    }
-    else
-    {
+	}
+	else
+	{
 		// Send a 0x20, 0x21 or 0x22 report
-        SendEvent(m_EventReadQueue.front());
-        m_EventReadQueue.pop();
-    }
+		SendEvent(m_EventReadQueue.front());
+		m_EventReadQueue.pop();
+	}
 
-    m_pCriticalSection->Leave();
+	m_pCriticalSection->Leave();
 };
 
 
@@ -235,62 +235,62 @@ void ClearEvents()
 	while (!m_EventReadQueue.empty())
 		m_EventReadQueue.pop();
 	while (!m_EventWriteQueue.empty())
-		m_EventWriteQueue.pop();	
+		m_EventWriteQueue.pop();
 }
 
 private:
 
-    struct SEvent 
-    {
-        SEvent()
-        {
-            memset(m_PayLoad, 0, MAX_PAYLOAD);
-        }
-        byte m_PayLoad[MAX_PAYLOAD];
+	struct SEvent
+	{
+		SEvent()
+		{
+			memset(m_PayLoad, 0, MAX_PAYLOAD);
+		}
+		byte m_PayLoad[MAX_PAYLOAD];
 		u32 _Size;
-    };
-    typedef std::queue<SEvent> CEventQueue;
+	};
+	typedef std::queue<SEvent> CEventQueue;
 
-    u8 m_WiimoteNumber; // Just for debugging
-    u16 m_channelID;  
-    CEventQueue m_EventReadQueue; // Read from Wiimote
-    CEventQueue m_EventWriteQueue; // Write to Wiimote
-    SEvent m_LastReport;
+	u8 m_WiimoteNumber; // Just for debugging
+	u16 m_channelID;
+	CEventQueue m_EventReadQueue; // Read from Wiimote
+	CEventQueue m_EventWriteQueue; // Write to Wiimote
+	SEvent m_LastReport;
 	wiimote_t* m_pWiiMote; // This is g_WiiMotesFromWiiUse[]
-    Common::CriticalSection* m_pCriticalSection;
+	Common::CriticalSection* m_pCriticalSection;
 	bool m_LastReportValid;
 
 // Send queued data to the core
 void SendEvent(SEvent& _rEvent)
 {
-    // We don't have an answer channel
-    if (m_channelID == 0)
+	// We don't have an answer channel
+	if (m_channelID == 0)
 		return;
 
-    // Check event buffer
-    u8 Buffer[1024];
-    u32 Offset = 0;
-    hid_packet* pHidHeader = (hid_packet*)(Buffer + Offset);
-    pHidHeader->type = HID_TYPE_DATA;
-    pHidHeader->param = HID_PARAM_INPUT;
+	// Check event buffer
+	u8 Buffer[1024];
+	u32 Offset = 0;
+	hid_packet* pHidHeader = (hid_packet*)(Buffer + Offset);
+	pHidHeader->type = HID_TYPE_DATA;
+	pHidHeader->param = HID_PARAM_INPUT;
 
 	// Create the buffer
 	memcpy(&Buffer[Offset], pHidHeader, sizeof(hid_packet));
 	Offset += sizeof(hid_packet);
-    memcpy(&Buffer[Offset], _rEvent.m_PayLoad, sizeof(_rEvent.m_PayLoad));
-    Offset += sizeof(_rEvent.m_PayLoad); 
+	memcpy(&Buffer[Offset], _rEvent.m_PayLoad, sizeof(_rEvent.m_PayLoad));
+	Offset += sizeof(_rEvent.m_PayLoad);
 
 	// Send it
 	g_WiimoteInitialize.pWiimoteInput(m_WiimoteNumber, m_channelID, Buffer, Offset);
 
 	// Debugging
-	// ReadDebugging(false, Buffer, Offset);  
+	// ReadDebugging(false, Buffer, Offset);
 }
 };
 
 
 
-// Function Definitions 
+// Function Definitions
 
 void SendAcc(u8 _ReportID)
 {
@@ -348,7 +348,7 @@ int Initialize()
 	Connected.Init();
 
 	// Clear the wiimote classes
-    memset(g_WiiMotes, 0, sizeof(CWiiMote*) * MAX_WIIMOTES);
+	memset(g_WiiMotes, 0, sizeof(CWiiMote*) * MAX_WIIMOTES);
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 		g_WiimoteInUse[i] = false;
 
@@ -399,7 +399,7 @@ int Initialize()
 	// If we are connecting from the config window without a game running we set the LEDs
 	if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY && g_RealWiiMotePresent)
 		FlashLights(true);
-		
+	
 
 	/* Allocate memory and copy the Wiimote eeprom accelerometer neutral values
 	   to g_Eeprom. Unlike with and extension we have to do this here, because
@@ -429,7 +429,7 @@ void Allocate()
 		Initialize();
 
 	// Clear the wiimote classes
-    memset(g_WiiMotes, 0, sizeof(CWiiMote*) * MAX_WIIMOTES);
+	memset(g_WiiMotes, 0, sizeof(CWiiMote*) * MAX_WIIMOTES);
 	for (int i = 0; i < MAX_WIIMOTES; i++)
 		g_WiimoteInUse[i] = false;
 
@@ -500,7 +500,7 @@ void Allocate()
 
 }
 
-void DoState(PointerWrap &p) 
+void DoState(PointerWrap &p)
 {
 	//TODO: Implement
 }
@@ -575,7 +575,7 @@ THREAD_RETURN ReadWiimote_ThreadFunc(void* arg)
 	DEBUG_LOG(WIIMOTE, "Connected: %i", Connect);
 #endif
 	Connected.Set();
-		
+	
 	while (!g_Shutdown)
 	{
 		// There is at least one Real Wiimote in use
@@ -587,8 +587,8 @@ THREAD_RETURN ReadWiimote_ThreadFunc(void* arg)
 					g_WiiMotes[i]->ReadData();
 		}
 		else {
-			    
-			if (!g_StopThreadTemporary.Wait(0)) 
+			
+			if (!g_StopThreadTemporary.Wait(0))
 			{
 				// Event object was signaled, exiting thread to close ConfigRecordingDlg
 				new Common::Thread(SafeCloseReadWiimote_ThreadFunc, NULL);
@@ -616,7 +616,7 @@ bool SafeClose()
 	return true;
 }
 
-// Thread to avoid racing conditions by directly closing of ReadWiimote_ThreadFunc() resp. ReadWiimote() 
+// Thread to avoid racing conditions by directly closing of ReadWiimote_ThreadFunc() resp. ReadWiimote()
 // shutting down the Dlg while still beeing @ReadWiimote will result in a crash;
 THREAD_RETURN SafeCloseReadWiimote_ThreadFunc(void* arg)
 {
@@ -693,7 +693,7 @@ int WiimotePairUp(bool unpair)
 
 		if (hFind == NULL)
 		{
-			ERROR_LOG(WIIMOTE, "Pair-Up: Error enumerating devices: %08x", GetLastError());  
+			ERROR_LOG(WIIMOTE, "Pair-Up: Error enumerating devices: %08x", GetLastError());
 			return -1;
 		}
 
@@ -702,10 +702,10 @@ int WiimotePairUp(bool unpair)
 			//btdi.szName is sometimes missings it's content - it's a bt feature..
 			if ((!wcscmp(btdi.szName, L"Nintendo RVL-WBC-01") || !wcscmp(btdi.szName, L"Nintendo RVL-CNT-01")) && !btdi.fConnected && !unpair)
 			{
-				//TODO: improve the readd of the BT driver, esp. when batteries of the wiimote are removed while beeing fConnected
-				if (btdi.fRemembered) 
+				//TODO: improve the read of the BT driver, esp. when batteries of the wiimote are removed while being fConnected
+				if (btdi.fRemembered)
 				{
-					// Make Windows forget old expired pairing 
+					// Make Windows forget old expired pairing
 					// we can pretty much ignore the return value here.
 					// it either worked (ERROR_SUCCESS), or the device did not exist (ERROR_NOT_FOUND)
 					// in both cases, there is nothing left.
@@ -714,21 +714,21 @@ int WiimotePairUp(bool unpair)
 
 				// Activate service
 				DWORD hr = BluetoothSetServiceState(hRadios[radio], &btdi, &HumanInterfaceDeviceServiceClass_UUID, BLUETOOTH_SERVICE_ENABLE);
-				if (!hr == ERROR_SUCCESS) 
+				if (!hr == ERROR_SUCCESS)
 				{
 					nPaired++;
 				}
-				else 
+				else
 				{
 					ERROR_LOG(WIIMOTE, "Pair-Up: BluetoothSetServiceState() returned %08x", hr);
 				}
 			}
 			else if ((!wcscmp(btdi.szName, L"Nintendo RVL-WBC-01") || !wcscmp(btdi.szName, L"Nintendo RVL-CNT-01")) && unpair)
 			{
-							
-					BluetoothRemoveDevice(&btdi.Address);
-					NOTICE_LOG(WIIMOTE, "Pair-Up: Automatically removed BT Device on shutdown: %08x", GetLastError());
-					nPaired++;
+				
+				BluetoothRemoveDevice(&btdi.Address);
+				NOTICE_LOG(WIIMOTE, "Pair-Up: Automatically removed BT Device on shutdown: %08x", GetLastError());
+				nPaired++;
 
 			}
 		} while (BluetoothFindNextDevice(hFind, &btdi));
@@ -750,13 +750,13 @@ int WiimotePairUp(bool unpair)
 #ifdef HAVE_WIIUSE
 LRESULT CALLBACK CallBackDeviceChange(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    switch(uMsg)
+	switch(uMsg)
 	{
 		
 		case WM_DEVICECHANGE:
 
 			// DBT_DEVNODES_CHANGED 0x007 (devnodes are atm not received); DBT_DEVICEARRIVAL 0x8000 DBT_DEVICEREMOVECOMPLETE 0x8004 // avoiding header file^^
-		    if ( (  wParam == 0x8000 || wParam  == 0x8004 ||  wParam == 0x0007 ) )
+			if ( ( wParam == 0x8000 || wParam  == 0x8004 || wParam == 0x0007 ) )
 			{
 				if (wiiuse_check_system_notification(uMsg, wParam, lParam)) //extern wiiuse function: returns 1 if the event came from a wiimote
 				{
@@ -767,7 +767,7 @@ LRESULT CALLBACK CallBackDeviceChange(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 							{
 								stoprefresh = 0;
 								
-									PaiUpRefreshWiimote();
+								PaiUpRefreshWiimote();
 								break;
 							}
 							else stoprefresh = 1; //fake arrival wait for second go
@@ -786,7 +786,7 @@ LRESULT CALLBACK CallBackDeviceChange(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 		default:
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
-    }
+	}
 
 return 0;
 }
@@ -797,14 +797,14 @@ THREAD_RETURN RunInvisibleMessageWindow_ThreadFunc(void* arg)
 	HWND hwnd;
 	
 	WNDCLASSEX  WCEx;
-    ZeroMemory(&WCEx, sizeof(WCEx));
-    WCEx.cbSize        = sizeof(WCEx);
-    WCEx.lpfnWndProc   = CallBackDeviceChange;
-    WCEx.hInstance     = g_hInstance;
-    WCEx.lpszClassName = L"MSGWND";
+	ZeroMemory(&WCEx, sizeof(WCEx));
+	WCEx.cbSize        = sizeof(WCEx);
+	WCEx.lpfnWndProc   = CallBackDeviceChange;
+	WCEx.hInstance     = g_hInstance;
+	WCEx.lpszClassName = L"MSGWND";
 	
 	if (RegisterClassEx(&WCEx) != 0)
-    {
+	{
 		hwnd = CreateWindowEx(0, WCEx.lpszClassName, NULL,0,
 						0, 0, 0, 0, HWND_MESSAGE, NULL, g_hInstance, NULL);
 
@@ -815,19 +815,19 @@ THREAD_RETURN RunInvisibleMessageWindow_ThreadFunc(void* arg)
 	}
 
 	wiiuse_register_system_notification(hwnd); //function moved into wiiuse to avoid ddk/wdk dependicies
-        
-    while(GetMessage(&Msg, 0, 0, 0) > 0)
-    {
+	
+	while(GetMessage(&Msg, 0, 0, 0) > 0)
+	{
 		TranslateMessage(&Msg);
-        DispatchMessage(&Msg);
-    }
+		DispatchMessage(&Msg);
+	}
 
 	UnregisterClass(WCEx.lpszClassName, g_hInstance);
 
 	if (g_Config.bUnpairRealWiimote)
 		WiiMoteReal::WiimotePairUp(true);
 
-     return (int)Msg.wParam;
+	return (int)Msg.wParam;
 
 }
 

@@ -17,6 +17,7 @@
 
 #include <cmath>
 
+#include "VideoConfig.h"
 #include "Profiler.h"
 #include "Statistics.h"
 #include "Render.h"
@@ -35,8 +36,8 @@ using namespace BPFunctions;
 
 void BPInit()
 {
-    memset(&bpmem, 0, sizeof(bpmem));
-    bpmem.bpMask = 0xFFFFFF;
+	memset(&bpmem, 0, sizeof(bpmem));
+	bpmem.bpMask = 0xFFFFFF;
 }
 
 void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xfbLines, u32 xfbAddr, const u32 dstWidth, const u32 dstHeight)
@@ -46,22 +47,22 @@ void RenderToXFB(const BPCmd &bp, const EFBRectangle &rc, float yScale, float xf
 
 void BPWritten(const BPCmd& bp)
 {
-   /*
-   ----------------------------------------------------------------------------------------------------------------
-   Purpose: Writes to the BP registers
-   Called: At the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
-   How It Works: First the pipeline is flushed then update the bpmem with the new value.
-	             Some of the BP cases have to call certain functions while others just update the bpmem.
-	             some bp cases check the changes variable, because they might not have to be updated all the time
-   NOTE: it seems not all bp cases like checking changes, so calling if (bp.changes == 0 ? false : true)
-	     had to be ditched and the games seem to work fine with out it.
-   NOTE2: Yet Another Gamecube Documentation calls them Bypass Raster State Registers but possibly completely wrong
-   NOTE3: This controls the register groups: RAS1/2, SU, TF, TEV, C/Z, PEC
-   TODO: Turn into function table. The (future) DisplayList (DL) jit can then call the functions directly,
-		getting rid of dynamic dispatch. Unfortunately, few games use DLs properly - most\
-		just stuff geometry in them and don't put state changes there.
-   ----------------------------------------------------------------------------------------------------------------
-   */
+	/*
+	----------------------------------------------------------------------------------------------------------------
+	Purpose: Writes to the BP registers
+	Called: At the end of every: OpcodeDecoding.cpp ExecuteDisplayList > Decode() > LoadBPReg
+	How It Works: First the pipeline is flushed then update the bpmem with the new value.
+				  Some of the BP cases have to call certain functions while others just update the bpmem.
+				  some bp cases check the changes variable, because they might not have to be updated all the time
+	NOTE: it seems not all bp cases like checking changes, so calling if (bp.changes == 0 ? false : true)
+		  had to be ditched and the games seem to work fine with out it.
+	NOTE2: Yet Another Gamecube Documentation calls them Bypass Raster State Registers but possibly completely wrong
+	NOTE3: This controls the register groups: RAS1/2, SU, TF, TEV, C/Z, PEC
+	TODO: Turn into function table. The (future) DisplayList (DL) jit can then call the functions directly,
+		  getting rid of dynamic dispatch. Unfortunately, few games use DLs properly - most\
+		  just stuff geometry in them and don't put state changes there
+	----------------------------------------------------------------------------------------------------------------
+	*/
 
 	// Debugging only, this lets you skip a bp update
 	//static int times = 0;
@@ -83,13 +84,13 @@ void BPWritten(const BPCmd& bp)
 	//s_bpCritical.Enter();
 
 	FlushPipeline();
-    ((u32*)&bpmem)[bp.address] = bp.newvalue;
+	((u32*)&bpmem)[bp.address] = bp.newvalue;
 	
 	switch (bp.address)
 	{
 	case BPMEM_GENMODE: // Set the Generation Mode
 		{
-			PRIM_LOG("genmode: texgen=%d, col=%d, ms_en=%d, tev=%d, culmode=%d, ind=%d, zfeeze=%d",
+			PRIM_LOG("genmode: texgen=%d, col=%d, ms_en=%d, tev=%d, cullmode=%d, ind=%d, zfeeze=%d",
 			bpmem.genMode.numtexgens, bpmem.genMode.numcolchans,
 			bpmem.genMode.ms_en, bpmem.genMode.numtevstages+1, bpmem.genMode.cullmode,
 			bpmem.genMode.numindstages, bpmem.genMode.zfreeze);
@@ -108,9 +109,9 @@ void BPWritten(const BPCmd& bp)
 		PixelShaderManager::SetIndMatrixChanged((bp.address - BPMEM_IND_MTXA) / 3);
 		break;
 	case BPMEM_RAS1_SS0: // Index Texture Coordinate Scale 0
-        PixelShaderManager::SetIndTexScaleChanged(0x03);
+		PixelShaderManager::SetIndTexScaleChanged(0x03);
 	case BPMEM_RAS1_SS1: // Index Texture Coordinate Scale 1
-        PixelShaderManager::SetIndTexScaleChanged(0x0c);
+		PixelShaderManager::SetIndTexScaleChanged(0x0c);
 		break;
 	// ----------------
 	// Scissor Control
@@ -159,31 +160,31 @@ void BPWritten(const BPCmd& bp)
 	// This is called when the game is done drawing the new frame (eg: like in DX: Begin(); Draw(); End();)
 	// Triggers an interrupt on the PPC side so that the game knows when the GPU has finished drawing.
 	// Tokens are similar.
-	case BPMEM_SETDRAWDONE: 
+	case BPMEM_SETDRAWDONE:
 		switch (bp.newvalue & 0xFF)
-        {
-        case 0x02:
-            PixelEngine::SetFinish(); // may generate interrupt
-            DEBUG_LOG(VIDEO, "GXSetDrawDone SetPEFinish (value: 0x%02X)", (bp.newvalue & 0xFFFF));
-            break;
+		{
+		case 0x02:
+			PixelEngine::SetFinish(); // may generate interrupt
+			DEBUG_LOG(VIDEO, "GXSetDrawDone SetPEFinish (value: 0x%02X)", (bp.newvalue & 0xFFFF));
+			break;
 
-        default:
-            WARN_LOG(VIDEO, "GXSetDrawDone ??? (value 0x%02X)", (bp.newvalue & 0xFFFF));
-            break;
-        }
-        break;
+		default:
+			WARN_LOG(VIDEO, "GXSetDrawDone ??? (value 0x%02X)", (bp.newvalue & 0xFFFF));
+			break;
+		}
+		break;
 	case BPMEM_PE_TOKEN_ID: // Pixel Engine Token ID
-        PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), FALSE);
-        DEBUG_LOG(VIDEO, "SetPEToken 0x%04x", (bp.newvalue & 0xFFFF));
-        break;
-    case BPMEM_PE_TOKEN_INT_ID: // Pixel Engine Interrupt Token ID
-        PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), TRUE);
-        DEBUG_LOG(VIDEO, "SetPEToken + INT 0x%04x", (bp.newvalue & 0xFFFF));
-        break;
+		PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), FALSE);
+		DEBUG_LOG(VIDEO, "SetPEToken 0x%04x", (bp.newvalue & 0xFFFF));
+		break;
+	case BPMEM_PE_TOKEN_INT_ID: // Pixel Engine Interrupt Token ID
+		PixelEngine::SetToken(static_cast<u16>(bp.newvalue & 0xFFFF), TRUE);
+		DEBUG_LOG(VIDEO, "SetPEToken + INT 0x%04x", (bp.newvalue & 0xFFFF));
+		break;
 	// ------------------------
 	// EFB copy command. This copies a rectangle from the EFB to either RAM in a texture format or to XFB as YUYV.
 	// It can also optionally clear the EFB while copying from it. To emulate this, we of course copy first and clear afterwards.
-    case BPMEM_TRIGGER_EFB_COPY: // Copy EFB Region or Render to the XFB or Clear the screen.
+	case BPMEM_TRIGGER_EFB_COPY: // Copy EFB Region or Render to the XFB or Clear the screen.
 		{
 			DVSTARTSUBPROFILE("LoadBPReg:swap");
 			// The bottom right is within the rectangle
@@ -200,7 +201,7 @@ void BPWritten(const BPCmd& bp)
 			// Check if we are to copy from the EFB or draw to the XFB
 			if (PE_copy.copy_to_xfb == 0)
 			{
-				if (GetConfig(CONFIG_SHOWEFBREGIONS)) 
+				if (GetConfig(CONFIG_SHOWEFBREGIONS))
 					stats.efb_regions.push_back(rc);
 
 				CopyEFB(bp, rc, bpmem.copyTexDest << 5, 
@@ -244,21 +245,21 @@ void BPWritten(const BPCmd& bp)
 			}
 
 			RestoreRenderState(bp);
-		        
+			
 			break;
 		}
 	case BPMEM_LOADTLUT0: // This one updates bpmem.tlutXferSrc, no need to do anything here.
 		break;
 	case BPMEM_LOADTLUT1: // Load a Texture Look Up Table
-        {
-            DVSTARTSUBPROFILE("LoadBPReg:GXLoadTlut");
+		{
+			DVSTARTSUBPROFILE("LoadBPReg:GXLoadTlut");
 
-            u32 tlutTMemAddr = (bp.newvalue & 0x3FF) << 9;
-            u32 tlutXferCount = (bp.newvalue & 0x1FFC00) >> 5; 
+			u32 tlutTMemAddr = (bp.newvalue & 0x3FF) << 9;
+			u32 tlutXferCount = (bp.newvalue & 0x1FFC00) >> 5;
 
 			u8 *ptr = 0;
 
-            // TODO - figure out a cleaner way.
+			// TODO - figure out a cleaner way.
 			if (GetConfig(CONFIG_ISWII))
 				ptr = GetPointer(bpmem.tlutXferSrc << 5);
 			else
@@ -269,10 +270,10 @@ void BPWritten(const BPCmd& bp)
 			else
 				PanicAlert("Invalid palette pointer %08x %08x %08x", bpmem.tlutXferSrc, bpmem.tlutXferSrc << 5, (bpmem.tlutXferSrc & 0xFFFFF)<< 5);
 
-            // TODO(ector) : kill all textures that use this palette
-            // Not sure if it's a good idea, though. For now, we hash texture palettes
+			// TODO(ector) : kill all textures that use this palette
+			// Not sure if it's a good idea, though. For now, we hash texture palettes
 			break;
-        }
+		}
 	case BPMEM_FOGRANGE: // Fog Settings Control
 	case BPMEM_FOGRANGE+1:
 	case BPMEM_FOGRANGE+2:
@@ -293,15 +294,15 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_ALPHACOMPARE: // Compare Alpha Values
 		PRIM_LOG("alphacmp: ref0=%d, ref1=%d, comp0=%d, comp1=%d, logic=%d", bpmem.alphaFunc.ref0,
 				bpmem.alphaFunc.ref1, bpmem.alphaFunc.comp0, bpmem.alphaFunc.comp1, bpmem.alphaFunc.logic);
-        PixelShaderManager::SetAlpha(bpmem.alphaFunc);
+		PixelShaderManager::SetAlpha(bpmem.alphaFunc);
 		break;
 	case BPMEM_BIAS: // BIAS
 		PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias);
-        PixelShaderManager::SetZTextureBias(bpmem.ztex1.bias);
+		PixelShaderManager::SetZTextureBias(bpmem.ztex1.bias);
 		break;
 	case BPMEM_ZTEX2: // Z Texture type
 		{
-			if (bp.changes & 3) 
+			if (bp.changes & 3)
 				PixelShaderManager::SetZTextureTypeChanged();
 			#if defined(_DEBUG) || defined(DEBUGFAST) 
 			const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
@@ -381,8 +382,8 @@ void BPWritten(const BPCmd& bp)
 		}
 #endif
 		break;
-						   }
-    case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
+							}
+	case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
 		DEBUG_LOG(VIDEO, "BP Texture Invalid: %08x", bp.newvalue);
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
 	case BPMEM_MIPMAP_STRIDE: // MipMap Stride Channel
@@ -395,7 +396,7 @@ void BPWritten(const BPCmd& bp)
 								 9 BC1 - Ind. Tex Stage 1 NTexCoord
 								 6 BI1 - Ind. Tex Stage 1 NTexMap
 								 3 BC0 - Ind. Tex Stage 0 NTexCoord
-								 0 BI0 - Ind. Tex Stage 0 NTexMap  */
+								 0 BI0 - Ind. Tex Stage 0 NTexMap*/
 	case BPMEM_TEV_KSEL:  // Texture Environment Swap Mode Table 0
 	case BPMEM_TEV_KSEL+1:// Texture Environment Swap Mode Table 1
 	case BPMEM_TEV_KSEL+2:// Texture Environment Swap Mode Table 2
@@ -405,7 +406,7 @@ void BPWritten(const BPCmd& bp)
 	case BPMEM_TEV_KSEL+6:// Texture Environment Swap Mode Table 6
 	case BPMEM_TEV_KSEL+7:// Texture Environment Swap Mode Table 7
 	case BPMEM_BP_MASK:   // This Register can be used to limit to which bits of BP registers is actually written to. the mask is
-		                  // only valid for the next BP command, and will reset itself.
+						  // only valid for the next BP command, and will reset itself.
 	case BPMEM_IND_IMASK: // Index Mask ?
 	case BPMEM_REVBITS: // Always set to 0x0F when GX_InitRevBits() is called.
 		break;
@@ -439,7 +440,7 @@ void BPWritten(const BPCmd& bp)
 			break;
 		// ----------------------
 		// Set wrap size
-	    // ----------------------
+		// ----------------------
 		case BPMEM_SU_SSIZE:
 		case BPMEM_SU_TSIZE:
 		case BPMEM_SU_SSIZE+2:
@@ -456,12 +457,12 @@ void BPWritten(const BPCmd& bp)
 		case BPMEM_SU_TSIZE+12:
 		case BPMEM_SU_SSIZE+14:
 		case BPMEM_SU_TSIZE+14:
-            PixelShaderManager::SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
+			PixelShaderManager::SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
 			break;
 		// ------------------------
 		// BPMEM_TX_SETMODE0 - (Texture lookup and filtering mode) LOD/BIAS Clamp, MaxAnsio, LODBIAS, DiagLoad, Min Filter, Mag Filter, Wrap T, S
 		// BPMEM_TX_SETMODE1 - (LOD Stuff) - Max LOD, Min LOD
-	    // ------------------------
+		// ------------------------
 		case BPMEM_TX_SETMODE0: // (0x90 for linear)
 		case BPMEM_TX_SETMODE0_4:
 			// Shouldn't need to call this here, we call it for each active texture right before rendering
@@ -476,7 +477,7 @@ void BPWritten(const BPCmd& bp)
 		// BPMEM_TX_SETIMAGE1 - even LOD address in TMEM - Image Type, Cache Height, Cache Width, TMEM Offset
 		// BPMEM_TX_SETIMAGE2 - odd LOD address in TMEM - Cache Height, Cache Width, TMEM Offset
 		// BPMEM_TX_SETIMAGE3 - Address of Texture in main memory
-	    // --------------------------------------------
+		// --------------------------------------------
 		case BPMEM_TX_SETIMAGE0:
 		case BPMEM_TX_SETIMAGE0_4:
 		case BPMEM_TX_SETIMAGE1:
@@ -489,14 +490,14 @@ void BPWritten(const BPCmd& bp)
 		// -------------------------------
 		// Set a TLUT
 		// BPMEM_TX_SETTLUT - Format, TMEM Offset (offset of TLUT from start of TMEM high bank > > 5)
-	    // -------------------------------
+		// -------------------------------
 		case BPMEM_TX_SETTLUT:
 		case BPMEM_TX_SETLUT_4:
 			break;
 
 		// ---------------------------------------------------
 		// Set the TEV Color
-	    // ---------------------------------------------------
+		// ---------------------------------------------------
 		case BPMEM_TEV_REGISTER_L:   // Reg 1
 		case BPMEM_TEV_REGISTER_H:
 		case BPMEM_TEV_REGISTER_L+2: // Reg 2

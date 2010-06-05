@@ -455,7 +455,7 @@ std::string Joystick::Axis::GetName() const
 {
 	std::ostringstream ss;
 	// axis
-	if ( m_index < 6 )			
+	if ( m_index < 6 )
 	{
 		ss << "Axis " << "XYZ"[m_index%3];
 		if ( m_index > 2 )

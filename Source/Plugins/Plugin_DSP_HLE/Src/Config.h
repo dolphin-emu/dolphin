@@ -22,12 +22,12 @@
 
 struct CConfig
 {
-    bool m_EnableHLEAudio;
+	bool m_EnableHLEAudio;
 
-    CConfig();
-    
-    void Load();
-    void Save();
+	CConfig();
+	
+	void Load();
+	void Save();
 };
 
 extern CConfig g_Config;

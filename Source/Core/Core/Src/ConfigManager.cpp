@@ -85,7 +85,7 @@ void SConfig::SaveSettings()
 		ini.Set("General", tmp, m_ISOFolder[i]);
 	}
 
-	ini.Set("General", "RecersiveGCMPaths", m_RecursiveISOFolder);
+	ini.Set("General", "RecursiveGCMPaths", m_RecursiveISOFolder);
 
 	// Interface		
 	ini.Set("Interface", "ConfirmStop",			m_LocalCoreStartupParameter.bConfirmStop);
@@ -209,7 +209,7 @@ void SConfig::LoadSettings()
 			}
 		}
 
-		ini.Get("General", "RecersiveGCMPaths",		&m_RecursiveISOFolder,							false);
+		ini.Get("General", "RecursiveGCMPaths",		&m_RecursiveISOFolder,							false);
 	}
 
 	{
@@ -287,13 +287,13 @@ void SConfig::LoadSettings()
 			ini.Get("Core", sidevicenum,	(u32*)&m_SIDevice[i], i==0 ? SI_GC_CONTROLLER:SI_NONE);
 		}
 
-		ini.Get("Core", "WiiSDCard", &m_WiiSDCard, false);
-		ini.Get("Core", "WiiKeyboard", &m_WiiKeyboard, false);
+		ini.Get("Core", "WiiSDCard",		&m_WiiSDCard,									false);
+		ini.Get("Core", "WiiKeyboard",		&m_WiiKeyboard,									false);
 		ini.Get("Core", "RunCompareServer",	&m_LocalCoreStartupParameter.bRunCompareServer,	false);
 		ini.Get("Core", "RunCompareClient",	&m_LocalCoreStartupParameter.bRunCompareClient,	false);
 		ini.Get("Core", "TLBHack",			&m_LocalCoreStartupParameter.iTLBHack,			0);
 		ini.Get("Core", "FrameLimit",		&m_Framelimit,									1); // auto frame limit by default
-		ini.Get("Core", "UseFPS",		&b_UseFPS,									false); // use vps as default
+		ini.Get("Core", "UseFPS",			&b_UseFPS,										false); // use vps as default
 
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin,	m_DefaultGFXPlugin.c_str());

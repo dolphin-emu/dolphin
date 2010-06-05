@@ -116,7 +116,7 @@ static const D3DBLEND d3dDestFactors[8] =
 	D3DBLEND_INVDESTALPHA
 };
 
-static const D3DBLENDOP d3dLogincOPop[16] =
+static const D3DBLENDOP d3dLogicOpop[16] =
 {
 	D3DBLENDOP_ADD,
 	D3DBLENDOP_ADD,
@@ -239,7 +239,6 @@ void TeardownDeviceObjects()
 	FBManager.Destroy();
 	D3D::font.Shutdown();
 	TextureCache::Invalidate(false);
-	VertexManager::DestroyDeviceObjects();
 	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Clear();
 	PixelShaderCache::Clear();
@@ -1248,10 +1247,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 void Renderer::ResetAPIState()
 {
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
-	D3D::SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+	D3D::SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 	D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
 	D3D::SetRenderState(D3DRS_ZENABLE, FALSE);
-	D3D::SetRenderState(D3DRS_ZWRITEENABLE, FALSE);
+	D3D::SetRenderState(D3DRS_ZWRITEENABLE, TRUE);
 	DWORD color_mask = D3DCOLORWRITEENABLE_ALPHA| D3DCOLORWRITEENABLE_RED | D3DCOLORWRITEENABLE_GREEN | D3DCOLORWRITEENABLE_BLUE;
 	D3D::SetRenderState(D3DRS_COLORWRITEENABLE, color_mask);
 }
@@ -1294,7 +1293,7 @@ void Renderer::SetLogicOpMode()
 	{
 		s_blendMode = 0;
 		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, 1);
-		D3D::SetRenderState(D3DRS_BLENDOP, d3dLogincOPop[bpmem.blendmode.logicmode]);
+		D3D::SetRenderState(D3DRS_BLENDOP, d3dLogicOpop[bpmem.blendmode.logicmode]);
 		D3D::SetRenderState(D3DRS_SRCBLEND, d3dLogicOpSrcFactors[bpmem.blendmode.logicmode]);
 		D3D::SetRenderState(D3DRS_DESTBLEND, d3dLogicOpDestFactors[bpmem.blendmode.logicmode]);
 	}

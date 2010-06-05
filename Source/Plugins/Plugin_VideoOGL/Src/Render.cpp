@@ -145,22 +145,22 @@ typedef struct
 
 static const GLenum glSrcFactors[8] =
 {
-    GL_ZERO,
-    GL_ONE,
-    GL_DST_COLOR,
-    GL_ONE_MINUS_DST_COLOR,
-    GL_SRC_ALPHA,
-    GL_ONE_MINUS_SRC_ALPHA, 
-    GL_DST_ALPHA,
-    GL_ONE_MINUS_DST_ALPHA
+	GL_ZERO,
+	GL_ONE,
+	GL_DST_COLOR,
+	GL_ONE_MINUS_DST_COLOR,
+	GL_SRC_ALPHA,
+	GL_ONE_MINUS_SRC_ALPHA, 
+	GL_DST_ALPHA,
+	GL_ONE_MINUS_DST_ALPHA
 };
 
 static const GLenum glDestFactors[8] = {
-    GL_ZERO, 
+	GL_ZERO, 
 	GL_ONE, 
 	GL_SRC_COLOR, 
 	GL_ONE_MINUS_SRC_COLOR,
-    GL_SRC_ALPHA, 
+	GL_SRC_ALPHA, 
 	GL_ONE_MINUS_SRC_ALPHA,  
 	GL_DST_ALPHA, 
 	GL_ONE_MINUS_DST_ALPHA
@@ -178,7 +178,7 @@ static const GLenum glCmpFuncs[8] = {
 };
 
 static const GLenum glLogicOpCodes[16] = {
-    GL_CLEAR,
+	GL_CLEAR,
 	GL_AND,
 	GL_AND_REVERSE,
 	GL_COPY,
@@ -199,15 +199,15 @@ static const GLenum glLogicOpCodes[16] = {
 void SetDefaultRectTexParams()
 {
 	// Set some standard texture filter modes.
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    if (glGetError() != GL_NO_ERROR) {
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
-        GL_REPORT_ERRORD();
-    }
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	if (glGetError() != GL_NO_ERROR) {
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		GL_REPORT_ERRORD();
+	}
+	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
 void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
@@ -230,7 +230,7 @@ void VideoConfig::UpdateProjectionHack()
 bool Renderer::Init()
 {
 	UpdateActiveConfig();
-    bool bSuccess = true;
+	bool bSuccess = true;
 	s_blendMode = 0;
 	s_MSAACoverageSamples = 0;
 	switch (g_ActiveConfig.iMultisampleMode)
@@ -247,49 +247,49 @@ bool Renderer::Init()
 		s_MSAASamples = 1;
 	}
 	GLint numvertexattribs = 0;
-    g_cgcontext = cgCreateContext();
+	g_cgcontext = cgCreateContext();
 
-    cgGetError();
+	cgGetError();
 	cgSetErrorHandler(HandleCgError, NULL);
 
-    // Look for required extensions.
-    const char *ptoken = (const char*)glGetString(GL_EXTENSIONS);
+	// Look for required extensions.
+	const char *ptoken = (const char*)glGetString(GL_EXTENSIONS);
 	if (!ptoken)
 	{
 		PanicAlert("Your OpenGL Driver seems to be not working.\n"
-			       "Please make sure your drivers are up-to-date and\n"
+				   "Please make sure your drivers are up-to-date and\n"
 				   "that your video hardware is OpenGL 2.x compatible "
 					);
 		return false;
 	}
 
-    INFO_LOG(VIDEO, "Supported OpenGL Extensions:");
-    INFO_LOG(VIDEO, ptoken);  // write to the log file
-    INFO_LOG(VIDEO, "");
+	INFO_LOG(VIDEO, "Supported OpenGL Extensions:");
+	INFO_LOG(VIDEO, ptoken);  // write to the log file
+	INFO_LOG(VIDEO, "");
 
 	OSD::AddMessage(StringFromFormat("Video Info: %s, %s, %s", (const char*)glGetString(GL_VENDOR), 
 															 (const char*)glGetString(GL_RENDERER), 
 															 (const char*)glGetString(GL_VERSION)).c_str(), 5000);
 
 	glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
-    if (numvertexattribs < 11) {
-        ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Number of attributes %d not enough\nGPU: *********Does your video card support OpenGL 2.x?", numvertexattribs);
-        bSuccess = false;
-    }
+	if (numvertexattribs < 11) {
+		ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Number of attributes %d not enough\nGPU: *********Does your video card support OpenGL 2.x?", numvertexattribs);
+		bSuccess = false;
+	}
 
 	// Init extension support.
 	if (glewInit() != GLEW_OK) {
-        ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
-        return false;
-    }
-    if (!GLEW_EXT_framebuffer_object) {
-        ERROR_LOG(VIDEO, "*********\nGPU: ERROR: Need GL_EXT_framebufer_object for multiple render targets\nGPU: *********Does your video card support OpenGL 2.x?");
-        bSuccess = false;
-    }
-    if (!GLEW_EXT_secondary_color) {
-        ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Need GL_EXT_secondary_color\nGPU: *********Does your video card support OpenGL 2.x?");
-        bSuccess = false;
-    }
+		ERROR_LOG(VIDEO, "glewInit() failed!Does your video card support OpenGL 2.x?");
+		return false;
+	}
+	if (!GLEW_EXT_framebuffer_object) {
+		ERROR_LOG(VIDEO, "*********\nGPU: ERROR: Need GL_EXT_framebufer_object for multiple render targets\nGPU: *********Does your video card support OpenGL 2.x?");
+		bSuccess = false;
+	}
+	if (!GLEW_EXT_secondary_color) {
+		ERROR_LOG(VIDEO, "*********\nGPU: OGL ERROR: Need GL_EXT_secondary_color\nGPU: *********Does your video card support OpenGL 2.x?");
+		bSuccess = false;
+	}
 	s_bHaveFramebufferBlit = strstr(ptoken, "GL_EXT_framebuffer_blit") != NULL;
 	if (!s_bHaveFramebufferBlit)
 	{
@@ -302,8 +302,8 @@ bool Renderer::Init()
 		s_MSAACoverageSamples = 0;
 	}
 
-    if (!bSuccess)
-        return false;
+	if (!bSuccess)
+		return false;
 
 	// Handle VSync on/off
 #if defined USE_WX && USE_WX
@@ -320,7 +320,7 @@ bool Renderer::Init()
 		ERROR_LOG(VIDEO, "no support for SwapInterval (framerate clamped to monitor refresh rate)");
 #endif
 
-    // check the max texture width and height
+	// check the max texture width and height
 	GLint max_texture_size;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&max_texture_size);
 	if (max_texture_size < 1024) {
@@ -330,8 +330,8 @@ bool Renderer::Init()
 	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
 
-    if (glDrawBuffers == NULL && !GLEW_ARB_draw_buffers)
-        glDrawBuffers = glDrawBuffersARB;
+	if (glDrawBuffers == NULL && !GLEW_ARB_draw_buffers)
+		glDrawBuffers = glDrawBuffersARB;
 	
 	if (!GLEW_ARB_texture_non_power_of_two) {
 		WARN_LOG(VIDEO, "ARB_texture_non_power_of_two not supported.");
@@ -377,7 +377,7 @@ bool Renderer::Init()
 	// Because of the fixed framebuffer size we need to disable the resolution options while running
 	g_Config.bRunning = true;
 
-    if (GL_REPORT_ERROR() != GL_NO_ERROR)
+	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
 
 	// Initialize the FramebufferManager
@@ -385,93 +385,93 @@ bool Renderer::Init()
 
 	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
 
-    if (GL_REPORT_ERROR() != GL_NO_ERROR)
+	if (GL_REPORT_ERROR() != GL_NO_ERROR)
 		bSuccess = false;
 
-    s_pfont = new RasterFont();
+	s_pfont = new RasterFont();
 
-    // load the effect, find the best profiles (if any)
-    if (cgGLIsProfileSupported(CG_PROFILE_ARBVP1) != CG_TRUE) {
-        ERROR_LOG(VIDEO, "arbvp1 not supported");
-        return false;
-    }
+	// load the effect, find the best profiles (if any)
+	if (cgGLIsProfileSupported(CG_PROFILE_ARBVP1) != CG_TRUE) {
+		ERROR_LOG(VIDEO, "arbvp1 not supported");
+		return false;
+	}
 
-    if (cgGLIsProfileSupported(CG_PROFILE_ARBFP1) != CG_TRUE) {
-        ERROR_LOG(VIDEO, "arbfp1 not supported");
-        return false;
-    }
+	if (cgGLIsProfileSupported(CG_PROFILE_ARBFP1) != CG_TRUE) {
+		ERROR_LOG(VIDEO, "arbfp1 not supported");
+		return false;
+	}
 
-    g_cgvProf = cgGLGetLatestProfile(CG_GL_VERTEX);
-    g_cgfProf = cgGLGetLatestProfile(CG_GL_FRAGMENT);
-    cgGLSetOptimalOptions(g_cgvProf);
-    cgGLSetOptimalOptions(g_cgfProf);
+	g_cgvProf = cgGLGetLatestProfile(CG_GL_VERTEX);
+	g_cgfProf = cgGLGetLatestProfile(CG_GL_FRAGMENT);
+	cgGLSetOptimalOptions(g_cgvProf);
+	cgGLSetOptimalOptions(g_cgfProf);
 
-    INFO_LOG(VIDEO, "Max buffer sizes: %d %d", cgGetProgramBufferMaxSize(g_cgvProf), cgGetProgramBufferMaxSize(g_cgfProf));
-    int nenvvertparams, nenvfragparams, naddrregisters[2];
-    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,   GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,    (GLint *)&nenvvertparams);
-    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,    (GLint *)&nenvfragparams);
-    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,   GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[0]);
-    glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[1]);
-    DEBUG_LOG(VIDEO, "Max program env parameters: vert=%d, frag=%d", nenvvertparams, nenvfragparams);
-    DEBUG_LOG(VIDEO, "Max program address register parameters: vert=%d, frag=%d", naddrregisters[0], naddrregisters[1]);
+	INFO_LOG(VIDEO, "Max buffer sizes: %d %d", cgGetProgramBufferMaxSize(g_cgvProf), cgGetProgramBufferMaxSize(g_cgfProf));
+	int nenvvertparams, nenvfragparams, naddrregisters[2];
+	glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,   GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,    (GLint *)&nenvvertparams);
+	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,    (GLint *)&nenvfragparams);
+	glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,   GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[0]);
+	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ADDRESS_REGISTERS_ARB, (GLint *)&naddrregisters[1]);
+	DEBUG_LOG(VIDEO, "Max program env parameters: vert=%d, frag=%d", nenvvertparams, nenvfragparams);
+	DEBUG_LOG(VIDEO, "Max program address register parameters: vert=%d, frag=%d", naddrregisters[0], naddrregisters[1]);
 
 	if (nenvvertparams < 238)
-        ERROR_LOG(VIDEO, "Not enough vertex shader environment constants!!");
+		ERROR_LOG(VIDEO, "Not enough vertex shader environment constants!!");
 
 #ifndef _DEBUG
-    cgGLSetDebugMode(GL_FALSE);
+	cgGLSetDebugMode(GL_FALSE);
 #endif
-    
-    glStencilFunc(GL_ALWAYS, 0, 0);
-    glBlendFunc(GL_ONE, GL_ONE);
+	
+	glStencilFunc(GL_ALWAYS, 0, 0);
+	glBlendFunc(GL_ONE, GL_ONE);
 
-    glViewport(0, 0, GetTargetWidth(), GetTargetHeight()); // Reset The Current Viewport
+	glViewport(0, 0, GetTargetWidth(), GetTargetHeight()); // Reset The Current Viewport
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
-    glShadeModel(GL_SMOOTH);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glClearDepth(1.0f);
-    glEnable(GL_DEPTH_TEST);
-    glDisable(GL_LIGHTING);
-    glDepthFunc(GL_LEQUAL);
-    
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
-    
-    glDisable(GL_STENCIL_TEST);
-    glEnable(GL_SCISSOR_TEST);
+	glShadeModel(GL_SMOOTH);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClearDepth(1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_LIGHTING);
+	glDepthFunc(GL_LEQUAL);
+	
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
+	
+	glDisable(GL_STENCIL_TEST);
+	glEnable(GL_SCISSOR_TEST);
 
-    glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
-    glBlendColorEXT(0, 0, 0, 0.5f);
-    glClearDepth(1.0f);
+	glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
+	glBlendColorEXT(0, 0, 0, 0.5f);
+	glClearDepth(1.0f);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
-    // legacy multitexturing: select texture channel only.
-    glActiveTexture(GL_TEXTURE0);
-    glClientActiveTexture(GL_TEXTURE0);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+	// legacy multitexturing: select texture channel only.
+	glActiveTexture(GL_TEXTURE0);
+	glClientActiveTexture(GL_TEXTURE0);
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
 	UpdateActiveConfig();
-    return glGetError() == GL_NO_ERROR && bSuccess;
+	return glGetError() == GL_NO_ERROR && bSuccess;
 }
 
 void Renderer::Shutdown(void)
-{    
+{
 	g_Config.bRunning = false;
 	UpdateActiveConfig();
-    delete s_pfont;
+	delete s_pfont;
 	s_pfont = 0;
 
-    if (g_cgcontext) {
-        cgDestroyContext(g_cgcontext);
-        g_cgcontext = 0;
+	if (g_cgcontext) {
+		cgDestroyContext(g_cgcontext);
+		g_cgcontext = 0;
 	}
 	if(s_tempScreenshotFramebuffer)
 		glDeleteFramebuffersEXT(1, &s_tempScreenshotFramebuffer);
@@ -535,12 +535,12 @@ int Renderer::GetTargetHeight()
 }
 float Renderer::GetTargetScaleX()
 {
-    return EFBxScale;
+	return EFBxScale;
 }
 
 float Renderer::GetTargetScaleY()
 {
-    return EFByScale;
+	return EFByScale;
 }
 
 
@@ -553,20 +553,19 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 }
 
 
-
 void Renderer::ResetAPIState()
 {
 	// Gets us to a reasonably sane state where it's possible to do things like
 	// image copies with textured quads, etc.
 	VertexShaderCache::DisableShader();
-	PixelShaderCache::DisableShader();   
+	PixelShaderCache::DisableShader();
 
-    glDisable(GL_SCISSOR_TEST);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_BLEND);
-    glDepthMask(GL_FALSE);
-    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glDisable(GL_SCISSOR_TEST);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+	glDepthMask(GL_FALSE);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
 
 void UpdateViewport();
@@ -582,17 +581,17 @@ void Renderer::RestoreAPIState()
 
 	UpdateViewport();
 
-    if (bpmem.genMode.cullmode > 0) glEnable(GL_CULL_FACE);
-    if (bpmem.zmode.testenable)     glEnable(GL_DEPTH_TEST);
-    if (bpmem.zmode.updateenable)   glDepthMask(GL_TRUE);
+	if (bpmem.genMode.cullmode > 0) glEnable(GL_CULL_FACE);
+	if (bpmem.zmode.testenable)     glEnable(GL_DEPTH_TEST);
+	if (bpmem.zmode.updateenable)   glDepthMask(GL_TRUE);
 
-    glEnable(GL_SCISSOR_TEST);
+	glEnable(GL_SCISSOR_TEST);
 	SetScissorRect();
-    SetColorMask();
+	SetColorMask();
 	SetBlendMode(true);
 
 	VertexShaderCache::SetCurrentShader(0);
-	PixelShaderCache::SetCurrentShader(0);	
+	PixelShaderCache::SetCurrentShader(0);
 }
 
 void Renderer::SetColorMask()
@@ -612,9 +611,9 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	u32 newval = bpmem.blendmode.subtract << 2;
 
-    if (bpmem.blendmode.subtract) {
-        newval |= 0x0049;   // enable blending src 1 dst 1
-    } else if (bpmem.blendmode.blendenable) {		
+	if (bpmem.blendmode.subtract) {
+		newval |= 0x0049;   // enable blending src 1 dst 1
+	} else if (bpmem.blendmode.blendenable) {
 		newval |= 1;    // enable blending
 		newval |= bpmem.blendmode.srcfactor << 3;
 		newval |= bpmem.blendmode.dstfactor << 6;
@@ -623,11 +622,11 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
 
 	if (changes & 1) {
-        // blend enable change
+		// blend enable change
 		(newval & 1) ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
 	}
 
-	if (changes & 4) {		
+	if (changes & 4) {
 		// subtract enable change
 		glBlendEquation(newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD);
 	}
@@ -690,7 +689,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		// Although it may sound strange, this really is A8R8G8B8 and not RGBA or 24-bit...
 
 		// Tested in Killer 7, the first 8bits represent the alpha value which is used to
-		// determine if we're aiming at an enemy (0x80 / 0x88) or not (0x70) 
+		// determine if we're aiming at an enemy (0x80 / 0x88) or not (0x70)
 		// Wind Waker is also using it for the pictograph to determine the color of each pixel
 
 		if (s_MSAASamples > 1)
@@ -736,20 +735,20 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 // therefore the width and height are (scissorBR + 1) - scissorTL
 bool Renderer::SetScissorRect()
 {
-    int xoff = bpmem.scissorOffset.x * 2 - 342;
-    int yoff = bpmem.scissorOffset.y * 2 - 342;
-    float rc_left = (float)bpmem.scissorTL.x - xoff - 342; // left = 0
-	if (rc_left < 0) rc_left = 0;	
+	int xoff = bpmem.scissorOffset.x * 2 - 342;
+	int yoff = bpmem.scissorOffset.y * 2 - 342;
+	float rc_left = (float)bpmem.scissorTL.x - xoff - 342; // left = 0
+	if (rc_left < 0) rc_left = 0;
 
 	float rc_top = (float)bpmem.scissorTL.y - yoff - 342; // right = 0
-	if (rc_top < 0) rc_top = 0;	
-    
+	if (rc_top < 0) rc_top = 0;
+	
 	float rc_right = (float)bpmem.scissorBR.x - xoff - 341; // right = 640
 	if (rc_right > EFB_WIDTH) rc_right = EFB_WIDTH;
 	
 
 	float rc_bottom = (float)bpmem.scissorBR.y - yoff - 341; // bottom = 480
-	if (rc_bottom > EFB_HEIGHT) rc_bottom = EFB_HEIGHT;	
+	if (rc_bottom > EFB_HEIGHT) rc_bottom = EFB_HEIGHT;
 
 	if(rc_left > rc_right)
 	{
@@ -766,7 +765,7 @@ bool Renderer::SetScissorRect()
 
 	
 	// Check that the coordinates are good
-    if (rc_right >= rc_left && rc_bottom >= rc_top)
+	if (rc_right >= rc_left && rc_bottom >= rc_top)
 	{
 		glScissor(
 			(int)(rc_left * EFBxScale), // x = 0 for example
@@ -774,18 +773,18 @@ bool Renderer::SetScissorRect()
 			(int)((rc_right - rc_left)* EFBxScale), // width = 640 for example
 			(int)((rc_bottom - rc_top) * EFByScale) // height = 480 for example
 			); 
-        return true;
-    }
+		return true;
+	}
 	else
 	{
 		glScissor(
 			0,
 			0,
 			Renderer::GetTargetWidth(), 
-			Renderer::GetTargetHeight() 
-			); 	
+			Renderer::GetTargetHeight()
+			);
 	}
-    return false;
+	return false;
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
@@ -795,10 +794,10 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
 
-    // Always set the scissor in case it was set by the game and has not been reset
+	// Always set the scissor in case it was set by the game and has not been reset
 	glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
 
-    VertexShaderManager::SetViewportChanged();
+	VertexShaderManager::SetViewportChanged();
 
 	GLbitfield bits = 0;
 	if (colorEnable)
@@ -847,7 +846,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);
 		return;
-	}	
+	}
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
 	const XFBSource** xfbSourceList = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
@@ -858,9 +857,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		return;
 	}
 
-    DVSTARTPROFILE();
+	DVSTARTPROFILE();
 
-    ResetAPIState();
+	ResetAPIState();
 
 	TargetRectangle back_rc;
 	ComputeDrawRectangle(m_CustomWidth, m_CustomHeight, true, &back_rc);
@@ -891,7 +890,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-	// We must call ApplyShader here even if no post proc is selected - it takes 
+	// We must call ApplyShader here even if no post proc is selected - it takes
 	// care of disabling it in that case. It returns false in case of no post processing.
 	bool applyShader = PostProcessing::ApplyShader();
 
@@ -900,7 +899,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// draw each xfb source
 	for (u32 i = 0; i < xfbCount; ++i)
 	{
-		xfbSource = xfbSourceList[i];	
+		xfbSource = xfbSourceList[i];
 
 		TargetRectangle sourceRc;
 
@@ -956,7 +955,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		// Texture map xfbSource->texture onto the main buffer
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfbSource->texture);
 
-		// We must call ApplyShader here even if no post proc is selected - it takes 
+		// We must call ApplyShader here even if no post proc is selected - it takes
 		// care of disabling it in that case. It returns false in case of no post processing.
 		if (applyShader)
 		{
@@ -966,14 +965,14 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 				glTexCoord2f(sourceRc.right, sourceRc.top);    glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1); glVertex2f(drawRc.right, drawRc.top);
 				glTexCoord2f(sourceRc.right, sourceRc.bottom); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0); glVertex2f(drawRc.right, drawRc.bottom);
 			glEnd();
-			PixelShaderCache::DisableShader();;
+			PixelShaderCache::DisableShader();
 		}
 		else
 		{
 			glBegin(GL_QUADS);
 				glTexCoord2f(sourceRc.left, sourceRc.bottom);  glVertex2f(drawRc.left, drawRc.bottom);
-				glTexCoord2f(sourceRc.left, sourceRc.top);     glVertex2f(drawRc.left, drawRc.top);
-				glTexCoord2f(sourceRc.right, sourceRc.top);    glVertex2f(drawRc.right, drawRc.top);
+				glTexCoord2f(sourceRc.left, sourceRc.top);	   glVertex2f(drawRc.left, drawRc.top);
+				glTexCoord2f(sourceRc.right, sourceRc.top);	   glVertex2f(drawRc.right, drawRc.top);
 				glTexCoord2f(sourceRc.right, sourceRc.bottom); glVertex2f(drawRc.right, drawRc.bottom);
 			glEnd();
 		}
@@ -1026,20 +1025,20 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glReadPixels(0, Renderer::GetTargetHeight() - h, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
-		if (glGetError() == GL_NO_ERROR && w > 0 && h > 0) 
+		if (glGetError() == GL_NO_ERROR && w > 0 && h > 0)
 		{
-			if (!s_bLastFrameDumped) 
+			if (!s_bLastFrameDumped)
 			{
 				s_bAVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), w, h);
 				if (!s_bAVIDumping) 
 					OSD::AddMessage("AVIDump Start failed", 2000);
-				else 
+				else
 				{
 					OSD::AddMessage(StringFromFormat(
 						"Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)", File::GetUserPath(D_DUMPFRAMES_IDX), w, h).c_str(), 2000);
 				}
 			}
-			if (s_bAVIDumping) 
+			if (s_bAVIDumping)
 				AVIDump::AddFrame((char *) data);
 
 			s_bLastFrameDumped = true;
@@ -1053,10 +1052,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 		glFramebufferTexture2DEXT(GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
 		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, g_framebufferManager.GetEFBFramebuffer());
-	} 
-	else 
+	}
+	else
 	{
-		if(s_bLastFrameDumped && s_bAVIDumping) 
+		if(s_bLastFrameDumped && s_bAVIDumping)
 		{
 			AVIDump::Stop();
 			s_bAVIDumping = false;
@@ -1128,7 +1127,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 
 	if( xfbchanged || WindowResized)
-	{	
+	{
 		TargetRectangle dst_rect;
 		ComputeDrawRectangle(m_CustomWidth, m_CustomHeight, false, &dst_rect);
 
@@ -1172,20 +1171,20 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// Count FPS.
 	// -------------
 	static int fpscount = 0;
-    static unsigned long lasttime;
-    ++fpscount;
-    if (Common::Timer::GetTimeMs() - lasttime > 1000) 
-    {
-        lasttime = Common::Timer::GetTimeMs();
-        s_fps = fpscount - 1;
-        fpscount = 0;
-    }
+	static unsigned long lasttime;
+	++fpscount;
+	if (Common::Timer::GetTimeMs() - lasttime > 1000)
+	{
+		lasttime = Common::Timer::GetTimeMs();
+		s_fps = fpscount - 1;
+		fpscount = 0;
+	}
 	// ---------------------------------------------------------------------
-    GL_REPORT_ERRORD();
+	GL_REPORT_ERRORD();
 	
 	DrawDebugText();
 
-    GL_REPORT_ERRORD();
+	GL_REPORT_ERRORD();
 
 	// Get the status of the Blend mode
 	GLboolean blend_enabled = glIsEnabled(GL_BLEND);
@@ -1193,22 +1192,22 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	OSD::DrawMessages();
 	if (blend_enabled)
 		glEnable(GL_BLEND);
-	GL_REPORT_ERRORD();	
+	GL_REPORT_ERRORD();
 #if defined(DVPROFILE)
-    if (g_bWriteProfile) { 
-        //g_bWriteProfile = 0;
-        static int framenum = 0;
-        const int UPDATE_FRAMES = 8;
-        if (++framenum >= UPDATE_FRAMES) {
-            DVProfWrite("prof.txt", UPDATE_FRAMES);
-            DVProfClear();
-            framenum = 0;
-        }
-    }
+	if (g_bWriteProfile) {
+		//g_bWriteProfile = 0;
+		static int framenum = 0;
+		const int UPDATE_FRAMES = 8;
+		if (++framenum >= UPDATE_FRAMES) {
+			DVProfWrite("prof.txt", UPDATE_FRAMES);
+			DVProfClear();
+			framenum = 0;
+		}
+	}
 #endif
-   	// Copy the rendered frame to the real window
+	// Copy the rendered frame to the real window
 	OpenGL_SwapBuffers();
-	    
+	
 	GL_REPORT_ERRORD();
 
 	// Clear framebuffer
@@ -1219,22 +1218,22 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	// Clean out old stuff from caches. It's not worth it to clean out the shader caches.
 	DLCache::ProgressiveCleanup();
-    TextureMngr::ProgressiveCleanup();
+	TextureMngr::ProgressiveCleanup();
 
-    frameCount++;
+	frameCount++;
 
-    // New frame
-    stats.ResetFrame();
+	// New frame
+	stats.ResetFrame();
 
 	// Render to the framebuffer.
 	g_framebufferManager.SetFramebuffer(0);
 
 	GL_REPORT_ERRORD();
 
-    RestoreAPIState();
+	RestoreAPIState();
 
 	GL_REPORT_ERRORD();
-    g_Config.iSaveTargetId = 0;
+	g_Config.iSaveTargetId = 0;
 
 	bool last_copy_efb_to_Texture = g_ActiveConfig.bCopyEFBToTexture;
 	UpdateActiveConfig();
@@ -1242,8 +1241,8 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		TextureMngr::ClearRenderTargets();
 
 	// For testing zbuffer targets.
-    // Renderer::SetZBufferRender();
-    // SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
+	// Renderer::SetZBufferRender();
+	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
 	XFBWrited = false;
 	g_VideoInitialize.pCopiedToXFB(true);
 	
@@ -1265,11 +1264,11 @@ void Renderer::DrawDebugText()
 	if (g_ActiveConfig.bShowEFBCopyRegions)
 	{
 		// Store Line Size
-        GLfloat lSize;
+		GLfloat lSize;
 		glGetFloatv(GL_LINE_WIDTH, &lSize);
 
 		// Set Line Size
-		glLineWidth(3.0f); 
+		glLineWidth(3.0f);
 
 		glBegin(GL_LINES);
 
@@ -1277,8 +1276,8 @@ void Renderer::DrawDebugText()
 		for (std::vector<EFBRectangle>::const_iterator it = stats.efb_regions.begin(); it != stats.efb_regions.end(); ++it)
 		{
 			GLfloat halfWidth = EFB_WIDTH / 2.0f;
-            GLfloat halfHeight = EFB_HEIGHT / 2.0f;
-            GLfloat x =  (GLfloat) -1.0f + ((GLfloat)it->left / halfWidth);
+			GLfloat halfHeight = EFB_HEIGHT / 2.0f;
+			GLfloat x =  (GLfloat) -1.0f + ((GLfloat)it->left / halfWidth);
 			GLfloat y =  (GLfloat) 1.0f - ((GLfloat)it->top / halfHeight);
 			GLfloat x2 = (GLfloat) -1.0f + ((GLfloat)it->right / halfWidth);
 			GLfloat y2 = (GLfloat) 1.0f - ((GLfloat)it->bottom / halfHeight);
@@ -1307,10 +1306,10 @@ void Renderer::DrawDebugText()
 		stats.efb_regions.clear();
 	}
 
-    if (g_ActiveConfig.bOverlayStats) 
+	if (g_ActiveConfig.bOverlayStats)
 	{
 		p = Statistics::ToString(p);
-    }
+	}
 
 	if (g_ActiveConfig.bOverlayProjStats)
 	{
@@ -1342,7 +1341,7 @@ void Renderer::DrawDebugText()
 			H = OpenGL_GetBackbufferHeight();
 
 			std::string OSDM1 =
-				g_ActiveConfig.bNativeResolution || g_ActiveConfig.b2xResolution ?
+				g_ActiveConfig.bNativeResolution || g_ActiveConfig.b2xResolution ? 
 				(g_ActiveConfig.bNativeResolution ? 
 				StringFromFormat("%i x %i (native)", OSDInternalW, OSDInternalH)
 				: StringFromFormat("%i x %i (2x)", OSDInternalW, OSDInternalH))
@@ -1364,7 +1363,7 @@ void Renderer::DrawDebugText()
 				break;
 			}
 			std::string OSDM22 =
-				g_ActiveConfig.bCrop ? " (crop)" : "";			
+				g_ActiveConfig.bCrop ? " (crop)" : "";
 			std::string OSDM3 = g_ActiveConfig.bEFBCopyDisable ? "Disabled" :
 				g_ActiveConfig.bCopyEFBToTexture ? "To Texture" : "To RAM";
 
@@ -1377,21 +1376,21 @@ void Renderer::DrawDebugText()
 			T0.push_back(StringFromFormat("4: Aspect Ratio: %s%s\n", OSDM21.c_str(), OSDM22.c_str()));
 			T0.push_back(StringFromFormat("5: Copy EFB: %s\n", OSDM3.c_str()));
 			T0.push_back(StringFromFormat("6: Fog: %s\n", g_ActiveConfig.bDisableFog ? "Disabled" : "Enabled"));
-			T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"));	
+			T0.push_back(StringFromFormat("7: Material Lighting: %s\n", g_ActiveConfig.bDisableLighting ? "Disabled" : "Enabled"));
 
 			// The latest changed setting in yellow
 			T1 += (OSDChoice == -1) ? T0.at(0) : "\n";
 			T1 += (OSDChoice == -2) ? T0.at(1) : "\n";
 			T1 += (OSDChoice == -3) ? T0.at(2) : "\n";
 			T1 += (OSDChoice == -4) ? T0.at(3) : "\n";
-			T1 += (OSDChoice == -5) ? T0.at(4) : "\n";		
+			T1 += (OSDChoice == -5) ? T0.at(4) : "\n";
 
 			// The other settings in cyan
 			T2 += (OSDChoice != -1) ? T0.at(0) : "\n";
 			T2 += (OSDChoice != -2) ? T0.at(1) : "\n";
 			T2 += (OSDChoice != -3) ? T0.at(2) : "\n";
 			T2 += (OSDChoice != -4) ? T0.at(3) : "\n";
-			T2 += (OSDChoice != -5) ? T0.at(4) : "\n";		
+			T2 += (OSDChoice != -5) ? T0.at(4) : "\n";
 
 			// Render a shadow, and then the text
 			Renderer::RenderText(T1.c_str(), 21, 21, 0xDD000000);
@@ -1405,11 +1404,11 @@ void Renderer::RenderText(const char* pstr, int left, int top, u32 color)
 {
 	int nBackbufferWidth = (int)OpenGL_GetBackbufferWidth();
 	int nBackbufferHeight = (int)OpenGL_GetBackbufferHeight();
-	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f,
-	          ((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
-	s_pfont->printMultilineText(pstr,
-		left * 2.0f / (float)nBackbufferWidth - 1,
-		1 - top * 2.0f / (float)nBackbufferHeight,
+	glColor4f(((color>>16) & 0xff)/255.0f, ((color>> 8) & 0xff)/255.0f, 
+			  ((color>> 0) & 0xff)/255.0f, ((color>>24) & 0xFF)/255.0f);
+	s_pfont->printMultilineText(pstr, 
+		left * 2.0f / (float)nBackbufferWidth - 1, 
+		1 - top * 2.0f / (float)nBackbufferHeight, 
 		0, nBackbufferWidth, nBackbufferHeight);
 	GL_REPORT_ERRORD();
 }
@@ -1442,7 +1441,7 @@ THREAD_RETURN TakeScreenshot(void *pArgs)
 			use16_9 = true;
 		else if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_4_3)
 			use16_9 = false;
-
+		
 		float Ratio = (FloatW / FloatH) / (!use16_9 ? (4.0f / 3.0f) : (16.0f / 9.0f));
 		
 		// If ratio > 1 the picture is too wide and we have to limit the width.
@@ -1451,7 +1450,7 @@ THREAD_RETURN TakeScreenshot(void *pArgs)
 		// ratio == 1 or the image is too high, we have to limit the height.
 		else
 			FloatH *= Ratio;
-
+		
 		// This is a bit expensive on high resolutions
 		threadStruct->img->Rescale((int)FloatW, (int)FloatH, wxIMAGE_QUALITY_HIGH);
 	}
@@ -1473,47 +1472,47 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 {
 	u8 *data = (u8 *)malloc(3 * W * H);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
+	
 	glReadPixels(0, Renderer::GetTargetHeight() - H + YOffset, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
-
+	
 	// Show failure message
 	if (glGetError() != GL_NO_ERROR)
 	{
 		OSD::AddMessage("Error capturing or saving screenshot.", 2000);
 		return false;
 	}
-
+	
 	// Turn image upside down
 	FlipImageData(data, W, H);
-
+	
 #if defined(HAVE_WX) && HAVE_WX
 	// Create wxImage
 	wxImage *a = new wxImage(W, H, data);
-
+	
 	if (scrshotThread)
 	{
 		delete scrshotThread;
 		scrshotThread = NULL;
 	}
-
+	
 	ScrStrct *threadStruct = new ScrStrct;
 	threadStruct->filename = std::string(filename);
 	threadStruct->img = a;
 	threadStruct->H = H; threadStruct->W = W;
-
+	
 	scrshotThread = new Common::Thread(TakeScreenshot, threadStruct);
 #ifdef _WIN32
 	scrshotThread->SetPriority(THREAD_PRIORITY_BELOW_NORMAL);
 #endif
 	bool result = true;
-
+	
 	OSD::AddMessage("Saving Screenshot... ", 2000);
-
+	
 #else
 	bool result = SaveTGA(filename, W, H, data);
 	free(data);
 #endif
-
+	
 	return result;
 }
 
@@ -1536,12 +1535,12 @@ void Renderer::FlipImageData(u8 *data, int w, int h)
 void UpdateViewport()
 {
 	// reversed gxsetviewport(xorig, yorig, width, height, nearz, farz)
-    // [0] = width/2
-    // [1] = height/2
-    // [2] = 16777215 * (farz - nearz)
-    // [3] = xorig + width/2 + 342
-    // [4] = yorig + height/2 + 342
-    // [5] = 16777215 * farz
+	// [0] = width/2
+	// [1] = height/2
+	// [2] = 16777215 * (farz - nearz)
+	// [3] = xorig + width/2 + 342
+	// [4] = yorig + height/2 + 342
+	// [5] = 16777215 * farz
 	int scissorXOff = bpmem.scissorOffset.x * 2;   // 342
 	int scissorYOff = bpmem.scissorOffset.y * 2;   // 342
 	
@@ -1555,7 +1554,7 @@ void UpdateViewport()
 	if(GLWidth < 0)
 	{
 		GLx += GLWidth;
-		GLWidth*=-1;		
+		GLWidth*=-1;
 	}
 	if(GLHeight < 0)
 	{
@@ -1570,47 +1569,47 @@ void UpdateViewport()
 void Renderer::SetGenerationMode()
 {
 	// none, ccw, cw, ccw
-    if (bpmem.genMode.cullmode > 0) 
+	if (bpmem.genMode.cullmode > 0)
 	{
-        glEnable(GL_CULL_FACE);
-        glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
-    }
-    else
+		glEnable(GL_CULL_FACE);
+		glFrontFace(bpmem.genMode.cullmode == 2 ? GL_CCW : GL_CW);
+	}
+	else
 		glDisable(GL_CULL_FACE);
 }
 
 void Renderer::SetDepthMode()
 {
-	if (bpmem.zmode.testenable) 
+	if (bpmem.zmode.testenable)
 	{
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(bpmem.zmode.updateenable ? GL_TRUE : GL_FALSE);
 		glDepthFunc(glCmpFuncs[bpmem.zmode.func]);
 	}
-	else 
+	else
 	{
 		// if the test is disabled write is disabled too
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
-	}			
+	}
 }
 
 void Renderer::SetLogicOpMode()
 {
-	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3) 
+	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
 	{
 		glEnable(GL_COLOR_LOGIC_OP);
 		glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
 	}
-	else 
+	else
 		glDisable(GL_COLOR_LOGIC_OP);
 }
 
 void Renderer::SetDitherMode()
 {
-    if (bpmem.blendmode.dither) 
+	if (bpmem.blendmode.dither)
 		glEnable(GL_DITHER);
-    else 
+	else
 		glDisable(GL_DITHER);
 }
 

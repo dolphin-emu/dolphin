@@ -60,7 +60,7 @@ struct TabDirect3D : public W32Util::Tab
 		}
 
 		ComboBox_SetCurSel(GetDlgItem(hDlg, IDC_ANTIALIASMODE), g_Config.iMultisampleMode);
-		if (adapter.aa_levels.size() == 1) 
+		if (adapter.aa_levels.size() == 1)
 		{
 			ComboBox_Enable(GetDlgItem(hDlg, IDC_ANTIALIASMODE), FALSE);
 		}
@@ -153,7 +153,7 @@ struct TabDirect3D : public W32Util::Tab
 		g_Config.bVSync = Button_GetCheck(GetDlgItem(hDlg, IDC_VSYNC)) ? true : false;
 		if(Button_GetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE_SAFE)))
 		{
-			g_Config.iSafeTextureCache_ColorSamples = 0;			
+			g_Config.iSafeTextureCache_ColorSamples = 0;
 		}
 		else
 		{
@@ -162,14 +162,14 @@ struct TabDirect3D : public W32Util::Tab
 				if(g_Config.iSafeTextureCache_ColorSamples < 512)
 				{
 					g_Config.iSafeTextureCache_ColorSamples = 512;
-				}				
+				}
 			}
 			else
 			{
 				if(g_Config.iSafeTextureCache_ColorSamples > 128 || g_Config.iSafeTextureCache_ColorSamples == 0)
 				{
 					g_Config.iSafeTextureCache_ColorSamples = 128;
-				}				
+				}
 			}
 		}
 		g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
@@ -274,10 +274,10 @@ struct TabEnhancements : public W32Util::Tab
 {
 	void Init(HWND hDlg)
 	{
-		Button_SetCheck(GetDlgItem(hDlg,IDC_FORCEFILTERING),g_Config.bForceFiltering);
-		Button_SetCheck(GetDlgItem(hDlg,IDC_FORCEANISOTROPY),g_Config.iMaxAnisotropy > 1);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_FORCEFILTERING),g_Config.bForceFiltering);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_FORCEANISOTROPY),g_Config.iMaxAnisotropy > 1);
 		Button_SetCheck(GetDlgItem(hDlg, IDC_LOADHIRESTEXTURE), g_Config.bHiresTextures);
-		Button_SetCheck(GetDlgItem(hDlg,IDC_EFBSCALEDCOPY), g_Config.bCopyEFBScaled);
+		Button_SetCheck(GetDlgItem(hDlg, IDC_EFBSCALEDCOPY), g_Config.bCopyEFBScaled);
 
 		/*
 		Temporarily disabled the old postprocessing code since it wasn't working anyway.
@@ -299,7 +299,7 @@ struct TabEnhancements : public W32Util::Tab
 		ComboBox_SetCurSel(pp, g_Config.iPostprocessEffect);
 		*/
 	}
-	void Command(HWND hDlg,WPARAM wParam)
+	void Command(HWND hDlg, WPARAM wParam)
 	{
 		/*
 		switch (LOWORD(wParam))
@@ -314,7 +314,7 @@ struct TabEnhancements : public W32Util::Tab
 		g_Config.iMaxAnisotropy = Button_GetCheck(GetDlgItem(hDlg, IDC_FORCEANISOTROPY)) ? 8 : 1;
 		g_Config.bForceFiltering = Button_GetCheck(GetDlgItem(hDlg, IDC_FORCEFILTERING)) ? true : false;
 		g_Config.bHiresTextures = Button_GetCheck(GetDlgItem(hDlg, IDC_LOADHIRESTEXTURE)) ? true : false;
-		g_Config.bCopyEFBScaled = Button_GetCheck(GetDlgItem(hDlg,IDC_EFBSCALEDCOPY)) ? true : false;
+		g_Config.bCopyEFBScaled = Button_GetCheck(GetDlgItem(hDlg, IDC_EFBSCALEDCOPY)) ? true : false;
 		g_Config.Save((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
 	}
 };
@@ -333,12 +333,10 @@ void DlgSettings_Show(HINSTANCE hInstance, HWND _hParent)
 
 #ifdef DEBUGFAST
 	sheet.Show(hInstance,_hParent,_T("DX9 Graphics Plugin (DEBUGFAST)"));
-#else
-#ifndef _DEBUG
-	sheet.Show(hInstance,_hParent,_T("DX9 Graphics Plugin"));
-#else
+#elif defined _DEBUG
 	sheet.Show(hInstance,_hParent,_T("DX9 Graphics Plugin (DEBUG)"));
-#endif
+#else
+	sheet.Show(hInstance,_hParent,_T("DX9 Graphics Plugin"));
 #endif
 
 	if ((tfoe != g_Config.bTexFmtOverlayEnable) ||

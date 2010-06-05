@@ -130,13 +130,13 @@ bool PanicAlertToVideo(const char* text, bool yes_no)
 void DisplayMessage(const std::string &message, int time_in_ms)
 {
 	CPluginManager::GetInstance().GetVideo()->Video_AddMessage(message.c_str(),
-							       time_in_ms);
+															   time_in_ms);
 }
 
 void DisplayMessage(const char *message, int time_in_ms)
 {
 	CPluginManager::GetInstance().GetVideo()->Video_AddMessage(message, 
-							    time_in_ms);
+															   time_in_ms);
 }
 
 void Callback_DebuggerBreak()
@@ -325,25 +325,25 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	// Load the VideoPlugin
 	SVideoInitialize VideoInitialize;
-	VideoInitialize.pGetMemoryPointer	        = Memory::GetPointer;
-	VideoInitialize.pSetInterrupt               = ProcessorInterface::SetInterrupt;
-	VideoInitialize.pRegisterEvent              = CoreTiming::RegisterEvent;
-	VideoInitialize.pScheduleEvent_Threadsafe   = CoreTiming::ScheduleEvent_Threadsafe;
+	VideoInitialize.pGetMemoryPointer			= Memory::GetPointer;
+	VideoInitialize.pSetInterrupt				= ProcessorInterface::SetInterrupt;
+	VideoInitialize.pRegisterEvent				= CoreTiming::RegisterEvent;
+	VideoInitialize.pScheduleEvent_Threadsafe	= CoreTiming::ScheduleEvent_Threadsafe;
 	// This is first the m_Panel handle, then it is updated to have the new window handle
-	VideoInitialize.pWindowHandle		        = _CoreParameter.hMainWindow;
-	VideoInitialize.pLog				        = Callback_VideoLog;
-	VideoInitialize.pSysMessage			        = Host_SysMessage;
-	VideoInitialize.pRequestWindowSize	        = Callback_VideoRequestWindowSize;
-	VideoInitialize.pCopiedToXFB		        = Callback_VideoCopiedToXFB;
-	VideoInitialize.pPeekMessages               = NULL;
-	VideoInitialize.pUpdateFPSDisplay           = NULL;
-	VideoInitialize.pMemoryBase                 = Memory::base;
-	VideoInitialize.pCoreMessage                = Callback_CoreMessage;
-	VideoInitialize.bWii                        = _CoreParameter.bWii;
+	VideoInitialize.pWindowHandle				= _CoreParameter.hMainWindow;
+	VideoInitialize.pLog						= Callback_VideoLog;
+	VideoInitialize.pSysMessage					= Host_SysMessage;
+	VideoInitialize.pRequestWindowSize			= Callback_VideoRequestWindowSize;
+	VideoInitialize.pCopiedToXFB				= Callback_VideoCopiedToXFB;
+	VideoInitialize.pPeekMessages				= NULL;
+	VideoInitialize.pUpdateFPSDisplay			= NULL;
+	VideoInitialize.pMemoryBase					= Memory::base;
+	VideoInitialize.pCoreMessage				= Callback_CoreMessage;
+	VideoInitialize.bWii						= _CoreParameter.bWii;
 	VideoInitialize.bOnThread					= _CoreParameter.bCPUThread;
-	VideoInitialize.Fifo_CPUBase                = &ProcessorInterface::Fifo_CPUBase;
-	VideoInitialize.Fifo_CPUEnd                 = &ProcessorInterface::Fifo_CPUEnd;
-	VideoInitialize.Fifo_CPUWritePointer        = &ProcessorInterface::Fifo_CPUWritePointer;
+	VideoInitialize.Fifo_CPUBase				= &ProcessorInterface::Fifo_CPUBase;
+	VideoInitialize.Fifo_CPUEnd					= &ProcessorInterface::Fifo_CPUEnd;
+	VideoInitialize.Fifo_CPUWritePointer		= &ProcessorInterface::Fifo_CPUWritePointer;
 	bool aspectWide = _CoreParameter.bWii;
 	if (aspectWide) 
 	{
@@ -351,7 +351,7 @@ THREAD_RETURN EmuThread(void *pArg)
 		gameIni.Load(_CoreParameter.m_strGameIni.c_str());
 		gameIni.Get("Wii", "Widescreen", &aspectWide, !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
 	}
-	VideoInitialize.bAutoAspectIs16_9           = aspectWide;
+	VideoInitialize.bAutoAspectIs16_9			= aspectWide;
 
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
 

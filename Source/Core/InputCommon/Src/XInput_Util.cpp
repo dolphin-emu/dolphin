@@ -48,9 +48,10 @@ namespace XInput
 
 struct CONTROLER_STATE
 {
-    XINPUT_STATE state;
-    bool bConnected;
+	XINPUT_STATE state;
+	bool bConnected;
 };
+
 CONTROLER_STATE g_Controllers[MAX_CONTROLLERS];
 
 
@@ -61,33 +62,32 @@ CONTROLER_STATE g_Controllers[MAX_CONTROLLERS];
    we currently only try to connect to XInput device 0 */
 void Init()
 {
-    // Init state
-    //ZeroMemory( g_Controllers, sizeof( CONTROLER_STATE ) * MAX_CONTROLLERS );
+	// Init state
+	//ZeroMemory( g_Controllers, sizeof( CONTROLER_STATE ) * MAX_CONTROLLERS );
 
 	// Declaration
 	DWORD dwResult;
 
 	// Calculate the number of connected XInput devices
 	for( DWORD i = 0; i < MAX_CONTROLLERS; i++ )
-    {
-        // Simply get the state of the controller from XInput.
-        dwResult = XInputGetState( i, &g_Controllers[i].state );
+	{
+		// Simply get the state of the controller from XInput.
+		dwResult = XInputGetState( i, &g_Controllers[i].state );
 
-        if( dwResult == ERROR_SUCCESS )
-            g_Controllers[i].bConnected = true;
-        else
-            g_Controllers[i].bConnected = false;
-    }
+		if( dwResult == ERROR_SUCCESS )
+			g_Controllers[i].bConnected = true;
+		else
+			g_Controllers[i].bConnected = false;
+	}
 
-}	
-
+}
 
 // Get the trigger status
 // -------------------
 int GetXI(int Controller, int Button)
 {
 	// Update the internal status
-    DWORD dwResult;
+	DWORD dwResult;
 	dwResult = XInputGetState(Controller, &g_Controllers[Controller].state);
 
 	if (dwResult != ERROR_SUCCESS) return -1;
@@ -104,7 +104,6 @@ int GetXI(int Controller, int Button)
 		return 0;
 	}
 }
-
 
 // Check if a certain controller is connected
 // -------------------

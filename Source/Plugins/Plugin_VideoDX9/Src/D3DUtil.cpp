@@ -45,8 +45,8 @@ inline FONT2DVERTEX InitFont2DVertex(float x, float y, u32 color, float tu, floa
 
 CD3DFont::CD3DFont()
 {
-	m_pTexture             = NULL;
-	m_pVB                  = NULL;
+	m_pTexture			   = NULL;
+	m_pVB				   = NULL;
 }
 
 enum {m_dwTexWidth = 512, m_dwTexHeight = 512};
@@ -74,7 +74,7 @@ int CD3DFont::Init()
 	bmi.bmiHeader.biBitCount    = 32;
 
 	// Create a DC and a bitmap for the font
-	HDC     hDC       = CreateCompatibleDC(NULL);
+	HDC 	hDC 	  = CreateCompatibleDC(NULL);
 	HBITMAP hbmBitmap = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (VOID**)&pBitmapBits, NULL, 0);
 	SetMapMode(hDC, MM_TEXT);
 
@@ -125,7 +125,7 @@ int CD3DFont::Init()
 
 	// Create a new texture for the font
 	hr = dev->CreateTexture(m_dwTexWidth, m_dwTexHeight, 1, D3DUSAGE_DYNAMIC,
-		                    D3DFMT_A4R4G4B4, D3DPOOL_DEFAULT, &m_pTexture, NULL);
+							D3DFMT_A4R4G4B4, D3DPOOL_DEFAULT, &m_pTexture, NULL);
 	if (FAILED(hr))
 	{
 		PanicAlert("Failed to create font texture");
@@ -172,11 +172,11 @@ int CD3DFont::Shutdown()
 const int RS[6][2] =
 {
 	{D3DRS_ALPHABLENDENABLE, TRUE},
-	{D3DRS_SRCBLEND,         D3DBLEND_SRCALPHA},
-	{D3DRS_DESTBLEND,        D3DBLEND_INVSRCALPHA},
-	{D3DRS_CULLMODE,         D3DCULL_NONE},
-	{D3DRS_ZENABLE,          FALSE},
-	{D3DRS_FOGENABLE,        FALSE},
+	{D3DRS_SRCBLEND,		 D3DBLEND_SRCALPHA},
+	{D3DRS_DESTBLEND,		 D3DBLEND_INVSRCALPHA},
+	{D3DRS_CULLMODE,		 D3DCULL_NONE},
+	{D3DRS_ZENABLE,			 FALSE},
+	{D3DRS_FOGENABLE,		 FALSE},
 };
 const int TS[6][2] = 
 {
@@ -193,10 +193,10 @@ bool DXCheck( std::wstring& msg )
 	HINSTANCE hDll = LoadLibrary(StringFromFormat( _T("d3dx9_%d.dll"), D3DX_SDK_VERSION).c_str());
 	if( !hDll )
 	{
-		msg = _T("Please make sure that you have the latest version of DirectX 9.0c correctly installed.");
+		msg = _T("Please make sure that you have the latest version of DirectX correctly installed.");
 		return false;
 	} else
-		msg = _T("DirectX9 is up to date and ready to be used!");
+		msg = _T("DirectX is up to date and ready to be used!");
 	FreeLibrary( hDll );
 	return true;
 }
@@ -209,7 +209,7 @@ void RestoreShaders()
 	D3D::SetTexture(0, 0);
 	D3D::RefreshVertexDeclaration();
 	D3D::RefreshPixelShader();
-	D3D::RefreshVertexShader();	
+	D3D::RefreshVertexShader();
 }
 
 void RestoreRenderStates()
@@ -250,7 +250,7 @@ int CD3DFont::DrawTextScaled(float x, float y, float fXScale, float fYScale, flo
 	float vpWidth = 1;
 	float vpHeight = 1;
 
-	float sx = x*vpWidth-0.5f; 
+	float sx = x*vpWidth-0.5f;
 	float sy = y*vpHeight-0.5f;
 
 	float fStartX = sx;
@@ -329,7 +329,7 @@ int CD3DFont::DrawTextScaled(float x, float y, float fXScale, float fYScale, flo
 		v[4] = v[2];
 		v[5] = v[1];
 
-		memcpy(pVertices, v, 6*sizeof(FONT2DVERTEX)); 
+		memcpy(pVertices, v, 6*sizeof(FONT2DVERTEX));
 
 		pVertices+=6;
 		dwNumTriangles += 2;
@@ -395,10 +395,10 @@ void drawShadedTexQuad(IDirect3DTexture9 *texture,
 		{ 1.0f - dw, 1.0f + dh, 0.0f,1.0f, u2, v1, sw, sh,u1,v1,u2,v2}
 	};
 	dev->SetVertexShader(Vshader);
-	dev->SetPixelShader(PShader);	
+	dev->SetPixelShader(PShader);
 	D3D::SetTexture(0, texture);
 	dev->SetFVF(D3DFVF_XYZW | D3DFVF_TEX3 | D3DFVF_TEXCOORDSIZE4(2));
-	dev->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, coords, sizeof(Q2DVertex));	
+	dev->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, coords, sizeof(Q2DVertex));
 	RestoreShaders();
 }
 
@@ -428,10 +428,10 @@ void drawShadedTexSubQuad(IDirect3DTexture9 *texture,
 		{ rDest->right - dw , rDest->bottom + dh, 1.0f,1.0f, u2, v1, sw, sh,u1,v1,u2,v2}
 	};
 	dev->SetVertexShader(Vshader);
-	dev->SetPixelShader(PShader);	
+	dev->SetPixelShader(PShader);
 	D3D::SetTexture(0, texture);
 	dev->SetFVF(D3DFVF_XYZW | D3DFVF_TEX3 | D3DFVF_TEXCOORDSIZE4(2));
-	dev->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, coords, sizeof(Q2DVertex));	
+	dev->DrawPrimitiveUP(D3DPT_TRIANGLESTRIP, 2, coords, sizeof(Q2DVertex));
 	RestoreShaders();
 }
 
@@ -444,9 +444,9 @@ void drawClearQuad(u32 Color,float z,IDirect3DPixelShader9 *PShader,IDirect3DVer
 		{-1.0f, -1.0f, z, 1.0f, Color}
 	};
 	dev->SetVertexShader(Vshader);
-	dev->SetPixelShader(PShader);	
+	dev->SetPixelShader(PShader);
 	dev->SetFVF(D3DFVF_XYZW | D3DFVF_DIFFUSE);
-	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));	
+	dev->DrawPrimitiveUP(D3DPT_TRIANGLEFAN, 2, coords, sizeof(Q2DVertex));
 	RestoreShaders();
 }
 

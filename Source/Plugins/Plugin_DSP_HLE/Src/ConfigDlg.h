@@ -28,38 +28,38 @@ class DSPConfigDialogHLE : public wxDialog
 {
 public:
 	DSPConfigDialogHLE(wxWindow *parent,
-		     wxWindowID id = wxID_ANY,
-		     const wxString &title = wxT("Dolphin DSP-HLE Plugin Settings"),
-		     const wxPoint& pos = wxDefaultPosition,
-		     const wxSize& size = wxDefaultSize,
-		     long style = wxDEFAULT_DIALOG_STYLE);
-    virtual ~DSPConfigDialogHLE();
-    void AddBackend(const char *backend);
+			 wxWindowID id = wxID_ANY,
+			 const wxString &title = wxT("Dolphin DSP-HLE Plugin Settings"),
+			 const wxPoint& pos = wxDefaultPosition,
+			 const wxSize& size = wxDefaultSize,
+			 long style = wxDEFAULT_DIALOG_STYLE);
+	virtual ~DSPConfigDialogHLE();
+	void AddBackend(const char *backend);
 	void ClearBackends();
-    
+	
 private:
-    DECLARE_EVENT_TABLE();
-    
-	wxSlider *m_volumeSlider;
-	wxStaticText *m_volumeText;
-    wxButton *m_OK;
-    wxCheckBox *m_buttonEnableHLEAudio;
-    wxCheckBox *m_buttonEnableDTKMusic;
-    wxCheckBox *m_buttonEnableThrottle;
+	DECLARE_EVENT_TABLE();
+	
+	wxSlider* m_volumeSlider;
+	wxStaticText* m_volumeText;
+	wxButton* m_OK;
+	wxCheckBox* m_buttonEnableHLEAudio;
+	wxCheckBox* m_buttonEnableDTKMusic;
+	wxCheckBox* m_buttonEnableThrottle;
 	wxArrayString wxArrayBackends;
-    wxChoice  *m_BackendSelection;
+	wxChoice* m_BackendSelection;
 
-    enum
+	enum
 	{
-	    ID_ENABLE_HLE_AUDIO,
-	    ID_ENABLE_DTK_MUSIC,
-	    ID_ENABLE_THROTTLE,
-	    ID_BACKEND,
+		ID_ENABLE_HLE_AUDIO,
+		ID_ENABLE_DTK_MUSIC,
+		ID_ENABLE_THROTTLE,
+		ID_BACKEND,
 		ID_VOLUME
 	};
-    
-    void OnOK(wxCommandEvent& event);
-    void SettingsChanged(wxCommandEvent& event);
+	
+	void OnOK(wxCommandEvent& event);
+	void SettingsChanged(wxCommandEvent& event);
 	void VolumeChanged(wxScrollEvent& event);
 	bool SupportsVolumeChanges(std::string backend);
 	void BackendChanged(wxCommandEvent& event);

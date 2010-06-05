@@ -108,8 +108,6 @@ CPluginManager::~CPluginManager()
 }
 
 
-
-
 // Init and Shutdown Plugins 
 // ------------
 // Function: Point the m_pad[] and other variables to a certain plugin
@@ -122,10 +120,6 @@ bool CPluginManager::InitPlugins()
 	}
 	strcpy(m_PluginGlobals->game_ini, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strGameIni.c_str());
 	strcpy(m_PluginGlobals->unique_id, SConfig::GetInstance().m_LocalCoreStartupParameter.GetUniqueID().c_str());
-	if (!GetDSP()) {
-		PanicAlert("Can't init DSP Plugin");
-		return false;
-	}
 	INFO_LOG(CONSOLE, "Before GetVideo\n");
 
 	if (!GetVideo()) {
@@ -134,6 +128,10 @@ bool CPluginManager::InitPlugins()
 	}
 	INFO_LOG(CONSOLE, "After GetVideo\n");
 
+	if (!GetDSP()) {
+		PanicAlert("Can't init DSP Plugin");
+		return false;
+	}
 	// Check if we get at least one pad or wiimote
 	bool pad = false;
 	bool wiimote = false;
@@ -291,7 +289,7 @@ void *CPluginManager::LoadPlugin(const char *_rFilename)
 		return NULL;
 	}
 	
-	PLUGIN_TYPE type = info->GetPluginInfo().Type;	
+	PLUGIN_TYPE type = info->GetPluginInfo().Type;
 	Common::CPlugin *plugin = NULL;
 
 	switch (type)
@@ -379,8 +377,6 @@ void CPluginManager::ScanForPlugins()
 }
 
 
-
-
 /* Create or return the already created plugin pointers. This will be called
    often for the Pad and Wiimote from the SI_.cpp files. And often for the DSP
    from the DSP files.
@@ -442,7 +438,7 @@ Common::PluginVideo *CPluginManager::GetVideo()
 		// Check if the video plugin has been changed
 		if (m_video->GetFilename() == m_params->m_strVideoPlugin)
 			return m_video;
-		// Then free the current video plugin, 
+		// Then free the current video plugin
 		else
 			FreeVideo();
 	}
@@ -475,7 +471,7 @@ void CPluginManager::FreePad(u32 Pad)
 	if (Pad < MAXPADS)
 	{
 		delete m_pad[Pad];
-		m_pad[Pad] = NULL;	
+		m_pad[Pad] = NULL;
 	}
 }
 
@@ -484,7 +480,7 @@ void CPluginManager::FreeWiimote(u32 Wiimote)
 	if (Wiimote < MAXWIIMOTES)
 	{
 		delete m_wiimote[Wiimote];
-		m_wiimote[Wiimote] = NULL;	
+		m_wiimote[Wiimote] = NULL;
 	}
 }
 
@@ -494,7 +490,7 @@ void CPluginManager::EmuStateChange(PLUGIN_EMUSTATE newState)
 	GetDSP()->EmuStateChange(newState);
 	//TODO: OpenConfig below only uses GetXxx(0) aswell
 	//      Would we need to call all plugins?
-	//      If yes, how would one check if the plugin was not 
+	//      If yes, how would one check if the plugin was not
 	//      just created by GetXxx(idx) because there was none?
 	GetPad(0)->EmuStateChange(newState);
 	GetWiimote(0)->EmuStateChange(newState);
@@ -528,7 +524,7 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 		GetWiimote(0)->Config((HWND)_Parent);
 		break;
 	default:
-		PanicAlert("Type %d config not supported in plugin %s", Type, _rFilename); 
+		PanicAlert("Type %d config not supported in plugin %s", Type, _rFilename);
 	}
 }
 
@@ -541,7 +537,7 @@ void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYP
 		return;
 	}
 
-	switch(Type) 
+	switch(Type)
 	{
 	case PLUGIN_TYPE_VIDEO:
 		GetVideo()->Debug((HWND)_Parent, Show);
@@ -550,7 +546,7 @@ void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYP
 		GetDSP()->Debug((HWND)_Parent, Show);
 		break;
 	default:
-		PanicAlert("Type %d debug not supported in plugin %s", Type, _rFilename); 
+		PanicAlert("Type %d debug not supported in plugin %s", Type, _rFilename);
 	}
 }
 

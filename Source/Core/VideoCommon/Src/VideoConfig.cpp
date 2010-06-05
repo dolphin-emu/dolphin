@@ -26,7 +26,7 @@
 VideoConfig g_Config;
 VideoConfig g_ActiveConfig;
 
-void UpdateActiveConfig() 
+void UpdateActiveConfig()
 {
 	g_ActiveConfig = g_Config;
 }
@@ -35,7 +35,7 @@ VideoConfig::VideoConfig()
 {
 	bRunning = false;
 	bAllowSignedBytes = !IsD3D();
-
+	
 	// Needed for the first frame, I think
 	fAspectRatioHackW = 1;
 	fAspectRatioHackH = 1;
@@ -43,63 +43,63 @@ VideoConfig::VideoConfig()
 
 void VideoConfig::Load(const char *ini_file)
 {
-    std::string temp;
-    IniFile iniFile;
-    iniFile.Load(ini_file);
-
-    iniFile.Get("Hardware", "VSync", &bVSync, 0); // Hardware
-    iniFile.Get("Settings", "StretchToFit", &bNativeResolution, true);
+	std::string temp;
+	IniFile iniFile;
+	iniFile.Load(ini_file);
+	
+	iniFile.Get("Hardware", "VSync", &bVSync, 0); // Hardware
+	iniFile.Get("Settings", "StretchToFit", &bNativeResolution, true);
 	iniFile.Get("Settings", "2xResolution", &b2xResolution, false);
 	iniFile.Get("Settings", "wideScreenHack", &bWidescreenHack, false);
 	iniFile.Get("Settings", "AspectRatio", &iAspectRatio, (int)ASPECT_AUTO);
 	iniFile.Get("Settings", "Crop", &bCrop, false);
-    iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
+	iniFile.Get("Settings", "UseXFB", &bUseXFB, 0);
 	iniFile.Get("Settings", "UseRealXFB", &bUseRealXFB, 0);
-    iniFile.Get("Settings", "AutoScale", &bAutoScale, true);
+	iniFile.Get("Settings", "AutoScale", &bAutoScale, true);
 	iniFile.Get("Settings", "UseNativeMips", &bUseNativeMips, true);
-    
-    iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false); // Settings
+	
+	iniFile.Get("Settings", "SafeTextureCache", &bSafeTextureCache, false); // Settings
 	//Safe texture cache params
 	iniFile.Get("Settings", "SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples,512);		
-
-    iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
-    iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
+	
+	iniFile.Get("Settings", "ShowFPS", &bShowFPS, false); // Settings
+	iniFile.Get("Settings", "OverlayStats", &bOverlayStats, false);
 	iniFile.Get("Settings", "OverlayProjStats", &bOverlayProjStats, false);
 	iniFile.Get("Settings", "ShowEFBCopyRegions", &bShowEFBCopyRegions, false);
-    iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
-    iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
-    iniFile.Get("Settings", "HiresTextures", &bHiresTextures, 0);
+	iniFile.Get("Settings", "DLOptimize", &iCompileDLsLevel, 0);
+	iniFile.Get("Settings", "DumpTextures", &bDumpTextures, 0);
+	iniFile.Get("Settings", "HiresTextures", &bHiresTextures, 0);
 	iniFile.Get("Settings", "DumpEFBTarget", &bDumpEFBTarget, 0);
 	iniFile.Get("Settings", "DumpFrames", &bDumpFrames, 0);
-    iniFile.Get("Settings", "FreeLook", &bFreeLook, 0);
-    iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
-    iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
-    iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
-    
-    iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
-    iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
-    iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
-    iniFile.Get("Settings", "DisableLighting", &bDisableLighting, 0);
-    iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
+	iniFile.Get("Settings", "FreeLook", &bFreeLook, 0);
+	iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
+	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
+	iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
+	
+	iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
+	iniFile.Get("Settings", "TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
+	iniFile.Get("Settings", "WireFrame", &bWireFrame, 0);
+	iniFile.Get("Settings", "DisableLighting", &bDisableLighting, 0);
+	iniFile.Get("Settings", "DisableTexturing", &bDisableTexturing, 0);
 	iniFile.Get("Settings", "DisableFog", &bDisableFog, 0);
-    
-    iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
-    iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 1);  // NOTE - this is x in (1 << x)
+	
+	iniFile.Get("Enhancements", "ForceFiltering", &bForceFiltering, 0);
+	iniFile.Get("Enhancements", "MaxAnisotropy", &iMaxAnisotropy, 1);  // NOTE - this is x in (1 << x)
 	iniFile.Get("Enhancements", "PostProcessingShader", &sPostProcessingShader, "");
-    
-    iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, true);
-    iniFile.Get("Hacks", "EFBCopyDisable", &bEFBCopyDisable, false);
-    iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bOSDHotKey, 0);
+	
+	iniFile.Get("Hacks", "EFBAccessEnable", &bEFBAccessEnable, true);
+	iniFile.Get("Hacks", "EFBCopyDisable", &bEFBCopyDisable, false);
+	iniFile.Get("Hacks", "EFBCopyDisableHotKey", &bOSDHotKey, 0);
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToTexture, false);
 	iniFile.Get("Hacks", "EFBScaledCopy", &bCopyEFBScaled, true);
 	iniFile.Get("Hacks", "FIFOBPHack", &bFIFOBPhack, false);
 	iniFile.Get("Hacks", "ProjectionHack", &iPhackvalue, 0);
 
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
-	if (iAdapter == -1) 
+	if (iAdapter == -1)
 		iAdapter = 0;
 	iniFile.Get("Hardware", "SimpleFB", &bSimpleFB, false);
-
+	
 	// Load common settings
 	iniFile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 	bool bTmp;
@@ -109,9 +109,9 @@ void VideoConfig::Load(const char *ini_file)
 
 void VideoConfig::GameIniLoad(const char *ini_file)
 {
-    IniFile iniFile;
-    iniFile.Load(ini_file);
-
+	IniFile iniFile;
+	iniFile.Load(ini_file);
+	
 	if (iniFile.Exists("Video", "ForceFiltering"))
 		iniFile.Get("Video", "ForceFiltering", &bForceFiltering);
 	if (iniFile.Exists("Video", "MaxAnisotropy"))
@@ -148,60 +148,60 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 
 void VideoConfig::Save(const char *ini_file)
 {
-    IniFile iniFile;
-    iniFile.Load(ini_file);
-    iniFile.Set("Hardware", "VSync", bVSync);
-    iniFile.Set("Settings", "StretchToFit", bNativeResolution);
+	IniFile iniFile;
+	iniFile.Load(ini_file);
+	iniFile.Set("Hardware", "VSync", bVSync);
+	iniFile.Set("Settings", "StretchToFit", bNativeResolution);
 	iniFile.Set("Settings", "2xResolution", b2xResolution);
 	iniFile.Set("Settings", "AspectRatio", iAspectRatio);
 	iniFile.Set("Settings", "Crop", bCrop);
 	iniFile.Set("Settings", "wideScreenHack", bWidescreenHack);
-    iniFile.Set("Settings", "UseXFB", bUseXFB);
+	iniFile.Set("Settings", "UseXFB", bUseXFB);
 	iniFile.Set("Settings", "UseRealXFB", bUseRealXFB);
-    iniFile.Set("Settings", "AutoScale", bAutoScale);
+	iniFile.Set("Settings", "AutoScale", bAutoScale);
 	iniFile.Set("Settings", "UseNativeMips", bUseNativeMips);
 
-    iniFile.Set("Settings", "SafeTextureCache", bSafeTextureCache);
+	iniFile.Set("Settings", "SafeTextureCache", bSafeTextureCache);
 	//safe texture cache params
 	iniFile.Set("Settings", "SafeTextureCacheColorSamples", iSafeTextureCache_ColorSamples);
 
-    iniFile.Set("Settings", "ShowFPS", bShowFPS);
-    iniFile.Set("Settings", "OverlayStats", bOverlayStats);
+	iniFile.Set("Settings", "ShowFPS", bShowFPS);
+	iniFile.Set("Settings", "OverlayStats", bOverlayStats);
 	iniFile.Set("Settings", "OverlayProjStats", bOverlayProjStats);
-    iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
+	iniFile.Set("Settings", "DLOptimize", iCompileDLsLevel);
 	iniFile.Set("Settings", "Show", iCompileDLsLevel);
-    iniFile.Set("Settings", "DumpTextures", bDumpTextures);
-    iniFile.Set("Settings", "HiresTextures", bHiresTextures);
+	iniFile.Set("Settings", "DumpTextures", bDumpTextures);
+	iniFile.Set("Settings", "HiresTextures", bHiresTextures);
 	iniFile.Set("Settings", "DumpEFBTarget", bDumpEFBTarget);
 	iniFile.Set("Settings", "DumpFrames", bDumpFrames);
-    iniFile.Set("Settings", "FreeLook", bFreeLook);
-    iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
+	iniFile.Set("Settings", "FreeLook", bFreeLook);
+	iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
 	iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
-    iniFile.Set("Settings", "MSAA", iMultisampleMode);
-    iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
-    iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
-    iniFile.Set("Settings", "Wireframe", bWireFrame);
-    iniFile.Set("Settings", "DisableLighting", bDisableLighting);
-    iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);
-    iniFile.Set("Settings", "DstAlphaPass", bDstAlphaPass);
+	iniFile.Set("Settings", "MSAA", iMultisampleMode);
+	iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
+	iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
+	iniFile.Set("Settings", "Wireframe", bWireFrame);
+	iniFile.Set("Settings", "DisableLighting", bDisableLighting);
+	iniFile.Set("Settings", "DisableTexturing", bDisableTexturing);
+	iniFile.Set("Settings", "DstAlphaPass", bDstAlphaPass);
 	iniFile.Set("Settings", "DisableFog", bDisableFog);
-    
-    iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
-    iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);
+	
+	iniFile.Set("Enhancements", "ForceFiltering", bForceFiltering);
+	iniFile.Set("Enhancements", "MaxAnisotropy", iMaxAnisotropy);
 	iniFile.Set("Enhancements", "PostProcessingShader", sPostProcessingShader);
-    
-    iniFile.Set("Hacks", "EFBAccessEnable", bEFBAccessEnable);
-    iniFile.Set("Hacks", "EFBCopyDisable", bEFBCopyDisable);
-    iniFile.Set("Hacks", "EFBCopyDisableHotKey", bOSDHotKey);
+	
+	iniFile.Set("Hacks", "EFBAccessEnable", bEFBAccessEnable);
+	iniFile.Set("Hacks", "EFBCopyDisable", bEFBCopyDisable);
+	iniFile.Set("Hacks", "EFBCopyDisableHotKey", bOSDHotKey);
 	iniFile.Set("Hacks", "EFBToTextureEnable", bCopyEFBToTexture);
 	iniFile.Set("Hacks", "EFBScaledCopy", bCopyEFBScaled);
 	iniFile.Set("Hacks", "FIFOBPHack", bFIFOBPhack);
 	iniFile.Set("Hacks", "ProjectionHack", iPhackvalue);
-
+	
 	iniFile.Set("Hardware", "Adapter", iAdapter);
 	iniFile.Set("Hardware", "SimpleFB", bSimpleFB);
-
-    iniFile.Save(ini_file);
+	
+	iniFile.Save(ini_file);
 }
 
 // TODO: Figure out a better place for this function.
@@ -211,15 +211,15 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 	float FloatGLHeight = (float)backbuffer_height;
 	float FloatXOffset = 0;
 	float FloatYOffset = 0;
-
+	
 	// The rendering window size
 	const float WinWidth = FloatGLWidth;
 	const float WinHeight = FloatGLHeight;
-
+	
 	// Handle aspect ratio.
 	// Default to auto.
 	bool use16_9 = g_VideoInitialize.bAutoAspectIs16_9;
-
+	
 	// Update aspect ratio hack values
 	// Won't take effect until next frame
 	// Don't know if there is a better place for this code so there isn't a 1 frame delay
@@ -227,7 +227,7 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 	{
 		float source_aspect = use16_9 ? (16.0f / 9.0f) : (4.0f / 3.0f);
 		float target_aspect;
-
+		
 		switch ( g_ActiveConfig.iAspectRatio )
 		{
 		case ASPECT_FORCE_16_9 :
@@ -244,7 +244,7 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 			target_aspect = source_aspect;
 			break;
 		}
-
+		
 		float adjust = source_aspect / target_aspect;
 		if ( adjust > 1 )
 		{
@@ -271,7 +271,7 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 		use16_9 = true;
 	else if (g_ActiveConfig.iAspectRatio == ASPECT_FORCE_4_3)
 		use16_9 = false;
-
+	
 	if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
 	{
 		// The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
@@ -291,7 +291,7 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 			FloatYOffset = FloatYOffset + (WinHeight - FloatGLHeight) / 2.0f;
 		}
 	}
-
+	
 	// -----------------------------------------------------------------------
 	// Crop the picture from 4:3 to 5:4 or from 16:9 to 16:10.
 	//		Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
@@ -309,7 +309,7 @@ void ComputeDrawRectangle(int backbuffer_width, int backbuffer_height, bool flip
 		FloatXOffset = FloatXOffset - (IncreasedWidth * 0.5f);
 		FloatYOffset = FloatYOffset - (IncreasedHeight * 0.5f);
 	}
-
+	
 	int XOffset = (int)(FloatXOffset + 0.5f);
 	int YOffset = (int)(FloatYOffset + 0.5f);
 	int iWhidth = (int)ceil(FloatGLWidth);

@@ -316,7 +316,7 @@ wxString CFrame::GetMenuLabel(int Id)
 void CFrame::PopulateToolbar(wxAuiToolBar* ToolBar)
 {
 	int w = m_Bitmaps[Toolbar_FileOpen].GetWidth(),
-	    h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
+		h = m_Bitmaps[Toolbar_FileOpen].GetHeight();
 		ToolBar->SetToolBitmapSize(wxSize(w, h));
 		
 
@@ -549,7 +549,7 @@ void CFrame::OnOpen(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::DoOpen(bool Boot)
 {
-    std::string currentDir = File::GetCurrentDir();
+	std::string currentDir = File::GetCurrentDir();
 
 	wxString path = wxFileSelector(
 			_T("Select the file to load"),
@@ -565,13 +565,13 @@ void CFrame::DoOpen(bool Boot)
 
 	bool fileChosen = !path.IsEmpty();
 
-    std::string currentDir2 = File::GetCurrentDir();
+	std::string currentDir2 = File::GetCurrentDir();
 
-    if (currentDir != currentDir2)
-    {
-        PanicAlert("Current dir changed from %s to %s after wxFileSelector!",currentDir.c_str(),currentDir2.c_str());
-        File::SetCurrentDir(currentDir.c_str());
-    }
+	if (currentDir != currentDir2)
+	{
+		PanicAlert("Current dir changed from %s to %s after wxFileSelector!",currentDir.c_str(),currentDir2.c_str());
+		File::SetCurrentDir(currentDir.c_str());
+	}
 
 
 	// Should we boot a new game or just change the disc?
@@ -1311,7 +1311,7 @@ void CFrame::UpdateGUI()
 	}
 	else
 	{
-		// Game has been loaded, enable the play button
+		// Game has been loaded, enable the pause button
 		if (m_ToolBar)
 			m_ToolBar->EnableTool(IDM_PLAY, true);
 		GetMenuBar()->FindItem(IDM_PLAY)->Enable(true);
@@ -1424,4 +1424,3 @@ void CFrame::OnToggleStatusbar(wxCommandEvent& event)
 
 	this->SendSizeEvent();
 }
-

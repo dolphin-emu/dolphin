@@ -75,10 +75,10 @@ private:
 
 	CPluginInfos m_PluginInfos;
 	PLUGIN_GLOBALS *m_PluginGlobals;
-	Common::PluginPAD *m_pad[4];
 	Common::PluginVideo *m_video;
-	Common::PluginWiimote *m_wiimote[4];
 	Common::PluginDSP *m_dsp;
+	Common::PluginPAD *m_pad[4];
+	Common::PluginWiimote *m_wiimote[4];
 
 	SCoreStartupParameter * m_params;
 	CPluginManager();

@@ -56,7 +56,7 @@ bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_
 
 	// Get device status
 	int numjoy = SDL_NumJoysticks();
-	for (int i = 0; i < numjoy; i++ )
+	for (int i = 0; i < numjoy; i++)
 	{
 		CONTROLLER_INFO Tmp;
 
@@ -97,16 +97,16 @@ bool SearchDevices(std::vector<CONTROLLER_INFO> &_joyinfo, int &_NumPads, int &_
 
 // Avoid extreme axis values
 // ---------------------
-/* Function: We have to avoid very big values to becuse some triggers are -0x8000 in the
+/* Function: We have to avoid very big values because some triggers are -0x8000 in the
    unpressed state (and then go from -0x8000 to 0x8000 as they are fully pressed) */
 bool AvoidValues(int value, bool NoTriggerFilter)
 {
 	// Avoid detecting very small or very big (for triggers) values
-	if(    (value > -0x1000 && value < 0x1000) // Small values
+	if((value > -0x1000 && value < 0x1000) // Small values
 		|| ((value < -0x7000 || value > 0x7000) && !NoTriggerFilter)) // Big values
 		return true; // Avoid
 	else
-		return false; // Keep	
+		return false; // Keep
 }
 
 
@@ -141,14 +141,14 @@ void GetButton(SDL_Joystick *joy, int ControllerID, int buttons, int axes, int h
 	if(Hat)
 	{
 		for(int i = 0; i < hats; i++)
-		{	
+		{
 			value = SDL_JoystickGetHat(joy, i);
 			if(value)
 			{
 				pressed = i;
 				type = InputCommon::CTL_HAT;
 				Succeed = true;
-			}			
+			}
 		}
 	}
 
@@ -156,7 +156,7 @@ void GetButton(SDL_Joystick *joy, int ControllerID, int buttons, int axes, int h
 	if(Button)
 	{
 		for(int i = 0; i < buttons; i++)
-		{		
+		{
 			// Some kind of bug in SDL 1.3 would give button 9 and 10 (nonexistent) the value 48 on the 360 pad
 			if (SDL_JoystickGetButton(joy, i) > 1) continue;
 
@@ -174,7 +174,7 @@ void GetButton(SDL_Joystick *joy, int ControllerID, int buttons, int axes, int h
 		if(XInput && LeftRight)
 		{
 			for(int i = 0; i <= InputCommon::XI_TRIGGER_R; i++)
-			{			
+			{
 				if(XInput::GetXI(ControllerID, i))
 				{
 					pressed = i + 1000;
@@ -209,7 +209,7 @@ void GetButton(SDL_Joystick *joy, int ControllerID, int buttons, int axes, int h
 		}
 		// Only accept the escape key
 		else if (KeyboardKey == WXK_ESCAPE)
-		{	
+		{
 			Succeed = true;
 			KeyboardKey = 0;
 			pressed = -1;

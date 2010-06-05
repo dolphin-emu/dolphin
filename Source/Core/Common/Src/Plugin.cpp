@@ -43,7 +43,7 @@ CPlugin::CPlugin(const char* _szName) : valid(false)
 	m_EmuStateChange = NULL;
 		
 	if (m_hInstLib.Load(_szName))
-	{        
+	{
 		m_GetDllInfo = reinterpret_cast<TGetDllInfo>
 			(m_hInstLib.Get("GetDllInfo"));
 		m_DllConfig = reinterpret_cast<TDllConfig>
@@ -61,7 +61,7 @@ CPlugin::CPlugin(const char* _szName) : valid(false)
 		m_EmuStateChange = reinterpret_cast<TEmuStateChange>
 			(m_hInstLib.Get("EmuStateChange"));
 		
-		// Check if the plugin has all the functions it shold have
+		// Check if the plugin has all the functions it should have
 		if (m_GetDllInfo != 0 &&
 			m_DllConfig != 0 &&
 			m_DllDebugger != 0 &&
@@ -88,7 +88,7 @@ bool CPlugin::GetInfo(PLUGIN_INFO& _pluginInfo)
 	if (m_GetDllInfo != NULL) {
 		m_GetDllInfo(&_pluginInfo);
 		return true;
-	}    
+	}
 	return false;
 }
 

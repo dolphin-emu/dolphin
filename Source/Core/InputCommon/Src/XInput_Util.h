@@ -36,7 +36,6 @@ void Init();
 int GetXI(int Controller, int Button);
 bool IsConnected(int Controller);
 
-
 } // XInput
 
 #endif

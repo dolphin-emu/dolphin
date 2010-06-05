@@ -23,7 +23,6 @@ enum PLUGIN_COMM
 	WM_USER_CREATE,
 	WM_USER_SETCURSOR,
 	WM_USER_KEYDOWN,
-	WM_USER_VIDEO_STOP,
 	VIDEO_DESTROY, // The video debugging window was destroyed
 	AUDIO_DESTROY, // The audio debugging window was destroyed
 	WIIMOTE_DISCONNECT, // Disconnect Wiimote
@@ -62,13 +61,13 @@ enum PLUGIN_COMM
 
 // Plugin types
 enum PLUGIN_TYPE {
-    PLUGIN_TYPE_VIDEO = 1,
-    PLUGIN_TYPE_DVD,
-    PLUGIN_TYPE_PAD,
-    PLUGIN_TYPE_AUDIO,
-    PLUGIN_TYPE_COMPILER,
-    PLUGIN_TYPE_DSP,
-    PLUGIN_TYPE_WIIMOTE,
+	PLUGIN_TYPE_VIDEO = 1,
+	PLUGIN_TYPE_DVD,
+	PLUGIN_TYPE_PAD,
+	PLUGIN_TYPE_AUDIO,
+	PLUGIN_TYPE_COMPILER,
+	PLUGIN_TYPE_DSP,
+	PLUGIN_TYPE_WIIMOTE,
 };
 
 #define STATE_MODE_READ    1
@@ -100,8 +99,8 @@ typedef struct
 // This design is just wrong and ugly - the plugins shouldn't have this much access.
 typedef struct 
 {
-    void *eventHandler;
-    void *logManager;
+	void *eventHandler;
+	void *logManager;
 	char game_ini[MAX_PATH];
 	char unique_id[16];
 } PLUGIN_GLOBALS;

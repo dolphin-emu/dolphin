@@ -37,7 +37,7 @@ enum Hotkey {
 
 struct SCoreStartupParameter
 {
-	void * hInstance;  // HINSTANCE but we don't want to include <windows.h>
+	void* hInstance;  // HINSTANCE but we don't want to include <windows.h>
 
 	// Windows/GUI related
 	void* hMainWindow;
@@ -93,12 +93,12 @@ struct SCoreStartupParameter
 	int iHotkeyModifier[NUM_HOTKEYS];
 
 	// Display settings
-	bool bFullscreen, bRenderToMain;
 	std::string strFullscreenResolution;
 	int iRenderWindowXPos, iRenderWindowYPos;
 	int iRenderWindowWidth, iRenderWindowHeight;
+	bool bFullscreen, bRenderToMain;
 
-	int iTheme; 
+	int iTheme;
 	int iPosX, iPosY, iWidth, iHeight;
 	
 	enum EBootBS2
