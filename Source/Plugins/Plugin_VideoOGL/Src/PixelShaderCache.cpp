@@ -84,6 +84,9 @@ void SetMultiPSConstant4fv(int const_number, int count, const float *f)
 
 void PixelShaderCache::Init()
 {
+	glEnable(GL_FRAGMENT_PROGRAM_ARB);
+	ShaderEnabled = true;
+	CurrentShader = 0;
 	GL_REPORT_ERRORD();
 
 	for (int i = 0; i < (C_COLORMATRIX+16) * 4; i++)

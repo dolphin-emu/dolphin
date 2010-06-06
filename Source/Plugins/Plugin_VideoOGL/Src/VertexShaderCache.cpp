@@ -102,14 +102,16 @@ void SetMultiVSConstant3fv(int const_number, int count, const float *f)
 
 void VertexShaderCache::Init()
 {
+	glEnable(GL_VERTEX_PROGRAM_ARB);
+	ShaderEnabled = true;
+	CurrentShader = 0;
 	for (int i = 0; i < (C_FOGPARAMS + 8) * 4; i++)
 		lastVSconstants[i / 4][i % 4] = -100000000.0f;
 	memset(&last_vertex_shader_uid, 0xFF, sizeof(last_vertex_shader_uid));
 
 	s_displayCompileAlert = true;
 
-    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);	
-	SetCurrentShader(0);
+    glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);		
 }
 
 void VertexShaderCache::Shutdown()

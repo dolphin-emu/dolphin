@@ -132,9 +132,9 @@ void TextureMngr::TCacheEntry::SetTextureParameters(TexMode0 &newmode,TexMode1 &
 			if (g_ActiveConfig.bForceFiltering && newmode.min_filter < 4)
                 mode.min_filter += 4; // take equivalent forced linear
             int filt = newmode.min_filter;            
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & (((newmode1.max_lod >> 5) > 0)?7:4)]);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod >> 5);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod >> 5);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, c_MinLinearFilter[filt & 7]);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, newmode1.min_lod >> 4);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, newmode1.max_lod >> 4);
 			glTexEnvf(GL_TEXTURE_FILTER_CONTROL, GL_TEXTURE_LOD_BIAS, (newmode.lod_bias/32.0f));
 
         }
@@ -259,9 +259,8 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
     TexMode0 &tm0 = bpmem.tex[texstage >> 2].texMode0[texstage & 3];
 	TexMode1 &tm1 = bpmem.tex[texstage >> 2].texMode1[texstage & 3];
-	
-	bool UseNativeMips = (tm0.min_filter & 3) && (tm0.min_filter != 8) && g_ActiveConfig.bUseNativeMips;
-	int maxlevel = tm1.max_lod >> 4;//this ir realy strange should be 5 but that breaks some textures
+	int maxlevel = (tm1.max_lod >> 4);
+	bool UseNativeMips = (tm0.min_filter & 3) && (tm0.min_filter != 8) && g_ActiveConfig.bUseNativeMips;	
 
     u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
 	int bsw = TexDecoder_GetBlockWidthInTexels(tex_format) - 1;
@@ -309,14 +308,14 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		if (!g_ActiveConfig.bSafeTextureCache)
 			hash_value = ((u32 *)ptr)[0];
 
-        if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash) && ((int) FullFormat == entry.fmt) && maxlevel <= entry.MipLevels ))
+        if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash) && ((int) FullFormat == entry.fmt && entry.MipLevels >= maxlevel)))
 		{
             entry.frameCount = frameCount;
 			glEnable(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D);
 //			entry.isRectangle ? TextureMngr::EnableTex2D(texstage) : TextureMngr::EnableTexRECT(texstage);
             glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
 			GL_REPORT_ERRORD();
-            if (entry.mode.hex != tm0.hex || entry.mode1.hex != tm1.hex)
+            //if (entry.mode.hex != tm0.hex || entry.mode1.hex != tm1.hex)//gl needs this refreshed for every texture to work right
                 entry.SetTextureParameters(tm0,tm1);
 			//DebugLog("%cC addr: %08x | fmt: %i | e.hash: %08x | w:%04i h:%04i", g_ActiveConfig.bSafeTextureCache ? 'S' : 'U'
  			//		, address, tex_format, entry.hash, width, height);
@@ -327,11 +326,11 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
             // Let's reload the new texture data into the same texture,
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
-			if (width == entry.w && height == entry.h && (int) FullFormat == entry.fmt && maxlevel <= entry.MipLevels )
+			if (width == entry.w && height == entry.h && (int) FullFormat == entry.fmt)
             {
 				glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
 				GL_REPORT_ERRORD();
-				if (entry.mode.hex != tm0.hex || entry.mode1.hex != tm1.hex)
+				//if (entry.mode.hex != tm0.hex || entry.mode1.hex != tm1.hex) //gl needs this refreshed for every texture to work right
 					entry.SetTextureParameters(tm0,tm1);
 				skip_texture_create = true;
             }
@@ -395,9 +394,9 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
 	bool isPow2 = !((width & (width - 1)) || (height & (height - 1)));
 	int TexLevels = (width > height)?width:height;
-	TexLevels =  (isPow2 && UseNativeMips && (maxlevel > 0)) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : (isPow2? 0 : 1);
-	if(TexLevels > maxlevel && maxlevel > 0)
-		TexLevels = maxlevel;
+	TexLevels =  (isPow2 && UseNativeMips && (maxlevel > 0)) ? (int)(log((double)TexLevels)/log((double)2))+ 1 : (isPow2? 0 : 1);
+	if(TexLevels > (maxlevel + 1)  && maxlevel > 0)
+		TexLevels = (maxlevel + 1);
 	entry.MipLevels = maxlevel;
 	bool GenerateMipmaps = TexLevels > 1 || TexLevels == 0;
 	entry.bHaveMipMaps = GenerateMipmaps;

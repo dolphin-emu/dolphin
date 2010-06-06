@@ -188,7 +188,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		if (!g_ActiveConfig.bSafeTextureCache)
 			hash_value = ((u32 *)ptr)[0];
 
-		if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash) && FullFormat == entry.fmt && entry.MipLevels <= maxlevel))
+		if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash) && FullFormat == entry.fmt/* && entry.MipLevels == maxlevel*/))
 		{
 			entry.frameCount = frameCount;
 			D3D::SetTexture(stage, entry.texture);
@@ -200,7 +200,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
 
-			if (width == entry.w && height==entry.h && FullFormat == entry.fmt && entry.MipLevels == maxlevel) 
+			if (width == entry.w && height==entry.h && FullFormat == entry.fmt/* && entry.MipLevels < maxlevel*/) 
 			{
 				skip_texture_create = true;
 			}
@@ -284,8 +284,8 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	entry.isNonPow2 = false;
 	int TexLevels = (width > height)?width:height;
 	TexLevels =  (isPow2 && UseNativeMips && (maxlevel > 0)) ? (int)(log((double)TexLevels)/log((double)2)) + 1 : ((isPow2)? 0 : 1);
-	if(TexLevels > maxlevel && maxlevel > 0)
-		TexLevels = maxlevel;
+	if(TexLevels > (maxlevel + 1) && maxlevel > 0)
+		TexLevels = (maxlevel + 1);
 	entry.MipLevels = maxlevel;
 	if (!skip_texture_create)
 	{
