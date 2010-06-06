@@ -123,7 +123,7 @@ static const int gcDefaultControls[] =
 		0x00, // L semi-press
 		0x00, // R semi-press
 	};
-#else defined(USE_WX) && USE_WX
+#elif defined(USE_WX) && USE_WX
 	{
 		'X',		// A
 		'Z',		// B
@@ -150,8 +150,9 @@ static const int gcDefaultControls[] =
 		0,		// L semi-press
 		0,		// R semi-press
 	};
+#else
+	{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 };
 #endif
-
 
 Config g_Config;
 

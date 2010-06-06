@@ -243,15 +243,17 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 {
 }
 
+#if defined(HAVE_WX) && HAVE_WX
 // Hack to use wx key events
-volatile bool wxkeystate[400];
+volatile bool wxkeystate[WXK_SPECIAL20];
+#endif
 
 // Set buttons status from keyboard input. Currently this is done from wxWidgets in the main application.
 // --------------
 void PAD_Input(u16 _Key, u8 _UpDown)
 {
 #if defined(__APPLE__) && defined(USE_WX) && USE_WX 
-	if (_Key < 400)
+	if (_Key < WXK_SPECIAL20)
 	{
 		wxkeystate[_Key] = _UpDown;
 	}
@@ -634,7 +636,7 @@ bool IsKey(int Key)
 	}
 	else if (MapKey < 0x1100)
 #elif defined (USE_WX) && USE_WX
-	if (MapKey < 400) {
+	if (MapKey < WXK_SPECIAL20) {
 		Ret = wxkeystate[MapKey];
 	}
 	else if (MapKey < 0x1100)
