@@ -18,10 +18,11 @@ namespace ciface
 namespace SDL
 {
 
+struct ZeroedInt{ZeroedInt():value(0){}unsigned int value;};
 void Init( std::vector<ControllerInterface::Device*>& devices )
 {	
 	// just a struct with an int that is set to ZERO by default
-	struct ZeroedInt{ZeroedInt():value(0){}unsigned int value;};
+
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0
 	std::map<std::string, ZeroedInt>	name_counts;
