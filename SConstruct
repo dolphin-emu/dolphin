@@ -106,8 +106,6 @@ vars.AddVariables(
     BoolVariable('bundle', 'Set to create bundle', False),
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
     BoolVariable('nowx', 'Set For Building with no WX libs', False),
-    BoolVariable('openal', 'Build with OpenAL', False),
-    BoolVariable('noao', 'Build without AO', False),
     BoolVariable('wxgl', 'Set For Building with WX GL libs', False),
     BoolVariable('opencl', 'Build with OpenCL', False),
     BoolVariable('nojit', 'Remove entire jit cores', False),
@@ -305,10 +303,8 @@ env['HAVE_OPENAL'] = 0
 env['HAVE_PORTAUDIO'] =  0
 env['HAVE_PULSEAUDIO'] = 0
 if sys.platform != 'darwin':
-    if not env['noao']:
-        env['HAVE_AO'] = conf.CheckPKG('ao')
-    if env['openal']:
-        env['HAVE_OPENAL'] = conf.CheckPKG('openal')
+    env['HAVE_AO'] = conf.CheckPKG('ao')
+    env['HAVE_OPENAL'] = conf.CheckPKG('openal')
     env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
     env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse')
 
