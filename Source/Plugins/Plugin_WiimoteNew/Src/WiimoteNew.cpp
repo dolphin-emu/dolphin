@@ -99,7 +99,9 @@ void DeInitPlugin()
 			delete *i;
 		g_plugin.controllers.clear();
 
-		g_plugin.controller_interface.DeInit();
+		// true parameter to make SDL not quit in the wiimote plugin,
+		// the old wiimote plugin uses this hack as well, to prevent crash on stop
+		g_plugin.controller_interface.DeInit(true);
 	}
 }
 
@@ -276,7 +278,7 @@ void DllConfig(HWND _hParent)
 	frame->Destroy();
 	// /
 
-	if ( false == was_init )				// hack for showing dialog when game isnt running
+	if ( false == was_init )
 		DeInitPlugin();
 #endif
 }

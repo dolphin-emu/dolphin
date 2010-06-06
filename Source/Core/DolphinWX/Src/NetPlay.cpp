@@ -27,7 +27,7 @@
 #include "HW/EXI_DeviceIPL.h"
 // to start/stop game
 #include "Frame.h"
-// for OSD msgs
+// for wiimote/ OSD messages
 #include "Core.h"
 
 Common::CriticalSection		crit_netplay_ptr;
@@ -43,17 +43,6 @@ THREAD_RETURN NetPlayThreadFunc(void* arg)
 	((NetPlay*)arg)->Entry();
 	return 0;
 }
-
-//CritLocker::CritLocker(Common::CriticalSection& crit)
-//	: m_crit(crit)
-//{
-//	m_crit.Enter();
-//}
-//
-//CritLocker::~CritLocker()
-//{
-//	m_crit.Leave();
-//}
 
 // called from ---GUI--- thread
 NetPlay::NetPlay()
@@ -80,6 +69,10 @@ NetPlay::~NetPlay()
 {
 	CritLocker crit(crit_netplay_ptr);
 	::netplay_ptr = NULL;
+
+	// not perfect
+	if (m_is_running)
+		StopGame();
 }
 
 NetPlay::Player::Player()
@@ -145,6 +138,9 @@ void NetPlay::ClearBuffers()
 	{
 		while (m_pad_buffer[i].size())
 			m_pad_buffer[i].pop();
+		while (m_wiimote_buffer[i].size())
+			m_wiimote_buffer[i].pop();
+		m_wiimote_input[i].clear();
 	}
 }
 
@@ -212,46 +208,63 @@ bool NetPlay::GetNetPads(const u8 pad_nb, const SPADStatus* const pad_status, Ne
 // called from ---CPU--- thread
 void NetPlay::WiimoteInput(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	//m_crit.players.Enter();	// lock players
-
 	//// in game mapping for this local wiimote
-	//unsigned int in_game_num = m_local_player->pad_map[_number];	// just using gc pad_map for now
+	unsigned int in_game_num = m_local_player->pad_map[_number];	// just using gc pad_map for now
 
-	//// does this local pad map in game?
-	//if (in_game_num < 4)
-	//{
-	//	//NetPad np(pad_status);
+	// does this local pad map in game?
+	if (in_game_num < 4)
+	{
+		m_crit.buffer.Enter();
+		
+		m_wiimote_input[_number].resize(m_wiimote_input[_number].size() + 1);
+		m_wiimote_input[_number].back().assign((char*)_pData, (char*)_pData + _Size);
+		m_wiimote_input[_number].back().channel = _channelID;
 
-	//	m_crit.buffer.Enter();	// lock buffer
-	//	// adjust the buffer either up or down
-	//	//while (m_pad_buffer[in_game_num].size() <= m_target_buffer_size)
-	//	{
-	//		// add to buffer
-	//		//m_wiimote_buffer[in_game_num].push(np);
+		m_crit.buffer.Leave();
+	}
 
-	//		// send
-	//		//SendPadState(pad_nb, np);
-	//	}
-	//	m_crit.buffer.Leave();
-	//}
-
-	//// get pad from pad buffer and send to game
-	//GetBufferedPad(pad_nb, netvalues);
-
+	m_crit.players.Leave();
 }
 
 // called from ---CPU--- thread
 void NetPlay::WiimoteUpdate(int _number)
 {
-	// temporary
-	if (_number)
+	m_crit.players.Enter();	// lock players
+
+	// in game mapping for this local wiimote
+	unsigned int in_game_num = m_local_player->pad_map[_number];	// just using gc pad_map for now
+
+	// does this local pad map in game?
+	if (in_game_num < 4)
+	{
+		m_crit.buffer.Enter();
+		m_wiimote_buffer[in_game_num].push(m_wiimote_input[_number]);
+
+		// TODO: send it
+
+		m_wiimote_input[_number].clear();
+		m_crit.buffer.Leave();
+	}
+
+	m_crit.players.Leave();
+
+	m_crit.buffer.Enter();
+
+	if (0 == m_wiimote_buffer[_number].size())
+	{
+		//PanicAlert("PANIC");
 		return;
+	}
 
-	m_crit.buffer.Enter();	// lock buffer
-	++m_wiimote_update_frame;
+	NetWiimote& nw = m_wiimote_buffer[_number].front();
+
+	NetWiimote::const_iterator
+		i = nw.begin(), e = nw.end();
+	for ( ; i!=e; ++i)
+		Core::Callback_WiimoteInterruptChannel(_number, i->channel, &(*i)[0], (u32)i->size() + RPT_SIZE_HACK);
+
+	m_wiimote_buffer[_number].pop();
 	m_crit.buffer.Leave();
-
-	// TODO: prolly do some wiimote input here
 }
 
 // called from ---GUI--- thread
@@ -273,6 +286,14 @@ bool NetPlay::StartGame(const std::string &path)
 	// boot game
 	::main_frame->BootGame(path);
 	//BootManager::BootCore(path);
+
+	// TODO: i dont know if i like this here
+	ClearBuffers();
+	// temporary
+	NetWiimote nw;
+	for (unsigned int i = 0; i<4; ++i)
+		for (unsigned int f = 0; f<2; ++f)
+			m_wiimote_buffer[i].push(nw);
 
 	return true;
 }
@@ -353,20 +374,21 @@ u8 CSIDevice_GCController::NetPlay_GetPadNum(u8 numPAD)
 // wiimote update / used for frame counting
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::NetPlay_WiimoteUpdate(int _number)
 {
-	CritLocker crit(::crit_netplay_ptr);
+	//CritLocker crit(::crit_netplay_ptr);
 
-	return;
+	//if (::netplay_ptr)
+	//	::netplay_ptr->WiimoteUpdate(_number);
 }
 
 // called from ---CPU--- thread
 //
 int CWII_IPC_HLE_WiiMote::NetPlay_GetWiimoteNum(int _number)
 {
-	CritLocker crit(::crit_netplay_ptr);
+	//CritLocker crit(::crit_netplay_ptr);
 
-	if (::netplay_ptr)
-		return ::netplay_ptr->GetPadNum(_number);		// just using gcpad mapping for now
-	else
+	//if (::netplay_ptr)
+	//	return ::netplay_ptr->GetPadNum(_number);		// just using gcpad mapping for now
+	//else
 		return _number;
 }
 
@@ -377,18 +399,19 @@ bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int _number, u16 _channelID, con
 	CritLocker crit(::crit_netplay_ptr);
 
 	if (::netplay_ptr)
-	{
-		if (_Size >= RPT_SIZE_HACK)
-		{
-			_Size -= RPT_SIZE_HACK;
-			return false;
-		}
-		else
-		{
-			::netplay_ptr->WiimoteInput(_number, _channelID, _pData, _Size);
+	//{
+	//	if (_Size >= RPT_SIZE_HACK)
+	//	{
+	//		_Size -= RPT_SIZE_HACK;
+	//		return false;
+	//	}
+	//	else
+	//	{
+	//		::netplay_ptr->WiimoteInput(_number, _channelID, _pData, _Size);
+	//		// don't use this packet
 			return true;
-		}
-	}
+	//	}
+	//}
 	else
 		return false;
 }

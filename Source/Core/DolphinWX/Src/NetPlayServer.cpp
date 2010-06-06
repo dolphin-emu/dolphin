@@ -63,7 +63,7 @@ void NetPlayServer::Entry()
 			spac << (MessageId)NP_MSG_PING;
 			spac << m_ping_key;
 			
-			CritLocker player_lock(m_crit.players);
+			//CritLocker player_lock(m_crit.players);
 			CritLocker send_lock(m_crit.send);
 			m_ping_timer.Start();
 			SendToClients(spac);
@@ -218,14 +218,6 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	spac << player.pid;
 	socket.Send(spac);
 
-	// send user their pad mapping
-	spac.Clear();
-	spac << (MessageId)NP_MSG_PAD_MAPPING;
-	spac << player.pid;
-	for (unsigned int pm = 0; pm<4; ++pm)
-		spac << player.pad_map[pm];
-	socket.Send(spac);
-
 	// send new client the selected game
 	spac.Clear();
 	spac << (MessageId)NP_MSG_CHANGE_GAME;
@@ -239,13 +231,6 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 		spac << (MessageId)NP_MSG_PLAYER_JOIN;
 		spac << i->second.pid << i->second.name << i->second.revision;
 		socket.Send(spac);
-
-		spac.Clear();
-		spac << (MessageId)NP_MSG_PAD_MAPPING;
-		spac << i->second.pid;
-		for (unsigned int pm = 0; pm<4; ++pm)
-			spac << i->second.pad_map[pm];
-		socket.Send(spac);
 	}
 
 	// LEAVE
@@ -254,6 +239,9 @@ unsigned int NetPlayServer::OnConnect(sf::SocketTCP& socket)
 	// add client to the player list
 	m_crit.players.Enter();	// lock players
 	m_players[socket] = player;
+	m_crit.send.Enter();	// lock send
+	UpdatePadMapping();	// sync pad mappings with everyone
+	m_crit.send.Leave();
 	m_crit.players.Leave();
 
 	// add client to selector/ used for receiving
@@ -277,9 +265,8 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 		sf::Packet spac;
 		spac << (MessageId)NP_MSG_DISABLE_GAME;
 		// this thread doesnt need players lock
-		m_crit.send.Enter();	// lock send
+		CritLocker	send_lock(m_crit.send);	// lock send
 		SendToClients(spac);
-		m_crit.send.Leave();
 	}
 
 	sf::Packet spac;
@@ -288,18 +275,98 @@ unsigned int NetPlayServer::OnDisconnect(sf::SocketTCP& socket)
 
 	m_selector.Remove(socket);
 	
-	m_crit.players.Enter();	// lock players
+	CritLocker	player_lock(m_crit.players);	// lock players
 	m_players.erase(m_players.find(socket));
-	m_crit.players.Leave();
 
 	// alert other players of disconnect
-	m_crit.send.Enter();	// lock send
+	CritLocker	send_lock(m_crit.send);	// lock send
 	SendToClients(spac);
-	m_crit.send.Leave();
 
 	UpdateGUI();
 
 	return 0;
+}
+
+// called from ---GUI--- thread
+bool NetPlayServer::GetPadMapping(const int pid, int map[])
+{
+	CritLocker	player_lock(m_crit.players);	// lock players
+	std::map<sf::SocketTCP, Client>::const_iterator
+		i = m_players.begin(),
+		e = m_players.end();
+	for (; i!=e; ++i)
+		if (pid == i->second.pid)
+			break;
+
+	// player not found
+	if (i == e)
+		return false;
+
+	// get pad mapping
+	for (unsigned int m = 0; m<4; ++m)
+		map[m] = i->second.pad_map[m];
+
+	return true;
+}
+
+// called from ---GUI--- thread
+bool NetPlayServer::SetPadMapping(const int pid, const int map[])
+{
+	CritLocker	game_lock(m_crit.game);	// lock game
+	if (m_is_running)
+		return false;
+
+	CritLocker	player_lock(m_crit.players);	// lock players
+	std::map<sf::SocketTCP, Client>::iterator
+		i = m_players.begin(),
+		e = m_players.end();
+	for (; i!=e; ++i)
+		if (pid == i->second.pid)
+			break;
+
+	// player not found
+	if (i == e)
+		return false;
+
+	Client& player = i->second;
+
+	// set pad mapping
+	for (unsigned int m = 0; m<4; ++m)
+	{
+		player.pad_map[m] = (PadMapping)map[m];
+
+		// remove duplicate mappings
+		for (i = m_players.begin(); i!=e; ++i)
+			for (unsigned int p = 0; p<4; ++p)
+				if (p != m || i->second.pid != pid)
+					if (player.pad_map[m] == i->second.pad_map[p])
+						i->second.pad_map[p] = -1;
+	}
+
+	CritLocker	send_lock(m_crit.send);	// lock send
+	UpdatePadMapping();	// sync pad mappings with everyone
+
+	UpdateGUI();
+
+	return true;
+}
+
+// called from ---NETPLAY--- thread
+void NetPlayServer::UpdatePadMapping()
+{
+	std::map<sf::SocketTCP, Client>::const_iterator
+		i = m_players.begin(),
+		e = m_players.end();
+	for (; i!=e; ++i)
+	{
+		sf::Packet spac;
+		spac << (MessageId)NP_MSG_PAD_MAPPING;
+		spac << i->second.pid;
+		for (unsigned int pm = 0; pm<4; ++pm)
+			spac << i->second.pad_map[pm];
+		SendToClients(spac);
+	}
+
 }
 
 // called from ---GUI--- thread and ---NETPLAY--- thread
@@ -312,7 +379,7 @@ u64 NetPlayServer::CalculateMinimumBufferTime()
 		e = m_players.end();
 	std::priority_queue<unsigned int>	pings;
 	for ( ;i!=e; ++i)
-		pings.push(i->second.ping);
+		pings.push(i->second.ping/2);
 
 	unsigned int required_ms = pings.top();
 	// if there is more than 1 client, buffersize must be >= (2 highest ping times combined)
@@ -339,11 +406,9 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
 	spac << (MessageId)NP_MSG_PAD_BUFFER;
 	spac << (u32)m_target_buffer_size;
 
-	m_crit.players.Enter();	// lock players
-	m_crit.send.Enter();	// lock send
+	CritLocker	player_lock(m_crit.players);	// lock players
+	CritLocker	send_lock(m_crit.send);	// lock send
 	SendToClients(spac);
-	m_crit.send.Leave();
-	m_crit.players.Leave();	
 }
 
 // called from ---NETPLAY--- thread
@@ -414,9 +479,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 			spac << map;	// in game mapping
 			spac << np.nHi << np.nLo;
 
-			m_crit.send.Enter();	// lock send
+			CritLocker	send_lock(m_crit.send);	// lock send
 			SendToClients(spac, player.pid);
-			m_crit.send.Leave();
 		}
 		break;
 
@@ -452,9 +516,9 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, sf::SocketTCP& socket)
 }
 
 // called from ---GUI--- thread
-void NetPlayServer::GetPlayerList(std::string &list)
+void NetPlayServer::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 {
-	CritLocker player_lock(m_crit.players);
+	CritLocker player_lock(m_crit.players);	// lock players
 
 	std::ostringstream ss;
 
@@ -462,7 +526,10 @@ void NetPlayServer::GetPlayerList(std::string &list)
 		i = m_players.begin(),
 		e = m_players.end();
 	for ( ; i!=e; ++i)
+	{
 		ss << i->second.ToString() << " " << i->second.ping <<  "ms\n";
+		pid_list.push_back(i->second.pid);
+	}
 
 	list = ss.str();
 }
@@ -475,9 +542,8 @@ void NetPlayServer::SendChatMessage(const std::string& msg)
 	spac << (PlayerId)0;	// server id always 0
 	spac << msg;
 
-	m_crit.send.Enter();	// lock send
+	CritLocker	send_lock(m_crit.send);	// lock send
 	SendToClients(spac);
-	m_crit.send.Leave();
 }
 
 // called from ---GUI--- thread
@@ -492,11 +558,9 @@ bool NetPlayServer::ChangeGame(const std::string &game)
 	spac << (MessageId)NP_MSG_CHANGE_GAME;
 	spac << game;
 
-	m_crit.players.Enter();	// lock players
-	m_crit.send.Enter();	// lock send
+	CritLocker	player_lock(m_crit.players);	// lock players
+	CritLocker	send_lock(m_crit.send);	// lock send
 	SendToClients(spac);
-	m_crit.send.Leave();
-	m_crit.players.Leave();
 
 	return true;
 }
@@ -510,9 +574,8 @@ void NetPlayServer::SendPadState(const PadMapping local_nb, const NetPad& np)
 	spac << m_local_player->pad_map[local_nb];	// in-game pad num
 	spac << np.nHi << np.nLo;
 
-	m_crit.send.Enter();	// lock send
+	CritLocker	send_lock(m_crit.send);	// lock send
 	SendToClients(spac);
-	m_crit.send.Leave();
 }
 
 // called from ---GUI--- thread
@@ -525,7 +588,6 @@ bool NetPlayServer::StartGame(const std::string &path)
 
 	// TODO: i dont like this here
 	m_on_game = Common::Timer::GetTimeMs();
-	ClearBuffers();
 	m_crit.buffer.Leave();
 
 	// no change, just update with clients
@@ -536,11 +598,9 @@ bool NetPlayServer::StartGame(const std::string &path)
 	spac << (MessageId)NP_MSG_START_GAME;
 	spac << m_on_game;
 
-	m_crit.players.Enter();	// lock players
-	m_crit.send.Enter();	// lock send
+	CritLocker	player_lock(m_crit.players);	// lock players
+	CritLocker	send_lock(m_crit.send);	// lock send
 	SendToClients(spac);
-	m_crit.send.Leave();
-	m_crit.players.Leave();
 
 	return true;
 }
@@ -556,11 +616,9 @@ bool NetPlayServer::StopGame()
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_STOP_GAME;
 
-	m_crit.players.Enter();	// lock players
-	m_crit.send.Enter();	// lock send
+	CritLocker	player_lock(m_crit.players);	// lock players
+	CritLocker	send_lock(m_crit.send);	// lock send
 	SendToClients(spac);
-	m_crit.players.Leave();
-	m_crit.send.Leave();
 
 	return true;
 }

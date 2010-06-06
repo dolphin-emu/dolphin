@@ -60,7 +60,7 @@ class NetPlaySetupDiag : public wxFrame
 {
 public:
 	NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* const game_list);
-
+	~NetPlaySetupDiag();
 private:
 	void OnJoin(wxCommandEvent& event);
 	void OnHost(wxCommandEvent& event);
@@ -98,6 +98,7 @@ private:
 	void OnThread(wxCommandEvent& event);
 	void OnChangeGame(wxCommandEvent& event);
 	void OnAdjustBuffer(wxCommandEvent& event);
+	void OnConfigPads(wxCommandEvent& event);
 
 	wxListBox*		m_player_lbox;
 	wxTextCtrl*		m_chat_text;
@@ -105,6 +106,8 @@ private:
 
 	std::string		m_selected_game;
 	wxButton*		m_game_btn;
+
+	std::vector<int>	m_playerids;
 
 	const CGameListCtrl* const m_game_list;
 	//NetPlay* const	m_netplay;
@@ -122,6 +125,18 @@ private:
 
 	wxListBox*		m_game_lbox;
 	wxString&		m_game_name;
+};
+
+class PadMapDiag : public wxDialog
+{
+public:
+	PadMapDiag(wxWindow* const parent, int map[]);
+
+private:
+	void OnAdjust(wxCommandEvent& event);
+
+	wxChoice*	m_map_cbox[4];
+	int* const	m_mapping;
 };
 
 #endif // _NETWINDOW_H_

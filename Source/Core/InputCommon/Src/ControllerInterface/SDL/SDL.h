@@ -135,7 +135,7 @@ protected:
 	void SetOutputState( const ControllerInterface::Device::Output* const output, const ControlState state );
 
 public:
-	Joystick( SDL_Joystick* const joystick, const unsigned int index );
+	Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsigned int index);
 	~Joystick();
 
 	std::string GetName() const;
@@ -144,6 +144,7 @@ public:
 
 private:
 	SDL_Joystick* const			m_joystick;
+	const int					m_sdl_index;
 	const unsigned int			m_index;
 
 #ifdef USE_SDL_HAPTIC

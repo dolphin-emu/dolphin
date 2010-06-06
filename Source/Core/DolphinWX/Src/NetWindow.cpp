@@ -15,6 +15,9 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <FileUtil.h>
+#include <IniFile.h>
+
 #include "NetPlay.h"
 #include "NetWindow.h"
 
@@ -34,13 +37,18 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	: wxFrame(parent, wxID_ANY, wxT(NETPLAY_TITLEBAR), wxDefaultPosition, wxDefaultSize)
 	, m_game_list(game_list)
 {
-	//PanicAlert("ALERT: NetPlay is not 100%% functional !!!!");
+	IniFile inifile;
+	inifile.Load(std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini");
+	IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
 	wxPanel* const panel = new wxPanel(this);
 
 	// top row
 	wxStaticText* const nick_lbl = new wxStaticText(panel, wxID_ANY, wxT("Nickname :"), wxDefaultPosition, wxDefaultSize);
-	m_nickname_text = new wxTextCtrl(panel, wxID_ANY, wxT("Player"));
+	
+	std::string nickname;
+	netplay_section.Get("Nickname", &nickname, "Player");
+	m_nickname_text = new wxTextCtrl(panel, wxID_ANY, wxString::FromAscii(nickname.c_str()));
 
 	wxBoxSizer* const nick_szr = new wxBoxSizer(wxHORIZONTAL);
 	nick_szr->Add(nick_lbl, 0, wxCENTER);
@@ -58,9 +66,17 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	// connect tab
 	{
 	wxStaticText* const ip_lbl = new wxStaticText(connect_tab, wxID_ANY, wxT("Address :"), wxDefaultPosition, wxDefaultSize);
-	m_connect_ip_text = new wxTextCtrl(connect_tab, wxID_ANY, wxT("localhost"));
+	
+	std::string address;
+	netplay_section.Get("Address", &address, "localhost");
+	m_connect_ip_text = new wxTextCtrl(connect_tab, wxID_ANY, wxString::FromAscii(address.c_str()));
+
 	wxStaticText* const port_lbl = new wxStaticText(connect_tab, wxID_ANY, wxT("Port :"), wxDefaultPosition, wxDefaultSize);
-	m_connect_port_text = new wxTextCtrl(connect_tab, wxID_ANY, wxT("2626"));
+	
+	// string? w/e
+	std::string port;
+	netplay_section.Get("ConnectPort", &port, "2626");	
+	m_connect_port_text = new wxTextCtrl(connect_tab, wxID_ANY, wxString::FromAscii(port.c_str()));
 
 	wxButton* const connect_btn = new wxButton(connect_tab, wxID_ANY, wxT("Connect"));
 	_connect_macro_(connect_btn, NetPlaySetupDiag::OnJoin, wxEVT_COMMAND_BUTTON_CLICKED, this);
@@ -96,7 +112,11 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	// host tab
 	{
 	wxStaticText* const port_lbl = new wxStaticText(host_tab, wxID_ANY, wxT("Port :"), wxDefaultPosition, wxDefaultSize);
-	m_host_port_text = new wxTextCtrl(host_tab, wxID_ANY, wxT("2626"));
+	
+	// string? w/e
+	std::string port;
+	netplay_section.Get("HostPort", &port, "2626");	
+	m_host_port_text = new wxTextCtrl(host_tab, wxID_ANY, wxString::FromAscii(port.c_str()));
 
 	wxButton* const host_btn = new wxButton(host_tab, wxID_ANY, wxT("Host"));
 	_connect_macro_(host_btn, NetPlaySetupDiag::OnHost, wxEVT_COMMAND_BUTTON_CLICKED, this);
@@ -141,6 +161,21 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 
 	Center();
 	Show();
+}
+
+NetPlaySetupDiag::~NetPlaySetupDiag()
+{
+	IniFile inifile;
+	const std::string dolphin_ini = std::string(File::GetUserPath(D_CONFIG_IDX)) + "Dolphin.ini";
+	inifile.Load(dolphin_ini);
+	IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
+
+	netplay_section.Set("Nickname", m_nickname_text->GetValue().mb_str());
+	netplay_section.Set("Address", m_connect_ip_text->GetValue().mb_str());
+	netplay_section.Set("ConnectPort", m_connect_port_text->GetValue().mb_str());
+	netplay_section.Set("HostPort", m_host_port_text->GetValue().mb_str());
+
+	inifile.Save(dolphin_ini);
 }
 
 void NetPlaySetupDiag::OnHost(wxCommandEvent& event)
@@ -266,8 +301,8 @@ NetPlayDiag::NetPlayDiag(wxWindow* const parent, const CGameListCtrl* const game
 	// player list
 	if (is_hosting)
 	{
-		wxButton* const player_config_btn = new wxButton(panel, wxID_ANY, wxT("Configure Pads [not implemented]"));
-		player_config_btn->Disable();
+		wxButton* const player_config_btn = new wxButton(panel, wxID_ANY, wxT("Configure Pads"));
+		_connect_macro_(player_config_btn, NetPlayDiag::OnConfigPads, wxEVT_COMMAND_BUTTON_CLICKED, this);
 		player_szr->Add(player_config_btn, 0, wxEXPAND | wxTOP, 5);
 	}
 
@@ -380,8 +415,8 @@ void NetPlayDiag::OnPadBuffHelp(wxCommandEvent& event)
 	const u64 time = ((NetPlayServer*)::netplay_ptr)->CalculateMinimumBufferTime();
 	std::ostringstream ss;
 	ss << "< Calculated from pings: required buffer: "
-		<< time * (60/1000) << "(60fps) / "
-		<< time * (50/1000) << "(50fps) >\n";
+		<< time * (60.0f/1000) << "(60fps) / "
+		<< time * (50.0f/1000) << "(50fps) >\n";
 
 	m_chat_text->AppendText(wxString(ss.str().c_str(), *wxConvCurrent));
 }
@@ -412,13 +447,18 @@ void NetPlayDiag::OnThread(wxCommandEvent& event)
 	event.GetId();
 
 	// player list
+	m_playerids.clear();
 	std::string tmps;
-	::netplay_ptr->GetPlayerList(tmps);
+	::netplay_ptr->GetPlayerList(tmps, m_playerids);
+
+	const int selection = m_player_lbox->GetSelection();
 
 	m_player_lbox->Clear();
 	std::istringstream ss(tmps);
 	while (std::getline(ss, tmps))
 		m_player_lbox->Append(wxString(tmps.c_str(), *wxConvCurrent));
+
+	m_player_lbox->SetSelection(selection);
 
 	switch (event.GetId())
 	{
@@ -472,6 +512,30 @@ void NetPlayDiag::OnChangeGame(wxCommandEvent& event)
 	}
 }
 
+void NetPlayDiag::OnConfigPads(wxCommandEvent& event)
+{
+	// warning removal
+	event.GetId();
+
+	int mapping[4];
+
+	// get selected player id
+	int pid = m_player_lbox->GetSelection();
+	if (pid < 0)
+		return;
+	pid = m_playerids.at(pid);
+
+	if (false == ((NetPlayServer*)::netplay_ptr)->GetPadMapping(pid, mapping))
+		return;
+
+	PadMapDiag* const pmd = new PadMapDiag(this, mapping);
+	pmd->ShowModal();
+	pmd->Destroy();
+
+	if (false == ((NetPlayServer*)::netplay_ptr)->SetPadMapping(pid, mapping))
+		PanicAlert("Could not set pads. The player left or the game is currently running!\n(setting pads while the game is running is not yet supported)");
+}
+
 ChangeGameDiag::ChangeGameDiag(wxWindow* const parent, const CGameListCtrl* const game_list, wxString& game_name)
 	: wxDialog(parent, wxID_ANY, wxT("Change Game"), wxDefaultPosition, wxDefaultSize)
 	, m_game_name(game_name)
@@ -509,4 +573,59 @@ void ChangeGameDiag::OnPick(wxCommandEvent& event)
 	// return the selected game name
 	m_game_name = m_game_lbox->GetStringSelection();
 	Destroy();
+}
+
+PadMapDiag::PadMapDiag(wxWindow* const parent, int map[])
+	: wxDialog(parent, wxID_ANY, wxT("Configure Pads"), wxDefaultPosition, wxDefaultSize)
+	, m_mapping(map)
+{
+	wxPanel* const panel = new wxPanel(this);
+
+	wxBoxSizer* const h_szr = new wxBoxSizer(wxHORIZONTAL);
+
+	h_szr->AddSpacer(20);
+
+	// labels
+	wxBoxSizer* const label_szr = new wxBoxSizer(wxVERTICAL);
+	label_szr->Add(new wxStaticText(panel,wxID_ANY, wxT("Local")), 0, wxALIGN_TOP);
+	label_szr->AddStretchSpacer(1);
+	label_szr->Add(new wxStaticText(panel,wxID_ANY, wxT("In-Game")), 0, wxALIGN_BOTTOM);
+
+	h_szr->Add(label_szr, 1, wxTOP | wxBOTTOM | wxEXPAND, 20);
+
+	// set up choices
+	wxString pad_names[5];
+	pad_names[0] = wxT("None");
+	for (unsigned int i=1; i<5; ++i)
+		pad_names[i] = wxString(wxT("Pad ")) + (wxChar)(wxT('0')+i);
+
+	for (unsigned int i=0; i<4; ++i)
+	{
+		wxChoice* const pad_cbox = m_map_cbox[i]
+			= new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, 5, pad_names);
+		pad_cbox->Select(m_mapping[i] + 1);
+
+		_connect_macro_(pad_cbox, PadMapDiag::OnAdjust, wxEVT_COMMAND_CHOICE_SELECTED, this);
+
+		wxBoxSizer* const v_szr = new wxBoxSizer(wxVERTICAL);
+		v_szr->Add(new wxStaticText(panel,wxID_ANY, pad_names[i + 1]), 1, wxALIGN_CENTER_HORIZONTAL);
+		v_szr->Add(pad_cbox, 1);
+
+		h_szr->Add(v_szr, 1, wxTOP | wxBOTTOM | wxEXPAND, 20);
+	}
+
+	h_szr->AddSpacer(20);
+
+	panel->SetSizerAndFit(h_szr);
+
+	wxBoxSizer* const dlg_szr = new wxBoxSizer(wxVERTICAL);
+	dlg_szr->Add(panel, 1, wxEXPAND);
+	SetSizerAndFit(dlg_szr);
+}
+
+void PadMapDiag::OnAdjust(wxCommandEvent& event)
+{
+	(void)event;
+	for (unsigned int i=0; i<4; ++i)
+		m_mapping[i] = m_map_cbox[i]->GetSelection() - 1;
 }

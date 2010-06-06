@@ -373,6 +373,8 @@ void GamepadPage::ClearControl( wxCommandEvent& event )
 	btn->control_reference->device_qualifier = controller->default_device;
 
 	g_plugin->controls_crit.Enter();
+	if (btn->control_reference->is_input)
+		((ControllerInterface::InputReference*)btn->control_reference)->mode = 0;
 	controller->UpdateReferences( g_plugin->controller_interface );
 	g_plugin->controls_crit.Leave();
 
@@ -618,22 +620,33 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 	static_bitmap = NULL;
 
 	wxFont m_SmallFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
-	for ( unsigned int c = 0; c < group->controls.size(); ++c )
+	std::vector<ControllerEmu::ControlGroup::Control*>::iterator
+		ci = group->controls.begin(),
+		ce = group->controls.end();
+	for ( ; ci != ce; ++ci)
 	{
 
-		wxStaticText* const label = new wxStaticText( parent, -1, wxString::FromAscii( group->controls[c]->name )/*.append(wxT(" :"))*/ );
+		wxStaticText* const label = new wxStaticText(parent, -1, wxString::FromAscii((*ci)->name)/*.append(wxT(" :"))*/ );
 		
-		ControlButton* const control_button = new ControlButton( parent,  group->controls[c]->control_ref, 80 );
+		ControlButton* const control_button = new ControlButton(parent, (*ci)->control_ref, 80);
 		control_button->SetFont(m_SmallFont);
 
-		controls.push_back( control_button );
-		control_buttons.push_back( control_button );
+		controls.push_back(control_button);
+		control_buttons.push_back(control_button);
 
-		control_button->SetToolTip(wxT("Right-click for more options.\nMiddle-click to clear."));
+		if ((*ci)->control_ref->is_input)
+		{
+			control_button->SetToolTip(wxT("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));
+			_connect_macro_( control_button, GamepadPage::DetectControl, wxEVT_COMMAND_BUTTON_CLICKED, eventsink );
+		}
+		else
+		{
+			control_button->SetToolTip(wxT("Left/Right-click for more options.\nMiddle-click to clear."));
+			_connect_macro_( control_button, GamepadPage::ConfigControl, wxEVT_COMMAND_BUTTON_CLICKED, eventsink );
+		}
 
-		_connect_macro_( control_button, GamepadPage::DetectControl, wxEVT_COMMAND_BUTTON_CLICKED, eventsink );
-		_connect_macro_( control_button, GamepadPage::ConfigControl, wxEVT_RIGHT_UP, eventsink );
 		_connect_macro_( control_button, GamepadPage::ClearControl, wxEVT_MIDDLE_DOWN, eventsink );
+		_connect_macro_( control_button, GamepadPage::ConfigControl, wxEVT_RIGHT_UP, eventsink );
 
 		wxBoxSizer* const control_sizer = new wxBoxSizer( wxHORIZONTAL );
 		control_sizer->AddStretchSpacer( 1 );

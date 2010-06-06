@@ -19,7 +19,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, const s
 	is_connected = false;
 
 	// why is false successful? documentation says true is
-	if (0 == m_socket.Connect(port, address))
+	if (0 == m_socket.Connect(port, address, 5))
 	{
 		// send connect message
 		sf::Packet spac;
@@ -193,7 +193,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
 	case NP_MSG_START_GAME :
 		{
+			m_crit.buffer.Enter();	// lock buffer
 			packet >> m_on_game;
+			m_crit.buffer.Leave();
 
 			wxCommandEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
 			m_dialog->GetEventHandler()->AddPendingEvent(evt);
@@ -209,7 +211,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
 	case NP_MSG_DISABLE_GAME :
 		{
-			PanicAlert("Other client disconnected while game is running!! NetPlay is disabled. You must manually stop the game.");
+			PanicAlert("Other client disconnected while game is running!! NetPlay is disabled. You manually stop the game.");
 			CritLocker game_lock(m_crit.game);	// lock game state
 			m_is_running = false;
 			NetPlay_Disable();
@@ -257,7 +259,7 @@ void NetPlayClient::Entry()
 			default :
 				m_is_running = false;
 				NetPlay_Disable();
-				AppendChatGUI("< LOST CONNECION TO SERVER >");
+				AppendChatGUI("< LOST CONNECTION TO SERVER >");
 				PanicAlert("Lost connection to server!");
 				m_do_loop = false;
 				break;
@@ -271,7 +273,7 @@ void NetPlayClient::Entry()
 }
 
 // called from ---GUI--- thread
-void NetPlayClient::GetPlayerList(std::string &list)
+void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 {
 	CritLocker player_lock(m_crit.players);		// lock players
 
@@ -281,7 +283,10 @@ void NetPlayClient::GetPlayerList(std::string &list)
 		i = m_players.begin(),
 		e = m_players.end();
 	for ( ; i!=e; ++i)
+	{
 		ss << i->second.ToString() << '\n';
+		pid_list.push_back(i->second.pid);
+	}
 
 	list = ss.str();
 }
@@ -294,9 +299,9 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
 	spac << (MessageId)NP_MSG_CHAT_MESSAGE;
 	spac << msg;
 
-	m_crit.send.Enter();	// lock send
+	CritLocker	player_lock(m_crit.players);	// lock players
+	CritLocker	send_lock(m_crit.send);	// lock send
 	m_socket.Send(spac);
-	m_crit.send.Leave();
 }
 
 // called from ---CPU--- thread
@@ -308,9 +313,8 @@ void NetPlayClient::SendPadState(const PadMapping local_nb, const NetPad& np)
 	spac << local_nb;	// local pad num
 	spac << np.nHi << np.nLo;
 
-	m_crit.send.Enter();	// lock send
+	CritLocker	send_lock(m_crit.send);	// lock send
 	m_socket.Send(spac);
-	m_crit.send.Leave();
 }
 
 // called from ---GUI--- thread
@@ -321,18 +325,15 @@ bool NetPlayClient::StartGame(const std::string &path)
 	if (false == NetPlay::StartGame(path))
 		return false;
 
-	// TODO: i dont like this here
-	ClearBuffers();
-	m_crit.buffer.Leave();
-
 	// tell server i started the game
 	sf::Packet spac;
 	spac << (MessageId)NP_MSG_START_GAME;
 	spac << m_on_game;
 
-	m_crit.send.Enter();	// lock send
+	m_crit.buffer.Leave();
+
+	CritLocker	send_lock(m_crit.send);	// lock send
 	m_socket.Send(spac);
-	m_crit.send.Leave();
 
 	return true;
 }

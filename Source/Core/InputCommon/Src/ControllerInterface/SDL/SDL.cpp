@@ -20,15 +20,21 @@ namespace SDL
 
 void Init( std::vector<ControllerInterface::Device*>& devices )
 {	
-	if ( SDL_Init( SDL_INIT_FLAGS ) >= 0 )
+	// just a struct with an int that is set to ZERO by default
+	struct ZeroedInt{ZeroedInt():value(0){}unsigned int value;};
+	// this is used to number the joysticks
+	// multiple joysticks with the same name shall get unique ids starting at 0
+	std::map<std::string, ZeroedInt>	name_counts;
+
+	if (SDL_Init( SDL_INIT_FLAGS ) >= 0)
     {
 		// joysticks
-		for( int i = 0; i < SDL_NumJoysticks(); ++i )
+		for(int i = 0; i < SDL_NumJoysticks(); ++i)
 		{
-			SDL_Joystick* dev = SDL_JoystickOpen( i );
+			SDL_Joystick* dev = SDL_JoystickOpen(i);
 			if ( dev )
 			{
-				Joystick* js = new Joystick( dev, i );
+				Joystick* js = new Joystick(dev, i, name_counts[SDL_JoystickName(i)].value++);
 				// only add if it has some inputs/outputs
 				if ( js->Inputs().size() || js->Outputs().size() )
 					devices.push_back( js );
@@ -39,8 +45,32 @@ void Init( std::vector<ControllerInterface::Device*>& devices )
     }
 }
 
-Joystick::Joystick( SDL_Joystick* const joystick, const unsigned int index ) : m_joystick(joystick), m_index(index)
+Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsigned int index)
+	: m_joystick(joystick)
+	, m_sdl_index(sdl_index)
+	, m_index(index)
 {
+	// really bad HACKS:
+	// to not use SDL for an XInput device
+	// too many people on the forums pick the SDL device and ask:
+	// "why don't my 360 gamepad triggers/rumble work correctly"
+	#ifdef _WIN32
+		// checking the name is probably good (and hacky) enough
+		// but i'll double check with the num of buttons/axes
+		if (
+			("Controller (Xbox 360 Wireless Receiver for Windows)" == GetName())
+			&& (10 == SDL_JoystickNumButtons(joystick))
+			&& (5 == SDL_JoystickNumAxes(joystick))
+			&& (1 == SDL_JoystickNumHats(joystick))
+			&& (0 == SDL_JoystickNumBalls(joystick))
+			)
+		{
+			// this device won't be used
+			return;
+		}
+
+	#endif
+
 	// get buttons
 	for ( int i = 0; i < SDL_JoystickNumButtons( m_joystick ); ++i )
 	{
@@ -210,7 +240,7 @@ bool Joystick::UpdateOutput()
 
 std::string Joystick::GetName() const
 {
-	return StripSpaces(SDL_JoystickName(m_index));
+	return StripSpaces(SDL_JoystickName(m_sdl_index));
 }
 
 std::string Joystick::GetSource() const

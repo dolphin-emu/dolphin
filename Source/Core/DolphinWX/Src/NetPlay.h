@@ -32,15 +32,12 @@ public:
 	u32 nLo;
 };
 
-class NetWiimote
+struct Rpt : public std::vector<u8>
 {
-public:
-	NetWiimote& operator=(const NetWiimote&);
-	NetWiimote(const u32 _size) : size(_size), data(new u8[size]) {}
-
-	const u32	size;
-	u8* const	data;
+	u16		channel;
 };
+
+typedef std::vector<Rpt>	NetWiimote;
 
 #define NETPLAY_VERSION		"Dolphin NetPlay 2.2"
 
@@ -124,7 +121,7 @@ public:
 	void WiimoteUpdate(int _number);
 	bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
 	virtual bool ChangeGame(const std::string& game) = 0;
-	virtual void GetPlayerList(std::string& list) = 0;
+	virtual void GetPlayerList(std::string& list, std::vector<int>& pid_list) = 0;
 	virtual void SendChatMessage(const std::string& msg) = 0;
 
 	virtual bool StartGame(const std::string &path);
@@ -161,11 +158,10 @@ protected:
 		std::string		revision;
 	};
 
-	//LockingQueue<NetPad>	m_pad_buffer[4];
-	std::queue<NetPad>	m_pad_buffer[4];
-	std::map<FrameNum, NetWiimote>	m_wiimote_buffer[4];
+	std::queue<NetPad>		m_pad_buffer[4];
+	std::queue<NetWiimote>	m_wiimote_buffer[4];
 
-	FrameNum		m_wiimote_update_frame;
+	NetWiimote		m_wiimote_input[4];
 
 	NetPlayDiag*	m_dialog;
 	sf::SocketTCP	m_socket;
@@ -197,7 +193,7 @@ public:
 	NetPlayServer(const u16 port, const std::string& name, NetPlayDiag* const npd = NULL, const std::string& game = "");
 	~NetPlayServer();
 
-	void GetPlayerList(std::string& list);
+	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
 
 	// Send and receive pads values
 	//bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);
@@ -206,6 +202,9 @@ public:
 
 	bool StartGame(const std::string &path);
 	bool StopGame();
+
+	bool GetPadMapping(const int pid, int map[]);
+	bool SetPadMapping(const int pid, const int map[]);
 
 	u64 CalculateMinimumBufferTime();
 	void AdjustPadBufferSize(unsigned int size);
@@ -226,6 +225,7 @@ private:
 	unsigned int OnConnect(sf::SocketTCP& socket);
 	unsigned int OnDisconnect(sf::SocketTCP& socket);
 	unsigned int OnData(sf::Packet& packet, sf::SocketTCP& socket);
+	void UpdatePadMapping();
 
 	std::map<sf::SocketTCP, Client>	m_players;
 
@@ -242,7 +242,7 @@ public:
 	NetPlayClient(const std::string& address, const u16 port, const std::string& name, NetPlayDiag* const npd = NULL);
 	~NetPlayClient();
 
-	void GetPlayerList(std::string& list);
+	void GetPlayerList(std::string& list, std::vector<int>& pid_list);
 
 	// Send and receive pads values
 	//bool GetNetPads(const u8 pad_nb, const SPADStatus* const, NetPad* const netvalues);

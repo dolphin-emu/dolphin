@@ -57,7 +57,7 @@ void ControllerInterface::Init()
 //
 // remove all devices/ call library cleanup functions
 //
-void ControllerInterface::DeInit()
+void ControllerInterface::DeInit(const bool hacks_no_sdl_quit)
 {
 	if ( false == m_is_init )
 		return;
@@ -73,6 +73,13 @@ void ControllerInterface::DeInit()
 			(*d)->SetOutputState( *o, 0 );
 		// update output
 		(*d)->UpdateOutput();
+
+		// TODO: remove this
+		// major hacks to prevent gcpad/wiimote new from crashing eachother
+		if (hacks_no_sdl_quit)
+			if ((*d)->GetSource() == "SDL")
+				continue;
+
 		//delete device
 		delete *d;
 	}
@@ -92,8 +99,9 @@ void ControllerInterface::DeInit()
 	ciface::OSX::DeInit();
 #endif
 #ifdef CIFACE_USE_SDL
-	// there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
-	SDL_Quit();
+	// TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
+	if (false == hacks_no_sdl_quit)
+		SDL_Quit();
 #endif
 
 	m_is_init = false;

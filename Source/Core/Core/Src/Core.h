@@ -59,6 +59,8 @@ namespace Core
     // Get core parameters kill use SConfig instead
     extern SCoreStartupParameter g_CoreStartupParameter; 
 
+	void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
+
     void* GetWindowHandle();
 #if defined HAVE_X11 && HAVE_X11
     void* GetXWindow();

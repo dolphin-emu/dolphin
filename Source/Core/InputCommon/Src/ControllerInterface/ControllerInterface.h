@@ -240,7 +240,8 @@ public:
 	
 	void SetHwnd( void* const hwnd );
 	void Init();
-	void DeInit();
+	// TODO: remove this hack param
+	void DeInit(const bool hacks_no_sdl_quit = false);
 	bool IsInit();
 
 	void UpdateReference( ControlReference* control );
