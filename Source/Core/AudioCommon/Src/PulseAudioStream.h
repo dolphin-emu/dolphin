@@ -18,7 +18,7 @@
 #ifndef _PULSE_AUDIO_STREAM_H
 #define _PULSE_AUDIO_STREAM_H
 
-#if defined(HAVE_PULSE) && HAVE_PULSE
+#if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
 #include <pulse/simple.h>
 #include <pulse/error.h>
 #include <pulse/gccmacro.h>
@@ -31,7 +31,7 @@
 
 class PulseAudio : public SoundStream
 {
-#if defined(HAVE_PULSE) && HAVE_PULSE
+#if defined(HAVE_PULSEAUDIO) && HAVE_PULSEAUDIO
 public:
 	PulseAudio(CMixer *mixer);
 	virtual ~PulseAudio();
@@ -60,7 +60,7 @@ private:
 	// 2 = done shutting down.
 	volatile int thread_data;
 
-	snd_pcm_t *handle;
+	pa_simple *handle;
 #else
 public:
 	PulseAudio(CMixer *mixer) : SoundStream(mixer) {}

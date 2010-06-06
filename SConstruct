@@ -310,7 +310,7 @@ if sys.platform != 'darwin':
     if env['openal']:
         env['HAVE_OPENAL'] = conf.CheckPKG('openal')
     env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
-    #env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse')
+    env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse')
 
 # OpenCL
 env['HAVE_OPENCL'] = 0
@@ -419,6 +419,7 @@ conf.Define('HAVE_AO', env['HAVE_AO'])
 conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
 conf.Define('HAVE_OPENAL', env['HAVE_OPENAL'])
 conf.Define('HAVE_ALSA', env['HAVE_ALSA'])
+conf.Define('HAVE_PULSEAUDIO', env['HAVE_PULSEAUDIO'])
 conf.Define('HAVE_WX', env['HAVE_WX'])
 conf.Define('USE_WX', env['USE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])

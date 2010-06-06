@@ -61,11 +61,19 @@ void PulseAudio::Update()
 // Called on audio thread.
 void PulseAudio::SoundLoop()
 {
-	PulseInit();
+	if (!PulseInit()) {
+		thread_data = 2;
+		return;
+	}
 	while (!thread_data)
 	{
+		int err;
 		int frames_to_deliver = 512;
 		m_mixer->Mix(reinterpret_cast<short *>(mix_buffer), frames_to_deliver);
+		if (pa_simple_write(handle, mix_buffer, frames_to_deliver * 2 * 2, &err) < 0)
+		{
+			ERROR_LOG(AUDIO, "pa_simple_write fail: %s", pa_strerror(err));
+		}
 	}
 	PulseShutdown();
 	thread_data = 2;
@@ -73,6 +81,22 @@ void PulseAudio::SoundLoop()
 
 bool PulseAudio::PulseInit()
 {
+	// The Sample format to use
+	static const pa_sample_spec ss = {
+		PA_SAMPLE_S16LE,
+		m_mixer->GetSampleRate(),
+		2
+	};
+
+	int err;
+
+	if (!(handle = pa_simple_new(NULL, "dolphin-emu", PA_STREAM_PLAYBACK, NULL,
+					"emulator", &ss, NULL, NULL, &err)))
+	{
+		ERROR_LOG(AUDIO, "PulseAudio open error: %s\n", pa_strerror(err));
+		return false;
+	}
+
 	NOTICE_LOG(AUDIO, "Pulse successfully initialized.\n");
 	return true;
 }
@@ -81,7 +105,7 @@ void PulseAudio::PulseShutdown()
 {
 	if (handle != NULL)
 	{
-
+		pa_simple_free(handle);
 		handle = NULL;
 	}
 }
