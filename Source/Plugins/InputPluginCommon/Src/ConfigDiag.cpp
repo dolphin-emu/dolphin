@@ -600,7 +600,8 @@ void GamepadPage::RefreshDevices( wxCommandEvent& event )
 	g_plugin->controls_crit.Enter();		// enter
 
 	// refresh devices
-	g_plugin->controller_interface.DeInit();
+	// TODO: remove hackery of not deinting SDL
+	g_plugin->controller_interface.DeInit(true);
 	g_plugin->controller_interface.Init();
 
 	// update all control references

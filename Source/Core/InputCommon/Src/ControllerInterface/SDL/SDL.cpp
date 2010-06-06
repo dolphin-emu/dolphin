@@ -18,11 +18,11 @@ namespace ciface
 namespace SDL
 {
 
+// just a struct with an int that is set to ZERO by default
 struct ZeroedInt{ZeroedInt():value(0){}unsigned int value;};
+
 void Init( std::vector<ControllerInterface::Device*>& devices )
 {	
-	// just a struct with an int that is set to ZERO by default
-
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0
 	std::map<std::string, ZeroedInt>	name_counts;
@@ -55,22 +55,23 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 	// to not use SDL for an XInput device
 	// too many people on the forums pick the SDL device and ask:
 	// "why don't my 360 gamepad triggers/rumble work correctly"
-	#ifdef _WIN32
-		// checking the name is probably good (and hacky) enough
-		// but i'll double check with the num of buttons/axes
-		if (
-			("Controller (Xbox 360 Wireless Receiver for Windows)" == GetName())
-			&& (10 == SDL_JoystickNumButtons(joystick))
-			&& (5 == SDL_JoystickNumAxes(joystick))
-			&& (1 == SDL_JoystickNumHats(joystick))
-			&& (0 == SDL_JoystickNumBalls(joystick))
-			)
-		{
-			// this device won't be used
-			return;
-		}
+#ifdef _WIN32
+	// checking the name is probably good (and hacky) enough
+	// but i'll double check with the num of buttons/axes
+	std::string lcasename = GetName();
+	std::transform(lcasename.begin(), lcasename.end(), lcasename.begin(), tolower);
 
-	#endif
+	if ((std::string::npos != lcasename.find("xbox 360"))
+		&& (10 == SDL_JoystickNumButtons(joystick))
+		&& (5 == SDL_JoystickNumAxes(joystick))
+		&& (1 == SDL_JoystickNumHats(joystick))
+		&& (0 == SDL_JoystickNumBalls(joystick))
+		)
+	{
+		// this device won't be used
+		return;
+	}
+#endif
 
 	// get buttons
 	for ( int i = 0; i < SDL_JoystickNumButtons( m_joystick ); ++i )
