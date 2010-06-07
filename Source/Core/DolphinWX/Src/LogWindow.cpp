@@ -53,7 +53,11 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxString &, const wx
     , Parent(parent) , m_LogAccess(true)
 	, m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
 	, m_LogSection(1)
+#ifdef __linux__
+	, m_SJISConv(wxFONTENCODING_EUC_JP)
+#else
 	, m_SJISConv(wxFONTENCODING_SHIFT_JIS)
+#endif
 {
 	m_LogManager = LogManager::GetInstance();
 	for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)

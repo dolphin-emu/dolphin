@@ -372,7 +372,11 @@ void CGameListCtrl::InsertItemInReportView(long _Index)
 	// title: 0xFF0000
 	// company: 0x007030
 	int ImageIndex = -1;
+#ifdef __linux__
+	wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
+#else
 	wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+#endif
 	GameListItem& rISOFile = m_ISOFiles[_Index];
 	m_gamePath.append(rISOFile.GetFileName() + '\n');
 
