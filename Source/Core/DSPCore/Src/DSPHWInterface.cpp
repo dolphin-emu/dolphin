@@ -23,8 +23,6 @@
 
    ====================================================================*/
 
-#include <stdlib.h>
-
 #include "Thread.h"
 #include "MemoryUtil.h"
 

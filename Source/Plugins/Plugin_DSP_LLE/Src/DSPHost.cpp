@@ -66,7 +66,10 @@ void DSPHost_InterruptRequest()
 u32 DSPHost_CodeLoaded(const u8 *ptr, int size)
 {
 	u32 crc = GenerateCRC(ptr, size);
+
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	DumpDSPCode(ptr, size, crc);
+#endif
 
 	// HLE plugin uses this crc method
 	u32 ector_crc = HashEctor(ptr, size);

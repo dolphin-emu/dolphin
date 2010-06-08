@@ -23,9 +23,6 @@
 
    ====================================================================*/
 
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "DSPTables.h"
 #include "DSPHost.h"
 #include "DSPCore.h"

@@ -33,11 +33,11 @@ inline s64 dsp_get_multiply_prod(u16 a, u16 b, u8 sign)
 	s64 prod;
 
 	if ((sign == 1) && (g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)) //unsigned
-		prod = (u64)a * (u64)b;
+		prod = a * b;
 	else if ((sign == 2) && (g_dsp.r[DSP_REG_SR] & SR_MUL_UNSIGNED)) //mixed
-		prod = (u64)a * (s64)(s16)b;
+		prod = a * (s16)b;
 	else
-		prod = (s64)(s16)a * (s64)(s16)b; //signed
+		prod = (s16)a * (s16)b; //signed
 
 	// Conditionally multiply by 2.
 	if ((g_dsp.r[DSP_REG_SR] & SR_MUL_MODIFY) == 0)
@@ -60,7 +60,7 @@ inline s64 dsp_multiply_add(u16 a, u16 b, u8 sign = 0)
 
 inline s64 dsp_multiply_sub(u16 a, u16 b, u8 sign = 0)
 {
-	s64 prod = dsp_get_long_prod() -  dsp_get_multiply_prod(a, b, sign);
+	s64 prod = dsp_get_long_prod() - dsp_get_multiply_prod(a, b, sign);
 	return prod;
 }
 
@@ -71,9 +71,9 @@ inline s64 dsp_multiply_mulx(u8 axh0, u8 axh1, u16 val1, u16 val2)
 	if ((axh0==0) && (axh1==0))
 		result = dsp_multiply(val1, val2, 1); // unsigned support ON if both ax?.l regs are used
 	else if ((axh0==0) && (axh1==1))
-		result = dsp_multiply(val1, val2, 2); // mixed support ON (u64)axl.0  * (s64)(s16)axh.1
+		result = dsp_multiply(val1, val2, 2); // mixed support ON (u16)axl.0  * (s16)axh.1
 	else if ((axh0==1) && (axh1==0))
-		result = dsp_multiply(val2, val1, 2); // mixed support ON (u64)axl.1  * (s64)(s16)axh.0
+		result = dsp_multiply(val2, val1, 2); // mixed support ON (u16)axl.1  * (s16)axh.0
 	else
 		result = dsp_multiply(val1, val2, 0); // unsigned support OFF if both ax?.h regs are used
 

@@ -23,8 +23,6 @@
 
    ====================================================================*/
 
-#include <stdio.h>
-
 #include "DSPInterpreter.h"
 #include "DSPMemoryMap.h"
 #include "DSPHWInterface.h"
@@ -36,8 +34,10 @@ u16 dsp_imem_read(u16 addr)
 	{
 	case 0:   // 0xxx IRAM
 		return g_dsp.iram[addr & DSP_IRAM_MASK];
+
 	case 8:   // 8xxx IROM - contains code to receive code for IRAM, and a bunch of mixing loops.
 		return g_dsp.irom[addr & DSP_IROM_MASK];
+
 	default:  // Unmapped/non-existing memory
 		ERROR_LOG(DSPLLE, "%04x DSP ERROR: Executing from invalid (%04x) memory", g_dsp.pc, addr);
 		return 0;
@@ -70,10 +70,6 @@ void dsp_dmem_write(u16 addr, u16 val)
 	{
 	case 0x0: // 0xxx DRAM
 		g_dsp.dram[addr & DSP_DRAM_MASK] = val;
-		break;
-
-	case 0x1: // 1xxx COEF
-		ERROR_LOG(DSPLLE, "Illegal write to COEF (pc = %02x)", g_dsp.pc);
 		break;
 
 	case 0xf: // Fxxx HW regs

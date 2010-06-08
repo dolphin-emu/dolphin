@@ -106,7 +106,7 @@ extern const DSPOPCTemplate opcodes_ext[];
 extern const int opcodes_ext_size;
 extern const DSPOPCTemplate cw;
 
-#define WRITEBACKLOGSIZE 7
+#define WRITEBACKLOGSIZE 5
 
 extern const DSPOPCTemplate *opTable[OPTABLE_SIZE];
 extern const DSPOPCTemplate *extOpTable[EXT_OPTABLE_SIZE];

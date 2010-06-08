@@ -157,6 +157,8 @@ bool CheckCondition(u8 _Condition)
 {
 	switch (_Condition & 0xf)
 	{
+	case 0xf: // Always true.
+		return true;
 	case 0x0: // GE - Greater Equal
 		return !isLess();
 	case 0x1: // L - Less
@@ -187,8 +189,6 @@ bool CheckCondition(u8 _Condition)
 		return isLogicZero();
 	case 0xe: // 0 - Overflow
 		return isOverflow();
-	case 0xf: // Empty - always true.
-		return true;
 	default:
 		return true;
 	}
