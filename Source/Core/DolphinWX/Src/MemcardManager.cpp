@@ -760,7 +760,11 @@ bool CMemcardManager::ReloadMemcard(const char *fileName, int card)
 		if (!memoryCard[card]->DEntry_Comment2(j, comment)) comment[0]=0;
 
 		bool ascii = memoryCard[card]->IsAsciiEncoding();
-		wxCSConv SJISConv(wxT("SHIFT_JIS"));
+#ifdef __linux__
+		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_EUC_JP));
+#else
+		wxCSConv SJISConv(wxFontMapper::GetEncodingName(wxFONTENCODING_SHIFT_JIS));
+#endif
 		wxTitle  =  wxString(title, ascii ? *wxConvCurrent : SJISConv);
 		wxComment = wxString(comment, ascii ? *wxConvCurrent : SJISConv);
 

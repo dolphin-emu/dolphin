@@ -25,6 +25,7 @@
 #include <wx/stattext.h>
 #include <wx/listctrl.h>
 #include <wx/imaglist.h>
+#include <wx/fontmap.h>
 
 #include "IniFile.h"
 #include "FileUtil.h"
