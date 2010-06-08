@@ -160,14 +160,16 @@ void DSound::Clear(bool mute)
 {
 	m_muted = mute;
 
-	if (m_muted)
+	if (dsBuffer != NULL)
 	{
-		if (dsBuffer != NULL)
+		if (m_muted)
+		{
 			dsBuffer->Stop();
-	}
-	else
-	{
-		dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
+		}
+		else
+		{
+			dsBuffer->Play(0, 0, DSBPLAY_LOOPING);
+		}
 	}
 }
 
