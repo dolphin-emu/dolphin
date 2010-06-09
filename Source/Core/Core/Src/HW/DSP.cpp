@@ -426,6 +426,7 @@ void Write16(const u16 _Value, const u32 _Address)
 		// __OSInitAudioSystem sets to 0x43 -> expects 16bit adressing and mapping to dsp iram?
 		// __OSCheckSize sets = 0x20 | 3 (keeps upper bits)
 		// 0x23 -> Zelda standard mode (standard ARAM access ??)
+		// 0x43 -> Set by Eternal Darkness and SSBB
 		// 0x63 -> ARCheckSize Mode (access AR-registers ??) or no exception ??
 		break;
 
@@ -434,25 +435,26 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case AR_REFRESH:
+		// 0x9c -> Set by Eternal Darkness
 		g_AR_REFRESH = _Value;
 		break;
 
 	case AR_DMA_MMADDR_H:
 		g_arDMA.MMAddr = (g_arDMA.MMAddr & 0xFFFF) | (_Value<<16); break;
 	case AR_DMA_MMADDR_L:
-		g_arDMA.MMAddr = (g_arDMA.MMAddr & 0xFFFF0000) | (_Value); break;
+		g_arDMA.MMAddr = (g_arDMA.MMAddr & 0xFFFF0000) | (_Value); break; // Is MMAddr also 32 byte aligned?
 
 	case AR_DMA_ARADDR_H:
 		g_arDMA.ARAddr = (g_arDMA.ARAddr & 0xFFFF) | (_Value<<16); break;
 	case AR_DMA_ARADDR_L:
-		g_arDMA.ARAddr = (g_arDMA.ARAddr & 0xFFFF0000) | (_Value); break;
+		g_arDMA.ARAddr = (g_arDMA.ARAddr & 0xFFFF0000) | (_Value) + (_Value % 32); break;
 
 	case AR_DMA_CNT_H:
 		g_arDMA.Cnt.Hex = (g_arDMA.Cnt.Hex & 0xFFFF) | (_Value<<16);
 		break;
 
 	case AR_DMA_CNT_L:
-		g_arDMA.Cnt.Hex = (g_arDMA.Cnt.Hex & 0xFFFF0000) | (_Value);
+		g_arDMA.Cnt.Hex = (g_arDMA.Cnt.Hex & 0xFFFF0000) | (_Value) + (_Value % 4);
 		Do_ARAM_DMA();
 		break;
 
