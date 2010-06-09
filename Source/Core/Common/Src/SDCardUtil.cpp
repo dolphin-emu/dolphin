@@ -193,12 +193,15 @@ bool SDCardCreate(u64 disk_size /*in MB*/, char* filename)
 	FILE* f;
 
 	// Convert MB to bytes
-	disk_size *= 1024*1024;
+	disk_size *= 1024 * 1024;
 
-	if (disk_size < 0x800000 || disk_size > 0x800000000ULL)
+	if (disk_size < 0x800000 || disk_size > 0x800000000ULL) {
 		ERROR_LOG(COMMON, "Trying to create SD Card image of size %iMB is out of range (8MB-32GB)", disk_size/(1024*1024));
+		return false;
+	}
 
-	sectors_per_disk = disk_size / 512;
+	// pretty unlikely to overflow.
+	sectors_per_disk = (int)(disk_size / 512);
 	sectors_per_fat  = get_sectors_per_fat(disk_size, get_sectors_per_cluster(disk_size));
 
 	boot_sector_init(s_boot_sector, s_fsinfo_sector, disk_size, NULL );

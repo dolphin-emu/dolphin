@@ -111,7 +111,8 @@ struct Resolution
 struct AALevel
 {
 	AALevel(const char *n, D3DMULTISAMPLE_TYPE m, int q) {
-		strcpy(name, n);
+		strncpy(name, n, 32);
+		name[31] = '\0';
 		ms_setting = m; 
 		qual_setting = q;
 	}

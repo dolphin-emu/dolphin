@@ -433,7 +433,7 @@ bool RunBuffer()
         OpcodeDecoder::Run(availableBytes);
 
         // if data was read by the opcode decoder then the video data pointer changed
-        readPos = g_pVideoData - &commandBuffer[0];
+        readPos = (u32)(g_pVideoData - &commandBuffer[0]);
         _dbg_assert_(VIDEO, writePos >= readPos);
         availableBytes = writePos - readPos;
     }

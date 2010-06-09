@@ -556,7 +556,7 @@ typedef struct wiimote_t {
 
 	WCONST struct read_req_t* read_req;		/**< list of data read requests				*/
 	WCONST struct accel_t accel_calib;		/**< wiimote accelerometer calibration		*/
-	WCONST struct expansion_t exp;			/**< wiimote expansion device				*/
+	WCONST struct expansion_t expansion;	/**< wiimote expansion device				*/
 
 	WCONST struct vec3b_t accel;			/**< current raw acceleration data			*/
 	WCONST struct orient_t orient;			/**< current orientation on each axis		*/
