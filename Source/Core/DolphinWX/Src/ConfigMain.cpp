@@ -242,7 +242,7 @@ void CConfigMain::InitializeGUILists()
 	arrayStringFor_WiiSensBarPos.Add(wxT("Top"));
 	
 	// Aspect ratio
-	arrayStringFor_WiiAspectRatio.Add(wxT("4:3")); 
+	arrayStringFor_WiiAspectRatio.Add(wxT("4:3"));
 	arrayStringFor_WiiAspectRatio.Add(wxT("16:9"));
 	
 	// Wii Language arrayStrings
@@ -320,7 +320,7 @@ void CConfigMain::InitializeGUIValues()
 	FillChoiceBox(GraphicSelection, PLUGIN_TYPE_VIDEO, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
 	FillChoiceBox(DSPSelection, PLUGIN_TYPE_DSP, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
 	for (int i = 0; i < MAXPADS; i++)
-	    FillChoiceBox(PADSelection, PLUGIN_TYPE_PAD, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[i]);
+		FillChoiceBox(PADSelection, PLUGIN_TYPE_PAD, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[i]);
 	for (int i=0; i < MAXWIIMOTES; i++)
 		FillChoiceBox(WiimoteSelection, PLUGIN_TYPE_WIIMOTE, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin[i]);
 }
@@ -439,10 +439,10 @@ void CConfigMain::CreateGUIControls()
 	wxStaticText* FullscreenResolutionText = new wxStaticText(DisplayPage, wxID_ANY, wxT("Fullscreen Display Resolution:"), wxDefaultPosition, wxDefaultSize, 0);
 	FullscreenResolution = new wxChoice(DisplayPage, ID_DISPLAY_FULLSCREENRES, wxDefaultPosition, wxDefaultSize, arrayStringFor_FullscreenResolution, 0, wxDefaultValidator, arrayStringFor_FullscreenResolution[0]);
 	wxStaticText *WindowSizeText = new wxStaticText(DisplayPage, wxID_ANY, wxT("Window Size:"), wxDefaultPosition, wxDefaultSize, 0);
-	WindowWidth = new wxSpinCtrl(DisplayPage, ID_DISPLAY_WINDOWWIDTH, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+	WindowWidth = new wxSpinCtrl(DisplayPage, ID_DISPLAY_WINDOWWIDTH, wxEmptyString, wxDefaultPosition, wxSize(70, -1));
 	WindowWidth->SetRange(0,3280);
 	wxStaticText *WindowXText = new wxStaticText(DisplayPage, wxID_ANY, wxT("x"), wxDefaultPosition, wxDefaultSize, 0);
-	WindowHeight = new wxSpinCtrl(DisplayPage, ID_DISPLAY_WINDOWHEIGHT, wxEmptyString, wxDefaultPosition, wxDefaultSize);
+	WindowHeight = new wxSpinCtrl(DisplayPage, ID_DISPLAY_WINDOWHEIGHT, wxEmptyString, wxDefaultPosition, wxSize(70, -1));
 	WindowHeight->SetRange(0,2048);
 	Fullscreen = new wxCheckBox(DisplayPage, ID_DISPLAY_FULLSCREEN, wxT("Start Renderer in Fullscreen"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	HideCursor = new wxCheckBox(DisplayPage, ID_DISPLAY_HIDECURSOR, wxT("Hide Mouse Cursor"));
@@ -827,7 +827,7 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	case ID_CPUENGINE:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore = CPUEngine->GetSelection();
 		if (main_frame->g_pCodeWindow)
-			main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER, 
+			main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER,
 				SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore?false:true);
 		break;
 	case ID_DSPTHREAD:
@@ -939,7 +939,7 @@ void CConfigMain::ChooseMemcardPath(std::string& strMemcard, bool isSlotA)
 	std::string filename = std::string(wxFileSelector(
 		wxT("Choose a file to open"),
 		wxString::FromAscii(File::GetUserPath(D_GCUSER_IDX)),
-		isSlotA ? wxT(GC_MEMCARDA) : wxT(GC_MEMCARDB), 
+		isSlotA ? wxT(GC_MEMCARDA) : wxT(GC_MEMCARDB),
 		wxEmptyString,
 		wxT("Gamecube Memory Cards (*.raw,*.gcp)|*.raw;*.gcp")).mb_str());
 
@@ -1161,8 +1161,8 @@ void CConfigMain::OnConfig(wxCommandEvent& event)
 			CallConfig(DSPSelection);
 			break;
 		case ID_PAD_CONFIG:
-		    CallConfig(PADSelection);
-		    break;
+			CallConfig(PADSelection);
+			break;
 		case ID_WIIMOTE_CONFIG:
 			CallConfig(WiimoteSelection);
 			break;
@@ -1227,7 +1227,6 @@ bool CConfigMain::GetFilename(wxChoice* _pChoice, std::string& _rFilename)
 void CConfigMain::AddResolutions()
 {
 #ifdef _WIN32
-	
 	DWORD iModeNum = 0;
 	DEVMODE dmi;
 	ZeroMemory(&dmi, sizeof(dmi));
@@ -1247,40 +1246,46 @@ void CConfigMain::AddResolutions()
 		}
 		ZeroMemory(&dmi, sizeof(dmi));
 	}
-
 #elif defined(HAVE_XRANDR) && HAVE_XRANDR
-
 	main_frame->m_XRRConfig->AddResolutions(arrayStringFor_FullscreenResolution);
-
 #elif defined(__APPLE__)
-	
-	CGDisplayModeRef			mode;
-	CFArrayRef					array;
-	CFIndex						n, i;
-	int							w, h;
+	CFDictionaryRef			mode;
+	CFArrayRef			array;
+	CFIndex				n, i;
+	int				w, h;
 	std::vector<std::string>	resos;
 	
-	array	= CGDisplayCopyAllDisplayModes(CGMainDisplayID(), NULL);
-	n		= CFArrayGetCount(array);
+	array = CGDisplayAvailableModes(CGMainDisplayID());
+	n = CFArrayGetCount(array);
 	
 	for (i = 0; i < n; i++)
 	{
-		mode	= (CGDisplayModeRef)CFArrayGetValueAtIndex(array, i);
-		w		= CGDisplayModeGetWidth(mode);
-		h		= CGDisplayModeGetHeight(mode);
+		mode	= (CFDictionaryRef)CFArrayGetValueAtIndex(array, i);
+		
+		CFNumberRef anWidth = (CFNumberRef)CFDictionaryGetValue(mode,
+			kCGDisplayWidth);
+		if (NULL == anWidth ||
+			!CFNumberGetValue(anWidth, kCFNumberIntType, &w))
+			continue;
+
+		CFNumberRef anHeight =
+			(CFNumberRef)CFDictionaryGetValue(mode,
+				kCGDisplayHeight);
+		if (NULL == anHeight ||
+			!CFNumberGetValue(anHeight, kCFNumberIntType, &h))
+			continue;
 		
 		char res[32];
 		sprintf(res,"%dx%d", w, h);
 		std::string strRes(res);
+
 		// Only add unique resolutions
-		if (std::find(resos.begin(), resos.end(), strRes) == resos.end())
+		if (std::find(resos.begin(), resos.end(), strRes) ==
+			resos.end())
 		{
 			resos.push_back(strRes);
-			arrayStringFor_FullscreenResolution.Add(wxString::FromAscii(res));
+			arrayStringFor_FullscreenResolution.Add(strRes);
 		}
 	}
-	CFRelease(array);
-
 #endif
 }
-

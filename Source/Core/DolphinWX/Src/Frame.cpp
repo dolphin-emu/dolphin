@@ -949,7 +949,7 @@ void CFrame::DoFullscreen(bool bF)
 {
 	ToggleDisplayMode(bF);
 
-	m_RenderFrame->ShowFullScreen(bF);
+	m_RenderFrame->ShowFullScreen(bF, wxFULLSCREEN_ALL);
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 	{
 		if (bF)

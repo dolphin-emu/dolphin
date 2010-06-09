@@ -31,6 +31,10 @@ const wxString WXKeyToString(int keycode)
 		case WXK_SPACE:			return wxT("Space");
 		case WXK_DELETE:		return wxT("Delete");
 
+		// Undocumented wx keycodes
+		case 167:			return wxT("Paragraph");
+		case 177:			return wxT("Plus-Minus");
+
 		case WXK_START:			return wxT("Start");
 		case WXK_LBUTTON:		return wxT("L Button");
 		case WXK_RBUTTON:		return wxT("R Button");
@@ -142,9 +146,12 @@ const wxString WXKeymodToString(int modifier)
 	switch (modifier)
 	{
 		case wxMOD_ALT:			return wxT("Alt");
-		case wxMOD_CMD:			return wxT("Ctrl");
+		case wxMOD_CONTROL:		return wxT("Ctrl");
 		case wxMOD_ALTGR:		return wxT("Ctrl+Alt");
 		case wxMOD_SHIFT:		return wxT("Shift");
+		// wxWidgets can only use Alt/Ctrl/Shift as menu accelerators,
+		// so Meta (Command on OS X) is simply made equivalent to Ctrl.
+		case wxMOD_META:		return wxT("Ctrl");
 		default:			return wxT("");
 	}
 }

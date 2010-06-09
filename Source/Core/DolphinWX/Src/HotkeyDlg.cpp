@@ -93,7 +93,8 @@ void HotkeyConfigDialog::OnKeyDown(wxKeyEvent& event)
 		g_Modkey = event.GetModifiers();
 
 		// Don't allow modifier keys
-		if (g_Pressed == WXK_CONTROL || g_Pressed == WXK_ALT || g_Pressed == WXK_SHIFT)
+		if (g_Pressed == WXK_CONTROL || g_Pressed == WXK_ALT ||
+			g_Pressed == WXK_SHIFT || g_Pressed == WXK_COMMAND)
 			return;
 
 		// Use the space key to set a blank key

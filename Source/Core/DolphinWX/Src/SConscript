@@ -8,7 +8,6 @@ wxenv = env.Clone()
 
 files = [
 	'BootManager.cpp',
-	'cmdline.c',
 	]
 
 libs = [
@@ -49,6 +48,10 @@ if wxenv['HAVE_WX']:
                 ],
 
 	libs = [ 'debwx', 'debugger_ui_util'] + libs
+else:
+	files+= [
+		'cmdline.c',
+		]
 
 if sys.platform == 'darwin':
     files += [ 'cocoaApp.m', ]
