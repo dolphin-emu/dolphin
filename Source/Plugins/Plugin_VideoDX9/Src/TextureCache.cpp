@@ -362,7 +362,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	int tex_w = (abs(source_rect.GetWidth()) >> bScaleByHalf);
 	int tex_h = (abs(source_rect.GetHeight()) >> bScaleByHalf);
 	//compensate the texture grow if supersampling is enabled to conserve memory usage
-	float SuperSampleCompensation = (g_ActiveConfig.iMultisampleMode % 3) + 1;
+	float SuperSampleCompensation = g_ActiveConfig.iMultisampleMode + 1;
 	SuperSampleCompensation = 1.0f / SuperSampleCompensation;
 	float xScale = Renderer::GetTargetScaleX();
 	float yScale = Renderer::GetTargetScaleY();

@@ -57,14 +57,24 @@ struct TabDirect3D : public W32Util::Tab
 		{
 			swprintf_s( tempstr, _T("%hs"), adapter.aa_levels[i].name );
 			ComboBox_AddString(GetDlgItem(hDlg, IDC_ANTIALIASMODE), tempstr);
-		}
-
+		}		
 		ComboBox_SetCurSel(GetDlgItem(hDlg, IDC_ANTIALIASMODE), g_Config.iMultisampleMode);
 		if (adapter.aa_levels.size() == 1)
 		{
 			ComboBox_Enable(GetDlgItem(hDlg, IDC_ANTIALIASMODE), FALSE);
 		}
-
+		
+		swprintf_s( tempstr, _T("%hs"), "Auto (Fractional)" );
+		ComboBox_AddString(GetDlgItem(hDlg, IDC_EFBSCALE), tempstr);
+		swprintf_s( tempstr, _T("%hs"), "Auto (Integral)" );
+		ComboBox_AddString(GetDlgItem(hDlg, IDC_EFBSCALE), tempstr);
+		swprintf_s( tempstr, _T("%hs"), "1x" );
+		ComboBox_AddString(GetDlgItem(hDlg, IDC_EFBSCALE), tempstr);
+		swprintf_s( tempstr, _T("%hs"), "2x" );
+		ComboBox_AddString(GetDlgItem(hDlg, IDC_EFBSCALE), tempstr);
+		swprintf_s( tempstr, _T("%hs"), "3x" );
+		ComboBox_AddString(GetDlgItem(hDlg, IDC_EFBSCALE), tempstr);
+		ComboBox_SetCurSel(GetDlgItem(hDlg, IDC_EFBSCALE), g_Config.iEFBScale);
 		for (int i = 0; i < 4; i++)
 		{
 			ComboBox_AddString(GetDlgItem(hDlg, IDC_ASPECTRATIO), aspect_ratio_names[i]);
@@ -150,6 +160,7 @@ struct TabDirect3D : public W32Util::Tab
 	{
 		g_Config.iAdapter = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_ADAPTER));
 		g_Config.iMultisampleMode = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_ANTIALIASMODE));
+		g_Config.iEFBScale = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_EFBSCALE));
 		g_Config.bVSync = Button_GetCheck(GetDlgItem(hDlg, IDC_VSYNC)) ? true : false;
 		if(Button_GetCheck(GetDlgItem(hDlg, IDC_SAFE_TEXTURE_CACHE_SAFE)))
 		{

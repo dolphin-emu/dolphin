@@ -80,6 +80,7 @@ struct VideoConfig
 	
 	// Enhancements
 	int iMultisampleMode;
+	int iEFBScale;
 	bool bForceFiltering;
 	int iMaxAnisotropy;
 	std::string sPostProcessingShader;

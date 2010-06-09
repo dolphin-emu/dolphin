@@ -69,8 +69,8 @@ static int s_XFB_height;
 static float xScale;
 static float yScale;
 
-static int EFBxScale;
-static int EFByScale;
+static float EFBxScale;
+static float EFByScale;
 
 static int s_recordWidth;
 static int s_recordHeight;
@@ -80,6 +80,7 @@ static bool s_AVIDumping;
 
 static u32 s_blendMode;
 static u32 s_LastAA;
+static u32 s_LastEFBScale;
 static bool IS_AMD;
 static bool XFBWrited;
 
@@ -287,11 +288,27 @@ bool Renderer::Init()
 		yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
 	}
 	
-	s_LastAA = (g_ActiveConfig.iMultisampleMode > 3)?0:g_ActiveConfig.iMultisampleMode;
+	s_LastAA = g_ActiveConfig.iMultisampleMode;
+	s_LastEFBScale = g_ActiveConfig.iEFBScale;
+	float SupersampleCoeficient = s_LastAA + 1;	
+	switch(s_LastEFBScale)
+	{
+		case 0: 
+			EFBxScale = xScale;
+			EFByScale = yScale;
+			break;
+		case 1: 
+			EFBxScale = ceilf(xScale);
+			EFByScale = ceilf(yScale);
+			break;
+		default:
+			EFBxScale = g_ActiveConfig.iEFBScale - 1;
+			EFByScale = EFBxScale;
+			break;
+	};
 	
-	float SupersampleCoeficient = (s_LastAA % 3) + 1;
-	EFBxScale = (s_LastAA / 3) + 1 * SupersampleCoeficient;
-	EFByScale = EFBxScale;
+	EFBxScale *= SupersampleCoeficient;
+	EFByScale *= SupersampleCoeficient;
 
 	s_target_width  = EFB_WIDTH * EFBxScale;
 	s_target_height = EFB_HEIGHT * EFByScale;
@@ -1177,9 +1194,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	}
 
 	u32 newAA = g_ActiveConfig.iMultisampleMode;
-	if(newAA != s_LastAA || xfbchanged || WindowResized)
+	u32 newEFBScale = g_ActiveConfig.iEFBScale;
+	if(newAA != s_LastAA || newEFBScale != s_LastEFBScale || xfbchanged || WindowResized)
 	{	
 		s_LastAA = newAA;
+		s_LastEFBScale = newEFBScale;
 
 		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
 
@@ -1193,9 +1212,25 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 			yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
 		}
 		
-		float SupersampleCoeficient = (s_LastAA % 3) + 1;	
-		EFBxScale = (s_LastAA / 3) + 1 * SupersampleCoeficient;
-		EFByScale = EFBxScale;
+		float SupersampleCoeficient = s_LastAA + 1;	
+		switch(s_LastEFBScale)
+		{
+			case 0: 
+				EFBxScale = xScale;
+				EFByScale = yScale;
+				break;
+			case 1: 
+				EFBxScale = ceilf(xScale);
+				EFByScale = ceilf(yScale);
+				break;
+			default:
+				EFBxScale = g_ActiveConfig.iEFBScale - 1;
+				EFByScale = EFBxScale;
+				break;
+		};
+		
+		EFBxScale *= SupersampleCoeficient;
+		EFByScale *= SupersampleCoeficient;
 		s_target_width  = EFB_WIDTH * EFBxScale;
 		s_target_height = EFB_HEIGHT * EFByScale;
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());

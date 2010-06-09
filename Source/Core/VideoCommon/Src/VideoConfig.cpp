@@ -74,6 +74,8 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Settings", "FreeLook", &bFreeLook, 0);
 	iniFile.Get("Settings", "ShowShaderErrors", &bShowShaderErrors, 0);
 	iniFile.Get("Settings", "MSAA", &iMultisampleMode, 0);
+	iniFile.Get("Settings", "EFBScale", &iEFBScale, 0);
+	
 	iniFile.Get("Settings", "DstAlphaPass", &bDstAlphaPass, false);
 	
 	iniFile.Get("Settings", "TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
@@ -132,6 +134,8 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 
 	if (iniFile.Exists("Video", "MSAA"))
 		iniFile.Get("Video", "MSAA", &iMultisampleMode);
+	if (iniFile.Exists("Video", "EFBScale"))
+		iniFile.Get("Video", "EFBScale", &iEFBScale, 0);
 	if (iniFile.Exists("Video", "DstAlphaPass"))
 		iniFile.Get("Video", "DstAlphaPass", &bDstAlphaPass);
 	if (iniFile.Exists("Video", "UseXFB"))
@@ -178,6 +182,7 @@ void VideoConfig::Save(const char *ini_file)
 	iniFile.Set("Settings", "ShowEFBCopyRegions", bShowEFBCopyRegions);
 	iniFile.Set("Settings", "ShowShaderErrors", bShowShaderErrors);
 	iniFile.Set("Settings", "MSAA", iMultisampleMode);
+	iniFile.Set("Settings", "EFBScale", iEFBScale);
 	iniFile.Set("Settings", "TexFmtOverlayEnable", bTexFmtOverlayEnable);
 	iniFile.Set("Settings", "TexFmtOverlayCenter", bTexFmtOverlayCenter);
 	iniFile.Set("Settings", "Wireframe", bWireFrame);

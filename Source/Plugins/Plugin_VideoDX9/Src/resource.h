@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by resource.rc
+// Used by Resource.rc
 //
 #define IDD_ABOUT                       102
 #define IDD_SETTINGS                    103
@@ -8,6 +8,8 @@
 #define IDD_ADVANCED                    105
 #define IDC_ADAPTER                     1001
 #define IDC_ANTIALIASMODE               1002
+#define IDC_ANTIALIASMODE2              1003
+#define IDC_EFBSCALE                    1003
 #define IDC_VSYNC                       1006
 #define IDC_WIDESCREEN_HACK             1010
 #define IDC_SAFE_TEXTURE_CACHE          1011
