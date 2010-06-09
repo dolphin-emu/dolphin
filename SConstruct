@@ -9,14 +9,8 @@ sys.path.append('SconsTests')
 import wxconfig 
 import utils
 
-# Some features needs at least scons 0.98
+# Some features needs at least SCons 1.2
 EnsureSConsVersion(1, 2)
-
-# TODO: how do we use it in help?
-name="Dolphin"
-version="SVN"
-description="A wii/gamecube emulator"
-license="GPL v2"
 
 warnings = [
     'all',
@@ -26,7 +20,6 @@ warnings = [
     'packed',
     'no-conversion',
     ]
-# XXX check for the availability of these (in GCC 4.3 or newer)
 
 compileFlags = [
     '-fno-exceptions',
@@ -98,7 +91,7 @@ if sys.platform == 'darwin':
                 writePlist(properties, str(dstNode))
     builders['Plist'] = Builder(action = createPlist)
 
-# handle command line options
+# Handle command line options
 vars = Variables('args.cache')
 
 vars.AddVariables(
@@ -145,11 +138,6 @@ if sys.platform == 'win32':
         variables = vars,
         ENV = os.environ,
         BUILDERS = builders,
-        DESCRIPTION = description,
-        SUMMARY = description,
-        LICENSE = license,
-        NAME = name,
-        VERSION = version,
         )
 else:
     env = Environment(
@@ -164,17 +152,12 @@ else:
             'PKG_CONFIG_PATH' : os.environ.get('PKG_CONFIG_PATH')
         },
         BUILDERS = builders,
-        DESCRIPTION = description,
-        SUMMARY = description,
-        LICENSE = license,
-        NAME = name,
-        VERSION = version,
         )
 
-# save the given command line options
+# Save the given command line options
 vars.Save('args.cache', env)
 
-# verbose compile
+# Verbose compile
 if not env['verbose']:
     env['CCCOMSTR'] = "Compiling $TARGET"
     env['CXXCOMSTR'] = "Compiling $TARGET"
@@ -187,7 +170,7 @@ if not env['verbose']:
     env['SHLINKCOMSTR'] = "Linking shared $TARGET"
     env['RANLIBCOMSTR'] = "Indexing $TARGET"
 
-# build flavor
+# Build flavor
 flavour = env['flavor']
 if (flavour == 'debug'):
     compileFlags.append('-ggdb')
@@ -205,16 +188,18 @@ elif (flavour == 'prof'):
 elif (flavour == 'release'):
     compileFlags.append('-O3')
     compileFlags.append('-fomit-frame-pointer');
-# more warnings
+# More warnings
 if env['lint']:
     warnings.append('error')
+    # Should check for the availability of these (in GCC 4.3 or newer)
     if sys.platform != 'darwin':
         warnings.append('no-array-bounds')
         warnings.append('no-unused-result')
+    # wxWidgets causes too many warnings with these
     #warnings.append('unreachable-code')
     #warnings.append('float-equal')
 
-# add the warnings to the compile flags
+# Add the warnings to the compile flags
 compileFlags += [ ('-W' + warning) for warning in warnings ]
 
 env['CCFLAGS'] = compileFlags
@@ -224,7 +209,7 @@ else:
     env['CXXFLAGS'] = compileFlags + [ '-fvisibility-inlines-hidden' ]
 env['CPPDEFINES'] = cppDefines
 
-# pgo - Profile Guided Optimization
+# PGO - Profile Guided Optimization
 if env['pgo']=='generate':
     compileFlags.append('-fprofile-generate')
     env['LINKFLAGS']='-fprofile-generate'
@@ -243,7 +228,7 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          'CheckPortaudio' : utils.CheckPortaudio,
          }
 
-#object files
+# Object files
 env['build_dir'] = os.path.join(basedir, 'Build',
     platform.system() + '-' + platform.machine() + '-' + env['flavor'] + os.sep)
 
@@ -253,7 +238,7 @@ env['local_libs'] = env['build_dir'] + os.sep + 'libs' + os.sep
 # Where do we run from
 env['base_dir'] = os.getcwd()+ '/'
 
-# install paths
+# Install paths
 extra=''
 if flavour == 'debug':
     extra = '-debug'
@@ -284,25 +269,27 @@ conf = env.Configure(custom_tests = tests,
 if not conf.CheckPKGConfig('0.15.0'):
     print "Can't find pkg-config, some tests will fail"
 
-# find ports/fink for library and include path
+# Find MacPorts or Fink for library and include paths
 if sys.platform == 'darwin':
-    #ports usually has newer versions
+    # MacPorts usually has newer versions
     conf.CheckMacports()
     conf.CheckFink()
 
 env['HAVE_SDL'] = conf.CheckSDL('1.0.0')
+if not env['HAVE_SDL']:
+    print "SDL is required"
+    Exit(1)
 
 # Bluetooth for wii support
 env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 
-# needed for sound
-env['HAVE_ALSA'] = conf.CheckPKG('alsa')
-
+env['HAVE_ALSA'] = 0
 env['HAVE_AO'] = 0
 env['HAVE_OPENAL'] = 0
-env['HAVE_PORTAUDIO'] =  0
+env['HAVE_PORTAUDIO'] = 0
 env['HAVE_PULSEAUDIO'] = 0
 if sys.platform != 'darwin':
+    env['HAVE_ALSA'] = conf.CheckPKG('alsa')
     env['HAVE_AO'] = conf.CheckPKG('ao')
     env['HAVE_OPENAL'] = conf.CheckPKG('openal')
     env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
@@ -348,7 +335,7 @@ if not env['SHARED_SFML']:
     env['CPPPATH'] += [ basedir + 'Externals/SFML/include' ]
     dirs += ['Externals/SFML/src']
 
-#osx specifics
+# OS X specifics
 if sys.platform == 'darwin':
     compileFlags.append('-mmacosx-version-min=10.5')
     env['HAVE_XRANDR'] = 0
@@ -387,13 +374,12 @@ if not env['HAVE_WX'] and not env['nowx']:
     print "WX not found - see config.log"
     Exit(1)
 
-# zlib
 env['HAVE_ZLIB'] = conf.CheckPKG('z')
 if not ['HAVE_ZLIB']:
     print "zlib is required"
     Exit(1)
 
-# check for libgtk2.0
+# Check for GTK 2.0 or newer
 env['HAVE_GTK2'] = 0
 if sys.platform == 'linux2':
     env['HAVE_GTK2'] = env['HAVE_WX'] and conf.CheckPKG('gtk+-2.0')
@@ -429,7 +415,7 @@ if (env['install'] == 'global'):
     conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
     conf.Define('LIBS_DIR', "\"" + env['prefix'] + 'lib/' +  "\"")
 
-# lua
+# Lua
 env['LUA_USE_MACOSX'] = 0
 env['LUA_USE_LINUX'] = 0
 env['LUA_USE_POSIX'] = 0
@@ -441,7 +427,7 @@ elif sys.platform == 'linux2':
 conf.Define('LUA_USE_MACOSX', env['LUA_USE_MACOSX'])
 conf.Define('LUA_USE_LINUX', env['LUA_USE_LINUX'])
 
-# profile
+# Profiling
 env['USE_OPROFILE'] = 0
 if (flavour == 'prof'): 
     proflibs = [ '/usr/lib/oprofile', '/usr/local/lib/oprofile' ]
@@ -459,7 +445,7 @@ conf.Finish()
 rev = utils.GenerateRevFile(env['flavor'], 
                             "Source/Core/Common/Src/svnrev_template.h",
                             "Source/Core/Common/Src/svnrev.h")
-# print a nice progress indication when not compiling
+# Print a nice progress indication when not compiling
 Progress(['-\r', '\\\r', '|\r', '/\r'], interval=5)
 
 # Setup destdir for package building
@@ -471,13 +457,13 @@ if env.has_key('destdir'):
     env['binary_dir'] = env['destdir'] + env['binary_dir']
     env['data_dir'] = env['destdir'] + env['data_dir']
 
-# die on unknown variables
+# Die on unknown variables
 unknown = vars.UnknownVariables()
 if unknown:
     print "Unknown variables:", unknown.keys()
     Exit(1)
 
-# generate help
+# Generate help
 Help(vars.GenerateHelpText(env))
 
 Export('env')

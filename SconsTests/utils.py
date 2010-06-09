@@ -24,7 +24,6 @@ def CheckFramework(context, name):
 
     return ret
 
-
 def CheckFink(context):
     context.Message( 'Looking for fink... ')
     prog = context.env.WhereIs('fink')
@@ -90,10 +89,8 @@ def CheckPKG(context, name):
     context.Result(ret)
     return int(ret)
 
-
-
 def CheckSDL(context, version):
-    context.Message( 'Checking for sdl lib version > %s... ' % version)
+    context.Message( 'Checking for SDL lib version > %s... ' % version)
     if platform.system().lower() == 'windows':
         return 1
     sdl_config = context.env.WhereIs('sdl-config')
@@ -108,6 +105,7 @@ def CheckSDL(context, version):
         context.Result(ret)
         if ret:
             context.env.ParseConfig('sdl-config --cflags --libs')
+            ret = CheckLib(context, 'SDL')
         return int(ret)
     
 def CheckPortaudio(context, version):
@@ -130,8 +128,6 @@ def CheckPortaudio(context, version):
 
     context.Result(ret)
     return int(ret)
-
-
     
 def GenerateRevFile(flavour, template, output):
 

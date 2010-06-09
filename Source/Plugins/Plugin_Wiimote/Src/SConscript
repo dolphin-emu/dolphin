@@ -10,13 +10,13 @@ files = [
         "Config.cpp",
         "DataReports.cpp",
         "EmuDefinitions.cpp",
-		"EmuDynamics.cpp",
+        "EmuDynamics.cpp",
         "EmuMain.cpp",
         "EmuPad.cpp",
         "EmuSubroutines.cpp",
         "Encryption.cpp",
         "main.cpp",
-		"Rumble.cpp",
+        "Rumble.cpp",
 	"UDPWiimote.cpp"
 	]
 if wmenv['HAVE_WX']:
@@ -24,7 +24,7 @@ if wmenv['HAVE_WX']:
         "ConfigBasicDlg.cpp",
         "ConfigPadDlg.cpp",
         "ConfigRecordingDlg.cpp",
-		"ConfigGamepad.cpp",
+        "ConfigGamepad.cpp",
         "ConfigRecording.cpp",
         "FillReport.cpp",
         ]
@@ -41,7 +41,7 @@ if wmenv['HAVE_WIIUSE']:
 if sys.platform == 'darwin':
     wmenv.Append(
     	CXXFLAGS = cxxflags,
-    	LINKFLAGS = ['-framework' ,'IOBluetooth'],
+    	LINKFLAGS = ['-framework', 'IOBluetooth'],
     	LIBS = libs,
     	)
     wmenv['FRAMEWORKS'] = ['Cocoa', 'System']
@@ -50,6 +50,5 @@ else:
     	CXXFLAGS = cxxflags,
    	LIBS = libs,
     	)
-
 
 wmenv.SharedLibrary(env['plugin_dir']+name, files)
