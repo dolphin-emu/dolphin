@@ -84,7 +84,7 @@ int wii_board_handshake(struct wiimote_t* wm, struct wii_board_t* wb, byte* data
 
 	/* handshake done */
 	wm->event = WIIUSE_WII_BOARD_CTRL_INSERTED;
-	wm->exp.type = EXP_WII_BOARD;
+	wm->expansion.type = EXP_WII_BOARD;
 
 	return 1; 
 }

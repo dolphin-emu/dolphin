@@ -127,11 +127,9 @@ struct wiimote_t** wiiuse_init(int wiimotes) {
 			wm[i]->bdaddr = *BDADDR_ANY;
 			wm[i]->out_sock = -1;
 			wm[i]->in_sock = -1;
-		#else
-		#if !defined(__APPLE__)
+		#elif defined(_WIN32)
 			wm[i]->dev_handle = 0;
 			wm[i]->stack = WIIUSE_STACK_UNKNOWN;
-		#endif
 		#endif
 
 		wm[i]->normal_timeout = WIIMOTE_DEFAULT_TIMEOUT;
@@ -143,7 +141,7 @@ struct wiimote_t** wiiuse_init(int wiimotes) {
 
 		wm[i]->event = WIIUSE_NONE;
 
-		wm[i]->exp.type = EXP_NONE;
+		wm[i]->expansion.type = EXP_NONE;
 
 		wiiuse_set_aspect_ratio(wm[i], WIIUSE_ASPECT_4_3);
 		wiiuse_set_ir_position(wm[i], WIIUSE_IR_ABOVE);
@@ -181,10 +179,10 @@ void wiiuse_disconnected(struct wiimote_t* wm) {
 	wm->btns_released = 0;
 	memset(wm->event_buf, 0, sizeof(wm->event_buf));
 
-	#ifndef WIN32
+	#ifdef __linux__
 		wm->out_sock = -1;
 		wm->in_sock = -1;
-	#else
+	#elif defined(_WIN32)
 		CloseHandle(wm->dev_handle);
 		wm->dev_handle = 0;
 	#endif
@@ -298,7 +296,7 @@ void wiiuse_motion_sensing(struct wiimote_t* wm, int status) {
  */
 int wiiuse_set_report_type(struct wiimote_t* wm) {
 	byte buf[2];
-	int motion, exp, ir;
+	int motion, expansion, ir;
 
 	if (!wm || !WIIMOTE_IS_CONNECTED(wm))
 		return 0;
@@ -311,23 +309,23 @@ int wiiuse_set_report_type(struct wiimote_t* wm) {
 		buf[0] |= 0x01;
 
 	motion = WIIMOTE_IS_SET(wm, WIIMOTE_STATE_ACC);
-	exp = WIIMOTE_IS_SET(wm, WIIMOTE_STATE_EXP);
+	expansion = WIIMOTE_IS_SET(wm, WIIMOTE_STATE_EXP);
 	ir = WIIMOTE_IS_SET(wm, WIIMOTE_STATE_IR);
 
-	if (motion && ir && exp)	buf[1] = WM_RPT_BTN_ACC_IR_EXP;
-	else if (motion && exp)		buf[1] = WM_RPT_BTN_ACC_EXP;
-	else if (motion && ir)		buf[1] = WM_RPT_BTN_ACC_IR;
-	else if (ir && exp)			buf[1] = WM_RPT_BTN_IR_EXP;
+	if (motion && ir && expansion)		buf[1] = WM_RPT_BTN_ACC_IR_EXP;
+	else if (motion && expansion)		buf[1] = WM_RPT_BTN_ACC_EXP;
+	else if (motion && ir)			buf[1] = WM_RPT_BTN_ACC_IR;
+	else if (ir && expansion)		buf[1] = WM_RPT_BTN_IR_EXP;
 	else if (ir)				buf[1] = WM_RPT_BTN_ACC_IR;
-	else if (exp)				buf[1] = WM_RPT_BTN_EXP;
+	else if (expansion)			buf[1] = WM_RPT_BTN_EXP;
 	else if (motion)			buf[1] = WM_RPT_BTN_ACC;
-	else						buf[1] = WM_RPT_BTN;
+	else					buf[1] = WM_RPT_BTN;
 
 	WIIUSE_DEBUG("Setting report type: 0x%x", buf[1]);
 
-	exp = wiiuse_send(wm, WM_CMD_REPORT_TYPE, buf, 2);
-	if (exp <= 0)
-		return exp;
+	expansion = wiiuse_send(wm, WM_CMD_REPORT_TYPE, buf, 2);
+	if (expansion <= 0)
+		return expansion;
 
 	return buf[1];
 }
@@ -663,8 +661,8 @@ float wiiuse_set_smooth_alpha(struct wiimote_t* wm, float alpha) {
 	wm->accel_calib.st_alpha = alpha;
 
 	/* if there is a nunchuk set that too */
-	if (wm->exp.type == EXP_NUNCHUK)
-		wm->exp.nunchuk.accel_calib.st_alpha = alpha;
+	if (wm->expansion.type == EXP_NUNCHUK)
+		wm->expansion.nunchuk.accel_calib.st_alpha = alpha;
 
 	return old;
 }

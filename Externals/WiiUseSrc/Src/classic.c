@@ -110,7 +110,7 @@ int classic_ctrl_handshake(struct wiimote_t* wm, struct classic_ctrl_t* cc, byte
 	cc->rjs.center.y = data[11 + offset] / 8;
 
 	/* handshake done */
-	wm->exp.type = EXP_CLASSIC;
+	wm->expansion.type = EXP_CLASSIC;
 
 	wm->timeout = WIIMOTE_DEFAULT_TIMEOUT;
 

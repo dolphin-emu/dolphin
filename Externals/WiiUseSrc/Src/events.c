@@ -514,18 +514,18 @@ static void event_status(struct wiimote_t* wm, byte* msg) {
  *	@param msg		The message specified in the event packet for the expansion.
  */
 static void handle_expansion(struct wiimote_t* wm, byte* msg) {
-	switch (wm->exp.type) {
+	switch (wm->expansion.type) {
 		case EXP_NUNCHUK:
-			nunchuk_event(&wm->exp.nunchuk, msg);
+			nunchuk_event(&wm->expansion.nunchuk, msg);
 			break;
 		case EXP_CLASSIC:
-			classic_ctrl_event(&wm->exp.classic, msg);
+			classic_ctrl_event(&wm->expansion.classic, msg);
 			break;
 		case EXP_GUITAR_HERO_3:
-			guitar_hero_3_event(&wm->exp.gh3, msg);
+			guitar_hero_3_event(&wm->expansion.gh3, msg);
 			break;
 		case EXP_WII_BOARD:
-			wii_board_event(&wm->exp.wb, msg);
+			wii_board_event(&wm->expansion.wb, msg);
 			break;
 		default:
 			break;
@@ -578,25 +578,25 @@ void handshake_expansion(struct wiimote_t* wm, byte* data, unsigned short len) {
 	switch (wid) {
 		case EXP_ID_CODE_NUNCHUK:
 		{
-			if (nunchuk_handshake(wm, &wm->exp.nunchuk, data, len))
+			if (nunchuk_handshake(wm, &wm->expansion.nunchuk, data, len))
 				wm->event = WIIUSE_NUNCHUK_INSERTED;
 			break;
 		}
 		case EXP_ID_CODE_CLASSIC_CONTROLLER:
 		{
-			if (classic_ctrl_handshake(wm, &wm->exp.classic, data, len))
+			if (classic_ctrl_handshake(wm, &wm->expansion.classic, data, len))
 				wm->event = WIIUSE_CLASSIC_CTRL_INSERTED;
 			break;
 		}
 		case EXP_ID_CODE_GUITAR:
 		{
-			if (guitar_hero_3_handshake(wm, &wm->exp.gh3, data, len))
+			if (guitar_hero_3_handshake(wm, &wm->expansion.gh3, data, len))
 				wm->event = WIIUSE_GUITAR_HERO_3_CTRL_INSERTED;
 			break;
 		}
 		case EXP_ID_CODE_WII_BOARD:
 		{
-			if (wii_board_handshake(wm, &wm->exp.wb, data, len))
+			if (wii_board_handshake(wm, &wm->expansion.wb, data, len))
 				wm->event = WIIUSE_WII_BOARD_CTRL_INSERTED;
 			break;
 		}
@@ -627,21 +627,21 @@ void disable_expansion(struct wiimote_t* wm) {
 		return;
 
 	/* tell the assoicated module the expansion was removed */
-	switch (wm->exp.type) {
+	switch (wm->expansion.type) {
 		case EXP_NUNCHUK:
-			nunchuk_disconnected(&wm->exp.nunchuk);
+			nunchuk_disconnected(&wm->expansion.nunchuk);
 			wm->event = WIIUSE_NUNCHUK_REMOVED;
 			break;
 		case EXP_CLASSIC:
-			classic_ctrl_disconnected(&wm->exp.classic);
+			classic_ctrl_disconnected(&wm->expansion.classic);
 			wm->event = WIIUSE_CLASSIC_CTRL_REMOVED;
 			break;
 		case EXP_GUITAR_HERO_3:
-			guitar_hero_3_disconnected(&wm->exp.gh3);
+			guitar_hero_3_disconnected(&wm->expansion.gh3);
 			wm->event = WIIUSE_GUITAR_HERO_3_CTRL_REMOVED;
 			break;
 		case EXP_WII_BOARD:
-			wii_board_disconnected(&wm->exp.wb);
+			wii_board_disconnected(&wm->expansion.wb);
 			wm->event = WIIUSE_WII_BOARD_CTRL_REMOVED;
 			break;
 		default:
@@ -649,7 +649,7 @@ void disable_expansion(struct wiimote_t* wm) {
 	}
 
 	WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_EXP);
-	wm->exp.type = EXP_NONE;
+	wm->expansion.type = EXP_NONE;
 
 }
 
@@ -671,29 +671,29 @@ static void save_state(struct wiimote_t* wm) {
 	}
 
 	/* expansion */
-	switch (wm->exp.type) {
+	switch (wm->expansion.type) {
 		case EXP_NUNCHUK:
-			wm->lstate.exp_ljs_ang = wm->exp.nunchuk.js.ang;
-			wm->lstate.exp_ljs_mag = wm->exp.nunchuk.js.mag;
-			wm->lstate.exp_btns = wm->exp.nunchuk.btns;
-			wm->lstate.exp_accel = wm->exp.nunchuk.accel;
+			wm->lstate.exp_ljs_ang = wm->expansion.nunchuk.js.ang;
+			wm->lstate.exp_ljs_mag = wm->expansion.nunchuk.js.mag;
+			wm->lstate.exp_btns = wm->expansion.nunchuk.btns;
+			wm->lstate.exp_accel = wm->expansion.nunchuk.accel;
 			break;
 
 		case EXP_CLASSIC:
-			wm->lstate.exp_ljs_ang = wm->exp.classic.ljs.ang;
-			wm->lstate.exp_ljs_mag = wm->exp.classic.ljs.mag;
-			wm->lstate.exp_rjs_ang = wm->exp.classic.rjs.ang;
-			wm->lstate.exp_rjs_mag = wm->exp.classic.rjs.mag;
-			wm->lstate.exp_r_shoulder = wm->exp.classic.r_shoulder;
-			wm->lstate.exp_l_shoulder = wm->exp.classic.l_shoulder;
-			wm->lstate.exp_btns = wm->exp.classic.btns;
+			wm->lstate.exp_ljs_ang = wm->expansion.classic.ljs.ang;
+			wm->lstate.exp_ljs_mag = wm->expansion.classic.ljs.mag;
+			wm->lstate.exp_rjs_ang = wm->expansion.classic.rjs.ang;
+			wm->lstate.exp_rjs_mag = wm->expansion.classic.rjs.mag;
+			wm->lstate.exp_r_shoulder = wm->expansion.classic.r_shoulder;
+			wm->lstate.exp_l_shoulder = wm->expansion.classic.l_shoulder;
+			wm->lstate.exp_btns = wm->expansion.classic.btns;
 			break;
 
 		case EXP_GUITAR_HERO_3:
-			wm->lstate.exp_ljs_ang = wm->exp.gh3.js.ang;
-			wm->lstate.exp_ljs_mag = wm->exp.gh3.js.mag;
-			wm->lstate.exp_r_shoulder = wm->exp.gh3.whammy_bar;
-			wm->lstate.exp_btns = wm->exp.gh3.btns;
+			wm->lstate.exp_ljs_ang = wm->expansion.gh3.js.ang;
+			wm->lstate.exp_ljs_mag = wm->expansion.gh3.js.mag;
+			wm->lstate.exp_r_shoulder = wm->expansion.gh3.whammy_bar;
+			wm->lstate.exp_btns = wm->expansion.gh3.btns;
 			break;
 		case EXP_NONE:
 			break;
@@ -760,42 +760,42 @@ static int state_changed(struct wiimote_t* wm) {
 	}
 
 	/* expansion */
-	switch (wm->exp.type) {
+	switch (wm->expansion.type) {
 		case EXP_NUNCHUK:
 		{
-			STATE_CHANGED(wm->lstate.exp_ljs_ang, wm->exp.nunchuk.js.ang);
-			STATE_CHANGED(wm->lstate.exp_ljs_mag, wm->exp.nunchuk.js.mag);
-			STATE_CHANGED(wm->lstate.exp_btns, wm->exp.nunchuk.btns);
+			STATE_CHANGED(wm->lstate.exp_ljs_ang, wm->expansion.nunchuk.js.ang);
+			STATE_CHANGED(wm->lstate.exp_ljs_mag, wm->expansion.nunchuk.js.mag);
+			STATE_CHANGED(wm->lstate.exp_btns, wm->expansion.nunchuk.btns);
 
-			CROSS_THRESH(wm->lstate.exp_orient, wm->exp.nunchuk.orient, wm->exp.nunchuk.orient_threshold);
-			CROSS_THRESH_XYZ(wm->lstate.exp_accel, wm->exp.nunchuk.accel, wm->exp.nunchuk.accel_threshold);
+			CROSS_THRESH(wm->lstate.exp_orient, wm->expansion.nunchuk.orient, wm->expansion.nunchuk.orient_threshold);
+			CROSS_THRESH_XYZ(wm->lstate.exp_accel, wm->expansion.nunchuk.accel, wm->expansion.nunchuk.accel_threshold);
 			break;
 		}
 		case EXP_CLASSIC:
 		{
-			STATE_CHANGED(wm->lstate.exp_ljs_ang, wm->exp.classic.ljs.ang);
-			STATE_CHANGED(wm->lstate.exp_ljs_mag, wm->exp.classic.ljs.mag);
-			STATE_CHANGED(wm->lstate.exp_rjs_ang, wm->exp.classic.rjs.ang);
-			STATE_CHANGED(wm->lstate.exp_rjs_mag, wm->exp.classic.rjs.mag);
-			STATE_CHANGED(wm->lstate.exp_r_shoulder, wm->exp.classic.r_shoulder);
-			STATE_CHANGED(wm->lstate.exp_l_shoulder, wm->exp.classic.l_shoulder);
-			STATE_CHANGED(wm->lstate.exp_btns, wm->exp.classic.btns);
+			STATE_CHANGED(wm->lstate.exp_ljs_ang, wm->expansion.classic.ljs.ang);
+			STATE_CHANGED(wm->lstate.exp_ljs_mag, wm->expansion.classic.ljs.mag);
+			STATE_CHANGED(wm->lstate.exp_rjs_ang, wm->expansion.classic.rjs.ang);
+			STATE_CHANGED(wm->lstate.exp_rjs_mag, wm->expansion.classic.rjs.mag);
+			STATE_CHANGED(wm->lstate.exp_r_shoulder, wm->expansion.classic.r_shoulder);
+			STATE_CHANGED(wm->lstate.exp_l_shoulder, wm->expansion.classic.l_shoulder);
+			STATE_CHANGED(wm->lstate.exp_btns, wm->expansion.classic.btns);
 			break;
 		}
 		case EXP_GUITAR_HERO_3:
 		{
-			STATE_CHANGED(wm->lstate.exp_ljs_ang, wm->exp.gh3.js.ang);
-			STATE_CHANGED(wm->lstate.exp_ljs_mag, wm->exp.gh3.js.mag);
-			STATE_CHANGED(wm->lstate.exp_r_shoulder, wm->exp.gh3.whammy_bar);
-			STATE_CHANGED(wm->lstate.exp_btns, wm->exp.gh3.btns);
+			STATE_CHANGED(wm->lstate.exp_ljs_ang, wm->expansion.gh3.js.ang);
+			STATE_CHANGED(wm->lstate.exp_ljs_mag, wm->expansion.gh3.js.mag);
+			STATE_CHANGED(wm->lstate.exp_r_shoulder, wm->expansion.gh3.whammy_bar);
+			STATE_CHANGED(wm->lstate.exp_btns, wm->expansion.gh3.btns);
 			break;
 		}
 		case EXP_WII_BOARD:
 		{
-			STATE_CHANGED(wm->exp.wb.ltr,wm->exp.wb.tr);
-			STATE_CHANGED(wm->exp.wb.ltl,wm->exp.wb.tl);
-			STATE_CHANGED(wm->exp.wb.lbr,wm->exp.wb.br);
-			STATE_CHANGED(wm->exp.wb.lbl,wm->exp.wb.bl);
+			STATE_CHANGED(wm->expansion.wb.ltr,wm->expansion.wb.tr);
+			STATE_CHANGED(wm->expansion.wb.ltl,wm->expansion.wb.tl);
+			STATE_CHANGED(wm->expansion.wb.lbr,wm->expansion.wb.br);
+			STATE_CHANGED(wm->expansion.wb.lbl,wm->expansion.wb.bl);
 			break;
 		}
 		case EXP_NONE:

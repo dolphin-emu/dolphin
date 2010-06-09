@@ -42,12 +42,12 @@
 //#define WITH_WIIUSE_DEBUG
 
 #ifdef _WIN32
-	/* windows */
 	#include <windows.h>
 #elif defined(__APPLE__)
+	#include <CoreFoundation/CoreFoundation.h>
+	#include <IOBluetooth/IOBluetoothUserLib.h>
 	#include <string.h>
-#else
-	/* nix */
+#elif defined(__linux__)
 	#include <bluetooth/bluetooth.h>
 #endif
 
@@ -575,55 +575,55 @@ typedef enum WIIUSE_EVENT_TYPE {
  *	@brief Wiimote structure.
  */
 typedef struct wiimote_t {
-	WCONST int unid;						/**< user specified id						*/
+	WCONST int unid;				/**< user specified id				*/
 
-	#ifndef WIN32
 	#if defined(__APPLE__)
-		WCONST char bdaddr[10];				/**< bt address	on osx addr are string						*/
-	#else
-		WCONST bdaddr_t bdaddr;				/**< bt address	(linux)							*/
+		WCONST IOBluetoothDeviceRef *device;
+		WCONST char bdaddr_str[18];
+	#elif defined(__linux__)
+		WCONST bdaddr_t bdaddr;			/**< bt address	(linux)				*/
+		WCONST char bdaddr_str[18];		/**< readable bt address			*/
+		WCONST int out_sock;			/**< output socket				*/
+		WCONST int in_sock;			/**< input socket 				*/
+	#elif defined(_WIN32)
+		WCONST HANDLE dev_handle;		/**< HID handle					*/
+		WCONST OVERLAPPED hid_overlap;		/**< overlap handle				*/
+		WCONST enum win_bt_stack_t stack;	/**< type of bluetooth stack to use		*/
 	#endif
-		WCONST char bdaddr_str[18];			/**< readable bt address					*/
-		WCONST int out_sock;				/**< output socket							*/
-		WCONST int in_sock;					/**< input socket 							*/
-	#else
-		WCONST HANDLE dev_handle;			/**< HID handle								*/
-		WCONST OVERLAPPED hid_overlap;		/**< overlap handle							*/
-		WCONST enum win_bt_stack_t stack;	/**< type of bluetooth stack to use			*/
-	#endif
-		WCONST int timeout;					/**< read timeout							*/
-		WCONST byte normal_timeout;			/**< normal timeout							*/
-		WCONST byte exp_timeout;			/**< timeout for expansion handshake		*/
 
-	WCONST int state;						/**< various state flags					*/
-	WCONST byte leds;						/**< currently lit leds						*/
-	WCONST float battery_level;				/**< battery level							*/
+	WCONST int timeout;				/**< read timeout				*/
+	WCONST byte normal_timeout;			/**< normal timeout				*/
+	WCONST byte exp_timeout;			/**< timeout for expansion handshake		*/
 
-	WCONST int flags;						/**< options flag							*/
+	WCONST int state;				/**< various state flags			*/
+	WCONST byte leds;				/**< currently lit leds				*/
+	WCONST float battery_level;			/**< battery level				*/
+
+	WCONST int flags;				/**< options flag				*/
 
 	WCONST byte handshake_state;			/**< the state of the connection handshake	*/
 
-	WCONST struct read_req_t* read_req;		/**< list of data read requests				*/
+	WCONST struct read_req_t* read_req;		/**< list of data read requests			*/
 	WCONST struct accel_t accel_calib;		/**< wiimote accelerometer calibration		*/
-	WCONST struct expansion_t exp;			/**< wiimote expansion device				*/
+	WCONST struct expansion_t expansion;		/**< wiimote expansion device			*/
 
-	WCONST struct vec3b_t accel;			/**< current raw acceleration data			*/
+	WCONST struct vec3b_t accel;			/**< current raw acceleration data		*/
 	WCONST struct orient_t orient;			/**< current orientation on each axis		*/
 	WCONST struct gforce_t gforce;			/**< current gravity forces on each axis	*/
 
-	WCONST struct ir_t ir;					/**< IR data								*/
+	WCONST struct ir_t ir;				/**< IR data					*/
 
-	WCONST unsigned short btns;				/**< what buttons have just been pressed	*/
+	WCONST unsigned short btns;			/**< what buttons have just been pressed	*/
 	WCONST unsigned short btns_held;		/**< what buttons are being held down		*/
-	WCONST unsigned short btns_released;	/**< what buttons were just released this	*/
+	WCONST unsigned short btns_released;		/**< what buttons were just released this	*/
 
-	WCONST float orient_threshold;			/**< threshold for orient to generate an event */
-	WCONST int accel_threshold;				/**< threshold for accel to generate an event */
+	WCONST float orient_threshold;			/**< threshold for orient to generate an event	*/
+	WCONST int accel_threshold;			/**< threshold for accel to generate an event	*/
 
-	WCONST struct wiimote_state_t lstate;	/**< last saved state						*/
+	WCONST struct wiimote_state_t lstate;		/**< last saved state				*/
 
-	WCONST WIIUSE_EVENT_TYPE event;			/**< type of event that occured				*/
-	WCONST byte event_buf[MAX_PAYLOAD];		/**< event buffer							*/
+	WCONST WIIUSE_EVENT_TYPE event;			/**< type of event that occured			*/
+	WCONST byte event_buf[MAX_PAYLOAD];		/**< event buffer				*/
 } wiimote;
 
 

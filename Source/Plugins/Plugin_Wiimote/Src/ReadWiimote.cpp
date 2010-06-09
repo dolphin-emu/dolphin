@@ -49,7 +49,7 @@ void handle_ctrl_status(struct wiimote_t* wm)
 {
 	DEBUG_LOG(WIIMOTE, "--- CONTROLLER STATUS [wiimote id %i] ---", wm->unid);
 
-	DEBUG_LOG(WIIMOTE, "attachment:      %i", wm->exp.type);
+	DEBUG_LOG(WIIMOTE, "attachment:      %i", wm->expansion.type);
 	DEBUG_LOG(WIIMOTE, "speaker:         %i", WIIUSE_USING_SPEAKER(wm));
 	DEBUG_LOG(WIIMOTE, "ir:              %i", WIIUSE_USING_IR(wm));
 	DEBUG_LOG(WIIMOTE, "leds:            %i %i %i %i", WIIUSE_IS_LED_SET(wm, 1), WIIUSE_IS_LED_SET(wm, 2), WIIUSE_IS_LED_SET(wm, 3), WIIUSE_IS_LED_SET(wm, 4));
@@ -89,9 +89,9 @@ void handle_event(struct wiimote_t* wm)
 
 	struct nunchuk_t* nc = NULL;
 
-	if (wm->exp.type == EXP_NUNCHUK) {
+	if (wm->expansion.type == EXP_NUNCHUK) {
 		
-		nc = (nunchuk_t*)&wm->exp.nunchuk;
+		nc = (nunchuk_t*)&wm->expansion.nunchuk;
 		if (IS_PRESSED(nc, NUNCHUK_BUTTON_C))
 			DEBUG_LOG(WIIMOTE, "C pressed");
 		if (IS_PRESSED(nc, NUNCHUK_BUTTON_Z))
@@ -160,7 +160,7 @@ void handle_event(struct wiimote_t* wm)
 		Tmp += StringFromFormat("IR cursor: (%u, %u)\n", wm->ir.x, wm->ir.y);
 		Tmp += StringFromFormat("IR z distance: %f\n", wm->ir.z);
 
-		if(wm->exp.type == EXP_NUNCHUK)
+		if(wm->expansion.type == EXP_NUNCHUK)
 		{
 			Tmp += "\n";
 			Tmp += StringFromFormat("Nunchuck accel x, y, z: %03i %03i %03i\n", nc->accel.x, nc->accel.y, nc->accel.z);
@@ -202,7 +202,7 @@ void handle_event(struct wiimote_t* wm)
 
 				int GNCx, GNCy, GNCz;
 
-				if(wm->exp.type == EXP_NUNCHUK) // Updating Nunchuck Gauges
+				if(wm->expansion.type == EXP_NUNCHUK) // Updating Nunchuck Gauges
 				{	
 					m_RecordingConfigFrame->m_GaugeGForceNunchuk[0]->SetValue((int)floor((nc->gforce.x * 300) + 100.5));
 					m_RecordingConfigFrame->m_GaugeGForceNunchuk[1]->SetValue((int)floor((nc->gforce.y * 300) + 100.5));
@@ -231,7 +231,7 @@ void handle_event(struct wiimote_t* wm)
 				//	wxT("Current: %03u %03u %03u"), Gx, Gy, Gz));
 
 				if(m_RecordingConfigFrame->m_bRecording) {
-					if(wm->exp.type != EXP_NUNCHUK) {
+					if(wm->expansion.type != EXP_NUNCHUK) {
 						DEBUG_LOG(WIIMOTE, "Wiiuse Recorded accel x, y, z: %03i %03i %03i", Gx, Gy, Gz);
 					}
 					else {

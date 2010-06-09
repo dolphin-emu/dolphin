@@ -109,7 +109,7 @@ int nunchuk_handshake(struct wiimote_t* wm, struct nunchuk_t* nc, byte* data, un
 	nc->accel_threshold = wm->accel_threshold;
 
 	/* handshake done */
-	wm->exp.type = EXP_NUNCHUK;
+	wm->expansion.type = EXP_NUNCHUK;
 
 	/* if min and max are reported as 0, initialize them to usable values based on center, and fine tune in nunchuck_event() */
 	if (nc->js.center.x) {
@@ -212,7 +212,7 @@ static void nunchuk_pressed_buttons(struct nunchuk_t* nc, byte now) {
 void wiiuse_set_nunchuk_orient_threshold(struct wiimote_t* wm, float threshold) {
 	if (!wm)	return;
 
-	wm->exp.nunchuk.orient_threshold = threshold;
+	wm->expansion.nunchuk.orient_threshold = threshold;
 }
 
 
@@ -227,5 +227,5 @@ void wiiuse_set_nunchuk_orient_threshold(struct wiimote_t* wm, float threshold) 
 void wiiuse_set_nunchuk_accel_threshold(struct wiimote_t* wm, int threshold) {
 	if (!wm)	return;
 
-	wm->exp.nunchuk.accel_threshold = threshold;
+	wm->expansion.nunchuk.accel_threshold = threshold;
 }

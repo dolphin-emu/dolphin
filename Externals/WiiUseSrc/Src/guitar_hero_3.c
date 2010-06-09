@@ -81,7 +81,7 @@ int guitar_hero_3_handshake(struct wiimote_t* wm, struct guitar_hero_3_t* gh3, b
 
 	/* handshake done */
 	wm->event = WIIUSE_GUITAR_HERO_3_CTRL_INSERTED;
-	wm->exp.type = EXP_GUITAR_HERO_3;
+	wm->expansion.type = EXP_GUITAR_HERO_3;
 
 	wm->timeout = WIIMOTE_DEFAULT_TIMEOUT;
 
