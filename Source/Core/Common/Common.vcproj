@@ -29,7 +29,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="&quot;$(ProjectDir)SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)\src\svnrev_template.h&quot; &quot;$(ProjectDir)\src\svnrev.h&quot;"
+				CommandLine="set outfile=&quot;$(ProjectDir)\Src\svnrev.h&quot;&#x0D;&#x0A;&quot;$(ProjectDir)SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)\Src\svnrev_template.h&quot; %outfile%&#x0D;&#x0A;if errorlevel 1 (goto checkhg) else (goto VCEnd)&#x0D;&#x0A;:checkhg&#x0D;&#x0A;for /f &quot;usebackq tokens=1,* skip=3&quot; %%i in (`hg svn info`) do (&#x0D;&#x0A;echo Hg: Working copy at SVN revision %%j&#x0D;&#x0A;echo #define SVN_REV %%j &gt; %outfile%&#x0D;&#x0A;echo #define SVN_REV_STR &quot;%%j&quot; &gt;&gt; %outfile%&#x0D;&#x0A;goto VCEnd&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -98,7 +98,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="&quot;$(ProjectDir)SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)\src\svnrev_template.h&quot; &quot;$(ProjectDir)\src\svnrev.h&quot;"
+				CommandLine="set outfile=&quot;$(ProjectDir)\Src\svnrev.h&quot;&#x0D;&#x0A;&quot;$(ProjectDir)SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)\Src\svnrev_template.h&quot; %outfile%&#x0D;&#x0A;if errorlevel 1 (goto checkhg) else (goto VCEnd)&#x0D;&#x0A;:checkhg&#x0D;&#x0A;for /f &quot;usebackq tokens=1,* skip=3&quot; %%i in (`hg svn info`) do (&#x0D;&#x0A;echo Hg: Working copy at SVN revision %%j&#x0D;&#x0A;echo #define SVN_REV %%j &gt; %outfile%&#x0D;&#x0A;echo #define SVN_REV_STR &quot;%%j&quot; &gt;&gt; %outfile%&#x0D;&#x0A;goto VCEnd&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -171,7 +171,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="&quot;$(ProjectDir)SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)\src\svnrev_template.h&quot; &quot;$(ProjectDir)\src\svnrev.h&quot;"
+				CommandLine="set outfile=&quot;$(ProjectDir)\Src\svnrev.h&quot;&#x0D;&#x0A;&quot;$(ProjectDir)SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)\Src\svnrev_template.h&quot; %outfile%&#x0D;&#x0A;if errorlevel 1 (goto checkhg) else (goto VCEnd)&#x0D;&#x0A;:checkhg&#x0D;&#x0A;for /f &quot;usebackq tokens=1,* skip=3&quot; %%i in (`hg svn info`) do (&#x0D;&#x0A;echo Hg: Working copy at SVN revision %%j&#x0D;&#x0A;echo #define SVN_REV %%j &gt; %outfile%&#x0D;&#x0A;echo #define SVN_REV_STR &quot;%%j&quot; &gt;&gt; %outfile%&#x0D;&#x0A;goto VCEnd&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -244,7 +244,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="&quot;$(ProjectDir)SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)\src\svnrev_template.h&quot; &quot;$(ProjectDir)\src\svnrev.h&quot;"
+				CommandLine="set outfile=&quot;$(ProjectDir)\Src\svnrev.h&quot;&#x0D;&#x0A;&quot;$(ProjectDir)SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)\Src\svnrev_template.h&quot; %outfile%&#x0D;&#x0A;if errorlevel 1 (goto checkhg) else (goto VCEnd)&#x0D;&#x0A;:checkhg&#x0D;&#x0A;for /f &quot;usebackq tokens=1,* skip=3&quot; %%i in (`hg svn info`) do (&#x0D;&#x0A;echo Hg: Working copy at SVN revision %%j&#x0D;&#x0A;echo #define SVN_REV %%j &gt; %outfile%&#x0D;&#x0A;echo #define SVN_REV_STR &quot;%%j&quot; &gt;&gt; %outfile%&#x0D;&#x0A;goto VCEnd&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -318,7 +318,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="&quot;$(ProjectDir)SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)\src\svnrev_template.h&quot; &quot;$(ProjectDir)\src\svnrev.h&quot;"
+				CommandLine="set outfile=&quot;$(ProjectDir)\Src\svnrev.h&quot;&#x0D;&#x0A;&quot;$(ProjectDir)SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)\Src\svnrev_template.h&quot; %outfile%&#x0D;&#x0A;if errorlevel 1 (goto checkhg) else (goto VCEnd)&#x0D;&#x0A;:checkhg&#x0D;&#x0A;for /f &quot;usebackq tokens=1,* skip=3&quot; %%i in (`hg svn info`) do (&#x0D;&#x0A;echo Hg: Working copy at SVN revision %%j&#x0D;&#x0A;echo #define SVN_REV %%j &gt; %outfile%&#x0D;&#x0A;echo #define SVN_REV_STR &quot;%%j&quot; &gt;&gt; %outfile%&#x0D;&#x0A;goto VCEnd&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -388,7 +388,7 @@
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
-				CommandLine="&quot;$(ProjectDir)SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)\src\svnrev_template.h&quot; &quot;$(ProjectDir)\src\svnrev.h&quot;"
+				CommandLine="set outfile=&quot;$(ProjectDir)\Src\svnrev.h&quot;&#x0D;&#x0A;&quot;$(ProjectDir)SubWCRev.exe&quot; &quot;$(SolutionDir)\.&quot; &quot;$(ProjectDir)\Src\svnrev_template.h&quot; %outfile%&#x0D;&#x0A;if errorlevel 1 (goto checkhg) else (goto VCEnd)&#x0D;&#x0A;:checkhg&#x0D;&#x0A;for /f &quot;usebackq tokens=1,* skip=3&quot; %%i in (`hg svn info`) do (&#x0D;&#x0A;echo Hg: Working copy at SVN revision %%j&#x0D;&#x0A;echo #define SVN_REV %%j &gt; %outfile%&#x0D;&#x0A;echo #define SVN_REV_STR &quot;%%j&quot; &gt;&gt; %outfile%&#x0D;&#x0A;goto VCEnd&#x0D;&#x0A;)&#x0D;&#x0A;"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"

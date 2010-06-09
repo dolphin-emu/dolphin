@@ -1,0 +1,3 @@
+[patterns]
+Data/User/Wii/**.* = BIN
+** = native
