@@ -49,7 +49,7 @@
 #include "events.h"
 #include "io.h"
 
-static int g_banner = 0;
+static int g_banner = 1;
 
 /**
  *	@breif Returns the version of the library.

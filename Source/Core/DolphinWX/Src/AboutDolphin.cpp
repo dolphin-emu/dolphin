@@ -26,8 +26,10 @@ BEGIN_EVENT_TABLE(AboutDolphin, wxDialog)
 	EVT_BUTTON(wxID_CLOSE, AboutDolphin::CloseClick)
 END_EVENT_TABLE()
 
-AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
-: wxDialog(parent, id, title, position, size, style)
+AboutDolphin::AboutDolphin(wxWindow *parent, wxWindowID id,
+				const wxString &title, const wxPoint &position,
+				const wxSize& size, long style)
+	: wxDialog(parent, id, title, position, size, style)
 {
 	CreateGUIControls();
 }
@@ -38,25 +40,44 @@ AboutDolphin::~AboutDolphin()
 
 void AboutDolphin::CreateGUIControls()
 {
-	m_Close = new wxButton(this, wxID_CLOSE, wxT("Close"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	//miloszwl@miloszwl.com (miloszwl.deviantart.com)
+	m_Close = new wxButton(this, wxID_CLOSE, wxT("Close"),
+		wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	wxMemoryInputStream istream(dolphin_logo_png, sizeof dolphin_logo_png);
 	wxImage iDolphinLogo(istream, wxBITMAP_TYPE_PNG);
-	DolphinLogo = new wxBitmap(iDolphinLogo);
-	sbDolphinLogo = new wxStaticBitmap(this, ID_LOGO, wxNullBitmap, wxDefaultPosition, wxDefaultSize, 0);
-	sbDolphinLogo->SetBitmap(*DolphinLogo);
-	std::string Text = std::string("Dolphin SVN revision ") +  SVN_REV_STR +"\n" "Copyright (c) 2003-2010+ Dolphin Team\n"
-		"Dolphin is a Gamecube/Wii emulator, which was originally written by F|RES and ector.\n" 
-		"Today Dolphin is an open source project with many contributors, too many to list.\n"
-		"If interested, just go check out the project page at http://code.google.com/p/dolphin-emu.\n\n"
-		"Special thanks to Bushing, Costis, CrowTRobo, Marcan, Segher, Titanik, or9 and Hotquik for their reverse engineering and docs/demos.\n\n"
-		"Big thanks to Gilles Mouchard whose Microlib PPC emulator gave our development a kickstart.\n\n"
-		"Thanks to Frank Wille for his PowerPC disassembler, which or9 and we modified to include Gekko specifics.\n\n"
-		"Thanks to hcs/destop for their GC ADPCM decoder.\n\n"
-		"We are not affiliated with Nintendo in any way.\n" 
+	sbDolphinLogo = new wxStaticBitmap(this, ID_LOGO,
+		wxBitmap(iDolphinLogo), wxDefaultPosition, wxDefaultSize, 0);
+
+	std::string Text = std::string("") +
+		"Dolphin SVN revision " + SVN_REV_STR + "\n"
+		"Copyright (c) 2003-2010+ Dolphin Team\n"
+		"\n"
+		"Dolphin is a Gamecube/Wii emulator, which was\n"
+		"originally written by F|RES and ector.\n"
+		"Today Dolphin is an open source project with many\n"
+		"contributors, too many to list.\n"
+		"If interested, just go check out the project page at\n"
+		"http://code.google.com/p/dolphin-emu/ .\n"
+		"\n"
+		"Special thanks to Bushing, Costis, CrowTRobo,\n"
+		"Marcan, Segher, Titanik, or9 and Hotquik for their\n"
+		"reverse engineering and docs/demos.\n"
+		"\n"
+		"Big thanks to Gilles Mouchard whose Microlib PPC\n"
+		"emulator gave our development a kickstart.\n"
+		"\n"
+		"Thanks to Frank Wille for his PowerPC disassembler,\n"
+		"which or9 and we modified to include Gekko specifics.\n"
+		"\n"
+		"Thanks to hcs/destop for their GC ADPCM decoder.\n"
+		"\n"
+		"Thanks to Michael Laforest for the Wiiuse library.\n"
+		"\n"
+		"We are not affiliated with Nintendo in any way.\n"
 		"Gamecube and Wii are trademarks of Nintendo.\n"
-		"The emulator is for educational purposes only and should not be used to play games you do not legally own.\n\n";
+		"The emulator is for educational purposes only\n"
+		"and should not be used to play games you do\n"
+		"not legally own.";
 	Message = new wxStaticText(this, ID_MESSAGE,
 		wxString::FromAscii(Text.c_str()),
 		wxDefaultPosition, wxDefaultSize, 0);
