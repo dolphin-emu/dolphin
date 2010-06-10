@@ -1,4 +1,3 @@
-
 # -*- python -*-
 
 Import('env')
@@ -11,22 +10,19 @@ files = [
     'AudioCommon.cpp',
     ]
 
-acenv = env.Clone()
-
-if acenv['HAVE_OPENAL']:
+if env['HAVE_OPENAL']:
     files += [ 'OpenALStream.cpp', 'aldlist.cpp' ]
     
-if acenv['HAVE_AO']:
+if env['HAVE_AO']:
     files += [ 'AOSoundStream.cpp' ]
 
-if acenv['HAVE_ALSA']:
+if env['HAVE_ALSA']:
     files += [ 'AlsaSoundStream.cpp' ]
 
-if acenv['HAVE_PULSEAUDIO']:
+if env['HAVE_PULSEAUDIO']:
     files += [ 'PulseAudioStream.cpp' ]
 
 if sys.platform == 'darwin':
     files += [ 'CoreAudioSoundStream.cpp' ]
-    acenv['FRAMEWORKS'] = [ 'CoreAudio', 'AudioUnit' ]
     
-acenv.StaticLibrary(env['local_libs'] + 'audiocommon', files)
+env.StaticLibrary(env['local_libs'] + 'audiocommon', files)

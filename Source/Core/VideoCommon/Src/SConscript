@@ -37,12 +37,9 @@ files = [
 	'HiresTextures.cpp',
 	]
 
-
-env_vcommon = env.Clone()
-
-if env_vcommon['HAVE_OPENCL']:
+if env['HAVE_OPENCL']:
     files += [
         'OpenCL/OCLTextureDecoder.cpp',
         ]
 
-env_vcommon.StaticLibrary(env['local_libs'] + "videocommon", files)
+env.StaticLibrary(env['local_libs'] + "videocommon", files)

@@ -26,7 +26,4 @@ files = [
 	'AES/aes_cbc.c',
 	'AES/aes_core.c',
 	]
-libs = [
-	'common'
-	]
-env.StaticLibrary(env['local_libs'] + 'discio', files, LIBS = libs)
+

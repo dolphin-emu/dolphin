@@ -1,7 +1,6 @@
 # -*- python -*-
 import sys
 Import('env')
-icenv = env.Clone()
 
 files = [
 	'Configuration.cpp',
@@ -21,7 +20,7 @@ if env['HAVE_WX']:
 		"WXInputBase.cpp",
 		]
 
-if icenv['HAVE_SDL']:
+if env['HAVE_SDL']:
 	files += [
 		'ControllerInterface/SDL/SDL.cpp'
 		]
@@ -32,11 +31,10 @@ if sys.platform == 'darwin':
 		'ControllerInterface/OSX/OSXKeyboard.mm',
 		'ControllerInterface/OSX/OSXMouse.mm'
 		]
-	icenv['FRAMEWORKS'] = ['IOKit']
 		   
 if sys.platform == 'linux2':
 	files += [
 		'ControllerInterface/Xlib/Xlib.cpp'
 		]
 
-icenv.StaticLibrary(env['local_libs'] + "inputcommon", files)
+env.StaticLibrary(env['local_libs'] + "inputcommon", files)

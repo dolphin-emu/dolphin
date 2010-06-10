@@ -24,14 +24,14 @@ if env['HAVE_WX']:
 	]
 
 lleenv = env.Clone()
+
 if env['HAVE_WX']:
 	lleenv.Append(
-		LIBS = [ 'dspcore', 'audiocommon', 'common', 'debugger_ui_util'  ],
+		LIBS = [ 'dspcore', 'audiocommon', 'common', 'debugger_ui_util' ],
 		)
 else:
 	lleenv.Append(
 		LIBS = [ 'dspcore', 'audiocommon', 'common' ],
 		)
-if sys.platform == 'darwin':
-    lleenv['FRAMEWORKS'] = [ 'CoreAudio', 'CoreServices', 'AudioUnit' ]
+
 lleenv.SharedLibrary(env['plugin_dir']+name, files)

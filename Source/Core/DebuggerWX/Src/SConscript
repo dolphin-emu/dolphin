@@ -17,15 +17,14 @@ files = [
     "RegisterView.cpp",
     "JitWindow.cpp",
     ]
+
 wxenv = env.Clone()
 wxenv.Append(
 	CPPDEFINES = [
 		'wxNEEDS_CHARPP'
-		],
-	LINKFLAGS = [
-		'-pthread',
 		]
 	)
+
 libs = [
     'common',
     'debugger_ui_util'

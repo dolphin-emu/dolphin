@@ -33,7 +33,5 @@ if dspenv['HAVE_WX']:
 dspenv.Append(
 	LIBS = [ 'common', 'audiocommon' ],
 	)
-if sys.platform == 'darwin':
-    dspenv['FRAMEWORKS'] = [ 'CoreAudio', 'CoreServices', 'AudioUnit' ]
 
 dspenv.SharedLibrary(env['plugin_dir']+name, files)

@@ -15,6 +15,7 @@ files = [
 	'GCPad.cpp',
 	'Rumble.cpp',
 	]
+
 if padenv['HAVE_WX']:
     files += [
         'ConfigJoypad.cpp',
@@ -24,8 +25,5 @@ if padenv['HAVE_WX']:
 padenv.Append(
 	LIBS = [ 'inputcommon', 'common', ],
 	)
-
-if sys.platform == 'darwin':
-	padenv['FRAMEWORKS'] = ['CoreFoundation', 'System' ]
 
 padenv.SharedLibrary(env['plugin_dir']+name, files)

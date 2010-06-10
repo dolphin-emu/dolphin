@@ -43,9 +43,9 @@ if wxenv['HAVE_WX']:
 		'NetWindow.cpp',
 		]
 
-        CPPDEFINES = [
-                'wxNEEDS_CHARPP',
-                ],
+	CPPDEFINES = [
+		'wxNEEDS_CHARPP',
+		],
 
 	libs = [ 'debwx', 'debugger_ui_util'] + libs
 else:
@@ -54,34 +54,11 @@ else:
 		]
 
 if sys.platform == 'darwin':
-    files += [ 'cocoaApp.m', ]
-    compileFlags = [
-            '-x',
-            'objective-c++',
-            ]
-    wxenv.Append(
-	CXXFLAGS = compileFlags,
-       	LINKFLAGS = [
-               	'-pthread', '-framework', 'IOKit'
-               	],
-       	LIBS = libs
-       	)
-else:
-    wxenv.Append(
-       	LINKFLAGS = [
-               	'-pthread',
-               	],
-       	LIBS = libs
-       	)
+	files += [ 'cocoaApp.m', ]
 
-
-
-
-if sys.platform == 'darwin':
 	exeGUI = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'
 	exeNoGUI = env['binary_dir'] + 'DolphinNoGUI'
 
-	wxenv['FRAMEWORKS'] = ['Cocoa', 'CoreFoundation', 'System']
 	wxenv.Plist(
 		env['binary_dir'] + 'Dolphin.app/Contents/Info.plist',
 		Value(dict(
@@ -100,10 +77,12 @@ else:
 	exeGUI = env['binary_dir'] + 'dolphin-emu'
 	exeNoGUI = env['binary_dir'] + 'dolphin-emu-nogui'
 
+wxenv.Append(
+	LIBS = libs
+	)
+
 if wxenv['HAVE_X11']:
 	files += [ 'X11Utils.cpp' ]
-
-#objects = [ wxenv.Object(srcFile) for srcFile in files ]
 
 if wxenv['HAVE_WX']:
 	wxenv.Program(exeGUI, files + [ 'Main.cpp' ])

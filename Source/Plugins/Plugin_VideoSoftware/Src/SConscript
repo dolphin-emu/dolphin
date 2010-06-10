@@ -47,33 +47,8 @@ gfxenv = env.Clone()
 if sys.platform == 'win32':
         files += [ 'Win32.cpp' ]
 
-tests = {'CheckPKG' : utils.CheckPKG}
-conf = gfxenv.Configure(custom_tests = tests,
-                        config_h=env['base_dir']+"Source/Core/Common/Src/Config.h")
-
 if sys.platform == 'darwin':
-	gfxenv['FRAMEWORKS'] = ['CoreFoundation', 'System', 'OpenGL', 'Cocoa', 'Cg']
-	compileFlags = ['-x','objective-c++',]
 	files += [ 'cocoaGL.m', ]
-
-	conf.CheckPKG('OpenGL')
-	if gfxenv['HAVE_OPENCL']:
-		gfxenv['FRAMEWORKS'] += ['OpenCL']
-
-elif sys.platform == 'win32':
-        print name + " is assuming that you have opengl, glu, cg, and cggl"
-else:
-        if not (conf.CheckPKG('GL') and conf.CheckPKG('GLU')):
-                print name + " must have opengl and glu to be build"
-                Return()
-	
-if sys.platform == 'win32':
-	print name + " is assuming that you have glew"
-else:
-	if not conf.CheckPKG('GLEW'):
-		print name + " must have glew to be build"
-		Return()
-
 
 if sys.platform == 'win32':
 	files += [
@@ -84,15 +59,10 @@ if sys.platform == 'win32':
 		]	
 	gfxenv['CPPPATH'] += libs
 	
-conf.Finish()
-
 # Sanity check
 if gfxenv['USE_WX'] and not gfxenv['HAVE_WX']:
     print "Must have wx to use wxgl"
     Return()
-gfxenv.Append(
-	LINKFLAGS = linkFlags,
-	)
 
 gfxenv.SharedLibrary(
 	env['plugin_dir']+name,

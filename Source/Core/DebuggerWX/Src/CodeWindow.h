@@ -23,7 +23,6 @@
 #include <wx/textctrl.h>
 #include <wx/listbox.h>
 #include <wx/artprov.h>
-#include <wx/aui/aui.h>
 
 #include "Thread.h"
 #include "CoreParameter.h"

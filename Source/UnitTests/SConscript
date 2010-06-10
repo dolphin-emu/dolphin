@@ -11,9 +11,9 @@ files = [
 	"UnitTests.cpp",
 	]
 
-libs = [ 
-	'dspcore', 'common', 
+libs = [
+	'dspcore', 'common',
 ]
 
-unitenv.Append( LIBS = libs)
+unitenv.Append(LIBS = libs)
 unitenv.Program(env['binary_dir'] + 'tester', files)

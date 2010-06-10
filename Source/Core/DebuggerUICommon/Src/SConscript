@@ -12,6 +12,4 @@ files = [
 	'MemoryView.cpp',
 	]
 
-acenv = env.Clone()
-
-acenv.StaticLibrary(env['local_libs'] + 'debugger_ui_util', files)
+env.StaticLibrary(env['local_libs'] + 'debugger_ui_util', files)

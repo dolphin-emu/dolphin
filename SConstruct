@@ -1,4 +1,4 @@
-# -*- python -*- 
+# -*- python -*-
 
 import os
 import sys
@@ -6,10 +6,10 @@ import platform
 
 # Home made tests
 sys.path.append('SconsTests')
-import wxconfig 
+import wxconfig
 import utils
 
-# Some features needs at least SCons 1.2
+# Some features need at least SCons 1.2
 EnsureSConsVersion(1, 2)
 
 warnings = [
@@ -56,7 +56,7 @@ include_paths = [
 dirs = [
     'Externals/Bochs_disasm',
     'Externals/Lua',
-    'Externals/WiiUseSrc/Src', 
+    'Externals/WiiUseSrc/Src',
     'Source/Core/Common/Src',
     'Source/Core/Core/Src',
     'Source/Core/DiscIO/Src',
@@ -176,7 +176,7 @@ if (flavour == 'debug'):
     compileFlags.append('-ggdb')
     cppDefines.append('_DEBUG') #enables LOGGING
     # FIXME: this disable wx debugging how do we make it work?
-    cppDefines.append('NDEBUG') 
+    cppDefines.append('NDEBUG')
 elif (flavour == 'devel'):
     compileFlags.append('-ggdb')
 elif (flavour == 'fastlog'):
@@ -249,13 +249,13 @@ elif flavour == 'prof':
 if (env['install'] == 'global'):
     env['prefix'] = os.path.join(env['prefix'] + os.sep)
     env['binary_dir'] = env['prefix'] + 'bin/'
-    env['plugin_dir'] = env['prefix'] + 'lib/dolphin-emu/' 
+    env['plugin_dir'] = env['prefix'] + 'lib/dolphin-emu/'
     env['data_dir'] = env['prefix'] + "share/dolphin-emu/"
 else:
     env['prefix'] = os.path.join(env['base_dir'] + 'Binary',
         platform.system() + '-' + platform.machine() + extra + os.sep)
     env['binary_dir'] = env['prefix']
-    env['plugin_dir'] = env['prefix'] + 'plugins/' 
+    env['plugin_dir'] = env['prefix'] + 'plugins/'
     env['data_dir'] = env['prefix']
 if sys.platform == 'darwin':
     env['plugin_dir'] = env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
@@ -263,7 +263,7 @@ if sys.platform == 'darwin':
 
 env['LIBPATH'].append(env['local_libs'])
 
-conf = env.Configure(custom_tests = tests, 
+conf = env.Configure(custom_tests = tests,
                      config_h="Source/Core/Common/Src/Config.h")
 
 if not conf.CheckPKGConfig('0.15.0'):
@@ -280,7 +280,7 @@ if not env['HAVE_SDL']:
     print "SDL is required"
     Exit(1)
 
-# Bluetooth for wii support
+# Bluetooth for wiimote support
 env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 
 env['HAVE_ALSA'] = 0
@@ -297,7 +297,7 @@ if sys.platform != 'darwin':
 
 # OpenCL
 env['HAVE_OPENCL'] = 0
-if env['opencl']:   
+if env['opencl']:
     env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
 
 # SOIL
@@ -341,13 +341,19 @@ if sys.platform == 'darwin':
     env['HAVE_XRANDR'] = 0
     env['HAVE_X11'] = 0
     env['CC'] = "gcc-4.2"
+    env['CFLAGS'] = ['-x', 'objective-c']
     env['CXX'] = "g++-4.2"
+    env['CXXFLAGS'] = ['-x', 'objective-c++']
     env['CCFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
     env['LINKFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
     conf.Define('MAP_32BIT', 0)
+    env['FRAMEWORKS'] += ['CoreFoundation', 'CoreServices']
+    env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
+    env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
 else:
     env['HAVE_X11'] = conf.CheckPKG('x11')
     env['HAVE_XRANDR'] = env['HAVE_X11'] and conf.CheckPKG('xrandr')
+    env['LINKFLAGS'] += ['-pthread']
 
 wxmods = ['aui', 'adv', 'core', 'base']
 if env['wxgl'] or sys.platform == 'win32' or sys.platform == 'darwin':
@@ -366,13 +372,38 @@ else:
 if env['nowx']:
     env['HAVE_WX'] = 0;
 else:
-    env['HAVE_WX'] = conf.CheckWXConfig(wxver, wxmods, 0) 
+    env['HAVE_WX'] = conf.CheckWXConfig(wxver, wxmods, 0)
     wxconfig.ParseWXConfig(env)
+    # wx-config wants us to link with the OS X QuickTime framework
+    # which is not available for x86_64 and we don't use it anyway.
+    # Strip it out to silence some harmless linker warnings.
+    if env['FRAMEWORKS'].count('QuickTime'):
+	    env['FRAMEWORKS'].remove('QuickTime')
+    # Make sure that the libraries claimed by wx-config are valid
     env['HAVE_WX'] = conf.CheckPKG('c')
 
 if not env['HAVE_WX'] and not env['nowx']:
-    print "WX not found - see config.log"
+    print "WX libraries not found - see config.log"
     Exit(1)
+
+if not sys.platform == 'win32':
+    if not conf.CheckPKG('Cg'):
+        print "Must have Cg framework from NVidia to build"
+        Exit(1)
+    if not conf.CheckPKG('GLEW'):
+        print "Must have GLEW to build"
+        Exit(1)
+
+if not sys.platform == 'win32' and not sys.platform == 'darwin':
+    if not conf.CheckPKG('GL'):
+        print "Must have OpenGL to build"
+        Exit(1)
+    if not conf.CheckPKG('GLU'):
+        print "Must have GLU to build"
+        Exit(1)
+    if not conf.CheckPKG('CgGL'):
+        print "Must have CgGl to build"
+        Exit(1)
 
 env['HAVE_ZLIB'] = conf.CheckPKG('z')
 if not ['HAVE_ZLIB']:
@@ -390,7 +421,7 @@ if sys.platform == 'linux2':
 
 env['NOJIT'] = 0
 if env['nojit']:
-	env['NOJIT'] = 1
+    env['NOJIT'] = 1
 
 conf.Define('NOJIT', env['NOJIT'])
 
@@ -420,16 +451,16 @@ env['LUA_USE_MACOSX'] = 0
 env['LUA_USE_LINUX'] = 0
 env['LUA_USE_POSIX'] = 0
 if sys.platform == 'darwin':
-	env['LUA_USE_MACOSX'] = 1
+    env['LUA_USE_MACOSX'] = 1
 elif sys.platform == 'linux2':
-	env['LUA_USE_LINUX'] = 1
+    env['LUA_USE_LINUX'] = 1
 
 conf.Define('LUA_USE_MACOSX', env['LUA_USE_MACOSX'])
 conf.Define('LUA_USE_LINUX', env['LUA_USE_LINUX'])
 
 # Profiling
 env['USE_OPROFILE'] = 0
-if (flavour == 'prof'): 
+if (flavour == 'prof'):
     proflibs = [ '/usr/lib/oprofile', '/usr/local/lib/oprofile' ]
     env['LIBPATH'].append(proflibs)
     env['RPATH'].append(proflibs)
@@ -442,7 +473,7 @@ conf.Define('USE_OPROFILE', env['USE_OPROFILE'])
 # After all configuration tests are done
 conf.Finish()
 
-rev = utils.GenerateRevFile(env['flavor'], 
+rev = utils.GenerateRevFile(env['flavor'],
                             "Source/Core/Common/Src/svnrev_template.h",
                             "Source/Core/Common/Src/svnrev.h")
 # Print a nice progress indication when not compiling
@@ -479,7 +510,7 @@ for subdir in dirs:
 if sys.platform == 'darwin':
     env.Install(env['data_dir'], 'Data/Sys')
     env.Install(env['data_dir'], 'Data/User')
-    env.Install(env['binary_dir'] + 'Dolphin.app/Contents/Resources/', 
+    env.Install(env['binary_dir'] + 'Dolphin.app/Contents/Resources/',
                 'Source/Core/DolphinWX/resources/Dolphin.icns')
 else:
     env.InstallAs(env['data_dir'] + 'sys', 'Data/Sys')
@@ -496,7 +527,7 @@ if env['bundle']:
     elif sys.platform == 'darwin':
         env.Command('.', env['binary_dir'] +
                     'Dolphin.app/Contents/MacOS/Dolphin', './osx_make_dmg.sh')
-	
+
 #TODO clean all bundles
 #env.Clean(all, 'dolphin-*' + '.tar.bz2')
 #env.Clean(all, 'Binary/Dolphin-r*' + '.dmg')

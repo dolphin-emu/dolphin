@@ -1170,10 +1170,10 @@ static int process_scan_header(jpeg *z)
    if (z->scan_n < 1 || z->scan_n > 4 || z->scan_n > (int) z->s.img_n) return e("bad SOS component count","Corrupt JPEG");
    if (Ls != 6+2*z->scan_n) return e("bad SOS len","Corrupt JPEG");
    for (i=0; i < z->scan_n; ++i) {
-      int id = get8(&z->s), which;
+      int ID = get8(&z->s), which;
       int q = get8(&z->s);
       for (which = 0; which < z->s.img_n; ++which)
-         if (z->img_comp[which].id == id)
+         if (z->img_comp[which].id == ID)
             break;
       if (which == z->s.img_n) return 0;
       z->img_comp[which].hd = q >> 4;   if (z->img_comp[which].hd > 3) return e("bad DC huff","Corrupt JPEG");

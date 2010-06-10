@@ -102,11 +102,11 @@ bool EventHandler::TestEvent (Keys k, sf::Event e)
 
 #if defined HAVE_WX && HAVE_WX 
 // Taken from wxw source code
-sf::Key::Code EventHandler::wxCharCodeToSF(int id)
+sf::Key::Code EventHandler::wxCharCodeToSF(int charcode)
 {
     sf::Key::Code sfKey;
 
-    switch (id) {
+    switch (charcode) {
 //  case WXK_CANCEL:          sfKey = sf::Key::Cancel; break;
 //  case WXK_BACK:            sfKey = sf::Key::BackSpace; break;
     case WXK_TAB:             sfKey = sf::Key::Tab; break;
@@ -181,12 +181,12 @@ sf::Key::Code EventHandler::wxCharCodeToSF(int id)
     default:
 
         // To lower (will tolower work on windows?)
-        if (id >= 'A' && id <= 'Z') 
-            id = id - 'A' + 'a';
+        if (charcode >= 'A' && charcode <= 'Z') 
+            charcode = charcode - 'A' + 'a';
         
-	if ((id >= 'a' && id <= 'z') || 
-	    (id  >= '0' && id <= '9')) 
-	    sfKey = (sf::Key::Code)id;   
+	if ((charcode >= 'a' && charcode <= 'z') || 
+	    (charcode  >= '0' && charcode <= '9')) 
+	    sfKey = (sf::Key::Code)charcode;   
 	else 
 	    sfKey = sf::Key::Count; // Invalid key
         

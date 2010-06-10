@@ -20,36 +20,8 @@ if wxenv['HAVE_WX']:
 		'Source/Core/DolphinWX/Src/WxUtils.cpp',		
 		]
 
-
-if wxenv['HAVE_COCOA']:
-    files += [ 'cocoaApp.m', ]
-    compileFlags = [
-            '-x',
-            'objective-c++',
-            ]
-    wxenv.Append(
-	CXXFLAGS = compileFlags,
-       	LINKFLAGS = [
-               	'-pthread',
-               	],
-       	LIBS = libs
-       	)
-    if not wxenv['HAVE_WX']:
-	wxenv.Append(
-	    LINKFLAGS = ['-framework', 'IOKit'])
-else:
-    wxenv.Append(
-       	LINKFLAGS = [
-               	'-pthread',
-               	],
-       	LIBS = libs
-       	)
-
-
-
+LIBS = libs
 
 exeGUI = env['binary_dir'] + 'MemcardManager'
-
-#objects = [ wxenv.Object(srcFile) for srcFile in files ]
 
 wxenv.Program(exeGUI, files)
