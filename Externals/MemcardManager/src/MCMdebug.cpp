@@ -55,9 +55,9 @@ void CMemcardManagerDebug::Init_ChildControls()
 	m_Notebook_MCMD->AddPage(m_Tab_BAT, _T("Bat"));
 	m_Notebook_MCMD->AddPage(m_Tab_BAT_b, _T("Bat_b"));
 
-	wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
-	sMain->Add(m_Notebook_MCMD, 1, wxEXPAND|wxALL, 5);
-	SetSizer(sMain);
+	wxBoxSizer* wMain = new wxBoxSizer(wxVERTICAL);
+	wMain->Add(m_Notebook_MCMD, 1, wxEXPAND|wxALL, 5);
+	SetSizer(wMain);
 	Layout();
 	Fit();
 }
@@ -68,10 +68,10 @@ void CMemcardManagerDebug::OnClose(wxCloseEvent& WXUNUSED (event))
 
 void CMemcardManagerDebug::Init_HDR()
 {
-	wxBoxSizer *sMain;
+	wxBoxSizer *wMain;
 	wxStaticBoxSizer *sHDR[2];
 	
-	sMain = new wxBoxSizer(wxHORIZONTAL);
+	wMain = new wxBoxSizer(wxHORIZONTAL);
 	sHDR[0]  = new wxStaticBoxSizer(wxVERTICAL, m_Tab_HDR, wxT("MEMCARD:A"));
 	sHDR[1]  = new wxStaticBoxSizer(wxVERTICAL, m_Tab_HDR, wxT("MEMCARD:B"));
 	
@@ -142,9 +142,9 @@ void CMemcardManagerDebug::Init_HDR()
 		sOtPaths[i]->Add(t_HDR_CheckSum2[i], wxGBPosition(10, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 
 		sHDR[i]->Add(sOtPaths[i], 0, wxEXPAND|wxALL, 5);
-		sMain->Add(sHDR[i], 0, wxEXPAND|wxALL, 1);
+		wMain->Add(sHDR[i], 0, wxEXPAND|wxALL, 1);
 	}
-	m_Tab_HDR->SetSizer(sMain);
+	m_Tab_HDR->SetSizer(wMain);
 	m_Tab_HDR->Layout();
 }
 
@@ -221,9 +221,9 @@ void CMemcardManagerDebug::updateHDRtab(int card)
 
 void CMemcardManagerDebug::Init_DIR()
 {
-	wxBoxSizer *sMain;
+	wxBoxSizer *wMain;
 	wxStaticBoxSizer *sDIR[2];
-	sMain = new wxBoxSizer(wxHORIZONTAL);
+	wMain = new wxBoxSizer(wxHORIZONTAL);
 	sDIR[0]  = new wxStaticBoxSizer(wxVERTICAL, m_Tab_DIR, wxT("MEMCARD:A"));
 	sDIR[1]  = new wxStaticBoxSizer(wxVERTICAL, m_Tab_DIR, wxT("MEMCARD:B"));
 
@@ -253,10 +253,10 @@ void CMemcardManagerDebug::Init_DIR()
 
 	
 		sDIR[i]->Add(sOtPaths[i], 0, wxEXPAND|wxALL, 5);
-		sMain->Add(sDIR[i], 0, wxEXPAND|wxALL, 1);
+		wMain->Add(sDIR[i], 0, wxEXPAND|wxALL, 1);
 	}
 
-	m_Tab_DIR->SetSizer(sMain);
+	m_Tab_DIR->SetSizer(wMain);
 	m_Tab_DIR->Layout();
 }
 
@@ -284,9 +284,9 @@ void CMemcardManagerDebug::updateDIRtab(int card)
 
 void CMemcardManagerDebug::Init_DIR_b()
 {
-	wxBoxSizer *sMain;
+	wxBoxSizer *wMain;
 	wxStaticBoxSizer *sDIR_b[2];
-	sMain = new wxBoxSizer(wxHORIZONTAL);
+	wMain = new wxBoxSizer(wxHORIZONTAL);
 	sDIR_b[0]  = new wxStaticBoxSizer(wxVERTICAL, m_Tab_DIR_b, wxT("MEMCARD:A"));
 	sDIR_b[1]  = new wxStaticBoxSizer(wxVERTICAL, m_Tab_DIR_b, wxT("MEMCARD:B"));
 	
@@ -315,9 +315,9 @@ void CMemcardManagerDebug::Init_DIR_b()
 		sOtPaths[i]->Add(t_DIR_b_CheckSum2[i], wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 		
 		sDIR_b[i]->Add(sOtPaths[i], 0, wxEXPAND|wxALL, 5);
-		sMain->Add(sDIR_b[i], 0, wxEXPAND|wxALL, 1);
+		wMain->Add(sDIR_b[i], 0, wxEXPAND|wxALL, 1);
 	}
-	m_Tab_DIR_b->SetSizer(sMain);
+	m_Tab_DIR_b->SetSizer(wMain);
 	m_Tab_DIR_b->Layout();
 }
 
@@ -341,9 +341,9 @@ void CMemcardManagerDebug::updateDIRBtab(int card)
 
 void CMemcardManagerDebug::Init_BAT()
 {
-	wxBoxSizer *sMain;
+	wxBoxSizer *wMain;
 	wxStaticBoxSizer *sBAT[4];
-	sMain    = new wxBoxSizer(wxHORIZONTAL);
+	wMain    = new wxBoxSizer(wxHORIZONTAL);
 	sBAT[0]  = new wxStaticBoxSizer(wxVERTICAL, m_Tab_BAT, wxT("MEMCARD:A"));
 	sBAT[1]  = new wxStaticBoxSizer(wxVERTICAL, m_Tab_BAT, wxT("MEMCARD:B"));
 	sBAT[2]  = new wxStaticBoxSizer(wxVERTICAL, m_Tab_BAT, wxT("MEMCARD:A MAP"));
@@ -386,7 +386,7 @@ void CMemcardManagerDebug::Init_BAT()
 
 		
 		sBAT[i]->Add(sOtPaths[i], 0, wxEXPAND|wxALL, 5);
-		sMain->Add(sBAT[i], 0, wxEXPAND|wxALL, 1);
+		wMain->Add(sBAT[i], 0, wxEXPAND|wxALL, 1);
 	}
 
 	for (int k=2;k<=3;k++)	//256
@@ -402,10 +402,10 @@ void CMemcardManagerDebug::Init_BAT()
 		}
 
 		sBAT[k]->Add(sOtPaths[k], 0, wxEXPAND|wxALL, 5);
-		sMain->Add(sBAT[k], 0, wxEXPAND|wxALL, 1);
+		wMain->Add(sBAT[k], 0, wxEXPAND|wxALL, 1);
 	}
 	
-	m_Tab_BAT->SetSizer(sMain);
+	m_Tab_BAT->SetSizer(wMain);
 	m_Tab_BAT->Layout();
 }
 
@@ -449,9 +449,9 @@ void CMemcardManagerDebug::updateBATtab(int card)
 
 void CMemcardManagerDebug::Init_BAT_b()
 {
-	wxBoxSizer *sMain;
+	wxBoxSizer *wMain;
 	wxStaticBoxSizer *sBAT_b[2];
-	sMain		= new wxBoxSizer(wxHORIZONTAL);
+	wMain		= new wxBoxSizer(wxHORIZONTAL);
 	sBAT_b[0]  = new wxStaticBoxSizer(wxVERTICAL, m_Tab_BAT_b, wxT("MEMCARD:A"));
 	sBAT_b[1]  = new wxStaticBoxSizer(wxVERTICAL, m_Tab_BAT_b, wxT("MEMCARD:B"));
 
@@ -490,10 +490,10 @@ void CMemcardManagerDebug::Init_BAT_b()
 		sOtPaths[i]->Add(t_BAT_b_LastAllocated[i], wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 
 		sBAT_b[i]->Add(sOtPaths[i], 0, wxEXPAND|wxALL, 5);
-		sMain->Add(sBAT_b[i], 0, wxEXPAND|wxALL, 1);
+		wMain->Add(sBAT_b[i], 0, wxEXPAND|wxALL, 1);
 	}
 	
-	m_Tab_BAT_b->SetSizer(sMain);
+	m_Tab_BAT_b->SetSizer(wMain);
 	m_Tab_BAT_b->Layout();
 }
 

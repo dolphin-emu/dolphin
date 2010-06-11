@@ -22,6 +22,10 @@ if wxenv['HAVE_WX']:
 
 LIBS = libs
 
+wxenv.Append(
+	LIBS = libs
+	)
+
 exeGUI = env['binary_dir'] + 'MemcardManager'
 
 wxenv.Program(exeGUI, files)

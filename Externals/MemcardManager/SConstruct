@@ -1,4 +1,4 @@
-# -*- python -*- 
+# -*- python -*-
 
 import os
 import sys
@@ -6,7 +6,7 @@ import platform
 
 # Home made tests
 sys.path.append('SconsTests')
-import wxconfig 
+import wxconfig
 import utils
 
 # Some features need at least SCons 1.2
@@ -24,7 +24,6 @@ compileFlags = [
     '-fno-exceptions',
     '-fno-strict-aliasing',
     '-msse2',
-    #'-fomit-frame-pointer'
     ]
 if sys.platform != 'win32':
     compileFlags += [ '-fvisibility=hidden' ]
@@ -46,7 +45,7 @@ include_paths = [
 
 dirs = [
     basedir + 'Source/Core/Common/Src',
-    basedir + '.',
+    basedir + '.'
     ]
 
 builders = {}
@@ -60,14 +59,14 @@ if sys.platform == 'darwin':
                 writePlist(properties, str(dstNode))
     builders['Plist'] = Builder(action = createPlist)
 
-# handle command line options
+# Handle command line options
 vars = Variables('args.cache')
 
 vars.AddVariables(
     BoolVariable('verbose', 'Set for compilation line', False),
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
-                 allowed_values = ('release', 'devel', 'debug', 'fastlog', 'prof'),
+                 allowed_values = ('release','devel','debug','fastlog','prof'),
                  ignorecase = 2
                  ),
     PathVariable('wxconfig', 'Path to the wxconfig', None),
@@ -100,10 +99,10 @@ else:
         BUILDERS = builders,
         )
 
-# save the given command line options
+# Save the given command line options
 vars.Save('args.cache', env)
 
-# verbose compile
+# Verbose compile
 if not env['verbose']:
     env['CCCOMSTR'] = "Compiling $TARGET"
     env['CXXCOMSTR'] = "Compiling $TARGET"
@@ -116,31 +115,36 @@ if not env['verbose']:
     env['SHLINKCOMSTR'] = "Linking shared $TARGET"
     env['RANLIBCOMSTR'] = "Indexing $TARGET"
 
-# build flavour
-flavour = ARGUMENTS.get('flavor')
+# Build flavour
+flavour = env['flavor']
 if (flavour == 'debug'):
-    compileFlags.append('-g')
+    compileFlags.append('-ggdb')
     cppDefines.append('_DEBUG') #enables LOGGING
     # FIXME: this disable wx debugging how do we make it work?
-    cppDefines.append('NDEBUG') 
+    cppDefines.append('NDEBUG')
 elif (flavour == 'devel'):
-    compileFlags.append('-g')
+    compileFlags.append('-ggdb')
 elif (flavour == 'fastlog'):
     compileFlags.append('-O3')
     cppDefines.append('DEBUGFAST')
 elif (flavour == 'prof'):
     compileFlags.append('-O3')
-    compileFlags.append('-g')
+    compileFlags.append('-ggdb')
 elif (flavour == 'release'):
     compileFlags.append('-O3')
 
-# more warnings
+# More warnings
 if env['lint']:
     warnings.append('error')
-    warnings.append('unreachable-code')
-    warnings.append('float-equal')
+    # Should check for the availability of these (in GCC 4.3 or newer)
+    if sys.platform != 'darwin':
+        warnings.append('no-array-bounds')
+        warnings.append('no-unused-result')
+    # wxWidgets causes too many warnings with these
+    #warnings.append('unreachable-code')
+    #warnings.append('float-equal')
 
-# add the warnings to the compile flags
+# Add the warnings to the compile flags
 compileFlags += [ '-W' + warning for warning in warnings ]
 
 env['CCFLAGS'] = compileFlags
@@ -156,39 +160,37 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          'CheckPKG' : utils.CheckPKG,
          }
 
-#object files
-env['build_dir'] = os.path.join(basedir, 'Build', platform.system() + '-' + 'MemCardManager' + os.sep)
+# Object files
+env['build_dir'] = os.path.join(basedir, 'Build',
+    platform.system() + '-' + 'MemCardManager' + os.sep)
 
-
-VariantDir(env['build_dir'], '.', duplicate=0)
-
-conf = env.Configure(custom_tests = tests, 
+conf = env.Configure(custom_tests = tests,
                      config_h="Source/Core/Common/Src/Config.h")
 
 if not conf.CheckPKGConfig('0.15.0'):
     print "Can't find pkg-config, some tests will fail"
 
+# OS X specifics
+if sys.platform == 'darwin':
+    env['HAVE_X11'] = 0
+    compileFlags.append('-mmacosx-version-min=10.5')
+    conf.Define('MAP_32BIT', 0)
+else:
+    env['HAVE_X11'] = conf.CheckPKG('x11')
 
-
-
-
-env['HAVE_X11'] = conf.CheckPKG('x11')
-   
-# handling wx flags CCFLAGS should be created before
+# Handling wx flags CCFLAGS should be created before
 wxmods = ['adv', 'core', 'base']
 env['USE_WX'] = 0
 
-env['HAVE_WX'] = conf.CheckWXConfig('2.8', wxmods, 0) 
-
+env['HAVE_WX'] = conf.CheckWXConfig('2.8', wxmods, 0)
 
 conf.Define('HAVE_WX', env['HAVE_WX'])
 conf.Define('USE_WX', env['USE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])
 
-
-# profile
+# Profile
 env['USE_OPROFILE'] = 0
-if (flavour == 'prof'): 
+if (flavour == 'prof'):
     proflibs = [ '/usr/lib/oprofile', '/usr/local/lib/oprofile' ]
     env['LIBPATH'].append(proflibs)
     env['RPATH'].append(proflibs)
@@ -201,19 +203,12 @@ conf.Define('USE_OPROFILE', env['USE_OPROFILE'])
 # After all configuration tests are done
 conf.Finish()
 
-#wx windows flags
 if env['HAVE_WX']:
     wxconfig.ParseWXConfig(env)
 else:
     print "WX not found or disabled, not building GUI"
 
-# add methods from utils to env
-env.AddMethod(utils.filterWarnings)
-
-# Where do we run from
-env['base_dir'] = os.getcwd()+ '/'
-
-# install paths
+# Install paths
 extra=''
 if flavour == 'debug':
     extra = '-debug'
@@ -221,25 +216,26 @@ elif flavour == 'prof':
     extra = '-prof'
 
 # TODO: support global install
-env['prefix'] = os.path.join(env['base_dir'] + 'Binary', 'MemCardManager' + extra +os.sep)
-#TODO add bin
+env['prefix'] = os.path.join(env['base_dir'] + 'Binary',
+    'MemCardManager' + extra + os.sep)
+# TODO: add bin
 env['binary_dir'] = env['prefix']
 
-# static libs goes here
+# Static libs goes here
 env['local_libs'] =  env['build_dir'] + os.sep + 'libs' + os.sep
 
 env['LIBPATH'].append(env['local_libs'])
 
-# print a nice progress indication when not compiling
+# Print a nice progress indication when not compiling
 Progress(['-\r', '\\\r', '|\r', '/\r'], interval = 5)
 
-# die on unknown variables
+# Die on unknown variables
 unknown = vars.UnknownVariables()
 if unknown:
     print "Unknown variables:", unknown.keys()
     Exit(1)
 
-# generate help
+# Generate help
 Help(vars.GenerateHelpText(env))
 
 Export('env')
@@ -250,4 +246,3 @@ for subdir in dirs:
         variant_dir = env[ 'build_dir' ] + subdir + os.sep,
         duplicate=0
         )
-
