@@ -85,13 +85,13 @@ void CPatchAddEdit::CreateGUIControls(int _selection)
 	sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, wxString::Format(wxT("Entry 1/%d"), (int)tempEntries.size()));
 	currentItem = 1;
 	wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
-	sgEntry->AddGrowableCol(1);
 	sgEntry->Add(EditPatchType, wxGBPosition(0, 0), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
 	sgEntry->Add(EditPatchOffsetText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sgEntry->Add(EditPatchOffset, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);	
 	sgEntry->Add(EditPatchValueText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sgEntry->Add(EditPatchValue, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sgEntry->Add(EntrySelection, wxGBPosition(0, 2), wxGBSpan(3, 1), wxEXPAND|wxALL, 5);
+	sgEntry->AddGrowableCol(1);
 	wxBoxSizer* sEntryAddRemove = new wxBoxSizer(wxHORIZONTAL);
 	sEntryAddRemove->Add(EntryAdd, 0, wxALL, 5);
 	sEntryAddRemove->Add(EntryRemove, 0, wxALL, 5);

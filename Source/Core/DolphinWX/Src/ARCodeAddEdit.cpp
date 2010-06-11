@@ -68,12 +68,12 @@ void CARCodeAddEdit::CreateGUIControls(int _selection)
 	wxButton* bOK = new wxButton(this, wxID_OK, _("OK"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxButton* bCancel = new wxButton(this, wxID_CANCEL, _("Cancel"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	sgEntry->AddGrowableCol(1);
-	sgEntry->AddGrowableRow(1);
 	sgEntry->Add(EditCheatNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER|wxALL, 5);
 	sgEntry->Add(EditCheatName,		wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sgEntry->Add(EntrySelection,	wxGBPosition(0, 2), wxGBSpan(2, 1), wxEXPAND|wxALL, 5);
 	sgEntry->Add(EditCheatCode,		wxGBPosition(1, 0), wxGBSpan(1, 2), wxEXPAND|wxALL, 5);
+	sgEntry->AddGrowableCol(1);
+	sgEntry->AddGrowableRow(1);
 	sbEntry->Add(sgEntry, 1, wxEXPAND|wxALL);
 
 	sEditCheatButtons->AddStretchSpacer();

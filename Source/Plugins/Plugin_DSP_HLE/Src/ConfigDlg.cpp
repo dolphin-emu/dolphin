@@ -41,7 +41,7 @@ DSPConfigDialogHLE::DSPConfigDialogHLE(wxWindow *parent, wxWindowID id, const wx
 	m_buttonEnableDTKMusic = new wxCheckBox(this, ID_ENABLE_DTK_MUSIC, wxT("Enable DTK Music"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_buttonEnableThrottle = new wxCheckBox(this, ID_ENABLE_THROTTLE, wxT("Enable Audio Throttle"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	wxStaticText *BackendText = new wxStaticText(this, wxID_ANY, wxT("Audio Backend"), wxDefaultPosition, wxDefaultSize, 0);
-	m_BackendSelection = new wxChoice(this, ID_BACKEND, wxDefaultPosition, wxSize(90, 20), wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
+	m_BackendSelection = new wxChoice(this, ID_BACKEND, wxDefaultPosition, wxSize(110, 20), wxArrayBackends, 0, wxDefaultValidator, wxEmptyString);
 
 	m_volumeSlider = new wxSlider(this, ID_VOLUME, ac_Config.m_Volume, 1, 100, wxDefaultPosition, wxDefaultSize, wxSL_VERTICAL|wxSL_INVERSE);
 	m_volumeSlider->Enable(SupportsVolumeChanges(ac_Config.sBackend));

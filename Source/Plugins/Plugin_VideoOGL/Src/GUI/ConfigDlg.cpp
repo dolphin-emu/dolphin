@@ -140,7 +140,7 @@ void GFXConfigDialogOGL::LoadShaders()
 			std::string name = entry.children[i].virtualName.c_str();
 			if (!strcasecmp(name.substr(name.size() - 4).c_str(), ".txt"))
 				name = name.substr(0, name.size() - 4);
-			arrayStringFor_PostShaderCB.Add(wxString::FromAscii(name.c_str()));
+			arrayStringFor_PostShaderCB.Add(wxString::From8BitData(name.c_str()));
 		}
 	}
 	else
@@ -207,7 +207,7 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
 	m_MSAAModeCB->SetSelection(g_Config.iMultisampleMode);
 
-	wxString shader = wxString::FromAscii(g_Config.sPostProcessingShader.c_str());
+	wxString shader = wxString::From8BitData(g_Config.sPostProcessingShader.c_str());
 	if (shader == _(""))
 		shader = wxT("(off)");
 	m_PostShaderCB->SetStringSelection(shader);
@@ -548,7 +548,7 @@ void GFXConfigDialogOGL::EditShaderClick(wxCommandEvent& WXUNUSED (event))
 {
 	if (m_PostShaderCB->GetStringSelection() == wxT("(off)"))
 		return;
-	wxString shader = wxString::FromAscii(File::GetUserPath(D_SHADERS_IDX)) + m_PostShaderCB->GetStringSelection() + _(".txt");
+	wxString shader = wxString::From8BitData(File::GetUserPath(D_SHADERS_IDX)) + m_PostShaderCB->GetStringSelection() + _(".txt");
 	if (wxFileExists(shader))
 	{
 		wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension(_("txt"));

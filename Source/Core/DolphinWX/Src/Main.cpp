@@ -293,7 +293,7 @@ bool DolphinApp::OnInit()
 			tmpChar = new char[len];
 			fread(tmpChar, len, 1, workingDir);
 			fclose(workingDir);
-			if (!wxSetWorkingDirectory(wxString::FromAscii(tmpChar)))
+			if (!wxSetWorkingDirectory(wxString::From8BitData(tmpChar)))
 			{
 				INFO_LOG(CONSOLE, "set working directory failed");
 			}

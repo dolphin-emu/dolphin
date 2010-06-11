@@ -243,7 +243,7 @@ void CMemcardManager::CreateGUIControls()
 		sPages[slot]->Add(m_NextPage[slot], 0, wxEXPAND|wxALL, 1);
 
 		m_MemcardPath[slot] = new wxFilePickerCtrl(this, ID_MEMCARDPATH_A + slot,
-			 wxString::FromAscii(File::GetUserPath(D_GCUSER_IDX)), wxT("Choose a memory card:"),
+			 wxString::From8BitData(File::GetUserPath(D_GCUSER_IDX)), wxT("Choose a memory card:"),
 		wxT("Gamecube Memory Cards (*.raw,*.gcp)|*.raw;*.gcp"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL|wxFLP_OPEN);
 	
 		m_MemcardList[slot] = new CMemcardListCtrl(this, ID_MEMCARDLIST_A + slot, wxDefaultPosition, wxSize(350,400),
@@ -294,7 +294,7 @@ void CMemcardManager::CreateGUIControls()
 		m_Delete[i]->Disable();
 		if (strcmp(DefaultMemcard[i].c_str(), "."))
 		{
-			m_MemcardPath[i]->SetPath(wxString::FromAscii(DefaultMemcard[i].c_str()));
+			m_MemcardPath[i]->SetPath(wxString::From8BitData(DefaultMemcard[i].c_str()));
 			ChangePath(ID_MEMCARDPATH_A + i);
 		}
 	}
@@ -557,7 +557,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 	case ID_SAVEIMPORT_B:
 	{
 		wxString fileName = wxFileSelector(wxT("Select a save file to import"),
-									   (strcmp(DefaultIOPath.c_str(), "/Users/GC") == 0) ?  wxString::FromAscii(""): wxString::FromAscii(DefaultIOPath.c_str()), wxEmptyString, wxEmptyString, wxString::Format
+									   (strcmp(DefaultIOPath.c_str(), "/Users/GC") == 0) ?  wxString::FromAscii(""): wxString::From8BitData(DefaultIOPath.c_str()), wxEmptyString, wxEmptyString, wxString::Format
 			(
 				wxT("Gamecube save files(*.gci,*.gcs,*.sav)|*.gci;*.gcs;*.sav|")
 				wxT("Native GCI files (*.gci)|*.gci|")
@@ -597,8 +597,8 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 			memoryCard[slot]->DEntry_GameCode(index,tempC);
 			memoryCard[slot]->DEntry_FileName(index,tempC2);
 			sprintf(tempC, "%s_%s.gci", tempC, tempC2);
-			wxString fileName = wxFileSelector(wxT("Export save as.."),	wxString::FromAscii(DefaultIOPath.c_str()),
-				wxString::FromAscii(tempC), wxT(".gci"), wxString::Format
+			wxString fileName = wxFileSelector(wxT("Export save as.."),	wxString::From8BitData(DefaultIOPath.c_str()),
+				wxString::From8BitData(tempC), wxT(".gci"), wxString::Format
 				(
 					wxT("Native GCI files (*.gci)|*.gci|")
 					wxT("MadCatz Gameshark files(*.gcs)|*.gcs|")

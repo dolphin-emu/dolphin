@@ -48,7 +48,7 @@ NetPlaySetupDiag::NetPlaySetupDiag(wxWindow* const parent, const CGameListCtrl* 
 	
 	std::string nickname;
 	netplay_section.Get("Nickname", &nickname, "Player");
-	m_nickname_text = new wxTextCtrl(panel, wxID_ANY, wxString::FromAscii(nickname.c_str()));
+	m_nickname_text = new wxTextCtrl(panel, wxID_ANY, wxString::From8BitData(nickname.c_str()));
 
 	wxBoxSizer* const nick_szr = new wxBoxSizer(wxHORIZONTAL);
 	nick_szr->Add(nick_lbl, 0, wxCENTER);

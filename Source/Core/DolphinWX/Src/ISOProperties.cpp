@@ -126,7 +126,7 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		if (GameIni.Load(GameIniFile.c_str()))
 			LoadGameConfig();
 		else
-			wxMessageBox(wxString::Format(_("Could not create %s"), wxString::FromAscii(GameIniFile.c_str()).c_str()), _("Error"), wxOK|wxICON_ERROR, this);
+			wxMessageBox(wxString::Format(_("Could not create %s"), wxString::From8BitData(GameIniFile.c_str()).c_str()), _("Error"), wxOK|wxICON_ERROR, this);
 	}
 
 	// Disk header and apploader
@@ -168,9 +168,9 @@ CISOProperties::CISOProperties(const std::string fileName, wxWindow* parent, wxW
 		m_Country->SetValue(wxT("UNKNOWN"));
 		break;
 	}
-	wxString temp = _T("0x") + wxString::FromAscii(OpenISO->GetMakerID().c_str());
+	wxString temp = _T("0x") + wxString::From8BitData(OpenISO->GetMakerID().c_str());
 	m_MakerID->SetValue(temp);
-	m_Date->SetValue(wxString::FromAscii(OpenISO->GetApploaderDate().c_str()));
+	m_Date->SetValue(wxString::From8BitData(OpenISO->GetApploaderDate().c_str()));
 	m_FST->SetValue(wxString::Format(_T("%u"), OpenISO->GetFSTSize()));
 
 	// Here we set all the info to be shown (be it SJIS or Ascii) + we set the window title
@@ -239,12 +239,12 @@ size_t CISOProperties::CreateDirectoryTree(wxTreeItemId& parent,
 		// check next index
 		if (rFileInfo->IsDirectory())
 		{
-			wxTreeItemId item = m_Treectrl->AppendItem(parent, wxString::FromAscii(itemName), 1, 1);
+			wxTreeItemId item = m_Treectrl->AppendItem(parent, wxString::From8BitData(itemName), 1, 1);
 			CurrentIndex = CreateDirectoryTree(item, fileInfos, CurrentIndex + 1, (size_t)rFileInfo->m_FileSize);
 		}
 		else
 		{
-			m_Treectrl->AppendItem(parent, wxString::FromAscii(itemName), 2, 2);
+			m_Treectrl->AppendItem(parent, wxString::From8BitData(itemName), 2, 2);
 			CurrentIndex++;
 		}
 	}
@@ -409,10 +409,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sCheatPage->Layout();
 
 	
-	// ISO Details
-	sbISODetails = new wxStaticBoxSizer(wxVERTICAL, m_Information, _("ISO Details"));
-	sISODetails = new wxGridBagSizer(0, 0);
-	// XXX sISODetails->AddGrowableCol(0);
 	m_NameText = new wxStaticText(m_Information, ID_NAME_TEXT, _("Name:"), wxDefaultPosition, wxDefaultSize);
 	m_Name = new wxTextCtrl(m_Information, ID_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 	m_GameIDText = new wxStaticText(m_Information, ID_GAMEID_TEXT, _("Game ID:"), wxDefaultPosition, wxDefaultSize);
@@ -426,10 +422,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_FSTText = new wxStaticText(m_Information, ID_FST_TEXT, _("FST Size:"), wxDefaultPosition, wxDefaultSize);	
 	m_FST = new wxTextCtrl(m_Information, ID_FST, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
 
-	// Banner Details
-	sbBannerDetails = new wxStaticBoxSizer(wxVERTICAL, m_Information, _("Banner Details"));
-	sBannerDetails = new wxGridBagSizer(0, 0);
-	// XXX sBannerDetails->AddGrowableCol(1); sBannerDetails->AddGrowableCol(2); sBannerDetails->AddGrowableCol(3);
 	m_LangText = new wxStaticText(m_Information, ID_LANG_TEXT, _("Show Language:"), wxDefaultPosition, wxDefaultSize);
 	arrayStringFor_Lang.Add(_("English"));
 	arrayStringFor_Lang.Add(_("German"));
@@ -448,8 +440,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_BannerText = new wxStaticText(m_Information, ID_BANNER_TEXT, _("Banner:"), wxDefaultPosition, wxDefaultSize);
 	m_Banner = new wxStaticBitmap(m_Information, ID_BANNER, wxNullBitmap, wxDefaultPosition, wxSize(96, 32), 0);
 
-	wxBoxSizer* sInfoPage;
-	sInfoPage = new wxBoxSizer(wxVERTICAL);
+	// ISO Details
+	sISODetails = new wxGridBagSizer(0, 0);
 	sISODetails->Add(m_NameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_Name, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_GameIDText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
@@ -462,8 +454,12 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sISODetails->Add(m_Date, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_FSTText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_FST, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
+	sISODetails->AddGrowableCol(0);
+	sbISODetails = new wxStaticBoxSizer(wxVERTICAL, m_Information, _("ISO Details"));
 	sbISODetails->Add(sISODetails, 0, wxEXPAND, 5);
 
+	// Banner Details
+	sBannerDetails = new wxGridBagSizer(0, 0);
 	sBannerDetails->Add(m_LangText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sBannerDetails->Add(m_Lang, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sBannerDetails->Add(m_ShortText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
@@ -474,19 +470,22 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sBannerDetails->Add(m_Comment, wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sBannerDetails->Add(m_BannerText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALL, 5);
 	sBannerDetails->Add(m_Banner, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sbBannerDetails->Add(sBannerDetails, 0, wxEXPAND, 0);
+	sBannerDetails->AddGrowableCol(1);
+	sbBannerDetails = new wxStaticBoxSizer(wxVERTICAL, m_Information, _("Banner Details"));
+	sbBannerDetails->Add(sBannerDetails, 0, wxEXPAND, 5);
+
+	wxBoxSizer* sInfoPage;
+	sInfoPage = new wxBoxSizer(wxVERTICAL);
 	sInfoPage->Add(sbISODetails, 0, wxEXPAND|wxALL, 5);
 	sInfoPage->Add(sbBannerDetails, 0, wxEXPAND|wxALL, 5);
 	m_Information->SetSizer(sInfoPage);
 	sInfoPage->Layout();
 
 	// Filesystem icons
-	wxIcon iconTemp;
 	m_iconList = new wxImageList(16, 16);
-
-	iconTemp.CopyFromBitmap(wxBitmap(disc_xpm));   m_iconList->Add(iconTemp); // 0
-	iconTemp.CopyFromBitmap(wxBitmap(folder_xpm)); m_iconList->Add(iconTemp); // 1
-	iconTemp.CopyFromBitmap(wxBitmap(file_xpm));   m_iconList->Add(iconTemp); // 2
+	m_iconList->Add(wxBitmap(disc_xpm), wxNullBitmap);	// 0
+	m_iconList->Add(wxBitmap(folder_xpm), wxNullBitmap);	// 1
+	m_iconList->Add(wxBitmap(file_xpm), wxNullBitmap);	// 2
 
 	// Filesystem tree
 	m_Treectrl = new wxTreeCtrl(m_Filesystem, ID_TREECTRL, wxDefaultPosition, wxDefaultSize, wxTR_DEFAULT_STYLE, wxDefaultValidator);
@@ -509,7 +508,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
 	sMain->Add(sButtons, 0, wxEXPAND, 5);
-	sMain->SetMinSize(wxSize(400,500));
+	sMain->SetMinSize(wxSize(400, 600));
 	SetSizerAndFit(sMain);
 }
 
@@ -946,7 +945,7 @@ bool CISOProperties::SaveGameConfig()
 
 void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 {
-	if (wxFileExists(wxString::FromAscii(GameIniFile.c_str())))
+	if (wxFileExists(wxString::From8BitData(GameIniFile.c_str())))
 	{
 		SaveGameConfig();
 
@@ -961,7 +960,7 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED (event))
 			}
 		}
 		wxString OpenCommand;
-		OpenCommand = filetype->GetOpenCommand(wxString::FromAscii(GameIniFile.c_str()));
+		OpenCommand = filetype->GetOpenCommand(wxString::From8BitData(GameIniFile.c_str()));
 		if(OpenCommand.IsEmpty())
 			PanicAlert("Couldn't find open command for extension 'ini'!");
 		else
@@ -1124,7 +1123,7 @@ void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
 			CARCodeAddEdit dlg(-1, this, 1, _("Add ActionReplay Code"));
 			if (dlg.ShowModal() == wxID_OK)
 			{
-				Cheats->Append(wxString::FromAscii(arCodes.back().name.c_str()));
+				Cheats->Append(wxString::From8BitData(arCodes.back().name.c_str()));
 				Cheats->Check((unsigned int)(arCodes.size() - 1), arCodes.back().active);
 			}
 		}
@@ -1174,19 +1173,19 @@ void CISOProperties::ChangeBannerDetails(int lang)
 			wxString(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str(), *wxConvCurrent).c_str(),
 			name.c_str()));
 	}
-	else // Do the same for PAL/US Games using Ascii
+	else // Do the same for PAL/US Games (assuming ISO 8859-1)
 	{
-		wxString name = wxString::FromAscii(OpenGameListItem->GetName(lang).c_str());
+		wxString name = wxString::From8BitData(OpenGameListItem->GetName(lang).c_str());
 
 		m_ShortName->SetValue(name);
-		m_Comment->SetValue(wxString::FromAscii(OpenGameListItem->GetDescription(lang).c_str()));
-		m_Maker->SetValue(wxString::FromAscii(OpenGameListItem->GetCompany().c_str()));//dev too
+		m_Comment->SetValue(wxString::From8BitData(OpenGameListItem->GetDescription(lang).c_str()));
+		m_Maker->SetValue(wxString::From8BitData(OpenGameListItem->GetCompany().c_str()));//dev too
 
 		std::string filename, extension;
 		SplitPath(OpenGameListItem->GetFileName(), 0, &filename, &extension);
 
 		SetTitle(wxString::Format(wxT("%s%s"),
-			wxString::FromAscii(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()).c_str(),
+			wxString::From8BitData(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(), OpenGameListItem->GetUniqueID().c_str()).c_str()).c_str(),
 			name.c_str()));
 	}
 }
