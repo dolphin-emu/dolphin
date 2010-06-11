@@ -26,7 +26,7 @@
 #define CREG_RIP(ctx) (ctx)->gregs[REG_RIP]
 #define CREG_EAX(ctx) (ctx)->gregs[REG_EAX]
 #define CREG_EIP(ctx) (ctx)->gregs[REG_EIP]
-#else
+#elif defined(__APPLE__)
 #define CREG_RAX(ctx) (*(ctx))->__ss.__rax
 #define CREG_RIP(ctx) (*(ctx))->__ss.__rip
 #define CREG_EAX(ctx) (*(ctx))->__ss.__eax

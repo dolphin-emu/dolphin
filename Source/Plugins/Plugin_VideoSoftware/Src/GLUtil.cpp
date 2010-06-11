@@ -416,9 +416,9 @@ void OpenGL_Update()
                 s_backbuffer_height = GLWin.height;
                 break;
             case ClientMessage:
-                if ((ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", False))
+                if ((unsigned long) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", False))
                     g_VideoInitialize.pCoreMessage(WM_USER_STOP);
-				if ((ulong) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "RESIZE", False))
+				if ((unsigned long) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "RESIZE", False))
 					XMoveResizeWindow(GLWin.dpy, GLWin.win, event.xclient.data.l[1],
 							event.xclient.data.l[2], event.xclient.data.l[3], event.xclient.data.l[4]);
                 return;

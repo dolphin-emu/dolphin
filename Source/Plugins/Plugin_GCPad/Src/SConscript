@@ -6,10 +6,6 @@ import sys
 name = "Plugin_GCPad"
 padenv = env.Clone()
 
-if not env['HAVE_SDL']:
-    print name + " must have SDL to be build"
-    Return()
-
 files = [
 	'Config.cpp',
 	'GCPad.cpp',

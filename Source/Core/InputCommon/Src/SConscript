@@ -8,6 +8,7 @@ files = [
 	'InputCommon.cpp',
 	'SDL_Util.cpp',
 	'ControllerInterface/ControllerInterface.cpp',
+	'ControllerInterface/SDL/SDL.cpp'
 	]
 
 if env['HAVE_X11']:
@@ -20,11 +21,6 @@ if env['HAVE_WX']:
 		"WXInputBase.cpp",
 		]
 
-if env['HAVE_SDL']:
-	files += [
-		'ControllerInterface/SDL/SDL.cpp'
-		]
-	
 if sys.platform == 'darwin':
 	files += [
 		'ControllerInterface/OSX/OSX.mm',

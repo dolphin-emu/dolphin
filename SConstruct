@@ -275,8 +275,7 @@ if sys.platform == 'darwin':
     conf.CheckMacports()
     conf.CheckFink()
 
-env['HAVE_SDL'] = conf.CheckSDL('1.0.0')
-if not env['HAVE_SDL']:
+if not conf.CheckSDL('1.0.0'):
     print "SDL is required"
     Exit(1)
 
@@ -405,16 +404,13 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
         print "Must have CgGl to build"
         Exit(1)
 
-env['HAVE_ZLIB'] = conf.CheckPKG('z')
-if not ['HAVE_ZLIB']:
+if not conf.CheckPKG('z'):
     print "zlib is required"
     Exit(1)
 
 # Check for GTK 2.0 or newer
-env['HAVE_GTK2'] = 0
 if sys.platform == 'linux2':
-    env['HAVE_GTK2'] = env['HAVE_WX'] and conf.CheckPKG('gtk+-2.0')
-    if env['HAVE_WX'] and not env['HAVE_GTK2']:
+    if env['HAVE_WX'] and not conf.CheckPKG('gtk+-2.0'):
         print "gtk+-2.0 developement headers not detected"
         print "gtk+-2.0 is required to build the WX GUI"
         Exit(1)
@@ -426,7 +422,6 @@ if env['nojit']:
 conf.Define('NOJIT', env['NOJIT'])
 
 # Creating config.h defines
-conf.Define('HAVE_SDL', env['HAVE_SDL'])
 conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
 conf.Define('HAVE_AO', env['HAVE_AO'])
 conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
