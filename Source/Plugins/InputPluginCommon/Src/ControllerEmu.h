@@ -307,9 +307,23 @@ public:
 				xx = std::max( -1.0f, std::min( 1.0f, ang_cos * dist ) );
 			}
 
-			*y = C( yy * range + base );
-			*x = C( xx * range + base );
+			// this is kinda silly here
+			// gui being open will make this happen 2x as fast, o well
+			if (xx > m_tilt[0])
+				m_tilt[0] = std::min(m_tilt[0] + 0.1f, xx);
+			else if (xx < m_tilt[0])
+				m_tilt[0] = std::max(m_tilt[0] - 0.1f, xx);
+
+			if (yy > m_tilt[1])
+				m_tilt[1] = std::min(m_tilt[1] + 0.1f, yy);
+			else if (yy < m_tilt[1])
+				m_tilt[1] = std::max(m_tilt[1] - 0.1f, yy);
+
+			*y = C( m_tilt[1] * range + base );
+			*x = C( m_tilt[0] * range + base );
 		}
+	private:
+		float	m_tilt[2];
 	};
 
 	class Cursor : public ControlGroup
@@ -318,18 +332,25 @@ public:
 		Cursor( const char* const _name, const SWiimoteInitialize* const _wiimote_initialize );
 
 		template <typename C>
-		void GetState( C* const x, C* const y, C* const forward, const bool adjusted = false )
+		void GetState( C* const x, C* const y, C* const z, const bool adjusted = false )
 		{
-			const ControlState z = controls[4]->control_ref->State();
+			const float zz = controls[4]->control_ref->State() - controls[5]->control_ref->State();
+
+			// silly being here
+			if (zz > m_z)
+				m_z = std::min(m_z + 0.1f, zz);
+			else if (zz < m_z)
+				m_z = std::max(m_z - 0.1f, zz);
+
+			*z = m_z;
 			
 			// hide
-			if (controls[5]->control_ref->State() > 0.5f)
+			if (controls[6]->control_ref->State() > 0.5f)
 			{
-				*x = 10000; *y = 0; *forward = 0;
+				*x = 10000; *y = 0;
 			}
 			else
 			{
-				*forward = z;
 				float xx, yy;
 				GetMousePos(xx, yy, wiimote_initialize);
 
@@ -359,6 +380,7 @@ public:
 	private:
 		const SWiimoteInitialize* const wiimote_initialize;
 
+		float	m_z;
 	};
 
 	class Extension : public ControlGroup

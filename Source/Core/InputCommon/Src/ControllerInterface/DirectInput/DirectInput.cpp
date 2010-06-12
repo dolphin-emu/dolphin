@@ -15,7 +15,7 @@ namespace DirectInput
 void Init( std::vector<ControllerInterface::Device*>& devices/*, HWND hwnd*/ )
 {
 	IDirectInput8* idi8;
-	if ( DI_OK != DirectInput8Create( GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID*)&idi8, NULL ) )
+	if (FAILED(DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID*)&idi8, NULL)))
 		return;
 
 #ifdef CIFACE_USE_DIRECTINPUT_KBM

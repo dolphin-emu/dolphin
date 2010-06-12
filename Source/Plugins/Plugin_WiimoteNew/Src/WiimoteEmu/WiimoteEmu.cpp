@@ -498,7 +498,7 @@ void Wiimote::Update()
 		yy *= (-256 * 0.90f);
 		yy += 490;
 
-		const unsigned int distance = (unsigned int)(100 + 100 * zz);
+		const unsigned int distance = (unsigned int)(200 + 100 * zz);
 
 		// TODO: make roll affect the dot positions
 		const unsigned int y = (unsigned int)yy;
@@ -509,13 +509,13 @@ void Wiimote::Update()
 		x[2] = (unsigned int)(xx - 1.2f * distance);
 		x[3] = (unsigned int)(xx + 1.2f * distance);
 		
-		//0xFF report
+		// 0xFF report / these memsets are silly
 		if (rpt.ext)
 			memset(data + rpt.ir, 0xFF, (rpt.ext - rpt.ir));
 		else 
 			memset(data + rpt.ir, 0xFF, (46 - rpt.ir));
 
-		//Fill report with valid data when full handshake was done
+		// Fill report with valid data when full handshake was done
 		if (m_reg_ir->data[0x30] || m_reg_ir->data[0x33])
 		// ir mode
 		switch (m_reg_ir->mode)

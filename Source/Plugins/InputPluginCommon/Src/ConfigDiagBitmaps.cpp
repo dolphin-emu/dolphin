@@ -72,11 +72,19 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					// draw the shit
 
 					// ir cursor forward movement
-					if (z)
+					if (GROUP_TYPE_CURSOR == (*g)->control_group->type)
 					{
-						dc.SetPen(*wxRED_PEN);
-						dc.SetBrush(*wxRED_BRUSH);
-						dc.DrawRectangle( 0, 64 - z*64, 64, 2);
+						if (z)
+						{
+							dc.SetPen(*wxRED_PEN);
+							dc.SetBrush(*wxRED_BRUSH);
+						}
+						else
+						{
+							dc.SetPen(*wxGREY_PEN);
+							dc.SetBrush(*wxGREY_BRUSH);
+						}
+						dc.DrawRectangle( 0, 31 - z*31, 64, 2);
 					}
 
 					// circle for visual aid for diagonal adjustment
@@ -95,19 +103,18 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						// deadzone circle
 						dc.SetBrush(*wxLIGHT_GREY_BRUSH);
 						dc.DrawCircle( 32, 32, ((*g)->control_group)->settings[0]->value * 32 );
-
-						// raw dot
-						dc.SetPen(*wxGREY_PEN);
-						dc.SetBrush(*wxGREY_BRUSH);
-						// i like the dot better than the cross i think
-						dc.DrawRectangle( xx - 2, yy - 2, 4, 4 );
-						//dc.DrawRectangle( xx-1, 64-yy-4, 2, 8 );
-						//dc.DrawRectangle( xx-4, 64-yy-1, 8, 2 );
-
 					}
 
+					// raw dot
+					dc.SetPen(*wxGREY_PEN);
+					dc.SetBrush(*wxGREY_BRUSH);
+					// i like the dot better than the cross i think
+					dc.DrawRectangle( xx - 2, yy - 2, 4, 4 );
+					//dc.DrawRectangle( xx-1, 64-yy-4, 2, 8 );
+					//dc.DrawRectangle( xx-4, 64-yy-1, 8, 2 );
+
 					// adjusted dot
-					if ( x!=32 || y!=32 )
+					if (x!=32 || y!=32)
 					{
 						dc.SetPen(*wxRED_PEN);
 						dc.SetBrush(*wxRED_BRUSH);
@@ -223,9 +230,16 @@ void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					{
 						ControlState trig_r = (*g)->control_group->controls[n]->control_ref->State();
 
+						// outline
+						dc.SetPen(*wxGREY_PEN);
+						dc.SetBrush(*wxWHITE_BRUSH);
+						dc.DrawRectangle(0, n*12, 64, 14);
+
+						// raw
 						dc.SetBrush(*wxGREY_BRUSH);
 						dc.DrawRectangle(0, n*12, trig_r*64, 14);
 
+						// deadzone affected
 						dc.SetBrush(*wxRED_BRUSH);
 						dc.DrawRectangle(0, n*12, trigs[n], 14);
 					}

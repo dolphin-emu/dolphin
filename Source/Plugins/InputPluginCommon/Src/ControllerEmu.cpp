@@ -256,7 +256,7 @@ ControllerEmu::MixedTriggers::MixedTriggers( const char* const _name ) : Control
 
 ControllerEmu::Triggers::Triggers( const char* const _name ) : ControlGroup( _name, GROUP_TYPE_TRIGGERS )
 {
-	settings.push_back( new Setting("Dead Zone", 0, 1, 50 ) );
+	settings.push_back( new Setting("Dead Zone", 0, 0, 50 ) );
 }
 
 ControllerEmu::Force::Force( const char* const _name ) : ControlGroup( _name, GROUP_TYPE_FORCE )
@@ -272,8 +272,11 @@ ControllerEmu::Force::Force( const char* const _name ) : ControlGroup( _name, GR
 	settings.push_back( new Setting("Dead Zone", 0, 0, 50 ) );
 }
 
-ControllerEmu::Tilt::Tilt( const char* const _name ) : ControlGroup( _name, GROUP_TYPE_TILT )
+ControllerEmu::Tilt::Tilt( const char* const _name )
+	: ControlGroup( _name, GROUP_TYPE_TILT )
 {
+	memset(m_tilt, 0, sizeof(m_tilt));
+
 	//for ( unsigned int i = 0; i < 4; ++i )
 		//controls.push_back( new Input( named_directions[i] ) );
 	controls.push_back( new Input( "Forward" ) );
@@ -289,12 +292,13 @@ ControllerEmu::Tilt::Tilt( const char* const _name ) : ControlGroup( _name, GROU
 
 ControllerEmu::Cursor::Cursor( const char* const _name, const SWiimoteInitialize* const _wiimote_initialize )
 	: ControlGroup( _name, GROUP_TYPE_CURSOR )
-	//, z(0)
 	, wiimote_initialize(_wiimote_initialize)
+	, m_z(0)
 {
 	for ( unsigned int i = 0; i < 4; ++i )
 		controls.push_back( new Input( named_directions[i] ) );
 	controls.push_back( new Input( "Forward" ) );
+	controls.push_back( new Input( "Backward" ) );
 	controls.push_back( new Input( "Hide" ) );
 
 	settings.push_back( new Setting("Center", 0.5f ) );

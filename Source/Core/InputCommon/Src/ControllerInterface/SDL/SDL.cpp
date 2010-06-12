@@ -18,14 +18,11 @@ namespace ciface
 namespace SDL
 {
 
-// just a struct with an int that is set to ZERO by default
-struct ZeroedInt{ZeroedInt():value(0){}unsigned int value;};
-
 void Init( std::vector<ControllerInterface::Device*>& devices )
 {	
 	// this is used to number the joysticks
 	// multiple joysticks with the same name shall get unique ids starting at 0
-	std::map<std::string, ZeroedInt>	name_counts;
+	std::map<std::string, int>	name_counts;
 
 	if (SDL_Init( SDL_INIT_FLAGS ) >= 0)
     {
@@ -35,7 +32,7 @@ void Init( std::vector<ControllerInterface::Device*>& devices )
 			SDL_Joystick* dev = SDL_JoystickOpen(i);
 			if ( dev )
 			{
-				Joystick* js = new Joystick(dev, i, name_counts[SDL_JoystickName(i)].value++);
+				Joystick* js = new Joystick(dev, i, name_counts[SDL_JoystickName(i)]++);
 				// only add if it has some inputs/outputs
 				if ( js->Inputs().size() || js->Outputs().size() )
 					devices.push_back( js );

@@ -49,15 +49,15 @@ void InitKeyboardMouse( IDirectInput8* const idi8, std::vector<ControllerInterfa
 	LPDIRECTINPUTDEVICE8 kb_device = NULL;
 	LPDIRECTINPUTDEVICE8 mo_device = NULL;
 
-	if (DI_OK == idi8->CreateDevice( GUID_SysKeyboard, &kb_device, NULL))
+	if (SUCCEEDED(idi8->CreateDevice( GUID_SysKeyboard, &kb_device, NULL)))
 	{
-		if (DI_OK == kb_device->SetDataFormat(&c_dfDIKeyboard))
-		if (DI_OK == kb_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE))
+		if (SUCCEEDED(kb_device->SetDataFormat(&c_dfDIKeyboard)))
+		if (SUCCEEDED(kb_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
 		{
-			if (DI_OK == idi8->CreateDevice( GUID_SysMouse, &mo_device, NULL ))
+			if (SUCCEEDED(idi8->CreateDevice( GUID_SysMouse, &mo_device, NULL )))
 			{
-				if (DI_OK == mo_device->SetDataFormat(&c_dfDIMouse2))
-				if (DI_OK == mo_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE))
+				if (SUCCEEDED(mo_device->SetDataFormat(&c_dfDIMouse2)))
+				if (SUCCEEDED(mo_device->SetCooperativeLevel(NULL, DISCL_BACKGROUND | DISCL_NONEXCLUSIVE)))
 				{
 					devices.push_back(new KeyboardMouse(kb_device, mo_device));
 					return;
@@ -147,7 +147,7 @@ bool KeyboardMouse::UpdateInput()
 	if (DIERR_INPUTLOST == mo_hr || DIERR_NOTACQUIRED == mo_hr)
 		m_mo_device->Acquire();
 
-	if (DI_OK == kb_hr && DI_OK == mo_hr)
+	if (SUCCEEDED(kb_hr) && SUCCEEDED(mo_hr))
 	{
 		// need to smooth out the axes, otherwise it doesnt work for shit
 		for ( unsigned int i = 0; i < 3; ++i )

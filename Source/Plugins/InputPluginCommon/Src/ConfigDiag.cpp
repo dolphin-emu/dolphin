@@ -384,29 +384,41 @@ void GamepadPage::ClearControl( wxCommandEvent& event )
 
 void ControlDialog::DetectControl( wxCommandEvent& event )
 {
+	wxButton* const btn = (wxButton*)event.GetEventObject();
+
 	// some hacks
-	wxChar num = ((wxButton*)event.GetEventObject())->GetLabel()[0];
-	if ( num > '9' )
+	const wxString lbl = btn->GetLabel();
+	wxChar num = lbl[0];
+	if (num > '9')
+	{
 		num = 1;
+		btn->SetLabel(wxT("[ waiting ]"));
+	}
 	else
+	{
 		num -= 0x30;
+		btn->SetLabel(wxT("w"));
+	}
 
 	g_plugin->controls_crit.Enter();		// enter
-	if ( control_reference->Detect( DETECT_WAIT_TIME, num ) )	// if we got input, update gui
+	if ( control_reference->Detect( DETECT_WAIT_TIME + (num - 1) * 500, num ) )	// if we got input, update gui
 		control_chooser->UpdateListSelection();
 	g_plugin->controls_crit.Leave();		// leave
+
+	btn->SetLabel(lbl);
 }
 
 void GamepadPage::DetectControl( wxCommandEvent& event )
 {
 	ControlButton* btn = (ControlButton*)event.GetEventObject();
 
+	btn->SetLabel(wxT("[ waiting ]"));
+
 	g_plugin->controls_crit.Enter();		// enter
-
 	btn->control_reference->Detect( DETECT_WAIT_TIME );
-	btn->SetLabel( wxString::FromAscii( btn->control_reference->control_qualifier.name.c_str() ) );
-
 	g_plugin->controls_crit.Leave();		// leave
+
+	btn->SetLabel(wxString::FromAscii(btn->control_reference->control_qualifier.name.c_str()));
 }
 
 void ControlDialog::SelectControl( wxCommandEvent& event )
