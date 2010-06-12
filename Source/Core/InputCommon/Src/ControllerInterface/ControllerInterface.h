@@ -214,7 +214,7 @@ public:
 	class InputReference : public ControlReference
 	{
 	public:
-		InputReference() : ControlReference( true ) {}
+		InputReference() : ControlReference(true), mode(0) {}
 		ControlState State( const ControlState state );
 		bool Detect( const unsigned int ms, const unsigned int count );
 		void UpdateControls();
