@@ -33,11 +33,11 @@ void ControllerInterface::Init()
 	if ( m_is_init )
 		return;
 
-#ifdef CIFACE_USE_XINPUT
-	ciface::XInput::Init( m_devices );
-#endif
 #ifdef CIFACE_USE_DIRECTINPUT
 	ciface::DirectInput::Init( m_devices/*, (HWND)m_hwnd*/ );
+#endif
+#ifdef CIFACE_USE_XINPUT
+	ciface::XInput::Init( m_devices );
 #endif
 #ifdef CIFACE_USE_XLIB
 	ciface::Xlib::Init( m_devices, m_hwnd );

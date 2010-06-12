@@ -15,6 +15,7 @@ public:
 	
 	std::string GetName() const;
 
+	void LoadDefaults();
 
 private:
 

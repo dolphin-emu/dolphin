@@ -454,8 +454,7 @@ GETDEVDATA :
 	if (DIERR_INPUTLOST == hr || DIERR_NOTACQUIRED == hr)
 		hr = m_device->Acquire();
 
-	return true;
-	//return SUCCEEDED(hr);
+	return SUCCEEDED(hr);
 }
 
 bool Joystick::UpdateOutput()

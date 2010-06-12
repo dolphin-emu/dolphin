@@ -20,7 +20,7 @@ public:
 	Plugin( const char* const _ini_name, const char* const _gui_name, const char* const _profile_name  );
 	~Plugin();
 
-	void LoadConfig();
+	bool LoadConfig();
 	void SaveConfig();
 
 	std::vector< ControllerEmu* >	controllers;

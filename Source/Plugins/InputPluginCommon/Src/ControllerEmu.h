@@ -404,6 +404,8 @@ public:
 
 	virtual std::string GetName() const = 0;
 
+	virtual void LoadDefaults() {}
+
 	void LoadConfig(IniFile::Section *sec, const std::string& base = "");
 	void SaveConfig(IniFile::Section *sec, const std::string& base = "");
 	void UpdateDefaultDevice();

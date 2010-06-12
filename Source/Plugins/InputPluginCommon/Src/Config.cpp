@@ -24,12 +24,14 @@ Plugin::~Plugin()
 		delete *i;
 }
 
-void Plugin::LoadConfig()
+bool Plugin::LoadConfig()
 {
 	IniFile inifile;
-	inifile.Load(std::string(File::GetUserPath(D_CONFIG_IDX)) + ini_name + ".ini");
+	if (false == inifile.Load(std::string(File::GetUserPath(D_CONFIG_IDX)) + ini_name + ".ini"))
+		return false;
 
-	std::vector< ControllerEmu* >::const_iterator i = controllers.begin(),
+	std::vector< ControllerEmu* >::const_iterator
+		i = controllers.begin(),
 		e = controllers.end();
 	for ( ; i!=e; ++i ) {
 		(*i)->LoadConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
