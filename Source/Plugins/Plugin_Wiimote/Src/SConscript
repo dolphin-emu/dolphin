@@ -30,7 +30,7 @@ if wmenv['HAVE_WX']:
         "FillReport.cpp",
         ]
 
-libs = [ 'common', 'inputcommon' ]
+libs = [ 'common', 'inputcommon', 'inputuicommon' ]
 
 cxxflags = [ ]
 

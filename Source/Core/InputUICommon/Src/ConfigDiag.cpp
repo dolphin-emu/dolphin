@@ -102,8 +102,8 @@ void PadSettingChoice::UpdateValue()
 
 ControlDialog::ControlDialog( wxWindow* const parent, InputPlugin& plugin, ControllerInterface::ControlReference* const ref, const std::vector<ControllerInterface::Device*>& devs )
 	:wxDialog( parent, -1, wxT("Configure Control"), wxDefaultPosition )
-	,m_plugin(plugin)
 	,control_reference(ref)
+	,m_plugin(plugin)
 {
 
 	device_cbox = new wxComboBox( this, -1, wxString::FromAscii( ref->device_qualifier.ToString().c_str() ), wxDefaultPosition, wxSize(256,-1), wxArrayString(), wxTE_PROCESS_ENTER );
@@ -845,9 +845,9 @@ ControlGroupsSizer::ControlGroupsSizer( ControllerEmu* const controller, wxWindo
 
 GamepadPage::GamepadPage( wxWindow* parent, InputPlugin& plugin, const unsigned int pad_num, InputConfigDialog* const config_dialog )
 	: wxNotebookPage( parent, -1 , wxDefaultPosition, wxDefaultSize )
-	,m_plugin(plugin)
 	,controller(plugin.controllers[pad_num])
 	,m_config_dialog(config_dialog)
+	,m_plugin(plugin)
 {
 
 	wxBoxSizer* control_group_sizer = new ControlGroupsSizer( m_plugin.controllers[pad_num], this, this, &control_groups );
