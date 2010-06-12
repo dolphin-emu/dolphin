@@ -70,10 +70,8 @@ CPluginManager::CPluginManager()
 	// Set initial values to NULL.
 	m_video = NULL;
 	m_dsp = NULL;
-	for (int i = 0; i < MAXPADS; i++)
-		m_pad[i] = NULL;
-	for (int i = 0; i < MAXWIIMOTES; i++)
-		m_wiimote[i] = NULL;
+	m_pad = NULL;
+	m_wiimote = NULL;
 }
 
 // This will call FreeLibrary() for all plugins
@@ -84,23 +82,17 @@ CPluginManager::~CPluginManager()
 	delete m_PluginGlobals;
 	delete m_dsp;
 
-	for (int i = 0; i < MAXPADS; i++)
+	if (m_pad)
 	{
-		if (m_pad[i])
-		{
-			delete m_pad[i];
-			m_pad[i] = NULL;
-		}
+		delete m_pad;
+		m_pad = NULL;
 	}
 
-	for (int i = 0; i < MAXWIIMOTES; i++)
+	if (m_wiimote)
 	{
-		if (m_wiimote[i])
-		{
-			m_wiimote[i]->Shutdown();
-			delete m_wiimote[i];
-			m_wiimote[i] = NULL;
-		}
+		m_wiimote->Shutdown();
+		delete m_wiimote;
+		m_wiimote = NULL;
 	}
 
 	delete m_video;
@@ -131,40 +123,27 @@ bool CPluginManager::InitPlugins()
 		PanicAlert("Can't init DSP Plugin");
 		return false;
 	}
-	// Check if we get at least one pad or wiimote
-	bool pad = false;
-	bool wiimote = false;
 
 	// Init pad
-	for (int i = 0; i < MAXPADS; i++)
+	// Check that the plugin has a name
+	if (!m_params->m_strPadPlugin.empty())
+		GetPad();
+
+	// Check that GetPad succeeded
+	if (!m_pad)
 	{
-		// Check that the plugin has a name
-		if (!m_params->m_strPadPlugin[i].empty())
-			GetPad(i);
-		// Check that GetPad succeeded
-		if (m_pad[i] != NULL)
-			pad = true;
-	}
-	if (!pad)
-	{
-		PanicAlert("Can't init any PAD Plugins");
+		PanicAlert("Can't init PAD Plugin");
 		return false;
 	}
 
 	// Init wiimote
 	if (m_params->bWii)
 	{
-		for (int i = 0; i < MAXWIIMOTES; i++)
+		if (!m_params->m_strWiimotePlugin.empty())
+			GetWiimote();
+		if (!m_wiimote)
 		{
-			if (!m_params->m_strWiimotePlugin[i].empty())
-				GetWiimote(i);
-
-			if (m_wiimote[i] != NULL)
-				wiimote = true;
-		}
-		if (!wiimote)
-		{
-			PanicAlert("Can't init any Wiimote Plugins");
+			PanicAlert("Can't init Wiimote Plugin");
 			return false;
 		}
 	}
@@ -177,22 +156,16 @@ bool CPluginManager::InitPlugins()
 // for an explanation about the current LoadLibrary() and FreeLibrary() behavior.
 void CPluginManager::ShutdownPlugins()
 {
-	for (int i = 0; i < MAXPADS; i++)
+	if (m_pad)
 	{
-		if (m_pad[i])
-		{
-			m_pad[i]->Shutdown();
-			FreePad(i);
-		}
+		m_pad->Shutdown();
+		FreePad();
 	}
 
-	for (int i = 0; i < MAXWIIMOTES; i++)
+	if (m_wiimote)
 	{
-		if (m_wiimote[i])
-		{
-			m_wiimote[i]->Shutdown();
-			FreeWiimote(i);
-		}
+		m_wiimote->Shutdown();
+		FreeWiimote();
 	}
 
 	if (m_dsp)
@@ -381,34 +354,34 @@ void CPluginManager::ScanForPlugins()
    if it's not valid.
    */
 // ------------
-Common::PluginPAD *CPluginManager::GetPad(int controller)
+Common::PluginPAD *CPluginManager::GetPad()
 {
-	if (m_pad[controller] != NULL)
+	if (m_pad != NULL)
 	{
-		if (m_pad[controller]->GetFilename() == m_params->m_strPadPlugin[controller])
-			return m_pad[controller];
+		if (m_pad->GetFilename() == m_params->m_strPadPlugin)
+			return m_pad;
 		else
-			FreePad(controller);
+			FreePad();
 	}
 	
 	// Else load a new plugin
-	m_pad[controller] = (Common::PluginPAD*)LoadPlugin(m_params->m_strPadPlugin[controller].c_str());
-	return m_pad[controller];
+	m_pad = (Common::PluginPAD*)LoadPlugin(m_params->m_strPadPlugin.c_str());
+	return m_pad;
 }
 
-Common::PluginWiimote *CPluginManager::GetWiimote(int controller)
+Common::PluginWiimote *CPluginManager::GetWiimote()
 {
-	if (m_wiimote[controller] != NULL)
+	if (m_wiimote != NULL)
 	{
-		if (m_wiimote[controller]->GetFilename() == m_params->m_strWiimotePlugin[controller])
-			return m_wiimote[controller];
+		if (m_wiimote->GetFilename() == m_params->m_strWiimotePlugin)
+			return m_wiimote;
 		else
-			FreeWiimote(controller);
+			FreeWiimote();
 	}
 	
 	// Else load a new plugin
-	m_wiimote[controller] = (Common::PluginWiimote*)LoadPlugin(m_params->m_strWiimotePlugin[controller].c_str());
-	return m_wiimote[controller];
+	m_wiimote = (Common::PluginWiimote*)LoadPlugin(m_params->m_strWiimotePlugin.c_str());
+	return m_wiimote;
 }
 
 Common::PluginDSP *CPluginManager::GetDSP()
@@ -462,22 +435,16 @@ void CPluginManager::FreeDSP()
 	m_dsp = NULL;
 }
 
-void CPluginManager::FreePad(u32 Pad)
+void CPluginManager::FreePad()
 {
-	if (Pad < MAXPADS)
-	{
-		delete m_pad[Pad];
-		m_pad[Pad] = NULL;
-	}
+	delete m_pad;
+	m_pad = NULL;
 }
 
-void CPluginManager::FreeWiimote(u32 Wiimote)
+void CPluginManager::FreeWiimote()
 {
-	if (Wiimote < MAXWIIMOTES)
-	{
-		delete m_wiimote[Wiimote];
-		m_wiimote[Wiimote] = NULL;
-	}
+	delete m_wiimote;
+	m_wiimote = NULL;
 }
 
 void CPluginManager::EmuStateChange(PLUGIN_EMUSTATE newState)
@@ -488,8 +455,8 @@ void CPluginManager::EmuStateChange(PLUGIN_EMUSTATE newState)
 	//      Would we need to call all plugins?
 	//      If yes, how would one check if the plugin was not
 	//      just created by GetXxx(idx) because there was none?
-	GetPad(0)->EmuStateChange(newState);
-	GetWiimote(0)->EmuStateChange(newState);
+	GetPad()->EmuStateChange(newState);
+	GetWiimote()->EmuStateChange(newState);
 }
 
 
@@ -515,10 +482,10 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 		GetDSP()->Config((HWND)_Parent);
 		break;
 	case PLUGIN_TYPE_PAD:
-		GetPad(0)->Config((HWND)_Parent);
+		GetPad()->Config((HWND)_Parent);
 		break;
 	case PLUGIN_TYPE_WIIMOTE:
-		GetWiimote(0)->Config((HWND)_Parent);
+		GetWiimote()->Config((HWND)_Parent);
 		break;
 	default:
 		PanicAlert("Type %d config not supported in plugin %s", Type, _rFilename);

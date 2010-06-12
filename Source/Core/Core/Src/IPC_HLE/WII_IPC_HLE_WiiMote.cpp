@@ -182,7 +182,7 @@ void CWII_IPC_HLE_WiiMote::EventDisconnect()
 {
 	// Send disconnect message to plugin
 	u8 Message = WIIMOTE_DISCONNECT;
-	CPluginManager::GetInstance().GetWiimote(0)->Wiimote_ControlChannel(m_ConnectionHandle & 0xFF, 99, &Message, 0);
+	CPluginManager::GetInstance().GetWiimote()->Wiimote_ControlChannel(m_ConnectionHandle & 0xFF, 99, &Message, 0);
 
 	m_Connected = -1;
 	// Clear channel flags
@@ -264,7 +264,7 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 			const int number = 0;
 #endif
 
-			Common::PluginWiimote* mote = CPluginManager::GetInstance().GetWiimote(0);
+			Common::PluginWiimote* mote = CPluginManager::GetInstance().GetWiimote();
 			if (itr != m_Channel.end())
 			{
 				SChannel& rChannel = itr->second;

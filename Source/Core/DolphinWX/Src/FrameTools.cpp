@@ -944,7 +944,7 @@ void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
 			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[0].c_str(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin.c_str(),
 			PLUGIN_TYPE_PAD
 			);
 }
@@ -952,7 +952,7 @@ void CFrame::OnPluginWiimote(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(
 			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin[0].c_str(),
+			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin.c_str(),
 			PLUGIN_TYPE_WIIMOTE
 			);
 }

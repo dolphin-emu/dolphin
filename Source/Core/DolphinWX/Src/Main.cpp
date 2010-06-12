@@ -354,20 +354,12 @@ bool DolphinApp::OnInit()
 			std::string(audioPluginFilename.mb_str());
 
 	if (selectPadPlugin && padPluginFilename != wxEmptyString)
-	{
-		int k;
-		for(k=0;k<MAXPADS;k++)
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin[k] =
-				std::string(padPluginFilename.mb_str());
-	}
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin =
+			std::string(padPluginFilename.mb_str());
 
 	if (selectWiimotePlugin && wiimotePluginFilename != wxEmptyString)
-	{
-		int k;
-		for(k=0;k<MAXWIIMOTES;k++)
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin[k] =
-				std::string(wiimotePluginFilename.mb_str());
-	}
+		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin =
+			std::string(wiimotePluginFilename.mb_str());
 
 	// Enable the PNG image handler
 	wxInitAllImageHandlers(); 

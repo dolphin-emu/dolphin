@@ -392,7 +392,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	PADInitialize.pRendererHasFocus	= Callback_RendererHasFocus;
 	// This is may be needed to avoid a SDL problem
 	//Plugins.FreeWiimote();
-	Plugins.GetPad(0)->Initialize(&PADInitialize);
+	Plugins.GetPad()->Initialize(&PADInitialize);
 
 	// Load and Init WiimotePlugin - only if we are booting in wii mode	
 	if (_CoreParameter.bWii)
@@ -407,7 +407,7 @@ THREAD_RETURN EmuThread(void *pArg)
 		WiimoteInitialize.pWiimoteInterruptChannel = Callback_WiimoteInterruptChannel;
 		WiimoteInitialize.pRendererHasFocus	= Callback_RendererHasFocus;
 		// Wait for Wiiuse to find the number of connected Wiimotes
-		Plugins.GetWiimote(0)->Initialize((void *)&WiimoteInitialize);
+		Plugins.GetWiimote()->Initialize((void *)&WiimoteInitialize);
 	}
 
 	// The hardware is initialized.

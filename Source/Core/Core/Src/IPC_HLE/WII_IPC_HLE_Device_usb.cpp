@@ -497,7 +497,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
 #if defined(HAVE_WX) && HAVE_WX
 				NetPlay_WiimoteUpdate(i);
 #endif
-				CPluginManager::GetInstance().GetWiimote(0)->Wiimote_Update(i);
+				CPluginManager::GetInstance().GetWiimote()->Wiimote_Update(i);
 				return true;
 			}
 		}

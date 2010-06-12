@@ -296,8 +296,8 @@ void SConfig::LoadSettings()
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin,	m_DefaultGFXPlugin.c_str());
 		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin,		m_DefaultDSPPlugin.c_str());
-		ini.Get("Core", "PadPlugin", &m_LocalCoreStartupParameter.m_strPadPlugin[0], m_DefaultPADPlugin.c_str());
-		ini.Get("Core", "WiiMotePlugin", &m_LocalCoreStartupParameter.m_strWiimotePlugin[0], m_DefaultWiiMotePlugin.c_str());
+		ini.Get("Core", "PadPlugin", &m_LocalCoreStartupParameter.m_strPadPlugin, m_DefaultPADPlugin.c_str());
+		ini.Get("Core", "WiiMotePlugin", &m_LocalCoreStartupParameter.m_strWiimotePlugin, m_DefaultWiiMotePlugin.c_str());
 
 
 	}

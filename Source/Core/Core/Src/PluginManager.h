@@ -51,13 +51,13 @@ public:
 
 	Common::PluginVideo *GetVideo();
 	Common::PluginDSP *GetDSP();
-	Common::PluginPAD *GetPad(int controller);
-	Common::PluginWiimote *GetWiimote(int controller);
+	Common::PluginPAD *GetPad();
+	Common::PluginWiimote *GetWiimote();
 
 	void FreeVideo();
 	void FreeDSP();
-	void FreePad(u32 Pad);
-	void FreeWiimote(u32 Wiimote);
+	void FreePad();
+	void FreeWiimote();
 
 	void EmuStateChange(PLUGIN_EMUSTATE newState);
 
@@ -69,6 +69,7 @@ public:
 	void OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show);
 	const CPluginInfos& GetPluginInfos() {return(m_PluginInfos);}
 	PLUGIN_GLOBALS* GetGlobals();
+
 private:
 	static CPluginManager* m_Instance;
 
@@ -76,8 +77,8 @@ private:
 	PLUGIN_GLOBALS *m_PluginGlobals;
 	Common::PluginVideo *m_video;
 	Common::PluginDSP *m_dsp;
-	Common::PluginPAD *m_pad[4];
-	Common::PluginWiimote *m_wiimote[4];
+	Common::PluginPAD *m_pad;
+	Common::PluginWiimote *m_wiimote;
 
 	SCoreStartupParameter * m_params;
 	CPluginManager();

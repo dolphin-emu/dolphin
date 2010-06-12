@@ -882,8 +882,8 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 #endif
 
 		// Send the keyboard status to the Input plugins
-		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
-		CPluginManager::GetInstance().GetWiimote(0)->Wiimote_Input(event.GetKeyCode(), 1); // 1 = Down
+		CPluginManager::GetInstance().GetPad()->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
+		CPluginManager::GetInstance().GetWiimote()->Wiimote_Input(event.GetKeyCode(), 1); // 1 = Down
 	}
 	else
 		event.Skip();
@@ -894,8 +894,8 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 	event.Skip();
 
 	if(Core::GetState() != Core::CORE_UNINITIALIZED) {
-		CPluginManager::GetInstance().GetPad(0)->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
-		CPluginManager::GetInstance().GetWiimote(0)->Wiimote_Input(event.GetKeyCode(), 0); // 0 = Up
+		CPluginManager::GetInstance().GetPad()->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
+		CPluginManager::GetInstance().GetWiimote()->Wiimote_Input(event.GetKeyCode(), 0); // 0 = Up
 	}
 }
 

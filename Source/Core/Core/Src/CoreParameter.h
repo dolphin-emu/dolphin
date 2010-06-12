@@ -21,9 +21,6 @@
 #include "IniFile.h"
 #include <string>
 
-#define MAXPADS 1
-#define MAXWIIMOTES 1
-
 enum Hotkey {
 	HK_FULLSCREEN,
 	HK_PLAY_PAUSE,
@@ -121,9 +118,9 @@ struct SCoreStartupParameter
 
 	// files
 	std::string m_strVideoPlugin;
-	std::string m_strPadPlugin[MAXPADS];
+	std::string m_strPadPlugin;
 	std::string m_strDSPPlugin;
-	std::string m_strWiimotePlugin[MAXWIIMOTES];
+	std::string m_strWiimotePlugin;
 
 	std::string m_strFilename;
 	std::string m_strBootROM;
