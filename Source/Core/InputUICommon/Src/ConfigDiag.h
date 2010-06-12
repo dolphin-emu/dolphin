@@ -39,8 +39,9 @@
 #include <sstream>
 #include <vector>
 
-#include <ControllerInterface/ControllerInterface.h>
-#include "Config.h"
+#include "ControllerInterface/ControllerInterface.h"
+#include "ControllerEmu.h"
+#include "InputConfig.h"
 #include "FileSearch.h"
 
 class PadSetting
@@ -74,7 +75,7 @@ public:
 	void UpdateGUI();
 	void UpdateValue();
 
-	ControlState&		value;
+	ControlState& value;
 };
 
 class PadSettingCheckBox : public wxCheckBox, public PadSetting

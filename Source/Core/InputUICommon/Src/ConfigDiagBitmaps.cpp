@@ -19,7 +19,6 @@
 
 void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 {
-
 	GamepadPage* const current_page = (GamepadPage*)m_pad_notebook->GetPage( m_pad_notebook->GetSelection() );
 
 	std::vector< ControlGroupBox* >::iterator g = current_page->control_groups.begin(),

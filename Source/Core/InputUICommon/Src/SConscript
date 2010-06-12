@@ -1,0 +1,14 @@
+# -*- python -*-
+
+Import('env')
+import sys
+
+if not env['HAVE_WX']:
+	Return()
+
+files = [
+	'ConfigDiag.cpp',
+	'ConfigDiagBitmaps.cpp',
+	]
+
+env.StaticLibrary(env['local_libs'] + 'debugger_ui_util', files)

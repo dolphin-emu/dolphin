@@ -6,9 +6,9 @@
 #include "WiimoteEmu/WiimoteEmu.h"
 
 #if defined(HAVE_WX) && HAVE_WX
-#include "ConfigDiag.h"
+#include "../../InputUICommon/Src/ConfigDiag.h"
 #endif
-#include "../../InputPluginCommon/Src/Config.h"
+#include "../../InputCommon/Src/InputConfig.h"
 
 #if defined(HAVE_X11) && HAVE_X11
 #include <X11/Xlib.h>

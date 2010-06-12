@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="InputCommon"
 	ProjectGUID="{C7E5D50A-2916-464B-86A7-E10B3CC88ADA}"
 	RootNamespace="VideoCommon"
@@ -481,6 +481,14 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\ControllerEmu.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\ControllerEmu.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\DirectInputBase.cpp"
 			>
 		</File>
@@ -506,6 +514,14 @@
 		</File>
 		<File
 			RelativePath=".\Src\InputCommon.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\InputConfig.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\InputConfig.h"
 			>
 		</File>
 		<File

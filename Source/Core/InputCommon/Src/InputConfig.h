@@ -18,11 +18,11 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
-#include <ControllerInterface/ControllerInterface.h>
 #include "Thread.h"
 #include "FileUtil.h"
 #include "IniFile.h"
 
+#include "ControllerInterface/ControllerInterface.h"
 #include "ControllerEmu.h"
 
 #include <string>

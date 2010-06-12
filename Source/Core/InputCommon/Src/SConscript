@@ -4,8 +4,10 @@ Import('env')
 
 files = [
 	'Configuration.cpp',
+	'ControllerEmu.cpp',
 	'EventHandler.cpp',
 	'InputCommon.cpp',
+	'InputConfig.cpp',
 	'SDL_Util.cpp',
 	'ControllerInterface/ControllerInterface.cpp',
 	'ControllerInterface/SDL/SDL.cpp'
