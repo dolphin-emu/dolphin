@@ -121,7 +121,7 @@ private:
 class ControlDialog : public wxDialog
 {
 public:
-	ControlDialog( wxWindow* const parent, ControllerInterface::ControlReference* const ref, const std::vector<ControllerInterface::Device*>& devs );
+	ControlDialog( wxWindow* const parent, InputPlugin& plugin, ControllerInterface::ControlReference* const ref, const std::vector<ControllerInterface::Device*>& devs );
 	
 	void SelectControl( wxCommandEvent& event );
 	void DetectControl( wxCommandEvent& event );
@@ -130,6 +130,7 @@ public:
 	void SetDevice( wxCommandEvent& event );
 
 	ControllerInterface::ControlReference* const		control_reference;
+	InputPlugin&				m_plugin;
 	wxComboBox*				device_cbox;
 	ControlChooser*			control_chooser;
 };
@@ -172,14 +173,14 @@ public:
 	
 };
 
-class ConfigDialog;
+class InputConfigDialog;
 
 class GamepadPage : public wxNotebookPage
 {
-	friend class ConfigDialog;
+	friend class InputConfigDialog;
 
 public:
-	GamepadPage( wxWindow* parent, const unsigned int pad_num, ConfigDialog* const config_dialog );
+	GamepadPage( wxWindow* parent, InputPlugin& plugin, const unsigned int pad_num, InputConfigDialog* const config_dialog );
 
 	void UpdateGUI();
 
@@ -214,15 +215,16 @@ protected:
 private:
 
 	ControlDialog*				m_control_dialog;
-	ConfigDialog* const			m_config_dialog;
+	InputConfigDialog* const			m_config_dialog;
+	InputPlugin &m_plugin;
 };
 
-class ConfigDialog : public wxDialog
+class InputConfigDialog : public wxDialog
 {
 public:
 
-	ConfigDialog( wxWindow* const parent, Plugin& plugin, const std::string& name, const bool _is_game_running );
-	~ConfigDialog();
+	InputConfigDialog( wxWindow* const parent, InputPlugin& plugin, const std::string& name, const bool _is_game_running );
+	~InputConfigDialog();
 
 	void ClickSave( wxCommandEvent& event );
 
@@ -238,7 +240,7 @@ private:
 
 	wxNotebook*					m_pad_notebook;
 	std::vector<GamepadPage*>	m_padpages;
-	Plugin&						m_plugin;
+	InputPlugin&				m_plugin;
 	wxTimer*					m_update_timer;
 };
 

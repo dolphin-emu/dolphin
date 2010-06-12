@@ -17,7 +17,7 @@
 
 #include "InputConfig.h"
 
-Plugin::Plugin( const char* const _ini_name, const char* const _gui_name, const char* const _profile_name  )
+InputPlugin::InputPlugin( const char* const _ini_name, const char* const _gui_name, const char* const _profile_name  )
 	: ini_name(_ini_name)
 	, gui_name(_gui_name)
 	, profile_name(_profile_name)
@@ -30,7 +30,7 @@ Plugin::Plugin( const char* const _ini_name, const char* const _gui_name, const 
 	//	controllers.push_back( new Wiimote( i ) );
 };
 
-Plugin::~Plugin()
+InputPlugin::~InputPlugin()
 {
 	// delete pads
 	std::vector<ControllerEmu*>::const_iterator i = controllers.begin(),
@@ -39,7 +39,7 @@ Plugin::~Plugin()
 		delete *i;
 }
 
-bool Plugin::LoadConfig()
+bool InputPlugin::LoadConfig()
 {
 	IniFile inifile;
 	if (false == inifile.Load(std::string(File::GetUserPath(D_CONFIG_IDX)) + ini_name + ".ini"))
@@ -51,9 +51,10 @@ bool Plugin::LoadConfig()
 	for ( ; i!=e; ++i ) {
 		(*i)->LoadConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
 	}
+	return true;
 }
 
-void Plugin::SaveConfig()
+void InputPlugin::SaveConfig()
 {
 	std::string ini_filename = (std::string(File::GetUserPath(D_CONFIG_IDX)) + ini_name + ".ini" );
 

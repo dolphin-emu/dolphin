@@ -44,7 +44,7 @@
 #endif
 
 // plugin globals
-static Plugin g_plugin( "GCPadNew", "Pad", "GCPad" );
+static InputPlugin g_plugin( "GCPadNew", "Pad", "GCPad" );
 SPADInitialize *g_PADInitialize = NULL;
 
 #ifdef _WIN32
@@ -276,7 +276,7 @@ void DllConfig(HWND _hParent)
 	// copied from GCPad
 #if defined(HAVE_WX) && HAVE_WX
 	wxWindow *frame = GetParentedWxWindow(_hParent);
-	ConfigDialog* m_ConfigFrame = new ConfigDialog( frame, g_plugin, PLUGIN_FULL_NAME, was_init );
+	InputConfigDialog* m_ConfigFrame = new InputConfigDialog( frame, g_plugin, PLUGIN_FULL_NAME, was_init );
 
 #ifdef _WIN32
 	frame->Disable();

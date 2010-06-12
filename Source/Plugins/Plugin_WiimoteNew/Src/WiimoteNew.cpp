@@ -32,7 +32,7 @@
 #endif
 
 // plugin globals
-static Plugin g_plugin( "WiimoteNew", "Wiimote", "Wiimote" );
+static InputPlugin g_plugin( "WiimoteNew", "Wiimote", "Wiimote" );
 SWiimoteInitialize g_WiimoteInitialize;
 
 #ifdef _WIN32
@@ -257,7 +257,7 @@ void DllConfig(HWND _hParent)
 
 	// copied from GCPad
 	wxWindow *frame = GetParentedWxWindow(_hParent);
-	ConfigDialog* m_ConfigFrame = new ConfigDialog( frame, g_plugin, PLUGIN_FULL_NAME, was_init );
+	InputConfigDialog* m_ConfigFrame = new InputConfigDialog( frame, g_plugin, PLUGIN_FULL_NAME, was_init );
 
 #ifdef _WIN32
 	frame->Disable();

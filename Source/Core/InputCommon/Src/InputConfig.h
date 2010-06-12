@@ -30,12 +30,14 @@
 #include <map>
 #include <sstream>
 
-class Plugin
+// InputPlugin isn't a very good name anymore since it's also used for GCPad which
+// will soon not even be a plugin anymore.
+class InputPlugin
 {
 public:
 
-	Plugin( const char* const _ini_name, const char* const _gui_name, const char* const _profile_name  );
-	~Plugin();
+	InputPlugin( const char* const _ini_name, const char* const _gui_name, const char* const _profile_name  );
+	~InputPlugin();
 
 	bool LoadConfig();
 	void SaveConfig();

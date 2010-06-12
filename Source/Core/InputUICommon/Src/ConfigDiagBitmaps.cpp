@@ -17,7 +17,7 @@
 
 #include "ConfigDiag.h"
 
-void ConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
+void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 {
 	GamepadPage* const current_page = (GamepadPage*)m_pad_notebook->GetPage( m_pad_notebook->GetSelection() );
 
