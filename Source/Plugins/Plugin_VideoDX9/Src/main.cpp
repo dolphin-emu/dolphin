@@ -286,6 +286,7 @@ void Shutdown()
 	s_FifoShuttingDown = FALSE;
 	s_swapRequested = FALSE;
 	Fifo_Shutdown();
+	CommandProcessor::Shutdown();
 	VertexManager::Shutdown();
 	VertexLoaderManager::Shutdown();
 	VertexShaderCache::Shutdown();

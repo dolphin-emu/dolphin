@@ -46,7 +46,7 @@ static VERTEXSHADER *pShaderLast = NULL;
 static int s_nMaxVertexInstructions;
 static float GC_ALIGNED16(lastVSconstants[C_FOGPARAMS+8][4]);
 
-void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
+void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	if ( lastVSconstants[const_number][0] != f1 || 
 		lastVSconstants[const_number][1] != f2 ||
@@ -61,7 +61,7 @@ void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 	}
 }
 
-void SetVSConstant4fv(int const_number, const float *f)
+void SetVSConstant4fv(unsigned int const_number, const float *f)
 {
 	if (memcmp(&lastVSconstants[const_number], f, sizeof(float) * 4)) {
 		memcpy(&lastVSconstants[const_number], f, sizeof(float) * 4);
@@ -69,10 +69,10 @@ void SetVSConstant4fv(int const_number, const float *f)
 	}	
 }
 
-void SetMultiVSConstant4fv(int const_number, int count, const float *f)
+void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
 	const float *f0 = f;
-	for (int i = 0; i < count; i++,f0+=4)
+	for (unsigned int i = 0; i < count; i++,f0+=4)
 	{
 		if (memcmp(&lastVSconstants[const_number + i], f0, sizeof(float) * 4)) {
 			memcpy(&lastVSconstants[const_number + i], f0, sizeof(float) * 4);
@@ -81,9 +81,9 @@ void SetMultiVSConstant4fv(int const_number, int count, const float *f)
 	}
 }
 
-void SetMultiVSConstant3fv(int const_number, int count, const float *f)
+void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f)
 {
-	for (int i = 0; i < count; i++)
+	for (unsigned int i = 0; i < count; i++)
 	{
 		if (lastVSconstants[const_number + i][0] != f[0 + i*3] || 
 			lastVSconstants[const_number + i][1] != f[1 + i*3] ||
@@ -151,7 +151,7 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 	VSCacheEntry& entry = vshaders[uid];
 	entry.frameCount = frameCount;
 	pShaderLast = &entry.shader;
-	const char *code = GenerateVertexShaderCode(components, false);
+	const char *code = GenerateVertexShaderCode(components, API_OPENGL);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {

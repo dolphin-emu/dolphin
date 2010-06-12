@@ -56,7 +56,7 @@ LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetClearVertexShader()
 }
 
 
-void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
+void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	if (lastVSconstants[const_number][0] != f1 || 
 		lastVSconstants[const_number][1] != f2 ||
@@ -71,7 +71,7 @@ void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 	}
 }
 
-void SetVSConstant4fv(int const_number, const float *f)
+void SetVSConstant4fv(unsigned int const_number, const float *f)
 {
 	if (memcmp(&lastVSconstants[const_number], f, sizeof(float) * 4)) {
 		memcpy(&lastVSconstants[const_number], f, sizeof(float) * 4);
@@ -79,10 +79,10 @@ void SetVSConstant4fv(int const_number, const float *f)
 	}	
 }
 
-void SetMultiVSConstant3fv(int const_number, int count, const float *f)
+void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f)
 {
 	bool change = false;
-	for (int i = 0; i < count; i++)
+	for (unsigned int i = 0; i < count; i++)
 	{
 		if (lastVSconstants[const_number + i][0] != f[0 + i*3] || 
 			lastVSconstants[const_number + i][1] != f[1 + i*3] ||
@@ -94,7 +94,7 @@ void SetMultiVSConstant3fv(int const_number, int count, const float *f)
 	}
 	if (change)
 	{
-		for (int i = 0; i < count; i++)
+		for (unsigned int i = 0; i < count; i++)
 		{
 			lastVSconstants[const_number + i][0] = f[0 + i*3];
 			lastVSconstants[const_number + i][1] = f[1 + i*3];
@@ -105,7 +105,7 @@ void SetMultiVSConstant3fv(int const_number, int count, const float *f)
 	}
 }
 
-void SetMultiVSConstant4fv(int const_number, int count, const float *f)
+void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
 	if (memcmp(&lastVSconstants[const_number], f, count * sizeof(float) * 4)) {
 		memcpy(&lastVSconstants[const_number], f, count * sizeof(float) * 4);
@@ -215,7 +215,7 @@ void VertexShaderCache::Init()
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
 	char cache_filename[MAX_PATH];
-	sprintf(cache_filename, "%s%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
+	sprintf(cache_filename, "%sdx9-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	VertexShaderCacheInserter inserter;
 	int read_items = g_vs_disk_cache.OpenAndRead(cache_filename, &inserter);
 }
@@ -284,7 +284,7 @@ bool VertexShaderCache::SetShader(u32 components)
 			return false;
 	}
 
-	const char *code = GenerateVertexShaderCode(components, true);
+	const char *code = GenerateVertexShaderCode(components, API_D3D9);
 	u8 *bytecode;
 	int bytecodelen;
 	if (!D3D::CompileVertexShader(code, (int)strlen(code), &bytecode, &bytecodelen))

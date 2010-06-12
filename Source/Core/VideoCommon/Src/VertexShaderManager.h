@@ -64,9 +64,10 @@ public:
 	static void ResetView();
 };
 
-void SetVSConstant4f(int const_number, float f1, float f2, float f3, float f4);
-void SetVSConstant4fv(int const_number, const float *f);
-void SetMultiVSConstant3fv(int const_number, int count, const float *f);
-void SetMultiVSConstant4fv(int const_number, int count, const float *f);
+void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4);
+void SetVSConstant4fv(unsigned int const_number, const float *f);
+void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float *f);
+void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float *f);
+
 
 #endif // _VERTEXSHADERMANAGER_H

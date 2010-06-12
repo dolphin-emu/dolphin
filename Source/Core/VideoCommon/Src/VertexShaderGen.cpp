@@ -80,7 +80,7 @@ static char text[16384];
 
 char *GenerateLightShader(char *p, int index, const LitChannel& chan, const char *dest, int coloralpha);
 
-const char *GenerateVertexShaderCode(u32 components, bool D3D)
+const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
@@ -89,6 +89,7 @@ const char *GenerateVertexShaderCode(u32 components, bool D3D)
     _assert_(bpmem.genMode.numtexgens == xfregs.numTexGens);
     _assert_(bpmem.genMode.numcolchans == xfregs.nNumChans);
     
+	bool is_d3d = (api_type == API_D3D9 || api_type == API_D3D11);
     u32 lightMask = 0;
     if (xfregs.nNumChans > 0)
 		lightMask |= xfregs.colChans[0].color.GetFullLightMask() | xfregs.colChans[0].alpha.GetFullLightMask();
@@ -107,7 +108,7 @@ const char *GenerateVertexShaderCode(u32 components, bool D3D)
         "typedef struct { Light lights[8]; } s_"I_LIGHTS";\n"
         "typedef struct { float4 C0,C1,C2,C3; } s_"I_MATERIALS";\n"
         "typedef struct { float4 T0,T1,T2,T3; } s_"I_PROJECTION";\n"
-        "typedef struct { float4 params; } s_"I_FOGPARAMS";\n"); // a, b, c, b_shift
+        );
 
     WRITE(p, "struct VS_OUTPUT {\n");
     WRITE(p, "  float4 pos : POSITION;\n");
@@ -134,7 +135,6 @@ const char *GenerateVertexShaderCode(u32 components, bool D3D)
     WRITE(p, "uniform s_"I_LIGHTS" "I_LIGHTS" : register(c%d);\n", C_LIGHTS);
     WRITE(p, "uniform s_"I_MATERIALS" "I_MATERIALS" : register(c%d);\n", C_MATERIALS);
     WRITE(p, "uniform s_"I_PROJECTION" "I_PROJECTION" : register(c%d);\n", C_PROJECTION);
-    WRITE(p, "uniform s_"I_FOGPARAMS" "I_FOGPARAMS" : register(c%d);\n", C_FOGPARAMS);
 
     WRITE(p, "VS_OUTPUT main(\n");
     
@@ -142,13 +142,13 @@ const char *GenerateVertexShaderCode(u32 components, bool D3D)
     if (components & VB_HAS_NRM0)
         WRITE(p, "  float3 rawnorm0 : NORMAL0,\n");
     if (components & VB_HAS_NRM1) {
-		if (D3D) 
+		if (is_d3d)
 			WRITE(p, "  float3 rawnorm1 : NORMAL1,\n");
 		else
 			WRITE(p, "  float3 rawnorm1 : ATTR%d,\n", SHADER_NORM1_ATTRIB);
 	}
     if (components & VB_HAS_NRM2) {
-		if (D3D) 
+		if (is_d3d) 
 			WRITE(p, "  float3 rawnorm2 : NORMAL2,\n");
 		else
 			WRITE(p, "  float3 rawnorm2 : ATTR%d,\n", SHADER_NORM2_ATTRIB);
@@ -163,7 +163,7 @@ const char *GenerateVertexShaderCode(u32 components, bool D3D)
             WRITE(p, "  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i,i);
     }
     if (components & VB_HAS_POSMTXIDX) {
-		if (D3D)
+		if (is_d3d)
 		{
 			WRITE(p, "  float4 blend_indices : BLENDINDICES,\n");
 		}
@@ -175,10 +175,14 @@ const char *GenerateVertexShaderCode(u32 components, bool D3D)
 
     // transforms
     if (components & VB_HAS_POSMTXIDX) {
-		if (D3D)
+		if (api_type == API_D3D9)
 		{
-			WRITE(p, "int4 indices = D3DCOLORtoUBYTE4(blend_indices);\n"
-					 "int posmtx = indices.x;\n");
+			WRITE(p, "int4 indices = D3DCOLORtoUBYTE4(blend_indices);\n");
+			WRITE(p, "int posmtx = indices.x;\n");
+		}
+		else if (api_type == API_D3D11)
+		{
+			WRITE(p, "int posmtx = blend_indices.x * 255.0f;\n");
 		}
 		else
 		{
@@ -208,7 +212,6 @@ const char *GenerateVertexShaderCode(u32 components, bool D3D)
             WRITE(p, "float3 _norm1 = float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm1), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm1));\n");      
         if (components & VB_HAS_NRM2)
             WRITE(p, "float3 _norm2 = float3(dot("I_POSNORMALMATRIX".N0.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N1.xyz, rawnorm2), dot("I_POSNORMALMATRIX".N2.xyz, rawnorm2));\n");
-                    
     }
 
     if (!(components & VB_HAS_NRM0))
@@ -325,6 +328,7 @@ const char *GenerateVertexShaderCode(u32 components, bool D3D)
         }
         WRITE(p, "}\n");
     }
+
 
     // zero left over channels
     for (int i = xfregs.nNumChans; i < 2; ++i)
@@ -452,17 +456,18 @@ const char *GenerateVertexShaderCode(u32 components, bool D3D)
 		WRITE(p, "o.tex3.w = o.pos.w;\n");
 	}
 
-	if (D3D) 
+	if (is_d3d)
 	{
-		WRITE(p, "o.pos.z = o.pos.z + o.pos.w;\n");		
-	} 
-	else 
+		WRITE(p, "o.pos.z = o.pos.z + o.pos.w;\n");
+	}
+	else
 	{
 		// scale to gl clip space - which is -o.pos.w to o.pos.w, hence the addition.
 		WRITE(p, "o.pos.z = (o.pos.z * 2.0f) + o.pos.w;\n");
 	}
 
     WRITE(p, "return o;\n}\n");
+
 
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("VertexShader generator - buffer too small, canary has been eaten!");

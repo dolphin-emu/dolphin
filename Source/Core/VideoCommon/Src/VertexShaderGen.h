@@ -99,8 +99,15 @@ public:
 	}
 };
 
+typedef enum
+{
+	API_OPENGL,
+	API_D3D9,
+	API_D3D11
+} API_TYPE;
+
 // components is included in the uid.
-const char *GenerateVertexShaderCode(u32 components, bool D3D);
+const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type);
 void GetVertexShaderId(VERTEXSHADERUID *uid, u32 components);
 
 extern VERTEXSHADERUID  last_vertex_shader_uid;

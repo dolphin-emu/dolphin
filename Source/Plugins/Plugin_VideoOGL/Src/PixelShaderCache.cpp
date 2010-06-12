@@ -48,7 +48,7 @@ static FRAGMENTSHADER* pShaderLast = NULL;
 static float lastPSconstants[C_COLORMATRIX+16][4];
 
 
-void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
+void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	if (lastPSconstants[const_number][0] != f1 || lastPSconstants[const_number][1] != f2 ||
 		lastPSconstants[const_number][2] != f3 || lastPSconstants[const_number][3] != f4)
@@ -62,7 +62,7 @@ void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 	}
 }
 
-void SetPSConstant4fv(int const_number, const float *f)
+void SetPSConstant4fv(unsigned int const_number, const float *f)
 {
 	if (memcmp(&lastPSconstants[const_number], f, sizeof(float) * 4)) {
 		memcpy(&lastPSconstants[const_number], f, sizeof(float) * 4);
@@ -70,10 +70,10 @@ void SetPSConstant4fv(int const_number, const float *f)
 	}	
 }
 
-void SetMultiPSConstant4fv(int const_number, int count, const float *f)
+void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
 	const float *f0 = f;
-	for (int i = 0; i < count ;i++,f0+=4)
+	for (unsigned int i = 0; i < count ;i++,f0+=4)
 	{
 		if (memcmp(&lastPSconstants[const_number + i], f0, sizeof(float) * 4)) {
 			memcpy(&lastPSconstants[const_number + i], f0, sizeof(float) * 4);		
@@ -89,7 +89,7 @@ void PixelShaderCache::Init()
 	CurrentShader = 0;
 	GL_REPORT_ERRORD();
 
-	for (int i = 0; i < (C_COLORMATRIX+16) * 4; i++)
+	for (unsigned int i = 0; i < (C_COLORMATRIX+16) * 4; i++)
 		lastPSconstants[i/4][i%4] = -100000000.0f;
 	memset(&last_pixel_shader_uid, 0xFF, sizeof(last_pixel_shader_uid));
 

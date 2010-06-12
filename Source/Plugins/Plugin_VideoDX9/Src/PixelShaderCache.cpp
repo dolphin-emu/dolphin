@@ -48,7 +48,6 @@ static LPDIRECT3DPIXELSHADER9 s_DepthMatrixProgram[3];
 static LPDIRECT3DPIXELSHADER9 s_ClearProgram = 0;
 
 
-
 LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetColorMatrixProgram(int SSAAMode)
 {
 	return s_ColorMatrixProgram[SSAAMode % 3];
@@ -69,7 +68,7 @@ LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetClearProgram()
 	return s_ClearProgram;
 }
 
-void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
+void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	if (lastPSconstants[const_number][0] != f1 || lastPSconstants[const_number][1] != f2 ||
 		lastPSconstants[const_number][2] != f3 || lastPSconstants[const_number][3] != f4)
@@ -83,7 +82,7 @@ void SetPSConstant4f(int const_number, float f1, float f2, float f3, float f4)
 	}	
 }
 
-void SetPSConstant4fv(int const_number, const float *f)
+void SetPSConstant4fv(unsigned int const_number, const float *f)
 {
 	if (memcmp(&lastPSconstants[const_number], f, sizeof(float) * 4)) {
 		memcpy(&lastPSconstants[const_number], f, sizeof(float) * 4);
@@ -91,7 +90,7 @@ void SetPSConstant4fv(int const_number, const float *f)
 	}	
 }
 
-void SetMultiPSConstant4fv(int const_number, int count, const float *f)
+void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float *f)
 {
 	if (memcmp(&lastPSconstants[const_number], f, count * sizeof(float) * 4)) {
 		memcpy(&lastPSconstants[const_number], f, count * sizeof(float) * 4);
@@ -260,7 +259,7 @@ void PixelShaderCache::Init()
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
 	char cache_filename[MAX_PATH];
-	sprintf(cache_filename, "%s%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
+	sprintf(cache_filename, "%sdx9-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	PixelShaderCacheInserter inserter;
 	int read_items = g_ps_disk_cache.OpenAndRead(cache_filename, &inserter);
 }

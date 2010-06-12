@@ -425,25 +425,27 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 H
     WRITE(p, "uniform float4 "I_FOG"[2] : register(c%d);\n", C_FOG);
 
     WRITE(p, "void main(\n");
-    WRITE(p, "  out float4 ocol0 : COLOR0,\n");	
+    WRITE(p, "  out float4 ocol0 : COLOR0,\n");
     WRITE(p, "  out float depth : DEPTH,\n");
+    WRITE(p, "  in float4 rawpos : POSITION,\n");
+	WRITE(p, "  in float4 colors_0 : COLOR0,\n");
+	WRITE(p, "  in float4 colors_1 : COLOR1\n");
 
     // compute window position if needed because binding semantic WPOS is not widely supported
 	if (numTexgen < 7) 
 	{
 		for (int i = 0; i < numTexgen; ++i)
-			WRITE(p, "  in float3 uv%d : TEXCOORD%d, \n", i, i);
+			WRITE(p, ", \n  in float3 uv%d : TEXCOORD%d", i, i);
 
-		WRITE(p, "  in float4 clipPos : TEXCOORD%d, \n", numTexgen);
+		WRITE(p, ", \n  in float4 clipPos : TEXCOORD%d", numTexgen);
 	} 
 	else 
 	{
 		// wpos is in w of first 4 texcoords
 		for (int i = 0; i < numTexgen; ++i)
-			WRITE(p, "  in float%d uv%d : TEXCOORD%d, \n", i<4?4:3, i, i);
+			WRITE(p, ", \n  in float%d uv%d : TEXCOORD%d", i<4?4:3, i, i);
 	}
-
-	WRITE(p, "  in float4 colors_0 : COLOR0,\n in float4 colors_1 : COLOR1){\n");
+	WRITE(p, "        ) {\n");
 
     char* pmainstart = p;
 
@@ -490,7 +492,6 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 H
         }
     }
 
-    
 
 	for (int i = 0; i < numStages; i++)
 		WriteStage(p, i, texture_mask,HLSL); //build the equation for this stage
@@ -533,9 +534,9 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 H
 			WRITE(p, "zCoord = frac(zCoord);\n");
 			WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
 		}
-	    
+
 		WRITE(p, "depth = zCoord;\n");
-        
+
 		if (dstAlphaEnable) 
             WRITE(p, "  ocol0 = float4(prev.rgb,"I_ALPHA"[0].a);\n");
 		else
@@ -544,7 +545,7 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 H
             WRITE(p, "  ocol0 = prev;\n");
         }
     }
-    
+
     WRITE(p, "}\n");
 
 	if (text[sizeof(text) - 1] != 0x7C)
@@ -620,9 +621,9 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 		if (bpmem.tevind[n].bs != ITBA_OFF) 
 		{
 			WRITE(p, "alphabump = indtex%d.%s %s;\n", 
-			bpmem.tevind[n].bt, 
-			tevIndAlphaSel[bpmem.tevind[n].bs], 
-			tevIndAlphaScale[bpmem.tevind[n].fmt]);			
+					bpmem.tevind[n].bt, 
+					tevIndAlphaSel[bpmem.tevind[n].bs], 
+					tevIndAlphaScale[bpmem.tevind[n].fmt]);			
 		}		
         // format
         WRITE(p, "float3 indtevcrd%d = indtex%d * %s;\n", n, bpmem.tevind[n].bt, tevIndFmtScale[bpmem.tevind[n].fmt]);
