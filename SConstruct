@@ -66,18 +66,17 @@ dirs = [
     'Source/Core/DebuggerUICommon/Src',
     'Source/Core/DSPCore/Src',
     'Source/DSPTool/Src',
+    'Source/Plugins/InputPluginCommon/Src/',
     'Source/Plugins/Plugin_VideoOGL/Src',
     'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',
-    'Source/Plugins/Plugin_GCPad/Src',
     'Source/Plugins/Plugin_GCPadNew/Src',
     'Source/Plugins/Plugin_Wiimote/Src',
+    'Source/Plugins/Plugin_WiimoteNew/Src/',
     'Source/Core/DolphinWX/Src',
     'Source/Core/DebuggerWX/Src',
     'Source/UnitTests/',
-    'Source/Plugins/InputPluginCommon/Src/',
-    'Source/Plugins/Plugin_WiimoteNew/Src/',
     ]
 
 builders = {}
