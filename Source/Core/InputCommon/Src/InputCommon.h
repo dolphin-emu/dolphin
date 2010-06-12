@@ -1,7 +1,3 @@
-#include "EventHandler.h"
-
-//extern EventHandler *eventHandler;
-
 namespace InputCommon
 {
 enum EButtonType

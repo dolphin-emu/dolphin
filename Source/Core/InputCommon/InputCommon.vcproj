@@ -497,18 +497,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\Event.hpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\EventHandler.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\EventHandler.h"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\InputCommon.cpp"
 			>
 		</File>
@@ -522,6 +510,10 @@
 		</File>
 		<File
 			RelativePath=".\Src\InputConfig.h"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\SConscript"
 			>
 		</File>
 		<File

@@ -64,7 +64,6 @@ CPluginManager::CPluginManager()
 
 	// Start LogManager
 	m_PluginGlobals->logManager = LogManager::GetInstance();
-	m_PluginGlobals->eventHandler = EventHandler::GetInstance();
 
 	m_params = &(SConfig::GetInstance().m_LocalCoreStartupParameter);
 

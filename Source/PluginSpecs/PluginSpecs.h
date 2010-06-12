@@ -99,7 +99,7 @@ typedef struct
 // This design is just wrong and ugly - the plugins shouldn't have this much access.
 typedef struct 
 {
-	void *eventHandler;
+	void *was_eventHandler_but_lets_not_break_abi;
 	void *logManager;
 	char game_ini[MAX_PATH];
 	char unique_id[16];

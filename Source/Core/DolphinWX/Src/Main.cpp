@@ -342,7 +342,6 @@ bool DolphinApp::OnInit()
 #endif
 
 	LogManager::Init();
-	EventHandler::Init();
 	SConfig::Init();
 	CPluginManager::Init();
 
@@ -463,7 +462,6 @@ int DolphinApp::OnExit()
 {
 	CPluginManager::Shutdown();
 	SConfig::Shutdown();
-	EventHandler::Shutdown();
 	LogManager::Shutdown();
 
 	return wxApp::OnExit();

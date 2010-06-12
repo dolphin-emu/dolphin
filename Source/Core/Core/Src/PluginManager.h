@@ -23,7 +23,6 @@
 #include "PluginPAD.h"
 #include "PluginVideo.h"
 #include "PluginWiimote.h"
-#include "EventHandler.h"
 #include "CoreParameter.h"
 
 class CPluginInfo
