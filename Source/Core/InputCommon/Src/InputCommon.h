@@ -20,6 +20,4 @@ enum EXInputTrigger
 	XI_TRIGGER_R,
 };
 
-    void Init(); 
-    void Shutdown();
 }

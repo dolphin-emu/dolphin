@@ -5,7 +5,6 @@ Import('env')
 files = [
 	'Configuration.cpp',
 	'ControllerEmu.cpp',
-	'InputCommon.cpp',
 	'InputConfig.cpp',
 	'SDL_Util.cpp',
 	'ControllerInterface/ControllerInterface.cpp',
@@ -15,11 +14,6 @@ files = [
 if env['HAVE_X11']:
 	files += [
 		"X11InputBase.cpp",
-		]
-
-if env['HAVE_WX']:
-	files += [
-		"WXInputBase.cpp",
 		]
 
 if sys.platform == 'darwin':

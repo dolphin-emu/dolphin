@@ -419,6 +419,14 @@
 			RelativePath=".\Src\SConscript"
 			>
 		</File>
+		<File
+			RelativePath=".\Src\WXInputBase.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\Src\WXInputBase.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

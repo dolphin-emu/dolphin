@@ -497,10 +497,6 @@
 			>
 		</File>
 		<File
-			RelativePath=".\Src\InputCommon.cpp"
-			>
-		</File>
-		<File
 			RelativePath=".\Src\InputCommon.h"
 			>
 		</File>
@@ -522,14 +518,6 @@
 		</File>
 		<File
 			RelativePath=".\Src\SDL_Util.h"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\WXInputBase.cpp"
-			>
-		</File>
-		<File
-			RelativePath=".\Src\WXInputBase.h"
 			>
 		</File>
 		<File
