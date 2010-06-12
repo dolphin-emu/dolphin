@@ -19,6 +19,7 @@
 #include "FileUtil.h"
 
 #include "D3DBase.h"
+#include "D3DUtil.h"
 
 #include "Statistics.h"
 #include "Profiler.h"
@@ -292,25 +293,30 @@ void Flush()
 	int stride = g_nativeVertexFmt->GetVertexStride();
 	g_nativeVertexFmt->SetupVertexPointers();
 	
+	if(bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
+	{
+		D3D::SetRenderState(D3DRS_STENCILENABLE, TRUE );
+		D3D::SetRenderState(D3DRS_STENCILFUNC,  D3DCMP_ALWAYS );
+		D3D::SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_REPLACE );
+		D3D::SetRenderState(D3DRS_STENCILREF, 1);
+	}
+	
 	Draw(stride);
 
 	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
 	{
-		DWORD write = 0;
-		if (!PixelShaderCache::SetShader(true))
-		{
-			DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR,true,{printf("Fail to set pixel shader\n");});
-			goto shader_fail;
-		}
+		
+		D3D::SetRenderState(D3DRS_STENCILFUNC,  D3DCMP_EQUAL );
+		D3D::SetRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_DECR );		
 
-		// update alpha only
 		D3D::ChangeRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA);
 		D3D::ChangeRenderState(D3DRS_ALPHABLENDENABLE, false);
-		
-		Draw(stride);
-
+		D3D::ChangeRenderState(D3DRS_ZWRITEENABLE, false);
+		D3D::drawClearQuad((bpmem.dstalpha.hex & 0xff)<<24,0.0f,PixelShaderCache::GetClearProgram(),VertexShaderCache::GetClearVertexShader());
+		D3D::RefreshRenderState(D3DRS_ZWRITEENABLE);
 		D3D::RefreshRenderState(D3DRS_COLORWRITEENABLE);
 		D3D::RefreshRenderState(D3DRS_ALPHABLENDENABLE);
+		D3D::SetRenderState(D3DRS_STENCILENABLE, false );
 	}
 	DEBUGGER_PAUSE_AT(NEXT_FLUSH,true);
 

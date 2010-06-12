@@ -270,37 +270,44 @@ const char *GenerateVertexShaderCode(u32 components, bool D3D)
             else // from color
                 WRITE(p, "lacc.w = "I_MATERIALS".C%d.w;\n", j);
         }
-        
-        if (color.enablelighting && alpha.enablelighting && (color.GetFullLightMask() != alpha.GetFullLightMask() || color.lightparams != alpha.lightparams)) {
-
-            // both have lighting, except not using the same lights
-            int mask = 0; // holds already computed lights
-
-            if (color.lightparams == alpha.lightparams && (color.GetFullLightMask() & alpha.GetFullLightMask())) {
-                // if lights are shared, compute those first
-                mask = color.GetFullLightMask() & alpha.GetFullLightMask();
-                for (int i = 0; i < 8; ++i) {
-                    if (mask & (1<<i))
-                        p = GenerateLightShader(p, i, color, "lacc", 3);
-                }
-            }
-
+		
+		if(color.enablelighting && alpha.enablelighting)
+		{
+			// both have lighting, test if they use the same ligths
+            int mask = 0;
+			if(color.lightparams == alpha.lightparams)
+			{
+				mask = color.GetFullLightMask() & alpha.GetFullLightMask();
+				if(mask)
+				{
+					for (int i = 0; i < 8; ++i) 
+					{
+						if (mask & (1<<i))
+							p = GenerateLightShader(p, i, color, "lacc", 3);
+					}
+				}
+			}
             // no shared lights
-            for (int i = 0; i < 8; ++i) {
+            for (int i = 0; i < 8; ++i) 
+			{
                 if (!(mask&(1<<i)) && (color.GetFullLightMask() & (1<<i)) )
                     p = GenerateLightShader(p, i, color, "lacc", 1);
                 if (!(mask&(1<<i)) && (alpha.GetFullLightMask() & (1<<i)) )
                     p = GenerateLightShader(p, i, alpha, "lacc", 2);
             }
-        }
-        else if (color.enablelighting || alpha.enablelighting) {
-            // either one is enabled
-            int coloralpha = (int)color.enablelighting|((int)alpha.enablelighting<<1);
-            for (int i = 0; i < 8; ++i) {
-                if (color.GetFullLightMask() & (1<<i) )
-                    p = GenerateLightShader(p, i, color.enablelighting?color:alpha, "lacc", coloralpha);
+		}
+		else if (color.enablelighting || alpha.enablelighting)
+		{
+			//ligths are disabled in one channel so proccess only te active
+			LitChannel workingchannel = color.enablelighting ? color : alpha;
+			int coloralpha = color.enablelighting ? 1 : 2;
+			for (int i = 0; i < 8; ++i) 
+			{
+                if (workingchannel.GetFullLightMask() & (1<<i))
+                    p = GenerateLightShader(p, i, workingchannel, "lacc", coloralpha);
+                
             }
-        }
+		}
 
         if (color.enablelighting != alpha.enablelighting) {
             if (color.enablelighting)
