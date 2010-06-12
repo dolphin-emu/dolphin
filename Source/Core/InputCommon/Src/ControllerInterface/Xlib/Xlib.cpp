@@ -102,7 +102,7 @@ Keyboard::Key::Key(Display* const display, KeyCode keycode)
 	
 	// Convert to upper case for the keyname
 	if (keysym >= 97 && keysym <= 122)
-		keysym = keysym - 32;
+		keysym -= 32;
 
 	// 0x0110ffff is the top of the unicode character range according to keysymdef.h
 	// although it is probably more than we need.

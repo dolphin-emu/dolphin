@@ -12,7 +12,7 @@ files = [
 	]
 
 padenv.Append(
-	LIBS = [ 'inputplugincommon', 'inputcommon', 'common' ],
+	LIBS = [ 'inputuicommon', 'inputcommon', 'common' ],
 	)
 
 padenv.SharedLibrary(env['plugin_dir']+name, files)

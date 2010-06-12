@@ -12,4 +12,4 @@ files = [
 	'WXInputBase.cpp',
 	]
 
-env.StaticLibrary(env['local_libs'] + 'debugger_ui_util', files)
+env.StaticLibrary(env['local_libs'] + 'inputuicommon', files)
