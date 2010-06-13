@@ -148,7 +148,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		VideoFifo_CheckSwapRequest();
 
 		// check if we are able to run this buffer
-		while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance)
+		while (_fifo.bFF_GPReadEnable && ((!_fifo.bFF_BPEnable && _fifo.CPReadWriteDistance) || (_fifo.bFF_BPEnable && !_fifo.bFF_Breakpoint)))
 		{
 			if (!fifoStateRun)
 				break;
@@ -160,17 +160,46 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			u8 *uData = video_initialize.pGetMemoryPointer(readPtr);
 //			NOTICE_LOG(BOOT, "readPtr: %08x uData %08x", readPtr, uData);
 
-			distToSend = _fifo.CPReadWriteDistance;
-			// send 1024B chunk max length to have better control over PeekMessages' period
-			distToSend = distToSend > 1024 ? 1024 : distToSend;
-			// add 32 bytes because the cp end points to the start of the last 32 byte chunk
-			if ((distToSend + readPtr) >= (_fifo.CPEnd + 32)) // TODO: better?
+			// If we are in BP mode we only send 32B chunks to Video plugin for BP checking
+			if (_fifo.bFF_BPEnable)
 			{
-				distToSend =(_fifo.CPEnd + 32) - readPtr;
-				readPtr = _fifo.CPBase;
+				// Sometimes we have already exceeded the BP even before it is set
+				// so careful check is required
+				if (
+					(readPtr == _fifo.CPBreakpoint) ||
+					//(readPtr <= _fifo.CPBreakpoint && readPtr + 32 > _fifo.CPBreakpoint) ||	
+					(readPtr <= _fifo.CPWritePointer && _fifo.CPWritePointer < _fifo.CPBreakpoint) ||
+					(readPtr <= _fifo.CPWritePointer && readPtr > _fifo.CPBreakpoint) ||
+					(readPtr > _fifo.CPBreakpoint && _fifo.CPBreakpoint > _fifo.CPWritePointer)
+					)
+				{
+					Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
+					CommandProcessor::UpdateInterruptsFromVideoPlugin(true);
+					CommandProcessor::FifoCriticalLeave();
+					break;
+				}
+				distToSend = 32;
+
+				if ( readPtr >= _fifo.CPEnd) 
+					readPtr = _fifo.CPBase;
+				else
+					readPtr += 32;
 			}
+			// If we are not in BP mode we send all the chunk we have to speed up
 			else
-				readPtr += distToSend;
+			{
+				distToSend = _fifo.CPReadWriteDistance;
+				// send 1024B chunk max length to have better control over PeekMessages' period
+				distToSend = distToSend > 1024 ? 1024 : distToSend;
+				// add 32 bytes because the cp end points to the start of the last 32 byte chunk
+				if ((distToSend + readPtr) >= (_fifo.CPEnd + 32)) // TODO: better?
+				{
+					distToSend =(_fifo.CPEnd + 32) - readPtr;
+					readPtr = _fifo.CPBase;
+				}
+				else
+					readPtr += distToSend;
+			}
 
 			// Execute new instructions found in uData
 			Fifo_SendFifoData(uData, distToSend);
@@ -186,13 +215,6 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			VideoFifo_CheckEFBAccess();
 			VideoFifo_CheckSwapRequest();
 		}
-
-		if (_fifo.bFF_BPEnable && !_fifo.bFF_Breakpoint)
-		{
-			Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
-			CommandProcessor::UpdateInterruptsFromVideoPlugin(true);
-		}
-
 		CommandProcessor::SetFifoIdleFromVideoPlugin();
 		if (EmuRunning)
 			Common::YieldCPU();
