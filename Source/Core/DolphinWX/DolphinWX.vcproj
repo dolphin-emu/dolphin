@@ -90,7 +90,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="SDL.lib xinput.lib Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib Bochs_disasm.lib LZO.lib SFML_Network.lib zlib.lib"
+				AdditionalDependencies="SDL.lib xinput.lib Iphlpapi.lib comctl32.lib rpcrt4.lib winmm.lib wxbase28u.lib wxmsw28u_core.lib wxmsw28u_adv.lib wxmsw28u_aui.lib"
 				OutputFile="../../../Binary/Win32/Dolphin.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
