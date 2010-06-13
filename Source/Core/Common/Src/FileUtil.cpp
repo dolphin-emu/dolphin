@@ -648,9 +648,9 @@ const char *GetUserPath(int DirIDX)
 		// Keep the directory setup the way it was on windows
 		snprintf(UserDir, sizeof(UserDir), ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP);
 #elif defined (__linux__)
-//		if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
-//			snprintf(UserDir, sizeof(UserDir), ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP);
-//		else
+		if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
+			snprintf(UserDir, sizeof(UserDir), ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP);
+		else
 			snprintf(UserDir, sizeof(UserDir), "%s" DIR_SEP DOLPHIN_DATA_DIR DIR_SEP, getenv("HOME"));
 #else
 		snprintf(UserDir, sizeof(UserDir), "%s" DIR_SEP DOLPHIN_DATA_DIR DIR_SEP, getenv("HOME"));
