@@ -21,16 +21,16 @@
 // windows crap
 #define NOMINMAX
 
-#include "pluginspecs_pad.h"
-#include "pluginspecs_wiimote.h"
-#include <math.h>
-
-#include "ControllerInterface/ControllerInterface.h"
-#include "IniFile.h"
-
+#include <cmath>
 #include <vector>
 #include <string>
 #include <algorithm>
+
+#include "GCPadStatus.h"
+#include "pluginspecs_wiimote.h"
+
+#include "ControllerInterface/ControllerInterface.h"
+#include "IniFile.h"
 
 #define sign(x) ((x)?(x)<0?-1:1:0)
 

@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
-#include "pluginspecs_pad.h"
+#include "GCPadStatus.h"
 
 #include "ControllerInterface/ControllerInterface.h"
 #include "GCPadEmu.h"
@@ -31,7 +31,6 @@ InputPlugin *PAD_GetPlugin() {
 
 void GCPad_Deinit()
 {
-	// i realize i am checking IsInit() twice, just too lazy to change it
 	if ( g_plugin.controller_interface.IsInit() )
 	{
 		std::vector<ControllerEmu*>::const_iterator
@@ -84,14 +83,6 @@ void GCPad_Init( void* const hwnd )
 	}
 }
 
-// I N T E R F A C E 
-
-// __________________________________________________________________________________________________
-// Function:
-// Purpose:  
-// input:   
-// output:   
-//
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
 	memset( _pPADStatus, 0, sizeof(*_pPADStatus) );
@@ -125,17 +116,6 @@ void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 	// leave
 	g_plugin.controls_crit.Leave();
 
-}
-
-// __________________________________________________________________________________________________
-// Function: Send keyboard input to the plugin
-// Purpose:  
-// input:   The key and if it's pressed or released
-// output:  None
-//
-void PAD_Input(u16 _Key, u8 _UpDown)
-{
-	// nofin
 }
 
 // __________________________________________________________________________________________________

@@ -848,12 +848,14 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 				State_UndoSaveState();
 			else if (event.GetModifiers() == wxMOD_SHIFT)
 				State_UndoLoadState();	
-			else event.Skip();
+			else
+				event.Skip();
 		}
 		// screenshot hotkeys
 		else if (event.GetKeyCode() == WXK_F9 && event.GetModifiers() == wxMOD_NONE)
 			Core::ScreenShot();
-		else event.Skip();
+		else
+			event.Skip();
 
 		// Actually perform the wiimote connection or disconnection
 		if (WiimoteId >= 0)
@@ -883,7 +885,6 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 #endif
 
 		// Send the keyboard status to the Input plugins
-		PAD_Input(event.GetKeyCode(), 1); // 1 = Down
 		CPluginManager::GetInstance().GetWiimote()->Wiimote_Input(event.GetKeyCode(), 1); // 1 = Down
 	}
 	else
@@ -895,7 +896,6 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 	event.Skip();
 
 	if(Core::GetState() != Core::CORE_UNINITIALIZED) {
-		PAD_Input(event.GetKeyCode(), 0); // 0 = Up
 		CPluginManager::GetInstance().GetWiimote()->Wiimote_Input(event.GetKeyCode(), 0); // 0 = Up
 	}
 }

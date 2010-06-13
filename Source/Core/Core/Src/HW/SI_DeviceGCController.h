@@ -20,7 +20,7 @@
 
 #include "../PluginManager.h"
 #include "SI_Device.h"
-#include "pluginspecs_pad.h"
+#include "GCPadStatus.h"
 
 
 // standard gamecube controller

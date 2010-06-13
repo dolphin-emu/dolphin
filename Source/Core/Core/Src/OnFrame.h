@@ -19,7 +19,7 @@
 #define __FRAME_H
 
 #include "Common.h"
-#include "pluginspecs_pad.h"
+#include "GCPadStatus.h"
 
 #include <string>
 

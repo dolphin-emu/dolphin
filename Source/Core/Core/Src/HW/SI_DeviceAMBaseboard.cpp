@@ -15,12 +15,12 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#include "pluginspecs_pad.h"
 
 #include "SI.h"
 #include "SI_Device.h"
 #include "SI_DeviceAMBaseboard.h"
 
+#include "GCPadStatus.h"
 #include "GCPad.h"
 
 #include "../PluginManager.h" // for pad state

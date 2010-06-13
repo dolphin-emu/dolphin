@@ -41,7 +41,6 @@
 //#include "Common.h"
 //#include "NetStructs.h"
 //#include "Core.h"
-//#include "pluginspecs_pad.h"
 //#include "HW/SI.h"
 //#include "HW/SI_Device.h"
 //#include "HW/SI_DeviceGCController.h"

@@ -497,6 +497,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\GCPadStatus.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\InputCommon.h"
 			>
 		</File>

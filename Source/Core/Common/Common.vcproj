@@ -507,10 +507,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\PluginSpecs\pluginspecs_pad.h"
-					>
-				</File>
-				<File
 					RelativePath="..\..\PluginSpecs\pluginspecs_video.h"
 					>
 				</File>

@@ -1,7 +1,5 @@
-// TODO: Move these defines somewhere else and delete this file.
-
-#ifndef _PAD_H_INCLUDED__
-#define _PAD_H_INCLUDED__
+#ifndef _GCPAD_H_INCLUDED__
+#define _GCPAD_H_INCLUDED__
 
 #define PAD_ERR_NONE            0
 #define PAD_ERR_NO_CONTROLLER   -1
@@ -37,6 +35,5 @@ typedef struct
 	bool			MicButton;				// HAX
 	signed char		err;                    // one of PAD_ERR_* number
 } SPADStatus;
-
 
 #endif
