@@ -122,9 +122,6 @@ EVT_BUTTON(ID_GRAPHIC_CONFIG, CConfigMain::OnConfig)
 EVT_CHOICE(ID_DSP_CB, CConfigMain::OnSelectionChanged)
 EVT_BUTTON(ID_DSP_CONFIG, CConfigMain::OnConfig)
 
-EVT_CHOICE(ID_PAD_CB, CConfigMain::OnSelectionChanged)
-EVT_BUTTON(ID_PAD_CONFIG, CConfigMain::OnConfig)
-
 EVT_CHOICE(ID_WIIMOTE_CB, CConfigMain::OnSelectionChanged)
 EVT_BUTTON(ID_WIIMOTE_CONFIG, CConfigMain::OnConfig)
 
@@ -191,7 +188,6 @@ void CConfigMain::UpdateGUI()
 		// Disable stuff on PluginsPage
 		GraphicSelection->Disable();
 		DSPSelection->Disable();
-		PADSelection->Disable();
 		WiimoteSelection->Disable();
 	}
 }
@@ -319,7 +315,6 @@ void CConfigMain::InitializeGUIValues()
 	// Plugins
 	FillChoiceBox(GraphicSelection, PLUGIN_TYPE_VIDEO, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
 	FillChoiceBox(DSPSelection, PLUGIN_TYPE_DSP, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
-	FillChoiceBox(PADSelection, PLUGIN_TYPE_PAD, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin);
 	FillChoiceBox(WiimoteSelection, PLUGIN_TYPE_WIIMOTE, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin);
 }
 
@@ -727,10 +722,6 @@ void CConfigMain::CreateGUIControls()
 	DSPSelection = new wxChoice(PluginsPage, ID_DSP_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
 	DSPConfig = new wxButton(PluginsPage, ID_DSP_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-	sbPadPlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginsPage, wxT("Gamecube Pad"));
-	PADSelection = new wxChoice(PluginsPage, ID_PAD_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
-	PADConfig = new wxButton(PluginsPage, ID_PAD_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-
 	sbWiimotePlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginsPage, wxT("Wiimote"));
 	WiimoteSelection = new wxChoice(PluginsPage, ID_WIIMOTE_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
 	WiimoteConfig = new wxButton(PluginsPage, ID_WIIMOTE_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -742,9 +733,6 @@ void CConfigMain::CreateGUIControls()
 	sbDSPPlugin->Add(DSPSelection, 1, wxEXPAND|wxALL, 5);
 	sbDSPPlugin->Add(DSPConfig, 0, wxALL, 5);
 
-	sbPadPlugin->Add(PADSelection, 1, wxEXPAND|wxALL, 5);
-	sbPadPlugin->Add(PADConfig, 0, wxALL, 5);
-
 	sbWiimotePlugin->Add(WiimoteSelection, 1, wxEXPAND|wxALL, 5);
 	sbWiimotePlugin->Add(WiimoteConfig, 0, wxALL, 5);
 
@@ -752,13 +740,10 @@ void CConfigMain::CreateGUIControls()
 	sPluginsPage = new wxBoxSizer(wxVERTICAL);
 	sPluginsPage->Add(sbGraphicsPlugin, 0, wxEXPAND|wxALL, 5);
 	sPluginsPage->Add(sbDSPPlugin, 0, wxEXPAND|wxALL, 5);
-	sPluginsPage->Add(sbPadPlugin, 0, wxEXPAND|wxALL, 5);
 	sPluginsPage->Add(sbWiimotePlugin, 0, wxEXPAND|wxALL, 5);
 
 	PluginsPage->SetSizer(sPluginsPage);
 	sPluginsPage->Layout();
-
-
 
 	m_Ok = new wxButton(this, wxID_OK);
 
@@ -1142,7 +1127,6 @@ void CConfigMain::OnSelectionChanged(wxCommandEvent& WXUNUSED (event))
 	// Update plugin filenames
 	GetFilename(GraphicSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin);
 	GetFilename(DSPSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin);
-	GetFilename(PADSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin);	
 	GetFilename(WiimoteSelection, SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin);
 }
 
@@ -1155,9 +1139,6 @@ void CConfigMain::OnConfig(wxCommandEvent& event)
 			break;
 		case ID_DSP_CONFIG:
 			CallConfig(DSPSelection);
-			break;
-		case ID_PAD_CONFIG:
-			CallConfig(PADSelection);
 			break;
 		case ID_WIIMOTE_CONFIG:
 			CallConfig(WiimoteSelection);

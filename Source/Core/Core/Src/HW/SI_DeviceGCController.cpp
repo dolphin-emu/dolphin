@@ -25,6 +25,8 @@
 #include "EXI_Device.h"
 #include "EXI_DeviceMic.h"
 
+#include "GCPad.h"
+
 #include "../OnFrame.h"
 
 #include "Timer.h"
@@ -128,8 +130,8 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 {
 	SPADStatus PadStatus;
 	memset(&PadStatus, 0, sizeof(PadStatus));
-	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad();
-	pad->PAD_GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
+
+	PAD_GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
 
 	u32 netValues[2] = {0};
 	int NetPlay = 2;
@@ -258,7 +260,6 @@ bool CSIDevice_GCController::GetData(u32& _Hi, u32& _Low)
 // SendCommand
 void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 {
-	Common::PluginPAD* pad = CPluginManager::GetInstance().GetPad();
 	UCommand command(_Cmd);
 
 	switch (command.Command)
@@ -280,8 +281,7 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 #endif
 
 			if (numPAD < 4)
-				if (pad->PAD_Rumble)
-					pad->PAD_Rumble(numPAD, uType, uStrength);
+				PAD_Rumble(numPAD, uType, uStrength);
 
 			if (!_Poll)
 			{

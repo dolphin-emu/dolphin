@@ -42,6 +42,7 @@
 #include "ConfigManager.h" // Core
 #include "Core.h"
 #include "HW/DVDInterface.h"
+#include "HW/GCPad.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "State.h"
 #include "VolumeHandler.h"
@@ -882,7 +883,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 #endif
 
 		// Send the keyboard status to the Input plugins
-		CPluginManager::GetInstance().GetPad()->PAD_Input(event.GetKeyCode(), 1); // 1 = Down
+		PAD_Input(event.GetKeyCode(), 1); // 1 = Down
 		CPluginManager::GetInstance().GetWiimote()->Wiimote_Input(event.GetKeyCode(), 1); // 1 = Down
 	}
 	else
@@ -894,7 +895,7 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 	event.Skip();
 
 	if(Core::GetState() != Core::CORE_UNINITIALIZED) {
-		CPluginManager::GetInstance().GetPad()->PAD_Input(event.GetKeyCode(), 0); // 0 = Up
+		PAD_Input(event.GetKeyCode(), 0); // 0 = Up
 		CPluginManager::GetInstance().GetWiimote()->Wiimote_Input(event.GetKeyCode(), 0); // 0 = Up
 	}
 }

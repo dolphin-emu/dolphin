@@ -250,7 +250,6 @@ void EndRecordingInput()
 	// header.author;
 	// header.videoPlugin; 
 	// header.audioPlugin;
-	// header.padPlugin;
 	
 	fwrite(&header, sizeof(DTMHeader), 1, g_recordfd);
 	

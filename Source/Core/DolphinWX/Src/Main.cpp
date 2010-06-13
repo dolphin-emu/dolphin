@@ -95,13 +95,11 @@ bool DolphinApp::OnInit()
 	bool LoadElf = false;
 	bool selectVideoPlugin = false;
 	bool selectAudioPlugin = false;
-	bool selectPadPlugin = false;
 	bool selectWiimotePlugin = false;
 
 	wxString ElfFile;
 	wxString videoPluginFilename;
 	wxString audioPluginFilename;
-	wxString padPluginFilename;
 	wxString wiimotePluginFilename;
 
 #if wxUSE_CMDLINE_PARSER // Parse command lines
@@ -201,12 +199,10 @@ bool DolphinApp::OnInit()
 #if wxCHECK_VERSION(2, 9, 0)
 	selectVideoPlugin = parser.Found("video_plugin", &videoPluginFilename);
 	selectAudioPlugin = parser.Found("audio_plugin", &audioPluginFilename);
-	selectPadPlugin = parser.Found("pad_plugin", &padPluginFilename);
 	selectWiimotePlugin = parser.Found("wiimote_plugin", &wiimotePluginFilename);
 #else
 	selectVideoPlugin = parser.Found(wxT("video_plugin"), &videoPluginFilename);
 	selectAudioPlugin = parser.Found(wxT("audio_plugin"), &audioPluginFilename);
-	selectPadPlugin = parser.Found(_T("pad_plugin"), &padPluginFilename);
 	selectWiimotePlugin = parser.Found(wxT("wiimote_plugin"), &wiimotePluginFilename);
 #endif
 #endif // wxUSE_CMDLINE_PARSER
@@ -352,10 +348,6 @@ bool DolphinApp::OnInit()
 	if (selectAudioPlugin && audioPluginFilename != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin =
 			std::string(audioPluginFilename.mb_str());
-
-	if (selectPadPlugin && padPluginFilename != wxEmptyString)
-		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin =
-			std::string(padPluginFilename.mb_str());
 
 	if (selectWiimotePlugin && wiimotePluginFilename != wxEmptyString)
 		SConfig::GetInstance().m_LocalCoreStartupParameter.m_strWiimotePlugin =

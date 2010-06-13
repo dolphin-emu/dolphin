@@ -39,6 +39,7 @@
 #include "HW/ProcessorInterface.h"
 #include "HW/GPFifo.h"
 #include "HW/CPU.h"
+#include "HW/GCPad.h"
 #include "HW/HW.h"
 #include "HW/DSP.h"
 #include "HW/GPFifo.h"
@@ -382,17 +383,7 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
 	
-	// Load and init GCPadPlugin
-	SPADInitialize PADInitialize;
-	PADInitialize.hWnd		= g_pWindowHandle;
-#if defined(HAVE_X11) && HAVE_X11
-	PADInitialize.pXWindow	= g_pXWindow;
-#endif
-	PADInitialize.pLog		= Callback_PADLog;
-	PADInitialize.pRendererHasFocus	= Callback_RendererHasFocus;
-	// This is may be needed to avoid a SDL problem
-	//Plugins.FreeWiimote();
-	Plugins.GetPad()->Initialize(&PADInitialize);
+	GCPad_Init(g_pWindowHandle);
 
 	// Load and Init WiimotePlugin - only if we are booting in wii mode	
 	if (_CoreParameter.bWii)
@@ -521,7 +512,9 @@ THREAD_RETURN EmuThread(void *pArg)
 	if (_CoreParameter.bCPUThread)
 		Plugins.ShutdownVideoPlugin();
 
+	GCPad_Deinit();
 	Plugins.ShutdownPlugins();
+
 	NOTICE_LOG(CONSOLE, "%s", StopMessage(false, "Plugins shutdown").c_str());
 
 	NOTICE_LOG(CONSOLE, "%s", StopMessage(true, "Main thread stopped").c_str());

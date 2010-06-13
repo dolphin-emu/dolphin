@@ -168,7 +168,6 @@ void SConfig::SaveSettings()
 	// Plugins
 	ini.Set("Core", "GFXPlugin",	m_LocalCoreStartupParameter.m_strVideoPlugin);
 	ini.Set("Core", "DSPPlugin",	m_LocalCoreStartupParameter.m_strDSPPlugin);
-	ini.Set("Core", "PadPlugin",	m_LocalCoreStartupParameter.m_strPadPlugin);
 	ini.Set("Core", "WiiMotePlugin",m_LocalCoreStartupParameter.m_strWiimotePlugin);
 
 	ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -185,7 +184,6 @@ void SConfig::LoadSettings()
 	// Hard coded defaults
 	m_DefaultGFXPlugin = DEFAULT_GFX_PLUGIN;
 	m_DefaultDSPPlugin = DEFAULT_DSP_PLUGIN;
-	m_DefaultPADPlugin = DEFAULT_PAD_PLUGIN;
 	m_DefaultWiiMotePlugin = DEFAULT_WIIMOTE_PLUGIN;
 
 	// General
@@ -296,10 +294,7 @@ void SConfig::LoadSettings()
 		// Plugins
 		ini.Get("Core", "GFXPlugin",  &m_LocalCoreStartupParameter.m_strVideoPlugin,	m_DefaultGFXPlugin.c_str());
 		ini.Get("Core", "DSPPlugin",  &m_LocalCoreStartupParameter.m_strDSPPlugin,		m_DefaultDSPPlugin.c_str());
-		ini.Get("Core", "PadPlugin", &m_LocalCoreStartupParameter.m_strPadPlugin, m_DefaultPADPlugin.c_str());
 		ini.Get("Core", "WiiMotePlugin", &m_LocalCoreStartupParameter.m_strWiimotePlugin, m_DefaultWiiMotePlugin.c_str());
-
-
 	}
 
 	m_SYSCONF = new SysConf();

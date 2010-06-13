@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "GCPadEmu.h"
+#include "../Host.h"
 
 const u16 button_bitmasks[] =
 {
@@ -93,7 +94,7 @@ std::string GCPad::GetName() const
 void GCPad::GetInput( SPADStatus* const pad )
 {
 	// if window has focus or background input enabled
-	if (g_PADInitialize->pRendererHasFocus() || m_options[0].settings[0]->value )
+	if (Host_RendererHasFocus() || m_options[0].settings[0]->value )
 	{
 		// buttons
 		m_buttons->GetState( &pad->button, button_bitmasks );
@@ -120,7 +121,7 @@ void GCPad::GetInput( SPADStatus* const pad )
 void GCPad::SetOutput( const bool on )
 {
 	// only rumble if window has focus or background input is enabled
-	m_rumble->controls[0]->control_ref->State( on && (g_PADInitialize->pRendererHasFocus() || m_options[0].settings[0]->value) );
+	m_rumble->controls[0]->control_ref->State( on && (Host_RendererHasFocus() || m_options[0].settings[0]->value) );
 }
 
 void GCPad::LoadDefaults()

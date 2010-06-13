@@ -70,7 +70,6 @@ CPluginManager::CPluginManager()
 	// Set initial values to NULL.
 	m_video = NULL;
 	m_dsp = NULL;
-	m_pad = NULL;
 	m_wiimote = NULL;
 }
 
@@ -81,12 +80,6 @@ CPluginManager::~CPluginManager()
 
 	delete m_PluginGlobals;
 	delete m_dsp;
-
-	if (m_pad)
-	{
-		delete m_pad;
-		m_pad = NULL;
-	}
 
 	if (m_wiimote)
 	{
@@ -124,18 +117,6 @@ bool CPluginManager::InitPlugins()
 		return false;
 	}
 
-	// Init pad
-	// Check that the plugin has a name
-	if (!m_params->m_strPadPlugin.empty())
-		GetPad();
-
-	// Check that GetPad succeeded
-	if (!m_pad)
-	{
-		PanicAlert("Can't init PAD Plugin");
-		return false;
-	}
-
 	// Init wiimote
 	if (m_params->bWii)
 	{
@@ -156,12 +137,6 @@ bool CPluginManager::InitPlugins()
 // for an explanation about the current LoadLibrary() and FreeLibrary() behavior.
 void CPluginManager::ShutdownPlugins()
 {
-	if (m_pad)
-	{
-		m_pad->Shutdown();
-		FreePad();
-	}
-
 	if (m_wiimote)
 	{
 		m_wiimote->Shutdown();
@@ -246,7 +221,7 @@ void CPluginManager::GetPluginInfo(CPluginInfo *&info, std::string Filename)
 void *CPluginManager::LoadPlugin(const char *_rFilename)
 {
 	if (!File::Exists((File::GetPluginsDirectory() + _rFilename).c_str())) {
-		PanicAlert("Error loading %s: can't find file", _rFilename);
+		PanicAlert("Error loading plugin %s: can't find file. Please re-select your plugins.", _rFilename);
 		return NULL;
 	}
 	/* Avoid calling LoadLibrary() again and instead point to the plugin info that we found when
@@ -269,10 +244,6 @@ void *CPluginManager::LoadPlugin(const char *_rFilename)
 	
 	case PLUGIN_TYPE_DSP:
 		plugin = new Common::PluginDSP(_rFilename);
-		break;
-	
-	case PLUGIN_TYPE_PAD:
-		plugin = new Common::PluginPAD(_rFilename);
 		break;
 	
 	case PLUGIN_TYPE_WIIMOTE:
@@ -347,27 +318,11 @@ void CPluginManager::ScanForPlugins()
 
 
 /* Create or return the already created plugin pointers. This will be called
-   often for the Pad and Wiimote from the SI_.cpp files. And often for the DSP
-   from the DSP files.
+   often for Wiimote. And often for the DSP from the DSP files.
    
    We don't need to check if [Plugin]->IsValid() here because it will not be set by LoadPlugin()
    if it's not valid.
    */
-// ------------
-Common::PluginPAD *CPluginManager::GetPad()
-{
-	if (m_pad != NULL)
-	{
-		if (m_pad->GetFilename() == m_params->m_strPadPlugin)
-			return m_pad;
-		else
-			FreePad();
-	}
-	
-	// Else load a new plugin
-	m_pad = (Common::PluginPAD*)LoadPlugin(m_params->m_strPadPlugin.c_str());
-	return m_pad;
-}
 
 Common::PluginWiimote *CPluginManager::GetWiimote()
 {
@@ -435,12 +390,6 @@ void CPluginManager::FreeDSP()
 	m_dsp = NULL;
 }
 
-void CPluginManager::FreePad()
-{
-	delete m_pad;
-	m_pad = NULL;
-}
-
 void CPluginManager::FreeWiimote()
 {
 	delete m_wiimote;
@@ -451,11 +400,6 @@ void CPluginManager::EmuStateChange(PLUGIN_EMUSTATE newState)
 {
 	GetVideo()->EmuStateChange(newState);
 	GetDSP()->EmuStateChange(newState);
-	//TODO: OpenConfig below only uses GetXxx(0) aswell
-	//      Would we need to call all plugins?
-	//      If yes, how would one check if the plugin was not
-	//      just created by GetXxx(idx) because there was none?
-	GetPad()->EmuStateChange(newState);
 	GetWiimote()->EmuStateChange(newState);
 }
 
@@ -480,9 +424,6 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 		break;
 	case PLUGIN_TYPE_DSP:
 		GetDSP()->Config((HWND)_Parent);
-		break;
-	case PLUGIN_TYPE_PAD:
-		GetPad()->Config((HWND)_Parent);
 		break;
 	case PLUGIN_TYPE_WIIMOTE:
 		GetWiimote()->Config((HWND)_Parent);

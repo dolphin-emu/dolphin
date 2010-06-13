@@ -71,7 +71,6 @@ dirs = [
     'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',
-    'Source/Plugins/Plugin_GCPadNew/Src',
     'Source/Plugins/Plugin_Wiimote/Src',
     'Source/Plugins/Plugin_WiimoteNew/Src/',
     'Source/Core/DolphinWX/Src',

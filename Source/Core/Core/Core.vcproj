@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Core"
 	ProjectGUID="{F0B874CB-4476-4199-9315-8343D05AE684}"
 	RootNamespace="Core"
@@ -770,6 +770,26 @@
 				</File>
 				<File
 					RelativePath=".\Src\HW\WII_IPC.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="GCPad"
+				>
+				<File
+					RelativePath=".\Src\HW\GCPad.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\GCPad.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\GCPadEmu.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\HW\GCPadEmu.h"
 					>
 				</File>
 			</Filter>

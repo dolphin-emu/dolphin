@@ -1,4 +1,4 @@
-// Copyright (C) 2003 Dolphin Project.
+// Copyright (C) 2010 Dolphin Project.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,33 +15,37 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-#ifndef _PLUGINPAD_H_
-#define _PLUGINPAD_H_
+#ifndef _CONEMU_GCPAD_H_
+#define _CONEMU_GCPAD_H_
 
-#include "pluginspecs_pad.h"
-#include "Plugin.h"
+#include <string>
 
-namespace Common {
+#include "ControllerEmu.h"
 
-typedef void (__cdecl* TPAD_GetStatus)(u8, SPADStatus*);
-typedef void (__cdecl* TPAD_Input)(u16, u8);
-typedef void (__cdecl* TPAD_Rumble)(u8, unsigned int, unsigned int);
-
-class PluginPAD : public CPlugin {
+class GCPad : public ControllerEmu
+{
 public:
-	PluginPAD(const char *_Filename);
-	virtual ~PluginPAD();
-	virtual bool IsValid() {return validPAD;};
 
-	TPAD_GetStatus PAD_GetStatus;
-	TPAD_Input PAD_Input;
-	TPAD_Rumble PAD_Rumble;
+	GCPad( const unsigned int index );
+	void GetInput( SPADStatus* const pad );
+	void SetOutput( const bool on );
+	
+	std::string GetName() const;
+
+	void LoadDefaults();
 
 private:
-	bool validPAD;
+
+	Buttons*				m_buttons;
+	AnalogStick*			m_main_stick;
+	AnalogStick*			m_c_stick;
+	Buttons*				m_dpad;
+	MixedTriggers*			m_triggers;
+	ControlGroup*			m_rumble;
+	ControlGroup*			m_options;
+
+	const unsigned int		m_index;
 
 };
 
-}  // namespace
-
-#endif // _PLUGINPAD_H_
+#endif

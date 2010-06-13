@@ -56,11 +56,13 @@ Core::GetWindowHandle().
 #include "PowerPC/PowerPC.h"
 #include "HW/DVDInterface.h"
 #include "HW/ProcessorInterface.h"
+#include "HW/GCPad.h"
 #include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "State.h"
 #include "VolumeHandler.h"
 #include "NANDContentLoader.h"
 #include "WXInputBase.h"
+#include "../../InputUICommon/Src/ConfigDiag.h"
 
 #include <wx/datetime.h> // wxWidgets
 
@@ -942,12 +944,23 @@ void CFrame::OnPluginDSP(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 {
-	CPluginManager::GetInstance().OpenConfig(
-			GetHandle(),
-			SConfig::GetInstance().m_LocalCoreStartupParameter.m_strPadPlugin.c_str(),
-			PLUGIN_TYPE_PAD
-			);
+	InputPlugin *pad_plugin = PAD_GetPlugin();
+	bool was_init = false;
+	if ( pad_plugin->controller_interface.IsInit() )	// check if game is running
+		was_init = true;
+	else
+	{
+		GCPad_Init(GetHandle());
+	}
+	InputConfigDialog* m_ConfigFrame = new InputConfigDialog(this, *pad_plugin, "GCPadNew", was_init );
+	m_ConfigFrame->ShowModal();
+	m_ConfigFrame->Destroy();
+	if ( !was_init )				// if game is running
+	{
+		GCPad_Deinit();
+	}
 }
+
 void CFrame::OnPluginWiimote(wxCommandEvent& WXUNUSED (event))
 {
 	CPluginManager::GetInstance().OpenConfig(

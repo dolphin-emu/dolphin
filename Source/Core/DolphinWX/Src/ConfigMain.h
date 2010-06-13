@@ -139,7 +139,7 @@ private:
 
 
 	wxBoxSizer* sPluginsPage; // Plugins settings
-	wxStaticBoxSizer* sbGraphicsPlugin, *sbDSPPlugin, *sbPadPlugin, *sbWiimotePlugin;  // Graphics, DSP, Pad and Wiimote sections
+	wxStaticBoxSizer* sbGraphicsPlugin, *sbDSPPlugin, *sbWiimotePlugin;  // Graphics, DSP, Wiimote sections
 
 	// Graphics
 	wxChoice* GraphicSelection;
@@ -149,14 +149,9 @@ private:
 	wxChoice* DSPSelection;
 	wxButton* DSPConfig;
 
-	// Pad
-	wxChoice* PADSelection;
-	wxButton* PADConfig;
-
 	// Wiimote
 	wxChoice* WiimoteSelection;
 	wxButton* WiimoteConfig;
-
 
 	wxButton* m_Ok;
 
@@ -265,11 +260,6 @@ private:
 		ID_DSP_CB,
 		ID_DSP_CONFIG,
 		ID_DSP_ABOUT,
-
-		ID_PAD_TEXT,
-		ID_PAD_CB,
-		ID_PAD_CONFIG,
-		ID_PAD_ABOUT,
 
 		ID_WIIMOTE_TEXT,
 		ID_WIIMOTE_CB,

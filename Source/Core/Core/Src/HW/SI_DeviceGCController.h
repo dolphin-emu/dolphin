@@ -20,6 +20,7 @@
 
 #include "../PluginManager.h"
 #include "SI_Device.h"
+#include "pluginspecs_pad.h"
 
 
 // standard gamecube controller
@@ -102,7 +103,7 @@ public:
 	virtual int RunBuffer(u8* _pBuffer, int _iLength);
 
 	// Send and Receive pad input from network
-	static int NetPlay_GetInput(u8 numPAD, SPADStatus, u32 *PADStatus);
+	static int NetPlay_GetInput(u8 numPAD, SPADStatus status, u32 *PADStatus);
 	static u8 NetPlay_GetPadNum(u8 numPAD);
 
 	// Return true on new data

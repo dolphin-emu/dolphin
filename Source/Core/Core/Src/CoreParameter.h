@@ -118,7 +118,6 @@ struct SCoreStartupParameter
 
 	// files
 	std::string m_strVideoPlugin;
-	std::string m_strPadPlugin;
 	std::string m_strDSPPlugin;
 	std::string m_strWiimotePlugin;
 

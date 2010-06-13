@@ -1,13 +1,7 @@
-//__________________________________________________________________________________________________
-// Common pad plugin spec, version #1.0 maintained by F|RES
-//
+// TODO: Move these defines somewhere else and delete this file.
 
 #ifndef _PAD_H_INCLUDED__
 #define _PAD_H_INCLUDED__
-
-#include "PluginSpecs.h"
-
-#include "ExportProlog.h"
 
 #define PAD_ERR_NONE            0
 #define PAD_ERR_NO_CONTROLLER   -1
@@ -29,19 +23,6 @@
 #define PAD_BUTTON_Y            0x0800
 #define PAD_BUTTON_START        0x1000
 
-typedef void (*TLog)(const char* _pMessage);
-typedef bool (*TRendererHasFocus)(void);
-
-typedef struct
-{
-	HWND			hWnd;
-#if defined HAVE_X11 && HAVE_X11
-	void *pXWindow;
-#endif
-	TLog			pLog;
-	TRendererHasFocus pRendererHasFocus;
-} SPADInitialize;
-
 typedef struct
 {
 	unsigned short	button;                 // Or-ed PAD_BUTTON_* and PAD_TRIGGER_* bits
@@ -58,31 +39,4 @@ typedef struct
 } SPADStatus;
 
 
-// I N T E R F A C E 
-
-// __________________________________________________________________________________________________
-// Function:
-// Purpose:  
-// input:   
-// output:   
-//
-EXPORT void CALL PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus);
-
-// __________________________________________________________________________________________________
-// Function: Send keyboard input to the plugin
-// Purpose:  
-// input:   The key and if it's pressed or released
-// output:  None
-//
-EXPORT void CALL PAD_Input(u16 _Key, u8 _UpDown);
-
-// __________________________________________________________________________________________________
-// Function: PAD_Rumble
-// Purpose:  Pad rumble!
-// input:	 PAD number, Command type (Stop=0, Rumble=1, Stop Hard=2) and strength of Rumble
-// output:   none
-//
-EXPORT void CALL PAD_Rumble(u8 _numPAD, unsigned int _uType, unsigned int _uStrength);
-
-#include "ExportEpilog.h"
 #endif
