@@ -98,6 +98,9 @@ UCPStatusReg m_CPStatusReg;
 UCPCtrlReg	m_CPCtrlReg;
 UCPClearReg	m_CPClearReg;
 
+int m_tempHWM, m_tempLWM;
+int m_tempBP;
+
 int m_bboxleft;
 int m_bboxtop;
 int m_bboxright;
@@ -120,6 +123,9 @@ void FifoCriticalLeave()
 
 void DoState(PointerWrap &p)
 {
+	p.Do(m_tempHWM);
+	p.Do(m_tempLWM);
+	p.Do(m_tempBP);
 	p.Do(m_CPStatusReg);
 	p.Do(m_CPCtrlReg);
 	//p.Do(m_CPClearReg);
@@ -159,7 +165,7 @@ void Init()
 	memset(&fifo,0,sizeof(fifo));
 	fifo.CPCmdIdle  = 1 ;
 	fifo.CPReadIdle = 1;
-	fifo.bFF_Breakpoint = 1;
+	fifo.bFF_Breakpoint = 0;
 
 	s_fifoIdleEvent.Init();
 
@@ -195,8 +201,6 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 				);
 
 		_rReturnValue = m_CPStatusReg.Hex;
-		// Clear on read
-		UpdateInterrupts(false);
 		return;
 
 	case CTRL_REGISTER:		_rReturnValue = m_CPCtrlReg.Hex; return;
@@ -379,8 +383,10 @@ void Write16(const u16 _Value, const u32 _Address)
 			DEBUG_LOG(COMMANDPROCESSOR, "*********************** GXSetGPFifo very soon? ***********************");
 			// (mb2) We don't sleep here since it could be a perf issue for super monkey ball (yup only this game IIRC)
 			// Touching that game is a no-go so I don't want to take the risk :p
-			while (fifo.bFF_GPReadEnable && ((!fifo.bFF_BPEnable && fifo.CPReadWriteDistance) || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
+			while (fifo.CPReadWriteDistance)
 			{
+				if (!fifo.bFF_GPReadEnable)
+					Common::AtomicStore(fifo.bFF_GPReadEnable, 1);
 				s_fifoIdleEvent.Wait();
 			}
 		}
@@ -405,16 +411,11 @@ void Write16(const u16 _Value, const u32 _Address)
 			Common::AtomicStore(fifo.bFF_GPReadEnable, tmpCtrl.GPReadEnable);
 			Common::AtomicStore(fifo.bFF_BPEnable, tmpCtrl.BPEnable);
 
-			if (tmpCtrl.BPInit && tmpCtrl.BPEnable && tmpCtrl.GPReadEnable)
+			if (tmpCtrl.BPInit)
 			{
-				// Clear old BP and initiate new BP
+				// Clear BP
+				UpdateInterrupts(false);
 				Common::AtomicStore(fifo.bFF_Breakpoint, 0);
-
-				// The following is a hack of Synchronized Breakpoint for dual core mode
-				// Some games only waits a finite N cycles for FIFO interrupts, then hangs up on time out
-				// e.g. Metriod Prime 2
-				if (g_VideoInitialize.bOnThread && g_ActiveConfig.bFIFOBPhack)
-					UpdateInterrupts(true);
 			}
 
 			INFO_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
@@ -494,29 +495,29 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case FIFO_HI_WATERMARK_LO:
-		WriteLow ((u32 &)fifo.CPHiWatermark, _Value);
+		m_tempHWM = (u32)_Value;
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_LO : %04x", _Value);
 		break;
 	case FIFO_HI_WATERMARK_HI:
-		WriteHigh((u32 &)fifo.CPHiWatermark, _Value);
+		Common::AtomicStore(fifo.CPHiWatermark, (u32)_Value << 16 | m_tempHWM);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_HI : %04x", _Value);
 		break;
 
 	case FIFO_LO_WATERMARK_LO:
-		WriteLow ((u32 &)fifo.CPLoWatermark, _Value);
+		m_tempLWM = (u32)_Value;
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_LO_WATERMARK_LO : %04x", _Value);
 		break;
 	case FIFO_LO_WATERMARK_HI:
-		WriteHigh((u32 &)fifo.CPLoWatermark, _Value);
+		Common::AtomicStore(fifo.CPLoWatermark, (u32)_Value << 16 | m_tempLWM);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_LO_WATERMARK_HI : %04x", _Value);
 		break;
 
 	case FIFO_BP_LO:			
-		WriteLow ((u32 &)fifo.CPBreakpoint,	_Value);
+		m_tempBP = (u32)_Value;
 		DEBUG_LOG(COMMANDPROCESSOR,"write to FIFO_BP_LO : %04x", _Value);
 		break;
 	case FIFO_BP_HI:			
-		WriteHigh((u32 &)fifo.CPBreakpoint,	_Value);
+		Common::AtomicStore(fifo.CPBreakpoint, (u32)_Value << 16 | m_tempBP);
 		DEBUG_LOG(COMMANDPROCESSOR,"write to FIFO_BP_HI : %04x", _Value);
 		break;
 
@@ -616,8 +617,10 @@ void STACKALIGN GatherPipeBursted()
 
 			INFO_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark (Hi: 0x%04x, Lo: 0x%04x) reached (RWDistance: 0x%04x)", fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance);
 			// Wait for GPU to catch up
-			while (fifo.CPReadWriteDistance > fifo.CPLoWatermark && fifo.bFF_GPReadEnable && (!fifo.bFF_BPEnable || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
+			while (fifo.CPReadWriteDistance > fifo.CPLoWatermark)
 			{
+				if (!fifo.bFF_GPReadEnable)
+					Common::AtomicStore(fifo.bFF_GPReadEnable, 1);
 				s_fifoIdleEvent.Wait();
 			}
 		}
