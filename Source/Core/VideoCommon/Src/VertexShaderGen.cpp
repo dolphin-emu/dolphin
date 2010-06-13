@@ -276,7 +276,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		
 		if(color.enablelighting && alpha.enablelighting)
 		{
-			// both have lighting, test if they use the same ligths
+			// both have lighting, test if they use the same lights
             int mask = 0;
 			if(color.lightparams == alpha.lightparams)
 			{

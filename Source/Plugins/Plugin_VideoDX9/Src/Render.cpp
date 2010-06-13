@@ -1118,7 +1118,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 			else 
 			{
 				char msg [255];
-				sprintf(msg, "Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)", File::GetUserPath(D_DUMPFRAMES_IDX), s_recordWidth, s_recordHeight);
+				sprintf_s(msg,255, "Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)", File::GetUserPath(D_DUMPFRAMES_IDX), s_recordWidth, s_recordHeight);
 				OSD::AddMessage(msg, 2000);
 			}
 		}
@@ -1397,7 +1397,7 @@ void Renderer::SetInterlacingMode()
 void Renderer::SetScreenshot(const char *filename)
 {
 	s_criticalScreenshot.Enter();
-	strcpy(s_sScreenshotName,filename);
+	strcpy_s(s_sScreenshotName,filename);
 	s_bScreenshot = true;
 	s_criticalScreenshot.Leave();
 }

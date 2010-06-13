@@ -22,6 +22,13 @@
 #include "debugger/debugger.h"
 
 #if defined(HAVE_WX) && HAVE_WX
+#include "DlgSettings.h"
+GFXConfigDialogDX *m_ConfigFrame = NULL;
+#endif // HAVE_WX
+
+
+
+#if defined(HAVE_WX) && HAVE_WX
 #include "Debugger/Debugger.h"
 GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 #endif // HAVE_WX
@@ -205,8 +212,33 @@ void DllConfig(HWND _hParent)
 	// If not initialized, only init D3D so we can enumerate resolutions.
 	if (!s_PluginInitialized)
 		D3D::Init();
-	HINSTANCE hREd = LoadLibrary(_T("riched20.dll"));
-	DlgSettings_Show(g_hInstance, _hParent);
+	g_Config.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "gfx_dx9.ini").c_str());
+	g_Config.GameIniLoad(globals->game_ini);
+	UpdateActiveConfig();
+#if defined(HAVE_WX) && HAVE_WX
+	wxWindow *frame = GetParentedWxWindow(_hParent);
+	m_ConfigFrame = new GFXConfigDialogDX(frame);
+
+	// Prevent user to show more than 1 config window at same time
+#ifdef _WIN32
+	frame->Disable();
+	m_ConfigFrame->CreateGUIControls();
+	m_ConfigFrame->ShowModal();
+	frame->Enable();
+#else
+	m_ConfigFrame->CreateGUIControls();
+	m_ConfigFrame->ShowModal();
+#endif
+
+#ifdef _WIN32
+	frame->SetFocus();
+	frame->SetHWND(NULL);
+#endif
+
+	m_ConfigFrame->Destroy();
+	m_ConfigFrame = NULL;
+	frame->Destroy();
+#endif
 	if (!s_PluginInitialized)
 		D3D::Shutdown();
 }
@@ -341,7 +373,6 @@ void VideoFifo_CheckSwapRequest()
 		{
 			Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
 		}
-
 		Common::AtomicStoreRelease(s_swapRequested, FALSE);
 	}
 }

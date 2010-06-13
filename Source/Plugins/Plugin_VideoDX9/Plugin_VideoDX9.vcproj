@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_VideoDX9"
 	ProjectGUID="{636FAD5F-02D1-4E9A-BE67-FB8EA99B9A18}"
 	RootNamespace="Plugin_VideoDX9"
@@ -99,12 +99,12 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="../../../Externals/Cg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
+				DelayLoadDLLs="d3dx9_42.dll"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
-				DelayLoadDLLs="d3dx9_42.dll"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -210,6 +210,7 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
+				DelayLoadDLLs="d3dx9_42.dll"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				SubSystem="2"
@@ -217,7 +218,6 @@
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
-				DelayLoadDLLs="d3dx9_42.dll"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -311,13 +311,13 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="../../../Externals/Cg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
+				DelayLoadDLLs="d3dx9d_42.dll"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
-				DelayLoadDLLs="d3dx9d_42.dll"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -410,13 +410,13 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
+				DelayLoadDLLs="d3dx9d_42.dll"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
-				DelayLoadDLLs="d3dx9d_42.dll"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -520,13 +520,13 @@
 				AdditionalLibraryDirectories="../../../Externals/Cg;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
 				IgnoreDefaultLibraryNames=""
+				DelayLoadDLLs="d3dx9_42.dll"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="1"
-				DelayLoadDLLs="d3dx9_42.dll"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -631,13 +631,13 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\..\..\Externals\Cg64;&quot;..\..\..\Externals\wxWidgets\lib\vc_lib\$(PlatformName)&quot;"
 				GenerateManifest="false"
+				DelayLoadDLLs="d3dx9_42.dll"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(PlatformName)\$(ConfigurationName)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
 				ImportLibrary="$(PlatformName)\$(ConfigurationName)\$(TargetName).lib"
 				TargetMachine="17"
-				DelayLoadDLLs="d3dx9_42.dll"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -665,19 +665,6 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="Resource Files"
-			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
-			>
-			<File
-				RelativePath=".\Src\resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\Resource.rc"
-				>
-			</File>
-		</Filter>
 		<Filter
 			Name="win32"
 			>
