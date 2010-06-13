@@ -16,7 +16,7 @@ files = ["ActionReplay.cpp",
          "PatchEngine.cpp",
          "PluginManager.cpp",
          "LuaInterface.cpp",
-         "State.cpp",1
+         "State.cpp",
          "Tracer.cpp",
          "VolumeHandler.cpp",
          "Boot/Boot.cpp",
