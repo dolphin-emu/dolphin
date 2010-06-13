@@ -511,6 +511,7 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 H
         // alpha test will always fail, so restart the shader and just make it an empty function
         p = pmainstart;
         WRITE(p, "ocol0 = 0;\n");
+        WRITE(p, "depth = 1.f;\n");
 		WRITE(p, "discard;return;\n");
     }
     else
@@ -952,7 +953,7 @@ static bool WriteAlphaTest(char *&p, u32 HLSL)
     compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table    
 
-	WRITE(p, ")){ocol0 = 0;discard;return;}\n");
+	WRITE(p, ")){ocol0 = 0;depth = 1.f;discard;return;}\n");
 	
     return true;
 }
