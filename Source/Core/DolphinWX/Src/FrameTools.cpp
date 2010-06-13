@@ -950,7 +950,11 @@ void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 		was_init = true;
 	else
 	{
+#if defined(HAVE_X11) && HAVE_X11
+		GCPad_Init(X11Utils::XDisplayFromHandle(GetHandle()));
+#else
 		GCPad_Init(GetHandle());
+#endif
 	}
 	InputConfigDialog* m_ConfigFrame = new InputConfigDialog(this, *pad_plugin, "GCPadNew", was_init );
 	m_ConfigFrame->ShowModal();

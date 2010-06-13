@@ -224,7 +224,7 @@ class InputConfigDialog : public wxDialog
 public:
 
 	InputConfigDialog( wxWindow* const parent, InputPlugin& plugin, const std::string& name, const bool _is_game_running );
-	~InputConfigDialog();
+	bool Destroy();
 
 	void ClickSave( wxCommandEvent& event );
 

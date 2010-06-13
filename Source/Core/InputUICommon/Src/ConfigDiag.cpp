@@ -951,7 +951,8 @@ InputConfigDialog::InputConfigDialog( wxWindow* const parent, InputPlugin& plugi
 
 }
 
-InputConfigDialog::~InputConfigDialog()
+bool InputConfigDialog::Destroy()
 {
 	m_update_timer->Stop();
+	return true;
 }
