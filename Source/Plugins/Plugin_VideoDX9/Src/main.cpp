@@ -34,7 +34,6 @@ GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 #endif // HAVE_WX
 
 #include "svnrev.h"
-#include "resource.h"
 #include "main.h"
 #include "VideoConfig.h"
 #include "Fifo.h"
@@ -204,7 +203,7 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 
 void DllAbout(HWND _hParent)
 {
-	DialogBox(g_hInstance,(LPCTSTR)IDD_ABOUT,_hParent,(DLGPROC)AboutProc);
+	//DialogBox(g_hInstance,(LPCTSTR)IDD_ABOUT,_hParent,(DLGPROC)AboutProc);
 }
 
 void DllConfig(HWND _hParent)
