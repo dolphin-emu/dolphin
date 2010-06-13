@@ -74,14 +74,14 @@ void CopyEFB(const BPCmd &bp, const EFBRectangle &rc, const u32 &address, const 
 {
 	if (!g_ActiveConfig.bEFBCopyDisable)
 	{
-		if (g_ActiveConfig.bCopyEFBToTexture)
-		{
+//		if (g_ActiveConfig.bCopyEFBToTexture)
+//		{
 			TextureCache::CopyRenderTargetToTexture(address, fromZBuffer, isIntensityFmt, copyfmt, scaleByHalf, rc);
-		}
-		else
-		{
-			PanicAlert("TODO: Implement EFB copying to RAM %s %d\n", __FILE__, __LINE__);
-		}
+//		}
+//		else
+//		{
+//			PanicAlert("TODO: Implement EFB copying to RAM %s %d\n", __FILE__, __LINE__);
+//		}
 	}
 }
 
