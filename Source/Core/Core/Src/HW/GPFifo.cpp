@@ -55,7 +55,8 @@ void Init()
 	ResetGatherPipe();
 }
 
-bool IsEmpty() {
+bool IsEmpty()
+{
 	return m_gatherPipeCount == 0;
 }
 
@@ -66,27 +67,34 @@ void ResetGatherPipe()
 
 void STACKALIGN CheckGatherPipe()
 {
-	// HyperIris: Memory::GetPointer is an expensive call, call it less, run faster
-	// ector: Well not really - this loop will only rarely go more than one lap.
-	while (m_gatherPipeCount >= GATHER_PIPE_SIZE)
-	{	
-		// copy the GatherPipe
-		memcpy(Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer), m_gatherPipe, GATHER_PIPE_SIZE);
+	if (m_gatherPipeCount >= GATHER_PIPE_SIZE)
+	{
+		u32 cnt;
+		u8* curMem = Memory::GetPointer(ProcessorInterface::Fifo_CPUWritePointer);
+		for (cnt = 0; m_gatherPipeCount >= GATHER_PIPE_SIZE; cnt += GATHER_PIPE_SIZE)
+		{	
+			// copy the GatherPipe
+			memcpy(curMem, m_gatherPipe + cnt, GATHER_PIPE_SIZE);
+			m_gatherPipeCount -= GATHER_PIPE_SIZE;
 
+			// increase the CPUWritePointer
+			if (ProcessorInterface::Fifo_CPUWritePointer + GATHER_PIPE_SIZE >= ProcessorInterface::Fifo_CPUEnd)
+			{
+				curMem -= ProcessorInterface::Fifo_CPUWritePointer - ProcessorInterface::Fifo_CPUBase;
+				ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;
+			}
+			else
+			{
+				curMem += GATHER_PIPE_SIZE;
+				ProcessorInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE;
+			}
+
+			// TODO store video plugin pointer
+			CPluginManager::GetInstance().GetVideo()->Video_GatherPipeBursted();
+		}
+		
 		// move back the spill bytes
-		m_gatherPipeCount -= GATHER_PIPE_SIZE;
-		
-		// HyperIris: dunno why, but I use memcpy. TODO: See if a custom copy can be faster, like 4x MOVAPD
-		memmove(m_gatherPipe, m_gatherPipe + GATHER_PIPE_SIZE, m_gatherPipeCount);
-		
-		// increase the CPUWritePointer
-		if (ProcessorInterface::Fifo_CPUWritePointer == ProcessorInterface::Fifo_CPUEnd)
-			ProcessorInterface::Fifo_CPUWritePointer = ProcessorInterface::Fifo_CPUBase;
-        else
-            ProcessorInterface::Fifo_CPUWritePointer += GATHER_PIPE_SIZE;
-
-        // TODO store video plugin pointer
-		CPluginManager::GetInstance().GetVideo()->Video_GatherPipeBursted();
+		memmove(m_gatherPipe, m_gatherPipe + cnt, m_gatherPipeCount);
 	}
 }
 

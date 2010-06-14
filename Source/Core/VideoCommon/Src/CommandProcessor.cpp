@@ -594,7 +594,7 @@ void STACKALIGN GatherPipeBursted()
 	if (g_VideoInitialize.bOnThread)
 	{
 		// update the fifo-pointer
-        if (fifo.CPWritePointer >= fifo.CPEnd)
+        if (fifo.CPWritePointer + GATHER_PIPE_SIZE >= fifo.CPEnd)
 			fifo.CPWritePointer = fifo.CPBase;
         else
 		    fifo.CPWritePointer += GATHER_PIPE_SIZE;
@@ -634,7 +634,7 @@ void STACKALIGN GatherPipeBursted()
 	}
 	else
 	{
-		if (fifo.CPWritePointer >= fifo.CPEnd)
+		if (fifo.CPWritePointer + GATHER_PIPE_SIZE >= fifo.CPEnd)
 			fifo.CPWritePointer = fifo.CPBase;
         else
 		    fifo.CPWritePointer += GATHER_PIPE_SIZE;
@@ -687,11 +687,11 @@ void CatchUpGPU()
 
 			fifo.CPReadWriteDistance -= 32;
 			// increase the ReadPtr
-			if (fifo.CPReadPointer >= fifo.CPEnd)
+			if (fifo.CPReadPointer + 32 >= fifo.CPEnd)
 			{
 				fifo.CPReadPointer = fifo.CPBase;
 				// adjust, take care
-				ptr = Memory_GetPtr(fifo.CPReadPointer);
+				ptr -= fifo.CPReadPointer - fifo.CPBase;
 				DEBUG_LOG(COMMANDPROCESSOR, "Fifo Loop");
 			}
             else

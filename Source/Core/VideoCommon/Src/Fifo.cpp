@@ -118,12 +118,12 @@ void Fifo_SendFifoData(u8* _uData, u32 len)
     if (size + len >= FIFO_SIZE)
     {
 		int pos = (int)(g_pVideoData - videoBuffer);
-        if (size - pos > pos)
+		size -= pos;
+        if (size + len > FIFO_SIZE)
         {
             PanicAlert("FIFO out of bounds (sz = %i, at %08x)", size, pos);
         }
-        memmove(&videoBuffer[0], &videoBuffer[pos], size - pos);
-        size -= pos;
+        memmove(&videoBuffer[0], &videoBuffer[pos], size);
 		g_pVideoData = videoBuffer;
     }
 	// Copy new video instructions to videoBuffer for future use in rendering the new picture
@@ -180,7 +180,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				}
 				distToSend = 32;
 
-				if ( readPtr >= _fifo.CPEnd) 
+				if (readPtr + 32 >= _fifo.CPEnd) 
 					readPtr = _fifo.CPBase;
 				else
 					readPtr += 32;
@@ -192,9 +192,9 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 				// send 1024B chunk max length to have better control over PeekMessages' period
 				distToSend = distToSend > 1024 ? 1024 : distToSend;
 				// add 32 bytes because the cp end points to the start of the last 32 byte chunk
-				if ((distToSend + readPtr) >= (_fifo.CPEnd + 32)) // TODO: better?
+				if (readPtr + distToSend >= _fifo.CPEnd)
 				{
-					distToSend =(_fifo.CPEnd + 32) - readPtr;
+					distToSend = _fifo.CPEnd - readPtr;
 					readPtr = _fifo.CPBase;
 				}
 				else
