@@ -78,18 +78,22 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 			break;
 		case PC_TEX_FMT_I8:
 		case PC_TEX_FMT_I4_AS_I8:
-			for (unsigned int y = 0; y < height; y++)
 			{
-				u8* in = (u8*)buffer + y * pitch;
-				u32* pBits = (u32*)((u8*)outptr + y * destPitch);
-				for (unsigned int x = 0; x < width; x++)
+				const u8 *pIn = buffer;
+				for (int y = 0; y < height; y++)
 				{
-					const u8 col = *in;
-					*pBits = 0xFF000000 | (col << 16) | (col << 8) | col;
-					in++;
-					pBits++;
+					u8* pBits = ((u8*)outptr + (y * destPitch));
+					for(int i = 0; i < width * 4; i += 4) 
+					{
+						pBits[i] = pIn[i / 4];
+						pBits[i+1] = pIn[i / 4];
+						pBits[i+2] = pIn[i / 4];
+						pBits[i + 3] = pIn[i / 4];
+					}
+					pIn += pitch;
 				}
 			}
+			
 			break;
 		case PC_TEX_FMT_BGRA32:
 			// BGRA32 textures can be uploaded directly to VRAM when using DEFAULT textures

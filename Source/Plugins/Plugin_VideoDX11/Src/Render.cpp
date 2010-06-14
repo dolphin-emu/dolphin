@@ -759,11 +759,11 @@ void Renderer::SetBlendMode(bool forceUpdate)
 {
 	#define BLEND_ENABLE_MASK 1
 	#define BLENDOP_SHIFT 2
-	#define BLENDOP_MASK (1<<BLENDOP_SHIFT)
+	#define BLENDOP_MASK 4
 	#define SRCFACTOR_SHIFT 3
 	#define DESTFACTOR_SHIFT 6
-	#define SRCFACTOR_MASK (7 << SRCFACTOR_SHIFT)
-	#define DESTFACTOR_MASK (7 << DESTFACTOR_SHIFT)
+	#define FACTOR_MASK 7
+	
 
 	// blend mode bit mask
 	// 0 - blend enable
@@ -795,8 +795,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 	if (changes & 0x1F8)  // blend RGB change
 	{
-		D3D::gfxstate->SetSrcBlend(d3dSrcFactors[(newval & SRCFACTOR_MASK) >> SRCFACTOR_SHIFT]);
-		D3D::gfxstate->SetDestBlend(d3dDestFactors[(newval & DESTFACTOR_MASK) >> DESTFACTOR_SHIFT]);
+		D3D::gfxstate->SetSrcBlend(d3dSrcFactors[(newval >> SRCFACTOR_SHIFT) & FACTOR_MASK]);
+		D3D::gfxstate->SetDestBlend(d3dDestFactors[(newval >> DESTFACTOR_SHIFT) & FACTOR_MASK]);
 	}
 	s_blendMode = newval;
 }
