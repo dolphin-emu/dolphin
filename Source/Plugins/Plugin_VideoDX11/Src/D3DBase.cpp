@@ -38,6 +38,13 @@ D3D_FEATURE_LEVEL featlevel;
 D3DTexture2D* backbuf = NULL;
 HWND hWnd;
 
+#define NUM_SUPPORTED_FEATURE_LEVELS 3
+const D3D_FEATURE_LEVEL supported_feature_levels[NUM_SUPPORTED_FEATURE_LEVELS] = {
+	D3D_FEATURE_LEVEL_11_0,
+	D3D_FEATURE_LEVEL_10_1,
+	D3D_FEATURE_LEVEL_10_0
+};
+
 unsigned int xres, yres;
 
 bool bFrameInProgress = false;
@@ -327,10 +334,13 @@ HRESULT Create(HWND wnd)
 #else
 	D3D11_CREATE_DEVICE_FLAG device_flags = D3D11_CREATE_DEVICE_SINGLETHREADED;
 #endif
-	hr = D3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, device_flags, NULL, 0, D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device, &featlevel, &context);
+	hr = D3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, device_flags,
+										supported_feature_levels, NUM_SUPPORTED_FEATURE_LEVELS,
+										D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device,
+										&featlevel, &context);
 	if (FAILED(hr) || !device || !context || !swapchain)
 	{
-		MessageBox(wnd, _T("Failed to initialize Direct3D."), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
+		MessageBox(wnd, _T("Failed to initialize Direct3D.\nMake sure your video card supports at least D3D 10.0"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
 		SAFE_RELEASE(device);
 		SAFE_RELEASE(context);
 		SAFE_RELEASE(swapchain);

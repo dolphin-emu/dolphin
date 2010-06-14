@@ -128,35 +128,23 @@ unsigned int ps_constant_offset_table[] = {
 };
 void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	if(D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]  ] != f1
-	|| D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+1] != f2
-	|| D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+2] != f3
-	|| D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+3] != f4)
-	{
-		D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]  ] = f1;
-		D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+1] = f2;
-		D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+2] = f3;
-		D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+3] = f4;
-		D3D::gfxstate->pscbufchanged = true;
-	}
+	D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]  ] = f1;
+	D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+1] = f2;
+	D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+2] = f3;
+	D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+3] = f4;
+	D3D::gfxstate->pscbufchanged = true;
 }
 
 void SetPSConstant4fv(unsigned int const_number, const float* f)
 {
-	if(memcmp(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4))
-	{
-		memcpy(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4);
-		D3D::gfxstate->pscbufchanged = true;
-	}
+	memcpy(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4);
+	D3D::gfxstate->pscbufchanged = true;
 }
 
 void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
 {
-	if(memcmp(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4*count))
-	{
-		memcpy(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4*count);
-		D3D::gfxstate->pscbufchanged = true;
-	}
+	memcpy(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4*count);
+	D3D::gfxstate->pscbufchanged = true;
 }
 
 // this class will load the precompiled shaders into our cache

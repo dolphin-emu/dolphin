@@ -51,26 +51,17 @@ ID3D11InputLayout* VertexShaderCache::GetClearInputLayout() { return ClearLayout
 unsigned int vs_constant_offset_table[238];
 void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	if(D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]  ] != f1 
-	|| D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]+1] != f2
-	|| D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]+2] != f3
-	|| D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]+3] != f4)
-	{
-		D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]  ] = f1;
-		D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]+1] = f2;
-		D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]+2] = f3;
-		D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]+3] = f4;
-		D3D::gfxstate->vscbufchanged = true;
-	}
+	D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]  ] = f1;
+	D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]+1] = f2;
+	D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]+2] = f3;
+	D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]+3] = f4;
+	D3D::gfxstate->vscbufchanged = true;
 }
 
 void SetVSConstant4fv(unsigned int const_number, const float* f)
 {
-	if(memcmp(&D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4))
-	{
-		memcpy(&D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4);
-		D3D::gfxstate->vscbufchanged = true;
-	}
+	memcpy(&D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4);
+	D3D::gfxstate->vscbufchanged = true;
 }
 
 void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const float* f)
@@ -85,11 +76,8 @@ void SetMultiVSConstant3fv(unsigned int const_number, unsigned int count, const 
 
 void SetMultiVSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
 {
-	if(memcmp(&D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4*count))
-	{
-		memcpy(&D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4*count);
-		D3D::gfxstate->vscbufchanged = true;
-	}
+	memcpy(&D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]], f, sizeof(float)*4*count);
+	D3D::gfxstate->vscbufchanged = true;
 }
 
 // this class will load the precompiled shaders into our cache
