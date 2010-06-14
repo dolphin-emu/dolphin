@@ -58,7 +58,7 @@ typedef struct
 
 	volatile u32 bFF_GPReadEnable;
 	volatile u32 bFF_BPEnable;
-	volatile u32 bFF_GPLinkEnable;
+	volatile u32 bFF_BPInt;
 	volatile u32 bFF_Breakpoint;
 
 	volatile u32 CPCmdIdle;

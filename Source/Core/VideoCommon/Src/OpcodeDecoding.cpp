@@ -189,11 +189,11 @@ bool FifoCommandRunnable()
 					"CPBreakpoint: 0x%08x\n"
 					"bFF_GPReadEnable: %s\n"
 					"bFF_BPEnable: %s\n"
-					"bFF_GPLinkEnable: %s\n"
+					"bFF_BPInt: %s\n"
 					"bFF_Breakpoint: %s\n"
 					,cmd_byte, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance
 					,fifo.CPWritePointer, fifo.CPReadPointer, fifo.CPBreakpoint, fifo.bFF_GPReadEnable ? "true" : "false"
-					,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_GPLinkEnable ? "true" : "false"
+					,fifo.bFF_BPEnable ? "true" : "false" ,fifo.bFF_BPInt ? "true" : "false"
 					,fifo.bFF_Breakpoint ? "true" : "false");
 
 				g_VideoInitialize.pSysMessage(szTmp);

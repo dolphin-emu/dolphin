@@ -110,7 +110,7 @@ union UCPCtrlReg
 		unsigned FifoOverflowIntEnable	:	1;
 		unsigned FifoUnderflowIntEnable	:	1;
 		unsigned GPLinkEnable			:	1;
-		unsigned BPInit					:	1;
+		unsigned BPInt					:	1;
 		unsigned						:	10;
 	};
 	u16 Hex;
@@ -148,8 +148,8 @@ void Write32(const u32 _Data, const u32 _Address);
 void CatchUpGPU();
 void GatherPipeBursted();
 void UpdateFifoRegister();
-void UpdateInterrupts(bool active);
-void UpdateInterruptsFromVideoPlugin(bool active);
+void UpdateInterrupts();
+void UpdateInterruptsFromVideoPlugin();
 void SetFifoIdleFromVideoPlugin();
 
 bool AllowIdleSkipping();
