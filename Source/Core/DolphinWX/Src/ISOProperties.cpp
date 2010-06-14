@@ -277,7 +277,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sButtons->Add(0, 0, 1, wxEXPAND, 5);
 	sButtons->Add(m_Close, 0, wxALL, 5);
 
-
 	
 	// GameConfig editing - Overrides and emulation state
 	sbGameConfig = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Game-Specific Settings"));
@@ -454,7 +453,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sISODetails->Add(m_Date, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
 	sISODetails->Add(m_FSTText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL|wxALL, 5);
 	sISODetails->Add(m_FST, wxGBPosition(5, 1), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-	sISODetails->AddGrowableCol(0);
+	sISODetails->AddGrowableCol(1);
 	sbISODetails = new wxStaticBoxSizer(wxVERTICAL, m_Information, _("ISO Details"));
 	sbISODetails->Add(sISODetails, 0, wxEXPAND, 5);
 
@@ -509,6 +508,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sMain->Add(m_Notebook, 1, wxEXPAND|wxALL, 5);
 	sMain->Add(sButtons, 0, wxEXPAND, 5);
 	sMain->SetMinSize(wxSize(400, 600));
+
+	m_Notebook->SetMaxSize(wxSize(400, 600));
 	SetSizerAndFit(sMain);
 }
 
