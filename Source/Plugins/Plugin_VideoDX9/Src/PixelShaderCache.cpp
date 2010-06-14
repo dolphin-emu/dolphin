@@ -334,7 +334,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 	}
 
 	// OK, need to generate and compile it.
-	const char *code = GeneratePixelShaderCode(PixelShaderManager::GetTextureMask(), dstAlpha, 2);
+	const char *code = GeneratePixelShaderCode(PixelShaderManager::GetTextureMask(), dstAlpha, API_D3D9);
 	#if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
 		static int counter = 0;

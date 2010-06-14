@@ -232,7 +232,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 	}
 
 	// need to compile a new shader
-	const char* code = GeneratePixelShaderCode(PixelShaderManager::GetTextureMask(), dstAlpha, 2);
+	const char* code = GeneratePixelShaderCode(PixelShaderManager::GetTextureMask(), dstAlpha, API_D3D11);
 
 	ID3D10Blob* pbytecode;
 	if (!D3D::CompilePixelShader(code, strlen(code), &pbytecode))

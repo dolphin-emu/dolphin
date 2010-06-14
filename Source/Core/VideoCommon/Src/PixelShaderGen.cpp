@@ -146,10 +146,10 @@ void GetPixelShaderId(PIXELSHADERUID *uid, u32 texturemask, u32 dstAlphaEnable)
 //   output is given by .outreg
 //   tevtemp is set according to swapmodetables and 
 
-static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL);
-static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, u32 HLSL);
+static void WriteStage(char *&p, int n, u32 texture_mask, API_TYPE ApiType);
+static void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, API_TYPE ApiType);
 // static void WriteAlphaCompare(char *&p, int num, int comp);
-static bool WriteAlphaTest(char *&p, u32 HLSL);
+static bool WriteAlphaTest(char *&p, API_TYPE ApiType);
 static void WriteFog(char *&p);
 
 const float epsilon8bit = 1.0f / 255.0f;
@@ -357,7 +357,7 @@ static void BuildSwapModeTable()
     }
 }
 
-const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 HLSL)
+const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable,  API_TYPE ApiType)
 {
 	setlocale(LC_NUMERIC, "C"); // Reset locale for compilation
 	text[sizeof(text) - 1] = 0x7C;  // canary
@@ -385,7 +385,7 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 H
     // Declare samplers
     if (texture_mask)
 	{
-		if (HLSL)
+		if (ApiType != API_OPENGL)
 			WRITE(p, "uniform sampler ");
 		else
 			WRITE(p, "uniform samplerRECT ");
@@ -488,13 +488,13 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 H
 
             char buffer[32];
             sprintf(buffer, "float3 indtex%d", i);
-            SampleTexture(p, buffer, "tempcoord", "abg", bpmem.tevindref.getTexMap(i), texture_mask,HLSL);
+            SampleTexture(p, buffer, "tempcoord", "abg", bpmem.tevindref.getTexMap(i), texture_mask,ApiType);
         }
     }
 
 
 	for (int i = 0; i < numStages; i++)
-		WriteStage(p, i, texture_mask,HLSL); //build the equation for this stage
+		WriteStage(p, i, texture_mask,ApiType); //build the equation for this stage
 	if(numStages)
 	{
 		// The results of the last texenv stage are put onto the screen,
@@ -506,13 +506,15 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 H
 	// emulation of unisgned 8 overflow when casting
 	WRITE(p, "prev = frac(4.0f + prev * (255.0f/256.0f)) * (256.0f/255.0f);\n");
 		
-    if (!WriteAlphaTest(p, HLSL))
+    if (!WriteAlphaTest(p, ApiType))
 	{
         // alpha test will always fail, so restart the shader and just make it an empty function
         p = pmainstart;
         WRITE(p, "ocol0 = 0;\n");
         WRITE(p, "depth = 1.f;\n");
-		WRITE(p, "discard;return;\n");
+		WRITE(p, "discard;\n");
+		if(ApiType != API_D3D11)
+			WRITE(p, "return;\n");
     }
     else
 	{
@@ -602,7 +604,7 @@ static const char *TEVCMPAlphaOPTable[16] =
 };
 
 
-static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
+static void WriteStage(char *&p, int n, u32 texture_mask, API_TYPE ApiType)
 {
     char *rasswap = swapModeTable[bpmem.combiners[n].alphaC.rswap];
     char *texswap = swapModeTable[bpmem.combiners[n].alphaC.tswap];
@@ -698,7 +700,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
                 WRITE(p, "tevcoord.xy = float2(0.0f,0.0f);\n");
         }
 
-        SampleTexture(p, "textemp", "tevcoord", texswap, texmap, texture_mask, HLSL);
+        SampleTexture(p, "textemp", "tevcoord", texswap, texmap, texture_mask, ApiType);
     }
     else
         WRITE(p, "textemp=float4(1.0f,1.0f,1.0f,1.0f);\n");
@@ -851,7 +853,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, u32 HLSL)
 	WRITE(p, ";\n\n");	
 }
 
-void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, u32 HLSL)
+void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, API_TYPE ApiType)
 {
     if (texture_mask & (1<<texmap)) {
         // non pow 2
@@ -873,13 +875,13 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
                  WRITE(p, "tempcoord.y = %s.y;\n", texcoords);
              }
 
-			 if (HLSL)
+			 if (ApiType != API_OPENGL)
 				 WRITE(p, "%s=tex2D(samp%d,tempcoord.xy).%s;\n", destination, texmap, texswap);
 			 else
 				 WRITE(p, "%s=texRECT(samp%d,tempcoord.xy).%s;\n", destination, texmap, texswap);
          }
          else {
-			 if (HLSL)
+			 if (ApiType != API_OPENGL)
 				 WRITE(p, "%s=tex2D(samp%d,%s.xy).%s;\n", destination, texmap, texcoords, texswap);
 			 else
 				 WRITE(p, "%s=texRECT(samp%d,%s.xy).%s;\n", destination, texmap, texcoords, texswap);
@@ -910,7 +912,7 @@ static const char *tevAlphaFunclogicTable[] =
     " == "	// xnor
 };
 
-static bool WriteAlphaTest(char *&p, u32 HLSL)
+static bool WriteAlphaTest(char *&p, API_TYPE ApiType)
 {
     u32 op = bpmem.alphaFunc.logic;
     u32 comp[2] = {bpmem.alphaFunc.comp0,bpmem.alphaFunc.comp1};
@@ -942,7 +944,7 @@ static bool WriteAlphaTest(char *&p, u32 HLSL)
     }
 
 
-	// using discard then return works the same in cg and hlsl
+	// using discard then return works the same in cg and dx9 but not in dx11
 	WRITE(p, "if(!( ");
 
 	int compindex = bpmem.alphaFunc.comp0 % 8;
@@ -953,7 +955,7 @@ static bool WriteAlphaTest(char *&p, u32 HLSL)
     compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table    
 
-	WRITE(p, ")){ocol0 = 0;depth = 1.f;discard;return;}\n");
+	WRITE(p, ")){ocol0 = 0;depth = 1.f;discard;%s}\n",(ApiType != API_D3D11)? "return;" : "");
 	
     return true;
 }

@@ -19,6 +19,7 @@
 #define GCOGL_VERTEXSHADER_H
 
 #include "XFMemory.h"
+#include "Common.h"
 
 #define SHADER_POSMTX_ATTRIB 1
 #define SHADER_NORM1_ATTRIB  6
@@ -99,12 +100,7 @@ public:
 	}
 };
 
-typedef enum
-{
-	API_OPENGL,
-	API_D3D9,
-	API_D3D11
-} API_TYPE;
+
 
 // components is included in the uid.
 const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type);

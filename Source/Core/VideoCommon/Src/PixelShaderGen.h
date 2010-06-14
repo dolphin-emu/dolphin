@@ -101,7 +101,7 @@ public:
 	}
 };
 
-const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, u32 HLSL = 0);
+const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, API_TYPE ApiType);
 void GetPixelShaderId(PIXELSHADERUID *uid, u32 texturemask, u32 dstAlphaEnable);
 
 extern PIXELSHADERUID last_pixel_shader_uid;

@@ -207,7 +207,7 @@ FRAGMENTSHADER* PixelShaderCache::GetShader(bool dstAlphaEnable)
 	newentry.frameCount = frameCount;
 	pShaderLast = &newentry.shader;
 	const char *code = GeneratePixelShaderCode(PixelShaderManager::GetTextureMask(),
-                                               dstAlphaEnable);
+                                               dstAlphaEnable,API_OPENGL);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
