@@ -119,8 +119,12 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 				u32* pBits = (u32*)((u8*)outptr + y * destPitch);
 				for (unsigned int x = 0; x < width; x++)
 				{
+					// we can't simply shift here, since e.g. 11111 must map to 11111111 and not 11111000
 					const u16 col = *in;
-					*pBits = 0xFF000000 | (((col&0x1f)<<3)) | ((col&0x7e0)<<5) | ((col&0xF800)<<8);
+					*pBits = 0xFF000000 | // alpha
+							((((col&0xF800) << 5) * 255 / 31) & 0xFF0000) | // red
+							((((col& 0x7e0) << 3) * 255 / 63) & 0xFF00) |   // green
+							(( (col&  0x1f)       * 255 / 31));             // blue
 					pBits++;
 					in++;
 				}

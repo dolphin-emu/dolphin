@@ -317,9 +317,10 @@ HRESULT Create(HWND wnd)
 	mode_desc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	hr = output->FindClosestMatchingMode(&mode_desc, &swap_chain_desc.BufferDesc, NULL);
 	if (FAILED(hr)) MessageBox(wnd, _T("Failed to find a supported video mode"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
-// TODO: Enable these two lines, they're breaking stuff for SOME reason right now
-//	xres = swap_chain_desc.BufferDesc.Width;
-//	yres = swap_chain_desc.BufferDesc.Height;
+
+	// forcing buffer resolution to xres and yres.. TODO: The new video mode might not actually be supported!
+	swap_chain_desc.BufferDesc.Width = xres;
+	swap_chain_desc.BufferDesc.Height = yres;
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	D3D11_CREATE_DEVICE_FLAG device_flags = (D3D11_CREATE_DEVICE_FLAG)(D3D11_CREATE_DEVICE_DEBUG|D3D11_CREATE_DEVICE_SINGLETHREADED);
