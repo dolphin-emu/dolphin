@@ -282,7 +282,7 @@ void Init()
 	et_AudioDMA = CoreTiming::RegisterEvent("AudioDMACallback", AudioDMACallback);
 	et_IPC_HLE = CoreTiming::RegisterEvent("IPC_HLE_UpdateCallback", IPC_HLE_UpdateCallback);
 	// Always register this. Increases chances of DC/SC save state compatibility.
-//	et_FakeGPWD = CoreTiming::RegisterEvent("FakeGPWatchdogCallback", FakeGPWatchdogCallback);
+	et_FakeGPWD = CoreTiming::RegisterEvent("FakeGPWatchdogCallback", FakeGPWatchdogCallback);
 	et_PatchEngine = CoreTiming::RegisterEvent("PatchEngine", PatchEngineCallback);
 
 	CoreTiming::ScheduleEvent(AI_PERIOD, et_AI);
@@ -292,8 +292,8 @@ void Init()
 	CoreTiming::ScheduleEvent(AUDIO_DMA_PERIOD, et_AudioDMA);
 
 	// For DC watchdog hack
-//	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
-//		CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_FakeGPWD);
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bCPUThread)
+		CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_FakeGPWD);
 
 	CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerFrame(), et_PatchEngine);
 
