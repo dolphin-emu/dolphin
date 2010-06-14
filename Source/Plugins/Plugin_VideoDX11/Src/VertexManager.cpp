@@ -275,7 +275,7 @@ inline void Draw(unsigned int stride, bool alphapass)
 		if (!alphapass)
 		{
 			D3D::context->Map(lineindexbuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-			memcpy(map.pData, LIBuffer, 2*2*IndexGenerator::GetNumTriangles());
+			memcpy(map.pData, LIBuffer, 2*2*IndexGenerator::GetNumLines());
 			D3D::context->Unmap(lineindexbuffer, 0);
 		}
 
@@ -291,7 +291,7 @@ inline void Draw(unsigned int stride, bool alphapass)
 		if (!alphapass)
 		{
 			D3D::context->Map(pointindexbuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-			memcpy(map.pData, PIBuffer, 2*IndexGenerator::GetNumTriangles());
+			memcpy(map.pData, PIBuffer, 2*IndexGenerator::GetNumPoints());
 			D3D::context->Unmap(pointindexbuffer, 0);
 		}
 
