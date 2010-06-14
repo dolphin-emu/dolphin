@@ -500,29 +500,29 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case FIFO_HI_WATERMARK_LO:
-		m_tempHWM = (u32)_Value;
+		WriteLow ((u32 &)fifo.CPHiWatermark, _Value);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_LO : %04x", _Value);
 		break;
 	case FIFO_HI_WATERMARK_HI:
-		Common::AtomicStore(fifo.CPHiWatermark, (u32)_Value << 16 | m_tempHWM);
+		WriteHigh((u32 &)fifo.CPHiWatermark, _Value);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_HI : %04x", _Value);
 		break;
 
 	case FIFO_LO_WATERMARK_LO:
-		m_tempLWM = (u32)_Value;
+		WriteLow ((u32 &)fifo.CPLoWatermark, _Value);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_LO_WATERMARK_LO : %04x", _Value);
 		break;
 	case FIFO_LO_WATERMARK_HI:
-		Common::AtomicStore(fifo.CPLoWatermark, (u32)_Value << 16 | m_tempLWM);
+		WriteHigh((u32 &)fifo.CPLoWatermark, _Value);
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_LO_WATERMARK_HI : %04x", _Value);
 		break;
 
-	case FIFO_BP_LO:			
-		m_tempBP = (u32)_Value;
+	case FIFO_BP_LO:
+		WriteLow ((u32 &)fifo.CPBreakpoint,     _Value);
 		DEBUG_LOG(COMMANDPROCESSOR,"write to FIFO_BP_LO : %04x", _Value);
 		break;
-	case FIFO_BP_HI:			
-		Common::AtomicStore(fifo.CPBreakpoint, (u32)_Value << 16 | m_tempBP);
+	case FIFO_BP_HI:
+		WriteHigh((u32 &)fifo.CPBreakpoint,     _Value);
 		DEBUG_LOG(COMMANDPROCESSOR,"write to FIFO_BP_HI : %04x", _Value);
 		break;
 
