@@ -276,26 +276,57 @@ HRESULT Create(HWND wnd)
 	xres = client.right - client.left;
 	yres = client.bottom - client.top;
 
-	DXGI_SWAP_CHAIN_DESC sd;
-	ZeroMemory(&sd, sizeof(sd));
-	sd.BufferCount = 1;
-	sd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-	sd.BufferDesc.Width = xres;
-	sd.BufferDesc.Height = yres;
-	sd.BufferDesc.RefreshRate.Numerator = 60;
-	sd.BufferDesc.RefreshRate.Denominator = 1;
-	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	sd.OutputWindow = wnd;
-	sd.SampleDesc.Count = 1;
-	sd.SampleDesc.Quality = 0;
-	sd.Windowed = TRUE;
+	IDXGIFactory* factory;
+	IDXGIAdapter* adapter;
+	IDXGIOutput* output;
+	hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+	if (FAILED(hr)) MessageBox(wnd, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
+
+	hr = factory->EnumAdapters(g_ActiveConfig.iAdapter, &adapter);
+	if (FAILED(hr))
+	{
+		// try using the first one
+		hr = factory->EnumAdapters(0, &adapter);
+		if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate adapter"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
+	}
+
+	// TODO: Make this configurable
+	hr = adapter->EnumOutputs(0, &output);
+	if (FAILED(hr))
+	{
+		// try using the first one
+		hr = adapter->EnumOutputs(0, &output);
+		if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate output"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
+	}
+
+	// this will need to be changed once multisampling gets implemented
+	DXGI_SWAP_CHAIN_DESC swap_chain_desc;
+	memset(&swap_chain_desc, 0, sizeof(swap_chain_desc));
+	swap_chain_desc.BufferCount = 1;
+	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swap_chain_desc.OutputWindow = wnd;
+	swap_chain_desc.SampleDesc.Count = 1;
+	swap_chain_desc.SampleDesc.Quality = 0;
+	swap_chain_desc.Windowed = TRUE;
+
+	DXGI_MODE_DESC mode_desc;
+	memset(&mode_desc, 0, sizeof(mode_desc));
+	mode_desc.Width = xres;
+	mode_desc.Height = yres;
+	mode_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	mode_desc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+	hr = output->FindClosestMatchingMode(&mode_desc, &swap_chain_desc.BufferDesc, NULL);
+	if (FAILED(hr)) MessageBox(wnd, _T("Failed to find a supported video mode"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
+// TODO: Enable these two lines, they're breaking stuff for SOME reason right now
+//	xres = swap_chain_desc.BufferDesc.Width;
+//	yres = swap_chain_desc.BufferDesc.Height;
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	D3D11_CREATE_DEVICE_FLAG device_flags = (D3D11_CREATE_DEVICE_FLAG)(D3D11_CREATE_DEVICE_DEBUG|D3D11_CREATE_DEVICE_SINGLETHREADED);
 #else
 	D3D11_CREATE_DEVICE_FLAG device_flags = D3D11_CREATE_DEVICE_SINGLETHREADED;
 #endif
-	hr = D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, device_flags, NULL, 0, D3D11_SDK_VERSION, &sd, &swapchain, &device, &featlevel, &context);
+	hr = D3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, device_flags, NULL, 0, D3D11_SDK_VERSION, &swap_chain_desc, &swapchain, &device, &featlevel, &context);
 	if (FAILED(hr) || !device || !context || !swapchain)
 	{
 		MessageBox(wnd, _T("Failed to initialize Direct3D."), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
@@ -305,6 +336,9 @@ HRESULT Create(HWND wnd)
 		return E_FAIL;
 	}
 	SetDebugObjectName((ID3D11DeviceChild*)context, "device context");
+	factory->Release();
+	output->Release();
+	adapter->Release();
 
 	ID3D11Texture2D* buf;
 	hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);

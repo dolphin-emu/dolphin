@@ -15,6 +15,7 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <vector>
 #include <windowsx.h>
 
 #include "resource.h"
@@ -22,10 +23,9 @@
 #include "FileUtil.h"
 
 #include "D3DBase.h"
-
 #include "VideoConfig.h"
-
 #include "TextureCache.h"
+using std::vector;
 
 const char* aspect_ratio_names[4] = {
 	"Auto",
@@ -34,13 +34,54 @@ const char* aspect_ratio_names[4] = {
 	"Stretch to Window",
 };
 
+vector<IDXGIAdapter*> CreateAdapterList()
+{
+	vector<IDXGIAdapter*> adapters;
+	IDXGIFactory* factory;
+	IDXGIAdapter* ad;
+	HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory);
+	if (FAILED(hr)) MessageBox(NULL, _T("Failed to create IDXGIFactory object"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
+
+	while (factory->EnumAdapters(adapters.size(), &ad) != DXGI_ERROR_NOT_FOUND)
+		adapters.push_back(ad);
+
+	if (adapters.size() == 0) MessageBox(NULL, _T("Couldn't find any devices!"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
+	factory->Release();
+	return adapters;
+}
+
+void DestroyAdapterList(vector<IDXGIAdapter*> &adapters)
+{
+	while (!adapters.empty())
+	{
+		adapters.back()->Release();
+		adapters.pop_back();
+	}
+}
+
 struct TabDirect3D : public W32Util::Tab
 {
 	void Init(HWND hDlg)
 	{
 		WCHAR tempwstr[2000];
+		HRESULT hr;
 
-		for (int i = 0; i < 4; i++)
+		vector<IDXGIAdapter*> adapters = CreateAdapterList();
+		for (vector<IDXGIAdapter*>::iterator it = adapters.begin();it != adapters.end();++it)
+		{
+			DXGI_ADAPTER_DESC desc;
+			hr = (*it)->GetDesc(&desc);
+			if (SUCCEEDED(hr)) ComboBox_AddString(GetDlgItem(hDlg, IDC_ADAPTER), desc.Description);
+			else
+			{
+				MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, "Unknown device", -1, tempwstr, 2000);
+				ComboBox_AddString(GetDlgItem(hDlg, IDC_ADAPTER), tempwstr);
+			}
+		}
+		DestroyAdapterList(adapters);
+		ComboBox_SetCurSel(GetDlgItem(hDlg, IDC_ADAPTER), g_Config.iAdapter);
+
+		for (unsigned int i = 0; i < 4; i++)
 		{
 			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, aspect_ratio_names[i], -1, tempwstr, 2000);
 			ComboBox_AddString(GetDlgItem(hDlg, IDC_ASPECTRATIO), tempwstr);
@@ -79,6 +120,9 @@ struct TabDirect3D : public W32Util::Tab
 		{
 		case IDC_ASPECTRATIO:
 			g_Config.iAspectRatio = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_ASPECTRATIO));
+			break;
+		case IDC_ADAPTER:
+			g_Config.iAdapter = ComboBox_GetCurSel(GetDlgItem(hDlg, IDC_ADAPTER));
 			break;
 		case IDC_VSYNC:
 			g_Config.bVSync = Button_GetCheck(GetDlgItem(hDlg, IDC_VSYNC)) ? true : false;
@@ -212,9 +256,9 @@ void DlgSettings_Show(HINSTANCE hInstance, HWND _hParent)
 #ifdef DEBUGFAST
 	sheet.Show(hInstance,_hParent,_T("DX11 Graphics Plugin (DEBUGFAST)"));
 #elif defined _DEBUG
-	sheet.Show(hInstance,_hParent,_T("DX11 Graphics Plugin"));
-#else
 	sheet.Show(hInstance,_hParent,_T("DX11 Graphics Plugin (DEBUG)"));
+#else
+	sheet.Show(hInstance,_hParent,_T("DX11 Graphics Plugin"));
 #endif
 
 	if ((tfoe != g_Config.bTexFmtOverlayEnable) ||

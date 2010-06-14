@@ -46,14 +46,14 @@ void FramebufferManager::Create()
 	HRESULT hr;
 
 	// create framebuffer color texture
-	m_efb.color_tex = D3DTexture2D::Create(target_width, target_height, (D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE), D3D11_USAGE_DEFAULT, DXGI_FORMAT_B8G8R8A8_UNORM);
+	m_efb.color_tex = D3DTexture2D::Create(target_width, target_height, (D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE), D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM);
 	CHECK(m_efb.color_tex != NULL, "create EFB color texture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_tex->GetTex(), "EFB color texture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_tex->GetRTV(), "EFB color texture render target view");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_tex->GetSRV(), "EFB color texture shader resource view");
 
 	// create a staging texture for Renderer::AccessEFB
-	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_B8G8R8A8_UNORM, 1, 1, 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_WRITE|D3D11_CPU_ACCESS_READ);
+	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_WRITE|D3D11_CPU_ACCESS_READ);
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &m_efb.color_staging_buf);
 	CHECK(hr==S_OK, "create EFB color staging buffer");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_staging_buf, "EFB color staging texture (used for Renderer::AccessEFB)");
@@ -221,7 +221,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		if (it->xfbSource.texWidth != target_width || it->xfbSource.texHeight != target_height || !(it->xfbSource.tex))
 		{
 			SAFE_RELEASE(it->xfbSource.tex);
-			it->xfbSource.tex = D3DTexture2D::Create(target_width, target_height, (D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE), D3D11_USAGE_DEFAULT, DXGI_FORMAT_B8G8R8A8_UNORM);
+			it->xfbSource.tex = D3DTexture2D::Create(target_width, target_height, (D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE), D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM);
 			if (it->xfbSource.tex == NULL) PanicAlert("Failed to create XFB texture\n");
 		}
 		xfbTex = it->xfbSource.tex;
@@ -239,7 +239,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 	{
 		VirtualXFB newVirt;
 
-		newVirt.xfbSource.tex = D3DTexture2D::Create(target_width, target_height, (D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE), D3D11_USAGE_DEFAULT, DXGI_FORMAT_B8G8R8A8_UNORM);
+		newVirt.xfbSource.tex = D3DTexture2D::Create(target_width, target_height, (D3D11_BIND_FLAG)(D3D11_BIND_RENDER_TARGET|D3D11_BIND_SHADER_RESOURCE), D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM);
 		if (newVirt.xfbSource.tex == NULL) PanicAlert("Failed to create a new virtual XFB");
 
 		newVirt.xfbAddr = xfbAddr;

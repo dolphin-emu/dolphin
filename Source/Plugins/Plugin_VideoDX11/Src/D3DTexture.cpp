@@ -42,11 +42,12 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 	}
 	else if (usage == D3D11_USAGE_DEFAULT)
 	{
-		if (texbufsize < 4*width*height)
+		if (texbufsize < 4*4*pitch*height)
 		{
+			// TODO: This memory needs to be freed as well..
 			if (texbuf) delete[] texbuf;
-			texbuf = new char[4*width*height];
-			texbufsize = 4*width*height;
+			texbuf = new char[4*4*pitch*height];
+			texbufsize = 4*4*pitch*height;
 		}
 		outptr = (void*)texbuf;
 		destPitch = width * 4;

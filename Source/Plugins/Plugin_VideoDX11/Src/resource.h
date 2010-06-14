@@ -5,7 +5,7 @@
 #define IDD_ABOUT                       102
 #define IDD_SETTINGS                    103
 #define IDD_ADVANCED                    105
-//#define IDC_ADAPTER                     1001
+#define IDC_ADAPTER                     1001
 //#define IDC_ANTIALIASMODE               1002
 //#define IDC_RESOLUTION                  1003
 #define IDC_VSYNC                       1006

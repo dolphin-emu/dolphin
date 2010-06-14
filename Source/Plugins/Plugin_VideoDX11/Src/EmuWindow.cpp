@@ -207,6 +207,7 @@ HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title)
 	// TODO:
 	// 1. Remove redundant window manipulation,
 	// 2. Make DX11 in fullscreen can be overlapped by other dialogs
+	// 3. Request window sizes which actually make the client area map to a common resolution
 	HWND Ret;
 	int x=0, y=0, width=640, height=480;
 	g_VideoInitialize.pRequestWindowSize(x, y, width, height);
