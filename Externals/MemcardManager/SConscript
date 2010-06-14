@@ -2,22 +2,24 @@
 
 Import('env')
 import sys
+
+if not env['HAVE_WX']:
+	Return()
+
 wxenv = env.Clone()
 
 files = [
 	]
 
 libs = [
+	'memcard',
 	'common',
 	]
 
 if wxenv['HAVE_WX']:
 	files += [
-	    'Externals/MemcardManager/src/mcmMain.cpp',
-		'Externals/MemcardManager/src/MCMdebug.cpp',
-		'Source/Core/DolphinWX/Src/MemcardManager.cpp',
-		'Source/Core/DolphinWX/Src/MemoryCards/GCMemcard.cpp',
-		'Source/Core/DolphinWX/Src/WxUtils.cpp',		
+		'src/mcmMain.cpp',
+		'src/MCMdebug.cpp',
 		]
 
 LIBS = libs

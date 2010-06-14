@@ -34,7 +34,7 @@ cppDefines = [
     'GCC_HASCLASSVISIBILITY',
     ]
 
-basedir = os.getcwd()+ '/'
+basedir = os.getcwd() + '/'
 
 include_paths = [
     basedir + 'Source/Core/Common/Src',
@@ -50,12 +50,14 @@ include_paths = [
     basedir + 'Source/Core/InputUICommon/Src',
     basedir + 'Source/Core/AudioCommon/Src',
     basedir + 'Source/Core/DebuggerUICommon/Src',
+    basedir + 'Source/Core/DolphinWX/Src',
     basedir + 'Source/Core/DSPCore/Src',
     ]
 
 dirs = [
     'Externals/Bochs_disasm',
     'Externals/Lua',
+    'Externals/MemcardManager',
     'Externals/WiiUseSrc/Src',
     'Source/Core/Common/Src',
     'Source/Core/Core/Src',
@@ -126,31 +128,24 @@ vars.AddVariables(
     ('CXX', 'The c++ compiler', 'g++'),
     )
 
+env = Environment(
+    CPPPATH = include_paths,
+    RPATH = [],
+    LIBS = [],
+    LIBPATH = [],
+    BUILDERS = builders,
+    variables = vars,
+    )
+
 if sys.platform == 'win32':
-    env = Environment(
-        CPPPATH = include_paths,
-        RPATH = [],
-        LIBS = [],
-        LIBPATH = [],
-        tools = [ 'mingw' ],
-        variables = vars,
-        ENV = os.environ,
-        BUILDERS = builders,
-        )
+    env['tools'] = ['mingw']
+    env['ENV'] = os.environ
 else:
-    env = Environment(
-        CPPPATH = include_paths,
-        RPATH = [],
-        LIBS = [],
-        LIBPATH = [],
-        variables = vars,
-        ENV = {
-            'PATH' : os.environ['PATH'],
-            'HOME' : os.environ['HOME'],
-            'PKG_CONFIG_PATH' : os.environ.get('PKG_CONFIG_PATH')
-        },
-        BUILDERS = builders,
-        )
+    env['ENV'] = {
+        'PATH' : os.environ['PATH'],
+        'HOME' : os.environ['HOME'],
+        'PKG_CONFIG_PATH' : os.environ.get('PKG_CONFIG_PATH')
+    }
 
 # Save the given command line options
 vars.Save('args.cache', env)
@@ -215,7 +210,6 @@ if env['pgo']=='use':
     compileFlags.append('-fprofile-use')
     env['LINKFLAGS']='-fprofile-use'
 
-
 # Configuration tests section
 tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          'CheckPKGConfig' : utils.CheckPKGConfig,
@@ -277,6 +271,21 @@ if not conf.CheckSDL('1.0.0'):
     print "SDL is required"
     Exit(1)
 
+# OS X specifics
+if sys.platform == 'darwin':
+    compileFlags += ['-mmacosx-version-min=10.5']
+    #compileFlags += ['-isysroot', '/Developer/SDKs/MacOSX10.5.sdk']
+    conf.Define('MAP_32BIT', 0)
+    env['CC'] = "gcc-4.2"
+    env['CFLAGS'] = ['-x', 'objective-c']
+    env['CXX'] = "g++-4.2"
+    env['CXXFLAGS'] = ['-x', 'objective-c++']
+    env['CCFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
+    env['LINKFLAGS'] += ['-arch', 'x86_64' , '-arch' , 'i386']
+    env['FRAMEWORKS'] += ['CoreFoundation', 'CoreServices']
+    env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
+    env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
+
 # Bluetooth for wiimote support
 env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
 
@@ -332,26 +341,6 @@ if not env['SHARED_SFML']:
     env['CPPPATH'] += [ basedir + 'Externals/SFML/include' ]
     dirs += ['Externals/SFML/src']
 
-# OS X specifics
-if sys.platform == 'darwin':
-    compileFlags.append('-mmacosx-version-min=10.5')
-    env['HAVE_XRANDR'] = 0
-    env['HAVE_X11'] = 0
-    env['CC'] = "gcc-4.2"
-    env['CFLAGS'] = ['-x', 'objective-c']
-    env['CXX'] = "g++-4.2"
-    env['CXXFLAGS'] = ['-x', 'objective-c++']
-    env['CCFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
-    env['LINKFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
-    conf.Define('MAP_32BIT', 0)
-    env['FRAMEWORKS'] += ['CoreFoundation', 'CoreServices']
-    env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
-    env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
-else:
-    env['HAVE_X11'] = conf.CheckPKG('x11')
-    env['HAVE_XRANDR'] = env['HAVE_X11'] and conf.CheckPKG('xrandr')
-    env['LINKFLAGS'] += ['-pthread']
-
 wxmods = ['aui', 'adv', 'core', 'base']
 if env['wxgl'] or sys.platform == 'win32' or sys.platform == 'darwin':
     env['USE_WX'] = 1
@@ -391,7 +380,12 @@ if not sys.platform == 'win32':
         print "Must have GLEW to build"
         Exit(1)
 
+env['HAVE_X11'] = 0
+env['HAVE_XRANDR'] = 0
 if not sys.platform == 'win32' and not sys.platform == 'darwin':
+    env['HAVE_X11'] = conf.CheckPKG('x11')
+    env['HAVE_XRANDR'] = env['HAVE_X11'] and conf.CheckPKG('xrandr')
+    env['LINKFLAGS'] += ['-pthread']
     if not conf.CheckPKG('GL'):
         print "Must have OpenGL to build"
         Exit(1)

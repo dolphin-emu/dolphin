@@ -16,6 +16,13 @@ libs = [
 	]
 
 if wxenv['HAVE_WX']:
+	memcardfiles = [
+		'MemcardManager.cpp',
+		'MemoryCards/GCMemcard.cpp',
+		'WxUtils.cpp',		
+	]
+
+	files += memcardfiles
 	files += [
 		'AboutDolphin.cpp',
 		'ARCodeAddEdit.cpp',
@@ -30,12 +37,8 @@ if wxenv['HAVE_WX']:
 		'HotkeyDlg.cpp',
 		'ISOFile.cpp',
 		'ISOProperties.cpp',
-		'MemcardManager.cpp',
-		'MemoryCards/GCMemcard.cpp',
 		'PatchAddEdit.cpp',
 		'CheatsWindow.cpp',
-		'stdafx.cpp',
-		'WxUtils.cpp',
 		'MemoryCards/WiiSaveCrypted.cpp',
 		'NetPlay.cpp',
 		'NetPlayClient.cpp',
@@ -52,6 +55,9 @@ else:
 	files+= [
 		'cmdline.c',
 		]
+
+if sys.platform == 'win32':
+	files += [ "stdafx.cpp" ]
 
 if sys.platform == 'darwin':
 	files += [ 'cocoaApp.m', ]
@@ -86,5 +92,6 @@ if wxenv['HAVE_X11']:
 
 if wxenv['HAVE_WX']:
 	wxenv.Program(exeGUI, files + [ 'Main.cpp' ])
+	wxenv.StaticLibrary(env['local_libs'] + 'memcard', memcardfiles)
 else:
 	wxenv.Program(exeNoGUI, files + [ 'MainNoGUI.cpp' ])

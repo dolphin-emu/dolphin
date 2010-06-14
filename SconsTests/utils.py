@@ -32,7 +32,7 @@ def CheckFink(context):
         prefix = prog.rsplit(os.sep, 2)[0]
         context.env.Append(LIBPATH = [prefix + os.sep +'lib'],
                            CPPPATH = [prefix + os.sep +'include'])
-        context.Message( 'Adding fink lib and include path')
+        context.Message( 'Adding fink lib and include path ')
     else:
         ret = 0
         
@@ -47,7 +47,7 @@ def CheckMacports(context):
         prefix = prog.rsplit(os.sep, 2)[0]
         context.env.Append(LIBPATH = [prefix + os.sep + 'lib'],
                            CPPPATH = [prefix + os.sep + 'include'])
-        context.Message( 'Adding port lib and include path')
+        context.Message( 'Adding port lib and include path ')
     else:
         ret = 0
         
