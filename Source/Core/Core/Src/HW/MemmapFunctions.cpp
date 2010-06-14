@@ -783,7 +783,9 @@ u32 TranslateBlockAddress(u32 addr)
 	u32 result = 0;
 	UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
 
-	for (int i=0; i<4; i++) {
+	int bats = Core::g_CoreStartupParameter.bWii?8:4;
+
+	for (int i = 0; i < bats; i++) {
 		u32 bl17 = ~(BATU_BL(PowerPC::ppcState.spr[SPR_DBAT0U + i * 2])<<17);
 		u32 addr2 = addr & (bl17 | 0xf001ffff);
 		u32 batu = (m_MSR.PR ? BATU_Vp : BATU_Vs);
