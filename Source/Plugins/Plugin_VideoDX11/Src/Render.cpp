@@ -509,8 +509,11 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 
 	// XXX: Without the VI, how would we know what kind of field this is? So
 	// just use progressive.
-	Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight);
-	Common::AtomicStoreRelease(s_swapRequested, FALSE);
+	if (!g_ActiveConfig.bUseXFB)
+	{
+		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight);
+		Common::AtomicStoreRelease(s_swapRequested, FALSE);
+	}
 }
 
 bool Renderer::SetScissorRect()
@@ -654,7 +657,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 
 	switch(type) {
 		case PEEK_Z:
-			val = ((float*)map.pData)[6];
+			val = ((float*)map.pData)[0];
 			z = ((u32)(val * 0xffffff));
 			break;
 
@@ -803,7 +806,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
-	if (g_bSkipCurrentFrame || !XFBWrited || !fbWidth || !fbHeight)
+	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.bUseRealXFB) || !fbWidth || !fbHeight)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);		
 		return;

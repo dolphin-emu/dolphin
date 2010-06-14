@@ -530,7 +530,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 				&sourcerect,
 				Renderer::GetFullTargetWidth(),
 				Renderer::GetFullTargetHeight(),
-				PixelShaderCache::GetColorMatrixProgram(), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+				(bFromZBuffer) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram(), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 
 	D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
 	Renderer::RestoreAPIState();
