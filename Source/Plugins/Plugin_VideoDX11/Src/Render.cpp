@@ -252,7 +252,7 @@ void SetupDeviceObjects()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[1], "depth state for Renderer::ClearScreen (depth buffer enabled)");
 
 	// TODO: once multisampling gets implemented, this might need to be changed
-	D3D11_RASTERIZER_DESC rdesc= CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, false, false, false);
+	D3D11_RASTERIZER_DESC rdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, false, false, false);
 	D3D::device->CreateRasterizerState(&rdesc, &clearraststate);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)clearraststate, "rasterizer state for Renderer::ClearScreen");
 
@@ -489,9 +489,7 @@ void CheckForResize()
 		client_height != s_backbuffer_height) && 
 		client_width >= 4 && client_height >= 4)
 	{
-		TeardownDeviceObjects();
-
-		D3D::Reset();		
+		D3D::Reset();
 		s_backbuffer_width = D3D::GetBackBufferWidth();
 		s_backbuffer_height = D3D::GetBackBufferHeight();
 		WindowResized = true;
@@ -936,15 +934,10 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		s_target_height = EFB_HEIGHT * yScale;
 		
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
-		if (WindowResized)
-		{
-			SetupDeviceObjects();
-		}
-		else
-		{
-			FBManager.Destroy();
-			FBManager.Create();
-		}
+
+		FBManager.Destroy();
+		FBManager.Create();
+
 		D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
 	}
 

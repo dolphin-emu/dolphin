@@ -403,6 +403,11 @@ unsigned int GetBackBufferHeight() { return yres; }
 
 void Reset()
 {
+	DXGI_SWAP_CHAIN_DESC desc;
+	D3D::swapchain->ResizeBuffers(1, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+	swapchain->GetDesc(&desc);
+	xres = desc.BufferDesc.Width;
+	yres = desc.BufferDesc.Height;
 	// TODO: Check whether we need to do anything here
 }
 
