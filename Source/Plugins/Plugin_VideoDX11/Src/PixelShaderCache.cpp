@@ -47,43 +47,46 @@ ID3D11PixelShader* s_ClearProgram = NULL;
 
 const char clear_program_code[] = {
 	"void main(\n"
-	"out float4 ocol0 : COLOR0,\n"
-	"in float4 pos : POSITION,\n"
+	"out float4 ocol0 : SV_Target,\n"
+	"in float4 pos : SV_Position,\n"
 	"in float4 incol0 : COLOR0){\n"
 	"ocol0 = incol0;\n"
 	"}\n"
 };
 
 const char color_copy_program_code[] = {
-	"uniform sampler samp0 : register(s0);\n"
+	"sampler samp0 : register(s0);\n"
+	"Texture2D Tex0 : register(t0);\n"
 	"void main(\n"
-	"out float4 ocol0 : COLOR0,\n"
-	"in float4 pos : POSITION,\n"
+	"out float4 ocol0 : SV_Target,\n"
+	"in float4 pos : SV_Position,\n"
 	"in float2 uv0 : TEXCOORD0){\n"
-	"ocol0 = tex2D(samp0,uv0);\n"
+	"ocol0 = Tex0.Sample(samp0,uv0);\n"
 	"}\n"
 };
 
 const char color_matrix_program_code[] = {
-	"uniform sampler samp0 : register(s0);\n"
+	"sampler samp0 : register(s0);\n"
+	"Texture2D Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[5] : register(c0);\n"
 	"void main(\n" 
-	"out float4 ocol0 : COLOR0,\n"
-	"in float4 pos : POSITION,\n"
+	"out float4 ocol0 : SV_Target,\n"
+	"in float4 pos : SV_Position,\n"
 	" in float2 uv0 : TEXCOORD0){\n"
-	"float4 texcol = tex2D(samp0,uv0);\n"
+	"float4 texcol = Tex0.Sample(samp0,uv0);\n"
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
 	"}\n"
 };
 
 const char depth_matrix_program[] = {
-	"uniform sampler samp0 : register(s0);\n"
+	"sampler samp0 : register(s0);\n"
+	"Texture2D Tex0 : register(t0);\n"
 	"uniform float4 cColMatrix[5] : register(c0);\n"
 	"void main(\n"
-	"out float4 ocol0 : COLOR0,\n"
-	" in float4 pos : POSITION,\n"
+	"out float4 ocol0 : SV_Target,\n"
+	" in float4 pos : SV_Position,\n"
 	" in float2 uv0 : TEXCOORD0){\n"
-	"float4 texcol = tex2D(samp0,uv0);\n"
+	"float4 texcol = Tex0.Sample(samp0,uv0);\n"
 	"float4 EncodedDepth = frac((texcol.r * (16777215.0f/16777216.0f)) * float4(1.0f,255.0f,255.0f*255.0f,255.0f*255.0f*255.0f));\n"
 	"texcol = float4((EncodedDepth.rgb * (16777216.0f/16777215.0f)),1.0f);\n"
 	"ocol0 = float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3])) + cColMatrix[4];\n"
@@ -125,23 +128,35 @@ unsigned int ps_constant_offset_table[] = {
 };
 void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
-	D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]  ] = f1;
-	D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+1] = f2;
-	D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+2] = f3;
-	D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+3] = f4;
-	D3D::gfxstate->pscbufchanged = true;
+	if(D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]  ] != f1
+	|| D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+1] != f2
+	|| D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+2] != f3
+	|| D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+3] != f4)
+	{
+		D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]  ] = f1;
+		D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+1] = f2;
+		D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+2] = f3;
+		D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]+3] = f4;
+		D3D::gfxstate->pscbufchanged = true;
+	}
 }
 
 void SetPSConstant4fv(unsigned int const_number, const float* f)
 {
-	memcpy(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4);
-	D3D::gfxstate->pscbufchanged = true;
+	if(memcmp(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4))
+	{
+		memcpy(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4);
+		D3D::gfxstate->pscbufchanged = true;
+	}
 }
 
 void SetMultiPSConstant4fv(unsigned int const_number, unsigned int count, const float* f)
 {
-	memcpy(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4*count);
-	D3D::gfxstate->pscbufchanged = true;
+	if(memcmp(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4*count))
+	{
+		memcpy(&D3D::gfxstate->psconstants[ps_constant_offset_table[const_number]], f, sizeof(float)*4*count);
+		D3D::gfxstate->pscbufchanged = true;
+	}
 }
 
 // this class will load the precompiled shaders into our cache

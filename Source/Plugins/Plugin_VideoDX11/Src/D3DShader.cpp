@@ -90,7 +90,7 @@ bool CompilePixelShader(const char* code, unsigned int len, ID3D10Blob** blob)
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	UINT flags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY|D3D10_SHADER_DEBUG|D3D10_SHADER_WARNINGS_ARE_ERRORS;
 #else
-	UINT flags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY|D3D10_SHADER_OPTIMIZATION_LEVEL3|D3D10_SHADER_SKIP_VALIDATION;
+	UINT flags = D3D10_SHADER_OPTIMIZATION_LEVEL3;
 #endif
  	HRESULT hr = D3DCompile(code, len, NULL, NULL, NULL, "main", D3D::PixelShaderVersionString(),
 							flags, 0, &shaderBuffer, &errorBuffer);

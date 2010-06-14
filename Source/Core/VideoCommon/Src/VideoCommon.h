@@ -144,4 +144,11 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 
 bool IsD3D();
 
+typedef enum
+{
+	API_OPENGL,
+	API_D3D9,
+	API_D3D11
+} API_TYPE;
+
 #endif  // _VIDEOCOMMON_H

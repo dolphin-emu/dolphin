@@ -129,13 +129,6 @@
 
 #endif // WIN32
 
-typedef enum
-{
-	API_OPENGL,
-	API_D3D9,
-	API_D3D11
-} API_TYPE;
-
 // A macro to disallow the copy constructor and operator= functions
 // This should be used in the private: declarations for a class
 #define DISALLOW_COPY_AND_ASSIGN(TypeName) \

@@ -385,10 +385,18 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable,  API_
     // Declare samplers
     if (texture_mask)
 	{
-		if (ApiType != API_OPENGL)
+		if (ApiType == API_D3D11)
+		{
+			WRITE(p, "sampler ");
+		}
+		else if (ApiType == API_D3D9)
+		{
 			WRITE(p, "uniform sampler ");
+		}
 		else
+		{
 			WRITE(p, "uniform samplerRECT ");
+		}
         bool bfirst = true;
 		for (int i = 0; i < 8; ++i)
 		{
@@ -398,19 +406,57 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable,  API_
                 bfirst = false;
             }
 		}
-        WRITE(p, ";\n");
+		WRITE(p, ";\n");
+		if(ApiType == API_D3D11)
+		{
+			bfirst = true;
+			WRITE(p, "Texture2D ");
+			for (int i = 0; i < 8; ++i)
+			{
+				if (texture_mask & (1<<i))
+				{
+					WRITE(p, "%s Tex%d : register(t%d)", bfirst?"":",", i, i);
+					bfirst = false;
+				}
+			}
+			WRITE(p, ";\n");
+		}        
 	}
 
-    if (texture_mask != 0xff) {
-        WRITE(p, "uniform sampler2D ");
-        bool bfirst = true;
-        for (int i = 0; i < 8; ++i) {
+    if (texture_mask != 0xff) 
+	{
+		if(ApiType != API_D3D11)
+		{
+			WRITE(p, "uniform sampler2D ");
+		}
+		else
+		{
+			WRITE(p, "sampler ");
+		}
+        
+		bool bfirst = true;
+        for (int i = 0; i < 8; ++i) 
+		{
             if (!(texture_mask & (1<<i))) {
                 WRITE(p, "%s samp%d : register(s%d)", bfirst?"":",",i, i);
                 bfirst = false;
             }
         }
         WRITE(p, ";\n");
+		if(ApiType == API_D3D11)
+		{
+			WRITE(p, "Texture2D ");
+			bfirst = true;
+			for (int i = 0; i < 8; ++i)
+			{
+				if (!(texture_mask & (1<<i)))
+				{
+					WRITE(p, "%s Tex%d : register(t%d)", bfirst?"":",", i, i);
+					bfirst = false;
+				}
+			}
+			WRITE(p, ";\n");
+		}
     }
 
     WRITE(p, "\n");
@@ -425,9 +471,20 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable,  API_
     WRITE(p, "uniform float4 "I_FOG"[2] : register(c%d);\n", C_FOG);
 
     WRITE(p, "void main(\n");
-    WRITE(p, "  out float4 ocol0 : COLOR0,\n");
-    WRITE(p, "  out float depth : DEPTH,\n");
-    WRITE(p, "  in float4 rawpos : POSITION,\n");
+	if(ApiType != API_D3D11)
+		WRITE(p, "  out float4 ocol0 : COLOR0,\n");
+	else
+		WRITE(p, "  out float4 ocol0 : SV_Target,\n");
+
+	if(ApiType != API_D3D11)
+		WRITE(p, "  out float depth : DEPTH,\n");
+	else
+		WRITE(p, "  out float depth : SV_Depth,\n");
+	if(ApiType != API_D3D11)
+		WRITE(p, "  in float4 rawpos : POSITION,\n");
+	else
+		WRITE(p, "  in float4 rawpos : SV_Position,\n");
+
 	WRITE(p, "  in float4 colors_0 : COLOR0,\n");
 	WRITE(p, "  in float4 colors_1 : COLOR1\n");
 
@@ -449,7 +506,7 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable,  API_
 
     char* pmainstart = p;
 
-    WRITE(p, "  float4 c0="I_COLORS"[1],c1="I_COLORS"[2],c2="I_COLORS"[3],prev=float4(0.0f,0.0f,0.0f,0.0f),textemp,rastemp,konsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n"
+    WRITE(p, "  float4 c0="I_COLORS"[1],c1="I_COLORS"[2],c2="I_COLORS"[3],prev=float4(0.0f,0.0f,0.0f,0.0f),textemp=float4(0.0f,0.0f,0.0f,0.0f),rastemp=float4(0.0f,0.0f,0.0f,0.0f),konsttemp=float4(0.0f,0.0f,0.0f,0.0f);\n"
             "  float3 comp16 = float3(1.0f,255.0f,0.0f), comp24 = float3(1.0f,255.0f,255.0f*255.0f);\n"
             "  float4 alphabump=0;\n"
             "  float3 tevcoord;\n"
@@ -874,21 +931,27 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
              else {
                  WRITE(p, "tempcoord.y = %s.y;\n", texcoords);
              }
-
-			 if (ApiType != API_OPENGL)
+			 if (ApiType == API_D3D11)
+				WRITE(p, "%s= Tex%d.Sample(samp%d,tempcoord.xy).%s;\n", destination, texmap,texmap, texswap);
+			 else if (ApiType == API_D3D9)
 				 WRITE(p, "%s=tex2D(samp%d,tempcoord.xy).%s;\n", destination, texmap, texswap);
 			 else
 				 WRITE(p, "%s=texRECT(samp%d,tempcoord.xy).%s;\n", destination, texmap, texswap);
          }
          else {
-			 if (ApiType != API_OPENGL)
+			 if (ApiType == API_D3D11)
+				 WRITE(p, "%s=Tex%d.Sample(samp%d,%s.xy).%s;\n", destination,texmap,texmap, texcoords, texswap);
+			 else if (ApiType == API_D3D9)
 				 WRITE(p, "%s=tex2D(samp%d,%s.xy).%s;\n", destination, texmap, texcoords, texswap);
 			 else
 				 WRITE(p, "%s=texRECT(samp%d,%s.xy).%s;\n", destination, texmap, texcoords, texswap);
          }
     }
     else {
-        WRITE(p, "%s=tex2D(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
+		if (ApiType == API_D3D11)
+			WRITE(p, "%s=Tex%d.Sample(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap,texmap, texcoords, texmap, texswap);
+		else
+			WRITE(p, "%s=tex2D(samp%d,%s.xy * "I_TEXDIMS"[%d].xy).%s;\n", destination, texmap, texcoords, texmap, texswap);
     }
 }
 

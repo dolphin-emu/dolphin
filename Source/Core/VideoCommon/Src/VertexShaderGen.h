@@ -19,7 +19,7 @@
 #define GCOGL_VERTEXSHADER_H
 
 #include "XFMemory.h"
-#include "Common.h"
+#include "VideoCommon.h"
 
 #define SHADER_POSMTX_ATTRIB 1
 #define SHADER_NORM1_ATTRIB  6

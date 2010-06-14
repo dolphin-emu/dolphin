@@ -18,7 +18,7 @@
 #ifndef GCOGL_PIXELSHADER_H
 #define GCOGL_PIXELSHADER_H
 
-#include "Common.h"
+#include "VideoCommon.h"
 
 #define I_COLORS      "color"
 #define I_KCOLORS     "k"
