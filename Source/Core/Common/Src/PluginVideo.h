@@ -32,7 +32,7 @@ typedef void (__cdecl* TVideo_EnterLoop)();
 typedef void (__cdecl* TVideo_ExitLoop)();
 typedef void (__cdecl* TVideo_SetRendering)(bool bEnabled);
 typedef void (__cdecl* TVideo_AddMessage)(const char* pstr, unsigned int milliseconds);
-typedef u32 (__cdecl* TVideo_AccessEFB)(EFBAccessType, u32, u32);
+typedef u32 (__cdecl* TVideo_AccessEFB)(EFBAccessType, u32, u32, u32);
 typedef void (__cdecl* TVideo_Read16)(u16& _rReturnValue, const u32 _Address);
 typedef void (__cdecl* TVideo_Write16)(const u16 _Data, const u32 _Address);
 typedef void (__cdecl* TVideo_Read32)(u32& _rReturnValue, const u32 _Address);

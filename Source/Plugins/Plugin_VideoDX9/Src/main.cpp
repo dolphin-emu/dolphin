@@ -451,6 +451,7 @@ static struct
 	EFBAccessType type;
 	u32 x;
 	u32 y;
+	u32 Data;
 } s_accessEFBArgs;
 
 static u32 s_AccessEFBResult = 0;
@@ -465,13 +466,14 @@ void VideoFifo_CheckEFBAccess()
 	}
 }
 
-u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
+u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y,u32 InputData)
 {
 	if (s_PluginInitialized)
 	{
 		s_accessEFBArgs.type = type;
 		s_accessEFBArgs.x = x;
 		s_accessEFBArgs.y = y;
+		s_accessEFBArgs.Data = InputData;
 
 		Common::AtomicStoreRelease(s_efbAccessRequested, TRUE);
 

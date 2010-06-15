@@ -420,7 +420,7 @@ ID3D11Buffer* clearvb = NULL;
 
 typedef struct { float x,y,z,u,v; } STQVertex;
 typedef struct { float x,y,z,u,v; } STSQVertex;
-typedef struct { float x,y,z; float col[4];} ClearVertex;
+typedef struct { float x,y,z; u32 col;} ClearVertex;
 
 void InitUtils()
 {
@@ -575,16 +575,11 @@ void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexS
 
 	if (lastcol != Color || lastz != z)
 	{
-		float col[4];
-		col[0] = (float)((Color &       0xFF) << 24);
-		col[1] = (float)((Color &     0xFF00) <<  8);
-		col[2] = (float)((Color &   0xFF0000) >>  8);
-		col[3] = (float)((Color & 0xFF000000) >> 24);
 		ClearVertex coords[4] = {
-			{-1.0f,  1.0f, z, {col[0],col[1],col[2],col[3]}},
-			{ 1.0f,  1.0f, z, {col[0],col[1],col[2],col[3]}},
-			{-1.0f, -1.0f, z, {col[0],col[1],col[2],col[3]}},
-			{ 1.0f, -1.0f, z, {col[0],col[1],col[2],col[3]}},
+			{-1.0f,  1.0f, z, Color},
+			{ 1.0f,  1.0f, z, Color},
+			{-1.0f, -1.0f, z, Color},
+			{ 1.0f, -1.0f, z, Color},
 		};
 
 		D3D11_MAPPED_SUBRESOURCE map;

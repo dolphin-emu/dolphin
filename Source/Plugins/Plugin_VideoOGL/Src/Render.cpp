@@ -768,7 +768,7 @@ bool Renderer::SetScissorRect()
 
 	
 	// Check that the coordinates are good
-	if (rc_right >= rc_left && rc_bottom >= rc_top)
+	if (rc_right != rc_left && rc_bottom != rc_top)
 	{
 		glScissor(
 			(int)(rc_left * EFBxScale), // x = 0 for example

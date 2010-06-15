@@ -892,17 +892,17 @@ void UpdateViewport()
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {	
 	// Update the view port for clearing the picture
-
+	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
 	D3DVIEWPORT9 vp;
-	vp.X = 0;
-	vp.Y = 0;	
-	vp.Width  = Renderer::GetFullTargetWidth();
-	vp.Height = Renderer::GetFullTargetHeight();
+	vp.X = targetRc.left;
+	vp.Y = targetRc.top;	
+	vp.Width  = targetRc.GetWidth();
+	vp.Height = targetRc.GetHeight();
 	vp.MinZ = 0.0;
 	vp.MaxZ = 1.0;
 	D3D::dev->SetViewport(&vp);	
 
-	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
+	
 
 	// Always set the scissor in case it was set by the game and has not been reset
 	RECT sirc;
@@ -927,35 +927,42 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	// 2 - reverse subtract enable (else add)
 	// 3-5 - srcRGB function
 	// 6-8 - dstRGB function
+	#define BLEND_ENABLE_MASK 1
+	#define BLENDOP_SHIFT 2
+	#define BLENDOP_MASK 4
+	#define SRCFACTOR_SHIFT 3
+	#define DESTFACTOR_SHIFT 6
+	#define FACTOR_MASK 7
+
 	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
 		return;
-	u32 newval = bpmem.blendmode.subtract << 2;
+	u32 newval = bpmem.blendmode.subtract << BLENDOP_SHIFT;
 
 	if (bpmem.blendmode.subtract) {
-		newval |= 0x0049;   // enable blending src 1 dst 1
+		newval |= BLEND_ENABLE_MASK | (1 << SRCFACTOR_SHIFT) | (1 << DESTFACTOR_SHIFT);
 	} else if (bpmem.blendmode.blendenable) {
-		newval |= 1;    // enable blending
-		newval |= bpmem.blendmode.srcfactor << 3;
-		newval |= bpmem.blendmode.dstfactor << 6;
+		newval |= BLEND_ENABLE_MASK;    // enable blending
+		newval |= bpmem.blendmode.srcfactor << SRCFACTOR_SHIFT;
+		newval |= bpmem.blendmode.dstfactor << DESTFACTOR_SHIFT;
 	}
 	
 	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
 
-	if (changes & 1) {
+	if (changes & BLEND_ENABLE_MASK) {
 		// blend enable change
-		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, (newval & 1));
+		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, (newval & BLEND_ENABLE_MASK));
 		
 	}
 
-	if (changes & 4) {
+	if (changes & BLENDOP_MASK) {
 		// subtract enable change
-		D3D::SetRenderState(D3DRS_BLENDOP, newval & 4 ? D3DBLENDOP_REVSUBTRACT : D3DBLENDOP_ADD);
+		D3D::SetRenderState(D3DRS_BLENDOP, newval & BLENDOP_MASK ? D3DBLENDOP_REVSUBTRACT : D3DBLENDOP_ADD);
 	}
 
 	if (changes & 0x1F8) {
 		// blend RGB change
-		D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[(newval >> 3) & 7]);
-		D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[(newval >> 6) & 7]);
+		D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[(newval >> SRCFACTOR_SHIFT) & FACTOR_MASK]);
+		D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[(newval >> DESTFACTOR_SHIFT) & FACTOR_MASK]);
 	}
 
 	s_blendMode = newval;

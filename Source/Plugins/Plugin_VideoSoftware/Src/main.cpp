@@ -120,7 +120,7 @@ void Video_EndField()
 {
 }
 
-u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y)
+u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 {
 	u32 value = 0;
 

@@ -240,19 +240,20 @@ void SetupDeviceObjects()
 
 	D3D11_DEPTH_STENCIL_DESC ddesc;
 	ddesc.DepthEnable      = FALSE;
-	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ALL;
+	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ZERO;
 	ddesc.DepthFunc        = D3D11_COMPARISON_ALWAYS;
 	ddesc.StencilEnable    = FALSE;
 	ddesc.StencilReadMask  = D3D11_DEFAULT_STENCIL_READ_MASK;
 	ddesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
 	D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[0]);
+	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ALL;
 	ddesc.DepthEnable      = TRUE;
 	D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[1]);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[0], "depth state for Renderer::ClearScreen (depth buffer disabled)");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[1], "depth state for Renderer::ClearScreen (depth buffer enabled)");
 
 	// TODO: once multisampling gets implemented, this might need to be changed
-	D3D11_RASTERIZER_DESC rdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, false, false, false);
+	D3D11_RASTERIZER_DESC rdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, true, false, false);
 	D3D::device->CreateRasterizerState(&rdesc, &clearraststate);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)clearraststate, "rasterizer state for Renderer::ClearScreen");
 
@@ -739,15 +740,15 @@ void UpdateViewport()
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {	
-	// update the view port for clearing the picture
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)Renderer::GetFullTargetWidth(), (float)Renderer::GetFullTargetHeight());
-	D3D::context->RSSetViewports(1, &vp);
-
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
-
+	// update the view port for clearing the picture
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top, (float)targetRc.GetWidth(), (float)targetRc.GetHeight(),
+										0.f,    
+										1.f); 
+	D3D::context->RSSetViewports(1, &vp);
 	// always set the scissor in case it was set by the game and has not been reset
 	// TODO: Do we really need to set the scissor rect? Why not just disable scissor testing?
-	D3D11_RECT sirc = CD3D11_RECT(targetRc.left, targetRc.top, targetRc.right, targetRc.bottom);
+	D3D11_RECT sirc = CD3D11_RECT(targetRc.left, targetRc.top, targetRc.right, targetRc.bottom);	
 	D3D::context->RSSetScissorRects(1, &sirc);
 	D3D::context->OMSetDepthStencilState(cleardepthstates[zEnable], 0);
 	D3D::context->RSSetState(clearraststate);
@@ -984,6 +985,7 @@ void Renderer::RestoreAPIState()
 	if (bpmem.zmode.updateenable) D3D::gfxstate->depthdesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	SetColorMask();
 	SetLogicOpMode();
+	D3D::gfxstate->ApplyState();
 }
 
 void Renderer::SetGenerationMode()
