@@ -40,17 +40,24 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 		outptr = map.pData;
 		destPitch = map.RowPitch;
 	}
-	else if (usage == D3D11_USAGE_DEFAULT)
+	else if (usage == D3D11_USAGE_DEFAULT && pcfmt != PC_TEX_FMT_BGRA32)
 	{
-		if (texbufsize < 4*4*pitch*height)
+		if (texbufsize < 4*width*height)
 		{
 			// TODO: This memory needs to be freed as well..
 			if (texbuf) delete[] texbuf;
-			texbuf = new char[4*4*pitch*height];
-			texbufsize = 4*4*pitch*height;
+			texbuf = new char[4*width*height];
+			texbufsize = 4*width*height;
 		}
 		outptr = (void*)texbuf;
 		destPitch = width * 4;
+	}
+	else if (usage == D3D11_USAGE_DEFAULT && pcfmt == PC_TEX_FMT_BGRA32)
+	{
+		// BGRA32 textures can be uploaded directly to VRAM in this case
+		D3D11_BOX dest_region = CD3D11_BOX(0, 0, 0, width, height, 1);
+		D3D::context->UpdateSubresource(pTexture, level, &dest_region, buffer, 4*pitch, 4*pitch*height);
+		return;
 	}
 	else
 	{
@@ -97,8 +104,6 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 			
 			break;
 		case PC_TEX_FMT_BGRA32:
-			// BGRA32 textures can be uploaded directly to VRAM when using DEFAULT textures
-			if (usage == D3D11_USAGE_DEFAULT) break;
 			for (unsigned int y = 0; y < height; y++)
 			{
 				u32* in = (u32*)buffer + y * pitch;
@@ -142,10 +147,7 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 	else if (usage == D3D11_USAGE_DEFAULT)
 	{
 		D3D11_BOX dest_region = CD3D11_BOX(0, 0, 0, width, height, 1);
-		if (pcfmt == PC_TEX_FMT_BGRA32)
-			D3D::context->UpdateSubresource(pTexture, level, &dest_region, buffer, 4*pitch, 4*(4*pitch)*height);
-		else
-			D3D::context->UpdateSubresource(pTexture, level, &dest_region, outptr, destPitch, 4*width*height);
+		D3D::context->UpdateSubresource(pTexture, level, &dest_region, outptr, destPitch, 4*width*height);
 	}
 }
 

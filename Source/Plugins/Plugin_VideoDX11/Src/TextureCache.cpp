@@ -172,7 +172,7 @@ void TextureCache::Cleanup()
 	}
 }
 
-// TODO: Verify that this actually returns the value needed below
+// returns the exponent of the smallest power of two which is greater than val
 unsigned int GetPow2(unsigned int val)
 {
 	unsigned int ret = 0;
@@ -250,7 +250,7 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 	entry.isRenderTarget = false;
 	bool isPow2 = !((width & (width - 1)) || (height & (height - 1)));
 	entry.isNonPow2 = false;
-	unsigned int TexLevels = (isPow2 && UseNativeMips && maxlevel) ? (GetPow2(max(width, height)) + 1) : ((isPow2)? 0 : 1);
+	unsigned int TexLevels = (isPow2 && UseNativeMips && maxlevel) ? GetPow2(max(width, height)) : ((isPow2)? 0 : 1);
 	if (TexLevels > (maxlevel + 1) && maxlevel)
 		TexLevels = maxlevel + 1;
 	entry.MipLevels = maxlevel;
