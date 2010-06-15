@@ -444,7 +444,8 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case AR_DMA_MMADDR_L:
-		g_arDMA.MMAddr = (g_arDMA.MMAddr & 0xFFFF0000) | (_Value);
+		// Align MMAddr to the 32 byte boundary. Verified on real HW
+		g_arDMA.MMAddr = ((g_arDMA.MMAddr & 0xFFFF0000) | (_Value)) & ~31;
 		break;
 
 	case AR_DMA_ARADDR_H:
@@ -452,7 +453,8 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case AR_DMA_ARADDR_L:
-		g_arDMA.ARAddr = (g_arDMA.ARAddr & 0xFFFF0000) | (_Value);
+		// Align ARAddr to the 32 byte boundary. Verified on real HW
+		g_arDMA.ARAddr = ((g_arDMA.ARAddr & 0xFFFF0000) | (_Value)) & ~31;
 		break;
 
 	case AR_DMA_CNT_H:
@@ -460,7 +462,8 @@ void Write16(const u16 _Value, const u32 _Address)
 		break;
 
 	case AR_DMA_CNT_L:
-		g_arDMA.Cnt.Hex = ((g_arDMA.Cnt.Hex & 0xFFFF0000) | (_Value) + 3) & ~3;
+		// Align count to the 32 byte boundary. Verified on real HW
+		g_arDMA.Cnt.Hex = ((g_arDMA.Cnt.Hex & 0xFFFF0000) | (_Value)) & ~31;
 		Do_ARAM_DMA();
 		break;
 
@@ -615,9 +618,6 @@ void UpdateAudioDMA()
 
 void Do_ARAM_DMA()
 {
-	// Align ARAddr to the 32 byte boundary. TODO: Verify alignment on the real hw
-	g_arDMA.ARAddr = g_arDMA.ARAddr & ~31;
-
 	// Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
 	if (g_arDMA.Cnt.dir)
 	{
