@@ -1,0 +1,7 @@
+WGL_EXT_display_color_table
+http://www.opengl.org/registry/specs/EXT/wgl_display_color_table.txt
+WGL_EXT_display_color_table
+	GLboolean wglBindDisplayColorTableEXT (GLushort id)
+	GLboolean wglCreateDisplayColorTableEXT (GLushort id)
+	void wglDestroyDisplayColorTableEXT (GLushort id)
+	GLboolean wglLoadDisplayColorTableEXT (GLushort* table, GLuint length)

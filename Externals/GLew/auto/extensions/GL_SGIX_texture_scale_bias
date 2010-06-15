@@ -1,0 +1,7 @@
+GL_SGIX_texture_scale_bias
+http://www.opengl.org/registry/specs/SGIX/texture_scale_bias.txt
+GL_SGIX_texture_scale_bias
+	GL_POST_TEXTURE_FILTER_BIAS_SGIX 0x8179
+	GL_POST_TEXTURE_FILTER_SCALE_SGIX 0x817A
+	GL_POST_TEXTURE_FILTER_BIAS_RANGE_SGIX 0x817B
+	GL_POST_TEXTURE_FILTER_SCALE_RANGE_SGIX 0x817C

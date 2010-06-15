@@ -1,0 +1,7 @@
+GL_SGIX_fog_texture
+http://www.opengl.org/registry/specs/SGIX/fog_texture.txt
+GL_SGIX_fog_texture
+	GL_TEXTURE_FOG_SGIX 0
+	GL_FOG_PATCHY_FACTOR_SGIX 0
+	GL_FRAGMENT_FOG_SGIX 0
+	void glTextureFogSGIX (GLenum pname)

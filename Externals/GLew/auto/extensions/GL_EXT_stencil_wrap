@@ -1,0 +1,5 @@
+GL_EXT_stencil_wrap
+http://www.opengl.org/registry/specs/EXT/stencil_wrap.txt
+GL_EXT_stencil_wrap
+	GL_INCR_WRAP_EXT 0x8507
+	GL_DECR_WRAP_EXT 0x8508

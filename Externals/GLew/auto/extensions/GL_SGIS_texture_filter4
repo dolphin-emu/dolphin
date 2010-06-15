@@ -1,0 +1,5 @@
+GL_SGIS_texture_filter4
+http://www.opengl.org/registry/specs/SGIS/texture_filter4.txt
+GL_SGIS_texture_filter4
+	void glGetTexFilterFuncSGIS (GLenum target, GLenum filter, GLfloat* weights)
+	void glTexFilterFuncSGIS (GLenum target, GLenum filter, GLsizei n, const GLfloat* weights)

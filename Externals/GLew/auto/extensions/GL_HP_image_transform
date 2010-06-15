@@ -1,0 +1,9 @@
+GL_HP_image_transform
+http://www.opengl.org/registry/specs/HP/image_transform.txt
+GL_HP_image_transform
+	void glGetImageTransformParameterfvHP (GLenum target, GLenum pname, const GLfloat* params)
+	void glGetImageTransformParameterivHP (GLenum target, GLenum pname, const GLint* params)
+	void glImageTransformParameterfHP (GLenum target, GLenum pname, const GLfloat param)
+	void glImageTransformParameterfvHP (GLenum target, GLenum pname, const GLfloat* params)
+	void glImageTransformParameteriHP (GLenum target, GLenum pname, const GLint param)
+	void glImageTransformParameterivHP (GLenum target, GLenum pname, const GLint* params)

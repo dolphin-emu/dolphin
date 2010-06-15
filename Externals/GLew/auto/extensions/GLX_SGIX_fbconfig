@@ -1,0 +1,22 @@
+GLX_SGIX_fbconfig
+http://www.opengl.org/registry/specs/SGIX/fbconfig.txt
+GLX_SGIX_fbconfig
+	GLX_WINDOW_BIT_SGIX 0x00000001
+	GLX_RGBA_BIT_SGIX 0x00000001
+	GLX_PIXMAP_BIT_SGIX 0x00000002
+	GLX_COLOR_INDEX_BIT_SGIX 0x00000002
+	GLX_SCREEN_EXT 0x800C
+	GLX_DRAWABLE_TYPE_SGIX 0x8010
+	GLX_RENDER_TYPE_SGIX 0x8011
+	GLX_X_RENDERABLE_SGIX 0x8012
+	GLX_FBCONFIG_ID_SGIX 0x8013
+	GLX_RGBA_TYPE_SGIX 0x8014
+	GLX_COLOR_INDEX_TYPE_SGIX 0x8015
+	GLXFBConfigSGIX* glXChooseFBConfigSGIX (Display *dpy, int screen, const int *attrib_list, int *nelements)
+	GLXContext glXCreateContextWithConfigSGIX (Display* dpy, GLXFBConfig config, int render_type, GLXContext share_list, Bool direct)
+	GLXPixmap glXCreateGLXPixmapWithConfigSGIX (Display* dpy, GLXFBConfig config, Pixmap pixmap)
+	int glXGetFBConfigAttribSGIX (Display* dpy, GLXFBConfigSGIX config, int attribute, int *value)
+	GLXFBConfigSGIX glXGetFBConfigFromVisualSGIX (Display* dpy, XVisualInfo *vis)
+	XVisualInfo* glXGetVisualFromFBConfigSGIX (Display *dpy, GLXFBConfig config)
+	typedef XID GLXFBConfigIDSGIX
+	typedef struct __GLXFBConfigRec *GLXFBConfigSGIX

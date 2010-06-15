@@ -1,0 +1,5 @@
+GL_OES_read_format
+http://www.opengl.org/registry/specs/OES/OES_read_format.txt
+GL_OES_read_format
+	GL_IMPLEMENTATION_COLOR_READ_TYPE_OES 0x8B9A
+	GL_IMPLEMENTATION_COLOR_READ_FORMAT_OES 0x8B9B

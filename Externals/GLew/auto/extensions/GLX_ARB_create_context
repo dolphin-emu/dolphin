@@ -1,0 +1,9 @@
+GLX_ARB_create_context
+http://www.opengl.org/registry/specs/ARB/glx_create_context.txt
+GLX_ARB_create_context
+	GLX_CONTEXT_DEBUG_BIT_ARB 0x0001
+	GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB 0x0002
+	GLX_CONTEXT_MAJOR_VERSION_ARB 0x2091
+	GLX_CONTEXT_MINOR_VERSION_ARB 0x2092
+	GLX_CONTEXT_FLAGS_ARB 0x2094
+	GLXContext glXCreateContextAttribsARB (Display* dpy, GLXFBConfig config, GLXContext share_context, Bool direct, const int *attrib_list)

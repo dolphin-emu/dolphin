@@ -1,0 +1,25 @@
+GL_ARB_sync
+http://www.opengl.org/registry/specs/ARB/sync.txt
+GL_ARB_sync
+	GL_SYNC_FLUSH_COMMANDS_BIT 0x00000001
+	GL_MAX_SERVER_WAIT_TIMEOUT 0x9111
+	GL_OBJECT_TYPE 0x9112
+	GL_SYNC_CONDITION 0x9113
+	GL_SYNC_STATUS 0x9114
+	GL_SYNC_FLAGS 0x9115
+	GL_SYNC_FENCE 0x9116
+	GL_SYNC_GPU_COMMANDS_COMPLETE 0x9117
+	GL_UNSIGNALED 0x9118
+	GL_SIGNALED 0x9119
+	GL_ALREADY_SIGNALED 0x911A
+	GL_TIMEOUT_EXPIRED 0x911B
+	GL_CONDITION_SATISFIED 0x911C
+	GL_WAIT_FAILED 0x911D
+	GL_TIMEOUT_IGNORED 0xFFFFFFFFFFFFFFFF
+	GLenum glClientWaitSync (GLsync GLsync,GLbitfield flags,GLuint64 timeout)
+	void glDeleteSync (GLsync GLsync)
+	GLsync glFenceSync (GLenum condition,GLbitfield flags)
+	void glGetInteger64v (GLenum pname, GLint64* params)
+	void glGetSynciv (GLsync GLsync,GLenum pname,GLsizei bufSize,GLsizei* length, GLint *values)
+	GLboolean glIsSync (GLsync GLsync)
+	void glWaitSync (GLsync GLsync,GLbitfield flags,GLuint64 timeout)

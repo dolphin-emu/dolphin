@@ -1,0 +1,78 @@
+GL_ARB_shader_objects
+http://www.opengl.org/registry/specs/ARB/shader_objects.txt
+GL_ARB_shader_objects
+	GL_PROGRAM_OBJECT_ARB 0x8B40
+	GL_SHADER_OBJECT_ARB 0x8B48
+	GL_OBJECT_TYPE_ARB 0x8B4E
+	GL_OBJECT_SUBTYPE_ARB 0x8B4F
+	GL_FLOAT_VEC2_ARB 0x8B50
+	GL_FLOAT_VEC3_ARB 0x8B51
+	GL_FLOAT_VEC4_ARB 0x8B52
+	GL_INT_VEC2_ARB 0x8B53
+	GL_INT_VEC3_ARB 0x8B54
+	GL_INT_VEC4_ARB 0x8B55
+	GL_BOOL_ARB 0x8B56
+	GL_BOOL_VEC2_ARB 0x8B57
+	GL_BOOL_VEC3_ARB 0x8B58
+	GL_BOOL_VEC4_ARB 0x8B59
+	GL_FLOAT_MAT2_ARB 0x8B5A
+	GL_FLOAT_MAT3_ARB 0x8B5B
+	GL_FLOAT_MAT4_ARB 0x8B5C
+	GL_SAMPLER_1D_ARB 0x8B5D
+	GL_SAMPLER_2D_ARB 0x8B5E
+	GL_SAMPLER_3D_ARB 0x8B5F
+	GL_SAMPLER_CUBE_ARB 0x8B60
+	GL_SAMPLER_1D_SHADOW_ARB 0x8B61
+	GL_SAMPLER_2D_SHADOW_ARB 0x8B62
+	GL_SAMPLER_2D_RECT_ARB 0x8B63
+	GL_SAMPLER_2D_RECT_SHADOW_ARB 0x8B64
+	GL_OBJECT_DELETE_STATUS_ARB 0x8B80
+	GL_OBJECT_COMPILE_STATUS_ARB 0x8B81
+	GL_OBJECT_LINK_STATUS_ARB 0x8B82
+	GL_OBJECT_VALIDATE_STATUS_ARB 0x8B83
+	GL_OBJECT_INFO_LOG_LENGTH_ARB 0x8B84
+	GL_OBJECT_ATTACHED_OBJECTS_ARB 0x8B85
+	GL_OBJECT_ACTIVE_UNIFORMS_ARB 0x8B86
+	GL_OBJECT_ACTIVE_UNIFORM_MAX_LENGTH_ARB 0x8B87
+	GL_OBJECT_SHADER_SOURCE_LENGTH_ARB 0x8B88
+	void glAttachObjectARB (GLhandleARB containerObj, GLhandleARB obj)
+	void glCompileShaderARB (GLhandleARB shaderObj)
+	GLhandleARB glCreateProgramObjectARB (void)
+	GLhandleARB glCreateShaderObjectARB (GLenum shaderType)
+	void glDeleteObjectARB (GLhandleARB obj)
+	void glDetachObjectARB (GLhandleARB containerObj, GLhandleARB attachedObj)
+	void glGetActiveUniformARB (GLhandleARB programObj, GLuint index, GLsizei maxLength, GLsizei* length, GLint *size, GLenum *type, GLcharARB *name)
+	void glGetAttachedObjectsARB (GLhandleARB containerObj, GLsizei maxCount, GLsizei* count, GLhandleARB *obj)
+	GLhandleARB glGetHandleARB (GLenum pname)
+	void glGetInfoLogARB (GLhandleARB obj, GLsizei maxLength, GLsizei* length, GLcharARB *infoLog)
+	void glGetObjectParameterfvARB (GLhandleARB obj, GLenum pname, GLfloat* params)
+	void glGetObjectParameterivARB (GLhandleARB obj, GLenum pname, GLint* params)
+	void glGetShaderSourceARB (GLhandleARB obj, GLsizei maxLength, GLsizei* length, GLcharARB *source)
+	GLint glGetUniformLocationARB (GLhandleARB programObj, const GLcharARB* name)
+	void glGetUniformfvARB (GLhandleARB programObj, GLint location, GLfloat* params)
+	void glGetUniformivARB (GLhandleARB programObj, GLint location, GLint* params)
+	void glLinkProgramARB (GLhandleARB programObj)
+	void glShaderSourceARB (GLhandleARB shaderObj, GLsizei count, const GLcharARB ** string, const GLint *length)
+	void glUniform1fARB (GLint location, GLfloat v0)
+	void glUniform1fvARB (GLint location, GLsizei count, const GLfloat* value)
+	void glUniform1iARB (GLint location, GLint v0)
+	void glUniform1ivARB (GLint location, GLsizei count, const GLint* value)
+	void glUniform2fARB (GLint location, GLfloat v0, GLfloat v1)
+	void glUniform2fvARB (GLint location, GLsizei count, const GLfloat* value)
+	void glUniform2iARB (GLint location, GLint v0, GLint v1)
+	void glUniform2ivARB (GLint location, GLsizei count, const GLint* value)
+	void glUniform3fARB (GLint location, GLfloat v0, GLfloat v1, GLfloat v2)
+	void glUniform3fvARB (GLint location, GLsizei count, const GLfloat* value)
+	void glUniform3iARB (GLint location, GLint v0, GLint v1, GLint v2)
+	void glUniform3ivARB (GLint location, GLsizei count, const GLint* value)
+	void glUniform4fARB (GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
+	void glUniform4fvARB (GLint location, GLsizei count, const GLfloat* value)
+	void glUniform4iARB (GLint location, GLint v0, GLint v1, GLint v2, GLint v3)
+	void glUniform4ivARB (GLint location, GLsizei count, const GLint* value)
+	void glUniformMatrix2fvARB (GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
+	void glUniformMatrix3fvARB (GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
+	void glUniformMatrix4fvARB (GLint location, GLsizei count, GLboolean transpose, const GLfloat* value)
+	void glUseProgramObjectARB (GLhandleARB programObj)
+	void glValidateProgramARB (GLhandleARB programObj)
+	typedef char GLcharARB
+	typedef unsigned int GLhandleARB

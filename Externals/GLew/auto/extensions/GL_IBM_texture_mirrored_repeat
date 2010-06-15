@@ -1,0 +1,4 @@
+GL_IBM_texture_mirrored_repeat
+http://www.opengl.org/registry/specs/IBM/texture_mirrored_repeat.txt
+GL_IBM_texture_mirrored_repeat
+	GL_MIRRORED_REPEAT_IBM 0x8370

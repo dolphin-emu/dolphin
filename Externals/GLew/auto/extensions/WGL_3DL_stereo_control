@@ -1,0 +1,8 @@
+WGL_3DL_stereo_control
+http://www.opengl.org/registry/specs/3DL/stereo_control.txt
+WGL_3DL_stereo_control
+	WGL_STEREO_EMITTER_ENABLE_3DL 0x2055
+	WGL_STEREO_EMITTER_DISABLE_3DL 0x2056
+	WGL_STEREO_POLARITY_NORMAL_3DL 0x2057
+	WGL_STEREO_POLARITY_INVERT_3DL 0x2058
+	BOOL wglSetStereoEmitterState3DL (HDC hDC, UINT uState)

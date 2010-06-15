@@ -1,0 +1,5 @@
+GL_EXT_texture_compression_dxt1
+http://www.opengl.org/registry/specs/EXT/texture_compression_dxt1.txt
+GL_EXT_texture_compression_dxt1
+	GL_COMPRESSED_RGB_S3TC_DXT1_EXT 0x83F0
+	GL_COMPRESSED_RGBA_S3TC_DXT1_EXT 0x83F1

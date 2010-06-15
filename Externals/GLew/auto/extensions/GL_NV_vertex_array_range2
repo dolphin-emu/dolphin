@@ -1,0 +1,4 @@
+GL_NV_vertex_array_range2
+http://www.opengl.org/registry/specs/NV/vertex_array_range2.txt
+GL_NV_vertex_array_range2
+	GL_VERTEX_ARRAY_RANGE_WITHOUT_FLUSH_NV 0x8533

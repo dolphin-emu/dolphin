@@ -1,0 +1,4 @@
+GL_ARB_depth_clamp
+http://www.opengl.org/registry/specs/ARB/depth_clamp.txt
+GL_ARB_depth_clamp
+	GL_DEPTH_CLAMP 0x864F

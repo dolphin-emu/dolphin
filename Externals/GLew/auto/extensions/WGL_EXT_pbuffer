@@ -1,0 +1,18 @@
+WGL_EXT_pbuffer
+http://www.opengl.org/registry/specs/EXT/wgl_pbuffer.txt
+WGL_EXT_pbuffer
+	WGL_DRAW_TO_PBUFFER_EXT 0x202D
+	WGL_MAX_PBUFFER_PIXELS_EXT 0x202E
+	WGL_MAX_PBUFFER_WIDTH_EXT 0x202F
+	WGL_MAX_PBUFFER_HEIGHT_EXT 0x2030
+	WGL_OPTIMAL_PBUFFER_WIDTH_EXT 0x2031
+	WGL_OPTIMAL_PBUFFER_HEIGHT_EXT 0x2032
+	WGL_PBUFFER_LARGEST_EXT 0x2033
+	WGL_PBUFFER_WIDTH_EXT 0x2034
+	WGL_PBUFFER_HEIGHT_EXT 0x2035
+	HPBUFFEREXT wglCreatePbufferEXT (HDC hDC, int iPixelFormat, int iWidth, int iHeight, const int* piAttribList)
+	BOOL wglDestroyPbufferEXT (HPBUFFEREXT hPbuffer)
+	HDC wglGetPbufferDCEXT (HPBUFFEREXT hPbuffer)
+	BOOL wglQueryPbufferEXT (HPBUFFEREXT hPbuffer, int iAttribute, int* piValue)
+	int wglReleasePbufferDCEXT (HPBUFFEREXT hPbuffer, HDC hDC)
+	DECLARE_HANDLE(HPBUFFEREXT);

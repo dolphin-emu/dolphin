@@ -1,0 +1,4 @@
+GL_ARB_framebuffer_sRGB
+http://www.opengl.org/registry/specs/ARB/framebuffer_sRGB.txt
+GL_ARB_framebuffer_sRGB
+	GL_FRAMEBUFFER_SRGB 0x8DB9

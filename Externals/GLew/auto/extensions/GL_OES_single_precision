@@ -1,0 +1,9 @@
+GL_OES_single_precision
+http://www.opengl.org/registry/specs/OES/OES_single_precision.txt
+GL_OES_single_precision
+	void glClearDepthfOES (GLclampd depth)
+	void glClipPlanefOES (GLenum plane, const GLfloat* equation)
+	void glDepthRangefOES (GLclampf n, GLclampf f)
+	void glFrustumfOES (GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f)
+	void glGetClipPlanefOES (GLenum plane, GLfloat* equation)
+	void glOrthofOES (GLfloat l, GLfloat r, GLfloat b, GLfloat t, GLfloat n, GLfloat f)

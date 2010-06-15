@@ -1,0 +1,4 @@
+GL_AMD_seamless_cubemap_per_texture
+http://www.opengl.org/registry/specs/AMD/seamless_cubemap_per_texture.txt
+GL_AMD_seamless_cubemap_per_texture
+	GL_TEXTURE_CUBE_MAP_SEAMLESS_ARB 0x884F

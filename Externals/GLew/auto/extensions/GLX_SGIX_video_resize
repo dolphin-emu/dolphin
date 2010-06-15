@@ -1,0 +1,10 @@
+GLX_SGIX_video_resize
+http://www.opengl.org/registry/specs/SGIX/video_resize.txt
+GLX_SGIX_video_resize
+	GLX_SYNC_FRAME_SGIX 0x00000000
+	GLX_SYNC_SWAP_SGIX 0x00000001
+	int glXBindChannelToWindowSGIX (Display* display, int screen, int channel, Window window)
+	int glXChannelRectSGIX (Display* display, int screen, int channel, int x, int y, int w, int h)
+	int glXChannelRectSyncSGIX (Display* display, int screen, int channel, GLenum synctype)
+	int glXQueryChannelDeltasSGIX (Display* display, int screen, int channel, int *x, int *y, int *w, int *h)
+	int glXQueryChannelRectSGIX (Display* display, int screen, int channel, int *dx, int *dy, int *dw, int *dh)

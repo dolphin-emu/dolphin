@@ -1,0 +1,5 @@
+GL_OML_interlace
+http://www.opengl.org/registry/specs/OML/interlace.txt
+GL_OML_interlace
+	GL_INTERLACE_OML 0x8980
+	GL_INTERLACE_READ_OML 0x8981

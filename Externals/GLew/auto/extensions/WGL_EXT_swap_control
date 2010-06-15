@@ -1,0 +1,5 @@
+WGL_EXT_swap_control
+http://www.opengl.org/registry/specs/EXT/wgl_swap_control.txt
+WGL_EXT_swap_control
+	int wglGetSwapIntervalEXT (void)
+	BOOL wglSwapIntervalEXT (int interval)

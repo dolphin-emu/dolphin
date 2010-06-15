@@ -1,0 +1,8 @@
+GL_APPLE_vertex_array_object
+http://www.opengl.org/registry/specs/APPLE/vertex_array_object.txt
+GL_APPLE_vertex_array_object
+	GL_VERTEX_ARRAY_BINDING_APPLE 0x85B5
+	void glBindVertexArrayAPPLE (GLuint array)
+	void glDeleteVertexArraysAPPLE (GLsizei n, const GLuint* arrays)
+	void glGenVertexArraysAPPLE (GLsizei n, const GLuint* arrays)
+	GLboolean glIsVertexArrayAPPLE (GLuint array)

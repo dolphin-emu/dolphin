@@ -1,0 +1,4 @@
+WGL_ARB_pixel_format_float
+http://www.opengl.org/registry/specs/ARB/color_buffer_float.txt
+WGL_ARB_pixel_format_float
+	WGL_TYPE_RGBA_FLOAT_ARB 0x21A0

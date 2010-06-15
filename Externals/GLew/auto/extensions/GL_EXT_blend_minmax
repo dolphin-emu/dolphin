@@ -1,0 +1,8 @@
+GL_EXT_blend_minmax
+http://www.opengl.org/registry/specs/EXT/blend_minmax.txt
+GL_EXT_blend_minmax
+	GL_FUNC_ADD_EXT 0x8006
+	GL_MIN_EXT 0x8007
+	GL_MAX_EXT 0x8008
+	GL_BLEND_EQUATION_EXT 0x8009
+	void glBlendEquationEXT (GLenum mode)

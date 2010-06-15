@@ -1,0 +1,20 @@
+NAME = $(GLEW_NAME)
+CC = cc
+LD = ld
+ABI = -64# -n32
+CC += $(ABI)
+LD += $(ABI)
+ifneq (undefined, $(origin GLEW_MX))
+CFLAGS.EXTRA = -DGLEW_MX
+endif
+LDFLAGS.SO = -shared -soname $(LIB.SONAME)
+LDFLAGS.EXTRA =
+LDFLAGS.GL = -lGLU -lGL -lXext -lX11
+NAME = GLEW
+WARN = -fullwarn -woff 1110,1498
+POPT = -O2 -OPT:Olimit=0
+BIN.SUFFIX =
+LIB.SONAME = lib$(NAME).so.$(SO_MAJOR)
+LIB.DEVLNK = lib$(NAME).so
+LIB.SHARED = lib$(NAME).so.$(SO_VERSION)
+LIB.STATIC = lib$(NAME).a

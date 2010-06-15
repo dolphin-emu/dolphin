@@ -1,0 +1,9 @@
+GL_ARB_transform_feedback3
+http://www.opengl.org/registry/specs/ARB/transform_feedback3.txt
+GL_ARB_transform_feedback3
+	GL_MAX_TRANSFORM_FEEDBACK_BUFFERS 0x8E70
+	GL_MAX_VERTEX_STREAMS 0x8E71
+	void glBeginQueryIndexed (GLenum target, GLuint index, GLuint id)
+	void glDrawTransformFeedbackStream (GLenum mode, GLuint id, GLuint stream)
+	void glEndQueryIndexed (GLenum target, GLuint index)
+	void glGetQueryIndexediv (GLenum target, GLuint index, GLenum pname, GLint* params)

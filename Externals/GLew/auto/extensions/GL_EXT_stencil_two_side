@@ -1,0 +1,6 @@
+GL_EXT_stencil_two_side
+http://www.opengl.org/registry/specs/EXT/stencil_two_side.txt
+GL_EXT_stencil_two_side
+	GL_STENCIL_TEST_TWO_SIDE_EXT 0x8910
+	GL_ACTIVE_STENCIL_FACE_EXT 0x8911
+	void glActiveStencilFaceEXT (GLenum face)

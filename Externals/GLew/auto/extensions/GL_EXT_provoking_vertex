@@ -1,0 +1,8 @@
+GL_EXT_provoking_vertex
+http://www.opengl.org/registry/specs/EXT/provoking_vertex.txt
+GL_EXT_provoking_vertex
+	GL_QUADS_FOLLOW_PROVOKING_VERTEX_CONVENTION_EXT 0x8E4C
+	GL_FIRST_VERTEX_CONVENTION_EXT 0x8E4D
+	GL_LAST_VERTEX_CONVENTION_EXT 0x8E4E
+	GL_PROVOKING_VERTEX_EXT 0x8E4F
+	void glProvokingVertexEXT (GLenum mode)

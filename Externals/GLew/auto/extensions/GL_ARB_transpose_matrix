@@ -1,0 +1,11 @@
+GL_ARB_transpose_matrix
+http://www.opengl.org/registry/specs/ARB/transpose_matrix.txt
+GL_ARB_transpose_matrix
+	GL_TRANSPOSE_MODELVIEW_MATRIX_ARB 0x84E3
+	GL_TRANSPOSE_PROJECTION_MATRIX_ARB 0x84E4
+	GL_TRANSPOSE_TEXTURE_MATRIX_ARB 0x84E5
+	GL_TRANSPOSE_COLOR_MATRIX_ARB 0x84E6
+	void glLoadTransposeMatrixfARB (GLfloat m[16])
+	void glLoadTransposeMatrixdARB (GLdouble m[16])
+	void glMultTransposeMatrixfARB (GLfloat m[16])
+	void glMultTransposeMatrixdARB (GLdouble m[16])

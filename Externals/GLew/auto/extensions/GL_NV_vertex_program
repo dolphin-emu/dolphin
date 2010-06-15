@@ -1,0 +1,150 @@
+GL_NV_vertex_program
+http://www.opengl.org/registry/specs/NV/vertex_program.txt
+GL_NV_vertex_program
+	GL_VERTEX_PROGRAM_NV 0x8620
+	GL_VERTEX_STATE_PROGRAM_NV 0x8621
+	GL_ATTRIB_ARRAY_SIZE_NV 0x8623
+	GL_ATTRIB_ARRAY_STRIDE_NV 0x8624
+	GL_ATTRIB_ARRAY_TYPE_NV 0x8625
+	GL_CURRENT_ATTRIB_NV 0x8626
+	GL_PROGRAM_LENGTH_NV 0x8627
+	GL_PROGRAM_STRING_NV 0x8628
+	GL_MODELVIEW_PROJECTION_NV 0x8629
+	GL_IDENTITY_NV 0x862A
+	GL_INVERSE_NV 0x862B
+	GL_TRANSPOSE_NV 0x862C
+	GL_INVERSE_TRANSPOSE_NV 0x862D
+	GL_MAX_TRACK_MATRIX_STACK_DEPTH_NV 0x862E
+	GL_MAX_TRACK_MATRICES_NV 0x862F
+	GL_MATRIX0_NV 0x8630
+	GL_MATRIX1_NV 0x8631
+	GL_MATRIX2_NV 0x8632
+	GL_MATRIX3_NV 0x8633
+	GL_MATRIX4_NV 0x8634
+	GL_MATRIX5_NV 0x8635
+	GL_MATRIX6_NV 0x8636
+	GL_MATRIX7_NV 0x8637
+	GL_CURRENT_MATRIX_STACK_DEPTH_NV 0x8640
+	GL_CURRENT_MATRIX_NV 0x8641
+	GL_VERTEX_PROGRAM_POINT_SIZE_NV 0x8642
+	GL_VERTEX_PROGRAM_TWO_SIDE_NV 0x8643
+	GL_PROGRAM_PARAMETER_NV 0x8644
+	GL_ATTRIB_ARRAY_POINTER_NV 0x8645
+	GL_PROGRAM_TARGET_NV 0x8646
+	GL_PROGRAM_RESIDENT_NV 0x8647
+	GL_TRACK_MATRIX_NV 0x8648
+	GL_TRACK_MATRIX_TRANSFORM_NV 0x8649
+	GL_VERTEX_PROGRAM_BINDING_NV 0x864A
+	GL_PROGRAM_ERROR_POSITION_NV 0x864B
+	GL_VERTEX_ATTRIB_ARRAY0_NV 0x8650
+	GL_VERTEX_ATTRIB_ARRAY1_NV 0x8651
+	GL_VERTEX_ATTRIB_ARRAY2_NV 0x8652
+	GL_VERTEX_ATTRIB_ARRAY3_NV 0x8653
+	GL_VERTEX_ATTRIB_ARRAY4_NV 0x8654
+	GL_VERTEX_ATTRIB_ARRAY5_NV 0x8655
+	GL_VERTEX_ATTRIB_ARRAY6_NV 0x8656
+	GL_VERTEX_ATTRIB_ARRAY7_NV 0x8657
+	GL_VERTEX_ATTRIB_ARRAY8_NV 0x8658
+	GL_VERTEX_ATTRIB_ARRAY9_NV 0x8659
+	GL_VERTEX_ATTRIB_ARRAY10_NV 0x865A
+	GL_VERTEX_ATTRIB_ARRAY11_NV 0x865B
+	GL_VERTEX_ATTRIB_ARRAY12_NV 0x865C
+	GL_VERTEX_ATTRIB_ARRAY13_NV 0x865D
+	GL_VERTEX_ATTRIB_ARRAY14_NV 0x865E
+	GL_VERTEX_ATTRIB_ARRAY15_NV 0x865F
+	GL_MAP1_VERTEX_ATTRIB0_4_NV 0x8660
+	GL_MAP1_VERTEX_ATTRIB1_4_NV 0x8661
+	GL_MAP1_VERTEX_ATTRIB2_4_NV 0x8662
+	GL_MAP1_VERTEX_ATTRIB3_4_NV 0x8663
+	GL_MAP1_VERTEX_ATTRIB4_4_NV 0x8664
+	GL_MAP1_VERTEX_ATTRIB5_4_NV 0x8665
+	GL_MAP1_VERTEX_ATTRIB6_4_NV 0x8666
+	GL_MAP1_VERTEX_ATTRIB7_4_NV 0x8667
+	GL_MAP1_VERTEX_ATTRIB8_4_NV 0x8668
+	GL_MAP1_VERTEX_ATTRIB9_4_NV 0x8669
+	GL_MAP1_VERTEX_ATTRIB10_4_NV 0x866A
+	GL_MAP1_VERTEX_ATTRIB11_4_NV 0x866B
+	GL_MAP1_VERTEX_ATTRIB12_4_NV 0x866C
+	GL_MAP1_VERTEX_ATTRIB13_4_NV 0x866D
+	GL_MAP1_VERTEX_ATTRIB14_4_NV 0x866E
+	GL_MAP1_VERTEX_ATTRIB15_4_NV 0x866F
+	GL_MAP2_VERTEX_ATTRIB0_4_NV 0x8670
+	GL_MAP2_VERTEX_ATTRIB1_4_NV 0x8671
+	GL_MAP2_VERTEX_ATTRIB2_4_NV 0x8672
+	GL_MAP2_VERTEX_ATTRIB3_4_NV 0x8673
+	GL_MAP2_VERTEX_ATTRIB4_4_NV 0x8674
+	GL_MAP2_VERTEX_ATTRIB5_4_NV 0x8675
+	GL_MAP2_VERTEX_ATTRIB6_4_NV 0x8676
+	GL_MAP2_VERTEX_ATTRIB7_4_NV 0x8677
+	GL_MAP2_VERTEX_ATTRIB8_4_NV 0x8678
+	GL_MAP2_VERTEX_ATTRIB9_4_NV 0x8679
+	GL_MAP2_VERTEX_ATTRIB10_4_NV 0x867A
+	GL_MAP2_VERTEX_ATTRIB11_4_NV 0x867B
+	GL_MAP2_VERTEX_ATTRIB12_4_NV 0x867C
+	GL_MAP2_VERTEX_ATTRIB13_4_NV 0x867D
+	GL_MAP2_VERTEX_ATTRIB14_4_NV 0x867E
+	GL_MAP2_VERTEX_ATTRIB15_4_NV 0x867F
+	GLboolean glAreProgramsResidentNV (GLsizei n, const GLuint* ids, GLboolean *residences)
+	void glBindProgramNV (GLenum target, GLuint id)
+	void glDeleteProgramsNV (GLsizei n, const GLuint* ids)
+	void glExecuteProgramNV (GLenum target, GLuint id, const GLfloat* params)
+	void glGenProgramsNV (GLsizei n, GLuint* ids)
+	void glGetProgramParameterdvNV (GLenum target, GLuint index, GLenum pname, GLdouble* params)
+	void glGetProgramParameterfvNV (GLenum target, GLuint index, GLenum pname, GLfloat* params)
+	void glGetProgramStringNV (GLuint id, GLenum pname, GLubyte* program)
+	void glGetProgramivNV (GLuint id, GLenum pname, GLint* params)
+	void glGetTrackMatrixivNV (GLenum target, GLuint address, GLenum pname, GLint* params)
+	void glGetVertexAttribPointervNV (GLuint index, GLenum pname, GLvoid** pointer)
+	void glGetVertexAttribdvNV (GLuint index, GLenum pname, GLdouble* params)
+	void glGetVertexAttribfvNV (GLuint index, GLenum pname, GLfloat* params)
+	void glGetVertexAttribivNV (GLuint index, GLenum pname, GLint* params)
+	GLboolean glIsProgramNV (GLuint id)
+	void glLoadProgramNV (GLenum target, GLuint id, GLsizei len, const GLubyte* program)
+	void glProgramParameter4dNV (GLenum target, GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+	void glProgramParameter4dvNV (GLenum target, GLuint index, const GLdouble* params)
+	void glProgramParameter4fNV (GLenum target, GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+	void glProgramParameter4fvNV (GLenum target, GLuint index, const GLfloat* params)
+	void glProgramParameters4dvNV (GLenum target, GLuint index, GLuint num, const GLdouble* params)
+	void glProgramParameters4fvNV (GLenum target, GLuint index, GLuint num, const GLfloat* params)
+	void glRequestResidentProgramsNV (GLsizei n, GLuint* ids)
+	void glTrackMatrixNV (GLenum target, GLuint address, GLenum matrix, GLenum transform)
+	void glVertexAttrib1dNV (GLuint index, GLdouble x)
+	void glVertexAttrib1dvNV (GLuint index, const GLdouble* v)
+	void glVertexAttrib1fNV (GLuint index, GLfloat x)
+	void glVertexAttrib1fvNV (GLuint index, const GLfloat* v)
+	void glVertexAttrib1sNV (GLuint index, GLshort x)
+	void glVertexAttrib1svNV (GLuint index, const GLshort* v)
+	void glVertexAttrib2dNV (GLuint index, GLdouble x, GLdouble y)
+	void glVertexAttrib2dvNV (GLuint index, const GLdouble* v)
+	void glVertexAttrib2fNV (GLuint index, GLfloat x, GLfloat y)
+	void glVertexAttrib2fvNV (GLuint index, const GLfloat* v)
+	void glVertexAttrib2sNV (GLuint index, GLshort x, GLshort y)
+	void glVertexAttrib2svNV (GLuint index, const GLshort* v)
+	void glVertexAttrib3dNV (GLuint index, GLdouble x, GLdouble y, GLdouble z)
+	void glVertexAttrib3dvNV (GLuint index, const GLdouble* v)
+	void glVertexAttrib3fNV (GLuint index, GLfloat x, GLfloat y, GLfloat z)
+	void glVertexAttrib3fvNV (GLuint index, const GLfloat* v)
+	void glVertexAttrib3sNV (GLuint index, GLshort x, GLshort y, GLshort z)
+	void glVertexAttrib3svNV (GLuint index, const GLshort* v)
+	void glVertexAttrib4dNV (GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+	void glVertexAttrib4dvNV (GLuint index, const GLdouble* v)
+	void glVertexAttrib4fNV (GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w)
+	void glVertexAttrib4fvNV (GLuint index, const GLfloat* v)
+	void glVertexAttrib4sNV (GLuint index, GLshort x, GLshort y, GLshort z, GLshort w)
+	void glVertexAttrib4svNV (GLuint index, const GLshort* v)
+	void glVertexAttrib4ubNV (GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w)
+	void glVertexAttrib4ubvNV (GLuint index, const GLubyte* v)
+	void glVertexAttribPointerNV (GLuint index, GLint size, GLenum type, GLsizei stride, const void* pointer)
+	void glVertexAttribs1dvNV (GLuint index, GLsizei n, const GLdouble* v)
+	void glVertexAttribs1fvNV (GLuint index, GLsizei n, const GLfloat* v)
+	void glVertexAttribs1svNV (GLuint index, GLsizei n, const GLshort* v)
+	void glVertexAttribs2dvNV (GLuint index, GLsizei n, const GLdouble* v)
+	void glVertexAttribs2fvNV (GLuint index, GLsizei n, const GLfloat* v)
+	void glVertexAttribs2svNV (GLuint index, GLsizei n, const GLshort* v)
+	void glVertexAttribs3dvNV (GLuint index, GLsizei n, const GLdouble* v)
+	void glVertexAttribs3fvNV (GLuint index, GLsizei n, const GLfloat* v)
+	void glVertexAttribs3svNV (GLuint index, GLsizei n, const GLshort* v)
+	void glVertexAttribs4dvNV (GLuint index, GLsizei n, const GLdouble* v)
+	void glVertexAttribs4fvNV (GLuint index, GLsizei n, const GLfloat* v)
+	void glVertexAttribs4svNV (GLuint index, GLsizei n, const GLshort* v)
+	void glVertexAttribs4ubvNV (GLuint index, GLsizei n, const GLubyte* v)

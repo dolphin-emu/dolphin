@@ -1,0 +1,5 @@
+GL_SGIX_blend_alpha_minmax
+http://www.opengl.org/registry/specs/SGIX/blend_alpha_minmax.txt
+GL_SGIX_blend_alpha_minmax
+	GL_ALPHA_MIN_SGIX 0x8320
+	GL_ALPHA_MAX_SGIX 0x8321

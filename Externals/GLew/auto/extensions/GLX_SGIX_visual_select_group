@@ -1,0 +1,4 @@
+GLX_SGIX_visual_select_group
+http://www.opengl.org/registry/specs/SGIX/visual_select_group.txt
+GLX_SGIX_visual_select_group
+	GLX_VISUAL_SELECT_GROUP_SGIX 0x8028

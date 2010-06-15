@@ -1,0 +1,4 @@
+WGL_EXT_extensions_string
+http://www.opengl.org/registry/specs/EXT/wgl_extensions_string.txt
+WGL_EXT_extensions_string
+	const char* wglGetExtensionsStringEXT (void)

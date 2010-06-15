@@ -1,0 +1,5 @@
+GL_OML_subsample
+http://www.opengl.org/registry/specs/OML/subsample.txt
+GL_OML_subsample
+	GL_FORMAT_SUBSAMPLE_24_24_OML 0x8982
+	GL_FORMAT_SUBSAMPLE_244_244_OML 0x8983

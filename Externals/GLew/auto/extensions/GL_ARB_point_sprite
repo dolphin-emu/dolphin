@@ -1,0 +1,5 @@
+GL_ARB_point_sprite
+http://www.opengl.org/registry/specs/ARB/point_sprite.txt
+GL_ARB_point_sprite
+	GL_POINT_SPRITE_ARB 0x8861
+	GL_COORD_REPLACE_ARB 0x8862

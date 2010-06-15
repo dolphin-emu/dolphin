@@ -1,0 +1,4 @@
+GL_SGIX_tag_sample_buffer
+http://www.opengl.org/registry/specs/SGIX/tag_sample_buffer.txt
+GL_SGIX_tag_sample_buffer
+	void glTagSampleBufferSGIX (void)

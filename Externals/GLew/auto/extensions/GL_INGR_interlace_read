@@ -1,0 +1,4 @@
+GL_INGR_interlace_read
+http://www.opengl.org/registry/specs/INGR/interlace_read.txt
+GL_INGR_interlace_read
+	GL_INTERLACE_READ_INGR 0x8568

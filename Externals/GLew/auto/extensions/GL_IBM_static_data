@@ -1,0 +1,5 @@
+GL_IBM_static_data
+http://www.opengl.org/registry/specs/IBM/static_data.txt
+GL_IBM_static_data
+	GL_ALL_STATIC_DATA_IBM 103060
+	GL_STATIC_VERTEX_ARRAY_IBM 103061

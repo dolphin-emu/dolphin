@@ -1,0 +1,7 @@
+GL_ARB_draw_buffers_blend
+http://www.opengl.org/registry/specs/ARB/draw_buffers_blend.txt
+GL_ARB_draw_buffers_blend
+	void glBlendEquationSeparateiARB (GLuint buf, GLenum modeRGB, GLenum modeAlpha)
+	void glBlendEquationiARB (GLuint buf, GLenum mode)
+	void glBlendFuncSeparateiARB (GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)
+	void glBlendFunciARB (GLuint buf, GLenum src, GLenum dst)

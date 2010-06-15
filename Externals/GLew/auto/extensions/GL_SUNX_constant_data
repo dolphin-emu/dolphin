@@ -1,0 +1,6 @@
+GL_SUNX_constant_data
+http://www.opengl.org/registry/specs/SUNX/constant_data.txt
+GL_SUNX_constant_data
+	GL_UNPACK_CONSTANT_DATA_SUNX 0x81D5
+	GL_TEXTURE_CONSTANT_DATA_SUNX 0x81D6
+	void glFinishTextureSUNX (void)

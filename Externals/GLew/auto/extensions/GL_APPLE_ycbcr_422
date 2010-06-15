@@ -1,0 +1,6 @@
+GL_APPLE_ycbcr_422
+http://www.opengl.org/registry/specs/APPLE/ycbcr_422.txt
+GL_APPLE_ycbcr_422
+	GL_YCBCR_422_APPLE 0x85B9
+	GL_UNSIGNED_SHORT_8_8_APPLE 0x85BA
+	GL_UNSIGNED_SHORT_8_8_REV_APPLE 0x85BB

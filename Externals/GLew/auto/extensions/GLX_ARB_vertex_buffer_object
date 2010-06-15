@@ -1,0 +1,4 @@
+GLX_ARB_vertex_buffer_object
+http://www.opengl.org/registry/specs/ARB/vertex_buffer_object.txt
+GLX_ARB_vertex_buffer_object
+	GLX_CONTEXT_ALLOW_BUFFER_BYTE_ORDER_MISMATCH_ARB 0x2095

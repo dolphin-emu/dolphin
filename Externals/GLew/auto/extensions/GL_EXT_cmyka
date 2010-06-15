@@ -1,0 +1,7 @@
+GL_EXT_cmyka
+http://www.opengl.org/registry/specs/EXT/cmyka.txt
+GL_EXT_cmyka
+	GL_CMYK_EXT 0x800C
+	GL_CMYKA_EXT 0x800D
+	GL_PACK_CMYK_HINT_EXT 0x800E
+	GL_UNPACK_CMYK_HINT_EXT 0x800F

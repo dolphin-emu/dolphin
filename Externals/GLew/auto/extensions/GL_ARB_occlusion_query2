@@ -1,0 +1,4 @@
+GL_ARB_occlusion_query2
+http://www.opengl.org/registry/specs/ARB/occlusion_query2.txt
+GL_ARB_occlusion_query2
+	GL_ANY_SAMPLES_PASSED 0x8C2F

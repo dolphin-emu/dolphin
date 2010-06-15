@@ -1,0 +1,5 @@
+GL_EXT_blend_subtract
+http://www.opengl.org/registry/specs/EXT/blend_subtract.txt
+GL_EXT_blend_subtract
+	GL_FUNC_SUBTRACT_EXT 0x800A
+	GL_FUNC_REVERSE_SUBTRACT_EXT 0x800B

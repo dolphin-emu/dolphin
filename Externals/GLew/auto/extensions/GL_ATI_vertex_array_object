@@ -1,0 +1,23 @@
+GL_ATI_vertex_array_object
+http://www.opengl.org/registry/specs/ATI/vertex_array_object.txt
+GL_ATI_vertex_array_object
+	GL_STATIC_ATI 0x8760
+	GL_DYNAMIC_ATI 0x8761
+	GL_PRESERVE_ATI 0x8762
+	GL_DISCARD_ATI 0x8763
+	GL_OBJECT_BUFFER_SIZE_ATI 0x8764
+	GL_OBJECT_BUFFER_USAGE_ATI 0x8765
+	GL_ARRAY_OBJECT_BUFFER_ATI 0x8766
+	GL_ARRAY_OBJECT_OFFSET_ATI 0x8767
+	void glArrayObjectATI (GLenum array, GLint size, GLenum type, GLsizei stride, GLuint buffer, GLuint offset)
+	void glFreeObjectBufferATI (GLuint buffer)
+	void glGetArrayObjectfvATI (GLenum array, GLenum pname, GLfloat* params)
+	void glGetArrayObjectivATI (GLenum array, GLenum pname, GLint* params)
+	void glGetObjectBufferfvATI (GLuint buffer, GLenum pname, GLfloat* params)
+	void glGetObjectBufferivATI (GLuint buffer, GLenum pname, GLint* params)
+	void glGetVariantArrayObjectfvATI (GLuint id, GLenum pname, GLfloat* params)
+	void glGetVariantArrayObjectivATI (GLuint id, GLenum pname, GLint* params)
+	GLboolean glIsObjectBufferATI (GLuint buffer)
+	GLuint glNewObjectBufferATI (GLsizei size, const void* pointer, GLenum usage)
+	void glUpdateObjectBufferATI (GLuint buffer, GLuint offset, GLsizei size, const void* pointer, GLenum preserve)
+	void glVariantArrayObjectATI (GLuint id, GLenum type, GLsizei stride, GLuint buffer, GLuint offset)

@@ -1,0 +1,21 @@
+NAME = GLEW
+GLEW_DEST ?= /usr/X11R6
+CC = cc
+# use gcc for linking, with ld it does not work
+LD = cc
+ifneq (undefined, $(origin GLEW_MX))
+CFLAGS.EXTRA = -DGLEW_MX
+endif
+LDFLAGS.SO = -shared -Wl,-soname=$(LIB.SONAME)
+LDFLAGS.EXTRA = -L/usr/X11R6/lib
+LIBDIR = $(GLEW_DEST)/lib
+LDFLAGS.GL = -lXmu -lXi -lGLU -lGL -lXext -lX11
+LDFLAGS.STATIC = -Wl,-Bstatic
+LDFLAGS.DYNAMIC = -Wl,-Bdynamic
+WARN = -Wall -W
+POPT = -O2
+BIN.SUFFIX =
+LIB.SONAME = lib$(NAME).so.$(SO_MAJOR)
+LIB.DEVLNK = lib$(NAME).so
+LIB.SHARED = lib$(NAME).so.$(SO_VERSION)
+LIB.STATIC = lib$(NAME).a

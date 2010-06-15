@@ -1,0 +1,8 @@
+GL_NV_point_sprite
+http://www.opengl.org/registry/specs/NV/point_sprite.txt
+GL_NV_point_sprite
+	GL_POINT_SPRITE_NV 0x8861
+	GL_COORD_REPLACE_NV 0x8862
+	GL_POINT_SPRITE_R_MODE_NV 0x8863
+	void glPointParameteriNV (GLenum pname, GLint param)
+	void glPointParameterivNV (GLenum pname, const GLint* params)

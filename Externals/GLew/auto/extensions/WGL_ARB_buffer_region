@@ -1,0 +1,11 @@
+WGL_ARB_buffer_region
+http://www.opengl.org/registry/specs/ARB/wgl_buffer_region.txt
+WGL_ARB_buffer_region
+	WGL_FRONT_COLOR_BUFFER_BIT_ARB 0x00000001
+	WGL_BACK_COLOR_BUFFER_BIT_ARB 0x00000002
+	WGL_DEPTH_BUFFER_BIT_ARB 0x00000004
+	WGL_STENCIL_BUFFER_BIT_ARB 0x00000008
+	HANDLE wglCreateBufferRegionARB (HDC hDC, int iLayerPlane, UINT uType)
+	VOID wglDeleteBufferRegionARB (HANDLE hRegion)
+	BOOL wglRestoreBufferRegionARB (HANDLE hRegion, int x, int y, int width, int height, int xSrc, int ySrc)
+	BOOL wglSaveBufferRegionARB (HANDLE hRegion, int x, int y, int width, int height)

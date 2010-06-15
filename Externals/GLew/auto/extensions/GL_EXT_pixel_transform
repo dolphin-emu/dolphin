@@ -1,0 +1,18 @@
+GL_EXT_pixel_transform
+http://www.opengl.org/registry/specs/EXT/pixel_transform.txt
+GL_EXT_pixel_transform
+	GL_PIXEL_TRANSFORM_2D_EXT 0x8330
+	GL_PIXEL_MAG_FILTER_EXT 0x8331
+	GL_PIXEL_MIN_FILTER_EXT 0x8332
+	GL_PIXEL_CUBIC_WEIGHT_EXT 0x8333
+	GL_CUBIC_EXT 0x8334
+	GL_AVERAGE_EXT 0x8335
+	GL_PIXEL_TRANSFORM_2D_STACK_DEPTH_EXT 0x8336
+	GL_MAX_PIXEL_TRANSFORM_2D_STACK_DEPTH_EXT 0x8337
+	GL_PIXEL_TRANSFORM_2D_MATRIX_EXT 0x8338
+	void glGetPixelTransformParameterfvEXT (GLenum target, GLenum pname, const GLfloat* params)
+	void glGetPixelTransformParameterivEXT (GLenum target, GLenum pname, const GLint* params)
+	void glPixelTransformParameterfEXT (GLenum target, GLenum pname, const GLfloat param)
+	void glPixelTransformParameterfvEXT (GLenum target, GLenum pname, const GLfloat* params)
+	void glPixelTransformParameteriEXT (GLenum target, GLenum pname, const GLint param)
+	void glPixelTransformParameterivEXT (GLenum target, GLenum pname, const GLint* params)

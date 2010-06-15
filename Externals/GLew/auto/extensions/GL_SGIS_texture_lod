@@ -1,0 +1,7 @@
+GL_SGIS_texture_lod
+http://www.opengl.org/registry/specs/SGIS/texture_lod.txt
+GL_SGIS_texture_lod
+	GL_TEXTURE_MIN_LOD_SGIS 0x813A
+	GL_TEXTURE_MAX_LOD_SGIS 0x813B
+	GL_TEXTURE_BASE_LEVEL_SGIS 0x813C
+	GL_TEXTURE_MAX_LEVEL_SGIS 0x813D

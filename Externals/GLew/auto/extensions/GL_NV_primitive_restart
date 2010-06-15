@@ -1,0 +1,7 @@
+GL_NV_primitive_restart
+http://www.opengl.org/registry/specs/NV/primitive_restart.txt
+GL_NV_primitive_restart
+	GL_PRIMITIVE_RESTART_NV 0x8558
+	GL_PRIMITIVE_RESTART_INDEX_NV 0x8559
+	void glPrimitiveRestartIndexNV (GLuint index)
+	void glPrimitiveRestartNV (void)

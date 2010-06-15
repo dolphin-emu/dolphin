@@ -1,0 +1,6 @@
+GL_NV_register_combiners2
+http://www.opengl.org/registry/specs/NV/register_combiners2.txt
+GL_NV_register_combiners2
+	GL_PER_STAGE_CONSTANTS_NV 0x8535
+	void glCombinerStageParameterfvNV (GLenum stage, GLenum pname, const GLfloat* params)
+	void glGetCombinerStageParameterfvNV (GLenum stage, GLenum pname, GLfloat* params)

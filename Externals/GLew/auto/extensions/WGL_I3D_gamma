@@ -1,0 +1,9 @@
+WGL_I3D_gamma
+http://www.opengl.org/registry/specs/I3D/wgl_gamma.txt
+WGL_I3D_gamma
+	WGL_GAMMA_TABLE_SIZE_I3D 0x204E
+	WGL_GAMMA_EXCLUDE_DESKTOP_I3D 0x204F
+	BOOL wglGetGammaTableI3D (HDC hDC, int iEntries, USHORT* puRed, USHORT *puGreen, USHORT *puBlue)
+	BOOL wglGetGammaTableParametersI3D (HDC hDC, int iAttribute, int* piValue)
+	BOOL wglSetGammaTableI3D (HDC hDC, int iEntries, const USHORT* puRed, const USHORT *puGreen, const USHORT *puBlue)
+	BOOL wglSetGammaTableParametersI3D (HDC hDC, int iAttribute, const int* piValue)

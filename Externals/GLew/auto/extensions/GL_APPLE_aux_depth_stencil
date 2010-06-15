@@ -1,0 +1,4 @@
+GL_APPLE_aux_depth_stencil
+http://www.opengl.org/registry/specs/APPLE/aux_depth_stencil.txt
+GL_APPLE_aux_depth_stencil
+	GL_AUX_DEPTH_STENCIL_APPLE 0x8A14

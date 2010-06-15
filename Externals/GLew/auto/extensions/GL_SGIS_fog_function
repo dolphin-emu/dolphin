@@ -1,0 +1,5 @@
+GL_SGIS_fog_function
+http://www.opengl.org/registry/specs/SGIS/fog_func.txt
+GL_SGIS_fog_function
+	void glFogFuncSGIS (GLsizei n, const GLfloat* points)
+	void glGetFogFuncSGIS (GLfloat* points)

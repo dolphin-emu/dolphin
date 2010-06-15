@@ -1,0 +1,4 @@
+GL_APPLE_specular_vector
+http://www.opengl.org/registry/specs/APPLE/specular_vector.txt
+GL_APPLE_specular_vector
+	GL_LIGHT_MODEL_SPECULAR_VECTOR_APPLE 0x85B0

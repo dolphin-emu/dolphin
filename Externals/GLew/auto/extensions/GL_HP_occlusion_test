@@ -1,0 +1,5 @@
+GL_HP_occlusion_test
+http://www.opengl.org/registry/specs/HP/occlusion_test.txt
+GL_HP_occlusion_test
+	GL_OCCLUSION_TEST_RESULT_HP 0x8166
+	GL_OCCLUSION_TEST_HP 0x8165

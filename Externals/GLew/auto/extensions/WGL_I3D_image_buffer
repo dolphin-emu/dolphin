@@ -1,0 +1,9 @@
+WGL_I3D_image_buffer
+http://www.opengl.org/registry/specs/I3D/wgl_image_buffer.txt
+WGL_I3D_image_buffer
+	WGL_IMAGE_BUFFER_MIN_ACCESS_I3D 0x00000001
+	WGL_IMAGE_BUFFER_LOCK_I3D 0x00000002
+	BOOL wglAssociateImageBufferEventsI3D (HDC hdc, HANDLE* pEvent, LPVOID *pAddress, DWORD *pSize, UINT count)
+	LPVOID wglCreateImageBufferI3D (HDC hDC, DWORD dwSize, UINT uFlags)
+	BOOL wglDestroyImageBufferI3D (HDC hDC, LPVOID pAddress)
+	BOOL wglReleaseImageBufferEventsI3D (HDC hdc, LPVOID* pAddress, UINT count)

@@ -1,0 +1,4 @@
+GL_NV_depth_clamp
+http://www.opengl.org/registry/specs/NV/depth_clamp.txt
+GL_NV_depth_clamp
+	GL_DEPTH_CLAMP_NV 0x864F

@@ -1,0 +1,5 @@
+GL_INTEL_texture_scissor
+http://www.opengl.org/registry/specs/INTEL/texture_scissor.txt
+GL_INTEL_texture_scissor
+	void glTexScissorFuncINTEL (GLenum target, GLenum lfunc, GLenum hfunc)
+	void glTexScissorINTEL (GLenum target, GLclampf tlow, GLclampf thigh)

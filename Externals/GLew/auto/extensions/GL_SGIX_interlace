@@ -1,0 +1,4 @@
+GL_SGIX_interlace
+http://www.opengl.org/registry/specs/SGIX/interlace.txt
+GL_SGIX_interlace
+	GL_INTERLACE_SGIX 0x8094

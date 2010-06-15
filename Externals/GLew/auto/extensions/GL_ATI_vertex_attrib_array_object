@@ -1,0 +1,6 @@
+GL_ATI_vertex_attrib_array_object
+http://www.opengl.org/registry/specs/ATI/vertex_attrib_array_object.txt
+GL_ATI_vertex_attrib_array_object
+	void glGetVertexAttribArrayObjectfvATI (GLuint index, GLenum pname, GLfloat* params)
+	void glGetVertexAttribArrayObjectivATI (GLuint index, GLenum pname, GLint* params)
+	void glVertexAttribArrayObjectATI (GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, GLuint buffer, GLuint offset)

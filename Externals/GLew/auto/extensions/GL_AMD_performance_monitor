@@ -1,0 +1,23 @@
+GL_AMD_performance_monitor
+http://www.opengl.org/registry/specs/AMD/performance_monitor.txt
+GL_AMD_performance_monitor
+	GL_UNSIGNED_INT 0x1405
+	GL_FLOAT 0x1406
+	GL_COUNTER_TYPE_AMD 0x8BC0
+	GL_COUNTER_RANGE_AMD 0x8BC1
+	GL_UNSIGNED_INT64_AMD 0x8BC2
+	GL_PERCENTAGE_AMD 0x8BC3
+	GL_PERFMON_RESULT_AVAILABLE_AMD 0x8BC4
+	GL_PERFMON_RESULT_SIZE_AMD 0x8BC5
+	GL_PERFMON_RESULT_AMD 0x8BC6
+	void glBeginPerfMonitorAMD (GLuint monitor)
+	void glDeletePerfMonitorsAMD (GLsizei n, GLuint* monitors)
+	void glEndPerfMonitorAMD (GLuint monitor)
+	void glGenPerfMonitorsAMD (GLsizei n, GLuint* monitors)
+	void glGetPerfMonitorCounterDataAMD (GLuint monitor, GLenum pname, GLsizei dataSize, GLuint* data, GLint *bytesWritten)
+	void glGetPerfMonitorCounterInfoAMD (GLuint group, GLuint counter, GLenum pname, void* data)
+	void glGetPerfMonitorCounterStringAMD (GLuint group, GLuint counter, GLsizei bufSize, GLsizei* length, char *counterString)
+	void glGetPerfMonitorCountersAMD (GLuint group, GLint* numCounters, GLint *maxActiveCounters, GLsizei countersSize, GLuint *counters)
+	void glGetPerfMonitorGroupStringAMD (GLuint group, GLsizei bufSize, GLsizei* length, char *groupString)
+	void glGetPerfMonitorGroupsAMD (GLint* numGroups, GLsizei groupsSize, GLuint *groups)
+	void glSelectPerfMonitorCountersAMD (GLuint monitor, GLboolean enable, GLuint group, GLint numCounters, GLuint* counterList)

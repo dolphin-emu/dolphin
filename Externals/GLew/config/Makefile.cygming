@@ -1,0 +1,22 @@
+NAME = glew32
+GLEW_DEST = /usr
+BINDIR = /usr/bin
+LIBDIR = /usr/lib/mingw
+INCDIR = /usr/include/mingw/GL
+CC = gcc -mno-cygwin
+# use gcc for linking, with ld it does not work
+LD = gcc -mno-cygwin
+ifneq (undefined, $(origin GLEW_MX))
+CFLAGS.EXTRA = -DGLEW_MX
+endif
+CFLAGS.SO = -DGLEW_BUILD
+LDFLAGS.SO = -shared -Wl,-soname,$(LIB.SONAME) -Wl,--out-implib,lib/$(LIB.DEVLNK)
+LDFLAGS.GL = -lglu32 -lopengl32 -lgdi32 -luser32 -lkernel32
+LDFLAGS.EXTRA = -L$(LIBDIR)
+WARN = -Wall -W
+POPT = -O2
+BIN.SUFFIX = .exe
+LIB.SONAME = lib$(NAME).dll
+LIB.DEVLNK = lib$(NAME).dll.a    # for mingw this is the dll import lib
+LIB.SHARED = $(NAME).dll
+LIB.STATIC = lib$(NAME).a     # the static lib will be broken (see CFLAGS.SO)

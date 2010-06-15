@@ -1,0 +1,6 @@
+GL_EXT_texture_perturb_normal
+http://www.opengl.org/registry/specs/EXT/texture_perturb_normal.txt
+GL_EXT_texture_perturb_normal
+	GL_PERTURB_EXT 0x85AE
+	GL_TEXTURE_NORMAL_EXT 0x85AF
+	void glTextureNormalEXT (GLenum mode)

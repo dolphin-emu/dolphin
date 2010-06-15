@@ -1,0 +1,7 @@
+WGL_ARB_make_current_read
+http://www.opengl.org/registry/specs/ARB/wgl_make_current_read.txt
+WGL_ARB_make_current_read
+	HDC wglGetCurrentReadDCARB (VOID)
+	BOOL wglMakeContextCurrentARB (HDC hDrawDC, HDC hReadDC, HGLRC hglrc)
+	ERROR_INVALID_PIXEL_TYPE_ARB 0x2043
+	ERROR_INCOMPATIBLE_DEVICE_CONTEXTS_ARB 0x2054

@@ -1,0 +1,11 @@
+GL_APPLE_element_array
+http://www.opengl.org/registry/specs/APPLE/element_array.txt
+GL_APPLE_element_array
+	GL_ELEMENT_ARRAY_APPLE 0x8A0C
+	GL_ELEMENT_ARRAY_TYPE_APPLE 0x8A0D
+	GL_ELEMENT_ARRAY_POINTER_APPLE 0x8A0E
+	void glDrawElementArrayAPPLE (GLenum mode, GLint first, GLsizei count)
+	void glDrawRangeElementArrayAPPLE (GLenum mode, GLuint start, GLuint end, GLint first, GLsizei count)
+	void glElementPointerAPPLE (GLenum type, const void* pointer)
+	void glMultiDrawElementArrayAPPLE (GLenum mode, const GLint* first, const GLsizei *count, GLsizei primcount)
+	void glMultiDrawRangeElementArrayAPPLE (GLenum mode, GLuint start, GLuint end, const GLint* first, const GLsizei *count, GLsizei primcount)

@@ -1,0 +1,23 @@
+WGL_NV_video_output
+http://www.opengl.org/registry/specs/NV/wgl_video_out.txt
+WGL_NV_video_output
+	WGL_BIND_TO_VIDEO_RGB_NV 0x20C0
+	WGL_BIND_TO_VIDEO_RGBA_NV 0x20C1
+	WGL_BIND_TO_VIDEO_RGB_AND_DEPTH_NV 0x20C2
+	WGL_VIDEO_OUT_COLOR_NV 0x20C3
+	WGL_VIDEO_OUT_ALPHA_NV 0x20C4
+	WGL_VIDEO_OUT_DEPTH_NV 0x20C5
+	WGL_VIDEO_OUT_COLOR_AND_ALPHA_NV 0x20C6
+	WGL_VIDEO_OUT_COLOR_AND_DEPTH_NV 0x20C7
+	WGL_VIDEO_OUT_FRAME 0x20C8
+	WGL_VIDEO_OUT_FIELD_1 0x20C9
+	WGL_VIDEO_OUT_FIELD_2 0x20CA
+	WGL_VIDEO_OUT_STACKED_FIELDS_1_2 0x20CB
+	WGL_VIDEO_OUT_STACKED_FIELDS_2_1 0x20CC
+	BOOL wglBindVideoImageNV (HPVIDEODEV hVideoDevice, HPBUFFERARB hPbuffer, int iVideoBuffer)
+	BOOL wglGetVideoDeviceNV (HDC hDC, int numDevices, HPVIDEODEV* hVideoDevice)
+	BOOL wglGetVideoInfoNV (HPVIDEODEV hpVideoDevice, unsigned long* pulCounterOutputPbuffer, unsigned long *pulCounterOutputVideo)
+	BOOL wglReleaseVideoDeviceNV (HPVIDEODEV hVideoDevice)
+	BOOL wglReleaseVideoImageNV (HPBUFFERARB hPbuffer, int iVideoBuffer)
+	BOOL wglSendPbufferToVideoNV (HPBUFFERARB hPbuffer, int iBufferType, unsigned long* pulCounterPbuffer, BOOL bBlock)
+    DECLARE_HANDLE(HPVIDEODEV);

@@ -1,0 +1,4 @@
+GL_EXT_rescale_normal
+http://www.opengl.org/registry/specs/EXT/rescale_normal.txt
+GL_EXT_rescale_normal
+	GL_RESCALE_NORMAL_EXT 0x803A

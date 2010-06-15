@@ -1,0 +1,5 @@
+GL_EXT_texture_env_dot3
+http://www.opengl.org/registry/specs/EXT/texture_env_dot3.txt
+GL_EXT_texture_env_dot3
+	GL_DOT3_RGB_EXT 0x8740
+	GL_DOT3_RGBA_EXT 0x8741

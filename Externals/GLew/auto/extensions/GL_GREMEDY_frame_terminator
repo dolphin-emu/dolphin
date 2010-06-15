@@ -1,0 +1,4 @@
+GL_GREMEDY_frame_terminator
+http://www.opengl.org/registry/specs/GREMEDY/frame_terminator.txt
+GL_GREMEDY_frame_terminator
+	void glFrameTerminatorGREMEDY (void)

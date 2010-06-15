@@ -1,0 +1,8 @@
+WGL_NV_present_video
+http://www.opengl.org/registry/specs/NV/present_video.txt
+WGL_NV_present_video
+	WGL_NUM_VIDEO_SLOTS_NV 0x20F0
+	BOOL wglBindVideoDeviceNV (HDC hDc, unsigned int uVideoSlot, HVIDEOOUTPUTDEVICENV hVideoDevice, const int* piAttribList)
+	int wglEnumerateVideoDevicesNV (HDC hDc, HVIDEOOUTPUTDEVICENV* phDeviceList)
+	BOOL wglQueryCurrentContextNV (int iAttribute, int* piValue)
+    DECLARE_HANDLE(HVIDEOOUTPUTDEVICENV);

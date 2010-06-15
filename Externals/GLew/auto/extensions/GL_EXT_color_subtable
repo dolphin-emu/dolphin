@@ -1,0 +1,5 @@
+GL_EXT_color_subtable
+http://www.opengl.org/registry/specs/EXT/color_subtable.txt
+GL_EXT_color_subtable
+	void glColorSubTableEXT (GLenum target, GLsizei start, GLsizei count, GLenum format, GLenum type, const void* data)
+	void glCopyColorSubTableEXT (GLenum target, GLsizei start, GLint x, GLint y, GLsizei width)

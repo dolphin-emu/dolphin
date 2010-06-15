@@ -1,0 +1,4 @@
+GL_APPLE_transform_hint
+http://www.opengl.org/registry/specs/APPLE/transform_hint.txt
+GL_APPLE_transform_hint
+	GL_TRANSFORM_HINT_APPLE 0x85B1

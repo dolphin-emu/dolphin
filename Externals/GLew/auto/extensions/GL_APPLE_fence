@@ -1,0 +1,13 @@
+GL_APPLE_fence
+http://www.opengl.org/registry/specs/APPLE/fence.txt
+GL_APPLE_fence
+	GL_DRAW_PIXELS_APPLE 0x8A0A
+	GL_FENCE_APPLE 0x8A0B
+	void glDeleteFencesAPPLE (GLsizei n, const GLuint* fences)
+	void glFinishFenceAPPLE (GLuint fence)
+	void glFinishObjectAPPLE (GLenum object, GLint name)
+	void glGenFencesAPPLE (GLsizei n, GLuint* fences)
+	GLboolean glIsFenceAPPLE (GLuint fence)
+	void glSetFenceAPPLE (GLuint fence)
+	GLboolean glTestFenceAPPLE (GLuint fence)
+	GLboolean glTestObjectAPPLE (GLenum object, GLuint name)

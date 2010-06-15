@@ -1,0 +1,6 @@
+GL_MESA_ycbcr_texture
+http://www.opengl.org/registry/specs/MESA/ycbcr_texture.txt
+GL_MESA_ycbcr_texture
+	GL_UNSIGNED_SHORT_8_8_MESA 0x85BA
+	GL_UNSIGNED_SHORT_8_8_REV_MESA 0x85BB
+	GL_YCBCR_MESA 0x8757

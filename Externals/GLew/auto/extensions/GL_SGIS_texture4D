@@ -1,0 +1,5 @@
+GL_SGIS_texture4D
+http://www.opengl.org/registry/specs/SGIS/texture4D.txt
+GL_SGIS_texture4D
+	void glTexImage4DSGIS (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLsizei extent, GLint border, GLenum format, GLenum type, const void* pixels)
+	void glTexSubImage4DSGIS (GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint woffset, GLsizei width, GLsizei height, GLsizei depth, GLsizei extent, GLenum format, GLenum type, const void* pixels)

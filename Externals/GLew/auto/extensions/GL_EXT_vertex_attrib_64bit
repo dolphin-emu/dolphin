@@ -1,0 +1,20 @@
+GL_EXT_vertex_attrib_64bit
+http://www.opengl.org/registry/specs/EXT/vertex_attrib_64bit.txt
+GL_EXT_vertex_attrib_64bit
+	GL_DOUBLE_MAT2_EXT 0x8F46
+	GL_DOUBLE_MAT3_EXT 0x8F47
+	GL_DOUBLE_MAT4_EXT 0x8F48
+	GL_DOUBLE_VEC2_EXT 0x8FFC
+	GL_DOUBLE_VEC3_EXT 0x8FFD
+	GL_DOUBLE_VEC4_EXT 0x8FFE
+	void glGetVertexAttribLdvEXT (GLuint index, GLenum pname, GLdouble* params)
+	void glVertexArrayVertexAttribLOffsetEXT (GLuint vaobj, GLuint buffer, GLuint index, GLint size, GLenum type, GLsizei stride, GLintptr offset)
+	void glVertexAttribL1dEXT (GLuint index, GLdouble x)
+	void glVertexAttribL1dvEXT (GLuint index, const GLdouble* v)
+	void glVertexAttribL2dEXT (GLuint index, GLdouble x, GLdouble y)
+	void glVertexAttribL2dvEXT (GLuint index, const GLdouble* v)
+	void glVertexAttribL3dEXT (GLuint index, GLdouble x, GLdouble y, GLdouble z)
+	void glVertexAttribL3dvEXT (GLuint index, const GLdouble* v)
+	void glVertexAttribL4dEXT (GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w)
+	void glVertexAttribL4dvEXT (GLuint index, const GLdouble* v)
+	void glVertexAttribLPointerEXT (GLuint index, GLint size, GLenum type, GLsizei stride, const void* pointer)

@@ -1,0 +1,4 @@
+GL_SGIX_flush_raster
+http://www.opengl.org/registry/specs/SGIX/flush_raster.txt
+GL_SGIX_flush_raster
+	void glFlushRasterSGIX (void)

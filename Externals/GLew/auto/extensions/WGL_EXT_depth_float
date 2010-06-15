@@ -1,0 +1,4 @@
+WGL_EXT_depth_float
+http://www.opengl.org/registry/specs/EXT/wgl_depth_float.txt
+WGL_EXT_depth_float
+	WGL_DEPTH_FLOAT_EXT 0x2040

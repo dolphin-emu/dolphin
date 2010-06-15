@@ -1,0 +1,4 @@
+GL_EXT_vertex_array_bgra
+http://www.opengl.org/registry/specs/EXT/vertex_array_bgra.txt
+GL_EXT_vertex_array_bgra
+	GL_BGRA 0x80E1

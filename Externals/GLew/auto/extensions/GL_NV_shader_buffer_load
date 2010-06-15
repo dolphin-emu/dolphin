@@ -1,0 +1,19 @@
+GL_NV_shader_buffer_load
+http://www.opengl.org/registry/specs/NV/shader_buffer_load.txt
+GL_NV_shader_buffer_load
+	GL_BUFFER_GPU_ADDRESS_NV 0x8F1D
+	GL_GPU_ADDRESS_NV 0x8F34
+	GL_MAX_SHADER_BUFFER_ADDRESS_NV 0x8F35
+	void glGetBufferParameterui64vNV (GLenum target, GLenum pname, GLuint64EXT* params)
+	void glGetIntegerui64vNV (GLenum value, GLuint64EXT* result)
+	void glGetNamedBufferParameterui64vNV (GLuint buffer, GLenum pname, GLuint64EXT* params)
+	GLboolean glIsBufferResidentNV (GLenum target)
+	GLboolean glIsNamedBufferResidentNV (GLuint buffer)
+	void glMakeBufferNonResidentNV (GLenum target)
+	void glMakeBufferResidentNV (GLenum target, GLenum access)
+	void glMakeNamedBufferNonResidentNV (GLuint buffer)
+	void glMakeNamedBufferResidentNV (GLuint buffer, GLenum access)
+	void glProgramUniformui64NV (GLuint program, GLint location, GLuint64EXT value)
+	void glProgramUniformui64vNV (GLuint program, GLint location, GLsizei count, const GLuint64EXT* value)
+	void glUniformui64NV (GLint location, GLuint64EXT value)
+	void glUniformui64vNV (GLint location, GLsizei count, const GLuint64EXT* value)

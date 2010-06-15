@@ -1,0 +1,4 @@
+GLX_NV_copy_image
+http://www.opengl.org/registry/specs/NV/copy_image.txt
+GLX_NV_copy_image
+  void glXCopyImageSubDataNV (Display *dpy, GLXContext srcCtx, GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLXContext dstCtx, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei width, GLsizei height, GLsizei depth)

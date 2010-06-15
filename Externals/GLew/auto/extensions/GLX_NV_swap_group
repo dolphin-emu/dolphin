@@ -1,0 +1,9 @@
+GLX_NV_swap_group
+http://www.opengl.org/registry/specs/NV/glx_swap_group.txt
+GLX_NV_swap_group
+	Bool glXBindSwapBarrierNV (Display* dpy, GLuint group, GLuint barrier)
+	Bool glXJoinSwapGroupNV (Display* dpy, GLXDrawable drawable, GLuint group)
+	Bool glXQueryFrameCountNV (Display* dpy, int screen, GLuint *count)
+	Bool glXQueryMaxSwapGroupsNV (Display* dpy, int screen, GLuint *maxGroups, GLuint *maxBarriers)
+	Bool glXQuerySwapGroupNV (Display* dpy, GLXDrawable drawable, GLuint *group, GLuint *barrier)
+	Bool glXResetFrameCountNV (Display* dpy, int screen)

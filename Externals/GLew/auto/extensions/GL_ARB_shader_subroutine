@@ -1,0 +1,20 @@
+GL_ARB_shader_subroutine
+http://www.opengl.org/registry/specs/ARB/shader_subroutine.txt
+GL_ARB_shader_subroutine
+	GL_ACTIVE_SUBROUTINES 0x8DE5
+	GL_ACTIVE_SUBROUTINE_UNIFORMS 0x8DE6
+	GL_MAX_SUBROUTINES 0x8DE7
+	GL_MAX_SUBROUTINE_UNIFORM_LOCATIONS 0x8DE8
+	GL_ACTIVE_SUBROUTINE_UNIFORM_LOCATIONS 0x8E47
+	GL_ACTIVE_SUBROUTINE_MAX_LENGTH 0x8E48
+	GL_ACTIVE_SUBROUTINE_UNIFORM_MAX_LENGTH 0x8E49
+	GL_NUM_COMPATIBLE_SUBROUTINES 0x8E4A
+	GL_COMPATIBLE_SUBROUTINES 0x8E4B
+	void glGetActiveSubroutineName (GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei* length, char *name)
+	void glGetActiveSubroutineUniformName (GLuint program, GLenum shadertype, GLuint index, GLsizei bufsize, GLsizei* length, char *name)
+	void glGetActiveSubroutineUniformiv (GLuint program, GLenum shadertype, GLuint index, GLenum pname, GLint* values)
+	void glGetProgramStageiv (GLuint program, GLenum shadertype, GLenum pname, GLint* values)
+	GLuint glGetSubroutineIndex (GLuint program, GLenum shadertype, const char* name)
+	GLint glGetSubroutineUniformLocation (GLuint program, GLenum shadertype, const char* name)
+	void glGetUniformSubroutineuiv (GLenum shadertype, GLint location, GLuint* params)
+	void glUniformSubroutinesuiv (GLenum shadertype, GLsizei count, const GLuint* indices)

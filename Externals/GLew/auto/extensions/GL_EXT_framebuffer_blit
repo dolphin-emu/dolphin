@@ -1,0 +1,8 @@
+GL_EXT_framebuffer_blit
+http://www.opengl.org/registry/specs/EXT/framebuffer_blit.txt
+GL_EXT_framebuffer_blit
+	GL_DRAW_FRAMEBUFFER_BINDING_EXT 0x8CA6
+	GL_READ_FRAMEBUFFER_EXT 0x8CA8
+	GL_DRAW_FRAMEBUFFER_EXT 0x8CA9
+	GL_READ_FRAMEBUFFER_BINDING_EXT 0x8CAA
+	void glBlitFramebufferEXT (GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter)

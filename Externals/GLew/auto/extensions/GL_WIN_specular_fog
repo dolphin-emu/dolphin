@@ -1,0 +1,4 @@
+GL_WIN_specular_fog
+http://www.opengl.org/registry/specs/WIN/specular_fog.txt
+GL_WIN_specular_fog
+	GL_FOG_SPECULAR_TEXTURE_WIN 0x80EC

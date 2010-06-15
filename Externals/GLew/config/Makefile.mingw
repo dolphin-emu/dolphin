@@ -1,0 +1,19 @@
+NAME = glew32
+CC = gcc
+# use gcc for linking, with ld it does not work
+LD = gcc
+ifneq (undefined, $(origin GLEW_MX))
+CFLAGS.EXTRA = -DGLEW_MX
+endif
+CFLAGS.SO = -DGLEW_BUILD
+#LDFLAGS.SO = -shared -soname $(LIB.SONAME) --out-implib lib/$(LIB.DEVLNK)
+LDFLAGS.SO = -shared -Wl,-soname,$(LIB.SONAME) -Wl,--out-implib,lib/$(LIB.DEVLNK)
+LDFLAGS.GL = -lglu32 -lopengl32 -lgdi32 -luser32 -lkernel32
+LDFLAGS.EXTRA = -L/mingw/lib
+WARN = -Wall -W
+POPT = -O2
+BIN.SUFFIX = .exe
+LIB.SONAME = lib$(NAME).dll
+LIB.DEVLNK = lib$(NAME).dll.a    # for mingw this is the dll import lib
+LIB.SHARED = $(NAME).dll
+LIB.STATIC = lib$(NAME).a     # the static lib will be broken (see CFLAGS.SO)

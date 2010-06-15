@@ -1,0 +1,9 @@
+GL_NV_conditional_render
+http://www.opengl.org/registry/specs/NV/conditional_render.txt
+GL_NV_conditional_render
+	GL_QUERY_WAIT_NV 0x8E13
+	GL_QUERY_NO_WAIT_NV 0x8E14
+	GL_QUERY_BY_REGION_WAIT_NV 0x8E15
+	GL_QUERY_BY_REGION_NO_WAIT_NV 0x8E16
+	void glBeginConditionalRenderNV (GLuint id, GLenum mode)
+	void glEndConditionalRenderNV (void)

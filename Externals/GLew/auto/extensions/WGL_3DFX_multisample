@@ -1,0 +1,5 @@
+WGL_3DFX_multisample
+http://www.opengl.org/registry/specs/3DFX/3dfx_multisample.txt
+WGL_3DFX_multisample
+	WGL_SAMPLE_BUFFERS_3DFX 0x2060
+	WGL_SAMPLES_3DFX 0x2061

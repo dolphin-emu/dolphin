@@ -1,0 +1,7 @@
+GL_EXT_422_pixels
+http://www.opengl.org/registry/specs/EXT/422_pixels.txt
+GL_EXT_422_pixels
+	GL_422_EXT 0x80CC
+	GL_422_REV_EXT 0x80CD
+	GL_422_AVERAGE_EXT 0x80CE
+	GL_422_REV_AVERAGE_EXT 0x80CF

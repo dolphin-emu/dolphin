@@ -1,0 +1,9 @@
+WGL_I3D_digital_video_control
+http://www.opengl.org/registry/specs/I3D/wgl_digital_video_control.txt
+WGL_I3D_digital_video_control
+	WGL_DIGITAL_VIDEO_CURSOR_ALPHA_FRAMEBUFFER_I3D 0x2050
+	WGL_DIGITAL_VIDEO_CURSOR_ALPHA_VALUE_I3D 0x2051
+	WGL_DIGITAL_VIDEO_CURSOR_INCLUDED_I3D 0x2052
+	WGL_DIGITAL_VIDEO_GAMMA_CORRECTED_I3D 0x2053
+	BOOL wglGetDigitalVideoParametersI3D (HDC hDC, int iAttribute, int* piValue)
+	BOOL wglSetDigitalVideoParametersI3D (HDC hDC, int iAttribute, const int* piValue)

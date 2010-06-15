@@ -1,0 +1,9 @@
+WGL_OML_sync_control
+http://www.opengl.org/registry/specs/OML/wgl_sync_control.txt
+WGL_OML_sync_control
+	BOOL wglGetMscRateOML (HDC hdc, INT32* numerator, INT32 *denominator)
+	BOOL wglGetSyncValuesOML (HDC hdc, INT64* ust, INT64 *msc, INT64 *sbc)
+	INT64 wglSwapBuffersMscOML (HDC hdc, INT64 target_msc, INT64 divisor, INT64 remainder)
+	INT64 wglSwapLayerBuffersMscOML (HDC hdc, INT fuPlanes, INT64 target_msc, INT64 divisor, INT64 remainder)
+	BOOL wglWaitForMscOML (HDC hdc, INT64 target_msc, INT64 divisor, INT64 remainder, INT64* ust, INT64 *msc, INT64 *sbc)
+	BOOL wglWaitForSbcOML (HDC hdc, INT64 target_sbc, INT64* ust, INT64 *msc, INT64 *sbc)

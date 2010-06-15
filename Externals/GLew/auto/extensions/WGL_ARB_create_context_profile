@@ -1,0 +1,6 @@
+WGL_ARB_create_context_profile
+http://www.opengl.org/registry/specs/ARB/wgl_create_context.txt
+WGL_ARB_create_context_profile
+	WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
+	WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
+	WGL_CONTEXT_PROFILE_MASK_ARB 0x9126

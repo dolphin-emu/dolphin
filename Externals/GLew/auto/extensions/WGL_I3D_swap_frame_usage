@@ -1,0 +1,7 @@
+WGL_I3D_swap_frame_usage
+http://www.opengl.org/registry/specs/I3D/wgl_swap_frame_usage.txt
+WGL_I3D_swap_frame_usage
+	BOOL wglBeginFrameTrackingI3D (void)
+	BOOL wglEndFrameTrackingI3D (void)
+	BOOL wglGetFrameUsageI3D (float* pUsage)
+	BOOL wglQueryFrameTrackingI3D (DWORD* pFrameCount, DWORD *pMissedFrames, float *pLastMissedUsage)

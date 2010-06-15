@@ -1,0 +1,5 @@
+GLX_SGIS_multisample
+http://www.opengl.org/registry/specs/SGIS/multisample.txt
+GLX_SGIS_multisample
+	GLX_SAMPLE_BUFFERS_SGIS 100000
+	GLX_SAMPLES_SGIS 100001

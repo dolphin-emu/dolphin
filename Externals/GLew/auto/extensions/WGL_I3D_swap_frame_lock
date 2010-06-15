@@ -1,0 +1,7 @@
+WGL_I3D_swap_frame_lock
+http://www.opengl.org/registry/specs/I3D/wgl_swap_frame_lock.txt
+WGL_I3D_swap_frame_lock
+	BOOL wglDisableFrameLockI3D (VOID)
+	BOOL wglEnableFrameLockI3D (VOID)
+	BOOL wglIsEnabledFrameLockI3D (BOOL* pFlag)
+	BOOL wglQueryFrameLockMasterI3D (BOOL* pFlag)

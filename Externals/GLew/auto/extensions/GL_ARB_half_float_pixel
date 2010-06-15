@@ -1,0 +1,4 @@
+GL_ARB_half_float_pixel
+http://www.opengl.org/registry/specs/ARB/half_float_pixel.txt
+GL_ARB_half_float_pixel
+	GL_HALF_FLOAT_ARB 0x140B

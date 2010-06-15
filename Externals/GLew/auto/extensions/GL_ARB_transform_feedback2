@@ -1,0 +1,14 @@
+GL_ARB_transform_feedback2
+http://www.opengl.org/registry/specs/ARB/transform_feedback2.txt
+GL_ARB_transform_feedback2
+	GL_TRANSFORM_FEEDBACK 0x8E22
+	GL_TRANSFORM_FEEDBACK_BUFFER_PAUSED 0x8E23
+	GL_TRANSFORM_FEEDBACK_BUFFER_ACTIVE 0x8E24
+	GL_TRANSFORM_FEEDBACK_BINDING 0x8E25
+	void glBindTransformFeedback (GLenum target, GLuint id)
+	void glDeleteTransformFeedbacks (GLsizei n, const GLuint* ids)
+	void glDrawTransformFeedback (GLenum mode, GLuint id)
+	void glGenTransformFeedbacks (GLsizei n, GLuint* ids)
+	GLboolean glIsTransformFeedback (GLuint id)
+	void glPauseTransformFeedback (void)
+	void glResumeTransformFeedback (void)

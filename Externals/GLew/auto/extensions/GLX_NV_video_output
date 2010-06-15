@@ -1,0 +1,19 @@
+GLX_NV_video_output
+http://www.opengl.org/registry/specs/NV/glx_video_out.txt
+GLX_NV_video_output
+	GLX_VIDEO_OUT_COLOR_NV 0x20C3
+	GLX_VIDEO_OUT_ALPHA_NV 0x20C4
+	GLX_VIDEO_OUT_DEPTH_NV 0x20C5
+	GLX_VIDEO_OUT_COLOR_AND_ALPHA_NV 0x20C6
+	GLX_VIDEO_OUT_COLOR_AND_DEPTH_NV 0x20C7
+	GLX_VIDEO_OUT_FRAME_NV 0x20C8
+	GLX_VIDEO_OUT_FIELD_1_NV 0x20C9
+	GLX_VIDEO_OUT_FIELD_2_NV 0x20CA
+	GLX_VIDEO_OUT_STACKED_FIELDS_1_2_NV 0x20CB
+	GLX_VIDEO_OUT_STACKED_FIELDS_2_1_NV 0x20CC
+	int glXBindVideoImageNV (Display* dpy, GLXVideoDeviceNV VideoDevice, GLXPbuffer pbuf, int iVideoBuffer)
+	int glXGetVideoDeviceNV (Display* dpy, int screen, int numVideoDevices, GLXVideoDeviceNV *pVideoDevice)
+	int glXGetVideoInfoNV (Display* dpy, int screen, GLXVideoDeviceNV VideoDevice, unsigned long *pulCounterOutputPbuffer, unsigned long *pulCounterOutputVideo)
+	int glXReleaseVideoDeviceNV (Display* dpy, int screen, GLXVideoDeviceNV VideoDevice)
+	int glXReleaseVideoImageNV (Display* dpy, GLXPbuffer pbuf)
+	int glXSendPbufferToVideoNV (Display* dpy, GLXPbuffer pbuf, int iBufferType, unsigned long *pulCounterPbuffer, GLboolean bBlock)

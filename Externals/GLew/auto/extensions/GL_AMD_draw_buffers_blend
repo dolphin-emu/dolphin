@@ -1,0 +1,7 @@
+GL_AMD_draw_buffers_blend
+http://www.opengl.org/registry/specs/AMD/draw_buffers_blend.txt
+GL_AMD_draw_buffers_blend
+	void glBlendEquationIndexedAMD (GLuint buf, GLenum mode)
+	void glBlendEquationSeparateIndexedAMD (GLuint buf, GLenum modeRGB, GLenum modeAlpha)
+	void glBlendFuncIndexedAMD (GLuint buf, GLenum src, GLenum dst)
+	void glBlendFuncSeparateIndexedAMD (GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha)

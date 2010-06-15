@@ -1,0 +1,9 @@
+WGL_NV_swap_group
+http://www.opengl.org/registry/specs/NV/wgl_swap_group.txt
+WGL_NV_swap_group
+	BOOL wglBindSwapBarrierNV (GLuint group, GLuint barrier)
+	BOOL wglJoinSwapGroupNV (HDC hDC, GLuint group)
+	BOOL wglQueryFrameCountNV (HDC hDC, GLuint* count)
+	BOOL wglQueryMaxSwapGroupsNV (HDC hDC, GLuint* maxGroups, GLuint *maxBarriers)
+	BOOL wglQuerySwapGroupNV (HDC hDC, GLuint* group, GLuint *barrier)
+	BOOL wglResetFrameCountNV (HDC hDC)

@@ -1,0 +1,5 @@
+GL_SGIS_detail_texture
+http://www.opengl.org/registry/specs/SGIS/detail_texture.txt
+GL_SGIS_detail_texture
+	void glDetailTexFuncSGIS (GLenum target, GLsizei n, const GLfloat* points)
+	void glGetDetailTexFuncSGIS (GLenum target, GLfloat* points)

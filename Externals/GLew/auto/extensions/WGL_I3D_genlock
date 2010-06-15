@@ -1,0 +1,24 @@
+WGL_I3D_genlock
+http://www.opengl.org/registry/specs/I3D/wgl_genlock.txt
+WGL_I3D_genlock
+	WGL_GENLOCK_SOURCE_MULTIVIEW_I3D 0x2044
+	WGL_GENLOCK_SOURCE_EXTERNAL_SYNC_I3D 0x2045
+	WGL_GENLOCK_SOURCE_EXTERNAL_FIELD_I3D 0x2046
+	WGL_GENLOCK_SOURCE_EXTERNAL_TTL_I3D 0x2047
+	WGL_GENLOCK_SOURCE_DIGITAL_SYNC_I3D 0x2048
+	WGL_GENLOCK_SOURCE_DIGITAL_FIELD_I3D 0x2049
+	WGL_GENLOCK_SOURCE_EDGE_FALLING_I3D 0x204A
+	WGL_GENLOCK_SOURCE_EDGE_RISING_I3D 0x204B
+	WGL_GENLOCK_SOURCE_EDGE_BOTH_I3D 0x204C
+	BOOL wglDisableGenlockI3D (HDC hDC)
+	BOOL wglEnableGenlockI3D (HDC hDC)
+	BOOL wglGenlockSampleRateI3D (HDC hDC, UINT uRate)
+	BOOL wglGenlockSourceDelayI3D (HDC hDC, UINT uDelay)
+	BOOL wglGenlockSourceEdgeI3D (HDC hDC, UINT uEdge)
+	BOOL wglGenlockSourceI3D (HDC hDC, UINT uSource)
+	BOOL wglGetGenlockSampleRateI3D (HDC hDC, UINT* uRate)
+	BOOL wglGetGenlockSourceDelayI3D (HDC hDC, UINT* uDelay)
+	BOOL wglGetGenlockSourceEdgeI3D (HDC hDC, UINT* uEdge)
+	BOOL wglGetGenlockSourceI3D (HDC hDC, UINT* uSource)
+	BOOL wglIsEnabledGenlockI3D (HDC hDC, BOOL* pFlag)
+	BOOL wglQueryGenlockMaxSourceDelayI3D (HDC hDC, UINT* uMaxLineDelay, UINT *uMaxPixelDelay)

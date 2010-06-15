@@ -1,0 +1,18 @@
+GL_ARB_sampler_objects
+http://www.opengl.org/registry/specs/ARB/sampler_objects.txt
+GL_ARB_sampler_objects
+	GL_SAMPLER_BINDING 0x8919
+	void glBindSampler (GLuint unit, GLuint sampler)
+	void glDeleteSamplers (GLsizei count, const GLuint * samplers)
+	void glGenSamplers (GLsizei count, GLuint* samplers)
+	void glGetSamplerParameterIiv (GLuint sampler, GLenum pname, GLint* params)
+	void glGetSamplerParameterIuiv (GLuint sampler, GLenum pname, GLuint* params)
+	void glGetSamplerParameterfv (GLuint sampler, GLenum pname, GLfloat* params)
+	void glGetSamplerParameteriv (GLuint sampler, GLenum pname, GLint* params)
+	GLboolean glIsSampler (GLuint sampler)
+	void glSamplerParameterIiv (GLuint sampler, GLenum pname, const GLint* params)
+	void glSamplerParameterIuiv (GLuint sampler, GLenum pname, const GLuint* params)
+	void glSamplerParameterf (GLuint sampler, GLenum pname, GLfloat param)
+	void glSamplerParameterfv (GLuint sampler, GLenum pname, const GLfloat* params)
+	void glSamplerParameteri (GLuint sampler, GLenum pname, GLint param)
+	void glSamplerParameteriv (GLuint sampler, GLenum pname, const GLint* params)

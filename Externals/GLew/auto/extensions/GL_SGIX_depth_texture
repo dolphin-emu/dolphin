@@ -1,0 +1,6 @@
+GL_SGIX_depth_texture
+http://www.opengl.org/registry/specs/SGIX/depth_texture.txt
+GL_SGIX_depth_texture
+	GL_DEPTH_COMPONENT16_SGIX 0x81A5
+	GL_DEPTH_COMPONENT24_SGIX 0x81A6
+	GL_DEPTH_COMPONENT32_SGIX 0x81A7

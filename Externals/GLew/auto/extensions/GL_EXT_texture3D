@@ -1,0 +1,13 @@
+GL_EXT_texture3D
+http://www.opengl.org/registry/specs/EXT/texture3D.txt
+GL_EXT_texture3D
+	GL_PACK_SKIP_IMAGES_EXT 0x806B
+	GL_PACK_IMAGE_HEIGHT_EXT 0x806C
+	GL_UNPACK_SKIP_IMAGES_EXT 0x806D
+	GL_UNPACK_IMAGE_HEIGHT_EXT 0x806E
+	GL_TEXTURE_3D_EXT 0x806F
+	GL_PROXY_TEXTURE_3D_EXT 0x8070
+	GL_TEXTURE_DEPTH_EXT 0x8071
+	GL_TEXTURE_WRAP_R_EXT 0x8072
+	GL_MAX_3D_TEXTURE_SIZE_EXT 0x8073
+	void glTexImage3DEXT (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void* pixels)

@@ -1,0 +1,5 @@
+GL_WIN_phong_shading
+http://www.opengl.org/registry/specs/WIN/phong_shading.txt
+GL_WIN_phong_shading
+	GL_PHONG_WIN 0x80EA
+	GL_PHONG_HINT_WIN 0x80EB
