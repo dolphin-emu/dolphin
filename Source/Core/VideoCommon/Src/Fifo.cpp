@@ -148,7 +148,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		VideoFifo_CheckSwapRequest();
 
 		// check if we are able to run this buffer
-		while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance && (!_fifo.bFF_BPEnable || (_fifo.bFF_BPEnable && !_fifo.bFF_Breakpoint)))
+		while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance)
 		{
 			if (!fifoStateRun)
 				break;
@@ -165,7 +165,8 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			{
 				if ((readPtr <= _fifo.CPBreakpoint) && (readPtr + 32 > _fifo.CPBreakpoint))
 				{
-					Common::AtomicStore(_fifo.bFF_Breakpoint, 1);
+					Common::AtomicStore(_fifo.bFF_GPReadEnable, false);
+					Common::AtomicStore(_fifo.bFF_Breakpoint, true);
 					if (_fifo.bFF_BPInt)
 						CommandProcessor::UpdateInterruptsFromVideoPlugin();
 					CommandProcessor::FifoCriticalLeave();

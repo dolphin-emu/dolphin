@@ -122,7 +122,7 @@ void DoState(PointerWrap &p)
 {
 	p.Do(m_CPStatusReg);
 	p.Do(m_CPCtrlReg);
-	p.Do(m_CPClearReg);
+	//p.Do(m_CPClearReg);
 	p.Do(m_bboxleft);
 	p.Do(m_bboxtop);
 	p.Do(m_bboxright);
@@ -178,7 +178,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 	{
 	case STATUS_REGISTER:
 		m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
-		m_CPStatusReg.ReadIdle = fifo.bFF_Breakpoint || !fifo.CPReadWriteDistance || !fifo.bFF_GPReadEnable;
+		m_CPStatusReg.ReadIdle = !fifo.CPReadWriteDistance || !fifo.bFF_GPReadEnable;
 		m_CPStatusReg.CommandIdle = fifo.CPCmdIdle;
 		m_CPStatusReg.UnderflowLoWatermark = fifo.CPReadIdle;
 
@@ -333,6 +333,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		WARN_LOG(COMMANDPROCESSOR, "(r16) unknown CP reg @ %08x", _Address);
 		return;
 	}
+
 	return;
 }
 
@@ -340,40 +341,44 @@ void Write16(const u16 _Value, const u32 _Address)
 {
 	INFO_LOG(COMMANDPROCESSOR, "(write16): 0x%04x @ 0x%08x",_Value,_Address);
 
-	if (g_VideoInitialize.bOnThread)
-	{
-		// Force complete fifo flush if we attempt to set/reset the fifo (API GXSetGPFifo or equivalent)
-		// It's kind of an API hack but it works for lots of games... and I hope it's the same way for every games.
-		// TODO: HLE for GX fifo's APIs?
-		// Here is the hack:
-		// - if (attempt to overwrite CTRL_REGISTER by 0x0000)
-		//		// then we assume CPReadWriteDistance will be overwrited very soon.
-		//		- if (fifo is not empty)
-		//			// (not 100% sure): shouln't happen unless PPC think having trouble with the sync
-		//			// and it attempt a fifo recovery (look for PI_FIFO_RESET in log).
-		//			// If we want to emulate self fifo recovery we need proper GX metrics emulation... yeah sure :p
-		//			- spin until fifo is empty
-		// - else
-		//		- normal write16
-		if (((_Address&0xFFF) == CTRL_REGISTER) && (_Value == 0)) // API hack
-		{
-			// weird MP1 redo that right after linking fifo with GP... hmmm
-			//_dbg_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance == 0,
-			//	"WTF! Something went wrong with GP/PPC the sync! -> CPReadWriteDistance: 0x%08X\n"
-			//	" - The fifo is not empty but we are going to lock it anyway.\n"
-			//	" - \"Normaly\", this is due to fifo-hang-so-lets-attempt-recovery.\n"
-			//	" - The bad news is dolphin don't support special recovery features like GXfifo's metric yet.\n"
-			//	" - The good news is, the time you read that message, the fifo should be empty now :p\n"
-			//	" - Anyway, fifo flush will be forced if you press OK and dolphin might continue to work...\n"
-			//	" - We aren't betting on that :)", fifo.CPReadWriteDistance);
+	// Force complete fifo flush if we attempt to set/reset the fifo (API GXSetGPFifo or equivalent)
+	// It's kind of an API hack but it works for lots of games... and I hope it's the same way for every games.
+	// TODO: HLE for GX fifo's APIs?
+	// Here is the hack:
+	// - if (attempt to overwrite CTRL_REGISTER by 0x0000)
+	//		// then we assume CPReadWriteDistance will be overwrited very soon.
+	//		- if (fifo is not empty)
+	//			// (not 100% sure): shouln't happen unless PPC think having trouble with the sync
+	//			// and it attempt a fifo recovery (look for PI_FIFO_RESET in log).
+	//			// If we want to emulate self fifo recovery we need proper GX metrics emulation... yeah sure :p
+	//			- spin until fifo is empty
+	// - else
+	//		- normal write16
 
-			DEBUG_LOG(COMMANDPROCESSOR, "*********************** GXSetGPFifo very soon? ***********************");
-			// (mb2) We don't sleep here since it could be a perf issue for super monkey ball (yup only this game IIRC)
-			// Touching that game is a no-go so I don't want to take the risk :p
-			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && (!fifo.bFF_BPEnable || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
-			{
+	if (((_Address&0xFFF) == CTRL_REGISTER) && (_Value == 0)) // API hack
+	{
+		// weird MP1 redo that right after linking fifo with GP... hmmm
+		//_dbg_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance == 0,
+		//	"WTF! Something went wrong with GP/PPC the sync! -> CPReadWriteDistance: 0x%08X\n"
+		//	" - The fifo is not empty but we are going to lock it anyway.\n"
+		//	" - \"Normaly\", this is due to fifo-hang-so-lets-attempt-recovery.\n"
+		//	" - The bad news is dolphin don't support special recovery features like GXfifo's metric yet.\n"
+		//	" - The good news is, the time you read that message, the fifo should be empty now :p\n"
+		//	" - Anyway, fifo flush will be forced if you press OK and dolphin might continue to work...\n"
+		//	" - We aren't betting on that :)", fifo.CPReadWriteDistance);
+
+		DEBUG_LOG(COMMANDPROCESSOR, "*********************** GXSetGPFifo very soon? ***********************");
+		// (mb2) We don't sleep here since it could be a perf issue for super monkey ball (yup only this game IIRC)
+		// Touching that game is a no-go so I don't want to take the risk :p
+
+		if (g_VideoInitialize.bOnThread)
+		{
+			while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance)
 				s_fifoIdleEvent.Wait();
-			}
+		}
+		else
+		{
+			CatchUpGPU();
 		}
 	}
 
@@ -400,11 +405,11 @@ void Write16(const u16 _Value, const u32 _Address)
 			if (tmpCtrl.FifoOverflowIntEnable)
 				m_CPStatusReg.OverflowHiWatermark = false;
 
+			UpdateInterrupts();
+
 			fifo.bFF_BPInt = tmpCtrl.BPInt;
 			fifo.bFF_BPEnable = tmpCtrl.BPEnable;
 			fifo.bFF_GPReadEnable = tmpCtrl.GPReadEnable;
-
-			UpdateInterrupts();
 
 			INFO_LOG(COMMANDPROCESSOR,"\t Write to CTRL_REGISTER : %04x", _Value);
 			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | BP %s | Int %s | OvF %s | UndF %s | LINK %s"
@@ -513,7 +518,7 @@ void Write16(const u16 _Value, const u32 _Address)
 	// Super monkey try to overwrite CPReadWriteDistance by an old saved RWD value. Which is lame for us.
 	// hack: We have to force CPU to think fifo is alway empty and on idle.
 	// When we fall here CPReadWriteDistance should be always null and the game should always want to overwrite it by 0.
-	// So, we can skip it.
+	// To skip it, comment out the following write.
 	case FIFO_RW_DISTANCE_HI:
 		WriteHigh((u32 &)fifo.CPReadWriteDistance, _Value);
 		DEBUG_LOG(COMMANDPROCESSOR,"try to write to FIFO_RW_DISTANCE_HI : %04x", _Value);
@@ -557,7 +562,7 @@ bool AllowIdleSkipping()
 // if not then lock CPUThread until GP finish a frame.
 void WaitForFrameFinish()
 {
-	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && (!fifo.bFF_BPEnable || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
+	while ((fake_GPWatchdogLastToken == fifo.Fake_GPWDToken) && fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance)
 	{
 		s_fifoIdleEvent.Wait();
 	}
@@ -569,77 +574,39 @@ void STACKALIGN GatherPipeBursted()
 {
 	// if we aren't linked, we don't care about gather pipe data
 	if (!m_CPCtrlReg.GPLinkEnable)
+	{
+		if (!g_VideoInitialize.bOnThread)
+			CatchUpGPU();
+
 		return;
+	}
 
 	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance	<= fifo.CPEnd - fifo.CPBase,
 		"FIFO is overflown by GatherPipe !\nCPU thread is too fast, lower the HiWatermark may help.");
 
-
-	if (g_VideoInitialize.bOnThread)
-	{
-		// update the fifo-pointer
-        if (fifo.CPWritePointer >= fifo.CPEnd)
-			fifo.CPWritePointer = fifo.CPBase;
-        else
-		    fifo.CPWritePointer += GATHER_PIPE_SIZE;
-
-        Common::AtomicAdd(fifo.CPReadWriteDistance, GATHER_PIPE_SIZE);
-
-		// The interrupt latency in Dolphin is much longer than Hardware, so we must be more vigilant on Watermark
-		if (fifo.CPReadWriteDistance >= fifo.CPHiWatermark - 32 * 20)
-		{
-			m_CPStatusReg.OverflowHiWatermark = true;
-			if (m_CPCtrlReg.FifoOverflowIntEnable)
-				UpdateInterrupts();
-		}
-/*
-		// High watermark overflow handling (hacked way)
-		if (fifo.CPReadWriteDistance > fifo.CPHiWatermark)
-		{
-			// we should raise an Ov interrupt for an accurate fifo emulation and let PPC deal with it.
-			// But it slowdowns things because of if(interrupt blah blah){} blocks for each 32B fifo transactions.
-			// CPU would be a bit more loaded too by its interrupt handling...
-			// Eather way, CPU would have the ability to resume another thread.
-			// To be clear: this spin loop is like a critical section spin loop in the emulated GX thread hence "hacked way"
-
-			// Yes, in real life, the only purpose of the low watermark interrupt is just for cooling down OV contention.
-			// - @ game start -> watermark init: Overflow enabled, Underflow disabled
-			// - if (OV is raised)
-			//		- CPU stop to write to fifo
-			//		- enable Underflow interrupt (this only happens if OV is raised)
-			//		- do other things
-			// - if (Underflow is raised (implicite: AND if an OV has been raised))
-			//		- CPU can write to fifo
-			//		- disable Underflow interrupt
-
-			INFO_LOG(COMMANDPROCESSOR, "(GatherPipeBursted): CPHiWatermark (Hi: 0x%04x, Lo: 0x%04x) reached (RWDistance: 0x%04x)", fifo.CPHiWatermark, fifo.CPLoWatermark, fifo.CPReadWriteDistance);
-			// Wait for GPU to catch up
-			while (fifo.CPReadWriteDistance > fifo.CPLoWatermark && fifo.bFF_GPReadEnable && (!fifo.bFF_BPEnable || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
-			{
-				s_fifoIdleEvent.Wait();
-			}
-		}
-*/
-		// check if we are in sync
-		_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== *(g_VideoInitialize.Fifo_CPUWritePointer), "FIFOs linked but out of sync");
-		_assert_msg_(COMMANDPROCESSOR, fifo.CPBase			== *(g_VideoInitialize.Fifo_CPUBase), "FIFOs linked but out of sync");
-		_assert_msg_(COMMANDPROCESSOR, fifo.CPEnd			== *(g_VideoInitialize.Fifo_CPUEnd), "FIFOs linked but out of sync");
-	}
+	// update the fifo-pointer
+	if (fifo.CPWritePointer >= fifo.CPEnd)
+		fifo.CPWritePointer = fifo.CPBase;
 	else
-	{
-		if (fifo.CPWritePointer >= fifo.CPEnd)
-			fifo.CPWritePointer = fifo.CPBase;
-        else
-		    fifo.CPWritePointer += GATHER_PIPE_SIZE;
-		// check if we are in sync
-		_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== *(g_VideoInitialize.Fifo_CPUWritePointer), "FIFOs linked but out of sync");
-		_assert_msg_(COMMANDPROCESSOR, fifo.CPBase			== *(g_VideoInitialize.Fifo_CPUBase), "FIFOs linked but out of sync");
-		_assert_msg_(COMMANDPROCESSOR, fifo.CPEnd			== *(g_VideoInitialize.Fifo_CPUEnd), "FIFOs linked but out of sync");
+		fifo.CPWritePointer += GATHER_PIPE_SIZE;
 
-		fifo.CPReadWriteDistance += GATHER_PIPE_SIZE;
+	Common::AtomicAdd(fifo.CPReadWriteDistance, GATHER_PIPE_SIZE);
 
+	if (!g_VideoInitialize.bOnThread)
 		CatchUpGPU();
+
+	// The interrupt latency in Dolphin is much longer than Hardware, so we must be more vigilant on Watermark
+	if (fifo.CPReadWriteDistance >= fifo.CPHiWatermark - 32 * 20)
+	{
+		m_CPStatusReg.OverflowHiWatermark = true;
+		if (m_CPCtrlReg.FifoOverflowIntEnable)
+			UpdateInterrupts();
 	}
+
+	// check if we are in sync
+	_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== *(g_VideoInitialize.Fifo_CPUWritePointer), "FIFOs linked but out of sync");
+	_assert_msg_(COMMANDPROCESSOR, fifo.CPBase			== *(g_VideoInitialize.Fifo_CPUBase), "FIFOs linked but out of sync");
+	_assert_msg_(COMMANDPROCESSOR, fifo.CPEnd			== *(g_VideoInitialize.Fifo_CPUEnd), "FIFOs linked but out of sync");
 }
 
 // This is only used in single core mode
@@ -649,13 +616,14 @@ void CatchUpGPU()
 	u8 *ptr = Memory_GetPtr(fifo.CPReadPointer);
 
 	// check if we are able to run this buffer
-	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && (!fifo.bFF_BPEnable || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
+	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance)
 	{
 		// check if we are on a breakpoint
 		if (fifo.bFF_BPEnable && ((fifo.CPReadPointer <= fifo.CPBreakpoint) && (fifo.CPReadPointer + 32 > fifo.CPBreakpoint)))
 		{
 			//_assert_msg_(POWERPC,0,"BP: %08x",fifo.CPBreakpoint);
-			fifo.bFF_Breakpoint = 1;
+			Common::AtomicStore(fifo.bFF_GPReadEnable, false);
+			Common::AtomicStore(fifo.bFF_Breakpoint, true);
 			if (fifo.bFF_BPInt)
 				UpdateInterrupts();
 			break;
@@ -671,23 +639,22 @@ void CatchUpGPU()
 		// increase the ReadPtr
 		if (fifo.CPReadPointer >= fifo.CPEnd)
 		{
-			fifo.CPReadPointer = fifo.CPBase;
-			// adjust, take care
 			ptr -= fifo.CPReadPointer - fifo.CPBase;
-			DEBUG_LOG(COMMANDPROCESSOR, "Fifo Loop");
+			fifo.CPReadPointer = fifo.CPBase;
+			DEBUG_LOG(COMMANDPROCESSOR, "Fifo wraps to base");
 		}
 		else
 		{
-			fifo.CPReadPointer += 32;
 			ptr += 32;
+			fifo.CPReadPointer += 32;
 		}
 		fifo.CPReadWriteDistance -= 32;
 	}
 
-	if (fifo.CPReadWriteDistance >= fifo.CPHiWatermark)
+	if (!fifo.CPReadIdle && fifo.CPReadWriteDistance < fifo.CPLoWatermark)
 	{
-		m_CPStatusReg.OverflowHiWatermark = true;
-		if (m_CPCtrlReg.FifoOverflowIntEnable)
+		Common::AtomicStore(fifo.CPReadIdle, true);
+		if (m_CPCtrlReg.FifoUnderflowIntEnable)
 			UpdateInterrupts();
 	}
 }
