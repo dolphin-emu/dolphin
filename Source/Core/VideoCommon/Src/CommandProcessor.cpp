@@ -177,7 +177,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 	switch (_Address & 0xFFF)
 	{
 	case STATUS_REGISTER:
-		m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint && fifo.bFF_BPInt;
+		m_CPStatusReg.Breakpoint = fifo.bFF_Breakpoint;
 		m_CPStatusReg.ReadIdle = fifo.bFF_Breakpoint || !fifo.CPReadWriteDistance || !fifo.bFF_GPReadEnable;
 		m_CPStatusReg.CommandIdle = fifo.CPCmdIdle;
 		m_CPStatusReg.UnderflowLoWatermark = fifo.CPReadIdle;
@@ -186,6 +186,7 @@ void Read16(u16& _rReturnValue, const u32 _Address)
 		//m_CPStatusReg.ReadIdle = 1;
 		//m_CPStatusReg.CommandIdle = 1;
 
+		INFO_LOG(COMMANDPROCESSOR,"\t Read from STATUS_REGISTER : %04x", m_CPStatusReg.Hex);
 		DEBUG_LOG(COMMANDPROCESSOR, "(r) status: iBP %s | fReadIdle %s | fCmdIdle %s | iOvF %s | iUndF %s"
 			, m_CPStatusReg.Breakpoint ?			"ON" : "OFF"
 			, m_CPStatusReg.ReadIdle ?				"ON" : "OFF"
@@ -391,8 +392,7 @@ void Write16(const u16 _Value, const u32 _Address)
 			UCPCtrlReg tmpCtrl(_Value);
 			m_CPCtrlReg.Hex = tmpCtrl.Hex;
 
-			if (!tmpCtrl.BPEnable)
-				Common::AtomicStore(fifo.bFF_Breakpoint, false);
+			Common::AtomicStore(fifo.bFF_Breakpoint, false);
 
 			if (tmpCtrl.FifoUnderflowIntEnable)
 				Common::AtomicStore(fifo.CPReadIdle, false);
@@ -406,7 +406,7 @@ void Write16(const u16 _Value, const u32 _Address)
 
 			UpdateInterrupts();
 
-			INFO_LOG(COMMANDPROCESSOR,"\t write to CTRL_REGISTER : %04x", _Value);
+			INFO_LOG(COMMANDPROCESSOR,"\t Write to CTRL_REGISTER : %04x", _Value);
 			DEBUG_LOG(COMMANDPROCESSOR, "\t GPREAD %s | BP %s | Int %s | OvF %s | UndF %s | LINK %s"
 				, fifo.bFF_GPReadEnable ?				"ON" : "OFF"
 				, fifo.bFF_BPEnable ?					"ON" : "OFF"
@@ -498,10 +498,15 @@ void Write16(const u16 _Value, const u32 _Address)
 
 	case FIFO_BP_LO:
 		WriteLow ((u32 &)fifo.CPBreakpoint,     _Value);
+// Ayuanx: What if BP is not aligned ...
+//		WriteLow ((u32 &)fifo.CPBreakpoint,     (_Value + 31) & 0xFFE0);
 		DEBUG_LOG(COMMANDPROCESSOR,"write to FIFO_BP_LO : %04x", _Value);
 		break;
 	case FIFO_BP_HI:
 		WriteHigh((u32 &)fifo.CPBreakpoint,     _Value);
+// Ayuanx: If it is set at the very end, it would never be achieved ...
+//		if (fifo.CPBreakpoint == fifo.CPEnd + 32)
+//			fifo.CPBreakpoint = fifo.CPBase;
 		DEBUG_LOG(COMMANDPROCESSOR,"write to FIFO_BP_HI : %04x", _Value);
 		break;
 
