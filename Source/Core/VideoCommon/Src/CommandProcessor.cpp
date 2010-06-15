@@ -158,7 +158,7 @@ void Init()
 
 	memset(&fifo,0,sizeof(fifo));
 	fifo.CPCmdIdle  = 1 ;
-	fifo.CPReadIdle = 1;
+	fifo.CPReadIdle = 1;	// We use it as UnderFlow flag now, otherwise we need a new volatile variable
 	fifo.bFF_Breakpoint = 0;
 
 	s_fifoIdleEvent.Init();
@@ -394,6 +394,12 @@ void Write16(const u16 _Value, const u32 _Address)
 			if (!tmpCtrl.BPEnable)
 				Common::AtomicStore(fifo.bFF_Breakpoint, false);
 
+			if (tmpCtrl.FifoUnderflowIntEnable)
+				Common::AtomicStore(fifo.CPReadIdle, false);
+
+			if (tmpCtrl.FifoOverflowIntEnable)
+				m_CPStatusReg.OverflowHiWatermark = false;
+
 			fifo.bFF_BPInt = tmpCtrl.BPInt;
 			fifo.bFF_BPEnable = tmpCtrl.BPEnable;
 			fifo.bFF_GPReadEnable = tmpCtrl.GPReadEnable;
@@ -560,10 +566,13 @@ void STACKALIGN GatherPipeBursted()
 	if (!m_CPCtrlReg.GPLinkEnable)
 		return;
 
+	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance	< fifo.CPEnd - fifo.CPBase, "FIFO is overflown by GatherPipe !");
+
+
 	if (g_VideoInitialize.bOnThread)
 	{
 		// update the fifo-pointer
-        if (fifo.CPWritePointer + GATHER_PIPE_SIZE >= fifo.CPEnd)
+        if (fifo.CPWritePointer >= fifo.CPEnd)
 			fifo.CPWritePointer = fifo.CPBase;
         else
 		    fifo.CPWritePointer += GATHER_PIPE_SIZE;
@@ -611,7 +620,7 @@ void STACKALIGN GatherPipeBursted()
 	}
 	else
 	{
-		if (fifo.CPWritePointer + GATHER_PIPE_SIZE >= fifo.CPEnd)
+		if (fifo.CPWritePointer >= fifo.CPEnd)
 			fifo.CPWritePointer = fifo.CPBase;
         else
 		    fifo.CPWritePointer += GATHER_PIPE_SIZE;
@@ -636,7 +645,7 @@ void CatchUpGPU()
 	while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && (!fifo.bFF_BPEnable || (fifo.bFF_BPEnable && !fifo.bFF_Breakpoint)))
 	{
 		// check if we are on a breakpoint
-		if (fifo.bFF_BPEnable && fifo.CPReadPointer == fifo.CPBreakpoint)
+		if (fifo.bFF_BPEnable && ((fifo.CPReadPointer <= fifo.CPBreakpoint) && (fifo.CPReadPointer + 32 > fifo.CPBreakpoint)))
 		{
 			//_assert_msg_(POWERPC,0,"BP: %08x",fifo.CPBreakpoint);
 			fifo.bFF_Breakpoint = 1;
@@ -653,7 +662,7 @@ void CatchUpGPU()
 		LoadSSEState();
 
 		// increase the ReadPtr
-		if (fifo.CPReadPointer + 32 >= fifo.CPEnd)
+		if (fifo.CPReadPointer >= fifo.CPEnd)
 		{
 			fifo.CPReadPointer = fifo.CPBase;
 			// adjust, take care
