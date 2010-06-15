@@ -571,7 +571,8 @@ void STACKALIGN GatherPipeBursted()
 	if (!m_CPCtrlReg.GPLinkEnable)
 		return;
 
-	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance	< fifo.CPEnd - fifo.CPBase, "FIFO is overflown by GatherPipe !");
+	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance	<= fifo.CPEnd - fifo.CPBase,
+		"FIFO is overflown by GatherPipe !\nCPU thread is too fast, lower the HiWatermark may help.");
 
 
 	if (g_VideoInitialize.bOnThread)
@@ -584,7 +585,8 @@ void STACKALIGN GatherPipeBursted()
 
         Common::AtomicAdd(fifo.CPReadWriteDistance, GATHER_PIPE_SIZE);
 
-		if (fifo.CPReadWriteDistance >= fifo.CPHiWatermark)
+		// The interrupt latency in Dolphin is much longer than Hardware, so we must be more vigilant on Watermark
+		if (fifo.CPReadWriteDistance >= fifo.CPHiWatermark - 32 * 20)
 		{
 			m_CPStatusReg.OverflowHiWatermark = true;
 			if (m_CPCtrlReg.FifoOverflowIntEnable)
