@@ -18,12 +18,12 @@
 #include "IndexGenerator.h"
 
 /*
-*	
+*
 QUAD simulator
 
-0   2   4   6  
+0   2   4   6
 1   3   5   7
-021231 243453 
+021231 243453
 */
 
 //Init
@@ -36,7 +36,7 @@ u16 *IndexGenerator::BASEPptr = 0;
 int IndexGenerator::numT = 0;
 int IndexGenerator::numL = 0;
 int IndexGenerator::numP = 0;
-int IndexGenerator::index = 0;	
+int IndexGenerator::index = 0;
 int IndexGenerator::Tadds = 0;
 int IndexGenerator::Ladds = 0;
 int IndexGenerator::Padds = 0;
@@ -45,7 +45,7 @@ IndexGenerator::IndexPrimitiveType IndexGenerator::LastLPrimitive = Prim_None;
 bool IndexGenerator::used = false;
 
 void IndexGenerator::Start(u16 *Triangleptr,u16 *Lineptr,u16 *Pointptr)
-{	
+{
 	Tptr = Triangleptr;
 	Lptr = Lineptr;
 	Pptr = Pointptr;
@@ -67,7 +67,7 @@ void IndexGenerator::AddList(int numVerts)
 {
 	//if we have no vertices return
 	if(numVerts <= 0) return;
-	int numTris = numVerts / 3;	
+	int numTris = numVerts / 3;
 	if (!numTris)
 	{
 		//if we have less than 3 verts
@@ -84,7 +84,7 @@ void IndexGenerator::AddList(int numVerts)
 			*Tptr++ = index;
 			*Tptr++ = index+1;
 			*Tptr++ = index;
-		}		
+		}
 	}
 	else
 	{
@@ -130,7 +130,7 @@ void IndexGenerator::AddStrip(int numVerts)
 		//if we have less than 3 verts
 		if(numVerts == 1)
 		{
-			//dicard
+			// discard
 			index++;
 			return;
 		}
@@ -156,7 +156,7 @@ void IndexGenerator::AddStrip(int numVerts)
 	}
 	index += numVerts;
 	numT += numTris;
-	Tadds++;	
+	Tadds++;
 	LastTPrimitive = Prim_Strip;
 }
 void IndexGenerator::AddFan(int numVerts)
@@ -192,7 +192,7 @@ void IndexGenerator::AddFan(int numVerts)
 	}	
 	index += numVerts;
 	numT += numTris;
-	Tadds++;	
+	Tadds++;
 	LastTPrimitive = Prim_Fan;
 }
 
@@ -270,7 +270,7 @@ void IndexGenerator::AddQuads(int numVerts)
 	}
 	index += numVerts;
 	numT += numTris;
-	Tadds++;	
+	Tadds++;
 	LastTPrimitive = Prim_List;
 }
 
@@ -324,7 +324,7 @@ void IndexGenerator::AddLineStrip(int numVerts)
 	}
 	index += numVerts;
 	numL += numLines;
-	Ladds++;	
+	Ladds++;
 	LastLPrimitive = Prim_Strip;
 }
 
@@ -335,15 +335,9 @@ void IndexGenerator::AddPoints(int numVerts)
 {
 	for (int i = 0; i < numVerts; i++)
 	{
-		*Pptr++ = index+i;		
+		*Pptr++ = index+i;
 	}
 	index += numVerts;
 	numP += numVerts;
 	Padds++;
 }
-
-
-
-
-	
-

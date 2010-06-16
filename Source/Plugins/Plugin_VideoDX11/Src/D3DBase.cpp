@@ -294,7 +294,7 @@ HRESULT Create(HWND wnd)
 	{
 		// try using the first one
 		hr = factory->EnumAdapters(0, &adapter);
-		if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate adapter"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
+		if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate adapters"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
 	}
 
 	// TODO: Make this configurable
@@ -303,7 +303,7 @@ HRESULT Create(HWND wnd)
 	{
 		// try using the first one
 		hr = adapter->EnumOutputs(0, &output);
-		if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate output"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
+		if (FAILED(hr)) MessageBox(wnd, _T("Failed to enumerate outputs"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
 	}
 
 	// this will need to be changed once multisampling gets implemented

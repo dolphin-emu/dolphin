@@ -102,7 +102,7 @@ void AddIndices(int _primitive, int _numVertices)
 
 int GetRemainingSize()
 {
-	return  MAXVBUFFERSIZE - (int)(s_pCurBufferPointer - LocalVBuffer);
+	return MAXVBUFFERSIZE - (int)(s_pCurBufferPointer - LocalVBuffer);
 }
 
 int GetRemainingVertices(int primitive)

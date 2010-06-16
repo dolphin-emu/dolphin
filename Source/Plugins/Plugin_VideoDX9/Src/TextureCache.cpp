@@ -354,6 +354,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	DEBUGGER_PAUSE_LOG_AT(NEXT_NEW_TEXTURE,true,{printf("A new texture (%d x %d) is loaded", width, height);});
 	return &entry;
 }
+
 void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source_rect)
 {
 	int efb_w = source_rect.GetWidth();
@@ -417,7 +418,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		{
 			case 0: // Z4
 			case 1: // Z8
-				colmat[0] = colmat[4] = colmat[8] = colmat[12] =1.0f;
+				colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1.0f;
 				break;
 			case 3: // Z16 //?
 				colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;

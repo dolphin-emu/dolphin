@@ -68,8 +68,8 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 	// TODO: Merge the conversions done here to VideoDecoder
 	switch (pcfmt)
 	{
-		case PC_TEX_FMT_IA4_AS_IA8:
 		case PC_TEX_FMT_IA8:
+		case PC_TEX_FMT_IA4_AS_IA8:
 			for (unsigned int y = 0; y < height; y++)
 			{
 				u16* in = (u16*)buffer + y * pitch;
@@ -78,43 +78,30 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 				{
 					const u8 I = (*in & 0xFF);
 					const u8 A = (*in & 0xFF00) >> 8;
-					*pBits = (A << 24) | (I << 16) | (I << 8) | I;
+					*(pBits++) = (A << 24) | (I << 16) | (I << 8) | I;
 					in++;
-					pBits++;
 				}
 			}
 			break;
 		case PC_TEX_FMT_I8:
 		case PC_TEX_FMT_I4_AS_I8:
+			for (unsigned int y = 0; y < height; y++)
 			{
-				const u8 *pIn = buffer;
-				for (int y = 0; y < height; y++)
+				const u8* in = buffer + (y * pitch);
+				u32* pBits = (u32*)((u8*)outptr + (y * destPitch));
+				for(unsigned int i = 0; i < width; i++)
 				{
-					u8* pBits = ((u8*)outptr + (y * destPitch));
-					for(int i = 0; i < width * 4; i += 4) 
-					{
-						pBits[i] = pIn[i / 4];
-						pBits[i+1] = pIn[i / 4];
-						pBits[i+2] = pIn[i / 4];
-						pBits[i + 3] = pIn[i / 4];
-					}
-					pIn += pitch;
+					const u8 I = *(in++);
+					memset( pBits++, I, 4 );
 				}
 			}
-			
 			break;
 		case PC_TEX_FMT_BGRA32:
 			for (unsigned int y = 0; y < height; y++)
 			{
 				u32* in = (u32*)buffer + y * pitch;
 				u32* pBits = (u32*)((u8*)outptr + y * destPitch);
-				for (unsigned int x = 0; x < width; x++)
-				{
-					const u32 col = *in;
-					*pBits = col;
-					in++;
-					pBits++;
-				}
+				memcpy( pBits, in, destPitch );
 			}
 			break;
 		case PC_TEX_FMT_RGB565:
@@ -125,13 +112,11 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 				for (unsigned int x = 0; x < width; x++)
 				{
 					// we can't simply shift here, since e.g. 11111 must map to 11111111 and not 11111000
-					const u16 col = *in;
-					*pBits = 0xFF000000 | // alpha
+					const u16 col = *(in++);
+					*(pBits++) = 0xFF000000 | // alpha
 							((((col&0xF800) << 5) * 255 / 31) & 0xFF0000) | // red
 							((((col& 0x7e0) << 3) * 255 / 63) & 0xFF00) |   // green
 							(( (col&  0x1f)       * 255 / 31));             // blue
-					pBits++;
-					in++;
 				}
 			}
 			break;

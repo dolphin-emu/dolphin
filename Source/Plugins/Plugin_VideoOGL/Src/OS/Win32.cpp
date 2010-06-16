@@ -147,6 +147,7 @@ HWND GetWnd()
 {
 	return m_hWnd;
 }
+
 HWND GetParentWnd()
 {
 	return m_hParent;
@@ -304,7 +305,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	return 0;
 	
 }
-
 
 // This is called from Create()
 HWND OpenWindow(HWND parent, HINSTANCE hInstance, int width, int height, const TCHAR *title)

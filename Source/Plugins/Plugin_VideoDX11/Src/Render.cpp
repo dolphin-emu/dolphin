@@ -183,7 +183,7 @@ static const D3D11_BLEND d3dLogicOpDestFactors[16] =
 	D3D11_BLEND_ONE//15
 };
 
-static const D3D11_CULL_MODE d3dCullModes[4] = 
+static const D3D11_CULL_MODE d3dCullModes[4] =
 {
 	D3D11_CULL_NONE,
 	D3D11_CULL_BACK,
@@ -191,7 +191,7 @@ static const D3D11_CULL_MODE d3dCullModes[4] =
 	D3D11_CULL_BACK
 };
 
-static const D3D11_COMPARISON_FUNC d3dCmpFuncs[8] = 
+static const D3D11_COMPARISON_FUNC d3dCmpFuncs[8] =
 {
 	D3D11_COMPARISON_NEVER,
 	D3D11_COMPARISON_LESS,
@@ -206,7 +206,7 @@ static const D3D11_COMPARISON_FUNC d3dCmpFuncs[8] =
 #define TEXF_NONE   0
 #define TEXF_POINT  1
 #define TEXF_LINEAR 2
-static const unsigned int d3dMipFilters[4] = 
+static const unsigned int d3dMipFilters[4] =
 {
 	TEXF_NONE,
 	TEXF_POINT,
@@ -504,7 +504,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	VideoFifo_CheckEFBAccess();
 	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
 	FBManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
-	XFBWrited = true;	
+	XFBWrited = true;
 
 	// XXX: Without the VI, how would we know what kind of field this is? So
 	// just use progressive.
@@ -574,7 +574,7 @@ bool Renderer::SetScissorRect()
 	return false;
 }
 
-void Renderer::SetColorMask() 
+void Renderer::SetColorMask()
 {
 	UINT8 color_mask = 0;
 	if (bpmem.blendmode.alphaupdate) color_mask |= D3D11_COLOR_WRITE_ENABLE_ALPHA;
@@ -729,7 +729,7 @@ void UpdateViewport()
 		FBManager.Destroy();
 		FBManager.Create();
 		D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
-	}	
+	}
 
 	// some games set invalids values MinDepth and MaxDepth so fix them to the max an min allowed and let the shaders do this work
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)X, (float)Y, (float)Width, (float)Height,
@@ -739,16 +739,16 @@ void UpdateViewport()
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
-{	
+{
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
 	// update the view port for clearing the picture
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)targetRc.left, (float)targetRc.top, (float)targetRc.GetWidth(), (float)targetRc.GetHeight(),
-										0.f,    
+										0.f, 
 										1.f); 
 	D3D::context->RSSetViewports(1, &vp);
 	// always set the scissor in case it was set by the game and has not been reset
 	// TODO: Do we really need to set the scissor rect? Why not just disable scissor testing?
-	D3D11_RECT sirc = CD3D11_RECT(targetRc.left, targetRc.top, targetRc.right, targetRc.bottom);	
+	D3D11_RECT sirc = CD3D11_RECT(targetRc.left, targetRc.top, targetRc.right, targetRc.bottom);
 	D3D::context->RSSetScissorRects(1, &sirc);
 	D3D::context->OMSetDepthStencilState(cleardepthstates[zEnable], 0);
 	D3D::context->RSSetState(clearraststate);
@@ -807,7 +807,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.bUseRealXFB) || !fbWidth || !fbHeight)
 	{
-		g_VideoInitialize.pCopiedToXFB(false);		
+		g_VideoInitialize.pCopiedToXFB(false);
 		return;
 	}
 	// this function is called after the XFB field is changed, not after
@@ -819,9 +819,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	const XFBSource** xfbSourceList = FBManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
 	if (!xfbSourceList || xfbCount == 0)
 	{
-		g_VideoInitialize.pCopiedToXFB(false);	
+		g_VideoInitialize.pCopiedToXFB(false);
 		return;
-	}	
+	}
 
 	Renderer::ResetAPIState();
 	// set the backbuffer as the rendering target
@@ -857,13 +857,13 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// draw each xfb source
 	for (u32 i = 0; i < xfbCount; ++i)
 	{
-		xfbSource = xfbSourceList[i];	
+		xfbSource = xfbSourceList[i];
 
 		MathUtil::Rectangle<float> sourceRc;
 		sourceRc.left = 0;
 		sourceRc.top = 0;
 		sourceRc.right = xfbSource->texWidth;
-		sourceRc.bottom = xfbSource->texHeight;		
+		sourceRc.bottom = xfbSource->texHeight;
 
 		MathUtil::Rectangle<float> drawRc;
 		drawRc.top = -1;
@@ -1011,7 +1011,7 @@ void Renderer::SetDepthMode()
 
 void Renderer::SetLogicOpMode()
 {
-	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3) 
+	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
 	{
 		s_blendMode = 0;
 		D3D::gfxstate->SetAlphaBlendEnable(true);
@@ -1037,7 +1037,7 @@ void Renderer::SetLineWidth()
 
 void Renderer::SetSamplerState(int stage, int texindex)
 {
-	const FourTexUnits &tex = bpmem.tex[texindex];	
+	const FourTexUnits &tex = bpmem.tex[texindex];
 	const TexMode0 &tm0 = tex.texMode0[stage];
 	const TexMode1 &tm1 = tex.texMode1[stage];
 	
@@ -1045,7 +1045,7 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	mip = (tm0.min_filter == 8) ? TEXF_NONE:d3dMipFilters[tm0.min_filter & 3];
 	if ((tm0.min_filter & 3) && (tm0.min_filter != 8) && ((tm1.max_lod >> 4) == 0)) mip = TEXF_NONE;
 
-	if (texindex) stage += 4;	
+	if (texindex) stage += 4;
 
 	// TODO: Clarify whether these values are correct
 	// NOTE: since there's no "no filter" in DX11 we're using point filters in these cases

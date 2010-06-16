@@ -144,7 +144,7 @@ bool TextureCache::TCacheEntry::IntersectsMemoryRange(u32 range_address, u32 ran
 void TextureCache::Shutdown()
 {
 	Invalidate(true);
-	FreeMemoryPages(temp, TEMP_SIZE);	
+	FreeMemoryPages(temp, TEMP_SIZE);
 	temp = NULL;
 
 	SAFE_RELEASE(efbcopyblendstate);
@@ -167,8 +167,8 @@ void TextureCache::Cleanup()
 		}
 		else
 		{
-            iter++;
-        }
+			iter++;
+		}
 	}
 }
 
@@ -215,7 +215,7 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 		}
 		else
 		{
-            // Let's reload the new texture data into the same texture,
+			// Let's reload the new texture data into the same texture,
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
 
@@ -281,7 +281,7 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 		if (entry.texture == NULL) PanicAlert("Failed to create texture at %s %d\n", __FILE__, __LINE__);
 		D3D::ReplaceTexture2D(entry.texture->GetTex(), temp, width, height, expandedWidth, d3d_fmt, pcfmt, 0, usage);
 	}
-	else 
+	else
 	{
 		D3D::ReplaceTexture2D(entry.texture->GetTex(), temp, width, height, expandedWidth, d3d_fmt, pcfmt, 0, usage);
 	}
@@ -329,8 +329,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	int tex_w = (abs(source_rect.GetWidth()) >> bScaleByHalf);
 	int tex_h = (abs(source_rect.GetHeight()) >> bScaleByHalf);
 
-	int Scaledtex_w = (g_ActiveConfig.bCopyEFBScaled)?((int)(Renderer::GetTargetScaleX() * tex_w)):tex_w;
-	int Scaledtex_h = (g_ActiveConfig.bCopyEFBScaled)?((int)(Renderer::GetTargetScaleY() * tex_h)):tex_h;
+	int Scaledtex_w = (g_ActiveConfig.bCopyEFBScaled) ? ((int)(Renderer::GetTargetScaleX() * tex_w)) : tex_w;
+	int Scaledtex_h = (g_ActiveConfig.bCopyEFBScaled) ? ((int)(Renderer::GetTargetScaleY() * tex_h)) : tex_h;
 
 	TexCache::iterator iter;
 	D3DTexture2D* tex = NULL;
@@ -372,135 +372,135 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	unsigned int cbufid = (unsigned int)-1;
 
 	// TODO: Move this to TextureCache::Init()
-	if (bFromZBuffer) 
+	if (bFromZBuffer)
 	{
-		switch(copyfmt) 
+		switch(copyfmt)
 		{
-            case 0: // Z4
-            case 1: // Z8
-                colmat[0] = colmat[4] = colmat[8] = colmat[12] =1.0f;
+			case 0: // Z4
+			case 1: // Z8
+				colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1.0f;
 				cbufid = 12;
-                break;
-            case 3: // Z16 //?
-                colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;
+				break;
+			case 3: // Z16 //?
+				colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;
 				cbufid = 13;
-            case 11: // Z16 (reverse order)
-                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
+			case 11: // Z16 (reverse order)
+				colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
 				cbufid = 14;
-                break;
-            case 6: // Z24X8
-                colmat[0] = colmat[5] = colmat[10] = 1.0f;
+				break;
+			case 6: // Z24X8
+				colmat[0] = colmat[5] = colmat[10] = 1.0f;
 				cbufid = 15;
-                break;
-            case 9: // Z8M
-                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
+				break;
+			case 9: // Z8M
+				colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
 				cbufid = 16;
-                break;
-            case 10: // Z8L
-                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
+				break;
+			case 10: // Z8L
+				colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
 				cbufid = 17;
-                break;
-            case 12: // Z16L
-                colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1.0f;
+				break;
+			case 12: // Z16L
+				colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1.0f;
 				cbufid = 18;
-                break;
-            default:
-                ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", copyfmt);
-                colmat[2] = colmat[5] = colmat[8] = 1.0f;
+				break;
+			default:
+				ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", copyfmt);
+				colmat[2] = colmat[5] = colmat[8] = 1.0f;
 				cbufid = 19;
-                break;
-        }
-    }
-    else if (bIsIntensityFmt) 
+				break;
+		}
+	}
+	else if (bIsIntensityFmt) 
 	{
-        colmat[16] = colmat[17] = colmat[18] = 16.0f/255.0f;
-        switch (copyfmt) 
+		colmat[16] = colmat[17] = colmat[18] = 16.0f/255.0f;
+		switch (copyfmt) 
 		{
-            case 0: // I4
-            case 1: // I8
-            case 2: // IA4
-            case 3: // IA8
+			case 0: // I4
+			case 1: // I8
+			case 2: // IA4
+			case 3: // IA8
 				// TODO - verify these coefficients
-                colmat[0] = 0.257f; colmat[1] = 0.504f; colmat[2] = 0.098f;
-                colmat[4] = 0.257f; colmat[5] = 0.504f; colmat[6] = 0.098f;
-                colmat[8] = 0.257f; colmat[9] = 0.504f; colmat[10] = 0.098f;
+				colmat[0] = 0.257f; colmat[1] = 0.504f; colmat[2] = 0.098f;
+				colmat[4] = 0.257f; colmat[5] = 0.504f; colmat[6] = 0.098f;
+				colmat[8] = 0.257f; colmat[9] = 0.504f; colmat[10] = 0.098f;
 
-                if (copyfmt < 2) 
+				if (copyfmt < 2) 
 				{
-                    colmat[19] = 16.0f / 255.0f;
-                    colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
+					colmat[19] = 16.0f / 255.0f;
+					colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
 					cbufid = 0;
-                }
-                else// alpha
+				}
+				else// alpha
 				{
-                    colmat[15] = 1;
+					colmat[15] = 1;
 					cbufid = 1;
 				}
 
-                break;
-            default:
-                ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", copyfmt);
-                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
-                break;
-        }
-    }
-    else 
+				break;
+			default:
+				ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", copyfmt);
+				colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+				break;
+		}
+	}
+	else
 	{
-        switch (copyfmt) 
+		switch (copyfmt) 
 		{
-            case 0: // R4
-            case 8: // R8
-                colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
+			case 0: // R4
+			case 8: // R8
+				colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
 				cbufid = 2;
-                break;
-            case 2: // RA4
-            case 3: // RA8
-                colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1;
+				break;
+			case 2: // RA4
+			case 3: // RA8
+				colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1;
 				cbufid = 3;
-                break;
+				break;
 
-            case 7: // A8
-                colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1; 
+			case 7: // A8
+				colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1; 
 				cbufid = 4;
-                break;
-            case 9: // G8
-                colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
+				break;
+			case 9: // G8
+				colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
 				cbufid = 5;
-                break;
-            case 10: // B8
-                colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
+				break;
+			case 10: // B8
+				colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
 				cbufid = 6;
-                break;
-            case 11: // RG8
-                colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
+				break;
+			case 11: // RG8
+				colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
 				cbufid = 7;
-                break;
-            case 12: // GB8
-                colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
+				break;
+			case 12: // GB8
+				colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
 				cbufid = 8;
-                break;
+				break;
 
-            case 4: // RGB565
-                colmat[0] = colmat[5] = colmat[10] = 1;
-                colmat[19] = 1; // set alpha to 1
+			case 4: // RGB565
+				colmat[0] = colmat[5] = colmat[10] = 1;
+				colmat[19] = 1; // set alpha to 1
 				cbufid = 9;
-                break;
-            case 5: // RGB5A3
-            case 6: // RGBA8
-                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+				break;
+			case 5: // RGB5A3
+			case 6: // RGBA8
+				colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
 				cbufid = 10;
-                break;
+				break;
 
-            default:
-                ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", copyfmt);
-                colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+			default:
+				ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", copyfmt);
+				colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
 				cbufid = 11;
-                break;
-        }
-    }
+				break;
+		}
+	}
 
-    Renderer::ResetAPIState(); // reset any game specific settings
-    
+	Renderer::ResetAPIState(); // reset any game specific settings
+	
 	// stretch picture with increased internal resolution
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)Scaledtex_w, (float)Scaledtex_h);
 	D3D::context->RSSetViewports(1, &vp);

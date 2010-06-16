@@ -36,7 +36,7 @@ BEGIN_EVENT_TABLE(GFXDebuggerOGL,wxDialog)
 END_EVENT_TABLE()
 
 GFXDebuggerOGL::GFXDebuggerOGL(wxWindow *parent, wxWindowID id, const wxString &title,
-				   const wxPoint &position, const wxSize& size, long style)
+					const wxPoint &position, const wxSize& size, long style)
 	: wxDialog(parent, id, title, position, size, style)
 {
 	CreateGUIControls();
@@ -72,7 +72,7 @@ void GFXDebuggerOGL::SaveSettings() const
 	// weird values, perhaps because of some conflict with the rendering window
 	// TODO: get the screen resolution and make limits from that
 	if (GetPosition().x < 1000 && GetPosition().y < 1000
-		                       && GetSize().GetWidth() < 1000 
+							   && GetSize().GetWidth() < 1000 
 							   && GetSize().GetHeight() < 1000)
 	{
 		file.Set("VideoWindow", "x", GetPosition().x);
@@ -137,7 +137,7 @@ void GFXDebuggerOGL::CreateGUIControls()
 	m_Check[4] = new wxCheckBox(m_MainPanel, ID_SAVETARGETS, wxT("Save Targets"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_Check[5] = new wxCheckBox(m_MainPanel, ID_SAVESHADERS, wxT("Save Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
-    for (int i = 0; i < NUM_OPTIONS-ID_SAVETOFILE; ++i)
+	for (int i = 0; i < NUM_OPTIONS-ID_SAVETOFILE; ++i)
 		sOptions->Add(m_Check[i], 0, 0, 5);
 
 	// Layout everything on m_MainPanel

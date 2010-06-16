@@ -24,15 +24,15 @@
 
 namespace EmuWindow
 {
-    extern int g_winstyle;
+	extern int g_winstyle;
 
-    HWND GetWnd();
-    HWND GetParentWnd();
-    HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title);
-    void Show();
-    void Close();
-    void SetSize(int displayWidth, int displayHeight);
-    void ToggleDisplayMode (int bFullscreen);
+	HWND GetWnd();
+	HWND GetParentWnd();
+	HWND Create(HWND hParent, HINSTANCE hInstance, const TCHAR *title);
+	void Show();
+	void Close();
+	void SetSize(int displayWidth, int displayHeight);
+	void ToggleDisplayMode(int bFullscreen);
 }
 
 #endif // _WIN32_H_

@@ -366,7 +366,7 @@ void CConfigMain::InitializeGUITooltips()
 void CConfigMain::CreateGUIControls()
 {
 	InitializeGUILists();
-		
+	
 	// Create the notebook and pages
 	Notebook = new wxNotebook(this, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize);
 	GeneralPage = new wxPanel(Notebook, ID_GENERALPAGE, wxDefaultPosition, wxDefaultSize);
