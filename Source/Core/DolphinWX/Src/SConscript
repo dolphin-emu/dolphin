@@ -11,8 +11,9 @@ files = [
 	]
 
 libs = [
-	'core', 'lzo2', 'discio', 'bdisasm', 'videocommon', 
-	'inputcommon', 'inputuicommon', 'common', 'lua', 'z', 'sfml-network'
+	'core', 'lzo2', 'discio', 'bdisasm', 'videocommon',
+	'inputcommon', 'inputuicommon', 'common', 'lua', 'z', 'sfml-network',
+	'SDL'
 	]
 
 if wxenv['HAVE_WX']:
@@ -60,7 +61,7 @@ if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
 
 if sys.platform == 'darwin':
-	files += [ 'cocoaApp.m', ]
+	files += [ 'cocoaApp.m' ]
 
 	exeGUI = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'
 	exeNoGUI = env['binary_dir'] + 'DolphinNoGUI'
@@ -74,8 +75,9 @@ if sys.platform == 'darwin':
 			CFBundleName = 'Dolphin',
 			CFBundlePackageType = 'APPL',
 			CFBundleShortVersionString =
-				os.popen('svnversion -n ' + Dir('#').abspath).read(),
+			os.popen('svnversion -n ' + Dir('#').abspath).read(),
 			CFBundleVersion = '2.0',
+			LSMinimumSystemVersion = '10.5.0',
 			LSRequiresCarbon = True,
 			))
 		)

@@ -1,0 +1,11 @@
+# -*- python -*-
+
+Import('env')
+
+files = [
+	'src/glew.c',
+	'src/glewinfo.c',
+	'src/visualinfo.c',
+	]
+
+env.StaticLibrary(env['local_libs'] + "GLEW", files)

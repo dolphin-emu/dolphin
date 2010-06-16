@@ -1255,7 +1255,7 @@ const Bytef *dictionary;
 uInt dictLength;
 {
     struct inflate_state FAR *state;
-    unsigned long id;
+    unsigned long dictid;
 
     /* check state */
     if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
@@ -1265,9 +1265,9 @@ uInt dictLength;
 
     /* check for correct dictionary id */
     if (state->mode == DICT) {
-        id = adler32(0L, Z_NULL, 0);
-        id = adler32(id, dictionary, dictLength);
-        if (id != state->check)
+        dictid = adler32(0L, Z_NULL, 0);
+        dictid = adler32(dictid, dictionary, dictLength);
+        if (dictid != state->check)
             return Z_DATA_ERROR;
     }
 

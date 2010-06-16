@@ -102,9 +102,12 @@ vars.AddVariables(
     BoolVariable('wxgl', 'Set For Building with WX GL libs', False),
     BoolVariable('opencl', 'Build with OpenCL', False),
     BoolVariable('nojit', 'Remove entire jit cores', False),
-    BoolVariable('shared_soil', 'Use system shared libSOIL', False),
+    BoolVariable('shared_glew', 'Use system shared libGLEW', False),
     BoolVariable('shared_lzo', 'Use system shared liblzo2', False),
+    BoolVariable('shared_sdl', 'Use system shared libSDL', False),
     BoolVariable('shared_sfml', 'Use system shared libsfml-network', False),
+    BoolVariable('shared_soil', 'Use system shared libSOIL', False),
+    BoolVariable('shared_zlib', 'Use system shared libz', False),
     PathVariable('userdir', 'Set the name of the user data directory in home',
                  '.dolphin-emu', PathVariable.PathAccept),
     EnumVariable('install', 'Choose a local or global installation', 'local',
@@ -258,23 +261,20 @@ env['LIBPATH'].append(env['local_libs'])
 conf = env.Configure(custom_tests = tests,
                      config_h="Source/Core/Common/Src/Config.h")
 
-if not conf.CheckPKGConfig('0.15.0'):
-    print "Can't find pkg-config, some tests will fail"
-
-# Find MacPorts or Fink for library and include paths
-if sys.platform == 'darwin':
-    # MacPorts usually has newer versions
-    conf.CheckMacports()
-    conf.CheckFink()
-
-if not conf.CheckSDL('1.0.0'):
-    print "SDL is required"
-    Exit(1)
+if env['shared_glew'] or env['shared_lzo'] or env['shared_sdl'] or \
+   env['shared_sfml'] or env['shared_soil'] or env['shared_zlib']:
+    if not conf.CheckPKGConfig('0.15.0'):
+        print "Can't find pkg-config, some tests will fail"
+    # Find MacPorts or Fink for library and include paths
+    if sys.platform == 'darwin':
+        # MacPorts usually has newer versions
+        conf.CheckMacports()
+        conf.CheckFink()
 
 # OS X specifics
 if sys.platform == 'darwin':
     compileFlags += ['-mmacosx-version-min=10.5']
-    #compileFlags += ['-isysroot', '/Developer/SDKs/MacOSX10.5.sdk']
+    compileFlags += ['-isysroot', '/Developer/SDKs/MacOSX10.5.sdk']
     conf.Define('MAP_32BIT', 0)
     env['CC'] = "gcc-4.2"
     env['CFLAGS'] = ['-x', 'objective-c']
@@ -286,36 +286,21 @@ if sys.platform == 'darwin':
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
     env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
 
-# Bluetooth for wiimote support
-env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
-
-env['HAVE_ALSA'] = 0
-env['HAVE_AO'] = 0
-env['HAVE_OPENAL'] = 0
-env['HAVE_PORTAUDIO'] = 0
-env['HAVE_PULSEAUDIO'] = 0
-if sys.platform != 'darwin':
-    env['HAVE_ALSA'] = conf.CheckPKG('alsa')
-    env['HAVE_AO'] = conf.CheckPKG('ao')
-    env['HAVE_OPENAL'] = conf.CheckPKG('openal')
-    env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
-    env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse')
-
 # OpenCL
 env['HAVE_OPENCL'] = 0
 if env['opencl']:
     env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
 
-# SOIL
-env['SHARED_SOIL'] = 0;
-if env['shared_soil']:
-    env['SHARED_SOIL'] = conf.CheckPKG('SOIL')
-    if not env['SHARED_SOIL']:
-        print "shared SOIL library not detected"
+# GLEW
+env['SHARED_GLEW'] = 0;
+if env['shared_glew']:
+    env['SHARED_GLEW'] = conf.CheckPKG('GLEW')
+    if not env['SHARED_GLEW']:
+        print "shared GLEW library not detected"
         print "falling back to the static library"
-if not env['SHARED_SOIL']:
-    env['CPPPATH'] += [ basedir + 'Externals/SOIL' ]
-    dirs += ['Externals/SOIL']
+if not env['SHARED_GLEW']:
+    env['CPPPATH'] += [ basedir + 'Externals/GLew/include' ]
+    dirs += ['Externals/GLew']
 
 # LZO
 env['SHARED_LZO'] = 0;
@@ -327,6 +312,29 @@ if env['shared_lzo']:
 if not env['SHARED_LZO']:
     env['CPPPATH'] += [ basedir + 'Externals/LZO' ]
     dirs += ['Externals/LZO']
+
+# SDL
+env['SHARED_SDL'] = 0;
+if env['shared_sdl']:
+    env['SHARED_SDL'] = conf.CheckPKG('SDL')
+    if not env['SHARED_SDL']:
+        print "shared SDL library not detected"
+        print "falling back to the static library"
+if not env['SHARED_SDL']:
+    env['CPPPATH'] += [ basedir + 'Externals/SDL' ]
+    env['CPPPATH'] += [ basedir + 'Externals/SDL/include' ]
+    dirs += ['Externals/SDL']
+
+# SOIL
+env['SHARED_SOIL'] = 0;
+if env['shared_soil']:
+    env['SHARED_SOIL'] = conf.CheckPKG('SOIL')
+    if not env['SHARED_SOIL']:
+        print "shared SOIL library not detected"
+        print "falling back to the static library"
+if not env['SHARED_SOIL']:
+    env['CPPPATH'] += [ basedir + 'Externals/SOIL' ]
+    dirs += ['Externals/SOIL']
 
 # SFML
 env['SHARED_SFML'] = 0;
@@ -340,6 +348,17 @@ if env['shared_sfml']:
 if not env['SHARED_SFML']:
     env['CPPPATH'] += [ basedir + 'Externals/SFML/include' ]
     dirs += ['Externals/SFML/src']
+
+# zlib
+env['SHARED_ZLIB'] = 0;
+if env['shared_zlib']:
+    env['SHARED_ZLIB'] = conf.CheckPKG('z')
+    if not env['SHARED_ZLIB']:
+        print "shared zlib library not detected"
+        print "falling back to the static library"
+if not env['SHARED_ZLIB']:
+    env['CPPPATH'] += [ basedir + 'Externals/zlib' ]
+    dirs += ['Externals/zlib']
 
 wxmods = ['aui', 'adv', 'core', 'base']
 if env['wxgl'] or sys.platform == 'win32' or sys.platform == 'darwin':
@@ -364,7 +383,7 @@ else:
     # which is not available for x86_64 and we don't use it anyway.
     # Strip it out to silence some harmless linker warnings.
     if env['FRAMEWORKS'].count('QuickTime'):
-	    env['FRAMEWORKS'].remove('QuickTime')
+        env['FRAMEWORKS'].remove('QuickTime')
     # Make sure that the libraries claimed by wx-config are valid
     env['HAVE_WX'] = conf.CheckPKG('c')
 
@@ -376,16 +395,28 @@ if not sys.platform == 'win32':
     if not conf.CheckPKG('Cg'):
         print "Must have Cg framework from NVidia to build"
         Exit(1)
-    if not conf.CheckPKG('GLEW'):
-        print "Must have GLEW to build"
-        Exit(1)
 
+env['HAVE_BLUEZ'] = 0
+env['HAVE_ALSA'] = 0
+env['HAVE_AO'] = 0
+env['HAVE_OPENAL'] = 0
+env['HAVE_PORTAUDIO'] = 0
+env['HAVE_PULSEAUDIO'] = 0
 env['HAVE_X11'] = 0
 env['HAVE_XRANDR'] = 0
 if not sys.platform == 'win32' and not sys.platform == 'darwin':
+    env['LINKFLAGS'] += ['-pthread']
+
+    env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
+
+    env['HAVE_ALSA'] = conf.CheckPKG('alsa')
+    env['HAVE_AO'] = conf.CheckPKG('ao')
+    env['HAVE_OPENAL'] = conf.CheckPKG('openal')
+    env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
+    env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse-simple')
+
     env['HAVE_X11'] = conf.CheckPKG('x11')
     env['HAVE_XRANDR'] = env['HAVE_X11'] and conf.CheckPKG('xrandr')
-    env['LINKFLAGS'] += ['-pthread']
     if not conf.CheckPKG('GL'):
         print "Must have OpenGL to build"
         Exit(1)
@@ -395,10 +426,6 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
     if not conf.CheckPKG('CgGL'):
         print "Must have CgGl to build"
         Exit(1)
-
-if not conf.CheckPKG('z'):
-    print "zlib is required"
-    Exit(1)
 
 # Check for GTK 2.0 or newer
 if sys.platform == 'linux2':

@@ -20,7 +20,7 @@ files = [
 	]
 
 wiinewenv.Append(
-	LIBS = [ 'inputuicommon', 'inputcommon', 'common' ],
+	LIBS = [ 'inputuicommon', 'inputcommon', 'common', 'SDL' ],
 	)
 
 wiinewenv.SharedLibrary(env['plugin_dir']+name, files)
