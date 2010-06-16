@@ -23,12 +23,23 @@ namespace D3D
 {
 
 // buffers for storing the data for DEFAULT textures
-const char* texbuf = NULL;
+u8* texbuf = NULL;
 unsigned int texbufsize = 0;
+
+// TODO: Remove this class and properly clean up texbuf!
+struct TexbufDeleter
+{
+	~TexbufDeleter()
+	{
+		if (texbuf) delete[] texbuf;
+		texbuf = NULL;
+		texbufsize = 0;
+	}
+} texbufdeleter;
 
 void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int width, unsigned int height, unsigned int pitch, DXGI_FORMAT fmt, PC_TexFormat pcfmt, unsigned int level, D3D11_USAGE usage)
 {
-	void* outptr;
+	u8* outptr;
 	unsigned int destPitch;
 	bool bExpand = false;
 
@@ -37,19 +48,18 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 		if (level != 0) PanicAlert("Dynamic textures don't support mipmaps, but given level is not 0 at %s %d\n", __FILE__, __LINE__);
 		D3D11_MAPPED_SUBRESOURCE map;
 		D3D::context->Map(pTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		outptr = map.pData;
+		outptr = (u8*)map.pData;
 		destPitch = map.RowPitch;
 	}
 	else if (usage == D3D11_USAGE_DEFAULT && pcfmt != PC_TEX_FMT_BGRA32)
 	{
 		if (texbufsize < 4*width*height)
 		{
-			// TODO: This memory needs to be freed as well..
 			if (texbuf) delete[] texbuf;
-			texbuf = new char[4*width*height];
+			texbuf = new u8[4*width*height];
 			texbufsize = 4*width*height;
 		}
-		outptr = (void*)texbuf;
+		outptr = texbuf;
 		destPitch = width * 4;
 	}
 	else if (usage == D3D11_USAGE_DEFAULT && pcfmt == PC_TEX_FMT_BGRA32)
@@ -73,12 +83,12 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 			for (unsigned int y = 0; y < height; y++)
 			{
 				u16* in = (u16*)buffer + y * pitch;
-				u32* pBits = (u32*)((u8*)outptr + y * destPitch);
+				u32* pBits = (u32*)(outptr + y * destPitch);
 				for (unsigned int x = 0; x < width; x++)
 				{
 					const u8 I = (*in & 0xFF);
 					const u8 A = (*in & 0xFF00) >> 8;
-					*(pBits++) = (A << 24) | (I << 16) | (I << 8) | I;
+					*pBits++ = (A << 24) | (I << 16) | (I << 8) | I;
 					in++;
 				}
 			}
@@ -87,32 +97,26 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 		case PC_TEX_FMT_I4_AS_I8:
 			for (unsigned int y = 0; y < height; y++)
 			{
-				const u8* in = buffer + (y * pitch);
-				u32* pBits = (u32*)((u8*)outptr + (y * destPitch));
+				const u8* in = buffer + y * pitch;
+				u32* pBits = (u32*)(outptr + y * destPitch);
 				for(unsigned int i = 0; i < width; i++)
-				{
-					const u8 I = *(in++);
-					memset( pBits++, I, 4 );
-				}
+					memset( pBits++, *in++, 4 );
 			}
 			break;
 		case PC_TEX_FMT_BGRA32:
 			for (unsigned int y = 0; y < height; y++)
-			{
-				u32* in = (u32*)buffer + y * pitch;
-				u32* pBits = (u32*)((u8*)outptr + y * destPitch);
-				memcpy( pBits, in, destPitch );
-			}
+				memcpy( outptr + y * destPitch, (u32*)buffer + y * pitch, destPitch );
+
 			break;
 		case PC_TEX_FMT_RGB565:
 			for (unsigned int y = 0; y < height; y++)
 			{
 				u16* in = (u16*)buffer + y * pitch;
-				u32* pBits = (u32*)((u8*)outptr + y * destPitch);
+				u32* pBits = (u32*)(outptr + y * destPitch);
 				for (unsigned int x = 0; x < width; x++)
 				{
 					// we can't simply shift here, since e.g. 11111 must map to 11111111 and not 11111000
-					const u16 col = *(in++);
+					const u16 col = *in++;
 					*(pBits++) = 0xFF000000 | // alpha
 							((((col&0xF800) << 5) * 255 / 31) & 0xFF0000) | // red
 							((((col& 0x7e0) << 3) * 255 / 63) & 0xFF00) |   // green

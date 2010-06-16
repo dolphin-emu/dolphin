@@ -88,7 +88,7 @@ bool CompilePixelShader(const char* code, unsigned int len, ID3D10Blob** blob)
 	ID3D10Blob* errorBuffer = NULL;
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
-	UINT flags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY|D3D10_SHADER_DEBUG|D3D10_SHADER_WARNINGS_ARE_ERRORS;
+	UINT flags = D3D10_SHADER_DEBUG|D3D10_SHADER_WARNINGS_ARE_ERRORS;
 #else
 	UINT flags = D3D10_SHADER_OPTIMIZATION_LEVEL3;
 #endif

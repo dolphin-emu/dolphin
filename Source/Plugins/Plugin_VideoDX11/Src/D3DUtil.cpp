@@ -269,12 +269,11 @@ int CD3DFont::DrawTextScaled(float x, float y, float scale, float spacing, u32 d
 	UINT stride = sizeof(FONT2DVERTEX);
 	UINT bufoffset = 0;
 
-	float sx = x; 
-	float sy = y;
+	// translate starting positions
+	float sx = x / m_dwTexWidth - 1; 
+	float sy = 1 - y / m_dwTexHeight;
+	char c;
 
-	float fStartX = sx;
-
-	float invLineHeight = 1.0f / ((m_fTexCoords[0][3] - m_fTexCoords[0][1]) * m_dwTexHeight);
 	// fill vertex buffer
 	FONT2DVERTEX* pVertices;
 	int dwNumTriangles = 0L;
@@ -284,42 +283,30 @@ int CD3DFont::DrawTextScaled(float x, float y, float scale, float spacing, u32 d
 	if (FAILED(hr)) PanicAlert("Mapping vertex buffer failed, %s %d\n", __FILE__, __LINE__);
 	pVertices = (D3D::FONT2DVERTEX*)vbmap.pData;
 
-	const char* oldstrText = strText;
-	// first, let's measure the text
-	float tw=0;
-	float mx=0;
-	float maxx=0;
-
-	while (*strText)
-	{
-		char c = *strText++;
-
-		if (c == ('\n'))
-			mx = 0;
-		if (c < (' '))
-			continue;
-
-		float tx1 = m_fTexCoords[c-32][0];
-		float tx2 = m_fTexCoords[c-32][2];
-
-		float w = (tx2-tx1)*m_dwTexWidth;
-		w *= scale*invLineHeight;
-		mx += w + spacing*scale;
-		if (mx > maxx) maxx = mx;
-	}
-
-	float offset = -maxx/2;
-	strText = oldstrText;
-	//Then let's draw it
+	// if center was requested, set current position as centre
+	// this is currently never used
 	if (center)
 	{
-		sx += offset;
-		fStartX += offset;
+		const char *oldText = strText;
+		float mx=0;
+		float maxx=0;
+
+		while (c = *strText++)
+		{
+			if (c == ('\n'))
+				mx = 0;
+			if (c < (' '))
+				continue;
+			c -= 32;
+			mx += (m_fTexCoords[c][2]-m_fTexCoords[c][0])/(m_fTexCoords[0][3] - m_fTexCoords[0][1])
+			   + spacing;
+			if (mx > maxx) maxx = mx;
+		}
+		sx -= scale*maxx/(2*m_dwTexWidth);
+		strText = oldText;
 	}
-
-	float wScale = scale*invLineHeight;
-	float hScale = scale*invLineHeight;
-
+	// we now have a starting point
+	float fStartX = sx;
 	// set general pipeline state
 	D3D::context->OMSetBlendState(m_blendstate, NULL, 0xFFFFFFFF);
 	D3D::context->RSSetState(m_raststate);
@@ -330,33 +317,29 @@ int CD3DFont::DrawTextScaled(float x, float y, float scale, float spacing, u32 d
 	D3D::context->IASetInputLayout(m_InputLayout);
 	D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	D3D::context->PSSetShaderResources(0, 1, &m_pTexture);
-
-	while (*strText)
+	while (c = *strText++)
 	{
-		char c = *strText++;
-
 		if (c == ('\n'))
 		{
 			sx  = fStartX;
-			sy += scale;
+			sy -= scale / m_dwTexHeight;
 		}
 		if (c < (' '))
 			continue;
-
-		c-=32;
+		c -= 32;
 		float tx1 = m_fTexCoords[c][0];
 		float ty1 = m_fTexCoords[c][1];
 		float tx2 = m_fTexCoords[c][2];
 		float ty2 = m_fTexCoords[c][3];
 
-		float w = (tx2-tx1)*m_dwTexWidth/2;
-		float h = (ty2-ty1)*m_dwTexHeight/2;
+		float w = (tx2-tx1)/2;
+		float h = (ty1-ty2)/2;
 
 		FONT2DVERTEX v[6];
-		v[0] = InitFont2DVertex( sx   /m_dwTexWidth-1.f, 1-((sy+h)/m_dwTexHeight), dwColor, tx1, ty2);
-		v[1] = InitFont2DVertex( sx   /m_dwTexWidth-1.f, 1-( sy   /m_dwTexHeight), dwColor, tx1, ty1);
-		v[2] = InitFont2DVertex((sx+w)/m_dwTexWidth-1.f, 1-((sy+h)/m_dwTexHeight), dwColor, tx2, ty2);
-		v[3] = InitFont2DVertex((sx+w)/m_dwTexWidth-1.f, 1-( sy   /m_dwTexHeight), dwColor, tx2, ty1);
+		v[0] = InitFont2DVertex(  sx, h+sy, dwColor, tx1, ty2);
+		v[1] = InitFont2DVertex(  sx,   sy, dwColor, tx1, ty1);
+		v[2] = InitFont2DVertex(w+sx, h+sy, dwColor, tx2, ty2);
+		v[3] = InitFont2DVertex(w+sx,   sy, dwColor, tx2, ty1);
 		v[4] = v[2];
 		v[5] = v[1];
 
@@ -378,7 +361,7 @@ int CD3DFont::DrawTextScaled(float x, float y, float scale, float spacing, u32 d
 			if (FAILED(hr)) PanicAlert("Mapping vertex buffer failed, %s %d\n", __FILE__, __LINE__);
 			pVertices = (D3D::FONT2DVERTEX*)vbmap.pData;
 		}
-		sx += w + spacing*scale;
+		sx += w + spacing*scale/m_dwTexWidth;
 	}
 
 	// Unlock and render the vertex buffer

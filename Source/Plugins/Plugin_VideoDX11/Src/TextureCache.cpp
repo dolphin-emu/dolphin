@@ -111,7 +111,7 @@ void TextureCache::Init()
 
 void TextureCache::Invalidate(bool shutdown)
 {
-	for (TexCache::iterator iter = textures.begin(); iter != textures.end(); iter++)
+	for (TexCache::iterator iter = textures.begin(); iter != textures.end(); ++iter)
 		iter->second.Destroy(shutdown);
 	textures.clear();
 	HiresTextures::Shutdown();
@@ -167,7 +167,7 @@ void TextureCache::Cleanup()
 		}
 		else
 		{
-			iter++;
+			++iter;
 		}
 	}
 }
