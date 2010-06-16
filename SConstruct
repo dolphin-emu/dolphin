@@ -248,8 +248,6 @@ if sys.platform == 'darwin':
     env['plugin_dir'] = env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
     env['data_dir'] = env['prefix'] + 'Dolphin.app/Contents/'
 
-env['LIBPATH'].append(env['local_libs'])
-
 conf = env.Configure(custom_tests = tests,
                      config_h="Source/Core/Common/Src/Config.h")
 
@@ -276,21 +274,17 @@ shared['glew'] = shared['lzo'] = shared['sdl'] = \
 shared['soil'] = shared['sfml'] = shared['zlib'] = 0
 if not sys.platform == 'darwin':
     shared['glew'] = conf.CheckPKG('GLEW')
-    #shared['lzo'] = conf.CheckPKG('lzo2') XXX
+    shared['lzo'] = conf.CheckPKG('lzo2')
     shared['sdl'] = conf.CheckPKG('SDL')
-    #shared['soil'] = conf.CheckPKG('SOIL') XXX
+    shared['soil'] = conf.CheckPKG('SOIL')
     # TODO:  Check the version of sfml.  It should be at least version 1.5
-    #shared['sfml'] = conf.CheckPKG('sfml-network') and \
-    #                 conf.CheckCXXHeader("SFML/Network/Ftp.hpp") XXX
+    shared['sfml'] = conf.CheckPKG('sfml-network') and \
+                     conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
     shared['zlib'] = conf.CheckPKG('z')
     for lib in shared:
         if not shared[lib]:
             print "Shared library " + lib + " not detected, " \
                   "falling back to the static library"
-
-conf.Define('SHARED_SOIL', shared['soil'])
-conf.Define('SHARED_LZO', shared['lzo'])
-conf.Define('SHARED_SFML', shared['sfml'])
 
 if shared['glew'] == 0:
     env['CPPPATH'] += [basedir + 'Externals/GLew/include']
@@ -432,6 +426,8 @@ if (flavour == 'prof'):
 conf.Define('USE_OPROFILE', env['USE_OPROFILE'])
 # After all configuration tests are done
 conf.Finish()
+
+env['LIBPATH'].append(env['local_libs'])
 
 rev = utils.GenerateRevFile(env['flavor'],
                             "Source/Core/Common/Src/svnrev_template.h",

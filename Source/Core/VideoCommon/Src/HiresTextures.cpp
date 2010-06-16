@@ -20,11 +20,7 @@
 #include <cstring>
 #include <utility>
 #include <algorithm>
-#if defined(SHARED_SOIL) && SHARED_SOIL
 #include <SOIL/SOIL.h>
-#else
-#include "SOIL.h"
-#endif
 #include "CommonPaths.h"
 #include "FileUtil.h"
 #include "FileSearch.h"
