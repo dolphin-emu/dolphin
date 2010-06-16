@@ -98,16 +98,10 @@ vars.AddVariables(
     BoolVariable('verbose', 'Set for compilation line', False),
     BoolVariable('bundle', 'Set to create bundle', False),
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
-    BoolVariable('nowx', 'Set For Building with no WX libs', False),
-    BoolVariable('wxgl', 'Set For Building with WX GL libs', False),
+    BoolVariable('nowx', 'Set for building with no WX libs', False),
+    BoolVariable('wxgl', 'Set for building with WX GL on Linux', False),
     BoolVariable('opencl', 'Build with OpenCL', False),
     BoolVariable('nojit', 'Remove entire jit cores', False),
-    BoolVariable('shared_glew', 'Use system shared libGLEW', False),
-    BoolVariable('shared_lzo', 'Use system shared liblzo2', False),
-    BoolVariable('shared_sdl', 'Use system shared libSDL', False),
-    BoolVariable('shared_sfml', 'Use system shared libsfml-network', False),
-    BoolVariable('shared_soil', 'Use system shared libSOIL', False),
-    BoolVariable('shared_zlib', 'Use system shared libz', False),
     PathVariable('userdir', 'Set the name of the user data directory in home',
                  '.dolphin-emu', PathVariable.PathAccept),
     EnumVariable('install', 'Choose a local or global installation', 'local',
@@ -218,8 +212,6 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          'CheckPKGConfig' : utils.CheckPKGConfig,
          'CheckPKG' : utils.CheckPKG,
          'CheckSDL' : utils.CheckSDL,
-         'CheckFink' : utils.CheckFink,
-         'CheckMacports' : utils.CheckMacports,
          'CheckPortaudio' : utils.CheckPortaudio,
          }
 
@@ -261,16 +253,6 @@ env['LIBPATH'].append(env['local_libs'])
 conf = env.Configure(custom_tests = tests,
                      config_h="Source/Core/Common/Src/Config.h")
 
-if env['shared_glew'] or env['shared_lzo'] or env['shared_sdl'] or \
-   env['shared_sfml'] or env['shared_soil'] or env['shared_zlib']:
-    if not conf.CheckPKGConfig('0.15.0'):
-        print "Can't find pkg-config, some tests will fail"
-    # Find MacPorts or Fink for library and include paths
-    if sys.platform == 'darwin':
-        # MacPorts usually has newer versions
-        conf.CheckMacports()
-        conf.CheckFink()
-
 # OS X specifics
 if sys.platform == 'darwin':
     compileFlags += ['-mmacosx-version-min=10.5']
@@ -285,79 +267,49 @@ if sys.platform == 'darwin':
     env['FRAMEWORKS'] += ['CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
     env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
+else:
+    if not conf.CheckPKGConfig('0.15.0'):
+        print "Can't find pkg-config, some tests will fail"
 
-# OpenCL
-env['HAVE_OPENCL'] = 0
-if env['opencl']:
-    env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
-
-# GLEW
-env['SHARED_GLEW'] = 0;
-if env['shared_glew']:
-    env['SHARED_GLEW'] = conf.CheckPKG('GLEW')
-    if not env['SHARED_GLEW']:
-        print "shared GLEW library not detected"
-        print "falling back to the static library"
-if not env['SHARED_GLEW']:
-    env['CPPPATH'] += [ basedir + 'Externals/GLew/include' ]
-    dirs += ['Externals/GLew']
-
-# LZO
-env['SHARED_LZO'] = 0;
-if env['shared_lzo']:
-    env['SHARED_LZO'] = conf.CheckPKG('lzo2')
-    if not env['SHARED_LZO']:
-        print "shared LZO library not detected"
-        print "falling back to the static library"
-if not env['SHARED_LZO']:
-    env['CPPPATH'] += [ basedir + 'Externals/LZO' ]
-    dirs += ['Externals/LZO']
-
-# SDL
-env['SHARED_SDL'] = 0;
-if env['shared_sdl']:
-    env['SHARED_SDL'] = conf.CheckPKG('SDL')
-    if not env['SHARED_SDL']:
-        print "shared SDL library not detected"
-        print "falling back to the static library"
-if not env['SHARED_SDL']:
-    env['CPPPATH'] += [ basedir + 'Externals/SDL' ]
-    env['CPPPATH'] += [ basedir + 'Externals/SDL/include' ]
-    dirs += ['Externals/SDL']
-
-# SOIL
-env['SHARED_SOIL'] = 0;
-if env['shared_soil']:
-    env['SHARED_SOIL'] = conf.CheckPKG('SOIL')
-    if not env['SHARED_SOIL']:
-        print "shared SOIL library not detected"
-        print "falling back to the static library"
-if not env['SHARED_SOIL']:
-    env['CPPPATH'] += [ basedir + 'Externals/SOIL' ]
-    dirs += ['Externals/SOIL']
-
-# SFML
-env['SHARED_SFML'] = 0;
-if env['shared_sfml']:
+shared = {}
+shared['glew'] = shared['lzo'] = shared['sdl'] = \
+shared['soil'] = shared['sfml'] = shared['zlib'] = 0
+if not sys.platform == 'darwin':
+    shared['glew'] = conf.CheckPKG('GLEW')
+    #shared['lzo'] = conf.CheckPKG('lzo2') XXX
+    shared['sdl'] = conf.CheckPKG('SDL')
+    #shared['soil'] = conf.CheckPKG('SOIL') XXX
     # TODO:  Check the version of sfml.  It should be at least version 1.5
-    env['SHARED_SFML'] = conf.CheckPKG('sfml-network') and \
-                         conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
-    if not env['SHARED_SFML']:
-        print "shared sfml-network library not detected"
-        print "falling back to the static library"
-if not env['SHARED_SFML']:
-    env['CPPPATH'] += [ basedir + 'Externals/SFML/include' ]
-    dirs += ['Externals/SFML/src']
+    #shared['sfml'] = conf.CheckPKG('sfml-network') and \
+    #                 conf.CheckCXXHeader("SFML/Network/Ftp.hpp") XXX
+    shared['zlib'] = conf.CheckPKG('z')
+    for lib in shared:
+        if not shared[lib]:
+            print "Shared library " + lib + " not detected, " \
+                  "falling back to the static library"
 
-# zlib
-env['SHARED_ZLIB'] = 0;
-if env['shared_zlib']:
-    env['SHARED_ZLIB'] = conf.CheckPKG('z')
-    if not env['SHARED_ZLIB']:
-        print "shared zlib library not detected"
-        print "falling back to the static library"
-if not env['SHARED_ZLIB']:
-    env['CPPPATH'] += [ basedir + 'Externals/zlib' ]
+conf.Define('SHARED_SOIL', shared['soil'])
+conf.Define('SHARED_LZO', shared['lzo'])
+conf.Define('SHARED_SFML', shared['sfml'])
+
+if shared['glew'] == 0:
+    env['CPPPATH'] += [basedir + 'Externals/GLew/include']
+    dirs += ['Externals/GLew']
+if shared['lzo'] == 0:
+    env['CPPPATH'] += [basedir + 'Externals/LZO']
+    dirs += ['Externals/LZO']
+if shared['sdl'] == 0:
+    env['CPPPATH'] += [basedir + 'Externals/SDL']
+    env['CPPPATH'] += [basedir + 'Externals/SDL/include']
+    dirs += ['Externals/SDL']
+if shared['soil'] == 0:
+    env['CPPPATH'] += [basedir + 'Externals/SOIL']
+    dirs += ['Externals/SOIL']
+if shared['sfml'] == 0:
+    env['CPPPATH'] += [basedir + 'Externals/SFML/include']
+    dirs += ['Externals/SFML/src']
+if shared['zlib'] == 0:
+    env['CPPPATH'] += [basedir + 'Externals/zlib']
     dirs += ['Externals/zlib']
 
 wxmods = ['aui', 'adv', 'core', 'base']
@@ -391,19 +343,18 @@ if not env['HAVE_WX'] and not env['nowx']:
     print "WX libraries not found - see config.log"
     Exit(1)
 
+env['HAVE_OPENCL'] = 0
 if not sys.platform == 'win32':
     if not conf.CheckPKG('Cg'):
         print "Must have Cg framework from NVidia to build"
         Exit(1)
+    if env['opencl']:
+        env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
 
 env['HAVE_BLUEZ'] = 0
-env['HAVE_ALSA'] = 0
-env['HAVE_AO'] = 0
-env['HAVE_OPENAL'] = 0
-env['HAVE_PORTAUDIO'] = 0
-env['HAVE_PULSEAUDIO'] = 0
-env['HAVE_X11'] = 0
-env['HAVE_XRANDR'] = 0
+env['HAVE_ALSA'] = env['HAVE_AO'] = env['HAVE_OPENAL'] = \
+env['HAVE_PORTAUDIO'] = env['HAVE_PULSEAUDIO'] = 0
+env['HAVE_X11'] = env['HAVE_XRANDR'] = 0
 if not sys.platform == 'win32' and not sys.platform == 'darwin':
     env['LINKFLAGS'] += ['-pthread']
 
@@ -452,18 +403,13 @@ conf.Define('USE_WX', env['USE_WX'])
 conf.Define('HAVE_X11', env['HAVE_X11'])
 conf.Define('HAVE_XRANDR', env['HAVE_XRANDR'])
 conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
-conf.Define('SHARED_SOIL', env['SHARED_SOIL'])
-conf.Define('SHARED_LZO', env['SHARED_LZO'])
-conf.Define('SHARED_SFML', env['SHARED_SFML'])
 conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
 if (env['install'] == 'global'):
     conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
     conf.Define('LIBS_DIR', "\"" + env['prefix'] + 'lib/' +  "\"")
 
 # Lua
-env['LUA_USE_MACOSX'] = 0
-env['LUA_USE_LINUX'] = 0
-env['LUA_USE_POSIX'] = 0
+env['LUA_USE_MACOSX'] = env['LUA_USE_LINUX'] = env['LUA_USE_POSIX'] = 0
 if sys.platform == 'darwin':
     env['LUA_USE_MACOSX'] = 1
 elif sys.platform == 'linux2':
