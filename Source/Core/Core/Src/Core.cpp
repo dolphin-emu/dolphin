@@ -607,7 +607,7 @@ void VideoThrottle()
 	if (SConfig::GetInstance().m_Framelimit)
 	{
 		// Make the limiter a bit loose
-		u32 frametime = ((SConfig::GetInstance().b_UseFPS)? Common::AtomicLoad(DrawnFrame) : DrawnVideo) * 1000 / ++TargetVPS;
+		u32 frametime = ((SConfig::GetInstance().b_UseFPS)? Common::AtomicLoad(DrawnFrame) : DrawnVideo) * 1000 / TargetVPS;
 		while ((u32)Timer.GetTimeDifference() < frametime)
 			Common::YieldCPU();
 			//Common::SleepCurrentThread(1);
@@ -620,7 +620,7 @@ void VideoThrottle()
 		SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
 		u32 FPS = Common::AtomicLoad(DrawnFrame) * 1000 / ElapseTime;
-		u32 VPS = --DrawnVideo * 1000 / ElapseTime;
+		u32 VPS = DrawnVideo * 1000 / ElapseTime;
 		u32 Speed = VPS * 100 / VideoInterface::TargetRefreshRate;
 		
 		// Settings are shown the same for both extended and summary info
