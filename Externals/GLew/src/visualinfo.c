@@ -86,12 +86,12 @@ char* display = NULL;
 int visual = -1;
 
 FILE* file = 0;
-GLContext ctx;
 
 int 
 main (int argc, char** argv)
 {
   GLenum err;
+  GLContext ctx;
 
   /* ---------------------------------------------------------------------- */
   /* parse arguments */

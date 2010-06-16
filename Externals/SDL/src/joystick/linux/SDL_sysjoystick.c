@@ -500,25 +500,25 @@ int SDL_SYS_JoystickInit(void)
 }
 
 /* Function to get the device-dependent name of a joystick */
-const char *SDL_SYS_JoystickName(int index)
+const char *SDL_SYS_JoystickName(int jindex)
 {
 	int fd;
 	static char namebuf[128];
 	char *name;
-	SDL_logical_joydecl(int oindex = index);
+	SDL_logical_joydecl(int oindex = jindex);
 
 #ifndef NO_LOGICAL_JOYSTICKS
-	SDL_joylist_head(index, index);
+	SDL_joylist_head(jindex, jindex);
 #endif
 	name = NULL;
-	fd = open(SDL_joylist[index].fname, O_RDONLY, 0);
+	fd = open(SDL_joylist[jindex].fname, O_RDONLY, 0);
 	if ( fd >= 0 ) {
 		if ( 
 #if SDL_INPUT_LINUXEV
 		     (ioctl(fd, EVIOCGNAME(sizeof(namebuf)), namebuf) <= 0) &&
 #endif
 		     (ioctl(fd, JSIOCGNAME(sizeof(namebuf)), namebuf) <= 0) ) {
-			name = SDL_joylist[index].fname;
+			name = SDL_joylist[jindex].fname;
 		} else {
 			name = namebuf;
 		}
@@ -526,7 +526,7 @@ const char *SDL_SYS_JoystickName(int index)
 
 
 #ifndef NO_LOGICAL_JOYSTICKS
-		if (SDL_joylist[oindex].prev || SDL_joylist[oindex].next || index!=oindex)
+		if (SDL_joylist[oindex].prev || SDL_joylist[oindex].next || jindex!=oindex)
 		{
        		   LogicalSuffix(SDL_joylist[oindex].logicalno, namebuf, 128);
 		}

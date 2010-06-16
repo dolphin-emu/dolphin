@@ -17,13 +17,13 @@ files = [
 	#'src/audio/SDL_wave.c',
 	#'src/cdrom/SDL_cdrom.c',
 	#'src/cpuinfo/SDL_cpuinfo.c',
-	'src/events/SDL_active.c',
-	'src/events/SDL_events.c',
-	'src/events/SDL_expose.c',
-	'src/events/SDL_keyboard.c',
-	'src/events/SDL_mouse.c',
-	'src/events/SDL_quit.c',
-	'src/events/SDL_resize.c',
+	#'src/events/SDL_active.c',
+	#'src/events/SDL_events.c',
+	#'src/events/SDL_expose.c',
+	#'src/events/SDL_keyboard.c',
+	#'src/events/SDL_mouse.c',
+	#'src/events/SDL_quit.c',
+	#'src/events/SDL_resize.c',
 	#'src/file/SDL_rwops.c',
 	'src/joystick/SDL_joystick.c',
 	#'src/stdlib/SDL_getenv.c',
@@ -31,10 +31,8 @@ files = [
 	#'src/stdlib/SDL_malloc.c',
 	#'src/stdlib/SDL_qsort.c',
 	#'src/stdlib/SDL_stdlib.c',
-	'src/stdlib/SDL_string.c',
-	'src/thread/SDL_thread.c',
-	'src/timer/SDL_timer.c',
-	'src/timer/unix/SDL_systimer.c',
+	#'src/thread/SDL_thread.c',
+	#'src/timer/SDL_timer.c',
 	#'src/video/SDL_RLEaccel.c',
 	#'src/video/SDL_blit.c',
 	#'src/video/SDL_blit_0.c',
@@ -53,13 +51,6 @@ files = [
 	#'src/video/SDL_yuv_sw.c',
 	]
 
-files += [
-	'src/thread/generic/SDL_syscond.c',
-	'src/thread/generic/SDL_sysmutex.c',
-	'src/thread/generic/SDL_syssem.c',
-	'src/thread/generic/SDL_systhread.c',
-	]
-
 if sys.platform == 'darwin':
 	files += [
 		'src/joystick/darwin/SDL_sysjoystick.c',
@@ -67,6 +58,7 @@ if sys.platform == 'darwin':
 elif sys.platform == 'linux2':
 	files += [
 		'src/joystick/linux/SDL_sysjoystick.c',
+		'src/stdlib/SDL_string.c',
 		]
 else:
 	files += [
