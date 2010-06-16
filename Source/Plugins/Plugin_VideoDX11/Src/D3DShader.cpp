@@ -39,7 +39,7 @@ ID3D11VertexShader* CreateVertexShaderFromByteCode(void* bytecode, unsigned int 
 }
 
 // code->bytecode
-bool CompileVertexShader(const char* code, unsigned int len, ID3D10Blob** blob)
+bool CompileVertexShader(const char* code, unsigned int len, D3DBlob** blob)
 {
 	ID3D10Blob* shaderBuffer = NULL;
 	ID3D10Blob* errorBuffer = NULL;
@@ -52,7 +52,7 @@ bool CompileVertexShader(const char* code, unsigned int len, ID3D10Blob** blob)
  	HRESULT hr = D3DCompile(code, len, NULL, NULL, NULL, "main", D3D::VertexShaderVersionString(),
 							flags, 0, &shaderBuffer, &errorBuffer);
 
-	if (FAILED(hr))
+	if (FAILED(hr) || errorBuffer)
 	{
 		std::string msg = (char*)errorBuffer->GetBufferPointer();
 		msg += "\n\n";
@@ -60,11 +60,13 @@ bool CompileVertexShader(const char* code, unsigned int len, ID3D10Blob** blob)
 		MessageBoxA(0, msg.c_str(), "Error compiling pixel shader", MB_ICONERROR);
 
 		*blob = NULL;
+		errorBuffer->Release();
 	}
-	else *blob = shaderBuffer;
-
-	//cleanup
-	if (errorBuffer) errorBuffer->Release();
+	else
+	{
+		*blob = new D3DBlob(shaderBuffer);
+		shaderBuffer->Release();
+	}
 	return SUCCEEDED(hr);
 }
 
@@ -82,7 +84,7 @@ ID3D11PixelShader* CreatePixelShaderFromByteCode(void* bytecode, unsigned int le
 }
 
 // code->bytecode
-bool CompilePixelShader(const char* code, unsigned int len, ID3D10Blob** blob)
+bool CompilePixelShader(const char* code, unsigned int len, D3DBlob** blob)
 {
 	ID3D10Blob* shaderBuffer = NULL;
 	ID3D10Blob* errorBuffer = NULL;
@@ -95,7 +97,7 @@ bool CompilePixelShader(const char* code, unsigned int len, ID3D10Blob** blob)
  	HRESULT hr = D3DCompile(code, len, NULL, NULL, NULL, "main", D3D::PixelShaderVersionString(),
 							flags, 0, &shaderBuffer, &errorBuffer);
 
-	if (FAILED(hr))
+	if (FAILED(hr) || errorBuffer)
 	{
 		std::string msg = (char*)errorBuffer->GetBufferPointer();
 		msg += "\n\n";
@@ -103,17 +105,19 @@ bool CompilePixelShader(const char* code, unsigned int len, ID3D10Blob** blob)
 		MessageBoxA(0, msg.c_str(), "Error compiling pixel shader", MB_ICONERROR);
 
 		*blob = NULL;
+		errorBuffer->Release();
 	}
-	else *blob = shaderBuffer;
-
-	// cleanup
-	if (errorBuffer) errorBuffer->Release();
+	else
+	{
+		*blob = new D3DBlob(shaderBuffer);
+		shaderBuffer->Release();
+	}
 	return SUCCEEDED(hr);
 }
 
 ID3D11VertexShader* CompileAndCreateVertexShader(const char* code, unsigned int len)
 {
-	ID3D10Blob* blob = NULL;
+	D3DBlob* blob = NULL;
 	if (CompileVertexShader(code, len, &blob))
 	{
 		ID3D11VertexShader* v_shader = CreateVertexShaderFromByteCode(blob);
@@ -126,7 +130,7 @@ ID3D11VertexShader* CompileAndCreateVertexShader(const char* code, unsigned int 
 
 ID3D11PixelShader* CompileAndCreatePixelShader(const char* code, unsigned int len)
 {
-	ID3D10Blob* blob = NULL;
+	D3DBlob* blob = NULL;
 	CompilePixelShader(code, len, &blob);
 	if (blob)
 	{

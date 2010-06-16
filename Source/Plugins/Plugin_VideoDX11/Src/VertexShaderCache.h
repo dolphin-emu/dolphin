@@ -41,17 +41,17 @@ public:
 	static ID3D11InputLayout* GetSimpleInputLayout();
 	static ID3D11InputLayout* GetClearInputLayout();
 
-	static bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, ID3D10Blob* bcodeblob);
+	static bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, D3DBlob* bcodeblob);
 
 private:
 	struct VSCacheEntry
 	{ 
 		ID3D11VertexShader* shader;
-		ID3D10Blob* bytecode; // needed to initialize the input layout
+		D3DBlob* bytecode; // needed to initialize the input layout
 		int frameCount;
 
 		VSCacheEntry() : shader(NULL), bytecode(NULL), frameCount(0) {}
-		void SetByteCode(ID3D10Blob* blob)
+		void SetByteCode(D3DBlob* blob)
 		{
 			if (bytecode) bytecode->Release();
 			bytecode = blob;

@@ -206,7 +206,7 @@ int CD3DFont::Init()
 	m_pshader = D3D::CompileAndCreatePixelShader(fontpixshader, sizeof(fontpixshader));
 	if (m_pshader == NULL) PanicAlert("Failed to create pixel shader, %s %d\n", __FILE__, __LINE__);
 
-	ID3D10Blob* vsbytecode;
+	D3DBlob* vsbytecode;
 	D3D::CompileVertexShader(fontvertshader, sizeof(fontvertshader), &vsbytecode);
 	if (vsbytecode == NULL) PanicAlert("Failed to compile vertex shader, %s %d\n", __FILE__, __LINE__);
 	m_vshader = D3D::CreateVertexShaderFromByteCode(vsbytecode);
@@ -218,7 +218,7 @@ int CD3DFont::Init()
 		{ "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
-	hr = D3D::device->CreateInputLayout(desc, 3, vsbytecode->GetBufferPointer(), vsbytecode->GetBufferSize(), &m_InputLayout);
+	hr = D3D::device->CreateInputLayout(desc, 3, vsbytecode->Data(), vsbytecode->Size(), &m_InputLayout);
 	if (FAILED(hr)) PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
 	vsbytecode->Release();
 

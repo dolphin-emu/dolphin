@@ -17,20 +17,9 @@
 
 #pragma once
 
-#include <vector>
-#include <set>
-
 #include <d3d11.h>
-
 #include "Common.h"
-
-#include <vector>
-#include <list>
-#include <map>
-using std::vector;
-using std::list;
-using std::map;
-using std::pair;
+#include "D3DBlob.h"
 
 #define SAFE_RELEASE(x) { if (x) (x)->Release(); (x) = NULL; }
 
@@ -41,9 +30,9 @@ namespace D3D
 HRESULT Create(HWND wnd);
 void Close();
 
-extern ID3D11Device *device;
-extern ID3D11DeviceContext *context;
-extern IDXGISwapChain *swapchain;
+extern ID3D11Device* device;
+extern ID3D11DeviceContext* context;
+extern IDXGISwapChain* swapchain;
 extern bool bFrameInProgress;
 
 void Reset();
@@ -54,13 +43,13 @@ void Present();
 unsigned int GetBackBufferWidth();
 unsigned int GetBackBufferHeight();
 D3DTexture2D* &GetBackBuffer();
-const char *PixelShaderVersionString();
-const char *VertexShaderVersionString();
+const char* PixelShaderVersionString();
+const char* VertexShaderVersionString();
 
 // Ihis function will assign a name to the given resource.
 // The DirectX debug layer will make it easier to identify resources that way,
 // e.g. when listing up all resources who have unreleased references.
-inline void SetDebugObjectName(ID3D11DeviceChild* resource, const char *name)
+inline void SetDebugObjectName(ID3D11DeviceChild* resource, const char* name)
 {
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	resource->SetPrivateData( WKPDID_D3DDebugObjectName, strlen(name), name);
@@ -74,10 +63,10 @@ public:
 	EmuGfxState();
 	~EmuGfxState();
 
-	void SetVShader(ID3D11VertexShader *shader, ID3D10Blob *bcode);
-	void SetPShader(ID3D11PixelShader *shader);
-	void SetInputElements(const D3D11_INPUT_ELEMENT_DESC *elems, UINT num);
-	void SetShaderResource(int stage, ID3D11ShaderResourceView *srv);
+	void SetVShader(ID3D11VertexShader* shader, D3DBlob* bcode);
+	void SetPShader(ID3D11PixelShader* shader);
+	void SetInputElements(const D3D11_INPUT_ELEMENT_DESC* elems, UINT num);
+	void SetShaderResource(int stage, ID3D11ShaderResourceView* srv);
 
 	void ApplyState();            // apply current state
 	void AlphaPass();             // only modify the current state to enable the alpha pass
@@ -126,9 +115,9 @@ public:
 
 private:
 	ID3D11VertexShader* vertexshader;
-	ID3D10Blob* vsbytecode;
+	D3DBlob* vsbytecode;
 	ID3D11PixelShader* pixelshader;
-	ID3D10Blob* psbytecode;
+	D3DBlob* psbytecode;
 	bool vshaderchanged;
 
 	ID3D11Buffer* vscbuf;
@@ -142,6 +131,6 @@ private:
 	D3D11_BLEND_DESC blenddesc;
 };
 
-extern EmuGfxState *gfxstate;
+extern EmuGfxState* gfxstate;
 
 }  // namespace

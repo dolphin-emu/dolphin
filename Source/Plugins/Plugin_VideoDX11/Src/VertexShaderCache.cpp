@@ -93,9 +93,7 @@ public:
 		}
 		memcpy(&uid, key, key_size);
 
-		ID3D10Blob* blob;
-		D3D10CreateBlob(value_size, &blob);
-		memcpy(blob->GetBufferPointer(), value, value_size);
+		D3DBlob* blob = new D3DBlob(value_size, value);
 		VertexShaderCache::InsertByteCode(uid, blob);
 		blob->Release();
 	}
@@ -144,15 +142,15 @@ void VertexShaderCache::Init()
 		{ "COLOR", 0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
-	ID3D10Blob* blob;
+	D3DBlob* blob;
 	D3D::CompileVertexShader(simple_shader_code, strlen(simple_shader_code), &blob);
-	D3D::device->CreateInputLayout(simpleelems, 2, blob->GetBufferPointer(), blob->GetBufferSize(), &SimpleLayout);
+	D3D::device->CreateInputLayout(simpleelems, 2, blob->Data(), blob->Size(), &SimpleLayout);
 	SimpleVertexShader = D3D::CreateVertexShaderFromByteCode(blob);
 	if (SimpleLayout == NULL || SimpleVertexShader == NULL) PanicAlert("Failed to create simple vertex shader or input layout at %s %d\n", __FILE__, __LINE__);
 	blob->Release();
 
 	D3D::CompileVertexShader(clear_shader_code, (int)strlen(clear_shader_code), &blob);
-	D3D::device->CreateInputLayout(clearelems, 2, blob->GetBufferPointer(), blob->GetBufferSize(), &ClearLayout);
+	D3D::device->CreateInputLayout(clearelems, 2, blob->Data(), blob->Size(), &ClearLayout);
 	ClearVertexShader = D3D::CreateVertexShaderFromByteCode(blob);
 	if (ClearLayout == NULL || ClearVertexShader == NULL) PanicAlert("Failed to create clear vertex shader or input layout at %s %d\n", __FILE__, __LINE__);
 	blob->Release();
@@ -226,7 +224,7 @@ bool VertexShaderCache::SetShader(u32 components)
 
 	const char* code = GenerateVertexShaderCode(components, API_D3D11);
 
-	ID3D10Blob* pbytecode = NULL;
+	D3DBlob* pbytecode = NULL;
 	D3D::CompileVertexShader(code, (int)strlen(code), &pbytecode);
 
 	if (pbytecode == NULL)
@@ -234,7 +232,7 @@ bool VertexShaderCache::SetShader(u32 components)
 		PanicAlert("Failed to compile Vertex Shader %s %d:\n\n%s", __FILE__, __LINE__, code);
 		return false;
 	}
-	g_vs_disk_cache.Append((u8*)&uid, sizeof(uid), (const u8*)pbytecode->GetBufferPointer(), pbytecode->GetBufferSize());
+	g_vs_disk_cache.Append((u8*)&uid, sizeof(uid), (const u8*)pbytecode->Data(), pbytecode->Size());
 	g_vs_disk_cache.Sync();
 
 	bool result = InsertByteCode(uid, pbytecode);
@@ -243,12 +241,12 @@ bool VertexShaderCache::SetShader(u32 components)
 	return result;
 }
 
-bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, ID3D10Blob* bcodeblob)
+bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, D3DBlob* bcodeblob)
 {
 	ID3D11VertexShader* shader = D3D::CreateVertexShaderFromByteCode(bcodeblob);
 	if (shader == NULL)
 	{
-		PanicAlert("Failed to create vertex shader from %p size %d at %s %d\n", bcodeblob->GetBufferPointer(), bcodeblob->GetBufferSize(), __FILE__, __LINE__);
+		PanicAlert("Failed to create vertex shader from %p size %d at %s %d\n", bcodeblob->Data(), bcodeblob->Size(), __FILE__, __LINE__);
 		return false;
 	}
 

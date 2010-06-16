@@ -106,10 +106,10 @@ EmuGfxState::~EmuGfxState()
 }
 
 // TODO: No need to store the whole bytecode, signature might be enough (?)
-void EmuGfxState::SetVShader(ID3D11VertexShader* shader, ID3D10Blob* bcode)
+void EmuGfxState::SetVShader(ID3D11VertexShader* shader, D3DBlob* bcode)
 {
 	// TODO: vshaderchanged actually just needs to be true if the signature changed
-	if (bcode && vsbytecode != bcode->GetBufferPointer()) vshaderchanged = true;
+	if (bcode && vsbytecode != bcode) vshaderchanged = true;
 	SAFE_RELEASE(vsbytecode);
 	SAFE_RELEASE(vertexshader);
 
@@ -164,7 +164,7 @@ void EmuGfxState::ApplyState()
 	if (vshaderchanged)
 	{
 		if (inp_layout) inp_layout->Release();
-		hr = D3D::device->CreateInputLayout(inp_elems, num_inp_elems, vsbytecode->GetBufferPointer(), vsbytecode->GetBufferSize(), &inp_layout);
+		hr = D3D::device->CreateInputLayout(inp_elems, num_inp_elems, vsbytecode->Data(), vsbytecode->Size(), &inp_layout);
 		if (FAILED(hr)) PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
 		SetDebugObjectName((ID3D11DeviceChild*)inp_layout, "an input layout of EmuGfxState");
 		vshaderchanged = false;

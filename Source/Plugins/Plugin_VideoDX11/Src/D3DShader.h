@@ -25,15 +25,15 @@ namespace D3D
 	ID3D11PixelShader* CreatePixelShaderFromByteCode(void* bytecode, unsigned int len);
 
 	// The returned bytecode buffers should be Release()d.
-	bool CompileVertexShader(const char* code, unsigned int len, ID3D10Blob** blob);
-	bool CompilePixelShader(const char* code, unsigned int len, ID3D10Blob** blob);
+	bool CompileVertexShader(const char* code, unsigned int len, D3DBlob** blob);
+	bool CompilePixelShader(const char* code, unsigned int len, D3DBlob** blob);
 
 	// Utility functions
 	ID3D11VertexShader* CompileAndCreateVertexShader(const char* code, unsigned int len);
 	ID3D11PixelShader* CompileAndCreatePixelShader(const char* code, unsigned int len);
 
-	inline ID3D11VertexShader* CreateVertexShaderFromByteCode(ID3D10Blob* bytecode) { return CreateVertexShaderFromByteCode(bytecode->GetBufferPointer(), bytecode->GetBufferSize()); }
-	inline ID3D11PixelShader* CreatePixelShaderFromByteCode(ID3D10Blob* bytecode) { return CreatePixelShaderFromByteCode(bytecode->GetBufferPointer(), bytecode->GetBufferSize()); }
-	inline ID3D11VertexShader* CompileAndCreateVertexShader(ID3D10Blob* code) { return CompileAndCreateVertexShader((const char*)code->GetBufferPointer(), code->GetBufferSize()); }
-	inline ID3D11PixelShader* CompileAndCreatePixelShader(ID3D10Blob* code) { return CompileAndCreatePixelShader((const char*)code->GetBufferPointer(), code->GetBufferSize()); }
+	inline ID3D11VertexShader* CreateVertexShaderFromByteCode(D3DBlob* bytecode) { return CreateVertexShaderFromByteCode(bytecode->Data(), bytecode->Size()); }
+	inline ID3D11PixelShader* CreatePixelShaderFromByteCode(D3DBlob* bytecode) { return CreatePixelShaderFromByteCode(bytecode->Data(), bytecode->Size()); }
+	inline ID3D11VertexShader* CompileAndCreateVertexShader(D3DBlob* code) { return CompileAndCreateVertexShader((const char*)code->Data(), code->Size()); }
+	inline ID3D11PixelShader* CompileAndCreatePixelShader(D3DBlob* code) { return CompileAndCreatePixelShader((const char*)code->Data(), code->Size()); }
 }

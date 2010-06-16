@@ -237,7 +237,7 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 	// need to compile a new shader
 	const char* code = GeneratePixelShaderCode(PixelShaderManager::GetTextureMask(), dstAlpha, API_D3D11);
 
-	ID3D10Blob* pbytecode;
+	D3DBlob* pbytecode;
 	if (!D3D::CompilePixelShader(code, strlen(code), &pbytecode))
 	{
 		PanicAlert("Failed to compile Pixel Shader:\n\n%s", code);
@@ -245,10 +245,10 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 	}
 
 	// insert the bytecode into the caches
-	g_ps_disk_cache.Append((u8*)&uid, sizeof(uid), (const u8*)pbytecode->GetBufferPointer(), pbytecode->GetBufferSize());
+	g_ps_disk_cache.Append((u8*)&uid, sizeof(uid), (const u8*)pbytecode->Data(), pbytecode->Size());
 	g_ps_disk_cache.Sync();
 
-	bool result = InsertByteCode(uid, pbytecode->GetBufferPointer(), pbytecode->GetBufferSize());
+	bool result = InsertByteCode(uid, pbytecode->Data(), pbytecode->Size());
 	D3D::gfxstate->SetPShader(last_entry->shader);
 	pbytecode->Release();
 	return result;
