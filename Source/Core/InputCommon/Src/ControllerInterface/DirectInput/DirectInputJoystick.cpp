@@ -125,13 +125,13 @@ LCleanup:
 
 std::string TStringToString( const std::basic_string<TCHAR>& in )
 {
-	const int size = WideCharToMultiByte( CP_UTF8, 0, in.data(), int(in.length()), NULL, 0, NULL, NULL );
+	const int size = WideCharToMultiByte(CP_ACP, 0, in.data(), int(in.length()), NULL, 0, NULL, NULL);
 	
 	if ( 0 == size )
 		return "";
 
 	char* const data = new char[size];
-	WideCharToMultiByte( CP_UTF8, 0, in.data(), int(in.length()), data, size, NULL, NULL );
+	WideCharToMultiByte(CP_ACP, 0, in.data(), int(in.length()), data, size, NULL, NULL);
 	const std::string out( data, size );
 	delete[] data;
 	return out;

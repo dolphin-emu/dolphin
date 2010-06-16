@@ -118,10 +118,12 @@ private:
 	ControlChooser* const		m_control_chooser;
 };
 
+class GamepadPage;
+
 class ControlDialog : public wxDialog
 {
 public:
-	ControlDialog( wxWindow* const parent, InputPlugin& plugin, ControllerInterface::ControlReference* const ref, const std::vector<ControllerInterface::Device*>& devs );
+	ControlDialog(GamepadPage* const parent, InputPlugin& plugin, ControllerInterface::ControlReference* const ref);
 	
 	void SelectControl( wxCommandEvent& event );
 	void DetectControl( wxCommandEvent& event );
@@ -223,7 +225,7 @@ class InputConfigDialog : public wxDialog
 {
 public:
 
-	InputConfigDialog( wxWindow* const parent, InputPlugin& plugin, const std::string& name, const bool _is_game_running );
+	InputConfigDialog(wxWindow* const parent, InputPlugin& plugin, const std::string& name);
 	bool Destroy();
 
 	void ClickSave( wxCommandEvent& event );
@@ -233,8 +235,6 @@ public:
 
 	void UpdateControlReferences();
 	void UpdateBitmaps(wxTimerEvent&);
-
-	const bool		is_game_running;
 
 private:
 

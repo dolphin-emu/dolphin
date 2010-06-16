@@ -257,7 +257,7 @@ void DllConfig(HWND _hParent)
 
 	// copied from GCPad
 	wxWindow *frame = GetParentedWxWindow(_hParent);
-	InputConfigDialog* m_ConfigFrame = new InputConfigDialog( frame, g_plugin, PLUGIN_FULL_NAME, was_init );
+	InputConfigDialog* m_ConfigFrame = new InputConfigDialog(frame, g_plugin, PLUGIN_FULL_NAME);
 
 #ifdef _WIN32
 	frame->Disable();

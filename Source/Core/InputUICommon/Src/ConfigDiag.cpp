@@ -17,7 +17,9 @@
 
 #include "ConfigDiag.h"
 
-#define _connect_macro_( b, f, c, s )	(b)->Connect( wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s )
+#define _connect_macro_(b, f, c, s)		(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
+#define WXSTR_FROM_STR(s)		(wxString::FromAscii((s).c_str()))
+#define STR_FROM_WXSTR(w)		(std::string((w).To8BitData()))
 
 void GamepadPage::ConfigExtension( wxCommandEvent& event )
 {
@@ -100,25 +102,16 @@ void PadSettingChoice::UpdateValue()
 	value = float(GetValue()) / 100;
 }
 
-ControlDialog::ControlDialog( wxWindow* const parent, InputPlugin& plugin, ControllerInterface::ControlReference* const ref, const std::vector<ControllerInterface::Device*>& devs )
+ControlDialog::ControlDialog(GamepadPage* const parent, InputPlugin& plugin, ControllerInterface::ControlReference* const ref)
 	:wxDialog( parent, -1, wxT("Configure Control"), wxDefaultPosition )
 	,control_reference(ref)
 	,m_plugin(plugin)
 {
-
-	device_cbox = new wxComboBox( this, -1, wxString::FromAscii( ref->device_qualifier.ToString().c_str() ), wxDefaultPosition, wxSize(256,-1), wxArrayString(), wxTE_PROCESS_ENTER );
+	// GetStrings() sounds slow :/
+	device_cbox = new wxComboBox( this, -1, wxString::FromAscii( ref->device_qualifier.ToString().c_str() ), wxDefaultPosition, wxSize(256,-1), parent->device_cbox->GetStrings(), wxTE_PROCESS_ENTER );
 
 	_connect_macro_( device_cbox, ControlDialog::SetDevice, wxEVT_COMMAND_COMBOBOX_SELECTED, this );
 	_connect_macro_( device_cbox, ControlDialog::SetDevice, wxEVT_COMMAND_TEXT_ENTER, this );
-
-	std::vector< ControllerInterface::Device* >::const_iterator i = devs.begin(),
-		e = devs.end();
-	ControllerInterface::DeviceQualifier dq;
-	for ( ; i!=e; ++i )
-	{
-		dq.FromDevice( *i );
-		device_cbox->Append( wxString::FromAscii( dq.ToString().c_str() ) );
-	}
 
 	control_chooser = new ControlChooser( this, ref, parent );
 
@@ -252,7 +245,7 @@ void ControlChooser::UpdateGUI()
 	std::ostringstream ss;
 	ss << "Bound Controls: ";
 	if ( bound ) ss << bound; else ss << "None";
-	m_bound_label->SetLabel( wxString::FromAscii(ss.str().c_str()) );
+	m_bound_label->SetLabel(WXSTR_FROM_STR(ss.str()));
 };
 
 void GamepadPage::UpdateGUI()
@@ -267,7 +260,7 @@ void GamepadPage::UpdateGUI()
 		std::vector<ControlButton*>::const_iterator i = (*g)->control_buttons.begin()
 			, e = (*g)->control_buttons.end();
 		for ( ; i!=e; ++i )
-			(*i)->SetLabel( wxString::FromAscii( (*i)->control_reference->control_qualifier.name.c_str() ) );
+			(*i)->SetLabel(WXSTR_FROM_STR((*i)->control_reference->control_qualifier.name));
 
 		// cboxes
 		std::vector<PadSetting*>::const_iterator si = (*g)->options.begin()
@@ -297,7 +290,7 @@ void GamepadPage::ClearAll( wxCommandEvent& event )
 void ControlDialog::SetControl( wxCommandEvent& event )
 {
 	control_reference->control_qualifier.name =
-		std::string( control_chooser->textctrl->GetValue().ToAscii() );
+		STR_FROM_WXSTR(control_chooser->textctrl->GetValue());
 
 	m_plugin.controls_crit.Enter();		// enter
 	control_reference->UpdateControls();
@@ -308,30 +301,30 @@ void ControlDialog::SetControl( wxCommandEvent& event )
 
 void GamepadPage::SetDevice( wxCommandEvent& event )
 {
-	controller->default_device.FromString( std::string( device_cbox->GetValue().ToAscii() ) );
+	controller->default_device.FromString(STR_FROM_WXSTR(device_cbox->GetValue()));
 	
 	// show user what it was validated as
-	device_cbox->SetValue( wxString::FromAscii( controller->default_device.ToString().c_str() ) );
+	device_cbox->SetValue(WXSTR_FROM_STR(controller->default_device.ToString()));
 
 	// this will set all the controls to this default device
 	controller->UpdateDefaultDevice();
 
 	// update references
 	m_plugin.controls_crit.Enter();		// enter
-	controller->UpdateReferences( m_plugin.controller_interface );
+	controller->UpdateReferences(m_plugin.controller_interface);
 	m_plugin.controls_crit.Leave();		// leave
 }
 
 void ControlDialog::SetDevice( wxCommandEvent& event )
 {
-	control_reference->device_qualifier.FromString( std::string( device_cbox->GetValue().ToAscii() ) );
+	control_reference->device_qualifier.FromString(STR_FROM_WXSTR(device_cbox->GetValue()));
 	
 	// show user what it was validated as
-	device_cbox->SetValue( wxString::FromAscii( control_reference->device_qualifier.ToString().c_str() ) );
+	device_cbox->SetValue(WXSTR_FROM_STR(control_reference->device_qualifier.ToString()));
 
 	// update references
 	m_plugin.controls_crit.Enter();		// enter
-	m_plugin.controller_interface.UpdateReference( control_reference );
+	m_plugin.controller_interface.UpdateReference(control_reference);
 	m_plugin.controls_crit.Leave();		// leave
 
 	// update gui
@@ -374,7 +367,7 @@ void GamepadPage::AdjustControlOption( wxCommandEvent& event )
 
 void GamepadPage::ConfigControl( wxCommandEvent& event )
 {
-	m_control_dialog  = new ControlDialog( this, m_plugin, ((ControlButton*)event.GetEventObject())->control_reference, m_plugin.controller_interface.Devices() );
+	m_control_dialog = new ControlDialog(this, m_plugin, ((ControlButton*)event.GetEventObject())->control_reference);
 	m_control_dialog->ShowModal();
 	m_control_dialog->Destroy();
 
@@ -434,7 +427,7 @@ void GamepadPage::DetectControl( wxCommandEvent& event )
 	btn->control_reference->Detect( DETECT_WAIT_TIME );
 	m_plugin.controls_crit.Leave();		// leave
 
-	btn->SetLabel(wxString::FromAscii(btn->control_reference->control_qualifier.name.c_str()));
+	btn->SetLabel(WXSTR_FROM_STR(btn->control_reference->control_qualifier.name));
 }
 
 void ControlDialog::SelectControl( wxCommandEvent& event )
@@ -606,20 +599,22 @@ void GamepadPage::DeleteProfile( wxCommandEvent& event )
 
 void InputConfigDialog::UpdateDeviceComboBox()
 {
-	std::vector< GamepadPage* >::iterator i = m_padpages.begin(),
+	std::vector< GamepadPage* >::iterator
+		i = m_padpages.begin(),
 		e = m_padpages.end();
 	ControllerInterface::DeviceQualifier dq;
 	for ( ; i != e; ++i  )
 	{
 		(*i)->device_cbox->Clear();
-		std::vector<ControllerInterface::Device*>::const_iterator di = m_plugin.controller_interface.Devices().begin(),
+		std::vector<ControllerInterface::Device*>::const_iterator
+			di = m_plugin.controller_interface.Devices().begin(),
 			de = m_plugin.controller_interface.Devices().end();
 		for ( ; di!=de; ++di )
 		{
-			dq.FromDevice( *di );
-			(*i)->device_cbox->Append( wxString::FromAscii( dq.ToString().c_str() ) );
+			dq.FromDevice(*di);
+			(*i)->device_cbox->Append(WXSTR_FROM_STR(dq.ToString()));
 		}
-		(*i)->device_cbox->SetValue( wxString::FromAscii( (*i)->controller->default_device.ToString().c_str() ) );
+		(*i)->device_cbox->SetValue(WXSTR_FROM_STR((*i)->controller->default_device.ToString()));
 	}
 }
 
@@ -907,9 +902,8 @@ GamepadPage::GamepadPage( wxWindow* parent, InputPlugin& plugin, const unsigned 
 };
 
 
-InputConfigDialog::InputConfigDialog( wxWindow* const parent, InputPlugin& plugin, const std::string& name, const bool _is_game_running )
-	: wxDialog( parent, wxID_ANY, wxString::FromAscii(name.c_str()), wxPoint(128,-1), wxDefaultSize )
-	, is_game_running(_is_game_running)
+InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputPlugin& plugin, const std::string& name)
+	: wxDialog(parent, wxID_ANY, wxString::FromAscii(name.c_str()), wxPoint(128,-1), wxDefaultSize)
 	, m_plugin(plugin)
 {
 	m_pad_notebook = new wxNotebook( this, -1, wxDefaultPosition, wxDefaultSize, wxNB_DEFAULT );
