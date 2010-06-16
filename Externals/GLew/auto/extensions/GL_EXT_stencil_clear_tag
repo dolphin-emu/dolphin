@@ -1,5 +1,0 @@
-GL_EXT_stencil_clear_tag
-http://www.opengl.org/registry/specs/EXT/stencil_clear_tag.txt
-GL_EXT_stencil_clear_tag
-	GL_STENCIL_TAG_BITS_EXT 0x88F2
-	GL_STENCIL_CLEAR_TAG_VALUE_EXT 0x88F3

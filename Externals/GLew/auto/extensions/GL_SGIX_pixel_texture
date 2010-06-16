@@ -1,4 +1,0 @@
-GL_SGIX_pixel_texture
-http://www.opengl.org/registry/specs/SGIX/sgix_pixel_texture.txt
-GL_SGIX_pixel_texture
-	void glPixelTexGenSGIX (GLenum mode)

@@ -1,5 +1,0 @@
-GL_SGIX_fog_offset
-http://www.opengl.org/registry/specs/SGIX/fog_offset.txt
-GL_SGIX_fog_offset
-	GL_FOG_OFFSET_SGIX 0x8198
-	GL_FOG_OFFSET_VALUE_SGIX 0x8199

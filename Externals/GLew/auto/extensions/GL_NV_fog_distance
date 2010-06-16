@@ -1,6 +1,0 @@
-GL_NV_fog_distance
-http://www.opengl.org/registry/specs/NV/fog_distance.txt
-GL_NV_fog_distance
-	GL_FOG_DISTANCE_MODE_NV 0x855A
-	GL_EYE_RADIAL_NV 0x855B
-	GL_EYE_PLANE_ABSOLUTE_NV 0x855C

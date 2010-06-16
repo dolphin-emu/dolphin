@@ -1,6 +1,0 @@
-GLX_EXT_swap_control
-http://www.opengl.org/registry/specs/EXT/swap_control.txt
-GLX_EXT_swap_control
-	GLX_SWAP_INTERVAL_EXT 0x20F1
-	GLX_MAX_SWAP_INTERVAL_EXT 0x20F2
-	void glXSwapIntervalEXT (Display* dpy, GLXDrawable drawable, int interval)

@@ -1,5 +1,0 @@
-GL_SGIX_vertex_preclip
-http://www.opengl.org/registry/specs/SGIX/vertex_preclip.txt
-GL_SGIX_vertex_preclip
-	GL_VERTEX_PRECLIP_SGIX 0x83EE
-	GL_VERTEX_PRECLIP_HINT_SGIX 0x83EF

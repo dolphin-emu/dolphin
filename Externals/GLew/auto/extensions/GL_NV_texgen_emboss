@@ -1,6 +1,0 @@
-GL_NV_texgen_emboss
-http://www.opengl.org/registry/specs/NV/texgen_emboss.txt
-GL_NV_texgen_emboss
-	GL_EMBOSS_LIGHT_NV 0x855D
-	GL_EMBOSS_CONSTANT_NV 0x855E
-	GL_EMBOSS_MAP_NV 0x855F

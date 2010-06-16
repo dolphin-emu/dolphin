@@ -1,9 +1,0 @@
-GL_ARB_blend_func_extended
-http://www.opengl.org/registry/specs/ARB/blend_func_extended.txt
-GL_ARB_blend_func_extended
-	GL_SRC1_COLOR 0x88F9
-	GL_ONE_MINUS_SRC1_COLOR 0x88FA
-	GL_ONE_MINUS_SRC1_ALPHA 0x88FB
-	GL_MAX_DUAL_SOURCE_DRAW_BUFFERS 0x88FC
-	void glBindFragDataLocationIndexed (GLuint program, GLuint colorNumber, GLuint index, const char * name)
-	GLint glGetFragDataIndex (GLuint program, const char * name)

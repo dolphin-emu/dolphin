@@ -1,5 +1,0 @@
-GL_SGIX_async_histogram
-http://www.opengl.org/registry/specs/SGIX/async_histogram.txt
-GL_SGIX_async_histogram
-	GL_ASYNC_HISTOGRAM_SGIX 0x832C
-	GL_MAX_ASYNC_HISTOGRAM_SGIX 0x832D

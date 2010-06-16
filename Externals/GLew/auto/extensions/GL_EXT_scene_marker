@@ -1,5 +1,0 @@
-GL_EXT_scene_marker
-http://www.opengl.org/registry/specs/EXT/scene_marker.txt
-GL_EXT_scene_marker
-	void glBeginSceneEXT (void)
-	void glEndSceneEXT (void)

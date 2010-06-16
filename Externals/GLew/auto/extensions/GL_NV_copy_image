@@ -1,4 +1,0 @@
-GL_NV_copy_image
-http://www.opengl.org/registry/specs/NV/copy_image.txt
-GL_NV_copy_image
-	void glCopyImageSubDataNV (GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei width, GLsizei height, GLsizei depth)

@@ -1,6 +1,0 @@
-GL_SGIX_texture_coordinate_clamp
-http://www.opengl.org/registry/specs/SGIX/texture_coordinate_clamp.txt
-GL_SGIX_texture_coordinate_clamp
-	GL_TEXTURE_MAX_CLAMP_S_SGIX 0x8369
-	GL_TEXTURE_MAX_CLAMP_T_SGIX 0x836A
-	GL_TEXTURE_MAX_CLAMP_R_SGIX 0x836B

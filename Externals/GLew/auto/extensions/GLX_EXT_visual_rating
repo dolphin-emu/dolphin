@@ -1,6 +1,0 @@
-GLX_EXT_visual_rating
-http://www.opengl.org/registry/specs/EXT/visual_rating.txt
-GLX_EXT_visual_rating
-	GLX_VISUAL_CAVEAT_EXT 0x20
-	GLX_SLOW_VISUAL_EXT 0x8001
-	GLX_NON_CONFORMANT_VISUAL_EXT 0x800D

@@ -1,6 +1,0 @@
-WGL_EXT_make_current_read
-http://www.opengl.org/registry/specs/EXT/wgl_make_current_read.txt
-WGL_EXT_make_current_read
-	HDC wglGetCurrentReadDCEXT (VOID)
-	BOOL wglMakeContextCurrentEXT (HDC hDrawDC, HDC hReadDC, HGLRC hglrc)
-	ERROR_INVALID_PIXEL_TYPE_EXT 0x2043

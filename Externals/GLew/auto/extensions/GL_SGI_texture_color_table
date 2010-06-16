@@ -1,5 +1,0 @@
-GL_SGI_texture_color_table
-http://www.opengl.org/registry/specs/SGI/texture_color_table.txt
-GL_SGI_texture_color_table
-	GL_TEXTURE_COLOR_TABLE_SGI 0x80BC
-	GL_PROXY_TEXTURE_COLOR_TABLE_SGI 0x80BD

@@ -1,6 +1,0 @@
-GL_ATI_meminfo
-http://www.opengl.org/registry/specs/ATI/meminfo.txt
-GL_ATI_meminfo
-	GL_VBO_FREE_MEMORY_ATI 0x87FB
-	GL_TEXTURE_FREE_MEMORY_ATI 0x87FC
-	GL_RENDERBUFFER_FREE_MEMORY_ATI 0x87FD

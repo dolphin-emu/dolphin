@@ -1,8 +1,0 @@
-GL_EXT_cull_vertex
-http://www.opengl.org/registry/specs/EXT/cull_vertex.txt
-GL_EXT_cull_vertex
-	GL_CULL_VERTEX_EXT 0x81AA
-	GL_CULL_VERTEX_EYE_POSITION_EXT 0x81AB
-	GL_CULL_VERTEX_OBJECT_POSITION_EXT 0x81AC
-	void glCullParameterdvEXT (GLenum pname, GLdouble* params)
-	void glCullParameterfvEXT (GLenum pname, GLfloat* params)

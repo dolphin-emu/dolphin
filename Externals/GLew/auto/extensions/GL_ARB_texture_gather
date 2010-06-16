@@ -1,6 +1,0 @@
-GL_ARB_texture_gather
-http://www.opengl.org/registry/specs/ARB/texture_gather.txt
-GL_ARB_texture_gather
-	GL_MIN_PROGRAM_TEXTURE_GATHER_OFFSET_ARB 0x8E5E
-	GL_MAX_PROGRAM_TEXTURE_GATHER_OFFSET_ARB 0x8E5F
-	GL_MAX_PROGRAM_TEXTURE_GATHER_COMPONENTS_ARB 0x8F9F

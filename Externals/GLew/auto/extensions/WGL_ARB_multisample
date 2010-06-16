@@ -1,5 +1,0 @@
-WGL_ARB_multisample
-http://www.opengl.org/registry/specs/ARB/multisample.txt
-WGL_ARB_multisample
-	WGL_SAMPLE_BUFFERS_ARB 0x2041
-	WGL_SAMPLES_ARB 0x2042

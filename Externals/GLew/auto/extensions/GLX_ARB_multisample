@@ -1,5 +1,0 @@
-GLX_ARB_multisample
-http://www.opengl.org/registry/specs/ARB/multisample.txt
-GLX_ARB_multisample
-	GLX_SAMPLE_BUFFERS_ARB 100000
-	GLX_SAMPLES_ARB 100001

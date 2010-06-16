@@ -1,5 +1,0 @@
-GL_3DFX_texture_compression_FXT1
-http://www.opengl.org/registry/specs/3DFX/texture_compression_FXT1.txt
-GL_3DFX_texture_compression_FXT1
-	GL_COMPRESSED_RGB_FXT1_3DFX 0x86B0
-	GL_COMPRESSED_RGBA_FXT1_3DFX 0x86B1

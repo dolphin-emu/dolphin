@@ -1,6 +1,0 @@
-GL_ARB_depth_buffer_float
-http://www.opengl.org/registry/specs/ARB/depth_buffer_float.txt
-GL_ARB_depth_buffer_float
-	GL_DEPTH_COMPONENT32F 0x8CAC
-	GL_DEPTH32F_STENCIL8 0x8CAD
-	GL_FLOAT_32_UNSIGNED_INT_24_8_REV 0x8DAD

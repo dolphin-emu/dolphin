@@ -1,4 +1,0 @@
-GL_GREMEDY_string_marker
-http://www.opengl.org/registry/specs/GREMEDY/string_marker.txt
-GL_GREMEDY_string_marker
-	void glStringMarkerGREMEDY (GLsizei len, const void* string)

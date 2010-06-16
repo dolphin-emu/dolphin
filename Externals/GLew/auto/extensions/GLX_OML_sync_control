@@ -1,8 +1,0 @@
-GLX_OML_sync_control
-http://www.opengl.org/registry/specs/OML/glx_sync_control.txt
-GLX_OML_sync_control
-	Bool glXGetMscRateOML (Display* dpy, GLXDrawable drawable, int32_t* numerator, int32_t* denominator)
-	Bool glXGetSyncValuesOML (Display* dpy, GLXDrawable drawable, int64_t* ust, int64_t* msc, int64_t* sbc)
-	int64_t glXSwapBuffersMscOML (Display* dpy, GLXDrawable drawable, int64_t target_msc, int64_t divisor, int64_t remainder)
-	Bool glXWaitForMscOML (Display* dpy, GLXDrawable drawable, int64_t target_msc, int64_t divisor, int64_t remainder, int64_t* ust, int64_t* msc, int64_t* sbc)
-	Bool glXWaitForSbcOML (Display* dpy, GLXDrawable drawable, int64_t target_sbc, int64_t* ust, int64_t* msc, int64_t* sbc)

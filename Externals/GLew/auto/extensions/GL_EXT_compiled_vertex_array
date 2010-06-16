@@ -1,7 +1,0 @@
-GL_EXT_compiled_vertex_array
-http://www.opengl.org/registry/specs/EXT/compiled_vertex_array.txt
-GL_EXT_compiled_vertex_array
-	GL_ARRAY_ELEMENT_LOCK_FIRST_EXT 0x81A8
-	GL_ARRAY_ELEMENT_LOCK_COUNT_EXT 0x81A9
-	void glLockArraysEXT (GLint first, GLsizei count)
-	void glUnlockArraysEXT (void)

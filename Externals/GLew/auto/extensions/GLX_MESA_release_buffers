@@ -1,4 +1,0 @@
-GLX_MESA_release_buffers
-http://www.opengl.org/registry/specs/MESA/release_buffers.txt
-GLX_MESA_release_buffers
-	Bool glXReleaseBuffersMESA (Display* dpy, GLXDrawable d)

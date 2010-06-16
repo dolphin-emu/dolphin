@@ -1,8 +1,0 @@
-GL_ARB_provoking_vertex
-http://www.opengl.org/registry/specs/ARB/provoking_vertex.txt
-GL_ARB_provoking_vertex
-	GL_QUADS_FOLLOW_PROVOKING_VERTEX_CONVENTION 0x8E4C
-	GL_FIRST_VERTEX_CONVENTION 0x8E4D
-	GL_LAST_VERTEX_CONVENTION 0x8E4E
-	GL_PROVOKING_VERTEX 0x8E4F
-	void glProvokingVertex (GLenum mode)

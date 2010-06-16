@@ -1,7 +1,0 @@
-GLX_OML_swap_method
-http://www.opengl.org/registry/specs/OML/glx_swap_method.txt
-GLX_OML_swap_method
-	GLX_SWAP_METHOD_OML 0x8060
-	GLX_SWAP_EXCHANGE_OML 0x8061
-	GLX_SWAP_COPY_OML 0x8062
-	GLX_SWAP_UNDEFINED_OML 0x8063

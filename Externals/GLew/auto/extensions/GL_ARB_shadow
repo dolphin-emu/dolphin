@@ -1,6 +1,0 @@
-GL_ARB_shadow
-http://www.opengl.org/registry/specs/ARB/shadow.txt
-GL_ARB_shadow
-	GL_TEXTURE_COMPARE_MODE_ARB 0x884C
-	GL_TEXTURE_COMPARE_FUNC_ARB 0x884D
-	GL_COMPARE_R_TO_TEXTURE_ARB 0x884E

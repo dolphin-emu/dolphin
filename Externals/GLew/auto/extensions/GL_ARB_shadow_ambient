@@ -1,4 +1,0 @@
-GL_ARB_shadow_ambient
-http://www.opengl.org/registry/specs/ARB/shadow_ambient.txt
-GL_ARB_shadow_ambient
-	GL_TEXTURE_COMPARE_FAIL_VALUE_ARB 0x80BF

@@ -1,5 +1,0 @@
-GLX_SGI_make_current_read
-http://www.opengl.org/registry/specs/SGI/make_current_read.txt
-GLX_SGI_make_current_read
-	GLXDrawable glXGetCurrentReadDrawableSGI (void)
-	Bool glXMakeCurrentReadSGI (Display* dpy, GLXDrawable draw, GLXDrawable read, GLXContext ctx)

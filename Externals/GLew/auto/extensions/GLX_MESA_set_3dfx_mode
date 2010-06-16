@@ -1,6 +1,0 @@
-GLX_MESA_set_3dfx_mode
-http://www.opengl.org/registry/specs/MESA/set_3dfx_mode.txt
-GLX_MESA_set_3dfx_mode
-	GLX_3DFX_WINDOW_MODE_MESA 0x1
-	GLX_3DFX_FULLSCREEN_MODE_MESA 0x2
-	GLboolean glXSet3DfxModeMESA (GLint mode)

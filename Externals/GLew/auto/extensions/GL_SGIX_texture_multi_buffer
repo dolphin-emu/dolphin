@@ -1,4 +1,0 @@
-GL_SGIX_texture_multi_buffer
-http://www.opengl.org/registry/specs/SGIX/texture_multi_buffer.txt
-GL_SGIX_texture_multi_buffer
-	GL_TEXTURE_MULTI_BUFFER_HINT_SGIX 0x812E

@@ -1,9 +1,0 @@
-GL_EXT_blend_color
-http://www.opengl.org/registry/specs/EXT/blend_color.txt
-GL_EXT_blend_color
-	GL_CONSTANT_COLOR_EXT 0x8001
-	GL_ONE_MINUS_CONSTANT_COLOR_EXT 0x8002
-	GL_CONSTANT_ALPHA_EXT 0x8003
-	GL_ONE_MINUS_CONSTANT_ALPHA_EXT 0x8004
-	GL_BLEND_COLOR_EXT 0x8005
-	void glBlendColorEXT (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha)

@@ -1,5 +1,0 @@
-GL_NV_texgen_reflection
-http://www.opengl.org/registry/specs/NV/texgen_reflection.txt
-GL_NV_texgen_reflection
-	GL_NORMAL_MAP_NV 0x8511
-	GL_REFLECTION_MAP_NV 0x8512

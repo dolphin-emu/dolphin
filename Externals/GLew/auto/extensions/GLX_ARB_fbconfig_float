@@ -1,5 +1,0 @@
-GLX_ARB_fbconfig_float
-http://www.opengl.org/registry/specs/ARB/color_buffer_float.txt
-GLX_ARB_fbconfig_float
-	GLX_RGBA_FLOAT_BIT 0x00000004
-	GLX_RGBA_FLOAT_TYPE 0x20B9

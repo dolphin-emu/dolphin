@@ -1,4 +1,0 @@
-GL_SGIX_reference_plane
-http://www.opengl.org/registry/specs/SGIX/reference_plane.txt
-GL_SGIX_reference_plane
-	void glReferencePlaneSGIX (const GLdouble* equation)

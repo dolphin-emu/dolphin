@@ -1,6 +1,0 @@
-GL_EXT_texture_mirror_clamp
-http://www.opengl.org/registry/specs/EXT/texture_mirror_clamp.txt
-GL_EXT_texture_mirror_clamp
-	GL_MIRROR_CLAMP_EXT 0x8742
-	GL_MIRROR_CLAMP_TO_EDGE_EXT 0x8743
-	GL_MIRROR_CLAMP_TO_BORDER_EXT 0x8912

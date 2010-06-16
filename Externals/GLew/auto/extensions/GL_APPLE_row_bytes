@@ -1,5 +1,0 @@
-GL_APPLE_row_bytes
-http://www.opengl.org/registry/specs/APPLE/row_bytes.txt
-GL_APPLE_row_bytes
-	GL_PACK_ROW_BYTES_APPLE 0x8A15
-	GL_UNPACK_ROW_BYTES_APPLE 0x8A16

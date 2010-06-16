@@ -1,4 +1,0 @@
-WGL_NV_copy_image
-http://www.opengl.org/registry/specs/NV/copy_image.txt
-WGL_NV_copy_image
-  BOOL wglCopyImageSubDataNV (HGLRC hSrcRC, GLuint srcName, GLenum srcTarget, GLint srcLevel, GLint srcX, GLint srcY, GLint srcZ, HGLRC hDstRC, GLuint dstName, GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY, GLint dstZ, GLsizei width, GLsizei height, GLsizei depth)

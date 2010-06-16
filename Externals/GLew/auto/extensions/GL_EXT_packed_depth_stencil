@@ -1,7 +1,0 @@
-GL_EXT_packed_depth_stencil
-http://www.opengl.org/registry/specs/EXT/packed_depth_stencil.txt
-GL_EXT_packed_depth_stencil
-	GL_DEPTH_STENCIL_EXT 0x84F9
-	GL_UNSIGNED_INT_24_8_EXT 0x84FA
-	GL_DEPTH24_STENCIL8_EXT 0x88F0
-	GL_TEXTURE_STENCIL_SIZE_EXT 0x88F1

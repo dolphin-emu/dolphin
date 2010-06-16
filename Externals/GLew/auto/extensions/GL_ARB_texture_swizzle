@@ -1,8 +1,0 @@
-GL_ARB_texture_swizzle
-http://www.opengl.org/registry/specs/ARB/texture_swizzle.txt
-GL_ARB_texture_swizzle
-	GL_TEXTURE_SWIZZLE_R 0x8E42
-	GL_TEXTURE_SWIZZLE_G 0x8E43
-	GL_TEXTURE_SWIZZLE_B 0x8E44
-	GL_TEXTURE_SWIZZLE_A 0x8E45
-	GL_TEXTURE_SWIZZLE_RGBA 0x8E46

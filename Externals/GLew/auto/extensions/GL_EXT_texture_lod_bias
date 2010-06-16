@@ -1,6 +1,0 @@
-GL_EXT_texture_lod_bias
-http://www.opengl.org/registry/specs/EXT/texture_lod_bias.txt
-GL_EXT_texture_lod_bias
-	GL_MAX_TEXTURE_LOD_BIAS_EXT 0x84FD
-	GL_TEXTURE_FILTER_CONTROL_EXT 0x8500
-	GL_TEXTURE_LOD_BIAS_EXT 0x8501

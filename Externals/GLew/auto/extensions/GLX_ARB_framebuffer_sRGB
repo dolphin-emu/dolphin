@@ -1,4 +1,0 @@
-GLX_ARB_framebuffer_sRGB
-http://www.opengl.org/registry/specs/ARB/framebuffer_sRGB.txt
-GLX_ARB_framebuffer_sRGB
-	GLX_FRAMEBUFFER_SRGB_CAPABLE_ARB 0x20B2

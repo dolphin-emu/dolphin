@@ -1,6 +1,0 @@
-GLX_NV_present_video
-http://www.opengl.org/registry/specs/NV/present_video.txt
-GLX_NV_present_video
-	GLX_NUM_VIDEO_SLOTS_NV 0x20F0
-	int glXBindVideoDeviceNV (Display* dpy, unsigned int video_slot, unsigned int video_device, const int *attrib_list)
-	unsigned int* glXEnumerateVideoDevicesNV (Display *dpy, int screen, int *nelements)

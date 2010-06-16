@@ -1,4 +1,0 @@
-GL_NV_multisample_filter_hint
-http://www.opengl.org/registry/specs/NV/multisample_filter_hint.txt
-GL_NV_multisample_filter_hint
-	GL_MULTISAMPLE_FILTER_HINT_NV 0x8534

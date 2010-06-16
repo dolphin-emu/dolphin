@@ -1,9 +1,0 @@
-GL_ATI_element_array
-http://www.opengl.org/registry/specs/ATI/element_array.txt
-GL_ATI_element_array
-	GL_ELEMENT_ARRAY_ATI 0x8768
-	GL_ELEMENT_ARRAY_TYPE_ATI 0x8769
-	GL_ELEMENT_ARRAY_POINTER_ATI 0x876A
-	void glDrawElementArrayATI (GLenum mode, GLsizei count)
-	void glDrawRangeElementArrayATI (GLenum mode, GLuint start, GLuint end, GLsizei count)
-	void glElementPointerATI (GLenum type, const void* pointer)

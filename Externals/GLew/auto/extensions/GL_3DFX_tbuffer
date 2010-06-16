@@ -1,4 +1,0 @@
-GL_3DFX_tbuffer
-http://www.opengl.org/registry/specs/3DFX/tbuffer.txt
-GL_3DFX_tbuffer
-	void glTbufferMask3DFX (GLuint mask)

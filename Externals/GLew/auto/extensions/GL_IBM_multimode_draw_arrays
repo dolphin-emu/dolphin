@@ -1,5 +1,0 @@
-GL_IBM_multimode_draw_arrays
-http://www.opengl.org/registry/specs/IBM/multimode_draw_arrays.txt
-GL_IBM_multimode_draw_arrays
-	void glMultiModeDrawArraysIBM (const GLenum* mode, const GLint *first, const GLsizei *count, GLsizei primcount, GLint modestride)
-	void glMultiModeDrawElementsIBM (const GLenum* mode, const GLsizei *count, GLenum type, const GLvoid * const *indices, GLsizei primcount, GLint modestride)

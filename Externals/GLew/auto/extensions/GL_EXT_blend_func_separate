@@ -1,8 +1,0 @@
-GL_EXT_blend_func_separate
-http://www.opengl.org/registry/specs/EXT/blend_func_separate.txt
-GL_EXT_blend_func_separate
-	GL_BLEND_DST_RGB_EXT 0x80C8
-	GL_BLEND_SRC_RGB_EXT 0x80C9
-	GL_BLEND_DST_ALPHA_EXT 0x80CA
-	GL_BLEND_SRC_ALPHA_EXT 0x80CB
-	void glBlendFuncSeparateEXT (GLenum sfactorRGB, GLenum dfactorRGB, GLenum sfactorAlpha, GLenum dfactorAlpha)

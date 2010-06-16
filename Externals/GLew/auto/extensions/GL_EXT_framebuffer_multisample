@@ -1,9 +1,0 @@
-GL_EXT_framebuffer_multisample
-http://www.opengl.org/registry/specs/EXT/framebuffer_multisample.txt
-GL_EXT_framebuffer_multisample
-	GL_RENDERBUFFER_SAMPLES_EXT 0x8CAB
-	GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_EXT 0x8D56
-	GL_MAX_SAMPLES_EXT 0x8D57
-	void glRenderbufferStorageMultisampleEXT (GLenum target, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height)
-	GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE_EXT 0x8D56
-	GL_MAX_SAMPLES_EXT 0x8D57

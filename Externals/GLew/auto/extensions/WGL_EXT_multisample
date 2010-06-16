@@ -1,5 +1,0 @@
-WGL_EXT_multisample
-http://www.opengl.org/registry/specs/EXT/wgl_multisample.txt
-WGL_EXT_multisample
-	WGL_SAMPLE_BUFFERS_EXT 0x2041
-	WGL_SAMPLES_EXT 0x2042

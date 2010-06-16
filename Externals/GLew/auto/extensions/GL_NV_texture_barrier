@@ -1,4 +1,0 @@
-GL_NV_texture_barrier
-http://www.opengl.org/registry/specs/NV/texture_barrier.txt
-GL_NV_texture_barrier
-	void glTextureBarrierNV (void)

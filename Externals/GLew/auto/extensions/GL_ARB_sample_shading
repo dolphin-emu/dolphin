@@ -1,6 +1,0 @@
-GL_ARB_sample_shading
-http://www.opengl.org/registry/specs/ARB/sample_shading.txt
-GL_ARB_sample_shading
-	GL_SAMPLE_SHADING_ARB 0x8C36
-	GL_MIN_SAMPLE_SHADING_VALUE_ARB 0x8C37
-	void glMinSampleShadingARB (GLclampf value)

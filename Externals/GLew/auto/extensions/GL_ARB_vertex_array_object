@@ -1,8 +1,0 @@
-GL_ARB_vertex_array_object
-http://www.opengl.org/registry/specs/ARB/vertex_array_object.txt
-GL_ARB_vertex_array_object
-	GL_VERTEX_ARRAY_BINDING 0x85B5
-	void glBindVertexArray (GLuint array)
-	void glDeleteVertexArrays (GLsizei n, const GLuint* arrays)
-	void glGenVertexArrays (GLsizei n, GLuint* arrays)
-	GLboolean glIsVertexArray (GLuint array)

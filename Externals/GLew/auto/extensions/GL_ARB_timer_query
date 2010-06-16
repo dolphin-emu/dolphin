@@ -1,8 +1,0 @@
-GL_ARB_timer_query
-http://www.opengl.org/registry/specs/ARB/timer_query.txt
-GL_ARB_timer_query
-	GL_TIME_ELAPSED 0x88BF
-	GL_TIMESTAMP 0x8E28
-	void glGetQueryObjecti64v (GLuint id, GLenum pname, GLint64* params)
-	void glGetQueryObjectui64v (GLuint id, GLenum pname, GLuint64* params)
-	void glQueryCounter (GLuint id, GLenum target)

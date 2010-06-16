@@ -1,5 +1,0 @@
-GL_EXT_bgra
-http://www.opengl.org/registry/specs/EXT/bgra.txt
-GL_EXT_bgra
-	GL_BGR_EXT 0x80E0
-	GL_BGRA_EXT 0x80E1

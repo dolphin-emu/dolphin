@@ -1,7 +1,0 @@
-GL_ARB_draw_indirect
-http://www.opengl.org/registry/specs/ARB/draw_indirect.txt
-GL_ARB_draw_indirect
-	GL_DRAW_INDIRECT_BUFFER 0x8F3F
-	GL_DRAW_INDIRECT_BUFFER_BINDING 0x8F43
-	void glDrawArraysIndirect (GLenum mode, const void* indirect)
-	void glDrawElementsIndirect (GLenum mode, GLenum type, const void* indirect)

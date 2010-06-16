@@ -1,6 +1,0 @@
-WGL_ATI_pixel_format_float
-http://www.opengl.org/registry/specs/ATI/pixel_format_float.txt
-WGL_ATI_pixel_format_float
-	WGL_TYPE_RGBA_FLOAT_ATI 0x21A0
-	GL_RGBA_FLOAT_MODE_ATI 0x8820
-	GL_COLOR_CLEAR_UNCLAMPED_VALUE_ATI 0x8835
