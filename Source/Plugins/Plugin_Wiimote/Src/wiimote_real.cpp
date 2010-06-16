@@ -341,6 +341,8 @@ void FlashLights(bool Connect)
 
 int Initialize()
 {
+	int i, wiimote_slots = 0;
+
 	// Return if already initialized
 	if (g_RealWiiMoteInitialized)
 		return g_NumberOfWiiMotes;
@@ -349,15 +351,28 @@ int Initialize()
 
 	// Clear the wiimote classes
 	memset(g_WiiMotes, 0, sizeof(CWiiMote*) * MAX_WIIMOTES);
-	for (int i = 0; i < MAX_WIIMOTES; i++)
+	for (i = 0; i < MAX_WIIMOTES; i++)
 		g_WiimoteInUse[i] = false;
 
 	g_RealWiiMotePresent = false;
 	g_RealWiiMoteAllocated = false;
 
+	// Only call wiiuse_find with the number of slots configured for real wiimotes
+	for (i = 0; i < MAX_WIIMOTES; i++)
+	{
+		// Found a WiiMote (slot) that wants to be real :P
+		if (WiiMoteEmu::WiiMapping[i].Source == 2) {
+			wiimote_slots++;
+		}
+	}
+
+	// Don't bother initializing wiiuse if we don't want any real wiimotes
+	if (wiimote_slots < 1)
+		return 0;
+
 	// Call Wiiuse.dll
 	g_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
-	g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, MAX_WIIMOTES, 5);
+	g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, wiimote_slots, 5);
 	DEBUG_LOG(WIIMOTE, "Found No of Wiimotes: %i", g_NumberOfWiiMotes);
 	if (g_NumberOfWiiMotes > 0)
 	{
@@ -374,7 +389,7 @@ int Initialize()
 	else
 		return 0;
 
-	for (int i = 0; i < g_NumberOfWiiMotes; i++)
+	for (i = 0; i < g_NumberOfWiiMotes; i++)
 	{
 		// Remove the wiiuse_poll() threshold
 		wiiuse_set_accel_threshold(g_WiiMotesFromWiiUse[i], 0);
@@ -408,7 +423,7 @@ int Initialize()
 	   we update its eeprom? In any case it's probably better to let the
 	   current calibration be where it is and adjust the global values after
 	   that to avoid overwriting critical data on any Wiimote. */
-	for (int i = 0; i < g_NumberOfWiiMotes; i++)
+	for (i = 0; i < g_NumberOfWiiMotes; i++)
 	{
 		byte *data = (byte*)malloc(sizeof(byte) * sizeof(WiiMoteEmu::EepromData_0));
 		wiiuse_read_data(g_WiiMotesFromWiiUse[i], data, 0, sizeof(WiiMoteEmu::EepromData_0));

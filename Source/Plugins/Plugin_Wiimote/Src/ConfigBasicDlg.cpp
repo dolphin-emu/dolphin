@@ -187,8 +187,10 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_TextUDPWiiPort[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("UDP Port:"));
 		m_TextUDPWiiPort[i]->SetToolTip(wxT("The UDP port on witch UDPWii listens for this remote."));
 
+#ifdef _WIN32
 		m_PairUpRealWiimote[i] = new wxButton(m_Controller[i], IDB_PAIRUP_REAL, wxT("Pair Up"));
 		m_PairUpRealWiimote[i]->SetToolTip(wxT("Press the Buttons 1 and 2 on your Wiimote.\nThis might take a few seconds.\nIt only works if you are using Microsoft Bluetooth stack.")); // Only working with MS BT Stack.
+#endif
 
 		m_TextFoundRealWiimote[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Connected to 0 Real Wiimotes"));
 		m_ConnectRealWiimote[i] = new wxButton(m_Controller[i], IDB_REFRESH_REAL, wxT("Refresh"));
@@ -198,6 +200,7 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_WiimoteTimeout[i] = new wxSlider(m_Controller[i], IDS_TIMEOUT, 0, 10, 200, wxDefaultPosition, wxSize(75, -1));
 		m_WiimoteTimeout[i]->SetToolTip(wxT("General Real Wiimote Read Timeout, Default: 10 (ms). Higher values might eliminate frequent disconnects."));
 
+#ifdef _WIN32
 		//Real Wiimote / automatic settings
 		m_WiiAutoReconnect[i] = new wxCheckBox(m_Controller[i], IDC_WIIAUTORECONNECT, wxT("Reconnect Wiimote on disconnect"));
 		m_WiiAutoReconnect[i]->SetToolTip(wxT("This makes dolphin automatically reconnect a wiimote when it has being disconnected.\nThis will cause problems when 2 controllers are connected for a 1 player game."));
@@ -205,12 +208,8 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_WiiAutoUnpair[i]->SetToolTip(wxT("This makes dolphin automatically unpair a wiimote when dolphin is about to be closed."));
 		m_WiiExtendedPairUp[i] = new wxCheckBox(m_Controller[i], IDC_WIIAUTOPAIR, wxT("Extended PairUp/Connect"));
 		m_WiiExtendedPairUp[i]->SetToolTip(wxT("This makes dolphin automatically pair up and connect Wiimotes on pressing 1+2 on your Wiimote."));
-		
-#ifndef _WIN32
-		m_WiiAutoUnpair[i]->Enable(false);
-		m_PairUpRealWiimote[i]->Enable(false);
 #endif
-								
+		
 		//IR Pointer
 		m_TextScreenWidth[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Width: 000"));
 		m_TextScreenHeight[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Height: 000"));
@@ -256,23 +255,29 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 		m_SizeUDPWii[i]->Add(m_UDPWiiIR[i], 0, wxEXPAND | wxALL,1);
 		m_SizeUDPWii[i]->Add(m_UDPWiiNun[i], 0, wxEXPAND | wxALL,1);
 
+#ifdef _WIN32
 		m_SizeRealAuto[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Automatic"));
 		m_SizeRealAuto[i]->Add(m_WiiAutoReconnect[i], 0, wxEXPAND | (wxDOWN | wxTOP), 5);
 		m_SizeRealAuto[i]->Add(m_WiiAutoUnpair[i], 0, wxEXPAND | (wxDOWN | wxTOP), 5);
 		m_SizeRealAuto[i]->Add(m_WiiExtendedPairUp[i], 0, wxEXPAND | (wxDOWN | wxTOP), 5);
+#endif
 
 		m_SizeRealTimeout[i] = new wxBoxSizer(wxHORIZONTAL);
 		m_SizeRealTimeout[i]->Add(m_TextWiimoteTimeout[i], 0, wxEXPAND | (wxTOP), 3);
 		m_SizeRealTimeout[i]->Add(m_WiimoteTimeout[i], 0, wxEXPAND | (wxRIGHT), 0);
 
 		m_SizeRealRefreshPair[i] = new wxBoxSizer(wxHORIZONTAL);
+#ifdef _WIN32
 		m_SizeRealRefreshPair[i]->Add(m_PairUpRealWiimote[i], 0, wxEXPAND | wxALL, 5);
+#endif
 		m_SizeRealRefreshPair[i]->Add(m_ConnectRealWiimote[i], 0, wxEXPAND | wxALL, 5);
 
 		m_SizeReal[i] = new wxStaticBoxSizer(wxVERTICAL, m_Controller[i], wxT("Real Wiimote"));
 		m_SizeReal[i]->Add(m_TextFoundRealWiimote[i], 0, wxALIGN_CENTER | wxALL, 5);
 		m_SizeReal[i]->Add(m_SizeRealRefreshPair[i], 0, wxALIGN_CENTER | (wxLEFT | wxDOWN | wxRIGHT), 5);
+#ifdef _WIN32
 		m_SizeReal[i]->Add(m_SizeRealAuto[i], 0, wxEXPAND | wxALL, 5);
+#endif
 		m_SizeReal[i]->Add(m_SizeRealTimeout[i], 0, wxEXPAND | (wxLEFT | wxDOWN | wxRIGHT), 5);
 
 		m_SizerIRPointerWidth[i] = new wxBoxSizer(wxHORIZONTAL);
@@ -374,6 +379,7 @@ void WiimoteBasicConfigDialog::DoRefreshReal()
 
 
 void WiimoteBasicConfigDialog::UpdateBasicConfigDialog(bool state) {
+#ifdef _WIN32
 	if (m_BasicConfigFrame != NULL) {
 		if (state) {
 			m_PairUpRealWiimote[m_Page]->Enable(true);
@@ -382,6 +388,7 @@ void WiimoteBasicConfigDialog::UpdateBasicConfigDialog(bool state) {
 		else 
 			m_PairUpRealWiimote[m_Page]->Enable(false);
 	}
+#endif
 }
 
 
@@ -582,7 +589,9 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	   mean that the wiimote must be sent the current reporting mode and the channel ID after it
 	   has been initialized. Functions for that are basically already in place so these two options
 	   could possibly be simplified to one option. */
+#ifdef _WIN32
 	m_PairUpRealWiimote[m_Page]->Enable(g_EmulatorState != PLUGIN_EMUSTATE_PLAY);
+#endif
 	m_TextFoundRealWiimote[m_Page]->SetLabel(wxString::Format(wxT("Connected to %i Real Wiimotes"), WiiMoteReal::g_NumberOfWiiMotes));
 	m_ConnectRealWiimote[m_Page]->Enable(g_EmulatorState != PLUGIN_EMUSTATE_PLAY);
 
@@ -615,10 +624,12 @@ void WiimoteBasicConfigDialog::UpdateGUI()
 	m_WiiMotionPlusConnected[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bMotionPlusConnected);
 	
 	//Real Wiimote related settings
+#ifdef _WIN32
 	//Automatic settings
 	m_WiiAutoReconnect[m_Page]->SetValue(WiiMoteEmu::WiiMapping[m_Page].bWiiAutoReconnect);
 	m_WiiAutoUnpair[m_Page]->SetValue(g_Config.bUnpairRealWiimote);
 	m_WiiExtendedPairUp[m_Page]->SetValue(g_Config.bPairRealWiimote);
+#endif
 	m_TextWiimoteTimeout[m_Page]->SetLabel(wxString::Format(wxT("Timeout: %i ms"), g_Config.bWiiReadTimeout));
 	m_WiimoteTimeout[m_Page]->SetValue(g_Config.bWiiReadTimeout);
 

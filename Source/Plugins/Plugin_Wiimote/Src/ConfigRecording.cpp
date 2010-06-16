@@ -245,11 +245,11 @@ void WiimoteRecordingConfigDialog::CreateGUIControlsRecording()
 	StrHotKeySwitch.Add(wxT("Shift"));
 	StrHotKeySwitch.Add(wxT("Ctrl"));
 	StrHotKeySwitch.Add(wxT("Alt"));
-	StrHotKeySwitch.Add(wxT(""));
+	StrHotKeySwitch.Add(wxT(" "));
 
 	wxArrayString StrHotKey;
 	for(int i = 0; i < 10; i++) StrHotKey.Add(wxString::Format(wxT("%i"), i));
-	StrHotKey.Add(wxT(""));
+	StrHotKey.Add(wxT(" "));
 
 	wxArrayString StrPlayBackSpeed;
 	for(int i = 1; i <= 20; i++) StrPlayBackSpeed.Add(wxString::Format(wxT("%i"), i*25));
