@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include;..\..\Core\Common\Src;..\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\Core\Common\Src;..\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -130,7 +130,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include;..\..\Core\Common\Src;..\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\Core\Common\Src;..\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -213,7 +213,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include;..\..\Core\Common\Src;..\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\Core\Common\Src;..\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="0"
 				AssemblerListingLocation="$(IntDir)\"
@@ -299,7 +299,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include;..\..\Core\Common\Src;..\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\Core\Common\Src;..\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="0"
 				AssemblerListingLocation="$(IntDir)\"
@@ -382,7 +382,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include;..\..\Core\Common\Src;..\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\Core\Common\Src;..\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="DEBUGFAST;WIN32;NDEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				WarningLevel="3"
@@ -465,7 +465,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include;..\..\Core\Common\Src;..\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\Core\Common\Src;..\InputPluginCommon\Src;..\..\Core\InputCommon\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				WarningLevel="3"
