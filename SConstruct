@@ -251,10 +251,17 @@ if sys.platform == 'darwin':
 conf = env.Configure(custom_tests = tests,
                      config_h="Source/Core/Common/Src/Config.h")
 
+env['HAVE_OPENCL'] = 0
+if env['opencl']:
+    env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
+
 # OS X specifics
 if sys.platform == 'darwin':
+    # OpenCL is new in OS X 10.6. Other than OpenCL,
+    # we try to maintain 10.5 compatibility, however.
+    if not env['HAVE_OPENCL']:
+        compileFlags += ['-isysroot', '/Developer/SDKs/MacOSX10.5.sdk']
     compileFlags += ['-mmacosx-version-min=10.5']
-    compileFlags += ['-isysroot', '/Developer/SDKs/MacOSX10.5.sdk']
     conf.Define('MAP_32BIT', 0)
     env['CC'] = "gcc-4.2"
     env['CFLAGS'] = ['-x', 'objective-c']
@@ -273,14 +280,21 @@ shared = {}
 shared['glew'] = shared['lzo'] = shared['sdl'] = \
 shared['soil'] = shared['sfml'] = shared['zlib'] = 0
 if not sys.platform == 'darwin':
+    # GLEW, SDL and zlib are present on almost all Linux systems,
+    # so it is generally safe to link with their shared distribution
+    # libraries even when we are building a redistributable image.
     shared['glew'] = conf.CheckPKG('GLEW')
-    shared['lzo'] = conf.CheckPKG('lzo2')
     shared['sdl'] = conf.CheckPKG('SDL')
-    shared['soil'] = conf.CheckPKG('SOIL')
-    # TODO:  Check the version of sfml.  It should be at least version 1.5
-    shared['sfml'] = conf.CheckPKG('sfml-network') and \
-                     conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
     shared['zlib'] = conf.CheckPKG('z')
+    # LZO, SFML and SOIL are not typically part of a default install
+    # of most Linux distributions, so only link with any of these
+    # shared libraries if we are just doing a development build.
+    if flavour != 'release':
+        shared['lzo'] = conf.CheckPKG('lzo2')
+        # TODO:  Check the version of sfml.  It should be at least version 1.5
+        shared['sfml'] = conf.CheckPKG('sfml-network') and \
+                         conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
+        shared['soil'] = conf.CheckPKG('SOIL')
     for lib in shared:
         if not shared[lib]:
             print "Shared library " + lib + " not detected, " \
@@ -337,13 +351,10 @@ if not env['HAVE_WX'] and not env['nowx']:
     print "WX libraries not found - see config.log"
     Exit(1)
 
-env['HAVE_OPENCL'] = 0
 if not sys.platform == 'win32':
     if not conf.CheckPKG('Cg'):
         print "Must have Cg framework from NVidia to build"
         Exit(1)
-    if env['opencl']:
-        env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
 
 env['HAVE_BLUEZ'] = 0
 env['HAVE_ALSA'] = env['HAVE_AO'] = env['HAVE_OPENAL'] = \
