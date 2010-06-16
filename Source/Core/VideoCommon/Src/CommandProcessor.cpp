@@ -596,36 +596,21 @@ void STACKALIGN GatherPipeBursted()
 
 	if (g_VideoInitialize.bOnThread)
 	{
-		// The interrupt latency in Dolphin is much longer than Hardware, so we must be more vigilant on Watermark
-		if (!m_CPStatusReg.OverflowHiWatermark && fifo.CPReadWriteDistance >= HiWatermark_Tighter)
-		{
-			m_CPStatusReg.OverflowHiWatermark = true;
-			if (m_CPCtrlReg.FifoOverflowIntEnable)
-				UpdateInterrupts();
-		}
-		// A little trick to prevent FIFO from overflown in dual core mode
-		// Unfortunately we cannot do the same for single core
-		int cnt = 0;
-		while (fifo.CPReadWriteDistance	> fifo.CPEnd - fifo.CPBase)
-		{
-			// Avoid deadlock
-			if (cnt >= 100)
-				break;
-			cnt++;
-			SwitchToThread();
-		}
+		// A little trick to prevent FIFO from overflown in dual core mode (n < 100 to avoid dead lock)
+		for (int cnt = 0; fifo.CPReadWriteDistance > fifo.CPEnd - fifo.CPBase && cnt < 100; cnt++)
+			Common::SwitchCurrentThread();
 	}
 	else
 	{
 		CatchUpGPU();
+	}
 
-		// The interrupt latency in Dolphin is much longer than Hardware, so we must be more vigilant on Watermark
-		if (!m_CPStatusReg.OverflowHiWatermark && fifo.CPReadWriteDistance >= HiWatermark_Tighter)
-		{
-			m_CPStatusReg.OverflowHiWatermark = true;
-			if (m_CPCtrlReg.FifoOverflowIntEnable)
-				UpdateInterrupts();
-		}
+	// The interrupt latency in Dolphin is much longer than Hardware, so we must be more vigilant on Watermark
+	if (!m_CPStatusReg.OverflowHiWatermark && fifo.CPReadWriteDistance >= HiWatermark_Tighter)
+	{
+		m_CPStatusReg.OverflowHiWatermark = true;
+		if (m_CPCtrlReg.FifoOverflowIntEnable)
+			UpdateInterrupts();
 	}
 
 	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance	<= fifo.CPEnd - fifo.CPBase,

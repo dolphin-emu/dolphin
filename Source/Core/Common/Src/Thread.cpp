@@ -247,11 +247,16 @@ namespace Common
 			}
 		}
 	}
-	
+
 	// Supporting functions
 	void SleepCurrentThread(int ms)
 	{
 		Sleep(ms);
+	}
+	
+	void SwitchCurrentThread()
+	{
+		SwitchToThread();
 	}
 	
 	typedef struct tagTHREADNAME_INFO
@@ -417,13 +422,17 @@ namespace Common
 		
 		thread_init_done++;
 	}
-	
+
 	void SleepCurrentThread(int ms)
 	{
 		usleep(1000 * ms);
 	}
 	
-	
+	void SwitchCurrentThread()
+	{
+		usleep(1000 * 1);
+	}
+
 	void SetCurrentThreadName(const TCHAR* szThreadName)
 	{
 		char *name = strdup(szThreadName);
