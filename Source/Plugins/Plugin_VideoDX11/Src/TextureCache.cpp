@@ -269,18 +269,13 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 			ID3D11Texture2D* pTexture = NULL;
 			HRESULT hr;
 
-			// possible optimization: Manually create the mipmaps, so that we don't need to bind the texture as render target
-			// if we automatically generate the mipmaps we need to bind the texture as rendertarget as well
-			D3D11_BIND_FLAG bindflags = D3D11_BIND_SHADER_RESOURCE;
-			if (TexLevels == 0) bindflags = (D3D11_BIND_FLAG)(bindflags | D3D11_BIND_RENDER_TARGET);
-			D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(d3d_fmt, width, height, 1, TexLevels, bindflags, usage, 0, 1, 0, (TexLevels==0)?D3D11_RESOURCE_MISC_GENERATE_MIPS:0);
+			D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(d3d_fmt, width, height, 1, TexLevels, D3D11_BIND_SHADER_RESOURCE, usage);
 			hr = D3D::device->CreateTexture2D(&texdesc, NULL, &pTexture);
 			if (FAILED(hr))
 			{
 				PanicAlert("Failed to create texture at %s %d\n", __FILE__, __LINE__);
 				return NULL;
 			}
-			// we only need the shader resource view
 			entry.texture = new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE);
 			D3D::SetDebugObjectName((ID3D11DeviceChild*)entry.texture->GetTex(), "a (static) texture of the TextureCache");
 			D3D::SetDebugObjectName((ID3D11DeviceChild*)entry.texture->GetSRV(), "shader resource view of a (static) texture of the TextureCache");
@@ -293,7 +288,7 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 	{
 		D3D::ReplaceTexture2D(entry.texture->GetTex(), temp, width, height, expandedWidth, d3d_fmt, pcfmt, 0, usage);
 	}
-	if (TexLevels == 0 && usage == D3D11_USAGE_DEFAULT) D3D::context->GenerateMips(entry.texture->GetSRV());
+	if (TexLevels == 0 && usage == D3D11_USAGE_DEFAULT) D3DX11FilterTexture(D3D::context, entry.texture->GetTex(), 0, D3DX11_DEFAULT);
 	else if (TexLevels > 1 && pcfmt != PC_TEX_FMT_NONE)
 	{
 		unsigned int level = 1;
