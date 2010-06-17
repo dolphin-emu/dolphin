@@ -102,6 +102,12 @@ vars.AddVariables(
     BoolVariable('wxgl', 'Set for building with WX GL on Linux', False),
     BoolVariable('opencl', 'Build with OpenCL', False),
     BoolVariable('nojit', 'Remove entire jit cores', False),
+    BoolVariable('shared_glew', 'Use system shared libGLEW', True),
+    BoolVariable('shared_lzo', 'Use system shared liblzo2', True),
+    BoolVariable('shared_sdl', 'Use system shared libSDL', True),
+    BoolVariable('shared_sfml', 'Use system shared libsfml-network', True),
+    BoolVariable('shared_soil', 'Use system shared libSOIL', True),
+    BoolVariable('shared_zlib', 'Use system shared libz', True),
     PathVariable('userdir', 'Set the name of the user data directory in home',
                  '.dolphin-emu', PathVariable.PathAccept),
     EnumVariable('install', 'Choose a local or global installation', 'local',
@@ -280,20 +286,19 @@ shared = {}
 shared['glew'] = shared['lzo'] = shared['sdl'] = \
 shared['soil'] = shared['sfml'] = shared['zlib'] = 0
 if not sys.platform == 'darwin':
-    # GLEW, SDL and zlib are present on almost all Linux systems,
-    # so it is generally safe to link with their shared distribution
-    # libraries even when we are building a redistributable image.
-    shared['glew'] = conf.CheckPKG('GLEW')
-    shared['sdl'] = conf.CheckPKG('SDL')
-    shared['zlib'] = conf.CheckPKG('z')
-    # LZO, SFML and SOIL are not typically part of a default install
-    # of most Linux distributions, so only link with any of these
-    # shared libraries if we are just doing a development build.
-    if flavour != 'release':
+    if env['shared_glew']:
+        shared['glew'] = conf.CheckPKG('GLEW')
+    if env['shared_sdl']:
+        shared['sdl'] = conf.CheckPKG('SDL')
+    if env['shared_zlib']:
+        shared['zlib'] = conf.CheckPKG('z')
+    if env['shared_lzo']:
         shared['lzo'] = conf.CheckPKG('lzo2')
-        # TODO:  Check the version of sfml.  It should be at least version 1.5
+    # TODO:  Check the version of sfml.  It should be at least version 1.5
+    if env['shared_sfml']:
         shared['sfml'] = conf.CheckPKG('sfml-network') and \
                          conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
+    if env['shared_soil']:
         shared['soil'] = conf.CheckPKG('SOIL')
     for lib in shared:
         if not shared[lib]:
