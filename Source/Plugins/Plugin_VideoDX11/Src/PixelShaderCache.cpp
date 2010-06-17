@@ -166,15 +166,19 @@ void PixelShaderCache::Init()
 {
 	// used when drawing clear quads
 	s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code, strlen(clear_program_code));	
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "clear pixel shader");
 
 	// used when copying/resolving the color buffer
 	s_ColorCopyProgram = D3D::CompileAndCreatePixelShader(color_copy_program_code, strlen(color_copy_program_code));
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "color copy pixel shader");
 
 	// used for color conversion
 	s_ColorMatrixProgram = D3D::CompileAndCreatePixelShader(color_matrix_program_code, strlen(color_matrix_program_code));
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "color matrix pixel shader");
 
 	// used for depth copy
 	s_DepthMatrixProgram = D3D::CompileAndCreatePixelShader(depth_matrix_program, strlen(depth_matrix_program));
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "depth matrix pixel shader");
 
 	Clear();
 
@@ -262,6 +266,8 @@ bool PixelShaderCache::InsertByteCode(const PIXELSHADERUID &uid, void* bytecode,
 		PanicAlert("Failed to create pixel shader at %s %d\n", __FILE__, __LINE__);
 		return false;
 	}
+	// TODO: Somehow make the debug name a bit more specific
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)shader, "a pixel shader of PixelShaderCache");
 
 	// make an entry in the table
 	PSCacheEntry newentry;

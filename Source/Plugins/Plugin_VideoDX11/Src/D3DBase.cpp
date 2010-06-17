@@ -376,11 +376,12 @@ void Close()
 {
 	// release all bound resources
 	context->ClearState();
-
-	if (gfxstate) delete gfxstate;
 	SAFE_RELEASE(backbuf);
-	SAFE_RELEASE(context);
+	if (gfxstate) delete gfxstate;
 	SAFE_RELEASE(swapchain);
+	context->Flush();  // immediately destroy device objects
+
+	SAFE_RELEASE(context);
 	ULONG references = device->Release();
 	if (references)
 	{
@@ -403,12 +404,31 @@ unsigned int GetBackBufferHeight() { return yres; }
 
 void Reset()
 {
-	DXGI_SWAP_CHAIN_DESC desc;
-	D3D::swapchain->ResizeBuffers(1, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
-	swapchain->GetDesc(&desc);
-	xres = desc.BufferDesc.Width;
-	yres = desc.BufferDesc.Height;
-	// TODO: Check whether we need to do anything here
+	// release all back buffer references
+	SAFE_RELEASE(backbuf);
+
+	// resize swapchain buffers
+	RECT client;
+	GetClientRect(hWnd, &client);
+	xres = client.right - client.left;
+	yres = client.bottom - client.top;
+	D3D::swapchain->ResizeBuffers(1, xres, yres, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+
+	// recreate back buffer texture
+	ID3D11Texture2D* buf;
+	HRESULT hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);
+	if (FAILED(hr))
+	{
+		MessageBox(hWnd, _T("Failed to get swapchain buffer"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
+		device->Release();
+		context->Release();
+		swapchain->Release();
+		return;
+	}
+	backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
+	buf->Release();
+	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
+	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
 }
 
 bool BeginFrame()

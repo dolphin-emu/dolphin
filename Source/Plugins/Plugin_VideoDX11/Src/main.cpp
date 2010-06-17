@@ -385,6 +385,7 @@ HRESULT ScreenShot(const char* filename)
 
 void Video_Screenshot(const char* _szFilename)
 {
+	Renderer::SetScreenshot(_szFilename);
 }
 
 static struct

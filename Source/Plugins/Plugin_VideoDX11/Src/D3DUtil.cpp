@@ -174,6 +174,7 @@ int CD3DFont::Init()
 		PanicAlert("Failed to create font texture");
 		return hr;
 	}
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)buftex, "texture of a CD3DFont object");
 
 	// lock the surface and write the alpha values for the set pixels
 	D3D11_MAPPED_SUBRESOURCE texmap;
@@ -205,12 +206,14 @@ int CD3DFont::Init()
 	// setup device objects for drawing
 	m_pshader = D3D::CompileAndCreatePixelShader(fontpixshader, sizeof(fontpixshader));
 	if (m_pshader == NULL) PanicAlert("Failed to create pixel shader, %s %d\n", __FILE__, __LINE__);
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_pshader, "pixel shader of a CD3DFont object");
 
 	D3DBlob* vsbytecode;
 	D3D::CompileVertexShader(fontvertshader, sizeof(fontvertshader), &vsbytecode);
 	if (vsbytecode == NULL) PanicAlert("Failed to compile vertex shader, %s %d\n", __FILE__, __LINE__);
 	m_vshader = D3D::CreateVertexShaderFromByteCode(vsbytecode);
 	if (m_vshader == NULL) PanicAlert("Failed to create vertex shader, %s %d\n", __FILE__, __LINE__);
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_vshader, "vertex shader of a CD3DFont object");
 
 	const D3D11_INPUT_ELEMENT_DESC desc[] =
 	{
@@ -234,10 +237,12 @@ int CD3DFont::Init()
 	blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
 	blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 	D3D::device->CreateBlendState(&blenddesc, &m_blendstate);
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_blendstate, "blend state of a CD3DFont object");
 
 	// this might need to be changed when adding multisampling support
 	D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, false, false, false);
 	D3D::device->CreateRasterizerState(&rastdesc, &m_raststate);
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_raststate, "rasterizer state of a CD3DFont object");
 
 	D3D11_BUFFER_DESC vbdesc = CD3D11_BUFFER_DESC(MAX_NUM_VERTICES*sizeof(FONT2DVERTEX), D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	if (FAILED(hr = device->CreateBuffer(&vbdesc, NULL, &m_pVB)))
@@ -245,6 +250,7 @@ int CD3DFont::Init()
 		PanicAlert("Failed to create vertex buffer!\n");
 		return hr;
 	}
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_pVB, "vertex buffer of a CD3DFont object");
 	return S_OK;
 }
 

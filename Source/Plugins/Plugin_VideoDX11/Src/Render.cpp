@@ -70,6 +70,10 @@ static float yScale;
 static u32 s_blendMode;
 static bool XFBWrited;
 
+static bool s_bScreenshot = false;
+static Common::CriticalSection s_criticalScreenshot;
+static char s_sScreenshotName[1024];
+
 ID3D11Buffer* access_efb_cbuf = NULL;
 ID3D11DepthStencilState* cleardepthstates[2] = {NULL};
 ID3D11RasterizerState* clearraststate = NULL;
@@ -873,6 +877,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 		D3D::drawShadedTexSubQuad(xfbSource->tex->GetSRV(), &sourceRc, xfbSource->texWidth, xfbSource->texHeight, &drawRc, PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 	}
+	if (s_bScreenshot)
+	{
+		HRESULT hr = D3DX11SaveTextureToFileA(D3D::context, D3D::GetBackBuffer()->GetTex(), D3DX11_IFF_PNG, s_sScreenshotName);
+		s_bScreenshot = false;
+	}
 
 	vp = CD3D11_VIEWPORT(0.f, 0.f, s_backbuffer_width, s_backbuffer_height);
 	D3D::context->RSSetViewports(1, &vp);
@@ -910,7 +919,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	UpdateActiveConfig();
 	WindowResized = false;
 	CheckForResize();
-	
+
 	bool xfbchanged = false;
 	
 	if (s_XFB_width != fbWidth || s_XFB_height != fbHeight)
@@ -931,9 +940,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
 		yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
 
-		s_target_width  = EFB_WIDTH * xScale;
-		s_target_height = EFB_HEIGHT * yScale;
-		
+		s_target_width  = (int)(EFB_WIDTH * xScale);
+		s_target_height = (int)(EFB_HEIGHT * yScale);
+
 		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
 
 		FBManager.Destroy();
@@ -1096,5 +1105,9 @@ void Renderer::SetInterlacingMode()
 // Save screenshot
 void Renderer::SetScreenshot(const char* filename)
 {
-	PanicAlert("Renderer::SetScreenshot not implemented\n");
+	s_criticalScreenshot.Enter();
+	strcpy_s(s_sScreenshotName, filename);
+	s_bScreenshot = true;
+	s_criticalScreenshot.Leave();
 }
+

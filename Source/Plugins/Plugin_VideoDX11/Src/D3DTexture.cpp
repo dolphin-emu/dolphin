@@ -45,7 +45,7 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 
 	if (usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING)
 	{
-		if (level != 0) PanicAlert("Dynamic textures don't support mipmaps, but given level is not 0 at %s %d\n", __FILE__, __LINE__);
+		if (usage == D3D11_USAGE_DYNAMIC && level != 0) PanicAlert("Dynamic textures don't support mipmaps, but given level is not 0 at %s %d\n", __FILE__, __LINE__);
 		D3D11_MAPPED_SUBRESOURCE map;
 		D3D::context->Map(pTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		outptr = (u8*)map.pData;

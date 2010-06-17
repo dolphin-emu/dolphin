@@ -148,12 +148,16 @@ void VertexShaderCache::Init()
 	SimpleVertexShader = D3D::CreateVertexShaderFromByteCode(blob);
 	if (SimpleLayout == NULL || SimpleVertexShader == NULL) PanicAlert("Failed to create simple vertex shader or input layout at %s %d\n", __FILE__, __LINE__);
 	blob->Release();
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)SimpleVertexShader, "simple vertex shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)SimpleLayout, "simple input layout");
 
 	D3D::CompileVertexShader(clear_shader_code, (int)strlen(clear_shader_code), &blob);
 	D3D::device->CreateInputLayout(clearelems, 2, blob->Data(), blob->Size(), &ClearLayout);
 	ClearVertexShader = D3D::CreateVertexShaderFromByteCode(blob);
 	if (ClearLayout == NULL || ClearVertexShader == NULL) PanicAlert("Failed to create clear vertex shader or input layout at %s %d\n", __FILE__, __LINE__);
 	blob->Release();
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)ClearVertexShader, "clear vertex shader");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)ClearLayout, "clear input layout");
 
 	Clear();
 
@@ -249,6 +253,8 @@ bool VertexShaderCache::InsertByteCode(const VERTEXSHADERUID &uid, D3DBlob* bcod
 		PanicAlert("Failed to create vertex shader from %p size %d at %s %d\n", bcodeblob->Data(), bcodeblob->Size(), __FILE__, __LINE__);
 		return false;
 	}
+	// TODO: Somehow make the debug name a bit more specific
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)shader, "a vertex shader of VertexShaderCache");
 
 	// Make an entry in the table
 	VSCacheEntry entry;

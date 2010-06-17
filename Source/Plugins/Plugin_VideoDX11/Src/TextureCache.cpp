@@ -257,7 +257,13 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 	D3D11_USAGE usage = (TexLevels == 1) ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
 	if (!skip_texture_create)
 	{
-		if (usage == D3D11_USAGE_DYNAMIC) entry.texture = D3DTexture2D::Create(width, height, D3D11_BIND_SHADER_RESOURCE, usage, d3d_fmt, TexLevels);
+		// TODO: A little more verbosity in the debug names would be quite helpful..
+		if (usage == D3D11_USAGE_DYNAMIC)
+		{
+			entry.texture = D3DTexture2D::Create(width, height, D3D11_BIND_SHADER_RESOURCE, usage, d3d_fmt, TexLevels);
+			D3D::SetDebugObjectName((ID3D11DeviceChild*)entry.texture->GetTex(), "a (dynamic) texture of the TextureCache");
+			D3D::SetDebugObjectName((ID3D11DeviceChild*)entry.texture->GetSRV(), "shader resource view of a (dynamic) texture of the TextureCache");
+		}
 		else // need to use default textures
 		{
 			ID3D11Texture2D* pTexture = NULL;
@@ -276,6 +282,8 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 			}
 			// we only need the shader resource view
 			entry.texture = new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE);
+			D3D::SetDebugObjectName((ID3D11DeviceChild*)entry.texture->GetTex(), "a (static) texture of the TextureCache");
+			D3D::SetDebugObjectName((ID3D11DeviceChild*)entry.texture->GetSRV(), "shader resource view of a (static) texture of the TextureCache");
 			pTexture->Release();
 		}
 		if (entry.texture == NULL) PanicAlert("Failed to create texture at %s %d\n", __FILE__, __LINE__);

@@ -53,7 +53,7 @@ private:
 		VSCacheEntry() : shader(NULL), bytecode(NULL), frameCount(0) {}
 		void SetByteCode(D3DBlob* blob)
 		{
-			if (bytecode) bytecode->Release();
+			SAFE_RELEASE(bytecode);
 			bytecode = blob;
 			blob->AddRef();
 		}
@@ -63,7 +63,6 @@ private:
 			SAFE_RELEASE(bytecode);
 		}
 	};
-
 	typedef std::map<VERTEXSHADERUID, VSCacheEntry> VSCache;
 	
 	static VSCache vshaders;
