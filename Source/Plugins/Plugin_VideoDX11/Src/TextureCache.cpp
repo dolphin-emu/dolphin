@@ -56,7 +56,8 @@ extern int frameCount;
 void TextureCache::TCacheEntry::Destroy(bool shutdown)
 {
 	SAFE_RELEASE(texture);
-	if (!isRenderTarget && !shutdown)
+
+	if (!isRenderTarget && !shutdown && !g_ActiveConfig.bSafeTextureCache)
 	{
 		u32* ptr = (u32*)g_VideoInitialize.pGetMemoryPointer(addr);
 		if (ptr && *ptr == hash)
@@ -193,9 +194,34 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 
 	u64 hash_value;
 	u32 texID = address;
+	u64 texHash;
 	u32 FullFormat = tex_format;
 	if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
 		u32 FullFormat = (tex_format | (tlutfmt << 16));
+
+	// hires textures and texture dumping not supported, yet
+	if (g_ActiveConfig.bSafeTextureCache/* || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures*/)
+	{
+		texHash = TexDecoder_GetHash64(ptr,TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
+		{
+			// WARNING! texID != address now => may break CopyRenderTargetToTexture (cf. TODO up)
+			// tlut size can be up to 32768B (GX_TF_C14X2) but Safer == Slower.
+			// This trick (to change the texID depending on the TLUT addr) is a trick to get around
+			// an issue with metroid prime's fonts, where it has multiple sets of fonts on top of
+			// each other stored in a single texture, and uses the palette to make different characters
+			// visible or invisible. Thus, unless we want to recreate the textures for every drawn character,
+			// we must make sure that texture with different tluts get different IDs.
+			u64 tlutHash = TexDecoder_GetHash64(&texMem[tlutaddr], TexDecoder_GetPaletteSize(tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
+			texHash ^= tlutHash;
+			if (g_ActiveConfig.bSafeTextureCache)
+			{
+				texID = texID ^ ((u32)(tlutHash & 0xFFFFFFFF)) ^ ((u32)((tlutHash >> 32) & 0xFFFFFFFF));
+			}
+		}
+		if (g_ActiveConfig.bSafeTextureCache)
+			hash_value = texHash;
+	}
 
 	bool skip_texture_create = false;
 	TexCache::iterator iter = textures.find(texID);
@@ -204,7 +230,8 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 	{
 		TCacheEntry &entry = iter->second;
 
-		hash_value = ((u32*)ptr)[0];
+		if (!g_ActiveConfig.bSafeTextureCache)
+			hash_value = ((u32*)ptr)[0];
 
 		// TODO: Is the (entry.MipLevels == maxlevel) check needed?
 		if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash) && FullFormat == entry.fmt && entry.MipLevels == maxlevel))
@@ -243,7 +270,8 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 	bool swap_r_b = false;
 
 	entry.oldpixel = ((u32*)ptr)[0];
-	entry.hash = ((u32*)ptr)[0] = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
+	if (g_ActiveConfig.bSafeTextureCache) entry.hash = hash_value;
+	else entry.hash = ((u32*)ptr)[0] = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
 
 	entry.addr = address;
 	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format);

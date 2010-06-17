@@ -879,7 +879,31 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	}
 	if (s_bScreenshot)
 	{
-		HRESULT hr = D3DX11SaveTextureToFileA(D3D::context, D3D::GetBackBuffer()->GetTex(), D3DX11_IFF_PNG, s_sScreenshotName);
+		// copy back buffer to system memory
+		ID3D11Texture2D* buftex;
+		D3D11_TEXTURE2D_DESC tex_desc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ|D3D11_CPU_ACCESS_WRITE);
+		HRESULT hr = D3D::device->CreateTexture2D(&tex_desc, NULL, &buftex);
+		if (FAILED(hr)) PanicAlert("Failed to create screenshot buffer texture");
+		D3D::context->CopyResource(buftex, (ID3D11Resource*)D3D::GetBackBuffer()->GetTex());
+
+		// D3DX11SaveTextureToFileA doesn't allow us to ignore the alpha channel, so we need to strip it out ourselves
+		D3D11_MAPPED_SUBRESOURCE map;
+		D3D::context->Map(buftex, 0, D3D11_MAP_READ_WRITE, 0, &map);
+		for (unsigned int y = 0; y < D3D::GetBackBufferHeight(); ++y)
+		{
+			u32* ptr = (u32*)((u8*)map.pData + y * map.RowPitch);
+			for (unsigned int x = 0; x < D3D::GetBackBufferWidth(); ++x)
+			{
+				*ptr = 0xFF000000 | (*ptr & 0xFFFFFF);
+				ptr++;
+			}
+		}
+		D3D::context->Unmap(buftex, 0);
+
+		// ready to be saved
+		hr = D3DX11SaveTextureToFileA(D3D::context, buftex, D3DX11_IFF_PNG, s_sScreenshotName);
+		if (FAILED(hr)) PanicAlert("Failed to save screenshot");
+		buftex->Release();
 		s_bScreenshot = false;
 	}
 
