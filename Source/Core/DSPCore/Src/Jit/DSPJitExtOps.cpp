@@ -532,7 +532,7 @@ void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg) {
 
 void DSPEmitter::popExtValueToReg() {
 	if (storeIndex != -1)
-		MOV(16, M(&g_dsp.r[storeIndex]), R(EBX));
+		OR(16, M(&g_dsp.r[storeIndex]), R(EBX));
 
 	storeIndex = -1;
 	// TODO handle commands such as 'l

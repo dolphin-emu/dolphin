@@ -267,15 +267,13 @@ void DSPEmitter::ext_dmem_write(u32 dest, u32 src)
 
 	//  g_dsp.dram[addr & DSP_DRAM_MASK] = val;
 	AND(16, R(EAX), Imm16(DSP_DRAM_MASK));
-	SHL(16, R(EAX), Imm8(1));  // * sizeof(u16)
 #ifdef _M_X64
-	MOV(64, R(R11), Imm64((u64)g_dsp.dram)); 
-	ADD(64, R(EAX), R(R11));
+	MOV(64, R(ESI), M(&g_dsp.dram));
 #else
-	ADD(32, R(EAX), Imm32((u32)g_dsp.dram));
+	MOV(32, R(ESI), M(&g_dsp.dram));
 #endif
-	MOV(16, MDisp(EAX,0), R(ECX));
-	
+	MOV(16, MComplex(ESI, EAX, 2, 0), R(ECX));
+
 	FixupBranch end = J();
 	//	else if (saddr == 0xf)
 	SetJumpTarget(ifx);
@@ -301,14 +299,12 @@ void DSPEmitter::ext_dmem_read(u16 addr)
 	FixupBranch dram = J_CC(CC_NZ);
 	//	return g_dsp.dram[addr & DSP_DRAM_MASK];
 	AND(16, R(ECX), Imm16(DSP_DRAM_MASK));
-	SHL(16, R(ECX), Imm8(1)); // * sizeof(u16)
 #ifdef _M_X64
-	MOV(64, R(R11), Imm64((u64)g_dsp.dram)); 
-	ADD(64, R(ECX), R(R11));
+	MOV(64, R(ESI), M(&g_dsp.dram));
 #else
-	ADD(32, R(ECX), Imm32((u32)g_dsp.dram));
+	MOV(32, R(ESI), M(&g_dsp.dram));
 #endif
-	MOV(16, R(EAX), MDisp(ECX,0));
+	MOV(16, R(EAX), MComplex(ESI, ECX, 2, 0));
 
 	FixupBranch end = J();
 	SetJumpTarget(dram);
