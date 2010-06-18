@@ -217,9 +217,6 @@ void DllConfig(HWND _hParent)
 	m_ConfigFrame->CreateGUIControls();
 	m_ConfigFrame->ShowModal();
 	frame->Enable();
-	m_ConfigFrame->CreateGUIControls();
-	m_ConfigFrame->ShowModal();
-#endif
 
 	frame->SetFocus();
 	frame->SetHWND(NULL);
