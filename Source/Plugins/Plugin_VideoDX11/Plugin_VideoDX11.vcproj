@@ -807,6 +807,14 @@
 				RelativePath=".\Src\D3DUtil.h"
 				>
 			</File>
+			<File
+				RelativePath=".\Src\GfxState.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\GfxState.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Decoder"

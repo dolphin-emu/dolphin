@@ -908,10 +908,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		{
 			u32* ptr = (u32*)((u8*)map.pData + y * map.RowPitch);
 			for (unsigned int x = 0; x < D3D::GetBackBufferWidth(); ++x)
-			{
-				*ptr = 0xFF000000 | (*ptr & 0xFFFFFF);
-				ptr++;
-			}
+				*ptr++ |= 0xFF000000;
 		}
 		D3D::context->Unmap(buftex, 0);
 
