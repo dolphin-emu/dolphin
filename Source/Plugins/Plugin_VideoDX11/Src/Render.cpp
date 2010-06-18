@@ -490,13 +490,9 @@ void CheckForResize()
 	int client_height = rcWindow.bottom - rcWindow.top;
 
 	// sanity check
-	if ((client_width != s_backbuffer_width ||
-		client_height != s_backbuffer_height) && 
+	if ((client_width != s_backbuffer_width || client_height != s_backbuffer_height) && 
 		client_width >= 4 && client_height >= 4)
 	{
-		D3D::Reset();
-		s_backbuffer_width = D3D::GetBackBufferWidth();
-		s_backbuffer_height = D3D::GetBackBufferHeight();
 		WindowResized = true;
 	}
 }
@@ -957,24 +953,6 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		if (s_XFB_height > MAX_XFB_HEIGHT) s_XFB_height = MAX_XFB_HEIGHT;
 	}
 
-	if (xfbchanged || WindowResized)
-	{
-		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
-
-		xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
-		yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
-
-		s_target_width  = (int)(EFB_WIDTH * xScale);
-		s_target_height = (int)(EFB_HEIGHT * yScale);
-
-		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
-
-		FBManager.Destroy();
-		FBManager.Create();
-
-		D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
-	}
-
 	// update FPS counter
 	static int fpscount = 1;
 	static unsigned long lasttime;
@@ -991,6 +969,27 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	// present backbuffer and begin next frame
 	D3D::Present();
+	if (xfbchanged || WindowResized)
+	{
+		D3D::Reset();
+		s_backbuffer_width = D3D::GetBackBufferWidth();
+		s_backbuffer_height = D3D::GetBackBufferHeight();
+
+		ComputeDrawRectangle(s_backbuffer_width, s_backbuffer_height, false, &dst_rect);
+
+		xScale = (float)(dst_rect.right - dst_rect.left) / (float)s_XFB_width;
+		yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
+
+		s_target_width  = (int)(EFB_WIDTH * xScale);
+		s_target_height = (int)(EFB_HEIGHT * yScale);
+
+		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
+
+		FBManager.Destroy();
+		FBManager.Create();
+
+		D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
+	}
 	D3D::BeginFrame();
 	Renderer::RestoreAPIState();
 	D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
