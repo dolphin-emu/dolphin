@@ -53,7 +53,7 @@ void DSPEmitter::increment_addr_reg(int reg)
 	MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	MOV(16, R(EDX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
 
-	//ToMask(WR0), calculating it into EDI
+	// ToMask(WR0), calculating it into EDI
 	MOV(16, R(EDI), R(EDX));
 	ToMask(EDI);
 
@@ -63,8 +63,8 @@ void DSPEmitter::increment_addr_reg(int reg)
 	CMP(16, R(ESI), R(EDI));
 	FixupBranch not_equal = J_CC(CC_NE);
 
-	// tmp ^= wr_reg
-	XOR(16, R(EAX), R(EDX));
+	// tmp -= wr_reg
+	SUB(16, R(EAX), R(EDX));
 
 	FixupBranch end = J();
 	SetJumpTarget(not_equal);
@@ -77,27 +77,40 @@ void DSPEmitter::increment_addr_reg(int reg)
 	MOV(16, M(&g_dsp.r[reg]), R(EAX));
 }
 
-
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
 // EAX = g_dsp.r[reg]
 // EDX = g_dsp.r[DSP_REG_WR0 + reg]
 void DSPEmitter::decrement_addr_reg(int reg)
 {
-	//	s16 tmp = g_dsp.r[reg];
+	//	s16 ar = g_dsp.r[reg];
 	MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	MOV(16, R(EDX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
 
-	//	if ((tmp & g_dsp.r[DSP_REG_WR0 + reg]) == 0)
-	TEST(16, R(EAX), R(EDX));
-	FixupBranch not_equal = J_CC(CC_NZ);
+	// ToMask(WR0), calculating it into EDI
+	MOV(16, R(EDI), R(EDX));
+	ToMask(EDI);
 
-	//	tmp |= g_dsp.r[DSP_REG_WR0 + reg];
-	OR(16, R(EAX), R(EDX));
+	//compute min from EDI and EAX
+	// min = (tmb+1-ar)&tmb;
+	LEA(16, ESI, MDisp(EDI, 1));
+	SUB(16, R(ESI), R(EAX));
+	AND(16, R(ESI), R(EDI));
 
-	FixupBranch end = J();
-	SetJumpTarget(not_equal);
-	//		tmp--;
+	// wr < min
+	CMP(16, R(EDX), R(ESI));
+	FixupBranch wr_lt_min = J_CC(CC_B);
+	// !min
+	TEST(16, R(ESI), R(ESI));
+	FixupBranch min_zero = J_CC(CC_Z);
+
+	//		ar--;
 	SUB(16, R(EAX), Imm16(1));
+	FixupBranch end = J();
+
+	//      ar += wr;
+	SetJumpTarget(wr_lt_min);
+	SetJumpTarget(min_zero);
+	ADD(16, R(EAX), R(EDX));
 
 	SetJumpTarget(end);
 	

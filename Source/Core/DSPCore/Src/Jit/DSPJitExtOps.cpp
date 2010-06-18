@@ -531,8 +531,15 @@ void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg) {
 }
 
 void DSPEmitter::popExtValueToReg() {
+	// in practise, we rarely ever have a non-NX main op
+	// with an extended op, so the OR here is either
+	// not run (storeIndex == -1) or ends up OR'ing
+	// EBX with 0 (becoming the MOV we have here)
+	// nakee wants to keep it clean, so lets do that.
+	// [nakeee] the or case never happens in real
+	// [nakeee] it's just how the hardware works so we added it
 	if (storeIndex != -1)
-		OR(16, M(&g_dsp.r[storeIndex]), R(EBX));
+		MOV(16, M(&g_dsp.r[storeIndex]), R(EBX));
 
 	storeIndex = -1;
 	// TODO handle commands such as 'l
