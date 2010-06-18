@@ -22,6 +22,7 @@
 #include "D3DBlob.h"
 
 #define SAFE_RELEASE(x) { if (x) (x)->Release(); (x) = NULL; }
+#define CHECK(cond, Message, ...) if (!(cond)) { PanicAlert(__FUNCTION__ "Failed in %s at line %d: " Message, __FILE__, __LINE__, __VA_ARGS__); }
 
 class D3DTexture2D;
 namespace D3D

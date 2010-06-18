@@ -24,7 +24,7 @@
 #include "TextureConverter.h"
 
 #undef CHECK
-#define CHECK(hr, Message) if (FAILED(hr)) { PanicAlert(__FUNCTION__ " FAIL: %s" , Message); }
+#define CHECK(hr, Message, ...) if (FAILED(hr)) { PanicAlert(__FUNCTION__ "Failed in %s at line %d: " Message, __FILE__, __LINE__, __VA_ARGS__); }
 
 FramebufferManager FBManager;
 

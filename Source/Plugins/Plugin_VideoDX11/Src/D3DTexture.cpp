@@ -155,7 +155,7 @@ D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D1
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &pTexture);
 	if (FAILED(hr))
 	{
-		PanicAlert("Failed to create texture at %s %d\n", __FILE__, __LINE__);
+		PanicAlert("Failed to create texture at %s, line %d: hr=%#x\n", __FILE__, __LINE__, hr);
 		return NULL;
 	}
 
