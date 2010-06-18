@@ -81,6 +81,9 @@ ID3D11BlendState* resetblendstate = NULL;
 ID3D11DepthStencilState* resetdepthstate = NULL;
 ID3D11RasterizerState* resetraststate = NULL;
 
+// used to make sure that we really Pop all states which got Pushed in ResetAPIState
+unsigned int resets = 0;
+
 // state translation lookup tables
 static const D3D11_BLEND d3dSrcFactors[8] =
 {
@@ -365,6 +368,8 @@ bool Renderer::Init()
 	D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
 	D3D::BeginFrame();
 	D3D::gfxstate->rastdesc.ScissorEnable = TRUE;
+
+	resets = 0;
 	return true;
 }
 
@@ -756,13 +761,17 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 										0.f, 
 										1.f); 
 	D3D::context->RSSetViewports(1, &vp);
+
 	// always set the scissor in case it was set by the game and has not been reset
-	// TODO: Do we really need to set the scissor rect? Why not just disable scissor testing?
 	D3D11_RECT sirc = CD3D11_RECT(targetRc.left, targetRc.top, targetRc.right, targetRc.bottom);
 	D3D::context->RSSetScissorRects(1, &sirc);
-	D3D::context->OMSetDepthStencilState(cleardepthstates[zEnable], 0);
-	D3D::context->RSSetState(clearraststate);
+
+	D3D::stateman->PushDepthState(cleardepthstates[zEnable]);
+	D3D::stateman->PushRasterizerState(clearraststate);
 	D3D::drawClearQuad(color, (z & 0xFFFFFF) / float(0xFFFFFF),PixelShaderCache::GetClearProgram(),VertexShaderCache::GetClearVertexShader(), VertexShaderCache::GetClearInputLayout());
+
+	D3D::stateman->PopDepthState();
+	D3D::stateman->PopRasterizerState();
 	UpdateViewport();
 	SetScissorRect();
 }
@@ -1011,15 +1020,22 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 void Renderer::ResetAPIState()
 {
-	D3D::context->OMSetBlendState(resetblendstate, NULL, 0xFFFFFFFF);
-	D3D::context->OMSetDepthStencilState(resetdepthstate, 0);
-	D3D::context->RSSetState(resetraststate);
+	resets++;
+	D3D::stateman->PushBlendState(resetblendstate);
+	D3D::stateman->PushDepthState(resetdepthstate);
+	D3D::stateman->PushRasterizerState(resetraststate);
 }
 
 void Renderer::RestoreAPIState()
 {
 	// TODO: How much of this is actually needed?
 	// gets us back into a more game-like state.
+	for (;resets;--resets)
+	{
+		D3D::stateman->PopBlendState();
+		D3D::stateman->PopDepthState();
+		D3D::stateman->PopRasterizerState();
+	}
 	D3D::gfxstate->rastdesc.ScissorEnable = TRUE;
 	UpdateViewport();
 	SetScissorRect();
@@ -1027,7 +1043,6 @@ void Renderer::RestoreAPIState()
 	if (bpmem.zmode.updateenable) D3D::gfxstate->depthdesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	SetColorMask();
 	SetLogicOpMode();
-	D3D::gfxstate->ApplyState();
 }
 
 void Renderer::SetGenerationMode()

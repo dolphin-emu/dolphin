@@ -316,8 +316,9 @@ int CD3DFont::DrawTextScaled(float x, float y, float scale, float spacing, u32 d
 	// we now have a starting point
 	float fStartX = sx;
 	// set general pipeline state
-	D3D::context->OMSetBlendState(m_blendstate, NULL, 0xFFFFFFFF);
-	D3D::context->RSSetState(m_raststate);
+	D3D::stateman->PushBlendState(m_blendstate);
+	D3D::stateman->PushRasterizerState(m_raststate);
+	D3D::stateman->Apply();
 
 	D3D::context->PSSetShader(m_pshader, NULL, 0);
 	D3D::context->VSSetShader(m_vshader, NULL, 0);
@@ -380,6 +381,8 @@ int CD3DFont::DrawTextScaled(float x, float y, float scale, float spacing, u32 d
 		D3D::context->Draw(3 * dwNumTriangles, 0);
 	}
 	D3D::gfxstate->SetShaderResource(0, NULL);
+	D3D::stateman->PopBlendState();
+	D3D::stateman->PopRasterizerState();
 	return S_OK;
 }
 
@@ -490,6 +493,7 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 	D3D::context->PSSetShader(PShader, NULL, 0);	
 	D3D::context->PSSetShaderResources(0, 1, &texture);
 	D3D::context->VSSetShader(Vshader, NULL, 0);
+	D3D::stateman->Apply();
 	D3D::context->Draw(4, 0);
 
 	ID3D11ShaderResourceView* texres = NULL;
@@ -546,6 +550,7 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 	context->PSSetSamplers(0, 1, &stsqsamplerstate);
 	context->PSSetShader(PShader, NULL, 0);	
 	context->VSSetShader(Vshader, NULL, 0);	
+	stateman->Apply();
 	context->Draw(4, 0);
 
 	ID3D11ShaderResourceView* texres = NULL;
@@ -589,6 +594,7 @@ void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexS
 	UINT offset = 0;
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	context->IASetVertexBuffers(0, 1, &clearvb, &stride, &offset);
+	stateman->Apply();
 	context->Draw(4, 0);
 
 	lastcol = Color;

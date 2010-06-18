@@ -152,15 +152,10 @@ void ResetBuffer()
 void Shutdown()
 {
 	DestroyDeviceObjects();
-	if (LocalVBuffer) delete[] LocalVBuffer;
-	if (TIBuffer) delete[] TIBuffer;
-	if (LIBuffer) delete[] LIBuffer;
-	if (PIBuffer) delete[] PIBuffer;	
-	LocalVBuffer = NULL;
-	TIBuffer = NULL;
-	LIBuffer = NULL;
-	PIBuffer = NULL;
-
+	SAFE_DELETE_ARRAY(LocalVBuffer);
+	SAFE_DELETE_ARRAY(TIBuffer);
+	SAFE_DELETE_ARRAY(LIBuffer);
+	SAFE_DELETE_ARRAY(PIBuffer);
 	ResetBuffer();
 }
 

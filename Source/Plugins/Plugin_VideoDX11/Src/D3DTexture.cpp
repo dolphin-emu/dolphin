@@ -31,8 +31,7 @@ struct TexbufDeleter
 {
 	~TexbufDeleter()
 	{
-		if (texbuf) delete[] texbuf;
-		texbuf = NULL;
+		SAFE_DELETE_ARRAY(texbuf);
 		texbufsize = 0;
 	}
 } texbufdeleter;
@@ -55,7 +54,7 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 	{
 		if (texbufsize < 4*width*height)
 		{
-			if (texbuf) delete[] texbuf;
+			SAFE_DELETE_ARRAY(texbuf);
 			texbuf = new u8[4*width*height];
 			texbufsize = 4*width*height;
 		}

@@ -561,9 +561,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 
 	// TODO: Use linear filtering if (bScaleByHalf), else use point filtering
 
-	D3D::context->OMSetBlendState(efbcopyblendstate, NULL, 0xffffffff);
-	D3D::context->RSSetState(efbcopyraststate);
-	D3D::context->OMSetDepthStencilState(efbcopydepthstate, 0);
+	D3D::stateman->PushBlendState(efbcopyblendstate);
+	D3D::stateman->PushRasterizerState(efbcopyraststate);
+	D3D::stateman->PushDepthState(efbcopydepthstate);
 	D3D::context->OMSetRenderTargets(1, &tex->GetRTV(), NULL);
 	D3D::drawShadedTexQuad(
 				(bFromZBuffer) ? FBManager.GetEFBDepthTexture()->GetSRV() : FBManager.GetEFBColorTexture()->GetSRV(),
@@ -573,5 +573,8 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 				(bFromZBuffer) ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram(), VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 
 	D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
+	D3D::stateman->PopBlendState();
+	D3D::stateman->PopDepthState();
+	D3D::stateman->PopRasterizerState();
 	Renderer::RestoreAPIState();
 }
