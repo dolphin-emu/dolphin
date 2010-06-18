@@ -236,18 +236,20 @@ int CD3DFont::Init()
 	blenddesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
 	blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
 	blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	D3D::device->CreateBlendState(&blenddesc, &m_blendstate);
+	hr = D3D::device->CreateBlendState(&blenddesc, &m_blendstate);
+	CHECK(hr==S_OK, "Create font blend state");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_blendstate, "blend state of a CD3DFont object");
 
 	// this might need to be changed when adding multisampling support
 	D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, false, false, false);
-	D3D::device->CreateRasterizerState(&rastdesc, &m_raststate);
+	hr = D3D::device->CreateRasterizerState(&rastdesc, &m_raststate);
+	CHECK(hr==S_OK, "Create font rasterizer state");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_raststate, "rasterizer state of a CD3DFont object");
 
 	D3D11_BUFFER_DESC vbdesc = CD3D11_BUFFER_DESC(MAX_NUM_VERTICES*sizeof(FONT2DVERTEX), D3D11_BIND_VERTEX_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 	if (FAILED(hr = device->CreateBuffer(&vbdesc, NULL, &m_pVB)))
 	{
-		PanicAlert("Failed to create vertex buffer!\n");
+		PanicAlert("Failed to create font vertex buffer at %s, line %d\n", __FILE__, __LINE__);
 		return hr;
 	}
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_pVB, "vertex buffer of a CD3DFont object");
@@ -420,12 +422,15 @@ void InitUtils()
 	else SetDebugObjectName((ID3D11DeviceChild*)stqsamplerstate, "sampler state of drawShadedTexQuad");
 
 	stqvb = CreateQuadVertexBuffer(4*sizeof(STQVertex), NULL);
+	CHECK(stqvb!=NULL, "Create vertex buffer of drawShadedTexQuad");
 	SetDebugObjectName((ID3D11DeviceChild*)stqvb, "vertex buffer of drawShadedTexQuad");
 
 	stsqvb = CreateQuadVertexBuffer(4*sizeof(STSQVertex), NULL);
+	CHECK(stsqvb!=NULL, "Create vertex buffer of drawShadedTexSubQuad");
 	SetDebugObjectName((ID3D11DeviceChild*)stsqvb, "vertex buffer of drawShadedTexSubQuad");
 
 	clearvb = CreateQuadVertexBuffer(4*sizeof(ClearVertex), NULL);
+	CHECK(clearvb!=NULL, "Create vertex buffer of drawClearQuad");
 	SetDebugObjectName((ID3D11DeviceChild*)clearvb, "vertex buffer of drawClearQuad");
 
 	samDesc = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, 0.f, 16, D3D11_COMPARISON_ALWAYS, border, -D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);

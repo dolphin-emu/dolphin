@@ -166,18 +166,22 @@ void PixelShaderCache::Init()
 {
 	// used when drawing clear quads
 	s_ClearProgram = D3D::CompileAndCreatePixelShader(clear_program_code, strlen(clear_program_code));	
+	CHECK(s_ClearProgram!=NULL, "Create clear pixel shader");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "clear pixel shader");
 
 	// used when copying/resolving the color buffer
 	s_ColorCopyProgram = D3D::CompileAndCreatePixelShader(color_copy_program_code, strlen(color_copy_program_code));
+	CHECK(s_ColorCopyProgram!=NULL, "Create color copy pixel shader");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "color copy pixel shader");
 
 	// used for color conversion
 	s_ColorMatrixProgram = D3D::CompileAndCreatePixelShader(color_matrix_program_code, strlen(color_matrix_program_code));
+	CHECK(s_ColorMatrixProgram!=NULL, "Create color matrix pixel shader");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "color matrix pixel shader");
 
 	// used for depth copy
 	s_DepthMatrixProgram = D3D::CompileAndCreatePixelShader(depth_matrix_program, strlen(depth_matrix_program));
+	CHECK(s_DepthMatrixProgram!=NULL, "Create depth matrix pixel shader");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)s_ClearProgram, "depth matrix pixel shader");
 
 	Clear();

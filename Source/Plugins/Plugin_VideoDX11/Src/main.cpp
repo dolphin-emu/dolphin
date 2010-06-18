@@ -105,20 +105,14 @@ bool IsD3D11()
 
 // This is used for the functions right below here which use wxwidgets
 #if defined(HAVE_WX) && HAVE_WX
-#ifdef _WIN32
-	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-#endif
+WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 
 wxWindow* GetParentedWxWindow(HWND Parent)
 {
-#ifdef _WIN32
 	wxSetInstance((HINSTANCE)g_hInstance);
-#endif
 	wxWindow* win = new wxWindow();
-#ifdef _WIN32
 	win->SetHWND((WXHWND)Parent);
 	win->AdoptAttributesFromHWND();
-#endif
 	return win;
 }
 #endif
@@ -183,7 +177,7 @@ void UpdateFPSDisplay(const char* text)
     SetWindowTextA(EmuWindow::GetWnd(), temp);
 }
 
-void GetDllInfo (PLUGIN_INFO* _PluginInfo)
+void GetDllInfo(PLUGIN_INFO* _PluginInfo)
 {
 	_PluginInfo->Version = 0x0100;
 	_PluginInfo->Type = PLUGIN_TYPE_VIDEO;

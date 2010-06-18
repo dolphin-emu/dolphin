@@ -67,6 +67,8 @@ void TextureCache::TCacheEntry::Destroy(bool shutdown)
 
 void TextureCache::Init()
 {
+	HRESULT hr;
+
 	temp = (u8*)AllocateMemoryPages(TEMP_SIZE);
 	TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable, g_ActiveConfig.bTexFmtOverlayCenter);
 	HiresTextures::Init(globals->unique_id);
@@ -82,7 +84,8 @@ void TextureCache::Init()
 	blenddesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 	blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	D3D::device->CreateBlendState(&blenddesc, &efbcopyblendstate);
+	hr = D3D::device->CreateBlendState(&blenddesc, &efbcopyblendstate);
+	CHECK(hr==S_OK, "Create blend state for TextureCache::CopyRenderTargetToTexture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopyblendstate, "blend state used in TextureCache::CopyRenderTargetToTexture");
 
 	D3D11_DEPTH_STENCIL_DESC depthdesc;
@@ -92,7 +95,8 @@ void TextureCache::Init()
 	depthdesc.StencilEnable      = FALSE;
 	depthdesc.StencilReadMask    = D3D11_DEFAULT_STENCIL_READ_MASK;
 	depthdesc.StencilWriteMask   = D3D11_DEFAULT_STENCIL_WRITE_MASK;
-	D3D::device->CreateDepthStencilState(&depthdesc, &efbcopydepthstate);
+	hr = D3D::device->CreateDepthStencilState(&depthdesc, &efbcopydepthstate);
+	CHECK(hr==S_OK, "Create depth state for TextureCache::CopyRenderTargetToTexture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopydepthstate, "depth stencil state used in TextureCache::CopyRenderTargetToTexture");
 
 	D3D11_RASTERIZER_DESC rastdesc;
@@ -106,7 +110,8 @@ void TextureCache::Init()
 	rastdesc.ScissorEnable = false;
 	rastdesc.MultisampleEnable = false;
 	rastdesc.AntialiasedLineEnable = false;
-	D3D::device->CreateRasterizerState(&rastdesc, &efbcopyraststate);
+	hr = D3D::device->CreateRasterizerState(&rastdesc, &efbcopyraststate);
+	CHECK(hr==S_OK, "Create rasterizer state for TextureCache::CopyRenderTargetToTexture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopyraststate, "rasterizer state used in TextureCache::CopyRenderTargetToTexture");
 }
 
@@ -289,6 +294,7 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 		if (usage == D3D11_USAGE_DYNAMIC)
 		{
 			entry.texture = D3DTexture2D::Create(width, height, D3D11_BIND_SHADER_RESOURCE, usage, d3d_fmt, TexLevels);
+			CHECK(entry.texture!=NULL, "Create dynamic texture of the TextureCache");
 			D3D::SetDebugObjectName((ID3D11DeviceChild*)entry.texture->GetTex(), "a (dynamic) texture of the TextureCache");
 			D3D::SetDebugObjectName((ID3D11DeviceChild*)entry.texture->GetSRV(), "shader resource view of a (dynamic) texture of the TextureCache");
 		}
@@ -305,6 +311,7 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 				return NULL;
 			}
 			entry.texture = new D3DTexture2D(pTexture, D3D11_BIND_SHADER_RESOURCE);
+			CHECK(entry.texture!=NULL, "Create dynamic texture of the TextureCache");
 			D3D::SetDebugObjectName((ID3D11DeviceChild*)entry.texture->GetTex(), "a (static) texture of the TextureCache");
 			D3D::SetDebugObjectName((ID3D11DeviceChild*)entry.texture->GetSRV(), "shader resource view of a (static) texture of the TextureCache");
 			pTexture->Release();
@@ -543,7 +550,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(20*sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
 		D3D11_SUBRESOURCE_DATA data;
 		data.pSysMem = colmat;
-		D3D::device->CreateBuffer(&cbdesc, &data, &efbcopycbuf[cbufid]);
+		HRESULT hr = D3D::device->CreateBuffer(&cbdesc, &data, &efbcopycbuf[cbufid]);
+		CHECK(hr==S_OK, "Create efb copy constant buffer %d", cbufid);
+		D3D::SetDebugObjectName((ID3D11DeviceChild*)efbcopycbuf[cbufid], "a constant buffer used in TextureCache::CopyRenderTargetToTexture");
 	}
 	D3D::context->PSSetConstantBuffers(0, 1, &efbcopycbuf[cbufid]);
 

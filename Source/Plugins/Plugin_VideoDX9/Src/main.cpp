@@ -93,20 +93,14 @@ bool IsD3D()
 
 // This is used for the functions right below here which use wxwidgets
 #if defined(HAVE_WX) && HAVE_WX
-#ifdef _WIN32
-	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-#endif
+WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 
 wxWindow* GetParentedWxWindow(HWND Parent)
 {
-#ifdef _WIN32
 	wxSetInstance((HINSTANCE)g_hInstance);
-#endif
 	wxWindow *win = new wxWindow();
-#ifdef _WIN32
 	win->SetHWND((WXHWND)Parent);
 	win->AdoptAttributesFromHWND();
-#endif
 	return win;
 }
 #endif
@@ -219,20 +213,16 @@ void DllConfig(HWND _hParent)
 	m_ConfigFrame = new GFXConfigDialogDX(frame);
 
 	// Prevent user to show more than 1 config window at same time
-#ifdef _WIN32
 	frame->Disable();
 	m_ConfigFrame->CreateGUIControls();
 	m_ConfigFrame->ShowModal();
 	frame->Enable();
-#else
 	m_ConfigFrame->CreateGUIControls();
 	m_ConfigFrame->ShowModal();
 #endif
 
-#ifdef _WIN32
 	frame->SetFocus();
 	frame->SetHWND(NULL);
-#endif
 
 	m_ConfigFrame->Destroy();
 	m_ConfigFrame = NULL;

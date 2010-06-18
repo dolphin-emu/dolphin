@@ -228,6 +228,8 @@ static const D3D11_TEXTURE_ADDRESS_MODE d3dClamps[4] =
 
 void SetupDeviceObjects()
 {
+	HRESULT hr;
+
 	D3D::font.Init();
 	VertexLoaderManager::Init();
 	FBManager.Create();
@@ -240,7 +242,9 @@ void SetupDeviceObjects()
 	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(20*sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
 	D3D11_SUBRESOURCE_DATA data;
 	data.pSysMem = colmat;
-	D3D::device->CreateBuffer(&cbdesc, &data, &access_efb_cbuf);
+	hr = D3D::device->CreateBuffer(&cbdesc, &data, &access_efb_cbuf);
+	CHECK(hr==S_OK, "Create constant buffer for Renderer::AccessEFB");
+	D3D::SetDebugObjectName((ID3D11DeviceChild*)access_efb_cbuf, "constant buffer for Renderer::AccessEFB");
 
 	D3D11_DEPTH_STENCIL_DESC ddesc;
 	ddesc.DepthEnable      = FALSE;
@@ -249,16 +253,19 @@ void SetupDeviceObjects()
 	ddesc.StencilEnable    = FALSE;
 	ddesc.StencilReadMask  = D3D11_DEFAULT_STENCIL_READ_MASK;
 	ddesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
-	D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[0]);
+	hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[0]);
+	CHECK(hr==S_OK, "Create depth state for Renderer::ClearScreen");
 	ddesc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ALL;
 	ddesc.DepthEnable      = TRUE;
-	D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[1]);
+	hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[1]);
+	CHECK(hr==S_OK, "Create depth state for Renderer::ClearScreen");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[0], "depth state for Renderer::ClearScreen (depth buffer disabled)");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[1], "depth state for Renderer::ClearScreen (depth buffer enabled)");
 
 	// TODO: once multisampling gets implemented, this might need to be changed
 	D3D11_RASTERIZER_DESC rdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, true, false, false);
-	D3D::device->CreateRasterizerState(&rdesc, &clearraststate);
+	hr = D3D::device->CreateRasterizerState(&rdesc, &clearraststate);
+	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ClearScreen");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)clearraststate, "rasterizer state for Renderer::ClearScreen");
 
 	D3D11_BLEND_DESC blenddesc;
@@ -272,7 +279,8 @@ void SetupDeviceObjects()
 	blenddesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
 	blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	D3D::device->CreateBlendState(&blenddesc, &resetblendstate);
+	hr = D3D::device->CreateBlendState(&blenddesc, &resetblendstate);
+	CHECK(hr==S_OK, "Create blend state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetblendstate, "blend state for Renderer::ResetAPIState");
 
 	// TODO: For some reason this overwrites existing resource private data...
@@ -282,12 +290,14 @@ void SetupDeviceObjects()
 	ddesc.StencilEnable     = FALSE;
 	ddesc.StencilReadMask   = D3D11_DEFAULT_STENCIL_READ_MASK;
 	ddesc.StencilWriteMask  = D3D11_DEFAULT_STENCIL_WRITE_MASK;
-	D3D::device->CreateDepthStencilState(&ddesc, &resetdepthstate);
+	hr = D3D::device->CreateDepthStencilState(&ddesc, &resetdepthstate);
+	CHECK(hr==S_OK, "Create depth state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetdepthstate, "depth stencil state for Renderer::ResetAPIState");
 
 	// this might need to be changed once multisampling support gets added
 	D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false, 0, 0.f, 0.f, false, false, false, false);
-	D3D::device->CreateRasterizerState(&rastdesc, &resetraststate);
+	hr = D3D::device->CreateRasterizerState(&rastdesc, &resetraststate);
+	CHECK(hr==S_OK, "Create rasterizer state for Renderer::ClearScreen");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetraststate, "rasterizer state for Renderer::ResetAPIState");
 }
 

@@ -178,7 +178,8 @@ void EmuGfxState::ApplyState()
 	{
 		unsigned int size = ((sizeof(float)*952)&(~0xffff))+0x10000; // must be a multiple of 16
 		D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(size, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
-		device->CreateBuffer(&cbdesc, NULL, &vscbuf);
+		hr = device->CreateBuffer(&cbdesc, NULL, &vscbuf);
+		CHECK(hr==S_OK, "Create vertex shader constant buffer (size=%u)", size);
 		SetDebugObjectName((ID3D11DeviceChild*)vscbuf, "a vertex shader constant buffer of EmuGfxState");
 	}
 	if (vscbufchanged)
@@ -196,6 +197,7 @@ void EmuGfxState::ApplyState()
 		unsigned int size = ((sizeof(float)*116)&(~0xffff))+0x10000; // must be a multiple of 16
 		D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(size, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 		device->CreateBuffer(&cbdesc, NULL, &pscbuf);
+		CHECK(hr==S_OK, "Create pixel shader constant buffer (size=%u)", size);
 		SetDebugObjectName((ID3D11DeviceChild*)pscbuf, "a pixel shader constant buffer of EmuGfxState");
 	}
 	if (pscbufchanged)
@@ -363,6 +365,7 @@ HRESULT Create(HWND wnd)
 	}
 	backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
 	buf->Release();
+	CHECK(backbuf!=NULL, "Create back buffer texture");
 	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
 	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
 
@@ -427,6 +430,7 @@ void Reset()
 	}
 	backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
 	buf->Release();
+	CHECK(backbuf!=NULL, "Create back buffer texture");
 	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
 	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
 }

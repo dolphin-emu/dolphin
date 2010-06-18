@@ -84,7 +84,8 @@ void FramebufferManager::Create()
 	// sampler state for FramebufferManager::copyToVirtualXFB
 	float border[4] = {0.f, 0.f, 0.f, 0.f};
 	D3D11_SAMPLER_DESC samplerdesc = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, 0.f, 1, D3D11_COMPARISON_ALWAYS, border, -D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);
-	D3D::device->CreateSamplerState(&samplerdesc, &copytoVirtualXFBsampler);
+	hr = D3D::device->CreateSamplerState(&samplerdesc, &copytoVirtualXFBsampler);
+	CHECK(hr==S_OK, "Create sampler state for FramebufferManager::copyToVirtualXFB");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)copytoVirtualXFBsampler, "sampler state used for FramebufferManager::copyToVirtualXFB");
 }
 
