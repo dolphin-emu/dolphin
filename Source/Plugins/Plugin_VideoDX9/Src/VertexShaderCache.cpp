@@ -214,6 +214,9 @@ void VertexShaderCache::Init()
 	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
+	SETSTAT(stats.numVertexShadersCreated, 0);
+	SETSTAT(stats.numVertexShadersAlive, 0);
+
 	char cache_filename[MAX_PATH];
 	sprintf(cache_filename, "%sdx9-%s-vs.cache", File::GetUserPath(D_SHADERCACHE_IDX), globals->unique_id);
 	VertexShaderCacheInserter inserter;
@@ -234,7 +237,7 @@ void VertexShaderCache::Clear()
 
 void VertexShaderCache::Shutdown()
 {
-	for (int i = 0; i<3;i++)
+	for (int i = 0; i < 3; i++)
 	{
 		if (SimpleVertexShader[i])
 			SimpleVertexShader[i]->Release();
@@ -245,7 +248,6 @@ void VertexShaderCache::Shutdown()
 		ClearVertexShader->Release();
 	ClearVertexShader = NULL;
 	
-
 	Clear();
 	g_vs_disk_cache.Sync();
 	g_vs_disk_cache.Close();

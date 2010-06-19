@@ -54,11 +54,10 @@ private:
 
 	static PSCache PixelShaders;
 	static const PSCacheEntry *last_entry;
-
+	static void Clear();
 
 public:
 	static void Init();
-	static void Clear();
 	static void Shutdown();
 	static bool SetShader(bool dstAlpha);
 	static bool InsertByteCode(const PIXELSHADERUID &uid, const u8 *bytecode, int bytecodelen, bool activate);

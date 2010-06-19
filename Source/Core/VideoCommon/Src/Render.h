@@ -49,8 +49,6 @@ public:
 	static void ResetAPIState();
 	static void RestoreAPIState();
 
-	static void ReinitView();
-
 	static void SetColorMask();
 	static void SetBlendMode(bool forceUpdate);
 	static bool SetScissorRect();

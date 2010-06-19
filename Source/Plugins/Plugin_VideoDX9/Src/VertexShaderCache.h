@@ -49,10 +49,10 @@ private:
 
 	static VSCache vshaders;
 	static const VSCacheEntry *last_entry;
+	static void Clear();
 
 public:
 	static void Init();
-	static void Clear();
 	static void Shutdown();
 	static bool SetShader(u32 components);
 	static LPDIRECT3DVERTEXSHADER9 GetSimpleVertexShader(int level);

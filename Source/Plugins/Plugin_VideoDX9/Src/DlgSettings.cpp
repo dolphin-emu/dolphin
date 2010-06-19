@@ -297,8 +297,8 @@ void GFXConfigDialogDX::CreateGUIControls()
 	m_OverlayFPS = new wxCheckBox( m_PageAdvanced, ID_OVERLAYFPS, wxT("Overlay FPS Counter"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_CopyEFB = new wxCheckBox( m_PageAdvanced, ID_ENABLEEFBCOPY, wxT("Enable EFB Copy"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_EnableHotkeys = new wxCheckBox( m_PageAdvanced, ID_ENABLEHOTKEY, wxT("Enable Hotkey"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_Radio_CopyEFBToRAM = new wxRadioButton( m_PageAdvanced, ID_EFBTORAM, wxT("To Ram"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_Radio_CopyEFBToGL = new wxRadioButton( m_PageAdvanced, ID_EFBTOTEX, wxT("To Texture"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_Radio_CopyEFBToRAM = new wxRadioButton( m_PageAdvanced, ID_EFBTORAM, wxT("To RAM (accuracy)"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_Radio_CopyEFBToGL = new wxRadioButton( m_PageAdvanced, ID_EFBTOTEX, wxT("To Texture (performance, resolution)"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_WireFrame = new wxCheckBox( m_PageAdvanced, ID_WIREFRAME, wxT("Enable Wireframe"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_EnableRealXFB = new wxCheckBox( m_PageAdvanced, ID_ENABLEREALXFB, wxT("Enable Real XFB"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_EnableXFB = new wxCheckBox( m_PageAdvanced, ID_ENABLEXFB, wxT("Enable XFB"), wxDefaultPosition, wxDefaultSize, 0 );

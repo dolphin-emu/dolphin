@@ -287,9 +287,7 @@ void Video_Prepare()
 	Fifo_Init();
 	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
-	VertexShaderCache::Init();
 	VertexShaderManager::Init();
-	PixelShaderCache::Init();
 	PixelShaderManager::Init();
 	CommandProcessor::Init();
 	PixelEngine::Init();
@@ -307,9 +305,7 @@ void Shutdown()
 	CommandProcessor::Shutdown();
 	VertexManager::Shutdown();
 	VertexLoaderManager::Shutdown();
-	VertexShaderCache::Shutdown();
 	VertexShaderManager::Shutdown();
-	PixelShaderCache::Shutdown();
 	PixelShaderManager::Shutdown();
 	TextureCache::Shutdown();
 	OpcodeDecoder_Shutdown();

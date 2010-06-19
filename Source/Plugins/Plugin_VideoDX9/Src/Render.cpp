@@ -225,8 +225,12 @@ void SetupDeviceObjects()
 	VertexShaderManager::Dirty();
 	PixelShaderManager::Dirty();
 	TextureConverter::Init();
-	// Tex and shader caches will recreate themselves over time.
+	
+	// To avoid shader compilation stutters, read back all shaders from cache.
+	VertexShaderCache::Init();
+	PixelShaderCache::Init();
 
+	// Texture cache will recreate themselves over time.
 }
 
 // Kill off all POOL_DEFAULT device objects.
@@ -241,8 +245,8 @@ void TeardownDeviceObjects()
 	D3D::font.Shutdown();
 	TextureCache::Invalidate(false);
 	VertexLoaderManager::Shutdown();
-	VertexShaderCache::Clear();
-	PixelShaderCache::Clear();
+	VertexShaderCache::Shutdown();
+	PixelShaderCache::Shutdown();
 	TextureConverter::Shutdown();
 }
 
@@ -499,7 +503,6 @@ void CheckForResize()
 	{
 		Sleep(10);
 	}
-
 	
 	if (EmuWindow::GetParentWnd())
 	{

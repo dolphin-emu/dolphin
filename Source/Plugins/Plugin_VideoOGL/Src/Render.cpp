@@ -571,11 +571,6 @@ void Renderer::ResetAPIState()
 
 void UpdateViewport();
 
-void Renderer::ReinitView()
-{
-
-}
-
 void Renderer::RestoreAPIState()
 {
 	// Gets us back into a more game-like state.

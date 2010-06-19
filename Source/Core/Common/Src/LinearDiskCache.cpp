@@ -46,6 +46,11 @@ bool LinearDiskCache::ValidateHeader() {
 }
 
 int LinearDiskCache::OpenAndRead(const char *filename, LinearDiskCacheReader *reader) {
+	if (file_)
+	{
+		ERROR_LOG(VIDEO, "LinearDiskCache trying to open an alredy opened cache");
+		return 0;
+	}
 	int items_read_count = 0;
 	file_ = fopen(filename, "rb");
 	int file_size = 0;
@@ -143,11 +148,25 @@ void LinearDiskCache::Append(
 }
 
 void LinearDiskCache::Sync() {
-	fflush(file_);
+	if (file_)
+	{
+		fflush(file_);
+	}
+	else
+	{
+		ERROR_LOG(VIDEO, "LinearDiskCache trying to sync closed cache");
+	}
 }
 
 void LinearDiskCache::Close() {
-	fclose(file_);
-	file_ = 0;
-	num_entries_ = 0;
+	if (file_)
+	{
+		fclose(file_);
+		file_ = 0;
+		num_entries_ = 0;
+	}
+	else 
+	{
+		ERROR_LOG(VIDEO, "LinearDiskCache trying to close an alredy closed cache");
+	}
 }

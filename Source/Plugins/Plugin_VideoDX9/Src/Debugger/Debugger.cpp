@@ -333,12 +333,10 @@ void GFXDebuggerDX9::OnClearTextureCacheButton(wxCommandEvent& event)
 
 void GFXDebuggerDX9::OnClearVertexShaderCacheButton(wxCommandEvent& event)
 {
-	VertexShaderCache::Clear();
 }
 
 void GFXDebuggerDX9::OnClearPixelShaderCacheButton(wxCommandEvent& event)
 {
-	PixelShaderCache::Clear();
 }
 
 void UpdateFPSDisplay(const char *text);
