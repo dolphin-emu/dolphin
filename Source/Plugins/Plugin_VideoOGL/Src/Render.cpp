@@ -787,13 +787,15 @@ bool Renderer::SetScissorRect()
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
+	
 	// Update the view port for clearing the picture
-	glViewport(0, 0, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
-
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
+	glViewport(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
+	glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
+	
 
 	// Always set the scissor in case it was set by the game and has not been reset
-	glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
+	
 
 	VertexShaderManager::SetViewportChanged();
 
@@ -805,7 +807,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 			((color >> 16) & 0xFF) / 255.0f,
 			((color >> 8) & 0xFF) / 255.0f,
 			(color & 0xFF) / 255.0f,
-			(alphaEnable ? ((color >> 24) & 0xFF) / 255.0f : 1.0f)
+			((color >> 24) & 0xFF) / 255.0f
 			);
 	}
 	if (zEnable)
@@ -1242,8 +1244,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// Renderer::SetZBufferRender();
 	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
 	XFBWrited = false;
-	g_VideoInitialize.pCopiedToXFB(true);
-	
+	g_VideoInitialize.pCopiedToXFB(XFBWrited);	
 }
 
 // Create On-Screen-Messages

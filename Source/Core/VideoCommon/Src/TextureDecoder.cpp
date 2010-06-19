@@ -626,9 +626,9 @@ inline void decodebytesARGB8_4(u32 *dst, const u16 *src, const u16 *src2)
 
 inline void decodebytesARGB8_4ToRgba(u32 *dst, const u16 *src, const u16 *src2)
 {
-    for (int x = 0; x < 4; x++) {
-        dst[x] = (src2[x] << 8) | src[x] >> 8 | (src[x] & 0xF) << 24;
-    }	
+	for (int x = 0; x < 4; x++) {
+		dst[x] =  ((src[x] & 0xFF) << 24) | ((src[x] & 0xFF00)>>8)  | (src2[x] << 8);		
+    }	 
 }
 
 inline u32 makecol(int r, int g, int b, int a)
