@@ -33,8 +33,8 @@
 
 struct sDecoders
 {
-    const char name[256];               // kernel name
-    cl_kernel kernel;                   // compute kernel
+	const char name[256];               // kernel name
+	cl_kernel kernel;                   // compute kernel
 };
 
 cl_program g_program;
@@ -57,17 +57,17 @@ cl_mem g_clsrc, g_cldst;                    // texture buffer memory objects
 void TexDecoder_OpenCL_Initialize() {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if(!g_Inited)
-    {
+	{
 		if(!OpenCL::Initialize())
 			return;
 
-        std::string code;
-        char filename[1024];
-        sprintf(filename, "%sOpenCL/TextureDecoder.cl", File::GetUserPath(D_USER_IDX));
+		std::string code;
+		char filename[1024];
+		sprintf(filename, "%sOpenCL/TextureDecoder.cl", File::GetUserPath(D_USER_IDX));
 		if (!File::ReadFileToString(true, filename, code))
 		{
 			ERROR_LOG(VIDEO, "Failed to load OpenCL code %s - file is missing?", filename);
-            return;
+			return;
 		}
 		
 		g_program = OpenCL::CompileProgram(code.c_str());
@@ -94,7 +94,7 @@ void TexDecoder_OpenCL_Shutdown() {
 	
 	clReleaseProgram(g_program);
 	int i = 0;
-	while(strlen(Decoders[i].name) > 0) 
+	while(strlen(Decoders[i].name) > 0)
 	{
 		clReleaseKernel(Decoders[i].kernel);
 		i++;
@@ -113,21 +113,21 @@ void TexDecoder_OpenCL_Shutdown() {
 PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
 {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
-    cl_int err;
+	cl_int err;
 	cl_kernel kernelToRun = Decoders[0].kernel;
 	float sizeOfDst = sizeof(u8), sizeOfSrc = sizeof(u8), xSkip, ySkip;
 	PC_TexFormat formatResult;
-  
-    switch(texformat)
+	
+	switch(texformat)
 	{
 		case GX_TF_I4:
-            kernelToRun = Decoders[0].kernel;
+			kernelToRun = Decoders[0].kernel;
 			sizeOfSrc = sizeof(u8) / 2.0f;
 			sizeOfDst = sizeof(u8);
 			xSkip = 8;
 			ySkip = 8;
-            formatResult = PC_TEX_FMT_I4_AS_I8;
-            break;
+			formatResult = PC_TEX_FMT_I4_AS_I8;
+			break;
 		case GX_TF_I8:
 			kernelToRun = Decoders[1].kernel;
 			sizeOfSrc = sizeOfDst = sizeof(u8);
@@ -162,25 +162,21 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 			sizeOfSrc = sizeOfDst = sizeof(u16);
 			xSkip = 4;
 			ySkip = 4;
-            formatResult = PC_TEX_FMT_RGB565;
+			formatResult = PC_TEX_FMT_RGB565;
 			break;
-        case GX_TF_RGB5A3:
-			// Doesn't decode correctly
-			// See Sonic Adventure 2: Battle opening sequence
-			return PC_TEX_FMT_NONE;
+		case GX_TF_RGB5A3:
+			// Reported issues with Sonic Adventure 2: Battle opening sequence?
 			kernelToRun = Decoders[6].kernel;
 			sizeOfSrc = sizeof(u16);
-            sizeOfDst = sizeof(u32);
+			sizeOfDst = sizeof(u32);
 			xSkip = 4;
 			ySkip = 4;
 			formatResult = PC_TEX_FMT_BGRA32;
 			break;
 		case GX_TF_CMPR:
-			// Doesn't decode correctly
-			return PC_TEX_FMT_NONE;
 			kernelToRun = Decoders[7].kernel;
 			sizeOfSrc = sizeof(u8) / 2.0f;
-            sizeOfDst = sizeof(u32);
+			sizeOfDst = sizeof(u32);
 			xSkip = 8;
 			ySkip = 8;
 			formatResult = PC_TEX_FMT_BGRA32;
@@ -212,7 +208,7 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 
 	err = clEnqueueNDRangeKernel(OpenCL::GetCommandQueue(), kernelToRun, 2, NULL, global, NULL, 0, NULL, NULL);
 	if(err)
-        OpenCL::HandleCLError(err, "Failed to enqueue kernel");
+		OpenCL::HandleCLError(err, "Failed to enqueue kernel");
 
 	clFinish(OpenCL::GetCommandQueue());
 	
@@ -228,6 +224,6 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 	return PC_TEX_FMT_NONE;
 #endif
 
-    return PC_TEX_FMT_NONE;
+	return PC_TEX_FMT_NONE;
 }
 
