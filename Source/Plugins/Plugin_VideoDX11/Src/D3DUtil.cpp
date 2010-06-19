@@ -380,7 +380,6 @@ int CD3DFont::DrawTextScaled(float x, float y, float scale, float spacing, u32 d
 		D3D::context->IASetVertexBuffers(0, 1, &m_pVB, &stride, &bufoffset);
 		D3D::context->Draw(3 * dwNumTriangles, 0);
 	}
-	D3D::gfxstate->SetShaderResource(0, NULL);
 	D3D::stateman->PopBlendState();
 	D3D::stateman->PopRasterizerState();
 	return S_OK;
@@ -498,7 +497,6 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 
 	ID3D11ShaderResourceView* texres = NULL;
 	context->PSSetShaderResources(0, 1, &texres); // immediately unbind the texture
-	D3D::gfxstate->SetShaderResource(0, NULL);
 
 	lastu1 = u1;
 	lastv1 = v1;
@@ -555,7 +553,6 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 
 	ID3D11ShaderResourceView* texres = NULL;
 	context->PSSetShaderResources(0, 1, &texres); // immediately unbind the texture
-	D3D::gfxstate->SetShaderResource(0, NULL);
 
 	lastu1 = u1;
 	lastv1 = v1;

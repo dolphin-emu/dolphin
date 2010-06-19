@@ -39,7 +39,7 @@ public:
 
 	void ApplyState();            // apply current state
 	void AlphaPass();             // only modify the current state to enable the alpha pass
-	void ResetShaderResources();  // disable all shader resources
+	void Reset();
 
 	// blend state
 	void SetAlphaBlendEnable(bool enable);

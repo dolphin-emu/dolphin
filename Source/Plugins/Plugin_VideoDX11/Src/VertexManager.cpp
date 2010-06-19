@@ -369,10 +369,10 @@ void Flush()
 		// update alpha only
 		Draw(stride, true);
 	}
+	gfxstate->Reset();
 
 shader_fail:
 	ResetBuffer();
-	gfxstate->ResetShaderResources();
 }
 
 }  // namespace

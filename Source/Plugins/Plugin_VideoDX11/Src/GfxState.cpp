@@ -193,7 +193,6 @@ void EmuGfxState::ApplyState()
 	ID3D11BlendState* blstate;
 	hr = device->CreateBlendState(&blenddesc, &blstate);
 	if (FAILED(hr)) PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
-//	context->OMSetBlendState(blstate, NULL, 0xFFFFFFFF);
 	stateman->PushBlendState(blstate);
 	SetDebugObjectName((ID3D11DeviceChild*)blstate, "a blend state of EmuGfxState");
 	blstate->Release();
@@ -203,7 +202,6 @@ void EmuGfxState::ApplyState()
 	hr = device->CreateRasterizerState(&rastdesc, &raststate);
 	if (FAILED(hr)) PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
 	SetDebugObjectName((ID3D11DeviceChild*)raststate, "a rasterizer state of EmuGfxState");
-//	context->RSSetState(raststate);
 	stateman->PushRasterizerState(raststate);
 	raststate->Release();
 
@@ -211,7 +209,6 @@ void EmuGfxState::ApplyState()
 	hr = device->CreateDepthStencilState(&depthdesc, &depth_state);
 	if (SUCCEEDED(hr)) SetDebugObjectName((ID3D11DeviceChild*)depth_state, "a depth-stencil state of EmuGfxState");
 	else PanicAlert("Failed to create depth state at %s %d\n", __FILE__, __LINE__);
-//	context->OMSetDepthStencilState(depth_state, 0);
 	D3D::stateman->PushDepthState(depth_state);
 	depth_state->Release();
 
@@ -234,14 +231,13 @@ void EmuGfxState::AlphaPass()
 	HRESULT hr = device->CreateBlendState(&desc, &blstate);
 	if (FAILED(hr)) PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
 	SetDebugObjectName((ID3D11DeviceChild*)blstate, "a blend state of EmuGfxState (created during alpha pass)");
-//	context->OMSetBlendState(blstate, NULL, 0xFFFFFFFF);
 	stateman->PushBlendState(blstate);
 	blstate->Release();
 
 	stateman->Apply();
 }
 
-void EmuGfxState::ResetShaderResources()
+void EmuGfxState::Reset()
 {
 	for (unsigned int k = 0;k < 8;k++)
 		SAFE_RELEASE(shader_resources[k]);
@@ -322,25 +318,34 @@ void StateManager::PopRasterizerState() { raststates.pop(); }
 void StateManager::Apply()
 {
 	if (!blendstates.empty())
+	{
 		if (cur_blendstate != blendstates.top().GetPtr())
 		{
 			cur_blendstate = (ID3D11BlendState*)blendstates.top().GetPtr();
 			D3D::context->OMSetBlendState(cur_blendstate, NULL, 0xFFFFFFFF);
 		}
+	}
+	else D3D::context->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
 
 	if (!depthstates.empty())
+	{
 		if (cur_depthstate != depthstates.top().GetPtr())
 		{
 			cur_depthstate = (ID3D11DepthStencilState*)depthstates.top().GetPtr();
 			D3D::context->OMSetDepthStencilState(cur_depthstate, 0);
 		}
+	}
+	else D3D::context->OMSetDepthStencilState(NULL, 0);
 
 	if (!raststates.empty())
+	{
 		if (cur_raststate != raststates.top().GetPtr())
 		{
 			cur_raststate = (ID3D11RasterizerState*)raststates.top().GetPtr();
 			D3D::context->RSSetState(cur_raststate);
 		}
+	}
+	else D3D::context->RSSetState(NULL);
 }
 
 }  // namespace

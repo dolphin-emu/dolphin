@@ -906,9 +906,12 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		D3D::context->Map(buftex, 0, D3D11_MAP_READ_WRITE, 0, &map);
 		for (unsigned int y = 0; y < D3D::GetBackBufferHeight(); ++y)
 		{
-			u32* ptr = (u32*)((u8*)map.pData + y * map.RowPitch);
+			u8* ptr = (u8*)map.pData + y * map.RowPitch + 3;
 			for (unsigned int x = 0; x < D3D::GetBackBufferWidth(); ++x)
-				*(u8*)ptr++ = 0xFF;
+			{
+				*ptr = 0xFF;
+				ptr += 4;
+			}
 		}
 		D3D::context->Unmap(buftex, 0);
 
@@ -1015,31 +1018,38 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	XFBWrited = false;
 }
 
+// TODO: Make sure that each ResetAPIState call matches an RestoreAPIState
+//			That way we don't need to deal with the number of ResetAPIState calls anymore
 void Renderer::ResetAPIState()
 {
 	resets++;
+	D3D::gfxstate->Reset();
 	D3D::stateman->PushBlendState(resetblendstate);
 	D3D::stateman->PushDepthState(resetdepthstate);
 	D3D::stateman->PushRasterizerState(resetraststate);
+	D3D::stateman->Apply();
 }
 
 void Renderer::RestoreAPIState()
 {
 	// TODO: How much of this is actually needed?
 	// gets us back into a more game-like state.
+
+	// TODO: check whether commenting these lines broke anything
+//	D3D::gfxstate->rastdesc.ScissorEnable = TRUE;
+	UpdateViewport();
+	SetScissorRect();
+//	if (bpmem.zmode.testenable) D3D::gfxstate->depthdesc.DepthEnable = TRUE;
+//	if (bpmem.zmode.updateenable) D3D::gfxstate->depthdesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	SetColorMask();
+	SetLogicOpMode();
 	for (;resets;--resets)
 	{
 		D3D::stateman->PopBlendState();
 		D3D::stateman->PopDepthState();
 		D3D::stateman->PopRasterizerState();
+		D3D::gfxstate->ApplyState();
 	}
-	D3D::gfxstate->rastdesc.ScissorEnable = TRUE;
-	UpdateViewport();
-	SetScissorRect();
-	if (bpmem.zmode.testenable) D3D::gfxstate->depthdesc.DepthEnable = TRUE;
-	if (bpmem.zmode.updateenable) D3D::gfxstate->depthdesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	SetColorMask();
-	SetLogicOpMode();
 }
 
 void Renderer::SetGenerationMode()
