@@ -22,135 +22,27 @@
 namespace D3D
 {
 
-// buffers for storing the data for DEFAULT textures
-u8* texbuf = NULL;
-unsigned int texbufsize = 0;
-
-// TODO: Remove this class and properly clean up texbuf!
-struct TexbufDeleter
+void ReplaceRGBATexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int width, unsigned int height, unsigned int pitch, unsigned int level, D3D11_USAGE usage)
 {
-	~TexbufDeleter()
+	if (usage == D3D11_USAGE_DYNAMIC)
 	{
-		SAFE_DELETE_ARRAY(texbuf);
-		texbufsize = 0;
-	}
-} texbufdeleter;
-
-void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int width, unsigned int height, unsigned int pitch, DXGI_FORMAT fmt, PC_TexFormat pcfmt, unsigned int level, D3D11_USAGE usage)
-{
-	u8* outptr;
-	unsigned int destPitch;
-	bool bExpand = false;
-
-	if (usage == D3D11_USAGE_DYNAMIC || usage == D3D11_USAGE_STAGING)
-	{
-		if (usage == D3D11_USAGE_DYNAMIC && level != 0) PanicAlert("Dynamic textures don't support mipmaps, but given level is not 0 at %s %d\n", __FILE__, __LINE__);
 		D3D11_MAPPED_SUBRESOURCE map;
-		D3D::context->Map(pTexture, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
-		outptr = (u8*)map.pData;
-		destPitch = map.RowPitch;
-	}
-	else if (usage == D3D11_USAGE_DEFAULT && !(pcfmt == PC_TEX_FMT_BGRA32 && fmt == DXGI_FORMAT_B8G8R8A8_UNORM))
-	{
-		if (texbufsize < 4*width*height)
+		D3D::context->Map(pTexture, level, D3D11_MAP_WRITE_DISCARD, 0, &map);
+		if (4 * pitch == map.RowPitch)
 		{
-			SAFE_DELETE_ARRAY(texbuf);
-			texbuf = new u8[4*width*height];
-			texbufsize = 4*width*height;
+			memcpy(map.pData, buffer, map.RowPitch * height);
 		}
-		outptr = texbuf;
-		destPitch = width * 4;
-	}
-	else if (usage == D3D11_USAGE_DEFAULT && pcfmt == PC_TEX_FMT_BGRA32 && fmt == DXGI_FORMAT_B8G8R8A8_UNORM)
-	{
-		// BGRA32 textures can be uploaded directly to VRAM in this case
-		D3D11_BOX dest_region = CD3D11_BOX(0, 0, 0, width, height, 1);
-		D3D::context->UpdateSubresource(pTexture, level, &dest_region, buffer, 4*pitch, 4*pitch*height);
-		return;
+		else
+		{
+			for (unsigned int y = 0; y < height; ++y)
+				memcpy((u8*)map.pData + y * map.RowPitch, (u32*)buffer + y * pitch, map.RowPitch);
+		}
+		D3D::context->Unmap(pTexture, level);
 	}
 	else
 	{
-		PanicAlert("ReplaceTexture2D called on an immutable texture!\n");
-		return;
-	}
-
-	// TODO: Merge the conversions done here to VideoDecoder
-	switch (pcfmt)
-	{
-		case PC_TEX_FMT_IA8:
-		case PC_TEX_FMT_IA4_AS_IA8:
-			for (unsigned int y = 0; y < height; y++)
-			{
-				u16* in = (u16*)buffer + y * pitch;
-				u32* pBits = (u32*)(outptr + y * destPitch);
-				for (unsigned int x = 0; x < width; x++)
-				{
-					const u8 I = (*in & 0xFF);
-					const u8 A = (*in & 0xFF00) >> 8;
-					*pBits++ = (A << 24) | (I << 16) | (I << 8) | I;
-					in++;
-				}
-			}
-			break;
-		case PC_TEX_FMT_I8:
-		case PC_TEX_FMT_I4_AS_I8:
-			for (unsigned int y = 0; y < height; y++)
-			{
-				const u8* in = buffer + y * pitch;
-				u32* pBits = (u32*)(outptr + y * destPitch);
-				for(unsigned int i = 0; i < width; i++)
-					memset( pBits++, *in++, 4 );
-			}
-			break;
-		case PC_TEX_FMT_BGRA32:
-			if (fmt == DXGI_FORMAT_B8G8R8A8_UNORM)
-			{
-				for (unsigned int y = 0; y < height; y++)
-					memcpy( outptr + y * destPitch, (u32*)buffer + y * pitch, destPitch );
-			}
-			else
-			{
-				for (unsigned int y = 0; y < height; y++)
-				{
-					u32* in = (u32*)buffer + y * pitch;
-					u32* pBits = (u32*)(outptr + y * destPitch);
-					for (unsigned int x = 0; x < width; x++)
-					{
-						*pBits++ = (*in & 0xFF00FF00) | ((*in >> 16) & 0xFF) | ((*in << 16) & 0xFF0000);
-						in++;
-					}
-				}
-			}
-			break;
-		case PC_TEX_FMT_RGB565:
-			for (unsigned int y = 0; y < height; y++)
-			{
-				u16* in = (u16*)buffer + y * pitch;
-				u32* pBits = (u32*)(outptr + y * destPitch);
-				for (unsigned int x = 0; x < width; x++)
-				{
-					// we can't simply shift here, since e.g. 11111 must map to 11111111 and not 11111000
-					const u16 col = *in++;
-					*(pBits++) = 0xFF000000 | // alpha
-							(( (col&0xF800) >> 11) * 255 / 31) |            // red
-							((((col& 0x7e0) <<  3) * 255 / 63) & 0xFF00) |  // green
-							((((col&  0x1f) << 16) * 255 / 31) & 0xFF0000); // blue
-				}
-			}
-			break;
-		default:
-			PanicAlert("Unknown tex fmt %d\n", pcfmt);
-			break;
-	}
-	if (usage == D3D11_USAGE_DYNAMIC)
-	{
-		// TODO: UpdateSubresource might be faster than mapping
-		D3D::context->Unmap(pTexture, 0);
-	}
-	else if (usage == D3D11_USAGE_DEFAULT)
-	{
 		D3D11_BOX dest_region = CD3D11_BOX(0, 0, 0, width, height, 1);
-		D3D::context->UpdateSubresource(pTexture, level, &dest_region, outptr, destPitch, 4*width*height);
+		D3D::context->UpdateSubresource(pTexture, level, &dest_region, buffer, 4*pitch, 4*pitch*height);
 	}
 }
 

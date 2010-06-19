@@ -311,9 +311,9 @@ StateManager::StateManager() : cur_blendstate(NULL), cur_depthstate(NULL), cur_r
 void StateManager::PushBlendState(const ID3D11BlendState* state) { blendstates.push(AutoBlendState(state));}
 void StateManager::PushDepthState(const ID3D11DepthStencilState* state) { depthstates.push(AutoDepthStencilState(state));}
 void StateManager::PushRasterizerState(const ID3D11RasterizerState* state) { raststates.push(AutoRasterizerState(state));}
-void StateManager::PopBlendState() { blendstates.pop(); }
-void StateManager::PopDepthState() { depthstates.pop(); }
-void StateManager::PopRasterizerState() { raststates.pop(); }
+void StateManager::PopBlendState() { if(!blendstates.empty()) blendstates.pop(); }
+void StateManager::PopDepthState() { if(!depthstates.empty()) depthstates.pop(); }
+void StateManager::PopRasterizerState() { if(!raststates.empty()) raststates.pop(); }
 
 void StateManager::Apply()
 {
