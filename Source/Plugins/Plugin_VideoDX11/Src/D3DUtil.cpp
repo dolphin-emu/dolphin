@@ -165,7 +165,7 @@ int CD3DFont::Init()
 	// possible optimization: store the converted data in a buffer and fill the texture on creation.
 	//							That way, we can use a static texture
 	ID3D11Texture2D* buftex;
-	D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_B8G8R8A8_UNORM, m_dwTexWidth, m_dwTexHeight,
+	D3D11_TEXTURE2D_DESC texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R8G8B8A8_UNORM, m_dwTexWidth, m_dwTexHeight,
 										1, 1, D3D11_BIND_SHADER_RESOURCE, D3D11_USAGE_DYNAMIC,
 										D3D11_CPU_ACCESS_WRITE);
 	hr = device->CreateTexture2D(&texdesc, NULL, &buftex);
@@ -567,6 +567,7 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 	lastrdest.bottom = rDest->bottom;
 }
 
+// TODO: Check whether we're passing Color in the right order (should be RGBA)
 void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexShader* Vshader, ID3D11InputLayout* layout)
 {
 	static u32 lastcol = 0;

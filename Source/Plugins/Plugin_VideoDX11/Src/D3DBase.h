@@ -49,6 +49,7 @@ unsigned int GetBackBufferHeight();
 D3DTexture2D* &GetBackBuffer();
 const char* PixelShaderVersionString();
 const char* VertexShaderVersionString();
+bool BGRATexturesSupported();
 
 // Ihis function will assign a name to the given resource.
 // The DirectX debug layer will make it easier to identify resources that way,

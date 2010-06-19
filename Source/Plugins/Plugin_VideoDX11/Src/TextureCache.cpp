@@ -271,8 +271,9 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 	if (pcfmt == PC_TEX_FMT_NONE)
 		pcfmt = TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt);
 
-	DXGI_FORMAT d3d_fmt = DXGI_FORMAT_B8G8R8A8_UNORM;
+	DXGI_FORMAT d3d_fmt = DXGI_FORMAT_R8G8B8A8_UNORM;
 	bool swap_r_b = false;
+	if (pcfmt == PC_TEX_FMT_BGRA32 && D3D::BGRATexturesSupported()) d3d_fmt = DXGI_FORMAT_B8G8R8A8_UNORM;
 
 	entry.oldpixel = ((u32*)ptr)[0];
 	if (g_ActiveConfig.bSafeTextureCache) entry.hash = hash_value;
@@ -400,7 +401,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		entry.Scaledh = Scaledtex_h;
 		entry.fmt = copyfmt;
 		entry.isNonPow2 = true;
-		entry.texture = D3DTexture2D::Create(Scaledtex_w, Scaledtex_h, (D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET|(int)D3D11_BIND_SHADER_RESOURCE), D3D11_USAGE_DEFAULT, DXGI_FORMAT_B8G8R8A8_UNORM);
+		entry.texture = D3DTexture2D::Create(Scaledtex_w, Scaledtex_h, (D3D11_BIND_FLAG)((int)D3D11_BIND_RENDER_TARGET|(int)D3D11_BIND_SHADER_RESOURCE), D3D11_USAGE_DEFAULT, DXGI_FORMAT_R8G8B8A8_UNORM);
 		if (entry.texture == NULL) PanicAlert("CopyRenderTargetToTexture failed to create entry.texture at %s %d\n", __FILE__, __LINE__);
 		textures[address] = entry;
 		tex = entry.texture;

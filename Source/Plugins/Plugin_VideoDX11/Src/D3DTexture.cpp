@@ -50,7 +50,7 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 		outptr = (u8*)map.pData;
 		destPitch = map.RowPitch;
 	}
-	else if (usage == D3D11_USAGE_DEFAULT && pcfmt != PC_TEX_FMT_BGRA32)
+	else if (usage == D3D11_USAGE_DEFAULT && !(pcfmt == PC_TEX_FMT_BGRA32 && fmt == DXGI_FORMAT_B8G8R8A8_UNORM))
 	{
 		if (texbufsize < 4*width*height)
 		{
@@ -61,7 +61,7 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 		outptr = texbuf;
 		destPitch = width * 4;
 	}
-	else if (usage == D3D11_USAGE_DEFAULT && pcfmt == PC_TEX_FMT_BGRA32)
+	else if (usage == D3D11_USAGE_DEFAULT && pcfmt == PC_TEX_FMT_BGRA32 && fmt == DXGI_FORMAT_B8G8R8A8_UNORM)
 	{
 		// BGRA32 textures can be uploaded directly to VRAM in this case
 		D3D11_BOX dest_region = CD3D11_BOX(0, 0, 0, width, height, 1);
@@ -103,9 +103,24 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 			}
 			break;
 		case PC_TEX_FMT_BGRA32:
-			for (unsigned int y = 0; y < height; y++)
-				memcpy( outptr + y * destPitch, (u32*)buffer + y * pitch, destPitch );
-
+			if (fmt == DXGI_FORMAT_B8G8R8A8_UNORM)
+			{
+				for (unsigned int y = 0; y < height; y++)
+					memcpy( outptr + y * destPitch, (u32*)buffer + y * pitch, destPitch );
+			}
+			else
+			{
+				for (unsigned int y = 0; y < height; y++)
+				{
+					u32* in = (u32*)buffer + y * pitch;
+					u32* pBits = (u32*)(outptr + y * destPitch);
+					for (unsigned int x = 0; x < width; x++)
+					{
+						*pBits++ = (*in & 0xFF00FF00) | ((*in >> 16) & 0xFF) | ((*in << 16) & 0xFF0000);
+						in++;
+					}
+				}
+			}
 			break;
 		case PC_TEX_FMT_RGB565:
 			for (unsigned int y = 0; y < height; y++)
@@ -117,9 +132,9 @@ void ReplaceTexture2D(ID3D11Texture2D* pTexture, const u8* buffer, unsigned int 
 					// we can't simply shift here, since e.g. 11111 must map to 11111111 and not 11111000
 					const u16 col = *in++;
 					*(pBits++) = 0xFF000000 | // alpha
-							((((col&0xF800) << 5) * 255 / 31) & 0xFF0000) | // red
-							((((col& 0x7e0) << 3) * 255 / 63) & 0xFF00) |   // green
-							(( (col&  0x1f)       * 255 / 31));             // blue
+							(( (col&0xF800) >> 11) * 255 / 31) |            // red
+							((((col& 0x7e0) <<  3) * 255 / 63) & 0xFF00) |  // green
+							((((col&  0x1f) << 16) * 255 / 31) & 0xFF0000); // blue
 				}
 			}
 			break;

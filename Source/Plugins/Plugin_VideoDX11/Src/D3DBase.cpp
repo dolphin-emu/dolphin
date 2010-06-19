@@ -38,6 +38,8 @@ D3D_FEATURE_LEVEL featlevel;
 D3DTexture2D* backbuf = NULL;
 HWND hWnd;
 
+bool bgra_textures_supported;
+
 #define NUM_SUPPORTED_FEATURE_LEVELS 3
 const D3D_FEATURE_LEVEL supported_feature_levels[NUM_SUPPORTED_FEATURE_LEVELS] = {
 	D3D_FEATURE_LEVEL_11_0,
@@ -145,6 +147,11 @@ HRESULT Create(HWND wnd)
 
 	context->OMSetRenderTargets(1, &backbuf->GetRTV(), NULL);
 
+	// BGRA textures are easier to deal with in TextureCache, but might not be supported by the hardware
+	UINT format_support;
+	device->CheckFormatSupport(DXGI_FORMAT_B8G8R8A8_UNORM, &format_support);
+	bgra_textures_supported = (format_support & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
+
 	gfxstate = new EmuGfxState;
 	stateman = new StateManager;
 	return S_OK;
@@ -180,6 +187,8 @@ const char* PixelShaderVersionString() { return "ps_4_0"; }
 D3DTexture2D* &GetBackBuffer() { return backbuf; }
 unsigned int GetBackBufferWidth() { return xres; }
 unsigned int GetBackBufferHeight() { return yres; }
+
+bool BGRATexturesSupported() { return bgra_textures_supported; }
 
 void Reset()
 {
