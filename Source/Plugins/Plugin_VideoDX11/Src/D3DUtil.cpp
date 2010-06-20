@@ -61,8 +61,9 @@ const char fontpixshader[] = {
 	"SamplerState linearSampler\n"
 	"{\n"
 	"	Filter = MIN_MAG_MIP_LINEAR;\n"
-	"	AddressU = Wrap;\n"
-	"	AddressV = Wrap;\n"
+	"	AddressU = D3D11_TEXTURE_ADDRESS_BORDER;\n"
+	"	AddressV = D3D11_TEXTURE_ADDRESS_BORDER;\n"
+	"	BorderColor = float4(0.f, 0.f, 0.f, 0.f);\n"
 	"};\n"
 	"struct PS_INPUT\n"
 	"{\n"
@@ -120,12 +121,9 @@ int CD3DFont::Init()
 	SetMapMode(hDC, MM_TEXT);
 
 	// create a GDI font
-	int m_dwFontHeight = 24;
-	int nHeight = -MulDiv(m_dwFontHeight, (int)GetDeviceCaps(hDC, LOGPIXELSY), 72);
-	int dwBold = FW_NORMAL;
-	HFONT hFont = CreateFont(nHeight, 0, 0, 0, dwBold, 0,
+	HFONT hFont = CreateFont(24, 0, 0, 0, FW_NORMAL, FALSE,
 							FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
-							CLIP_DEFAULT_PRECIS, ANTIALIASED_QUALITY,
+							CLIP_DEFAULT_PRECIS, PROOF_QUALITY,
 							VARIABLE_PITCH, _T("Tahoma"));
 	if (NULL == hFont) return E_FAIL;
 
@@ -136,6 +134,10 @@ int CD3DFont::Init()
 	SetTextColor(hDC, 0xFFFFFF);
 	SetBkColor  (hDC, 0);
 	SetTextAlign(hDC, TA_TOP);
+
+	TEXTMETRICW tm;
+	GetTextMetricsW(hDC, &tm);
+	m_LineHeight = tm.tmHeight;
 
 	// loop through all printable characters and output them to the bitmap
 	// meanwhile, keep track of the corresponding tex coords for each character.
@@ -149,14 +151,14 @@ int CD3DFont::Init()
 		if ((int)(x+size.cx+1) > m_dwTexWidth)
 		{
 			x  = 0;
-			y += size.cy + 1;
+			y += m_LineHeight;
 		}
 
 		ExtTextOutA(hDC, x+1, y+0, ETO_OPAQUE | ETO_CLIPPED, NULL, str, 1, NULL);
-		m_fTexCoords[c][0] = ((float)(x+0))/m_dwTexWidth;
-		m_fTexCoords[c][1] = ((float)(y+0))/m_dwTexHeight;
-		m_fTexCoords[c][2] = ((float)(x+0+size.cx))/m_dwTexWidth;
-		m_fTexCoords[c][3] = ((float)(y+0+size.cy))/m_dwTexHeight;
+		m_fTexCoords[c][0] = (float) x         /m_dwTexWidth;
+		m_fTexCoords[c][1] = (float) y         /m_dwTexHeight;
+		m_fTexCoords[c][2] = (float)(x+size.cx)/m_dwTexWidth;
+		m_fTexCoords[c][3] = (float)(y+size.cy)/m_dwTexHeight;
 
 		x += size.cx + 3;  // 3 to work around annoying ij conflict (part of the j ends up with the i)
 	}
@@ -187,7 +189,7 @@ int CD3DFont::Init()
 		for (x = 0; x < m_dwTexWidth; x++)
 		{
 			const u8 bAlpha = (pBitmapBits[m_dwTexWidth * y + x] & 0xff);
-			pDst32[x] = ((bAlpha * 255 / 15) << 24) | 0xFFFFFF;
+			*pDst32++ = (((bAlpha << 4) | bAlpha) << 24) | 0xFFFFFF;
 		}
 	}
 
@@ -270,16 +272,20 @@ int CD3DFont::Shutdown()
 	return S_OK;
 }
 
-int CD3DFont::DrawTextScaled(float x, float y, float scale, float spacing, u32 dwColor, const char* strText, bool center)
+int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dwColor, const char* strText, bool center)
 {
 	if (!m_pVB) return 0;
 
 	UINT stride = sizeof(FONT2DVERTEX);
 	UINT bufoffset = 0;
 
+	float scalex = 1 / (float)D3D::GetBackBufferWidth() * 2.f;
+	float scaley = 1 / (float)D3D::GetBackBufferHeight() * 2.f;
+	float sizeratio = size / (float)m_LineHeight;
+
 	// translate starting positions
-	float sx = x / m_dwTexWidth - 1; 
-	float sy = 1 - y / m_dwTexHeight;
+	float sx = x * scalex - 1.f; 
+	float sy = 1.f - y * scaley;
 	char c;
 
 	// fill vertex buffer
@@ -301,20 +307,15 @@ int CD3DFont::DrawTextScaled(float x, float y, float scale, float spacing, u32 d
 
 		while (c = *strText++)
 		{
-			if (c == ('\n'))
-				mx = 0;
-			if (c < (' '))
-				continue;
+			if (c == ('\n')) mx = 0;
+			if (c <  (' ') ) continue;
 			c -= 32;
-			mx += (m_fTexCoords[c][2]-m_fTexCoords[c][0])/(m_fTexCoords[0][3] - m_fTexCoords[0][1])
-			   + spacing;
+			mx += (m_fTexCoords[c][2]-m_fTexCoords[c][0])/(m_fTexCoords[0][3] - m_fTexCoords[0][1]) + spacing;
 			if (mx > maxx) maxx = mx;
 		}
-		sx -= scale*maxx/(2*m_dwTexWidth);
+		sx -= scalex*maxx*size;
 		strText = oldText;
 	}
-	// we now have a starting point
-	float fStartX = sx;
 	// set general pipeline state
 	D3D::stateman->PushBlendState(m_blendstate);
 	D3D::stateman->PushRasterizerState(m_raststate);
@@ -326,23 +327,25 @@ int CD3DFont::DrawTextScaled(float x, float y, float scale, float spacing, u32 d
 	D3D::context->IASetInputLayout(m_InputLayout);
 	D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	D3D::context->PSSetShaderResources(0, 1, &m_pTexture);
+
+	float fStartX = sx;
 	while (c = *strText++)
 	{
 		if (c == ('\n'))
 		{
 			sx  = fStartX;
-			sy -= scale / m_dwTexHeight;
+			sy -= scaley * size;
 		}
-		if (c < (' '))
-			continue;
+		if (c < (' ')) continue;
+
 		c -= 32;
 		float tx1 = m_fTexCoords[c][0];
 		float ty1 = m_fTexCoords[c][1];
 		float tx2 = m_fTexCoords[c][2];
 		float ty2 = m_fTexCoords[c][3];
 
-		float w = (tx2-tx1)/2;
-		float h = (ty1-ty2)/2;
+		float w = (float)(tx2-tx1) * m_dwTexWidth * scalex * sizeratio;
+		float h = (float)(ty1-ty2) * m_dwTexHeight * scaley * sizeratio;
 
 		FONT2DVERTEX v[6];
 		v[0] = InitFont2DVertex(  sx, h+sy, dwColor, tx1, ty2);
@@ -366,11 +369,11 @@ int CD3DFont::DrawTextScaled(float x, float y, float scale, float spacing, u32 d
 
 			dwNumTriangles = 0;
 			D3D11_MAPPED_SUBRESOURCE vbmap;
-			HRESULT hr = context->Map(m_pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &vbmap);
+			hr = context->Map(m_pVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &vbmap);
 			if (FAILED(hr)) PanicAlert("Mapping vertex buffer failed, %s %d\n", __FILE__, __LINE__);
 			pVertices = (D3D::FONT2DVERTEX*)vbmap.pData;
 		}
-		sx += w + spacing*scale/m_dwTexWidth;
+		sx += w + spacing * scalex * size;
 	}
 
 	// Unlock and render the vertex buffer

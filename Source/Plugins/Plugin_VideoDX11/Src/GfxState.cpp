@@ -141,7 +141,7 @@ void EmuGfxState::ApplyState()
 	// TODO: improve interaction between EmuGfxState and global state management, so that we don't need to set the constant buffers every time
 	if (!vscbuf)
 	{
-		unsigned int size = ((sizeof(float)*952)&(~0xffff))+0x10000; // must be a multiple of 16
+		unsigned int size = ((sizeof(vsconstants))&(~0xf))+0x10; // must be a multiple of 16
 		D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(size, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 		hr = device->CreateBuffer(&cbdesc, NULL, &vscbuf);
 		CHECK(hr==S_OK, "Create vertex shader constant buffer (size=%u)", size);
@@ -159,7 +159,7 @@ void EmuGfxState::ApplyState()
 	// pixel shader
 	if (!pscbuf)
 	{
-		unsigned int size = ((sizeof(float)*116)&(~0xffff))+0x10000; // must be a multiple of 16
+		unsigned int size = ((sizeof(psconstants))&(~0xf))+0x10; // must be a multiple of 16
 		D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(size, D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
 		device->CreateBuffer(&cbdesc, NULL, &pscbuf);
 		CHECK(hr==S_OK, "Create pixel shader constant buffer (size=%u)", size);

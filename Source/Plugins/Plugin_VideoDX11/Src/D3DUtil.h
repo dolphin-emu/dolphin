@@ -41,6 +41,7 @@ namespace D3D
 		ID3D11RasterizerState* m_raststate;
 		const int m_dwTexWidth;
 		const int m_dwTexHeight;
+		unsigned int m_LineHeight;
 		float m_fTexCoords[128-32][4];
 
 	public:
@@ -50,7 +51,7 @@ namespace D3D
 		int Init();
 		int Shutdown();
 		int DrawTextScaled(float x, float y,
-							float scale,
+							float size,
 							float spacing, u32 dwColor,
 							const char* strText, bool center=true);
 	};
