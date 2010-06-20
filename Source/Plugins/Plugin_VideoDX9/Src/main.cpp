@@ -52,14 +52,10 @@ GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 #include "DlgSettings.h"
 #include "D3DTexture.h"
 #include "D3DUtil.h"
-#include "W32Util/Misc.h"
 #include "EmuWindow.h"
 #include "VideoState.h"
 #include "XFBConvert.h"
 #include "render.h"
-
-
-#include "Utils.h"
 
 HINSTANCE g_hInstance = NULL;
 SVideoInitialize g_VideoInitialize;

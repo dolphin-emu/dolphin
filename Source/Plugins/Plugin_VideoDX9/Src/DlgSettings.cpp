@@ -23,8 +23,6 @@
 #include <wx/mimetype.h>
 
 #include "DlgSettings.h"
-#include "W32Util/PropertySheet.h"
-#include "W32Util/ShellUtil.h"
 #include "FileUtil.h"
 
 #include "D3DBase.h"

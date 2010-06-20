@@ -41,7 +41,6 @@
 #include "PixelShaderCache.h"
 #include "VertexLoaderManager.h"
 #include "TextureCache.h"
-#include "Utils.h"
 #include "EmuWindow.h"
 #include "AVIDump.h"
 #include "OnScreenDisplay.h"
@@ -84,7 +83,10 @@ static u32 s_LastEFBScale;
 static bool IS_AMD;
 static bool XFBWrited;
 
-char st[32768];
+// used extern by other files. need to clean this up at some point.
+int frameCount;
+
+static char *st;
 
 static bool s_bScreenshot = false;
 static Common::CriticalSection s_criticalScreenshot;
@@ -252,6 +254,7 @@ void TeardownDeviceObjects()
 
 bool Renderer::Init() 
 {
+	st = new char[32768];
 	UpdateActiveConfig();
 	int fullScreenRes, x, y, w_temp, h_temp;
 	s_blendMode = 0;
@@ -370,6 +373,7 @@ void Renderer::Shutdown()
 	{
 		AVIDump::Stop();
 	}
+	delete [] st;
 }
 
 int Renderer::GetTargetWidth() { return s_target_width; }
@@ -1178,6 +1182,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		Statistics::ToStringProj(st);
 		D3D::font.DrawTextScaled(0,30,20,20,0.0f,0xFF00FFFF,st,false);
 	}
+
 
 	OSD::DrawMessages();
 	

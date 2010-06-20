@@ -50,6 +50,7 @@ char *Statistics::ToString(char *ptr)
 	ptr+=sprintf(ptr,"textures alive: %i\n",stats.numTexturesAlive);
 	ptr+=sprintf(ptr,"pshaders created: %i\n",stats.numPixelShadersCreated);
 	ptr+=sprintf(ptr,"pshaders alive: %i\n",stats.numPixelShadersAlive);
+	ptr+=sprintf(ptr,"pshaders (unique, delete cache first): %i\n",stats.numUniquePixelShaders);
 	ptr+=sprintf(ptr,"vshaders created: %i\n",stats.numVertexShadersCreated);
 	ptr+=sprintf(ptr,"vshaders alive: %i\n",stats.numVertexShadersAlive);
     ptr+=sprintf(ptr,"dlists called:    %i\n",stats.numDListsCalled);

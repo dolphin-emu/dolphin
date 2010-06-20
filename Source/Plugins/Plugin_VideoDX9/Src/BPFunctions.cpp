@@ -22,8 +22,7 @@
 #include "TextureCache.h"
 #include "VertexManager.h"
 #include "VertexShaderManager.h"
-#include "Utils.h"
-#include "debugger/debugger.h"
+#include "Debugger/Debugger.h"
 #include "TextureConverter.h"
 
 

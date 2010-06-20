@@ -134,7 +134,6 @@ VERTEXSHADER* VertexShaderCache::GetShader(u32 components)
 	}
 	memcpy(&last_vertex_shader_uid, &uid, sizeof(VERTEXSHADERUID));
 
-
 	VSCache::iterator iter = vshaders.find(uid);
 
 	if (iter != vshaders.end()) {

@@ -25,7 +25,6 @@
 #include "D3DBase.h"
 #include "D3DShader.h"
 #include "Statistics.h"
-#include "Utils.h"
 #include "Profiler.h"
 #include "VideoConfig.h"
 #include "VertexShaderCache.h"

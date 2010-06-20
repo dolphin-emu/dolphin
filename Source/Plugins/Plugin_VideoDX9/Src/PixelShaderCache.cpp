@@ -15,7 +15,11 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
+#include <map>
+#include <set>
+
 #include "Common.h"
+#include "Hash.h"
 #include "FileUtil.h"
 #include "LinearDiskCache.h"
 
@@ -23,7 +27,6 @@
 #include "D3DBase.h"
 #include "D3DShader.h"
 #include "Statistics.h"
-#include "Utils.h"
 #include "VideoConfig.h"
 #include "PixelShaderGen.h"
 #include "PixelShaderManager.h"
@@ -38,7 +41,8 @@
 PixelShaderCache::PSCache PixelShaderCache::PixelShaders;
 const PixelShaderCache::PSCacheEntry *PixelShaderCache::last_entry;
 
-LinearDiskCache g_ps_disk_cache;
+static LinearDiskCache g_ps_disk_cache;
+static std::set<u32> unique_shaders;
 
 static float lastPSconstants[C_COLORMATRIX+16][4];
 
@@ -46,7 +50,6 @@ static LPDIRECT3DPIXELSHADER9 s_ColorMatrixProgram[3];
 static LPDIRECT3DPIXELSHADER9 s_ColorCopyProgram[3];
 static LPDIRECT3DPIXELSHADER9 s_DepthMatrixProgram[3];
 static LPDIRECT3DPIXELSHADER9 s_ClearProgram = 0;
-
 
 LPDIRECT3DPIXELSHADER9 PixelShaderCache::GetColorMatrixProgram(int SSAAMode)
 {
@@ -297,6 +300,8 @@ void PixelShaderCache::Shutdown()
 	Clear();
 	g_ps_disk_cache.Sync();
 	g_ps_disk_cache.Close();
+
+	unique_shaders.clear();
 }
 
 bool PixelShaderCache::SetShader(bool dstAlpha)
@@ -338,6 +343,11 @@ bool PixelShaderCache::SetShader(bool dstAlpha)
 
 	// OK, need to generate and compile it.
 	const char *code = GeneratePixelShaderCode(PixelShaderManager::GetTextureMask(), dstAlpha, API_D3D9);
+
+	u32 code_hash = HashAdler32((const u8 *)code, strlen(code));
+	unique_shaders.insert(code_hash);
+	SETSTAT(stats.numUniquePixelShaders, unique_shaders.size());
+
 	#if defined(_DEBUG) || defined(DEBUGFAST)
 	if (g_ActiveConfig.iLog & CONF_SAVESHADERS && code) {	
 		static int counter = 0;
