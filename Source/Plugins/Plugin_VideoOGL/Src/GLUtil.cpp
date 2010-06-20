@@ -164,7 +164,7 @@ THREAD_RETURN XEventThread(void *pArg)
 	{
 		XEvent event;
 		KeySym key;
-		for (int num_events = XPending(GLWin.dpy); num_events > 0; num_events--) {
+		for (int num_events = XPending(GLWin.dpy) -1; num_events > 0; num_events--) {
 			XNextEvent(GLWin.dpy, &event);
 			switch(event.type) {
 				case KeyPress:

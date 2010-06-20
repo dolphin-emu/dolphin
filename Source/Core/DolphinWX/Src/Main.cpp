@@ -444,6 +444,13 @@ void DolphinApp::OnEndSession()
 
 int DolphinApp::OnExit()
 {
+#ifdef _WIN32
+	if (SConfig::GetInstance().m_WiiAutoUnpair)
+	{
+		if (CPluginManager::GetInstance().GetWiimote())
+			CPluginManager::GetInstance().GetWiimote()->Wiimote_UnPairWiimotes();
+	}
+#endif
 	CPluginManager::Shutdown();
 	SConfig::Shutdown();
 	LogManager::Shutdown();

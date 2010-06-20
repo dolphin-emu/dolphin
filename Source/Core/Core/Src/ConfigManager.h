@@ -45,6 +45,7 @@ struct SConfig
 	bool m_WiiSDCard;
 	bool m_WiiKeyboard;
 	bool m_WiiAutoReconnect[4];
+	bool m_WiiAutoUnpair;
 
 	// hard coded default plugins ...
 	std::string m_DefaultGFXPlugin;

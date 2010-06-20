@@ -310,4 +310,7 @@ void SConfig::LoadSettingsWii()
 		sprintf(SectionName, "Wiimote%i", i + 1);
 		ini.Get(SectionName, "AutoReconnectRealWiimote", &m_WiiAutoReconnect[i], false);
 	}
+		ini.Load((std::string(File::GetUserPath(D_CONFIG_IDX)) + "wiimote.ini").c_str());
+		ini.Get("Real", "Unpair", &m_WiiAutoUnpair, false);
+		
 }

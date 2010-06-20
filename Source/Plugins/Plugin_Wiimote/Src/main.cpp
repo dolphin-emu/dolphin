@@ -105,12 +105,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinstDLL,	// DLL module handle
 
 	case DLL_PROCESS_DETACH:
 		{
-#ifdef _WIN32
-			if (g_Config.bUnpairRealWiimote){
-				WiiMoteReal::Shutdown();
-				WiiMoteReal::WiimotePairUp(true);
-			}
-#endif
 #if defined(HAVE_WX) && HAVE_WX
 		wxUninitialize();
 #endif
@@ -320,15 +314,7 @@ void Wiimote_Input(u16 _Key, u8 _UpDown)
    */
 void Wiimote_InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	// Debugging
-#if defined(_DEBUG) || defined(DEBUGFAST)
-	DEBUG_LOG(WIIMOTE, "Wiimote_InterruptChannel");
-	DEBUG_LOG(WIIMOTE, "    Channel ID: %04x", _channelID);
-	std::string Temp = ArrayToString((const u8*)_pData, _Size);
-	DEBUG_LOG(WIIMOTE, "    Data: %s", Temp.c_str());
-#endif
-
-	// Decice where to send the message
+	// Decide where to send the message
 	if (WiiMoteEmu::WiiMapping[_number].Source <= 1)
 		WiiMoteEmu::InterruptChannel(_number, _channelID, _pData, _Size);
 #if HAVE_WIIUSE
@@ -425,6 +411,15 @@ unsigned int Wiimote_GetAttachedControllers()
 }
 
 
+// Unpair Wiimotes, TODO: Add linux/osx un-pair function
+unsigned int Wiimote_UnPairWiimotes()
+{
+#ifdef _WIN32
+	if (g_Config.bUnpairRealWiimote)
+		return WiiMoteReal::WiimotePairUp(true);
+#endif
+	return 0;
+}
 
 // Supporting functions
 

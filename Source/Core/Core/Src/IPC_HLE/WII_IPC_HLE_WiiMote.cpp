@@ -280,8 +280,17 @@ void CWII_IPC_HLE_WiiMote::ExecuteL2capCmd(u8* _pData, u32 _Size)
 					break;
 
 				case HID_INTERRUPT_CHANNEL:
-					if (number < 4)
-						mote->Wiimote_InterruptChannel(number, pHeader->CID, pData, DataSize);
+					{
+						if (number < 4)
+						{
+							DEBUG_LOG(WIIMOTE, "Wiimote_InterruptChannel");
+							DEBUG_LOG(WIIMOTE, "    Channel ID: %04x", pHeader->CID);
+							std::string Temp = ArrayToString((const u8*)pData, DataSize);
+							DEBUG_LOG(WIIMOTE, "    Data: %s", Temp.c_str());
+
+							mote->Wiimote_InterruptChannel(number, pHeader->CID, pData, DataSize);
+						}
+					}
 					break;
 
 				default:

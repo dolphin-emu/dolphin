@@ -72,6 +72,14 @@ EXPORT void CALL Wiimote_InterruptChannel(int _number, u16 _channelID, const voi
 EXPORT void CALL Wiimote_Update(int _number);
 
 // __________________________________________________________________________________________________
+// Function: Wiimote_UnPairWiimotes
+// Purpose:  Unpair real wiimotes to safe battery
+// input:	 none
+// output:   number of unpaired wiimotes
+//
+EXPORT unsigned int CALL Wiimote_UnPairWiimotes();
+
+// __________________________________________________________________________________________________
 // Function: PAD_GetAttachedPads
 // Purpose:  Get mask of attached pads (eg: controller 1 & 4 -> 0x9)
 // input:	 none

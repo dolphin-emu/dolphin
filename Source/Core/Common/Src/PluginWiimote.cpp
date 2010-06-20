@@ -32,6 +32,8 @@ PluginWiimote::PluginWiimote(const char *_Filename)
 		(LoadSymbol("Wiimote_Update"));
 	Wiimote_GetAttachedControllers = reinterpret_cast<TWiimote_GetAttachedControllers>
 		(LoadSymbol("Wiimote_GetAttachedControllers"));
+	Wiimote_UnPairWiimotes = reinterpret_cast<TWiimote_UnPairWiimotes>
+		(LoadSymbol("Wiimote_UnPairWiimotes"));
 
 	if ((Wiimote_ControlChannel != 0) &&
 		(Wiimote_Input != 0) &&

@@ -157,6 +157,17 @@ void Wiimote_Input(u16 _Key, u8 _UpDown)
 }
 
 // __________________________________________________________________________________________________
+// Function: Unpair real Wiimotes (just a dummy to be compliant)
+// Purpose: 
+// input:   None
+// output:  0 Wiimotes disconnected
+//
+unsigned int Wiimote_UnPairWiimotes(void)
+{
+	return 0;
+}
+
+// __________________________________________________________________________________________________
 // Function: Wiimote_InterruptChannel
 // Purpose:  An L2CAP packet is passed from the Core to the Wiimote,
 //           on the HID INTERRUPT channel.

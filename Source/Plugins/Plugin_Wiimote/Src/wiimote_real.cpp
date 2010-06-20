@@ -87,7 +87,8 @@ Common::Event		g_StartAutopairThread;
 int					stoprefresh = 0;
 unsigned int		PairUpTimer = 2000;
 
-int PaiUpRefreshWiimote();
+int PairUpRefreshWiimote(bool addwiimote);
+int PairUpFindNewSlot(void);
 THREAD_RETURN PairUp_ThreadFunc(void* arg);
 THREAD_RETURN RunInvisibleMessageWindow_ThreadFunc(void* arg);
 #endif
@@ -648,8 +649,9 @@ THREAD_RETURN SafeCloseReadWiimote_ThreadFunc(void* arg)
 
 	return 0;
 }
-// WiiMote Pair-Up
+
 #ifdef WIN32
+// WiiMote Pair-Up, function will return amount of either new paired or unpaired devices
 int WiimotePairUp(bool unpair)
 {
 	HANDLE hRadios[256];
@@ -763,6 +765,7 @@ int WiimotePairUp(bool unpair)
 }
 
 #ifdef HAVE_WIIUSE
+// Listening for new installed wiimotes, and calling PaiUpRefreshWiimote() when found
 LRESULT CALLBACK CallBackDeviceChange(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch(uMsg)
@@ -782,7 +785,7 @@ LRESULT CALLBACK CallBackDeviceChange(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 							{
 								stoprefresh = 0;
 								
-								PaiUpRefreshWiimote();
+								PairUpRefreshWiimote(true);
 								break;
 							}
 							else stoprefresh = 1; //fake arrival wait for second go
@@ -791,7 +794,7 @@ LRESULT CALLBACK CallBackDeviceChange(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 						case 0x8004:
 							if (!stoprefresh) // removal event will pop up only once (it will also pop up if we add a device: fake arrival, fake removal, real arrival.
 							{
-								PaiUpRefreshWiimote();
+								PairUpRefreshWiimote(false);
 							}
 							break;
 					}
@@ -805,11 +808,12 @@ LRESULT CALLBACK CallBackDeviceChange(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 return 0;
 }
-
+// Generating a new invisible message window and listening for new messages
 THREAD_RETURN RunInvisibleMessageWindow_ThreadFunc(void* arg)
 {
 	MSG Msg;
 	HWND hwnd;
+	BOOL ret;
 	
 	WNDCLASSEX  WCEx;
 	ZeroMemory(&WCEx, sizeof(WCEx));
@@ -831,23 +835,27 @@ THREAD_RETURN RunInvisibleMessageWindow_ThreadFunc(void* arg)
 
 	wiiuse_register_system_notification(hwnd); //function moved into wiiuse to avoid ddk/wdk dependicies
 	
-	while(GetMessage(&Msg, 0, 0, 0) > 0)
+	while((ret = GetMessage(&Msg, 0, 0, 0)) != 0)
 	{
-		TranslateMessage(&Msg);
-		DispatchMessage(&Msg);
+		if ( ret == -1) {
+			return 1;
+		}
+		else {
+			TranslateMessage(&Msg);
+			DispatchMessage(&Msg);
+		}
 	}
 
 	UnregisterClass(WCEx.lpszClassName, g_hInstance);
 
-	if (g_Config.bUnpairRealWiimote)
-		WiiMoteReal::WiimotePairUp(true);
-
 	return (int)Msg.wParam;
 
 }
-
-int PaiUpRefreshWiimote()
+// function gets called by windows callbacks if a wiimote was either installed or removed
+int PairUpRefreshWiimote(bool addwiimote)
 {
+	int connectslot = -1;
+
 	if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY)
 	{
 		Shutdown();
@@ -862,16 +870,32 @@ int PaiUpRefreshWiimote()
 		PostMessage(GetParent(g_WiimoteInitialize.hWnd), WM_USER, WM_USER_PAUSE, 0);
 		while (g_EmulatorState == PLUGIN_EMUSTATE_PLAY) Sleep(50);
 		Shutdown();
+		if (addwiimote) {
+			connectslot = PairUpFindNewSlot();
+		}
 		Initialize();
 		Allocate();
 		PostMessage(GetParent(g_WiimoteInitialize.hWnd), WM_USER, WM_USER_PAUSE, 0);
 		while (g_EmulatorState != PLUGIN_EMUSTATE_PLAY) Sleep(50);
+		if (addwiimote)
+			PostMessage(GetParent(g_WiimoteInitialize.hWnd), WM_USER, WM_USER_KEYDOWN, (3 + connectslot));
 		
 	}
 	return 0;
 }
-
-
+// returns first inactive wiimote slot to place new wiimote and set type to real wiimote
+int PairUpFindNewSlot() {
+	for(int x=0; x<MAX_WIIMOTES; x++)
+	{
+		if (WiiMoteEmu::WiiMapping[x].Source == 0)
+		{
+			WiiMoteEmu::WiiMapping[x].Source = 2;
+			return x;
+		}
+	}
+return -1;
+}
+// loop to poll and install new bluetooth devices; windows callback will take care of the rest on successful installation
 THREAD_RETURN PairUp_ThreadFunc(void* arg)
 {
 	Sleep(100); //small pause till the callback is registered on first start

@@ -28,6 +28,7 @@ typedef void (__cdecl* TWiimote_Update)(int _number);
 typedef void (__cdecl* TWiimote_Input)(u16 _Key, u8 _UpDown);
 typedef void (__cdecl* TWiimote_ControlChannel)(int _number, u16 _channelID, const void* _pData, u32 _Size);
 typedef void (__cdecl* TWiimote_InterruptChannel)(int _number, u16 _channelID, const void* _pData, u32 _Size);
+typedef unsigned int (__cdecl* TWiimote_UnPairWiimotes)();
 typedef unsigned int (__cdecl* TWiimote_GetAttachedControllers)();
 
 class PluginWiimote : public CPlugin {
@@ -40,6 +41,7 @@ public:
 	TWiimote_Input Wiimote_Input;
 	TWiimote_InterruptChannel  Wiimote_InterruptChannel;
 	TWiimote_Update Wiimote_Update;
+	TWiimote_UnPairWiimotes Wiimote_UnPairWiimotes;
 	TWiimote_GetAttachedControllers Wiimote_GetAttachedControllers;
 
 private:
