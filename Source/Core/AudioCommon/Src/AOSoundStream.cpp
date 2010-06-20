@@ -25,30 +25,30 @@
 void AOSound::SoundLoop()
 {
 	uint_32 numBytesToRender = 256;
-    ao_initialize();
-    default_driver = ao_default_driver_id();
-    format.bits = 16;
-    format.channels = 2;
-    format.rate = m_mixer->GetSampleRate();
-    format.byte_format = AO_FMT_LITTLE;
-		
-    device = ao_open_live(default_driver, &format, NULL /* no options */);
-    if (!device)
+	ao_initialize();
+	default_driver = ao_default_driver_id();
+	format.bits = 16;
+	format.channels = 2;
+	format.rate = m_mixer->GetSampleRate();
+	format.byte_format = AO_FMT_LITTLE;
+	
+	device = ao_open_live(default_driver, &format, NULL /* no options */);
+	if (!device)
 	{
 		PanicAlert("AudioCommon: Error opening AO device.\n");
 		ao_shutdown();
 		Stop();
 		return;
-    }   
+	}
 
-    buf_size = format.bits/8 * format.channels * format.rate;
+	buf_size = format.bits/8 * format.channels * format.rate;
 
-    while (!threadData)
+	while (!threadData)
 	{
-        m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
-	    soundCriticalSection.Enter();
+		m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
+		soundCriticalSection.Enter();
 		ao_play(device, (char*)realtimeBuffer, numBytesToRender);
-        soundCriticalSection.Leave();
+		soundCriticalSection.Leave();
 
 		soundSyncEvent.Wait();
 	}
@@ -62,34 +62,37 @@ void *soundThread(void *args)
 
 bool AOSound::Start()
 {
-    memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
+	memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
 
-    soundSyncEvent.Init();
+	soundSyncEvent.Init();
 	
-    thread = new Common::Thread(soundThread, (void *)this);
-    return true;
+	thread = new Common::Thread(soundThread, (void *)this);
+	return true;
 }
 
 void AOSound::Update()
 {
-    soundSyncEvent.Set();
+	soundSyncEvent.Set();
 }
 
 void AOSound::Stop()
 {
-    threadData = 1;
-    soundSyncEvent.Set();
+	threadData = 1;
+	soundSyncEvent.Set();
 
-    soundCriticalSection.Enter();
+	soundCriticalSection.Enter();
 	delete thread;
 	thread = NULL;
 
+	if (device)
+		ao_close(device);
+
 	ao_shutdown();
-	ao_close(device);
+
 	device = NULL;
 	soundCriticalSection.Leave();
 
-    soundSyncEvent.Shutdown();
+	soundSyncEvent.Shutdown();
 }
 
 AOSound::~AOSound()

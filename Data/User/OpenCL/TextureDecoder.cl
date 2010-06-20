@@ -112,36 +112,34 @@ kernel void DecodeRGB5A3(global uchar *dst,
 {
     int x = get_global_id(0) * 4, y = get_global_id(1) * 4;
     int srcOffset = x + (y * width) / 4;
-    for (int iy = 0; iy < 4; iy++)
-    {
-        uchar8 val = vload8(srcOffset++, src);
-        ushort4 vs = upsample(val.even, val.odd);
-        
-        uchar16 resNoAlpha;
-        resNoAlpha.s26AE = (uchar4)(vs >> (ushort4)7); // R
-        resNoAlpha.s159D = (uchar4)(vs >> (ushort4)2); // G
-        resNoAlpha.s048C = (uchar4)(vs << (ushort4)3); // B
-        resNoAlpha &= (uchar16)0xF8;        
-        resNoAlpha |= (uchar16)(resNoAlpha >> (uchar16)5); // 5 -> 8
-        resNoAlpha.s37BF = (uchar4)(0xFF);
-        
-        uchar16 resAlpha;
-        resAlpha.s26AE = val.even;                   // R
-        resAlpha.s159D = val.odd >> (uchar4)4; // G
-        resAlpha.s048C = val.odd;                    // B
-        resAlpha &= (uchar16)0x0F;
-        resAlpha |= (resAlpha << (uchar16)4);
-        resAlpha.s37BF = convert_uchar4(vs >> (ushort4)7) & (uchar4)0xE0;
-        resAlpha.s37BF |= ((resAlpha.s37BF >> (uchar4)3) & (uchar4)0x1C)
-                            | ((resAlpha.s37BF >> (uchar4)6) & (uchar4)0x3);
-        uchar16 choice = (uchar16)((uchar4)(val.even.s0),
-                                   (uchar4)(val.even.s1),
-                                   (uchar4)(val.even.s2),
-                                   (uchar4)(val.even.s3));
-        uchar16 res;
-        res = select(resAlpha, resNoAlpha, choice);
-        vstore16(res, 0, dst + ((y + iy) * width + x) * 4);
-    }
+    uchar8 val;
+    uchar16 resNoAlpha, resAlpha, res, choice;
+    uchar4 gNoAlpha, aAlpha;
+    #define iterateRGB5A3() \
+    val = vload8(srcOffset++, src); \
+    gNoAlpha = (val.even << (uchar4)6) | (val.odd >> (uchar4)2); \
+    resNoAlpha.s26AE = bitselect(val.even >> (uchar4)4,     val.even << (uchar4)1, (uchar4)0xFFF); \
+    resNoAlpha.s159D = bitselect(gNoAlpha >> (uchar4)5,     gNoAlpha,              (uchar4)0xFFF); \
+    resNoAlpha.s048C = bitselect(val.odd >> (uchar4)2,      val.odd << (uchar4)3,  (uchar4)0xFFF); \
+    resNoAlpha.s37BF = (uchar4)(0xFF); \
+    resAlpha.s26AE = val.even; \
+    resAlpha.s159D = val.odd >> (uchar4)4; \
+    resAlpha.s048C = val.odd; \
+    resAlpha &= (uchar16)0x0F; \
+    resAlpha |= (resAlpha << (uchar16)4); \
+    resAlpha.s37BF = val.even << (uchar4)1 & (uchar4)0xE0; \
+    resAlpha.s37BF |= ((resAlpha.s37BF >> (uchar4)3) & (uchar4)0x1C) \
+                   | ((resAlpha.s37BF >> (uchar4)6) & (uchar4)0x3); \
+    choice = (uchar16)((uchar4)(val.even.s0), \
+                       (uchar4)(val.even.s1), \
+                       (uchar4)(val.even.s2), \
+                       (uchar4)(val.even.s3)); \
+    vstore16(select(resAlpha, resNoAlpha, choice), 0, dst + (y * width + x) * 4); \
+    dst += width*4; // This may look ugly but unrolling loops is required for pre-DX11 hardware.
+    iterateRGB5A3();
+    iterateRGB5A3();
+    iterateRGB5A3();
+    iterateRGB5A3();
 }
 
 uint16 unpack(uchar b)
@@ -158,11 +156,11 @@ kernel void decodeCMPRBlock(global uchar *dst,
     int x = get_global_id(0) * 4, y = get_global_id(1) * 4;
     uchar8 val = vload8(0, src);
 
-	uchar2 colora565 = (uchar2)(val.s1, val.s3);
-	uchar2 colorb565 = (uchar2)(val.s0, val.s2);
-    uchar8 color32 = (uchar8)((colora565 << (uchar2)3) | (colora565 >> (uchar2)2 & (uchar2)7),
-	                          (colora565 >> (uchar2)3) | (colorb565 << (uchar2)5) | (colorb565 >> (uchar2)1 & (uchar2)3),
-                              (colorb565 & (uchar2)0xF8) | (colorb565 >> (uchar2)5 & (uchar2)7),
+    uchar2 colora565 = (uchar2)(val.s1, val.s3);
+    uchar2 colorb565 = (uchar2)(val.s0, val.s2);
+    uchar8 color32 = (uchar8)(bitselect(colora565 << (uchar2)3, colora565 >> (uchar2)2, (uchar2)0xFFFFF000),
+                              colora565 >> (uchar2)3 | bitselect(colorb565 << (uchar2)5, colorb565 >> (uchar2)1, (uchar2)0xFFFFFF00),
+                              bitselect(colorb565, colorb565 >> (uchar2)5, (uchar2)0xFFFFF000),
                               (uchar2)0xFF);
     uint4 colors;
     uint4 colorNoAlpha;
@@ -174,29 +172,29 @@ kernel void decodeCMPRBlock(global uchar *dst,
     colorNoAlpha = (colorNoAlpha << (uint4)8) | convert_uint4(color32.even);
 
     uint4 colorAlpha;
-    uchar4 midpoint = convert_uchar4((convert_ushort4(color32.odd) + convert_ushort4(color32.even) + (ushort4)1) / (ushort4)2);
+    uchar4 midpoint = rhadd(color32.odd, color32.even);
     midpoint.s3 = 0xFF;
     colorAlpha = convert_uint4(midpoint);    
     colorAlpha = (colorAlpha << (uint4)8) | convert_uint4(color32.odd);
     colorAlpha = (colorAlpha << (uint4)8) | convert_uint4(color32.even);
 
-	uint4 choice = isgreater(upsample(val.s0,val.s1),upsample(val.s2, val.s3));
-	colors = select(colorNoAlpha, colorAlpha, choice);
+    uint4 choice = isgreater(upsample(val.s0,val.s1),upsample(val.s2, val.s3));
+    colors = bitselect(colorNoAlpha, colorAlpha, choice);
 
     uint16 colorsFull = (uint16)(colors, colors, colors, colors);
 
     uint16 shifts = (((unpack(val.s7) << (uint16)8
-	              |   unpack(val.s6)) << (uint16)8
+                  |   unpack(val.s6)) << (uint16)8
                   |   unpack(val.s5)) << (uint16)8
                   |   unpack(val.s4)) << (uint16)3;
 
-    vstore16(convert_uchar16(colorsFull >> (shifts & (uint16)0xFF)), 0, dst+=width * 4);
+    vstore16(convert_uchar16(colorsFull >> (shifts & (uint16)0xFF)), 0, dst);
     shifts = shifts >> (uint16)8;
-    vstore16(convert_uchar16(colorsFull >> (shifts & (uint16)0xFF)), 0, dst+=width * 4);
+    vstore16(convert_uchar16(colorsFull >> (shifts & (uint16)0xFF)), 0, dst+=width*4);
     shifts = shifts >> (uint16)8;
-    vstore16(convert_uchar16(colorsFull >> (shifts & (uint16)0xFF)), 0, dst+=width * 4);
+    vstore16(convert_uchar16(colorsFull >> (shifts & (uint16)0xFF)), 0, dst+=width*4);
     shifts = shifts >> (uint16)8;
-    vstore16(convert_uchar16(colorsFull >> (shifts & (uint16)0xFF)), 0, dst+=width * 4);
+    vstore16(convert_uchar16(colorsFull >> (shifts & (uint16)0xFF)), 0, dst+=width*4);
 }
 
 kernel void DecodeCMPR(global uchar *dst,
