@@ -292,25 +292,24 @@ void dcbf(UGeckoInstruction _inst)
 
 void dcbi(UGeckoInstruction _inst)
 {
-	//Used during initialization
-	//_assert_msg_(POWERPC,0,"dcbi - Not implemented");
+	// Removes a block from data cache. Since we don't emulate the data cache, we don't need to do anything.
+	// Seen used during initialization.
 }
 
 void dcbst(UGeckoInstruction _inst)
 {
-	//_assert_msg_(POWERPC,0,"dcbst - Not implemented");
+	// Cache line flush. Since we don't emulate the data cache, we don't need to do anything.
 }
 
 void dcbt(UGeckoInstruction _inst)
 {
-	//This should tell GFX plugin to throw out any cached data here
-	//Used by Ikaruga
-	//_assert_msg_(POWERPC,0,"dcbt - Not implemented");
+	// Prefetch. Since we don't emulate the data cache, we don't need to do anything.
 }
 
 void dcbtst(UGeckoInstruction _inst)
 {
-	_assert_msg_(POWERPC,0,"dcbtst - Not implemented");
+	// This is just some sort of store "prefetching".
+	// Since we don't emulate the data cache, we don't need to do anything.
 }
 
 void dcbz(UGeckoInstruction _inst)
@@ -367,7 +366,6 @@ void eieio(UGeckoInstruction _inst)
 	// have completed (in order) before executing the next op.
 	// Prevents real ppc from "smartly" reordering loads/stores
 	// But (at least in interpreter) we do everything realtime anyways.
-	//_assert_msg_(POWERPC,0,"eieio - Not implemented"); 
 }
 
 void icbi(UGeckoInstruction _inst)
