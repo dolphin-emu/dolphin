@@ -33,7 +33,6 @@ BEGIN
     LTEXT           "Licensed under the terms of the GNU General Public License.",IDC_STATIC,7,17,85,9
     LTEXT           "Hardware requirements:",IDC_STATIC,7,37,174,26
     LTEXT           "Any GPU which supports at least DX10.",IDC_STATIC,15,47,174,26
-    LTEXT           "DX9 hardware might work as well though.",IDC_STATIC,15,57,170,8
 END
 
 IDD_SETTINGS DIALOGEX 0, 0, 244, 183

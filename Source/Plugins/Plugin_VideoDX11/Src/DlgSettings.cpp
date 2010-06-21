@@ -227,7 +227,7 @@ struct TabAdvanced : public W32Util::Tab
 		g_Config.bShowShaderErrors = true;
 		g_Config.bUseNativeMips = true;
 
-		g_Config.iMaxAnisotropy = Button_GetCheck(GetDlgItem(hDlg, IDC_FORCEANISOTROPY)) ? 8 : 1;
+		g_Config.iMaxAnisotropy = Button_GetCheck(GetDlgItem(hDlg, IDC_FORCEANISOTROPY)) ? 16 : 1;
 		g_Config.bForceFiltering = false;
 		g_Config.bHiresTextures = false;
 		g_Config.bCopyEFBScaled = Button_GetCheck(GetDlgItem(hDlg, IDC_EFBSCALEDCOPY)) ? true : false;

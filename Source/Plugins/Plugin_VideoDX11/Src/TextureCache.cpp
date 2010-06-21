@@ -347,7 +347,6 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 	return &entry;
 }
 
-// TODO: this doesn't work quite right, yet
 void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, unsigned int bScaleByHalf, const EFBRectangle &source_rect)
 {
 	int efb_w = source_rect.GetWidth();

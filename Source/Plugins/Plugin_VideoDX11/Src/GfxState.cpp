@@ -24,13 +24,14 @@ namespace D3D
 EmuGfxState* gfxstate;
 StateManager* stateman;
 
-EmuGfxState::EmuGfxState() : vertexshader(NULL), vsbytecode(NULL), pixelshader(NULL), psbytecode(NULL)
+EmuGfxState::EmuGfxState() : vertexshader(NULL), vsbytecode(NULL), pixelshader(NULL), psbytecode(NULL), apply_called(false)
 {
 	for (unsigned int k = 0;k < 8;k++)
 	{
 		float border[4] = {0.f, 0.f, 0.f, 0.f};
 		shader_resources[k] = NULL;
 		samplerdesc[k] = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, 0.f, 16, D3D11_COMPARISON_ALWAYS, border, -D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);
+		if(g_ActiveConfig.iMaxAnisotropy > 1) samplerdesc[k].Filter = D3D11_FILTER_ANISOTROPIC;
 	}
 
 	blenddesc.AlphaToCoverageEnable = FALSE;
@@ -180,6 +181,7 @@ void EmuGfxState::ApplyState()
 	{
 		if (shader_resources[stage])
 		{
+			if(g_ActiveConfig.iMaxAnisotropy > 1) samplerdesc[stage].Filter = D3D11_FILTER_ANISOTROPIC;
 			hr = D3D::device->CreateSamplerState(&samplerdesc[stage], &samplerstate[stage]);
 			if (FAILED(hr)) PanicAlert("Fail %s %d, stage=%d\n", __FILE__, __LINE__, stage);
 			else SetDebugObjectName((ID3D11DeviceChild*)samplerstate[stage], "a sampler state of EmuGfxState");
@@ -217,11 +219,15 @@ void EmuGfxState::ApplyState()
 	context->PSSetShaderResources(0, 8, shader_resources);
 
 	stateman->Apply();
+	apply_called = true;
 }
 
 void EmuGfxState::AlphaPass()
 {
-	stateman->PopBlendState();
+	if (!apply_called) ERROR_LOG(VIDEO, "EmuGfxState::AlphaPass called without having called ApplyState before!")
+	else stateman->PopBlendState();
+
+	// pixel shader for alpha pass is different, so update it
 	context->PSSetShader(pixelshader, NULL, 0);
 
 	ID3D11BlendState* blstate;
@@ -242,9 +248,13 @@ void EmuGfxState::Reset()
 	for (unsigned int k = 0;k < 8;k++)
 		SAFE_RELEASE(shader_resources[k]);
 
-	stateman->PopBlendState();
-	stateman->PopDepthState();
-	stateman->PopRasterizerState();
+	if (apply_called)
+	{
+		stateman->PopBlendState();
+		stateman->PopDepthState();
+		stateman->PopRasterizerState();
+		apply_called = false;
+	}
 }
 
 void EmuGfxState::SetAlphaBlendEnable(bool enable)
@@ -311,9 +321,9 @@ StateManager::StateManager() : cur_blendstate(NULL), cur_depthstate(NULL), cur_r
 void StateManager::PushBlendState(const ID3D11BlendState* state) { blendstates.push(AutoBlendState(state));}
 void StateManager::PushDepthState(const ID3D11DepthStencilState* state) { depthstates.push(AutoDepthStencilState(state));}
 void StateManager::PushRasterizerState(const ID3D11RasterizerState* state) { raststates.push(AutoRasterizerState(state));}
-void StateManager::PopBlendState() { if(!blendstates.empty()) blendstates.pop(); }
-void StateManager::PopDepthState() { if(!depthstates.empty()) depthstates.pop(); }
-void StateManager::PopRasterizerState() { if(!raststates.empty()) raststates.pop(); }
+void StateManager::PopBlendState() { blendstates.pop(); }
+void StateManager::PopDepthState() { depthstates.pop(); }
+void StateManager::PopRasterizerState() { raststates.pop(); }
 
 void StateManager::Apply()
 {

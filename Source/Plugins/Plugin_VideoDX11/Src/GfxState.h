@@ -78,6 +78,8 @@ private:
 
 	ID3D11ShaderResourceView* shader_resources[8];
 	D3D11_BLEND_DESC blenddesc;
+
+	bool apply_called;
 };
 
 template<typename T> class AutoState
