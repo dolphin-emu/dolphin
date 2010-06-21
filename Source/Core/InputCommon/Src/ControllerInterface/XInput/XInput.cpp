@@ -72,14 +72,14 @@ Device::Device( const XINPUT_CAPABILITIES* const caps, const unsigned int index 
 	// get supported buttons
 	for ( int i = 0; i < sizeof(named_buttons)/sizeof(*named_buttons); ++i )
 		if ( named_buttons[i].bitmask & caps->Gamepad.wButtons )
-			inputs.push_back( new Button( /*xinput_named_buttons[i].bitmask, */i ) );
+			AddInput( new Button( /*xinput_named_buttons[i].bitmask, */i ) );
 
 	// get supported triggers
 	for ( int i = 0; i < sizeof(named_triggers)/sizeof(*named_triggers); ++i )
 	{
 		//BYTE val = (&caps->Gamepad.bLeftTrigger)[i];	// should be max value / msdn lies
 		if ( (&caps->Gamepad.bLeftTrigger)[i] )
-			inputs.push_back( new Trigger( i, 255 ) );
+			AddInput( new Trigger( i, 255 ) );
 	}
 
 	// get supported axes
@@ -89,8 +89,8 @@ Device::Device( const XINPUT_CAPABILITIES* const caps, const unsigned int index 
 		if ( (&caps->Gamepad.sThumbLX)[i] )
 		{
 			// each axis gets a negative and a positive input instance associated with it
-			inputs.push_back( new Axis( i, -32768 ) );
-			inputs.push_back( new Axis( i, 32767 ) );
+			AddInput( new Axis( i, -32768 ) );
+			AddInput( new Axis( i, 32767 ) );
 		}
 	}
 
@@ -99,7 +99,7 @@ Device::Device( const XINPUT_CAPABILITIES* const caps, const unsigned int index 
 	{
 		//WORD val = (&caps->Vibration.wLeftMotorSpeed)[i];	// should be max value / nope, more lies
 		if ( (&caps->Vibration.wLeftMotorSpeed)[i] )
-			outputs.push_back( new Motor(i, 65535 ) );
+			AddOutput( new Motor(i, 65535 ) );
 	}
 
 	ClearInputState();
@@ -185,7 +185,7 @@ std::string Device::Motor::GetName() const
 
 // get/set control state
 
-ControlState Device::GetInputState( const ControllerInterface::Device::Input* const input )
+ControlState Device::GetInputState( const ControllerInterface::Device::Input* const input ) const
 {
 	return ((Input*)input)->GetState( &m_state_in.Gamepad );
 }
@@ -197,17 +197,17 @@ void Device::SetOutputState( const ControllerInterface::Device::Output* const ou
 
 // GET / SET STATES
 
-ControlState Device::Button::GetState( const XINPUT_GAMEPAD* const gamepad )
+ControlState Device::Button::GetState( const XINPUT_GAMEPAD* const gamepad ) const
 {
 	return (gamepad->wButtons & named_buttons[m_index].bitmask) > 0;
 }
 
-ControlState Device::Trigger::GetState( const XINPUT_GAMEPAD* const gamepad )
+ControlState Device::Trigger::GetState( const XINPUT_GAMEPAD* const gamepad ) const
 {
 	return ControlState((&gamepad->bLeftTrigger)[m_index]) / m_range;
 }
 
-ControlState Device::Axis::GetState( const XINPUT_GAMEPAD* const gamepad )
+ControlState Device::Axis::GetState( const XINPUT_GAMEPAD* const gamepad ) const
 {
 	return std::max( 0.0f, ControlState((&gamepad->sThumbLX)[m_index]) / m_range );
 }

@@ -73,7 +73,7 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 	// get buttons
 	for ( int i = 0; i < SDL_JoystickNumButtons( m_joystick ); ++i )
 	{
-		inputs.push_back( new Button( i ) );
+		AddInput( new Button( i ) );
 	}
 	
 	// get hats
@@ -81,15 +81,15 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 	{
 		// each hat gets 4 input instances associated with it, (up down left right)
 		for ( unsigned int d = 0; d < 4; ++d )
-			inputs.push_back( new Hat( i, d ) );
+			AddInput( new Hat( i, d ) );
 	}
 
 	// get axes
 	for ( int i = 0; i < SDL_JoystickNumAxes( m_joystick ); ++i )
 	{
 		// each axis gets a negative and a positive input instance associated with it
-		inputs.push_back( new Axis( i, -32768 ) );
-		inputs.push_back( new Axis( i, 32767 ) );
+		AddInput( new Axis( i, -32768 ) );
+		AddInput( new Axis( i, 32767 ) );
 	}
 
 #ifdef USE_SDL_HAPTIC
@@ -106,14 +106,14 @@ Joystick::Joystick(SDL_Joystick* const joystick, const int sdl_index, const unsi
 		if ( supported_effects & SDL_HAPTIC_CONSTANT )
 		{
 			outputs.push_back( new ConstantEffect( m_state_out.size() ) );
-			m_state_out.push_back( EffectIDState() );
+			AddOutput( EffectIDState() );
 		}
 
 		// ramp effect
 		if ( supported_effects & SDL_HAPTIC_RAMP )
 		{
 			outputs.push_back( new RampEffect( m_state_out.size() ) );
-			m_state_out.push_back( EffectIDState() );
+			AddOutput( EffectIDState() );
 		}
 	}
 #endif
@@ -185,7 +185,7 @@ void Joystick::RampEffect::SetState( const ControlState state, Joystick::EffectI
 }
 #endif
 
-ControlState Joystick::GetInputState(const ControllerInterface::Device::Input* input)
+ControlState Joystick::GetInputState(const ControllerInterface::Device::Input* input) const
 {
 	return ((Input*)input)->GetState( m_joystick );
 }

@@ -42,7 +42,7 @@ protected:
 	{
 		friend class Joystick;
 	protected:
-		virtual ControlState GetState( const DIJOYSTATE* const joystate ) = 0;
+		virtual ControlState GetState( const DIJOYSTATE* const joystate ) const = 0;
 	};
 
 	// can probably eliminate this base class
@@ -60,7 +60,7 @@ protected:
 		std::string GetName() const;
 	protected:
 		Button( const unsigned int index ) : m_index(index) {}
-		ControlState GetState( const DIJOYSTATE* const joystate );
+		ControlState GetState( const DIJOYSTATE* const joystate ) const;
 	private:
 		const unsigned int	m_index;
 	};
@@ -72,7 +72,7 @@ protected:
 		std::string GetName() const;
 	protected:
 		Axis( const unsigned int index, const LONG base, const LONG range ) : m_index(index), m_base(base), m_range(range) {}
-		ControlState GetState( const DIJOYSTATE* const joystate );
+		ControlState GetState( const DIJOYSTATE* const joystate ) const;
 	private:
 		const unsigned int	m_index;
 		const LONG			m_base;
@@ -86,7 +86,7 @@ protected:
 		std::string GetName() const;
 	protected:
 		Hat( const unsigned int index, const unsigned int direction ) : m_index(index), m_direction(direction) {}
-		ControlState GetState( const DIJOYSTATE* const joystate );
+		ControlState GetState( const DIJOYSTATE* const joystate ) const;
 	private:
 		const unsigned int	m_index;
 		const unsigned int	m_direction;
@@ -107,7 +107,7 @@ protected:
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	ControlState GetInputState( const ControllerInterface::Device::Input* const input );
+	ControlState GetInputState( const ControllerInterface::Device::Input* const input ) const;
 	void SetOutputState( const ControllerInterface::Device::Output* const input, const ControlState state );
 
 	void ClearInputState();

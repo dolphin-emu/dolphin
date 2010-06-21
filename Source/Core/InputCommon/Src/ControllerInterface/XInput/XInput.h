@@ -25,7 +25,7 @@ protected:
 	{
 		friend class Device;
 	protected:
-		virtual ControlState GetState( const XINPUT_GAMEPAD* const gamepad ) = 0;
+		virtual ControlState GetState( const XINPUT_GAMEPAD* const gamepad ) const = 0;
 	};
 
 	class Output : public ControllerInterface::Device::Output
@@ -42,7 +42,7 @@ protected:
 		std::string GetName() const;
 	protected:
 		Button( const unsigned int index ) : m_index(index) {}
-		ControlState GetState( const XINPUT_GAMEPAD* const gamepad );
+		ControlState GetState( const XINPUT_GAMEPAD* const gamepad ) const;
 	private:
 		const unsigned int	m_index;
 	};
@@ -54,7 +54,7 @@ protected:
 		std::string GetName() const;
 	protected:
 		Axis( const unsigned int index, const SHORT range ) : m_index(index), m_range(range) {}
-		ControlState GetState( const XINPUT_GAMEPAD* const gamepad );
+		ControlState GetState( const XINPUT_GAMEPAD* const gamepad ) const;
 	private:
 		const unsigned int	m_index;
 		const SHORT			m_range;
@@ -67,7 +67,7 @@ protected:
 		std::string GetName() const;
 	protected:
 		Trigger( const unsigned int index, const BYTE range ) : m_index(index), m_range(range) {}
-		ControlState GetState( const XINPUT_GAMEPAD* const gamepad );
+		ControlState GetState( const XINPUT_GAMEPAD* const gamepad ) const;
 	private:
 		const unsigned int	m_index;
 		const BYTE			m_range;
@@ -89,7 +89,7 @@ protected:
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	ControlState GetInputState( const ControllerInterface::Device::Input* const input );
+	ControlState GetInputState( const ControllerInterface::Device::Input* const input ) const;
 	void SetOutputState( const ControllerInterface::Device::Output* const input, const ControlState state );
 
 	void ClearInputState();

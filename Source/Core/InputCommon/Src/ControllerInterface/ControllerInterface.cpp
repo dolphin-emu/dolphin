@@ -1,7 +1,5 @@
 #include "ControllerInterface.h"
 
-namespace ciface {
-}
 #ifdef CIFACE_USE_XINPUT
 	#include "XInput/XInput.h"
 #endif
@@ -19,8 +17,7 @@ namespace ciface {
 #endif
 #include "Thread.h"
 
-//#define MAX_DOUBLE_TAP_TIME			400
-//#define MAX_HOLD_DOWN_TIME			400
+
 #define INPUT_DETECT_THRESHOLD			0.85
 
 //
@@ -34,19 +31,19 @@ void ControllerInterface::Init()
 		return;
 
 #ifdef CIFACE_USE_DIRECTINPUT
-	ciface::DirectInput::Init( m_devices/*, (HWND)m_hwnd*/ );
+	ciface::DirectInput::Init(m_devices);
 #endif
 #ifdef CIFACE_USE_XINPUT
-	ciface::XInput::Init( m_devices );
+	ciface::XInput::Init(m_devices);
 #endif
 #ifdef CIFACE_USE_XLIB
-	ciface::Xlib::Init( m_devices, m_hwnd );
+	ciface::Xlib::Init(m_devices, m_hwnd);
 #endif
 #ifdef CIFACE_USE_OSX
-	ciface::OSX::Init( m_devices );
+	ciface::OSX::Init(m_devices);
 #endif
 #ifdef CIFACE_USE_SDL
-	ciface::SDL::Init( m_devices );
+	ciface::SDL::Init(m_devices);
 #endif
 
 	m_is_init = true;
@@ -62,20 +59,22 @@ void ControllerInterface::DeInit(const bool hacks_no_sdl_quit)
 	if ( false == m_is_init )
 		return;
 
-	std::vector<Device*>::const_iterator d = m_devices.begin(),
-		Devices_end = m_devices.end();
-	for ( ;d != Devices_end; ++d )
+	std::vector<Device*>::const_iterator
+		d = m_devices.begin(),
+		de = m_devices.end();
+	for ( ;d != de; ++d )
 	{
-		std::vector<Device::Output*>::const_iterator o = (*d)->Outputs().begin(),
-		e = (*d)->Outputs().end();
+		std::vector<Device::Output*>::const_iterator
+			o = (*d)->Outputs().begin(),
+			oe = (*d)->Outputs().end();
 		// set outputs to ZERO before destroying device
-		for ( ;o!=e; ++o)
-			(*d)->SetOutputState( *o, 0 );
+		for ( ;o!=oe; ++o)
+			(*d)->SetOutputState(*o, 0);
 		// update output
 		(*d)->UpdateOutput();
 
 		// TODO: remove this
-		// major hacks to prevent gcpad/wiimote new from crashing eachother
+		// major hacks/memleaks to prevent gcpad/wiimote new from crashing eachother
 		if (hacks_no_sdl_quit)
 			if ((*d)->GetSource() == "SDL")
 				continue;
@@ -126,18 +125,19 @@ bool ControllerInterface::UpdateInput()
 {
 	size_t ok_count = 0;
 
-	std::vector<Device*>::const_iterator d = m_devices.begin(),
-	e = m_devices.end();
+	std::vector<Device*>::const_iterator
+		d = m_devices.begin(),
+		e = m_devices.end();
 	for ( ;d != e; ++d )
 	{
-		if ( (*d)->UpdateInput() )
+		if ((*d)->UpdateInput())
 			++ok_count;
 		//else
 		// disabled. it might be causing problems
 			//(*d)->ClearInputState();
 	}
 
-	return ( m_devices.size() == ok_count );
+	return (m_devices.size() == ok_count);
 }
 
 //
@@ -149,23 +149,13 @@ bool ControllerInterface::UpdateOutput()
 {
 	size_t ok_count = 0;
 
-	std::vector<Device*>::const_iterator d = m_devices.begin(),
-	e = m_devices.end();
-	for ( ;d != e; ++d )
+	std::vector<Device*>::const_iterator
+		d = m_devices.begin(),
+		e = m_devices.end();
+	for (;d != e; ++d)
 		(*d)->UpdateOutput();
 
-	return ( m_devices.size() == ok_count );
-}
-
-//
-//		Devices
-//
-// i dont really like this but,
-// return : constant copy of the devices vector
-//
-const std::vector<ControllerInterface::Device*>& ControllerInterface::Devices()
-{
-	return m_devices;
+	return (m_devices.size() == ok_count);
 }
 
 //
@@ -177,19 +167,31 @@ ControllerInterface::Device::~Device()
 {
 	{
 	// delete inputs
-	std::vector<Device::Input*>::iterator i = inputs.begin(),
-	e = inputs.end();
+	std::vector<Device::Input*>::iterator
+		i = m_inputs.begin(),
+		e = m_inputs.end();
 	for ( ;i!=e; ++i)
 		delete *i;
 	}
 
 	{
 	// delete outputs
-	std::vector<Device::Output*>::iterator o = outputs.begin(),
-	e = outputs.end();
+	std::vector<Device::Output*>::iterator
+		o = m_outputs.begin(),
+		e = m_outputs.end();
 	for ( ;o!=e; ++o)
 		delete *o;
 	}
+}
+
+void ControllerInterface::Device::AddInput(Input* const i)
+{
+	m_inputs.push_back(i);
+}
+
+void ControllerInterface::Device::AddOutput(Output* const o)
+{
+	m_outputs.push_back(o);
 }
 
 //
@@ -207,36 +209,6 @@ void ControllerInterface::Device::ClearInputState()
 }
 
 //
-//		Device :: Inputs
-//
-// get a const version of the device's input vector
-//
-const std::vector<ControllerInterface::Device::Input*>& ControllerInterface::Device::Inputs()
-{
-	return inputs;
-}
-
-//
-//		Device :: Outputs
-//
-// get a const version of the device's outputs vector
-//
-const std::vector<ControllerInterface::Device::Output*>& ControllerInterface::Device::Outputs()
-{
-	return outputs;
-}
-
-//
-//		HasInit
-//
-// check if interface is inited
-//
-bool ControllerInterface::IsInit()
-{
-	return m_is_init;
-}
-
-//
 //		InputReference :: State
 //
 // get the state of an input reference
@@ -244,55 +216,46 @@ bool ControllerInterface::IsInit()
 //
 ControlState ControllerInterface::InputReference::State( const ControlState ignore )
 {
-	if ( NULL == device )
-		return 0;
+	//if (NULL == device)
+		//return 0;
 
 	ControlState state = 0;
 
-	switch ( mode )
-	{
-	// OR
-	case 0 :
-		{
-		state = 0;
-		std::vector<Device::Control*>::const_iterator ci = controls.begin(),
-			ce = controls.end();
-		for ( ; ci != ce; ++ci )
-			state = std::max( state, device->GetInputState( (Device::Input*)*ci ) );	// meh casting
-		break;
-		}
-	// AND
-	case 1 :
-		{
-			// TODO: i think i can remove the if here
+	std::vector<DeviceControl>::const_iterator
+		ci = m_controls.begin(),
+		ce = m_controls.end();
 
+	// bit of hax for NOT to work at start of expression
+	if (ci != ce)
+		if (ci->mode == 2)
 			state = 1;
-			bool is_bound = false;
-			std::vector<Device::Control*>::const_iterator ci = controls.begin(),
-				ce = controls.end();
-			for ( ; ci != ce; ++ci )
-			{
-				is_bound = true;
-				state = std::min( state, device->GetInputState( (Device::Input*)*ci ) );	// meh casting
-			}
-			if ( !is_bound )
-				state = 0;
-		break;
-		}
-	// NOT
-	case 2 :
+
+	for (; ci!=ce; ++ci)
+	{
+		const ControlState istate = ci->device->GetInputState((Device::Input*)ci->control);
+
+		switch (ci->mode)
 		{
-		state = 0;
-		std::vector<Device::Control*>::const_iterator ci = controls.begin(),
-			ce = controls.end();
-		for ( ; ci != ce; ++ci )
-			state = std::max( state, device->GetInputState( (Device::Input*)*ci ) );	// meh casting
-		state = std::max( 0.0, 1.0 - state );
-		break;
+		// OR
+		case 0 :
+			state = std::max(state, istate);
+			break;
+		// AND
+		case 1 :
+			state = std::min(state, istate);
+			break;
+		// NOT
+		case 2 :
+			state = std::max(std::min(state, 1.0f - istate), 0.0f);
+			break;
+		// ADD
+		case 3 :
+			state += istate;
+			break;
 		}
 	}
 
-	return std::min( 1.0f, state * range );
+	return std::min(1.0f, state * range);
 }
 
 //
@@ -302,12 +265,17 @@ ControlState ControllerInterface::InputReference::State( const ControlState igno
 // overrides ControlReference::State .. combined them so i could make the gui simple / inputs == same as outputs one list
 // i was lazy and it works so watever
 //
-ControlState ControllerInterface::OutputReference::State( const ControlState state )
+ControlState ControllerInterface::OutputReference::State(const ControlState state)
 {
-	std::vector<Device::Control*>::iterator ci = controls.begin(),
-		ce = controls.end();
-	for ( ; ci != ce; ++ci )
-		device->SetOutputState( (Device::Output*)*ci, state * range );		// casting again
+	const ControlState tmp_state = std::min(1.0f, state * range);
+
+	// output ref just ignores the modes ( |&!... )
+
+	std::vector<DeviceControl>::iterator
+		ci = m_controls.begin(),
+		ce = m_controls.end();
+	for (; ci != ce; ++ci)
+		ci->device->SetOutputState((Device::Output*)ci->control, tmp_state);
 	
 	return state;	// just return the output, watever
 }
@@ -319,7 +287,7 @@ ControlState ControllerInterface::OutputReference::State( const ControlState sta
 //
 std::string ControllerInterface::DeviceQualifier::ToString() const
 {
-	if ( source.empty() && (cid < 0) && name.empty() )
+	if (source.empty() && (cid < 0) && name.empty())
 		return "";
 	std::ostringstream ss;
 	ss << source << '/';
@@ -338,16 +306,13 @@ void ControllerInterface::DeviceQualifier::FromString(const std::string& str)
 {
 	std::istringstream ss(str);
 
-	// good
-	std::getline( ss, source = "", '/' );
+	std::getline(ss, source = "", '/');
 
-
-	// dum
-	std::getline( ss, name, '/' );
+	// silly
+	std::getline(ss, name, '/');
 	std::istringstream(name) >> (cid = -1);
 
-	// good
-	std::getline( ss, name = "");
+	std::getline(ss, name = "");
 }
 
 //
@@ -362,177 +327,165 @@ void ControllerInterface::DeviceQualifier::FromDevice(const ControllerInterface:
 	source= dev->GetSource();
 }
 
-//
-//		DeviceQualifier = = Device*
-//
-// check if a device matches a device qualifier
-//
-bool ControllerInterface::DeviceQualifier::operator==(const ControllerInterface::Device* const dev) const
+bool operator==(const ControllerInterface::Device* const dev, const ControllerInterface::DeviceQualifier& devq)
 {
-	if ( dev->GetName() == name )
-		if ( dev->GetId() == cid )
-			if ( dev->GetSource() == source )
+	if (dev->GetId() == devq.cid)
+		if (dev->GetName() == devq.name)
+			if (dev->GetSource() == devq.source)
 				return true;
 	return false;
 }
 
-//
-//		ControlQualifier = FromControl
-//
-// set a control qualifier from a device control
-//
-void ControllerInterface::ControlQualifier::FromControl(const ControllerInterface::Device::Control* const c)
+bool operator==(const ControllerInterface::Device::Control* const c, const std::string& name)
 {
-	// hardly needs a function for this
-	name = c->GetName();
+	return c->GetName() == name;
 }
 
-//
-//		ControlQualifier = = Device :: Control*
-//
-// check if a control qualifier matches a device control
-// also |control1|control2| form, || matches all
-//
-bool ControllerInterface::ControlQualifier::operator==(const ControllerInterface::Device::Control* const control) const
+bool ControllerInterface::DeviceQualifier::operator==(const ControllerInterface::DeviceQualifier& devq) const
 {
-	if ( name.size() )
-	{
-		if ( '|' == name[0] && '|' == (*name.rbegin()) )		// check if using |button1|button2| format
-		{
-			return ( name.find( '|' + control->GetName() + '|' ) != name.npos || "||" == name );
-		}
-	}
-	return (control->GetName() == name);
+	if (cid == devq.cid)
+		if (name == devq.name)
+			if (source == devq.source)
+				return true;
+	return false;	
 }
 
 //
 //		UpdateReference
 //
-// updates a controlreference's binded devices then update binded controls
-// need to call this after changing a device qualifier on a control reference
-// if the device qualifier hasnt changed, the below functions: "UpdateControls" can be used
+// updates a controlreference's binded devices/controls
+// need to call this to re-parse a control reference's expression after changing it
 //
-void ControllerInterface::UpdateReference( ControllerInterface::ControlReference* ref )
+void ControllerInterface::UpdateReference(ControllerInterface::ControlReference* ref
+	, const ControllerInterface::DeviceQualifier& default_device) const
 {
-	ref->device = NULL;
-	std::vector<Device*>::const_iterator d = m_devices.begin(),
-		e = m_devices.end();
-	for ( ; d!=e; ++d )
-		if ( ref->device_qualifier == *d )
+	ref->m_controls.clear();
+
+	// adding | to parse the last item, silly
+	std::istringstream ss(ref->expression + '|');
+
+	const std::string mode_chars("|&!#");
+
+	ControlReference::DeviceControl	devc;
+
+	std::string	dev_str;
+	std::string ctrl_str;
+
+	char c = 0;
+	while (ss.read(&c, 1))
+	{
+		const size_t f = mode_chars.find(c);
+
+		if (mode_chars.npos != f)
 		{
-			ref->device = *d;
-			break;
+			// add ctrl
+			if (ctrl_str.size())
+			{
+				DeviceQualifier	devq;
+
+				// using default device or alterate device inside `backticks`
+				if (dev_str.empty())
+					devq = default_device;
+				else
+					devq.FromString(dev_str);
+
+				// find device
+				const std::vector<Device*>::const_iterator di =
+					std::find(m_devices.begin(), m_devices.end(), devq);
+				if (m_devices.end() != di)
+					devc.device = *di;
+
+				if (devc.device)
+				{
+					// control
+
+					// inputs or outputs, i don't like this
+					if (ref->is_input)
+					{
+						const std::vector<Device::Input*>::const_iterator i =
+							std::find(devc.device->Inputs().begin(), devc.device->Inputs().end(), ctrl_str);
+						if (devc.device->Inputs().end() != i)
+						{
+							devc.control = *i;
+							ref->m_controls.push_back(devc);
+						}
+					}
+					else
+					{
+						const std::vector<Device::Output*>::const_iterator i =
+							std::find(devc.device->Outputs().begin(), devc.device->Outputs().end(), ctrl_str);
+						if (devc.device->Outputs().end() != i)
+						{
+							devc.control = *i;
+							ref->m_controls.push_back(devc);
+						}
+					}
+
+				}
+			}
+			// reset stuff for next ctrl
+			devc.mode = (int)f;
+			devc.device = NULL;
+			ctrl_str.clear();
 		}
-	ref->UpdateControls();
-}
-
-//
-//		InputReference :: UpdateControls
-//
-// after changing a control qualifier, need to call this to rebind the new matching controls
-//
-void ControllerInterface::InputReference::UpdateControls()
-{
-	controls.clear();
-	if ( device )
-	{
-		std::vector<Device::Input*>::const_iterator i = device->Inputs().begin(),
-			e = device->Inputs().end();
-		for ( ;i != e; ++i )
-			if ( control_qualifier == *i )
-				controls.push_back( *i );
+		else if ('`' == c)
+		{
+			// different device
+			if (false == std::getline(ss, dev_str, '`'))
+				break;
+		}
+		else
+			ctrl_str += c;
 	}
-}
-
-//
-//		OutputReference :: UpdateControls
-//
-// same as the inputRef version
-// after changing a control qualifier, need to call this to rebind the new matching controls
-//
-void ControllerInterface::OutputReference::UpdateControls()
-{
-	controls.clear();
-	if ( device )
-	{
-		std::vector<Device::Output*>::const_iterator i = device->Outputs().begin(),
-			e = device->Outputs().end();
-		for ( ;i != e; ++i )
-			if ( control_qualifier == *i )
-				controls.push_back( *i );
-	}
-
 }
 
 //
 //		InputReference :: Detect
 //
 // wait for input on all binded devices
-// supports waiting for n number of inputs
 // supports not detecting inputs that were held down at the time of Detect start,
 // which is useful for those crazy flightsticks that have certain buttons that are always held down
 // or some crazy axes or something
-// upon input, set control qualifier, update controls and return true
-// else return false
+// upon input, return pointer to detected Control
+// else return NULL
 //
-bool ControllerInterface::InputReference::Detect( const unsigned int ms, const unsigned int count )
+ControllerInterface::Device::Control* ControllerInterface::InputReference::Detect(const unsigned int ms, Device* const device)
 {
-
 	unsigned int time = 0;
+	bool* const states = new bool[device->Inputs().size()];
 
-	// don't wait if we don't have a device
-	if ( device )
+	// get starting state of all inputs, 
+	// so we can ignore those that were activated at time of Detect start
+	std::vector<Device::Input*>::const_iterator
+		i = device->Inputs().begin(),
+		e = device->Inputs().end();
+	for (bool* state=states; i != e; ++i)
+		*state++ = (device->GetInputState(*i) > INPUT_DETECT_THRESHOLD);
+
+	while (time < ms)
 	{
-		bool* const states = new bool[device->Inputs().size()];
-
-		std::vector<Device::Input*>::const_iterator i = device->Inputs().begin(),
-			e = device->Inputs().end();
-		for ( unsigned int n=0;i != e; ++i,++n )
-			states[n] = ( device->GetInputState( *i ) > INPUT_DETECT_THRESHOLD );
-
-		std::vector<Device::Control*>	detected;
-
-		while ( (time < ms) && (detected.size() < count) )
+		device->UpdateInput();
+		i = device->Inputs().begin();
+		for (bool* state=states; i != e; ++i,++state)
 		{
-			device->UpdateInput();
-			i = device->Inputs().begin();
-			e = device->Inputs().end();
-			
-			for ( unsigned int n=0;i != e; ++i,++n )
+			// detected an input
+			if ((*i)->IsDetectable() && device->GetInputState(*i) > INPUT_DETECT_THRESHOLD)
 			{
-				if ( device->GetInputState( *i ) > INPUT_DETECT_THRESHOLD )
-				{
-					if ( false == states[n] )
-						if ( std::find( detected.begin(), detected.end(), *i ) == detected.end() )
-							detected.push_back( *i );
-				}
-				else
-					states[n] = false;
-			}
-			Common::SleepCurrentThread( 10 ); time += 10;
-		}
-
-		delete states;
-
-		if ( detected.size() == count )
-		{
-			controls = detected;
-
-			if ( controls.size() > 1 )
-			{
-				control_qualifier.name = '|';
-				std::vector<Device::Control*>::const_iterator c_i = controls.begin(),
-					c_e = controls.end();
-				for ( ; c_i != c_e; ++c_i )
-					control_qualifier.name += (*c_i)->GetName() + '|';
+				// input was released at some point during Detect call
+				// return the detected input
+				if (false == *state)
+					return *i;
 			}
 			else
-				control_qualifier.FromControl( controls[0] );
-
-			return true;
+				*state = false;
 		}
+		Common::SleepCurrentThread(10); time += 10;
 	}
-	return false;
+
+	delete[] states;
+
+	// no input was detected
+	return NULL;
 }
 
 //
@@ -543,22 +496,25 @@ bool ControllerInterface::InputReference::Detect( const unsigned int ms, const u
 //
 // set all binded outputs to <range> power for x milliseconds return false
 //
-bool ControllerInterface::OutputReference::Detect( const unsigned int ms, const unsigned int ignored )
+ControllerInterface::Device::Control* ControllerInterface::OutputReference::Detect(const unsigned int ms, Device* const device)
 {
+	// ignore device
+
 	// dont hang if we dont even have any controls mapped
-	if ( controls.size() )
+	if (m_controls.size())
 	{
-		State( 1 );
+		State(1);
 		unsigned int slept = 0;
+
 		// this loop is to make stuff like flashing keyboard LEDs work
-		while ( ms > ( slept += 10 ) )
+		while (ms > (slept += 10))
 		{
 			device->UpdateOutput();
-			Common::SleepCurrentThread( 10 );
+			Common::SleepCurrentThread(10);
 		}
 		
-		State( 0 );
+		State(0);
 		device->UpdateOutput();
 	}
-	return false;
+	return NULL;
 }

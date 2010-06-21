@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="InputCommon"
 	ProjectGUID="{C7E5D50A-2916-464B-86A7-E10B3CC88ADA}"
 	RootNamespace="VideoCommon"
@@ -439,11 +439,19 @@
 					>
 				</File>
 				<File
-					RelativePath=".\Src\ControllerInterface\DirectInput\DirectInputKeyboardMouse.cpp"
+					RelativePath=".\Src\ControllerInterface\DirectInput\DirectInputKeyboard.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\Src\ControllerInterface\DirectInput\DirectInputKeyboardMouse.h"
+					RelativePath=".\Src\ControllerInterface\DirectInput\DirectInputKeyboard.h"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\ControllerInterface\DirectInput\DirectInputMouse.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\ControllerInterface\DirectInput\DirectInputMouse.h"
 					>
 				</File>
 				<File

@@ -59,7 +59,6 @@ void InputPlugin::SaveConfig()
 	std::string ini_filename = (std::string(File::GetUserPath(D_CONFIG_IDX)) + ini_name + ".ini" );
 
 	IniFile inifile;
-	inifile.Load(ini_filename);
 
 	std::vector< ControllerEmu* >::const_iterator i = controllers.begin(),
 		e = controllers.end();

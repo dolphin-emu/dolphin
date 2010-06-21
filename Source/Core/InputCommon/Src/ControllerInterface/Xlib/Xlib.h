@@ -30,7 +30,7 @@ protected:
 		friend class Keyboard;
 		
 	protected:
-		virtual ControlState GetState(const State* const state) = 0;
+		virtual ControlState GetState(const State* const state) const = 0;
 	};
 	
 	class Key : public Input
@@ -42,7 +42,7 @@ protected:
 		
 	protected:
 		Key(Display* const display, KeyCode keycode);
-		ControlState GetState(const State* const state);
+		ControlState GetState(const State* const state) const;
 		
 	private:
 		Display* const	m_display;
@@ -60,7 +60,7 @@ protected:
 		
 	protected:
 		Button(const unsigned int index) : m_index(index) {}
-		ControlState GetState(const State* const state);
+		ControlState GetState(const State* const state) const;
 		
 	private:
 		const unsigned int m_index;
@@ -69,7 +69,7 @@ protected:
 	bool UpdateInput();
 	bool UpdateOutput();
 	
-	ControlState GetInputState(const ControllerInterface::Device::Input* const input);
+	ControlState GetInputState(const ControllerInterface::Device::Input* const input) const;
 	void SetOutputState(const ControllerInterface::Device::Output* const output, const ControlState state);
 	
 public:

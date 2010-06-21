@@ -3,7 +3,7 @@
 #ifdef CIFACE_USE_DIRECTINPUT_JOYSTICK
 
 #include "DirectInputJoystick.h"
-#include <StringUtil.h>
+#include "DirectInput.h"
 
 inline bool operator<(const GUID & lhs, const GUID & rhs)
 {
@@ -123,41 +123,9 @@ LCleanup:
 }
 #endif
 
-std::string TStringToString( const std::basic_string<TCHAR>& in )
-{
-	const int size = WideCharToMultiByte(CP_ACP, 0, in.data(), int(in.length()), NULL, 0, NULL, NULL);
-	
-	if ( 0 == size )
-		return "";
-
-	char* const data = new char[size];
-	WideCharToMultiByte(CP_ACP, 0, in.data(), int(in.length()), data, size, NULL, NULL);
-	const std::string out( data, size );
-	delete[] data;
-	return out;
-}
-
-//BOOL CALLBACK DIEnumEffectsCallback( LPCDIEFFECTINFO pdei, LPVOID pvRef )
-//{
-//	((std::vector<DIEFFECTINFO>*)pvRef)->push_back( *pdei );
-//	return DIENUM_CONTINUE;
-//}
-
-BOOL CALLBACK DIEnumDeviceObjectsCallback( LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef )
-{
-	((std::vector<DIDEVICEOBJECTINSTANCE>*)pvRef)->push_back( *lpddoi );
-	return DIENUM_CONTINUE;
-}
-
-BOOL CALLBACK DIEnumDevicesCallback( LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef )
-{
-	((std::vector<DIDEVICEINSTANCE>*)pvRef)->push_back( *lpddi );
-	return DIENUM_CONTINUE;
-}
-
 void InitJoystick( IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices/*, HWND hwnd*/ )
 {
-	std::vector<DIDEVICEINSTANCE> joysticks;
+	std::list<DIDEVICEINSTANCE> joysticks;
 	idi8->EnumDevices( DI8DEVCLASS_GAMECTRL, DIEnumDevicesCallback, (LPVOID)&joysticks, DIEDFL_ATTACHEDONLY );
 
 	// this is used to number the joysticks
@@ -169,7 +137,8 @@ void InitJoystick( IDirectInput8* const idi8, std::vector<ControllerInterface::D
 	GetXInputGUIDS( xinput_guids );
 #endif
 
-	std::vector<DIDEVICEINSTANCE>::iterator i = joysticks.begin(),
+	std::list<DIDEVICEINSTANCE>::iterator
+		i = joysticks.begin(),
 		e = joysticks.end();
 	for ( ; i!=e; ++i )
 	{
@@ -247,17 +216,17 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 
 	// buttons
 	for ( unsigned int i = 0; i < js_caps.dwButtons; ++i )
-		inputs.push_back( new Button( i ) );
+		AddInput( new Button( i ) );
 	// hats
 	for ( unsigned int i = 0; i < js_caps.dwPOVs; ++i )
 	{
 		// each hat gets 4 input instances associated with it, (up down left right)
 		for ( unsigned int d = 0; d<4; ++d )
-			inputs.push_back( new Hat( i, d ) );
+			AddInput( new Hat( i, d ) );
 	}
 	// get up to 6 axes and 2 sliders
-	std::vector<DIDEVICEOBJECTINSTANCE> axes;
-	m_device->EnumObjects( DIEnumDeviceObjectsCallback, (LPVOID)&axes, DIDFT_ABSAXIS );
+	std::list<DIDEVICEOBJECTINSTANCE> axes;
+	m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&axes, DIDFT_ABSAXIS);
 
 	unsigned int cur_slider = 0;
 
@@ -271,7 +240,8 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 	types[GUID_RzAxis] = 5;
 
 	// going in reverse leaves the list more organized in the end for me :/
-	std::vector<DIDEVICEOBJECTINSTANCE>::const_reverse_iterator i = axes.rbegin(),
+	std::list<DIDEVICEOBJECTINSTANCE>::const_reverse_iterator
+		i = axes.rbegin(),
 		e = axes.rend();
 	for( ; i!=e; ++i )
 	{
@@ -287,7 +257,7 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		// but i guess not all devices support setting range
 		m_device->SetProperty( DIPROP_RANGE, &range.diph );
 		// so i getproperty right afterward incase it didn't set :P
-		if (SUCCEEDED(m_device->GetProperty( DIPROP_RANGE, &range.diph)))
+		if (SUCCEEDED(m_device->GetProperty(DIPROP_RANGE, &range.diph)))
 		{
 			int offset = -1;
 
@@ -314,15 +284,15 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 			{
 				const LONG base = (range.lMin + range.lMax) / 2;
 				// each axis gets a negative and a positive input instance associated with it
-				inputs.push_back( new Axis( offset, base, range.lMin-base ) );
-				inputs.push_back( new Axis( offset, base, range.lMax-base ) );
+				AddInput( new Axis( offset, base, range.lMin-base ) );
+				AddInput( new Axis( offset, base, range.lMax-base ) );
 			}
 		}
 	}
 
 	// get supported ff effects
-	std::vector<DIDEVICEOBJECTINSTANCE> objects;
-	m_device->EnumObjects( DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS );
+	std::list<DIDEVICEOBJECTINSTANCE> objects;
+	m_device->EnumObjects(DIEnumDeviceObjectsCallback, (LPVOID)&objects, DIDFT_AXIS);
 	// got some ff axes or something
 	if ( objects.size() )
 	{
@@ -347,13 +317,13 @@ Joystick::Joystick( /*const LPCDIDEVICEINSTANCE lpddi, */const LPDIRECTINPUTDEVI
 		if (SUCCEEDED(m_device->CreateEffect(GUID_ConstantForce, &eff, &pEffect, NULL)))
 		{
 			// temp
-			outputs.push_back( new Force( 0 ) );
+			AddOutput( new Force( 0 ) );
 			m_state_out.push_back( EffectState( pEffect ) );
 		}
 	}
 
 	// disable autocentering
-	if ( outputs.size() )
+	if ( Outputs().size() )
 	{
 		DIPROPDWORD dipdw;
 		dipdw.diph.dwSize = sizeof( DIPROPDWORD );
@@ -392,14 +362,7 @@ void Joystick::ClearInputState()
 
 std::string Joystick::GetName() const
 {
-	DIPROPSTRING str;
-	ZeroMemory( &str, sizeof(str) );
-	str.diph.dwSize = sizeof(str);
-	str.diph.dwHeaderSize = sizeof(str.diph);
-	str.diph.dwHow = DIPH_DEVICE;
-	m_device->GetProperty( DIPROP_PRODUCTNAME, &str.diph );
-	return StripSpaces(TStringToString(str.wsz));
-	//return m_name;
+	return GetDeviceName(m_device);
 }
 
 int Joystick::GetId() const
@@ -409,7 +372,7 @@ int Joystick::GetId() const
 
 std::string Joystick::GetSource() const
 {
-	return "DirectInput";
+	return DINPUT_SOURCE_NAME;
 }
 
 // update IO
@@ -428,6 +391,9 @@ bool Joystick::UpdateInput()
 		DIDEVICEOBJECTDATA evtbuf[DATA_BUFFER_SIZE];
 		DWORD numevents;
 
+		//DWORD wantevents = INFINITE;
+		//hr = m_device->GetDeviceData(sizeof(*evtbuf), NULL, &wantevents, DIGDD_PEEK);
+
 GETDEVDATA :
 		numevents = DATA_BUFFER_SIZE;
 		hr = m_device->GetDeviceData(sizeof(*evtbuf), evtbuf, &numevents, 0);
@@ -445,6 +411,9 @@ GETDEVDATA :
 			}
 
 			// if there is more data to be received
+			// it seems like to me this could cause problems,
+			// if the device was producing so many events that GetDeviceData always returned bufferoverflow
+			// it seems to be working fine tho
 			if (DI_BUFFEROVERFLOW == hr)
 				goto GETDEVDATA;
 		}
@@ -534,7 +503,7 @@ std::string Joystick::Force::GetName() const
 
 // get / set state
 
-ControlState Joystick::GetInputState( const ControllerInterface::Device::Input* const input )
+ControlState Joystick::GetInputState( const ControllerInterface::Device::Input* const input ) const
 {
 	return ((Input*)input)->GetState( &m_state_in );
 }
@@ -546,17 +515,17 @@ void Joystick::SetOutputState( const ControllerInterface::Device::Output* const 
 
 // get / set state
 
-ControlState Joystick::Axis::GetState( const DIJOYSTATE* const joystate )
+ControlState Joystick::Axis::GetState( const DIJOYSTATE* const joystate ) const
 {
 	return std::max( 0.0f, ControlState((&joystate->lX)[m_index]-m_base) / m_range );
 }
 
-ControlState Joystick::Button::GetState( const DIJOYSTATE* const joystate )
+ControlState Joystick::Button::GetState( const DIJOYSTATE* const joystate ) const
 {
 	return ControlState( joystate->rgbButtons[m_index] > 0 );
 }
 
-ControlState Joystick::Hat::GetState( const DIJOYSTATE* const joystate )
+ControlState Joystick::Hat::GetState( const DIJOYSTATE* const joystate ) const
 {
 	// can this func be simplified ?
 	const DWORD val = joystate->rgdwPOV[m_index];

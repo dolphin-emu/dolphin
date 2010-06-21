@@ -131,7 +131,7 @@ protected:
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	ControlState GetInputState( const ControllerInterface::Device::Input* const input );
+	ControlState GetInputState( const ControllerInterface::Device::Input* const input ) const;
 	void SetOutputState( const ControllerInterface::Device::Output* const output, const ControlState state );
 
 public:

@@ -38,7 +38,7 @@ Mouse::Mouse(IOHIDDeviceRef device)
 			IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(buttons, i);
 			//DeviceElementDebugPrint(e, NULL);
 		
-			inputs.push_back(new Button(e));
+			AddInput(new Button(e));
 		}
 		CFRelease(buttons);
 	}
@@ -59,8 +59,8 @@ Mouse::Mouse(IOHIDDeviceRef device)
 			IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(axes, i);
 			//DeviceElementDebugPrint(e, NULL);
 			
-			inputs.push_back(new Axis(e, Axis::negative));
-			inputs.push_back(new Axis(e, Axis::positive));
+			AddInput(new Axis(e, Axis::negative));
+			AddInput(new Axis(e, Axis::positive));
 		}
 		CFRelease(axes);
 	}
@@ -68,7 +68,7 @@ Mouse::Mouse(IOHIDDeviceRef device)
 	[pool release];
 }
 
-ControlState Mouse::GetInputState( const ControllerInterface::Device::Input* const input )
+ControlState Mouse::GetInputState( const ControllerInterface::Device::Input* const input ) const
 {
 	return ((Input*)input)->GetState(m_device);
 }
@@ -111,7 +111,7 @@ Mouse::Button::Button(IOHIDElementRef element)
 	m_name = std::string("Button ") + s.str();
 }
 
-ControlState Mouse::Button::GetState(IOHIDDeviceRef device)
+ControlState Mouse::Button::GetState(IOHIDDeviceRef device) const
 {
 	IOHIDValueRef value;
 	if (IOHIDDeviceGetValue(device, m_element, &value) == kIOReturnSuccess)

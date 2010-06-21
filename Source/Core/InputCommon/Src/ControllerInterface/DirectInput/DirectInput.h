@@ -9,17 +9,17 @@
 #include <Windows.h>
 #include <dinput.h>
 
-#ifdef CIFACE_USE_DIRECTINPUT_JOYSTICK
-	#include "DirectInputJoystick.h"
-#endif
-#ifdef CIFACE_USE_DIRECTINPUT_KBM
-	#include "DirectInputKeyboardMouse.h"
-#endif
+#include <list>
 
 namespace ciface
 {
 namespace DirectInput
 {
+
+//BOOL CALLBACK DIEnumEffectsCallback(LPCDIEFFECTINFO pdei, LPVOID pvRef);
+BOOL CALLBACK DIEnumDeviceObjectsCallback(LPCDIDEVICEOBJECTINSTANCE lpddoi, LPVOID pvRef);
+BOOL CALLBACK DIEnumDevicesCallback(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef);
+std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device);
 
 void Init( std::vector<ControllerInterface::Device*>& devices/*, HWND hwnd*/ );
 

@@ -105,6 +105,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_Wiimote", "Plugins\P
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "InputCommon", "Core\InputCommon\InputCommon.vcproj", "{C7E5D50A-2916-464B-86A7-E10B3CC88ADA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C573CAF7-EE6A-458E-8049-16C0BF34C2E9} = {C573CAF7-EE6A-458E-8049-16C0BF34C2E9}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AudioCommon", "Core\AudioCommon\AudioCommon.vcproj", "{FBAFB369-07EB-4460-9CAD-08BE5789DAB6}"
 EndProject
@@ -197,6 +200,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_WiimoteNew", "Plugin
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "InputUICommon", "Core\InputUICommon\InputUICommon.vcproj", "{374E2DB7-42DF-4E59-8474-62B6687F4978}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C7E5D50A-2916-464B-86A7-E10B3CC88ADA} = {C7E5D50A-2916-464B-86A7-E10B3CC88ADA}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Plugin_VideoDX11", "Plugins\Plugin_VideoDX11\Plugin_VideoDX11.vcproj", "{21DBE606-2958-43AC-A14E-B6B798D56554}"
 	ProjectSection(ProjectDependencies) = postProject

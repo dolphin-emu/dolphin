@@ -62,7 +62,7 @@ ControllerEmu::ControlGroup::Control::~Control()
 	delete control_ref;
 }
 
-void ControllerEmu::UpdateReferences( ControllerInterface& devi )
+void ControllerEmu::UpdateReferences(ControllerInterface& devi)
 {
 	std::vector<ControlGroup*>::const_iterator
 		i = groups.begin(),
@@ -73,7 +73,7 @@ void ControllerEmu::UpdateReferences( ControllerInterface& devi )
 			ci = (*i)->controls.begin(),
 			ce = (*i)->controls.end();
 		for ( ; ci!=ce; ++ci )
-			devi.UpdateReference( (*ci)->control_ref );
+			devi.UpdateReference((*ci)->control_ref, default_device);
 
 		// extension
 		if ( GROUP_TYPE_EXTENSION == (*i)->type )
@@ -82,7 +82,7 @@ void ControllerEmu::UpdateReferences( ControllerInterface& devi )
 				ai = ((Extension*)*i)->attachments.begin(),
 				ae = ((Extension*)*i)->attachments.end();
 			for ( ; ai!=ae; ++ai )
-				(*ai)->UpdateReferences( devi );
+				(*ai)->UpdateReferences(devi);
 		}
 	}
 }
@@ -94,11 +94,11 @@ void ControllerEmu::UpdateDefaultDevice()
 		e = groups.end();
 	for ( ; i!=e; ++i )
 	{
-		std::vector<ControlGroup::Control*>::const_iterator
-			ci = (*i)->controls.begin(),
-			ce = (*i)->controls.end();
-		for ( ; ci!=ce; ++ci )
-			(*ci)->control_ref->device_qualifier = default_device;
+		//std::vector<ControlGroup::Control*>::const_iterator
+			//ci = (*i)->controls.begin(),
+			//ce = (*i)->controls.end();
+		//for ( ; ci!=ce; ++ci )
+			//(*ci)->control_ref->device_qualifier = default_device;
 
 		// extension
 		if ( GROUP_TYPE_EXTENSION == (*i)->type )
@@ -135,19 +135,13 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section *sec, const std::s
 		ce = controls.end();
 	for ( ; ci!=ce; ++ci )
 	{
-		// control and dev qualifier
-		sec->Get((group + (*ci)->name).c_str(), &(*ci)->control_ref->control_qualifier.name, "");
-		std::string dev;
-		sec->Get((group+(*ci)->name+"/Device").c_str(), &dev, defdev.c_str());
-		(*ci)->control_ref->device_qualifier.FromString(dev);
+		// control expression
+		sec->Get((group + (*ci)->name).c_str(), &(*ci)->control_ref->expression, "");
 
 		// range
 		sec->Get( (group+(*ci)->name+"/Range").c_str(), &(*ci)->control_ref->range, 100.0f);
 		(*ci)->control_ref->range /= 100;
 
-		// input mode
-		if ( (*ci)->control_ref->is_input )
-			sec->Get( (group+(*ci)->name+"/Mode").c_str(), &((ControllerInterface::InputReference*)((*ci)->control_ref))->mode, 0 );
 	}
 
 	// extensions
@@ -205,22 +199,11 @@ void ControllerEmu::ControlGroup::SaveConfig( IniFile::Section *sec, const std::
 		ce = controls.end();
 	for ( ; ci!=ce; ++ci )
 	{
-		// control and dev qualifier
-		sec->Set( (group+(*ci)->name).c_str(), (*ci)->control_ref->control_qualifier.name, "");
-		sec->Set( (group+(*ci)->name+"/Device").c_str(), (*ci)->control_ref->device_qualifier.ToString(), defdev);
+		// control expression
+		sec->Set( (group+(*ci)->name).c_str(), (*ci)->control_ref->expression, "");
 
 		// range
 		sec->Set( (group+(*ci)->name+"/Range").c_str(), (*ci)->control_ref->range*100.0f, 100.0f);
-
-		// input mode
-		if ( (*ci)->control_ref->is_input )
-		{
-			const int mode = ((ControllerInterface::InputReference*)((*ci)->control_ref))->mode;
-			if (mode)
-				sec->Set((group+(*ci)->name+"/Mode").c_str(), mode);
-			else
-				sec->Delete((group+(*ci)->name+"/Mode").c_str());
-		}
 	}
 
 	// extensions

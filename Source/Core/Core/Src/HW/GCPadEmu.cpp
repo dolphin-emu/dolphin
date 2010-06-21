@@ -126,7 +126,7 @@ void GCPad::SetOutput( const bool on )
 
 void GCPad::LoadDefaults()
 {
-	#define set_control(group, num, str)	(group)->controls[num]->control_ref->control_qualifier.name = (str)
+	#define set_control(group, num, str)	(group)->controls[num]->control_ref->expression = (str)
 
 	// nvm, do the device part elsewhere
 //#ifdef _WIN32

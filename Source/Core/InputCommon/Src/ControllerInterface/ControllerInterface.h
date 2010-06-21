@@ -12,8 +12,10 @@
 #ifdef _WIN32
 	#define CIFACE_USE_XINPUT
 	#define CIFACE_USE_DIRECTINPUT_JOYSTICK
-	#define CIFACE_USE_DIRECTINPUT_KBM
+	#define CIFACE_USE_DIRECTINPUT_KEYBOARD
+	#define CIFACE_USE_DIRECTINPUT_MOUSE
 	#define CIFACE_USE_DIRECTINPUT
+	#define DINPUT_SOURCE_NAME "DInput"
 #endif
 #if defined(HAVE_X11) && HAVE_X11
 	#define CIFACE_USE_XLIB
@@ -43,7 +45,7 @@ public:
 	//
 	//		Device
 	//
-	// Pretty obviously, a device class
+	// a device class
 	//
 	class Device
 	{
@@ -69,7 +71,8 @@ public:
 		class Input : public Control
 		{
 		public:
-			virtual ~Input() {}
+			// things like absolute axes/ absolute mouse position will override this
+			virtual bool IsDetectable() { return true; }
 		};
 		
 		//
@@ -89,7 +92,7 @@ public:
 		virtual int GetId() const = 0;
 		virtual std::string GetSource() const = 0;
 
-		virtual ControlState GetInputState( const Input* const input ) = 0;
+		virtual ControlState GetInputState( const Input* const input ) const = 0;
 		virtual void SetOutputState( const Output* const output, const ControlState state ) = 0;
 
 		virtual bool UpdateInput() = 0;
@@ -97,12 +100,16 @@ public:
 
 		virtual void ClearInputState();
 
-		const std::vector< Input* >& Inputs();
-		const std::vector< Output* >& Outputs();
+		const std::vector<Input*>& Inputs() const { return m_inputs; }
+		const std::vector<Output*>& Outputs() const { return m_outputs; }
 
 	protected:
-		std::vector<Input*>		inputs;
-		std::vector<Output*>	outputs;
+		void AddInput(Input* const i);
+		void AddOutput(Output* const o);
+
+	private:
+		std::vector<Input*>		m_inputs;
+		std::vector<Output*>	m_outputs;
 
 	};
 
@@ -115,13 +122,13 @@ public:
 	class DeviceQualifier
 	{
 	public:
-		DeviceQualifier() : cid(-1){}
-		DeviceQualifier( const std::string& _source, const int _id, const std::string& _name )
+		DeviceQualifier() : cid(-1) {}
+		DeviceQualifier(const std::string& _source, const int _id, const std::string& _name)
 			: source(_source), cid(_id), name(_name) {}
-		bool operator==(const Device* const dev) const;
 		void FromDevice(const Device* const dev);
 		void FromString(const std::string& str);
 		std::string ToString() const;
+		bool operator==(const DeviceQualifier& devq) const;
 
 		std::string		source;
 		int				cid;
@@ -129,81 +136,43 @@ public:
 	};
 
 	//
-	//		ControlQualifier
-	//
-	// control qualifier includes input and output qualifiers
-	// used to match controls on devices, only has name property
-	// |input1|input2| form as well, || matches anything, might change this to * or something
-	//
-	class ControlQualifier
-	{
-	public:
-		ControlQualifier() {};
-		ControlQualifier( const std::string& _name ) : name(_name) {}
-		virtual ~ControlQualifier() {}
-
-		virtual bool operator==(const Device::Control* const in) const;
-		void FromControl(const Device::Control* const in);
-
-		std::string		name;
-	};
-
-	//
-	//		InputQualifier
-	//
-	// ControlQualifier for inputs
-	//
-	class InputQualifier : public ControlQualifier
-	{
-	public:
-		InputQualifier() {};
-		InputQualifier( const std::string& _name ) : ControlQualifier(_name) {}
-	};
-
-	//
-	//		OutputQualifier
-	//
-	// ControlQualifier for outputs
-	//
-	class OutputQualifier : public ControlQualifier
-	{
-	public:
-		OutputQualifier() {};
-		OutputQualifier( const std::string& _name ) : ControlQualifier(_name) {}
-	};
-
-	//
 	//		ControlReference
 	//
 	// these are what you create to actually use the inputs, InputReference or OutputReference
-	// they have a DeviceQualifier and ControlQualifier used to match 1 or more inputs
 	//
 	// after being binded to devices and controls with ControllerInterface::UpdateReference,
-	//		each one can binded to a devices, and 0+ controls the device
-	// ControlReference can update its own controls when you change its control qualifier
-	//		using ControlReference::UpdateControls but when you change its device qualifer
-	//		you must use ControllerInterface::UpdateReference
+	//		each one can link to multiple devices and controls
+	//		when you change a ControlReference's expression,
+	//		you must use ControllerInterface::UpdateReference on it to rebind controls
 	//
 	class ControlReference
 	{
+		friend class ControllerInterface;
+
 	public:
-		ControlReference( const bool _is_input ) : range(1), is_input(_is_input), device(NULL) {}
 		virtual ~ControlReference() {}
 
-		virtual ControlState State( const ControlState state = 0 ) = 0;
-		virtual bool Detect( const unsigned int ms, const unsigned int count = 1 ) = 0;
-		virtual void UpdateControls() = 0;
+		virtual ControlState State(const ControlState state = 0) = 0;
+		virtual Device::Control* Detect(const unsigned int ms, Device* const device) = 0;
+		size_t BoundCount() const { return m_controls.size(); }
 
 		ControlState		range;
-
-		DeviceQualifier		device_qualifier;
-		ControlQualifier	control_qualifier;
-
+		std::string			expression;
 		const bool			is_input;
-		Device*				device;
 
-		std::vector<Device::Control*>	controls;
+	protected:
+		ControlReference(const bool _is_input) : range(1), is_input(_is_input) {}
 
+		struct DeviceControl
+		{
+			DeviceControl() : device(NULL), control(NULL), mode(0) {}
+
+			Device*				device;
+			Device::Control*	control;
+			int		mode;
+		};
+
+		std::vector<DeviceControl>	m_controls;
 	};
 
 	//
@@ -214,12 +183,9 @@ public:
 	class InputReference : public ControlReference
 	{
 	public:
-		InputReference() : ControlReference(true), mode(0) {}
-		ControlState State( const ControlState state );
-		bool Detect( const unsigned int ms, const unsigned int count );
-		void UpdateControls();
-
-		unsigned int		mode;
+		InputReference() : ControlReference(true) {}
+		ControlState State(const ControlState state);
+		Device::Control* Detect(const unsigned int ms, Device* const device);
 	};
 
 	//
@@ -230,30 +196,33 @@ public:
 	class OutputReference : public ControlReference
 	{
 	public:
-		OutputReference() : ControlReference( false ) {}
-		ControlState State( const ControlState state );
-		bool Detect( const unsigned int ms, const unsigned int count );
-		void UpdateControls();
+		OutputReference() : ControlReference(false) {}
+		ControlState State(const ControlState state);
+		Device::Control* Detect(const unsigned int ms, Device* const device);
 	};
 
 	ControllerInterface() : m_is_init(false) {}
 	
-	void SetHwnd( void* const hwnd );
+	void SetHwnd(void* const hwnd);
 	void Init();
 	// TODO: remove this hack param
 	void DeInit(const bool hacks_no_sdl_quit = false);
-	bool IsInit();
+	bool IsInit() const { return m_is_init; }
 
-	void UpdateReference( ControlReference* control );
+	void UpdateReference(ControlReference* control, const DeviceQualifier& default_device) const;
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	const std::vector<Device*>& Devices();
+	const std::vector<Device*>& Devices() const { return m_devices; }
 
 private:
 	bool					m_is_init;
 	std::vector<Device*>	m_devices;
 	void*					m_hwnd;
 };
+
+// used for std::find n stuff
+bool operator==(const ControllerInterface::Device* const dev, const ControllerInterface::DeviceQualifier& devq);
+bool operator==(const ControllerInterface::Device::Control* const c, const std::string& name);
 
 #endif

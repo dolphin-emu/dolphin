@@ -50,7 +50,7 @@ Keyboard::Keyboard(IOHIDDeviceRef device)
 			IOHIDElementRef e = (IOHIDElementRef)CFArrayGetValueAtIndex(elements, i);
 			//DeviceElementDebugPrint(e, NULL);
 		
-			try { inputs.push_back(new Key(e)); }
+			try { AddInput(new Key(e)); }
 			catch (std::bad_alloc&) { /*Thrown if the key is reserved*/ }
 		}
 		CFRelease(elements);
@@ -59,7 +59,7 @@ Keyboard::Keyboard(IOHIDDeviceRef device)
 	[pool release];
 }
 
-ControlState Keyboard::GetInputState( const ControllerInterface::Device::Input* const input )
+ControlState Keyboard::GetInputState( const ControllerInterface::Device::Input* const input ) const
 {
 	return ((Input*)input)->GetState(m_device);
 }
@@ -110,7 +110,7 @@ Keyboard::Key::Key(IOHIDElementRef element)
 	NSLog(@"Got key 0x%x of type RESERVED", IOHIDElementGetUsage(m_element));      
 }
 
-ControlState Keyboard::Key::GetState(IOHIDDeviceRef device)
+ControlState Keyboard::Key::GetState(IOHIDDeviceRef device) const
 {
 	IOHIDValueRef value;
 	if (IOHIDDeviceGetValue(device, m_element, &value) == kIOReturnSuccess)

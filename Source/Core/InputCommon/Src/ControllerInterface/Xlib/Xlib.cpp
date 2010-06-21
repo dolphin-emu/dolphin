@@ -26,17 +26,17 @@ Keyboard::Keyboard(Display* display) : m_display(display)
 	{
 		Key *temp_key = new Key(m_display, i);
 		if (temp_key->m_keyname.length())
-			inputs.push_back(temp_key);
+			AddInput(temp_key);
 		else
 			delete temp_key;
 	}
 
 	// Mouse Buttons
-	inputs.push_back(new Button(Button1Mask));
-	inputs.push_back(new Button(Button2Mask));
-	inputs.push_back(new Button(Button3Mask));
-	inputs.push_back(new Button(Button4Mask));
-	inputs.push_back(new Button(Button5Mask));
+	AddInput(new Button(Button1Mask));
+	AddInput(new Button(Button2Mask));
+	AddInput(new Button(Button3Mask));
+	AddInput(new Button(Button4Mask));
+	AddInput(new Button(Button5Mask));
 }
 
 Keyboard::~Keyboard()
@@ -44,7 +44,7 @@ Keyboard::~Keyboard()
 }
 
 
-ControlState Keyboard::GetInputState(const ControllerInterface::Device::Input* const input)
+ControlState Keyboard::GetInputState(const ControllerInterface::Device::Input* const input) const
 {
 	return ((Input*)input)->GetState(&m_state);
 }
@@ -112,12 +112,12 @@ Keyboard::Key::Key(Display* const display, KeyCode keycode)
 		m_keyname = std::string(XKeysymToString(keysym));
 }
 
-ControlState Keyboard::Key::GetState(const State* const state)
+ControlState Keyboard::Key::GetState(const State* const state) const
 {
 	return (state->keyboard[m_keycode/8] & (1 << (m_keycode%8))) != 0;
 }
 
-ControlState Keyboard::Button::GetState(const State* const state)
+ControlState Keyboard::Button::GetState(const State* const state) const
 {
 	return ((state->buttons & m_index) > 0);
 }

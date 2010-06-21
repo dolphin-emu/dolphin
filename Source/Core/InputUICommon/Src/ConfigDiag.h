@@ -88,36 +88,6 @@ public:
 	ControlState&		value;
 };
 
-class ControlChooser : public wxStaticBoxSizer
-{
-public:
-	ControlChooser( wxWindow* const parent, ControllerInterface::ControlReference* const ref, wxWindow* const eventsink );
-	
-	void UpdateGUI();
-	void UpdateListContents();
-	void UpdateListSelection();
-
-	ControllerInterface::ControlReference*	control_reference;
-
-	wxTextCtrl*			textctrl;
-	wxListBox*			control_lbox;
-	wxChoice*			mode_cbox;
-	wxSlider*			range_slider;
-
-private:
-	wxStaticText*		m_bound_label;
-};
-
-class ControlList : public wxDialog
-{
-public:
-
-	ControlList( wxWindow* const parent, ControllerInterface::ControlReference* const ref, ControlChooser* const chooser );
-
-private:
-	ControlChooser* const		m_control_chooser;
-};
-
 class GamepadPage;
 
 class ControlDialog : public wxDialog
@@ -125,16 +95,31 @@ class ControlDialog : public wxDialog
 public:
 	ControlDialog(GamepadPage* const parent, InputPlugin& plugin, ControllerInterface::ControlReference* const ref);
 	
-	void SelectControl( wxCommandEvent& event );
-	void DetectControl( wxCommandEvent& event );
-	void ClearControl( wxCommandEvent& event );
-	void SetControl( wxCommandEvent& event );
-	void SetDevice( wxCommandEvent& event );
+	wxStaticBoxSizer* CreateControlChooser(wxWindow* const parent, wxWindow* const eventsink );
+
+	void DetectControl(wxCommandEvent& event);
+	void ClearControl(wxCommandEvent& event);
+	void SetControl(wxCommandEvent& event);
+	void SetDevice(wxCommandEvent& event);
+
+	void UpdateGUI();
+	void UpdateListContents();
+	void SelectControl(const std::string& name);
+
+	void AppendControl(wxCommandEvent& event);
 
 	ControllerInterface::ControlReference* const		control_reference;
 	InputPlugin&				m_plugin;
 	wxComboBox*				device_cbox;
-	ControlChooser*			control_chooser;
+
+	wxTextCtrl*		textctrl;
+	wxListBox*		control_lbox;
+	wxSlider*		range_slider;
+
+private:
+	GamepadPage* const		m_parent;
+	wxStaticText*		m_bound_label;
+	ControllerInterface::DeviceQualifier	m_devq;
 };
 
 class ExtensionButton : public wxButton
@@ -180,6 +165,7 @@ class InputConfigDialog;
 class GamepadPage : public wxNotebookPage
 {
 	friend class InputConfigDialog;
+	friend class ControlDialog;
 
 public:
 	GamepadPage( wxWindow* parent, InputPlugin& plugin, const unsigned int pad_num, InputConfigDialog* const config_dialog );
@@ -205,6 +191,8 @@ public:
 	void AdjustControlOption( wxCommandEvent& event );
 	void AdjustSetting( wxCommandEvent& event );
 
+	void GetProfilePath(std::string& path);
+
 	wxComboBox*					profile_cbox;
 	wxComboBox*					device_cbox;
 
@@ -217,15 +205,16 @@ protected:
 private:
 
 	ControlDialog*				m_control_dialog;
-	InputConfigDialog* const			m_config_dialog;
+	InputConfigDialog* const	m_config_dialog;
 	InputPlugin &m_plugin;
 };
 
 class InputConfigDialog : public wxDialog
 {
 public:
+	InputConfigDialog( wxWindow* const parent, InputPlugin& plugin, const std::string& name);
+	//~InputConfigDialog();
 
-	InputConfigDialog(wxWindow* const parent, InputPlugin& plugin, const std::string& name);
 	bool Destroy();
 
 	void ClickSave( wxCommandEvent& event );
