@@ -151,7 +151,7 @@ Mouse::Axis::Axis(IOHIDElementRef element, direction dir)
 	m_range = (float)IOHIDElementGetLogicalMax(m_element) / 1000.;
 }
 
-ControlState Mouse::Axis::GetState(IOHIDDeviceRef device)
+ControlState Mouse::Axis::GetState(IOHIDDeviceRef device) const
 {
 	IOHIDValueRef value;
 	if (IOHIDDeviceGetValue(device, m_element, &value) == kIOReturnSuccess)	
