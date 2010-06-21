@@ -752,7 +752,7 @@ void UpdateViewport()
 										1.f);   //  xfregs.rawViewport[5] / 16777216.0f;
 	D3D::context->RSSetViewports(1, &vp);
 }
-
+//Tino: color is pased in bgra mode so need to convert it to rgba
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z)
 {
 	TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
@@ -765,13 +765,16 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	// always set the scissor in case it was set by the game and has not been reset
 	D3D11_RECT sirc = CD3D11_RECT(targetRc.left, targetRc.top, targetRc.right, targetRc.bottom);
 	D3D::context->RSSetScissorRects(1, &sirc);
-
+	u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
 	D3D::stateman->PushDepthState(cleardepthstates[zEnable]);
 	D3D::stateman->PushRasterizerState(clearraststate);
-	D3D::drawClearQuad(color, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader(), VertexShaderCache::GetClearInputLayout());
+	D3D::stateman->PushBlendState(resetblendstate);
+	D3D::stateman->Apply();
+	D3D::drawClearQuad(rgbaColor, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader(), VertexShaderCache::GetClearInputLayout());
 
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopRasterizerState();
+	D3D::stateman->PopBlendState();
 	UpdateViewport();
 	SetScissorRect();
 }
@@ -1033,23 +1036,18 @@ void Renderer::ResetAPIState()
 void Renderer::RestoreAPIState()
 {
 	// TODO: How much of this is actually needed?
-	// gets us back into a more game-like state.
-
-	// TODO: check whether commenting these lines broke anything
-//	D3D::gfxstate->rastdesc.ScissorEnable = TRUE;
+	// gets us back into a more game-like state.	
 	UpdateViewport();
 	SetScissorRect();
-//	if (bpmem.zmode.testenable) D3D::gfxstate->depthdesc.DepthEnable = TRUE;
-//	if (bpmem.zmode.updateenable) D3D::gfxstate->depthdesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 	SetColorMask();
 	SetLogicOpMode();
 	for (;resets;--resets)
 	{
 		D3D::stateman->PopBlendState();
 		D3D::stateman->PopDepthState();
-		D3D::stateman->PopRasterizerState();
-		D3D::gfxstate->ApplyState();
+		D3D::stateman->PopRasterizerState();		
 	}
+	D3D::gfxstate->ApplyState();
 }
 
 void Renderer::SetGenerationMode()
@@ -1068,7 +1066,7 @@ void Renderer::SetDepthMode()
 	}
 	else
 	{
-		D3D::gfxstate->depthdesc.DepthEnable = TRUE;
+		D3D::gfxstate->depthdesc.DepthEnable = FALSE;
 		D3D::gfxstate->depthdesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
 	}
 }

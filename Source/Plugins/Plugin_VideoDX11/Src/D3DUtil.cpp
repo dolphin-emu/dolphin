@@ -484,6 +484,10 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 		D3D::context->Map(stqvb, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		memcpy(map.pData, coords, sizeof(coords));
 		D3D::context->Unmap(stqvb, 0);
+		lastu1 = u1;
+		lastv1 = v1;
+		lastu2 = u2;
+		lastv2 = v2;
 	}
 	UINT stride = sizeof(STQVertex);
 	UINT offset = 0;
@@ -501,10 +505,7 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 	ID3D11ShaderResourceView* texres = NULL;
 	context->PSSetShaderResources(0, 1, &texres); // immediately unbind the texture
 
-	lastu1 = u1;
-	lastv1 = v1;
-	lastu2 = u2;
-	lastv2 = v2;
+	
 }
 
 void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
@@ -540,6 +541,14 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 		D3D::context->Map(stsqvb, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		memcpy(map.pData, coords, sizeof(coords));
 		D3D::context->Unmap(stsqvb, 0);
+		lastu1 = u1;
+		lastv1 = v1;
+		lastu2 = u2;
+		lastv2 = v2;
+		lastrdest.left = rDest->left;
+		lastrdest.right = rDest->right;
+		lastrdest.top = rDest->top;
+		lastrdest.bottom = rDest->bottom;
 	}
 	UINT stride = sizeof(STSQVertex);
 	UINT offset = 0;
@@ -557,20 +566,12 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 	ID3D11ShaderResourceView* texres = NULL;
 	context->PSSetShaderResources(0, 1, &texres); // immediately unbind the texture
 
-	lastu1 = u1;
-	lastv1 = v1;
-	lastu2 = u2;
-	lastv2 = v2;
-	lastrdest.left = rDest->left;
-	lastrdest.right = rDest->right;
-	lastrdest.top = rDest->top;
-	lastrdest.bottom = rDest->bottom;
+	
 }
 
-// TODO: Check whether we're passing Color in the right order (should be RGBA)
 void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexShader* Vshader, ID3D11InputLayout* layout)
 {
-	static u32 lastcol = 0;
+	static u32 lastcol = 0x15325376;
 	static float lastz = -15325.376f; // random value
 
 	if (lastcol != Color || lastz != z)
@@ -586,6 +587,8 @@ void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexS
 		context->Map(clearvb, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		memcpy(map.pData, coords, sizeof(coords));
 		context->Unmap(clearvb, 0);
+		lastcol = Color;
+		lastz = z;
 	}
 	context->VSSetShader(Vshader, NULL, 0);
 	context->PSSetShader(PShader, NULL, 0);
@@ -598,8 +601,7 @@ void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexS
 	stateman->Apply();
 	context->Draw(4, 0);
 
-	lastcol = Color;
-	lastz = z;
+	
 }
 
 
