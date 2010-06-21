@@ -123,6 +123,7 @@ kernel void DecodeRGB5A3(global uchar *dst,
     resNoAlpha.s26AE = val.even << (uchar4)1; \
     resNoAlpha.s159D = val.even << (uchar4)6 | val.odd >> (uchar4)2; \
     resNoAlpha.s048C = val.odd << (uchar4)3; \
+    resNoAlpha = bitselect(resNoAlpha, resNoAlpha >> (uchar16)5, (uchar16)0x3); \
     resNoAlpha.s37BF = (uchar4)(0xFF); \
     resAlpha.s26AE = bitselect(val.even << (uchar4)4, val.even, (uchar4)0xF); \
     resAlpha.s159D = bitselect(val.odd, val.odd >> (uchar4)4,   (uchar4)0xF); \
@@ -156,9 +157,9 @@ kernel void decodeCMPRBlock(global uchar *dst,
 
     uchar2 colora565 = (uchar2)(val.s1, val.s3);
     uchar2 colorb565 = (uchar2)(val.s0, val.s2);
-    uchar8 color32 = (uchar8)(colora565 << (uchar2)3,
-                              colora565 >> (uchar2)3 | colorb565 << (uchar2)5,
-                              colorb565,
+    uchar8 color32 = (uchar8)(bitselect(colora565 << (uchar2)3, colora565 >> (uchar2)2, (uchar2)7),
+                              bitselect((colora565 >> (uchar2)3) | (colorb565 << (uchar2)5), colorb565 >> (uchar2)1, (uchar2)3),
+                              bitselect(colorb565, colorb565 >> (uchar2)5, (uchar2)7),
                               (uchar2)0xFF);
 
     ushort4 frac2 = convert_ushort4(color32.even & (uchar4)0xFF) - convert_ushort4(color32.odd & (uchar4)0xFF);
