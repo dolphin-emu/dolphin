@@ -161,23 +161,22 @@ kernel void decodeCMPRBlock(global uchar *dst,
                               colorb565,
                               (uchar2)0xFF);
 
-    ushort4 frac2 = (ushort4)(color32.even & (uchar4)0xFF) - (ushort4)(color32.odd & (uchar4)0xFF);
+    ushort4 frac2 = convert_ushort4(color32.even & (uchar4)0xFF) - convert_ushort4(color32.odd & (uchar4)0xFF);
     uchar4 frac = convert_uchar4((frac2 * (ushort4)3) / (ushort4)8);
     
     ushort4 colorAlpha =   upsample((uchar4)0, rhadd(color32.odd, color32.even));
     colorAlpha.s3 = 0xFF;
     ushort4 colorNoAlpha = upsample(color32.odd + frac, color32.even - frac);
 
-    ushort4 choice = isgreater(val.s0,val.s2);
-    uint4 colors = upsample(bitselect(colorNoAlpha, colorAlpha, choice),
+    uint4 colors = upsample((upsample(val.s0,val.s1) > upsample(val.s2,val.s3))?colorNoAlpha:colorAlpha,
                             upsample(color32.odd, color32.even));
 
     uint16 colorsFull = (uint16)(colors, colors, colors, colors);
 
-    vstore16((uchar16)(colorsFull >> unpack(val.s4)), 0, dst);
-    vstore16((uchar16)(colorsFull >> unpack(val.s5)), 0, dst+=width*4);
-    vstore16((uchar16)(colorsFull >> unpack(val.s6)), 0, dst+=width*4);
-    vstore16((uchar16)(colorsFull >> unpack(val.s7)), 0, dst+=width*4);
+    vstore16(convert_uchar16(colorsFull >> unpack(val.s4)), 0, dst);
+    vstore16(convert_uchar16(colorsFull >> unpack(val.s5)), 0, dst+=width*4);
+    vstore16(convert_uchar16(colorsFull >> unpack(val.s6)), 0, dst+=width*4);
+    vstore16(convert_uchar16(colorsFull >> unpack(val.s7)), 0, dst+=width*4);
 }
 
 kernel void DecodeCMPR(global uchar *dst,
