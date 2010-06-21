@@ -327,18 +327,18 @@ void ControllerInterface::DeviceQualifier::FromDevice(const ControllerInterface:
 	source= dev->GetSource();
 }
 
-bool operator==(const ControllerInterface::Device* const dev, const ControllerInterface::DeviceQualifier& devq)
+bool ControllerInterface::Device::operator==(const ControllerInterface::DeviceQualifier& devq) const
 {
-	if (dev->GetId() == devq.cid)
-		if (dev->GetName() == devq.name)
-			if (dev->GetSource() == devq.source)
+	if (GetId() == devq.cid)
+		if (GetName() == devq.name)
+			if (GetSource() == devq.source)
 				return true;
 	return false;
 }
 
-bool operator==(const ControllerInterface::Device::Control* const c, const std::string& name)
+bool ControllerInterface::Device::Control::operator==(const std::string& name) const
 {
-	return c->GetName() == name;
+	return GetName() == name;
 }
 
 bool ControllerInterface::DeviceQualifier::operator==(const ControllerInterface::DeviceQualifier& devq) const
@@ -390,8 +390,9 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 					devq.FromString(dev_str);
 
 				// find device
-				const std::vector<Device*>::const_iterator di =
-					std::find(m_devices.begin(), m_devices.end(), devq);
+				std::vector<Device*>::const_iterator di = FindDevice(m_devices, devq);
+
+
 				if (m_devices.end() != di)
 					devc.device = *di;
 
@@ -402,8 +403,15 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 					// inputs or outputs, i don't like this
 					if (ref->is_input)
 					{
-						const std::vector<Device::Input*>::const_iterator i =
-							std::find(devc.device->Inputs().begin(), devc.device->Inputs().end(), ctrl_str);
+						std::vector<Device::Input*>::const_iterator i;
+						
+						// FIXME: Use std::find instead of a for loop
+						// i = std::find(devc.device->Inputs().begin(), devc.device->Inputs().end(), ctrl_str);
+						for(i = devc.device->Inputs().begin(); i < devc.device->Inputs().end(); ++i) {
+							if(*(*i) == ctrl_str)
+								break;
+						}
+
 						if (devc.device->Inputs().end() != i)
 						{
 							devc.control = *i;
@@ -412,8 +420,16 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 					}
 					else
 					{
-						const std::vector<Device::Output*>::const_iterator i =
-							std::find(devc.device->Outputs().begin(), devc.device->Outputs().end(), ctrl_str);
+						std::vector<Device::Output*>::const_iterator i;
+						
+						// FIXME: Use std::find instead of a for loop
+						// i = std::find(devc.device->Outputs().begin(), devc.device->Outputs().end(), ctrl_str);
+						for(i = devc.device->Outputs().begin(); i < devc.device->Outputs().end(); ++i) {
+							if(*(*i) == ctrl_str)
+								break;
+						}
+
+
 						if (devc.device->Outputs().end() != i)
 						{
 							devc.control = *i;
@@ -437,6 +453,21 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 		else
 			ctrl_str += c;
 	}
+}
+
+std::vector<ControllerInterface::Device*>::const_iterator FindDevice(
+	const std::vector<ControllerInterface::Device*>& devices, const ControllerInterface::DeviceQualifier& devq) {
+	
+		std::vector<ControllerInterface::Device*>::const_iterator di;
+
+		// FIXME: Use std::find instead of a for loop
+		// di = std::find(m_devices.begin(), m_devices.end(), devq);
+		for(di = devices.begin(); di < devices.end(); ++di) {
+			if(*(*di) == devq)
+				break;
+		}
+
+		return di;
 }
 
 //

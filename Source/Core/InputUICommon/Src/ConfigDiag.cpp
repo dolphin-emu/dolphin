@@ -192,10 +192,8 @@ void ControlDialog::UpdateListContents()
 {
 	control_lbox->Clear();
 
-	const std::vector<ControllerInterface::Device*>::const_iterator di =
-		std::find(m_plugin.controller_interface.Devices().begin(),
-		m_plugin.controller_interface.Devices().end(),
-		m_devq);
+	std::vector<ControllerInterface::Device*>::const_iterator di = 
+		FindDevice(m_plugin.controller_interface.Devices(), m_devq);	
 
 	if (m_plugin.controller_interface.Devices().end() != di)
 	{
@@ -413,9 +411,8 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 	wxButton* const btn = (wxButton*)event.GetEventObject();
 	const wxString lbl = btn->GetLabel();
 
-	const std::vector<ControllerInterface::Device*>::const_iterator di =
-		std::find(m_plugin.controller_interface.Devices().begin(),
-		m_plugin.controller_interface.Devices().end(), m_devq);
+	std::vector<ControllerInterface::Device*>::const_iterator di = 
+		FindDevice(m_plugin.controller_interface.Devices(), m_devq);
 
 	if (m_plugin.controller_interface.Devices().end() != di)
 	{
@@ -440,8 +437,7 @@ void GamepadPage::DetectControl( wxCommandEvent& event )
 
 	// find device :/
 	const std::vector<ControllerInterface::Device*>::const_iterator di =
-		std::find(m_plugin.controller_interface.Devices().begin(),
-		m_plugin.controller_interface.Devices().end(), controller->default_device);
+		FindDevice(m_plugin.controller_interface.Devices(), controller->default_device);
 
 	if (m_plugin.controller_interface.Devices().end() != di)
 	{

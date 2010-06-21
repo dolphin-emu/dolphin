@@ -42,6 +42,9 @@ class ControllerInterface
 {
 public:
 
+	// Forward declarations
+	class DeviceQualifier;
+
 	//
 	//		Device
 	//
@@ -61,6 +64,7 @@ public:
 		public:
 			virtual std::string GetName() const = 0;
 			virtual ~Control() {}
+			virtual bool operator==(const std::string& name) const;
 		};
 
 		//
@@ -99,6 +103,8 @@ public:
 		virtual bool UpdateOutput() = 0;
 
 		virtual void ClearInputState();
+
+		virtual bool operator==(const DeviceQualifier& devq) const;
 
 		const std::vector<Input*>& Inputs() const { return m_inputs; }
 		const std::vector<Output*>& Outputs() const { return m_outputs; }
@@ -213,7 +219,7 @@ public:
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	const std::vector<Device*>& Devices() const { return m_devices; }
+	const std::vector<Device*>& Devices() const { return m_devices; }	
 
 private:
 	bool					m_is_init;
@@ -221,8 +227,7 @@ private:
 	void*					m_hwnd;
 };
 
-// used for std::find n stuff
-bool operator==(const ControllerInterface::Device* const dev, const ControllerInterface::DeviceQualifier& devq);
-bool operator==(const ControllerInterface::Device::Control* const c, const std::string& name);
+std::vector<ControllerInterface::Device*>::const_iterator FindDevice(
+	const std::vector<ControllerInterface::Device*>& devices, const ControllerInterface::DeviceQualifier& devq);
 
 #endif
