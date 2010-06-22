@@ -192,17 +192,15 @@ void ControlDialog::UpdateListContents()
 {
 	control_lbox->Clear();
 
-	std::vector<ControllerInterface::Device*>::const_iterator di = 
-		FindDevice(m_plugin.controller_interface.Devices(), m_devq);	
-
-	if (m_plugin.controller_interface.Devices().end() != di)
+	ControllerInterface::Device* const dev = m_plugin.controller_interface.FindDevice(m_devq);
+	if (dev)
 	{
 		if (control_reference->is_input)
 		{
 			// for inputs
 			std::vector<ControllerInterface::Device::Input*>::const_iterator
-			   	i = (*di)->Inputs().begin(),
-				e = (*di)->Inputs().end();
+			   	i = dev->Inputs().begin(),
+				e = dev->Inputs().end();
 			for (; i!=e; ++i)
 				control_lbox->Append(WXSTR_FROM_STR((*i)->GetName()));
 		}
@@ -210,8 +208,8 @@ void ControlDialog::UpdateListContents()
 		{
 			// for outputs
 			std::vector<ControllerInterface::Device::Output*>::const_iterator
-			   	i = (*di)->Outputs().begin(),
-				e = (*di)->Outputs().end();
+			   	i = dev->Outputs().begin(),
+				e = dev->Outputs().end();
 			for (; i!=e; ++i)
 				control_lbox->Append(WXSTR_FROM_STR((*i)->GetName()));
 		}
@@ -411,15 +409,13 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 	wxButton* const btn = (wxButton*)event.GetEventObject();
 	const wxString lbl = btn->GetLabel();
 
-	std::vector<ControllerInterface::Device*>::const_iterator di = 
-		FindDevice(m_plugin.controller_interface.Devices(), m_devq);
-
-	if (m_plugin.controller_interface.Devices().end() != di)
+	ControllerInterface::Device* const dev = m_plugin.controller_interface.FindDevice(m_devq);
+	if (dev)
 	{
 		btn->SetLabel(wxT("[ waiting ]"));
 
 		m_plugin.controls_crit.Enter();		// enter
-		ControllerInterface::Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, *di);
+		ControllerInterface::Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, dev);
 
 		// if we got input, select it in the list
 		if (ctrl)
@@ -436,15 +432,13 @@ void GamepadPage::DetectControl( wxCommandEvent& event )
 	ControlButton* btn = (ControlButton*)event.GetEventObject();
 
 	// find device :/
-	const std::vector<ControllerInterface::Device*>::const_iterator di =
-		FindDevice(m_plugin.controller_interface.Devices(), controller->default_device);
-
-	if (m_plugin.controller_interface.Devices().end() != di)
+	ControllerInterface::Device* const dev = m_plugin.controller_interface.FindDevice(controller->default_device);
+	if (dev)
 	{
 		btn->SetLabel(wxT("[ waiting ]"));
 
 		m_plugin.controls_crit.Enter();		// enter
-		ControllerInterface::Device::Control* const ctrl = btn->control_reference->Detect(DETECT_WAIT_TIME, *di);
+		ControllerInterface::Device::Control* const ctrl = btn->control_reference->Detect(DETECT_WAIT_TIME, dev);
 
 		// if we got input, update expression and reference
 		if (ctrl)
@@ -561,6 +555,7 @@ void GamepadPage::SaveProfile( wxCommandEvent& event )
 {
 	std::string fname;
 	GamepadPage::GetProfilePath(fname);
+	File::CreateFullPath(fname.c_str());
 
 	if (false == fname.empty())
 	{

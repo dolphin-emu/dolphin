@@ -64,7 +64,7 @@ public:
 		public:
 			virtual std::string GetName() const = 0;
 			virtual ~Control() {}
-			virtual bool operator==(const std::string& name) const;
+			bool operator==(const std::string& name) const;
 		};
 
 		//
@@ -104,8 +104,6 @@ public:
 
 		virtual void ClearInputState();
 
-		virtual bool operator==(const DeviceQualifier& devq) const;
-
 		const std::vector<Input*>& Inputs() const { return m_inputs; }
 		const std::vector<Output*>& Outputs() const { return m_outputs; }
 
@@ -135,6 +133,7 @@ public:
 		void FromString(const std::string& str);
 		std::string ToString() const;
 		bool operator==(const DeviceQualifier& devq) const;
+		bool operator==(const Device* const dev) const;
 
 		std::string		source;
 		int				cid;
@@ -219,15 +218,13 @@ public:
 	bool UpdateInput();
 	bool UpdateOutput();
 
-	const std::vector<Device*>& Devices() const { return m_devices; }	
+	const std::vector<Device*>& Devices() const { return m_devices; }
+	Device* FindDevice(const DeviceQualifier& devq) const;
 
 private:
 	bool					m_is_init;
 	std::vector<Device*>	m_devices;
 	void*					m_hwnd;
 };
-
-std::vector<ControllerInterface::Device*>::const_iterator FindDevice(
-	const std::vector<ControllerInterface::Device*>& devices, const ControllerInterface::DeviceQualifier& devq);
 
 #endif

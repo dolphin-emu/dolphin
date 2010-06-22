@@ -372,7 +372,8 @@ u8 CSIDevice_GCController::NetPlay_GetPadNum(u8 numPAD)
 
 // called from ---CPU--- thread
 // wiimote update / used for frame counting
-void CWII_IPC_HLE_Device_usb_oh1_57e_305::NetPlay_WiimoteUpdate(int _number)
+//void CWII_IPC_HLE_Device_usb_oh1_57e_305::NetPlay_WiimoteUpdate(int _number)
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::NetPlay_WiimoteUpdate(int)
 {
 	//CritLocker crit(::crit_netplay_ptr);
 
@@ -394,7 +395,8 @@ int CWII_IPC_HLE_WiiMote::NetPlay_GetWiimoteNum(int _number)
 
 // called from ---CPU--- thread
 // intercept wiimote input callback
-bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int _number, u16 _channelID, const void* _pData, u32& _Size)
+//bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int _number, u16 _channelID, const void* _pData, u32& _Size)
+bool CWII_IPC_HLE_WiiMote::NetPlay_WiimoteInput(int, u16, const void*, u32&)
 {
 	CritLocker crit(::crit_netplay_ptr);
 

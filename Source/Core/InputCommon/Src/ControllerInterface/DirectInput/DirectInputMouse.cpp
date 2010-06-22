@@ -153,7 +153,7 @@ std::string Mouse::Button::GetName() const
 
 std::string Mouse::Axis::GetName() const
 {
-	std::string tmpstr("Mouse ");
+	std::string tmpstr("Axis ");
 	tmpstr += "XYZ"[m_index]; tmpstr += ( m_range>0 ? '+' : '-' );
 	return tmpstr;
 }
