@@ -45,6 +45,7 @@
 #include "OpenCL.h"
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 #include "OpenCL/OCLTextureDecoder.h"
+#include "VideoConfig.h"
 #endif
 
 u8* g_pVideoData = 0;
@@ -385,8 +386,11 @@ void OpcodeDecoder_Init()
 	g_pVideoData = FAKE_GetFifoStartPtr();
 
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
-	OpenCL::Initialize();
-	TexDecoder_OpenCL_Initialize();
+	if (g_Config.bEnableOpenCL)
+	{
+	    OpenCL::Initialize();
+	    TexDecoder_OpenCL_Initialize();
+	}
 #endif
 }
 
@@ -394,8 +398,11 @@ void OpcodeDecoder_Init()
 void OpcodeDecoder_Shutdown()
 {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
-	TexDecoder_OpenCL_Shutdown();
-	OpenCL::Destroy();
+	if (g_Config.bEnableOpenCL)
+	{
+	    TexDecoder_OpenCL_Shutdown();
+	    OpenCL::Destroy();
+	}
 #endif
 }
 

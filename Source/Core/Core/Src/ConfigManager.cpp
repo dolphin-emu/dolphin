@@ -136,6 +136,7 @@ void SConfig::SaveSettings()
 
 	// Core
 	ini.Set("Core", "HLE_BS2",			m_LocalCoreStartupParameter.bHLE_BS2);
+	ini.Set("Core", "EnableOpenCL",		m_LocalCoreStartupParameter.bEnableOpenCL);
 	ini.Set("Core", "CPUCore",			m_LocalCoreStartupParameter.iCPUCore);
 	ini.Set("Core", "CPUThread",		m_LocalCoreStartupParameter.bCPUThread);
 	ini.Set("Core", "DSPThread",		m_LocalCoreStartupParameter.bDSPThread);
@@ -260,6 +261,7 @@ void SConfig::LoadSettings()
 
 		// Core
 		ini.Get("Core", "HLE_BS2",		&m_LocalCoreStartupParameter.bHLE_BS2,		true);
+		ini.Get("Core", "EnableOpenCL",	&m_LocalCoreStartupParameter.bHLE_BS2,		false);
 		ini.Get("Core", "CPUCore",		&m_LocalCoreStartupParameter.iCPUCore,		1);
 		ini.Get("Core", "DSPThread",	&m_LocalCoreStartupParameter.bDSPThread,	false);
 		ini.Get("Core", "CPUThread",	&m_LocalCoreStartupParameter.bCPUThread,	true);

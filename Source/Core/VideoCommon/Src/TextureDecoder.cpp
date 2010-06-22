@@ -32,6 +32,7 @@
 #include "OpenCL.h"
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 #include "OpenCL/OCLTextureDecoder.h"
+#include "VideoConfig.h"
 #endif
 
 #include "LookUpTables.h"
@@ -1269,7 +1270,8 @@ PC_TexFormat TexDecoder_Decode(u8 *dst, const u8 *src, int width, int height, in
     PC_TexFormat retval = PC_TEX_FMT_NONE;
 
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
-	retval = TexDecoder_Decode_OpenCL(dst, src, width, height, texformat, tlutaddr, tlutfmt, rgbaOnly);
+	if (g_Config.bEnableOpenCL)
+	    retval = TexDecoder_Decode_OpenCL(dst, src, width, height, texformat, tlutaddr, tlutfmt, rgbaOnly);
 #endif
 
     if(retval == PC_TEX_FMT_NONE)

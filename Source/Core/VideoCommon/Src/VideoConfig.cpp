@@ -107,6 +107,7 @@ void VideoConfig::Load(const char *ini_file)
 	bool bTmp;
 	iniFile.Get("Interface", "UsePanicHandlers", &bTmp, true);
 	SetEnableAlert(bTmp);
+	iniFile.Get("Core", "EnableOpenCL", &bEnableOpenCL, false);
 }
 
 void VideoConfig::GameIniLoad(const char *ini_file)
