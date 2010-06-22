@@ -31,24 +31,53 @@
 
 //#define DEBUG_OPENCL
 
-struct sDecoders
-{
-	const char name[256];               // kernel name
-	cl_kernel kernel;                   // compute kernel
+cl_program g_program;
+
+struct sDecoderParameter
+{    
+    char* name;
+    cl_kernel kernel;
+    float sizeOfSrc;
+	float sizeOfDst;
+    int xSkip;
+    int ySkip;
+	PC_TexFormat format;
 };
 
-cl_program g_program;
-// NULL terminated set of kernels
-sDecoders Decoders[] = {
-{"DecodeI4", NULL},
-{"DecodeI8", NULL},
-{"DecodeIA4", NULL}, 
-{"DecodeIA8", NULL},
-{"DecodeRGBA8", NULL},
-{"DecodeRGB565", NULL},
-{"DecodeRGB5A3", NULL},
-{"DecodeCMPR", NULL},
-{"", NULL},
+sDecoderParameter g_DecodeParametersNative[] = {
+    /* GX_TF_I4     */ { "DecodeI4",     NULL, 0.5f, 1, 8, 8, PC_TEX_FMT_I4_AS_I8 },
+    /* GX_TF_I8     */ { "DecodeI8",     NULL,    1, 1, 8, 4, PC_TEX_FMT_I8 },
+    /* GX_TF_IA4    */ { "DecodeIA4",    NULL,    1, 2, 8, 4, PC_TEX_FMT_IA4_AS_IA8 },
+    /* GX_TF_IA8    */ { "DecodeIA8",    NULL,    2, 2, 4, 4, PC_TEX_FMT_IA8 },
+    /* GX_TF_RGB565 */ { "DecodeRGB565", NULL,    2, 2, 4, 4, PC_TEX_FMT_RGB565 },
+    /* GX_TF_RGB5A3 */ { "DecodeRGB5A3", NULL,    2, 4, 4, 4, PC_TEX_FMT_BGRA32 },
+    /* GX_TF_RGBA8  */ { "DecodeRGBA8",  NULL,    4, 4, 4, 4, PC_TEX_FMT_BGRA32 },
+    /* 7            */ { NULL },
+    /* GX_TF_C4     */ { NULL },
+    /* GX_TF_C8     */ { NULL },
+    /* GX_TF_C14X2  */ { NULL },
+    /* B            */ { NULL },
+    /* C            */ { NULL },
+    /* D            */ { NULL },
+    /* GX_TF_CMPR   */ { "DecodeCMPR",   NULL, 0.5f, 4, 8, 8, PC_TEX_FMT_BGRA32 },
+};
+
+sDecoderParameter g_DecodeParametersRGBA[] = {
+    /* GX_TF_I4     */ { "DecodeI4_RGBA",     NULL, 0.5f, 4, 8, 8, PC_TEX_FMT_RGBA32 },
+    /* GX_TF_I8     */ { "DecodeI8_RGBA",     NULL,    1, 4, 8, 4, PC_TEX_FMT_RGBA32 },
+    /* GX_TF_IA4    */ { "DecodeIA4_RGBA",    NULL,    1, 4, 8, 4, PC_TEX_FMT_RGBA32 },
+    /* GX_TF_IA8    */ { "DecodeIA8_RGBA",    NULL,    2, 4, 4, 4, PC_TEX_FMT_RGBA32 },
+    /* GX_TF_RGB565 */ { "DecodeRGB565_RGBA", NULL,    2, 4, 4, 4, PC_TEX_FMT_RGBA32 },
+    /* GX_TF_RGB5A3 */ { "DecodeRGB5A3_RGBA", NULL,    2, 4, 4, 4, PC_TEX_FMT_RGBA32 },
+    /* GX_TF_RGBA8  */ { "DecodeRGBA8_RGBA",  NULL,    4, 4, 4, 4, PC_TEX_FMT_RGBA32 },
+    /* 7            */ { NULL },
+    /* GX_TF_C4     */ { NULL },
+    /* GX_TF_C8     */ { NULL },
+    /* GX_TF_C14X2  */ { NULL },
+    /* B            */ { NULL },
+    /* C            */ { NULL },
+    /* D            */ { NULL },
+    /* GX_TF_CMPR   */ { "DecodeCMPR_RGBA",   NULL, 0.5f, 4, 8, 8, PC_TEX_FMT_RGBA32 },
 };
 
 bool g_Inited = false;
@@ -73,10 +102,13 @@ void TexDecoder_OpenCL_Initialize() {
 		g_program = OpenCL::CompileProgram(code.c_str());
 
 		int i = 0;
-		while(strlen(Decoders[i].name) > 0) {
-			Decoders[i].kernel = OpenCL::CompileKernel(g_program, Decoders[i].name);
-			i++;
-		}
+        for(int i = 0; i < GX_TF_CMPR; ++i) {
+            if(g_DecodeParametersNative[i].name)
+                g_DecodeParametersNative[i].kernel = OpenCL::CompileKernel(g_program, g_DecodeParametersNative[i].name);
+
+            if(false && g_DecodeParametersRGBA[i].name)
+                g_DecodeParametersRGBA[i].kernel = OpenCL::CompileKernel(g_program, g_DecodeParametersRGBA[i].name);
+        }
 
 		// Allocating maximal Wii texture size in advance, so that we don't have to allocate/deallocate per texture
 #ifndef DEBUG_OPENCL
@@ -94,11 +126,14 @@ void TexDecoder_OpenCL_Shutdown() {
 	
 	clReleaseProgram(g_program);
 	int i = 0;
-	while(strlen(Decoders[i].name) > 0)
-	{
-		clReleaseKernel(Decoders[i].kernel);
-		i++;
-	}
+
+    for(int i = 0; i < GX_TF_CMPR; ++i) {
+        if(g_DecodeParametersNative[i].kernel)
+            clReleaseKernel(g_DecodeParametersNative[i].kernel);
+
+        if(g_DecodeParametersRGBA[i].kernel)
+            clReleaseKernel(g_DecodeParametersRGBA[i].kernel);
+    }
 	
 	if(g_clsrc)
 		clReleaseMemObject(g_clsrc);
@@ -110,93 +145,26 @@ void TexDecoder_OpenCL_Shutdown() {
 #endif
 }
 
-PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt)
+PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int height, int texformat, int tlutaddr, int tlutfmt, bool rgba)
 {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 	cl_int err;
-	cl_kernel kernelToRun = Decoders[0].kernel;
-	float sizeOfDst = sizeof(u8), sizeOfSrc = sizeof(u8), xSkip, ySkip;
-	PC_TexFormat formatResult;
-	
-	switch(texformat)
-	{
-		case GX_TF_I4:
-			kernelToRun = Decoders[0].kernel;
-			sizeOfSrc = sizeof(u8) / 2.0f;
-			sizeOfDst = sizeof(u8);
-			xSkip = 8;
-			ySkip = 8;
-			formatResult = PC_TEX_FMT_I4_AS_I8;
-			break;
-		case GX_TF_I8:
-			kernelToRun = Decoders[1].kernel;
-			sizeOfSrc = sizeOfDst = sizeof(u8);
-			xSkip = 8;
-			ySkip = 4;
-			formatResult = PC_TEX_FMT_I8;
-			break;
-		case GX_TF_IA4:
-			kernelToRun = Decoders[2].kernel;
-			sizeOfSrc = sizeof(u8);
-			sizeOfDst = sizeof(u16);
-			xSkip = 8;
-			ySkip = 4;
-			formatResult = PC_TEX_FMT_IA4_AS_IA8;
-			break;
-		case GX_TF_IA8:
-			kernelToRun = Decoders[3].kernel;
-			sizeOfSrc = sizeOfDst = sizeof(u16);
-			xSkip = 4;
-			ySkip = 4;
-			formatResult = PC_TEX_FMT_IA8;
-			break;
-		case GX_TF_RGBA8:
-			kernelToRun = Decoders[4].kernel;
-			sizeOfSrc = sizeOfDst = sizeof(u32);
-			xSkip = 4;
-			ySkip = 4;
-			formatResult = PC_TEX_FMT_BGRA32;
-			break;
-		case GX_TF_RGB565:
-			kernelToRun = Decoders[5].kernel;
-			sizeOfSrc = sizeOfDst = sizeof(u16);
-			xSkip = 4;
-			ySkip = 4;
-			formatResult = PC_TEX_FMT_RGB565;
-			break;
-		case GX_TF_RGB5A3:
-			// Reported issues with Sonic Adventure 2: Battle opening sequence?
-			kernelToRun = Decoders[6].kernel;
-			sizeOfSrc = sizeof(u16);
-			sizeOfDst = sizeof(u32);
-			xSkip = 4;
-			ySkip = 4;
-			formatResult = PC_TEX_FMT_BGRA32;
-			break;
-		case GX_TF_CMPR:
-			kernelToRun = Decoders[7].kernel;
-			sizeOfSrc = sizeof(u8) / 2.0f;
-			sizeOfDst = sizeof(u32);
-			xSkip = 8;
-			ySkip = 8;
-			formatResult = PC_TEX_FMT_BGRA32;
-			break;
-		default:
-			return PC_TEX_FMT_NONE;
-	}
+    sDecoderParameter& decoder = rgba ? g_DecodeParametersRGBA[texformat] : g_DecodeParametersNative[texformat];
+    if(!decoder.name || !decoder.kernel || decoder.format == PC_TEX_FMT_NONE)
+        return PC_TEX_FMT_NONE;
 
 #ifdef DEBUG_OPENCL
 	g_clsrc = clCreateBuffer(OpenCL::GetContext(), CL_MEM_READ_ONLY , 1024 * 1024 * sizeof(u32), NULL, NULL);
 	g_cldst = clCreateBuffer(OpenCL::GetContext(), CL_MEM_WRITE_ONLY, 1024 * 1024 * sizeof(u32), NULL, NULL);
 #endif
 
-	clEnqueueWriteBuffer(OpenCL::GetCommandQueue(), g_clsrc, CL_TRUE, 0, (size_t)(width * height * sizeOfSrc), src, 0, NULL, NULL);
+	clEnqueueWriteBuffer(OpenCL::GetCommandQueue(), g_clsrc, CL_TRUE, 0, (size_t)(width * height * decoder.sizeOfSrc), src, 0, NULL, NULL);
 
-	clSetKernelArg(kernelToRun, 0, sizeof(cl_mem), &g_cldst);
-	clSetKernelArg(kernelToRun, 1, sizeof(cl_mem), &g_clsrc);
-	clSetKernelArg(kernelToRun, 2, sizeof(cl_int), &width);
+	clSetKernelArg(decoder.kernel, 0, sizeof(cl_mem), &g_cldst);
+	clSetKernelArg(decoder.kernel, 1, sizeof(cl_mem), &g_clsrc);
+	clSetKernelArg(decoder.kernel, 2, sizeof(cl_int), &width);
 
-	size_t global[] = { (size_t)(width / xSkip), (size_t)(height / ySkip) };
+	size_t global[] = { (size_t)(width / decoder.xSkip), (size_t)(height / decoder.ySkip) };
 
 	// No work-groups for now
 	/*
@@ -206,20 +174,20 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 		PanicAlert("Error obtaining work-group information");
 	*/
 
-	err = clEnqueueNDRangeKernel(OpenCL::GetCommandQueue(), kernelToRun, 2, NULL, global, NULL, 0, NULL, NULL);
+	err = clEnqueueNDRangeKernel(OpenCL::GetCommandQueue(), decoder.kernel, 2, NULL, global, NULL, 0, NULL, NULL);
 	if(err)
 		OpenCL::HandleCLError(err, "Failed to enqueue kernel");
 
 	clFinish(OpenCL::GetCommandQueue());
 	
-	clEnqueueReadBuffer(OpenCL::GetCommandQueue(), g_cldst, CL_TRUE, 0, (size_t)(width * height * sizeOfDst), dst, 0, NULL, NULL);
+	clEnqueueReadBuffer(OpenCL::GetCommandQueue(), g_cldst, CL_TRUE, 0, (size_t)(width * height * decoder.sizeOfDst), dst, 0, NULL, NULL);
 
 #ifdef DEBUG_OPENCL
 	clReleaseMemObject(g_clsrc);
 	clReleaseMemObject(g_cldst);
 #endif
 
-	return formatResult;
+	return decoder.format;
 #else
 	return PC_TEX_FMT_NONE;
 #endif
