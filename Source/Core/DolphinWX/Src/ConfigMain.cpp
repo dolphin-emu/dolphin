@@ -30,7 +30,7 @@
 #include "Frame.h"
 #include "HotkeyDlg.h"
 
-#include "..\..\Common\Src\OpenCL.h"
+#include "../../Common/Src/OpenCL.h"
 
 #ifdef __APPLE__
 #include <Cocoa/Cocoa.h>
