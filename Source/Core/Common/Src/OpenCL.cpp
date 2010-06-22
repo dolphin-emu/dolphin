@@ -163,7 +163,9 @@ cl_kernel CompileKernel(cl_program program, const char *Function)
 	cl_kernel kernel = clCreateKernel(program, Function, &err);
 	if (!kernel || err != CL_SUCCESS)
 	{
-		HandleCLError(err, "Failed to create compute kernel!");
+        char buffer[1024];
+        sprintf(buffer, "Failed to create compute kernel '%s' !", Function);
+		HandleCLError(err, buffer);
 		return NULL;
 	}
 	NOTICE_LOG(COMMON, "OpenCL CompileKernel took %.3f seconds", (float)(Common::Timer::GetTimeMs() - compileStart) / 1000.0);

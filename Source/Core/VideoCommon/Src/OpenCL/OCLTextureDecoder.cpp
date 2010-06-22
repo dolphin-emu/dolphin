@@ -102,11 +102,11 @@ void TexDecoder_OpenCL_Initialize() {
 		g_program = OpenCL::CompileProgram(code.c_str());
 
 		int i = 0;
-        for(int i = 0; i < GX_TF_CMPR; ++i) {
+        for(int i = 0; i <= GX_TF_CMPR; ++i) {
             if(g_DecodeParametersNative[i].name)
                 g_DecodeParametersNative[i].kernel = OpenCL::CompileKernel(g_program, g_DecodeParametersNative[i].name);
 
-            if(false && g_DecodeParametersRGBA[i].name)
+            if(g_DecodeParametersRGBA[i].name)
                 g_DecodeParametersRGBA[i].kernel = OpenCL::CompileKernel(g_program, g_DecodeParametersRGBA[i].name);
         }
 
