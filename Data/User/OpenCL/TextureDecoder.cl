@@ -32,6 +32,23 @@ kernel void DecodeI4(global uchar *dst,
     }
 }
 
+kernel void DecodeI4_RGBA(global uint *dst,
+                          const global uchar *src, int width)
+{
+    int x = get_global_id(0) * 8, y = get_global_id(1) * 8;
+    int srcOffset = x + y * width / 8;
+    for (int iy = 0; iy < 8; iy++)
+    {
+        uchar4 val = vload4(srcOffset, src);
+        uchar8 res;
+        res.even = (val >> (uchar4)4) & (uchar4)0x0F;
+        res.odd = val & (uchar4)0x0F;
+        res |= res << (uchar8)4;
+        vstore8(upsample(upsample(res,res),upsample(res,res)), 0, dst + ((y + iy)*width + x));
+        srcOffset++;
+    }
+}
+
 kernel void DecodeI8(global uchar *dst,
                      const global uchar *src, int width)
 {
@@ -39,13 +56,25 @@ kernel void DecodeI8(global uchar *dst,
     int srcOffset = ((x * 4) + (y * width)) / 8;
     for (int iy = 0; iy < 4; iy++)
     {
-        vstore8(vload8(srcOffset, src),
+        vstore8(vload8(srcOffset++, src),
                 0, dst + ((y + iy)*width + x));
-        srcOffset++;
     }
 }
 
-kernel void DecodeIA8(global uchar *dst,
+kernel void DecodeI8_RGBA(global uint *dst,
+                          const global uchar *src, int width)
+{
+    int x = get_global_id(0) * 8, y = get_global_id(1) * 4;
+    int srcOffset = ((x * 4) + (y * width)) / 8;
+    for (int iy = 0; iy < 4; iy++)
+    {
+        uchar8 val = vload8(srcOffset++, src);
+        vstore8(upsample(upsample(val,val),upsample(val,val)),
+                0, dst + ((y + iy)*width + x));
+    }
+}
+
+kernel void DecodeIA8(global ushort *dst,
                       const global uchar *src, int width)
 {
     int x = get_global_id(0) * 4, y = get_global_id(1) * 4;
@@ -53,31 +82,56 @@ kernel void DecodeIA8(global uchar *dst,
     for (int iy = 0; iy < 4; iy++)
     {
         uchar8 val = vload8(srcOffset++, src);
-        uchar8 res;
-        res.odd = val.even;
-        res.even = val.odd;
-        vstore8(res, 0, dst + ((y + iy)*width + x) * 2);
+        vstore4(upsample(val.even, val.odd), 0, dst + ((y + iy)*width + x));
     }
 }
 
-kernel void DecodeIA4(global uchar *dst,
-                     const global uchar *src, int width)
+kernel void DecodeIA8_RGBA(global uint *dst,
+                           const global uchar *src, int width)
+{
+    int x = get_global_id(0) * 4, y = get_global_id(1) * 4;
+    int srcOffset = ((x * 4) + (y * width)) / 4;
+    for (int iy = 0; iy < 4; iy++)
+    {
+        uchar8 val = vload8(srcOffset++, src);
+        vstore4(upsample(upsample(val.even,val.odd),upsample(val.odd, val.odd)), 0, dst + ((y + iy)*width + x));
+    }
+}
+
+kernel void DecodeIA4(global ushort *dst,
+                      const global uchar *src, int width)
 {
     int x = get_global_id(0) * 8, y = get_global_id(1) * 4;
     int srcOffset = ((x * 4) + (y * width)) / 8;
     uchar8 val;
-    uchar16 res;
-    dst += 2*(y*width + x);
-    #define iterateIA4() \
-    val = vload8(srcOffset++, src); \
-    res.odd = (val >> (uchar8)4); \
-    res.even  = val & (uchar8)0x0F; \
-    res |= res << (uchar16)4; \
-    vstore16(res, 0, dst);
-    iterateIA4(); dst += 2*width;
-    iterateIA4(); dst += 2*width;
-    iterateIA4(); dst += 2*width;
-    iterateIA4();
+    ushort8 res;
+    for (int iy = 0; iy < 4; iy++)
+    {
+        val = vload8(srcOffset++, src);
+        res = upsample(val >> (uchar8)4, val & (uchar8)0xF);
+        res |= res << (ushort8)4; 
+        vstore8(res, 0, dst + y*width + x);
+        dst+=width;
+    }
+}
+
+kernel void DecodeIA4_RGBA(global uint *dst,
+                           const global uchar *src, int width)
+{
+    int x = get_global_id(0) * 8, y = get_global_id(1) * 4;
+    int srcOffset = ((x * 4) + (y * width)) / 8;
+    uchar8 val;
+    uint8 res;
+    for (int iy = 0; iy < 4; iy++)
+    {
+        val = vload8(srcOffset++, src);
+        uchar8 a = val >> (uchar8)4;
+        uchar8 l = val & (uchar8)0xF;
+        res = upsample(upsample(a, l), upsample(l,l));
+        res |= res << (uint8)4;
+        vstore8(res, 0, dst + y*width + x);
+        dst+=width;
+    }
 }
 
 kernel void DecodeRGBA8(global uchar *dst,
