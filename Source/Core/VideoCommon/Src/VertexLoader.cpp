@@ -72,6 +72,8 @@ int colElements[2];
 float posScale;
 float tcScale[8];
 
+static float texCoordFrac[32];
+
 using namespace Gen;
 
 void LOADERDECL PosMtx_ReadDirect_UByte()
@@ -177,6 +179,10 @@ VertexLoader::VertexLoader(const TVtxDesc &vtx_desc, const VAT &vtx_attr)
 	VertexLoader_Normal::Init();
 	VertexLoader_Position::Init();
 	VertexLoader_TextCoord::Init();
+
+	for (int i = 0; i < 32; ++i) {
+		texCoordFrac[i] = 1.0f / (1 << i);
+	}
 
 	m_VtxDesc = vtx_desc;
 	SetVAT(vtx_attr.g0.Hex, vtx_attr.g1.Hex, vtx_attr.g2.Hex);
@@ -574,7 +580,7 @@ void VertexLoader::RunVertices(int vtx_attr_group, int primitive, int count)
 	posScale = 1.0f / float(1 << m_VtxAttr.PosFrac);
 	if (m_NativeFmt->m_components & VB_HAS_UVALL)
 		for (int i = 0; i < 8; i++)
-			tcScale[i] = 1.0f / float(1 << m_VtxAttr.texCoord[i].Frac);
+			tcScale[i] = texCoordFrac[m_VtxAttr.texCoord[i].Frac];
 	for (int i = 0; i < 2; i++)
 		colElements[i] = m_VtxAttr.color[i].Elements;
 
