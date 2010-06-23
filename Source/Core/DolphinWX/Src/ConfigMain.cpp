@@ -64,7 +64,9 @@ EVT_CHOICE(ID_FRAMELIMIT, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_FRAMELIMIT_USEFPSFORLIMITING, CConfigMain::CoreSettingsChanged)
 
 EVT_CHECKBOX(ID_ALWAYS_HLE_BS2, CConfigMain::CoreSettingsChanged)
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
 EVT_CHECKBOX(ID_ENABLE_OPENCL, CConfigMain::CoreSettingsChanged)
+#endif
 EVT_RADIOBOX(ID_CPUENGINE, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_LOCKTHREADS, CConfigMain::CoreSettingsChanged)
 EVT_CHECKBOX(ID_DSPTHREAD, CConfigMain::CoreSettingsChanged)
@@ -161,7 +163,9 @@ void CConfigMain::UpdateGUI()
 		EnableCheats->Disable();
 		
 		AlwaysHLE_BS2->Disable();
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
 		EnableOpenCL->Disable();
+#endif
 		CPUEngine->Disable();
 		LockThreads->Disable();
 		DSPThread->Disable();
@@ -265,7 +269,9 @@ void CConfigMain::InitializeGUIValues()
 
 	// General - Advanced
 	AlwaysHLE_BS2->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2);
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	EnableOpenCL->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableOpenCL);
+#endif
 	CPUEngine->SetSelection(SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore);
 	LockThreads->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bLockThreads);
 	DSPThread->SetValue(SConfig::GetInstance().m_LocalCoreStartupParameter.bDSPThread);
@@ -333,8 +339,9 @@ void CConfigMain::InitializeGUITooltips()
 
 	// General - Advanced
 	DSPThread->SetToolTip(wxT("Run DSPLLE on a dedicated thread (not recommended)."));
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	EnableOpenCL->SetToolTip(wxT("Allow videocard to accelerate texture decoding."));
-
+#endif
 
 	// Display - Display
 	FullscreenResolution->SetToolTip(wxT("Select resolution for fullscreen mode"));
@@ -403,9 +410,8 @@ void CConfigMain::CreateGUIControls()
 	// Core Settings - Advanced
 	sbAdvanced = new wxStaticBoxSizer(wxVERTICAL, GeneralPage, wxT("Advanced Settings"));
 	AlwaysHLE_BS2 = new wxCheckBox(GeneralPage, ID_ALWAYS_HLE_BS2, wxT("HLE the IPL (recommended)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	EnableOpenCL = new wxCheckBox(GeneralPage, ID_ENABLE_OPENCL, wxT("Enable OpenCL"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-#if !(defined(HAVE_OPENCL) && HAVE_OPENCL)
-		EnableOpenCL->Enable(false);
 #endif
 	CPUEngine = new wxRadioBox(GeneralPage, ID_CPUENGINE, wxT("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize, arrayStringFor_CPUEngine, 0, wxRA_SPECIFY_ROWS);
 	LockThreads = new wxCheckBox(GeneralPage, ID_LOCKTHREADS, wxT("Lock threads to cores"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -422,7 +428,9 @@ void CConfigMain::CreateGUIControls()
 	sbBasic->Add(sFramelimit, 0, wxALL | wxEXPAND, 5);
 
 	sbAdvanced->Add(AlwaysHLE_BS2, 0, wxALL, 5);
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	sbAdvanced->Add(EnableOpenCL, 0, wxALL, 5);
+#endif
 	sbAdvanced->Add(CPUEngine, 0, wxALL, 5);
 	sbAdvanced->Add(LockThreads, 0, wxALL, 5);
 	sbAdvanced->Add(DSPThread, 0, wxALL, 5);
@@ -818,9 +826,11 @@ void CConfigMain::CoreSettingsChanged(wxCommandEvent& event)
 	case ID_ALWAYS_HLE_BS2:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bHLE_BS2 = AlwaysHLE_BS2->IsChecked();
 		break;
+#if defined(HAVE_OPENCL) && HAVE_OPENCL
 	case ID_ENABLE_OPENCL:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableOpenCL = EnableOpenCL->IsChecked();
 		break;
+#endif
 	case ID_CPUENGINE:
 		SConfig::GetInstance().m_LocalCoreStartupParameter.iCPUCore = CPUEngine->GetSelection();
 		if (main_frame->g_pCodeWindow)
