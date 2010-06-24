@@ -22,6 +22,7 @@
 #include "CoreTiming.h"
 #include "Core.h"
 #include "StringUtil.h"
+#include "PluginManager.h"
 
 #define MAX_SLICE_LENGTH 20000
 
@@ -41,6 +42,7 @@ struct BaseEvent
 	s64 time;
 	u64 userdata;
 	int type;
+	bool fifoWait;
 //	Event *next;
 };
 
@@ -208,7 +210,7 @@ u64 GetIdleTicks()
 
 // This is to be called when outside threads, such as the graphics thread, wants to
 // schedule things to be executed on the main thread.
-void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata)
+void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata, bool fifoWait)
 {
 	externalEventSection.Enter();
 	Event *ne = GetNewTsEvent();
@@ -216,6 +218,7 @@ void ScheduleEvent_Threadsafe(int cyclesIntoFuture, int event_type, u64 userdata
 	ne->type = event_type;
 	ne->next = 0;
 	ne->userdata = userdata;
+	ne->fifoWait = fifoWait;
 	if(!tsFirst)
 		tsFirst = ne;
 	if(tsLast)
@@ -235,7 +238,7 @@ void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
 		externalEventSection.Leave();
 	}
 	else
-		ScheduleEvent_Threadsafe(0, event_type, userdata);
+		ScheduleEvent_Threadsafe(0, event_type, userdata, false);
 }
 
 void ClearPendingEvents()
@@ -275,7 +278,7 @@ void ScheduleEvent(int cyclesIntoFuture, int event_type, u64 userdata)
 	ne->userdata = userdata;
 	ne->type = event_type;
 	ne->time = globalTimer + cyclesIntoFuture;
-
+	ne->fifoWait = false;
 	AddEventToQueue(ne);
 }
 
@@ -337,8 +340,33 @@ void ResetSliceLength()
 	maxSliceLength = MAX_SLICE_LENGTH;
 }
 
-void Advance()
-{	
+
+//This raise only the events required while the fifo is processing data
+void ProcessFifoWaitEvents()
+{
+	MoveEvents();
+
+	while (first)
+	{
+		if ((first->time <= globalTimer) && first->fifoWait)
+		{
+			
+			Event* evt = first;
+			first = first->next;
+			event_types[evt->type].callback(evt->userdata, (int)(globalTimer - evt->time));
+			FreeEvent(evt);
+		}
+		else
+		{
+			break;
+		}
+	}
+
+}
+
+void MoveEvents()
+{
+
 	externalEventSection.Enter();
     // Move events from async queue into main queue
 	while (tsFirst)
@@ -359,6 +387,13 @@ void Advance()
         allocatedTsEvents--;
     }
 	externalEventSection.Leave();
+
+}
+
+void Advance()
+{	
+
+	MoveEvents();		
 
 	int cyclesExecuted = slicelength - downcount;
 	globalTimer += cyclesExecuted;
@@ -410,6 +445,15 @@ void Idle()
 {
 	//DEBUG_LOG(POWERPC, "Idle");
 	
+	//When the FIFO is processing data we must not advance because in this way
+	//the VI will be desynchronized. So, We are waiting until the FIFO finish and 
+	//while we process only the events required by the FIFO.
+	while (CPluginManager::GetInstance().GetVideo()->Video_IsFifoBusy())
+	{
+		ProcessFifoWaitEvents();		
+		Common::YieldCPU();
+	}
+
 	idledCycles += downcount;
 	downcount = 0;
 	

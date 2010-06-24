@@ -110,6 +110,8 @@ static u32 fake_GPWatchdogLastToken = 0;
 static Common::EventEx s_fifoIdleEvent;
 static Common::CriticalSection sFifoCritical;
 
+volatile bool isFifoBusy = false; //This state is changed when the FIFO is processing data.
+
 void FifoCriticalEnter()
 {
 	sFifoCritical.Enter();
@@ -597,8 +599,8 @@ void STACKALIGN GatherPipeBursted()
 	if (g_VideoInitialize.bOnThread)
 	{
 		// A little trick to prevent FIFO from overflown in dual core mode (n < 100 to avoid dead lock)
-		for (int cnt = 0; fifo.CPReadWriteDistance > fifo.CPEnd - fifo.CPBase && cnt < 100; cnt++)
-			Common::SwitchCurrentThread();
+		//for (int cnt = 0; fifo.CPReadWriteDistance > fifo.CPEnd - fifo.CPBase && cnt < 100; cnt++)
+		//	Common::SwitchCurrentThread();
 	}
 	else
 	{
@@ -683,7 +685,7 @@ void UpdateInterrupts()
 
 void UpdateInterruptsFromVideoPlugin()
 {
-	g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, 0);
+	g_VideoInitialize.pScheduleEvent_Threadsafe(0, et_UpdateInterrupts, 0, true);
 }
 
 void SetFifoIdleFromVideoPlugin()

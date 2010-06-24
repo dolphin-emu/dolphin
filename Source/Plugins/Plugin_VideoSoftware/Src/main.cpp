@@ -209,3 +209,8 @@ void Video_GatherPipeBursted(void)
 void Video_WaitForFrameFinish(void)
 {
 }
+
+bool Video_IsFifoBusy(void)
+{
+	return false;
+}

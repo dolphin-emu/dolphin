@@ -354,7 +354,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 		// This seems smelly...
 		CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack since PEToken seems to be a frame-finish too
 		g_VideoInitialize.pScheduleEvent_Threadsafe(
-			0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
+			0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16), true);
 	}
 	else // set token value
 	{
@@ -373,7 +373,7 @@ void SetFinish()
 {
 	CommandProcessor::IncrementGPWDToken(); // for DC watchdog hack
 	g_VideoInitialize.pScheduleEvent_Threadsafe(
-		0, et_SetFinishOnMainThread, 0);
+		0, et_SetFinishOnMainThread, 0, true);
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 }
 

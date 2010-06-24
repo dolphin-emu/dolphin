@@ -155,7 +155,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
     if (_bSetTokenAcknowledge) // set token INT
 	{
         g_VideoInitialize.pScheduleEvent_Threadsafe(
-			0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
+			0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16), true);
 	}
 }
 
@@ -164,7 +164,7 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 void SetFinish()
 {
 	g_VideoInitialize.pScheduleEvent_Threadsafe(
-		0, et_SetFinishOnMainThread, 0);
+		0, et_SetFinishOnMainThread, 0, true);
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 }
 

@@ -147,9 +147,13 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 		VideoFifo_CheckEFBAccess();
 		VideoFifo_CheckSwapRequest();
 
-		// check if we are able to run this buffer
+		// check if we are able to run this buffer		
+		
 		while (_fifo.bFF_GPReadEnable && _fifo.CPReadWriteDistance)
 		{
+			// while the FIFO is processing data we activate this for sync with emulator thread.
+			CommandProcessor::isFifoBusy = true;
+
 			if (!fifoStateRun)
 				break;
 
@@ -170,6 +174,7 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 					if (_fifo.bFF_BPInt)
 						CommandProcessor::UpdateInterruptsFromVideoPlugin();
 					CommandProcessor::FifoCriticalLeave();
+					CommandProcessor::isFifoBusy = false;
 					break;
 				}
 
@@ -205,15 +210,19 @@ void Fifo_EnterLoop(const SVideoInitialize &video_initialize)
 			// Those two are pretty important and must be called in the FIFO Loop.
 			// If we don't, s_swapRequested (OGL only) or s_efbAccessRequested won't be set to false
 			// leading the CPU thread to wait in Video_BeginField or Video_AccessEFB thus slowing things down.
+			
 			VideoFifo_CheckEFBAccess();
 			VideoFifo_CheckSwapRequest();
+			CommandProcessor::isFifoBusy = false;						
 		}
-
+		
+		
 		if (!_fifo.CPReadIdle && _fifo.CPReadWriteDistance < _fifo.CPLoWatermark)
 		{
 			Common::AtomicStore(_fifo.CPReadIdle, true);
 			CommandProcessor::UpdateInterruptsFromVideoPlugin();
 		}
+		
 		_fifo.CPCmdIdle = true;
 		CommandProcessor::SetFifoIdleFromVideoPlugin();
 		if (EmuRunning)

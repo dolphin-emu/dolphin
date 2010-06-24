@@ -506,3 +506,8 @@ void Video_WaitForFrameFinish(void)
 {
 	CommandProcessor::WaitForFrameFinish();
 }
+
+bool Video_IsFifoBusy(void)
+{
+	return CommandProcessor::isFifoBusy;
+}

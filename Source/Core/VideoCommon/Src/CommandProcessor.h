@@ -25,11 +25,12 @@ class PointerWrap;
 
 extern bool MT;
 
+
 namespace CommandProcessor
 {
 
-extern SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread
-
+extern SCPFifoStruct fifo; //This one is shared between gfx thread and emulator thread.
+extern volatile bool isFifoBusy; //This one is used for sync gfx thread and emulator thread.
 // internal hardware addresses
 enum
 {
