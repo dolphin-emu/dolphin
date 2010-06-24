@@ -1243,8 +1243,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	// For testing zbuffer targets.
 	// Renderer::SetZBufferRender();
 	// SaveTexture("tex.tga", GL_TEXTURE_RECTANGLE_ARB, s_FakeZTarget, GetTargetWidth(), GetTargetHeight());
+	g_VideoInitialize.pCopiedToXFB(XFBWrited || g_ActiveConfig.bUseRealXFB);	
 	XFBWrited = false;
-	g_VideoInitialize.pCopiedToXFB(XFBWrited);	
+	
 }
 
 // Create On-Screen-Messages

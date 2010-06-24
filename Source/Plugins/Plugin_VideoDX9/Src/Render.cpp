@@ -907,9 +907,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	vp.Height = targetRc.GetHeight();
 	vp.MinZ = 0.0;
 	vp.MaxZ = 1.0;
-	D3D::dev->SetViewport(&vp);	
-
-	
+	D3D::dev->SetViewport(&vp);		
 
 	// Always set the scissor in case it was set by the game and has not been reset
 	RECT sirc;
@@ -931,50 +929,26 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {	
-	// blend mode bit mask
-	// 0 - blend enable
-	// 2 - reverse subtract enable (else add)
-	// 3-5 - srcRGB function
-	// 6-8 - dstRGB function
-	#define BLEND_ENABLE_MASK 1
-	#define BLENDOP_SHIFT 2
-	#define BLENDOP_MASK 4
-	#define SRCFACTOR_SHIFT 3
-	#define DESTFACTOR_SHIFT 6
-	#define FACTOR_MASK 7
-
-	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
+	if (bpmem.blendmode.logicopenable)
 		return;
-	u32 newval = bpmem.blendmode.subtract << BLENDOP_SHIFT;
-
-	if (bpmem.blendmode.subtract) {
-		newval |= BLEND_ENABLE_MASK | (1 << SRCFACTOR_SHIFT) | (1 << DESTFACTOR_SHIFT);
-	} else if (bpmem.blendmode.blendenable) {
-		newval |= BLEND_ENABLE_MASK;    // enable blending
-		newval |= bpmem.blendmode.srcfactor << SRCFACTOR_SHIFT;
-		newval |= bpmem.blendmode.dstfactor << DESTFACTOR_SHIFT;
-	}
 	
-	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
-
-	if (changes & BLEND_ENABLE_MASK) {
-		// blend enable change
-		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, (newval & BLEND_ENABLE_MASK));
-		
-	}
-
-	if (changes & BLENDOP_MASK) {
-		// subtract enable change
-		D3D::SetRenderState(D3DRS_BLENDOP, newval & BLENDOP_MASK ? D3DBLENDOP_REVSUBTRACT : D3DBLENDOP_ADD);
-	}
-
-	if (changes & 0x1F8) {
-		// blend RGB change
-		D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[(newval >> SRCFACTOR_SHIFT) & FACTOR_MASK]);
-		D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[(newval >> DESTFACTOR_SHIFT) & FACTOR_MASK]);
-	}
-
-	s_blendMode = newval;
+	if (bpmem.blendmode.subtract && bpmem.blendmode.blendenable) 
+	{
+		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, true);
+		D3D::SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_REVSUBTRACT);
+		D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[1]);
+		D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[1]);
+	} 
+	else 
+	{
+		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0)));
+		if (bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0))) 
+		{
+			D3D::SetRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
+			D3D::SetRenderState(D3DRS_SRCBLEND, d3dSrcFactors[bpmem.blendmode.srcfactor]);
+			D3D::SetRenderState(D3DRS_DESTBLEND, d3dDestFactors[bpmem.blendmode.dstfactor]);
+		}		
+	}	
 }
 
 
@@ -1292,7 +1266,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
 	UpdateViewport();
 	VertexShaderManager::SetViewportChanged();
-	g_VideoInitialize.pCopiedToXFB(XFBWrited);
+	g_VideoInitialize.pCopiedToXFB(XFBWrited || g_ActiveConfig.bUseRealXFB);
 	XFBWrited = false;
 }
 
@@ -1343,8 +1317,7 @@ void Renderer::SetLogicOpMode()
 {
 	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3) 
 	{
-		s_blendMode = 0;
-		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, 1);
+		D3D::SetRenderState(D3DRS_ALPHABLENDENABLE, true);
 		D3D::SetRenderState(D3DRS_BLENDOP, d3dLogicOpop[bpmem.blendmode.logicmode]);
 		D3D::SetRenderState(D3DRS_SRCBLEND, d3dLogicOpSrcFactors[bpmem.blendmode.logicmode]);
 		D3D::SetRenderState(D3DRS_DESTBLEND, d3dLogicOpDestFactors[bpmem.blendmode.logicmode]);

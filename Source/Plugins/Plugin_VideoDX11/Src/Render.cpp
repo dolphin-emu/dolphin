@@ -766,60 +766,40 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
 	D3D::stateman->PushDepthState(cleardepthstates[zEnable]);
 	D3D::stateman->PushRasterizerState(clearraststate);
-	D3D::stateman->PushBlendState(resetblendstate);
+	//D3D::stateman->PushBlendState(resetblendstate); temporarily comented till i found the cause of th blending error in mkwii
+	D3D::stateman->Apply();
 	D3D::drawClearQuad(rgbaColor, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader(), VertexShaderCache::GetClearInputLayout());
 
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopRasterizerState();
-	D3D::stateman->PopBlendState();
+	//D3D::stateman->PopBlendState();		
 	UpdateViewport();
 	SetScissorRect();
 }
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
-	#define BLEND_ENABLE_MASK 1
-	#define BLENDOP_SHIFT 2
-	#define BLENDOP_MASK 4
-	#define SRCFACTOR_SHIFT 3
-	#define DESTFACTOR_SHIFT 6
-	#define FACTOR_MASK 7
-	
-
-	// blend mode bit mask
-	// 0 - blend enable
-	// 2 - reverse subtract enable (else add)
-	// 3-5 - srcRGB function
-	// 6-8 - dstRGB function
-	if (bpmem.blendmode.logicopenable && bpmem.blendmode.logicmode != 3)
+	if (bpmem.blendmode.logicopenable)
 		return;
 
-	u32 newval = bpmem.blendmode.subtract << BLENDOP_SHIFT;
 	if (bpmem.blendmode.subtract)  // enable blending src 1 dst 1
 	{
-		newval |= BLEND_ENABLE_MASK | (1 << SRCFACTOR_SHIFT) | (1 << DESTFACTOR_SHIFT);
+		D3D::gfxstate->SetAlphaBlendEnable(true);
+		D3D::gfxstate->SetBlendOp(D3D11_BLEND_OP_REV_SUBTRACT);
+		D3D::gfxstate->SetSrcBlend(d3dSrcFactors[1]);
+		D3D::gfxstate->SetDestBlend(d3dDestFactors[1]);
 	}
-	else if (bpmem.blendmode.blendenable)
+	else 
 	{
-		newval |= BLEND_ENABLE_MASK;    // enable blending
-		newval |= bpmem.blendmode.srcfactor << SRCFACTOR_SHIFT;
-		newval |= bpmem.blendmode.dstfactor << DESTFACTOR_SHIFT;
+		D3D::gfxstate->SetAlphaBlendEnable(bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0)));
+		if (bpmem.blendmode.blendenable && (!( bpmem.blendmode.srcfactor == 1 && bpmem.blendmode.dstfactor == 0)))
+		{
+			D3D::gfxstate->SetBlendOp(D3D11_BLEND_OP_ADD);
+			D3D::gfxstate->SetSrcBlend(d3dSrcFactors[bpmem.blendmode.srcfactor]);
+			D3D::gfxstate->SetDestBlend(d3dDestFactors[bpmem.blendmode.dstfactor]);
+		}
+		
 	}
-	
-	u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
-
-	if (changes & BLEND_ENABLE_MASK)  // blend enable change
-		D3D::gfxstate->SetAlphaBlendEnable(newval & BLEND_ENABLE_MASK);
-
-	if (changes & BLENDOP_MASK)  // subtract enable change
-		D3D::gfxstate->SetBlendOp((newval & BLENDOP_MASK) ? D3D11_BLEND_OP_REV_SUBTRACT : D3D11_BLEND_OP_ADD);
-
-	if (changes & 0x1F8)  // blend RGB change
-	{
-		D3D::gfxstate->SetSrcBlend(d3dSrcFactors[(newval >> SRCFACTOR_SHIFT) & FACTOR_MASK]);
-		D3D::gfxstate->SetDestBlend(d3dDestFactors[(newval >> DESTFACTOR_SHIFT) & FACTOR_MASK]);
-	}
-	s_blendMode = newval;
 }
 
 void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
@@ -1011,7 +991,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
 	UpdateViewport();
 	VertexShaderManager::SetViewportChanged();
-	g_VideoInitialize.pCopiedToXFB(XFBWrited);
+	g_VideoInitialize.pCopiedToXFB(XFBWrited || g_ActiveConfig.bUseRealXFB);
 	XFBWrited = false;
 }
 
