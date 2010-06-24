@@ -96,6 +96,11 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 {
 }
 
+bool IsD3D()
+{
+	return false;
+}
+
 void Shutdown(void)
 {
 	Renderer::Shutdown();
