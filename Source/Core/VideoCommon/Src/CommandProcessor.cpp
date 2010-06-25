@@ -599,8 +599,8 @@ void STACKALIGN GatherPipeBursted()
 	if (g_VideoInitialize.bOnThread)
 	{
 		// A little trick to prevent FIFO from overflown in dual core mode (n < 100 to avoid dead lock)
-		//for (int cnt = 0; fifo.CPReadWriteDistance > fifo.CPEnd - fifo.CPBase && cnt < 100; cnt++)
-		//	Common::SwitchCurrentThread();
+		for (int cnt = 0; fifo.CPReadWriteDistance > fifo.CPEnd - fifo.CPBase && cnt < 100; cnt++)
+			Common::SwitchCurrentThread();
 	}
 	else
 	{
