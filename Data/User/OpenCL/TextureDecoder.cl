@@ -279,10 +279,11 @@ kernel void decodeCMPRBlock(global uchar *dst,
                               bitselect(colorb565, colorb565 >> (uchar2)5, (uchar2)7),
                               (uchar2)0xFF);
 
-    ushort4 frac2 = convert_ushort4(color32.even & (uchar4)0xFF) - convert_ushort4(color32.odd & (uchar4)0xFF);
+    ushort4 frac2 = convert_ushort4(color32.even) - convert_ushort4(color32.odd);
     uchar4 frac = convert_uchar4((frac2 * (ushort4)3) / (ushort4)8);
     
-    ushort4 colorAlpha =   upsample((uchar4)0, rhadd(color32.odd, color32.even));
+    ushort4 colorAlpha =   upsample((uchar4)(color32.even.s0,color32.even.s1,color32.even.s2,0),
+                                    rhadd(color32.odd, color32.even));
     colorAlpha.s3 = 0xFF;
     ushort4 colorNoAlpha = upsample(color32.odd + frac, color32.even - frac);
 
@@ -324,10 +325,11 @@ kernel void decodeCMPRBlock_RGBA(global uchar *dst,
                               bitselect(colora565 << (uchar2)3, colora565 >> (uchar2)2, (uchar2)7),
                               (uchar2)0xFF);
 
-    ushort4 frac2 = convert_ushort4(color32.even & (uchar4)0xFF) - convert_ushort4(color32.odd & (uchar4)0xFF);
+    ushort4 frac2 = convert_ushort4(color32.even) - convert_ushort4(color32.odd);
     uchar4 frac = convert_uchar4((frac2 * (ushort4)3) / (ushort4)8);
     
-    ushort4 colorAlpha =   upsample((uchar4)0, rhadd(color32.odd, color32.even));
+    ushort4 colorAlpha =   upsample((uchar4)(color32.even.s0,color32.even.s1,color32.even.s2,0),
+                                    rhadd(color32.odd, color32.even));
     colorAlpha.s3 = 0xFF;
     ushort4 colorNoAlpha = upsample(color32.odd + frac, color32.even - frac);
 
