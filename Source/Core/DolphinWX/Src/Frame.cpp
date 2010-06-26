@@ -740,12 +740,14 @@ void CFrame::OnSizeRequest(int& x, int& y, int& width, int& height)
 
 bool CFrame::RendererHasFocus()
 {
-	if (m_RenderParent == NULL || wxWindow::FindFocus() == NULL)
+	if (m_RenderParent == NULL)
 		return false;
 #ifdef _WIN32
 	if (m_RenderParent->GetParent()->GetHWND() == GetForegroundWindow())
 		return true;
 #else
+	if (wxWindow::FindFocus() == NULL)
+		return false;
 	// Why these different cases?
 	if (m_RenderParent == wxWindow::FindFocus() ||
 	    m_RenderParent == wxWindow::FindFocus()->GetParent() ||
