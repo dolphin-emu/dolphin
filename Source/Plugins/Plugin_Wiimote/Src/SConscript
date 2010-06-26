@@ -24,9 +24,7 @@ if wmenv['HAVE_WX']:
     files += [
         "ConfigBasicDlg.cpp",
         "ConfigPadDlg.cpp",
-        "ConfigRecordingDlg.cpp",
         "ConfigGamepad.cpp",
-        "ConfigRecording.cpp",
         "FillReport.cpp",
         ]
 
@@ -37,7 +35,6 @@ cxxflags = [ ]
 if wmenv['HAVE_WIIUSE']:
 	libs  += [ 'wiiuse' ]
 	files += [ "wiimote_real.cpp" ]
-	files += [ "ReadWiimote.cpp" ]
 	cxxflags += ['-DHAVE_WIIUSE']
 
 wmenv.Append(

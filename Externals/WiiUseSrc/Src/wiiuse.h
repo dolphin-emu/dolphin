@@ -688,6 +688,7 @@ WIIUSE_EXPORT extern void wiiuse_disconnected(struct wiimote_t* wm);
 WIIUSE_EXPORT extern void wiiuse_cleanup(struct wiimote_t** wm, int wiimotes);
 WIIUSE_EXPORT extern void wiiuse_rumble(struct wiimote_t* wm, int status);
 WIIUSE_EXPORT extern void wiiuse_set_leds(struct wiimote_t* wm, int leds);
+WIIUSE_EXPORT extern int wiiuse_write_data(struct wiimote_t* wm, unsigned int addr, byte* data, byte len);
 
 /* connect.c / io_win.c */
 WIIUSE_EXPORT extern int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout);
