@@ -740,16 +740,19 @@ void CFrame::OnSizeRequest(int& x, int& y, int& width, int& height)
 
 bool CFrame::RendererHasFocus()
 {
+	if (m_RenderParent == NULL || wxWindow::FindFocus() == NULL)
+		return false;
 #ifdef _WIN32
-	// Why doesn't the "else" method below work in windows when called from
-	// Host_RendererHasFocus()?
-	if (m_RenderParent)
-		if (m_RenderParent->GetParent()->GetHWND() == GetForegroundWindow())
-			return true;
-	return false;
+	if (m_RenderParent->GetParent()->GetHWND() == GetForegroundWindow())
+		return true;
 #else
-	return m_RenderParent && (m_RenderParent == wxWindow::FindFocus());
+	// Why these different cases?
+	if (m_RenderParent == wxWindow::FindFocus() ||
+	    m_RenderParent == wxWindow::FindFocus()->GetParent() ||
+	    m_RenderParent->GetParent() == wxWindow::FindFocus()->GetParent())
+		return true;
 #endif
+	return false;
 }
 
 void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))

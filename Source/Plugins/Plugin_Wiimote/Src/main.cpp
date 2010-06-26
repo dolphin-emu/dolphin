@@ -411,9 +411,6 @@ unsigned int Wiimote_UnPairWiimotes()
 
 bool IsFocus()
 {
-#if defined(__APPLE__) && defined(USE_WX) && USE_WX
-	return true;	/* XXX */
-#endif
 	return g_WiimoteInitialize.pRendererHasFocus();
 }
 
