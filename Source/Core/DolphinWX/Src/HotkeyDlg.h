@@ -25,10 +25,8 @@
 #include <wx/combobox.h>
 #include <wx/checkbox.h>
 #include <wx/gbsizer.h>
-#ifndef _WIN32
-#include "Config.h"
-#endif
 
+#include "Common.h"
 #include "CoreParameter.h"
 #include "WXInputBase.h"
 

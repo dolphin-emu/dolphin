@@ -21,7 +21,6 @@
 #include <vector>
 #include "Common.h"
 #include "Globals.h"
-#include "Config.h"
 #include "pluginspecs_video.h"
 
 #ifdef _WIN32

@@ -22,7 +22,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <Common.h>
+#include "Common.h"
 #include "aldlist.h"
 #ifdef _WIN32
 #include "../../../../Externals/OpenAL/include/al.h"

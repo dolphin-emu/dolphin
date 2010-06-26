@@ -18,9 +18,7 @@
 #ifndef _COMMON_PATHS_H_
 #define _COMMON_PATHS_H_
 
-#ifdef __linux__
-#include "Config.h"
-#endif
+#include "Common.h"
 
 // Library suffix/prefix
 #ifdef _WIN32
