@@ -7,7 +7,7 @@ namespace ciface
 namespace OSX
 {
 
-void Init( std::vector<ControllerInterface::Device*>& devices );
+void Init(std::vector<ControllerInterface::Device*>& devices);
 void DeInit();
 
 }
