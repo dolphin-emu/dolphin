@@ -59,8 +59,7 @@ else:
 
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
-
-if sys.platform == 'darwin':
+elif sys.platform == 'darwin':
 	files += [ 'cocoaApp.m' ]
 
 	exeGUI = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'
@@ -85,15 +84,13 @@ if sys.platform == 'darwin':
 			))
 		)
 else:
+	files += [ 'X11Utils.cpp' ]
 	exeGUI = env['binary_dir'] + 'dolphin-emu'
 	exeNoGUI = env['binary_dir'] + 'dolphin-emu-nogui'
 
 wxenv.Append(
 	LIBS = libs
 	)
-
-if wxenv['HAVE_X11']:
-	files += [ 'X11Utils.cpp' ]
 
 if wxenv['HAVE_WX']:
 	wxenv.Program(exeGUI, files + [ 'Main.cpp' ])

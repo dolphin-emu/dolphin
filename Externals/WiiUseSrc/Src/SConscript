@@ -3,7 +3,7 @@
 import sys
 Import('env')
 
-if (env['HAVE_BLUEZ'] != 1 and sys.platform != 'darwin'):
+if (sys.platform == 'linux2' and env['HAVE_BLUEZ'] != 1):
     env['HAVE_WIIUSE'] = 0
     Return()
 
@@ -13,7 +13,7 @@ files = [
         "wiiuse.c",
 	]
 
-if env['HAVE_BLUEZ']:
+if sys.platform == 'linux2' and env['HAVE_BLUEZ']:
 	files += [ "io_nix.c", ]
 
 if sys.platform == 'darwin':

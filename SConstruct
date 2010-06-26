@@ -98,38 +98,42 @@ vars.AddVariables(
     BoolVariable('verbose', 'Set for compilation line', False),
     BoolVariable('bundle', 'Set to create bundle', False),
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
-    BoolVariable('nowx', 'Set for building with no WX libs', False),
-    BoolVariable('wxgl', 'Set for building with WX GL on Linux', False),
-    BoolVariable('opencl', 'Build with OpenCL', False),
     BoolVariable('nojit', 'Remove entire jit cores', False),
-    BoolVariable('shared_glew', 'Use system shared libGLEW', True),
-    BoolVariable('shared_lzo', 'Use system shared liblzo2', True),
-    BoolVariable('shared_sdl', 'Use system shared libSDL', True),
-    BoolVariable('shared_sfml', 'Use system shared libsfml-network', True),
-    BoolVariable('shared_soil', 'Use system shared libSOIL', True),
-    BoolVariable('shared_zlib', 'Use system shared libz', True),
-    PathVariable('userdir', 'Set the name of the user data directory in home',
-                 '.dolphin-emu', PathVariable.PathAccept),
-    EnumVariable('install', 'Choose a local or global installation', 'local',
-                 allowed_values = ('local', 'global'),
-                 ignorecase = 2
-                 ),
-    PathVariable('prefix', 'Installation prefix (only used for a global build)',
-                 '/usr', PathVariable.PathAccept),
-    PathVariable('destdir', 'Temporary install location (for package building)',
-                 None, PathVariable.PathAccept),
+    BoolVariable('nowx', 'Set for building with no WX libs', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
                  allowed_values = ('release','devel','debug','fastlog','prof'),
-                 ignorecase = 2
-                 ),
+                 ignorecase = 2),
     PathVariable('wxconfig', 'Path to the wxconfig', None),
     EnumVariable('pgo', 'Profile-Guided Optimization (generate or use)', 'none',
-                allowed_values = ('none', 'generate', 'use'),
-                ignorecase = 2
-                ),
+                 allowed_values = ('none', 'generate', 'use'),
+                 ignorecase = 2),
     ('CC', 'The c compiler', 'gcc'),
     ('CXX', 'The c++ compiler', 'g++'),
     )
+
+if not sys.platform == 'win32' and not sys.platform == 'darwin':
+    vars.AddVariables(
+        BoolVariable('wxgl', 'Set for building with WX GL', False),
+        PathVariable('destdir',
+                     'Temporary install location (for package building)',
+                     None, PathVariable.PathAccept),
+        EnumVariable('install',
+                     'Choose a local or global installation', 'local',
+                     allowed_values = ('local', 'global'), ignorecase = 2),
+        PathVariable('prefix',
+                     'Installation prefix (only used for a global build)',
+                     '/usr', PathVariable.PathAccept),
+        PathVariable('userdir',
+                     'Set the name of the user data directory in home',
+                     '.dolphin-emu', PathVariable.PathAccept),
+        BoolVariable('opencl', 'Build with OpenCL', False),
+        BoolVariable('shared_glew', 'Use system shared libGLEW', True),
+        BoolVariable('shared_lzo', 'Use system shared liblzo2', True),
+        BoolVariable('shared_sdl', 'Use system shared libSDL', True),
+        BoolVariable('shared_sfml', 'Use system shared libsfml-network', True),
+        BoolVariable('shared_soil', 'Use system shared libSOIL', True),
+        BoolVariable('shared_zlib', 'Use system shared libz', True),
+        )
 
 env = Environment(
     CPPPATH = include_paths,
@@ -237,7 +241,7 @@ elif flavour == 'prof':
     extra = '-prof'
 
 # Set up the install locations
-if (env['install'] == 'global'):
+if sys.platform == 'linux2' and env['install'] == 'global':
     env['prefix'] = os.path.join(env['prefix'] + os.sep)
     env['binary_dir'] = env['prefix'] + 'bin/'
     env['plugin_dir'] = env['prefix'] + 'lib/dolphin-emu/'
@@ -256,20 +260,9 @@ conf = env.Configure(custom_tests = tests,
                      config_h="Source/Core/Common/Src/Config.h")
 
 env['HAVE_OPENCL'] = 0
-if not sys.platform == 'win32':
-    if env['opencl']:
-        env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
 
 # OS X specifics
 if sys.platform == 'darwin':
-    if env['FRAMEWORKS'].count('OpenCL'):
-        env['FRAMEWORKS'].remove('OpenCL')
-        env['LINKFLAGS'] += ['-weak_framework', 'OpenCL']
-        compileFlags += ['-isysroot', '/Developer/SDKs/MacOSX10.6.sdk']
-    else:
-        # OpenCL is new in OS X 10.6. Other than OpenCL,
-        # we try to maintain 10.5 compatibility, however.
-        compileFlags += ['-isysroot', '/Developer/SDKs/MacOSX10.5.sdk']
     compileFlags += ['-mmacosx-version-min=10.5']
     conf.Define('MAP_32BIT', 0)
     env['CC'] = "gcc-4.2"
@@ -281,6 +274,10 @@ if sys.platform == 'darwin':
     env['FRAMEWORKS'] += ['CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
     env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
+    if platform.mac_ver()[0] >= '10.6.0':
+        env['HAVE_OPENCL'] = 1
+        env['LINKFLAGS'] += ['-weak_framework', 'OpenCL']
+    env['FRAMEWORKS'] += ['Cg']
 else:
     if not conf.CheckPKGConfig('0.15.0'):
         print "Can't find pkg-config, some tests will fail"
@@ -328,14 +325,14 @@ if shared['zlib'] == 0:
     env['CPPPATH'] += [basedir + 'Externals/zlib']
     dirs += ['Externals/zlib']
 
+if sys.platform == 'win32' or sys.platform == 'darwin':
+    env['wxgl'] = True
 wxmods = ['aui', 'adv', 'core', 'base']
-if env['wxgl'] or sys.platform == 'win32' or sys.platform == 'darwin':
+if env['wxgl']:
     env['USE_WX'] = 1
     wxmods.append('gl')
 else:
-    env['USE_WX'] = 0;
-if env['nowx']:
-    env['USE_WX'] = 0;
+    env['USE_WX'] = 0
 
 if sys.platform == 'darwin':
     wxver = '2.9' # 64-bit on OS X
@@ -343,7 +340,7 @@ else:
     wxver = '2.8'
 
 if env['nowx']:
-    env['HAVE_WX'] = 0;
+    env['HAVE_WX'] = env['USE_WX'] = 0;
 else:
     env['HAVE_WX'] = conf.CheckWXConfig(wxver, wxmods, 0)
     wxconfig.ParseWXConfig(env)
@@ -359,44 +356,62 @@ if not env['HAVE_WX'] and not env['nowx']:
     print "WX libraries not found - see config.log"
     Exit(1)
 
-if not sys.platform == 'win32':
-    if not conf.CheckPKG('Cg'):
-        print "Must have Cg framework from NVidia to build"
-        Exit(1)
+conf.Define('HAVE_WX', env['HAVE_WX'])
+conf.Define('USE_WX', env['USE_WX'])
 
-env['HAVE_BLUEZ'] = 0
-env['HAVE_ALSA'] = env['HAVE_AO'] = env['HAVE_OPENAL'] = \
-env['HAVE_PORTAUDIO'] = env['HAVE_PULSEAUDIO'] = 0
-env['HAVE_X11'] = env['HAVE_XRANDR'] = 0
 if not sys.platform == 'win32' and not sys.platform == 'darwin':
     env['LINKFLAGS'] += ['-pthread']
 
     env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
+    conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
 
     env['HAVE_ALSA'] = conf.CheckPKG('alsa')
+    conf.Define('HAVE_ALSA', env['HAVE_ALSA'])
+
     env['HAVE_AO'] = conf.CheckPKG('ao')
+    conf.Define('HAVE_AO', env['HAVE_AO'])
+
     env['HAVE_OPENAL'] = conf.CheckPKG('openal')
+    conf.Define('HAVE_OPENAL', env['HAVE_OPENAL'])
+
     env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
+    conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
+
     env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse-simple')
+    conf.Define('HAVE_PULSEAUDIO', env['HAVE_PULSEAUDIO'])
 
     env['HAVE_X11'] = conf.CheckPKG('x11')
     env['HAVE_XRANDR'] = env['HAVE_X11'] and conf.CheckPKG('xrandr')
+    conf.Define('HAVE_XRANDR', env['HAVE_XRANDR'])
+    conf.Define('HAVE_X11', env['HAVE_X11'])
+
+    # Check for GTK 2.0 or newer
+    if env['HAVE_WX'] and not conf.CheckPKG('gtk+-2.0'):
+        print "gtk+-2.0 developement headers not detected"
+        print "gtk+-2.0 is required to build the WX GUI"
+        Exit(1)
+
     if not conf.CheckPKG('GL'):
         print "Must have OpenGL to build"
         Exit(1)
     if not conf.CheckPKG('GLU'):
         print "Must have GLU to build"
         Exit(1)
+    if not conf.CheckPKG('Cg'):
+        print "Must have Cg framework from NVidia to build"
+        Exit(1)
     if not conf.CheckPKG('CgGL'):
         print "Must have CgGl to build"
         Exit(1)
+    if env['opencl']:
+        env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
 
-# Check for GTK 2.0 or newer
-if sys.platform == 'linux2':
-    if env['HAVE_WX'] and not conf.CheckPKG('gtk+-2.0'):
-        print "gtk+-2.0 developement headers not detected"
-        print "gtk+-2.0 is required to build the WX GUI"
-        Exit(1)
+    conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
+    if (env['install'] == 'global'):
+        conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
+        conf.Define('LIBS_DIR', "\"" + env['prefix'] + 'lib/' +  "\"")
+
+conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
 
 env['NOJIT'] = 0
 if env['nojit']:
@@ -404,32 +419,9 @@ if env['nojit']:
 
 conf.Define('NOJIT', env['NOJIT'])
 
-# Creating config.h defines
-conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
-conf.Define('HAVE_AO', env['HAVE_AO'])
-conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
-conf.Define('HAVE_OPENAL', env['HAVE_OPENAL'])
-conf.Define('HAVE_ALSA', env['HAVE_ALSA'])
-conf.Define('HAVE_PULSEAUDIO', env['HAVE_PULSEAUDIO'])
-conf.Define('HAVE_WX', env['HAVE_WX'])
-conf.Define('USE_WX', env['USE_WX'])
-conf.Define('HAVE_X11', env['HAVE_X11'])
-conf.Define('HAVE_XRANDR', env['HAVE_XRANDR'])
-conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
-conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
-if (env['install'] == 'global'):
-    conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
-    conf.Define('LIBS_DIR', "\"" + env['prefix'] + 'lib/' +  "\"")
-
 # Lua
-env['LUA_USE_MACOSX'] = env['LUA_USE_LINUX'] = env['LUA_USE_POSIX'] = 0
-if sys.platform == 'darwin':
-    env['LUA_USE_MACOSX'] = 1
-elif sys.platform == 'linux2':
-    env['LUA_USE_LINUX'] = 1
-
-conf.Define('LUA_USE_MACOSX', env['LUA_USE_MACOSX'])
-conf.Define('LUA_USE_LINUX', env['LUA_USE_LINUX'])
+if not sys.platform == 'win32':
+    conf.Define('LUA_USE_LINUX')
 
 # Profiling
 env['USE_OPROFILE'] = 0
@@ -439,10 +431,10 @@ if (flavour == 'prof'):
     env['RPATH'].append(proflibs)
     if conf.CheckPKG('opagent'):
         env['USE_OPROFILE'] = 1
+        conf.Define('USE_OPROFILE', env['USE_OPROFILE'])
     else:
         print "Can't build prof without oprofile, disabling"
 
-conf.Define('USE_OPROFILE', env['USE_OPROFILE'])
 # After all configuration tests are done
 conf.Finish()
 

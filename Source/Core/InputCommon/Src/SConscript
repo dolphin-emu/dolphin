@@ -11,21 +11,20 @@ files = [
 	'ControllerInterface/SDL/SDL.cpp'
 	]
 
-if env['HAVE_X11']:
-	files += [
-		"X11InputBase.cpp",
-		]
 
-if sys.platform == 'darwin':
+if sys.platform == 'win32':
+	files += [
+		]
+elif sys.platform == 'darwin':
 	files += [
 		'ControllerInterface/OSX/OSX.mm',
 		'ControllerInterface/OSX/OSXKeyboard.mm',
 		'ControllerInterface/OSX/OSXMouse.mm'
 		]
-		   
-if sys.platform == 'linux2':
+else:
 	files += [
-		'ControllerInterface/Xlib/Xlib.cpp'
+		'ControllerInterface/Xlib/Xlib.cpp',
+		'X11InputBase.cpp'
 		]
 
 env.StaticLibrary(env['local_libs'] + "inputcommon", files)

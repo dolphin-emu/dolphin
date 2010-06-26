@@ -8,22 +8,6 @@ def CheckPKGConfig(context, version):
     context.Result( ret )
     return ret
 
-def CheckFramework(context, name):
-    ret = 0
-    if (platform.system().lower() == 'darwin'):
-        context.Message( '\nLooking for framework %s... ' % name )
-        lastFRAMEWORKS = context.env['FRAMEWORKS']
-        context.env.Append(FRAMEWORKS = [name])
-        ret = context.TryLink("""
-              int main(int argc, char **argv) {
-                return 0;
-              }
-              """, '.c')
-        if not ret:
-            context.env.Replace(FRAMEWORKS = lastFRAMEWORKS)
-
-    return ret
-
 # TODO: We should use the scons one instead
 def CheckLib(context, name):
     context.Message( 'Looking for lib %s... ' % name )
@@ -52,9 +36,8 @@ def CheckPKG(context, name):
     if platform.system().lower() == 'windows':
         return 0 
     ret = 1
-    if not CheckFramework(context, name):
-        if not ConfigPKG(context, name.lower()):
-            ret = CheckLib(context, name) 
+    if not ConfigPKG(context, name.lower()):
+        ret = CheckLib(context, name) 
 
     context.Result(ret)
     return int(ret)
