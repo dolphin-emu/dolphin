@@ -100,7 +100,7 @@ vars.AddVariables(
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
     BoolVariable('nowx', 'Set for building with no WX libs', False),
     BoolVariable('wxgl', 'Set for building with WX GL on Linux', False),
-    BoolVariable('opencl', 'Build with OpenCL', False),
+    BoolVariable('opencl', 'Build with OpenCL', True),
     BoolVariable('nojit', 'Remove entire jit cores', False),
     BoolVariable('shared_glew', 'Use system shared libGLEW', True),
     BoolVariable('shared_lzo', 'Use system shared liblzo2', True),
@@ -199,11 +199,9 @@ if env['lint']:
 compileFlags += [ ('-W' + warning) for warning in warnings ]
 
 env['CCFLAGS'] = compileFlags
-if sys.platform == 'win32':
-    env['CXXFLAGS'] = compileFlags
-else:
-    env['CXXFLAGS'] = compileFlags + [ '-fvisibility-inlines-hidden' ]
 env['CPPDEFINES'] = cppDefines
+if not sys.platform == 'win32':
+    env['CXXFLAGS'] = ['-fvisibility-inlines-hidden']
 
 # PGO - Profile Guided Optimization
 if env['pgo']=='generate':
@@ -257,15 +255,19 @@ if sys.platform == 'darwin':
 conf = env.Configure(custom_tests = tests,
                      config_h="Source/Core/Common/Src/Config.h")
 
-env['HAVE_OPENCL'] = 0
-if env['opencl']:
-    env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
+if not sys.platform == 'win32':
+    if env['opencl']:
+        env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
 
 # OS X specifics
 if sys.platform == 'darwin':
-    # OpenCL is new in OS X 10.6. Other than OpenCL,
-    # we try to maintain 10.5 compatibility, however.
-    if not env['HAVE_OPENCL']:
+    if env['FRAMEWORKS'].count('OpenCL'):
+        env['FRAMEWORKS'].remove('OpenCL')
+        env['LINKFLAGS'] += ['-weak_framework', 'OpenCL']
+        compileFlags += ['-isysroot', '/Developer/SDKs/MacOSX10.6.sdk']
+    else:
+        # OpenCL is new in OS X 10.6. Other than OpenCL,
+        # we try to maintain 10.5 compatibility, however.
         compileFlags += ['-isysroot', '/Developer/SDKs/MacOSX10.5.sdk']
     compileFlags += ['-mmacosx-version-min=10.5']
     conf.Define('MAP_32BIT', 0)
@@ -285,7 +287,7 @@ else:
 shared = {}
 shared['glew'] = shared['lzo'] = shared['sdl'] = \
 shared['soil'] = shared['sfml'] = shared['zlib'] = 0
-if not sys.platform == 'darwin':
+if not sys.platform == 'win32' and not sys.platform == 'darwin':
     if env['shared_glew']:
         shared['glew'] = conf.CheckPKG('GLEW')
     if env['shared_sdl']:
@@ -350,7 +352,7 @@ else:
     if env['FRAMEWORKS'].count('QuickTime'):
         env['FRAMEWORKS'].remove('QuickTime')
     # Make sure that the libraries claimed by wx-config are valid
-    env['HAVE_WX'] = conf.CheckPKG('c')
+    #env['HAVE_WX'] = conf.CheckPKG('c')
 
 if not env['HAVE_WX'] and not env['nowx']:
     print "WX libraries not found - see config.log"
@@ -494,12 +496,13 @@ if env['bundle']:
     if sys.platform == 'linux2':
         # Make tar ball (TODO put inside normal dir)
         tar_env = env.Clone()
-        tarball = tar_env.Tar('dolphin-'+rev +'.tar.bz2', env['prefix'])
+        tarball = tar_env.Tar('dolphin-' + rev + '.tar.bz2', env['prefix'])
         tar_env.Append(TARFLAGS='-j', TARCOMSTR="Creating release tarball")
+        env.Clean(all, tarball)
     elif sys.platform == 'darwin':
-        env.Command('.', env['binary_dir'] +
-                    'Dolphin.app/Contents/MacOS/Dolphin', './osx_make_dmg.sh')
-
-#TODO clean all bundles
-#env.Clean(all, 'dolphin-*' + '.tar.bz2')
-#env.Clean(all, 'Binary/Dolphin-r*' + '.dmg')
+        app = env['binary_dir'] + 'Dolphin.app'
+        dmg = env['binary_dir'] + 'Dolphin-r' + rev + '.dmg'
+        env.Command('.', app + '/Contents/MacOS/Dolphin', 'rm -f ' + dmg +
+            ' && hdiutil create -srcfolder ' + app + ' -format UDBZ ' + dmg +
+            ' && hdiutil internet-enable -yes ' + dmg)
+        env.Clean(all, dmg)

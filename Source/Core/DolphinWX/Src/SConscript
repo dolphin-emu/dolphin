@@ -20,7 +20,7 @@ if wxenv['HAVE_WX']:
 	memcardfiles = [
 		'MemcardManager.cpp',
 		'MemoryCards/GCMemcard.cpp',
-		'WxUtils.cpp',		
+		'WxUtils.cpp',
 	]
 
 	files += memcardfiles
@@ -66,13 +66,16 @@ if sys.platform == 'darwin':
 	exeGUI = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'
 	exeNoGUI = env['binary_dir'] + 'DolphinNoGUI'
 
+	env.Install(env['binary_dir'] + 'Dolphin.app/Contents/' +
+		'Library/Frameworks/Cg.framework',
+		'/Library/Frameworks/Cg.framework/Cg')
+
 	wxenv.Plist(
 		env['binary_dir'] + 'Dolphin.app/Contents/Info.plist',
 		Value(dict(
 			CFBundleExecutable = 'Dolphin',
 			CFBundleIconFile = 'Dolphin.icns',
 			CFBundleIdentifier = 'com.dolphin-emu.dolphin',
-			CFBundleName = 'Dolphin',
 			CFBundlePackageType = 'APPL',
 			CFBundleShortVersionString =
 			os.popen('svnversion -n ' + Dir('#').abspath).read(),
