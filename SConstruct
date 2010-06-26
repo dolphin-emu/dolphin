@@ -255,6 +255,7 @@ if sys.platform == 'darwin':
 conf = env.Configure(custom_tests = tests,
                      config_h="Source/Core/Common/Src/Config.h")
 
+env['HAVE_OPENCL'] = 0
 if not sys.platform == 'win32':
     if env['opencl']:
         env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
