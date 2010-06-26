@@ -361,6 +361,7 @@ bool DVDReadADPCM(u8* _pDestBuffer, u32 _iNumSamples)
 	AudioPos += _iNumSamples;
 	if (AudioPos >= AudioStart + AudioLength)
 	{
+		g_bStream = false; // Starfox Adventures
 		AudioPos = AudioStart;
 		NGCADPCM::InitFilter();
 	}
@@ -812,7 +813,7 @@ void ExecuteCommand(UDICR& _DICR)
 	// Request Audio Status (Immediate)
 	case 0xE2:
 		m_DIIMMBUF.Hex = g_bStream ? 1 : 0;
-		WARN_LOG(DVDINTERFACE, "(Audio): Request Audio status %s", g_bStream? "on":"off");
+		//WARN_LOG(DVDINTERFACE, "(Audio): Request Audio status %s", g_bStream? "on":"off");
 		break;
 
 	case DVDLowStopMotor:
