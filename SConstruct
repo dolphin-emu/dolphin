@@ -100,7 +100,7 @@ vars.AddVariables(
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
     BoolVariable('nowx', 'Set for building with no WX libs', False),
     BoolVariable('wxgl', 'Set for building with WX GL on Linux', False),
-    BoolVariable('opencl', 'Build with OpenCL', True),
+    BoolVariable('opencl', 'Build with OpenCL', False),
     BoolVariable('nojit', 'Remove entire jit cores', False),
     BoolVariable('shared_glew', 'Use system shared libGLEW', True),
     BoolVariable('shared_lzo', 'Use system shared liblzo2', True),
