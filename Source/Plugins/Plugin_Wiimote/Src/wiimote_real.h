@@ -44,28 +44,13 @@ void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 
 void Update(int _WiimoteNumber);
 
 void SendAcc(u8 _ReportID);
-void SetDataReportingMode(u8 ReportingMode = 0);
 void ClearEvents();
 
-bool SafeClose();
-
-// The alternative Wiimote loop
-void ReadWiimote();
-bool IRDataOK(struct wiimote_t* wm);
 
 #ifndef EXCLUDE_H
 	extern wiimote_t**		g_WiiMotesFromWiiUse;
 	extern bool				g_Shutdown;
-	extern Common::Event	g_StartThread;
-	extern Common::Event	g_StopThreadTemporary;
 	extern int				g_NumberOfWiiMotes;
-	extern bool				g_MotionSensing;
-	extern bool				g_IRSensing;
-	extern u64				g_UpdateTime;
-	extern int				g_UpdateCounter;
-	extern bool				g_RunTemporary;
-	extern int				g_RunTemporaryCountdown;
-	extern u8				g_EventBuffer[32];
 #ifdef _WIN32
 	extern Common::Thread*	g_AutoPairUpInvisibleWindow;
 	extern Common::Thread*	g_AutoPairUpMonitoring;

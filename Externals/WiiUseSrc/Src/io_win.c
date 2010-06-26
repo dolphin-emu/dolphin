@@ -120,7 +120,7 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 				continue;
 			}
 
-			/* do the handshake */
+			/* do the handshake * shouldn't be needed as well, I'm gonna leave first it tho*/
 			wiiuse_handshake(wm[found], NULL, 0);
 
 			WIIUSE_INFO("Connected to wiimote [id %i].", wm[found]->unid);

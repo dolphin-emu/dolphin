@@ -35,7 +35,6 @@
 #define EXCLUDE_H // Avoid certain declarations in wiimote_real.h
 #include "wiimote_real.h"
 #if defined(HAVE_WX) && HAVE_WX
-#include "ConfigRecordingDlg.h"
 #include "ConfigBasicDlg.h"
 #endif
 
@@ -64,16 +63,6 @@ Common::Thread*		g_pReadThread = NULL;
 int					g_NumberOfWiiMotes;
 CWiiMote*			g_WiiMotes[MAX_WIIMOTES];
 volatile bool				g_Shutdown = false;
-Common::Event		g_StartThread;
-Common::Event		g_StopThreadTemporary;
-bool				g_LocalThread = true;
-bool				g_IRSensing = false;
-bool				g_MotionSensing = false;
-u64					g_UpdateTime = 0;
-int					g_UpdateCounter = 0;
-bool				g_RunTemporary = false;
-int					g_RunTemporaryCountdown = 0;
-u8					g_EventBuffer[32];
 bool				g_WiimoteInUse[MAX_WIIMOTES];
 Common::Event		NeedsConnect;
 Common::Event		Connected;
@@ -94,7 +83,6 @@ THREAD_RETURN RunInvisibleMessageWindow_ThreadFunc(void* arg);
 #endif
 
 THREAD_RETURN ReadWiimote_ThreadFunc(void* arg);
-THREAD_RETURN SafeCloseReadWiimote_ThreadFunc(void* arg);
 
 // Probably this class should be in its own file
 
@@ -377,6 +365,13 @@ int Initialize()
 	DEBUG_LOG(WIIMOTE, "Found No of Wiimotes: %i", g_NumberOfWiiMotes);
 	if (g_NumberOfWiiMotes > 0)
 	{
+		/* 
+		//TODO:  We need here to re-order the wiimote structure, after we shutdown() and re-init().
+		//		 If we don't do this Wiimotes will change slots on addition of a new real wiimote during a game,
+		//		 causing a disconnect as well.
+		if (g_EmulatorState == PLUGIN_EMUSTATE_PAUSE)
+			SortWiimotes();
+		*/
 		g_RealWiiMotePresent = true;
 		// Create a new thread for listening for Wiimote data
 		// and also connecting in Linux/OSX.
@@ -384,6 +379,8 @@ int Initialize()
 		g_pReadThread = new Common::Thread(ReadWiimote_ThreadFunc, NULL);
 		// Don't run the Wiimote thread if no wiimotes were found
 		g_Shutdown = false;
+
+		//Hack for OSX
 		NeedsConnect.Set();
 		Connected.Wait();
 	}
@@ -391,10 +388,7 @@ int Initialize()
 		return 0;
 
 	for (i = 0; i < g_NumberOfWiiMotes; i++)
-	{
-		// Remove the wiiuse_poll() threshold
-		wiiuse_set_accel_threshold(g_WiiMotesFromWiiUse[i], 0);
-		
+	{	
 		// Set the ir sensor sensitivity.
 		if (g_Config.iIRLevel) {
 			wiiuse_set_ir_sensitivity(g_WiiMotesFromWiiUse[i], g_Config.iIRLevel);
@@ -402,33 +396,13 @@ int Initialize()
 
 		// Set the sensor bar position, this should only affect the internal wiiuse api functions
 		wiiuse_set_ir_position(g_WiiMotesFromWiiUse[i], WIIUSE_IR_ABOVE);
-
-		// Set flags
-		//wiiuse_set_flags(g_WiiMotesFromWiiUse[i], NULL, WIIUSE_SMOOTHING);
 	}
-
-	// psyjoe reports this allows majority of lost packets to be transferred.
-	// Will test soon
-		if (g_Config.bWiiReadTimeout != 10)
+	if (g_Config.bWiiReadTimeout != 10)
 			wiiuse_set_timeout(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes, g_Config.bWiiReadTimeout, g_Config.bWiiReadTimeout);
 
 	// If we are connecting from the config window without a game running we set the LEDs
 	if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY && g_RealWiiMotePresent)
 		FlashLights(true);
-	
-
-	/* Allocate memory and copy the Wiimote eeprom accelerometer neutral values
-	   to g_Eeprom. Unlike with and extension we have to do this here, because
-	   this data is only read once when the Wiimote is connected. Also, we
-	   can't change the neutral values the wiimote will report, I think, unless
-	   we update its eeprom? In any case it's probably better to let the
-	   current calibration be where it is and adjust the global values after
-	   that to avoid overwriting critical data on any Wiimote. */
-	for (i = 0; i < g_NumberOfWiiMotes; i++)
-	{
-		byte *data = (byte*)malloc(sizeof(byte) * sizeof(WiiMoteEmu::EepromData_0));
-		wiiuse_read_data(g_WiiMotesFromWiiUse[i], data, 0, sizeof(WiiMoteEmu::EepromData_0));
-	}
 
 	// Initialized, even if we didn't find a Wiimote
 	g_RealWiiMoteInitialized = true;
@@ -508,10 +482,6 @@ void Allocate()
 
 	DEBUG_LOG(WIIMOTE, "Using %i Real Wiimote(s) and %i Emu Wiimote(s)", g_Config.bNumberRealWiimotes, g_Config.bNumberEmuWiimotes);
 
-	// If we are not using any emulated wiimotes we can run the thread temporary until the data has beeen copied
-	if (g_Config.bNumberEmuWiimotes == 0)
-		g_RunTemporary = true;
-	
 	g_RealWiiMoteAllocated = true;
 
 }
@@ -545,6 +515,11 @@ void Shutdown(void)
 	// Flash flights
 	if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY && g_RealWiiMotePresent)
 		FlashLights(false);
+
+
+	// TODOE: Save Wiimote-order here to restore it after an Init()
+	//		  we should best use the btaddress for this purpose, unfortunately it is a bit of a work to make wiiuse_find()
+	//		  get the btaddress of a bt device on windows with only a createfile() handle etc., but it wiiuse_find() is already doing that on linux
 
 	// Clean up wiiuse
 	wiiuse_cleanup(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes);
@@ -580,8 +555,6 @@ void Update(int _WiimoteNumber)
    time to avoid a potential collision. */
 THREAD_RETURN ReadWiimote_ThreadFunc(void* arg)
 {
-	g_StopThreadTemporary.Init();
-	g_StartThread.Init();
 	NeedsConnect.Wait();
 #ifndef _WIN32
 	int Connect;
@@ -594,58 +567,18 @@ THREAD_RETURN ReadWiimote_ThreadFunc(void* arg)
 	
 	while (!g_Shutdown)
 	{
-		// There is at least one Real Wiimote in use
-		
-		if (g_Config.bNumberRealWiimotes > 0 && !g_RunTemporary)
+		// Usually, there is at least one Real Wiimote in use,
+		// except a wiimote gets disconnected unexpectly ingame or wiimote input type gets changed from real to none
+	
+		if (g_Config.bNumberRealWiimotes > 0)
 		{
 			for (int i = 0; i < MAX_WIIMOTES; i++)
 				if (g_WiimoteInUse[i])
 					g_WiiMotes[i]->ReadData();
-		}
-		else {
-			
-			if (!g_StopThreadTemporary.Wait(0))
-			{
-				// Event object was signaled, exiting thread to close ConfigRecordingDlg
-				new Common::Thread(SafeCloseReadWiimote_ThreadFunc, NULL);
-				g_StartThread.Set(); //tell the new thread to get going
-				return 0;
-			}
-			else
-				ReadWiimote();
-		}
+		} 
+		//else { idle }  
 		
 	}
-	return 0;
-}
-
-// Returns whether SafeClose_ThreadFunc will take over closing of Recording dialog.
-// FIXME: this whole threading stuff is bad, and should be removed.
-//        OSX is having problems with the threading anyways, since WiiUse is used
-//        from multiple threads, and not just the one where it was created on.
-bool SafeClose()
-{
-	if (!g_RealWiiMoteInitialized)
-		return false;
-
-	g_StopThreadTemporary.Set();
-	return true;
-}
-
-// Thread to avoid racing conditions by directly closing of ReadWiimote_ThreadFunc() resp. ReadWiimote()
-// shutting down the Dlg while still beeing @ReadWiimote will result in a crash;
-THREAD_RETURN SafeCloseReadWiimote_ThreadFunc(void* arg)
-{
-	g_Shutdown = true;
-	g_StartThread.Wait(); //Ready to start cleaning
-	
-	if (g_RealWiiMoteInitialized)
-		Shutdown();
-#if defined(HAVE_WX) && HAVE_WX
-	m_RecordingConfigFrame->Close(true);
-#endif
-	if (!g_RealWiiMoteInitialized)
-		Initialize();
 
 	return 0;
 }

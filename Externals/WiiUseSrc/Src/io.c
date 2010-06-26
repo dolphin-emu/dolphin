@@ -95,19 +95,9 @@ void wiiuse_handshake(struct wiimote_t* wm, byte* data, unsigned short len) {
 					accel->cal_g.x, accel->cal_g.y, accel->cal_g.z);
 
 
-			/* request the status of the wiimote to see if there is an expansion */
-			wiiuse_status(wm);
-
 			WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_HANDSHAKE);
 			WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_HANDSHAKE_COMPLETE);
 			wm->handshake_state++;
-
-			/* now enable IR if it was set before the handshake completed */
-			if (WIIMOTE_IS_SET(wm, WIIMOTE_STATE_IR)) {
-				WIIUSE_DEBUG("Handshake finished, enabling IR.");
-				WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_IR);
-				wiiuse_set_ir(wm, 1);
-			}
 
 			break;
 		}

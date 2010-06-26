@@ -8,14 +8,8 @@ if (env['HAVE_BLUEZ'] != 1 and sys.platform != 'darwin'):
     Return()
 
 files = [
-	"classic.c",
-        "dynamics.c",
-        "events.c",
         "io.c",
         "ir.c",
-        "nunchuk.c",
-        "guitar_hero_3.c",
-        "wiiboard.c",
         "wiiuse.c",
 	]
 

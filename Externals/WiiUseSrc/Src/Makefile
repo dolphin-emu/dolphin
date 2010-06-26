@@ -48,14 +48,9 @@ INCLUDES = -I.
 # Generate a list of object files
 #
 OBJS = \
-	$(OBJ_DIR)/classic.o \
-	$(OBJ_DIR)/dynamics.o \
-	$(OBJ_DIR)/events.o \
 	$(OBJ_DIR)/io.o \
 	$(OBJ_DIR)/io_nix.o \
 	$(OBJ_DIR)/ir.o \
-	$(OBJ_DIR)/nunchuk.o \
-	$(OBJ_DIR)/guitar_hero_3.o \
 	$(OBJ_DIR)/wiiuse.o
 
 ###############################

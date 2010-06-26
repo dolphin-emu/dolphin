@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="wiiuse"
 	ProjectGUID="{944EF6DE-471D-447E-A2FD-D37D58805169}"
 	RootNamespace="wiiuse"
@@ -409,42 +409,6 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Expansion Devices"
-			>
-			<File
-				RelativePath=".\Src\classic.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\classic.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\guitar_hero_3.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\guitar_hero_3.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\nunchuk.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\nunchuk.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\wiiboard.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\wiiboard.h"
-				>
-			</File>
-		</Filter>
-		<Filter
 			Name="I/O"
 			>
 			<File
@@ -472,27 +436,7 @@
 			Name="Wiimote Data"
 			>
 			<File
-				RelativePath=".\Src\dynamics.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\dynamics.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\events.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\events.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\ir.c"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ir.h"
 				>
 			</File>
 		</Filter>

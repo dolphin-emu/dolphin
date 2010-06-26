@@ -32,7 +32,6 @@
 #endif
 // Definitions and declarations
 bool IsFocus();
-int GetUpdateRate();
 //void InterruptDebugging(bool Emu, const void* _pData);
 //void ReadDebugging(bool Emu, const void* _pData, int Size);
 

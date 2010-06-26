@@ -109,11 +109,18 @@
 #define WM_EXP_MEM_BASE				0x04A40000
 #define WM_EXP_MEM_ENABLE			0x04A40040
 #define WM_EXP_MEM_CALIBR			0x04A40020
+#define WM_EXP_MEM_ENABLE1			0x04A400F0
+#define WM_EXP_MEM_ENABLE2			0x04A400FB
 
 #define WM_REG_IR					0x04B00030
 #define WM_REG_IR_BLOCK1			0x04B00000
 #define WM_REG_IR_BLOCK2			0x04B0001A
 #define WM_REG_IR_MODENUM			0x04B00033
+
+#define WM_EXT_MP_MEM_BASE			0x04A60000
+#define WM_EXT_MP_MEM_ENABLE1		0x04A600F0
+#define WM_EXT_MP_MEM_ENABLE2		0x04A600FE
+#define WM_EXT_MP_MEM_ENABLE3		0x04A400FB
 
 /* ir block data */
 #define WM_IR_BLOCK1_LEVEL1			"\x02\x00\x00\x71\x01\x00\x64\x00\xfe"
@@ -153,10 +160,16 @@
  */
 
 /* encrypted expansion id codes (located at 0x04A400FC) */
-#define EXP_ID_CODE_NUNCHUK					0x9A1EFEFE
-#define EXP_ID_CODE_WII_BOARD				0xa4200402 //Find the encrypted epansion id code
+/*#define EXP_ID_CODE_NUNCHUK					0x9A1EFEFE
 #define EXP_ID_CODE_CLASSIC_CONTROLLER		0x9A1EFDFD
 #define EXP_ID_CODE_GUITAR					0x9A1EFDFB
+*/
+#define EXP_ID_CODE_NUNCHUK					0xa4200000
+#define EXP_ID_CODE_CLASSIC_CONTROLLER		0xa4200101
+#define EXP_ID_CODE_GUITAR					0xa4200103 // 4 bytes are not unique enough
+#define EXP_ID_CODE_WII_BOARD				0xa4200402
+#define EXP_ID_CODE_MOTIONPLUS				0xa4200405
+#define EXP_ID_CODE_MOTIONPLUS_EXT			0xa4200505
 
 #define EXP_HANDSHAKE_LEN					224
 

@@ -597,10 +597,6 @@
 			Name="Real Wiimote"
 			>
 			<File
-				RelativePath=".\Src\ReadWiimote.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\wiimote_real.cpp"
 				>
 			</File>
@@ -638,18 +634,6 @@
 			</File>
 			<File
 				RelativePath=".\Src\ConfigPadDlg.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ConfigRecording.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ConfigRecordingDlg.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\ConfigRecordingDlg.h"
 				>
 			</File>
 		</Filter>

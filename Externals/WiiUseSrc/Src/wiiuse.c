@@ -46,7 +46,6 @@
 
 #include "definitions.h"
 #include "wiiuse_internal.h"
-#include "events.h"
 #include "io.h"
 
 static int g_banner = 1;
@@ -222,19 +221,6 @@ void wiiuse_rumble(struct wiimote_t* wm, int status) {
 	wiiuse_send(wm, WM_CMD_RUMBLE, &buf, 1);
 }
 
-
-/**
- *	@brief	Toggle the state of the rumble.
- *
- *	@param wm		Pointer to a wiimote_t structure.
- */
-void wiiuse_toggle_rumble(struct wiimote_t* wm) {
-	if (!wm)	return;
-
-	wiiuse_rumble(wm, !WIIMOTE_IS_SET(wm, WIIMOTE_STATE_RUMBLE));
-}
-
-
 /**
  *	@brief	Set the enabled LEDs.
  *
@@ -259,26 +245,6 @@ void wiiuse_set_leds(struct wiimote_t* wm, int leds) {
 	buf = wm->leds;
 
 	wiiuse_send(wm, WM_CMD_LED, &buf, 1);
-}
-
-
-/**
- *	@brief	Set if the wiimote should report motion sensing.
- *
- *	@param wm		Pointer to a wiimote_t structure.
- *	@param status	1 to enable, 0 to disable.
- *
- *	Since reporting motion sensing sends a lot of data,
- *	the wiimote saves power by not transmitting it
- *	by default.
- */
-void wiiuse_motion_sensing(struct wiimote_t* wm, int status) {
-	if (status)
-		WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_ACC);
-	else
-		WIIMOTE_DISABLE_STATE(wm, WIIMOTE_STATE_ACC);
-
-	wiiuse_set_report_type(wm);
 }
 
 
@@ -387,60 +353,6 @@ int wiiuse_read_data_cb(struct wiimote_t* wm, wiiuse_read_cb read_cb, byte* buff
 }
 
 
-/**
- *	@brief	Read data from the wiimote (event version).
- *
- *	@param wm		Pointer to a wiimote_t structure.
- *	@param buffer	An allocated buffer to store the data as it arrives from the wiimote.
- *					Must be persistent in memory and large enough to hold the data.
- *	@param addr		The address of wiimote memory to read from.
- *	@param len		The length of the block to be read.
- *
- *	The library can only handle one data read request at a time
- *	because it must keep track of the buffer and other
- *	events that are specific to that request.  So if a request
- *	has already been made, subsequent requests will be added
- *	to a pending list and be sent out when the previous
- *	finishes.
- */
-int wiiuse_read_data(struct wiimote_t* wm, byte* buffer, unsigned int addr, unsigned short len) {
-	struct read_req_t* req;
-
-	if (!wm || !WIIMOTE_IS_CONNECTED(wm))
-		return 0;
-	if (!buffer || !len)
-		return 0;
-
-	/* make this request structure */
-	req = (struct read_req_t*)malloc(sizeof(struct read_req_t));
-	req->cb = NULL;
-	req->buf = buffer;
-	req->addr = addr;
-	req->size = len;
-	req->wait = len;
-	req->dirty = 0;
-	req->next = NULL;
-
-	/* add this to the request list */
-	if (!wm->read_req) {
-		/* root node */
-		wm->read_req = req;
-
-		WIIUSE_DEBUG("Data read request can be sent out immediately.");
-
-		/* send the request out immediately */
-		wiiuse_send_next_pending_read_request(wm);
-	} else {
-		struct read_req_t* nptr = wm->read_req;
-		for (; nptr->next; nptr = nptr->next);
-		nptr->next = req;
-
-		WIIUSE_DEBUG("Added pending data read request.");
-	}
-
-	return 1;
-}
-
 
 /**
  *	@brief Send the next pending data read request to the wiimote.
@@ -474,46 +386,6 @@ void wiiuse_send_next_pending_read_request(struct wiimote_t* wm) {
 
 	WIIUSE_DEBUG("Request read at address: 0x%x  length: %i", req->addr, req->size);
 	wiiuse_send(wm, WM_CMD_READ_DATA, buf, 6);
-}
-
-
-/**
- *	@brief Request the wiimote controller status.
- *
- *	@param wm		Pointer to a wiimote_t structure.
- *
- *	Controller status includes: battery level, LED status, expansions
- */
-void wiiuse_status(struct wiimote_t* wm) {
-	byte buf = 0;
-
-	if (!wm || !WIIMOTE_IS_CONNECTED(wm))
-		return;
-
-	WIIUSE_DEBUG("Requested wiimote status.");
-
-	wiiuse_send(wm, WM_CMD_CTRL_STATUS, &buf, 1);
-}
-
-
-/**
- *	@brief Find a wiimote_t structure by its unique identifier.
- *
- *	@param wm		Pointer to a wiimote_t structure.
- *	@param wiimotes	The number of wiimote_t structures in \a wm.
- *	@param unid		The unique identifier to search for.
- *
- *	@return Pointer to a wiimote_t structure, or NULL if not found.
- */
-struct wiimote_t* wiiuse_get_by_id(struct wiimote_t** wm, int wiimotes, int unid) {
-	int i = 0;
-
-	for (; i < wiimotes; ++i) {
-		if (wm[i]->unid == unid)
-			return wm[i];
-	}
-
-	return NULL;
 }
 
 
@@ -612,60 +484,6 @@ int wiiuse_send(struct wiimote_t* wm, byte report_type, byte* msg, int len) {
 }
 
 
-/**
- *	@brief Set flags for the specified wiimote.
- *
- *	@param wm			Pointer to a wiimote_t structure.
- *	@param enable		Flags to enable.
- *	@param disable		Flags to disable.
- *
- *	@return The flags set after 'enable' and 'disable' have been applied.
- *
- *	The values 'enable' and 'disable' may be any flags OR'ed together.
- *	Flags are defined in wiiuse.h.
- */
-int wiiuse_set_flags(struct wiimote_t* wm, int enable, int disable) {
-	if (!wm)	return 0;
-
-	/* remove mutually exclusive flags */
-	enable &= ~disable;
-	disable &= ~enable;
-
-	wm->flags |= enable;
-	wm->flags &= ~disable;
-
-	return wm->flags;
-}
-
-
-/**
- *	@brief Set the wiimote smoothing alpha value.
- *
- *	@param wm			Pointer to a wiimote_t structure.
- *	@param alpha		The alpha value to set. Between 0 and 1.
- *
- *	@return Returns the old alpha value.
- *
- *	The alpha value is between 0 and 1 and is used in an exponential
- *	smoothing algorithm.
- *
- *	Smoothing is only performed if the WIIMOTE_USE_SMOOTHING is set.
- */
-float wiiuse_set_smooth_alpha(struct wiimote_t* wm, float alpha) {
-	float old;
-
-	if (!wm)	return 0.0f;
-
-	old = wm->accel_calib.st_alpha;
-
-	wm->accel_calib.st_alpha = alpha;
-
-	/* if there is a nunchuk set that too */
-	if (wm->expansion.type == EXP_NUNCHUK)
-		wm->expansion.nunchuk.accel_calib.st_alpha = alpha;
-
-	return old;
-}
 
 
 /**
@@ -685,50 +503,6 @@ void wiiuse_set_bluetooth_stack(struct wiimote_t** wm, int wiimotes, enum win_bt
 		wm[i]->stack = type;
 	#endif
 }
-
-
-/**
- *	@brief	Set the orientation event threshold.
- *
- *	@param wm			Pointer to a wiimote_t structure.
- *	@param threshold	The decimal place that should be considered a significant change.
- *
- *	If threshold is 0.01, and any angle changes by 0.01 then a significant change
- *	has occured and the event callback will be invoked.  If threshold is 1 then
- *	the angle has to change by a full degree to generate an event.
- */
-void wiiuse_set_orient_threshold(struct wiimote_t* wm, float threshold) {
-	if (!wm)	return;
-
-	wm->orient_threshold = threshold;
-}
-
-
-/**
- *	@brief	Set the accelerometer event threshold.
- *
- *	@param wm			Pointer to a wiimote_t structure.
- *	@param threshold	The decimal place that should be considered a significant change.
- */
-void wiiuse_set_accel_threshold(struct wiimote_t* wm, int threshold) {
-	if (!wm)	return;
-
-	wm->accel_threshold = threshold;
-}
-
-
-/**
- *	@brief Try to resync with the wiimote by starting a new handshake.
- *
- *	@param wm			Pointer to a wiimote_t structure.
- */
-void wiiuse_resync(struct wiimote_t* wm) {
-	if (!wm)	return;
-
-	wm->handshake_state = 0;
-	wiiuse_handshake(wm, NULL, 0);
-}
-
 
 /**
  *	@brief Set the normal and expansion handshake timeouts.

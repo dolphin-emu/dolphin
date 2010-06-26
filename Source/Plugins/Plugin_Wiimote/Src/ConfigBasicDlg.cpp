@@ -20,7 +20,6 @@
 #include "main.h"
 #include "ConfigBasicDlg.h"
 #include "ConfigPadDlg.h"
-#include "ConfigRecordingDlg.h"
 #include "Config.h"
 #include "EmuMain.h" // for SetDefaultExtensionRegistry
 #include "EmuSubroutines.h" // for WmRequestStatus
@@ -111,12 +110,6 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 		m_Page = g_Config.CurrentPage;
 		m_Notebook->ChangeSelection(g_Config.CurrentPage);
 		UpdateGUI();
-		break;
-	case ID_BUTTONRECORDING:
-		m_RecordingConfigFrame = new WiimoteRecordingConfigDialog(this);
-		m_RecordingConfigFrame->ShowModal();
-		m_RecordingConfigFrame->Destroy();
-		m_RecordingConfigFrame = NULL;
 		break;
 #ifdef _WIN32
 	case IDB_PAIRUP_REAL:
@@ -327,7 +320,6 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 	}
 
 	m_ButtonMapping = new wxButton(this, ID_BUTTONMAPPING, wxT("Button Mapping"));
-	m_Recording		= new wxButton(this, ID_BUTTONRECORDING, wxT("Recording"));
 
 	m_OK = new wxButton(this, wxID_OK, wxT("OK"));
 	m_OK->SetToolTip(wxT("Save changes and close"));
@@ -336,7 +328,6 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
 	sButtons->Add(m_ButtonMapping, 0, (wxALL), 0);
-	sButtons->Add(m_Recording, 0, (wxALL), 0);
 	sButtons->AddStretchSpacer();
 	sButtons->Add(m_OK, 0, (wxALL), 0);
 	sButtons->Add(m_Cancel, 0, (wxLEFT), 5);	
