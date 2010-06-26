@@ -821,11 +821,6 @@ bool IsRAMAddress(const u32 addr, bool allow_locked_cache)
 			return true;
 		else
 			return false;
-	case 0x7C:
-		if (bFakeVMEM && addr >= 0x7e000000)
-			return true;
-		else
-			return false;
 	default:
 		return false;
 	}

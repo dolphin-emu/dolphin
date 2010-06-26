@@ -71,7 +71,6 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 	{
 		// a == 0, which for these instructions imply value = 0
 		gpr.SetImmediate32(d, value);
-		gpr.StoreFromX64(d);
 	}
 	else
 	{
@@ -136,7 +135,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 
 	bool merge_branch = false;
 	int test_crf = js.next_inst.BI >> 2;
-	// Check if the next intruction is a branch - if it is, merge the two.
+	// Check if the next instruction is a branch - if it is, merge the two.
 	if (js.next_inst.OPCD == 16 && (js.next_inst.BO & BO_DONT_DECREMENT_FLAG) &&
 		!(js.next_inst.BO & 16) && (js.next_inst.BO & 4) && !js.next_inst.LK) {
 			// Looks like a decent conditional branch that we can merge with.
