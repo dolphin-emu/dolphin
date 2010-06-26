@@ -17,7 +17,11 @@
 
 
 #ifdef _WIN32
-	#include <windows.h>
+#include <windows.h>
+#endif
+
+#ifdef __APPLE__
+#import <Foundation/NSAutoreleasePool.h>
 #endif
 
 #include "Setup.h" // Common
@@ -261,6 +265,10 @@ void Stop()  // - Hammertime!
 
 THREAD_RETURN CpuThread(void *pArg)
 {
+#ifdef __APPLE__
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#endif
+
 	CPluginManager &Plugins = CPluginManager::GetInstance();
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
@@ -298,6 +306,10 @@ THREAD_RETURN CpuThread(void *pArg)
 	}
 
 	cpuRunloopQuit.Set();
+
+#ifdef __APPLE__
+	[pool release];
+#endif
 	return 0;
 }
 
@@ -306,6 +318,10 @@ THREAD_RETURN CpuThread(void *pArg)
 // Call browser: Init():g_EmuThread(). See the BootManager.cpp file description for a complete call schedule.
 THREAD_RETURN EmuThread(void *pArg)
 {
+#ifdef __APPLE__
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+#endif
+
 	Host_UpdateMainFrame(); // Disable any menus or buttons at boot
 
 	cpuRunloopQuit.Init();
@@ -522,6 +538,10 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	cpuRunloopQuit.Shutdown();
 	g_bStopping = false;
+
+#ifdef __APPLE__
+	[pool release];
+#endif
 	return 0;
 }
 
