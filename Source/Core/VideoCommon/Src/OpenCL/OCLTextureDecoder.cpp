@@ -34,8 +34,8 @@
 cl_program g_program;
 
 struct sDecoderParameter
-{    
-    char* name;
+{
+    const char *name;
     cl_kernel kernel;
     float sizeOfSrc;
 	float sizeOfDst;
@@ -98,17 +98,20 @@ void TexDecoder_OpenCL_Initialize() {
 			ERROR_LOG(VIDEO, "Failed to load OpenCL code %s - file is missing?", filename);
 			return;
 		}
-		
+
 		g_program = OpenCL::CompileProgram(code.c_str());
 
-		int i = 0;
-        for(int i = 0; i <= GX_TF_CMPR; ++i) {
-            if(g_DecodeParametersNative[i].name)
-                g_DecodeParametersNative[i].kernel = OpenCL::CompileKernel(g_program, g_DecodeParametersNative[i].name);
+		for (int i = 0; i <= GX_TF_CMPR; ++i) {
+			if (g_DecodeParametersNative[i].name)
+				g_DecodeParametersNative[i].kernel =
+					OpenCL::CompileKernel(g_program,
+					g_DecodeParametersNative[i].name);
 
-            if(g_DecodeParametersRGBA[i].name)
-                g_DecodeParametersRGBA[i].kernel = OpenCL::CompileKernel(g_program, g_DecodeParametersRGBA[i].name);
-        }
+			if (g_DecodeParametersRGBA[i].name)
+				g_DecodeParametersRGBA[i].kernel =
+					OpenCL::CompileKernel(g_program,
+					g_DecodeParametersRGBA[i].name);
+		}
 
 		// Allocating maximal Wii texture size in advance, so that we don't have to allocate/deallocate per texture
 #ifndef DEBUG_OPENCL
@@ -123,24 +126,23 @@ void TexDecoder_OpenCL_Initialize() {
 
 void TexDecoder_OpenCL_Shutdown() {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL && !defined(DEBUG_OPENCL)
-	
+
 	clReleaseProgram(g_program);
-	int i = 0;
 
-    for(int i = 0; i < GX_TF_CMPR; ++i) {
-        if(g_DecodeParametersNative[i].kernel)
-            clReleaseKernel(g_DecodeParametersNative[i].kernel);
+	for (int i = 0; i < GX_TF_CMPR; ++i) {
+		if (g_DecodeParametersNative[i].kernel)
+			clReleaseKernel(g_DecodeParametersNative[i].kernel);
 
-        if(g_DecodeParametersRGBA[i].kernel)
-            clReleaseKernel(g_DecodeParametersRGBA[i].kernel);
-    }
-	
+		if(g_DecodeParametersRGBA[i].kernel)
+			clReleaseKernel(g_DecodeParametersRGBA[i].kernel);
+	}
+
 	if(g_clsrc)
 		clReleaseMemObject(g_clsrc);
 
 	if(g_cldst)
 		clReleaseMemObject(g_cldst);
-	
+
 	g_Inited = false;
 #endif
 }
@@ -179,7 +181,7 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 		OpenCL::HandleCLError(err, "Failed to enqueue kernel");
 
 	clFinish(OpenCL::GetCommandQueue());
-	
+
 	clEnqueueReadBuffer(OpenCL::GetCommandQueue(), g_cldst, CL_TRUE, 0, (size_t)(width * height * decoder.sizeOfDst), dst, 0, NULL, NULL);
 
 #ifdef DEBUG_OPENCL
