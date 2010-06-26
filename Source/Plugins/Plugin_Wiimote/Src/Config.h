@@ -34,7 +34,8 @@ struct Config
 
 	// Real Wiimote
 	bool bUpdateRealWiimote, bUnpairRealWiimote, bPairRealWiimote;
-	int bNumberRealWiimotes, bNumberEmuWiimotes, bWiiReadTimeout;
+	volatile int bNumberRealWiimotes;
+	int bNumberEmuWiimotes, bWiiReadTimeout;
 	int iIRLeft, iIRTop, iIRWidth, iIRHeight, iIRLevel;
 	int iAccNeutralX, iAccNeutralY, iAccNeutralZ;
 	int iAccNunNeutralX, iAccNunNeutralY, iAccNunNeutralZ;
