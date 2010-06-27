@@ -312,7 +312,7 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 	entry.isNonPow2 = false;
 	entry.MipLevels = maxlevel;
 
-	if (TexLevels == 0) D3DX11FilterTexture(D3D::context, entry.texture->GetTex(), 0, D3DX11_DEFAULT);
+	if (TexLevels == 0) PD3DX11FilterTexture(D3D::context, entry.texture->GetTex(), 0, D3DX11_DEFAULT);
 	else if (TexLevels > 1 && pcfmt != PC_TEX_FMT_NONE)
 	{
 		unsigned int level = 1;

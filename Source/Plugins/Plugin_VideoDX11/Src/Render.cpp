@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <list>
-#include <d3dx11.h>
 
 #include "StringUtil.h"
 #include "Common.h"
@@ -766,13 +765,13 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 	u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
 	D3D::stateman->PushDepthState(cleardepthstates[zEnable]);
 	D3D::stateman->PushRasterizerState(clearraststate);
-	//D3D::stateman->PushBlendState(resetblendstate); temporarily comented till i found the cause of th blending error in mkwii
-	D3D::stateman->Apply();
+	//D3D::stateman->PushBlendState(resetblendstate); temporarily commented until I find the cause of the blending issue in mkwii (see next line)
+	D3D::gfxstate->ApplyState();  // TODO (neobrain): find out whether this breaks/fixes anything or can just be dropped. Might obsolete the comment above this line
 	D3D::drawClearQuad(rgbaColor, (z & 0xFFFFFF) / float(0xFFFFFF), PixelShaderCache::GetClearProgram(), VertexShaderCache::GetClearVertexShader(), VertexShaderCache::GetClearInputLayout());
-
+	D3D::gfxstate->Reset();
 	D3D::stateman->PopDepthState();
 	D3D::stateman->PopRasterizerState();
-	//D3D::stateman->PopBlendState();		
+//	D3D::stateman->PopBlendState();
 	UpdateViewport();
 	SetScissorRect();
 }
@@ -896,7 +895,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 		D3D::context->Unmap(buftex, 0);
 
 		// ready to be saved
-		hr = D3DX11SaveTextureToFileA(D3D::context, buftex, D3DX11_IFF_PNG, s_sScreenshotName);
+		hr = PD3DX11SaveTextureToFileA(D3D::context, buftex, D3DX11_IFF_PNG, s_sScreenshotName);
 		if (FAILED(hr)) PanicAlert("Failed to save screenshot");
 		buftex->Release();
 		s_bScreenshot = false;

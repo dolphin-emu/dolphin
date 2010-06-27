@@ -34,6 +34,7 @@ EmuGfxState::EmuGfxState() : vertexshader(NULL), vsbytecode(NULL), pixelshader(N
 		if(g_ActiveConfig.iMaxAnisotropy > 1) samplerdesc[k].Filter = D3D11_FILTER_ANISOTROPIC;
 	}
 
+	memset(&blenddesc, 0, sizeof(blenddesc));
 	blenddesc.AlphaToCoverageEnable = FALSE;
 	blenddesc.IndependentBlendEnable = FALSE;
 	blenddesc.RenderTarget[0].BlendEnable = FALSE;
@@ -45,6 +46,7 @@ EmuGfxState::EmuGfxState() : vertexshader(NULL), vsbytecode(NULL), pixelshader(N
 	blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
 	blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
 
+	memset(&depthdesc, 0, sizeof(depthdesc));
 	depthdesc.DepthEnable        = TRUE;
 	depthdesc.DepthWriteMask     = D3D11_DEPTH_WRITE_MASK_ALL;
 	depthdesc.DepthFunc          = D3D11_COMPARISON_LESS;
@@ -248,6 +250,7 @@ void EmuGfxState::Reset()
 	for (unsigned int k = 0;k < 8;k++)
 		SAFE_RELEASE(shader_resources[k]);
 
+	context->PSSetShaderResources(0, 8, shader_resources); // unbind all textures
 	if (apply_called)
 	{
 		stateman->PopBlendState();
@@ -318,9 +321,9 @@ template<typename T> AutoState<T>::~AutoState()
 
 StateManager::StateManager() : cur_blendstate(NULL), cur_depthstate(NULL), cur_raststate(NULL) {}
 
-void StateManager::PushBlendState(const ID3D11BlendState* state) { blendstates.push(AutoBlendState(state));}
-void StateManager::PushDepthState(const ID3D11DepthStencilState* state) { depthstates.push(AutoDepthStencilState(state));}
-void StateManager::PushRasterizerState(const ID3D11RasterizerState* state) { raststates.push(AutoRasterizerState(state));}
+void StateManager::PushBlendState(const ID3D11BlendState* state) { blendstates.push(AutoBlendState(state)); }
+void StateManager::PushDepthState(const ID3D11DepthStencilState* state) { depthstates.push(AutoDepthStencilState(state)); }
+void StateManager::PushRasterizerState(const ID3D11RasterizerState* state) { raststates.push(AutoRasterizerState(state)); }
 void StateManager::PopBlendState() { blendstates.pop(); }
 void StateManager::PopDepthState() { depthstates.pop(); }
 void StateManager::PopRasterizerState() { raststates.pop(); }
@@ -335,7 +338,7 @@ void StateManager::Apply()
 			D3D::context->OMSetBlendState(cur_blendstate, NULL, 0xFFFFFFFF);
 		}
 	}
-	else D3D::context->OMSetBlendState(NULL, NULL, 0xFFFFFFFF);
+	else ERROR_LOG(VIDEO, "Tried to apply without blend state!");
 
 	if (!depthstates.empty())
 	{
@@ -345,7 +348,7 @@ void StateManager::Apply()
 			D3D::context->OMSetDepthStencilState(cur_depthstate, 0);
 		}
 	}
-	else D3D::context->OMSetDepthStencilState(NULL, 0);
+	else ERROR_LOG(VIDEO, "Tried to apply without depth state!");
 
 	if (!raststates.empty())
 	{
@@ -355,7 +358,7 @@ void StateManager::Apply()
 			D3D::context->RSSetState(cur_raststate);
 		}
 	}
-	else D3D::context->RSSetState(NULL);
+	else ERROR_LOG(VIDEO, "Tried to apply without rasterizer state!");
 }
 
 }  // namespace

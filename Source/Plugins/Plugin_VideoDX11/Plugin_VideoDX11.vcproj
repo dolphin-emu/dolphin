@@ -91,7 +91,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="&quot;..\..\core\common\win32\release\common.lib&quot;"
-				AdditionalDependencies="odbc32.lib d3dcompiler.lib odbccp32.lib comctl32.lib dxguid.lib d3dx11.lib d3d11.lib dxgi.lib winmm.lib vfw32.lib wxbase28u.lib wxmsw28u_core.lib"
+				AdditionalDependencies="odbc32.lib d3dcompiler.lib odbccp32.lib comctl32.lib dxguid.lib d3d11.lib dxgi.lib winmm.lib vfw32.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_VideoDX11.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -199,7 +199,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib d3dcompiler.lib odbccp32.lib comctl32.lib dxguid.lib d3dx11.lib d3d11.lib dxgi.lib winmm.lib vfw32.lib wxbase28u.lib wxmsw28u_core.lib"
+				AdditionalDependencies="odbc32.lib d3dcompiler.lib odbccp32.lib comctl32.lib dxguid.lib d3d11.lib dxgi.lib winmm.lib vfw32.lib wxbase28u.lib wxmsw28u_core.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoDX11.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -297,7 +297,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="&quot;..\..\core\common\win32\debug\common.lib&quot;"
-				AdditionalDependencies="odbc32.lib d3dcompiler.lib odbccp32.lib comctl32.lib uuid.lib dxguid.lib d3dx11d.lib d3d11.lib dxgi.lib Rpcrt4.lib winmm.lib vfw32.lib wxbase28ud.lib wxmsw28ud_core.lib"
+				AdditionalDependencies="odbc32.lib d3dcompiler.lib odbccp32.lib comctl32.lib uuid.lib dxguid.lib d3d11.lib dxgi.lib Rpcrt4.lib winmm.lib vfw32.lib wxbase28ud.lib wxmsw28ud_core.lib"
 				OutputFile="..\..\..\Binary\Win32/Plugins\Plugin_VideoDX11D.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -393,7 +393,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib d3dcompiler.lib odbccp32.lib comctl32.lib uuid.lib dxguid.lib d3dx11d.lib d3d11.lib dxgi.lib Rpcrt4.lib winmm.lib vfw32.lib"
+				AdditionalDependencies="odbc32.lib d3dcompiler.lib odbccp32.lib comctl32.lib uuid.lib dxguid.lib d3d11.lib dxgi.lib Rpcrt4.lib winmm.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoDX11D.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -499,7 +499,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib d3dcompiler.lib odbccp32.lib comctl32.lib uuid.lib dxguid.lib d3dx11d.lib d3d11.lib dxgi.lib Rpcrt4.lib winmm.lib vfw32.lib"
+				AdditionalDependencies="odbc32.lib d3dcompiler.lib odbccp32.lib comctl32.lib uuid.lib dxguid.lib d3d11.lib dxgi.lib Rpcrt4.lib winmm.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\Win32\Plugins\Plugin_VideoDX11DF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -608,7 +608,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib d3dcompiler.lib odbccp32.lib comctl32.lib uuid.lib dxguid.lib d3dx11d.lib d3d11.lib dxgi.lib Rpcrt4.lib winmm.lib vfw32.lib"
+				AdditionalDependencies="odbc32.lib d3dcompiler.lib odbccp32.lib comctl32.lib uuid.lib dxguid.lib d3d11.lib dxgi.lib Rpcrt4.lib winmm.lib vfw32.lib"
 				OutputFile="..\..\..\Binary\x64\Plugins\Plugin_VideoDX11DF.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"

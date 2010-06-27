@@ -22,11 +22,17 @@
 #include "VideoConfig.h"
 #include "Render.h"
 #include "XFStructs.h"
+#include "StringUtil.h"
 
 #include <map>
 #include <string>
 #include <algorithm>
 using namespace std;
+
+HINSTANCE hD3DXDll = NULL;
+D3DX11FILTERTEXTURETYPE PD3DX11FilterTexture = NULL;
+D3DX11SAVETEXTURETOFILEATYPE PD3DX11SaveTextureToFileA = NULL;
+D3DX11SAVETEXTURETOFILEWTYPE PD3DX11SaveTextureToFileW = NULL;
 
 namespace D3D
 {
@@ -61,6 +67,38 @@ HRESULT Create(HWND wnd)
 	xres = client.right - client.left;
 	yres = client.bottom - client.top;
 
+	// try to load D3DX11 first to check whether we have proper runtime support
+	// try to use the dll the plugin was compiled against first - don't bother about debug runtimes
+	hD3DXDll = LoadLibraryA(StringFromFormat("d3dx11_%d.dll", D3DX11_SDK_VERSION).c_str());
+	if (!hD3DXDll)
+	{
+		// if that fails, use the dll which should be available in every SDK which officially supports DX11.
+		hD3DXDll = LoadLibraryA("d3dx11_42.dll");
+		if (!hD3DXDll)
+		{
+			MessageBoxA(NULL, "Failed to load d3dx11_42.dll, update your DX11 runtime, please", "Critical error", MB_OK | MB_ICONERROR);
+			return E_FAIL;
+		}
+		else
+		{
+			NOTICE_LOG(VIDEO, "Successfully loaded d3dx11_42.dll. If you're having trouble, try updating your DX runtime first.");
+		}
+	}
+	else
+	{
+		NOTICE_LOG(VIDEO, "Successfully loaded %s.", StringFromFormat("d3dx11_%d.dll", D3DX11_SDK_VERSION).c_str());
+	}
+
+	PD3DX11FilterTexture = (D3DX11FILTERTEXTURETYPE)GetProcAddress(hD3DXDll, "D3DX11FilterTexture");
+	if (PD3DX11FilterTexture == NULL) MessageBoxA(NULL, "GetProcAddress failed to D3DX11FilterTexture!", "Critical error", MB_OK | MB_ICONERROR);
+
+	PD3DX11SaveTextureToFileA = (D3DX11SAVETEXTURETOFILEATYPE)GetProcAddress(hD3DXDll, "D3DX11SaveTextureToFileA");
+	if (PD3DX11SaveTextureToFileA == NULL) MessageBoxA(NULL, "GetProcAddress failed to D3DX11SaveTextureToFileA!", "Critical error", MB_OK | MB_ICONERROR);
+
+	PD3DX11SaveTextureToFileW = (D3DX11SAVETEXTURETOFILEWTYPE)GetProcAddress(hD3DXDll, "D3DX11SaveTextureToFileW");
+	if (PD3DX11SaveTextureToFileW == NULL) MessageBoxA(NULL, "GetProcAddress failed to D3DX11SaveTextureToFileW!", "Critical error", MB_OK | MB_ICONERROR);
+
+	// D3DX11 is fine, initialize D3D11
 	IDXGIFactory* factory;
 	IDXGIAdapter* adapter;
 	IDXGIOutput* output;
@@ -159,6 +197,12 @@ HRESULT Create(HWND wnd)
 
 void Close()
 {
+	// unload D3DX11
+	FreeLibrary(hD3DXDll);
+	PD3DX11FilterTexture = NULL;
+	PD3DX11SaveTextureToFileA = NULL;
+	PD3DX11SaveTextureToFileW = NULL;
+
 	// release all bound resources
 	context->ClearState();
 	SAFE_RELEASE(backbuf);

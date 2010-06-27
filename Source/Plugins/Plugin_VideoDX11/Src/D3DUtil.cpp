@@ -504,8 +504,6 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 
 	ID3D11ShaderResourceView* texres = NULL;
 	context->PSSetShaderResources(0, 1, &texres); // immediately unbind the texture
-
-	
 }
 
 void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
@@ -565,8 +563,6 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 
 	ID3D11ShaderResourceView* texres = NULL;
 	context->PSSetShaderResources(0, 1, &texres); // immediately unbind the texture
-
-	
 }
 
 void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexShader* Vshader, ID3D11InputLayout* layout)
@@ -600,8 +596,6 @@ void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexS
 	context->IASetVertexBuffers(0, 1, &clearvb, &stride, &offset);
 	stateman->Apply();
 	context->Draw(4, 0);
-
-	
 }
 
 

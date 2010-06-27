@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include <d3d11.h>
+#include <d3dx11.h>
 #include "Common.h"
 #include "D3DBlob.h"
 #include "GfxState.h"
@@ -62,3 +62,24 @@ inline void SetDebugObjectName(ID3D11DeviceChild* resource, const char* name)
 }
 
 }  // namespace
+
+
+// Used to not require the SDK and runtime versions to match:
+// Linking with d3dx11.lib makes the most recent d3dx11_xx.dll of the
+// compiler's SDK a requirement, but this plugin works with DX11 runtimes
+// back to August 2009 even if the plugin was built with June 2010.
+// Add any d3dx11 functions which you want to use here and load them in Create()
+typedef HRESULT (WINAPI* D3DX11FILTERTEXTURETYPE)(ID3D11DeviceContext*, ID3D11Resource*, UINT, UINT);
+typedef HRESULT (WINAPI* D3DX11SAVETEXTURETOFILEATYPE)(ID3D11DeviceContext*, ID3D11Resource*, D3DX11_IMAGE_FILE_FORMAT, LPCSTR);
+typedef HRESULT (WINAPI* D3DX11SAVETEXTURETOFILEWTYPE)(ID3D11DeviceContext*, ID3D11Resource*, D3DX11_IMAGE_FILE_FORMAT, LPCWSTR);
+
+extern D3DX11FILTERTEXTURETYPE PD3DX11FilterTexture;
+extern D3DX11SAVETEXTURETOFILEATYPE PD3DX11SaveTextureToFileA;
+extern D3DX11SAVETEXTURETOFILEWTYPE PD3DX11SaveTextureToFileW;
+
+#ifdef UNICODE
+#define PD3DX11SaveTextureToFile PD3DX11SaveTextureToFileW
+#else
+#define PD3DX11SaveTextureToFile PD3DX11SaveTextureToFileA
+#endif
+
