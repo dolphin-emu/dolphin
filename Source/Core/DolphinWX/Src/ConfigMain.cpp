@@ -734,15 +734,15 @@ void CConfigMain::CreateGUIControls()
 	
 	// Plugins page
 	sbGraphicsPlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginsPage, wxT("Graphics"));
-	GraphicSelection = new wxChoice(PluginsPage, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
+	GraphicSelection = new wxChoice(PluginsPage, ID_GRAPHIC_CB, wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
 	GraphicConfig = new wxButton(PluginsPage, ID_GRAPHIC_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	sbDSPPlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginsPage, wxT("DSP"));
-	DSPSelection = new wxChoice(PluginsPage, ID_DSP_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
+	DSPSelection = new wxChoice(PluginsPage, ID_DSP_CB, wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
 	DSPConfig = new wxButton(PluginsPage, ID_DSP_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	sbWiimotePlugin = new wxStaticBoxSizer(wxHORIZONTAL, PluginsPage, wxT("Wiimote"));
-	WiimoteSelection = new wxChoice(PluginsPage, ID_WIIMOTE_CB, wxDefaultPosition, wxDefaultSize, NULL, 0, wxDefaultValidator);
+	WiimoteSelection = new wxChoice(PluginsPage, ID_WIIMOTE_CB, wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
 	WiimoteConfig = new wxButton(PluginsPage, ID_WIIMOTE_CONFIG, wxT("Config..."), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Populate the settings
