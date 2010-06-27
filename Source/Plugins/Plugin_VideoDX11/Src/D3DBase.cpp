@@ -30,6 +30,7 @@
 using namespace std;
 
 HINSTANCE hD3DXDll = NULL;
+D3DX11COMPILEFROMMEMORYTYPE PD3DX11CompileFromMemory = NULL;
 D3DX11FILTERTEXTURETYPE PD3DX11FilterTexture = NULL;
 D3DX11SAVETEXTURETOFILEATYPE PD3DX11SaveTextureToFileA = NULL;
 D3DX11SAVETEXTURETOFILEWTYPE PD3DX11SaveTextureToFileW = NULL;
@@ -89,14 +90,17 @@ HRESULT Create(HWND wnd)
 		NOTICE_LOG(VIDEO, "Successfully loaded %s.", StringFromFormat("d3dx11_%d.dll", D3DX11_SDK_VERSION).c_str());
 	}
 
+	PD3DX11CompileFromMemory = (D3DX11COMPILEFROMMEMORYTYPE)GetProcAddress(hD3DXDll, "D3DX11CompileFromMemory");
+	if (PD3DX11CompileFromMemory == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3DX11CompileFromMemory!", "Critical error", MB_OK | MB_ICONERROR);
+
 	PD3DX11FilterTexture = (D3DX11FILTERTEXTURETYPE)GetProcAddress(hD3DXDll, "D3DX11FilterTexture");
-	if (PD3DX11FilterTexture == NULL) MessageBoxA(NULL, "GetProcAddress failed to D3DX11FilterTexture!", "Critical error", MB_OK | MB_ICONERROR);
+	if (PD3DX11FilterTexture == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3DX11FilterTexture!", "Critical error", MB_OK | MB_ICONERROR);
 
 	PD3DX11SaveTextureToFileA = (D3DX11SAVETEXTURETOFILEATYPE)GetProcAddress(hD3DXDll, "D3DX11SaveTextureToFileA");
-	if (PD3DX11SaveTextureToFileA == NULL) MessageBoxA(NULL, "GetProcAddress failed to D3DX11SaveTextureToFileA!", "Critical error", MB_OK | MB_ICONERROR);
+	if (PD3DX11SaveTextureToFileA == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3DX11SaveTextureToFileA!", "Critical error", MB_OK | MB_ICONERROR);
 
 	PD3DX11SaveTextureToFileW = (D3DX11SAVETEXTURETOFILEWTYPE)GetProcAddress(hD3DXDll, "D3DX11SaveTextureToFileW");
-	if (PD3DX11SaveTextureToFileW == NULL) MessageBoxA(NULL, "GetProcAddress failed to D3DX11SaveTextureToFileW!", "Critical error", MB_OK | MB_ICONERROR);
+	if (PD3DX11SaveTextureToFileW == NULL) MessageBoxA(NULL, "GetProcAddress failed for D3DX11SaveTextureToFileW!", "Critical error", MB_OK | MB_ICONERROR);
 
 	// D3DX11 is fine, initialize D3D11
 	IDXGIFactory* factory;

@@ -69,10 +69,12 @@ inline void SetDebugObjectName(ID3D11DeviceChild* resource, const char* name)
 // compiler's SDK a requirement, but this plugin works with DX11 runtimes
 // back to August 2009 even if the plugin was built with June 2010.
 // Add any d3dx11 functions which you want to use here and load them in Create()
+typedef HRESULT (WINAPI* D3DX11COMPILEFROMMEMORYTYPE)(LPCSTR, SIZE_T, LPCSTR, const D3D10_SHADER_MACRO*, LPD3D10INCLUDE, LPCSTR, LPCSTR, UINT, UINT, ID3DX11ThreadPump*, ID3D10Blob**, ID3D10Blob**, HRESULT*);
 typedef HRESULT (WINAPI* D3DX11FILTERTEXTURETYPE)(ID3D11DeviceContext*, ID3D11Resource*, UINT, UINT);
 typedef HRESULT (WINAPI* D3DX11SAVETEXTURETOFILEATYPE)(ID3D11DeviceContext*, ID3D11Resource*, D3DX11_IMAGE_FILE_FORMAT, LPCSTR);
 typedef HRESULT (WINAPI* D3DX11SAVETEXTURETOFILEWTYPE)(ID3D11DeviceContext*, ID3D11Resource*, D3DX11_IMAGE_FILE_FORMAT, LPCWSTR);
 
+extern D3DX11COMPILEFROMMEMORYTYPE PD3DX11CompileFromMemory;
 extern D3DX11FILTERTEXTURETYPE PD3DX11FilterTexture;
 extern D3DX11SAVETEXTURETOFILEATYPE PD3DX11SaveTextureToFileA;
 extern D3DX11SAVETEXTURETOFILEWTYPE PD3DX11SaveTextureToFileW;
@@ -82,4 +84,3 @@ extern D3DX11SAVETEXTURETOFILEWTYPE PD3DX11SaveTextureToFileW;
 #else
 #define PD3DX11SaveTextureToFile PD3DX11SaveTextureToFileA
 #endif
-

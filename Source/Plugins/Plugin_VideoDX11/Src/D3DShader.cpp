@@ -49,8 +49,8 @@ bool CompileVertexShader(const char* code, unsigned int len, D3DBlob** blob)
 #else
 	UINT flags = D3D10_SHADER_ENABLE_BACKWARDS_COMPATIBILITY|D3D10_SHADER_OPTIMIZATION_LEVEL3|D3D10_SHADER_SKIP_VALIDATION;
 #endif
- 	HRESULT hr = D3DCompile(code, len, NULL, NULL, NULL, "main", D3D::VertexShaderVersionString(),
-							flags, 0, &shaderBuffer, &errorBuffer);
+	HRESULT hr = PD3DX11CompileFromMemory(code, len, NULL, NULL, NULL, "main", D3D::VertexShaderVersionString(),
+							flags, 0, NULL, &shaderBuffer, &errorBuffer, NULL);
 
 	if (FAILED(hr) || errorBuffer)
 	{
@@ -94,8 +94,8 @@ bool CompilePixelShader(const char* code, unsigned int len, D3DBlob** blob)
 #else
 	UINT flags = D3D10_SHADER_OPTIMIZATION_LEVEL3;
 #endif
- 	HRESULT hr = D3DCompile(code, len, NULL, NULL, NULL, "main", D3D::PixelShaderVersionString(),
-							flags, 0, &shaderBuffer, &errorBuffer);
+	HRESULT hr = PD3DX11CompileFromMemory(code, len, NULL, NULL, NULL, "main", D3D::PixelShaderVersionString(),
+							flags, 0, NULL, &shaderBuffer, &errorBuffer, NULL);
 
 	if (FAILED(hr) || errorBuffer)
 	{
