@@ -44,13 +44,16 @@ bool Initialize()
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if(g_context)
 		return false;
-	int err;                            // error code returned from api calls
+	int err;			// error code returned from api calls
 
 #ifdef _WIN32
-    clrInit();
-    if(!clrHasOpenCL())
-        return false;
+	clrInit();
+	if(!clrHasOpenCL())
+		return false;
 #endif
+	// If OpenCL is weakly linked and not found, its symbols will be NULL
+	if (clGetPlatformIDs == NULL)
+		return false;
 
 	// Connect to a compute device
 	cl_uint numPlatforms;
@@ -173,8 +176,8 @@ cl_kernel CompileKernel(cl_program program, const char *Function)
 	cl_kernel kernel = clCreateKernel(program, Function, &err);
 	if (!kernel || err != CL_SUCCESS)
 	{
-        char buffer[1024];
-        sprintf(buffer, "Failed to create compute kernel '%s' !", Function);
+	char buffer[1024];
+	sprintf(buffer, "Failed to create compute kernel '%s' !", Function);
 		HandleCLError(err, buffer);
 		return NULL;
 	}
