@@ -9,8 +9,10 @@ Binary
 *.suo
 *.vcproj.*.user
 */Win32/Release
+*/Win32/DebugFast
 */Win32/Debug
 */x64/Release
+*/x64/DebugFast
 */x64/Debug
 Source/Release
 Source/Debug
@@ -20,3 +22,6 @@ Externals/wxWidgets/lib/vc_lib/msw
 Externals/wxWidgets/lib/vc_lib/mswd
 Externals/wxWidgets/lib/vc_lib/Win32
 Externals/wxWidgets/lib/vc_lib/x64
+*.svn*
+Data/User/GameConfig
+Data/User/Shaders
