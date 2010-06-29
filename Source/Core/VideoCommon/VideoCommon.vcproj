@@ -50,7 +50,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../Externals/SOIL;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../../Externals/SOIL;../../Core/Common/Src;../../PluginSpecs;../../../Externals/CLRun/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -117,7 +117,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="../../../Externals/SOIL;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../../Externals/SOIL;../../Core/Common/Src;../../PluginSpecs;../../../Externals/CLRun/include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_SECURE_SCL=0;_LIB;__WXMSW__;wxUSE_BASE=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -185,7 +185,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="../../../Externals/SOIL;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../../Externals/SOIL;../../Core/Common/Src;../../PluginSpecs;../../../Externals/CLRun/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -257,7 +257,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
-				AdditionalIncludeDirectories="../../../Externals/SOIL;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../../Externals/SOIL;../../Core/Common/Src;../../PluginSpecs;../../../Externals/CLRun/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -321,7 +321,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../../Externals/SOIL;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../../Externals/SOIL;../../Core/Common/Src;../../PluginSpecs;../../../Externals/CLRun/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
@@ -386,7 +386,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="../../../Externals/SOIL;../../Core/Common/Src;../../PluginSpecs"
+				AdditionalIncludeDirectories="../../../Externals/SOIL;../../Core/Common/Src;../../PluginSpecs;../../../Externals/CLRun/include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_SECURE_SCL=0;__WXMSW__;wxUSE_BASE=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				BufferSecurityCheck="false"
