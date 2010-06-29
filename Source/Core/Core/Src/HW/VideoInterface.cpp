@@ -729,7 +729,7 @@ void UpdateParameters()
 		TargetRefreshRate = PAL_FIELD_RATE;
 		// AyuanX: Some games are pretty sensitive to this value
 		// So we have to make it run a little faster to prevent potential time out
-		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (PAL_FIELD_RATE + 1);
+		TicksPerFrame = SystemTimers::GetTicksPerSecond() / (PAL_FIELD_RATE  + 1);
 		s_lineCount = m_DisplayControlRegister.NIN ? PAL_LINE_COUNT : (PAL_LINE_COUNT+1)/2;
 		//s_upperFieldBegin = PAL_UPPER_BEGIN;
 		//s_lowerFieldBegin = PAL_LOWER_BEGIN;
@@ -800,19 +800,16 @@ void Update()
 	{
 		// Progressive
 		NewVBeamPos = s_lineCount + 1;
-		BeginField(FIELD_PROGRESSIVE);
 	}
 	else if (m_VBeamPos == s_lineCount)
 	{
 		// Interlace Upper
 		NewVBeamPos = s_lineCount * 2;
-		BeginField(FIELD_UPPER);
 	}
 	else
 	{
 		// Interlace Lower
 		NewVBeamPos = s_lineCount;
-		BeginField(FIELD_LOWER);
 	}
 
 	for (int i = 0; i < 4; i++)
@@ -821,8 +818,25 @@ void Update()
 			m_InterruptRegister[i].IR_INT = 1;
 	}
 	UpdateInterrupts();
+	
+	if (m_DisplayControlRegister.NIN)
+	{
+		// Progressive	
+		BeginField(FIELD_PROGRESSIVE);
+	}
+	else if (m_VBeamPos == s_lineCount)
+	{
+		// Interlace Upper
+		BeginField(FIELD_UPPER);
+	}
+	else
+	{
+		// Interlace Lower
+		BeginField(FIELD_LOWER);
+	}
 
 	m_VBeamPos = (NewVBeamPos > s_lineCount) ? 1 : NewVBeamPos;
+	
 
 	Core::VideoThrottle();
 }

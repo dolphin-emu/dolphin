@@ -21,7 +21,7 @@
 #include "D3DBase.h"
 #include "D3DShader.h"
 #include "D3DUtil.h"
-
+#include "Fifo.h"
 #include "Statistics.h"
 #include "Profiler.h"
 #include "FBManager.h"
@@ -304,6 +304,7 @@ void Flush()
 	if (LocalVBuffer == s_pCurBufferPointer) return;
 	if (Flushed) return;
 	Flushed=true;
+	VideoFifo_CheckEFBAccess();
 
 	DVSTARTPROFILE();
 

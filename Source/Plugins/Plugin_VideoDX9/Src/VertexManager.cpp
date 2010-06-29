@@ -19,7 +19,7 @@
 #include "FileUtil.h"
 
 #include "D3DBase.h"
-
+#include "Fifo.h"
 #include "Statistics.h"
 #include "Profiler.h"
 #include "VertexManager.h"
@@ -226,7 +226,7 @@ void Flush()
 	if (LocalVBuffer == s_pCurBufferPointer) return;
 	if(Flushed) return;
 	Flushed=true;
-
+	VideoFifo_CheckEFBAccess();
 	DVSTARTPROFILE();
 	
 	u32 usedtextures = 0;

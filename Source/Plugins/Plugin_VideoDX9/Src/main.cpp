@@ -65,7 +65,6 @@ static bool s_PluginInitialized = false;
 volatile u32 s_swapRequested = FALSE;
 static u32 s_efbAccessRequested = FALSE;
 static volatile u32 s_FifoShuttingDown = FALSE;
-static bool ForceSwap = true;
 
 static volatile struct
 {
@@ -275,7 +274,6 @@ void Video_Prepare()
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
 	s_swapRequested = FALSE;
-	ForceSwap = true;
 	Renderer::Init();
 	TextureCache::Init();
 	BPInit();
@@ -342,16 +340,16 @@ void Video_SetRendering(bool bEnabled) {
 	Fifo_SetRendering(bEnabled);
 }
 
-// Run from the graphics thread
+// Run from the graphics thread (from Fifo.cpp)
 void VideoFifo_CheckSwapRequest()
 {
-	if (Common::AtomicLoadAcquire(s_swapRequested))
+	if(g_ActiveConfig.bUseXFB)
 	{
-		if (ForceSwap || g_ActiveConfig.bUseXFB)
+		if (Common::AtomicLoadAcquire(s_swapRequested))
 		{
 			Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
+			Common::AtomicStoreRelease(s_swapRequested, FALSE);
 		}
-		Common::AtomicStoreRelease(s_swapRequested, FALSE);
 	}
 }
 
@@ -360,34 +358,29 @@ inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
 	return !((aLower >= bUpper) || (bLower >= aUpper));
 }
 
-// Run from the graphics thread
+// Run from the graphics thread (from Fifo.cpp)
 void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 {
-	if (Common::AtomicLoadAcquire(s_swapRequested) && g_ActiveConfig.bUseXFB)
+	if (g_ActiveConfig.bUseXFB)
 	{
-		u32 aLower = xfbAddr;
-		u32 aUpper = xfbAddr + 2 * fbWidth * fbHeight;
-		u32 bLower = s_beginFieldArgs.xfbAddr;
-		u32 bUpper = s_beginFieldArgs.xfbAddr + 2 * s_beginFieldArgs.fbWidth * s_beginFieldArgs.fbHeight;
+		if(Common::AtomicLoadAcquire(s_swapRequested))
+		{
+			u32 aLower = xfbAddr;
+			u32 aUpper = xfbAddr + 2 * fbWidth * fbHeight;
+			u32 bLower = s_beginFieldArgs.xfbAddr;
+			u32 bUpper = s_beginFieldArgs.xfbAddr + 2 * s_beginFieldArgs.fbWidth * s_beginFieldArgs.fbHeight;
 
-		if (addrRangesOverlap(aLower, aUpper, bLower, bUpper))
-			VideoFifo_CheckSwapRequest();
-	}
-
-	ForceSwap = false;
+			if (addrRangesOverlap(aLower, aUpper, bLower, bUpper))
+				VideoFifo_CheckSwapRequest();
+		}
+	}	
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
 void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (s_PluginInitialized && g_ActiveConfig.bUseXFB)
-	{
-		s_beginFieldArgs.xfbAddr = xfbAddr;
-		s_beginFieldArgs.field = field;
-		s_beginFieldArgs.fbWidth = fbWidth;
-		s_beginFieldArgs.fbHeight = fbHeight;
-
-		Common::AtomicStoreRelease(s_swapRequested, TRUE);
+	{		
 		if (g_VideoInitialize.bOnThread)
 		{
 			while (Common::AtomicLoadAcquire(s_swapRequested) && !s_FifoShuttingDown)
@@ -395,7 +388,13 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 				Common::YieldCPU();
 		}
 		else
-			VideoFifo_CheckSwapRequest();
+			VideoFifo_CheckSwapRequest();				
+		s_beginFieldArgs.xfbAddr = xfbAddr;
+		s_beginFieldArgs.field = field;
+		s_beginFieldArgs.fbWidth = fbWidth;
+		s_beginFieldArgs.fbHeight = fbHeight;
+
+		Common::AtomicStoreRelease(s_swapRequested, TRUE);
 	}
 }
 

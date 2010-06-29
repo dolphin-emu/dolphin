@@ -557,8 +557,6 @@ void Renderer::ResetAPIState()
 {
 	// Gets us to a reasonably sane state where it's possible to do things like
 	// image copies with textured quads, etc.
-	glDisable(GL_VERTEX_PROGRAM_ARB);// needed by nvidia cards to avoid texture problems
-	glDisable(GL_FRAGMENT_PROGRAM_ARB);// needed by nvidia cards to avoid texture problems
 	VertexShaderCache::DisableShader();
 	PixelShaderCache::DisableShader();
 	glDisable(GL_SCISSOR_TEST);
@@ -586,10 +584,8 @@ void Renderer::RestoreAPIState()
 	SetColorMask();
 	SetBlendMode(true);
 
-	glEnable(GL_VERTEX_PROGRAM_ARB);// needed by nvidia cards o avoid texture problems
-	glEnable(GL_FRAGMENT_PROGRAM_ARB);// needed by nvidia cards o avoid texture problems	
-	VertexShaderCache::SetCurrentShader(0);
-	PixelShaderCache::SetCurrentShader(0);
+	VertexShaderCache::SetCurrentShader(1);
+	PixelShaderCache::SetCurrentShader(1);
 }
 
 void Renderer::SetColorMask()

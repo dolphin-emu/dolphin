@@ -332,7 +332,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 
     // zero left over channels
     for (int i = xfregs.nNumChans; i < 2; ++i)
-		WRITE(p, "o.colors[%d] = float4(0.0f,0.0f,0.0f,0.0f);\n", i);
+		WRITE(p, "o.colors[%d] = float4(0.0f,0.0f,0.0f,1.0f);\n", i);
 
 	// special case if only pos and tex coord 0 and tex coord input is AB11	
 	// donko - this has caused problems in some games. removed for now.
@@ -349,6 +349,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
         TexMtxInfo& texinfo = xfregs.texcoords[i].texmtxinfo;
 
         WRITE(p, "{\n");
+		WRITE(p, "coord = float4(0.0f,0.0f,1.0f,1.0f);\n"); 
         switch (texinfo.sourcerow) {
         case XF_SRCGEOM_INROW:
             _assert_( texinfo.inputform == XF_TEXINPUT_ABC1 );
@@ -384,7 +385,26 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 
         // firs transformation
         switch (texinfo.texgentype) {
-            case XF_TEXGEN_REGULAR:
+            case XF_TEXGEN_EMBOSS_MAP: // calculate tex coords into bump map
+
+                if (components & (VB_HAS_NRM1|VB_HAS_NRM2)) {
+                    // transform the light dir into tangent space
+                    WRITE(p, "ldir = normalize("I_LIGHTS".lights[%d].pos.xyz - pos.xyz);\n", texinfo.embosslightshift); 
+                    WRITE(p, "o.tex%d.xyz = coord.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0f);\n", i, texinfo.embosssourceshift);
+                }
+                else _assert_(0); // should have normals
+
+                break;
+            case XF_TEXGEN_COLOR_STRGBC0:
+                _assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
+                WRITE(p, "o.tex%d.xyz = float3(o.colors[0].x, o.colors[0].y, 1);\n", i);
+                break;
+            case XF_TEXGEN_COLOR_STRGBC1:
+                _assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
+                WRITE(p, "o.tex%d.xyz = float3(o.colors[1].x, o.colors[1].y, 1);\n", i);
+                break;
+			case XF_TEXGEN_REGULAR:
+			default:
                 if (components & (VB_HAS_TEXMTXIDX0<<i)) {
                     if (texinfo.projection == XF_TEXPROJ_STQ )
                         WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z].t), dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z+1].t), dot(coord, "I_TRANSFORMMATRICES".T[tex%d.z+2].t));\n", i, i, i, i);
@@ -398,24 +418,6 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
                     else
                         WRITE(p, "o.tex%d.xyz = float3(dot(coord, "I_TEXMATRICES".T[%d].t), dot(coord, "I_TEXMATRICES".T[%d].t), 1);\n", i, 3*i, 3*i+1);
                 }
-                break;
-            case XF_TEXGEN_EMBOSS_MAP: // calculate tex coords into bump map
-
-                if (components & (VB_HAS_NRM1|VB_HAS_NRM2)) {
-                    // transform the light dir into tangent space
-                    WRITE(p, "ldir = normalize("I_LIGHTS".lights[%d].pos.xyz - pos.xyz);\n", texinfo.embosslightshift); 
-                    WRITE(p, "o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0f);\n", i, texinfo.embosssourceshift);
-                }
-                else _assert_(0); // should have normals
-
-                break;
-            case XF_TEXGEN_COLOR_STRGBC0:
-                _assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
-                WRITE(p, "o.tex%d.xyz = float3(o.colors[0].x, o.colors[0].y, 1);\n", i);
-                break;
-            case XF_TEXGEN_COLOR_STRGBC1:
-                _assert_(texinfo.sourcerow == XF_SRCCOLORS_INROW);
-                WRITE(p, "o.tex%d.xyz = float3(o.colors[1].x, o.colors[1].y, 1);\n", i);
                 break;
         }
 
