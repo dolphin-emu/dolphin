@@ -152,7 +152,7 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 	cl_int err;
     sDecoderParameter& decoder = rgba ? g_DecodeParametersRGBA[texformat] : g_DecodeParametersNative[texformat];
-    if(!decoder.name || !decoder.kernel || decoder.format == PC_TEX_FMT_NONE)
+    if(!g_Inited || !decoder.name || !decoder.kernel || decoder.format == PC_TEX_FMT_NONE)
         return PC_TEX_FMT_NONE;
 
 #ifdef DEBUG_OPENCL
@@ -193,7 +193,5 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 #else
 	return PC_TEX_FMT_NONE;
 #endif
-
-	return PC_TEX_FMT_NONE;
 }
 

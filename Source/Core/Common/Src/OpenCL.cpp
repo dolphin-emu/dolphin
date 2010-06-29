@@ -21,6 +21,10 @@
 #include "Common.h"
 #include "Timer.h"
 
+#ifdef _WIN32
+#include "clrun.h"
+#endif
+
 namespace OpenCL
 {
 
@@ -41,7 +45,13 @@ bool Initialize()
 	if(g_context)
 		return false;
 	int err;                            // error code returned from api calls
-	
+
+#ifdef _WIN32
+    clrInit();
+    if(!clrHasOpenCL())
+        return false;
+#endif
+
 	// Connect to a compute device
 	cl_uint numPlatforms;
 	cl_platform_id platform = NULL;

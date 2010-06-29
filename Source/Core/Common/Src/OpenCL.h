@@ -19,9 +19,11 @@
 #define __OPENCL_H__
 
 #include "Common.h"
-// Change to #if 1 if you want to test OpenCL (and you have it) on Windows
-#if 0
-#pragma comment(lib, "OpenCL.lib")
+// OpenCL on Windows is linked through the CLRun library
+// It provides the headers and all the imports
+// It could be safe to use it for Linux too, but will require to edit the SCons first
+// OpenCL is linked on OSX when possible, it shouldn't require CLRun for now
+#ifdef _WIN32
 #define HAVE_OPENCL 1
 #endif
 
