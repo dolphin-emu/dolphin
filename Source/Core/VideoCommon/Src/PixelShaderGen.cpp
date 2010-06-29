@@ -536,7 +536,7 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable,  API_
 	RegisterStates[0].AlphaNeedOverflowControl = false;
 	RegisterStates[0].ColorNeedOverflowControl = false;
 	RegisterStates[0].AuxStored = false;
-	for(int i = 0 ; i < 4 ; i++)
+	for(int i = 1 ; i < 4 ; i++)
 	{
 		RegisterStates[i].AlphaNeedOverflowControl = true;
 		RegisterStates[i].ColorNeedOverflowControl = true;
