@@ -194,6 +194,8 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 			SetJumpTarget(rLoopCounterExit);
 		}
 
+		blockSize[start_addr]++;
+
 		// End the block if we're at a loop end.
 		if (opcode->branch ||
 			(DSPAnalyzer::code_flags[addr] & DSPAnalyzer::CODE_LOOP_END) ||
@@ -201,8 +203,6 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 			break;
 		}
 		addr += opcode->size;
-
-		blockSize[start_addr]++;
 	}
 
 	//	ABI_RestoreStack(0);
@@ -210,6 +210,13 @@ const u8 *DSPEmitter::Compile(int start_addr) {
 	RET();
 
 	blocks[start_addr] = (CompiledCode)entryPoint;
+	if (blockSize[start_addr] == 0) 
+	{
+		// just a safeguard, should never happen anymore.
+		// if it does we might get stuck over in RunForCycles.
+		ERROR_LOG(DSPLLE, "Block at 0x%04x has zero size", start_addr);
+		blockSize[start_addr] = 1;
+	}
 
 	return entryPoint;
 }

@@ -45,6 +45,25 @@ void DSPEmitter::ToMask(X64Reg value_reg, X64Reg temp_reg)
 
 // HORRIBLE UGLINESS, someone please fix.
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
+void DSPEmitter::dsp_increment_one(X64Reg ar, X64Reg wr, X64Reg wr_pow, X64Reg temp_reg)
+{
+	// 	if ((tmp & tmb) == tmb)
+	MOV(16, R(temp_reg), R(ar));
+	AND(16, R(temp_reg), R(wr_pow));
+	CMP(16, R(temp_reg), R(wr_pow));
+	FixupBranch not_equal = J_CC(CC_NE);
+
+	// tmp -= wr_reg
+	SUB(16, R(ar), R(wr));
+
+	FixupBranch end = J();
+	SetJumpTarget(not_equal);
+
+	//	else tmp++
+	ADD(16, R(ar), Imm16(1));
+	SetJumpTarget(end);
+}
+
 // EAX = g_dsp.r[reg]
 // EDX = g_dsp.r[DSP_REG_WR0 + reg]
 void DSPEmitter::increment_addr_reg(int reg)
@@ -57,27 +76,40 @@ void DSPEmitter::increment_addr_reg(int reg)
 	MOV(16, R(EDI), R(EDX));
 	ToMask(EDI);
 
-	// 	if ((tmp & tmb) == tmb)
-	MOV(16, R(ESI), R(EAX));
-	AND(16, R(ESI), R(EDI));
-	CMP(16, R(ESI), R(EDI));
-	FixupBranch not_equal = J_CC(CC_NE);
-
-	// tmp -= wr_reg
-	SUB(16, R(EAX), R(EDX));
-
-	FixupBranch end = J();
-	SetJumpTarget(not_equal);
-
-	//	else tmp++
-	ADD(16, R(EAX), Imm16(1));
-	SetJumpTarget(end);
+	dsp_increment_one(EAX, EDX, EDI);
 	
 	//	g_dsp.r[reg] = tmp;	
 	MOV(16, M(&g_dsp.r[reg]), R(EAX));
 }
 
 // See http://code.google.com/p/dolphin-emu/source/detail?r=3125
+void DSPEmitter::dsp_decrement_one(X64Reg ar, X64Reg wr, X64Reg wr_pow, X64Reg temp_reg)
+{
+	// compute min from wr_pow and ar
+	// min = (tmb+1-ar)&tmb;
+	LEA(16, temp_reg, MDisp(wr_pow, 1));
+	SUB(16, R(temp_reg), R(ar));
+	AND(16, R(temp_reg), R(wr_pow));
+
+	// wr < min
+	CMP(16, R(wr), R(temp_reg));
+	FixupBranch wr_lt_min = J_CC(CC_B);
+	// !min
+	TEST(16, R(temp_reg), R(temp_reg));
+	FixupBranch min_zero = J_CC(CC_Z);
+
+	//		ar--;
+	SUB(16, R(ar), Imm16(1));
+	FixupBranch end = J();
+
+	//      ar += wr;
+	SetJumpTarget(wr_lt_min);
+	SetJumpTarget(min_zero);
+	ADD(16, R(ar), R(wr));
+
+	SetJumpTarget(end);
+}
+
 // EAX = g_dsp.r[reg]
 // EDX = g_dsp.r[DSP_REG_WR0 + reg]
 void DSPEmitter::decrement_addr_reg(int reg)
@@ -90,29 +122,7 @@ void DSPEmitter::decrement_addr_reg(int reg)
 	MOV(16, R(EDI), R(EDX));
 	ToMask(EDI);
 
-	//compute min from EDI and EAX
-	// min = (tmb+1-ar)&tmb;
-	LEA(16, ESI, MDisp(EDI, 1));
-	SUB(16, R(ESI), R(EAX));
-	AND(16, R(ESI), R(EDI));
-
-	// wr < min
-	CMP(16, R(EDX), R(ESI));
-	FixupBranch wr_lt_min = J_CC(CC_B);
-	// !min
-	TEST(16, R(ESI), R(ESI));
-	FixupBranch min_zero = J_CC(CC_Z);
-
-	//		ar--;
-	SUB(16, R(EAX), Imm16(1));
-	FixupBranch end = J();
-
-	//      ar += wr;
-	SetJumpTarget(wr_lt_min);
-	SetJumpTarget(min_zero);
-	ADD(16, R(EAX), R(EDX));
-
-	SetJumpTarget(end);
+	dsp_decrement_one(EAX, EDX, EDI);
 	
 	//	g_dsp.r[reg] = tmp;	
 	MOV(16, M(&g_dsp.r[reg]), R(EAX));
@@ -125,56 +135,50 @@ void DSPEmitter::decrement_addr_reg(int reg)
 // EDI = tomask(EDX)
 void DSPEmitter::increase_addr_reg(int reg)
 {	
-	MOV(16, R(ECX), M(&g_dsp.r[DSP_REG_IX0 + reg]));
-	//IX0 == 0, bail out
+	MOVZX(32, 16, ECX, M(&g_dsp.r[DSP_REG_IX0 + reg]));
+	// IX0 == 0, bail out
+	
 	TEST(16, R(ECX), R(ECX));
-	FixupBranch end = J_CC(CC_Z);
+	// code too long for a 5-byte jump
+	// TODO: optimize a bit, maybe merge loops?
+	FixupBranch end = J_CC(CC_Z, true);
 
 	MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	MOV(16, R(EDX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
-	//IX0 > 0
-	FixupBranch neg = J_CC(CC_L);
 
-	//ToMask(WR0), calculating it into EDI
+	// ToMask(WR0), calculating it into EDI
 	MOV(16, R(EDI), R(EDX));
 	ToMask(EDI);
 
-	//dsp_increment
-	JumpTarget loop_pos = GetCodePtr();
-	// if ((tmp & tmb) == tmb)
-	MOV(16, R(ESI), R(EAX));
-	AND(16, R(ESI), R(EDI));
-	CMP(16, R(ESI), R(EDI));
-	FixupBranch pos_neq = J_CC(CC_NE);
+	// IX0 > 0
+	// TODO: ToMask flushes flags set by TEST,
+	// needs another CMP here.
+	CMP(16, R(ECX), Imm16(0));
+	FixupBranch neg = J_CC(CC_L);
 
-	// tmp ^= wr_reg
-	XOR(16, R(EAX), R(EDX));
-	FixupBranch pos_eq = J();
-	SetJumpTarget(pos_neq);
-	//	else tmp++
-	ADD(16, R(EAX), Imm16(1));
-	SetJumpTarget(pos_eq);
+	JumpTarget loop_pos = GetCodePtr();
+
+	// dsp_increment
+	dsp_increment_one(EAX, EDX, EDI);
 
 	SUB(16, R(ECX), Imm16(1)); // value--
+	CMP(16, M(&g_dsp.r[DSP_REG_IX0 + reg]), Imm16(127));
+	FixupBranch dbg = J_CC(CC_NE);
+	CMP(16, R(ECX), Imm16(1));
+	FixupBranch dbg2 = J_CC(CC_NE);
+	INT3();
+	SetJumpTarget(dbg2);
+	SetJumpTarget(dbg);
 	CMP(16, R(ECX), Imm16(0)); // value > 0
 	J_CC(CC_G, loop_pos); 
 	FixupBranch end_pos = J();
 
-	//else, IX0 < 0
+	// else, IX0 < 0
 	SetJumpTarget(neg);
 	JumpTarget loop_neg = GetCodePtr();
-	//dsp_decrement
-	//			if ((tmp & wr_reg) == 0)
-	TEST(16, R(EAX), R(EDX));
 
-	FixupBranch neg_nz = J_CC(CC_NZ);
-	//	tmp |= wr_reg;
-	OR(16, R(EAX), R(EDX));
-	FixupBranch neg_z = J();
-	SetJumpTarget(neg_nz);
-	// else tmp--
-	SUB(16, R(EAX), Imm16(1));
-	SetJumpTarget(neg_z);
+	// dsp_decrement
+	dsp_decrement_one(EAX, EDX, EDI);
 
 	ADD(16, R(ECX), Imm16(1)); // value++
 	CMP(16, R(ECX), Imm16(0)); // value < 0
@@ -196,57 +200,41 @@ void DSPEmitter::increase_addr_reg(int reg)
 void DSPEmitter::decrease_addr_reg(int reg)
 {
 	MOV(16, R(ECX), M(&g_dsp.r[DSP_REG_IX0 + reg]));
-	//IX0 == 0, bail out
+	// IX0 == 0, bail out
 	TEST(16, R(ECX), R(ECX));
-	FixupBranch end = J_CC(CC_Z);
+	// code too long for a 5-byte jump
+	// TODO: optimize a bit, maybe merge loops?
+	FixupBranch end = J_CC(CC_Z, true);
 
 	MOV(16, R(EAX), M(&g_dsp.r[reg]));
 	MOV(16, R(EDX), M(&g_dsp.r[DSP_REG_WR0 + reg]));
-	//IX0 > 0
+
+	// ToMask(WR0), calculating it into EDI
+	MOV(16, R(EDI), R(EDX));
+	ToMask(EDI);
+
+	// IX0 > 0
+	// TODO: ToMask flushes flags set by TEST,
+	// needs another CMP here.
+	CMP(16, R(ECX), Imm16(0));
 	FixupBranch neg = J_CC(CC_L);
+
 	JumpTarget loop_pos = GetCodePtr();
 
-	//dsp_decrement
-	//			if ((tmp & wr_reg) == 0)
-	TEST(16, R(EAX), R(EDX));
-
-	FixupBranch neg_nz = J_CC(CC_NZ);
-	//	tmp |= wr_reg;
-	OR(16, R(EAX), R(EDX));
-	FixupBranch neg_z = J();
-	SetJumpTarget(neg_nz);
-	// else tmp--
-	SUB(16, R(EAX), Imm16(1));
-	SetJumpTarget(neg_z);
+	// dsp_decrement
+	dsp_decrement_one(EAX, EDX, EDI);
 
 	SUB(16, R(ECX), Imm16(1)); // value--
 	CMP(16, R(ECX), Imm16(0)); // value > 0
 	J_CC(CC_G, loop_pos); 
 	FixupBranch end_pos = J();
 
-	//else, IX0 < 0
+	// else, IX0 < 0
 	SetJumpTarget(neg);
-
-	//ToMask(WR0), calculating it into EDI
-	MOV(16, R(EDI), R(EDX));
-	ToMask(EDI);
-
 	JumpTarget loop_neg = GetCodePtr();
-	//dsp_increment
-	// if ((tmp & tmb) == tmb)
-	MOV(16, R(ESI), R(EAX));
-	AND(16, R(ESI), R(EDI));
-	CMP(16, R(ESI), R(EDI));
-	FixupBranch pos_neq = J_CC(CC_NE);
 
-	// tmp ^= wr_reg
-	XOR(16, R(EAX), R(EDX));
-	FixupBranch pos_eq = J();
-
-	SetJumpTarget(pos_neq);
-	//	else tmp++
-	ADD(16, R(EAX), Imm16(1));
-	SetJumpTarget(pos_eq);
+	// dsp_increment
+	dsp_increment_one(EAX, EDX, EDI);
 
 	ADD(16, R(ECX), Imm16(1)); // value++
 	CMP(16, R(ECX), Imm16(0)); // value < 0

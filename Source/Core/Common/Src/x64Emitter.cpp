@@ -389,7 +389,8 @@ void XEmitter::J_CC(CCFlags conditionCode, const u8 * addr, bool force5Bytes)
 	u64 fn = (u64)addr;
 	if (!force5Bytes)
 	{
-		s32 distance = (s32)(fn - ((u64)code + 2)); //TODO - sanity check
+		s32 distance = (s32)(fn - ((u64)code + 2));
+		_assert_msg_(DYNA_REC, distance < 0x80, "Jump target too far away, needs force5Bytes = true");
 		//8 bits will do
 		Write8(0x70 + conditionCode);
 		Write8((u8)(s8)distance);
@@ -407,7 +408,9 @@ void XEmitter::SetJumpTarget(const FixupBranch &branch)
 {
 	if (branch.type == 0)
 	{
-		branch.ptr[-1] = (u8)(s8)(code - branch.ptr);
+		s32 distance = (s32)(code - branch.ptr);
+		_assert_msg_(DYNA_REC, distance < 0x80, "Jump target too far away, needs force5Bytes = true");
+		branch.ptr[-1] = (u8)(s8)distance;
 	}
 	else if (branch.type == 1)
 	{
