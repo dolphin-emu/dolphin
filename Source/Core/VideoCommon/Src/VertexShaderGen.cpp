@@ -390,7 +390,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
                 if (components & (VB_HAS_NRM1|VB_HAS_NRM2)) {
                     // transform the light dir into tangent space
                     WRITE(p, "ldir = normalize("I_LIGHTS".lights[%d].pos.xyz - pos.xyz);\n", texinfo.embosslightshift); 
-                    WRITE(p, "o.tex%d.xyz = coord.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0f);\n", i, texinfo.embosssourceshift);
+                    WRITE(p, "o.tex%d.xyz = o.tex%d.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0f);\n", i, texinfo.embosssourceshift);
                 }
                 else _assert_(0); // should have normals
 
