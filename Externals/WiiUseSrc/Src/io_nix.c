@@ -250,7 +250,7 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address) {
  *	Note that this will not free the wiimote structure.
  */
 void wiiuse_disconnect(struct wiimote_t* wm) {
-	if (!wm || WIIMOTE_IS_CONNECTED(wm))
+	if (!wm || !WIIMOTE_IS_CONNECTED(wm))
 		return;
 
 	close(wm->out_sock);

@@ -237,12 +237,11 @@ void wiiuse_set_leds(struct wiimote_t* wm, int leds) {
 
 	/* remove the lower 4 bits because they control rumble */
 	wm->leds = (leds & 0xF0);
+	buf = wm->leds;
 
 	/* make sure if the rumble is on that we keep it on */
 	if (WIIMOTE_IS_SET(wm, WIIMOTE_STATE_RUMBLE))
-		wm->leds |= 0x01;
-
-	buf = wm->leds;
+		buf |= 0x01;
 
 	wiiuse_send(wm, WM_CMD_LED, &buf, 1);
 }
