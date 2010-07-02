@@ -332,7 +332,6 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		--it;
 	}
 
-	float SuperSampleCompensation = 1.0f;
 	float scaleX = Renderer::GetXFBScaleX();
 	float scaleY = Renderer::GetXFBScaleY();
 	TargetRectangle targetSource,efbSource;

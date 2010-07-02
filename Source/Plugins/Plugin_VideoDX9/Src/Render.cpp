@@ -543,14 +543,17 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	if(!fbWidth || !fbHeight)
 		return;
 	VideoFifo_CheckEFBAccess();
-	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
-	FBManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);	
 	XFBWrited = true;
 	// XXX: Without the VI, how would we know what kind of field this is? So
 	// just use progressive.
-	if (!g_ActiveConfig.bUseXFB)
+	if (g_ActiveConfig.bUseXFB)
 	{
-		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight);
+		FBManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+	}
+	else
+	{
+		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight,sourceRc);
 		Common::AtomicStoreRelease(s_swapRequested, FALSE);
 	}
 }
@@ -953,7 +956,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 
 
-void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
+void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc)
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.bUseRealXFB) || !fbWidth || !fbHeight)
 	{
@@ -967,7 +970,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
 	const XFBSource** xfbSourceList = FBManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
-	if (!xfbSourceList || xfbCount == 0)
+	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);	
 		return;
@@ -1015,57 +1018,65 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 	D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 
-	const XFBSource* xfbSource;
-
-	// draw each xfb source
-	for (u32 i = 0; i < xfbCount; ++i)
+	if(g_ActiveConfig.bUseXFB)
 	{
-		xfbSource = xfbSourceList[i];	
-		MathUtil::Rectangle<float> sourceRc;
-		
-		sourceRc.left = 0;
-		sourceRc.top = 0;
-		sourceRc.right = xfbSource->texWidth;
-		sourceRc.bottom = xfbSource->texHeight;		
+		const XFBSource* xfbSource;
 
-		MathUtil::Rectangle<float> drawRc;
-
-		if (g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
+		// draw each xfb source
+		for (u32 i = 0; i < xfbCount; ++i)
 		{
-			// use virtual xfb with offset
-			int xfbHeight = xfbSource->srcHeight;
-			int xfbWidth = xfbSource->srcWidth;
-			int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbWidth * 2);
-
-			drawRc.bottom = 1.0f - 2.0f * ((hOffset) / (float)fbHeight);
-			drawRc.top = 1.0f - 2.0f * ((hOffset + xfbHeight) / (float)fbHeight);
-			drawRc.left = -(xfbWidth / (float)fbWidth);
-			drawRc.right = (xfbWidth / (float)fbWidth);
+			xfbSource = xfbSourceList[i];	
+			MathUtil::Rectangle<float> sourceRc;
 			
+			sourceRc.left = 0;
+			sourceRc.top = 0;
+			sourceRc.right = xfbSource->texWidth;
+			sourceRc.bottom = xfbSource->texHeight;		
 
-			if (!g_ActiveConfig.bAutoScale)
+			MathUtil::Rectangle<float> drawRc;
+
+			if (g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 			{
-				// scale draw area for a 1 to 1 pixel mapping with the draw target
-				float vScale = (float)fbHeight / (float)s_backbuffer_height;
-				float hScale = (float)fbWidth / (float)s_backbuffer_width;
+				// use virtual xfb with offset
+				int xfbHeight = xfbSource->srcHeight;
+				int xfbWidth = xfbSource->srcWidth;
+				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbWidth * 2);
 
-				drawRc.top *= vScale;
-				drawRc.bottom *= vScale;
-				drawRc.left *= hScale;
-				drawRc.right *= hScale;
+				drawRc.bottom = 1.0f - 2.0f * ((hOffset) / (float)fbHeight);
+				drawRc.top = 1.0f - 2.0f * ((hOffset + xfbHeight) / (float)fbHeight);
+				drawRc.left = -(xfbWidth / (float)fbWidth);
+				drawRc.right = (xfbWidth / (float)fbWidth);
+				
+
+				if (!g_ActiveConfig.bAutoScale)
+				{
+					// scale draw area for a 1 to 1 pixel mapping with the draw target
+					float vScale = (float)fbHeight / (float)s_backbuffer_height;
+					float hScale = (float)fbWidth / (float)s_backbuffer_width;
+
+					drawRc.top *= vScale;
+					drawRc.bottom *= vScale;
+					drawRc.left *= hScale;
+					drawRc.right *= hScale;
+				}
 			}
-		}
-		else
-		{
-			drawRc.top = -1;
-			drawRc.bottom = 1;
-			drawRc.left = -1;
-			drawRc.right = 1;
-		}
+			else
+			{
+				drawRc.top = -1;
+				drawRc.bottom = 1;
+				drawRc.left = -1;
+				drawRc.right = 1;
+			}
 
-		D3D::drawShadedTexSubQuad(xfbSource->texture,&sourceRc,xfbSource->texWidth,xfbSource->texHeight,&drawRc,Width,Height,PixelShaderCache::GetColorCopyProgram(0),VertexShaderCache::GetSimpleVertexShader(0));
+			D3D::drawShadedTexSubQuad(xfbSource->texture,&sourceRc,xfbSource->texWidth,xfbSource->texHeight,&drawRc,Width,Height,PixelShaderCache::GetColorCopyProgram(0),VertexShaderCache::GetSimpleVertexShader(0));
+		}
 	}
-
+	else
+	{
+		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
+		LPDIRECT3DTEXTURE9 read_texture = FBManager.GetEFBColorTexture(rc);
+		D3D::drawShadedTexQuad(read_texture,targetRc.AsRECT(),Renderer::GetFullTargetWidth(),Renderer::GetFullTargetHeight(),Width,Height,PixelShaderCache::GetColorCopyProgram(g_Config.iMultisampleMode),VertexShaderCache::GetSimpleVertexShader(g_Config.iMultisampleMode));
+	}
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);	
 	vp.X = 0;
@@ -1203,7 +1214,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 			yScale = (float)(dst_rect.bottom - dst_rect.top) / (float)s_XFB_height;
 		}
 		
-		float SupersampleCoeficient = s_LastAA + 1;	
+		float SupersampleCoeficient = s_LastAA + 1;
 		switch(s_LastEFBScale)
 		{
 			case 0: 
@@ -1373,7 +1384,8 @@ void Renderer::SetSamplerState(int stage, int texindex)
 	
 	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSU, d3dClamps[tm0.wrap_s]);
 	D3D::SetSamplerState(stage, D3DSAMP_ADDRESSV, d3dClamps[tm0.wrap_t]);
-	float lodbias = tm0.lod_bias / 32.0f;
+	//float SuperSampleCoeficient = (s_LastAA < 3)? s_LastAA + 1 : s_LastAA - 1;// uncoment this changes to conserve detail when incresing ssaa level
+	float lodbias = (tm0.lod_bias / 32.0f);// + (s_LastAA)?(log(SuperSampleCoeficient) / log(2.0f)):0;
 	D3D::SetSamplerState(stage,D3DSAMP_MIPMAPLODBIAS,*(DWORD*)&lodbias);
 	D3D::SetSamplerState(stage,D3DSAMP_MAXMIPLEVEL,tm1.min_lod>>4);	
 }

@@ -95,7 +95,7 @@ public:
 	static void RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);
 
     // Finish up the current frame, print some stats
-    static void Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight);
+    static void Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc);
 };
 
 void UpdateViewport();

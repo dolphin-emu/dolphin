@@ -311,7 +311,6 @@ void GFXConfigDialogDX::CreateGUIControls()
 	sbDebuggingTools = new wxStaticBoxSizer( new wxStaticBox( m_PageAdvanced, wxID_ANY, wxT("Debugging tools") ), wxVERTICAL );
 	m_OverlayStats = new wxCheckBox( m_PageAdvanced, ID_OVERLAYSTATS, wxT("Overlay Some Statics"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_ShaderErrors = new wxCheckBox( m_PageAdvanced, ID_SHADERERRORS, wxT("Show Shader Compilation Errors"), wxDefaultPosition, wxDefaultSize, 0 );	
-	m_ShaderErrors->Enable( false );
 	m_TexfmtOverlay = new wxCheckBox( m_PageAdvanced, ID_TEXFMT_OVERLAY, wxT("Enable TexFmt Overlay"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_TexfmtCenter = new wxCheckBox( m_PageAdvanced, ID_TEXFMT_CENTER, wxT("Centered"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_ProjStats = new wxCheckBox( m_PageAdvanced, wxID_ANY, wxT("Overlay Projection Stats"), wxDefaultPosition, wxDefaultSize, 0 );

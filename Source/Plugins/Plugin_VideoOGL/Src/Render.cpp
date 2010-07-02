@@ -824,19 +824,22 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 	s_skipSwap = g_bSkipCurrentFrame;
 	VideoFifo_CheckEFBAccess();
 	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
-	g_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 	XFBWrited = true;
 	// XXX: Without the VI, how would we know what kind of field this is? So
 	// just use progressive.
-	if (!g_ActiveConfig.bUseXFB)
+	if (g_ActiveConfig.bUseXFB)
 	{
-		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight);
+		g_framebufferManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+	}
+	else
+	{
+		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight,sourceRc);
 		Common::AtomicStoreRelease(s_swapRequested, FALSE);
 	}
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
+void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& Rc)
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.bUseRealXFB) || !fbWidth || !fbHeight)
 	{
@@ -846,7 +849,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
 	const XFBSource** xfbSourceList = g_framebufferManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
-	if (!xfbSourceList)
+	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);
 		WARN_LOG(VIDEO, "Failed to get video for this frame");
@@ -892,90 +895,119 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 
 	const XFBSource* xfbSource = NULL;
 
-	// draw each xfb source
-	for (u32 i = 0; i < xfbCount; ++i)
+	if(g_ActiveConfig.bUseXFB)
 	{
-		xfbSource = xfbSourceList[i];
-
-		TargetRectangle sourceRc;
-
-		if (g_ActiveConfig.bAutoScale || g_ActiveConfig.bUseXFB)
+		// draw each xfb source
+		for (u32 i = 0; i < xfbCount; ++i)
 		{
-			sourceRc = xfbSource->sourceRc;
-		}
-		else
-		{
-			sourceRc.left = 0;
-			sourceRc.top = xfbSource->texHeight;
-			sourceRc.right = xfbSource->texWidth;
-			sourceRc.bottom = 0;
-		}
+			xfbSource = xfbSourceList[i];
 
-		MathUtil::Rectangle<float> drawRc;
+			TargetRectangle sourceRc;
 
-		if (g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
-		{
-			// use virtual xfb with offset
-			int xfbHeight = xfbSource->srcHeight;
-			int xfbWidth = xfbSource->srcWidth;
-			int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbWidth * 2);
-
-			drawRc.top = 1.0f - (2.0f * (hOffset) / (float)fbHeight);
-			drawRc.bottom = 1.0f - (2.0f * (hOffset + xfbHeight) / (float)fbHeight);
-			drawRc.left = -(xfbWidth / (float)fbWidth);
-			drawRc.right = (xfbWidth / (float)fbWidth);
-
-			if (!g_ActiveConfig.bAutoScale)
+			if (g_ActiveConfig.bAutoScale || g_ActiveConfig.bUseXFB)
 			{
-				// scale draw area for a 1 to 1 pixel mapping with the draw target
-				float vScale = (float)fbHeight / (float)back_rc.GetHeight();
-				float hScale = (float)fbWidth / (float)back_rc.GetWidth();
-
-				drawRc.top *= vScale;
-				drawRc.bottom *= vScale;
-				drawRc.left *= hScale;
-				drawRc.right *= hScale;
+				sourceRc = xfbSource->sourceRc;
 			}
-		}
-		else
-		{
-			drawRc.top = 1;
-			drawRc.bottom = -1;
-			drawRc.left = -1;
-			drawRc.right = 1;
-		}
-		
-		// Tell the OSD Menu about the current internal resolution
-		OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
+			else
+			{
+				sourceRc.left = 0;
+				sourceRc.top = xfbSource->texHeight;
+				sourceRc.right = xfbSource->texWidth;
+				sourceRc.bottom = 0;
+			}
 
-		// Texture map xfbSource->texture onto the main buffer
-		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfbSource->texture);
+			MathUtil::Rectangle<float> drawRc;
 
-		// We must call ApplyShader here even if no post proc is selected - it takes
-		// care of disabling it in that case. It returns false in case of no post processing.
+			if (g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
+			{
+				// use virtual xfb with offset
+				int xfbHeight = xfbSource->srcHeight;
+				int xfbWidth = xfbSource->srcWidth;
+				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbWidth * 2);
+
+				drawRc.top = 1.0f - (2.0f * (hOffset) / (float)fbHeight);
+				drawRc.bottom = 1.0f - (2.0f * (hOffset + xfbHeight) / (float)fbHeight);
+				drawRc.left = -(xfbWidth / (float)fbWidth);
+				drawRc.right = (xfbWidth / (float)fbWidth);
+
+				if (!g_ActiveConfig.bAutoScale)
+				{
+					// scale draw area for a 1 to 1 pixel mapping with the draw target
+					float vScale = (float)fbHeight / (float)back_rc.GetHeight();
+					float hScale = (float)fbWidth / (float)back_rc.GetWidth();
+
+					drawRc.top *= vScale;
+					drawRc.bottom *= vScale;
+					drawRc.left *= hScale;
+					drawRc.right *= hScale;
+				}
+			}
+			else
+			{
+				drawRc.top = 1;
+				drawRc.bottom = -1;
+				drawRc.left = -1;
+				drawRc.right = 1;
+			}
+			
+			// Tell the OSD Menu about the current internal resolution
+			OSDInternalW = xfbSource->sourceRc.GetWidth(); OSDInternalH = xfbSource->sourceRc.GetHeight();
+
+			// Texture map xfbSource->texture onto the main buffer
+			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, xfbSource->texture);
+
+			// We must call ApplyShader here even if no post proc is selected - it takes
+			// care of disabling it in that case. It returns false in case of no post processing.
+			if (applyShader)
+			{
+				glBegin(GL_QUADS);
+					glTexCoord2f(sourceRc.left, sourceRc.bottom);  glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0); glVertex2f(drawRc.left, drawRc.bottom);
+					glTexCoord2f(sourceRc.left, sourceRc.top);     glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1); glVertex2f(drawRc.left, drawRc.top);
+					glTexCoord2f(sourceRc.right, sourceRc.top);    glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1); glVertex2f(drawRc.right, drawRc.top);
+					glTexCoord2f(sourceRc.right, sourceRc.bottom); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0); glVertex2f(drawRc.right, drawRc.bottom);
+				glEnd();
+				PixelShaderCache::DisableShader();
+			}
+			else
+			{
+				glBegin(GL_QUADS);
+					glTexCoord2f(sourceRc.left, sourceRc.bottom);  glVertex2f(drawRc.left, drawRc.bottom);
+					glTexCoord2f(sourceRc.left, sourceRc.top);	   glVertex2f(drawRc.left, drawRc.top);
+					glTexCoord2f(sourceRc.right, sourceRc.top);	   glVertex2f(drawRc.right, drawRc.top);
+					glTexCoord2f(sourceRc.right, sourceRc.bottom); glVertex2f(drawRc.right, drawRc.bottom);
+				glEnd();
+			}
+
+			GL_REPORT_ERRORD();
+		}
+	}
+	else
+	{
+		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(Rc);
+		GLuint read_texture = g_framebufferManager.ResolveAndGetRenderTarget(Rc);
+		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
 		if (applyShader)
 		{
 			glBegin(GL_QUADS);
-				glTexCoord2f(sourceRc.left, sourceRc.bottom);  glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0); glVertex2f(drawRc.left, drawRc.bottom);
-				glTexCoord2f(sourceRc.left, sourceRc.top);     glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1); glVertex2f(drawRc.left, drawRc.top);
-				glTexCoord2f(sourceRc.right, sourceRc.top);    glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1); glVertex2f(drawRc.right, drawRc.top);
-				glTexCoord2f(sourceRc.right, sourceRc.bottom); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0); glVertex2f(drawRc.right, drawRc.bottom);
+				glTexCoord2f(targetRc.left, targetRc.bottom);  glMultiTexCoord2fARB(GL_TEXTURE1, 0, 0); glVertex2f(-1, -1);
+				glTexCoord2f(targetRc.left, targetRc.top);     glMultiTexCoord2fARB(GL_TEXTURE1, 0, 1); glVertex2f(-1,  1);
+				glTexCoord2f(targetRc.right, targetRc.top);    glMultiTexCoord2fARB(GL_TEXTURE1, 1, 1); glVertex2f( 1,  1);
+				glTexCoord2f(targetRc.right, targetRc.bottom); glMultiTexCoord2fARB(GL_TEXTURE1, 1, 0); glVertex2f( 1, -1);
 			glEnd();
 			PixelShaderCache::DisableShader();
 		}
 		else
 		{
 			glBegin(GL_QUADS);
-				glTexCoord2f(sourceRc.left, sourceRc.bottom);  glVertex2f(drawRc.left, drawRc.bottom);
-				glTexCoord2f(sourceRc.left, sourceRc.top);	   glVertex2f(drawRc.left, drawRc.top);
-				glTexCoord2f(sourceRc.right, sourceRc.top);	   glVertex2f(drawRc.right, drawRc.top);
-				glTexCoord2f(sourceRc.right, sourceRc.bottom); glVertex2f(drawRc.right, drawRc.bottom);
+				glTexCoord2f(targetRc.left, targetRc.bottom);  glVertex2f(-1, -1);
+				glTexCoord2f(targetRc.left, targetRc.top);	   glVertex2f(-1, 1);
+				glTexCoord2f(targetRc.right, targetRc.top);	   glVertex2f( 1, 1);
+				glTexCoord2f(targetRc.right, targetRc.bottom); glVertex2f( 1, -1);
 			glEnd();
 		}
-
-		GL_REPORT_ERRORD();
+		
+		
 	}
-
 	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
 	TextureMngr::DisableStage(0);
 

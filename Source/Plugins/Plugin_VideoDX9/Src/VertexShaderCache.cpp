@@ -38,15 +38,16 @@ VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 
 static float GC_ALIGNED16(lastVSconstants[C_FOGPARAMS + 8][4]);
+#define MAX_SSAA_SHADERS 3
 
-static LPDIRECT3DVERTEXSHADER9 SimpleVertexShader[3];
+static LPDIRECT3DVERTEXSHADER9 SimpleVertexShader[MAX_SSAA_SHADERS];
 static LPDIRECT3DVERTEXSHADER9 ClearVertexShader;
 
 LinearDiskCache g_vs_disk_cache;
 
 LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetSimpleVertexShader(int level)
 {
-	return SimpleVertexShader[level % 3];
+	return SimpleVertexShader[level % MAX_SSAA_SHADERS];
 }
 
 LPDIRECT3DVERTEXSHADER9 VertexShaderCache::GetClearVertexShader()
@@ -163,22 +164,14 @@ void VertexShaderCache::Init()
 						"{\n"
 						   "float4 vPosition   : POSITION;\n"
 						   "float4 vTexCoord   : TEXCOORD0;\n"
-						   "float4 vTexCoord1   : TEXCOORD1;\n"
-						   "float4 vTexCoord2   : TEXCOORD2;\n"   
-						   "float4 vTexCoord3   : TEXCOORD3;\n"
-						   "float4 vTexCoord4   : TEXCOORD4;\n"
-						   "float4 vTexCoord5   : TEXCOORD5;\n"
+						   "float4 vTexCoord1   : TEXCOORD1;\n"						   
 						"};\n"
 						"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0,float2 inTEX1 : TEXCOORD1,float4 inTEX2 : TEXCOORD2)\n"
 						"{\n"
 						   "VSOUTPUT OUT;"
 						   "OUT.vPosition = inPosition;\n"
 						   "OUT.vTexCoord  = inTEX0.xyyx;\n"
-						   "OUT.vTexCoord1 = inTEX0.xyyx + (float4(-0.5f,-0.5f,-0.5f,-0.5f) * inTEX1.xyyx);\n"
-						   "OUT.vTexCoord2 = inTEX0.xyyx + (float4(-0.5f, 0.5f, 0.5f,-0.5f) * inTEX1.xyyx);\n"
-						   "OUT.vTexCoord3 = inTEX0.xyyx + (float4( 0.5f,-0.5f,-0.5f, 0.5f) * inTEX1.xyyx);\n"
-						   "OUT.vTexCoord4 = inTEX0.xyyx + (float4( 0.5f, 0.5f, 0.5f, 0.5f) * inTEX1.xyyx);\n"
-						   "OUT.vTexCoord5 = inTEX2;\n"
+						   "OUT.vTexCoord1 = inTEX2;\n"
 						   "return OUT;\n"
 						"}\n");
 	SimpleVertexShader[1] = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));	
@@ -189,20 +182,16 @@ void VertexShaderCache::Init()
 						   "float4 vTexCoord   : TEXCOORD0;\n"
 						   "float4 vTexCoord1   : TEXCOORD1;\n"
 						   "float4 vTexCoord2   : TEXCOORD2;\n"   
-						   "float4 vTexCoord3   : TEXCOORD3;\n"
-						   "float4 vTexCoord4   : TEXCOORD4;\n"
-						   "float4 vTexCoord5   : TEXCOORD5;\n"
+						   "float4 vTexCoord3   : TEXCOORD3;\n"						   
 						"};\n"
 						"VSOUTPUT main(float4 inPosition : POSITION,float2 inTEX0 : TEXCOORD0,float2 inTEX1 : TEXCOORD1,float4 inTEX2 : TEXCOORD2)\n"
 						"{\n"
 						   "VSOUTPUT OUT;"
 						   "OUT.vPosition = inPosition;\n"
 						   "OUT.vTexCoord  = inTEX0.xyyx;\n"
-						   "OUT.vTexCoord1 = inTEX0.xyyx + (float4(-1.0f,-1.0f,-1.0f, 1.0f) * inTEX1.xyyx);\n"
-						   "OUT.vTexCoord2 = inTEX0.xyyx + (float4(-1.0f, 0.0f, 0.0f, 1.0f) * inTEX1.xyyx);\n"
-						   "OUT.vTexCoord3 = inTEX0.xyyx + (float4(-1.0f, 1.0f, 1.0f, 1.0f) * inTEX1.xyyx);\n"
-						   "OUT.vTexCoord4 = inTEX0.xyyx + (float4( 0.0f, 1.0f,-1.0f, 0.0f) * inTEX1.xyyx);\n"
-						   "OUT.vTexCoord5 = inTEX2;\n"
+						   "OUT.vTexCoord1 = inTEX0.xyyx + (float4(-1.0f,-0.5f, 1.0f,-0.5f) * inTEX1.xyyx);\n"
+						   "OUT.vTexCoord2 = inTEX0.xyyx + (float4( 1.0f, 0.5f,-1.0f, 0.5f) * inTEX1.xyyx);\n"						   
+						   "OUT.vTexCoord3 = inTEX2;\n"
 						   "return OUT;\n"
 						"}\n");
 	SimpleVertexShader[2] = D3D::CompileAndCreateVertexShader(vProg, (int)strlen(vProg));	
@@ -236,7 +225,7 @@ void VertexShaderCache::Clear()
 
 void VertexShaderCache::Shutdown()
 {
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < MAX_SSAA_SHADERS; i++)
 	{
 		if (SimpleVertexShader[i])
 			SimpleVertexShader[i]->Release();

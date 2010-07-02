@@ -152,18 +152,16 @@ static void SampleTexture(char *&p, const char *destination, const char *texcoor
 static bool WriteAlphaTest(char *&p, API_TYPE ApiType);
 static void WriteFog(char *&p);
 
-const float epsilon8bit = 1.0f / 255.0f;
-
 static const char *tevKSelTableC[] = // KCSEL
 {
     "1.0f,1.0f,1.0f",    // 1   = 0x00
-    "(223.0f/255.0f),(223.0f/255.0f),(223.0f/255.0f)", // 7_8 = 0x01
-    "(191.0f/255.0f),(191.0f/255.0f),(191.0f/255.0f)",	 // 3_4 = 0x02
-    "(159.0f/255.0f),(159.0f/255.0f),(159.0f/255.0f)", // 5_8 = 0x03
-    "(127.0f/255.0f),(127.0f/255.0f),(127.0f/255.0f)",       // 1_2 = 0x04
-    "(95.0f/255.0f),(95.0f/255.0f),(95.0f/255.0f)", // 3_8 = 0x05
-    "(63.0f/255.0f),(63.0f/255.0f),(63.0f/255.0f)",    // 1_4 = 0x06
-    "(31.0f/255.0f),(31.0f/255.0f),(31.0f/255.0f)", // 1_8 = 0x07
+    "0.875f,0.875f,0.875f", // 7_8 = 0x01
+    "0.75f,0.75f,0.75f",	 // 3_4 = 0x02
+    "0.625f,0.625f,0.625f", // 5_8 = 0x03
+    "0.5f,0.5f,0.5f",       // 1_2 = 0x04
+    "0.375f,0.375f,0.375f", // 3_8 = 0x05
+    "0.25f,0.25f,0.25f",    // 1_4 = 0x06
+    "0.125f,0.125f,0.125f", // 1_8 = 0x07
     "ERROR", // 0x08
     "ERROR", // 0x09
     "ERROR", // 0x0a
@@ -193,13 +191,13 @@ static const char *tevKSelTableC[] = // KCSEL
 static const char *tevKSelTableA[] = // KASEL
 {
     "1.0f",  // 1   = 0x00
-    "(223.0f/255.0f)",// 7_8 = 0x01
-    "(191.0f/255.0f)", // 3_4 = 0x02
-    "(159.0f/255.0f)",// 5_8 = 0x03
-    "(127.0f/255.0f)",  // 1_2 = 0x04
-    "(95.0f/255.0f)",// 3_8 = 0x05
-    "(63.0f/255.0f)", // 1_4 = 0x06
-    "(31.0f/255.0f)",// 1_8 = 0x07
+    "0.875f",// 7_8 = 0x01
+    "0.75f", // 3_4 = 0x02
+    "0.625f",// 5_8 = 0x03
+    "0.5f",  // 1_2 = 0x04
+    "0.375f",// 3_8 = 0x05
+    "0.25f", // 1_4 = 0x06
+    "0.125f",// 1_8 = 0x07
     "ERROR", // 0x08
     "ERROR", // 0x09
     "ERROR", // 0x0a
@@ -237,8 +235,8 @@ static const char *tevScaleTable[] = // CS
 static const char *tevBiasTable[] = // TB
 {
     "",       // ZERO,
-    "+(127.0f/255.0f)",  // ADDHALF,
-    "-(127.0f/255.0f)",  // SUBHALF,
+    "+0.5f",  // ADDHALF,
+    "-0.5f",  // SUBHALF,
     "",
 };
 
@@ -262,7 +260,7 @@ static const char *tevCInputTable[] = // CC
     "(rastemp.rgb)",            // RASC,
     "(rastemp.aaa)",      // RASA,
     "float3(1.0f,1.0f,1.0f)",              // ONE
-    "float3((127.0f/255.0f),(127.0f/255.0f),(127.0f/255.0f))",                 // HALF
+    "float3(0.5f,0.5f,0.5f)",                 // HALF
     "(konsttemp.rgb)", //"konsttemp.rgb",        // KONST
     "float3(0.0f,0.0f,0.0f)",              // ZERO
 	///aded extra values to map clamped values
@@ -279,7 +277,7 @@ static const char *tevCInputTable[] = // CC
     "(rastemp.rgb)",            // RASC,
     "(rastemp.aaa)",      // RASA,
     "float3(1.0f,1.0f,1.0f)",              // ONE
-    "float3((127.0f/255.0f),(127.0f/255.0f),(127.0f/255.0f))",                 // HALF
+    "float3(0.5f,0.5f,0.5f)",                 // HALF
     "(konsttemp.rgb)", //"konsttemp.rgb",        // KONST
     "float3(0.0f,0.0f,0.0f)",              // ZERO    
     "PADERROR",	"PADERROR",	"PADERROR",	"PADERROR",

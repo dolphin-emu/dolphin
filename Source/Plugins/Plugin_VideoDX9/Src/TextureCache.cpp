@@ -551,20 +551,29 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	sourcerect.right = targetSource.right;
 	sourcerect.top = targetSource.top;
 
-	if(bScaleByHalf)
+
+	if(bFromZBuffer)
+	{
+		if(bScaleByHalf || g_ActiveConfig.iMultisampleMode)
+		{
+			D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+			D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+		}
+		else
+		{
+			D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+			D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+		}
+	}
+	else
 	{
 		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 		D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 	}
-	else
-	{
-		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-		D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
-	}
 	
 
 	D3DFORMAT bformat = FBManager.GetEFBDepthRTSurfaceFormat();
-	int SSAAMode = ( g_ActiveConfig.iMultisampleMode > 3 )? 0 : g_ActiveConfig.iMultisampleMode;
+	int SSAAMode = g_ActiveConfig.iMultisampleMode;
 	D3D::drawShadedTexQuad(
 		read_texture,
 		&sourcerect, 

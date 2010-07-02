@@ -516,14 +516,16 @@ void Renderer::RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRect
 		return;
 	VideoFifo_CheckEFBAccess();
 	VideoFifo_CheckSwapRequestAt(xfbAddr, fbWidth, fbHeight);
-	FBManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
 	XFBWrited = true;
-
 	// XXX: Without the VI, how would we know what kind of field this is? So
 	// just use progressive.
-	if (!g_ActiveConfig.bUseXFB)
+	if (g_ActiveConfig.bUseXFB)
 	{
-		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight);
+		FBManager.CopyToXFB(xfbAddr, fbWidth, fbHeight, sourceRc);
+	}
+	else
+	{
+		Renderer::Swap(xfbAddr, FIELD_PROGRESSIVE, fbWidth, fbHeight,sourceRc);
 		Common::AtomicStoreRelease(s_swapRequested, FALSE);
 	}
 }
@@ -801,7 +803,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 	}
 }
 
-void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
+void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,const EFBRectangle& rc)
 {
 	if (g_bSkipCurrentFrame || (!XFBWrited && !g_ActiveConfig.bUseRealXFB) || !fbWidth || !fbHeight)
 	{
@@ -815,7 +817,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	if (field == FIELD_LOWER) xfbAddr -= fbWidth * 2;
 	u32 xfbCount = 0;
 	const XFBSource** xfbSourceList = FBManager.GetXFBSource(xfbAddr, fbWidth, fbHeight, xfbCount);
-	if (!xfbSourceList || xfbCount == 0)
+	if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
 	{
 		g_VideoInitialize.pCopiedToXFB(false);
 		return;
@@ -849,27 +851,65 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 	D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
 
 	// TODO: Enable linear filtering here
-
-	// draw each xfb source
-	for (u32 i = 0; i < xfbCount; ++i)
+	
+	if(g_ActiveConfig.bUseXFB)
 	{
-		const XFBSource* xfbSource = xfbSourceList[i];
+		const XFBSource* xfbSource;
 
-		MathUtil::Rectangle<float> sourceRc;
-		sourceRc.left = 0;
-		sourceRc.top = 0;
-		sourceRc.right = xfbSource->texWidth;
-		sourceRc.bottom = xfbSource->texHeight;
+		// draw each xfb source
+		for (u32 i = 0; i < xfbCount; ++i)
+		{
+			xfbSource = xfbSourceList[i];	
+			MathUtil::Rectangle<float> sourceRc;
+			
+			sourceRc.left = 0;
+			sourceRc.top = 0;
+			sourceRc.right = xfbSource->texWidth;
+			sourceRc.bottom = xfbSource->texHeight;		
 
-		MathUtil::Rectangle<float> drawRc;
-		drawRc.top = -1;
-		drawRc.bottom = 1;
-		drawRc.left = -1;
-		drawRc.right = 1;
+			MathUtil::Rectangle<float> drawRc;
 
-		D3D::drawShadedTexSubQuad(xfbSource->tex->GetSRV(), &sourceRc, xfbSource->texWidth, xfbSource->texHeight, &drawRc, PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+			if (g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
+			{
+				// use virtual xfb with offset
+				int xfbHeight = xfbSource->srcHeight;
+				int xfbWidth = xfbSource->srcWidth;
+				int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbWidth * 2);
+
+				drawRc.bottom = 1.0f - 2.0f * ((hOffset) / (float)fbHeight);
+				drawRc.top = 1.0f - 2.0f * ((hOffset + xfbHeight) / (float)fbHeight);
+				drawRc.left = -(xfbWidth / (float)fbWidth);
+				drawRc.right = (xfbWidth / (float)fbWidth);
+				
+
+				if (!g_ActiveConfig.bAutoScale)
+				{
+					// scale draw area for a 1 to 1 pixel mapping with the draw target
+					float vScale = (float)fbHeight / (float)s_backbuffer_height;
+					float hScale = (float)fbWidth / (float)s_backbuffer_width;
+
+					drawRc.top *= vScale;
+					drawRc.bottom *= vScale;
+					drawRc.left *= hScale;
+					drawRc.right *= hScale;
+				}
+			}
+			else
+			{
+				drawRc.top = -1;
+				drawRc.bottom = 1;
+				drawRc.left = -1;
+				drawRc.right = 1;
+			}
+			D3D::drawShadedTexSubQuad(xfbSource->tex->GetSRV(), &sourceRc, xfbSource->texWidth, xfbSource->texHeight, &drawRc, PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
+		}
 	}
-
+	else
+	{
+		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
+		D3DTexture2D* read_texture = FBManager.GetEFBColorTexture();
+		D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(), Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(), PixelShaderCache::GetColorCopyProgram(),VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());		
+	}
 	// done with drawing the game stuff, good moment to save a screenshot
 	if (s_bScreenshot)
 	{

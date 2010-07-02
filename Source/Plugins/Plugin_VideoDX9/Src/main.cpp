@@ -347,7 +347,8 @@ void VideoFifo_CheckSwapRequest()
 	{
 		if (Common::AtomicLoadAcquire(s_swapRequested))
 		{
-			Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight);
+			EFBRectangle rc;
+			Renderer::Swap(s_beginFieldArgs.xfbAddr, s_beginFieldArgs.field, s_beginFieldArgs.fbWidth, s_beginFieldArgs.fbHeight,rc);
 			Common::AtomicStoreRelease(s_swapRequested, FALSE);
 		}
 	}
