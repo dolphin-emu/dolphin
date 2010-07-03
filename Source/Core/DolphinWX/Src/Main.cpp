@@ -92,12 +92,12 @@ bool DolphinApp::OnInit()
 	// Declarations and definitions
 	bool UseDebugger = false;
 	bool UseLogger = false;
-	bool LoadElf = false;
+	bool LoadFile = false;
 	bool selectVideoPlugin = false;
 	bool selectAudioPlugin = false;
 	bool selectWiimotePlugin = false;
 
-	wxString ElfFile;
+	wxString FileToLoad;
 	wxString videoPluginFilename;
 	wxString audioPluginFilename;
 	wxString wiimotePluginFilename;
@@ -117,7 +117,7 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_SWITCH, "l", "logger", "Opens The Logger"
 		},
 		{
-			wxCMD_LINE_OPTION, "e", "elf", "Loads an elf file",
+			wxCMD_LINE_OPTION, "e", "exec", "Loads the specified file (DOL, ELF, WAD, GCM, ISO)",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
@@ -155,7 +155,7 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_SWITCH, _("l"), _("logger"), wxT("Opens The Logger")
 		},
 		{
-			wxCMD_LINE_OPTION, _("e"), _("elf"), wxT("Loads an elf file"),
+			wxCMD_LINE_OPTION, _("e"), _("exec"), wxT("Loads the specified file (DOL, ELF, WAD, GCM, ISO)"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
@@ -189,11 +189,11 @@ bool DolphinApp::OnInit()
 #if wxCHECK_VERSION(2, 9, 0)
 	UseDebugger = parser.Found("debugger");
 	UseLogger = parser.Found("logger");
-	LoadElf = parser.Found("elf", &ElfFile);
+	LoadFile = parser.Found("exec", &FileToLoad);
 #else
 	UseDebugger = parser.Found(wxT("debugger"));
 	UseLogger = parser.Found(wxT("logger"));
-	LoadElf = parser.Found(wxT("elf"), &ElfFile);
+	LoadFile = parser.Found(wxT("exec"), &FileToLoad);
 #endif
 
 #if wxCHECK_VERSION(2, 9, 0)
@@ -389,10 +389,10 @@ bool DolphinApp::OnInit()
 	// ------------
 	// Check the autoboot options.
 
-	// First check if we have an elf command line.
-	if (LoadElf && ElfFile != wxEmptyString)
+	// First check if we have an exec command line.
+	if (LoadFile && FileToLoad != wxEmptyString)
 	{
-		main_frame->BootGame(std::string(ElfFile.mb_str()));
+		main_frame->BootGame(std::string(FileToLoad.mb_str()));
 	}
 	// If we have selected Automatic Start, start the default ISO, or if no default
 	// ISO exists, start the last loaded ISO
