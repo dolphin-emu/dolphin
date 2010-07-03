@@ -112,7 +112,7 @@ void VertexShaderCache::Init()
 	s_displayCompileAlert = true;
 
 	glGetProgramivARB(GL_VERTEX_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&s_nMaxVertexInstructions);		
-#ifdef __linux__
+#if CG_VERSION_NUM == 2100
 	if (strstr((const char*)glGetString(GL_VENDOR), "ATI") != NULL)
 	{
 		s_nMaxVertexInstructions = 4096;

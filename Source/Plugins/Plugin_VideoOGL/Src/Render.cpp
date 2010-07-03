@@ -403,7 +403,7 @@ bool Renderer::Init()
 
 	g_cgvProf = cgGLGetLatestProfile(CG_GL_VERTEX);
 	g_cgfProf = cgGLGetLatestProfile(CG_GL_FRAGMENT);
-#ifdef __linux__ 
+#if CG_VERSION_NUM == 2100
 	// A bug was introduced in Cg2.1's handling of very large profile option values
 	// so this will not work on ATI. ATI returns MAXINT = 2147483647 (0x7fffffff)
 	// which is correct in OpenGL but Cg fails to handle it properly. As a result

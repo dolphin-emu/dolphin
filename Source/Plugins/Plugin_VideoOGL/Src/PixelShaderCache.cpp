@@ -96,7 +96,7 @@ void PixelShaderCache::Init()
 	s_displayCompileAlert = true;
 
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ALU_INSTRUCTIONS_ARB, (GLint *)&s_nMaxPixelInstructions);
-#ifdef __linux__
+#if CG_VERSION_NUM == 2100
 	if (strstr((const char*)glGetString(GL_VENDOR), "ATI") != NULL)
 	{
 		s_nMaxPixelInstructions = 4096;
