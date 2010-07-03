@@ -66,8 +66,8 @@ public:
 	void Update();
 
 	void Read();
-
 	void Disconnect();
+	void DisableDataReporting();
 
 private:
 	void ClearReports();
@@ -88,21 +88,12 @@ Wiimote::Wiimote(wiimote_t* const wm, const unsigned int index)
 	, m_channel(0)
 	, m_last_data_report_valid(false)
 {
-	{
 	// disable reporting
-	wm_report_mode rpt = wm_report_mode();
-	rpt.mode = WM_REPORT_CORE;
-	SendPacket(m_wiimote, WM_REPORT_MODE, &rpt, sizeof(rpt));
-	}
+	DisableDataReporting();
 
 	// clear all msgs, silly maybe
-	while (wiiuse_io_read(m_wiimote));
-
-	{
-	// request status, will be sent to game on start
-	wm_request_status rpt = wm_request_status();
-	SendPacket(m_wiimote, WM_REQUEST_STATUS, &rpt, sizeof(rpt));
-	}
+	// - cleared on first InterruptChannel call
+	//while (wiiuse_io_read(m_wiimote));
 
 	//{
 	// LEDs test
@@ -113,11 +104,16 @@ Wiimote::Wiimote(wiimote_t* const wm, const unsigned int index)
 
 	// set LEDs
 	wiiuse_set_leds(m_wiimote, WIIMOTE_LED_1 << m_index);
+
+	// TODO: make Dolphin connect wiimote, maybe
 }
 
 Wiimote::~Wiimote()
 {
 	ClearReports();
+
+	// disable reporting / wiiuse might do this on shutdown anyway, o well, don't know for sure
+	DisableDataReporting();
 
 	// send disconnect message to wii, maybe, i hope, naw shit messes up on emu-stop
 	//if (g_WiimoteInitialize.pWiimoteInterruptChannel)
@@ -132,8 +128,16 @@ Wiimote::~Wiimote()
 	//}
 }
 
+void Wiimote::DisableDataReporting()
+{
+	wm_report_mode rpt = wm_report_mode();
+	rpt.mode = WM_REPORT_CORE;
+	SendPacket(m_wiimote, WM_REPORT_MODE, &rpt, sizeof(rpt));
+}
+
 void Wiimote::ClearReports()
 {
+	m_last_data_report_valid = false;
 	while (m_reports.size())
 	{
 		delete[] m_reports.front();
@@ -152,13 +156,24 @@ void Wiimote::ControlChannel(const u16 channel, const void* const data, const u3
 
 void Wiimote::InterruptChannel(const u16 channel, const void* const data, const u32 size)
 {
+	if (0 == m_channel)	// first interrupt/control channel sent
+	{
+		// clear all msgs, silly maybe
+		while (wiiuse_io_read(m_wiimote));
+
+		// request status
+		wm_request_status rpt = wm_request_status();
+		SendPacket(m_wiimote, WM_REQUEST_STATUS, &rpt, sizeof(rpt));
+	}
+
 	m_channel = channel;
 	wiiuse_io_write(m_wiimote, (byte*)data, size);
 }
 
 void Wiimote::Read()
 {
-	if (!m_channel)
+	// if not connected to Dolphin, don't do anything, to keep sanchez happy :p
+	if (0 == m_channel)
 		return;
 
 	if (wiiuse_io_read(m_wiimote))
@@ -198,15 +213,12 @@ void Wiimote::Update()
 
 void Wiimote::Disconnect()
 {
-	{
+	m_channel = 0;
+
 	// disable reporting
-	wm_report_mode rpt = wm_report_mode();
-	rpt.mode = WM_REPORT_CORE;
-	SendPacket(m_wiimote, WM_REPORT_MODE, &rpt, sizeof(rpt));
-	}	
+	DisableDataReporting();
 
 	// clear queue
-	m_last_data_report_valid = false;
 	ClearReports();
 
 	// clear out wiiuse queue, or maybe not, silly? idk
@@ -339,10 +351,29 @@ void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u3
 {
 	g_wiimote_critsec.Enter();	// enter
 
+	u8* data = (u8*)_pData;
+
+	// some hax, since we just send the last data report to Dolphin on each Update() call
+	// , make the wiimote only send updated data reports when data changes
+	// == less bt traffic, eliminates some unneeded packets
+	if (WM_REPORT_MODE == ((u8*)_pData)[1])
+	{
+		// I dont wanna write on the const *_pData
+		data = new u8[_Size];
+		memcpy(data, _pData, _Size);
+
+		// nice var names :p, this seems to be this one
+		((wm_report_mode*)(data + 2))->all_the_time = false;
+		//((wm_report_mode*)(data + 2))->continuous = false;
+	}
+
 	if (g_wiimotes[_WiimoteNumber])
-		g_wiimotes[_WiimoteNumber]->InterruptChannel(_channelID, _pData, _Size);
+		g_wiimotes[_WiimoteNumber]->InterruptChannel(_channelID, data, _Size);
 
 	g_wiimote_critsec.Leave();	// leave
+
+	if (data != _pData)
+		delete[] data;
 }
 
 void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
@@ -378,6 +409,8 @@ void StateChange(PLUGIN_EMUSTATE newState)
 
 THREAD_RETURN WiimoteThreadFunc(void* arg)
 {
+	Common::SetCurrentThreadName("Wiimote Read");
+
 	while (g_run_wiimote_thread)
 	{
 		g_wiimote_critsec.Enter();	// enter

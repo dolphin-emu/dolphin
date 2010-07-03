@@ -153,7 +153,7 @@ struct wm_leds {
 #define WM_REPORT_MODE 0x12
 struct wm_report_mode {
 	u8 rumble : 1;
-	u8 continuous : 1;
+	u8 continuous : 1;		// these 2 seem to be named wrong
 	u8 all_the_time : 1;
 	u8 : 5;
 	u8 mode;

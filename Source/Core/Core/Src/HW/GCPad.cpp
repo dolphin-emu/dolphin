@@ -23,7 +23,7 @@
 
 #include "../../InputCommon/Src/InputConfig.h"
 
-InputPlugin g_plugin("GCPadNew", "Pad", "GCPad");
+static InputPlugin g_plugin("GCPadNew", "Pad", "GCPad");
 
 InputPlugin *PAD_GetPlugin() {
 	return &g_plugin;
