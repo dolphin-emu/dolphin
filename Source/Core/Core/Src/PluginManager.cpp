@@ -420,13 +420,16 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 	switch(Type)
 	{
 	case PLUGIN_TYPE_VIDEO:
-		GetVideo()->Config((HWND)_Parent);
+		if (GetVideo() != NULL)
+			GetVideo()->Config((HWND)_Parent);
 		break;
 	case PLUGIN_TYPE_DSP:
-		GetDSP()->Config((HWND)_Parent);
+		if (GetDSP() != NULL)
+			GetDSP()->Config((HWND)_Parent);
 		break;
 	case PLUGIN_TYPE_WIIMOTE:
-		GetWiimote()->Config((HWND)_Parent);
+		if (GetWiimote() != NULL)
+			GetWiimote()->Config((HWND)_Parent);
 		break;
 	default:
 		PanicAlert("Type %d config not supported in plugin %s", Type, _rFilename);

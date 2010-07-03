@@ -85,8 +85,6 @@ int DynamicLibrary::Load(const char* filename)
 	DEBUG_LOG(COMMON, "DL: LoadLibrary: %s(%p)", filename, library);
 
 	if (!library) {
-		fprintf(stderr, "DL: Error loading DLL %s: %s", filename, 
-				  DllGetLastError());
 		ERROR_LOG(COMMON, "DL: Error loading DLL %s: %s", filename, 
 				  DllGetLastError());
 		return 0;
