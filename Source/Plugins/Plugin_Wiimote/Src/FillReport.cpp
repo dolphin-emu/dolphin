@@ -385,9 +385,7 @@ void FillReportInfo(wm_core& _core)
 	if (!IsFocus()) return;
 
 	u32 mask=0;
-	if (WiiMapping[g_ID].UDPWM.instance)
-		WiiMapping[g_ID].UDPWM.instance->update();
-
+	
 	if ((WiiMapping[g_ID].UDPWM.instance)&&(WiiMapping[g_ID].UDPWM.enableButtons))
 		mask=WiiMapping[g_ID].UDPWM.instance->getButtons();
 

@@ -23,15 +23,15 @@ class UDPWiimote
 public:
 	UDPWiimote(const char * port);
 	virtual ~UDPWiimote();
-	void update();
 	void getAccel(int &x, int &y, int &z);
 	u32 getButtons();
 	void getNunchuck(float &x, float &y, u8 &mask);
 	void getIR(float &x, float &y);
 	int getErrNo() {return err;};
 private:
-	int readPack(void * data, int *size);
-	struct _d; //using pimpl because SOCKET on windows is defined in Winsock2.h, witch doesen't have include guards
+	int pharsePacket(u8 * data, size_t size);
+	void mainThread();
+	struct _d; //using pimpl because Winsock2.h doesen't have include guards -_-
 	_d *d; 
 	double x,y,z;
 	double nunX,nunY;
@@ -40,5 +40,8 @@ private:
 	u32 mask;
 	int err;
 	static int noinst;
+	friend void _UDPWiiThread(void* arg);
+	void broadcastPresence();
+	u8 time;
 };
 #endif
