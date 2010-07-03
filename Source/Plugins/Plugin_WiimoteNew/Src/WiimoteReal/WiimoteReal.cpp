@@ -261,6 +261,11 @@ unsigned int Initialize()
 	
 	DEBUG_LOG(WIIMOTE, "Found %i Real Wiimotes, %i wanted", g_wiimotes_found, wanted_wiimotes);
 
+	g_wiimotes_found =
+		wiiuse_connect(g_wiimotes_from_wiiuse, g_wiimotes_found);
+
+	DEBUG_LOG(WIIMOTE, "Connected to %i Real Wiimotes", g_wiimotes_found);
+
 	g_wiimote_critsec.Enter();	// enter
 
 	// create real wiimote class instances, assign wiimotes
