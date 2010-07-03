@@ -16,13 +16,22 @@ files = [
 	  'WiimoteEmu/EmuSubroutines.cpp',
 	  'WiimoteEmu/Encryption.cpp',
 	  'WiimoteEmu/Speaker.cpp',
-	  'WiimoteReal/WiimoteReal.cpp',
 	  'WiimoteNew.cpp',
 	  'WiimoteConfigDiag.cpp',
 	]
 
+libs = [ 'common', 'inputcommon', 'inputuicommon', 'SDL' ]
+
+cxxflags = [ ]
+
+if wiinewenv['HAVE_WIIUSE']:
+	cxxflags += [ '-DHAVE_WIIUSE' ]
+	files += [ "WiimoteReal/WiimoteReal.cpp" ]
+	libs += [ 'wiiuse' ]
+
 wiinewenv.Append(
-	LIBS = [ 'inputuicommon', 'inputcommon', 'common', 'SDL' ],
+	CXXFLAGS = cxxflags,
+	LIBS = libs
 	)
 
 wiinewenv.SharedLibrary(env['plugin_dir']+name, files)
