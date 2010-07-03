@@ -93,10 +93,16 @@ void PixelShaderCache::Init()
 		lastPSconstants[i/4][i%4] = -100000000.0f;
 	memset(&last_pixel_shader_uid, 0xFF, sizeof(last_pixel_shader_uid));
 
-    s_displayCompileAlert = true;
+	s_displayCompileAlert = true;
 
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ALU_INSTRUCTIONS_ARB, (GLint *)&s_nMaxPixelInstructions);
-	
+#ifdef __linux__
+	if (strstr((const char*)glGetString(GL_VENDOR), "ATI") != NULL)
+	{
+		s_nMaxPixelInstructions = 4096;
+	}
+#endif
+
 	int maxinst, maxattribs;
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_INSTRUCTIONS_ARB, (GLint *)&maxinst);
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_NATIVE_ATTRIBS_ARB, (GLint *)&maxattribs);

@@ -403,8 +403,20 @@ bool Renderer::Init()
 
 	g_cgvProf = cgGLGetLatestProfile(CG_GL_VERTEX);
 	g_cgfProf = cgGLGetLatestProfile(CG_GL_FRAGMENT);
+#ifdef __linux__ 
+	// A bug was introduced in Cg2.1's handling of very large profile option values
+	// so this will not work on ATI. ATI returns MAXINT = 2147483647 (0x7fffffff)
+	// which is correct in OpenGL but Cg fails to handle it properly. As a result
+	// -1 is used by Cg resulting (signedness incorrect) and compilation fails.
+	if (strstr((const char*)glGetString(GL_VENDOR), "ATI") == NULL) 
+	{
+		cgGLSetOptimalOptions(g_cgvProf);
+		cgGLSetOptimalOptions(g_cgfProf);
+	}
+#else
 	cgGLSetOptimalOptions(g_cgvProf);
 	cgGLSetOptimalOptions(g_cgfProf);
+#endif
 
 	INFO_LOG(VIDEO, "Max buffer sizes: %d %d", cgGetProgramBufferMaxSize(g_cgvProf), cgGetProgramBufferMaxSize(g_cgfProf));
 	int nenvvertparams, nenvfragparams, naddrregisters[2];
