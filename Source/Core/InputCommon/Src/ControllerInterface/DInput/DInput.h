@@ -1,7 +1,9 @@
-#ifndef _CIFACE_DIRECTINPUT_H_
-#define _CIFACE_DIRECTINPUT_H_
+#ifndef _CIFACE_DINPUT_H_
+#define _CIFACE_DINPUT_H_
 
 #include "../ControllerInterface.h"
+
+#define DINPUT_SOURCE_NAME "DInput"
 
 #define DIRECTINPUT_VERSION 0x0800
 #define WIN32_LEAN_AND_MEAN
@@ -13,7 +15,7 @@
 
 namespace ciface
 {
-namespace DirectInput
+namespace DInput
 {
 
 //BOOL CALLBACK DIEnumEffectsCallback(LPCDIEFFECTINFO pdei, LPVOID pvRef);

@@ -1,5 +1,5 @@
-#ifndef _CIFACE_DIRECTINPUT_JOYSTICK_H_
-#define _CIFACE_DIRECTINPUT_JOYSTICK_H_
+#ifndef _CIFACE_DINPUT_JOYSTICK_H_
+#define _CIFACE_DINPUT_JOYSTICK_H_
 
 #include "../ControllerInterface.h"
 
@@ -18,7 +18,7 @@
 
 namespace ciface
 {
-namespace DirectInput
+namespace DInput
 {
 
 void InitJoystick( IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices/*, HWND hwnd*/ );

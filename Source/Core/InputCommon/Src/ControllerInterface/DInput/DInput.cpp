@@ -1,19 +1,16 @@
 #include "../ControllerInterface.h"
 
-#ifdef CIFACE_USE_DIRECTINPUT
+#ifdef CIFACE_USE_DINPUT
 
-#include "DirectInput.h"
+#include "DInput.h"
 
 #include <StringUtil.h>
 
-#ifdef CIFACE_USE_DIRECTINPUT_JOYSTICK
-	#include "DirectInputJoystick.h"
+#ifdef CIFACE_USE_DINPUT_JOYSTICK
+	#include "DInputJoystick.h"
 #endif
-#ifdef CIFACE_USE_DIRECTINPUT_KEYBOARD
-	#include "DirectInputKeyboard.h"
-#endif
-#ifdef CIFACE_USE_DIRECTINPUT_MOUSE
-	#include "DirectInputMouse.h"
+#ifdef CIFACE_USE_DINPUT_KBM
+	#include "DInputKeyboardMouse.h"
 #endif
 
 #pragma comment(lib, "Dinput8.lib")
@@ -21,7 +18,7 @@
 
 namespace ciface
 {
-namespace DirectInput
+namespace DInput
 {
 
 //BOOL CALLBACK DIEnumEffectsCallback(LPCDIEFFECTINFO pdei, LPVOID pvRef)
@@ -70,13 +67,10 @@ void Init( std::vector<ControllerInterface::Device*>& devices/*, HWND hwnd*/ )
 	if (FAILED(DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID*)&idi8, NULL)))
 		return;
 
-#ifdef CIFACE_USE_DIRECTINPUT_KEYBOARD
-	InitKeyboard(idi8, devices);
+#ifdef CIFACE_USE_DINPUT_KBM
+	InitKeyboardMouse(idi8, devices);
 #endif
-#ifdef CIFACE_USE_DIRECTINPUT_MOUSE
-	InitMouse(idi8, devices);
-#endif
-#ifdef CIFACE_USE_DIRECTINPUT_JOYSTICK
+#ifdef CIFACE_USE_DINPUT_JOYSTICK
 	InitJoystick(idi8, devices/*, hwnd*/);
 #endif
 

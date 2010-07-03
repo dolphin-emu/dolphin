@@ -47,29 +47,33 @@
 class PadSetting
 {
 protected:
-	PadSetting() {}
+	PadSetting(wxControl* const _control) : wxcontrol(_control) { wxcontrol->SetClientData(this); }
 
 public:
 	virtual void UpdateGUI() = 0;
 	virtual void UpdateValue() = 0;
+
+	virtual ~PadSetting() {}
+
+	wxControl* const	wxcontrol;
 };
 
-class PadSettingExtension : public wxChoice, public PadSetting
+class PadSettingExtension : public PadSetting
 {
 public:
-	PadSettingExtension( wxWindow* const parent, ControllerEmu::Extension* const ext );
+	PadSettingExtension(wxWindow* const parent, ControllerEmu::Extension* const ext);
 	void UpdateGUI();
 	void UpdateValue();
 
 	ControllerEmu::Extension* const	extension;
 };
 
-class PadSettingChoice : public wxSpinCtrl, public PadSetting
+class PadSettingSpin : public PadSetting
 {
 public:
-	PadSettingChoice( wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const setting )
-		: wxSpinCtrl(parent, -1, wxEmptyString, wxDefaultPosition
-			, wxSize( 54, -1 ), 0, setting->low, setting->high, setting->value * 100)
+	PadSettingSpin(wxWindow* const parent, ControllerEmu::ControlGroup::Setting* const setting)
+		: PadSetting(new wxSpinCtrl(parent, -1, wxEmptyString, wxDefaultPosition
+			, wxSize( 54, -1 ), 0, setting->low, setting->high, setting->value * 100))
 		, value(setting->value) {}
 
 	void UpdateGUI();
@@ -78,10 +82,10 @@ public:
 	ControlState& value;
 };
 
-class PadSettingCheckBox : public wxCheckBox, public PadSetting
+class PadSettingCheckBox : public PadSetting
 {
 public:
-	PadSettingCheckBox( wxWindow* const parent, ControlState& _value, const char* const label );
+	PadSettingCheckBox(wxWindow* const parent, ControlState& _value, const char* const label);
 	void UpdateGUI();
 	void UpdateValue();
 
@@ -106,6 +110,7 @@ public:
 	void UpdateListContents();
 	void SelectControl(const std::string& name);
 
+	void SetSelectedControl(wxCommandEvent& event);
 	void AppendControl(wxCommandEvent& event);
 
 	ControllerInterface::ControlReference* const		control_reference;
@@ -212,7 +217,7 @@ private:
 class InputConfigDialog : public wxDialog
 {
 public:
-	InputConfigDialog( wxWindow* const parent, InputPlugin& plugin, const std::string& name);
+	InputConfigDialog( wxWindow* const parent, InputPlugin& plugin, const std::string& name, const int tab_num = 0);
 	//~InputConfigDialog();
 
 	bool Destroy();

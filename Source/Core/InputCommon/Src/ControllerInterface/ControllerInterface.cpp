@@ -3,8 +3,8 @@
 #ifdef CIFACE_USE_XINPUT
 	#include "XInput/XInput.h"
 #endif
-#ifdef CIFACE_USE_DIRECTINPUT
-	#include "DirectInput/DirectInput.h"
+#ifdef CIFACE_USE_DINPUT
+	#include "DInput/DInput.h"
 #endif
 #ifdef CIFACE_USE_XLIB
 	#include "Xlib/Xlib.h"
@@ -30,8 +30,8 @@ void ControllerInterface::Init()
 	if ( m_is_init )
 		return;
 
-#ifdef CIFACE_USE_DIRECTINPUT
-	ciface::DirectInput::Init(m_devices);
+#ifdef CIFACE_USE_DINPUT
+	ciface::DInput::Init(m_devices);
 #endif
 #ifdef CIFACE_USE_XINPUT
 	ciface::XInput::Init(m_devices);
@@ -88,7 +88,7 @@ void ControllerInterface::DeInit(const bool hacks_no_sdl_quit)
 #ifdef CIFACE_USE_XINPUT
 	// nothing needed
 #endif
-#ifdef CIFACE_USE_DIRECTINPUT
+#ifdef CIFACE_USE_DINPUT
 	// nothing needed
 #endif
 #ifdef CIFACE_USE_XLIB
@@ -364,7 +364,7 @@ void ControllerInterface::UpdateReference(ControllerInterface::ControlReference*
 	// adding | to parse the last item, silly
 	std::istringstream ss(ref->expression + '|');
 
-	const std::string mode_chars("|&!#");
+	const std::string mode_chars("|&!^");
 
 	ControlReference::DeviceControl	devc;
 
@@ -530,6 +530,7 @@ ControllerInterface::Device::Control* ControllerInterface::OutputReference::Dete
 		// this loop is to make stuff like flashing keyboard LEDs work
 		while (ms > (slept += 10))
 		{
+			// TODO: improve this to update more than just the default device's output
 			device->UpdateOutput();
 			Common::SleepCurrentThread(10);
 		}

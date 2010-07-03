@@ -16,7 +16,9 @@ files = [
 	  'WiimoteEmu/EmuSubroutines.cpp',
 	  'WiimoteEmu/Encryption.cpp',
 	  'WiimoteEmu/Speaker.cpp',
+	  'WiimoteReal/WiimoteReal.cpp',
 	  'WiimoteNew.cpp',
+	  'WiimoteConfigDiag.cpp',
 	]
 
 wiinewenv.Append(

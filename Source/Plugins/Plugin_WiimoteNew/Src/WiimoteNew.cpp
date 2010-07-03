@@ -2,6 +2,9 @@
 #include "Common.h"
 #include "pluginspecs_wiimote.h"
 
+#include "WiimoteConfigDiag.h"
+#include "WiimoteReal/WiimoteReal.h"
+
 #include "ControllerInterface/ControllerInterface.h"
 #include "WiimoteEmu/WiimoteEmu.h"
 
@@ -32,7 +35,7 @@
 #endif
 
 // plugin globals
-static InputPlugin g_plugin( "WiimoteNew", "Wiimote", "Wiimote" );
+InputPlugin g_plugin( "WiimoteNew", "Wiimote", "Wiimote" );
 SWiimoteInitialize g_WiimoteInitialize;
 
 #ifdef _WIN32
@@ -90,7 +93,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved )
 
 void DeInitPlugin()
 {
-	if ( g_plugin.controller_interface.IsInit() )
+	if (g_plugin.controller_interface.IsInit())
 	{
 		std::vector<ControllerEmu*>::const_iterator
 			i = g_plugin.controllers.begin(),
@@ -102,13 +105,16 @@ void DeInitPlugin()
 		// true parameter to make SDL not quit in the wiimote plugin,
 		// the old wiimote plugin uses this hack as well, to prevent crash on stop
 		g_plugin.controller_interface.DeInit(true);
+
+		// real wiimotes
+		WiimoteReal::Shutdown();
 	}
 }
 
 // if plugin isn't initialized, init and load config
 void InitPlugin( void* const hwnd )
 {
-	if ( false == g_plugin.controller_interface.IsInit() )
+	if (false == g_plugin.controller_interface.IsInit())
 	{
 		// add 4 wiimotes
 		for ( unsigned int i = 0; i<4; ++i )
@@ -118,15 +124,18 @@ void InitPlugin( void* const hwnd )
 		g_plugin.LoadConfig();
 		
 		// needed for Xlib and exclusive dinput
-		g_plugin.controller_interface.SetHwnd( hwnd );
+		g_plugin.controller_interface.SetHwnd(hwnd);
 		g_plugin.controller_interface.Init();
 
 		// update control refs
-		std::vector<ControllerEmu*>::const_iterator i = g_plugin.controllers.begin(),
+		std::vector<ControllerEmu*>::const_iterator
+			i = g_plugin.controllers.begin(),
 			e = g_plugin.controllers.end();
 		for ( ; i!=e; ++i )
 			(*i)->UpdateReferences( g_plugin.controller_interface );
 
+		// real wiimotes
+		WiimoteReal::Initialize();
 	}
 }
 
@@ -141,8 +150,15 @@ void InitPlugin( void* const hwnd )
 //
 void Wiimote_ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	//PanicAlert( "Wiimote_ControlChannel" );
-	((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->ControlChannel( _channelID, _pData, _Size );
+	switch (g_wiimote_sources[_number])
+	{
+	case WIIMOTE_SRC_REAL :
+		WiimoteReal::ControlChannel(_number, _channelID, _pData, _Size);
+		break;
+	case WIIMOTE_SRC_EMU :
+		((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->ControlChannel( _channelID, _pData, _Size );
+		break;
+	}
 }
 
 // __________________________________________________________________________________________________
@@ -176,8 +192,15 @@ unsigned int Wiimote_UnPairWiimotes(void)
 //
 void Wiimote_InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size)
 {
-	//PanicAlert( "Wiimote_InterruptChannel" );
-	((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->InterruptChannel( _channelID, _pData, _Size );
+	switch (g_wiimote_sources[_number])
+	{
+	case WIIMOTE_SRC_REAL :
+		WiimoteReal::InterruptChannel(_number, _channelID, _pData, _Size);
+		break;
+	case WIIMOTE_SRC_EMU :
+		((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->InterruptChannel( _channelID, _pData, _Size );
+		break;
+	}
 }
 
 // __________________________________________________________________________________________________
@@ -202,7 +225,15 @@ void Wiimote_Update(int _number)
 	}
 	_last_number = _number;
 
-	((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->Update();
+	switch (g_wiimote_sources[_number])
+	{
+	case WIIMOTE_SRC_REAL :
+		WiimoteReal::Update(_number);
+		break;
+	case WIIMOTE_SRC_EMU :
+		((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->Update();
+		break;
+	}
 
 	g_plugin.controls_crit.Leave();
 }
@@ -250,11 +281,9 @@ void GetDllInfo(PLUGIN_INFO* _pPluginInfo)
 void DllConfig(HWND _hParent)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	bool was_init = false;
+	const bool was_init = g_plugin.controller_interface.IsInit();
 
-	if ( g_plugin.controller_interface.IsInit() )	// hack for showing dialog when game isnt running
-		was_init = true;
-	else
+	if (false == was_init)
 	{
 #if defined(HAVE_X11) && HAVE_X11
 		Window win = GDK_WINDOW_XID(GTK_WIDGET(_hParent)->window);
@@ -266,9 +295,9 @@ void DllConfig(HWND _hParent)
 #endif
 	}
 
-	// copied from GCPad
 	wxWindow *frame = GetParentedWxWindow(_hParent);
-	InputConfigDialog* m_ConfigFrame = new InputConfigDialog(frame, g_plugin, PLUGIN_FULL_NAME);
+	WiimoteConfigDiag* const m_ConfigFrame = new WiimoteConfigDiag(frame, g_plugin);
+	//InputConfigDialog* const m_ConfigFrame = new InputConfigDialog(frame, g_plugin, PLUGIN_FULL_NAME);
 
 #ifdef _WIN32
 	frame->Disable();
@@ -279,17 +308,16 @@ void DllConfig(HWND _hParent)
 #endif
 
 #ifdef _WIN32
-	wxMilliSleep( 50 );	// hooray for hacks
+	wxMilliSleep(50);	// hooray for hacks
 	frame->SetFocus();
 	frame->SetHWND(NULL);
 #endif
 
 	m_ConfigFrame->Destroy();
-	m_ConfigFrame = NULL;
 	frame->Destroy();
 	// /
 
-	if ( false == was_init )
+	if (false == was_init)
 		DeInitPlugin();
 #endif
 }
@@ -350,9 +378,11 @@ void Shutdown(void)
 //
 void DoState(unsigned char **ptr, int mode)
 {
-	PointerWrap p(ptr, mode);
-	for (unsigned int i=0; i<4; ++i)
-		((WiimoteEmu::Wiimote*)g_plugin.controllers[i])->DoState(p);
+	// TODO: this
+
+	//PointerWrap p(ptr, mode);
+	//for (unsigned int i=0; i<4; ++i)
+	//	((WiimoteEmu::Wiimote*)g_plugin.controllers[i])->DoState(p);
 }
 
 // ___________________________________________________________________________
@@ -364,4 +394,5 @@ void DoState(unsigned char **ptr, int mode)
 void EmuStateChange(PLUGIN_EMUSTATE newState)
 {
 	// maybe use this later
+	WiimoteReal::StateChange(newState);
 }

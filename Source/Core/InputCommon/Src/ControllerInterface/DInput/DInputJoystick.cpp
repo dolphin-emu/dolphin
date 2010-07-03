@@ -1,9 +1,9 @@
 #include "../ControllerInterface.h"
 
-#ifdef CIFACE_USE_DIRECTINPUT_JOYSTICK
+#ifdef CIFACE_USE_DINPUT_JOYSTICK
 
-#include "DirectInputJoystick.h"
-#include "DirectInput.h"
+#include "DInputJoystick.h"
+#include "DInput.h"
 
 inline bool operator<(const GUID & lhs, const GUID & rhs)
 {
@@ -12,7 +12,7 @@ inline bool operator<(const GUID & lhs, const GUID & rhs)
 
 namespace ciface
 {
-namespace DirectInput
+namespace DInput
 {
 
 #define DATA_BUFFER_SIZE	32
