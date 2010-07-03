@@ -136,6 +136,9 @@ void SendData(u16 _channelID, const u8* _pData, u32 _Size)
 /* Read and write data to the Wiimote */
 void ReadData()
 {
+	if (!m_channelID)
+		return;
+
 	m_pCriticalSection->Enter();
 
 	// Send data to the Wiimote

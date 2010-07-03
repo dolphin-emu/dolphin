@@ -158,6 +158,9 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 
 void Wiimote::Read()
 {
+	if (!m_channel)
+		return;
+
 	if (wiiuse_io_read(m_wiimote))
 	{
 		// a data report, save it
