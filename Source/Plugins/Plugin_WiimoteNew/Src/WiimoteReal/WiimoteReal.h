@@ -43,6 +43,7 @@ namespace WiimoteReal
 unsigned int Initialize();
 void Shutdown();
 void Refresh();
+void LoadSettings();
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);
 void ControlChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size);

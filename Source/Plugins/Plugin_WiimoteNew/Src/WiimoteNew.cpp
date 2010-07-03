@@ -135,6 +135,7 @@ void InitPlugin( void* const hwnd )
 			(*i)->UpdateReferences( g_plugin.controller_interface );
 
 		// real wiimotes
+		WiimoteReal::LoadSettings();
 		WiimoteReal::Initialize();
 	}
 }
@@ -248,7 +249,7 @@ unsigned int Wiimote_GetAttachedControllers()
 {
 	unsigned int attached = 0;
 	for (unsigned int i=0; i<4; ++i)
-		if (g_plugin.controllers[i]->default_device.ToString().length())
+		if (g_wiimote_sources[i])
 			attached |= (1 << i);
 	return attached;
 }

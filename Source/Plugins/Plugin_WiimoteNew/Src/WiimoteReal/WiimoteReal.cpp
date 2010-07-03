@@ -163,14 +163,14 @@ void Wiimote::Read()
 		// a data report, save it
 		if (m_wiimote->event_buf[1] >= 0x30)
 		{
-			memcpy(m_last_data_report, m_wiimote->event_buf, MAX_PAYLOAD - 1);
+			memcpy(m_last_data_report, m_wiimote->event_buf, MAX_PAYLOAD);
 			m_last_data_report_valid = true;
 		}
 		else
 		{
 			// some other report, add it to queue
-			u8* const rpt = new u8[MAX_PAYLOAD - 1];
-			memcpy(rpt, m_wiimote->event_buf, MAX_PAYLOAD - 1);
+			u8* const rpt = new u8[MAX_PAYLOAD];
+			memcpy(rpt, m_wiimote->event_buf, MAX_PAYLOAD);
 			m_reports.push(rpt);
 		}
 	}
@@ -183,13 +183,13 @@ void Wiimote::Update()
 	{
 		u8* const rpt = m_reports.front();
 		m_reports.pop();
-		g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, m_channel, rpt, MAX_PAYLOAD - 1);
+		g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, m_channel, rpt, MAX_PAYLOAD);
 		delete[] rpt;
 	}
 	else if (m_last_data_report_valid)
 	{
 		// otherwise send the last data report, if there is one
-		g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, m_channel, m_last_data_report, MAX_PAYLOAD - 1);
+		g_WiimoteInitialize.pWiimoteInterruptChannel(m_index, m_channel, m_last_data_report, MAX_PAYLOAD);
 	}	
 }
 
@@ -212,15 +212,8 @@ void Wiimote::Disconnect()
 
 Wiimote* g_wiimotes[4];
 
-unsigned int Initialize()
+void LoadSettings()
 {
-	// return if already initialized
-	if (g_real_wiimotes_initialized)
-		return g_wiimotes_found;
-
-
-	// load realwiimote settings from inifile
-	{
 	std::string ini_filename = (std::string(File::GetUserPath(D_CONFIG_IDX)) + g_plugin.ini_name + ".ini" );
 
 	IniFile inifile;
@@ -234,8 +227,13 @@ unsigned int Initialize()
 
 		sec.Get("Source", &g_wiimote_sources[i], WIIMOTE_SRC_EMU);
 	}
-	}
-	// end load settings
+}
+
+unsigned int Initialize()
+{
+	// return if already initialized
+	if (g_real_wiimotes_initialized)
+		return g_wiimotes_found;
 
 	memset(g_wiimotes, 0, sizeof(g_wiimotes));
 
@@ -269,14 +267,14 @@ unsigned int Initialize()
 	g_wiimote_critsec.Enter();	// enter
 
 	// create real wiimote class instances, assign wiimotes
-	unsigned int index = 0;
-	for (unsigned int i = 0; i < g_wiimotes_found; ++i)
+	
+	for (unsigned int i = 0, w = 0; i<MAX_WIIMOTES && w<g_wiimotes_found; ++i)
 	{
 		if (WIIMOTE_SRC_REAL != g_wiimote_sources[i])
 			continue;
 
 		// create/assign wiimote
-		g_wiimotes[i] = new Wiimote(g_wiimotes_from_wiiuse[index++], i);
+		g_wiimotes[i] = new Wiimote(g_wiimotes_from_wiiuse[w++], i);
 	}
 
 	g_wiimote_critsec.Leave();	// leave
