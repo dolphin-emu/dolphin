@@ -44,6 +44,8 @@
 #include "InputConfig.h"
 #include "FileSearch.h"
 
+class UDPWrapper;
+
 class PadSetting
 {
 protected:
@@ -145,6 +147,16 @@ public:
 	ControllerInterface::ControlReference* const		control_reference;
 };
 
+
+class UDPConfigButton : public wxButton
+{
+public:
+	UDPWrapper * wrapper;
+	UDPConfigButton( wxWindow* const parent, UDPWrapper * udp) : wrapper(udp), 
+		wxButton( parent, -1, wxT("Configure"), wxDefaultPosition )
+	{}
+};
+
 class ControlGroupBox : public wxStaticBoxSizer
 {
 public:
@@ -188,6 +200,8 @@ public:
 	void DetectControl( wxCommandEvent& event );
 
 	void ConfigExtension( wxCommandEvent& event );
+
+	void ConfigUDPWii( wxCommandEvent& event );
 
 	void SetDevice( wxCommandEvent& event );
 

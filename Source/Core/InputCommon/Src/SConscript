@@ -8,7 +8,9 @@ files = [
 	'InputConfig.cpp',
 	'SDL_Util.cpp',
 	'ControllerInterface/ControllerInterface.cpp',
-	'ControllerInterface/SDL/SDL.cpp'
+	'ControllerInterface/SDL/SDL.cpp',
+	'UDPWiimote.cpp',
+	'UDPWrapper.cpp'
 	]
 
 

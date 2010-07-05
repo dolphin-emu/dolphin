@@ -25,6 +25,8 @@
 #define WIIMOTE_MINUS	 		0x1000
 #define	WIIMOTE_HOME			0x8000
 
+#include "UDPTLayer.h" //this must be included after the buttons
+
 namespace WiimoteEmu
 {
 
@@ -274,6 +276,9 @@ Wiimote::Wiimote( const unsigned int index )
 	// swing
 	//groups.push_back( m_swing = new Force( "Swing" ) );
 
+	//udp 
+	groups.push_back( m_udp = new UDPWrapper( m_index , "UDP Wiimote" ) );
+
 	// shake
 	groups.push_back( m_shake = new Buttons( "Shake" ) );
 	m_shake->controls.push_back( new ControlGroup::Input( "X" ) );
@@ -388,7 +393,7 @@ void Wiimote::Update()
 		m_buttons->GetState( &m_status.buttons, button_bitmasks );
 		m_dpad->GetState( &m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks );
 	}
-
+	UDPTLayer::GetButtons( m_udp, &m_status.buttons );
 	// check if there is a read data request
 	if (m_read_requests.size())
 	{
@@ -481,7 +486,7 @@ void Wiimote::Update()
 		// ----SHAKE----
 		if (is_focus)
 			EmulateShake(data + rpt.accel, m_shake, m_shake_step);
-
+		UDPTLayer::GetAcceleration( m_udp, (wm_accel*)&data[rpt.accel], (accel_cal*)&m_eeprom[0x16]);
 	}
 
 	// ----ir----
@@ -491,6 +496,7 @@ void Wiimote::Update()
 
 		if (is_focus)
 			m_ir->GetState(&xx, &yy, &zz, true);
+		UDPTLayer::GetIR( m_udp, &xx, &yy, &zz);
 
 		xx *= (-256 * 0.95f);
 		xx += 512;
@@ -778,4 +784,5 @@ void Wiimote::Register::Write( size_t address, void* src, size_t length )
 }
 
 }
+
 

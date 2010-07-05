@@ -45,6 +45,7 @@ enum
 	GROUP_TYPE_TILT,
 	GROUP_TYPE_CURSOR,
 	GROUP_TYPE_TRIGGERS,
+	GROUP_TYPE_UDPWII
 };
 
 const char * const named_directions[] = 
@@ -117,8 +118,8 @@ public:
 		ControlGroup( const char* const _name, const unsigned int _type = GROUP_TYPE_OTHER ) : name(_name), type(_type) {}
 		virtual ~ControlGroup();
 	
-		void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
-		void SaveConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
+		virtual void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
+		virtual void SaveConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 
 		const char* const			name;
 		const unsigned int			type;
@@ -422,8 +423,8 @@ public:
 
 	virtual void LoadDefaults() {}
 
-	void LoadConfig(IniFile::Section *sec, const std::string& base = "");
-	void SaveConfig(IniFile::Section *sec, const std::string& base = "");
+	virtual void LoadConfig(IniFile::Section *sec, const std::string& base = "");
+	virtual void SaveConfig(IniFile::Section *sec, const std::string& base = "");
 	void UpdateDefaultDevice();
 
 	void UpdateReferences( ControllerInterface& devi );

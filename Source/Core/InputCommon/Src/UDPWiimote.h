@@ -2,6 +2,7 @@
 #define UDPWIIMOTE_H
 
 #include "Common.h"
+#include <string>
 
 #define UDPWM_B1 (1<<0)
 #define UDPWM_B2 (1<<1)
@@ -28,7 +29,9 @@ public:
 	void getNunchuck(float &x, float &y, u8 &mask);
 	void getIR(float &x, float &y);
 	int getErrNo() {return err;};
+	const char * getPort();
 private:
+	std::string port;
 	int pharsePacket(u8 * data, size_t size);
 	void mainThread();
 	struct _d; //using pimpl because Winsock2.h doesen't have include guards -_-

@@ -13,6 +13,7 @@
 
 #include "WiimoteHid.h"
 #include "Encryption.h"
+#include "UDPWrapper.h"
 
 #include <vector>
 #include <queue>
@@ -85,6 +86,9 @@ private:
 	ControlGroup*			m_rumble;
 	Extension*				m_extension;
 	ControlGroup*			m_options;
+
+	//UDPWiimote
+	UDPWrapper* m_udp;
 
 	// wiimote index, 0-3
 	const unsigned int		m_index;

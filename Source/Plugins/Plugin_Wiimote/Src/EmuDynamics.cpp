@@ -257,7 +257,16 @@ void TiltWiimote(int &_x, int &_y, int &_z)
 {
 	// Select input method and return the x, y, x values
 	if ((WiiMapping[g_ID].UDPWM.instance)&&(WiiMapping[g_ID].UDPWM.enableAccel))
-		WiiMapping[g_ID].UDPWM.instance->getAccel(_x,_y,_z);
+	{
+		float x,y,z;
+		WiiMapping[g_ID].UDPWM.instance->getAccel(x,y,z);
+		float xg = WiiMoteEmu::g_wm.cal_g.x;
+		float yg = WiiMoteEmu::g_wm.cal_g.y;
+		float zg = WiiMoteEmu::g_wm.cal_g.z;
+		_x = WiiMoteEmu::g_wm.cal_zero.x + (int)(xg * x);
+		_y = WiiMoteEmu::g_wm.cal_zero.y + (int)(yg * y);
+		_z = WiiMoteEmu::g_wm.cal_zero.z + (int)(zg * z);
+	}
 	else
 	{
 		if (WiiMapping[g_ID].Tilt.InputWM == FROM_KEYBOARD)

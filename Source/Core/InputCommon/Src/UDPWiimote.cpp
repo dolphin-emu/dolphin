@@ -38,7 +38,6 @@
 #endif
 
 #include "Thread.h"
-#include "EmuMain.h"
 #include <stdio.h>
 #include <string.h>
 #include <list>
@@ -65,9 +64,9 @@ THREAD_RETURN UDPWiiThread(void* arg)
 	return 0;
 }
 
-UDPWiimote::UDPWiimote(const char *port) : 
+UDPWiimote::UDPWiimote(const char *_port) : 
 d(new _d) ,x(0),y(0),z(0),nunX(0),nunY(0),
-pointerX(-0.1),pointerY(-0.1),nunMask(0),mask(0),time(0)
+pointerX(-0.1),pointerY(-0.1),nunMask(0),mask(0),time(0),port(_port)
 {
 	#ifdef _WIN32
 	u_long iMode = 1;
@@ -87,14 +86,14 @@ pointerX(-0.1),pointerY(-0.1),nunMask(0),mask(0),time(0)
 	#endif
 	
 	noinst++;
-//	NOTICE_LOG(WIIMOTE,"UDPWii instantiated");
+	//PanicAlert("UDPWii instantiated");
 
     memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_DGRAM;
     hints.ai_flags = AI_PASSIVE; // use my IP
 	
-    if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0) {
+    if ((rv = getaddrinfo(NULL, _port, &hints, &servinfo)) != 0) {
 		cleanup;
         err=-1;
 		return;
@@ -204,6 +203,7 @@ UDPWiimote::~UDPWiimote()
 		close(*i);
 	cleanup;
 	delete d;
+	//PanicAlert("UDPWii destructed");
 }
 
 #define ACCEL_FLAG (1<<0)
@@ -294,4 +294,9 @@ void UDPWiimote::getNunchuck(float &_x, float &_y, u8 &_mask)
 	_y=(float)nunY;
 	_mask=nunMask;
 	d->mutex.Leave();
+}
+
+const char * UDPWiimote::getPort()
+{
+	return port.c_str();
 }
