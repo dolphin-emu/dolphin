@@ -58,11 +58,11 @@ struct GC_ALIGNED64(PowerPCState)
 	// Exception management.
 	u32 Exceptions;
 
-	u32 sr[16];  // Segment registers. Unused.
+	u32 sr[16];  // Segment registers.
 
 	u32 DebugCount;
 	
-	// special purpose registers - controlls quantizers, DMA, and lots of other misc extensions.
+	// special purpose registers - controls quantizers, DMA, and lots of other misc extensions.
 	// also for power management, but we don't care about that.
 	u32 spr[1024];
 
@@ -95,6 +95,7 @@ void SetMode(CoreMode _coreType);
 
 void SingleStep();	
 void CheckExceptions();
+void CheckBreakPoints();
 void RunLoop();
 void Start();
 void Pause();

@@ -79,7 +79,7 @@ using namespace PowerPC;
 // Other considerations
 //
 // Many instructions have shorter forms for EAX. However, I believe their performance boost
-// will be as small to be negligble, so I haven't dirtied up the code with that. AMD recommends it in their
+// will be as small to be negligible, so I haven't dirtied up the code with that. AMD recommends it in their
 // optimization manuals, though.
 //
 // We support block linking. Reserve space at the exits of every block for a full 5-byte jmp. Save 16-bit offsets 
@@ -97,7 +97,7 @@ using namespace PowerPC;
 
 // TODO: SERIOUS synchronization problem with the video plugin setting tokens and breakpoints in dual core mode!!!
 //       Somewhat fixed by disabling idle skipping when certain interrupts are enabled
-//       This is no permantent reliable fix
+//       This is no permanent reliable fix
 // TODO: Zeldas go whacko when you hang the gfx thread
 
 // Idea - Accurate exception handling
@@ -175,12 +175,15 @@ void Jit64::Init()
 	   where this cause problems, so I'm enabling this by default, since I seem to get perhaps as much as 20% more
 	   fps with this option enabled. If you suspect that this option cause problems you can also disable it from the
 	   debugging window. */
-#ifdef JIT_SINGLESTEP
-	jo.enableBlocklink = false;
-	SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = false;
-#else
-	jo.enableBlocklink = true;
-#endif
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	{
+		jo.enableBlocklink = false;
+		SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = false;
+	}
+	else
+	{
+		jo.enableBlocklink = true;
+	}
 #ifdef _M_X64
 	jo.enableFastMem = SConfig::GetInstance().m_LocalCoreStartupParameter.bUseFastMem;
 #else
@@ -195,11 +198,11 @@ void Jit64::Init()
 	gpr.SetEmitter(this);
 	fpr.SetEmitter(this);
 
-	// Custom settings
-	if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
-		CODE_SIZE = 1024*1024*8*8;
 	if (Core::g_CoreStartupParameter.bJITBlockLinking)
-		{ jo.enableBlocklink = false; SuccessAlert("Your game was started without JIT Block Linking"); }
+	{
+		jo.enableBlocklink = false;
+		SuccessAlert("Your game was started without JIT Block Linking");
+	}
 
 	trampolines.Init();
 	AllocCodeSpace(CODE_SIZE);
@@ -228,8 +231,6 @@ void Jit64::Shutdown()
 // This is only called by Default() in this file. It will execute an instruction with the interpreter functions.
 void Jit64::WriteCallInterpreter(UGeckoInstruction inst)
 {
-
-
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
 	if (js.isLastInstruction)
@@ -298,7 +299,6 @@ static void ImHere()
 			return;
 	}
 	DEBUG_LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
-	//printf("I'm here - PC = %08x , LR = %08x", PC, LR);
 	been_here[PC] = 1;
 }
 
@@ -366,16 +366,8 @@ void STACKALIGN Jit64::Run()
 
 void Jit64::SingleStep()
 {
-#ifndef JIT_NO_CACHE
-	CoreTiming::SetMaximumSlice(1);
-#endif
-
 	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
 	pExecAddr();
-
-#ifndef JIT_NO_CACHE
-	CoreTiming::ResetSliceLength();
-#endif
 }
 
 void Jit64::Trace(PPCAnalyst::CodeBuffer *code_buf, u32 em_address)
@@ -404,31 +396,15 @@ void Jit64::Trace(PPCAnalyst::CodeBuffer *code_buf, u32 em_address)
 	char ppcInst[256];
 	DisassembleGekko(op.inst.hex, em_address, ppcInst, 256);
 
-	NOTICE_LOG(DYNA_REC, "JIT64 PC: %08x Cycles: %04d CR: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s %s", em_address, js.st.numCycles, PowerPC::ppcState.cr, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs, ppcInst);
+	NOTICE_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s %08x %s", PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs, op.inst.hex, ppcInst);
 }
 
 void STACKALIGN Jit64::Jit(u32 em_address)
 {
-	if (GetSpaceLeft() < 0x10000 || blocks.IsFull())
+	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || Core::g_CoreStartupParameter.bJITNoBlockCache)
 	{
-		WARN_LOG(DYNA_REC, "JIT cache full - clearing.")
-		if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
-		{
-			ERROR_LOG(DYNA_REC, "What? JIT cache still full - clearing.");
-			PanicAlert("What? JIT cache still full - clearing.");
-		}
 		ClearCache();
 	}
-#ifdef JIT_NO_CACHE
-	ClearCache();
-	if (PowerPC::breakpoints.IsAddressBreakPoint(em_address))
-	{
-		PowerPC::Pause();
-		if (PowerPC::breakpoints.IsTempBreakPoint(em_address))
-			PowerPC::breakpoints.Remove(em_address);
-		return;
-	}
-#endif
 	int block_num = blocks.AllocateBlock(em_address);
 	JitBlock *b = blocks.GetBlock(block_num);
 	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
@@ -439,15 +415,17 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 {
 	int blockSize = code_buf->GetSize();
 
-#ifdef JIT_SINGLESTEP
-	blockSize = 1;
-	Trace(code_buf, em_address);
-#endif
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	{
+		// Comment out the following to disable breakpoints (speed-up)
+		blockSize = 1;
+		Trace(code_buf, em_address);
+	}
 
 	if (em_address == 0)
 		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
 
-	int size;
+	int size = 0;
 	js.isLastInstruction = false;
 	js.blockStart = em_address;
 	js.fifoBytesThisBlock = 0;
@@ -458,9 +436,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	//Analyze the block, collect all instructions it is made of (including inlining,
 	//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
 	u32 nextPC = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, code_buf, blockSize);
-#ifndef JIT_SINGLESTEP
-	(void)nextPC;
-#endif
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -511,10 +486,10 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 //TODO
 #endif
 		// get start tic
-		PROFILER_QUERY_PERFORMACE_COUNTER(&b->ticStart);
+		PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStart);
 	}
 #if defined(_DEBUG) || defined(DEBUGFAST) || defined(NAN_CHECK)
-	// should help logged stacktraces become more accurate
+	// should help logged stack-traces become more accurate
 	MOV(32, M(&PC), Imm32(js.blockStart));
 #endif
 
@@ -523,19 +498,14 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	gpr.Start(js.gpa);
 	fpr.Start(js.fpa);
 
-#ifdef JIT_SINGLESTEP
 	js.downcountAmount = js.st.numCycles;
-#else
-	js.downcountAmount = js.st.numCycles + PatchEngine::GetSpeedhackCycles(em_address);
-#endif
+	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+		js.downcountAmount = js.st.numCycles + PatchEngine::GetSpeedhackCycles(em_address);
 
 	js.blockSize = size;
 	// Translate instructions
 	for (int i = 0; i < (int)size; i++)
 	{
-		// gpr.Flush(FLUSH_ALL);
-		// if (PPCTables::UsesFPU(_inst))
-		// fpr.Flush(FLUSH_ALL);
 		js.compilerPC = ops[i].address;
 		js.op = &ops[i];
 		js.instructionNumber = i;
@@ -548,7 +518,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 				// CAUTION!!! push on stack regs you use, do your stuff, then pop
 				PROFILER_VPUSH;
 				// get end tic
-				PROFILER_QUERY_PERFORMACE_COUNTER(&b->ticStop);
+				PROFILER_QUERY_PERFORMANCE_COUNTER(&b->ticStop);
 				// tic counter += (end tic - start tic)
 				PROFILER_ADD_DIFF_LARGE_INTEGER(&b->ticCounter, &b->ticStop, &b->ticStart);
 				PROFILER_VPOP;
@@ -582,12 +552,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		if (js.cancel)
 			break;
 	}
-
-#ifdef JIT_SINGLESTEP
-	gpr.Flush(FLUSH_ALL);
-	fpr.Flush(FLUSH_ALL);
-	WriteExit(nextPC, 0);
-#endif
+	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	{
+		gpr.Flush(FLUSH_ALL);
+		fpr.Flush(FLUSH_ALL);
+		WriteExit(nextPC, 0);
+	}
 
 	b->flags = js.block_flags;
 	b->codeSize = (u32)(GetCodePtr() - normalEntry);

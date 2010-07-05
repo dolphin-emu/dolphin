@@ -85,8 +85,8 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
 	EVT_MENU(IDM_FONTPICKER,		CCodeWindow::OnChangeFont)
 
 	EVT_MENU(IDM_INTERPRETER,       CCodeWindow::OnCPUMode) // Jit
-	EVT_MENU(IDM_JITUNLIMITED,	 CCodeWindow::OnCPUMode)
-#ifdef JIT_OFF_OPTIONS
+	EVT_MENU(IDM_JITNOBLOCKCACHE,	 CCodeWindow::OnCPUMode)
+
 	EVT_MENU(IDM_JITOFF,			CCodeWindow::OnCPUMode)
 	EVT_MENU(IDM_JITLSOFF,			CCodeWindow::OnCPUMode)
 		EVT_MENU(IDM_JITLSLXZOFF,		CCodeWindow::OnCPUMode)
@@ -98,7 +98,7 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
 	EVT_MENU(IDM_JITIOFF,			CCodeWindow::OnCPUMode)
 	EVT_MENU(IDM_JITPOFF,			CCodeWindow::OnCPUMode)
 	EVT_MENU(IDM_JITSROFF,			CCodeWindow::OnCPUMode)
-#endif
+
 	EVT_MENU(IDM_CLEARCODECACHE,    CCodeWindow::OnJitMenu)
 	EVT_MENU(IDM_LOGINSTRUCTIONS,   CCodeWindow::OnJitMenu)
 	EVT_MENU(IDM_SEARCHINSTRUCTION, CCodeWindow::OnJitMenu)
@@ -433,7 +433,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	wxMenu* pCoreMenu = new wxMenu;
 
 	wxMenuItem* interpreter = pCoreMenu->Append(IDM_INTERPRETER, _T("&Interpreter core")
-		, wxString::FromAscii("This is nessesary to get break points"
+		, wxString::FromAscii("This is necessary to get break points"
 		" and stepping to work as explained in the Developer Documentation. But it can be very"
 		" slow, perhaps slower than 1 fps.")
 		, wxITEM_CHECK);
@@ -444,7 +444,7 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 		_T("Provide safer execution by not linking the JIT blocks."),
 		wxITEM_CHECK);
 
-	jitunlimited = pCoreMenu->Append(IDM_JITUNLIMITED, _T("&Unlimited JIT Cache"),
+	jitnoblockcache = pCoreMenu->Append(IDM_JITNOBLOCKCACHE, _T("&Disable JIT Cache"),
 		_T("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from crashing.")
 		_T(" [This option must be selected before a game is started.]"),
 		wxITEM_CHECK);
@@ -454,22 +454,21 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 	pCoreMenu->Append(IDM_LOGINSTRUCTIONS, _T("&Log JIT instruction coverage"));
 	pCoreMenu->Append(IDM_SEARCHINSTRUCTION, _T("&Search for an op"));
 
-	#ifdef JIT_OFF_OPTIONS
-		pCoreMenu->AppendSeparator();
-		jitoff = pCoreMenu->Append(IDM_JITOFF, _T("&JIT off (JIT core)"),
-			_T("Turn off all JIT functions, but still use the JIT core from Jit.cpp"),
-			wxITEM_CHECK);
-		jitlsoff = pCoreMenu->Append(IDM_JITLSOFF, _T("&JIT LoadStore off"), wxEmptyString, wxITEM_CHECK);
-			jitlslbzxoff = pCoreMenu->Append(IDM_JITLSLBZXOFF, _T("    &JIT LoadStore lbzx off"), wxEmptyString, wxITEM_CHECK);
-			jitlslxzoff = pCoreMenu->Append(IDM_JITLSLXZOFF, _T("    &JIT LoadStore lXz off"), wxEmptyString, wxITEM_CHECK);
-				jitlslwzoff = pCoreMenu->Append(IDM_JITLSLWZOFF, _T("        &JIT LoadStore lwz off"), wxEmptyString, wxITEM_CHECK);
-		jitlspoff = pCoreMenu->Append(IDM_JITLSFOFF, _T("&JIT LoadStore Floating off"), wxEmptyString, wxITEM_CHECK);
-		jitlsfoff = pCoreMenu->Append(IDM_JITLSPOFF, _T("&JIT LoadStore Paired off"), wxEmptyString, wxITEM_CHECK);
-		jitfpoff = pCoreMenu->Append(IDM_JITFPOFF, _T("&JIT FloatingPoint off"), wxEmptyString, wxITEM_CHECK);
-		jitioff = pCoreMenu->Append(IDM_JITIOFF, _T("&JIT Integer off"), wxEmptyString, wxITEM_CHECK);
-		jitpoff = pCoreMenu->Append(IDM_JITPOFF, _T("&JIT Paired off"), wxEmptyString, wxITEM_CHECK);
-		jitsroff = pCoreMenu->Append(IDM_JITSROFF, _T("&JIT SystemRegisters off"), wxEmptyString, wxITEM_CHECK);
-	#endif
+
+	pCoreMenu->AppendSeparator();
+	jitoff = pCoreMenu->Append(IDM_JITOFF, _T("&JIT off (JIT core)"),
+		_T("Turn off all JIT functions, but still use the JIT core from Jit.cpp"),
+		wxITEM_CHECK);
+	jitlsoff = pCoreMenu->Append(IDM_JITLSOFF, _T("&JIT LoadStore off"), wxEmptyString, wxITEM_CHECK);
+		jitlslbzxoff = pCoreMenu->Append(IDM_JITLSLBZXOFF, _T("    &JIT LoadStore lbzx off"), wxEmptyString, wxITEM_CHECK);
+		jitlslxzoff = pCoreMenu->Append(IDM_JITLSLXZOFF, _T("    &JIT LoadStore lXz off"), wxEmptyString, wxITEM_CHECK);
+			jitlslwzoff = pCoreMenu->Append(IDM_JITLSLWZOFF, _T("        &JIT LoadStore lwz off"), wxEmptyString, wxITEM_CHECK);
+	jitlspoff = pCoreMenu->Append(IDM_JITLSFOFF, _T("&JIT LoadStore Floating off"), wxEmptyString, wxITEM_CHECK);
+	jitlsfoff = pCoreMenu->Append(IDM_JITLSPOFF, _T("&JIT LoadStore Paired off"), wxEmptyString, wxITEM_CHECK);
+	jitfpoff = pCoreMenu->Append(IDM_JITFPOFF, _T("&JIT FloatingPoint off"), wxEmptyString, wxITEM_CHECK);
+	jitioff = pCoreMenu->Append(IDM_JITIOFF, _T("&JIT Integer off"), wxEmptyString, wxITEM_CHECK);
+	jitpoff = pCoreMenu->Append(IDM_JITPOFF, _T("&JIT Paired off"), wxEmptyString, wxITEM_CHECK);
+	jitsroff = pCoreMenu->Append(IDM_JITSROFF, _T("&JIT SystemRegisters off"), wxEmptyString, wxITEM_CHECK);
 
 	pMenuBar->Append(pCoreMenu, _T("&JIT"));
 
@@ -506,7 +505,7 @@ void CCodeWindow::CreateMenuOptions(wxMenuBar * _pMenuBar, wxMenu* _pMenu)
 		, wxString::FromAscii(
 		"Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
 		" if you have not given it an elf file with the --elf command line. [This can be"
-		" convenient if you are bugtesting with a certain game and want to rebuild"
+		" convenient if you are bug-testing with a certain game and want to rebuild"
 		" and retry it several times, either with changes to Dolphin or if you are"
 		" developing a homebrew game.]")
 		, wxITEM_CHECK);
@@ -527,8 +526,6 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 			bBootToPause = !bBootToPause; return;
 		case IDM_AUTOMATICSTART:
 			bAutomaticStart = !bAutomaticStart; return;
-
-#ifdef JIT_OFF_OPTIONS
 		case IDM_JITOFF:
 			Core::g_CoreStartupParameter.bJITOff = event.IsChecked(); break;
 		case IDM_JITLSOFF:
@@ -551,7 +548,6 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 			Core::g_CoreStartupParameter.bJITPairedOff = event.IsChecked(); break;
 		case IDM_JITSROFF:
 			Core::g_CoreStartupParameter.bJITSystemRegistersOff = event.IsChecked(); break;	
-#endif
 	}
 
 	// Clear the JIT cache to enable these changes
@@ -599,9 +595,9 @@ bool CCodeWindow::AutomaticStart()
 {
 	return GetMenuBar()->IsChecked(IDM_AUTOMATICSTART);
 }
-bool CCodeWindow::UnlimitedJITCache()
+bool CCodeWindow::JITNoBlockCache()
 {
-	return GetMenuBar()->IsChecked(IDM_JITUNLIMITED);
+	return GetMenuBar()->IsChecked(IDM_JITNOBLOCKCACHE);
 }
 bool CCodeWindow::JITBlockLinking()
 {
@@ -702,8 +698,8 @@ void CCodeWindow::UpdateButtonStates()
 	// ------------------
 	GetMenuBar()->Enable(IDM_INTERPRETER, Pause); // CPU Mode
 
-	GetMenuBar()->Enable(IDM_JITUNLIMITED, !Initialized);
-#ifdef JIT_OFF_OPTIONS
+	GetMenuBar()->Enable(IDM_JITNOBLOCKCACHE, !Initialized);
+
 	GetMenuBar()->Enable(IDM_JITOFF, Pause);
 	GetMenuBar()->Enable(IDM_JITLSOFF, Pause);
 	GetMenuBar()->Enable(IDM_JITLSLXZOFF, Pause);
@@ -715,7 +711,6 @@ void CCodeWindow::UpdateButtonStates()
 	GetMenuBar()->Enable(IDM_JITIOFF, Pause);
 	GetMenuBar()->Enable(IDM_JITPOFF, Pause);
 	GetMenuBar()->Enable(IDM_JITSROFF, Pause);
-#endif
 
 	GetMenuBar()->Enable(IDM_CLEARCODECACHE, Pause); // JIT Menu
 	GetMenuBar()->Enable(IDM_SEARCHINSTRUCTION, Initialized);

@@ -31,7 +31,7 @@
 
 SCoreStartupParameter::SCoreStartupParameter()
 : hInstance(0), hMainWindow(0),
-  bJITUnlimitedCache(false), bJITBlockLinking(false),
+  bJITNoBlockCache(false), bJITBlockLinking(false),
   bJITOff(false),
   bJITLoadStoreOff(false), bJITLoadStorelXzOff(false),
   bJITLoadStorelwzOff(false), bJITLoadStorelbzxOff(false),

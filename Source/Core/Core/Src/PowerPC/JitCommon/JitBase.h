@@ -18,8 +18,6 @@
 #ifndef _JITBASE_H
 #define _JITBASE_H
 
-//#define JIT_SINGLESTEP  // Enables single stepping
-//#define JIT_NO_CACHE    // Disables the block cache and enables breakpoints
 //#define JIT_LOG_X86     // Enables logging of the generated x86 code
 //#define JIT_LOG_GPR     // Enables logging of the PPC general purpose regs
 //#define JIT_LOG_FPR     // Enables logging of the PPC floating point regs

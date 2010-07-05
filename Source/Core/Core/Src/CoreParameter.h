@@ -50,7 +50,7 @@ struct SCoreStartupParameter
 	int iCPUCore;
 
 	// JIT (shared between JIT and JITIL)
-	bool bJITUnlimitedCache, bJITBlockLinking;
+	bool bJITNoBlockCache, bJITBlockLinking;
 	bool bJITOff;
 	bool bJITLoadStoreOff, bJITLoadStorelXzOff, bJITLoadStorelwzOff, bJITLoadStorelbzxOff;
 	bool bJITLoadStoreFloatingOff;

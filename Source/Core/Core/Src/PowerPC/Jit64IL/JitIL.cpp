@@ -73,7 +73,7 @@ using namespace PowerPC;
 // Other considerations
 //
 // Many instructions have shorter forms for EAX. However, I believe their performance boost
-// will be as small to be negligble, so I haven't dirtied up the code with that. AMD recommends it in their
+// will be as small to be negligible, so I haven't dirtied up the code with that. AMD recommends it in their
 // optimization manuals, though.
 //
 // We support block linking. Reserve space at the exits of every block for a full 5-byte jmp. Save 16-bit offsets 
@@ -91,7 +91,7 @@ using namespace PowerPC;
 
 // TODO: SERIOUS synchronization problem with the video plugin setting tokens and breakpoints in dual core mode!!!
 //       Somewhat fixed by disabling idle skipping when certain interrupts are enabled
-//       This is no permantent reliable fix
+//       This is no permanent reliable fix
 // TODO: Zeldas go whacko when you hang the gfx thread
 
 // Idea - Accurate exception handling
@@ -163,16 +163,18 @@ namespace CPUCompare
 
 void JitIL::Init()
 {
-	if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
-		CODE_SIZE = 1024*1024*8*8;
-
 	jo.optimizeStack = true;
-#ifdef JIT_SINGLESTEP
-	jo.enableBlocklink = false;
-	Core::g_CoreStartupParameter.bSkipIdle = false;
-#else
-	jo.enableBlocklink = true;  // Speed boost, but not 100% safe
-#endif
+
+	if (Core::g_CoreStartupParameter.bEnableDebugging)
+	{
+		jo.enableBlocklink = false;
+		Core::g_CoreStartupParameter.bSkipIdle = false;
+	}
+	else
+	{
+		jo.enableBlocklink = true;  // Speed boost, but not 100% safe
+	}
+
 #ifdef _M_X64
 	jo.enableFastMem = false;
 #else
@@ -351,16 +353,8 @@ void STACKALIGN JitIL::Run()
 
 void JitIL::SingleStep()
 {
-#ifndef JIT_NO_CACHE
-	CoreTiming::SetMaximumSlice(1);
-#endif
-
 	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
 	pExecAddr();
-
-#ifndef JIT_NO_CACHE
-	CoreTiming::ResetSliceLength();
-#endif
 }
 
 void JitIL::Trace(PPCAnalyst::CodeBuffer *code_buf, u32 em_address)
@@ -388,32 +382,16 @@ void JitIL::Trace(PPCAnalyst::CodeBuffer *code_buf, u32 em_address)
 	const PPCAnalyst::CodeOp &op = code_buf->codebuffer[0];
 	char ppcInst[256];
 	DisassembleGekko(op.inst.hex, em_address, ppcInst, 256);
-
-	NOTICE_LOG(DYNA_REC, "JITIL PC: %08x Cycles: %04d CR: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s %s", em_address, js.st.numCycles, PowerPC::ppcState.cr, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs, ppcInst);
+	
+	NOTICE_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s %08x %s", PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs, op.inst.hex, ppcInst);
 }
 
 void STACKALIGN JitIL::Jit(u32 em_address)
 {
-	if (GetSpaceLeft() < 0x10000 || blocks.IsFull())
+	if (GetSpaceLeft() < 0x10000 || blocks.IsFull() || Core::g_CoreStartupParameter.bJITNoBlockCache)
 	{
-		INFO_LOG(DYNA_REC, "JIT cache full - clearing.")
-		if (Core::g_CoreStartupParameter.bJITUnlimitedCache)
-		{
-			ERROR_LOG(DYNA_REC, "What? JIT cache still full - clearing.");
-			PanicAlert("What? JIT cache still full - clearing.");
-		}
 		ClearCache();
 	}
-#ifdef JIT_NO_CACHE
-	ClearCache();
-	if (PowerPC::breakpoints.IsAddressBreakPoint(em_address))
-	{
-		PowerPC::Pause();
-		if (PowerPC::breakpoints.IsTempBreakPoint(em_address))
-			PowerPC::breakpoints.Remove(em_address);
-		return;
-	}
-#endif
 	int block_num = blocks.AllocateBlock(em_address);
 	JitBlock *b = blocks.GetBlock(block_num);
 	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
@@ -423,10 +401,12 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 {
 	int blockSize = code_buf->GetSize();
 
-#ifdef JIT_SINGLESTEP
-	blockSize = 1;
-	Trace(code_buf, em_address);
-#endif
+	if (Core::g_CoreStartupParameter.bEnableDebugging)
+	{
+		// Comment out the following to disable breakpoints (speed-up)
+		blockSize = 1;
+		Trace(code_buf, em_address);
+	}
 
 	if (em_address == 0)
 		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
@@ -475,11 +455,12 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	// instruction processed by the JIT routines)
 	ibuild.Reset();
 
-#ifdef JIT_SINGLESTEP
+	
 	js.downcountAmount = js.st.numCycles;
-#else
-	js.downcountAmount = js.st.numCycles + PatchEngine::GetSpeedhackCycles(em_address);
-#endif
+
+	if (!Core::g_CoreStartupParameter.bEnableDebugging)
+		js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
+
 	// Translate instructions
 	for (int i = 0; i < (int)size; i++)
 	{

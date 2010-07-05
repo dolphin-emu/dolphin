@@ -74,7 +74,7 @@ class CCodeWindow
 		bool UseInterpreter();
 		bool BootToPause();
 		bool AutomaticStart();
-		bool UnlimitedJITCache();
+		bool JITNoBlockCache();
 		bool JITBlockLinking();
         void JumpToAddress(u32 _Address);
 
@@ -159,7 +159,7 @@ class CCodeWindow
 		void InitBitmaps();
 		void CreateGUIControls(const SCoreStartupParameter& _LocalCoreStartupParameter);	
 
-		wxMenuItem* jitblocklinking, *jitunlimited, *jitoff;
+		wxMenuItem* jitblocklinking, *jitnoblockcache, *jitoff;
 		wxMenuItem* jitlsoff, *jitlslxzoff, *jitlslwzoff, *jitlslbzxoff;
 		wxMenuItem* jitlspoff;
 		wxMenuItem* jitlsfoff;

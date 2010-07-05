@@ -375,6 +375,16 @@ void CheckExceptions()
 	}
 }
 
+void CheckBreakPoints()
+{
+	if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
+	{
+		PowerPC::Pause();
+		if (PowerPC::breakpoints.IsTempBreakPoint(PC))
+			PowerPC::breakpoints.Remove(PC);
+	}
+}
+
 void OnIdle(u32 _uThreadAddr)
 {
 	u32 nextThread = Memory::Read_U32(_uThreadAddr);

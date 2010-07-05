@@ -78,6 +78,17 @@ void Jit64AsmRoutineManager::Generate()
 			// The result of slice decrementation should be in flags if somebody jumped here
 			// IMPORTANT - We jump on negative, not carry!!!
 			FixupBranch bail = J_CC(CC_BE);
+
+			if (Core::g_CoreStartupParameter.bEnableDebugging)
+			{
+				ABI_CallFunction(reinterpret_cast<void *>(&PowerPC::CheckBreakPoints));
+				TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
+				FixupBranch noBreakpoint = J_CC(CC_Z);
+				ABI_PopAllCalleeSavedRegsAndAdjustStack();
+				RET();
+				SetJumpTarget(noBreakpoint);
+			}
+
 			SetJumpTarget(skipToRealDispatch);
 
 			dispatcherNoCheck = GetCodePtr();
@@ -114,11 +125,6 @@ void Jit64AsmRoutineManager::Generate()
 			MOV(32, R(ABI_PARAM1), M(&PowerPC::ppcState.pc));
 			CALL((void *)&Jit);
 #endif
-#ifdef JIT_NO_CACHE
-			TEST(32, M((void*)PowerPC::GetStatePtr()), Imm32(0xFFFFFFFF));
-			FixupBranch notRunning = J_CC(CC_NZ);
-#endif
-
 			JMP(dispatcherNoCheck); // no point in special casing this
 
 			//FP blocks test for FPU available, jump here if false
@@ -131,9 +137,6 @@ void Jit64AsmRoutineManager::Generate()
 			MOV(32, M(&PC), R(EAX));
 			JMP(dispatcher);
 
-#ifdef JIT_NO_CACHE
-			SetJumpTarget(notRunning);
-#endif
 		SetJumpTarget(bail);
 		doTiming = GetCodePtr();
 
@@ -195,8 +198,8 @@ void Jit64AsmRoutineManager::Generate()
 			MOV(32, R(EAX), MComplex(RSI, EAX, SCALE_1, 0));
 #endif
 
-			SetJumpTarget(getinst);
 			SetJumpTarget(getinst2);
+			SetJumpTarget(getinst);
 #else
 #ifdef _M_IX86
 			AND(32, R(EAX), Imm32(Memory::MEMVIEW32_MASK));

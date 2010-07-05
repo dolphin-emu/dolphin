@@ -15,28 +15,19 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-
-
-// =======================================================
 // File description
 // -------------
-/* Purpose of this file: Collect boot settings for Core::Init()
+// Purpose of this file: Collect boot settings for Core::Init()
 
-   Call sequence: This file has one of the first function called when a game is booted,
-   the boot sequence in the code is:
-   
-	DolphinWX:	GameListCtrl.cpp	OnActivated
-				BootManager.cpp		BootCore
-	Core		Core.cpp			Init		Thread creation
-									EmuThread	Calls CBoot::BootUp
-				Boot.cpp			CBoot::BootUp()
-									CBoot::EmulatedBS2_Wii() / GC() or Load_BS2()
- */
-// =============
-
-
-
+// Call sequence: This file has one of the first function called when a game is booted,
+// the boot sequence in the code is:
+  
+// DolphinWX:    GameListCtrl.cpp       OnActivated
+//               BootManager.cpp        BootCore
+// Core          Core.cpp               Init                     Thread creation
+//                                      EmuThread                Calls CBoot::BootUp
+//               Boot.cpp               CBoot::BootUp()
+//                                      CBoot::EmulatedBS2_Wii() / GC() or Load_BS2()
 
 
 // Includes
@@ -83,7 +74,7 @@ bool BootCore(const std::string& _rFilename)
 		{
 			StartUp.bBootToPause = main_frame->g_pCodeWindow->BootToPause();
 			StartUp.bAutomaticStart = main_frame->g_pCodeWindow->AutomaticStart();
-			StartUp.bJITUnlimitedCache = main_frame->g_pCodeWindow->UnlimitedJITCache();
+			StartUp.bJITNoBlockCache = main_frame->g_pCodeWindow->JITNoBlockCache();
 			StartUp.bJITBlockLinking = main_frame->g_pCodeWindow->JITBlockLinking();
 		}
 		StartUp.bEnableDebugging = main_frame->g_pCodeWindow ? true : false; // RUNNING_DEBUG
@@ -105,7 +96,6 @@ bool BootCore(const std::string& _rFilename)
 	// If for example the ISO file is bad we return here
 	if (!StartUp.AutoSetup(SCoreStartupParameter::BOOT_DEFAULT)) return false;
 
-	// ====================================================
 	// Load game specific settings
 	IniFile game_ini;
 	std::string unique_id = StartUp.GetUniqueID();
@@ -126,7 +116,6 @@ bool BootCore(const std::string& _rFilename)
 	} 
 
 	// Run the game
-	// --------------
 #if defined(HAVE_WX) && HAVE_WX
 	if(main_frame)
 	{
@@ -147,7 +136,6 @@ bool BootCore(const std::string& _rFilename)
 #else
 	Core::SetState(Core::CORE_RUN);
 #endif
-	// =====================	
 
 	return true;
 }
@@ -156,7 +144,5 @@ void Stop()
 {
 	Core::Stop();
 }
-
-
 
 } // namespace

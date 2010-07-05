@@ -29,8 +29,6 @@
 
 // Settings
 // ----------
-#define JIT_OFF_OPTIONS // Compile with JIT off options
-
 #ifndef _JIT64_H
 #define _JIT64_H
 
