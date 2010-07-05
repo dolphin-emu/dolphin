@@ -315,7 +315,6 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 //Disable Fragment programs and reset the selected Program
 void PixelShaderCache::DisableShader()
 {
-	CurrentShader = 0;
 	if(ShaderEnabled)
 	{		
 		glDisable(GL_FRAGMENT_PROGRAM_ARB);
@@ -331,11 +330,11 @@ void PixelShaderCache::SetCurrentShader(GLuint Shader)
 	{
 		glEnable(GL_FRAGMENT_PROGRAM_ARB);
 		ShaderEnabled = true;
-		CurrentShader =  0;
 	}
 	if(CurrentShader != Shader)
 	{
-		CurrentShader = Shader;
+		if(Shader != 0)
+			CurrentShader = Shader;
 		glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, CurrentShader);
 	}
 }

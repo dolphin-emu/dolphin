@@ -596,8 +596,8 @@ void Renderer::RestoreAPIState()
 	SetColorMask();
 	SetBlendMode(true);
 
-	VertexShaderCache::SetCurrentShader(1);
-	PixelShaderCache::SetCurrentShader(1);
+	VertexShaderCache::SetCurrentShader(0);
+	PixelShaderCache::SetCurrentShader(0);
 }
 
 void Renderer::SetColorMask()
