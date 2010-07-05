@@ -19,8 +19,11 @@ void UDPNunchuk::GetState( u8* const data, const bool focus )
 	wrp->inst->getNunchuck(x,y,mask);
 	if (mask&UDPWM_NC) ncdata->bt&=~NUNCHUK_C;
 	if (mask&UDPWM_NZ) ncdata->bt&=~NUNCHUK_Z;
-	ncdata->jx=u8(0x80+x*127);
-	ncdata->jy=u8(0x80+y*127);
+	if ((ncdata->jx==0x80)&&(ncdata->jy==0x80))
+	{
+		ncdata->jx=u8(0x80+x*127);
+		ncdata->jy=u8(0x80+y*127);
+	}
 }
 
 }
