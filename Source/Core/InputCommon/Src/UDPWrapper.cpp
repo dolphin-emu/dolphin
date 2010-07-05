@@ -5,7 +5,6 @@
 #include <string.h>
 
 
-#if defined(HAVE_WX) && HAVE_WX
 #include <wx/wx.h>
 #include <wx/listbox.h>
 #include <wx/textctrl.h>
@@ -16,7 +15,6 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/spinctrl.h>
-#endif
 
 UDPWrapper::UDPWrapper(int indx, const char* const _name) : 
 updIR(false),updAccel(false),
@@ -97,7 +95,6 @@ UDPWrapper::~UDPWrapper()
 		delete inst;
 }
 
-#if defined(HAVE_WX) && HAVE_WX
 
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
 
@@ -188,4 +185,3 @@ void UDPWrapper::Configure(wxWindow * parent)
 	diag->ShowModal();
 	diag->Destroy();
 }
-#endif

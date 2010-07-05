@@ -6,10 +6,7 @@
 #include <IniFile.h>
 #include <string>
 
-#if defined(HAVE_WX) && HAVE_WX
 class wxWindow;
-#endif
-
 class UDPWiimote;
 class Wiimote;
 
@@ -25,10 +22,7 @@ public:
 	virtual void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 	virtual void SaveConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 	void Refresh();
-#if defined(HAVE_WX) && HAVE_WX
-	void Configure(wxWindow * parent);
-#endif
-	virtual ~UDPWrapper();
+	void Configure(wxWindow * parent);	virtual ~UDPWrapper();
 };
 
 #endif
