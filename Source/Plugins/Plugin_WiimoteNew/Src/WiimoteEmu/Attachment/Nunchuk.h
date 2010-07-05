@@ -1,5 +1,7 @@
-#include "Attachment.h"
+#ifndef NUNCHUCK_H
+#define NUNCHUCK_H
 
+#include "Attachment.h"
 
 namespace WiimoteEmu
 {
@@ -8,7 +10,7 @@ class Nunchuk : public Attachment
 {
 public:
 	Nunchuk();
-	void GetState( u8* const data, const bool focus );
+	virtual void GetState( u8* const data, const bool focus );
 
 private:
 	Tilt*			m_tilt;
@@ -23,3 +25,5 @@ private:
 };
 
 }
+
+#endif

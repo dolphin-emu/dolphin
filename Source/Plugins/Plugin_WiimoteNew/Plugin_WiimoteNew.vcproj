@@ -603,6 +603,14 @@
 					RelativePath=".\Src\WiimoteEmu\Attachment\Nunchuk.h"
 					>
 				</File>
+				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\UDPNunchuk.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\Src\WiimoteEmu\Attachment\UDPNunchuk.h"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter

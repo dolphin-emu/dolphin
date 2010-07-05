@@ -3,6 +3,7 @@
 #include "Attachment/Nunchuk.h"
 #include "Attachment/Guitar.h"
 #include "Attachment/Drums.h"
+#include "Attachment/UDPNunchuk.h"
 
 #include "WiimoteEmu.h"
 #include "WiimoteHid.h"
@@ -292,6 +293,7 @@ Wiimote::Wiimote( const unsigned int index )
 	m_extension->attachments.push_back( new WiimoteEmu::Classic() );
 	m_extension->attachments.push_back( new WiimoteEmu::Guitar() );
 	m_extension->attachments.push_back( new WiimoteEmu::Drums() );
+	m_extension->attachments.push_back( new WiimoteEmu::UDPNunchuk(m_udp) );
 
 	// rumble
 	groups.push_back( m_rumble = new ControlGroup( "Rumble" ) );

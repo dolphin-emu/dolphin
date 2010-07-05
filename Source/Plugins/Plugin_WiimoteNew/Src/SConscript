@@ -11,6 +11,7 @@ files = [
 	  'WiimoteEmu/Attachment/Classic.cpp',
 	  'WiimoteEmu/Attachment/Attachment.cpp',
 	  'WiimoteEmu/Attachment/Nunchuk.cpp',
+	  'WiimoteEmu/Attachment/UDPNunchuk.cpp',
 	  'WiimoteEmu/Attachment/Drums.cpp',
 	  'WiimoteEmu/Attachment/Guitar.cpp',
 	  'WiimoteEmu/EmuSubroutines.cpp',
