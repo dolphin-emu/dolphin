@@ -33,10 +33,10 @@
 #include "TextureCache.h"
 
 BEGIN_EVENT_TABLE(GFXConfigDialogDX,wxDialog)
- 
+
 	EVT_CLOSE(GFXConfigDialogDX::OnClose)
 	EVT_BUTTON(ID_CLOSE, GFXConfigDialogDX::CloseClick)
- 
+
 	//Direct3D Tab
 	EVT_CHECKBOX(ID_VSYNC, GFXConfigDialogDX::DirectXSettingsChanged)
 	EVT_CHECKBOX(ID_WIDESCREEN_HACK, GFXConfigDialogDX::DirectXSettingsChanged)
@@ -48,13 +48,13 @@ BEGIN_EVENT_TABLE(GFXConfigDialogDX,wxDialog)
 	EVT_RADIOBUTTON(ID_RADIO_SAFETEXTURECACHE_SAFE, GFXConfigDialogDX::DirectXSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_SAFETEXTURECACHE_NORMAL, GFXConfigDialogDX::DirectXSettingsChanged)
 	EVT_RADIOBUTTON(ID_RADIO_SAFETEXTURECACHE_FAST, GFXConfigDialogDX::DirectXSettingsChanged)
- 
+
 	//Enhancements tab
 	EVT_CHECKBOX(ID_FORCEFILTERING, GFXConfigDialogDX::EnhancementsSettingsChanged)
 	EVT_CHECKBOX(ID_FORCEANISOTROPY, GFXConfigDialogDX::EnhancementsSettingsChanged)
 	EVT_CHECKBOX(ID_LOADHIRESTEXTURES, GFXConfigDialogDX::EnhancementsSettingsChanged)
 	EVT_CHECKBOX(ID_EFBSCALEDCOPY, GFXConfigDialogDX::EnhancementsSettingsChanged)
- 
+
 	//Advanced Tab
 	EVT_CHECKBOX(ID_DISABLEFOG, GFXConfigDialogDX::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_OVERLAYFPS, GFXConfigDialogDX::AdvancedSettingsChanged)
@@ -71,11 +71,11 @@ BEGIN_EVENT_TABLE(GFXConfigDialogDX,wxDialog)
 	EVT_CHECKBOX(ID_OVERLAYSTATS, GFXConfigDialogDX::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_PROJSTATS, GFXConfigDialogDX::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_SHADERERRORS, GFXConfigDialogDX::AdvancedSettingsChanged)
-    EVT_CHECKBOX(ID_TEXFMT_OVERLAY, GFXConfigDialogDX::AdvancedSettingsChanged)
+	EVT_CHECKBOX(ID_TEXFMT_OVERLAY, GFXConfigDialogDX::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_TEXFMT_CENTER, GFXConfigDialogDX::AdvancedSettingsChanged)
- 
+
 END_EVENT_TABLE()
- 
+
 GFXConfigDialogDX::GFXConfigDialogDX(wxWindow *parent, wxWindowID id, const wxString &title, const wxPoint &position, const wxSize& size, long style)
 : wxDialog(parent, id, title, position, size, style)
 {
@@ -86,16 +86,19 @@ GFXConfigDialogDX::~GFXConfigDialogDX()
 {
 	INFO_LOG(CONSOLE, "GFXConfigDialogDX Closed");
 }
+
 void GFXConfigDialogDX::OnClose(wxCloseEvent& event)
 {
 	//INFO_LOG(CONSOLE, "OnClose");
 	CloseWindow();
 }
+
 void GFXConfigDialogDX::CloseClick(wxCommandEvent& WXUNUSED (event))
 {
 	//INFO_LOG(CONSOLE, "CloseClick");
 	CloseWindow();
 }
+
 void GFXConfigDialogDX::InitializeGUIValues()
 {
 	// General Display Settings
@@ -115,7 +118,7 @@ void GFXConfigDialogDX::InitializeGUIValues()
 			m_Radio_SafeTextureCache_Normal->SetValue(true);
 		else
 			m_Radio_SafeTextureCache_Fast->SetValue(true);
- 
+
 	// Enhancements
 	if(g_Config.iMaxAnisotropy == 1)
 		m_MaxAnisotropy->SetValue(false);
@@ -128,11 +131,11 @@ void GFXConfigDialogDX::InitializeGUIValues()
 	m_HiresTextures->SetValue(g_Config.bHiresTextures);
 	m_MSAAModeCB->SetSelection(g_Config.iMultisampleMode);
 	m_EFBScaledCopy->SetValue(g_Config.bCopyEFBScaled);
- 
+
 	//Advance
 	m_DisableFog->SetValue(g_Config.bDisableFog);
 	m_OverlayFPS->SetValue(g_Config.bShowFPS);
- 
+
 	m_CopyEFB->SetValue(!g_Config.bEFBCopyDisable);
 	g_Config.bCopyEFBToTexture ? m_Radio_CopyEFBToGL->SetValue(true) : m_Radio_CopyEFBToRAM->SetValue(true);
 
@@ -151,8 +154,9 @@ void GFXConfigDialogDX::InitializeGUIValues()
 	m_TexfmtCenter->SetValue(g_Config.bTexFmtOverlayCenter);
 	m_TexfmtCenter->Enable(m_TexfmtOverlay->IsChecked());
 }
+
 void GFXConfigDialogDX::CreateGUIControls()
- {
+{
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
 	this->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_BTNFACE ) );
 	
@@ -163,19 +167,19 @@ void GFXConfigDialogDX::CreateGUIControls()
 	m_PageDirect3D = new wxPanel( m_Notebook, ID_DIRERCT3D, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_PageEnhancements = new wxPanel( m_Notebook, ID_PAGEENHANCEMENTS, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
 	m_PageAdvanced = new wxPanel( m_Notebook, ID_PAGEADVANCED, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
- 
-	//D3D Tab	
+
+	//D3D Tab
 	wxStaticBoxSizer* sbBasic;
 	sbBasic = new wxStaticBoxSizer( new wxStaticBox( m_PageDirect3D, wxID_ANY, wxT("Basic") ), wxVERTICAL );
 	m_AdapterText = new wxStaticText( m_PageDirect3D, wxID_ANY, wxT("Adapter:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_AdapterText->Wrap( -1 );
 
- 	wxArrayString arrayStringFor_AdapterCB;
+	wxArrayString arrayStringFor_AdapterCB;
 	for (int i = 0; i < D3D::GetNumAdapters(); ++i)
 	{
 		const D3D::Adapter &adapter = D3D::GetAdapter(i);
 		arrayStringFor_AdapterCB.Add(wxString::FromAscii(adapter.ident.Description));
- 	}
+	}
 	const D3D::Adapter &adapter = D3D::GetAdapter(g_Config.iAdapter);
 
 	m_AdapterCB = new wxChoice( m_PageDirect3D, ID_ADAPTER, wxDefaultPosition, wxDefaultSize, arrayStringFor_AdapterCB, 0);
@@ -201,21 +205,21 @@ void GFXConfigDialogDX::CreateGUIControls()
 	m_EFBScaleText->Wrap( -1 );
 	wxString m_EFBScaleModeChoices[] = { wxT("Auto (Fractional)"), wxT("Auto (Integral)"), wxT("1x"), wxT("2x"), wxT("3x") };
 	int m_EFBScaleModeNChoices = sizeof( m_EFBScaleModeChoices ) / sizeof( wxString );
-	m_EFBScaleMode = new wxChoice( m_PageDirect3D, ID_EFBSCALEMODE, wxDefaultPosition, wxDefaultSize, m_EFBScaleModeNChoices, m_EFBScaleModeChoices, 0 );	
+	m_EFBScaleMode = new wxChoice( m_PageDirect3D, ID_EFBSCALEMODE, wxDefaultPosition, wxDefaultSize, m_EFBScaleModeNChoices, m_EFBScaleModeChoices, 0 );
 
 	m_EnableEFBAccess = new wxCheckBox( m_PageDirect3D, ID_EFB_ACCESS_ENABLE, wxT("Enable CPU->EFB access"), wxDefaultPosition, wxDefaultSize, 0 );
- 
+
 	wxStaticBoxSizer* sbSTC;
 	sbSTC = new wxStaticBoxSizer( new wxStaticBox( m_PageDirect3D, wxID_ANY, wxT("Safe Texture Cache") ), wxVERTICAL );
 	m_SafeTextureCache = new wxCheckBox( m_PageDirect3D, ID_SAFETEXTURECACHE, wxT("Use Safe Texture Cache"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_Radio_SafeTextureCache_Safe = new wxRadioButton( m_PageDirect3D, ID_RADIO_SAFETEXTURECACHE_SAFE, wxT("Safe"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_Radio_SafeTextureCache_Normal = new wxRadioButton( m_PageDirect3D, ID_RADIO_SAFETEXTURECACHE_NORMAL, wxT("Normal"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_Radio_SafeTextureCache_Fast = new wxRadioButton( m_PageDirect3D, ID_RADIO_SAFETEXTURECACHE_FAST, wxT("Fast"), wxDefaultPosition, wxDefaultSize, 0 );
- 
+
 	// Sizers
 	wxGridBagSizer* sBasic;
 	wxBoxSizer* sGeneral;
- 
+
 	sGeneral = new wxBoxSizer( wxVERTICAL );
 	sBasic = new wxGridBagSizer( 0, 0 );
 	sBasic->SetFlexibleDirection( wxBOTH );
@@ -257,7 +261,7 @@ void GFXConfigDialogDX::CreateGUIControls()
 	m_ForceFiltering = new wxCheckBox( m_PageEnhancements, ID_FORCEFILTERING, wxT("Force bi/trilinear filtering  (Breaks video in several Wii games )"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_MaxAnisotropy = new wxCheckBox( m_PageEnhancements, ID_FORCEANISOTROPY, wxT("Enable 16x Anisotropy filtering"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_HiresTextures = new wxCheckBox( m_PageEnhancements, ID_LOADHIRESTEXTURES, wxT("Enable hires Texture loading"), wxDefaultPosition, wxDefaultSize, 0 );
- 
+
 	wxStaticBoxSizer* sbEFBHacks;
 	sbEFBHacks = new wxStaticBoxSizer( new wxStaticBox( m_PageEnhancements, wxID_ANY, wxT("EFB Hacks") ), wxVERTICAL );
 	m_EFBScaledCopy = new wxCheckBox( m_PageEnhancements, ID_EFBSCALEDCOPY, wxT("EFB Scaled Copy"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -348,10 +352,10 @@ void GFXConfigDialogDX::CreateGUIControls()
 	wxGridBagSizer* sDebuggingTools;
 	sDebuggingTools = new wxGridBagSizer( 0, 0 );
 	sDebuggingTools->SetFlexibleDirection( wxBOTH );
-	sDebuggingTools->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );	
+	sDebuggingTools->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	sDebuggingTools->Add( m_OverlayStats, wxGBPosition( 0, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 	sDebuggingTools->Add( m_ShaderErrors, wxGBPosition( 1, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
-	sDebuggingTools->Add( m_TexfmtOverlay, wxGBPosition( 2, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );	
+	sDebuggingTools->Add( m_TexfmtOverlay, wxGBPosition( 2, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 	sDebuggingTools->Add( m_TexfmtCenter, wxGBPosition( 2, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 	sDebuggingTools->Add( m_ProjStats, wxGBPosition( 0, 1 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 	sbDebuggingTools->Add( sDebuggingTools, 0, wxEXPAND, 5 );
@@ -380,6 +384,7 @@ void GFXConfigDialogDX::CreateGUIControls()
 	Center();
 	UpdateGUI();
 }
+
 void GFXConfigDialogDX::DirectXSettingsChanged(wxCommandEvent& event)
 {
 	switch (event.GetId())

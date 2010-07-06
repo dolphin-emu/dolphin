@@ -204,7 +204,7 @@ void ControlDialog::UpdateListContents()
 		{
 			// for inputs
 			std::vector<ControllerInterface::Device::Input*>::const_iterator
-			   	i = dev->Inputs().begin(),
+				i = dev->Inputs().begin(),
 				e = dev->Inputs().end();
 			for (; i!=e; ++i)
 				control_lbox->Append(WXSTR_FROM_STR((*i)->GetName()));
@@ -213,7 +213,7 @@ void ControlDialog::UpdateListContents()
 		{
 			// for outputs
 			std::vector<ControllerInterface::Device::Output*>::const_iterator
-			   	i = dev->Outputs().begin(),
+				i = dev->Outputs().begin(),
 				e = dev->Outputs().end();
 			for (; i!=e; ++i)
 				control_lbox->Append(WXSTR_FROM_STR((*i)->GetName()));
@@ -702,10 +702,10 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 
 	switch ( group->type )
 	{
-	case GROUP_TYPE_STICK :
-	case GROUP_TYPE_TILT :
-	case GROUP_TYPE_CURSOR :
-	case GROUP_TYPE_FORCE :
+	case GROUP_TYPE_STICK:
+	case GROUP_TYPE_TILT:
+	case GROUP_TYPE_CURSOR:
+	case GROUP_TYPE_FORCE:
 		{
 			wxBitmap bitmap(64, 64);
 			dc.SelectObject(bitmap);
@@ -733,7 +733,7 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 			Add( h_szr, 0, wxEXPAND|wxLEFT|wxCENTER|wxTOP, 3 );
 		}
 		break;
-	case GROUP_TYPE_BUTTONS :
+	case GROUP_TYPE_BUTTONS:
 		{
 			wxBitmap bitmap(int(12*group->controls.size()+1), 12);
 			dc.SelectObject(bitmap);
@@ -755,8 +755,8 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 			Add(static_bitmap, 0, wxALL|wxCENTER, 3);
 		}
 		break;
-	case GROUP_TYPE_MIXED_TRIGGERS :
-	case GROUP_TYPE_TRIGGERS :
+	case GROUP_TYPE_MIXED_TRIGGERS:
+	case GROUP_TYPE_TRIGGERS:
 		{
 			int height = (int)(6 * group->controls.size());
 			int width = 64+12+1;
@@ -787,7 +787,7 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 			Add( static_bitmap, 0, wxALL|wxCENTER, 3 );
 		}
 		break;
-	case GROUP_TYPE_EXTENSION :
+	case GROUP_TYPE_EXTENSION:
 		{
 			PadSettingExtension* const attachments = new PadSettingExtension( parent, (ControllerEmu::Extension*)group );
 			wxButton* const configure_btn = new ExtensionButton( parent, (ControllerEmu::Extension*)group );
@@ -808,7 +808,7 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 			Add(btn, 0, wxALL|wxEXPAND, 3);
 		}
 		break;
-	default :
+	default:
 		{
 			//options
 

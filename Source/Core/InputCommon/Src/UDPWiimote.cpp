@@ -72,8 +72,8 @@ UDPWiimote::UDPWiimote(const char *_port) :
 	#ifdef _WIN32
 	u_long iMode = 1;
 	#endif
-    struct addrinfo hints, *servinfo, *p;
-    int rv;
+	struct addrinfo hints, *servinfo, *p;
+	int rv;
 	d->thread=NULL;
 
 	#ifdef _WIN32
@@ -89,41 +89,41 @@ UDPWiimote::UDPWiimote(const char *_port) :
 	noinst++;
 	//PanicAlert("UDPWii instantiated");
 
-    memset(&hints, 0, sizeof hints);
+	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_DGRAM;
-    hints.ai_flags = AI_PASSIVE; // use my IP
+	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_flags = AI_PASSIVE; // use my IP
 	
-    if ((rv = getaddrinfo(NULL, _port, &hints, &servinfo)) != 0) {
+	if ((rv = getaddrinfo(NULL, _port, &hints, &servinfo)) != 0) {
 		cleanup;
-        err=-1;
+		err=-1;
 		return;
-    }
+	}
 
-    // loop through all the results and bind to everything we can
-    for(p = servinfo; p != NULL; p = p->ai_next) {
+	// loop through all the results and bind to everything we can
+	for(p = servinfo; p != NULL; p = p->ai_next) {
 		sock_t sock;
-        if ((sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == BAD_SOCK) {
+		if ((sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == BAD_SOCK) {
 			continue;
-        }
+		}
 		
-        if (bind(sock, p->ai_addr, p->ai_addrlen) == -1) {
-            close(sock);
+		if (bind(sock, p->ai_addr, p->ai_addrlen) == -1) {
+			close(sock);
 			continue;
-        }
+		}
 		
 
 		//NOTICE_LOG(WIIMOTE,"UDPWii new listening sock");
 		d->sockfds.push_back(sock);
-    }
+	}
 	
-    if (d->sockfds.empty()) {
+	if (d->sockfds.empty()) {
 		cleanup;
 		err=-2;
-        return;
-    }
+		return;
+	}
 	
-    freeaddrinfo(servinfo);
+	freeaddrinfo(servinfo);
 	err=0;
 	d->exit=false;
 //	NOTICE_LOG(WIIMOTE,"UDPWii thread starting");

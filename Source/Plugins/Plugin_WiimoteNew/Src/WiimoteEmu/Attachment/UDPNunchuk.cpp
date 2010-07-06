@@ -10,13 +10,13 @@ namespace WiimoteEmu
 
 void UDPNunchuk::GetState( u8* const data, const bool focus )
 {
-	Nunchuk::GetState(data,focus);
+	Nunchuk::GetState(data, focus);
 	if (!(wrp->inst)) return;
 
 	wm_extension* const ncdata = (wm_extension*)data;
 	u8 mask;
-	float x,y;
-	wrp->inst->getNunchuck(x,y,mask);
+	float x, y;
+	wrp->inst->getNunchuck(x, y, mask);
 	if (mask&UDPWM_NC) ncdata->bt&=~NUNCHUK_C;
 	if (mask&UDPWM_NZ) ncdata->bt&=~NUNCHUK_Z;
 	if ((ncdata->jx==0x80)&&(ncdata->jy==0x80))

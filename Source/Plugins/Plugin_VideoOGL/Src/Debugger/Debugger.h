@@ -53,9 +53,9 @@ public:
 private:
 	DECLARE_EVENT_TABLE();
 
-	wxPanel *m_MainPanel;
+	wxPanel* m_MainPanel;
 
-	wxCheckBox *m_Check[6];
+	wxCheckBox* m_Check[6];
 
 	// WARNING: Make sure these are not also elsewhere
 	enum
@@ -70,7 +70,7 @@ private:
 		NUM_OPTIONS
 	};
 
-	void OnClose(wxCloseEvent& event);		
+	void OnClose(wxCloseEvent& event);
 	void CreateGUIControls();
 
 	void GeneralSettings(wxCommandEvent& event);

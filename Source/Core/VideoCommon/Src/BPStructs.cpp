@@ -357,8 +357,8 @@ void BPWritten(const BPCmd& bp)
 	// Bounding Box Control
 	// -------------------------
 	case BPMEM_CLEARBBOX1:
-	case BPMEM_CLEARBBOX2: {
-
+	case BPMEM_CLEARBBOX2:
+		{
 #ifdef BBOX_SUPPORT
 		// which is which? these are GUESSES!
 		if (bp.address == BPMEM_CLEARBBOX1) {
@@ -381,8 +381,8 @@ void BPWritten(const BPCmd& bp)
 			// WARN_LOG(VIDEO, "ClearBBox TB: %i, %08x - %i, %i", bp.address, bp.newvalue, top, bottom);
 		}
 #endif
+		}
 		break;
-							}
 	case BPMEM_TEXINVALIDATE: // Used, if game has manual control the Texture Cache, which we don't allow
 		DEBUG_LOG(VIDEO, "BP Texture Invalid: %08x", bp.newvalue);
 	case BPMEM_ZCOMPARE:      // Set the Z-Compare and EFB pixel format
@@ -583,7 +583,7 @@ void BPWritten(const BPCmd& bp)
 			default:
 				WARN_LOG(VIDEO, "Unknown BP opcode: address = 0x%08x value = 0x%08x", bp.address, bp.newvalue);
 				break;
-			}		
+			}
 	}
 
 	// FIXME: Hangs load-state, but should fix graphic-heavy games state loading

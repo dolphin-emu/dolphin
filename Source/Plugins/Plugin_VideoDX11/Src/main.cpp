@@ -92,16 +92,6 @@ bool IsD3D()
 	return true;
 }
 
-bool IsD3D9()
-{
-	return false;
-}
-
-bool IsD3D11()
-{
-	return true;
-}
-
 // This is used for the functions right below here which use wxwidgets
 #if defined(HAVE_WX) && HAVE_WX
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
@@ -128,7 +118,7 @@ void DllDebugger(HWND _hParent, bool Show)
 			return true;
 		}
 	};
-	IMPLEMENT_APP_NO_MAIN(wxDLLApp) 
+	IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 	WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
 #endif
 
@@ -173,7 +163,7 @@ void UpdateFPSDisplay(const char* text)
 {
 	char temp[512];
 	sprintf_s(temp, 512, "SVN R%i: DX11: %s", SVN_REV, text);
-    SetWindowTextA(EmuWindow::GetWnd(), temp);
+	SetWindowTextA(EmuWindow::GetWnd(), temp);
 }
 
 void GetDllInfo(PLUGIN_INFO* _PluginInfo)
@@ -220,9 +210,9 @@ void Initialize(void* init)
 	g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
 	g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 
-    _pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
-    _pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
-    _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
+	_pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
+	_pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
+	_pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;
 
 	OSD::AddMessage("Dolphin Direct3D 11 Video Plugin.", 5000);
 	s_PluginInitialized = true;
@@ -244,8 +234,8 @@ void Video_Prepare()
 	VertexShaderManager::Init();
 	PixelShaderCache::Init();
 	PixelShaderManager::Init();
-    CommandProcessor::Init();
-    PixelEngine::Init();
+	CommandProcessor::Init();
+	PixelEngine::Init();
 	D3D::InitUtils();
 
 	// tell the host that the window is ready
@@ -339,14 +329,14 @@ void VideoFifo_CheckSwapRequestAt(u32 xfbAddr, u32 fbWidth, u32 fbHeight)
 			if (addrRangesOverlap(aLower, aUpper, bLower, bUpper))
 				VideoFifo_CheckSwapRequest();
 		}
-	}	
+	}
 }
 
 // Run from the CPU thread (from VideoInterface.cpp)
 void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 {
 	if (s_PluginInitialized && g_ActiveConfig.bUseXFB)
-	{		
+	{
 		if (g_VideoInitialize.bOnThread)
 		{
 			while (Common::AtomicLoadAcquire(s_swapRequested) && !s_FifoShuttingDown)
@@ -354,7 +344,7 @@ void Video_BeginField(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight)
 				Common::YieldCPU();
 		}
 		else
-			VideoFifo_CheckSwapRequest();				
+			VideoFifo_CheckSwapRequest();
 		s_beginFieldArgs.xfbAddr = xfbAddr;
 		s_beginFieldArgs.field = field;
 		s_beginFieldArgs.fbWidth = fbWidth;
@@ -371,11 +361,6 @@ void Video_EndField()
 void Video_AddMessage(const char* pstr, u32 milliseconds)
 {
 	OSD::AddMessage(pstr, milliseconds);
-}
-
-HRESULT ScreenShot(const char* filename)
-{
-	return S_OK;
 }
 
 void Video_Screenshot(const char* _szFilename)
@@ -430,37 +415,37 @@ u32 Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
 
 void Video_CommandProcessorRead16(u16& _rReturnValue, const u32 _Address)
 {
-    CommandProcessor::Read16(_rReturnValue, _Address);
+	CommandProcessor::Read16(_rReturnValue, _Address);
 }
 
 void Video_CommandProcessorWrite16(const u16 _Data, const u32 _Address)
 {
-    CommandProcessor::Write16(_Data, _Address);
+	CommandProcessor::Write16(_Data, _Address);
 }
 
 void Video_PixelEngineRead16(u16& _rReturnValue, const u32 _Address)
 {
-    PixelEngine::Read16(_rReturnValue, _Address);
+	PixelEngine::Read16(_rReturnValue, _Address);
 }
 
 void Video_PixelEngineWrite16(const u16 _Data, const u32 _Address)
 {
-    PixelEngine::Write16(_Data, _Address);
+	PixelEngine::Write16(_Data, _Address);
 }
 
 void Video_PixelEngineWrite32(const u32 _Data, const u32 _Address)
 {
-    PixelEngine::Write32(_Data, _Address);
+	PixelEngine::Write32(_Data, _Address);
 }
 
 inline void Video_GatherPipeBursted(void)
 {
-    CommandProcessor::GatherPipeBursted();
+	CommandProcessor::GatherPipeBursted();
 }
 
 void Video_WaitForFrameFinish(void)
 {
-    CommandProcessor::WaitForFrameFinish();
+	CommandProcessor::WaitForFrameFinish();
 }
 
 bool Video_IsFifoBusy(void)

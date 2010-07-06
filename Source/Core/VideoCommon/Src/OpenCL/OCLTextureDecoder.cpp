@@ -35,55 +35,56 @@ cl_program g_program;
 
 struct sDecoderParameter
 {
-    const char *name;
-    cl_kernel kernel;
-    float sizeOfSrc;
+	const char *name;
+	cl_kernel kernel;
+	float sizeOfSrc;
 	float sizeOfDst;
-    int xSkip;
-    int ySkip;
+	int xSkip;
+	int ySkip;
 	PC_TexFormat format;
 };
 
 sDecoderParameter g_DecodeParametersNative[] = {
-    /* GX_TF_I4     */ { "DecodeI4",     NULL, 0.5f, 1, 8, 8, PC_TEX_FMT_I4_AS_I8 },
-    /* GX_TF_I8     */ { "DecodeI8",     NULL,    1, 1, 8, 4, PC_TEX_FMT_I8 },
-    /* GX_TF_IA4    */ { "DecodeIA4",    NULL,    1, 2, 8, 4, PC_TEX_FMT_IA4_AS_IA8 },
-    /* GX_TF_IA8    */ { "DecodeIA8",    NULL,    2, 2, 4, 4, PC_TEX_FMT_IA8 },
-    /* GX_TF_RGB565 */ { "DecodeRGB565", NULL,    2, 2, 4, 4, PC_TEX_FMT_RGB565 },
-    /* GX_TF_RGB5A3 */ { "DecodeRGB5A3", NULL,    2, 4, 4, 4, PC_TEX_FMT_BGRA32 },
-    /* GX_TF_RGBA8  */ { "DecodeRGBA8",  NULL,    4, 4, 4, 4, PC_TEX_FMT_BGRA32 },
-    /* 7            */ { NULL },
-    /* GX_TF_C4     */ { NULL },
-    /* GX_TF_C8     */ { NULL },
-    /* GX_TF_C14X2  */ { NULL },
-    /* B            */ { NULL },
-    /* C            */ { NULL },
-    /* D            */ { NULL },
-    /* GX_TF_CMPR   */ { "DecodeCMPR",   NULL, 0.5f, 4, 8, 8, PC_TEX_FMT_BGRA32 },
+	/* GX_TF_I4     */ { "DecodeI4",     NULL, 0.5f, 1, 8, 8, PC_TEX_FMT_I4_AS_I8 },
+	/* GX_TF_I8     */ { "DecodeI8",     NULL,    1, 1, 8, 4, PC_TEX_FMT_I8 },
+	/* GX_TF_IA4    */ { "DecodeIA4",    NULL,    1, 2, 8, 4, PC_TEX_FMT_IA4_AS_IA8 },
+	/* GX_TF_IA8    */ { "DecodeIA8",    NULL,    2, 2, 4, 4, PC_TEX_FMT_IA8 },
+	/* GX_TF_RGB565 */ { "DecodeRGB565", NULL,    2, 2, 4, 4, PC_TEX_FMT_RGB565 },
+	/* GX_TF_RGB5A3 */ { "DecodeRGB5A3", NULL,    2, 4, 4, 4, PC_TEX_FMT_BGRA32 },
+	/* GX_TF_RGBA8  */ { "DecodeRGBA8",  NULL,    4, 4, 4, 4, PC_TEX_FMT_BGRA32 },
+	/* 7            */ { NULL },
+	/* GX_TF_C4     */ { NULL },
+	/* GX_TF_C8     */ { NULL },
+	/* GX_TF_C14X2  */ { NULL },
+	/* B            */ { NULL },
+	/* C            */ { NULL },
+	/* D            */ { NULL },
+	/* GX_TF_CMPR   */ { "DecodeCMPR",   NULL, 0.5f, 4, 8, 8, PC_TEX_FMT_BGRA32 },
 };
 
 sDecoderParameter g_DecodeParametersRGBA[] = {
-    /* GX_TF_I4     */ { "DecodeI4_RGBA",     NULL, 0.5f, 4, 8, 8, PC_TEX_FMT_RGBA32 },
-    /* GX_TF_I8     */ { "DecodeI8_RGBA",     NULL,    1, 4, 8, 4, PC_TEX_FMT_RGBA32 },
-    /* GX_TF_IA4    */ { "DecodeIA4_RGBA",    NULL,    1, 4, 8, 4, PC_TEX_FMT_RGBA32 },
-    /* GX_TF_IA8    */ { "DecodeIA8_RGBA",    NULL,    2, 4, 4, 4, PC_TEX_FMT_RGBA32 },
-    /* GX_TF_RGB565 */ { "DecodeRGB565_RGBA", NULL,    2, 4, 4, 4, PC_TEX_FMT_RGBA32 },
-    /* GX_TF_RGB5A3 */ { "DecodeRGB5A3_RGBA", NULL,    2, 4, 4, 4, PC_TEX_FMT_RGBA32 },
-    /* GX_TF_RGBA8  */ { "DecodeRGBA8_RGBA",  NULL,    4, 4, 4, 4, PC_TEX_FMT_RGBA32 },
-    /* 7            */ { NULL },
-    /* GX_TF_C4     */ { NULL },
-    /* GX_TF_C8     */ { NULL },
-    /* GX_TF_C14X2  */ { NULL },
-    /* B            */ { NULL },
-    /* C            */ { NULL },
-    /* D            */ { NULL },
-    /* GX_TF_CMPR   */ { "DecodeCMPR_RGBA",   NULL, 0.5f, 4, 8, 8, PC_TEX_FMT_RGBA32 },
+	/* GX_TF_I4     */ { "DecodeI4_RGBA",     NULL, 0.5f, 4, 8, 8, PC_TEX_FMT_RGBA32 },
+	/* GX_TF_I8     */ { "DecodeI8_RGBA",     NULL,    1, 4, 8, 4, PC_TEX_FMT_RGBA32 },
+	/* GX_TF_IA4    */ { "DecodeIA4_RGBA",    NULL,    1, 4, 8, 4, PC_TEX_FMT_RGBA32 },
+	/* GX_TF_IA8    */ { "DecodeIA8_RGBA",    NULL,    2, 4, 4, 4, PC_TEX_FMT_RGBA32 },
+	/* GX_TF_RGB565 */ { "DecodeRGB565_RGBA", NULL,    2, 4, 4, 4, PC_TEX_FMT_RGBA32 },
+	/* GX_TF_RGB5A3 */ { "DecodeRGB5A3_RGBA", NULL,    2, 4, 4, 4, PC_TEX_FMT_RGBA32 },
+	/* GX_TF_RGBA8  */ { "DecodeRGBA8_RGBA",  NULL,    4, 4, 4, 4, PC_TEX_FMT_RGBA32 },
+	/* 7            */ { NULL },
+	/* GX_TF_C4     */ { NULL },
+	/* GX_TF_C8     */ { NULL },
+	/* GX_TF_C14X2  */ { NULL },
+	/* B            */ { NULL },
+	/* C            */ { NULL },
+	/* D            */ { NULL },
+	/* GX_TF_CMPR   */ { "DecodeCMPR_RGBA",   NULL, 0.5f, 4, 8, 8, PC_TEX_FMT_RGBA32 },
 };
 
 bool g_Inited = false;
 cl_mem g_clsrc, g_cldst;                    // texture buffer memory objects
 
-void TexDecoder_OpenCL_Initialize() {
+void TexDecoder_OpenCL_Initialize()
+{
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if(!g_Inited)
 	{
@@ -124,7 +125,8 @@ void TexDecoder_OpenCL_Initialize() {
 #endif
 }
 
-void TexDecoder_OpenCL_Shutdown() {
+void TexDecoder_OpenCL_Shutdown()
+{
 #if defined(HAVE_OPENCL) && HAVE_OPENCL && !defined(DEBUG_OPENCL)
 
 	clReleaseProgram(g_program);
@@ -151,9 +153,9 @@ PC_TexFormat TexDecoder_Decode_OpenCL(u8 *dst, const u8 *src, int width, int hei
 {
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 	cl_int err;
-    sDecoderParameter& decoder = rgba ? g_DecodeParametersRGBA[texformat] : g_DecodeParametersNative[texformat];
-    if(!g_Inited || !decoder.name || !decoder.kernel || decoder.format == PC_TEX_FMT_NONE)
-        return PC_TEX_FMT_NONE;
+	sDecoderParameter& decoder = rgba ? g_DecodeParametersRGBA[texformat] : g_DecodeParametersNative[texformat];
+	if(!g_Inited || !decoder.name || !decoder.kernel || decoder.format == PC_TEX_FMT_NONE)
+		return PC_TEX_FMT_NONE;
 
 #ifdef DEBUG_OPENCL
 	g_clsrc = clCreateBuffer(OpenCL::GetContext(), CL_MEM_READ_ONLY , 1024 * 1024 * sizeof(u32), NULL, NULL);

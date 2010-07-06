@@ -66,7 +66,7 @@ bool Initialize()
 		return false;
 	}
 
-	if (0 < numPlatforms) 
+	if (0 < numPlatforms)
 	{
 		cl_platform_id* platforms = new cl_platform_id[numPlatforms];
 		err = clGetPlatformIDs(numPlatforms, platforms, NULL);
@@ -106,7 +106,7 @@ bool Initialize()
 		return false;
 	}
 
-	// Create a compute context 
+	// Create a compute context
 	g_context = clCreateContext(cprops, 1, &device_id, NULL, NULL, &err);
 	if (!g_context)
 	{
@@ -176,8 +176,8 @@ cl_kernel CompileKernel(cl_program program, const char *Function)
 	cl_kernel kernel = clCreateKernel(program, Function, &err);
 	if (!kernel || err != CL_SUCCESS)
 	{
-	char buffer[1024];
-	sprintf(buffer, "Failed to create compute kernel '%s' !", Function);
+		char buffer[1024];
+		sprintf(buffer, "Failed to create compute kernel '%s' !", Function);
 		HandleCLError(err, buffer);
 		return NULL;
 	}
@@ -191,7 +191,7 @@ void Destroy()
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 	if(!g_context)
 		return;
-	clReleaseCommandQueue(g_cmdq); 
+	clReleaseCommandQueue(g_cmdq);
 	clReleaseContext(g_context);
 	g_context = NULL;
 	g_cmdq = NULL;

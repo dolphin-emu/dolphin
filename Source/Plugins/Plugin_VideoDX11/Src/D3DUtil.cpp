@@ -284,7 +284,7 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 	float sizeratio = size / (float)m_LineHeight;
 
 	// translate starting positions
-	float sx = x * scalex - 1.f; 
+	float sx = x * scalex - 1.f;
 	float sy = 1.f - y * scaley;
 	char c;
 
@@ -355,7 +355,7 @@ int CD3DFont::DrawTextScaled(float x, float y, float size, float spacing, u32 dw
 		v[4] = v[2];
 		v[5] = v[1];
 
-		memcpy(pVertices, v, 6*sizeof(FONT2DVERTEX)); 
+		memcpy(pVertices, v, 6*sizeof(FONT2DVERTEX));
 
 		pVertices+=6;
 		dwNumTriangles += 2;
@@ -416,7 +416,7 @@ ID3D11Buffer* clearvb = NULL;
 
 typedef struct { float x,y,z,u,v; } STQVertex;
 typedef struct { float x,y,z,u,v; } STSQVertex;
-typedef struct { float x,y,z; u32 col;} ClearVertex;
+typedef struct { float x,y,z; u32 col; } ClearVertex;
 
 void InitUtils()
 {
@@ -496,7 +496,7 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 	D3D::context->IASetInputLayout(layout);
 	D3D::context->IASetVertexBuffers(0, 1, &stqvb, &stride, &offset);
 	D3D::context->PSSetSamplers(0, 1, &stqsamplerstate);
-	D3D::context->PSSetShader(PShader, NULL, 0);	
+	D3D::context->PSSetShader(PShader, NULL, 0);
 	D3D::context->PSSetShaderResources(0, 1, &texture);
 	D3D::context->VSSetShader(Vshader, NULL, 0);
 	D3D::stateman->Apply();

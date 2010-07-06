@@ -140,13 +140,13 @@ bool Init()
 
 	CreateDeviceObjects();
 
-	IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);	
+	IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
 	return true;
 }
 
 void ResetBuffer()
 {
-	s_pCurBufferPointer = LocalVBuffer;	
+	s_pCurBufferPointer = LocalVBuffer;
 }
 
 void Shutdown()
@@ -163,12 +163,12 @@ void AddIndices(int _primitive, int _numVertices)
 {
 	switch (_primitive)
 	{
-		case GX_DRAW_QUADS:          IndexGenerator::AddQuads(_numVertices);     break;    
+		case GX_DRAW_QUADS:          IndexGenerator::AddQuads(_numVertices);     break;
 		case GX_DRAW_TRIANGLES:      IndexGenerator::AddList(_numVertices);      break;
 		case GX_DRAW_TRIANGLE_STRIP: IndexGenerator::AddStrip(_numVertices);     break;
 		case GX_DRAW_TRIANGLE_FAN:   IndexGenerator::AddFan(_numVertices);       break;
 		case GX_DRAW_LINE_STRIP:     IndexGenerator::AddLineStrip(_numVertices); break;
-		case GX_DRAW_LINES:		     IndexGenerator::AddLineList(_numVertices);  break;
+		case GX_DRAW_LINES:          IndexGenerator::AddLineList(_numVertices);  break;
 		case GX_DRAW_POINTS:         IndexGenerator::AddPoints(_numVertices);    break;
 	}
 }
@@ -225,7 +225,7 @@ void AddVertices(int _primitive, int _numVertices)
 		IndexGenerator::Start(TIBuffer,LIBuffer,PIBuffer);
 		Flushed=false;
 	}
-	lastPrimitive = _primitive;	
+	lastPrimitive = _primitive;
 	ADDSTAT(stats.thisFrame.numPrims, _numVertices);
 	INCSTAT(stats.thisFrame.numPrimitiveJoins);
 	AddIndices(_primitive, _numVertices);
@@ -244,7 +244,7 @@ inline void Draw(unsigned int stride, bool alphapass)
 	}
 
 	UINT bufoffset = 0;
-	UINT bufstride = (UINT)stride;
+	UINT bufstride = stride;
 
 	if (!alphapass) gfxstate->ApplyState();
 	else gfxstate->AlphaPass();
@@ -361,7 +361,7 @@ void Flush()
 
 	Draw(stride, false);
 
-	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate) 
+	if (bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate)
 	{
 		DWORD write = 0;
 		if (!PixelShaderCache::SetShader(true))
