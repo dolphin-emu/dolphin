@@ -459,21 +459,21 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, API_T
 		WRITE(p, "  out float4 ocol0 : SV_Target,\n  out float depth : SV_Depth,\n  in float4 rawpos : SV_Position,\n");
 
 	WRITE(p, "  in float4 colors_0 : COLOR0,\n");
-	WRITE(p, "  in float4 colors_1 : COLOR1\n");
+	WRITE(p, "  in float4 colors_1 : COLOR1");
 
 	// compute window position if needed because binding semantic WPOS is not widely supported
 	if (numTexgen < 7)
 	{
 		for (int i = 0; i < numTexgen; ++i)
-			WRITE(p, ", \n  in float3 uv%d : TEXCOORD%d", i, i);
+			WRITE(p, ",\n  in float3 uv%d : TEXCOORD%d", i, i);
 
-		WRITE(p, ", \n  in float4 clipPos : TEXCOORD%d", numTexgen);
+		WRITE(p, ",\n  in float4 clipPos : TEXCOORD%d", numTexgen);
 	}
 	else
 	{
 		// wpos is in w of first 4 texcoords
 		for (int i = 0; i < numTexgen; ++i)
-			WRITE(p, ", \n  in float%d uv%d : TEXCOORD%d", i<4?4:3, i, i);
+			WRITE(p, ",\n  in float%d uv%d : TEXCOORD%d", i<4?4:3, i, i);
 	}
 	WRITE(p, "        ) {\n");
 
@@ -597,7 +597,7 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, API_T
 			WRITE(p, "  ocol0 = prev;\n");
 		}
 	}
-
+	WRITE(p, "}\n");
 	if (text[sizeof(text) - 1] != 0x7C)
 		PanicAlert("PixelShader generator - buffer too small, canary has been eaten!");
 
