@@ -45,6 +45,7 @@ public:
 		float scaleX, scaleY; // Hires texutres need this
 
 		bool isRenderTarget;
+		bool isDinamic;// mofified from cpu
 		bool isNonPow2;
 
 		TCacheEntry()
@@ -66,7 +67,7 @@ public:
 			Scaledh = 0;
 		}
 		void Destroy(bool shutdown);
-		bool IntersectsMemoryRange(u32 range_address, u32 range_size);
+		int IntersectsMemoryRange(u32 range_address, u32 range_size);
 	};
 
 private:
@@ -82,6 +83,7 @@ public:
 	static void Shutdown();
 	static void Invalidate(bool shutdown);
 	static void InvalidateRange(u32 start_address, u32 size);
+	static void MakeRangeDynamic(u32 start_address, u32 size);
 	static TCacheEntry *Load(int stage, u32 address, int width, int height, int format, int tlutaddr, int tlutfmt,bool UseNativeMips, int maxlevel);
 	static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source_rect);
 };

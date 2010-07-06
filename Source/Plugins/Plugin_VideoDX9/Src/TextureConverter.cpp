@@ -197,8 +197,7 @@ void Shutdown()
 void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc,
 				            u8* destAddr, int dstWidth, int dstHeight, int readStride, bool toTexture, bool linearFilter)
 {
-	HRESULT hr;
-	Renderer::ResetAPIState();	
+	HRESULT hr;		
 	u32 index =0;
 	while(index < WorkingBuffers && (TrnBuffers[index].Width != dstWidth || TrnBuffers[index].Height != dstHeight))
 		index++;
@@ -271,10 +270,7 @@ void EncodeToRamUsingShader(LPDIRECT3DPIXELSHADER9 shader, LPDIRECT3DTEXTURE9 sr
 
 
 	// Draw...
-	D3D::drawShadedTexQuad(srcTexture,&SrcRect,1,1,dstWidth,dstHeight,shader,VertexShaderCache::GetSimpleVertexShader(0));
-	hr = D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
-	hr = D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
-	Renderer::RestoreAPIState();	
+	D3D::drawShadedTexQuad(srcTexture,&SrcRect,1,1,dstWidth,dstHeight,shader,VertexShaderCache::GetSimpleVertexShader(0));	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	// .. and then readback the results.
 	// TODO: make this less slow.
@@ -347,7 +343,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 
 	// Invalidate any existing texture covering this memory range.
 	// TODO - don't delete the texture if it already exists, just replace the contents.
-	TextureCache::InvalidateRange(address, size_in_bytes);
+	TextureCache::InvalidateRange(address, size_in_bytes);	
 	
 	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
 	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
@@ -386,8 +382,74 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
         cacheBytes = 64;
 
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
+	Renderer::ResetAPIState();
+	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight,readStride, true, bScaleByHalf > 0);
+	D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
+	Renderer::RestoreAPIState();	
+}
+
+void EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture,u32 SourceW, u32 SourceH,float MValueX,float MValueY,float Xstride, float Ystride , bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
+{
+	u32 format = copyfmt;
+
+	if (bFromZBuffer)
+	{
+		format |= _GX_TF_ZTF;
+		if (copyfmt == 11)
+			format = GX_TF_Z16;
+		else if (format < GX_TF_Z8 || format > GX_TF_Z24X8)
+			format |= _GX_TF_CTF;
+	}
+	else
+		if (copyfmt > GX_TF_RGBA8 || (copyfmt < GX_TF_RGB565 && !bIsIntensityFmt))
+			format |= _GX_TF_CTF;
+
+	LPDIRECT3DPIXELSHADER9 texconv_shader = GetOrCreateEncodingShader(format);
+	if (!texconv_shader)
+		return;
+
+	u8 *dest_ptr = Memory_GetPtr(address);
+
+	int width = (source.right - source.left) >> bScaleByHalf;
+	int height = (source.bottom - source.top) >> bScaleByHalf;
+
+	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);
+
+	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
+	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
+	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);	
+
+	// only copy on cache line boundaries
+	// extra pixels are copied but not displayed in the resulting texture
+	s32 expandedWidth = (width + blkW) & (~blkW);
+	s32 expandedHeight = (height + blkH) & (~blkH);
+
+    float sampleStride = bScaleByHalf?2.0f:1.0f;
+
+	TextureConversionShader::SetShaderParameters(
+		(float)expandedWidth, 
+		expandedHeight * MValueY, 
+		source.left * MValueX + Xstride , 
+		source.top * MValueY + Ystride, 
+		sampleStride * MValueX, 
+		sampleStride * MValueY,
+		(float)SourceW,
+		(float)SourceH);
+
+	TargetRectangle scaledSource;
+	scaledSource.top = 0;
+	scaledSource.bottom = expandedHeight;
+	scaledSource.left = 0;
+	scaledSource.right = expandedWidth / samples;
+	int cacheBytes = 32;
+    if ((format & 0x0f) == 6)
+        cacheBytes = 64;
+
+    int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight,readStride, true, bScaleByHalf > 0);
 }
+
 
 void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourceRc,u8* destAddr, int dstWidth, int dstHeight)
 {
@@ -400,7 +462,11 @@ void EncodeToRamYUYV(LPDIRECT3DTEXTURE9 srcTexture, const TargetRectangle& sourc
 		1.0f,
 		(float)Renderer::GetFullTargetWidth(),
 		(float)Renderer::GetFullTargetHeight());
+	Renderer::ResetAPIState();
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
+	D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
+	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
+	Renderer::RestoreAPIState();	
 }
 
 

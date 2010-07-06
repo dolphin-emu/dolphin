@@ -39,6 +39,7 @@
 #include "TextureDecoder.h"
 #include "TextureCache.h"
 #include "HiresTextures.h"
+#include "TextureConverter.h"
 
 #include "debugger/debugger.h"
 
@@ -83,24 +84,58 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 	TexCache::iterator iter = textures.begin();
 	while (iter != textures.end())
 	{
-		if (iter->second.IntersectsMemoryRange(start_address, size))
+		int rangePosition = iter->second.IntersectsMemoryRange(start_address, size);
+		if (rangePosition == 0)
 		{
 			iter->second.Destroy(false);
 			textures.erase(iter++);
 		}
 		else {
-			++iter;
+			if(rangePosition<0)
+			{
+				++iter;
+			}
+			else
+			{
+				break;
+			}
 		}
 	}
 }
 
-bool TextureCache::TCacheEntry::IntersectsMemoryRange(u32 range_address, u32 range_size)
+void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
+{
+	TexCache::iterator iter = textures.begin();
+	while (iter != textures.end())
+	{
+		int rangePosition = iter->second.IntersectsMemoryRange(start_address, size);
+		if ( rangePosition == 0)
+		{
+			if(iter->second.addr != start_address)
+			{
+				if(!iter->second.isRenderTarget)
+				{
+					iter->second.isDinamic = true;
+				}
+				iter->second.hash = 0;
+			}
+		}
+		else
+		{
+			if(rangePosition > 0)
+				break;
+		}
+		++iter;
+	}
+}
+
+int TextureCache::TCacheEntry::IntersectsMemoryRange(u32 range_address, u32 range_size)
 {
 	if (addr + size_in_bytes < range_address)
-		return false;
+		return -1;
 	if (addr >= range_address + range_size)
-		return false;
-	return true;
+		return 1;
+	return 0;
 }
 
 void TextureCache::Shutdown()
@@ -152,6 +187,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	u32 texID = address;
 	u64 texHash;
 	u32 FullFormat = tex_format;
+	bool TextureIsDinamic = false;
 	if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
 		u32 FullFormat = (tex_format | (tlutfmt << 16));
 
@@ -186,9 +222,29 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		TCacheEntry &entry = iter->second;
 
 		if (!g_ActiveConfig.bSafeTextureCache)
-			hash_value = ((u32 *)ptr)[0];
+		{
+			if(entry.isRenderTarget)
+			{
+				if(!g_ActiveConfig.bCopyEFBToTexture && g_ActiveConfig.bVerifyTextureModificationsByCPU)
+				{
+					hash_value =  TexDecoder_GetHash64(ptr,TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
+				}
+				else
+				{
+					hash_value = 0;
+				}
+			}
+			else
+			{
+				hash_value = ((u32 *)ptr)[0];
+			}
+		}
+		
 
-		if (entry.isRenderTarget || ((address == entry.addr) && (hash_value == entry.hash) && FullFormat == entry.fmt/* && entry.MipLevels == maxlevel*/))
+		if ((entry.isRenderTarget && hash_value == entry.hash && address == entry.addr) 
+			|| ((address == entry.addr) 
+			&& (hash_value == entry.hash) 
+			&& FullFormat == entry.fmt/* && entry.MipLevels == maxlevel*/))
 		{
 			entry.frameCount = frameCount;
 			D3D::SetTexture(stage, entry.texture);
@@ -199,8 +255,11 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			// Let's reload the new texture data into the same texture,
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
-
-			if (width == entry.w && height==entry.h && FullFormat == entry.fmt/* && entry.MipLevels < maxlevel*/) 
+			TextureIsDinamic = true;
+			
+			if (!entry.isRenderTarget &&
+				((!entry.isDinamic && width == entry.w && height==entry.h && FullFormat == entry.fmt /* && entry.MipLevels < maxlevel*/) 
+				|| (entry.isDinamic && entry.w == width && entry.h == height)))
 			{
 				skip_texture_create = true;
 			}
@@ -214,6 +273,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 	// Make an entry in the table
 	TCacheEntry& entry = textures[texID];
+	entry.isDinamic = TextureIsDinamic;
 	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
 
 	if (g_ActiveConfig.bHiresTextures)
@@ -319,6 +379,8 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	entry.frameCount = frameCount;
 	entry.w = width;
 	entry.h = height;
+	entry.Scaledw = width;
+	entry.Scaledh = height;
 	entry.fmt = FullFormat;
 	
 	if (g_ActiveConfig.bDumpTextures)
@@ -371,14 +433,17 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	int Scaledtex_w = (g_ActiveConfig.bCopyEFBScaled)?((int)(xScale * SuperSampleCompensation *  tex_w)):tex_w;
 	int Scaledtex_h = (g_ActiveConfig.bCopyEFBScaled)?((int)(yScale * SuperSampleCompensation * tex_h)):tex_h;
 	
-	TexCache::iterator iter;
+	TexCache::iterator iter;	
 	LPDIRECT3DTEXTURE9 tex = NULL;
 	iter = textures.find(address);
+	bool TextureIsDinamic = false;
 	if (iter != textures.end())
 	{
-		if (iter->second.isRenderTarget && iter->second.Scaledw == Scaledtex_w && iter->second.Scaledh == Scaledtex_h)
+		if ((iter->second.isRenderTarget && iter->second.Scaledw == Scaledtex_w && iter->second.Scaledh == Scaledtex_h) 
+			|| (iter->second.isDinamic && iter->second.w == tex_w && iter->second.h == tex_h))
 		{
 			tex = iter->second.texture;
+			TextureIsDinamic = iter->second.isDinamic;
 			iter->second.frameCount = frameCount;
 		}
 		else
@@ -390,11 +455,16 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 			textures.erase(iter);
 		}
 	}
-
+	if(TextureIsDinamic)
+	{
+		Scaledtex_w = tex_w;
+		Scaledtex_h = tex_h;
+	}
 	if(!tex)
 	{
 		TCacheEntry entry;
-		entry.isRenderTarget = true;
+		entry.addr = address;
+		entry.isRenderTarget = !TextureIsDinamic;
 		entry.hash = 0;
 		entry.frameCount = frameCount;
 		entry.w = tex_w;
@@ -403,187 +473,226 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		entry.Scaledh = Scaledtex_h;
 		entry.fmt = copyfmt;
 		entry.isNonPow2 = true;
+		entry.isDinamic = false;
 		D3D::dev->CreateTexture(Scaledtex_w, Scaledtex_h, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
 		textures[address] = entry;
 		tex = entry.texture;
 	}
 
-
-	float colmat[16]= {0.0f};
-	float fConstAdd[4] = {0.0f};
-
-	if (bFromZBuffer)
-	{
-		switch(copyfmt)
-		{
-			case 0: // Z4
-			case 1: // Z8
-				colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1.0f;
-				break;
-			case 3: // Z16 //?
-				colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;
-			case 11: // Z16 (reverse order)
-				colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
-				break;
-			case 6: // Z24X8
-				colmat[0] = colmat[5] = colmat[10] = 1.0f;
-				break;
-			case 9: // Z8M
-				colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
-				break;
-			case 10: // Z8L
-				colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
-				break;
-			case 12: // Z16L
-				colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1.0f;
-				break;
-			default:
-				ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", copyfmt);
-				colmat[2] = colmat[5] = colmat[8] = 1.0f;
-				break;
-		}
-	}
-	else if (bIsIntensityFmt)
-	{
-		fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f/255.0f;
-		switch (copyfmt)
-		{
-			case 0: // I4
-			case 1: // I8
-			case 2: // IA4
-			case 3: // IA8
-				// TODO - verify these coefficients
-				colmat[0] = 0.257f; colmat[1] = 0.504f; colmat[2] = 0.098f;
-				colmat[4] = 0.257f; colmat[5] = 0.504f; colmat[6] = 0.098f;
-				colmat[8] = 0.257f; colmat[9] = 0.504f; colmat[10] = 0.098f;
-
-				if (copyfmt < 2)
-				{
-					fConstAdd[3] = 16.0f / 255.0f;
-					colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
-				}
-				else// alpha
-					colmat[15] = 1;
-
-				break;
-			default:
-				ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", copyfmt);
-				colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
-				break;
-		}
-	}
-	else
-	{
-		switch (copyfmt)
-		{
-			case 0: // R4
-			case 8: // R8
-				colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
-				break;
-			case 2: // RA4
-			case 3: // RA8
-				colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1;
-				break;
-
-			case 7: // A8
-				colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1; 
-				break;
-			case 9: // G8
-				colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
-				break;
-			case 10: // B8
-				colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
-				break;
-			case 11: // RG8
-				colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
-				break;
-			case 12: // GB8
-				colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
-				break;
-
-			case 4: // RGB565
-				colmat[0] = colmat[5] = colmat[10] = 1;
-				fConstAdd[3] = 1; // set alpha to 1
-				break;
-			case 5: // RGB5A3
-			case 6: // RGBA8
-				colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
-				break;
-
-			default:
-				ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", copyfmt);
-				colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
-				break;
-		}
-	}
 	// Make sure to resolve anything we need to read from.
 	LPDIRECT3DTEXTURE9 read_texture = bFromZBuffer ? FBManager.GetEFBDepthTexture(source_rect) : FBManager.GetEFBColorTexture(source_rect);
 	
 	// We have to run a pixel shader, for color conversion.
 	Renderer::ResetAPIState(); // reset any game specific settings
-	LPDIRECT3DSURFACE9 Rendersurf = NULL;
-	tex->GetSurfaceLevel(0,&Rendersurf);
-	D3D::dev->SetDepthStencilSurface(NULL);
-	D3D::dev->SetRenderTarget(0, Rendersurf);
-	
-	D3DVIEWPORT9 vp;
 
-	// Stretch picture with increased internal resolution
-	vp.X = 0;
-	vp.Y = 0;
-	vp.Width  = Scaledtex_w;
-	vp.Height = Scaledtex_h;
-	vp.MinZ = 0.0f;
-	vp.MaxZ = 1.0f;
-	D3D::dev->SetViewport(&vp);
-	RECT destrect;
-	destrect.bottom = Scaledtex_h;
-	destrect.left = 0;
-	destrect.right = Scaledtex_w;
-	destrect.top = 0;
-	
-
-	PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
-	TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
-	RECT sourcerect;
-	sourcerect.bottom = targetSource.bottom;
-	sourcerect.left = targetSource.left;
-	sourcerect.right = targetSource.right;
-	sourcerect.top = targetSource.top;
-
-
-	if(bFromZBuffer)
+	if(!TextureIsDinamic || g_ActiveConfig.bCopyEFBToTexture)
 	{
-		if(bScaleByHalf || g_ActiveConfig.iMultisampleMode)
+	
+		float colmat[16]= {0.0f};
+		float fConstAdd[4] = {0.0f};
+
+		if (bFromZBuffer)
+		{
+			switch(copyfmt)
+			{
+				case 0: // Z4
+				case 1: // Z8
+					colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1.0f;
+					break;
+				case 3: // Z16 //?
+					colmat[1] = colmat[5] = colmat[9] = colmat[12] = 1.0f;
+				case 11: // Z16 (reverse order)
+					colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1.0f;
+					break;
+				case 6: // Z24X8
+					colmat[0] = colmat[5] = colmat[10] = 1.0f;
+					break;
+				case 9: // Z8M
+					colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1.0f;
+					break;
+				case 10: // Z8L
+					colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1.0f;
+					break;
+				case 12: // Z16L
+					colmat[2] = colmat[6] = colmat[10] = colmat[13] = 1.0f;
+					break;
+				default:
+					ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%x", copyfmt);
+					colmat[2] = colmat[5] = colmat[8] = 1.0f;
+					break;
+			}
+		}
+		else if (bIsIntensityFmt)
+		{
+			fConstAdd[0] = fConstAdd[1] = fConstAdd[2] = 16.0f/255.0f;
+			switch (copyfmt)
+			{
+				case 0: // I4
+				case 1: // I8
+				case 2: // IA4
+				case 3: // IA8
+					colmat[0] = 0.257f; colmat[1] = 0.504f; colmat[2] = 0.098f;
+					colmat[4] = 0.257f; colmat[5] = 0.504f; colmat[6] = 0.098f;
+					colmat[8] = 0.257f; colmat[9] = 0.504f; colmat[10] = 0.098f;
+
+					if (copyfmt < 2)
+					{
+						fConstAdd[3] = 16.0f / 255.0f;
+						colmat[12] = 0.257f; colmat[13] = 0.504f; colmat[14] = 0.098f;
+					}
+					else// alpha
+						colmat[15] = 1;
+
+					break;
+				default:
+					ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%x", copyfmt);
+					colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+					break;
+			}
+		}
+		else
+		{
+			switch (copyfmt)
+			{
+				case 0: // R4
+				case 8: // R8
+					colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
+					break;
+				case 2: // RA4
+				case 3: // RA8
+					colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1;
+					break;
+
+				case 7: // A8
+					colmat[3] = colmat[7] = colmat[11] = colmat[15] = 1; 
+					break;
+				case 9: // G8
+					colmat[1] = colmat[5] = colmat[9] = colmat[13] = 1;
+					break;
+				case 10: // B8
+					colmat[2] = colmat[6] = colmat[10] = colmat[14] = 1;
+					break;
+				case 11: // RG8
+					colmat[0] = colmat[4] = colmat[8] = colmat[13] = 1;
+					break;
+				case 12: // GB8
+					colmat[1] = colmat[5] = colmat[9] = colmat[14] = 1;
+					break;
+
+				case 4: // RGB565
+					colmat[0] = colmat[5] = colmat[10] = 1;
+					fConstAdd[3] = 1; // set alpha to 1
+					break;
+				case 5: // RGB5A3
+				case 6: // RGBA8
+					colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+					break;
+
+				default:
+					ERROR_LOG(VIDEO, "Unknown copy color format: 0x%x", copyfmt);
+					colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1;
+					break;
+			}
+		}
+		
+		LPDIRECT3DSURFACE9 Rendersurf = NULL;
+		tex->GetSurfaceLevel(0,&Rendersurf);
+		D3D::dev->SetDepthStencilSurface(NULL);
+		D3D::dev->SetRenderTarget(0, Rendersurf);
+		
+		D3DVIEWPORT9 vp;
+
+		// Stretch picture with increased internal resolution
+		vp.X = 0;
+		vp.Y = 0;
+		vp.Width  = Scaledtex_w;
+		vp.Height = Scaledtex_h;
+		vp.MinZ = 0.0f;
+		vp.MaxZ = 1.0f;
+		D3D::dev->SetViewport(&vp);
+		RECT destrect;
+		destrect.bottom = Scaledtex_h;
+		destrect.left = 0;
+		destrect.right = Scaledtex_w;
+		destrect.top = 0;
+		
+
+		PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation
+		TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
+		RECT sourcerect;
+		sourcerect.bottom = targetSource.bottom;
+		sourcerect.left = targetSource.left;
+		sourcerect.right = targetSource.right;
+		sourcerect.top = targetSource.top;
+
+
+		if(bFromZBuffer)
+		{
+			if(bScaleByHalf || g_ActiveConfig.iMultisampleMode)
+			{
+				D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
+				D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
+			}
+			else
+			{
+				D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
+				D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+			}
+		}
+		else
 		{
 			D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
 			D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
 		}
+		
+
+		D3DFORMAT bformat = FBManager.GetEFBDepthRTSurfaceFormat();
+		int SSAAMode = g_ActiveConfig.iMultisampleMode;
+		D3D::drawShadedTexQuad(
+			read_texture,
+			&sourcerect, 
+			Renderer::GetFullTargetWidth() , 
+			Renderer::GetFullTargetHeight(),
+			Scaledtex_w,
+			Scaledtex_h,
+			((bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8) && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(SSAAMode): PixelShaderCache::GetColorMatrixProgram(SSAAMode),
+			VertexShaderCache::GetSimpleVertexShader(SSAAMode));
+		Rendersurf->Release();	
+	}
+	
+	if(!g_ActiveConfig.bCopyEFBToTexture)
+	{
+		TextureConverter::EncodeToRamFromTexture(
+			address,
+			read_texture,
+			Renderer::GetFullTargetWidth(), 
+			Renderer::GetFullTargetHeight(),
+			xScale,
+			yScale,
+			(float)((Renderer::GetFullTargetWidth() - Renderer::GetTargetWidth()) / 2), 
+			(float)((Renderer::GetFullTargetHeight() - Renderer::GetTargetHeight()) / 2) , 
+			bFromZBuffer, 
+			bIsIntensityFmt, 
+			copyfmt, 
+			bScaleByHalf, 
+			source_rect);
+
+		u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
+		int bsw = TexDecoder_GetBlockWidthInTexels(copyfmt) - 1;
+		int bsh = TexDecoder_GetBlockHeightInTexels(copyfmt) - 1;
+		int expandedWidth  = (tex_w + bsw)  & (~bsw);
+		int expandedHeight = (tex_h + bsh) & (~bsh);
+		u32 textureSize = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, copyfmt);
+		MakeRangeDynamic(address,textureSize);
+		if(g_ActiveConfig.bVerifyTextureModificationsByCPU)
+		{
+			textures[address].hash = TexDecoder_GetHash64(ptr,textureSize,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+		}
 		else
 		{
-			D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);
-			D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_POINT);
+			textures[address].hash = 0;
 		}
 	}
-	else
-	{
-		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_LINEAR);
-		D3D::ChangeSamplerState(0, D3DSAMP_MAGFILTER, D3DTEXF_LINEAR);
-	}
-	
-
-	D3DFORMAT bformat = FBManager.GetEFBDepthRTSurfaceFormat();
-	int SSAAMode = g_ActiveConfig.iMultisampleMode;
-	D3D::drawShadedTexQuad(
-		read_texture,
-		&sourcerect, 
-		Renderer::GetFullTargetWidth() , 
-		Renderer::GetFullTargetHeight(),
-		Scaledtex_w,
-		Scaledtex_h,
-		((bformat != FOURCC_RAWZ && bformat != D3DFMT_D24X8) && bFromZBuffer)?  PixelShaderCache::GetDepthMatrixProgram(SSAAMode): PixelShaderCache::GetColorMatrixProgram(SSAAMode),
-		VertexShaderCache::GetSimpleVertexShader(SSAAMode));
-	
 	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 	D3D::RefreshSamplerState(0, D3DSAMP_MAGFILTER);
@@ -591,6 +700,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
 	D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
 	Renderer::RestoreAPIState();
-	Rendersurf->Release();
+	
 }
 

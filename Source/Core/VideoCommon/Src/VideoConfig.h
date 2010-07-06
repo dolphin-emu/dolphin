@@ -116,6 +116,7 @@ struct VideoConfig
 	bool bOSDHotKey;
 	bool bHack;
 	bool bCopyEFBToTexture;
+	bool bVerifyTextureModificationsByCPU;
 	bool bCopyEFBScaled;
 	bool bSafeTextureCache;
 	int iSafeTextureCache_ColorSamples;	
