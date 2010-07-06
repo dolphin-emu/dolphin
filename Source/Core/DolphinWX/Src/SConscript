@@ -12,7 +12,7 @@ files = [
 
 libs = [
 	'core', 'lzo2', 'discio', 'bdisasm', 'videocommon',
-	'inputcommon', 'inputuicommon', 'common', 'lua', 'z', 'sfml-network',
+	'inputuicommon', 'inputcommon', 'common', 'lua', 'z', 'sfml-network',
 	'SDL'
 	]
 

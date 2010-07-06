@@ -21,7 +21,7 @@ files = [
 	  'WiimoteConfigDiag.cpp',
 	]
 
-libs = [ 'inputcommon', 'inputuicommon', 'common', 'SDL' ]
+libs = [ 'inputuicommon', 'inputcommon', 'common', 'SDL' ]
 
 cxxflags = [ ]
 

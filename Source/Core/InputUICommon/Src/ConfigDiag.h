@@ -43,8 +43,7 @@
 #include "ControllerEmu.h"
 #include "InputConfig.h"
 #include "FileSearch.h"
-
-class UDPWrapper;
+#include "UDPWrapper.h"
 
 class PadSetting
 {
@@ -152,8 +151,9 @@ class UDPConfigButton : public wxButton
 {
 public:
 	UDPWrapper * wrapper;
-	UDPConfigButton( wxWindow* const parent, UDPWrapper * udp) : wrapper(udp), 
-		wxButton( parent, -1, wxT("Configure"), wxDefaultPosition )
+	UDPConfigButton( wxWindow* const parent, UDPWrapper * udp) :
+		wxButton( parent, -1, wxT("Configure"), wxDefaultPosition ),
+		wrapper(udp)
 	{}
 };
 

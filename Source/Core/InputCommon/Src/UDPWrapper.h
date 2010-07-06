@@ -1,14 +1,23 @@
 #ifndef UDPWRAPPER_H
 #define UDPWRAPPER_H
 
-#include <Common.h>
+#include "Common.h"
 #include "ControllerEmu.h"
-#include <IniFile.h>
+#include "IniFile.h"
 #include <string>
 
-class wxWindow;
-class UDPWiimote;
-class Wiimote;
+#include <wx/wx.h>
+#include <wx/listbox.h>
+#include <wx/textctrl.h>
+#include <wx/button.h>
+#include <wx/stattext.h>
+#include <wx/combobox.h>
+#include <wx/checkbox.h>
+#include <wx/notebook.h>
+#include <wx/panel.h>
+#include <wx/spinctrl.h>
+
+#include "UDPWiimote.h"
 
 class UDPWrapper : public ControllerEmu::ControlGroup
 {
@@ -22,7 +31,8 @@ public:
 	virtual void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 	virtual void SaveConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 	void Refresh();
-	void Configure(wxWindow * parent);	virtual ~UDPWrapper();
+	void Configure(wxWindow * parent);
+	virtual ~UDPWrapper();
 };
 
 #endif

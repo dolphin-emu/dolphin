@@ -65,8 +65,9 @@ THREAD_RETURN UDPWiiThread(void* arg)
 }
 
 UDPWiimote::UDPWiimote(const char *_port) : 
-d(new _d) ,x(0),y(0),z(0),nunX(0),nunY(0),
-pointerX(-0.1),pointerY(-0.1),nunMask(0),mask(0),time(0),port(_port)
+	port(_port),
+	d(new _d) ,x(0),y(0),z(0),nunX(0),nunY(0),
+	pointerX(-0.1),pointerY(-0.1),nunMask(0),mask(0),time(0)
 {
 	#ifdef _WIN32
 	u_long iMode = 1;

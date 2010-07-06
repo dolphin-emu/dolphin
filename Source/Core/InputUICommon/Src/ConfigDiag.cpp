@@ -16,7 +16,6 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "ConfigDiag.h"
-#include "UDPWrapper.h"
 
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
 #define WXSTR_FROM_STR(s)	(wxString::From8BitData((s).c_str()))

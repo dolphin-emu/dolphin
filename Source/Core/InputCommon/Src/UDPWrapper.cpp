@@ -1,25 +1,13 @@
 #include "UDPWrapper.h"
-#include "UDPWiimote.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-
-#include <wx/wx.h>
-#include <wx/listbox.h>
-#include <wx/textctrl.h>
-#include <wx/button.h>
-#include <wx/stattext.h>
-#include <wx/combobox.h>
-#include <wx/checkbox.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
-#include <wx/spinctrl.h>
-
 UDPWrapper::UDPWrapper(int indx, const char* const _name) : 
-updIR(false),updAccel(false),
-updButt(false),udpEn(false),inst(NULL),
-index(indx),ControllerEmu::ControlGroup(_name,GROUP_TYPE_UDPWII)
+	ControllerEmu::ControlGroup(_name,GROUP_TYPE_UDPWII),
+	inst(NULL), index(indx),
+	updIR(false),updAccel(false),
+	updButt(false),udpEn(false)
 {
 	char s[5];
 	sprintf(s,"%d",4432+index);
@@ -114,8 +102,8 @@ public:
 };
 
 UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
-	  wxDialog(parent, -1, wxT("UDP Wiimote"), wxDefaultPosition, wxDefaultSize),
-	  wrp(_wrp) 
+	wxDialog(parent, -1, wxT("UDP Wiimote"), wxDefaultPosition, wxDefaultSize),
+	wrp(_wrp) 
 {
 	wxBoxSizer * outer_sizer = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer * sizer1 = new wxBoxSizer(wxVERTICAL);
