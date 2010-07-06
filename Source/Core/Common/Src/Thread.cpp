@@ -37,11 +37,6 @@ namespace Common
 	
 #ifdef _WIN32
 	
-	void InitThreading()
-	{
-		// Nothing to do in Win32 build.
-	}
-	
 	CriticalSection::CriticalSection(int spincount)
 	{
 		if (spincount)
@@ -306,7 +301,8 @@ namespace Common
 	
 #else // !WIN32, so must be POSIX threads
 	
-	pthread_key_t threadname_key;
+	static pthread_key_t threadname_key;
+	static pthread_once_t threadname_key_once = PTHREAD_ONCE_INIT;
 	
 	CriticalSection::CriticalSection(int spincount_unused)
 	{
@@ -411,17 +407,6 @@ namespace Common
 	{
 		return pthread_equal(pthread_self(), thread_id) != 0;
 	}
-	
-	void InitThreading() {
-		static int thread_init_done = 0;
-		if (thread_init_done)
-			return;
-		
-		if (pthread_key_create(&threadname_key, NULL/*free*/) != 0)
-			perror("Unable to create thread name key: ");
-		
-		thread_init_done++;
-	}
 
 	void SleepCurrentThread(int ms)
 	{
@@ -433,16 +418,26 @@ namespace Common
 		usleep(1000 * 1);
 	}
 
+	static void FreeThreadName(void* threadname)
+	{
+		free(threadname);
+	}
+
+	static void ThreadnameKeyAlloc()
+	{
+		pthread_key_create(&threadname_key, FreeThreadName);
+	}
+
 	void SetCurrentThreadName(const TCHAR* szThreadName)
 	{
-		char *name = strdup(szThreadName);
-		// pthread_setspecific returns 0 on success
-		// free the string from strdup if fails
-		// creates a memory leak if it actually doesn't fail
-		// since we don't delete it once we delete the thread
-		// we are using a single threadname_key anyway for all threads
-		if(!pthread_setspecific(threadname_key, name))
-			free(name);
+		pthread_once(&threadname_key_once, ThreadnameKeyAlloc);
+
+		void* threadname;
+		if ((threadname = pthread_getspecific(threadname_key)) != NULL)
+			free(threadname);
+
+		pthread_setspecific(threadname_key, strdup(szThreadName));
+
 		INFO_LOG(COMMON, "%s(%s)\n", __FUNCTION__, szThreadName);
 	}
 	

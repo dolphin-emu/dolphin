@@ -190,8 +190,6 @@ bool Init()
 	CPluginManager &pManager = CPluginManager::GetInstance();
 	SCoreStartupParameter &_CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
 
-	Common::InitThreading();
-
 	g_CoreStartupParameter = _CoreParameter;
 	// FIXME DEBUG_LOG(BOOT, dump_params());
 	Host_SetWaitCursor(true);

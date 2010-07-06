@@ -203,7 +203,6 @@ namespace Common
 #endif
 	};
 	
-	void InitThreading();
 	void SleepCurrentThread(int ms);
 	void SwitchCurrentThread();	// On Linux, this is equal to sleep 1ms
 
