@@ -48,10 +48,16 @@
 
 IMPLEMENT_APP(DolphinApp)
 
+BEGIN_EVENT_TABLE(DolphinApp, wxApp)
+	EVT_TIMER(wxID_ANY, DolphinApp::AfterInit)
+END_EVENT_TABLE()
+
 #include <wx/stdpaths.h>
 bool wxMsgAlert(const char*, const char*, bool, int);
 
 CFrame* main_frame = NULL;
+static bool LoadFile = false;
+static wxString FileToLoad;
 
 #ifdef WIN32
 //Has no error handling.
@@ -88,12 +94,10 @@ bool DolphinApp::OnInit()
 	// Declarations and definitions
 	bool UseDebugger = false;
 	bool UseLogger = false;
-	bool LoadFile = false;
 	bool selectVideoPlugin = false;
 	bool selectAudioPlugin = false;
 	bool selectWiimotePlugin = false;
 
-	wxString FileToLoad;
 	wxString videoPluginFilename;
 	wxString audioPluginFilename;
 	wxString wiimotePluginFilename;
@@ -381,17 +385,37 @@ bool DolphinApp::OnInit()
 
 	main_frame = new CFrame((wxFrame*)NULL, wxID_ANY, wxString::FromAscii(title),
 			wxPoint(x, y), wxSize(w, h), UseDebugger, UseLogger);
+	SetTopWindow(main_frame);
 
-	// ------------
-	// Check the autoboot options.
+#if defined HAVE_X11 && HAVE_X11
+	XInitThreads();
+#endif 
+
+	// Postpone final actions until event handler is running
+	m_afterinit = new wxTimer(this, wxID_ANY);
+	m_afterinit->Start(1, wxTIMER_ONE_SHOT);
+
+	return true;
+}
+
+void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
+{
+	delete m_afterinit;
+
+	// Updating the game list makes use of wxProgressDialog which may
+	// only be run after OnInit() when the event handler is running.
+	main_frame->UpdateGameList();
+
+	// Check the autoboot options:
 
 	// First check if we have an exec command line.
 	if (LoadFile && FileToLoad != wxEmptyString)
 	{
 		main_frame->BootGame(std::string(FileToLoad.mb_str()));
 	}
-	// If we have selected Automatic Start, start the default ISO, or if no default
-	// ISO exists, start the last loaded ISO
+
+	// If we have selected Automatic Start, start the default ISO,
+	// or if no default ISO exists, start the last loaded ISO
 	else if (main_frame->g_pCodeWindow)
 	{
 		if (main_frame->g_pCodeWindow->AutomaticStart())
@@ -410,16 +434,6 @@ bool DolphinApp::OnInit()
 			}	
 		}
 	}
-	// ---------------------
-
-	// Set main parent window
-	SetTopWindow(main_frame);
-
-#if defined HAVE_X11 && HAVE_X11
-	XInitThreads();
-#endif 
-
-	return true;
 }
 
 void DolphinApp::OnEndSession()
