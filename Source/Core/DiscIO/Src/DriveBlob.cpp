@@ -63,9 +63,7 @@ DriveReader::DriveReader(const char *drive)
 #endif
 	}
 	else
-	{
-		PanicAlert("Load from DVD backup failed or no disc in drive %s", drive);
-	}
+		NOTICE_LOG(DISCIO, "Load from DVD backup failed or no disc in drive %s", drive);
 }  // DriveReader::DriveReader
 
 DriveReader::~DriveReader()

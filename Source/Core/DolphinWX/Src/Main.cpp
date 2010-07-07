@@ -48,10 +48,6 @@
 
 IMPLEMENT_APP(DolphinApp)
 
-BEGIN_EVENT_TABLE(DolphinApp, wxApp)
-	EVT_TIMER(wxID_ANY, DolphinApp::AfterInit)
-END_EVENT_TABLE()
-
 #include <wx/stdpaths.h>
 bool wxMsgAlert(const char*, const char*, bool, int);
 
@@ -423,18 +419,7 @@ bool DolphinApp::OnInit()
 	XInitThreads();
 #endif 
 
-	// Postpone final actions until event handler is running
-	m_afterinit = new wxTimer(this, wxID_ANY);
-	m_afterinit->Start(1, wxTIMER_ONE_SHOT);
-
 	return true;
-}
-
-void DolphinApp::AfterInit(wxTimerEvent& WXUNUSED(event))
-{
-	delete m_afterinit;
-
-	main_frame->UpdateGameList();
 }
 
 void DolphinApp::OnEndSession()

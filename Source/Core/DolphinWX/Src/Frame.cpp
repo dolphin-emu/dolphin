@@ -498,6 +498,8 @@ CFrame::CFrame(wxFrame* parent,
 	m_bControlsCreated = true;
 	UpdateGUI();
 
+	if (m_GameListCtrl) m_GameListCtrl->Update();
+
 	// If we are rerecording create the status bar now instead of later when a game starts
 	#ifdef RERECORDING
 		ModifyStatusBar();
