@@ -701,6 +701,10 @@ WIIUSE_EXPORT extern int wiiuse_check_system_notification(unsigned int nMsg, WPA
 WIIUSE_EXPORT extern int wiiuse_register_system_notification(HWND hwnd);
 #endif
 
+#ifdef __linux__
+int wiiuse_find_more(struct wiimote_t** wm, int max_wiimotes, int timeout);
+#endif
+
 /* ir.c */
 WIIUSE_EXPORT extern void wiiuse_set_ir(struct wiimote_t* wm, int status);
 WIIUSE_EXPORT extern void wiiuse_set_ir_position(struct wiimote_t* wm, enum ir_position_t pos);

@@ -198,6 +198,7 @@ void UDPWiimote::mainThread()
 UDPWiimote::~UDPWiimote()
 {
 	d->exit=true;
+	d->thread->WaitForDeath();
 	d->termLock.Enter();
 	d->termLock.Leave();
 	for (std::list<sock_t>::iterator i=d->sockfds.begin(); i!=d->sockfds.end(); i++)

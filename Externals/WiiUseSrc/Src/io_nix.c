@@ -131,6 +131,84 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 	return found_wiimotes;
 }
 
+// Scan for more wiimotes and add them to the wm structure.
+// Does not replace already found wiimotes even if they are disconnected.
+// Returns the total number of found wiimotes.
+// It would probably be safe to replace wiiuse_find with this function.  The only thing
+// it does that this does not is reset the bdaddr fields.
+int wiiuse_find_more(struct wiimote_t** wm, int max_wiimotes, int timeout) {
+int device_id;
+int device_sock;
+int found_devices;
+int found_wiimotes = 0;
+int i;
+
+// Count the number of already found wiimotes
+for (i = 0; i < max_wiimotes; ++i) {
+		if (WIIMOTE_IS_SET(wm[i], WIIMOTE_STATE_DEV_FOUND))
+			found_wiimotes++;
+}
+
+// get the id of the first bluetooth device.
+device_id = hci_get_route(NULL);
+if (device_id < 0) {
+	perror("hci_get_route");
+	return 0;
+}
+
+// create a socket to the device
+device_sock = hci_open_dev(device_id);
+if (device_sock < 0) {
+	perror("hci_open_dev");
+	return 0;
+}
+
+inquiry_info scan_info_arr[128];
+inquiry_info* scan_info = scan_info_arr;
+memset(&scan_info_arr, 0, sizeof(scan_info_arr));
+
+// scan for bluetooth devices for timeout seconds
+found_devices = hci_inquiry(device_id, timeout, 128, NULL, &scan_info, IREQ_CACHE_FLUSH);
+if (found_devices < 0) {
+	perror("hci_inquiry");
+	return 0;
+}
+
+WIIUSE_INFO("Found %i bluetooth device(s).", found_devices);
+
+// display discovered devices
+for (i = 0; (i < found_devices) && (found_wiimotes < max_wiimotes); ++i) {
+	if ((scan_info[i].dev_class[0] == WM_DEV_CLASS_0) &&
+		(scan_info[i].dev_class[1] == WM_DEV_CLASS_1) &&
+		(scan_info[i].dev_class[2] == WM_DEV_CLASS_2))
+	{
+		int new_wiimote = 1;
+		int j;
+		// Determine if this wiimote has already been found.
+		for (j = 0; j < found_wiimotes && new_wiimote; ++j)
+	 	{
+			if (WIIMOTE_IS_SET(wm[j], WIIMOTE_STATE_DEV_FOUND) &&
+					bacmp(&scan_info[i].bdaddr,&wm[j]->bdaddr) == 0)
+				new_wiimote = 0;
+		}
+
+		if (new_wiimote)
+		{
+			// found a new device
+			ba2str(&scan_info[i].bdaddr, wm[found_wiimotes]->bdaddr_str);
+
+			WIIUSE_INFO("Found wiimote (%s) [id %i].", wm[found_wiimotes]->bdaddr_str, wm[found_wiimotes]->unid);
+
+			wm[found_wiimotes]->bdaddr = scan_info[i].bdaddr;
+			WIIMOTE_ENABLE_STATE(wm[found_wiimotes], WIIMOTE_STATE_DEV_FOUND);
+			++found_wiimotes;
+		}
+	}
+}
+
+close(device_sock);
+return found_wiimotes;
+}
 
 /**
  *	@brief Connect to a wiimote or wiimotes once an address is known.

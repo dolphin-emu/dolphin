@@ -102,6 +102,11 @@ Wiimote::Wiimote(wiimote_t* const wm, const unsigned int index)
 	//SendPacket(g_wiimotes_from_wiiuse[i], WM_LEDS, &rpt, sizeof(rpt));
 	//}
 
+	// Rumble briefly
+	wiiuse_rumble(m_wiimote, 1);
+	SLEEP(200);
+	wiiuse_rumble(m_wiimote, 0);
+
 	// set LEDs
 	wiiuse_set_leds(m_wiimote, WIIMOTE_LED_1 << m_index);
 
@@ -340,12 +345,54 @@ void Shutdown(void)
 	wiiuse_cleanup(g_wiimotes_from_wiiuse, MAX_WIIMOTES);
 }
 
+#ifdef __linux__
+void Refresh()
+{
+	// find the number of slots configured for real wiimotes
+	unsigned int wanted_wiimotes = 0;
+	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
+		if (g_wiimote_sources[i] == WIIMOTE_SRC_REAL)
+			++wanted_wiimotes;
+
+	// don't scan for wiimotes if we don't want any more
+	if (wanted_wiimotes <= g_wiimotes_found)
+		return;
+
+	// scan for wiimotes
+	unsigned int num_wiimotes = wiiuse_find_more(g_wiimotes_from_wiiuse, wanted_wiimotes, 5);
+	
+	DEBUG_LOG(WIIMOTE, "Found %i Real Wiimotes, %i wanted", num_wiimotes, wanted_wiimotes);
+
+	int num_new_wiimotes = wiiuse_connect(g_wiimotes_from_wiiuse, num_wiimotes);
+
+	DEBUG_LOG(WIIMOTE, "Connected to %i additional Real Wiimotes", num_new_wiimotes);
+
+	g_wiimote_critsec.Enter();	// enter
+
+	// create real wiimote class instances, and assign wiimotes for the new wiimotes
+	for (unsigned int i = g_wiimotes_found, w = g_wiimotes_found;
+		   	i < MAX_WIIMOTES && w < num_wiimotes; ++i)
+	{
+		if (g_wiimote_sources[i] != WIIMOTE_SRC_REAL || g_wiimotes[i] != NULL)
+			continue;
+
+		// create/assign wiimote
+		g_wiimotes[i] = new Wiimote(g_wiimotes_from_wiiuse[w++], i);
+	}
+	g_wiimotes_found = num_wiimotes;
+
+	g_wiimote_critsec.Leave();	// leave
+	
+	return;
+}
+#else
 void Refresh()
 {
 	// should be fine i think
 	Shutdown();
 	Initialize();	
 }
+#endif
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
 {
