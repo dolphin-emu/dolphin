@@ -997,6 +997,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(Rc);
 		GLuint read_texture = g_framebufferManager.ResolveAndGetRenderTarget(Rc);
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
 		if (applyShader)
 		{
