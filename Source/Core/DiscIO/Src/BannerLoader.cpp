@@ -28,6 +28,11 @@
 #include <Windows.h>
 #endif
 
+#ifdef __linux__
+#include <iconv.h>
+#include <errno.h>
+#endif
+
 namespace DiscIO
 {
 void IBannerLoader::CopyToStringAndCheck(std::string& _rDestination, const char* _src)
@@ -120,10 +125,68 @@ bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16
 			delete[] buffer;
 		}
 	}
-#else
-	// FIXME: Horribly broke on non win32
-	//	_rDestination = _src;
-	returnCode = false;
+#elif defined(__linux__)
+	if (_src)
+	{
+		iconv_t conv_desc = iconv_open("UTF-8", "CP932");
+		if (conv_desc == (iconv_t) -1)
+		{
+			// Initialization failure.
+			if (errno == EINVAL)
+			{
+				ERROR_LOG(DISCIO, "Conversion from CP932 to UTF-8 is not supported.");
+			}
+			else
+			{
+				ERROR_LOG(DISCIO, "Iconv initialization failure: %s\n", strerror (errno));
+			}
+			return false;
+		}
+
+		char* src_buffer = new char[length];
+		for (int i = 0; i < length; i++)
+			src_buffer[i] = swap16(_src[i]);
+
+		size_t inbytes = sizeof(char) * length;
+		size_t outbytes = 2 * inbytes;
+		char* utf8_buffer = new char[outbytes + 1];
+		memset(utf8_buffer, 0, (outbytes + 1) * sizeof(char));
+
+		// Save the buffer locations because iconv increments them
+		char* utf8_buffer_start = utf8_buffer;
+		char* src_buffer_start = src_buffer;
+
+		size_t iconv_size = iconv(conv_desc, &src_buffer, &inbytes, &utf8_buffer, &outbytes);
+
+		// Handle failures
+		if (iconv_size == (size_t) -1)
+		{
+			ERROR_LOG(DISCIO, "iconv failed.");
+			switch (errno) {
+				case EILSEQ:
+					ERROR_LOG(DISCIO, "Invalid multibyte sequence.");
+					break;
+				case EINVAL:
+					ERROR_LOG(DISCIO, "Incomplete multibyte sequence.");
+					break;
+				case E2BIG:
+					ERROR_LOG(DISCIO, "Insufficient space allocated for output buffer.");
+					break;
+				default:
+					ERROR_LOG(DISCIO, "Error: %s.", strerror(errno));
+			}
+		}
+		else
+		{
+			_rDestination = utf8_buffer_start;
+			returnCode = true;
+		}
+		delete[] utf8_buffer_start;
+		delete[] src_buffer_start;
+		iconv_close(conv_desc);
+	}
+#elif defined(__APPLE__)
+	// TODO:  Implement this (Maybe the linux code will work?)
 #endif
 	return returnCode;
 }
