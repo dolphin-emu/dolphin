@@ -41,13 +41,12 @@ Plugin_DSP_LLE: Low Level DSP Emulation
 
 [Video Plugins]
 Plugin_VideoDX9: Render with Direct3D 9
+Plugin_VideoDX11: Render with Direct3D 11
 Plugin_VideoOGL: Render with OpenGL + Cg Shader Language
 
-[Gamecube Controller Plugins]
-Plugin_GCPad: Use keyboard or joypads
-
 [Wiimote Plugins]
-Plugin_Wiimote: Use native wiimote or keyboard
+Plugin_Wiimote: Use native wiimote or keyboard (legacy)
+Plugin_WiimoteNew: Use native wiimote or keyboard (incomplete)
 
 [Sys Files]
 totaldb.dsy: Database of symbols (for devs only)
