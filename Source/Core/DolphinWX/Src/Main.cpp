@@ -17,7 +17,6 @@
 
 #include <vector>
 #include <string>
-#include "svnrev.h"
 
 #include "Common.h" // Common
 
@@ -358,15 +357,6 @@ bool DolphinApp::OnInit()
 
 	SetEnableAlert(SConfig::GetInstance().m_LocalCoreStartupParameter.bUsePanicHandlers);
 
-	// Create the window title
-#ifdef _DEBUG
-	const char *title = "Dolphin Debug SVN R " SVN_REV_STR;
-#elif defined DEBUGFAST
-	const char *title = "Dolphin Debugfast SVN R " SVN_REV_STR;
-#else
-	const char *title = "Dolphin SVN R " SVN_REV_STR;
-#endif
-
 	int x = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosX;
 	int y = SConfig::GetInstance().m_LocalCoreStartupParameter.iPosY;
 	int w = SConfig::GetInstance().m_LocalCoreStartupParameter.iWidth;
@@ -383,8 +373,10 @@ bool DolphinApp::OnInit()
 		x = y = -1;
 #endif
 
-	main_frame = new CFrame((wxFrame*)NULL, wxID_ANY, wxString::FromAscii(title),
-			wxPoint(x, y), wxSize(w, h), UseDebugger, UseLogger);
+	main_frame = new CFrame((wxFrame*)NULL, wxID_ANY,
+				wxString::FromAscii(svn_rev_str),
+				wxPoint(x, y), wxSize(w, h),
+				UseDebugger, UseLogger);
 	SetTopWindow(main_frame);
 
 #if defined HAVE_X11 && HAVE_X11

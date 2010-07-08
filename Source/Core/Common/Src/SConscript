@@ -34,6 +34,7 @@ files = [
 	"Thunk.cpp",
 	"Timer.cpp",
 	"Thread.cpp",
+	"Version.cpp",
 	"x64Emitter.cpp",
 	"x64Analyzer.cpp",
 	"Crypto/bn.cpp",

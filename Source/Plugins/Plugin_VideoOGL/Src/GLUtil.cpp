@@ -18,7 +18,6 @@
 #include "Globals.h"
 #include "VideoConfig.h"
 #include "IniFile.h"
-#include "svnrev.h"
 #include "Setup.h"
 
 #include "Render.h"
@@ -113,7 +112,7 @@ unsigned int Callback_PeekMessages()
 void UpdateFPSDisplay(const char *text)
 {
 	char temp[512];
-	sprintf(temp, "SVN R%s: GL: %s", SVN_REV_STR, text);
+	sprintf(temp, "SVN R%s: GL: %s", svn_rev_str, text);
 	OpenGL_SetWindowText(temp);
 }
 

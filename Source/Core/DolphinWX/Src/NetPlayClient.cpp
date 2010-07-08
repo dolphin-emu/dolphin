@@ -24,7 +24,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, const s
 		// send connect message
 		sf::Packet spac;
 		spac << NETPLAY_VERSION;
-		spac << NETPLAY_DOLPHIN_VER;
+		spac << netplay_dolphin_ver;
 		spac << name;
 		m_socket.Send(spac);
 
@@ -61,7 +61,7 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, const s
 			Player player;
 			player.name = name;
 			player.pid = m_pid;
-			player.revision = NETPLAY_DOLPHIN_VER;
+			player.revision = netplay_dolphin_ver;
 
 			// add self to player list
 			m_players[m_pid] = player;

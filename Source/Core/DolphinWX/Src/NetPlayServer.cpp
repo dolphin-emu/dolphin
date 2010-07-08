@@ -24,7 +24,7 @@ NetPlayServer::NetPlayServer(const u16 port, const std::string& name, NetPlayDia
 	{
 		Client player;
 		player.pid = 0;
-		player.revision = NETPLAY_DOLPHIN_VER;
+		player.revision = netplay_dolphin_ver;
 		player.socket = m_socket;
 		player.name = name;
 

@@ -17,7 +17,6 @@
 
 #include "Common.h"
 #include "AboutDolphin.h"
-#include "svnrev.h"
 #include "CPUDetect.h"
 #include "../resources/dolphin_logo.cpp"
 
@@ -49,7 +48,7 @@ void AboutDolphin::CreateGUIControls()
 		wxBitmap(iDolphinLogo), wxDefaultPosition, wxDefaultSize, 0);
 
 	std::string Text = std::string("") +
-		"Dolphin SVN revision " + SVN_REV_STR + "\n"
+		"Dolphin SVN revision " + svn_rev_str + "\n"
 		"Copyright (c) 2003-2010+ Dolphin Team\n"
 		"\n"
 		"Dolphin is a Gamecube/Wii emulator, which was\n"

@@ -26,14 +26,11 @@
 GFXConfigDialogDX *m_ConfigFrame = NULL;
 #endif // HAVE_WX
 
-
-
 #if defined(HAVE_WX) && HAVE_WX
 #include "Debugger/Debugger.h"
 GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 #endif // HAVE_WX
 
-#include "svnrev.h"
 #include "main.h"
 #include "VideoConfig.h"
 #include "Fifo.h"
@@ -165,8 +162,7 @@ unsigned int Callback_PeekMessages()
 void UpdateFPSDisplay(const char *text)
 {
 	TCHAR temp[512];
-	swprintf_s(temp, 512, _T("SVN R%i: DX9: %hs"), SVN_REV, text);
-	SetWindowText(EmuWindow::GetWnd(), temp);
+	swprintf_s(temp, 512, _T("SVN R%s: DX9: %hs"), svn_rev_str, text);
 }
 
 void GetDllInfo (PLUGIN_INFO* _PluginInfo)

@@ -12,7 +12,6 @@
 #include <SFML/Network.hpp>
 
 #include "GCPadStatus.h"
-#include "svnrev.h"
 
 //#include <wx/wx.h>
 
@@ -40,20 +39,6 @@ struct Rpt : public std::vector<u8>
 typedef std::vector<Rpt>	NetWiimote;
 
 #define NETPLAY_VERSION		"Dolphin NetPlay 2.2"
-
-#ifdef _M_X64
-	#define	NP_ARCH "x64"
-#else
-	#define	NP_ARCH "x86"
-#endif
-
-#ifdef _WIN32
-	#define NETPLAY_DOLPHIN_VER		SVN_REV_STR" W"NP_ARCH
-#elif __APPLE__
-	#define NETPLAY_DOLPHIN_VER		SVN_REV_STR" M"NP_ARCH
-#else
-	#define NETPLAY_DOLPHIN_VER		SVN_REV_STR" L"NP_ARCH
-#endif
 
 // messages
 #define NP_MSG_PLAYER_JOIN		0x10

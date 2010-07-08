@@ -27,7 +27,6 @@
 #include "Thread.h"
 #include "LogManager.h"
 
-#include "svnrev.h"
 #include "resource.h"
 #include "main.h"
 #include "VideoConfig.h"
@@ -162,7 +161,7 @@ unsigned int Callback_PeekMessages()
 void UpdateFPSDisplay(const char* text)
 {
 	char temp[512];
-	sprintf_s(temp, 512, "SVN R%i: DX11: %s", SVN_REV, text);
+	sprintf_s(temp, 512, "SVN R%s: DX11: %s", svn_rev_str, text);
 	SetWindowTextA(EmuWindow::GetWnd(), temp);
 }
 

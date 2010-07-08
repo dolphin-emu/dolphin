@@ -889,6 +889,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\Version.cpp"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\x64Analyzer.cpp"
 			>
 		</File>
