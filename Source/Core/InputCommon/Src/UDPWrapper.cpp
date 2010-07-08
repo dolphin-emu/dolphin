@@ -84,6 +84,8 @@ UDPWrapper::~UDPWrapper()
 }
 
 
+#if defined(HAVE_WX) && HAVE_WX
+
 #define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler( f ), (wxObject*)0, (wxEvtHandler*)s)
 
 class UDPConfigDiag : public wxDialog
@@ -173,3 +175,4 @@ void UDPWrapper::Configure(wxWindow * parent)
 	diag->ShowModal();
 	diag->Destroy();
 }
+#endif

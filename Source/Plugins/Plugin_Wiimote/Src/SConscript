@@ -7,28 +7,29 @@ wmenv = env.Clone()
 name = "Plugin_Wiimote"
 
 files = [
-        "Config.cpp",
-        "DataReports.cpp",
-        "EmuDefinitions.cpp",
-        "EmuDynamics.cpp",
-        "EmuMain.cpp",
-        "EmuPad.cpp",
-        "EmuSubroutines.cpp",
-        "Encryption.cpp",
-        "main.cpp",
-        "Rumble.cpp",
+	"Config.cpp",
+	"DataReports.cpp",
+	"EmuDefinitions.cpp",
+	"EmuDynamics.cpp",
+	"EmuMain.cpp",
+	"EmuPad.cpp",
+	"EmuSubroutines.cpp",
+	"Encryption.cpp",
+	"main.cpp",
+	"Rumble.cpp",
 	"UDPWiimote.cpp"
 	]
 
-if wmenv['HAVE_WX']:
-    files += [
-        "ConfigBasicDlg.cpp",
-        "ConfigPadDlg.cpp",
-        "ConfigGamepad.cpp",
-        "FillReport.cpp",
-        ]
+libs = [ 'inputcommon', 'common', 'SDL' ]
 
-libs = [ 'inputuicommon', 'inputcommon', 'common', 'SDL' ]
+if wmenv['HAVE_WX']:
+	libs = [ 'inputuicommon' ] + libs
+	files += [
+		"ConfigBasicDlg.cpp",
+		"ConfigPadDlg.cpp",
+		"ConfigGamepad.cpp",
+		"FillReport.cpp",
+        ]
 
 cxxflags = [ ]
 

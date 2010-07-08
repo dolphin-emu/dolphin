@@ -6,6 +6,7 @@
 #include "IniFile.h"
 #include <string>
 
+#if defined(HAVE_WX) && HAVE_WX
 #include <wx/wx.h>
 #include <wx/listbox.h>
 #include <wx/textctrl.h>
@@ -16,6 +17,7 @@
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/spinctrl.h>
+#endif
 
 #include "UDPWiimote.h"
 
@@ -31,7 +33,9 @@ public:
 	virtual void LoadConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 	virtual void SaveConfig(IniFile::Section *sec, const std::string& defdev = "", const std::string& base = "" );
 	void Refresh();
+#if defined(HAVE_WX) && HAVE_WX
 	void Configure(wxWindow * parent);
+#endif
 	virtual ~UDPWrapper();
 };
 

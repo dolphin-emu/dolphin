@@ -2,13 +2,13 @@
 #include "Common.h"
 #include "pluginspecs_wiimote.h"
 
-#include "WiimoteConfigDiag.h"
 #include "WiimoteReal/WiimoteReal.h"
 
 #include "ControllerInterface/ControllerInterface.h"
 #include "WiimoteEmu/WiimoteEmu.h"
 
 #if defined(HAVE_WX) && HAVE_WX
+#include "WiimoteConfigDiag.h"
 #include "../../InputUICommon/Src/ConfigDiag.h"
 #endif
 #include "../../InputCommon/Src/InputConfig.h"

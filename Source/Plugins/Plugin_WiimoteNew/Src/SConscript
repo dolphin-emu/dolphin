@@ -7,27 +7,30 @@ name = "Plugin_WiimoteNew"
 wiinewenv = env.Clone()
 
 files = [
-	  'WiimoteEmu/WiimoteEmu.cpp',
-	  'WiimoteEmu/Attachment/Classic.cpp',
-	  'WiimoteEmu/Attachment/Attachment.cpp',
-	  'WiimoteEmu/Attachment/Nunchuk.cpp',
-	  'WiimoteEmu/Attachment/UDPNunchuk.cpp',
-	  'WiimoteEmu/Attachment/Drums.cpp',
-	  'WiimoteEmu/Attachment/Guitar.cpp',
-	  'WiimoteEmu/EmuSubroutines.cpp',
-	  'WiimoteEmu/Encryption.cpp',
-	  'WiimoteEmu/Speaker.cpp',
-	  'WiimoteNew.cpp',
-	  'WiimoteConfigDiag.cpp',
+	'WiimoteEmu/WiimoteEmu.cpp',
+	'WiimoteEmu/Attachment/Classic.cpp',
+	'WiimoteEmu/Attachment/Attachment.cpp',
+	'WiimoteEmu/Attachment/Nunchuk.cpp',
+	'WiimoteEmu/Attachment/UDPNunchuk.cpp',
+	'WiimoteEmu/Attachment/Drums.cpp',
+	'WiimoteEmu/Attachment/Guitar.cpp',
+	'WiimoteEmu/EmuSubroutines.cpp',
+	'WiimoteEmu/Encryption.cpp',
+	'WiimoteEmu/Speaker.cpp',
+	'WiimoteNew.cpp'
 	]
 
-libs = [ 'inputuicommon', 'inputcommon', 'common', 'SDL' ]
+libs = [ 'inputcommon', 'common', 'SDL' ]
 
 cxxflags = [ ]
 
+if wiinewenv['HAVE_WX']:
+	libs = [ 'inputuicommon' ] + libs
+	files += [ 'WiimoteConfigDiag.cpp' ]
+
 if wiinewenv['HAVE_WIIUSE']:
 	cxxflags += [ '-DHAVE_WIIUSE' ]
-	files += [ "WiimoteReal/WiimoteReal.cpp" ]
+	files += [ 'WiimoteReal/WiimoteReal.cpp' ]
 	libs += [ 'wiiuse' ]
 
 wiinewenv.Append(
