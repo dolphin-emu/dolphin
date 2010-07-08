@@ -55,8 +55,6 @@ END_EVENT_TABLE()
 bool wxMsgAlert(const char*, const char*, bool, int);
 
 CFrame* main_frame = NULL;
-bool LoadFile = false;
-static wxString FileToLoad;
 
 #ifdef WIN32
 //Has no error handling.
@@ -92,6 +90,7 @@ bool DolphinApp::OnInit()
 {
 	// Declarations and definitions
 	bool UseDebugger = false;
+	bool BatchMode = false;
 	bool UseLogger = false;
 	bool selectVideoPlugin = false;
 	bool selectAudioPlugin = false;
@@ -118,6 +117,9 @@ bool DolphinApp::OnInit()
 		{
 			wxCMD_LINE_OPTION, "e", "exec", "Loads the specified file (DOL, ELF, WAD, GCM, ISO)",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
+		},
+		{
+			wxCMD_LINE_SWITCH, "b", "batch", "Exit Dolphin with emulator"
 		},
 		{
 			wxCMD_LINE_OPTION, "V", "video_plugin","Specify a video plugin",
@@ -154,6 +156,9 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
+			wxCMD_LINE_SWITCH, _("b"), _("batch"), wxT("Exit Dolphin with emulator")
+		},
+		{
 			wxCMD_LINE_OPTION, _("V"), _("video_plugin"), wxT("Specify a video plugin"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
@@ -181,10 +186,12 @@ bool DolphinApp::OnInit()
 	UseDebugger = parser.Found("debugger");
 	UseLogger = parser.Found("logger");
 	LoadFile = parser.Found("exec", &FileToLoad);
+	BatchMode = parser.Found("batch");
 #else
 	UseDebugger = parser.Found(wxT("debugger"));
 	UseLogger = parser.Found(wxT("logger"));
 	LoadFile = parser.Found(wxT("exec"), &FileToLoad);
+	BatchMode = parser.Found(wxT("batch"));
 #endif
 
 #if wxCHECK_VERSION(2, 9, 0)
@@ -368,7 +375,7 @@ bool DolphinApp::OnInit()
 	main_frame = new CFrame((wxFrame*)NULL, wxID_ANY,
 				wxString::FromAscii(svn_rev_str),
 				wxPoint(x, y), wxSize(w, h),
-				UseDebugger, UseLogger);
+				UseDebugger, BatchMode, UseLogger);
 	SetTopWindow(main_frame);
 
 #if defined HAVE_X11 && HAVE_X11

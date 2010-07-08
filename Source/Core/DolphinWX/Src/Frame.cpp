@@ -342,6 +342,7 @@ CFrame::CFrame(wxFrame* parent,
 		const wxPoint& pos,
 		const wxSize& size,
 		bool _UseDebugger,
+		bool _BatchMode,
 		bool ShowLogWindow,
 		long style)
 	: CRenderFrame(parent, id, title, pos, size, style)
@@ -352,8 +353,8 @@ CFrame::CFrame(wxFrame* parent,
 	, bFloatLogWindow(false), bFloatConsoleWindow(false)
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
 	, m_RenderFrame(NULL), m_RenderParent(NULL)
-	, m_LogWindow(NULL)
-	, UseDebugger(_UseDebugger), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
+	, m_LogWindow(NULL), UseDebugger(_UseDebugger)
+	, m_bBatchMode(_BatchMode), m_bEdit(false), m_bTabSplit(false), m_bNoDocking(false)
 	, m_bControlsCreated(false), m_bGameLoading(false), m_StopDlg(NULL)
 	#if wxUSE_TIMER
 		, m_timer(this)

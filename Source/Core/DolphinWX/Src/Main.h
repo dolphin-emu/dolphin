@@ -34,6 +34,8 @@ private:
 	DECLARE_EVENT_TABLE()
 
 	wxTimer *m_afterinit;
+	bool LoadFile;
+	wxString FileToLoad;
 
 	void AfterInit(wxTimerEvent& WXUNUSED(event));
 };

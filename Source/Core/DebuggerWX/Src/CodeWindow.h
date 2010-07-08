@@ -168,6 +168,8 @@ class CCodeWindow
 		wxMenuItem* jitpoff;
 		wxMenuItem* jitsroff;
 
+		std::string fontDesc;
+
 		CCodeView* codeview;
 		wxListBox* callstack;
 		wxListBox* symbols;

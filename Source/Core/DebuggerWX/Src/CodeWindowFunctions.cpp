@@ -87,7 +87,6 @@ void CCodeWindow::Load()
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
 	// The font to override DebuggerFont with
-	std::string fontDesc;
 	ini.Get("ShowOnStart", "DebuggerFont", &fontDesc);
 	if (!fontDesc.empty())
 		DebuggerFont.SetNativeFontInfoUserDesc(wxString::FromAscii(fontDesc.c_str()));
@@ -135,7 +134,7 @@ void CCodeWindow::Save()
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
-	ini.Set("ShowOnStart", "DebuggerFont", std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str()));
+	ini.Set("ShowOnStart", "DebuggerFont", fontDesc);
 
 	// Boot to pause or not
 	ini.Set("ShowOnStart", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
@@ -427,7 +426,10 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 
 	wxFontDialog dialog(this, data);
 	if ( dialog.ShowModal() == wxID_OK )
+	{
 		DebuggerFont = dialog.GetFontData().GetChosenFont();
+		fontDesc = std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str());
+	}
 }
 
 

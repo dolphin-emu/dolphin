@@ -95,6 +95,7 @@ class CFrame : public CRenderFrame
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
 			bool _UseDebugger = false,
+			bool _BatchMode = false,
 			bool ShowLogWindow = false,
 			long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
@@ -233,6 +234,7 @@ class CFrame : public CRenderFrame
 		wxToolBarToolBase* m_ToolPlay;
 		CLogWindow* m_LogWindow;
 		bool UseDebugger;
+		bool m_bBatchMode;
 		bool m_bEdit;
 		bool m_bTabSplit;
 		bool m_bNoDocking;
