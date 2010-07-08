@@ -903,6 +903,12 @@ void CFrame::DoStop()
 
 		// Clean framerate indications from the status bar.
 		m_pStatusBar->SetStatusText(wxT(" "), 0);
+
+		extern bool LoadFile;
+
+		// If an executable was specified on the command-line, exit now.
+		if (LoadFile)
+			Close(true);
 	}
 }
 

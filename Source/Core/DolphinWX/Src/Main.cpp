@@ -55,7 +55,7 @@ END_EVENT_TABLE()
 bool wxMsgAlert(const char*, const char*, bool, int);
 
 CFrame* main_frame = NULL;
-static bool LoadFile = false;
+bool LoadFile = false;
 static wxString FileToLoad;
 
 #ifdef WIN32
@@ -113,7 +113,7 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_SWITCH, "d", "debugger", "Opens the debugger"
 		},
 		{
-			wxCMD_LINE_SWITCH, "l", "logger", "Opens The Logger"
+			wxCMD_LINE_SWITCH, "l", "logger", "Opens the logger"
 		},
 		{
 			wxCMD_LINE_OPTION, "e", "exec", "Loads the specified file (DOL, ELF, WAD, GCM, ISO)",
@@ -125,10 +125,6 @@ bool DolphinApp::OnInit()
 		},
 		{
 			wxCMD_LINE_OPTION, "A", "audio_plugin","Specify an audio plugin",
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_OPTION, "P", "pad_plugin","Specify a pad plugin",
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{
@@ -151,7 +147,7 @@ bool DolphinApp::OnInit()
 			wxCMD_LINE_SWITCH, _("d"), _("debugger"), wxT("Opens the debugger")
 		},
 		{
-			wxCMD_LINE_SWITCH, _("l"), _("logger"), wxT("Opens The Logger")
+			wxCMD_LINE_SWITCH, _("l"), _("logger"), wxT("Opens the logger")
 		},
 		{
 			wxCMD_LINE_OPTION, _("e"), _("exec"), wxT("Loads the specified file (DOL, ELF, WAD, GCM, ISO)"),
@@ -163,10 +159,6 @@ bool DolphinApp::OnInit()
 		},
 		{
 			wxCMD_LINE_OPTION, _("A"), _("audio_plugin"), wxT("Specify an audio plugin"),
-			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
-		},
-		{
-			wxCMD_LINE_OPTION, _("P"), _("pad_plugin"), wxT("Specify a pad plugin"),
 			wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL
 		},
 		{

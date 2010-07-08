@@ -23,11 +23,10 @@ System Requirements:
 Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-V <str>] [-A <str>] [-P <str>] [-W <str>]
   -h, --help                	Show this help message
   -d, --debugger            	Opens the debugger
-  -l, --logger              	Opens The Logger
-  -e, --elf=<str>           	Loads an elf file
+  -l, --logger              	Opens the logger
+  -e, --exec=<str>          	Loads the specified file (DOL, ELF, WAD, GCM, ISO)
   -V, --video_plugin=<str>  	Specify a video plugin
   -A, --audio_plugin=<str>  	Specify an audio plugin
-  -P, --pad_plugin=<str>    	Specify a pad plugin
   -W, --wiimote_plugin=<str>	Specify a wiimote plugin
 
 [Libraries]

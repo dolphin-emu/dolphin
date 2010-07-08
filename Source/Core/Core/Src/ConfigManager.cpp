@@ -68,7 +68,7 @@ SConfig::~SConfig()
 
 void SConfig::SaveSettings()
 {
-	NOTICE_LOG(BOOT, "Saving Settings to %s", File::GetUserPath(F_DOLPHINCONFIG_IDX));
+	NOTICE_LOG(BOOT, "Saving settings");
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX)); // load first to not kill unknown stuff
 
