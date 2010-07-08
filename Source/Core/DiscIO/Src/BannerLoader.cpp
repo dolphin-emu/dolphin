@@ -26,9 +26,7 @@
 // HyperIris: dunno if this suitable, may be need move.
 #ifdef WIN32
 #include <Windows.h>
-#endif
-
-#ifdef __linux__
+#else
 #include <iconv.h>
 #include <errno.h>
 #endif
@@ -125,7 +123,7 @@ bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16
 			delete[] buffer;
 		}
 	}
-#elif defined(__linux__)
+#else
 	if (_src)
 	{
 		iconv_t conv_desc = iconv_open("UTF-8", "CP932");
@@ -185,8 +183,6 @@ bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16
 		delete[] src_buffer_start;
 		iconv_close(conv_desc);
 	}
-#elif defined(__APPLE__)
-	// TODO:  Implement this (Maybe the linux code will work?)
 #endif
 	return returnCode;
 }

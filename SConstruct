@@ -270,6 +270,7 @@ if sys.platform == 'darwin':
     env['CXX'] = "g++-4.2"
     env['CXXFLAGS'] = ['-x', 'objective-c++']
     env['CCFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
+    env['LIBS'] += ['iconv']
     env['LINKFLAGS'] += ['-arch', 'x86_64' , '-arch' , 'i386']
     env['FRAMEWORKS'] += ['CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
