@@ -15,7 +15,7 @@ public:
 	virtual void GetState( u8* const data, const bool focus = true ) {}
 	std::string GetName() const;
 
-	const char*	name;
+	const char*	const	name;
 	std::vector<u8>		reg;
 };
 

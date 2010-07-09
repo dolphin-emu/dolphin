@@ -3,7 +3,6 @@
 #include "Attachment/Nunchuk.h"
 #include "Attachment/Guitar.h"
 #include "Attachment/Drums.h"
-#include "Attachment/UDPNunchuk.h"
 
 #include "WiimoteEmu.h"
 #include "WiimoteHid.h"
@@ -293,7 +292,6 @@ Wiimote::Wiimote( const unsigned int index )
 	m_extension->attachments.push_back( new WiimoteEmu::Classic() );
 	m_extension->attachments.push_back( new WiimoteEmu::Guitar() );
 	m_extension->attachments.push_back( new WiimoteEmu::Drums() );
-	m_extension->attachments.push_back( new WiimoteEmu::UDPNunchuk(m_udp) );
 
 	// rumble
 	groups.push_back( m_rumble = new ControlGroup( "Rumble" ) );
@@ -392,10 +390,11 @@ void Wiimote::Update()
 	m_status.buttons = 0;
 	if (is_focus)
 	{
-		m_buttons->GetState( &m_status.buttons, button_bitmasks );
-		m_dpad->GetState( &m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks );
+		m_buttons->GetState(&m_status.buttons, button_bitmasks);
+		m_dpad->GetState(&m_status.buttons, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
+		UDPTLayer::GetButtons(m_udp, &m_status.buttons);
 	}
-	UDPTLayer::GetButtons( m_udp, &m_status.buttons );
+	
 	// check if there is a read data request
 	if (m_read_requests.size())
 	{
@@ -487,8 +486,10 @@ void Wiimote::Update()
 
 		// ----SHAKE----
 		if (is_focus)
+		{
 			EmulateShake(data + rpt.accel, m_shake, m_shake_step);
-		UDPTLayer::GetAcceleration( m_udp, (wm_accel*)&data[rpt.accel], (accel_cal*)&m_eeprom[0x16]);
+			UDPTLayer::GetAcceleration(m_udp, (wm_accel*)&data[rpt.accel], (accel_cal*)&m_eeprom[0x16]);
+		}
 	}
 
 	// ----ir----
@@ -497,8 +498,10 @@ void Wiimote::Update()
 		float xx = 10000, yy = 0, zz = 0;
 
 		if (is_focus)
+		{
 			m_ir->GetState(&xx, &yy, &zz, true);
-		UDPTLayer::GetIR( m_udp, &xx, &yy, &zz);
+			UDPTLayer::GetIR(m_udp, &xx, &yy, &zz);
+		}
 
 		xx *= (-256 * 0.95f);
 		xx += 512;
@@ -587,6 +590,29 @@ void Wiimote::Update()
 	if (rpt.ext)
 	{
 		m_extension->GetState(data + rpt.ext, is_focus);
+
+		// ---- UDP Wiimote nunchuk stuff
+		// 1 == is hacky, for if nunchuk is attached
+		if (is_focus && 1 == m_extension->active_extension && m_udp->inst)
+		{
+			wm_extension* const ncdata = (wm_extension*)(data + rpt.ext);
+
+			u8 mask;
+			float x, y;
+			m_udp->inst->getNunchuck(x, y, mask);
+			// buttons
+			if (mask & UDPWM_NC)
+				ncdata->bt &= ~Nunchuk::BUTTON_C;
+			if (mask & UDPWM_NZ)
+				ncdata->bt &= ~Nunchuk::BUTTON_Z;
+			// stick
+			if (ncdata->jx == 0x80 && ncdata->jy == 0x80)
+			{
+				ncdata->jx = u8(0x80 + x*127);
+				ncdata->jy = u8(0x80 + y*127);
+			}
+		}
+		// ---- end UDP Wiimote
 
 		// i dont think anything accesses the extension data like this, but ill support it. Indeed, commercial games don't do this.
 		// i think it should be unencrpyted in the register, encrypted when read.

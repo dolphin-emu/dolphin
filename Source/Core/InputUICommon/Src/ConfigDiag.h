@@ -150,10 +150,10 @@ public:
 class UDPConfigButton : public wxButton
 {
 public:
-	UDPWrapper * wrapper;
-	UDPConfigButton( wxWindow* const parent, UDPWrapper * udp) :
-		wxButton( parent, -1, wxT("Configure"), wxDefaultPosition ),
-		wrapper(udp)
+	UDPWrapper* const wrapper;
+	UDPConfigButton( wxWindow* const parent, UDPWrapper * udp)
+		: wxButton( parent, -1, wxT("Configure"), wxDefaultPosition )
+		, wrapper(udp)
 	{}
 };
 

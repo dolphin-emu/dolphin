@@ -803,7 +803,7 @@ ControlGroupBox::ControlGroupBox( ControllerEmu::ControlGroup* const group, wxWi
 		break;
 	case GROUP_TYPE_UDPWII:
 		{
-			wxButton* const btn = new UDPConfigButton ( parent, (UDPWrapper*)group );
+			wxButton* const btn = new UDPConfigButton( parent, (UDPWrapper*)group );
 			_connect_macro_(btn, GamepadPage::ConfigUDPWii, wxEVT_COMMAND_BUTTON_CLICKED, eventsink);
 			Add(btn, 0, wxALL|wxEXPAND, 3);
 		}

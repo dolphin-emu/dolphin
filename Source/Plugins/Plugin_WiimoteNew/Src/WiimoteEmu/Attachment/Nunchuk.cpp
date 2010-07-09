@@ -1,5 +1,7 @@
 #include "Nunchuk.h"
 
+#include "UDPWrapper.h"
+#include "UDPWiimote.h"
 
 namespace WiimoteEmu
 {
@@ -19,14 +21,10 @@ static const u8 nunchuck_calibration[] =
 	0xec, 0x41 // checksum on the last two bytes
 };
 
-// nunchuk buttons
-#define NUNCHUK_C		0x02
-#define NUNCHUK_Z		0x01
-
 const u8 nunchuk_button_bitmasks[] =
 {
-	NUNCHUK_C,
-	NUNCHUK_Z,
+	Nunchuk::BUTTON_C,
+	Nunchuk::BUTTON_Z,
 };
 
 Nunchuk::Nunchuk() : Attachment( "Nunchuk" )

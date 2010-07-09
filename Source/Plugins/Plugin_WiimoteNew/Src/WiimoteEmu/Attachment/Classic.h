@@ -9,6 +9,26 @@ public:
 	Classic();
 	void GetState( u8* const data, const bool focus );
 
+	enum
+	{
+		PAD_RIGHT = 0x80,
+		PAD_DOWN = 0x40,
+		TRIGGER_L = 0x20,
+		BUTTON_MINUS = 0x10,
+		BUTTON_HOME = 0x08,
+		BUTTON_PLUS = 0x04,
+		TRIGGER_R = 0x02,
+		NOTHING = 0x01,
+		BUTTON_ZL = 0x8000,
+		BUTTON_B = 0x4000,
+		BUTTON_Y = 0x2000,
+		BUTTON_A = 0x1000,
+		BUTTON_X = 0x0800,
+		BUTTON_ZR = 0x0400,
+		PAD_LEFT = 0x0200,
+		PAD_UP = 0x0100,
+	};
+
 private:
 	Buttons*		m_buttons;
 	Buttons*		m_shake;

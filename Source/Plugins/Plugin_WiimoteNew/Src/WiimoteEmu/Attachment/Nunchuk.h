@@ -12,6 +12,12 @@ public:
 	Nunchuk();
 	virtual void GetState( u8* const data, const bool focus );
 
+	enum
+	{
+		BUTTON_C = 0x02,
+		BUTTON_Z = 0x01,
+	};
+
 private:
 	Tilt*			m_tilt;
 	Force*			m_swing;

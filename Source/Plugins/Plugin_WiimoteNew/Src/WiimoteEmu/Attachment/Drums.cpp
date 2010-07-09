@@ -6,25 +6,14 @@ namespace WiimoteEmu
 
 static const u8 drums_id[] = { 0x01, 0x00, 0xa4, 0x20, 0x01, 0x03 };
 
-// drums buttons
-#define DRUMS_PLUS			0x04
-#define DRUMS_MINUS			0x10
-
-#define DRUMS_BASS			0x0400
-#define DRUMS_BLUE			0x0800
-#define DRUMS_GREEN			0x1000
-#define DRUMS_YELLOW		0x2000
-#define DRUMS_RED			0x4000
-#define DRUMS_ORANGE		0x8000
-
 const u16 drum_pad_bitmasks[] =
 {
-	DRUMS_RED,
-	DRUMS_YELLOW,
-	DRUMS_BLUE,
-	DRUMS_GREEN,
-	DRUMS_ORANGE,
-	DRUMS_BASS,
+	Drums::PAD_RED,
+	Drums::PAD_YELLOW,
+	Drums::PAD_BLUE,
+	Drums::PAD_GREEN,
+	Drums::PAD_ORANGE,
+	Drums::PAD_BASS,
 };
 
 const char* drum_pad_names[] =
@@ -34,8 +23,8 @@ const char* drum_pad_names[] =
 
 const u16 drum_button_bitmasks[] =
 {
-	DRUMS_MINUS,
-	DRUMS_PLUS,
+	Drums::BUTTON_MINUS,
+	Drums::BUTTON_PLUS,
 };
 
 Drums::Drums() : Attachment( "Drums" )

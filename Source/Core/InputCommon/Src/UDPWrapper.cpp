@@ -172,6 +172,7 @@ void UDPConfigDiag::OKPressed(wxCommandEvent & event)
 void UDPWrapper::Configure(wxWindow * parent)
 {
 	wxDialog * diag = new UDPConfigDiag(parent,this);
+	diag->Center();
 	diag->ShowModal();
 	diag->Destroy();
 }
