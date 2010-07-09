@@ -113,6 +113,7 @@ extern const char *netplay_dolphin_ver;
 
 #ifdef __APPLE__
 #if defined HAVE_WX && HAVE_WX
+#define MAP_32BIT 0	// MAP_32BIT is a Linux-specific mmap(2) flag
 #define USE_WX 1	// Use wxGLCanvas
 #endif // HAVE_WX
 #else // __APPLE__

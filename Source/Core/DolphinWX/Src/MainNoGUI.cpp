@@ -322,13 +322,12 @@ int appleMain(int argc, char *argv[]);
 
 int main(int argc, char *argv[])
 {
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	cocoaArgc = argc;
 	cocoaArgv = argv;
 
 	cocoaCreateApp();
-
-	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
 	CocoaThread *thread = [[CocoaThread alloc] init];
 	NSEvent *event = [[NSEvent alloc] init];	

@@ -257,7 +257,6 @@ env['HAVE_WX'] = 0
 # OS X specifics
 if sys.platform == 'darwin':
     compileFlags.append('-mmacosx-version-min=10.5')
-    cppDefines.append('MAP_32BIT=0')
     if not env['nowx']:
         cppDefines.append('HAVE_WX=1')
         conf = env.Configure(custom_tests = tests)
@@ -322,10 +321,9 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
         wxmods.remove('gl')
         env['HAVE_WX'] = conf.CheckWXConfig(2.8, wxmods, 0)
         wxconfig.ParseWXConfig(env)
-
-    if not env['HAVE_WX'] and not env['nowx']:
-        print "WX libraries not found - see config.log"
-        Exit(1)
+        if not env['HAVE_WX']:
+            print "WX libraries not found - see config.log"
+            Exit(1)
 
     conf.Define('HAVE_WX', env['HAVE_WX'])
 

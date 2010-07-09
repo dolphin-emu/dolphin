@@ -3,7 +3,7 @@
 @implementation NSApplication(i)
 - (void)appRunning
 {
-    _running = 1;
+	_running = 1;
 }
 @end
 
@@ -14,21 +14,19 @@
 @implementation cocoaAppDelegate : NSObject
 - (NSApplicationTerminateReply)applicationShouldTerminate:(NSApplication *)sender
 {
-    return NSTerminateCancel;
+	return NSTerminateCancel;
 }
 @end
 
 void cocoaCreateApp()
 {
         ProcessSerialNumber psn;
-        NSAutoreleasePool *pool;
 
         if (!GetCurrentProcess(&psn)) {
-                TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+                TransformProcessType(&psn,
+			kProcessTransformToForegroundApplication);
                 SetFrontProcess(&psn);
         }
-
-        pool = [[NSAutoreleasePool alloc] init];
 
         if (NSApp == nil) {
                 [NSApplication sharedApplication];
@@ -41,16 +39,12 @@ void cocoaCreateApp()
         }
 
         [NSApp appRunning];
-
-        [pool release];
-
 }
 
 bool cocoaKeyCode(NSEvent *event)
 {
 	static bool CMDDown = false, QDown = false;
 	bool Return = false;
-	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
 
 	NSConnection *connec = [[NSConnection new] autorelease];
 
@@ -78,15 +72,11 @@ bool cocoaKeyCode(NSEvent *event)
 	if( QDown && CMDDown )
 		Return = true;
 
-	[pool release];
 	return Return;
 }
 
 bool cocoaSendEvent(NSEvent *event)
 {
-
-	NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
-	
 	if ( event != nil ) {
 		switch ([event type]) {
 			case NSKeyDown:
@@ -100,10 +90,5 @@ bool cocoaSendEvent(NSEvent *event)
 			}
 	}
 
-
-	[pool release];
 	return false;
-
 }
-
-
