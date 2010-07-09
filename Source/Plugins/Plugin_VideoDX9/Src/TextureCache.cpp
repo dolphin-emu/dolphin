@@ -111,14 +111,7 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 		int rangePosition = iter->second.IntersectsMemoryRange(start_address, size);
 		if ( rangePosition == 0)
 		{
-			if(iter->second.addr != start_address)
-			{
-				if(!iter->second.isRenderTarget)
-				{
-					iter->second.isDinamic = true;
-				}
-				iter->second.hash = 0;
-			}
+			iter->second.hash = 0;
 		}
 		else
 		{
@@ -223,11 +216,15 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 		if (!g_ActiveConfig.bSafeTextureCache)
 		{
-			if(entry.isRenderTarget)
+			if(entry.isRenderTarget || entry.isDinamic)
 			{
 				if(!g_ActiveConfig.bCopyEFBToTexture && g_ActiveConfig.bVerifyTextureModificationsByCPU)
 				{
 					hash_value =  TexDecoder_GetHash64(ptr,TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
+					if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
+					{
+						hash_value ^= TexDecoder_GetHash64(&texMem[tlutaddr], TexDecoder_GetPaletteSize(tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
+					}
 				}
 				else
 				{
@@ -239,9 +236,17 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 				hash_value = ((u32 *)ptr)[0];
 			}
 		}
-		
-
-		if ((entry.isRenderTarget && hash_value == entry.hash && address == entry.addr) 
+		else
+		{
+			if(entry.isRenderTarget || entry.isDinamic)
+			{
+				if(g_ActiveConfig.bCopyEFBToTexture || !g_ActiveConfig.bVerifyTextureModificationsByCPU)
+				{
+					hash_value = 0;
+				}
+			}
+		}
+		if (((entry.isRenderTarget || entry.isDinamic) && hash_value == entry.hash && address == entry.addr) 
 			|| ((address == entry.addr) 
 			&& (hash_value == entry.hash) 
 			&& FullFormat == entry.fmt/* && entry.MipLevels == maxlevel*/))
@@ -255,7 +260,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			// Let's reload the new texture data into the same texture,
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
-			TextureIsDinamic = true;
+			TextureIsDinamic = (entry.isRenderTarget || entry.isDinamic) && !g_ActiveConfig.bCopyEFBToTexture;
 			
 			if (!entry.isRenderTarget &&
 				((!entry.isDinamic && width == entry.w && height==entry.h && FullFormat == entry.fmt /* && entry.MipLevels < maxlevel*/) 
@@ -329,12 +334,12 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	}
 
 	entry.oldpixel = ((u32 *)ptr)[0];
-	if (g_ActiveConfig.bSafeTextureCache)
+	if (g_ActiveConfig.bSafeTextureCache || entry.isDinamic)
 		entry.hash = hash_value;
 	else
 	{
 		entry.hash = (u32)(((double)rand() / RAND_MAX) * 0xFFFFFFFF);
-		((u32 *)ptr)[0] = entry.hash;
+		((u32 *)ptr)[0] = entry.hash;		
 	}
 
 	entry.addr = address;
@@ -464,7 +469,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	{
 		TCacheEntry entry;
 		entry.addr = address;
-		entry.isRenderTarget = !TextureIsDinamic;
+		entry.isRenderTarget = true;
 		entry.hash = 0;
 		entry.frameCount = frameCount;
 		entry.w = tex_w;
@@ -484,7 +489,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	
 	// We have to run a pixel shader, for color conversion.
 	Renderer::ResetAPIState(); // reset any game specific settings
-
 	if(!TextureIsDinamic || g_ActiveConfig.bCopyEFBToTexture)
 	{
 	
@@ -662,7 +666,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	
 	if(!g_ActiveConfig.bCopyEFBToTexture)
 	{
-		TextureConverter::EncodeToRamFromTexture(
+		textures[address].hash = TextureConverter::EncodeToRamFromTexture(
 			address,
 			read_texture,
 			Renderer::GetFullTargetWidth(), 
@@ -676,22 +680,6 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 			copyfmt, 
 			bScaleByHalf, 
 			source_rect);
-
-		u8 *ptr = g_VideoInitialize.pGetMemoryPointer(address);
-		int bsw = TexDecoder_GetBlockWidthInTexels(copyfmt) - 1;
-		int bsh = TexDecoder_GetBlockHeightInTexels(copyfmt) - 1;
-		int expandedWidth  = (tex_w + bsw)  & (~bsw);
-		int expandedHeight = (tex_h + bsh) & (~bsh);
-		u32 textureSize = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, copyfmt);
-		MakeRangeDynamic(address,textureSize);
-		if(g_ActiveConfig.bVerifyTextureModificationsByCPU)
-		{
-			textures[address].hash = TexDecoder_GetHash64(ptr,textureSize,g_ActiveConfig.iSafeTextureCache_ColorSamples);
-		}
-		else
-		{
-			textures[address].hash = 0;
-		}
 	}
 	
 	D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);

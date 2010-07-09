@@ -114,8 +114,6 @@ static int m_CustomHeight;
 static int m_FrameBufferWidth;
 static int m_FrameBufferHeight;
 
-static GLuint s_tempScreenshotFramebuffer = 0;
-
 static unsigned int s_XFB_width;
 static unsigned int s_XFB_height;
 
@@ -485,9 +483,6 @@ void Renderer::Shutdown(void)
 		cgDestroyContext(g_cgcontext);
 		g_cgcontext = 0;
 	}
-	if(s_tempScreenshotFramebuffer)
-		glDeleteFramebuffersEXT(1, &s_tempScreenshotFramebuffer);
-	s_tempScreenshotFramebuffer = 0;
 
 	g_framebufferManager.Shutdown();
 
@@ -1031,41 +1026,25 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	// Save screenshot
 	if (s_bScreenshot)
 	{
-		if (!s_tempScreenshotFramebuffer)
-			glGenFramebuffersEXT(1, &s_tempScreenshotFramebuffer);
-
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_tempScreenshotFramebuffer);
-		glFramebufferTexture2DEXT(GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, xfbSource->texture, 0);
-
 		s_criticalScreenshot.Enter();
 		// Save screenshot
-		SaveRenderTarget(s_sScreenshotName.c_str(), xfbSource->sourceRc.GetWidth(), xfbSource->sourceRc.GetHeight());
+		SaveRenderTarget(s_sScreenshotName.c_str(), back_rc);
 		// Reset settings
 		s_sScreenshotName = "";
 		s_bScreenshot = false;
-		s_criticalScreenshot.Leave();
-
-		glFramebufferTexture2DEXT(GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, g_framebufferManager.GetEFBFramebuffer());
+		s_criticalScreenshot.Leave();		
 	}
 
 	// Frame dumps are handled a little differently in Windows
 #ifdef _WIN32
 	if (g_ActiveConfig.bDumpFrames)
 	{
-		if (!s_tempScreenshotFramebuffer)
-			glGenFramebuffersEXT(1, &s_tempScreenshotFramebuffer);
-
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, s_tempScreenshotFramebuffer);
-		glFramebufferTexture2DEXT(GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, xfbSource->texture, 0);
-
 		s_criticalScreenshot.Enter();
-		int w = xfbSource->sourceRc.GetWidth();
-		int h = xfbSource->sourceRc.GetHeight();
-
+		int w = back_rc.GetWidth();
+		int h = back_rc.GetHeight();
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(0, Renderer::GetTargetHeight() - h, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
+		glReadPixels(back_rc.left, back_rc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
 		if (glGetError() == GL_NO_ERROR && w > 0 && h > 0)
 		{
 			if (!s_bLastFrameDumped)
@@ -1089,10 +1068,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 			NOTICE_LOG(VIDEO, "Error reading framebuffer");
 		}
 		free(data);
-		s_criticalScreenshot.Leave();
-
-		glFramebufferTexture2DEXT(GL_READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_RECTANGLE_ARB, 0, 0);
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, g_framebufferManager.GetEFBFramebuffer());
+		s_criticalScreenshot.Leave();		
 	}
 	else
 	{
@@ -1108,11 +1084,11 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if (g_ActiveConfig.bDumpFrames) {
 		s_criticalScreenshot.Enter();
 		char movie_file_name[255];
-		int w = OpenGL_GetBackbufferWidth();
-		int h = OpenGL_GetBackbufferHeight();
+		int w = back_rc.GetWidth();
+		int h = back_rc.GetHeight();
 		u8 *data = (u8 *) malloc(3 * w * h);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glReadPixels(0, Renderer::GetTargetHeight() - h, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
+		glReadPixels(back_rc.left, back_rc.bottom, w, h, GL_BGR, GL_UNSIGNED_BYTE, data);
 		if (glGetError() == GL_NO_ERROR) {
 			if (!s_bLastFrameDumped) {
 				sprintf(movie_file_name, "%sframedump.raw", File::GetUserPath(D_DUMPFRAMES_IDX));
@@ -1509,12 +1485,28 @@ THREAD_RETURN TakeScreenshot(void *pArgs)
 }
 #endif
 
-bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
+void Renderer::FlipImageData(u8 *data, int w, int h)
 {
+	// Flip image upside down. Damn OpenGL.
+	for (int y = 0; y < h / 2; y++)
+	{
+		for(int x = 0; x < w; x++)
+		{
+			std::swap(data[(y * w + x) * 3],     data[((h - 1 - y) * w + x) * 3]);
+			std::swap(data[(y * w + x) * 3 + 1], data[((h - 1 - y) * w + x) * 3 + 1]);
+			std::swap(data[(y * w + x) * 3 + 2], data[((h - 1 - y) * w + x) * 3 + 2]);
+		}
+	}
+}
+
+bool Renderer::SaveRenderTarget(const char *filename, TargetRectangle back_rc)
+{
+	u32 W = back_rc.GetWidth();
+	u32 H = back_rc.GetHeight();
 	u8 *data = (u8 *)malloc(3 * W * H);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	
-	glReadPixels(0, Renderer::GetTargetHeight() - H + YOffset, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
+	glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGB, GL_UNSIGNED_BYTE, data);
 	
 	// Show failure message
 	if (glGetError() != GL_NO_ERROR)
@@ -1558,19 +1550,7 @@ bool Renderer::SaveRenderTarget(const char *filename, int W, int H, int YOffset)
 }
 
 
-void Renderer::FlipImageData(u8 *data, int w, int h)
-{
-	// Flip image upside down. Damn OpenGL.
-	for (int y = 0; y < h / 2; y++)
-	{
-		for(int x = 0; x < w; x++)
-		{
-			std::swap(data[(y * w + x) * 3],     data[((h - 1 - y) * w + x) * 3]);
-			std::swap(data[(y * w + x) * 3 + 1], data[((h - 1 - y) * w + x) * 3 + 1]);
-			std::swap(data[(y * w + x) * 3 + 2], data[((h - 1 - y) * w + x) * 3 + 2]);
-		}
-	}
-}
+
 
 // Called from VertexShaderManager
 void UpdateViewport()

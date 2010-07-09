@@ -357,7 +357,7 @@ bool Renderer::Init()
 	D3D::dev->Clear(0, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x0, 1.0f, 0);
 	D3D::BeginFrame();
 	D3D::SetRenderState(D3DRS_SCISSORTESTENABLE, true);
-	D3D::dev->CreateOffscreenPlainSurface(s_backbuffer_width,s_backbuffer_height, FBManager.GetEFBColorRTSurfaceFormat(), D3DPOOL_SYSTEMMEM, &ScreenShootMEMSurface, NULL );
+	D3D::dev->CreateOffscreenPlainSurface(s_backbuffer_width,s_backbuffer_height, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &ScreenShootMEMSurface, NULL );
 	return true;
 }
 
@@ -494,7 +494,7 @@ void formatBufferDump(const char *in, char *out, int w, int h, int p)
 			memcpy(out, line, 3);
 			out += 3;
 			line += 4;
-		}
+		}			
 	}
 }
 
@@ -531,6 +531,9 @@ void CheckForResize()
 		D3D::Reset();
 		s_backbuffer_width = D3D::GetBackBufferWidth();
 		s_backbuffer_height = D3D::GetBackBufferHeight();
+		if(ScreenShootMEMSurface)
+			ScreenShootMEMSurface->Release();
+		D3D::dev->CreateOffscreenPlainSurface(s_backbuffer_width,s_backbuffer_height, D3DFMT_X8R8G8B8, D3DPOOL_SYSTEMMEM, &ScreenShootMEMSurface, NULL );
 		WindowResized = true;
 	}
 }
@@ -1082,28 +1085,26 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if(s_bScreenshot)
 	{
 		s_criticalScreenshot.Enter();
-		// create a R8G8B8 surface for the screenshot (no alpha channel)
-		// otherwise funky screenshots get saved
-		LPDIRECT3DSURFACE9 screenshot_surface;
-		if (D3D_OK == D3D::dev->CreateOffscreenPlainSurface(s_backbuffer_width, s_backbuffer_height, D3DFMT_R8G8B8, D3DPOOL_SCRATCH, &screenshot_surface, NULL))
+		HRESULT hr = D3D::dev->GetRenderTargetData(D3D::GetBackBufferSurface(),ScreenShootMEMSurface);//, NULL, dst_rect.AsRECT(), D3D::GetBackBufferSurface(), NULL, dst_rect.AsRECT(), D3DX_FILTER_NONE, 0);
+		if(FAILED(hr))
 		{
-			D3DXLoadSurfaceFromSurface(screenshot_surface, NULL, NULL, D3D::GetBackBufferSurface(), NULL, NULL, D3DX_DEFAULT, 0);
-			D3DXSaveSurfaceToFileA(s_sScreenshotName, D3DXIFF_PNG, screenshot_surface, NULL, NULL);
-			screenshot_surface->Release();
+			PanicAlert("Error dumping surface data.");
 		}
-		else
-			PanicAlert("Failed to create surface for screenshot!");
-		
+		hr = D3DXSaveSurfaceToFileA(s_sScreenshotName, D3DXIFF_PNG, ScreenShootMEMSurface, NULL, dst_rect.AsRECT());
+		if(FAILED(hr))
+		{
+			PanicAlert("Error saving screen.");
+		}
 		s_bScreenshot = false;
 		s_criticalScreenshot.Leave();
 	}
 	if (g_ActiveConfig.bDumpFrames)
 	{
-		D3D::dev->GetRenderTargetData(D3D::GetBackBufferSurface(), ScreenShootMEMSurface);
+		HRESULT hr = D3D::dev->GetRenderTargetData(D3D::GetBackBufferSurface(),ScreenShootMEMSurface);
 		if (!s_LastFrameDumped)
 		{
-			s_recordWidth = s_backbuffer_width;
-			s_recordHeight = s_backbuffer_height;
+			s_recordWidth = dst_rect.GetWidth();
+			s_recordHeight = dst_rect.GetHeight();
 			s_AVIDumping = AVIDump::Start(EmuWindow::GetParentWnd(), s_recordWidth, s_recordHeight);
 			if (!s_AVIDumping)
 			{
@@ -1119,7 +1120,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		if (s_AVIDumping)
 		{
 			D3DLOCKED_RECT rect;
-			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, NULL, D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
+			if (SUCCEEDED(ScreenShootMEMSurface->LockRect(&rect, dst_rect.AsRECT(), D3DLOCK_NO_DIRTY_UPDATE | D3DLOCK_NOSYSLOCK | D3DLOCK_READONLY)))
 			{
 				char* data = (char*)malloc(3 * s_recordWidth * s_recordHeight);
 				formatBufferDump((const char*)rect.pBits, data, s_recordWidth, s_recordHeight, rect.Pitch);

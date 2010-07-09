@@ -89,7 +89,7 @@ public:
 	static void DrawDebugText();
 	static void SetScreenshot(const char *filename);
 	static void FlipImageData(u8 *data, int w, int h);
-	static bool SaveRenderTarget(const char *filename, int w, int h, int YOffset = 0);
+	static bool SaveRenderTarget(const char *filename, TargetRectangle back_rc);
 
 	static void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable, u32 color, u32 z);
 	static void RenderToXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc);

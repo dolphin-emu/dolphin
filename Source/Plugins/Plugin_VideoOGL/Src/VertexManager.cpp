@@ -360,7 +360,12 @@ void Flush()
 	{
 		char str[128];
 		sprintf(str, "%starg%.3d.tga", File::GetUserPath(D_DUMPFRAMES_IDX), g_ActiveConfig.iSaveTargetId);
-		Renderer::SaveRenderTarget(str, Renderer::GetTargetWidth(), Renderer::GetTargetHeight());
+		TargetRectangle tr;
+		tr.left = 0;
+		tr.right = Renderer::GetTargetWidth();
+		tr.top = 0;
+		tr.bottom = Renderer::GetTargetHeight();
+		Renderer::SaveRenderTarget(str, tr);
 	}
 #endif
 	g_Config.iSaveTargetId++;

@@ -117,7 +117,7 @@ void InitPP(int adapter, int f, int aa_mode, D3DPRESENT_PARAMETERS *pp)
 		pp->EnableAutoDepthStencil = FALSE;
 		pp->AutoDepthStencilFormat = D3DFMT_UNKNOWN;
 	}
-	pp->BackBufferFormat = D3DFMT_A8R8G8B8;
+	pp->BackBufferFormat = D3DFMT_X8R8G8B8;
 	if (aa_mode >= (int)adapters[adapter].aa_levels.size())
 		aa_mode = 0;
 

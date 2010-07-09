@@ -389,7 +389,7 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
 	Renderer::RestoreAPIState();	
 }
 
-void EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture,u32 SourceW, u32 SourceH,float MValueX,float MValueY,float Xstride, float Ystride , bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
+u64 EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture,u32 SourceW, u32 SourceH,float MValueX,float MValueY,float Xstride, float Ystride , bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
 {
 	u32 format = copyfmt;
 
@@ -407,7 +407,7 @@ void EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture,u32 So
 
 	LPDIRECT3DPIXELSHADER9 texconv_shader = GetOrCreateEncodingShader(format);
 	if (!texconv_shader)
-		return;
+		return 0;
 
 	u8 *dest_ptr = Memory_GetPtr(address);
 
@@ -448,6 +448,13 @@ void EncodeToRamFromTexture(u32 address,LPDIRECT3DTEXTURE9 source_texture,u32 So
 
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight,readStride, true, bScaleByHalf > 0);
+	TextureCache::MakeRangeDynamic(address,size_in_bytes);
+	u64 Hashvalue = 0;
+	if(g_ActiveConfig.bVerifyTextureModificationsByCPU)
+	{
+		Hashvalue = TexDecoder_GetHash64(dest_ptr,size_in_bytes,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	}
+	return Hashvalue;
 }
 
 
