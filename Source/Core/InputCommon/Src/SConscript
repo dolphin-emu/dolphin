@@ -13,9 +13,12 @@ files = [
 	'UDPWrapper.cpp'
 	]
 
-
 if sys.platform == 'win32':
 	files += [
+		'ControllerInterface/DInput/DInput.cpp',
+		'ControllerInterface/DInput/DInputJoystick.cpp',
+		'ControllerInterface/DInput/DInputKeyboardMouse.cpp'
+		'ControllerInterface/XInput/XInput.cpp',
 		]
 elif sys.platform == 'darwin':
 	files += [

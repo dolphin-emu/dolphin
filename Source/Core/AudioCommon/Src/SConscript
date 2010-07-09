@@ -10,17 +10,18 @@ files = [
     'AudioCommon.cpp',
     ]
 
+if sys.platform == 'win32':
+    files += [ 'DSoundStream.cpp' ]
+
 if sys.platform == 'darwin':
     files += [ 'CoreAudioSoundStream.cpp' ]
 else:
-    if env['HAVE_OPENAL']:
-        files += [ 'OpenALStream.cpp', 'aldlist.cpp' ]
-
-if not sys.platform == 'win32' and not sys.platform == 'darwin':
-    if env['HAVE_AO']:
-        files += [ 'AOSoundStream.cpp' ]
     if env['HAVE_ALSA']:
         files += [ 'AlsaSoundStream.cpp' ]
+    if env['HAVE_AO']:
+        files += [ 'AOSoundStream.cpp' ]
+    if env['HAVE_OPENAL']:
+        files += [ 'OpenALStream.cpp', 'aldlist.cpp' ]
     if env['HAVE_PULSEAUDIO']:
         files += [ 'PulseAudioStream.cpp' ]
     

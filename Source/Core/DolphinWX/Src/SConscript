@@ -34,7 +34,6 @@ if wxenv['HAVE_WX']:
 		'LuaWindow.cpp',
 		'LogWindow.cpp',
 		'GameListCtrl.cpp',
-		'Globals.cpp',
 		'HotkeyDlg.cpp',
 		'ISOFile.cpp',
 		'ISOProperties.cpp',
@@ -65,9 +64,12 @@ elif sys.platform == 'darwin':
 	exeGUI = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'
 	exeNoGUI = env['binary_dir'] + 'DolphinNoGUI'
 
-	env.Install(env['binary_dir'] + 'Dolphin.app/Contents/' +
+	wxenv.Install(env['binary_dir'] + 'Dolphin.app/Contents/' +
 		'Library/Frameworks/Cg.framework',
 		'/Library/Frameworks/Cg.framework/Cg')
+
+	wxenv.Install(env['binary_dir'] + 'Dolphin.app/Contents/Resources/',
+		'#/Source/Core/DolphinWX/resources/Dolphin.icns')
 
 	wxenv.Plist(
 		env['binary_dir'] + 'Dolphin.app/Contents/Info.plist',

@@ -61,11 +61,6 @@ if sys.platform == 'win32':
 		]	
 	gfxenv['CPPPATH'] += libs
 
-# Sanity check
-if gfxenv['USE_WX'] and not gfxenv['HAVE_WX']:
-    print "Must have wx to use wxgl"
-    Return()
-
 gfxenv.SharedLibrary(
 	env['plugin_dir']+name,
 	files,

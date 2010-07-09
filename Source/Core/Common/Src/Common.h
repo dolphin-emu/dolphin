@@ -111,7 +111,14 @@ extern const char *netplay_dolphin_ver;
 
 #else // Not windows
 
-#include "Config.h" // Scons defines
+#ifdef __APPLE__
+#if defined HAVE_WX && HAVE_WX
+#define USE_WX 1	// Use wxGLCanvas
+#endif // HAVE_WX
+#else // __APPLE__
+#include "Config.h"	// SCons autoconfiguration defines
+#endif
+
 // General defines
 	#define POSIX 1
 	#define MAX_PATH 260

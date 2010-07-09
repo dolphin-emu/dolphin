@@ -95,25 +95,20 @@ if sys.platform == 'darwin':
 vars = Variables('args.cache')
 
 vars.AddVariables(
-    BoolVariable('verbose', 'Set for compilation line', False),
-    BoolVariable('bundle', 'Set to create bundle', False),
+    BoolVariable('verbose', 'Set to show compilation lines', False),
+    BoolVariable('bundle', 'Set to create distribution bundle', False),
     BoolVariable('lint', 'Set for lint build (extra warnings)', False),
-    BoolVariable('nojit', 'Remove entire jit cores', False),
     BoolVariable('nowx', 'Set for building with no WX libs', False),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
                  allowed_values = ('release','devel','debug','fastlog','prof'),
                  ignorecase = 2),
-    PathVariable('wxconfig', 'Path to the wxconfig', None),
-    EnumVariable('pgo', 'Profile-Guided Optimization (generate or use)', 'none',
-                 allowed_values = ('none', 'generate', 'use'),
-                 ignorecase = 2),
-    ('CC', 'The c compiler', 'gcc'),
-    ('CXX', 'The c++ compiler', 'g++'),
+    PathVariable('wxconfig', 'Path to wxconfig', None),
+    ('CC', 'The C compiler', 'gcc'),
+    ('CXX', 'The C++ compiler', 'g++'),
     )
 
 if not sys.platform == 'win32' and not sys.platform == 'darwin':
     vars.AddVariables(
-        BoolVariable('wxgl', 'Set for building with WX GL', False),
         PathVariable('destdir',
                      'Temporary install location (for package building)',
                      None, PathVariable.PathAccept),
@@ -127,6 +122,9 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
                      'Set the name of the user data directory in home',
                      '.dolphin-emu', PathVariable.PathAccept),
         BoolVariable('opencl', 'Build with OpenCL', False),
+        EnumVariable('pgo', 'Profile-Guided Optimization (generate or use)',
+                     'none', allowed_values = ('none', 'generate', 'use'),
+                     ignorecase = 2),
         BoolVariable('shared_glew', 'Use system shared libGLEW', True),
         BoolVariable('shared_lzo', 'Use system shared liblzo2', True),
         BoolVariable('shared_sdl', 'Use system shared libSDL', True),
@@ -206,14 +204,7 @@ env['CCFLAGS'] = compileFlags
 env['CPPDEFINES'] = cppDefines
 if not sys.platform == 'win32':
     env['CXXFLAGS'] = ['-fvisibility-inlines-hidden']
-
-# PGO - Profile Guided Optimization
-if env['pgo']=='generate':
-    compileFlags.append('-fprofile-generate')
-    env['LINKFLAGS']='-fprofile-generate'
-if env['pgo']=='use':
-    compileFlags.append('-fprofile-use')
-    env['LINKFLAGS']='-fprofile-use'
+    cppDefines.append('LUA_USE_LINUX')
 
 # Configuration tests section
 tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
@@ -256,37 +247,57 @@ if sys.platform == 'darwin':
     env['plugin_dir'] = env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
     env['data_dir'] = env['prefix'] + 'Dolphin.app/Contents/'
 
-conf = env.Configure(custom_tests = tests,
-                     config_h="Source/Core/Common/Src/Config.h")
-
+shared = {}
+shared['glew'] = shared['lzo'] = shared['sdl'] = \
+shared['soil'] = shared['sfml'] = shared['zlib'] = 0
+wxmods = ['aui', 'adv', 'core', 'base', 'gl']
 env['HAVE_OPENCL'] = 0
+env['HAVE_WX'] = 0
 
 # OS X specifics
 if sys.platform == 'darwin':
-    compileFlags += ['-mmacosx-version-min=10.5']
-    conf.Define('MAP_32BIT', 0)
+    compileFlags.append('-mmacosx-version-min=10.5')
+    cppDefines.append('MAP_32BIT=0')
+    if not env['nowx']:
+        cppDefines.append('HAVE_WX=1')
+        conf = env.Configure(custom_tests = tests)
+        # wxWidgets 2.9 has Cocoa support
+        env['HAVE_WX'] = conf.CheckWXConfig(2.9, wxmods, 0)
+        wxconfig.ParseWXConfig(env)
+        # Make sure that the libraries claimed by wx-config are valid
+        if not conf.CheckLib('wx_baseu-2.9'):
+            print "WX libraries not found - see config.log"
+            Exit(1)
+        conf.Finish()
+        # wx-config wants us to link with the OS X QuickTime framework
+        # which is not available for x86_64 and we don't use it anyway.
+        # Strip it out to silence some harmless linker warnings.
+        if env['FRAMEWORKS'].count('QuickTime'):
+            env['FRAMEWORKS'].remove('QuickTime')
     env['CC'] = "gcc-4.2"
     env['CFLAGS'] = ['-x', 'objective-c']
     env['CXX'] = "g++-4.2"
     env['CXXFLAGS'] = ['-x', 'objective-c++']
-    env['CCFLAGS'] += ['-arch' , 'x86_64' , '-arch' , 'i386']
+    env['CCFLAGS'] += ['-arch', 'x86_64', '-arch', 'i386']
     env['LIBS'] += ['iconv']
-    env['LINKFLAGS'] += ['-arch', 'x86_64' , '-arch' , 'i386']
-    env['FRAMEWORKS'] += ['CoreFoundation', 'CoreServices']
+    env['LINKFLAGS'] += ['-arch', 'x86_64', '-arch', 'i386']
+    env['FRAMEWORKS'] += ['AppKit', 'CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
     env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
     if platform.mac_ver()[0] >= '10.6.0':
         env['HAVE_OPENCL'] = 1
         env['LINKFLAGS'] += ['-weak_framework', 'OpenCL']
     env['FRAMEWORKS'] += ['Cg']
-else:
+
+if not sys.platform == 'win32' and not sys.platform == 'darwin':
+    conf = env.Configure(custom_tests = tests,
+                         config_h="Source/Core/Common/Src/Config.h")
+
     if not conf.CheckPKGConfig('0.15.0'):
         print "Can't find pkg-config, some tests will fail"
 
-shared = {}
-shared['glew'] = shared['lzo'] = shared['sdl'] = \
-shared['soil'] = shared['sfml'] = shared['zlib'] = 0
-if not sys.platform == 'win32' and not sys.platform == 'darwin':
+    env['LINKFLAGS'] += ['-pthread']
+
     if env['shared_glew']:
         shared['glew'] = conf.CheckPKG('GLEW')
     if env['shared_sdl']:
@@ -306,62 +317,17 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
             print "Shared library " + lib + " not detected, " \
                   "falling back to the static library"
 
-if shared['glew'] == 0:
-    env['CPPPATH'] += [basedir + 'Externals/GLew/include']
-    dirs += ['Externals/GLew']
-if shared['lzo'] == 0:
-    env['CPPPATH'] += [basedir + 'Externals/LZO']
-    dirs += ['Externals/LZO']
-if shared['sdl'] == 0:
-    env['CPPPATH'] += [basedir + 'Externals/SDL']
-    env['CPPPATH'] += [basedir + 'Externals/SDL/include']
-    dirs += ['Externals/SDL']
-if shared['soil'] == 0:
-    env['CPPPATH'] += [basedir + 'Externals/SOIL']
-    dirs += ['Externals/SOIL']
-if shared['sfml'] == 0:
-    env['CPPPATH'] += [basedir + 'Externals/SFML/include']
-    dirs += ['Externals/SFML/src']
-if shared['zlib'] == 0:
-    env['CPPPATH'] += [basedir + 'Externals/zlib']
-    dirs += ['Externals/zlib']
+    if not env['nowx']:
+        # wxGLCanvas does not play well with wxGTK
+        wxmods.remove('gl')
+        env['HAVE_WX'] = conf.CheckWXConfig(2.8, wxmods, 0)
+        wxconfig.ParseWXConfig(env)
 
-if sys.platform == 'win32' or sys.platform == 'darwin':
-    env['wxgl'] = True
-wxmods = ['aui', 'adv', 'core', 'base']
-if env['wxgl']:
-    env['USE_WX'] = 1
-    wxmods.append('gl')
-else:
-    env['USE_WX'] = 0
+    if not env['HAVE_WX'] and not env['nowx']:
+        print "WX libraries not found - see config.log"
+        Exit(1)
 
-if sys.platform == 'darwin':
-    wxver = '2.9' # 64-bit on OS X
-else:
-    wxver = '2.8'
-
-if env['nowx']:
-    env['HAVE_WX'] = env['USE_WX'] = 0;
-else:
-    env['HAVE_WX'] = conf.CheckWXConfig(wxver, wxmods, 0)
-    wxconfig.ParseWXConfig(env)
-    # wx-config wants us to link with the OS X QuickTime framework
-    # which is not available for x86_64 and we don't use it anyway.
-    # Strip it out to silence some harmless linker warnings.
-    if env['FRAMEWORKS'].count('QuickTime'):
-        env['FRAMEWORKS'].remove('QuickTime')
-    # Make sure that the libraries claimed by wx-config are valid
-    #env['HAVE_WX'] = conf.CheckPKG('c')
-
-if not env['HAVE_WX'] and not env['nowx']:
-    print "WX libraries not found - see config.log"
-    Exit(1)
-
-conf.Define('HAVE_WX', env['HAVE_WX'])
-conf.Define('USE_WX', env['USE_WX'])
-
-if not sys.platform == 'win32' and not sys.platform == 'darwin':
-    env['LINKFLAGS'] += ['-pthread']
+    conf.Define('HAVE_WX', env['HAVE_WX'])
 
     env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
     conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
@@ -399,11 +365,12 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
         print "Must have GLU to build"
         Exit(1)
     if not conf.CheckPKG('Cg'):
-        print "Must have Cg framework from NVidia to build"
+        print "Must have Cg toolkit from NVidia to build"
         Exit(1)
     if not conf.CheckPKG('CgGL'):
         print "Must have CgGl to build"
         Exit(1)
+
     if env['opencl']:
         env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
 
@@ -412,38 +379,58 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
         conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
         conf.Define('LIBS_DIR', "\"" + env['prefix'] + 'lib/' +  "\"")
 
-conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
+    # PGO - Profile Guided Optimization
+    if env['pgo']=='generate':
+        compileFlags.append('-fprofile-generate')
+        env['LINKFLAGS']='-fprofile-generate'
+    if env['pgo']=='use':
+        compileFlags.append('-fprofile-use')
+        env['LINKFLAGS']='-fprofile-use'
 
-env['NOJIT'] = 0
-if env['nojit']:
-    env['NOJIT'] = 1
+    # Profiling
+    if (flavour == 'prof'):
+        proflibs = [ '/usr/lib/oprofile', '/usr/local/lib/oprofile' ]
+        env['LIBPATH'].append(proflibs)
+        env['RPATH'].append(proflibs)
+        if conf.CheckPKG('opagent'):
+            conf.Define('USE_OPROFILE', 1)
+        else:
+            print "Can't build prof without oprofile, disabling"
 
-conf.Define('NOJIT', env['NOJIT'])
+    conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
 
-# Lua
-if not sys.platform == 'win32':
-    conf.Define('LUA_USE_LINUX')
+    # After all configuration tests are done
+    conf.Finish()
 
-# Profiling
-env['USE_OPROFILE'] = 0
-if (flavour == 'prof'):
-    proflibs = [ '/usr/lib/oprofile', '/usr/local/lib/oprofile' ]
-    env['LIBPATH'].append(proflibs)
-    env['RPATH'].append(proflibs)
-    if conf.CheckPKG('opagent'):
-        env['USE_OPROFILE'] = 1
-        conf.Define('USE_OPROFILE', env['USE_OPROFILE'])
-    else:
-        print "Can't build prof without oprofile, disabling"
+# Local (static) libraries must be first in the search path for the build in
+# order that they can override system libraries, but they must not be found
+# during autoconfiguration as they will then be detected as system libraries.
+env['LIBPATH'].insert(0, env['local_libs'])
 
-# After all configuration tests are done
-conf.Finish()
-
-env['LIBPATH'].append(env['local_libs'])
+if not shared['glew']:
+    env['CPPPATH'] += [basedir + 'Externals/GLew/include']
+    dirs += ['Externals/GLew']
+if not shared['lzo']:
+    env['CPPPATH'] += [basedir + 'Externals/LZO']
+    dirs += ['Externals/LZO']
+if not shared['sdl']:
+    env['CPPPATH'] += [basedir + 'Externals/SDL']
+    env['CPPPATH'] += [basedir + 'Externals/SDL/include']
+    dirs += ['Externals/SDL']
+if not shared['soil']:
+    env['CPPPATH'] += [basedir + 'Externals/SOIL']
+    dirs += ['Externals/SOIL']
+if not shared['sfml']:
+    env['CPPPATH'] += [basedir + 'Externals/SFML/include']
+    dirs += ['Externals/SFML/src']
+if not shared['zlib']:
+    env['CPPPATH'] += [basedir + 'Externals/zlib']
+    dirs += ['Externals/zlib']
 
 rev = utils.GenerateRevFile(env['flavor'],
                             "Source/Core/Common/Src/svnrev_template.h",
                             "Source/Core/Common/Src/svnrev.h")
+
 # Print a nice progress indication when not compiling
 Progress(['-\r', '\\\r', '|\r', '/\r'], interval=5)
 
@@ -478,8 +465,6 @@ for subdir in dirs:
 if sys.platform == 'darwin':
     env.Install(env['data_dir'], 'Data/Sys')
     env.Install(env['data_dir'], 'Data/User')
-    env.Install(env['binary_dir'] + 'Dolphin.app/Contents/Resources/',
-                'Source/Core/DolphinWX/resources/Dolphin.icns')
 else:
     env.InstallAs(env['data_dir'] + 'sys', 'Data/Sys')
     env.InstallAs(env['data_dir'] + 'user', 'Data/User')
