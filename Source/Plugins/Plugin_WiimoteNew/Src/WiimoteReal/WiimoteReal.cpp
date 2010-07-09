@@ -348,6 +348,13 @@ void Shutdown(void)
 #ifdef __linux__
 void Refresh()
 {
+	// make sure real wiimotes have been initialized
+	if (!g_real_wiimotes_initialized)
+	{
+		Initialize();
+		return;
+	}
+
 	// find the number of slots configured for real wiimotes
 	unsigned int wanted_wiimotes = 0;
 	for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
