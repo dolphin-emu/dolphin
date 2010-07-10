@@ -447,7 +447,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\Src\ControllerInterface\DirectInput\NamedKeys.h"
+					RelativePath=".\Src\ControllerInterface\DInput\NamedKeys.h"
 					>
 				</File>
 			</Filter>

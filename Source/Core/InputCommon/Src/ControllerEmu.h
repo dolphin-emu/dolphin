@@ -276,7 +276,7 @@ public:
 		Tilt( const char* const _name );
 
 		template <typename C, typename R>
-		void GetState( C* const x, C* const y, const unsigned int base, const R range )
+		void GetState(C* const x, C* const y, const unsigned int base, const R range, const bool step = true)
 		{
 			// this is all a mess
 
@@ -326,15 +326,20 @@ public:
 
 			// this is kinda silly here
 			// gui being open will make this happen 2x as fast, o well
-			if (xx > m_tilt[0])
-				m_tilt[0] = std::min(m_tilt[0] + 0.1f, xx);
-			else if (xx < m_tilt[0])
-				m_tilt[0] = std::max(m_tilt[0] - 0.1f, xx);
+			
+			// silly
+			if (step)
+			{
+				if (xx > m_tilt[0])
+					m_tilt[0] = std::min(m_tilt[0] + 0.1f, xx);
+				else if (xx < m_tilt[0])
+					m_tilt[0] = std::max(m_tilt[0] - 0.1f, xx);
 
-			if (yy > m_tilt[1])
-				m_tilt[1] = std::min(m_tilt[1] + 0.1f, yy);
-			else if (yy < m_tilt[1])
-				m_tilt[1] = std::max(m_tilt[1] - 0.1f, yy);
+				if (yy > m_tilt[1])
+					m_tilt[1] = std::min(m_tilt[1] + 0.1f, yy);
+				else if (yy < m_tilt[1])
+					m_tilt[1] = std::max(m_tilt[1] - 0.1f, yy);
+			}
 
 			*y = C( m_tilt[1] * range + base );
 			*x = C( m_tilt[0] * range + base );
@@ -421,7 +426,7 @@ public:
 
 	virtual std::string GetName() const = 0;
 
-	virtual void LoadDefaults() {}
+	virtual void LoadDefaults(const ControllerInterface& ciface);
 
 	virtual void LoadConfig(IniFile::Section *sec, const std::string& base = "");
 	virtual void SaveConfig(IniFile::Section *sec, const std::string& base = "");

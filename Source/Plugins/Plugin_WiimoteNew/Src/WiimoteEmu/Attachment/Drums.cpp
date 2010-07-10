@@ -6,7 +6,7 @@ namespace WiimoteEmu
 
 static const u8 drums_id[] = { 0x01, 0x00, 0xa4, 0x20, 0x01, 0x03 };
 
-const u16 drum_pad_bitmasks[] =
+static const u16 drum_pad_bitmasks[] =
 {
 	Drums::PAD_RED,
 	Drums::PAD_YELLOW,
@@ -16,12 +16,12 @@ const u16 drum_pad_bitmasks[] =
 	Drums::PAD_BASS,
 };
 
-const char* drum_pad_names[] =
+static const char* const drum_pad_names[] =
 {
 	"Red","Yellow","Blue","Green","Orange","Bass"
 };
 
-const u16 drum_button_bitmasks[] =
+static const u16 drum_button_bitmasks[] =
 {
 	Drums::BUTTON_MINUS,
 	Drums::BUTTON_PLUS,
@@ -39,8 +39,8 @@ Drums::Drums() : Attachment( "Drums" )
 
 	// buttons
 	groups.push_back( m_buttons = new Buttons( "Buttons" ) );
-	m_buttons->controls.push_back( new ControlGroup::Input("Minus") );
-	m_buttons->controls.push_back( new ControlGroup::Input("Plus") );
+	m_buttons->controls.push_back( new ControlGroup::Input("-") );
+	m_buttons->controls.push_back( new ControlGroup::Input("+") );
 
 	// set up register
 	// id
@@ -50,6 +50,7 @@ Drums::Drums() : Attachment( "Drums" )
 void Drums::GetState(u8* const data, const bool focus)
 {
 	wm_drums_extension* const ddata = (wm_drums_extension*)data;
+	ddata->bt = 0;
 
 	// calibration data not figured out yet?
 

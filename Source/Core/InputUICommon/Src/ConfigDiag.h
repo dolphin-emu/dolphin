@@ -206,6 +206,7 @@ public:
 	void SetDevice( wxCommandEvent& event );
 
 	void ClearAll( wxCommandEvent& event );
+	void LoadDefaults( wxCommandEvent& event );
 
 	void AdjustControlOption( wxCommandEvent& event );
 	void AdjustSetting( wxCommandEvent& event );

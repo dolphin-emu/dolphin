@@ -19,7 +19,7 @@ namespace ciface
 namespace DInput
 {
 
-struct
+static struct
 {
 	const BYTE			code;
 	const char* const	name;
@@ -28,7 +28,7 @@ struct
 #include "NamedKeys.h"
 };
 
-struct
+static struct
 {
 	const BYTE			code;
 	const char* const	name;
@@ -39,8 +39,13 @@ struct
 	{ VK_SCROLL, "SCROLL LOCK" }
 };
 
-void InitKeyboardMouse( IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices )
+// lil silly
+static HWND hwnd;
+
+void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices, HWND _hwnd)
 {
+	hwnd = _hwnd;
+
 	// mouse and keyboard are a combined device, to allow shift+click and stuff
 	// if thats dumb, i will make a VirtualDevice class that just uses ranges of inputs/outputs from other devices
 	// so there can be a separated Keyboard and mouse, as well as combined KeyboardMouse
@@ -81,7 +86,7 @@ KeyboardMouse::~KeyboardMouse()
 	m_mo_device->Release();
 }
 
-KeyboardMouse::KeyboardMouse( const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRECTINPUTDEVICE8 mo_device )
+KeyboardMouse::KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRECTINPUTDEVICE8 mo_device)
 	: m_kb_device(kb_device)
 	, m_mo_device(mo_device)
 {
@@ -90,16 +95,16 @@ KeyboardMouse::KeyboardMouse( const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRE
 
 	m_last_update = GetTickCount();
 
-	ZeroMemory( &m_state_in, sizeof(m_state_in) );
-	ZeroMemory( m_state_out, sizeof(m_state_out) );
-	ZeroMemory( &m_current_state_out, sizeof(m_current_state_out) );
+	ZeroMemory(&m_state_in, sizeof(m_state_in));
+	ZeroMemory(m_state_out, sizeof(m_state_out));
+	ZeroMemory(&m_current_state_out, sizeof(m_current_state_out));
 
 	// KEYBOARD
 	// add keys
-	for ( unsigned int i = 0; i < sizeof(named_keys)/sizeof(*named_keys); ++i )
+	for (unsigned int i = 0; i < sizeof(named_keys)/sizeof(*named_keys); ++i)
 		AddInput(new Key(i));
 	// add lights
-	for ( unsigned int i = 0; i < sizeof(named_lights)/sizeof(*named_lights); ++i )
+	for (unsigned int i = 0; i < sizeof(named_lights)/sizeof(*named_lights); ++i)
 		AddOutput(new Light(i));
 
 	// MOUSE
@@ -109,15 +114,38 @@ KeyboardMouse::KeyboardMouse( const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRE
 	mouse_caps.dwSize = sizeof(mouse_caps);
 	m_mo_device->GetCapabilities(&mouse_caps);
 	// mouse buttons
-	for ( unsigned int i = 0; i < mouse_caps.dwButtons; ++i )
+	for (unsigned int i = 0; i < mouse_caps.dwButtons; ++i)
 		AddInput(new Button(i));
 	// mouse axes
-	for ( unsigned int i = 0; i < mouse_caps.dwAxes; ++i )
+	for (unsigned int i = 0; i < mouse_caps.dwAxes; ++i)
 	{
 		// each axis gets a negative and a positive input instance associated with it
 		AddInput(new Axis(i, (2==i) ? -1 : -MOUSE_AXIS_SENSITIVITY));
 		AddInput(new Axis(i, -(2==i) ? 1 : MOUSE_AXIS_SENSITIVITY));
 	}
+	// cursor, with a hax for-loop
+	for (unsigned int i=0; i<4; ++i)
+		AddInput(new Cursor(!!(i&2), !!(i&1)));
+}
+
+void GetMousePos(float* const x, float* const y)
+{
+	unsigned int win_width = 2, win_height = 2;
+	POINT point = { 1, 1 };
+	GetCursorPos(&point);
+	// Get the cursor position relative to the upper left corner of the rendering window
+	ScreenToClient(hwnd, &point);
+
+	// Get the size of the rendering window. (In my case Rect.top and Rect.left was zero.)
+	RECT rect;
+	GetClientRect(hwnd, &rect);
+	// Width and height is the size of the rendering window
+	win_width = rect.right - rect.left;
+	win_height = rect.bottom - rect.top;
+
+	// Return the mouse position as a range from -1 to 1
+	*x = (float)point.x / (float)win_width * 2 - 1;
+	*y = (float)point.y / (float)win_height * 2 - 1;
 }
 
 bool KeyboardMouse::UpdateInput()
@@ -148,11 +176,15 @@ bool KeyboardMouse::UpdateInput()
 	if (SUCCEEDED(kb_hr) && SUCCEEDED(mo_hr))
 	{
 		// need to smooth out the axes, otherwise it doesnt work for shit
-		for ( unsigned int i = 0; i < 3; ++i )
+		for (unsigned int i = 0; i < 3; ++i)
 			((&m_state_in.mouse.lX)[i] += (&tmp_mouse.lX)[i]) /= 2;
 
 		// copy over the buttons
-		memcpy( m_state_in.mouse.rgbButtons, tmp_mouse.rgbButtons, sizeof(m_state_in.mouse.rgbButtons) );
+		memcpy(m_state_in.mouse.rgbButtons, tmp_mouse.rgbButtons, sizeof(m_state_in.mouse.rgbButtons));
+
+		// update mouse cursor
+		GetMousePos(&m_state_in.cursor.x, &m_state_in.cursor.y);
+
 		return true;
 	}
 
@@ -174,17 +206,17 @@ bool KeyboardMouse::UpdateOutput()
 	};
 
 	std::vector< KInput > kbinputs;
-	for ( unsigned int i = 0; i < sizeof(m_state_out)/sizeof(*m_state_out); ++i )
+	for (unsigned int i = 0; i < sizeof(m_state_out)/sizeof(*m_state_out); ++i)
 	{
 		bool want_on = false;
-		if ( m_state_out[i] )
+		if (m_state_out[i])
 			want_on = m_state_out[i] > GetTickCount() % 255 ;	// light should flash when output is 0.5
 
 		// lights are set to their original state when output is zero
-		if ( want_on ^ m_current_state_out[i] )
+		if (want_on ^ m_current_state_out[i])
 		{
-			kbinputs.push_back( KInput( named_lights[i].code ) );		// press
-			kbinputs.push_back( KInput( named_lights[i].code, true ) ); // release
+			kbinputs.push_back(KInput(named_lights[i].code));		// press
+			kbinputs.push_back(KInput(named_lights[i].code, true)); // release
 
 			m_current_state_out[i] ^= 1;
 		}
@@ -214,12 +246,12 @@ std::string KeyboardMouse::GetSource() const
 
 ControlState KeyboardMouse::GetInputState(const ControllerInterface::Device::Input* const input) const
 {
-	return ( ((Input*)input)->GetState( &m_state_in ) );
+	return (((Input*)input)->GetState(&m_state_in));
 }
 
 void KeyboardMouse::SetOutputState(const ControllerInterface::Device::Output* const output, const ControlState state)
 {
-	((Output*)output)->SetState( state, m_state_out );
+	((Output*)output)->SetState(state, m_state_out);
 }
 
 // names
@@ -236,7 +268,14 @@ std::string KeyboardMouse::Button::GetName() const
 std::string KeyboardMouse::Axis::GetName() const
 {
 	std::string tmpstr("Axis ");
-	tmpstr += "XYZ"[m_index]; tmpstr += ( m_range>0 ? '+' : '-' );
+	tmpstr += "XYZ"[m_index]; tmpstr += (m_range>0 ? '+' : '-');
+	return tmpstr;
+}
+
+std::string KeyboardMouse::Cursor::GetName() const
+{
+	std::string tmpstr("Cursor ");
+	tmpstr += "XY"[m_index]; tmpstr += (m_positive ? '+' : '-');
 	return tmpstr;
 }
 
@@ -248,17 +287,22 @@ std::string KeyboardMouse::Light::GetName() const
 // get/set state
 ControlState KeyboardMouse::Key::GetState(const State* const state) const
 {
-	return ( state->keyboard[named_keys[m_index].code] > 0 );
+	return (state->keyboard[named_keys[m_index].code] != 0);
 }
 
 ControlState KeyboardMouse::Button::GetState(const State* const state) const
 {
-	return ( state->mouse.rgbButtons[m_index] > 0 );
+	return (state->mouse.rgbButtons[m_index] != 0);
 }
 
 ControlState KeyboardMouse::Axis::GetState(const State* const state) const
 {
-	return std::max( 0.0f, ControlState((&state->mouse.lX)[m_index]) / m_range );
+	return std::max(0.0f, ControlState((&state->mouse.lX)[m_index]) / m_range);
+}
+
+ControlState KeyboardMouse::Cursor::GetState(const State* const state) const
+{
+	return std::max(0.0f, ControlState((&state->cursor.x)[m_index]) / (m_positive ? 1.0f : -1.0f));
 }
 
 void KeyboardMouse::Light::SetState(const ControlState state, unsigned char* const state_out)

@@ -51,35 +51,15 @@ void GCPad_Init( void* const hwnd )
 	if ( false == g_plugin.controller_interface.IsInit() )
 	{
 		// add 4 gcpads
-		for ( unsigned int i = 0; i<4; ++i )
-			g_plugin.controllers.push_back( new GCPad( i ) );
+		for (unsigned int i=0; i<4; ++i)
+			g_plugin.controllers.push_back(new GCPad(i));
 		
 		// needed for Xlib
 		g_plugin.controller_interface.SetHwnd(hwnd);
 		g_plugin.controller_interface.Init();
 
 		// load the saved controller config
-		if (false == g_plugin.LoadConfig())
-		{
-			// load default config for pad 1
-			g_plugin.controllers[0]->LoadDefaults();
-
-			// kinda silly, set default device(all controls) to first one found in ControllerInterface
-			// should be the keyboard device
-			if (g_plugin.controller_interface.Devices().size())
-			{
-				g_plugin.controllers[0]->default_device.FromDevice(g_plugin.controller_interface.Devices()[0]);
-				g_plugin.controllers[0]->UpdateDefaultDevice();
-			}
-		}
-
-		// update control refs
-		std::vector<ControllerEmu*>::const_iterator
-			i = g_plugin.controllers.begin(),
-			e = g_plugin.controllers.end();
-		for ( ; i!=e; ++i )
-			(*i)->UpdateReferences( g_plugin.controller_interface );
-
+		g_plugin.LoadConfig();
 	}
 }
 

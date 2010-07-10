@@ -21,7 +21,7 @@ static const u8 nunchuck_calibration[] =
 	0xec, 0x41 // checksum on the last two bytes
 };
 
-const u8 nunchuk_button_bitmasks[] =
+static const u8 nunchuk_button_bitmasks[] =
 {
 	Nunchuk::BUTTON_C,
 	Nunchuk::BUTTON_Z,
@@ -62,6 +62,7 @@ Nunchuk::Nunchuk() : Attachment( "Nunchuk" )
 void Nunchuk::GetState( u8* const data, const bool focus )
 {
 	wm_extension* const ncdata = (wm_extension*)data;
+	ncdata->bt = 0;
 
 	// stick / not using calibration data for stick, o well
 	m_stick->GetState( &ncdata->jx, &ncdata->jy, 0x80, focus ? 127 : 0 );

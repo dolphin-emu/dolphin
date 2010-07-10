@@ -53,6 +53,8 @@ public:
 
 	void DoState(PointerWrap& p);
 
+	void LoadDefaults(const ControllerInterface& ciface);
+
 private:
 	struct ReadRequest
 	{

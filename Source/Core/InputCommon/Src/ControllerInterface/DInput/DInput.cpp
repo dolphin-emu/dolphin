@@ -61,14 +61,14 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
 	return StripSpaces(out);
 }
 
-void Init( std::vector<ControllerInterface::Device*>& devices/*, HWND hwnd*/ )
+void Init(std::vector<ControllerInterface::Device*>& devices, HWND hwnd)
 {
 	IDirectInput8* idi8;
 	if (FAILED(DirectInput8Create(GetModuleHandle(NULL), DIRECTINPUT_VERSION, IID_IDirectInput8, (LPVOID*)&idi8, NULL)))
 		return;
 
 #ifdef CIFACE_USE_DINPUT_KBM
-	InitKeyboardMouse(idi8, devices);
+	InitKeyboardMouse(idi8, devices, hwnd);
 #endif
 #ifdef CIFACE_USE_DINPUT_JOYSTICK
 	InitJoystick(idi8, devices/*, hwnd*/);

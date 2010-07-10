@@ -124,18 +124,11 @@ void GCPad::SetOutput( const bool on )
 	m_rumble->controls[0]->control_ref->State( on && (Host_RendererHasFocus() || m_options[0].settings[0]->value) );
 }
 
-void GCPad::LoadDefaults()
+void GCPad::LoadDefaults(const ControllerInterface& ciface)
 {
 	#define set_control(group, num, str)	(group)->controls[num]->control_ref->expression = (str)
 
-	// nvm, do the device part elsewhere
-//#ifdef _WIN32
-//	default_device.FromString("DirectInput/0/Keyboard Mouse");
-//#elif __APPLE__
-//	// keyboard mouse devices are named by their product name thing on OSX currently
-//#else
-//	default_device.FromString("Xlib/0/Keyboard");
-//#endif
+	ControllerEmu::LoadDefaults(ciface);
 
 	// Buttons
 	set_control(m_buttons, 0, "X");		// A

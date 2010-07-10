@@ -65,7 +65,7 @@ void Wiimote::ReportMode(const u16 _channelID, wm_report_mode* dr)
 	//m_reporting_auto = dr->all_the_time;
 	m_reporting_auto = dr->continuous;	// this right?
 	m_reporting_mode = dr->mode;
-	m_reporting_channel = _channelID;
+	//m_reporting_channel = _channelID;	// this is set in every Interrupt/Control Channel now
 
 	// reset IR camera
 	//memset(m_reg_ir, 0, sizeof(*m_reg_ir));  //ugly hack

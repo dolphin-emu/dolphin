@@ -32,7 +32,7 @@ public:
 	
 	std::string GetName() const;
 
-	void LoadDefaults();
+	void LoadDefaults(const ControllerInterface& ciface);
 
 private:
 

@@ -13,7 +13,7 @@ static const u8 classic_calibration[] =
 	0x00, 0x00, 0x51, 0xa6
 };
 
-const u16 classic_button_bitmasks[] =
+static const u16 classic_button_bitmasks[] =
 {
 	Classic::BUTTON_A,
 	Classic::BUTTON_B,
@@ -29,22 +29,22 @@ const u16 classic_button_bitmasks[] =
 	Classic::BUTTON_HOME,
 };
 
-const char* classic_button_names[] =
+static const char* const classic_button_names[] =
 {
-	"A","B","X","Y","ZL","ZR","Minus","Plus","Home",
+	"A","B","X","Y","ZL","ZR","-","+","Home",
 };
 
-const u16 classic_trigger_bitmasks[] =
+static const u16 classic_trigger_bitmasks[] =
 {
 	Classic::TRIGGER_L, Classic::TRIGGER_R,
 };
 
-const char* const classic_trigger_names[] =
+static const char* const classic_trigger_names[] =
 {
 	"L", "R", "L-Analog", "R-Analog"
 };
 
-const u16 classic_dpad_bitmasks[] =
+static const u16 classic_dpad_bitmasks[] =
 {
 	Classic::PAD_UP, Classic::PAD_DOWN, Classic::PAD_LEFT, Classic::PAD_RIGHT 
 };
@@ -80,6 +80,7 @@ Classic::Classic() : Attachment( "Classic" )
 void Classic::GetState( u8* const data, const bool focus )
 {
 	wm_classic_extension* const ccdata = (wm_classic_extension*)data;
+	ccdata->bt = 0;
 
 	// not using calibration data, o well
 

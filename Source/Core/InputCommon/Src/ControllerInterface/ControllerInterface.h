@@ -204,7 +204,7 @@ public:
 		Device::Control* Detect(const unsigned int ms, Device* const device);
 	};
 
-	ControllerInterface() : m_is_init(false) {}
+	ControllerInterface() : m_is_init(false), m_hwnd(NULL) {}
 	
 	void SetHwnd(void* const hwnd);
 	void Init();

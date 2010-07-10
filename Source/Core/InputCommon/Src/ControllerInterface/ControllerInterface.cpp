@@ -31,7 +31,7 @@ void ControllerInterface::Init()
 		return;
 
 #ifdef CIFACE_USE_DINPUT
-	ciface::DInput::Init(m_devices);
+	ciface::DInput::Init(m_devices, (HWND)m_hwnd);
 #endif
 #ifdef CIFACE_USE_XINPUT
 	ciface::XInput::Init(m_devices);

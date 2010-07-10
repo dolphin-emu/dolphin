@@ -43,14 +43,22 @@ bool InputPlugin::LoadConfig()
 {
 	IniFile inifile;
 	if (false == inifile.Load(std::string(File::GetUserPath(D_CONFIG_IDX)) + ini_name + ".ini"))
+	{
+		controllers[0]->LoadDefaults(controller_interface);
 		return false;
+	}
 
 	std::vector< ControllerEmu* >::const_iterator
 		i = controllers.begin(),
 		e = controllers.end();
-	for ( ; i!=e; ++i ) {
+	for ( ; i!=e; ++i )
+	{
+		// load settings from ini
 		(*i)->LoadConfig(inifile.GetOrCreateSection((*i)->GetName().c_str()));
+		// update refs
+		(*i)->UpdateReferences(controller_interface);
 	}
+
 	return true;
 }
 

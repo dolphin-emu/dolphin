@@ -21,8 +21,11 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 {
 	GamepadPage* const current_page = (GamepadPage*)m_pad_notebook->GetPage( m_pad_notebook->GetSelection() );
 
-	std::vector< ControlGroupBox* >::iterator g = current_page->control_groups.begin(),
-	ge = current_page->control_groups.end();
+	wxFont small_font(6, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
+
+	std::vector< ControlGroupBox* >::iterator
+		g = current_page->control_groups.begin(),
+		ge = current_page->control_groups.end();
 	for ( ; g != ge; ++g  )
 	{
 		// if this control group has a bitmap
@@ -42,14 +45,12 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 			dc.SelectObject(bitmap);
 			dc.Clear();
 
+			dc.SetFont(small_font);
+			dc.SetTextForeground(0xC0C0C0);
+
 			// label for sticks and stuff
 			if (64 == bitmap.GetHeight())
-			{
-				wxFont small_font(6, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_BOLD);
-				dc.SetFont(small_font);
-				dc.SetTextForeground(0xC0C0C0);
 				dc.DrawText(wxString::FromAscii((*g)->control_group->name).Upper(), 4, 2);
-			}
 
 			switch ( (*g)->control_group->type )
 			{
@@ -208,22 +209,27 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 					dc.SetPen(*wxGREY_PEN);
 
 					unsigned int * const bitmasks = new unsigned int[ button_count ];
-					for ( unsigned int n = 0; n<button_count; ++n )
-						bitmasks[n] = ( 1 << n );
+					for (unsigned int n = 0; n<button_count; ++n)
+						bitmasks[n] = (1 << n);
 
 					unsigned int buttons = 0;
 					((ControllerEmu::Buttons*)(*g)->control_group)->GetState( &buttons, bitmasks );
 
-					for ( unsigned int n = 0; n<button_count; ++n )
+					for (unsigned int n = 0; n<button_count; ++n)
 					{
 						if ( buttons & bitmasks[n] )
 							dc.SetBrush( *wxRED_BRUSH );
 						else
 						{
 							unsigned char amt = 255 - (*g)->control_group->controls[n]->control_ref->State() * 128;
-							dc.SetBrush( wxBrush( wxColor( amt, amt, amt ) ) );
+							dc.SetBrush(wxBrush(wxColor(amt, amt, amt)));
 						}
-						dc.DrawRectangle(n*12, 0, 14, 12);
+						dc.DrawRectangle(n * 12, 0, 14, 12);
+
+						// text
+						const char* const name = (*g)->control_group->controls[n]->name;
+						// bit of hax so ZL, ZR show up as L, R
+						dc.DrawText(wxString::FromAscii((name[1] && name[1] < 'a') ? name[1] : name[0]), n*12 + 2, 1);
 					}
 
 					delete[] bitmasks;
@@ -257,6 +263,9 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 						// deadzone affected
 						dc.SetBrush(*wxRED_BRUSH);
 						dc.DrawRectangle(0, n*12, trigs[n], 14);
+
+						// text
+						dc.DrawText(wxString::FromAscii((*g)->control_group->controls[n]->name), 3, n*12 + 1);
 					}
 
 					delete[] trigs;
@@ -289,6 +298,10 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 							dc.SetBrush(*wxWHITE_BRUSH);
 						dc.DrawRectangle(trig_a*64, n*12, 64+20, 14);
 						dc.DrawRectangle(64, n*12, 32, 14);
+
+						// text
+						dc.DrawText(wxString::FromAscii((*g)->control_group->controls[n+trigger_count]->name), 3, n*12 + 1);
+						dc.DrawText(wxString::FromAscii((*g)->control_group->controls[n]->name[0]), 64 + 3, n*12 + 1);
 					}
 
 					// threshold box

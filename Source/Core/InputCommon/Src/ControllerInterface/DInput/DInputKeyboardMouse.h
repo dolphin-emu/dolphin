@@ -14,7 +14,7 @@ namespace ciface
 namespace DInput
 {
 
-void InitKeyboardMouse( IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices );
+void InitKeyboardMouse(IDirectInput8* const idi8, std::vector<ControllerInterface::Device*>& devices, HWND _hwnd);
 
 class KeyboardMouse : public ControllerInterface::Device
 {
@@ -27,6 +27,10 @@ protected:
 	{
 		BYTE			keyboard[256];
 		DIMOUSESTATE2	mouse;
+		struct
+		{
+			float x, y;
+		} cursor;
 	};
 
 	class Input : public ControllerInterface::Device::Input
@@ -78,6 +82,20 @@ protected:
 	private:
 		const unsigned int	m_index;
 		const LONG			m_range;
+	};
+
+	class Cursor : public Input
+	{
+		friend class KeyboardMouse;
+	public:
+		std::string GetName() const;
+		bool IsDetectable() { return false; }
+	protected:
+		Cursor(const unsigned int index, const bool positive) : m_index(index), m_positive(positive) {}
+		ControlState GetState(const State* const state) const;
+	private:
+		const unsigned int	m_index;
+		const bool			m_positive;
 	};
 
 	class Light : public Output

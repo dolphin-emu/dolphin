@@ -9,7 +9,7 @@ namespace ciface
 namespace XInput
 {
 
-struct
+static struct
 {
 	const char* const name;
 	const WORD bitmask;
@@ -31,13 +31,13 @@ struct
 	{ "Thumb R", XINPUT_GAMEPAD_RIGHT_THUMB }
 };
 
-const char* named_triggers[] =	
+static const char* const named_triggers[] =	
 {
 	"Trigger L",
 	"Trigger R"
 };
 
-const char* named_axes[] =	
+static const char* const named_axes[] =	
 {
 	"Left X",
 	"Left Y",
@@ -45,7 +45,7 @@ const char* named_axes[] =
 	"Right Y"
 };
 
-const char* named_motors[] =	
+static const char* const named_motors[] =	
 {
 	"Motor L",
 	"Motor R"

@@ -120,19 +120,12 @@ void InitPlugin( void* const hwnd )
 		for ( unsigned int i = 0; i<4; ++i )
 			g_plugin.controllers.push_back( new WiimoteEmu::Wiimote(i) );
 
-		// load the saved controller config
-		g_plugin.LoadConfig();
-		
 		// needed for Xlib and exclusive dinput
 		g_plugin.controller_interface.SetHwnd(hwnd);
 		g_plugin.controller_interface.Init();
 
-		// update control refs
-		std::vector<ControllerEmu*>::const_iterator
-			i = g_plugin.controllers.begin(),
-			e = g_plugin.controllers.end();
-		for ( ; i!=e; ++i )
-			(*i)->UpdateReferences( g_plugin.controller_interface );
+		// load the saved controller config
+		g_plugin.LoadConfig();
 
 		// real wiimotes
 		WiimoteReal::LoadSettings();

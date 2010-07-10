@@ -284,6 +284,17 @@ void GamepadPage::ClearAll( wxCommandEvent& event )
 	UpdateGUI();
 }
 
+void GamepadPage::LoadDefaults( wxCommandEvent& event )
+{
+	controller->LoadDefaults(m_plugin.controller_interface);
+
+	m_plugin.controls_crit.Enter();		// enter
+	controller->UpdateReferences(m_plugin.controller_interface);
+	m_plugin.controls_crit.Leave();		// leave
+
+	UpdateGUI();
+}
+
 void ControlDialog::SetControl( wxCommandEvent& event )
 {
 	control_reference->expression = STR_FROM_WXSTR(textctrl->GetValue());
@@ -877,7 +888,7 @@ GamepadPage::GamepadPage( wxWindow* parent, InputPlugin& plugin, const unsigned 
 
 	wxStaticBoxSizer* const device_sbox = new wxStaticBoxSizer( wxHORIZONTAL, this, wxT("Device") );
 
-	device_cbox = new wxComboBox( this, -1, wxT(""), wxDefaultPosition, wxSize(128,-1), 0, 0, wxTE_PROCESS_ENTER );
+	device_cbox = new wxComboBox( this, -1, wxT(""), wxDefaultPosition, wxSize(64,-1), 0, 0, wxTE_PROCESS_ENTER );
 
 	wxButton* refresh_button = new wxButton( this, -1, wxT("Refresh"), wxDefaultPosition, wxSize(60,-1) );
 
@@ -888,13 +899,17 @@ GamepadPage::GamepadPage( wxWindow* parent, InputPlugin& plugin, const unsigned 
 	device_sbox->Add( device_cbox, 1, wxLEFT|wxRIGHT, 3 );
 	device_sbox->Add( refresh_button, 0, wxRIGHT|wxBOTTOM, 3 );
 
-	wxStaticBoxSizer* const clear_sbox = new wxStaticBoxSizer( wxHORIZONTAL, this, wxT("Clear") );
-	wxButton* all_button = new wxButton( this, -1, wxT("All"), wxDefaultPosition, wxSize(48,-1) );
-	clear_sbox->Add( all_button, 1, wxLEFT|wxRIGHT, 3 );
+	wxButton* const default_button = new wxButton( this, -1, wxT("Default"), wxDefaultPosition, wxSize(48,-1) );
+	wxButton* const clearall_button = new wxButton( this, -1, wxT("Clear"), wxDefaultPosition, wxSize(48,-1) );
 
-	_connect_macro_(all_button, GamepadPage::ClearAll, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	wxStaticBoxSizer* const clear_sbox = new wxStaticBoxSizer( wxHORIZONTAL, this, wxT("Reset") );
+	clear_sbox->Add(default_button, 1, wxLEFT, 3);
+	clear_sbox->Add(clearall_button, 1, wxRIGHT, 3);
 
-	profile_cbox = new wxComboBox( this, -1, wxT(""), wxDefaultPosition, wxSize(128,-1) );
+	_connect_macro_(clearall_button, GamepadPage::ClearAll, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	_connect_macro_(default_button, GamepadPage::LoadDefaults, wxEVT_COMMAND_BUTTON_CLICKED, this);
+
+	profile_cbox = new wxComboBox( this, -1, wxT(""), wxDefaultPosition, wxSize(64,-1) );
 
 	wxButton* const pload_btn = new wxButton( this, -1, wxT("Load"), wxDefaultPosition, wxSize(48,-1) );
 	wxButton* const psave_btn = new wxButton( this, -1, wxT("Save"), wxDefaultPosition, wxSize(48,-1) );

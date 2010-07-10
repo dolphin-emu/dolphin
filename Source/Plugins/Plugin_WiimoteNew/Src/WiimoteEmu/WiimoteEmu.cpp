@@ -51,7 +51,7 @@ static const u8 eeprom_data_16D0[] = {
 	0x77, 0x88, 0x00, 0x00, 0x2B, 0x01, 0xE8, 0x13
 };
 
-struct ReportFeatures
+static struct ReportFeatures
 {
 	u8		core, accel, ir, ext, size;
 } const reporting_mode_features[] = 
@@ -193,10 +193,10 @@ const char* const named_buttons[] =
 {
 	"A",
 	"B",
-	"One",
-	"Two",
-	"Minus",
-	"Plus",
+	"1",
+	"2",
+	"-",
+	"+",
 	"Home",
 };
 
@@ -395,6 +395,10 @@ void Wiimote::Update()
 		UDPTLayer::GetButtons(m_udp, &m_status.buttons);
 	}
 	
+	// no channel == not connected i guess
+	if (0 == m_reporting_channel)
+		return;
+
 	// check if there is a read data request
 	if (m_read_requests.size())
 	{
@@ -458,7 +462,7 @@ void Wiimote::Update()
 	if (rpt.accel)
 	{
 		// ----TILT----
-		EmulateTilt((wm_accel*)&data[rpt.accel], m_tilt, (accel_cal*)&m_eeprom[0x16], is_focus, is_sideways, is_upright );
+		EmulateTilt((wm_accel*)&data[rpt.accel], m_tilt, (accel_cal*)&m_eeprom[0x16], /*is_focus*/false, is_sideways, is_upright);
 
 		// ----SWING----
 		//const s8 swing_data[] = { 0x20, 0x40, 0x20, 0x00 };
@@ -496,35 +500,43 @@ void Wiimote::Update()
 	if (rpt.ir)
 	{
 		float xx = 10000, yy = 0, zz = 0;
+		unsigned int x[4], y[4];
 
 		if (is_focus)
 		{
 			m_ir->GetState(&xx, &yy, &zz, true);
 			UDPTLayer::GetIR(m_udp, &xx, &yy, &zz);
+
+			float tx, ty;
+			m_tilt->GetState(&tx, &ty, 0, 1, false);
+
+			// TODO: fix tilt math stuff
+
+			const float rtan = tan(0.0f/*tx*/);	// disabled cause my math fails
+			const float rsin = sin(rtan);
+			const float rcos = cos(rtan);
+
+			{
+				const float xxx = (xx * -256 * 0.95f);
+				const float yyy = (yy * -256 * 0.90f);
+
+				xx = 512 + xxx * rcos + yyy * rsin;
+				yy = 490 + yyy * rcos + xxx * rsin;
+			}
+
+			const unsigned int distance = (unsigned int)(200 + 100 * zz);
+
+			x[0] = (unsigned int)(xx - distance * rcos);
+			x[1] = (unsigned int)(xx + distance * rcos);
+			x[2] = (unsigned int)(xx - 1.2f * distance * rcos);
+			x[3] = (unsigned int)(xx + 1.2f * distance * rcos);
+
+			y[0] = (unsigned int)(yy - 0.75 * distance * rsin);
+			y[1] = (unsigned int)(yy + 0.75 * distance * rsin);
+			y[2] = (unsigned int)(yy - 0.75 * 1.2f * distance * rsin);
+			y[3] = (unsigned int)(yy + 0.75 * 1.2f * distance * rsin);
+
 		}
-
-		xx *= (-256 * 0.95f);
-		xx += 512;
-
-		yy *= (-256 * 0.90f);
-		yy += 490;
-
-		const unsigned int distance = (unsigned int)(200 + 100 * zz);
-
-		// TODO: make roll affect the dot positions
-		const unsigned int y = (unsigned int)yy;
-
-		unsigned int x[4];
-		x[0] = (unsigned int)(xx - distance);
-		x[1] = (unsigned int)(xx + distance);
-		x[2] = (unsigned int)(xx - 1.2f * distance);
-		x[3] = (unsigned int)(xx + 1.2f * distance);
-		
-		// 0xFF report / these memsets are silly
-		if (rpt.ext)
-			memset(data + rpt.ir, 0xFF, (rpt.ext - rpt.ir));
-		else 
-			memset(data + rpt.ir, 0xFF, (46 - rpt.ir));
 
 		// Fill report with valid data when full handshake was done
 		if (m_reg_ir->data[0x30] || m_reg_ir->data[0x33])
@@ -534,27 +546,25 @@ void Wiimote::Update()
 		// basic
 		case 1 :
 			{
+			memset(data + rpt.ir, 0xFF, 10);
 			wm_ir_basic* const irdata = (wm_ir_basic*)(data + rpt.ir);
-			if (y < 768)
+			for (unsigned int i=0; i<2; ++i)
 			{
-				for ( unsigned int i=0; i<2; ++i )
+				if (x[i*2] < 1024 && y[i*2] < 768) 
 				{
-					if (x[i*2] < 1024)
-					{
-						irdata[i].x1 = u8(x[i*2]);
-						irdata[i].x1hi = x[i*2] >> 8;
+					irdata[i].x1 = u8(x[i*2]);
+					irdata[i].x1hi = x[i*2] >> 8;
 
-						irdata[i].y1 = u8(y);
-						irdata[i].y1hi = y >> 8;
-					}
-					if (x[i*2+1] < 1024)
-					{
-						irdata[i].x2 = u8(x[i*2+1]);
-						irdata[i].x2hi = x[i*2+1] >> 8;
+					irdata[i].y1 = u8(y[i*2]);
+					irdata[i].y1hi = y[i*2] >> 8;
+				}
+				if (x[i*2+1] < 1024 && y[i*2+1] < 768)
+				{
+					irdata[i].x2 = u8(x[i*2+1]);
+					irdata[i].x2hi = x[i*2+1] >> 8;
 
-						irdata[i].y2 = u8(y);
-						irdata[i].y2hi = y >> 8;
-					}
+					irdata[i].y2 = u8(y[i*2+1]);
+					irdata[i].y2hi = y[i*2+1] >> 8;
 				}
 			}
 			}
@@ -562,21 +572,19 @@ void Wiimote::Update()
 		// extended
 		case 3 :
 			{
+			memset(data + rpt.ir, 0xFF, 12);
 			wm_ir_extended* const irdata = (wm_ir_extended*)(data + rpt.ir);
-			if (y < 768)
-			{
-				for ( unsigned int i=0; i<4; ++i )
-					if (x[i] < 1024)
-					{
-						irdata[i].x = u8(x[i]);
-						irdata[i].xhi = x[i] >> 8;
+			for (unsigned int i=0; i<4; ++i)
+				if (x[i] < 1024 && y[i] < 768)
+				{
+					irdata[i].x = u8(x[i]);
+					irdata[i].xhi = x[i] >> 8;
 
-						irdata[i].y = u8(y);
-						irdata[i].yhi = y >> 8;
+					irdata[i].y = u8(y[i]);
+					irdata[i].yhi = y[i] >> 8;
 
-						irdata[i].size = 10;
-					}
-			}
+					irdata[i].size = 10;
+				}
 			}
 			break;
 		// full
@@ -628,7 +636,6 @@ void Wiimote::Update()
 
 void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size) 
 {
-
 	// Check for custom communication
 	if (99 == _channelID)
 	{
@@ -639,6 +646,9 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 		Reset();
 		return;
 	}
+
+	// this all good?
+	m_reporting_channel = _channelID;
 
 	hid_packet* hidp = (hid_packet*)_pData;
 
@@ -681,6 +691,9 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 
 void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size)
 {
+	// this all good?
+	m_reporting_channel = _channelID;
+
 	hid_packet* hidp = (hid_packet*)_pData;
 
 	switch (hidp->type)
@@ -705,6 +718,57 @@ void Wiimote::InterruptChannel(const u16 _channelID, const void* _pData, u32 _Si
 		PanicAlert("HidInput: Unknown type 0x%02x and param 0x%02x", hidp->type, hidp->param);
 		break;
 	}
+}
+
+void Wiimote::LoadDefaults(const ControllerInterface& ciface)
+{
+	#define set_control(group, num, str)	(group)->controls[num]->control_ref->expression = (str)
+
+	ControllerEmu::LoadDefaults(ciface);
+
+	// TODO: finish this
+
+	// Buttons
+	// these alright for OSX/Linux?
+
+	set_control(m_buttons, 0, "Button 0");		// A
+	set_control(m_buttons, 1, "Button 1");		// B
+	//set_control(m_buttons, 2, "");		// 1
+	//set_control(m_buttons, 3, "");		// 2
+	//set_control(m_buttons, 4, "");		// -
+	//set_control(m_buttons, 5, "");		// +
+	//set_control(m_buttons, 6, "");		// Start
+
+	// Shake
+	for (unsigned int i=0; i<3; ++i)
+		set_control(m_shake, i, "Button 2");
+
+	// IR
+#ifdef _WIN32
+	set_control(m_ir, 0, "Cursor Y-");
+	set_control(m_ir, 1, "Cursor Y+");
+	set_control(m_ir, 2, "Cursor X-");
+	set_control(m_ir, 3, "Cursor X+");
+#endif
+
+	// DPad
+#ifdef _WIN32
+	set_control(m_dpad, 0, "UP");			// Up
+	set_control(m_dpad, 1, "DOWN");		// Down
+	set_control(m_dpad, 2, "LEFT");		// Left
+	set_control(m_dpad, 3, "RIGHT");		// Right
+#elif __APPLE__
+	set_control(m_dpad, 0, "Up Arrow");		// Up
+	set_control(m_dpad, 1, "Down Arrow");		// Down
+	set_control(m_dpad, 2, "Left Arrow");		// Left
+	set_control(m_dpad, 3, "Right Arrow");	// Right
+#else
+	set_control(m_dpad, 0, "Up");		// Up
+	set_control(m_dpad, 1, "Down");		// Down
+	set_control(m_dpad, 2, "Left");		// Left
+	set_control(m_dpad, 3, "Right");	// Right
+#endif
+
 }
 
 // TODO: i need to test this
