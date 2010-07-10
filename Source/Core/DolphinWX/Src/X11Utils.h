@@ -71,7 +71,7 @@ class XRRConfiguration
 		XRRScreenConfiguration *screenConfig;
 		Rotation screenRotation;
 		int deskSize, fullSize;
-
+		bool bValid;
 };
 #endif
 
