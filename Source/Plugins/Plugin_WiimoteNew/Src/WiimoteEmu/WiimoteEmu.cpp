@@ -462,7 +462,7 @@ void Wiimote::Update()
 	if (rpt.accel)
 	{
 		// ----TILT----
-		EmulateTilt((wm_accel*)&data[rpt.accel], m_tilt, (accel_cal*)&m_eeprom[0x16], /*is_focus*/false, is_sideways, is_upright);
+		EmulateTilt((wm_accel*)&data[rpt.accel], m_tilt, (accel_cal*)&m_eeprom[0x16], is_focus, is_sideways, is_upright);
 
 		// ----SWING----
 		//const s8 swing_data[] = { 0x20, 0x40, 0x20, 0x00 };
