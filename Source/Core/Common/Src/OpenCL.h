@@ -19,19 +19,27 @@
 #define __OPENCL_H__
 
 #include "Common.h"
+
 // OpenCL on Windows is linked through the CLRun library
 // It provides the headers and all the imports
-// It could be safe to use it for Linux too, but will require to edit the SCons first
-// OpenCL is linked on OSX when possible, it shouldn't require CLRun for now
 #ifdef _WIN32
 #define HAVE_OPENCL 1
 #endif
 
+// The latest (last?) release of Xcode for Leopard does not include the 10.6
+// SDK, so we can only build with OpenCL on a Snow Leopard system where we link
+// the OpenCL framework weakly so that the application will also run on 10.5.
+#ifdef __APPLE__
+#import <Foundation/NSObjCRuntime.h>
+#ifdef NSFoundationVersionNumber10_5	// First defined in the 10.6 SDK
+#include <OpenCL/opencl.h>
+#define HAVE_OPENCL 1
+#endif
+#endif
+
 #if defined(HAVE_OPENCL) && HAVE_OPENCL
 
-#ifdef __APPLE__
-#include <OpenCL/opencl.h>
-#else
+#ifndef __APPLE__
 #include <CL/cl.h>
 #endif
 

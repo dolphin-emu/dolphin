@@ -204,7 +204,6 @@ env['CCFLAGS'] = compileFlags
 env['CPPDEFINES'] = cppDefines
 if not sys.platform == 'win32':
     env['CXXFLAGS'] = ['-fvisibility-inlines-hidden']
-    cppDefines.append('LUA_USE_LINUX')
 
 # Configuration tests section
 tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
@@ -258,21 +257,16 @@ env['HAVE_WX'] = 0
 if sys.platform == 'darwin':
     compileFlags.append('-mmacosx-version-min=10.5')
     if not env['nowx']:
-        cppDefines.append('HAVE_WX=1')
         conf = env.Configure(custom_tests = tests)
-        # wxWidgets 2.9 has Cocoa support
         env['HAVE_WX'] = conf.CheckWXConfig(2.9, wxmods, 0)
         wxconfig.ParseWXConfig(env)
-        # Make sure that the libraries claimed by wx-config are valid
-        if not conf.CheckLib('wx_baseu-2.9'):
-            print "WX libraries not found - see config.log"
-            Exit(1)
         conf.Finish()
         # wx-config wants us to link with the OS X QuickTime framework
         # which is not available for x86_64 and we don't use it anyway.
         # Strip it out to silence some harmless linker warnings.
-        if env['FRAMEWORKS'].count('QuickTime'):
-            env['FRAMEWORKS'].remove('QuickTime')
+        if env['CPPDEFINES'].count('WXUSINGDLL'):
+            if env['FRAMEWORKS'].count('QuickTime'):
+                env['FRAMEWORKS'].remove('QuickTime')
     env['CC'] = "gcc-4.2"
     env['CFLAGS'] = ['-x', 'objective-c']
     env['CXX'] = "g++-4.2"
@@ -287,6 +281,7 @@ if sys.platform == 'darwin':
         env['HAVE_OPENCL'] = 1
         env['LINKFLAGS'] += ['-weak_framework', 'OpenCL']
     env['FRAMEWORKS'] += ['Cg']
+    shared['zlib'] = 1
 
 if not sys.platform == 'win32' and not sys.platform == 'darwin':
     conf = env.Configure(custom_tests = tests,
@@ -371,6 +366,7 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
 
     if env['opencl']:
         env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
+        conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
 
     conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
     if (env['install'] == 'global'):
@@ -394,8 +390,6 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
             conf.Define('USE_OPROFILE', 1)
         else:
             print "Can't build prof without oprofile, disabling"
-
-    conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
 
     # After all configuration tests are done
     conf.Finish()

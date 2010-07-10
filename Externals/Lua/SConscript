@@ -1,6 +1,12 @@
 # -*- python -*- 
 
+import sys
 Import('env')
+
+luaenv = env.Clone()
+
+if not sys.platform == 'win32':
+    luaenv['CPPDEFINES'].append('LUA_USE_LINUX')	# Also works for OS X
 
 files = [
     'lapi.c',
@@ -35,4 +41,4 @@ files = [
     'print.c',
     ]
 
-env.StaticLibrary(env['local_libs'] + "lua", files)
+luaenv.StaticLibrary(env['local_libs'] + "lua", files)

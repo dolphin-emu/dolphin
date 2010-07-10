@@ -11,6 +11,7 @@
 #ifdef _WIN32
 	#include <windows.h>
 #endif
+#include "Common.h"
 #include "CommonTypes.h"
 
 // Plugin communication. I place this here rather in Common.h to rebuild less if any of this is changed
@@ -89,11 +90,6 @@ typedef struct
 	PLUGIN_TYPE Type;	// Set to PLUGIN_TYPE_DVD
 	char Name[100];		// Name of the DLL
 } PLUGIN_INFO;
-
-#ifndef MAX_PATH
-// apparently a windows-ism.
-#define MAX_PATH 260
-#endif
 
 // TODO: Remove, or at least remove the void pointers and replace with data.
 // This design is just wrong and ugly - the plugins shouldn't have this much access.

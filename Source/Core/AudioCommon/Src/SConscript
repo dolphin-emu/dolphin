@@ -20,7 +20,7 @@ else:
         files += [ 'AlsaSoundStream.cpp' ]
     if env['HAVE_AO']:
         files += [ 'AOSoundStream.cpp' ]
-    if env['HAVE_OPENAL']:
+    if env['HAVE_OPENAL'] or sys.platform == 'win32':
         files += [ 'OpenALStream.cpp', 'aldlist.cpp' ]
     if env['HAVE_PULSEAUDIO']:
         files += [ 'PulseAudioStream.cpp' ]

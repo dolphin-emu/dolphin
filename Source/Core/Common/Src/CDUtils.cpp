@@ -5,8 +5,6 @@
   
 #ifdef _WIN32
 #include <windows.h>
-#define PATH_MAX MAX_PATH
-
 #elif __APPLE__
 #include <paths.h>
 #include <Carbon/Carbon.h>
@@ -14,10 +12,8 @@
 #include <IOKit/storage/IOCDMedia.h>
 #include <IOKit/storage/IOMedia.h>
 #include <IOKit/IOBSD.h>
-
 #elif __linux__
 #include <fcntl.h>
-#include <limits.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <linux/cdrom.h>
@@ -231,9 +227,9 @@ bool cdio_is_cdrom(std::string device)
 	for (unsigned int i = 0; i < devices.size(); i++)
    	{
 #ifdef __linux__
-		if (strncmp(devices[i].c_str(), devname, PATH_MAX) == 0)
+		if (strncmp(devices[i].c_str(), devname, MAX_PATH) == 0)
 #else
-		if (strncmp(devices[i].c_str(), device.c_str(), PATH_MAX) == 0)
+		if (strncmp(devices[i].c_str(), device.c_str(), MAX_PATH) == 0)
 #endif
 	   	{
 			res = true;

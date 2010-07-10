@@ -49,12 +49,6 @@ rm -rf $temp_dir
 mkdir -p $temp_dir/Dolphin.app
 cp -r Darwin-i386/Dolphin.app $temp_dir
 fix_shared_object_depends libwx
-fix_shared_object_depends libSDL
-fix_shared_object_depends libGLEW
-fix_shared_object_depends libz
-
-mkdir -p $temp_dir/Dolphin.app/Contents/Library/Frameworks/Cg.framework
-cp /Library/Frameworks/Cg.framework/Cg $temp_dir/Dolphin.app/Contents/Library/Frameworks/Cg.framework/Cg
 
 find $temp_dir -name .svn -exec rm -fr {} \; 2>/dev/null
 rm $temp_dir.dmg 2>/dev/null
