@@ -626,6 +626,12 @@ void VideoThrottle()
 	{
 		// Make the limiter a bit loose
 		u32 frametime = ((SConfig::GetInstance().b_UseFPS)? Common::AtomicLoad(DrawnFrame) : DrawnVideo) * 1000 / TargetVPS;
+
+		u32 timeDifference = (u32)Timer.GetTimeDifference();
+		if (timeDifference < frametime) {
+			Common::SleepCurrentThread(frametime - timeDifference - 1);
+		}
+
 		while ((u32)Timer.GetTimeDifference() < frametime)
 			Common::YieldCPU();
 			//Common::SleepCurrentThread(1);
