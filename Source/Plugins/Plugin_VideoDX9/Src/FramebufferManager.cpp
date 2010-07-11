@@ -97,7 +97,7 @@ void FramebufferManager::Create()
 	{
 		hr = s_efb_color_texture->GetSurfaceLevel(0, &s_efb_color_surface);
 	}
-	CHECK(hr, "Create Color Texture (hr=%#x)", hr);
+	CHECK(hr, "Create Color Texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
 	hr = D3D::dev->CreateTexture(1, 1, 1, D3DUSAGE_RENDERTARGET, s_efb_color_surface_Format, 
 										  D3DPOOL_DEFAULT, &s_efb_colorRead_texture, NULL);
 	CHECK(hr, "Create Color Read Texture (hr=%#x)", hr);
@@ -128,7 +128,7 @@ void FramebufferManager::Create()
 			if (!FAILED(hr))
 				break;
 		}
-		CHECK(hr, "Depth Color Texture (hr=%#x)", hr);
+		CHECK(hr, "Depth Color Texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
 		// Get the Surface
 		if(s_efb_depth_texture)
 		{

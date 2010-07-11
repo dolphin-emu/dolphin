@@ -51,6 +51,8 @@ const char* PixelShaderVersionString();
 const char* VertexShaderVersionString();
 bool BGRATexturesSupported();
 
+unsigned int GetMaxTextureSize();
+
 // Ihis function will assign a name to the given resource.
 // The DirectX debug layer will make it easier to identify resources that way,
 // e.g. when listing up all resources who have unreleased references.

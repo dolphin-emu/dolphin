@@ -823,6 +823,9 @@ void UpdateViewport()
 	// [3] = xorig + width/2 + 342
 	// [4] = yorig + height/2 + 342
 	// [5] = 16777215 * farz
+	const int old_fulltarget_w = s_Fulltarget_width;
+	const int old_fulltarget_h = s_Fulltarget_height;
+
 	int scissorXOff = bpmem.scissorOffset.x * 2;
 	int scissorYOff = bpmem.scissorOffset.y * 2;
 
@@ -877,6 +880,16 @@ void UpdateViewport()
 	}
 	if (sizeChanged)
 	{
+		D3DCAPS9 caps = D3D::GetCaps();
+		// Make sure that the requested size is actually supported by the GFX driver
+		if (s_Fulltarget_width > caps.MaxTextureWidth || s_Fulltarget_height > caps.MaxTextureHeight)
+		{
+			// Skip EFB recreation and viewport setting. Most likely cause glitches in this case, but prevents crashes at least
+			ERROR_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D9. Requested EFB size is %dx%d\n", s_Fulltarget_width, s_Fulltarget_height);
+			s_Fulltarget_width = old_fulltarget_w;
+			s_Fulltarget_height = old_fulltarget_h;
+			return;
+		}
 		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
 		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
 		FBManager.Destroy();

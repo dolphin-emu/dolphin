@@ -238,6 +238,27 @@ unsigned int GetBackBufferHeight() { return yres; }
 
 bool BGRATexturesSupported() { return bgra_textures_supported; }
 
+// Returns the maximum width/height of a texture. This value only depends upon the feature level in DX11
+unsigned int GetMaxTextureSize()
+{
+	switch (featlevel)
+	{
+		case D3D_FEATURE_LEVEL_11_0:
+			return 16384;
+
+		case D3D_FEATURE_LEVEL_10_1:
+		case D3D_FEATURE_LEVEL_10_0:
+			return 8192;
+
+		case D3D_FEATURE_LEVEL_9_3:
+			return 4096;
+
+		case D3D_FEATURE_LEVEL_9_2:
+		case D3D_FEATURE_LEVEL_9_1:
+			return 2048;
+	}
+}
+
 void Reset()
 {
 	// release all back buffer references

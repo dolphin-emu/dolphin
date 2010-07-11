@@ -311,7 +311,7 @@ template<typename T> AutoState<T>::AutoState(const T* object) : state(object)
 template<typename T> AutoState<T>::AutoState(const AutoState<T> &source)
 {
 	state = source.GetPtr();
-	((IUnknown*)state)->AddRef();
+	((T*)state)->AddRef();
 }
 
 template<typename T> AutoState<T>::~AutoState()
