@@ -6,12 +6,12 @@
 #ifdef _WIN32
 #include <windows.h>
 #elif __APPLE__
-#include <paths.h>
-#include <Carbon/Carbon.h>
+#include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/IOKitLib.h>
 #include <IOKit/storage/IOCDMedia.h>
 #include <IOKit/storage/IOMedia.h>
 #include <IOKit/IOBSD.h>
+#include <paths.h>
 #elif __linux__
 #include <fcntl.h>
 #include <sys/stat.h>

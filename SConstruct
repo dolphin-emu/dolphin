@@ -146,6 +146,7 @@ if sys.platform == 'win32':
     env['tools'] = ['mingw']
     env['ENV'] = os.environ
 else:
+    env['CXXFLAGS'] = ['-fvisibility-inlines-hidden']
     env['ENV'] = {
         'PATH' : os.environ['PATH'],
         'HOME' : os.environ['HOME'],
@@ -202,8 +203,6 @@ compileFlags += [ ('-W' + warning) for warning in warnings ]
 
 env['CCFLAGS'] = compileFlags
 env['CPPDEFINES'] = cppDefines
-if not sys.platform == 'win32':
-    env['CXXFLAGS'] = ['-fvisibility-inlines-hidden']
 
 # Configuration tests section
 tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
@@ -268,9 +267,9 @@ if sys.platform == 'darwin':
             if env['FRAMEWORKS'].count('QuickTime'):
                 env['FRAMEWORKS'].remove('QuickTime')
     env['CC'] = "gcc-4.2"
-    env['CFLAGS'] = ['-x', 'objective-c']
+    env['CFLAGS'] += ['-x', 'objective-c']
     env['CXX'] = "g++-4.2"
-    env['CXXFLAGS'] = ['-x', 'objective-c++']
+    env['CXXFLAGS'] += ['-x', 'objective-c++']
     env['CCFLAGS'] += ['-arch', 'x86_64', '-arch', 'i386']
     env['LIBS'] += ['iconv']
     env['LINKFLAGS'] += ['-arch', 'x86_64', '-arch', 'i386']

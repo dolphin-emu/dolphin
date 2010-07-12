@@ -193,17 +193,17 @@ void TextureMngr::Shutdown()
 
 void TextureMngr::ProgressiveCleanup()
 {
-    TexCache::iterator iter = textures.begin();
-    while (iter != textures.end())
+	TexCache::iterator iter = textures.begin();
+	while (iter != textures.end())
 	{
-        if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
+		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
 		{
-            iter->second.Destroy(false);
-			iter = textures.erase(iter);
-        }
-        else
-            ++iter;
-    }
+			iter->second.Destroy(false);
+			textures.erase(iter++);
+		}
+		else
+			++iter;
+	}
 }
 
 void TextureMngr::InvalidateRange(u32 start_address, u32 size)
@@ -368,9 +368,11 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
 			TextureIsDinamic = (entry.isRenderTarget || entry.isDinamic) && !g_ActiveConfig.bCopyEFBToTexture;
-			if (!entry.isRenderTarget &&
-				((!entry.isDinamic && width == entry.w && height==entry.h && FullFormat == entry.fmt) 
-				|| (entry.isDinamic && entry.w == width && entry.h == height)))
+			if (!entry.isRenderTarget && ((!entry.isDinamic &&
+					width == entry.w && height == entry.h &&
+					(int)FullFormat == entry.fmt) ||
+					(entry.isDinamic &&
+					entry.w == width && entry.h == height)))
 			{
 				glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
 				GL_REPORT_ERRORD();
