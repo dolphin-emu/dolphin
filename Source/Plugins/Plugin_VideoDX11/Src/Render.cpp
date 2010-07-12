@@ -740,25 +740,39 @@ void UpdateViewport()
 		Y = 0;
 		sizeChanged=true;
 	}
+
+	float newx = (float)X;
+	float newy = (float)Y;
+	float newwidth = (float)Width;
+	float newheight = (float)Height;
 	if (sizeChanged)
 	{
 		// Make sure that the requested size is actually supported by the GFX driver
 		if (s_Fulltarget_width > (int)D3D::GetMaxTextureSize() || s_Fulltarget_height > (int)D3D::GetMaxTextureSize())
 		{
-			// Skip EFB recreation and viewport setting. Most likely cause glitches in this case, but prevents crashes at least
+			// Skip EFB recreation and viewport setting. Most likely causes glitches in this case, but prevents crashes at least
 			ERROR_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D11. Requested EFB size is %dx%d\n", s_Fulltarget_width, s_Fulltarget_height);
+
+			// Fix the viewport to fit to the old EFB size, TODO: Check this for off-by-one errors
+			newx *= (float)old_fulltarget_w / (float)s_Fulltarget_width;
+			newy *= (float)old_fulltarget_h / (float)s_Fulltarget_height;
+			newwidth *= (float)old_fulltarget_w / (float)s_Fulltarget_width;
+			newheight *= (float)old_fulltarget_h / (float)s_Fulltarget_height;
+
 			s_Fulltarget_width = old_fulltarget_w;
 			s_Fulltarget_height = old_fulltarget_h;
-			return;
 		}
-		D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
-		FBManager.Destroy();
-		FBManager.Create();
-		D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
+		else
+		{
+			D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
+			FBManager.Destroy();
+			FBManager.Create();
+			D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
+		}
 	}
 
 	// some games set invalids values MinDepth and MaxDepth so fix them to the max an min allowed and let the shaders do this work
-	D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)X, (float)Y, (float)Width, (float)Height,
+	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(newx, newy, newwidth, newheight,
 										0.f,    // (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
 										1.f);   //  xfregs.rawViewport[5] / 16777216.0f;
 	D3D::context->RSSetViewports(1, &vp);

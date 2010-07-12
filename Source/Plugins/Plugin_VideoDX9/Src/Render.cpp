@@ -884,18 +884,27 @@ void UpdateViewport()
 		// Make sure that the requested size is actually supported by the GFX driver
 		if (s_Fulltarget_width > caps.MaxTextureWidth || s_Fulltarget_height > caps.MaxTextureHeight)
 		{
-			// Skip EFB recreation and viewport setting. Most likely cause glitches in this case, but prevents crashes at least
-			ERROR_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D9. Requested EFB size is %dx%d\n", s_Fulltarget_width, s_Fulltarget_height);
+			// Skip EFB recreation and viewport setting. Most likely causes glitches in this case, but prevents crashes at least
+			ERROR_LOG(VIDEO, "Tried to set a viewport which is too wide to emulate with Direct3D9. Requested EFB size is %dx%d, keeping the %dx%d EFB now\n", s_Fulltarget_width, s_Fulltarget_height, old_fulltarget_w, old_fulltarget_h);
+
+			// Fix the viewport to fit to the old EFB size, TODO: Check this for off-by-one errors
+			X *= old_fulltarget_w / s_Fulltarget_width;
+			Y *= old_fulltarget_h / s_Fulltarget_height;
+			Width *= old_fulltarget_w / s_Fulltarget_width;
+			Height *= old_fulltarget_h / s_Fulltarget_height;
+
 			s_Fulltarget_width = old_fulltarget_w;
 			s_Fulltarget_height = old_fulltarget_h;
-			return;
 		}
-		D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
-		D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
-		FBManager.Destroy();
-		FBManager.Create();
-		D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
-		D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
+		else
+		{
+			D3D::dev->SetRenderTarget(0, D3D::GetBackBufferSurface());
+			D3D::dev->SetDepthStencilSurface(D3D::GetBackBufferDepthSurface());
+			FBManager.Destroy();
+			FBManager.Create();
+			D3D::dev->SetRenderTarget(0, FBManager.GetEFBColorRTSurface());
+			D3D::dev->SetDepthStencilSurface(FBManager.GetEFBDepthRTSurface());
+		}
 	}
 	vp.X = X;
 	vp.Y = Y;
@@ -904,7 +913,7 @@ void UpdateViewport()
 	
 	// Some games set invalids values for z min and z max so fix them to the max an min alowed and let the shaders do this work
 	vp.MinZ = 0.0f; // (xfregs.rawViewport[5] - xfregs.rawViewport[2]) / 16777216.0f;
-	vp.MaxZ =1.0f; // xfregs.rawViewport[5] / 16777216.0f;
+	vp.MaxZ = 1.0f; // xfregs.rawViewport[5] / 16777216.0f;
 	D3D::dev->SetViewport(&vp);
 }
 
