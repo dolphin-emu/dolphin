@@ -886,9 +886,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 
 	// Copy the framebuffer to screen.
 
-	// Render to the real buffer now.
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
-
+	
 	// Texture map s_xfbTexture onto the main buffer
 	glActiveTexture(GL_TEXTURE0);
 	glEnable(GL_TEXTURE_RECTANGLE_ARB);
@@ -905,6 +903,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if(g_ActiveConfig.bUseXFB)
 	{
 		// draw each xfb source
+		// Render to the real buffer now.
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
+
 		for (u32 i = 0; i < xfbCount; ++i)
 		{
 			xfbSource = xfbSourceList[i];
@@ -992,6 +993,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	{
 		TargetRectangle targetRc = Renderer::ConvertEFBRectangle(Rc);
 		GLuint read_texture = g_framebufferManager.ResolveAndGetRenderTarget(Rc);
+		// Render to the real buffer now.
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // switch to the window backbuffer
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
 		if (applyShader)

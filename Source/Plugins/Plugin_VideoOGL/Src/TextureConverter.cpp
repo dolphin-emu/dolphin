@@ -112,7 +112,7 @@ FRAGMENTSHADER &GetOrCreateEncodingShader(u32 format)
 
 	if (s_encodingPrograms[format].glprogid == 0)
 	{
-		const char* shader = TextureConversionShader::GenerateEncodingShader(format);
+		const char* shader = TextureConversionShader::GenerateEncodingShader(format,API_OPENGL);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 		if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader) {
@@ -170,7 +170,7 @@ void Shutdown()
 void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const TargetRectangle& sourceRc,
 				            u8* destAddr, int dstWidth, int dstHeight, int readStride, bool toTexture, bool linearFilter)
 {
-	Renderer::ResetAPIState();
+
 	
 	// switch to texture converter frame buffer
 	// attach render buffer as color destination
@@ -240,13 +240,7 @@ void EncodeToRamUsingShader(FRAGMENTSHADER& shader, GLuint srcTexture, const Tar
         glReadPixels(0, 0, (GLsizei)dstWidth, (GLsizei)dstHeight, GL_BGRA, GL_UNSIGNED_BYTE, destAddr);
 
 	GL_REPORT_ERRORD();
-
-	g_framebufferManager.SetFramebuffer(0);
-    VertexShaderManager::SetViewportChanged();	
-	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
-    TextureMngr::DisableStage(0);
-	Renderer::RestoreAPIState();
-    GL_REPORT_ERRORD();
+	
 }
 
 void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
@@ -317,14 +311,96 @@ void EncodeToRam(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyf
         cacheBytes = 64;
 
     int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
+	Renderer::ResetAPIState();
+	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
+	g_framebufferManager.SetFramebuffer(0);
+    VertexShaderManager::SetViewportChanged();	
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+    TextureMngr::DisableStage(0);
+	Renderer::RestoreAPIState();
+    GL_REPORT_ERRORD();
+}
+
+
+u64 EncodeToRamFromTexture(u32 address,GLuint source_texture,float MValueX,float MValueY,bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle& source)
+{
+	u32 format = copyfmt;
+
+	if (bFromZBuffer)
+	{
+		format |= _GX_TF_ZTF;
+		if (copyfmt == 11)
+			format = GX_TF_Z16;
+		else if (format < GX_TF_Z8 || format > GX_TF_Z24X8)
+			format |= _GX_TF_CTF;
+	}
+	else
+		if (copyfmt > GX_TF_RGBA8 || (copyfmt < GX_TF_RGB565 && !bIsIntensityFmt))
+			format |= _GX_TF_CTF;
+
+	FRAGMENTSHADER& texconv_shader = GetOrCreateEncodingShader(format);
+	if (texconv_shader.glprogid == 0)
+		return 0;
+
+	u8 *dest_ptr = Memory_GetPtr(address);	
+
+	int width = (source.right - source.left) >> bScaleByHalf;
+	int height = (source.bottom - source.top) >> bScaleByHalf;
+
+	int size_in_bytes = TexDecoder_GetTextureSizeInBytes(width, height, format);	
+	
+	u16 blkW = TexDecoder_GetBlockWidthInTexels(format) - 1;
+	u16 blkH = TexDecoder_GetBlockHeightInTexels(format) - 1;	
+	u16 samples = TextureConversionShader::GetEncodedSampleCount(format);	
+
+	// only copy on cache line boundaries
+	// extra pixels are copied but not displayed in the resulting texture
+	s32 expandedWidth = (width + blkW) & (~blkW);
+	s32 expandedHeight = (height + blkH) & (~blkH);
+
+    float sampleStride = bScaleByHalf?2.0f:1.0f;
+	float top = (EFB_HEIGHT - source.top - expandedHeight) * MValueY ;
+	TextureConversionShader::SetShaderParameters((float)expandedWidth, 
+		expandedHeight * MValueY, 
+		source.left * MValueX, 
+		top, 
+		sampleStride * MValueX, 
+		sampleStride * MValueY);
+
+	TargetRectangle scaledSource;
+	scaledSource.top = 0;
+	scaledSource.bottom = expandedHeight;
+	scaledSource.left = 0;
+	scaledSource.right = expandedWidth / samples;
+
+
+    int cacheBytes = 32;
+    if ((format & 0x0f) == 6)
+        cacheBytes = 64;
+
+    int readStride = (expandedWidth * cacheBytes) / TexDecoder_GetBlockWidthInTexels(format);
 
 	EncodeToRamUsingShader(texconv_shader, source_texture, scaledSource, dest_ptr, expandedWidth / samples, expandedHeight, readStride, true, bScaleByHalf > 0);
+	TextureMngr::MakeRangeDynamic(address,size_in_bytes);
+	u64 Hashvalue = 0;
+	if(g_ActiveConfig.bVerifyTextureModificationsByCPU)
+	{
+		Hashvalue = TexDecoder_GetHash64(dest_ptr,size_in_bytes,g_ActiveConfig.iSafeTextureCache_ColorSamples);
+	}
+	return Hashvalue;
 }
 
 void EncodeToRamYUYV(GLuint srcTexture, const TargetRectangle& sourceRc,
 				     u8* destAddr, int dstWidth, int dstHeight)
 {
+	Renderer::ResetAPIState();
 	EncodeToRamUsingShader(s_rgbToYuyvProgram, srcTexture, sourceRc, destAddr, dstWidth / 2, dstHeight, 0, false, false);
+	g_framebufferManager.SetFramebuffer(0);
+    VertexShaderManager::SetViewportChanged();	
+	glBindTexture(GL_TEXTURE_RECTANGLE_ARB, 0);
+    TextureMngr::DisableStage(0);
+	Renderer::RestoreAPIState();
+    GL_REPORT_ERRORD();
 }
 
 

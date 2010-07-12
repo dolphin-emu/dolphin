@@ -1107,7 +1107,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	if(s_bScreenshot)
 	{
 		s_criticalScreenshot.Enter();
-		HRESULT hr = D3D::dev->GetRenderTargetData(D3D::GetBackBufferSurface(),ScreenShootMEMSurface);//, NULL, dst_rect.AsRECT(), D3D::GetBackBufferSurface(), NULL, dst_rect.AsRECT(), D3DX_FILTER_NONE, 0);
+		HRESULT hr = D3D::dev->GetRenderTargetData(D3D::GetBackBufferSurface(),ScreenShootMEMSurface);
 		if(FAILED(hr))
 		{
 			PanicAlert("Error dumping surface data.");

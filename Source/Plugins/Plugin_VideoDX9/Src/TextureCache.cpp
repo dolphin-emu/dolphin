@@ -90,15 +90,9 @@ void TextureCache::InvalidateRange(u32 start_address, u32 size)
 			iter->second.Destroy(false);
 			textures.erase(iter++);
 		}
-		else {
-			if(rangePosition<0)
-			{
-				++iter;
-			}
-			else
-			{
-				break;
-			}
+		else 
+		{
+			++iter;		
 		}
 	}
 }
@@ -112,11 +106,6 @@ void TextureCache::MakeRangeDynamic(u32 start_address, u32 size)
 		if ( rangePosition == 0)
 		{
 			iter->second.hash = 0;
-		}
-		else
-		{
-			if(rangePosition > 0)
-				break;
 		}
 		++iter;
 	}
@@ -145,17 +134,8 @@ void TextureCache::Cleanup()
 	{
 		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
 		{
-			if (!iter->second.isRenderTarget)
-			{
-				iter->second.Destroy(false);
-				iter = textures.erase(iter);
-			}
-			else
-			{
-				// Used to be just iter++
-				iter->second.Destroy(false);
-				iter = textures.erase(iter);
-			}
+			iter->second.Destroy(false);
+			iter = textures.erase(iter);			
 		}
 		else
 		{
@@ -247,11 +227,10 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			}
 		}
 		if (((entry.isRenderTarget || entry.isDinamic) && hash_value == entry.hash && address == entry.addr) 
-			|| ((address == entry.addr) 
-			&& (hash_value == entry.hash) 
-			&& FullFormat == entry.fmt/* && entry.MipLevels == maxlevel*/))
+			|| ((address == entry.addr) && (hash_value == entry.hash) && FullFormat == entry.fmt/* && entry.MipLevels == maxlevel*/))
 		{
 			entry.frameCount = frameCount;
+			entry.isDinamic = false;
 			D3D::SetTexture(stage, entry.texture);
 			return &entry;
 		}

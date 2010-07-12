@@ -29,7 +29,7 @@ class TextureMngr
 public:
     struct TCacheEntry
     {
-        TCacheEntry() : texture(0), addr(0), size_in_bytes(0), hash(0), w(0), h(0),MipLevels(0), scaleX(1.0f), scaleY(1.0f), isRenderTarget(false), isRectangle(true), bHaveMipMaps(false) { mode.hex = 0xFCFCFCFC; }
+		TCacheEntry() : texture(0), addr(0), size_in_bytes(0), hash(0), w(0), h(0),MipLevels(0), scaleX(1.0f), scaleY(1.0f),isDinamic(false), isRenderTarget(false), isRectangle(true), bHaveMipMaps(false) { mode.hex = 0xFCFCFCFC; }
 
         GLuint texture;
         u32 addr;
@@ -47,13 +47,14 @@ public:
 
         bool isRenderTarget; // if render texture, then rendertex is filled with the direct copy of the render target
                              // later conversions would have to convert properly from rendertexfmt to texfmt
+		bool isDinamic;// mofified from cpu
         bool isRectangle; // if nonpow2, use GL_TEXTURE_2D, else GL_TEXTURE_RECTANGLE_NV
         bool bHaveMipMaps;
 
         void SetTextureParameters(TexMode0& newmode,TexMode1 &newmode1);
         void Destroy(bool shutdown);
         void ConvertFromRenderTarget(u32 taddr, int twidth, int theight, int tformat, int tlutaddr, int tlutfmt);
-		bool IntersectsMemoryRange(u32 range_address, u32 range_size);
+		int IntersectsMemoryRange(u32 range_address, u32 range_size);
     };
 
 private:
@@ -68,7 +69,7 @@ public:
     static void Shutdown();
     static void Invalidate(bool shutdown);
 	static void InvalidateRange(u32 start_address, u32 size);
-
+	static void MakeRangeDynamic(u32 start_address, u32 size);
     static TCacheEntry* Load(int texstage, u32 address, int width, int height, u32 format, int tlutaddr, int tlutfmt);
     static void CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source);
 

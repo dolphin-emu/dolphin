@@ -121,7 +121,7 @@ LPDIRECT3DPIXELSHADER9 GetOrCreateEncodingShader(u32 format)
 
 	if (!s_encodingPrograms[format])
 	{
-		const char* shader = TextureConversionShader::GenerateEncodingShader(format,true);
+		const char* shader = TextureConversionShader::GenerateEncodingShader(format,API_D3D9);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 		if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader) {
