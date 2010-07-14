@@ -26,7 +26,7 @@ class UDPWrapper : public ControllerEmu::ControlGroup
 public:
 	UDPWiimote * inst;
 	int index;
-	bool updIR,updAccel,updButt,udpEn; //upd from update and udp from... well... UDP
+	bool updIR,updAccel,updButt,updNun,updNunAccel,udpEn; //upd from update and udp from... well... UDP
 	std::string port;
 
 	UDPWrapper(int index, const char* const _name);

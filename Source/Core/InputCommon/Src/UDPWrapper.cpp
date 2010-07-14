@@ -27,17 +27,21 @@ void UDPWrapper::LoadConfig(IniFile::Section *sec, const std::string& defdev, co
 
 	std::string group( base + name ); group += "/";
 
-	int _updAccel,_updIR,_updButt,_udpEn;
+	int _updAccel,_updIR,_updButt,_udpEn,_updNun,_updNunAccel;
 	sec->Get((group + "Enable").c_str(),&_udpEn, 0);
 	sec->Get((group + "Port").c_str(), &port, DefaultPort(index));
 	sec->Get((group + "Update_Accel").c_str(), &_updAccel, 1);
 	sec->Get((group + "Update_IR").c_str(), &_updIR, 1);
 	sec->Get((group + "Update_Butt").c_str(), &_updButt, 1);
+	sec->Get((group + "Update_Nunchuk").c_str(), &_updNun, 1);
+	sec->Get((group + "Update_NunchukAccel").c_str(), &_updNunAccel, 0);
 
 	udpEn=(_udpEn>0);
 	updAccel=(_updAccel>0);
 	updIR=(_updIR>0);
 	updButt=(_updButt>0);
+	updNun=(_updNun>0);
+	updNunAccel=(_updNunAccel>0);
 
 	Refresh();
 }
@@ -47,11 +51,13 @@ void UDPWrapper::SaveConfig(IniFile::Section *sec, const std::string& defdev, co
 {
 	ControlGroup::SaveConfig(sec,defdev,base);
 	std::string group( base + name ); group += "/";
-	sec->Set((group + "Enable").c_str(), (int)udpEn, 0);
-	sec->Set((group + "Port").c_str(), port, DefaultPort(index));
-	sec->Set((group + "Update_Accel").c_str(), (int)updAccel, 1);
-	sec->Set((group + "Update_IR").c_str(), (int)updIR, 1);
-	sec->Set((group + "Update_Butt").c_str(), (int)updButt, 1);
+	sec->Set((group + "Enable").c_str(), (int)udpEn);
+	sec->Set((group + "Port").c_str(), port);
+	sec->Set((group + "Update_Accel").c_str(), (int)updAccel);
+	sec->Set((group + "Update_IR").c_str(), (int)updIR);
+	sec->Set((group + "Update_Butt").c_str(), (int)updButt);
+	sec->Set((group + "Update_Nunchuk").c_str(), (int)updNun);
+	sec->Set((group + "Update_NunchukAccel").c_str(), (int)updNunAccel);
 }
 
 
@@ -101,6 +107,8 @@ public:
 	wxCheckBox * butt;
 	wxCheckBox * accel;
 	wxCheckBox * point;
+	wxCheckBox * nun;
+	wxCheckBox * nunaccel;
 	wxTextCtrl * port_tbox;
 };
 
@@ -118,6 +126,9 @@ UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
 	butt = new wxCheckBox(this,wxID_ANY,wxT("Update Buttons"));
 	accel = new wxCheckBox(this,wxID_ANY,wxT("Update Acceleration"));
 	point = new wxCheckBox(this,wxID_ANY,wxT("Update IR Pointer"));
+	nun = new wxCheckBox(this,wxID_ANY,wxT("Update Nunchuk"));
+	nunaccel = new wxCheckBox(this,wxID_ANY,wxT("Update Nunchuk Acceleration"));
+	
 
 	wxButton * ok_butt = new wxButton(this,wxID_ANY,wxT("OK"));
 	
@@ -130,6 +141,8 @@ UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
 	_connect_macro_(butt,UDPConfigDiag::ChangeUpdateFlags ,wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 	_connect_macro_(accel,UDPConfigDiag::ChangeUpdateFlags ,wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 	_connect_macro_(point,UDPConfigDiag::ChangeUpdateFlags ,wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	_connect_macro_(nun,UDPConfigDiag::ChangeUpdateFlags ,wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+	_connect_macro_(nunaccel,UDPConfigDiag::ChangeUpdateFlags ,wxEVT_COMMAND_CHECKBOX_CLICKED, this);
 	_connect_macro_(ok_butt,UDPConfigDiag::OKPressed, wxEVT_COMMAND_BUTTON_CLICKED, this);
 	_connect_macro_(port_tbox, UDPConfigDiag::ChangeState, wxEVT_COMMAND_TEXT_UPDATED, this);
 
@@ -137,13 +150,17 @@ UDPConfigDiag::UDPConfigDiag(wxWindow * const parent, UDPWrapper * _wrp) :
 	butt->SetValue(wrp->updButt);
 	accel->SetValue(wrp->updAccel);
 	point->SetValue(wrp->updIR);
-
+	nun->SetValue(wrp->updNun);
+	nunaccel->SetValue(wrp->updNunAccel);
+	
 	sizer1->Add(enable,1,wxALL | wxEXPAND,5);
 	sizer1->Add(port_sizer, 1,wxDOWN | wxLEFT| wxRIGHT | wxEXPAND,5);
 
 	sizer2->Add(butt,1,wxALL | wxEXPAND,5);
 	sizer2->Add(accel,1,wxALL | wxEXPAND,5);
 	sizer2->Add(point,1,wxALL | wxEXPAND,5);
+	sizer2->Add(nun,1,wxALL | wxEXPAND,5);
+	sizer2->Add(nunaccel,1,wxALL | wxEXPAND,5);
 
 	outer_sizer->Add(ok_butt,0, wxDOWN | wxLEFT| wxRIGHT | wxALIGN_RIGHT,10);
 
@@ -156,6 +173,8 @@ void UDPConfigDiag::ChangeUpdateFlags(wxCommandEvent & event)
 	wrp->updAccel=accel->GetValue();
 	wrp->updButt=butt->GetValue();
 	wrp->updIR=point->GetValue();
+	wrp->updNun=nun->GetValue();
+	wrp->updNunAccel=nunaccel->GetValue();
 }
 
 void UDPConfigDiag::ChangeState(wxCommandEvent & event)

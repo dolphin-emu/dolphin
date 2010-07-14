@@ -66,7 +66,7 @@ THREAD_RETURN UDPWiiThread(void* arg)
 
 UDPWiimote::UDPWiimote(const char *_port) : 
 	port(_port),
-	d(new _d) ,x(0),y(0),z(0),nunX(0),nunY(0),
+	d(new _d) ,x(0),y(0),z(0),naX(0),naY(0),naZ(0),nunX(0),nunY(0),
 	pointerX(-0.1),pointerY(-0.1),nunMask(0),mask(0),time(0)
 {
 	#ifdef _WIN32
@@ -212,6 +212,7 @@ UDPWiimote::~UDPWiimote()
 #define BUTT_FLAG (1<<1)
 #define IR_FLAG (1<<2)
 #define NUN_FLAG (1<<3)
+#define NUNACCEL_FLAG (1<<4)
 
 int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 {
@@ -252,6 +253,17 @@ int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 		nunMask=*((u8*)p); p=(u32*)(((u8*)p)+1);
 		nunX=((double)((s32)ntohl(*p)))/1048576; p++;
 		nunY=((double)((s32)ntohl(*p)))/1048576; p++;
+	}
+	if (bf[2]&NUNACCEL_FLAG)
+	{
+		if ((size-(((u8*)p)-bf))<12) return -1;
+		double ux,uy,uz;
+		ux=(double)((s32)ntohl(*p)); p++;
+		uy=(double)((s32)ntohl(*p)); p++;
+		uz=(double)((s32)ntohl(*p)); p++;
+		naX=ux/1048576; //packet accel data
+		naY=uy/1048576;
+		naZ=uz/1048576;
 	}
 	return 0;
 }
@@ -297,6 +309,16 @@ void UDPWiimote::getNunchuck(float &_x, float &_y, u8 &_mask)
 	_mask=nunMask;
 	d->mutex.Leave();
 }
+
+void UDPWiimote::getNunchuckAccel(float &_x, float &_y, float &_z)
+{
+	d->mutex.Enter();
+	_x=(float)naX;
+	_y=(float)naY;
+	_z=(float)naZ;
+	d->mutex.Leave();
+}
+
 
 const char * UDPWiimote::getPort()
 {

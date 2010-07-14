@@ -3,13 +3,15 @@
 
 #include "Attachment.h"
 
+class UDPWrapper;
+
 namespace WiimoteEmu
 {
 
 class Nunchuk : public Attachment
 {
 public:
-	Nunchuk();
+	Nunchuk(UDPWrapper * wrp);
 	virtual void GetState( u8* const data, const bool focus );
 
 	enum
@@ -28,6 +30,8 @@ private:
 	AnalogStick*	m_stick;
 
 	unsigned int	m_shake_step[3];
+	
+	UDPWrapper * udpWrap;
 };
 
 }

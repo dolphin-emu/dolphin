@@ -28,6 +28,7 @@ public:
 	u32 getButtons();
 	void getNunchuck(float &x, float &y, u8 &mask);
 	void getIR(float &x, float &y);
+	void getNunchuckAccel(float &x, float &y, float &z);
 	int getErrNo() {return err;};
 	const char * getPort();
 private:
@@ -37,6 +38,7 @@ private:
 	struct _d; //using pimpl because Winsock2.h doesen't have include guards -_-
 	_d *d; 
 	double x,y,z;
+	double naX,naY,naZ;
 	double nunX,nunY;
 	double pointerX,pointerY;
 	u8 nunMask;

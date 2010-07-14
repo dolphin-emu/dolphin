@@ -288,7 +288,7 @@ Wiimote::Wiimote( const unsigned int index )
 	// extension
 	groups.push_back( m_extension = new Extension( "Extension" ) );
 	m_extension->attachments.push_back( new WiimoteEmu::None() );
-	m_extension->attachments.push_back( new WiimoteEmu::Nunchuk() );
+	m_extension->attachments.push_back( new WiimoteEmu::Nunchuk(m_udp) );
 	m_extension->attachments.push_back( new WiimoteEmu::Classic() );
 	m_extension->attachments.push_back( new WiimoteEmu::Guitar() );
 	m_extension->attachments.push_back( new WiimoteEmu::Drums() );
@@ -601,25 +601,10 @@ void Wiimote::Update()
 
 		// ---- UDP Wiimote nunchuk stuff
 		// 1 == is hacky, for if nunchuk is attached
-		if (is_focus && 1 == m_extension->active_extension && m_udp->inst)
-		{
-			wm_extension* const ncdata = (wm_extension*)(data + rpt.ext);
-
-			u8 mask;
-			float x, y;
-			m_udp->inst->getNunchuck(x, y, mask);
-			// buttons
-			if (mask & UDPWM_NC)
-				ncdata->bt &= ~Nunchuk::BUTTON_C;
-			if (mask & UDPWM_NZ)
-				ncdata->bt &= ~Nunchuk::BUTTON_Z;
-			// stick
-			if (ncdata->jx == 0x80 && ncdata->jy == 0x80)
-			{
-				ncdata->jx = u8(0x80 + x*127);
-				ncdata->jy = u8(0x80 + y*127);
-			}
-		}
+		//if (is_focus && 1 == m_extension->active_extension)
+		//{
+		//	UDPTLayer::GetNunchuk(m_udp,(wm_extension*)(data + rpt.ext));
+		//}
 		// ---- end UDP Wiimote
 
 		// i dont think anything accesses the extension data like this, but ill support it. Indeed, commercial games don't do this.
