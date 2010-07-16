@@ -1,11 +1,7 @@
 # -*- python -*-
 
 Import('env')
-# can we import path in one place?
 import sys
-sys.path.append(env['base_dir']+'SconsTests')
-import utils
-import platform
 
 name = "Plugin_VideoOGL"
 
@@ -24,41 +20,32 @@ files = [
 	'XFB.cpp',
 	'PostProcessing.cpp',
 	'FramebufferManager.cpp',
+	'main.cpp',
+	'GLUtil.cpp'
 	]
-linkFlags = [
-	]
+
 libs = [
 	'videocommon', 'GLEW', 'SOIL', 'common'
 	]
 
 gfxenv = env.Clone()
 
-files += [
-	'main.cpp',
-	'GLUtil.cpp',
-	]
 if sys.platform != 'darwin':
 	if gfxenv['HAVE_OPENCL']:
 		libs += [ 'OpenCL']
+
 if gfxenv['HAVE_WX']:
 	files += [
-                'GUI/ConfigDlg.cpp',
+		'GUI/ConfigDlg.cpp',
 		'Debugger/Debugger.cpp',
-                ]
+		]
 
 if sys.platform == 'darwin':
-        files += [ 'cocoaGL.m' ]
+	files += [ 'cocoaGL.m' ]
 
 if sys.platform == 'win32':
-        files += [ 'OS/Win32.cpp' ]
-
-if sys.platform == 'win32':
-	files += [
-		'OS/Win32.cpp'
-		]
-	libs += [
-		env['base_dir'] + '/Externals/Cg/'
-		]	
+	files += [ 'OS/Win32.cpp' ]
+	libs += [ env['base_dir'] + '/Externals/Cg/' ]	
 	gfxenv['CPPPATH'] += libs
 
 gfxenv.SharedLibrary(

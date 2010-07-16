@@ -1,11 +1,7 @@
 # -*- python -*-
 
 Import('env')
-# can we import path in one place?
 import sys
-sys.path.append(env['base_dir']+'SconsTests')
-import utils
-import platform
 
 name = "Plugin_VideoSoftware"
 
@@ -25,38 +21,30 @@ files = [
 	'Rasterizer.cpp',
 	'RasterFont.cpp',
 	'Renderer.cpp',
-        'SetupUnit.cpp',
-        'Statistics.cpp',
-        'Tev.cpp',
-        'TextureEncoder.cpp',
-        'TextureSampler.cpp',
-        'TransformUnit.cpp',
-        'VertexFormatConverter.cpp',
-        'VertexLoader.cpp',
-        'VideoConfig.cpp',
-        'XFMemLoader.cpp',
+	'SetupUnit.cpp',
+	'Statistics.cpp',
+	'Tev.cpp',
+	'TextureEncoder.cpp',
+	'TextureSampler.cpp',
+	'TransformUnit.cpp',
+	'VertexFormatConverter.cpp',
+	'VertexLoader.cpp',
+	'VideoConfig.cpp',
+	'XFMemLoader.cpp',
 	]
-linkFlags = [
-	]
+
 libs = [
 	'videocommon', 'GLEW', 'SOIL', 'common'
 	]
 
 gfxenv = env.Clone()
 
-if sys.platform == 'win32':
-        files += [ 'Win32.cpp' ]
-
 if sys.platform == 'darwin':
 	files += [ 'cocoaGL.m', ]
 
 if sys.platform == 'win32':
-	files += [
-		'Win32.cpp'
-		]
-	libs += [
-		env['base_dir'] + '/Externals/Cg/'
-		]	
+	files += [ 'Win32.cpp' ]
+	libs += [ env['base_dir'] + '/Externals/Cg/' ]	
 	gfxenv['CPPPATH'] += libs
 	
 gfxenv.SharedLibrary(

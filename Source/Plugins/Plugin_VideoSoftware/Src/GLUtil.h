@@ -19,9 +19,6 @@
 #ifndef _GLINIT_H_
 #define _GLINIT_H_
 
-#if defined GLTEST && GLTEST
-#include "nGLUtil.h"
-#else
 #include "Common.h"
 #include <string>
 #include "VideoConfig.h"
@@ -42,11 +39,12 @@
 #include <GL/glew.h>
 #include "wx/wx.h"
 #include "wx/glcanvas.h"
-#undef HAVE_X11
 #elif defined(HAVE_X11) && HAVE_X11
-#define I_NEED_OS2_H // HAXXOR
 #include <GL/glxew.h>
 #include <X11/XKBlib.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/keysym.h>
 #else
 #include <GL/glew.h>
 #endif // end USE_WX
@@ -67,31 +65,25 @@
 #endif
 
 #ifndef _WIN32
-#if defined(HAVE_X11) && HAVE_X11
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/keysym.h>
-#endif // X11
 
 #include <sys/stat.h>
 #include <sys/types.h>
 
 typedef struct {
-    int screen;
-#if defined(HAVE_X11) && HAVE_X11
-    Window win;
-    Window parent;
+#if defined(USE_WX) && USE_WX
+	wxGLCanvas *glCanvas;
+	wxPanel *panel;
+	wxGLContext *glCtxt;
+#elif defined(HAVE_X11) && HAVE_X11
+	int screen;
+	Window win;
+	Window parent;
 	Display *dpy;
-    GLXContext ctx;
-    XSetWindowAttributes attr;
-#elif defined(USE_WX) && USE_WX
-    wxGLCanvas *glCanvas;
-    wxFrame *frame;
-    wxGLContext *glCtxt;
+	GLXContext ctx;
+	XSetWindowAttributes attr;
+	int x, y;
 #endif 
-    int x, y;
-    unsigned int width, height;
-    unsigned int depth;    
+	unsigned int width, height;
 } GLWindow;
 
 extern GLWindow GLWin;
@@ -134,7 +126,5 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 #else
 #define GL_REPORT_ERRORD()
 #endif
-
-#endif  // GLTEST ??
 
 #endif  // _GLINIT_H_

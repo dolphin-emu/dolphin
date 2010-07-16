@@ -20,19 +20,16 @@
 #include "IniFile.h"
 #include "Setup.h"
 
-//#include "Render.h"
+#include "GLUtil.h"
 
 #if defined(_WIN32)
 #include "Win32.h"
+static HDC hDC = NULL;       // Private GDI Device Context
+static HGLRC hRC = NULL;     // Permanent Rendering Context
+extern HINSTANCE g_hInstance;
 #else
-struct RECT
-{
-    int left, top;
-    int right, bottom;
-};
+GLWindow GLWin;
 #endif
-
-#include "GLUtil.h"
 
 // Handles OpenGL and the window
 
@@ -40,130 +37,103 @@ struct RECT
 static int s_backbuffer_width;
 static int s_backbuffer_height;
 
-#ifndef _WIN32
-GLWindow GLWin;
-#endif
-
-#if defined(_WIN32)
-static HDC hDC = NULL;       // Private GDI Device Context
-static HGLRC hRC = NULL;       // Permanent Rendering Context
-extern HINSTANCE g_hInstance;
-#endif
-
 void OpenGL_SwapBuffers()
 {
 #if defined(USE_WX) && USE_WX
-    GLWin.glCanvas->SwapBuffers();
+	GLWin.glCanvas->SwapBuffers();
 #elif defined(_WIN32)
-    SwapBuffers(hDC);
+	SwapBuffers(hDC);
 #elif defined(HAVE_X11) && HAVE_X11
-    glXSwapBuffers(GLWin.dpy, GLWin.win);
+	glXSwapBuffers(GLWin.dpy, GLWin.win);
 #endif
 }
 
 u32 OpenGL_GetBackbufferWidth() 
 {
-    return s_backbuffer_width;
+	return s_backbuffer_width;
 }
 
 u32 OpenGL_GetBackbufferHeight() 
 {
-    return s_backbuffer_height;
+	return s_backbuffer_height;
 }
 
 void OpenGL_SetWindowText(const char *text)
 {
 #if defined(USE_WX) && USE_WX
-    GLWin.frame->SetTitle(wxString::FromAscii(text));
+	// GLWin.frame->SetTitle(wxString::FromAscii(text));
 #elif defined(_WIN32)
 	// TODO convert text to unicode and change SetWindowTextA to SetWindowText
-    SetWindowTextA(EmuWindow::GetWnd(), text);
-#elif defined(HAVE_X11) && HAVE_X11 // GLX
-    /**
-    * Tell X to ask the window manager to set the window title. (X
-    * itself doesn't provide window title functionality.)
-    */
-    XStoreName(GLWin.dpy, GLWin.win, text);
+	SetWindowTextA(EmuWindow::GetWnd(), text);
+#elif defined(HAVE_X11) && HAVE_X11
+	// Tell X to ask the window manager to set the window title.
+	// (X itself doesn't provide window title functionality.)
+	XStoreName(GLWin.dpy, GLWin.win, text);
 #endif
 }
 
-// =======================================================================================
 // Draw messages on top of the screen
-// ------------------
 unsigned int Callback_PeekMessages()
 {
 #ifdef _WIN32
-    // TODO: peekmessage
-    MSG msg;
-    while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
-    {
-        if (msg.message == WM_QUIT)
-            return FALSE;
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
-    return TRUE;
+	// TODO: peekmessage
+	MSG msg;
+	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+	{
+		if (msg.message == WM_QUIT)
+			return FALSE;
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
+	return TRUE;
 #else
-    return FALSE;
+	return FALSE;
 #endif
 }
 
 // Show the current FPS
 void UpdateFPSDisplay(const char *text)
 {
-    char temp[512];
-    sprintf(temp, "SVN R%s: SW: %s", svn_rev_str, text);
-    OpenGL_SetWindowText(temp);
+	char temp[512];
+	sprintf(temp, "SVN R%s: SW: %s", svn_rev_str, text);
+	OpenGL_SetWindowText(temp);
 }
-// =========================
 
-
-// =======================================================================================
 // Create rendering window.
 //		Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
-// ------------------
 bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight)
 {
 	int xPos, yPos;
 	g_VideoInitialize.pRequestWindowSize(xPos, yPos, _twidth, _theight);
 
-	#if defined(_WIN32)
-		EmuWindow::SetSize(_twidth, _theight);
-	#endif
-	// ----------------------------
+#if defined(_WIN32)
+	EmuWindow::SetSize(_twidth, _theight);
+#endif
 
-	// ---------------------------------------------------------------------------------------
 	// Control window size and picture scaling
-	// ------------------
-    s_backbuffer_width = _twidth;
-    s_backbuffer_height = _theight;
+	s_backbuffer_width = _twidth;
+	s_backbuffer_height = _theight;
 
-    g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
-    g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
+	g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
+	g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 
 #if defined(USE_WX) && USE_WX
-    int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
-    wxSize size(_twidth, _theight);
-    if ( g_VideoInitialize.pWindowHandle == NULL) {
-        GLWin.frame = new wxFrame((wxWindow *)NULL,
-                                  -1, _("Dolphin"), wxPoint(50,50), size);
-    } else {
-        GLWin.frame = new wxFrame((wxWindow *)g_VideoInitialize.pWindowHandle,
-                                  -1, _("Dolphin"), wxPoint(50,50), size);
-    }
+	int args[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 16, 0};
 
-    GLWin.glCanvas = new wxGLCanvas(GLWin.frame, wxID_ANY, args,
-                                    wxPoint(0,0), size, wxSUNKEN_BORDER);
-    GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
-    GLWin.frame->Show(TRUE);
-    GLWin.glCanvas->Show(TRUE);
+	wxSize size(_twidth, _theight);
 
-    GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
+	GLWin.panel = (wxPanel *)g_VideoInitialize.pWindowHandle;
+
+	GLWin.glCanvas = new wxGLCanvas(GLWin.panel, wxID_ANY, args,
+			wxPoint(0,0), size, wxSUNKEN_BORDER);
+	GLWin.glCtxt = new wxGLContext(GLWin.glCanvas);
+	GLWin.glCanvas->Show(TRUE);
+
+	GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
+
 #elif defined(_WIN32)
-	// ---------------------------------------------------------------------------------------
 	// Create rendering window in Windows
-	// ----------------------
 	g_VideoInitialize.pWindowHandle = (void*)EmuWindow::Create((HWND)g_VideoInitialize.pWindowHandle, g_hInstance, _T("Please wait..."));
 
 	// Show the window
@@ -175,90 +145,90 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 		return false;
 	}
 
-    GLuint      PixelFormat;            // Holds The Results After Searching For A Match
-    DWORD       dwExStyle;              // Window Extended Style
-    DWORD       dwStyle;                // Window Style
+	GLuint      PixelFormat;            // Holds The Results After Searching For A Match
+	DWORD       dwExStyle;              // Window Extended Style
+	DWORD       dwStyle;                // Window Style
 
-    RECT rcdesktop;
-    GetWindowRect(GetDesktopWindow(), &rcdesktop);
-        
+	RECT rcdesktop;
+	GetWindowRect(GetDesktopWindow(), &rcdesktop);
+
 	dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
 	dwStyle = WS_OVERLAPPEDWINDOW;
 
-    RECT rc = {0, 0, s_backbuffer_width, s_backbuffer_height};
-    AdjustWindowRectEx(&rc, dwStyle, FALSE, dwExStyle);
+	RECT rc = {0, 0, s_backbuffer_width, s_backbuffer_height};
+	AdjustWindowRectEx(&rc, dwStyle, FALSE, dwExStyle);
 
-    int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
-    int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
+	int X = (rcdesktop.right-rcdesktop.left)/2 - (rc.right-rc.left)/2;
+	int Y = (rcdesktop.bottom-rcdesktop.top)/2 - (rc.bottom-rc.top)/2;
 
-    // EmuWindow::GetWnd() is either the new child window or the new separate window
+	// EmuWindow::GetWnd() is either the new child window or the new separate window
 	SetWindowPos(EmuWindow::GetWnd(), NULL, X, Y, rc.right-rc.left, rc.bottom-rc.top, SWP_NOREPOSITION | SWP_NOZORDER);
 
-    PIXELFORMATDESCRIPTOR pfd =              // pfd Tells Windows How We Want Things To Be
-    {
-        sizeof(PIXELFORMATDESCRIPTOR),              // Size Of This Pixel Format Descriptor
-        1,                                          // Version Number
-        PFD_DRAW_TO_WINDOW |                        // Format Must Support Window
-        PFD_SUPPORT_OPENGL |                        // Format Must Support OpenGL
-        PFD_DOUBLEBUFFER,                           // Must Support Double Buffering
-        PFD_TYPE_RGBA,                              // Request An RGBA Format
-        32,                                         // Select Our Color Depth
-        0, 0, 0, 0, 0, 0,                           // Color Bits Ignored
-        0,                                          // 8bit Alpha Buffer
-        0,                                          // Shift Bit Ignored
-        0,                                          // No Accumulation Buffer
-        0, 0, 0, 0,                                 // Accumulation Bits Ignored
-        24,                                         // 24Bit Z-Buffer (Depth Buffer)  
-        8,                                          // 8bit Stencil Buffer
-        0,                                          // No Auxiliary Buffer
-        PFD_MAIN_PLANE,                             // Main Drawing Layer
-        0,                                          // Reserved
-        0, 0, 0                                     // Layer Masks Ignored
-    };
-    
-    if (!(hDC=GetDC(EmuWindow::GetWnd()))) {
+	PIXELFORMATDESCRIPTOR pfd =              // pfd Tells Windows How We Want Things To Be
+	{
+		sizeof(PIXELFORMATDESCRIPTOR),              // Size Of This Pixel Format Descriptor
+		1,                                          // Version Number
+		PFD_DRAW_TO_WINDOW |                        // Format Must Support Window
+			PFD_SUPPORT_OPENGL |                        // Format Must Support OpenGL
+			PFD_DOUBLEBUFFER,                           // Must Support Double Buffering
+		PFD_TYPE_RGBA,                              // Request An RGBA Format
+		32,                                         // Select Our Color Depth
+		0, 0, 0, 0, 0, 0,                           // Color Bits Ignored
+		0,                                          // 8bit Alpha Buffer
+		0,                                          // Shift Bit Ignored
+		0,                                          // No Accumulation Buffer
+		0, 0, 0, 0,                                 // Accumulation Bits Ignored
+		24,                                         // 24Bit Z-Buffer (Depth Buffer)  
+		8,                                          // 8bit Stencil Buffer
+		0,                                          // No Auxiliary Buffer
+		PFD_MAIN_PLANE,                             // Main Drawing Layer
+		0,                                          // Reserved
+		0, 0, 0                                     // Layer Masks Ignored
+	};
+
+	if (!(hDC=GetDC(EmuWindow::GetWnd()))) {
 		PanicAlert("(1) Can't create an OpenGL Device context. Fail.");
-        return false;
-    }
-    
-    if (!(PixelFormat = ChoosePixelFormat(hDC,&pfd))) {
-        PanicAlert("(2) Can't find a suitable PixelFormat.");
-        return false;
-    }
+		return false;
+	}
 
-    if (!SetPixelFormat(hDC, PixelFormat, &pfd)) {
+	if (!(PixelFormat = ChoosePixelFormat(hDC,&pfd))) {
+		PanicAlert("(2) Can't find a suitable PixelFormat.");
+		return false;
+	}
+
+	if (!SetPixelFormat(hDC, PixelFormat, &pfd)) {
 		PanicAlert("(3) Can't set the PixelFormat.");
-        return false;
-    }
+		return false;
+	}
 
-    if (!(hRC = wglCreateContext(hDC))) {
+	if (!(hRC = wglCreateContext(hDC))) {
 		PanicAlert("(4) Can't create an OpenGL rendering context.");
-        return false;
-    }
+		return false;
+	}
 	// --------------------------------------
 
 #elif defined(HAVE_X11) && HAVE_X11
-    XVisualInfo *vi;
-    Colormap cmap;
-    int glxMajorVersion, glxMinorVersion;
-    Atom wmDelete;
+	XVisualInfo *vi;
+	Colormap cmap;
+	int glxMajorVersion, glxMinorVersion;
+	Atom wmDelete;
 
-    // attributes for a single buffered visual in RGBA format with at least
-    // 8 bits per color and a 24 bit depth buffer
-    int attrListSgl[] = {GLX_RGBA, GLX_RED_SIZE, 8,
-                         GLX_GREEN_SIZE, 8,
-                         GLX_BLUE_SIZE, 8,
-                         GLX_DEPTH_SIZE, 24,
-                         None};
+	// attributes for a single buffered visual in RGBA format with at least
+	// 8 bits per color and a 24 bit depth buffer
+	int attrListSgl[] = {GLX_RGBA, GLX_RED_SIZE, 8,
+		GLX_GREEN_SIZE, 8,
+		GLX_BLUE_SIZE, 8,
+		GLX_DEPTH_SIZE, 24,
+		None};
 
-    // attributes for a double buffered visual in RGBA format with at least
-    // 8 bits per color and a 24 bit depth buffer
-    int attrListDbl[] = { GLX_RGBA, GLX_DOUBLEBUFFER,
-                          GLX_RED_SIZE, 8,
-                          GLX_GREEN_SIZE, 8,
-                          GLX_BLUE_SIZE, 8,
-                          GLX_DEPTH_SIZE, 24,
-                          GLX_SAMPLE_BUFFERS_ARB, GLX_SAMPLES_ARB, 1, None };
+	// attributes for a double buffered visual in RGBA format with at least
+	// 8 bits per color and a 24 bit depth buffer
+	int attrListDbl[] = { GLX_RGBA, GLX_DOUBLEBUFFER,
+		GLX_RED_SIZE, 8,
+		GLX_GREEN_SIZE, 8,
+		GLX_BLUE_SIZE, 8,
+		GLX_DEPTH_SIZE, 24,
+		GLX_SAMPLE_BUFFERS_ARB, GLX_SAMPLES_ARB, 1, None };
 
 	int attrListDefault[] = {
 		GLX_RGBA,
@@ -273,11 +243,11 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 	GLWin.parent = (Window)g_VideoInitialize.pWindowHandle;
 	GLWin.screen = DefaultScreen(GLWin.dpy);
 
-    /* get an appropriate visual */
-    vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListDbl);
-    if (vi == NULL)
+	// Get an appropriate visual
+	vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListDbl);
+	if (vi == NULL)
 	{
-        vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListSgl);
+		vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListSgl);
 		if (vi != NULL)
 		{
 			ERROR_LOG(VIDEO, "Only Singlebuffered Visual!");
@@ -291,9 +261,9 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 				exit(0);
 			}
 		}
-    }
-    else
-        NOTICE_LOG(VIDEO, "Got Doublebuffered Visual!");
+	}
+	else
+		NOTICE_LOG(VIDEO, "Got Doublebuffered Visual!");
 
 	glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
 	NOTICE_LOG(VIDEO, "glX-Version %d.%d", glxMajorVersion, glxMinorVersion);
@@ -313,14 +283,13 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 	GLWin.attr.border_pixel = 0;
 	XkbSetDetectableAutoRepeat(GLWin.dpy, True, NULL);
 
-	// create a window in window mode
+	// Create a window in window mode
 	GLWin.attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
-		StructureNotifyMask | ResizeRedirectMask | EnterWindowMask |
-	   	LeaveWindowMask | FocusChangeMask;
+		StructureNotifyMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask;
 	GLWin.win = XCreateWindow(GLWin.dpy, GLWin.parent,
 			xPos, yPos, _twidth, _theight, 0, vi->depth, InputOutput, vi->visual,
 			CWBorderPixel | CWColormap | CWEventMask, &GLWin.attr);
-	// only set window title and handle wm_delete_events if in windowed mode
+	// Only set window title and handle wm_delete_events if in windowed mode
 	wmDelete = XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", True);
 	XSetWMProtocols(GLWin.dpy, GLWin.win, &wmDelete, 1);
 	XSetStandardProperties(GLWin.dpy, GLWin.win, "GPU",
@@ -335,9 +304,9 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 bool OpenGL_MakeCurrent()
 {
 #if defined(USE_WX) && USE_WX
-    GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
+	GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
 #elif defined(_WIN32)
-   	return wglMakeCurrent(hDC,hRC) ? true : false;
+	return wglMakeCurrent(hDC,hRC) ? true : false;
 #elif defined(HAVE_X11) && HAVE_X11
 	g_VideoInitialize.pRequestWindowSize(GLWin.x, GLWin.y, (int&)GLWin.width, (int&)GLWin.height);
 	XMoveResizeWindow(GLWin.dpy, GLWin.win, GLWin.x, GLWin.y, GLWin.width, GLWin.height);
@@ -349,12 +318,9 @@ bool OpenGL_MakeCurrent()
 void OpenGL_Update()
 {
 #if defined(USE_WX) && USE_WX
-    RECT rcWindow = {0};
-    rcWindow.right = GLWin.width;
-    rcWindow.bottom = GLWin.height;
-    
-    // TODO fill in
-
+	GLWin.glCanvas->GetSize((int *)&GLWin.width, (int *)&GLWin.height);
+	s_backbuffer_width = GLWin.width;
+	s_backbuffer_height = GLWin.height;
 #elif defined(_WIN32)
 	RECT rcWindow;
 	if (!EmuWindow::GetParentWnd())
@@ -368,47 +334,44 @@ void OpenGL_Update()
 		GetWindowRect(EmuWindow::GetParentWnd(), &rcWindow);
 	}
 
-	// ---------------------------------------------------------------------------------------
 	// Get the new window width and height
-	// ------------------
 	// See below for documentation
-	// ------------------
-    int width = rcWindow.right - rcWindow.left;
-    int height = rcWindow.bottom - rcWindow.top;
+	int width = rcWindow.right - rcWindow.left;
+	int height = rcWindow.bottom - rcWindow.top;
 
 	// If we are rendering to a child window
 	if (EmuWindow::GetParentWnd() != 0)
 		::MoveWindow(EmuWindow::GetWnd(), 0, 0, width, height, FALSE);
 
-    s_backbuffer_width = width;
-    s_backbuffer_height = height;
+	s_backbuffer_width = width;
+	s_backbuffer_height = height;
 
 #elif defined(HAVE_X11) && HAVE_X11
-    // We just check all of our events here
-    XEvent event;
-    int num_events;
-    for (num_events = XPending(GLWin.dpy);num_events > 0;num_events--) {
-        XNextEvent(GLWin.dpy, &event);
-        switch(event.type) {
-            case ConfigureNotify:
-                Window winDummy;
-                unsigned int borderDummy;
-                XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
-                             &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
-                s_backbuffer_width = GLWin.width;
-                s_backbuffer_height = GLWin.height;
-                break;
-            case ClientMessage:
-                if ((unsigned long) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", False))
-                    g_VideoInitialize.pCoreMessage(WM_USER_STOP);
+	// We just check all of our events here
+	XEvent event;
+	int num_events;
+	for (num_events = XPending(GLWin.dpy);num_events > 0;num_events--) {
+		XNextEvent(GLWin.dpy, &event);
+		switch(event.type) {
+			case ConfigureNotify:
+				Window winDummy;
+				unsigned int borderDummy, depthDummy;
+				XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
+						&GLWin.width, &GLWin.height, &borderDummy, &depthDummy);
+				s_backbuffer_width = GLWin.width;
+				s_backbuffer_height = GLWin.height;
+				break;
+			case ClientMessage:
+				if ((unsigned long) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", False))
+					g_VideoInitialize.pCoreMessage(WM_USER_STOP);
 				if ((unsigned long) event.xclient.data.l[0] == XInternAtom(GLWin.dpy, "RESIZE", False))
 					XMoveResizeWindow(GLWin.dpy, GLWin.win, event.xclient.data.l[1],
 							event.xclient.data.l[2], event.xclient.data.l[3], event.xclient.data.l[4]);
-                return;
-                break;
-            default:
-                break;
-            }
+				return;
+				break;
+			default:
+				break;
+		}
 	}
 	return;
 #endif
@@ -420,7 +383,6 @@ void OpenGL_Shutdown()
 {
 #if defined(USE_WX) && USE_WX
 	delete GLWin.glCanvas;
-	delete GLWin.frame;
 #elif defined(_WIN32)
 	if (hRC)                                            // Do We Have A Rendering Context?
 	{

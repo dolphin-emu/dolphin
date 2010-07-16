@@ -22,33 +22,22 @@
 
 #include "Render.h"
 
+#include "GLUtil.h"
+
 #if defined(_WIN32)
 #include "OS/Win32.h"
+static HDC hDC = NULL;       // Private GDI Device Context
+static HGLRC hRC = NULL;     // Permanent Rendering Context
+extern HINSTANCE g_hInstance;
 #else
-struct RECT
-{
-	int left, top;
-	int right, bottom;
-};
+GLWindow GLWin;
 #endif
-
-#include "GLUtil.h"
 
 // Handles OpenGL and the window
 
 // Window dimensions.
 static int s_backbuffer_width;
 static int s_backbuffer_height;
-
-#ifndef _WIN32
-GLWindow GLWin;
-#endif
-
-#if defined(_WIN32)
-static HDC hDC = NULL;       // Private GDI Device Context
-static HGLRC hRC = NULL;       // Permanent Rendering Context
-extern HINSTANCE g_hInstance;
-#endif
 
 void OpenGL_SwapBuffers()
 {
@@ -76,15 +65,15 @@ u32 OpenGL_GetBackbufferHeight()
 void OpenGL_SetWindowText(const char *text)
 {
 #if defined(USE_WX) && USE_WX
-//	GLWin.frame->SetTitle(wxString::FromAscii(text));
+	// GLWin.frame->SetTitle(wxString::FromAscii(text));
 #elif defined(__APPLE__)
 	cocoaGLSetTitle(GLWin.cocoaWin, text);
 #elif defined(_WIN32)
 	// TODO convert text to unicode and change SetWindowTextA to SetWindowText
 	SetWindowTextA(EmuWindow::GetWnd(), text);
-#elif defined(HAVE_X11) && HAVE_X11 // GLX
-	// Tell X to ask the window manager to set the window title. (X
-	// itself doesn't provide window title functionality.)
+#elif defined(HAVE_X11) && HAVE_X11
+	// Tell X to ask the window manager to set the window title.
+	// (X itself doesn't provide window title functionality.)
 	XStoreName(GLWin.dpy, GLWin.win, text);
 #endif
 }
@@ -127,8 +116,7 @@ void CreateXWindow (void)
 	GLWin.attr.colormap = XCreateColormap(GLWin.dpy,
 			GLWin.parent, GLWin.vi->visual, AllocNone);
 	GLWin.attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
-		StructureNotifyMask | ResizeRedirectMask | EnterWindowMask |
-	   	LeaveWindowMask | FocusChangeMask;
+		StructureNotifyMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask;
 	GLWin.attr.background_pixel = BlackPixel(GLWin.dpy, GLWin.screen);
 	GLWin.attr.border_pixel = 0;
 
@@ -147,7 +135,6 @@ void CreateXWindow (void)
 
 void DestroyXWindow(void)
 {
-	/* switch back to original desktop resolution if we were in fullscreen */
 	XUnmapWindow(GLWin.dpy, GLWin.win);
 	GLWin.win = 0;
 	XFreeColormap(GLWin.dpy, GLWin.attr.colormap);
@@ -366,7 +353,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	glXQueryVersion(GLWin.dpy, &glxMajorVersion, &glxMinorVersion);
 	NOTICE_LOG(VIDEO, "glX-Version %d.%d", glxMajorVersion, glxMinorVersion);
 
-	/* get an appropriate visual */
+	// Get an appropriate visual
 	GLWin.vi = glXChooseVisual(GLWin.dpy, GLWin.screen, attrListDbl);
 	if (GLWin.vi == NULL)
 	{
@@ -428,16 +415,12 @@ bool OpenGL_MakeCurrent()
 void OpenGL_Update()
 {
 #if defined(USE_WX) && USE_WX
-	RECT rcWindow = {0};
-	rcWindow.right = GLWin.width;
-	rcWindow.bottom = GLWin.height;
-
-	// TODO fill in
-
+	GLWin.glCanvas->GetSize((int *)&GLWin.width, (int *)&GLWin.height);
+	s_backbuffer_width = GLWin.width;
+	s_backbuffer_height = GLWin.height;
 #elif defined(__APPLE__)
-	RECT rcWindow = {0};
-	rcWindow.right = GLWin.width;
-	rcWindow.bottom = GLWin.height;
+
+	// Is anything needed here?
 
 #elif defined(_WIN32)
 	RECT rcWindow;
@@ -452,11 +435,8 @@ void OpenGL_Update()
 		GetWindowRect(EmuWindow::GetParentWnd(), &rcWindow);
 	}
 
-	// ---------------------------------------------------------------------------------------
 	// Get the new window width and height
-	// ------------------
 	// See below for documentation
-	// ------------------
 	int width = rcWindow.right - rcWindow.left;
 	int height = rcWindow.bottom - rcWindow.top;
 
@@ -467,8 +447,6 @@ void OpenGL_Update()
 		s_backbuffer_width = width;
 		s_backbuffer_height = height;
 	}
-
-#elif defined(HAVE_X11) && HAVE_X11
 #endif
 }
 
