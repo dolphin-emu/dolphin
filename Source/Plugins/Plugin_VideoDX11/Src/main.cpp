@@ -246,7 +246,6 @@ void Shutdown()
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
 	s_swapRequested = FALSE;
-	D3D::ShutdownUtils();
 	CommandProcessor::Shutdown();
 	PixelShaderManager::Shutdown();
 	PixelShaderCache::Shutdown();
@@ -258,6 +257,7 @@ void Shutdown()
 	VertexManager::Shutdown();
 	TextureCache::Shutdown();
 	Renderer::Shutdown();
+	D3D::ShutdownUtils();
 	EmuWindow::Close();
 	s_PluginInitialized = false;
 }
