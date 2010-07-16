@@ -27,7 +27,7 @@ if sys.platform == 'win32' or sys.platform == 'linux2':
 	libs += [ 'SDL' ]
 
 if wiinewenv['HAVE_WX']:
-	libs += [ 'inputuicommon' ]
+	libs = [ 'inputuicommon' ] + libs
 	files += [ 'WiimoteConfigDiag.cpp' ]
 
 if wiinewenv['HAVE_WIIUSE']:
