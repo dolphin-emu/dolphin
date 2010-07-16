@@ -23,13 +23,26 @@
 #include "Thread.h"
 #include "FileUtil.h"
 
-void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
-				const char *file, int line, const char* fmt, ...)
+void GenericLogC(int level, int type, 
+		const char *file, int line, const char* fmt, ...)
 {
 	va_list args;
 	va_start(args, fmt);
 	if (LogManager::GetInstance())
-		LogManager::GetInstance()->Log(level, type, file, line, fmt, args);
+		LogManager::GetInstance()->Log(
+			(LogTypes::LOG_LEVELS)level, (LogTypes::LOG_TYPE)type,
+			file, line, fmt, args);
+	va_end(args);
+}
+
+void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
+		const char *file, int line, const char* fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt);
+	if (LogManager::GetInstance())
+		LogManager::GetInstance()->Log(level, type,
+			file, line, fmt, args);
 	va_end(args);
 }
 

@@ -24,8 +24,10 @@
 #define	INFO_LEVEL    4  // General information.
 #define	DEBUG_LEVEL   5  // Detailed debugging - might make things slow.
 
+#ifdef __cplusplus
 namespace LogTypes
 {
+#endif
 
 enum LOG_TYPE {
 	ACTIONREPLAY,
@@ -84,13 +86,20 @@ enum LOG_LEVELS {
 	LDEBUG = DEBUG_LEVEL,
 };
 
+#ifdef __cplusplus
 }  // namespace
 
+void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
+		const char *file, int line, const char *fmt, ...);
+extern "C" {
+#endif
+void GenericLogC(int level, int type,
+		const char *file, int line, const char *fmt, ...);
+#define GenericLog GenericLogC
+#ifdef __cplusplus
+};
+#endif
 
-/* 
-   FIXME: 
-   - Debug_run() - run only in debug time
-*/
 #if defined LOGGING || defined _DEBUG || defined DEBUGFAST
 #define MAX_LOGLEVEL DEBUG_LEVEL
 #else
@@ -98,9 +107,6 @@ enum LOG_LEVELS {
 #define MAX_LOGLEVEL WARNING_LEVEL
 #endif // loglevel
 #endif // logging
-
-void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, 
-				const char *file, int line, const char *fmt, ...);
 
 #ifdef GEKKO
 #define GENERIC_LOG(t, v, ...)
@@ -131,7 +137,6 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
 #define _dbg_update_() Host_UpdateLogDisplay();
 
 #else // not debug
-#define _dbg_clear_()
 #define _dbg_update_() ;
 
 #ifndef _dbg_assert_

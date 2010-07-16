@@ -34,10 +34,20 @@
 #ifndef DEFINITIONS_H_INCLUDED
 #define DEFINITIONS_H_INCLUDED
 
+#if 1	// Use Dolphin logging
+
+#include "Log.h"
+// NOTICE_LEVEL is more appropriate for the uses of WIIUSE_INFO than INFO_LEVEL
+// as long as we don't provide adequate GUI feedback for bluetooth events.
+#define WIIUSE_INFO(...) { GENERIC_LOG(WIIMOTE, NOTICE_LEVEL, __VA_ARGS__) }
+#define WIIUSE_ERROR(...) { GENERIC_LOG(WIIMOTE, ERROR_LEVEL, __VA_ARGS__) }
+#define WIIUSE_WARNING(...) { GENERIC_LOG(WIIMOTE, WARNING_LEVEL, __VA_ARGS__) }
+#define WIIUSE_DEBUG(...) { GENERIC_LOG(WIIMOTE, DEBUG_LEVEL, __VA_ARGS__) }
+
+#else
+
 /* this is wiiuse - used to distinguish from third party programs using wiiuse.h */
 #include "os.h"
-
-#define WIIMOTE_PI			3.14159265f
 
 //#define WITH_WIIUSE_DEBUG
 
@@ -64,6 +74,10 @@
 #else
 	#define WIIUSE_DEBUG(fmt, ...)
 #endif
+
+#endif	// Use Dolphin logging
+
+#define WIIMOTE_PI			3.14159265f
 
 /* Convert between radians and degrees */
 #define RAD_TO_DEGREE(r)	((r * 180.0f) / WIIMOTE_PI)

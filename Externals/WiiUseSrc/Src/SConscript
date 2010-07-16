@@ -19,6 +19,6 @@ if sys.platform == 'linux2' and env['HAVE_BLUEZ']:
 if sys.platform == 'darwin':
 	files += [ "io_osx.m", ]
 
-env.StaticLibrary(env['local_libs'] + "wiiuse", files, LIBS='m')
+env.StaticLibrary(env['local_libs'] + "wiiuse", files)
 
 env['HAVE_WIIUSE'] = 1
