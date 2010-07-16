@@ -495,7 +495,7 @@ void Write16(const u16 _Value, const u32 _Address)
 	case FIFO_HI_WATERMARK_HI:
 		WriteHigh((u32 &)fifo.CPHiWatermark, _Value);
 		// Tune this when you see lots of FIFO overflown by GatherPipe
-		HiWatermark_Tighter = fifo.CPHiWatermark - 32 * 50;
+		HiWatermark_Tighter = fifo.CPHiWatermark - 32 * 20;
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_HI : %04x", _Value);
 		break;
 

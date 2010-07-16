@@ -604,6 +604,15 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	if (!g_ActiveConfig.bEFBAccessEnable)
 		return 0;
 
+	if (type == POKE_Z || type == POKE_COLOR)
+	{
+		static bool alert_only_once = true;
+		if (!alert_only_once) return 0;
+		PanicAlert("Poke EFB not implemented");
+		alert_only_once = false;
+		return 0;
+	}
+
 	// get the rectangular target region covered by the EFB pixel
 	EFBRectangle efbPixelRc;
 	efbPixelRc.left = x;
@@ -674,16 +683,12 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 			z = ((u32)(val * 0xffffff));
 			break;
 
-		case POKE_Z:
-			PanicAlert("Poke Z-buffer not implemented");
-			break;
-
 		case PEEK_COLOR:
 			z = ((u32*)map.pData)[0];
 			break;
 
-		case POKE_COLOR:
-			PanicAlert("Poke color EFB not implemented");
+		// TODO: Implement POKE_Z and POKE_COLOR
+		default:
 			break;
 	}
 	D3D::context->Unmap(read_tex, 0);

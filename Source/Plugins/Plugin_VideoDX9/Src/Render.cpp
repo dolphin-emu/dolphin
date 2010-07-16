@@ -632,6 +632,15 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 	if (!g_ActiveConfig.bEFBAccessEnable)
 		return 0;
 
+	if (type == POKE_Z || type == POKE_COLOR)
+	{
+		static bool alert_only_once = true;
+		if (!alert_only_once) return 0;
+		PanicAlert("Poke EFB not implemented");
+		alert_only_once = false;
+		return 0;
+	}
+
 	// Get the working buffer
 	LPDIRECT3DSURFACE9 pBuffer = (type == PEEK_Z || type == POKE_Z) ? 
 		FBManager.GetEFBDepthRTSurface() : FBManager.GetEFBColorRTSurface();
@@ -792,19 +801,14 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 				z = ((u32)(val * 0xffffff));
 			}
 			break;
-		case POKE_Z:
-			// TODO: Get that Z value to poke from somewhere
-			//((float *)drect.pBits)[0] = val;
-			PanicAlert("Poke Z-buffer not implemented");
-			break;
 
 		case PEEK_COLOR:
 			z = ((u32 *)drect.pBits)[0];
 			break;
 		case POKE_COLOR:
-			// TODO: Get that ARGB value to poke from somewhere
-			//((float*)drect.pBits)[0] = val;
-			PanicAlert("Poke color EFB not implemented");
+
+		// TODO: Implement POKE_Z and POKE_COLOR
+		default:
 			break;
 	}
 
