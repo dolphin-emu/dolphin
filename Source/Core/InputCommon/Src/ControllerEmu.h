@@ -56,8 +56,6 @@ const char * const named_directions[] =
 	"Right"
 };
 
-void GetMousePos(float& x, float& y, const SWiimoteInitialize* const wiimote_initialize);
-
 class ControllerEmu
 {
 public:
@@ -373,18 +371,8 @@ public:
 			}
 			else
 			{
-				float xx, yy;
-				GetMousePos(xx, yy, wiimote_initialize);
-
-				// use mouse cursor, or user defined mapping if they have something mapped
-				// this if seems horrible
-				if ( controls[0]->control_ref->BoundCount() || controls[1]->control_ref->BoundCount() )
-					yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-				else
-					yy = -yy;
-
-				if ( controls[2]->control_ref->BoundCount() || controls[3]->control_ref->BoundCount() )
-					xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+				float yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
+				float xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
 				// adjust cursor according to settings
 				if (adjusted)

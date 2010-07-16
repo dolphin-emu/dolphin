@@ -379,7 +379,7 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
 	// o boy!, hax
 	const wxString lbl = ((wxButton*)event.GetEventObject())->GetLabel();
 
-	wxString expr = textctrl->GetLabel();
+	wxString expr = textctrl->GetValue();
 
 	// append the operator to the expression
 	if (wxT('!') == lbl[0] || false == expr.empty())
@@ -449,6 +449,9 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 	{
 		btn->SetLabel(wxT("[ waiting ]"));
 
+		// apparently, this makes the "waiting" text work on Linux
+		wxYield();
+
 		m_plugin.controls_crit.Enter();		// enter
 		ControllerInterface::Device::Control* const ctrl = control_reference->Detect(DETECT_WAIT_TIME, dev);
 		m_plugin.controls_crit.Leave();		// leave
@@ -470,6 +473,9 @@ void GamepadPage::DetectControl( wxCommandEvent& event )
 	if (dev)
 	{
 		btn->SetLabel(wxT("[ waiting ]"));
+
+		// apparently, this makes the "waiting" text work on Linux
+		wxYield();
 
 		m_plugin.controls_crit.Enter();		// enter
 		ControllerInterface::Device::Control* const ctrl = btn->control_reference->Detect(DETECT_WAIT_TIME, dev);
@@ -899,8 +905,8 @@ GamepadPage::GamepadPage( wxWindow* parent, InputPlugin& plugin, const unsigned 
 	device_sbox->Add( device_cbox, 1, wxLEFT|wxRIGHT, 3 );
 	device_sbox->Add( refresh_button, 0, wxRIGHT|wxBOTTOM, 3 );
 
-	wxButton* const default_button = new wxButton( this, -1, wxT("Default"), wxDefaultPosition, wxSize(48,-1) );
-	wxButton* const clearall_button = new wxButton( this, -1, wxT("Clear"), wxDefaultPosition, wxSize(48,-1) );
+	wxButton* const default_button = new wxButton(this, -1, wxT("Default"), wxDefaultPosition, wxSize(48,-1));
+	wxButton* const clearall_button = new wxButton(this, -1, wxT("Clear"), wxDefaultPosition, wxSize(58,-1));
 
 	wxStaticBoxSizer* const clear_sbox = new wxStaticBoxSizer( wxHORIZONTAL, this, wxT("Reset") );
 	clear_sbox->Add(default_button, 1, wxLEFT, 3);

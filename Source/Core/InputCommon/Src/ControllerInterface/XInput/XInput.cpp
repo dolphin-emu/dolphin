@@ -170,7 +170,7 @@ std::string Device::Button::GetName() const
 
 std::string Device::Axis::GetName() const
 {
-	return std::string(named_axes[m_index]) + ( m_range>0 ? '+' : '-' );
+	return std::string(named_axes[m_index]) + (m_range<0 ? '-' : '+');
 }
 
 std::string Device::Trigger::GetName() const

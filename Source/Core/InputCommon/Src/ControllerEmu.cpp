@@ -319,36 +319,3 @@ void ControllerEmu::LoadDefaults(const ControllerInterface &ciface)
 		UpdateDefaultDevice();
 	}
 }
-
-// TODO: remove this hackery
-void GetMousePos(float& x, float& y, const SWiimoteInitialize* const wiimote_initialize)
-{
-#if defined(HAVE_X11) && HAVE_X11
-
-	unsigned int win_width = 2, win_height = 2;
-	int root_x, root_y;
-	struct
-	{
-		int x, y;
-	} point = { 1, 1 };
-
-	Display* const wm_display = (Display*)wiimote_initialize->hWnd;
-	Window glwin = *(Window *)wiimote_initialize->pXWindow;
-
-	XWindowAttributes win_attribs;
-	XGetWindowAttributes (wm_display, glwin, &win_attribs);
-	win_width = win_attribs.width;
-	win_height = win_attribs.height;
-	Window root_dummy, child_win;
-	unsigned int mask;
-	XQueryPointer(wm_display, glwin, &root_dummy, &child_win, &root_x, &root_y, &point.x, &point.y, &mask);
-
-	// Return the mouse position as a range from -1 to 1
-	x = (float)point.x / (float)win_width * 2 - 1;
-	y = (float)point.y / (float)win_height * 2 - 1;
-#else
-
-	x = 0;
-	y = 0;
-#endif
-}

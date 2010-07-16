@@ -262,15 +262,17 @@ std::string Joystick::Button::GetName() const
 std::string Joystick::Axis::GetName() const
 {
 	std::ostringstream ss;
-	ss << "Axis " << m_index << ( m_range>0 ? '+' : '-' );
+	ss << "Axis " << m_index << (m_range<0 ? '-' : '+');
 	return ss.str();
 }
 
 std::string Joystick::Hat::GetName() const
 {
-	std::ostringstream ss;
-	ss << "Hat " << m_index << ' ' << "NESW"[m_direction];
-	return ss.str();
+	static char tmpstr[] = "Hat . .";
+	// I don't think more than 10 hats are supported
+	tmpstr[4] = (char)('0' + m_index);
+	tmpstr[6] = "NESW"[m_direction];
+	return tmpstr;
 }
 
 ControlState Joystick::Button::GetState( SDL_Joystick* const js ) const

@@ -7,16 +7,14 @@ namespace Xlib
 
 void Init(std::vector<ControllerInterface::Device*>& devices, void* const hwnd)
 {
-	// mouse will be added to this, Keyboard class will be turned into KeyboardMouse
-	// single device for combined keyboard/mouse, this will allow combinations like shift+click more easily
-	devices.push_back(new Keyboard((Display*)hwnd));
+	devices.push_back(new KeyboardMouse(*(Window*)hwnd));
 }
 
-Keyboard::Keyboard(Display* display) : m_display(display)
+KeyboardMouse::KeyboardMouse(Window window) : m_window(window)
 {
 	memset(&m_state, 0, sizeof(m_state));
 
-	m_window = DefaultRootWindow(m_display);
+	m_display = XOpenDisplay(NULL);
 
 	int min_keycode, max_keycode;
 	XDisplayKeycodes(m_display, &min_keycode, &max_keycode);
@@ -37,24 +35,28 @@ Keyboard::Keyboard(Display* display) : m_display(display)
 	AddInput(new Button(Button3Mask));
 	AddInput(new Button(Button4Mask));
 	AddInput(new Button(Button5Mask));
+
+	// Mouse Cursor, X-/+ and Y-/+
+	for (unsigned int i=0; i<4; ++i)
+		AddInput(new Cursor(!!(i&2), !!(i&1)));
 }
 
-Keyboard::~Keyboard()
+KeyboardMouse::~KeyboardMouse()
 {
+	XCloseDisplay(m_display);
 }
 
-
-ControlState Keyboard::GetInputState(const ControllerInterface::Device::Input* const input) const
+ControlState KeyboardMouse::GetInputState(const ControllerInterface::Device::Input* const input) const
 {
 	return ((Input*)input)->GetState(&m_state);
 }
 
-void Keyboard::SetOutputState(const ControllerInterface::Device::Output* const output, const ControlState state)
+void KeyboardMouse::SetOutputState(const ControllerInterface::Device::Output* const output, const ControlState state)
 {
 
 }
 
-bool Keyboard::UpdateInput()
+bool KeyboardMouse::UpdateInput()
 {
 	XQueryKeymap(m_display, m_state.keyboard);
 
@@ -62,33 +64,40 @@ bool Keyboard::UpdateInput()
 	Window root, child;
 	XQueryPointer(m_display, m_window, &root, &child, &root_x, &root_y, &win_x, &win_y, &m_state.buttons);
 
+	// update mouse cursor
+	XWindowAttributes win_attribs;
+	XGetWindowAttributes(m_display, m_window, &win_attribs);
+
+	// the mouse position as a range from -1 to 1
+	m_state.cursor.x = (float)win_x / (float)win_attribs.width * 2 - 1;
+	m_state.cursor.y = (float)win_y / (float)win_attribs.height * 2 - 1;
+
 	return true;
 }
 
-bool Keyboard::UpdateOutput()
+bool KeyboardMouse::UpdateOutput()
 {
 	return true;
 }
 
 
-std::string Keyboard::GetName() const
+std::string KeyboardMouse::GetName() const
 {
-	return "Keyboard";
-	//return "Keyboard Mouse";	// change to this later
+	return "Keyboard Mouse";
 }
 
-std::string Keyboard::GetSource() const
+std::string KeyboardMouse::GetSource() const
 {
 	return "Xlib";
 }
 
-int Keyboard::GetId() const
+int KeyboardMouse::GetId() const
 {
 	return 0;
 }
 
 
-Keyboard::Key::Key(Display* const display, KeyCode keycode)
+KeyboardMouse::Key::Key(Display* const display, KeyCode keycode)
   : m_display(display), m_keycode(keycode)
 {
 	int i = 0;
@@ -112,22 +121,35 @@ Keyboard::Key::Key(Display* const display, KeyCode keycode)
 		m_keyname = std::string(XKeysymToString(keysym));
 }
 
-ControlState Keyboard::Key::GetState(const State* const state) const
+ControlState KeyboardMouse::Key::GetState(const State* const state) const
 {
 	return (state->keyboard[m_keycode/8] & (1 << (m_keycode%8))) != 0;
 }
 
-ControlState Keyboard::Button::GetState(const State* const state) const
+ControlState KeyboardMouse::Button::GetState(const State* const state) const
 {
 	return ((state->buttons & m_index) > 0);
 }
 
-std::string Keyboard::Key::GetName() const
+ControlState KeyboardMouse::Cursor::GetState(const State* const state) const
+{
+	return std::max(0.0f, ControlState((&state->cursor.x)[m_index]) / (m_positive ? 1.0f : -1.0f));
+}
+
+std::string KeyboardMouse::Key::GetName() const
 {
 	return m_keyname;
 }
 
-std::string Keyboard::Button::GetName() const
+std::string KeyboardMouse::Cursor::GetName() const
+{
+	static char tmpstr[] = "Cursor ..";
+	tmpstr[7] = (char)('X' + m_index);
+	tmpstr[8] = (m_positive ? '+' : '-');
+	return tmpstr;
+}
+
+std::string KeyboardMouse::Button::GetName() const
 {
 	char button = '0';
 	switch (m_index)
@@ -139,7 +161,9 @@ std::string Keyboard::Button::GetName() const
 		case Button5Mask: button = '5'; break;
 	}
 
-	return std::string("Button ") + button;
+	static char tmpstr[] = "Button .";
+	tmpstr[7] = button;
+	return tmpstr;
 }
 
 }

@@ -255,6 +255,7 @@ unsigned int GetMaxTextureSize()
 
 		case D3D_FEATURE_LEVEL_9_2:
 		case D3D_FEATURE_LEVEL_9_1:
+		default:
 			return 2048;
 	}
 }

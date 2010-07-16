@@ -474,9 +474,9 @@ std::string Joystick::Axis::GetName() const
 {
 	std::ostringstream ss;
 	// axis
-	if ( m_index < 6 )
+	if (m_index < 6)
 	{
-		ss << "Axis " << "XYZ"[m_index%3];
+		ss << "Axis " << (char)('X' + (m_index % 3));
 		if ( m_index > 2 )
 			ss << 'r';
 	}
@@ -484,15 +484,16 @@ std::string Joystick::Axis::GetName() const
 	else
 		ss << "Slider " << m_index-6;
 
-	ss << ( m_range>0 ? '+' : '-' );
+	ss << (m_range<0 ? '-' : '+');
 	return ss.str();
 }
 
 std::string Joystick::Hat::GetName() const
 {
-	std::ostringstream ss;
-	ss << "Hat " << m_index << ' ' << "NESW"[m_direction];
-	return ss.str();
+	static char tmpstr[] = "Hat . .";
+	tmpstr[4] = (char)('0' + m_index);
+	tmpstr[6] = "NESW"[m_direction];
+	return tmpstr;
 }
 
 std::string Joystick::Force::GetName() const

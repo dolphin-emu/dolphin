@@ -397,7 +397,11 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
 	
+#if defined(HAVE_X11) && HAVE_X11
+	GCPad_Init(g_pXWindow);
+#else
 	GCPad_Init(g_pWindowHandle);
+#endif
 
 	// Load and Init WiimotePlugin - only if we are booting in wii mode	
 	if (_CoreParameter.bWii)

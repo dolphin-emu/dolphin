@@ -281,9 +281,7 @@ void DllConfig(HWND _hParent)
 	{
 #if defined(HAVE_X11) && HAVE_X11
 		Window win = GDK_WINDOW_XID(GTK_WIDGET(_hParent)->window);
-		g_WiimoteInitialize.hWnd = GDK_WINDOW_XDISPLAY(GTK_WIDGET(_hParent)->window);
-		g_WiimoteInitialize.pXWindow = &win;
-		InitPlugin(g_WiimoteInitialize.hWnd);
+		InitPlugin(&win);
 #else
 		InitPlugin(_hParent);
 #endif
@@ -348,7 +346,11 @@ void Initialize(void *init)
 {
 	g_WiimoteInitialize = *(SWiimoteInitialize*)init;
 	if ( false == g_plugin.controller_interface.IsInit() )
+#if defined(HAVE_X11) && HAVE_X11
+		InitPlugin( g_WiimoteInitialize.pXWindow );
+#else
 		InitPlugin( g_WiimoteInitialize.hWnd );
+#endif
 }
 
 // ___________________________________________________________________________

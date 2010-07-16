@@ -729,7 +729,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 		set_control(m_shake, i, "Button 2");
 
 	// IR
-#ifdef _WIN32
+#ifndef __APPLE__
 	set_control(m_ir, 0, "Cursor Y-");
 	set_control(m_ir, 1, "Cursor Y+");
 	set_control(m_ir, 2, "Cursor X-");

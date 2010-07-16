@@ -955,7 +955,8 @@ void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 	else
 	{
 #if defined(HAVE_X11) && HAVE_X11
-		GCPad_Init(X11Utils::XDisplayFromHandle(GetHandle()));
+		Window win = X11Utils::XWindowFromHandle(GetHandle());
+		GCPad_Init(&win);
 #else
 		GCPad_Init(GetHandle());
 #endif
