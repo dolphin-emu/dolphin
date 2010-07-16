@@ -293,7 +293,7 @@ void IndexGenerator::AddLineList(int numVerts)
 			*Lptr++ = index+i*2;
 			*Lptr++ = index+i*2+1;
 		}
-		if(numVerts%2 != 0)
+		if((numVerts & 1) != 0)
 		{
 			//use line strip for remaining vert
 			*Lptr++ = index + numLines * 2 - 1;

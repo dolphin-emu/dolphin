@@ -173,7 +173,7 @@ void Read8(u8& _uReturnValue, const u32 _iAddress)
 	// but the hardware accepts it. Action Replay uses this.
 	u16 val = 0;
 
-	if (_iAddress % 2 == 0)
+	if ((_iAddress & 1) == 0)
 	{
 		Read16(val, _iAddress);
 		_uReturnValue = (u8)(val >> 8);

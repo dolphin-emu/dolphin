@@ -284,7 +284,7 @@ unsigned int Callback_GetStreaming(short* _pDestBuffer, unsigned int _numSamples
 
 		if (g_AISampleRate == 48000 && _sampleRate == 32000)
 		{
-			_dbg_assert_msg_(AUDIO_INTERFACE, !(_numSamples % 2), "Number of Samples: %i must be even!", _numSamples);
+			_dbg_assert_msg_(AUDIO_INTERFACE, !(_numSamples & 1), "Number of Samples: %i must be even!", _numSamples);
 			_numSamples = _numSamples * 3 / 2;
 		}
 		else if (g_AISampleRate == 32000 && _sampleRate == 48000)

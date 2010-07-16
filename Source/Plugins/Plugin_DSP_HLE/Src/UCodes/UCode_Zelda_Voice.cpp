@@ -229,7 +229,7 @@ void PrintObject(const T &Obj)
 	std::stringstream ss;
 	u8 *o = (u8 *)&Obj;
 	for(int i = 0; i < sizeof(T); i++) {
-		if(i > 0 && i % 2 == 0)
+		if((i > 0) && ((i & 1) == 0))
 			ss << " ";
 
 		sprintf(byte, "%02X", Common::swap16(o[i]));
@@ -718,7 +718,7 @@ ContinueWithBlock:
 						case 0: _LeftBuffer[i] += (u64)value * ramp >> 29; break;
 						case 1: _RightBuffer[i] += (u64)value * ramp >> 29; break;
 					}
-					if ((i & 1) == 0 && i < 64) {
+					if (((i & 1) == 0) && i < 64) {
 						ramp += delta;
 					}
 				}

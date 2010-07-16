@@ -222,16 +222,9 @@ THREAD_RETURN dsp_thread(void* lpParameter)
 	{
 		int cycles = (int)cycle_count;
 		if (cycles > 0) {
-			if (jit)
-			{
-				cycles -= DSPCore_RunCycles(cycles);
-			}
-			else {
-				cycles -= DSPInterpreter::RunCycles(cycles);
-			}
+			cycles -= jit ?  DSPCore_RunCycles(cycles) : DSPInterpreter::RunCycles(cycles);
 			Common::AtomicAdd(cycle_count, -cycles);
 		}
-
 		// yield?
 	}
 	return 0;
