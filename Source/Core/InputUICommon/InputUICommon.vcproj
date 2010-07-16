@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="InputUICommon"
 	ProjectGUID="{374E2DB7-42DF-4E59-8474-62B6687F4978}"
 	RootNamespace="InputUICommon"
@@ -233,6 +233,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"

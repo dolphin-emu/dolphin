@@ -43,53 +43,53 @@ enum
 
 struct SPatch
 {
-	char m_szPatchName[128];	
+	char m_szPatchName[128];
 	TPatchFunction PatchFunction;
 	int returnType;
 };
 
 static const SPatch OSPatches[] = 
 {	
-	{ "FAKE_TO_SKIP_0",		        HLE_Misc::UnimplementedFunction },
+	{ "FAKE_TO_SKIP_0",					HLE_Misc::UnimplementedFunction },
 
 	// speedup
-	{ "OSProtectRange",	            HLE_Misc::UnimplementedFunctionFalse },
+	{ "OSProtectRange",					HLE_Misc::UnimplementedFunctionFalse },
 	//{ "THPPlayerGetState",			HLE_Misc:THPPlayerGetState },
 
 
 	// debug out is very nice ;)
-	{ "OSReport",					HLE_OS::HLE_GeneralDebugPrint	},
-	{ "OSPanic",					HLE_OS::HLE_OSPanic				},
-	{ "vprintf",					HLE_OS::HLE_GeneralDebugPrint	},
-	{ "printf",						HLE_OS::HLE_GeneralDebugPrint	},
-	{ "puts",						HLE_OS::HLE_GeneralDebugPrint	}, // gcc-optimized printf?
-	{ "___blank(char *,...)",		HLE_OS::HLE_GeneralDebugPrint	}, // used for early init things (normally)
-	{ "___blank",					HLE_OS::HLE_GeneralDebugPrint	},
-	{ "__write_console",			HLE_OS::HLE_write_console		}, // used by sysmenu (+more?)
+	{ "OSReport",						HLE_OS::HLE_GeneralDebugPrint	},
+	{ "OSPanic",						HLE_OS::HLE_OSPanic				},
+	{ "vprintf",						HLE_OS::HLE_GeneralDebugPrint	},
+	{ "printf",							HLE_OS::HLE_GeneralDebugPrint	},
+	{ "puts",							HLE_OS::HLE_GeneralDebugPrint	}, // gcc-optimized printf?
+	{ "___blank(char *,...)",			HLE_OS::HLE_GeneralDebugPrint	}, // used for early init things (normally)
+	{ "___blank",						HLE_OS::HLE_GeneralDebugPrint	},
+	{ "__write_console",				HLE_OS::HLE_write_console		}, // used by sysmenu (+more?)
 
 	// wii only
-	{ "__OSInitAudioSystem",        HLE_Misc::UnimplementedFunction },			
+	{ "__OSInitAudioSystem",			HLE_Misc::UnimplementedFunction },
 
 	// Super Monkey Ball - no longer needed.
-	//{ ".evil_vec_cosine",           HLE_Misc::SMB_EvilVecCosine },
-	//{ ".evil_normalize",            HLE_Misc::SMB_EvilNormalize },
-	//{ ".evil_vec_setlength",        HLE_Misc::SMB_evil_vec_setlength },
-	//{ ".evil_vec_something",        HLE_Misc::FZero_evil_vec_normalize },
-	{ "PanicAlert",			          HLE_Misc::HLEPanicAlert },
-	//{ ".sqrt_internal_needs_cr1",   HLE_Misc::SMB_sqrt_internal },
-	//{ ".rsqrt_internal_needs_cr1",  HLE_Misc::SMB_rsqrt_internal },
+	//{ ".evil_vec_cosine",				HLE_Misc::SMB_EvilVecCosine },
+	//{ ".evil_normalize",				HLE_Misc::SMB_EvilNormalize },
+	//{ ".evil_vec_setlength",			HLE_Misc::SMB_evil_vec_setlength },
+	//{ ".evil_vec_something",			HLE_Misc::FZero_evil_vec_normalize },
+	{ "PanicAlert",						HLE_Misc::HLEPanicAlert },
+	//{ ".sqrt_internal_needs_cr1",		HLE_Misc::SMB_sqrt_internal },
+	//{ ".rsqrt_internal_needs_cr1",	HLE_Misc::SMB_rsqrt_internal },
 	//{ ".atan2",						HLE_Misc::SMB_atan2},
-	//{ ".sqrt_fz",                   HLE_Misc::FZ_sqrt},
+	//{ ".sqrt_fz",						HLE_Misc::FZ_sqrt},
 
 	// F-zero still isn't working correctly, but these aren't really helping.
 
-	//{ ".sqrt_internal_fz",   HLE_Misc::FZ_sqrt_internal },
-	//{ ".rsqrt_internal_fz",  HLE_Misc::FZ_rsqrt_internal },
+	//{ ".sqrt_internal_fz",			HLE_Misc::FZ_sqrt_internal },
+	//{ ".rsqrt_internal_fz",			HLE_Misc::FZ_rsqrt_internal },
 
-	//{ ".kill_infinites",			HLE_Misc::FZero_kill_infinites },
+	//{ ".kill_infinites",				HLE_Misc::FZero_kill_infinites },
 	// special
 	//	{ "GXPeekZ",					HLE_Misc::GXPeekZ},
-	//	{ "GXPeekARGB",					HLE_Misc::GXPeekARGB},  
+	//	{ "GXPeekARGB",					HLE_Misc::GXPeekARGB}, 
 };
 
 static const SPatch OSBreakPoints[] =
@@ -162,10 +162,7 @@ void Execute(u32 _CurrentPC, u32 _Instruction)
 u32 GetOrigInstruction(u32 addr)
 {
 	std::map<u32, u32>::const_iterator iter = orig_instruction.find(addr);
-	if (iter != orig_instruction.end())
-		return iter->second;
-	else
-		return 0;
+	return (iter != orig_instruction.end()) ?  iter->second : 0;
 }
 
 }  // end of namespace HLE

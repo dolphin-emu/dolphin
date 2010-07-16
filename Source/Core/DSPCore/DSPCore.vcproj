@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="DSPCore"
 	ProjectGUID="{838A89A3-3AA0-4A45-ACBE-3D1E0980C2ED}"
 	RootNamespace="DSPCore"
@@ -233,6 +233,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..\Common\Src"

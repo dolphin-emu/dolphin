@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="LZO"
 	ProjectGUID="{33546D62-7F34-4EA6-A88E-D538B36E16BF}"
 	RootNamespace="LZO"
@@ -235,6 +235,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="2"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS"

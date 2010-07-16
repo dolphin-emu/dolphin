@@ -33,36 +33,36 @@
 
 bool CBoot::IsWiiWAD(const char *filename)
 {
-    return DiscIO::WiiWAD::IsWiiWAD(filename);
+	return DiscIO::WiiWAD::IsWiiWAD(filename);
 }
 
 bool CBoot::Boot_WiiWAD(const char* _pFilename)
-{        
-    const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_pFilename);
-    if (ContentLoader.IsValid() == false)
-        return false;
-
-    // create Home directory
-    char Path[260+1];
-    u64 TitleID = ContentLoader.GetTitleID();
-    char* pTitleID = (char*)&TitleID;
-    sprintf(Path, "%stitle/%02x%02x%02x%02x/%02x%02x%02x%02x/data/nocopy/", File::GetUserPath(D_WIIUSER_IDX),
-        (u8)pTitleID[7], (u8)pTitleID[6], (u8)pTitleID[5], (u8)pTitleID[4],
-        (u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
-    File::CreateFullPath(Path);
-
-    // setup wii mem
-    if (SetupWiiMemory(ContentLoader.GetCountry()) == false)
-        return false;
-
-	// DOL
-    const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex());
-    if (pContent == NULL)
+{
+	const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_pFilename);
+	if (!ContentLoader.IsValid())
 		return false;
 
-    WII_IPC_HLE_Interface::SetDefaultContentFile(_pFilename);
+	// create Home directory
+	char Path[260+1];
+	u64 TitleID = ContentLoader.GetTitleID();
+	char* pTitleID = (char*)&TitleID;
+	sprintf(Path, "%stitle/%02x%02x%02x%02x/%02x%02x%02x%02x/data/nocopy/", File::GetUserPath(D_WIIUSER_IDX),
+		(u8)pTitleID[7], (u8)pTitleID[6], (u8)pTitleID[5], (u8)pTitleID[4],
+		(u8)pTitleID[3], (u8)pTitleID[2], (u8)pTitleID[1], (u8)pTitleID[0]);
+	File::CreateFullPath(Path);
 
-    CDolLoader DolLoader(pContent->m_pData, pContent->m_Size);
+	// setup wii mem
+	if (!SetupWiiMemory(ContentLoader.GetCountry()))
+		return false;
+
+	// DOL
+	const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex());
+	if (pContent == NULL)
+		return false;
+
+	WII_IPC_HLE_Interface::SetDefaultContentFile(_pFilename);
+
+	CDolLoader DolLoader(pContent->m_pData, pContent->m_Size);
 	PC = DolLoader.GetEntryPoint() | 0x80000000;
 
 	// Pass the "#002 check"
@@ -80,17 +80,17 @@ bool CBoot::Boot_WiiWAD(const char* _pFilename)
 	if (pVolume != NULL)
 		PatchEngine::LoadPatches(pVolume->GetUniqueID().c_str());
 
-    return true;
+	return true;
 }
 
 
 bool CBoot::Install_WiiWAD(const char* _pFilename)
-{   
+{
 	if (!IsWiiWAD(_pFilename))
 		return false;
-    const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_pFilename);
-    if (ContentLoader.IsValid() == false)
-        return false;
+	const DiscIO::INANDContentLoader& ContentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(_pFilename);
+	if (ContentLoader.IsValid() == false)
+		return false;
 
 	u64 TitleID = ContentLoader.GetTitleID();
 	u32 TitleID_HI = (u32)(TitleID >> 32);
@@ -102,16 +102,16 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 	sprintf(ContentPath, "%stitle/%08x/%08x/content/", File::GetUserPath(D_WIIUSER_IDX), TitleID_HI, TitleID_LO);
 	File::CreateFullPath(ContentPath);
 
-    std::string TMDFileName(ContentPath);
+	std::string TMDFileName(ContentPath);
 	TMDFileName += "title.tmd";
 
-    FILE* pTMDFile = fopen(TMDFileName.c_str(), "wb");
-    if (pTMDFile == NULL) {
+	FILE* pTMDFile = fopen(TMDFileName.c_str(), "wb");
+	if (pTMDFile == NULL) {
 		PanicAlert("WAD installation failed: error creating %s", TMDFileName.c_str());
-        return false;
+		return false;
 	}
 
-	fwrite(ContentLoader.GetTmdHeader(), DiscIO::INANDContentLoader::TMD_HEADER_SIZE, 1, pTMDFile);	
+	fwrite(ContentLoader.GetTmdHeader(), DiscIO::INANDContentLoader::TMD_HEADER_SIZE, 1, pTMDFile);
 	
 	for (u32 i = 0; i < ContentLoader.GetContentSize(); i++)
 	{
@@ -160,9 +160,9 @@ bool CBoot::Install_WiiWAD(const char* _pFilename)
 	sprintf(TicketFileName, "%sticket/%08x/%08x.tik", File::GetUserPath(D_WIIUSER_IDX), TitleID_HI, TitleID_LO);
 
 	FILE* pTicketFile = fopen(TicketFileName, "wb");
-    if (pTicketFile == NULL) {
+	if (pTicketFile == NULL) {
 		PanicAlert("WAD installation failed: error creating %s", TicketFileName);
-        return false;
+		return false;
 	} 
 
 	DiscIO::WiiWAD Wad(_pFilename);

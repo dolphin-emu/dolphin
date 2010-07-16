@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="UnitTests"
 	ProjectGUID="{40C636FA-B5BF-4D67-ABC8-376B524A7551}"
 	RootNamespace="UnitTests"
@@ -274,6 +274,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../Core/Core/Src;../Core/Common/Src;../PluginSpecs;../Core/InputCommon/Src;../Core/DSPCore/Src"

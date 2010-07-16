@@ -234,6 +234,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="2"
 				WholeProgramOptimization="false"

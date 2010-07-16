@@ -282,6 +282,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\Include;..\..\Include\msvc;..\..\..\zlib;..\..\src\png"

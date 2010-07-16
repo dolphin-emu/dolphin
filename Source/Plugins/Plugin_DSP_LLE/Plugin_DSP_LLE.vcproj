@@ -315,6 +315,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="2"
 				InlineFunctionExpansion="0"
 				EnableIntrinsicFunctions="true"

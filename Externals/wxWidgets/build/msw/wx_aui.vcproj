@@ -279,7 +279,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/EHsc "
+				AdditionalOptions="/EHsc /MP"
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\..\lib\vc_lib\msw,..\..\include,..\..\src\tiff,..\..\src\jpeg,..\..\src\png,..\..\src\zlib,..\..\src\regex,..\..\src\expat\lib"

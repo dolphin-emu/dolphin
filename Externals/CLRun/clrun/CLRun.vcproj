@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="windows-1255"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="CLRun"
 	ProjectGUID="{D4833C30-FA5F-4DFE-BD32-109DE1F09ED1}"
 	RootNamespace="CLRun"
@@ -229,6 +229,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..\include"

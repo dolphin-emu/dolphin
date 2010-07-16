@@ -233,6 +233,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="..\Common\Src;..\Core\Src;..\InputCommon\Src;..\..\PluginSpecs;..\..\..\Externals\Bochs_disasm;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc"

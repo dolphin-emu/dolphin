@@ -299,6 +299,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\..\Externals\WiiUse\inc;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Common\Src;..\..\Core\InputCommon\Src;..\..\Core\InputUICommon\Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;PLUGIN_WIIMOTE_TEST_EXPORTS;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="0"

@@ -38,7 +38,7 @@ public:
 	{
 		// AyuanX: The internal (Core & DSP) sample rate is fixed at 32KHz
 		// So when AI/DAC sample rate differs than 32KHz, we have to do re-sampling
-		// I perfer speed so let's do down-sampling instead of up-sampling
+		// I prefer speed so let's do down-sampling instead of up-sampling
 		// If you like better sound than speed, feel free to implement the up-sampling code
 		m_sampleRate = 32000;
 		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized (AISampleRate:%i, DACSampleRate:%i)", AISampleRate, DACSampleRate);

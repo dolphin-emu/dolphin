@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_VideoSoftware"
 	ProjectGUID="{66A4E7BD-E2E8-4373-9B75-8750EB5AE683}"
 	RootNamespace="Plugin_VideoSoftware"
@@ -305,6 +305,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="../../PluginSpecs;../../Core/Common/Src;../../Core/InputCommon/Src;../../Core/VideoCommon/Src;./Src;./Src/Windows;../../../Externals;..\..\..\Externals\libjpeg;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\..\Externals\Glew;..\..\..\Externals\CLRun\include"

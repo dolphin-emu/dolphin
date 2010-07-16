@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="Plugin_VideoDX11"
 	ProjectGUID="{21DBE606-2958-43AC-A14E-B6B798D56554}"
 	RootNamespace="Plugin_VideoDX11"
