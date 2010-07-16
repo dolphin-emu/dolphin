@@ -20,12 +20,11 @@
 namespace X11Utils
 {
 
-void SendClientEvent(const char *message,
+void SendClientEvent(Display *dpy, const char *message,
 	   	int data1, int data2, int data3, int data4)
 {
 	XEvent event;
-	Display *dpy = (Display *)Core::GetWindowHandle();
-	Window win = *(Window *)Core::GetXWindow();
+	Window win = (Window)Core::GetWindowHandle();
 
 	// Init X event structure for client message
 	event.xclient.type = ClientMessage;
@@ -41,11 +40,10 @@ void SendClientEvent(const char *message,
 		ERROR_LOG(VIDEO, "Failed to send message %s to the emulator window.", message);
 }
 
-void SendKeyEvent(int key)
+void SendKeyEvent(Display *dpy, int key)
 {
 	XEvent event;
-	Display *dpy = (Display *)Core::GetWindowHandle();
-	Window win = *(Window *)Core::GetXWindow();
+	Window win = (Window)Core::GetWindowHandle();
 
 	// Init X event structure for key press event
 	event.xkey.type = KeyPress;
@@ -58,13 +56,12 @@ void SendKeyEvent(int key)
 		ERROR_LOG(VIDEO, "Failed to send key press event to the emulator window.");
 }
 
-void EWMH_Fullscreen(int action)
+void EWMH_Fullscreen(Display *dpy, int action)
 {
 	_assert_(action == _NET_WM_STATE_REMOVE || action == _NET_WM_STATE_ADD
 			|| action == _NET_WM_STATE_TOGGLE);
 
-	Display *dpy = (Display *)Core::GetWindowHandle();
-	Window win = *(Window *)Core::GetXWindow();
+	Window win = (Window)Core::GetWindowHandle();
 
 	// Init X event structure for _NET_WM_STATE_FULLSCREEN client message
 	XEvent event;

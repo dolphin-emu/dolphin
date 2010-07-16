@@ -101,9 +101,7 @@ bool g_bStopping = false;
 bool g_bHwInit = false;
 bool g_bRealWiimote = false;
 HWND g_pWindowHandle = NULL;
-#if defined(HAVE_X11) && HAVE_X11
-void *g_pXWindow = NULL;
-#endif
+
 Common::Thread* g_EmuThread = NULL;
 
 static Common::Thread* cpuThread = NULL;
@@ -154,13 +152,6 @@ void *GetWindowHandle()
 	return g_pWindowHandle;
 }
 
-#if defined HAVE_X11 && HAVE_X11
-void *GetXWindow()
-{
-	return g_pXWindow;
-}
-#endif
-	 
 bool GetRealWiimote()
 {
 	return g_bRealWiimote;
@@ -370,11 +361,8 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	Plugins.GetVideo()->Initialize(&VideoInitialize); // Call the dll
 
-	// Under linux, this is an X11 Display, not a HWND!
+	// Under linux, this is an X11 Window, not a HWND!
 	g_pWindowHandle			= (HWND)VideoInitialize.pWindowHandle;
-#if defined(HAVE_X11) && HAVE_X11
-	g_pXWindow					= (void *)VideoInitialize.pXWindow;
-#endif
 	Callback_PeekMessages	= VideoInitialize.pPeekMessages;
 	g_pUpdateFPSDisplay		= VideoInitialize.pUpdateFPSDisplay;
 
@@ -397,20 +385,13 @@ THREAD_RETURN EmuThread(void *pArg)
 
 	Plugins.GetDSP()->Initialize((void *)&dspInit);
 	
-#if defined(HAVE_X11) && HAVE_X11
-	GCPad_Init(g_pXWindow);
-#else
 	GCPad_Init(g_pWindowHandle);
-#endif
 
 	// Load and Init WiimotePlugin - only if we are booting in wii mode	
 	if (_CoreParameter.bWii)
 	{
 		SWiimoteInitialize WiimoteInitialize;
 		WiimoteInitialize.hWnd			= g_pWindowHandle;
-#if defined(HAVE_X11) && HAVE_X11
-		WiimoteInitialize.pXWindow	= g_pXWindow;
-#endif
 		WiimoteInitialize.ISOId			= Ascii2Hex(_CoreParameter.m_strUniqueID);
 		WiimoteInitialize.pLog			= Callback_WiimoteLog;
 		WiimoteInitialize.pWiimoteInterruptChannel = Callback_WiimoteInterruptChannel;

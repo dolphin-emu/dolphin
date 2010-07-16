@@ -43,10 +43,10 @@
 namespace X11Utils
 {
 
-void SendClientEvent(const char *message,
+void SendClientEvent(Display *dpy, const char *message,
 	   	int data1, int data2, int data3, int data4);
-void SendKeyEvent(int key);
-void EWMH_Fullscreen(int action);
+void SendKeyEvent(Display *dpy, int key);
+void EWMH_Fullscreen(Display *dpy, int action);
 #if defined(HAVE_WX) && HAVE_WX
 Window XWindowFromHandle(void *Handle);
 Display *XDisplayFromHandle(void *Handle);

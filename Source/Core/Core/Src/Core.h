@@ -62,9 +62,7 @@ namespace Core
 	void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 
     void* GetWindowHandle();
-#if defined HAVE_X11 && HAVE_X11
-    void* GetXWindow();
-#endif
+
     bool GetRealWiimote();
 
     extern bool bReadTrace;

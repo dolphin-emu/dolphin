@@ -271,7 +271,6 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 
 	GLWin.dpy = XOpenDisplay(0);
 	GLWin.parent = (Window)g_VideoInitialize.pWindowHandle;
-	g_VideoInitialize.pWindowHandle = (HWND)GLWin.dpy;
 	GLWin.screen = DefaultScreen(GLWin.dpy);
 
     /* get an appropriate visual */
@@ -316,7 +315,8 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 
 	// create a window in window mode
 	GLWin.attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
-		StructureNotifyMask  | ResizeRedirectMask;
+		StructureNotifyMask | ResizeRedirectMask | EnterWindowMask |
+	   	LeaveWindowMask | FocusChangeMask;
 	GLWin.win = XCreateWindow(GLWin.dpy, GLWin.parent,
 			xPos, yPos, _twidth, _theight, 0, vi->depth, InputOutput, vi->visual,
 			CWBorderPixel | CWColormap | CWEventMask, &GLWin.attr);
@@ -327,7 +327,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _twidth, int _theight
 			"GPU", None, NULL, 0, NULL);
 	XMapRaised(GLWin.dpy, GLWin.win);
 
-	g_VideoInitialize.pXWindow = (Window *) &GLWin.win;
+	g_VideoInitialize.pWindowHandle = (void *)GLWin.win;
 #endif
 	return true;
 }
@@ -337,27 +337,11 @@ bool OpenGL_MakeCurrent()
 #if defined(USE_WX) && USE_WX
     GLWin.glCanvas->SetCurrent(*GLWin.glCtxt);
 #elif defined(_WIN32)
-    if (!wglMakeCurrent(hDC,hRC)) {
-        PanicAlert("(5) Can't Activate The GL Rendering Context.");
-        return false;
-    }
+   	return wglMakeCurrent(hDC,hRC) ? true : false;
 #elif defined(HAVE_X11) && HAVE_X11
-    Window winDummy;
-    unsigned int borderDummy;
-    // connect the glx-context to the window
-    glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
-    XGetGeometry(GLWin.dpy, GLWin.win, &winDummy, &GLWin.x, &GLWin.y,
-                 &GLWin.width, &GLWin.height, &borderDummy, &GLWin.depth);
-    NOTICE_LOG(VIDEO, "GLWin Depth %d", GLWin.depth)
-        if (glXIsDirect(GLWin.dpy, GLWin.ctx)) {
-            NOTICE_LOG(VIDEO, "detected direct rendering");
-        } else {
-         ERROR_LOG(VIDEO, "no Direct Rendering possible!");
-        }
-    
-    // better for pad plugin key input (thc)
-    XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | KeyReleaseMask |
-        StructureNotifyMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask );
+	g_VideoInitialize.pRequestWindowSize(GLWin.x, GLWin.y, (int&)GLWin.width, (int&)GLWin.height);
+	XMoveResizeWindow(GLWin.dpy, GLWin.win, GLWin.x, GLWin.y, GLWin.width, GLWin.height);
+	return glXMakeCurrent(GLWin.dpy, GLWin.win, GLWin.ctx);
 #endif
 	return true;
 }

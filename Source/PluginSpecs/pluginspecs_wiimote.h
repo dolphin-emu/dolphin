@@ -8,11 +8,6 @@
 #include "PluginSpecs.h"
 #include "ExportProlog.h"
 
-#if !defined _WIN32 && !defined __APPLE__
-#include "Config.h"
-#endif
-
-
 typedef void (*TLogv)(const char* _pMessage, int _v);
 
 // This is called when the Wiimote sends input reports to the Core.
@@ -24,9 +19,6 @@ typedef bool (*TRendererHasFocus)(void);
 typedef struct
 {
 	HWND hWnd;
-#if defined HAVE_X11 && HAVE_X11
-	void *pXWindow;
-#endif
 	u32 ISOId;
 	TLogv pLog;
 	TWiimoteInterruptChannel pWiimoteInterruptChannel;

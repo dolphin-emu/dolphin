@@ -40,7 +40,7 @@
 #endif
 
 #if defined(HAVE_X11) && HAVE_X11
-	Display* WMdisplay;
+	Display* WMdisplay = NULL;
 #endif
 SWiimoteInitialize g_WiimoteInitialize;
 PLUGIN_GLOBALS* globals = NULL;
@@ -208,7 +208,7 @@ void Initialize(void *init)
 	g_Config.Load();
 	#endif
 	#if defined(HAVE_X11) && HAVE_X11
-		WMdisplay = (Display*)g_WiimoteInitialize.hWnd;
+		WMdisplay = XOpenDisplay(NULL);
 	#endif
 
 	g_ISOId = g_WiimoteInitialize.ISOId;
@@ -254,6 +254,11 @@ void Shutdown(void)
 	WiiMoteReal::Shutdown();
 #endif
 	WiiMoteEmu::Shutdown();
+
+#if defined(HAVE_X11) && HAVE_X11
+	if (WMdisplay)
+		XCloseDisplay(WMdisplay);
+#endif
 }
 
 

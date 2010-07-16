@@ -7,7 +7,7 @@ namespace Xlib
 
 void Init(std::vector<ControllerInterface::Device*>& devices, void* const hwnd)
 {
-	devices.push_back(new KeyboardMouse(*(Window*)hwnd));
+	devices.push_back(new KeyboardMouse((Window)hwnd));
 }
 
 KeyboardMouse::KeyboardMouse(Window window) : m_window(window)

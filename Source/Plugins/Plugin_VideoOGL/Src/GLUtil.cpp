@@ -127,7 +127,8 @@ void CreateXWindow (void)
 	GLWin.attr.colormap = XCreateColormap(GLWin.dpy,
 			GLWin.parent, GLWin.vi->visual, AllocNone);
 	GLWin.attr.event_mask = ExposureMask | KeyPressMask | KeyReleaseMask |
-		StructureNotifyMask | ResizeRedirectMask;
+		StructureNotifyMask | ResizeRedirectMask | EnterWindowMask |
+	   	LeaveWindowMask | FocusChangeMask;
 	GLWin.attr.background_pixel = BlackPixel(GLWin.dpy, GLWin.screen);
 	GLWin.attr.border_pixel = 0;
 
@@ -138,8 +139,6 @@ void CreateXWindow (void)
 	wmProtocols[0] = XInternAtom(GLWin.dpy, "WM_DELETE_WINDOW", True);
 	XSetWMProtocols(GLWin.dpy, GLWin.win, wmProtocols, 1);
 	XSetStandardProperties(GLWin.dpy, GLWin.win, "GPU", "GPU", None, NULL, 0, NULL);
-	XSelectInput(GLWin.dpy, GLWin.win, ExposureMask | KeyPressMask | KeyReleaseMask |
-			StructureNotifyMask | EnterWindowMask | LeaveWindowMask | FocusChangeMask );
 	XMapRaised(GLWin.dpy, GLWin.win);
 	XSync(GLWin.dpy, True);
 
@@ -359,7 +358,6 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 
 	GLWin.dpy = XOpenDisplay(0);
 	GLWin.parent = (Window)g_VideoInitialize.pWindowHandle;
-	g_VideoInitialize.pWindowHandle = (Display *)GLWin.dpy;
 	GLWin.screen = DefaultScreen(GLWin.dpy);
 	if (GLWin.parent == 0)
 		GLWin.parent = RootWindow(GLWin.dpy, GLWin.screen);
@@ -404,7 +402,7 @@ bool OpenGL_Create(SVideoInitialize &_VideoInitialize, int _iwidth, int _iheight
 	GLWin.height = _theight;
 
 	CreateXWindow();
-	g_VideoInitialize.pXWindow = (Window *) &GLWin.win;
+	g_VideoInitialize.pWindowHandle = (void *)GLWin.win;
 #endif
 	return true;
 }

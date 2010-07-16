@@ -139,7 +139,7 @@ void X11_MainLoop()
 		updateMainFrameEvent.Wait();
 
 	Display *dpy = XOpenDisplay(0);
-	Window win = *(Window *)Core::GetXWindow();
+	Window win = (Window)Core::GetWindowHandle();
 	XSelectInput(dpy, win, KeyPressMask | KeyReleaseMask | FocusChangeMask);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
@@ -161,7 +161,7 @@ void X11_MainLoop()
 
 	if (fullscreen)
 	{
-		X11Utils::EWMH_Fullscreen(_NET_WM_STATE_TOGGLE);
+		X11Utils::EWMH_Fullscreen(dpy, _NET_WM_STATE_TOGGLE);
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 		XRRConfig->ToggleDisplayMode(True);
 #endif
@@ -197,7 +197,7 @@ void X11_MainLoop()
 					else if ((key == XK_Return) && (event.xkey.state & Mod1Mask))
 					{
 						fullscreen = !fullscreen;
-						X11Utils::EWMH_Fullscreen(_NET_WM_STATE_TOGGLE);
+						X11Utils::EWMH_Fullscreen(dpy, _NET_WM_STATE_TOGGLE);
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 						XRRConfig->ToggleDisplayMode(fullscreen);
 #endif

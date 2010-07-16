@@ -702,7 +702,8 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 		int x, y;
 		m_RenderParent->GetSize(&width, &height);
 		m_RenderParent->GetPosition(&x, &y);
-		X11Utils::SendClientEvent("RESIZE", x, y, width, height);
+		X11Utils::SendClientEvent(X11Utils::XDisplayFromHandle(GetHandle()),
+			   	"RESIZE", x, y, width, height);
 #endif
 	}
 	event.Skip();
@@ -956,7 +957,7 @@ void CFrame::OnPluginPAD(wxCommandEvent& WXUNUSED (event))
 	{
 #if defined(HAVE_X11) && HAVE_X11
 		Window win = X11Utils::XWindowFromHandle(GetHandle());
-		GCPad_Init(&win);
+		GCPad_Init((void *)win);
 #else
 		GCPad_Init(GetHandle());
 #endif

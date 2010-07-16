@@ -230,7 +230,7 @@ void GetMousePos(float& x, float& y)
 	int root_x, root_y, win_x, win_y;
 	if (IsFocus())
 	{
-		Window GLWin = *(Window *)g_WiimoteInitialize.pXWindow;
+		Window GLWin = (Window)g_WiimoteInitialize.hWnd;
 		XWindowAttributes WinAttribs;
 		XGetWindowAttributes (WMdisplay, GLWin, &WinAttribs);
 		WinWidth = (float)WinAttribs.width;

@@ -880,7 +880,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 #ifdef _WIN32
 			PostMessage((HWND)Core::GetWindowHandle(), WM_USER, WM_USER_KEYDOWN, event.GetKeyCode());
 #elif defined(HAVE_X11) && HAVE_X11
-			X11Utils::SendKeyEvent(event.GetKeyCode());
+			X11Utils::SendKeyEvent(X11Utils::XDisplayFromHandle(GetHandle()), event.GetKeyCode());
 #endif
 		}
 #ifdef _WIN32

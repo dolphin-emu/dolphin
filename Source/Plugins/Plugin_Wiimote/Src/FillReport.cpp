@@ -358,7 +358,7 @@ bool IsKey(int Key)
 #if defined(HAVE_X11) && HAVE_X11
 		if (Key == EWM_SHAKE || Key == EWM_A || Key == EWM_B)
 		{
-			Window GLWin = *(Window *)g_WiimoteInitialize.pXWindow;
+			Window GLWin = (Window)g_WiimoteInitialize.hWnd;
 			int root_x, root_y, win_x, win_y;
 			Window rootDummy, childWin;
 			unsigned int mask;

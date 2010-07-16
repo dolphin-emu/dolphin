@@ -40,9 +40,6 @@ void Renderer::Init(SVideoInitialize *_pVideoInitialize)
 	_pVideoInitialize->pPeekMessages = g_VideoInitialize.pPeekMessages;
     _pVideoInitialize->pUpdateFPSDisplay = g_VideoInitialize.pUpdateFPSDisplay;
     _pVideoInitialize->pWindowHandle = g_VideoInitialize.pWindowHandle;    
-#if defined(HAVE_X11) && HAVE_X11
-	_pVideoInitialize->pXWindow = g_VideoInitialize.pXWindow;
-#endif
 }
 
 void Renderer::Shutdown()
