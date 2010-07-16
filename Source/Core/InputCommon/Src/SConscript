@@ -6,9 +6,7 @@ files = [
 	'Configuration.cpp',
 	'ControllerEmu.cpp',
 	'InputConfig.cpp',
-	'SDL_Util.cpp',
 	'ControllerInterface/ControllerInterface.cpp',
-	'ControllerInterface/SDL/SDL.cpp',
 	'UDPWiimote.cpp',
 	'UDPWrapper.cpp'
 	]
@@ -24,12 +22,19 @@ elif sys.platform == 'darwin':
 	files += [
 		'ControllerInterface/OSX/OSX.mm',
 		'ControllerInterface/OSX/OSXKeyboard.mm',
-		'ControllerInterface/OSX/OSXMouse.mm'
+		'ControllerInterface/OSX/OSXMouse.mm',
+		'SDL_Util.cpp',		# XXX needed by old Wiimote plugin
 		]
 else:
 	files += [
 		'ControllerInterface/Xlib/Xlib.cpp',
 		'X11InputBase.cpp'
+		]
+
+if sys.platform == 'win32' or sys.platform == 'linux2':
+	files += [
+		'ControllerInterface/SDL/SDL.cpp',
+		'SDL_Util.cpp',
 		]
 
 env.StaticLibrary(env['local_libs'] + "inputcommon", files)

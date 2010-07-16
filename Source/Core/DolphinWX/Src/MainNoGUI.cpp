@@ -356,10 +356,6 @@ int main(int argc, char *argv[])
 
 int appleMain(int argc, char *argv[])
 #else
-// Include SDL header so it can hijack main().
-#if defined(USE_SDL) && USE_SDL
-#include <SDL.h>
-#endif
 int main(int argc, char* argv[])
 #endif
 {

@@ -28,7 +28,7 @@ files = [
 linkFlags = [
 	]
 libs = [
-	'videocommon', 'GLEW', 'SDL', 'SOIL', 'common'
+	'videocommon', 'GLEW', 'SOIL', 'common'
 	]
 
 gfxenv = env.Clone()

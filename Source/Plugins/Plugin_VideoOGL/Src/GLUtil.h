@@ -45,10 +45,6 @@
 #include <X11/keysym.h>
 #include "Thread.h"
 
-#elif defined(USE_SDL) && USE_SDL
-#include <GL/glew.h>
-#include <SDL.h>
-
 #elif defined(__APPLE__)
 #include <GL/glew.h>
 #include "cocoaGL.h"

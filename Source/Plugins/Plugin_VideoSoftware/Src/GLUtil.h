@@ -47,9 +47,6 @@
 #define I_NEED_OS2_H // HAXXOR
 #include <GL/glxew.h>
 #include <X11/XKBlib.h>
-#elif defined(USE_SDL) && USE_SDL
-#include <GL/glew.h>
-#include <SDL.h>
 #else
 #include <GL/glew.h>
 #endif // end USE_WX

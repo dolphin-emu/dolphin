@@ -14,15 +14,16 @@
 	#define CIFACE_USE_DINPUT_JOYSTICK
 	#define CIFACE_USE_DINPUT_KBM
 	#define CIFACE_USE_DINPUT
-#endif
-#if defined(HAVE_X11) && HAVE_X11
-	#define CIFACE_USE_XLIB
-#endif
-//#ifndef CIFACE_USE_DIRECTINPUT_JOYSTICK
+//#ifndef CIFACE_USE_DINPUT_JOYSTICK
 // enable SDL 1.2 in addition to DirectInput on windows,
 // to support a few gamepads that aren't behaving with DInput
 	#define CIFACE_USE_SDL
 //#endif
+#endif
+#if defined(HAVE_X11) && HAVE_X11
+	#define CIFACE_USE_XLIB
+	#define CIFACE_USE_SDL
+#endif
 #if defined(__APPLE__)
 	#define CIFACE_USE_OSX
 #endif
