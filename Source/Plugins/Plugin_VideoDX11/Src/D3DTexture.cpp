@@ -66,7 +66,7 @@ D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D1
 	}
 
 	D3DTexture2D* ret = new D3DTexture2D(pTexture, bind);
-	pTexture->Release();
+	SAFE_RELEASE(pTexture);
 	return ret;
 }
 
@@ -77,7 +77,7 @@ void D3DTexture2D::AddRef()
 
 UINT D3DTexture2D::Release()
 {
-	ref--;
+	--ref;
 	if (ref == 0)
 	{
 		delete this;
@@ -106,8 +106,8 @@ D3DTexture2D::D3DTexture2D(ID3D11Texture2D* texptr, D3D11_BIND_FLAG bind,
 
 D3DTexture2D::~D3DTexture2D()
 {
-	if (srv) srv->Release();
-	if (rtv) rtv->Release();
-	if (dsv) dsv->Release();
-	tex->Release();
+	SAFE_RELEASE(srv);
+	SAFE_RELEASE(rtv);
+	SAFE_RELEASE(dsv);
+	SAFE_RELEASE(tex);
 }

@@ -19,6 +19,13 @@
 #include "VideoConfig.h"
 #include "Render.h"
 #include "XFStructs.h"
+#include "StringUtil.h"
+
+// D3DX
+HINSTANCE hD3DXDll = NULL;
+D3DXSAVESURFACETOFILEATYPE PD3DXSaveSurfaceToFileA = NULL;
+D3DXSAVETEXTURETOFILEATYPE PD3DXSaveTextureToFileA = NULL;
+D3DXCOMPILESHADERTYPE PD3DXCompileShader = NULL;
 
 namespace D3D
 {
@@ -250,6 +257,74 @@ void Enumerate()
 	}
 }
 
+// dynamically picks one of the available d3dx9 dlls and loads it.
+// we're first trying to load the dll Dolphin was compiled with, otherwise the most up-to-date one
+HRESULT LoadD3DX9()
+{
+	HRESULT hr = E_FAIL;
+	hD3DXDll = LoadLibraryA(StringFromFormat("d3dx9_%d.dll", D3DX_SDK_VERSION).c_str());
+	if (hD3DXDll != NULL)
+	{
+		NOTICE_LOG(VIDEO, "Successfully loaded %s.", StringFromFormat("d3dx9_%d.dll", D3DX_SDK_VERSION).c_str());
+		hr = S_OK;
+	}
+	else
+	{
+		// if that fails, try loading older dlls (no need to look for newer ones)
+		for (unsigned int num = D3DX_SDK_VERSION-1; num >= 24; --num)
+		{
+			hD3DXDll = LoadLibraryA(StringFromFormat("d3dx9_%d.dll", num).c_str());
+			if (hD3DXDll != NULL)
+			{
+				NOTICE_LOG(VIDEO, "Successfully loaded %s. If you're having trouble, try updating your DX runtime first.", StringFromFormat("d3dx9_%d.dll", num).c_str());
+				hr = S_OK;
+				break;
+			}
+		}
+		if (FAILED(hr))
+		{
+			MessageBoxA(NULL, "Failed to load any D3DX9 dll, update your DX9 runtime, please", "Critical error", MB_OK | MB_ICONERROR);
+			return hr;
+		}
+	}
+	PD3DXCompileShader = (D3DXCOMPILESHADERTYPE)GetProcAddress(hD3DXDll, "D3DXCompileShader");
+	if (PD3DXCompileShader == NULL)
+	{
+		MessageBoxA(NULL, "GetProcAddress failed for D3DXCompileShader!", "Critical error", MB_OK | MB_ICONERROR);
+		goto fail;
+	}
+
+	PD3DXSaveSurfaceToFileA = (D3DXSAVESURFACETOFILEATYPE)GetProcAddress(hD3DXDll, "D3DXSaveSurfaceToFileA");
+	if (PD3DXSaveSurfaceToFileA == NULL)
+	{
+		MessageBoxA(NULL, "GetProcAddress failed for D3DXSaveSurfaceToFileA!", "Critical error", MB_OK | MB_ICONERROR);
+		goto fail;
+	}
+
+	PD3DXSaveTextureToFileA = (D3DXSAVETEXTURETOFILEATYPE)GetProcAddress(hD3DXDll, "D3DXSaveTextureToFileA");
+	if (PD3DXSaveTextureToFileA == NULL)
+	{
+		MessageBoxA(NULL, "GetProcAddress failed for D3DXSaveTextureToFileA!", "Critical error", MB_OK | MB_ICONERROR);
+		goto fail;
+	}
+	return S_OK;
+
+fail:
+	FreeLibrary(hD3DXDll);
+	PD3DXCompileShader = NULL;
+	PD3DXSaveSurfaceToFileA = NULL;
+	PD3DXSaveTextureToFileA = NULL;
+	return E_FAIL;
+}
+
+void UnloadD3DX9()
+{
+	FreeLibrary(hD3DXDll);
+	PD3DXCompileShader = NULL;
+	PD3DXSaveSurfaceToFileA = NULL;
+	PD3DXSaveTextureToFileA = NULL;
+}
+
 HRESULT Create(int adapter, HWND wnd, int _resolution, int aa_mode, bool auto_depth)
 {
 	hWnd = wnd;
@@ -257,7 +332,11 @@ HRESULT Create(int adapter, HWND wnd, int _resolution, int aa_mode, bool auto_de
 	resolution = _resolution;
 	auto_depth_stencil = auto_depth;
 	cur_adapter = adapter;
-	D3DPRESENT_PARAMETERS d3dpp; 
+	D3DPRESENT_PARAMETERS d3dpp;
+
+	HRESULT hr = LoadD3DX9();
+	if (FAILED(hr)) return hr;
+
 	InitPP(adapter, resolution, aa_mode, &d3dpp);
 
 	if (FAILED(D3D->CreateDevice( 
@@ -303,6 +382,8 @@ HRESULT Create(int adapter, HWND wnd, int _resolution, int aa_mode, bool auto_de
 
 void Close()
 {
+	UnloadD3DX9();
+
 	if (back_buffer_z)
 		back_buffer_z->Release();
 	back_buffer_z = NULL;

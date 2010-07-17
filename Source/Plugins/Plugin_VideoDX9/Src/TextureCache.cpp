@@ -388,7 +388,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		sprintf(szTemp, "%s/%s_%08x_%i.png", szDir, uniqueId, texHash, tex_format);
 
 		if (!File::Exists(szTemp))
-			D3DXSaveTextureToFileA(szTemp,D3DXIFF_PNG,entry.texture,0);
+			PD3DXSaveTextureToFileA(szTemp,D3DXIFF_PNG,entry.texture,0);
 	}
 
 	INCSTAT(stats.numTexturesCreated);

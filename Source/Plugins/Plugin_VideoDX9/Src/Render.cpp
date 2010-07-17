@@ -1116,7 +1116,7 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 		{
 			PanicAlert("Error dumping surface data.");
 		}
-		hr = D3DXSaveSurfaceToFileA(s_sScreenshotName, D3DXIFF_PNG, ScreenShootMEMSurface, NULL, dst_rect.AsRECT());
+		hr = PD3DXSaveSurfaceToFileA(s_sScreenshotName, D3DXIFF_PNG, ScreenShootMEMSurface, NULL, dst_rect.AsRECT());
 		if(FAILED(hr))
 		{
 			PanicAlert("Error saving screen.");

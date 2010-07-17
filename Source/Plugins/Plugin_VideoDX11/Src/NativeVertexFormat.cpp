@@ -28,9 +28,6 @@
 #include "CPMemory.h"
 #include "NativeVertexFormat.h"
 
-#include <string>
-using std::string;
-
 class D3DVertexFormat : public NativeVertexFormat
 {
 	D3D11_INPUT_ELEMENT_DESC m_elems[32];

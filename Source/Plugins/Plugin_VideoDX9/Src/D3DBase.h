@@ -141,4 +141,19 @@ int GetNumAdapters();
 
 }  // namespace
 
+
+// Used to not require the SDK and runtime versions to match:
+// Linking with d3dx9.lib makes the most recent d3dx9_xx.dll of the
+// compiler's SDK an actually unnecessary requirement.
+// Add any d3dx9 functions which you want to use here and load them in LoadD3DX9()
+typedef HRESULT (WINAPI* D3DXSAVESURFACETOFILEATYPE)(LPCSTR, D3DXIMAGE_FILEFORMAT, LPDIRECT3DSURFACE9, CONST PALETTEENTRY*, CONST RECT*);
+typedef HRESULT (WINAPI* D3DXSAVETEXTURETOFILEATYPE)(LPCSTR, D3DXIMAGE_FILEFORMAT, LPDIRECT3DBASETEXTURE9, CONST PALETTEENTRY*);
+typedef HRESULT (WINAPI* D3DXCOMPILESHADERTYPE)(LPCSTR, UINT, CONST D3DXMACRO*, LPD3DXINCLUDE, LPCSTR, LPCSTR, DWORD, LPD3DXBUFFER*, LPD3DXBUFFER*, LPD3DXCONSTANTTABLE*);
+
+extern D3DXSAVESURFACETOFILEATYPE PD3DXSaveSurfaceToFileA;
+extern D3DXSAVETEXTURETOFILEATYPE PD3DXSaveTextureToFileA;
+extern D3DXCOMPILESHADERTYPE PD3DXCompileShader;
+
+
+
 #endif

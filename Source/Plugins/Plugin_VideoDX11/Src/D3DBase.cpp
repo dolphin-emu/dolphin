@@ -24,11 +24,6 @@
 #include "XFStructs.h"
 #include "StringUtil.h"
 
-#include <map>
-#include <string>
-#include <algorithm>
-using namespace std;
-
 HINSTANCE hD3DXDll = NULL;
 D3DX11COMPILEFROMMEMORYTYPE PD3DX11CompileFromMemory = NULL;
 D3DX11FILTERTEXTURETYPE PD3DX11FilterTexture = NULL;
@@ -167,22 +162,22 @@ HRESULT Create(HWND wnd)
 		return E_FAIL;
 	}
 	SetDebugObjectName((ID3D11DeviceChild*)context, "device context");
-	factory->Release();
-	output->Release();
-	adapter->Release();
+	SAFE_RELEASE(factory);
+	SAFE_RELEASE(output);
+	SAFE_RELEASE(adapter);
 
 	ID3D11Texture2D* buf;
 	hr = swapchain->GetBuffer(0, IID_ID3D11Texture2D, (void**)&buf);
 	if (FAILED(hr))
 	{
 		MessageBox(wnd, _T("Failed to get swapchain buffer"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
-		device->Release();
-		context->Release();
-		swapchain->Release();
+		SAFE_RELEASE(device);
+		SAFE_RELEASE(context);
+		SAFE_RELEASE(swapchain);
 		return E_FAIL;
 	}
 	backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
-	buf->Release();
+	SAFE_RELEASE(buf);
 	CHECK(backbuf!=NULL, "Create back buffer texture");
 	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
 	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
@@ -255,8 +250,10 @@ unsigned int GetMaxTextureSize()
 
 		case D3D_FEATURE_LEVEL_9_2:
 		case D3D_FEATURE_LEVEL_9_1:
-		default:
 			return 2048;
+
+		default:
+			return 0;
 	}
 }
 
@@ -278,13 +275,13 @@ void Reset()
 	if (FAILED(hr))
 	{
 		MessageBox(hWnd, _T("Failed to get swapchain buffer"), _T("Dolphin Direct3D 11 plugin"), MB_OK | MB_ICONERROR);
-		device->Release();
-		context->Release();
-		swapchain->Release();
+		SAFE_RELEASE(device);
+		SAFE_RELEASE(context);
+		SAFE_RELEASE(swapchain);
 		return;
 	}
 	backbuf = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
-	buf->Release();
+	SAFE_RELEASE(buf);
 	CHECK(backbuf!=NULL, "Create back buffer texture");
 	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetTex(), "backbuffer texture");
 	SetDebugObjectName((ID3D11DeviceChild*)backbuf->GetRTV(), "backbuffer render target view");
