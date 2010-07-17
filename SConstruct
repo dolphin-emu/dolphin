@@ -68,17 +68,18 @@ dirs = [
     'Source/Core/DebuggerUICommon/Src',
     'Source/Core/DSPCore/Src',
     'Source/DSPTool/Src',
-    'Source/Core/InputUICommon/Src/',
+    'Source/Core/InputUICommon/Src',
     'Source/Plugins/Plugin_VideoOGL/Src',
     'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',
     'Source/Plugins/Plugin_Wiimote/Src',
-    'Source/Plugins/Plugin_WiimoteNew/Src/',
+    'Source/Plugins/Plugin_WiimoteNew/Src',
     'Source/Core/DolphinWX/Src',
     'Source/Core/DebuggerWX/Src',
-    'Source/UnitTests/',
+    'Source/UnitTests',
     ]
+
 
 builders = {}
 if sys.platform == 'darwin':
@@ -254,7 +255,24 @@ env['HAVE_WX'] = 0
 
 # OS X specifics
 if sys.platform == 'darwin':
-    compileFlags.append('-mmacosx-version-min=10.5')
+    env['CCFLAGS'] += ['-arch', 'x86_64', '-arch', 'i386']
+    env['CCFLAGS'] += ['-mmacosx-version-min=10.5']
+    env['CC'] = "gcc-4.2"
+    env['CFLAGS'] += ['-x', 'objective-c']
+    env['CXX'] = "g++-4.2"
+    env['CXXFLAGS'] += ['-x', 'objective-c++']
+    env['FRAMEWORKS'] += ['AppKit', 'CoreFoundation', 'CoreServices']
+    env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
+    env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
+    env['LIBS'] += ['gcc_s.10.5', 'iconv']
+    env['LINKFLAGS'] += ['-arch', 'x86_64', '-arch', 'i386']
+    # XXX env['LINKFLAGS'] += ['-mmacosx-version-min=10.5']
+    env['LINKFLAGS'] += ['-Z', '-L/Developer/SDKs/MacOSX10.5.sdk/usr/lib',
+        '-F/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks',
+        '-F/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks']
+    if platform.mac_ver()[0] >= '10.6.0':
+        env['HAVE_OPENCL'] = 1
+        env['LINKFLAGS'] += ['-weak_framework', 'OpenCL']
     if not env['nowx']:
         conf = env.Configure(custom_tests = tests)
         env['HAVE_WX'] = conf.CheckWXConfig(2.9, wxmods, 0)
@@ -263,23 +281,17 @@ if sys.platform == 'darwin':
         # wx-config wants us to link with the OS X QuickTime framework
         # which is not available for x86_64 and we don't use it anyway.
         # Strip it out to silence some harmless linker warnings.
+        # In the 10.5 SDK, Carbon is only partially built for x86_64.
         if env['CPPDEFINES'].count('WXUSINGDLL'):
+            if env['FRAMEWORKS'].count('AudioToolbox'):
+                env['FRAMEWORKS'].remove('AudioToolbox')
+            if env['FRAMEWORKS'].count('Carbon'):
+                env['FRAMEWORKS'].remove('Carbon')
             if env['FRAMEWORKS'].count('QuickTime'):
                 env['FRAMEWORKS'].remove('QuickTime')
-    env['CC'] = "gcc-4.2"
-    env['CFLAGS'] += ['-x', 'objective-c']
-    env['CXX'] = "g++-4.2"
-    env['CXXFLAGS'] += ['-x', 'objective-c++']
-    env['CCFLAGS'] += ['-arch', 'x86_64', '-arch', 'i386']
-    env['LIBS'] += ['iconv']
-    env['LINKFLAGS'] += ['-arch', 'x86_64', '-arch', 'i386']
-    env['FRAMEWORKS'] += ['AppKit', 'CoreFoundation', 'CoreServices']
-    env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
-    env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
-    if platform.mac_ver()[0] >= '10.6.0':
-        env['HAVE_OPENCL'] = 1
-        env['LINKFLAGS'] += ['-weak_framework', 'OpenCL']
+    env['CPPPATH'] += ['#Externals']
     env['FRAMEWORKS'] += ['Cg']
+    env['LINKFLAGS'] += ['-FExternals/Cg']
     shared['zlib'] = 1
 
 if not sys.platform == 'win32' and not sys.platform == 'darwin':
@@ -314,12 +326,11 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
         # wxGLCanvas does not play well with wxGTK
         wxmods.remove('gl')
         env['HAVE_WX'] = conf.CheckWXConfig(2.8, wxmods, 0)
+        conf.Define('HAVE_WX', env['HAVE_WX'])
         wxconfig.ParseWXConfig(env)
         if not env['HAVE_WX']:
             print "WX libraries not found - see config.log"
             Exit(1)
-
-    conf.Define('HAVE_WX', env['HAVE_WX'])
 
     env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
     conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])

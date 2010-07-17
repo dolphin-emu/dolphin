@@ -40,7 +40,7 @@ if gfxenv['HAVE_WX']:
 		'Debugger/Debugger.cpp',
 		]
 
-if sys.platform == 'darwin':
+if sys.platform == 'darwin' and not gfxenv['HAVE_WX']:
 	files += [ 'cocoaGL.m' ]
 
 if sys.platform == 'win32':

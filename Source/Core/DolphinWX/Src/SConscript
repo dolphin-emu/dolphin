@@ -57,18 +57,18 @@ else:
 
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
-elif sys.platform == 'darwin':
+elif sys.platform == 'darwin' and not wxenv['HAVE_WX']:
 	files += [ 'cocoaApp.m' ]
-
-	exeGUI = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'
 	exeNoGUI = env['binary_dir'] + 'DolphinNoGUI'
+elif sys.platform == 'darwin' and wxenv['HAVE_WX']:
+	exeGUI = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'
 
 	wxenv.Install(env['binary_dir'] + 'Dolphin.app/Contents/' +
 		'Library/Frameworks/Cg.framework',
-		'/Library/Frameworks/Cg.framework/Cg')
+		'#Externals/Cg/Cg.framework/Cg')
 
 	wxenv.Install(env['binary_dir'] + 'Dolphin.app/Contents/Resources/',
-		'#/Source/Core/DolphinWX/resources/Dolphin.icns')
+		'#Source/Core/DolphinWX/resources/Dolphin.icns')
 
 	wxenv.Plist(
 		env['binary_dir'] + 'Dolphin.app/Contents/Info.plist',
