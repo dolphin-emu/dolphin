@@ -61,6 +61,9 @@ namespace D3D
 	void InitUtils();
 	void ShutdownUtils();
 
+	void SetPointCopySampler();
+	void SetLinearCopySampler();
+
 	void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 						const D3D11_RECT* rSource,
 						int SourceWidth,

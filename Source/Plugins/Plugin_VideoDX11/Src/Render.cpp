@@ -645,7 +645,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 		D3D::context->RSSetViewports(1, &vp);
 		D3D::context->PSSetConstantBuffers(0, 1, &access_efb_cbuf);
 		D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBDepthReadTexture()->GetRTV(), NULL);
-//		D3D::ChangeSamplerState(0, D3DSAMP_MINFILTER, D3DTEXF_POINT);  // TODO!
+		D3D::SetPointCopySampler();
 		D3D::drawShadedTexQuad(FBManager.GetEFBDepthTexture()->GetSRV(),
 								&RectToLock,
 								Renderer::GetFullTargetWidth(),
@@ -654,7 +654,6 @@ u32 Renderer::AccessEFB(EFBAccessType type, int x, int y)
 								VertexShaderCache::GetSimpleVertexShader(),
 								VertexShaderCache::GetSimpleInputLayout());
 
-//		D3D::RefreshSamplerState(0, D3DSAMP_MINFILTER);
 		D3D::context->OMSetRenderTargets(1, &FBManager.GetEFBColorTexture()->GetRTV(), FBManager.GetEFBDepthTexture()->GetDSV());
 		RestoreAPIState();
 		RectToLock = CD3D11_RECT(0, 0, 4, 4);
@@ -881,8 +880,9 @@ void Renderer::Swap(u32 xfbAddr, FieldType field, u32 fbWidth, u32 fbHeight,cons
 	D3D::context->RSSetViewports(1, &vp);
 	D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
 
-	// TODO: Enable linear filtering here
-	
+	// activate linear filtering for the buffer copies
+	D3D::SetLinearCopySampler();
+
 	if(g_ActiveConfig.bUseXFB)
 	{
 		const XFBSource* xfbSource;

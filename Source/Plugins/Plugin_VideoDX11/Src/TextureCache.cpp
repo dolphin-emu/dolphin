@@ -298,7 +298,7 @@ TextureCache::TCacheEntry* TextureCache::Load(unsigned int stage, u32 address, u
 		CHECK(entry.texture!=NULL, "Create texture of the TextureCache");
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)entry.texture->GetTex(), "a texture of the TextureCache");
 		D3D::SetDebugObjectName((ID3D11DeviceChild*)entry.texture->GetSRV(), "shader resource view of a texture of the TextureCache");
-		pTexture->Release();
+		SAFE_RELEASE(pTexture);
 
 		if (TexLevels != 1) D3D::ReplaceRGBATexture2D(entry.texture->GetTex(), temp, width, height, expandedWidth, 0, usage);
 	}
@@ -547,7 +547,9 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	TargetRectangle targetSource = Renderer::ConvertEFBRectangle(source_rect);
 	D3D11_RECT sourcerect = CD3D11_RECT(targetSource.left, targetSource.top, targetSource.right, targetSource.bottom);
 
-	// TODO: Use linear filtering if (bScaleByHalf), else use point filtering
+	// Use linear filtering if (bScaleByHalf), use point filtering otherwise
+	if (bScaleByHalf) D3D::SetLinearCopySampler();
+	else D3D::SetPointCopySampler();
 
 	D3D::stateman->PushBlendState(efbcopyblendstate);
 	D3D::stateman->PushRasterizerState(efbcopyraststate);

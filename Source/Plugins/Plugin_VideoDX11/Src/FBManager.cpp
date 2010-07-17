@@ -25,7 +25,6 @@
 #include "VertexShaderCache.h"
 
 FramebufferManager FBManager;
-ID3D11SamplerState* copytoVirtualXFBsampler = NULL;
 
 D3DTexture2D* &FramebufferManager::GetEFBColorTexture() { return m_efb.color_tex; }
 ID3D11Texture2D* &FramebufferManager::GetEFBColorStagingBuffer() { return m_efb.color_staging_buf; }
@@ -56,12 +55,11 @@ void FramebufferManager::Create()
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_staging_buf, "EFB color staging texture (used for Renderer::AccessEFB)");
 
 	// EFB depth buffer
-	// TODO: Only bind as shader resource if EFB access enabled
 	texdesc = CD3D11_TEXTURE2D_DESC(DXGI_FORMAT_R24G8_TYPELESS, target_width, target_height, 1, 1, D3D11_BIND_DEPTH_STENCIL|D3D11_BIND_SHADER_RESOURCE);
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
 	CHECK(hr==S_OK, "create EFB depth texture (size: %dx%d; hr=%#x)", target_width, target_height, hr);
 	m_efb.depth_tex = new D3DTexture2D(buf, (D3D11_BIND_FLAG)(D3D11_BIND_DEPTH_STENCIL|D3D11_BIND_SHADER_RESOURCE), DXGI_FORMAT_R24_UNORM_X8_TYPELESS, DXGI_FORMAT_D24_UNORM_S8_UINT);
-	buf->Release();
+	SAFE_RELEASE(buf);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_tex->GetTex(), "EFB depth texture");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_tex->GetDSV(), "EFB depth texture depth stencil view");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_tex->GetSRV(), "EFB depth texture shader resource view");
@@ -71,7 +69,7 @@ void FramebufferManager::Create()
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &buf);
 	CHECK(hr==S_OK, "create EFB depth read texture (hr=%#x)", hr);
 	m_efb.depth_read_texture = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
-	buf->Release();
+	SAFE_RELEASE(buf);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_read_texture->GetTex(), "EFB depth read texture (used in Renderer::AccessEFB)");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_read_texture->GetRTV(), "EFB depth read texture render target view (used in Renderer::AccessEFB)");
 
@@ -80,13 +78,6 @@ void FramebufferManager::Create()
 	hr = D3D::device->CreateTexture2D(&texdesc, NULL, &m_efb.depth_staging_buf);
 	CHECK(hr==S_OK, "create EFB depth staging buffer (hr=%#x)", hr);
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_staging_buf, "EFB depth staging texture (used for Renderer::AccessEFB)");
-
-	// sampler state for FramebufferManager::copyToVirtualXFB
-	float border[4] = {0.f, 0.f, 0.f, 0.f};
-	D3D11_SAMPLER_DESC samplerdesc = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, 0.f, 1, D3D11_COMPARISON_ALWAYS, border, -D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);
-	hr = D3D::device->CreateSamplerState(&samplerdesc, &copytoVirtualXFBsampler);
-	CHECK(hr==S_OK, "Create sampler state for FramebufferManager::copyToVirtualXFB");
-	D3D::SetDebugObjectName((ID3D11DeviceChild*)copytoVirtualXFBsampler, "sampler state used for FramebufferManager::copyToVirtualXFB");
 }
 
 void FramebufferManager::Destroy()
@@ -96,8 +87,6 @@ void FramebufferManager::Destroy()
 	SAFE_RELEASE(m_efb.depth_tex);
 	SAFE_RELEASE(m_efb.depth_staging_buf);
 	SAFE_RELEASE(m_efb.depth_read_texture);
-
-	SAFE_RELEASE(copytoVirtualXFBsampler);
 
 	for (VirtualXFBListType::iterator it = m_virtualXFBList.begin(); it != m_virtualXFBList.end(); ++it)
 		SAFE_RELEASE(it->xfbSource.tex);
@@ -252,7 +241,7 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 		if (m_virtualXFBList.size() >= MAX_VIRTUAL_XFB)
 		{
 			PanicAlert("Requested creating a new virtual XFB although the maximum number has already been reached! Report this to the devs");
-			newVirt.xfbSource.tex->Release();
+			SAFE_RELEASE(newVirt.xfbSource.tex);
 			return;
 			// TODO, possible alternative to failing: just delete the oldest virtual XFB:
 			// m_virtualXFBList.back().xfbSource.tex->Release();
@@ -268,8 +257,8 @@ void FramebufferManager::copyToVirtualXFB(u32 xfbAddr, u32 fbWidth, u32 fbHeight
 	D3D11_RECT sourcerect = CD3D11_RECT(efbSource.left, efbSource.top, efbSource.right, efbSource.bottom);
 	D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)target_width, (float)target_height);
 	D3D::context->RSSetViewports(1, &vp);
-	D3D::context->PSSetSamplers(0, 1, &copytoVirtualXFBsampler);
 	D3D::context->OMSetRenderTargets(1, &xfbTex->GetRTV(), NULL);
+	D3D::SetLinearCopySampler();
 	D3D::drawShadedTexQuad(GetEFBColorTexture()->GetSRV(), &sourcerect,
 							Renderer::GetFullTargetWidth(), Renderer::GetFullTargetHeight(),
 							PixelShaderCache::GetColorCopyProgram(), VertexShaderCache::GetSimpleVertexShader(),

@@ -197,7 +197,7 @@ int CD3DFont::Init()
 	context->Unmap(buftex, 0);
 	hr = D3D::device->CreateShaderResourceView(buftex, NULL, &m_pTexture);
 	if (FAILED(hr)) PanicAlert("Failed to create shader resource view at %s %d\n", __FILE__, __LINE__);
-	buftex->Release();
+	SAFE_RELEASE(buftex);
 
 	SelectObject(hDC, hOldbmBitmap);
 	DeleteObject(hbmBitmap);
@@ -225,7 +225,7 @@ int CD3DFont::Init()
 	};
 	hr = D3D::device->CreateInputLayout(desc, 3, vsbytecode->Data(), vsbytecode->Size(), &m_InputLayout);
 	if (FAILED(hr)) PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
-	vsbytecode->Release();
+	SAFE_RELEASE(vsbytecode);
 
 	D3D11_BLEND_DESC blenddesc;
 	blenddesc.AlphaToCoverageEnable = FALSE;
@@ -408,8 +408,8 @@ ID3D11Buffer* CreateQuadVertexBuffer(unsigned int size, void* data)
 	return vb;
 }
 
-ID3D11SamplerState* stqsamplerstate = NULL;
-ID3D11SamplerState* stsqsamplerstate = NULL;
+ID3D11SamplerState* linear_copy_sampler = NULL;
+ID3D11SamplerState* point_copy_sampler = NULL;
 ID3D11Buffer* stqvb = NULL;
 ID3D11Buffer* stsqvb = NULL;
 ID3D11Buffer* clearvb = NULL;
@@ -421,10 +421,15 @@ typedef struct { float x,y,z; u32 col; } ClearVertex;
 void InitUtils()
 {
 	float border[4] = { 0.f, 0.f, 0.f, 0.f };
-	D3D11_SAMPLER_DESC samDesc = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, 0.f, 16, D3D11_COMPARISON_ALWAYS, border, -D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);
-	HRESULT hr = D3D::device->CreateSamplerState(&samDesc, &stqsamplerstate);
+	D3D11_SAMPLER_DESC samDesc = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, 0.f, 1, D3D11_COMPARISON_ALWAYS, border, -D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);
+	HRESULT hr = D3D::device->CreateSamplerState(&samDesc, &point_copy_sampler);
 	if (FAILED(hr)) PanicAlert("Failed to create sampler state at %s %d\n", __FILE__, __LINE__);
-	else SetDebugObjectName((ID3D11DeviceChild*)stqsamplerstate, "sampler state of drawShadedTexQuad");
+	else SetDebugObjectName((ID3D11DeviceChild*)point_copy_sampler, "point copy sampler state");
+
+	samDesc = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_LINEAR, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, D3D11_TEXTURE_ADDRESS_BORDER, 0.f, 1, D3D11_COMPARISON_ALWAYS, border, -D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);
+	hr = D3D::device->CreateSamplerState(&samDesc, &linear_copy_sampler);
+	if (FAILED(hr)) PanicAlert("Failed to create sampler state at %s %d\n", __FILE__, __LINE__);
+	else SetDebugObjectName((ID3D11DeviceChild*)linear_copy_sampler, "linear copy sampler state");
 
 	stqvb = CreateQuadVertexBuffer(4*sizeof(STQVertex), NULL);
 	CHECK(stqvb!=NULL, "Create vertex buffer of drawShadedTexQuad");
@@ -437,20 +442,25 @@ void InitUtils()
 	clearvb = CreateQuadVertexBuffer(4*sizeof(ClearVertex), NULL);
 	CHECK(clearvb!=NULL, "Create vertex buffer of drawClearQuad");
 	SetDebugObjectName((ID3D11DeviceChild*)clearvb, "vertex buffer of drawClearQuad");
-
-	samDesc = CD3D11_SAMPLER_DESC(D3D11_FILTER_MIN_MAG_MIP_POINT, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, D3D11_TEXTURE_ADDRESS_CLAMP, 0.f, 16, D3D11_COMPARISON_ALWAYS, border, -D3D11_FLOAT32_MAX, D3D11_FLOAT32_MAX);
-	hr = D3D::device->CreateSamplerState(&samDesc, &stsqsamplerstate);
-	if (FAILED(hr)) PanicAlert("Failed to create sampler state at %s %d\n", __FILE__, __LINE__);
-	else SetDebugObjectName((ID3D11DeviceChild*)stsqsamplerstate, "sampler state of drawShadedTexSubQuad");
 }
 
 void ShutdownUtils()
 {
-	SAFE_RELEASE(stqsamplerstate);
-	SAFE_RELEASE(stsqsamplerstate);
+	SAFE_RELEASE(point_copy_sampler);
+	SAFE_RELEASE(linear_copy_sampler);
 	SAFE_RELEASE(stqvb);
 	SAFE_RELEASE(stsqvb);
 	SAFE_RELEASE(clearvb);
+}
+
+void SetPointCopySampler()
+{
+	D3D::context->PSSetSamplers(0, 1, &point_copy_sampler);
+}
+
+void SetLinearCopySampler()
+{
+	D3D::context->PSSetSamplers(0, 1, &linear_copy_sampler);
 }
 
 void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
@@ -495,7 +505,6 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 	D3D::context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	D3D::context->IASetInputLayout(layout);
 	D3D::context->IASetVertexBuffers(0, 1, &stqvb, &stride, &offset);
-	D3D::context->PSSetSamplers(0, 1, &stqsamplerstate);
 	D3D::context->PSSetShader(PShader, NULL, 0);
 	D3D::context->PSSetShaderResources(0, 1, &texture);
 	D3D::context->VSSetShader(Vshader, NULL, 0);
@@ -555,7 +564,6 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 	context->IASetVertexBuffers(0, 1, &stsqvb, &stride, &offset);
 	context->IASetInputLayout(layout);
 	context->PSSetShaderResources(0, 1, &texture);
-	context->PSSetSamplers(0, 1, &stsqsamplerstate);
 	context->PSSetShader(PShader, NULL, 0);	
 	context->VSSetShader(Vshader, NULL, 0);	
 	stateman->Apply();

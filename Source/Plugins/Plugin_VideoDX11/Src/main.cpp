@@ -256,8 +256,8 @@ void Shutdown()
 	Fifo_Shutdown();
 	VertexManager::Shutdown();
 	TextureCache::Shutdown();
-	Renderer::Shutdown();
 	D3D::ShutdownUtils();
+	Renderer::Shutdown();
 	EmuWindow::Close();
 	s_PluginInitialized = false;
 }

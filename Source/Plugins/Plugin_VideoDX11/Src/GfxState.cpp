@@ -131,7 +131,7 @@ void EmuGfxState::ApplyState()
 	// input layout (only needs to be updated if the vertex shader signature changed)
 	if (vshaderchanged)
 	{
-		if (inp_layout) inp_layout->Release();
+		SAFE_RELEASE(inp_layout);
 		hr = D3D::device->CreateInputLayout(inp_elems, num_inp_elems, vsbytecode->Data(), vsbytecode->Size(), &inp_layout);
 		if (FAILED(hr)) PanicAlert("Failed to create input layout, %s %d\n", __FILE__, __LINE__);
 		SetDebugObjectName((ID3D11DeviceChild*)inp_layout, "an input layout of EmuGfxState");
@@ -199,7 +199,7 @@ void EmuGfxState::ApplyState()
 	if (FAILED(hr)) PanicAlert("Failed to create blend state at %s %d\n", __FILE__, __LINE__);
 	stateman->PushBlendState(blstate);
 	SetDebugObjectName((ID3D11DeviceChild*)blstate, "a blend state of EmuGfxState");
-	blstate->Release();
+	SAFE_RELEASE(blstate);
 
 	rastdesc.FillMode = (g_ActiveConfig.bWireFrame) ? D3D11_FILL_WIREFRAME : D3D11_FILL_SOLID;
 	ID3D11RasterizerState* raststate;
@@ -207,14 +207,14 @@ void EmuGfxState::ApplyState()
 	if (FAILED(hr)) PanicAlert("Failed to create rasterizer state at %s %d\n", __FILE__, __LINE__);
 	SetDebugObjectName((ID3D11DeviceChild*)raststate, "a rasterizer state of EmuGfxState");
 	stateman->PushRasterizerState(raststate);
-	raststate->Release();
+	SAFE_RELEASE(raststate);
 
 	ID3D11DepthStencilState* depth_state;
 	hr = device->CreateDepthStencilState(&depthdesc, &depth_state);
 	if (SUCCEEDED(hr)) SetDebugObjectName((ID3D11DeviceChild*)depth_state, "a depth-stencil state of EmuGfxState");
 	else PanicAlert("Failed to create depth state at %s %d\n", __FILE__, __LINE__);
 	D3D::stateman->PushDepthState(depth_state);
-	depth_state->Release();
+	SAFE_RELEASE(depth_state);
 
 	context->PSSetShader(pixelshader, NULL, 0);
 	context->VSSetShader(vertexshader, NULL, 0);
@@ -316,7 +316,8 @@ template<typename T> AutoState<T>::AutoState(const AutoState<T> &source)
 
 template<typename T> AutoState<T>::~AutoState()
 {
-	((IUnknown*)state)->Release();
+	if(state) ((T*)state)->Release();
+	state = NULL;
 }
 
 StateManager::StateManager() : cur_blendstate(NULL), cur_depthstate(NULL), cur_raststate(NULL) {}
