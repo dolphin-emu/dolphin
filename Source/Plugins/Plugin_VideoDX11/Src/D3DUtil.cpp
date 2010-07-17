@@ -418,6 +418,23 @@ typedef struct { float x,y,z,u,v; } STQVertex;
 typedef struct { float x,y,z,u,v; } STSQVertex;
 typedef struct { float x,y,z; u32 col; } ClearVertex;
 
+struct
+{
+	float u1, v1, u2, v2;
+} tex_quad_data;
+
+struct
+{
+	MathUtil::Rectangle<float> rdest;
+	float u1, v1, u2, v2;
+} tex_sub_quad_data;
+
+struct
+{
+	u32 col;
+	float z;
+} clear_quad_data;
+
 void InitUtils()
 {
 	float border[4] = { 0.f, 0.f, 0.f, 0.f };
@@ -431,15 +448,37 @@ void InitUtils()
 	if (FAILED(hr)) PanicAlert("Failed to create sampler state at %s %d\n", __FILE__, __LINE__);
 	else SetDebugObjectName((ID3D11DeviceChild*)linear_copy_sampler, "linear copy sampler state");
 
-	stqvb = CreateQuadVertexBuffer(4*sizeof(STQVertex), NULL);
+	// cached data used to avoid unnecessarily reloading the vertex buffers
+	memset(&tex_quad_data, 0, sizeof(tex_quad_data));
+	memset(&tex_sub_quad_data, 0, sizeof(tex_sub_quad_data));
+	memset(&clear_quad_data, 0, sizeof(clear_quad_data));
+
+	STQVertex stqcoords[4] = {
+		{-1.0f, 1.0f, 0.0f, 0, 0},
+		{ 1.0f, 1.0f, 0.0f, 0, 0},
+		{-1.0f,-1.0f, 0.0f, 0, 0},
+		{ 1.0f,-1.0f, 0.0f, 0, 0},
+	};
+
+	STSQVertex stsqcoords[4];
+	memset(stsqcoords, 0, sizeof(stsqcoords));
+
+	ClearVertex cqcoords[4] = {
+		{-1.0f,  1.0f, 0, 0},
+		{ 1.0f,  1.0f, 0, 0},
+		{-1.0f, -1.0f, 0, 0},
+		{ 1.0f, -1.0f, 0, 0},
+	};
+
+	stqvb = CreateQuadVertexBuffer(4*sizeof(STQVertex), stqcoords);
 	CHECK(stqvb!=NULL, "Create vertex buffer of drawShadedTexQuad");
 	SetDebugObjectName((ID3D11DeviceChild*)stqvb, "vertex buffer of drawShadedTexQuad");
 
-	stsqvb = CreateQuadVertexBuffer(4*sizeof(STSQVertex), NULL);
+	stsqvb = CreateQuadVertexBuffer(4*sizeof(STSQVertex), stsqcoords);
 	CHECK(stsqvb!=NULL, "Create vertex buffer of drawShadedTexSubQuad");
 	SetDebugObjectName((ID3D11DeviceChild*)stsqvb, "vertex buffer of drawShadedTexSubQuad");
 
-	clearvb = CreateQuadVertexBuffer(4*sizeof(ClearVertex), NULL);
+	clearvb = CreateQuadVertexBuffer(4*sizeof(ClearVertex), cqcoords);
 	CHECK(clearvb!=NULL, "Create vertex buffer of drawClearQuad");
 	SetDebugObjectName((ID3D11DeviceChild*)clearvb, "vertex buffer of drawClearQuad");
 }
@@ -475,10 +514,8 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 	float sh = 1.0f /(float) SourceHeight;
 	float u1 = ((float)rSource->left) * sw;
 	float u2 = ((float)rSource->right) * sw;
-	float v1=((float)rSource->top) * sh;
-	float v2=((float)rSource->bottom) * sh;
-
-	static float lastu1 = 0.f, lastv1 = 0.f, lastu2 = 0.f, lastv2 = 0.f;
+	float v1 = ((float)rSource->top) * sh;
+	float v2 = ((float)rSource->bottom) * sh;
 
 	STQVertex coords[4] = {
 		{-1.0f, 1.0f, 0.0f,  u1, v1},
@@ -488,16 +525,17 @@ void drawShadedTexQuad(ID3D11ShaderResourceView* texture,
 	};
 
 	// only upload the data to VRAM if it changed
-	if (lastu1 != u1 || lastv1 != v1 || lastu2 != u2 || lastv2 != v2)
+	if (tex_quad_data.u1 != u1 || tex_quad_data.v1 != v1 ||
+		tex_quad_data.u2 != u2 || tex_quad_data.v2 != v2)
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
 		D3D::context->Map(stqvb, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		memcpy(map.pData, coords, sizeof(coords));
 		D3D::context->Unmap(stqvb, 0);
-		lastu1 = u1;
-		lastv1 = v1;
-		lastu2 = u2;
-		lastv2 = v2;
+		tex_quad_data.u1 = u1;
+		tex_quad_data.v1 = v1;
+		tex_quad_data.u2 = u2;
+		tex_quad_data.v2 = v2;
 	}
 	UINT stride = sizeof(STQVertex);
 	UINT offset = 0;
@@ -531,9 +569,6 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 	float v1 = (rSource->top   ) * sh;
 	float v2 = (rSource->bottom) * sh;
 
-	static MathUtil::Rectangle<float> lastrdest = {0.f};
-	static float lastu1 = 0.f, lastv1 = 0.f, lastu2 = 0.f, lastv2 = 0.f;
-
 	STSQVertex coords[4] = {
 		{ rDest->left , rDest->bottom, 0.0f, u1, v1},
 		{ rDest->right, rDest->bottom, 0.0f, u2, v1},
@@ -542,20 +577,19 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 	};
 
 	// only upload the data to VRAM if it changed
-	if (memcmp(rDest, &lastrdest, sizeof(lastrdest)) != 0 || lastu1 != u1 || lastv1 != v1 || lastu2 != u2 || lastv2 != v2)
+	if (memcmp(rDest, &tex_sub_quad_data.rdest, sizeof(rDest)) != 0 ||
+		tex_sub_quad_data.u1 != u1 || tex_sub_quad_data.v1 != v1 ||
+		tex_sub_quad_data.u2 != u2 || tex_sub_quad_data.v2 != v2)
 	{
 		D3D11_MAPPED_SUBRESOURCE map;
 		D3D::context->Map(stsqvb, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		memcpy(map.pData, coords, sizeof(coords));
 		D3D::context->Unmap(stsqvb, 0);
-		lastu1 = u1;
-		lastv1 = v1;
-		lastu2 = u2;
-		lastv2 = v2;
-		lastrdest.left = rDest->left;
-		lastrdest.right = rDest->right;
-		lastrdest.top = rDest->top;
-		lastrdest.bottom = rDest->bottom;
+		tex_sub_quad_data.u1 = u1;
+		tex_sub_quad_data.v1 = v1;
+		tex_sub_quad_data.u2 = u2;
+		tex_sub_quad_data.v2 = v2;
+		memcpy(&tex_sub_quad_data.rdest, &rDest, sizeof(rDest));
 	}
 	UINT stride = sizeof(STSQVertex);
 	UINT offset = 0;
@@ -575,10 +609,7 @@ void drawShadedTexSubQuad(ID3D11ShaderResourceView* texture,
 
 void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexShader* Vshader, ID3D11InputLayout* layout)
 {
-	static u32 lastcol = 0x15325376;
-	static float lastz = -15325.376f; // random value
-
-	if (lastcol != Color || lastz != z)
+	if (clear_quad_data.col != Color || clear_quad_data.z != z)
 	{
 		ClearVertex coords[4] = {
 			{-1.0f,  1.0f, z, Color},
@@ -591,8 +622,8 @@ void drawClearQuad(u32 Color, float z, ID3D11PixelShader* PShader, ID3D11VertexS
 		context->Map(clearvb, 0, D3D11_MAP_WRITE_DISCARD, 0, &map);
 		memcpy(map.pData, coords, sizeof(coords));
 		context->Unmap(clearvb, 0);
-		lastcol = Color;
-		lastz = z;
+		clear_quad_data.col = Color;
+		clear_quad_data.z = z;
 	}
 	context->VSSetShader(Vshader, NULL, 0);
 	context->PSSetShader(PShader, NULL, 0);
