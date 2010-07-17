@@ -18,16 +18,9 @@ files = [
     "JitWindow.cpp",
     ]
 
-wxenv = env.Clone()
-wxenv.Append(
-	CPPDEFINES = [
-		'wxNEEDS_CHARPP'
-		]
-	)
-
 libs = [
     'common',
     'debugger_ui_util'
 ]
 
-wxenv.StaticLibrary(env['local_libs'] + "debwx", files, LIBS = libs)
+env.StaticLibrary(env['local_libs'] + "debwx", files, LIBS = libs)
