@@ -39,8 +39,8 @@ libs = [
 
 gfxenv = env.Clone()
 
-if sys.platform == 'darwin':
-	files += [ 'cocoaGL.m', ]
+if sys.platform == 'darwin' and not gfxenv['HAVE_WX']:
+	files += [ 'cocoaGL.m' ]
 
 if sys.platform == 'win32':
 	files += [ 'Win32.cpp' ]

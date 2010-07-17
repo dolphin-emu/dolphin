@@ -21,6 +21,7 @@ files = [
 	'PixelShaderManager.cpp',
 	'VertexShaderGen.cpp',
 	'VertexShaderManager.cpp',
+	'VertexLoaderManager.cpp',
 	'VertexLoader.cpp',
 	'VertexLoader_Color.cpp',
 	'VertexLoader_Normal.cpp',

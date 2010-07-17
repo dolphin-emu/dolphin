@@ -16,7 +16,6 @@ files = [
 	'VertexShaderCache.cpp',
 	'TextureConverter.cpp',
 	'VertexManager.cpp',
-	'VertexLoaderManager.cpp',
 	'XFB.cpp',
 	'PostProcessing.cpp',
 	'FramebufferManager.cpp',
