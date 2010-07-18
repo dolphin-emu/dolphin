@@ -71,6 +71,8 @@ struct SConfig
 	// framelimit choose
 	int m_Framelimit;
 	bool b_UseFPS;
+	// FIFO watermark tightness
+	int m_WatermarkTightness;
 	// other interface settings
 	bool m_InterfaceToolbar;
 	bool m_InterfaceStatusbar;

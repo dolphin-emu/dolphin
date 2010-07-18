@@ -495,7 +495,7 @@ void Write16(const u16 _Value, const u32 _Address)
 	case FIFO_HI_WATERMARK_HI:
 		WriteHigh((u32 &)fifo.CPHiWatermark, _Value);
 		// Tune this when you see lots of FIFO overflown by GatherPipe
-		HiWatermark_Tighter = fifo.CPHiWatermark - 32 * 20;
+		HiWatermark_Tighter = fifo.CPHiWatermark - 32 * g_ActiveConfig.iFIFOWatermarkTightness;
 		DEBUG_LOG(COMMANDPROCESSOR,"\t write to FIFO_HI_WATERMARK_HI : %04x", _Value);
 		break;
 
@@ -616,7 +616,7 @@ void STACKALIGN GatherPipeBursted()
 	}
 
 	_assert_msg_(COMMANDPROCESSOR, fifo.CPReadWriteDistance	<= fifo.CPEnd - fifo.CPBase,
-		"FIFO is overflown by GatherPipe !\nCPU thread is too fast, lower the HiWatermark may help.");
+		"FIFO is overflown by GatherPipe !\nCPU thread is too fast, try changing the watermark tightness in the game properties.");
 
 	// check if we are in sync
 	_assert_msg_(COMMANDPROCESSOR, fifo.CPWritePointer	== *(g_VideoInitialize.Fifo_CPUWritePointer), "FIFOs linked but out of sync");

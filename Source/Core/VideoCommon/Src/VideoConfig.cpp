@@ -95,6 +95,7 @@ void VideoConfig::Load(const char *ini_file)
 	iniFile.Get("Hacks", "EFBToTextureEnable", &bCopyEFBToTexture, false);
 	iniFile.Get("Hacks", "EFBScaledCopy", &bCopyEFBScaled, true);
 	iniFile.Get("Hacks", "FIFOBPHack", &bFIFOBPhack, false);
+	iniFile.Get("Hacks", "FIFOWatermarkTightness", &iFIFOWatermarkTightness, 50);
 	iniFile.Get("Hacks", "ProjectionHack", &iPhackvalue, 0);
 
 	iniFile.Get("Hardware", "Adapter", &iAdapter, 0);
@@ -145,6 +146,8 @@ void VideoConfig::GameIniLoad(const char *ini_file)
 		iniFile.Get("Video", "UseRealXFB", &bUseRealXFB);
 	if (iniFile.Exists("Video", "FIFOBPHack"))
 		iniFile.Get("Video", "FIFOBPHack", &bFIFOBPhack);
+	if (iniFile.Exists("Video", "FIFOWatermarkTightness"))
+		iniFile.Get("Video", "FIFOWatermarkTightness", &iFIFOWatermarkTightness);
 	if (iniFile.Exists("Video", "ProjectionHack"))
 		iniFile.Get("Video", "ProjectionHack", &iPhackvalue);
 	if (iniFile.Exists("Video", "UseNativeMips"))
