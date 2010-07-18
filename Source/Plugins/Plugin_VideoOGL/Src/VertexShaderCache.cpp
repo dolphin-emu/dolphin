@@ -44,7 +44,7 @@ bool VertexShaderCache::ShaderEnabled;
 
 static VERTEXSHADER *pShaderLast = NULL;
 static int s_nMaxVertexInstructions;
-static float GC_ALIGNED16(lastVSconstants[C_FOGPARAMS+8][4]);
+static float GC_ALIGNED16(lastVSconstants[C_VENVCONST_END][4]);
 
 void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
@@ -105,7 +105,7 @@ void VertexShaderCache::Init()
 	glEnable(GL_VERTEX_PROGRAM_ARB);
 	ShaderEnabled = true;
 	CurrentShader = 0;
-	for (int i = 0; i < (C_FOGPARAMS + 8) * 4; i++)
+	for (int i = 0; i < (C_VENVCONST_END * 4); i++)
 		lastVSconstants[i / 4][i % 4] = -100000000.0f;
 	memset(&last_vertex_shader_uid, 0xFF, sizeof(last_vertex_shader_uid));
 

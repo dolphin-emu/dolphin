@@ -243,7 +243,6 @@ void Flush()
 		}
 	}
 
-	u32 nonpow2tex = 0;
 	for (int i = 0; i < 8; i++)
 	{
 		if (usedtextures & (1 << i)) {

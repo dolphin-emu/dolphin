@@ -112,7 +112,6 @@ class GFXConfigDialogDX : public wxDialog
 		wxCheckBox *m_OverlayFPS;
 		wxCheckBox *m_CopyEFB;
 		wxRadioButton *m_Radio_CopyEFBToRAM;
-		wxCheckBox *m_VerifyTextureModification;
 		wxRadioButton *m_Radio_CopyEFBToGL;
 		wxCheckBox *m_EnableHotkeys;
 		wxCheckBox *m_WireFrame;
@@ -150,7 +149,6 @@ class GFXConfigDialogDX : public wxDialog
 			ID_OVERLAYFPS,
 			ID_ENABLEEFBCOPY,
 			ID_EFBTORAM,
-			ID_VERIFYTEXTUREMODIFICATIONS,
 			ID_EFBTOTEX,
 			ID_ENABLEHOTKEY,
 			ID_WIREFRAME,

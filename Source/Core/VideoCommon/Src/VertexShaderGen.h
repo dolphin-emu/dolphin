@@ -35,7 +35,7 @@
 #define I_TRANSFORMMATRICES     "ctrmtx"
 #define I_NORMALMATRICES        "cnmtx"
 #define I_POSTTRANSFORMMATRICES "cpostmtx"
-#define I_FOGPARAMS             "cfog"
+#define I_DEPTHPARAMS           "cDepth"
 
 #define C_POSNORMALMATRIX        0
 #define C_PROJECTION            (C_POSNORMALMATRIX + 6)
@@ -45,8 +45,8 @@
 #define C_TRANSFORMMATRICES     (C_TEXMATRICES + 24)
 #define C_NORMALMATRICES        (C_TRANSFORMMATRICES + 64)
 #define C_POSTTRANSFORMMATRICES (C_NORMALMATRICES + 32)
-#define C_FOGPARAMS             (C_POSTTRANSFORMMATRICES + 64)
-
+#define C_DEPTHPARAMS           (C_POSTTRANSFORMMATRICES + 64)
+#define C_VENVCONST_END			(C_DEPTHPARAMS + 4)
 
 class VERTEXSHADERUID
 {

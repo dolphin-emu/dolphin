@@ -285,7 +285,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     u32 texID = address;
 	u64 texHash = 0;
 	u32 FullFormat = tex_format;
-	bool TextureIsDinamic = false;
+	bool TextureisDynamic = false;
 	if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
 		FullFormat = (tex_format | (tlutfmt << 16));
 	if (g_ActiveConfig.bSafeTextureCache || g_ActiveConfig.bHiresTextures || g_ActiveConfig.bDumpTextures)
@@ -320,9 +320,9 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
 		if (!g_ActiveConfig.bSafeTextureCache)
 		{
-			if(entry.isRenderTarget || entry.isDinamic)
+			if(entry.isRenderTarget || entry.isDynamic)
 			{
-				if(!g_ActiveConfig.bCopyEFBToTexture && g_ActiveConfig.bVerifyTextureModificationsByCPU)
+				if(!g_ActiveConfig.bCopyEFBToTexture)
 				{
 					hash_value =  TexDecoder_GetHash64(ptr,TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
 					if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
@@ -342,16 +342,16 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 		}
 		else
 		{
-			if(entry.isRenderTarget || entry.isDinamic)
+			if(entry.isRenderTarget || entry.isDynamic)
 			{
-				if(g_ActiveConfig.bCopyEFBToTexture || !g_ActiveConfig.bVerifyTextureModificationsByCPU)
+				if(g_ActiveConfig.bCopyEFBToTexture)
 				{
 					hash_value = 0;
 				}
 			}
 		}
 
-        if (((entry.isRenderTarget || entry.isDinamic) && hash_value == entry.hash && address == entry.addr) 
+        if (((entry.isRenderTarget || entry.isDynamic) && hash_value == entry.hash && address == entry.addr) 
 			|| ((address == entry.addr) && (hash_value == entry.hash) && ((int) FullFormat == entry.fmt) && entry.MipLevels >= maxlevel))
 		{
             entry.frameCount = frameCount;
@@ -359,7 +359,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
 			GL_REPORT_ERRORD();
             entry.SetTextureParameters(tm0,tm1);
-			entry.isDinamic = false;
+			entry.isDynamic = false;
 			return &entry;
         }
         else
@@ -367,11 +367,11 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
             // Let's reload the new texture data into the same texture,
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
-			TextureIsDinamic = (entry.isRenderTarget || entry.isDinamic) && !g_ActiveConfig.bCopyEFBToTexture;
-			if (!entry.isRenderTarget && ((!entry.isDinamic &&
+			TextureisDynamic = (entry.isRenderTarget || entry.isDynamic) && !g_ActiveConfig.bCopyEFBToTexture;
+			if (!entry.isRenderTarget && ((!entry.isDynamic &&
 					width == entry.w && height == entry.h &&
 					(int)FullFormat == entry.fmt) ||
-					(entry.isDinamic &&
+					(entry.isDynamic &&
 					entry.w == width && entry.h == height)))
 			{
 				glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
@@ -389,7 +389,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
     //Make an entry in the table
 	TCacheEntry& entry = textures[texID];
-	entry.isDinamic = TextureIsDinamic;
+	entry.isDynamic = TextureisDynamic;
 	PC_TexFormat dfmt = PC_TEX_FMT_NONE;
 
 	if (g_ActiveConfig.bHiresTextures)
@@ -416,7 +416,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 
     entry.oldpixel = ((u32 *)ptr)[0];
 
-	if (g_ActiveConfig.bSafeTextureCache || entry.isDinamic)
+	if (g_ActiveConfig.bSafeTextureCache || entry.isDynamic)
 		entry.hash = hash_value;
 	else
 	{
@@ -574,6 +574,8 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     entry.frameCount = frameCount;
     entry.w = width;
     entry.h = height;
+	entry.Scaledw = width;
+	entry.Scaledh = height;
     entry.fmt = FullFormat;
     entry.SetTextureParameters(tm0,tm1);
     if (g_ActiveConfig.bDumpTextures) // dump texture to file
@@ -731,6 +733,12 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	int w = (abs(source_rect.GetWidth()) >> bScaleByHalf);
 	int h = (abs(source_rect.GetHeight()) >> bScaleByHalf);
 
+	float xScale = Renderer::GetTargetScaleX();
+	float yScale = Renderer::GetTargetScaleY();
+	
+	int Scaledtex_w = (g_ActiveConfig.bCopyEFBScaled)?((int)(xScale * w)) : w;
+	int Scaledtex_h = (g_ActiveConfig.bCopyEFBScaled)?((int)(yScale * h)) : h;
+
 	GLenum gl_format = GL_RGBA;
 	GLenum gl_iformat = 4;
 	GLenum gl_type = GL_UNSIGNED_BYTE;
@@ -743,16 +751,17 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 		glGenTextures(1, (GLuint *)&entry.texture);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
 		GL_REPORT_ERRORD();
-		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, gl_iformat, w, h, 0, gl_format, gl_type, NULL);
+		glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, gl_iformat, Scaledtex_w, Scaledtex_h, 0, gl_format, gl_type, NULL);
 		GL_REPORT_ERRORD();
 		entry.isRenderTarget = true;
-		entry.isDinamic = false;
+		entry.isDynamic = false;
 	}
 	else 
 	{
 		_assert_(entry.texture);
 		GL_REPORT_ERRORD();
-		if (entry.w == w && entry.h == h && entry.isRectangle) 
+		if (((!entry.isDynamic && entry.Scaledw == Scaledtex_w && entry.Scaledh == Scaledtex_h) 
+			|| (entry.isDynamic && entry.w == w && entry.h == h)) && entry.isRectangle) 
 		{
 			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
 			// for some reason mario sunshine errors here...
@@ -760,13 +769,18 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 			GL_REPORT_ERRORD();
 		} else {
 			// Delete existing texture.
+			if(entry.isDynamic)
+			{
+				Scaledtex_h = h;
+				Scaledtex_w = w;
+			}
+
 			glDeleteTextures(1,(GLuint *)&entry.texture);
 			glGenTextures(1, (GLuint *)&entry.texture);
 			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
-			glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, gl_iformat, w, h, 0, gl_format, gl_type, NULL);
+			glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, gl_iformat, Scaledtex_w, Scaledtex_h, 0, gl_format, gl_type, NULL);
 			GL_REPORT_ERRORD();
-			entry.isRenderTarget = true;
-			entry.isDinamic = false;
+			entry.isRenderTarget = !entry.isDynamic;
 		}
 	}
 
@@ -786,7 +800,11 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
 	entry.w = w;
 	entry.h = h;
+	entry.Scaledw = Scaledtex_w;
+	entry.Scaledh = Scaledtex_h;
 	entry.isRectangle = true;
+	entry.scaleX = g_ActiveConfig.bCopyEFBScaled ? xScale : 1.0f;
+	entry.scaleY = g_ActiveConfig.bCopyEFBScaled ? yScale : 1.0f;
 	entry.fmt = copyfmt;	
 
 	// Make sure to resolve anything we need to read from.
@@ -796,7 +814,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 
     // We have to run a pixel shader, for color conversion.
     Renderer::ResetAPIState(); // reset any game specific settings
-	if(!entry.isDinamic || g_ActiveConfig.bCopyEFBToTexture)
+	if(!entry.isDynamic || g_ActiveConfig.bCopyEFBToTexture)
 	{
 		if (s_TempFramebuffer == 0)
 			glGenFramebuffersEXT(1, (GLuint *)&s_TempFramebuffer);
@@ -812,7 +830,7 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 		glEnable(GL_TEXTURE_RECTANGLE_ARB);
 		glBindTexture(GL_TEXTURE_RECTANGLE_ARB, read_texture);
 	   
-		glViewport(0, 0, w, h);
+		glViewport(0, 0, Scaledtex_w, Scaledtex_h);
 
 		PixelShaderCache::SetCurrentShader(bFromZBuffer ? PixelShaderCache::GetDepthMatrixProgram() : PixelShaderCache::GetColorMatrixProgram());    
 		PixelShaderManager::SetColorMatrix(colmat, fConstAdd); // set transformation

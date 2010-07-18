@@ -276,7 +276,7 @@ void VertexShaderManager::SetConstants()
 	if (bViewportChanged)
 	{
 		bViewportChanged = false;
-
+		SetVSConstant4f(C_DEPTHPARAMS,xfregs.rawViewport[5]/ 16777216.0f,xfregs.rawViewport[2]/ 16777216.0f,0.0f,0.0f);
 		// This is so implementation-dependent that we can't have it here.
 		UpdateViewport();
 	}
@@ -521,14 +521,6 @@ void VertexShaderManager::SetViewport(float* _Viewport, int constantIndex)
 	{
 		xfregs.rawViewport[constantIndex] = _Viewport[0];
 	}
-	/*//Tino: i think this is not needed so leave this commented till confirmed
-	// Workaround for paper mario, yep this is bizarre.
-	for (size_t i = 0; i < ARRAYSIZE(xfregs.rawViewport); ++i)
-	{
-		if (*(u32*)(_Viewport + i) == 0x7f800000)  // invalid fp number
-			return;
-	}
-	memcpy(xfregs.rawViewport, _Viewport, sizeof(xfregs.rawViewport));*/
 	bViewportChanged = true;
 }
 

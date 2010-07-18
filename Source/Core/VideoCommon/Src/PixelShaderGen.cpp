@@ -342,6 +342,7 @@ static const char *swapColors = "rgba";
 static char swapModeTable[4][5];
 
 static char text[16384];
+static bool DepthTextureEnable;
 
 struct RegisterState
 {
@@ -388,7 +389,7 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, API_T
 				nIndirectStagesUsed |= 1 << bpmem.tevind[i].bt;
 		}
 	}
-
+	DepthTextureEnable = bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable;
 	// Declare samplers
 	if (texture_mask && ApiType == API_OPENGL)
 	{
@@ -454,10 +455,10 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, API_T
 
 	WRITE(p, "void main(\n");
 	if(ApiType != API_D3D11)
-		WRITE(p, "  out float4 ocol0 : COLOR0,\n  out float depth : DEPTH,\n  in float4 rawpos : POSITION,\n");
+		WRITE(p, "  out float4 ocol0 : COLOR0,%s\n  in float4 rawpos : POSITION,\n",DepthTextureEnable ? "\n  out float depth : DEPTH," : "");
 	else
-		WRITE(p, "  out float4 ocol0 : SV_Target,\n  out float depth : SV_Depth,\n  in float4 rawpos : SV_Position,\n");
-
+		WRITE(p, "  out float4 ocol0 : SV_Target,%s\n  in float4 rawpos : SV_Position,\n",DepthTextureEnable ? "\n  out float depth : SV_Depth," : "");
+	
 	WRITE(p, "  in float4 colors_0 : COLOR0,\n");
 	WRITE(p, "  in float4 colors_1 : COLOR1");
 
@@ -477,7 +478,8 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, API_T
 	}
 	WRITE(p, "        ) {\n");
 
-	char* pmainstart = p;
+	char* pmainstart = p;	
+	
 
 	WRITE(p, "  float4 c0 = "I_COLORS"[1], c1 = "I_COLORS"[2], c2 = "I_COLORS"[3], prev = float4(0.0f, 0.0f, 0.0f, 0.0f), textemp = float4(0.0f, 0.0f, 0.0f, 0.0f), rastemp = float4(0.0f, 0.0f, 0.0f, 0.0f), konsttemp = float4(0.0f, 0.0f, 0.0f, 0.0f);\n"
 			"  float3 comp16 = float3(1.0f, 255.0f, 0.0f), comp24 = float3(1.0f, 255.0f, 255.0f*255.0f);\n"
@@ -561,20 +563,23 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, API_T
 		// alpha test will always fail, so restart the shader and just make it an empty function
 		p = pmainstart;
 		WRITE(p, "ocol0 = 0;\n");
-		WRITE(p, "depth = 1.f;\n");
+		if(DepthTextureEnable)
+			WRITE(p, "depth = 1.f;\n");
 		WRITE(p, "discard;\n");
 		if(ApiType != API_D3D11)
 			WRITE(p, "return;\n");
 	}
 	else
 	{
-		if (numTexgen >= 7)
-			WRITE(p, "float4 clipPos = float4(uv0.w, uv1.w, uv2.w, uv3.w);\n");
+		if((bpmem.fog.c_proj_fsel.fsel != 0) || DepthTextureEnable)
+		{
+			if (numTexgen >= 7)
+				WRITE(p, "float4 clipPos = float4(uv0.w, uv1.w, uv2.w, uv3.w);\n");
+			// the screen space depth value = far z + (clip z / clip w) * z range
+			WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
+		}
 
-		// the screen space depth value = far z + (clip z / clip w) * z range
-		WRITE(p, "float zCoord = "I_ZBIAS"[1].x + (clipPos.z / clipPos.w) * "I_ZBIAS"[1].y;\n");
-
-		if (bpmem.ztex2.op != ZTEXTURE_DISABLE && !bpmem.zcontrol.zcomploc && bpmem.zmode.testenable && bpmem.zmode.updateenable)
+		if (DepthTextureEnable)
 		{
 			// use the texture input of the last texture stage (textemp), hopefully this has been read and is in correct format...
 			if (bpmem.ztex2.op == ZTEXTURE_ADD)
@@ -586,8 +591,8 @@ const char *GeneratePixelShaderCode(u32 texture_mask, bool dstAlphaEnable, API_T
 			WRITE(p, "zCoord = zCoord * (16777215.0f/16777216.0f);\n");
 			WRITE(p, "zCoord = frac(zCoord);\n");
 			WRITE(p, "zCoord = zCoord * (16777216.0f/16777215.0f);\n");
+			WRITE(p, "depth = zCoord;\n");
 		}
-		WRITE(p, "depth = zCoord;\n");
 
 		if (dstAlphaEnable)
 			WRITE(p, "  ocol0 = float4(prev.rgb, "I_ALPHA"[0].a);\n");
@@ -954,7 +959,7 @@ static void WriteStage(char *&p, int n, u32 texture_mask, API_TYPE ApiType)
 
 void SampleTexture(char *&p, const char *destination, const char *texcoords, const char *texswap, int texmap, u32 texture_mask, API_TYPE ApiType)
 {
-	if (texture_mask & (1<<texmap)) {
+	if (texture_mask & (1<<texmap)) {// opengl only
 		// non pow 2
 		bool bwraps = (texture_mask & (0x100<<texmap)) ? true : false;
 		bool bwrapt = (texture_mask & (0x10000<<texmap)) ? true : false;
@@ -973,21 +978,11 @@ void SampleTexture(char *&p, const char *destination, const char *texcoords, con
 			else {
 				WRITE(p, "tempcoord.y = %s.y;\n", texcoords);
 			}
-			 if (ApiType == API_D3D11)
-				WRITE(p, "%s= Tex%d.Sample(samp%d,tempcoord.xy).%s;\n", destination, texmap,texmap, texswap);
-			 else if (ApiType == API_D3D9)
-				 WRITE(p, "%s=tex2D(samp%d,tempcoord.xy).%s;\n", destination, texmap, texswap);
-			 else
-				 WRITE(p, "%s=texRECT(samp%d,tempcoord.xy).%s;\n", destination, texmap, texswap);
+			WRITE(p, "%s=texRECT(samp%d,tempcoord.xy).%s;\n", destination, texmap, texswap);
 		}
 		else
 		{
-			 if (ApiType == API_D3D11)
-				 WRITE(p, "%s=Tex%d.Sample(samp%d,%s.xy).%s;\n", destination,texmap,texmap, texcoords, texswap);
-			 else if (ApiType == API_D3D9)
-				 WRITE(p, "%s=tex2D(samp%d,%s.xy).%s;\n", destination, texmap, texcoords, texswap);
-			 else
-				 WRITE(p, "%s=texRECT(samp%d,%s.xy).%s;\n", destination, texmap, texcoords, texswap);
+			 WRITE(p, "%s=texRECT(samp%d,%s.xy).%s;\n", destination, texmap, texcoords, texswap);
 		}
 	}
 	else
@@ -1061,9 +1056,7 @@ static bool WriteAlphaTest(char *&p, API_TYPE ApiType)
 	
 	compindex = bpmem.alphaFunc.comp1 % 8;
 	WRITE(p, tevAlphaFuncsTable[compindex],alphaRef[1]);//lookup the second component from the alpha function table
-
-	WRITE(p, ")){ocol0 = 0;depth = 1.f;discard;%s}\n",(ApiType != API_D3D11)? "return;" : "");
-	
+	WRITE(p, ")){ocol0 = 0;%sdiscard;%s}\n",DepthTextureEnable ? "depth = 1.f;" : "",(ApiType != API_D3D11)? "return;" : "");
 	return true;
 }
 
@@ -1087,13 +1080,13 @@ static void WriteFog(char *&p)
 	{
 		// perspective
 		// ze = A/(B - Zs)
-		WRITE (p, "  float ze = "I_FOG"[1].x / ("I_FOG"[1].y - depth);\n");
+		WRITE (p, "  float ze = "I_FOG"[1].x / ("I_FOG"[1].y - zCoord);\n");
 	}
 	else
 	{
 		// orthographic
 		// ze = a*Zs
-		WRITE (p, "  float ze = "I_FOG"[1].x * depth;\n");
+		WRITE (p, "  float ze = "I_FOG"[1].x * zCoord;\n");
 	}
 
 	WRITE (p, "  float fog = saturate(ze - "I_FOG"[1].z);\n");

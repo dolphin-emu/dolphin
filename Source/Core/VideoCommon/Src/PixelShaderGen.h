@@ -37,9 +37,8 @@
 #define C_INDTEXSCALE  (C_ZBIAS + 2)
 #define C_INDTEXMTX    (C_INDTEXSCALE + 2)
 #define C_FOG          (C_INDTEXMTX + 6)
-#define C_ENVCONST_END (C_FOG + 2)
-
 #define C_COLORMATRIX  (C_FOG + 2)
+#define C_PENVCONST_END (C_COLORMATRIX + 16)
 #define PIXELSHADERUID_MAX_VALUES (5 + 32 + 6 + 11)
 
 // DO NOT make anything in this class virtual.

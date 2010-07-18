@@ -266,7 +266,7 @@ void PixelShaderCache::Clear()
 		iter->second.Destroy();
 	PixelShaders.clear(); 
 
-	for (int i = 0; i < (C_COLORMATRIX + 16) * 4; i++)
+	for (int i = 0; i < C_PENVCONST_END * 4; i++)
 		lastPSconstants[i / 4][i % 4] = -100000000.0f;
 	memset(&last_pixel_shader_uid, 0xFF, sizeof(last_pixel_shader_uid));
 }

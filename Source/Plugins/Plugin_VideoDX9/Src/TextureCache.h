@@ -45,7 +45,7 @@ public:
 		float scaleX, scaleY; // Hires texutres need this
 
 		bool isRenderTarget;
-		bool isDinamic;// mofified from cpu
+		bool isDynamic;// mofified from cpu
 		bool isNonPow2;
 
 		TCacheEntry()

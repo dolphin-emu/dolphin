@@ -135,7 +135,7 @@ void TextureCache::Cleanup()
 		if (frameCount > TEXTURE_KILL_THRESHOLD + iter->second.frameCount)
 		{
 			iter->second.Destroy(false);
-			iter = textures.erase(iter);			
+			textures.erase(iter++);			
 		}
 		else
 		{
@@ -160,7 +160,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	u32 texID = address;
 	u64 texHash;
 	u32 FullFormat = tex_format;
-	bool TextureIsDinamic = false;
+	bool TextureisDynamic = false;
 	if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
 		u32 FullFormat = (tex_format | (tlutfmt << 16));
 
@@ -196,9 +196,9 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 		if (!g_ActiveConfig.bSafeTextureCache)
 		{
-			if(entry.isRenderTarget || entry.isDinamic)
+			if(entry.isRenderTarget || entry.isDynamic)
 			{
-				if(!g_ActiveConfig.bCopyEFBToTexture && g_ActiveConfig.bVerifyTextureModificationsByCPU)
+				if(!g_ActiveConfig.bCopyEFBToTexture)
 				{
 					hash_value =  TexDecoder_GetHash64(ptr,TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format),g_ActiveConfig.iSafeTextureCache_ColorSamples);
 					if ((tex_format == GX_TF_C4) || (tex_format == GX_TF_C8) || (tex_format == GX_TF_C14X2))
@@ -218,19 +218,19 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 		}
 		else
 		{
-			if(entry.isRenderTarget || entry.isDinamic)
+			if(entry.isRenderTarget || entry.isDynamic)
 			{
-				if(g_ActiveConfig.bCopyEFBToTexture || !g_ActiveConfig.bVerifyTextureModificationsByCPU)
+				if(g_ActiveConfig.bCopyEFBToTexture)
 				{
 					hash_value = 0;
 				}
 			}
 		}
-		if (((entry.isRenderTarget || entry.isDinamic) && hash_value == entry.hash && address == entry.addr) 
+		if (((entry.isRenderTarget || entry.isDynamic) && hash_value == entry.hash && address == entry.addr) 
 			|| ((address == entry.addr) && (hash_value == entry.hash) && FullFormat == entry.fmt/* && entry.MipLevels == maxlevel*/))
 		{
 			entry.frameCount = frameCount;
-			entry.isDinamic = false;
+			entry.isDynamic = false;
 			D3D::SetTexture(stage, entry.texture);
 			return &entry;
 		}
@@ -239,11 +239,11 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 			// Let's reload the new texture data into the same texture,
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
-			TextureIsDinamic = (entry.isRenderTarget || entry.isDinamic) && !g_ActiveConfig.bCopyEFBToTexture;
+			TextureisDynamic = (entry.isRenderTarget || entry.isDynamic) && !g_ActiveConfig.bCopyEFBToTexture;
 			
 			if (!entry.isRenderTarget &&
-				((!entry.isDinamic && width == entry.w && height==entry.h && FullFormat == entry.fmt /* && entry.MipLevels < maxlevel*/) 
-				|| (entry.isDinamic && entry.w == width && entry.h == height)))
+				((!entry.isDynamic && width == entry.w && height==entry.h && FullFormat == entry.fmt /* && entry.MipLevels < maxlevel*/) 
+				|| (entry.isDynamic && entry.w == width && entry.h == height)))
 			{
 				skip_texture_create = true;
 			}
@@ -257,7 +257,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 	// Make an entry in the table
 	TCacheEntry& entry = textures[texID];
-	entry.isDinamic = TextureIsDinamic;
+	entry.isDynamic = TextureisDynamic;
 	PC_TexFormat pcfmt = PC_TEX_FMT_NONE;
 
 	if (g_ActiveConfig.bHiresTextures)
@@ -313,7 +313,7 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 	}
 
 	entry.oldpixel = ((u32 *)ptr)[0];
-	if (g_ActiveConfig.bSafeTextureCache || entry.isDinamic)
+	if (g_ActiveConfig.bSafeTextureCache || entry.isDynamic)
 		entry.hash = hash_value;
 	else
 	{
@@ -403,9 +403,6 @@ TextureCache::TCacheEntry *TextureCache::Load(int stage, u32 address, int width,
 
 void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool bIsIntensityFmt, u32 copyfmt, int bScaleByHalf, const EFBRectangle &source_rect)
 {
-	int efb_w = source_rect.GetWidth();
-	int efb_h = source_rect.GetHeight();
-
 	int tex_w = (abs(source_rect.GetWidth()) >> bScaleByHalf);
 	int tex_h = (abs(source_rect.GetHeight()) >> bScaleByHalf);
 	//compensate the texture grow if supersampling is enabled to conserve memory usage
@@ -420,14 +417,14 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	TexCache::iterator iter;	
 	LPDIRECT3DTEXTURE9 tex = NULL;
 	iter = textures.find(address);
-	bool TextureIsDinamic = false;
+	bool TextureisDynamic = false;
 	if (iter != textures.end())
 	{
 		if ((iter->second.isRenderTarget && iter->second.Scaledw == Scaledtex_w && iter->second.Scaledh == Scaledtex_h) 
-			|| (iter->second.isDinamic && iter->second.w == tex_w && iter->second.h == tex_h))
+			|| (iter->second.isDynamic && iter->second.w == tex_w && iter->second.h == tex_h))
 		{
 			tex = iter->second.texture;
-			TextureIsDinamic = iter->second.isDinamic;
+			TextureisDynamic = iter->second.isDynamic;
 			iter->second.frameCount = frameCount;
 		}
 		else
@@ -439,7 +436,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 			textures.erase(iter);
 		}
 	}
-	if(TextureIsDinamic)
+	if(TextureisDynamic)
 	{
 		Scaledtex_w = tex_w;
 		Scaledtex_h = tex_h;
@@ -457,7 +454,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 		entry.Scaledh = Scaledtex_h;
 		entry.fmt = copyfmt;
 		entry.isNonPow2 = true;
-		entry.isDinamic = false;
+		entry.isDynamic = false;
 		D3D::dev->CreateTexture(Scaledtex_w, Scaledtex_h, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &entry.texture, 0);
 		textures[address] = entry;
 		tex = entry.texture;
@@ -468,7 +465,7 @@ void TextureCache::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, boo
 	
 	// We have to run a pixel shader, for color conversion.
 	Renderer::ResetAPIState(); // reset any game specific settings
-	if(!TextureIsDinamic || g_ActiveConfig.bCopyEFBToTexture)
+	if(!TextureisDynamic || g_ActiveConfig.bCopyEFBToTexture)
 	{
 	
 		float colmat[16]= {0.0f};

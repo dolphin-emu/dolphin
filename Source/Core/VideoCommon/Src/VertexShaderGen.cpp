@@ -135,6 +135,7 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 	WRITE(p, "uniform s_"I_LIGHTS" "I_LIGHTS" : register(c%d);\n", C_LIGHTS);
 	WRITE(p, "uniform s_"I_MATERIALS" "I_MATERIALS" : register(c%d);\n", C_MATERIALS);
 	WRITE(p, "uniform s_"I_PROJECTION" "I_PROJECTION" : register(c%d);\n", C_PROJECTION);
+	WRITE(p, "uniform float4 "I_DEPTHPARAMS" : register(c%d);\n", C_DEPTHPARAMS);
 
 	WRITE(p, "VS_OUTPUT main(\n");
 	
@@ -462,14 +463,11 @@ const char *GenerateVertexShaderCode(u32 components, API_TYPE api_type)
 		WRITE(p, "o.tex3.w = o.pos.w;\n");
 	}
 
+	//write the true depth value, if the game uses depth textures pixel shaders will override with the correct values
+	//if not early z culling will improve speed
 	if (is_d3d)
 	{
-		WRITE(p, "o.pos.z = o.pos.z + o.pos.w;\n");
-	}
-	else
-	{
-		// scale to gl clip space - which is -o.pos.w to o.pos.w, hence the addition.
-		WRITE(p, "o.pos.z = (o.pos.z * 2.0f) + o.pos.w;\n");
+		WRITE(p, "o.pos.z = "I_DEPTHPARAMS".x * o.pos.w + o.pos.z * "I_DEPTHPARAMS".y;\n");
 	}
 
 	WRITE(p, "return o;\n}\n");

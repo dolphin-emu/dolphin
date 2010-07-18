@@ -48,7 +48,7 @@ ID3D11InputLayout* VertexShaderCache::GetSimpleInputLayout() { return SimpleLayo
 ID3D11InputLayout* VertexShaderCache::GetClearInputLayout() { return ClearLayout; }
 
 // maps the constant numbers to float indices in the constant buffer
-unsigned int vs_constant_offset_table[238];
+unsigned int vs_constant_offset_table[C_VENVCONST_END];
 void SetVSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
 {
 	D3D::gfxstate->vsconstants[vs_constant_offset_table[const_number]  ] = f1;
@@ -164,14 +164,16 @@ void VertexShaderCache::Init()
 	// these values are hardcoded, they depend on internal D3DCompile behavior
 	// TODO: Do this with D3DReflect or something instead
 	unsigned int k;
-	for (k = 0;k < 64;k++) vs_constant_offset_table[C_TRANSFORMMATRICES+k]     = 312+4*k;
-	for (k = 0;k < 24;k++) vs_constant_offset_table[C_TEXMATRICES+k]           = 216+4*k;
-	for (k = 0;k < 32;k++) vs_constant_offset_table[C_NORMALMATRICES+k]        = 568+4*k;
 	for (k = 0;k <  6;k++) vs_constant_offset_table[C_POSNORMALMATRIX+k]       =   0+4*k;
-	for (k = 0;k < 64;k++) vs_constant_offset_table[C_POSTTRANSFORMMATRICES+k] = 696+4*k;
-	for (k = 0;k < 40;k++) vs_constant_offset_table[C_LIGHTS+k]                =  56+4*k;
-	for (k = 0;k <  4;k++) vs_constant_offset_table[C_MATERIALS+k]             =  40+4*k;
 	for (k = 0;k <  4;k++) vs_constant_offset_table[C_PROJECTION+k]            =  24+4*k;
+	for (k = 0;k <  4;k++) vs_constant_offset_table[C_MATERIALS+k]             =  40+4*k;
+	for (k = 0;k < 40;k++) vs_constant_offset_table[C_LIGHTS+k]                =  56+4*k;
+	for (k = 0;k < 24;k++) vs_constant_offset_table[C_TEXMATRICES+k]           = 216+4*k;
+	for (k = 0;k < 64;k++) vs_constant_offset_table[C_TRANSFORMMATRICES+k]     = 312+4*k;	
+	for (k = 0;k < 32;k++) vs_constant_offset_table[C_NORMALMATRICES+k]        = 568+4*k;	
+	for (k = 0;k < 64;k++) vs_constant_offset_table[C_POSTTRANSFORMMATRICES+k] = 696+4*k;
+	for (k = 0;k <  4;k++) vs_constant_offset_table[C_DEPTHPARAMS+k]		   = 952+4*k;	
+	
 
 	if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
 		File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));

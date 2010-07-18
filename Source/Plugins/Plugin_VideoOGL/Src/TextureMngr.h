@@ -30,8 +30,8 @@ public:
     struct TCacheEntry
     {
 	TCacheEntry() : texture(0), addr(0), size_in_bytes(0), hash(0),
-		w(0), h(0), MipLevels(0), scaleX(1.0f), scaleY(1.0f),
-		isRenderTarget(false), isDinamic(false), isRectangle(true),
+		w(0), h(0), MipLevels(0),Scaledw(0), Scaledh(0), scaleX(1.0f), scaleY(1.0f),
+		isRenderTarget(false), isDynamic(false), isRectangle(true),
 		bHaveMipMaps(false) { mode.hex = 0xFCFCFCFC; }
 
         GLuint texture;
@@ -42,15 +42,15 @@ public:
         u32 oldpixel; // used for simple cleanup
         TexMode0 mode; // current filter and clamp modes that texture is set to
 		TexMode1 mode1; // current filter and clamp modes that texture is set to
-
+		
         int frameCount;
         int w, h, fmt,MipLevels;
-
+		int Scaledw, Scaledh;
 		float scaleX, scaleY; // Hires texutres need this
 
         bool isRenderTarget; // if render texture, then rendertex is filled with the direct copy of the render target
                              // later conversions would have to convert properly from rendertexfmt to texfmt
-        bool isDinamic; // modified from cpu
+        bool isDynamic; // modified from cpu
         bool isRectangle; // if nonpow2, use GL_TEXTURE_2D, else GL_TEXTURE_RECTANGLE_NV
         bool bHaveMipMaps;
 

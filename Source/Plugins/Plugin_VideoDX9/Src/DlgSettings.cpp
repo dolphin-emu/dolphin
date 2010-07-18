@@ -59,8 +59,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogDX,wxDialog)
 	EVT_CHECKBOX(ID_DISABLEFOG, GFXConfigDialogDX::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_OVERLAYFPS, GFXConfigDialogDX::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_ENABLEEFBCOPY, GFXConfigDialogDX::AdvancedSettingsChanged)
-	EVT_RADIOBUTTON(ID_EFBTORAM, GFXConfigDialogDX::AdvancedSettingsChanged)
-	EVT_CHECKBOX(ID_VERIFYTEXTUREMODIFICATIONS, GFXConfigDialogDX::AdvancedSettingsChanged)
+	EVT_RADIOBUTTON(ID_EFBTORAM, GFXConfigDialogDX::AdvancedSettingsChanged)	
 	EVT_RADIOBUTTON(ID_EFBTOTEX, GFXConfigDialogDX::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_ENABLEHOTKEY, GFXConfigDialogDX::AdvancedSettingsChanged)
 	EVT_CHECKBOX(ID_WIREFRAME, GFXConfigDialogDX::AdvancedSettingsChanged)
@@ -138,8 +137,7 @@ void GFXConfigDialogDX::InitializeGUIValues()
 	m_OverlayFPS->SetValue(g_Config.bShowFPS);
 
 	m_CopyEFB->SetValue(!g_Config.bEFBCopyDisable);
-	g_Config.bCopyEFBToTexture ? m_Radio_CopyEFBToGL->SetValue(true) : m_Radio_CopyEFBToRAM->SetValue(true);
-	m_VerifyTextureModification->SetValue(g_Config.bVerifyTextureModificationsByCPU);
+	g_Config.bCopyEFBToTexture ? m_Radio_CopyEFBToGL->SetValue(true) : m_Radio_CopyEFBToRAM->SetValue(true);	
 	m_EnableHotkeys->SetValue(g_Config.bOSDHotKey);
 	m_WireFrame->SetValue(g_Config.bWireFrame);
 	m_EnableXFB->SetValue(g_Config.bUseXFB);
@@ -301,7 +299,6 @@ void GFXConfigDialogDX::CreateGUIControls()
 	m_CopyEFB = new wxCheckBox( m_PageAdvanced, ID_ENABLEEFBCOPY, wxT("Enable EFB Copy"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_EnableHotkeys = new wxCheckBox( m_PageAdvanced, ID_ENABLEHOTKEY, wxT("Enable Hotkey"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_Radio_CopyEFBToRAM = new wxRadioButton( m_PageAdvanced, ID_EFBTORAM, wxT("To RAM (accuracy)"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_VerifyTextureModification = new wxCheckBox( m_PageAdvanced, ID_VERIFYTEXTUREMODIFICATIONS, wxT("Check for textures modified by the cpu"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_Radio_CopyEFBToGL = new wxRadioButton( m_PageAdvanced, ID_EFBTOTEX, wxT("To Texture (performance, resolution)"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_WireFrame = new wxCheckBox( m_PageAdvanced, ID_WIREFRAME, wxT("Enable Wireframe"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_EnableRealXFB = new wxCheckBox( m_PageAdvanced, ID_ENABLEREALXFB, wxT("Enable Real XFB"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -334,12 +331,11 @@ void GFXConfigDialogDX::CreateGUIControls()
 	sSettings->Add( m_CopyEFB, wxGBPosition( 1, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 	sSettings->Add( m_EnableHotkeys, wxGBPosition( 1, 1 ), wxGBSpan( 1, 1 ), wxEXPAND|wxLEFT, 20 );
 	sSettings->Add( m_Radio_CopyEFBToRAM, wxGBPosition( 2, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT, 10 );
-	sSettings->Add( m_VerifyTextureModification, wxGBPosition( 3, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT|wxTOP, 10 );	
-	sSettings->Add( m_Radio_CopyEFBToGL, wxGBPosition( 4, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT|wxTOP, 10 );
+	sSettings->Add( m_Radio_CopyEFBToGL, wxGBPosition( 3, 0 ), wxGBSpan( 1, 1 ), wxALIGN_CENTER_VERTICAL|wxLEFT|wxTOP, 10 );
 	sSettings->Add( m_WireFrame, wxGBPosition( 2, 1 ), wxGBSpan( 1, 1 ), wxEXPAND|wxLEFT, 20 );
-	sSettings->Add( m_EnableRealXFB, wxGBPosition( 5, 1 ), wxGBSpan( 1, 1 ), wxEXPAND|wxLEFT, 20 );
-	sSettings->Add( m_EnableXFB, wxGBPosition( 5, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
-	sSettings->Add( m_UseNativeMips, wxGBPosition( 6, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sSettings->Add( m_EnableRealXFB, wxGBPosition( 4, 1 ), wxGBSpan( 1, 1 ), wxEXPAND|wxLEFT, 20 );
+	sSettings->Add( m_EnableXFB, wxGBPosition( 4, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
+	sSettings->Add( m_UseNativeMips, wxGBPosition( 5, 0 ), wxGBSpan( 1, 1 ), wxALL, 5 );
 	sbSettings->Add( sSettings, 0, wxEXPAND, 5 );
 	sAdvanced->Add( sbSettings, 0, wxEXPAND|wxALL, 5 );
 	
@@ -466,9 +462,6 @@ void GFXConfigDialogDX::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_EFBTORAM:
 		g_Config.bCopyEFBToTexture = false;
-	case ID_VERIFYTEXTUREMODIFICATIONS:
-		g_Config.bVerifyTextureModificationsByCPU = m_VerifyTextureModification->IsChecked();
-		break;
 	case ID_EFBTOTEX:
 		g_Config.bCopyEFBToTexture = true;
 		break;
@@ -532,7 +525,6 @@ void GFXConfigDialogDX::UpdateGUI()
 
 	// Disable the Copy to options when EFBCopy is disabled
 	m_Radio_CopyEFBToRAM->Enable(!g_Config.bEFBCopyDisable);
-	m_VerifyTextureModification->Enable(!g_Config.bEFBCopyDisable && !g_Config.bCopyEFBToTexture);
 	m_Radio_CopyEFBToGL->Enable(!g_Config.bEFBCopyDisable);
 
 	// Disable/Enable Safe Texture Cache options

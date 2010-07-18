@@ -18,6 +18,8 @@
 #pragma once
 
 #include "D3DBase.h"
+#include "VertexShaderGen.h"
+#include "PixelShaderGen.h"
 #include <stack>
 
 using std::stack;
@@ -57,8 +59,8 @@ public:
 	D3D11_RASTERIZER_DESC rastdesc;
 	D3D11_DEPTH_STENCIL_DESC depthdesc;
 
-	float psconstants[116];
-	float vsconstants[952];
+	float psconstants[C_PENVCONST_END*4];
+	float vsconstants[C_VENVCONST_END*4];
 	bool vscbufchanged;
 	bool pscbufchanged;
 

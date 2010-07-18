@@ -37,7 +37,7 @@
 VertexShaderCache::VSCache VertexShaderCache::vshaders;
 const VertexShaderCache::VSCacheEntry *VertexShaderCache::last_entry;
 
-static float GC_ALIGNED16(lastVSconstants[C_FOGPARAMS + 8][4]);
+static float GC_ALIGNED16(lastVSconstants[C_VENVCONST_END][4]);
 #define MAX_SSAA_SHADERS 3
 
 static LPDIRECT3DVERTEXSHADER9 SimpleVertexShader[MAX_SSAA_SHADERS];
@@ -218,7 +218,7 @@ void VertexShaderCache::Clear()
 		iter->second.Destroy();
 	vshaders.clear();
 
-	for (int i = 0; i < (C_FOGPARAMS + 8) * 4; i++)
+	for (int i = 0; i < (C_VENVCONST_END * 4); i++)
 		lastVSconstants[i / 4][i % 4] = -100000000.0f;
 	memset(&last_vertex_shader_uid, 0xFF, sizeof(last_vertex_shader_uid));
 }

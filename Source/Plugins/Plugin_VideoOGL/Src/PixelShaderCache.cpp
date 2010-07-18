@@ -45,7 +45,7 @@ GLuint PixelShaderCache::CurrentShader;
 bool PixelShaderCache::ShaderEnabled;
 
 static FRAGMENTSHADER* pShaderLast = NULL;
-static float lastPSconstants[C_COLORMATRIX+16][4];
+static float lastPSconstants[C_PENVCONST_END][4];
 
 
 void SetPSConstant4f(unsigned int const_number, float f1, float f2, float f3, float f4)
@@ -89,7 +89,7 @@ void PixelShaderCache::Init()
 	CurrentShader = 0;
 	GL_REPORT_ERRORD();
 
-	for (unsigned int i = 0; i < (C_COLORMATRIX+16) * 4; i++)
+	for (unsigned int i = 0; i < (C_PENVCONST_END) * 4; i++)
 		lastPSconstants[i/4][i%4] = -100000000.0f;
 	memset(&last_pixel_shader_uid, 0xFF, sizeof(last_pixel_shader_uid));
 
