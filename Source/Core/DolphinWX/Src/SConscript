@@ -11,7 +11,7 @@ files = [
 	]
 
 libs = [
-	'core', 'lzo2', 'discio', 'bdisasm', 'videocommon',
+	'core', 'lzo2', 'discio', 'bdisasm',
 	'inputcommon', 'common', 'lua', 'z', 'sfml-network',
 	]
 
@@ -44,10 +44,6 @@ if wxenv['HAVE_WX']:
 		'NetPlayServer.cpp',
 		'NetWindow.cpp',
 		]
-
-	CPPDEFINES = [
-		'wxNEEDS_CHARPP',
-		],
 
 	libs = [ 'debwx', 'debugger_ui_util', 'inputuicommon'] + libs
 else:

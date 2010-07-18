@@ -92,11 +92,21 @@ void Pos_ReadDirect()
 	VertexManager::s_pCurBufferPointer += 12;
 }
 
+// Explicitly instantiate these functions to decrease the possibility of
+// symbol binding problems when (only) calling them from JIT compiled code.
+template void Pos_ReadDirect<u8,  true>();
+template void Pos_ReadDirect<s8,  true>();
+template void Pos_ReadDirect<u16, true>();
+template void Pos_ReadDirect<s16, true>();
+template void Pos_ReadDirect<u8,  false>();
+template void Pos_ReadDirect<s8,  false>();
+template void Pos_ReadDirect<u16, false>();
+template void Pos_ReadDirect<s16, false>();
+
 void LOADERDECL Pos_ReadDirect_UByte3()  { Pos_ReadDirect<u8,  true>(); }
 void LOADERDECL Pos_ReadDirect_Byte3()   { Pos_ReadDirect<s8,  true>(); }
 void LOADERDECL Pos_ReadDirect_UShort3() { Pos_ReadDirect<u16, true>(); }
 void LOADERDECL Pos_ReadDirect_Short3()  { Pos_ReadDirect<s16, true>(); }
-
 void LOADERDECL Pos_ReadDirect_UByte2()  { Pos_ReadDirect<u8,  false>(); }
 void LOADERDECL Pos_ReadDirect_Byte2()   { Pos_ReadDirect<s8,  false>(); }
 void LOADERDECL Pos_ReadDirect_UShort2() { Pos_ReadDirect<u16, false>(); }

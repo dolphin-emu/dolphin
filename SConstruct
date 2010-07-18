@@ -264,9 +264,9 @@ if sys.platform == 'darwin':
     env['FRAMEWORKS'] += ['AppKit', 'CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
-    env['LIBS'] += ['gcc_s.10.5', 'iconv']
+    env['LIBS'] += ['iconv']
     env['LINKFLAGS'] += ['-arch', 'x86_64', '-arch', 'i386']
-    # XXX env['LINKFLAGS'] += ['-mmacosx-version-min=10.5']
+    env['LINKFLAGS'] += ['-mmacosx-version-min=10.5']
     env['LINKFLAGS'] += ['-Z', '-L/Developer/SDKs/MacOSX10.5.sdk/usr/lib',
         '-F/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks',
         '-F/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks']
@@ -287,6 +287,8 @@ if sys.platform == 'darwin':
                 env['FRAMEWORKS'].remove('AudioToolbox')
             if env['FRAMEWORKS'].count('Carbon'):
                 env['FRAMEWORKS'].remove('Carbon')
+            if env['FRAMEWORKS'].count('System'):
+                env['FRAMEWORKS'].remove('System')
             if env['FRAMEWORKS'].count('QuickTime'):
                 env['FRAMEWORKS'].remove('QuickTime')
     env['CPPPATH'] += ['#Externals']

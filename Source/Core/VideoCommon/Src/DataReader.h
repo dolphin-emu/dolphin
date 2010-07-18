@@ -20,61 +20,59 @@
 
 extern u8* g_pVideoData;
 
-inline void DataSkip(u32 skip)
+__forceinline void DataSkip(u32 skip)
 {
 	g_pVideoData += skip;
 }
 
-inline u8 DataPeek8(int _uOffset)
+__forceinline u8 DataPeek8(int _uOffset)
 {
 	return g_pVideoData[_uOffset];
 }
 
-inline u16 DataPeek16(int _uOffset)
+__forceinline u16 DataPeek16(int _uOffset)
 {
-    return Common::swap16(*(u16*)&g_pVideoData[_uOffset]);
+	return Common::swap16(*(u16*)&g_pVideoData[_uOffset]);
 }
 
-inline u32 DataPeek32(int _uOffset)	
+__forceinline u32 DataPeek32(int _uOffset)	
 {
-    return Common::swap32(*(u32*)&g_pVideoData[_uOffset]);
+	return Common::swap32(*(u32*)&g_pVideoData[_uOffset]);
 }
 
-inline u8 DataReadU8()
+__forceinline u8 DataReadU8()
 {
 	return *g_pVideoData++;
 }
 
-inline s8 DataReadS8()
+__forceinline s8 DataReadS8()
 {
 	return (s8)(*g_pVideoData++);
 }
 
-inline u16 DataReadU16()
+__forceinline u16 DataReadU16()
 {
-    u16 tmp = Common::swap16(*(u16*)g_pVideoData);
+	u16 tmp = Common::swap16(*(u16*)g_pVideoData);
 	g_pVideoData += 2;
 	return tmp;
 }
 
-inline u32 DataReadU32()
+__forceinline u32 DataReadU32()
 {
 	u32 tmp = Common::swap32(*(u32*)g_pVideoData);
 	g_pVideoData += 4;
 	return tmp;
 }
 
-inline u32 DataReadU32Unswapped()
+__forceinline u32 DataReadU32Unswapped()
 {
 	u32 tmp = *(u32*)g_pVideoData;
 	g_pVideoData += 4;
 	return tmp;
 }
 
-
-// These are not used yet. If they don't build under Linux, delete them and let me know. -ector
 template<class T>
-inline T DataRead()
+__forceinline T DataRead()
 {
 	T tmp = *(T*)g_pVideoData;
 	g_pVideoData += sizeof(T);
@@ -82,48 +80,47 @@ inline T DataRead()
 }
 
 template <>
-inline u16 DataRead()
+__forceinline u16 DataRead()
 {
-    u16 tmp = Common::swap16(*(u16*)g_pVideoData);
+	u16 tmp = Common::swap16(*(u16*)g_pVideoData);
 	g_pVideoData += 2;
 	return tmp;
 }
 
 template <>
-inline s16 DataRead()
+__forceinline s16 DataRead()
 {
-    s16 tmp = (s16)Common::swap16(*(u16*)g_pVideoData);
+	s16 tmp = (s16)Common::swap16(*(u16*)g_pVideoData);
 	g_pVideoData += 2;
 	return tmp;
 }
 
 template <>
-inline u32 DataRead()
+__forceinline u32 DataRead()
 {
-    u32 tmp = (u32)Common::swap32(*(u32*)g_pVideoData);
+	u32 tmp = (u32)Common::swap32(*(u32*)g_pVideoData);
 	g_pVideoData += 4;
 	return tmp;
 }
 
 template <>
-inline s32 DataRead()
+__forceinline s32 DataRead()
 {
-    s32 tmp = (s32)Common::swap32(*(u32*)g_pVideoData);
+	s32 tmp = (s32)Common::swap32(*(u32*)g_pVideoData);
 	g_pVideoData += 4;
 	return tmp;
 }
 
-
-inline float DataReadF32()
+__forceinline float DataReadF32()
 {
-    union {u32 i; float f;} temp;
+	union {u32 i; float f;} temp;
 	temp.i = Common::swap32(*(u32*)g_pVideoData);
 	g_pVideoData += 4;
 	float tmp = temp.f;
 	return tmp;
 }
 
-inline u8* DataGetPosition()
+__forceinline u8* DataGetPosition()
 {
 	return g_pVideoData;
 }
