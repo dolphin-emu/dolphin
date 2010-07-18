@@ -245,15 +245,6 @@ void Initialize(void *init)
 		return;
 	}
 
-	std::wstring msg;
-	if( !D3D::DXCheck(msg) )
-	{
-		msg.insert( 0, _T("Unable to initialize Direct3D. ") );
-		msg.append( _T("\n\nHave a nice crash. :P") );
-		MessageBox( (HWND)g_VideoInitialize.pWindowHandle, msg.c_str(), _T("Critical Error"), MB_ICONERROR|MB_OK );
-		ShellExecute( NULL, NULL, _T("http://www.microsoft.com/downloads/details.aspx?FamilyID=2da43d38-db71-4c1b-bc6a-9b6652cd92a3"), NULL, NULL, SW_SHOWNORMAL );
-	}
-
 	g_VideoInitialize.pPeekMessages = &Callback_PeekMessages;
 	g_VideoInitialize.pUpdateFPSDisplay = &UpdateFPSDisplay;
 

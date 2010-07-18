@@ -188,19 +188,6 @@ const int TS[6][2] =
 	{D3DTSS_ALPHAARG2, D3DTA_DIFFUSE },
 };
 
-bool DXCheck( std::wstring& msg )
-{
-	HINSTANCE hDll = LoadLibrary(StringFromFormat( _T("d3dx9_%d.dll"), D3DX_SDK_VERSION).c_str());
-	if( !hDll )
-	{
-		msg = _T("Please make sure that you have the latest version of DirectX correctly installed.");
-		return false;
-	} else
-		msg = _T("DirectX is up to date and ready to be used!");
-	FreeLibrary( hDll );
-	return true;
-}
-
 static LPDIRECT3DPIXELSHADER9 ps_old = NULL;
 static LPDIRECT3DVERTEXSHADER9 vs_old = NULL;
 

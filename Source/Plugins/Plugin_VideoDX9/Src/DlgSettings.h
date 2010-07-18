@@ -36,12 +36,12 @@ class GFXConfigDialogDX : public wxDialog
 	public:
 		GFXConfigDialogDX(wxWindow *parent, wxWindowID id = 1,
 #ifdef DEBUGFAST
-			const wxString &title = wxT("DX (DEBUGFAST) Plugin Configuration"),
+			const wxString &title = wxT("DX9 (DEBUGFAST) Plugin Configuration"),
 #else
 #ifndef _DEBUG
-			const wxString &title = wxT("DX Plugin Configuration"),
+			const wxString &title = wxT("DX9 Plugin Configuration"),
 #else
-			const wxString &title = wxT("DX (DEBUG) Plugin Configuration"),
+			const wxString &title = wxT("DX9 (DEBUG) Plugin Configuration"),
 #endif
 #endif
 			const wxPoint& pos = wxDefaultPosition,
