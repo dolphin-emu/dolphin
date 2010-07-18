@@ -462,6 +462,7 @@ void GFXConfigDialogDX::AdvancedSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_EFBTORAM:
 		g_Config.bCopyEFBToTexture = false;
+		break;
 	case ID_EFBTOTEX:
 		g_Config.bCopyEFBToTexture = true;
 		break;
