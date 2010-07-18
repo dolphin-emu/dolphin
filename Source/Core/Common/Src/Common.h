@@ -114,10 +114,6 @@ extern const char *netplay_dolphin_ver;
 #include "Config.h"	// SCons autoconfiguration defines
 #endif
 
-#ifndef __linux__
-#define MAP_32BIT 0	// MAP_32BIT is a Linux-specific mmap(2) flag
-#endif
-
 // Windows compatibility
 #ifndef _WIN32
 #include <limits.h>

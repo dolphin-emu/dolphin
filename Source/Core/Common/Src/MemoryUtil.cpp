@@ -22,19 +22,9 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <psapi.h>
-#elif __GNUC__
-#include <sys/mman.h>
+#else
 #include <errno.h>
 #include <stdio.h>
-#endif
-
-#if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
-#define MAP_ANONYMOUS MAP_ANON
-#endif 
-
-// MacOSX does not support MAP_VARIABLE
-#ifndef MAP_VARIABLE
-#define MAP_VARIABLE 0
 #endif
 
 // This is purposely not a full wrapper for virtualalloc/mmap, but it
@@ -55,7 +45,7 @@ void* AllocateExecutableMemory(size_t size, bool low)
 
 #else
 	void* retval = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC,
-		MAP_ANONYMOUS | MAP_PRIVATE
+		MAP_ANON | MAP_PRIVATE
 #ifdef __x86_64__
 		 | (low ? MAP_32BIT : 0)
 #endif
@@ -86,7 +76,7 @@ void* AllocateMemoryPages(size_t size)
 
 #else
 	void* retval = mmap(0, size, PROT_READ | PROT_WRITE,
-			MAP_ANONYMOUS | MAP_PRIVATE, -1, 0); // | MAP_FIXED
+			MAP_ANON | MAP_PRIVATE, -1, 0); // | MAP_FIXED
 	// printf("Mapped memory at %p (size %i)\n", retval, size);
 
 	if (!retval)

@@ -18,7 +18,15 @@
 #ifndef _MEMORYUTIL_H
 #define _MEMORYUTIL_H
 
+#ifndef _WIN32
+#include <sys/mman.h>
+#endif
 #include <string>
+
+// Linux-specific mmap(2) flag
+#ifndef MAP_32BIT
+#define MAP_32BIT 0
+#endif
 
 void* AllocateExecutableMemory(size_t size, bool low = true);
 void* AllocateMemoryPages(size_t size);
