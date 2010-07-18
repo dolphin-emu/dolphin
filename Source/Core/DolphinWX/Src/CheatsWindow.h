@@ -25,24 +25,90 @@
 #include <wx/imaglist.h>
 #include <wx/treectrl.h>
 #include <wx/gbsizer.h>
+#include <wx/textctrl.h>
 #include <wx/notebook.h>
 #include <wx/mimetype.h>
 #include <wx/colour.h>
 #include <wx/listbox.h>
+
 #include <string>
+#include <vector>
 
 #include "ActionReplay.h"
 
 #include "Filesystem.h"
 #include "IniFile.h"
 
+class CreateCodeDialog : public wxDialog
+{
+public:
+	CreateCodeDialog(wxWindow* const parent, const u32 address);
+
+protected:
+
+	const u32 code_address;
+
+	wxTextCtrl *textctrl_name, *textctrl_code, *textctrl_value;
+	wxCheckBox *checkbox_use_hex;
+
+	void PressOK(wxCommandEvent&);
+	void PressCancel(wxCommandEvent&);
+};
+
+class CheatSearchTab : public wxPanel
+{
+public:
+	CheatSearchTab(wxWindow* const parent);
+
+protected:
+
+	class CheatSearchResult
+	{
+	public:
+		CheatSearchResult() : address(0), old_value(0) {}
+
+		u32 address;
+		u32 old_value;
+	};
+
+	std::vector<CheatSearchResult>	search_results;
+	unsigned int search_type_size;
+
+	wxListBox*	lbox_search_results;
+	wxStaticText* label_results_count;
+	wxTextCtrl*		textctrl_value_x;
+
+	struct
+	{
+		wxRadioButton *rad_8, *rad_16, *rad_32;
+
+	} size_radiobtn;
+
+	struct
+	{
+		wxRadioButton *rad_none, *rad_equal, *rad_notequal, *rad_greater, *rad_less;
+
+	} filter_radiobtn;
+
+	struct
+	{
+		wxRadioButton *rad_oldvalue, *rad_uservalue;
+
+	} value_x_radiobtn;
+
+	void UpdateCheatSearchResultsList();
+
+	void StartNewSearch(wxCommandEvent& event);
+	void FilterCheatSearchResults(wxCommandEvent& event);
+	void CreateARCode(wxCommandEvent&);
+};
+
 class wxCheatsWindow : public wxFrame
 {
+	friend class CreateCodeDialog;
+
 	public:
-
-		wxCheatsWindow(wxFrame* parent, const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize);
-
-		virtual ~wxCheatsWindow();
+		wxCheatsWindow(wxWindow* const parent);
 
 	protected:
 
@@ -52,19 +118,13 @@ class wxCheatsWindow : public wxFrame
 		};
 
 		// Event Table
-		DECLARE_EVENT_TABLE();
+		//DECLARE_EVENT_TABLE();
 
 		// --- GUI Controls ---
-		wxGridBagSizer* m_Sizer_TabCheats;
-
 		wxNotebook *m_Notebook_Main;
 
 		wxPanel *m_Tab_Cheats;
 		wxPanel *m_Tab_Log;
-
-		wxButton *m_Button_Close;
-		wxButton *m_Button_ApplyCodes;
-		wxButton *m_Button_UpdateLog;
 
 		wxCheckBox *m_CheckBox_LogAR;
 
@@ -83,32 +143,11 @@ class wxCheatsWindow : public wxFrame
 
 		std::vector<ARCodeIndex> indexList;
 
-		// GUI IDs
-		enum
-		{
-			ID_NOTEBOOK_MAIN,
-			ID_TAB_CHEATS,
-			ID_TAB_LOG,
-			ID_BUTTON_CLOSE,
-			ID_CHECKLISTBOX_CHEATSLIST,
-			ID_LABEL_CODENAME,
-			ID_GROUPBOX_INFO,
-			ID_BUTTON_APPLYCODES,
-			ID_LABEL_NUMCODES,
-			ID_LISTBOX_CODESLIST,
-			ID_BUTTON_UPDATELOG,
-			ID_CHECKBOX_LOGAR,
-			ID_TEXTCTRL_LOG
-		};
-
 		void Init_ChildControls();
 
 		void Load_ARCodes();
 
 		// --- Wx Events Handlers ---
-		// $ Window
-		void OnEvent_Window_Resize(wxSizeEvent& event);
-		void OnEvent_Window_Close(wxCloseEvent& event);
 
 		// $ Close Button
 		void OnEvent_ButtonClose_Press(wxCommandEvent& event);

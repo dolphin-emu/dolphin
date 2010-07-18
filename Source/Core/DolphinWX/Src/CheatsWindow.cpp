@@ -19,128 +19,214 @@
 #include "CheatsWindow.h"
 #include "ActionReplay.h"
 #include "Core.h"
+#include "ConfigManager.h"
+#include "ISOProperties.h"
+#include "HW/Memmap.h"
 
-using namespace ActionReplay;
+#define _connect_macro_(b, f, c, s)	(b)->Connect(wxID_ANY, (c), wxCommandEventHandler(f), (wxObject*)0, (wxEvtHandler*)s)
 
-BEGIN_EVENT_TABLE(wxCheatsWindow, wxWindow)
-	EVT_SIZE(                                            wxCheatsWindow::OnEvent_Window_Resize)
-	EVT_CLOSE(                                           wxCheatsWindow::OnEvent_Window_Close)
-    EVT_BUTTON(ID_BUTTON_CLOSE,                          wxCheatsWindow::OnEvent_ButtonClose_Press)
-	EVT_LISTBOX(ID_CHECKLISTBOX_CHEATSLIST,              wxCheatsWindow::OnEvent_CheatsList_ItemSelected)
-	EVT_CHECKLISTBOX(ID_CHECKLISTBOX_CHEATSLIST,         wxCheatsWindow::OnEvent_CheatsList_ItemToggled)
-	EVT_BUTTON(ID_BUTTON_APPLYCODES,                     wxCheatsWindow::OnEvent_ButtonUpdateCodes_Press)
-	EVT_BUTTON(ID_BUTTON_UPDATELOG,                      wxCheatsWindow::OnEvent_ButtonUpdateLog_Press)
-	EVT_CHECKBOX(ID_CHECKBOX_LOGAR,                      wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange)
-END_EVENT_TABLE()
+#define MAX_CHEAT_SEARCH_RESULTS_DISPLAY	256
 
-wxCheatsWindow::wxCheatsWindow(wxFrame* parent, const wxPoint& pos, const wxSize& size) :
-	wxFrame(parent, wxID_ANY, _T("Action Replay"), pos, size, wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE)
+extern std::vector<ActionReplay::ARCode> arCodes;
+
+// meh
+static wxCheatsWindow *g_cheat_window;
+
+wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
+	: wxFrame(parent, wxID_ANY, wxT("Action Replay"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE)
 {
+	::g_cheat_window = this;
+
 	// Create the GUI controls
 	Init_ChildControls();
-
-	// Setup Window
-	SetBackgroundColour(wxColour(COLOR_GRAY));
-	SetSize(size);
-	SetPosition(pos);
 
 	// Load Data
 	Load_ARCodes();
 
-	Layout();
+	Center();
 	Show();
-}
-
-wxCheatsWindow::~wxCheatsWindow()
-{
-	// On Disposal
 }
 
 void wxCheatsWindow::Init_ChildControls()
 {
+	wxPanel* const panel = new wxPanel(this);
+
 	// Main Notebook
-	m_Notebook_Main = new wxNotebook(this, ID_NOTEBOOK_MAIN, wxDefaultPosition, wxDefaultSize);
-		// --- Tabs ---
-		// $ Cheats List Tab
-		m_Tab_Cheats = new wxPanel(m_Notebook_Main, ID_TAB_CHEATS, wxDefaultPosition, wxDefaultSize);
-		m_CheckListBox_CheatsList = new wxCheckListBox(m_Tab_Cheats, ID_CHECKLISTBOX_CHEATSLIST, wxDefaultPosition, wxSize(300, 0), m_CheatStringList, wxLB_HSCROLL, wxDefaultValidator);
-		m_Label_Codename = new wxStaticText(m_Tab_Cheats, ID_LABEL_CODENAME, _T("Name: "), wxDefaultPosition, wxDefaultSize);
-		m_GroupBox_Info = new wxStaticBox(m_Tab_Cheats, ID_GROUPBOX_INFO, _T("Code Info"), wxDefaultPosition, wxDefaultSize);
-		m_Button_ApplyCodes = new wxButton(m_Tab_Cheats, ID_BUTTON_APPLYCODES, _T("Apply Changes"), wxDefaultPosition, wxDefaultSize);
-		m_Label_NumCodes = new wxStaticText(m_Tab_Cheats, ID_LABEL_NUMCODES, _T("Number Of Codes: "),  wxDefaultPosition, wxDefaultSize);
-		m_ListBox_CodesList = new wxListBox(m_Tab_Cheats, ID_LISTBOX_CODESLIST, wxDefaultPosition, wxSize(120, 150), 0, 0, wxLB_HSCROLL);
+	m_Notebook_Main = new wxNotebook(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 
-		wxBoxSizer* sCheatsListH = new wxBoxSizer(wxHORIZONTAL);
-		sCheatsListH->Add(m_CheckListBox_CheatsList, 1, wxALL|wxEXPAND, 5);
+	// --- Tabs ---
+	// $ Cheats List Tab
+	m_Tab_Cheats = new wxPanel(m_Notebook_Main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 
-		wxStaticBoxSizer* sGroupBoxInfo = new wxStaticBoxSizer(m_GroupBox_Info, wxVERTICAL);
-		sGroupBoxInfo->Add(m_Label_Codename, 0, wxALL, 5);
-		sGroupBoxInfo->Add(m_Label_NumCodes, 0, wxALL, 5);
-		sGroupBoxInfo->Add(m_ListBox_CodesList, 0, wxALL, 5);
+	m_CheckListBox_CheatsList = new wxCheckListBox(m_Tab_Cheats, wxID_ANY, wxDefaultPosition, wxSize(300, 0), m_CheatStringList, wxLB_HSCROLL, wxDefaultValidator);
+	_connect_macro_(m_CheckListBox_CheatsList, wxCheatsWindow::OnEvent_CheatsList_ItemSelected, wxEVT_COMMAND_LISTBOX_SELECTED, this);
+	_connect_macro_(m_CheckListBox_CheatsList, wxCheatsWindow::OnEvent_CheatsList_ItemToggled, wxEVT_COMMAND_CHECKLISTBOX_TOGGLED, this);
 
-		wxBoxSizer* sB1 = new wxBoxSizer(wxVERTICAL);
-		sB1->Add(m_Button_ApplyCodes, 0, wxALL, 5);
-		sB1->Add(sGroupBoxInfo, 0, wxALL, 5);
+	m_Label_Codename = new wxStaticText(m_Tab_Cheats, wxID_ANY, _T("Name: "), wxDefaultPosition, wxDefaultSize);
+	m_GroupBox_Info = new wxStaticBox(m_Tab_Cheats, wxID_ANY, _T("Code Info"), wxDefaultPosition, wxDefaultSize);
+	
+	wxButton* const button_applycodes = new wxButton(m_Tab_Cheats, wxID_ANY, _T("Apply Changes"), wxDefaultPosition, wxDefaultSize);
+	_connect_macro_(button_applycodes, wxCheatsWindow::OnEvent_ButtonUpdateCodes_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
-		m_Sizer_TabCheats = new wxGridBagSizer();
-		m_Sizer_TabCheats->AddGrowableRow(0);
-		m_Sizer_TabCheats->Add(sCheatsListH, wxGBPosition(0, 0), wxGBSpan(1, 1), wxEXPAND|wxALL, 5);
-		m_Sizer_TabCheats->Add(sB1, wxGBPosition(0, 1), wxGBSpan(1, 1), wxALIGN_LEFT|wxALL, 5);
+	m_Label_NumCodes = new wxStaticText(m_Tab_Cheats, wxID_ANY, _T("Number Of Codes: "),  wxDefaultPosition, wxDefaultSize);
+	m_ListBox_CodesList = new wxListBox(m_Tab_Cheats, wxID_ANY, wxDefaultPosition, wxSize(120, 150), 0, 0, wxLB_HSCROLL);
 
-		m_Tab_Cheats->SetSizer(m_Sizer_TabCheats);
-		m_Tab_Cheats->Layout();
+	wxStaticBoxSizer* sGroupBoxInfo = new wxStaticBoxSizer(m_GroupBox_Info, wxVERTICAL);
+	sGroupBoxInfo->Add(m_Label_Codename, 0, wxALL, 5);
+	sGroupBoxInfo->Add(m_Label_NumCodes, 0, wxALL, 5);
+	sGroupBoxInfo->Add(m_ListBox_CodesList, 1, wxALL, 5);
 
+	wxBoxSizer* sB1 = new wxBoxSizer(wxVERTICAL);
+	sB1->Add(button_applycodes, 0, wxALL | wxEXPAND, 5);
+	sB1->Add(sGroupBoxInfo, 1, wxALL, 5);
 
-		// $ Log Tab
-		m_Tab_Log = new wxPanel(m_Notebook_Main, ID_TAB_LOG, wxDefaultPosition, wxDefaultSize);
+	wxBoxSizer* sizer_tab_cheats = new wxBoxSizer(wxHORIZONTAL);
+	sizer_tab_cheats->Add(m_CheckListBox_CheatsList, 1, wxEXPAND | wxTOP | wxBOTTOM | wxLEFT, 10);
+	sizer_tab_cheats->Add(sB1, 0, wxALIGN_LEFT | wxEXPAND | wxALL, 5);
 
-		m_Button_UpdateLog = new wxButton(m_Tab_Log, ID_BUTTON_UPDATELOG, wxT("Update"));
-		m_CheckBox_LogAR = new wxCheckBox(m_Tab_Log, ID_CHECKBOX_LOGAR, wxT("Enable AR Logging"));
-		m_CheckBox_LogAR->SetValue(IsSelfLogging());
-		m_TextCtrl_Log = new wxTextCtrl(m_Tab_Log, ID_TEXTCTRL_LOG, wxT(""), wxDefaultPosition, wxSize(100, 600), wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+	m_Tab_Cheats->SetSizerAndFit(sizer_tab_cheats);	
 
-		wxBoxSizer *HStrip1 = new wxBoxSizer(wxHORIZONTAL);
-		HStrip1->Add(m_CheckBox_LogAR, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-		HStrip1->Add(m_Button_UpdateLog, 0, wxALL, 5);
+	// $ Cheat Search Tab
+	wxPanel* const tab_cheat_search = new CheatSearchTab(m_Notebook_Main);
 
-		wxBoxSizer *sTabLog = new wxBoxSizer(wxVERTICAL);
-		sTabLog->Add(HStrip1, 0, wxALL, 5);
-		sTabLog->Add(m_TextCtrl_Log, 1, wxALL|wxEXPAND, 5);
+	// $ Log Tab
+	m_Tab_Log = new wxPanel(m_Notebook_Main, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 
-		m_Tab_Log->SetSizer(sTabLog);
-		m_Tab_Log->Layout();
+	wxButton* const button_updatelog = new wxButton(m_Tab_Log, wxID_ANY, wxT("Update"));
+	_connect_macro_(button_updatelog, wxCheatsWindow::OnEvent_ButtonUpdateLog_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
+
+	m_CheckBox_LogAR = new wxCheckBox(m_Tab_Log, wxID_ANY, wxT("Enable AR Logging"));
+	_connect_macro_(m_CheckBox_LogAR, wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange, wxEVT_COMMAND_CHECKBOX_CLICKED, this);
+
+	m_CheckBox_LogAR->SetValue(ActionReplay::IsSelfLogging());
+	m_TextCtrl_Log = new wxTextCtrl(m_Tab_Log, wxID_ANY, wxT(""), wxDefaultPosition, wxSize(100, -1), wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+
+	wxBoxSizer *HStrip1 = new wxBoxSizer(wxHORIZONTAL);
+	HStrip1->Add(m_CheckBox_LogAR, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+	HStrip1->Add(button_updatelog, 0, wxALL, 5);
+
+	wxBoxSizer *sTabLog = new wxBoxSizer(wxVERTICAL);
+	sTabLog->Add(HStrip1, 0, wxALL, 5);
+	sTabLog->Add(m_TextCtrl_Log, 1, wxALL|wxEXPAND, 5);
+
+	m_Tab_Log->SetSizerAndFit(sTabLog);
 
 	// Add Tabs to Notebook
 	m_Notebook_Main->AddPage(m_Tab_Cheats, _T("Codes List"));
+	m_Notebook_Main->AddPage(tab_cheat_search, _T("Cheat Search"));
 	m_Notebook_Main->AddPage(m_Tab_Log, _T("Logging"));
 
 	// Button Strip
-	m_Button_Close = new wxButton(this, ID_BUTTON_CLOSE, _T("Close"), wxDefaultPosition, wxDefaultSize);
+	wxButton* const button_close = new wxButton(panel, wxID_ANY, _T("Close"), wxDefaultPosition, wxDefaultSize);
+	_connect_macro_(button_close, wxCheatsWindow::OnEvent_ButtonClose_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
-	sButtons->Add(m_Button_Close, 0, wxALL, 5);
+	sButtons->Add(button_close, 1, 0, 0);
 
-	wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* const sMain = new wxBoxSizer(wxVERTICAL);
 	sMain->Add(m_Notebook_Main, 1, wxEXPAND|wxALL, 5);
-	sMain->Add(sButtons, 0, wxALL, 5);
-	SetSizer(sMain);
-	Layout();
+	sMain->Add(sButtons, 0, wxRIGHT | wxBOTTOM | wxALIGN_RIGHT, 5);
+	panel->SetSizerAndFit(sMain);
 
-	Fit();
+	wxBoxSizer* const frame_szr = new wxBoxSizer(wxVERTICAL);
+	frame_szr->Add(panel, 1, wxEXPAND);
+	SetSizerAndFit(frame_szr);
 }
-void wxCheatsWindow::OnEvent_Window_Resize(wxSizeEvent& WXUNUSED (event))
+
+CheatSearchTab::CheatSearchTab(wxWindow* const parent)
+	: wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize)
 {
-	Layout();
+	// new search box
+	size_radiobtn.rad_8 = new wxRadioButton(this, -1, wxT("8 bit"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+	size_radiobtn.rad_16 = new wxRadioButton(this, -1, wxT("16 bit"));
+	size_radiobtn.rad_32 = new wxRadioButton(this, -1, wxT("32 bit"));
+	size_radiobtn.rad_8->SetValue(true);
+
+	wxButton* const button_start_search = new wxButton(this, -1, wxT("Start"));
+	_connect_macro_(button_start_search, CheatSearchTab::StartNewSearch, wxEVT_COMMAND_BUTTON_CLICKED, this);
+
+	wxStaticBoxSizer* const sizer_cheat_new_search = new wxStaticBoxSizer(wxHORIZONTAL, this, wxT("New Search"));
+	sizer_cheat_new_search->Add(size_radiobtn.rad_8, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
+	sizer_cheat_new_search->Add(size_radiobtn.rad_16, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
+	sizer_cheat_new_search->Add(size_radiobtn.rad_32, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
+	sizer_cheat_new_search->Add(button_start_search, 0, wxRIGHT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, 5);
+
+	// results box
+	lbox_search_results = new wxListBox(this, -1, wxDefaultPosition, wxDefaultSize);
+	label_results_count = new wxStaticText(this, -1, wxT("Count:"));
+
+	wxButton* const button_cheat_search_copy_address = new wxButton(this, -1, wxT("Create AR Code"));
+	_connect_macro_(button_cheat_search_copy_address, CheatSearchTab::CreateARCode, wxEVT_COMMAND_BUTTON_CLICKED, this);
+
+	wxStaticBoxSizer* const sizer_cheat_search_results = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Results"));
+	sizer_cheat_search_results->Add(label_results_count, 0, wxALIGN_LEFT | wxALL, 5);
+	sizer_cheat_search_results->Add(lbox_search_results, 1, wxEXPAND | wxALL, 5);
+	sizer_cheat_search_results->Add(button_cheat_search_copy_address, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
+
+	// filter box
+	// x value box
+	value_x_radiobtn.rad_oldvalue = new wxRadioButton(this, -1, wxT("Old Value"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+	value_x_radiobtn.rad_uservalue = new wxRadioButton(this, -1, wxT(""));
+	value_x_radiobtn.rad_oldvalue->SetValue(true);
+
+	textctrl_value_x = new wxTextCtrl(this, -1, wxT("0x0"), wxDefaultPosition, wxSize(96,-1));
+
+	wxBoxSizer* const sizer_cheat_filter_text = new wxBoxSizer(wxHORIZONTAL);
+	sizer_cheat_filter_text->Add(value_x_radiobtn.rad_uservalue, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
+	sizer_cheat_filter_text->Add(textctrl_value_x, 1, wxALIGN_CENTER_VERTICAL, 5);
+
+	wxStaticBoxSizer* const sizer_cheat_search_filter_x = new wxStaticBoxSizer(wxVERTICAL, this, wxT("X"));
+	sizer_cheat_search_filter_x->Add(value_x_radiobtn.rad_oldvalue, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	sizer_cheat_search_filter_x->Add(sizer_cheat_filter_text, 0, wxALL, 5);
+
+	// filter types
+	filter_radiobtn.rad_none = new wxRadioButton(this, -1, wxT("None"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+	filter_radiobtn.rad_notequal = new wxRadioButton(this, -1, wxT("!= X"));
+	filter_radiobtn.rad_equal = new wxRadioButton(this, -1, wxT("= X"));
+	filter_radiobtn.rad_greater = new wxRadioButton(this, -1, wxT("> X"));
+	filter_radiobtn.rad_less = new wxRadioButton(this, -1, wxT("< X"));
+	filter_radiobtn.rad_none->SetValue(true);
+
+	wxStaticBoxSizer* const sizer_cheat_search_filter = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Search Filter"));
+	sizer_cheat_search_filter->Add(sizer_cheat_search_filter_x, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
+	sizer_cheat_search_filter->Add(filter_radiobtn.rad_none, 0, wxALL, 5);
+	sizer_cheat_search_filter->Add(filter_radiobtn.rad_notequal, 0, wxALL, 5);
+	sizer_cheat_search_filter->Add(filter_radiobtn.rad_equal, 0, wxALL, 5);
+	sizer_cheat_search_filter->Add(filter_radiobtn.rad_greater, 0, wxALL, 5);
+	sizer_cheat_search_filter->Add(filter_radiobtn.rad_less, 0, wxALL, 5);
+
+	wxButton* const button_cheat_search_update = new wxButton(this, -1, wxT("Search"));
+	_connect_macro_(button_cheat_search_update, CheatSearchTab::FilterCheatSearchResults, wxEVT_COMMAND_BUTTON_CLICKED, this);
+
+	// left sizer
+	wxBoxSizer* const sizer_left = new wxBoxSizer(wxVERTICAL);
+	sizer_left->Add(sizer_cheat_new_search, 0, wxBOTTOM, 5);
+	sizer_left->Add(sizer_cheat_search_results, 1, wxEXPAND, 5);
+
+	// right sizer
+	wxBoxSizer* const sizer_right = new wxBoxSizer(wxVERTICAL);
+	sizer_right->Add(sizer_cheat_search_filter, 0, wxEXPAND | wxBOTTOM, 5);
+	sizer_right->AddStretchSpacer(1);
+	sizer_right->Add(button_cheat_search_update, 0, wxTOP | wxEXPAND, 5);
+
+	// main sizer
+	wxBoxSizer* const sizer_main = new wxBoxSizer(wxHORIZONTAL);
+	sizer_main->Add(sizer_left, 1, wxEXPAND | wxALL, 5);
+	sizer_main->Add(sizer_right, 0, wxEXPAND | wxALL, 5);
+
+	SetSizerAndFit(sizer_main);
 }
+
 void wxCheatsWindow::OnEvent_ButtonClose_Press(wxCommandEvent& WXUNUSED (event))
 {
 	Destroy();
 }
-void wxCheatsWindow::OnEvent_Window_Close(wxCloseEvent& WXUNUSED (event))
-{
-	Destroy();
-}
+
 void wxCheatsWindow::Load_ARCodes()
 {
+	using namespace ActionReplay;
+
+	m_CheckListBox_CheatsList->Clear();
+
 	indexList.clear();
 	size_t size = GetCodeListSize();
 	for (size_t i = 0; i < size; i++)
@@ -154,8 +240,11 @@ void wxCheatsWindow::Load_ARCodes()
 		indexList.push_back(ind);
 	}
 }
+
 void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (event))
 {
+	using namespace ActionReplay;
+
 	int index = m_CheckListBox_CheatsList->GetSelection();
 	for (size_t i = 0; i < indexList.size(); i++)
 	{
@@ -177,8 +266,8 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemSelected(wxCommandEvent& WXUNUSED (e
 			}
 		}
 	}
-	m_Sizer_TabCheats->Layout();
 }
+
 void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED (event))
 {
 	int index = m_CheckListBox_CheatsList->GetSelection();
@@ -186,22 +275,23 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED (ev
 	{
 		if ((int)indexList[i].uiIndex == index)
 		{
-			SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(index), indexList[i].index);
+			ActionReplay::SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(index), indexList[i].index);
 		}
 	}
 }
+
 void wxCheatsWindow::OnEvent_ButtonUpdateCodes_Press(wxCommandEvent& WXUNUSED (event))
 {
 	for (size_t i = 0; i < indexList.size(); i++)
 	{
-		SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(indexList[i].uiIndex), indexList[i].index);
+		ActionReplay::SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(indexList[i].uiIndex), indexList[i].index);
 	}
 }
 
 void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED (event))
 {
 	m_TextCtrl_Log->Clear();
-	const std::vector<std::string> &arLog = GetSelfLog();
+	const std::vector<std::string> &arLog = ActionReplay::GetSelfLog();
 	for (u32 i = 0; i < arLog.size(); i++)
 	{
 		m_TextCtrl_Log->AppendText(wxString::FromAscii(arLog[i].c_str()));
@@ -210,5 +300,310 @@ void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED (eve
 
 void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& WXUNUSED (event))
 {
-	EnableSelfLogging(m_CheckBox_LogAR->IsChecked());
+	ActionReplay::EnableSelfLogging(m_CheckBox_LogAR->IsChecked());
+}
+
+void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
+{
+	search_results.clear();
+
+	search_type_size =
+		size_radiobtn.rad_8->GetValue() +
+		(size_radiobtn.rad_16->GetValue() << 1) +
+		(size_radiobtn.rad_32->GetValue() << 2);
+
+	const u8* const memptr = Memory::GetPointer(0);
+	if (NULL == memptr)
+	{
+		PanicAlert("A game is not currently running.");
+	}
+	else
+	{
+		CheatSearchResult r;
+		// can I assume cheatable values will be aligned like this?
+		for (u32 addr = 0; addr != Memory::RAM_SIZE; addr += search_type_size)
+		{
+			r.address = addr;
+			memcpy(&r.old_value, memptr + addr, search_type_size);
+			search_results.push_back(r);
+		}
+	}
+
+	UpdateCheatSearchResultsList();
+}
+
+void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
+{
+	const u8* const memptr = Memory::GetPointer(0);
+	if (NULL == memptr)
+	{
+		PanicAlert("A game is not currently running.");
+	}
+	else
+	{
+		std::vector<CheatSearchResult>::iterator
+			i = search_results.begin(),
+			e = search_results.end();
+		std::vector<CheatSearchResult>	filtered_results;
+
+		int filter_mask = 0;
+		// determine the selected filter
+		// 1 : equal
+		// 2 : greater-than
+		// 4 : less-than
+		if (filter_radiobtn.rad_none->GetValue())
+			filter_mask = 7;
+		else if (filter_radiobtn.rad_notequal->GetValue())
+			filter_mask = 6;
+		else if (filter_radiobtn.rad_equal->GetValue())
+			filter_mask = 1;
+		else if (filter_radiobtn.rad_greater->GetValue())
+			filter_mask = 2;
+		else if (filter_radiobtn.rad_less->GetValue())
+			filter_mask = 4;
+
+
+		if (value_x_radiobtn.rad_oldvalue->GetValue())	// using old value comparison
+		{
+			for (; i!=e; ++i)
+			{
+				// with big endian, can just use memcmp for ><= comparison
+				int cmp_result = memcmp(memptr + i->address, &i->old_value, search_type_size);
+				if (cmp_result < 0)
+					cmp_result = 4;
+				else if (cmp_result)
+					cmp_result = 2;
+				else
+					cmp_result = 1;
+
+				if (cmp_result & filter_mask)
+				{
+					memcpy(&i->old_value, memptr + i->address, search_type_size);
+					filtered_results.push_back(*i);
+				}
+			}
+		}
+		else	// using user entered x value comparison
+		{
+			u32 user_x_val;
+
+			// parse the user entered x value
+			if (filter_mask != 7) // don't need the value for the "None" filter
+			{
+				long parsed_x_val = 0;
+				int val_base = 10;
+
+				wxString x_val = textctrl_value_x->GetLabel();
+				if (wxT("0x") == x_val.substr(0,2))
+				{
+					//x_val = x_val.substr(2);	// wxwidgets seems fine parsing a "0x0000" string
+					val_base = 16;
+				}
+
+				if (false == x_val.ToLong(&parsed_x_val, val_base))
+				{
+					PanicAlert("You must enter a valid decimal or hex value.");
+					return;
+				}
+
+				user_x_val = (u32)parsed_x_val;
+
+				// #ifdef LIL_ENDIAN :p
+				switch (search_type_size)
+				{
+				case 1 :
+					break;
+				case 2 :
+					*(u16*)&user_x_val = Common::swap16((u8*)&user_x_val);
+					break;
+				case 4 :
+					user_x_val = Common::swap32(user_x_val);
+					break;
+				}
+				// #elseif BIG_ENDIAN
+				// would have to move <u32 vals (8/16bit) to start of the user_x_val for the comparisons i use below
+				// #endif
+			}
+
+			for (; i!=e; ++i)
+			{
+				// with big endian, can just use memcmp for ><= comparison
+				int cmp_result = memcmp(memptr + i->address, &user_x_val, search_type_size);
+				if (cmp_result < 0)
+					cmp_result = 4;
+				else if (cmp_result)
+					cmp_result = 2;
+				else
+					cmp_result = 1;
+
+				if (cmp_result & filter_mask)
+				{
+					memcpy(&i->old_value, memptr + i->address, search_type_size);
+					filtered_results.push_back(*i);
+				}
+			}
+		}
+
+		search_results.swap(filtered_results);
+
+		UpdateCheatSearchResultsList();
+	}
+}
+
+void CheatSearchTab::UpdateCheatSearchResultsList()
+{
+	lbox_search_results->Clear();
+
+	wxString count_label = wxString::Format(wxT("Count: %i"), search_results.size());
+	if (search_results.size() > MAX_CHEAT_SEARCH_RESULTS_DISPLAY)
+	{
+		count_label += wxT(" (too many to display)");
+	}
+	else
+	{
+		std::vector<CheatSearchResult>::const_iterator
+			i = search_results.begin(),
+			e = search_results.end();
+		for (; i!=e; ++i)
+		{
+			u32 display_value = i->old_value;
+
+			// #ifdef LIL_ENDIAN :p
+			switch (search_type_size)
+			{
+			case 1 :
+				break;
+			case 2 :
+				*(u16*)&display_value = Common::swap16((u8*)&display_value);
+				break;
+			case 4 :
+				display_value = Common::swap32(display_value);
+				break;
+			}
+			// #elseif BIG_ENDIAN
+			// need to do some stuff in here (for 8 and 16bit) for bigendian
+			// #endif
+
+			static wxChar rowfmt[] = wxT("0x%08x    0x%0|x    %u/%i");
+			rowfmt[14] = (wxChar)(wxT('0') + search_type_size*2);
+
+			lbox_search_results->Append(
+				wxString::Format(rowfmt, i->address, display_value, display_value, display_value));
+		}
+	}
+
+	label_results_count->SetLabel(count_label);
+}
+
+void CheatSearchTab::CreateARCode(wxCommandEvent&)
+{
+	const int sel = lbox_search_results->GetSelection();
+	if (sel >= 0)
+	{
+		const u32 address = search_results[sel].address | ((search_type_size & ~1) << 24);
+
+		CreateCodeDialog* const arcode_dlg = new CreateCodeDialog(this, address);
+		arcode_dlg->ShowModal();
+	}
+}
+
+CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
+	: wxDialog(parent, -1, wxT("Create AR Code"), wxDefaultPosition)
+	, code_address(address)
+{
+	wxPanel* const panel = new wxPanel(this);
+
+	wxStaticText* const label_name = new wxStaticText(panel, -1, wxT("Name: "));
+	textctrl_name = new wxTextCtrl(panel, -1, wxEmptyString, wxDefaultPosition, wxSize(256,-1));
+
+	wxStaticText* const label_code = new wxStaticText(panel, -1, wxT("Code: "));
+	textctrl_code = new wxTextCtrl(panel, -1, wxString::Format(wxT("0x%08x"), address));
+	textctrl_code->Disable();
+
+	wxStaticText* const label_value = new wxStaticText(panel, -1, wxT("Value: "));
+	textctrl_value = new wxTextCtrl(panel, -1, wxT("0"));
+
+	checkbox_use_hex = new wxCheckBox(panel, -1, wxT("Use Hex"));
+	checkbox_use_hex->SetValue(true);
+
+	wxBoxSizer* const sizer_value_label = new wxBoxSizer(wxHORIZONTAL);
+	sizer_value_label->Add(label_value, 0, wxRIGHT, 5);
+	sizer_value_label->Add(checkbox_use_hex, 0, 0, 0);
+
+	wxButton* const btn_ok = new wxButton(panel, -1, wxT("OK"));
+	_connect_macro_(btn_ok, CreateCodeDialog::PressOK, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	wxButton* const btn_cancel = new wxButton(panel, -1, wxT("Cancel"));
+	_connect_macro_(btn_cancel, CreateCodeDialog::PressCancel, wxEVT_COMMAND_BUTTON_CLICKED, this);
+
+	// button sizer
+	wxBoxSizer* const sizer_buttons = new wxBoxSizer(wxHORIZONTAL);
+	sizer_buttons->Add(btn_ok, 0, wxRIGHT, 5);
+	sizer_buttons->Add(btn_cancel, 0, 0, 0);
+
+	// main sizer
+	wxBoxSizer* const sizer_panel = new wxBoxSizer(wxVERTICAL);
+	sizer_panel->Add(label_name, 0, wxALL, 5);
+	sizer_panel->Add(textctrl_name, 0, wxALL, 5);
+	sizer_panel->Add(label_code, 0, wxALL, 5);
+	sizer_panel->Add(textctrl_code, 0, wxALL, 5);
+	sizer_panel->Add(sizer_value_label, 0, wxALL, 5);
+	sizer_panel->Add(textctrl_value, 0, wxALL, 5);
+	sizer_panel->Add(sizer_buttons, 0, wxALL | wxALIGN_RIGHT, 5);
+
+	panel->SetSizerAndFit(sizer_panel);
+
+	// panel sizer
+	wxBoxSizer* const sizer_main = new wxBoxSizer(wxHORIZONTAL);
+	sizer_main->Add(panel, 1, wxEXPAND, 5);
+
+	SetSizerAndFit(sizer_main);
+}
+
+void CreateCodeDialog::PressOK(wxCommandEvent&)
+{
+	const wxString code_name = textctrl_name->GetValue();
+	if (code_name.empty())
+	{
+		PanicAlert("You must enter a name!");
+		return;
+	}
+
+	long code_value;
+	if (false == textctrl_value->GetValue().ToLong(&code_value, 10 + checkbox_use_hex->GetValue()*6))
+	{
+		PanicAlert("Invalid Value!");
+		return;
+	}
+
+	//wxString full_code = textctrl_code->GetValue();
+	//full_code += wxT(' ');
+	//full_code += wxString::Format(wxT("0x%08x"), code_value);
+
+	// create the new code
+	ActionReplay::ARCode new_cheat;
+	new_cheat.active = false;
+	new_cheat.name = std::string(code_name.ToAscii());
+	const ActionReplay::AREntry new_entry(code_address, code_value);
+	new_cheat.ops.push_back(new_entry);
+
+	// pretty hacky - add the code to the gameini
+	{
+	CISOProperties isoprops(SConfig::GetInstance().m_LastFilename, this);
+	// add the code to the isoproperties arcode list
+	arCodes.push_back(new_cheat);
+	// save the gameini
+	isoprops.SaveGameConfig();
+	isoprops.ActionReplayList_Load();	// loads the new arcodes
+	//ActionReplay::UpdateActiveList();
+	}
+
+	// refresh arcode list in other tab
+	::g_cheat_window->Load_ARCodes();
+
+	Destroy();
+}
+
+void CreateCodeDialog::PressCancel(wxCommandEvent&)
+{
+	Destroy();
 }

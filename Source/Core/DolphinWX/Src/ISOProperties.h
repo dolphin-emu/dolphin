@@ -51,6 +51,9 @@ class CISOProperties : public wxDialog
 
 		bool bRefreshList;
 
+		void ActionReplayList_Load();
+		bool SaveGameConfig();
+
 	private:
 
 		DECLARE_EVENT_TABLE();
@@ -249,10 +252,8 @@ class CISOProperties : public wxDialog
 		std::string GameIniFile;
 
 		void LoadGameConfig();
-		bool SaveGameConfig();
 		void PatchList_Load();
 		void PatchList_Save();
-		void ActionReplayList_Load();
 		void ActionReplayList_Save();
 		void ChangeBannerDetails(int lang);
 };

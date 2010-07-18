@@ -1059,7 +1059,7 @@ void CFrame::OnOpenLuaWindow(wxCommandEvent& WXUNUSED (event))
 
 void CFrame::OnShow_CheatsWindow(wxCommandEvent& WXUNUSED (event))
 {
-	CheatsWindow = new wxCheatsWindow(this, wxDefaultPosition, wxSize(600, 390));
+	CheatsWindow = new wxCheatsWindow(this);
 }
 
 void CFrame::OnLoadWiiMenu(wxCommandEvent& event)
