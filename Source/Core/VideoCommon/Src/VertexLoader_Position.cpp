@@ -92,17 +92,6 @@ void Pos_ReadDirect()
 	VertexManager::s_pCurBufferPointer += 12;
 }
 
-// Explicitly instantiate these functions to decrease the possibility of
-// symbol binding problems when (only) calling them from JIT compiled code.
-template void Pos_ReadDirect<u8,  true>();
-template void Pos_ReadDirect<s8,  true>();
-template void Pos_ReadDirect<u16, true>();
-template void Pos_ReadDirect<s16, true>();
-template void Pos_ReadDirect<u8,  false>();
-template void Pos_ReadDirect<s8,  false>();
-template void Pos_ReadDirect<u16, false>();
-template void Pos_ReadDirect<s16, false>();
-
 void LOADERDECL Pos_ReadDirect_UByte3()  { Pos_ReadDirect<u8,  true>(); }
 void LOADERDECL Pos_ReadDirect_Byte3()   { Pos_ReadDirect<s8,  true>(); }
 void LOADERDECL Pos_ReadDirect_UShort3() { Pos_ReadDirect<u16, true>(); }
@@ -162,7 +151,7 @@ inline void Pos_ReadIndex_Short(int Index)
 }
 
 template<bool three>
-inline void Pos_ReadIndex_Float(int Index)
+void Pos_ReadIndex_Float(int Index)
 {
 	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]));
 	((u32*)VertexManager::s_pCurBufferPointer)[0] = Common::swap32(pData[0]);
@@ -180,7 +169,7 @@ static const __m128i kMaskSwap32_3 = _mm_set_epi32(0xFFFFFFFFL, 0x08090A0BL, 0x0
 static const __m128i kMaskSwap32_2 = _mm_set_epi32(0xFFFFFFFFL, 0xFFFFFFFFL, 0x04050607L, 0x00010203L);
 
 template<bool three>
-inline void Pos_ReadIndex_Float_SSSE3(int Index)
+void Pos_ReadIndex_Float_SSSE3(int Index)
 {
 	const u32* pData = (const u32 *)(cached_arraybases[ARRAY_POSITION] + (Index * arraystrides[ARRAY_POSITION]));
 	const __m128i a = _mm_loadu_si128((__m128i*)pData);
@@ -190,6 +179,27 @@ inline void Pos_ReadIndex_Float_SSSE3(int Index)
 	VertexManager::s_pCurBufferPointer += 12;
 }
 #endif
+
+// Explicitly instantiate these functions to decrease the possibility of
+// symbol binding problems when (only) calling them from JIT compiled code.
+template void Pos_ReadDirect<u8,  true>();
+template void Pos_ReadDirect<s8,  true>();
+template void Pos_ReadDirect<u16, true>();
+template void Pos_ReadDirect<s16, true>();
+template void Pos_ReadDirect<u8,  false>();
+template void Pos_ReadDirect<s8,  false>();
+template void Pos_ReadDirect<u16, false>();
+template void Pos_ReadDirect<s16, false>();
+template void Pos_ReadIndex_Byte<u8, true>(int Index);
+template void Pos_ReadIndex_Byte<s8, true>(int Index);
+template void Pos_ReadIndex_Short<u16, true>(int Index);
+template void Pos_ReadIndex_Short<s16, true>(int Index);
+template void Pos_ReadIndex_Float<true>(int Index);
+template void Pos_ReadIndex_Byte<u8, false>(int Index);
+template void Pos_ReadIndex_Byte<s8, false>(int Index);
+template void Pos_ReadIndex_Short<u16, false>(int Index);
+template void Pos_ReadIndex_Short<s16, false>(int Index);
+template void Pos_ReadIndex_Float<false>(int Index);
 
 // ==============================================================================
 // Index 8

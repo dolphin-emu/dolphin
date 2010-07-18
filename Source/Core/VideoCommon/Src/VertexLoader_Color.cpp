@@ -33,14 +33,14 @@
 extern int colIndex;
 extern int colElements[2];
 
-inline void _SetCol(u32 val)
+__forceinline void _SetCol(u32 val)
 {
 	*(u32*)VertexManager::s_pCurBufferPointer = val;
 	VertexManager::s_pCurBufferPointer += 4;
 	colIndex++;
 }
 
-void _SetCol4444(u16 val)
+__forceinline void _SetCol4444(u16 val)
 {
 	u32 col = Convert4To8(val & 0xF) << ASHIFT;
 	col |= Convert4To8((val >> 12) & 0xF) << RSHIFT;
@@ -49,7 +49,7 @@ void _SetCol4444(u16 val)
 	_SetCol(col);
 }
 
-void _SetCol6666(u32 val)
+__forceinline void _SetCol6666(u32 val)
 {
 	u32 col = Convert6To8((val >> 18) & 0x3F) << RSHIFT;
 	col |= Convert6To8((val >> 12) & 0x3F) << GSHIFT;
@@ -58,7 +58,7 @@ void _SetCol6666(u32 val)
 	_SetCol(col);
 }
 
-void _SetCol565(u16 val)
+__forceinline void _SetCol565(u16 val)
 {
 	u32 col = Convert5To8((val >> 11) & 0x1F) << RSHIFT;
 	col |= Convert6To8((val >> 5) & 0x3F) << GSHIFT;
@@ -67,12 +67,12 @@ void _SetCol565(u16 val)
 }
 
 
-inline u32 _Read24(const u8 *addr)
+__forceinline u32 _Read24(const u8 *addr)
 {
 	return addr[0] | (addr[1] << 8) | (addr[2] << 16) | 0xFF000000;
 }
 
-inline u32 _Read32(const u8 *addr)
+__forceinline u32 _Read32(const u8 *addr)
 {
 	return *(const u32 *)addr;
 }
