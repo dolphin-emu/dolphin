@@ -893,10 +893,6 @@
 			RelativePath=".\Src\stdafx.h"
 			>
 		</File>
-		<File
-			RelativePath=".\Src\Vec3.h"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
