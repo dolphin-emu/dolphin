@@ -18,7 +18,6 @@
 #pragma once
 
 #include "D3DBase.h"
-#include "TextureDecoder.h"
 
 namespace D3D
 {

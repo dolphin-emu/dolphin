@@ -99,9 +99,7 @@ static void VoiceHacks(AXPB &pb)
 	would end up outside of bounds while the block was still playing resulting in noise 
 	a strange noise. This should take care of that.
 	*/
-	if (
-		(sampleEnd > (0x017fffff * 2) || loopPos > (0x017fffff * 2)) // ARAM bounds in nibbles
-		)
+	if ((sampleEnd > (0x017fffff * 2) || loopPos > (0x017fffff * 2))) // ARAM bounds in nibbles
 	{
 		pb.running = 0;
 
@@ -422,7 +420,7 @@ bool CUCode_AX::AXTask(u32& _uMail)
 		default:
 			{
 				static bool bFirst = true;
-				if (bFirst == true)
+				if (bFirst)
 				{
 					char szTemp[2048];
 					sprintf(szTemp, "Unknown AX-Command 0x%x (address: 0x%08x). Last valid: %02x\n",

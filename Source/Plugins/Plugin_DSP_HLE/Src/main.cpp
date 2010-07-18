@@ -108,13 +108,13 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 {
 #ifdef _WIN32
 	wxSetInstance((HINSTANCE)g_hInstance);
-#endif
 	wxWindow *win = new wxWindow();
-#ifdef _WIN32
 	win->SetHWND((WXHWND)Parent);
 	win->AdoptAttributesFromHWND();
-#endif
 	return win;
+#else
+	return new wxWindow();
+#endif
 }
 #endif
 

@@ -60,30 +60,32 @@ void CUCode_AXWii::HandleMail(u32 _uMail)
 			m_rMailHandler.PushMail(DSP_RESUME);
 		}
 	}
-	else {	
-		if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
-		{
-			// We are expected to get a new CmdBlock
-			DEBUG_LOG(DSPHLE, "GetNextCmdBlock (%ibytes)", (u16)_uMail);
-		}
-		else if (_uMail == 0xCDD10000) // Action 0 - AX_ResumeTask();
-		{
+	else if ((_uMail & 0xFFFF0000) == MAIL_AX_ALIST)
+	{
+		// We are expected to get a new CmdBlock
+		DEBUG_LOG(DSPHLE, "GetNextCmdBlock (%ibytes)", (u16)_uMail);
+	}
+	else switch(_uMail)
+	{
+		case 0xCDD10000: // Action 0 - AX_ResumeTask()
 			m_rMailHandler.PushMail(DSP_RESUME);
-		}
-		else if (_uMail == 0xCDD10001) // Action 1 - new ucode upload
-		{
+			break;
+
+		case 0xCDD10001: // Action 1 - new ucode upload
 			NOTICE_LOG(DSPHLE,"DSP IROM - New Ucode!");
 			newucodemails = 0;
-		}
-		else if (_uMail == 0xCDD10002) // Action 2 - IROM_Reset(); ( WII: De Blob, Cursed Mountain,...)
-		{
+			break;
+
+		case 0xCDD10002: // Action 2 - IROM_Reset(); ( WII: De Blob, Cursed Mountain,...)
 			NOTICE_LOG(DSPHLE,"DSP IROM - Reset!");
 			CDSPHandler::GetInstance().SetUCode(UCODE_ROM);
-		}
-		else if (_uMail == 0xCDD10003) // Action 3 - AX_GetNextCmdBlock();
-		{
-		}
-		else
+			break;
+
+		case 0xCDD10003: // Action 3 - AX_GetNextCmdBlock()
+			//TODO: Implement??
+			break;
+
+		default:
 		{
 			DEBUG_LOG(DSPHLE, " >>>> u32 MAIL : AXTask Mail (%08x)", _uMail);
 			AXTask(_uMail);
@@ -133,9 +135,9 @@ void CUCode_AXWii::MixAdd(short* _pBuffer, int _iSize)
 			int left  = templbuffer[i] + _pBuffer[0];
 			int right = temprbuffer[i] + _pBuffer[1];
 			if (left  < -32767)  left = -32767;
-			if (left  >  32767)  left =  32767;
+			else if (left  >  32767)  left =  32767;
 			if (right < -32767) right = -32767;
-			if (right >  32767) right =  32767;
+			else if (right >  32767) right =  32767;
 			*_pBuffer++ = left;
 			*_pBuffer++ = right;
 		}
@@ -216,24 +218,15 @@ bool CUCode_AXWii::AXTask(u32& _uMail)
 			break;
 
 		case 0x000a:
-			if (wiisportsHack) // AXLIST_COMPRESSORTABLE
-			    uAddress += 4;
-			else
-				uAddress += 8;
+			uAddress += wiisportsHack ? 4 : 8; // AXLIST_COMPRESSORTABLE
 		    break;
 
 		case 0x000b:
-			if (wiisportsHack)
-				uAddress += 2;
-			else
-				uAddress += 10;
+			uAddress += wiisportsHack ? 2 : 10;
 			break;
 
 		case 0x000c:
-			if (wiisportsHack)
-				uAddress += 8;
-			else
-				uAddress += 10;
+			uAddress += wiisportsHack ? 8 : 10;
 			break;
 
 		case 0x000d:

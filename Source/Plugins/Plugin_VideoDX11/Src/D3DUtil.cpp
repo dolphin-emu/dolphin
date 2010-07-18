@@ -481,10 +481,13 @@ void InitUtils()
 	clearvb = CreateQuadVertexBuffer(4*sizeof(ClearVertex), cqcoords);
 	CHECK(clearvb!=NULL, "Create vertex buffer of drawClearQuad");
 	SetDebugObjectName((ID3D11DeviceChild*)clearvb, "vertex buffer of drawClearQuad");
+
+	font.Init();
 }
 
 void ShutdownUtils()
 {
+	font.Shutdown();
 	SAFE_RELEASE(point_copy_sampler);
 	SAFE_RELEASE(linear_copy_sampler);
 	SAFE_RELEASE(stqvb);

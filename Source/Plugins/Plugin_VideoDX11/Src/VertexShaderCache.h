@@ -19,14 +19,8 @@
 #define _VERTEXSHADERCACHE_H
 
 #include "D3DBase.h"
-
-#include <map>
-#include <string>
-
-#include "D3DBase.h"
 #include "VertexShaderGen.h"
-
-#include "d3dcompiler.h"
+#include <map>
 
 class VertexShaderCache
 {

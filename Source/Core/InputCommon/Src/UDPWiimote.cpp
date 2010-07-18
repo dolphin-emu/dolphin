@@ -277,9 +277,9 @@ void UDPWiimote::broadcastPresence()
 void UDPWiimote::getAccel(float &_x, float &_y, float &_z)
 {
 	d->mutex.Enter();
-	_x=x;
-	_y=y;
-	_z=z;
+	_x=(float)x;
+	_y=(float)y;
+	_z=(float)z;
 	d->mutex.Leave();
 	//NOTICE_LOG(WIIMOTE,"%lf %lf %lf",_x, _y, _z);
 }

@@ -72,7 +72,7 @@ D3DTexture2D* D3DTexture2D::Create(unsigned int width, unsigned int height, D3D1
 
 void D3DTexture2D::AddRef()
 {
-	ref++;
+	++ref;
 }
 
 UINT D3DTexture2D::Release()

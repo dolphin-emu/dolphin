@@ -21,7 +21,6 @@
 #include "VertexShaderGen.h"
 #include "PixelShaderGen.h"
 #include <stack>
-
 using std::stack;
 
 namespace D3D

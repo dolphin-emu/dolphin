@@ -229,15 +229,9 @@ static const D3D11_TEXTURE_ADDRESS_MODE d3dClamps[4] =
 
 void SetupDeviceObjects()
 {
-	HRESULT hr;
-
-	D3D::font.Init();
-	VertexLoaderManager::Init();
 	FBManager.Create();
 
-	VertexShaderManager::Dirty();
-	PixelShaderManager::Dirty();
-
+	HRESULT hr;
 	float colmat[20]= {0.0f};
 	colmat[0] = colmat[5] = colmat[10] = 1.0f;
 	D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(20*sizeof(float), D3D11_BIND_CONSTANT_BUFFER, D3D11_USAGE_DEFAULT);
@@ -284,7 +278,6 @@ void SetupDeviceObjects()
 	CHECK(hr==S_OK, "Create blend state for Renderer::ResetAPIState");
 	D3D::SetDebugObjectName((ID3D11DeviceChild*)resetblendstate, "blend state for Renderer::ResetAPIState");
 
-	// TODO: For some reason this overwrites existing resource private data...
 	ddesc.DepthEnable       = FALSE;
 	ddesc.DepthWriteMask    = D3D11_DEPTH_WRITE_MASK_ZERO;
 	ddesc.DepthFunc         = D3D11_COMPARISON_LESS;
@@ -304,15 +297,7 @@ void SetupDeviceObjects()
 
 void TeardownDeviceObjects()
 {
-	D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), NULL);
 	FBManager.Destroy();
-	D3D::font.Shutdown();
-	TextureCache::Invalidate(false);
-	VertexManager::DestroyDeviceObjects();
-	VertexLoaderManager::Shutdown();
-	VertexShaderCache::Clear();
-	PixelShaderCache::Clear();
-
 	SAFE_RELEASE(access_efb_cbuf);
 	SAFE_RELEASE(cleardepthstates[0]);
 	SAFE_RELEASE(cleardepthstates[1]);

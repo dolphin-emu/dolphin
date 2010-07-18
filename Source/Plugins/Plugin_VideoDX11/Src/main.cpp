@@ -27,30 +27,32 @@
 #include "Thread.h"
 #include "LogManager.h"
 
-#include "resource.h"
-#include "main.h"
 #include "VideoConfig.h"
 #include "Fifo.h"
 #include "OpcodeDecoding.h"
-#include "TextureCache.h"
 #include "BPStructs.h"
-#include "VertexManager.h"
 #include "VertexLoaderManager.h"
 #include "VertexShaderManager.h"
 #include "PixelShaderManager.h"
-#include "VertexShaderCache.h"
-#include "PixelShaderCache.h"
 #include "CommandProcessor.h"
 #include "PixelEngine.h"
 #include "OnScreenDisplay.h"
+#include "VideoState.h"
+#include "XFBConvert.h"
+#include "Render.h"
+
+#include "main.h"
+#include "resource.h"
 #include "DlgSettings.h"
+#include "TextureCache.h"
+#include "VertexManager.h"
+#include "VertexShaderCache.h"
+#include "PixelShaderCache.h"
 #include "D3DTexture.h"
 #include "D3DUtil.h"
 #include "W32Util/Misc.h"
 #include "EmuWindow.h"
-#include "VideoState.h"
-#include "XFBConvert.h"
-#include "render.h"
+#include "FBManager.h"
 
 
 #if defined(DEBUGFAST)
@@ -222,20 +224,24 @@ void Video_Prepare()
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
 	s_swapRequested = FALSE;
+
+	// internal interfaces
 	Renderer::Init();
 	TextureCache::Init();
-	BPInit();
 	VertexManager::Init();
+	VertexShaderCache::Init();
+	PixelShaderCache::Init();
+	D3D::InitUtils();
+
+	// VideoCommon
+	BPInit();
 	Fifo_Init();
 	VertexLoaderManager::Init();
 	OpcodeDecoder_Init();
-	VertexShaderCache::Init();
 	VertexShaderManager::Init();
-	PixelShaderCache::Init();
 	PixelShaderManager::Init();
 	CommandProcessor::Init();
 	PixelEngine::Init();
-	D3D::InitUtils();
 
 	// tell the host that the window is ready
 	g_VideoInitialize.pCoreMessage(WM_USER_CREATE);
@@ -246,19 +252,24 @@ void Shutdown()
 	s_efbAccessRequested = FALSE;
 	s_FifoShuttingDown = FALSE;
 	s_swapRequested = FALSE;
+
+	// VideoCommon
 	CommandProcessor::Shutdown();
 	PixelShaderManager::Shutdown();
-	PixelShaderCache::Shutdown();
 	VertexShaderManager::Shutdown();
-	VertexShaderCache::Shutdown();
 	OpcodeDecoder_Shutdown();
 	VertexLoaderManager::Shutdown();
 	Fifo_Shutdown();
+
+	// internal interfaces
+	D3D::ShutdownUtils();
+	PixelShaderCache::Shutdown();
+	VertexShaderCache::Shutdown();
 	VertexManager::Shutdown();
 	TextureCache::Shutdown();
-	D3D::ShutdownUtils();
 	Renderer::Shutdown();
 	EmuWindow::Close();
+
 	s_PluginInitialized = false;
 }
 
@@ -306,11 +317,6 @@ void VideoFifo_CheckSwapRequest()
 			Common::AtomicStoreRelease(s_swapRequested, FALSE);
 		}
 	}
-}
-
-inline bool addrRangesOverlap(u32 aLower, u32 aUpper, u32 bLower, u32 bUpper)
-{
-	return !((aLower >= bUpper) || (bLower >= aUpper));
 }
 
 // Run from the graphics thread (from Fifo.cpp)
