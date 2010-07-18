@@ -16,22 +16,18 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "MemoryUtil.h"
 #include "MemArena.h"
 
 #ifdef _WIN32
 #include <windows.h>
 #else
-#include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <cerrno>
 #include <cstring>
 #endif
-
-#if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
-#define MAP_ANONYMOUS MAP_ANON
-#endif 
 
 #ifndef _WIN32
 static const char* ram_temp_file = "/tmp/gc_mem.tmp";
@@ -123,7 +119,8 @@ u8* MemArena::Find4GBBase()
 	}
 	return base;
 #else
-	void* base = mmap(0, 0x31000000, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED, 0, 0);
+	void* base = mmap(0, 0x31000000, PROT_READ | PROT_WRITE,
+		MAP_ANON | MAP_SHARED, 0, 0);
 	if (base == MAP_FAILED) {
 		PanicAlert("Failed to map 1 GB of memory space: %s", strerror(errno));
 		return 0;
