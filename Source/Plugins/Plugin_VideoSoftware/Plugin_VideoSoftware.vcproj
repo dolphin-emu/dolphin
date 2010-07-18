@@ -644,6 +644,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\Vec3.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\VertexFormatConverter.cpp"
 			>
 		</File>

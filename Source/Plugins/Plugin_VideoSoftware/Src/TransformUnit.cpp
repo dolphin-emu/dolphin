@@ -25,7 +25,7 @@
 #include "BPMemLoader.h"
 #include "NativeVertexFormat.h"
 
-#include "../../Plugin_VideoDX9/Src/Vec3.h"
+#include "Vec3.h"
 
 
 namespace TransformUnit

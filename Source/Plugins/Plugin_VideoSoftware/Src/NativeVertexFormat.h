@@ -18,7 +18,7 @@
 #ifndef _NATIVEVERTEXFORMAT_H
 #define _NATIVEVERTEXFORMAT_H
 
-#include "../../Plugin_VideoDX9/Src/Vec3.h"
+#include "Vec3.h"
 
 #ifdef WIN32
 #define LOADERDECL __cdecl
