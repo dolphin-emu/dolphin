@@ -73,8 +73,7 @@ CUCode_Zelda::CUCode_Zelda(CMailHandler& _rMailHandler, u32 _CRC)
 	if (IsLightVersion())
 	{
 		NOTICE_LOG(DSPHLE, "Luigi Stylee!");
-		// Is it correct? seen in DSP_UC_Luigi.txt reset vector
-		m_rMailHandler.PushMail(0x80001111);	
+		m_rMailHandler.PushMail(0x88881111);	
 	}
 	else
 	{
@@ -143,15 +142,10 @@ void CUCode_Zelda::HandleMail_LightVersion(u32 _uMail)
 
 		if (m_CurBuffer == m_NumBuffers)
 		{
-			m_rMailHandler.PushMail(0x80000066); // seen in DSP_UC_Luigi.txt
-
 			soundStream->GetMixer()->SetHLEReady(true);
-			DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
-//			soundStream->Update(); //do it in this thread to avoid sync problems
-
 			m_bSyncCmdPending = false;
+			DEBUG_LOG(DSPHLE, "Update the SoundThread to be in sync");
 		}
-
 		return;
 	}
 
@@ -333,7 +327,7 @@ void CUCode_Zelda::HandleMail_NormalVersion(u32 _uMail)
 
 				if (m_CurBuffer == m_NumBuffers)
 				{
-					if (!IsDMAVersion())
+					if (!IsDMAVersion()) // this is a hack... without it Pikmin 1 Wii/ Zelda TP Wii mail-s stopped
 						m_rMailHandler.PushMail(DSP_FRAME_END);
 					//g_dspInitialize.pGenerateDSPInterrupt();
 
@@ -538,7 +532,10 @@ void CUCode_Zelda::ExecuteList()
 	// sync, we are ready
 	if (IsLightVersion())
 	{
-		m_rMailHandler.PushMail(0x80000000 | Sync);
+		if (m_bSyncCmdPending)
+			m_rMailHandler.PushMail(0x80000000 | m_NumBuffers); // after CMD_2
+		else	
+			m_rMailHandler.PushMail(0x80000000 | Sync); // after CMD_0, CMD_1
 	}
 	else
 	{
