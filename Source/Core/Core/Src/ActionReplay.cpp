@@ -326,7 +326,7 @@ bool RunCode(const ARCode &arcode)
 			continue;
 		}
 		
-		LogInfo("--- Running Code: %08x %08x ---", addr, data);
+		LogInfo("--- Running Code: %08x %08x ---", addr.address, data);
 		//LogInfo("Command: %08x", cmd);
 
 		// Do Fill & Slide
@@ -549,7 +549,9 @@ bool Subtype_RamWriteAndFill(const ARAddr addr, const u32 data)
 
 	default:
 		LogInfo("Bad Size");
-		PanicAlert("Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And Fill (%s)", addr.size, addr, current_code->name.c_str());
+		PanicAlert("Action Replay Error: Invalid size "
+			"(%08x : address = %08x) in Ram Write And Fill (%s)",
+			addr.size, addr.gcaddr, current_code->name.c_str());
 		return false;
 	}
 
@@ -607,7 +609,9 @@ bool Subtype_WriteToPointer(const ARAddr addr, const u32 data)
 
 	default:
 		LogInfo("Bad Size");
-		PanicAlert("Action Replay Error: Invalid size (%08x : address = %08x) in Write To Pointer (%s)", addr.size, addr, current_code->name.c_str());
+		PanicAlert("Action Replay Error: Invalid size "
+			"(%08x : address = %08x) in Write To Pointer (%s)",
+			addr.size, addr.gcaddr, current_code->name.c_str());
 		return false;
 	}
 	return true;
@@ -665,7 +669,9 @@ bool Subtype_AddCode(const ARAddr addr, const u32 data)
 
 	default:
 		LogInfo("Bad Size");
-		PanicAlert("Action Replay Error: Invalid size(%08x : address = %08x) in Add Code (%s)", addr.size, addr, current_code->name.c_str());
+		PanicAlert("Action Replay Error: Invalid size "
+			"(%08x : address = %08x) in Add Code (%s)",
+			addr.size, addr.gcaddr, current_code->name.c_str());
 		return false;
 	}
 	return true;
