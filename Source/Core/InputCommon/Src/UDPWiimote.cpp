@@ -41,6 +41,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <list>
 
 struct UDPWiimote::_d
@@ -307,7 +308,7 @@ void UDPWiimote::initBroadcastIPv4()
 	}
 	
 	int broad=1;
-	if (setsockopt(d->bipv4_fd,SOL_SOCKET,SO_BROADCAST, &broad, sizeof broad) == -1)
+	if (setsockopt(d->bipv4_fd,SOL_SOCKET,SO_BROADCAST, (const dataz)(&broad), sizeof broad) == -1)
 	{
 		WARN_LOG(WIIMOTE,"setsockopt(SO_BROADCAST) failed");
 		return;
