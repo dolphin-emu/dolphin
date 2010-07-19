@@ -365,7 +365,8 @@ CFrame::CFrame(wxFrame* parent,
 	// Give it a console early to show potential messages from this onward
 	ConsoleListener *Console = LogManager::GetInstance()->getConsoleListener();
 	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
-	if (SConfig::GetInstance().m_InterfaceLogWindow) m_LogWindow = new CLogWindow(this, IDM_LOGWINDOW);
+	m_LogWindow = new CLogWindow(this, IDM_LOGWINDOW);
+	m_LogWindow->Hide();
 
 	// Start debugging mazimized
 	if (UseDebugger) this->Maximize(true);
@@ -467,8 +468,10 @@ CFrame::CFrame(wxFrame* parent,
 	else
 	{
 		SetSimplePaneSize();
-		if (SConfig::GetInstance().m_InterfaceLogWindow) DoToggleWindow(IDM_LOGWINDOW, true);
-		if (SConfig::GetInstance().m_InterfaceConsole) DoToggleWindow(IDM_CONSOLEWINDOW, true);
+		if (SConfig::GetInstance().m_InterfaceLogWindow)
+		   	ToggleLogWindow(true);
+		if (SConfig::GetInstance().m_InterfaceConsole)
+		   	ToggleConsole(true);
 	}
 
 	// Show window
@@ -692,38 +695,16 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 			m_RenderParent->SetCursor(wxCURSOR_BLANK);
 		break;
+
 #if defined(HAVE_X11) && HAVE_X11
 	case WM_USER_STOP:
 		DoStop();
 		break;
 #endif
-	}
-}
 
-void CFrame::OnCustomHostMessage(int Id)
-{
-	wxWindow *Win;
-
-	switch(Id)
-	{
-	// Destroy windows
-	case AUDIO_DESTROY:		
-		Win = GetWxWindow(wxT("Sound"));
-		if (Win)
-		{
-			DoRemovePage(Win, false);
-
-			CPluginManager::GetInstance().OpenDebug(
-				GetHandle(),
-				SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str(),
-				PLUGIN_TYPE_DSP, false
-				);
-
-			//Win->Reparent(NULL);
-			//g_pCodeWindow->OnToggleDLLWindow(false, 0);
-			GetMenuBar()->FindItem(IDM_SOUNDWINDOW)->Check(false);
-			NOTICE_LOG(CONSOLE, "%s", Core::StopMessage(true, "Sound debugging window closed").c_str());
-		}
+	case AUDIO_DESTROY:
+		if (g_pCodeWindow)
+			g_pCodeWindow->ToggleDLLWindow(IDM_SOUNDWINDOW, false);
 		break;
 
 	case VIDEO_DESTROY:
@@ -906,10 +887,6 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 	}
 }
 
-// --------
-// Functions
-
-
 wxFrame * CFrame::CreateParentFrame(wxWindowID Id, const wxString& Title, wxWindow * Child)
 {
 	wxFrame * Frame = new wxFrame(this, Id, Title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
@@ -973,94 +950,4 @@ void CFrame::DoFullscreen(bool bF)
 	}
 	else
 		m_RenderFrame->Raise();
-}
-
-// Debugging, show loose windows
-void CFrame::ListChildren()
-{	
-	ConsoleListener* Console = LogManager::GetInstance()->getConsoleListener();
-	wxAuiNotebook * NB = NULL;
-
-	Console->Log(LogTypes::LNOTICE, "--------------------------------------------------------------------\n");
-
-	for (u32 i = 0; i < this->GetChildren().size(); i++)
-	{
-		wxWindow * Win = this->GetChildren().Item(i)->GetData();
-		Console->Log(LogTypes::LNOTICE, StringFromFormat(
-			"%i: %s (%s) :: %s", i,
-			(const char*)Win->GetName().mb_str(), (const char*)Win->GetLabel().mb_str(), (const char*)Win->GetParent()->GetName().mb_str()).c_str());
-		//if (Win->GetName().IsSameAs(wxT("control")))
-		if (Win->IsKindOf(CLASSINFO(wxAuiNotebook)))
-		{
-			NB = (wxAuiNotebook*)Win;
-			Console->Log(LogTypes::LNOTICE, StringFromFormat(" :: NB", (const char*)NB->GetName().mb_str()).c_str());
-		}
-		else
-		{
-			NB = NULL;
-		}
-		Console->Log(LogTypes::LNOTICE, StringFromFormat("\n").c_str());
-
-		Win = this->GetChildren().Item(i)->GetData();
-		for (u32 j = 0; j < Win->GetChildren().size(); j++)
-		{
-			Console->Log(LogTypes::LNOTICE, StringFromFormat(
-			 "     %i.%i: %s (%s) :: %s", i, j,
-			 (const char*)Win->GetName().mb_str(), (const char*)Win->GetLabel().mb_str(), (const char*)Win->GetParent()->GetName().mb_str()).c_str());
-			if (NB)
-			{
-				if (j < NB->GetPageCount())
-					Console->Log(LogTypes::LNOTICE, StringFromFormat(" :: %s", (const char*)NB->GetPage(j)->GetName().mb_str()).c_str());
-			}
-			Console->Log(LogTypes::LNOTICE, StringFromFormat("\n").c_str());
-
-			/*
-			Win = this->GetChildren().Item(j)->GetData();
-			for (int k = 0; k < Win->GetChildren().size(); k++)
-			{
-				Console->Log(LogTypes::LNOTICE, StringFromFormat(
-					"          %i.%i.%i: %s (%s) :: %s\n", i, j, k,
-					Win->GetName().mb_str(), Win->GetLabel().mb_str(), Win->GetParent()->GetName().mb_str()).c_str());
-			}
-			*/
-		}
-	}	
-
-	Console->Log(LogTypes::LNOTICE, "--------------------------------------------------------------------\n");
-
-	for (u32 i = 0; i < m_Mgr->GetAllPanes().GetCount(); i++)
-	{
-		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook))) continue;
-		wxAuiNotebook * _NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
-		Console->Log(LogTypes::LNOTICE, StringFromFormat("%i: %s\n", i, (const char *)m_Mgr->GetAllPanes().Item(i).name.mb_str()).c_str());
-
-		for (u32 j = 0; j < _NB->GetPageCount(); j++)
-		{
-			Console->Log(LogTypes::LNOTICE, StringFromFormat("%i.%i: %s\n", i, j, (const char *)_NB->GetPageText(j).mb_str()).c_str());
-		}
-	}
-
-	Console->Log(LogTypes::LNOTICE, "--------------------------------------------------------------------\n");
-}
-
-void CFrame::ListTopWindows()
-{
-	wxWindowList::const_iterator i;
-	int j = 0;
-	const wxWindowList::const_iterator end = wxTopLevelWindows.end();
-
-	for (i = wxTopLevelWindows.begin(); i != end; ++i)
-	{
-		wxTopLevelWindow * const Win = wx_static_cast(wxTopLevelWindow *, *i);
-		NOTICE_LOG(CONSOLE, "%i: %i %s", j, Win, (const char *)Win->GetTitle().mb_str());
-		/*
-		if ( win->ShouldPreventAppExit() )
-		{
-			// there remains at least one important TLW, don't exit
-			return false;
-		}
-		*/
-		j++;
-	}
-	NOTICE_LOG(CONSOLE, "\n");
 }

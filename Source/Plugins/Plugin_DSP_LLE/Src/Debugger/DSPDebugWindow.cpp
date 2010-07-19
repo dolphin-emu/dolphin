@@ -32,7 +32,7 @@
 void Host_NotifyMapLoaded() {}
 void Host_UpdateBreakPointView() {}
 
-BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxFrame)	
+BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)	
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)
 	EVT_MENU_RANGE(ID_RUNTOOL, ID_STEPTOOL, DSPDebuggerLLE::OnChangeState)
 	EVT_MENU(ID_SHOWPCTOOL, DSPDebuggerLLE::OnShowPC)
@@ -42,9 +42,8 @@ END_EVENT_TABLE()
 
 
 DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent)
-	: wxFrame(parent, wxID_ANY, _("DSP LLE Debugger"),
-			  wxDefaultPosition, wxSize(700, 800),
-			  wxDEFAULT_FRAME_STYLE)
+	: wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(700, 800),
+		   	wxTAB_TRAVERSAL, _("Sound"))
 	, m_CachedStepCounter(-1)
 {
 	// notify wxAUI which frame to use

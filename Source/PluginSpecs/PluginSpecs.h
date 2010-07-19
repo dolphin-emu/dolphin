@@ -48,7 +48,6 @@ enum PLUGIN_COMM
 	// simulate something that looks like win32
 	// long term, kill these
 	#define HWND  void*
-	#define HINSTANCE void*
 #endif
 
 #if defined(__cplusplus)
@@ -127,7 +126,7 @@ EXPORT void CALL DllConfig(HWND _hParent);
 // input:    a handle to the window that calls this function
 // output:   none
 //
-EXPORT void CALL DllDebugger(HWND _hParent, bool Show);
+EXPORT void CALL DllDebugger(void *_hParent, bool Show);
 
 // ___________________________________________________________________________
 // Function: DllSetGlobals

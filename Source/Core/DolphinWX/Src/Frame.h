@@ -130,7 +130,6 @@ class CFrame : public CRenderFrame
 		void PostUpdateUIEvent(wxUpdateUIEvent& event);
 		void StatusBarMessage(const char * Text, ...);
 		void ClearStatusBar();
-		void OnCustomHostMessage(int Id);
 		void OnSizeRequest(int& x, int& y, int& width, int& height);
 		void BootGame(const std::string& filename);
 		void OnRenderParentClose(wxCloseEvent& event);
@@ -166,8 +165,6 @@ class CFrame : public CRenderFrame
 		int Limit(int,int,int);
 		int PercentageToPixels(int,int);
 		int PixelsToPercentage(int,int);
-		void ListChildren();
-		void ListTopWindows();
 		wxString GetMenuLabel(int Id);
 
 		// Perspectives
@@ -176,17 +173,16 @@ class CFrame : public CRenderFrame
 		void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
 		void OnNotebookPageChanged(wxAuiNotebookEvent& event);
 		void OnFloatWindow(wxCommandEvent& event);
+		void ToggleFloatWindow(int Id);
 		void OnTab(wxAuiNotebookEvent& event);
 		int GetNootebookAffiliation(wxString Name);
 		void ClosePages();
-		void DoToggleWindow(int,bool);
 		void ShowAllNotebooks(bool Window = false);
 		void HideAllNotebooks(bool Window = false);
 		void CloseAllNotebooks();
 		void DoAddPage(wxWindow *, int, wxString, bool);
 		void DoRemovePage(wxWindow *, bool Hide = true);
-		void DoRemovePageId(wxWindowID Id, bool Hide = true, bool Destroy = false);
-		void DoRemovePageString(wxString, bool Hide = true, bool Destroy = false);
+		void DoRemovePageId(wxWindowID Id, bool bHide, bool bDestroy);
 		void TogglePane();
 		void SetSimplePaneSize();
 		void SetPaneSize();

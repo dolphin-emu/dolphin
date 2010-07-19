@@ -61,7 +61,7 @@ void SetDllGlobals(PLUGIN_GLOBALS* _pPluginGlobals)
 	LogManager::SetInstance((LogManager *)globals->logManager);
 }
 
-void DllDebugger(HWND _hParent, bool Show)
+void DllDebugger(void *_hParent, bool Show)
 {
 }
 

@@ -15,11 +15,6 @@
 // Official SVN repository and contact information can be found at
 // http://code.google.com/p/dolphin-emu/
 
-
-
-
-// Include
-// --------------
 #include "Common.h"
 
 #include <wx/button.h>
@@ -31,7 +26,6 @@
 #include <wx/tipwin.h>
 #include <wx/fontdlg.h>
 
-// ugly that this lib included code from the main
 #include "../../DolphinWX/Src/WxUtils.h"
 
 #include "Host.h"
@@ -67,7 +61,6 @@
 #include "PluginManager.h"
 #include "ConfigManager.h"
 
-
 extern "C"  // Bitmaps
 {
 	#include "../resources/toolbar_play.c"
@@ -76,8 +69,6 @@ extern "C"  // Bitmaps
 	#include "../resources/toolbar_delete.c"
 	#include "../resources/toolbar_add_breakpoint.c"
 }
-
-
 
 // Save and load settings
 // -----------------------------
@@ -129,6 +120,7 @@ void CCodeWindow::Load()
 	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
 	ini.Get("ShowOnStart", "BootToPause", &bBootToPause, true);
 }
+
 void CCodeWindow::Save()
 {
 	IniFile ini;
@@ -140,14 +132,14 @@ void CCodeWindow::Save()
 	ini.Set("ShowOnStart", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
 	ini.Set("ShowOnStart", "BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
 
-	// Save windows settings	
+	// Save windows settings
 	//ini.Set("ShowOnStart", "Code", GetMenuBar()->IsChecked(IDM_CODEWINDOW));
 	ini.Set("ShowOnStart", "Registers", GetMenuBar()->IsChecked(IDM_REGISTERWINDOW));
 	ini.Set("ShowOnStart", "Breakpoints", GetMenuBar()->IsChecked(IDM_BREAKPOINTWINDOW));
 	ini.Set("ShowOnStart", "Memory", GetMenuBar()->IsChecked(IDM_MEMORYWINDOW));
 	ini.Set("ShowOnStart", "JIT", GetMenuBar()->IsChecked(IDM_JITWINDOW));
 	ini.Set("ShowOnStart", "Sound", GetMenuBar()->IsChecked(IDM_SOUNDWINDOW));
-	ini.Set("ShowOnStart", "Video", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));		
+	ini.Set("ShowOnStart", "Video", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));
 	std::string _Section = StringFromFormat("P - %s",
 		(Parent->ActivePerspective < Parent->Perspectives.size())
 		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "");
@@ -169,11 +161,10 @@ void CCodeWindow::Save()
 	ini.Set("Float", "Memory", !!FindWindowById(IDM_MEMORYWINDOW_PARENT));
 	ini.Set("Float", "JIT", !!FindWindowById(IDM_JITWINDOW_PARENT));
 	ini.Set("Float", "Sound", !!FindWindowById(IDM_SOUNDWINDOW_PARENT));
-	ini.Set("Float", "Video", !!FindWindowById(IDM_VIDEOWINDOW_PARENT));	
+	ini.Set("Float", "Video", !!FindWindowById(IDM_VIDEOWINDOW_PARENT));
 
 	ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 }
-
 
 // Symbols, JIT, Profiler
 // ----------------
@@ -200,7 +191,7 @@ void CCodeWindow::CreateMenuSymbols()
 	pSymbolsMenu->Append(IDM_USESIGNATUREFILE, _T("&Use signature file..."));
 	pSymbolsMenu->AppendSeparator();
 	pSymbolsMenu->Append(IDM_PATCHHLEFUNCTIONS, _T("&Patch HLE functions"));
-    pSymbolsMenu->Append(IDM_RENAME_SYMBOLS, _T("&Rename symbols from file..."));
+	pSymbolsMenu->Append(IDM_RENAME_SYMBOLS, _T("&Rename symbols from file..."));
 	pMenuBar->Append(pSymbolsMenu, _T("&Symbols"));
 
 	wxMenu *pProfilerMenu = new wxMenu;
@@ -209,7 +200,6 @@ void CCodeWindow::CreateMenuSymbols()
 	pProfilerMenu->Append(IDM_WRITEPROFILE, _T("&Write to profile.txt, show"));
 	pMenuBar->Append(pProfilerMenu, _T("&Profiler"));
 }
-
 
 void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 {
@@ -255,7 +245,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		if (db.Load((File::GetSysDirectory() + TOTALDB).c_str()))
 		{
 			db.Apply(&g_symbolDB);
-			Parent->StatusBarMessage("Generated symbol names from '%s'", TOTALDB);			
+			Parent->StatusBarMessage("Generated symbol names from '%s'", TOTALDB);
 		}
 		else
 		{
@@ -281,7 +271,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 			g_symbolDB.LoadMap(mapfile.c_str());
 			Parent->StatusBarMessage("Loaded symbols from '%s'", mapfile.c_str());
 		}
-        HLE::PatchFunctions();
+		HLE::PatchFunctions();
 		NotifyMapLoaded();
 		break;
 	case IDM_SAVEMAPFILE:
@@ -291,39 +281,39 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 		g_symbolDB.SaveMap(mapfile.c_str(), true);
 		break;
 
-    case IDM_RENAME_SYMBOLS:
-        {
-            wxString path = wxFileSelector(
-                _T("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
-                _T("Dolphin Symbole Rename File (*.sym)|*.sym;"), wxFD_OPEN | wxFD_FILE_MUST_EXIST,
-                this);
-            if (! path.IsEmpty()) 
-            {
-                FILE *f = fopen(path.mb_str(), "r");
-                if (!f)
-                    return;
+	case IDM_RENAME_SYMBOLS:
+		{
+			wxString path = wxFileSelector(
+					_T("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
+					_T("Dolphin Symbole Rename File (*.sym)|*.sym;"), wxFD_OPEN | wxFD_FILE_MUST_EXIST,
+					this);
+			if (! path.IsEmpty())
+			{
+				FILE *f = fopen(path.mb_str(), "r");
+				if (!f)
+					return;
 
-                while (!feof(f))
-                {
-                    char line[512];
-                    fgets(line, 511, f);
-                    if (strlen(line) < 4)
-                        continue;
+				while (!feof(f))
+				{
+					char line[512];
+					fgets(line, 511, f);
+					if (strlen(line) < 4)
+						continue;
 
-                    u32 address, type;
-                    char name[512];
-                    sscanf(line, "%08x %02i %s", &address, &type, name);
+					u32 address, type;
+					char name[512];
+					sscanf(line, "%08x %02i %s", &address, &type, name);
 
-                    Symbol *symbol = g_symbolDB.GetSymbolFromAddr(address);
-                    if (symbol) {
-                        symbol->name = line+12;
-                    }
-                }
-                fclose(f);
-                Host_NotifyMapLoaded();
-            }
-        }
-        break;
+					Symbol *symbol = g_symbolDB.GetSymbolFromAddr(address);
+					if (symbol) {
+						symbol->name = line+12;
+					}
+				}
+				fclose(f);
+				Host_NotifyMapLoaded();
+			}
+		}
+		break;
 
 	case IDM_CREATESIGNATUREFILE:
 		{
@@ -373,7 +363,6 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	}
 }
 
-
 void CCodeWindow::NotifyMapLoaded()
 {
 	if (!codeview) return;
@@ -391,7 +380,6 @@ void CCodeWindow::NotifyMapLoaded()
 	//symbols->Show(true);
 	Update();
 }
-
 
 void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
 {
@@ -417,7 +405,6 @@ void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
 {
 }
 
-
 // Change the global DebuggerFont
 void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 {
@@ -432,157 +419,167 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 	}
 }
 
-
-
-
 // Toogle windows
-// ----------------
 
 void CCodeWindow::OpenPages()
-{	
-							Parent->DoToggleWindow(IDM_CODEWINDOW, true);
-	if (bRegisterWindow)	Parent->DoToggleWindow(IDM_REGISTERWINDOW, true);
-	if (bBreakpointWindow)	Parent->DoToggleWindow(IDM_BREAKPOINTWINDOW, true);
-	if (bMemoryWindow)		Parent->DoToggleWindow(IDM_MEMORYWINDOW, true);
-	if (bJitWindow)			Parent->DoToggleWindow(IDM_JITWINDOW, true);
-	if (bSoundWindow)		Parent->DoToggleWindow(IDM_SOUNDWINDOW, true);
-	if (bVideoWindow)		Parent->DoToggleWindow(IDM_VIDEOWINDOW, true);
-}
-void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
 {
-	event.Skip();
-	Parent->DoToggleWindow(event.GetId(), GetMenuBar()->IsChecked(event.GetId()));
-}
-void CCodeWindow::OnToggleCodeWindow(bool _Show, int i)
-{
-	if (_Show)
-	{
-		Parent->DoAddPage(this, i, wxT("Code"), bFloatCodeWindow);
-	}
-	else // hide
-		Parent->DoRemovePage (this);
-}
-void CCodeWindow::OnToggleRegisterWindow(bool _Show, int i)
-{
-	if (_Show)
-	{
-		if (!m_RegisterWindow) m_RegisterWindow = new CRegisterWindow(Parent, IDM_REGISTERWINDOW);
-		Parent->DoAddPage(m_RegisterWindow, i, wxT("Registers"), bFloatRegisterWindow);
-	}
-	else // hide
-		Parent->DoRemovePage (m_RegisterWindow);
+	ToggleCodeWindow(true);
+	if (bRegisterWindow)
+		ToggleRegisterWindow(true);
+	if (bBreakpointWindow)
+		ToggleBreakPointWindow(true);
+	if (bMemoryWindow)
+		ToggleMemoryWindow(true);
+	if (bJitWindow)
+		ToggleJitWindow(true);
+	if (bSoundWindow)
+		ToggleDLLWindow(IDM_SOUNDWINDOW, true);
+	if (bVideoWindow)
+		ToggleDLLWindow(IDM_VIDEOWINDOW, true);
 }
 
-void CCodeWindow::OnToggleBreakPointWindow(bool _Show, int i)
+void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
 {
-	if (_Show)
+	bool bShow = GetMenuBar()->IsChecked(event.GetId());
+
+	switch(event.GetId())
 	{
-		if (!m_BreakpointWindow) m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINTWINDOW);
-		Parent->DoAddPage(m_BreakpointWindow, i, wxT("Breakpoints"), bFloatBreakpointWindow);
+		case IDM_REGISTERWINDOW:
+			ToggleRegisterWindow(bShow);
+			break;
+		case IDM_BREAKPOINTWINDOW:
+			ToggleBreakPointWindow(bShow);
+			break;
+		case IDM_MEMORYWINDOW:
+			ToggleMemoryWindow(bShow);
+			break;
+		case IDM_JITWINDOW:
+			ToggleJitWindow(bShow);
+			break;
+		case IDM_SOUNDWINDOW:
+			ToggleDLLWindow(IDM_SOUNDWINDOW, bShow);
+			break;
+		case IDM_VIDEOWINDOW:
+			ToggleDLLWindow(IDM_VIDEOWINDOW, bShow);
+			break;
+	}
+	event.Skip();
+}
+
+void CCodeWindow::ToggleCodeWindow(bool bShow)
+{
+	if (bShow)
+		Parent->DoAddPage(this, iCodeWindow, wxT("Code"), bFloatCodeWindow);
+	else // hide
+		Parent->DoRemovePage(this);
+}
+
+void CCodeWindow::ToggleRegisterWindow(bool bShow)
+{
+	GetMenuBar()->FindItem(IDM_REGISTERWINDOW)->Check(bShow);
+	if (bShow)
+	{
+		if (!m_RegisterWindow)
+		   	m_RegisterWindow = new CRegisterWindow(Parent, IDM_REGISTERWINDOW);
+		Parent->DoAddPage(m_RegisterWindow, iRegisterWindow,
+			   	wxT("Registers"), bFloatRegisterWindow);
+	}
+	else // hide
+		Parent->DoRemovePage(m_RegisterWindow);
+}
+
+void CCodeWindow::ToggleBreakPointWindow(bool bShow)
+{
+	GetMenuBar()->FindItem(IDM_BREAKPOINTWINDOW)->Check(bShow);
+	if (bShow)
+	{
+		if (!m_BreakpointWindow)
+		   	m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINTWINDOW);
+		Parent->DoAddPage(m_BreakpointWindow, iBreakpointWindow,
+			   	wxT("Breakpoints"), bFloatBreakpointWindow);
 	}
 	else // hide
 		Parent->DoRemovePage(m_BreakpointWindow);
 }
 
-
-void CCodeWindow::OnToggleMemoryWindow(bool _Show, int i)
+void CCodeWindow::ToggleMemoryWindow(bool bShow)
 {
-	if (_Show)
+	GetMenuBar()->FindItem(IDM_MEMORYWINDOW)->Check(bShow);
+	if (bShow)
 	{
-		if (!m_MemoryWindow) m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORYWINDOW);
-		Parent->DoAddPage(m_MemoryWindow, i, wxT("Memory"), bFloatMemoryWindow);
+		if (!m_MemoryWindow)
+		   	m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORYWINDOW);
+		Parent->DoAddPage(m_MemoryWindow, iMemoryWindow, wxT("Memory"), bFloatMemoryWindow);
 	}
 	else // hide
 		Parent->DoRemovePage(m_MemoryWindow);
 }
 
-
-void CCodeWindow::OnToggleJitWindow(bool _Show, int i)
+void CCodeWindow::ToggleJitWindow(bool bShow)
 {
-	if (_Show)
+	GetMenuBar()->FindItem(IDM_JITWINDOW)->Check(bShow);
+	if (bShow)
 	{
-		if (!m_JitWindow) m_JitWindow = new CJitWindow(Parent, IDM_JITWINDOW);
-		Parent->DoAddPage(m_JitWindow, i, wxT("JIT"), bFloatJitWindow);
+		if (!m_JitWindow)
+		   	m_JitWindow = new CJitWindow(Parent, IDM_JITWINDOW);
+		Parent->DoAddPage(m_JitWindow, iJitWindow, wxT("JIT"), bFloatJitWindow);
 	}
 	else // hide
 		Parent->DoRemovePage(m_JitWindow);
 }
 
-
-/*
-
-
-
-Notice: This windows docking for plugin windows will produce several wx debugging messages when
-::GetWindowRect and ::DestroyWindow fails in wxApp::CleanUp() for the plugin.
-
-
-
-*/
-
+// Notice: This windows docking will produce several wx debugging messages for plugin
+// windows when ::GetWindowRect and ::DestroyWindow fails in wxApp::CleanUp() for the
+// plugin.
 
 // Toggle Sound Debugging Window
-void CCodeWindow::OnToggleDLLWindow(int Id, bool _Show, int i)
+void CCodeWindow::ToggleDLLWindow(int Id, bool bShow)
 {
 	std::string DLLName;
 	wxString Title;
-	int PLUGINTYPE;
+	int PluginType, i;
+	bool bFloat;
 
 	switch(Id)
 	{
 		case IDM_SOUNDWINDOW:
 			DLLName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str();
-			PLUGINTYPE = PLUGIN_TYPE_DSP;
+			PluginType = PLUGIN_TYPE_DSP;
 			Title = wxT("Sound");
+			i = iSoundWindow;
+			bFloat = bFloatSoundWindow;
 			break;
 		case IDM_VIDEOWINDOW:
 			DLLName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str();
-			PLUGINTYPE = PLUGIN_TYPE_VIDEO;
+			PluginType = PLUGIN_TYPE_VIDEO;
 			Title = wxT("Video");
+			i = iVideoWindow;
+			bFloat = bFloatVideoWindow;
 			break;
 		default:
-			PanicAlert("CCodeWindow::OnToggleDLLWindow");
+			PanicAlert("CCodeWindow::ToggleDLLWindow called with invalid Id");
 			return;
 	}
 
-	if (_Show)
-	{
-		if (Parent->GetNotebookCount() == 0) return;
-		if (i < 0 || i > Parent->GetNotebookCount()-1) i = 0;
-		wxWindow *Win = Parent->GetWxWindow(Title);
-		if (Win && Parent->GetNotebookFromId(i)->GetPageIndex(Win) != wxNOT_FOUND) return;
+	GetMenuBar()->FindItem(Id)->Check(bShow);
 
+	if (bShow)
+	{
 		// Show window
-		CPluginManager::GetInstance().OpenDebug(Parent->GetHandle(), DLLName.c_str(), (PLUGIN_TYPE)PLUGINTYPE, _Show);
-			
-		Win = Parent->GetWxWindow(Title);
+		CPluginManager::GetInstance().OpenDebug(Parent,
+				DLLName.c_str(), (PLUGIN_TYPE)PluginType, bShow);
+
+		wxWindow* Win = Parent->GetWxWindow(Title);
 		if (Win)
-		{		
-			Win->SetName(Title);
-			Win->Reparent(Parent);
-			Win->SetId(IDM_SOUNDWINDOW);
-			Parent->GetNotebookFromId(i)->AddPage(Win, Title, true, Parent->aNormalFile);
-		}
-		else
 		{
-			//Console->Log(LogTypes::LNOTICE, StringFromFormat("OpenDebug: Win not found\n").c_str());
-		}		
+			Win->SetId(Id);
+			Parent->DoAddPage(Win, i, Title, bFloat);
+		}
 	}
 	else
-	{	
-		wxWindow *Win = Parent->GetWxWindow(Title);
-		if (Win)
-		{			
-			Parent->DoRemovePage(Win, false);
-			//Win->Reparent(NULL);
-			// Destroy
-			CPluginManager::GetInstance().OpenDebug(Parent->GetHandle(), DLLName.c_str(), (PLUGIN_TYPE)PLUGINTYPE, _Show);
-			//WARN_LOG(CONSOLE, "Sound removed from NB");
-		}
-		else
-		{
-			//WARN_LOG(CONSOLE, "Sound not found (Win %i)", FindWindowByName(wxT("Sound")));
-		}
+	{
+		Parent->DoRemovePageId(Id, false, false);
+		CPluginManager::GetInstance().OpenDebug(Parent,
+				DLLName.c_str(), (PLUGIN_TYPE)PluginType, bShow);
 	}
-	
 }

@@ -97,16 +97,24 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 }
 #endif
 
-void DllDebugger(HWND _hParent, bool Show)
+void DllDebugger(void *_hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	if (!m_DebuggerFrame)
-		m_DebuggerFrame = new GFXDebuggerDX9(GetParentedWxWindow(_hParent));
-
 	if (Show)
+	{
+		if (!m_DebuggerFrame)
+			m_DebuggerFrame = new GFXDebuggerDX9((wxWindow *)_hParent);
 		m_DebuggerFrame->Show();
+	}
 	else
-		m_DebuggerFrame->Hide();
+	{
+		if (m_DebuggerFrame)
+		{
+			m_DebuggerFrame->Close();
+			m_DebuggerFrame->Destroy();
+			m_DebuggerFrame = NULL;
+		}
+	}
 #endif
 }
 

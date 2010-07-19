@@ -448,10 +448,10 @@ void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYP
 	switch(Type)
 	{
 	case PLUGIN_TYPE_VIDEO:
-		GetVideo()->Debug((HWND)_Parent, Show);
+		GetVideo()->Debug(_Parent, Show);
 		break;
 	case PLUGIN_TYPE_DSP:
-		GetDSP()->Debug((HWND)_Parent, Show);
+		GetDSP()->Debug(_Parent, Show);
 		break;
 	default:
 		PanicAlert("Type %d debug not supported in plugin %s", Type, _rFilename);

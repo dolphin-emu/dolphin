@@ -48,10 +48,10 @@ class wxDLLApp : public wxApp
 };
 IMPLEMENT_APP_NO_MAIN(wxDLLApp)
 WXDLLIMPEXP_BASE void wxSetInstance(HINSTANCE hInst);
-#endif
 
 // copied from GCPad
 HINSTANCE g_hInstance;
+#endif
 
 // copied from GCPad
 #if defined(HAVE_WX) && HAVE_WX
@@ -320,7 +320,7 @@ void DllConfig(HWND _hParent)
 // input:    a handle to the window that calls this function
 // output:   none
 //
-void DllDebugger(HWND _hParent, bool Show)
+void DllDebugger(void *_hParent, bool Show)
 {
 	// wut?
 }

@@ -25,7 +25,7 @@
 
 extern int g_Preset;
 
-BEGIN_EVENT_TABLE(GFXDebuggerOGL,wxDialog)
+BEGIN_EVENT_TABLE(GFXDebuggerOGL,wxPanel)
 	EVT_CLOSE(GFXDebuggerOGL::OnClose)
 	EVT_CHECKBOX(ID_SAVETOFILE,GFXDebuggerOGL::GeneralSettings)
 	EVT_CHECKBOX(ID_INFOLOG,GFXDebuggerOGL::GeneralSettings)
@@ -35,9 +35,9 @@ BEGIN_EVENT_TABLE(GFXDebuggerOGL,wxDialog)
 	EVT_CHECKBOX(ID_SAVESHADERS,GFXDebuggerOGL::GeneralSettings)
 END_EVENT_TABLE()
 
-GFXDebuggerOGL::GFXDebuggerOGL(wxWindow *parent, wxWindowID id, const wxString &title,
-					const wxPoint &position, const wxSize& size, long style)
-	: wxDialog(parent, id, title, position, size, style)
+GFXDebuggerOGL::GFXDebuggerOGL(wxWindow *parent, wxWindowID id, const wxPoint& pos,
+		const wxSize& size, long style, const wxString &title)
+	: wxPanel(parent, id, pos, size, style, title)
 {
 	CreateGUIControls();
 
@@ -46,21 +46,14 @@ GFXDebuggerOGL::GFXDebuggerOGL(wxWindow *parent, wxWindowID id, const wxString &
 
 GFXDebuggerOGL::~GFXDebuggerOGL()
 {
-	SaveSettings();
-	m_DebuggerFrame = NULL;
-	NOTICE_LOG(CONSOLE, "Stop [Video Thread]:   Closing OpenGL debugging window");
 }
 
 void GFXDebuggerOGL::OnClose(wxCloseEvent& event)
 {
-	// This means wxDialog's Destroy is used
-	//event.Skip();
-
 	// Save the window position
 	SaveSettings();
 
-	// Destroy
-	delete this;
+	event.Skip();
 }
 
 void GFXDebuggerOGL::SaveSettings() const
@@ -122,29 +115,24 @@ void GFXDebuggerOGL::LoadSettings()
 void GFXDebuggerOGL::CreateGUIControls()
 {
 	// Basic settings
-	SetIcon(wxNullIcon);
 	CenterOnParent();
 
-	// MainPanel
-	m_MainPanel = new wxPanel(this, ID_MAINPANEL, wxDefaultPosition, wxDefaultSize);
-
 	// Options
-	wxStaticBoxSizer *sOptions = new wxStaticBoxSizer(wxVERTICAL, m_MainPanel, wxT("Options"));
-	m_Check[0] = new wxCheckBox(m_MainPanel, ID_SAVETOFILE, wxT("Save to file"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[1] = new wxCheckBox(m_MainPanel, ID_INFOLOG, wxT("Info log"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[2] = new wxCheckBox(m_MainPanel, ID_PRIMLOG, wxT("Primary log"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[3] = new wxCheckBox(m_MainPanel, ID_SAVETEXTURES, wxT("Save Textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[4] = new wxCheckBox(m_MainPanel, ID_SAVETARGETS, wxT("Save Targets"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
-	m_Check[5] = new wxCheckBox(m_MainPanel, ID_SAVESHADERS, wxT("Save Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	wxStaticBoxSizer *sOptions = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Options"));
+	m_Check[0] = new wxCheckBox(this, ID_SAVETOFILE, wxT("Save to file"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Check[1] = new wxCheckBox(this, ID_INFOLOG, wxT("Info log"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Check[2] = new wxCheckBox(this, ID_PRIMLOG, wxT("Primary log"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Check[3] = new wxCheckBox(this, ID_SAVETEXTURES, wxT("Save Textures"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Check[4] = new wxCheckBox(this, ID_SAVETARGETS, wxT("Save Targets"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_Check[5] = new wxCheckBox(this, ID_SAVESHADERS, wxT("Save Shaders"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	for (int i = 0; i < NUM_OPTIONS-ID_SAVETOFILE; ++i)
 		sOptions->Add(m_Check[i], 0, 0, 5);
 
-	// Layout everything on m_MainPanel
+	// Layout everything
 	wxBoxSizer *sMain = new wxBoxSizer(wxHORIZONTAL);
 	sMain->Add(sOptions);
-	sMain->Add(100, 0); // Add some width so we can see the window title by default
-	m_MainPanel->SetSizerAndFit(sMain);
+	SetSizerAndFit(sMain);
 	Fit();
 }
 

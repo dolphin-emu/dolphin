@@ -107,7 +107,7 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 }
 #endif
 
-void DllDebugger(HWND _hParent, bool Show)
+void DllDebugger(void *_hParent, bool Show)
 {
 }
 

@@ -483,21 +483,8 @@ CFrame* DolphinApp::GetCFrame()
 
 void Host_Message(int Id)
 {
-
-	switch(Id)
-	{
-#if defined(HAVE_X11) && HAVE_X11
-		case WM_USER_STOP:
-#endif
-		case WM_USER_CREATE:
-			{
-				wxCommandEvent event(wxEVT_HOST_COMMAND, Id);
-				main_frame->GetEventHandler()->AddPendingEvent(event);
-				break;
-			}
-		default:
-			main_frame->OnCustomHostMessage(Id);
-	}
+	wxCommandEvent event(wxEVT_HOST_COMMAND, Id);
+	main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
 // OK, this thread boundary is DANGEROUS on linux

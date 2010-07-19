@@ -48,7 +48,7 @@ class DSPRegisterView;
 class CCodeView;
 class CMemoryView;
 
-class DSPDebuggerLLE : public wxFrame
+class DSPDebuggerLLE : public wxPanel
 {
 public:
 	DSPDebuggerLLE(wxWindow *parent);

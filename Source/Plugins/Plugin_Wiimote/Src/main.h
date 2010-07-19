@@ -62,7 +62,9 @@ struct SRecordingAll
 	extern u32 g_ISOId;
 	extern bool g_SearchDeviceDone;
 	extern bool g_RealWiiMotePresent;
+#ifdef _WIN32
 	extern HINSTANCE g_hInstance;
+#endif
 
 	// Debugging
 	extern bool g_DebugAccelerometer;

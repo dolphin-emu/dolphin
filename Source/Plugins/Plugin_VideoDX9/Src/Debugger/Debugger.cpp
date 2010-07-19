@@ -30,7 +30,7 @@
 
 extern int g_Preset;
 
-BEGIN_EVENT_TABLE(GFXDebuggerDX9,wxDialog)
+BEGIN_EVENT_TABLE(GFXDebuggerDX9, wxPanel)
 	EVT_CLOSE(GFXDebuggerDX9::OnClose)
 	EVT_CHECKBOX(ID_SAVETOFILE,GFXDebuggerDX9::GeneralSettings)
 	EVT_CHECKBOX(ID_INFOLOG,GFXDebuggerDX9::GeneralSettings)
@@ -51,9 +51,9 @@ BEGIN_EVENT_TABLE(GFXDebuggerDX9,wxDialog)
 END_EVENT_TABLE()
 
 
-GFXDebuggerDX9::GFXDebuggerDX9(wxWindow *parent, wxWindowID id, const wxString &title,
-				   const wxPoint &position, const wxSize& size, long style)
-	: wxDialog(parent, id, title, position, size, style)
+GFXDebuggerDX9::GFXDebuggerDX9(wxWindow *parent, wxWindowID id, const wxPoint &position,
+							   const wxSize& size, long style, const wxString &title)
+	: wxPanel(parent, id, position, size, style, title)
 {
 	CreateGUIControls();
 
@@ -167,7 +167,6 @@ void GFXDebuggerDX9::CreateGUIControls()
 	g_pdebugger = this;
 
 	// Basic settings
-	SetIcon(wxNullIcon);
 	CenterOnParent();
 
 	// MainPanel

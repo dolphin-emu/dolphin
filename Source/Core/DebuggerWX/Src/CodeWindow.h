@@ -96,12 +96,13 @@ class CCodeWindow
 		void OnJITOff(wxCommandEvent& event);
 
 		void OnToggleWindow(wxCommandEvent& event);
-		void OnToggleCodeWindow(bool,int);
-		void OnToggleRegisterWindow(bool,int);
-		void OnToggleBreakPointWindow(bool,int);
-		void OnToggleMemoryWindow(bool,int);
-		void OnToggleJitWindow(bool,int);
-		void OnToggleDLLWindow(int,bool,int);
+		void ToggleCodeWindow(bool bShow);
+		void ToggleRegisterWindow(bool bShow);
+		void ToggleBreakPointWindow(bool bShow);
+		void ToggleMemoryWindow(bool bShow);
+		void ToggleJitWindow(bool bShow);
+		void ToggleDLLWindow(int Id, bool bShow);
+
 		void OnChangeFont(wxCommandEvent& event);
 
 		void OnCodeStep(wxCommandEvent& event);
@@ -119,8 +120,8 @@ class CCodeWindow
 
 		// Settings
 		bool bAutomaticStart; bool bBootToPause;
-		bool bLogWindow; int iLogWindow;
-		bool bConsoleWindow; int iConsoleWindow;
+		int iLogWindow;
+		int iConsoleWindow;
 		bool bCodeWindow; int iCodeWindow; bool bFloatCodeWindow;
 		bool bRegisterWindow; int iRegisterWindow; bool bFloatRegisterWindow;
 		bool bBreakpointWindow; int iBreakpointWindow; bool bFloatBreakpointWindow;

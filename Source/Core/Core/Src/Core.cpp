@@ -202,8 +202,7 @@ bool Init()
 	return true;
 }
 
-// Called from GUI thread or VI thread (why VI??? That must be bad. Window
-// close? TODO: Investigate.)
+// Called from GUI thread
 void Stop()  // - Hammertime!
 {
 	const SCoreStartupParameter& _CoreParameter = SConfig::GetInstance().m_LocalCoreStartupParameter;
