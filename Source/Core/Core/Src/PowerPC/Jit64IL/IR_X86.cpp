@@ -30,7 +30,7 @@ because it the allocator needs to be able to free unused registers.
 In addition, this allows eliminating redundant mov instructions in a lot
 of cases.
 
-The register allocation is just a simple forward greedy allocator.
+The register allocation is linear scan allocation.
 */
 
 #ifdef _MSC_VER
@@ -58,6 +58,7 @@ struct RegInfo {
 	IRBuilder* Build;
 	InstLoc FirstI;
 	std::vector<unsigned> IInfo;
+	std::vector<InstLoc> lastUsed;
 	InstLoc regs[16];
 	InstLoc fregs[16];
 	unsigned numSpills;
@@ -67,7 +68,7 @@ struct RegInfo {
 	unsigned numProfiledLoads;
 	unsigned exitNumber;
 
-	RegInfo(JitIL* j, InstLoc f, unsigned insts) : Jit(j), FirstI(f), IInfo(insts) {
+	RegInfo(JitIL* j, InstLoc f, unsigned insts) : Jit(j), FirstI(f), IInfo(insts), lastUsed(insts) {
 		for (unsigned i = 0; i < 16; i++) {
 			regs[i] = 0;
 			fregs[i] = 0;
@@ -87,6 +88,7 @@ static void regMarkUse(RegInfo& R, InstLoc I, InstLoc Op, unsigned OpNum) {
 	unsigned& info = R.IInfo[Op - R.FirstI];
 	if (info == 0) R.IInfo[I - R.FirstI] |= 1 << (OpNum + 1);
 	if (info < 2) info++;
+	R.lastUsed[Op - R.FirstI] = max(R.lastUsed[Op - R.FirstI], I);
 }
 
 static unsigned regReadUse(RegInfo& R, InstLoc I) {
@@ -178,8 +180,18 @@ static X64Reg regFindFreeReg(RegInfo& RI) {
 		if (RI.regs[RegAllocOrder[i]] == 0)
 			return RegAllocOrder[i];
 
-	static unsigned nextReg = 0;
-	X64Reg reg = RegAllocOrder[nextReg++ % RegAllocSize];
+	int bestIndex = -1;
+	InstLoc bestEnd = 0;
+	for (int i = 0; i < RegAllocSize; ++i) {
+		const InstLoc start = RI.regs[RegAllocOrder[i]];
+		const InstLoc end = RI.lastUsed[start - RI.FirstI];
+		if (bestEnd < end) {
+			bestEnd = end;
+			bestIndex = i;
+		}
+	}
+
+	X64Reg reg = RegAllocOrder[bestIndex];
 	regSpill(RI, reg);
 	return reg;
 }
@@ -188,8 +200,19 @@ static X64Reg fregFindFreeReg(RegInfo& RI) {
 	for (int i = 0; i < FRegAllocSize; i++)
 		if (RI.fregs[FRegAllocOrder[i]] == 0)
 			return FRegAllocOrder[i];
-	static unsigned nextReg = 0;
-	X64Reg reg = FRegAllocOrder[nextReg++ % FRegAllocSize];
+
+	int bestIndex = -1;
+	InstLoc bestEnd = 0;
+	for (int i = 0; i < FRegAllocSize; ++i) {
+		const InstLoc start = RI.fregs[FRegAllocOrder[i]];
+		const InstLoc end = RI.lastUsed[start - RI.FirstI];
+		if (bestEnd < end) {
+			bestEnd = end;
+			bestIndex = i;
+		}
+	}
+
+	X64Reg reg = FRegAllocOrder[bestIndex];
 	fregSpill(RI, reg);
 	return reg;
 }
