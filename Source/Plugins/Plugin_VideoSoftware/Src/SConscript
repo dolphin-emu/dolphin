@@ -33,22 +33,11 @@ files = [
 	'XFMemLoader.cpp',
 	]
 
-libs = [
-	'videocommon', 'GLEW', 'SOIL', 'common'
-	]
+libs = [ 'videocommon', 'GLEW', 'SOIL', 'common' ]
 
-gfxenv = env.Clone()
-
-if sys.platform == 'darwin' and not gfxenv['HAVE_WX']:
+if sys.platform == 'darwin' and not env['HAVE_WX']:
 	files += [ 'cocoaGL.m' ]
-
-if sys.platform == 'win32':
+elif sys.platform == 'win32':
 	files += [ 'Win32.cpp' ]
-	libs += [ env['base_dir'] + '/Externals/Cg/' ]	
-	gfxenv['CPPPATH'] += libs
 	
-gfxenv.SharedLibrary(
-	env['plugin_dir']+name,
-	files,
-	LIBS =  libs + gfxenv['LIBS']
-	)
+env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)

@@ -34,24 +34,22 @@ cppDefines = [
     'GCC_HASCLASSVISIBILITY',
     ]
 
-basedir = os.getcwd() + '/'
-
 include_paths = [
-    basedir + 'Source/Core/Common/Src',
-    basedir + 'Source/Core/DiscIO/Src',
-    basedir + 'Source/PluginSpecs',
-    basedir + 'Source/Core/Core/Src',
-    basedir + 'Source/Core/DebuggerWX/Src',
-    basedir + 'Externals/Bochs_disasm',
-    basedir + 'Externals/Lua',
-    basedir + 'Externals/WiiUseSrc/Src',
-    basedir + 'Source/Core/VideoCommon/Src',
-    basedir + 'Source/Core/InputCommon/Src',
-    basedir + 'Source/Core/InputUICommon/Src',
-    basedir + 'Source/Core/AudioCommon/Src',
-    basedir + 'Source/Core/DebuggerUICommon/Src',
-    basedir + 'Source/Core/DolphinWX/Src',
-    basedir + 'Source/Core/DSPCore/Src',
+    '#Source/Core/Common/Src',
+    '#Source/Core/DiscIO/Src',
+    '#Source/PluginSpecs',
+    '#Source/Core/Core/Src',
+    '#Source/Core/DebuggerWX/Src',
+    '#Externals/Bochs_disasm',
+    '#Externals/Lua',
+    '#Externals/WiiUseSrc/Src',
+    '#Source/Core/VideoCommon/Src',
+    '#Source/Core/InputCommon/Src',
+    '#Source/Core/InputUICommon/Src',
+    '#Source/Core/AudioCommon/Src',
+    '#Source/Core/DebuggerUICommon/Src',
+    '#Source/Core/DolphinWX/Src',
+    '#Source/Core/DSPCore/Src',
     ]
 
 dirs = [
@@ -79,7 +77,6 @@ dirs = [
     'Source/Core/DebuggerWX/Src',
     'Source/UnitTests',
     ]
-
 
 builders = {}
 if sys.platform == 'darwin':
@@ -214,14 +211,11 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          }
 
 # Object files
-env['build_dir'] = os.path.join(basedir, 'Build',
+env['build_dir'] = os.path.join('#Build',
     platform.system() + '-' + platform.machine() + '-' + env['flavor'] + os.sep)
 
 # Static libs go here
 env['local_libs'] = env['build_dir'] + os.sep + 'libs' + os.sep
-
-# Where do we run from
-env['base_dir'] = os.getcwd()+ '/'
 
 # Install paths
 extra=''
@@ -237,7 +231,7 @@ if sys.platform == 'linux2' and env['install'] == 'global':
     env['plugin_dir'] = env['prefix'] + 'lib/dolphin-emu/'
     env['data_dir'] = env['prefix'] + "share/dolphin-emu/"
 else:
-    env['prefix'] = os.path.join(env['base_dir'] + 'Binary',
+    env['prefix'] = os.path.join('#Binary',
         platform.system() + '-' + platform.machine() + extra + os.sep)
     env['binary_dir'] = env['prefix']
     env['plugin_dir'] = env['prefix'] + 'plugins/'
@@ -412,23 +406,23 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
 env['LIBPATH'].insert(0, env['local_libs'])
 
 if not shared['glew']:
-    env['CPPPATH'] += [basedir + 'Externals/GLew/include']
+    env['CPPPATH'] += ['#Externals/GLew/include']
     dirs += ['Externals/GLew']
 if not shared['lzo']:
-    env['CPPPATH'] += [basedir + 'Externals/LZO']
+    env['CPPPATH'] += ['#Externals/LZO']
     dirs += ['Externals/LZO']
 if not shared['sdl']:
-    env['CPPPATH'] += [basedir + 'Externals/SDL']
-    env['CPPPATH'] += [basedir + 'Externals/SDL/include']
+    env['CPPPATH'] += ['#Externals/SDL']
+    env['CPPPATH'] += ['#Externals/SDL/include']
     dirs += ['Externals/SDL']
 if not shared['soil']:
-    env['CPPPATH'] += [basedir + 'Externals/SOIL']
+    env['CPPPATH'] += ['#Externals/SOIL']
     dirs += ['Externals/SOIL']
 if not shared['sfml']:
-    env['CPPPATH'] += [basedir + 'Externals/SFML/include']
+    env['CPPPATH'] += ['#Externals/SFML/include']
     dirs += ['Externals/SFML/src']
 if not shared['zlib']:
-    env['CPPPATH'] += [basedir + 'Externals/zlib']
+    env['CPPPATH'] += ['#Externals/zlib']
     dirs += ['Externals/zlib']
 
 rev = utils.GenerateRevFile(env['flavor'],

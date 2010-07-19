@@ -57,6 +57,7 @@ extern const char *netplay_dolphin_ver;
 #undef STACKALIGN
 #define STACKALIGN __attribute__((__force_align_arg_pointer__))
 #endif
+#define HAVE_WIIUSE 1
 // We use wxWidgets on OS X only if it is version 2.9+ with Cocoa support.
 #ifdef __WXOSX_COCOA__
 #define HAVE_WX 1
@@ -112,6 +113,10 @@ extern const char *netplay_dolphin_ver;
 
 #else
 #include "Config.h"	// SCons autoconfiguration defines
+#endif
+
+#if defined __linux__ && HAVE_BLUEZ
+#define HAVE_WIIUSE 1
 #endif
 
 // Windows compatibility

@@ -20,7 +20,7 @@ files = [
 	'VolumeGC.cpp',
 	'VolumeWad.cpp',
 	'VolumeWiiCrypted.cpp',
-        'FileMonitor.cpp',
+	'FileMonitor.cpp',
 	'NANDContentLoader.cpp',
 	'WiiWad.cpp',
 	'AES/aes_cbc.c',
@@ -30,4 +30,5 @@ files = [
 libs = [
 	'common'
 	]
+
 env.StaticLibrary(env['local_libs'] + 'discio', files, LIBS = libs)

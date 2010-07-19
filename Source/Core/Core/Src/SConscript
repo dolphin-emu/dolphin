@@ -126,16 +126,15 @@ files = [
 if sys.platform == 'win32':
 	files += [ "HW/BBA-TAP/TAP_Win32.cpp", "stdafx.cpp" ]
 elif sys.platform == 'darwin':
-	files += [ "HW/BBA-TAP/TAP_Apple.cpp"]
+	files += [ "HW/BBA-TAP/TAP_Apple.cpp" ]
 else:
-	files += [ "HW/BBA-TAP/TAP_Unix.cpp"]
+	files += [ "HW/BBA-TAP/TAP_Unix.cpp" ]
 
 libs = [
 	'bdisasm',
 	'inputcommon',
 	'lua',
-	'sfml-network'
+	'sfml-network',
 	]
 
-env_core = env.Clone();
-env_core.StaticLibrary(env['local_libs'] + 'core', files, LIBS=libs)
+env.StaticLibrary(env['local_libs'] + 'core', files, LIBS = libs)

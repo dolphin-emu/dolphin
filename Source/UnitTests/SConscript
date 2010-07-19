@@ -1,9 +1,6 @@
-# -*- python -*- 
+# -*- python -*-
 
 Import('env')
-import sys
-
-unitenv = env.Clone()
 
 files = [
 	"AudioJitTests.cpp",
@@ -13,7 +10,6 @@ files = [
 
 libs = [
 	'dspcore', 'common',
-]
+	]
 
-unitenv.Append(LIBS = libs)
-unitenv.Program(env['binary_dir'] + 'tester', files)
+env.Program(env['binary_dir'] + 'tester', files, LIBS = libs)

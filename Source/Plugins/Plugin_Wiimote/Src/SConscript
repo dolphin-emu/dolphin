@@ -1,9 +1,7 @@
-# -*- python -*- 
- 
-Import('env')
-import sys
+# -*- python -*-
 
-wmenv = env.Clone()
+Import('env')
+
 name = "Plugin_Wiimote"
 
 files = [
@@ -22,25 +20,17 @@ files = [
 
 libs = [ 'inputcommon', 'common', 'SDL' ]
 
-if wmenv['HAVE_WX']:
+if env['HAVE_WX']:
 	libs = [ 'inputuicommon' ] + libs
 	files += [
 		"ConfigBasicDlg.cpp",
 		"ConfigPadDlg.cpp",
 		"ConfigGamepad.cpp",
 		"FillReport.cpp",
-        ]
+		]
 
-cxxflags = [ ]
+if env['HAVE_WIIUSE']:
+	libs += [ 'wiiuse' ]
+	files += [ 'wiimote_real.cpp' ]
 
-if wmenv['HAVE_WIIUSE']:
-	libs  += [ 'wiiuse' ]
-	files += [ "wiimote_real.cpp" ]
-	cxxflags += ['-DHAVE_WIIUSE']
-
-wmenv.Append(
-	CXXFLAGS = cxxflags,
-	LIBS = libs,
-	)
-
-wmenv.SharedLibrary(env['plugin_dir']+name, files)
+env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)

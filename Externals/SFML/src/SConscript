@@ -1,9 +1,8 @@
-# -*- python -*- 
+# -*- python -*-
 
 Import('env')
-import sys
 
-files = [ 
+files = [
 	"SFML/Network/Ftp.cpp",
 	"SFML/Network/Http.cpp",
 	"SFML/Network/IPAddress.cpp",

@@ -1,6 +1,6 @@
 # -*- python -*-
+
 Import('env')
-import sys
 
 files = [
 	'image_DXT.c',

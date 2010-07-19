@@ -1,24 +1,28 @@
-# -*- python -*- 
+# -*- python -*-
 
-import sys
 Import('env')
+import sys
 
-if (sys.platform == 'linux2' and env['HAVE_BLUEZ'] != 1):
-    env['HAVE_WIIUSE'] = 0
-    Return()
-
-files = [
-        "io.c",
-        "ir.c",
-        "wiiuse.c",
-	]
-
-if sys.platform == 'linux2' and env['HAVE_BLUEZ']:
-	files += [ "io_nix.c", ]
-
-if sys.platform == 'darwin':
-	files += [ "io_osx.m", ]
-
-env.StaticLibrary(env['local_libs'] + "wiiuse", files)
+if (sys.platform == 'linux2' and not env['HAVE_BLUEZ']) or \
+	(not sys.platform == 'darwin' and
+	not sys.platform == 'linux2' and
+	not sys.platform == 'win32'):
+	env['HAVE_WIIUSE'] = 0
+	Return()
 
 env['HAVE_WIIUSE'] = 1
+
+files = [
+	"io.c",
+	"ir.c",
+	"wiiuse.c",
+	]
+
+if sys.platform == 'darwin':
+	files += [ "io_osx.m" ]
+elif sys.platform == 'linux2':
+	files += [ "io_nix.c" ]
+elif sys.platform == 'win32':
+	files += [ "io_win.c" ]
+
+env.StaticLibrary(env['local_libs'] + "wiiuse", files)

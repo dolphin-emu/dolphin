@@ -4,8 +4,6 @@ Import('env')
 import os
 import sys
 
-wxenv = env.Clone()
-
 files = [
 	'BootManager.cpp',
 	]
@@ -15,14 +13,13 @@ libs = [
 	'inputcommon', 'common', 'lua', 'z', 'sfml-network',
 	]
 
-if wxenv['HAVE_WX']:
+if env['HAVE_WX']:
 	memcardfiles = [
 		'MemcardManager.cpp',
 		'MemoryCards/GCMemcard.cpp',
 		'WxUtils.cpp',
-	]
+		]
 
-	files += memcardfiles
 	files += [
 		'AboutDolphin.cpp',
 		'ARCodeAddEdit.cpp',
@@ -38,6 +35,7 @@ if wxenv['HAVE_WX']:
 		'ISOProperties.cpp',
 		'PatchAddEdit.cpp',
 		'CheatsWindow.cpp',
+		'Main.cpp',
 		'MemoryCards/WiiSaveCrypted.cpp',
 		'NetPlay.cpp',
 		'NetPlayClient.cpp',
@@ -45,28 +43,29 @@ if wxenv['HAVE_WX']:
 		'NetWindow.cpp',
 		]
 
-	libs = [ 'debwx', 'debugger_ui_util', 'inputuicommon'] + libs
+	wxlibs = [ 'debwx', 'debugger_ui_util', 'inputuicommon', 'memcard' ]
 else:
 	files+= [
+		'MainNoGUI.cpp',
 		'cmdline.c',
 		]
 
 if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
-elif sys.platform == 'darwin' and not wxenv['HAVE_WX']:
+elif sys.platform == 'darwin' and not env['HAVE_WX']:
 	files += [ 'cocoaApp.m' ]
 	exeNoGUI = env['binary_dir'] + 'DolphinNoGUI'
-elif sys.platform == 'darwin' and wxenv['HAVE_WX']:
+elif sys.platform == 'darwin' and env['HAVE_WX']:
 	exeGUI = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'
 
-	wxenv.Install(env['binary_dir'] + 'Dolphin.app/Contents/' +
+	env.Install(env['binary_dir'] + 'Dolphin.app/Contents/' +
 		'Library/Frameworks/Cg.framework',
 		'#Externals/Cg/Cg.framework/Cg')
 
-	wxenv.Install(env['binary_dir'] + 'Dolphin.app/Contents/Resources/',
+	env.Install(env['binary_dir'] + 'Dolphin.app/Contents/Resources/',
 		'#Source/Core/DolphinWX/resources/Dolphin.icns')
 
-	wxenv.Plist(
+	env.Plist(
 		env['binary_dir'] + 'Dolphin.app/Contents/Info.plist',
 		Value(dict(
 			CFBundleExecutable = 'Dolphin',
@@ -85,12 +84,8 @@ else:
 	exeGUI = env['binary_dir'] + 'dolphin-emu'
 	exeNoGUI = env['binary_dir'] + 'dolphin-emu-nogui'
 
-wxenv.Append(
-	LIBS = libs
-	)
-
-if wxenv['HAVE_WX']:
-	wxenv.Program(exeGUI, files + [ 'Main.cpp' ])
-	wxenv.StaticLibrary(env['local_libs'] + 'memcard', memcardfiles)
+if env['HAVE_WX']:
+	env.StaticLibrary(env['local_libs'] + 'memcard', memcardfiles)
+	env.Program(exeGUI, files, LIBS = env['LIBS'] + wxlibs + libs)
 else:
-	wxenv.Program(exeNoGUI, files + [ 'MainNoGUI.cpp' ])
+	env.Program(exeNoGUI, files, LIBS = env['LIBS'] + libs)

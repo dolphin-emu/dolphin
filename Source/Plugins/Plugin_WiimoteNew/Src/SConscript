@@ -4,7 +4,6 @@ Import('env')
 import sys
 
 name = "Plugin_WiimoteNew"
-wiinewenv = env.Clone()
 
 files = [
 	'WiimoteEmu/WiimoteEmu.cpp',
@@ -19,25 +18,17 @@ files = [
 	'WiimoteNew.cpp'
 	]
 
-cxxflags = [ ]
-
-libs = [ 'inputcommon', 'common']
+libs = [ 'inputcommon', 'common' ]
 
 if sys.platform == 'win32' or sys.platform == 'linux2':
 	libs += [ 'SDL' ]
 
-if wiinewenv['HAVE_WX']:
+if env['HAVE_WX']:
 	libs = [ 'inputuicommon' ] + libs
 	files += [ 'WiimoteConfigDiag.cpp' ]
 
-if wiinewenv['HAVE_WIIUSE']:
-	cxxflags += [ '-DHAVE_WIIUSE' ]
+if env['HAVE_WIIUSE']:
 	files += [ 'WiimoteReal/WiimoteReal.cpp' ]
 	libs += [ 'wiiuse' ]
 
-wiinewenv.Append(
-	CXXFLAGS = cxxflags,
-	LIBS = libs
-	)
-
-wiinewenv.SharedLibrary(env['plugin_dir']+name, files)
+env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)

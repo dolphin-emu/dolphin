@@ -3,24 +3,24 @@
 Import('env')
 
 if not env['HAVE_WX']:
-    Return()
+	Return()
 
 files = [
-    "BreakpointDlg.cpp",
-    "BreakpointView.cpp",
-    "BreakpointWindow.cpp",
-    "CodeWindow.cpp",
-    "CodeWindowFunctions.cpp",
-    "MemoryCheckDlg.cpp",
-    "MemoryWindow.cpp",
-    "RegisterWindow.cpp",
-    "RegisterView.cpp",
-    "JitWindow.cpp",
-    ]
+	"BreakpointDlg.cpp",
+	"BreakpointView.cpp",
+	"BreakpointWindow.cpp",
+	"CodeWindow.cpp",
+	"CodeWindowFunctions.cpp",
+	"MemoryCheckDlg.cpp",
+	"MemoryWindow.cpp",
+	"RegisterWindow.cpp",
+	"RegisterView.cpp",
+	"JitWindow.cpp",
+	]
 
 libs = [
-    'common',
-    'debugger_ui_util'
-]
+	'common',
+	'debugger_ui_util'
+	]
 
 env.StaticLibrary(env['local_libs'] + "debwx", files, LIBS = libs)

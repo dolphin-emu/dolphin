@@ -39,8 +39,8 @@ files = [
 	]
 
 if env['HAVE_OPENCL']:
-    files += [
-        'OpenCL/OCLTextureDecoder.cpp',
-        ]
+	files += [
+		'OpenCL/OCLTextureDecoder.cpp',
+		]
 
 env.StaticLibrary(env['local_libs'] + "videocommon", files)

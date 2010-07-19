@@ -23,32 +23,19 @@ files = [
 	'GLUtil.cpp'
 	]
 
-libs = [
-	'videocommon', 'GLEW', 'SOIL', 'common'
-	]
+libs = [ 'videocommon', 'GLEW', 'SOIL', 'common' ]
 
-gfxenv = env.Clone()
-
-if sys.platform != 'darwin':
-	if gfxenv['HAVE_OPENCL']:
-		libs += [ 'OpenCL']
-
-if gfxenv['HAVE_WX']:
+if env['HAVE_WX']:
 	files += [
 		'GUI/ConfigDlg.cpp',
 		'Debugger/Debugger.cpp',
 		]
 
-if sys.platform == 'darwin' and not gfxenv['HAVE_WX']:
+if sys.platform == 'darwin' and not env['HAVE_WX']:
 	files += [ 'cocoaGL.m' ]
-
-if sys.platform == 'win32':
+elif sys.platform == 'win32':
 	files += [ 'OS/Win32.cpp' ]
-	libs += [ env['base_dir'] + '/Externals/Cg/' ]	
-	gfxenv['CPPPATH'] += libs
+elif not sys.platform == 'darwin' and env['HAVE_OPENCL']:
+	libs += [ 'OpenCL' ]
 
-gfxenv.SharedLibrary(
-	env['plugin_dir']+name,
-	files,
-	LIBS =  libs + gfxenv['LIBS']
-	)
+env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)

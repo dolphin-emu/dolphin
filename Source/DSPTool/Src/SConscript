@@ -1,19 +1,14 @@
 # -*- python -*-
 
 Import('env')
-import sys
-
-dtenv = env.Clone()
 
 files = [
-    'main.cpp',
-    ]
+	'main.cpp',
+	]
 
 libs = [
-    'dspcore',
-    'common',
-]
+	'dspcore',
+	'common',
+	]
 
-dtenv.Append(LIBS = libs)
-
-dtenv.Program(dtenv['binary_dir'] + 'dsptool', files)
+env.Program(env['binary_dir'] + 'dsptool', files, LIBS = libs)

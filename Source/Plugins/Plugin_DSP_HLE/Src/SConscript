@@ -1,7 +1,6 @@
 # -*- python -*-
 
 Import('env')
-import sys
 
 name = "Plugin_DSP_HLE"
 
@@ -23,15 +22,11 @@ files = [
 	'UCodes/UCode_Zelda_Synth.cpp',
 	]
 
-dspenv = env.Clone()
+if env['HAVE_WX']:
+	files += [
+	'ConfigDlg.cpp'
+	]
 
-if dspenv['HAVE_WX']:
-    files += [
-        'ConfigDlg.cpp',
-        ]
+libs = [ 'common', 'audiocommon' ]
 
-dspenv.Append(
-	LIBS = [ 'common', 'audiocommon' ],
-	)
-
-dspenv.SharedLibrary(env['plugin_dir']+name, files)
+env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)

@@ -1,8 +1,6 @@
-
 # -*- python -*-
 
 Import('env')
-import sys
 
 name = "Plugin_DSP_LLE"
 
@@ -17,21 +15,15 @@ files = [
 	]
 
 if env['HAVE_WX']:
-        files += [
-	"DSPConfigDlgLLE.cpp",
-	"Debugger/DSPDebugWindow.cpp",
-	"Debugger/DSPRegisterView.cpp",
+	files += [
+		"DSPConfigDlgLLE.cpp",
+		"Debugger/DSPDebugWindow.cpp",
+		"Debugger/DSPRegisterView.cpp",
 	]
 
-lleenv = env.Clone()
+libs = [ 'dspcore', 'audiocommon', 'common' ]
 
 if env['HAVE_WX']:
-	lleenv.Append(
-		LIBS = [ 'dspcore', 'audiocommon', 'common', 'debugger_ui_util' ],
-		)
-else:
-	lleenv.Append(
-		LIBS = [ 'dspcore', 'audiocommon', 'common' ],
-		)
+	libs += [ 'debugger_ui_util' ]
 
-lleenv.SharedLibrary(env['plugin_dir']+name, files)
+env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)
