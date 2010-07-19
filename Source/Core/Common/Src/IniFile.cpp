@@ -119,6 +119,22 @@ void IniFile::Section::Set(const char* key, const float newValue, const float de
 		Delete(key);
 }
 
+void IniFile::Section::Set(const char* key, int newValue, int defaultValue)
+{
+	if (newValue != defaultValue)
+		Set(key, newValue);
+	else
+		Delete(key);
+}
+
+void IniFile::Section::Set(const char* key, bool newValue, bool defaultValue)
+{
+	if (newValue != defaultValue)
+		Set(key, newValue);
+	else
+		Delete(key);
+}
+
 void IniFile::Section::Set(const char* key, const std::vector<std::string>& newValues) 
 {
 	std::string temp;

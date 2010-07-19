@@ -18,7 +18,6 @@
 
 #else
 
-#include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -38,7 +37,9 @@
 #endif
 
 #include "Thread.h"
+#include "Timer.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <list>
 
@@ -46,8 +47,9 @@ struct UDPWiimote::_d
 {
 	Common::Thread * thread;
 	std::list<sock_t> sockfds;
-	Common::CriticalSection termLock,mutex;
+	Common::CriticalSection termLock,mutex,nameMutex;
 	volatile bool exit;
+	sock_t bipv4_fd,bipv6_fd;
 };
 
 int UDPWiimote::noinst=0;
@@ -55,7 +57,6 @@ int UDPWiimote::noinst=0;
 void _UDPWiiThread(void* arg)
 {
 	((UDPWiimote*)arg)->mainThread();
-	//NOTICE_LOG(WIIMOTE,"UDPWii thread stopped");
 }
 
 THREAD_RETURN UDPWiiThread(void* arg)
@@ -64,11 +65,20 @@ THREAD_RETURN UDPWiiThread(void* arg)
 	return 0;
 }
 
-UDPWiimote::UDPWiimote(const char *_port) : 
-	port(_port),
+UDPWiimote::UDPWiimote(const char *_port, const char * name, int _index) : 
+	port(_port), displayName(name),
 	d(new _d) ,x(0),y(0),z(0),naX(0),naY(0),naZ(0),nunX(0),nunY(0),
-	pointerX(-0.1),pointerY(-0.1),nunMask(0),mask(0),time(0)
+	pointerX(-0.1),pointerY(-0.1),nunMask(0),mask(0),index(_index), int_port(atoi(_port))
 {
+		
+	static bool sranded=false;
+	if (!sranded)
+	{
+		srand(time(0));
+		sranded=true;
+	}
+	bcastMagic=rand() & 0xFFFF;
+	
 	#ifdef _WIN32
 	u_long iMode = 1;
 	#endif
@@ -87,12 +97,17 @@ UDPWiimote::UDPWiimote(const char *_port) :
 	#endif
 	
 	noinst++;
-	//PanicAlert("UDPWii instantiated");
 
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_flags = AI_PASSIVE; // use my IP
+	
+	if (!int_port){
+		cleanup;
+		err=-1;
+		return;
+	}
 	
 	if ((rv = getaddrinfo(NULL, _port, &hints, &servinfo)) != 0) {
 		cleanup;
@@ -106,14 +121,10 @@ UDPWiimote::UDPWiimote(const char *_port) :
 		if ((sock = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == BAD_SOCK) {
 			continue;
 		}
-		
 		if (bind(sock, p->ai_addr, p->ai_addrlen) == -1) {
 			close(sock);
 			continue;
 		}
-		
-
-		//NOTICE_LOG(WIIMOTE,"UDPWii new listening sock");
 		d->sockfds.push_back(sock);
 	}
 	
@@ -126,7 +137,8 @@ UDPWiimote::UDPWiimote(const char *_port) :
 	freeaddrinfo(servinfo);
 	err=0;
 	d->exit=false;
-//	NOTICE_LOG(WIIMOTE,"UDPWii thread starting");
+	initBroadcastIPv4();
+	initBroadcastIPv6();
 	d->termLock.Enter();
 	d->thread = new Common::Thread(UDPWiiThread,this);
 	d->termLock.Leave();
@@ -136,12 +148,12 @@ UDPWiimote::UDPWiimote(const char *_port) :
 void UDPWiimote::mainThread()
 {
 	d->termLock.Enter();
-//	NOTICE_LOG(WIIMOTE,"UDPWii thread started");
+	Common::Timer time;
 	fd_set fds;
 	struct timeval timeout;
-	timeout.tv_sec=1;
-	timeout.tv_usec=500000;
-	//Common::Thread * thisthr= d->thread;
+	timeout.tv_sec=0;
+	timeout.tv_usec=0;
+	time.Update();
 	do
 	{
 		int maxfd=0;
@@ -154,12 +166,28 @@ void UDPWiimote::mainThread()
 				maxfd=(*i)+1;
 #endif
 		}
-		d->termLock.Leave();
-		if (d->exit) return;
+		
+		u64 tleft=timeout.tv_sec*1000+timeout.tv_usec/1000;
+		u64 telapsed=time.GetTimeDifference();
+		time.Update();
+		if (tleft<=telapsed)
+		{
+			timeout.tv_sec=1;
+			timeout.tv_usec=500000;
+			broadcastPresence();
+		} else {
+			tleft-=telapsed;
+			timeout.tv_sec=tleft/1000;
+			timeout.tv_usec=(tleft%1000)*1000;
+		}
+		
+		d->termLock.Leave(); //VERY hacky. don't like it
+		if (d->exit) return; 
 		int rt=select(maxfd,&fds,NULL,NULL,&timeout);
 		if (d->exit) return;
 		d->termLock.Enter();
 		if (d->exit) return;
+		
 		if (rt)
 		{
 			for (std::list<sock_t>::iterator i=d->sockfds.begin(); i!=d->sockfds.end(); i++)
@@ -171,7 +199,9 @@ void UDPWiimote::mainThread()
 					size_t addr_len;
 					struct sockaddr_storage their_addr;
 					addr_len = sizeof their_addr;
-					if ((size = recvfrom(fd, (dataz)bf, size , 0,(struct sockaddr *)&their_addr, (socklen_t*)&addr_len)) == -1) 
+					if ((size = recvfrom(fd, 
+										 (dataz)bf, 
+										 size , 0,(struct sockaddr *)&their_addr, (socklen_t*)&addr_len)) == -1) 
 					{
 						ERROR_LOG(WIIMOTE,"UDPWii Packet error");
 					}
@@ -187,12 +217,9 @@ void UDPWiimote::mainThread()
 						d->mutex.Leave();
 					}
 				}
-		} else {
-			broadcastPresence();
 		}
 	} while (!(d->exit));
 	d->termLock.Leave();
-	//delete thisthr;
 }
 
 UDPWiimote::~UDPWiimote()
@@ -203,9 +230,10 @@ UDPWiimote::~UDPWiimote()
 	d->termLock.Leave();
 	for (std::list<sock_t>::iterator i=d->sockfds.begin(); i!=d->sockfds.end(); i++)
 		close(*i);
+	close(d->bipv4_fd);
+	close(d->bipv6_fd);
 	cleanup;
 	delete d;
-	//PanicAlert("UDPWii destructed");
 }
 
 #define ACCEL_FLAG (1<<0)
@@ -219,11 +247,11 @@ int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 	if (size<3) return -1;
 	if (bf[0]!=0xde)
 		return -1;
-	if (bf[1]==0)
-		time=0;
-	if (bf[1]<time)
-		return -1;
-	time=bf[1];
+	//if (bf[1]==0)
+	//	time=0;
+	//if (bf[1]<time) //NOT LONGER NEEDED TO ALLOW MULTIPLE IPHONES ON A SINGLE PORT
+	//	return -1;
+	//time=bf[1];
 	u32 *p=(u32*)(&bf[3]);
 	if (bf[2]&ACCEL_FLAG)
 	{
@@ -269,9 +297,67 @@ int UDPWiimote::pharsePacket(u8 * bf, size_t size)
 }
 
 
+void UDPWiimote::initBroadcastIPv4()
+{
+	d->bipv4_fd=socket(AF_INET, SOCK_DGRAM, 0);
+	if (d->bipv4_fd == BAD_SOCK)
+	{
+		WARN_LOG(WIIMOTE,"socket() failed");
+		return;
+	}
+	
+	int broad=1;
+	if (setsockopt(d->bipv4_fd,SOL_SOCKET,SO_BROADCAST, &broad, sizeof broad) == -1)
+	{
+		WARN_LOG(WIIMOTE,"setsockopt(SO_BROADCAST) failed");
+		return;
+	}
+}
+
+void UDPWiimote::broadcastIPv4(const void * data, size_t size)
+{
+
+	struct sockaddr_in their_addr;
+	their_addr.sin_family = AF_INET;
+	their_addr.sin_port = htons(4431);
+	their_addr.sin_addr.s_addr = INADDR_BROADCAST;
+    memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
+	
+	int num;
+	if ((num=sendto(d->bipv4_fd,(const dataz)data,size,0,(struct sockaddr *) &their_addr, sizeof their_addr)) == -1)
+	{
+		WARN_LOG(WIIMOTE,"sendto() failed");
+		return;
+	}
+}
+
+void UDPWiimote::initBroadcastIPv6()
+{
+	//TODO: IPv6 support
+}
+
+void UDPWiimote::broadcastIPv6(const void * data, size_t size)
+{
+	//TODO: IPv6 support
+}
+
 void UDPWiimote::broadcastPresence()
 {
-//	NOTICE_LOG(WIIMOTE,"UDPWii broadcasting presence");
+	size_t slen;
+	u8 bf[512];
+	bf[0]=0xdf; //magic number
+	*((u16*)(&(bf[1])))=htons(bcastMagic); //unique per-wiimote 16-bit ID
+	bf[3]=(u8)index; //wiimote index
+	*((u16*)(&(bf[4])))=htons(int_port); //port
+	d->nameMutex.Enter();
+	slen=displayName.size();
+	if (slen>=256)
+		slen=255;
+	bf[6]=(u8)slen; //display name size (max 255)
+	memcpy(&(bf[7]),displayName.c_str(),slen); //display name
+	d->nameMutex.Leave();
+	broadcastIPv4(bf,7+slen);
+	broadcastIPv6(bf,7+slen);
 }
 
 void UDPWiimote::getAccel(float &_x, float &_y, float &_z)
@@ -281,7 +367,6 @@ void UDPWiimote::getAccel(float &_x, float &_y, float &_z)
 	_y=(float)y;
 	_z=(float)z;
 	d->mutex.Leave();
-	//NOTICE_LOG(WIIMOTE,"%lf %lf %lf",_x, _y, _z);
 }
 
 u32 UDPWiimote::getButtons()
@@ -323,4 +408,12 @@ void UDPWiimote::getNunchuckAccel(float &_x, float &_y, float &_z)
 const char * UDPWiimote::getPort()
 {
 	return port.c_str();
+}
+
+
+void UDPWiimote::changeName(const char * name)
+{
+	d->nameMutex.Enter();
+	displayName=name;
+	d->nameMutex.Leave();
 }

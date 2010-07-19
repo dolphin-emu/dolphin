@@ -69,7 +69,7 @@ void UDPWrapper::Refresh()
 		if (strcmp(inst->getPort(),port.c_str()))
 		{
 			delete inst;
-			inst= new UDPWiimote(port.c_str());
+			inst= new UDPWiimote(port.c_str(),"Dolphin-Emu",index); //TODO: Changeable display name
 		}
 		return;
 	}
@@ -81,7 +81,7 @@ void UDPWrapper::Refresh()
 		return;
 	}
 	//else
-	inst= new UDPWiimote(port.c_str());
+	inst= new UDPWiimote(port.c_str(),"Dolphin-Emu",index);
 }
 
 UDPWrapper::~UDPWrapper()

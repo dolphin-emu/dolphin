@@ -22,7 +22,7 @@
 class UDPWiimote
 {
 public:
-	UDPWiimote(const char * port);
+	UDPWiimote(const char * port, const char * name, int index);
 	virtual ~UDPWiimote();
 	void getAccel(float &x, float &y, float &z);
 	u32 getButtons();
@@ -31,8 +31,9 @@ public:
 	void getNunchuckAccel(float &x, float &y, float &z);
 	int getErrNo() {return err;};
 	const char * getPort();
+	void changeName(const char * name);
 private:
-	std::string port;
+	std::string port,displayName;
 	int pharsePacket(u8 * data, size_t size);
 	void mainThread();
 	struct _d; //using pimpl because Winsock2.h doesen't have include guards -_-
@@ -43,10 +44,16 @@ private:
 	double pointerX,pointerY;
 	u8 nunMask;
 	u32 mask;
+	u16 bcastMagic;
 	int err;
+	int index;
+	int int_port;
 	static int noinst;
 	friend void _UDPWiiThread(void* arg);
 	void broadcastPresence();
-	u8 time;
+	void broadcastIPv4(const void * data, size_t size);
+	void broadcastIPv6(const void * data, size_t size);
+	void initBroadcastIPv4();
+	void initBroadcastIPv6();
 };
 #endif
