@@ -18,7 +18,8 @@
 #include <vector>
 #include <string>
 
-#include "Common.h" // Common
+#include "Common.h"
+#include "CommonPaths.h"
 
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>

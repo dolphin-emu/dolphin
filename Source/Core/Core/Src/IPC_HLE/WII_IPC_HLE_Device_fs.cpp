@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "CommonPaths.h"
 
 #include "WII_IPC_HLE_Device_fs.h"
 

@@ -16,7 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 
 
-#include "Common.h" // Common
+#include "Common.h"
+#include "CommonPaths.h"
 #include "Atomic.h"
 #include "CommonTypes.h"
 #include "LogManager.h"

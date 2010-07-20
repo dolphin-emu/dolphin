@@ -29,6 +29,7 @@
 #include "Thread.h"
 #include "Timer.h"
 #include "Common.h"
+#include "CommonPaths.h"
 #include "StringUtil.h"
 #include "MathUtil.h"
 #include "MemoryUtil.h"

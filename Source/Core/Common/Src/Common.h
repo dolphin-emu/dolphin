@@ -47,7 +47,6 @@ extern const char *netplay_dolphin_ver;
 #include "Log.h"
 #include "CommonTypes.h"
 #include "MsgHandler.h"
-#include "CommonPaths.h"
 #include "CommonFuncs.h"
 
 #ifdef __APPLE__

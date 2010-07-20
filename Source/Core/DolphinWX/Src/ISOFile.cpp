@@ -19,6 +19,9 @@
 #include <vector>
 #include <wx/mstream.h>
 
+#include "Common.h"
+#include "CommonPaths.h"
+
 #include "Globals.h"
 #include "FileUtil.h"
 #include "ISOFile.h"

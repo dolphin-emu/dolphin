@@ -38,6 +38,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include <list>
 
 #include "Common.h"
+#include "CommonPaths.h"
 #include "WII_IPC_HLE.h"
 #include "WII_IPC_HLE_Device.h"
 #include "WII_IPC_HLE_Device_Error.h"

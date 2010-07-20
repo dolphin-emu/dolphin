@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "CommonPaths.h"
 
 #include <wx/button.h>
 #include <wx/textctrl.h>

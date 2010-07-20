@@ -18,6 +18,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "Common.h"
+#include "CommonPaths.h"
 #include "StringUtil.h"
 
 // faster than sscanf

@@ -16,6 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include "Common.h"
+#include "CommonPaths.h"
 #ifndef _WIN32
 #include <sys/types.h>
 #include <dirent.h>

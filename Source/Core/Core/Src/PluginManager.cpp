@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "Common.h"
+#include "CommonPaths.h"
 #include "PluginManager.h"
 #include "ConfigManager.h"
 #include "LogManager.h"

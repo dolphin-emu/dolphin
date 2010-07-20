@@ -18,6 +18,7 @@
 #include <string>
 
 #include "Common.h"
+#include "CommonPaths.h"
 #include "IniFile.h"
 #include "ConfigManager.h"
 #include "PluginManager.h"

@@ -18,6 +18,9 @@
 #include <string> // System
 #include <vector>
 
+#include "Common.h"
+#include "CommonPaths.h"
+
 #include "Core.h" // Core
 #include "HW/EXI.h"
 #include "HW/SI.h"

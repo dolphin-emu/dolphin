@@ -16,6 +16,8 @@
 // http://code.google.com/p/dolphin-emu/
 #include "stdafx.h"
 
+#include "Common.h"
+#include "CommonPaths.h"
 #include "VolumeDirectory.h"
 #include "FileBlob.h"
 
