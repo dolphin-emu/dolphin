@@ -223,7 +223,7 @@ if sys.platform == 'linux2' and env['install'] == 'global':
     env['plugin_dir'] = env['prefix'] + 'lib/dolphin-emu/'
     env['data_dir'] = env['prefix'] + "share/dolphin-emu/"
 else:
-    env['prefix'] = os.path.join('#Binary',
+    env['prefix'] = os.path.join('Binary',
         platform.system() + '-' + platform.machine() + extra + os.sep)
     env['binary_dir'] = '#' + env['prefix']
     env['plugin_dir'] = '#' + env['prefix'] + 'plugins/'
