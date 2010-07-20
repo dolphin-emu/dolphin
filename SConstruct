@@ -203,11 +203,11 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          }
 
 # Object files
-env['build_dir'] = os.path.join('#Build',
+env['build_dir'] = os.path.join('Build',
     platform.system() + '-' + platform.machine() + '-' + env['flavor'] + os.sep)
 
 # Static libs go here
-env['local_libs'] = env['build_dir'] + os.sep + 'libs' + os.sep
+env['local_libs'] = '#' + env['build_dir'] + os.sep + 'libs' + os.sep
 
 # Install paths
 extra=''
@@ -225,12 +225,12 @@ if sys.platform == 'linux2' and env['install'] == 'global':
 else:
     env['prefix'] = os.path.join('#Binary',
         platform.system() + '-' + platform.machine() + extra + os.sep)
-    env['binary_dir'] = env['prefix']
-    env['plugin_dir'] = env['prefix'] + 'plugins/'
-    env['data_dir'] = env['prefix']
+    env['binary_dir'] = '#' + env['prefix']
+    env['plugin_dir'] = '#' + env['prefix'] + 'plugins/'
+    env['data_dir'] = '#' + env['prefix']
 if sys.platform == 'darwin':
-    env['plugin_dir'] = env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
-    env['data_dir'] = env['prefix'] + 'Dolphin.app/Contents/Resources'
+    env['plugin_dir'] = '#' + env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
+    env['data_dir'] = '#' + env['prefix'] + 'Dolphin.app/Contents/Resources'
 
 shared = {}
 shared['glew'] = shared['lzo'] = shared['sdl'] = \
@@ -260,23 +260,25 @@ if sys.platform == 'darwin':
         env['HAVE_OPENCL'] = 1
         env['LINKFLAGS'] += ['-weak_framework', 'OpenCL']
     if not env['nowx']:
+        frameworks = env['FRAMEWORKS']
         conf = env.Configure(custom_tests = tests)
         env['HAVE_WX'] = conf.CheckWXConfig(2.9, wxmods, 0)
-        wxconfig.ParseWXConfig(env)
         conf.Finish()
         # wx-config wants us to link with the OS X QuickTime framework
         # which is not available for x86_64 and we don't use it anyway.
         # Strip it out to silence some harmless linker warnings.
         # In the 10.5 SDK, Carbon is only partially built for x86_64.
+        wxconfig.ParseWXConfig(env)
         if env['CPPDEFINES'].count('WXUSINGDLL'):
-            if env['FRAMEWORKS'].count('AudioToolbox'):
-                env['FRAMEWORKS'].remove('AudioToolbox')
-            if env['FRAMEWORKS'].count('Carbon'):
-                env['FRAMEWORKS'].remove('Carbon')
-            if env['FRAMEWORKS'].count('System'):
-                env['FRAMEWORKS'].remove('System')
-            if env['FRAMEWORKS'].count('QuickTime'):
-                env['FRAMEWORKS'].remove('QuickTime')
+            env['FRAMEWORKS'] = frameworks
+        #    if env['FRAMEWORKS'].count('AudioToolbox'):
+        #        env['FRAMEWORKS'].remove('AudioToolbox')
+        #    if env['FRAMEWORKS'].count('Carbon'):
+        #        env['FRAMEWORKS'].remove('Carbon')
+        #    if env['FRAMEWORKS'].count('System'):
+        #        env['FRAMEWORKS'].remove('System')
+        #    if env['FRAMEWORKS'].count('QuickTime'):
+        #        env['FRAMEWORKS'].remove('QuickTime')
     env['CPPPATH'] += ['#Externals']
     env['FRAMEWORKS'] += ['Cg']
     env['LINKFLAGS'] += ['-FExternals/Cg']
@@ -455,8 +457,8 @@ for subdir in dirs:
 
 # Data install
 if sys.platform == 'darwin':
-    env.Install('#' + env['data_dir'], 'Data/Sys')
-    env.Install('#' + env['data_dir'], 'Data/User')
+    env.Install(env['data_dir'], 'Data/Sys')
+    env.Install(env['data_dir'], 'Data/User')
 else:
     env.InstallAs(env['data_dir'] + 'sys', 'Data/Sys')
     env.InstallAs(env['data_dir'] + 'user', 'Data/User')
@@ -471,9 +473,8 @@ if env['bundle']:
         tar_env.Append(TARFLAGS='-j', TARCOMSTR="Creating release tarball")
         env.Clean(all, tarball)
     elif sys.platform == 'darwin':
-        app = env['binary_dir'] + 'Dolphin.app'
-        dmg = env['binary_dir'] + 'Dolphin-r' + rev + '.dmg'
-        env.Command('.', app + '/Contents/MacOS/Dolphin', 'rm -f ' + dmg +
+        app = env['prefix'] + 'Dolphin.app'
+        dmg = env['prefix'] + 'Dolphin-r' + rev + '.dmg'
+        env.Command(dmg, app + '/Contents/MacOS/Dolphin', 'rm -f ' + dmg +
             ' && hdiutil create -srcfolder ' + app + ' -format UDBZ ' + dmg +
             ' && hdiutil internet-enable -yes ' + dmg)
-        env.Clean(all, dmg)
