@@ -31,4 +31,4 @@ if env['HAVE_WIIUSE']:
 	files += [ 'WiimoteReal/WiimoteReal.cpp' ]
 	libs += [ 'wiiuse' ]
 
-env.SharedLibrary('#' + env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)
+env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)

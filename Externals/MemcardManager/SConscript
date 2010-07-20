@@ -17,4 +17,4 @@ libs = [
 
 exeGUI = env['binary_dir'] + 'MemcardManager'
 
-env.Program('#' + exeGUI, files, LIBS = env['LIBS'] + libs)
+env.Program(exeGUI, files, LIBS = env['LIBS'] + libs)
