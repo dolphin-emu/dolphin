@@ -40,4 +40,4 @@ if sys.platform == 'darwin' and not env['HAVE_WX']:
 elif sys.platform == 'win32':
 	files += [ 'Win32.cpp' ]
 	
-env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)
+env.SharedLibrary('#' + env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)

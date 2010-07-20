@@ -35,6 +35,7 @@ cppDefines = [
     ]
 
 include_paths = [
+    '#',
     '#Source/Core/Common/Src',
     '#Source/Core/DiscIO/Src',
     '#Source/PluginSpecs',
@@ -132,24 +133,14 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
         )
 
 env = Environment(
-    CPPPATH = include_paths,
-    RPATH = [],
-    LIBS = [],
-    LIBPATH = [],
     BUILDERS = builders,
+    CPPPATH = include_paths,
+    ENV = os.environ,
+    LIBPATH = [],
+    LIBS = [],
+    RPATH = [],
     variables = vars,
     )
-
-if sys.platform == 'win32':
-    env['tools'] = ['mingw']
-    env['ENV'] = os.environ
-else:
-    env['CXXFLAGS'] = ['-fvisibility-inlines-hidden']
-    env['ENV'] = {
-        'PATH' : os.environ['PATH'],
-        'HOME' : os.environ['HOME'],
-        'PKG_CONFIG_PATH' : os.environ.get('PKG_CONFIG_PATH')
-    }
 
 # Save the given command line options
 vars.Save('args.cache', env)
@@ -200,6 +191,7 @@ if env['lint']:
 compileFlags += [ ('-W' + warning) for warning in warnings ]
 
 env['CCFLAGS'] = compileFlags
+env['CXXFLAGS'] = ['-fvisibility-inlines-hidden']
 env['CPPDEFINES'] = cppDefines
 
 # Configuration tests section
@@ -231,14 +223,14 @@ if sys.platform == 'linux2' and env['install'] == 'global':
     env['plugin_dir'] = env['prefix'] + 'lib/dolphin-emu/'
     env['data_dir'] = env['prefix'] + "share/dolphin-emu/"
 else:
-    env['prefix'] = os.path.join('#Binary',
+    env['prefix'] = os.path.join('Binary',
         platform.system() + '-' + platform.machine() + extra + os.sep)
     env['binary_dir'] = env['prefix']
     env['plugin_dir'] = env['prefix'] + 'plugins/'
     env['data_dir'] = env['prefix']
 if sys.platform == 'darwin':
     env['plugin_dir'] = env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
-    env['data_dir'] = env['prefix'] + 'Dolphin.app/Contents/'
+    env['data_dir'] = env['prefix'] + 'Dolphin.app/Contents/Resources'
 
 shared = {}
 shared['glew'] = shared['lzo'] = shared['sdl'] = \
@@ -290,9 +282,11 @@ if sys.platform == 'darwin':
     env['LINKFLAGS'] += ['-FExternals/Cg']
     shared['zlib'] = 1
 
-if not sys.platform == 'win32' and not sys.platform == 'darwin':
-    conf = env.Configure(custom_tests = tests,
-                         config_h="Source/Core/Common/Src/Config.h")
+elif sys.platform == 'win32':
+    env['tools'] = ['mingw']
+
+else:
+    conf = env.Configure(custom_tests = tests, config_h="#config.h")
 
     if not conf.CheckPKGConfig('0.15.0'):
         print "Can't find pkg-config, some tests will fail"
@@ -340,7 +334,7 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
     env['HAVE_OPENAL'] = conf.CheckPKG('openal')
     conf.Define('HAVE_OPENAL', env['HAVE_OPENAL'])
 
-    env['HAVE_PORTAUDIO'] =  conf.CheckPortaudio(1890)
+    env['HAVE_PORTAUDIO'] = conf.CheckPortaudio(1890)
     conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
 
     env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse-simple')
@@ -437,8 +431,8 @@ Progress(['-\r', '\\\r', '|\r', '/\r'], interval=5)
 # package will later install it to the prefix as it was defined before this.
 if env.has_key('destdir'):
     env['prefix'] = env['destdir'] + env['prefix']
-    env['plugin_dir'] = env['destdir'] + env['plugin_dir']
     env['binary_dir'] = env['destdir'] + env['binary_dir']
+    env['plugin_dir'] = env['destdir'] + env['plugin_dir']
     env['data_dir'] = env['destdir'] + env['data_dir']
 
 # Die on unknown variables
@@ -455,17 +449,17 @@ Export('env')
 for subdir in dirs:
     SConscript(
         subdir + os.sep + 'SConscript',
-        variant_dir = env[ 'build_dir' ] + subdir + os.sep,
+        variant_dir = env['build_dir'] + subdir + os.sep,
         duplicate=0
         )
 
 # Data install
 if sys.platform == 'darwin':
-    env.Install(env['data_dir'], 'Data/Sys')
-    env.Install(env['data_dir'], 'Data/User')
+    env.Install('#' + env['data_dir'], 'Data/Sys')
+    env.Install('#' + env['data_dir'], 'Data/User')
 else:
-    env.InstallAs(env['data_dir'] + 'sys', 'Data/Sys')
-    env.InstallAs(env['data_dir'] + 'user', 'Data/User')
+    env.InstallAs('#' + env['data_dir'] + 'sys', 'Data/Sys')
+    env.InstallAs('#' + env['data_dir'] + 'user', 'Data/User')
 
 env.Alias('install', env['prefix'])
 

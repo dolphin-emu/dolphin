@@ -12,4 +12,4 @@ libs = [
 	'dspcore', 'common',
 	]
 
-env.Program(env['binary_dir'] + 'tester', files, LIBS = libs)
+env.Program('#' + env['binary_dir'] + 'tester', files, LIBS = libs)

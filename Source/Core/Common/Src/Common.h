@@ -112,7 +112,7 @@ extern const char *netplay_dolphin_ver;
 	#endif // end DEBUG/FAST
 
 #else
-#include "Config.h"	// SCons autoconfiguration defines
+#include "config.h"	// SCons autoconfiguration defines
 #endif
 
 #if defined __linux__ && HAVE_BLUEZ

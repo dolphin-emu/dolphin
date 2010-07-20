@@ -38,4 +38,4 @@ elif sys.platform == 'win32':
 elif not sys.platform == 'darwin' and env['HAVE_OPENCL']:
 	libs += [ 'OpenCL' ]
 
-env.SharedLibrary(env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)
+env.SharedLibrary('#' + env['plugin_dir'] + name, files, LIBS = env['LIBS'] + libs)

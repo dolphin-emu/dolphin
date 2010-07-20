@@ -422,11 +422,6 @@ bool RunCode(const ARCode &arcode)
 
 		switch (addr.type)
 		{
-		case 0x08:
-			LogInfo("Bad Normal Code type: 0x08");
-			return false;
-			break;
-
 		case 0x00:
 			if (false == NormalCode(addr, data))
 				return false;

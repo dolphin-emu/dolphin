@@ -18,9 +18,8 @@
 #ifndef _COMMON_PATHS_H_
 #define _COMMON_PATHS_H_
 
-#ifdef __linux__
-#include "Config.h"
-#endif
+// Make sure we pick up USER_DIR if set in config.h
+#include "Common.h"
 
 // Library suffix/prefix
 #ifdef _WIN32
@@ -29,7 +28,7 @@
 #elif defined __APPLE__
 	#define PLUGIN_PREFIX "lib"
 	#define PLUGIN_SUFFIX ".dylib"
-#elif defined __linux__
+#else
 	#define PLUGIN_PREFIX "lib"
 	#define PLUGIN_SUFFIX ".so"
 #endif
@@ -43,7 +42,7 @@
 	#define PLUGINS_DIR "Plugins"
 #elif defined __APPLE__
 	#define PLUGINS_DIR "Contents/PlugIns"
-#elif defined __linux__
+#else
 	#ifdef LIBS_DIR
 		#define PLUGINS_DIR LIBS_DIR "dolphin-emu"
 	#else
@@ -60,9 +59,9 @@
 	// On OS X, USERDATA_DIR exists within the .app, but *always* reference
 	// the copy in Application Support instead! (Copied on first run)
 	// You can use the File::GetUserPath() util for this
-	#define USERDATA_DIR "Contents/User"
+	#define USERDATA_DIR "Contents/Resources/User"
 	#define DOLPHIN_DATA_DIR "Library/Application Support/Dolphin"
-#elif defined __linux__
+#else
 	#define USERDATA_DIR "user"
 	#ifdef USER_DIR
 		#define DOLPHIN_DATA_DIR USER_DIR
@@ -75,8 +74,8 @@
 #ifdef _WIN32
 	#define SYSDATA_DIR "Sys"
 #elif defined __APPLE__
-	#define SYSDATA_DIR "Contents/Sys"
-#elif defined __linux__
+	#define SYSDATA_DIR "Contents/Resources/Sys"
+#else
 	#ifdef DATA_DIR
 		#define SYSDATA_DIR DATA_DIR "sys"
 		#define SHARED_USER_DIR  DATA_DIR USERDATA_DIR DIR_SEP
