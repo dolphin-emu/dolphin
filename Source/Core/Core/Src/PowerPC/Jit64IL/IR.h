@@ -219,6 +219,7 @@ private:
 
 	InstLoc FoldAdd(InstLoc Op1, InstLoc Op2);
 	InstLoc FoldSub(InstLoc Op1, InstLoc Op2);
+	InstLoc FoldMul(InstLoc Op1, InstLoc Op2);
 	InstLoc FoldAnd(InstLoc Op1, InstLoc Op2);
 	InstLoc FoldOr(InstLoc Op1, InstLoc Op2);
 	InstLoc FoldRol(InstLoc Op1, InstLoc Op2);
@@ -545,6 +546,8 @@ public:
 
 private:
 	IRBuilder(IRBuilder&); // DO NOT IMPLEMENT
+	unsigned isSameValue(InstLoc Op1, InstLoc Op2);
+
 	std::vector<Inst> InstList; // FIXME: We must ensure this is 
 				    // continuous!
 	std::vector<unsigned> ConstList;

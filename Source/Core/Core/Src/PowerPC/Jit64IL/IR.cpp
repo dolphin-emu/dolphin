@@ -356,22 +356,137 @@ InstLoc IRBuilder::FoldAdd(InstLoc Op1, InstLoc Op2) {
 					    GetImmValue(Op2));
 		return FoldAdd(Op2, Op1);
 	}
+
 	if (isImm(*Op2)) {
+		// Add x 0 => x
 		if (!GetImmValue(Op2)) return Op1;
+
+		// Add (Add x i0) i1 => Add x (i0 + i1)
 		if (getOpcode(*Op1) == Add && isImm(*getOp2(Op1))) {
 			unsigned RHS = GetImmValue(Op2) +
 				       GetImmValue(getOp2(Op1));
 			return FoldAdd(getOp1(Op1), EmitIntConst(RHS));
 		}
 	}
+
+	// Add (Add x i0) (Add y i1) => Add (Add x y) (i0 + i1)
+	if (getOpcode(*Op1) == Add && getOpcode(*Op2) == Add && isImm(*getOp2(Op1)) && isImm(*getOp2(Op2))) {
+		return FoldAdd(FoldAdd(getOp1(Op1), getOp1(Op2)), EmitIntConst(GetImmValue(getOp2(Op1)) + GetImmValue(getOp2(Op2))));
+	}
+
+	// Add x x => Shl x 1
+	if (Op1 == Op2) {
+		return FoldShl(Op1, EmitIntConst(1));
+	}
+
+	if (getOpcode(*Op1) == Mul && getOpcode(*Op2) == Mul) {
+		// TODO: Test the folding below
+		// Add (Mul x y) (Mul x z) => Mul(x Add(y z))
+		if (isSameValue(getOp1(Op1), getOp1(Op2))) {
+			return FoldMul(getOp1(Op1), FoldAdd(getOp2(Op1), getOp2(Op2)));
+		}
+
+		// TODO: Test the folding below
+		// Add (Mul x y) (Mul z x) => Mul(x Add(y z))
+		if (isSameValue(getOp1(Op1), getOp2(Op2))) {
+			return FoldMul(getOp1(Op1), FoldAdd(getOp2(Op1), getOp1(Op2)));
+		}
+
+		// TODO: Test the folding below
+		// Add (Mul y x) (Mul x z) => Mul(x Add(y z))
+		if (isSameValue(getOp2(Op1), getOp1(Op2))) {
+			return FoldMul(getOp2(Op1), FoldAdd(getOp1(Op1), getOp2(Op2)));
+		}
+
+		// Add (Mul y x) (Mul z x) => Mul(x Add(y z))
+		if (isSameValue(getOp2(Op1), getOp2(Op2))) {
+			return FoldMul(getOp2(Op1), FoldAdd(getOp1(Op1), getOp1(Op2)));
+		}
+	}
+
 	return EmitBiOp(Add, Op1, Op2);
 }
 
 InstLoc IRBuilder::FoldSub(InstLoc Op1, InstLoc Op2) {
+	// Sub x, x => CInt32 0
+	if (isSameValue(Op1, Op2)) {
+		return EmitIntConst(0);
+	}
+
+	// Sub x, i0 => Add x, -i0
 	if (isImm(*Op2)) {
 		return FoldAdd(Op1, EmitIntConst(-GetImmValue(Op2)));
 	}
+
+	// Sub (Add x i0) (Add y i1) => Add (Sub x y) (i0 - i1)
+	if (getOpcode(*Op1) == Add && getOpcode(*Op2) == Add && isImm(*getOp2(Op1)) && isImm(*getOp2(Op2))) {
+		return FoldAdd(FoldSub(getOp1(Op1), getOp1(Op2)), EmitIntConst(GetImmValue(getOp2(Op1)) - GetImmValue(getOp2(Op2))));
+	}
+
+	if (getOpcode(*Op1) == Mul && getOpcode(*Op2) == Mul) {
+		// TODO: Test the folding below
+		// Sub (Mul x y) (Mul x z) => Mul(x Sub(y z))
+		if (isSameValue(getOp1(Op1), getOp1(Op2))) {
+			return FoldMul(getOp1(Op1), FoldSub(getOp2(Op1), getOp2(Op2)));
+		}
+
+		// TODO: Test the folding below
+		// Sub (Mul x y) (Mul z x) => Mul(x Sub(y z))
+		if (isSameValue(getOp1(Op1), getOp2(Op2))) {
+			return FoldMul(getOp1(Op1), FoldSub(getOp2(Op1), getOp1(Op2)));
+		}
+
+		// TODO: Test the folding below
+		// Sub (Mul y x) (Mul x z) => Mul(x Sub(y z))
+		if (isSameValue(getOp2(Op1), getOp1(Op2))) {
+			return FoldMul(getOp2(Op1), FoldSub(getOp1(Op1), getOp2(Op2)));
+		}
+
+		// Sub (Mul y x) (Mul z x) => Mul(x Sub(y z))
+		if (isSameValue(getOp2(Op1), getOp2(Op2))) {
+			return FoldMul(getOp2(Op1), FoldSub(getOp1(Op1), getOp1(Op2)));
+		}
+	}
+
 	return EmitBiOp(Sub, Op1, Op2);
+}
+
+InstLoc IRBuilder::FoldMul(InstLoc Op1, InstLoc Op2) {
+	if (isImm(*Op1)) {
+		// Mul i0 i1 => i0 * i1
+		if (isImm(*Op2)) {
+			return EmitIntConst(GetImmValue(Op1) * GetImmValue(Op2));
+		}
+
+		// Mul i0 x => Mul x i0
+		return FoldMul(Op2, Op1);
+	}
+
+	if (isImm(*Op2)) {
+		const unsigned imm = GetImmValue(Op2);
+
+		// Mul x 0 => 0
+		if (imm == 0) {
+			return EmitIntConst(0);
+		}
+		
+		// FIXME: The code below can be speed up by popcount, (x & -x), etc...
+		for (unsigned i0 = 0; i0 < 30; ++i0) {
+			// Mul x (1 << i0) => Shl x i0
+			if (imm == (1U << i0)) {
+				return FoldShl(Op1, EmitIntConst(i0));
+			}
+
+			for (unsigned i1 = 0; i1 < i0; ++i1) {
+				// Mul x ((1 << i0) | (1 << i1)) => Add (Shl x i0) (Shl x i1)
+				if (imm == ((1U << i0) | ((1U << i1)))) {
+					return FoldAdd(FoldShl(Op1, EmitIntConst(i0)), FoldShl(Op1, EmitIntConst(i1)));
+				}
+			}
+		}
+	}
+
+	return EmitBiOp(Mul, Op1, Op2);
 }
 
 InstLoc IRBuilder::FoldAnd(InstLoc Op1, InstLoc Op2) {
@@ -402,6 +517,13 @@ InstLoc IRBuilder::FoldAnd(InstLoc Op1, InstLoc Op2) {
 			return Op1;
 		}
 	}
+
+	// TODO: Test the folding below
+	// And (And x i0) (And y i1) => And (And x y) (i0 & i1)
+	if (getOpcode(*Op1) == And && getOpcode(*Op2) == And && isImm(*getOp2(Op1)) && isImm(*getOp2(Op2))) {
+		return FoldAnd(FoldAnd(getOp1(Op1), getOp1(Op2)), EmitIntConst(GetImmValue(getOp2(Op1)) & GetImmValue(getOp2(Op2))));
+	}
+
 	if (Op1 == Op2) return Op1;
 
 	return EmitBiOp(And, Op1, Op2);
@@ -423,6 +545,12 @@ InstLoc IRBuilder::FoldOr(InstLoc Op1, InstLoc Op2) {
 			return FoldOr(getOp1(Op1), EmitIntConst(RHS));
 		}
 	}
+
+	// Or (Or x i0) (Or y i1) => Or (Or x y) (i0 | i1)
+	if (getOpcode(*Op1) == Or && getOpcode(*Op2) == Or && isImm(*getOp2(Op1)) && isImm(*getOp2(Op2))) {
+		return FoldOr(FoldOr(getOp1(Op1), getOp1(Op2)), EmitIntConst(GetImmValue(getOp2(Op1)) | GetImmValue(getOp2(Op2))));
+	}
+
 	if (Op1 == Op2) return Op1;
 
 	return EmitBiOp(Or, Op1, Op2);
@@ -450,6 +578,11 @@ InstLoc IRBuilder::FoldXor(InstLoc Op1, InstLoc Op2) {
 
 InstLoc IRBuilder::FoldShl(InstLoc Op1, InstLoc Op2) {
 	if (isImm(*Op2)) {
+		// Shl x 0 => x
+		if (!GetImmValue(Op2)) {
+			return Op1;
+		}
+
 		if (isImm(*Op1))
 			return EmitIntConst(GetImmValue(Op1) << (GetImmValue(Op2) & 31));
 	}
@@ -665,6 +798,7 @@ InstLoc IRBuilder::FoldBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, unsigned 
 	switch (Opcode) {
 		case Add: return FoldAdd(Op1, Op2);
 		case Sub: return FoldSub(Op1, Op2);
+		case Mul: return FoldMul(Op1, Op2);
 		case And: return FoldAnd(Op1, Op2);
 		case Or: return FoldOr(Op1, Op2);
 		case Xor: return FoldXor(Op1, Op2);
@@ -694,6 +828,18 @@ InstLoc IRBuilder::EmitIntConst(unsigned value) {
 
 unsigned IRBuilder::GetImmValue(InstLoc I) {
 	return ConstList[*I >> 8];
+}
+
+unsigned IRBuilder::isSameValue(InstLoc Op1, InstLoc Op2) {
+	if (Op1 == Op2) {
+		return true;
+	}
+
+	if (isImm(*Op1) && isImm(*Op2) && GetImmValue(Op1) == GetImmValue(Op2)) {
+		return true;
+	}
+
+	return false;
 }
 
 }
