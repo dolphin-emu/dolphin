@@ -45,6 +45,7 @@ BEGIN_EVENT_TABLE(GFXConfigDialogOGL,wxDialog)
 	EVT_CHECKBOX(ID_USEREALXFB, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_FORCEFILTERING, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_USENATIVEMIPS, GFXConfigDialogOGL::GeneralSettingsChanged)
+	EVT_CHECKBOX(ID_EFBSCALEDCOPY, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_AUTOSCALE, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHECKBOX(ID_WIDESCREENHACK, GFXConfigDialogOGL::GeneralSettingsChanged)
 	EVT_CHOICE(ID_ASPECT, GFXConfigDialogOGL::GeneralSettingsChanged)
@@ -202,6 +203,7 @@ void GFXConfigDialogOGL::InitializeGUIValues()
 	m_AutoScale->SetValue(g_Config.bAutoScale);
 	m_WidescreenHack->SetValue(g_Config.bWidescreenHack);
 	m_UseNativeMips->SetValue(g_Config.bUseNativeMips);
+	m_EFBScaledCopy->SetValue(g_Config.bCopyEFBScaled);
 	// Enhancements
 	m_MaxAnisotropyCB->SetSelection(g_Config.iMaxAnisotropy - 1);
 	m_ForceFiltering->SetValue(g_Config.bForceFiltering);
@@ -361,8 +363,6 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sbBasicAdvanced = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Advanced Display Settings"));
 	m_OSDHotKey = new wxCheckBox(m_PageGeneral, ID_OSDHOTKEY, wxT("Enable Hotkeys"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 #if !defined(_WIN32) && (!defined(HAVE_X11) || !HAVE_X11)
-	// JPeterson set the hot key to be Win32-specific
-	// Now linux has this (with X11)
 	m_OSDHotKey->Enable(false);
 #endif
 	m_VSync = new wxCheckBox(m_PageGeneral, ID_VSYNC, wxT("VSync (req. restart)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
@@ -371,6 +371,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	m_AutoScale = new wxCheckBox(m_PageGeneral, ID_AUTOSCALE, wxT("Auto scale (try to remove borders)"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_WidescreenHack = new wxCheckBox(m_PageGeneral, ID_WIDESCREENHACK, wxT("Wide screen hack"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 	m_UseNativeMips = new wxCheckBox(m_PageGeneral, ID_USENATIVEMIPS, wxT("Use Native Mips"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
+	m_EFBScaledCopy = new wxCheckBox(m_PageGeneral, ID_EFBSCALEDCOPY, wxT("EFB Scaled Copy"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator);
 
 	// Enhancements
 	sbEnhancements = new wxStaticBoxSizer(wxVERTICAL, m_PageGeneral, wxT("Enhancements"));
@@ -408,6 +409,7 @@ void GFXConfigDialogOGL::CreateGUIControls()
 	sBasicAdvanced->Add(m_AutoScale,			wxGBPosition(4, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_WidescreenHack,		wxGBPosition(5, 0), wxGBSpan(1, 2), wxALL, 5);
 	sBasicAdvanced->Add(m_UseNativeMips,		wxGBPosition(6, 0), wxGBSpan(1, 2), wxALL, 5);
+	sBasicAdvanced->Add(m_EFBScaledCopy,		wxGBPosition(7, 0), wxGBSpan(1, 2), wxALL, 5);
 
 	sbBasicAdvanced->Add(sBasicAdvanced);
 	sGeneral->Add(sbBasicAdvanced, 0, wxEXPAND|wxALL, 5);
@@ -598,6 +600,9 @@ void GFXConfigDialogOGL::GeneralSettingsChanged(wxCommandEvent& event)
 		break;
 	case ID_USENATIVEMIPS:
 		g_Config.bUseNativeMips = m_UseNativeMips->IsChecked();
+		break;
+	case ID_EFBSCALEDCOPY:
+		g_Config.bCopyEFBScaled = m_EFBScaledCopy->IsChecked();
 		break;
 	case ID_AUTOSCALE:
 		g_Config.bAutoScale = m_AutoScale->IsChecked();
