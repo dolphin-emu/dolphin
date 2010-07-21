@@ -368,11 +368,9 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			// instead of destroying it and having to create a new one.
 			// Might speed up movie playback very, very slightly.
 			TextureisDynamic = (entry.isRenderTarget || entry.isDynamic) && !g_ActiveConfig.bCopyEFBToTexture;
-			if (!entry.isRenderTarget && ((!entry.isDynamic &&
-					width == entry.w && height == entry.h &&
-					(int)FullFormat == entry.fmt) ||
-					(entry.isDynamic &&
-					entry.w == width && entry.h == height)))
+			if (((!(entry.isRenderTarget || entry.isDynamic)  && width == entry.w && height == entry.h && (int)FullFormat == entry.fmt) ||
+				((entry.isRenderTarget || entry.isDynamic)  && entry.w == width && entry.h == height && entry.Scaledw == width && entry.Scaledh == height)) 
+				&& !entry.isRectangle)
 			{
 				glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
 				GL_REPORT_ERRORD();
@@ -390,6 +388,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
     //Make an entry in the table
 	TCacheEntry& entry = textures[texID];
 	entry.isDynamic = TextureisDynamic;
+	entry.isRenderTarget = false;
 	PC_TexFormat dfmt = PC_TEX_FMT_NONE;
 
 	if (g_ActiveConfig.bHiresTextures)
@@ -410,6 +409,11 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 			entry.scaleY = (float) height / oldHeight;
 		}
 	}
+	else
+	{
+		entry.scaleX = 1.0f;
+		entry.scaleY = 1.0f;
+	}
 
 	if (dfmt == PC_TEX_FMT_NONE)
 		dfmt = TexDecoder_Decode(temp, ptr, expandedWidth, expandedHeight, tex_format, tlutaddr, tlutfmt);
@@ -425,8 +429,7 @@ TextureMngr::TCacheEntry* TextureMngr::Load(int texstage, u32 address, int width
 	}
 
     entry.addr = address;
-	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format);
-    entry.isRenderTarget = false;
+	entry.size_in_bytes = TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, tex_format);    
 
 	// For static textures, we use NPOT.
 	entry.isRectangle = false;
@@ -760,31 +763,29 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 	{
 		_assert_(entry.texture);
 		GL_REPORT_ERRORD();
-		if (((!entry.isDynamic && entry.Scaledw == Scaledtex_w && entry.Scaledh == Scaledtex_h) 
-			|| (entry.isDynamic && entry.w == w && entry.h == h)) && entry.isRectangle) 
+		if(entry.isDynamic)
 		{
-			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
+			Scaledtex_h = h;
+			Scaledtex_w = w;
+		}
+		if (((entry.isRenderTarget || entry.isDynamic)  && entry.Scaledw == Scaledtex_w && entry.Scaledh == Scaledtex_h))
+		{
+			glBindTexture(entry.isRectangle ? GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D, entry.texture);
 			// for some reason mario sunshine errors here...
 			// Beyond Good and Evil does too, occasionally.
 			GL_REPORT_ERRORD();
 		} else {
-			// Delete existing texture.
-			if(entry.isDynamic)
-			{
-				Scaledtex_h = h;
-				Scaledtex_w = w;
-			}
-
+			// Delete existing texture.			
 			glDeleteTextures(1,(GLuint *)&entry.texture);
 			glGenTextures(1, (GLuint *)&entry.texture);
-			glBindTexture(GL_TEXTURE_RECTANGLE_ARB, entry.texture);
-			glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, gl_iformat, Scaledtex_w, Scaledtex_h, 0, gl_format, gl_type, NULL);
+			glBindTexture(entry.isDynamic ? GL_TEXTURE_2D : GL_TEXTURE_RECTANGLE_ARB, entry.texture);
+			glTexImage2D(entry.isDynamic ? GL_TEXTURE_2D : GL_TEXTURE_RECTANGLE_ARB, 0, gl_iformat, Scaledtex_w, Scaledtex_h, 0, gl_format, gl_type, NULL);
 			GL_REPORT_ERRORD();
 			entry.isRenderTarget = !entry.isDynamic;
 		}
 	}
 
-	if (!bIsInit || !entry.isRenderTarget) 
+	if (!bIsInit) 
 	{
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -798,14 +799,16 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 		}
 	}
 
+	entry.addr = address;
 	entry.w = w;
 	entry.h = h;
 	entry.Scaledw = Scaledtex_w;
 	entry.Scaledh = Scaledtex_h;
-	entry.isRectangle = true;
-	entry.scaleX = g_ActiveConfig.bCopyEFBScaled ? xScale : 1.0f;
-	entry.scaleY = g_ActiveConfig.bCopyEFBScaled ? yScale : 1.0f;
+	entry.isRectangle = !entry.isDynamic;
+	entry.scaleX = (g_ActiveConfig.bCopyEFBScaled  && !entry.isDynamic) ? xScale : 1.0f;
+	entry.scaleY = (g_ActiveConfig.bCopyEFBScaled  && !entry.isDynamic) ? yScale : 1.0f;
 	entry.fmt = copyfmt;	
+	entry.hash = 0;
 
 	// Make sure to resolve anything we need to read from.
 	GLuint read_texture = bFromZBuffer ? g_framebufferManager.ResolveAndGetDepthTarget(source_rect) : g_framebufferManager.ResolveAndGetRenderTarget(source_rect);
@@ -856,8 +859,8 @@ void TextureMngr::CopyRenderTargetToTexture(u32 address, bool bFromZBuffer, bool
 		textures[address].hash = TextureConverter::EncodeToRamFromTexture(
 			address,
 			read_texture,
-			Renderer::GetTargetScaleX(),
-			Renderer::GetTargetScaleY(), 
+			xScale,
+			yScale, 
 			bFromZBuffer, 
 			bIsIntensityFmt, 
 			copyfmt, 
