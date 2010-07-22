@@ -36,6 +36,8 @@
 
 #include "ActionReplay.h"
 
+#include "GeckoCodeDiag.h"
+
 #include "Filesystem.h"
 #include "IniFile.h"
 
@@ -143,6 +145,10 @@ class wxCheatsWindow : public wxFrame
 
 		std::vector<ARCodeIndex> indexList;
 
+		Gecko::CodeConfigPanel *m_geckocode_panel;
+		IniFile m_gameini;
+		std::string m_gameini_path;
+
 		void Init_ChildControls();
 
 		void Load_ARCodes();
@@ -156,8 +162,8 @@ class wxCheatsWindow : public wxFrame
 		void OnEvent_CheatsList_ItemSelected(wxCommandEvent& event);
 		void OnEvent_CheatsList_ItemToggled(wxCommandEvent& event);
 
-		// $ Update Active Codes Button
-		void OnEvent_ButtonUpdateCodes_Press(wxCommandEvent& event);
+		// $ Apply Changes Button
+		void OnEvent_ApplyChanges_Press(wxCommandEvent& event);
 
 		// $ Update Log Button
 		void OnEvent_ButtonUpdateLog_Press(wxCommandEvent& event);

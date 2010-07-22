@@ -24,6 +24,7 @@
 #include "ISOProperties.h"
 #include "PatchAddEdit.h"
 #include "ARCodeAddEdit.h"
+#include "GeckoCodeDiag.h"
 #include "ConfigManager.h"
 #include "StringUtil.h"
 
@@ -268,6 +269,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	m_Notebook->AddPage(m_PatchPage, _("Patches"));
 	m_CheatPage = new wxPanel(m_Notebook, ID_ARCODE_PAGE, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_CheatPage, _("AR Codes"));
+	m_geckocode_panel = new Gecko::CodeConfigPanel(m_Notebook);
+	m_Notebook->AddPage(m_geckocode_panel, wxT("Gecko Codes"));
 	m_Information = new wxPanel(m_Notebook, ID_INFORMATION, wxDefaultPosition, wxDefaultSize);
 	m_Notebook->AddPage(m_Information, _("Info"));
 	m_Filesystem = new wxPanel(m_Notebook, ID_FILESYSTEM, wxDefaultPosition, wxDefaultSize);
@@ -879,6 +882,7 @@ void CISOProperties::LoadGameConfig()
 
 	PatchList_Load();
 	ActionReplayList_Load();
+	m_geckocode_panel->LoadCodes(GameIni);
 }
 
 bool CISOProperties::SaveGameConfig()
@@ -966,6 +970,7 @@ bool CISOProperties::SaveGameConfig()
 
 	PatchList_Save();
 	ActionReplayList_Save();
+	Gecko::SaveCodes(GameIni, m_geckocode_panel->GetCodes());
 
 	return GameIni.Save(GameIniFile.c_str());
 }

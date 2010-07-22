@@ -34,6 +34,8 @@
 #include "PatchEngine.h"
 #include "HW/Memmap.h"
 #include "ActionReplay.h"
+#include "GeckoCode.h";
+#include "GeckoCodeConfig.h";
 #include "FileUtil.h"
 
 using namespace Common;
@@ -154,6 +156,12 @@ void LoadPatches(const char *gameID)
 	if (ini.Load(filename.c_str())) {
 		LoadPatchSection("OnFrame", onFrame, ini);
 		ActionReplay::LoadCodes(ini, false);
+		
+		// lil silly
+		std::vector<Gecko::GeckoCode> gcodes;
+		Gecko::LoadCodes(ini, gcodes);
+		Gecko::SetActiveCodes(gcodes);
+
 		LoadSpeedhacks("Speedhacks", speedHacks, ini);
 		LoadDiscList("DiscList", discList, ini);
 	}
@@ -197,6 +205,8 @@ void ApplyFramePatches()
 void ApplyARPatches()
 {
 	ActionReplay::RunAllActive();
+	// w/e this can be changed later
+	Gecko::RunActiveCodes();
 }
 
 }  // namespace

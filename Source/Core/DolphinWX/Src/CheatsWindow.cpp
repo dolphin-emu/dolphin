@@ -20,6 +20,7 @@
 #include "ActionReplay.h"
 #include "Core.h"
 #include "ConfigManager.h"
+#include "VolumeHandler.h"
 #include "ISOProperties.h"
 #include "HW/Memmap.h"
 
@@ -43,6 +44,17 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
 	// Load Data
 	Load_ARCodes();
 
+	// Load Gecko Codes :/
+	{
+	const DiscIO::IVolume* const vol = VolumeHandler::GetVolume();
+	if (vol)
+	{
+		m_gameini_path = std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + vol->GetUniqueID() + ".ini";
+		m_gameini.Load(m_gameini_path);
+		m_geckocode_panel->LoadCodes(m_gameini);
+	}
+	}
+
 	Center();
 	Show();
 }
@@ -64,9 +76,6 @@ void wxCheatsWindow::Init_ChildControls()
 
 	m_Label_Codename = new wxStaticText(m_Tab_Cheats, wxID_ANY, _T("Name: "), wxDefaultPosition, wxDefaultSize);
 	m_GroupBox_Info = new wxStaticBox(m_Tab_Cheats, wxID_ANY, _T("Code Info"), wxDefaultPosition, wxDefaultSize);
-	
-	wxButton* const button_applycodes = new wxButton(m_Tab_Cheats, wxID_ANY, _T("Apply Changes"), wxDefaultPosition, wxDefaultSize);
-	_connect_macro_(button_applycodes, wxCheatsWindow::OnEvent_ButtonUpdateCodes_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
 	m_Label_NumCodes = new wxStaticText(m_Tab_Cheats, wxID_ANY, _T("Number Of Codes: "),  wxDefaultPosition, wxDefaultSize);
 	m_ListBox_CodesList = new wxListBox(m_Tab_Cheats, wxID_ANY, wxDefaultPosition, wxSize(120, 150), 0, 0, wxLB_HSCROLL);
@@ -76,13 +85,9 @@ void wxCheatsWindow::Init_ChildControls()
 	sGroupBoxInfo->Add(m_Label_NumCodes, 0, wxALL, 5);
 	sGroupBoxInfo->Add(m_ListBox_CodesList, 1, wxALL, 5);
 
-	wxBoxSizer* sB1 = new wxBoxSizer(wxVERTICAL);
-	sB1->Add(button_applycodes, 0, wxALL | wxEXPAND, 5);
-	sB1->Add(sGroupBoxInfo, 1, wxALL, 5);
-
 	wxBoxSizer* sizer_tab_cheats = new wxBoxSizer(wxHORIZONTAL);
 	sizer_tab_cheats->Add(m_CheckListBox_CheatsList, 1, wxEXPAND | wxTOP | wxBOTTOM | wxLEFT, 10);
-	sizer_tab_cheats->Add(sB1, 0, wxALIGN_LEFT | wxEXPAND | wxALL, 5);
+	sizer_tab_cheats->Add(sGroupBoxInfo, 0, wxALIGN_LEFT | wxEXPAND | wxALL, 5);
 
 	m_Tab_Cheats->SetSizerAndFit(sizer_tab_cheats);	
 
@@ -112,14 +117,19 @@ void wxCheatsWindow::Init_ChildControls()
 	m_Tab_Log->SetSizerAndFit(sTabLog);
 
 	// Add Tabs to Notebook
-	m_Notebook_Main->AddPage(m_Tab_Cheats, _T("Codes List"));
+	m_Notebook_Main->AddPage(m_Tab_Cheats, _T("AR Codes"));
+	m_geckocode_panel = new Gecko::CodeConfigPanel(m_Notebook_Main);
+	m_Notebook_Main->AddPage(m_geckocode_panel, wxT("Gecko Codes"));
 	m_Notebook_Main->AddPage(tab_cheat_search, _T("Cheat Search"));
 	m_Notebook_Main->AddPage(m_Tab_Log, _T("Logging"));
 
 	// Button Strip
+	wxButton* const button_apply = new wxButton(panel, wxID_ANY, _T("Apply"), wxDefaultPosition, wxDefaultSize);
+	_connect_macro_(button_apply, wxCheatsWindow::OnEvent_ApplyChanges_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
 	wxButton* const button_close = new wxButton(panel, wxID_ANY, _T("Close"), wxDefaultPosition, wxDefaultSize);
 	_connect_macro_(button_close, wxCheatsWindow::OnEvent_ButtonClose_Press, wxEVT_COMMAND_BUTTON_CLICKED, this);
 	wxBoxSizer* sButtons = new wxBoxSizer(wxHORIZONTAL);
+	sButtons->Add(button_apply, 1, wxRIGHT, 5);
 	sButtons->Add(button_close, 1, 0, 0);
 
 	wxBoxSizer* const sMain = new wxBoxSizer(wxVERTICAL);
@@ -280,11 +290,22 @@ void wxCheatsWindow::OnEvent_CheatsList_ItemToggled(wxCommandEvent& WXUNUSED (ev
 	}
 }
 
-void wxCheatsWindow::OnEvent_ButtonUpdateCodes_Press(wxCommandEvent& WXUNUSED (event))
+void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& WXUNUSED (event))
 {
+	// Appply AR Code changes
 	for (size_t i = 0; i < indexList.size(); i++)
 	{
 		ActionReplay::SetARCode_IsActive(m_CheckListBox_CheatsList->IsChecked(indexList[i].uiIndex), indexList[i].index);
+	}
+
+	// Apply Gecko Code changes
+	Gecko::SetActiveCodes(m_geckocode_panel->GetCodes());
+
+	// save gameini, with changed gecko codes
+	if (m_gameini_path.size())
+	{
+		Gecko::SaveCodes(m_gameini, m_geckocode_panel->GetCodes());
+		m_gameini.Save(m_gameini_path);
 	}
 }
 

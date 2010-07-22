@@ -1359,6 +1359,26 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="GeckoCode"
+			>
+			<File
+				RelativePath=".\Src\GeckoCode.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\GeckoCode.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\GeckoCodeConfig.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\GeckoCodeConfig.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\Src\ConfigManager.cpp"
 			>

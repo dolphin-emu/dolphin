@@ -186,7 +186,7 @@ void CFrame::CreateMenu()
 	toolsMenu->Append(IDM_LUA, _T("New &Lua Console"));
 	toolsMenu->Append(IDM_MEMCARD, _T("&Memcard Manager (GC)"));
 	toolsMenu->Append(IDM_IMPORTSAVE, _T("Wii Save Import"));
-	toolsMenu->Append(IDM_CHEATS, _T("Action &Replay Manager"));
+	toolsMenu->Append(IDM_CHEATS, _T("&Cheats Manager"));
 
 	toolsMenu->Append(IDM_NETPLAY, _T("Start &NetPlay"));
 

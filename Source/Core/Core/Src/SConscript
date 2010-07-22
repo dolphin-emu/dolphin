@@ -6,6 +6,8 @@ import sys
 files = [
 	"ActionReplay.cpp",
 	"ARDecrypt.cpp",
+	"GeckoCode.cpp",
+	"GeckoCodeConfig.cpp",
 	"ConfigManager.cpp",
 	"Console.cpp",
 	"Core.cpp",

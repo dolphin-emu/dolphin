@@ -35,6 +35,7 @@
 #include "IniFile.h"
 #include "PatchEngine.h"
 #include "ActionReplay.h"
+#include "GeckoCodeDiag.h"
 
 class CISOProperties : public wxDialog
 {
@@ -144,6 +145,8 @@ class CISOProperties : public wxDialog
 		wxTreeCtrl *m_Treectrl;
 		wxTreeItemId RootId;
 		wxImageList *m_iconList;
+
+		Gecko::CodeConfigPanel *m_geckocode_panel;
 
 		enum
 		{

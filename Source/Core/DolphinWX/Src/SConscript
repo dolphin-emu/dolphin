@@ -23,6 +23,7 @@ if env['HAVE_WX']:
 	files += [
 		'AboutDolphin.cpp',
 		'ARCodeAddEdit.cpp',
+		'GeckoCodeDiag.cpp',
 		'ConfigMain.cpp',
 		'Frame.cpp',
 		'FrameAui.cpp',

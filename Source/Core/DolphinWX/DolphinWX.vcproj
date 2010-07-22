@@ -865,6 +865,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Src\GeckoCodeDiag.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Src\GeckoCodeDiag.h"
+				>
+			</File>
+			<File
 				RelativePath=".\src\Globals.h"
 				>
 			</File>
