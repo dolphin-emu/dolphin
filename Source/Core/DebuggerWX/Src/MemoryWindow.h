@@ -38,10 +38,10 @@ class CMemoryWindow
 
 		CMemoryWindow(wxWindow* parent,
 					  wxWindowID id = wxID_ANY,
-					  const wxString& title = _T("Dolphin-Memory"),
-					  const wxPoint& pos = wxPoint(950, 100),
-					  const wxSize& size = wxSize(400, 500),
-					  long style = wxNO_BORDER);
+					  const wxPoint& pos = wxDefaultPosition,
+					  const wxSize& size = wxDefaultSize,
+					  long style = wxNO_BORDER,
+					  const wxString& name = _T("Memory"));
 
         ~CMemoryWindow();
 		wxCheckBox* chk8;

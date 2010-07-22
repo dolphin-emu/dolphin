@@ -266,15 +266,7 @@ EVT_MENU(IDM_ADD_PERSPECTIVE, CFrame::OnDropDownToolbarSelect)
 EVT_MENU(IDM_TAB_SPLIT, CFrame::OnDropDownToolbarSelect)
 EVT_MENU(IDM_NO_DOCKING, CFrame::OnDropDownToolbarSelect)
 // Drop down float
-EVT_MENU(IDM_FLOAT_LOGWINDOW, CFrame::OnFloatWindow)
-EVT_MENU(IDM_FLOAT_CONSOLEWINDOW, CFrame::OnFloatWindow)
-EVT_MENU(IDM_FLOAT_CODEWINDOW, CFrame::OnFloatWindow)
-EVT_MENU(IDM_FLOAT_REGISTERWINDOW, CFrame::OnFloatWindow)
-EVT_MENU(IDM_FLOAT_BREAKPOINTWINDOW, CFrame::OnFloatWindow)
-EVT_MENU(IDM_FLOAT_MEMORYWINDOW, CFrame::OnFloatWindow)
-EVT_MENU(IDM_FLOAT_JITWINDOW, CFrame::OnFloatWindow)
-EVT_MENU(IDM_FLOAT_SOUNDWINDOW, CFrame::OnFloatWindow)
-EVT_MENU(IDM_FLOAT_VIDEOWINDOW, CFrame::OnFloatWindow)
+EVT_MENU_RANGE(IDM_FLOAT_LOGWINDOW, IDM_FLOAT_VIDEOWINDOW, CFrame::OnFloatWindow)
 
 EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
@@ -350,7 +342,6 @@ CFrame::CFrame(wxFrame* parent,
 	, m_MenuBar(NULL)
 	, bRenderToMain(false), bNoWiimoteMsg(false)
 	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
-	, bFloatLogWindow(false), bFloatConsoleWindow(false)
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
 	, m_RenderFrame(NULL), m_RenderParent(NULL)
 	, m_LogWindow(NULL), UseDebugger(_UseDebugger)
@@ -360,6 +351,9 @@ CFrame::CFrame(wxFrame* parent,
 		, m_timer(this)
 	#endif
 {
+	for (int i = 0; i <= IDM_VIDEOWINDOW - IDM_LOGWINDOW; i++)
+		bFloatWindow[i] = false;
+
 	if (ShowLogWindow) SConfig::GetInstance().m_InterfaceLogWindow = true;
 
 	// Give it a console early to show potential messages from this onward
@@ -443,7 +437,7 @@ CFrame::CFrame(wxFrame* parent,
 	{
 		IniFile ini; int winpos;
 		ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-		ini.Get("LogWindow", "pos", &winpos, 2);
+		ini.Get("LogWindow", "pos", &winpos, wxAUI_DOCK_RIGHT);
 
 		m_Mgr->GetPane(wxT("Pane 0")).Show().PaneBorder(false).CaptionVisible(false).Layer(0).Center();
 		m_Mgr->GetPane(wxT("Pane 1")).Hide().PaneBorder(false).CaptionVisible(true).Layer(0)
@@ -701,14 +695,6 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 		DoStop();
 		break;
 #endif
-
-	case AUDIO_DESTROY:
-		if (g_pCodeWindow)
-			g_pCodeWindow->ToggleDLLWindow(IDM_SOUNDWINDOW, false);
-		break;
-
-	case VIDEO_DESTROY:
-		break;
 	}
 }
 
@@ -915,12 +901,6 @@ wxFrame * CFrame::CreateParentFrame(wxWindowID Id, const wxString& Title, wxWind
 	Frame->SetMinSize(wxSize(200, -1));
 	Frame->Show();
 	return Frame;
-}
-
-wxPanel* CFrame::CreateEmptyPanel(wxWindowID Id)
-{
-	wxPanel* Panel = new wxPanel(this, Id);
-	return Panel;
 }
 
 wxAuiNotebook* CFrame::CreateEmptyNotebook()

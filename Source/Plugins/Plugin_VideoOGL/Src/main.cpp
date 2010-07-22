@@ -64,7 +64,6 @@ Make AA apply instantly during gameplay if possible
 #include "GUI/ConfigDlg.h"
 GFXConfigDialogOGL *m_ConfigFrame = NULL;
 #include "Debugger/Debugger.h"
-static GFXDebuggerOGL *m_DebuggerFrame = NULL;
 #endif // HAVE_WX
 
 #include "VideoConfig.h"
@@ -152,24 +151,12 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 }
 #endif
 
-void DllDebugger(void *_hParent, bool Show)
+void *DllDebugger(void *_hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	if (Show)
-   	{
-		if (!m_DebuggerFrame)
-			m_DebuggerFrame = new GFXDebuggerOGL((wxWindow *)_hParent);
-		m_DebuggerFrame->Show();
-	}
-   	else
-   	{
-		if (m_DebuggerFrame)
-		{
-			m_DebuggerFrame->Close();
-			m_DebuggerFrame->Destroy();
-			m_DebuggerFrame = NULL;
-		}
-	}
+	return new GFXDebuggerOGL((wxWindow *)_hParent);
+#else
+	return NULL;
 #endif
 }
 

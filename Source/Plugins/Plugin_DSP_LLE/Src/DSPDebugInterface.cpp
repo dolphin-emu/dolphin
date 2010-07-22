@@ -32,6 +32,12 @@ void DSPDebugInterface::disasm(unsigned int address, char *dest, int max_size)
 
 void DSPDebugInterface::getRawMemoryString(int memory, unsigned int address, char *dest, int max_size)
 {
+	if (DSPCore_GetState() == DSPCORE_STOP)
+	{
+		dest[0] = 0;
+		return;
+	}
+
 	switch (memory) {
 	case 0:  // IMEM
 		switch (address >> 12) {

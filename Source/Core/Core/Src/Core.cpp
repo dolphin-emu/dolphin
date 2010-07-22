@@ -212,11 +212,6 @@ void Stop()  // - Hammertime!
 
 	WARN_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");	
 
-	// This must be done a while before freeing the dll to not crash wx around
-	// MSWWindowProc and DefWindowProc, will investigate further
-	Host_Message(AUDIO_DESTROY);
-	Host_Message(VIDEO_DESTROY);
-
 	Host_SetWaitCursor(true);  // hourglass!
 	if (PowerPC::GetState() == PowerPC::CPU_POWERDOWN)
 		return;

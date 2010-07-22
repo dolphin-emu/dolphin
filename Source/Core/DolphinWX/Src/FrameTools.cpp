@@ -881,9 +881,16 @@ void CFrame::DoStop()
 			Frame::EndRecordingInput();
 		if(Frame::IsPlayingInput())
 			Frame::EndPlayInput();
-	
+
+		// These windows cause segmentation faults if they are open when the emulator
+		// stops.  It has something to do with the the wxAuiManager update.
+		if (g_pCodeWindow)
+		{
+			g_pCodeWindow->ToggleDLLWindow(IDM_SOUNDWINDOW, false);
+			g_pCodeWindow->ToggleDLLWindow(IDM_VIDEOWINDOW, false);
+		}
+
 		Core::Stop();
-		UpdateGUI();
 
 		// Destroy the renderer frame when not rendering to main
 		m_RenderFrame->Disconnect(wxID_ANY, wxEVT_SIZE,
@@ -901,6 +908,8 @@ void CFrame::DoStop()
 		if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bRenderToMain)
 			m_RenderFrame->Destroy();
 		m_RenderParent = NULL;
+
+		UpdateGUI();
 
 		// Clean framerate indications from the status bar.
 		m_pStatusBar->SetStatusText(wxT(" "), 0);

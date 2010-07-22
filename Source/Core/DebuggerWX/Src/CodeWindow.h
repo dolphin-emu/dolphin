@@ -48,17 +48,9 @@ class CCodeWindow
 			wxWindowID id = wxID_ANY,
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
-			long style = wxTAB_TRAVERSAL | wxNO_BORDER,
-			const wxString& name = wxT("Dolphin-Debugger")
+			long style = wxTAB_TRAVERSAL,
+			const wxString& name = wxT("Code")
 			);
-		/*
-		CCodeWindow(const SCoreStartupParameter& _LocalCoreStartupParameter, wxWindow* parent,
-			wxWindowID id = wxID_ANY,
-			const wxString& title = _T("Dolphin-Debugger"),
-		const wxPoint& pos = wxPoint(950, 100),
-		const wxSize& size = wxSize(400, 500),
-		long style = wxDEFAULT_FRAME_STYLE | wxCLIP_CHILDREN | wxNO_FULL_REPAINT_ON_RESIZE);
-		*/
 
 		~CCodeWindow();
 		void Load();
@@ -122,13 +114,13 @@ class CCodeWindow
 		bool bAutomaticStart; bool bBootToPause;
 		int iLogWindow;
 		int iConsoleWindow;
-		bool bCodeWindow; int iCodeWindow; bool bFloatCodeWindow;
-		bool bRegisterWindow; int iRegisterWindow; bool bFloatRegisterWindow;
-		bool bBreakpointWindow; int iBreakpointWindow; bool bFloatBreakpointWindow;
-		bool bMemoryWindow; int iMemoryWindow; bool bFloatMemoryWindow;
-		bool bJitWindow; int iJitWindow; bool bFloatJitWindow;
-		bool bSoundWindow; int iSoundWindow; bool bFloatSoundWindow;
-		bool bVideoWindow; int iVideoWindow; bool bFloatVideoWindow;
+		bool bCodeWindow; int iCodeWindow;
+		bool bRegisterWindow; int iRegisterWindow;
+		bool bBreakpointWindow; int iBreakpointWindow;
+		bool bMemoryWindow; int iMemoryWindow;
+		bool bJitWindow; int iJitWindow;
+		bool bSoundWindow; int iSoundWindow;
+		bool bVideoWindow; int iVideoWindow;
 
 	private:
 

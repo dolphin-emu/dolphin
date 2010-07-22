@@ -67,9 +67,9 @@ BEGIN_EVENT_TABLE(CJitWindow, wxPanel)
 END_EVENT_TABLE()
 
 
-CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id,
-		const wxString& title, const wxPoint& pos, const wxSize& size, long style)
-: wxPanel(parent, id, pos, size, style)
+CJitWindow::CJitWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
+	   	const wxSize& size, long style, const wxString& name)
+: wxPanel(parent, id, pos, size, style, name)
 {    
 	the_jit_window = this;
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxVERTICAL);

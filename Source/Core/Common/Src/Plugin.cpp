@@ -100,10 +100,9 @@ void CPlugin::Config(HWND _hwnd)
 }
 
 // Debug: Open the Debugging window
-void CPlugin::Debug(void *Parent, bool Show)
+void *CPlugin::Debug(void *Parent, bool Show)
 {
-	if (m_DllDebugger != NULL)
-		m_DllDebugger(Parent, Show);
+	return m_DllDebugger(Parent, Show);
 }
 
 void CPlugin::SetGlobals(PLUGIN_GLOBALS* _pluginGlobals) {

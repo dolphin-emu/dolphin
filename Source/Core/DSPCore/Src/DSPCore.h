@@ -251,8 +251,9 @@ void CompileCurrent();
 
 enum DSPCoreState
 {
-	DSPCORE_RUNNING = 0,
-	DSPCORE_STEPPING = 1,
+	DSPCORE_STOP = 0,
+	DSPCORE_RUNNING,
+	DSPCORE_STEPPING,
 };
 
 int DSPCore_RunCycles(int cycles);

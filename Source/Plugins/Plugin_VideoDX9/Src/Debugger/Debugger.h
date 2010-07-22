@@ -33,7 +33,7 @@ public:
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
 		long style = wxTAB_TRAVERSAL,
-		const wxString &title = wxT("Video"));
+		const wxString &title = wxT("DX9 Debugger"));
 
 	virtual ~GFXDebuggerDX9();
 

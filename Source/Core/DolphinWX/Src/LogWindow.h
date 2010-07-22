@@ -54,10 +54,11 @@ class CLogWindow : public wxPanel, LogListener
 public:
 	CLogWindow(CFrame *parent,
 		wxWindowID id = wxID_ANY,
-		const wxString& title = wxT("Log"),
-		const wxPoint& pos = wxPoint(100, 700),
-		const wxSize& size = wxSize(800, 270),
-		long style = wxNO_BORDER);
+		const wxPoint& pos = wxDefaultPosition,
+		const wxSize& size = wxDefaultSize,
+		long style = wxTAB_TRAVERSAL,
+		const wxString& name = wxT("Log")
+		);
 	~CLogWindow();
 	void NotifyUpdate();
 

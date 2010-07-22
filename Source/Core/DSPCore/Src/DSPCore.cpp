@@ -36,7 +36,7 @@
 
 SDSP g_dsp;
 DSPBreakpoints dsp_breakpoints;
-DSPCoreState core_state = DSPCORE_RUNNING;
+DSPCoreState core_state = DSPCORE_STOP;
 DSPEmitter *jit = NULL;
 Common::Event step_event;
 
@@ -136,11 +136,15 @@ bool DSPCore_Init(const char *irom_filename, const char *coef_filename,
 
 	step_event.Init();
 
+	core_state = DSPCORE_RUNNING;
+
 	return true;
 }
 
 void DSPCore_Shutdown()
 {
+	core_state = DSPCORE_STOP;
+
 	if(jit) {
 		delete jit;
 		jit = NULL;

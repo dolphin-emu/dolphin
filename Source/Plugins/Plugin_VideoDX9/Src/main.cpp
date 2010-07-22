@@ -28,7 +28,6 @@ GFXConfigDialogDX *m_ConfigFrame = NULL;
 
 #if defined(HAVE_WX) && HAVE_WX
 #include "Debugger/Debugger.h"
-GFXDebuggerDX9 *m_DebuggerFrame = NULL;
 #endif // HAVE_WX
 
 #include "main.h"
@@ -97,24 +96,12 @@ wxWindow* GetParentedWxWindow(HWND Parent)
 }
 #endif
 
-void DllDebugger(void *_hParent, bool Show)
+void *DllDebugger(void *_hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	if (Show)
-	{
-		if (!m_DebuggerFrame)
-			m_DebuggerFrame = new GFXDebuggerDX9((wxWindow *)_hParent);
-		m_DebuggerFrame->Show();
-	}
-	else
-	{
-		if (m_DebuggerFrame)
-		{
-			m_DebuggerFrame->Close();
-			m_DebuggerFrame->Destroy();
-			m_DebuggerFrame = NULL;
-		}
-	}
+	return new GFXDebuggerDX9((wxWindow *)_hParent);
+#else
+	return NULL;
 #endif
 }
 

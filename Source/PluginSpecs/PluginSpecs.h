@@ -24,8 +24,6 @@ enum PLUGIN_COMM
 	WM_USER_CREATE,
 	WM_USER_SETCURSOR,
 	WM_USER_KEYDOWN,
-	VIDEO_DESTROY, // The video debugging window was destroyed
-	AUDIO_DESTROY, // The audio debugging window was destroyed
 	WIIMOTE_DISCONNECT, // Disconnect Wiimote
 	INPUT_FRAME_COUNTER // Wind back the frame counter for rerecording
 };
@@ -126,7 +124,7 @@ EXPORT void CALL DllConfig(HWND _hParent);
 // input:    a handle to the window that calls this function
 // output:   none
 //
-EXPORT void CALL DllDebugger(void *_hParent, bool Show);
+EXPORT void* CALL DllDebugger(void *_hParent, bool Show);
 
 // ___________________________________________________________________________
 // Function: DllSetGlobals

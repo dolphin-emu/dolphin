@@ -107,15 +107,15 @@ void CCodeWindow::Load()
 	ini.Get(_Section.c_str(), "Sound", &iSoundWindow, 0);
 	ini.Get(_Section.c_str(), "Video", &iVideoWindow, 0);
 	// Get floating setting
-	ini.Get("Float", "Log", &Parent->bFloatLogWindow, false);
-	ini.Get("Float", "Console", &Parent->bFloatConsoleWindow, false);
-	ini.Get("Float", "Code", &bFloatCodeWindow, false);
-	ini.Get("Float", "Registers", &bFloatRegisterWindow, false);
-	ini.Get("Float", "Breakpoints", &bFloatBreakpointWindow, false);
-	ini.Get("Float", "Memory", &bFloatMemoryWindow, false);
-	ini.Get("Float", "JIT", &bFloatJitWindow, false);
-	ini.Get("Float", "Sound", &bFloatSoundWindow, false);
-	ini.Get("Float", "Video", &bFloatVideoWindow, false);
+	ini.Get("Float", "Log", &Parent->bFloatWindow[0], false);
+	ini.Get("Float", "Console", &Parent->bFloatWindow[1], false);
+	ini.Get("Float", "Code", &Parent->bFloatWindow[2], false);
+	ini.Get("Float", "Registers", &Parent->bFloatWindow[3], false);
+	ini.Get("Float", "Breakpoints", &Parent->bFloatWindow[4], false);
+	ini.Get("Float", "Memory", &Parent->bFloatWindow[5], false);
+	ini.Get("Float", "JIT", &Parent->bFloatWindow[6], false);
+	ini.Get("Float", "Sound", &Parent->bFloatWindow[7], false);
+	ini.Get("Float", "Video", &Parent->bFloatWindow[8], false);
 
 	// Boot to pause or not
 	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
@@ -470,7 +470,8 @@ void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
 void CCodeWindow::ToggleCodeWindow(bool bShow)
 {
 	if (bShow)
-		Parent->DoAddPage(this, iCodeWindow, wxT("Code"), bFloatCodeWindow);
+		Parent->DoAddPage(this, iCodeWindow,
+			   	Parent->bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW]);
 	else // hide
 		Parent->DoRemovePage(this);
 }
@@ -483,7 +484,7 @@ void CCodeWindow::ToggleRegisterWindow(bool bShow)
 		if (!m_RegisterWindow)
 		   	m_RegisterWindow = new CRegisterWindow(Parent, IDM_REGISTERWINDOW);
 		Parent->DoAddPage(m_RegisterWindow, iRegisterWindow,
-			   	wxT("Registers"), bFloatRegisterWindow);
+			   	Parent->bFloatWindow[IDM_REGISTERWINDOW - IDM_LOGWINDOW]);
 	}
 	else // hide
 		Parent->DoRemovePage(m_RegisterWindow);
@@ -497,7 +498,7 @@ void CCodeWindow::ToggleBreakPointWindow(bool bShow)
 		if (!m_BreakpointWindow)
 		   	m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINTWINDOW);
 		Parent->DoAddPage(m_BreakpointWindow, iBreakpointWindow,
-			   	wxT("Breakpoints"), bFloatBreakpointWindow);
+			   	Parent->bFloatWindow[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW]);
 	}
 	else // hide
 		Parent->DoRemovePage(m_BreakpointWindow);
@@ -510,7 +511,8 @@ void CCodeWindow::ToggleMemoryWindow(bool bShow)
 	{
 		if (!m_MemoryWindow)
 		   	m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORYWINDOW);
-		Parent->DoAddPage(m_MemoryWindow, iMemoryWindow, wxT("Memory"), bFloatMemoryWindow);
+		Parent->DoAddPage(m_MemoryWindow, iMemoryWindow,
+			   	Parent->bFloatWindow[IDM_MEMORYWINDOW - IDM_LOGWINDOW]);
 	}
 	else // hide
 		Parent->DoRemovePage(m_MemoryWindow);
@@ -523,7 +525,8 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 	{
 		if (!m_JitWindow)
 		   	m_JitWindow = new CJitWindow(Parent, IDM_JITWINDOW);
-		Parent->DoAddPage(m_JitWindow, iJitWindow, wxT("JIT"), bFloatJitWindow);
+		Parent->DoAddPage(m_JitWindow, iJitWindow,
+			   	Parent->bFloatWindow[IDM_JITWINDOW - IDM_LOGWINDOW]);
 	}
 	else // hide
 		Parent->DoRemovePage(m_JitWindow);
@@ -537,50 +540,51 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 void CCodeWindow::ToggleDLLWindow(int Id, bool bShow)
 {
 	std::string DLLName;
-	wxString Title;
 	int PluginType, i;
 	bool bFloat;
+	wxPanel *Win;
 
 	switch(Id)
 	{
 		case IDM_SOUNDWINDOW:
 			DLLName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str();
 			PluginType = PLUGIN_TYPE_DSP;
-			Title = wxT("Sound");
 			i = iSoundWindow;
-			bFloat = bFloatSoundWindow;
+			bFloat = Parent->bFloatWindow[IDM_SOUNDWINDOW - IDM_LOGWINDOW];
 			break;
 		case IDM_VIDEOWINDOW:
 			DLLName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str();
 			PluginType = PLUGIN_TYPE_VIDEO;
-			Title = wxT("Video");
 			i = iVideoWindow;
-			bFloat = bFloatVideoWindow;
+			bFloat = Parent->bFloatWindow[IDM_VIDEOWINDOW - IDM_LOGWINDOW];
 			break;
 		default:
 			PanicAlert("CCodeWindow::ToggleDLLWindow called with invalid Id");
 			return;
 	}
 
-	GetMenuBar()->FindItem(Id)->Check(bShow);
-
 	if (bShow)
 	{
 		// Show window
-		CPluginManager::GetInstance().OpenDebug(Parent,
+		Win = (wxPanel *)CPluginManager::GetInstance().OpenDebug(Parent,
 				DLLName.c_str(), (PLUGIN_TYPE)PluginType, bShow);
 
-		wxWindow* Win = Parent->GetWxWindow(Title);
 		if (Win)
 		{
+			Win->Show();
 			Win->SetId(Id);
-			Parent->DoAddPage(Win, i, Title, bFloat);
+			Parent->DoAddPage(Win, i, bFloat);
 		}
 	}
 	else
 	{
-		Parent->DoRemovePageId(Id, false, false);
-		CPluginManager::GetInstance().OpenDebug(Parent,
-				DLLName.c_str(), (PLUGIN_TYPE)PluginType, bShow);
+		Win = (wxPanel *)FindWindowById(Id);
+		if (Win)
+		{
+			Parent->DoRemovePageId(Id, false, false);
+			Win->Close();
+			Win->Destroy();
+		}
 	}
+	GetMenuBar()->FindItem(Id)->Check(bShow && !!Win);
 }

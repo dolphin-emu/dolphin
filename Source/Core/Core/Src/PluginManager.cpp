@@ -377,7 +377,6 @@ Common::PluginVideo *CPluginManager::GetVideo()
 // the plugins in turn
 void CPluginManager::FreeVideo()
 {
-	//Host_Message(VIDEO_DESTROY);
 	WARN_LOG(CONSOLE, "%s", Core::StopMessage(false, "Will unload video DLL").c_str());
 	delete m_video;
 	m_video = NULL;
@@ -385,7 +384,6 @@ void CPluginManager::FreeVideo()
 
 void CPluginManager::FreeDSP()
 {
-	//Host_Message(AUDIO_DESTROY);
 	WARN_LOG(CONSOLE, "%s", Core::StopMessage(false, "Will unload audio DLL").c_str());
 	delete m_dsp;
 	m_dsp = NULL;
@@ -438,23 +436,24 @@ void CPluginManager::OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TY
 }
 
 // Open debugging window. Type = Video or DSP. Show = Show or hide window.
-void CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show)
+void *CPluginManager::OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show)
 {
 	if (! File::Exists((File::GetPluginsDirectory() + _rFilename).c_str()))
 	{
 		PanicAlert("Can't find plugin %s", _rFilename);
-		return;
+		return NULL;
 	}
 
 	switch(Type)
 	{
 	case PLUGIN_TYPE_VIDEO:
-		GetVideo()->Debug(_Parent, Show);
+		return GetVideo()->Debug(_Parent, Show);
 		break;
 	case PLUGIN_TYPE_DSP:
-		GetDSP()->Debug(_Parent, Show);
+		return GetDSP()->Debug(_Parent, Show);
 		break;
 	default:
 		PanicAlert("Type %d debug not supported in plugin %s", Type, _rFilename);
+		return NULL;
 	}
 }

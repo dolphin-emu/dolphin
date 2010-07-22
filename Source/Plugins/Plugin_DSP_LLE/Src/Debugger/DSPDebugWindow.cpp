@@ -43,7 +43,7 @@ END_EVENT_TABLE()
 
 DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent)
 	: wxPanel(parent, wxID_ANY, wxDefaultPosition, wxSize(700, 800),
-		   	wxTAB_TRAVERSAL, _("Sound"))
+		   	wxTAB_TRAVERSAL, _("DSP LLE Debugger"))
 	, m_CachedStepCounter(-1)
 {
 	// notify wxAUI which frame to use
@@ -125,26 +125,29 @@ void DSPDebuggerLLE::OnClose(wxCloseEvent& event)
 
 void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 {
+	if (DSPCore_GetState() == DSPCORE_STOP)
+		return;
+
 	switch (event.GetId())
 	{
-	case ID_RUNTOOL:
-		if (DSPCore_GetState() == DSPCORE_RUNNING)
-			DSPCore_SetState(DSPCORE_STEPPING);
-		else
-			DSPCore_SetState(DSPCORE_RUNNING);
-		break;
+		case ID_RUNTOOL:
+			if (DSPCore_GetState() == DSPCORE_RUNNING)
+				DSPCore_SetState(DSPCORE_STEPPING);
+			else
+				DSPCore_SetState(DSPCORE_RUNNING);
+			break;
 
-	case ID_STEPTOOL:
-		if (DSPCore_GetState() == DSPCORE_STEPPING)
-		{
-			DSPCore_Step();
-			Refresh();
-		}
-		break;
+		case ID_STEPTOOL:
+			if (DSPCore_GetState() == DSPCORE_STEPPING)
+			{
+				DSPCore_Step();
+				Refresh();
+			}
+			break;
 
-	case ID_SHOWPCTOOL:
-		FocusOnPC();
-		break;
+		case ID_SHOWPCTOOL:
+			FocusOnPC();
+			break;
 	}
 
 	UpdateState();

@@ -71,8 +71,8 @@ EVT_CHECKBOX(IDM_HEX       ,	 CMemoryWindow::onHex)
 END_EVENT_TABLE()
 
 CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
-							 const wxString& title, const wxPoint& pos, const wxSize& size, long style)
-							 : wxPanel(parent, id, pos, size, style)
+		const wxPoint& pos, const wxSize& size, long style, const wxString& name)
+	: wxPanel(parent, id, pos, size, style, name)
 {    
 	wxBoxSizer* sizerBig   = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* sizerRight = new wxBoxSizer(wxVERTICAL);

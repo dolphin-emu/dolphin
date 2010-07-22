@@ -320,9 +320,9 @@ void DllConfig(HWND _hParent)
 // input:    a handle to the window that calls this function
 // output:   none
 //
-void DllDebugger(void *_hParent, bool Show)
+void *DllDebugger(void *_hParent, bool Show)
 {
-	// wut?
+	return NULL;
 }
 
 // ___________________________________________________________________________

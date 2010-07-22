@@ -147,20 +147,11 @@ class CFrame : public CRenderFrame
 		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
 		long NOTEBOOK_STYLE, TOOLBAR_STYLE;
 		int iLeftWidth[2], iMidWidth[2];
-		bool bFloatLogWindow;
-		bool bFloatConsoleWindow;
+		bool bFloatWindow[IDM_VIDEOWINDOW - IDM_LOGWINDOW + 1];
 
 		// Utility
-		wxWindow * GetWxWindow(wxString);
-		#ifdef _WIN32
-			wxWindow * GetWxWindowHwnd(HWND);
-		#endif
-		wxWindow * GetFloatingPage(int Id);
-		wxWindow * GetNootebookPage(wxString);
-		wxWindow * GetNootebookPageFromId(wxWindowID Id);
+		wxWindow * GetNotebookPageFromId(wxWindowID Id);
 		wxAuiNotebook * GetNotebookFromId(u32);
-		wxWindowID WindowParentIdFromChildId(int Id);
-		wxString WindowNameFromId(int Id);
 		int GetNotebookCount();
 		int Limit(int,int,int);
 		int PercentageToPixels(int,int);
@@ -175,12 +166,12 @@ class CFrame : public CRenderFrame
 		void OnFloatWindow(wxCommandEvent& event);
 		void ToggleFloatWindow(int Id);
 		void OnTab(wxAuiNotebookEvent& event);
-		int GetNootebookAffiliation(wxString Name);
+		int GetNotebookAffiliation(wxWindowID Id);
 		void ClosePages();
 		void ShowAllNotebooks(bool Window = false);
 		void HideAllNotebooks(bool Window = false);
 		void CloseAllNotebooks();
-		void DoAddPage(wxWindow *, int, wxString, bool);
+		void DoAddPage(wxWindow *, int, bool);
 		void DoRemovePage(wxWindow *, bool Hide = true);
 		void DoRemovePageId(wxWindowID Id, bool bHide, bool bDestroy);
 		void TogglePane();
@@ -276,7 +267,6 @@ class CFrame : public CRenderFrame
 		void PopulateToolbarAui(wxAuiToolBar* toolBar);
 		void RecreateToolbar();
 		void CreateMenu();
-		wxPanel *CreateEmptyPanel(wxWindowID Id = wxID_ANY);
 		wxAuiNotebook *CreateEmptyNotebook();
 
 #ifdef _WIN32

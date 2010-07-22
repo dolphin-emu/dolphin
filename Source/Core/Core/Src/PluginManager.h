@@ -64,7 +64,7 @@ public:
 	void ShutdownVideoPlugin();
 	void ScanForPlugins();
 	void OpenConfig(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type);
-	void OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show);
+	void *OpenDebug(void* _Parent, const char *_rFilename, PLUGIN_TYPE Type, bool Show);
 	const CPluginInfos& GetPluginInfos() {return(m_PluginInfos);}
 	PLUGIN_GLOBALS* GetGlobals();
 

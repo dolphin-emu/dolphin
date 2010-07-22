@@ -202,24 +202,13 @@ void EmuStateChange(PLUGIN_EMUSTATE newState)
 	DSP_ClearAudioBuffer((newState == PLUGIN_EMUSTATE_PLAY) ? false : true);
 }
 
-void DllDebugger(void *_hParent, bool Show)
+void *DllDebugger(void *_hParent, bool Show)
 {
 #if defined(HAVE_WX) && HAVE_WX
-	if (Show)
-	{
-		if (!m_DebuggerFrame)
-			m_DebuggerFrame = new DSPDebuggerLLE((wxWindow *)_hParent);
-		m_DebuggerFrame->Show();
-	}
-	else
-	{
-		if (m_DebuggerFrame)
-		{
-			m_DebuggerFrame->Close();
-			m_DebuggerFrame->Destroy();
-			m_DebuggerFrame = NULL;
-		}
-	}
+	m_DebuggerFrame = new DSPDebuggerLLE((wxWindow *)_hParent);
+	return (void *)m_DebuggerFrame;
+#else
+	return NULL;
 #endif
 }
 
