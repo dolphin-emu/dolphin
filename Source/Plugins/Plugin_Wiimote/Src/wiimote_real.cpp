@@ -525,6 +525,7 @@ void Shutdown(void)
 	// Clean up wiiuse
 #ifndef WIN32
 	wiiuse_cleanup(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes);
+	g_WiiMotesFromWiiUse = NULL;
 #endif
 	// Uninitialized
 	g_RealWiiMoteInitialized = false;

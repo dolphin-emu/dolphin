@@ -313,7 +313,6 @@ static int wiiuse_connect_single(struct wiimote_t* wm, char* address) {
 	WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_CONNECTED);
 	
 	wiiuse_set_report_type(wm);
-	wiiuse_handshake(wm, NULL, 0);
 
 	return 1;
 }

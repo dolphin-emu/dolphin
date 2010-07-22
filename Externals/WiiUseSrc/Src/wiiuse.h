@@ -249,34 +249,6 @@ typedef enum aspect_t {
 	WIIUSE_ASPECT_16_9
 } aspect_t;
 
-
-/**
- *	@struct ir_t
- *	@brief IR struct. Hold all data related to the IR tracking.
- */
-typedef struct ir_t {
-	struct ir_dot_t dot[4];			/**< IR dots							*/
-	byte num_dots;					/**< number of dots at this time		*/
-
-	enum aspect_t aspect;			/**< aspect ratio of the screen			*/
-
-	enum ir_position_t pos;			/**< IR sensor bar position				*/
-
-	unsigned int vres[2];			/**< IR virtual screen resolution		*/
-	int offset[2];					/**< IR XY correction offset			*/
-	int state;						/**< keeps track of the IR state		*/
-
-	int ax;							/**< absolute X coordinate				*/
-	int ay;							/**< absolute Y coordinate				*/
-
-	int x;							/**< calculated X coordinate			*/
-	int y;							/**< calculated Y coordinate			*/
-
-	float distance;					/**< pixel distance between first 2 dots*/
-	float z;						/**< calculated distance				*/
-} ir_t;
-
-
 /**
  *	@struct joystick_t
  *	@brief Joystick calibration structure.
