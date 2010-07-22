@@ -1,6 +1,7 @@
 set wshShell	= CreateObject("WScript.Shell")
-outfile			= "Src/svnrev.h"
-svncmd			= "SubWCRev ../../.. Src/svnrev_template.h " & outfile
+basedir			= wscript.arguments(0)
+outfile			= basedir & "/Src/svnrev.h"
+svncmd			= "SubWCRev ../../.. " & basedir & "/Src/svnrev_template.h " & outfile
 hgcmd			= "hg svn info"
 
 ret = wshShell.run(svncmd, 0, true)
