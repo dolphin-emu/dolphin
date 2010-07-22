@@ -307,7 +307,7 @@ bool DolphinApp::OnInit()
 	}
 	else if (!File::IsDirectory(AppSupportDir))
 		PanicAlert("~/Library/Application Support/Dolphin exists, but is not a directory");
-#else
+#elif !defined _WIN32
 	//create all necessary directories in user directory
 	//TODO : detect the revision and upgrade where necessary
 	File::CopyDir(SHARED_USER_DIR CONFIG_DIR DIR_SEP, File::GetUserPath(D_CONFIG_IDX));
