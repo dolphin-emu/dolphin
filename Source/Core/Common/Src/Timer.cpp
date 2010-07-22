@@ -16,11 +16,13 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <time.h>
-#include <sys/time.h>
 
 #ifdef _WIN32
 #include <Windows.h>
 #include <mmsystem.h>
+#include <sys/timeb.h>
+#else
+#include <sys/time.h>
 #endif
 
 #include "Common.h"
@@ -30,19 +32,16 @@
 namespace Common
 {
 
-#ifdef _WIN32
-u32 Timer::GetTimeMs() {
-	return timeGetTime();
-}
-#else
 u32 Timer::GetTimeMs()
 {
+#ifdef _WIN32
+	return timeGetTime();
+#else
 	struct timeval t;
 	(void)gettimeofday(&t, NULL);
 	return((u32)(t.tv_sec * 1000 + t.tv_usec / 1000));
-}
 #endif
-
+}
 
 // --------------------------------------------
 // Initiate, Start, Stop, and Update the time
@@ -81,8 +80,6 @@ void Timer::Update()
 	//TODO(ector) - QPF
 }
 
-
-
 // -------------------------------------
 // Get time difference and elapsed time
 // -------------------------------------
@@ -93,12 +90,13 @@ u64 Timer::GetTimeDifference()
 	return GetTimeMs() - m_LastTime;
 }
 
-/* Add the time difference since the last Update() to the starting time. This is used to compensate
-   for a paused game. */
+// Add the time difference since the last Update() to the starting time.
+// This is used to compensate for a paused game.
 void Timer::AddTimeDifference()
 {
 	m_StartTime += GetTimeDifference();
 }
+
 // Wind back the starting time to a custom time
 void Timer::WindBackStartingTime(u64 WindBack)
 {
@@ -108,8 +106,8 @@ void Timer::WindBackStartingTime(u64 WindBack)
 // Get the time elapsed since the Start()
 u64 Timer::GetTimeElapsed()
 {
-	/* If we have not started yet return 1 (because then I don't have to change the FPS
-	   calculation in CoreRerecording.cpp */
+	// If we have not started yet, return 1 (because then I don't
+	// have to change the FPS calculation in CoreRerecording.cpp .
 	if (m_StartTime == 0) return 1;
 
 	// Rrturn the final timer time if the timer is stopped
@@ -125,7 +123,8 @@ std::string Timer::GetTimeElapsedFormatted() const
 	if (m_StartTime == 0)
 		return "00:00:00:000";
 
-	// The number of milliseconds since the start, use a different value if the timer is stopped
+	// The number of milliseconds since the start.
+	// Use a different value if the timer is stopped.
 	u64 Milliseconds;
 	if (m_Running)
 		Milliseconds = GetTimeMs() - m_StartTime;
@@ -138,7 +137,8 @@ std::string Timer::GetTimeElapsedFormatted() const
 	// Hours
 	u32 Hours = Minutes / 60;
 
-	std::string TmpStr = StringFromFormat("%02i:%02i:%02i:%03i", Hours, Minutes % 60, Seconds % 60, Milliseconds % 1000);
+	std::string TmpStr = StringFromFormat("%02i:%02i:%02i:%03i",
+		Hours, Minutes % 60, Seconds % 60, Milliseconds % 1000);
 	return TmpStr;
 }
 
@@ -150,7 +150,6 @@ void Timer::IncreaseResolution()
 #endif
 }
 
-
 void Timer::RestoreResolution()
 {
 #ifdef _WIN32
@@ -158,14 +157,12 @@ void Timer::RestoreResolution()
 #endif
 }
 
-
 #ifdef __GNUC__
 void _time64(u64* t)
 {
 	*t = 0; //TODO
 }
 #endif
-
 
 // Get the number of seconds since January 1 1970
 u64 Timer::GetTimeSinceJan1970()
@@ -188,7 +185,8 @@ u64 Timer::GetLocalTimeSinceJan1970()
 	return (u64)(sysTime + tzDiff);
 }
 
-// Return the current time formatted as Minutes:Seconds:Milliseconds in the form 00:00:000
+// Return the current time formatted as Minutes:Seconds:Milliseconds
+// in the form 00:00:000.
 std::string Timer::GetTimeFormatted()
 {
 	time_t sysTime;
@@ -202,36 +200,49 @@ std::string Timer::GetTimeFormatted()
 	strftime(tmp, 6, "%M:%S", gmTime);
 
 	// Now tack on the milliseconds
+#ifdef _WIN32
+	struct timeb tp;
+	(void)::ftime(&tp);
+	sprintf(formattedTime, "%s:%03i", tmp, tp.millitm);
+#else
 	struct timeval t;
 	(void)gettimeofday(&t, NULL);
-	sprintf(formattedTime, "%s:%03ld", tmp, t.tv_usec / 1000);
+	sprintf(formattedTime, "%s:%03d", tmp, (int)(t.tv_usec / 1000));
+#endif
 
 	return std::string(formattedTime);
 }
-
 
 // Returns a timestamp with decimals for precise time comparisons
 // ----------------
 double Timer::GetDoubleTime()
 {
+#ifdef _WIN32
+	struct timeb tp;
+	(void)::ftime(&tp);
+#else
 	struct timeval t;
 	(void)gettimeofday(&t, NULL);
-	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970(); // Get continous timestamp
+#endif
+	// Get continous timestamp
+	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970();
 
-	/* Remove a few years. We only really want enough seconds to make sure that we are
-	   detecting actual actions, perhaps 60 seconds is enough really, but I leave a
-	   year of seconds anyway, in case the user's clock is incorrect or something like that */
+	// Remove a few years. We only really want enough seconds to make
+	// sure that we are detecting actual actions, perhaps 60 seconds is
+	// enough really, but I leave a year of seconds anyway, in case the
+	// user's clock is incorrect or something like that.
 	TmpSeconds = TmpSeconds - (38 * 365 * 24 * 60 * 60);
 
-	//if (TmpSeconds < 0) return 0; // Check the the user's clock is working somewhat
-
-	u32 Seconds = (u32)TmpSeconds; // Make a smaller integer that fits in the double
+	// Make a smaller integer that fits in the double
+	u32 Seconds = (u32)TmpSeconds;
+#ifdef _WIN32
 	double ms = t.tv_usec / 1000.0 / 1000.0;
+#else
+	double ms = t.tv_usec / 1000.0 / 1000.0;
+#endif
 	double TmpTime = Seconds + ms;
+
 	return TmpTime;
 }
 
-
 } // Namespace Common
-
-
