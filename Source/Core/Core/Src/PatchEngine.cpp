@@ -34,8 +34,8 @@
 #include "PatchEngine.h"
 #include "HW/Memmap.h"
 #include "ActionReplay.h"
-#include "GeckoCode.h";
-#include "GeckoCodeConfig.h";
+#include "GeckoCode.h"
+#include "GeckoCodeConfig.h"
 #include "FileUtil.h"
 
 using namespace Common;
