@@ -82,6 +82,7 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 		)
 else:
 	files += [ 'X11Utils.cpp' ]
+	libs += [ 'SDL' ]
 	exeGUI = env['binary_dir'] + 'dolphin-emu'
 	exeNoGUI = env['binary_dir'] + 'dolphin-emu-nogui'
 

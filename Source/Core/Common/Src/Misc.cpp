@@ -37,7 +37,7 @@ const char *GetLastErrorMsg()
 	return errStr;
 }
 
-#ifdef __APPLE__
+#if !defined(__linux__) && !defined(_WIN32)
 // strlen with cropping after size n
 size_t strnlen(const char *s, size_t n)
 {

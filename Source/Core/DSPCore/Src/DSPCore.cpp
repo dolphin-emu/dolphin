@@ -256,6 +256,8 @@ int DSPCore_RunCycles(int cycles)
 
 			DSPHost_UpdateDebugger();
 			break;
+		case DSPCORE_STOP:
+			break;
 		}
 	}
 	return cycles;

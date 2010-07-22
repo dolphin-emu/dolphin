@@ -48,6 +48,10 @@
 #define S_ISDIR(m)  (((m)&S_IFMT) == S_IFDIR)
 #endif
 
+#if defined __NetBSD__ || defined __FreeBSD__ || defined __OpenBSD__
+#define stat64 stat	// XXX
+#endif
+
 // This namespace has various generic functions related to files and paths.
 // The code still needs a ton of cleanup.
 // REMEMBER: strdup considered harmful!

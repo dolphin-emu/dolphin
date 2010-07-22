@@ -76,8 +76,10 @@ WiimoteBasicConfigDialog::WiimoteBasicConfigDialog(wxWindow *parent, wxWindowID 
 	ControlsCreated = false;
 	m_Page = 0;
 
+#if defined HAVE_WIIUSE && HAVE_WIIUSE
 	// Initialize the Real WiiMotes here, so we get a count of how many were found and set everything properly
 	WiiMoteReal::Initialize();
+#endif
 
 	CreateGUIControls();
 	UpdateGUI();
@@ -93,7 +95,9 @@ void WiimoteBasicConfigDialog::ButtonClick(wxCommandEvent& event)
 	switch(event.GetId())
 	{
 	case wxID_OK:
+#if defined HAVE_WIIUSE && HAVE_WIIUSE
 		WiiMoteReal::Allocate();
+#endif
 		g_Config.Save();
 		Close();
 		break;

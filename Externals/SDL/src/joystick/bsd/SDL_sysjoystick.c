@@ -197,12 +197,12 @@ SDL_SYS_JoystickInit(void)
 }
 
 const char *
-SDL_SYS_JoystickName(int index)
+SDL_SYS_JoystickName(int jindex)
 {
-	if (joydevnames[index] != NULL) {
-		return (joydevnames[index]);
+	if (joydevnames[jindex] != NULL) {
+		return (joydevnames[jindex]);
 	}
-	return (joynames[index]);
+	return (joynames[jindex]);
 }
 
 static int

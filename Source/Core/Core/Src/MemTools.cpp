@@ -17,7 +17,6 @@
 
 
 #ifndef _WIN32
-#include <execinfo.h>
 #include <stdio.h>
 #include <signal.h>
 #include <sys/ucontext.h>   // Look in here for the context definition.
@@ -26,11 +25,16 @@
 #define CREG_RIP(ctx) (ctx)->gregs[REG_RIP]
 #define CREG_EAX(ctx) (ctx)->gregs[REG_EAX]
 #define CREG_EIP(ctx) (ctx)->gregs[REG_EIP]
-#elif defined(__APPLE__)
+#elif defined __APPLE__
 #define CREG_RAX(ctx) (*(ctx))->__ss.__rax
 #define CREG_RIP(ctx) (*(ctx))->__ss.__rip
 #define CREG_EAX(ctx) (*(ctx))->__ss.__eax
 #define CREG_EIP(ctx) (*(ctx))->__ss.__eip
+#else
+#define CREG_RAX(ctx) (ctx)->mc_rax
+#define CREG_RIP(ctx) (ctx)->mc_rip
+#define CREG_EAX(ctx) (ctx)->mc_eax
+#define CREG_EIP(ctx) (ctx)->mc_eip
 #endif
 
 #else
@@ -152,10 +156,10 @@ void InstallExceptionHandler()
 
 #else  // _WIN32
 
-//
-// backtrace useful function
-//
-
+#if defined __APPLE__ || defined __linux__ || defined _WIN32
+#ifndef _WIN32
+#include <execinfo.h>
+#endif
 void print_trace(const char * msg)
 {
 	void *array[100];
@@ -170,6 +174,7 @@ void print_trace(const char * msg)
 		printf("--> %s\n", strings[i]);
 	free(strings);
 }
+#endif
 
 void sigsegv_handler(int signal, siginfo_t *info, void *raw_context)
 {

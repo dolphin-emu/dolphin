@@ -29,15 +29,14 @@ template<> struct CompileTimeAssert<true> {};
 
 #ifndef _WIN32
 
-#if defined __APPLE__
-char* strndup (char const *s, size_t n);
-size_t strnlen(const char *s, size_t n);
-#else
+#include <errno.h>
 #ifdef __linux__
 #include <byteswap.h>
+#else
+char * strndup(char const *s, size_t n);
+size_t strnlen(const char *s, size_t n);
 #endif
-#endif // APPLE
-	#include <errno.h>
+
 // go to debugger mode
 	#ifdef GEKKO
 		#define Crash()

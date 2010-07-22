@@ -1,4 +1,3 @@
-
 #include "WiimoteEmu.h"
 
 #ifdef USE_WIIMOTE_EMU_SPEAKER

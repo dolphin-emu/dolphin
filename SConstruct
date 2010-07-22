@@ -35,7 +35,6 @@ cppDefines = [
     ]
 
 include_paths = [
-    '#',
     '#Source/Core/Common/Src',
     '#Source/Core/DiscIO/Src',
     '#Source/PluginSpecs',
@@ -68,7 +67,6 @@ dirs = [
     'Source/Core/DSPCore/Src',
     'Source/DSPTool/Src',
     'Source/Core/InputUICommon/Src',
-    'Source/Plugins/Plugin_VideoOGL/Src',
     'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',
@@ -78,6 +76,9 @@ dirs = [
     'Source/Core/DebuggerWX/Src',
     'Source/UnitTests',
     ]
+
+if sys.platform == 'darwin' or sys.platform == 'linux2':
+    dirs += ['Source/Plugins/Plugin_VideoOGL/Src']
 
 builders = {}
 if sys.platform == 'darwin':
@@ -288,12 +289,12 @@ elif sys.platform == 'win32':
     env['tools'] = ['mingw']
 
 else:
+    env['CPPPATH'].insert(0, '#')
+    env['LINKFLAGS'] += ['-pthread']
     conf = env.Configure(custom_tests = tests, config_h="#config.h")
 
     if not conf.CheckPKGConfig('0.15.0'):
         print "Can't find pkg-config, some tests will fail"
-
-    env['LINKFLAGS'] += ['-pthread']
 
     if env['shared_glew']:
         shared['glew'] = conf.CheckPKG('GLEW')
@@ -323,6 +324,8 @@ else:
         if not env['HAVE_WX']:
             print "WX libraries not found - see config.log"
             Exit(1)
+
+    conf.CheckPKG('usbhid')
 
     env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
     conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
@@ -359,12 +362,14 @@ else:
     if not conf.CheckPKG('GLU'):
         print "Must have GLU to build"
         Exit(1)
-    if not conf.CheckPKG('Cg'):
-        print "Must have Cg toolkit from NVidia to build"
-        Exit(1)
-    if not conf.CheckPKG('CgGL'):
-        print "Must have CgGl to build"
-        Exit(1)
+
+    if sys.platform == 'linux2':
+        if not conf.CheckPKG('Cg'):
+            print "Must have Cg toolkit from NVidia to build"
+            Exit(1)
+        if not conf.CheckPKG('CgGL'):
+            print "Must have CgGl to build"
+            Exit(1)
 
     if env['opencl']:
         env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')

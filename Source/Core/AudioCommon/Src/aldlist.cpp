@@ -27,7 +27,7 @@
 #ifdef _WIN32
 #include "../../../../Externals/OpenAL/include/al.h"
 #include "../../../../Externals/OpenAL/include/alc.h"
-#else // linux
+#else
 #include <AL/al.h>
 #include <AL/alc.h>
 #endif

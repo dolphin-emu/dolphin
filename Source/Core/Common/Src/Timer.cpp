@@ -16,7 +16,7 @@
 // http://code.google.com/p/dolphin-emu/
 
 #include <time.h>
-#include <sys/timeb.h>
+#include <sys/time.h>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -37,9 +37,9 @@ u32 Timer::GetTimeMs() {
 #else
 u32 Timer::GetTimeMs()
 {
-	struct timeb t;
-	ftime(&t);
-	return ((u32)(t.time * 1000 + t.millitm));
+	struct timeval t;
+	(void)gettimeofday(&t, NULL);
+	return((u32)(t.tv_sec * 1000 + t.tv_usec / 1000));
 }
 #endif
 
@@ -202,9 +202,9 @@ std::string Timer::GetTimeFormatted()
 	strftime(tmp, 6, "%M:%S", gmTime);
 
 	// Now tack on the milliseconds
-	struct timeb tp;
-	(void)::ftime(&tp);
-	sprintf(formattedTime, "%s:%03i", tmp, tp.millitm);
+	struct timeval t;
+	(void)gettimeofday(&t, NULL);
+	sprintf(formattedTime, "%s:%03ld", tmp, t.tv_usec / 1000);
 
 	return std::string(formattedTime);
 }
@@ -214,8 +214,8 @@ std::string Timer::GetTimeFormatted()
 // ----------------
 double Timer::GetDoubleTime()
 {
-	struct timeb tp;
-	(void)::ftime(&tp);
+	struct timeval t;
+	(void)gettimeofday(&t, NULL);
 	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970(); // Get continous timestamp
 
 	/* Remove a few years. We only really want enough seconds to make sure that we are
@@ -226,7 +226,7 @@ double Timer::GetDoubleTime()
 	//if (TmpSeconds < 0) return 0; // Check the the user's clock is working somewhat
 
 	u32 Seconds = (u32)TmpSeconds; // Make a smaller integer that fits in the double
-	double ms = tp.millitm / 1000.0;
+	double ms = t.tv_usec / 1000.0 / 1000.0;
 	double TmpTime = Seconds + ms;
 	return TmpTime;
 }

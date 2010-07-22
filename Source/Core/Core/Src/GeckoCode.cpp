@@ -211,9 +211,8 @@ bool RamWriteAndFill()
 	case 0x4 :
 	{
 		// TODO: complete
-		u32 new_data = data;
+		// u32 new_data = data;
 		
-
 		return false;
 	}
 		break;
@@ -372,7 +371,6 @@ bool FlowControl()
 
 	// not all of these are used in all subtypes
 	const u8 block_num = (u8)(code.data & 0xF);
-	const s16 code_offset = (s16)code.address;
 
 	switch (code.subtype)
 	{
@@ -679,8 +677,6 @@ bool SpecialIf()
 		{
 			// CT5 Part2 : 16bits Counter check
 			// TODO:
-
-			const u16 z = (u16)(data >> 16);
 
 			switch (code.subtype)
 			{

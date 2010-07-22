@@ -353,17 +353,7 @@ u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesAZERTY[256] = {
 	0x00, // Nothing interesting past this point.
 
 };
-#elif defined __linux__
-// TODO Add support for Linux keycodes
-u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesQWERTY[256] = {
-	0
-};
-
-u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesAZERTY[256] = {
-	0
-};
-#elif defined __APPLE__
-// TODO Add support for Apple keycodes
+#else
 u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesQWERTY[256] = {
 	0
 };

@@ -136,6 +136,4 @@ void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
 	inifile.SetLines(GECKO_CODE_INI_SECTION, lines);
 }
 
-
-
 };

@@ -1,5 +1,9 @@
+#include <sys/param.h>
+
 #if defined __APPLE__
 #include "include/SDL_config_macosx.h"
+#elif defined BSD4_4
+#include "SDL/SDL_config_bsd.h"
 #elif defined __linux__
 #include "SDL/SDL_config_linux.h"
 #endif
