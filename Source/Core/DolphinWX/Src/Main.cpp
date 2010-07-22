@@ -232,7 +232,7 @@ bool DolphinApp::OnInit()
 		return false;
 	}
 
-#if ! defined(__APPLE__) && ! defined(__linux__)
+#ifdef _WIN32
 	// Keep the user config dir free unless user wants to save the working dir
 	if (!File::Exists((std::string(File::GetUserPath(D_CONFIG_IDX)) + "portable").c_str()))
 	{
@@ -307,9 +307,7 @@ bool DolphinApp::OnInit()
 	}
 	else if (!File::IsDirectory(AppSupportDir))
 		PanicAlert("~/Library/Application Support/Dolphin exists, but is not a directory");
-#endif
-
-#ifdef __linux__
+#else
 	//create all necessary directories in user directory
 	//TODO : detect the revision and upgrade where necessary
 	File::CopyDir(SHARED_USER_DIR CONFIG_DIR DIR_SEP, File::GetUserPath(D_CONFIG_IDX));
