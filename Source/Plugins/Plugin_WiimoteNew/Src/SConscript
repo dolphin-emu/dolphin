@@ -20,7 +20,7 @@ files = [
 
 libs = [ 'inputcommon', 'common' ]
 
-if sys.platform == 'win32' or sys.platform == 'linux2':
+if not sys.platform == 'darwin':
 	libs += [ 'SDL' ]
 
 if env['HAVE_WX']:

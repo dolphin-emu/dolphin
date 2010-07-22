@@ -47,12 +47,12 @@ IOBluetoothDevice *btd;
 IOBluetoothL2CAPChannel *ichan;
 IOBluetoothL2CAPChannel *cchan;
 
-#define QUEUE_SIZE 8
+#define QUEUE_SIZE 64
 volatile struct buffer {
 	char data[MAX_PAYLOAD];
 	int len;
 } queue[QUEUE_SIZE];
-volatile int reader, writer, outstanding;
+volatile int reader, writer, outstanding, watermark;
 
 @interface SearchBT: NSObject {
 @public
@@ -107,6 +107,11 @@ volatile int reader, writer, outstanding;
 	outstanding++;
 	if (writer == QUEUE_SIZE)
 		writer = 0;
+
+	if (outstanding > watermark) {
+		watermark = outstanding;
+		WIIUSE_WARNING("New wiimote queue watermark %d", watermark);
+	}
 
 	CFRunLoopStop(CFRunLoopGetCurrent());
 }
@@ -165,8 +170,10 @@ int wiiuse_find(struct wiimote_t **wm, int max_wiimotes, int timeout)
 	[bti setDelegate: sbt];
 	[bti setInquiryLength: timeout];
 	[bti setSearchCriteria: kBluetoothServiceClassMajorAny
-		majorDeviceClass: 0x05 minorDeviceClass: 0x01];
-	[bti setUpdateNewDeviceNames: FALSE];
+		majorDeviceClass: kBluetoothDeviceClassMajorPeripheral
+		minorDeviceClass: kBluetoothDeviceClassMinorPeripheral2Joystick
+		];
+	[bti setUpdateNewDeviceNames: NO];
 
 	IOReturn ret = [bti start];
 	if (ret == kIOReturnSuccess)
@@ -256,7 +263,6 @@ static int wiiuse_connect_single(struct wiimote_t *wm, char *address)
 	WIIUSE_INFO("Connected to wiimote [id %i].", wm->unid);
 
 	WIIMOTE_ENABLE_STATE(wm, WIIMOTE_STATE_CONNECTED);
-	wiiuse_handshake(wm, NULL, 0);
 	wiiuse_set_report_type(wm);
 
 	[cbt release];

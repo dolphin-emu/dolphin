@@ -34,9 +34,8 @@
 #ifndef DEFINITIONS_H_INCLUDED
 #define DEFINITIONS_H_INCLUDED
 
-#if 0	// Use Dolphin logging
-
 #include "Log.h"
+
 // NOTICE_LEVEL is more appropriate for the uses of WIIUSE_INFO than INFO_LEVEL
 // as long as we don't provide adequate GUI feedback for bluetooth events.
 #define WIIUSE_INFO(...) { GENERIC_LOG(WIIMOTE, NOTICE_LEVEL, __VA_ARGS__) }
@@ -44,43 +43,8 @@
 #define WIIUSE_WARNING(...) { GENERIC_LOG(WIIMOTE, WARNING_LEVEL, __VA_ARGS__) }
 #define WIIUSE_DEBUG(...) { GENERIC_LOG(WIIMOTE, DEBUG_LEVEL, __VA_ARGS__) }
 
-#else
-
-/* this is wiiuse - used to distinguish from third party programs using wiiuse.h */
-#include "os.h"
-
-//#define WITH_WIIUSE_DEBUG
-
-/* Error output macros */
-#define WIIUSE_ERROR(fmt, ...)		fprintf(stderr, "[ERROR] " fmt "\n", ##__VA_ARGS__)
-
-/* Warning output macros */
-#define WIIUSE_WARNING(fmt, ...)	fprintf(stderr, "[WARNING] " fmt "\n",	##__VA_ARGS__)
-
-/* Information output macros */
-#define WIIUSE_INFO(fmt, ...)		fprintf(stderr, "[INFO] " fmt "\n", ##__VA_ARGS__)
-
-#ifdef WITH_WIIUSE_DEBUG
-	#ifdef WIN32
-		#define WIIUSE_DEBUG(fmt, ...)		do {																				\
-												char* file = __FILE__;															\
-												int i = strlen(file) - 1;														\
-												for (; i && (file[i] != '\\'); --i);											\
-												fprintf(stderr, "[DEBUG] %s:%i: " fmt "\n", file+i+1, __LINE__, ##__VA_ARGS__);	\
-											} while (0)
-	#else
-		#define WIIUSE_DEBUG(fmt, ...)	fprintf(stderr, "[DEBUG] " __FILE__ ":%i: " fmt "\n", __LINE__, ##__VA_ARGS__)
-	#endif
-#else
-	#define WIIUSE_DEBUG(fmt, ...)
-#endif
-
-#endif	// Use Dolphin logging
-
-
 /* Convert to big endian */
 #define BIG_ENDIAN_LONG(i)				(htonl(i))
 #define BIG_ENDIAN_SHORT(i)				(htons(i))
-
 
 #endif // DEFINITIONS_H_INCLUDED
