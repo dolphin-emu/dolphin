@@ -11,4 +11,4 @@ libs = [
 	'common',
 	]
 
-env.Program(env['binary_dir'] + 'dsptool', files, LIBS = libs)
+env.Program('dsptool', files, LIBS = libs)
