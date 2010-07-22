@@ -80,7 +80,6 @@ protected:
 	wxListBox*	lbox_search_results;
 	wxStaticText* label_results_count;
 	wxTextCtrl*	textctrl_value_x;
-	wxString* searches;
 	wxButton *btnInitScan, *btnNextScan;
 
 	struct

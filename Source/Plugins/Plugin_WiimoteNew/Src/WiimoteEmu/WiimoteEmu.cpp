@@ -539,7 +539,7 @@ void Wiimote::Update()
 		}
 
 		// Fill report with valid data when full handshake was done
-		if (m_reg_ir->data[0x30] || m_reg_ir->data[0x33])
+		if (m_reg_ir->data[0x30])
 		// ir mode
 		switch (m_reg_ir->mode)
 		{
