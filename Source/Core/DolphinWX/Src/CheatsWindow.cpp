@@ -145,78 +145,92 @@ void wxCheatsWindow::Init_ChildControls()
 CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	: wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize)
 {
-	// new search box
+	// first scan button
+	btnInitScan = new wxButton(this, -1, wxT("New Scan"));
+	_connect_macro_(btnInitScan, CheatSearchTab::StartNewSearch, wxEVT_COMMAND_BUTTON_CLICKED, this);
+
+	// next scan button
+	btnNextScan = new wxButton(this, -1, wxT("Next Scan"));
+	_connect_macro_(btnNextScan, CheatSearchTab::FilterCheatSearchResults, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	btnNextScan->Disable();
+
+	// data size radio buttons
 	size_radiobtn.rad_8 = new wxRadioButton(this, -1, wxT("8 bit"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
 	size_radiobtn.rad_16 = new wxRadioButton(this, -1, wxT("16 bit"));
 	size_radiobtn.rad_32 = new wxRadioButton(this, -1, wxT("32 bit"));
 	size_radiobtn.rad_8->SetValue(true);
 
-	wxButton* const button_start_search = new wxButton(this, -1, wxT("Start"));
-	_connect_macro_(button_start_search, CheatSearchTab::StartNewSearch, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	// data sizes groupbox
+	wxStaticBoxSizer* const sizer_cheat_new_search = new wxStaticBoxSizer(wxHORIZONTAL, this, wxT("Data Size"));
+	sizer_cheat_new_search->Add(size_radiobtn.rad_8, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, 5);
+	sizer_cheat_new_search->Add(size_radiobtn.rad_16, 0, wxRIGHT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, 5);
+	sizer_cheat_new_search->Add(size_radiobtn.rad_32, 0, wxRIGHT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, 5);
 
-	wxStaticBoxSizer* const sizer_cheat_new_search = new wxStaticBoxSizer(wxHORIZONTAL, this, wxT("New Search"));
-	sizer_cheat_new_search->Add(size_radiobtn.rad_8, 0, wxLEFT | wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
-	sizer_cheat_new_search->Add(size_radiobtn.rad_16, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
-	sizer_cheat_new_search->Add(size_radiobtn.rad_32, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
-	sizer_cheat_new_search->Add(button_start_search, 0, wxRIGHT | wxBOTTOM | wxALIGN_CENTER_VERTICAL, 5);
-
-	// results box
+	// result controls
 	lbox_search_results = new wxListBox(this, -1, wxDefaultPosition, wxDefaultSize);
 	label_results_count = new wxStaticText(this, -1, wxT("Count:"));
 
+	// create AR code button
 	wxButton* const button_cheat_search_copy_address = new wxButton(this, -1, wxT("Create AR Code"));
 	_connect_macro_(button_cheat_search_copy_address, CheatSearchTab::CreateARCode, wxEVT_COMMAND_BUTTON_CLICKED, this);
 
+	// results groupbox
 	wxStaticBoxSizer* const sizer_cheat_search_results = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Results"));
 	sizer_cheat_search_results->Add(label_results_count, 0, wxALIGN_LEFT | wxALL, 5);
 	sizer_cheat_search_results->Add(lbox_search_results, 1, wxEXPAND | wxALL, 5);
 	sizer_cheat_search_results->Add(button_cheat_search_copy_address, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
 
-	// filter box
-	// x value box
-	value_x_radiobtn.rad_oldvalue = new wxRadioButton(this, -1, wxT("Old Value"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+	// Search value radio buttons
+	value_x_radiobtn.rad_oldvalue = new wxRadioButton(this, -1, wxT("Previous Value"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
 	value_x_radiobtn.rad_uservalue = new wxRadioButton(this, -1, wxT(""));
 	value_x_radiobtn.rad_oldvalue->SetValue(true);
 
+	// search value textbox
 	textctrl_value_x = new wxTextCtrl(this, -1, wxT("0x0"), wxDefaultPosition, wxSize(96,-1));
+	_connect_macro_(textctrl_value_x, CheatSearchTab::ApplyFocus, wxEVT_SET_FOCUS, this);
 
 	wxBoxSizer* const sizer_cheat_filter_text = new wxBoxSizer(wxHORIZONTAL);
 	sizer_cheat_filter_text->Add(value_x_radiobtn.rad_uservalue, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
 	sizer_cheat_filter_text->Add(textctrl_value_x, 1, wxALIGN_CENTER_VERTICAL, 5);
 
-	wxStaticBoxSizer* const sizer_cheat_search_filter_x = new wxStaticBoxSizer(wxVERTICAL, this, wxT("X"));
+	// value groupbox
+	wxStaticBoxSizer* const sizer_cheat_search_filter_x = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Value"));
 	sizer_cheat_search_filter_x->Add(value_x_radiobtn.rad_oldvalue, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
-	sizer_cheat_search_filter_x->Add(sizer_cheat_filter_text, 0, wxALL, 5);
+	sizer_cheat_search_filter_x->Add(sizer_cheat_filter_text, 0, wxALL | wxEXPAND, 5);
 
-	// filter types
-	filter_radiobtn.rad_none = new wxRadioButton(this, -1, wxT("None"), wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
-	filter_radiobtn.rad_notequal = new wxRadioButton(this, -1, wxT("!= X"));
-	filter_radiobtn.rad_equal = new wxRadioButton(this, -1, wxT("= X"));
-	filter_radiobtn.rad_greater = new wxRadioButton(this, -1, wxT("> X"));
-	filter_radiobtn.rad_less = new wxRadioButton(this, -1, wxT("< X"));
-	filter_radiobtn.rad_none->SetValue(true);
+	// filter types in the compare dropdown
+	static const wxString searches[] = {
+		wxT("Unknown"),
+		wxT("Not Equals"),
+		wxT("Equals"),
+		wxT("Greater Than"),
+		wxT("Less Than"),
+	// TODO: Implement between search.
+		//wxT("Between"),
+	};
+
+	search_type = new wxChoice(this, -1, wxDefaultPosition, wxDefaultSize, sizeof(searches)/sizeof(*searches), searches);
+	search_type->Select(0);
 
 	wxStaticBoxSizer* const sizer_cheat_search_filter = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Search Filter"));
-	sizer_cheat_search_filter->Add(sizer_cheat_search_filter_x, 0, wxLEFT | wxRIGHT | wxBOTTOM, 5);
-	sizer_cheat_search_filter->Add(filter_radiobtn.rad_none, 0, wxALL, 5);
-	sizer_cheat_search_filter->Add(filter_radiobtn.rad_notequal, 0, wxALL, 5);
-	sizer_cheat_search_filter->Add(filter_radiobtn.rad_equal, 0, wxALL, 5);
-	sizer_cheat_search_filter->Add(filter_radiobtn.rad_greater, 0, wxALL, 5);
-	sizer_cheat_search_filter->Add(filter_radiobtn.rad_less, 0, wxALL, 5);
-
-	wxButton* const button_cheat_search_update = new wxButton(this, -1, wxT("Search"));
-	_connect_macro_(button_cheat_search_update, CheatSearchTab::FilterCheatSearchResults, wxEVT_COMMAND_BUTTON_CLICKED, this);
+	sizer_cheat_search_filter->Add(sizer_cheat_search_filter_x, 0, wxALL | wxEXPAND, 5);
+	sizer_cheat_search_filter->Add(search_type, 0, wxALL, 5);
 
 	// left sizer
 	wxBoxSizer* const sizer_left = new wxBoxSizer(wxVERTICAL);
-	sizer_left->Add(sizer_cheat_new_search, 0, wxBOTTOM, 5);
 	sizer_left->Add(sizer_cheat_search_results, 1, wxEXPAND, 5);
+
+	// button sizer
+	wxBoxSizer* boxButtons = new wxBoxSizer(wxHORIZONTAL);
+	boxButtons->Add(btnInitScan, 1, wxRIGHT, 5);
+	boxButtons->Add(btnNextScan, 1);
 
 	// right sizer
 	wxBoxSizer* const sizer_right = new wxBoxSizer(wxVERTICAL);
+	sizer_right->Add(sizer_cheat_new_search, 0, wxBOTTOM, 5);
 	sizer_right->Add(sizer_cheat_search_filter, 0, wxEXPAND | wxBOTTOM, 5);
 	sizer_right->AddStretchSpacer(1);
-	sizer_right->Add(button_cheat_search_update, 0, wxTOP | wxEXPAND, 5);
+	sizer_right->Add(boxButtons, 0, wxTOP | wxEXPAND, 5);
 
 	// main sizer
 	wxBoxSizer* const sizer_main = new wxBoxSizer(wxHORIZONTAL);
@@ -328,11 +342,6 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 {
 	search_results.clear();
 
-	search_type_size =
-		size_radiobtn.rad_8->GetValue() +
-		(size_radiobtn.rad_16->GetValue() << 1) +
-		(size_radiobtn.rad_32->GetValue() << 2);
-
 	const u8* const memptr = Memory::GetPointer(0);
 	if (NULL == memptr)
 	{
@@ -340,6 +349,15 @@ void CheatSearchTab::StartNewSearch(wxCommandEvent& WXUNUSED (event))
 	}
 	else
 	{
+		// enable the next scan button
+		btnNextScan->Enable();
+
+		// determine the search data size
+		search_type_size =
+			size_radiobtn.rad_8->GetValue() +
+			(size_radiobtn.rad_16->GetValue() << 1) +
+			(size_radiobtn.rad_32->GetValue() << 2);
+
 		CheatSearchResult r;
 		// can I assume cheatable values will be aligned like this?
 		for (u32 addr = 0; addr != Memory::RAM_SIZE; addr += search_type_size)
@@ -372,17 +390,9 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 		// 1 : equal
 		// 2 : greater-than
 		// 4 : less-than
-		if (filter_radiobtn.rad_none->GetValue())
-			filter_mask = 7;
-		else if (filter_radiobtn.rad_notequal->GetValue())
-			filter_mask = 6;
-		else if (filter_radiobtn.rad_equal->GetValue())
-			filter_mask = 1;
-		else if (filter_radiobtn.rad_greater->GetValue())
-			filter_mask = 2;
-		else if (filter_radiobtn.rad_less->GetValue())
-			filter_mask = 4;
 
+		const int filters[] = {7, 6, 1, 2, 4};
+		filter_mask = filters[search_type->GetSelection()];
 
 		if (value_x_radiobtn.rad_oldvalue->GetValue())	// using old value comparison
 		{
@@ -392,10 +402,8 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 				int cmp_result = memcmp(memptr + i->address, &i->old_value, search_type_size);
 				if (cmp_result < 0)
 					cmp_result = 4;
-				else if (cmp_result)
-					cmp_result = 2;
 				else
-					cmp_result = 1;
+					cmp_result = cmp_result ? 2 : 1;
 
 				if (cmp_result & filter_mask)
 				{
@@ -421,7 +429,7 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 					val_base = 16;
 				}
 
-				if (false == x_val.ToLong(&parsed_x_val, val_base))
+				if (!x_val.ToLong(&parsed_x_val, val_base))
 				{
 					PanicAlert("You must enter a valid decimal or hex value.");
 					return;
@@ -469,6 +477,11 @@ void CheatSearchTab::FilterCheatSearchResults(wxCommandEvent&)
 
 		UpdateCheatSearchResultsList();
 	}
+}
+
+void CheatSearchTab::ApplyFocus(wxCommandEvent&)
+{
+	value_x_radiobtn.rad_uservalue->SetValue(true);
 }
 
 void CheatSearchTab::UpdateCheatSearchResultsList()
@@ -590,7 +603,7 @@ void CreateCodeDialog::PressOK(wxCommandEvent&)
 	}
 
 	long code_value;
-	if (false == textctrl_value->GetValue().ToLong(&code_value, 10 + checkbox_use_hex->GetValue()*6))
+	if (!textctrl_value->GetValue().ToLong(&code_value, 10 + checkbox_use_hex->GetValue()*6))
 	{
 		PanicAlert("Invalid Value!");
 		return;

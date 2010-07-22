@@ -76,9 +76,12 @@ protected:
 	std::vector<CheatSearchResult>	search_results;
 	unsigned int search_type_size;
 
+	wxChoice* search_type;
 	wxListBox*	lbox_search_results;
 	wxStaticText* label_results_count;
-	wxTextCtrl*		textctrl_value_x;
+	wxTextCtrl*	textctrl_value_x;
+	wxString* searches;
+	wxButton *btnInitScan, *btnNextScan;
 
 	struct
 	{
@@ -88,21 +91,15 @@ protected:
 
 	struct
 	{
-		wxRadioButton *rad_none, *rad_equal, *rad_notequal, *rad_greater, *rad_less;
-
-	} filter_radiobtn;
-
-	struct
-	{
 		wxRadioButton *rad_oldvalue, *rad_uservalue;
 
 	} value_x_radiobtn;
 
 	void UpdateCheatSearchResultsList();
-
 	void StartNewSearch(wxCommandEvent& event);
 	void FilterCheatSearchResults(wxCommandEvent& event);
 	void CreateARCode(wxCommandEvent&);
+	void ApplyFocus(wxCommandEvent&);
 };
 
 class wxCheatsWindow : public wxFrame
