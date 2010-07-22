@@ -113,9 +113,10 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode)
 	if (keysym >= 97 && keysym <= 122)
 		keysym -= 32;
 
-	// 0x0110ffff is the top of the unicode character range according to keysymdef.h
-	// although it is probably more than we need.
-	if (keysym == NoSymbol || keysym > 0x0110ffff)
+	// 0x0110ffff is the top of the unicode character range according
+	// to keysymdef.h although it is probably more than we need.
+	if (keysym == NoSymbol || keysym > 0x0110ffff ||
+		XKeysymToString(keysym) == NULL)
 		m_keyname = std::string();
 	else
 		m_keyname = std::string(XKeysymToString(keysym));

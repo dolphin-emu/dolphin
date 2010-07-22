@@ -31,6 +31,13 @@
 #include <errno.h>
 #endif
 
+#ifdef __FreeBSD__
+#define ICONV_CONST const
+#endif
+#ifndef ICONV_CONST
+#define ICONV_CONST
+#endif
+
 namespace DiscIO
 {
 void IBannerLoader::CopyToStringAndCheck(std::string& _rDestination, const char* _src)
@@ -154,7 +161,9 @@ bool IBannerLoader::CopyBeUnicodeToString( std::string& _rDestination, const u16
 		char* utf8_buffer_start = utf8_buffer;
 		char* src_buffer_start = src_buffer;
 
-		size_t iconv_size = iconv(conv_desc, &src_buffer, &inbytes, &utf8_buffer, &outbytes);
+		size_t iconv_size = iconv(conv_desc,
+			(ICONV_CONST char**)&src_buffer, &inbytes,
+			&utf8_buffer, &outbytes);
 
 		// Handle failures
 		if (iconv_size == (size_t) -1)

@@ -82,8 +82,10 @@ bool CEXIETHERNET::activate() {
 	system("brctl addif pan0 Dolphin");
 	system("ifconfig Dolphin 0.0.0.0 promisc up");
 	resume();
-#endif
 	return true;
+#else
+	return false;
+#endif
 }
 bool CEXIETHERNET::CheckRecieved()
 {
