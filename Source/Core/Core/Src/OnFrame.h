@@ -35,16 +35,18 @@ enum PlayMode {
 };
 
 // Gamecube Controller State
-typedef struct {
-	bool Start, A, B, X, Y, Z;                  // Binary buttons, 6 bits
-	bool DPadUp, DPadDown, DPadLeft, DPadRight; // Binary D-Pad buttons, 4 bits
-	u8   L, R;                                  // Triggers, 16 bits
-	u8   AnalogStickX, AnalogStickY;            // Main Stick, 16 bits
-	u8   CStickX, CStickY;                      // Sub-Stick, 16 bits
+#pragma pack(push,1)
+struct ControllerState {
+	bool Start:1, A:1, B:1, X:1, Y:1, Z:1;		// Binary buttons, 6 bits
+	bool DPadUp:1, DPadDown:1,					// Binary D-Pad buttons, 4 bits
+		DPadLeft:1, DPadRight:1;
+	u8   L, R;									// Triggers, 16 bits
+	u8   AnalogStickX, AnalogStickY;			// Main Stick, 16 bits
+	u8   CStickX, CStickY;						// Sub-Stick, 16 bits
 	
-	bool reserved[6];							// Reserved bits, 6 bits
-} ControllerState; // Total: 58 + 6 = 64 bits per frame
-
+	bool reserved:6;							// Reserved bits, 6 bits
+}; // Total: 58 + 6 = 64 bits per frame
+#pragma pack(pop)
 
 // Global declarations
 extern bool g_bFrameStep, g_bAutoFire, g_bFirstKey, g_bPolled;
@@ -62,30 +64,31 @@ extern u64 g_frameCounter, g_lagCounter;
 
 extern int g_numRerecords;
 
-typedef struct {
+#pragma pack(push,1)
+struct DTMHeader {
 	u8 filetype[4];			// Unique Identifier (always "DTM"0x1A)
 
-	u8 gameID[6];           // The Game ID
-	bool bWii;              // Wii game
+	u8 gameID[6];			// The Game ID
+	bool bWii;				// Wii game
 
-    u8  numControllers;     // The number of connected controllers (1-4)
+    u8  numControllers;		// The number of connected controllers (1-4)
 
-    bool bFromSaveState;    // false indicates that the recording started from bootup, true for savestate
-    u64 frameCount;         // Number of frames in the recording
-    u64 lagCount;           // Number of lag frames in the recording
-    u64 uniqueID;           // A Unique ID comprised of: md5(time + Game ID)
-    u32 numRerecords;       // Number of rerecords/'cuts' of this TAS
-    u8  author[32];         // Author's name (encoded in UTF-8)
+    bool bFromSaveState;	// false indicates that the recording started from bootup, true for savestate
+    u64 frameCount;			// Number of frames in the recording
+    u64 lagCount;			// Number of lag frames in the recording
+    u64 uniqueID;			// A Unique ID comprised of: md5(time + Game ID)
+    u32 numRerecords;		// Number of rerecords/'cuts' of this TAS
+    u8  author[32];			// Author's name (encoded in UTF-8)
     
-    u8  videoPlugin[16];    // UTF-8 representation of the video plugin
-    u8  audioPlugin[16];    // UTF-8 representation of the audio plugin
-    u8  padPlugin[16];      // UTF-8 representation of the input plugin
+    u8  videoPlugin[16];	// UTF-8 representation of the video plugin
+    u8  audioPlugin[16];	// UTF-8 representation of the audio plugin
+    u8  padPlugin[16];		// UTF-8 representation of the input plugin
 
-    bool padding[102];      // Padding to align the header to 1024 bits
+    u8	padding[7];		// Padding to align the header to 1024 bits
 
-    u8  reserved[128];      // Increasing size from 128 bytes to 256 bytes, just because we can
-} DTMHeader;
-
+    u8  reserved[128];		// Increasing size from 128 bytes to 256 bytes, just because we can
+};
+#pragma pack(pop)
 
 void FrameUpdate();
 
