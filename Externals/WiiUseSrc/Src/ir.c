@@ -81,69 +81,6 @@ static int get_ir_sens(struct wiimote_t* wm, const char** block1, const char** b
 }
 
 
-
-/**
- *	@brief	Set the XY position for the IR cursor.
- *
- *	@param wm		Pointer to a wiimote_t structure.
- */
-void wiiuse_set_ir_position(struct wiimote_t* wm, enum ir_position_t pos) {
-	if (!wm)	return;
-
-	wm->ir.pos = pos;
-
-	switch (pos) {
-
-		case WIIUSE_IR_ABOVE:
-			wm->ir.offset[0] = 0;
-
-			if (wm->ir.aspect == WIIUSE_ASPECT_16_9)
-				wm->ir.offset[1] = WM_ASPECT_16_9_Y/2 - 70;
-			else if (wm->ir.aspect == WIIUSE_ASPECT_4_3)
-				wm->ir.offset[1] = WM_ASPECT_4_3_Y/2 - 100;
-
-			return;
-
-		case WIIUSE_IR_BELOW:
-			wm->ir.offset[0] = 0;
-
-			if (wm->ir.aspect == WIIUSE_ASPECT_16_9)
-				wm->ir.offset[1] = -WM_ASPECT_16_9_Y/2 + 100;
-			else if (wm->ir.aspect == WIIUSE_ASPECT_4_3)
-				wm->ir.offset[1] = -WM_ASPECT_4_3_Y/2 + 70;
-
-			return;
-
-		default:
-			return;
-	};
-}
-
-
-/**
- *	@brief	Set the aspect ratio of the TV/monitor.
- *
- *	@param wm		Pointer to a wiimote_t structure.
- *	@param aspect	Either WIIUSE_ASPECT_16_9 or WIIUSE_ASPECT_4_3
- */
-void wiiuse_set_aspect_ratio(struct wiimote_t* wm, enum aspect_t aspect) {
-	if (!wm)	return;
-
-	wm->ir.aspect = aspect;
-
-	if (aspect == WIIUSE_ASPECT_4_3) {
-		wm->ir.vres[0] = WM_ASPECT_4_3_X;
-		wm->ir.vres[1] = WM_ASPECT_4_3_Y;
-	} else {
-		wm->ir.vres[0] = WM_ASPECT_16_9_X;
-		wm->ir.vres[1] = WM_ASPECT_16_9_Y;
-	}
-
-	/* reset the position offsets */
-	wiiuse_set_ir_position(wm, wm->ir.pos);
-}
-
-
 /**
  *	@brief	Set the IR sensitivity.
  *

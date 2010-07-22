@@ -51,6 +51,7 @@ void ClearEvents();
 	extern wiimote_t**		g_WiiMotesFromWiiUse;
 	extern bool				g_Shutdown;
 	extern int				g_NumberOfWiiMotes;
+	extern int				LastNumberOfWiimotes;
 #ifdef _WIN32
 	extern Common::Thread*	g_AutoPairUpInvisibleWindow;
 	extern Common::Thread*	g_AutoPairUpMonitoring;

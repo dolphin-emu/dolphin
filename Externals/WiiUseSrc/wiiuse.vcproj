@@ -412,10 +412,6 @@
 			Name="I/O"
 			>
 			<File
-				RelativePath=".\Src\io.c"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\io.h"
 				>
 			</File>

@@ -79,17 +79,6 @@
 #define WM_CMD_SPEAKER_MUTE			0x19// Size 1
 #define WM_CMD_IR_2					0x1A
 
-/* input report ids */
-#define WM_RPT_CTRL_STATUS			0x20
-#define WM_RPT_READ					0x21
-#define WM_RPT_WRITE				0x22
-#define WM_RPT_BTN					0x30
-#define WM_RPT_BTN_ACC				0x31
-#define WM_RPT_BTN_ACC_IR			0x33
-#define WM_RPT_BTN_EXP				0x34
-#define WM_RPT_BTN_ACC_EXP			0x35
-#define WM_RPT_BTN_IR_EXP			0x36
-#define WM_RPT_BTN_ACC_IR_EXP		0x37
 
 #define WM_BT_INPUT					0x01
 #define WM_BT_OUTPUT				0x02
@@ -101,26 +90,14 @@
 #define WM_VENDOR_ID				0x057E
 #define WM_PRODUCT_ID				0x0306
 
-/* controller status stuff */
-#define WM_MAX_BATTERY_CODE			0xC8
+
 
 /* offsets in wiimote memory */
 #define WM_MEM_OFFSET_CALIBRATION	0x16
-#define WM_EXP_MEM_BASE				0x04A40000
-#define WM_EXP_MEM_ENABLE			0x04A40040
-#define WM_EXP_MEM_CALIBR			0x04A40020
-#define WM_EXP_MEM_ENABLE1			0x04A400F0
-#define WM_EXP_MEM_ENABLE2			0x04A400FB
 
-#define WM_REG_IR					0x04B00030
 #define WM_REG_IR_BLOCK1			0x04B00000
 #define WM_REG_IR_BLOCK2			0x04B0001A
-#define WM_REG_IR_MODENUM			0x04B00033
 
-#define WM_EXT_MP_MEM_BASE			0x04A60000
-#define WM_EXT_MP_MEM_ENABLE1		0x04A600F0
-#define WM_EXT_MP_MEM_ENABLE2		0x04A600FE
-#define WM_EXT_MP_MEM_ENABLE3		0x04A400FB
 
 /* ir block data */
 #define WM_IR_BLOCK1_LEVEL1			"\x02\x00\x00\x71\x01\x00\x64\x00\xfe"
@@ -138,40 +115,8 @@
 #define WM_IR_TYPE_EXTENDED			0x03
 #define WM_IR_TYPE_FULL				0x05
 
-/* controller status flags for the first message byte */
-/* bit 1 is unknown */
-#define WM_CTRL_STATUS_BYTE1_ATTACHMENT			0x02
-#define WM_CTRL_STATUS_BYTE1_SPEAKER_ENABLED	0x04
-#define WM_CTRL_STATUS_BYTE1_IR_ENABLED			0x08
-#define WM_CTRL_STATUS_BYTE1_LED_1				0x10
-#define WM_CTRL_STATUS_BYTE1_LED_2				0x20
-#define WM_CTRL_STATUS_BYTE1_LED_3				0x40
-#define WM_CTRL_STATUS_BYTE1_LED_4				0x80
-
-/* aspect ratio */
-#define WM_ASPECT_16_9_X	660
-#define WM_ASPECT_16_9_Y	370
-#define WM_ASPECT_4_3_X		560
-#define WM_ASPECT_4_3_Y		420
 
 
-/**
- *	Expansion stuff
- */
-
-/* encrypted expansion id codes (located at 0x04A400FC) */
-/*#define EXP_ID_CODE_NUNCHUK					0x9A1EFEFE
-#define EXP_ID_CODE_CLASSIC_CONTROLLER		0x9A1EFDFD
-#define EXP_ID_CODE_GUITAR					0x9A1EFDFB
-*/
-#define EXP_ID_CODE_NUNCHUK					0xa4200000
-#define EXP_ID_CODE_CLASSIC_CONTROLLER		0xa4200101
-#define EXP_ID_CODE_GUITAR					0xa4200103 // 4 bytes are not unique enough
-#define EXP_ID_CODE_WII_BOARD				0xa4200402
-#define EXP_ID_CODE_MOTIONPLUS				0xa4200405
-#define EXP_ID_CODE_MOTIONPLUS_EXT			0xa4200505
-
-#define EXP_HANDSHAKE_LEN					224
 
 /********************
  *
@@ -214,16 +159,7 @@
 #define WIIMOTE_ID(wm)					(wm->unid)
 #define WIIMOTE_IS_CONNECTED(wm)		(WIIMOTE_IS_SET(wm, WIIMOTE_STATE_CONNECTED))
 
-/*
- *	Smooth tilt calculations are computed with the
- *	exponential moving average formula:
- *		St = St_last + (alpha * (tilt - St_last))
- *	alpha is between 0 and 1
- */
-#define WIIUSE_DEFAULT_SMOOTH_ALPHA		0.07f
 
-#define SMOOTH_ROLL						0x01
-#define SMOOTH_PITCH					0x02
 
 #include "wiiuse.h"
 
@@ -233,9 +169,7 @@ extern "C" {
 
 /* not part of the api */
 int wiiuse_set_report_type(struct wiimote_t* wm);
-void wiiuse_send_next_pending_read_request(struct wiimote_t* wm);
 int wiiuse_send(struct wiimote_t* wm, byte report_type, byte* msg, int len);
-int wiiuse_read_data_cb(struct wiimote_t* wm, wiiuse_read_cb read_cb, byte* buffer, unsigned int offset, unsigned short len);
 
 #ifdef __cplusplus
 }

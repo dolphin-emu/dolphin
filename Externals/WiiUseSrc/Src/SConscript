@@ -13,7 +13,6 @@ if (sys.platform == 'linux2' and not env['HAVE_BLUEZ']) or \
 env['HAVE_WIIUSE'] = 1
 
 files = [
-	"io.c",
 	"ir.c",
 	"wiiuse.c",
 	]

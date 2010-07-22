@@ -64,67 +64,6 @@
 #define WIIMOTE_LED_3					0x40
 #define WIIMOTE_LED_4					0x80
 
-/* button codes */
-#define WIIMOTE_BUTTON_TWO				0x0001
-#define WIIMOTE_BUTTON_ONE				0x0002
-#define WIIMOTE_BUTTON_B				0x0004
-#define WIIMOTE_BUTTON_A				0x0008
-#define WIIMOTE_BUTTON_MINUS			0x0010
-#define WIIMOTE_BUTTON_ZACCEL_BIT6		0x0020
-#define WIIMOTE_BUTTON_ZACCEL_BIT7		0x0040
-#define WIIMOTE_BUTTON_HOME				0x0080
-#define WIIMOTE_BUTTON_LEFT				0x0100
-#define WIIMOTE_BUTTON_RIGHT			0x0200
-#define WIIMOTE_BUTTON_DOWN				0x0400
-#define WIIMOTE_BUTTON_UP				0x0800
-#define WIIMOTE_BUTTON_PLUS				0x1000
-#define WIIMOTE_BUTTON_ZACCEL_BIT4		0x2000
-#define WIIMOTE_BUTTON_ZACCEL_BIT5		0x4000
-#define WIIMOTE_BUTTON_UNKNOWN			0x8000
-#define WIIMOTE_BUTTON_ALL				0x1F9F
-
-/* nunchul button codes */
-#define NUNCHUK_BUTTON_Z				0x01
-#define NUNCHUK_BUTTON_C				0x02
-#define NUNCHUK_BUTTON_ALL				0x03
-
-/* classic controller button codes */
-#define CLASSIC_CTRL_BUTTON_UP			0x0001
-#define CLASSIC_CTRL_BUTTON_LEFT		0x0002
-#define CLASSIC_CTRL_BUTTON_ZR			0x0004
-#define CLASSIC_CTRL_BUTTON_X			0x0008
-#define CLASSIC_CTRL_BUTTON_A			0x0010
-#define CLASSIC_CTRL_BUTTON_Y			0x0020
-#define CLASSIC_CTRL_BUTTON_B			0x0040
-#define CLASSIC_CTRL_BUTTON_ZL			0x0080
-#define CLASSIC_CTRL_BUTTON_FULL_R		0x0200
-#define CLASSIC_CTRL_BUTTON_PLUS		0x0400
-#define CLASSIC_CTRL_BUTTON_HOME		0x0800
-#define CLASSIC_CTRL_BUTTON_MINUS		0x1000
-#define CLASSIC_CTRL_BUTTON_FULL_L		0x2000
-#define CLASSIC_CTRL_BUTTON_DOWN		0x4000
-#define CLASSIC_CTRL_BUTTON_RIGHT		0x8000
-#define CLASSIC_CTRL_BUTTON_ALL			0xFEFF
-
-/* guitar hero 3 button codes */
-#define GUITAR_HERO_3_BUTTON_STRUM_UP	0x0001
-#define GUITAR_HERO_3_BUTTON_YELLOW		0x0008
-#define GUITAR_HERO_3_BUTTON_GREEN		0x0010
-#define GUITAR_HERO_3_BUTTON_BLUE		0x0020
-#define GUITAR_HERO_3_BUTTON_RED		0x0040
-#define GUITAR_HERO_3_BUTTON_ORANGE		0x0080
-#define GUITAR_HERO_3_BUTTON_PLUS		0x0400
-#define GUITAR_HERO_3_BUTTON_MINUS		0x1000
-#define GUITAR_HERO_3_BUTTON_STRUM_DOWN	0x4000
-#define GUITAR_HERO_3_BUTTON_ALL		0xFEFF
-
-/* guitar hero world tour touch bar codes */
-#define GUITAR_HERO_3_TOUCH_AVAILABLE	0x1000
-#define GUITAR_HERO_3_TOUCH_GREEN		0x1001
-#define GUITAR_HERO_3_TOUCH_RED			0x1002
-#define GUITAR_HERO_3_TOUCH_YELLOW		0x1004
-#define GUITAR_HERO_3_TOUCH_BLUE		0x1008
-#define GUITAR_HERO_3_TOUCH_ORANGE		0x1010
 
 /* wiimote option flags */
 #define WIIUSE_SMOOTHING				0x01
@@ -132,57 +71,9 @@
 #define WIIUSE_ORIENT_THRESH			0x04
 #define WIIUSE_INIT_FLAGS				(WIIUSE_SMOOTHING | WIIUSE_ORIENT_THRESH)
 
-#define WIIUSE_ORIENT_PRECISION			100.0f
 
-/* expansion codes */
-#define EXP_NONE						0
-#define EXP_NUNCHUK						1
-#define EXP_CLASSIC						2
-#define EXP_GUITAR_HERO_3				3
-#define EXP_WII_BOARD					4
-#define EXP_WII_MOTION_PLUS				5
-#define EXP_WII_MOTION_PLUS_NUNCHUK		6
 
-/* IR correction types */
-typedef enum ir_position_t {
-	WIIUSE_IR_ABOVE,
-	WIIUSE_IR_BELOW
-} ir_position_t;
 
-/**
- *	@brief Check if a button is pressed.
- *	@param dev		Pointer to a wiimote_t or expansion structure.
- *	@param button	The button you are interested in.
- *	@return 1 if the button is pressed, 0 if not.
- */
-#define IS_PRESSED(dev, button)		((dev->btns & button) == button)
-
-/**
- *	@brief Check if a button is being held.
- *	@param dev		Pointer to a wiimote_t or expansion structure.
- *	@param button	The button you are interested in.
- *	@return 1 if the button is held, 0 if not.
- */
-#define IS_HELD(dev, button)			((dev->btns_held & button) == button)
-
-/**
- *	@brief Check if a button is released on this event.					\n\n
- *			This does not mean the button is not pressed, it means		\n
- *			this button was just now released.
- *	@param dev		Pointer to a wiimote_t or expansion structure.
- *	@param button	The button you are interested in.
- *	@return 1 if the button is released, 0 if not.
- *
- */
-#define IS_RELEASED(dev, button)		((dev->btns_released & button) == button)
-
-/**
- *	@brief Check if a button has just been pressed this event.
- *	@param dev		Pointer to a wiimote_t or expansion structure.
- *	@param button	The button you are interested in.
- *	@return 1 if the button is pressed, 0 if not.
- */
-#define IS_JUST_PRESSED(dev, button)	(IS_PRESSED(dev, button) && !IS_HELD(dev, button))
 
 /**
  *	@brief Return the IR sensitivity level.
@@ -200,10 +91,7 @@ typedef enum ir_position_t {
 				else									*lvl = 0;		\
 			} while (0)
 
-#define WIIUSE_USING_ACC(wm)			((wm->state & 0x020) == 0x020)
-#define WIIUSE_USING_EXP(wm)			((wm->state & 0x040) == 0x040)
-#define WIIUSE_USING_IR(wm)				((wm->state & 0x080) == 0x080)
-#define WIIUSE_USING_SPEAKER(wm)		((wm->state & 0x100) == 0x100)
+
 
 #define WIIUSE_IS_LED_SET(wm, num)		((wm->leds & WIIMOTE_LED_##num) == WIIMOTE_LED_##num)
 
@@ -217,8 +105,7 @@ typedef enum ir_position_t {
  *	This is left over from an old hack, but it may actually
  *	be a useful feature to keep so it wasn't removed.
  */
-#define WIIMOTE_DEFAULT_TIMEOUT		10
-#define WIIMOTE_EXP_TIMEOUT			10
+#define WIIMOTE_DEFAULT_TIMEOUT		30
 
 typedef unsigned char byte;
 typedef char sbyte;
@@ -615,41 +502,21 @@ typedef struct wiimote_t {
 		WCONST int out_sock;			/**< output socket				*/
 		WCONST int in_sock;			/**< input socket 				*/
 	#elif defined(_WIN32)
+		WCONST char devicepath[255];		/**< unique wiimote reference */
+		//WCONST ULONGLONG btaddr;			/**< bt address	(windows)				*/
 		WCONST HANDLE dev_handle;		/**< HID handle					*/
 		WCONST OVERLAPPED hid_overlap;		/**< overlap handle				*/
 		WCONST enum win_bt_stack_t stack;	/**< type of bluetooth stack to use		*/
 	#endif
-
 	WCONST int timeout;				/**< read timeout				*/
-	WCONST byte normal_timeout;			/**< normal timeout				*/
-	WCONST byte exp_timeout;			/**< timeout for expansion handshake		*/
-
 	WCONST int state;				/**< various state flags			*/
 	WCONST byte leds;				/**< currently lit leds				*/
-	WCONST float battery_level;			/**< battery level				*/
 
 	WCONST int flags;				/**< options flag				*/
 
 	WCONST byte handshake_state;			/**< the state of the connection handshake	*/
 
 	WCONST struct read_req_t* read_req;		/**< list of data read requests			*/
-	WCONST struct accel_t accel_calib;		/**< wiimote accelerometer calibration		*/
-	WCONST struct expansion_t expansion;		/**< wiimote expansion device			*/
-
-	WCONST struct vec3b_t accel;			/**< current raw acceleration data		*/
-	WCONST struct orient_t orient;			/**< current orientation on each axis		*/
-	WCONST struct gforce_t gforce;			/**< current gravity forces on each axis	*/
-
-	WCONST struct ir_t ir;				/**< IR data					*/
-
-	WCONST unsigned short btns;			/**< what buttons have just been pressed	*/
-	WCONST unsigned short btns_held;		/**< what buttons are being held down		*/
-	WCONST unsigned short btns_released;		/**< what buttons were just released this	*/
-
-	WCONST float orient_threshold;			/**< threshold for orient to generate an event	*/
-	WCONST int accel_threshold;			/**< threshold for accel to generate an event	*/
-
-	WCONST struct wiimote_state_t lstate;		/**< last saved state				*/
 
 	WCONST WIIUSE_EVENT_TYPE event;			/**< type of event that occured			*/
 	WCONST byte event_buf[MAX_PAYLOAD];		/**< event buffer				*/
@@ -691,10 +558,14 @@ WIIUSE_EXPORT extern void wiiuse_set_leds(struct wiimote_t* wm, int leds);
 WIIUSE_EXPORT extern int wiiuse_write_data(struct wiimote_t* wm, unsigned int addr, byte* data, byte len);
 
 /* connect.c / io_win.c */
+#ifdef _WIN32
+WIIUSE_EXPORT extern int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int wiimotes);
+#else
 WIIUSE_EXPORT extern int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout);
+#endif
 WIIUSE_EXPORT extern int wiiuse_connect(struct wiimote_t** wm, int wiimotes);
 WIIUSE_EXPORT extern void wiiuse_disconnect(struct wiimote_t* wm);
-WIIUSE_EXPORT extern void wiiuse_set_timeout(struct wiimote_t** wm, int wiimotes, byte normal_timeout, byte exp_timeout);
+WIIUSE_EXPORT extern void wiiuse_set_timeout(struct wiimote_t** wm, int wiimotes, byte timeout);
 
 #ifdef WIN32
 WIIUSE_EXPORT extern int wiiuse_check_system_notification(unsigned int nMsg, WPARAM wParam, LPARAM lParam);
@@ -706,9 +577,7 @@ int wiiuse_find_more(struct wiimote_t** wm, int max_wiimotes, int timeout);
 #endif
 
 /* ir.c */
-WIIUSE_EXPORT extern void wiiuse_set_ir(struct wiimote_t* wm, int status);
-WIIUSE_EXPORT extern void wiiuse_set_ir_position(struct wiimote_t* wm, enum ir_position_t pos);
-WIIUSE_EXPORT extern void wiiuse_set_aspect_ratio(struct wiimote_t* wm, enum aspect_t aspect);
+
 WIIUSE_EXPORT extern void wiiuse_set_ir_sensitivity(struct wiimote_t* wm, int level);
 
 /* io.c */

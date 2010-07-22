@@ -49,8 +49,8 @@ extern SWiimoteInitialize g_WiimoteInitialize;
 namespace WiiMoteReal
 {
 
-bool g_RealWiiMoteInitialized = false;
-bool g_RealWiiMoteAllocated = false;
+ bool g_RealWiiMoteInitialized = false;
+ bool g_RealWiiMoteAllocated = false;
 
 // Forwarding
 
@@ -61,8 +61,9 @@ class CWiiMote;
 wiimote_t**			g_WiiMotesFromWiiUse = NULL;
 Common::Thread*		g_pReadThread = NULL;
 int					g_NumberOfWiiMotes;
+volatile int		LastNumberOfWiimotes = 0;
 CWiiMote*			g_WiiMotes[MAX_WIIMOTES];
-volatile bool				g_Shutdown = false;
+volatile bool		g_Shutdown = false;
 bool				g_WiimoteInUse[MAX_WIIMOTES];
 Common::Event		NeedsConnect;
 Common::Event		Connected;
@@ -78,6 +79,7 @@ unsigned int		PairUpTimer = 2000;
 
 int PairUpRefreshWiimote(bool addwiimote);
 int PairUpFindNewSlot(void);
+void ToggleEmulatorState(bool stop);
 THREAD_RETURN PairUp_ThreadFunc(void* arg);
 THREAD_RETURN RunInvisibleMessageWindow_ThreadFunc(void* arg);
 #endif
@@ -103,7 +105,8 @@ CWiiMote(u8 _WiimoteNumber, wiimote_t* _pWiimote)
 
 	#ifdef _WIN32
 		// F|RES: i dunno if we really need this
-		CancelIo(m_pWiiMote->dev_handle);
+		//CancelIo(m_pWiiMote->dev_handle);
+		CancelIoEx(m_pWiiMote->dev_handle,NULL);
 	#endif
 }
 
@@ -338,6 +341,8 @@ int Initialize()
 	// Return if already initialized
 	if (g_RealWiiMoteInitialized)
 		return g_NumberOfWiiMotes;
+
+
 	NeedsConnect.Init();
 	Connected.Init();
 
@@ -363,18 +368,19 @@ int Initialize()
 		return 0;
 
 	// Call Wiiuse.dll
-	g_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
-	g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, wiimote_slots, 5);
+	if(!g_WiiMotesFromWiiUse)
+		g_WiiMotesFromWiiUse = wiiuse_init(MAX_WIIMOTES);
+
+#ifdef _WIN32
+	g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, wiimote_slots, LastNumberOfWiimotes);
+#else
+	g_NumberOfWiiMotes = wiiuse_find(g_WiiMotesFromWiiUse, wiimote_slots, 5); //move the timeout var into wiimote_t structure to avoid confusion
+#endif
+	LastNumberOfWiimotes = g_NumberOfWiiMotes;
 	DEBUG_LOG(WIIMOTE, "Found No of Wiimotes: %i", g_NumberOfWiiMotes);
 	if (g_NumberOfWiiMotes > 0)
 	{
-		/* 
-		//TODO:  We need here to re-order the wiimote structure, after we shutdown() and re-init().
-		//		 If we don't do this Wiimotes will change slots on addition of a new real wiimote during a game,
-		//		 causing a disconnect as well.
-		if (g_EmulatorState == PLUGIN_EMUSTATE_PAUSE)
-			SortWiimotes();
-		*/
+
 		g_RealWiiMotePresent = true;
 		// Create a new thread for listening for Wiimote data
 		// and also connecting in Linux/OSX.
@@ -396,27 +402,24 @@ int Initialize()
 		if (g_Config.iIRLevel) {
 			wiiuse_set_ir_sensitivity(g_WiiMotesFromWiiUse[i], g_Config.iIRLevel);
 		}
-
-		// Set the sensor bar position, this should only affect the internal wiiuse api functions
-		wiiuse_set_ir_position(g_WiiMotesFromWiiUse[i], WIIUSE_IR_ABOVE);
 	}
-	if (g_Config.bWiiReadTimeout != 10)
-			wiiuse_set_timeout(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes, g_Config.bWiiReadTimeout, g_Config.bWiiReadTimeout);
+	if (g_Config.bWiiReadTimeout != 30)
+			wiiuse_set_timeout(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes, g_Config.bWiiReadTimeout);
 
 	// If we are connecting from the config window without a game running we set the LEDs
-	if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY && g_RealWiiMotePresent)
+	if (g_EmulatorState == PLUGIN_EMUSTATE_STOP && g_RealWiiMotePresent)
 		FlashLights(true);
 
 	// Initialized, even if we didn't find a Wiimote
 	g_RealWiiMoteInitialized = true;
-	
+
 	return g_NumberOfWiiMotes;
 }
 
 // Allocate each Real WiiMote found to a WiiMote slot with Source set to "WiiMote Real"
 void Allocate()
 {
-	if (g_RealWiiMoteAllocated)
+	if (g_RealWiiMoteAllocated)// && (g_NumberOfWiiMotes == LastNumberOfWiimotes))
 		return;
 	if (!g_RealWiiMoteInitialized)
 		Initialize();
@@ -519,17 +522,14 @@ void Shutdown(void)
 	if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY && g_RealWiiMotePresent)
 		FlashLights(false);
 
-
-	// TODOE: Save Wiimote-order here to restore it after an Init()
-	//		  we should best use the btaddress for this purpose, unfortunately it is a bit of a work to make wiiuse_find()
-	//		  get the btaddress of a bt device on windows with only a createfile() handle etc., but it wiiuse_find() is already doing that on linux
-
 	// Clean up wiiuse
+#ifndef WIN32
 	wiiuse_cleanup(g_WiiMotesFromWiiUse, g_NumberOfWiiMotes);
-
+#endif
 	// Uninitialized
 	g_RealWiiMoteInitialized = false;
 	g_RealWiiMotePresent = false;
+	g_RealWiiMoteAllocated = false;
 }
 
 void InterruptChannel(int _WiimoteNumber, u16 _channelID, const void* _pData, u32 _Size)
@@ -613,7 +613,7 @@ int WiimotePairUp(bool unpair)
 		return -1;
 	}
 	nRadios--;
-	//DEBUG_LOG(WIIMOTE, "Pair-Up: Found %d radios\n", nRadios);
+	DEBUG_LOG(WIIMOTE, "Pair-Up: Found %d radios\n", nRadios);
 
 	// Pair with Wii device(s)
 	int radio = 0;
@@ -637,7 +637,7 @@ int WiimotePairUp(bool unpair)
 		srch.fReturnConnected = TRUE; // does not filter properly somehow, so we 've to do an additional check on fConnected BT Devices
 		srch.fReturnUnknown = TRUE;
 		srch.fIssueInquiry = TRUE;
-		srch.cTimeoutMultiplier = 1;
+		srch.cTimeoutMultiplier = 2;
 		srch.hRadio = hRadios[radio];
 
 		//DEBUG_LOG(WIIMOTE, "Pair-Up: Scanning for BT Device(s)");
@@ -653,6 +653,9 @@ int WiimotePairUp(bool unpair)
 		do
 		{
 			//btdi.szName is sometimes missings it's content - it's a bt feature..
+
+			DEBUG_LOG(WIIMOTE, "authed %i connected %i remembered %i ", btdi.fAuthenticated, btdi.fConnected, btdi.fRemembered);
+
 			if ((!wcscmp(btdi.szName, L"Nintendo RVL-WBC-01") || !wcscmp(btdi.szName, L"Nintendo RVL-CNT-01")) && !btdi.fConnected && !unpair)
 			{
 				//TODO: improve the read of the BT driver, esp. when batteries of the wiimote are removed while being fConnected
@@ -708,7 +711,6 @@ LRESULT CALLBACK CallBackDeviceChange(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 	{
 		
 		case WM_DEVICECHANGE:
-
 			// DBT_DEVNODES_CHANGED 0x007 (devnodes are atm not received); DBT_DEVICEARRIVAL 0x8000 DBT_DEVICEREMOVECOMPLETE 0x8004 // avoiding header file^^
 			if ( ( wParam == 0x8000 || wParam  == 0x8004 || wParam == 0x0007 ) )
 			{
@@ -733,6 +735,7 @@ LRESULT CALLBACK CallBackDeviceChange(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 								PairUpRefreshWiimote(false);
 							}
 							break;
+
 					}
 				}
 			}
@@ -787,6 +790,19 @@ THREAD_RETURN RunInvisibleMessageWindow_ThreadFunc(void* arg)
 	return (int)Msg.wParam;
 
 }
+
+
+void ToggleEmulatorState(bool stop) {
+	PostMessage(GetParent(g_WiimoteInitialize.hWnd), WM_USER, WM_USER_PAUSE, 0);
+	if (stop) {
+		while (g_EmulatorState != PLUGIN_EMUSTATE_PLAY) Sleep(50);
+	}
+	else {
+		while (g_EmulatorState == PLUGIN_EMUSTATE_PLAY) Sleep(50);
+	}
+}
+
+
 // function gets called by windows callbacks if a wiimote was either installed or removed
 int PairUpRefreshWiimote(bool addwiimote)
 {
@@ -795,24 +811,25 @@ int PairUpRefreshWiimote(bool addwiimote)
 	if (g_EmulatorState != PLUGIN_EMUSTATE_PLAY)
 	{
 		Shutdown();
+		if (addwiimote)
+		{
+			connectslot = PairUpFindNewSlot();
+		}
 		Initialize();
-		//Allocate();
 		if (m_BasicConfigFrame != NULL)
 			m_BasicConfigFrame->UpdateGUI();
 	}
 	else {
 
-		Sleep(100);
-		PostMessage(GetParent(g_WiimoteInitialize.hWnd), WM_USER, WM_USER_PAUSE, 0);
-		while (g_EmulatorState == PLUGIN_EMUSTATE_PLAY) Sleep(50);
+		ToggleEmulatorState(true);
 		Shutdown();
-		if (addwiimote) {
+		if (addwiimote)
+		{
 			connectslot = PairUpFindNewSlot();
 		}
 		Initialize();
 		Allocate();
-		PostMessage(GetParent(g_WiimoteInitialize.hWnd), WM_USER, WM_USER_PAUSE, 0);
-		while (g_EmulatorState != PLUGIN_EMUSTATE_PLAY) Sleep(50);
+		ToggleEmulatorState(false);
 		if (addwiimote)
 			PostMessage(GetParent(g_WiimoteInitialize.hWnd), WM_USER, WM_USER_KEYDOWN, (3 + connectslot));
 		
@@ -821,12 +838,17 @@ int PairUpRefreshWiimote(bool addwiimote)
 }
 // returns first inactive wiimote slot to place new wiimote and set type to real wiimote
 int PairUpFindNewSlot() {
+	int realWM = 0;
 	for(int x=0; x<MAX_WIIMOTES; x++)
 	{
 		if (WiiMoteEmu::WiiMapping[x].Source == 0)
 		{
 			WiiMoteEmu::WiiMapping[x].Source = 2;
 			return x;
+		} else if (WiiMoteEmu::WiiMapping[x].Source == 2) {
+			realWM++;
+			if (realWM>g_NumberOfWiiMotes)
+				return x;
 		}
 	}
 return -1;

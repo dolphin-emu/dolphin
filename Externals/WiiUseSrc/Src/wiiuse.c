@@ -131,24 +131,10 @@ struct wiimote_t** wiiuse_init(int wiimotes) {
 			wm[i]->stack = WIIUSE_STACK_UNKNOWN;
 		#endif
 
-		wm[i]->normal_timeout = WIIMOTE_DEFAULT_TIMEOUT;
-		wm[i]->exp_timeout = WIIMOTE_EXP_TIMEOUT;
-		wm[i]->timeout = wm[i]->normal_timeout;
-			
+		wm[i]->timeout  = WIIMOTE_DEFAULT_TIMEOUT;
 		wm[i]->state = WIIMOTE_INIT_STATES;
 		wm[i]->flags = WIIUSE_INIT_FLAGS;
-
 		wm[i]->event = WIIUSE_NONE;
-
-		wm[i]->expansion.type = EXP_NONE;
-
-		wiiuse_set_aspect_ratio(wm[i], WIIUSE_ASPECT_4_3);
-		wiiuse_set_ir_position(wm[i], WIIUSE_IR_ABOVE);
-
-		wm[i]->orient_threshold = 0.5f;
-		wm[i]->accel_threshold = 5;
-
-		wm[i]->accel_calib.st_alpha = WIIUSE_DEFAULT_SMOOTH_ALPHA;
 	}
 
 	return wm;
@@ -172,10 +158,6 @@ void wiiuse_disconnected(struct wiimote_t* wm) {
 	wm->leds = 0;
 	wm->state = WIIMOTE_INIT_STATES;
 	wm->read_req = NULL;
-	wm->handshake_state = 0;
-	wm->btns = 0;
-	wm->btns_held = 0;
-	wm->btns_released = 0;
 	memset(wm->event_buf, 0, sizeof(wm->event_buf));
 
 	#ifdef __linux__
@@ -267,7 +249,6 @@ int wiiuse_set_report_type(struct wiimote_t* wm) {
 		return 0;
 
 	buf[0] = (WIIMOTE_IS_FLAG_SET(wm, WIIUSE_CONTINUOUS) ? 0x04 : 0x00);	/* set to 0x04 for continuous reporting */
-	buf[1] = 0x00;
 
 	/* if rumble is enabled, make sure we keep it */
 	if (WIIMOTE_IS_SET(wm, WIIMOTE_STATE_RUMBLE))
@@ -277,14 +258,8 @@ int wiiuse_set_report_type(struct wiimote_t* wm) {
 	expansion = WIIMOTE_IS_SET(wm, WIIMOTE_STATE_EXP);
 	ir = WIIMOTE_IS_SET(wm, WIIMOTE_STATE_IR);
 
-	if (motion && ir && expansion)		buf[1] = WM_RPT_BTN_ACC_IR_EXP;
-	else if (motion && expansion)		buf[1] = WM_RPT_BTN_ACC_EXP;
-	else if (motion && ir)			buf[1] = WM_RPT_BTN_ACC_IR;
-	else if (ir && expansion)		buf[1] = WM_RPT_BTN_IR_EXP;
-	else if (ir)				buf[1] = WM_RPT_BTN_ACC_IR;
-	else if (expansion)			buf[1] = WM_RPT_BTN_EXP;
-	else if (motion)			buf[1] = WM_RPT_BTN_ACC;
-	else					buf[1] = WM_RPT_BTN;
+	buf[1] = 0x30;
+
 
 	WIIUSE_DEBUG("Setting report type: 0x%x", buf[1]);
 
@@ -295,97 +270,6 @@ int wiiuse_set_report_type(struct wiimote_t* wm) {
 	return buf[1];
 }
 
-
-/**
- *	@brief	Read data from the wiimote (callback version).
- *
- *	@param wm		Pointer to a wiimote_t structure.
- *	@param read_cb	Function pointer to call when the data arrives from the wiimote.
- *	@param buffer	An allocated buffer to store the data as it arrives from the wiimote.
- *					Must be persistent in memory and large enough to hold the data.
- *	@param addr		The address of wiimote memory to read from.
- *	@param len		The length of the block to be read.
- *
- *	The library can only handle one data read request at a time
- *	because it must keep track of the buffer and other
- *	events that are specific to that request.  So if a request
- *	has already been made, subsequent requests will be added
- *	to a pending list and be sent out when the previous
- *	finishes.
- */
-int wiiuse_read_data_cb(struct wiimote_t* wm, wiiuse_read_cb read_cb, byte* buffer, unsigned int addr, unsigned short len) {
-	struct read_req_t* req;
-
-	if (!wm || !WIIMOTE_IS_CONNECTED(wm))
-		return 0;
-	if (!buffer || !len || !read_cb)
-		return 0;
-
-	/* make this request structure */
-	req = (struct read_req_t*)malloc(sizeof(struct read_req_t));
-	req->cb = read_cb;
-	req->buf = buffer;
-	req->addr = addr;
-	req->size = len;
-	req->wait = len;
-	req->dirty = 0;
-	req->next = NULL;
-
-	/* add this to the request list */
-	if (!wm->read_req) {
-		/* root node */
-		wm->read_req = req;
-
-		WIIUSE_DEBUG("Data read request can be sent out immediately.");
-
-		/* send the request out immediately */
-		wiiuse_send_next_pending_read_request(wm);
-	} else {
-		struct read_req_t* nptr = wm->read_req;
-		for (; nptr->next; nptr = nptr->next);
-		nptr->next = req;
-
-		WIIUSE_DEBUG("Added pending data read request.");
-	}
-
-	return 1;
-}
-
-
-
-/**
- *	@brief Send the next pending data read request to the wiimote.
- *
- *	@param wm		Pointer to a wiimote_t structure.
- *
- *	@see wiiuse_read_data()
- *
- *	This function is not part of the wiiuse API.
- */
-void wiiuse_send_next_pending_read_request(struct wiimote_t* wm) {
-	byte buf[6];
-	struct read_req_t* req;
-
-	if (!wm || !WIIMOTE_IS_CONNECTED(wm))
-		return;
-	if (!wm->read_req)	return;
-
-	/* skip over dirty ones since they have already been read */
-	req = wm->read_req;
-	while (req && req->dirty)
-		req = req->next;
-	if (!req)
-		return;
-
-	/* the offset is in big endian */
-	*(int*)(buf) = BIG_ENDIAN_LONG(req->addr);
-
-	/* the length is in big endian */
-	*(short*)(buf + 4) = BIG_ENDIAN_SHORT(req->size);
-
-	WIIUSE_DEBUG("Request read at address: 0x%x  length: %i", req->addr, req->size);
-	wiiuse_send(wm, WM_CMD_READ_DATA, buf, 6);
-}
 
 
 /**
@@ -511,13 +395,12 @@ void wiiuse_set_bluetooth_stack(struct wiimote_t** wm, int wiimotes, enum win_bt
  *	@param normal_timeout	The timeout in milliseconds for a normal read.
  *	@param exp_timeout		The timeout in millisecondsd to wait for an expansion handshake.
  */
-void wiiuse_set_timeout(struct wiimote_t** wm, int wiimotes, byte normal_timeout, byte exp_timeout) {
+void wiiuse_set_timeout(struct wiimote_t** wm, int wiimotes, byte timeout) {
 	int i;
 
 	if (!wm)	return;
 
 	for (i = 0; i < wiimotes; ++i) {
-		wm[i]->normal_timeout = normal_timeout;
-		wm[i]->exp_timeout = exp_timeout;
+		wm[i]->timeout = timeout;
 	}
 }

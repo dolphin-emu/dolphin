@@ -544,7 +544,7 @@ void WiimoteBasicConfigDialog::IRCursorChanged(wxScrollEvent& event)
 	case IDS_TIMEOUT:
 		g_Config.bWiiReadTimeout = m_WiimoteTimeout[m_Page]->GetValue();
 		if (g_RealWiiMotePresent) {
-			wiiuse_set_timeout(WiiMoteReal::g_WiiMotesFromWiiUse, WiiMoteReal::g_NumberOfWiiMotes, g_Config.bWiiReadTimeout, g_Config.bWiiReadTimeout);
+			wiiuse_set_timeout(WiiMoteReal::g_WiiMotesFromWiiUse, WiiMoteReal::g_NumberOfWiiMotes, g_Config.bWiiReadTimeout);
 		}
 		break;
 	}

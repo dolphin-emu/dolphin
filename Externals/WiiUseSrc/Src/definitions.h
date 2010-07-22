@@ -34,7 +34,7 @@
 #ifndef DEFINITIONS_H_INCLUDED
 #define DEFINITIONS_H_INCLUDED
 
-#if 1	// Use Dolphin logging
+#if 0	// Use Dolphin logging
 
 #include "Log.h"
 // NOTICE_LEVEL is more appropriate for the uses of WIIUSE_INFO than INFO_LEVEL
@@ -77,17 +77,10 @@
 
 #endif	// Use Dolphin logging
 
-#define WIIMOTE_PI			3.14159265f
-
-/* Convert between radians and degrees */
-#define RAD_TO_DEGREE(r)	((r * 180.0f) / WIIMOTE_PI)
-#define DEGREE_TO_RAD(d)	(d * (WIIMOTE_PI / 180.0f))
 
 /* Convert to big endian */
 #define BIG_ENDIAN_LONG(i)				(htonl(i))
 #define BIG_ENDIAN_SHORT(i)				(htons(i))
 
-#define absf(x)						((x >= 0) ? (x) : (x * -1.0f))
-#define diff_f(x, y)				((x >= y) ? (absf(x - y)) : (absf(y - x)))
 
 #endif // DEFINITIONS_H_INCLUDED

@@ -46,49 +46,64 @@
 #include "io.h"
 
 
-int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
+int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int wiimotes) {
 	GUID device_id;
 	HANDLE dev;
 	HDEVINFO device_info;
-	int i, index;
+	int i, x, found, index, udisc = 0;
 	DWORD len;
 	SP_DEVICE_INTERFACE_DATA device_data;
 	PSP_DEVICE_INTERFACE_DETAIL_DATA detail_data = NULL;
 	HIDD_ATTRIBUTES	attr;
-	int found = 0;
 
-	(void) timeout; // unused
+
+	// todo: handle/remove (unexpected and forced) disconnected wiimotes here
+
+	// removal of unneeded wiimotes and exiting when we got enough wiimotes connected
+	if(wiiuse_remove(wm, wiimotes, max_wiimotes))
+		return wm;
 
 	device_data.cbSize = sizeof(device_data);
-	index = 0;
 
-	/* get the device id */
+	// get the device id
 	HidD_GetHidGuid(&device_id);
 
-	/* get all hid devices connected */
+	// get all hid devices connected
 	device_info = SetupDiGetClassDevs(&device_id, NULL, NULL, (DIGCF_DEVICEINTERFACE | DIGCF_PRESENT));
 
-	for (;; ++index) {
+	for (;wiimotes < max_wiimotes; ++index) {
 
 		if (detail_data) {
 			free(detail_data);
 			detail_data = NULL;
 		}
+		found = 0;
 
-		/* query the next hid device info */
+		// query the next hid device info
 		if (!SetupDiEnumDeviceInterfaces(device_info, NULL, &device_id, index, &device_data))
 			break;
 
-		/* get the size of the data block required */
+		// get the size of the data block required
 		i = SetupDiGetDeviceInterfaceDetail(device_info, &device_data, NULL, 0, &len, NULL);
 		detail_data = malloc(len);
 		detail_data->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
 
-		/* query the data for this device */
+		// query the data for this device
 		if (!SetupDiGetDeviceInterfaceDetail(device_info, &device_data, detail_data, len, NULL, NULL))
 			continue;
+		
+		// Wiimote already added
+		for(x = 0; x < wiimotes; x++)
+		{
+			if(memcmp(wm[x]->devicepath,detail_data->DevicePath,197) == 0) {
+				found = 1;
+				break;
+			}
+		}
+		if (found)
+			continue;
 
-		/* open the device */
+		// open new device
 		dev = CreateFile(detail_data->DevicePath,
 						(GENERIC_READ | GENERIC_WRITE),
 						(FILE_SHARE_READ | FILE_SHARE_WRITE),
@@ -96,40 +111,43 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 		if (dev == INVALID_HANDLE_VALUE)
 			continue;
 
-		/* get device attributes */
+
+
+		// get device attributes 
 		attr.Size = sizeof(attr);
 		i = HidD_GetAttributes(dev, &attr);
 
 		if ((attr.VendorID == WM_VENDOR_ID) && (attr.ProductID == WM_PRODUCT_ID)) {
-			/* this is a wiimote */
-			wm[found]->dev_handle = dev;
 
-			wm[found]->hid_overlap.hEvent = CreateEvent(NULL, 1, 1, L"");
-			wm[found]->hid_overlap.Offset = 0;
-			wm[found]->hid_overlap.OffsetHigh = 0;
 
-			WIIMOTE_ENABLE_STATE(wm[found], WIIMOTE_STATE_DEV_FOUND);
-			WIIMOTE_ENABLE_STATE(wm[found], WIIMOTE_STATE_CONNECTED);
+			//this is a wiimote
+			wm[wiimotes]->dev_handle = dev;
 
-			/* try to set the output report to see if the device is actually connected */
-			if (!wiiuse_set_report_type(wm[found])) {
-				Sleep(10);
-				WIIMOTE_DISABLE_STATE(wm[found], WIIMOTE_STATE_CONNECTED);
-				if (wm[found]->event == WIIUSE_UNEXPECTED_DISCONNECT)
-					break;
+			wm[wiimotes]->hid_overlap.hEvent = CreateEvent(NULL, 1, 1, L"");
+			wm[wiimotes]->hid_overlap.Offset = 0;
+			wm[wiimotes]->hid_overlap.OffsetHigh = 0;
+
+			WIIMOTE_ENABLE_STATE(wm[wiimotes], WIIMOTE_STATE_DEV_FOUND);
+			WIIMOTE_ENABLE_STATE(wm[wiimotes], WIIMOTE_STATE_CONNECTED);
+			WIIMOTE_ENABLE_STATE(wm[wiimotes], WIIUSE_CONTINUOUS);
+			// try to set the output report to see if the device is actually connected
+
+			if (!wiiuse_set_report_type(wm[wiimotes])) {
+				WIIMOTE_DISABLE_STATE(wm[wiimotes], WIIMOTE_STATE_CONNECTED);
+				if (wm[wiimotes]->event == WIIUSE_UNEXPECTED_DISCONNECT)
+				{
+					wiiuse_disconnect(wm[wiimotes]);
+					memset(wm[wiimotes],0,sizeof(wm[wiimotes]));
+				}
 				continue;
-			}
+			} 
 
-			/* do the handshake * shouldn't be needed as well, I'm gonna leave first it tho*/
-			wiiuse_handshake(wm[found], NULL, 0);
+			memcpy(wm[wiimotes]->devicepath,detail_data->DevicePath,197);
+			WIIUSE_INFO("Connected to wiimote [id %i].", wm[wiimotes]->unid);
+			++wiimotes;
 
-			WIIUSE_INFO("Connected to wiimote [id %i].", wm[found]->unid);
-
-			++found;
-			if (found >= max_wiimotes)
-				break;
 		} else {
-			/* not a wiimote */
+			// not a wiimote 
 			CloseHandle(dev);
 		}
 	}
@@ -139,15 +157,23 @@ int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int timeout) {
 
 	SetupDiDestroyDeviceInfoList(device_info);
 
-	return found;
+	return wiimotes;
 }
 
 
-int wiiuse_connect(struct wiimote_t** wm, int wiimotes) {
-	int connected = 0;
-	int i = 0;
 
-	for (; i < wiimotes; ++i) {
+
+
+
+
+
+
+
+
+
+int wiiuse_connect(struct wiimote_t** wm, int wiimotes) {
+	int i,connected=0;
+	for (i = 0; i < wiimotes; ++i) {
 		if (WIIMOTE_IS_SET(wm[i], WIIMOTE_STATE_CONNECTED))
 			++connected;
 	}
@@ -317,7 +343,6 @@ int wiiuse_check_system_notification(unsigned int nMsg, WPARAM wParam, LPARAM lP
 				else {	//different method to acquire the "wiimote vid/pid" for a comparison when the device is already unavailable @CreateFile()
 							
 					wcstombs(stringbuf, pDeviceInfo->dbcc_name, 255);
-					
 					//ms bt stack + bluesoleil vid/pid dbccname format 
 					if ( (strstr(stringbuf, "VID&0002057e_PID&0306") != NULL) || (strstr(stringbuf, "VID_057e&PID_0306") != NULL) )
 					{
@@ -348,4 +373,31 @@ int wiiuse_register_system_notification(HWND hwnd) {
 
     return RegisterDeviceNotification(hwnd,&Filter, DEVICE_NOTIFY_ALL_INTERFACE_CLASSES);
 }
+
+
+
+
+int wiiuse_remove(struct wiimote_t** wm, int wiimotes, int max_wiimotes) {
+	int i = 0;
+	WIIUSE_INFO("Remove Wiimotes, WM: %i MAX_WM: %i",wiimotes, max_wiimotes);
+
+	//No cleanup needed, less wiimotes available than needed
+	if (wiimotes <= max_wiimotes)
+		return 0;
+	else if (!wm)
+		return 0;
+
+	for (i = max_wiimotes; i < wiimotes; i++) {
+		if(wm[i]) {
+			wiiuse_disconnect(wm[i]);
+			wm[i]->state = WIIMOTE_INIT_STATES;
+			wm[i]->flags = WIIUSE_INIT_FLAGS;
+			wm[i]->event = WIIUSE_NONE;
+		}
+	}
+	return i;
+
+}
+
+
 #endif /* ifdef WIN32 */

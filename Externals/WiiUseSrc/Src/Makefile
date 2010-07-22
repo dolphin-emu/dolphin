@@ -48,7 +48,6 @@ INCLUDES = -I.
 # Generate a list of object files
 #
 OBJS = \
-	$(OBJ_DIR)/io.o \
 	$(OBJ_DIR)/io_nix.o \
 	$(OBJ_DIR)/ir.o \
 	$(OBJ_DIR)/wiiuse.o

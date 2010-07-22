@@ -41,8 +41,7 @@
 
 #ifdef WIN32
 	/* windows */
-	#define isnan(x)		_isnan(x)
-	#define isinf(x)		!_finite(x)
+
 
 	/* disable warnings I don't care about */
 	#pragma warning(disable:4244)		/* possible loss of data conversion	*/
