@@ -110,13 +110,13 @@ u64 Timer::GetTimeElapsed()
 	// have to change the FPS calculation in CoreRerecording.cpp .
 	if (m_StartTime == 0) return 1;
 
-	// Rrturn the final timer time if the timer is stopped
+	// Return the final timer time if the timer is stopped
 	if (!m_Running) return (m_LastTime - m_StartTime);
 
 	return (GetTimeMs() - m_StartTime);
 }
 
-// Get the formattet time elapsed since the Start()
+// Get the formatted time elapsed since the Start()
 std::string Timer::GetTimeElapsedFormatted() const
 {
 	// If we have not started yet, return zero
@@ -224,7 +224,7 @@ double Timer::GetDoubleTime()
 	struct timeval t;
 	(void)gettimeofday(&t, NULL);
 #endif
-	// Get continous timestamp
+	// Get continuous timestamp
 	u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970();
 
 	// Remove a few years. We only really want enough seconds to make
@@ -236,7 +236,7 @@ double Timer::GetDoubleTime()
 	// Make a smaller integer that fits in the double
 	u32 Seconds = (u32)TmpSeconds;
 #ifdef _WIN32
-	double ms = t.tv_usec / 1000.0 / 1000.0;
+	double ms = tp.millitm / 1000.0 / 1000.0;
 #else
 	double ms = t.tv_usec / 1000.0 / 1000.0;
 #endif
