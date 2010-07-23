@@ -12,99 +12,18 @@ import utils
 # Some features need at least SCons 1.2
 EnsureSConsVersion(1, 2)
 
-warnings = [
-    'all',
-    'write-strings',
-    'shadow',
-    'pointer-arith',
-    'packed',
-    'no-conversion',
-    ]
-
-compileFlags = [
-    '-fno-exceptions',
-    '-fno-strict-aliasing',
-    '-msse2',
-    '-fPIC',
-    ]
-
-cppDefines = [
-    ( '_FILE_OFFSET_BITS', 64),
-    '_LARGEFILE_SOURCE',
-    'GCC_HASCLASSVISIBILITY',
-    ]
-
-include_paths = [
-    '#Source/Core/Common/Src',
-    '#Source/Core/DiscIO/Src',
-    '#Source/PluginSpecs',
-    '#Source/Core/Core/Src',
-    '#Source/Core/DebuggerWX/Src',
-    '#Externals/Bochs_disasm',
-    '#Externals/Lua',
-    '#Externals/WiiUse/Src',
-    '#Source/Core/VideoCommon/Src',
-    '#Source/Core/InputCommon/Src',
-    '#Source/Core/InputUICommon/Src',
-    '#Source/Core/AudioCommon/Src',
-    '#Source/Core/DebuggerUICommon/Src',
-    '#Source/Core/DolphinWX/Src',
-    '#Source/Core/DSPCore/Src',
-    ]
-
-dirs = [
-    'Externals/Bochs_disasm',
-    'Externals/Lua',
-    'Externals/MemcardManager',
-    'Externals/WiiUse/Src',
-    'Source/Core/Common/Src',
-    'Source/Core/Core/Src',
-    'Source/Core/DiscIO/Src',
-    'Source/Core/VideoCommon/Src',
-    'Source/Core/InputCommon/Src',
-    'Source/Core/AudioCommon/Src',
-    'Source/Core/DebuggerUICommon/Src',
-    'Source/Core/DSPCore/Src',
-    'Source/DSPTool/Src',
-    'Source/Core/InputUICommon/Src',
-    'Source/Plugins/Plugin_VideoSoftware/Src',
-    'Source/Plugins/Plugin_DSP_HLE/Src',
-    'Source/Plugins/Plugin_DSP_LLE/Src',
-    'Source/Plugins/Plugin_Wiimote/Src',
-    'Source/Plugins/Plugin_WiimoteNew/Src',
-    'Source/Core/DolphinWX/Src',
-    'Source/Core/DebuggerWX/Src',
-    'Source/UnitTests',
-    ]
-
-if sys.platform == 'darwin' or sys.platform == 'linux2':
-    dirs += ['Source/Plugins/Plugin_VideoOGL/Src']
-
-builders = {}
-if sys.platform == 'darwin':
-    from plistlib import writePlist
-    def createPlist(target, source, env):
-        properties = {}
-        for srcNode in source:
-            properties.update(srcNode.value)
-            for dstNode in target:
-                writePlist(properties, str(dstNode))
-    builders['Plist'] = Builder(action = createPlist)
-
 # Handle command line options
 vars = Variables('args.cache')
 
 vars.AddVariables(
     BoolVariable('verbose', 'Set to show compilation lines', False),
     BoolVariable('bundle', 'Set to create distribution bundle', False),
-    BoolVariable('lint', 'Set for lint build (extra warnings)', False),
+    BoolVariable('lint', 'Set for lint build (fail on warnings)', False),
     BoolVariable('nowx', 'Set for building with no WX libs', False),
+    PathVariable('wxconfig', 'Path to wxconfig', None),
     EnumVariable('flavor', 'Choose a build flavor', 'release',
                  allowed_values = ('release','devel','debug','fastlog','prof'),
                  ignorecase = 2),
-    PathVariable('wxconfig', 'Path to wxconfig', None),
-    ('CC', 'The C compiler', 'gcc'),
-    ('CXX', 'The C++ compiler', 'g++'),
     )
 
 if not sys.platform == 'win32' and not sys.platform == 'darwin':
@@ -131,19 +50,12 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
         BoolVariable('shared_sfml', 'Use system shared libsfml-network', True),
         BoolVariable('shared_soil', 'Use system shared libSOIL', True),
         BoolVariable('shared_zlib', 'Use system shared libz', True),
+        ('CC', 'The C compiler', 'gcc'),
+        ('CXX', 'The C++ compiler', 'g++'),
         )
 
-env = Environment(
-    BUILDERS = builders,
-    CPPPATH = include_paths,
-    ENV = os.environ,
-    LIBPATH = [],
-    LIBS = [],
-    RPATH = [],
-    variables = vars,
-    )
-
 # Save the given command line options
+env = Environment(ENV = os.environ, variables = vars)
 vars.Save('args.cache', env)
 
 # Verbose compile
@@ -159,53 +71,81 @@ if not env['verbose']:
     env['SHLINKCOMSTR'] = "Linking shared $TARGET"
     env['RANLIBCOMSTR'] = "Indexing $TARGET"
 
+cppDefines = [
+    ( '_FILE_OFFSET_BITS', 64),
+    '_LARGEFILE_SOURCE',
+    'GCC_HASCLASSVISIBILITY',
+    ]
+
+ccFlags = [
+    '-Wall',
+    '-Wpacked',
+    '-Wpointer-arith',
+    '-Wshadow',
+    '-Wwrite-strings',
+    '-fPIC',
+    '-fno-exceptions',
+    '-fno-strict-aliasing',   
+    '-msse2',
+    ]
+
+if env['CCVERSION'] >= '4.3.0': ccFlags += [
+    '-Wno-array-bounds',  # False positives
+    '-Wno-unused-result', # Too many syscalls
+    ]
+
 # Build flavor
 flavour = env['flavor']
-if (flavour == 'debug'):
-    compileFlags.append('-ggdb')
+if flavour == 'debug':
+    ccFlags.append('-ggdb')
     cppDefines.append('_DEBUG') #enables LOGGING
     # FIXME: this disable wx debugging how do we make it work?
     cppDefines.append('NDEBUG')
-elif (flavour == 'devel'):
-    compileFlags.append('-ggdb')
-elif (flavour == 'fastlog'):
-    compileFlags.append('-O3')
+elif flavour == 'devel':
+    ccFlags.append('-ggdb')
+elif flavour == 'fastlog':
+    ccFlags.append('-O3')
     cppDefines.append('DEBUGFAST')
-elif (flavour == 'prof'):
-    compileFlags.append('-O3')
-    compileFlags.append('-ggdb')
-elif (flavour == 'release'):
-    compileFlags.append('-O3')
-    compileFlags.append('-fomit-frame-pointer');
-# More warnings
+elif flavour == 'prof':
+    ccFlags.append('-O3')
+    ccFlags.append('-ggdb')
+elif flavour == 'release':
+    ccFlags.append('-O3')
+    ccFlags.append('-fomit-frame-pointer');
 if env['lint']:
-    warnings.append('error')
-    # Should check for the availability of these (in GCC 4.3 or newer)
-    if sys.platform != 'darwin':
-        warnings.append('no-array-bounds')
-        warnings.append('no-unused-result')
-    # wxWidgets causes too many warnings with these
-    #warnings.append('unreachable-code')
-    #warnings.append('float-equal')
+    ccFlags.append('-Werror')
 
-# Add the warnings to the compile flags
-compileFlags += [ ('-W' + warning) for warning in warnings ]
+dirs = [
+    'Externals/Bochs_disasm',
+    'Externals/Lua',
+    'Externals/MemcardManager',
+    'Externals/WiiUse/Src',
+    'Source/Core/AudioCommon/Src',
+    'Source/Core/Common/Src',
+    'Source/Core/Core/Src',
+    'Source/Core/DSPCore/Src',
+    'Source/Core/DebuggerUICommon/Src',
+    'Source/Core/DebuggerWX/Src',
+    'Source/Core/DiscIO/Src',
+    'Source/Core/DolphinWX/Src',
+    'Source/Core/InputCommon/Src',
+    'Source/Core/InputUICommon/Src',
+    'Source/Core/VideoCommon/Src',
+    'Source/DSPTool/Src',
+    'Source/Plugins/Plugin_DSP_HLE/Src',
+    'Source/Plugins/Plugin_DSP_LLE/Src',
+    'Source/Plugins/Plugin_VideoSoftware/Src',
+    'Source/Plugins/Plugin_Wiimote/Src',
+    'Source/Plugins/Plugin_WiimoteNew/Src',
+    'Source/UnitTests',
+    ]
 
-env['CCFLAGS'] = compileFlags
-env['CXXFLAGS'] = ['-fvisibility-inlines-hidden']
-env['CPPDEFINES'] = cppDefines
-
-# Configuration tests section
-tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
-         'CheckPKGConfig' : utils.CheckPKGConfig,
-         'CheckPKG' : utils.CheckPKG,
-         'CheckSDL' : utils.CheckSDL,
-         'CheckPortaudio' : utils.CheckPortaudio,
-         }
+if sys.platform == 'darwin' or sys.platform == 'linux2':
+    dirs += ['Source/Plugins/Plugin_VideoOGL/Src']
 
 # Object files
 env['build_dir'] = os.path.join('Build',
-    platform.system() + '-' + platform.machine() + '-' + env['flavor'] + os.sep)
+    platform.system() + '-' + platform.machine() + '-' + env['flavor'])
 
 # Static libs go here
 env['local_libs'] = '#' + env['build_dir'] + os.sep + 'libs' + os.sep
@@ -233,6 +173,14 @@ if sys.platform == 'darwin':
     env['plugin_dir'] = '#' + env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
     env['data_dir'] = '#' + env['prefix'] + 'Dolphin.app/Contents/Resources'
 
+# Configuration tests section
+tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
+         'CheckPKGConfig' : utils.CheckPKGConfig,
+         'CheckPKG' : utils.CheckPKG,
+         'CheckSDL' : utils.CheckSDL,
+         'CheckPortaudio' : utils.CheckPortaudio,
+         }
+
 shared = {}
 shared['glew'] = shared['lzo'] = shared['sdl'] = \
 shared['soil'] = shared['sfml'] = shared['zlib'] = 0
@@ -240,20 +188,34 @@ wxmods = ['aui', 'adv', 'core', 'base', 'gl']
 env['HAVE_OPENCL'] = 0
 env['HAVE_WX'] = 0
 
+env['CCFLAGS'] = ccFlags
+env['CPPDEFINES'] = cppDefines
+env['CPPPATH'] = ['#' + path for path in dirs]
+env['CPPPATH'] += ['#Source/PluginSpecs']
+env['CXXFLAGS'] = ['-fvisibility-inlines-hidden']
+env['LIBPATH'] = []
+env['LIBS'] = []
+env['RPATH'] = []
+
 # OS X specifics
 if sys.platform == 'darwin':
-    env['CCFLAGS'] += ['-arch', 'x86_64', '-arch', 'i386']
-    env['CCFLAGS'] += ['-mmacosx-version-min=10.5']
+    gccflags = ['-arch', 'x86_64', '-arch', 'i386', '-mmacosx-version-min=10.5']
+    gccflags += ['-Wnewline-eof']
+    #gccflags += ['-fvisibility=hidden']
+    env['CCFLAGS'] += gccflags
+    env['CCFLAGS'] += ['-Wnewline-eof']
     env['CC'] = "gcc-4.2"
     env['CFLAGS'] += ['-x', 'objective-c']
     env['CXX'] = "g++-4.2"
     env['CXXFLAGS'] += ['-x', 'objective-c++']
+    #env['CXXFLAGS'] += ['-D_GLIBCXX_DEBUG']
+    #env['CXXFLAGS'] += ['-D_GLIBCXX_FULLY_DYNAMIC_STRING']
     env['FRAMEWORKS'] += ['AppKit', 'CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
     env['LIBS'] += ['iconv']
-    env['LINKFLAGS'] += ['-arch', 'x86_64', '-arch', 'i386']
-    env['LINKFLAGS'] += ['-mmacosx-version-min=10.5']
+    #env['LIBS'] += ['libstdc++-static']
+    env['LINKFLAGS'] += gccflags
     env['LINKFLAGS'] += ['-Z', '-L/Developer/SDKs/MacOSX10.5.sdk/usr/lib',
         '-F/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks',
         '-F/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks']
@@ -261,7 +223,6 @@ if sys.platform == 'darwin':
         env['HAVE_OPENCL'] = 1
         env['LINKFLAGS'] += ['-weak_framework', 'OpenCL']
     if not env['nowx']:
-        frameworks = env['FRAMEWORKS']
         conf = env.Configure(custom_tests = tests)
         env['HAVE_WX'] = conf.CheckWXConfig(2.9, wxmods, 0)
         conf.Finish()
@@ -269,17 +230,10 @@ if sys.platform == 'darwin':
         # which is not available for x86_64 and we don't use it anyway.
         # Strip it out to silence some harmless linker warnings.
         # In the 10.5 SDK, Carbon is only partially built for x86_64.
+        frameworks = env['FRAMEWORKS']
         wxconfig.ParseWXConfig(env)
         if env['CPPDEFINES'].count('WXUSINGDLL'):
             env['FRAMEWORKS'] = frameworks
-        #    if env['FRAMEWORKS'].count('AudioToolbox'):
-        #        env['FRAMEWORKS'].remove('AudioToolbox')
-        #    if env['FRAMEWORKS'].count('Carbon'):
-        #        env['FRAMEWORKS'].remove('Carbon')
-        #    if env['FRAMEWORKS'].count('System'):
-        #        env['FRAMEWORKS'].remove('System')
-        #    if env['FRAMEWORKS'].count('QuickTime'):
-        #        env['FRAMEWORKS'].remove('QuickTime')
     env['CPPPATH'] += ['#Externals']
     env['FRAMEWORKS'] += ['Cg']
     env['LINKFLAGS'] += ['-FExternals/Cg']
@@ -289,6 +243,8 @@ elif sys.platform == 'win32':
     env['tools'] = ['mingw']
 
 else:
+    env['CCFLAGS'] += ['-pthread']
+    env['CCFLAGS'] += ['-Wno-deprecated'] # XXX <hash_map>
     env['CPPPATH'].insert(0, '#')
     env['LINKFLAGS'] += ['-pthread']
     conf = env.Configure(custom_tests = tests, config_h="#config.h")
@@ -332,16 +288,12 @@ else:
 
     env['HAVE_ALSA'] = conf.CheckPKG('alsa')
     conf.Define('HAVE_ALSA', env['HAVE_ALSA'])
-
     env['HAVE_AO'] = conf.CheckPKG('ao')
     conf.Define('HAVE_AO', env['HAVE_AO'])
-
     env['HAVE_OPENAL'] = conf.CheckPKG('openal')
     conf.Define('HAVE_OPENAL', env['HAVE_OPENAL'])
-
     env['HAVE_PORTAUDIO'] = conf.CheckPortaudio(1890)
     conf.Define('HAVE_PORTAUDIO', env['HAVE_PORTAUDIO'])
-
     env['HAVE_PULSEAUDIO'] = conf.CheckPKG('libpulse-simple')
     conf.Define('HAVE_PULSEAUDIO', env['HAVE_PULSEAUDIO'])
 
@@ -362,30 +314,23 @@ else:
     if not conf.CheckPKG('GLU'):
         print "Must have GLU to build"
         Exit(1)
-
-    if sys.platform == 'linux2':
-        if not conf.CheckPKG('Cg'):
-            print "Must have Cg toolkit from NVidia to build"
-            Exit(1)
-        if not conf.CheckPKG('CgGL'):
-            print "Must have CgGl to build"
-            Exit(1)
+    if not conf.CheckPKG('Cg') and sys.platform == 'linux2':
+        print "Must have Cg toolkit from NVidia to build"
+        Exit(1)
+    if not conf.CheckPKG('CgGL') and sys.platform == 'linux2':
+        print "Must have CgGL to build"
+        Exit(1)
 
     if env['opencl']:
         env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
         conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
 
-    conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
-    if (env['install'] == 'global'):
-        conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
-        conf.Define('LIBS_DIR', "\"" + env['prefix'] + 'lib/' +  "\"")
-
     # PGO - Profile Guided Optimization
     if env['pgo']=='generate':
-        compileFlags.append('-fprofile-generate')
+        ccFlags.append('-fprofile-generate')
         env['LINKFLAGS']='-fprofile-generate'
     if env['pgo']=='use':
-        compileFlags.append('-fprofile-use')
+        ccFlags.append('-fprofile-use')
         env['LINKFLAGS']='-fprofile-use'
 
     # Profiling
@@ -397,6 +342,11 @@ else:
             conf.Define('USE_OPROFILE', 1)
         else:
             print "Can't build prof without oprofile, disabling"
+
+    conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
+    if (env['install'] == 'global'):
+        conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
+        conf.Define('LIBS_DIR', "\"" + env['prefix'] + 'lib/' +  "\"")
 
     # After all configuration tests are done
     conf.Finish()
@@ -456,7 +406,7 @@ Export('env')
 for subdir in dirs:
     SConscript(
         subdir + os.sep + 'SConscript',
-        variant_dir = env['build_dir'] + subdir + os.sep,
+        variant_dir = env['build_dir'] + os.sep + subdir,
         duplicate=0
         )
 
@@ -469,6 +419,7 @@ else:
     env.InstallAs(env['data_dir'] + 'user', 'Data/User')
 
 env.Alias('install', env['prefix'])
+#env.Depends(env['prefix'], env['build_dir'])
 
 if env['bundle']:
     if sys.platform == 'linux2':
@@ -480,6 +431,6 @@ if env['bundle']:
     elif sys.platform == 'darwin':
         app = env['prefix'] + 'Dolphin.app'
         dmg = env['prefix'] + 'Dolphin-r' + rev + '.dmg'
-        env.Command(dmg, app + '/Contents/MacOS/Dolphin', 'rm -f ' + dmg +
+        env.Command(dmg, app, 'rm -f ' + dmg +
             ' && hdiutil create -srcfolder ' + app + ' -format UDBZ ' + dmg +
             ' && hdiutil internet-enable -yes ' + dmg)
