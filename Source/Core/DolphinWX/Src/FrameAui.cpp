@@ -99,10 +99,14 @@ void CFrame::ToggleLogWindow(bool bShow, int i)
 	if (bShow)
 	{
 		if (!m_LogWindow) m_LogWindow = new CLogWindow(this, IDM_LOGWINDOW);
+		m_LogWindow->Enable();
 		DoAddPage(m_LogWindow, i, bFloatWindow[0]);
 	}
 	else
+	{
+		m_LogWindow->Disable();
 		DoRemovePage(m_LogWindow, bShow);
+	}
 
 	// Hide or Show the pane
 	if (!g_pCodeWindow)
@@ -142,12 +146,17 @@ void CFrame::ToggleConsole(bool bShow, int i)
 		ConsoleWin->AdoptAttributesFromHWND();
 		ConsoleWin->Reparent(ConsoleParent);
 
+		ConsoleParent->Enable();
 		DoAddPage(ConsoleParent, i, bFloatWindow[1]);
 	}
 	else // Hide
 	{
 		if(GetConsoleWindow())
 			ShowWindow(GetConsoleWindow(), SW_HIDE); // WIN32
+
+		wxPanel *ConsoleParent = (wxPanel*)FindWindowById(IDM_CONSOLEWINDOW);
+		if (ConsoleParent)
+			ConsoleParent->Disable();
 
 		// Then close the page
 		DoRemovePageId(IDM_CONSOLEWINDOW, true, true);
@@ -268,7 +277,7 @@ void CFrame::OnTab(wxAuiNotebookEvent& event)
 	for (int i = IDM_LOGWINDOW; i <= IDM_VIDEOWINDOW; i++)
 	{
 		wxWindow *Win = FindWindowById(i);
-		if (Win)
+		if (Win && Win->IsEnabled())
 		{
 			Item = new wxMenuItem(MenuPopup, i + IDM_FLOAT_LOGWINDOW - IDM_LOGWINDOW,
 				   	Win->GetName(), wxT(""), wxITEM_CHECK);
@@ -330,7 +339,10 @@ void CFrame::DoRemovePage(wxWindow * Win, bool _Hide)
 			{
 				GetNotebookFromId(i)->RemovePage(GetNotebookFromId(i)->GetPageIndex(Win));
 				if (_Hide)
-				   	Win->Hide();
+				{
+					Win->Hide();
+					Win->Reparent(this);
+				}
 				else
 					Win->Close();
 			}

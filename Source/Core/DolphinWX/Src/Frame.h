@@ -126,8 +126,6 @@ class CFrame : public CRenderFrame
 		void ToggleLogWindow(bool, int i = -1);
 		void ToggleConsole(bool, int i = -1);		
 		void PostEvent(wxCommandEvent& event);
-		void PostMenuEvent(wxMenuEvent& event);
-		void PostUpdateUIEvent(wxUpdateUIEvent& event);
 		void StatusBarMessage(const char * Text, ...);
 		void ClearStatusBar();
 		void OnSizeRequest(int& x, int& y, int& width, int& height);

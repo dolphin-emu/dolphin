@@ -320,8 +320,6 @@ EVT_AUINOTEBOOK_TAB_RIGHT_UP(wxID_ANY, CFrame::OnTab)
 // Post events to child panels
 EVT_MENU(wxID_ANY, CFrame::PostEvent)
 EVT_TEXT(wxID_ANY, CFrame::PostEvent)
-//EVT_MENU_HIGHLIGHT_ALL(CFrame::PostMenuEvent)
-//EVT_UPDATE_UI(wxID_ANY, CFrame::PostUpdateUIEvent)
 
 END_EVENT_TABLE()
 
@@ -361,6 +359,7 @@ CFrame::CFrame(wxFrame* parent,
 	if (SConfig::GetInstance().m_InterfaceConsole) Console->Open();
 	m_LogWindow = new CLogWindow(this, IDM_LOGWINDOW);
 	m_LogWindow->Hide();
+	m_LogWindow->Disable();
 
 	// Start debugging mazimized
 	if (UseDebugger) this->Maximize(true);
@@ -599,14 +598,6 @@ void CFrame::PostEvent(wxCommandEvent& event)
 	}
 	else
 		event.Skip();
-}
-void CFrame::PostMenuEvent(wxMenuEvent& event)
-{
-	if (g_pCodeWindow) g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
-}
-void CFrame::PostUpdateUIEvent(wxUpdateUIEvent& event)
-{
-	if (g_pCodeWindow) g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);
 }
 
 void CFrame::OnMove(wxMoveEvent& event)
