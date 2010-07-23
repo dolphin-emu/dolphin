@@ -43,8 +43,6 @@
 
 #include "definitions.h"
 #include "wiiuse_internal.h"
-#include "io.h"
-
 
 int wiiuse_find(struct wiimote_t** wm, int max_wiimotes, int wiimotes) {
 	GUID device_id;
