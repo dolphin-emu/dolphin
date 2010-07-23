@@ -360,7 +360,7 @@ void TiltToAccelerometer(int &_x, int &_y, int &_z, STiltData &_TiltData)
 		   and Pitch. But if we select a Z from the smallest of the absolute
 		   value of cos(Roll) and cos (Pitch) we get the right values. */
 		// ---------	
-		if (abs(cos(Roll)) < abs(cos(Pitch)))
+		if (fabsf(cos(Roll)) < fabsf(cos(Pitch)))
 			z = cos(Roll);
 		else
 			z = cos(Pitch);

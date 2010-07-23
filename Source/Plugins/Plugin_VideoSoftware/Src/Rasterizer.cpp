@@ -205,8 +205,8 @@ inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord)
 		float *uv0 = rasterBlock.Pixel[0][0].Uv[texcoord];
 		float *uv1 = rasterBlock.Pixel[1][1].Uv[texcoord];
 
-		sDelta = abs(uv0[0] - uv1[0]);
-		tDelta = abs(uv0[1] - uv1[1]);
+		sDelta = fabsf(uv0[0] - uv1[0]);
+		tDelta = fabsf(uv0[1] - uv1[1]);
 	}
 	else
 	{
@@ -214,8 +214,8 @@ inline void CalculateLOD(s32 &lod, bool &linear, u32 texmap, u32 texcoord)
 		float *uv1 = rasterBlock.Pixel[1][0].Uv[texcoord];
 		float *uv2 = rasterBlock.Pixel[0][1].Uv[texcoord];
 
-		sDelta = max(abs(uv0[0] - uv1[0]), abs(uv0[0] - uv2[0]));
-		tDelta = max(abs(uv0[1] - uv1[1]), abs(uv0[1] - uv2[1]));
+		sDelta = max(fabsf(uv0[0] - uv1[0]), fabsf(uv0[0] - uv2[0]));
+		tDelta = max(fabsf(uv0[1] - uv1[1]), fabsf(uv0[1] - uv2[1]));
 	}
 
 	// get LOD in s28.4

@@ -358,7 +358,7 @@ namespace Clipper
 			float screenDx = 0;
 			float screenDy = 0;
 
-			if(abs(dx) > abs(dy))
+			if(fabsf(dx) > fabsf(dy))
 			{
 				if(dx > 0)
 					screenDy = bpmem.lineptwidth.linesize / -12.0f;

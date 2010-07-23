@@ -126,11 +126,11 @@ void RadiusAdjustment(s8 &_x, s8 &_y, int _Radius)
 float Square2CircleDistance(float deg)
 {
 	// See if we have to adjust the angle
-	deg = abs(deg);
+	deg = fabsf(deg);
 	if( (deg > 45 && deg < 135) ) deg = deg - 90;
 
 	// Calculate distance from center
-	float val = abs(cos(Deg2Rad(deg)));
+	float val = fabsf(cos(Deg2Rad(deg)));
 	float Distance = 1 / val;
 
 	//m_frame->m_pStatusBar2->SetLabel(wxString::Format("Deg:%f  Val:%f  Dist:%f", deg, val, dist));

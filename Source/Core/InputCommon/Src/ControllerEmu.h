@@ -146,8 +146,8 @@ public:
 			// modifier code
 			if ( m )
 			{
-				yy = (abs(yy)>deadzone) * sign(yy) * (m + deadzone/2);
-				xx = (abs(xx)>deadzone) * sign(xx) * (m + deadzone/2);
+				yy = (fabsf(yy)>deadzone) * sign(yy) * (m + deadzone/2);
+				xx = (fabsf(xx)>deadzone) * sign(xx) * (m + deadzone/2);
 			}
 
 			// deadzone / square stick code
@@ -160,7 +160,7 @@ public:
 				ControlState ang_cos = cos(ang);
 
 				// the amt a full square stick would have at current angle
-				ControlState square_full = std::min( ang_sin ? 1/abs(ang_sin) : 2, ang_cos ? 1/abs(ang_cos) : 2 );
+				ControlState square_full = std::min( ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2 );
 
 				// the amt a full stick would have that was ( user setting squareness) at current angle
 				// i think this is more like a pointed circle rather than a rounded square like it should be
@@ -259,7 +259,7 @@ public:
 			for ( unsigned int i=0; i<6; i+=2 )
 			{
 				const float state = controls[i+1]->control_ref->State() - controls[i]->control_ref->State();
-				if (abs(state) > deadzone)
+				if (fabsf(state) > deadzone)
 					*axis++ = (C)((state - (deadzone * sign(state))) / (1 - deadzone) * range + base);
 					//*axis++ = state * range + base;
 				else
@@ -288,8 +288,8 @@ public:
 			// modifier code
 			if ( m )
 			{
-				yy = (abs(yy)>deadzone) * sign(yy) * (m + deadzone/2);
-				xx = (abs(xx)>deadzone) * sign(xx) * (m + deadzone/2);
+				yy = (fabsf(yy)>deadzone) * sign(yy) * (m + deadzone/2);
+				xx = (fabsf(xx)>deadzone) * sign(xx) * (m + deadzone/2);
 			}
 
 			// deadzone / circle stick code
@@ -302,7 +302,7 @@ public:
 				ControlState ang_cos = cos(ang);
 
 				// the amt a full square stick would have at current angle
-				ControlState square_full = std::min( ang_sin ? 1/abs(ang_sin) : 2, ang_cos ? 1/abs(ang_cos) : 2 );
+				ControlState square_full = std::min( ang_sin ? 1/fabsf(ang_sin) : 2, ang_cos ? 1/fabsf(ang_cos) : 2 );
 
 				// the amt a full stick would have that was ( user setting circular ) at current angle
 				// i think this is more like a pointed circle rather than a rounded square like it should be

@@ -165,7 +165,8 @@ void EmulateTilt( wm_accel* const accel
 	if (!sideways && upright)
 		one_g[ud] *= -1;
 
-	(&accel->x)[ud] = u8(sin( (PI / 2) - std::max( abs(roll), abs(pitch) ) ) * one_g[ud] + zero_g[ud]);
+	(&accel->x)[ud] = u8(sin((PI / 2) -
+		std::max(fabsf(roll), fabsf(pitch))) * one_g[ud] + zero_g[ud]);
 	(&accel->x)[lr] = u8(sin(roll) * -one_g[lr] + zero_g[lr]);
 	(&accel->x)[fb] = u8(sin(pitch) * one_g[fb] + zero_g[fb]);
 }
