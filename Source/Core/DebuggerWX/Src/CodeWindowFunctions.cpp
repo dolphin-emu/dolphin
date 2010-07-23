@@ -285,9 +285,10 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 	case IDM_RENAME_SYMBOLS:
 		{
 			wxString path = wxFileSelector(
-					_T("Apply signature file"), wxEmptyString, wxEmptyString, wxEmptyString,
-					_T("Dolphin Symbole Rename File (*.sym)|*.sym;"), wxFD_OPEN | wxFD_FILE_MUST_EXIST,
-					this);
+				_T("Apply signature file"), wxEmptyString,
+				wxEmptyString, wxEmptyString,
+				_T("Dolphin Symbol Rename File (*.sym)|*.sym"),
+				wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 			if (! path.IsEmpty())
 			{
 				FILE *f = fopen(path.mb_str(), "r");

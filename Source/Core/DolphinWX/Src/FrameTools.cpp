@@ -1086,12 +1086,7 @@ void CFrame::OnLoadWiiMenu(wxCommandEvent& event)
 		wxString path = wxFileSelector(
 			_T("Select the System Menu wad extracted from the update partition of a disc"),
 			wxEmptyString, wxEmptyString, wxEmptyString,
-			wxString::Format
-			(
-					_T("System Menu wad|*.wad"),
-					wxFileSelectorDefaultWildcardStr,
-					wxFileSelectorDefaultWildcardStr
-			),
+			_T("System Menu (*.wad)|*.wad"),
 			wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST,
 			this);
 
