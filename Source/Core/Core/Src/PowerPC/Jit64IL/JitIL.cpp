@@ -481,7 +481,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 		if (!ops[i].skip)
 		{
-			JitILTables::CompileInstruction(ops[i].inst);
+			JitILTables::CompileInstruction(ops[i]);
 		}
 	}
 

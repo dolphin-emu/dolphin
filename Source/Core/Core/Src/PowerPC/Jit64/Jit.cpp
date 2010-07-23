@@ -538,7 +538,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 
 		if (!ops[i].skip)
-			Jit64Tables::CompileInstruction(ops[i].inst);
+			Jit64Tables::CompileInstruction(ops[i]);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 		if (gpr.SanityCheck() || fpr.SanityCheck())

@@ -25,6 +25,7 @@
 
 #include "Common.h"
 #include "Gekko.h"
+#include "PPCTables.h"
 
 class PPCSymbolDB;
 struct Symbol;
@@ -35,6 +36,7 @@ namespace PPCAnalyst
 struct CodeOp //16B
 {
 	UGeckoInstruction inst;
+	GekkoOPInfo * opinfo;
 	u32 address;
 	u32 branchTo; //if 0, not a branch
 	int branchToIndex; //index of target block

@@ -376,11 +376,11 @@ static GekkoOPTemplate table63_2[] =
 namespace Jit64Tables
 {
 
-void CompileInstruction(UGeckoInstruction _inst)
+void CompileInstruction(PPCAnalyst::CodeOp & op)
 {
 	Jit64 *jit64 = (Jit64 *)jit;
-	(jit64->*dynaOpTable[_inst.OPCD])(_inst);
-	GekkoOPInfo *info = GetOpInfo(_inst);
+	(jit64->*dynaOpTable[op.inst.OPCD])(op.inst);
+	GekkoOPInfo *info = op.opinfo;
 	if (info) {
 #ifdef OPLOG
 		if (!strcmp(info->opname, OP_TO_LOG)){  ///"mcrfs"
@@ -390,7 +390,7 @@ void CompileInstruction(UGeckoInstruction _inst)
 		info->compileCount++;
 		info->lastUse = jit->js.compilerPC;
 	} else {
-		PanicAlert("Tried to compile illegal (or unknown) instruction %08x, at %08x", _inst.hex, jit->js.compilerPC);
+		PanicAlert("Tried to compile illegal (or unknown) instruction %08x, at %08x", op.inst.hex, jit->js.compilerPC);
 	}
 }
 

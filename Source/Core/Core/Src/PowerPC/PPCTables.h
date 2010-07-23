@@ -48,6 +48,7 @@ enum
 	FL_TIMER =    (1<<15),
 	FL_CHECKEXCEPTIONS = (1<<16),
 	FL_EVIL = (1<<17),
+	FL_USE_FPU = (1<<18),
 };
 
 enum

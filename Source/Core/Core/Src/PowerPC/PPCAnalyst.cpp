@@ -226,7 +226,7 @@ void AnalyzeFunction2(Symbol *func)
 // IMPORTANT - CURRENTLY ASSUMES THAT A IS A COMPARE
 bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 {
-	const GekkoOPInfo *b_info = GetOpInfo(b.inst);
+	const GekkoOPInfo *b_info = b.opinfo;
 	int b_flags = b_info->flags;
 	if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL))
 		return false;
@@ -322,6 +322,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 		code[i].branchToIndex = -1;
 		code[i].skip = false;
 		GekkoOPInfo *opinfo = GetOpInfo(inst);
+		code[i].opinfo = opinfo;
 		if (opinfo)
 			numCycles += opinfo->numCyclesMinusOne + 1;
 		_assert_msg_(POWERPC, opinfo != 0, "Invalid Op - Error flattening %08x op %08x", address + i*4, inst.hex);
@@ -375,16 +376,17 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 	for (int i = 0; i < num_inst; i++)
 	{
 		UGeckoInstruction inst = code[i].inst;
-		if (PPCTables::UsesFPU(inst))
-			fpa->any = true;
-
+		
 		code[i].wantsCR0 = false;
 		code[i].wantsCR1 = false;
 		code[i].wantsPS1 = false;
 
-		const GekkoOPInfo *opinfo = GetOpInfo(code[i].inst);
+		const GekkoOPInfo *opinfo = code[i].opinfo;
 		_assert_msg_(POWERPC, opinfo != 0, "Invalid Op - Error scanning %08x op %08x",address+i*4,inst.hex);
 		int flags = opinfo->flags;
+
+		if (flags & FL_USE_FPU)
+			fpa->any = true;
 
 		if (flags & FL_TIMER)
 			gpa->anyTimer = true;

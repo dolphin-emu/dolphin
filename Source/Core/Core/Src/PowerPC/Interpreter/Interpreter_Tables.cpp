@@ -83,20 +83,20 @@ static GekkoOPTemplate primarytable[] =
 	{46, Interpreter::lmw,             {"lmw",   OPTYPE_SYSTEM, FL_EVIL, 10}},
 	{47, Interpreter::stmw,           {"stmw",  OPTYPE_SYSTEM, FL_EVIL, 10}},
 
-	{48, Interpreter::lfs,             {"lfs",  OPTYPE_LOADFP, FL_IN_A}},
-	{49, Interpreter::lfsu,        {"lfsu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
-	{50, Interpreter::lfd,             {"lfd",  OPTYPE_LOADFP, FL_IN_A}},
-	{51, Interpreter::lfdu,        {"lfdu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A}},
+	{48, Interpreter::lfs,             {"lfs",  OPTYPE_LOADFP, FL_IN_A | FL_USE_FPU}},
+	{49, Interpreter::lfsu,        {"lfsu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A | FL_USE_FPU}},
+	{50, Interpreter::lfd,             {"lfd",  OPTYPE_LOADFP, FL_IN_A | FL_USE_FPU}},
+	{51, Interpreter::lfdu,        {"lfdu", OPTYPE_LOADFP, FL_OUT_A | FL_IN_A | FL_USE_FPU}},
 
-	{52, Interpreter::stfs,           {"stfs",  OPTYPE_STOREFP, FL_IN_A}},
-	{53, Interpreter::stfsu,          {"stfsu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
-	{54, Interpreter::stfd,           {"stfd",  OPTYPE_STOREFP, FL_IN_A}},
-	{55, Interpreter::stfdu,       {"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A}},
+	{52, Interpreter::stfs,           {"stfs",  OPTYPE_STOREFP, FL_IN_A | FL_USE_FPU}},
+	{53, Interpreter::stfsu,          {"stfsu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A | FL_USE_FPU}},
+	{54, Interpreter::stfd,           {"stfd",  OPTYPE_STOREFP, FL_IN_A | FL_USE_FPU}},
+	{55, Interpreter::stfdu,       {"stfdu", OPTYPE_STOREFP, FL_OUT_A | FL_IN_A | FL_USE_FPU}},
 
-	{56, Interpreter::psq_l,         {"psq_l",   OPTYPE_PS, FL_IN_A}},
-	{57, Interpreter::psq_lu,        {"psq_lu",  OPTYPE_PS, FL_OUT_A | FL_IN_A}},
-	{60, Interpreter::psq_st,       {"psq_st",  OPTYPE_PS, FL_IN_A}},
-	{61, Interpreter::psq_stu,      {"psq_stu", OPTYPE_PS, FL_OUT_A | FL_IN_A}},
+	{56, Interpreter::psq_l,         {"psq_l",   OPTYPE_PS, FL_IN_A | FL_USE_FPU}},
+	{57, Interpreter::psq_lu,        {"psq_lu",  OPTYPE_PS, FL_OUT_A | FL_IN_A | FL_USE_FPU}},
+	{60, Interpreter::psq_st,       {"psq_st",  OPTYPE_PS, FL_IN_A | FL_USE_FPU}},
+	{61, Interpreter::psq_stu,      {"psq_stu", OPTYPE_PS, FL_OUT_A | FL_IN_A | FL_USE_FPU}},
 
 	//missing: 0, 5, 6, 9, 22, 30, 62, 58
 	{0,  Interpreter::unknown_instruction,   {"unknown_instruction", OPTYPE_UNKNOWN, 0}},
@@ -111,50 +111,50 @@ static GekkoOPTemplate primarytable[] =
 
 static GekkoOPTemplate table4[] = 
 {    //SUBOP10
-	{0,    Interpreter::ps_cmpu0,        {"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
-	{32,   Interpreter::ps_cmpo0,        {"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
-	{40,   Interpreter::ps_neg,          {"ps_neg",     OPTYPE_PS, FL_RC_BIT}},
-	{136,  Interpreter::ps_nabs,         {"ps_nabs",    OPTYPE_PS, FL_RC_BIT}},
-	{264,  Interpreter::ps_abs,          {"ps_abs",     OPTYPE_PS, FL_RC_BIT}},
-	{64,   Interpreter::ps_cmpu1,        {"ps_cmpu1",   OPTYPE_PS, FL_RC_BIT}},
-	{72,   Interpreter::ps_mr,             {"ps_mr",      OPTYPE_PS, FL_RC_BIT}},
-	{96,   Interpreter::ps_cmpo1,        {"ps_cmpo1",   OPTYPE_PS, FL_RC_BIT}},
-	{528,  Interpreter::ps_merge00,   {"ps_merge00", OPTYPE_PS, FL_RC_BIT}},
-	{560,  Interpreter::ps_merge01,   {"ps_merge01", OPTYPE_PS, FL_RC_BIT}},
-	{592,  Interpreter::ps_merge10,   {"ps_merge10", OPTYPE_PS, FL_RC_BIT}},
-	{624,  Interpreter::ps_merge11,   {"ps_merge11", OPTYPE_PS, FL_RC_BIT}},
+	{0,    Interpreter::ps_cmpu0,        {"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn | FL_USE_FPU}},
+	{32,   Interpreter::ps_cmpo0,        {"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn | FL_USE_FPU}},
+	{40,   Interpreter::ps_neg,          {"ps_neg",     OPTYPE_PS, FL_RC_BIT | FL_USE_FPU}},
+	{136,  Interpreter::ps_nabs,         {"ps_nabs",    OPTYPE_PS, FL_RC_BIT | FL_USE_FPU}},
+	{264,  Interpreter::ps_abs,          {"ps_abs",     OPTYPE_PS, FL_RC_BIT | FL_USE_FPU}},
+	{64,   Interpreter::ps_cmpu1,        {"ps_cmpu1",   OPTYPE_PS, FL_RC_BIT | FL_USE_FPU}},
+	{72,   Interpreter::ps_mr,             {"ps_mr",      OPTYPE_PS, FL_RC_BIT | FL_USE_FPU}},
+	{96,   Interpreter::ps_cmpo1,        {"ps_cmpo1",   OPTYPE_PS, FL_RC_BIT | FL_USE_FPU}},
+	{528,  Interpreter::ps_merge00,   {"ps_merge00", OPTYPE_PS, FL_RC_BIT | FL_USE_FPU}},
+	{560,  Interpreter::ps_merge01,   {"ps_merge01", OPTYPE_PS, FL_RC_BIT | FL_USE_FPU}},
+	{592,  Interpreter::ps_merge10,   {"ps_merge10", OPTYPE_PS, FL_RC_BIT | FL_USE_FPU}},
+	{624,  Interpreter::ps_merge11,   {"ps_merge11", OPTYPE_PS, FL_RC_BIT | FL_USE_FPU}},
 
 	{1014, Interpreter::dcbz_l,          {"dcbz_l",     OPTYPE_SYSTEM, 0}},
 };		
 
 static GekkoOPTemplate table4_2[] = 
 {
-	{10, Interpreter::ps_sum0,       {"ps_sum0",   OPTYPE_PS, 0}},
-	{11, Interpreter::ps_sum1,       {"ps_sum1",   OPTYPE_PS, 0}},
-	{12, Interpreter::ps_muls0,     {"ps_muls0",  OPTYPE_PS, 0}},
-	{13, Interpreter::ps_muls1,     {"ps_muls1",  OPTYPE_PS, 0}},
-	{14, Interpreter::ps_madds0,  {"ps_madds0", OPTYPE_PS, 0}},
-	{15, Interpreter::ps_madds1,  {"ps_madds1", OPTYPE_PS, 0}},
-	{18, Interpreter::ps_div,      {"ps_div",    OPTYPE_PS, 0, 16}},
-	{20, Interpreter::ps_sub,      {"ps_sub",    OPTYPE_PS, 0}},
-	{21, Interpreter::ps_add,      {"ps_add",    OPTYPE_PS, 0}},
-	{23, Interpreter::ps_sel,        {"ps_sel",    OPTYPE_PS, 0}},
-	{24, Interpreter::ps_res,       {"ps_res",    OPTYPE_PS, 0}},
-	{25, Interpreter::ps_mul,      {"ps_mul",    OPTYPE_PS, 0}},
-	{26, Interpreter::ps_rsqrte,  {"ps_rsqrte", OPTYPE_PS, 0, 1}},
-	{28, Interpreter::ps_msub,    {"ps_msub",   OPTYPE_PS, 0}},
-	{29, Interpreter::ps_madd,    {"ps_madd",   OPTYPE_PS, 0}},
-	{30, Interpreter::ps_nmsub,   {"ps_nmsub",  OPTYPE_PS, 0}},
-	{31, Interpreter::ps_nmadd,   {"ps_nmadd",  OPTYPE_PS, 0}},
+	{10, Interpreter::ps_sum0,       {"ps_sum0",   OPTYPE_PS, FL_USE_FPU}},
+	{11, Interpreter::ps_sum1,       {"ps_sum1",   OPTYPE_PS, FL_USE_FPU}},
+	{12, Interpreter::ps_muls0,     {"ps_muls0",  OPTYPE_PS, FL_USE_FPU}},
+	{13, Interpreter::ps_muls1,     {"ps_muls1",  OPTYPE_PS, FL_USE_FPU}},
+	{14, Interpreter::ps_madds0,  {"ps_madds0", OPTYPE_PS, FL_USE_FPU}},
+	{15, Interpreter::ps_madds1,  {"ps_madds1", OPTYPE_PS, FL_USE_FPU}},
+	{18, Interpreter::ps_div,      {"ps_div",    OPTYPE_PS, FL_USE_FPU, 16}},
+	{20, Interpreter::ps_sub,      {"ps_sub",    OPTYPE_PS, FL_USE_FPU}},
+	{21, Interpreter::ps_add,      {"ps_add",    OPTYPE_PS, FL_USE_FPU}},
+	{23, Interpreter::ps_sel,        {"ps_sel",    OPTYPE_PS, FL_USE_FPU}},
+	{24, Interpreter::ps_res,       {"ps_res",    OPTYPE_PS, FL_USE_FPU}},
+	{25, Interpreter::ps_mul,      {"ps_mul",    OPTYPE_PS, FL_USE_FPU}},
+	{26, Interpreter::ps_rsqrte,  {"ps_rsqrte", OPTYPE_PS, FL_USE_FPU, 1}},
+	{28, Interpreter::ps_msub,    {"ps_msub",   OPTYPE_PS, FL_USE_FPU}},
+	{29, Interpreter::ps_madd,    {"ps_madd",   OPTYPE_PS, FL_USE_FPU}},
+	{30, Interpreter::ps_nmsub,   {"ps_nmsub",  OPTYPE_PS, FL_USE_FPU}},
+	{31, Interpreter::ps_nmadd,   {"ps_nmadd",  OPTYPE_PS, FL_USE_FPU}},
 };
 
 
 static GekkoOPTemplate table4_3[] = 
 {
-	{6,  Interpreter::psq_lx,    {"psq_lx",   OPTYPE_PS, 0}},
-	{7,  Interpreter::psq_stx,   {"psq_stx",  OPTYPE_PS, 0}},
-	{38, Interpreter::psq_lux,   {"psq_lux",  OPTYPE_PS, 0}},
-	{39, Interpreter::psq_stux,  {"psq_stux", OPTYPE_PS, 0}}, 
+	{6,  Interpreter::psq_lx,    {"psq_lx",   OPTYPE_PS, FL_USE_FPU}},
+	{7,  Interpreter::psq_stx,   {"psq_stx",  OPTYPE_PS, FL_USE_FPU}},
+	{38, Interpreter::psq_lux,   {"psq_lux",  OPTYPE_PS, FL_USE_FPU}},
+	{39, Interpreter::psq_stux,  {"psq_stux", OPTYPE_PS, FL_USE_FPU}}, 
 };
 
 static GekkoOPTemplate table19[] = 
@@ -254,16 +254,16 @@ static GekkoOPTemplate table31[] =
 	{725, Interpreter::stswi,     {"stswi",  OPTYPE_STORE, FL_EVIL}},
 
 	// fp load/store	
-	{535, Interpreter::lfsx,        {"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
-	{567, Interpreter::lfsux,    {"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
-	{599, Interpreter::lfdx,     {"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B}},
-	{631, Interpreter::lfdux,    {"lfdux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B}},
+	{535, Interpreter::lfsx,        {"lfsx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B | FL_USE_FPU}},
+	{567, Interpreter::lfsux,    {"lfsux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B | FL_USE_FPU}},
+	{599, Interpreter::lfdx,     {"lfdx",  OPTYPE_LOADFP, FL_IN_A0 | FL_IN_B | FL_USE_FPU}},
+	{631, Interpreter::lfdux,    {"lfdux", OPTYPE_LOADFP, FL_IN_A | FL_IN_B | FL_USE_FPU}},
 
-	{663, Interpreter::stfsx,       {"stfsx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
-	{695, Interpreter::stfsux,    {"stfsux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
-	{727, Interpreter::stfdx,     {"stfdx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
-	{759, Interpreter::stfdux,    {"stfdux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B}},
-	{983, Interpreter::stfiwx,    {"stfiwx", OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B}},
+	{663, Interpreter::stfsx,       {"stfsx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B | FL_USE_FPU}},
+	{695, Interpreter::stfsux,    {"stfsux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B | FL_USE_FPU}},
+	{727, Interpreter::stfdx,     {"stfdx",  OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B | FL_USE_FPU}},
+	{759, Interpreter::stfdux,    {"stfdux", OPTYPE_STOREFP, FL_IN_A | FL_IN_B | FL_USE_FPU}},
+	{983, Interpreter::stfiwx,    {"stfiwx", OPTYPE_STOREFP, FL_IN_A0 | FL_IN_B | FL_USE_FPU}},
 
 	{19,  Interpreter::mfcr,          {"mfcr",   OPTYPE_SYSTEM, FL_OUT_D}},
 	{83,  Interpreter::mfmsr,        {"mfmsr",  OPTYPE_SYSTEM, FL_OUT_D}},
@@ -313,51 +313,51 @@ static GekkoOPTemplate table31_2[] =
 
 static GekkoOPTemplate table59[] = 
 {
-	{18, Interpreter::fdivsx,    /*TODO*/       {"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F, 16}}, 
-	{20, Interpreter::fsubsx,       {"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{21, Interpreter::faddsx,       {"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
-//	{22, Interpreter::fsqrtsx,         {"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F}}, // Not implemented on gekko
-	{24, Interpreter::fresx,           {"fresx",    OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{25, Interpreter::fmulsx,       {"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{28, Interpreter::fmsubsx,         {"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{29, Interpreter::fmaddsx,         {"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{30, Interpreter::fnmsubsx,        {"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
-	{31, Interpreter::fnmaddsx,        {"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}}, 
+	{18, Interpreter::fdivsx,    /*TODO*/       {"fdivsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 16}}, 
+	{20, Interpreter::fsubsx,       {"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}}, 
+	{21, Interpreter::faddsx,       {"faddsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}}, 
+//	{22, Interpreter::fsqrtsx,         {"fsqrtsx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}}, // Not implemented on gekko
+	{24, Interpreter::fresx,           {"fresx",    OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}}, 
+	{25, Interpreter::fmulsx,       {"fmulsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}}, 
+	{28, Interpreter::fmsubsx,         {"fmsubsx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}}, 
+	{29, Interpreter::fmaddsx,         {"fmaddsx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}}, 
+	{30, Interpreter::fnmsubsx,        {"fnmsubsx", OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}}, 
+	{31, Interpreter::fnmaddsx,        {"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}}, 
 };							    
 
 static GekkoOPTemplate table63[] = 
 {
-	{264, Interpreter::fabsx,       {"fabsx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{32,  Interpreter::fcmpo,         {"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{0,   Interpreter::fcmpu,         {"fcmpu",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{14,  Interpreter::fctiwx,      {"fctiwx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{15,  Interpreter::fctiwzx,     {"fctiwzx", OPTYPE_FPU, FL_RC_BIT_F}},
-	{72,  Interpreter::fmrx,           {"fmrx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{136, Interpreter::fnabsx,      {"fnabsx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{40,  Interpreter::fnegx,       {"fnegx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{12,  Interpreter::frspx,       {"frspx",   OPTYPE_FPU, FL_RC_BIT_F}},
+	{264, Interpreter::fabsx,       {"fabsx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{32,  Interpreter::fcmpo,         {"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{0,   Interpreter::fcmpu,         {"fcmpu",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{14,  Interpreter::fctiwx,      {"fctiwx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{15,  Interpreter::fctiwzx,     {"fctiwzx", OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{72,  Interpreter::fmrx,           {"fmrx",    OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{136, Interpreter::fnabsx,      {"fnabsx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{40,  Interpreter::fnegx,       {"fnegx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{12,  Interpreter::frspx,       {"frspx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
 
-	{64,  Interpreter::mcrfs,       {"mcrfs",   OPTYPE_SYSTEMFP, 0}},
-	{583, Interpreter::mffsx,       {"mffsx",   OPTYPE_SYSTEMFP, 0}},
-	{70,  Interpreter::mtfsb0x,     {"mtfsb0x", OPTYPE_SYSTEMFP, 0, 2}},
-	{38,  Interpreter::mtfsb1x,     {"mtfsb1x", OPTYPE_SYSTEMFP, 0, 2}},
-	{134, Interpreter::mtfsfix,     {"mtfsfix", OPTYPE_SYSTEMFP, 0, 2}},
-	{711, Interpreter::mtfsfx,      {"mtfsfx",  OPTYPE_SYSTEMFP, 0, 2}},
+	{64,  Interpreter::mcrfs,       {"mcrfs",   OPTYPE_SYSTEMFP, FL_USE_FPU}},
+	{583, Interpreter::mffsx,       {"mffsx",   OPTYPE_SYSTEMFP, FL_USE_FPU}},
+	{70,  Interpreter::mtfsb0x,     {"mtfsb0x", OPTYPE_SYSTEMFP, FL_USE_FPU, 2}},
+	{38,  Interpreter::mtfsb1x,     {"mtfsb1x", OPTYPE_SYSTEMFP, FL_USE_FPU, 2}},
+	{134, Interpreter::mtfsfix,     {"mtfsfix", OPTYPE_SYSTEMFP, FL_USE_FPU, 2}},
+	{711, Interpreter::mtfsfx,      {"mtfsfx",  OPTYPE_SYSTEMFP, FL_USE_FPU, 2}},
 };
 
 static GekkoOPTemplate table63_2[] = 
 {
-	{18, Interpreter::fdivx,        {"fdivx",    OPTYPE_FPU, FL_RC_BIT_F, 30}},
-	{20, Interpreter::fsubx,        {"fsubx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{21, Interpreter::faddx,        {"faddx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{22, Interpreter::fsqrtx,       {"fsqrtx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{23, Interpreter::fselx,        {"fselx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{25, Interpreter::fmulx,     {"fmulx",    OPTYPE_FPU, FL_RC_BIT_F}},
-	{26, Interpreter::frsqrtex,  {"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F}},
-	{28, Interpreter::fmsubx,       {"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{29, Interpreter::fmaddx,       {"fmaddx",   OPTYPE_FPU, FL_RC_BIT_F}},
-	{30, Interpreter::fnmsubx,      {"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F}},
-	{31, Interpreter::fnmaddx,      {"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
+	{18, Interpreter::fdivx,        {"fdivx",    OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU, 30}},
+	{20, Interpreter::fsubx,        {"fsubx",    OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{21, Interpreter::faddx,        {"faddx",    OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{22, Interpreter::fsqrtx,       {"fsqrtx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{23, Interpreter::fselx,        {"fselx",    OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{25, Interpreter::fmulx,     {"fmulx",    OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{26, Interpreter::frsqrtex,  {"frsqrtex", OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{28, Interpreter::fmsubx,       {"fmsubx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{29, Interpreter::fmaddx,       {"fmaddx",   OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{30, Interpreter::fnmsubx,      {"fnmsubx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
+	{31, Interpreter::fnmaddx,      {"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F | FL_USE_FPU}},
 };
 namespace InterpreterTables
 {

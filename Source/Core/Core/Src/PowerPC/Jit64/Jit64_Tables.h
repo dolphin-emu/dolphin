@@ -24,7 +24,7 @@
 
 namespace Jit64Tables
 {
-	void CompileInstruction(UGeckoInstruction _inst);
+	void CompileInstruction(PPCAnalyst::CodeOp & op);
 	void InitTables();
 }
 #endif
