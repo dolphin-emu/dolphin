@@ -288,7 +288,7 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap &p)
 	{
 		if (m_Mode)
 		{
-			Open(NULL, m_Mode);
+			Open(0, m_Mode);
 			if (m_pFileHandle)
 				fseek(m_pFileHandle, m_Seek, SEEK_SET);
 		}

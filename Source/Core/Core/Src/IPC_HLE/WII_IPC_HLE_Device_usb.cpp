@@ -37,9 +37,9 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _De
 	, m_HostMaxSCOSize(0)
 	, m_HostNumACLPackets(0)
 	, m_HostNumSCOPackets(0)
-	, m_HCIBuffer(NULL)
+	, m_HCIBuffer(0)
 	, m_HCIPool(0)
-	, m_ACLBuffer(NULL)
+	, m_ACLBuffer(0)
 	, m_ACLPool(0)
 	, m_LastCmd(0)
 	, m_FreqDividerMote(0)
@@ -361,7 +361,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::SendACLPacket(u16 _ConnectionHandle, u
 
 		// Invalidate ACL buffer
 		m_ACLBuffer.m_address = 0;
-		m_ACLBuffer.m_buffer = NULL;
+		m_ACLBuffer.m_buffer = 0;
 	}
 	else if ((sizeof(UACLHeader) + _Size) > ACL_MAX_SIZE )
 	{
@@ -411,7 +411,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeACLPool()
 			WII_IPC_HLE_Interface::EnqReply(m_ACLBuffer.m_address);
 			// Invalidate ACL buffer
 			m_ACLBuffer.m_address = 0;
-			m_ACLBuffer.m_buffer = NULL;
+			m_ACLBuffer.m_buffer = 0;
 		}
 }
 
@@ -548,7 +548,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::AddEventToQueue(const SQueuedEvent& _e
 
 		// Invalidate HCI buffer
 		m_HCIBuffer.m_address = 0;
-		m_HCIBuffer.m_buffer = NULL;
+		m_HCIBuffer.m_buffer = 0;
 	}
 	else if (_event.m_size > HCI_MAX_SIZE)
 	{
@@ -593,7 +593,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::PurgeHCIPool()
 			WII_IPC_HLE_Interface::EnqReply(m_HCIBuffer.m_address);
 			// Invalidate ACL buffer
 			m_HCIBuffer.m_address = 0;
-			m_HCIBuffer.m_buffer = NULL;
+			m_HCIBuffer.m_buffer = 0;
 		}
 }
 

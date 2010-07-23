@@ -49,7 +49,8 @@
     // MacOS
     #define SFML_SYSTEM_MACOS
 
-#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || \
+      defined(__NetBSD__) || defined(__OpenBSD__)
 
     // FreeBSD
     #define SFML_SYSTEM_FREEBSD

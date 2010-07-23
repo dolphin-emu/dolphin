@@ -234,7 +234,7 @@ private:
 	void SignalChannel(u8* _pData, u32 _Size);
 
 	void SendConnectionRequest(u16 _SCID, u16 _PSM);
-	void SendConfigurationRequest(u16 _SCID, u16 _pMTU = NULL, u16 _pFlushTimeOut = NULL);
+	void SendConfigurationRequest(u16 _SCID, u16 _pMTU = 0, u16 _pFlushTimeOut = 0);
 	void SendDisconnectRequest(u16 _SCID);
 
 	void ReceiveConnectionReq(u8 _Ident, u8* _pData, u32 _Size);

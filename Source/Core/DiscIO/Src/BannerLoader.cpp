@@ -27,15 +27,17 @@
 #ifdef WIN32
 #include <Windows.h>
 #else
+#include <sys/param.h>
 #include <iconv.h>
 #include <errno.h>
 #endif
 
-#ifdef __FreeBSD__
-#define ICONV_CONST const
-#endif
 #ifndef ICONV_CONST
+#if defined __FreeBSD__ || __NetBSD__
+#define ICONV_CONST const
+#else
 #define ICONV_CONST
+#endif
 #endif
 
 namespace DiscIO

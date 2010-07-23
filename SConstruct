@@ -244,7 +244,7 @@ elif sys.platform == 'win32':
 
 else:
     env['CCFLAGS'] += ['-pthread']
-    env['CCFLAGS'] += ['-Wno-deprecated'] # XXX <hash_map>
+    env['CXXFLAGS'] += ['-Wno-deprecated'] # XXX <hash_map>
     env['CPPPATH'].insert(0, '#')
     env['LINKFLAGS'] += ['-pthread']
     conf = env.Configure(custom_tests = tests, config_h="#config.h")

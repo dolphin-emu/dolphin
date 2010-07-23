@@ -33,8 +33,9 @@ PIXELSHADERUID last_pixel_shader_uid;
 // are set...
 void GetPixelShaderId(PIXELSHADERUID *uid, u32 texturemask, u32 dstAlphaEnable)
 {
+	u32 numstages = bpmem.genMode.numtevstages + 1;
 	u32 projtexcoords = 0;
-	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; i++)
+	for (u32 i = 0; i < numstages; i++)
 	{
 		if (bpmem.tevorders[i/2].getEnable(i & 1))
 		{
@@ -66,7 +67,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, u32 texturemask, u32 dstAlphaEnable)
 
 	int hdr = 4;
 	u32 *pcurvalue = &uid->values[hdr];
-	for (u32 i = 0; i < (u32)bpmem.genMode.numtevstages + 1; ++i)
+	for (u32 i = 0; i < numstages; ++i)
 	{
 		TevStageCombiner::ColorCombiner &cc = bpmem.combiners[i].colorC;
 		TevStageCombiner::AlphaCombiner &ac = bpmem.combiners[i].alphaC;
@@ -80,7 +81,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, u32 texturemask, u32 dstAlphaEnable)
 		pcurvalue += 2;
 	}
 
-	for (u32 i = 0; i < ((u32)bpmem.genMode.numtevstages+1) / 2; ++i)
+	for (u32 i = 0; i < numstages / 2; ++i)
 	{
 		u32 val0, val1;
 		if (bpmem.tevorders[i].hex & 0x40)
@@ -100,7 +101,7 @@ void GetPixelShaderId(PIXELSHADERUID *uid, u32 texturemask, u32 dstAlphaEnable)
 		}
 	}
 
-	if ((bpmem.genMode.numtevstages + 1) & 1) { // odd
+	if (numstages & 1) { // odd
 		u32 val0;
 		if (bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x40)
 			val0 = bpmem.tevorders[bpmem.genMode.numtevstages/2].hex & 0x3ff;

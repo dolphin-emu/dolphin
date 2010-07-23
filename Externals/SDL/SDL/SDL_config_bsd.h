@@ -5,9 +5,7 @@
 
 #define SDL_JOYSTICK_USBHID 1
 
-#ifdef __FreeBSD__
-#define HAVE_USBHID_H
-#endif
+#define HAVE_USBHID_H 1
 #define USBHID_NEW
 #define USBHID_UCR_DATA
 

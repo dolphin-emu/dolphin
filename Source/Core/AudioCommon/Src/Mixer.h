@@ -44,6 +44,8 @@ public:
 		INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized (AISampleRate:%i, DACSampleRate:%i)", AISampleRate, DACSampleRate);
 	}
 
+	virtual ~CMixer() {}
+
 	// Called from audio threads
 	virtual unsigned int Mix(short* samples, unsigned int numSamples);
 	virtual void Premix(short *samples, unsigned int numSamples) {}

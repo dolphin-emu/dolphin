@@ -110,7 +110,7 @@ void Reset(bool _bHard)
 		if (itr->second)
 		{
 			// Force close
-			itr->second->Close(NULL, true);
+			itr->second->Close(0, true);
 			// Hardware should not be deleted unless it is a hard reset
 			if (_bHard || !itr->second->IsHardware())
 				delete itr->second;

@@ -146,7 +146,7 @@ void X11_MainLoop()
 	X11Utils::XRRConfiguration *XRRConfig = new X11Utils::XRRConfiguration(dpy, win);
 #endif
 
-	Cursor blankCursor = NULL;
+	Cursor blankCursor = None;
 	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bHideCursor)
 	{
 		// make a blank cursor

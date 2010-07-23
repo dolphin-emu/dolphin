@@ -90,7 +90,7 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 				*pArgument++ = *pString++;
 
 			*pArgument++ = *pString;
-			*pArgument = NULL;
+			*pArgument = 0;
 
 			u64 Parameter;
 			if (ParameterCounter > 10)

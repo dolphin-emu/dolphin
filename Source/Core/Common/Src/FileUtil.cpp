@@ -28,6 +28,7 @@
 #include <io.h>
 #include <direct.h>		// getcwd
 #else
+#include <sys/param.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <errno.h>
@@ -38,7 +39,6 @@
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFURL.h>
 #include <CoreFoundation/CFBundle.h>
-#include <sys/param.h>
 #endif
 
 #include <fstream>
@@ -48,7 +48,7 @@
 #define S_ISDIR(m)  (((m)&S_IFMT) == S_IFDIR)
 #endif
 
-#if defined __NetBSD__ || defined __FreeBSD__ || defined __OpenBSD__
+#ifdef BSD4_4
 #define stat64 stat	// XXX
 #endif
 

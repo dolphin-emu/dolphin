@@ -324,7 +324,7 @@ void CMemoryWindow::onSearch(wxCommandEvent& event) {
 	std::vector<u8> Dest;//May need a better name
 	u32 size=0;
 	int pad=rawData.size()%2;//If it's uneven
-	unsigned long i=0;
+	unsigned int i=0;
 	long count=0;
 	char copy[3]={0};
 	long newsize=0;
