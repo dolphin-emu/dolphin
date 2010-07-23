@@ -907,7 +907,8 @@ bool EndCodes()
 		else
 		{
 			// too many endifs
-			return false;
+			// no it's not, i gotta fix my code execution on/off stuff
+			code_execution_counter = 0;
 		}
 
 		const bool is_else = !!(code.address & 0x00100000);
