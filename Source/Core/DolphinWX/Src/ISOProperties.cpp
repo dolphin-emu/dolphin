@@ -882,7 +882,7 @@ void CISOProperties::LoadGameConfig()
 
 	PatchList_Load();
 	ActionReplayList_Load();
-	m_geckocode_panel->LoadCodes(GameIni);
+	m_geckocode_panel->LoadCodes(GameIni, OpenISO->GetUniqueID());
 }
 
 bool CISOProperties::SaveGameConfig()

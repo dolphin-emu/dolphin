@@ -18,6 +18,8 @@ namespace Gecko
 
 		struct Code
 		{
+			Code() : address(0), data(0) {}
+
 			union
 			{
 				u32	address;
@@ -50,11 +52,14 @@ namespace Gecko
 				//};
 			};
 
+			std::string original_line;
+
 			u32 GetAddress() const;
 		};
 
 		std::vector<Code>	codes;
-		std::string		name, description, creator;
+		std::string		name, creator;
+		std::vector<std::string>	notes;
 
 		bool	enabled;
 	};

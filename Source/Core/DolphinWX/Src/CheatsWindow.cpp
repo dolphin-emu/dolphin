@@ -34,7 +34,7 @@ extern std::vector<ActionReplay::ARCode> arCodes;
 static wxCheatsWindow *g_cheat_window;
 
 wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
-	: wxFrame(parent, wxID_ANY, wxT("Action Replay"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE)
+	: wxFrame(parent, wxID_ANY, wxT("Cheats Manager"), wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE)
 {
 	::g_cheat_window = this;
 
@@ -201,8 +201,8 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent)
 	// filter types in the compare dropdown
 	static const wxString searches[] = {
 		wxT("Unknown"),
-		wxT("Not Equals"),
-		wxT("Equals"),
+		wxT("Not Equal"),
+		wxT("Equal"),
 		wxT("Greater Than"),
 		wxT("Less Than"),
 	// TODO: Implement between search.

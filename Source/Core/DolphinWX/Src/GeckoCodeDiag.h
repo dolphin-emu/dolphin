@@ -17,22 +17,28 @@ public:
 	CodeConfigPanel(wxWindow* const parent);
 
 
-	void LoadCodes(const IniFile& inifile);
+	void LoadCodes(const IniFile& inifile, const std::string& gameid = "");
 	const std::vector<GeckoCode>& GetCodes() const { return m_gcodes; }
 
 protected:
 	void UpdateInfoBox(wxCommandEvent&);
 	void ToggleCode(wxCommandEvent& evt);
-	void ApplyChanges(wxCommandEvent&);
+	void DownloadCodes(wxCommandEvent&);
+	//void ApplyChanges(wxCommandEvent&);
+
+	void UpdateCodeList();
 
 private:
 	std::vector<GeckoCode> m_gcodes;
+
+	std::string m_gameid;
 
 	// wxwidgets stuff
 	wxCheckListBox	*m_listbox_gcodes;
 	struct
 	{
-		wxStaticText	*label_name, *label_description, *label_creator;
+		wxStaticText	*label_name, *label_notes, *label_creator;
+		wxTextCtrl		*textctrl_notes;
 		wxListBox	*listbox_codes;
 	} m_infobox;
 
@@ -43,3 +49,4 @@ private:
 }
 
 #endif
+

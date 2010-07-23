@@ -15,7 +15,7 @@ namespace Gecko
 void LoadCodes(const IniFile& inifile, std::vector<GeckoCode>& gcodes)
 {
 	std::vector<std::string> lines;
-	inifile.GetLines(GECKO_CODE_INI_SECTION, lines);
+	inifile.GetLines(GECKO_CODE_INI_SECTION, lines, false);
 
 	GeckoCode gcode;
 
@@ -28,6 +28,8 @@ void LoadCodes(const IniFile& inifile, std::vector<GeckoCode>& gcodes)
 			continue;
 
 		std::istringstream	ss(*lines_iter);
+
+		int read_state = 0;
 
 		switch ((*lines_iter)[0])
 		{
@@ -46,30 +48,24 @@ void LoadCodes(const IniFile& inifile, std::vector<GeckoCode>& gcodes)
 			gcode.name = StripSpaces(gcode.name);
 			// read the code creator name
 			std::getline(ss, gcode.creator, ']');
+			read_state = 0;
 			break;
 
-			// description
+			// notes
 		case '*':
-			ss.seekg(1);
-			std::getline(ss, gcode.description);
-			break;
-
-			// start of code option list
-		case ':':
-			// TODO:
+			gcode.notes.push_back(std::string(++lines_iter->begin(), lines_iter->end()));
 			break;
 
 			// either part of the code, or an option choice
 		default :
-			// TODO: check if we are reading an option list
 		{
 			GeckoCode::Code new_code;
 			// TODO: support options
+			new_code.original_line = *lines_iter;
 			ss >> std::hex >> new_code.address >> new_code.data;
 			gcode.codes.push_back(new_code);
 		}
 			break;
-
 		}
 
 	}
@@ -100,10 +96,6 @@ void SaveGeckoCode(std::vector<std::string>& lines, const GeckoCode& gcode)
 	}
 
 	lines.push_back(name);
-
-	// save the description
-	if (gcode.description.size())
-		lines.push_back(std::string("*") + gcode.description);
 	
 	// save all the code lines
 	std::vector<GeckoCode::Code>::const_iterator
@@ -112,13 +104,17 @@ void SaveGeckoCode(std::vector<std::string>& lines, const GeckoCode& gcode)
 	for (; codes_iter!=codes_end; ++codes_iter)
 	{
 		//ss << std::hex << codes_iter->address << ' ' << codes_iter->data;
-		lines.push_back(StringFromFormat("%08X %08X", codes_iter->address, codes_iter->data));
+		//lines.push_back(StringFromFormat("%08X %08X", codes_iter->address, codes_iter->data));
+		lines.push_back(codes_iter->original_line);
 		//ss.clear();
 	}
 
-	//lines.push_back("BLAH");
-
-	// TODO: save the options
+	// save the notes
+	std::vector<std::string>::const_iterator
+		notes_iter = gcode.notes.begin(),
+		notes_end = gcode.notes.end();
+	for (; notes_iter!=notes_end; ++notes_iter)
+		lines.push_back(std::string("*") + *notes_iter);
 }
 
 void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)

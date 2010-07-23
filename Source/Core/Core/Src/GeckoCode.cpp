@@ -57,7 +57,8 @@ u32 GeckoCode::Code::GetAddress() const
 static Common::CriticalSection active_codes_lock;
 
 // currently running code
-static GeckoCode::Code current_code;
+static GeckoCode::Code *codes_start = NULL, *current_code = NULL;
+static const GeckoCode::Code *codes_end = NULL;
 
 // Functions for each code type
 bool RamWriteAndFill();
@@ -91,7 +92,7 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 	active_codes_lock.Leave();
 }
 
-bool RunGeckoCode(const GeckoCode& gecko_code)
+bool RunGeckoCode(GeckoCode& gecko_code)
 {
 	static bool (*code_type_funcs[])(void) =
 	{ RamWriteAndFill, RegularIf, BaPoOps, FlowControl, RegisterOps, SpecialIf, AsmSwitchRange, EndCodes };
@@ -100,14 +101,11 @@ bool RunGeckoCode(const GeckoCode& gecko_code)
 	pointer_address = 0x80000000;
 	code_execution_counter = 0;
 
-	std::vector<GeckoCode::Code>::const_iterator
-		codes_iter = gecko_code.codes.begin(),
-		codes_end = gecko_code.codes.end();
-	for (; codes_iter != codes_end; ++codes_iter)
+	current_code = codes_start = &*gecko_code.codes.begin();
+	codes_end = &*gecko_code.codes.end();
+	for (; current_code < codes_end; ++current_code)
 	{
-		const GeckoCode::Code& code = *codes_iter;
-
-		current_code = code;
+		const GeckoCode::Code& code = *current_code;
 
 		bool result = true;
 
@@ -133,15 +131,11 @@ bool RunGeckoCode(const GeckoCode& gecko_code)
 		if (false == result)
 		{
 			PanicAlert("GeckoCode failed to run (CT%i CST%i) (%s)"
-				"(Either a bad code or the code type is not yet supported.)"
+				"\n(either a bad code or the code type is not yet supported.)"
 				, code.type, code.subtype, gecko_code.name.c_str());
 			return false;
 		}
-
-
-
 	}
-
 
 	return true;
 }
@@ -151,7 +145,7 @@ bool RunActiveCodes()
 	if (false == active_codes_lock.TryEnter())
 		return true;
 
-	std::vector<GeckoCode>::const_iterator
+	std::vector<GeckoCode>::iterator
 		gcodes_iter = active_codes.begin(),
 		gcodes_end = active_codes.end();
 	for (; gcodes_iter!=gcodes_end; ++gcodes_iter)
@@ -167,19 +161,19 @@ bool RunActiveCodes()
 }
 
 // CT0: Direct ram write/fill
-// NOT COMPLETE, last 2 subtypes not started
+// COMPLETE, maybe
 bool RamWriteAndFill()
 {
-	const GeckoCode::Code& code = current_code;
+	const GeckoCode::Code& code = *current_code;
 	u32 new_addr = code.GetAddress();
 	const u32& data = code.data;
 
-	u16 count = (data >> 16) + 1;
+	u16 count = (data >> 16) + 1;	// note: +1
 
 	switch (code.subtype)
 	{
 		// CST0: 8bits Write & Fill
-	case 0x0 :
+	case DATATYPE_8BIT :
 		while (count--)
 		{
 			Memory::Write_U16((u16)data, new_addr);
@@ -188,7 +182,7 @@ bool RamWriteAndFill()
 		break;
 
 		// CST1: 16bits Write & Fill
-	case 0x1 :
+	case DATATYPE_16BIT :
 		while (count--)
 		{
 			Memory::Write_U16((u16)data, new_addr);
@@ -197,23 +191,76 @@ bool RamWriteAndFill()
 		break;
 
 		// CST2: 32bits Write
-	case 0x2 :
+	case DATATYPE_32BIT :
 		Memory::Write_U32((u32)data, new_addr);
 		break;
 
 		// CST3: String Code
 	case 0x3 :
-		// TODO:
-		return false;
+		count = code.data;	// count is different from the other subtypes
+		while (count)
+		{
+			if (codes_end == ++current_code)
+				return false;
+
+			// write bytes from address
+			int byte_num = 4;
+			while (byte_num-- && count)
+			{
+				Memory::Write_U8((u8)(current_code->address >> byte_num * 8), new_addr);
+				++new_addr;
+				--count;
+			}
+
+			// write bytes from data
+			byte_num = 4;
+			while (byte_num-- && count)
+			{
+				Memory::Write_U8((u8)(current_code->data >> byte_num * 8), new_addr);
+				++new_addr;
+				--count;
+			}
+		}
 		break;
 
 		// CST4: Serial Code
 	case 0x4 :
 	{
-		// TODO: complete
-		// u32 new_data = data;
-		
-		return false;
+		if (codes_end == ++current_code)
+			return false;
+		u32 new_data = data;	// starting value of data
+		const u8 data_type = current_code->address >> 28;
+		const u32 data_inc = current_code->data;	// amount to increment the data
+		const u16 addr_inc = (u16)current_code->address;	// amount to increment the address
+		count =	(current_code->address >> 16) & 0xFFF + 1;	// count is different from the other subtypes, note: +1
+		while (count--)
+		{
+			// switch inside the loop, :/ o well
+			switch (data_type)
+			{
+			case DATATYPE_8BIT :
+				Memory::Write_U8((u8)new_data, new_addr);
+				new_data = (u8)new_data + (u8)data_inc;
+				break;
+
+			case DATATYPE_16BIT :
+				Memory::Write_U16((u16)new_data, new_addr);
+				new_data = (u16)new_data + (u16)data_inc;
+				break;
+
+			case DATATYPE_32BIT :
+				Memory::Write_U32((u32)new_data, new_addr);
+				new_data += data_inc;
+				break;
+
+				// INVALID DATATYPE
+			default :
+				return false;
+				break;
+			}
+
+			new_addr += addr_inc;
+		}
 	}
 		break;
 
@@ -230,7 +277,7 @@ bool RamWriteAndFill()
 // COMPLETE
 bool RegularIf()
 {
-	const GeckoCode::Code& code = current_code;
+	const GeckoCode::Code& code = *current_code;
 
 	const bool is_endif = !!(code.address & 0x1);
 
@@ -306,7 +353,7 @@ bool RegularIf()
 // NOT COMPLETE, last 2 subtypes aren't done
 bool BaPoOps()
 {
-	const GeckoCode::Code& code = current_code;
+	const GeckoCode::Code& code = *current_code;
 
 	// base_address vs pointer (ba vs po)
 	u32& change_address = (code.subtype & 0x4) ? pointer_address : base_address;
@@ -360,10 +407,10 @@ bool BaPoOps()
 }
 
 // CT3 Repeat/Goto/Gosub/Return
-// NOT COMPLETE
+// COMPLETE, maybe
 bool FlowControl()
 {
-	const GeckoCode::Code& code = current_code;
+	const GeckoCode::Code& code = *current_code;
 
 	// only the return subtype runs when code execution is off
 	if (false == CodeExecution() && code.subtype != 0x2)
@@ -376,10 +423,8 @@ bool FlowControl()
 	{
 		// CST0 : Set Repeat
 	case 0x0 :
-		// TODO: store address of next code as well
-		block[block_num].address = code.address & 0xFFFF;
-		// block[block_num].number = ;
-		return false; //
+		block[block_num].number = code.address & 0xFFFF;
+		block[block_num].address = (u32)(current_code - codes_start + 1);
 		break;
 
 		// CST1 : Execute Repeat
@@ -387,7 +432,8 @@ bool FlowControl()
 		if (block[block_num].number)
 		{
 			--block[block_num].number;
-			// TODO: jump to code block
+			// needs -1 cause iterator gets ++ after code runs
+			current_code = codes_start + block[block_num].address - 1;
 		}
 		return false;	//
 		break;
@@ -395,20 +441,43 @@ bool FlowControl()
 		// CST2 : Return
 	case 0x2 :
 		if (((code.address >> 20) & 0xF) ^ (u32)CodeExecution())
-			// TODO: jump to block[block_num].number
-		return false;	//
+		{
+			// needs -1 cause iterator gets ++ after code runs
+			current_code = codes_start + block[block_num].address - 1;
+		}
 		break;
 
 		// CST3 : Goto
 	case 0x3 :
-		// TODO:
-		return false;	//
+		if (((code.address >> 20) & 0xF) ^ (u32)CodeExecution())
+		{
+			GeckoCode::Code* const target_code = current_code + (s16)(code.address & 0xFFFF);
+
+			if (target_code >= codes_start && target_code < codes_end)
+			{
+				// needs -1 cause iterator gets ++ after code runs
+				current_code = target_code - 1;
+			}
+			else
+				return false;	// trying to GOTO to bad address
+		}
 		break;
 
 		// CST4 : Gosub
 	case 0x4 :
-		// TODO:
-		return false;	//
+		if (((code.address >> 20) & 0xF) ^ (u32)CodeExecution())
+		{
+			GeckoCode::Code* const target_code = current_code + (s16)(code.address & 0xFFFF);
+
+			if (target_code >= codes_start && target_code < codes_end)
+			{
+				block[block_num].address = u32(current_code - codes_start + 1);
+				// needs -1 cause iterator gets ++ after code runs
+				current_code = target_code - 1;
+			}
+			else
+				return false;	// trying to GOSUB to bad address
+		}
 		break;
 
 		// INVALID SUBTYPE
@@ -421,10 +490,10 @@ bool FlowControl()
 }
 
 // CT4 Gecko Register Operations
-// NOT COMPLETE, need to do memory copy 1,2
+// COMPLETE, maybe
 bool RegisterOps()
 {
-	const GeckoCode::Code& code = current_code;
+	const GeckoCode::Code& code = *current_code;
 
 	// 80TYZZZN XXXXXXXX
 
@@ -519,15 +588,27 @@ bool RegisterOps()
 		break;
 
 		// CST5 : Memory Copy 1
-	case 0x5 :
-		// TODO:
-		return false;	//
-		break;
-
 		// CST6 : Memory Copy 2
+	case 0x5 :
 	case 0x6 :
-		// TODO:
-		return false;	//
+	{
+		const u8 src_gr = (code.z & 0xF);
+		const u8 dst_gr = (code.n);
+
+		u16 count = (u16)(code.address >> 8);
+
+		// docs don't specify allowing 0xF for source and dest, but it can't hurt
+		u32 src_addr = ((0xF == src_gr) ? (code.use_po ? pointer_address : base_address) : gecko_register[src_gr]);
+		u32 dst_addr = ((0xF == dst_gr) ? (code.use_po ? pointer_address : base_address) : gecko_register[dst_gr]);
+
+		if (0x5 == code.subtype)
+			dst_addr += new_data;
+		else
+			src_addr += new_data;
+		
+		while (count--)
+			Memory::Write_U8(Memory::Read_U8(src_addr++), dst_addr++);
+	}
 		break;
 
 		// INVALID SUBTYPE
@@ -589,8 +670,7 @@ bool MathOperation(u32& ret, const u32 left, const u32 right, const u8 type)
 
 		// 8 : asr (arithmetic shift right)
 	case 0x8 :
-		// TODO: wuts this
-		return false;
+		ret = (left >> right) | (left & 0x80000000);
 		break;
 
 		// TODO: these float ops good?
@@ -614,10 +694,11 @@ bool MathOperation(u32& ret, const u32 left, const u32 right, const u8 type)
 }
 
 // CT5: Special If codes (16bits)
-// NOT COMPLETE, part 2 (counter stuff) not started
+// COMPLETE, maybe (ugly)
 bool SpecialIf()
 {
-	const GeckoCode::Code& code = current_code;
+	// counter can modify the code :/
+	GeckoCode::Code& code = *current_code;
 
 	const bool is_endif = !!(code.address & 0x1);
 
@@ -630,99 +711,87 @@ bool SpecialIf()
 
 	bool result = false;
 
+	// TODO: should these be signed? probably?
+	s16 left_val = 0, right_val = 0;
+
 	// if code_execution is on, execute the conditional
 	if (CodeExecution())
 	{
 		const u32 addr = code.GetAddress() & ~0x1;
 		const u32& data = code.data;
 
-		// A-______ NM00YYYY
-
 		if (code.subtype ^ 0x4)
 		{
 			// CT5 Part1 : Unknown values comparison
+			// A-______ NM00YYYY
 
 			const u8 n = (u8)(data >> 28);
 			const u8 m = (u8)((data >> 24) & 0xF);
 			const u16 y = (u16)data;
 
-			// TODO: should these be signed? probably?
-			const s16 left_val = Memory::Read_U16(((0xF == n) ? addr : gecko_register[n]) & ~y);
-			const s16 right_val = Memory::Read_U16(((0xF == m) ? addr : gecko_register[m]) & ~y);
-
-			switch (code.subtype)
-			{
-				// CST0 : 16bits (endif, then) If equal
-			case 0x0 :
-				result = (left_val == right_val);
-				break;
-
-				// CST1 : 16bits (endif, then) If not equal
-			case 0x1 :
-				result = (left_val != right_val);
-				break;
-
-				// CST2 : 16bits (endif, then) If greater
-			case 0x2 :
-				result = (left_val > right_val);
-				break;
-
-				// CST3 : 16bits (endif, then) If lower
-			case 0x3 :
-				result = (left_val < right_val);
-				break;
-			}
+			left_val = Memory::Read_U16(((0xF == n) ? addr : gecko_register[n]) & ~y);
+			right_val = Memory::Read_U16(((0xF == m) ? addr : gecko_register[m]) & ~y);
 		}
 		else
 		{
 			// CT5 Part2 : 16bits Counter check
-			// TODO:
+			// A-0ZZZZT MMMMXXXX
 
-			switch (code.subtype)
-			{
-				// CST4 : 16bits (endif, then) If counter value equal
-			case 0x4 :
-				// TODO:
-				return false;	//
-				break;
-
-				// CST5 : 16bits (endif, then) If counter value not equal
-			case 0x5 :
-				// TODO:
-				return false;	//
-				break;
-
-				// CST6 : 16bits (endif, then) If counter value greater
-			case 0x6 :
-				// TODO:
-				return false;	//
-				break;
-
-				// CST7 : 16bits (endif, then) If counter value lower
-			case 0x7 :
-				// TODO:
-				return false;	//
-				break;
-			}
+			left_val = (u16)(data) & ~(u16)(data >> 16);
+			right_val = (u16)(addr >> 4);
 		}
+
+		switch (code.subtype & 0x3)
+		{
+			// CST0 : 16bits (endif, then) If equal
+		case 0x0 :
+			result = (left_val == right_val);
+			break;
+
+			// CST1 : 16bits (endif, then) If not equal
+		case 0x1 :
+			result = (left_val != right_val);
+			break;
+
+			// CST2 : 16bits (endif, then) If greater
+		case 0x2 :
+			result = (left_val > right_val);
+			break;
+
+			// CST3 : 16bits (endif, then) If lower
+		case 0x3 :
+			result = (left_val < right_val);
+			break;
+		}
+	}	
+	else if (code.subtype & 0x4)
+	{
+		// counters get reset if code execution is off
+		code.address &= ~0x000FFFF0;
 	}
 
 	// if the conditional returned false, or it never ran because execution is off, increase the code execution counter
 	if (false == result)
 		++code_execution_counter;
+	else if (code.subtype & 0x4)
+	{
+		// counters gets advanced if condition was true
+		// right_val is the value of the counter
+
+		code.address &= ~0x000FFFF0;
+		code.address |= ((right_val+1) << 4);
+	}
 
 	return true;
 }
 
 // CT6 ASM Codes, On/Off switch and Address Range Check
-// NOT COMPLETE, hardly started
-// fix the logic flow in this one
+// NOT COMPLETE, asm stuff not started
+// fix the uglyness
 bool AsmSwitchRange()
 {
-	const GeckoCode::Code& code = current_code;
-
-	// only used for the last 2 subtypes
-	const bool is_endif = !!(code.address & 0x1);
+	// the switch subtype modifies the code :/
+	GeckoCode::Code& code = *current_code;
 
 	// only run if code_execution is set or this code is a switch or rangecheck subtype
 	// the switch and rangecheck run if exectution_counter is 1 (directly inside the failed if) if they are an endif
@@ -730,11 +799,11 @@ bool AsmSwitchRange()
 	{
 		if (code.subtype < 0x6)
 			return true;
-		else if (false == (1 == code_execution_counter && is_endif))
+		else if (1 != code_execution_counter)
 			return true;
 	}
 
-	const u32& data = code.data;
+	u32& data = code.data;
 
 	switch (code.subtype)
 	{
@@ -752,24 +821,47 @@ bool AsmSwitchRange()
 
 		// CST3 : Create a branch
 	case 0x3 :
-		// TODO:
+		// watever
+		//if (code.data)
 		return false;	//
 		break;
 
 		// CST6 : On/Off switch
 	case 0x6 :
-		// TODO:
-		return false;	//
+		// in the 1st bit of code.data, i store if code execution was previously off
+		// in the 2nd bit of code.data, i store the switch's on/off state
+		if (CodeExecution())
+		{
+			if (data & 0x1)
+				data ^= 0x2;	// if code exec was previously off, flip the switch
+
+			// mark code execution as previously on
+			data &= ~0x1;
+		}
+		else
+		{
+			// mark code execution as previously off
+			data |= 0x1;
+		}
+
+		// set code execution to the state of the switch
+		code_execution_counter = !(data & 0x2);
 		break;
 
 		// CST7 : Address range check (If... code)
 	case 0x7 :
-		if (code_execution_counter)
+	{
+		const bool is_endif = !!(code.address & 0x1);
+		if (is_endif)
+			--code_execution_counter;
+
+		if (CodeExecution())
 		{
 			const u32 addr = (code.use_po ? pointer_address : base_address);
-			if (addr >= (data & 0xFFFF0000) && addr <= (data << 16))
-				--code_execution_counter;
+			if (addr < (data & 0xFFFF0000) || addr > (data << 16))
+				++code_execution_counter;
 		}
+	}
 		break;
 
 		// INVALID SUBTYPE
@@ -785,7 +877,7 @@ bool AsmSwitchRange()
 // COMPLETE, maybe
 bool EndCodes()
 {
-	const GeckoCode::Code& code = current_code;
+	const GeckoCode::Code& code = *current_code;
 	const u32& data = code.data;
 
 	const u32 x = (data & 0xFFFF0000);
@@ -802,9 +894,7 @@ bool EndCodes()
 		// CST0 : Full Terminator
 	case 0x0 :
 		// clears the code execution status
-		// TODO: should this always stop all codes, even if execution is off?
-		if (CodeExecution())
-			code_execution_counter = -1;	// silly maybe
+		code_execution_counter = 0;
 		break;
 
 		// CST1 : Endif (+else)
