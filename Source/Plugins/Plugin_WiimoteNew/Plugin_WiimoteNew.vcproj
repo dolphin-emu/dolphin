@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="Plugin_WiimoteNew"
 	ProjectGUID="{BB6CE47B-C676-44BB-AE93-2CF59B8C8BD4}"
 	RootNamespace="Plugin_WiimoteNew"
@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\..\Externals\WiiUse\inc;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Common\Src;..\..\Core\InputCommon\Src;..\..\Core\InputUICommon\Src"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\..\Externals\WiiUseSrc\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Common\Src;..\..\Core\InputCommon\Src;..\..\Core\InputUICommon\Src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -130,7 +130,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\..\Externals\WiiUse\inc;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Common\Src;..\..\Core\InputCommon\Src;..\..\Core\InputUICommon\Src"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\..\Externals\WiiUseSrc\src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Common\Src;..\..\Core\InputCommon\Src;..\..\Core\InputUICommon\Src"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -213,7 +213,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\..\Externals\WiiUse\inc;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Common\Src;..\..\Core\InputCommon\Src;..\..\Core\InputUICommon\Src"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\..\Externals\WiiUseSrc\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Common\Src;..\..\Core\InputCommon\Src;..\..\Core\InputUICommon\Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="0"
 				AssemblerListingLocation="$(IntDir)\"
@@ -300,7 +300,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/MP"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\..\Externals\WiiUse\inc;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Common\Src;..\..\Core\InputCommon\Src;..\..\Core\InputUICommon\Src"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\..\Externals\WiiUseSrc\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Common\Src;..\..\Core\InputCommon\Src;..\..\Core\InputUICommon\Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS"
 				RuntimeLibrary="0"
 				AssemblerListingLocation="$(IntDir)\"
@@ -383,7 +383,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\..\Externals\WiiUse\inc;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Common\Src;..\..\Core\InputCommon\Src;..\..\Core\InputUICommon\Src"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\..\Externals\WiiUseSrc\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Common\Src;..\..\Core\InputCommon\Src;..\..\Core\InputUICommon\Src"
 				PreprocessorDefinitions="DEBUGFAST;WIN32;NDEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				WarningLevel="3"
@@ -466,7 +466,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\..\Externals\WiiUse\inc;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Common\Src;..\..\Core\InputCommon\Src;..\..\Core\InputUICommon\Src"
+				AdditionalIncludeDirectories="..\..\PluginSpecs;..\..\..\Externals\SDL\Include_1.3;..\..\..\Externals\WiiUseSrc\Src;..\..\..\Externals\wxWidgets\Include;..\..\..\Externals\wxWidgets\Include\msvc;..\..\Core\Common\Src;..\..\Core\InputCommon\Src;..\..\Core\InputUICommon\Src"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;Plugin_WiimoteNew_TEST_EXPORTS;DEBUGFAST;_SECURE_SCL=0;_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE"
 				RuntimeLibrary="0"
 				WarningLevel="3"

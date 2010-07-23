@@ -53,7 +53,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt;..\..\Source\Core\Common\Src;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WIIUSE_EXPORTS"
 				IgnoreStandardIncludePath="true"
 				StringPooling="true"
@@ -79,11 +79,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib Common.lib WINMM.LIB"
 				OutputFile="..\WiiUse\$(PlatformName)\wiiuse.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\win7\i386"
+				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\Win7\i386;..\..\Source\Core\Common\$(PlatformName)\$(ConfigurationName)"
+				IgnoreAllDefaultLibraries="false"
 				ProgramDatabaseFile=".\win32\Release/wiiuse.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -149,7 +150,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="2"
-				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt;..\..\Source\Core\Common\Src;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;WIIUSE_EXPORTS;_WIN64"
 				IgnoreStandardIncludePath="true"
 				StringPooling="true"
@@ -175,11 +176,11 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib Common.lib"
 				OutputFile="..\WiiUse\$(PlatformName)\wiiuse.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\win7\amd64"
+				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\win7\amd64;..\..\Source\Core\Common\$(PlatformName)\$(ConfigurationName)"
 				ProgramDatabaseFile=".\x64\Release/wiiuse.pdb"
 				RandomizedBaseAddress="1"
 				DataExecutionPrevention="0"
@@ -244,7 +245,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt;..\..\Source\Core\Common\Src;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;WIIUSE_EXPORTS;WITH_WIIUSE_DEBUG"
 				IgnoreStandardIncludePath="true"
 				MinimalRebuild="true"
@@ -271,11 +272,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib Common.lib WINMM.LIB"
 				OutputFile="..\WiiUse\$(PlatformName)\wiiused.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\win7\i386"
+				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\Win7\i386;..\..\Source\Core\Common\$(PlatformName)\$(ConfigurationName)"
+				IgnoreAllDefaultLibraries="false"
+				IgnoreDefaultLibraryNames="LIBCMTD.lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\win32\Debug/wiiuse.pdb"
 				RandomizedBaseAddress="1"
@@ -341,7 +344,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt"
+				AdditionalIncludeDirectories="C:\WinDDK\7600.16385.0\inc\api;C:\WinDDK\7600.16385.0\inc\crt;..\..\Source\Core\Common\Src;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;WIIUSE_EXPORTS;WITH_WIIUSE_DEBUG"
 				IgnoreStandardIncludePath="true"
 				MinimalRebuild="true"
@@ -368,11 +371,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib Ws2_32.lib hid.lib setupapi.lib Common.lib"
 				OutputFile="..\WiiUse\$(PlatformName)\wiiused.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
-				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\win7\amd64"
+				AdditionalLibraryDirectories="C:\WinDDK\7600.16385.0\lib\win7\amd64;..\..\Source\Core\Common\$(PlatformName)\$(ConfigurationName)"
+				IgnoreDefaultLibraryNames="LIBCMTD.lib"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\x64\Debug/wiiuse.pdb"
 				RandomizedBaseAddress="1"
@@ -412,10 +416,6 @@
 			Name="I/O"
 			>
 			<File
-				RelativePath=".\Src\io.h"
-				>
-			</File>
-			<File
 				RelativePath=".\Src\io_nix.c"
 				>
 			</File>
@@ -441,10 +441,6 @@
 			>
 			<File
 				RelativePath=".\Src\definitions.h"
-				>
-			</File>
-			<File
-				RelativePath=".\Src\os.h"
 				>
 			</File>
 		</Filter>

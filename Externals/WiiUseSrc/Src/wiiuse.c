@@ -46,7 +46,7 @@
 
 #include "definitions.h"
 #include "wiiuse_internal.h"
-#include "io.h"
+
 
 static int g_banner = 1;
 
@@ -157,7 +157,6 @@ void wiiuse_disconnected(struct wiimote_t* wm) {
 	/* reset a bunch of stuff */
 	wm->leds = 0;
 	wm->state = WIIMOTE_INIT_STATES;
-	wm->read_req = NULL;
 	memset(wm->event_buf, 0, sizeof(wm->event_buf));
 
 	#ifdef __linux__
