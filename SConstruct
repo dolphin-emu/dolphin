@@ -120,16 +120,17 @@ if env['lint']:
 
 # Verbose compile
 if not env['verbose']:
-    env['CCCOMSTR'] = "Compiling $TARGET"
-    env['CXXCOMSTR'] = "Compiling $TARGET"
     env['ARCOMSTR'] = "Archiving $TARGET"
-    env['LINKCOMSTR'] = "Linking $TARGET"
     env['ASCOMSTR'] = "Assembling $TARGET"
     env['ASPPCOMSTR'] = "Assembling $TARGET"
-    env['SHCCCOMSTR'] = "Compiling shared $TARGET"
-    env['SHCXXCOMSTR'] = "Compiling shared $TARGET"
-    env['SHLINKCOMSTR'] = "Linking shared $TARGET"
+    env['CCCOMSTR'] = "Compiling $TARGET"
+    env['CXXCOMSTR'] = "Compiling $TARGET"
+    env['LINKCOMSTR'] = "Linking $TARGET"
     env['RANLIBCOMSTR'] = "Indexing $TARGET"
+    env['SHCCCOMSTR'] = "Compiling $TARGET"
+    env['SHCXXCOMSTR'] = "Compiling $TARGET"
+    env['SHLINKCOMSTR'] = "Linking $TARGET"
+    env['TARCOMSTR'] = "Creating $TARGET"
 
 dirs = [
     'Externals/Bochs_disasm',
@@ -267,7 +268,7 @@ else:
     # TODO:  Check the version of sfml.  It should be at least version 1.5
     if env['shared_sfml']:
         env['shared_sfml'] = conf.CheckPKG('sfml-network') and \
-                         conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
+                             conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
     if env['shared_soil']:
         env['shared_soil'] = conf.CheckPKG('SOIL')
     for var in env.items():
@@ -279,7 +280,7 @@ else:
         env['HAVE_WX'] = 0
     else:
         env['HAVE_WX'] = conf.CheckWXConfig(2.8,
-            ['aui', 'adv', 'core', 'base', 'gl'], 0)
+            ['aui', 'adv', 'core', 'base'], 0)
         conf.Define('HAVE_WX', env['HAVE_WX'])
         wxconfig.ParseWXConfig(env)
         if not env['HAVE_WX']:
@@ -350,10 +351,16 @@ else:
         else:
             print "Can't build prof without oprofile, disabling"
 
+    tarname = 'dolphin-' + rev
+    env['TARFLAGS'] = '-cj'
+    env['TARSUFFIX'] = '.tar.bz2'
+
     if env['install'] == 'local':
         env['binary_dir'] = '#' + env['prefix']
         env['data_dir'] = '#' + env['prefix']
         env['plugin_dir'] = '#' + env['prefix'] + '/plugins'
+        if env['bundle']:
+            env.Tar(tarname, env['prefix'])
     else:
         env['prefix'] = Dir(env['prefix']).abspath
         env['binary_dir'] = env['prefix'] + '/bin'
@@ -370,18 +377,16 @@ else:
             env['data_dir'] = env['destdir'] + env['data_dir']
             env['plugin_dir'] = env['destdir'] + env['plugin_dir']
             env['prefix'] = env['destdir'] + env['prefix']
+            if env['bundle']:
+                env.Command(tarname + env['TARSUFFIX'], env['prefix'],
+                    'tar ' + env['TARFLAGS'] + 'C ' + env['destdir'] + \
+                    ' -f ' + tarname + env['TARSUFFIX'] + ' ' + \
+                    env['prefix'].split(env['destdir'], 1)[1][1:])
 
     conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
 
     # After all configuration tests are done
     conf.Finish()
-
-    if env['bundle']:
-        if env['install'] == 'global' and not env.has_key('destdir'):
-            print 'Not tarring up ' + env['prefix']
-        else:
-            env.Tar('dolphin-' + rev + '.tar.bz2', env['prefix'],
-                TARFLAGS='-cj', TARCOMSTR='Creating release tarball')
 
     # Data install
     env.InstallAs(env['data_dir'] + '/sys', 'Data/Sys')
