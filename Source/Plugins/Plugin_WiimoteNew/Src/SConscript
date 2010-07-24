@@ -1,9 +1,10 @@
 # -*- python -*-
 
 Import('env')
+import os
 import sys
 
-name = "Plugin_WiimoteNew"
+name = os.sep + "Plugin_WiimoteNew"
 
 files = [
 	'WiimoteEmu/WiimoteEmu.cpp',

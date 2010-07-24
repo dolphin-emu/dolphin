@@ -164,12 +164,10 @@ env['build_dir'] = 'Build' + os.sep + platform.system() + \
 # Static libs go here
 env['local_libs'] = '#' + env['build_dir'] + os.sep + 'libs' + os.sep
 
-# Install path
-if sys.platform == 'linux2' and env['install'] == 'global':
-	env['prefix'] = os.path.join(env['prefix'] + os.sep)
-else:
-	env['prefix'] = 'Binary' + os.sep + platform.system() + \
-    	'-' + platform.machine() + extra + os.sep
+# Default install path
+if not env.has_key('install') or env['install'] == 'local':
+    env['prefix'] = 'Binary' + os.sep + platform.system() + \
+        '-' + platform.machine() + extra
 
 # Configuration tests section
 tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
@@ -182,13 +180,6 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
 rev = utils.GenerateRevFile(env['flavor'],
                             "Source/Core/Common/Src/svnrev_template.h",
                             "Source/Core/Common/Src/svnrev.h")
-
-shared = {}
-shared['glew'] = shared['lzo'] = shared['sdl'] = \
-shared['soil'] = shared['sfml'] = shared['zlib'] = 0
-wxmods = ['aui', 'adv', 'core', 'base', 'gl']
-env['HAVE_OPENCL'] = 0
-env['HAVE_WX'] = 0
 
 env['CCFLAGS'] = ccFlags
 env['CPPDEFINES'] = cppDefines
@@ -214,12 +205,17 @@ if sys.platform == 'darwin':
     env['LINKFLAGS'] += ['-Z', '-L/Developer/SDKs/MacOSX10.5.sdk/usr/lib',
         '-F/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks',
         '-F/Developer/SDKs/MacOSX10.6.sdk/System/Library/Frameworks']
-    if platform.mac_ver()[0] >= '10.6.0':
+    if platform.mac_ver()[0] < '10.6.0':
+        env['HAVE_OPENCL'] = 0
+    else:
         env['HAVE_OPENCL'] = 1
         env['LINKFLAGS'] += ['-weak_framework', 'OpenCL']
-    if not env['nowx']:
+    if env['nowx']:
+        env['HAVE_WX'] = 0
+    else:
         conf = env.Configure(custom_tests = tests)
-        env['HAVE_WX'] = conf.CheckWXConfig(2.9, wxmods, 0)
+        env['HAVE_WX'] = conf.CheckWXConfig(2.9,
+            ['aui', 'adv', 'core', 'base', 'gl'], 0)
         conf.Finish()
         # wx-config wants us to link with the OS X QuickTime framework
         # which is not available for x86_64 and we don't use it anyway.
@@ -232,20 +228,23 @@ if sys.platform == 'darwin':
     env['CPPPATH'] += ['#Externals']
     env['FRAMEWORKS'] += ['Cg']
     env['LINKFLAGS'] += ['-FExternals/Cg']
-    shared['zlib'] = 1
-    env['data_dir'] = '#' + env['prefix'] + 'Dolphin.app/Contents/Resources'
-    env['plugin_dir'] = '#' + env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
+    env['shared_zlib'] = True
+    env['data_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/Resources'
+    env['plugin_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/PlugIns'
     env.Install(env['data_dir'], 'Data/Sys')
     env.Install(env['data_dir'], 'Data/User')
+    dirs += ['Externals/dylibbundler']
     if env['bundle']:
-        app = env['prefix'] + 'Dolphin.app'
-        dmg = env['prefix'] + 'Dolphin-r' + rev + '.dmg'
+        app = env['prefix'] + '/Dolphin.app'
+        dmg = env['prefix'] + '/Dolphin-r' + rev + '.dmg'
         env.Command(dmg, app, 'rm -f ' + dmg +
             ' && hdiutil create -srcfolder ' + app + ' -format UDBZ ' + dmg +
             ' && hdiutil internet-enable -yes ' + dmg)
 
 elif sys.platform == 'win32':
     env['tools'] = ['mingw']
+    dirs += ['Source/Plugins/Plugin_VideoDX9/Src']
+    dirs += ['Source/Plugins/Plugin_VideoDX11/Src']
 
 else:
     env['CCFLAGS'] += ['-pthread']
@@ -258,28 +257,29 @@ else:
         print "Can't find pkg-config, some tests will fail"
 
     if env['shared_glew']:
-        shared['glew'] = conf.CheckPKG('GLEW')
+        env['shared_glew'] = conf.CheckPKG('GLEW')
     if env['shared_sdl']:
-        shared['sdl'] = conf.CheckPKG('SDL')
+        env['shared_sdl'] = conf.CheckPKG('SDL')
     if env['shared_zlib']:
-        shared['zlib'] = conf.CheckPKG('z')
+        env['shared_zlib'] = conf.CheckPKG('z')
     if env['shared_lzo']:
-        shared['lzo'] = conf.CheckPKG('lzo2')
+        env['shared_lzo'] = conf.CheckPKG('lzo2')
     # TODO:  Check the version of sfml.  It should be at least version 1.5
     if env['shared_sfml']:
-        shared['sfml'] = conf.CheckPKG('sfml-network') and \
+        env['shared_sfml'] = conf.CheckPKG('sfml-network') and \
                          conf.CheckCXXHeader("SFML/Network/Ftp.hpp")
     if env['shared_soil']:
-        shared['soil'] = conf.CheckPKG('SOIL')
-    for lib in shared:
-        if not shared[lib]:
-            print "Shared library " + lib + " not detected, " \
+        env['shared_soil'] = conf.CheckPKG('SOIL')
+    for var in env.items():
+        if var[0].startswith('shared_') and var[1] == False:
+            print "Shared library " + var[0][7:] + " not detected, " \
                   "falling back to the static library"
 
-    if not env['nowx']:
-        # wxGLCanvas does not play well with wxGTK
-        wxmods.remove('gl')
-        env['HAVE_WX'] = conf.CheckWXConfig(2.8, wxmods, 0)
+    if env['nowx']:
+        env['HAVE_WX'] = 0
+    else:
+        env['HAVE_WX'] = conf.CheckWXConfig(2.8,
+            ['aui', 'adv', 'core', 'base', 'gl'], 0)
         conf.Define('HAVE_WX', env['HAVE_WX'])
         wxconfig.ParseWXConfig(env)
         if not env['HAVE_WX']:
@@ -329,6 +329,8 @@ else:
     if env['opencl']:
         env['HAVE_OPENCL'] = conf.CheckPKG('OpenCL')
         conf.Define('HAVE_OPENCL', env['HAVE_OPENCL'])
+    else:
+        env['HAVE_OPENCL'] = 0
 
     # PGO - Profile Guided Optimization
     if env['pgo']=='generate':
@@ -348,71 +350,76 @@ else:
         else:
             print "Can't build prof without oprofile, disabling"
 
-    if env['install'] == 'global':
-        env['binary_dir'] = env['prefix'] + '/bin/'
-        env['data_dir'] = env['prefix'] + "/share/dolphin-emu/"
-        env['plugin_dir'] = env['prefix'] + '/lib/dolphin-emu/'
-        conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
-        conf.Define('LIBS_DIR', "\"" + env['prefix'] + 'lib/' +  "\"")
-    else:
+    if env['install'] == 'local':
         env['binary_dir'] = '#' + env['prefix']
         env['data_dir'] = '#' + env['prefix']
-        env['plugin_dir'] = '#' + env['prefix'] + 'plugins/'
+        env['plugin_dir'] = '#' + env['prefix'] + '/plugins'
+    else:
+        env['prefix'] = Dir(env['prefix']).abspath
+        env['binary_dir'] = env['prefix'] + '/bin'
+        env['data_dir'] = env['prefix'] + "/share/dolphin-emu"
+        env['plugin_dir'] = env['prefix'] + '/lib/dolphin-emu'
+        conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
+        conf.Define('LIBS_DIR', "\"" + env['prefix'] + '/lib/' + "\"")
+        # Setup destdir for package building
+        # Warning: The program will not run from this location.
+        # It is assumed the package will later install it to the prefix.
+        if env.has_key('destdir'):
+            env['destdir'] = Dir(env['destdir']).abspath
+            env['binary_dir'] = env['destdir'] + env['binary_dir']
+            env['data_dir'] = env['destdir'] + env['data_dir']
+            env['plugin_dir'] = env['destdir'] + env['plugin_dir']
+            env['prefix'] = env['destdir'] + env['prefix']
 
     conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
 
     # After all configuration tests are done
     conf.Finish()
 
-    # Setup destdir for package building
-    # Warning:  The program will not run from this location.  It is assumed the
-    # package will later install it to the prefix as it was defined before this.
-    if env.has_key('destdir'):
-        env['binary_dir'] = env['destdir'] + env['binary_dir']
-        env['data_dir'] = env['destdir'] + env['data_dir']
-        env['plugin_dir'] = env['destdir'] + env['plugin_dir']
-        env['prefix'] = env['destdir'] + env['prefix']
     if env['bundle']:
-        env.Tar('dolphin-' + rev + '.tar.bz2', env['prefix'],
-            TARFLAGS='-cj', TARCOMSTR='Creating release tarball')
+        if env['install'] == 'global' and not env.has_key('destdir'):
+            print 'Not tarring up ' + env['prefix']
+        else:
+            env.Tar('dolphin-' + rev + '.tar.bz2', env['prefix'],
+                TARFLAGS='-cj', TARCOMSTR='Creating release tarball')
 
     # Data install
-    env.InstallAs(env['data_dir'] + 'sys', 'Data/Sys')
-    env.InstallAs(env['data_dir'] + 'user', 'Data/User')
+    env.InstallAs(env['data_dir'] + '/sys', 'Data/Sys')
+    env.InstallAs(env['data_dir'] + '/user', 'Data/User')
+
+    env.Alias('install', env['prefix'])
 
 # Local (static) libraries must be first in the search path for the build in
 # order that they can override system libraries, but they must not be found
 # during autoconfiguration as they will then be detected as system libraries.
 env['LIBPATH'].insert(0, env['local_libs'])
 
-if not shared['glew']:
+if not env.has_key('shared_glew') or not env['shared_glew']:
     env['CPPPATH'] += ['#Externals/GLew/include']
     dirs += ['Externals/GLew']
-if not shared['lzo']:
+if not env.has_key('shared_lzo') or not env['shared_lzo']:
     env['CPPPATH'] += ['#Externals/LZO']
     dirs += ['Externals/LZO']
-if not shared['sdl']:
+if not env.has_key('shared_sdl') or not env['shared_sdl']:
     env['CPPPATH'] += ['#Externals/SDL']
     env['CPPPATH'] += ['#Externals/SDL/include']
     dirs += ['Externals/SDL']
-if not shared['soil']:
+if not env.has_key('shared_soil') or not env['shared_soil']:
     env['CPPPATH'] += ['#Externals/SOIL']
     dirs += ['Externals/SOIL']
-if not shared['sfml']:
+if not env.has_key('shared_sfml') or not env['shared_sfml']:
     env['CPPPATH'] += ['#Externals/SFML/include']
     dirs += ['Externals/SFML/src']
-if not shared['zlib']:
+if not env.has_key('shared_zlib') or not env['shared_zlib']:
     env['CPPPATH'] += ['#Externals/zlib']
     dirs += ['Externals/zlib']
-
-# Generate help
-Help(vars.GenerateHelpText(env))
 
 for subdir in dirs:
     SConscript(subdir + os.sep + 'SConscript',
         variant_dir = env['build_dir'] + os.sep + subdir, duplicate = 0)
 
-env.Alias('install', env['prefix'])
-
 # Print a nice progress indication when not compiling
 Progress(['-\r', '\\\r', '|\r', '/\r'], interval = 5)
+
+# Generate help
+Help(vars.GenerateHelpText(env))

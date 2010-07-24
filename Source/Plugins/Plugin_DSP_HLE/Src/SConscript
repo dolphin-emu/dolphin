@@ -1,8 +1,9 @@
 # -*- python -*-
 
 Import('env')
+import os
 
-name = "Plugin_DSP_HLE"
+name = os.sep + "Plugin_DSP_HLE"
 
 files = [
 	'DSPHandler.cpp',

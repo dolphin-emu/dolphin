@@ -1,9 +1,10 @@
 # -*- python -*-
 
 Import('env')
+import os
 import sys
 
-name = "Plugin_VideoSoftware"
+name = os.sep + "Plugin_VideoSoftware"
 
 files = [
 	'BPMemLoader.cpp',

@@ -1,8 +1,9 @@
 # -*- python -*-
 
 Import('env')
+import os
 
-name = "Plugin_DSP_LLE"
+name = os.sep + "Plugin_DSP_LLE"
 
 files = [
 	"Config.cpp",

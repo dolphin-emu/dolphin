@@ -55,12 +55,12 @@ if sys.platform == 'win32':
 	files += [ "stdafx.cpp" ]
 elif sys.platform == 'darwin' and not env['HAVE_WX']:
 	files += [ 'cocoaApp.m' ]
-	exeNoGUI = '#' + env['prefix'] + 'DolphinNoGUI'
+	exeNoGUI = '#' + env['prefix'] + '/DolphinNoGUI'
 elif sys.platform == 'darwin' and env['HAVE_WX']:
 	exeGUI = 'Dolphin'
-	exeGUIdist = '#' + env['prefix'] + 'Dolphin.app/Contents/MacOS/Dolphin'
+	exeGUIdist = '#' + env['prefix'] + '/Dolphin.app/Contents/MacOS/Dolphin'
 
-	env.Install('#' + env['prefix'] + 'Dolphin.app/Contents/' +
+	env.Install('#' + env['prefix'] + '/Dolphin.app/Contents/' +
 		'Library/Frameworks/Cg.framework',
 		'#Externals/Cg/Cg.framework/Cg')
 
@@ -72,7 +72,7 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 		for srcNode in source:
 			writePlist(srcNode.value, str(target[0]))
 	env.Append(BUILDERS = {'Plist' : Builder(action = createPlist)})
-	env.Plist('#' + env['prefix'] + 'Dolphin.app/Contents/Info.plist',
+	env.Plist('#' + env['prefix'] + '/Dolphin.app/Contents/Info.plist',
 		Value(dict(
 		CFBundleExecutable = 'Dolphin',
 		CFBundleIconFile = 'Dolphin.icns',
@@ -94,8 +94,8 @@ elif sys.platform == 'darwin' and env['HAVE_WX']:
 else:
 	files += [ 'X11Utils.cpp' ]
 	libs += [ 'SDL' ]
-	exeGUI = env['binary_dir'] + 'dolphin-emu'
-	exeNoGUI = env['binary_dir'] + 'dolphin-emu-nogui'
+	exeGUI = env['binary_dir'] + '/dolphin-emu'
+	exeNoGUI = env['binary_dir'] + '/dolphin-emu-nogui'
 
 if env['HAVE_WX']:
 	env.StaticLibrary(env['local_libs'] + 'memcard', memcardfiles)

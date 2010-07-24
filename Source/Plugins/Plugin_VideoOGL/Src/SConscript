@@ -1,9 +1,10 @@
 # -*- python -*-
 
 Import('env')
+import os
 import sys
 
-name = "Plugin_VideoOGL"
+name = os.sep + "Plugin_VideoOGL"
 
 files = [
 	'BPFunctions.cpp',

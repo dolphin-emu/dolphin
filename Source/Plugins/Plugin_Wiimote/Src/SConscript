@@ -1,8 +1,9 @@
 # -*- python -*-
 
 Import('env')
+import os
 
-name = "Plugin_Wiimote"
+name = os.sep + "Plugin_Wiimote"
 
 files = [
 	"Config.cpp",
