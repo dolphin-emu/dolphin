@@ -34,6 +34,7 @@
 #ifndef DEFINITIONS_H_INCLUDED
 #define DEFINITIONS_H_INCLUDED
 
+#ifndef WIN32
 #include "Log.h"
 
 // NOTICE_LEVEL is more appropriate for the uses of WIIUSE_INFO than INFO_LEVEL
@@ -42,6 +43,32 @@
 #define WIIUSE_ERROR(...) { GENERIC_LOG(WIIMOTE, ERROR_LEVEL, __VA_ARGS__) }
 #define WIIUSE_WARNING(...) { GENERIC_LOG(WIIMOTE, WARNING_LEVEL, __VA_ARGS__) }
 #define WIIUSE_DEBUG(...) { GENERIC_LOG(WIIMOTE, DEBUG_LEVEL, __VA_ARGS__) }
+#else
+
+/* disable warnings I don't care about */
+#pragma warning(disable:4244)           /* possible loss of data conversion     */
+#pragma warning(disable:4273)           /* inconsistent dll linkage                     */
+#pragma warning(disable:4217)
+
+
+#define WIIUSE_ERROR(fmt, ...)		fprintf(stderr, "[ERROR] " fmt "\n", ##__VA_ARGS__)
+ 
+#define WIIUSE_WARNING(fmt, ...)	fprintf(stderr, "[WARNING] " fmt "\n",	##__VA_ARGS__)
+ 
+#define WIIUSE_INFO(fmt, ...)		fprintf(stderr, "[INFO] " fmt "\n", ##__VA_ARGS__)
+ 
+#ifdef WITH_WIIUSE_DEBUG
+#define WIIUSE_DEBUG(fmt, ...)		do {														\
+char* file = __FILE__;																			\
+		int i = strlen(file) - 1;																\
+		for (; i && (file[i] != '\\'); --i);													\
+			fprintf(stderr, "[DEBUG] %s:%i: " fmt "\n", file+i+1, __LINE__, ##__VA_ARGS__);		\
+	} while (0)	
+#else
+#define WIIUSE_DEBUG(fmt, ...)			
+#endif
+
+#endif
 
 /* Convert to big endian */
 #define BIG_ENDIAN_LONG(i)				(htonl(i))
