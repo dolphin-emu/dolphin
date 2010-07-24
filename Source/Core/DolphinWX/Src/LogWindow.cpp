@@ -165,7 +165,6 @@ CLogWindow::~CLogWindow()
 void CLogWindow::OnClose(wxCloseEvent& event)
 {
 	SaveSettings();
-	wxGetApp().GetCFrame()->ToggleLogWindow(false);
 	event.Skip();
 }
 

@@ -114,8 +114,6 @@ class CFrame : public CRenderFrame
 
 		// These have to be public		
 		CCodeWindow* g_pCodeWindow;
-		wxMenuBar* m_MenuBar;
-		wxBitmap aNormalFile;
 		void InitBitmaps();
 		void DoPause();
 		void DoStop();
@@ -143,8 +141,6 @@ class CFrame : public CRenderFrame
 		// AUI
 		wxAuiManager *m_Mgr;
 		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
-		long NOTEBOOK_STYLE, TOOLBAR_STYLE;
-		int iLeftWidth[2], iMidWidth[2];
 		bool bFloatWindow[IDM_VIDEOWINDOW - IDM_LOGWINDOW + 1];
 
 		// Utility
@@ -169,9 +165,8 @@ class CFrame : public CRenderFrame
 		void ShowAllNotebooks(bool Window = false);
 		void HideAllNotebooks(bool Window = false);
 		void CloseAllNotebooks();
-		void DoAddPage(wxWindow *, int, bool);
-		void DoRemovePage(wxWindow *, bool Hide = true);
-		void DoRemovePageId(wxWindowID Id, bool bHide, bool bDestroy);
+		void DoAddPage(wxWindow *Win, int i, bool Float);
+		void DoRemovePage(wxWindow *, bool bHide = true);
 		void TogglePane();
 		void SetSimplePaneSize();
 		void SetPaneSize();
@@ -210,7 +205,6 @@ class CFrame : public CRenderFrame
 
 	private:
 		wxStatusBar* m_pStatusBar;
-		wxBoxSizer* sizerPanel;
 		wxBoxSizer* sizerFrame;
 		CGameListCtrl* m_GameListCtrl;
 		wxPanel* m_Panel;

@@ -100,7 +100,7 @@ void CFrame::CreateMenu()
 {
 	if (GetMenuBar()) GetMenuBar()->Destroy();
 
-	m_MenuBar = new wxMenuBar(wxMB_DOCKABLE);
+	wxMenuBar *m_MenuBar = new wxMenuBar();
 
 	// file menu
 	wxMenu* fileMenu = new wxMenu;
@@ -367,6 +367,7 @@ void CFrame::RecreateToolbar()
 		m_ToolBar->Destroy();
 	}
 
+	long TOOLBAR_STYLE = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT  /*wxAUI_TB_OVERFLOW overflow visible*/;
 	m_ToolBar = new wxAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize, TOOLBAR_STYLE);
 
 	PopulateToolbar(m_ToolBar);
@@ -495,8 +496,6 @@ void CFrame::InitBitmaps()
 
 	// Update in case the bitmap has been updated
 	if (m_ToolBar != NULL) RecreateToolbar();
-
-	aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 }
 
 // Menu items
@@ -1325,10 +1324,8 @@ void CFrame::UpdateGUI()
 			// Game has not started, show game list
 			if (!m_GameListCtrl->IsShown())
 			{
-				m_GameListCtrl->Reparent(m_Panel);
 				m_GameListCtrl->Enable();
 				m_GameListCtrl->Show();
-				sizerPanel->FitInside(m_Panel);
 			}
 			// Game has been selected but not started, enable play button
 			if (m_GameListCtrl->GetSelectedISO() != NULL && m_GameListCtrl->IsEnabled() && !m_bGameLoading)

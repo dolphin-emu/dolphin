@@ -473,7 +473,7 @@ void CCodeWindow::ToggleCodeWindow(bool bShow)
 	if (bShow)
 		Parent->DoAddPage(this, iCodeWindow,
 			   	Parent->bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW]);
-	else // hide
+	else // Hide
 		Parent->DoRemovePage(this);
 }
 
@@ -487,8 +487,8 @@ void CCodeWindow::ToggleRegisterWindow(bool bShow)
 		Parent->DoAddPage(m_RegisterWindow, iRegisterWindow,
 			   	Parent->bFloatWindow[IDM_REGISTERWINDOW - IDM_LOGWINDOW]);
 	}
-	else // hide
-		Parent->DoRemovePage(m_RegisterWindow);
+	else // Close
+		Parent->DoRemovePage(m_RegisterWindow, false);
 }
 
 void CCodeWindow::ToggleBreakPointWindow(bool bShow)
@@ -501,8 +501,8 @@ void CCodeWindow::ToggleBreakPointWindow(bool bShow)
 		Parent->DoAddPage(m_BreakpointWindow, iBreakpointWindow,
 			   	Parent->bFloatWindow[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW]);
 	}
-	else // hide
-		Parent->DoRemovePage(m_BreakpointWindow);
+	else // Close
+		Parent->DoRemovePage(m_BreakpointWindow, false);
 }
 
 void CCodeWindow::ToggleMemoryWindow(bool bShow)
@@ -515,8 +515,8 @@ void CCodeWindow::ToggleMemoryWindow(bool bShow)
 		Parent->DoAddPage(m_MemoryWindow, iMemoryWindow,
 			   	Parent->bFloatWindow[IDM_MEMORYWINDOW - IDM_LOGWINDOW]);
 	}
-	else // hide
-		Parent->DoRemovePage(m_MemoryWindow);
+	else // Close
+		Parent->DoRemovePage(m_MemoryWindow, false);
 }
 
 void CCodeWindow::ToggleJitWindow(bool bShow)
@@ -529,8 +529,8 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 		Parent->DoAddPage(m_JitWindow, iJitWindow,
 			   	Parent->bFloatWindow[IDM_JITWINDOW - IDM_LOGWINDOW]);
 	}
-	else // hide
-		Parent->DoRemovePage(m_JitWindow);
+	else // Close
+		Parent->DoRemovePage(m_JitWindow, false);
 }
 
 // Notice: This windows docking will produce several wx debugging messages for plugin
@@ -582,7 +582,7 @@ void CCodeWindow::ToggleDLLWindow(int Id, bool bShow)
 		Win = (wxPanel *)FindWindowById(Id);
 		if (Win)
 		{
-			Parent->DoRemovePageId(Id, false, false);
+			Parent->DoRemovePage(Win, false);
 			Win->Close();
 			Win->Destroy();
 		}

@@ -43,7 +43,7 @@ class CMemoryWindow
 					  long style = wxNO_BORDER,
 					  const wxString& name = _T("Memory"));
 
-        ~CMemoryWindow();
+		~CMemoryWindow();
 		wxCheckBox* chk8;
 		wxCheckBox* chk16;
 		wxCheckBox* chk32;
@@ -56,7 +56,7 @@ class CMemoryWindow
 		void Update();
 		void NotifyMapLoaded();
 
-        void JumpToAddress(u32 _Address);
+		void JumpToAddress(u32 _Address);
 
 	private:
 		CMemoryView* memview;

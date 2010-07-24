@@ -132,12 +132,12 @@ CPanel::CPanel(
 			case WM_USER_PAUSE:
 				main_frame->DoPause();
 				break;
-			
+
 			// Stop
 			case WM_USER_STOP:
 				main_frame->DoStop();
 				break;
-			
+
 			case WM_USER_CREATE:
 				break;
 
@@ -336,8 +336,7 @@ CFrame::CFrame(wxFrame* parent,
 		bool ShowLogWindow,
 		long style)
 	: CRenderFrame(parent, id, title, pos, size, style)
-	, g_pCodeWindow(NULL)		
-	, m_MenuBar(NULL)
+	, g_pCodeWindow(NULL)
 	, bRenderToMain(false), bNoWiimoteMsg(false)
 	, m_ToolBar(NULL), m_ToolBarDebug(NULL), m_ToolBarAui(NULL)
 	, m_pStatusBar(NULL), m_GameListCtrl(NULL), m_Panel(NULL)
@@ -369,7 +368,7 @@ CFrame::CFrame(wxFrame* parent,
 		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, IDM_CODEWINDOW);
 		g_pCodeWindow->Hide();
 		g_pCodeWindow->Load();
-	}	
+	}
 
 	// Create timer
 	#if wxUSE_TIMER
@@ -377,7 +376,7 @@ CFrame::CFrame(wxFrame* parent,
 		m_timer.Start( floor((double)(1000 / TimesPerSecond)) );
 	#endif
 
-	// Create toolbar bitmaps	
+	// Create toolbar bitmaps
 	InitBitmaps();
 
 	// Give it an icon
@@ -402,7 +401,7 @@ CFrame::CFrame(wxFrame* parent,
 			wxDefaultPosition, wxDefaultSize,
 			wxLC_REPORT | wxSUNKEN_BORDER | wxLC_ALIGN_LEFT);
 
-	sizerPanel = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer *sizerPanel = new wxBoxSizer(wxHORIZONTAL);
 	sizerPanel->Add(m_GameListCtrl, 1, wxEXPAND | wxALL);
 	m_Panel->SetSizer(sizerPanel);
 	// ---------------
@@ -411,9 +410,6 @@ CFrame::CFrame(wxFrame* parent,
 	// wxAUI_MGR_LIVE_RESIZE does not exist in the wxWidgets 2.8.9 that comes with Ubuntu 9.04
 	// Could just check for wxWidgets version if it becomes a problem.
 	m_Mgr = new wxAuiManager(this, wxAUI_MGR_DEFAULT | wxAUI_MGR_LIVE_RESIZE);
-	NOTEBOOK_STYLE = wxAUI_NB_TOP | wxAUI_NB_TAB_SPLIT | wxAUI_NB_TAB_EXTERNAL_MOVE | wxAUI_NB_SCROLL_BUTTONS | wxAUI_NB_WINDOWLIST_BUTTON | wxNO_BORDER;
-	TOOLBAR_STYLE = wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT  /*wxAUI_TB_OVERFLOW overflow visible*/;
-	aNormalFile = wxArtProvider::GetBitmap(wxART_NORMAL_FILE, wxART_OTHER, wxSize(16,16));
 
 	if (g_pCodeWindow)
 	{
@@ -427,7 +423,7 @@ CFrame::CFrame(wxFrame* parent,
 
 	// Setup perspectives
 	if (g_pCodeWindow)
-	{		
+	{
 		m_Mgr->GetPane(wxT("Pane 0")).CenterPane().PaneBorder(false);
 		AuiFullscreen = m_Mgr->SavePerspective();
 		m_Mgr->GetPane(wxT("Pane 0")).CenterPane().PaneBorder(true);
@@ -453,7 +449,7 @@ CFrame::CFrame(wxFrame* parent,
 
 	// Setup perspectives
 	if (g_pCodeWindow)
-	{		
+	{
 		// Load perspective
 		SaveLocal();
 		DoLoadPerspective();
@@ -470,7 +466,7 @@ CFrame::CFrame(wxFrame* parent,
 	// Show window
 	Show();
 
-	// Commit 
+	// Commit
 	m_Mgr->Update();
 
 	// Create cursors
@@ -517,6 +513,9 @@ CFrame::~CFrame()
 	#if defined(HAVE_XRANDR) && HAVE_XRANDR
 		delete m_XRRConfig;
 	#endif
+
+	// Close the log window now so that its settings are saved
+	m_LogWindow->Close();
 
 	ClosePages();
 
@@ -742,7 +741,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		SConfig::GetInstance().m_ListWad	= SConfig::GetInstance().m_ListJap =
 		SConfig::GetInstance().m_ListUsa	= SConfig::GetInstance().m_ListPal =
 		SConfig::GetInstance().m_ListFrance	= SConfig::GetInstance().m_ListItaly =
-		SConfig::GetInstance().m_ListKorea	= SConfig::GetInstance().m_ListTaiwan = 
+		SConfig::GetInstance().m_ListKorea	= SConfig::GetInstance().m_ListTaiwan =
 		SConfig::GetInstance().m_ListUnknown= true;
 
 		GetMenuBar()->FindItem(IDM_LISTGC)->Check(true);
@@ -758,7 +757,7 @@ void CFrame::OnGameListCtrl_ItemActivated(wxListEvent& WXUNUSED (event))
 		GetMenuBar()->FindItem(IDM_LIST_UNK)->Check(true);
 
 		m_GameListCtrl->Update();
-	}			
+	}
 	else
 		// Game started by double click
 		BootGame(std::string(""));
@@ -811,7 +810,7 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 			if (event.GetModifiers() == wxMOD_NONE)
 				State_UndoSaveState();
 			else if (event.GetModifiers() == wxMOD_SHIFT)
-				State_UndoLoadState();	
+				State_UndoLoadState();
 			else
 				event.Skip();
 		}
@@ -862,42 +861,6 @@ void CFrame::OnKeyUp(wxKeyEvent& event)
 	if(Core::GetState() != Core::CORE_UNINITIALIZED) {
 		CPluginManager::GetInstance().GetWiimote()->Wiimote_Input(event.GetKeyCode(), 0); // 0 = Up
 	}
-}
-
-wxFrame * CFrame::CreateParentFrame(wxWindowID Id, const wxString& Title, wxWindow * Child)
-{
-	wxFrame * Frame = new wxFrame(this, Id, Title, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
-	
-	Child->Reparent(Frame);
-	Child->Show();
-
-	wxBoxSizer * m_MainSizer = new wxBoxSizer(wxHORIZONTAL);
-
-	m_MainSizer->Add(Child, 1, wxEXPAND);
-
-	Frame->Connect(wxID_ANY, wxEVT_CLOSE_WINDOW,
-		wxCloseEventHandler(CFrame::OnFloatingPageClosed),
-		(wxObject*)0, this);
-
-	if (Id == IDM_CONSOLEWINDOW_PARENT)
-	{
-		Frame->Connect(wxID_ANY, wxEVT_SIZE,
-			wxSizeEventHandler(CFrame::OnFloatingPageSize),
-			(wxObject*)0, this);
-	}
-
-	// Main sizer
-	Frame->SetSizer( m_MainSizer );
-	// Minimum frame size
-	Frame->SetMinSize(wxSize(200, -1));
-	Frame->Show();
-	return Frame;
-}
-
-wxAuiNotebook* CFrame::CreateEmptyNotebook()
-{
-	wxAuiNotebook* NB = new wxAuiNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, NOTEBOOK_STYLE);
-	return NB;
 }
 
 void CFrame::DoFullscreen(bool bF)
