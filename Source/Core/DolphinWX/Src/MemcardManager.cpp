@@ -562,11 +562,9 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				? wxString::FromAscii("")
 				: wxString::From8BitData(DefaultIOPath.c_str()),
 			wxEmptyString, wxEmptyString,
-			wxT("Gamecube save files(*.gci,*.gcs,*.sav)"
-						"|*.gci;*.gcs;*.sav|")
-			wxT("Native GCI files(*.gci)|*.gci|"
-			    "MadCatz Gameshark files(*.gcs)|*.gcs|"
-			    "Datel MaxDrive/Pro files(*.sav)|*.sav"),
+			wxT("Native GCI files(*.gci)|*.gci|")
+			wxT("MadCatz Gameshark files(*.gcs)|*.gcs|")
+			wxT("Datel MaxDrive/Pro files(*.sav)|*.sav"),
 			wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 		if (!fileName.empty() && !fileName2.empty())
 		{
@@ -598,9 +596,9 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 				wxT("Export save as.."),
 				wxString::From8BitData(DefaultIOPath.c_str()),
 				wxString::From8BitData(tempC), wxT(".gci"),
-				wxT("Native GCI files (*.gci)|*.gci|"
-				    "MadCatz Gameshark files(*.gcs)|*.gcs|"
-				    "Datel MaxDrive/Pro files(*.sav)|*.sav"),
+				wxT("Native GCI files(*.gci)|*.gci|")
+				wxT("MadCatz Gameshark files(*.gcs)|*.gcs|")
+				wxT("Datel MaxDrive/Pro files(*.sav)|*.sav"),
 				wxFD_OVERWRITE_PROMPT|wxFD_SAVE);
 
 			if (fileName.length() > 0)
