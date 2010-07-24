@@ -133,10 +133,12 @@ bool OpenGL_ReportFBOError(const char *function, const char *file, int line);
 #define GL_REPORT_ERRORD()
 #endif
 
+#if defined __APPLE__ || defined __linux__ || defined _WIN32
 #include <Cg/cg.h>
 #include <Cg/cgGL.h>
-
+#define HAVE_CG 1
 extern CGcontext g_cgcontext;
 extern CGprofile g_cgvProf, g_cgfProf;
+#endif
 
 #endif  // _GLINIT_H_

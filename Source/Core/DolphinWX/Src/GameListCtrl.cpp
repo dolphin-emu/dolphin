@@ -554,12 +554,15 @@ void CGameListCtrl::ScanForISOs()
 			sprintf(tempstring,"Scanning %s", FileName.c_str());
 			msg = wxString(tempstring, *wxConvCurrent);
 
+// With wxWidgets 2.9.1, each Update() sleeps for several seconds
+#ifndef __APPLE__
 			// Update with the progress (i) and the message (msg)
 			bool Cont = dialog.Update(i, msg);
 			if (!Cont)
 			{
 				break;
 			}
+#endif
 			GameListItem ISOFile(rFilenames[i]);
 			if (ISOFile.IsValid())
 			{

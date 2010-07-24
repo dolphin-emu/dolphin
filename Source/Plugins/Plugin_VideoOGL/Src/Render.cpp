@@ -26,9 +26,6 @@
 
 #include "GLUtil.h"
 
-#include <Cg/cg.h>
-#include <Cg/cgGL.h>
-
 #include "FileUtil.h"
 
 #ifdef _WIN32
@@ -76,9 +73,11 @@
 // ----------------------------
 int s_fps=0;
 
+#if defined HAVE_CG && HAVE_CG
 CGcontext g_cgcontext;
 CGprofile g_cgvProf;
 CGprofile g_cgfProf;
+#endif
 
 RasterFont* s_pfont = NULL;
 
@@ -208,6 +207,7 @@ void SetDefaultRectTexParams()
 	glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 }
 
+#if defined HAVE_CG && HAVE_CG
 void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 {
 	DEBUG_LOG(VIDEO, "Cg error: %s", cgGetErrorString(err));
@@ -216,6 +216,7 @@ void HandleCgError(CGcontext ctx, CGerror err, void* appdata)
 		DEBUG_LOG(VIDEO, "    last listing: %s", listing);
 	}
 }
+#endif
 
 } // namespace
 void VideoConfig::UpdateProjectionHack()
@@ -231,6 +232,8 @@ bool Renderer::Init()
 	bool bSuccess = true;
 	s_blendMode = 0;
 	s_MSAACoverageSamples = 0;
+	GLint numvertexattribs = 0;
+
 	switch (g_ActiveConfig.iMultisampleMode)
 	{
 		case MULTISAMPLE_OFF: s_MSAASamples = 1; break;
@@ -244,11 +247,12 @@ bool Renderer::Init()
 		default:
 		s_MSAASamples = 1;
 	}
-	GLint numvertexattribs = 0;
-	g_cgcontext = cgCreateContext();
 
+#if defined HAVE_CG && HAVE_CG
+	g_cgcontext = cgCreateContext();
 	cgGetError();
 	cgSetErrorHandler(HandleCgError, NULL);
+#endif
 
 	// Look for required extensions.
 	const char *ptoken = (const char*)glGetString(GL_EXTENSIONS);
@@ -388,6 +392,7 @@ bool Renderer::Init()
 
 	s_pfont = new RasterFont();
 
+#if defined HAVE_CG && HAVE_CG
 	// load the effect, find the best profiles (if any)
 	if (cgGLIsProfileSupported(CG_PROFILE_ARBVP1) != CG_TRUE) {
 		ERROR_LOG(VIDEO, "arbvp1 not supported");
@@ -415,8 +420,8 @@ bool Renderer::Init()
 	cgGLSetOptimalOptions(g_cgvProf);
 	cgGLSetOptimalOptions(g_cgfProf);
 #endif
+#endif	// HAVE_CG
 
-	INFO_LOG(VIDEO, "Max buffer sizes: %d %d", cgGetProgramBufferMaxSize(g_cgvProf), cgGetProgramBufferMaxSize(g_cgfProf));
 	int nenvvertparams, nenvfragparams, naddrregisters[2];
 	glGetProgramivARB(GL_VERTEX_PROGRAM_ARB,   GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,    (GLint *)&nenvvertparams);
 	glGetProgramivARB(GL_FRAGMENT_PROGRAM_ARB, GL_MAX_PROGRAM_ENV_PARAMETERS_ARB,    (GLint *)&nenvfragparams);
@@ -428,8 +433,13 @@ bool Renderer::Init()
 	if (nenvvertparams < 238)
 		ERROR_LOG(VIDEO, "Not enough vertex shader environment constants!!");
 
+#if defined HAVE_CG && HAVE_CG
+	INFO_LOG(VIDEO, "Max buffer sizes: %d %d",
+		cgGetProgramBufferMaxSize(g_cgvProf),
+		cgGetProgramBufferMaxSize(g_cgfProf));
 #ifndef _DEBUG
 	cgGLSetDebugMode(GL_FALSE);
+#endif
 #endif
 	
 	glStencilFunc(GL_ALWAYS, 0, 0);
@@ -479,10 +489,12 @@ void Renderer::Shutdown(void)
 	delete s_pfont;
 	s_pfont = 0;
 
+#if defined HAVE_CG && HAVE_CG
 	if (g_cgcontext) {
 		cgDestroyContext(g_cgcontext);
 		g_cgcontext = 0;
 	}
+#endif
 
 	g_framebufferManager.Shutdown();
 

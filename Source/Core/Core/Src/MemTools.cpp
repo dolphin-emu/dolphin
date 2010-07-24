@@ -40,7 +40,6 @@
 #define CREG_EAX(ctx) (ctx)->gregs[REG_EAX]
 #define CREG_EIP(ctx) (ctx)->gregs[REG_EIP]
 #elif defined __NetBSD__
-#include <sys/siginfo.h>
 #define CREG_RAX(ctx) (ctx)->__gregs[_REG_RAX]
 #define CREG_RIP(ctx) (ctx)->__gregs[_REG_RIP]
 #define CREG_EAX(ctx) (ctx)->__gregs[_REG_EAX]

@@ -57,29 +57,40 @@ elif sys.platform == 'darwin' and not env['HAVE_WX']:
 	files += [ 'cocoaApp.m' ]
 	exeNoGUI = env['binary_dir'] + 'DolphinNoGUI'
 elif sys.platform == 'darwin' and env['HAVE_WX']:
-	exeGUI = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'
+	exeGUI = 'Dolphin'
+	exeGUIdist = env['binary_dir'] + 'Dolphin.app/Contents/MacOS/Dolphin'
 
 	env.Install(env['binary_dir'] + 'Dolphin.app/Contents/' +
 		'Library/Frameworks/Cg.framework',
 		'#Externals/Cg/Cg.framework/Cg')
 
-	env.Install(env['binary_dir'] + 'Dolphin.app/Contents/Resources/',
+	env.Install(env['data_dir'],
 		'#Source/Core/DolphinWX/resources/Dolphin.icns')
 
-	env.Plist(
-		env['binary_dir'] + 'Dolphin.app/Contents/Info.plist',
-		Value(dict(
-			CFBundleExecutable = 'Dolphin',
-			CFBundleIconFile = 'Dolphin.icns',
-			CFBundleIdentifier = 'com.dolphin-emu.dolphin',
-			CFBundlePackageType = 'APPL',
-			CFBundleShortVersionString =
+	from plistlib import writePlist
+	def createPlist(target, source, env):
+		for srcNode in source:
+			writePlist(srcNode.value, str(target[0]))
+	env.Append(BUILDERS = {'Plist' : Builder(action = createPlist)})
+	env.Plist(env['binary_dir'] + 'Dolphin.app/Contents/Info.plist', Value(
+		dict(
+		CFBundleExecutable = 'Dolphin',
+		CFBundleIconFile = 'Dolphin.icns',
+		CFBundleIdentifier = 'com.dolphin-emu.dolphin',
+		CFBundlePackageType = 'APPL',
+		CFBundleShortVersionString =
 			os.popen('svnversion -n ' + Dir('#').abspath).read(),
-			CFBundleVersion = '2.0',
-			LSMinimumSystemVersion = '10.5.0',
-			LSRequiresCarbon = True,
-			))
-		)
+		CFBundleVersion = '2.0',
+		LSMinimumSystemVersion = '10.5.0',
+		LSRequiresCarbon = True,
+		)))
+
+	def Fixup(target, source, env):
+		os.link(str(source[0]), str(target[0]))
+	env.Append(BUILDERS = {'Fixup' : Builder(action = Fixup)})
+	env.Depends(exeGUIdist, env['plugin_dir'])
+	if env['CPPDEFINES'].count('WXUSINGDLL'):
+		env.Fixup(exeGUIdist, exeGUI)
 else:
 	files += [ 'X11Utils.cpp' ]
 	libs += [ 'SDL' ]

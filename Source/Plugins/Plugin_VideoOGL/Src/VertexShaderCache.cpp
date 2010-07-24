@@ -24,9 +24,6 @@
 
 #include "GLUtil.h"
 
-#include <Cg/cg.h>
-#include <Cg/cgGL.h>
-
 #include "Render.h"
 #include "VertexShaderGen.h"
 #include "VertexShaderManager.h"
@@ -187,6 +184,7 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 		ERROR_LOG(VIDEO, "glError %08x before VS!", err);
 	}
 
+#if defined HAVE_CG && HAVE_CG
 	char stropt[64];
 	sprintf(stropt, "MaxLocalParams=256,MaxInstructions=%d", s_nMaxVertexInstructions);
 	const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
@@ -228,6 +226,7 @@ bool VertexShaderCache::CompileVertexShader(VERTEXSHADER& vs, const char* pstrpr
 	}
 
 	cgDestroyProgram(tempprog);
+#endif
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	vs.strprog = pstrprogram;

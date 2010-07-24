@@ -86,6 +86,7 @@ ccFlags = [
     '-fPIC',
     '-fno-exceptions',
     '-fno-strict-aliasing',   
+    '-fvisibility=hidden',
     '-msse2',
     ]
 
@@ -200,21 +201,14 @@ env['RPATH'] = []
 # OS X specifics
 if sys.platform == 'darwin':
     gccflags = ['-arch', 'x86_64', '-arch', 'i386', '-mmacosx-version-min=10.5']
-    gccflags += ['-Wnewline-eof']
-    #gccflags += ['-fvisibility=hidden']
     env['CCFLAGS'] += gccflags
-    env['CCFLAGS'] += ['-Wnewline-eof']
-    env['CC'] = "gcc-4.2"
-    env['CFLAGS'] += ['-x', 'objective-c']
-    env['CXX'] = "g++-4.2"
-    env['CXXFLAGS'] += ['-x', 'objective-c++']
-    #env['CXXFLAGS'] += ['-D_GLIBCXX_DEBUG']
-    #env['CXXFLAGS'] += ['-D_GLIBCXX_FULLY_DYNAMIC_STRING']
+    env['CCFLAGS'] += ['-Wextra-tokens', '-Wnewline-eof']
+    env['CC'] = "gcc-4.2 -ObjC"
+    env['CXX'] = "g++-4.2 -ObjC++"
     env['FRAMEWORKS'] += ['AppKit', 'CoreFoundation', 'CoreServices']
     env['FRAMEWORKS'] += ['AudioUnit', 'CoreAudio']
     env['FRAMEWORKS'] += ['IOBluetooth', 'IOKit', 'OpenGL']
     env['LIBS'] += ['iconv']
-    #env['LIBS'] += ['libstdc++-static']
     env['LINKFLAGS'] += gccflags
     env['LINKFLAGS'] += ['-Z', '-L/Developer/SDKs/MacOSX10.5.sdk/usr/lib',
         '-F/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks',

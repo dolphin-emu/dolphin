@@ -20,9 +20,6 @@
 
 #include "GLUtil.h"
 
-#include <Cg/cg.h>
-#include <Cg/cgGL.h>
-
 #include <cmath>
 
 #include "Statistics.h"
@@ -248,6 +245,7 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 		ERROR_LOG(VIDEO, "glError %08x before PS!", err);
 	}
 
+#if defined HAVE_CG && HAVE_CG
 	char stropt[128];
 	sprintf(stropt, "MaxLocalParams=32,NumInstructionSlots=%d", s_nMaxPixelInstructions);
 	const char *opts[] = {"-profileopts", stropt, "-O2", "-q", NULL};
@@ -305,6 +303,7 @@ bool PixelShaderCache::CompilePixelShader(FRAGMENTSHADER& ps, const char* pstrpr
 	}
 
 	cgDestroyProgram(tempprog);
+#endif
 
 #if defined(_DEBUG) || defined(DEBUGFAST) 
 	ps.strprog = pstrprogram;
