@@ -195,7 +195,7 @@ void WiimoteBasicConfigDialog::CreateGUIControls()
 
 		m_TextWiimoteTimeout[i] = new wxStaticText(m_Controller[i], wxID_ANY, wxT("Timeout: 000 ms"));
 		m_WiimoteTimeout[i] = new wxSlider(m_Controller[i], IDS_TIMEOUT, 0, 10, 200, wxDefaultPosition, wxSize(75, -1));
-		m_WiimoteTimeout[i]->SetToolTip(wxT("General Real Wiimote Read Timeout, Default: 10 (ms). Higher values might eliminate frequent disconnects."));
+		m_WiimoteTimeout[i]->SetToolTip(wxT("General Real Wiimote Read Timeout, Default: 30 (ms). Higher values eliminate frequent disconnects and packet loss."));
 
 #ifdef _WIN32
 		//Real Wiimote / automatic settings

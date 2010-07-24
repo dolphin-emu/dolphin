@@ -311,7 +311,7 @@ void Config::Load()
 	iniFile.Get("Real", "UpdateStatus", &bUpdateRealWiimote, true);
 	iniFile.Get("Real", "Unpair", &bUnpairRealWiimote, false);
 	iniFile.Get("Real", "Autopair", &bPairRealWiimote, false);
-	iniFile.Get("Real", "Timeout", &bWiiReadTimeout, 10);
+	iniFile.Get("Real", "Timeout", &bWiiReadTimeout, 30);
 	iniFile.Get("Real", "AccNeutralX", &iAccNeutralX, 0);
 	iniFile.Get("Real", "AccNeutralY", &iAccNeutralY, 0);
 	iniFile.Get("Real", "AccNeutralZ", &iAccNeutralZ, 0);
