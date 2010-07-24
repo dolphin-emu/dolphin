@@ -54,22 +54,20 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
         ('CXX', 'The C++ compiler', 'g++'),
         )
 
-# Save the given command line options
 env = Environment(ENV = os.environ, variables = vars)
-vars.Save('args.cache', env)
+Export('env')
 
-# Verbose compile
-if not env['verbose']:
-    env['CCCOMSTR'] = "Compiling $TARGET"
-    env['CXXCOMSTR'] = "Compiling $TARGET"
-    env['ARCOMSTR'] = "Archiving $TARGET"
-    env['LINKCOMSTR'] = "Linking $TARGET"
-    env['ASCOMSTR'] = "Assembling $TARGET"
-    env['ASPPCOMSTR'] = "Assembling $TARGET"
-    env['SHCCCOMSTR'] = "Compiling shared $TARGET"
-    env['SHCXXCOMSTR'] = "Compiling shared $TARGET"
-    env['SHLINKCOMSTR'] = "Linking shared $TARGET"
-    env['RANLIBCOMSTR'] = "Indexing $TARGET"
+# Generate help
+Help(vars.GenerateHelpText(env))
+
+# Die on unknown variables
+unknown = vars.UnknownVariables()
+if unknown:
+    print "Unknown variables:", unknown.keys()
+    Exit(1)
+
+# Save the given command line options
+vars.Save('args.cache', env)
 
 cppDefines = [
     ( '_FILE_OFFSET_BITS', 64),
@@ -85,7 +83,7 @@ ccFlags = [
     '-Wwrite-strings',
     '-fPIC',
     '-fno-exceptions',
-    '-fno-strict-aliasing',   
+    '-fno-strict-aliasing',
     '-fvisibility=hidden',
     '-msse2',
     ]
@@ -96,25 +94,45 @@ if env['CCVERSION'] >= '4.3.0': ccFlags += [
     ]
 
 # Build flavor
-flavour = env['flavor']
-if flavour == 'debug':
+if env['flavor'] == 'debug':
     ccFlags.append('-ggdb')
     cppDefines.append('_DEBUG') #enables LOGGING
     # FIXME: this disable wx debugging how do we make it work?
     cppDefines.append('NDEBUG')
-elif flavour == 'devel':
+elif env['flavor'] == 'devel':
     ccFlags.append('-ggdb')
-elif flavour == 'fastlog':
+elif env['flavor'] == 'fastlog':
     ccFlags.append('-O3')
     cppDefines.append('DEBUGFAST')
-elif flavour == 'prof':
+elif env['flavor'] == 'prof':
     ccFlags.append('-O3')
     ccFlags.append('-ggdb')
-elif flavour == 'release':
+elif env['flavor'] == 'release':
     ccFlags.append('-O3')
     ccFlags.append('-fomit-frame-pointer');
+
+if env['flavor'] == 'debug':
+    extra = '-debug'
+elif env['flavor'] == 'prof':
+    extra = '-prof'
+else:
+    extra = ''
+
 if env['lint']:
     ccFlags.append('-Werror')
+
+# Verbose compile
+if not env['verbose']:
+    env['CCCOMSTR'] = "Compiling $TARGET"
+    env['CXXCOMSTR'] = "Compiling $TARGET"
+    env['ARCOMSTR'] = "Archiving $TARGET"
+    env['LINKCOMSTR'] = "Linking $TARGET"
+    env['ASCOMSTR'] = "Assembling $TARGET"
+    env['ASPPCOMSTR'] = "Assembling $TARGET"
+    env['SHCCCOMSTR'] = "Compiling shared $TARGET"
+    env['SHCXXCOMSTR'] = "Compiling shared $TARGET"
+    env['SHLINKCOMSTR'] = "Linking shared $TARGET"
+    env['RANLIBCOMSTR'] = "Indexing $TARGET"
 
 dirs = [
     'Externals/Bochs_disasm',
@@ -135,44 +153,23 @@ dirs = [
     'Source/DSPTool/Src',
     'Source/Plugins/Plugin_DSP_HLE/Src',
     'Source/Plugins/Plugin_DSP_LLE/Src',
+    'Source/Plugins/Plugin_VideoOGL/Src',
     'Source/Plugins/Plugin_VideoSoftware/Src',
     'Source/Plugins/Plugin_Wiimote/Src',
     'Source/Plugins/Plugin_WiimoteNew/Src',
     'Source/UnitTests',
     ]
 
-if sys.platform == 'darwin' or sys.platform == 'linux2':
-    dirs += ['Source/Plugins/Plugin_VideoOGL/Src']
-
 # Object files
-env['build_dir'] = os.path.join('Build',
-    platform.system() + '-' + platform.machine() + '-' + env['flavor'])
+env['build_dir'] = 'Build' + os.sep + platform.system() + \
+    '-' + platform.machine() + '-' + env['flavor']
 
 # Static libs go here
 env['local_libs'] = '#' + env['build_dir'] + os.sep + 'libs' + os.sep
 
-# Install paths
-extra=''
-if flavour == 'debug':
-    extra = '-debug'
-elif flavour == 'prof':
-    extra = '-prof'
-
-# Set up the install locations
-if sys.platform == 'linux2' and env['install'] == 'global':
-    env['prefix'] = os.path.join(env['prefix'] + os.sep)
-    env['binary_dir'] = env['prefix'] + 'bin/'
-    env['plugin_dir'] = env['prefix'] + 'lib/dolphin-emu/'
-    env['data_dir'] = env['prefix'] + "share/dolphin-emu/"
-else:
-    env['prefix'] = os.path.join('Binary',
-        platform.system() + '-' + platform.machine() + extra + os.sep)
-    env['binary_dir'] = '#' + env['prefix']
-    env['plugin_dir'] = '#' + env['prefix'] + 'plugins/'
-    env['data_dir'] = '#' + env['prefix']
-if sys.platform == 'darwin':
-    env['plugin_dir'] = '#' + env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
-    env['data_dir'] = '#' + env['prefix'] + 'Dolphin.app/Contents/Resources'
+# Install path
+env['prefix'] = 'Binary' + os.sep + platform.system() + \
+    '-' + platform.machine() + extra + os.sep
 
 # Configuration tests section
 tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
@@ -181,6 +178,10 @@ tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
          'CheckSDL' : utils.CheckSDL,
          'CheckPortaudio' : utils.CheckPortaudio,
          }
+
+rev = utils.GenerateRevFile(env['flavor'],
+                            "Source/Core/Common/Src/svnrev_template.h",
+                            "Source/Core/Common/Src/svnrev.h")
 
 shared = {}
 shared['glew'] = shared['lzo'] = shared['sdl'] = \
@@ -232,6 +233,16 @@ if sys.platform == 'darwin':
     env['FRAMEWORKS'] += ['Cg']
     env['LINKFLAGS'] += ['-FExternals/Cg']
     shared['zlib'] = 1
+    env['data_dir'] = '#' + env['prefix'] + 'Dolphin.app/Contents/Resources'
+    env['plugin_dir'] = '#' + env['prefix'] + 'Dolphin.app/Contents/PlugIns/'
+    env.Install(env['data_dir'], 'Data/Sys')
+    env.Install(env['data_dir'], 'Data/User')
+    if env['bundle']:
+        app = env['prefix'] + 'Dolphin.app'
+        dmg = env['prefix'] + 'Dolphin-r' + rev + '.dmg'
+        env.Command(dmg, app, 'rm -f ' + dmg +
+            ' && hdiutil create -srcfolder ' + app + ' -format UDBZ ' + dmg +
+            ' && hdiutil internet-enable -yes ' + dmg)
 
 elif sys.platform == 'win32':
     env['tools'] = ['mingw']
@@ -328,7 +339,7 @@ else:
         env['LINKFLAGS']='-fprofile-use'
 
     # Profiling
-    if (flavour == 'prof'):
+    if (env['flavor'] == 'prof'):
         proflibs = [ '/usr/lib/oprofile', '/usr/local/lib/oprofile' ]
         env['LIBPATH'].append(proflibs)
         env['RPATH'].append(proflibs)
@@ -337,13 +348,37 @@ else:
         else:
             print "Can't build prof without oprofile, disabling"
 
-    conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
-    if (env['install'] == 'global'):
+    if env['install'] == 'global':
+        env['binary_dir'] = env['prefix'] + '/bin/'
+        env['data_dir'] = env['prefix'] + "/share/dolphin-emu/"
+        env['plugin_dir'] = env['prefix'] + '/lib/dolphin-emu/'
         conf.Define('DATA_DIR', "\"" + env['data_dir'] + "\"")
         conf.Define('LIBS_DIR', "\"" + env['prefix'] + 'lib/' +  "\"")
+    else:
+        env['binary_dir'] = '#' + env['prefix']
+        env['data_dir'] = '#' + env['prefix']
+        env['plugin_dir'] = '#' + env['prefix'] + 'plugins/'
+
+    conf.Define('USER_DIR', "\"" + env['userdir'] + "\"")
 
     # After all configuration tests are done
     conf.Finish()
+
+    # Setup destdir for package building
+    # Warning:  The program will not run from this location.  It is assumed the
+    # package will later install it to the prefix as it was defined before this.
+    if env.has_key('destdir'):
+        env['binary_dir'] = env['destdir'] + env['binary_dir']
+        env['data_dir'] = env['destdir'] + env['data_dir']
+        env['plugin_dir'] = env['destdir'] + env['plugin_dir']
+        env['prefix'] = env['destdir'] + env['prefix']
+        if env['bundle']:
+            env.Tar('dolphin-' + rev + '.tar.bz2', env['prefix'],
+                TARFLAGS='-cj', TARCOMSTR='Creating release tarball')
+
+    # Data install
+    env.InstallAs(env['data_dir'] + 'sys', 'Data/Sys')
+    env.InstallAs(env['data_dir'] + 'user', 'Data/User')
 
 # Local (static) libraries must be first in the search path for the build in
 # order that they can override system libraries, but they must not be found
@@ -370,61 +405,11 @@ if not shared['zlib']:
     env['CPPPATH'] += ['#Externals/zlib']
     dirs += ['Externals/zlib']
 
-rev = utils.GenerateRevFile(env['flavor'],
-                            "Source/Core/Common/Src/svnrev_template.h",
-                            "Source/Core/Common/Src/svnrev.h")
-
-# Print a nice progress indication when not compiling
-Progress(['-\r', '\\\r', '|\r', '/\r'], interval=5)
-
-# Setup destdir for package building
-# Warning:  The program will not run from this location.  It is assumed the
-# package will later install it to the prefix as it was defined before this.
-if env.has_key('destdir'):
-    env['prefix'] = env['destdir'] + env['prefix']
-    env['binary_dir'] = env['destdir'] + env['binary_dir']
-    env['plugin_dir'] = env['destdir'] + env['plugin_dir']
-    env['data_dir'] = env['destdir'] + env['data_dir']
-
-# Die on unknown variables
-unknown = vars.UnknownVariables()
-if unknown:
-    print "Unknown variables:", unknown.keys()
-    Exit(1)
-
-# Generate help
-Help(vars.GenerateHelpText(env))
-
-Export('env')
-
 for subdir in dirs:
-    SConscript(
-        subdir + os.sep + 'SConscript',
-        variant_dir = env['build_dir'] + os.sep + subdir,
-        duplicate=0
-        )
-
-# Data install
-if sys.platform == 'darwin':
-    env.Install(env['data_dir'], 'Data/Sys')
-    env.Install(env['data_dir'], 'Data/User')
-else:
-    env.InstallAs(env['data_dir'] + 'sys', 'Data/Sys')
-    env.InstallAs(env['data_dir'] + 'user', 'Data/User')
+    SConscript(subdir + os.sep + 'SConscript',
+        variant_dir = env['build_dir'] + os.sep + subdir, duplicate = 0)
 
 env.Alias('install', env['prefix'])
-#env.Depends(env['prefix'], env['build_dir'])
 
-if env['bundle']:
-    if sys.platform == 'linux2':
-        # Make tar ball (TODO put inside normal dir)
-        tar_env = env.Clone()
-        tarball = tar_env.Tar('dolphin-' + rev + '.tar.bz2', env['prefix'])
-        tar_env.Append(TARFLAGS='-j', TARCOMSTR="Creating release tarball")
-        env.Clean(all, tarball)
-    elif sys.platform == 'darwin':
-        app = env['prefix'] + 'Dolphin.app'
-        dmg = env['prefix'] + 'Dolphin-r' + rev + '.dmg'
-        env.Command(dmg, app, 'rm -f ' + dmg +
-            ' && hdiutil create -srcfolder ' + app + ' -format UDBZ ' + dmg +
-            ' && hdiutil internet-enable -yes ' + dmg)
+# Print a nice progress indication when not compiling
+Progress(['-\r', '\\\r', '|\r', '/\r'], interval = 5)
