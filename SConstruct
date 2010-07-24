@@ -57,9 +57,6 @@ if not sys.platform == 'win32' and not sys.platform == 'darwin':
 env = Environment(ENV = os.environ, variables = vars)
 Export('env')
 
-# Generate help
-Help(vars.GenerateHelpText(env))
-
 # Die on unknown variables
 unknown = vars.UnknownVariables()
 if unknown:
@@ -168,8 +165,11 @@ env['build_dir'] = 'Build' + os.sep + platform.system() + \
 env['local_libs'] = '#' + env['build_dir'] + os.sep + 'libs' + os.sep
 
 # Install path
-env['prefix'] = 'Binary' + os.sep + platform.system() + \
-    '-' + platform.machine() + extra + os.sep
+if sys.platform == 'linux2' and env['install'] == 'global':
+	env['prefix'] = os.path.join(env['prefix'] + os.sep)
+else:
+	env['prefix'] = 'Binary' + os.sep + platform.system() + \
+    	'-' + platform.machine() + extra + os.sep
 
 # Configuration tests section
 tests = {'CheckWXConfig' : wxconfig.CheckWXConfig,
@@ -372,9 +372,9 @@ else:
         env['data_dir'] = env['destdir'] + env['data_dir']
         env['plugin_dir'] = env['destdir'] + env['plugin_dir']
         env['prefix'] = env['destdir'] + env['prefix']
-        if env['bundle']:
-            env.Tar('dolphin-' + rev + '.tar.bz2', env['prefix'],
-                TARFLAGS='-cj', TARCOMSTR='Creating release tarball')
+    if env['bundle']:
+        env.Tar('dolphin-' + rev + '.tar.bz2', env['prefix'],
+            TARFLAGS='-cj', TARCOMSTR='Creating release tarball')
 
     # Data install
     env.InstallAs(env['data_dir'] + 'sys', 'Data/Sys')
@@ -404,6 +404,9 @@ if not shared['sfml']:
 if not shared['zlib']:
     env['CPPPATH'] += ['#Externals/zlib']
     dirs += ['Externals/zlib']
+
+# Generate help
+Help(vars.GenerateHelpText(env))
 
 for subdir in dirs:
     SConscript(subdir + os.sep + 'SConscript',
