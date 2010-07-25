@@ -208,7 +208,7 @@ InstLoc IRBuilder::EmitTriOp(unsigned Opcode, InstLoc Op1, InstLoc Op2, InstLoc 
 }
 #endif
 
-unsigned IRBuilder::ComputeKnownZeroBits(InstLoc I) {
+unsigned IRBuilder::ComputeKnownZeroBits(InstLoc I) const {
 	switch (getOpcode(*I)) {
 	case Load8:
 		return 0xFFFFFF00;
@@ -349,152 +349,252 @@ InstLoc IRBuilder::FoldUOp(unsigned Opcode, InstLoc Op1, unsigned extra) {
 	return EmitUOp(Opcode, Op1, extra);
 }
 
+// Fold Add opcode. Some rules are ported from LLVM
 InstLoc IRBuilder::FoldAdd(InstLoc Op1, InstLoc Op2) {
-	if (isImm(*Op1)) {
-		if (isImm(*Op2))
-			return EmitIntConst(GetImmValue(Op1) +
-					    GetImmValue(Op2));
-		return FoldAdd(Op2, Op1);
+	simplifyCommutative(Add, Op1, Op2);
+
+	// i0 + i1 => (i0 + i1)
+	if (isImm(*Op1) && isImm(*Op2)) {
+		return EmitIntConst(GetImmValue(Op1) + GetImmValue(Op2));
 	}
 
-	if (isImm(*Op2)) {
-		// Add x 0 => x
-		if (!GetImmValue(Op2)) return Op1;
-
-		// Add (Add x i0) i1 => Add x (i0 + i1)
-		if (getOpcode(*Op1) == Add && isImm(*getOp2(Op1))) {
-			unsigned RHS = GetImmValue(Op2) +
-				       GetImmValue(getOp2(Op1));
-			return FoldAdd(getOp1(Op1), EmitIntConst(RHS));
-		}
+	// x + 0 => x
+	if (isImm(*Op2) && GetImmValue(Op2) == 0) {
+		return Op1;
 	}
 
-	// Add (Add x i0) (Add y i1) => Add (Add x y) (i0 + i1)
-	if (getOpcode(*Op1) == Add && getOpcode(*Op2) == Add && isImm(*getOp2(Op1)) && isImm(*getOp2(Op2))) {
-		return FoldAdd(FoldAdd(getOp1(Op1), getOp1(Op2)), EmitIntConst(GetImmValue(getOp2(Op1)) + GetImmValue(getOp2(Op2))));
+	// TODO: Test the folding below
+	// x + (y - x) --> y
+	if (getOpcode(*Op2) == Sub && isSameValue(Op1, getOp2(Op2))) {
+		return getOp1(Op2);
 	}
 
-	// Add x x => Shl x 1
-	if (Op1 == Op2) {
-		return FoldShl(Op1, EmitIntConst(1));
+	// (x - y) + y => x
+	if (getOpcode(*Op1) == Sub && isSameValue(getOp2(Op1), Op2)) {
+		return getOp1(Op1);
 	}
 
+	// TODO: Test the folding below
+	// (x * i0) + x => x * (i0 + 1)
+	if (getOpcode(*Op1) == Mul && isImm(*getOp2(Op1)) && isSameValue(getOp1(Op1), Op2)) {
+		return FoldMul(getOp1(Op1), EmitIntConst(GetImmValue(getOp2(Op1)) + 1));
+	}
+
+	// TODO: Test the folding below
+	// (x * i0) + (x * i1) => x * (i0 + i1)
+	if (getOpcode(*Op1) == Mul && getOpcode(*Op2) == Mul && isSameValue(getOp1(Op1), getOp1(Op2)) && isImm(*getOp2(Op1)) && isImm(*getOp2(Op2))) {
+		return FoldMul(getOp1(Op1), EmitIntConst(GetImmValue(getOp2(Op1)) + GetImmValue(getOp2(Op2))));
+	}
+
+	// TODO: Test the folding below
+	// x + x * i0 => x * (i0 + 1)
+	if (getOpcode(*Op2) == Mul && isImm(*getOp2(Op2)) && isSameValue(Op1, getOp1(Op2))) {
+		return FoldMul(Op1, EmitIntConst(GetImmValue(getOp2(Op2)) + 1));
+	}
+
+	// w * x + y * z => w * (x + z) iff w == y
 	if (getOpcode(*Op1) == Mul && getOpcode(*Op2) == Mul) {
-		// TODO: Test the folding below
-		// Add (Mul x y) (Mul x z) => Mul(x Add(y z))
-		if (isSameValue(getOp1(Op1), getOp1(Op2))) {
-			return FoldMul(getOp1(Op1), FoldAdd(getOp2(Op1), getOp2(Op2)));
+		InstLoc w = getOp1(Op1);
+		InstLoc x = getOp2(Op1);
+		InstLoc y = getOp1(Op2);
+		InstLoc z = getOp2(Op2);
+
+		if (!isSameValue(w, y)) {
+			if (isSameValue(w, z)) {
+				std::swap(y, z);
+			} else if (isSameValue(y, x)) {
+				std::swap(w, x);
+			} else if (isSameValue(x, z)) {
+				std::swap(y, z);
+				std::swap(w, x);
+			}
 		}
 
-		// TODO: Test the folding below
-		// Add (Mul x y) (Mul z x) => Mul(x Add(y z))
-		if (isSameValue(getOp1(Op1), getOp2(Op2))) {
-			return FoldMul(getOp1(Op1), FoldAdd(getOp2(Op1), getOp1(Op2)));
-		}
-
-		// TODO: Test the folding below
-		// Add (Mul y x) (Mul x z) => Mul(x Add(y z))
-		if (isSameValue(getOp2(Op1), getOp1(Op2))) {
-			return FoldMul(getOp2(Op1), FoldAdd(getOp1(Op1), getOp2(Op2)));
-		}
-
-		// Add (Mul y x) (Mul z x) => Mul(x Add(y z))
-		if (isSameValue(getOp2(Op1), getOp2(Op2))) {
-			return FoldMul(getOp2(Op1), FoldAdd(getOp1(Op1), getOp1(Op2)));
+		if (isSameValue(w, y)) {
+			return FoldMul(w, FoldAdd(x, z));
 		}
 	}
 
 	return EmitBiOp(Add, Op1, Op2);
 }
 
+// Fold Sub opcode. Some rules are ported from LLVM
 InstLoc IRBuilder::FoldSub(InstLoc Op1, InstLoc Op2) {
-	// Sub x, x => CInt32 0
+	// (x - x) => 0
 	if (isSameValue(Op1, Op2)) {
 		return EmitIntConst(0);
 	}
 
-	// Sub x, i0 => Add x, -i0
+	// (x - i0) => x + -i0
 	if (isImm(*Op2)) {
 		return FoldAdd(Op1, EmitIntConst(-GetImmValue(Op2)));
 	}
 
-	// Sub (Add x i0) (Add y i1) => Add (Sub x y) (i0 - i1)
+	if (getOpcode(*Op2) == Add) {
+		// x - (x + y) => -y
+		if (isSameValue(Op1, getOp1(Op2))) {
+			return FoldSub(EmitIntConst(0), getOp2(Op2));
+		}
+
+		// x - (y + x) => -y
+		if (isSameValue(Op1, getOp2(Op2))) {
+			return FoldSub(EmitIntConst(0), getOp1(Op2));
+		}
+
+		// i0 - (x + i1) => (i0 - i1) - x
+		if (isImm(*Op1) && isImm(*getOp2(Op2))) {
+			return FoldSub(EmitIntConst(GetImmValue(Op1) - GetImmValue(getOp2(Op2))), getOp1(Op2));
+		}
+	}
+
+	// TODO: Test the folding below
+	// 0 - (C << X)  -> (-C << X)
+	if (isImm(*Op1) && GetImmValue(Op1) == 0 && getOpcode(*Op2) == Shl && isImm(*getOp1(Op2))) {
+		return FoldShl(EmitIntConst(-GetImmValue(getOp1(Op2))), getOp2(Op2));
+	}
+
+	// TODO: Test the folding below
+	// x - x * i0 = x * (1 - i0)
+	if (getOpcode(*Op2) == Mul && isImm(*getOp2(Op2)) && isSameValue(Op1, getOp1(Op2))) {
+		return FoldMul(Op1, EmitIntConst(1 - GetImmValue(getOp2(Op2))));
+	}
+
+	if (getOpcode(*Op1) == Add) {
+		// (x + y) - x => y
+		if (isSameValue(getOp1(Op1), Op2)) {
+			return getOp2(Op1);
+		}
+
+		// (x + y) - y => x
+		if (isSameValue(getOp2(Op1), Op2)) {
+			return getOp1(Op1);
+		}
+	}
+
+	if (getOpcode(*Op1) == Sub) {
+		// TODO: Test the folding below
+		// (x - y) - x => -y
+		if (isSameValue(getOp1(Op1), Op2)) {
+			return FoldSub(EmitIntConst(0), getOp2(Op1));
+		}
+	}
+
+	if (getOpcode(*Op1) == Mul) {
+		// x * i0 - x => x * (i0 - 1)
+		if (isImm(*getOp2(Op1)) && isSameValue(getOp1(Op1), Op2)) {
+			return FoldMul(getOp1(Op1), EmitIntConst(GetImmValue(getOp2(Op1)) - 1));
+		}
+
+		// TODO: Test the folding below
+		// x * i0 - x * i1 => x * (i0 - i1)
+		if (getOpcode(*Op2) == Mul && isSameValue(getOp1(Op1), getOp1(Op2)) && isImm(*getOp2(Op1)) && isImm(*getOp2(Op2))) {
+			return FoldMul(getOp1(Op1), EmitIntConst(GetImmValue(getOp2(Op1)) + GetImmValue(getOp2(Op2))));
+		}
+	}
+
+	// (x + i0) - (y + i1) => (x - y) + (i0 - i1)
 	if (getOpcode(*Op1) == Add && getOpcode(*Op2) == Add && isImm(*getOp2(Op1)) && isImm(*getOp2(Op2))) {
 		return FoldAdd(FoldSub(getOp1(Op1), getOp1(Op2)), EmitIntConst(GetImmValue(getOp2(Op1)) - GetImmValue(getOp2(Op2))));
 	}
 
+	// w * x - y * z => w * (x - z) iff w == y
 	if (getOpcode(*Op1) == Mul && getOpcode(*Op2) == Mul) {
-		// TODO: Test the folding below
-		// Sub (Mul x y) (Mul x z) => Mul(x Sub(y z))
-		if (isSameValue(getOp1(Op1), getOp1(Op2))) {
-			return FoldMul(getOp1(Op1), FoldSub(getOp2(Op1), getOp2(Op2)));
+		InstLoc w = getOp1(Op1);
+		InstLoc x = getOp2(Op1);
+		InstLoc y = getOp1(Op2);
+		InstLoc z = getOp2(Op2);
+
+		if (!isSameValue(w, y)) {
+			if (isSameValue(w, z)) {
+				std::swap(y, z);
+			} else if (isSameValue(y, x)) {
+				std::swap(w, x);
+			} else if (isSameValue(x, z)) {
+				std::swap(y, z);
+				std::swap(w, x);
+			}
 		}
 
-		// TODO: Test the folding below
-		// Sub (Mul x y) (Mul z x) => Mul(x Sub(y z))
-		if (isSameValue(getOp1(Op1), getOp2(Op2))) {
-			return FoldMul(getOp1(Op1), FoldSub(getOp2(Op1), getOp1(Op2)));
-		}
-
-		// TODO: Test the folding below
-		// Sub (Mul y x) (Mul x z) => Mul(x Sub(y z))
-		if (isSameValue(getOp2(Op1), getOp1(Op2))) {
-			return FoldMul(getOp2(Op1), FoldSub(getOp1(Op1), getOp2(Op2)));
-		}
-
-		// Sub (Mul y x) (Mul z x) => Mul(x Sub(y z))
-		if (isSameValue(getOp2(Op1), getOp2(Op2))) {
-			return FoldMul(getOp2(Op1), FoldSub(getOp1(Op1), getOp1(Op2)));
+		if (isSameValue(w, y)) {
+			return FoldMul(w, FoldSub(x, z));
 		}
 	}
 
 	return EmitBiOp(Sub, Op1, Op2);
 }
 
+// Fold Mul opcode. Some rules are ported from LLVM
 InstLoc IRBuilder::FoldMul(InstLoc Op1, InstLoc Op2) {
-	if (isImm(*Op1)) {
-		// Mul i0 i1 => i0 * i1
-		if (isImm(*Op2)) {
-			return EmitIntConst(GetImmValue(Op1) * GetImmValue(Op2));
-		}
+	simplifyCommutative(Or, Op1, Op2);
 
-		// Mul i0 x => Mul x i0
-		return FoldMul(Op2, Op1);
+	// i0 * i1 => (i0 * i1)
+	if (isImm(*Op1) && isImm(*Op2)) {
+		return EmitIntConst(GetImmValue(Op1) * GetImmValue(Op2));
+	}
+
+	// (x << i0) * i1 => x * (i1 << i0)
+	if (getOpcode(*Op1) == Shl && isImm(*getOp2(Op1)) && isImm(*Op2)) {
+		return FoldMul(getOp1(Op1), EmitIntConst(GetImmValue(Op2) << GetImmValue(getOp2(Op1))));
 	}
 
 	if (isImm(*Op2)) {
 		const unsigned imm = GetImmValue(Op2);
 
-		// Mul x 0 => 0
+		// x * 0 => 0
 		if (imm == 0) {
 			return EmitIntConst(0);
 		}
+
+		// x * -1 => 0 - x
+		if (imm == -1U) {
+			return FoldSub(EmitIntConst(0), Op1);
+		}
 		
-		// FIXME: The code below can be speed up by popcount, (x & -x), etc...
 		for (unsigned i0 = 0; i0 < 30; ++i0) {
-			// Mul x (1 << i0) => Shl x i0
+			// x * (1 << i0) => x << i0
+			// One "shl" is faster than one "imul".
 			if (imm == (1U << i0)) {
 				return FoldShl(Op1, EmitIntConst(i0));
 			}
-
-			for (unsigned i1 = 0; i1 < i0; ++i1) {
-				// Mul x ((1 << i0) | (1 << i1)) => Add (Shl x i0) (Shl x i1)
-				if (imm == ((1U << i0) | ((1U << i1)))) {
-					return FoldAdd(FoldShl(Op1, EmitIntConst(i0)), FoldShl(Op1, EmitIntConst(i1)));
-				}
-			}
 		}
+	}
+
+	// (x + i0) * i1 => x * i1 + i0 * i1
+	// The later format can be folded by other rules, again.
+	if (getOpcode(*Op1) == Add && isImm(*getOp2(Op1)) && isImm(*Op2)) {
+		return FoldAdd(FoldMul(getOp1(Op1), Op2), EmitIntConst(GetImmValue(getOp2(Op1)) * GetImmValue(Op2)));
+	}
+
+	// TODO: Test the folding below
+	// x * (1 << y) => x << y
+	if (getOpcode(*Op2) == Shl && isImm(*getOp1(Op2)) && GetImmValue(getOp1(Op2)) == 1) {
+		return FoldShl(Op1, getOp2(Op2));
+	}
+
+	// TODO: Test the folding below
+	// (1 << y) * x => x << y
+	if (getOpcode(*Op1) == Shl && isImm(*getOp1(Op1)) && GetImmValue(getOp1(Op1)) == 1) {
+		return FoldShl(Op2, getOp2(Op1));
+	}
+
+	// x * y (where y is 0 or 1) => (0 - y) & x
+	if (ComputeKnownZeroBits(Op2) == -2U) {
+		return FoldAnd(FoldSub(EmitIntConst(0), Op2), Op1);
+	}
+
+	// x * y (where y is 0 or 1) => (0 - x) & y
+	if (ComputeKnownZeroBits(Op1) == -2U) {
+		return FoldAnd(FoldSub(EmitIntConst(0), Op1), Op2);
 	}
 
 	return EmitBiOp(Mul, Op1, Op2);
 }
 
 InstLoc IRBuilder::FoldAnd(InstLoc Op1, InstLoc Op2) {
-	if (isImm(*Op1)) {
-		if (isImm(*Op2))
-			return EmitIntConst(GetImmValue(Op1) &
-					    GetImmValue(Op2));
-		return FoldAnd(Op2, Op1);
+	simplifyCommutative(And, Op1, Op2);
+
+	if (isImm(*Op1) && isImm(*Op2)) {
+		return EmitIntConst(GetImmValue(Op1) & GetImmValue(Op2));
 	}
 	if (isImm(*Op2)) {
 		if (!GetImmValue(Op2)) return EmitIntConst(0);
@@ -516,12 +616,58 @@ InstLoc IRBuilder::FoldAnd(InstLoc Op1, InstLoc Op2) {
 		if (!(~ComputeKnownZeroBits(Op1) & ~GetImmValue(Op2))) {
 			return Op1;
 		}
+
+		if (getOpcode(*Op1) == Xor || getOpcode(*Op1) == Or) {
+			// TODO: Test the folding below
+			// (x op y) & z => (x & z) op y if (y & z) == 0
+			if ((~ComputeKnownZeroBits(getOp2(Op1)) & ~ComputeKnownZeroBits(Op2)) == 0) {
+				return FoldBiOp(getOpcode(*Op1), FoldAnd(getOp1(Op1), Op2), getOp2(Op1));
+			}
+
+			// TODO: Test the folding below
+			// (x op y) & z => (y & z) op x if (x & z) == 0
+			if ((~ComputeKnownZeroBits(getOp1(Op1)) & ~ComputeKnownZeroBits(Op2)) == 0) {
+				return FoldBiOp(getOpcode(*Op1), FoldAnd(getOp2(Op1), Op2), getOp1(Op1));
+			}
+		}
 	}
 
 	// TODO: Test the folding below
-	// And (And x i0) (And y i1) => And (And x y) (i0 & i1)
-	if (getOpcode(*Op1) == And && getOpcode(*Op2) == And && isImm(*getOp2(Op1)) && isImm(*getOp2(Op2))) {
-		return FoldAnd(FoldAnd(getOp1(Op1), getOp1(Op2)), EmitIntConst(GetImmValue(getOp2(Op1)) & GetImmValue(getOp2(Op2))));
+	// (x >> z) & (y >> z) => (x & y) >> z
+	if (getOpcode(*Op1) == Shrl && getOpcode(*Op2) == Shrl && isSameValue(getOp2(Op1), getOp2(Op2))) {
+		return FoldShl(FoldAnd(getOp1(Op1), getOp2(Op1)), getOp2(Op1));
+	}
+
+	// TODO: Test the folding below
+    // ((A | N) + B) & AndRHS -> (A + B) & AndRHS iff N&AndRHS == 0
+    // ((A ^ N) + B) & AndRHS -> (A + B) & AndRHS iff N&AndRHS == 0
+    // ((A | N) - B) & AndRHS -> (A - B) & AndRHS iff N&AndRHS == 0
+    // ((A ^ N) - B) & AndRHS -> (A - B) & AndRHS iff N&AndRHS == 0
+	if ((getOpcode(*Op1) == Add || getOpcode(*Op1) == Sub) &&
+		(getOpcode(*getOp1(Op1)) == Or || getOpcode(*getOp1(Op1)) == Xor))
+	{
+		const InstLoc A = getOp1(getOp1(Op1));
+		const InstLoc N = getOp2(getOp1(Op1));
+		const InstLoc B = getOp2(Op1);
+		const InstLoc AndRHS = Op2;
+
+		if ((~ComputeKnownZeroBits(N) & ~ComputeKnownZeroBits(AndRHS)) == 0) {
+			return FoldAnd(FoldBiOp(getOpcode(*Op1), A, B), AndRHS);
+		}
+	}
+
+	// TODO: Test the folding below
+	// (~A & ~B) == (~(A | B)) - De Morgan's Law
+	if (InstLoc notOp1 = isNot(Op1)) {
+		if (InstLoc notOp2 = isNot(Op2)) {
+			return FoldXor(EmitIntConst(-1U), FoldOr(notOp1, notOp2));
+		}
+	}
+
+	// TODO: Test the folding below
+	// (X^C)|Y -> (X|Y)^C iff Y&C == 0
+	if (getOpcode(*Op1) == Xor && isImm(*getOp2(Op1)) && (~ComputeKnownZeroBits(Op2) & GetImmValue(getOp2(Op1))) == 0) {
+		return FoldXor(FoldOr(getOp1(Op1), Op2), getOp2(Op1));
 	}
 
 	if (Op1 == Op2) return Op1;
@@ -530,11 +676,10 @@ InstLoc IRBuilder::FoldAnd(InstLoc Op1, InstLoc Op2) {
 }
 
 InstLoc IRBuilder::FoldOr(InstLoc Op1, InstLoc Op2) {
-	if (isImm(*Op1)) {
-		if (isImm(*Op2))
-			return EmitIntConst(GetImmValue(Op1) |
-					    GetImmValue(Op2));
-		return FoldOr(Op2, Op1);
+	simplifyCommutative(Or, Op1, Op2);
+
+	if (isImm(*Op1) && isImm(*Op2)) {
+		return EmitIntConst(GetImmValue(Op1) | GetImmValue(Op2));
 	}
 	if (isImm(*Op2)) {
 		if (!GetImmValue(Op2)) return Op1;
@@ -544,11 +689,26 @@ InstLoc IRBuilder::FoldOr(InstLoc Op1, InstLoc Op2) {
 				       GetImmValue(getOp2(Op1));
 			return FoldOr(getOp1(Op1), EmitIntConst(RHS));
 		}
+
+		// (X & C1) | C2 --> (X | C2) & (C1|C2)
+		// iff (C1 & C2) == 0.
+		if (getOpcode(*Op1) == And && isImm(*getOp2(Op1)) && (GetImmValue(getOp2(Op1)) & GetImmValue(Op2)) == 0) {
+			return FoldAnd(FoldOr(getOp1(Op1), Op2), EmitIntConst(GetImmValue(getOp2(Op1)) | GetImmValue(Op2)));
+		}
+
+
+		// TODO: Test the folding below
+		// (X ^ C1) | C2 --> (X | C2) ^ (C1&~C2)
+		if (getOpcode(*Op1) == Xor && isImm(*getOp2(Op1)) && isImm(*Op2)) {
+			return FoldXor(FoldOr(getOp1(Op1), Op2), EmitIntConst(GetImmValue(getOp2(Op1)) & ~GetImmValue(Op2)));
+		}
 	}
 
-	// Or (Or x i0) (Or y i1) => Or (Or x y) (i0 | i1)
-	if (getOpcode(*Op1) == Or && getOpcode(*Op2) == Or && isImm(*getOp2(Op1)) && isImm(*getOp2(Op2))) {
-		return FoldOr(FoldOr(getOp1(Op1), getOp1(Op2)), EmitIntConst(GetImmValue(getOp2(Op1)) | GetImmValue(getOp2(Op2))));
+	// (~A | ~B) == (~(A & B)) - De Morgan's Law
+	if (InstLoc notOp1 = isNot(Op1)) {
+		if (InstLoc notOp2 = isNot(Op2)) {
+			return FoldXor(EmitIntConst(-1U), FoldAnd(notOp1, notOp2));
+		}
 	}
 
 	if (Op1 == Op2) return Op1;
@@ -557,11 +717,10 @@ InstLoc IRBuilder::FoldOr(InstLoc Op1, InstLoc Op2) {
 }
 
 InstLoc IRBuilder::FoldXor(InstLoc Op1, InstLoc Op2) {
-	if (isImm(*Op1)) {
-		if (isImm(*Op2))
-			return EmitIntConst(GetImmValue(Op1) ^
-					    GetImmValue(Op2));
-		return FoldXor(Op2, Op1);
+	simplifyCommutative(Or, Op1, Op2);
+
+	if (isImm(*Op1) && isImm(*Op2)) {
+		return EmitIntConst(GetImmValue(Op1) ^ GetImmValue(Op2));
 	}
 	if (isImm(*Op2)) {
 		if (!GetImmValue(Op2)) return Op1;
@@ -570,7 +729,15 @@ InstLoc IRBuilder::FoldXor(InstLoc Op1, InstLoc Op2) {
 				       GetImmValue(getOp2(Op1));
 			return FoldXor(getOp1(Op1), EmitIntConst(RHS));
 		}
+
+		// ~(~X) => X
+		if (GetImmValue(Op2) == -1U) {
+			if (InstLoc notOp1 = isNot(Op1)) {
+				return notOp1;
+			}
+		}
 	}
+
 	if (Op1 == Op2) return EmitIntConst(0);
 
 	return EmitBiOp(Xor, Op1, Op2);
@@ -585,7 +752,18 @@ InstLoc IRBuilder::FoldShl(InstLoc Op1, InstLoc Op2) {
 
 		if (isImm(*Op1))
 			return EmitIntConst(GetImmValue(Op1) << (GetImmValue(Op2) & 31));
+
+		// ((x * i0) << i1) == x * (i0 << i1)
+		if (getOpcode(*Op1) == Mul && isImm(*getOp2(Op1))) {
+			return FoldMul(getOp1(Op1), EmitIntConst(GetImmValue(getOp2(Op1)) << GetImmValue(Op2)));
+		}
 	}
+
+	// 0 << x => 0
+	if (isImm(*Op1) && GetImmValue(Op1) == 0) {
+		return EmitIntConst(0);
+	}
+
 	return EmitBiOp(Shl, Op1, Op2);
 }
 
@@ -826,11 +1004,11 @@ InstLoc IRBuilder::EmitIntConst(unsigned value) {
 	return curIndex;
 }
 
-unsigned IRBuilder::GetImmValue(InstLoc I) {
+unsigned IRBuilder::GetImmValue(InstLoc I) const {
 	return ConstList[*I >> 8];
 }
 
-unsigned IRBuilder::isSameValue(InstLoc Op1, InstLoc Op2) {
+unsigned IRBuilder::isSameValue(InstLoc Op1, InstLoc Op2) const {
 	if (Op1 == Op2) {
 		return true;
 	}
@@ -840,6 +1018,100 @@ unsigned IRBuilder::isSameValue(InstLoc Op1, InstLoc Op2) {
 	}
 
 	return false;
+}
+
+// Assign a complexity or rank value to Inst
+// Ported from InstructionCombining.cpp in LLVM
+// 0 -> undef
+// 1 -> Nop, Const
+// 2 -> ZeroOp
+// 3 -> UOp
+// 4 -> BiOp
+unsigned IRBuilder::getComplexity(InstLoc I) const {
+	static unsigned complexities[256];
+	if (complexities[0] == 0) {
+		complexities[Nop] = 1;
+		complexities[CInt16] = 1;
+		complexities[CInt32] = 1;
+
+		static unsigned ZeroOp[] = {LoadCR, LoadLink, LoadMSR, LoadGReg, LoadCTR, InterpreterBranch, LoadCarry, RFIExit, LoadFReg, LoadFRegDENToZero, LoadGQR, Int3, };
+		static unsigned UOp[] = {StoreLink, BranchUncond, StoreCR, StoreMSR, StoreFPRF, StoreGReg, StoreCTR, Load8, Load16, Load32, SExt16, SExt8, Cntlzw, StoreCarry, SystemCall, ShortIdleLoop, LoadSingle, LoadDouble, LoadPaired, StoreFReg, DupSingleToMReg, DupSingleToPacked, ExpandPackedToMReg, CompactMRegToPacked, FSNeg, FSRSqrt, FDNeg, FPDup0, FPDup1, FPNeg, DoubleToSingle, StoreGQR, StoreSRR, };
+		static unsigned BiOp[] = {BranchCond, IdleBranch, And, Xor, Sub, Or, Add, Mul, Rol, Shl, Shrl, Sarl, ICmpEq, ICmpNe, ICmpUgt, ICmpUlt, ICmpSgt, ICmpSlt, ICmpSge, ICmpSle, Store8, Store16, Store32, ICmpCRSigned, ICmpCRUnsigned, InterpreterFallback, StoreSingle, StoreDouble, StorePaired, InsertDoubleInMReg, FSMul, FSAdd, FSSub, FDMul, FDAdd, FDSub, FPAdd, FPMul, FPSub, FPMerge00, FPMerge01, FPMerge10, FPMerge11, FDCmpCR, };
+		for (int i = 0; i < sizeof(ZeroOp) / sizeof(ZeroOp[0]); ++i) {
+			complexities[ZeroOp[i]] = 2;
+		}
+		for (int i = 0; i < sizeof(UOp) / sizeof(UOp[0]); ++i) {
+			complexities[UOp[i]] = 3;
+		}
+		for (int i = 0; i < sizeof(BiOp) / sizeof(BiOp[0]); ++i) {
+			complexities[BiOp[i]] = 4;
+		}
+	}
+
+	return complexities[getOpcode(*I)];
+}
+
+// Performs a few simplifications for commutative operators
+// Ported from InstructionCombining.cpp in LLVM
+void IRBuilder::simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2) {
+	// Order operands such that they are listed from right (least complex) to
+	// left (most complex).  This puts constants before unary operators before
+	// binary operators.
+	if (getComplexity(Op1) < getComplexity(Op2)) {
+		std::swap(Op1, Op2);
+	}
+
+	// Is this associative?
+	switch (Opcode) {
+		case Add:
+		case Mul:
+		case And:
+		case Or:
+		case Xor:
+			break;
+		default:
+			return;
+	}
+
+	// Transform: (op (op V, C1), C2) ==> (op V, (op C1, C2))
+	if (getOpcode(*Op1) == Opcode && isImm(*getOp2(Op1)) && isImm(*Op2)) {
+		const InstLoc Op1Old = Op1;
+		const InstLoc Op2Old = Op2;
+		Op1 = getOp1(Op1Old);
+		Op2 = FoldBiOp(Opcode, getOp2(Op1Old), Op2);
+	}
+
+	// Transform: (op (op V1, C1), (op V2, C2)) ==> (op (op V1, V2), (op C1,C2))
+	if (getOpcode(*Op1) == Opcode && isImm(*getOp2(Op1)) && getOpcode(*Op2) == Opcode && isImm(*getOp2(Op2))) {
+		const InstLoc Op1Old = Op1;
+		const InstLoc Op2Old = Op2;
+		Op1 = FoldBiOp(Opcode, getOp1(Op1Old), getOp1(Op2Old));
+		Op2 = FoldBiOp(Opcode, getOp2(Op1Old), getOp2(Op2Old));
+	}
+}
+
+bool IRBuilder::maskedValueIsZero(InstLoc Op1, InstLoc Op2) const {
+	return (~ComputeKnownZeroBits(Op1) & ~ComputeKnownZeroBits(Op1)) == 0;
+}
+
+// Returns I' if I == ~I'.
+InstLoc IRBuilder::isNot(InstLoc I) const {
+	if (getOpcode(*I) == Xor) {
+		const InstLoc Op1 = getOp1(I);
+		const InstLoc Op2 = getOp2(I);
+
+		// if (-1 ^ x) return x
+		if (isImm(*Op1) && GetImmValue(Op1) == -1U) {
+			return Op2;
+		}
+
+		// if (x ^ -1) return x
+		if (isImm(*Op2) && GetImmValue(Op2) == -1U) {
+			return Op1;
+		}
+	}
+
+	return NULL;
 }
 
 }

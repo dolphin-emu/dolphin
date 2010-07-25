@@ -241,7 +241,7 @@ private:
 	InstLoc FoldBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2,
 			 unsigned extra = 0);
 
-	unsigned ComputeKnownZeroBits(InstLoc I);
+	unsigned ComputeKnownZeroBits(InstLoc I) const;
 
 public:
 	InstLoc EmitIntConst(unsigned value);
@@ -521,7 +521,7 @@ public:
 	InstLoc getFirstInst() { return &InstList[0]; }
 	unsigned int getNumInsts() { return (unsigned int)InstList.size(); }
 	unsigned int ReadInst(InstLoc I) { return *I; }
-	unsigned int GetImmValue(InstLoc I);
+	unsigned int GetImmValue(InstLoc I) const;
 
 	void Reset() {
 		InstList.clear();
@@ -546,7 +546,11 @@ public:
 
 private:
 	IRBuilder(IRBuilder&); // DO NOT IMPLEMENT
-	unsigned isSameValue(InstLoc Op1, InstLoc Op2);
+	unsigned isSameValue(InstLoc Op1, InstLoc Op2) const;
+	unsigned getComplexity(InstLoc I) const;
+	void simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2);
+	bool maskedValueIsZero(InstLoc Op1, InstLoc Op2) const;
+	InstLoc isNot(InstLoc I) const;
 
 	std::vector<Inst> InstList; // FIXME: We must ensure this is 
 				    // continuous!
