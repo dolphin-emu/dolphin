@@ -1037,13 +1037,13 @@ unsigned IRBuilder::getComplexity(InstLoc I) const {
 		static unsigned ZeroOp[] = {LoadCR, LoadLink, LoadMSR, LoadGReg, LoadCTR, InterpreterBranch, LoadCarry, RFIExit, LoadFReg, LoadFRegDENToZero, LoadGQR, Int3, };
 		static unsigned UOp[] = {StoreLink, BranchUncond, StoreCR, StoreMSR, StoreFPRF, StoreGReg, StoreCTR, Load8, Load16, Load32, SExt16, SExt8, Cntlzw, StoreCarry, SystemCall, ShortIdleLoop, LoadSingle, LoadDouble, LoadPaired, StoreFReg, DupSingleToMReg, DupSingleToPacked, ExpandPackedToMReg, CompactMRegToPacked, FSNeg, FSRSqrt, FDNeg, FPDup0, FPDup1, FPNeg, DoubleToSingle, StoreGQR, StoreSRR, };
 		static unsigned BiOp[] = {BranchCond, IdleBranch, And, Xor, Sub, Or, Add, Mul, Rol, Shl, Shrl, Sarl, ICmpEq, ICmpNe, ICmpUgt, ICmpUlt, ICmpSgt, ICmpSlt, ICmpSge, ICmpSle, Store8, Store16, Store32, ICmpCRSigned, ICmpCRUnsigned, InterpreterFallback, StoreSingle, StoreDouble, StorePaired, InsertDoubleInMReg, FSMul, FSAdd, FSSub, FDMul, FDAdd, FDSub, FPAdd, FPMul, FPSub, FPMerge00, FPMerge01, FPMerge10, FPMerge11, FDCmpCR, };
-		for (int i = 0; i < sizeof(ZeroOp) / sizeof(ZeroOp[0]); ++i) {
+		for (size_t i = 0; i < sizeof(ZeroOp) / sizeof(ZeroOp[0]); ++i) {
 			complexities[ZeroOp[i]] = 2;
 		}
-		for (int i = 0; i < sizeof(UOp) / sizeof(UOp[0]); ++i) {
+		for (size_t i = 0; i < sizeof(UOp) / sizeof(UOp[0]); ++i) {
 			complexities[UOp[i]] = 3;
 		}
-		for (int i = 0; i < sizeof(BiOp) / sizeof(BiOp[0]); ++i) {
+		for (size_t i = 0; i < sizeof(BiOp) / sizeof(BiOp[0]); ++i) {
 			complexities[BiOp[i]] = 4;
 		}
 	}
@@ -1078,7 +1078,7 @@ void IRBuilder::simplifyCommutative(unsigned Opcode, InstLoc& Op1, InstLoc& Op2)
 		const InstLoc Op1Old = Op1;
 		const InstLoc Op2Old = Op2;
 		Op1 = getOp1(Op1Old);
-		Op2 = FoldBiOp(Opcode, getOp2(Op1Old), Op2);
+		Op2 = FoldBiOp(Opcode, getOp2(Op1Old), Op2Old);
 	}
 
 	// Transform: (op (op V1, C1), (op V2, C2)) ==> (op (op V1, V2), (op C1,C2))
