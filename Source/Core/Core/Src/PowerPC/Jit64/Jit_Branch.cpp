@@ -246,7 +246,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 		MOV(32, R(EAX), Imm32(js.compilerPC + 4));
 		FixupBranch b = J_CC(branch, false);
 		MOV(32, R(EAX), M(&CTR));
-		MOV(32, M(&PC), R(EAX));
+		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
 		if (inst.LK_3)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
 		// Would really like to continue the block here, but it ends. TODO.
@@ -274,7 +274,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 		AND(32, M(&CR), Imm32(~(0xFF000000)));
 #endif
 		MOV(32, R(EAX), M(&LR));
-		MOV(32, M(&PC), R(EAX));
+		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
 		if (inst.LK_3)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
 		WriteExitDestInEAX(0);
@@ -295,15 +295,15 @@ void Jit64::bclrx(UGeckoInstruction inst)
 			branch = CC_Z;
 		else
 			branch = CC_NZ; 
-		MOV(32, R(EAX), Imm32(js.compilerPC + 4));
 		FixupBranch b = J_CC(branch, false);
 		MOV(32, R(EAX), M(&LR));
-		MOV(32, M(&PC), R(EAX));
+		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
 		if (inst.LK_3)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
+		WriteExitDestInEAX(0);	
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);
-		WriteExitDestInEAX(0);	
+		WriteExit(js.compilerPC + 4, 1);
 		return;
 	}
 	// Call interpreter
