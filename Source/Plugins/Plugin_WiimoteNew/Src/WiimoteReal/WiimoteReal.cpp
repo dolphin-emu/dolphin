@@ -37,6 +37,7 @@ namespace WiimoteReal
 bool	g_real_wiimotes_initialized = false;
 wiimote_t**		g_wiimotes_from_wiiuse = NULL;
 unsigned int	g_wiimotes_found = 0;
+volatile unsigned int	g_wiimotes_lastfound = 0;
 
 volatile bool	g_run_wiimote_thread = false;
 Common::Thread	*g_wiimote_thread = NULL;
@@ -273,11 +274,20 @@ unsigned int Initialize()
 	// initialized
 	g_real_wiimotes_initialized = true;
 
-	// Call Wiiuse.dll
+
+#ifdef WIN32 
+	// Alloc memory for wiimote structure only if we're starting fresh
+	if(!g_wiimotes_from_wiiuse)
+		g_wiimotes_from_wiiuse = wiiuse_init(MAX_WIIMOTES);
+	// on windows wiiuse_find() expects as a 3rd parameter the amount of last connected wiimotes instead of the timeout,
+	// a timeout parameter is useless on win32 here, since at this points we already have the wiimotes discovered and paired up, just not connected.
+	g_wiimotes_found = wiiuse_find(g_wiimotes_from_wiiuse, wanted_wiimotes, g_wiimotes_lastfound);
+#else
 	g_wiimotes_from_wiiuse = wiiuse_init(MAX_WIIMOTES);
 	g_wiimotes_found = wiiuse_find(g_wiimotes_from_wiiuse, wanted_wiimotes, 5);
-	
-	DEBUG_LOG(WIIMOTE, "Found %i Real Wiimotes, %i wanted", g_wiimotes_found, wanted_wiimotes);
+#endif
+	g_wiimotes_lastfound = g_wiimotes_found;
+	DEBUG_LOG(WIIMOTE, "Found %i Real Wiimotes, %i wanted and %i previously found", g_wiimotes_found, wanted_wiimotes, g_wiimotes_lastfound);
 
 	g_wiimotes_found =
 		wiiuse_connect(g_wiimotes_from_wiiuse, g_wiimotes_found);
@@ -341,8 +351,11 @@ void Shutdown(void)
 	//	wiiuse_set_leds(g_wiimotes_from_wiiuse[i], 0xF0);
 	//}
 
-	// Clean up wiiuse
+	// Clean up wiiuse, win32: we cant just delete the struct on win32, since wiiuse_find() maintains it and
+	// adds/removes wimotes directly to/from it to prevent problems, which would occur when using more than 1 wiimote if we create it from scratch everytime
+#ifndef WIN32
 	wiiuse_cleanup(g_wiimotes_from_wiiuse, MAX_WIIMOTES);
+#endif
 }
 
 #ifdef __linux__
