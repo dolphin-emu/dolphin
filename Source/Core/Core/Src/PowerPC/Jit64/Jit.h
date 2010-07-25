@@ -137,6 +137,7 @@ public:
 	void Cleanup();
 
 	void GenerateCarry();
+	void ComputeRC(const Gen::OpArg & arg);
 
 	void tri_op(int d, int a, int b, bool reversible, void (XEmitter::*op)(Gen::X64Reg, Gen::OpArg));
 	typedef u32 (*Operation)(u32 a, u32 b);
