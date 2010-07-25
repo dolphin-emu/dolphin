@@ -49,14 +49,8 @@ struct GC_ALIGNED64(PowerPCState)
 	u32 pc;     // program counter
 	u32 npc;
 
-	// flags
-	u32 cr_old;  // Not used anymore (only there to maintain backward compatibility with previous save states)
-	#pragma pack(push,1)
-	union {
-		u8 cr_fast[8];     // Possibly reorder to 0, 2, 4, 8, 1, 3, 5, 7 so that we can make Compact and Expand super fast?
-		u32 cr_fast_u32;   // Warning: This is reversed CR on little-endian systems
-	};
-	#pragma pack(pop)
+	u32 cr;            // flags
+	u8 cr_fast[8];     // Possibly reorder to 0, 2, 4, 8, 1, 3, 5, 7 so that we can make Compact and Expand super fast?
 
 	u32 msr;    // machine specific register
 	u32 fpscr;  // floating point flags/status bits
@@ -174,11 +168,13 @@ inline void SetCRBit(int bit, int value) {
 
 // SetCR and GetCR are fairly slow. Should be avoided if possible.
 inline void SetCR(u32 new_cr) {
-	PowerPC::ppcState.cr_fast_u32 = Common::swap32(new_cr);
+	PowerPC::ppcState.cr = new_cr;
+	PowerPC::ExpandCR();
 }
 
 inline u32 GetCR() {
-	return Common::swap32(PowerPC::ppcState.cr_fast_u32);
+	PowerPC::CompactCR();
+	return PowerPC::ppcState.cr;
 }
 
 // SetCarry/GetCarry may speed up soon.

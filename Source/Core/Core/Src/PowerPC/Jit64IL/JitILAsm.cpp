@@ -221,6 +221,20 @@ void JitILAsmRoutineManager::Generate()
 
 void JitILAsmRoutineManager::GenerateCommon()
 {
+	// USES_CR
+	computeRc = AlignCode16();
+	CMP(32, R(EAX), Imm8(0));
+	FixupBranch pLesser  = J_CC(CC_L);
+	FixupBranch pGreater = J_CC(CC_G);
+	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x2)); // _x86Reg == 0
+	RET();
+	SetJumpTarget(pGreater);
+	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x4)); // _x86Reg > 0
+	RET();
+	SetJumpTarget(pLesser);
+	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x8)); // _x86Reg < 0
+	RET();
+	
 	fifoDirectWrite8 = AlignCode4();
 	GenFifoWrite(8);
 	fifoDirectWrite16 = AlignCode4();

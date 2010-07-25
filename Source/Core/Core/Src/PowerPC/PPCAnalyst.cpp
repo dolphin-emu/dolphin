@@ -296,13 +296,6 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 
 	gpa->any = true;
 	fpa->any = false;
-	for (int i = 0; i < 32; i++)
-	{
-		gpa->firstRead[i]  = -1;
-		gpa->firstWrite[i] = -1;
-		gpa->numReads[i] = 0;
-		gpa->numWrites[i] = 0;
-	}
 
 	u32 blockstart = address;
 	int maxsize = blockSize;
@@ -314,8 +307,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 	CodeOp *code = buffer->codebuffer;
 	bool foundExit = false;
 
-	// Do analysis of the code, look for dependencies etc
-	int numSystemInstructions = 0;
+	// Flatten! (Currently just copies, following branches is disabled)
 	for (int i = 0; i < maxsize; i++)
 	{
 		num_inst++;
@@ -334,106 +326,6 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 		if (opinfo)
 			numCycles += opinfo->numCyclesMinusOne + 1;
 		_assert_msg_(POWERPC, opinfo != 0, "Invalid Op - Error flattening %08x op %08x", address + i*4, inst.hex);
-
-		code[i].wantsCR0 = false;
-		code[i].wantsCR1 = false;
-		code[i].wantsPS1 = false;
-
-		int flags = opinfo->flags;
-
-		if (flags & FL_USE_FPU)
-			fpa->any = true;
-
-		if (flags & FL_TIMER)
-			gpa->anyTimer = true;
-
-		// Does the instruction output CR0?
-		if (flags & FL_RC_BIT)
-			code[i].outputCR0 = inst.hex & 1; //todo fix
-		else if ((flags & FL_SET_CRn) && inst.CRFD == 0)
-			code[i].outputCR0 = true;
-		else
-			code[i].outputCR0 = (flags & FL_SET_CR0) ? true : false;
-
-		// Does the instruction output CR1?
-		if (flags & FL_RC_BIT_F)
-			code[i].outputCR1 = inst.hex & 1; //todo fix
-		else if ((flags & FL_SET_CRn) && inst.CRFD == 1)
-			code[i].outputCR1 = true;
-		else
-			code[i].outputCR1 = (flags & FL_SET_CR1) ? true : false;
-
-		int numOut = 0;
-		int numIn = 0;
-		if (flags & FL_OUT_A)
-		{
-			code[i].regsOut[numOut++] = inst.RA;
-			gpa->SetOutputRegister(inst.RA, i);
-		}
-		if (flags & FL_OUT_D)
-		{
-			code[i].regsOut[numOut++] = inst.RD;
-			gpa->SetOutputRegister(inst.RD, i);
-		}
-		if (flags & FL_OUT_S)
-		{
-			code[i].regsOut[numOut++] = inst.RS;
-			gpa->SetOutputRegister(inst.RS, i);
-		}
-		if ((flags & FL_IN_A) || ((flags & FL_IN_A0) && inst.RA != 0))
-		{
-			code[i].regsIn[numIn++] = inst.RA;
-			gpa->SetInputRegister(inst.RA, i);
-		}
-		if (flags & FL_IN_B)
-		{
-			code[i].regsIn[numIn++] = inst.RB;
-			gpa->SetInputRegister(inst.RB, i);
-		}
-		if (flags & FL_IN_C)
-		{
-			code[i].regsIn[numIn++] = inst.RC;
-			gpa->SetInputRegister(inst.RC, i);
-		}
-		if (flags & FL_IN_S)
-		{
-			code[i].regsIn[numIn++] = inst.RS;
-			gpa->SetInputRegister(inst.RS, i);
-		}
-
-		// Set remaining register slots as unused (-1)
-		for (int j = numIn; j < 3; j++)
-			code[i].regsIn[j] = -1;
-		for (int j = numOut; j < 2; j++)
-			code[i].regsOut[j] = -1;
-		for (int j = 0; j < 3; j++)
-			code[i].fregsIn[j] = -1;
-		code[i].fregOut = -1;
-
-		switch (opinfo->type) 
-		{
-		case OPTYPE_INTEGER:
-		case OPTYPE_LOAD:
-		case OPTYPE_STORE:
-			break;
-		case OPTYPE_FPU:
-			break;
-		case OPTYPE_LOADFP:
-			break;
-		case OPTYPE_BRANCH:
-			if (code[i].inst.hex == 0x4e800020)
-			{
-				// For analysis purposes, we can assume that blr eats flags.
-				code[i].outputCR0 = true;
-				code[i].outputCR1 = true;
-			}
-			break;
-		case OPTYPE_SYSTEM:
-		case OPTYPE_SYSTEMFP:
-			numSystemInstructions++;
-			break;
-		}
-
 		bool follow = false;
 		u32 destination;
 		if (inst.OPCD == 18 && blockSize > 1)
@@ -470,6 +362,146 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 		NOTICE_LOG(POWERPC, "Analyzer ERROR - Function %08x too big, size is 0x%08x", blockstart, address-blockstart);
 	st->numCycles = numCycles;
 
+	// Do analysis of the code, look for dependencies etc
+	int numSystemInstructions = 0;
+	for (int i = 0; i < 32; i++)
+	{
+		gpa->firstRead[i]  = -1;
+		gpa->firstWrite[i] = -1;
+		gpa->numReads[i] = 0;
+		gpa->numWrites[i] = 0;
+	}
+
+	gpa->any = true;
+	for (int i = 0; i < num_inst; i++)
+	{
+		UGeckoInstruction inst = code[i].inst;
+		
+		code[i].wantsCR0 = false;
+		code[i].wantsCR1 = false;
+		code[i].wantsPS1 = false;
+
+		const GekkoOPInfo *opinfo = code[i].opinfo;
+		_assert_msg_(POWERPC, opinfo != 0, "Invalid Op - Error scanning %08x op %08x",address+i*4,inst.hex);
+		int flags = opinfo->flags;
+
+		if (flags & FL_USE_FPU)
+			fpa->any = true;
+
+		if (flags & FL_TIMER)
+			gpa->anyTimer = true;
+
+		// Does the instruction output CR0?
+		if (flags & FL_RC_BIT)
+			code[i].outputCR0 = inst.hex & 1; //todo fix
+		else if ((flags & FL_SET_CRn) && inst.CRFD == 0)
+			code[i].outputCR0 = true;
+		else
+			code[i].outputCR0 = (flags & FL_SET_CR0) ? true : false;
+
+		// Does the instruction output CR1?
+		if (flags & FL_RC_BIT_F)
+			code[i].outputCR1 = inst.hex & 1; //todo fix
+		else if ((flags & FL_SET_CRn) && inst.CRFD == 1)
+			code[i].outputCR1 = true;
+		else
+			code[i].outputCR1 = (flags & FL_SET_CR1) ? true : false;
+
+		for (int j = 0; j < 3; j++)
+		{
+			code[i].fregsIn[j] = -1;
+			code[i].regsIn[j] = -1;
+		}
+		for (int j = 0; j < 2; j++)
+			code[i].regsOut[j] = -1;
+
+		code[i].fregOut = -1;
+
+		int numOut = 0;
+		int numIn = 0;
+		if (flags & FL_OUT_A)
+		{
+			code[i].regsOut[numOut++] = inst.RA;
+			gpa->numWrites[inst.RA]++;
+		}
+		if (flags & FL_OUT_D)
+		{
+			code[i].regsOut[numOut++] = inst.RD;
+			gpa->numWrites[inst.RD]++;
+		}
+		if (flags & FL_OUT_S)
+		{
+			code[i].regsOut[numOut++] = inst.RS;
+			gpa->numWrites[inst.RS]++;
+		}
+		if ((flags & FL_IN_A) || ((flags & FL_IN_A0) && inst.RA != 0))
+		{
+			code[i].regsIn[numIn++] = inst.RA;
+			gpa->numReads[inst.RA]++;
+		}
+		if (flags & FL_IN_B)
+		{
+			code[i].regsIn[numIn++] = inst.RB;
+			gpa->numReads[inst.RB]++;
+		}
+		if (flags & FL_IN_C)
+		{
+			code[i].regsIn[numIn++] = inst.RC;
+			gpa->numReads[inst.RC]++;
+		}
+		if (flags & FL_IN_S)
+		{
+			code[i].regsIn[numIn++] = inst.RS;
+			gpa->numReads[inst.RS]++;
+		}
+
+		switch (opinfo->type) 
+		{
+		case OPTYPE_INTEGER:
+		case OPTYPE_LOAD:
+		case OPTYPE_STORE:
+			break;
+		case OPTYPE_FPU:
+			break;
+		case OPTYPE_LOADFP:
+			break;
+		case OPTYPE_BRANCH:
+			if (code[i].inst.hex == 0x4e800020)
+			{
+				// For analysis purposes, we can assume that blr eats flags.
+				code[i].outputCR0 = true;
+				code[i].outputCR1 = true;
+			}
+			break;
+		case OPTYPE_SYSTEM:
+		case OPTYPE_SYSTEMFP:
+			numSystemInstructions++;
+			break;
+		}
+
+		for (int j = 0; j < numIn; j++)
+		{
+			int r = code[i].regsIn[j];
+			if (r < 0 || r > 31)
+				PanicAlert("wtf");
+			if (gpa->firstRead[r] == -1)
+				gpa->firstRead[r] = (short)(i);
+			gpa->lastRead[r] = (short)(i);
+			gpa->numReads[r]++;
+		}
+
+		for (int j = 0; j < numOut; j++)
+		{ 
+			int r = code[i].regsOut[j];
+			if (r < 0 || r > 31)
+				PanicAlert("wtf");
+			if (gpa->firstWrite[r] == -1)
+				gpa->firstWrite[r] = (short)(i);
+			gpa->lastWrite[r] = (short)(i);
+			gpa->numWrites[r]++;
+		}
+	}
+
 	// Instruction Reordering Pass
 	if (blockSize > 1)
 	{
@@ -498,7 +530,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 	bool wantsCR0 = true;
 	bool wantsCR1 = true;
 	bool wantsPS1 = true;
-	for (int i = num_inst - 1; i >= 0; i--)
+	for (int i = num_inst; i; i--)
 	{
 		if (code[i].outputCR0)
 			wantsCR0 = false;
