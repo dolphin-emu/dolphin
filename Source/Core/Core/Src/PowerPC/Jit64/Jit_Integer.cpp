@@ -25,12 +25,14 @@
 #include "JitAsm.h"
 
 // Assumes that the flags were just set through an addition.
-void Jit64::GenerateCarry(Gen::X64Reg temp_reg) {
+void Jit64::GenerateCarry() {
 	// USES_XER
-	SETcc(CC_C, R(temp_reg));
+	FixupBranch pNoCarry = J_CC(CC_NC);
+	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(1 << 29));
+	FixupBranch pContinue = J();
+	SetJumpTarget(pNoCarry);
 	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~(1 << 29)));
-	SHL(32, R(temp_reg), Imm8(29));
-	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), R(temp_reg));
+	SetJumpTarget(pContinue);
 }
 
 u32 Add(u32 a, u32 b) {return a + b;}
@@ -55,7 +57,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 					gpr.LoadToX64(d, false);
 				(this->*op)(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
 				if (carry)
-					GenerateCarry(EAX);
+					GenerateCarry();
 			}
 		}
 		else
@@ -64,7 +66,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 			MOV(32, gpr.R(d), gpr.R(a));
 			(this->*op)(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
 			if (carry)
-				GenerateCarry(EAX);
+				GenerateCarry();
 		}
 	}
 	else if (doop == Add)
@@ -378,7 +380,6 @@ void Jit64::subfic(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Integer)
 	int a = inst.RA, d = inst.RD;
-	gpr.FlushLockX(ECX);
 	gpr.Lock(a, d);
 	gpr.LoadToX64(d, a == d, true);
 	int imm = inst.SIMM_16;
@@ -386,9 +387,8 @@ void Jit64::subfic(UGeckoInstruction inst)
 	NOT(32, R(EAX));
 	ADD(32, R(EAX), Imm32(imm + 1));
 	MOV(32, gpr.R(d), R(EAX));
-	GenerateCarry(ECX);
+	GenerateCarry();
 	gpr.UnlockAll();
-	gpr.UnlockAllX();
 	// This instruction has no RC flag
 }
 
@@ -671,7 +671,6 @@ void Jit64::addex(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Integer)
 	int a = inst.RA, b = inst.RB, d = inst.RD;
-	gpr.FlushLockX(ECX);
 	gpr.Lock(a, b, d);
 	if (d != a && d != b)
 		gpr.LoadToX64(d, false);
@@ -682,9 +681,8 @@ void Jit64::addex(UGeckoInstruction inst)
 	MOV(32, R(EAX), gpr.R(a));
 	ADC(32, R(EAX), gpr.R(b));
 	MOV(32, gpr.R(d), R(EAX));
-	GenerateCarry(ECX);
+	GenerateCarry();
 	gpr.UnlockAll();
-	gpr.UnlockAllX();
 	if (inst.Rc)
 	{
 		CALL((u8*)asm_routines.computeRc);
