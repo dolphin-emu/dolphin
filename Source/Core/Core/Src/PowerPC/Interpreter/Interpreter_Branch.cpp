@@ -117,7 +117,7 @@ void rfi(UGeckoInstruction _inst)
 	const int mask = 0x87C0FFFF;
 	MSR = (MSR & ~mask) | (SRR1 & mask);
 	//MSR[13] is set to 0.
-	MSR &= 0xFFFDFFFF;
+	MSR &= 0xFFFBFFFF;
 	// Here we should check if there are pending exceptions, and if their corresponding enable bits are set
 	// if above is true, we'd do:
 	//PowerPC::CheckExceptions();

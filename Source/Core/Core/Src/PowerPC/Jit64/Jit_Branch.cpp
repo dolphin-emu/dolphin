@@ -66,7 +66,7 @@ void Jit64::rfi(UGeckoInstruction inst)
 	AND(32, R(ECX), Imm32(mask));
 	OR(32, R(EAX), R(ECX));       
 	// MSR &= 0xFFFDFFFF; //TODO: VERIFY
-	AND(32, R(EAX), Imm32(0xFFFDFFFF));
+	AND(32, R(EAX), Imm32(0xFFFBFFFF));
 	MOV(32, M(&MSR), R(EAX));
 	// NPC = SRR0; 
 	MOV(32, R(EAX), M(&SRR0));
