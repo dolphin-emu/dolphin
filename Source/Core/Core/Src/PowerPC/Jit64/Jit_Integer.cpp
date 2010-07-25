@@ -25,12 +25,32 @@
 #include "JitAsm.h"
 
 // Assumes that the flags were just set through an addition.
-void Jit64::GenerateCarry(Gen::X64Reg temp_reg) {
+void Jit64::GenerateCarry() {
 	// USES_XER
-	SETcc(CC_C, R(temp_reg));
+	FixupBranch pNoCarry = J_CC(CC_NC);
+	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(1 << 29));
+	FixupBranch pContinue = J();
+	SetJumpTarget(pNoCarry);
 	AND(32, M(&PowerPC::ppcState.spr[SPR_XER]), Imm32(~(1 << 29)));
-	SHL(32, R(temp_reg), Imm8(29));
-	OR(32, M(&PowerPC::ppcState.spr[SPR_XER]), R(temp_reg));
+	SetJumpTarget(pContinue);
+}
+
+void Jit64::ComputeRC(const Gen::OpArg & arg) {
+	CMP(32, arg, Imm8(0));
+	FixupBranch pLesser  = J_CC(CC_L);
+	FixupBranch pGreater = J_CC(CC_G);
+	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x2)); // _x86Reg == 0
+	FixupBranch continue1 = J();
+	
+	SetJumpTarget(pGreater);
+	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x4)); // _x86Reg > 0
+	FixupBranch continue2 = J();
+	
+	SetJumpTarget(pLesser);
+	MOV(8, M(&PowerPC::ppcState.cr_fast[0]), Imm8(0x8)); // _x86Reg < 0
+	
+	SetJumpTarget(continue1);
+	SetJumpTarget(continue2);
 }
 
 u32 Add(u32 a, u32 b) {return a + b;}
@@ -55,7 +75,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 					gpr.LoadToX64(d, false);
 				(this->*op)(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
 				if (carry)
-					GenerateCarry(EAX);
+					GenerateCarry();
 			}
 		}
 		else
@@ -64,7 +84,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 			MOV(32, gpr.R(d), gpr.R(a));
 			(this->*op)(32, gpr.R(d), Imm32(value)); //m_GPR[d] = m_GPR[_inst.RA] + _inst.SIMM_16;
 			if (carry)
-				GenerateCarry(EAX);
+				GenerateCarry();
 		}
 	}
 	else if (doop == Add)
@@ -81,8 +101,7 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 	if (Rc)
 	{
 		// Todo - special case immediates.
-		MOV(32, R(EAX), gpr.R(d));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(gpr.R(d));
 	}
 	gpr.UnlockAll();
 }
@@ -281,8 +300,7 @@ void Jit64::orx(UGeckoInstruction inst)
 
 	if (inst.Rc)
 	{
-		MOV(32, R(EAX), gpr.R(a));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(gpr.R(a));
 	}
 }
 
@@ -311,8 +329,7 @@ void Jit64::xorx(UGeckoInstruction inst)
 
 	if (inst.Rc)
 	{
-		MOV(32, R(EAX), gpr.R(a));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(gpr.R(a));
 	}
 }
 
@@ -334,7 +351,7 @@ void Jit64::andx(UGeckoInstruction inst)
 
 	if (inst.Rc) {
 		// result is already in eax
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(R(EAX));
 	}
 }
 
@@ -351,8 +368,7 @@ void Jit64::extsbx(UGeckoInstruction inst)
 	MOV(32, R(EAX), gpr.R(s));
 	MOVSX(32, 8, gpr.RX(a), R(AL)); // watch out for ah and friends
 	if (inst.Rc) {
-		MOV(32, R(EAX), gpr.R(a));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(gpr.R(a));
 	}
 }
 
@@ -368,8 +384,7 @@ void Jit64::extshx(UGeckoInstruction inst)
 	// as the 32-bit register.
 	MOVSX(32, 16, gpr.RX(a), gpr.R(s));
 	if (inst.Rc) {
-		MOV(32, R(EAX), gpr.R(a));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(gpr.R(a));
 	}
 }
 
@@ -378,7 +393,6 @@ void Jit64::subfic(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Integer)
 	int a = inst.RA, d = inst.RD;
-	gpr.FlushLockX(ECX);
 	gpr.Lock(a, d);
 	gpr.LoadToX64(d, a == d, true);
 	int imm = inst.SIMM_16;
@@ -386,9 +400,8 @@ void Jit64::subfic(UGeckoInstruction inst)
 	NOT(32, R(EAX));
 	ADD(32, R(EAX), Imm32(imm + 1));
 	MOV(32, gpr.R(d), R(EAX));
-	GenerateCarry(ECX);
+	GenerateCarry();
 	gpr.UnlockAll();
-	gpr.UnlockAllX();
 	// This instruction has no RC flag
 }
 
@@ -421,7 +434,7 @@ void Jit64::subfcx(UGeckoInstruction inst)
 	gpr.UnlockAll();
 	if (inst.OE) PanicAlert("OE: subfcx");
 	if (inst.Rc) {
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(R(EAX));
 	}
 }
 
@@ -464,7 +477,7 @@ void Jit64::subfex(UGeckoInstruction inst)
 	gpr.UnlockAllX();
 	if (inst.OE) PanicAlert("OE: subfex");
 	if (inst.Rc) {
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(R(EAX));
 	}
 }
 
@@ -486,7 +499,7 @@ void Jit64::subfx(UGeckoInstruction inst)
 	if (inst.OE) PanicAlert("OE: subfx");
 	if (inst.Rc) {
 		// result is already in eax
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(R(EAX));
 	}
 }
 
@@ -519,8 +532,7 @@ void Jit64::mullwx(UGeckoInstruction inst)
 	}
 	gpr.UnlockAll();
 	if (inst.Rc) {
-		MOV(32, R(EAX), gpr.R(d));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(gpr.R(d));
 	}
 }
 
@@ -543,14 +555,9 @@ void Jit64::mulhwux(UGeckoInstruction inst)
 	MUL(32, gpr.R(b));
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
-	if (inst.Rc) {
-		MOV(32, R(EAX), R(EDX));
-		MOV(32, gpr.R(d), R(EDX));
-		// result is already in eax
-		CALL((u8*)asm_routines.computeRc);
-	} else {
-		MOV(32, gpr.R(d), R(EDX));
-	}
+	MOV(32, gpr.R(d), R(EDX));
+	if (inst.Rc)
+		ComputeRC(R(EDX));
 }
 
 void Jit64::divwux(UGeckoInstruction inst)
@@ -581,7 +588,7 @@ void Jit64::divwux(UGeckoInstruction inst)
 	gpr.UnlockAll();
 	gpr.UnlockAllX();
 	if (inst.Rc) {
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(R(EAX));
 	}
 }
 
@@ -604,8 +611,7 @@ void Jit64::addx(UGeckoInstruction inst)
 		}
 		if (inst.Rc)
 		{
-			MOV(32, R(EAX), gpr.R(d));
-			CALL((u8*)asm_routines.computeRc);
+			ComputeRC(gpr.R(d));
 		}
 		gpr.UnlockAll();
 	}
@@ -616,8 +622,7 @@ void Jit64::addx(UGeckoInstruction inst)
 		ADD(32, gpr.R(d), gpr.R(b));
 		if (inst.Rc)
 		{
-			MOV(32, R(EAX), gpr.R(d));
-			CALL((u8*)asm_routines.computeRc);
+			ComputeRC(gpr.R(d));
 		}
 		gpr.UnlockAll();
 	}
@@ -628,8 +633,7 @@ void Jit64::addx(UGeckoInstruction inst)
 		ADD(32, gpr.R(d), gpr.R(a));
 		if (inst.Rc)
 		{
-			MOV(32, R(EAX), gpr.R(d));
-			CALL((u8*)asm_routines.computeRc);
+			ComputeRC(gpr.R(d));
 		}
 		gpr.UnlockAll();
 	}
@@ -640,8 +644,7 @@ void Jit64::addx(UGeckoInstruction inst)
 		ADD(32, gpr.R(d), gpr.R(d));
 		if (inst.Rc)
 		{
-			MOV(32, R(EAX), gpr.R(d));
-			CALL((u8*)asm_routines.computeRc);
+			ComputeRC(gpr.R(d));
 		}
 		gpr.UnlockAll();
 	}
@@ -653,8 +656,7 @@ void Jit64::addx(UGeckoInstruction inst)
 		ADD(32, gpr.R(d), gpr.R(d));
 		if (inst.Rc)
 		{
-			MOV(32, R(EAX), gpr.R(d));
-			CALL((u8*)asm_routines.computeRc);
+			ComputeRC(gpr.R(d));
 		}
 		gpr.UnlockAll();
 	}
@@ -671,7 +673,6 @@ void Jit64::addex(UGeckoInstruction inst)
 	INSTRUCTION_START
 	JITDISABLE(Integer)
 	int a = inst.RA, b = inst.RB, d = inst.RD;
-	gpr.FlushLockX(ECX);
 	gpr.Lock(a, b, d);
 	if (d != a && d != b)
 		gpr.LoadToX64(d, false);
@@ -682,12 +683,11 @@ void Jit64::addex(UGeckoInstruction inst)
 	MOV(32, R(EAX), gpr.R(a));
 	ADC(32, R(EAX), gpr.R(b));
 	MOV(32, gpr.R(d), R(EAX));
-	GenerateCarry(ECX);
+	GenerateCarry();
 	gpr.UnlockAll();
-	gpr.UnlockAllX();
 	if (inst.Rc)
 	{
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(R(EAX));
 	}
 }
 
@@ -741,8 +741,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
 
 	if (inst.Rc)
 	{
-		MOV(32, R(EAX), gpr.R(a));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(gpr.R(a));
 	}
 }
 
@@ -775,8 +774,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 	gpr.UnlockAll();
 	if (inst.Rc)
 	{
-		MOV(32, R(EAX), gpr.R(a));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(gpr.R(a));
 	}
 }
 
@@ -804,8 +802,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
 	gpr.UnlockAllX();
 	if (inst.Rc)
 	{
-		MOV(32, R(EAX), gpr.R(a));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(R(EAX));
 	}
 }
 
@@ -823,8 +820,7 @@ void Jit64::negx(UGeckoInstruction inst)
 	gpr.UnlockAll();
 	if (inst.Rc)
 	{
-		MOV(32, R(EAX), gpr.R(d));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(gpr.R(d));
 	}
 }
 
@@ -850,8 +846,7 @@ void Jit64::srwx(UGeckoInstruction inst)
 	gpr.UnlockAllX();
 	if (inst.Rc) 
 	{
-		MOV(32, R(EAX), gpr.R(a));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(R(EAX));
 	}
 }
 
@@ -877,8 +872,7 @@ void Jit64::slwx(UGeckoInstruction inst)
 	gpr.UnlockAllX();
 	if (inst.Rc) 
 	{
-		MOV(32, R(EAX), gpr.R(a));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(R(EAX));
 	}
 }
 
@@ -922,8 +916,7 @@ void Jit64::srawx(UGeckoInstruction inst)
 	gpr.UnlockAllX();
 
 	if (inst.Rc) {
-		MOV(32, R(EAX), gpr.R(a));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(gpr.R(a));
 	}
 }
 
@@ -965,8 +958,7 @@ void Jit64::srawix(UGeckoInstruction inst)
 	}
 
 	if (inst.Rc) {
-		MOV(32, R(EAX), gpr.R(a));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(gpr.R(a));
 	}
 }
 
@@ -993,8 +985,7 @@ void Jit64::cntlzwx(UGeckoInstruction inst)
 
 	if (inst.Rc)
 	{
-		MOV(32, R(EAX), gpr.R(a));
-		CALL((u8*)asm_routines.computeRc);
+		ComputeRC(gpr.R(a));
 		// TODO: Check PPC manual too
 	}
 }
