@@ -6,7 +6,9 @@
 #include <sstream>
 #include <map>
 #include <algorithm>
+
 #include "Common.h"
+#include "Thread.h"
 
 // enable disable sources
 #ifdef _WIN32
@@ -214,11 +216,13 @@ public:
 	bool IsInit() const { return m_is_init; }
 
 	void UpdateReference(ControlReference* control, const DeviceQualifier& default_device) const;
-	bool UpdateInput();
-	bool UpdateOutput();
+	bool UpdateInput(const bool force = false);
+	bool UpdateOutput(const bool force = false);
 
 	const std::vector<Device*>& Devices() const { return m_devices; }
 	Device* FindDevice(const DeviceQualifier& devq) const;
+
+	Common::CriticalSection		update_lock;
 
 private:
 	bool					m_is_init;

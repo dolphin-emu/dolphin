@@ -32,13 +32,10 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 		if ( (*g)->static_bitmap )
 		{
 
+			m_plugin.controller_interface.UpdateInput();
 			// don't want game thread updating input when we are using it here
-			if ( false == m_plugin.interface_crit.TryEnter() )
+			if (false == m_plugin.controller_interface.update_lock.TryEnter())
 				return;
-
-			//if ( false == is_game_running )
-			// just always update
-				m_plugin.controller_interface.UpdateInput();
 
 			wxMemoryDC dc;
 			wxBitmap bitmap((*g)->static_bitmap->GetBitmap());
@@ -324,7 +321,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 			dc.SelectObject(wxNullBitmap);
 			(*g)->static_bitmap->SetBitmap(bitmap);
 
-			m_plugin.interface_crit.Leave();
+			m_plugin.controller_interface.update_lock.Leave();
 		}
 	}
 

@@ -211,11 +211,10 @@ void Wiimote_Update(int _number)
 	g_plugin.controls_crit.Enter();
 
 	static int _last_number = 4;
-	if ( _number <= _last_number && g_plugin.interface_crit.TryEnter() )
+	if (_number <= _last_number)
 	{
 		g_plugin.controller_interface.UpdateOutput();
 		g_plugin.controller_interface.UpdateInput();
-		g_plugin.interface_crit.Leave();
 	}
 	_last_number = _number;
 
@@ -225,7 +224,7 @@ void Wiimote_Update(int _number)
 		WiimoteReal::Update(_number);
 		break;
 	case WIIMOTE_SRC_EMU :
-		((WiimoteEmu::Wiimote*)g_plugin.controllers[ _number ])->Update();
+		((WiimoteEmu::Wiimote*)g_plugin.controllers[_number])->Update();
 		break;
 	}
 

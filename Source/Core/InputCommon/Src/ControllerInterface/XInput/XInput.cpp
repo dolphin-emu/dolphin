@@ -9,7 +9,7 @@ namespace ciface
 namespace XInput
 {
 
-static struct
+static const struct
 {
 	const char* const name;
 	const WORD bitmask;

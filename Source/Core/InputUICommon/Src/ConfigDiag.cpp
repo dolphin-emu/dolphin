@@ -429,7 +429,7 @@ void GamepadPage::ClearControl( wxCommandEvent& event )
 {
 	ControlButton* const btn = (ControlButton*)event.GetEventObject();
 	btn->control_reference->expression.clear();
-	//btn->control_reference->device_qualifier = controller->default_device;
+	btn->control_reference->range = 1.0f;
 
 	m_plugin.controls_crit.Enter();		// enter
 	controller->UpdateReferences( m_plugin.controller_interface );

@@ -261,13 +261,15 @@ ControllerEmu::Triggers::Triggers( const char* const _name ) : ControlGroup( _na
 
 ControllerEmu::Force::Force( const char* const _name ) : ControlGroup( _name, GROUP_TYPE_FORCE )
 {
+	memset(m_swing, 0, sizeof(m_swing));
+
 	controls.push_back( new Input( "Up" ) );
 	controls.push_back( new Input( "Down" ) );
 	controls.push_back( new Input( "Left" ) );
 	controls.push_back( new Input( "Right" ) );
 	controls.push_back( new Input( "Forward" ) );
 	controls.push_back( new Input( "Backward" ) );
-	controls.push_back( new Input( "Modifier" ) );
+	//controls.push_back( new Input( "Modifier" ) );
 
 	settings.push_back( new Setting("Dead Zone", 0, 0, 50 ) );
 }
@@ -277,8 +279,6 @@ ControllerEmu::Tilt::Tilt( const char* const _name )
 {
 	memset(m_tilt, 0, sizeof(m_tilt));
 
-	//for ( unsigned int i = 0; i < 4; ++i )
-		//controls.push_back( new Input( named_directions[i] ) );
 	controls.push_back( new Input( "Forward" ) );
 	controls.push_back( new Input( "Backward" ) );
 	controls.push_back( new Input( "Left" ) );

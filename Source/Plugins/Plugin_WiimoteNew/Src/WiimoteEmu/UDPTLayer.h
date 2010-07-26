@@ -4,6 +4,9 @@
 #define UDPTLAYER_H
 
 #include "UDPWiimote.h"
+#include "WiimoteEmu.h"
+
+using WiimoteEmu::Wiimote;
 
 namespace UDPTLayer
 {
@@ -12,17 +15,17 @@ namespace UDPTLayer
 		if (!(m->inst)) return;
 		if (!(m->updButt)) return;
 		u32 mask=m->inst->getButtons();
-		*butt|=(mask&UDPWM_BA)?WIIMOTE_A:0;
-		*butt|=(mask&UDPWM_BB)?WIIMOTE_B:0;
-		*butt|=(mask&UDPWM_B1)?WIIMOTE_ONE:0;
-		*butt|=(mask&UDPWM_B2)?WIIMOTE_TWO:0;
-		*butt|=(mask&UDPWM_BP)?WIIMOTE_PLUS:0;
-		*butt|=(mask&UDPWM_BM)?WIIMOTE_MINUS:0;
-		*butt|=(mask&UDPWM_BH)?WIIMOTE_HOME:0;
-		*butt|=(mask&UDPWM_BU)?WIIMOTE_PAD_UP:0;
-		*butt|=(mask&UDPWM_BD)?WIIMOTE_PAD_DOWN:0;
-		*butt|=(mask&UDPWM_BL)?WIIMOTE_PAD_LEFT:0;
-		*butt|=(mask&UDPWM_BR)?WIIMOTE_PAD_RIGHT:0;
+		*butt|=(mask&UDPWM_BA)?Wiimote::BUTTON_A:0;
+		*butt|=(mask&UDPWM_BB)?Wiimote::BUTTON_B:0;
+		*butt|=(mask&UDPWM_B1)?Wiimote::BUTTON_ONE:0;
+		*butt|=(mask&UDPWM_B2)?Wiimote::BUTTON_TWO:0;
+		*butt|=(mask&UDPWM_BP)?Wiimote::BUTTON_PLUS:0;
+		*butt|=(mask&UDPWM_BM)?Wiimote::BUTTON_MINUS:0;
+		*butt|=(mask&UDPWM_BH)?Wiimote::BUTTON_HOME:0;
+		*butt|=(mask&UDPWM_BU)?Wiimote::PAD_UP:0;
+		*butt|=(mask&UDPWM_BD)?Wiimote::PAD_DOWN:0;
+		*butt|=(mask&UDPWM_BL)?Wiimote::PAD_LEFT:0;
+		*butt|=(mask&UDPWM_BR)?Wiimote::PAD_RIGHT:0;
 	}
 
 	void GetAcceleration(UDPWrapper * m , wm_accel * data, accel_cal * calib)

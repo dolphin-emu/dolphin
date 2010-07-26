@@ -121,8 +121,13 @@ void ControllerInterface::SetHwnd( void* const hwnd )
 //
 // update input for all devices, return true if all devices returned successful
 //
-bool ControllerInterface::UpdateInput()
+bool ControllerInterface::UpdateInput(const bool force)
 {
+	if (force)
+		update_lock.Enter();
+	else if (false == update_lock.TryEnter())
+		return false;
+
 	size_t ok_count = 0;
 
 	std::vector<Device*>::const_iterator
@@ -137,6 +142,7 @@ bool ControllerInterface::UpdateInput()
 			//(*d)->ClearInputState();
 	}
 
+	update_lock.Leave();
 	return (m_devices.size() == ok_count);
 }
 
@@ -145,8 +151,13 @@ bool ControllerInterface::UpdateInput()
 //
 // update output for all devices, return true if all devices returned successful
 //
-bool ControllerInterface::UpdateOutput()
+bool ControllerInterface::UpdateOutput(const bool force)
 {
+	if (force)
+		update_lock.Enter();
+	else if (false == update_lock.TryEnter())
+		return false;
+
 	size_t ok_count = 0;
 
 	std::vector<Device*>::const_iterator
@@ -155,6 +166,7 @@ bool ControllerInterface::UpdateOutput()
 	for (;d != e; ++d)
 		(*d)->UpdateOutput();
 
+	update_lock.Leave();
 	return (m_devices.size() == ok_count);
 }
 

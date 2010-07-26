@@ -253,19 +253,35 @@ public:
 		Force( const char* const _name );
 
 		template <typename C, typename R>
-		void GetState( C* axis, const u8 base, const R range )
+		void GetState(C* axis, const u8 base, const R range)
 		{
 			const float deadzone = settings[0]->value;
-			for ( unsigned int i=0; i<6; i+=2 )
+			for (unsigned int i=0; i<6; i+=2)
 			{
+				float tmpf = 0;
 				const float state = controls[i+1]->control_ref->State() - controls[i]->control_ref->State();
 				if (fabsf(state) > deadzone)
-					*axis++ = (C)((state - (deadzone * sign(state))) / (1 - deadzone) * range + base);
-					//*axis++ = state * range + base;
+					tmpf = ((state - (deadzone * sign(state))) / (1 - deadzone));
 				else
-					*axis++ = (C)(base);
+					tmpf = 0;
+
+				float &ax = m_swing[i >> 1];
+
+				if (fabs(tmpf) > fabsf(ax))
+				{
+					if (tmpf > ax)
+						ax = std::min(ax + 0.15f, tmpf);
+					else if (tmpf < ax)
+						ax = std::max(ax - 0.15f, tmpf);
+				}
+				else
+					ax = tmpf;
+
+				*axis++	= (C)(ax * range + base);
 			}
 		}
+	private:
+		float	m_swing[3];
 	};
 
 	class Tilt : public ControlGroup

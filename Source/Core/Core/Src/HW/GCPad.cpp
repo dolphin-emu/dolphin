@@ -65,37 +65,35 @@ void GCPad_Init( void* const hwnd )
 
 void PAD_GetStatus(u8 _numPAD, SPADStatus* _pPADStatus)
 {
-	memset( _pPADStatus, 0, sizeof(*_pPADStatus) );
+	memset(_pPADStatus, 0, sizeof(*_pPADStatus));
 	_pPADStatus->err = PAD_ERR_NONE;
-	// wtf is this?	
-	_pPADStatus->button |= PAD_USE_ORIGIN;
+	// wtf is this?
+	_pPADStatus->button = PAD_USE_ORIGIN;
 
 	// try lock
-	if ( false == g_plugin.controls_crit.TryEnter() )
+	if (false == g_plugin.controls_crit.TryEnter())
 	{
 		// if gui has lock (messing with controls), skip this input cycle
 		// center axes and return
-		memset( &_pPADStatus->stickX, 0x80, 4 );
+		memset(&_pPADStatus->stickX, 0x80, 4);
 		return;
 	}
 
 	// if we are on the next input cycle, update output and input
 	// if we can get a lock
 	static int _last_numPAD = 4;
-	if ( _numPAD <= _last_numPAD && g_plugin.interface_crit.TryEnter() )
+	if (_numPAD <= _last_numPAD)
 	{
 		g_plugin.controller_interface.UpdateOutput();
 		g_plugin.controller_interface.UpdateInput();
-		g_plugin.interface_crit.Leave();
 	}
 	_last_numPAD = _numPAD;
 	
 	// get input
-	((GCPad*)g_plugin.controllers[ _numPAD ])->GetInput( _pPADStatus );
+	((GCPad*)g_plugin.controllers[_numPAD])->GetInput(_pPADStatus);
 
 	// leave
 	g_plugin.controls_crit.Leave();
-
 }
 
 // __________________________________________________________________________________________________

@@ -168,7 +168,7 @@ bool RamWriteAndFill()
 	u32 new_addr = code.GetAddress();
 	const u32& data = code.data;
 
-	u16 count = (data >> 16) + 1;	// note: +1
+	u32 count = (data >> 16) + 1;	// note: +1
 
 	switch (code.subtype)
 	{
@@ -176,7 +176,7 @@ bool RamWriteAndFill()
 	case DATATYPE_8BIT :
 		while (count--)
 		{
-			Memory::Write_U16((u16)data, new_addr);
+			Memory::Write_U8((u8)data, new_addr);
 			++new_addr;
 		}
 		break;
@@ -232,7 +232,7 @@ bool RamWriteAndFill()
 		const u8 data_type = current_code->address >> 28;
 		const u32 data_inc = current_code->data;	// amount to increment the data
 		const u16 addr_inc = (u16)current_code->address;	// amount to increment the address
-		count =	(current_code->address >> 16) & 0xFFF + 1;	// count is different from the other subtypes, note: +1
+		count =	((current_code->address >> 16) & 0xFFF) + 1;	// count is different from the other subtypes, note: +1
 		while (count--)
 		{
 			// switch inside the loop, :/ o well
@@ -435,7 +435,6 @@ bool FlowControl()
 			// needs -1 cause iterator gets ++ after code runs
 			current_code = codes_start + block[block_num].address - 1;
 		}
-		return false;	//
 		break;
 
 		// CST2 : Return

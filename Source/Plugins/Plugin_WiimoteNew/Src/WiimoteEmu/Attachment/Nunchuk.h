@@ -31,7 +31,7 @@ private:
 
 	unsigned int	m_shake_step[3];
 	
-	UDPWrapper * udpWrap;
+	UDPWrapper* const m_udpWrap;
 };
 
 }

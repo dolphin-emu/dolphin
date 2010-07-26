@@ -19,7 +19,7 @@ namespace ciface
 namespace DInput
 {
 
-static struct
+static const struct
 {
 	const BYTE			code;
 	const char* const	name;
@@ -28,7 +28,7 @@ static struct
 #include "NamedKeys.h"
 };
 
-static struct
+static const struct
 {
 	const BYTE			code;
 	const char* const	name;
