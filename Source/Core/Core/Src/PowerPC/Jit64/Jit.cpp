@@ -502,6 +502,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
 		js.downcountAmount = js.st.numCycles + PatchEngine::GetSpeedhackCycles(em_address);
 
+	js.skipnext = false;
 	js.blockSize = size;
 	// Translate instructions
 	for (int i = 0; i < (int)size; i++)
@@ -549,6 +550,11 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 #endif
 
+		if (js.skipnext) {
+			js.skipnext = false;
+			i++; // Skip next instruction
+		}
+		
 		if (js.cancel)
 			break;
 	}

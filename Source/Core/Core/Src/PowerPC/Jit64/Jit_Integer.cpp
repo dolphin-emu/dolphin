@@ -91,8 +91,11 @@ void Jit64::regimmop(int d, int a, bool binary, u32 value, Operation doop, void 
 	{
 		// a == 0, which for these instructions imply value = 0
 		gpr.SetImmediate32(d, value);
+#ifdef __APPLE__
 // XXX soren
+		// FIXME: Seems to be required on OS X (see r5799)
 		gpr.StoreFromX64(d);
+#endif
 	}
 	else
 	{
@@ -126,7 +129,37 @@ void Jit64::reg_imm(UGeckoInstruction inst)
 			regimmop(d, a, false, (u32)(s32)inst.SIMM_16,  Add, &XEmitter::ADD); //addi
 		}
 		break;
-	case 15: regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, &XEmitter::ADD); break; //addis
+	case 15:
+		if (a == 0) {	// lis
+			// Merge with next instruction if loading a 32-bits immediate value (lis + addi, lis + ori)
+			if (!js.isLastInstruction) {
+				if ((js.next_inst.OPCD == 14) && (js.next_inst.RD == d) && (js.next_inst.RA == d)) {      // addi
+					gpr.SetImmediate32(d, ((u32)inst.SIMM_16 << 16) + (u32)(s32)js.next_inst.SIMM_16);
+#ifdef __APPLE__
+					// FIXME: Seems to be required on OS X (see r5799)
+					gpr.StoreFromX64(d);
+#endif
+					js.skipnext = true;
+					break;
+				}
+				else if ((js.next_inst.OPCD == 24) && (js.next_inst.RA == d) && (js.next_inst.RS == d))	{ // ori
+					gpr.SetImmediate32(d, ((u32)inst.SIMM_16 << 16) | (u32)js.next_inst.UIMM);
+#ifdef __APPLE__
+					// FIXME: Seems to be required on OS X (see r5799)
+					gpr.StoreFromX64(d);
+#endif
+					js.skipnext = true;
+					break;
+				}
+			}
+
+			// Not merged
+			regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, &XEmitter::ADD);
+		}
+		else {	// addis
+			regimmop(d, a, false, (u32)inst.SIMM_16 << 16, Add, &XEmitter::ADD);
+		}
+		break;
 	case 24: 
 		if (a == 0 && s == 0 && inst.UIMM == 0 && !inst.Rc)  //check for nop
 		{NOP(); return;} //make the nop visible in the generated code. not much use but interesting if we see one.

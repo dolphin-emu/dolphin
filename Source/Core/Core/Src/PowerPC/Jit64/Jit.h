@@ -61,6 +61,7 @@ private:
 		u32 next_compilerPC;
 		u32 blockStart;
 		bool cancel;
+		bool skipnext;
 		UGeckoInstruction next_inst;  // for easy peephole opt.
 		int blockSize;
 		int instructionNumber;
