@@ -420,7 +420,8 @@ void CFrame::DoRemovePage(wxWindow *Win, bool bHide)
 			}
 		}
 	}
-	AddRemoveBlankPage();
+	if (g_pCodeWindow)
+		AddRemoveBlankPage();
 }
 
 void CFrame::DoAddPage(wxWindow *Win, int i, bool Float)
