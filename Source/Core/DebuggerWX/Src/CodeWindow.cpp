@@ -100,13 +100,6 @@ BEGIN_EVENT_TABLE(CCodeWindow, wxPanel)
 	EVT_MENU(IDM_LOGINSTRUCTIONS,		CCodeWindow::OnJitMenu)
 	EVT_MENU(IDM_SEARCHINSTRUCTION,		CCodeWindow::OnJitMenu)
 
-	EVT_MENU(IDM_REGISTERWINDOW,		CCodeWindow::OnToggleWindow) // View
-	EVT_MENU(IDM_BREAKPOINTWINDOW,		CCodeWindow::OnToggleWindow)
-	EVT_MENU(IDM_MEMORYWINDOW,			CCodeWindow::OnToggleWindow)
-	EVT_MENU(IDM_JITWINDOW,				CCodeWindow::OnToggleWindow)
-	EVT_MENU(IDM_SOUNDWINDOW,			CCodeWindow::OnToggleWindow)
-	EVT_MENU(IDM_VIDEOWINDOW,			CCodeWindow::OnToggleWindow)
-
 	EVT_MENU(IDM_CLEARSYMBOLS,			CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_LOADMAPFILE,			CCodeWindow::OnSymbolsMenu)
 	EVT_MENU(IDM_SCANFUNCTIONS,			CCodeWindow::OnSymbolsMenu)
@@ -392,10 +385,8 @@ void CCodeWindow::CreateGUIControls(const SCoreStartupParameter& _LocalCoreStart
 
 // Create CPU Mode menus
 void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter,
-	   	wxMenuBar * _pMenuBar)
+	   	wxMenuBar *pMenuBar)
 {
-	pMenuBar = _pMenuBar;
-
 	// CPU Mode
 	wxMenu* pCoreMenu = new wxMenu;
 
@@ -448,39 +439,16 @@ void CCodeWindow::CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParam
 
 	pMenuBar->Append(pCoreMenu, _T("&JIT"));
 
-	CreateMenuSymbols();
+	CreateMenuSymbols(pMenuBar);
 }
 
-// Create View menu
-void CCodeWindow::CreateMenuView(wxMenuBar * _pMenuBar, wxMenu* _pMenu)
+void CCodeWindow::CreateMenuOptions(wxMenu* pMenu)
 {
-	wxMenuItem* pRegister = _pMenu->Append(IDM_REGISTERWINDOW, _T("&Registers"),
-		   	wxEmptyString, wxITEM_CHECK);
-	pRegister->Check(bRegisterWindow);
-	wxMenuItem* pBreakPoints = _pMenu->Append(IDM_BREAKPOINTWINDOW, _T("&BreakPoints"),
-		   	wxEmptyString, wxITEM_CHECK);
-	pBreakPoints->Check(bBreakpointWindow);
-	wxMenuItem* pMemory = _pMenu->Append(IDM_MEMORYWINDOW, _T("&Memory"),
-		   	wxEmptyString, wxITEM_CHECK);
-	pMemory->Check(bMemoryWindow);
-	wxMenuItem* pJit = _pMenu->Append(IDM_JITWINDOW, _T("&Jit"),
-		   	wxEmptyString, wxITEM_CHECK);
-	pJit->Check(bJitWindow);
-	wxMenuItem* pSound = _pMenu->Append(IDM_SOUNDWINDOW, _T("&Sound"),
-		   	wxEmptyString, wxITEM_CHECK);
-	pSound->Check(bSoundWindow);
-	wxMenuItem* pVideo = _pMenu->Append(IDM_VIDEOWINDOW, _T("&Video"),
-		   	wxEmptyString, wxITEM_CHECK);
-	pVideo->Check(bVideoWindow);
-}
-
-void CCodeWindow::CreateMenuOptions(wxMenuBar * _pMenuBar, wxMenu* _pMenu)
-{
-	wxMenuItem* boottopause = _pMenu->Append(IDM_BOOTTOPAUSE, _T("Boot to pause"),
+	wxMenuItem* boottopause = pMenu->Append(IDM_BOOTTOPAUSE, _T("Boot to pause"),
 		wxT("Start the game directly instead of booting to pause"), wxITEM_CHECK);
 	boottopause->Check(bBootToPause);
 
-	wxMenuItem* automaticstart = _pMenu->Append(IDM_AUTOMATICSTART, _T("&Automatic start")
+	wxMenuItem* automaticstart = pMenu->Append(IDM_AUTOMATICSTART, _T("&Automatic start")
 		, wxString::FromAscii(
 		"Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
 		" if you have not given it an elf file with the --elf command line. [This can be"
@@ -490,7 +458,7 @@ void CCodeWindow::CreateMenuOptions(wxMenuBar * _pMenuBar, wxMenu* _pMenu)
 		, wxITEM_CHECK);
 	automaticstart->Check(bAutomaticStart);
 
-	_pMenu->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
+	pMenu->Append(IDM_FONTPICKER, _T("&Font..."), wxEmptyString, wxITEM_NORMAL);
 }
 
 // CPU Mode and JIT Menu

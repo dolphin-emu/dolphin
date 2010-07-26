@@ -71,10 +71,9 @@ class CCodeWindow
 		void Update();
 		void NotifyMapLoaded();
 		void CreateMenu(const SCoreStartupParameter& _LocalCoreStartupParameter,
-			   	wxMenuBar * pMenuBar);
-		void CreateMenuView(wxMenuBar * pMenuBar, wxMenu*);
-		void CreateMenuOptions(wxMenuBar * pMenuBar, wxMenu*);
-		void CreateMenuSymbols();
+			   	wxMenuBar *pMenuBar);
+		void CreateMenuOptions(wxMenu *pMenu);
+		void CreateMenuSymbols(wxMenuBar *pMenuBar);
 		void RecreateToolbar(wxAuiToolBar*);
 		void PopulateToolbar(wxAuiToolBar* toolBar);
 		void UpdateButtonStates();
@@ -86,7 +85,6 @@ class CCodeWindow
 		void OnCPUMode(wxCommandEvent& event); // CPU Mode menu
 		void OnJITOff(wxCommandEvent& event);
 
-		void OnToggleWindow(wxCommandEvent& event);
 		void ToggleCodeWindow(bool bShow);
 		void ToggleRegisterWindow(bool bShow);
 		void ToggleBreakPointWindow(bool bShow);
@@ -103,7 +101,6 @@ class CCodeWindow
 		void OnProfilerMenu(wxCommandEvent& event);
 
 		// Sub dialogs
-		wxMenuBar* pMenuBar;
 		CRegisterWindow* m_RegisterWindow;
 		CBreakPointWindow* m_BreakpointWindow;
 		CMemoryWindow* m_MemoryWindow;
@@ -111,15 +108,8 @@ class CCodeWindow
 
 		// Settings
 		bool bAutomaticStart; bool bBootToPause;
-		int iLogWindow;
-		int iConsoleWindow;
-		bool bCodeWindow; int iCodeWindow;
-		bool bRegisterWindow; int iRegisterWindow;
-		bool bBreakpointWindow; int iBreakpointWindow;
-		bool bMemoryWindow; int iMemoryWindow;
-		bool bJitWindow; int iJitWindow;
-		bool bSoundWindow; int iSoundWindow;
-		bool bVideoWindow; int iVideoWindow;
+		bool bShowOnStart[IDM_VIDEOWINDOW - IDM_LOGWINDOW + 1];
+		int iNbAffiliation[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
 
 	private:
 
@@ -157,8 +147,6 @@ class CCodeWindow
 		wxMenuItem* jitioff;
 		wxMenuItem* jitpoff;
 		wxMenuItem* jitsroff;
-
-		std::string fontDesc;
 
 		CCodeView* codeview;
 		wxListBox* callstack;

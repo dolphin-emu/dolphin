@@ -177,7 +177,7 @@ void CFrame::CreateMenu()
 	if (g_pCodeWindow)
 	{
 		pOptionsMenu->AppendSeparator();
-		g_pCodeWindow->CreateMenuOptions(NULL, pOptionsMenu);	
+		g_pCodeWindow->CreateMenuOptions(pOptionsMenu);	
 	}
 	m_MenuBar->Append(pOptionsMenu, _T("&Options"));
 
@@ -213,15 +213,35 @@ void CFrame::CreateMenu()
 	viewMenu->Check(IDM_TOGGLE_STATUSBAR, SConfig::GetInstance().m_InterfaceStatusbar);
 	viewMenu->AppendSeparator();
 	viewMenu->AppendCheckItem(IDM_LOGWINDOW, _T("Show &Logwindow"));
-	viewMenu->Check(IDM_LOGWINDOW, SConfig::GetInstance().m_InterfaceLogWindow);
 	viewMenu->AppendCheckItem(IDM_CONSOLEWINDOW, _T("Show &Console"));
-	viewMenu->Check(IDM_CONSOLEWINDOW, SConfig::GetInstance().m_InterfaceConsole);
 	viewMenu->AppendSeparator();
 
 	if (g_pCodeWindow)
 	{
-		g_pCodeWindow->CreateMenuView(NULL, viewMenu);
+		viewMenu->Check(IDM_LOGWINDOW, g_pCodeWindow->bShowOnStart[0]);
+		viewMenu->Check(IDM_CONSOLEWINDOW, g_pCodeWindow->bShowOnStart[1]);
+
+		const wxString MenuText[] = {
+			wxT("&Registers"),
+			wxT("&Breakpoints"),
+			wxT("&Memory"),
+			wxT("&JIT"),
+			wxT("&Sound"),
+			wxT("&Video")
+		};
+
+		for (int i = IDM_REGISTERWINDOW; i <= IDM_VIDEOWINDOW; i++)
+		{
+			viewMenu->AppendCheckItem(i, MenuText[i - IDM_REGISTERWINDOW]);
+			viewMenu->Check(i, g_pCodeWindow->bShowOnStart[i - IDM_LOGWINDOW]);
+		}
+
 		viewMenu->AppendSeparator();
+	}
+	else
+	{
+		viewMenu->Check(IDM_LOGWINDOW, SConfig::GetInstance().m_InterfaceLogWindow);
+		viewMenu->Check(IDM_CONSOLEWINDOW, SConfig::GetInstance().m_InterfaceConsole);
 	}
 
 	wxMenu *platformMenu = new wxMenu;

@@ -23,7 +23,6 @@
 extern const char* GetGRPName(unsigned int index);
 
 BEGIN_EVENT_TABLE(CRegisterWindow, wxPanel)
-	EVT_CLOSE(CRegisterWindow::OnClose)
 END_EVENT_TABLE()
 
 
@@ -34,17 +33,8 @@ CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id, const wxString
 	CreateGUIControls();
 }
 
-CRegisterWindow::~CRegisterWindow()
-{
-}
-
-
 void CRegisterWindow::CreateGUIControls()
 {
-	//SetTitle(wxT("Registers"));
-	//SetIcon(wxNullIcon);
-	//Center();
-
 	wxBoxSizer *sGrid = new wxBoxSizer(wxVERTICAL);
 	m_GPRGridView = new CRegisterView(this, ID_GPR);
 	sGrid->Add(m_GPRGridView, 1, wxGROW);
@@ -54,13 +44,8 @@ void CRegisterWindow::CreateGUIControls()
 	NotifyUpdate();
 }
 
-void CRegisterWindow::OnClose(wxCloseEvent& WXUNUSED (event))
-{
-	Hide();
-}
-
 void CRegisterWindow::NotifyUpdate()
-{	
+{
 	if (m_GPRGridView != NULL)
 	{
 		m_GPRGridView->Update();

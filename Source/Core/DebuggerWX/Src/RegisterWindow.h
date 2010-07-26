@@ -30,10 +30,8 @@ public:
 			const wxString& name = wxT("Registers"),
 			const wxPoint& pos = wxDefaultPosition,
 			const wxSize& size = wxDefaultSize,
-			long style = wxTAB_TRAVERSAL | wxNO_BORDER			
+			long style = wxTAB_TRAVERSAL | wxNO_BORDER
 			);
-
-	virtual ~CRegisterWindow();
 
 	void NotifyUpdate();
 
@@ -47,7 +45,6 @@ private:
 	};
 
 	CRegisterView* m_GPRGridView;
-	void OnClose(wxCloseEvent& event);
 	void CreateGUIControls();
 };
 

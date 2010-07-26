@@ -45,15 +45,15 @@ class CBreakPointWindow
 
 	public:
 
-		CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Breakpoints"), 
-						  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(400, 250), 
+		CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Breakpoints"),
+						  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(400, 250),
 						  long style = wxNO_BORDER);
 
 		void NotifyUpdate();
 		void OnDelete();
 		void OnClear();
 		void OnAddBreakPoint();
-		void OnAddBreakPointMany();		
+		void OnAddBreakPointMany();
 		void OnAddMemoryCheck();
 		void OnAddMemoryCheckMany();
 
@@ -75,7 +75,6 @@ class CBreakPointWindow
 		void CreateGUIControls();
 
 		void OnSelectItem(wxListEvent& event);
-		void OnClose(wxCloseEvent& event);
         void OnActivated(wxListEvent& event);
 };
 

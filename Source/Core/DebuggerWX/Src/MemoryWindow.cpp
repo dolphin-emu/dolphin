@@ -119,10 +119,6 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id,
 	sizerBig->Fit(this);
 }
 
-CMemoryWindow::~CMemoryWindow()
-{
-}
-
 void CMemoryWindow::Save(IniFile& _IniFile) const
 {
 	// Prevent these bad values that can happen after a crash or hanging
@@ -158,13 +154,13 @@ void CMemoryWindow::SetMemoryValue(wxCommandEvent& event)
 	u32 val;
 
 	if (!TryParseUInt(std::string("0x") + str_addr, &addr))
-   	{
+	{
 		PanicAlert("Invalid Address: %s", str_addr.c_str());
 		return;
 	}
 
 	if (!TryParseUInt(std::string("0x") + str_val, &val))
-   	{
+	{
 		PanicAlert("Invalid Value: %s", str_val.c_str());
 		return;
 	}
@@ -214,7 +210,7 @@ void CMemoryWindow::OnSymbolListChange(wxCommandEvent& event)
 {
 	int index = symbols->GetSelection();
 	if (index >= 0)
-   	{
+	{
 		Symbol* pSymbol = static_cast<Symbol *>(symbols->GetClientData(index));
 		if (pSymbol != NULL)
 		{

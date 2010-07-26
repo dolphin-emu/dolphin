@@ -26,7 +26,6 @@
 #include "FileUtil.h"
 
 BEGIN_EVENT_TABLE(CBreakPointWindow, wxPanel)
-	EVT_CLOSE(CBreakPointWindow::OnClose)
 	EVT_LIST_ITEM_ACTIVATED(ID_BPS, CBreakPointWindow::OnActivated)
 	EVT_LIST_ITEM_SELECTED(ID_TOOLBAR, CBreakPointWindow::OnSelectItem)
 END_EVENT_TABLE()
@@ -34,7 +33,7 @@ END_EVENT_TABLE()
 CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
 : wxPanel(parent, id, position, size, style, title)
 	, m_BreakPointListView(NULL)
-    , m_pCodeWindow(_pCodeWindow)
+	, m_pCodeWindow(_pCodeWindow)
 {
 	CreateGUIControls();
 }
@@ -84,11 +83,6 @@ void CBreakPointWindow::OnSelectItem(wxListEvent& event)
 	}
 }
 
-void CBreakPointWindow::OnClose(wxCloseEvent& /*event*/)
-{
-	Hide();
-}
-
 void CBreakPointWindow::NotifyUpdate()
 {
 	if (m_BreakPointListView != NULL) m_BreakPointListView->Update();
@@ -104,17 +98,16 @@ void CBreakPointWindow::OnDelete()
 
 void CBreakPointWindow::OnActivated(wxListEvent& event)
 {
-    long Index = event.GetIndex();
-    if (Index >= 0)
-    {
-        u32 Address = (u32)m_BreakPointListView->GetItemData(Index);
-        if (m_pCodeWindow != NULL)
-        {
-            m_pCodeWindow->JumpToAddress(Address);
-        }
-    }
+	long Index = event.GetIndex();
+	if (Index >= 0)
+	{
+		u32 Address = (u32)m_BreakPointListView->GetItemData(Index);
+		if (m_pCodeWindow != NULL)
+		{
+			m_pCodeWindow->JumpToAddress(Address);
+		}
+	}
 }
-
 
 // Breakpoint actions
 // ---------------------
@@ -126,12 +119,14 @@ void CBreakPointWindow::OnClear()
 	PowerPC::memchecks.Clear();
 	NotifyUpdate();
 }
+
 // Add one breakpoint
 void CBreakPointWindow::OnAddBreakPoint()
 {
 	BreakPointDlg bpDlg(this, this);
 	bpDlg.ShowModal();
 }
+
 // Load breakpoints from file
 void CBreakPointWindow::OnAddBreakPointMany()
 {
@@ -168,10 +163,9 @@ void CBreakPointWindow::OnAddBreakPointMany()
 
 }
 
-
 // Memory check actions
 // ---------------------
-void 
+void
 CBreakPointWindow::OnAddMemoryCheck()
 {
 	MemoryCheckDlg memDlg(this);
@@ -215,7 +209,7 @@ void CBreakPointWindow::OnAddMemoryCheckMany()
 				&& pieces[0].size() == 8
 				)
 			{
-				// address range	
+				// address range
 				MemCheck.StartAddress = sAddress;
 				MemCheck.EndAddress = sAddress;
 				doCommon = true;
@@ -227,7 +221,7 @@ void CBreakPointWindow::OnAddMemoryCheckMany()
 				&& pieces[0].size() == 8 && pieces[1].size() == 8
 				)
 			{
-				// address range	
+				// address range
 				MemCheck.StartAddress = sAddress;
 				MemCheck.EndAddress = eAddress;
 				doCommon = true;
@@ -239,7 +233,7 @@ void CBreakPointWindow::OnAddMemoryCheckMany()
 				&& pieces[0].size() == 8 && pieces[1].size() == 8 && pieces[2].size() == 1
 				)
 			{
-				// address range	
+				// address range
 				MemCheck.StartAddress = sAddress;
 				MemCheck.EndAddress = eAddress;
 				doCommon = true;
@@ -248,13 +242,13 @@ void CBreakPointWindow::OnAddMemoryCheckMany()
 
 			if (doCommon)
 			{
-				// settings for the memory check	
+				// settings for the memory check
 				MemCheck.OnRead = true;
 				MemCheck.OnWrite = true;
 				MemCheck.Log = true;
 				//MemCheck.Break = false; // this is also what sets Active "on" in the breakpoint window
 				// so don't think it's off because we are only writing this to the log
-				PowerPC::memchecks.Add(MemCheck);	
+				PowerPC::memchecks.Add(MemCheck);
 			}
 		}
 		// Update after we are done with the loop

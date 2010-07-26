@@ -121,8 +121,8 @@ class CFrame : public CRenderFrame
 		bool bNoWiimoteMsg;
 		void UpdateGUI();
 		void UpdateGameList();
-		void ToggleLogWindow(bool, int i = -1);
-		void ToggleConsole(bool, int i = -1);		
+		void ToggleLogWindow(bool bShow);
+		void ToggleConsole(bool bShow);		
 		void PostEvent(wxCommandEvent& event);
 		void StatusBarMessage(const char * Text, ...);
 		void ClearStatusBar();
@@ -141,7 +141,7 @@ class CFrame : public CRenderFrame
 		// AUI
 		wxAuiManager *m_Mgr;
 		wxAuiToolBar *m_ToolBar, *m_ToolBarDebug, *m_ToolBarAui;
-		bool bFloatWindow[IDM_VIDEOWINDOW - IDM_LOGWINDOW + 1];
+		bool bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW + 1];
 
 		// Utility
 		wxWindow * GetNotebookPageFromId(wxWindowID Id);
@@ -191,10 +191,10 @@ class CFrame : public CRenderFrame
 		wxString AuiFullscreen, AuiCurrent;
 		wxArrayString AuiPerspective;
 		u32 ActivePerspective;	
-		void NamePanes();
 		void AddPane();
-		void Save();
-		void SaveLocal();
+		void UpdateCurrentPerspective();
+		void SaveIniPerspectives();
+		void LoadIniPerspectives();
 		void OnPaneClose(wxAuiManagerEvent& evt);
 		void ReloadPanes();
 		void DoLoadPerspective();
@@ -313,8 +313,7 @@ class CFrame : public CRenderFrame
 		void OnToggleToolbar(wxCommandEvent& event);
 		void DoToggleToolbar(bool);
 		void OnToggleStatusbar(wxCommandEvent& event);
-		void OnToggleLogWindow(wxCommandEvent& event);
-		void OnToggleConsole(wxCommandEvent& event);
+		void OnToggleWindow(wxCommandEvent& event);
 		void OnKeyDown(wxKeyEvent& event);
 		void OnKeyUp(wxKeyEvent& event);
 		

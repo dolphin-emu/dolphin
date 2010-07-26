@@ -79,47 +79,42 @@ void CCodeWindow::Load()
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
 	// The font to override DebuggerFont with
-	ini.Get("ShowOnStart", "DebuggerFont", &fontDesc);
+	std::string fontDesc;
+	ini.Get("General", "DebuggerFont", &fontDesc);
 	if (!fontDesc.empty())
 		DebuggerFont.SetNativeFontInfoUserDesc(wxString::FromAscii(fontDesc.c_str()));
 
-	// Decide what windows to use
-	// This stuff really doesn't belong in CodeWindow anymore, does it? It should be
-	// in Frame.cpp somewhere, even though it's debugger stuff.
-	ini.Get("ShowOnStart", "Code", &bCodeWindow, true);
-	ini.Get("ShowOnStart", "Registers", &bRegisterWindow, false);
-	ini.Get("ShowOnStart", "Breakpoints", &bBreakpointWindow, false);
-	ini.Get("ShowOnStart", "Memory", &bMemoryWindow, false);
-	ini.Get("ShowOnStart", "JIT", &bJitWindow, false);
-	ini.Get("ShowOnStart", "Sound", &bSoundWindow, false);
-	ini.Get("ShowOnStart", "Video", &bVideoWindow, false);
-	// Get notebook affiliation
-	std::string _Section = StringFromFormat("P - %s",
-		(Parent->ActivePerspective < Parent->Perspectives.size())
-		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "");
-	ini.Get(_Section.c_str(), "Log", &iLogWindow, 1);
-	ini.Get(_Section.c_str(), "Console", &iConsoleWindow, 1);
-	ini.Get(_Section.c_str(), "Code", &iCodeWindow, 1);
-	ini.Get(_Section.c_str(), "Registers", &iRegisterWindow, 1);
-	ini.Get(_Section.c_str(), "Breakpoints", &iBreakpointWindow, 0);
-	ini.Get(_Section.c_str(), "Memory", &iMemoryWindow, 1);
-	ini.Get(_Section.c_str(), "JIT", &iJitWindow, 1);
-	ini.Get(_Section.c_str(), "Sound", &iSoundWindow, 0);
-	ini.Get(_Section.c_str(), "Video", &iVideoWindow, 0);
-	// Get floating setting
-	ini.Get("Float", "Log", &Parent->bFloatWindow[0], false);
-	ini.Get("Float", "Console", &Parent->bFloatWindow[1], false);
-	ini.Get("Float", "Code", &Parent->bFloatWindow[2], false);
-	ini.Get("Float", "Registers", &Parent->bFloatWindow[3], false);
-	ini.Get("Float", "Breakpoints", &Parent->bFloatWindow[4], false);
-	ini.Get("Float", "Memory", &Parent->bFloatWindow[5], false);
-	ini.Get("Float", "JIT", &Parent->bFloatWindow[6], false);
-	ini.Get("Float", "Sound", &Parent->bFloatWindow[7], false);
-	ini.Get("Float", "Video", &Parent->bFloatWindow[8], false);
-
 	// Boot to pause or not
-	ini.Get("ShowOnStart", "AutomaticStart", &bAutomaticStart, false);
-	ini.Get("ShowOnStart", "BootToPause", &bBootToPause, true);
+	ini.Get("General", "AutomaticStart", &bAutomaticStart, false);
+	ini.Get("General", "BootToPause", &bBootToPause, true);
+
+	const char* SettingName[] = {
+		"Log",
+		"Console",
+		"Registers",
+		"Breakpoints",
+		"Memory",
+		"JIT",
+		"Sound",
+		"Video",
+		"Code"
+	};
+
+	// Decide what windows to show
+	for (int i = 0; i <= IDM_VIDEOWINDOW - IDM_LOGWINDOW; i++)
+		ini.Get("ShowOnStart", SettingName[i], &bShowOnStart[i], false);
+
+	// Get notebook affiliation
+	std::string _Section = "P - " +
+		((Parent->ActivePerspective < Parent->Perspectives.size())
+		? Parent->Perspectives.at(Parent->ActivePerspective).Name : "Perspective 1");
+
+	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
+		ini.Get(_Section.c_str(), SettingName[i], &iNbAffiliation[i], 0);
+
+	// Get floating setting
+	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
+		ini.Get("Float", SettingName[i], &Parent->bFloatWindow[i], false);
 }
 
 void CCodeWindow::Save()
@@ -127,49 +122,44 @@ void CCodeWindow::Save()
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
-	ini.Set("ShowOnStart", "DebuggerFont", fontDesc);
+	ini.Set("General", "DebuggerFont",
+		   	std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str()));
 
 	// Boot to pause or not
-	ini.Set("ShowOnStart", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
-	ini.Set("ShowOnStart", "BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
+	ini.Set("General", "AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATICSTART));
+	ini.Set("General", "BootToPause", GetMenuBar()->IsChecked(IDM_BOOTTOPAUSE));
+
+	const char* SettingName[] = {
+		"Log",
+		"Console",
+		"Registers",
+		"Breakpoints",
+		"Memory",
+		"JIT", 
+		"Sound",
+		"Video",
+		"Code"
+	};
 
 	// Save windows settings
-	//ini.Set("ShowOnStart", "Code", GetMenuBar()->IsChecked(IDM_CODEWINDOW));
-	ini.Set("ShowOnStart", "Registers", GetMenuBar()->IsChecked(IDM_REGISTERWINDOW));
-	ini.Set("ShowOnStart", "Breakpoints", GetMenuBar()->IsChecked(IDM_BREAKPOINTWINDOW));
-	ini.Set("ShowOnStart", "Memory", GetMenuBar()->IsChecked(IDM_MEMORYWINDOW));
-	ini.Set("ShowOnStart", "JIT", GetMenuBar()->IsChecked(IDM_JITWINDOW));
-	ini.Set("ShowOnStart", "Sound", GetMenuBar()->IsChecked(IDM_SOUNDWINDOW));
-	ini.Set("ShowOnStart", "Video", GetMenuBar()->IsChecked(IDM_VIDEOWINDOW));
-	std::string _Section = StringFromFormat("P - %s",
-		(Parent->ActivePerspective < Parent->Perspectives.size())
-		? Parent->Perspectives.at(Parent->ActivePerspective).Name.c_str() : "");
-	ini.Set(_Section.c_str(), "Log", iLogWindow);
-	ini.Set(_Section.c_str(), "Console", iConsoleWindow);
-	ini.Set(_Section.c_str(), "Code", iCodeWindow);
-	ini.Set(_Section.c_str(), "Registers", iRegisterWindow);
-	ini.Set(_Section.c_str(), "Breakpoints", iBreakpointWindow);
-	ini.Set(_Section.c_str(), "Memory", iMemoryWindow);
-	ini.Set(_Section.c_str(), "JIT", iJitWindow);
-	ini.Set(_Section.c_str(), "Sound", iSoundWindow);
-	ini.Set(_Section.c_str(), "Video", iVideoWindow);
+	for (int i = IDM_LOGWINDOW; i <= IDM_VIDEOWINDOW; i++)
+		ini.Set("ShowOnStart", SettingName[i - IDM_LOGWINDOW], GetMenuBar()->IsChecked(i));
+
+	// Save notebook affiliations
+	std::string _Section = "P - " + Parent->Perspectives.at(Parent->ActivePerspective).Name;
+	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
+		ini.Set(_Section.c_str(), SettingName[i], iNbAffiliation[i]);
+
 	// Save floating setting
-	ini.Set("Float", "Log", !!FindWindowById(IDM_LOGWINDOW_PARENT));
-	ini.Set("Float", "Console", !!FindWindowById(IDM_CONSOLEWINDOW_PARENT));
-	ini.Set("Float", "Code", !!FindWindowById(IDM_CODEWINDOW_PARENT));
-	ini.Set("Float", "Registers", !!FindWindowById(IDM_REGISTERWINDOW_PARENT));
-	ini.Set("Float", "Breakpoints", !!FindWindowById(IDM_BREAKPOINTWINDOW_PARENT));
-	ini.Set("Float", "Memory", !!FindWindowById(IDM_MEMORYWINDOW_PARENT));
-	ini.Set("Float", "JIT", !!FindWindowById(IDM_JITWINDOW_PARENT));
-	ini.Set("Float", "Sound", !!FindWindowById(IDM_SOUNDWINDOW_PARENT));
-	ini.Set("Float", "Video", !!FindWindowById(IDM_VIDEOWINDOW_PARENT));
+	for (int i = IDM_LOGWINDOW_PARENT; i <= IDM_CODEWINDOW_PARENT; i++)
+		ini.Set("Float", SettingName[i - IDM_LOGWINDOW_PARENT], !!FindWindowById(i));
 
 	ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 }
 
 // Symbols, JIT, Profiler
 // ----------------
-void CCodeWindow::CreateMenuSymbols()
+void CCodeWindow::CreateMenuSymbols(wxMenuBar *pMenuBar)
 {
 	wxMenu *pSymbolsMenu = new wxMenu;
 	pSymbolsMenu->Append(IDM_CLEARSYMBOLS, _T("&Clear symbols"));
@@ -411,14 +401,11 @@ void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
 void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 {
 	wxFontData data;
-	data.SetInitialFont(GetFont());
+	data.SetInitialFont(DebuggerFont);
 
 	wxFontDialog dialog(this, data);
 	if ( dialog.ShowModal() == wxID_OK )
-	{
 		DebuggerFont = dialog.GetFontData().GetChosenFont();
-		fontDesc = std::string(DebuggerFont.GetNativeFontInfoUserDesc().mb_str());
-	}
 }
 
 // Toogle windows
@@ -426,52 +413,29 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
 void CCodeWindow::OpenPages()
 {
 	ToggleCodeWindow(true);
-	if (bRegisterWindow)
+	if (bShowOnStart[0])
+		Parent->ToggleLogWindow(true);
+	if (bShowOnStart[IDM_CONSOLEWINDOW - IDM_LOGWINDOW])
+		Parent->ToggleConsole(true);
+	if (bShowOnStart[IDM_REGISTERWINDOW - IDM_LOGWINDOW])
 		ToggleRegisterWindow(true);
-	if (bBreakpointWindow)
+	if (bShowOnStart[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW])
 		ToggleBreakPointWindow(true);
-	if (bMemoryWindow)
+	if (bShowOnStart[IDM_MEMORYWINDOW - IDM_LOGWINDOW])
 		ToggleMemoryWindow(true);
-	if (bJitWindow)
+	if (bShowOnStart[IDM_JITWINDOW - IDM_LOGWINDOW])
 		ToggleJitWindow(true);
-	if (bSoundWindow)
+	if (bShowOnStart[IDM_SOUNDWINDOW - IDM_LOGWINDOW])
 		ToggleDLLWindow(IDM_SOUNDWINDOW, true);
-	if (bVideoWindow)
+	if (bShowOnStart[IDM_VIDEOWINDOW - IDM_LOGWINDOW])
 		ToggleDLLWindow(IDM_VIDEOWINDOW, true);
-}
-
-void CCodeWindow::OnToggleWindow(wxCommandEvent& event)
-{
-	bool bShow = GetMenuBar()->IsChecked(event.GetId());
-
-	switch(event.GetId())
-	{
-		case IDM_REGISTERWINDOW:
-			ToggleRegisterWindow(bShow);
-			break;
-		case IDM_BREAKPOINTWINDOW:
-			ToggleBreakPointWindow(bShow);
-			break;
-		case IDM_MEMORYWINDOW:
-			ToggleMemoryWindow(bShow);
-			break;
-		case IDM_JITWINDOW:
-			ToggleJitWindow(bShow);
-			break;
-		case IDM_SOUNDWINDOW:
-			ToggleDLLWindow(IDM_SOUNDWINDOW, bShow);
-			break;
-		case IDM_VIDEOWINDOW:
-			ToggleDLLWindow(IDM_VIDEOWINDOW, bShow);
-			break;
-	}
-	event.Skip();
 }
 
 void CCodeWindow::ToggleCodeWindow(bool bShow)
 {
 	if (bShow)
-		Parent->DoAddPage(this, iCodeWindow,
+		Parent->DoAddPage(this,
+			   	iNbAffiliation[IDM_CODEWINDOW - IDM_LOGWINDOW],
 			   	Parent->bFloatWindow[IDM_CODEWINDOW - IDM_LOGWINDOW]);
 	else // Hide
 		Parent->DoRemovePage(this);
@@ -484,11 +448,15 @@ void CCodeWindow::ToggleRegisterWindow(bool bShow)
 	{
 		if (!m_RegisterWindow)
 		   	m_RegisterWindow = new CRegisterWindow(Parent, IDM_REGISTERWINDOW);
-		Parent->DoAddPage(m_RegisterWindow, iRegisterWindow,
+		Parent->DoAddPage(m_RegisterWindow,
+			   	iNbAffiliation[IDM_REGISTERWINDOW - IDM_LOGWINDOW],
 			   	Parent->bFloatWindow[IDM_REGISTERWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
+	{
 		Parent->DoRemovePage(m_RegisterWindow, false);
+		m_RegisterWindow = NULL;
+	}
 }
 
 void CCodeWindow::ToggleBreakPointWindow(bool bShow)
@@ -498,11 +466,15 @@ void CCodeWindow::ToggleBreakPointWindow(bool bShow)
 	{
 		if (!m_BreakpointWindow)
 		   	m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINTWINDOW);
-		Parent->DoAddPage(m_BreakpointWindow, iBreakpointWindow,
+		Parent->DoAddPage(m_BreakpointWindow,
+			   	iNbAffiliation[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW],
 			   	Parent->bFloatWindow[IDM_BREAKPOINTWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
+	{
 		Parent->DoRemovePage(m_BreakpointWindow, false);
+		m_BreakpointWindow = NULL;
+	}
 }
 
 void CCodeWindow::ToggleMemoryWindow(bool bShow)
@@ -512,11 +484,15 @@ void CCodeWindow::ToggleMemoryWindow(bool bShow)
 	{
 		if (!m_MemoryWindow)
 		   	m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORYWINDOW);
-		Parent->DoAddPage(m_MemoryWindow, iMemoryWindow,
+		Parent->DoAddPage(m_MemoryWindow,
+			   	iNbAffiliation[IDM_MEMORYWINDOW - IDM_LOGWINDOW],
 			   	Parent->bFloatWindow[IDM_MEMORYWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
+	{
 		Parent->DoRemovePage(m_MemoryWindow, false);
+		m_MemoryWindow = NULL;
+	}
 }
 
 void CCodeWindow::ToggleJitWindow(bool bShow)
@@ -526,11 +502,15 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 	{
 		if (!m_JitWindow)
 		   	m_JitWindow = new CJitWindow(Parent, IDM_JITWINDOW);
-		Parent->DoAddPage(m_JitWindow, iJitWindow,
+		Parent->DoAddPage(m_JitWindow,
+			   	iNbAffiliation[IDM_JITWINDOW - IDM_LOGWINDOW],
 			   	Parent->bFloatWindow[IDM_JITWINDOW - IDM_LOGWINDOW]);
 	}
 	else // Close
+	{
 		Parent->DoRemovePage(m_JitWindow, false);
+		m_JitWindow = NULL;
+	}
 }
 
 // Notice: This windows docking will produce several wx debugging messages for plugin
@@ -541,8 +521,7 @@ void CCodeWindow::ToggleJitWindow(bool bShow)
 void CCodeWindow::ToggleDLLWindow(int Id, bool bShow)
 {
 	std::string DLLName;
-	int PluginType, i;
-	bool bFloat;
+	int PluginType;
 	wxPanel *Win;
 
 	switch(Id)
@@ -550,14 +529,10 @@ void CCodeWindow::ToggleDLLWindow(int Id, bool bShow)
 		case IDM_SOUNDWINDOW:
 			DLLName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strDSPPlugin.c_str();
 			PluginType = PLUGIN_TYPE_DSP;
-			i = iSoundWindow;
-			bFloat = Parent->bFloatWindow[IDM_SOUNDWINDOW - IDM_LOGWINDOW];
 			break;
 		case IDM_VIDEOWINDOW:
 			DLLName = SConfig::GetInstance().m_LocalCoreStartupParameter.m_strVideoPlugin.c_str();
 			PluginType = PLUGIN_TYPE_VIDEO;
-			i = iVideoWindow;
-			bFloat = Parent->bFloatWindow[IDM_VIDEOWINDOW - IDM_LOGWINDOW];
 			break;
 		default:
 			PanicAlert("CCodeWindow::ToggleDLLWindow called with invalid Id");
@@ -574,7 +549,9 @@ void CCodeWindow::ToggleDLLWindow(int Id, bool bShow)
 		{
 			Win->Show();
 			Win->SetId(Id);
-			Parent->DoAddPage(Win, i, bFloat);
+			Parent->DoAddPage(Win,
+				   	iNbAffiliation[Id - IDM_LOGWINDOW],
+				   	Parent->bFloatWindow[Id - IDM_LOGWINDOW]);
 		}
 	}
 	else

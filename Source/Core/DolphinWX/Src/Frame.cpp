@@ -266,7 +266,7 @@ EVT_MENU(IDM_ADD_PERSPECTIVE, CFrame::OnDropDownToolbarSelect)
 EVT_MENU(IDM_TAB_SPLIT, CFrame::OnDropDownToolbarSelect)
 EVT_MENU(IDM_NO_DOCKING, CFrame::OnDropDownToolbarSelect)
 // Drop down float
-EVT_MENU_RANGE(IDM_FLOAT_LOGWINDOW, IDM_FLOAT_VIDEOWINDOW, CFrame::OnFloatWindow)
+EVT_MENU_RANGE(IDM_FLOAT_LOGWINDOW, IDM_FLOAT_CODEWINDOW, CFrame::OnFloatWindow)
 
 EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
 EVT_MENU(IDM_BROWSE, CFrame::OnBrowse)
@@ -282,8 +282,7 @@ EVT_MENU(IDM_TOGGLE_DUALCORE, CFrame::OnToggleDualCore)
 EVT_MENU(IDM_TOGGLE_SKIPIDLE, CFrame::OnToggleSkipIdle)
 EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
 EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
-EVT_MENU(IDM_LOGWINDOW, CFrame::OnToggleLogWindow)
-EVT_MENU(IDM_CONSOLEWINDOW, CFrame::OnToggleConsole)
+EVT_MENU_RANGE(IDM_LOGWINDOW, IDM_VIDEOWINDOW, CFrame::OnToggleWindow)
 
 EVT_MENU(IDM_PURGECACHE, CFrame::GameListChanged)
 
@@ -348,7 +347,7 @@ CFrame::CFrame(wxFrame* parent,
 		, m_timer(this)
 	#endif
 {
-	for (int i = 0; i <= IDM_VIDEOWINDOW - IDM_LOGWINDOW; i++)
+	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
 		bFloatWindow[i] = false;
 
 	if (ShowLogWindow) SConfig::GetInstance().m_InterfaceLogWindow = true;
@@ -367,7 +366,7 @@ CFrame::CFrame(wxFrame* parent,
 	{
 		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, IDM_CODEWINDOW);
 		g_pCodeWindow->Hide();
-		g_pCodeWindow->Load();
+		LoadIniPerspectives();
 	}
 
 	// Create timer
@@ -451,7 +450,7 @@ CFrame::CFrame(wxFrame* parent,
 	if (g_pCodeWindow)
 	{
 		// Load perspective
-		SaveLocal();
+		LoadIniPerspectives();
 		DoLoadPerspective();
 	}
 	else
@@ -515,7 +514,8 @@ CFrame::~CFrame()
 	#endif
 
 	// Close the log window now so that its settings are saved
-	m_LogWindow->Close();
+	if (!g_pCodeWindow)
+		m_LogWindow->Close();
 
 	ClosePages();
 
@@ -571,7 +571,7 @@ void CFrame::OnClose(wxCloseEvent& event)
 	// Don't forget the skip or the window won't be destroyed
 	event.Skip();
 	// Save GUI settings
-	if (g_pCodeWindow) Save();
+	if (g_pCodeWindow) SaveIniPerspectives();
 	// Uninit
 	m_Mgr->UnInit();
 
