@@ -317,8 +317,8 @@ EVT_AUINOTEBOOK_PAGE_CHANGED(wxID_ANY, CFrame::OnNotebookPageChanged)
 EVT_AUINOTEBOOK_TAB_RIGHT_UP(wxID_ANY, CFrame::OnTab)
 
 // Post events to child panels
-EVT_MENU(wxID_ANY, CFrame::PostEvent)
-EVT_TEXT(wxID_ANY, CFrame::PostEvent)
+EVT_MENU_RANGE(IDM_INTERPRETER, IDM_ADDRBOX, CFrame::PostEvent)
+EVT_TEXT(IDM_ADDRBOX, CFrame::PostEvent)
 
 END_EVENT_TABLE()
 
@@ -513,10 +513,6 @@ CFrame::~CFrame()
 		delete m_XRRConfig;
 	#endif
 
-	// Close the log window now so that its settings are saved
-	if (!g_pCodeWindow)
-		m_LogWindow->Close();
-
 	ClosePages();
 
 	delete m_Mgr;
@@ -572,6 +568,11 @@ void CFrame::OnClose(wxCloseEvent& event)
 	event.Skip();
 	// Save GUI settings
 	if (g_pCodeWindow) SaveIniPerspectives();
+
+	// Close the log window now so that its settings are saved
+	if (!g_pCodeWindow)
+		m_LogWindow->Close();
+
 	// Uninit
 	m_Mgr->UnInit();
 
@@ -587,10 +588,9 @@ void CFrame::OnClose(wxCloseEvent& event)
 // Warning: This may cause an endless loop if the event is propagated back to its parent
 void CFrame::PostEvent(wxCommandEvent& event)
 {
-	if (g_pCodeWindow
-		&& event.GetId() >= IDM_INTERPRETER && event.GetId() <= IDM_ADDRBOX
-		//&& event.GetId() != IDM_JITUNLIMITED
-		)
+	if (g_pCodeWindow &&
+		event.GetId() >= IDM_INTERPRETER &&
+		event.GetId() <= IDM_ADDRBOX)
 	{
 		event.StopPropagation();
 		g_pCodeWindow->GetEventHandler()->AddPendingEvent(event);

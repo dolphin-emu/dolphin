@@ -46,8 +46,8 @@ public:
 		wxWindowID id = wxID_ANY,
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxDefaultSize,
-		long style = wxTAB_TRAVERSAL,
-		const wxString& title = _T("JIT block viewer"));
+		long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
+		const wxString& name = _T("JIT block viewer"));
 
 	static void ViewAddr(u32 em_address);
 	void Update();

@@ -45,9 +45,13 @@ class CBreakPointWindow
 
 	public:
 
-		CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent, wxWindowID id = 1, const wxString& title = wxT("Breakpoints"),
-						  const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(400, 250),
-						  long style = wxNO_BORDER);
+		CBreakPointWindow(CCodeWindow* _pCodeWindow,
+						  wxWindow* parent,
+						  wxWindowID id = wxID_ANY,
+						  const wxString& title = wxT("Breakpoints"),
+						  const wxPoint& pos = wxDefaultPosition,
+						  const wxSize& size = wxDefaultSize,
+						  long style = wxTAB_TRAVERSAL | wxBORDER_NONE);
 
 		void NotifyUpdate();
 		void OnDelete();

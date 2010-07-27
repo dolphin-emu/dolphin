@@ -26,8 +26,10 @@ BEGIN_EVENT_TABLE(CRegisterWindow, wxPanel)
 END_EVENT_TABLE()
 
 
-CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
-	: wxPanel(parent, id, position, size, style, title)
+CRegisterWindow::CRegisterWindow(wxWindow* parent, wxWindowID id,
+	   	const wxPoint& position, const wxSize& size,
+	   	long style, const wxString& name)
+	: wxPanel(parent, id, position, size, style, name)
 	, m_GPRGridView(NULL)
 {
 	CreateGUIControls();

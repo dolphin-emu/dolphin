@@ -724,6 +724,8 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
 		X11Utils::SendClientEvent(X11Utils::XDisplayFromHandle(GetHandle()),
 			   	"RESIZE", x, y, width, height);
 #endif
+		m_LogWindow->Refresh();
+		m_LogWindow->Update();
 	}
 	event.Skip();
 }
@@ -820,7 +822,7 @@ void CFrame::StartGame(const std::string& filename)
 		wxTheApp->Connect(wxID_ANY, wxEVT_KEY_UP,
 				wxKeyEventHandler(CFrame::OnKeyUp),
 				(wxObject*)0, this);
-		m_RenderFrame->Connect(wxID_ANY, wxEVT_SIZE,
+		m_RenderParent->Connect(wxID_ANY, wxEVT_SIZE,
 				wxSizeEventHandler(CFrame::OnRenderParentResize),
 				(wxObject*)0, this);
 	}
@@ -912,7 +914,7 @@ void CFrame::DoStop()
 		Core::Stop();
 
 		// Destroy the renderer frame when not rendering to main
-		m_RenderFrame->Disconnect(wxID_ANY, wxEVT_SIZE,
+		m_RenderParent->Disconnect(wxID_ANY, wxEVT_SIZE,
 				wxSizeEventHandler(CFrame::OnRenderParentResize),
 				(wxObject*)0, this);
 		wxTheApp->Disconnect(wxID_ANY, wxEVT_KEY_DOWN, // Keyboard

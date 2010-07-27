@@ -374,7 +374,8 @@ void CFrame::TogglePane()
 		if (m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiNotebook)))
 			NB = (wxAuiNotebook*)m_Mgr->GetAllPanes().Item(i).window;
 	}
-	if (NB) {
+	if (NB)
+	{
 		if (NB->GetPageCount() == 0)
 			m_Mgr->GetPane(wxT("Pane 1")).Hide();
 		else
@@ -492,7 +493,7 @@ void CFrame::OnDropDownToolbarItem(wxAuiToolBarEvent& event)
 			for (u32 i = 0; i < Perspectives.size(); i++)
 			{
 				wxMenuItem* mItem = new wxMenuItem(menuPopup, IDM_PERSPECTIVES_0 + i,
-					   	wxString::FromAscii(Perspectives.at(i).Name.c_str()), wxT(""), wxITEM_CHECK);
+					   	wxString::FromAscii(Perspectives[i].Name.c_str()), wxT(""), wxITEM_CHECK);
 				menuPopup->Append(mItem);
 				if (i == ActivePerspective) mItem->Check(true);
 			}
@@ -524,7 +525,7 @@ void CFrame::OnToolBar(wxCommandEvent& event)
 			}
 			SaveIniPerspectives();
 			GetStatusBar()->SetStatusText(wxString::FromAscii(std::string
-						("Saved " + Perspectives.at(ActivePerspective).Name).c_str()), 0);
+						("Saved " + Perspectives[ActivePerspective].Name).c_str()), 0);
 			break;
 		case IDM_PERSPECTIVES_ADD_PANE:
 			AddPane();
@@ -733,13 +734,9 @@ void CFrame::SetSimplePaneSize()
 	ini.Get("LogWindow", "y", &y, Size);
 
 	// Update size
-	m_Mgr->GetPane(wxT("Pane 0")).BestSize(x, y).MinSize(x, y).MaxSize(x, y);
-	m_Mgr->GetPane(wxT("Pane 1")).BestSize(x, y).MinSize(x, y).MaxSize(x, y);
+	m_Mgr->GetPane(wxT("Pane 0")).BestSize(x, y);
+	m_Mgr->GetPane(wxT("Pane 1")).BestSize(x, y);
 	m_Mgr->Update();
-
-	// Set the position of the Pane
-	m_Mgr->GetPane(wxT("Pane 1")).MinSize(-1, -1).MaxSize(-1, -1);
-	m_Mgr->GetPane(wxT("Pane 0")).MinSize(-1, -1).MaxSize(-1, -1);
 }
 
 void CFrame::SetPaneSize()
@@ -752,11 +749,11 @@ void CFrame::SetPaneSize()
 		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiToolBar)))
 		{
 			if (!m_Mgr->GetAllPanes().Item(i).IsOk()) return;
-			if (Perspectives.at(ActivePerspective).Width.size() <= j ||
-				   	Perspectives.at(ActivePerspective).Height.size() <= j)
+			if (Perspectives[ActivePerspective].Width.size() <= j ||
+				   	Perspectives[ActivePerspective].Height.size() <= j)
 			   	continue;
-			u32 W = Perspectives.at(ActivePerspective).Width.at(j),
-			   	H = Perspectives.at(ActivePerspective).Height.at(j);
+			u32 W = Perspectives[ActivePerspective].Width[j],
+			   	H = Perspectives[ActivePerspective].Height[j];
 			// Check limits
 			W = Limit(W, 5, 95); H = Limit(H, 5, 95);
 			// Produce pixel width from percentage width
@@ -787,7 +784,7 @@ void CFrame::ReloadPanes()
 	CloseAllNotebooks();
 
 	// Create new panes with notebooks
-	for (u32 i = 0; i < Perspectives.at(ActivePerspective).Width.size() - 1; i++)
+	for (u32 i = 0; i < Perspectives[ActivePerspective].Width.size() - 1; i++)
 	{
 		wxString PaneName = wxString::Format(wxT("Pane %i"), i + 1);
 		m_Mgr->AddPane(CreateEmptyNotebook(), wxAuiPaneInfo().Hide()
@@ -797,7 +794,7 @@ void CFrame::ReloadPanes()
 	HideAllNotebooks(true);
 
 	// Perspectives
-	m_Mgr->LoadPerspective(Perspectives.at(ActivePerspective).Perspective, false);
+	m_Mgr->LoadPerspective(Perspectives[ActivePerspective].Perspective, false);
 	// Reset toolbars
 	ResetToolbarStyle();
 	// Restore settings
@@ -807,6 +804,7 @@ void CFrame::ReloadPanes()
 	// Load GUI settings
 	g_pCodeWindow->Load();
 	// Open notebook pages
+	AddRemoveBlankPage();
 	g_pCodeWindow->OpenPages();
 	if (g_pCodeWindow->bShowOnStart[0]) ToggleLogWindow(true);
 	if (g_pCodeWindow->bShowOnStart[1]) ToggleConsole(true);
@@ -839,7 +837,7 @@ void CFrame::LoadIniPerspectives()
 		SPerspectives Tmp;
 		std::string _Section, _Perspective, _Width, _Height;
 		std::vector<std::string> _SWidth, _SHeight;
-		Tmp.Name = VPerspectives.at(i);
+		Tmp.Name = VPerspectives[i];
 		// Don't save a blank perspective
 		if (Tmp.Name.empty()) continue;
 
@@ -859,12 +857,12 @@ void CFrame::LoadIniPerspectives()
 		for (u32 j = 0; j < _SWidth.size(); j++)
 		{
 			int _Tmp;
-			if (TryParseInt(_SWidth.at(j).c_str(), &_Tmp)) Tmp.Width.push_back(_Tmp);
+			if (TryParseInt(_SWidth[j].c_str(), &_Tmp)) Tmp.Width.push_back(_Tmp);
 		}
 		for (u32 j = 0; j < _SHeight.size(); j++)
 		{
 			int _Tmp;
-			if (TryParseInt(_SHeight.at(j).c_str(), &_Tmp)) Tmp.Height.push_back(_Tmp);
+			if (TryParseInt(_SHeight[j].c_str(), &_Tmp)) Tmp.Height.push_back(_Tmp);
 		}
 		Perspectives.push_back(Tmp);
 	}
@@ -911,7 +909,7 @@ void CFrame::SaveIniPerspectives()
 	std::string STmp = "";
 	for (u32 i = 0; i < Perspectives.size(); i++)
 	{
-		STmp += Perspectives.at(i).Name + ",";
+		STmp += Perspectives[i].Name + ",";
 	}
 	STmp = STmp.substr(0, STmp.length()-1);
 	ini.Set("Perspectives", "Perspectives", STmp.c_str());

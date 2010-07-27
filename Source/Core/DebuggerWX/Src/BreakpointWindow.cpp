@@ -30,7 +30,9 @@ BEGIN_EVENT_TABLE(CBreakPointWindow, wxPanel)
 	EVT_LIST_ITEM_SELECTED(ID_TOOLBAR, CBreakPointWindow::OnSelectItem)
 END_EVENT_TABLE()
 
-CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& position, const wxSize& size, long style)
+CBreakPointWindow::CBreakPointWindow(CCodeWindow* _pCodeWindow, wxWindow* parent,
+	   	wxWindowID id, const wxString& title, const wxPoint& position,
+	   	const wxSize& size, long style)
 : wxPanel(parent, id, position, size, style, title)
 	, m_BreakPointListView(NULL)
 	, m_pCodeWindow(_pCodeWindow)

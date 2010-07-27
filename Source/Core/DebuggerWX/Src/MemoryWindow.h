@@ -40,7 +40,7 @@ class CMemoryWindow
 					  wxWindowID id = wxID_ANY,
 					  const wxPoint& pos = wxDefaultPosition,
 					  const wxSize& size = wxDefaultSize,
-					  long style = wxNO_BORDER,
+					  long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
 					  const wxString& name = _T("Memory"));
 
 		wxCheckBox* chk8;

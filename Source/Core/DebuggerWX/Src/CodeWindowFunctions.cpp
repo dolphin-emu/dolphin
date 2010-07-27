@@ -107,7 +107,7 @@ void CCodeWindow::Load()
 	// Get notebook affiliation
 	std::string _Section = "P - " +
 		((Parent->ActivePerspective < Parent->Perspectives.size())
-		? Parent->Perspectives.at(Parent->ActivePerspective).Name : "Perspective 1");
+		? Parent->Perspectives[Parent->ActivePerspective].Name : "Perspective 1");
 
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
 		ini.Get(_Section.c_str(), SettingName[i], &iNbAffiliation[i], 0);
@@ -146,7 +146,7 @@ void CCodeWindow::Save()
 		ini.Set("ShowOnStart", SettingName[i - IDM_LOGWINDOW], GetMenuBar()->IsChecked(i));
 
 	// Save notebook affiliations
-	std::string _Section = "P - " + Parent->Perspectives.at(Parent->ActivePerspective).Name;
+	std::string _Section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
 	for (int i = 0; i <= IDM_CODEWINDOW - IDM_LOGWINDOW; i++)
 		ini.Set(_Section.c_str(), SettingName[i], iNbAffiliation[i]);
 
