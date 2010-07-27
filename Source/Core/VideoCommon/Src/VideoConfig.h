@@ -119,7 +119,6 @@ struct VideoConfig
 	bool bCopyEFBScaled;
 	bool bSafeTextureCache;
 	int iSafeTextureCache_ColorSamples;	
-	bool bFIFOBPhack;
 	int iFIFOWatermarkTightness;
 	int iPhackvalue;
 	bool bPhackvalue1, bPhackvalue2;
@@ -136,10 +135,6 @@ struct VideoConfig
 
 	// D3D only config, mostly to be merged into the above
 	int iAdapter;
-
-	// With this enabled, the plugin renders directly to the backbuffer. Many features are
-	// disabled but it might be faster on really old GPUs.
-	bool bSimpleFB;
 
 	// Static config per API
 	bool bAllowSignedBytes;

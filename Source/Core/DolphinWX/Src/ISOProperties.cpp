@@ -317,7 +317,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	DstAlphaPass = new wxCheckBox(m_GameConfig, ID_DSTALPHAPASS, _("Distance Alpha Pass"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	UseXFB = new wxCheckBox(m_GameConfig, ID_USEXFB, _("Use XFB"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	// Hack
-	BPHack = new wxCheckBox(m_GameConfig, ID_BPHACK, _("FIFO BP Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	Hacktext = new wxStaticText(m_GameConfig, ID_HACK_TEXT, _("Projection Hack for: "), wxDefaultPosition, wxDefaultSize);
 	arrayStringFor_Hack.Add(_("None"));
 	arrayStringFor_Hack.Add(_("Zelda Twilight Princess Bloom hack"));
@@ -356,7 +355,6 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbVideoOverrides->Add(SafeTextureCache, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(DstAlphaPass, 0, wxEXPAND|wxLEFT, 5);
 	sbVideoOverrides->Add(UseXFB, 0, wxEXPAND|wxLEFT, 5);
-	sbVideoOverrides->Add(BPHack, 0, wxEXPAND|wxLEFT, 5);
 
 	wxFlexGridSizer* fifosizer = new wxFlexGridSizer(2, 2, 0, 0);
 	fifosizer->Add(Hacktext, 0, wxLEFT, 5);
@@ -856,11 +854,6 @@ void CISOProperties::LoadGameConfig()
 	else
 		UseXFB->Set3StateValue(wxCHK_UNDETERMINED);
 
-	if (GameIni.Get("Video", "FIFOBPHack", &bTemp))
-		BPHack->Set3StateValue((wxCheckBoxState)bTemp);
-	else
-		BPHack->Set3StateValue(wxCHK_UNDETERMINED);
-
 	if (GameIni.Get("Video", "FIFOWatermarkTightness", &sTemp))
 		WMTightness->SetValue(wxString(sTemp.c_str(), *wxConvCurrent));
 	else
@@ -941,11 +934,6 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Video", "UseXFB");
 	else
 		GameIni.Set("Video", "UseXFB", UseXFB->Get3StateValue());
-
-	if (BPHack->Get3StateValue() == wxCHK_UNDETERMINED)
-		GameIni.DeleteKey("Video", "FIFOBPHack");
-	else
-		GameIni.Set("Video", "FIFOBPHack", BPHack->Get3StateValue());
 
 	if (Hack->GetSelection() == -1)
 		GameIni.DeleteKey("Video", "ProjectionHack");
