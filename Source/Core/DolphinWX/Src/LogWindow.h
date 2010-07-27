@@ -28,19 +28,19 @@
 
 enum
 {
-    IDM_LOG,
-    IDM_CLEARLOG,
-    IDM_LOGCHECKS,
-    IDM_OPTIONS,
-    IDM_TOGGLEALL,
+	IDM_LOG,
+	IDM_CLEARLOG,
+	IDM_LOGCHECKS,
+	IDM_OPTIONS,
+	IDM_TOGGLEALL,
 	IDM_WRAPLINE,
-    IDM_WRITEFILE,
-    IDM_WRITECONSOLE,
-    IDM_WRITEWINDOW,
+	IDM_WRITEFILE,
+	IDM_WRITECONSOLE,
+	IDM_WRITEWINDOW,
 	IDTM_UPDATELOG,
 	IDM_VERBOSITY,
 	IDM_FONT,
-    IDM_SUBMITCMD
+	IDM_SUBMITCMD
 };
 
 class wxTextCtrl;
@@ -66,10 +66,12 @@ public:
 	void LoadSettings();
 	void Log(LogTypes::LOG_LEVELS, const char *text);
 
+	int x, y, winpos;
+
 private:
 	CFrame *Parent;
 	wxFont DefaultFont, MonoSpaceFont;
-	std::vector<wxFont> Font;	
+	std::vector<wxFont> Font;
 	wxTimer *m_LogTimer;
 	FileLogListener *m_fileLog;
 	ConsoleListener *m_console;

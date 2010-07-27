@@ -51,7 +51,8 @@ END_EVENT_TABLE()
 CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 	   	const wxSize& size, long style, const wxString& name)
 	: wxPanel(parent, id, pos, size, style, name)
-    , Parent(parent) , m_LogAccess(true)
+	, x(0), y(0), winpos(0)
+	, Parent(parent) , m_LogAccess(true)
 	, m_Log(NULL), m_cmdline(NULL), m_FontChoice(NULL)
 	, m_LogSection(1)
 #ifdef __linux__
@@ -74,27 +75,28 @@ CLogWindow::CLogWindow(CFrame *parent, wxWindowID id, const wxPoint& pos,
 void CLogWindow::CreateGUIControls()
 {
 	// Verbosity
-	wxArrayString wxLevels, wxLevelsUse;	
+	wxArrayString wxLevels, wxLevelsUse;
 	wxLevels.Add(wxT("Notice"));
 	wxLevels.Add(wxT("Error"));
 	wxLevels.Add(wxT("Warning"));
 	wxLevels.Add(wxT("Info"));
 	wxLevels.Add(wxT("Debug"));
-	for (int i = 0; i < MAX_LOGLEVEL; ++i) wxLevelsUse.Add(wxString::Format(wxT("%s"), wxLevels.Item(i).c_str()));		
-	m_verbosity = new wxRadioBox(this, IDM_VERBOSITY, wxT("Verbosity"), wxDefaultPosition, wxDefaultSize, wxLevelsUse, 0, wxRA_SPECIFY_ROWS, wxDefaultValidator);
+	for (int i = 0; i < MAX_LOGLEVEL; ++i)
+	   	wxLevelsUse.Add(wxString::Format(wxT("%s"), wxLevels.Item(i).c_str()));
+	m_verbosity = new wxRadioBox(this, IDM_VERBOSITY, wxT("Verbosity"),
+		   	wxDefaultPosition, wxDefaultSize, wxLevelsUse, 0,
+		   	wxRA_SPECIFY_ROWS, wxDefaultValidator);
 	// Don't take up so much space
 	m_verbosity->SetFont(wxFont(7, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL));
 
 	// Font
 	m_FontChoice = new wxChoice(this, IDM_FONT, wxDefaultPosition, wxDefaultSize, 0, NULL, 0, wxDefaultValidator);
-	
+
 	m_FontChoice->Append(wxT("Default font"));
 	m_FontChoice->Append(wxT("Monospaced font"));
 	m_FontChoice->Append(wxT("Selected font"));
 	m_FontChoice->SetSelection(0);
-	//	wxTextCtrl *Tmp = CreateTextCtrl(this);
-	//	DefaultFont = Tmp->GetFont();
-	//	Tmp->Destroy();
+	DefaultFont = GetFont();
 	MonoSpaceFont.SetNativeFontInfoUserDesc(wxString::FromAscii("lucida console windows-1252"));
 	Font.push_back(DefaultFont);
 	Font.push_back(MonoSpaceFont);
@@ -122,12 +124,12 @@ void CLogWindow::CreateGUIControls()
 	// Left side: buttons (-submit), options, and log type selection
 	wxStaticBoxSizer* sbLeftOptions = new wxStaticBoxSizer(wxVERTICAL, this, wxT("Options"));
 
-	wxBoxSizer* sLogCtrl = new wxBoxSizer(wxHORIZONTAL);	
+	wxBoxSizer* sLogCtrl = new wxBoxSizer(wxHORIZONTAL);
 	sLogCtrl->Add(new wxButton(this, IDM_TOGGLEALL, wxT("Toggle all"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT), 1);
 	sLogCtrl->Add(new wxButton(this, IDM_CLEARLOG, wxT("Clear"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT), 1);
 
 	sbLeftOptions->Add(m_FontChoice, 0, (wxDOWN), 1);
-	sbLeftOptions->Add(m_WrapLine, 0, (wxDOWN), 1);	
+	sbLeftOptions->Add(m_WrapLine, 0, (wxDOWN), 1);
 	sbLeftOptions->Add(m_writeFileCB, 0, (wxDOWN), 1);
 	sbLeftOptions->Add(m_writeConsoleCB, 0, (wxDOWN), 1);
 	sbLeftOptions->Add(m_writeWindowCB, 0);
@@ -135,10 +137,10 @@ void CLogWindow::CreateGUIControls()
 	sLeft->Add(m_verbosity, 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
 	sLeft->Add(sbLeftOptions, 0, wxEXPAND | (wxLEFT | wxRIGHT), 5);
 	sLeft->Add(sLogCtrl, 0, wxEXPAND);
-	sLeft->Add(m_checks, 1, wxEXPAND);	
+	sLeft->Add(m_checks, 1, wxEXPAND);
 
 	PopulateRight();
-	
+
 	sUber->Add(sLeft, 0, wxEXPAND);
 	sUber->Add(sRight, 1, wxEXPAND);
 	this->SetSizer(sUber);
@@ -171,9 +173,12 @@ void CLogWindow::OnClose(wxCloseEvent& event)
 void CLogWindow::SaveSettings()
 {
 	IniFile ini;
-	ini.Set("LogWindow", "x", Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth());
-	ini.Set("LogWindow", "y", Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight());
-	ini.Set("LogWindow", "pos", Parent->m_Mgr->GetPane(wxT("Pane 1")).dock_direction);
+	if (!Parent->g_pCodeWindow)
+	{
+		ini.Set("LogWindow", "x", Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth());
+		ini.Set("LogWindow", "y", Parent->m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight());
+		ini.Set("LogWindow", "pos", Parent->m_Mgr->GetPane(wxT("Pane 1")).dock_direction);
+	}
 	ini.Set("Options", "Verbosity", m_verbosity->GetSelection() + 1);
 	ini.Set("Options", "Font", m_FontChoice->GetSelection());
 	ini.Set("Options", "WriteToFile", m_writeFile);
@@ -188,6 +193,11 @@ void CLogWindow::LoadSettings()
 {
 	IniFile ini;
 	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+
+	ini.Get("LogWindow", "x", &x, Parent->GetSize().GetX() / 2);
+	ini.Get("LogWindow", "y", &y, Parent->GetSize().GetY());
+	ini.Get("LogWindow", "pos", &winpos, wxAUI_DOCK_RIGHT);
+
 	int verbosity,font;
 	ini.Get("Options", "Verbosity", &verbosity, 0);
 	if (verbosity < 1) verbosity = 1;
@@ -196,7 +206,7 @@ void CLogWindow::LoadSettings()
 	ini.Get("Options", "Font", &font, 0);
 	m_FontChoice->SetSelection(font);
 	if (m_FontChoice->GetSelection() < (int)Font.size())
-		m_Log->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, Font.at(m_FontChoice->GetSelection())));
+		m_Log->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, Font[m_FontChoice->GetSelection()]));
 	ini.Get("Options", "WriteToFile", &m_writeFile, true);
 	m_writeFileCB->SetValue(m_writeFile);
 	ini.Get("Options", "WriteToConsole", &m_writeConsole, true);
@@ -241,7 +251,7 @@ void CLogWindow::OnClear(wxCommandEvent& WXUNUSED (event))
 
 	m_LogSection.Enter();
 	int msgQueueSize = (int)msgQueue.size();
-	for (int i = 0; i < msgQueueSize; i++) 
+	for (int i = 0; i < msgQueueSize; i++)
 		msgQueue.pop();
 	m_LogSection.Leave();
 
@@ -263,7 +273,7 @@ void CLogWindow::OnToggleAll(wxCommandEvent& WXUNUSED (event))
 	enableAll = !enableAll;
 }
 
-// Append checkboxes and update checked groups. 
+// Append checkboxes and update checked groups.
 void CLogWindow::UpdateChecks()
 {
 	// This is only run once to append checkboxes to the wxCheckListBox.
@@ -307,12 +317,12 @@ void CLogWindow::PopulateRight()
 
 wxTextCtrl* CLogWindow::CreateTextCtrl(wxPanel* parent, wxWindowID id, long Style)
 {
-	wxTextCtrl* TC = new wxTextCtrl(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, Style);	
+	wxTextCtrl* TC = new wxTextCtrl(parent, id, wxEmptyString, wxDefaultPosition, wxDefaultSize, Style);
 	TC->SetBackgroundColour(*wxBLACK);
 	if (m_FontChoice)
 	{
 		if (m_FontChoice->GetSelection() < (int)Font.size())
-			TC->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, Font.at(m_FontChoice->GetSelection())));
+			TC->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, Font[m_FontChoice->GetSelection()]));
 	}
 	return TC;
 }
@@ -322,7 +332,7 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 {
 	wxString Text;
 
- 	switch (event.GetId())
+	switch (event.GetId())
 	{
 	case IDM_VERBOSITY:
 		{
@@ -335,7 +345,7 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 		}
 		break;
 
-	case IDM_WRAPLINE:		
+	case IDM_WRAPLINE:
 		// SetWindowStyleFlag doesn't fully work, we need to redraw the window
 		//m_Log->SetWindowStyleFlag(m_Log->GetWindowStyleFlag() ^ wxTE_DONTWRAP);
 		/* Notice:	To retain the colors when changing word wrapping we need to
@@ -353,14 +363,14 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 		m_Log->SetDefaultStyle(wxTextAttr(*wxWHITE));
 		m_Log->AppendText(Text);
 		PopulateRight();
-		m_LogAccess = true;		
+		m_LogAccess = true;
 		break;
 
 	case IDM_FONT:
 		// Update selected font
-		Font.at(Font.size()-1) = DebuggerFont;
-		m_Log->SetStyle(0, m_Log->GetLastPosition(), wxTextAttr(wxNullColour, wxNullColour, Font.at(event.GetSelection())));
-		m_Log->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, Font.at(event.GetSelection())));
+		Font[Font.size()-1] = DebuggerFont;
+		m_Log->SetStyle(0, m_Log->GetLastPosition(), wxTextAttr(wxNullColour, wxNullColour, Font[event.GetSelection()]));
+		m_Log->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour, Font[event.GetSelection()]));
 		break;
 
 	case IDM_WRITEFILE:
@@ -375,7 +385,7 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 					m_LogManager->removeListener((LogTypes::LOG_TYPE)i, m_fileLog);
 			}
 		}
- 		break;
+		break;
 
 	case IDM_WRITEWINDOW:
 		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
@@ -389,7 +399,7 @@ void CLogWindow::OnOptionsCheck(wxCommandEvent& event)
 					m_LogManager->removeListener((LogTypes::LOG_TYPE)i, this);
 			}
 		}
- 		break;
+		break;
 
 	case IDM_WRITECONSOLE:
 		for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
@@ -426,7 +436,7 @@ void CLogWindow::OnLogCheck(wxCommandEvent& event)
 void CLogWindow::ToggleLog(int _logType, bool enable)
 {
 	LogTypes::LOG_TYPE logType = (LogTypes::LOG_TYPE)_logType;
-	
+
 	m_checks->Check(_logType, enable);
 
 	m_LogManager->setEnable(logType, enable);
@@ -483,34 +493,34 @@ void CLogWindow::UpdateLog()
 	int msgQueueSize = (int)msgQueue.size();
 	for (int i = 0; i < msgQueueSize; i++)
 	{
- 		switch (msgQueue.front().first)
- 		{
- 			// red
- 		case ERROR_LEVEL:
- 			m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
- 			break;
- 			// yellow
- 		case WARNING_LEVEL:
- 			m_Log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0)));
- 			break;
- 			// green
- 		case NOTICE_LEVEL:
- 			m_Log->SetDefaultStyle(wxTextAttr(*wxGREEN));
- 			break;
- 			// cyan
- 		case INFO_LEVEL:
- 			m_Log->SetDefaultStyle(wxTextAttr(*wxCYAN));
- 			break;
- 			// light gray
- 		case DEBUG_LEVEL:
- 			m_Log->SetDefaultStyle(wxTextAttr(wxColour(211, 211, 211)));
- 			break;
- 			// white
- 		default:
- 			m_Log->SetDefaultStyle(wxTextAttr(*wxWHITE));
- 			break;
- 		}
-		if (msgQueue.front().second.size()) 
+		switch (msgQueue.front().first)
+		{
+			// red
+			case ERROR_LEVEL:
+				m_Log->SetDefaultStyle(wxTextAttr(*wxRED));
+				break;
+				// yellow
+			case WARNING_LEVEL:
+				m_Log->SetDefaultStyle(wxTextAttr(wxColour(255, 255, 0)));
+				break;
+				// green
+			case NOTICE_LEVEL:
+				m_Log->SetDefaultStyle(wxTextAttr(*wxGREEN));
+				break;
+				// cyan
+			case INFO_LEVEL:
+				m_Log->SetDefaultStyle(wxTextAttr(*wxCYAN));
+				break;
+				// light gray
+			case DEBUG_LEVEL:
+				m_Log->SetDefaultStyle(wxTextAttr(wxColour(211, 211, 211)));
+				break;
+				// white
+			default:
+				m_Log->SetDefaultStyle(wxTextAttr(*wxWHITE));
+				break;
+		}
+		if (msgQueue.front().second.size())
 		{
 			int j = m_Log->GetLastPosition();
 			m_Log->AppendText(msgQueue.front().second);
@@ -518,7 +528,7 @@ void CLogWindow::UpdateLog()
 			m_Log->SetStyle(j, j + 9, wxTextAttr(*wxWHITE));
 		}
 		collected_text.Append(msgQueue.front().second);
-		msgQueue.pop();		
+		msgQueue.pop();
 	}
 	m_LogSection.Leave();
 	// Write all text at once, needs multiple SetStyle, may not be better
@@ -527,7 +537,7 @@ void CLogWindow::UpdateLog()
 	m_LogTimer->Start(UPDATETIME);
 }
 
-void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text) 
+void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char *text)
 {
 	m_LogSection.Enter();
 	if (msgQueue.size() >= 100)

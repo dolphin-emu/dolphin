@@ -1451,13 +1451,21 @@ void CFrame::DoToggleToolbar(bool _show)
 	if (_show)
 	{
 		m_Mgr->GetPane(wxT("TBMain")).Show();
-		if (g_pCodeWindow) { m_Mgr->GetPane(wxT("TBDebug")).Show(); m_Mgr->GetPane(wxT("TBAui")).Show(); }
+		if (g_pCodeWindow)
+	   	{
+		   	m_Mgr->GetPane(wxT("TBDebug")).Show();
+		   	m_Mgr->GetPane(wxT("TBAui")).Show();
+	   	}
 		m_Mgr->Update();
 	}
 	else
 	{
 		m_Mgr->GetPane(wxT("TBMain")).Hide();
-		if (g_pCodeWindow) { m_Mgr->GetPane(wxT("TBDebug")).Hide(); m_Mgr->GetPane(wxT("TBAui")).Hide(); }
+		if (g_pCodeWindow)
+	   	{
+		   	m_Mgr->GetPane(wxT("TBDebug")).Hide();
+		   	m_Mgr->GetPane(wxT("TBAui")).Hide();
+	   	}
 		m_Mgr->Update();
 	}
 }

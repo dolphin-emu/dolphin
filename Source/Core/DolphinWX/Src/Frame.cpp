@@ -429,13 +429,9 @@ CFrame::CFrame(wxFrame* parent,
 	}
 	else
 	{
-		IniFile ini; int winpos;
-		ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-		ini.Get("LogWindow", "pos", &winpos, wxAUI_DOCK_RIGHT);
-
 		m_Mgr->GetPane(wxT("Pane 0")).Show().PaneBorder(false).CaptionVisible(false).Layer(0).Center();
 		m_Mgr->GetPane(wxT("Pane 1")).Hide().PaneBorder(false).CaptionVisible(true).Layer(0)
-			.FloatingSize(wxSize(600, 350)).CloseButton(false).Direction(winpos);
+			.FloatingSize(wxSize(600, 350)).CloseButton(false);
 		AuiFullscreen = m_Mgr->SavePerspective();
 	}
 
@@ -455,7 +451,6 @@ CFrame::CFrame(wxFrame* parent,
 	}
 	else
 	{
-		SetSimplePaneSize();
 		if (SConfig::GetInstance().m_InterfaceLogWindow)
 		   	ToggleLogWindow(true);
 		if (SConfig::GetInstance().m_InterfaceConsole)

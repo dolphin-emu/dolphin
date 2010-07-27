@@ -377,13 +377,24 @@ void CFrame::TogglePane()
 	if (NB)
 	{
 		if (NB->GetPageCount() == 0)
+		{
+			m_LogWindow->x = m_Mgr->GetPane(wxT("Pane 1")).rect.GetWidth();
+			m_LogWindow->y = m_Mgr->GetPane(wxT("Pane 1")).rect.GetHeight();
+			m_LogWindow->winpos = m_Mgr->GetPane(wxT("Pane 1")).dock_direction;
 			m_Mgr->GetPane(wxT("Pane 1")).Hide();
+		}
 		else
-			m_Mgr->GetPane(wxT("Pane 1")).Show();
+		{
+			m_Mgr->GetPane(wxT("Pane 1")).BestSize(m_LogWindow->x, m_LogWindow->y)
+				.MinSize(m_LogWindow->x, m_LogWindow->y)
+				.Direction(m_LogWindow->winpos).Show();
+			m_Mgr->Update();
+
+			// Reset the minimum size of the pane
+			m_Mgr->GetPane(wxT("Pane 1")).MinSize(-1, -1);
+		}
 		m_Mgr->Update();
 	}
-
-	SetSimplePaneSize();
 }
 
 void CFrame::DoRemovePage(wxWindow *Win, bool bHide)
@@ -721,22 +732,11 @@ void CFrame::ResizeConsole()
 #endif
 }
 
-void CFrame::SetSimplePaneSize()
+static int Limit(int i, int Low, int High)
 {
-	int x = 0, y = 0;
-
-	// Produce pixel width from percentage width
-	int Size = PercentageToPixels(50, GetSize().GetX());
-
-	IniFile ini;
-	ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-	ini.Get("LogWindow", "x", &x, Size);
-	ini.Get("LogWindow", "y", &y, Size);
-
-	// Update size
-	m_Mgr->GetPane(wxT("Pane 0")).BestSize(x, y);
-	m_Mgr->GetPane(wxT("Pane 1")).BestSize(x, y);
-	m_Mgr->Update();
+	if (i < Low) return Low;
+	if (i > High) return High;
+	return i;
 }
 
 void CFrame::SetPaneSize()
@@ -755,10 +755,12 @@ void CFrame::SetPaneSize()
 			u32 W = Perspectives[ActivePerspective].Width[j],
 			   	H = Perspectives[ActivePerspective].Height[j];
 			// Check limits
-			W = Limit(W, 5, 95); H = Limit(H, 5, 95);
-			// Produce pixel width from percentage width
-			W = PercentageToPixels(W, iClientX); H = PercentageToPixels(H, iClientY);
-			m_Mgr->GetAllPanes().Item(i).BestSize(W,H).MinSize(W,H).MaxSize(W,H);
+			W = Limit(W, 5, 95);
+		   	H = Limit(H, 5, 95);
+			// Convert percentages to pixel lengths
+			W = (W * iClientX) / 100;
+		   	H = (H * iClientY) / 100;
+			m_Mgr->GetAllPanes().Item(i).BestSize(W,H).MinSize(W,H);
 
 			j++;
 		}
@@ -769,7 +771,7 @@ void CFrame::SetPaneSize()
 	{
 		if (!m_Mgr->GetAllPanes().Item(i).window->IsKindOf(CLASSINFO(wxAuiToolBar)))
 		{
-			m_Mgr->GetAllPanes().Item(i).MinSize(-1,-1).MaxSize(-1,-1);
+			m_Mgr->GetAllPanes().Item(i).MinSize(-1,-1);
 		}
 	}
 }
@@ -882,12 +884,13 @@ void CFrame::UpdateCurrentPerspective()
 		if (!m_Mgr->GetAllPanes().Item(i).window->
 				IsKindOf(CLASSINFO(wxAuiToolBar)))
 		{
-			current->Width.push_back(PixelsToPercentage(
-						m_Mgr->GetAllPanes().Item(i).window->
-						GetClientSize().GetX(), iClientX));
-			current->Height.push_back(PixelsToPercentage(
-						m_Mgr->GetAllPanes().Item(i).window->
-						GetClientSize().GetY(), iClientY));
+			// Save width and height as a percentage of the client width and height
+			current->Width.push_back(
+					(m_Mgr->GetAllPanes().Item(i).window->GetClientSize().GetX() * 100) /
+				   	iClientX);
+			current->Height.push_back(
+					(m_Mgr->GetAllPanes().Item(i).window->GetClientSize().GetY() * 100) /
+					iClientY);
 		}
 	}
 }
@@ -954,28 +957,6 @@ void CFrame::AddPane()
 
 	AddRemoveBlankPage();
 	m_Mgr->Update();
-}
-
-// Utility
-// ---------------------
-
-int CFrame::Limit(int i, int Low, int High)
-{
-	if (i < Low) return Low;
-	if (i > High) return High;
-	return i;
-}
-
-int CFrame::PercentageToPixels(int Percentage, int Total)
-{
-	int Pixels = (int)((float)Total * ((float)Percentage / 100.0));
-	return Pixels;
-}
-
-int CFrame::PixelsToPercentage(int Pixels, int Total)
-{
-	int Percentage = (int)(((float)Pixels / (float)Total) * 100.0);
-	return Percentage;
 }
 
 wxWindow * CFrame::GetNotebookPageFromId(wxWindowID Id)

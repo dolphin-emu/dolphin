@@ -147,9 +147,6 @@ class CFrame : public CRenderFrame
 		wxWindow * GetNotebookPageFromId(wxWindowID Id);
 		wxAuiNotebook * GetNotebookFromId(u32);
 		int GetNotebookCount();
-		int Limit(int,int,int);
-		int PercentageToPixels(int,int);
-		int PixelsToPercentage(int,int);
 		wxString GetMenuLabel(int Id);
 
 		// Perspectives
@@ -168,7 +165,6 @@ class CFrame : public CRenderFrame
 		void DoAddPage(wxWindow *Win, int i, bool Float);
 		void DoRemovePage(wxWindow *, bool bHide = true);
 		void TogglePane();
-		void SetSimplePaneSize();
 		void SetPaneSize();
 		void ResetToolbarStyle();
 		void TogglePaneStyle(bool On, int EventId);

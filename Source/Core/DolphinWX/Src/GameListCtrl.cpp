@@ -1261,7 +1261,7 @@ void CGameListCtrl::OnSize(wxSizeEvent& event)
 
 void CGameListCtrl::AutomaticColumnWidth()
 {
-	wxRect rc(GetClientRect());
+	wxRect rc(GetParent()->GetRect());
 
 	if (GetColumnCount() == 1)
 	{

@@ -38,19 +38,19 @@ void Console_Submit(const char *cmd)
 	CASE1("r")
 	{
 		Core::StartTrace(false);
-		INFO_LOG(CONSOLE, "read tracing started.");			
+		INFO_LOG(CONSOLE, "read tracing started.");
 	}
 	CASE1("w")
 	{
 		Core::StartTrace(true);
-		INFO_LOG(CONSOLE, "write tracing started.");			
+		INFO_LOG(CONSOLE, "write tracing started.");
 	}
 	CASE("trans")
 	{
 		TCHAR temp[256];
 		u32 addr;
 		sscanf(cmd, "%s %08x", temp, &addr);
-		
+
 		if (addr)
 		{
 #if MAX_LOGLEVEL >= INFO_LEVEL
@@ -124,7 +124,7 @@ void Console_Submit(const char *cmd)
 		{
 			u32 data = Memory::ReadUnchecked_U32(addr);
 			DisassembleGekko(data, addr, disasm, 256);
-			printf("%08x: %08x: %s\n", addr, data, disasm);	
+			DEBUG_LOG(CONSOLE, "%08x: %08x: %s\n", addr, data, disasm);
 		}
 	}
 	CASE("help")
@@ -151,8 +151,5 @@ void Console_Submit(const char *cmd)
 		g_symbolDB.List();
 	}
 	else
-	{
-		printf("blach\n");
-		ERROR_LOG(CONSOLE, "Invalid command");	
-	}
+		ERROR_LOG(CONSOLE, "Invalid command");
 }
