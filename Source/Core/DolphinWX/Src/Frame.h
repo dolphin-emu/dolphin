@@ -145,7 +145,7 @@ class CFrame : public CRenderFrame
 
 		// Utility
 		wxWindow * GetNotebookPageFromId(wxWindowID Id);
-		wxAuiNotebook * GetNotebookFromId(size_t NBId);
+		wxAuiNotebook * GetNotebookFromId(u32 NBId);
 		int GetNotebookCount();
 		wxString GetMenuLabel(int Id);
 
