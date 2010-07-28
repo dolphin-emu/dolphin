@@ -314,8 +314,6 @@ void RemoveEvent(int event_type)
 		return;
 	if (first->type == event_type)
 	{
-		if (event_type == 24)
-		NOTICE_LOG(FILEMON, "REMOVE 24");
 		Event *next = first->next;
 		FreeEvent(first);
 		first = next;
@@ -328,8 +326,6 @@ void RemoveEvent(int event_type)
 	{
 		if (ptr->type == event_type)
 		{
-			if (event_type == 24)
-			NOTICE_LOG(FILEMON, "REMOVE 24");
 			prev->next = ptr->next;
 			FreeEvent(ptr);
 			ptr = prev->next;
@@ -348,8 +344,6 @@ void RemoveThreadsafeEvent(int event_type)
 		return;
 	if (tsFirst->type == event_type)
 	{
-		if (event_type == 24)
-		NOTICE_LOG(FILEMON, "REMOVE 24");
 		Event *next = tsFirst->next;
 		FreeTsEvent(tsFirst);
 		tsFirst = next;
@@ -361,9 +355,7 @@ void RemoveThreadsafeEvent(int event_type)
 	while (ptr)
 	{
 		if (ptr->type == event_type)
-		{
-			if (event_type == 24)
-			NOTICE_LOG(FILEMON, "REMOVE 24");		
+		{	
 			prev->next = ptr->next;
 			FreeTsEvent(ptr);
 			ptr = prev->next;
