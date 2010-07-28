@@ -365,8 +365,9 @@ CFrame::CFrame(wxFrame* parent,
 	if (UseDebugger)
 	{
 		g_pCodeWindow = new CCodeWindow(SConfig::GetInstance().m_LocalCoreStartupParameter, this, IDM_CODEWINDOW);
-		g_pCodeWindow->Hide();
 		LoadIniPerspectives();
+		g_pCodeWindow->Load();
+		g_pCodeWindow->Hide();
 	}
 
 	// Create timer
@@ -446,7 +447,6 @@ CFrame::CFrame(wxFrame* parent,
 	if (g_pCodeWindow)
 	{
 		// Load perspective
-		LoadIniPerspectives();
 		DoLoadPerspective();
 	}
 	else

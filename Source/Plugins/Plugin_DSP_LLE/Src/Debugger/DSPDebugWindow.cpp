@@ -32,6 +32,8 @@
 void Host_NotifyMapLoaded() {}
 void Host_UpdateBreakPointView() {}
 
+DSPDebuggerLLE* m_DebuggerFrame = NULL;
+
 BEGIN_EVENT_TABLE(DSPDebuggerLLE, wxPanel)	
 	EVT_CLOSE(DSPDebuggerLLE::OnClose)
 	EVT_MENU_RANGE(ID_RUNTOOL, ID_STEPTOOL, DSPDebuggerLLE::OnChangeState)
@@ -109,18 +111,17 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent)
 	UpdateState();
 
 	m_mgr.Update();
-
-	Show();
 }
 
 DSPDebuggerLLE::~DSPDebuggerLLE()
 {
 	m_mgr.UnInit();
+	m_DebuggerFrame = NULL;
 }
 
 void DSPDebuggerLLE::OnClose(wxCloseEvent& event)
 {
-	Hide();
+	event.Skip();
 }
 
 void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
@@ -176,12 +177,15 @@ void DSPDebuggerLLE::FocusOnPC()
 
 void DSPDebuggerLLE::UpdateState()
 {
-	if (DSPCore_GetState() == DSPCORE_RUNNING) {
+	if (DSPCore_GetState() == DSPCORE_RUNNING)
+   	{
 		m_Toolbar->SetToolLabel(ID_RUNTOOL, wxT("Pause"));
 		m_Toolbar->SetToolBitmap(ID_RUNTOOL,
 			wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, wxSize(10,10)));
 		m_Toolbar->EnableTool(ID_STEPTOOL, false);
-	} else {
+	}
+   	else
+   	{
 		m_Toolbar->SetToolLabel(ID_RUNTOOL, wxT("Run"));
 		m_Toolbar->SetToolBitmap(ID_RUNTOOL,
 			wxArtProvider::GetBitmap(wxART_GO_FORWARD, wxART_OTHER, wxSize(10,10)));

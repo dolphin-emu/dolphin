@@ -145,7 +145,7 @@ class CFrame : public CRenderFrame
 
 		// Utility
 		wxWindow * GetNotebookPageFromId(wxWindowID Id);
-		wxAuiNotebook * GetNotebookFromId(u32);
+		wxAuiNotebook * GetNotebookFromId(size_t NBId);
 		int GetNotebookCount();
 		wxString GetMenuLabel(int Id);
 
@@ -159,8 +159,6 @@ class CFrame : public CRenderFrame
 		void OnTab(wxAuiNotebookEvent& event);
 		int GetNotebookAffiliation(wxWindowID Id);
 		void ClosePages();
-		void ShowAllNotebooks(bool Window = false);
-		void HideAllNotebooks(bool Window = false);
 		void CloseAllNotebooks();
 		void DoAddPage(wxWindow *Win, int i, bool Float);
 		void DoRemovePage(wxWindow *, bool bHide = true);

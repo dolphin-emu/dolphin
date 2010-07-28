@@ -102,4 +102,6 @@ private:
 	void UnselectAll();
 };
 
+extern DSPDebuggerLLE* m_DebuggerFrame;
+
 #endif //_DSP_DEBUGGER_LLE_H

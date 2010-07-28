@@ -560,7 +560,6 @@ void CCodeWindow::ToggleDLLWindow(int Id, bool bShow)
 		if (Win)
 		{
 			Parent->DoRemovePage(Win, false);
-			Win->Close();
 			Win->Destroy();
 		}
 	}

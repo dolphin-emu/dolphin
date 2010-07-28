@@ -41,7 +41,6 @@
 #include "DSPConfigDlgLLE.h"
 DSPConfigDialogLLE* m_ConfigFrame = NULL;
 #include "Debugger/DSPDebugWindow.h"
-DSPDebuggerLLE* m_DebuggerFrame = NULL;
 #endif
 
 PLUGIN_GLOBALS* globals = NULL;
