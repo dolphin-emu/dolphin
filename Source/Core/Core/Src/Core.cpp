@@ -330,6 +330,7 @@ THREAD_RETURN EmuThread(void *pArg)
 	VideoInitialize.pSetInterrupt				= ProcessorInterface::SetInterrupt;
 	VideoInitialize.pRegisterEvent				= CoreTiming::RegisterEvent;
 	VideoInitialize.pScheduleEvent_Threadsafe	= CoreTiming::ScheduleEvent_Threadsafe;
+	VideoInitialize.pRemoveEvent				= CoreTiming::RemoveAllEvents;
 	// This is first the m_Panel handle, then it is updated to have the new window handle
 	VideoInitialize.pWindowHandle				= _CoreParameter.hMainWindow;
 	VideoInitialize.pLog						= Callback_VideoLog;

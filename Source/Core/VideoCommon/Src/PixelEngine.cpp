@@ -377,4 +377,20 @@ void SetFinish()
 	INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
 }
 
+//This function is used in CommandProcessor when write CTRL_REGISTER and the new fifo is attached.
+void ResetSetFinish()
+{
+	//if SetFinish happened but PE_CTRL_REGISTER not, I reset the interrupt else
+	//remove event from the queque
+	if (g_bSignalFinishInterrupt)
+	{
+		g_VideoInitialize.pSetInterrupt(INT_CAUSE_PE_FINISH, false);
+		g_bSignalFinishInterrupt = false;
+		
+	}else
+	{
+		g_VideoInitialize.pRemoveEvent(et_SetFinishOnMainThread);
+	}
+}
+
 } // end of namespace PixelEngine

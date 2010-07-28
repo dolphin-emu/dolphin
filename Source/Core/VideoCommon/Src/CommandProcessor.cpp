@@ -77,7 +77,7 @@
 #include "Fifo.h"
 #include "ChunkFile.h"
 #include "CommandProcessor.h"
-
+#include "PixelEngine.h"
 
 namespace CommandProcessor
 {
@@ -411,6 +411,14 @@ void Write16(const u16 _Value, const u32 _Address)
 				m_CPStatusReg.OverflowHiWatermark = false;
 
 			UpdateInterrupts();
+			
+			// If the new fifo is being attached We make sure there wont be SetFinish event pending.
+			// This protection fix eternal darkness booting, because the second SetFinish event when it is booting
+			// seems invalid or has a bug and hang the game.
+			if (!fifo.bFF_GPReadEnable && tmpCtrl.GPReadEnable && !tmpCtrl.BPEnable)
+			{
+				PixelEngine::ResetSetFinish();			
+			}
 
 			fifo.bFF_BPInt = tmpCtrl.BPInt;
 			fifo.bFF_BPEnable = tmpCtrl.BPEnable;

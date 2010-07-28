@@ -96,6 +96,13 @@ void FreeEvent(Event* ev)
     eventPool = ev;
 }
 
+void FreeTsEvent(Event* ev)
+{
+    ev->next = eventTsPool;
+    eventTsPool = ev;
+	allocatedTsEvents--;
+}
+
 int RegisterEvent(const char *name, TimedCallback callback)
 {
 	EventType type;
@@ -302,10 +309,13 @@ bool IsScheduled(int event_type)
 
 void RemoveEvent(int event_type)
 {
+
 	if (!first)
 		return;
 	if (first->type == event_type)
 	{
+		if (event_type == 24)
+		NOTICE_LOG(FILEMON, "REMOVE 24");
 		Event *next = first->next;
 		FreeEvent(first);
 		first = next;
@@ -318,6 +328,8 @@ void RemoveEvent(int event_type)
 	{
 		if (ptr->type == event_type)
 		{
+			if (event_type == 24)
+			NOTICE_LOG(FILEMON, "REMOVE 24");
 			prev->next = ptr->next;
 			FreeEvent(ptr);
 			ptr = prev->next;
@@ -328,6 +340,46 @@ void RemoveEvent(int event_type)
 			ptr = ptr->next;
 		}
 	}
+}
+
+void RemoveThreadsafeEvent(int event_type)
+{
+	if (!tsFirst)
+		return;
+	if (tsFirst->type == event_type)
+	{
+		if (event_type == 24)
+		NOTICE_LOG(FILEMON, "REMOVE 24");
+		Event *next = tsFirst->next;
+		FreeTsEvent(tsFirst);
+		tsFirst = next;
+	}
+	if (!tsFirst)
+		return;
+	Event *prev = tsFirst;
+	Event *ptr = prev->next;
+	while (ptr)
+	{
+		if (ptr->type == event_type)
+		{
+			if (event_type == 24)
+			NOTICE_LOG(FILEMON, "REMOVE 24");		
+			prev->next = ptr->next;
+			FreeTsEvent(ptr);
+			ptr = prev->next;
+		}
+		else
+		{
+			prev = ptr;
+			ptr = ptr->next;
+		}
+	}
+}
+
+void RemoveAllEvents(int event_type)
+{	
+	RemoveThreadsafeEvent(event_type);
+	RemoveEvent(event_type);
 }
 
 void SetMaximumSlice(int maximumSliceLength)

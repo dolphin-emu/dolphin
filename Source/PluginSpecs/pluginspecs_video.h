@@ -14,6 +14,7 @@ typedef void (*TimedCallback)(u64 userdata, int cyclesLate);
 typedef void            (*TSetInterrupt)(u32 _causemask, bool _bSet);
 typedef int             (*TRegisterEvent)(const char *name, TimedCallback callback);
 typedef void            (*TScheduleEvent_Threadsafe)(int cyclesIntoFuture, int event_type, u64 userdata, bool fifoWait);
+typedef void            (*TRemoveEvent)(int event_type);
 typedef unsigned char*	(*TGetMemoryPointer)(const unsigned int  _iAddress);
 typedef void			(*TVideoLog)(const char* _pMessage, int _bBreak);
 typedef void			(*TSysMessage)(const char *fmt, ...);
@@ -74,6 +75,7 @@ typedef struct
     TSetInterrupt                   pSetInterrupt;
     TRegisterEvent                  pRegisterEvent;
     TScheduleEvent_Threadsafe       pScheduleEvent_Threadsafe;
+	TRemoveEvent					pRemoveEvent;
 	TGetMemoryPointer				pGetMemoryPointer;
 	TVideoLog						pLog;
 	TSysMessage						pSysMessage;

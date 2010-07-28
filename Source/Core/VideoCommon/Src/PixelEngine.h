@@ -67,6 +67,7 @@ void Write32(const u32 _iValue, const u32 _iAddress);
 // gfx plugin support
 void SetToken(const u16 _token, const int _bSetTokenAcknowledge);
 void SetFinish(void);
+void ResetSetFinish(void);
 bool AllowIdleSkipping();
 
 // Bounding box functionality. Paper Mario (both) are a couple of the few games that use it.
