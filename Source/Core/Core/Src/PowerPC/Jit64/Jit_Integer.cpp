@@ -190,8 +190,11 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 	bool merge_branch = false;
 	int test_crf = js.next_inst.BI >> 2;
 	// Check if the next instruction is a branch - if it is, merge the two.
-	if (js.next_inst.OPCD == 16 && (js.next_inst.BO & BO_DONT_DECREMENT_FLAG) &&
-		!(js.next_inst.BO & 16) && (js.next_inst.BO & 4) && !js.next_inst.LK) {
+	if (((js.next_inst.OPCD == 16 /* bcx */) ||
+		((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528) /* bcctrx */) ||
+		((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16) /* bclrx */)) &&
+		(js.next_inst.BO & BO_DONT_DECREMENT_FLAG) &&
+		!(js.next_inst.BO & BO_DONT_CHECK_CONDITION)) {
 			// Looks like a decent conditional branch that we can merge with.
 			// It only test CR, not CTR.
 			if (test_crf == crf) {
@@ -254,16 +257,9 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		// http://maws.mameworld.info/maws/mamesrc/src/emu/cpu/powerpc/drc_ops.c : bt, adc
 	} else {
 		int test_bit = 8 >> (js.next_inst.BI & 3);
-		bool condition = (js.next_inst.BO & 8) ? false : true;
+		bool condition = (js.next_inst.BO & BO_BRANCH_IF_TRUE) ? false : true;
 		CMP(32, gpr.R(a), comparand);
 		gpr.UnlockAll();
-
-		u32 destination1;
-		if (js.next_inst.AA)
-			destination1 = SignExt16(js.next_inst.BD << 2);
-		else
-			destination1 = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
-		u32 destination2 = js.next_compilerPC + 4;
 
 		// Test swapping (in the future, will be used to inline across branches the right way)
 		// if (rand() & 1)
@@ -286,14 +282,44 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		if (!!(8 & test_bit) == condition) continue3 = J();
 		if (!!(4 & test_bit) != condition) SetJumpTarget(continue2);
 		if (!!(2 & test_bit) != condition) SetJumpTarget(continue1);
+		if (js.next_inst.OPCD == 16) // bcx
+		{
+			if (js.next_inst.LK)
+				MOV(32, M(&LR), Imm32(js.compilerPC + 4));
 
-		WriteExit(destination1, 0);
+			u32 destination;
+			if (js.next_inst.AA)
+				destination = SignExt16(js.next_inst.BD << 2);
+			else
+				destination = js.next_compilerPC + SignExt16(js.next_inst.BD << 2);
+			WriteExit(destination, 0);
+		}
+		else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 528)) // bcctrx
+		{
+			if (js.next_inst.LK)
+				MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+			MOV(32, R(EAX), M(&CTR));
+			AND(32, R(EAX), Imm32(0xFFFFFFFC));
+			WriteExitDestInEAX(0);  
+		}
+		else if ((js.next_inst.OPCD == 19) && (js.next_inst.SUBOP10 == 16)) // bclrx
+		{
+			MOV(32, R(EAX), M(&LR));
+			AND(32, R(EAX), Imm32(0xFFFFFFFC));
+			if (js.next_inst.LK)
+				MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+			WriteExitDestInEAX(0);  
+		}
+		else
+		{
+			PanicAlert("WTF invalid branch");
+		}
 
 		if (!!(8 & test_bit) == condition) SetJumpTarget(continue3);
 		if (!!(4 & test_bit) == condition) SetJumpTarget(continue2);
 		if (!!(2 & test_bit) == condition) SetJumpTarget(continue1);
 
-		WriteExit(destination2, 1);
+		WriteExit(js.next_compilerPC + 4, 1);
 
 		js.cancel = true;
 	}
