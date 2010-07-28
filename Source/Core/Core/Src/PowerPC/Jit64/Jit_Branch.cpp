@@ -59,15 +59,12 @@ void Jit64::rfi(UGeckoInstruction inst)
 	fpr.Flush(FLUSH_ALL);
 	// See Interpreter rfi for details
 	const u32 mask = 0x87C0FFFF;
-	// MSR = (MSR & ~mask) | (SRR1 & mask);
-	MOV(32, R(EAX), M(&MSR));
-	MOV(32, R(ECX), M(&SRR1));
-	AND(32, R(EAX), Imm32(~mask));
-	AND(32, R(ECX), Imm32(mask));
-	OR(32, R(EAX), R(ECX));       
-	// MSR &= 0xFFFDFFFF; //TODO: VERIFY
-	AND(32, R(EAX), Imm32(0xFFFBFFFF));
-	MOV(32, M(&MSR), R(EAX));
+	const u32 clearMSR13 = 0xFFFBFFFF; // Mask used to clear the bit MSR[13]
+	// MSR = ((MSR & ~mask) | (SRR1 & mask)) & clearMSR13;
+	AND(32, M(&MSR), Imm32((~mask) & clearMSR13));
+	MOV(32, R(EAX), M(&SRR1));
+	AND(32, R(EAX), Imm32(mask & clearMSR13));
+	OR(32, M(&MSR), R(EAX));
 	// NPC = SRR0; 
 	MOV(32, R(EAX), M(&SRR0));
 	WriteRfiExitDestInEAX();
@@ -124,87 +121,41 @@ void Jit64::bcx(UGeckoInstruction inst)
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
 
-	CCFlags branch = CC_Z;
+	FixupBranch pCTRDontBranch;
+	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
+	{
+		SUB(32, M(&CTR), Imm8(1));
+		if (inst.BO & BO_BRANCH_IF_CTR_0)
+			pCTRDontBranch = J_CC(CC_NZ);
+		else
+			pCTRDontBranch = J_CC(CC_Z);
+	}
 
-	//const bool only_counter_check = (inst.BO & 16) ? true : false;
-	//const bool only_condition_check = (inst.BO & 4) ? true : false;
-	//if (only_condition_check && only_counter_check)
-	//	PanicAlert("Bizarre bcx encountered. Likely bad or corrupt code.");
-	bool doFullTest = ((inst.BO & BO_DONT_CHECK_CONDITION) == 0) && ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0);
-	bool ctrDecremented = false;
-
+	FixupBranch pConditionDontBranch;
 	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
 	{
 		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
 		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch 
-			branch = CC_NZ;
+			pConditionDontBranch = J_CC(CC_Z);
 		else
-			branch = CC_Z; 
-		
-		if (doFullTest)
-			SETcc(branch, R(EAX));
+			pConditionDontBranch = J_CC(CC_NZ);
 	}
-	else
-	{
-		if (doFullTest)
-			MOV(32, R(EAX), Imm32(1));
-	}
-
-	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
-	{
-		// Decrement CTR 
-		SUB(32, M(&CTR), Imm8(1));
-		ctrDecremented = true;
-		// Test whether to branch if CTR is zero or not 
-		if (inst.BO & BO_BRANCH_IF_CTR_0)
-			branch = CC_Z;
-		else
-			branch = CC_NZ;
-		
-		if (doFullTest)
-			SETcc(branch, R(ECX));
-	}
-	else
-	{
-		if (doFullTest)
-			MOV(32, R(ECX), Imm32(1));
-	}
-
-	if (doFullTest)
-	{
-		TEST(32, R(EAX), R(ECX));
-		branch = CC_Z;
-	}
-	else
-	{
-		if (branch == CC_Z)
-			branch = CC_NZ;
-		else
-			branch = CC_Z;
-	}
-
-	if (!ctrDecremented && (inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
-	{
-		SUB(32, M(&CTR), Imm8(1));
-	}
-	FixupBranch skip;
-	if (inst.BO != 20)
-	{
-		skip = J_CC(branch);
-	}
-	u32 destination;
+	
 	if (inst.LK)
 		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+
+	u32 destination;
 	if(inst.AA)
 		destination = SignExt16(inst.BD << 2);
 	else
 		destination = js.compilerPC + SignExt16(inst.BD << 2);
 	WriteExit(destination, 0);
-	if (inst.BO != 20)
-	{
-		SetJumpTarget(skip);
-		WriteExit(js.compilerPC + 4, 1);
-	}
+
+	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
+		SetJumpTarget( pConditionDontBranch );
+	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
+		SetJumpTarget( pCTRDontBranch );
+	WriteExit(js.compilerPC + 4, 1);
 }
 
 void Jit64::bcctrx(UGeckoInstruction inst)
@@ -243,19 +194,18 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 			branch = CC_Z;
 		else
 			branch = CC_NZ; 
-		MOV(32, R(EAX), Imm32(js.compilerPC + 4));
 		FixupBranch b = J_CC(branch, false);
 		MOV(32, R(EAX), M(&CTR));
+		AND(32, R(EAX), Imm32(0xFFFFFFFC));
 		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
 		if (inst.LK_3)
 			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
+		WriteExitDestInEAX(0);
 		// Would really like to continue the block here, but it ends. TODO.
 		SetJumpTarget(b);
-		WriteExitDestInEAX(0);	
-		return;
+		WriteExit(js.compilerPC + 4, 1);
 	}
 }
-
 
 void Jit64::bclrx(UGeckoInstruction inst)
 {
@@ -264,50 +214,42 @@ void Jit64::bclrx(UGeckoInstruction inst)
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
-	//Special case BLR & BLRL
-	if ((inst.hex & ~1) == 0x4e800020)
+
+	FixupBranch pCTRDontBranch;
+	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
 	{
-		//CDynaRegCache::Flush();
+		SUB(32, M(&CTR), Imm8(1));
+		if (inst.BO & BO_BRANCH_IF_CTR_0)
+			pCTRDontBranch = J_CC(CC_NZ);
+		else
+			pCTRDontBranch = J_CC(CC_Z);
+	}
+
+	FixupBranch pConditionDontBranch;
+	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
+	{
+		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
+		if (inst.BO & BO_BRANCH_IF_TRUE)  // Conditional branch 
+			pConditionDontBranch = J_CC(CC_Z);
+		else
+			pConditionDontBranch = J_CC(CC_NZ);
+	}
+
 		// This below line can be used to prove that blr "eats flags" in practice.
 		// This observation will let us do a lot of fun observations.
 #ifdef ACID_TEST
 		AND(32, M(&CR), Imm32(~(0xFF000000)));
 #endif
-		MOV(32, R(EAX), M(&LR));
-		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
-		if (inst.LK_3)
-			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
-		WriteExitDestInEAX(0);
-		return;
-	} else if ((inst.BO_2 & BO_DONT_DECREMENT_FLAG) == 0) {
-		// Decrement CTR. Not mutually exclusive...
-		// Will fall back to int, but we should be able to do it here, sometime
-	} else if ((inst.BO_2 & BO_DONT_CHECK_CONDITION) == 0) {
-		// Test a CR bit. Not too hard.
-		// beqlr- 4d820020
-		// blelr- 4c810020
-		// blrl   4e800021
-		// bnelr  4c820020
-		// etc...
-		TEST(8, M(&PowerPC::ppcState.cr_fast[inst.BI >> 2]), Imm8(8 >> (inst.BI & 3)));
-		Gen::CCFlags branch;
-		if (inst.BO_2 & BO_BRANCH_IF_TRUE)
-			branch = CC_Z;
-		else
-			branch = CC_NZ; 
-		FixupBranch b = J_CC(branch, false);
-		MOV(32, R(EAX), M(&LR));
-		//MOV(32, M(&PC), R(EAX)); => Already done in WriteExitDestInEAX()
-		if (inst.LK_3)
-			MOV(32, M(&LR), Imm32(js.compilerPC + 4)); //	LR = PC + 4;
-		WriteExitDestInEAX(0);	
-		// Would really like to continue the block here, but it ends. TODO.
-		SetJumpTarget(b);
-		WriteExit(js.compilerPC + 4, 1);
-		return;
-	}
-	// Call interpreter
-	Default(inst);
-	MOV(32, R(EAX), M(&NPC));
-	WriteExitDestInEAX(0);	
+
+	MOV(32, R(EAX), M(&LR));	
+	AND(32, R(EAX), Imm32(0xFFFFFFFC));
+	if (inst.LK)
+		MOV(32, M(&LR), Imm32(js.compilerPC + 4));
+	WriteExitDestInEAX(0);
+
+	if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
+		SetJumpTarget( pConditionDontBranch );
+	if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)
+		SetJumpTarget( pCTRDontBranch );
+	WriteExit(js.compilerPC + 4, 1);
 }
