@@ -533,7 +533,7 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser( wxWindow* const parent, w
 		button_sizer->Add(add_button, 1, 0, 5);
 	}
 
-	range_slider = new wxSlider( parent, -1, SLIDER_TICK_COUNT, 0, SLIDER_TICK_COUNT * 2, wxDefaultPosition, wxDefaultSize, wxSL_TOP | wxSL_LABELS /*| wxSL_AUTOTICKS*/ );
+	range_slider = new wxSlider( parent, -1, SLIDER_TICK_COUNT, 0, SLIDER_TICK_COUNT * 5, wxDefaultPosition, wxDefaultSize, wxSL_TOP | wxSL_LABELS /*| wxSL_AUTOTICKS*/ );
 
 	range_slider->SetValue( control_reference->range * SLIDER_TICK_COUNT );
 

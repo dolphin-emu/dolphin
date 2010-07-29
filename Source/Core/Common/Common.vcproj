@@ -666,6 +666,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\Src\FifoQueue.h"
+			>
+		</File>
+		<File
 			RelativePath=".\Src\FileSearch.cpp"
 			>
 		</File>

@@ -3,6 +3,7 @@
 
 #include "Thread.h"
 #include "HW/Memmap.h"
+#include "ConfigManager.h"
 
 #include "vector"
 
@@ -142,6 +143,8 @@ bool RunGeckoCode(GeckoCode& gecko_code)
 
 bool RunActiveCodes()
 {
+	if (false == SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableCheats)
+		return true;
 	if (false == active_codes_lock.TryEnter())
 		return true;
 
