@@ -22,6 +22,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #else
+#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <cerrno>

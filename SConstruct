@@ -132,32 +132,6 @@ if not env['verbose']:
     env['SHLINKCOMSTR'] = "Linking $TARGET"
     env['TARCOMSTR'] = "Creating $TARGET"
 
-dirs = [
-    'Externals/Bochs_disasm',
-    'Externals/Lua',
-    'Externals/MemcardManager',
-    'Externals/WiiUse/Src',
-    'Source/Core/AudioCommon/Src',
-    'Source/Core/Common/Src',
-    'Source/Core/Core/Src',
-    'Source/Core/DSPCore/Src',
-    'Source/Core/DebuggerUICommon/Src',
-    'Source/Core/DebuggerWX/Src',
-    'Source/Core/DiscIO/Src',
-    'Source/Core/DolphinWX/Src',
-    'Source/Core/InputCommon/Src',
-    'Source/Core/InputUICommon/Src',
-    'Source/Core/VideoCommon/Src',
-    'Source/DSPTool/Src',
-    'Source/Plugins/Plugin_DSP_HLE/Src',
-    'Source/Plugins/Plugin_DSP_LLE/Src',
-    'Source/Plugins/Plugin_VideoOGL/Src',
-    'Source/Plugins/Plugin_VideoSoftware/Src',
-    'Source/Plugins/Plugin_Wiimote/Src',
-    'Source/Plugins/Plugin_WiimoteNew/Src',
-    'Source/UnitTests',
-    ]
-
 # Object files
 env['build_dir'] = 'Build' + os.sep + platform.system() + \
     '-' + platform.machine() + '-' + env['flavor']
@@ -184,8 +158,7 @@ rev = utils.GenerateRevFile(env['flavor'],
 
 env['CCFLAGS'] = ccFlags
 env['CPPDEFINES'] = cppDefines
-env['CPPPATH'] = ['#' + path for path in dirs]
-env['CPPPATH'] += ['#Source/PluginSpecs']
+env['CPPPATH'] = ['#Source/PluginSpecs']
 env['CXXFLAGS'] = ['-fvisibility-inlines-hidden']
 env['LIBPATH'] = []
 env['LIBS'] = []
@@ -234,7 +207,6 @@ if sys.platform == 'darwin':
     env['plugin_dir'] = '#' + env['prefix'] + '/Dolphin.app/Contents/PlugIns'
     env.Install(env['data_dir'], 'Data/Sys')
     env.Install(env['data_dir'], 'Data/User')
-    dirs += ['Externals/dylibbundler']
     if env['bundle']:
         app = env['prefix'] + '/Dolphin.app'
         dmg = env['prefix'] + '/Dolphin-r' + rev + '.dmg'
@@ -244,8 +216,6 @@ if sys.platform == 'darwin':
 
 elif sys.platform == 'win32':
     env['tools'] = ['mingw']
-    dirs += ['Source/Plugins/Plugin_VideoDX9/Src']
-    dirs += ['Source/Plugins/Plugin_VideoDX11/Src']
 
 else:
     env['CCFLAGS'] += ['-pthread']
@@ -286,8 +256,6 @@ else:
         if not env['HAVE_WX']:
             print "WX libraries not found - see config.log"
             Exit(1)
-
-    conf.CheckPKG('usbhid')
 
     env['HAVE_BLUEZ'] = conf.CheckPKG('bluez')
     conf.Define('HAVE_BLUEZ', env['HAVE_BLUEZ'])
@@ -399,6 +367,8 @@ else:
 # during autoconfiguration as they will then be detected as system libraries.
 env['LIBPATH'].insert(0, env['local_libs'])
 
+dirs = []
+
 if not env.has_key('shared_glew') or not env['shared_glew']:
     env['CPPPATH'] += ['#Externals/GLew/include']
     dirs += ['Externals/GLew']
@@ -419,9 +389,43 @@ if not env.has_key('shared_zlib') or not env['shared_zlib']:
     env['CPPPATH'] += ['#Externals/zlib']
     dirs += ['Externals/zlib']
 
+dirs += [
+    'Externals/Bochs_disasm',
+    #'Externals/CLRun',
+    'Externals/Lua',
+    'Externals/MemcardManager',
+    'Externals/WiiUse/Src',
+    #'Externals/OpenAL',
+    #'Externals/dylibbundler',
+    #'Externals/wxWidgets',
+    'Source/Core/AudioCommon/Src',
+    'Source/Core/Common/Src',
+    'Source/Core/Core/Src',
+    'Source/Core/DSPCore/Src',
+    'Source/Core/DebuggerUICommon/Src',
+    'Source/Core/DebuggerWX/Src',
+    'Source/Core/DiscIO/Src',
+    'Source/Core/DolphinWX/Src',
+    'Source/Core/InputCommon/Src',
+    'Source/Core/InputUICommon/Src',
+    'Source/Core/VideoCommon/Src',
+    'Source/DSPTool/Src',
+    'Source/Plugins/Plugin_DSP_HLE/Src',
+    'Source/Plugins/Plugin_DSP_LLE/Src',
+    #'Source/Plugins/Plugin_VideoDX9/Src',
+    #'Source/Plugins/Plugin_VideoDX11/Src',
+    'Source/Plugins/Plugin_VideoOGL/Src',
+    'Source/Plugins/Plugin_VideoSoftware/Src',
+    'Source/Plugins/Plugin_Wiimote/Src',
+    'Source/Plugins/Plugin_WiimoteNew/Src',
+    'Source/UnitTests',
+    ]
+
 for subdir in dirs:
-    SConscript(subdir + os.sep + 'SConscript',
-        variant_dir = env['build_dir'] + os.sep + subdir, duplicate = 0)
+    SConscript(dirs = subdir, duplicate = 0, exports = 'env',
+        variant_dir = env['build_dir'] + os.sep + subdir)
+    if subdir.count('Externals') or subdir.count('Source/Core'):
+        env['CPPPATH'] += ['#' + subdir]
 
 # Print a nice progress indication when not compiling
 Progress(['-\r', '\\\r', '|\r', '/\r'], interval = 5)

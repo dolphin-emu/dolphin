@@ -11,6 +11,7 @@ files = [
 	]
 
 if sys.platform.count('bsd'):
+	env['LIBS'] += ['usbhid']
 	files += [
 		'src/joystick/bsd/SDL_sysjoystick.c',
 		'src/stdlib/SDL_malloc.c',
