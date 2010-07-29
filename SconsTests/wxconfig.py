@@ -7,7 +7,6 @@
 #
 import os, os.path
 import re
-import sys
 import glob
 import string
 

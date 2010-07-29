@@ -31,6 +31,7 @@
  *	@brief Handles device I/O for OS X.
  */
 
+#import <CoreServices/CoreServices.h>
 #define BLUETOOTH_VERSION_USE_CURRENT
 #import <IOBluetooth/objc/IOBluetoothDevice.h>
 #import <IOBluetooth/objc/IOBluetoothDeviceInquiry.h>
@@ -113,6 +114,8 @@ volatile int reader, writer, outstanding, watermark;
 	}
 
 	CFRunLoopStop(CFRunLoopGetCurrent());
+
+	UpdateSystemActivity(UsrActivity);
 }
 
 - (void) l2capChannelClosed: (IOBluetoothL2CAPChannel *) l2capChannel

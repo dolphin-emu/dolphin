@@ -17,7 +17,7 @@ def CheckLib(context, name):
               int main(int argc, char **argv) {
                 return 0;
               }
-              \n""", '.c')
+              \n""", '.cpp')
     if not ret:
         context.env.Replace(LIBS = lastLIBS)
 
@@ -72,7 +72,7 @@ def CheckPortaudio(context, version):
                 printf("%d", Pa_GetVersion());
                 return 0;
               }
-              \n""", '.c')[1]
+              \n""", '.cpp')[1]
 
     if found:
         ret = (version <= found)

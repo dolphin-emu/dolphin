@@ -372,8 +372,8 @@ CFrame::CFrame(wxFrame* parent,
 
 	// Create timer
 	#if wxUSE_TIMER
-		int TimesPerSecond = 10; // We don't need more than this
-		m_timer.Start( floor((double)(1000 / TimesPerSecond)) );
+		const int TimesPerSecond = 10; // We don't need more than this
+		m_timer.Start(1000 / TimesPerSecond);
 	#endif
 
 	// Create toolbar bitmaps

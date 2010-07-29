@@ -423,7 +423,7 @@ u32 Read_Opcode_JIT(u32 _Address)
 #ifdef FAST_ICACHE	
 	if (bMMU && !bFakeVMEM && (_Address >> 28) == 0x7)
 	{
-		_Address = Memory::TranslateAddress(_Address, Memory::XCheckTLBFlag::FLAG_OPCODE);
+		_Address = Memory::TranslateAddress(_Address, FLAG_OPCODE);
 		if (_Address == 0)
 		{
 			return 0;

@@ -430,7 +430,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	if (Core::g_CoreStartupParameter.bMMU && (em_address >> 28) == 0x7)
 	{
-		if (!Memory::TranslateAddress(em_address, Memory::XCheckTLBFlag::FLAG_OPCODE))
+		if (!Memory::TranslateAddress(em_address, Memory::FLAG_OPCODE))
 		{
 			// Memory exception occurred during instruction fetch
 			memory_exception = true;

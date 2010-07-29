@@ -123,8 +123,8 @@ void HotkeyConfigDialog::SetButtonText(int id, const wxString &keystr, const wxS
 void HotkeyConfigDialog::DoGetButtons(int _GetId)
 {
 	// Values used in this function
-	int Seconds = 4; // Seconds to wait for
-	int TimesPerSecond = 40; // How often to run the check
+	const int Seconds = 4; // Seconds to wait for
+	const int TimesPerSecond = 40; // How often to run the check
 
 	// If the Id has changed or the timer is not running we should start one
 	if( GetButtonWaitingID != _GetId || !m_ButtonMappingTimer->IsRunning() )

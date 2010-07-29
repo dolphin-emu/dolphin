@@ -327,7 +327,7 @@ u32 Read_Opcode(u32 _Address)
 	if (Core::g_CoreStartupParameter.bMMU && (_Address >> 28) == 0x7)
 	{
 		// TODO: Check for MSR instruction address translation flag before translating
-		u32 tlb_addr = Memory::TranslateAddress(_Address, Memory::XCheckTLBFlag::FLAG_OPCODE);
+		u32 tlb_addr = Memory::TranslateAddress(_Address, FLAG_OPCODE);
 		if (tlb_addr == 0)
 		{
 			GenerateISIException(_Address);
@@ -692,7 +692,7 @@ u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 	u32 _Address = vpa;
 	if (_Flag == FLAG_OPCODE)
 	{
-		for (int i = (PowerPC::ppcState.itlb_last); i > (PowerPC::ppcState.itlb_last - 128); i--)
+		for (u32 i = (PowerPC::ppcState.itlb_last); i > (PowerPC::ppcState.itlb_last - 128); i--)
 		{
 			if ((_Address & ~0xfff) == (PowerPC::ppcState.itlb_va[i & 127]))
 			{
@@ -705,7 +705,7 @@ u32 LookupTLBPageAddress(const XCheckTLBFlag _Flag, const u32 vpa, u32 *paddr)
 	}
 	else
 	{
-		for (int i = (PowerPC::ppcState.dtlb_last); i > (PowerPC::ppcState.dtlb_last - 128); i--)
+		for (u32 i = (PowerPC::ppcState.dtlb_last); i > (PowerPC::ppcState.dtlb_last - 128); i--)
 		{
 			if ((_Address & ~0xfff) == (PowerPC::ppcState.dtlb_va[i & 127]))
 			{

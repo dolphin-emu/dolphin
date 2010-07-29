@@ -66,7 +66,6 @@
 
 #ifndef _WIN32
 
-#include <sys/stat.h>
 #include <sys/types.h>
 
 typedef struct {

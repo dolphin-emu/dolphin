@@ -1278,10 +1278,10 @@ void CGameListCtrl::AutomaticColumnWidth()
 			+ 5); // some pad to keep the horizontal scrollbar away :)
 
 		// We hide the Company column if the window is too small
-		if (0.5*resizable > 200)
+		if (resizable / 2 > 200)
 		{
-			SetColumnWidth(COLUMN_TITLE, 0.5*resizable);
-			SetColumnWidth(COLUMN_NOTES, 0.5*resizable);
+			SetColumnWidth(COLUMN_TITLE, resizable / 2);
+			SetColumnWidth(COLUMN_NOTES, resizable / 2);
 		}
 		else
 		{
