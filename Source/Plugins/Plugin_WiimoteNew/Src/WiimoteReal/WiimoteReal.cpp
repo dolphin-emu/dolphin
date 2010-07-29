@@ -46,17 +46,6 @@ Common::CriticalSection		g_refresh_critsec, g_wiimote_critsec;
 
 THREAD_RETURN WiimoteThreadFunc(void* arg);
 
-// silly, copying data n stuff, o well, don't use this too often
-void SendPacket(wiimote_t* const wm, const u8 rpt_id, const void* const data, const unsigned int size)
-{
-	u8* const rpt = new u8[size + 2];
-	rpt[0] = 0xA1;
-	rpt[1] = rpt_id;
-	memcpy(rpt + 2, data, size);
-	wiiuse_io_write(wm, (byte*)rpt, size + 2);
-	delete[] rpt;
-}
-
 class Wiimote
 {
 public:
@@ -72,6 +61,11 @@ public:
 	void Disconnect();
 	void DisableDataReporting();
 
+	void SendPacket(const u8 rpt_id, const void* const data, const unsigned int size);
+
+	// pointer to data, and size of data
+	typedef std::pair<u8*,u8> Report;
+
 private:
 	void ClearReports();
 
@@ -83,7 +77,7 @@ private:
 	bool	m_last_data_report_valid;
 
 	Common::FifoQueue<u8*>		m_read_reports;
-	Common::FifoQueue<u8*>		m_write_reports;
+	Common::FifoQueue<Report>	m_write_reports;
 };
 
 Wiimote::Wiimote(wiimote_t* const wm, const unsigned int index)
@@ -137,21 +131,33 @@ Wiimote::~Wiimote()
 	//}
 }
 
+// silly, copying data n stuff, o well, don't use this too often
+void Wiimote::SendPacket(const u8 rpt_id, const void* const data, const unsigned int size)
+{
+	Report rpt;
+	rpt.second = size + 2;
+	rpt.first = new u8[rpt.second];
+	rpt.first[0] = 0xA1;
+	rpt.first[1] = rpt_id;
+	memcpy(rpt.first + 2, data, size);
+	m_write_reports.Push(rpt);
+}
+
 void Wiimote::DisableDataReporting()
 {
 	wm_report_mode rpt = wm_report_mode();
 	rpt.mode = WM_REPORT_CORE;
-	SendPacket(m_wiimote, WM_REPORT_MODE, &rpt, sizeof(rpt));
+	SendPacket(WM_REPORT_MODE, &rpt, sizeof(rpt));
 }
 
 void Wiimote::ClearReports()
 {
 	m_last_data_report_valid = false;
-	u8* rpt;
-	while (m_read_reports.Pop(rpt))
-		delete[] rpt;
+	Report rpt;
+	while (m_read_reports.Pop(rpt.first))
+		delete[] rpt.first;
 	while (m_write_reports.Pop(rpt))
-		delete[] rpt;
+		delete[] rpt.first;
 }
 
 void Wiimote::ControlChannel(const u16 channel, const void* const data, const u32 size)
@@ -172,13 +178,15 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
 
 		// request status
 		wm_request_status rpt = wm_request_status();
-		SendPacket(m_wiimote, WM_REQUEST_STATUS, &rpt, sizeof(rpt));
+		SendPacket(WM_REQUEST_STATUS, &rpt, sizeof(rpt));
 	}
 
 	m_channel = channel;	// this right?
 
-	u8* const rpt = new u8[MAX_PAYLOAD];
-	memcpy(rpt, (byte*)data, MAX_PAYLOAD);
+	Wiimote::Report rpt;
+	rpt.first = new u8[size];
+	rpt.second = (u8)size;
+	memcpy(rpt.first, (u8*)data, size);
 	m_write_reports.Push(rpt);
 }
 
@@ -208,11 +216,11 @@ void Wiimote::Read()
 
 void Wiimote::Write()
 {
-	u8* rpt;
+	Report rpt;
 	if (m_write_reports.Pop(rpt))
 	{
-		wiiuse_io_write(m_wiimote, rpt, MAX_PAYLOAD);
-		delete[] rpt;
+		wiiuse_io_write(m_wiimote, rpt.first, rpt.second);
+		delete[] rpt.first;
 	}
 }
 
