@@ -267,7 +267,6 @@ void CheckExceptions()
 	{
 		SRR0 = NPC;
 		//GenerateISIException() sets up SRR1
-		SRR1 |= MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 17) & 1;
 		MSR &= ~0x04EF36;
 		NPC = 0x80000400;
@@ -306,6 +305,10 @@ void CheckExceptions()
 		SRR1 = MSR & 0x87C0FFFF;
 		MSR |= (MSR >> 17) & 1;
 		MSR &= ~0x04EF36;
+		// TODO: Verify whether the code below is correct
+		//SRR1 = MSR & 0x0000FFFF;
+		//MSR |= (MSR >> 16) & 1;
+		//MSR &= ~0x04EF32;
 		NPC = 0x80000800;
 
 		INFO_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");

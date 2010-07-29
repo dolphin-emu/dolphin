@@ -32,7 +32,7 @@
 
 SCoreStartupParameter::SCoreStartupParameter()
 : hInstance(0), hMainWindow(0),
-  bJITNoBlockCache(false), bJITBlockLinking(false),
+  bJITNoBlockCache(false), bJITBlockLinking(true),
   bJITOff(false),
   bJITLoadStoreOff(false), bJITLoadStorelXzOff(false),
   bJITLoadStorelwzOff(false), bJITLoadStorelbzxOff(false),
@@ -48,7 +48,7 @@ SCoreStartupParameter::SCoreStartupParameter()
   bEnableCheats(false),
   bRunCompareServer(false), bRunCompareClient(false),
   iTLBHack(0), SelectedLanguage(0),
-  bWii(false),
+  bWii(false), bMMU(false),
   bConfirmStop(false), bHideCursor(false), 
   bAutoHideCursor(false), bUsePanicHandlers(true),
   iRenderWindowXPos(0), iRenderWindowYPos(0),
@@ -72,6 +72,7 @@ void SCoreStartupParameter::LoadDefaults()
 	bEnableFPRF = false;
 	bWii = false;
 	SelectedLanguage = 0;
+	bMMU = false;
 	iTLBHack = 0;
 
 	iPosX = 100;

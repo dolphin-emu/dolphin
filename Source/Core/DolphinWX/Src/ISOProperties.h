@@ -84,7 +84,7 @@ class CISOProperties : public wxDialog
 
 		wxStaticText *OverrideText;
 		// Core
-		wxCheckBox *CPUThread, *SkipIdle, *TLBHack;
+		wxCheckBox *CPUThread, *SkipIdle, *MMU, *TLBHack;
 		// Wii
 		wxCheckBox *EnableProgressiveScan, *EnableWideScreen;
 		// Video
@@ -164,6 +164,7 @@ class CISOProperties : public wxDialog
 			ID_OVERRIDE_TEXT,
 			ID_USEDUALCORE,
 			ID_IDLESKIP,
+			ID_MMU,
 			ID_TLBHACK,
 			ID_FORCEFILTERING,
 			ID_EFBCOPYDISABLE,

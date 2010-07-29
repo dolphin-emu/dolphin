@@ -91,7 +91,10 @@ class JitBlockCache
 public:
 	JitBlockCache() :
 		blockCodePointers(0), blocks(0), num_blocks(0),
-		iCache(0), iCacheEx(0), iCacheVMEM(0), MAX_NUM_BLOCKS(0) { }
+#ifdef JIT_UNLIMITED_ICACHE	
+		iCache(0), iCacheEx(0), iCacheVMEM(0), 
+#endif
+		MAX_NUM_BLOCKS(0) { }
 	int AllocateBlock(u32 em_address);
 	void FinalizeBlock(int block_num, bool block_link, const u8 *code_ptr);
 

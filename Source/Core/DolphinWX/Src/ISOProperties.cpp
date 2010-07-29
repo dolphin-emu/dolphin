@@ -290,7 +290,8 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbCoreOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Core"));
 	CPUThread = new wxCheckBox(m_GameConfig, ID_USEDUALCORE, _("Enable Dual Core"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	SkipIdle = new wxCheckBox(m_GameConfig, ID_IDLESKIP, _("Enable Idle Skipping"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
-	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("TLB Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	MMU = new wxCheckBox(m_GameConfig, ID_MMU, _("Enable MMU"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
+	TLBHack = new wxCheckBox(m_GameConfig, ID_TLBHACK, _("MMU Speed Hack"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
 	// Wii Console
 	sbWiiOverrides = new wxStaticBoxSizer(wxVERTICAL, m_GameConfig, _("Wii Console"));
 	EnableProgressiveScan = new wxCheckBox(m_GameConfig, ID_ENABLEPROGRESSIVESCAN, _("Enable Progressive Scan"), wxDefaultPosition, wxDefaultSize, wxCHK_3STATE|wxCHK_ALLOW_3RD_STATE_FOR_USER, wxDefaultValidator);
@@ -346,6 +347,7 @@ void CISOProperties::CreateGUIControls(bool IsWad)
 	sbGameConfig->Add(OverrideText, 0, wxEXPAND|wxALL, 5);
 	sbCoreOverrides->Add(CPUThread, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(SkipIdle, 0, wxEXPAND|wxLEFT, 5);
+	sbCoreOverrides->Add(MMU, 0, wxEXPAND|wxLEFT, 5);
 	sbCoreOverrides->Add(TLBHack, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableProgressiveScan, 0, wxEXPAND|wxLEFT, 5);
 	sbWiiOverrides->Add(EnableWideScreen, 0, wxEXPAND|wxLEFT, 5);
@@ -809,6 +811,11 @@ void CISOProperties::LoadGameConfig()
 	else
 		SkipIdle->Set3StateValue(wxCHK_UNDETERMINED);
 
+	if (GameIni.Get("Core", "MMU", &bTemp))
+		MMU->Set3StateValue((wxCheckBoxState)bTemp);
+	else
+		MMU->Set3StateValue(wxCHK_UNDETERMINED);
+
 	if (GameIni.Get("Core", "TLBHack", &bTemp))
 		TLBHack->Set3StateValue((wxCheckBoxState)bTemp);
 	else
@@ -889,6 +896,11 @@ bool CISOProperties::SaveGameConfig()
 		GameIni.DeleteKey("Core", "SkipIdle");
 	else
 		GameIni.Set("Core", "SkipIdle", SkipIdle->Get3StateValue());
+
+	if (MMU->Get3StateValue() == wxCHK_UNDETERMINED)
+		GameIni.DeleteKey("Core", "MMU");
+	else
+		GameIni.Set("Core", "MMU", MMU->Get3StateValue());
 
 	if (TLBHack->Get3StateValue() == wxCHK_UNDETERMINED)
 		GameIni.DeleteKey("Core", "TLBHack");

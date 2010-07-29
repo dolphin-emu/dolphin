@@ -153,7 +153,6 @@ float Helper_Dequantize(const u32 _Addr, const EQuantizeType _quantizeType,
 		fResult = 0;
 		break;
 	}
-
 	return fResult;
 }
 
@@ -170,12 +169,23 @@ void psq_l(UGeckoInstruction _inst)
 
 	if (_inst.W == 0)
 	{
-		rPS0(_inst.RS) = Helper_Dequantize(EA,   ldType, ldScale);
-		rPS1(_inst.RS) = Helper_Dequantize(EA+c, ldType, ldScale);
+		float ps0 = Helper_Dequantize(EA,   ldType, ldScale);
+		float ps1 = Helper_Dequantize(EA+c, ldType, ldScale);
+		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+		{
+			return;
+		}
+		rPS0(_inst.RS) = ps0;
+		rPS1(_inst.RS) = ps1;
 	}
 	else
 	{
-		rPS0(_inst.RS) = Helper_Dequantize(EA,   ldType, ldScale);
+		float ps0 = Helper_Dequantize(EA,   ldType, ldScale);
+		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+		{
+			return;
+		}
+		rPS0(_inst.RS) = ps0;
 		rPS1(_inst.RS) = 1.0f;
 	}
 }
@@ -193,12 +203,23 @@ void psq_lu(UGeckoInstruction _inst)
 
 	if (_inst.W == 0)
 	{
-		rPS0(_inst.RS) = Helper_Dequantize( EA,   ldType, ldScale );
-		rPS1(_inst.RS) = Helper_Dequantize( EA+c, ldType, ldScale );
+		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
+		float ps1 = Helper_Dequantize( EA+c, ldType, ldScale );
+		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+		{
+			return;
+		}
+		rPS0(_inst.RS) = ps0;
+		rPS1(_inst.RS) = ps1;
 	}
 	else
 	{
-		rPS0(_inst.RS) = Helper_Dequantize( EA,   ldType, ldScale );
+		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
+		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+		{
+			return;
+		}
+		rPS0(_inst.RS) = ps0;
 		rPS1(_inst.RS) = 1.0f;
 	}
 	m_GPR[_inst.RA] = EA;
@@ -246,6 +267,10 @@ void psq_stu(UGeckoInstruction _inst)
 	{
 		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
 	}
+	if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+	{
+		return;
+	}
 	m_GPR[_inst.RA] = EA;
 }
 
@@ -262,13 +287,29 @@ void psq_lx(UGeckoInstruction _inst)
 
 	if (_inst.Wx == 0)
 	{
-		rPS0(_inst.RS) = Helper_Dequantize( EA,   ldType, ldScale );
-		rPS1(_inst.RS) = Helper_Dequantize( EA+c, ldType, ldScale );
+		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
+		float ps1 = Helper_Dequantize( EA+c, ldType, ldScale );
+
+		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+		{
+			return;
+		}
+
+		rPS0(_inst.RS) = ps0;
+		rPS1(_inst.RS) = ps1;
 	}
 	else
 	{
-		rPS0(_inst.RS) = Helper_Dequantize( EA, ldType, ldScale );
-		rPS1(_inst.RS) = 1.0f;
+		float ps0 = Helper_Dequantize( EA, ldType, ldScale );
+		float ps1 = 1.0f;
+
+		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+		{
+			return;
+		}
+
+		rPS0(_inst.RS) = ps0;
+		rPS1(_inst.RS) = ps1;
 	}
 }
 
@@ -307,12 +348,23 @@ void psq_lux(UGeckoInstruction _inst)
 
 	if (_inst.Wx == 0)
 	{
-		rPS0(_inst.RS) = Helper_Dequantize( EA,   ldType, ldScale );
-		rPS1(_inst.RS) = Helper_Dequantize( EA+c, ldType, ldScale );
+		float ps0 = Helper_Dequantize( EA,   ldType, ldScale );
+		float ps1 = Helper_Dequantize( EA+c, ldType, ldScale );
+		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+		{
+			return;
+		}
+		rPS0(_inst.RS) = ps0;
+		rPS1(_inst.RS) = ps1;
 	}
 	else
 	{
-		rPS0(_inst.RS) = Helper_Dequantize( EA, ldType, ldScale );
+		float ps0 = Helper_Dequantize( EA, ldType, ldScale );
+		if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+		{
+			return;
+		}
+		rPS0(_inst.RS) = ps0;
 		rPS1(_inst.RS) = 1.0f;
 	}
 	m_GPR[_inst.RA] = EA;
@@ -337,6 +389,10 @@ void psq_stux(UGeckoInstruction _inst)
 	else
 	{
 		Helper_Quantize(EA,   rPS0(_inst.RS), stType, stScale);
+	}
+	if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+	{
+		return;
 	}
 	m_GPR[_inst.RA] = EA;
 

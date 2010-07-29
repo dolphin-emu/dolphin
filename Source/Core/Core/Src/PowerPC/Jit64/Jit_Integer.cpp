@@ -238,7 +238,8 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		}
 	}
 
-	if (!merge_branch) {
+	if (!merge_branch)
+	{
 		// Keep the normal code separate for clarity.
 		CMP(32, gpr.R(a), comparand);
 
@@ -256,6 +257,7 @@ void Jit64::cmpXX(UGeckoInstruction inst)
 		// TODO: If we ever care about SO, borrow a trick from 
 		// http://maws.mameworld.info/maws/mamesrc/src/emu/cpu/powerpc/drc_ops.c : bt, adc
 	} else {
+		js.downcountAmount++;
 		int test_bit = 8 >> (js.next_inst.BI & 3);
 		bool condition = (js.next_inst.BO & BO_BRANCH_IF_TRUE) ? false : true;
 		CMP(32, gpr.R(a), comparand);

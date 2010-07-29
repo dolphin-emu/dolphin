@@ -389,8 +389,6 @@ void CompileInstruction(PPCAnalyst::CodeOp & op)
 #endif
 		info->compileCount++;
 		info->lastUse = jit->js.compilerPC;
-	} else {
-		PanicAlert("Tried to compile illegal (or unknown) instruction %08x, at %08x", op.inst.hex, jit->js.compilerPC);
 	}
 }
 

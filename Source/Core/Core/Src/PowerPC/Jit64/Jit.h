@@ -52,6 +52,16 @@
 	Core::g_CoreStartupParameter.bJIT##type##Off) \
 	{Default(inst); return;}
 
+#define MEMCHECK_START \
+	FixupBranch memException; \
+	if (js.memcheck) \
+	{ TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI)); \
+	memException = J_CC(CC_NZ); }
+
+#define MEMCHECK_END \
+	if (js.memcheck) \
+		SetJumpTarget(memException);
+
 class Jit64 : public JitBase
 {
 private:
@@ -69,6 +79,8 @@ private:
 		int block_flags;
 
 		bool isLastInstruction;
+		bool memcheck;
+		bool broken_block;
 
 		int fifoBytesThisBlock;
 
@@ -105,12 +117,12 @@ public:
 	JitBlockCache *GetBlockCache() { return &blocks; }
 
 	void NotifyBreakpoint(u32 em_address, bool set);
-	void Trace(PPCAnalyst::CodeBuffer *code_buffer, u32 em_address);
+	void Trace();
 
 	void ClearCache();
 
 	const u8 *GetDispatcher() {
-		return asm_routines.dispatcher;  // asm_routines.dispatcher
+		return asm_routines.dispatcher;
 	}
 	const CommonAsmRoutines *GetAsmRoutines() {
 		return &asm_routines;
@@ -132,7 +144,7 @@ public:
 
 	void WriteExit(u32 destination, int exit_num);
 	void WriteExitDestInEAX(int exit_num);
-	void WriteExceptionExit(u32 exception);
+	void WriteExceptionExit();
 	void WriteRfiExitDestInEAX();
 	void WriteCallInterpreter(UGeckoInstruction _inst);
 	void Cleanup();

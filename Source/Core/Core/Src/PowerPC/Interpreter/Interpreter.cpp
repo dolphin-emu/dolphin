@@ -82,32 +82,54 @@ void SingleStepInner(void)
 	static UGeckoInstruction instCode;
 
 	NPC = PC + sizeof(UGeckoInstruction);
-	instCode.hex = Memory::Read_Opcode(PC); 
+	instCode.hex = Memory::Read_Opcode(PC);
 
-	UReg_MSR& msr = (UReg_MSR&)MSR;
-	if (msr.FP)  //If FPU is enabled, just execute
-		m_opTable[instCode.OPCD](instCode);
-	else
+	if (instCode.hex != 0)
 	{
-		// check if we have to generate a FPU unavailable exception
-		if (!PPCTables::UsesFPU(instCode))
+		UReg_MSR& msr = (UReg_MSR&)MSR;
+		if (msr.FP)  //If FPU is enabled, just execute
+		{
 			m_opTable[instCode.OPCD](instCode);
+			if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+			{
+				PowerPC::CheckExceptions();
+				m_EndBlock = true;
+			}
+		}
 		else
 		{
-			PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
-			PowerPC::CheckExceptions();
-			m_EndBlock = true;
+			// check if we have to generate a FPU unavailable exception
+			if (!PPCTables::UsesFPU(instCode))
+			{
+				m_opTable[instCode.OPCD](instCode);
+				if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+				{
+					PowerPC::CheckExceptions();
+					m_EndBlock = true;
+				}
+			}
+			else
+			{
+				PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
+				PowerPC::CheckExceptions();
+				m_EndBlock = true;
+			}
 		}
-
+	}
+	else
+	{
+		// Memory exception on instruction fetch
+		PowerPC::CheckExceptions();
+		m_EndBlock = true;
 	}
 	last_pc = PC;
 	PC = NPC;
 	
+#if defined(_DEBUG) || defined(DEBUGFAST)
 	if (PowerPC::ppcState.gpr[1] == 0)
 	{
 		printf("%i Corrupt stack", PowerPC::ppcState.DebugCount);
 	}
-#if defined(_DEBUG) || defined(DEBUGFAST)
 	PowerPC::ppcState.DebugCount++;
 #endif
     patches();
@@ -224,11 +246,15 @@ void Run()
 
 void unknown_instruction(UGeckoInstruction _inst)
 {
-	char disasm[256];
-	DisassembleGekko(Memory::ReadUnchecked_U32(last_pc), last_pc, disasm, 256);
-	printf("Last PC = %08x : %s\n", last_pc, disasm);
-	Dolphin_Debugger::PrintCallstack();
-	_dbg_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instr %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
+	if (_inst.hex != 0)
+	{
+		char disasm[256];
+		DisassembleGekko(Memory::ReadUnchecked_U32(last_pc), last_pc, disasm, 256);
+		printf("Last PC = %08x : %s\n", last_pc, disasm);
+		Dolphin_Debugger::PrintCallstack();
+		_dbg_assert_msg_(POWERPC, 0, "\nIntCPU: Unknown instr %08x at PC = %08x  last_PC = %08x  LR = %08x\n", _inst.hex, PC, last_pc, LR);
+	}
+
 }
 
 }  // namespace

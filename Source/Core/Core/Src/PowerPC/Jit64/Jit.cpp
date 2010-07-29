@@ -175,17 +175,22 @@ void Jit64::Init()
 	   where this cause problems, so I'm enabling this by default, since I seem to get perhaps as much as 20% more
 	   fps with this option enabled. If you suspect that this option cause problems you can also disable it from the
 	   debugging window. */
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
 		jo.enableBlocklink = false;
-		SConfig::GetInstance().m_LocalCoreStartupParameter.bSkipIdle = false;
+		Core::g_CoreStartupParameter.bSkipIdle = false;
 	}
 	else
 	{
-		jo.enableBlocklink = true;
+		if (!Core::g_CoreStartupParameter.bJITBlockLinking)
+		{
+			jo.enableBlocklink = false;
+		}
+		else
+			jo.enableBlocklink = !Core::g_CoreStartupParameter.bMMU;
 	}
 #ifdef _M_X64
-	jo.enableFastMem = SConfig::GetInstance().m_LocalCoreStartupParameter.bUseFastMem;
+	jo.enableFastMem = Core::g_CoreStartupParameter.bUseFastMem;
 #else
 	jo.enableFastMem = false;
 #endif
@@ -194,15 +199,10 @@ void Jit64::Init()
 	jo.optimizeGatherPipe = true;
 	jo.fastInterrupts = false;
 	jo.accurateSinglePrecision = true;
+	js.memcheck = Core::g_CoreStartupParameter.bMMU;
 
 	gpr.SetEmitter(this);
 	fpr.SetEmitter(this);
-
-	if (Core::g_CoreStartupParameter.bJITBlockLinking)
-	{
-		jo.enableBlocklink = false;
-		SuccessAlert("Your game was started without JIT Block Linking");
-	}
 
 	trampolines.Init();
 	AllocCodeSpace(CODE_SIZE);
@@ -217,7 +217,6 @@ void Jit64::ClearCache()
 	trampolines.ClearCodeSpace();
 	ClearCodeSpace();
 }
-
 
 void Jit64::Shutdown()
 {
@@ -349,11 +348,10 @@ void Jit64::WriteRfiExitDestInEAX()
 	JMP(asm_routines.testExceptions, true);
 }
 
-void Jit64::WriteExceptionExit(u32 exception)
+void Jit64::WriteExceptionExit()
 {
 	Cleanup();
-	OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(exception));
-	MOV(32, M(&PC), Imm32(js.compilerPC + 4));
+	SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
 	JMP(asm_routines.testExceptions, true);
 }
 
@@ -361,7 +359,6 @@ void STACKALIGN Jit64::Run()
 {
 	CompiledCode pExecAddr = (CompiledCode)asm_routines.enterCode;
 	pExecAddr();
-	//Will return when PowerPC::state changes
 }
 
 void Jit64::SingleStep()
@@ -370,7 +367,7 @@ void Jit64::SingleStep()
 	pExecAddr();
 }
 
-void Jit64::Trace(PPCAnalyst::CodeBuffer *code_buf, u32 em_address)
+void Jit64::Trace()
 {
 	char regs[500] = "";
 	char fregs[750] = "";
@@ -392,11 +389,11 @@ void Jit64::Trace(PPCAnalyst::CodeBuffer *code_buf, u32 em_address)
 		strncat(fregs, reg, 750);
 	}
 #endif	
-	const PPCAnalyst::CodeOp &op = code_buf->codebuffer[0];
-	char ppcInst[256];
-	DisassembleGekko(op.inst.hex, em_address, ppcInst, 256);
 
-	NOTICE_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s %08x %s", PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs, op.inst.hex, ppcInst);
+	NOTICE_LOG(DYNA_REC, "JIT64 PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s", 
+		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], 
+		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, 
+		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs);
 }
 
 void STACKALIGN Jit64::Jit(u32 em_address)
@@ -410,20 +407,35 @@ void STACKALIGN Jit64::Jit(u32 em_address)
 	blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b));
 }
 
-
 const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBlock *b)
 {
 	int blockSize = code_buf->GetSize();
 
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+	// Memory exception on instruction fetch
+	bool memory_exception = false;
+
+	// A broken block is a block that does not end in a branch
+	bool broken_block = false;
+
+	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
 		blockSize = 1;
-		Trace(code_buf, em_address);
+		broken_block = true;
+		Trace();
 	}
 
 	if (em_address == 0)
 		PanicAlert("ERROR : Trying to compile at 0. LR=%08x", LR);
+
+	if (Core::g_CoreStartupParameter.bMMU && (em_address >> 28) == 0x7)
+	{
+		if (!Memory::TranslateAddress(em_address, Memory::XCheckTLBFlag::FLAG_OPCODE))
+		{
+			// Memory exception occurred during instruction fetch
+			memory_exception = true;
+		}
+	}
 
 	int size = 0;
 	js.isLastInstruction = false;
@@ -435,7 +447,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	//Analyze the block, collect all instructions it is made of (including inlining,
 	//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	u32 nextPC = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, code_buf, blockSize);
+	u32 nextPC = em_address;
+	if (!memory_exception)
+	{
+		// If there is a memory exception inside a block (broken_block==true), compile up to that instruction.
+		nextPC = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize);
+	}
 
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
@@ -465,16 +482,6 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		SetJumpTarget(b1);
 	}
 
-	if (false && jo.fastInterrupts)
-	{
-		// This does NOT yet work.
-		TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(0xFFFFFFFF));
-		FixupBranch b1 = J_CC(CC_Z);
-		MOV(32, M(&PC), Imm32(js.blockStart));
-		JMP(asm_routines.testExceptions, true);
-		SetJumpTarget(b1);
-	}
-
 	// Conditionally add profiling code.
 	if (Profiler::g_ProfileBlocks) {
 		ADD(32, M(&b->runCount), Imm8(1));
@@ -498,18 +505,22 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 	gpr.Start(js.gpa);
 	fpr.Start(js.fpa);
 
-	js.downcountAmount = js.st.numCycles;
-	if (!SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
-		js.downcountAmount = js.st.numCycles + PatchEngine::GetSpeedhackCycles(em_address);
+	js.downcountAmount = 0;
+	if (!Core::g_CoreStartupParameter.bEnableDebugging)
+		js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
 
 	js.skipnext = false;
 	js.blockSize = size;
+	js.compilerPC = nextPC;
 	// Translate instructions
 	for (int i = 0; i < (int)size; i++)
 	{
 		js.compilerPC = ops[i].address;
 		js.op = &ops[i];
 		js.instructionNumber = i;
+		const GekkoOPInfo *opinfo = GetOpInfo(ops[i].inst);
+		js.downcountAmount += (opinfo->numCyclesMinusOne + 1);
+
 		if (i == (int)size - 1)
 		{
 			// WARNING - cmp->branch merging will screw this up.
@@ -539,7 +550,39 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		}
 
 		if (!ops[i].skip)
+		{
+			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
+			{
+				// If a memory exception occurs, the exception handler will read
+				// from PC.  Update PC with the latest value in case that happens.
+				MOV(32, M(&PC), Imm32(ops[i].address));
+			}
+
+			if (js.memcheck && (opinfo->flags & FL_USE_FPU))
+			{
+				//This instruction uses FPU - needs to add FP exception bailout
+				TEST(32, M(&PowerPC::ppcState.msr), Imm32(1 << 13)); // Test FP enabled bit
+				FixupBranch b1 = J_CC(CC_NZ);
+
+				// If a FPU exception occurs, the exception handler will read
+				// from PC.  Update PC with the latest value in case that happens.
+				MOV(32, M(&PC), Imm32(ops[i].address));
+				SUB(32, M(&CoreTiming::downcount), js.downcountAmount > 127 ? Imm32(js.downcountAmount) : Imm8(js.downcountAmount)); 
+				JMP(asm_routines.fpException, true);
+				SetJumpTarget(b1);
+			}
+
 			Jit64Tables::CompileInstruction(ops[i]);
+
+			if (js.memcheck && (opinfo->flags & FL_LOADSTORE))
+			{
+				TEST(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_DSI));
+				FixupBranch noMemException = J_CC(CC_Z);
+
+				WriteExceptionExit();
+				SetJumpTarget(noMemException);
+			}
+		}
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
 		if (gpr.SanityCheck() || fpr.SanityCheck())
@@ -558,7 +601,14 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 		if (js.cancel)
 			break;
 	}
-	if (SConfig::GetInstance().m_LocalCoreStartupParameter.bEnableDebugging)
+
+	if (memory_exception)
+	{
+		ABI_CallFunctionC(reinterpret_cast<void *>(&Memory::GenerateISIException_JIT), js.compilerPC);
+		WriteExceptionExit();
+	}
+
+	if (broken_block)
 	{
 		gpr.Flush(FLUSH_ALL);
 		fpr.Flush(FLUSH_ALL);

@@ -66,11 +66,14 @@ struct GC_ALIGNED64(PowerPCState)
 	// also for power management, but we don't care about that.
 	u32 spr[1024];
 
-	u32 tlb_last;
-	u32 tlb_va[16];
-	u32 tlb_pa[16];
+	u32 dtlb_last;
+	u32 dtlb_va[128];
+	u32 dtlb_pa[128];
 
-	
+	u32 itlb_last;
+	u32 itlb_va[128];
+	u32 itlb_pa[128];
+
 	InstructionCache iCache;
 };
 

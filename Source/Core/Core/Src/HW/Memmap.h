@@ -51,7 +51,7 @@ namespace Memory
 // so be sure to load it into a 64-bit register.
 extern u8 *base; 
 
-// These are guarenteed to point to "low memory" addresses (sub-32-bit).
+// These are guaranteed to point to "low memory" addresses (sub-32-bit).
 extern u8 *m_pRAM;
 extern u8 *m_pEXRAM;
 extern u8 *m_pL1Cache;
@@ -75,7 +75,7 @@ enum
 	#ifdef _M_IX86
 		MEMVIEW32_MASK  = 0x3FFFFFFF,
 	#endif
-};	
+};
 
 // Init and Shutdown
 bool IsInitialized();
@@ -169,11 +169,15 @@ enum XCheckTLBFlag
 	FLAG_WRITE,
 	FLAG_OPCODE,
 };
-u32 TranslatePageAddress(u32 _Address, XCheckTLBFlag _Flag);
-u32 TranslateBlockAddress(u32 _Address);
+u32 TranslateAddress(u32 _Address, XCheckTLBFlag _Flag);
+void InvalidateTLBEntry(u32 _Address);
+void GenerateDSIException(u32 _EffectiveAdress, bool _bWrite);
+void GenerateISIException(u32 _EffectiveAdress);
+void GenerateISIException_JIT(u32 _EffectiveAdress);
 extern u32 pagetable_base;
 extern u32 pagetable_hashmask;
 
 };
 
 #endif
+

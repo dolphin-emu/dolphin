@@ -47,7 +47,9 @@ void Jit64::sc(UGeckoInstruction inst)
 
 	gpr.Flush(FLUSH_ALL);
 	fpr.Flush(FLUSH_ALL);
-	WriteExceptionExit(EXCEPTION_SYSCALL);
+	MOV(32, M(&PC), Imm32(js.compilerPC + 4));
+	OR(32, M(&PowerPC::ppcState.Exceptions), Imm32(EXCEPTION_SYSCALL));
+	WriteExceptionExit();
 }
 
 void Jit64::rfi(UGeckoInstruction inst)

@@ -58,6 +58,7 @@ namespace Memory
 /* Enable the Translation Lookaside Buffer functions. TLBHack = 1 in Dolphin.ini or a
    <GameID>.ini file will set this to true */
 bool bFakeVMEM = false;
+bool bMMU = false;
 // ==============
 
 
@@ -348,6 +349,7 @@ bool Init()
 {
 	bool wii = SConfig::GetInstance().m_LocalCoreStartupParameter.bWii;
 	bFakeVMEM = SConfig::GetInstance().m_LocalCoreStartupParameter.iTLBHack == 1;
+	bMMU = SConfig::GetInstance().m_LocalCoreStartupParameter.bMMU;
 
 	u32 flags = 0;
 	if (wii) flags |= MV_WII_ONLY;
@@ -416,28 +418,37 @@ u32 Read_Instruction(const u32 em_address)
 		return inst.hex;
 }
 
-u32 Read_Opcode_JIT(const u32 _Address)
+u32 Read_Opcode_JIT(u32 _Address)
 {
 #ifdef FAST_ICACHE	
-	if ((_Address & ~JIT_ICACHE_MASK) != 0x80000000 && (_Address & ~JIT_ICACHE_MASK) != 0x00000000 &&
-		(_Address & ~JIT_ICACHE_MASK) != 0x7e000000 && // TLB area
-		(_Address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (_Address & ~JIT_ICACHEEX_MASK) != 0x10000000)
+	if (bMMU && !bFakeVMEM && (_Address >> 28) == 0x7)
 	{
-		PanicAlert("iCacheJIT: Reading Opcode from %x. Please report.", _Address);
-		return 0;
+		_Address = Memory::TranslateAddress(_Address, Memory::XCheckTLBFlag::FLAG_OPCODE);
+		if (_Address == 0)
+		{
+			return 0;
+		}
 	}
-	
-	u32 inst = Read_Opcode(_Address);
+
+	u32 inst =  PowerPC::ppcState.iCache.ReadInstruction(_Address);
 #else
 	u32 inst = Memory::ReadUnchecked_U32(_Address);
 #endif
 	// if a crash occured after that message
-	// that means that we've compiled outdated code from the cache instead of memory
+	// that means that we have compiled outdated code from the cache instead of memory
 	// this could happen if a game forgot to icbi the new code
 #if defined(_DEBUG) || defined(DEBUGFAST)
 	u32 inst_mem = Memory::ReadUnchecked_U32(_Address);	
 	if (inst_mem != inst)
 			ERROR_LOG(POWERPC, "JIT: compiling outdated code. addr=%x, mem=%x, cache=%x", _Address, inst_mem, inst);
+
+	inst = Read_Opcode_JIT_LC(_Address);
+	if (inst_mem != inst)
+	{
+		ERROR_LOG(POWERPC, "JIT: self-modifying code detected. addr=%x, mem=%x, cache=%x", _Address, inst_mem, inst);
+		PanicAlert("JIT: self-modifying code detected. addr=%x, mem=%x, cache=%x", _Address, inst_mem, inst);
+		Write_Opcode_JIT(_Address, inst_mem);
+	}
 #endif
 	return inst;
 }
@@ -451,6 +462,7 @@ u32 Read_Opcode_JIT_LC(const u32 _Address)
 		(_Address & ~JIT_ICACHEEX_MASK) != 0x90000000 && (_Address & ~JIT_ICACHEEX_MASK) != 0x10000000)
 	{
 		PanicAlert("iCacheJIT: Reading Opcode from %x. Please report.", _Address);
+		ERROR_LOG(MEMMAP, "iCacheJIT: Reading Opcode from %x. Please report.", _Address);
 		return 0;
 	}
 	u8* iCache;
@@ -505,131 +517,13 @@ void Write_Opcode_JIT(const u32 _Address, const u32 _Value)
 #endif	
 }
 
-
-// =======================================================
-/* Functions to detect and trace memory read/write errors. Turn of JIT LoadStore to
-   make it work, and add a return 0 at the beginning of CheckDTLB to avoid closing
-   Dolphin just as it starts to get interesting. You can also try to change
-   the TitleID write in IOCTL_ES_GETTITLEID to 0x00000000, otherwise it will never even
-   get to making the bad dev/di request.
-   
-   I'm currently at (---, 8021347c) : Write32: Program wrote [0x7fd5d340] to [0x933e00f8],
-   0x8021347c seems to write the out buffer to a 0x933e.... address before it is copies
-   to the 0x133e.... address for the Ioctlv. But why does it generate this bad address
-   when it made a good one 120 milliseconds earlier?
-   */
-// -------------
-bool ValidMemory(const u32 _Address)
+void GenerateISIException_JIT(u32 _EffectiveAddress)
 {
-	switch (_Address >> 24)
-	{
-	case 0x00:
-	case 0x01:
-	case 0x80:
-	case 0x81:
-	case 0xC0:
-	case 0xC1:
-		return true;
+	GenerateISIException(_EffectiveAddress);
 
-    case 0x10:
-    case 0x11:
-    case 0x12:
-    case 0x13:
-    case 0x90:
-    case 0x91:
-    case 0x92:
-    case 0x93:
-    case 0xD0:
-    case 0xD1:
-    case 0xD2:
-    case 0xD3:
-		if (SConfig::GetInstance().m_LocalCoreStartupParameter.bWii)
-			return true;
-		else
-			return false;
-	case 0x7e:
-	case 0x7f:
-		if (bFakeVMEM)
-			return true;
-		else
-			return false;
-
-	case 0xE0:
-		if (_Address < (0xE0000000 + L1_CACHE_SIZE))
-			return true;
-		else
-			return false;
-	case 0xCC:
-	case 0xCD:
-	case 0xC8:
-		return true;
-	}
-	return false;
+	// Remove the invalid instruction from the icache, forcing a recompile
+	Write_Opcode_JIT(_EffectiveAddress, JIT_ICACHE_INVALID_WORD);
 }
-
-void CheckForBadAddresses(u32 Address, u32 Data, bool Read, int Bits)
-{
-	if (!ValidMemory(Address))											
-	{		
-		if(Read)
-		{
-			WARN_LOG(CONSOLE, "Read%i: Program tried to read [%08x] from [%08x]", Bits, Address);		
-		}
-		else
-		{
-			ERROR_LOG(CONSOLE, "Write%i: Program tried to write [%08x] to [%08x]", Bits, Data, Address);	
-		}
-	}
-
-	if (Address == 0)																		
-	{		
-		if(Read)
-		{
-			WARN_LOG(CONSOLE, "Read%i: Program read [0x%08x] from [0x%08x]     * * *   0   * * *", Bits, Data, Address);	
-		}
-		else
-		{
-			WARN_LOG(CONSOLE, "Write%i: Program wrote [0x%08x] to [0x%08x]     * * *   0   * * *", Bits, Data, Address);	
-		}
-	}
-	// Try to figure out where the dev/di Ioctl arguments are stored (including buffer out), so we can
-	// find the bad one
-	if(	
-		Data == 0x1090f4c0 // good out buffer right before it, for sound/smashbros_sound.brsar
-		|| Data == 0x10913b00 // second one
-		|| Data == 0x7fd5d340 // first bad out buffer
-		|| Data == 0x133e00f8 // the address that store the bad 0x7fd5d340, this changes every time
-		|| Data == 0x2a24aa // menu2\sc_title_en.pac byte size
-		|| (
-			(PC == 0x8021347c || PC == 0x801f6a20  || PC == 0x800202d0  || PC == 0x80229964 
-			|| PC == 0x801d88bc) /* this could be interesting, because the bad out buffer 0x7fd5d340
-			is 0x80000000 - size = 0x7fd5d340 perhaps some function read 0x80000000, I dunno */
-			&& Data == 0x80000000)
-		)																		
-	{		
-		if(Read)
-		{
-			ERROR_LOG(CONSOLE, "Read%i: Program read [0x%08x] from [0x%08x]      * * * * * * * * * * * *", Bits, Data, Address);	
-		}
-		else
-		{
-			ERROR_LOG(CONSOLE, "Write%i: Program wrote [0x%08x] to [0x%08x]      * * * * * * * * * * * *", Bits,Data, Address);	
-		}
-	}
-}
-
-
-void CheckForBadAddresses8(u32 Address, u8 Data, bool Read)
-{CheckForBadAddresses(Address, (u32)Data, Read, 8);}
-
-void CheckForBadAddresses16(u32 Address, u16 Data, bool Read)
-{CheckForBadAddresses(Address, (u32)Data, Read, 16);}
-
-void CheckForBadAddresses32(u32 Address, u32 Data, bool Read)
-{CheckForBadAddresses(Address, (u32)Data, Read, 32);}
-
-void CheckForBadAddresses64(u32 Address, u64 Data, bool Read)
-{CheckForBadAddresses(Address, (u32)Data, Read, 64);}
 
 void WriteBigEData(const u8 *_pData, const u32 _Address, const u32 _iSize)
 {
@@ -709,7 +603,6 @@ void GetString(std::string& _string, const u32 em_address)
 	_string = stringBuffer;
 }
 
-
 // GetPointer must always return an address in the bottom 32 bits of address space, so that 64-bit
 // programs don't have problems directly addressing any part of memory.
 u8 *GetPointer(const u32 _Address)
@@ -743,7 +636,10 @@ u8 *GetPointer(const u32 _Address)
 
 	case 0x7E:
 	case 0x7F:
-		return (u8*)(((char*)m_pVirtualFakeVMEM) + (_Address & RAM_MASK));
+		if (bFakeVMEM)
+			return (u8*)(((char*)m_pVirtualFakeVMEM) + (_Address & RAM_MASK));
+		else
+			return 0;
 
 	case 0xE0:
 		if (_Address < (0xE0000000 + L1_CACHE_SIZE))

@@ -285,7 +285,7 @@ bool CanSwapAdjacentOps(const CodeOp &a, const CodeOp &b)
 
 // Does not yet perform inlining - although there are plans for that.
 // Returns the exit address of the next PC
-u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, CodeBuffer *buffer, int blockSize)
+u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, BlockRegStats *fpa, bool &broken_block, CodeBuffer *buffer, int blockSize)
 {
 	memset(st, 0, sizeof(st));
 	
@@ -296,6 +296,7 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 
 	gpa->any = true;
 	fpa->any = false;
+	
 	for (int i = 0; i < 32; i++)
 	{
 		gpa->firstRead[i]  = -1;
@@ -324,154 +325,159 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 		
 		UGeckoInstruction inst = Memory::Read_Opcode_JIT(code[i].address);
 
-		_assert_msg_(POWERPC, inst.hex != 0, "Zero Op - Error flattening %08x op %08x", address + i*4, inst.hex);
-		code[i].inst = inst;
-		code[i].branchTo = -1;
-		code[i].branchToIndex = -1;
-		code[i].skip = false;
-		GekkoOPInfo *opinfo = GetOpInfo(inst);
-		code[i].opinfo = opinfo;
-		if (opinfo)
-			numCycles += opinfo->numCyclesMinusOne + 1;
-		_assert_msg_(POWERPC, opinfo != 0, "Invalid Op - Error flattening %08x op %08x", address + i*4, inst.hex);
-
-		code[i].wantsCR0 = false;
-		code[i].wantsCR1 = false;
-		code[i].wantsPS1 = false;
-
-		int flags = opinfo->flags;
-
-		if (flags & FL_USE_FPU)
-			fpa->any = true;
-
-		if (flags & FL_TIMER)
-			gpa->anyTimer = true;
-
-		// Does the instruction output CR0?
-		if (flags & FL_RC_BIT)
-			code[i].outputCR0 = inst.hex & 1; //todo fix
-		else if ((flags & FL_SET_CRn) && inst.CRFD == 0)
-			code[i].outputCR0 = true;
-		else
-			code[i].outputCR0 = (flags & FL_SET_CR0) ? true : false;
-
-		// Does the instruction output CR1?
-		if (flags & FL_RC_BIT_F)
-			code[i].outputCR1 = inst.hex & 1; //todo fix
-		else if ((flags & FL_SET_CRn) && inst.CRFD == 1)
-			code[i].outputCR1 = true;
-		else
-			code[i].outputCR1 = (flags & FL_SET_CR1) ? true : false;
-
-		int numOut = 0;
-		int numIn = 0;
-		if (flags & FL_OUT_A)
+		if (inst.hex != 0)
 		{
-			code[i].regsOut[numOut++] = inst.RA;
-			gpa->SetOutputRegister(inst.RA, i);
-		}
-		if (flags & FL_OUT_D)
-		{
-			code[i].regsOut[numOut++] = inst.RD;
-			gpa->SetOutputRegister(inst.RD, i);
-		}
-		if (flags & FL_OUT_S)
-		{
-			code[i].regsOut[numOut++] = inst.RS;
-			gpa->SetOutputRegister(inst.RS, i);
-		}
-		if ((flags & FL_IN_A) || ((flags & FL_IN_A0) && inst.RA != 0))
-		{
-			code[i].regsIn[numIn++] = inst.RA;
-			gpa->SetInputRegister(inst.RA, i);
-		}
-		if (flags & FL_IN_B)
-		{
-			code[i].regsIn[numIn++] = inst.RB;
-			gpa->SetInputRegister(inst.RB, i);
-		}
-		if (flags & FL_IN_C)
-		{
-			code[i].regsIn[numIn++] = inst.RC;
-			gpa->SetInputRegister(inst.RC, i);
-		}
-		if (flags & FL_IN_S)
-		{
-			code[i].regsIn[numIn++] = inst.RS;
-			gpa->SetInputRegister(inst.RS, i);
-		}
+			code[i].inst = inst;
+			code[i].branchTo = -1;
+			code[i].branchToIndex = -1;
+			code[i].skip = false;
+			GekkoOPInfo *opinfo = GetOpInfo(inst);
+			code[i].opinfo = opinfo;
+			if (opinfo)
+				numCycles += opinfo->numCyclesMinusOne + 1;
+			_assert_msg_(POWERPC, opinfo != 0, "Invalid Op - Error flattening %08x op %08x", address + i*4, inst.hex);
 
-		// Set remaining register slots as unused (-1)
-		for (int j = numIn; j < 3; j++)
-			code[i].regsIn[j] = -1;
-		for (int j = numOut; j < 2; j++)
-			code[i].regsOut[j] = -1;
-		for (int j = 0; j < 3; j++)
-			code[i].fregsIn[j] = -1;
-		code[i].fregOut = -1;
+			code[i].wantsCR0 = false;
+			code[i].wantsCR1 = false;
+			code[i].wantsPS1 = false;
 
-		switch (opinfo->type) 
-		{
-		case OPTYPE_INTEGER:
-		case OPTYPE_LOAD:
-		case OPTYPE_STORE:
-			break;
-		case OPTYPE_FPU:
-			break;
-		case OPTYPE_LOADFP:
-			break;
-		case OPTYPE_BRANCH:
-			if (code[i].inst.hex == 0x4e800020)
-			{
-				// For analysis purposes, we can assume that blr eats flags.
+			int flags = opinfo->flags;
+
+			if (flags & FL_USE_FPU)
+				fpa->any = true;
+
+			if (flags & FL_TIMER)
+				gpa->anyTimer = true;
+
+			// Does the instruction output CR0?
+			if (flags & FL_RC_BIT)
+				code[i].outputCR0 = inst.hex & 1; //todo fix
+			else if ((flags & FL_SET_CRn) && inst.CRFD == 0)
 				code[i].outputCR0 = true;
-				code[i].outputCR1 = true;
-			}
-			break;
-		case OPTYPE_SYSTEM:
-		case OPTYPE_SYSTEMFP:
-			numSystemInstructions++;
-			break;
-		}
-
-		bool follow = false;
-		u32 destination;
-		if (inst.OPCD == 18 && blockSize > 1)
-		{
-			//Is bx - should we inline? yes!
-			if (inst.AA)
-				destination = SignExt26(inst.LI << 2);
 			else
-				destination = address + SignExt26(inst.LI << 2);
-			if (destination != blockstart)
-				follow = true;
-		}
-		if (follow)
-			numFollows++;
-		if (numFollows > 1)
-			follow = false;
-		follow = false;
-		if (!follow)
-		{
-			if (opinfo->flags & FL_ENDBLOCK) //right now we stop early
+				code[i].outputCR0 = (flags & FL_SET_CR0) ? true : false;
+
+			// Does the instruction output CR1?
+			if (flags & FL_RC_BIT_F)
+				code[i].outputCR1 = inst.hex & 1; //todo fix
+			else if ((flags & FL_SET_CRn) && inst.CRFD == 1)
+				code[i].outputCR1 = true;
+			else
+				code[i].outputCR1 = (flags & FL_SET_CR1) ? true : false;
+
+			int numOut = 0;
+			int numIn = 0;
+			if (flags & FL_OUT_A)
 			{
-				foundExit = true;
+				code[i].regsOut[numOut++] = inst.RA;
+				gpa->SetOutputRegister(inst.RA, i);
+			}
+			if (flags & FL_OUT_D)
+			{
+				code[i].regsOut[numOut++] = inst.RD;
+				gpa->SetOutputRegister(inst.RD, i);
+			}
+			if (flags & FL_OUT_S)
+			{
+				code[i].regsOut[numOut++] = inst.RS;
+				gpa->SetOutputRegister(inst.RS, i);
+			}
+			if ((flags & FL_IN_A) || ((flags & FL_IN_A0) && inst.RA != 0))
+			{
+				code[i].regsIn[numIn++] = inst.RA;
+				gpa->SetInputRegister(inst.RA, i);
+			}
+			if (flags & FL_IN_B)
+			{
+				code[i].regsIn[numIn++] = inst.RB;
+				gpa->SetInputRegister(inst.RB, i);
+			}
+			if (flags & FL_IN_C)
+			{
+				code[i].regsIn[numIn++] = inst.RC;
+				gpa->SetInputRegister(inst.RC, i);
+			}
+			if (flags & FL_IN_S)
+			{
+				code[i].regsIn[numIn++] = inst.RS;
+				gpa->SetInputRegister(inst.RS, i);
+			}
+
+			// Set remaining register slots as unused (-1)
+			for (int j = numIn; j < 3; j++)
+				code[i].regsIn[j] = -1;
+			for (int j = numOut; j < 2; j++)
+				code[i].regsOut[j] = -1;
+			for (int j = 0; j < 3; j++)
+				code[i].fregsIn[j] = -1;
+			code[i].fregOut = -1;
+
+			switch (opinfo->type) 
+			{
+			case OPTYPE_INTEGER:
+			case OPTYPE_LOAD:
+			case OPTYPE_STORE:
+			case OPTYPE_LOADFP:
+			case OPTYPE_STOREFP:
+				break;
+			case OPTYPE_FPU:
+				break;
+			case OPTYPE_BRANCH:
+				if (code[i].inst.hex == 0x4e800020)
+				{
+					// For analysis purposes, we can assume that blr eats flags.
+					code[i].outputCR0 = true;
+					code[i].outputCR1 = true;
+				}
+				break;
+			case OPTYPE_SYSTEM:
+			case OPTYPE_SYSTEMFP:
+				numSystemInstructions++;
 				break;
 			}
-			address += 4;
+
+			bool follow = false;
+			u32 destination;
+			if (inst.OPCD == 18 && blockSize > 1)
+			{
+				//Is bx - should we inline? yes!
+				if (inst.AA)
+					destination = SignExt26(inst.LI << 2);
+				else
+					destination = address + SignExt26(inst.LI << 2);
+				if (destination != blockstart)
+					follow = true;
+			}
+			if (follow)
+				numFollows++;
+			if (numFollows > 1)
+				follow = false;
+			follow = false;
+			if (!follow)
+			{
+				if (opinfo->flags & FL_ENDBLOCK) //right now we stop early
+				{
+					foundExit = true;
+					break;
+				}
+				address += 4;
+			}
+			else
+			{
+				code[i].skip = true;
+				address = destination;
+			}
 		}
 		else
 		{
-			code[i].skip = true;
-			address = destination;
+			// Memory exception occurred
+			break;
 		}
-	}	
-	if (!foundExit && blockSize > 1)
-		NOTICE_LOG(POWERPC, "Analyzer ERROR - Function %08x too big, size is 0x%08x", blockstart, address-blockstart);
+	}
 	st->numCycles = numCycles;
 
 	// Instruction Reordering Pass
-	if (blockSize > 1)
+	if (num_inst > 2)
 	{
 		// Bubble down compares towards branches, so that they can be merged.
 		// -2: -1 for the pair, -1 for not swapping with the final instruction which is probably the branch.
@@ -493,6 +499,13 @@ u32 Flatten(u32 address, int *realsize, BlockStats *st, BlockRegStats *gpa, Bloc
 			}
 		}
 	}
+
+	if (!foundExit && num_inst > 1)
+	{
+		// A broken block is a block that does not end in a branch
+		broken_block = true;
+	}
+	
 	// Scan for CR0 dependency
 	// assume next block wants CR0 to be safe
 	bool wantsCR0 = true;

@@ -64,6 +64,8 @@ protected:
 
 		bool isLastInstruction;
 		bool forceUnsafeLoad;
+		bool memcheck;
+		bool broken_block;
 
 		int fifoBytesThisBlock;
 

@@ -77,6 +77,7 @@ struct SCoreStartupParameter
 	bool bRunCompareServer;
 	bool bRunCompareClient;
 
+	bool bMMU;
 	int iTLBHack;
 
 	int SelectedLanguage;

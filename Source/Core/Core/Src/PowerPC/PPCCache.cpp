@@ -99,7 +99,7 @@ namespace PowerPC
 
 	u32 InstructionCache::ReadInstruction(u32 addr)
 	{		
-		if (!HID0.ICE) // instuction cache is disabled
+		if (!HID0.ICE) // instruction cache is disabled
 			return Memory::ReadUnchecked_U32(addr);
 		u32 set = (addr >> 5) & 0x7f;
 		u32 tag = addr >> 12;

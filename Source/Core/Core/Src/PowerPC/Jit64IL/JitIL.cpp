@@ -357,13 +357,13 @@ void JitIL::SingleStep()
 	pExecAddr();
 }
 
-void JitIL::Trace(PPCAnalyst::CodeBuffer *code_buf, u32 em_address)
+void JitIL::Trace()
 {
 	char regs[500] = "";
 	char fregs[750] = "";
 
 #ifdef JIT_LOG_GPR
-	for (unsigned int i = 0; i < 32; i++)
+	for (int i = 0; i < 32; i++)
 	{
 		char reg[50];
 		sprintf(reg, "r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
@@ -372,18 +372,18 @@ void JitIL::Trace(PPCAnalyst::CodeBuffer *code_buf, u32 em_address)
 #endif
 
 #ifdef JIT_LOG_FPR
-	for (unsigned int i = 0; i < 32; i++)
+	for (int i = 0; i < 32; i++)
 	{
 		char reg[50];
 		sprintf(reg, "f%02d: %016x ", i, riPS0(i));
 		strncat(fregs, reg, 750);
 	}
 #endif	
-	const PPCAnalyst::CodeOp &op = code_buf->codebuffer[0];
-	char ppcInst[256];
-	DisassembleGekko(op.inst.hex, em_address, ppcInst, 256);
-	
-	NOTICE_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s %08x %s", PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs, op.inst.hex, ppcInst);
+
+	NOTICE_LOG(DYNA_REC, "JITIL PC: %08x SRR0: %08x SRR1: %08x CRfast: %02x%02x%02x%02x%02x%02x%02x%02x FPSCR: %08x MSR: %08x LR: %08x %s %s", 
+		PC, SRR0, SRR1, PowerPC::ppcState.cr_fast[0], PowerPC::ppcState.cr_fast[1], PowerPC::ppcState.cr_fast[2], PowerPC::ppcState.cr_fast[3], 
+		PowerPC::ppcState.cr_fast[4], PowerPC::ppcState.cr_fast[5], PowerPC::ppcState.cr_fast[6], PowerPC::ppcState.cr_fast[7], PowerPC::ppcState.fpscr, 
+		PowerPC::ppcState.msr, PowerPC::ppcState.spr[8], regs, fregs);
 }
 
 void STACKALIGN JitIL::Jit(u32 em_address)
@@ -401,11 +401,14 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 {
 	int blockSize = code_buf->GetSize();
 
+	// A broken block is a block that does not end in a branch
+	bool broken_block = false;
+
 	if (Core::g_CoreStartupParameter.bEnableDebugging)
 	{
 		// Comment out the following to disable breakpoints (speed-up)
 		blockSize = 1;
-		Trace(code_buf, em_address);
+		Trace();
 	}
 
 	if (em_address == 0)
@@ -420,7 +423,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer *code_buf, JitBloc
 
 	//Analyze the block, collect all instructions it is made of (including inlining,
 	//if that is enabled), reorder instructions for optimal performance, and join joinable instructions.
-	b->exitAddress[0] = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, code_buf, blockSize);
+	b->exitAddress[0] = PPCAnalyst::Flatten(em_address, &size, &js.st, &js.gpa, &js.fpa, broken_block, code_buf, blockSize);
 	PPCAnalyst::CodeOp *ops = code_buf->codebuffer;
 
 	const u8 *start = AlignCode4(); //TODO: Test if this or AlignCode16 make a difference from GetCodePtr
